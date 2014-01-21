@@ -37,8 +37,10 @@
 #ifndef lib_pcap_pcap_h
 #define lib_pcap_pcap_h
 
+#define WIN32 1
+
 #if defined(WIN32)
-  #include "pcap-stdinc.h"
+  #include "WinPcap/pcap-stdinc.h"
 #elif defined(MSDOS)
   #include <sys/types.h>
   #include <sys/socket.h>  /* u_int, u_char etc. */
@@ -48,7 +50,7 @@
 #endif /* WIN32/MSDOS/UN*X */
 
 #ifndef PCAP_DONT_INCLUDE_PCAP_BPF_H
-#include "pcap/bpf.h"
+#include "WinPcap/pcap/bpf.h"
 #endif
 
 #include <stdio.h>
@@ -368,7 +370,7 @@ int pcap_setmintocopy(pcap_t *p, int size);
 
 #ifdef WPCAP
 /* Include file with the wpcap-specific extensions */
-#include "Win32-Extensions.h"
+#include "WinPcap/Win32-Extensions.h"
 #endif /* WPCAP */
 
 #define MODE_CAPT 0
@@ -397,7 +399,7 @@ int	pcap_get_selectable_fd(pcap_t *);
 
 #ifdef HAVE_REMOTE
 /* Includes most of the public stuff that is needed for the remote capture */
-#include "remote-ext.h"
+#include "WinPcap/remote-ext.h"
 #endif	 /* HAVE_REMOTE */
 
 #ifdef __cplusplus

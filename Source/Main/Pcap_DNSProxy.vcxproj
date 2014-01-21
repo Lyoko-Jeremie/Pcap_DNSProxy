@@ -18,6 +18,39 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Pcap_DNSProxy.h" />
+    <ClInclude Include="Pcap_DNSProxy_Base.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Winpcap\bittypes.h" />
+    <ClInclude Include="Winpcap\ip6_misc.h" />
+    <ClInclude Include="Winpcap\pcap-stdinc.h" />
+    <ClInclude Include="Winpcap\pcap.h" />
+    <ClInclude Include="Winpcap\pcap\bpf.h" />
+    <ClInclude Include="Winpcap\pcap\pcap.h" />
+    <ClInclude Include="Winpcap\remote-ext.h" />
+    <ClInclude Include="Winpcap\Win32-Extensions.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="WinPcap\wpcap_x64.lib" />
+    <Library Include="WinPcap\wpcap_x86.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Capture.cpp" />
+    <ClCompile Include="ClassInitialization.cpp" />
+    <ClCompile Include="Configuration.cpp" />
+    <ClCompile Include="Console.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Monitor.cpp" />
+    <ClCompile Include="PrintError.cpp" />
+    <ClCompile Include="Process.cpp" />
+    <ClCompile Include="Protocol.cpp" />
+    <ClCompile Include="Request.cpp" />
+    <ClCompile Include="Service.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Pcap_DNSProxy.rc" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FC0DA489-AC9A-4614-A490-D4DAF2056284}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -121,10 +154,11 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
@@ -142,43 +176,15 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="Pcap_DNSProxy.h" />
-    <ClInclude Include="Pcap_DNSProxy_Base.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="Winpcap\bittypes.h" />
-    <ClInclude Include="Winpcap\ip6_misc.h" />
-    <ClInclude Include="Winpcap\pcap-stdinc.h" />
-    <ClInclude Include="Winpcap\pcap.h" />
-    <ClInclude Include="Winpcap\pcap\bpf.h" />
-    <ClInclude Include="Winpcap\pcap\pcap.h" />
-    <ClInclude Include="Winpcap\remote-ext.h" />
-    <ClInclude Include="Winpcap\Win32-Extensions.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Capture.cpp" />
-    <ClCompile Include="ClassInitialization.cpp" />
-    <ClCompile Include="Configuration.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Process.cpp" />
-    <ClCompile Include="Monitor.cpp" />
-    <ClCompile Include="PrintError.cpp" />
-    <ClCompile Include="Protocol.cpp" />
-    <ClCompile Include="Request.cpp" />
-    <ClCompile Include="Service.cpp" />
-    <ClCompile Include="Console.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="Pcap_DNSProxy.rc" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
