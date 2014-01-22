@@ -1,8 +1,8 @@
 ﻿Pcap_DNSProxy
 =====
+A local DNS server base on WinPcap.
 
 ### 关于分支
------
 本分支 master 为 Pcap_DNSProxy 项目的主分支，用于存放源代码和说明文档。**编译版本请移步：**
 * [Release_x86 分支](https://github.com/chengr28/pcap_dnsproxy/tree/Release_x86)<br />
 * [Release_x64 分支](https://github.com/chengr28/pcap_dnsproxy/tree/Release_x64)<br />
