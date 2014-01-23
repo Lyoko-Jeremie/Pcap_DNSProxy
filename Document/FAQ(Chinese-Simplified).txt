@@ -61,7 +61,7 @@ Error.log 详细错误报告，错误报告一共有5大类型：
   * Memory allocation failed - 内存申请失败，说明内存严重不足：可能为其它程序耗尽内存所致，或者您可能需要更新硬件设备
   * Service start failed(It's probably a Firewall Test, please restart service and check once again) - 服务启动失败：您可能未在系统注册服务，或在系统内注册的服务路径不正确
     * 注意：初次运行程序时进行的Windows防火墙测试也可能会产生此错误，服务成功启动后将自己删除
-	* 详细情况参见 ReadMe 文档
+	* 详细情况参见 ReadMe 文档中 安装方法 一节
 	* 其它错误代码原因参见 http://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
  
 2.Parameter Error - 读取 Config.ini 参数错误
@@ -105,7 +105,7 @@ Error.log 详细错误报告，错误报告一共有5大类型：
   * UDP request initialization failed - UDP请求套接字初始化失败：原因参见错误代码
   * UDP request error - UDP请求发送失败：可能为网络错误，具体原因可参见错误代码
   * TCP request initialization failed - TCP请求套接字初始化失败：原因参见错误代码
-  * TCP request error - TCP请求发送失败：：可能为网络错误，具体原因可参见错误代码
+  * TCP request error - TCP请求发送失败：可能为网络错误，具体原因可参见错误代码
   * Winsock 错误代码具体含义可移步 http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 
 5.WinPcap Error - WinPcap 错误

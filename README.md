@@ -30,8 +30,8 @@ A local DNS server base on WinPcap.
 * 错误报告功能
 
 ### 支持平台
-* 所有 Windows NT(4) 以及更新内核的操作系统（32位/x86版本）
-* Windows Vista 以及更新的操作系统（64位/x64版本）
+* **所有 Windows NT(4) 以及更新内核的操作系统（32位/x86版本）**
+* **Windows Vista 以及更新的操作系统（64位/x64版本）**
 * WinPcap 4.1.3 以及更新版本
 * 网络设备类型为 Ethernet 或直接使用 PPPoE 协议均可
-* 本工具只支持原生IPv4/IPv6网络，非原生IPv6切勿开启IPv6功能
+* 本工具只支持原生IPv4/IPv6网络，**非原生IPv6切勿开启IPv6功能**
