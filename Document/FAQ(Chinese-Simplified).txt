@@ -66,6 +66,7 @@ Error.log 详细错误报告，错误报告一共有5大类型：
  
 2.Parameter Error - 读取 Config.ini 参数错误
   * Cannot open configuration file(Config.ini) - 无法打开 Config.ini 文件：请确认文件是否存在
+  * Parameter data of a line is too long - Config.ini 文件一行数据超过2048字节/2KB：请确认文件的内容是否符合要求
   * DNS server IPv4 Address format error - IPv4的DNS服务器地址格式错误（可根据报告的行数查找）：请确认IPv4的DNS服务器地址
   * DNS server IPv4 Address convert failed - IPv4的DNS服务器地址转换错误（可根据报告的行数查找）：请确认IPv4的DNS服务器地址
   * DNS server IPv6 Address format error - IPv6的DNS服务器地址格式错误（可根据报告的行数查找）：请确认IPv6的DNS服务器地址
@@ -79,6 +80,7 @@ Error.log 详细错误报告，错误报告一共有5大类型：
 
 3.Hosts Error - 读取 Hosts 错误
   * Cannot open hosts file(Hosts.ini) - 无法打开 Hosts.ini 文件：请确认文件是否存在
+  * Hosts data of a line is too long - Hosts.ini 文件一行数据超过2048字节/2KB：请确认文件的内容是否符合要求
   * Too many Hosts IP addresses - 过多的平行地址条目（可根据报告的行数查找）：请删除过多的平行地址数据，解析结果容量有限
   * Multiple addresses format error - 错误的平行地址条目格式（可根据报告的行数查找）：参见 ReadMe 文档
   * Hosts IPv4 address format error - Hosts的IPv4地址格式错误（可根据报告的行数查找）：请确认地址的正确性
@@ -105,7 +107,6 @@ Error.log 详细错误报告，错误报告一共有5大类型：
   * UDP request initialization failed - UDP请求套接字初始化失败：原因参见错误代码
   * UDP request error - UDP请求发送失败：可能为网络错误，具体原因可参见错误代码
   * TCP request initialization failed - TCP请求套接字初始化失败：原因参见错误代码
-  * TCP request error - TCP请求发送失败：可能为网络错误，具体原因可参见错误代码
   * Winsock 错误代码具体含义可移步 http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 
 5.WinPcap Error - WinPcap 错误
