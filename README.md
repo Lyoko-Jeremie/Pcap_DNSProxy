@@ -19,14 +19,15 @@ A local DNS server base on WinPcap.
 ### 特点
 * 同时支持IPv4/IPv6协议，也可单独开启
 * 同时支持TCP/UDP协议
-* 原生64位/x64目标平台编译
+* 原生64位/x64目标平台编译版本
 * 无需安装VC++运行库，本地代码编译不含任何托管代码
 * 作为服务工作于系统底层
 * 多线程模型
 * 正则表达式支持由 C++ STL 提供
 * 使用WinPcap利用系统底层驱动抓取数据包，多种过滤方式忽略接收到的伪造数据包
 * 支持服务器模式，相当于搭建了一个小型的DNS服务器，能为其他设备提供解析服务
-* 丰富的配置选项，配置文件支持 ANSI、UTF-8(/BOM)、UTF-16(LE/BE) 和 UTF-32(LE/BE) 编码以及 Windows/Unix/Macintosh 换行格式
+* 支持境内DNS服务器解析，可提高境内服务器的访问速度
+* 丰富的配置选项，配置和Hosts文件支持 ANSI、UTF-8(/BOM)、UTF-16(LE/BE) 和 UTF-32(LE/BE) 编码以及 Windows/Unix/Macintosh 换行格式
 * 错误报告功能
 
 ### 支持平台

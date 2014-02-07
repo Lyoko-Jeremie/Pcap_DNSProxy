@@ -11,7 +11,7 @@
 * 正常的运行结果应类似：
 
    >nslookup www.google.com
-    服务器:  pcap_dnsproxy.localhost.server（注意：此处由 Config.ini 设置的值确定，参见下文 Config.ini 详细参数说明）
+    服务器:  pcap_dnsproxy.localhost.server（注意：此处由 Config.ini 设置的值确定，参见 ReadMe 文档中 Config.ini 详细参数说明）
     Address:  127.0.0.1（IPv4，IPv6下为 ::1 ）
 
     非权威应答:
@@ -32,7 +32,7 @@
   * 也可能是因为长时间运行有错误累积造成，项目组正努力解决。可尝试重启服务（参见 ReadMe 文档中 “注意事项” 一节中的 重启服务）
 
    >nslookup www.google.com
-    服务器:  pcap_dnsproxy.localhost.server（注意：此处由 Config.ini 设置的值确定，参见下文 Config.ini 详细参数说明）
+    服务器:  pcap_dnsproxy.localhost.server（注意：此处由 Config.ini 设置的值确定，参见 ReadMe 文档中 Config.ini 详细参数说明）
     Address:  127.0.0.1（IPv4，IPv6下为 ::1 ）
 
     DNS request timed out.
@@ -43,10 +43,11 @@
         timeout was 2 seconds.
     DNS request timed out.
         timeout was 2 seconds.
-    *** 请求 pcap_dnsproxy.localhost.server 超时（注意：此处由 Config.ini 设置的值确定，参见下文 Config.ini 详细参数说明）
+    *** 请求 pcap_dnsproxy.localhost.server 超时（注意：此处由 Config.ini 设置的值确定，参见 ReadMe 文档中 Config.ini 详细参数说明）
 
 
 -------------------------------------------------------------------------------
+
 
 当程序运行时发生错误，可能会生成错误报告也就是 Error.log 文件，其位于工具服务注册的目录内，对解决问题至关重要
 错误报告的格式为 “日期 时间 -> 错误类型: 详细错误信息(行数, 错误代码)”（不含双引号，括号为可能出现内容）
@@ -67,6 +68,7 @@ Error.log 详细错误报告，错误报告一共有5大类型：
 2.Parameter Error - 读取 Config.ini 参数错误
   * Cannot open configuration file(Config.ini) - 无法打开 Config.ini 文件：请确认文件是否存在
   * Parameter data of a line is too long - Config.ini 文件一行数据超过2048字节/2KB：请确认文件的内容是否符合要求
+  * Configuration file version error - 配置文件版本错误：请确认配置文件是否需要更新
   * DNS server IPv4 Address format error - IPv4的DNS服务器地址格式错误（可根据报告的行数查找）：请确认IPv4的DNS服务器地址
   * DNS server IPv4 Address convert failed - IPv4的DNS服务器地址转换错误（可根据报告的行数查找）：请确认IPv4的DNS服务器地址
   * DNS server IPv6 Address format error - IPv6的DNS服务器地址格式错误（可根据报告的行数查找）：请确认IPv6的DNS服务器地址
@@ -81,6 +83,7 @@ Error.log 详细错误报告，错误报告一共有5大类型：
 3.Hosts Error - 读取 Hosts 错误
   * Cannot open hosts file(Hosts.ini) - 无法打开 Hosts.ini 文件：请确认文件是否存在
   * Hosts data of a line is too long - Hosts.ini 文件一行数据超过2048字节/2KB：请确认文件的内容是否符合要求
+  * Hosts file version error - Hosts文件版本错误：请确认Hosts文件是否需要更新
   * Too many Hosts IP addresses - 过多的平行地址条目（可根据报告的行数查找）：请删除过多的平行地址数据，解析结果容量有限
   * Multiple addresses format error - 错误的平行地址条目格式（可根据报告的行数查找）：参见 ReadMe 文档
   * Hosts IPv4 address format error - Hosts的IPv4地址格式错误（可根据报告的行数查找）：请确认地址的正确性
@@ -88,10 +91,10 @@ Error.log 详细错误报告，错误报告一共有5大类型：
   * Hosts IPv6 address format error - Hosts的IPv6地址格式错误（可根据报告的行数查找）：请确认地址的正确性
   * Hosts IPv6 address convert failed - Hosts的IPv6地址转换错误（可根据报告的行数查找）：请确认地址的正确性
   * Regular expression pattern error - 错误的正则表达式（可根据报告的行数查找）：请确认正则表达式的正确性
-
+  
 4.Winsock Error - Windows socket 错误
-  * Windows Firewall Test failed - Windows防火墙测试失败：请确认是否为管理员身份运行批处理
   * Winsock initialization failed - Winsock初始化失败：请确认使用的操作系统平台是否受支持
+  * Windows Firewall Test failed - Windows防火墙测试失败：请确认是否为管理员身份运行批处理
   * UDP Monitor socket initialization failed - UDP本地套接字初始化失败：原因参见错误代码
   * Bind UDP Monitor socket error - UDP本地套接字绑定失败：可能是因为本地已经存在DNS服务器或者多重运行了本工具，具体原因参见错误代码
   * TCP Monitor socket initialization failed - TCP本地套接字初始化失败：原因参见错误代码
