@@ -1,4 +1,15 @@
-﻿Pcap_DNSProxy v0.3 更新日志：
+﻿Pcap_DNSProxy v0.3.1(Windows)/v0.1(Linux) 更新日志：
+
+* Pcap_DNSProxy v0.1 Linux Release 正式发布！
+* 剥离并更新IPv4/IPv6保留地址列表过滤模块(Windows)
+  * 升级解析结果黑名单地址过滤功能
+  * 修复本地IPv6地址获取功能的Bug
+  * 修复自动刷新本地地址的Bug
+* 修复本地可通讯地址识别错误的Bug(Windows)
+
+-------------------------------------------------------------------------------
+
+Pcap_DNSProxy v0.3 更新日志：
 
 * 32位/x86版本使用 WSAAddressToString() 和 WSAStringToAddress() 替代 inet_ntop() 和 inet_pton() 以支持 Windows XP 以及更旧的系统 [Roy Tam]
 * 添加对固定列表域名请求境内域名解析服务器的功能 [陈斐]

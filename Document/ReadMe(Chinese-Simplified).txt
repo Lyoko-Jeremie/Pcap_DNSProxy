@@ -51,7 +51,7 @@ Pcap_DNSProxy 支持平台：
 2.访问 https://github.com/chengr28/pcap_dnsproxy/branches 选择合适的Release版本，并使用GitHub的 Download ZIP 功能将所有文件下载到本地
   * Release_x86 为32位版本，可在任何版本操作系统上使用
   * Release_x64 为原生64位版本，强烈建议64位操作系统用户使用
-3.打开下载回来的ZIP文件，将 Release_x86/Release_x64 目录解压到磁盘的任意位置
+3.打开下载回来的ZIP文件，将 Windows 目录解压到磁盘的任意位置
   * 文件夹的名称可以随意更改
 4.确定工具文件夹的名称和路径后进入文件夹内，运行 ServiceInstall.bat
   * 此批处理作用为将程序注册系统服务，并进行Windows防火墙测试
@@ -128,7 +128,8 @@ Pcap_DNSProxy 支持平台：
 * 文件夹和程序的名称可以随意更改，但请务必在进行安装方法第4步前完成。如果服务注册后需移动工具文件夹的路径，则需要:
   * 必须先停止工具服务
   * 移动工具文件夹
-  * 重复安装方法中的第4步-第6步操作
+  * 重复 安装方法 中的第4步-第6步操作
+* 安装/卸载某些软件可能会导致网络设配器离线使WinPcap模块返回，网络设配器离线又重新启动后请重启服务
 * 关于请求域名解析的优先级
   * 使用系统API函数进行域名解析（大部分）：系统 Hosts > Pcap_DNSProxy 的 Hosts.ini（Whitelist/白名单条目 > Local Hosts/境内DNS解析域名列表 > Hosts/主要Hosts列表） > 远程DNS服务器
   * 直接使用网络适配器设置进行域名解析（小部分）：Pcap_DNSProxy 的 Hosts.ini（Whitelist/白名单条目 > Local Hosts/境内DNS解析域名列表 > Hosts/主要Hosts列表） > 远程DNS服务器
