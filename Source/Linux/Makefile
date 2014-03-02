@@ -1,4 +1,4 @@
-# This code is part of Pcap_DNSProxy
+# This code is part of Pcap_DNSProxy(Linux)
 # Copyright (C) 2012-2014 Chengr28
 # 
 # This program is free software; you can redistribute it and/or
@@ -20,29 +20,12 @@
 Target_Name = Pcap_DNSProxy
 CC = g++
 COM_FLAGS = -std=c++11 -O3 -pthread -fpic -c
-LNK_FLAGS = -std=c++11 -O3 -pthread -lpcap -Xlinker 
-SRC_DIR = Source/
+LNK_FLAGS = -std=c++11 -O3 -pthread -lpcap -Xlinker
+SRC_DIR = 
 OBJ_DIR = ./Object/
 READ_TEMP = 
 
-all : Warning Directory Target BuildService clean
-Warning : 
-		@echo WARNING:
-		@echo Before compiling Pcap_DNSProxy, please confirm all dependency packpages has been install.
-		@echo Dependency packpages of Pcap_DNSProxy are GCC\(C++/g++, must support C++ 11 standard\) and libpcap.
-		@echo Dependency packpages of libpcap are GCC, bison, m4, flex and libpcap-dev.
-		@echo If not sure libpcap installed success or not, run \"man pcap\" in terminal.
-		@echo When libpcap installed success, you can see like those messages on screen:
-		@echo --------------------------------------------------
-		@echo PCAP\(3PCAP\) ... PCAP\(3PCAP\)
-		@echo NAME
-		@echo pcap - Packet Capture library
-		@echo SYNOPSIS
-		@echo \#include \<pcap/pcap.h\>
-		@echo ...
-		@echo --------------------------------------------------
-		@echo Enjoy it =w=
-		@-read READ_TEMP
+all : Directory Target BuildService clean
 Directory : 
 		@echo Creating directory of object files.
 		@-mkdir Object

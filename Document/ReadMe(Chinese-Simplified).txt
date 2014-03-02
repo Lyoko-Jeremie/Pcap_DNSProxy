@@ -1,6 +1,6 @@
 ﻿特别声明：
 
-Pcap_DNSProxy 仅供学习交流，遵循 GUN GPL 通用公共许可证 (GNU General Public License) ，切勿将其用于任何非法用途！
+Pcap_DNSProxy 仅供学习交流，遵循 GNU GPL 通用公共许可证 (GNU General Public License) ，切勿将其用于任何非法用途！
 使用前请自行估量是否有加载 Pcap_DNSProxy 的需要，如果不能清楚判断而造成之不良后果，项目组所有成员均不承担一切责任！
 使用 Pcap_DNSProxy 源代码前务必参阅 GNU-GPL-v2.0 以及 Source-License 通用公共许可证之内容！
 
@@ -10,6 +10,9 @@ Pcap_DNSProxy 项目的GitHub页面：
 * Release_x86 分支: https://github.com/chengr28/pcap_dnsproxy/tree/Release_x86
 * Release_x64 分支: https://github.com/chengr28/pcap_dnsproxy/tree/Release_x64
 
+Pcap_DNSProxy 项目的Sourceforge页面：
+http://sourceforge.net/projects/pcap-dnsproxy
+
 
 -------------------------------------------------------------------------------
 
@@ -17,7 +20,7 @@ Pcap_DNSProxy 项目的GitHub页面：
 Pcap_DNSProxy 是一个基于WinPcap制作的用于忽略DNS投毒污染的小工具，后期也加入了对包含正则表达式的Hosts的支持
 现在网络上有很多使用TCP协议进行解析的工具，以此来躲避DNS投毒污染。但事实上已经出现有使用TCP协议请求域名解析时被RESET/连接重置的情况，而使用UDP协议则又会被DNS投毒污染，导致始终无法获得正确的域名解析。本工具主要工作在UDP协议上，可以将伪造的数据包完全过滤，同时UDP协议比起TCP协议更具有占用资源低和发送转发接收速度快等特点。本工具同时也支持使用TCP协议进行请求，而且在被连接重置时会自动切换到UDP协议，可以使请求者获得正确的域名解析
 而支持正则表达式的Hosts，则可以为使用者提供更加便捷的途径设定域名所对应的地址，避免修改系统文件的麻烦
-本工具使用 C/C++ 编写而成，使用 Visual Studio 2012 进行编译，完全支持 Unicode
+本工具使用 C/C++ 编写而成，使用 Visual Studio 2012(Update 3)/VC++ 11.0 进行编译，完全支持 Unicode
 
 Pcap_DNSProxy 的特点：
 * 同时支持IPv4/IPv6协议，也可单独开启
@@ -34,9 +37,8 @@ Pcap_DNSProxy 的特点：
 * 错误报告功能
 
 Pcap_DNSProxy 支持平台：
-* 所有 Windows NT(4) 以及更新内核的操作系统（32位/x86版本）
-* Windows Vista 以及更新的操作系统（64位/x64版本）
-* WinPcap 4.1.3 以及更新版本
+* 所有 Windows NT(4) 以及更新内核的操作系统（32位/x86版本） 和 Windows Vista 以及更新的操作系统（64位/x64版本）
+* 支持最新版本 WinPcap（参见 http://www.winpcap.org/install/default.htm）
 * 网络设备类型为 Ethernet 或直接使用 PPPoE 协议均可
 * 本工具只支持原生IPv4/IPv6网络，非原生IPv6切勿开启IPv6功能
 
@@ -51,10 +53,11 @@ Pcap_DNSProxy 支持平台：
 2.访问 https://github.com/chengr28/pcap_dnsproxy/branches 选择合适的Release版本，并使用GitHub的 Download ZIP 功能将所有文件下载到本地
   * Release_x86 为32位版本，可在任何版本操作系统上使用
   * Release_x64 为原生64位版本，强烈建议64位操作系统用户使用
-3.打开下载回来的ZIP文件，将 Windows 目录解压到磁盘的任意位置
-  * 文件夹的名称可以随意更改
+3.打开下载回来的ZIP文件，将 Main 目录解压到磁盘的任意位置
+  * 目录和程序的名称可以随意更改
 4.确定工具文件夹的名称和路径后进入文件夹内，运行 ServiceInstall.bat
   * 此批处理作用为将程序注册系统服务，并进行Windows防火墙测试
+  * 注意 Windows 8.1 下批处理可能无法找到程序，也可直接运行 Pcap_DNSProxy 程序进行Windows防火墙测试
   * 进行此步后到第6步之前有错误报告生成为正常现象，请先按照步骤继续进行
 5.此时Windows系统会询问是否同意程序访问网络，请将 “专用网络” 以及 “公用网络” 都勾上并确认
 6.运行 ServiceStart.bat 启动服务
@@ -104,7 +107,7 @@ Pcap_DNSProxy 支持平台：
 * 请务必设置一个正确的、有效的、可以正常使用的境外DNS服务器！
 * 配置文件和错误报告所在的目录以上文 安装方法 一节中第4步注册的服务信息为准，注意填写时一行不要超过2048字节/2KB
 * 服务启动前请先确认没有其它本地DNS服务器运行或本工具多个拷贝在运行中，否则可能会导致监听冲突无法正常工作
-  * 监听冲突会生成错误报告，可留意 Windows socket 相关的错误（参见 FAQ 文档 Error.log 详细错误报告 一节）
+  * 监听冲突会生成错误报告，可留意 Windows Socket 相关的错误（参见 FAQ 文档中 Error.log 详细错误报告 一节）
 * 杀毒软件/第三方防火墙可能会阻止本程序的操作，请将行为全部允许或将本程序加入到白名单中
 * 文件夹内批处理的作用（运行结束会有运行结果）：
   * ServiceInstall - 将程序注册系统服务，并初次启动程序进行Windows防火墙测试

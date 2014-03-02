@@ -1,16 +1,16 @@
-// This code is part of Pcap_DNSProxy(Linux)
+// This code is part of Pcap_DNSProxy(Mac)
 // Copyright (C) 2012-2014 Chengr28
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either
 // version 2 of the License, or (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -36,8 +36,8 @@ size_t RequestProcess(const char *Send, const size_t Length, const SOCKET_DATA F
 	}
 	catch (std::bad_alloc)
 	{
-		PrintError(System_Error, L"Memory allocation failed", 0, 0);
-
+		PrintError(System_Error, L"Memory allocation failed", NULL, NULL);
+		
 		delete[] SendBuffer;
 		delete[] RecvBuffer;
 		return EXIT_FAILURE;
@@ -57,13 +57,13 @@ size_t RequestProcess(const char *Send, const size_t Length, const SOCKET_DATA F
 			if (Protocol == IPPROTO_TCP) //TCP
 			{
 				uint16_t DataLength = htons((uint16_t)HostLength);
-				send(FunctionData.Socket, (char *)&DataLength, sizeof(uint16_t), MSG_NOSIGNAL);
-				send(FunctionData.Socket, RecvBuffer, HostLength, MSG_NOSIGNAL);
+				send((int)FunctionData.Socket, (char *)&DataLength, sizeof(uint16_t), NULL);
+				send((int)FunctionData.Socket, RecvBuffer, HostLength, NULL);
 			}
 			else { //UDP
-				sendto(FunctionData.Socket, RecvBuffer, HostLength, MSG_NOSIGNAL, (sockaddr *)&(FunctionData.SockAddr), FunctionData.AddrLen);
+				sendto((int)FunctionData.Socket, RecvBuffer, HostLength, NULL, (sockaddr *)&(FunctionData.SockAddr), FunctionData.AddrLen);
 			}
-
+			
 			delete[] SendBuffer;
 			delete[] RecvBuffer;
 			return EXIT_SUCCESS;
@@ -78,11 +78,11 @@ size_t RequestProcess(const char *Send, const size_t Length, const SOCKET_DATA F
 			if (Protocol == IPPROTO_TCP) //TCP
 			{
 				uint16_t DataLength = htons((uint16_t)SendLen);
-				send(FunctionData.Socket, (char *)&DataLength, sizeof(uint16_t), MSG_NOSIGNAL);
-				send(FunctionData.Socket, RecvBuffer, SendLen, MSG_NOSIGNAL);
+				send((int)FunctionData.Socket, (char *)&DataLength, sizeof(uint16_t), NULL);
+				send((int)FunctionData.Socket, RecvBuffer, SendLen, NULL);
 			}
 			else { //UDP
-				sendto(FunctionData.Socket, RecvBuffer, SendLen, MSG_NOSIGNAL, (sockaddr *)&(FunctionData.SockAddr), FunctionData.AddrLen);
+				sendto((int)FunctionData.Socket, RecvBuffer, SendLen, NULL, (sockaddr *)&(FunctionData.SockAddr), FunctionData.AddrLen);
 			}
 		}
 		else { //The connection is RESET or other errors when connecting.
@@ -100,7 +100,7 @@ size_t RequestProcess(const char *Send, const size_t Length, const SOCKET_DATA F
 	return EXIT_SUCCESS;
 }
 
-//Check hosts from list(Linux)
+//Check hosts from list(Linux/Mac)
 inline size_t CheckHosts(const char *Request, const size_t Length, char *Result, bool &Local)
 {
 //Initilization
@@ -120,11 +120,11 @@ inline size_t CheckHosts(const char *Request, const size_t Length, char *Result,
 		memset(Result, 0, PACKET_MAXSIZE);
 		return FALSE;
 	}
-
+	
 //PTR Records
 	if (qry->Type == htons(PTR_Records))
 	{
-		//IPv4 check
+	//IPv4 check
 		if (Domain.find(LocalhostPTR[0]) != std::string::npos || //IPv4 Localhost
 			Domain.find(".10.in-addr.arpa") != std::string::npos || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
 			Domain.find(".127.in-addr.arpa") != std::string::npos || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
@@ -228,8 +228,8 @@ size_t TCPReceiveProcess(const SOCKET_DATA FunctionData, const size_t Index)
 	}
 	catch (std::bad_alloc)
 	{
-		PrintError(System_Error, L"Memory allocation failed", 0, 0);
-
+		PrintError(System_Error, L"Memory allocation failed", NULL, NULL);
+		
 		return EXIT_FAILURE;
 	}
 	memset(Buffer, 0, PACKET_MAXSIZE);
@@ -239,7 +239,7 @@ size_t TCPReceiveProcess(const SOCKET_DATA FunctionData, const size_t Index)
 	ssize_t RecvLength = 0;
 	while (!Sign)
 	{
-		RecvLength = recv(FunctionData.Socket, Buffer, PACKET_MAXSIZE, MSG_NOSIGNAL);
+		RecvLength = recv((int)FunctionData.Socket, Buffer, PACKET_MAXSIZE, NULL);
 		if (RecvLength == (ssize_t)sizeof(uint16_t)) //TCP segment of a reassembled PDU
 		{
 			PUD = true;
@@ -260,7 +260,7 @@ size_t TCPReceiveProcess(const SOCKET_DATA FunctionData, const size_t Index)
 					RequestProcess(Buffer + sizeof(uint16_t), RecvLength - sizeof(uint16_t), FunctionData, IPPROTO_TCP, Index + THREAD_MAXNUM*(THREAD_PARTNUM - 2));
 				else //IPv4
 					RequestProcess(Buffer + sizeof(uint16_t), RecvLength - sizeof(uint16_t), FunctionData, IPPROTO_TCP, Index + THREAD_MAXNUM*(THREAD_PARTNUM - 1));
-
+				
 			}
 		}
 

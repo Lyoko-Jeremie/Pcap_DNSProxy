@@ -1,16 +1,16 @@
-// This code is part of Pcap_DNSProxy(Linux)
+// This code is part of Pcap_DNSProxy(Mac)
 // Copyright (C) 2012-2014 Chengr28
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either
 // version 2 of the License, or (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -35,7 +35,7 @@ size_t DomainTest(const size_t Protocol)
 	}
 	catch (std::bad_alloc)
 	{
-		PrintError(System_Error, L"Memory allocation failed", 0, 0);
+		PrintError(System_Error, L"Memory allocation failed", NULL, NULL);
 
 		delete[] Buffer;
 		delete[] DNSQuery;
@@ -50,7 +50,7 @@ size_t DomainTest(const size_t Protocol)
 		SetProtocol.AddrLen = sizeof(sockaddr_in6);
 	else //IPv4
 		SetProtocol.AddrLen = sizeof(sockaddr_in);
-
+	
 //Make a DNS request with Doamin Test packet
 	dns_hdr *TestHdr = (dns_hdr *)Buffer;
 	TestHdr->ID = Parameter.DomainTestOptions.DomainTestID;
@@ -69,7 +69,7 @@ size_t DomainTest(const size_t Protocol)
 			TestQry->Classes = htons(Class_IN);
 			if (Protocol == AF_INET6)
 				TestQry->Type = htons(AAAA_Records);
-			else 
+			else
 				TestQry->Type = htons(A_Records);
 			delete[] DNSQuery;
 		}
@@ -97,18 +97,18 @@ size_t DomainTest(const size_t Protocol)
 			sleep(Parameter.DomainTestOptions.DomainTestSpeed);
 		}
 		else {
-		//Ramdom domain request
+			//Ramdom domain request
 			if (!Parameter.DomainTestOptions.DomainTestCheck)
 			{
 				RamdomDomain(Parameter.DomainTestOptions.DomainTest, PACKET_MAXSIZE/8);
 				TestLength = CharToDNSQuery(Parameter.DomainTestOptions.DomainTest, DNSQuery);
 				memcpy(Buffer + sizeof(dns_hdr), DNSQuery, TestLength);
-				
+
 				dns_qry *TestQry = (dns_qry *)(Buffer + sizeof(dns_hdr) + TestLength);
 				TestQry->Classes = htons(Class_IN);
 				if (Protocol == AF_INET6)
 					TestQry->Type = htons(AAAA_Records);
-				else 
+				else
 					TestQry->Type = htons(A_Records);
 			}
 
@@ -123,7 +123,7 @@ size_t DomainTest(const size_t Protocol)
 	return EXIT_SUCCESS;
 }
 
-//Internet Control Message Protocol/ICMP Echo(Ping) request(Linux)
+//Internet Control Message Protocol/ICMP Echo(Ping) request(Linux/Mac)
 size_t ICMPEcho()
 {
 //Initialization
@@ -133,8 +133,8 @@ size_t ICMPEcho()
 	}
 	catch (std::bad_alloc)
 	{
-		PrintError(System_Error, L"Memory allocation failed", 0, 0);
-
+		PrintError(System_Error, L"Memory allocation failed", NULL, NULL);
+		
 		return EXIT_FAILURE;
 	}
 	memset(Buffer, 0, PACKET_MAXSIZE);
@@ -147,7 +147,7 @@ size_t ICMPEcho()
 	icmp->ID = htons(Parameter.ICMPOptions.ICMPID);
 	icmp->Sequence = htons(Parameter.ICMPOptions.ICMPSequence);
 	memcpy(Buffer + sizeof(icmp_hdr), Parameter.PaddingDataOptions.PaddingData, Parameter.PaddingDataOptions.PaddingDataLength - 1);
-
+	
 	Request = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 	SockAddr.ss_family = AF_INET;
 	((sockaddr_in *)&SockAddr)->sin_addr = Parameter.DNSTarget.IPv4Target;
@@ -155,8 +155,8 @@ size_t ICMPEcho()
 //Check socket
 	if (Request == RETURN_ERROR)
 	{
-		PrintError(Socket_Error, L"ICMP Echo(Ping) request error", errno, 0);
-
+		PrintError(Socket_Error, L"ICMP Echo(Ping) request error", errno, NULL);
+		
 		delete[] Buffer;
 		close(Request);
 		return EXIT_FAILURE;
@@ -173,9 +173,9 @@ size_t ICMPEcho()
 		Parameter.ICMPOptions.ICMPNonce = rand() % 15728640 + 1048576; //Between 0x100000 and 0xFFFFFF
 		icmp->Nonce = Parameter.ICMPOptions.ICMPNonce;
 		icmp->Checksum = GetChecksum((uint16_t *)Buffer, sizeof(icmp_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1);
-
+		
 	//Send
-		sendto(Request, Buffer, sizeof(icmp_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1, MSG_NOSIGNAL, (sockaddr *)&SockAddr,  sizeof(sockaddr_in));
+		sendto(Request, Buffer, sizeof(icmp_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1, NULL, (sockaddr *)&SockAddr,  sizeof(sockaddr_in));
 
 		if (Times == OnceSend)
 		{
@@ -185,7 +185,7 @@ size_t ICMPEcho()
 				sleep(Interval); //5 seconds between every sending.
 				continue;
 			}
-
+			
 			sleep(Parameter.ICMPOptions.ICMPSpeed);
 		}
 		else {
@@ -210,7 +210,7 @@ size_t ICMPv6Echo()
 	}
 	catch (std::bad_alloc)
 	{
-		PrintError(System_Error, L"Memory allocation failed", 0, 0);
+		PrintError(System_Error, L"Memory allocation failed", NULL, NULL);
 
 		delete[] Buffer;
 		delete[] ICMPv6Checksum;
@@ -233,8 +233,8 @@ size_t ICMPv6Echo()
 	psd->Dst = Parameter.DNSTarget.IPv6Target;
 	if (!GetLocalAddress(SockAddr, AF_INET6))
 	{
-		PrintError(Socket_Error, L"Get local IPv6 address error", 0, 0);
-
+		PrintError(Socket_Error, L"Get local IPv6 address error", NULL, NULL);
+		
 		delete[] Buffer;
 		delete[] ICMPv6Checksum;
 		return EXIT_FAILURE;
@@ -258,8 +258,8 @@ size_t ICMPv6Echo()
 //Check socket
 	if (Request == RETURN_ERROR)
 	{
-		PrintError(Socket_Error, L"ICMPv6 Echo(Ping) request error", errno, 0);
-
+		PrintError(Socket_Error, L"ICMPv6 Echo(Ping) request error", errno, NULL);
+		
 		delete[] Buffer;
 		close(Request);
 		return EXIT_FAILURE;
@@ -269,7 +269,7 @@ size_t ICMPv6Echo()
 	size_t Times = 0;
 	while (true)
 	{
-		sendto(Request, Buffer, sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1, MSG_NOSIGNAL, (sockaddr *)&SockAddr, sizeof(sockaddr_in6));
+		sendto(Request, Buffer, sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1, NULL, (sockaddr *)&SockAddr, sizeof(sockaddr_in6));
 
 		if (Times == OnceSend)
 		{
@@ -304,8 +304,8 @@ size_t TCPRequest(const char *Send, const size_t SendSize, char *Recv, const siz
 	}
 	catch (std::bad_alloc)
 	{
-		PrintError(System_Error, L"Memory allocation failed", 0, 0);
-
+		PrintError(System_Error, L"Memory allocation failed", NULL, NULL);
+		
 		delete[] SendBuffer;
 		delete[] RecvBuffer;
 		return EXIT_FAILURE;
@@ -328,7 +328,7 @@ size_t TCPRequest(const char *Send, const size_t SendSize, char *Recv, const siz
 		TCPSocket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 		if (Local && Parameter.DNSTarget.Local_IPv6)
 			((sockaddr_in6 *)&SockAddr)->sin6_addr = Parameter.DNSTarget.Local_IPv6Target;
-		else 
+		else
 			((sockaddr_in6 *)&SockAddr)->sin6_addr = Parameter.DNSTarget.IPv6Target;
 		SockAddr.ss_family = AF_INET6;
 		((sockaddr_in6 *)&SockAddr)->sin6_port = htons(DNS_Port);
@@ -337,7 +337,7 @@ size_t TCPRequest(const char *Send, const size_t SendSize, char *Recv, const siz
 		TCPSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		if (Local && Parameter.DNSTarget.Local_IPv4)
 			((sockaddr_in *)&SockAddr)->sin_addr = Parameter.DNSTarget.Local_IPv4Target;
-		else 
+		else
 			((sockaddr_in *)&SockAddr)->sin_addr = Parameter.DNSTarget.IPv4Target;
 		SockAddr.ss_family = AF_INET;
 		((sockaddr_in *)&SockAddr)->sin_port = htons(DNS_Port);
@@ -345,8 +345,8 @@ size_t TCPRequest(const char *Send, const size_t SendSize, char *Recv, const siz
 
 	if (TCPSocket == RETURN_ERROR)
 	{
-		PrintError(Socket_Error, L"TCP request initialization failed", errno, 0);
-
+		PrintError(Socket_Error, L"TCP request initialization failed", errno, NULL);
+		
 		delete[] SendBuffer;
 		delete[] RecvBuffer;
 		close(TCPSocket);
@@ -363,7 +363,7 @@ size_t TCPRequest(const char *Send, const size_t SendSize, char *Recv, const siz
 	}
 
 //Send request
-	if (send(TCPSocket, SendBuffer, SendSize + sizeof(uint16_t), MSG_NOSIGNAL) == RETURN_ERROR) //The connection is RESET or other errors when sending.
+	if (send(TCPSocket, SendBuffer, SendSize + sizeof(uint16_t), NULL) == RETURN_ERROR) //The connection is RESET or other errors when sending.
 	{
 		delete[] SendBuffer;
 		delete[] RecvBuffer;
@@ -373,7 +373,7 @@ size_t TCPRequest(const char *Send, const size_t SendSize, char *Recv, const siz
 	delete[] SendBuffer;
 
 //Receive result
-	ssize_t RecvLen = recv(TCPSocket, RecvBuffer, RecvSize, MSG_NOSIGNAL) - sizeof(uint16_t);
+	ssize_t RecvLen = recv(TCPSocket, RecvBuffer, RecvSize, NULL) - sizeof(uint16_t);
 	if (RecvLen <= FALSE) //The connection is RESET or other errors(including SOCKET_ERROR) when sending.
 	{
 		delete[] RecvBuffer;
@@ -390,15 +390,15 @@ size_t TCPRequest(const char *Send, const size_t SendSize, char *Recv, const siz
 //Transmission of UDP protocol
 size_t UDPRequest(const char *Send, const size_t Length, const SOCKET_DATA TargetData, const size_t Index, const bool Local)
 {
-//Initialization
+	//Initialization
 	char *Buffer = nullptr;
 	try {
 		Buffer = new char[PACKET_MAXSIZE]();
 	}
 	catch (std::bad_alloc)
 	{
-		PrintError(System_Error, L"Memory allocation failed", 0, 0);
-
+		PrintError(System_Error, L"Memory allocation failed", NULL, NULL);
+		
 		return EXIT_FAILURE;
 	}
 	memset(Buffer, 0, PACKET_MAXSIZE);
@@ -412,7 +412,7 @@ size_t UDPRequest(const char *Send, const size_t Length, const SOCKET_DATA Targe
 		UDPSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 		if (Local && Parameter.DNSTarget.Local_IPv6)
 			((sockaddr_in6 *)&SockAddr)->sin6_addr = Parameter.DNSTarget.Local_IPv6Target;
-		else 
+		else
 			((sockaddr_in6 *)&SockAddr)->sin6_addr = Parameter.DNSTarget.IPv6Target;
 		SockAddr.ss_family = AF_INET6;
 		((sockaddr_in6 *)&SockAddr)->sin6_port = htons(DNS_Port);
@@ -421,26 +421,26 @@ size_t UDPRequest(const char *Send, const size_t Length, const SOCKET_DATA Targe
 		UDPSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 		if (Local && Parameter.DNSTarget.Local_IPv4)
 			((sockaddr_in *)&SockAddr)->sin_addr = Parameter.DNSTarget.Local_IPv4Target;
-		else 
+		else
 			((sockaddr_in *)&SockAddr)->sin_addr = Parameter.DNSTarget.IPv4Target;
 		SockAddr.ss_family = AF_INET;
 		((sockaddr_in *)&SockAddr)->sin_port = htons(DNS_Port);
 	}
-
+	
 	if (UDPSocket == RETURN_ERROR)
 	{
-		PrintError(Socket_Error, L"UDP request initialization failed", errno, 0);
-
+		PrintError(Socket_Error, L"UDP request initialization failed", errno, NULL);
+		
 		delete[] Buffer;
 		close(UDPSocket);
 		return EXIT_FAILURE;
 	}
-
+	
 //Send request
-	if (sendto(UDPSocket, Buffer, Length, MSG_NOSIGNAL, (sockaddr *)&SockAddr, TargetData.AddrLen) == RETURN_ERROR)
+	if (sendto(UDPSocket, Buffer, Length, NULL, (sockaddr *)&SockAddr, TargetData.AddrLen) == RETURN_ERROR)
 	{
-		PrintError(Socket_Error, L"UDP request error", errno, 0);
-
+		PrintError(Socket_Error, L"UDP request error", errno, NULL);
+		
 		delete[] Buffer;
 		close(UDPSocket);
 		return EXIT_FAILURE;
@@ -461,10 +461,10 @@ size_t UDPRequest(const char *Send, const size_t Length, const SOCKET_DATA Targe
 			PortList.SendPort[Index] = ((sockaddr_in *)&SockAddr)->sin_port;
 	}
 
-//Receive to disable ICMP report(Linux)
+//Receive to disable ICMP report(Linux/Mac)
 	socklen_t SockLen = 0;
-	recvfrom(UDPSocket, Buffer, PACKET_MAXSIZE, MSG_NOSIGNAL, (sockaddr *)&SockAddr, &SockLen);
-
+	recvfrom(UDPSocket, Buffer, PACKET_MAXSIZE, NULL, (sockaddr *)&SockAddr, &SockLen);
+	
 	delete[] Buffer;
 	close(UDPSocket);
 	return EXIT_SUCCESS;

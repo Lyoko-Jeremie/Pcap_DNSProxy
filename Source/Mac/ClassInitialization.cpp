@@ -1,19 +1,20 @@
-// This code is part of Pcap_DNSProxy(Linux)
+// This code is part of Pcap_DNSProxy(Mac)
 // Copyright (C) 2012-2014 Chengr28
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either
 // version 2 of the License, or (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
 
 #include "Pcap_DNSProxy.h"
 
@@ -33,10 +34,10 @@ Configuration::Configuration()
 	{
 		delete[] DomainTestOptions.DomainTest;
 		delete[] PaddingDataOptions.PaddingData;
-		delete[] LocalhostServerOptions.LocalhostServer;	
+		delete[] LocalhostServerOptions.LocalhostServer;
 		return;
 	}
-
+	
 	memset(DomainTestOptions.DomainTest, 0, PACKET_MAXSIZE/8);
 	memset(PaddingDataOptions.PaddingData, 0, PACKET_MAXSIZE/8);
 	memset(LocalhostServerOptions.LocalhostServer, 0, PACKET_MAXSIZE/8);
@@ -73,7 +74,7 @@ PortTable::PortTable()
 		delete[] SendPort;
 		return;
 	}
-
+	
 	memset(RecvData, 0, sizeof(SOCKET_DATA)*THREAD_MAXNUM*THREAD_PARTNUM);
 	memset(SendPort, 0, sizeof(uint16_t)*THREAD_MAXNUM*THREAD_PARTNUM);
 	return;
@@ -87,7 +88,7 @@ PortTable::~PortTable()
 	return;
 }
 
-//Some Regular Expression of special addresses initialization(Linux)
+//Some Regular Expression of special addresses initialization(Linux/Mac)
 void RegexInitialization()
 {
 	regcomp(&IPv4PrivateB, ".(1[6-9]|2[0-9]|3[01]).172.in-addr.arpa", REG_EXTENDED|REG_ICASE|REG_NOSUB);

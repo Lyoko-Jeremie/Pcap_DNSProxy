@@ -1,4 +1,15 @@
-﻿Pcap_DNSProxy v0.3.1(Windows)/v0.1(Linux) 更新日志：
+﻿Pcap_DNSProxy v0.3.2(Windows)/v0.2(Linux)/v0.1(Mac) 更新日志：
+
+* Pcap_DNSProxy v0.1 Mac Release 正式发布！
+* 提供可用于x86和x64环境的可执行文件(Linux)
+* 启用对Ethernet设备的识别(Linux)
+* 修复在错误使用低权限运行程序可能造成的Bug
+* 修复在部分情况下错误生成错误报告的Bug(Linux)
+* 修正说明文档的错误操作(Linux)
+
+-------------------------------------------------------------------------------
+
+Pcap_DNSProxy v0.3.1(Windows)/v0.1(Linux) 更新日志：
 
 * Pcap_DNSProxy v0.1 Linux Release 正式发布！
 * 剥离并更新IPv4/IPv6保留地址列表过滤模块(Windows)

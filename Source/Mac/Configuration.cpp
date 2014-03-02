@@ -1,16 +1,16 @@
-// This code is part of Pcap_DNSProxy(Linux)
+// This code is part of Pcap_DNSProxy(Mac)
 // Copyright (C) 2012-2014 Chengr28
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either
 // version 2 of the License, or (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -18,7 +18,7 @@
 
 #include "Pcap_DNSProxy.h"
 
-//Version define(Linux)
+//Version define(Linux/Mac)
 #define INI_VERSION       0.1         //Version of configuration file
 #define HOSTS_VERSION     0.1         //Version of hosts file
 
@@ -53,8 +53,8 @@ size_t Configuration::ReadParameter()
 	}
 	catch (std::bad_alloc)
 	{
-		::PrintError(System_Error, L"Memory allocation failed", 0, 0);
-
+		::PrintError(System_Error, L"Memory allocation failed", NULL, NULL);
+		
 		delete[] Buffer;
 		delete[] Addition;
 		return EXIT_FAILURE;
@@ -66,8 +66,8 @@ size_t Configuration::ReadParameter()
 	Input = fopen(ParameterPath.c_str(), "rb");
 	if (Input == nullptr)
 	{
-		::PrintError(Parameter_Error, L"Cannot open configuration file(Config.conf)", 0, 0);
-
+		::PrintError(Parameter_Error, L"Cannot open configuration file(Config.conf)", NULL, NULL);
+		
 		delete[] Buffer;
 		delete[] Addition;
 		return EXIT_FAILURE;
@@ -105,16 +105,16 @@ size_t Configuration::ReadParameter()
 				memset(Buffer, 0, PACKET_MAXSIZE);
 				memcpy(Buffer, Addition, PACKET_MAXSIZE - 4);
 				memset(Addition, 0, PACKET_MAXSIZE);
-				ReadLength -= 4; 
+				ReadLength -= 4;
 			}
 		}
 
 		for (Index = 0, Start = 0;Index < ReadLength + 1;Index++)
 		{
 		//CR/Carriage Return and LF/Line Feed
-			if ((Encoding == UTF_8 || Encoding == ANSI || 
-				((Encoding == UTF_16_LE || Encoding == UTF_32_LE) && Buffer[Index + 1] == 0) || 
-				((Encoding == UTF_16_BE || Encoding == UTF_32_BE) && Buffer[Index - 1] == 0)) && 
+			if ((Encoding == UTF_8 || Encoding == ANSI ||
+				 ((Encoding == UTF_16_LE || Encoding == UTF_32_LE) && Buffer[Index + 1] == 0) ||
+				 ((Encoding == UTF_16_BE || Encoding == UTF_32_BE) && Buffer[Index - 1] == 0)) &&
 				(Buffer[Index] == 0x0D || Buffer[Index] == 0x0A))
 			{
 				if (Index - Start > 8) //Minimum length of rules
@@ -152,8 +152,8 @@ size_t Configuration::ReadParameter()
 					AdditionLength++;
 				}
 				else {
-					::PrintError(Parameter_Error, L"Parameter data of a line is too long", 0, Line);
-
+					::PrintError(Parameter_Error, L"Parameter data of a line is too long", NULL, Line);
+					
 					delete[] Buffer;
 					delete[] Addition;
 					return EXIT_FAILURE;
@@ -177,10 +177,8 @@ size_t Configuration::ReadParameter()
 	delete[] Addition;
 
 //Set default
-	static const char *PaddingData = ("\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x20 !\"#$%&\'()*+,-./01234567"); //Default Ping padding data(Linux)
+	static const char *PaddingData = ("\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x20 !\"#$%&\'()*+,-./01234567"); //Default Ping padding data(Linux/Mac)
 	static const char *LocalDNSName = ("pcap_dnsproxy.localhost.server"); //Localhost DNS server name
-	if (this->HopLimitOptions.HopLimitFluctuation < 0 && this->HopLimitOptions.HopLimitFluctuation >= 255)
-		this->HopLimitOptions.HopLimitFluctuation = 2; //Default HopLimitFluctuation is 2
 	if (ntohs(this->ICMPOptions.ICMPID) <= 0)
 		this->ICMPOptions.ICMPID = htons((uint16_t)getpid()); //Default DNS ID is current process ID
 	if (ntohs(this->ICMPOptions.ICMPSequence) <= 0)
@@ -192,7 +190,7 @@ size_t Configuration::ReadParameter()
 	if (this->PaddingDataOptions.PaddingDataLength <= 0)
 	{
 		this->PaddingDataOptions.PaddingDataLength = 36;
-		memcpy(this->PaddingDataOptions.PaddingData, PaddingData, this->PaddingDataOptions.PaddingDataLength - 1); //Load default padding data from Linux Ping
+		memcpy(this->PaddingDataOptions.PaddingData, PaddingData, this->PaddingDataOptions.PaddingDataLength - 1); //Load default padding data from Linux/Mac Dig
 	}
 	if (this->LocalhostServerOptions.LocalhostServerLength <= 0)
 		this->LocalhostServerOptions.LocalhostServerLength = CharToDNSQuery((char *)LocalDNSName, this->LocalhostServerOptions.LocalhostServer); //Default Localhost DNS server name
@@ -200,10 +198,10 @@ size_t Configuration::ReadParameter()
 //Check parameters
 	if ((!this->DNSTarget.IPv4 && !this->DNSTarget.IPv6) || (!this->TCPMode && this->TCPOptions))
 	{
-		::PrintError(Parameter_Error, L"Base rule(s) error", 0, 0);
+		::PrintError(Parameter_Error, L"Base rule(s) error", NULL, NULL);
 		return EXIT_FAILURE;
 	}
-
+	
 	return EXIT_SUCCESS;
 }
 
@@ -218,7 +216,7 @@ size_t Configuration::ReadParameterData(const char *Buffer, const size_t Line)
 	}
 	catch (std::bad_alloc)
 	{
-		::PrintError(System_Error, L"Memory allocation failed", 0, 0);
+		::PrintError(System_Error, L"Memory allocation failed", NULL, NULL);
 
 		delete[] Target;
 		delete[] LocalhostServer;
@@ -235,7 +233,7 @@ size_t Configuration::ReadParameterData(const char *Buffer, const size_t Line)
 		double ReadVersion = atof(Buffer + 10);
 		if (ReadVersion != INI_VERSION)
 		{
-			::PrintError(Parameter_Error, L"Configuration file version error", 0, 0);
+			::PrintError(Parameter_Error, L"Configuration file version error", NULL, NULL);
 
 			delete[] Target;
 			delete[] LocalhostServer;
@@ -252,17 +250,17 @@ size_t Configuration::ReadParameterData(const char *Buffer, const size_t Line)
 	{
 		Result = atoi(Buffer + 8);
 		if (Result >= 5)
-			this->Hosts = Result;
+			this->Hosts = (useconds_t)Result;
 		else if (Result > 0 && Result < 5)
 			this->Hosts = 5; //5s is least time between auto-refreshing
-		else 
+		else
 			this->Hosts = 0; //Read Hosts OFF
 	}
 	else if (Data.find("IPv4 DNS Address = ") == 0 && Data.length() > 25 && Data.length() < 35)
 	{
 		if (Data.find('.') == std::string::npos) //IPv4 Address
 		{
-			::PrintError(Parameter_Error, L"DNS server IPv4 Address format error", 0, Line);
+			::PrintError(Parameter_Error, L"DNS server IPv4 Address format error", NULL, Line);
 
 			delete[] Target;
 			delete[] LocalhostServer;
@@ -295,13 +293,13 @@ size_t Configuration::ReadParameterData(const char *Buffer, const size_t Line)
 	{
 		if (Data.find('.') == std::string::npos) //IPv4 Address
 		{
-			::PrintError(Parameter_Error, L"DNS server IPv4 Address format error", 0, Line);
+			::PrintError(Parameter_Error, L"DNS server IPv4 Address format error", NULL, Line);
 
 			delete[] Target;
 			delete[] LocalhostServer;
 			return EXIT_FAILURE;
 		}
-
+		
 	//IPv4 Address check
 		memset(Target, 0, PACKET_MAXSIZE/8);
 		memcpy(Target, Buffer + 25, Data.length() - 25);
@@ -328,7 +326,7 @@ size_t Configuration::ReadParameterData(const char *Buffer, const size_t Line)
 	{
 		if (Data.find(':') == std::string::npos) //IPv6 Address
 		{
-			::PrintError(Parameter_Error, L"DNS server IPv6 Address format error", 0, Line);
+			::PrintError(Parameter_Error, L"DNS server IPv6 Address format error", NULL, Line);
 
 			delete[] Target;
 			delete[] LocalhostServer;
@@ -341,7 +339,7 @@ size_t Configuration::ReadParameterData(const char *Buffer, const size_t Line)
 		Result = inet_pton(AF_INET6, Target, &(this->DNSTarget.IPv6Target));
 		if (Result == FALSE)
 		{
-			::PrintError(Parameter_Error, L"DNS server IPv6 Address format error", 0, Line);
+			::PrintError(Parameter_Error, L"DNS server IPv6 Address format error", NULL, Line);
 
 			delete[] Target;
 			delete[] LocalhostServer;
@@ -374,7 +372,7 @@ size_t Configuration::ReadParameterData(const char *Buffer, const size_t Line)
 		Result = inet_pton(AF_INET6, Target, &(this->DNSTarget.Local_IPv6Target));
 		if (Result == FALSE)
 		{
-			::PrintError(Parameter_Error, L"DNS server IPv6 Address format error", 0, Line);
+			::PrintError(Parameter_Error, L"DNS server IPv6 Address format error", NULL, Line);
 
 			delete[] Target;
 			delete[] LocalhostServer;
@@ -430,10 +428,10 @@ size_t Configuration::ReadParameterData(const char *Buffer, const size_t Line)
 	{
 		Result = atoi(Buffer + 12);
 		if (Result >= 5)
-			this->ICMPOptions.ICMPSpeed = Result;
+			this->ICMPOptions.ICMPSpeed = (useconds_t)Result;
 		else if (Result > 0 && Result < 5)
 			this->ICMPOptions.ICMPSpeed = 5; //5s is least time between ICMP Tests
-		else 
+		else
 			this->ICMPOptions.ICMPSpeed = 0; //ICMP Test OFF
 	}
 	else if (Data.find("ICMP ID = ") == 0 && Data.length() < 17)
@@ -484,7 +482,7 @@ size_t Configuration::ReadParameterData(const char *Buffer, const size_t Line)
 		Result = atoi(Buffer + 20);
 		if (Result >= 5)
 			this->DomainTestOptions.DomainTestSpeed = (useconds_t)Result;
-		else 
+		else
 			this->DomainTestOptions.DomainTestSpeed = 5; //5s is least time between Domain Tests
 	}
 	else if (Data.find("ICMP PaddingData = ") == 0)
@@ -496,7 +494,7 @@ size_t Configuration::ReadParameterData(const char *Buffer, const size_t Line)
 		}
 		else if (Data.length() >= 84)
 		{
-			::PrintError(Parameter_Error, L"The ICMP padding data is too long", 0, Line);
+			::PrintError(Parameter_Error, L"The ICMP padding data is too long", NULL, Line);
 		}
 	}
 	else if (Data.find("Localhost Server Name = ") == 0 && Data.length() > 26 && Data.length() < 280) //Maximum length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
@@ -507,8 +505,8 @@ size_t Configuration::ReadParameterData(const char *Buffer, const size_t Line)
 		}
 		catch (std::bad_alloc)
 		{
-			::PrintError(System_Error, L"Memory allocation failed", 0, 0);
-
+			::PrintError(System_Error, L"Memory allocation failed", NULL, NULL);
+			
 			delete[] Target;
 			delete[] LocalhostServer;
 			return EXIT_FAILURE;
@@ -524,7 +522,7 @@ size_t Configuration::ReadParameterData(const char *Buffer, const size_t Line)
 		for (Index = 0;Index < Data.length() - 25;Index++)
 		{
 		//Preferred name syntax(Section 2.3.1 in RFC 1035)
-			if (LocalhostServer[Index] == 45 || LocalhostServer[Index] == 46 || LocalhostServer[Index] == 95 || 
+			if (LocalhostServer[Index] == 45 || LocalhostServer[Index] == 46 || LocalhostServer[Index] == 95 ||
 				(LocalhostServer[Index] > 47 && LocalhostServer[Index] < 58) || (LocalhostServer[Index] > 96 && LocalhostServer[Index] < 123))
 			{
 				if (LocalhostServer[Index] == 46)
@@ -540,7 +538,7 @@ size_t Configuration::ReadParameterData(const char *Buffer, const size_t Line)
 				break;
 			}
 		}
-
+		
 		if (this->LocalhostServerOptions.LocalhostServerLength > 2)
 		{
 			char *LocalhostServerName = nullptr;
@@ -549,15 +547,15 @@ size_t Configuration::ReadParameterData(const char *Buffer, const size_t Line)
 			}
 			catch (std::bad_alloc)
 			{
-				::PrintError(System_Error, L"Memory allocation failed", 0, 0);
-
+				::PrintError(System_Error, L"Memory allocation failed", NULL, NULL);
+				
 				delete[] Target;
 				delete[] LocalhostServer;
 				delete[] Point;
 				return EXIT_FAILURE;
 			}
 			memset(LocalhostServerName, 0, PACKET_MAXSIZE/8);
-
+			
 			for (Index = 0;Index < (size_t)Result;Index++)
 			{
 				if (Index == (size_t)Result - 1)
@@ -570,7 +568,7 @@ size_t Configuration::ReadParameterData(const char *Buffer, const size_t Line)
 					memcpy(LocalhostServerName + Point[Index] + 1, LocalhostServer + Point[Index] + 1, Point[Index + 1] - Point[Index]);
 				}
 			}
-
+			
 			memcpy(this->LocalhostServerOptions.LocalhostServer, LocalhostServerName, this->LocalhostServerOptions.LocalhostServerLength + 1);
 			delete[] Point;
 			delete[] LocalhostServerName;
@@ -594,7 +592,7 @@ size_t Configuration::ReadHosts()
 	}
 	catch (std::bad_alloc)
 	{
-		::PrintError(System_Error, L"Memory allocation failed", 0, 0);
+		::PrintError(System_Error, L"Memory allocation failed", NULL, NULL);
 
 		delete[] Buffer;
 		delete[] Addition;
@@ -611,15 +609,15 @@ size_t Configuration::ReadHosts()
 		Input = fopen(HostsPath.c_str(), "rb");
 		if (Input == nullptr)
 		{
-			::PrintError(Hosts_Error, L"Cannot open hosts file(Hosts.conf)", 0, 0);
+			::PrintError(Hosts_Error, L"Cannot open hosts file(Hosts.conf)", NULL, NULL);
 
 			CleanupHostsTable();
 			sleep(this->Hosts);
 			continue;
 		}
-		
+
 		Encoding = 0, Line = 1, AdditionLength = 0;
-//Read data
+		//Read data
 		while(!feof(Input))
 		{
 			Local = false;
@@ -654,13 +652,13 @@ size_t Configuration::ReadHosts()
 					ReadLength -= 4;
 				}
 			}
-
+			
 			for (Index = 0, Start = 0;Index < ReadLength + 1;Index++)
 			{
 			//CR/Carriage Return and LF/Line Feed
-				if ((Encoding == UTF_8 || Encoding == ANSI || 
-					((Encoding == UTF_16_LE || Encoding == UTF_32_LE) && Buffer[Index + 1] == 0) || 
-					((Encoding == UTF_16_BE || Encoding == UTF_32_BE) && Buffer[Index - 1] == 0)) && 
+				if ((Encoding == UTF_8 || Encoding == ANSI ||
+					 ((Encoding == UTF_16_LE || Encoding == UTF_32_LE) && Buffer[Index + 1] == 0) ||
+					 ((Encoding == UTF_16_BE || Encoding == UTF_32_BE) && Buffer[Index - 1] == 0)) &&
 					(Buffer[Index] == 0x0D || Buffer[Index] == 0x0A))
 				{
 					if (Index - Start > 6) //Minimum length of IPv6 addresses and regular expression
@@ -697,8 +695,8 @@ size_t Configuration::ReadHosts()
 						AdditionLength++;
 					}
 					else {
-						::PrintError(Parameter_Error, L"Hosts data of a line is too long", 0, Line);
-
+						::PrintError(Parameter_Error, L"Hosts data of a line is too long", NULL, Line);
+						
 						memset(Addition, 0, PACKET_MAXSIZE);
 						AdditionLength = 0;
 						continue;
@@ -725,7 +723,7 @@ size_t Configuration::ReadHosts()
 			for (std::vector<HostsTable>::iterator iter = Modificating->begin();iter != Modificating->end();iter++)
 			{
 				delete[] iter->Response;
-				regfree(&iter->Pattern); 
+				regfree(&iter->Pattern);
 			}
 			Modificating->clear();
 			Modificating->resize(0);
@@ -737,7 +735,7 @@ size_t Configuration::ReadHosts()
 	//Auto-refresh
 		sleep(this->Hosts);
 	}
-
+	
 	delete[] Buffer;
 	delete[] Addition;
 	return EXIT_SUCCESS;
@@ -757,8 +755,8 @@ size_t Configuration::ReadHostsData(const char *Buffer, const size_t Line, bool 
 		double ReadVersion = atof(Buffer + 10);
 		if (ReadVersion != HOSTS_VERSION)
 		{
-			::PrintError(Hosts_Error, L"Hosts file version error", 0, 0);
-
+			::PrintError(Hosts_Error, L"Hosts file version error", NULL, NULL);
+			
 			return EXIT_FAILURE;
 		}
 		else {
@@ -793,7 +791,7 @@ size_t Configuration::ReadHostsData(const char *Buffer, const size_t Line, bool 
 	{
 		return EXIT_SUCCESS;
 	}
-
+	
 //Initialization
 	char *Addr = nullptr;
 	try {
@@ -801,8 +799,8 @@ size_t Configuration::ReadHostsData(const char *Buffer, const size_t Line, bool 
 	}
 	catch (std::bad_alloc)
 	{
-		::PrintError(System_Error, L"Memory allocation failed", 0, 0);
-
+		::PrintError(System_Error, L"Memory allocation failed", NULL, NULL);
+		
 		CleanupHostsTable();
 		return EXIT_FAILURE;
 	}
@@ -817,7 +815,7 @@ size_t Configuration::ReadHostsData(const char *Buffer, const size_t Line, bool 
 		Front = Index;
 		if (Data.rfind(32) > Index)
 			Rear = Data.rfind(32);
-		else 
+		else
 			Rear = Front;
 	}
 	if (Data.find(9) != std::string::npos) //Horizontal Tab/HT
@@ -826,11 +824,11 @@ size_t Configuration::ReadHostsData(const char *Buffer, const size_t Line, bool 
 			Index = Data.find(9);
 		if (Index > Data.find(9))
 			Front = Data.find(9);
-		else 
+		else
 			Front = Index;
 		if (Data.rfind(9) > Index)
 			Rear = Data.rfind(9);
-		else 
+		else
 			Rear = Front;
 	}
 
@@ -842,8 +840,8 @@ size_t Configuration::ReadHostsData(const char *Buffer, const size_t Line, bool 
 	//Mark patterns
 		if (regcomp(&(Temp.Pattern), Buffer + Rear + 1, REG_EXTENDED|REG_ICASE|REG_NOSUB) != 0)
 		{
-			::PrintError(Hosts_Error, L"Regular expression pattern error", 0, Line);
-
+			::PrintError(Hosts_Error, L"Regular expression pattern error", NULL, Line);
+			
 			delete[] Addr;
 			CleanupHostsTable();
 			return EXIT_FAILURE;
@@ -868,7 +866,7 @@ size_t Configuration::ReadHostsData(const char *Buffer, const size_t Line, bool 
 				{
 					if (VerticalIndex > THREAD_MAXNUM/4)
 					{
-						::PrintError(Hosts_Error, L"Too many Hosts IP addresses", 0, Line);
+						::PrintError(Hosts_Error, L"Too many Hosts IP addresses", NULL, Line);
 
 						delete[] Addr;
 						CleanupHostsTable();
@@ -876,7 +874,7 @@ size_t Configuration::ReadHostsData(const char *Buffer, const size_t Line, bool 
 					}
 					else if (Index - Vertical[VerticalIndex] < 2) //Minimum length of IPv6 address
 					{
-						::PrintError(Hosts_Error, L"Multiple addresses format error", 0, Line);
+						::PrintError(Hosts_Error, L"Multiple addresses format error", NULL, Line);
 
 						delete[] Addr;
 						CleanupHostsTable();
@@ -903,8 +901,8 @@ size_t Configuration::ReadHostsData(const char *Buffer, const size_t Line, bool 
 				}
 				catch (std::bad_alloc)
 				{
-					::PrintError(System_Error, L"Memory allocation failed", 0, 0);
-
+					::PrintError(System_Error, L"Memory allocation failed", NULL, NULL);
+					
 					delete[] Addr;
 					CleanupHostsTable();
 					return EXIT_FAILURE;
@@ -930,7 +928,7 @@ size_t Configuration::ReadHostsData(const char *Buffer, const size_t Line, bool 
 						Result = inet_pton(AF_INET6, Addr, &rsp.Addr);
 						if (Result == FALSE)
 						{
-							::PrintError(Hosts_Error, L"Hosts IPv6 address format error", 0, Line);
+							::PrintError(Hosts_Error, L"Hosts IPv6 address format error", NULL, Line);
 							delete[] Temp.Response;
 
 							Index++;
@@ -945,14 +943,14 @@ size_t Configuration::ReadHostsData(const char *Buffer, const size_t Line, bool 
 							continue;
 						}
 						memcpy(Temp.Response + Temp.ResponseLength, &rsp, sizeof(dns_aaaa_record));
-						
+
 					//Check length
 						Temp.ResponseLength += sizeof(dns_aaaa_record);
 						if (Temp.ResponseLength >= PACKET_MAXSIZE / 8 * 7 - sizeof(dns_hdr) - sizeof(dns_qry)) //Maximun length of domain levels(256 bytes), DNS Header and DNS Query
 						{
-							::PrintError(Hosts_Error, L"Too many Hosts IP addresses", 0, Line);
+							::PrintError(Hosts_Error, L"Too many Hosts IP addresses", NULL, Line);
 							delete[] Temp.Response;
-
+							
 							Index++;
 							continue;
 						}
@@ -979,8 +977,8 @@ size_t Configuration::ReadHostsData(const char *Buffer, const size_t Line, bool 
 						Result = inet_pton(AF_INET, Addr, &rsp.Addr);
 						if (Result == FALSE)
 						{
-							::PrintError(Hosts_Error, L"Hosts IPv4 address format error", 0, Line);
-								
+							::PrintError(Hosts_Error, L"Hosts IPv4 address format error", NULL, Line);
+							
 							delete[] Temp.Response;
 							Index++;
 							continue;
@@ -988,7 +986,7 @@ size_t Configuration::ReadHostsData(const char *Buffer, const size_t Line, bool 
 						else if (Result == RETURN_ERROR)
 						{
 							::PrintError(Hosts_Error, L"Hosts IPv4 address convert failed", errno, Line);
-
+							
 							delete[] Temp.Response;
 							Index++;
 							continue;
@@ -999,8 +997,8 @@ size_t Configuration::ReadHostsData(const char *Buffer, const size_t Line, bool 
 						Temp.ResponseLength += sizeof(dns_a_record);
 						if (Temp.ResponseLength >= PACKET_MAXSIZE / 8 * 7 - sizeof(dns_hdr) - sizeof(dns_qry)) //Maximun length of domain levels(256 bytes), DNS Header and DNS Query
 						{
-							::PrintError(Hosts_Error, L"Too many Hosts IP addresses", 0, Line);
-
+							::PrintError(Hosts_Error, L"Too many Hosts IP addresses", NULL, Line);
+							
 							delete[] Temp.Response;
 							Index++;
 							continue;
@@ -1011,11 +1009,11 @@ size_t Configuration::ReadHostsData(const char *Buffer, const size_t Line, bool 
 					}
 				}
 
-			//Mark patterns(Linux)
+			//Mark patterns(Linux/Mac)
 				if (regcomp(&(Temp.Pattern), Buffer + Rear + 1, REG_EXTENDED|REG_ICASE|REG_NOSUB) != 0)
 				{
-					::PrintError(Hosts_Error, L"Regular expression pattern error", 0, Line);
-
+					::PrintError(Hosts_Error, L"Regular expression pattern error", NULL, Line);
+					
 					delete[] Addr;
 					CleanupHostsTable();
 					return EXIT_FAILURE;
@@ -1032,10 +1030,10 @@ size_t Configuration::ReadHostsData(const char *Buffer, const size_t Line, bool 
 	{
 		HostsTable Temp;
 
-	//Mark patterns(Linux)
+	//Mark patterns(Linux/Mac)
 		if (regcomp(&(Temp.Pattern), Buffer + Rear + 1, REG_EXTENDED|REG_ICASE|REG_NOSUB) != 0)
 		{
-			::PrintError(Hosts_Error, L"Regular expression pattern error", 0, Line);
+			::PrintError(Hosts_Error, L"Regular expression pattern error", NULL, Line);
 
 			delete[] Addr;
 			CleanupHostsTable();
@@ -1056,26 +1054,26 @@ inline void ReadEncoding(const char *Buffer, const size_t Length, size_t &Encodi
 	size_t Index = 0;
 	for (Index = 4;Index < Length - 3;Index++)
 	{
-		if (Buffer[Index] == 0x0A && 
-			(((Encoding == ANSI || Encoding == UTF_8) && Buffer[Index - 1] == 0x0D) || 
-			((Encoding == UTF_16_LE || Encoding == UTF_16_BE) && Buffer[Index - 2] == 0x0D) || 
-			((Encoding == UTF_32_LE || Encoding == UTF_32_BE) && Buffer[Index - 4] == 0x0D)))
+		if (Buffer[Index] == 0x0A &&
+			(((Encoding == ANSI || Encoding == UTF_8) && Buffer[Index - 1] == 0x0D) ||
+			 ((Encoding == UTF_16_LE || Encoding == UTF_16_BE) && Buffer[Index - 2] == 0x0D) ||
+			 ((Encoding == UTF_32_LE || Encoding == UTF_32_BE) && Buffer[Index - 4] == 0x0D)))
 		{
 			NextLineType = CR_LF;
 			return;
 		}
-		else if (Buffer[Index] == 0x0A && 
-			(((Encoding == ANSI || Encoding == UTF_8) && Buffer[Index - 1] != 0x0D) || 
-			((Encoding == UTF_16_LE || Encoding == UTF_16_BE) && Buffer[Index - 2] != 0x0D) || 
-			((Encoding == UTF_32_LE || Encoding == UTF_32_BE) && Buffer[Index - 4] != 0x0D)))
+		else if (Buffer[Index] == 0x0A &&
+				 (((Encoding == ANSI || Encoding == UTF_8) && Buffer[Index - 1] != 0x0D) ||
+				  ((Encoding == UTF_16_LE || Encoding == UTF_16_BE) && Buffer[Index - 2] != 0x0D) ||
+				  ((Encoding == UTF_32_LE || Encoding == UTF_32_BE) && Buffer[Index - 4] != 0x0D)))
 		{
 			NextLineType = LF;
 			return;
 		}
-		else if (Buffer[Index] == 0x0D && 
-			(((Encoding == ANSI || Encoding == UTF_8) && Buffer[Index + 1] != 0x0A) || 
-			((Encoding == UTF_16_LE || Encoding == UTF_16_BE) && Buffer[Index + 2] != 0x0A) || 
-			((Encoding == UTF_32_LE || Encoding == UTF_32_BE) && Buffer[Index + 4] != 0x0A)))
+		else if (Buffer[Index] == 0x0D &&
+				 (((Encoding == ANSI || Encoding == UTF_8) && Buffer[Index + 1] != 0x0A) ||
+				  ((Encoding == UTF_16_LE || Encoding == UTF_16_BE) && Buffer[Index + 2] != 0x0A) ||
+				  ((Encoding == UTF_32_LE || Encoding == UTF_32_BE) && Buffer[Index + 4] != 0x0A)))
 		{
 			NextLineType = CR;
 			return;
@@ -1098,13 +1096,13 @@ inline void ReadEncoding(const char *Buffer, const size_t Length, size_t &Encodi
 	else if ((u_char)Buffer[0] == 0xFE && (u_char)Buffer[1] == 0xFF)
 		Encoding = UTF_16_BE;
 //8-bit Unicode Transformation Format/UTF-8 without BOM/Microsoft Windows ANSI Codepages
-	else 
+	else
 		Encoding = ANSI;
 
 	return;
 }
 
-//Cleanup Hosts Table(Linux)
+//Cleanup Hosts Table(Linux/Mac)
 inline void CleanupHostsTable()
 {
 //Delete all heap data

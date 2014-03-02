@@ -1,16 +1,16 @@
-// This code is part of Pcap_DNSProxy(Linux)
+// This code is part of Pcap_DNSProxy(Mac)
 // Copyright (C) 2012-2014 Chengr28
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either
 // version 2 of the License, or (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -29,14 +29,7 @@ int main(int argc, char *argv[])
 	if (FileInitialization() == EXIT_FAILURE)
 		return EXIT_FAILURE;
 
-//Set Daemon
-	if (daemon(0, 0) == RETURN_ERROR)
-	{
-		PrintError(System_Error, L"Set system daemon failed", 0, 0);
-		return EXIT_FAILURE;
-	}
-
-//Read configuration file 
+//Read configuration file
 	if (Parameter.ReadParameter() == EXIT_FAILURE || CaptureInitialization() == EXIT_FAILURE)
 		return EXIT_FAILURE;
 
@@ -49,7 +42,7 @@ int main(int argc, char *argv[])
 //Read Hosts
 	if (Parameter.Hosts > 0)
 	{
-		std::thread HostsThread(&Configuration::ReadHosts, std::ref(Parameter));
+		std::thread HostsThread(&Configuration::ReadHosts, &Parameter);
 		HostsThread.detach();
 	}
 
@@ -60,7 +53,7 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
-//File initialization(Linux)
+//File initialization(Linux/Mac)
 size_t FileInitialization()
 {
 //Initialization

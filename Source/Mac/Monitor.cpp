@@ -1,16 +1,16 @@
-// This code is part of Pcap_DNSProxy(Linux)
+// This code is part of Pcap_DNSProxy(Mac)
 // Copyright (C) 2012-2014 Chengr28
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either
 // version 2 of the License, or (at your option) any later version.
-// 
+//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -43,7 +43,7 @@ size_t MonitorInitialization()
 			std::thread ICMPThread(ICMPEcho);
 			ICMPThread.detach();
 		}
-
+		
 		if (Parameter.DNSTarget.IPv6)
 		{
 			std::thread ICMPv6Thread(ICMPv6Echo);
@@ -57,7 +57,7 @@ size_t MonitorInitialization()
 	Parameter.LocalSocket[0] = LocalhostData.Socket;
 	if (Parameter.ServerMode)
 		((sockaddr_in6 *)&LocalhostData.SockAddr)->sin6_addr = in6addr_any;
-	else 
+	else
 		((sockaddr_in6 *)&LocalhostData.SockAddr)->sin6_addr = in6addr_loopback;
 	LocalhostData.SockAddr.ss_family = AF_INET6;
 	((sockaddr_in6 *)&LocalhostData.SockAddr)->sin6_port = htons(DNS_Port);
@@ -65,13 +65,13 @@ size_t MonitorInitialization()
 
 	std::thread IPv6UDPMonitor(UDPMonitor, LocalhostData);
 	memset(&LocalhostData, 0, sizeof(SOCKET_DATA));
-
+	
 //Set localhost socket(IPv6/TCP)
 	LocalhostData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 	Parameter.LocalSocket[2] = LocalhostData.Socket;
 	if (Parameter.ServerMode)
 		((sockaddr_in6 *)&LocalhostData.SockAddr)->sin6_addr = in6addr_any;
-	else 
+	else
 		((sockaddr_in6 *)&LocalhostData.SockAddr)->sin6_addr = in6addr_loopback;
 	LocalhostData.SockAddr.ss_family = AF_INET6;
 	((sockaddr_in6 *)&LocalhostData.SockAddr)->sin6_port = htons(DNS_Port);
@@ -85,12 +85,12 @@ size_t MonitorInitialization()
 	Parameter.LocalSocket[1] = LocalhostData.Socket;
 	if (Parameter.ServerMode)
 		((sockaddr_in *)&LocalhostData.SockAddr)->sin_addr.s_addr = INADDR_ANY;
-	else 
+	else
 		((sockaddr_in *)&LocalhostData.SockAddr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	LocalhostData.SockAddr.ss_family = AF_INET;
 	((sockaddr_in *)&LocalhostData.SockAddr)->sin_port = htons(DNS_Port);
 	LocalhostData.AddrLen = sizeof(sockaddr_in);
-
+	
 	std::thread IPv4UDPMonitor(UDPMonitor, LocalhostData);
 	memset(&LocalhostData, 0, sizeof(SOCKET_DATA));
 
@@ -99,15 +99,15 @@ size_t MonitorInitialization()
 	Parameter.LocalSocket[3] = LocalhostData.Socket;
 	if (Parameter.ServerMode)
 		((sockaddr_in *)&LocalhostData.SockAddr)->sin_addr.s_addr = INADDR_ANY;
-	else 
+	else
 		((sockaddr_in *)&LocalhostData.SockAddr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	LocalhostData.SockAddr.ss_family = AF_INET;
 	((sockaddr_in *)&LocalhostData.SockAddr)->sin_port = htons(DNS_Port);
 	LocalhostData.AddrLen = sizeof(sockaddr_in);
-			
+
 	std::thread IPv4TCPMonitor(TCPMonitor, LocalhostData);
 	memset(&LocalhostData, 0, sizeof(SOCKET_DATA));
-
+	
 //Join threads
 	if (IPv6UDPMonitor.joinable())
 		IPv6UDPMonitor.join();
@@ -127,24 +127,24 @@ size_t UDPMonitor(const SOCKET_DATA LocalhostData)
 	if ((!Parameter.DNSTarget.IPv6 && LocalhostData.AddrLen == sizeof(sockaddr_in6)) || //IPv6
 		(!Parameter.DNSTarget.IPv4 && LocalhostData.AddrLen == sizeof(sockaddr_in))) //IPv4
 	{
-		close(LocalhostData.Socket);
+		close((int)LocalhostData.Socket);
 		return FALSE;
 	}
 
 //Socket initialization
 	if (LocalhostData.Socket == RETURN_ERROR)
 	{
-		PrintError(Socket_Error, L"UDP Monitor socket initialization failed", errno, 0);
-
-		close(LocalhostData.Socket);
+		PrintError(Socket_Error, L"UDP Monitor socket initialization failed", errno, NULL);
+		
+		close((int)LocalhostData.Socket);
 		return EXIT_FAILURE;
 	}
 
-	if (bind(LocalhostData.Socket, (sockaddr *)&LocalhostData.SockAddr, LocalhostData.AddrLen) == RETURN_ERROR)
+	if (bind((int)LocalhostData.Socket, (sockaddr *)&LocalhostData.SockAddr, LocalhostData.AddrLen) == RETURN_ERROR)
 	{
-		PrintError(Socket_Error, L"Bind UDP Monitor socket error", errno, 0);
-
-		close(LocalhostData.Socket);
+		PrintError(Socket_Error, L"Bind UDP Monitor socket error", errno, NULL);
+		
+		close((int)LocalhostData.Socket);
 		return EXIT_FAILURE;
 	}
 
@@ -155,8 +155,8 @@ size_t UDPMonitor(const SOCKET_DATA LocalhostData)
 	}
 	catch (std::bad_alloc)
 	{
-		PrintError(System_Error, L"Memory allocation failed", 0, 0);
-
+		PrintError(System_Error, L"Memory allocation failed", NULL, NULL);
+		
 		close(LocalhostData.Socket);
 		return EXIT_FAILURE;
 	}
@@ -168,7 +168,7 @@ size_t UDPMonitor(const SOCKET_DATA LocalhostData)
 	while (true)
 	{
 		memset(Buffer + PACKET_MAXSIZE*Index, 0, PACKET_MAXSIZE);
-		RecvLength = recvfrom(LocalhostData.Socket, Buffer + PACKET_MAXSIZE*Index, PACKET_MAXSIZE, 0, (sockaddr *)&(LocalhostData.SockAddr), (socklen_t *)&LocalhostData.AddrLen);
+		RecvLength = recvfrom((int)LocalhostData.Socket, Buffer + PACKET_MAXSIZE*Index, PACKET_MAXSIZE, NULL, (sockaddr *)&(LocalhostData.SockAddr), (socklen_t *)&LocalhostData.AddrLen);
 
 		if (RecvLength >= (ssize_t)(sizeof(dns_hdr) + sizeof(dns_qry)))
 		{
@@ -198,32 +198,32 @@ size_t TCPMonitor(const SOCKET_DATA LocalhostData)
 	if ((!Parameter.DNSTarget.IPv6 && LocalhostData.AddrLen == sizeof(sockaddr_in6)) || //IPv6
 		(!Parameter.DNSTarget.IPv4 && LocalhostData.AddrLen == sizeof(sockaddr_in))) //IPv4
 	{
-		close(LocalhostData.Socket);
+		close((int)LocalhostData.Socket);
 		return FALSE;
 	}
 
 //Socket initialization
 	if (LocalhostData.Socket == RETURN_ERROR)
 	{
-		PrintError(Socket_Error, L"TCP Monitor socket initialization failed", errno, 0);
-
-		close(LocalhostData.Socket);
+		PrintError(Socket_Error, L"TCP Monitor socket initialization failed", errno, NULL);
+		
+		close((int)LocalhostData.Socket);
 		return EXIT_FAILURE;
 	}
 
-	if(bind(LocalhostData.Socket, (sockaddr *)&LocalhostData.SockAddr, LocalhostData.AddrLen) == RETURN_ERROR)
+	if(bind((int)LocalhostData.Socket, (sockaddr *)&LocalhostData.SockAddr, LocalhostData.AddrLen) == RETURN_ERROR)
 	{
-		PrintError(Socket_Error, L"Bind TCP Monitor socket error", errno, 0);
-
-		close(LocalhostData.Socket);
+		PrintError(Socket_Error, L"Bind TCP Monitor socket error", errno, NULL);
+		
+		close((int)LocalhostData.Socket);
 		return EXIT_FAILURE;
 	}
 
-	if (listen(LocalhostData.Socket, SOMAXCONN) == RETURN_ERROR)
+	if (listen((int)LocalhostData.Socket, SOMAXCONN) == RETURN_ERROR)
 	{
-		PrintError(Socket_Error, L"TCP Monitor socket listening initialization failed", errno, 0);
-
-		close(LocalhostData.Socket);
+		PrintError(Socket_Error, L"TCP Monitor socket listening initialization failed", errno, NULL);
+		
+		close((int)LocalhostData.Socket);
 		return EXIT_FAILURE;
 	}
 
@@ -233,10 +233,10 @@ size_t TCPMonitor(const SOCKET_DATA LocalhostData)
 	while (true)
 	{
 		memset(&ClientData, 0, sizeof(SOCKET_DATA));
-		ClientData.Socket = accept(LocalhostData.Socket, (sockaddr *)&ClientData.SockAddr, (socklen_t *)&LocalhostData.AddrLen);
+		ClientData.Socket = accept((int)LocalhostData.Socket, (sockaddr *)&ClientData.SockAddr, (socklen_t *)&LocalhostData.AddrLen);
 		if (ClientData.Socket == RETURN_ERROR)
 		{
-			close(ClientData.Socket);
+			close((int)ClientData.Socket);
 			continue;
 		}
 
@@ -247,6 +247,6 @@ size_t TCPMonitor(const SOCKET_DATA LocalhostData)
 		Index = (Index + 1)%THREAD_MAXNUM;
 	}
 
-	close(LocalhostData.Socket);
+	close((int)LocalhostData.Socket);
 	return EXIT_SUCCESS;
 }
