@@ -78,7 +78,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * IPFilter Level error - IPFilter 过滤级别错误：请检查过滤级别的值，可适用范围为 1 - 65535
   * DNS Cache error - DNS缓存配置错误：请检查缓存的参数
   * DNS Targets error - DNS目标服务器配置错误：请检查DNS服务器的地址
-  * Alternate servers error - 备用服务器配置错误：请检查主要服务器和备用服务器的地址
   * Hop Limit or TTL Fluctuations error - Hop Limit 或 TTL 可接受范围错误：请检查范围的值
   * EDNS0 PayloadSize must longer than 512 bytes(Old DNS packets minimum supported size) - EDNS0载荷长度过短：实现DNS协议必须支持长度超过 512 bytes 的数据包
   * EDNS0 PayloadSize may be too long - EDNS0载荷长度可能过长：此值建议不要超过以太网的MTU(1512 bytes)

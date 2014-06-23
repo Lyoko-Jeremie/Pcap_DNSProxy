@@ -64,7 +64,7 @@ Pcap_DNSProxy 支持平台：
   * Windows 下批处理会自动判断 x64 和 x86 版本
 3.打开下载回来的ZIP文件，将 Main 目录解压到磁盘的任意位置
   * 目录和程序的名称可以随意更改
-4.确定工具文件夹的名称和路径后进入文件夹内，运行 ServiceInstall.bat
+4.确定工具文件夹的名称和路径后进入文件夹内，以管理员身份运行 ServiceInstall.bat
   * 此批处理作用为将程序注册系统服务，并进行Windows防火墙测试
   * 以后每次开机服务都将自动启动
 5.此时 Windows 系统会询问是否同意程序访问网络，请将 "专用网络" 以及 "公用网络" 都勾上并确认
@@ -80,9 +80,9 @@ Pcap_DNSProxy 支持平台：
 卸载方法（需要以管理员身份进行）：
 
 1.按照安装方法中第6步还原网络配置
-2.运行 ServiceUninstall.bat 即可，批处理将直接停止服务并卸载服务
+2.以管理员身份运行 ServiceUninstall.bat 即可，批处理将直接停止服务并卸载服务
   * 注意Windows防火墙可能会留有允许程序访问网络的信息，故卸载后可能需要使用注册表清理工具清理
-  * 转移工具文件夹路径不需要卸载服务，转移完成后重新运行 ServiceInstall.bat 即可
+  * 转移工具文件夹路径不需要卸载服务，转移完成后重新以管理员身份运行 ServiceInstall.bat 即可
 
 
 正常工作查看方法：
@@ -404,10 +404,10 @@ Hosts配置文件分为Base/基本区域、Hosts/主要Hosts列表 和 Local Hos
   直接在条目前添加 "NULL"（不含引号）即可，有效参数格式为 "NULL 正则表达式"（不含引号）
   * 注意优先级的问题，例如有一片含白名单条目的区域：
     
-	NULL .*.test.localhost
-	127.0.0.1|127.0.0.2|127.0.0.3 .*.localhost
+	NULL .*\.test.localhost
+	127.0.0.1|127.0.0.2|127.0.0.3 .*\.localhost
 	
-    虽然 .*.localhost 包含了 .*.test.localhost 但由于优先级别自上而下递减，故先命中 .*.test.localhost 并返回使用远程服务器解析
+    虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并返回使用远程服务器解析
 	从而绕过了下面的条目，不使用Hosts的功能
 
 
@@ -421,12 +421,12 @@ Hosts配置文件分为Base/基本区域、Hosts/主要Hosts列表 和 Local Hos
   * 平行地址原理为一次返回多个记录，而具体使用哪个记录则由请求者决定，一般为第1个
   * 例如有一个 [Hosts] 下有效数据区域：
 
-    127.0.0.1|127.0.0.2|127.0.0.3 .*.test.localhost
-    127.0.0.4|127.0.0.5|127.0.0.6 .*.localhost
-    ::1|::2|::3	.*.test.localhost
-    ::4|::5|::6	.*.localhost
+    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.localhost
+    127.0.0.4|127.0.0.5|127.0.0.6 .*\.localhost
+    ::1|::2|::3	.*\.test\.localhost
+    ::4|::5|::6	.*\.localhost
 
-	虽然 .*.localhost 包含了 .*.test.localhost 但由于优先级别自上而下递减，故先命中 .*.test.localhost 并直接返回，不会再进行其它检查
+	虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并直接返回，不会再进行其它检查
     * 请求解析 xxx.localhost 的A记录（IPv4）会返回 127.0.0.4、127.0.0.5和127.0.0.6
     * 请求解析 xxx.localhost 的AAAA记录（IPv6）会返回 ::4、::5和::6
     * 请求解析 xxx.test.localhost 的A记录（IPv4）会返回 127.0.0.1、127.0.0.2和127.0.0.3
@@ -438,8 +438,8 @@ Hosts配置文件分为Base/基本区域、Hosts/主要Hosts列表 和 Local Hos
   * 本功能不会对境内DNS服务器回复进行任何过滤的措施，请确认本区域填入的数据不会受到DNS投毒污染干扰
   * 例如有一个 [Local Hosts] 下有效数据区域：
 
-    .*.test.localhost
-    .*.localhost
+    .*\.test\.localhost
+    .*\.localhost
 
   * 即所有符合以上正则表达式的域名请求都将使用境内DNS服务器解析
 
