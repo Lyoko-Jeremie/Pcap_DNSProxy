@@ -18,60 +18,10 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="Pcap_DNSProxy.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Keccak\brg_endian.h" />
-    <ClInclude Include="Keccak\KeccakF-1600-interface.h" />
-    <ClInclude Include="Keccak\KeccakHash.h" />
-    <ClInclude Include="Keccak\KeccakSponge.h" />
-    <ClInclude Include="LibSodium\core.h" />
-    <ClInclude Include="LibSodium\crypto_box.h" />
-    <ClInclude Include="LibSodium\crypto_box_curve25519xsalsa20poly1305.h" />
-    <ClInclude Include="LibSodium\crypto_sign_ed25519.h" />
-    <ClInclude Include="LibSodium\export.h" />
-    <ClInclude Include="LibSodium\randombytes.h" />
-    <ClInclude Include="LibSodium\randombytes_salsa20_random.h" />
-    <ClInclude Include="Pcap_DNSProxy.h" />
-    <ClInclude Include="Pcap_DNSProxy_Base.h" />
-    <ClInclude Include="resource.h" />
-    <ClInclude Include="WinPcap\bittypes.h" />
-    <ClInclude Include="WinPcap\ip6_misc.h" />
-    <ClInclude Include="WinPcap\pcap-stdinc.h" />
-    <ClInclude Include="WinPcap\pcap.h" />
-    <ClInclude Include="WinPcap\pcap\bpf.h" />
-    <ClInclude Include="WinPcap\pcap\pcap.h" />
-    <ClInclude Include="WinPcap\remote-ext.h" />
-    <ClInclude Include="WinPcap\Win32-Extensions.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Capture.cpp" />
-    <ClCompile Include="ClassInitialization.cpp" />
-    <ClCompile Include="Configuration.cpp" />
-    <ClCompile Include="Console.cpp" />
-    <ClCompile Include="DNSCurve.cpp" />
-    <ClCompile Include="Keccak\Keccak-compact64.cpp" />
-    <ClCompile Include="Keccak\KeccakHash.cpp" />
-    <ClCompile Include="Keccak\KeccakSponge.cpp" />
-    <ClCompile Include="Main.cpp" />
-    <ClCompile Include="Monitor.cpp" />
-    <ClCompile Include="PrintError.cpp" />
-    <ClCompile Include="Process.cpp" />
-    <ClCompile Include="Protocol.cpp" />
-    <ClCompile Include="Request.cpp" />
-    <ClCompile Include="Service.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="LibSodium\libsodium_x64.lib" />
-    <Library Include="LibSodium\libsodium_x86.lib" />
-    <Library Include="WinPcap\wpcap_x64.lib" />
-    <Library Include="WinPcap\wpcap_x86.lib" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{FC0DA489-AC9A-4614-A490-D4DAF2056284}</ProjectGuid>
+    <ProjectGuid>{651A3883-4D57-4351-812F-AC64901F4D82}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>Pcap_DNSProxy</RootNamespace>
+    <RootNamespace>KeyPairGenerator</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -91,7 +41,7 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v110_xp</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -128,7 +78,6 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>false</LinkIncremental>
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -137,7 +86,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;WPCAP;HAVE_REMOTE;SODIUM_STATIC;SODIUM_EXPORT=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
@@ -151,9 +100,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;WPCAP;HAVE_REMOTE;SODIUM_STATIC;SODIUM_EXPORT=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -162,28 +110,28 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;WPCAP;HAVE_REMOTE;SODIUM_STATIC;SODIUM_EXPORT=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;SODIUM_STATIC;SODIUM_EXPORT=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <StringPooling>true</StringPooling>
       <CompileAsManaged>false</CompileAsManaged>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <MinimalRebuild>
       </MinimalRebuild>
-      <StructMemberAlignment>Default</StructMemberAlignment>
-      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <WarningLevel>Level3</WarningLevel>
       <OmitFramePointers>true</OmitFramePointers>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <FloatingPointExceptions>true</FloatingPointExceptions>
+      <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -191,7 +139,6 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <LargeAddressAware>true</LargeAddressAware>
-      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SetChecksum>true</SetChecksum>
     </Link>
     <ResourceCompile>
@@ -200,31 +147,28 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <Optimization>Full</Optimization>
+      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;WPCAP;HAVE_REMOTE;SODIUM_STATIC;SODIUM_EXPORT=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;SODIUM_STATIC;SODIUM_EXPORT=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <StringPooling>true</StringPooling>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <CompileAsManaged>false</CompileAsManaged>
-      <CompileAsWinRT>false</CompileAsWinRT>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <OmitFramePointers>true</OmitFramePointers>
       <MinimalRebuild>
       </MinimalRebuild>
-      <StructMemberAlignment>Default</StructMemberAlignment>
-      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <WarningLevel>Level3</WarningLevel>
-      <FloatingPointExceptions>true</FloatingPointExceptions>
-      <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <CallingConvention>StdCall</CallingConvention>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -232,13 +176,22 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <LargeAddressAware>true</LargeAddressAware>
-      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
       <SetChecksum>true</SetChecksum>
     </Link>
     <ResourceCompile>
       <NullTerminateStrings>true</NullTerminateStrings>
     </ResourceCompile>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="KeyPairGenerator.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="KeyPairGenerator.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="KeyPairGenerator.rc" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
