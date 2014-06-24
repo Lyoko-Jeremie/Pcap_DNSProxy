@@ -25,17 +25,17 @@ Pcap_DNSProxy 是一个基于 LibPcap/WinPcap 制作的用于忽略DNS投毒污�
 Pcap_DNSProxy 的特点：
 * 同时支持IPv4/IPv6协议，也可单独开启
 * 普通DNS请求模式同时支持TCP/UDP协议
-* 原生64位/x64目标平台编译版本
-* Native Code 原生码编译，不含任何托管代码
-* 作为服务工作于系统底层
+* Native Code 原生码编译，不含任何托管代码，x64版为原生64位目标平台编译
+* 作为系统服务工作于底层
 * 多线程模型
-* 主要和备用双服务器模式，提高DNS解析的可靠性
-* Hosts Only 模式可只适用本工具支持正则表达式的 Hosts 的功能 
 * 使用 LibPcap/WinPcap 利用系统底层驱动抓取数据包，多种过滤方式忽略接收到的伪造数据包
 * 支持服务器模式，相当于一个小型的DNS服务器，能为其它设备提供解析服务，并可限制可请求的范围
-* 支持境内DNS服务器解析，可提高境内服务器的访问速度
-* DNS缓存的功能
+* 主要和备用双服务器模式，提高DNS解析的可靠性
+* DNS缓存功能
 * 支持 EDNS0 标签
+* 支持 DNSCurve/DNSCrypt 协议
+* Hosts Only 模式可只适用本工具支持正则表达式的 Hosts 的功能
+* 支持 Local Hosts 境内DNS服务器解析功能，可提高对境内域名的解析速度和服务器的访问速度
 * 丰富的配置选项，读取文件支持 ANSI、UTF-8(/BOM)、UTF-16(LE/BE) 和 UTF-32(LE/BE) 编码以及 Windows/Unix/Macintosh 换行格式
 * 错误报告功能
 
@@ -58,31 +58,53 @@ Pcap_DNSProxy 支持平台：
 
 安装方法（需要以管理员身份进行）：
 
-1.访问 http://www.winpcap.org/install/default.htm 下载并安装 WinPcap
+1.访问 http://www.winpcap.org/install/default.htm 下载并以管理员权限安装 WinPcap
+  * Release 版本压缩包中也提供有 WinPcap 的安装程序
+  * WinPcap 只需要安装一次，以后更新时请从第2步开始操作
   * 安装时自启动选项对工具的运行没有影响，因为本工具直接调用 WinPcap API，不需要经过服务器程序
-2.访问 https://github.com/chengr28/pcap_dnsproxy/branches 随便选择一个Release版本，并使用GitHub的 Download ZIP 功能将所有文件下载到本地
+2.访问 https://github.com/chengr28/pcap_dnsproxy/branches 随便选择一个 Release 版本，并使用 GitHub 的 Download ZIP 功能将所有文件下载到本地
   * Windows 下批处理会自动判断 x64 和 x86 版本
 3.打开下载回来的ZIP文件，将 Main 目录解压到磁盘的任意位置
-  * 目录和程序的名称可以随意更改
-4.确定工具文件夹的名称和路径后进入文件夹内，以管理员身份运行 ServiceInstall.bat
-  * 此批处理作用为将程序注册系统服务，并进行Windows防火墙测试
+  * 目录所在位置和程序文件名可以随意更改
+  * 注意：配置文件/Hosts文件和IPFilter文件只能使用固定的文件名（更多详细情况参见下文 功能和技术 一节）
+4.确定工具目录的名称和路径后进入目录内，右键以管理员身份(Vista以及更新版本)或直接以管理员登录双击(XP/2003)运行 ServiceInstall.bat
+  * 批处理会将程序注册系统服务，并进行 Windows 防火墙测试
   * 以后每次开机服务都将自动启动
 5.此时 Windows 系统会询问是否同意程序访问网络，请将 "专用网络" 以及 "公用网络" 都勾上并确认
 6.打开 网络和共享中心 - 更改适配器设置 选择 本地连接 或 宽带连接（取决于实际使用的网络适配器）
   * 右击 属性 - Internet协议版本4(IPv4) - 属性 - 勾选 "使用下面的DNS服务器地址"
-  * 在 首选DNS服务器 内填入 127.0.0.1 确定保存并退出即可
+  * 在 首选DNS服务器 内填入 "127.0.0.1"（不含引号） 确定保存并退出即可
   * 如果需要使用IPv6协议的本地服务器
     * 请先编辑配置文件的 IPv6 DNS Address 一栏，参见下文 配置文件详细参数说明 一节
     * 右击 属性 - Internet协议版本6(IPv6) - 属性 - 勾选 "使用下面的DNS服务器地址"
-	* 在 首选DNS服务器 内填入 ::1 确定保存并退出即可
+	* 在 首选DNS服务器 内填入 "::1"（不含引号） 确定保存并退出即可
+
+
+重启服务方法（需要以管理员身份进行）：
+1.右键以管理员身份(Vista以及更新版本)或直接以管理员登录双击(XP/2003)运行 ServiceStop.bat
+  * 批处理将直接停止服务的运行
+2.右键以管理员身份(Vista以及更新版本)或直接以管理员登录双击(XP/2003)运行 ServiceStart.bat 即可
+  * 批处理将启动服务，完成后相当于重启服务
+
+
+更新程序方法（需要以管理员身份进行）：
+注意：更新程序切勿直接覆盖，否则可能会造成不可预料的错误！请按照以下的步骤进行：
+1.提前下载好新版本的 Pcap_DNSProxy（亦即 安装方法 中第2步），更新过程可能会造成域名解析短暂中断
+2.备份好所有配置文件/Hosts文件/IPFilter文件的自定义内容
+3.右键以管理员身份(Vista以及更新版本)或直接以管理员登录双击(XP/2003)运行 ServiceStop.bat 停止服务
+4.将整个 Pcap_DNSProxy 程序的目录删除
+  * 注意 Windows 防火墙可能会留有允许程序访问网络的信息，卸载服务后又变更了程序的目录则可能需要使用注册表清理工具清理
+5.将新版本的 Pcap_DNSProxy 解压到任何位置（亦即 安装方法 中第3步）
+6.将配置文件的自定义内容加回新版本配置文件里相应的区域内
+7.按照 安装方法 中第4步重新部署 Pcap_DNSProxy
 
 
 卸载方法（需要以管理员身份进行）：
 
-1.按照安装方法中第6步还原网络配置
-2.以管理员身份运行 ServiceUninstall.bat 即可，批处理将直接停止服务并卸载服务
-  * 注意Windows防火墙可能会留有允许程序访问网络的信息，故卸载后可能需要使用注册表清理工具清理
-  * 转移工具文件夹路径不需要卸载服务，转移完成后重新以管理员身份运行 ServiceInstall.bat 即可
+1.按照 安装方法 中第6步还原DNS域名服务器地址配置
+2.右键以管理员身份(Vista以及更新版本)或直接以管理员登录双击(XP/2003)运行 ServiceUninstall.bat 即可，批处理将直接停止服务并卸载服务
+  * 注意 Windows 防火墙可能会留有允许程序访问网络的信息，故卸载后可能需要使用注册表清理工具清理
+  * 转移工具目录路径不需要卸载服务，先停止服务转移，转移完成后重新右键以管理员身份(Vista以及更新版本)或直接以管理员登录双击(XP/2003)运行 ServiceInstall.bat 即可
 
 
 正常工作查看方法：
@@ -95,7 +117,7 @@ Pcap_DNSProxy 支持平台：
 
    >nslookup www.google.com
     服务器:  pcap-dnsproxy.localhost.server（视配置文件设置的值而定，参见下文 配置文件详细参数说明 一节）
-    Address:  127.0.0.1
+    Address:  127.0.0.1（视所在网络环境而定，原生IPv6为 ::1）
 
     非权威应答:
 	名称:    www.google.com
@@ -103,48 +125,71 @@ Pcap_DNSProxy 支持平台：
 
 4.如非以上结果，请移步 FAQ 文档中 运行结果分析 一节
 
+
 -------------------------------------------------------------------------------
 
 
 注意事项：
 
+* 如修改DNS服务器，请务必设置一个正确的、有效的、可以正常使用的境外DNS服务器！
 * 如果程序启动提示丢失 wpcap.dll 请重新安装 WinPcap 或者将其更新到最新版本
-* 请务必设置一个正确的、有效的、可以正常使用的境外DNS服务器！
-* 配置文件和错误报告所在的目录以上文 安装方法 一节中第4步注册的服务信息为准，注意填写时一行不要超过4096字节/4KB
+* Linux/Mac 平台下读取文件名首字母大写优先级高于小写，Windows 平台下读取文件名时不存在大小写的区别
+* 配置文件/Hosts文件/IPFilter文件和错误报告所在的目录以上文 安装方法 一节中第4步注册的服务信息为准
+  * 注意填写时一行不要超过4096字节/4KB
 * 服务启动前请先确认没有其它本地DNS服务器运行或本工具多个拷贝运行中，否则可能会导致监听冲突无法正常工作
   * 监听冲突会生成错误报告，可留意 Windows Socket 相关的错误（参见 FAQ 文档中 Error.log 详细错误报告 一节）
 * 杀毒软件/第三方防火墙可能会阻止本程序的操作，请将行为全部允许或将本程序加入到白名单中
-* 关于后台服务
-  * 文件夹内批处理的作用（运行结束会有运行结果）：
-    * ServiceInstall - 将程序注册系统服务，并初次启动程序进行Windows防火墙测试
-      * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been installed." 但具体是否成功需要留意屏幕上的提示
-    * ServiceStart - 启动工具服务
-      * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been started." 但具体是否成功需要留意屏幕上的提示
-    * ServiceQuery - 适用于 Windows XP 以及更旧版本Windows的测试批处理，能测试工具服务是否安装成功
-    * ServiceStop - 即时停止工具服务，重启服务时需要先停止服务
-      * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been stopped." 但具体是否成功需要留意屏幕上的提示
-    * ServiceUninstall - 停止并卸载工具服务
-      * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been deleted." 但具体是否成功需要留意屏幕上的提示
-  * 重启服务
-    * 首先运行 ServiceStop.bat
-    * 然后运行 ServiceStart.bat 即可
-* 更新程序
-  * 切勿直接覆盖，否则可能会造成错误！
-  * 备份好所有配置文件的自定义内容
-  * 运行 ServiceStop.bat 停止服务
-  * 将整个 Pcap_DNSProxy 目录删除
-  * 将新版本的 Pcap_DNSProxy 目录放入相同的位置
-  * 将配置文件的自定义内容加回新版本配置文件里相应的区域内
-  * 运行 ServiceStart.bat 启动服务
-* 文件夹和程序的名称可以随意更改，但请务必在进行安装方法第4步前完成。如果服务注册后需移动工具文件夹的路径，则需要:
-  * 必须先停止工具服务
-  * 移动工具文件夹
-  * 重复 安装方法 中的第4步-第6步操作
-* 关于请求域名解析的优先级
-  * 使用系统API函数进行域名解析（大部分）：系统 Hosts > Pcap_DNSProxy 的 Hosts 条目（Whitelist/白名单条目 > Local Hosts/境内DNS解析域名列表 > Hosts/主要Hosts列表） > 远程DNS服务器
-  * 直接使用网络适配器设置进行域名解析（小部分）：Pcap_DNSProxy 的 Hosts.ini（Whitelist/白名单条目 > Local Hosts/境内DNS解析域名列表 > Hosts/主要Hosts列表） > 远程DNS服务器
-  * 请求远程DNS服务器的优先级：Hosts Only 模式 > TCP模式的DNSCurve 加密/非加密模式（如有） > UDP模式的DNSCurve 加密/非加密模式（如有） > TCP模式普通请求（如有） > UDP模式普通请求
+* 如果启动服务时提示 "服务没有及时响应启动或者控制请求" 请留意是否有错误报告生成，详细的错误信息参见 FAQ 文档中 Error.log 详细错误报告 一节
+* 目录和程序的名称可以随意更改，但请务必在进行安装方法第4步前完成。如果服务注册后需移动工具目录的路径，参见上文 卸载方法 第2步的注意事项
 * 由于本人水平有限，程序编写难免会出现差错疏漏，如有问题可至项目页面提出，望谅解 v_v
+
+
+-------------------------------------------------------------------------------
+
+
+功能和技术：
+* 批处理的作用（运行结束会有运行结果）：
+  * ServiceInstall - 将程序注册为系统服务，并启动程序进行 Windows 防火墙测试
+    * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been installed."
+	* 具体是否成功需要留意屏幕上的提示
+  * ServiceStart - 启动工具服务
+    * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been started."
+	* 具体是否成功需要留意屏幕上的提示
+  * ServiceQuery - 适用于 Windows XP/2003 以及更旧版本Windows的测试批处理，能测试工具服务是否安装成功
+  * ServiceStop - 即时停止工具服务，重启服务时需要先停止服务
+    * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been stopped."
+	* 具体是否成功需要留意屏幕上的提示
+  * ServiceUninstall - 停止并卸载工具服务
+    * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been deleted."
+	* 具体是否成功需要留意屏幕上的提示
+* 配置文件支持的文件名（只会读取优先级较高者，优先级较低者将被直接忽略）：
+  * Windows: Config.ini > Config.conf > Config
+  * Linux/Mac: Config.conf > Config.ini > Config
+* Hosts 文件支持的文件名（优先级自上而下递减）：
+  * Windows: Hosts.ini > Hosts.conf > Hosts > Hosts.txt
+  * Linux/Mac: Hosts.conf > Hosts.ini > Hosts > Hosts.txt
+  * Hosts 文件存在即会读取，优先级高者先读取，存在相同条目时将附加到优先级高者后，请求响应时位置越前，相同的地址将会被自动合并
+* IPFilter 数据库支持的文件名（优先级自上而下递减）：
+  * IPFilter.dat
+  * IPFilter.csv
+  * IPFilter.txt
+  * IPFilter
+  * Guarding.P2P
+  * Guarding
+  * IPFilter 文件存在即会读取，相同的地址范围将会被自动合并
+* 请求域名解析优先级
+  * 使用系统API函数进行域名解析（大部分）：系统 Hosts > Pcap_DNSProxy 的 Hosts 条目（Whitelist/白名单条目 > Hosts/主要Hosts列表） > DNS缓存 > Local Hosts/境内DNS解析域名列表 > 远程DNS服务器
+  * 直接使用网络适配器设置进行域名解析（小部分）：Pcap_DNSProxy 的 Hosts.ini（Whitelist/白名单条目 > Hosts/主要Hosts列表） > DNS缓存 > Local Hosts/境内DNS解析域名列表 > 远程DNS服务器
+  * 请求远程DNS服务器的优先级：Hosts Only 模式 > TCP模式的DNSCurve 加密/非加密模式（如有） > UDP模式的DNSCurve 加密/非加密模式（如有） > TCP模式普通请求（如有） > UDP模式普通请求
+* 一个含有大部分境内域名的 [Local Hosts] 如有需要可直接添加到 Pcap_DNSProxy 的 Hosts 里
+  * https://xinhugo-list.googlecode.com/svn/trunk/White_List.txt
+* DNS缓存类型
+  * Timer/计时型：可以自定义缓存的时间长度，队列长度不限
+  * Queue/队列型：默认缓存时间15分钟，可通过 Hosts 文件的 Default TTL 值自定义，同时可自定义缓存队列长度（亦即限制队列长度的 Timer/计时型）
+* 本工具的 DNSCurve/DNSCrypt 协议是内置的实现，不需要安装 DNSCrypt 官方的工具！
+  * DNSCurve 协议为 Streamlined/精简类型
+  * 注意：DNSCrypt 官方工具会占用本地DNS端口导致 Pcap_DNSProxy 部署失败
+
 
 -------------------------------------------------------------------------------
 
@@ -162,7 +207,7 @@ Pcap_DNSProxy 支持平台：
 
 * DNS - 域名解析参数区域
   * Protocol - 发送请求所使用的协议，分 UDP 和 TCP：默认为 UDP
-    * 注意：此处所指的协议指的是程序请求远程DNS服务器所使用的协议，而向本程序请求域名解析时可随意使用 UDP 或 TCP
+    * 注意：此处所指的协议指的是程序请求远程DNS服务器时所使用的协议，而向本程序请求域名解析时可随意使用 UDP 或 TCP
   * Hosts Only - Hosts Only 模式，启用后将不进行任何数据包过滤，只适用本工具的 Hosts 功能：开启为1/关闭为0，默认为0
   * Cache Type - DNS缓存的类型：分 Timer/计时型以及 Queue/队列型
   * Cache Parameter - DNS缓存的参数：Timer/计时型 时为时间长度，Queue/队列型 时为队列长度
@@ -174,20 +219,17 @@ Pcap_DNSProxy 支持平台：
   * Listen Port - 监听端口，本地监听请求的端口：可填入 1-65535 之间的端口，如果留空则为53，默认为空
   * IPFilter Type - IPFilter 参数的类型：分为 Deny 禁止和 Permit 允许，对应 IPFilter 参数应用为黑名单或白名单，默认为 Deny
   * IPFilter Level - IPFilter 参数的过滤级别，级别越高过滤越严格，与 IPFilter 条目相对应：0为不启用过滤，如果留空则为0，默认为空
-  
+
 * Addresses - 普通模式地址区域
+注意：IPv4地址格式为 "IPv4地址:端口"，IPv6地址格式为"[IPv6地址]:端口"（均不含引号）
   * IPv4 DNS Address - IPv4主要DNS服务器地址：需要输入一个带端口格式的地址，默认为 8.8.4.4:53(Google Public DNS No.2)
   * IPv4 Alternate DNS Address - IPv4备用DNS服务器地址：需要输入一个带端口格式的地址，默认为 8.8.8.8:53(Google Public DNS No.1)
   * IPv4 Local DNS Address - IPv4主要境内DNS服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，默认为 114.114.115.115:53(114 DNS No.2)
   * IPv4 Local Alternate DNS Address - IPv4备用境内DNS服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，默认为 114.114.114.114:53(114 DNS No.1)
   * IPv6 DNS Address - IPv6主要DNS服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为空
-    * IPv6的格式为 "[地址]:端口"（不含引号）
   * IPv6 Alternate DNS Address - IPv6备用DNS服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为空
-     * IPv6的格式为 "[地址]:端口"（不含引号）
   * IPv6 Local DNS Address - IPv6主要境内DNS服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，留空为不启用，默认为空
-     * IPv6的格式为 "[地址]:端口"（不含引号）
   * IPv6 Local Alternate DNS Address - IPv6备用境内DNS服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，留空为不启用，默认为空
-     * IPv6的格式为 "[地址]:端口"（不含引号）
 
 * Values - 扩展参数值区域
   * EDNS0 Payload Size - EDNS0 标签附带使用的最大载荷长度：最小为DNS协议实现要求的512(bytes)，留空则使用 EDNS0 标签要求最短的1220(bytes)，默认为留空
@@ -199,8 +241,8 @@ Pcap_DNSProxy 支持平台：
   * Alternate Times - 备用服务器失败次数阈值，一定周期内如超出阈值会触发服务器切换：最小为10次，默认为10次
   * Alternate Time Range - 备用服务器失败次数阈值计算周期：单位为秒，默认为60秒/1分钟
   * Alternate Reset Time - 备用服务器重置切换时间，切换产生后经过次事件会切换回主要服务器：单位为秒，默认为300秒/5分钟
-  * ICMP Test - ICMP/Ping测试间隔时间：单位为秒，最短间隔时间为5秒，最长为5位数，默认为900秒/15分钟
-  * Domain Test - DNS服务器解析域名测试间隔时间：单位为秒，最短间隔时间为5秒，最长为5位数，默认为900秒/15分钟
+  * ICMP Test - ICMP/Ping测试间隔时间：单位为秒，最短间隔时间为5秒，默认为900秒/15分钟
+  * Domain Test - DNS服务器解析域名测试间隔时间：单位为秒，最短间隔时间为5秒，默认为900秒/15分钟
 
 * Switches - 控制开关区域
   * EDNS0 Label - EDNS0 标签支持，开启后将为所有请求添加 EDNS0 标签：开启为1/关闭为0，默认为0
@@ -226,7 +268,7 @@ Pcap_DNSProxy 支持平台：
   * DNSCurve Payload Size - DNSCurve EDNS0 标签附带使用的最大载荷长度，同时亦为发送请求的总长度，并决定请求的填充长度：最小为DNS协议实现要求的512(bytes)，留空则为512(bytes)，默认为留空
   * Encryption - 启用加密，DNSCurve 协议支持加密和非加密模式：开启为1/关闭为0，默认为1
   * Encryption Only - 只使用加密模式：开启为1/关闭为0，默认为1
-    * 注意：使用 只使用加密模式 时必须提供服务器的魔数和指纹
+    * 注意：使用 只使用加密模式 时必须提供服务器的魔数和指纹用于请求和接收
   * Key Recheck Time - DNSCurve 协议DNS服务器连接信息检查间隔：单位为秒，最短为10秒，默认为3600秒/1小时
   
 * DNSCurve Addresses - DNSCurve 协议地址区域
@@ -388,11 +430,12 @@ IPv6 Alternate DNS Magic Number =
 Hosts 文件格式说明：
 
 Hosts配置文件分为Base/基本区域、Hosts/主要Hosts列表 和 Local Hosts/境内DNS解析域名列表 三个区域
-* 部分区域通过标签识别，切勿将其删除
-* Local Hosts/境内DNS解析域名列表 的优先级比 Hosts/主要Hosts列表 高，Whitelist/白名单条目 的优先级由位置决定，参见下文
+* 部分区域通过标签识别，修改时切勿将其删除
+* 优先级：Local Hosts/境内DNS解析域名列表 > Hosts/主要Hosts列表，Whitelist/白名单条目 和 Banned/黑名单条目 的优先级由位置决定，参见下文详细说明
 * 一条条目的总长度切勿超过4096字节/4KB
 * 需要注释请在条目开头添加 #/井号
 * 优先级别自上而下递减，条目越前优先级越高
+* 平行 Hosts 条目支持数量由请求域名以及 EDNS0 Payload 长度决定，建议不要超过70个A记录或40个AAAA记录
 
 
 * Base - 基本参数区域
@@ -409,10 +452,17 @@ Hosts配置文件分为Base/基本区域、Hosts/主要Hosts列表 和 Local Hos
 	
     虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并返回使用远程服务器解析
 	从而绕过了下面的条目，不使用Hosts的功能
-
-
-* Base - 基本区域
-  * Version - Hosts文件的版本，用于正确识别Hosts文件：本参数与程序版本号不相关，切勿修改，默认为最新的Hosts文件版本
+	
+* Banned - 黑名单条目
+  此类型的条目列出的符合要求的域名会直接返回域名不存在的功能，避免重定向导致的超时问题
+  直接在条目前添加 "Banned"（不含引号）即可，有效参数格式为 "Banned 正则表达式"（不含引号）
+  * 注意优先级的问题，例如有一片含黑名单条目的区域：
+    
+	Banned .*\.test.localhost
+	127.0.0.1|127.0.0.2|127.0.0.3 .*\.localhost
+	
+    虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并直接返回域名不存在
+	从而绕过了下面的条目，达到屏蔽域名的目的
 
 * Hosts - 主要Hosts列表
   有效参数格式为 "地址(|地址A|地址B) 域名的正则表达式"（不含引号，括号内为可选项目，注意间隔所在的位置）
@@ -435,7 +485,7 @@ Hosts配置文件分为Base/基本区域、Hosts/主要Hosts列表 和 Local Hos
 * Local Hosts - 境内DNS解析域名列表
   本区域数据用于为域名使用境内DNS服务器解析提高访问速度，使用时请确认境内DNS服务器地址不为空（参见上文 配置文件详细参数说明 一节）
   有效参数格式为 "域名的正则表达式"（不含引号）
-  * 本功能不会对境内DNS服务器回复进行任何过滤的措施，请确认本区域填入的数据不会受到DNS投毒污染干扰
+  * 本功能不会对境内DNS服务器回复进行任何过滤，请确认本区域填入的数据不会受到DNS投毒污染的干扰
   * 例如有一个 [Local Hosts] 下有效数据区域：
 
     .*\.test\.localhost
@@ -461,11 +511,8 @@ Hosts配置文件分为Base/基本区域、Hosts/主要Hosts列表 和 Local Hos
 #
 
 [Base]
-Version = 0.4
-Default TTL = 
-
-[Base]
 Version = *.*（视所使用的版本而定，参见 ChangeLog 文档）
+Default TTL = 
 
 [Hosts]
 

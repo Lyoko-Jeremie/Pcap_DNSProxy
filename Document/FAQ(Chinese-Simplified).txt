@@ -8,11 +8,15 @@
 
 运行结果分析：
 
+* 安装或运行服务时出现：
+  * Require Administrator Permission - 请以管理员权限运行
+  * 服务没有及时响应启动或控制请求 - 请检查是否有错误报告生成，详细情况参见下文 Error.log 详细错误报告 一节
+
 * 正常的运行结果应类似：
 
    >nslookup www.google.com
     服务器:  pcap-dnsproxy.localhost.server（视配置文件设置的值而定，参见 ReadMe 文档中 配置文件详细参数说明）
-    Address:  127.0.0.1（IPv4，IPv6下为 ::1 ）
+    Address:  127.0.0.1（视所在网络环境而定，原生IPv6为 ::1）
 
     非权威应答:
 	名称:    www.google.com
@@ -22,18 +26,18 @@
 
    >nslookup www.google.com
     服务器:  UnKnown
-    Address:  127.0.0.1（IPv4，IPv6下为 ::1 ）
+    Address:  127.0.0.1（视所在网络环境而定，原生IPv6为 ::1）
 
     *** UnKnown 找不到 www.google.com: No response from server
 	
 * 如果出现以下结果，则说明服务已经运行成功但远程DNS服务器没有回应，请检查是否有错误报告生成
   * 请务必设置一个正确的、有效的、可以使用的境外DNS服务器
-  * 出现这种情况可能为网络问题。部分地区ISP/运营商对UDP协议转发丢包率比较高，可尝试切换到TCP协议模式（参见 ReadMe 文档中 "配置文件 详细参数说明" 一节中 "Base - 基本区域" 的 Operation Mode 一节）
-  * 也可能是因为长时间运行有错误累积造成，项目组正努力解决。可尝试重启服务（参见 ReadMe 文档中 "注意事项" 一节中的 重启服务）
+  * 出现这种情况可能为网络问题。部分地区ISP/运营商对UDP协议转发丢包率比较高，可尝试切换到TCP协议模式（参见 ReadMe 文档中 配置文件详细参数说明 一节中 Base - 基本区域 的 Operation Mode 一节）
+  * 也可能是因为长时间运行有错误累积造成，项目组正努力解决。可尝试重启服务（参见 ReadMe 文档中的 重启服务）
 
    >nslookup www.google.com
     服务器:  pcap-dnsproxy.localhost.server（视配置文件设置的值而定，参见 ReadMe 文档中 配置文件详细参数说明）
-    Address:  127.0.0.1（IPv4，IPv6下为 ::1 ）
+    Address:  127.0.0.1（视所在网络环境而定，原生IPv6为 ::1）
 
     DNS request timed out.
         timeout was 2 seconds.

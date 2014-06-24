@@ -450,7 +450,7 @@ size_t IPLayer(const char *Recv, const size_t Length, const uint16_t Protocol)
 			if (udp->Src_Port == htons(DNS_Port) && Length - sizeof(ipv6_hdr) - sizeof(udp_hdr) >= sizeof(dns_hdr))
 			{
 			//Responses of Local DNS
-				if (memcmp((char *)&ipv6->Src, (char *)&Parameter.DNSTarget.Local_IPv6Target, sizeof(in6_addr) == 0))
+				if (memcmp((char *)&ipv6->Src, (char *)&Parameter.DNSTarget.Local_IPv6Target, sizeof(in6_addr)) == 0)
 				{
 					DNSMethod(Buffer + sizeof(ipv6_hdr), Length - sizeof(ipv6_hdr), AF_INET6, true);
 

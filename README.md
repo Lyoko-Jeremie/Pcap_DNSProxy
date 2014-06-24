@@ -19,24 +19,24 @@ A local DNS server base on WinPcap and LibPcap.
 * 本工具使用 C/C++ 编写而成，使用 Visual Studio 2012(Update 3)/VC++ 11.0(Windows)、GCC 4.7.2/g++(Linux) 和 Xcode 5.0.1/Apple LLVM 5.0(Mac) 进行编译，完全支持 Unicode<br />
 
 ### 最新版本
-* **Windows 版本：v0.4 Beta(23:10 in 2014-06-23)**
+* **Windows 版本：v0.4 Beta(2014-06-24)**
 * **Linux 版本：v0.2(2014-03-02)**
 * **Mac 版本：v0.1(2014-03-02)**
 
 ### 特点
 * 同时支持IPv4/IPv6协议，也可单独开启
 * 普通DNS请求模式同时支持TCP/UDP协议
-* 原生64位/x64目标平台编译版本
-* Native Code 原生码编译，不含任何托管代码
-* 作为服务工作于系统底层
+* Native Code 原生码编译，不含任何托管代码，x64版为原生64位目标平台编译
+* 作为系统服务工作于底层
 * 多线程模型
-* 主要和备用双服务器模式，提高DNS解析的可靠性
-* Hosts Only 模式可只适用本工具支持正则表达式的 Hosts 的功能 
 * 使用 LibPcap/WinPcap 利用系统底层驱动抓取数据包，多种过滤方式忽略接收到的伪造数据包
 * 支持服务器模式，相当于一个小型的DNS服务器，能为其它设备提供解析服务，并可限制可请求的范围
-* 支持境内DNS服务器解析，可提高境内服务器的访问速度
-* DNS缓存的功能
+* 主要和备用双服务器模式，提高DNS解析的可靠性
+* DNS缓存功能
 * 支持 EDNS0 标签
+* 支持 DNSCurve/DNSCrypt 协议
+* Hosts Only 模式可只适用本工具支持正则表达式的 Hosts 的功能
+* 支持 Local Hosts 境内DNS服务器解析功能，可提高对境内域名的解析速度和服务器的访问速度
 * 丰富的配置选项，读取文件支持 ANSI、UTF-8(/BOM)、UTF-16(LE/BE) 和 UTF-32(LE/BE) 编码以及 Windows/Unix/Macintosh 换行格式
 * 错误报告功能
 
@@ -48,13 +48,16 @@ A local DNS server base on WinPcap and LibPcap.
 * DNSCurve 协议加密模式使用的一次性 Nonce 亦由 [LibSodium](https://github.com/jedisct1/libsodium) 附带的随机数产生器提供
 
 ### 支持平台
-* 本工具只支持原生IPv4/IPv6网络，**非原生IPv6切勿开启IPv6功能**
+* 本工具只支持原生IPv4/IPv6(包括PPPoE)网络，不过请注意**非原生IPv6环境切勿开启IPv6功能**
 * 网络设备类型为 Ethernet 或直接使用 PPPoE 协议均可
 * Windows 平台
-    * **所有 Windows NT(4) 以及更新内核的版本（32位/x86版本）** 和 **Windows Vista 以及更新的版本（64位/x64版本）**
+    * **所有 Windows NT(4) 以及更新内核的版本（32位/x86版本）和 Windows Vista 以及更新的版本（64位/x64版本）**
     * 支持最新版本 [WinPcap](http://www.winpcap.org/install/default.htm)
 * Linux 平台
     * 支持 [编译所需依赖包](https://github.com/chengr28/pcap_dnsproxy/wiki/ReadMe_Linux) 的Linux发行版
     * 支持最新版本 [Libpcap](http://www.tcpdump.org)
 * Mac 平台
     * **采用Intel平台处理器的 Mac OS X 10.5 Leopard 以及更新的版本**
+
+### 许可证
+GNU General Public License/GNU GPL v2
