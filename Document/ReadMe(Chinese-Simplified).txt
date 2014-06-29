@@ -23,7 +23,7 @@ Pcap_DNSProxy 是一个基于 LibPcap/WinPcap 制作的用于忽略DNS投毒污�
 本工具使用 C/C++ 编写而成，使用 Visual Studio 2012(Update 3)/VC++ 11.0 进行编译，完全支持 Unicode
 
 Pcap_DNSProxy 的特点：
-* 同时支持IPv4/IPv6协议，也可单独开启
+* 同时支持本地IPv4/IPv6协议监听和远程请求
 * 普通DNS请求模式同时支持TCP/UDP协议
 * Native Code 原生码编译，不含任何托管代码，x64版为原生64位目标平台编译
 * 作为系统服务工作于底层
@@ -47,8 +47,8 @@ Pcap_DNSProxy 使用的库：
 * DNSCurve 协议加密模式使用的一次性 Nonce 亦由 LibSodium 附带的随机数产生器提供
 
 Pcap_DNSProxy 支持平台：
-* 所有 Windows NT(4) 以及更新内核的操作系统（32位/x86版本） 和 Windows Vista 以及更新的操作系统（64位/x64版本）
-* 支持最新版本 WinPcap（参见 http://www.winpcap.org/install/default.htm）
+* 所有 Windows NT(4) 以及更新内核的操作系统(32位/x86版本)和 Windows Vista 以及更新的操作系统(64位/x64版本)
+* 支持最新版本 WinPcap(参见 http://www.winpcap.org/install/default.htm )
 * 网络设备类型为 Ethernet 或直接使用 PPPoE 协议均可
 * 本工具只支持原生IPv4/IPv6网络，非原生IPv6切勿开启IPv6功能
 
@@ -71,13 +71,14 @@ Pcap_DNSProxy 支持平台：
   * 批处理会将程序注册系统服务，并进行 Windows 防火墙测试
   * 以后每次开机服务都将自动启动
 5.此时 Windows 系统会询问是否同意程序访问网络，请将 "专用网络" 以及 "公用网络" 都勾上并确认
-6.打开 网络和共享中心 - 更改适配器设置 选择 本地连接 或 宽带连接（取决于实际使用的网络适配器）
-  * 右击 属性 - Internet协议版本4(IPv4) - 属性 - 勾选 "使用下面的DNS服务器地址"
-  * 在 首选DNS服务器 内填入 "127.0.0.1"（不含引号） 确定保存并退出即可
+6.打开 "网络和共享中心" - "更改适配器设置" 选择 "本地连接" 或 "无线连接" 或 "宽带连接"
+  * 右击 "属性" - "Internet协议(TCP/IP)"(XP/2003) 或 "Internet协议版本4(IPv4)"(Vista以及更新版本) - "属性" - 勾选 "使用下面的DNS服务器地址"
+  * 在 "首选DNS服务器" 内填入 "127.0.0.1"（不含引号） 确定保存并退出即可
   * 如果需要使用IPv6协议的本地服务器
-    * 请先编辑配置文件的 IPv6 DNS Address 一栏，参见下文 配置文件详细参数说明 一节
-    * 右击 属性 - Internet协议版本6(IPv6) - 属性 - 勾选 "使用下面的DNS服务器地址"
-	* 在 首选DNS服务器 内填入 "::1"（不含引号） 确定保存并退出即可
+    * 请先编辑配置文件的 "IPv6 DNS Address" 一栏，参见下文 配置文件详细参数说明 一节
+    * 右击 "属性" - "Internet协议版本6(IPv6)" - "属性" - 勾选 "使用下面的DNS服务器地址"
+	* 在 "首选DNS服务器" 内填入 "::1"（不含引号） 确定保存并退出即可
+  * 注意：建议将 "本地连接" 和 "无线连接" 以及 "宽带连接" 全部修改，Windows在使用 宽带连接 时会优先请求 本地连接 或 无线连接！
 
 
 重启服务方法（需要以管理员身份进行）：
@@ -97,6 +98,13 @@ Pcap_DNSProxy 支持平台：
 5.将新版本的 Pcap_DNSProxy 解压到任何位置（亦即 安装方法 中第3步）
 6.将配置文件的自定义内容加回新版本配置文件里相应的区域内
 7.按照 安装方法 中第4步重新部署 Pcap_DNSProxy
+
+
+安全模式下的使用方法（需要以管理员身份进行）：
+程序具备在安全模式下运行的能力，在安全模式下直接运行程序即可
+直接运行模式有窗口，想关闭程序直接点击关闭按钮即可
+注意：直接运行可能会生成 Service start error 错误，因为程序是设计运行于系统服务模式，虽然也可直接运行但并不推荐
+
 
 
 卸载方法（需要以管理员身份进行）：
@@ -132,7 +140,9 @@ Pcap_DNSProxy 支持平台：
 注意事项：
 
 * 如修改DNS服务器，请务必设置一个正确的、有效的、可以正常使用的境外DNS服务器！
-* 如果程序启动提示丢失 wpcap.dll 请重新安装 WinPcap 或者将其更新到最新版本
+* 关于 WinPacap
+  * 如果程序启动提示丢失 wpcap.dll 请重新安装 WinPcap 或者将其更新到最新版本
+  * 安装前注意系统是否已经安装过 WinPcap 建议不要重复安装
 * Linux/Mac 平台下读取文件名首字母大写优先级高于小写，Windows 平台下读取文件名时不存在大小写的区别
 * 配置文件/Hosts文件/IPFilter文件和错误报告所在的目录以上文 安装方法 一节中第4步注册的服务信息为准
   * 注意填写时一行不要超过4096字节/4KB
@@ -211,11 +221,16 @@ Pcap_DNSProxy 支持平台：
   * Hosts Only - Hosts Only 模式，启用后将不进行任何数据包过滤，只适用本工具的 Hosts 功能：开启为1/关闭为0，默认为0
   * Cache Type - DNS缓存的类型：分 Timer/计时型以及 Queue/队列型
   * Cache Parameter - DNS缓存的参数：Timer/计时型 时为时间长度，Queue/队列型 时为队列长度
+  
+* Listen - 监听参数区域
   * Operation Mode - 程序的监听工作模式，分 Server/服务器模式、Private/私有网络模式 和 Proxy/代理模式：默认为 Private
     * Server/服务器模式：打开DNS通用端口（TCP/UDP同时打开），可为所有其它设备提供代理域名解析请求服务
 	* Private/私有网络模式：打开DNS通用端口（TCP/UDP同时打开），可为仅限于私有网络地址的设备提供代理域名解析请求服务
 	* Proxy/代理模式：只打开回环地址的DNS端口（TCP/UDP同时打开），只能为本机提供代理域名解析请求服务
 	* Custom/自定义模式：打开DNS通用端口（TCP/UDP同时打开），可用的地址由 IPFilter 参数决定
+  * Listen Protocol - 监听协议，本地监听的协议：可填入 IPv4 和 IPv6 和 IPv4 + IPv6，默认为 IPv4 + IPv6
+    * 只填 IPv4 或 IPv6 时，只监听指定协议的本地端口
+	* IPv4 + IPv6 时同时监听两个协议的本地端口
   * Listen Port - 监听端口，本地监听请求的端口：可填入 1-65535 之间的端口，如果留空则为53，默认为空
   * IPFilter Type - IPFilter 参数的类型：分为 Deny 禁止和 Permit 允许，对应 IPFilter 参数应用为黑名单或白名单，默认为 Deny
   * IPFilter Level - IPFilter 参数的过滤级别，级别越高过滤越严格，与 IPFilter 条目相对应：0为不启用过滤，如果留空则为0，默认为空
@@ -286,6 +301,7 @@ Pcap_DNSProxy 支持平台：
     * 注意：自动获取 DNSCurve 服务器连接信息时必须输入提供者的域名，不能留空
 
 * DNSCurve Keys - DNSCurve 协议密钥区域
+* 注意：公开网站上的 "公钥" 普遍为验证用的公钥，用于验证与服务器通讯时使用的指纹，两者为不同性质的公钥不可混用！
   * Client Public Key - 自定义客户端公钥：可使用 KeyPairGenerator 生成，留空则每次启动时自动生成，默认为空
   * Client Secret Key - 自定义客户端私钥：可使用 KeyPairGenerator 生成，留空则每次启动时自动生成，默认为空
   * IPv4 DNS Public Key - DNSCurve 协议IPv4主要DNS服务器验证用公钥，默认为 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79(OpenDNS)

@@ -24,7 +24,7 @@ A local DNS server base on WinPcap and LibPcap.
 * **Mac 版本：v0.1(2014-03-02)**
 
 ### 特点
-* 同时支持IPv4/IPv6协议，也可单独开启
+* 同时支持本地IPv4/IPv6协议监听和远程请求
 * 普通DNS请求模式同时支持TCP/UDP协议
 * Native Code 原生码编译，不含任何托管代码，x64版为原生64位目标平台编译
 * 作为系统服务工作于底层
@@ -51,7 +51,7 @@ A local DNS server base on WinPcap and LibPcap.
 * 本工具只支持原生IPv4/IPv6(包括PPPoE)网络，不过请注意**非原生IPv6环境切勿开启IPv6功能**
 * 网络设备类型为 Ethernet 或直接使用 PPPoE 协议均可
 * Windows 平台
-    * **所有 Windows NT(4) 以及更新内核的版本（32位/x86版本）和 Windows Vista 以及更新的版本（64位/x64版本）**
+    * **所有 Windows NT(4) 以及更新内核的版本(32位/x86版本)和 Windows Vista 以及更新的版本(64位/x64版本)**
     * 支持最新版本 [WinPcap](http://www.winpcap.org/install/default.htm)
 * Linux 平台
     * 支持 [编译所需依赖包](https://github.com/chengr28/pcap_dnsproxy/wiki/ReadMe_Linux) 的Linux发行版

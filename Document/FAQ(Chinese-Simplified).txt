@@ -68,6 +68,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
  
 2.Parameter Error - 读取配置文件参数错误
   * Cannot open any configuration files - 没有发现任何配置文件：请确认文件是否存在
+  * Text encoding error - 编码错误：请检查文件的编码组合是否受支持
   * Item length error - 配置文件参数一行数据超过4096字节/4KB，或该行数据长度不符合要求（可根据文件名和行数查找）：请确认该行的内容是否符合要求
   * Configuration file version error - 配置文件版本错误：请确认配置文件是否需要更新。注意，Windows/Linux/Mac版配置文件互不通用！
   * Configuration file is not the latest version - 配置文件非最新版本：请确认配置文件是否需要更新。
@@ -96,6 +97,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * DNSCurve PayloadSize may be too long - DNSCurve 协议载荷长度可能过长：此值建议不要超过以太网的MTU(1512 bytes)
   
 3.IPFilter Error - 读取 IPFilter 文件错误
+  * Read file(s) error - 文件跳转读取错误：请与开发者联系
+  * Text encoding error - 编码错误：请检查文件的编码组合是否受支持
   * Data of a line is too long - 该 IPFilter 条目过长（可根据文件名和行数查找）：一行数据切勿超过4096字节/4KB
   * Item format error - IPFilter 条目格式错误（可根据报告的行数查找）：请检查该条目的格式
   * Hosts IPv6 address format error - Hosts的IPv6地址格式错误（可根据报告的行数查找）：请检查 IPFilter 条目的地址
@@ -105,6 +108,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
 
 4.Hosts Error - 读取 Hosts 文件错误
   * Read file(s) error - 文件跳转读取错误：请与开发者联系
+  * Text encoding error - 编码错误：请检查文件的编码组合是否受支持
   * Hosts file version error - Hosts 文件版本错误：请确认 Hosts 文件是否需要更新。注意，Windows/Linux/Mac版配置文件互不通用！
   * Data of a line is too long - 该 Hosts 条目过长（可根据文件名和行数查找）：一行数据切勿超过4096字节/4KB
   * Item format error - Hosts 条目格式错误（可根据报告的行数查找）：请检查该条目的格式
@@ -140,12 +144,13 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * DNSCurve socket(s) initialization error - DNSCurve 协议请求套接字初始化失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve Local Signature request initialization error - DNSCurve 协议本地请求套接字初始化失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve Local Signature request error - DNSCurve 协议本地请求发送失败：可能为网络错误，具体原因可参见错误代码
-  * Set UDP socket timeout error - 设置UDP请求套接字超时时间错误：具体原因可参见错误代码
-  * Set Complete UDP socket timeout error - 设置UDP请求套接字超时时间错误：具体原因可参见错误代码
-  * Set TCP socket timeout error - 设置TCP请求套接字超时时间错误：具体原因可参见错误代码
-  * Set ICMP socket timeout error - 设置ICMP请求套接字超时时间错误：具体原因可参见错误代码
+  * Set UDP socket timeout error - 设置UDP套接字超时时间错误：具体原因可参见错误代码
+  * Set Complete UDP socket timeout error - 设置UDP套接字超时时间错误：具体原因可参见错误代码
+  * Set UDP socket SIO_UDP_CONNRESET error - 设置UDP套接字屏蔽 ICMP Port Unreachable 信息错误：具体原因可参见错误代码
+  * Set TCP socket timeout error - 设置TCP套接字超时时间错误：具体原因可参见错误代码
+  * Set ICMP socket timeout error - 设置ICMP套接字超时时间错误：具体原因可参见错误代码
   * ICMP Echo(Ping) request error - ICMP/Ping 请求错误：可能为网络错误，具体原因可参见错误代码
-  * Set ICMPv6 socket timeout error - 设置ICMPv6请求套接字超时时间错误：具体原因可参见错误代码
+  * Set ICMPv6 socket timeout error - 设置ICMPv6套接字超时时间错误：具体原因可参见错误代码
   * ICMPv6 Echo(Ping) request error - ICMPv6/Ping 请求错误：可能为网络错误，具体原因可参见错误代码
   * Winsock 错误代码具体含义可移步 http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 
