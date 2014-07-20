@@ -3,25 +3,23 @@
 A local DNS server base on WinPcap and LibPcap. 
 
 ### 关于分支
-本分支 master 为 Pcap_DNSProxy 项目的主分支，用于存放源代码和说明文档。**编译版本请移步：**
-* [Release_x86 分支](https://github.com/chengr28/pcap_dnsproxy/tree/Release_x86)<br />
-* [Release_x64 分支](https://github.com/chengr28/pcap_dnsproxy/tree/Release_x64)<br />
+本分支 master 为 Pcap_DNSProxy 项目的主分支，用于存放源代码，**编译版本请移步 [Release 分支](https://github.com/chengr28/pcap_dnsproxy/tree/Release)**
 
 ### 使用方法
 * Windows 版参见 [Wiki](https://github.com/chengr28/pcap_dnsproxy/wiki) 中 [ReadMe](https://github.com/chengr28/pcap_dnsproxy/wiki/ReadMe) 之内容
 * Linux 版参见 [Wiki](https://github.com/chengr28/pcap_dnsproxy/wiki) 中 [ReadMe_Linux](https://github.com/chengr28/pcap_dnsproxy/wiki/ReadMe_Linux) 之内容
 * Mac 版参见 [Wiki](https://github.com/chengr28/pcap_dnsproxy/wiki) 中 [ReadMe_Mac](https://github.com/chengr28/pcap_dnsproxy/wiki/ReadMe_Mac) 之内容
 
-### 简介
-* **Pcap_DNSProxy 是一个基于 LibPcap/WinPcap 制作的用于忽略DNS投毒污染的小工具，后期也加入了对包含正则表达式的Hosts的支持**<br />
-* 很多使用TCP协议进行解析的工具，可以用于忽略DNS投毒污染。但事实上已经出现有使用TCP协议请求域名解析时被连接重置的情况，而使用UDP协议则又会被DNS投毒污染，导致其始终无法获得正确的域名解析。本工具主要工作在UDP协议上，可以将伪造的数据包完全过滤，同时UDP协议比起TCP协议更具有占用资源低和发送转发接收速度快等特点。**本工具同时也支持使用TCP协议进行请求，而且在被连接重置时会自动切换到UDP协议，可以使请求者获得正确的域名解析**<br />
-* **完全支持正则表达式 Hosts 条目，可以为使用者提供更加便捷的途径设定域名所对应的地址，避免修改系统文件的麻烦**<br />
-* 本工具使用 C/C++ 编写而成，使用 Visual Studio 2012(Update 3)/VC++ 11.0(Windows)、GCC 4.7.2/g++(Linux) 和 Xcode 5.0.1/Apple LLVM 5.0(Mac) 进行编译，完全支持 Unicode<br />
-
 ### 最新版本
-* **Windows 版本：v0.4 Beta(2014-06-24)**
+* **Windows 版本：v0.4 Beta(2014-07-20)**
 * **Linux 版本：v0.2(2014-03-02)**
 * **Mac 版本：v0.1(2014-03-02)**
+
+### 简介
+* **Pcap_DNSProxy 是一个基于 LibPcap/WinPcap 制作的用于忽略DNS投毒污染的小工具，后期也加入了对包含正则表达式的Hosts的支持**<br />
+* 很多使用TCP协议进行解析的工具，可以用于忽略DNS投毒污染。但事实上已经出现有使用TCP协议请求域名解析时被连接重置的情况，而使用UDP协议则又会被DNS投毒污染，导致其始终无法获得正确的域名解析。**本工具主要工作在UDP协议上，可以将伪造的数据包完全过滤**，同时UDP协议比起TCP协议更具有占用资源低和发送转发接收速度快等特点。**本工具同时也支持使用TCP协议进行请求，而且在被连接重置时会自动切换到UDP协议，可以使请求者获得正确的域名解析**<br />
+* **完全支持正则表达式 Hosts 条目，可以为使用者提供更加便捷的途径设定域名所对应的地址，避免修改系统文件的麻烦**<br />
+* 本工具使用 C/C++ 编写而成，使用 Visual Studio 2012(Update 3)/VC++ 11.0(Windows)、GCC 4.7.2/g++(Linux) 和 Xcode 5.0.1/Apple LLVM 5.0(Mac) 进行编译，完全支持 Unicode
 
 ### 特点
 * 同时支持本地IPv4/IPv6协议监听和远程请求
@@ -48,10 +46,13 @@ A local DNS server base on WinPcap and LibPcap.
 * DNSCurve 协议加密模式使用的一次性 Nonce 亦由 [LibSodium](https://github.com/jedisct1/libsodium) 附带的随机数产生器提供
 
 ### 支持平台
-* 本工具只支持原生IPv4/IPv6(包括PPPoE)网络，不过请注意**非原生IPv6环境切勿开启IPv6功能**
-* 网络设备类型为 Ethernet 或直接使用 PPPoE 协议均可
+* 本工具**抓包模块**所支持的网络类型
+  * 网络设备类型为 Ethernet 的网络
+  * 原生IPv4网络和原生IPv6网络**（非原生IPv6网络环境切勿开启IPv6功能）**
+  * 基于PPPoE或PPPoEv6的IPv4网络和IPv6网络
+  * 如果需要支持更多网络类型，可与作者联系
 * Windows 平台
-    * **所有 Windows NT(4) 以及更新内核的版本(32位/x86版本)和 Windows Vista 以及更新的版本(64位/x64版本)**
+    * **所有 Windows XP/2003 以及更新内核的版本(32位/x86版本)和 Windows Vista/2008 以及更新的版本(64位/x64版本)**
     * 支持最新版本 [WinPcap](http://www.winpcap.org/install/default.htm)
 * Linux 平台
     * 支持 [编译所需依赖包](https://github.com/chengr28/pcap_dnsproxy/wiki/ReadMe_Linux) 的Linux发行版

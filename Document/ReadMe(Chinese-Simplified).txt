@@ -7,11 +7,19 @@ Pcap_DNSProxy 仅供学习交流，遵循 GNU GPL 通用公共许可证 (GNU Gen
 
 Pcap_DNSProxy 项目的GitHub页面：
 * 主分支: https://github.com/chengr28/pcap_dnsproxy
-* Release_x86 分支: https://github.com/chengr28/pcap_dnsproxy/tree/Release_x86
-* Release_x64 分支: https://github.com/chengr28/pcap_dnsproxy/tree/Release_x64
+* Release 分支: https://github.com/chengr28/pcap_dnsproxy/tree/Release
 
 Pcap_DNSProxy 项目的Sourceforge页面：
 http://sourceforge.net/projects/pcap-dnsproxy
+
+Pcap_DNSProxy 最新版本：
+* Windows 版本：v0.4 Beta(2014-07-20)
+* Linux 版本：v0.2(2014-03-02)
+* Mac 版本：v0.1(2014-03-02)
+* 附带配置文件的最新版本
+  * Windows: 0.4
+  * Linux: 0.1
+  * Mac: 0.1
 
 
 -------------------------------------------------------------------------------
@@ -47,10 +55,19 @@ Pcap_DNSProxy 使用的库：
 * DNSCurve 协议加密模式使用的一次性 Nonce 亦由 LibSodium 附带的随机数产生器提供
 
 Pcap_DNSProxy 支持平台：
-* 所有 Windows NT(4) 以及更新内核的操作系统(32位/x86版本)和 Windows Vista 以及更新的操作系统(64位/x64版本)
-* 支持最新版本 WinPcap(参见 http://www.winpcap.org/install/default.htm )
-* 网络设备类型为 Ethernet 或直接使用 PPPoE 协议均可
-* 本工具只支持原生IPv4/IPv6网络，非原生IPv6切勿开启IPv6功能
+* 本工具抓包模块所支持的网络类型
+  * 网络设备类型为 Ethernet 的网络
+  * 原生IPv4网络和原生IPv6网络（非原生IPv6网络环境切勿开启IPv6功能）
+  * 基于PPPoE或PPPoEv6的IPv4网络和IPv6网络
+  * 如果需要支持更多网络类型，可与作者联系
+* Windows 平台
+  * 所有 Windows XP/2003 以及更新内核的版本(32位/x86版本)和 Windows Vista/2008 以及更新的版本(64位/x64版本)
+  * 支持最新版本 [WinPcap](http://www.winpcap.org/install/default.htm)
+* Linux 平台
+  * 支持 [编译所需依赖包](https://github.com/chengr28/pcap_dnsproxy/wiki/ReadMe_Linux) 的Linux发行版
+  * 支持最新版本 [Libpcap](http://www.tcpdump.org)
+* Mac 平台
+  * 采用Intel平台处理器的 Mac OS X 10.5 Leopard 以及更新的版本
 
 
 -------------------------------------------------------------------------------
@@ -62,7 +79,8 @@ Pcap_DNSProxy 支持平台：
   * Release 版本压缩包中也提供有 WinPcap 的安装程序
   * WinPcap 只需要安装一次，以后更新时请从第2步开始操作
   * 安装时自启动选项对工具的运行没有影响，因为本工具直接调用 WinPcap API，不需要经过服务器程序
-2.访问 https://github.com/chengr28/pcap_dnsproxy/branches 随便选择一个 Release 版本，并使用 GitHub 的 Download ZIP 功能将所有文件下载到本地
+2.访问 https://github.com/chengr28/pcap_dnsproxy/tree/Release 并使用 GitHub 的 Download ZIP 功能将所有文件下载到本地
+  * Windows 版本的 Pcap_DNSProxy 在 ZIP 的 Windows 目录内，可将整个目录单独抽出运行
   * Windows 下批处理会自动判断 x64 和 x86 版本
 3.打开下载回来的ZIP文件，将 Main 目录解压到磁盘的任意位置
   * 目录所在位置和程序文件名可以随意更改
@@ -78,7 +96,7 @@ Pcap_DNSProxy 支持平台：
     * 请先编辑配置文件的 "IPv6 DNS Address" 一栏，参见下文 配置文件详细参数说明 一节
     * 右击 "属性" - "Internet协议版本6(IPv6)" - "属性" - 勾选 "使用下面的DNS服务器地址"
 	* 在 "首选DNS服务器" 内填入 "::1"（不含引号） 确定保存并退出即可
-  * 注意：建议将 "本地连接" 和 "无线连接" 以及 "宽带连接" 全部修改，Windows在使用 宽带连接 时会优先请求 本地连接 或 无线连接！
+  * 注意：建议将 "本地连接" 和 "无线连接" 以及 "宽带连接" 全部修改！
 
 
 重启服务方法（需要以管理员身份进行）：
@@ -101,9 +119,9 @@ Pcap_DNSProxy 支持平台：
 
 
 安全模式下的使用方法（需要以管理员身份进行）：
-程序具备在安全模式下运行的能力，在安全模式下直接运行程序即可
-直接运行模式有窗口，想关闭程序直接点击关闭按钮即可
-注意：直接运行可能会生成 Service start error 错误，因为程序是设计运行于系统服务模式，虽然也可直接运行但并不推荐
+程序具备在安全模式下运行的能力，在安全模式下右键以管理员身份直接运行程序
+* 直接运行模式有控制台窗口，关闭程序时直接关闭控制台窗口即可
+* 注意：直接运行可能会生成 Service start error, ERROR_FAILED_SERVICE_CONTROLLER_CONNECT(The service process could not connect to the service controller). 错误，因为程序是设计运行于系统服务模式，虽然也可直接运行但并不推荐
 
 
 
@@ -145,7 +163,8 @@ Pcap_DNSProxy 支持平台：
   * 安装前注意系统是否已经安装过 WinPcap 建议不要重复安装
 * Linux/Mac 平台下读取文件名首字母大写优先级高于小写，Windows 平台下读取文件名时不存在大小写的区别
 * 配置文件/Hosts文件/IPFilter文件和错误报告所在的目录以上文 安装方法 一节中第4步注册的服务信息为准
-  * 注意填写时一行不要超过4096字节/4KB
+  * 填写时一行不要超过4096字节/4KB
+  * 文件读取只支持整个文本单一的编码和换行格式组合，切勿在文本文件中混合所支持的编码或换行格式！
 * 服务启动前请先确认没有其它本地DNS服务器运行或本工具多个拷贝运行中，否则可能会导致监听冲突无法正常工作
   * 监听冲突会生成错误报告，可留意 Windows Socket 相关的错误（参见 FAQ 文档中 Error.log 详细错误报告 一节）
 * 杀毒软件/第三方防火墙可能会阻止本程序的操作，请将行为全部允许或将本程序加入到白名单中
@@ -166,6 +185,7 @@ Pcap_DNSProxy 支持平台：
     * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been started."
 	* 具体是否成功需要留意屏幕上的提示
   * ServiceQuery - 适用于 Windows XP/2003 以及更旧版本Windows的测试批处理，能测试工具服务是否安装成功
+    * 如果服务安装成功，运行后会显示 "SERVICE_NAME: PcapDNSProxyService"（不含引号）
   * ServiceStop - 即时停止工具服务，重启服务时需要先停止服务
     * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been stopped."
 	* 具体是否成功需要留意屏幕上的提示
@@ -198,7 +218,8 @@ Pcap_DNSProxy 支持平台：
   * Queue/队列型：默认缓存时间15分钟，可通过 Hosts 文件的 Default TTL 值自定义，同时可自定义缓存队列长度（亦即限制队列长度的 Timer/计时型）
 * 本工具的 DNSCurve/DNSCrypt 协议是内置的实现，不需要安装 DNSCrypt 官方的工具！
   * DNSCurve 协议为 Streamlined/精简类型
-  * 注意：DNSCrypt 官方工具会占用本地DNS端口导致 Pcap_DNSProxy 部署失败
+  * 自动获取连接信息时必须保证系统时间的正确，否则证书验证时会出错导致连接信息获取失败！
+  * DNSCrypt 官方工具会占用本地DNS端口导致 Pcap_DNSProxy 部署失败
 
 
 -------------------------------------------------------------------------------
@@ -212,6 +233,7 @@ Pcap_DNSProxy 支持平台：
 * Base - 基本参数区域
   * Version - 配置文件的版本，用于正确识别配置文件：本参数与程序版本号不相关，切勿修改，默认为发布时的最新配置文件版本
   * Print Error - 错误报告功能：开启为1/关闭为0，默认为1
+  * Log Maximum Size - 报告文件最大容量：直接填数字时单位为字节，可加上单位，支持的单位有KB/MB/GB，可接受范围为4KB - 4GB，如果留空则为8MB，默认为空
   * File Refresh Time - 文件刷新间隔时间：单位为秒，最短间隔时间为5秒，默认为10秒
   * File Hash - 文件 Hash 功能，开启此功能能降低刷新文件时的CPU占用：开启为1/关闭为0，默认为1
 
@@ -221,7 +243,7 @@ Pcap_DNSProxy 支持平台：
   * Hosts Only - Hosts Only 模式，启用后将不进行任何数据包过滤，只适用本工具的 Hosts 功能：开启为1/关闭为0，默认为0
   * Cache Type - DNS缓存的类型：分 Timer/计时型以及 Queue/队列型
   * Cache Parameter - DNS缓存的参数：Timer/计时型 时为时间长度，Queue/队列型 时为队列长度
-  
+
 * Listen - 监听参数区域
   * Operation Mode - 程序的监听工作模式，分 Server/服务器模式、Private/私有网络模式 和 Proxy/代理模式：默认为 Private
     * Server/服务器模式：打开DNS通用端口（TCP/UDP同时打开），可为所有其它设备提供代理域名解析请求服务
@@ -234,6 +256,45 @@ Pcap_DNSProxy 支持平台：
   * Listen Port - 监听端口，本地监听请求的端口：可填入 1-65535 之间的端口，如果留空则为53，默认为空
   * IPFilter Type - IPFilter 参数的类型：分为 Deny 禁止和 Permit 允许，对应 IPFilter 参数应用为黑名单或白名单，默认为 Deny
   * IPFilter Level - IPFilter 参数的过滤级别，级别越高过滤越严格，与 IPFilter 条目相对应：0为不启用过滤，如果留空则为0，默认为空
+  * Accept Type - 禁止或只允许所列DNS类型的请求：格式为 "Deny:DNS记录的名称或ID(|DNS记录的名称或ID)" 或 "Permit:DNS记录的名称或ID(|DNS记录的名称或ID)"（不含引号，括号内为可选项目）
+    * 所有可用的DNS类型列表：
+      * A/1
+	  * NS/2
+      * CNAME/5
+	  * SOA/6
+	  * PTR/12
+	  * MX/15
+	  * TXT/16
+	  * RP/17
+	  * SIG/24
+	  * KEY/25
+      * AAAA/28
+	  * LOC/29
+	  * SRV/33
+	  * NAPTR/35
+	  * KX/36
+      * CERT/37
+	  * DNAME/39
+      * OPT/41
+      * APL/42
+	  * DS/43
+	  * SSHFP/44
+	  * IPSECKEY/45
+	  * RRSIG/46
+	  * NSEC/47
+	  * DNSKEY/48
+      * DHCID/49
+	  * NSEC3/50
+	  * NSEC3PARAM/51
+	  * HIP/55
+	  * SPF/99
+	  * TKEY/249
+	  * TSIG/250
+	  * IXFR/251
+	  * AXFR/252
+	  * ANY/255
+	  * TA/32768
+      * DLV/32769
 
 * Addresses - 普通模式地址区域
 注意：IPv4地址格式为 "IPv4地址:端口"，IPv6地址格式为"[IPv6地址]:端口"（均不含引号）
@@ -253,13 +314,14 @@ Pcap_DNSProxy 支持平台：
   * IPv4 Alternate TTL - IPv4备用DNS服务器接受请求的远程DNS服务器数据包的TTL值：0为自动获取，取值为 1-255 之间：默认为0
   * IPv6 Alternate Hop Limits - IPv6备用DNS服务器接受请求的远程DNS服务器数据包的 Hop Limits 值：0为自动获取，取值为 1-255 之间，默认为0
   * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受范围，即 IPv4 TTL/IPv6 Hop Limits 的值±数值的范围内的数据包均可被接受，用于避免网络环境短暂变化造成解析失败的问题：取值为 1-255 之间，默认为2
+  * ICMP Test - ICMP/Ping测试间隔时间：单位为秒，最短间隔时间为5秒，默认为900秒/15分钟
+  * Domain Test - DNS服务器解析域名测试间隔时间：单位为秒，最短间隔时间为5秒，默认为900秒/15分钟
   * Alternate Times - 备用服务器失败次数阈值，一定周期内如超出阈值会触发服务器切换：最小为10次，默认为10次
   * Alternate Time Range - 备用服务器失败次数阈值计算周期：单位为秒，默认为60秒/1分钟
   * Alternate Reset Time - 备用服务器重置切换时间，切换产生后经过次事件会切换回主要服务器：单位为秒，默认为300秒/5分钟
-  * ICMP Test - ICMP/Ping测试间隔时间：单位为秒，最短间隔时间为5秒，默认为900秒/15分钟
-  * Domain Test - DNS服务器解析域名测试间隔时间：单位为秒，最短间隔时间为5秒，默认为900秒/15分钟
 
 * Switches - 控制开关区域
+  * Domain Case Conversion - 域名大小写转换，随机转换域名请求的大小写：开启为1/关闭为0，默认为1
   * EDNS0 Label - EDNS0 标签支持，开启后将为所有请求添加 EDNS0 标签：开启为1/关闭为0，默认为0
   * DNSSEC Request - DNSSEC 请求，开启后将尝试为所有请求添加 DNSSEC 请求：开启为1/关闭为0，默认为0
     * 注意：此功能为实验性质，本程序不具备任何验证 DNSSEC 回复的能力，单独开启此功能并不能避免DNS投毒污染的问题
@@ -329,6 +391,7 @@ Pcap_DNSProxy 支持平台：
 [Base]
 Version = 0.4
 Print Error = 1
+Log Maximum Size = 
 File Refresh Time = 10
 File Hash = 1
 
@@ -340,9 +403,11 @@ Cache Parameter = 256
 
 [Listen]
 Operation Mode = Private
+Listen Protocol = IPv4 + IPv6
 Listen Port = 
 IPFilter Type = Deny
 IPFilter Level < 
+Accept Type = 
 
 [Addresses]
 IPv4 DNS Address = 8.8.4.4:53
@@ -363,15 +428,18 @@ IPv6 Hop Limits = 0
 IPv4 Alternate TTL = 0
 IPv6 Alternate Hop Limits = 0
 Hop Limits Fluctuation = 2
+ICMP Test = 900
+Domain Test = 900
 Alternate Times = 10
 Alternate Time Range = 60
 Alternate Reset Time = 300
-ICMP Test = 900
-Domain Test = 900
+Multi Request Times = 0
 
 [Switches]
-EDNS0 Label = 0
+Domain Case Conversion = 1
+EDNS0 Label = 1
 DNSSEC Request = 0
+Alternate Multi Request = 0
 IPv4 Data Filter = 1
 TCP Data Filter = 1
 DNS Data Filter = 1
@@ -446,7 +514,7 @@ IPv6 Alternate DNS Magic Number =
 Hosts 文件格式说明：
 
 Hosts配置文件分为Base/基本区域、Hosts/主要Hosts列表 和 Local Hosts/境内DNS解析域名列表 三个区域
-* 部分区域通过标签识别，修改时切勿将其删除
+* 区域通过标签识别，修改时切勿将其删除
 * 优先级：Local Hosts/境内DNS解析域名列表 > Hosts/主要Hosts列表，Whitelist/白名单条目 和 Banned/黑名单条目 的优先级由位置决定，参见下文详细说明
 * 一条条目的总长度切勿超过4096字节/4KB
 * 需要注释请在条目开头添加 #/井号
@@ -534,4 +602,54 @@ Default TTL =
 
 
 [Local Hosts]
+
+
+
+-------------------------------------------------------------------------------
+
+
+IPFilter 文件格式说明：
+
+IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤区域
+* 区域通过标签识别，修改时切勿将其删除
+* 一条条目的总长度切勿超过4096字节/4KB
+* 需要注释请在条目开头添加 #/井号
+
+
+* Blacklist - 黑名单区域
+  当 Blacklist Filter 为开启时，将检查本列表域名与解析结果，如果解析结果里含有与域名对应的黑名单地址，则会直接丢弃此解析结果
+  有效参数格式为 "地址(|地址A|地址B) 域名的正则表达式"（不含引号，括号内为可选项目，注意间隔所在的位置）
+  * 地址与正则表达式之间的间隔字符可为Space/半角空格或者HT/水平定位符号，间隔长度不限，但切勿输入全角空格
+  * 一条条目只能接受一种地址类型（IPv4/IPv6），如有同一个域名需要同时进行IPv4/IPv6地址的过滤，请分为两个条目输入
+
+* IPFilter - 地址过滤区域
+  地址过滤黑名单或白名单由配置文件的 IPFilter Type 值决定，Deny 禁止/黑名单和 Permit 允许/白名单
+  有效参数格式为 "开始地址 - 结束地址, 过滤等级, 条目简介注释"（不含引号）
+  * 同时支持IPv4和IPv6地址，但填写时请分开为2个条目
+  * 同一类型的地址地址段有重复的条目将会被自动合并
+
+
+* 默认的 IPFilter 文件内容
+
+
+## Example:
+#
+# [Blacklist]
+# 127.0.0.1 localhost
+# ::1 localhost
+#
+# [IPFilter]
+# Address(Start) - Address(End)    , Level, Comments
+# 127.0.0.0      - 127.255.255.255 ,     0, IPv4 Link-Local addresses
+# ::             - ::1             ,     0, IPv6 Link-Local addresses
+# ...
+#
+
+[Base]
+Version = 0.4
+
+[Blacklist]
+74.125.39.102|74.125.39.113|74.125.127.102|74.125.155.102|209.85.229.138 plus\.google\.com
+
+[IPFilter]
 
