@@ -1,4 +1,4 @@
-﻿### C++.gitgnore(From https://github.com/github/gitignore/blob/master/C%2B%2B.gitignore)
+### C++.gitgnore(From https://github.com/github/gitignore/blob/master/C%2B%2B.gitignore)
 
 # Compiled Object files
 *.slo
@@ -18,7 +18,7 @@
 *.lib
 
 # Executables
-*.exe
+# *.exe
 *.out
 *.app
 
@@ -42,7 +42,7 @@
 *.dylib
 
 # Executables
-*.exe
+# *.exe
 *.out
 *.app
 *.i*86

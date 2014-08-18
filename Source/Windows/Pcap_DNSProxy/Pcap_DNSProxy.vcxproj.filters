@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="WinPcap">
+      <UniqueIdentifier>{86cebe74-695b-424b-8819-575a3f8ddb50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LibSodium">
+      <UniqueIdentifier>{f8e1fef9-2e1e-46f8-89bc-cf94a6e6bf79}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Keccak">
+      <UniqueIdentifier>{41a7acf7-ca59-4290-87ec-a61eb9becb82}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Capture.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ClassInitialization.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Configuration.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Console.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DNSCurve.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Monitor.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Keccak\Keccak-compact64.cpp">
+      <Filter>Keccak</Filter>
+    </ClCompile>
+    <ClCompile Include="Keccak\KeccakHash.cpp">
+      <Filter>Keccak</Filter>
+    </ClCompile>
+    <ClCompile Include="Keccak\KeccakSponge.cpp">
+      <Filter>Keccak</Filter>
+    </ClCompile>
+    <ClCompile Include="Process.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Protocol.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Request.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Service.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PrintLog.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Pcap_DNSProxy.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Pcap_DNSProxy_Base.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\bittypes.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\ip6_misc.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap-stdinc.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\remote-ext.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\Win32-Extensions.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\bpf.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\pcap.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\core.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_box.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_box_curve25519xsalsa20poly1305.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_sign_ed25519.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\export.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\randombytes.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\randombytes_salsa20_random.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="Keccak\brg_endian.h">
+      <Filter>Keccak</Filter>
+    </ClInclude>
+    <ClInclude Include="Keccak\KeccakF-1600-interface.h">
+      <Filter>Keccak</Filter>
+    </ClInclude>
+    <ClInclude Include="Keccak\KeccakHash.h">
+      <Filter>Keccak</Filter>
+    </ClInclude>
+    <ClInclude Include="Keccak\KeccakSponge.h">
+      <Filter>Keccak</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Pcap_DNSProxy.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="WinPcap\wpcap_x64.lib">
+      <Filter>WinPcap</Filter>
+    </Library>
+    <Library Include="WinPcap\wpcap_x86.lib">
+      <Filter>WinPcap</Filter>
+    </Library>
+    <Library Include="LibSodium\libsodium_x64.lib">
+      <Filter>LibSodium</Filter>
+    </Library>
+    <Library Include="LibSodium\libsodium_x86.lib">
+      <Filter>LibSodium</Filter>
+    </Library>
+  </ItemGroup>
+</Project>

@@ -11,7 +11,7 @@ A local DNS server base on WinPcap and LibPcap.
 * Mac 版参见 [Wiki](https://github.com/chengr28/pcap_dnsproxy/wiki) 中 [ReadMe_Mac](https://github.com/chengr28/pcap_dnsproxy/wiki/ReadMe_Mac) 之内容
 
 ### 最新版本
-* **Windows 版本：v0.4 Beta(2014-07-20)**
+* **Windows 版本：v0.4 Beta(2014-08-18)**
 * **Linux 版本：v0.2(2014-03-02)**
 * **Mac 版本：v0.1(2014-03-02)**
 
@@ -26,14 +26,14 @@ A local DNS server base on WinPcap and LibPcap.
 * 普通DNS请求模式同时支持TCP/UDP协议
 * Native Code 原生码编译，不含任何托管代码，x64版为原生64位目标平台编译
 * 作为系统服务工作于底层
-* 多线程模型
-* 使用 LibPcap/WinPcap 利用系统底层驱动抓取数据包，多种过滤方式忽略接收到的伪造数据包
+* 多线程模型，充分利用多线程处理器的硬件资源
+* 使用 WinPcap/LibPcap 利用系统底层驱动抓取数据包，多种过滤方式忽略接收到的伪造数据包
 * 支持服务器模式，相当于一个小型的DNS服务器，能为其它设备提供解析服务，并可限制可请求的范围
-* 主要和备用双服务器模式，提高DNS解析的可靠性
+* 主要和备用双服务器模式，多个服务器多次请求功能，提高DNS解析的可靠性
 * DNS缓存功能
 * 支持 EDNS0 标签
 * 支持 DNSCurve/DNSCrypt 协议
-* Hosts Only 模式可只适用本工具支持正则表达式的 Hosts 的功能
+* Hosts Only 模式可只使用本工具支持正则表达式的 Hosts 的直连模式
 * 支持 Local Hosts 境内DNS服务器解析功能，可提高对境内域名的解析速度和服务器的访问速度
 * 丰富的配置选项，读取文件支持 ANSI、UTF-8(/BOM)、UTF-16(LE/BE) 和 UTF-32(LE/BE) 编码以及 Windows/Unix/Macintosh 换行格式
 * 错误报告功能
