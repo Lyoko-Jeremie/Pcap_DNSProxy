@@ -21,11 +21,11 @@
   * Require Administrator Permission - 请以管理员权限运行
   * The file(s) may be damaged or corrupt!
     Please download all files again, also you can skip this check.
-	Are you sure you want to continue install service [Y/N]?
-	- 意思是文件的 SHA-1 检查验证失败，意味着程序可能在下载或解压途中被损坏
-	- 确保 bat 批处理都是最新版本
-	- 如果修改或更新过程序，确认程序是没有损坏的，请输入 Y 跳过检查继续安装或运行服务
-	- 否则请重新下载程序
+    Are you sure you want to continue install service [Y/N]?
+    - 意思是文件的 SHA-1 检查验证失败，意味着程序可能在下载或解压途中被损坏
+    - 确保 bat 批处理都是最新版本
+    - 如果修改或更新过程序，确认程序是没有损坏的，请输入 Y 跳过检查继续安装或运行服务
+    - 否则请重新下载程序
   * 服务没有及时响应启动或控制请求 - 请检查是否有错误报告生成，详细情况参见下文 Error.log 详细错误报告 一节
 
 * 正常的运行结果应类似：
@@ -35,8 +35,8 @@
     Address:  127.0.0.1（视所在网络环境而定，原生IPv6为 ::1）
 
     非权威应答:
-	名称:    www.google.com
-	Addresses: ……（IP地址或地址列表）
+    名称:    www.google.com
+    Addresses: ……（IP地址或地址列表）
 
 * 如果出现以下结果，则说明服务没有运行成功或者设置出错，请检查是否有错误报告生成，或请移步 ReadMe 文档中 安装方法 一节
 
@@ -45,7 +45,7 @@
     Address:  127.0.0.1（视所在网络环境而定，原生IPv6为 ::1）
 
     *** UnKnown 找不到 www.google.com: No response from server
-	
+    
 * 如果出现以下结果，则说明服务已经运行成功但远程DNS服务器没有回应，请检查是否有错误报告生成
   * 请务必设置一个正确的、有效的、可以使用的境外DNS服务器
   * 出现这种情况可能为网络问题。部分地区ISP/运营商对UDP协议转发丢包率比较高，可尝试切换到TCP协议模式（参见 ReadMe 文档中 配置文件详细参数说明 中 Base 基本区域 的 Operation Mode 一节）或者多尝试请求几次
@@ -64,7 +64,7 @@
     DNS request timed out.
         timeout was 2 seconds.
     *** 请求 pcap-dnsproxy.localhost.server 超时（视配置文件设置的值而定，参见 ReadMe 文档中 配置文件详细参数说明）
-	
+    
    >nslookup -vc www.google.com
     服务器:  pcap-dnsproxy.localhost.server（视配置文件设置的值而定，参见 ReadMe 文档中 配置文件详细参数说明）
     Address:  127.0.0.1（视所在网络环境而定，原生IPv6为 ::1）
@@ -85,8 +85,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
 
 1.System Error - 系统错误
   * Service start error - 服务启动失败：可能未在系统注册服务，或在系统内注册的服务路径不正确
-	* 详细情况参见 ReadMe 文档中 安装方法 一节
-	* 其它错误代码原因参见 http://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
+    * 详细情况参见 ReadMe 文档中 安装方法 一节
+    * 其它错误代码原因参见 http://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
   * Old Error Log file deleted - 日志文件已满并被删除
     * 日志文件最大容量的配置参见 详细说明文档 中 配置文件详细参数说明 中的 Log Maximum Size 参数
  
@@ -113,8 +113,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * EDNS0 PayloadSize must longer than 512 bytes(Old DNS packets minimum supported size) - EDNS0载荷长度过短：实现DNS协议必须支持长度超过 512 bytes 的数据包
   * EDNS0 PayloadSize may be too long - EDNS0载荷长度可能过长：此值建议不要超过以太网的MTU(1512 bytes)
   * EDNS0 Label must trun ON when request DNSSEC - 开启DNSSEC请求时必须开启EDNS0标签请求功能
-  * Alternate Multi requesting error - 
-  * Multi requesting times error - 接收到一个解析请求向同一个远程服务器发送多次解析请求参数错误 ：一个解析请求的多次解析请求次数不能超过8次，也就是配置文件不能填大于7的值
+  * Alternate Multi requesting error - 主要备用或多个服务器下同时请求参数错误：请确认所有服务器的信息
+  * Multi requesting times error - 接收到一个解析请求向同一个远程服务器发送多次解析请求参数错误 ：一个解析请求的多次解析请求次数不能超过16次，也就是配置文件不能填大于15的值
   * DNSCurve Targets error - DNSCurve 协议使用的DNS目标服务器地址错误：请检查 DNSCurve 协议使用DNS服务器的地址
   * DNSCurve encryption options error - DNSCurve 协议加密选项配置错误：开启加密选项和只使用加密模式选项冲突
   * DNSCurve Encryption Only mode error - DNSCurve 协议只使用加密模式配置错误：只使用加密模式必须提供服务器的魔数和指纹

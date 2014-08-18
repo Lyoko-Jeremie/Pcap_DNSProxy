@@ -13,7 +13,7 @@ Pcap_DNSProxy 项目的Sourceforge页面：
 http://sourceforge.net/projects/pcap-dnsproxy
 
 Pcap_DNSProxy 最新版本：
-* Windows 版本：v0.4 Beta(2014-07-20)
+* Windows 版本：v0.4 Beta(2014-08-18)
 * Linux 版本：v0.2(2014-03-02)
 * Mac 版本：v0.1(2014-03-02)
 * 附带配置文件的最新版本
@@ -96,7 +96,7 @@ Pcap_DNSProxy 支持平台：
   * 如果需要使用IPv6协议的本地服务器
     * 请先编辑配置文件的 "IPv6 DNS Address" 一栏，参见下文 配置文件详细参数说明 一节
     * 右击 "属性" - "Internet协议版本6(IPv6)" - "属性" - 勾选 "使用下面的DNS服务器地址"
-	* 在 "首选DNS服务器" 内填入 "::1"（不含引号） 确定保存并退出即可
+    * 在 "首选DNS服务器" 内填入 "::1"（不含引号） 确定保存并退出即可
   * 注意：建议将 "本地连接" 和 "无线连接" 以及 "宽带连接" 全部修改！
 
 
@@ -149,8 +149,8 @@ Pcap_DNSProxy 支持平台：
     Address:  127.0.0.1（视所在网络环境而定，原生IPv6为 ::1）
 
     非权威应答:
-	名称:    www.google.com
-	Addresses: ……（IP地址或地址列表）
+    名称:    www.google.com
+    Addresses: ……（IP地址或地址列表）
 
 4.如非以上结果，请移步 FAQ 文档中 运行结果分析 一节
 
@@ -183,18 +183,18 @@ Pcap_DNSProxy 支持平台：
 * 批处理的作用（运行结束会有运行结果）：
   * ServiceInstall - 将程序注册为系统服务，并启动程序进行 Windows 防火墙测试
     * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been installed."
-	* 具体是否成功需要留意屏幕上的提示
+    * 具体是否成功需要留意屏幕上的提示
   * ServiceStart - 启动工具服务
     * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been started."
-	* 具体是否成功需要留意屏幕上的提示
+    * 具体是否成功需要留意屏幕上的提示
   * ServiceQuery - 适用于 Windows XP/2003 以及更旧版本Windows的测试批处理，能测试工具服务是否安装成功
     * 如果服务安装成功，运行后会显示 "SERVICE_NAME: PcapDNSProxyService"（不含引号）
   * ServiceStop - 即时停止工具服务，重启服务时需要先停止服务
     * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been stopped."
-	* 具体是否成功需要留意屏幕上的提示
+    * 具体是否成功需要留意屏幕上的提示
   * ServiceUninstall - 停止并卸载工具服务
     * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been deleted."
-	* 具体是否成功需要留意屏幕上的提示
+    * 具体是否成功需要留意屏幕上的提示
 * 配置文件支持的文件名（只会读取优先级较高者，优先级较低者将被直接忽略）：
   * Windows: Config.ini > Config.conf > Config
   * Linux/Mac: Config.conf > Config.ini > Config
@@ -251,7 +251,7 @@ Pcap_DNSProxy 支持平台：
     * 此组合加密传输所有域名请求，域名解析可靠性最高
   * DNSCurve = 1 同时 Encryption = 1 同时 Encryption Only = 1：只使用 DNSCurve/DNSCrypt 加密模式请求域名解析
     * 上文的加密组合并不阻止程序在请求 DNSCurve/DNSCrypt 加密模式失败是使用其它协议请求域名解析，开启 Encryption Only = 1 后将只允许使用加密传输，安全性和可靠性最高
-	
+    
 
 -------------------------------------------------------------------------------
 
@@ -286,65 +286,65 @@ Pcap_DNSProxy 支持平台：
   * Pcap Capture - 抓包功能总开关，开启后抓包模块才能正常使用：开启为1/关闭为0，默认为1
   * Operation Mode - 程序的监听工作模式，分 Server/服务器模式、Private/私有网络模式 和 Proxy/代理模式：默认为 Private
     * Server/服务器模式：打开DNS通用端口（TCP/UDP同时打开），可为所有其它设备提供代理域名解析请求服务
-	* Private/私有网络模式：打开DNS通用端口（TCP/UDP同时打开），可为仅限于私有网络地址的设备提供代理域名解析请求服务
-	* Proxy/代理模式：只打开回环地址的DNS端口（TCP/UDP同时打开），只能为本机提供代理域名解析请求服务
-	* Custom/自定义模式：打开DNS通用端口（TCP/UDP同时打开），可用的地址由 IPFilter 参数决定
+    * Private/私有网络模式：打开DNS通用端口（TCP/UDP同时打开），可为仅限于私有网络地址的设备提供代理域名解析请求服务
+    * Proxy/代理模式：只打开回环地址的DNS端口（TCP/UDP同时打开），只能为本机提供代理域名解析请求服务
+    * Custom/自定义模式：打开DNS通用端口（TCP/UDP同时打开），可用的地址由 IPFilter 参数决定
   * Listen Protocol - 监听协议，本地监听的协议：可填入 IPv4 和 IPv6 和 IPv4 + IPv6，默认为 IPv4 + IPv6
     * 只填 IPv4 或 IPv6 时，只监听指定协议的本地端口
-	* IPv4 + IPv6 时同时监听两个协议的本地端口
+    * IPv4 + IPv6 时同时监听两个协议的本地端口
   * Listen Port - 监听端口，本地监听请求的端口：可填入 1-65535 之间的端口，如果留空则为53，默认为空
   * IPFilter Type - IPFilter 参数的类型：分为 Deny 禁止和 Permit 允许，对应 IPFilter 参数应用为黑名单或白名单，默认为 Deny
   * IPFilter Level - IPFilter 参数的过滤级别，级别越高过滤越严格，与 IPFilter 条目相对应：0为不启用过滤，如果留空则为0，默认为空
   * Accept Type - 禁止或只允许所列DNS类型的请求：格式为 "Deny:DNS记录的名称或ID(|DNS记录的名称或ID)" 或 "Permit:DNS记录的名称或ID(|DNS记录的名称或ID)"（不含引号，括号内为可选项目）
     * 所有可用的DNS类型列表：
       * A/1
-	  * NS/2
+      * NS/2
       * CNAME/5
-	  * SOA/6
-	  * PTR/12
-	  * MX/15
-	  * TXT/16
-	  * RP/17
-	  * SIG/24
-	  * KEY/25
+      * SOA/6
+      * PTR/12
+      * MX/15
+      * TXT/16
+      * RP/17
+      * SIG/24
+      * KEY/25
       * AAAA/28
-	  * LOC/29
-	  * SRV/33
-	  * NAPTR/35
-	  * KX/36
+      * LOC/29
+      * SRV/33
+      * NAPTR/35
+      * KX/36
       * CERT/37
-	  * DNAME/39
+      * DNAME/39
       * OPT/41
       * APL/42
-	  * DS/43
-	  * SSHFP/44
-	  * IPSECKEY/45
-	  * RRSIG/46
-	  * NSEC/47
-	  * DNSKEY/48
+      * DS/43
+      * SSHFP/44
+      * IPSECKEY/45
+      * RRSIG/46
+      * NSEC/47
+      * DNSKEY/48
       * DHCID/49
-	  * NSEC3/50
-	  * NSEC3PARAM/51
-	  * HIP/55
-	  * SPF/99
-	  * TKEY/249
-	  * TSIG/250
-	  * IXFR/251
-	  * AXFR/252
-	  * ANY/255
-	  * TA/32768
+      * NSEC3/50
+      * NSEC3PARAM/51
+      * HIP/55
+      * SPF/99
+      * TKEY/249
+      * TSIG/250
+      * IXFR/251
+      * AXFR/252
+      * ANY/255
+      * TA/32768
       * DLV/32769
-
+    
 * Addresses - 普通模式地址区域
 注意：IPv4地址格式为 "IPv4地址:端口"，IPv6地址格式为"[IPv6地址]:端口"（均不含引号）
   * IPv4 DNS Address - IPv4主要DNS服务器地址：需要输入一个带端口格式的地址，默认为 8.8.4.4:53(Google Public DNS No.2)
     * 本参数支持同时请求多服务器的功能，开启后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果
-	* 使用同时请求多服务器格式为 "地址A:端口|地址B:端口|地址C:端口"（不含引号）
-	* 同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
+    * 使用同时请求多服务器格式为 "地址A:端口|地址B:端口|地址C:端口"（不含引号）
+    * 同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
   * IPv4 Alternate DNS Address - IPv4备用DNS服务器地址：需要输入一个带端口格式的地址，默认为 8.8.8.8:53(Google Public DNS No.1)
     * 本参数支持同时请求多服务器的功能，开启后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果
-	* 使用同时请求多服务器格式为 "地址A:端口|地址B:端口|地址C:端口"（不含引号）
-	* 同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
+    * 使用同时请求多服务器格式为 "地址A:端口|地址B:端口|地址C:端口"（不含引号）
+    * 同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
   * IPv4 Local DNS Address - IPv4主要境内DNS服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，默认为 114.114.115.115:53(114 DNS No.2)
   * IPv4 Local Alternate DNS Address - IPv4备用境内DNS服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，默认为 114.114.114.114:53(114 DNS No.1)
   * IPv6 DNS Address - IPv6主要DNS服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为空
@@ -356,20 +356,20 @@ Pcap_DNSProxy 支持平台：
   * EDNS0 Payload Size - EDNS0 标签附带使用的最大载荷长度：最小为DNS协议实现要求的512(bytes)，留空则使用 EDNS0 标签要求最短的1220(bytes)，默认为留空
   * IPv4 TTL - IPv4主要DNS服务器接受请求的远程DNS服务器数据包的TTL值：0为自动获取，取值为 1-255 之间：默认为0
     * 本参数支持同时请求多服务器的功能，与 IPv4 DNS Address 相对应
-	* 使用同时请求多服务器格式为 "TTL(A)|TTL(B)|TTL(C)"（不含引号），也可直接默认（即只填一个0不是用此格式）则所有TTL都将由程序自动获取
-	* 使用时多TTL值所对应的顺序与 IPv4 DNS Address 中对应的地址顺序相同
+    * 使用同时请求多服务器格式为 "TTL(A)|TTL(B)|TTL(C)"（不含引号），也可直接默认（即只填一个0不是用此格式）则所有TTL都将由程序自动获取
+    * 使用时多TTL值所对应的顺序与 IPv4 DNS Address 中对应的地址顺序相同
   * IPv6 Hop Limits - IPv6主要DNS服务器接受请求的远程DNS服务器数据包的 Hop Limits 值：0为自动获取，取值为 1-255 之间，默认为0
     * 本参数支持同时请求多服务器的功能，与 IPv6 DNS Address 相对应
-	* 使用同时请求多服务器格式为 "Hop Limits(A)|Hop Limits(B)|Hop LimitsC)"（不含引号），也可直接默认（即只填一个0不是用此格式）则所有 Hop Limits 都将由程序自动获取
-	* 使用时多 Hop Limits 值所对应的顺序与 IPv6 DNS Address 中对应的地址顺序相同
+    * 使用同时请求多服务器格式为 "Hop Limits(A)|Hop Limits(B)|Hop LimitsC)"（不含引号），也可直接默认（即只填一个0不是用此格式）则所有 Hop Limits 都将由程序自动获取
+    * 使用时多 Hop Limits 值所对应的顺序与 IPv6 DNS Address 中对应的地址顺序相同
   * IPv4 Alternate TTL - IPv4备用DNS服务器接受请求的远程DNS服务器数据包的TTL值：0为自动获取，取值为 1-255 之间：默认为0
     * 本参数支持同时请求多服务器的功能，与 IPv4 Alternate DNS Address 相对应
-	* 使用同时请求多服务器格式为 "TTL(A)|TTL(B)|TTL(C)"（不含引号），也可直接默认（即只填一个0不是用此格式）则所有TTL都将由程序自动获取
-	* 使用时多TTL值所对应的顺序与 IPv4 Alternate DNS Address 中对应的地址顺序相同
+    * 使用同时请求多服务器格式为 "TTL(A)|TTL(B)|TTL(C)"（不含引号），也可直接默认（即只填一个0不是用此格式）则所有TTL都将由程序自动获取
+    * 使用时多TTL值所对应的顺序与 IPv4 Alternate DNS Address 中对应的地址顺序相同
   * IPv6 Alternate Hop Limits - IPv6备用DNS服务器接受请求的远程DNS服务器数据包的 Hop Limits 值：0为自动获取，取值为 1-255 之间，默认为0
     * 本参数支持同时请求多服务器的功能，与 IPv6 Alternate DNS Address 相对应
-	* 使用同时请求多服务器格式为 "Hop Limits(A)|Hop Limits(B)|Hop LimitsC)"（不含引号），也可直接默认（即只填一个0不是用此格式）则所有 Hop Limits 都将由程序自动获取
-	* 使用时多 Hop Limits 值所对应的顺序与 IPv6 Alternate DNS Address 中对应的地址顺序相同
+    * 使用同时请求多服务器格式为 "Hop Limits(A)|Hop Limits(B)|Hop Limits(C)"（不含引号），也可直接默认（即只填一个0不是用此格式）则所有 Hop Limits 都将由程序自动获取
+    * 使用时多 Hop Limits 值所对应的顺序与 IPv6 Alternate DNS Address 中对应的地址顺序相同
   * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受范围，即 IPv4 TTL/IPv6 Hop Limits 的值±数值的范围内的数据包均可被接受，用于避免网络环境短暂变化造成解析失败的问题：取值为 1-255 之间，默认为2
   * ICMP Test - ICMP/Ping测试间隔时间：单位为秒，最短间隔时间为5秒，默认为900秒/15分钟
   * Domain Test - DNS服务器解析域名测试间隔时间：单位为秒，最短间隔时间为5秒，默认为900秒/15分钟
@@ -387,7 +387,7 @@ Pcap_DNSProxy 支持平台：
     * 注意：此功能为实验性质，本程序不具备任何验证 DNSSEC 回复的能力，单独开启此功能时并不能避免DNS投毒污染的问题
   * Alternate Multi Request - 备用服务器同时请求参数，开启后将同时请求主要服务器和备用服务器并采用最快回应的服务器的结果：开启为1/关闭为0，默认为0
     * 同时请求多服务器启用后本参数将强制启用，将同时请求所有存在于列表中的服务器，并采用最快回应的服务器的结果
-  * IPv4 Data Filter - IPv4数据包头检测：开启为1/关闭为0，默认为1
+  * IPv4 Data Filter - IPv4数据包头检测：开启为1/关闭为0，默认为0
   * TCP Data Filter - TCP数据包头检测；开启为1/关闭为0，默认为1
     * 注意：此选项只能在程序工作模式为TCP下才能使用，非TCP模式时此参数无效
   * DNS Data Filter - DNS数据包头检测：开启为1/关闭为0，默认为1
@@ -457,7 +457,6 @@ File Hash = 1
 
 [Log]
 Print Error = 1
-Print Running Log = 0
 Log Maximum Size = 
 
 [DNS]
@@ -507,7 +506,7 @@ Domain Case Conversion = 1
 EDNS0 Label = 0
 DNSSEC Request = 0
 Alternate Multi Request = 0
-IPv4 Data Filter = 1
+IPv4 Data Filter = 0
 TCP Data Filter = 1
 DNS Data Filter = 1
 Blacklist Filter = 1
@@ -515,9 +514,9 @@ Blacklist Filter = 1
 [Data]
 ICMP ID = 
 ICMP Sequence = 
-Domain Test Data = 
-Domain Test ID = 
 ICMP PaddingData = 
+Domain Test ID = 
+Domain Test Data = 
 Localhost Server Name = 
 
 [DNSCurve]
@@ -598,22 +597,22 @@ Hosts配置文件分为Base/基本区域、Hosts/主要Hosts列表 和 Local Hos
   直接在条目前添加 "NULL"（不含引号）即可，有效参数格式为 "NULL 正则表达式"（不含引号）
   * 注意优先级的问题，例如有一片含白名单条目的区域：
     
-	NULL .*\.test.localhost
-	127.0.0.1|127.0.0.2|127.0.0.3 .*\.localhost
-	
+    NULL .*\.test.localhost
+    127.0.0.1|127.0.0.2|127.0.0.3 .*\.localhost
+    
     虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并返回使用远程服务器解析
-	从而绕过了下面的条目，不使用Hosts的功能
-	
+    从而绕过了下面的条目，不使用Hosts的功能
+    
 * Banned - 黑名单条目
   此类型的条目列出的符合要求的域名会直接返回域名不存在的功能，避免重定向导致的超时问题
   直接在条目前添加 "Banned"（不含引号）即可，有效参数格式为 "Banned 正则表达式"（不含引号）
   * 注意优先级的问题，例如有一片含黑名单条目的区域：
     
-	Banned .*\.test.localhost
-	127.0.0.1|127.0.0.2|127.0.0.3 .*\.localhost
-	
+    Banned .*\.test.localhost
+    127.0.0.1|127.0.0.2|127.0.0.3 .*\.localhost
+    
     虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并直接返回域名不存在
-	从而绕过了下面的条目，达到屏蔽域名的目的
+    从而绕过了下面的条目，达到屏蔽域名的目的
 
 * Hosts - 主要Hosts列表
   有效参数格式为 "地址(|地址A|地址B) 域名的正则表达式"（不含引号，括号内为可选项目，注意间隔所在的位置）
@@ -624,10 +623,10 @@ Hosts配置文件分为Base/基本区域、Hosts/主要Hosts列表 和 Local Hos
 
     127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.localhost
     127.0.0.4|127.0.0.5|127.0.0.6 .*\.localhost
-    ::1|::2|::3	.*\.test\.localhost
-    ::4|::5|::6	.*\.localhost
+    ::1|::2|::3    .*\.test\.localhost
+    ::4|::5|::6    .*\.localhost
 
-	虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并直接返回，不会再进行其它检查
+    虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并直接返回，不会再进行其它检查
     * 请求解析 xxx.localhost 的A记录（IPv4）会返回 127.0.0.4、127.0.0.5和127.0.0.6
     * 请求解析 xxx.localhost 的AAAA记录（IPv6）会返回 ::4、::5和::6
     * 请求解析 xxx.test.localhost 的A记录（IPv4）会返回 127.0.0.1、127.0.0.2和127.0.0.3
@@ -652,16 +651,16 @@ Hosts配置文件分为Base/基本区域、Hosts/主要Hosts列表 和 Local Hos
     127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.localhost
     [Stop]
     127.0.0.4|127.0.0.5|127.0.0.6 .*\.localhost
-    ::1|::2|::3	.*\.test\.localhost
-    ::4|::5|::6	.*\.localhost
-	
+    ::1|::2|::3    .*\.test\.localhost
+    ::4|::5|::6    .*\.localhost
+
     [Local Hosts]
     .*\.test\.localhost
     .*\.localhost
-	
+
   * 则从 [Stop] 一行开始，下面到 [Local Hosts] 之间的数据都将不会被读取
   * 即实际有效的数据区域是：
-  
+
     [Hosts]
     127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.localhost
 
@@ -726,14 +725,14 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
 
     [Blacklist]
     127.0.0.1 localhost
-	[Stop]
+    [Stop]
     ::1 localhost
 
     [IPFilter]
     Address(Start) - Address(End)    , Level, Comments
     127.0.0.0      - 127.255.255.255 ,     0, IPv4 Link-Local addresses
     ::             - ::1             ,     0, IPv6 Link-Local addresses
-	
+    
   * 则从 [Stop] 一行开始，下面到 [IPFilter] 之间的数据都将不会被读取
   * 即实际有效的数据区域是：
   
