@@ -30,8 +30,8 @@
 
 * 如果出现以下结果，则说明服务没有运行成功或者设置出错或者服务已经运行成功但远程DNS服务器没有回应，请检查是否有错误报告生成，或请移步 Mac 版 ReadMe 文档中 安装方法 一节
   * 请务必设置一个正确的、有效的、可以使用的境外DNS服务器
-  * 出现这种情况可能为网络问题。部分地区ISP/运营商对UDP协议转发丢包率比较高，可尝试切换到TCP协议模式（参见 ReadMe 文档中 “Config.ini 详细参数说明” 一节中 “Base - 基本区域” 的 Operation Mode 一节）
-  * 也可能是因为长时间运行有错误累积造成，项目组正努力解决。可尝试重启服务（参见 Mac版 ReadMe 文档中 “注意事项” 一节中的 重启服务）
+  * 出现这种情况可能为网络问题。部分地区ISP/运营商对UDP协议转发丢包率比较高，可尝试切换到TCP协议模式（参见 ReadMe 文档中 "Config.ini 详细参数说明" 一节中 "Base - 基本区域" 的 Operation Mode 一节）
+  * 也可能是因为长时间运行有错误累积造成，项目组正努力解决。可尝试重启服务（参见 Mac版 ReadMe 文档中 "注意事项" 一节中的 重启服务）
 
 	>dig www.google.com
 
@@ -40,7 +40,7 @@
 	;; global options: +cmd
 	;; connection timed out; no servers could be reached
 
-* 错误由其它DNS服务器响应，留意 “SERVER: ...#53(...)” 一行必须为 127.0.0.1（IPv4，IPv6下为 ::1 ）
+* 错误由其它DNS服务器响应，留意 "SERVER: ...#53(...)" 一行必须为 127.0.0.1（IPv4，IPv6下为 ::1 ）
   * 请检查系统的网络设置，或者也可能是服务没有运行成功或者服务已经运行成功但远程DNS服务器没有回应
 
 	>dig www.google.com
@@ -66,7 +66,7 @@
 
 
 当程序运行时发生错误，可能会生成错误报告也就是 Error.log 文件，其位于工具服务注册的目录内，对解决问题至关重要
-错误报告的格式为 “日期 时间 -> 错误类型: 详细错误信息(行数, 错误代码)”（不含双引号，括号为可能出现内容）
+错误报告的格式为 "日期 时间 -> 错误类型: 详细错误信息(行数, 错误代码)"（不含双引号，括号为可能出现内容）
 * 行数为 Config.conf 或 Hosts.conf 文件内出错内容的行数
 * 错误代码为系统/LibPcap API 提供的出错代码，详细情况参见下文 Error.log 详细错误报告
 * 由于程序重启时会自动删除之前生成的错误报告，所以如果有错误报告生成建议先备份再尝试重新启动工具服务
@@ -92,7 +92,7 @@ Error.log 详细错误报告，错误报告一共有5大类型：
   * Localhost server name format error - 本地服务器名称错误（可根据报告的行数查找）：含有非法域名字符
     * 规则参见 https://en.wikipedia.org/wiki/Internationalized_domain_name
   * Base rule(s) error - 基本规则错误：可能因为 Config.ini 里同时不存在合法的IPv4/IPv6的DNS服务器地址，或者在TCP模式下开启了TCP头选项的检测
-    * TCP头选项检测问题参见 ReadMe 文档中 “Config.ini 详细参数信息” 中 “Extend Test - 扩展检测区域” 中对 TCP Options Filter 选项的介绍
+    * TCP头选项检测问题参见 ReadMe 文档中 "Config.ini 详细参数信息" 中 "Extend Test - 扩展检测区域" 中对 TCP Options Filter 选项的介绍
 
 3.Hosts Error - 读取 Hosts 错误
   * Cannot open hosts file(Hosts.conf) - 无法打开 Hosts.conf 文件：请确认文件是否存在

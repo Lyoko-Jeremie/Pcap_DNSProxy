@@ -76,7 +76,7 @@ size_t CaptureInitialization()
 			{
 				AvailableDevicesName = AvailableDevices->name;
 				AvailableDevices = AvailableDevices->next;
-				if (AvailableDevicesName.find("lo") == std::string::npos)
+				if (AvailableDevicesName.find("lo") == std::string::npos && AvailableDevicesName.find("any") == std::string::npos)
 					Non_Loopback = true;
 			}
 

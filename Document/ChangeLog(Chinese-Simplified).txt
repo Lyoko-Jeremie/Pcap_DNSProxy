@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy v0.4 Beta(Windows) 更新日志(2014-08-18)：
+﻿Pcap_DNSProxy v0.4 Beta(Windows)/v0.2(Linux)/v0.1(Mac) 更新日志(2014-08-20)：
 
 * 添加对 Streamlined/精简 格式 DNSCurve/DNSCrypt 协议的支持
   * 提供随机 Curve25519/Salsa20/Poly1305(DNSCurve) 密钥对生成程序 KeyPairGenerator v0.1
@@ -71,6 +71,7 @@
 * 修复 ServiceInstall.bat 批处理在开启UAC的情况下无法使用的错误(Windows) [Haruyuki Arita/Hugo Chan/Ryans233/streamgo/watchingyoufall]
 * 在非管理员权限下运行批处理无法修改系统服务信息的错误现在将有提醒(Windows) [Haruyuki Arita/Hugo Chan/Ryans233/watchingyoufall]
 * 使用 Microsoft 的 File Checksum Integrity Verifier 的 SHA-1 算法，下载或解压出错导致文件损坏现在将有提醒(Windows) [Hugo Chan]
+* 修复 Makefile 的错误(Linux) [otakuchiyan]
 * 修复在IPv6环境下抓取来自境内域名解析服务器回复包的错误，但此功能在新版已被移除，特此公告 [David Webb/eqielb]
 
 -------------------------------------------------------------------------------
