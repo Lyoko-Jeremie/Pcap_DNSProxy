@@ -6,16 +6,16 @@ Pcap_DNSProxy 仅供学习交流，遵循 GNU GPL 通用公共许可证 (GNU Gen
 
 
 Pcap_DNSProxy 项目的GitHub页面：
-* 主分支: https://github.com/chengr28/pcap_dnsproxy
-* Release 分支: https://github.com/chengr28/pcap_dnsproxy/tree/Release
+* 主分支: https://github.com/chengr28/Pcap_DNSProxy
+* Release 分支: https://github.com/chengr28/Pcap_DNSProxy/tree/Release
 
 Pcap_DNSProxy 项目的Sourceforge页面：
 http://sourceforge.net/projects/pcap-dnsproxy
 
 Pcap_DNSProxy 最新版本：
-* Windows 版本：v0.4 Beta(2014-08-20)
-* Linux 版本：v0.2(2014-08-20)
-* Mac 版本：v0.1(2014-08-20)
+* Windows 版本：v0.4 Beta(2014-09-21)
+* Linux 版本：v0.2(2014-08-19)
+* Mac 版本：v0.1(2014-08-19)
 * 附带配置文件的最新版本
   * Windows: 0.4
   * Linux: 0.1
@@ -57,14 +57,14 @@ Pcap_DNSProxy 使用的库：
 Pcap_DNSProxy 支持平台：
 * 本工具抓包模块所支持的网络类型
   * 网络设备类型为 Ethernet 的网络
-  * 原生IPv4网络和原生IPv6网络（非原生IPv6网络环境切勿开启IPv6功能）
+  * 原生IPv4网络和原生IPv6网络（非原生IPv6网络环境建议不要开启IPv6功能）
   * 基于PPPoE或PPPoEv6的IPv4网络和IPv6网络
   * 如果需要支持更多网络类型，可与作者联系
 * Windows 平台
   * 所有 Windows XP/2003 以及更新内核的版本(32位/x86版本)和 Windows Vista/2008 以及更新的版本(64位/x64版本)
   * 支持最新版本 [WinPcap](http://www.winpcap.org/install/default.htm)
 * Linux 平台
-  * 支持 [编译所需依赖包](https://github.com/chengr28/pcap_dnsproxy/wiki/ReadMe_Linux) 的Linux发行版
+  * 支持 [编译所需依赖包](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe_Linux) 的Linux发行版
   * 支持最新版本 [Libpcap](http://www.tcpdump.org)
 * Mac 平台
   * 采用Intel平台处理器的 Mac OS X 10.5 Leopard 以及更新的版本
@@ -78,7 +78,7 @@ Pcap_DNSProxy 支持平台：
 
 1.预备程序编译环境：编译前需要先编译和安装依赖的库
   * 访问 http://www.tcpdump.org/#latest-release 下载最新的 LibPcap 库源代码，或者可以直接使用本项目提供的源代码压缩包
-  * 访问 https://github.com/chengr28/pcap_dnsproxy 使用 Download ZIP 并解压，Source/Linux/Linux/Libraries 目录含有 LibPcap 库源代码的压缩包
+  * 访问 https://github.com/chengr28/Pcap_DNSProxy 使用 Download ZIP 并解压，Source/Linux/Linux/Libraries 目录含有 LibPcap 库源代码的压缩包
   * Pcap_DNSProxy(Linux) 依赖于 GCC(C++/g++，需要支持 C++ 11 标准的版本) 和 LibPcap 库，编译前需要先安装依赖库
   * LibPcap 库依赖于GCC库、bison库、m4库、flex库和 libpcap-dev 库，可使用发行版自带包管理系统自动安装或手动前往官方网站下载编译安装
   * 编译安装 LibPcap 库（当然也可以使用系统自带的包管理系统安装，更多详情可参见所使用Linux发行版的说明）：

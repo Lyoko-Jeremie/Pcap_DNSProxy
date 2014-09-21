@@ -139,7 +139,6 @@
       <Version>0.4</Version>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
-      <UACUIAccess>true</UACUIAccess>
       <LargeAddressAware>true</LargeAddressAware>
     </Link>
     <ResourceCompile>
@@ -176,7 +175,6 @@
       <Version>0.4</Version>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
-      <UACUIAccess>true</UACUIAccess>
       <LargeAddressAware>true</LargeAddressAware>
     </Link>
     <ResourceCompile>

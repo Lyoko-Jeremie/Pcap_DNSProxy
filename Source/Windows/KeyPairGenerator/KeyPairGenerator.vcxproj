@@ -136,7 +136,6 @@
       <OptimizeReferences>true</OptimizeReferences>
       <Version>0.1</Version>
       <CreateHotPatchableImage>Enabled</CreateHotPatchableImage>
-      <UACUIAccess>true</UACUIAccess>
       <LargeAddressAware>true</LargeAddressAware>
     </Link>
     <ResourceCompile>

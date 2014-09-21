@@ -8,21 +8,25 @@
 
 :: Permission check
 if "%PROCESSOR_ARCHITECTURE%" == "AMD64" (set SystemPath = %SystemRoot%\SysWOW64) else (set SystemPath = %SystemRoot%\system32)
-rd "%SystemPath%\test_permissions" > nul 2 > nul
-md "%SystemPath%\test_permissions" 2 > nul || (echo Require Administrator Permission. && pause > nul && Exit)
-rd "%SystemPath%\test_permissions" > nul 2 > nul
-cd /d %~dp0
+::rd "%SystemPath%\Test_Permissions" > nul 2 > nul
+::md "%SystemPath%\Test_Permissions" 2 > nul || (echo Require Administrator Permission. && pause > nul && Exit)
+::rd "%SystemPath%\Test_Permissions" > nul 2 > nul
+del /f /q %SystemPath%\TestPermission.log
+echo "Permission check." >> %SystemPath%\TestPermission.log
+if not exist %SystemPath%\TestPermission.log (echo Require Administrator Permission. && pause > nul && Exit)
+del /f /q %SystemPath%\TestPermission.log
 
 :: Files check
+cd /d %~dp0
+cls
 if not exist Fciv.exe goto Warning
 if not exist Pcap_DNSProxy.exe goto Warning
-if not exist KeyPairGenerator.exe goto Warning
+:: if not exist KeyPairGenerator.exe goto Warning
 if not exist Pcap_DNSProxy_x86.exe goto Warning
-if not exist KeyPairGenerator_x86.exe goto Warning
-cls
+:: if not exist KeyPairGenerator_x86.exe goto Warning
 
 :Hash-A
-Fciv -sha1 Pcap_DNSProxy.exe |findstr /I 9B4746F96FAC1433842C94AB553B3B9420B5A8DC > NUL
+Fciv -sha1 Pcap_DNSProxy.exe |findstr /I C31A69836BF1E106DAb1C6E26B1F05F203DB2734 > NUL
 goto HASH-%ERRORLEVEL%
 :HASH-0
 goto HASH-B
@@ -30,23 +34,7 @@ goto HASH-B
 goto Warning
 
 :Hash-B
-Fciv -sha1 KeyPairGenerator.exe |findstr /I AEABC26182DF9895FCE6A667BE2198d9BD5E2F68 > NUL
-goto HASH-%ERRORLEVEL%
-:HASH-0
-goto HASH-C
-:HASH-1
-goto Warning
-
-:Hash-C
-Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I ACD9C7AFBFFC0845989C0CF0CE47A86E17CA2B73 > NUL
-goto HASH-%ERRORLEVEL%
-:HASH-0
-goto HASH-D
-:HASH-1
-goto Warning
-
-:Hash-D
-Fciv -sha1 KeyPairGenerator_x86.exe |findstr /I C4AC11B52F51b8E61380FD23B2CE20458A65BD47 > NUL
+Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 7BC6FA8AE50DE2A3A50E5B1A972C1EB4C4941417 > NUL
 goto HASH-%ERRORLEVEL%
 :HASH-0
 goto Type
@@ -57,9 +45,12 @@ goto Warning
 @echo.
 @echo The file(s) may be damaged or corrupt!
 @echo Please download all files again, also you can skip this check.
-choice /M "Are you sure you want to continue install service"
-if errorlevel 2 exit
-if errorlevel 1 echo.
+:: Choice.exe cannot be run in Windows XP/2003.
+:: choice /M "Are you sure you want to continue start service"
+:: if errorlevel 2 exit
+:: if errorlevel 1 echo.
+set /p UserChoice="Are you sure you want to continue start service? [Y/N]"
+if /i "%UserChoice%" == "Y" (goto Type) else exit
 
 :: Architecture check and main process
 :Type

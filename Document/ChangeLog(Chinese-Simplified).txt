@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy v0.4 Beta(Windows)/v0.2(Linux)/v0.1(Mac) 更新日志(2014-08-20)：
+﻿Pcap_DNSProxy v0.4 Beta(Windows)/v0.2(Linux)/v0.1(Mac) 更新日志(2014-09-21)：
 
 * 添加对 Streamlined/精简 格式 DNSCurve/DNSCrypt 协议的支持
   * 提供随机 Curve25519/Salsa20/Poly1305(DNSCurve) 密钥对生成程序 KeyPairGenerator v0.1
@@ -12,9 +12,12 @@
 * 添加自定义请求服务器端口的功能
 * 添加自定义本地监听端口的功能
 * 添加以DNS请求的类型为条件的屏蔽功能
+  * 类型名称支持：A|NS|CNAME|SOA|PTR|MX|TXT|RP|SIG|KEY|AAAA|LOC|SRV|NAPTR|KX|CERT|DNAME|EDNS0|APL|DS|SSHFP|IPSECKEY|RRSIG|NSEC|DNSKEY|DHCID|NSEC3|NSEC3PARAM|HIP|SPF|TKEY|TSIG|IXFR|AXFR|ANY|TA|DLV
+* 添加 IPv6 6to4/ISATAP/Teredo 隧道的支持
 * 为本地服务器监听IPv4/IPv6增加控制选项（请求时相同协议优先，不同协议IPv6优先）
 * 添加随机转换域名请求的大小写的功能
 * 为抓包模块添加总开关 Pcap Capture
+* 为抓包模块添加 IPv4 扩展头部的支持
 * 为 TCP Data Filter/TCP数据包过滤器 添加检查 Checksum/校验和 的功能
 * 为 IPv4/IPv6 黑名单地址过滤功能添加新的投毒污染地址
 * 黑名单地址过滤功能应用到所有解析过程以避免权威服务器被污染的情况下所有结果被投毒污染的结果
@@ -25,10 +28,11 @@
 * 添加对超过UDP协议最大不分片长度的截断数据包使用TCP协议重试的功能
 * 添加对 EDNS0 标签和 DNSSEC(AD/CD/DO) 请求功能的支持（开启 DNSSEC 请求后必须强制添加 EDNS0 标签）
 * 添加 Hosts Only 直连模式只使用本工具具有正则表达式的Hosts功能
-  * 解析的结果是否会被投毒污染与使用的伪包过滤器有关，详细情况参见说明文档
+  * 解析的结果是否会被投毒污染与使用的伪造数据包过滤器有关，详细情况参见说明文档
 * 程序配置文件和 Hosts 文件版本升级到 v0.4
   * 支持的一行最大长度增到 4KB/4096 bytes
   * 添加新的单行和多行注释格式支持
+  *  使用指定端口时添加对服务名称的支持：TCPMUX|ECHO|DISCARD|SYSTAT|DAYTIME|NETSTAT|QOTD|MSP|CHARGEN|FTP|SSH|TELNET|SMTP|TIME|RAP|RLP|NAME|WHOIS|TACACS|DNS|XNSAUTH|MTP|BOOTPS|BOOTPC|TFTP|RJE|FINGER|TTYLINK|SUPDUP|SUNRPC|SQL|NTP|EPMAP|NETBIOSNS|NETBIOSDGM|NETBIOSSSN|IMAP|BFTP|SGMP|SQLSRV|DMSP|SNMP|SNMPTRAP|ATRTMP|ATHBP|QMTP|IPX|IMAP|IMAP3|BGMP|TSP|IMMP|ODMR|RPC2PORTMAP|CLEARCASE|HPALARMMGR|ARNS|AURP|LDAP|UPS|SLP|SNPP|MICROSOFTDS|KPASSWD|TCPNETHASPSRV|RETROSPECT|ISAKMP|BIFFUDP|WHOSERVER|SYSLOG|ROUTERSERVER|NCP|COURIER|COMMERCE|RTSP|NNTP|HTTPRPCEPMAP|IPP|LDAPS|MSDP|AODV|FTPSDATA|FTPS|NAS|TELNETS
   * 为 Hosts 文件添加 CSV/逗号分隔值 格式的支持
   * 添加 "BANNED 正则表达式"（不含引号）语法直接返回域名查找失败信息，用于快速屏蔽域名
   * URI标准化IPv6地址格式，IP(v4/v6)地址格式更改为带端口格式
@@ -62,6 +66,7 @@
 * 修复TCP协议下因为远程服务器无响应而造成的过长时间不回应请求的错误
 * 修复多线程模型下竞争读写全局对象可能造成的错误
 * 修复自身服务器名称读取和IPv6环境下回复自身服务器名称的错误
+* 修复反向解析域名时回复自身服务器名称到所有私有网络地址对应域名的错误
 * 修复在IPv6环境下抓包回复时的匹配错误
 * 修复网络适配器被禁用重启后 WinPcap/Libpcap 无法抓取数据包的错误
 * 修复特殊IP(v4/v6)地址检测模块的错误

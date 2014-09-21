@@ -6,16 +6,16 @@ Pcap_DNSProxy 仅供学习交流，遵循 GNU GPL 通用公共许可证 (GNU Gen
 
 
 Pcap_DNSProxy 项目的GitHub页面：
-* 主分支: https://github.com/chengr28/pcap_dnsproxy
-* Release 分支: https://github.com/chengr28/pcap_dnsproxy/tree/Release
+* 主分支: https://github.com/chengr28/Pcap_DNSProxy
+* Release 分支: https://github.com/chengr28/Pcap_DNSProxy/tree/Release
 
 Pcap_DNSProxy 项目的Sourceforge页面：
 http://sourceforge.net/projects/pcap-dnsproxy
 
 Pcap_DNSProxy 最新版本：
-* Windows 版本：v0.4 Beta(2014-08-20)
-* Linux 版本：v0.2(2014-08-20)
-* Mac 版本：v0.1(2014-08-20)
+* Windows 版本：v0.4 Beta(2014-09-21)
+* Linux 版本：v0.2(2014-08-19)
+* Mac 版本：v0.1(2014-08-19)
 * 附带配置文件的最新版本
   * Windows: 0.4
   * Linux: 0.1
@@ -57,14 +57,14 @@ Pcap_DNSProxy 使用的库：
 Pcap_DNSProxy 支持平台：
 * 本工具抓包模块所支持的网络类型
   * 网络设备类型为 Ethernet 的网络
-  * 原生IPv4网络和原生IPv6网络（非原生IPv6网络环境切勿开启IPv6功能）
+  * 原生IPv4网络和原生IPv6网络（非原生IPv6网络环境建议不要开启IPv6功能）
   * 基于PPPoE或PPPoEv6的IPv4网络和IPv6网络
   * 如果需要支持更多网络类型，可与作者联系
 * Windows 平台
   * 所有 Windows XP/2003 以及更新内核的版本(32位/x86版本)和 Windows Vista/2008 以及更新的版本(64位/x64版本)
   * 支持最新版本 [WinPcap](http://www.winpcap.org/install/default.htm)
 * Linux 平台
-  * 支持 [编译所需依赖包](https://github.com/chengr28/pcap_dnsproxy/wiki/ReadMe_Linux) 的Linux发行版
+  * 支持 [编译所需依赖包](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe_Linux) 的Linux发行版
   * 支持最新版本 [Libpcap](http://www.tcpdump.org)
 * Mac 平台
   * 采用Intel平台处理器的 Mac OS X 10.5 Leopard 以及更新的版本
@@ -80,7 +80,7 @@ Pcap_DNSProxy 支持平台：
   * WinPcap 只需要安装一次，以后更新时请从第2步开始操作
   * 如果 WinPcap 提示已安装旧版本无法继续时，参见 FAQ 中 运行结果分析 一节
   * 安装时自启动选项对工具的运行没有影响，因为本工具直接调用 WinPcap API，不需要经过服务器程序
-2.访问 https://github.com/chengr28/pcap_dnsproxy/tree/Release 并使用 GitHub 的 Download ZIP 功能将所有文件下载到本地
+2.访问 https://github.com/chengr28/Pcap_DNSProxy/tree/Release 并使用 GitHub 的 Download ZIP 功能将所有文件下载到本地
   * Windows 版本的 Pcap_DNSProxy 在 ZIP 的 Windows 目录内，可将整个目录单独抽出运行
   * Windows 下批处理会自动判断 x64 和 x86 版本
 3.打开下载回来的 ZIP 文件，将 Windows 目录解压到磁盘的任意位置
@@ -537,7 +537,7 @@ DNSCurve IPv4 Provider Name = 2.dnscrypt-cert.opendns.com
 DNSCurve IPv4 Alternate Provider Name = 2.dnscrypt-cert.opendns.com
 DNSCurve IPv6 Provider Name = 
 ## DNSCurve IPv6 Provider Name = 2.dnscrypt-cert.opendns.com
-DNSCurve IPv6 Provider Name = 
+DNSCurve IPv6 Alternate Provider Name = 
 ## DNSCurve IPv6 Alternate Provider Name = 2.dnscrypt-cert.opendns.com
 
 [DNSCurve Keys]
