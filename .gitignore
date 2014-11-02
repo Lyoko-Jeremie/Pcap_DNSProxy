@@ -1,4 +1,4 @@
-﻿### C++.gitgnore(From https://github.com/github/gitignore/blob/master/C%2B%2B.gitignore)
+### C++.gitgnore(From https://github.com/github/gitignore/blob/master/C%2B%2B.gitignore)
 
 # Compiled Object files
 *.slo
@@ -15,7 +15,7 @@
 *.lai
 *.la
 *.a
-*.lib
+#*.lib
 
 # Executables
 # *.exe
@@ -32,7 +32,7 @@
 *.elf
 
 # Libraries
-*.lib
+#*.lib
 *.a
 
 # Shared objects (inc. Windows DLLs)

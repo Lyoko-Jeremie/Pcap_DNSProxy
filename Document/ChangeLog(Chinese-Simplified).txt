@@ -79,7 +79,7 @@
 * 在非管理员权限下运行批处理无法修改系统服务信息的错误现在将有提醒(Windows) [Haruyuki Arita/Hugo Chan/Ryans233/watchingyoufall]
 * 使用 Microsoft 的 File Checksum Integrity Verifier 的 SHA-1 算法，下载或解压出错导致文件损坏现在将有提醒(Windows) [Hugo Chan]
 * 修复 Makefile 的错误(Linux) [otakuchiyan]
-* 源代码现在开始将使用 UTF-8 with BOM 编码(Windows)
+* 源代码现在开始将使用 UTF-8 编码(Windows)
 * 项目升级到 Visual Studio 2013(Windows)
 * 修复在IPv6环境下抓取来自境内域名解析服务器回复包的错误，但此功能在新版已被移除，特此公告 [David Webb/eqielb]
 
