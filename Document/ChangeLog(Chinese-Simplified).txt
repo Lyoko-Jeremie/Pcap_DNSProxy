@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy v0.4 Beta(Windows)/v0.2(Linux)/v0.1(Mac) 更新日志(2014-09-21)：
+﻿Pcap_DNSProxy v0.4 Beta(Windows)/v0.3(Linux)/v0.2(Mac) 更新日志(2014-11-02)：
 
 * 添加对 Streamlined/精简 格式 DNSCurve/DNSCrypt 协议的支持
   * 提供随机 Curve25519/Salsa20/Poly1305(DNSCurve) 密钥对生成程序 KeyPairGenerator v0.1
@@ -39,12 +39,14 @@
   * 支持部分非标准的缩略IPv4/IPv6地址格式（但不建议使用）
   * 添加自定义 Hosts 生存时间的功能
   * 支持检查文件大小的功能
-  * 为 Hosts 文件和 IPFilter数据库 监视模块添加 Keccak/SHA-3_512(FIPS 202 Draft, April 2014) 散列算法特征检测，在数据量较大时可降低监视时的CPU资源占用
+  * 为 Hosts 文件和 IPFilter数据库监视模块添加 Keccak/SHA-3_512(FIPS 202 Draft, April 2014) 散列算法特征检测，在数据量较大时可降低监视时的CPU资源占用
   * 为 Hosts 数据库添加排序的功能，避免因为错误的顺序造成问题
+  * 在开启散列算法特征检测文件改变的情况下，自动更新 Hosts 列表时将自动清空系统 DNS 缓存(Windows)
   * 重写文本文件编码读取模块，支持混合换行格式编码（但不建议使用）
   * 可兼容 v0.3 以前的文件版本，但强烈建议升级为当前版本 v0.4
 * 添加新的防火墙测试模块(Windows)
 * 添加窗口模式以支持在安全模式下的运行(Windows)
+* 错误报告在窗口模式下现在会实时显示
 * 调整请求/接受套接字的超时时间
 * 调整请求本地DNS服务器由抓包模式到直连模式，加快响应速度降低资源占用
 * 调整 IPv4 Data Filter/IPv4数据包过滤器 默认为关闭
@@ -77,6 +79,8 @@
 * 在非管理员权限下运行批处理无法修改系统服务信息的错误现在将有提醒(Windows) [Haruyuki Arita/Hugo Chan/Ryans233/watchingyoufall]
 * 使用 Microsoft 的 File Checksum Integrity Verifier 的 SHA-1 算法，下载或解压出错导致文件损坏现在将有提醒(Windows) [Hugo Chan]
 * 修复 Makefile 的错误(Linux) [otakuchiyan]
+* 源代码现在开始将使用 UTF-8 with BOM 编码(Windows)
+* 项目升级到 Visual Studio 2013(Windows)
 * 修复在IPv6环境下抓取来自境内域名解析服务器回复包的错误，但此功能在新版已被移除，特此公告 [David Webb/eqielb]
 
 -------------------------------------------------------------------------------

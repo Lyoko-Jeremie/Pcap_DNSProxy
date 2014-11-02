@@ -7,21 +7,274 @@
     </Filter>
     <Filter Include="头文件">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="资源文件">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="WinPcap">
-      <UniqueIdentifier>{86cebe74-695b-424b-8819-575a3f8ddb50}</UniqueIdentifier>
-    </Filter>
     <Filter Include="LibSodium">
-      <UniqueIdentifier>{f8e1fef9-2e1e-46f8-89bc-cf94a6e6bf79}</UniqueIdentifier>
+      <UniqueIdentifier>{9f188fc2-a7d7-4093-a5e4-4bd63c9a24f7}</UniqueIdentifier>
     </Filter>
     <Filter Include="Keccak">
-      <UniqueIdentifier>{41a7acf7-ca59-4290-87ec-a61eb9becb82}</UniqueIdentifier>
+      <UniqueIdentifier>{b0becb4a-4e54-4b15-9a62-07dc752e3b15}</UniqueIdentifier>
     </Filter>
+    <Filter Include="WinPcap">
+      <UniqueIdentifier>{702cda2a-056e-4587-95a6-b19fa0846a4a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="LibSodium\core.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_aead_chacha20poly1305.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_auth.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_auth_hmacsha256.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_auth_hmacsha512.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_auth_hmacsha512256.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_box.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_box_curve25519xsalsa20poly1305.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_core_hsalsa20.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_core_salsa20.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_core_salsa208.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_core_salsa2012.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_generichash.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_generichash_blake2b.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_hash.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_hash_sha256.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_hash_sha512.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_int32.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_int64.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_onetimeauth.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_onetimeauth_poly1305.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_pwhash_scryptsalsa208sha256.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_scalarmult.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_scalarmult_curve25519.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_secretbox.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_secretbox_xsalsa20poly1305.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_shorthash.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_shorthash_siphash24.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_sign.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_sign_ed25519.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_sign_edwards25519sha512batch.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_stream.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_stream_aes128ctr.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_stream_chacha20.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_stream_salsa20.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_stream_salsa208.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_stream_salsa2012.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_stream_xsalsa20.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_uint8.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_uint16.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_uint32.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_uint64.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_verify_16.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_verify_32.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\crypto_verify_64.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\export.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\randombytes.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\randombytes_salsa20_random.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\randombytes_sysrandom.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\runtime.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\sodium.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\utils.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="LibSodium\version.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="Pcap_DNSProxy.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Pcap_DNSProxy_Base.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Keccak\brg_endian.h">
+      <Filter>Keccak</Filter>
+    </ClInclude>
+    <ClInclude Include="Keccak\KeccakF-1600-interface.h">
+      <Filter>Keccak</Filter>
+    </ClInclude>
+    <ClInclude Include="Keccak\KeccakF-1600-int-set.h">
+      <Filter>Keccak</Filter>
+    </ClInclude>
+    <ClInclude Include="Keccak\KeccakHash.h">
+      <Filter>Keccak</Filter>
+    </ClInclude>
+    <ClInclude Include="Keccak\KeccakSponge.h">
+      <Filter>Keccak</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\bittypes.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\ip6_misc.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\Packet32.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap-bpf.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap-namedb.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap-stdinc.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\remote-ext.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\Win32-Extensions.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\bluetooth.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\bpf.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\namedb.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\pcap.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\sll.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\usb.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\vlan.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="LibSodium\libsodium_x64.lib">
+      <Filter>LibSodium</Filter>
+    </Library>
+    <Library Include="LibSodium\libsodium_x86.lib">
+      <Filter>LibSodium</Filter>
+    </Library>
+    <Library Include="WinPcap\Packet_x64.lib">
+      <Filter>WinPcap</Filter>
+    </Library>
+    <Library Include="WinPcap\Packet_x86.lib">
+      <Filter>WinPcap</Filter>
+    </Library>
+    <Library Include="WinPcap\wpcap_x64.lib">
+      <Filter>WinPcap</Filter>
+    </Library>
+    <Library Include="WinPcap\wpcap_x86.lib">
+      <Filter>WinPcap</Filter>
+    </Library>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Capture.cpp">
@@ -45,14 +298,8 @@
     <ClCompile Include="Monitor.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Keccak\Keccak-compact64.cpp">
-      <Filter>Keccak</Filter>
-    </ClCompile>
-    <ClCompile Include="Keccak\KeccakHash.cpp">
-      <Filter>Keccak</Filter>
-    </ClCompile>
-    <ClCompile Include="Keccak\KeccakSponge.cpp">
-      <Filter>Keccak</Filter>
+    <ClCompile Include="PrintLog.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Process.cpp">
       <Filter>源文件</Filter>
@@ -66,95 +313,24 @@
     <ClCompile Include="Service.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="PrintLog.cpp">
-      <Filter>源文件</Filter>
+    <ClCompile Include="Keccak\Keccak-compact64.cpp">
+      <Filter>Keccak</Filter>
+    </ClCompile>
+    <ClCompile Include="Keccak\KeccakHash.cpp">
+      <Filter>Keccak</Filter>
+    </ClCompile>
+    <ClCompile Include="Keccak\KeccakSponge.cpp">
+      <Filter>Keccak</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Pcap_DNSProxy.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Pcap_DNSProxy_Base.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\bittypes.h">
+    <None Include="WinPcap\Drivers\WinPcap_v4.1.3.exe">
       <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\ip6_misc.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\pcap.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\pcap-stdinc.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\remote-ext.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\Win32-Extensions.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\pcap\bpf.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\pcap\pcap.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="LibSodium\core.h">
-      <Filter>LibSodium</Filter>
-    </ClInclude>
-    <ClInclude Include="LibSodium\crypto_box.h">
-      <Filter>LibSodium</Filter>
-    </ClInclude>
-    <ClInclude Include="LibSodium\crypto_box_curve25519xsalsa20poly1305.h">
-      <Filter>LibSodium</Filter>
-    </ClInclude>
-    <ClInclude Include="LibSodium\crypto_sign_ed25519.h">
-      <Filter>LibSodium</Filter>
-    </ClInclude>
-    <ClInclude Include="LibSodium\export.h">
-      <Filter>LibSodium</Filter>
-    </ClInclude>
-    <ClInclude Include="LibSodium\randombytes.h">
-      <Filter>LibSodium</Filter>
-    </ClInclude>
-    <ClInclude Include="LibSodium\randombytes_salsa20_random.h">
-      <Filter>LibSodium</Filter>
-    </ClInclude>
-    <ClInclude Include="Keccak\brg_endian.h">
-      <Filter>Keccak</Filter>
-    </ClInclude>
-    <ClInclude Include="Keccak\KeccakF-1600-interface.h">
-      <Filter>Keccak</Filter>
-    </ClInclude>
-    <ClInclude Include="Keccak\KeccakHash.h">
-      <Filter>Keccak</Filter>
-    </ClInclude>
-    <ClInclude Include="Keccak\KeccakSponge.h">
-      <Filter>Keccak</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Pcap_DNSProxy.rc">
       <Filter>资源文件</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="WinPcap\wpcap_x64.lib">
-      <Filter>WinPcap</Filter>
-    </Library>
-    <Library Include="WinPcap\wpcap_x86.lib">
-      <Filter>WinPcap</Filter>
-    </Library>
-    <Library Include="LibSodium\libsodium_x64.lib">
-      <Filter>LibSodium</Filter>
-    </Library>
-    <Library Include="LibSodium\libsodium_x86.lib">
-      <Filter>LibSodium</Filter>
-    </Library>
   </ItemGroup>
 </Project>

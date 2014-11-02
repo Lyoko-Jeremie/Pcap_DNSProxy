@@ -14,7 +14,7 @@ if not exist Pcap_DNSProxy.exe goto Warning
 if not exist Pcap_DNSProxy_x86.exe goto Warning
 
 :Hash-A
-Fciv -sha1 Pcap_DNSProxy.exe |findstr /I C31A69836BF1E106DAb1C6E26B1F05F203DB2734 > NUL
+Fciv -sha1 Pcap_DNSProxy.exe |findstr /I CC9BE6CD0FCFD5E67985E5AD9CBA3A1E6D0CB987 > NUL
 goto HASH-%ERRORLEVEL%
 :HASH-0
 goto HASH-B
@@ -22,7 +22,7 @@ goto HASH-B
 goto Warning
 
 :Hash-B
-Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 7BC6FA8AE50DE2A3A50E5B1A972C1EB4C4941417 > NUL
+Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 87B02F9CC0456B1724EE84CD7792E88C2466C8E8 > NUL
 goto HASH-%ERRORLEVEL%
 :HASH-0
 goto Main
