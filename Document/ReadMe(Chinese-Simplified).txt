@@ -2,7 +2,7 @@
 
 Pcap_DNSProxy 仅供学习交流，遵循 GNU GPL 通用公共许可证 (GNU General Public License) ，切勿将其用于任何非法用途！
 使用前请自行估量是否有加载 Pcap_DNSProxy 的需要，如果不能清楚判断而造成之不良后果，项目组所有成员均不承担一切责任！
-使用 Pcap_DNSProxy 源代码前务必参阅 GNU-GPL-v2.0 以及 Source-License 通用公共许可证之内容！
+使用 Pcap_DNSProxy 源代码前务必参阅 LICENSE 通用公共许可证之内容！
 
 
 Pcap_DNSProxy 项目的GitHub页面：
@@ -10,16 +10,7 @@ Pcap_DNSProxy 项目的GitHub页面：
 * Release 分支: https://github.com/chengr28/Pcap_DNSProxy/tree/Release
 
 Pcap_DNSProxy 项目的Sourceforge页面：
-http://sourceforge.net/projects/pcap-dnsproxy
-
-Pcap_DNSProxy 最新版本：
-* Windows 版本：v0.4 Beta(2014-09-21)
-* Linux 版本：v0.2(2014-08-19)
-* Mac 版本：v0.1(2014-08-19)
-* 附带配置文件的最新版本
-  * Windows: 0.4
-  * Linux: 0.1
-  * Mac: 0.1
+https://sourceforge.net/projects/pcap-dnsproxy
 
 
 -------------------------------------------------------------------------------
@@ -28,7 +19,7 @@ Pcap_DNSProxy 最新版本：
 Pcap_DNSProxy 是一个基于 LibPcap/WinPcap 制作的用于忽略DNS投毒污染的小工具，后期也加入了对包含正则表达式的Hosts和 DNSCurve/DNSCrypt 协议的支持
 很多使用TCP协议进行解析的工具，可以用于忽略DNS投毒污染。但事实上已经出现有使用TCP协议请求域名解析时被连接重置的情况，而使用UDP协议则又会被DNS投毒污染，导致其始终无法获得正确的域名解析。本工具主要工作在UDP协议上，可以将伪造的数据包完全过滤，同时UDP协议比起TCP协议更具有占用资源低和发送转发接收速度快等特点。本工具同时也支持使用TCP协议进行请求，而且在被连接重置时会自动切换到UDP协议，可以使请求者获得正确的域名解析
 完全支持正则表达式 Hosts 条目，可以为使用者提供更加便捷的途径设定域名所对应的地址，避免修改系统文件的麻烦
-本工具使用 C/C++ 编写而成，使用 Visual Studio 2012(Update 3)/VC++ 11.0 进行编译，完全支持 Unicode
+本工具使用 C/C++ 编写而成，使用 Visual Studio 2013/VC++ 进行编译，完全支持 Unicode
 
 Pcap_DNSProxy 的特点：
 * 同时支持本地IPv4/IPv6协议监听和远程请求
@@ -61,7 +52,7 @@ Pcap_DNSProxy 支持平台：
   * 基于PPPoE或PPPoEv6的IPv4网络和IPv6网络
   * 如果需要支持更多网络类型，可与作者联系
 * Windows 平台
-  * 所有 Windows XP/2003 以及更新内核的版本(32位/x86版本)和 Windows Vista/2008 以及更新的版本(64位/x64版本)
+  * Windows XP SP3/2003 SP2 以及更新内核的版本(32位/x86版本)和 Windows Vista/2008 以及更新的版本(64位/x64版本)
   * 支持最新版本 [WinPcap](http://www.winpcap.org/install/default.htm)
 * Linux 平台
   * 支持 [编译所需依赖包](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe_Linux) 的Linux发行版
@@ -265,7 +256,7 @@ Pcap_DNSProxy 支持平台：
   * Version - 配置文件的版本，用于正确识别配置文件：本参数与程序版本号不相关，切勿修改，默认为发布时的最新配置文件版本
   * File Refresh Time - 文件刷新间隔时间：单位为秒，最短间隔时间为5秒，默认为10秒
   * File Hash - 文件 Hash 功能，开启此功能能降低刷新文件时的CPU占用：开启为1/关闭为0，默认为1
-  
+
 * Log - 日志参数区域
   * Print Error - 错误报告功能：开启为1/关闭为0，默认为1
   * Log Maximum Size - 日志文件最大容量：直接填数字时单位为字节，可加上单位，支持的单位有KB/MB/GB，可接受范围为4KB - 4GB，如果留空则为8MB，默认为空
@@ -380,7 +371,8 @@ Pcap_DNSProxy 支持平台：
     * 一般除非丢包非常严重干扰正常使用否则不建议开启，开启也不建议将值设得太大。实际使用可以每次+1后重启服务测试效果，找到最合适的值
 
 * Switches - 控制开关区域
-  * Domain Case Conversion - 域名大小写转换，随机转换域名请求的大小写：开启为1/关闭为0，默认为1
+  * Domain Case Conversion - 随机转换域名请求大小写：开启为1/关闭为0，默认为1
+  * Compression Pointer Mutation - 随机添加压缩指针：开启为1/关闭为0，默认为0
   * EDNS0 Label - EDNS0 标签支持，开启后将为所有请求添加 EDNS0 标签：开启为1/关闭为0，默认为0
   * DNSSEC Request - DNSSEC 请求，开启后将尝试为所有请求添加 DNSSEC 请求：开启为1/关闭为0，默认为0
     * 注意：此功能为实验性质，本程序不具备任何验证 DNSSEC 回复的能力，单独开启此功能时并不能避免DNS投毒污染的问题
@@ -424,7 +416,7 @@ Pcap_DNSProxy 支持平台：
     * 注意：自动获取 DNSCurve 服务器连接信息时必须输入提供者的域名，不能留空
 
 * DNSCurve Keys - DNSCurve 协议密钥区域
-* 注意：公开网站上的 "公钥" 普遍为验证用的公钥，用于验证与服务器通讯时使用的指纹，两者为不同性质的公钥不可混用！
+注意：公开网站上的 "公钥" 普遍为验证用的公钥，用于验证与服务器通讯时使用的指纹，两者为不同性质的公钥不可混用！
   * Client Public Key - 自定义客户端公钥：可使用 KeyPairGenerator 生成，留空则每次启动时自动生成，默认为空
   * Client Secret Key - 自定义客户端私钥：可使用 KeyPairGenerator 生成，留空则每次启动时自动生成，默认为空
   * IPv4 DNS Public Key - DNSCurve 协议IPv4主要DNS服务器验证用公钥，默认为 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79(OpenDNS)
@@ -456,6 +448,7 @@ File Hash = 1
 
 [Log]
 Print Error = 1
+Print Running Log = 0
 Log Maximum Size = 
 
 [DNS]
@@ -502,6 +495,7 @@ Multi Request Times = 0
 
 [Switches]
 Domain Case Conversion = 1
+Compression Pointer Mutation = 0
 EDNS0 Label = 0
 DNSSEC Request = 0
 Alternate Multi Request = 0
@@ -595,21 +589,21 @@ Hosts配置文件分为Base/基本区域、Hosts/主要Hosts列表 和 Local Hos
   此类型的条目列出的符合要求的域名会直接绕过 Hosts，不会使用 Hosts 功能
   直接在条目前添加 "NULL"（不含引号）即可，有效参数格式为 "NULL 正则表达式"（不含引号）
   * 注意优先级的问题，例如有一片含白名单条目的区域：
-    
+
     NULL .*\.test.localhost
     127.0.0.1|127.0.0.2|127.0.0.3 .*\.localhost
-    
+
     虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并返回使用远程服务器解析
     从而绕过了下面的条目，不使用Hosts的功能
-    
+
 * Banned - 黑名单条目
   此类型的条目列出的符合要求的域名会直接返回域名不存在的功能，避免重定向导致的超时问题
   直接在条目前添加 "Banned"（不含引号）即可，有效参数格式为 "Banned 正则表达式"（不含引号）
   * 注意优先级的问题，例如有一片含黑名单条目的区域：
-    
+
     Banned .*\.test.localhost
     127.0.0.1|127.0.0.2|127.0.0.3 .*\.localhost
-    
+
     虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并直接返回域名不存在
     从而绕过了下面的条目，达到屏蔽域名的目的
 
@@ -734,7 +728,7 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
     
   * 则从 [Stop] 一行开始，下面到 [IPFilter] 之间的数据都将不会被读取
   * 即实际有效的数据区域是：
-  
+
     [Blacklist]
     127.0.0.1 localhost
 

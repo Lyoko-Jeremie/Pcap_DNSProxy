@@ -54,9 +54,9 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 			memcpy(Buffer.get() + sizeof(dns_hdr), DNSQuery.get(), DataLength);
 			pdns_qry = (dns_qry *)(Buffer.get() + sizeof(dns_hdr) + DataLength);
 			pdns_qry->Classes = htons(DNS_CLASS_IN);
-			if (Protocol == AF_INET6)
+			if (Protocol == AF_INET6) //IPv6
 				pdns_qry->Type = htons(DNS_AAAA_RECORDS);
-			else 
+			else //IPv4
 				pdns_qry->Type = htons(DNS_A_RECORDS);
 			DNSQuery.reset();
 			DataLength += sizeof(dns_hdr) + sizeof(dns_qry);
@@ -147,9 +147,9 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 				
 				pdns_qry = (dns_qry *)(Buffer.get() + sizeof(dns_hdr) + DataLength);
 				pdns_qry->Classes = htons(DNS_CLASS_IN);
-				if (Protocol == AF_INET6)
+				if (Protocol == AF_INET6) //IPv6
 					pdns_qry->Type = htons(DNS_AAAA_RECORDS);
-				else 
+				else //IPv4
 					pdns_qry->Type = htons(DNS_A_RECORDS);
 				DataLength += sizeof(dns_hdr) + sizeof(dns_qry);
 
@@ -272,17 +272,17 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 size_t __fastcall ICMPEcho(void)
 {
 //Initialization
-	std::shared_ptr<char> Buffer(new char[sizeof(icmp_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U]());
+	std::shared_ptr<char> Buffer(new char[sizeof(icmp_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U]());
 	std::vector<sockaddr_storage> SockAddr;
 	sockaddr_storage SockAddrTemp = {0};
 
 //Make a ICMP request echo packet.
 	auto picmp_hdr = (icmp_hdr *)Buffer.get();
-	picmp_hdr->Type = 8; //Echo(Ping) request type
+	picmp_hdr->Type = ICMP_TYPE_REQUEST; //Echo(Ping) request type
 	picmp_hdr->ID = Parameter.ICMPOptions.ICMPID;
 	picmp_hdr->Sequence = Parameter.ICMPOptions.ICMPSequence;
-	memcpy(Buffer.get() + sizeof(icmp_hdr), Parameter.PaddingDataOptions.PaddingData, Parameter.PaddingDataOptions.PaddingDataLength - 1U);
-	picmp_hdr->Checksum = GetChecksum((PUINT16)Buffer.get(), sizeof(icmp_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U);
+	memcpy(Buffer.get() + sizeof(icmp_hdr), Parameter.ICMPOptions.PaddingData, Parameter.ICMPOptions.PaddingDataLength - 1U);
+	picmp_hdr->Checksum = GetChecksum((PUINT16)Buffer.get(), sizeof(icmp_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U);
 	SYSTEM_SOCKET ICMPSocket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 
 	//Main and Alternate
@@ -335,7 +335,7 @@ size_t __fastcall ICMPEcho(void)
 	{
 		for (auto SockaddrIter:SockAddr)
 		{
-			sendto(ICMPSocket, Buffer.get(), (int)(sizeof(icmp_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U), NULL, (PSOCKADDR)&SockaddrIter, sizeof(sockaddr_in));
+			sendto(ICMPSocket, Buffer.get(), (int)(sizeof(icmp_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U), NULL, (PSOCKADDR)&SockaddrIter, sizeof(sockaddr_in));
 
 		//Increase Sequence.
 			if (Parameter.ICMPOptions.ICMPSequence == htons(DEFAULT_SEQUENCE))
@@ -346,13 +346,13 @@ size_t __fastcall ICMPEcho(void)
 					picmp_hdr->Sequence = htons(ntohs(picmp_hdr->Sequence) + 1U);
 
 				picmp_hdr->Checksum = 0;
-				picmp_hdr->Checksum = GetChecksum((PUINT16)Buffer.get(), sizeof(icmp_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U);
+				picmp_hdr->Checksum = GetChecksum((PUINT16)Buffer.get(), sizeof(icmp_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U);
 			}
 		}
 /*
-		sendto(ICMPSocket, Buffer.get(), (int)(sizeof(icmp_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U), NULL, (PSOCKADDR)&(SockAddr[0]), sizeof(sockaddr_in));
+		sendto(ICMPSocket, Buffer.get(), (int)(sizeof(icmp_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U), NULL, (PSOCKADDR)&(SockAddr[0]), sizeof(sockaddr_in));
 		if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family != NULL)
-			sendto(ICMPSocket, Buffer.get(), (int)(sizeof(icmp_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U), NULL, (PSOCKADDR)&(SockAddr[1U]), sizeof(sockaddr_in));
+			sendto(ICMPSocket, Buffer.get(), (int)(sizeof(icmp_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U), NULL, (PSOCKADDR)&(SockAddr[1U]), sizeof(sockaddr_in));
 */
 		if (Times == SENDING_ONCE_INTERVAL_TIMES)
 		{
@@ -397,7 +397,7 @@ size_t __fastcall ICMPv6Echo(void)
 {
 //Initialization
 /*
-	std::shared_ptr<char> Buffer(new char[sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U]()), Exchange(new char[sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U]());
+	std::shared_ptr<char> Buffer(new char[sizeof(icmpv6_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U]()), Exchange(new char[sizeof(icmpv6_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U]());
 	sockaddr_storage SockAddr[] = {{0}, {0}};
 	memset(&SockAddr, 0, sizeof(sockaddr_storage) * 2U);
 */
@@ -416,14 +416,14 @@ size_t __fastcall ICMPv6Echo(void)
 	icmpv6_hdr *picmpv6_hdr = nullptr;
 	for (auto BufferIter = Buffer.begin();BufferIter != Buffer.end();BufferIter++)
 	{
-		std::shared_ptr<char> BufferTemp(new char[sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U]());
+		std::shared_ptr<char> BufferTemp(new char[sizeof(icmpv6_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U]());
 
 		picmpv6_hdr = (icmpv6_hdr *)BufferTemp.get();
 		picmpv6_hdr->Type = ICMPV6_REQUEST;
 		picmpv6_hdr->Code = 0;
 		picmpv6_hdr->ID = Parameter.ICMPOptions.ICMPID;
 		picmpv6_hdr->Sequence = Parameter.ICMPOptions.ICMPSequence;
-		memcpy(BufferTemp.get() + sizeof(icmpv6_hdr), Parameter.PaddingDataOptions.PaddingData, Parameter.PaddingDataOptions.PaddingDataLength - 1U);
+		memcpy(BufferTemp.get() + sizeof(icmpv6_hdr), Parameter.ICMPOptions.PaddingData, Parameter.ICMPOptions.PaddingDataLength - 1U);
 		BufferTemp.swap(*BufferIter);
 	}
 
@@ -443,11 +443,11 @@ size_t __fastcall ICMPv6Echo(void)
 
 //ICMP Sequence increase and calculate checksum.
 /*
-	picmpv6_hdr->Checksum = ICMPv6Checksum((PUINT8)Buffer.get(), sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U, Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, ((PSOCKADDR_IN6)&SockAddr[0])->sin6_addr);
+	picmpv6_hdr->Checksum = ICMPv6Checksum((PUINT8)Buffer.get(), sizeof(icmpv6_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U, Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, ((PSOCKADDR_IN6)&SockAddr[0])->sin6_addr);
 	if (Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family != NULL)
 	{
-		memcpy(Exchange.get(), Buffer.get(), sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U);
-		picmpv6_hdr->Checksum = ICMPv6Checksum((PUINT8)Buffer.get(), sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U, Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, ((PSOCKADDR_IN6)&SockAddr[0])->sin6_addr);
+		memcpy(Exchange.get(), Buffer.get(), sizeof(icmpv6_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U);
+		picmpv6_hdr->Checksum = ICMPv6Checksum((PUINT8)Buffer.get(), sizeof(icmpv6_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U, Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, ((PSOCKADDR_IN6)&SockAddr[0])->sin6_addr);
 		SockAddr[1U].ss_family = AF_INET6;
 		((PSOCKADDR_IN6)&SockAddr[1U])->sin6_addr = Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr;
 	}
@@ -456,7 +456,7 @@ size_t __fastcall ICMPv6Echo(void)
 	((PSOCKADDR_IN6)&SockAddr[0])->sin6_addr = Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr;
 */
 	picmpv6_hdr = (icmpv6_hdr *)Buffer.front().get();
-	picmpv6_hdr->Checksum = ICMPv6Checksum((PUINT8)Buffer.front().get(), sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U, Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, ((PSOCKADDR_IN6)&SockAddr)->sin6_addr);
+	picmpv6_hdr->Checksum = ICMPv6Checksum((PUINT8)Buffer.front().get(), sizeof(icmpv6_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U, Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, ((PSOCKADDR_IN6)&SockAddr)->sin6_addr);
 	if (Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family == NULL)
 	{
 		Buffer.erase(Buffer.begin() + 1U);
@@ -465,7 +465,7 @@ size_t __fastcall ICMPv6Echo(void)
 		picmpv6_hdr = (icmpv6_hdr *)Buffer[1U].get();
 		if (Parameter.ICMPOptions.ICMPSequence == htons(DEFAULT_SEQUENCE))
 			picmpv6_hdr->Sequence = htons(ntohs(Parameter.ICMPOptions.ICMPSequence) + 1U);
-		picmpv6_hdr->Checksum = ICMPv6Checksum((PUINT8)Buffer[1U].get(), sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U, Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, ((PSOCKADDR_IN6)&SockAddr)->sin6_addr);
+		picmpv6_hdr->Checksum = ICMPv6Checksum((PUINT8)Buffer[1U].get(), sizeof(icmpv6_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U, Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, ((PSOCKADDR_IN6)&SockAddr)->sin6_addr);
 	}
 
 	//Multi requesting part.
@@ -475,7 +475,7 @@ size_t __fastcall ICMPv6Echo(void)
 		picmpv6_hdr = (icmpv6_hdr *)Buffer[Index].get();
 		if (Parameter.ICMPOptions.ICMPSequence == htons(DEFAULT_SEQUENCE))
 			picmpv6_hdr->Sequence = htons((uint16_t)(ntohs(Parameter.ICMPOptions.ICMPSequence) + Index));
-		picmpv6_hdr->Checksum = ICMPv6Checksum((PUINT8)Buffer[Index].get(), sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U, Parameter.DNSTarget.IPv6_Multi->at(Index).AddressData.IPv6.sin6_addr, ((PSOCKADDR_IN6)&SockAddr)->sin6_addr);
+		picmpv6_hdr->Checksum = ICMPv6Checksum((PUINT8)Buffer[Index].get(), sizeof(icmpv6_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U, Parameter.DNSTarget.IPv6_Multi->at(Index).AddressData.IPv6.sin6_addr, ((PSOCKADDR_IN6)&SockAddr)->sin6_addr);
 	}
 
 //Check socket.
@@ -503,7 +503,7 @@ size_t __fastcall ICMPv6Echo(void)
 	while (true)
 	{
 	//Main
-		sendto(ICMPv6Socket, Buffer.front().get(), (int)(sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U), NULL, (PSOCKADDR)&Parameter.DNSTarget.IPv6.AddressData.IPv6, sizeof(sockaddr_in6));
+		sendto(ICMPv6Socket, Buffer.front().get(), (int)(sizeof(icmpv6_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U), NULL, (PSOCKADDR)&Parameter.DNSTarget.IPv6.AddressData.IPv6, sizeof(sockaddr_in6));
 		if (Parameter.ICMPOptions.ICMPSequence == htons(DEFAULT_SEQUENCE)) //Increase Sequence.
 		{
 			picmpv6_hdr = (icmpv6_hdr *)Buffer.front().get();
@@ -512,13 +512,13 @@ size_t __fastcall ICMPv6Echo(void)
 			else 
 				picmpv6_hdr->Sequence = htons(ntohs(picmpv6_hdr->Sequence) + 1U);
 			picmpv6_hdr->Checksum = 0;
-			picmpv6_hdr->Checksum = ICMPv6Checksum((PUINT8)Buffer.front().get(), sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U, Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, ((PSOCKADDR_IN6)&SockAddr)->sin6_addr);
+			picmpv6_hdr->Checksum = ICMPv6Checksum((PUINT8)Buffer.front().get(), sizeof(icmpv6_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U, Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, ((PSOCKADDR_IN6)&SockAddr)->sin6_addr);
 		}
 
 	//Alternate
 		if (Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family != NULL)
 		{
-			sendto(ICMPv6Socket, Buffer.at(1U).get(), (int)(sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U), NULL, (PSOCKADDR)&Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6, sizeof(sockaddr_in6));
+			sendto(ICMPv6Socket, Buffer.at(1U).get(), (int)(sizeof(icmpv6_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U), NULL, (PSOCKADDR)&Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6, sizeof(sockaddr_in6));
 			if (Parameter.ICMPOptions.ICMPSequence == htons(DEFAULT_SEQUENCE)) //Increase Sequence.
 			{
 				picmpv6_hdr = (icmpv6_hdr *)Buffer.at(1U).get();
@@ -527,7 +527,7 @@ size_t __fastcall ICMPv6Echo(void)
 				else 
 					picmpv6_hdr->Sequence = htons(ntohs(picmpv6_hdr->Sequence) + 1U);
 				picmpv6_hdr->Checksum = 0;
-				picmpv6_hdr->Checksum = ICMPv6Checksum((PUINT8)Buffer.at(1U).get(), sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U, Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, ((PSOCKADDR_IN6)&SockAddr)->sin6_addr);
+				picmpv6_hdr->Checksum = ICMPv6Checksum((PUINT8)Buffer.at(1U).get(), sizeof(icmpv6_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U, Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, ((PSOCKADDR_IN6)&SockAddr)->sin6_addr);
 			}
 		}
 
@@ -537,7 +537,7 @@ size_t __fastcall ICMPv6Echo(void)
 			Index = 2U;
 			for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv6_Multi)
 			{
-				sendto(ICMPv6Socket, Buffer.at(Index).get(), (int)(sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U), NULL, (PSOCKADDR)&DNSServerDataIter.AddressData.IPv6, sizeof(sockaddr_in6));
+				sendto(ICMPv6Socket, Buffer.at(Index).get(), (int)(sizeof(icmpv6_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U), NULL, (PSOCKADDR)&DNSServerDataIter.AddressData.IPv6, sizeof(sockaddr_in6));
 				if (Parameter.ICMPOptions.ICMPSequence == htons(DEFAULT_SEQUENCE)) //Increase Sequence.
 				{
 					picmpv6_hdr = (icmpv6_hdr *)Buffer.at(Index).get();
@@ -546,16 +546,16 @@ size_t __fastcall ICMPv6Echo(void)
 					else 
 						picmpv6_hdr->Sequence = htons(ntohs(picmpv6_hdr->Sequence) + 1U);
 					picmpv6_hdr->Checksum = 0;
-					picmpv6_hdr->Checksum = ICMPv6Checksum((PUINT8)Buffer.at(Index).get(), sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U, DNSServerDataIter.AddressData.IPv6.sin6_addr, ((PSOCKADDR_IN6)&SockAddr)->sin6_addr);
+					picmpv6_hdr->Checksum = ICMPv6Checksum((PUINT8)Buffer.at(Index).get(), sizeof(icmpv6_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U, DNSServerDataIter.AddressData.IPv6.sin6_addr, ((PSOCKADDR_IN6)&SockAddr)->sin6_addr);
 				}
 
 				Index++;
 			}
 		}
 /*
-		sendto(ICMPv6Socket, Exchange.get(), (int)(sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U), NULL, (PSOCKADDR)&(SockAddr[0]), sizeof(sockaddr_in6));
+		sendto(ICMPv6Socket, Exchange.get(), (int)(sizeof(icmpv6_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U), NULL, (PSOCKADDR)&(SockAddr[0]), sizeof(sockaddr_in6));
 		if (Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family != NULL)
-			sendto(ICMPv6Socket, Buffer.get(), (int)(sizeof(icmpv6_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U), NULL, (PSOCKADDR)&(SockAddr[1U]), sizeof(sockaddr_in6));
+			sendto(ICMPv6Socket, Buffer.get(), (int)(sizeof(icmpv6_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U), NULL, (PSOCKADDR)&(SockAddr[1U]), sizeof(sockaddr_in6));
 */
 		if (Times == SENDING_ONCE_INTERVAL_TIMES)
 		{

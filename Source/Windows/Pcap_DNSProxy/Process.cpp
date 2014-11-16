@@ -27,18 +27,41 @@ static const std::regex IPv6LUC(".f.f.([89]|[ab]).([0-9]|[a-f]).ip6.arpa", std::
 extern Configuration Parameter;
 extern PortTable PortList;
 extern std::vector<uint16_t> AcceptTypeList;
-extern std::vector<std::string> LocalhostPTR[QUEUE_PARTNUM / 2U];
 extern std::vector<HostsTable> *HostsListUsing;
 extern std::deque<DNSCacheData> DNSCacheList;
-extern std::mutex LocalhostPTRLock[QUEUE_PARTNUM / 2U], HostsListLock, DNSCacheListLock;
+extern std::mutex LocalAddressLock[QUEUE_PARTNUM / 2U], HostsListLock, DNSCacheListLock;
 extern AlternateSwapTable AlternateSwapList;
 extern DNSCurveConfiguration DNSCurveParameter;
 
 //Independent request process
 size_t __fastcall RequestProcess(const PSTR Send, const size_t Length, const SOCKET_DATA FunctionData, const uint16_t Protocol, const size_t Index)
 {
-//Initialization
-	std::shared_ptr<char> SendBuffer(new char[Length]()), RecvBuffer;
+//Initialization(A part)
+	std::shared_ptr<char> SendBuffer, RecvBuffer;
+	if (Parameter.CompressionPointerMutation)
+	{
+		std::shared_ptr<char> SendBufferTemp(new char[Length + 1U]());
+		SendBufferTemp.swap(SendBuffer);
+	}
+	else {
+		std::shared_ptr<char> SendBufferTemp(new char[Length]());
+		SendBufferTemp.swap(SendBuffer);
+	}
+	memcpy(SendBuffer.get(), Send, Length);
+
+//Check requesting.
+	auto pdns_hdr = (dns_hdr *)SendBuffer.get();
+	if (ntohs(pdns_hdr->Questions) != 1U || pdns_hdr->Answer != 0 || ntohs(pdns_hdr->Additional) > 1U || pdns_hdr->Authority != 0)
+	{
+	//Fin TCP request connection.
+		if (Protocol == IPPROTO_TCP && FunctionData.Socket != INVALID_SOCKET)
+			closesocket(FunctionData.Socket);
+
+		return EXIT_FAILURE;
+	}
+
+//Initialization(B part)
+	size_t DataLength = 0;
 	if (Parameter.RquestMode == REQUEST_TCPMODE || Parameter.DNSCurve && DNSCurveParameter.DNSCurveMode == DNSCURVE_REQUEST_TCPMODE || Protocol == IPPROTO_TCP) //TCP
 	{
 		std::shared_ptr<char> TCPRecvBuffer(new char[LARGE_PACKET_MAXSIZE]());
@@ -48,18 +71,15 @@ size_t __fastcall RequestProcess(const PSTR Send, const size_t Length, const SOC
 		std::shared_ptr<char> UDPRecvBuffer(new char[PACKET_MAXSIZE]());
 		RecvBuffer.swap(UDPRecvBuffer);
 	}
-	memcpy(SendBuffer.get(), Send, Length);
-	
-	size_t DataLength = 0;
-	auto pdns_hdr = (dns_hdr *)SendBuffer.get();
-	auto Local = false;
+
 //Check hosts.
+	auto LocalRequest = false;
 	if (ntohs(pdns_hdr->Questions) > 0)
 	{
 		if (Protocol == IPPROTO_TCP) //TCP
-			DataLength = CheckHosts(SendBuffer.get(), Length, RecvBuffer.get(), LARGE_PACKET_MAXSIZE - sizeof(uint16_t), Local);
+			DataLength = CheckHosts(SendBuffer.get(), Length, RecvBuffer.get(), LARGE_PACKET_MAXSIZE - sizeof(uint16_t), LocalRequest);
 		else //UDP
-			DataLength = CheckHosts(SendBuffer.get(), Length, RecvBuffer.get(), PACKET_MAXSIZE, Local);
+			DataLength = CheckHosts(SendBuffer.get(), Length, RecvBuffer.get(), PACKET_MAXSIZE, LocalRequest);
 
 	//Send response.
 		if (DataLength > sizeof(dns_hdr) + 1U + sizeof(dns_qry))
@@ -71,14 +91,14 @@ size_t __fastcall RequestProcess(const PSTR Send, const size_t Length, const SOC
 	else { //Not any questions
 		memcpy(RecvBuffer.get(), SendBuffer.get(), Length);
 		pdns_hdr = (dns_hdr *)RecvBuffer.get();
-		pdns_hdr->Flags = htons(DNS_SQRNE_FE);
+		pdns_hdr->Flags = htons(DNS_SQR_FE);
 
 		SendToRequester( /* SendBuffer.get(), Length, */ RecvBuffer.get(), Length, Protocol, FunctionData);
 		return EXIT_FAILURE;
 	}
 
 //Local server requesting
-	if (Local || Parameter.LocalMain)
+	if (LocalRequest || Parameter.LocalMain)
 	{
 		DataLength = LocalRequestProcess(SendBuffer.get(), Length, RecvBuffer.get(), Protocol, FunctionData);
 		if (!Parameter.LocalMain || DataLength == EXIT_SUCCESS)
@@ -91,10 +111,18 @@ size_t __fastcall RequestProcess(const PSTR Send, const size_t Length, const SOC
 		}
 	}
 
+	size_t SendLength = Length;
+//Compression Pointer Mutation
+	if (Parameter.CompressionPointerMutation && pdns_hdr->Additional == 0)
+	{
+		SendLength++;
+		MakeCompressionPointerMutation(SendBuffer.get(), Length);
+	}
+
 //Hosts Only requesting
 	if (Parameter.HostsOnly)
 	{
-		DirectRequestProcess(SendBuffer.get(), Length, RecvBuffer.get(), Protocol, FunctionData);
+		DirectRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, FunctionData);
 	//Fin TCP request connection.
 		if (Protocol == IPPROTO_TCP && FunctionData.Socket != INVALID_SOCKET)
 			closesocket(FunctionData.Socket);
@@ -106,7 +134,7 @@ size_t __fastcall RequestProcess(const PSTR Send, const size_t Length, const SOC
 	if (Parameter.DNSCurve)
 	{
 	//DNSCurve requesting
-		if (DNSCurveRequestProcess(SendBuffer.get(), Length, RecvBuffer.get(), Protocol, FunctionData) == EXIT_SUCCESS)
+		if (DNSCurveRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, FunctionData) == EXIT_SUCCESS)
 			return EXIT_SUCCESS;
 
 	//DNSCurve Encryption Only mode
@@ -121,15 +149,15 @@ size_t __fastcall RequestProcess(const PSTR Send, const size_t Length, const SOC
 	}
 
 //TCP requesting
-	if (Parameter.RquestMode == REQUEST_TCPMODE && TCPRequestProcess(SendBuffer.get(), Length, RecvBuffer.get(), Protocol, FunctionData) == EXIT_SUCCESS)
+	if (Parameter.RquestMode == REQUEST_TCPMODE && TCPRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, FunctionData) == EXIT_SUCCESS)
 		return EXIT_SUCCESS;
 
 //IPv6 tunnels support
-	if (((Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family != NULL || Local && Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family != NULL) && FunctionData.AddrLen == sizeof(sockaddr_in6) || //IPv6
+	if (((Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family != NULL || LocalRequest && Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family != NULL) && FunctionData.AddrLen == sizeof(sockaddr_in6) || //IPv6
 		(Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == NULL /* || !Local && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == NULL */ ) && FunctionData.AddrLen == sizeof(sockaddr_in)) && //IPv4 is empty.
 		Parameter.Tunnel_IPv6)
 	{
-		DirectRequestProcess(SendBuffer.get(), Length, RecvBuffer.get(), Protocol, FunctionData);
+		DirectRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, FunctionData);
 	//Fin TCP request connection.
 		if (Protocol == IPPROTO_TCP && FunctionData.Socket != INVALID_SOCKET)
 			closesocket(FunctionData.Socket);
@@ -143,13 +171,13 @@ size_t __fastcall RequestProcess(const PSTR Send, const size_t Length, const SOC
 		return EXIT_FAILURE;
 
 //UDP requesting
-	if (Protocol == IPPROTO_UDP && Length <= Parameter.EDNS0PayloadSize || Protocol == IPPROTO_TCP)
+	if (Protocol == IPPROTO_UDP && SendLength <= Parameter.EDNS0PayloadSize || Protocol == IPPROTO_TCP)
 	{
-		UDPRequestProcess(SendBuffer.get(), Length, Protocol, FunctionData, Index);
+		UDPRequestProcess(SendBuffer.get(), SendLength, Protocol, FunctionData, Index);
 	}
 	else { //UDP Truncated retry TCP protocol failed.
-		pdns_hdr->Flags = htons(DNS_SQRNE_TC);
-		sendto(FunctionData.Socket, SendBuffer.get(), (int)Length, NULL, (PSOCKADDR)&FunctionData.SockAddr, FunctionData.AddrLen);
+		pdns_hdr->Flags = htons(DNS_SQR_NETC);
+		sendto(FunctionData.Socket, SendBuffer.get(), (int)SendLength, NULL, (PSOCKADDR)&FunctionData.SockAddr, FunctionData.AddrLen);
 	}
 
 	return EXIT_FAILURE;
@@ -165,6 +193,10 @@ inline size_t __fastcall CheckHosts(PSTR Request, const size_t Length, PSTR Resu
 	{
 		if (DNSQueryToChar(Request + sizeof(dns_hdr), Result) > 2U)
 		{
+		//Domain case conversion
+			CaseConvert(false, Result, strlen(Result));
+
+		//Copy domain string.
 			Domain = Result;
 			memset(Result, 0, ResultSize);
 		}
@@ -182,6 +214,13 @@ inline size_t __fastcall CheckHosts(PSTR Request, const size_t Length, PSTR Resu
 	pdns_hdr = (dns_hdr *)Result;
 	auto pdns_qry = (dns_qry *)(Result + sizeof(dns_hdr) + strlen(Result + sizeof(dns_hdr)) + 1U);
 
+//Check Classes.
+	if (pdns_qry->Classes != htons(DNS_CLASS_IN))
+	{
+		memset(Result, 0, ResultSize);
+		return FALSE;
+	}
+
 //Check Accept Types list.
 	if (Parameter.AcceptType) //Permit
 	{
@@ -191,7 +230,7 @@ inline size_t __fastcall CheckHosts(PSTR Request, const size_t Length, PSTR Resu
 			{
 				if (*AcceptTypeIter != pdns_qry->Type)
 				{
-					pdns_hdr->Flags = htons(DNS_NO_SUCH_NAME);
+					pdns_hdr->Flags = htons(DNS_SQR_NO_SUCH_NAME);
 					return Length;
 				}
 			}
@@ -206,38 +245,32 @@ inline size_t __fastcall CheckHosts(PSTR Request, const size_t Length, PSTR Resu
 		{
 			if (AcceptTypeIter == pdns_qry->Type)
 			{
-				pdns_hdr->Flags = htons(DNS_NO_SUCH_NAME);
+				pdns_hdr->Flags = htons(DNS_SQR_NO_SUCH_NAME);
 				return Length;
 			}
 		}
 	}
 
-
-//Check Classese.
-	if (pdns_qry->Classes != htons(DNS_CLASS_IN))
-	{
-		memset(Result, 0, ResultSize);
-		return FALSE;
-	}
-
+/* Old version(2014-11-15)
 //Domain case conversion
 	for (auto StringIter = Domain.begin();StringIter != Domain.end();StringIter++)
 	{
 		if (*StringIter > ASCII_AT && *StringIter < ASCII_BRACKETS_LEAD)
 			*StringIter += 32U;
 	}
+*/
 
 //PTR Records
-	if (pdns_qry->Type == htons(DNS_PTR_RECORDS))
+	if (pdns_qry->Type == htons(DNS_PTR_RECORDS) && Parameter.LocalServerOptions.LocalPTRResponseLength + Length <= ResultSize)
 	{
 /* Only respond localhost addresses(2014-09-13)
 	//IPv4 check
-		if (Domain.find(LocalhostPTR[0]) != std::string::npos || //IPv4 Localhost
+		if (Domain.find(LocalAddressPTR[0]) != std::string::npos || //IPv4 Localhost
 			Domain.find(".10.in-addr.arpa") != std::string::npos || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
 			std::regex_match(Domain, IPv4PrivateB) || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
 			Domain.find(".168.192.in-addr.arpa") != std::string::npos || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
 	//IPv6 check
-			Domain.find(LocalhostPTR[1U]) != std::string::npos || //IPv6 Localhost
+			Domain.find(LocalAddressPTR[1U]) != std::string::npos || //IPv6 Localhost
 			std::regex_match(Domain, IPv6ULA) || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
 			std::regex_match(Domain, IPv6LUC)) //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
 */
@@ -253,8 +286,8 @@ inline size_t __fastcall CheckHosts(PSTR Request, const size_t Length, PSTR Resu
 		}
 		else {
 		//IPv6 check
-			std::unique_lock<std::mutex> LocalhostPTRMutexIPv6(LocalhostPTRLock[0]);
-			for (auto StringIter:LocalhostPTR[0])
+			std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0]);
+			for (auto StringIter:Parameter.LocalAddressOptions.LocalAddressPTR[0])
 			{
 				if (Domain == StringIter)
 				{
@@ -262,13 +295,13 @@ inline size_t __fastcall CheckHosts(PSTR Request, const size_t Length, PSTR Resu
 					break;
 				}
 			}
-			LocalhostPTRMutexIPv6.unlock();
+			LocalAddressMutexIPv6.unlock();
 
 		//IPv4 check
 			if (!SendPTR)
 			{
-				std::unique_lock<std::mutex> LocalhostPTRMutexIPv4(LocalhostPTRLock[1U]);
-				for (auto StringIter:LocalhostPTR[1U])
+				std::unique_lock<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[1U]);
+				for (auto StringIter:Parameter.LocalAddressOptions.LocalAddressPTR[1U])
 				{
 					if (Domain == StringIter)
 					{
@@ -282,8 +315,7 @@ inline size_t __fastcall CheckHosts(PSTR Request, const size_t Length, PSTR Resu
 	//Send Localhost PTR.
 		if (SendPTR)
 		{
-			pdns_hdr->Flags = htons(DNS_SQRNE);
-			pdns_hdr->Answer = htons(U16_NUM_1);
+/* Old version(2014-11-15)
 			dns_ptr_record *pdns_rsp = nullptr;
 
 		//EDNS0 Lebal
@@ -297,25 +329,71 @@ inline size_t __fastcall CheckHosts(PSTR Request, const size_t Length, PSTR Resu
 				pdns_rsp->Classes = htons(DNS_CLASS_IN); //Class IN
 				pdns_rsp->TTL = htonl(Parameter.HostsDefaultTTL);
 				pdns_rsp->Type = htons(DNS_PTR_RECORDS);
-				pdns_rsp->Length = htons((uint16_t)Parameter.LocalhostServerOptions.LocalhostServerLength);
-				memcpy(Result + Length - sizeof(dns_edns0_label) + sizeof(dns_ptr_record), Parameter.LocalhostServerOptions.LocalhostServer, Parameter.LocalhostServerOptions.LocalhostServerLength);
+				pdns_rsp->Length = htons((uint16_t)Parameter.LocalServerOptions.LocalFQDNLength);
+				memcpy(Result + Length - sizeof(dns_edns0_label) + sizeof(dns_ptr_record), Parameter.LocalServerOptions.LocalFQDN, Parameter.LocalServerOptions.LocalFQDNLength);
 
 			//EDNS0
-				auto EDNS0 = (dns_edns0_label *)(Result + Length - sizeof(dns_edns0_label) + sizeof(dns_ptr_record) + Parameter.LocalhostServerOptions.LocalhostServerLength);
+				auto EDNS0 = (dns_edns0_label *)(Result + Length - sizeof(dns_edns0_label) + sizeof(dns_ptr_record) + Parameter.LocalServerOptions.LocalFQDNLength);
 				EDNS0->Type = htons(DNS_EDNS0_RECORDS);
 				EDNS0->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
-				return Length + sizeof(dns_ptr_record) + Parameter.LocalhostServerOptions.LocalhostServerLength;
+				return Length + sizeof(dns_ptr_record) + Parameter.LocalServerOptions.LocalFQDNLength;
 			}
 
 		//Response
 			pdns_rsp = (dns_ptr_record *)(Result + Length);
-			memcpy(Result + Length + sizeof(dns_ptr_record), Parameter.LocalhostServerOptions.LocalhostServer, Parameter.LocalhostServerOptions.LocalhostServerLength);
+			memcpy(Result + Length + sizeof(dns_ptr_record), Parameter.LocalServerOptions.LocalFQDN, Parameter.LocalServerOptions.LocalFQDNLength);
 			pdns_rsp->PTR = htons(DNS_QUERY_PTR);
 			pdns_rsp->Classes = htons(DNS_CLASS_IN); //Class IN
 			pdns_rsp->TTL = htonl(Parameter.HostsDefaultTTL);
 			pdns_rsp->Type = htons(DNS_PTR_RECORDS);
-			pdns_rsp->Length = htons((uint16_t)Parameter.LocalhostServerOptions.LocalhostServerLength);
-			return Length + sizeof(dns_ptr_record) + Parameter.LocalhostServerOptions.LocalhostServerLength;
+			pdns_rsp->Length = htons((uint16_t)Parameter.LocalServerOptions.LocalFQDNLength);
+			return Length + sizeof(dns_ptr_record) + Parameter.LocalServerOptions.LocalFQDNLength;
+*/
+			pdns_hdr->Flags = htons(DNS_SQR_NEA);
+			pdns_hdr->Answer = htons(U16_NUM_1);
+
+		//EDNS0 Label
+			if (Parameter.EDNS0Label)
+			{
+				if (pdns_hdr->Additional != 0)
+				{
+					memset(Result + Length - sizeof(dns_edns0_label), 0, sizeof(dns_edns0_label));
+					memcpy(Result + Length - sizeof(dns_edns0_label), Parameter.LocalServerOptions.LocalPTRResponse, Parameter.LocalServerOptions.LocalPTRResponseLength);
+
+					return Length - sizeof(dns_edns0_label) + Parameter.LocalServerOptions.LocalPTRResponseLength;
+				}
+				else {
+					pdns_hdr->Additional = htons(U16_NUM_1);
+				}
+			}
+
+			memcpy(Result + Length, Parameter.LocalServerOptions.LocalPTRResponse, Parameter.LocalServerOptions.LocalPTRResponseLength);
+			return Length + Parameter.LocalServerOptions.LocalPTRResponseLength;
+		}
+	}
+
+//LocalFQDN check
+	if (Parameter.LocalServerOptions.LocalFQDNString == Domain)
+	{
+		if (pdns_qry->Type == htons(DNS_AAAA_RECORDS)) //IPv6
+		{
+			std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0]);
+			if (Parameter.LocalAddressOptions.LocalAddressLength[0] > sizeof(dns_hdr) + 1U + sizeof(dns_qry))
+			{
+				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
+				memcpy(Result + sizeof(uint16_t), Parameter.LocalAddressOptions.LocalAddress[0] + sizeof(uint16_t), Parameter.LocalAddressOptions.LocalAddressLength[0] - sizeof(uint16_t));
+				return Parameter.LocalAddressOptions.LocalAddressLength[0];
+			}
+		}
+		else if (pdns_qry->Type == htons(DNS_A_RECORDS)) //IPv4
+		{
+			std::unique_lock<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[1U]);
+			if (Parameter.LocalAddressOptions.LocalAddressLength[1U] > sizeof(dns_hdr) + 1U + sizeof(dns_qry))
+			{
+				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
+				memcpy(Result + sizeof(uint16_t), Parameter.LocalAddressOptions.LocalAddress[1U] + sizeof(uint16_t), Parameter.LocalAddressOptions.LocalAddressLength[1U] - sizeof(uint16_t));
+				return Parameter.LocalAddressOptions.LocalAddressLength[1U];
+			}
 		}
 	}
 
@@ -339,7 +417,7 @@ inline size_t __fastcall CheckHosts(PSTR Request, const size_t Length, PSTR Resu
 		//Check banned list.
 			else if (HostsTableIter.Type == HOSTS_BANNED)
 			{
-				pdns_hdr->Flags = htons(DNS_NO_SUCH_NAME);
+				pdns_hdr->Flags = htons(DNS_SQR_NO_SUCH_NAME);
 				return Length;
 			}
 		//Check Hosts.
@@ -351,19 +429,19 @@ inline size_t __fastcall CheckHosts(PSTR Request, const size_t Length, PSTR Resu
 					if (pdns_hdr->Additional == htons(U16_NUM_1))
 					{
 						memset(Result + Length - sizeof(dns_edns0_label), 0, sizeof(dns_edns0_label));
-						pdns_hdr->Flags = htons(DNS_SQRNE);
+						pdns_hdr->Flags = htons(DNS_SQR_NE);
 						pdns_hdr->Answer = htons((uint16_t)(HostsTableIter.Length / sizeof(dns_aaaa_record)));
 						memcpy(Result + Length - sizeof(dns_edns0_label), HostsTableIter.Response.get(), HostsTableIter.Length);
 
 						if (!Parameter.EDNS0Label)
 						{
-							auto EDNS0 = (dns_edns0_label *)(Result + Length - sizeof(dns_edns0_label) + HostsTableIter.Length);
-							EDNS0->Type = htons(DNS_EDNS0_RECORDS);
-							EDNS0->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
+							auto pdns_edns0_label = (dns_edns0_label *)(Result + Length - sizeof(dns_edns0_label) + HostsTableIter.Length);
+							pdns_edns0_label->Type = htons(DNS_EDNS0_RECORDS);
+							pdns_edns0_label->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
 
 						//DNSSEC
 							if (Parameter.DNSSECRequest)
-								EDNS0->Z_Bits.DO = ~EDNS0->Z_Bits.DO; //Accepts DNSSEC security RRs
+								pdns_edns0_label->Z_Bits.DO = ~pdns_edns0_label->Z_Bits.DO; //Accepts DNSSEC security RRs
 
 							return Length + HostsTableIter.Length;
 						}
@@ -372,7 +450,7 @@ inline size_t __fastcall CheckHosts(PSTR Request, const size_t Length, PSTR Resu
 						}
 					}
 					else {
-						pdns_hdr->Flags = htons(DNS_SQRNE);
+						pdns_hdr->Flags = htons(DNS_SQR_NE);
 						pdns_hdr->Answer = htons((uint16_t)(HostsTableIter.Length / sizeof(dns_aaaa_record)));
 						memcpy(Result + Length, HostsTableIter.Response.get(), HostsTableIter.Length);
 						return Length + HostsTableIter.Length;
@@ -385,19 +463,19 @@ inline size_t __fastcall CheckHosts(PSTR Request, const size_t Length, PSTR Resu
 					if (pdns_hdr->Additional == htons(U16_NUM_1))
 					{
 						memset(Result + Length - sizeof(dns_edns0_label), 0, sizeof(dns_edns0_label));
-						pdns_hdr->Flags = htons(DNS_SQRNE);
+						pdns_hdr->Flags = htons(DNS_SQR_NE);
 						pdns_hdr->Answer = htons((uint16_t)(HostsTableIter.Length / sizeof(dns_a_record)));
 						memcpy(Result + Length - sizeof(dns_edns0_label), HostsTableIter.Response.get(), HostsTableIter.Length);
 
 						if (!Parameter.EDNS0Label)
 						{
-							auto EDNS0 = (dns_edns0_label *)(Result + Length - sizeof(dns_edns0_label) + HostsTableIter.Length);
-							EDNS0->Type = htons(DNS_EDNS0_RECORDS);
-							EDNS0->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
+							auto pdns_edns0_label = (dns_edns0_label *)(Result + Length - sizeof(dns_edns0_label) + HostsTableIter.Length);
+							pdns_edns0_label->Type = htons(DNS_EDNS0_RECORDS);
+							pdns_edns0_label->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
 
 						//DNSSEC
 							if (Parameter.DNSSECRequest)
-								EDNS0->Z_Bits.DO = ~EDNS0->Z_Bits.DO; //Accepts DNSSEC security RRs
+								pdns_edns0_label->Z_Bits.DO = ~pdns_edns0_label->Z_Bits.DO; //Accepts DNSSEC security RRs
 
 							return Length + HostsTableIter.Length;
 						}
@@ -406,7 +484,7 @@ inline size_t __fastcall CheckHosts(PSTR Request, const size_t Length, PSTR Resu
 						}
 					}
 					else {
-						pdns_hdr->Flags = htons(DNS_SQRNE);
+						pdns_hdr->Flags = htons(DNS_SQR_NE);
 						pdns_hdr->Answer = htons((uint16_t)(HostsTableIter.Length / sizeof(dns_a_record)));
 						memcpy(Result + Length, HostsTableIter.Response.get(), HostsTableIter.Length);
 						return Length + HostsTableIter.Length;
@@ -434,28 +512,7 @@ inline size_t __fastcall CheckHosts(PSTR Request, const size_t Length, PSTR Resu
 
 //Domain case conversion
 	if (Parameter.DomainCaseConversion)
-	{
-	//Minimum supported system of GetTickCount64() is Windows Vista.
-	#ifdef _WIN64
-		if (GetTickCount64() % 2U == 0)
-	#else //_x86
-		if (GetTickCount() % 2U == 0)
-	#endif
-		{
-			for (size_t Index = 0;Index < strlen(Request + sizeof(dns_hdr));Index++)
-			{
-				if (Index % 2U == 0 && *(Request + sizeof(dns_hdr) + Index) > ASCII_ACCENT && *(Request + sizeof(dns_hdr) + Index) < ASCII_BRACES_LEAD)
-					*(Request + sizeof(dns_hdr) + Index) -= 32U;
-			}
-		}
-		else {
-			for (size_t Index = 0;Index < strlen(Request + sizeof(dns_hdr));Index++)
-			{
-				if (Index % 2U != 0 && *(Request + sizeof(dns_hdr) + Index) > ASCII_ACCENT && *(Request + sizeof(dns_hdr) + Index) < ASCII_BRACES_LEAD)
-					*(Request + sizeof(dns_hdr) + Index) -= 32U;
-			}
-		}
-	}
+		DomainCaseConversion(Request + sizeof(dns_hdr));
 	
 	memset(Result, 0, ResultSize);
 	return EXIT_SUCCESS;
@@ -1021,13 +1078,13 @@ inline size_t __fastcall TCPRequestProcess(const PSTR Send, const size_t SendSiz
 		{
 			pdns_hdr = (dns_hdr *)Recv;
 			pdns_hdr->Additional = htons(U16_NUM_1);
-			auto EDNS0 = (dns_edns0_label *)(Recv + DataLength);
-			EDNS0->Type = htons(DNS_EDNS0_RECORDS);
-			EDNS0->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
+			auto pdns_edns0_label = (dns_edns0_label *)(Recv + DataLength);
+			pdns_edns0_label->Type = htons(DNS_EDNS0_RECORDS);
+			pdns_edns0_label->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
 
 		//DNSSEC
 			if (Parameter.DNSSECRequest)
-				EDNS0->Z_Bits.DO = ~EDNS0->Z_Bits.DO; //Accepts DNSSEC security RRs
+				pdns_edns0_label->Z_Bits.DO = ~pdns_edns0_label->Z_Bits.DO; //Accepts DNSSEC security RRs
 			DataLength += sizeof(dns_edns0_label);
 		}
 
@@ -1134,7 +1191,7 @@ inline size_t __fastcall SendToRequester( /* const PSTR SendBuffer, const size_t
 		{
 /*
 			auto pdns_hdr = (dns_hdr *)SendBuffer;
-			pdns_hdr->Flags = htons(DNS_SQRNE_SF);
+			pdns_hdr->Flags = htons(DNS_SQR_SF);
 			send(TargetData.Socket, SendBuffer, (int)SendSize, NULL);
 */
 			closesocket(TargetData.Socket);
@@ -1170,12 +1227,12 @@ size_t __fastcall MarkDomainCache(const PSTR Buffer, const size_t Length)
 /*	//Check TTL.
 		if (pdns_hdr->Answer != 0)
 		{
-			dns_aaaa_record *DNS_AAAA = nullptr;
+			dns_aaaa_record *pdns_aaaa_record = nullptr;
 			if (pdns_hdr->Additional != 0) //EDNS0 Label
-				DNS_AAAA = (dns_aaaa_record *)(Buffer + (Length - sizeof(dns_edns0_label) - sizeof(dns_aaaa_record)));
+				pdns_aaaa_record = (dns_aaaa_record *)(Buffer + (Length - sizeof(dns_edns0_label) - sizeof(dns_aaaa_record)));
 			else 
-				DNS_AAAA = (dns_aaaa_record *)(Buffer + (Length - sizeof(dns_aaaa_record)));
-			if (ntohl(DNS_AAAA->TTL) >= Parameter.HostsDefaultTTL)
+				pdns_aaaa_record = (dns_aaaa_record *)(Buffer + (Length - sizeof(dns_aaaa_record)));
+			if (ntohl(pdns_aaaa_record->TTL) >= Parameter.HostsDefaultTTL)
 				return EXIT_SUCCESS;
 		}
 */
@@ -1186,12 +1243,12 @@ size_t __fastcall MarkDomainCache(const PSTR Buffer, const size_t Length)
 /*	//Check TTL.
 		if (pdns_hdr->Answer != 0)
 		{
-			dns_a_record *DNS_A = nullptr;
+			dns_a_record *pdns_a_record = nullptr;
 			if (pdns_hdr->Additional != 0) //EDNS0 Label
-				DNS_A = (dns_a_record *)(Buffer + (Length - sizeof(dns_edns0_label) - sizeof(dns_a_record)));
+				pdns_a_record = (dns_a_record *)(Buffer + (Length - sizeof(dns_edns0_label) - sizeof(dns_a_record)));
 			else 
-				DNS_A = (dns_a_record *)(Buffer + (Length - sizeof(dns_a_record)));
-			if (ntohl(DNS_A->TTL) >= Parameter.HostsDefaultTTL)
+				pdns_a_record = (dns_a_record *)(Buffer + (Length - sizeof(dns_a_record)));
+			if (ntohl(pdns_a_record->TTL) >= Parameter.HostsDefaultTTL)
 				return EXIT_SUCCESS;
 		}
 */
@@ -1216,11 +1273,13 @@ size_t __fastcall MarkDomainCache(const PSTR Buffer, const size_t Length)
 	if (DNSQueryToChar(Buffer + sizeof(dns_hdr), DNSCacheDataTemp.Response.get()) > 2U)
 	{
 	//Domain case conversion
-		for (size_t Index = 0;Index <= strlen(DNSCacheDataTemp.Response.get());Index++)
+/*		for (size_t Index = 0;Index <= strlen(DNSCacheDataTemp.Response.get());Index++)
 		{
 			if (DNSCacheDataTemp.Response.get()[Index] > ASCII_AT && DNSCacheDataTemp.Response.get()[Index] < ASCII_BRACKETS_LEAD)
 				DNSCacheDataTemp.Response.get()[Index] += 32U;
 		}
+*/
+		CaseConvert(false, DNSCacheDataTemp.Response.get(), strlen(DNSCacheDataTemp.Response.get()));
 
 		DNSCacheDataTemp.Domain = DNSCacheDataTemp.Response.get();
 		memset(DNSCacheDataTemp.Response.get(), 0, DOMAIN_MAXSIZE);

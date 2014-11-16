@@ -6,12 +6,12 @@ A local DNS server base on WinPcap and LibPcap.
 本分支 master 为 Pcap_DNSProxy 项目的主分支，用于存放源代码，**编译版本请移步 [Release 分支](https://github.com/chengr28/Pcap_DNSProxy/tree/Release)**
 
 ### Usage
-* Windows 版参见 [Wiki](https://github.com/chengr28/Pcap_DNSProxy/wiki) 的 [ReadMe](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe)
-* Linux 版参见 [Wiki](https://github.com/chengr28/Pcap_DNSProxy/wiki) 的 [ReadMe_Linux](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe_Linux)
-* Mac 版参见 [Wiki](https://github.com/chengr28/Pcap_DNSProxy/wiki) 的 [ReadMe_Mac](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe_Mac)
+* Windows [简体中文](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe(Chinese_Simplified))/[繁體中文](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe(Chinese_Traditional))
+* [Linux](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe_Linux)
+* [Mac](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe_Mac)
 
 ### Updated
-* **Windows：0.4 Beta(2014-11-02)**
+* **Windows：0.4 Beta 11(2014-11-16)**
 * **Linux：0.2(2014-08-19)**
 * **Mac：0.1(2014-08-19)**
 
@@ -51,13 +51,13 @@ A local DNS server base on WinPcap and LibPcap.
   * 原生IPv4网络和原生IPv6网络**（非原生IPv6网络环境建议不要开启IPv6功能）**
   * 基于PPPoE或PPPoEv6的IPv4网络和IPv6网络
   * 如果需要支持更多网络类型，可与作者联系
-* Windows 平台
-    * **所有 Windows XP/2003 以及更新内核的版本(32位/x86版本)和 Windows Vista/2008 以及更新的版本(64位/x64版本)**
+* Windows
+    * **Windows XP SP3/2003 SP2 以及更新内核的版本(32位/x86版本)和 Windows Vista/2008 以及更新的版本(64位/x64版本)**
     * 支持最新版本 [WinPcap](http://www.winpcap.org/install/default.htm)
-* Linux 平台
+* Linux
     * 支持 [编译所需依赖包](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe_Linux) 的Linux发行版
     * 支持最新版本 [Libpcap](http://www.tcpdump.org)
-* Mac 平台
+* Mac
     * **采用Intel平台处理器的 Mac OS X 10.5 Leopard 以及更新的版本**
 
 ### License

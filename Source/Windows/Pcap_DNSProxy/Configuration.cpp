@@ -32,14 +32,9 @@
 #define READTEXT_IPFILTER      2U
 
 //Compare addresses own defines
-#define COMPARE_LESS      1U
-#define COMPARE_EQUAL     2U
-#define COMPARE_GREATER   3U
-
-//BOM length defines
-#define BOM_UTF_8_LENGTH  3U
-#define BOM_UTF_16_LENGTH 2U
-#define BOM_UTF_32_LENGTH 4U
+#define ADDRESS_COMPARE_LESS      1U
+#define ADDRESS_COMPARE_EQUAL     2U
+#define ADDRESS_COMPARE_GREATER   3U
 
 extern Configuration Parameter;
 extern std::vector<uint16_t> AcceptTypeList;
@@ -128,7 +123,7 @@ inline bool __fastcall ReadText(const FILE *Input, const size_t InputType, const
 		{
 			if (FileBuffer.get()[Index] != 0)
 			{
-				if (!CRLF_Length && (FileBuffer.get()[Index] == CarriageReturn || FileBuffer.get()[Index] == LineFeed))
+				if (!CRLF_Length && (FileBuffer.get()[Index] == ASCII_CR || FileBuffer.get()[Index] == ASCII_LF))
 					CRLF_Length = true;
 
 				TextBuffer.get()[TextBufferLength] = FileBuffer.get()[Index];
@@ -175,7 +170,7 @@ inline bool __fastcall ReadText(const FILE *Input, const size_t InputType, const
 	//Read data.
 		for (Index = 0;Index < ReadLength;Index++)
 		{
-			if (FileBuffer.get()[Index] == CarriageReturn) //Macintosh format.
+			if (FileBuffer.get()[Index] == ASCII_CR) //Macintosh format.
 			{
 				Line++;
 
@@ -202,9 +197,9 @@ inline bool __fastcall ReadText(const FILE *Input, const size_t InputType, const
 				memset(Text.get(), 0, FILE_BUFFER_SIZE);
 				TextLength = 0;
 			}
-			else if (FileBuffer.get()[Index] == LineFeed) //LF/Line Feed, Unix format.
+			else if (FileBuffer.get()[Index] == ASCII_LF) //Unix format.
 			{
-				if (Index > 0 && FileBuffer.get()[Index - 1U] != CarriageReturn) //Windows format.
+				if (Index > 0 && FileBuffer.get()[Index - 1U] != ASCII_CR) //Windows format.
 					Line++;
 
 			//Read texts.
@@ -273,7 +268,7 @@ inline bool __fastcall ReadText(const FILE *Input, const size_t InputType, const
 		{
 			for (Index = 0;Index < ReadLength;Index++)
 			{
-				if (FileBuffer.get()[Index] == CarriageReturn)
+				if (FileBuffer.get()[Index] == ASCII_CR)
 				{
 				//Read texts.
 					if (TextLength > 2U)
@@ -345,7 +340,7 @@ inline bool __fastcall ReadText(const FILE *Input, const size_t InputType, const
 					return true;
 				}
 				else {
-					if (FileBuffer.get()[Index] != LineFeed)
+					if (FileBuffer.get()[Index] != ASCII_LF)
 					{
 						Text.get()[TextLength] = FileBuffer.get()[Index];
 						TextLength++;
@@ -357,7 +352,7 @@ inline bool __fastcall ReadText(const FILE *Input, const size_t InputType, const
 		{
 			for (Index = 0;Index < ReadLength;Index++)
 			{
-				if (FileBuffer.get()[Index] == LineFeed)
+				if (FileBuffer.get()[Index] == ASCII_LF)
 				{
 				//Read texts.
 					if (TextLength > 2U)
@@ -437,7 +432,7 @@ inline bool __fastcall ReadText(const FILE *Input, const size_t InputType, const
 		else { //Macintosh format
 			for (Index = 0;Index < ReadLength;Index++)
 			{
-				if (FileBuffer.get()[Index] == CarriageReturn)
+				if (FileBuffer.get()[Index] == ASCII_CR)
 				{
 				//Read texts.
 					if (TextLength > 2U)
@@ -554,7 +549,7 @@ inline bool __fastcall ReadText(const FILE *Input, const size_t InputType, const
 			if ((Encoding == UTF_8 || Encoding == ANSI || 
 				(Encoding == UTF_16_LE || Encoding == UTF_32_LE) && Buffer.get()[Index + 1U] == 0 || 
 				(Encoding == UTF_16_BE || Encoding == UTF_32_BE) && Buffer.get()[Index - 1U] == 0) && 
-				(Buffer.get()[Index] == CarriageReturn || Buffer.get()[Index] == LineFeed))
+				(Buffer.get()[Index] == ASCII_CR || Buffer.get()[Index] == ASCII_LF))
 			{
 				if (InputType == READTEXT_HOSTS) //ReadHosts
 				{
@@ -594,11 +589,11 @@ inline bool __fastcall ReadText(const FILE *Input, const size_t InputType, const
 			//Mark lines.
 				if (NextLineType == NEXTLINETYPE_CRLF || NextLineType == NEXTLINETYPE_CR)
 				{
-					if (Buffer.get()[Index] == CarriageReturn)
+					if (Buffer.get()[Index] == ASCII_CR)
 						Line++;
 				}
 				else {
-					if (Buffer.get()[Index] == LineFeed)
+					if (Buffer.get()[Index] == ASCII_LF)
 						Line++;
 				}
 
@@ -672,24 +667,24 @@ inline bool __fastcall ReadText(const FILE *Input, const size_t InputType, const
 //Read parameter from file
 size_t __fastcall ReadParameter(void)
 {
-//Initialization
+	//Initialization
 	FILE *Input = nullptr;
 	size_t Index = 0;
 
-//Open file.
-	std::wstring ConfigPath[] = {*Parameter.Path, *Parameter.Path, *Parameter.Path};
+	//Open file.
+	std::wstring ConfigPath[] = { *Parameter.Path, *Parameter.Path, *Parameter.Path };
 	ConfigPath[0].append(L"Config.ini");
 	ConfigPath[1U].append(L"Config.conf");
 	ConfigPath[2U].append(L"Config");
-	for (Index = 0;Index < sizeof(ConfigPath) / sizeof(std::wstring);Index++)
+	for (Index = 0; Index < sizeof(ConfigPath) / sizeof(std::wstring); Index++)
 	{
 		if (_wfopen_s(&Input, ConfigPath[Index].c_str(), L"rb") == 0)
 		{
 			if (Input != nullptr)
 				break;
 		}
-		
-	//Check all configuration files.
+
+		//Check all configuration files.
 		if (Index == sizeof(ConfigPath) / sizeof(std::wstring) - 1U)
 		{
 			PrintError(LOG_ERROR_PARAMETER, L"Cannot open any configuration files", NULL, nullptr, NULL);
@@ -697,11 +692,11 @@ size_t __fastcall ReadParameter(void)
 		}
 	}
 
-//Check whole file size.
+	//Check whole file size.
 	HANDLE ConfigFileHandle = CreateFileW(ConfigPath[Index].c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (ConfigFileHandle != INVALID_HANDLE_VALUE)
 	{
-		LARGE_INTEGER ConfigFileSize = {0};
+		LARGE_INTEGER ConfigFileSize = {0 };
 		if (GetFileSizeEx(ConfigFileHandle, &ConfigFileSize) == 0)
 		{
 			CloseHandle(ConfigFileHandle);
@@ -716,12 +711,12 @@ size_t __fastcall ReadParameter(void)
 		}
 	}
 
-//Read data
+	//Read data
 	if (!ReadText(Input, 0, /* READTEXT_PARAMETER , */ (PWSTR)ConfigPath[Index].c_str()))
 		return EXIT_FAILURE;
 	fclose(Input);
 
-//Check parameters.
+	//Check parameters.
 	if (Parameter.Version > INI_VERSION) //Version check
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"Configuration file version error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
@@ -754,30 +749,29 @@ size_t __fastcall ReadParameter(void)
 	if (!Parameter.DNSTarget.IPv6_Multi->empty())
 	{
 		Parameter.AlternateMultiRequest = true;
-		uint8_t HopLimitTemp = 0;
 
-	//Copy DNS Server Data when Main or Alternate data are empty.
+		//Copy DNS Server Data when Main or Alternate data are empty.
 		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == NULL)
 		{
+			uint8_t HopLimitTemp = 0;
 			if (Parameter.DNSTarget.IPv6.HopLimitData.HopLimit != 0)
 				HopLimitTemp = Parameter.DNSTarget.IPv6.HopLimitData.HopLimit;
 			Parameter.DNSTarget.IPv6 = Parameter.DNSTarget.IPv6_Multi->front();
 			Parameter.DNSTarget.IPv6.HopLimitData.HopLimit = HopLimitTemp;
 			Parameter.DNSTarget.IPv6_Multi->erase(Parameter.DNSTarget.IPv6_Multi->begin());
-			HopLimitTemp = 0;
 		}
 
 		if (Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family == NULL && !Parameter.DNSTarget.IPv6_Multi->empty())
 		{
+			uint8_t HopLimitTemp = 0;
 			if (Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit != 0)
 				HopLimitTemp = Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit;
 			Parameter.DNSTarget.Alternate_IPv6 = Parameter.DNSTarget.IPv6_Multi->front();
 			Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit = HopLimitTemp;
 			Parameter.DNSTarget.IPv6_Multi->erase(Parameter.DNSTarget.IPv6_Multi->begin());
-			HopLimitTemp = 0;
 		}
-		
-	//Multi DNS Server check
+
+		//Multi DNS Server check
 		if (Parameter.DNSTarget.IPv6_Multi->empty())
 		{
 			delete Parameter.DNSTarget.IPv6_Multi;
@@ -791,30 +785,29 @@ size_t __fastcall ReadParameter(void)
 	if (!Parameter.DNSTarget.IPv4_Multi->empty())
 	{
 		Parameter.AlternateMultiRequest = true;
-		uint8_t TTLTemp = 0;
 
-	//Copy DNS Server Data when Main or Alternate data are empty.
+		//Copy DNS Server Data when Main or Alternate data are empty.
 		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == NULL)
 		{
+			uint8_t TTLTemp = 0;
 			if (Parameter.DNSTarget.IPv4.HopLimitData.TTL != 0)
 				TTLTemp = Parameter.DNSTarget.IPv4.HopLimitData.TTL;
 			Parameter.DNSTarget.IPv4 = Parameter.DNSTarget.IPv4_Multi->front();
 			Parameter.DNSTarget.IPv4.HopLimitData.TTL = TTLTemp;
 			Parameter.DNSTarget.IPv4_Multi->erase(Parameter.DNSTarget.IPv4_Multi->begin());
-			TTLTemp = 0;
 		}
 
 		if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family == NULL && !Parameter.DNSTarget.IPv4_Multi->empty())
 		{
+			uint8_t TTLTemp = 0;
 			if (Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL != 0)
 				TTLTemp = Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL;
 			Parameter.DNSTarget.Alternate_IPv4 = Parameter.DNSTarget.IPv4_Multi->front();
 			Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL = TTLTemp;
 			Parameter.DNSTarget.IPv4_Multi->erase(Parameter.DNSTarget.IPv4_Multi->begin());
-			TTLTemp = 0;
 		}
-		
-	//Multi DNS Server check
+
+		//Multi DNS Server check
 		if (Parameter.DNSTarget.IPv4_Multi->empty())
 		{
 			delete Parameter.DNSTarget.IPv4_Multi;
@@ -846,10 +839,10 @@ size_t __fastcall ReadParameter(void)
 		memset(&Parameter.DNSTarget.Alternate_Local_IPv4, 0, sizeof(DNSServerData));
 	}
 	if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == NULL && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == NULL ||
-	//Check repeating items.
-		Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family != NULL && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family != NULL && Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.S_un.S_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr || 
-		Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family != NULL && Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family != NULL && Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr == Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr || 
-		Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family != NULL && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family != NULL && memcmp(&Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 || 
+		//Check repeating items.
+		Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family != NULL && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family != NULL && Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.S_un.S_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr ||
+		Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family != NULL && Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family != NULL && Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr == Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr ||
+		Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family != NULL && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family != NULL && memcmp(&Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 ||
 		Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family != NULL && Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family != NULL && memcmp(&Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0)
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"DNS Targets error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
@@ -859,19 +852,19 @@ size_t __fastcall ReadParameter(void)
 	//Hop Limit or TTL Fluctuations check
 	if (Parameter.HopLimitFluctuation > 0)
 	{
-	//IPv4
-		if (Parameter.DNSTarget.IPv4.HopLimitData.TTL > 0 && 
-			((size_t)Parameter.DNSTarget.IPv4.HopLimitData.TTL + (size_t)Parameter.HopLimitFluctuation > U8_MAXNUM || 
-			(SSIZE_T)Parameter.DNSTarget.IPv4.HopLimitData.TTL < (SSIZE_T)Parameter.HopLimitFluctuation + 1) || 
-			Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL > 0 && 
-			((size_t)Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL + (size_t)Parameter.HopLimitFluctuation > U8_MAXNUM || 
-			(SSIZE_T)Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL < (SSIZE_T)Parameter.HopLimitFluctuation + 1) || 
-	//IPv6
-			Parameter.DNSTarget.IPv6.HopLimitData.HopLimit > 0 && 
-			((size_t)Parameter.DNSTarget.IPv6.HopLimitData.HopLimit + (size_t)Parameter.HopLimitFluctuation > U8_MAXNUM || 
-			(SSIZE_T)Parameter.DNSTarget.IPv6.HopLimitData.HopLimit < (SSIZE_T)Parameter.HopLimitFluctuation + 1) || 
-			Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit > 0 && 
-			((size_t)Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit + (size_t)Parameter.HopLimitFluctuation > U8_MAXNUM || 
+		//IPv4
+		if (Parameter.DNSTarget.IPv4.HopLimitData.TTL > 0 &&
+			((size_t)Parameter.DNSTarget.IPv4.HopLimitData.TTL + (size_t)Parameter.HopLimitFluctuation > U8_MAXNUM ||
+			(SSIZE_T)Parameter.DNSTarget.IPv4.HopLimitData.TTL < (SSIZE_T)Parameter.HopLimitFluctuation + 1) ||
+			Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL > 0 &&
+			((size_t)Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL + (size_t)Parameter.HopLimitFluctuation > U8_MAXNUM ||
+			(SSIZE_T)Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL < (SSIZE_T)Parameter.HopLimitFluctuation + 1) ||
+			//IPv6
+			Parameter.DNSTarget.IPv6.HopLimitData.HopLimit > 0 &&
+			((size_t)Parameter.DNSTarget.IPv6.HopLimitData.HopLimit + (size_t)Parameter.HopLimitFluctuation > U8_MAXNUM ||
+			(SSIZE_T)Parameter.DNSTarget.IPv6.HopLimitData.HopLimit < (SSIZE_T)Parameter.HopLimitFluctuation + 1) ||
+			Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit > 0 &&
+			((size_t)Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit + (size_t)Parameter.HopLimitFluctuation > U8_MAXNUM ||
 			(SSIZE_T)Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit < (SSIZE_T)Parameter.HopLimitFluctuation + 1))
 		{
 			PrintError(LOG_ERROR_PARAMETER, L"Hop Limit or TTL Fluctuations error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL); //Hop Limit and TTL must between 1 and 255.
@@ -906,8 +899,8 @@ size_t __fastcall ReadParameter(void)
 		PrintError(LOG_ERROR_PARAMETER, L"EDNS0 PayloadSize may be too long", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
 		Parameter.EDNS0PayloadSize = EDNS0_MINSIZE;
 	}
-	if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family == NULL && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family == NULL && 
-		Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family == NULL && Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family == NULL && 
+	if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family == NULL && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family == NULL &&
+		Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family == NULL && Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family == NULL &&
 		Parameter.DNSCurve && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family == NULL && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family == NULL)
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"Alternate Multi requesting error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
@@ -926,19 +919,19 @@ size_t __fastcall ReadParameter(void)
 	//Only check and set.
 	if (Parameter.RquestMode != REQUEST_TCPMODE) //TCP Mode options check
 		Parameter.TCPDataCheck = false;
-	if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == NULL) 
+	if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == NULL)
 		Parameter.IPv4DataCheck = false;
 	if (Parameter.DNSCurve) //DNSCurve options check
 	{
-	//Libsodium initialization
+		//Libsodium initialization
 		if (sodium_init() != 0)
 		{
 			PrintError(LOG_ERROR_DNSCURVE, L"Libsodium initialization error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
 			return EXIT_FAILURE;
 		}
 
-	//Client keys check
-		if (!CheckEmptyBuffer(DNSCurveParameter.Client_PublicKey, crypto_box_PUBLICKEYBYTES) && !CheckEmptyBuffer(DNSCurveParameter.Client_SecretKey, crypto_box_SECRETKEYBYTES) && 
+		//Client keys check
+		if (!CheckEmptyBuffer(DNSCurveParameter.Client_PublicKey, crypto_box_PUBLICKEYBYTES) && !CheckEmptyBuffer(DNSCurveParameter.Client_SecretKey, crypto_box_SECRETKEYBYTES) &&
 			!VerifyKeypair(DNSCurveParameter.Client_PublicKey, DNSCurveParameter.Client_SecretKey))
 		{
 			PrintError(LOG_ERROR_DNSCURVE, L"Client keypair(public key and secret key) error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
@@ -957,7 +950,7 @@ size_t __fastcall ReadParameter(void)
 			DNSCurveParameter.Client_SecretKey = nullptr;
 		}
 
-	//DNSCurve target(s) check
+		//DNSCurve target(s) check
 		if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == NULL && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family != NULL)
 		{
 			DNSCurveParameter.DNSCurveTarget.IPv4 = DNSCurveParameter.DNSCurveTarget.Alternate_IPv4;
@@ -969,44 +962,44 @@ size_t __fastcall ReadParameter(void)
 			memset(&DNSCurveParameter.DNSCurveTarget.Alternate_IPv6, 0, sizeof(DNSCurveServerData));
 		}
 
-		if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == NULL && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == NULL || 
-		//Check repeating items.
-			DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family != NULL && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family != NULL && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.IPv4.sin_addr.S_un.S_addr == DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr || 
+		if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == NULL && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == NULL ||
+			//Check repeating items.
+			DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family != NULL && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family != NULL && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.IPv4.sin_addr.S_un.S_addr == DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr ||
 			DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family != NULL && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family != NULL && memcmp(&DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6.sin6_addr, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr) == 0))
 		{
 			PrintError(LOG_ERROR_PARAMETER, L"DNSCurve Targets error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
 			return EXIT_FAILURE;
 		}
 
-	//Eencryption options check
+		//Eencryption options check
 		if (DNSCurveParameter.EncryptionOnly && !DNSCurveParameter.Encryption)
 		{
 			DNSCurveParameter.Encryption = true;
 			PrintError(LOG_ERROR_PARAMETER, L"DNSCurve encryption options error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
 		}
 
-	//Main(IPv6)
+		//Main(IPv6)
 		if (DNSCurveParameter.Encryption && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family != NULL)
 		{
-		//Empty Server Fingerprint
+			//Empty Server Fingerprint
 			if (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES))
 			{
-			//Encryption Only mode check
-				if (DNSCurveParameter.EncryptionOnly && 
+				//Encryption Only mode check
+				if (DNSCurveParameter.EncryptionOnly &&
 					CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"DNSCurve Encryption Only mode error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
 					return EXIT_FAILURE;
 				}
 
-			//Empty Provider Name
+				//Empty Provider Name
 				if (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.ProviderName, DOMAIN_MAXSIZE))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"DNSCurve empty Provider Name error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
 					return EXIT_FAILURE;
 				}
 
-			//Empty Public Key
+				//Empty Public Key
 				if (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"DNSCurve empty Public Key error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
@@ -1015,8 +1008,8 @@ size_t __fastcall ReadParameter(void)
 			}
 			else {
 				crypto_box_curve25519xsalsa20poly1305_beforenm(
-					DNSCurveParameter.DNSCurveTarget.IPv6.PrecomputationKey, 
-					DNSCurveParameter.DNSCurveTarget.IPv6.ServerFingerprint, 
+					DNSCurveParameter.DNSCurveTarget.IPv6.PrecomputationKey,
+					DNSCurveParameter.DNSCurveTarget.IPv6.ServerFingerprint,
 					DNSCurveParameter.Client_SecretKey);
 			}
 		}
@@ -1034,28 +1027,28 @@ size_t __fastcall ReadParameter(void)
 			DNSCurveParameter.DNSCurveTarget.IPv6.SendMagicNumber = nullptr;
 		}
 
-	//Main(IPv4)
+		//Main(IPv4)
 		if (DNSCurveParameter.Encryption && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family != NULL)
 		{
-		//Empty Server Fingerprint
+			//Empty Server Fingerprint
 			if (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES))
 			{
-			//Encryption Only mode check
-				if (DNSCurveParameter.EncryptionOnly && 
+				//Encryption Only mode check
+				if (DNSCurveParameter.EncryptionOnly &&
 					CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"DNSCurve Encryption Only mode error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
 					return EXIT_FAILURE;
 				}
 
-			//Empty Provider Name
+				//Empty Provider Name
 				if (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.ProviderName, DOMAIN_MAXSIZE))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"DNSCurve empty Provider Name error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
 					return EXIT_FAILURE;
 				}
 
-			//Empty Public Key
+				//Empty Public Key
 				if (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"DNSCurve empty Public Key error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
@@ -1064,8 +1057,8 @@ size_t __fastcall ReadParameter(void)
 			}
 			else {
 				crypto_box_curve25519xsalsa20poly1305_beforenm(
-					DNSCurveParameter.DNSCurveTarget.IPv4.PrecomputationKey, 
-					DNSCurveParameter.DNSCurveTarget.IPv4.ServerFingerprint, 
+					DNSCurveParameter.DNSCurveTarget.IPv4.PrecomputationKey,
+					DNSCurveParameter.DNSCurveTarget.IPv4.ServerFingerprint,
 					DNSCurveParameter.Client_SecretKey);
 			}
 		}
@@ -1083,28 +1076,28 @@ size_t __fastcall ReadParameter(void)
 			DNSCurveParameter.DNSCurveTarget.IPv4.SendMagicNumber = nullptr;
 		}
 
-	//Alternate(IPv6)
+		//Alternate(IPv6)
 		if (DNSCurveParameter.Encryption && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family != NULL)
 		{
-		//Empty Server Fingerprint
+			//Empty Server Fingerprint
 			if (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES))
 			{
-			//Encryption Only mode check
-				if (DNSCurveParameter.EncryptionOnly && 
+				//Encryption Only mode check
+				if (DNSCurveParameter.EncryptionOnly &&
 					CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"DNSCurve Encryption Only mode error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
 					return EXIT_FAILURE;
 				}
 
-			//Empty Provider Name
+				//Empty Provider Name
 				if (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ProviderName, DOMAIN_MAXSIZE))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"DNSCurve empty Provider Name error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
 					return EXIT_FAILURE;
 				}
 
-			//Empty Public Key
+				//Empty Public Key
 				if (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"DNSCurve empty Public Key error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
@@ -1113,8 +1106,8 @@ size_t __fastcall ReadParameter(void)
 			}
 			else {
 				crypto_box_curve25519xsalsa20poly1305_beforenm(
-					DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.PrecomputationKey, 
-					DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ServerFingerprint, 
+					DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.PrecomputationKey,
+					DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ServerFingerprint,
 					DNSCurveParameter.Client_SecretKey);
 			}
 		}
@@ -1132,28 +1125,28 @@ size_t __fastcall ReadParameter(void)
 			DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.SendMagicNumber = nullptr;
 		}
 
-	//Alternate(IPv4)
+		//Alternate(IPv4)
 		if (DNSCurveParameter.Encryption && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family != NULL)
 		{
-		//Empty Server Fingerprint
+			//Empty Server Fingerprint
 			if (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES))
 			{
-			//Encryption Only mode check
-				if (DNSCurveParameter.EncryptionOnly && 
+				//Encryption Only mode check
+				if (DNSCurveParameter.EncryptionOnly &&
 					CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"DNSCurve Encryption Only mode error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
 					return EXIT_FAILURE;
 				}
 
-			//Empty Provider Name
+				//Empty Provider Name
 				if (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ProviderName, DOMAIN_MAXSIZE))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"DNSCurve empty Provider Name error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
 					return EXIT_FAILURE;
 				}
 
-			//Empty Public Key
+				//Empty Public Key
 				if (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"DNSCurve empty Public Key error", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
@@ -1162,8 +1155,8 @@ size_t __fastcall ReadParameter(void)
 			}
 			else {
 				crypto_box_curve25519xsalsa20poly1305_beforenm(
-					DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.PrecomputationKey, 
-					DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ServerFingerprint, 
+					DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.PrecomputationKey,
+					DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ServerFingerprint,
 					DNSCurveParameter.Client_SecretKey);
 			}
 		}
@@ -1186,7 +1179,7 @@ size_t __fastcall ReadParameter(void)
 		delete[] DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ProviderName;
 		delete[] DNSCurveParameter.DNSCurveTarget.IPv6.ProviderName;
 		delete[] DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ProviderName;
-	//DNSCurve Keys
+		//DNSCurve Keys
 		delete[] DNSCurveParameter.Client_PublicKey;
 		delete[] DNSCurveParameter.Client_SecretKey;
 		delete[] DNSCurveParameter.DNSCurveTarget.IPv4.PrecomputationKey;
@@ -1201,7 +1194,7 @@ size_t __fastcall ReadParameter(void)
 		delete[] DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ServerFingerprint;
 		delete[] DNSCurveParameter.DNSCurveTarget.IPv6.ServerFingerprint;
 		delete[] DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ServerFingerprint;
-	//DNSCurve Magic Numbers
+		//DNSCurve Magic Numbers
 		delete[] DNSCurveParameter.DNSCurveTarget.IPv4.ReceiveMagicNumber;
 		delete[] DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber;
 		delete[] DNSCurveParameter.DNSCurveTarget.IPv6.ReceiveMagicNumber;
@@ -1220,7 +1213,7 @@ size_t __fastcall ReadParameter(void)
 		DNSCurveParameter.DNSCurveTarget.IPv4.ReceiveMagicNumber = nullptr, DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber = nullptr, DNSCurveParameter.DNSCurveTarget.IPv6.ReceiveMagicNumber = nullptr, DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber = nullptr;
 	}
 
-//Default settings
+	//Default settings
 	if (Parameter.ListenPort == 0)
 		Parameter.ListenPort = htons(IPPORT_DNS);
 	if (!Parameter.EDNS0Label)
@@ -1236,6 +1229,11 @@ size_t __fastcall ReadParameter(void)
 			PrintError(LOG_ERROR_PARAMETER, L"EDNS0 Label must trun ON when request DNSCurve", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
 			Parameter.EDNS0Label = true;
 		}
+	}
+	if (Parameter.CompressionPointerMutation && Parameter.EDNS0Label)
+	{
+		PrintError(LOG_ERROR_PARAMETER, L"Compression Pointer Mutation must trun OFF when request EDNS0 Label", NULL, (PWSTR)ConfigPath[Index].c_str(), NULL);
+		Parameter.CompressionPointerMutation = false;
 	}
 
 	if (Parameter.ICMPOptions.ICMPSpeed > 0)
@@ -1256,15 +1254,43 @@ size_t __fastcall ReadParameter(void)
 		Parameter.DomainTestOptions.DomainTestData = nullptr;
 	}
 
-	if (Parameter.PaddingDataOptions.PaddingDataLength <= 0)
+	if (Parameter.ICMPOptions.PaddingDataLength <= 0)
 	{
-		Parameter.PaddingDataOptions.PaddingDataLength = strlen(DEFAULT_PADDINGDATA) + 1U;
-		memcpy(Parameter.PaddingDataOptions.PaddingData, DEFAULT_PADDINGDATA, Parameter.PaddingDataOptions.PaddingDataLength - 1U); //Load default padding data from Microsoft Windows Ping.
+		Parameter.ICMPOptions.PaddingDataLength = strlen(DEFAULT_PADDINGDATA) + 1U;
+		memcpy(Parameter.ICMPOptions.PaddingData, DEFAULT_PADDINGDATA, Parameter.ICMPOptions.PaddingDataLength - 1U); //Load default padding data from Microsoft Windows Ping.
 	}
 
-	if (Parameter.LocalhostServerOptions.LocalhostServerLength <= 0)
-		Parameter.LocalhostServerOptions.LocalhostServerLength = CharToDNSQuery(DEFAULT_LOCAL_SERVERNAME, Parameter.LocalhostServerOptions.LocalhostServer); //Default Localhost DNS server name
+	if (Parameter.LocalServerOptions.LocalFQDNLength <= 0) //Default Local DNS server name
+	{
+		Parameter.LocalServerOptions.LocalFQDNLength = CharToDNSQuery(DEFAULT_LOCAL_SERVERNAME, Parameter.LocalServerOptions.LocalFQDN);
+		Parameter.LocalServerOptions.LocalFQDNString = DEFAULT_LOCAL_SERVERNAME;
+	}
+
 	Parameter.HostsDefaultTTL = DEFAULT_HOSTS_TTL;
+
+	//Set Local DNS server PTR response.
+	if (Parameter.LocalServerOptions.LocalPTRResponseLength <= 0)
+	{
+		auto pdns_ptr_record = (dns_ptr_record *)Parameter.LocalServerOptions.LocalPTRResponse;
+		pdns_ptr_record->PTR = htons(DNS_QUERY_PTR);
+		pdns_ptr_record->Classes = htons(DNS_CLASS_IN);
+		pdns_ptr_record->TTL = htonl(Parameter.HostsDefaultTTL);
+		pdns_ptr_record->Type = htons(DNS_PTR_RECORDS);
+		pdns_ptr_record->Length = htons((uint16_t)Parameter.LocalServerOptions.LocalFQDNLength);
+		Parameter.LocalServerOptions.LocalPTRResponseLength += sizeof(dns_ptr_record);
+
+		memcpy(Parameter.LocalServerOptions.LocalPTRResponse + Parameter.LocalServerOptions.LocalPTRResponseLength, Parameter.LocalServerOptions.LocalFQDN, Parameter.LocalServerOptions.LocalFQDNLength);
+		Parameter.LocalServerOptions.LocalPTRResponseLength += Parameter.LocalServerOptions.LocalFQDNLength;
+
+	//EDNS0 Label
+		if (Parameter.EDNS0Label)
+		{
+			auto pdns_edns0_label = (dns_edns0_label *)(Parameter.LocalServerOptions.LocalPTRResponse + Parameter.LocalServerOptions.LocalPTRResponseLength);
+			pdns_edns0_label->Type = htons(DNS_EDNS0_RECORDS);
+			pdns_edns0_label->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
+			Parameter.LocalServerOptions.LocalPTRResponseLength += sizeof(dns_edns0_label);
+		}
+	}
 
 	if (Parameter.DNSCurve && DNSCurveParameter.Encryption) //DNSCurve default settings
 	{
@@ -1301,6 +1327,10 @@ size_t __fastcall ReadParameter(void)
 		if (DNSCurveParameter.KeyRecheckTime == 0)
 			DNSCurveParameter.KeyRecheckTime = DEFAULT_DNSCURVE_RECHECK_TIME * SECOND_TO_MILLISECOND;
 	}
+
+//Print global parameter list.
+	if (Parameter.PrintStatus >= LOG_STATUS_LEVEL1)
+		PrintParameterList();
 
 	return EXIT_SUCCESS;
 }
@@ -1385,7 +1415,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const PWSTR FileName, con
 	else if (Parameter.Version < INI_VERSION)
 	{
 	//[Base] block
-		if (Data.find("Hosts=") == 0)
+		if (Parameter.FileRefreshTime == 0 && Data.find("Hosts=") == 0)
 		{
 			if (Data.length() == strlen("Hosts="))
 			{
@@ -1406,7 +1436,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const PWSTR FileName, con
 				return EXIT_FAILURE;
 			}
 		}
-		else if (Data.find("IPv4DNSAddress=") == 0)
+		else if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == NULL && Data.find("IPv4DNSAddress=") == 0)
 		{
 			if (Data.length() == strlen("IPv4DNSAddress="))
 			{
@@ -1431,7 +1461,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const PWSTR FileName, con
 				return EXIT_FAILURE;
 			}
 		}
-		else if (Data.find("IPv4LocalDNSAddress=") == 0)
+		else if (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == NULL && Data.find("IPv4LocalDNSAddress=") == 0)
 		{
 			if (Data.length() == strlen("IPv4LocalDNSAddress="))
 			{
@@ -1452,7 +1482,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const PWSTR FileName, con
 				Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family = AF_INET;
 			}
 		}
-		else if (Data.find("IPv6DNSAddress=") == 0)
+		else if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == NULL && Data.find("IPv6DNSAddress=") == 0)
 		{
 			if (Data.length() == strlen("IPv6DNSAddress="))
 			{
@@ -1477,7 +1507,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const PWSTR FileName, con
 				return EXIT_FAILURE;
 			}
 		}
-		else if (Data.find("IPv6LocalDNSAddress=") == 0)
+		else if (Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == NULL && Data.find("IPv6LocalDNSAddress=") == 0)
 		{
 			if (Data.length() == strlen("IPv6LocalDNSAddress="))
 			{
@@ -1518,7 +1548,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const PWSTR FileName, con
 		}
 
 	//[Data] block
-		else if (Data.find("DomainTestSpeed=") == 0)
+		else if (Parameter.DomainTestOptions.DomainTestSpeed == 0 && Data.find("DomainTestSpeed=") == 0)
 		{
 			if (Data.length() == strlen("DomainTestSpeed="))
 			{
@@ -1578,7 +1608,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const PWSTR FileName, con
 		else if (Data.length() < strlen("PrintRunningLog=") + 2U)
 		{
 			Result = strtol(Data.c_str() + strlen("PrintRunningLog="), nullptr, NULL);
-			if (Result > 0)
+			if (Result > LOG_STATUS_CLOSED)
 			{
 				Parameter.PrintStatus = Result;
 
@@ -1586,6 +1616,28 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const PWSTR FileName, con
 				*Parameter.RunningLogPath = *Parameter.Path;
 				Parameter.RunningLogPath->append(L"Running.log");
 				DeleteFileW(Parameter.RunningLogPath->c_str());
+
+			//Print status.
+				switch (Result)
+				{
+					case LOG_STATUS_LEVEL1:
+					{
+						PrintStatus(L"Print Running Log Level 1");
+					}break;
+					case LOG_STATUS_LEVEL2:
+					{
+						PrintStatus(L"Print Running Log Level 2");
+					}break;
+					case LOG_STATUS_LEVEL3:
+					{
+						PrintStatus(L"Print Running Log Level 3");
+					}break;
+					default:
+					{
+						PrintError(LOG_ERROR_PARAMETER, L"Item length error", NULL, FileName, Line);
+						return EXIT_FAILURE;
+					}break;
+				}
 			}
 //			else 
 //				Parameter.PrintStatus = 0; //Print running status Disable.
@@ -1823,7 +1875,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const PWSTR FileName, con
 			}
 			else if (TypeString.find(ASCII_COMMA) == std::string::npos && TypeString.find(ASCII_VERTICAL) == std::string::npos)
 			{
-				Result = DNSTypeNameToHex((PSTR)TypeString.c_str());
+				Result = DNSTypeNameToID((PSTR)TypeString.c_str());
 				if (Result == 0)
 				{
 				//Number types
@@ -1849,7 +1901,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const PWSTR FileName, con
 					if (Index == TypeString.length() - 1U) //Last value
 					{
 						TypeStringTemp.append(TypeString, Result, (SSIZE_T)Index - Result + 1U);
-						Result = DNSTypeNameToHex((PSTR)TypeString.c_str());
+						Result = DNSTypeNameToID((PSTR)TypeString.c_str());
 						if (Result == 0) 
 						{
 						//Number types
@@ -1870,7 +1922,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const PWSTR FileName, con
 					else if (TypeString[Index] == ASCII_COMMA || TypeString[Index] == ASCII_VERTICAL)
 					{
 						TypeStringTemp.append(TypeString, Result, (SSIZE_T)Index - Result);
-						Result = DNSTypeNameToHex((PSTR)TypeString.c_str());
+						Result = DNSTypeNameToID((PSTR)TypeString.c_str());
 						if (Result == 0)
 						{
 						//Number types
@@ -2930,6 +2982,10 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const PWSTR FileName, con
 	{
 		Parameter.DomainCaseConversion = true;
 	}
+	else if (Data.find("CompressionPointerMutation=1") == 0)
+	{
+		Parameter.CompressionPointerMutation = true;
+	}
 //	else if (Data.find("EDNS0Label=") == 0)
 	else if (Data.find("EDNS0Label=1") == 0)
 	{
@@ -3008,8 +3064,8 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const PWSTR FileName, con
 		}
 		else if (Data.length() > strlen("ICMPPaddingData=") + 17U && Data.length() < strlen("ICMPPaddingData=") + ICMP_PADDING_MAXSIZE - 1U) //Length of ICMP padding data must between 18 bytes and 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
 		{
-			Parameter.PaddingDataOptions.PaddingDataLength = Data.length() - strlen("ICMPPaddingData=") - 1U;
-			memcpy(Parameter.PaddingDataOptions.PaddingData, Data.c_str() + strlen("ICMPPaddingData="), Data.length() - strlen("ICMPPaddingData="));
+			Parameter.ICMPOptions.PaddingDataLength = Data.length() - strlen("ICMPPaddingData=") - 1U;
+			memcpy(Parameter.ICMPOptions.PaddingData, Data.c_str() + strlen("ICMPPaddingData="), Data.length() - strlen("ICMPPaddingData="));
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Item length error", NULL, FileName, Line);
@@ -3058,22 +3114,22 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const PWSTR FileName, con
 		{
 /* Old version
 			std::shared_ptr<int> Point(new int[DOMAIN_MAXSIZE]());
-			std::shared_ptr<char> LocalhostServer(new char[DOMAIN_MAXSIZE]());
+			std::shared_ptr<char> LocalFQDN(new char[DOMAIN_MAXSIZE]());
 			size_t Index = 0;
-			Parameter.LocalhostServerOptions.LocalhostServerLength = Data.length() - strlen("LocalhostServerName=");
+			Parameter.LocalServerOptions.LocalFQDNLength = Data.length() - strlen("LocalhostServerName=");
 
 		//Convert from char to DNS query.
-			LocalhostServer.get()[0] = 46;
-			memcpy(LocalhostServer.get() + 1U, Data.c_str() + strlen("LocalhostServerName="), Parameter.LocalhostServerOptions.LocalhostServerLength);
+			LocalFQDN.get()[0] = 46;
+			memcpy(LocalFQDN.get() + 1U, Data.c_str() + strlen("LocalhostServerName="), Parameter.LocalServerOptions.LocalFQDNLength);
 			for (Index = 0;Index < Data.length() - strlen("LocalhostServerName=") - 1U;Index++)
 			{
 			//Preferred name syntax(Section 2.3.1 in RFC 1035)
-				if (LocalhostServer.get()[Index] == 45 || LocalhostServer.get()[Index] == 46 || 
-					LocalhostServer.get()[Index] > 47 && LocalhostServer.get()[Index] < 58 || 
-					LocalhostServer.get()[Index] > 64 && LocalhostServer.get()[Index] < 91 || 
-					LocalhostServer.get()[Index] > 96 && LocalhostServer.get()[Index] < 123)
+				if (LocalFQDN.get()[Index] == 45 || LocalFQDN.get()[Index] == 46 || 
+					LocalFQDN.get()[Index] > 47 && LocalFQDN.get()[Index] < 58 || 
+					LocalFQDN.get()[Index] > 64 && LocalFQDN.get()[Index] < 91 || 
+					LocalFQDN.get()[Index] > 96 && LocalFQDN.get()[Index] < 123)
 				{
-					if (LocalhostServer.get()[Index] == 46)
+					if (LocalFQDN.get()[Index] == 46)
 					{
 						Point.get()[Result] = (int)Index;
 						Result++;
@@ -3083,42 +3139,44 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const PWSTR FileName, con
 				}
 				else {
 					PrintError(LOG_ERROR_PARAMETER, L"Localhost server name format error", NULL, FileName, Line);
-					Parameter.LocalhostServerOptions.LocalhostServerLength = 0;
+					Parameter.LocalServerOptions.LocalFQDNLength = 0;
 					break;
 				}
 			}
 
-			if (Parameter.LocalhostServerOptions.LocalhostServerLength > 2U)
+			if (Parameter.LocalServerOptions.LocalFQDNLength > 2U)
 			{
-				std::shared_ptr<char> LocalhostServerName(new char[DOMAIN_MAXSIZE]());
+				std::shared_ptr<char> LocalFQDNName(new char[DOMAIN_MAXSIZE]());
 				for (Index = 0;Index < (size_t)Result;Index++)
 				{
 					if (Index + 1 == Result)
 					{
-						LocalhostServerName.get()[Point.get()[Index]] = (int)(Parameter.LocalhostServerOptions.LocalhostServerLength - Point.get()[Index]);
-						memcpy(LocalhostServerName.get() + Point.get()[Index] + 1U, LocalhostServer.get() + Point.get()[Index] + 1U, Parameter.LocalhostServerOptions.LocalhostServerLength - Point.get()[Index]);
+						LocalFQDNName.get()[Point.get()[Index]] = (int)(Parameter.LocalServerOptions.LocalFQDNLength - Point.get()[Index]);
+						memcpy(LocalFQDNName.get() + Point.get()[Index] + 1U, LocalFQDN.get() + Point.get()[Index] + 1U, Parameter.LocalServerOptions.LocalFQDNLength - Point.get()[Index]);
 					}
 					else {
-						LocalhostServerName.get()[Point.get()[Index]] = Point.get()[Index + 1U] - Point.get()[Index] - 1U;
-						memcpy(LocalhostServerName.get() + Point.get()[Index] + 1U, LocalhostServer.get() + Point.get()[Index] + 1U, Point.get()[Index + 1U] - Point.get()[Index]);
+						LocalFQDNName.get()[Point.get()[Index]] = Point.get()[Index + 1U] - Point.get()[Index] - 1U;
+						memcpy(LocalFQDNName.get() + Point.get()[Index] + 1U, LocalFQDN.get() + Point.get()[Index] + 1U, Point.get()[Index + 1U] - Point.get()[Index]);
 					}
 				}
 
-				memcpy(Parameter.LocalhostServerOptions.LocalhostServer, LocalhostServerName.get(), Parameter.LocalhostServerOptions.LocalhostServerLength + 1U);
+				memcpy(Parameter.LocalServerOptions.LocalFQDN, LocalFQDNName.get(), Parameter.LocalServerOptions.LocalFQDNLength + 1U);
 
 			}
 */
-			std::shared_ptr<char> LocalhostServer(new char[DOMAIN_MAXSIZE]());
-			Parameter.LocalhostServerOptions.LocalhostServerLength = Data.length() - strlen("LocalhostServerName=");
-			memcpy(LocalhostServer.get(), Data.c_str() + strlen("LocalhostServerName="), Parameter.LocalhostServerOptions.LocalhostServerLength);
-			Result = CharToDNSQuery(LocalhostServer.get(), Parameter.LocalhostServerOptions.LocalhostServer);
+			std::shared_ptr<char> LocalFQDN(new char[DOMAIN_MAXSIZE]());
+			Parameter.LocalServerOptions.LocalFQDNLength = Data.length() - strlen("LocalhostServerName=");
+			memcpy(LocalFQDN.get(), Data.c_str() + strlen("LocalhostServerName="), Parameter.LocalServerOptions.LocalFQDNLength);
+			Parameter.LocalServerOptions.LocalFQDNString = LocalFQDN.get();
+			Result = CharToDNSQuery(LocalFQDN.get(), Parameter.LocalServerOptions.LocalFQDN);
 			if (Result > 2U) //Domain length is between 3 and 63(Labels must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
 			{
-				Parameter.LocalhostServerOptions.LocalhostServerLength = Result;
+				Parameter.LocalServerOptions.LocalFQDNLength = Result;
 			}
 			else {
-				Parameter.LocalhostServerOptions.LocalhostServerLength = 0;
-				memset(Parameter.LocalhostServerOptions.LocalhostServer, 0, DOMAIN_MAXSIZE);
+				Parameter.LocalServerOptions.LocalFQDNLength = 0;
+				memset(Parameter.LocalServerOptions.LocalFQDN, 0, DOMAIN_MAXSIZE);
+				Parameter.LocalServerOptions.LocalFQDNString.clear();
 			}
 		}
 		else {
@@ -3991,7 +4049,7 @@ size_t __fastcall ReadIPFilter(void)
 					while (!feof(Input))
 					{
 						ReadLength = fread_s(Buffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, Input);
-						Keccak_HashUpdate(&HashInstance, (BitSequence *)Buffer.get(), ReadLength * 8U);
+						Keccak_HashUpdate(&HashInstance, (BitSequence *)Buffer.get(), ReadLength * BYTES_TO_BITS);
 					}
 					memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 					Keccak_HashFinal(&HashInstance, (BitSequence *)Buffer.get());
@@ -4140,7 +4198,7 @@ size_t __fastcall ReadIPFilter(void)
 						if (AddressRangeIter[0]->Begin.ss_family == AF_INET6 && AddressRangeIter[1U]->Begin.ss_family == AF_INET6)
 						{
 						//A-Range is not same as B-Range.
-							if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[0]->End)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->Begin)->sin6_addr, AF_INET6) == COMPARE_LESS)
+							if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[0]->End)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->Begin)->sin6_addr, AF_INET6) == ADDRESS_COMPARE_LESS)
 							{
 								IPv6NextAddress = ((PSOCKADDR_IN6)&AddressRangeIter[0]->End)->sin6_addr;
 							//Check next address.
@@ -4169,7 +4227,7 @@ size_t __fastcall ReadIPFilter(void)
 								break;
 							}
 						//B-Range is not same as A-Range.
-							else if (CompareAddresses(&AddressRangeIter[0]->Begin, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->End)->sin6_addr, AF_INET6) == COMPARE_GREATER)
+							else if (CompareAddresses(&AddressRangeIter[0]->Begin, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->End)->sin6_addr, AF_INET6) == ADDRESS_COMPARE_GREATER)
 							{
 								IPv6NextAddress = ((PSOCKADDR_IN6)&AddressRangeIter[1U]->End)->sin6_addr;
 							//Check next address.
@@ -4198,22 +4256,22 @@ size_t __fastcall ReadIPFilter(void)
 								break;
 							}
 						//A-Range is same as B-Range.
-							else if (CompareAddresses(&AddressRangeIter[0]->Begin, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->Begin)->sin6_addr, AF_INET6) == COMPARE_EQUAL && 
-								CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[0]->End)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->End)->sin6_addr, AF_INET6) == COMPARE_EQUAL)
+							else if (CompareAddresses(&AddressRangeIter[0]->Begin, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->Begin)->sin6_addr, AF_INET6) == ADDRESS_COMPARE_EQUAL && 
+								CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[0]->End)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->End)->sin6_addr, AF_INET6) == ADDRESS_COMPARE_EQUAL)
 							{
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
 								AddressRangeIter[0]--;
 								break;
 							}
 						//A-Range connect B-Range or B-Range connect A-Range.
-							else if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[0]->End)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->Begin)->sin6_addr, AF_INET6) == COMPARE_EQUAL)
+							else if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[0]->End)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->Begin)->sin6_addr, AF_INET6) == ADDRESS_COMPARE_EQUAL)
 							{
 								AddressRangeIter[0]->End = AddressRangeIter[1U]->End;
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
 								AddressRangeIter[0]--;
 								break;
 							}
-							else if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[1U]->End)->sin6_addr, &AddressRangeIter[0]->Begin, AF_INET6) == COMPARE_EQUAL)
+							else if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[1U]->End)->sin6_addr, &AddressRangeIter[0]->Begin, AF_INET6) == ADDRESS_COMPARE_EQUAL)
 							{
 								AddressRangeIter[0]->Begin = AddressRangeIter[1U]->Begin;
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
@@ -4221,15 +4279,15 @@ size_t __fastcall ReadIPFilter(void)
 								break;
 							}
 						//A-Range include B-Range or B-Range include A-Range.
-							else if (CompareAddresses(&AddressRangeIter[0]->Begin, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->Begin)->sin6_addr, AF_INET6) == COMPARE_LESS && 
-								CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[0]->End)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->End)->sin6_addr, AF_INET6) == COMPARE_GREATER)
+							else if (CompareAddresses(&AddressRangeIter[0]->Begin, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->Begin)->sin6_addr, AF_INET6) == ADDRESS_COMPARE_LESS && 
+								CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[0]->End)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->End)->sin6_addr, AF_INET6) == ADDRESS_COMPARE_GREATER)
 							{
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
 								AddressRangeIter[0]--;
 								break;
 							}
-							else if (CompareAddresses(&AddressRangeIter[0]->Begin, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->Begin)->sin6_addr, AF_INET6) == COMPARE_GREATER && 
-								CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[0]->End)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->End)->sin6_addr, AF_INET6) == COMPARE_LESS)
+							else if (CompareAddresses(&AddressRangeIter[0]->Begin, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->Begin)->sin6_addr, AF_INET6) == ADDRESS_COMPARE_GREATER && 
+								CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[0]->End)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->End)->sin6_addr, AF_INET6) == ADDRESS_COMPARE_LESS)
 							{
 								*AddressRangeIter[0] = *AddressRangeIter[1U];
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
@@ -4237,18 +4295,18 @@ size_t __fastcall ReadIPFilter(void)
 								break;
 							}
 						//A part of A-Range or B-Range is same as a part of B-Range or A-Range, also begin or end of A-Range or B-Range is same as begin or end of A-Range or B-Range.
-							if (CompareAddresses(&AddressRangeIter[0]->Begin, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->Begin)->sin6_addr, AF_INET6) == COMPARE_EQUAL)
+							if (CompareAddresses(&AddressRangeIter[0]->Begin, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->Begin)->sin6_addr, AF_INET6) == ADDRESS_COMPARE_EQUAL)
 							{
-								if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[0]->End)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->End)->sin6_addr, AF_INET6) == COMPARE_LESS)
+								if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[0]->End)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->End)->sin6_addr, AF_INET6) == ADDRESS_COMPARE_LESS)
 									*AddressRangeIter[0] = *AddressRangeIter[1U];
 
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
 								AddressRangeIter[0]--;
 								break;
 							}
-							else if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[0]->End)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->End)->sin6_addr, AF_INET6) == COMPARE_EQUAL)
+							else if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[0]->End)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->End)->sin6_addr, AF_INET6) == ADDRESS_COMPARE_EQUAL)
 							{
-								if (CompareAddresses(&AddressRangeIter[0]->Begin, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->Begin)->sin6_addr, AF_INET6) != COMPARE_LESS)
+								if (CompareAddresses(&AddressRangeIter[0]->Begin, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->Begin)->sin6_addr, AF_INET6) != ADDRESS_COMPARE_LESS)
 									*AddressRangeIter[0] = *AddressRangeIter[1U];
 
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
@@ -4256,14 +4314,14 @@ size_t __fastcall ReadIPFilter(void)
 								break;
 							}
 						//A part of A-Range or B-Range is same as a part of B-Range or A-Range.
-							else if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[0]->End)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->Begin)->sin6_addr, AF_INET6) == COMPARE_GREATER)
+							else if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[0]->End)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeIter[1U]->Begin)->sin6_addr, AF_INET6) == ADDRESS_COMPARE_GREATER)
 							{
 								AddressRangeIter[0]->End = AddressRangeIter[1U]->End;
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
 								AddressRangeIter[0]--;
 								break;
 							}
-							else if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[1U]->End)->sin6_addr, &AddressRangeIter[0]->Begin, AF_INET6) == COMPARE_GREATER)
+							else if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeIter[1U]->End)->sin6_addr, &AddressRangeIter[0]->Begin, AF_INET6) == ADDRESS_COMPARE_GREATER)
 							{
 								AddressRangeIter[0]->Begin = AddressRangeIter[1U]->Begin;
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
@@ -4275,7 +4333,7 @@ size_t __fastcall ReadIPFilter(void)
 						else if (AddressRangeIter[0]->Begin.ss_family == AF_INET && AddressRangeIter[1U]->Begin.ss_family == AF_INET)
 						{
 						//A-Range is not same as B-Range.
-							if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->Begin)->sin_addr, AF_INET) == COMPARE_LESS)
+							if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->Begin)->sin_addr, AF_INET) == ADDRESS_COMPARE_LESS)
 							{
 								IPv4NextAddress = ((PSOCKADDR_IN)&AddressRangeIter[0]->End)->sin_addr;
 							//Check next address.
@@ -4290,7 +4348,7 @@ size_t __fastcall ReadIPFilter(void)
 								break;
 							}
 						//B-Range is not same as A-Range.
-							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->End)->sin_addr, AF_INET) == COMPARE_GREATER)
+							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->End)->sin_addr, AF_INET) == ADDRESS_COMPARE_GREATER)
 							{
 								IPv4NextAddress = ((PSOCKADDR_IN)&AddressRangeIter[1U]->End)->sin_addr;
 							//Check next address.
@@ -4305,21 +4363,21 @@ size_t __fastcall ReadIPFilter(void)
 								break;
 							}
 						//A-Range is same as B-Range.
-							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->Begin)->sin_addr, AF_INET) == COMPARE_EQUAL && 
-								CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->End)->sin_addr, AF_INET) == COMPARE_EQUAL)
+							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->Begin)->sin_addr, AF_INET) == ADDRESS_COMPARE_EQUAL && 
+								CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->End)->sin_addr, AF_INET) == ADDRESS_COMPARE_EQUAL)
 							{
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
 								break;
 							}
 						//A-Range connect B-Range or B-Range connect A-Range.
-							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->Begin)->sin_addr, AF_INET) == COMPARE_EQUAL)
+							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->Begin)->sin_addr, AF_INET) == ADDRESS_COMPARE_EQUAL)
 							{
 								AddressRangeIter[0]->End = AddressRangeIter[1U]->End;
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
 								AddressRangeIter[0]--;
 								break;
 							}
-							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[1U]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[0]->Begin)->sin_addr, AF_INET) == COMPARE_EQUAL)
+							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[1U]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[0]->Begin)->sin_addr, AF_INET) == ADDRESS_COMPARE_EQUAL)
 							{
 								AddressRangeIter[0]->Begin = AddressRangeIter[1U]->Begin;
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
@@ -4327,15 +4385,15 @@ size_t __fastcall ReadIPFilter(void)
 								break;
 							}
 						//A-Range include B-Range or B-Range include A-Range.
-							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->Begin)->sin_addr, AF_INET) == COMPARE_LESS && 
-								CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->End)->sin_addr, AF_INET) == COMPARE_GREATER)
+							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->Begin)->sin_addr, AF_INET) == ADDRESS_COMPARE_LESS && 
+								CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->End)->sin_addr, AF_INET) == ADDRESS_COMPARE_GREATER)
 							{
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
 								AddressRangeIter[0]--;
 								break;
 							}
-							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->Begin)->sin_addr, AF_INET) == COMPARE_GREATER && 
-								CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->End)->sin_addr, AF_INET) == COMPARE_LESS)
+							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->Begin)->sin_addr, AF_INET) == ADDRESS_COMPARE_GREATER && 
+								CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->End)->sin_addr, AF_INET) == ADDRESS_COMPARE_LESS)
 							{
 								*AddressRangeIter[0] = *AddressRangeIter[1U];
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
@@ -4343,18 +4401,18 @@ size_t __fastcall ReadIPFilter(void)
 								break;
 							}
 						//A part of A-Range or B-Range is same as a part of B-Range or A-Range, also begin or end of A-Range or B-Range is same as begin or end of A-Range or B-Range.
-							if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->Begin)->sin_addr, AF_INET) == COMPARE_EQUAL)
+							if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->Begin)->sin_addr, AF_INET) == ADDRESS_COMPARE_EQUAL)
 							{
-								if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->End)->sin_addr, AF_INET) == COMPARE_LESS)
+								if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->End)->sin_addr, AF_INET) == ADDRESS_COMPARE_LESS)
 									*AddressRangeIter[0] = *AddressRangeIter[1U];
 
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
 								AddressRangeIter[0]--;
 								break;
 							}
-							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->End)->sin_addr, AF_INET) == COMPARE_EQUAL)
+							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->End)->sin_addr, AF_INET) == ADDRESS_COMPARE_EQUAL)
 							{
-								if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->Begin)->sin_addr, AF_INET) != COMPARE_LESS)
+								if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->Begin)->sin_addr, AF_INET) != ADDRESS_COMPARE_LESS)
 									*AddressRangeIter[0] = *AddressRangeIter[1U];
 
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
@@ -4362,14 +4420,14 @@ size_t __fastcall ReadIPFilter(void)
 								break;
 							}
 						//A part of A-Range or B-Range is same as a part of B-Range or A-Range.
-							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->Begin)->sin_addr, AF_INET) == COMPARE_GREATER)
+							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[0]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[1U]->Begin)->sin_addr, AF_INET) == ADDRESS_COMPARE_GREATER)
 							{
 								AddressRangeIter[0]->End = AddressRangeIter[1U]->End;
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
 								AddressRangeIter[0]--;
 								break;
 							}
-							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[1U]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[0]->Begin)->sin_addr, AF_INET) == COMPARE_GREATER)
+							else if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeIter[1U]->End)->sin_addr, &((PSOCKADDR_IN)&AddressRangeIter[0]->Begin)->sin_addr, AF_INET) == ADDRESS_COMPARE_GREATER)
 							{
 								AddressRangeIter[0]->Begin = AddressRangeIter[1U]->Begin;
 								AddressRangeIter[0] = AddressRangeModificating->erase(AddressRangeIter[1U]);
@@ -5161,7 +5219,7 @@ size_t __fastcall ReadHosts(void)
 					while (!feof(Input))
 					{
 						ReadLength = fread_s(Buffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, Input);
-						Keccak_HashUpdate(&HashInstance, (BitSequence *)Buffer.get(), ReadLength * 8U);
+						Keccak_HashUpdate(&HashInstance, (BitSequence *)Buffer.get(), ReadLength * BYTES_TO_BITS);
 					}
 					memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 					Keccak_HashFinal(&HashInstance, (BitSequence *)Buffer.get());
@@ -5323,7 +5381,7 @@ size_t __fastcall ReadHosts(void)
 
 	//Flush DNS cache.
 		if (Parameter.FileHash)
-			DnsFlushResolverCache();
+			FlushDNSResolverCache();
 		
 	//Auto-refresh
 		Sleep((DWORD)Parameter.FileRefreshTime);
@@ -5980,17 +6038,17 @@ inline bool __fastcall ReadNextLineType(const PSTR Buffer, const size_t Length, 
 //Read next line type.
 	for (size_t Index = 0;Index < Length - 1U;Index++)
 	{
-		if (Buffer[Index] == CarriageReturn && Buffer[Index + 1U] == LineFeed)
+		if (Buffer[Index] == ASCII_CR && Buffer[Index + 1U] == ASCII_LF)
 		{
 			NextLineType = NEXTLINETYPE_CRLF;
 			return true;
 		}
-		else if (Buffer[Index] == LineFeed)
+		else if (Buffer[Index] == ASCII_LF)
 		{
 			NextLineType = NEXTLINETYPE_LF;
 			return true;
 		}
-		else if (Buffer[Index] == CarriageReturn)
+		else if (Buffer[Index] == ASCII_CR)
 		{
 			NextLineType = NEXTLINETYPE_CR;
 			return true;
@@ -5999,26 +6057,26 @@ inline bool __fastcall ReadNextLineType(const PSTR Buffer, const size_t Length, 
 
 	for (size_t Index = 4U;Index < Length - 3U;Index++)
 	{
-		if (Buffer[Index] == LineFeed && 
-			((Encoding == ANSI || Encoding == UTF_8) && Buffer[Index - 1U] == CarriageReturn || 
-			(Encoding == UTF_16_LE || Encoding == UTF_16_BE) && Buffer[Index - 2U] == CarriageReturn || 
-			(Encoding == UTF_32_LE || Encoding == UTF_32_BE) && Buffer[Index - 4U] == CarriageReturn))
+		if (Buffer[Index] == ASCII_LF && 
+			((Encoding == ANSI || Encoding == UTF_8) && Buffer[Index - 1U] == ASCII_CR || 
+			(Encoding == UTF_16_LE || Encoding == UTF_16_BE) && Buffer[Index - 2U] == ASCII_CR || 
+			(Encoding == UTF_32_LE || Encoding == UTF_32_BE) && Buffer[Index - 4U] == ASCII_CR))
 		{
 			NextLineType = NEXTLINETYPE_CRLF;
 			return;
 		}
-		else if (Buffer[Index] == LineFeed && 
-			((Encoding == ANSI || Encoding == UTF_8) && Buffer[Index - 1U] != CarriageReturn || 
-			(Encoding == UTF_16_LE || Encoding == UTF_16_BE) && Buffer[Index - 2U] != CarriageReturn || 
-			(Encoding == UTF_32_LE || Encoding == UTF_32_BE) && Buffer[Index - 4U] != CarriageReturn))
+		else if (Buffer[Index] == ASCII_LF && 
+			((Encoding == ANSI || Encoding == UTF_8) && Buffer[Index - 1U] != ASCII_CR || 
+			(Encoding == UTF_16_LE || Encoding == UTF_16_BE) && Buffer[Index - 2U] != ASCII_CR || 
+			(Encoding == UTF_32_LE || Encoding == UTF_32_BE) && Buffer[Index - 4U] != ASCII_CR))
 		{
 			NextLineType = NEXTLINETYPE_LF;
 			return;
 		}
-		else if (Buffer[Index] == CarriageReturn && 
-			((Encoding == ANSI || Encoding == UTF_8) && Buffer[Index + 1U] != LineFeed || 
-			(Encoding == UTF_16_LE || Encoding == UTF_16_BE) && Buffer[Index + 2U] != LineFeed || 
-			(Encoding == UTF_32_LE || Encoding == UTF_32_BE) && Buffer[Index + 4U] != LineFeed))
+		else if (Buffer[Index] == ASCII_CR && 
+			((Encoding == ANSI || Encoding == UTF_8) && Buffer[Index + 1U] != ASCII_LF || 
+			(Encoding == UTF_16_LE || Encoding == UTF_16_BE) && Buffer[Index + 2U] != ASCII_LF || 
+			(Encoding == UTF_32_LE || Encoding == UTF_32_BE) && Buffer[Index + 4U] != ASCII_LF))
 		{
 			NextLineType = NEXTLINETYPE_CR;
 			return;
@@ -6050,66 +6108,64 @@ inline bool __fastcall ReadNextLineType(const PSTR Buffer, const size_t Length, 
 //Compare two addresses
 inline size_t __fastcall CompareAddresses(const void *vAddrBegin, const void *vAddrEnd, const uint16_t Protocol)
 {
-//IPv6
-	if (Protocol == AF_INET6)
+	if (Protocol == AF_INET6) //IPv6
 	{
 		auto AddrBegin = (in6_addr *)vAddrBegin, AddrEnd = (in6_addr *)vAddrEnd;
 		for (size_t Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);Index++)
 		{
 			if (ntohs(AddrBegin->u.Word[Index]) > ntohs(AddrEnd->u.Word[Index]))
 			{
-				return COMPARE_GREATER;
+				return ADDRESS_COMPARE_GREATER;
 			}
 			else if (AddrBegin->u.Word[Index] == AddrEnd->u.Word[Index])
 			{
 				if (Index == sizeof(in6_addr) / sizeof(uint16_t) - 1U)
-					return COMPARE_EQUAL;
+					return ADDRESS_COMPARE_EQUAL;
 				else 
 					continue;
 			}
 			else {
-				return COMPARE_LESS;
+				return ADDRESS_COMPARE_LESS;
 			}
 		}
 	}
-//IPv4
-	else {
+	else { //IPv4
 		auto AddrBegin = (in_addr *)vAddrBegin, AddrEnd = (in_addr *)vAddrEnd;
 		if (AddrBegin->S_un.S_un_b.s_b1 > AddrEnd->S_un.S_un_b.s_b1)
 		{
-			return COMPARE_GREATER;
+			return ADDRESS_COMPARE_GREATER;
 		}
 		else if (AddrBegin->S_un.S_un_b.s_b1 == AddrEnd->S_un.S_un_b.s_b1)
 		{
 			if (AddrBegin->S_un.S_un_b.s_b2 > AddrEnd->S_un.S_un_b.s_b2)
 			{
-				return COMPARE_GREATER;
+				return ADDRESS_COMPARE_GREATER;
 			}
 			else if (AddrBegin->S_un.S_un_b.s_b2 == AddrEnd->S_un.S_un_b.s_b2)
 			{
 				if (AddrBegin->S_un.S_un_b.s_b3 > AddrEnd->S_un.S_un_b.s_b3)
 				{
-					return COMPARE_GREATER;
+					return ADDRESS_COMPARE_GREATER;
 				}
 				else if (AddrBegin->S_un.S_un_b.s_b3 == AddrEnd->S_un.S_un_b.s_b3)
 				{
 					if (AddrBegin->S_un.S_un_b.s_b4 > AddrEnd->S_un.S_un_b.s_b4)
-						return COMPARE_GREATER;
+						return ADDRESS_COMPARE_GREATER;
 					else if (AddrBegin->S_un.S_un_b.s_b4 == AddrEnd->S_un.S_un_b.s_b4)
-						return COMPARE_EQUAL;
+						return ADDRESS_COMPARE_EQUAL;
 					else 
-						return COMPARE_LESS;
+						return ADDRESS_COMPARE_LESS;
 				}
 				else {
-					return COMPARE_LESS;
+					return ADDRESS_COMPARE_LESS;
 				}
 			}
 			else {
-				return COMPARE_LESS;
+				return ADDRESS_COMPARE_LESS;
 			}
 		}
 		else {
-			return COMPARE_LESS;
+			return ADDRESS_COMPARE_LESS;
 		}
 	}
 

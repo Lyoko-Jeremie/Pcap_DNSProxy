@@ -38,8 +38,7 @@ size_t __fastcall CaptureInit(void)
 	std::shared_ptr<char> ErrBuffer(new char[PCAP_ERRBUF_SIZE]());
 	std::shared_ptr<wchar_t> wErrBuffer(new wchar_t[PCAP_ERRBUF_SIZE]());
 	FilterRulesInit(PcapFilterRules);
-	pcap_if *pThedevs = nullptr;
-	pcap_if *pDrive = nullptr;
+	pcap_if *pThedevs = nullptr, *pDrive = nullptr;
 	std::vector<std::string>::iterator CaptureIter;
 	std::string DeviceName;
 
@@ -152,7 +151,8 @@ inline void __fastcall FilterRulesInit(std::string &FilterRules)
 	if (Parameter.Tunnel_IPv6)
 		FilterRules.append("(ip proto 41 or src host ");
 	else 
-*/		FilterRules.append("(src host ");
+*/		
+	FilterRules.append("(src host ");
 
 //Set capture filter.
 	auto NonSingle = false, Connection = false;
@@ -322,9 +322,10 @@ inline void __fastcall FilterRulesInit(std::string &FilterRules)
 		FilterRules.append("))");
 	}
 	else {
-*/		FilterRules.append(") or (pppoes and src host ");
-		FilterRules.append(AddressesString);
-		FilterRules.append(")");
+*/		
+	FilterRules.append(") or (pppoes and src host ");
+	FilterRules.append(AddressesString);
+	FilterRules.append(")");
 //	}
 
 	return;
@@ -382,7 +383,7 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool List)
 		pcap_close(DeviceHandle);
 		return EXIT_FAILURE;
 	}
-	
+
 //Specify a filter program.
 	if (pcap_setfilter(DeviceHandle, BPF_Code.get()) == RETURN_ERROR)
 	{
@@ -548,7 +549,7 @@ size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint1
 			if (ICMPv6Checksum((PUINT8)Buffer.get(), ntohs(pipv6_hdr->PayloadLength), pipv6_hdr->Dst, pipv6_hdr->Src) != CHECKSUM_SUCCESS)
 				return EXIT_FAILURE;
 
-			if (ICMPCheck(Buffer.get(), ntohs(pipv6_hdr->PayloadLength), AF_INET6))
+			if (ICMPCheck(Buffer.get() + sizeof(ipv6_hdr), ntohs(pipv6_hdr->PayloadLength), AF_INET6))
 			{
 			//Mark HopLimit.
 				if (memcmp(&pipv6_hdr->Src, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0) //PREFERRED_SERVER
@@ -738,7 +739,7 @@ size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint1
 			if (GetChecksum((PUINT16)(Buffer.get() + pipv4_hdr->IHL * IPv4_IHL_BYTES_TIMES), ntohs(pipv4_hdr->Length) - pipv4_hdr->IHL * IPv4_IHL_BYTES_TIMES) != CHECKSUM_SUCCESS)
 				return EXIT_FAILURE;
 
-			if (ICMPCheck(Buffer.get(), ntohs(pipv4_hdr->Length), AF_INET))
+			if (ICMPCheck(Buffer.get() + pipv4_hdr->IHL * IPv4_IHL_BYTES_TIMES, ntohs(pipv4_hdr->Length) - pipv4_hdr->IHL * IPv4_IHL_BYTES_TIMES, AF_INET))
 			{
 			//Mark TTL.
 				if (pipv4_hdr->Src.S_un.S_addr == Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.S_un.S_addr) //PREFERRED_SERVER
@@ -902,12 +903,12 @@ inline bool __fastcall ICMPCheck(const PSTR Buffer, const size_t Length, const u
 				return true;
 	}
 	else { //ICMP
-		auto picmp_hdr = (icmp_hdr *)(Buffer + sizeof(ipv4_hdr));
+		auto picmp_hdr = (icmp_hdr *)Buffer;
 		if (picmp_hdr->Type == ICMP_TYPE_ECHO && picmp_hdr->Code == ICMP_CODE_ECHO && //ICMP Echo reply
 		//Validate ICMP packet
 			picmp_hdr->ID == Parameter.ICMPOptions.ICMPID && /* picmp_hdr->Sequence == Parameter.ICMPOptions.ICMPSequence && */
-			Length == sizeof(ipv4_hdr) + sizeof(icmp_hdr) + Parameter.PaddingDataOptions.PaddingDataLength - 1U && 
-			memcmp(Parameter.PaddingDataOptions.PaddingData, (PSTR)picmp_hdr + sizeof(icmp_hdr), Parameter.PaddingDataOptions.PaddingDataLength - 1U) == 0) //Validate ICMP additional data.
+			Length == sizeof(icmp_hdr) + Parameter.ICMPOptions.PaddingDataLength - 1U && 
+			memcmp(Parameter.ICMPOptions.PaddingData, (PSTR)picmp_hdr + sizeof(icmp_hdr), Parameter.ICMPOptions.PaddingDataLength - 1U) == 0) //Validate ICMP additional data.
 				return true;
 	}
 
@@ -944,7 +945,7 @@ inline bool __fastcall DTDNSDCheck(const PSTR Buffer, /* const size_t Length, */
 
 //No Such Name, not standard query response and no error check.
 	if ((ntohs(pdns_hdr->Flags) & DNS_RCODE_NO_SUCH_NAME) == DNS_RCODE_NO_SUCH_NAME || //xxxxxxxxxxxxxx11 & 0000000000000011 == 0000000000000011 -> 0x0003
-		pdns_hdr->Flags != htons(DNS_SQRNE))
+		pdns_hdr->Flags != htons(DNS_SQR_NE))
 	{
 		SignHopLimit = true;
 		return true;
@@ -1027,13 +1028,13 @@ inline size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length,
 {
 	SOCKET_DATA RequesterData = {0};
 	size_t Index = 0;
-	auto ExitLoop = false;
+	auto MarkIndex = false;
 
 //Match port
 	std::unique_lock<std::mutex> PortListMutex(PortListLock);
 	for (Index = 0;Index < QUEUE_MAXLEN * QUEUE_PARTNUM;Index++)
 	{
-		if (ExitLoop)
+		if (MarkIndex)
 		{
 			Index--;
 			break;
@@ -1053,7 +1054,7 @@ inline size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length,
 						PortList.SendData[Index].clear();
 						PortList.SendData[Index].shrink_to_fit();
 
-						ExitLoop = true;
+						MarkIndex = true;
 						break;
 					}
 				}
@@ -1067,7 +1068,7 @@ inline size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length,
 						PortList.SendData[Index].clear();
 						PortList.SendData[Index].shrink_to_fit();
 
-						ExitLoop = true;
+						MarkIndex = true;
 						break;
 					}
 				}
@@ -1130,11 +1131,11 @@ inline size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length,
 			std::shared_ptr<char> UDPBuffer(new char[sizeof(dns_hdr) + strlen(Buffer + sizeof(dns_hdr)) + 1U + sizeof(dns_qry) + sizeof(dns_edns0_label)]());
 			memcpy(UDPBuffer.get(), Buffer, sizeof(dns_hdr) + strlen(Buffer + sizeof(dns_hdr)) + 1U + sizeof(dns_qry));
 			auto pdns_hdr = (dns_hdr *)UDPBuffer.get();
-			pdns_hdr->Flags = htons(DNS_SQRNE_TC);
+			pdns_hdr->Flags = htons(DNS_SQR_NETC);
 			pdns_hdr->Additional = htons(U16_NUM_1);
-			auto EDNS0 = (dns_edns0_label *)(UDPBuffer.get() + sizeof(dns_hdr) + strlen(Buffer + sizeof(dns_hdr)) + 1U + sizeof(dns_qry));
-			EDNS0->Type = htons(DNS_EDNS0_RECORDS);
-			EDNS0->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
+			auto pdns_edns0_label = (dns_edns0_label *)(UDPBuffer.get() + sizeof(dns_hdr) + strlen(Buffer + sizeof(dns_hdr)) + 1U + sizeof(dns_qry));
+			pdns_edns0_label->Type = htons(DNS_EDNS0_RECORDS);
+			pdns_edns0_label->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
 
 			sendto(RequesterData.Socket, UDPBuffer.get(), (int)(sizeof(dns_hdr) + strlen(Buffer + sizeof(dns_hdr)) + 1U + sizeof(dns_qry) + sizeof(dns_edns0_label)), NULL, (PSOCKADDR)&RequesterData.SockAddr, RequesterData.AddrLen);
 		}

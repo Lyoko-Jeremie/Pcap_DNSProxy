@@ -123,6 +123,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * DNSCurve empty Provider Name error - DNSCurve 协议服务器提供者错误：不存在魔数或指纹时必须提供服务器的提供者信息以自动获取连接参数
   * DNSCurve empty Public Key error - DNSCurve 协议服务器提供者错误：不存在魔数或指纹时必须提供服务器的公钥以自动获取连接参数
   * EDNS0 Label must trun ON when request DNSCurve - 使用 DNSCurve 协议时必须开启EDNS0标签请求功能
+  * Compression Pointer Mutation must trun OFF when request EDNS0 Label - 使用 Compression Pointer Mutation 时不能开启EDNS0标签请求功能，两者并不兼容
   * DNSCurve PayloadSize must longer than 512 bytes(Old DNS packets minimum supported size) - DNSCurve 协议载荷长度过短：实现DNS协议必须支持长度超过 512 bytes 的数据包
   * DNSCurve PayloadSize may be too long - DNSCurve 协议载荷长度可能过长：此值建议不要超过以太网的MTU(1512 bytes)
   

@@ -29,9 +29,7 @@ bool __fastcall VerifyKeypair(const PUINT8 PublicKey, const PUINT8 SecretKey)
 
 //Keypair, Nonce and validation data
 	crypto_box_curve25519xsalsa20poly1305_keypair(Test_PublicKey.get(), Test_SecretKey.get());
-	//Test Nonce, 0x00 - 0x23(ASCII)
-	uint8_t Nonce[crypto_box_NONCEBYTES] = {0, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 
-											0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23};
+	uint8_t Nonce[crypto_box_NONCEBYTES] = {DNSCURVE_TEST_NONCE};
 	memcpy(Validation.get() + crypto_box_ZEROBYTES, PublicKey, crypto_box_PUBLICKEYBYTES);
 
 //Verify keys
@@ -131,7 +129,7 @@ inline size_t LocalSignatureRequest(const PSTR Send, const size_t SendSize, PSTR
 {
 //Initialization
 	SYSTEM_SOCKET UDPSocket = 0;
-	sockaddr_storage SockAddr;
+	sockaddr_storage SockAddr = {0};
 	int AddrLen = 0;
 
 //Socket initialization
@@ -230,9 +228,9 @@ inline bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, 
 
 //EDNS0 Label
 	ptcp_dns_hdr->Additional = htons(U16_NUM_1);
-	auto EDNS0 = (dns_edns0_label *)(SendBuffer.get() + DataLength);
-	EDNS0->Type = htons(DNS_EDNS0_RECORDS);
-	EDNS0->UDPPayloadSize = htons(EDNS0_MINSIZE);
+	auto pdns_edns0_label = (dns_edns0_label *)(SendBuffer.get() + DataLength);
+	pdns_edns0_label->Type = htons(DNS_EDNS0_RECORDS);
+	pdns_edns0_label->UDPPayloadSize = htons(EDNS0_MINSIZE);
 	DataLength += sizeof(dns_edns0_label);
 
 	ptcp_dns_hdr->Length = htons((uint16_t)(DataLength - sizeof(uint16_t)));
@@ -281,11 +279,11 @@ inline bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, 
 		}
 
 	//Set socket timeout.
-	/* Old version(2014-07-22)
+/* Old version(2014-07-22)
 
 		if (setsockopt(TCPSocket, SOL_SOCKET, SO_SNDTIMEO, (PSTR)&Parameter.ReliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR || 
 			setsockopt(TCPSocket, SOL_SOCKET, SO_RCVTIMEO, (PSTR)&Parameter.ReliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR)
-	*/
+*/
 		if (setsockopt(TCPSocket, SOL_SOCKET, SO_SNDTIMEO, (PSTR)&Parameter.ReliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
 			setsockopt(TCPSocket, SOL_SOCKET, SO_RCVTIMEO, (PSTR)&Parameter.ReliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
 		{
@@ -591,9 +589,9 @@ inline bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, 
 
 //EDNS0 Label
 	pdns_hdr->Additional = htons(U16_NUM_1);
-	auto EDNS0 = (dns_edns0_label *)(SendBuffer.get() + DataLength);
-	EDNS0->Type = htons(DNS_EDNS0_RECORDS);
-	EDNS0->UDPPayloadSize = htons(EDNS0_MINSIZE);
+	auto pdns_edns0_label = (dns_edns0_label *)(SendBuffer.get() + DataLength);
+	pdns_edns0_label->Type = htons(DNS_EDNS0_RECORDS);
+	pdns_edns0_label->UDPPayloadSize = htons(EDNS0_MINSIZE);
 	DataLength += sizeof(dns_edns0_label);
 
 //Socket initialization
@@ -673,10 +671,10 @@ inline bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, 
 			}
 
 		//Set socket timeout.
-		/* Old version(2014-07-22)
+/* Old version(2014-07-22)
 			if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (PSTR)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR || 
 				setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (PSTR)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR)
-		*/
+*/
 			if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (PSTR)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
 				setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (PSTR)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
 			{
@@ -827,24 +825,22 @@ inline bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, 
 //Get Signature Data of server form packets
 bool __fastcall GetSignatureData(const PSTR Buffer, const size_t ServerType)
 {
-	std::shared_ptr<char> DeBuffer(new char[PACKET_MAXSIZE]());
-
-//Get Signature Data.
-	auto DNS_TXT = (dns_txt_record *)Buffer;
-	if (DNS_TXT->Name == htons(DNS_QUERY_PTR) && 
-		DNS_TXT->Length == htons(DNS_TXT->TXT_Length + 1U) && DNS_TXT->TXT_Length == DNSCRYPT_TXT_RECORDS_LEN)
+	auto pdns_txt_record = (dns_txt_record *)Buffer;
+	if (pdns_txt_record->Name == htons(DNS_QUERY_PTR) &&
+		pdns_txt_record->Length == htons(pdns_txt_record->TXT_Length + 1U) && pdns_txt_record->TXT_Length == DNSCRYPT_TXT_RECORDS_LEN)
 	{
 		auto pdnscurve_txt_hdr = (dnscurve_txt_hdr *)(Buffer + sizeof(dns_txt_record));
 		if (memcmp(&pdnscurve_txt_hdr->CertMagicNumber, DNSCRYPT_CERT_MAGIC, sizeof(uint16_t)) == 0 && 
 			pdnscurve_txt_hdr->MajorVersion == htons(DNSCURVE_VERSION_MAJOR) && pdnscurve_txt_hdr->MinorVersion == DNSCURVE_VERSION_MINOR)
 		{
+			std::shared_ptr<char> DeBuffer(new char[PACKET_MAXSIZE]());
 			dnscurve_txt_signature *SignatureData = nullptr;
 			ULONGLONG SignatureLength = 0;
 
 			if (ServerType == DNSCURVE_MAINIPV6)
 			{
 			//Check Signature.
-				if (crypto_sign_ed25519_open((PUINT8)DeBuffer.get(), &SignatureLength, (PUINT8)(Buffer + sizeof(dns_txt_record) + sizeof(dnscurve_txt_hdr)), DNS_TXT->TXT_Length - sizeof(dnscurve_txt_hdr), DNSCurveParameter.DNSCurveTarget.IPv6.ServerPublicKey) == RETURN_ERROR)
+				if (crypto_sign_ed25519_open((PUINT8)DeBuffer.get(), &SignatureLength, (PUINT8)(Buffer + sizeof(dns_txt_record) + sizeof(dnscurve_txt_hdr)), pdns_txt_record->TXT_Length - sizeof(dnscurve_txt_hdr), DNSCurveParameter.DNSCurveTarget.IPv6.ServerPublicKey) == RETURN_ERROR)
 				{
 					PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server Fingerprint signature validation error", NULL, nullptr, NULL);
 					return false;
@@ -870,7 +866,7 @@ bool __fastcall GetSignatureData(const PSTR Buffer, const size_t ServerType)
 			else if (ServerType == DNSCURVE_MAINIPV4)
 			{
 			//Check Signature.
-				if (crypto_sign_ed25519_open((PUINT8)DeBuffer.get(), &SignatureLength, (PUINT8)(Buffer + sizeof(dns_txt_record) + sizeof(dnscurve_txt_hdr)), DNS_TXT->TXT_Length - sizeof(dnscurve_txt_hdr), DNSCurveParameter.DNSCurveTarget.IPv4.ServerPublicKey) == RETURN_ERROR)
+				if (crypto_sign_ed25519_open((PUINT8)DeBuffer.get(), &SignatureLength, (PUINT8)(Buffer + sizeof(dns_txt_record) + sizeof(dnscurve_txt_hdr)), pdns_txt_record->TXT_Length - sizeof(dnscurve_txt_hdr), DNSCurveParameter.DNSCurveTarget.IPv4.ServerPublicKey) == RETURN_ERROR)
 				{
 					PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server Fingerprint signature validation error", NULL, nullptr, NULL);
 					return false;
@@ -896,7 +892,7 @@ bool __fastcall GetSignatureData(const PSTR Buffer, const size_t ServerType)
 			else if (ServerType == DNSCURVE_ALTERNATEIPV6)
 			{
 			//Check Signature.
-				if (crypto_sign_ed25519_open((PUINT8)DeBuffer.get(), &SignatureLength, (PUINT8)(Buffer + sizeof(dns_txt_record) + sizeof(dnscurve_txt_hdr)), DNS_TXT->TXT_Length - sizeof(dnscurve_txt_hdr), DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ServerPublicKey) == RETURN_ERROR)
+				if (crypto_sign_ed25519_open((PUINT8)DeBuffer.get(), &SignatureLength, (PUINT8)(Buffer + sizeof(dns_txt_record) + sizeof(dnscurve_txt_hdr)), pdns_txt_record->TXT_Length - sizeof(dnscurve_txt_hdr), DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ServerPublicKey) == RETURN_ERROR)
 				{
 					PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server Fingerprint signature validation error", NULL, nullptr, NULL);
 					return false;
@@ -922,7 +918,7 @@ bool __fastcall GetSignatureData(const PSTR Buffer, const size_t ServerType)
 			else if (ServerType == DNSCURVE_ALTERNATEIPV4)
 			{
 			//Check Signature.
-				if (crypto_sign_ed25519_open((PUINT8)DeBuffer.get(), &SignatureLength, (PUINT8)(Buffer + sizeof(dns_txt_record) + sizeof(dnscurve_txt_hdr)), DNS_TXT->TXT_Length - sizeof(dnscurve_txt_hdr), DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ServerPublicKey) == RETURN_ERROR)
+				if (crypto_sign_ed25519_open((PUINT8)DeBuffer.get(), &SignatureLength, (PUINT8)(Buffer + sizeof(dns_txt_record) + sizeof(dnscurve_txt_hdr)), pdns_txt_record->TXT_Length - sizeof(dnscurve_txt_hdr), DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ServerPublicKey) == RETURN_ERROR)
 				{
 					PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server Fingerprint signature validation error", NULL, nullptr, NULL);
 					return false;

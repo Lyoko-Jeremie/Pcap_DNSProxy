@@ -20,14 +20,13 @@
 #include "Pcap_DNSProxy.h"
 
 Configuration Parameter;
-std::vector<std::string> LocalhostPTR[QUEUE_PARTNUM / 2U];
 PortTable PortList;
 std::vector<uint16_t> AcceptTypeList;
 std::vector<HostsTable> HostsList[2U], *HostsListUsing = &HostsList[0], *HostsListModificating = &HostsList[1U];
 std::deque<DNSCacheData> DNSCacheList;
 std::vector<AddressRange> AddressRangeList[2U], *AddressRangeUsing = &AddressRangeList[0], *AddressRangeModificating = &AddressRangeList[1U];
 std::vector<ResultBlacklistTable> ResultBlacklistList[2U], *ResultBlacklistUsing = &ResultBlacklistList[0], *ResultBlacklistModificating = &ResultBlacklistList[1U];
-std::mutex ErrLogLock, RunningLogLock, CaptureLock, PortListLock, LocalhostPTRLock[QUEUE_PARTNUM / 2U], HostsListLock, DNSCacheListLock, AddressRangeLock, ResultBlacklistLock;
+std::mutex ErrLogLock, RunningLogLock, CaptureLock, PortListLock, LocalAddressLock[QUEUE_PARTNUM / 2U], HostsListLock, DNSCacheListLock, AddressRangeLock, ResultBlacklistLock;
 AlternateSwapTable AlternateSwapList;
 DNSCurveConfiguration DNSCurveParameter;
 
@@ -38,7 +37,8 @@ Configuration::Configuration(void)
 	Path = nullptr, ErrorLogPath = nullptr, RunningLogPath = nullptr;
 	DomainTable = nullptr;
 	DNSTarget.IPv4_Multi = nullptr, DNSTarget.IPv6_Multi = nullptr;
-	DomainTestOptions.DomainTestData = nullptr, PaddingDataOptions.PaddingData = nullptr, LocalhostServerOptions.LocalhostServer = nullptr;
+	DomainTestOptions.DomainTestData = nullptr, ICMPOptions.PaddingData = nullptr, LocalServerOptions.LocalFQDN = nullptr;
+	LocalAddressOptions.LocalAddress[0] = nullptr, LocalAddressOptions.LocalAddress[1U] = nullptr;
 	try {
 		Path = new std::wstring();
 		ErrorLogPath = new std::wstring();
@@ -49,8 +49,12 @@ Configuration::Configuration(void)
 		DNSTarget.IPv6_Multi = new std::vector<DNSServerData>();
 
 		DomainTestOptions.DomainTestData = new char[DOMAIN_MAXSIZE]();
-		PaddingDataOptions.PaddingData = new char[ICMP_PADDING_MAXSIZE](); 
-		LocalhostServerOptions.LocalhostServer = new char[DOMAIN_MAXSIZE]();
+		ICMPOptions.PaddingData = new char[ICMP_PADDING_MAXSIZE](); 
+		LocalServerOptions.LocalFQDN = new char[DOMAIN_MAXSIZE]();
+		LocalServerOptions.LocalPTRResponse = new char[DOMAIN_MAXSIZE + sizeof(dns_ptr_record) + sizeof(dns_edns0_label)]();
+
+		LocalAddressOptions.LocalAddress[0] = new char[PACKET_MAXSIZE]();
+		LocalAddressOptions.LocalAddress[1U] = new char[PACKET_MAXSIZE]();
 	}
 	catch (std::bad_alloc)
 	{
@@ -64,13 +68,18 @@ Configuration::Configuration(void)
 		delete DNSTarget.IPv6_Multi;
 	//Domain test data, padding data and localhost server name
 		delete[] DomainTestOptions.DomainTestData;
-		delete[] PaddingDataOptions.PaddingData;
-		delete[] LocalhostServerOptions.LocalhostServer;
+		delete[] ICMPOptions.PaddingData;
+		delete[] LocalServerOptions.LocalFQDN;
+		delete[] LocalServerOptions.LocalPTRResponse;
+	//Local address response packets
+		delete[] LocalAddressOptions.LocalAddress[0];
+		delete[] LocalAddressOptions.LocalAddress[1U];
 	//Reset pointer.
 		Path = nullptr, ErrorLogPath = nullptr, RunningLogPath = nullptr;
 		DomainTable = nullptr;
 		DNSTarget.IPv4_Multi = nullptr, DNSTarget.IPv6_Multi = nullptr;
-		DomainTestOptions.DomainTestData = nullptr, PaddingDataOptions.PaddingData = nullptr, LocalhostServerOptions.LocalhostServer = nullptr;
+		DomainTestOptions.DomainTestData = nullptr, ICMPOptions.PaddingData = nullptr, LocalServerOptions.LocalFQDN = nullptr, LocalServerOptions.LocalPTRResponse = nullptr;
+		LocalAddressOptions.LocalAddress[0] = nullptr, LocalAddressOptions.LocalAddress[1U] = nullptr;
 
 		WSACleanup();
 		TerminateService();
@@ -99,13 +108,18 @@ Configuration::~Configuration(void)
 	delete DNSTarget.IPv6_Multi;
 //Domain test data, padding data and localhost server name
 	delete[] DomainTestOptions.DomainTestData;
-	delete[] PaddingDataOptions.PaddingData;
-	delete[] LocalhostServerOptions.LocalhostServer;
+	delete[] ICMPOptions.PaddingData;
+	delete[] LocalServerOptions.LocalFQDN;
+	delete[] LocalServerOptions.LocalPTRResponse;
+//Local address response packets
+	delete[] LocalAddressOptions.LocalAddress[0];
+	delete[] LocalAddressOptions.LocalAddress[1U];
 //Reset pointer.
 	Path = nullptr, ErrorLogPath = nullptr, RunningLogPath = nullptr;
 	DomainTable = nullptr;
 	DNSTarget.IPv4_Multi = nullptr, DNSTarget.IPv6_Multi = nullptr;
-	DomainTestOptions.DomainTestData = nullptr, PaddingDataOptions.PaddingData = nullptr, LocalhostServerOptions.LocalhostServer = nullptr;
+	DomainTestOptions.DomainTestData = nullptr, ICMPOptions.PaddingData = nullptr, LocalServerOptions.LocalFQDN = nullptr, LocalServerOptions.LocalPTRResponse = nullptr;
+	LocalAddressOptions.LocalAddress[0] = nullptr, LocalAddressOptions.LocalAddress[1U] = nullptr;
 
 	return;
 }

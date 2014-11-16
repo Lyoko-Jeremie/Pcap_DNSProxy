@@ -23,13 +23,16 @@
 #define U8_MAXNUM            0x00FF                  //Maximum value of uint8_t/8 bits
 #define U16_MAXNUM           0xFFFF                  //Maximum value of uint16_t/16 bits
 //#define U32_MAXNUM           0xFFFFFFFF              //Maximum value of uint32_t/32 bits
+//#define U64_MAXNUM           0xFFFFFFFFFFFFFFFF      //Maximum value of uint64_t/64 bits
 #define U16_NUM_1            0x0001
 #define NUM_DECIMAL          10
 #define NUM_HEX              16
 
 //ASCII values defines
 #define ASCII_HT                9                    //"␉"
+#define ASCII_LF                0x0A                 //10, Line Feed or LF
 #define ASCII_FF                12                   //"␌"
+#define ASCII_CR                0x0D                 //13, Carriage Return or CR
 #define ASCII_SPACE             32                   //" "
 #define ASCII_HASHTAG           35                   //"#"
 #define ASCII_AMPERSAND         38                   //"&"
@@ -48,7 +51,7 @@
 #define ASCII_ACCENT            96                   //"`"
 #define ASCII_LOWERCASE_A       97                   //"a"
 #define ASCII_LOWERCASE_F       102                   //"f"
-#define ASCII_BRACES_LEAD     123                  //"{"
+#define ASCII_BRACES_LEAD       123                  //"{"
 #define ASCII_VERTICAL          124                  //"|"
 
 //Version define
@@ -57,6 +60,10 @@
 #define HOSTS_VERSION        0.4                     //Current version of hosts file
 
 //Length defines
+//BOM length defines
+#define BOM_UTF_8_LENGTH               3U            //Length of UTF-8 BOM
+#define BOM_UTF_16_LENGTH              2U            //Length of UTF-16 BOM
+#define BOM_UTF_32_LENGTH              4U            //Length of UTF-32 BOM
 #define FILE_BUFFER_SIZE               4096U         //Maximum size of file buffer
 #define DEFAULT_FILE_MAXSIZE           4294967296U   //Maximum size of whole reading file(4GB/4294967296 bytes).
 #define DEFAULT_LOG_MAXSIZE            8388608U      //Maximum size of whole log file(8MB/8388608 bytes).
@@ -74,13 +81,14 @@
 
 //Code defines
 #define RETURN_ERROR                          -1
+#define BYTES_TO_BITS                         8U
 #define MBSTOWCS_NULLTERMINATE                -1         //MultiByteToWideChar() find null-terminate.
 #define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE   8192U      //Buffer maximum size of QueryServiceConfig() is 8KB/8192 Bytes.
 #define SYSTEM_SOCKET                         UINT_PTR   //System Socket defined(WinSock2.h), not the same in x86(unsigned int) and x64(unsigned __int64) platform, which define in WinSock2.h file.
 #define SHA3_512_SIZE                         64U        //SHA3-512 instance as specified in the FIPS 202 draft in April 2014(http://csrc.nist.gov/publications/drafts/fips-202/fips_202_draft.pdf), 512 bits/64 bytes.
 #define CHECKSUM_SUCCESS                      0          //Result of getting correct checksums.
 
-//Time defines
+//Time(s) defines
 #define STANDARD_TIMEOUT                   1000U     //Standard timeout, 1000 ms(1 second)
 #define SECOND_TO_MILLISECOND              1000U     //1000 milliseconds(1 second)
 #define UPDATESERVICE_TIME                 3U        //Update service timeout, 3 seconds
@@ -91,7 +99,7 @@
 #define UNRELIABLE_SOCKET_TIMEOUT          2000U     //Timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds/2000ms)
 #define DEFAULT_FILEREFRESH_TIME           5U        //Default time between file(s) auto-refreshing, 5 seconds
 #define DEFAULT_ICMPTEST_TIME              5U        //Default time between ICMP Test, 5 seconds
-#define DEFAULT_DOMAINTEST_INTERVAL_TIME   900U   //Default Domain Test time between every sending, 15 minutes(900 seconds)
+#define DEFAULT_DOMAINTEST_INTERVAL_TIME   900U      //Default Domain Test time between every sending, 15 minutes(900 seconds)
 #define DEFAULT_ALTERNATE_TIMES            5U        //Default times of requesting timeout, 5 times
 #define DEFAULT_ALTERNATE_RANGE            10U       //Default time of checking timeout, 10 seconds
 #define DEFAULT_ALTERNATERESET_TIME        180U      //Default time to reset switching of alternate servers, 180 seconds
@@ -100,13 +108,14 @@
 #define SHORTEST_DOMAINTEST_INTERVAL_TIME  5000U     //The shortset Domain Test time between every sending, 5 seconds(5000 ms)
 #define SHORTEST_DNSCURVE_RECHECK_TIME     10U       //The shortset DNSCurve key(s) recheck time, 10 seconds
 #define SENDING_INTERVAL_TIME              5U        //Time between every sending, 5 seconds
+#define SENDING_ONCE_INTERVAL_TIMES        3U        //Repeat 3 times between every sending.
 
 //Data defines
 #define DEFAULT_LOCAL_SERVICENAME   L"PcapDNSProxyService"                                                 //Default service name of system
-#define DEFAULT_LOCAL_SERVERNAME    ("pcap-dnsproxy.localhost.server")                                     //Default Localhost DNS server name
+#define DEFAULT_LOCAL_SERVERNAME    ("pcap-dnsproxy.localhost.server")                                     //Default Local DNS server name
 #define DEFAULT_PADDINGDATA         ("abcdefghijklmnopqrstuvwabcdefghi")                                   //ICMP padding data(Microsoft Windows Ping)
 #define RFC_DOMAIN_TABLE            (".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")   //Preferred name syntax(Section 2.3.1 in RFC 1035)
-#define SENDING_ONCE_INTERVAL_TIMES 3U                                                                     //Repeat 3 times between every sending.
+#define DNSCURVE_TEST_NONCE         0, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23 //DNSCurve Test Nonce, 0x00 - 0x23(ASCII)
 #define DEFAULT_SEQUENCE            0x0001
 
 //Error Type defines
@@ -119,9 +128,10 @@
 #define LOG_ERROR_DNSCURVE   7U                      // 07: DNSCurve Error
 
 //Running Status level defines
-#define LOG_STATUS_LEVEL1    1U
-#define LOG_STATUS_LEVEL2    2U
-#define LOG_STATUS_LEVEL3    3U
+#define LOG_STATUS_CLOSED    0U                      //
+#define LOG_STATUS_LEVEL1    1U                      //
+#define LOG_STATUS_LEVEL2    2U                      //
+#define LOG_STATUS_LEVEL3    3U                      //
 
 //Codes and types defines
 #define LISTEN_IPV4                    0
@@ -284,6 +294,9 @@ public:
 		uint16_t             ICMPID;
 		uint16_t             ICMPSequence;
 		size_t               ICMPSpeed;
+	//[Data] block(A part)
+		PSTR                 PaddingData;
+		size_t               PaddingDataLength;
 	}ICMPOptions;
 	struct _domaintest_options_ {
 		PSTR                 DomainTestData;
@@ -298,6 +311,7 @@ public:
 	size_t                   MultiRequestTimes;
 //[Switches] block
 	bool                     DomainCaseConversion;
+	bool                     CompressionPointerMutation;
 	bool                     EDNS0Label;
 	bool                     DNSSECRequest;
 	bool                     AlternateMultiRequest;
@@ -305,15 +319,14 @@ public:
 	bool                     TCPDataCheck;
 	bool                     DNSDataCheck;
 	bool                     Blacklist;
-//[Data] block
-	struct _paddingdata_options_ {
-		PSTR                 PaddingData;
-		size_t               PaddingDataLength;
-	}PaddingDataOptions;
-	struct _localhostserver_options_ {
-		PSTR                 LocalhostServer;
-		size_t               LocalhostServerLength;
-	}LocalhostServerOptions;
+//[Data] block(B part)
+	struct _local_server_options_ {
+		std::string          LocalFQDNString;
+		PSTR                 LocalFQDN;
+		size_t               LocalFQDNLength;
+		PSTR                 LocalPTRResponse;
+		size_t               LocalPTRResponseLength;
+	}LocalServerOptions;
 //[DNSCurve/DNSCrypt] block
 	bool                     DNSCurve;
 
@@ -324,6 +337,11 @@ public:
 	std::wstring             *Path, *ErrorLogPath, *RunningLogPath;
 	int                      ReliableSocketTimeout, UnreliableSocketTimeout;
 	PSTR                     DomainTable;
+	struct _local_address_options_ {
+		PSTR                     LocalAddress[QUEUE_PARTNUM / 2U];
+		size_t                   LocalAddressLength[QUEUE_PARTNUM / 2U];
+		std::vector<std::string> LocalAddressPTR[QUEUE_PARTNUM / 2U];
+	}LocalAddressOptions;
 //Hosts file(s) block
 	uint32_t                 HostsDefaultTTL;
 //IPv6 tunnels support block
@@ -411,17 +429,19 @@ public:
 
 //PrintLog.cpp
 size_t __fastcall PrintError(const size_t Type, const PWSTR Message, const SSIZE_T ErrCode, const PWSTR FileName, const size_t Line);
-size_t __fastcall PrintStatus(const PWSTR Message);
+size_t __fastcall PrintStatus( /* const size_t Level, */ const PWSTR Message /* , const PWSTR Message_B */ );
+size_t __fastcall PrintParameterList(void);
 
 //Protocol.cpp
 bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length);
 //uint64_t __fastcall hton64(const uint64_t Val);
 //uint64_t __fastcall ntoh64(const uint64_t Val);
+size_t __fastcall CaseConvert(bool LowerUpper, const PSTR Buffer, const size_t Length);
 size_t __fastcall AddressStringToBinary(const PSTR AddrString, void *pAddr, const uint16_t Protocol, SSIZE_T &ErrCode);
 PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol);
 size_t __fastcall GetLocalAddressInformation(const uint16_t Protocol);
 uint16_t __fastcall ServiceNameToPort(const PSTR Buffer);
-uint16_t __fastcall DNSTypeNameToHex(const PSTR Buffer);
+uint16_t __fastcall DNSTypeNameToID(const PSTR Buffer);
 bool __fastcall CheckSpecialAddress(const void *Addr, const uint16_t Protocol, const PSTR Domain);
 bool __fastcall CustomModeFilter(const void *pAddr, const uint16_t Protocol);
 //uint32_t __fastcall GetFCS(const PUINT8 Buffer, const size_t Length);
@@ -431,8 +451,10 @@ uint16_t __fastcall TCPUDPChecksum(const PUINT8 Buffer, const size_t Length, con
 size_t __fastcall AddLengthToTCPDNSHeader(PSTR Buffer, const size_t RecvLen, const size_t MaxLen);
 size_t __fastcall CharToDNSQuery(const PSTR FName, PSTR TName);
 size_t __fastcall DNSQueryToChar(const PSTR TName, PSTR FName);
-BOOL WINAPI DnsFlushResolverCache(void);
+BOOL WINAPI FlushDNSResolverCache(void);
 void __fastcall MakeRamdomDomain(PSTR Domain);
+void __fastcall DomainCaseConversion(PSTR Buffer);
+void __fastcall MakeCompressionPointerMutation(const PSTR Buffer, const size_t Length);
 bool __fastcall CheckDNSLastResult(const PSTR Buffer, const size_t Length);
 
 //Configuration.cpp

@@ -224,9 +224,10 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData)
 		return EXIT_FAILURE;
 	}
 
-	std::shared_ptr<char> Buffer(new char[PACKET_MAXSIZE * BUFFER_RING_MAXNUM]());
-	size_t Index[] = {0, 0};
 //Start Monitor.
+	std::shared_ptr<char> Buffer(new char[PACKET_MAXSIZE * BUFFER_RING_MAXNUM]());
+	size_t Index[] = { 0, 0 };
+
 	void *Addr = nullptr;
 	dns_hdr *pdns_hdr = nullptr;
 	while (true)
@@ -241,39 +242,47 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData)
 		if (LocalhostData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 		{
 			Addr = &((PSOCKADDR_IN6)&LocalhostData.SockAddr)->sin6_addr;
-		//Check Private Mode(IPv6).
-			if ((Parameter.OperationMode == LISTEN_PRIVATEMODE && 
+			if (CheckEmptyBuffer(Addr, sizeof(in6_addr)) || //Empty address
+			//Check Private Mode(IPv6).
+				(Parameter.OperationMode == LISTEN_PRIVATEMODE &&
 				!(((in6_addr *)Addr)->u.Byte[0] >= 0xFC && ((in6_addr *)Addr)->u.Byte[0] <= 0xFD || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
 				((in6_addr *)Addr)->u.Byte[0] == 0xFE && ((in6_addr *)Addr)->u.Byte[1U] >= 0x80 && ((in6_addr *)Addr)->u.Byte[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
 				((in6_addr *)Addr)->u.Word[6U] == 0 && ((in6_addr *)Addr)->u.Word[7U] == htons(0x0001))) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
-		//Check Custom Mode(IPv6).
-				(Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET6)) || 
-		//Check Server Mode(IPv6).
-				(Parameter.OperationMode == LISTEN_CUSTOMMODE || Parameter.OperationMode == LISTEN_SERVERMODE) && 
-				(CheckSpecialAddress(Addr, AF_INET6, nullptr) || 
-				memcmp(Addr, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 || 
-				memcmp(Addr, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 || 
-				memcmp(Addr, &Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 || 
-				memcmp(Addr, &Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0))
+			//Check Custom Mode(IPv6).
+				(Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET6)) ||
+			//Check Server Mode(IPv6).
+				(Parameter.OperationMode == LISTEN_CUSTOMMODE || Parameter.OperationMode == LISTEN_SERVERMODE) &&
+				(CheckSpecialAddress(Addr, AF_INET6, nullptr) // || 
+/*			//Target DNS Server check
+				memcmp(Addr, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 ||
+				memcmp(Addr, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 ||
+				memcmp(Addr, &Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 ||
+				memcmp(Addr, &Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0
+*/
+				))
 					continue;
 		}
 		else { //IPv4
 			Addr = &((PSOCKADDR_IN)&LocalhostData.SockAddr)->sin_addr;
-		//Check Private Mode(IPv4).
-			if ((Parameter.OperationMode == LISTEN_PRIVATEMODE && 
+			if ((*(in_addr *)Addr).S_un.S_addr == 0 || //Empty address
+			//Check Private Mode(IPv4).
+				(Parameter.OperationMode == LISTEN_PRIVATEMODE &&
 				!(((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
 				((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
 				((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0xAC && ((in_addr *)Addr)->S_un.S_un_b.s_b2 >= 0x10 && ((in_addr *)Addr)->S_un.S_un_b.s_b2 <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
 				((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0xC0 && ((in_addr *)Addr)->S_un.S_un_b.s_b2 == 0xA8)) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
-		//Check Custom Mode(IPv4).
-				(Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET)) || 
-		//Check Server Mode(IPv4).
-				(Parameter.OperationMode == LISTEN_CUSTOMMODE || Parameter.OperationMode == LISTEN_SERVERMODE) && 
-				(CheckSpecialAddress(Addr, AF_INET, nullptr) || 
-				((in_addr *)Addr)->S_un.S_addr == Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.S_un.S_addr || 
-				((in_addr *)Addr)->S_un.S_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr || 
-				((in_addr *)Addr)->S_un.S_addr == Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr || 
-				((in_addr *)Addr)->S_un.S_addr == Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr))
+			//Check Custom Mode(IPv4).
+				(Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET)) ||
+			//Check Server Mode(IPv4).
+				(Parameter.OperationMode == LISTEN_CUSTOMMODE || Parameter.OperationMode == LISTEN_SERVERMODE) &&
+				(CheckSpecialAddress(Addr, AF_INET, nullptr) // || 
+/*			//Target DNS Server check
+				((in_addr *)Addr)->S_un.S_addr == Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.S_un.S_addr ||
+				((in_addr *)Addr)->S_un.S_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr ||
+				((in_addr *)Addr)->S_un.S_addr == Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr ||
+				((in_addr *)Addr)->S_un.S_addr == Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr
+*/
+				))
 					continue;
 		}
 
@@ -285,7 +294,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData)
 			{
 			//Make packet(s) with EDNS0 Lebal.
 				pdns_hdr = (dns_hdr *)(Buffer.get() + PACKET_MAXSIZE * Index[0]);
-				pdns_hdr->Flags = htons(DNS_SQRNE_TC);
+				pdns_hdr->Flags = htons(DNS_SQR_NETC);
 				dns_edns0_label *EDNS0 = nullptr;
 			
 				if (pdns_hdr->Additional == 0)
@@ -376,7 +385,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData)
 		}
 		else { //Incorrect packets
 			pdns_hdr = (dns_hdr *)(Buffer.get() + PACKET_MAXSIZE * Index[0]);
-			pdns_hdr->Flags = htons(DNS_SQRNE_SF);
+			pdns_hdr->Flags = htons(DNS_SQR_SF);
 			sendto(LocalhostData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], (int)RecvLen, NULL, (PSOCKADDR)&LocalhostData.SockAddr, LocalhostData.AddrLen);
 		}
 	}
@@ -445,43 +454,51 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalhostData)
 	//Check address(es).
 		if (ClientData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 		{
-			Addr = &((PSOCKADDR_IN6)&LocalhostData.SockAddr)->sin6_addr;
-		//Check Private Mode(IPv6).
-			if ((Parameter.OperationMode == LISTEN_PRIVATEMODE && 
+			Addr = &((PSOCKADDR_IN6)&ClientData.SockAddr)->sin6_addr;
+			if (CheckEmptyBuffer(Addr, sizeof(in6_addr)) || //Empty address
+			//Check Private Mode(IPv6).
+				(Parameter.OperationMode == LISTEN_PRIVATEMODE && 
 				!(((in6_addr *)Addr)->u.Byte[0] >= 0xFC && ((in6_addr *)Addr)->u.Byte[0] <= 0xFD || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
 				((in6_addr *)Addr)->u.Byte[0] == 0xFE && ((in6_addr *)Addr)->u.Byte[1U] >= 0x80 && ((in6_addr *)Addr)->u.Byte[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
 				((in6_addr *)Addr)->u.Word[6U] == 0 && ((in6_addr *)Addr)->u.Word[7U] == htons(0x0001))) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
-		//Check Custom Mode(IPv6).
+			//Check Custom Mode(IPv6).
 				(Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET6)) || 
-		//Check Server Mode(IPv6).
+			//Check Server Mode(IPv6).
 				(Parameter.OperationMode == LISTEN_CUSTOMMODE || Parameter.OperationMode == LISTEN_SERVERMODE) && 
-				(CheckSpecialAddress(Addr, AF_INET6, nullptr) || 
+				(CheckSpecialAddress(Addr, AF_INET6, nullptr) // || 
+/*			//Target DNS Server check
 				memcmp(Addr, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 || 
 				memcmp(Addr, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 || 
 				memcmp(Addr, &Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 || 
-				memcmp(Addr, &Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0))
+				memcmp(Addr, &Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0
+*/
+				))
 			{
 				closesocket(ClientData.Socket);
 				continue;
 			}
 		}
 		else { //IPv4
-			Addr = &((PSOCKADDR_IN)&LocalhostData.SockAddr)->sin_addr;
-		//Check Private Mode(IPv4).
-			if ((Parameter.OperationMode == LISTEN_PRIVATEMODE && 
+			Addr = &((PSOCKADDR_IN)&ClientData.SockAddr)->sin_addr;
+			if ((*(in_addr *)Addr).S_un.S_addr == 0 || //Empty address
+			//Check Private Mode(IPv4).
+				(Parameter.OperationMode == LISTEN_PRIVATEMODE && 
 				!(((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
 				((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
 				((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0xAC && ((in_addr *)Addr)->S_un.S_un_b.s_b2 >= 0x10 && ((in_addr *)Addr)->S_un.S_un_b.s_b2 <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
 				((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0xC0 && ((in_addr *)Addr)->S_un.S_un_b.s_b2 == 0xA8)) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
-		//Check Custom Mode(IPv4).
+			//Check Custom Mode(IPv4).
 				(Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET)) || 
-		//Check Server Mode(IPv4).
+			//Check Server Mode(IPv4).
 				(Parameter.OperationMode == LISTEN_CUSTOMMODE || Parameter.OperationMode == LISTEN_SERVERMODE) && 
-				(CheckSpecialAddress(Addr, AF_INET, nullptr) || 
+				(CheckSpecialAddress(Addr, AF_INET, nullptr) // || 
+/*			//Target DNS Server check
 				((in_addr *)Addr)->S_un.S_addr == Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.S_un.S_addr || 
 				((in_addr *)Addr)->S_un.S_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr || 
 				((in_addr *)Addr)->S_un.S_addr == Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr || 
-				((in_addr *)Addr)->S_un.S_addr == Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr))
+				((in_addr *)Addr)->S_un.S_addr == Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr
+*/
+				))
 			{
 				closesocket(ClientData.Socket);
 				continue;

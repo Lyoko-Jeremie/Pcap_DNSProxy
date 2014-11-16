@@ -59,7 +59,7 @@
 //#include <iphlpapi.h>              //IP Stack for MIB-II and related functionality
 //#include <ws2tcpip.h>              //WinSock 2.0+ Extension for TCP/IP protocols
 //#include <mstcpip.h>               //Microsoft-specific extensions to the core Winsock definitions.
-//#include <windns.h>
+//#include <windns.h>                //Windows DNS definitions and DNS API
 //#include <windows.h>               //Master include file
 
 //Static librarys
@@ -87,8 +87,6 @@
 #define KILOBYTE_TIMES         1024U                     //1KB = 1024 bytes
 #define MEGABYTE_TIMES         1048576U                  //1MB = 1048576 bytes
 #define GIGABYTE_TIMES         1073741824U               //1GB = 1073741824 bytes
-#define LineFeed               0x0A                      //Line Feed, LF
-#define CarriageReturn         0x0D                      //Carriage Return, CR
 #define SIO_UDP_CONNRESET      _WSAIOW(IOC_VENDOR, 12)
 
 // Text Codepage define
@@ -134,6 +132,7 @@
 //#define ETHERTYPE_PPPOED   0x8863  //PPPoE(Discovery Stage)
 #define ETHERTYPE_PPPOES   0x8864  //PPPoE(Session Stage)
 //#define ETHERTYPE_EAPOL    0x888E  //802.1X
+//#define FCS_TABLE_SIZE     256U          //FCS Table size
 typedef struct _eth_hdr
 {
 	uint8_t                Dst[6U];
@@ -202,7 +201,7 @@ typedef struct _802_1x_hdr
 
 */
 #define IPV4_STANDARDIHL             0x05 //Standard IPv4 header length(0x05/20 bytes)
-#define IPv4_IHL_BYTES_TIMES         4U   //IHL is the number of 32-bit words(4 bytes).
+#define IPv4_IHL_BYTES_TIMES         4U   //IHL is number of 32-bit words(4 bytes).
 #define IPV4_SHORTEST_ADDRSTRING     6U   //The shortest address strings(*.*.*.*).
 typedef struct _ipv4_hdr
 {
@@ -357,8 +356,9 @@ typedef struct _gre_hdr
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define ICMP_TYPE_ECHO   0
-#define ICMP_CODE_ECHO   0
+#define ICMP_TYPE_ECHO      0
+#define ICMP_TYPE_REQUEST   8U
+#define ICMP_CODE_ECHO      0
 typedef struct _icmp_hdr
 {
 	uint8_t                Type;
@@ -382,8 +382,8 @@ typedef struct _icmp_hdr
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define ICMPV6_REQUEST     128
-#define ICMPV6_TYPE_REPLY  129
+#define ICMPV6_REQUEST     128U
+#define ICMPV6_TYPE_REPLY  129U
 #define ICMPV6_CODE_REPLY  0
 typedef struct _icmpv6_hdr
 {
@@ -413,7 +413,7 @@ typedef struct _icmpv6_hdr
 |           Checksum            |        Urgent Pointer         |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /                                                               /
-/                            Options                            /
+/                           Options                             /
 /                                                               /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
@@ -648,11 +648,12 @@ RFC 6195(https://tools.ietf.org/html/rfc6195), Domain Name System (DNS) IANA Con
 //Default Port and Record Types defines
 #define IPPORT_DNS              53U      //DNS Port(TCP and UDP)
 #define DNS_STANDARD            0x0100   //System Standard query
-#define DNS_SQRNE               0x8180   //Standard query response and no error.
-#define DNS_SQRNE_TC            0x8380   //Standard query response and no error, but Truncated.
-#define DNS_SQRNE_FE            0x8181   //Standard query response, Format Error
-#define DNS_SQRNE_SF            0x8182   //Standard query response, Server failure
-#define DNS_NO_SUCH_NAME        0x8183   //Standard query response, but no such name.
+#define DNS_SQR_NE              0x8180   //Standard query response and no error.
+#define DNS_SQR_NEA             0x8580   //Standard query response, no error and authoritative.
+#define DNS_SQR_NETC            0x8380   //Standard query response and no error, but Truncated.
+#define DNS_SQR_FE              0x8181   //Standard query response, Format Error
+#define DNS_SQR_SF              0x8182   //Standard query response, Server failure
+#define DNS_SQR_NO_SUCH_NAME    0x8183   //Standard query response, but No Such Name.
 #define DNS_RCODE_NO_SUCH_NAME  0x0003   //RCode is 0x0003(No Such Name).
 #define DNS_A_RECORDS           0x0001   //DNS A records, its ID is 1.
 #define DNS_NS_RECORDS          0x0002   //DNS NS records, its ID is 2.
@@ -960,7 +961,7 @@ typedef struct _dns_aaaa_
 |          TXT Length           |                               /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               /
 /                                                               /
-/                              TXT                              /
+/                           TXT Data                            /
 /                                                               /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 

@@ -23,7 +23,7 @@ extern Configuration Parameter;
 extern DNSCurveConfiguration DNSCurveParameter;
 
 //The Main function of program
-int _tmain(int argc, _TCHAR* argv[])
+int wmain(int argc, _TCHAR* argv[])
 {
 //Get parameter.
 	if (argc > 0)
@@ -68,11 +68,11 @@ int _tmain(int argc, _TCHAR* argv[])
 		return EXIT_FAILURE;
 	}
 
-//Get Localhost DNS PTR Records.
-	std::thread IPv6GetLocalAddressInformationThread(GetLocalAddressInformation, AF_INET6);
-	std::thread IPv4GetLocalAddressInformationThread(GetLocalAddressInformation, AF_INET);
-	IPv6GetLocalAddressInformationThread.detach();
-	IPv4GetLocalAddressInformationThread.detach();
+//Mark Local DNS address to PTR Records.
+	std::thread GetLocalAddressInformationThread_IPv6(GetLocalAddressInformation, AF_INET6);
+	std::thread GetLocalAddressInformationThread_IPv4(GetLocalAddressInformation, AF_INET);
+	GetLocalAddressInformationThread_IPv6.detach();
+	GetLocalAddressInformationThread_IPv4.detach();
 	
 //Read IPFilter, start DNS Cache monitor(Timer type) and read Hosts.
 	if (Parameter.FileRefreshTime > 0)
