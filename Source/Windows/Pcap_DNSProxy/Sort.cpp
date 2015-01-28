@@ -86,6 +86,7 @@ size_t __fastcall CompareAddresses(const void *OriginalAddrBegin, const void *Or
 	return EXIT_SUCCESS;
 }
 
+/* Old version(2015-01-28)
 //Sort ResultBlacklist(All)
 bool __fastcall SortResultBlacklistALL(const ResultBlacklistTable &ResultBlacklistTableIter)
 {
@@ -109,3 +110,4 @@ bool __fastcall SortHostsListNORMAL(const HostsTable &HostsTableIter)
 {
 	return (HostsTableIter.Type == HOSTS_NORMAL);
 }
+*/

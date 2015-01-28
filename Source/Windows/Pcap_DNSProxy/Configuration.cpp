@@ -4195,7 +4195,7 @@ size_t __fastcall ReadIPFilter(void)
 			HostsListMutex.unlock();
 
 		//Sort list.
-			std::partition(ResultBlacklistModificating->begin(), ResultBlacklistModificating->end(), SortResultBlacklistALL);
+//			std::partition(ResultBlacklistModificating->begin(), ResultBlacklistModificating->end(), SortResultBlacklistALL);
 
 		//Swap(or cleanup) using list.
 			ResultBlacklistModificating->shrink_to_fit();
@@ -5729,11 +5729,12 @@ size_t __fastcall ReadHosts(void)
 				}
 			}
 
+/* Old version(2015-01-28)
 		//Sort list.
 			std::partition(HostsListModificating->begin(), HostsListModificating->end(), SortHostsListNORMAL);
 			std::partition(HostsListModificating->begin(), HostsListModificating->end(), SortHostsListWHITE);
 			std::partition(HostsListModificating->begin(), HostsListModificating->end(), SortHostsListBANNED);
-
+*/
 		//Swap(or cleanup) using list.
 			HostsListModificating->shrink_to_fit();
 			std::unique_lock<std::mutex> HostsListMutex(HostsListLock);

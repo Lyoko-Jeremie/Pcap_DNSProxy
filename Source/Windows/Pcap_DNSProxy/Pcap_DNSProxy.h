@@ -513,10 +513,12 @@ bool __fastcall CheckResponseData(const PSTR Buffer, const size_t Length, bool I
 
 //Sort.cpp
 size_t __fastcall CompareAddresses(const void *OriginalAddrBegin, const void *OriginalAddrEnd, const uint16_t Protocol);
+/* Old version(2015-01-28)
 bool __fastcall SortResultBlacklistALL(const ResultBlacklistTable& ResultBlacklistTableIter);
 bool __fastcall SortHostsListBANNED(const HostsTable& HostsTableIter);
 bool __fastcall SortHostsListWHITE(const HostsTable& HostsTableIter);
 bool __fastcall SortHostsListNORMAL(const HostsTable& HostsTableIter);
+*/
 
 //Configuration.cpp
 inline bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t FileIndex);
