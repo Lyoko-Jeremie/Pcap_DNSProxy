@@ -322,6 +322,9 @@
     <ClCompile Include="Keccak\KeccakSponge.cpp">
       <Filter>Keccak</Filter>
     </ClCompile>
+    <ClCompile Include="Sort.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="WinPcap\Drivers\WinPcap_v4.1.3.exe">

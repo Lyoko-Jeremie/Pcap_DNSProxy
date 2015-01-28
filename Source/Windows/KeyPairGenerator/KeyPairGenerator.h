@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy(Windows)
 // Pcap_DNSProxy, A local DNS server base on WinPcap and LibPcap.
-// Copyright (C) 2012-2014 Chengr28
+// Copyright (C) 2012-2015 Chengr28
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -27,10 +27,8 @@
 #include <windows.h>               //Microsoft Windows master include file
 
 //Sodium Headers
-/*
-#include "LibSodium\core.h"
-#include "LibSodium\crypto_box.h"
-*/
+//#include "LibSodium\core.h"
+//#include "LibSodium\crypto_box.h"
 #include "LibSodium\sodium.h"
 
 //Static libraries
@@ -47,7 +45,7 @@
 //Base defines
 #pragma pack(1)                        //Memory alignment: 1 bytes/8 bits
 #define KEYPAIR_MESSAGE_LEN    80U     //Keypair messages length
-#define MBSTOWCS_NULLTERMINATE -1      //MultiByteToWideChar() find null-terminate.
+#define MBSTOWCS_NULLTERMINATE (-1)    //MultiByteToWideChar() find null-terminate.
 
 //ASCII values defines
 #define ASCII_LF               10      //"␊"

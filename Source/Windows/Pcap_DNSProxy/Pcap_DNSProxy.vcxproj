@@ -271,6 +271,7 @@
     <ClCompile Include="Protocol.cpp" />
     <ClCompile Include="Request.cpp" />
     <ClCompile Include="Service.cpp" />
+    <ClCompile Include="Sort.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="WinPcap\Drivers\WinPcap_v4.1.3.exe" />

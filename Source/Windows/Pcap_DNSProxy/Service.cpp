@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy(Windows)
 // Pcap_DNSProxy, A local DNS server base on WinPcap and LibPcap.
-// Copyright (C) 2012-2014 Chengr28
+// Copyright (C) 2012-2015 Chengr28
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -108,25 +108,25 @@ DWORD WINAPI ServiceProc(LPVOID lpParameter)
 //Change status of service
 BOOL WINAPI UpdateServiceStatus(const DWORD dwCurrentState, const DWORD dwWin32ExitCode, const DWORD dwServiceSpecificExitCode, const DWORD dwCheckPoint, const DWORD dwWaitHint)
 {
-	SERVICE_STATUS ServiceStatus = {0};
-	ServiceStatus.dwServiceType = SERVICE_WIN32;
-	ServiceStatus.dwCurrentState = dwCurrentState;
+	std::shared_ptr<SERVICE_STATUS> ServiceStatus(new SERVICE_STATUS());
+	ServiceStatus->dwServiceType = SERVICE_WIN32;
+	ServiceStatus->dwCurrentState = dwCurrentState;
 
 	if (dwCurrentState == SERVICE_START_PENDING)
-		ServiceStatus.dwControlsAccepted = 0;
+		ServiceStatus->dwControlsAccepted = 0;
 	else
-		ServiceStatus.dwControlsAccepted = (SERVICE_ACCEPT_STOP|SERVICE_ACCEPT_SHUTDOWN);
+		ServiceStatus->dwControlsAccepted = (SERVICE_ACCEPT_STOP|SERVICE_ACCEPT_SHUTDOWN);
 
 	if (dwServiceSpecificExitCode == 0)
-		ServiceStatus.dwWin32ExitCode = dwWin32ExitCode;
+		ServiceStatus->dwWin32ExitCode = dwWin32ExitCode;
 	else
-		ServiceStatus.dwWin32ExitCode = ERROR_SERVICE_SPECIFIC_ERROR;
+		ServiceStatus->dwWin32ExitCode = ERROR_SERVICE_SPECIFIC_ERROR;
 
-	ServiceStatus.dwServiceSpecificExitCode = dwServiceSpecificExitCode;
-	ServiceStatus.dwCheckPoint = dwCheckPoint;
-	ServiceStatus.dwWaitHint = dwWaitHint;
+	ServiceStatus->dwServiceSpecificExitCode = dwServiceSpecificExitCode;
+	ServiceStatus->dwCheckPoint = dwCheckPoint;
+	ServiceStatus->dwWaitHint = dwWaitHint;
 
-	if (!SetServiceStatus(ServiceStatusHandle, &ServiceStatus))
+	if (!SetServiceStatus(ServiceStatusHandle, ServiceStatus.get()))
 	{
 		WSACleanup();
 		TerminateService();

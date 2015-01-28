@@ -5,21 +5,12 @@ Pcap_DNSProxy 仅供学习交流，遵循 GNU GPL 通用公共许可证 (GNU Gen
 使用 Pcap_DNSProxy 源代码前务必参阅 LICENSE 通用公共许可证之内容！
 
 
-Pcap_DNSProxy 项目的GitHub页面：
+Pcap_DNSProxy 项目的 GitHub 页面：
 * 主分支: https://github.com/chengr28/Pcap_DNSProxy
 * Release 分支: https://github.com/chengr28/Pcap_DNSProxy/tree/Release
 
-Pcap_DNSProxy 项目的Sourceforge页面：
+Pcap_DNSProxy 项目的 Sourceforge 页面：
 http://sourceforge.net/projects/pcap-dnsproxy
-
-Pcap_DNSProxy 最新版本：
-* Windows 版本：v0.4 Beta(2014-09-21)
-* Linux 版本：v0.2(2014-08-19)
-* Mac 版本：v0.1(2014-08-19)
-* 附带配置文件的最新版本
-  * Windows: 0.4
-  * Linux: 0.1
-  * Mac: 0.1
 
 
 -------------------------------------------------------------------------------

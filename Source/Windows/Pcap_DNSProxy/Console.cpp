@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy(Windows)
 // Pcap_DNSProxy, A local DNS server base on WinPcap and LibPcap.
-// Copyright (C) 2012-2014 Chengr28
+// Copyright (C) 2012-2015 Chengr28
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,7 +19,7 @@
 
 #include "Pcap_DNSProxy.h"
 
-extern Configuration Parameter;
+extern ConfigurationTable Parameter;
 
 //Catch Control-C exception from keyboard.
 BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType)
@@ -54,9 +54,11 @@ BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType)
 		case CTRL_SHUTDOWN_EVENT:
 		{
 			return FALSE;
-		}
-		default: {
-			return FALSE;
-		}
+		}	
+//		default: {
+//			return FALSE;
+//		}
 	}
+
+	return FALSE;
 }

@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy(Windows)
 // Pcap_DNSProxy, A local DNS server base on WinPcap and LibPcap.
-// Copyright (C) 2012-2014 Chengr28
+// Copyright (C) 2012-2015 Chengr28
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -19,107 +19,117 @@
 
 #include "Pcap_DNSProxy.h"
 
-Configuration Parameter;
+ConfigurationTable Parameter;
+time_t StartTime, RunningLogStartTime;
+std::vector<std::wstring> ConfigFileList;
+std::vector<FileData> IPFilterFileList, HostsFileList;
 PortTable PortList;
-std::vector<uint16_t> AcceptTypeList;
+AlternateSwapTable AlternateSwapList;
+DNSCurveConfigurationTable DNSCurveParameter;
 std::vector<HostsTable> HostsList[2U], *HostsListUsing = &HostsList[0], *HostsListModificating = &HostsList[1U];
-std::deque<DNSCacheData> DNSCacheList;
 std::vector<AddressRange> AddressRangeList[2U], *AddressRangeUsing = &AddressRangeList[0], *AddressRangeModificating = &AddressRangeList[1U];
 std::vector<ResultBlacklistTable> ResultBlacklistList[2U], *ResultBlacklistUsing = &ResultBlacklistList[0], *ResultBlacklistModificating = &ResultBlacklistList[1U];
-std::mutex ErrLogLock, RunningLogLock, CaptureLock, PortListLock, LocalAddressLock[QUEUE_PARTNUM / 2U], HostsListLock, DNSCacheListLock, AddressRangeLock, ResultBlacklistLock;
-AlternateSwapTable AlternateSwapList;
-DNSCurveConfiguration DNSCurveParameter;
+std::vector<AddressPrefixBlock> LocalRoutingList[2U], *LocalRoutingListUsing = &LocalRoutingList[0], *LocalRoutingListModificating = &LocalRoutingList[1U];
+std::deque<DNSCacheData> DNSCacheList;
+std::mutex ErrLogLock, RunningLogLock, CaptureLock, PortListLock, LocalAddressLock[QUEUE_PARTNUM / 2U], HostsListLock, DNSCacheListLock, AddressRangeLock, ResultBlacklistLock, LocalRoutingListLock;
 
 //Configuration class constructor
-Configuration::Configuration(void)
+ConfigurationTable::ConfigurationTable(void)
 {
-	memset(this, 0, sizeof(Configuration));
-	Path = nullptr, ErrorLogPath = nullptr, RunningLogPath = nullptr;
-	DomainTable = nullptr;
-	DNSTarget.IPv4_Multi = nullptr, DNSTarget.IPv6_Multi = nullptr;
-	DomainTestOptions.DomainTestData = nullptr, ICMPOptions.PaddingData = nullptr, LocalServerOptions.LocalFQDN = nullptr;
-	LocalAddressOptions.LocalAddress[0] = nullptr, LocalAddressOptions.LocalAddress[1U] = nullptr;
+	memset(this, 0, sizeof(ConfigurationTable));
 	try {
-		Path = new std::wstring();
+	//[Addresses] block
+		DNSTarget.IPv4_Multi = new std::vector<DNSServerData>();
+		DNSTarget.IPv6_Multi = new std::vector<DNSServerData>();
+	//[Data] block(A part)
+		ICMPPaddingData = new char[ICMP_PADDING_MAXSIZE]();
+		DomainTestData = new char[DOMAIN_MAXSIZE]();
+	//[Data] block(B part)
+		LocalFQDN = new char[DOMAIN_MAXSIZE]();
+		LocalFQDNString = new std::string();
+		LocalServerResponse = new char[DOMAIN_MAXSIZE + sizeof(dns_ptr_record) + sizeof(dns_opt_record)]();
+		LocalAddress[0] = new char[PACKET_MAXSIZE]();
+		LocalAddress[1U] = new char[PACKET_MAXSIZE]();
+		LocalAddressPTR[0] = new std::vector<std::string>();
+		LocalAddressPTR[1U] = new std::vector<std::string>();
+	//Global block
+		RamdomEngine = new std::default_random_engine();
+		Path = new std::vector<std::wstring>();
+		HostsFileList = new std::vector<std::wstring>();
+		IPFilterFileList = new std::vector<std::wstring>();
 		ErrorLogPath = new std::wstring();
 		RunningLogPath = new std::wstring();
 		DomainTable = new char[strlen(RFC_DOMAIN_TABLE) + 1U]();
-
-		DNSTarget.IPv4_Multi = new std::vector<DNSServerData>();
-		DNSTarget.IPv6_Multi = new std::vector<DNSServerData>();
-
-		DomainTestOptions.DomainTestData = new char[DOMAIN_MAXSIZE]();
-		ICMPOptions.PaddingData = new char[ICMP_PADDING_MAXSIZE](); 
-		LocalServerOptions.LocalFQDN = new char[DOMAIN_MAXSIZE]();
-		LocalServerOptions.LocalPTRResponse = new char[DOMAIN_MAXSIZE + sizeof(dns_ptr_record) + sizeof(dns_edns0_label)]();
-
-		LocalAddressOptions.LocalAddress[0] = new char[PACKET_MAXSIZE]();
-		LocalAddressOptions.LocalAddress[1U] = new char[PACKET_MAXSIZE]();
+		AcceptTypeList = new std::vector<uint16_t>();
 	}
 	catch (std::bad_alloc)
 	{
-	//Paths.
+	//[Addresses] block
+		delete DNSTarget.IPv4_Multi;
+		delete DNSTarget.IPv6_Multi;
+	//[Data] block(A part)
+		delete[] ICMPPaddingData;
+		delete[] DomainTestData;
+	//[Data] block(B part)
+		delete[] LocalFQDN;
+		delete LocalFQDNString;
+		delete[] LocalServerResponse;
+		delete[] LocalAddress[0];
+		delete[] LocalAddress[1U];
+		delete LocalAddressPTR[0];
+		delete LocalAddressPTR[1U];
+	//Global block
+		delete RamdomEngine;
 		delete Path;
+		delete HostsFileList;
+		delete IPFilterFileList;
 		delete ErrorLogPath;
 		delete RunningLogPath;
 		delete[] DomainTable;
-	//Multi requesting
-		delete DNSTarget.IPv4_Multi;
-		delete DNSTarget.IPv6_Multi;
-	//Domain test data, padding data and localhost server name
-		delete[] DomainTestOptions.DomainTestData;
-		delete[] ICMPOptions.PaddingData;
-		delete[] LocalServerOptions.LocalFQDN;
-		delete[] LocalServerOptions.LocalPTRResponse;
-	//Local address response packets
-		delete[] LocalAddressOptions.LocalAddress[0];
-		delete[] LocalAddressOptions.LocalAddress[1U];
-	//Reset pointer.
-		Path = nullptr, ErrorLogPath = nullptr, RunningLogPath = nullptr;
-		DomainTable = nullptr;
-		DNSTarget.IPv4_Multi = nullptr, DNSTarget.IPv6_Multi = nullptr;
-		DomainTestOptions.DomainTestData = nullptr, ICMPOptions.PaddingData = nullptr, LocalServerOptions.LocalFQDN = nullptr, LocalServerOptions.LocalPTRResponse = nullptr;
-		LocalAddressOptions.LocalAddress[0] = nullptr, LocalAddressOptions.LocalAddress[1U] = nullptr;
+		delete AcceptTypeList;
+		memset(this, 0, sizeof(ConfigurationTable));
 
-		WSACleanup();
-		TerminateService();
+//		WSACleanup();
+//		TerminateService();
+		exit(EXIT_FAILURE);
 		return;
 	}
 
 //Initialization
-	// Old version(2014-07-22)
-	//timeval ReliableSocketTimeout = {RELIABLE_SOCKET_TIMEOUT, 0}, UnreliableSocketTimeout = {UNRELIABLE_SOCKET_TIMEOUT, 0};
-	ReliableSocketTimeout = RELIABLE_SOCKET_TIMEOUT, UnreliableSocketTimeout = UNRELIABLE_SOCKET_TIMEOUT;
 	strncpy_s(DomainTable, strlen(RFC_DOMAIN_TABLE) + 1U, RFC_DOMAIN_TABLE, strlen(RFC_DOMAIN_TABLE));
+	std::random_device RamdomDevice;
+	RamdomEngine->seed(RamdomDevice());
 
 	return;
 }
 
 //Configuration class destructor
-Configuration::~Configuration(void)
+ConfigurationTable::~ConfigurationTable(void)
 {
-//Paths.
+//[Addresses] block
+	delete DNSTarget.IPv4_Multi;
+	delete DNSTarget.IPv6_Multi;
+//[Data] block(A part)
+	delete[] ICMPPaddingData;
+	delete[] DomainTestData;
+//[Data] block(B part)
+	delete[] LocalFQDN;
+	delete LocalFQDNString;
+	delete[] LocalServerResponse;
+	delete[] LocalAddress[0];
+	delete[] LocalAddress[1U];
+	delete LocalAddressPTR[0];
+	delete LocalAddressPTR[1U];
+//Global block
+	delete RamdomEngine;
 	delete Path;
+	delete HostsFileList;
+	delete IPFilterFileList;
 	delete ErrorLogPath;
 	delete RunningLogPath;
 	delete[] DomainTable;
-//Multi requesting
-	delete DNSTarget.IPv4_Multi;
-	delete DNSTarget.IPv6_Multi;
-//Domain test data, padding data and localhost server name
-	delete[] DomainTestOptions.DomainTestData;
-	delete[] ICMPOptions.PaddingData;
-	delete[] LocalServerOptions.LocalFQDN;
-	delete[] LocalServerOptions.LocalPTRResponse;
-//Local address response packets
-	delete[] LocalAddressOptions.LocalAddress[0];
-	delete[] LocalAddressOptions.LocalAddress[1U];
-//Reset pointer.
-	Path = nullptr, ErrorLogPath = nullptr, RunningLogPath = nullptr;
-	DomainTable = nullptr;
-	DNSTarget.IPv4_Multi = nullptr, DNSTarget.IPv6_Multi = nullptr;
-	DomainTestOptions.DomainTestData = nullptr, ICMPOptions.PaddingData = nullptr, LocalServerOptions.LocalFQDN = nullptr, LocalServerOptions.LocalPTRResponse = nullptr;
-	LocalAddressOptions.LocalAddress[0] = nullptr, LocalAddressOptions.LocalAddress[1U] = nullptr;
+	delete AcceptTypeList;
+	memset(this, 0, sizeof(ConfigurationTable));
 
 	return;
 }
@@ -127,7 +137,7 @@ Configuration::~Configuration(void)
 //HostsTable class constructor
 HostsTable::HostsTable(void)
 {
-	memset(this, 0, sizeof(HostsTable) - sizeof(HostsTable::Response) - sizeof(HostsTable::Pattern) - sizeof(HostsTable::PatternString));
+	memset(this, 0, sizeof(HostsTable) - sizeof(std::shared_ptr<char>) - sizeof(std::regex) - sizeof(std::string));
 	return;
 }
 
@@ -141,17 +151,17 @@ AddressRange::AddressRange(void)
 //PortTable class constructor
 PortTable::PortTable(void)
 {
-	memset((PSTR)this + sizeof(SendData), 0, sizeof(PortTable) - sizeof(SendData));
-	RecvData = nullptr;
+	memset(this, 0, sizeof(PortTable) - sizeof(SendData));
 	try {
 		RecvData = new SOCKET_DATA[QUEUE_MAXLEN * QUEUE_PARTNUM]();
 	}
 	catch (std::bad_alloc)
 	{
-		RecvData = nullptr;
-		WSACleanup();
-		TerminateService();
+		memset(this, 0, sizeof(PortTable) - sizeof(SendData));
 
+//		WSACleanup();
+//		TerminateService();
+		exit(EXIT_FAILURE);
 		return;
 	}
 
@@ -162,7 +172,7 @@ PortTable::PortTable(void)
 PortTable::~PortTable(void)
 {
 	delete[] RecvData;
-	RecvData = nullptr;
+	memset(this, 0, sizeof(PortTable) - sizeof(SendData));
 
 	return;
 }
@@ -171,16 +181,16 @@ PortTable::~PortTable(void)
 AlternateSwapTable::AlternateSwapTable(void)
 {
 	memset(this, 0, sizeof(AlternateSwapTable));
-	PcapAlternateTimeout = nullptr;
 	try {
 		PcapAlternateTimeout = new size_t[QUEUE_MAXLEN * QUEUE_PARTNUM]();
 	}
 	catch (std::bad_alloc)
 	{
-		PcapAlternateTimeout = nullptr;
-		WSACleanup();
-		TerminateService();
+		memset(this, 0, sizeof(AlternateSwapTable));
 
+//		WSACleanup();
+//		TerminateService();
+		exit(EXIT_FAILURE);
 		return;
 	}
 
@@ -191,22 +201,15 @@ AlternateSwapTable::AlternateSwapTable(void)
 AlternateSwapTable::~AlternateSwapTable(void)
 {
 	delete[] PcapAlternateTimeout;
-	PcapAlternateTimeout = nullptr;
+	memset(this, 0, sizeof(AlternateSwapTable));
 
 	return;
 }
 
 //DNSCurveConfiguration class constructor
-DNSCurveConfiguration::DNSCurveConfiguration(void)
+DNSCurveConfigurationTable::DNSCurveConfigurationTable(void)
 {
-	memset(this, 0, sizeof(DNSCurveConfiguration));
-	DNSCurveTarget.IPv4.ProviderName = nullptr, DNSCurveTarget.Alternate_IPv4.ProviderName = nullptr, DNSCurveTarget.IPv6.ProviderName = nullptr, DNSCurveTarget.Alternate_IPv6.ProviderName = nullptr;
-	Client_PublicKey = nullptr, Client_SecretKey = nullptr;
-	DNSCurveTarget.IPv4.PrecomputationKey = nullptr, DNSCurveTarget.Alternate_IPv4.PrecomputationKey = nullptr, DNSCurveTarget.IPv6.PrecomputationKey = nullptr, DNSCurveTarget.Alternate_IPv6.PrecomputationKey = nullptr;
-	DNSCurveTarget.IPv4.ServerPublicKey = nullptr, DNSCurveTarget.Alternate_IPv4.ServerPublicKey = nullptr, DNSCurveTarget.IPv6.ServerPublicKey = nullptr, DNSCurveTarget.Alternate_IPv6.ServerPublicKey = nullptr;
-	DNSCurveTarget.IPv4.ServerFingerprint = nullptr, DNSCurveTarget.Alternate_IPv4.ServerFingerprint = nullptr, DNSCurveTarget.IPv6.ServerFingerprint = nullptr, DNSCurveTarget.Alternate_IPv6.ServerFingerprint = nullptr;
-	DNSCurveTarget.IPv4.SendMagicNumber = nullptr, DNSCurveTarget.Alternate_IPv4.SendMagicNumber = nullptr, DNSCurveTarget.IPv6.SendMagicNumber = nullptr, DNSCurveTarget.Alternate_IPv6.SendMagicNumber = nullptr;
-	DNSCurveTarget.IPv4.ReceiveMagicNumber = nullptr, DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber = nullptr, DNSCurveTarget.IPv6.ReceiveMagicNumber = nullptr, DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber = nullptr;
+	memset(this, 0, sizeof(DNSCurveConfigurationTable));
 	try {
 	//DNSCurve Provider Names
 		DNSCurveTarget.IPv4.ProviderName = new char[DOMAIN_MAXSIZE]();
@@ -269,17 +272,11 @@ DNSCurveConfiguration::DNSCurveConfiguration(void)
 		delete[] DNSCurveTarget.Alternate_IPv4.SendMagicNumber;
 		delete[] DNSCurveTarget.IPv6.SendMagicNumber;
 		delete[] DNSCurveTarget.Alternate_IPv6.SendMagicNumber;
-	//Reset pointers.
-		DNSCurveTarget.IPv4.ProviderName = nullptr, DNSCurveTarget.Alternate_IPv4.ProviderName = nullptr, DNSCurveTarget.IPv6.ProviderName = nullptr, DNSCurveTarget.Alternate_IPv6.ProviderName = nullptr;
-		Client_PublicKey = nullptr, Client_SecretKey = nullptr;
-		DNSCurveTarget.IPv4.PrecomputationKey = nullptr, DNSCurveTarget.Alternate_IPv4.PrecomputationKey = nullptr, DNSCurveTarget.IPv6.PrecomputationKey = nullptr, DNSCurveTarget.Alternate_IPv6.PrecomputationKey = nullptr;
-		DNSCurveTarget.IPv4.ServerPublicKey = nullptr, DNSCurveTarget.Alternate_IPv4.ServerPublicKey = nullptr, DNSCurveTarget.IPv6.ServerPublicKey = nullptr, DNSCurveTarget.Alternate_IPv6.ServerPublicKey = nullptr;
-		DNSCurveTarget.IPv4.ServerFingerprint = nullptr, DNSCurveTarget.Alternate_IPv4.ServerFingerprint = nullptr, DNSCurveTarget.IPv6.ServerFingerprint = nullptr, DNSCurveTarget.Alternate_IPv6.ServerFingerprint = nullptr;
-		DNSCurveTarget.IPv4.SendMagicNumber = nullptr, DNSCurveTarget.Alternate_IPv4.SendMagicNumber = nullptr, DNSCurveTarget.IPv6.SendMagicNumber = nullptr, DNSCurveTarget.Alternate_IPv6.SendMagicNumber = nullptr;
-		DNSCurveTarget.IPv4.ReceiveMagicNumber = nullptr, DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber = nullptr, DNSCurveTarget.IPv6.ReceiveMagicNumber = nullptr, DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber = nullptr;
+		memset(this, 0, sizeof(DNSCurveConfigurationTable));
 
-		WSACleanup();
-		TerminateService();
+//		WSACleanup();
+//		TerminateService();
+		exit(EXIT_FAILURE);
 		return;
 	}
 
@@ -287,7 +284,7 @@ DNSCurveConfiguration::DNSCurveConfiguration(void)
 }
 
 //DNSCurveConfiguration class destructor
-DNSCurveConfiguration::~DNSCurveConfiguration(void)
+DNSCurveConfigurationTable::~DNSCurveConfigurationTable(void)
 {
 //DNSCurve Provider Names
 	delete[] DNSCurveTarget.IPv4.ProviderName;
@@ -318,14 +315,7 @@ DNSCurveConfiguration::~DNSCurveConfiguration(void)
 	delete[] DNSCurveTarget.Alternate_IPv4.SendMagicNumber;
 	delete[] DNSCurveTarget.IPv6.SendMagicNumber;
 	delete[] DNSCurveTarget.Alternate_IPv6.SendMagicNumber;
-//Reset pointers.
-	DNSCurveTarget.IPv4.ProviderName = nullptr, DNSCurveTarget.Alternate_IPv4.ProviderName = nullptr, DNSCurveTarget.IPv6.ProviderName = nullptr, DNSCurveTarget.Alternate_IPv6.ProviderName = nullptr;
-	Client_PublicKey = nullptr, Client_SecretKey = nullptr;
-	DNSCurveTarget.IPv4.PrecomputationKey = nullptr, DNSCurveTarget.Alternate_IPv4.PrecomputationKey = nullptr, DNSCurveTarget.IPv6.PrecomputationKey = nullptr, DNSCurveTarget.Alternate_IPv6.PrecomputationKey = nullptr;
-	DNSCurveTarget.IPv4.ServerPublicKey = nullptr, DNSCurveTarget.Alternate_IPv4.ServerPublicKey = nullptr, DNSCurveTarget.IPv6.ServerPublicKey = nullptr, DNSCurveTarget.Alternate_IPv6.ServerPublicKey = nullptr;
-	DNSCurveTarget.IPv4.ServerFingerprint = nullptr, DNSCurveTarget.Alternate_IPv4.ServerFingerprint = nullptr, DNSCurveTarget.IPv6.ServerFingerprint = nullptr, DNSCurveTarget.Alternate_IPv6.ServerFingerprint = nullptr;
-	DNSCurveTarget.IPv4.SendMagicNumber = nullptr, DNSCurveTarget.Alternate_IPv4.SendMagicNumber = nullptr, DNSCurveTarget.IPv6.SendMagicNumber = nullptr, DNSCurveTarget.Alternate_IPv6.SendMagicNumber = nullptr;
-	DNSCurveTarget.IPv4.ReceiveMagicNumber = nullptr, DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber = nullptr, DNSCurveTarget.IPv6.ReceiveMagicNumber = nullptr, DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber = nullptr;
+	memset(this, 0, sizeof(DNSCurveConfigurationTable));
 
 	return;
 }
