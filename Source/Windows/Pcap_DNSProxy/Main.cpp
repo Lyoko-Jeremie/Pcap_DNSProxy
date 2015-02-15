@@ -17,7 +17,7 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#include "Pcap_DNSProxy.h"
+#include "Main.h"
 
 extern ConfigurationTable Parameter;
 extern time_t StartTime, RunningLogStartTime;
@@ -26,6 +26,13 @@ extern DNSCurveConfigurationTable DNSCurveParameter;
 //The Main function of program
 int wmain(int argc, wchar_t* argv[])
 {
+//Windows XP with SP3 support
+#ifdef _WIN64
+#else //x86
+	GetFunctionPointer(FUNCTION_GETTICKCOUNT64);
+	GetFunctionPointer(FUNCTION_INET_NTOP);
+#endif
+
 //Get parameter.
 	if (argc > 0)
 	{
@@ -38,7 +45,7 @@ int wmain(int argc, wchar_t* argv[])
 		{
 			if (FirewallTest(AF_INET6) == EXIT_FAILURE && FirewallTest(AF_INET) == EXIT_FAILURE)
 			{
-				PrintError(LOG_ERROR_WINSOCK, L"Windows Firewall Test error", NULL, nullptr, NULL);
+				PrintError(LOG_ERROR_WINSOCK, L"Windows Firewall Test error", 0, nullptr, 0);
 
 				WSACleanup();
 				return EXIT_FAILURE;
@@ -61,29 +68,24 @@ int wmain(int argc, wchar_t* argv[])
 	}
 
 //Mark Local DNS address to PTR Records.
-	std::thread GetLocalAddressInformationThread_IPv6(GetLocalAddressInformation, AF_INET6);
-	std::thread GetLocalAddressInformationThread_IPv4(GetLocalAddressInformation, AF_INET);
-	GetLocalAddressInformationThread_IPv6.detach();
-	GetLocalAddressInformationThread_IPv4.detach();
-	
+	std::thread GetNetworkingInformationThread(GetNetworkingInformation);
+	GetNetworkingInformationThread.detach();
+
 //Read IPFilter, start DNS Cache monitor(Timer type) and read Hosts.
-	if (Parameter.FileRefreshTime > 0)
+	if (Parameter.CacheType > 0)
 	{
-		if (Parameter.CacheType != 0)
-		{
-			std::thread DNSCacheTimerThread(DNSCacheTimerMonitor);
-			DNSCacheTimerThread.detach();
-		}
-
-		if (Parameter.OperationMode == LISTEN_CUSTOMMODE || Parameter.Blacklist || Parameter.LocalRouting)
-		{
-			std::thread IPFilterThread(ReadIPFilter);
-			IPFilterThread.detach();
-		}
-
-		std::thread HostsThread(ReadHosts);
-		HostsThread.detach();
+		std::thread DNSCacheTimerThread(DNSCacheTimerMonitor);
+		DNSCacheTimerThread.detach();
 	}
+
+	if (Parameter.OperationMode == LISTEN_CUSTOMMODE || Parameter.Blacklist || Parameter.LocalRouting)
+	{
+		std::thread IPFilterThread(ReadIPFilter);
+		IPFilterThread.detach();
+	}
+
+	std::thread HostsThread(ReadHosts);
+	HostsThread.detach();
 
 //DNSCurve initialization
 	if (Parameter.DNSCurve && DNSCurveParameter.IsEncryption)
@@ -94,12 +96,12 @@ int wmain(int argc, wchar_t* argv[])
 	}
 
 //Service initialization and start service.
-	SERVICE_TABLE_ENTRYW ServiceTable[] = {{DEFAULT_LOCAL_SERVICENAME, (LPSERVICE_MAIN_FUNCTIONW)ServiceMain}, {nullptr, NULL}};
+	SERVICE_TABLE_ENTRYW ServiceTable[] = {{DEFAULT_LOCAL_SERVICENAME, (LPSERVICE_MAIN_FUNCTIONW)ServiceMain}, {nullptr, nullptr}};
 	if (!StartServiceCtrlDispatcherW(ServiceTable))
 	{
 		Parameter.Console = true;
-		PrintError(LOG_ERROR_SYSTEM, L"Service start error", GetLastError(), nullptr, NULL);
-		PrintError(LOG_ERROR_SYSTEM, L"Pcap_DNSProxy will continue to run in console mode", NULL, nullptr, NULL);
+		PrintError(LOG_ERROR_SYSTEM, L"Service start error", GetLastError(), nullptr, 0);
+		PrintError(LOG_ERROR_SYSTEM, L"Pcap_DNSProxy will continue to run in console mode", 0, nullptr, 0);
 
 	//Handle the system signal.
 		SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, TRUE);
@@ -120,30 +122,6 @@ int wmain(int argc, wchar_t* argv[])
 //Get path of program from the main function parameter and Winsock initialization
 inline size_t __fastcall FileNameInit(const PWSTR OriginalPath)
 {
-/* Get path of program from server information.
-//Prepare.
-	SC_HANDLE SCM = nullptr, Service = nullptr;
-	DWORD nResumeHandle = 0;
-
-	if ((SCM = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS)) == nullptr)
-		return EXIT_FAILURE;
- 
-	Service = OpenService(SCM, DEFAULT_LOCAL_SERVICENAME, SERVICE_ALL_ACCESS);
-	if (Service == nullptr)
-		return EXIT_FAILURE;
-
-	LPQUERY_SERVICE_CONFIG ServicesInfo = (LPQUERY_SERVICE_CONFIG)LocalAlloc(LPTR, QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE);
-	if (ServicesInfo == nullptr)
-		return EXIT_FAILURE;
-
-	if (QueryServiceConfig(Service, ServicesInfo, QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE, &nResumeHandle) == FALSE)
-	{
-		LocalFree(ServicesInfo);
-		return EXIT_FAILURE;
-	}
-	Path = ServicesInfo->lpBinaryPathName;
-	LocalFree(ServicesInfo);
-*/
 //Path process.
 	Parameter.Path->push_back(OriginalPath);
 	Parameter.Path->front().erase(Parameter.Path->front().rfind(L"\\") + 1U);
@@ -171,7 +149,7 @@ inline size_t __fastcall FileNameInit(const PWSTR OriginalPath)
 	WSAData WSAInitialization = {0};
 	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), &WSAInitialization) != 0 || LOBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_HIGH)
 	{
-		PrintError(LOG_ERROR_WINSOCK, L"Winsock initialization error", WSAGetLastError(), nullptr, NULL);
+		PrintError(LOG_ERROR_WINSOCK, L"Winsock initialization error", WSAGetLastError(), nullptr, 0);
 
 		WSACleanup();
 		return EXIT_FAILURE;

@@ -17,20 +17,20 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#include "Pcap_DNSProxy.h"
+#include "Main.h"
 
 ConfigurationTable Parameter;
 time_t StartTime, RunningLogStartTime;
 std::vector<std::wstring> ConfigFileList;
-std::vector<FileData> IPFilterFileList, HostsFileList;
+std::vector<FILE_DATA> IPFilterFileList, HostsFileList;
 PortTable PortList;
 AlternateSwapTable AlternateSwapList;
 DNSCurveConfigurationTable DNSCurveParameter;
 std::vector<HostsTable> HostsList[2U], *HostsListUsing = &HostsList[0], *HostsListModificating = &HostsList[1U];
 std::vector<AddressRange> AddressRangeList[2U], *AddressRangeUsing = &AddressRangeList[0], *AddressRangeModificating = &AddressRangeList[1U];
 std::vector<ResultBlacklistTable> ResultBlacklistList[2U], *ResultBlacklistUsing = &ResultBlacklistList[0], *ResultBlacklistModificating = &ResultBlacklistList[1U];
-std::vector<AddressPrefixBlock> LocalRoutingList[2U], *LocalRoutingListUsing = &LocalRoutingList[0], *LocalRoutingListModificating = &LocalRoutingList[1U];
-std::deque<DNSCacheData> DNSCacheList;
+std::vector<ADDRESS_PREFIX_BLOCK> LocalRoutingList[2U], *LocalRoutingListUsing = &LocalRoutingList[0], *LocalRoutingListModificating = &LocalRoutingList[1U];
+std::deque<DNSCACHE_DATA> DNSCacheList;
 std::mutex ErrLogLock, RunningLogLock, CaptureLock, PortListLock, LocalAddressLock[QUEUE_PARTNUM / 2U], HostsListLock, DNSCacheListLock, AddressRangeLock, ResultBlacklistLock, LocalRoutingListLock;
 
 //Configuration class constructor
@@ -39,15 +39,17 @@ ConfigurationTable::ConfigurationTable(void)
 	memset(this, 0, sizeof(ConfigurationTable));
 	try {
 	//[Addresses] block
-		DNSTarget.IPv4_Multi = new std::vector<DNSServerData>();
-		DNSTarget.IPv6_Multi = new std::vector<DNSServerData>();
+		ListenAddress_IPv4 = new sockaddr_storage();
+		ListenAddress_IPv6 = new sockaddr_storage();
+		DNSTarget.IPv4_Multi = new std::vector<DNS_SERVER_DATA>();
+		DNSTarget.IPv6_Multi = new std::vector<DNS_SERVER_DATA>();
 	//[Data] block(A part)
 		ICMPPaddingData = new char[ICMP_PADDING_MAXSIZE]();
 		DomainTestData = new char[DOMAIN_MAXSIZE]();
 	//[Data] block(B part)
 		LocalFQDN = new char[DOMAIN_MAXSIZE]();
 		LocalFQDNString = new std::string();
-		LocalServerResponse = new char[DOMAIN_MAXSIZE + sizeof(dns_ptr_record) + sizeof(dns_opt_record)]();
+		LocalServerResponse = new char[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt)]();
 		LocalAddress[0] = new char[PACKET_MAXSIZE]();
 		LocalAddress[1U] = new char[PACKET_MAXSIZE]();
 		LocalAddressPTR[0] = new std::vector<std::string>();
@@ -65,6 +67,8 @@ ConfigurationTable::ConfigurationTable(void)
 	catch (std::bad_alloc)
 	{
 	//[Addresses] block
+		delete ListenAddress_IPv4;
+		delete ListenAddress_IPv6;
 		delete DNSTarget.IPv4_Multi;
 		delete DNSTarget.IPv6_Multi;
 	//[Data] block(A part)
@@ -100,6 +104,21 @@ ConfigurationTable::ConfigurationTable(void)
 	std::random_device RamdomDevice;
 	RamdomEngine->seed(RamdomDevice());
 
+//Default settings
+	LogMaxSize = DEFAULT_LOG_MAXSIZE;
+	GatewayAvailable_IPv4 = true;
+	ListenPort = htons(IPPORT_DNS);
+	ReliableSocketTimeout = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
+	UnreliableSocketTimeout = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
+	ICMPID = htons((uint16_t)GetCurrentProcessId()); //Default ICMP ID is current process ID.
+	ICMPSequence = htons(DEFAULT_SEQUENCE);
+	DomainTestSpeed = DEFAULT_DOMAINTEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
+	DomainTestID = htons((uint16_t)GetCurrentProcessId()); //Default DNS ID is current process ID.
+	//Load default padding data from Microsoft Windows Ping.
+	ICMPPaddingDataLength = strlen(DEFAULT_PADDINGDATA) + 1U;
+	memcpy(ICMPPaddingData, DEFAULT_PADDINGDATA, Parameter.ICMPPaddingDataLength - 1U);
+	HostsDefaultTTL = DEFAULT_HOSTS_TTL;
+
 	return;
 }
 
@@ -107,6 +126,8 @@ ConfigurationTable::ConfigurationTable(void)
 ConfigurationTable::~ConfigurationTable(void)
 {
 //[Addresses] block
+	delete ListenAddress_IPv4;
+	delete ListenAddress_IPv6;
 	delete DNSTarget.IPv4_Multi;
 	delete DNSTarget.IPv6_Multi;
 //[Data] block(A part)

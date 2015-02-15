@@ -17,12 +17,118 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#include "Pcap_DNSProxy.h"
+#include "Main.h"
+
+extern ConfigurationTable Parameter;
 
 static DWORD ServiceCurrentStatus = 0;
 static BOOL ServiceRunning = false;
 SERVICE_STATUS_HANDLE ServiceStatusHandle = nullptr; 
 HANDLE ServiceEvent = nullptr;
+
+//Windows XP with SP3 support
+#ifdef _WIN64
+#else //x86
+//Verify version of system(Greater than Windows Vista)
+BOOL WINAPI IsGreaterThanVista(void)
+{
+	std::shared_ptr<OSVERSIONINFOEXW> OSVI(new OSVERSIONINFOEXW());
+	DWORDLONG dwlConditionMask = 0;
+
+//Initialization
+	ZeroMemory(OSVI.get(), sizeof(OSVERSIONINFOEXW));
+	OSVI->dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
+	OSVI->dwMajorVersion = 6U; //Greater than Windows Vista.
+	OSVI->dwMinorVersion = 0;
+
+//System Major version > dwMajorVersion
+	VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_GREATER);
+	if (VerifyVersionInfoW(OSVI.get(), VER_MAJORVERSION, dwlConditionMask))
+		return TRUE;
+
+//Sytem Major version = dwMajorVersion and Minor version > dwMinorVersion
+	VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_EQUAL);
+	VER_SET_CONDITION(dwlConditionMask, VER_MINORVERSION, VER_GREATER);
+	return VerifyVersionInfoW(OSVI.get(), VER_MAJORVERSION|VER_MINORVERSION, dwlConditionMask);
+}
+
+//Try to load library to get pointers of functions
+BOOL WINAPI GetFunctionPointer(size_t FunctionType)
+{
+//GetTickCount64() function
+	if (FunctionType == FUNCTION_GETTICKCOUNT64)
+	{
+		Parameter.GetTickCount64DLL = LoadLibraryW(L"Kernel32.dll");
+		if (Parameter.GetTickCount64DLL != nullptr)
+		{
+			Parameter.GetTickCount64PTR = (GetTickCount64Function)GetProcAddress(Parameter.GetTickCount64DLL, "GetTickCount64");
+			if (Parameter.GetTickCount64PTR == nullptr)
+			{
+				FreeLibrary(Parameter.GetTickCount64DLL);
+				return FALSE;
+			}
+		}
+	}
+//inet_ntop() function
+	else if (FunctionType == FUNCTION_INET_NTOP)
+	{
+		Parameter.Inet_Ntop_DLL = LoadLibraryW(L"ws2_32.dll");
+		if (Parameter.Inet_Ntop_DLL != nullptr)
+		{
+			Parameter.Inet_Ntop_PTR = (Inet_Ntop_Function)GetProcAddress(Parameter.Inet_Ntop_DLL, "inet_ntop");
+			if (Parameter.Inet_Ntop_PTR == nullptr)
+			{
+				FreeLibrary(Parameter.Inet_Ntop_DLL);
+				return FALSE;
+			}
+		}
+	}
+
+	return TRUE;
+}
+#endif
+
+//Catch Control-C exception from keyboard.
+BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType)
+{
+	switch (fdwCtrlType)
+	{
+	//Handle the CTRL-C signal.
+		case CTRL_C_EVENT:
+		{
+			if (Parameter.Console)
+				wprintf_s(L"Get Control-C.\n");
+			return FALSE;
+		}
+	//Handle the CTRL-Break signal.
+		case CTRL_BREAK_EVENT:
+		{
+			if (Parameter.Console)
+				wprintf_s(L"Get Control-Break.\n");
+			return FALSE;
+		}
+	//Handle the Closing program signal.
+		case CTRL_CLOSE_EVENT:
+		{
+			return FALSE;
+		}
+	//Handle the Closing program signal.
+		case CTRL_LOGOFF_EVENT:
+		{
+			return FALSE;
+		}
+	//Handle the shutdown signal.
+		case CTRL_SHUTDOWN_EVENT:
+		{
+			return FALSE;
+		}
+//		default: {
+//			return FALSE;
+//		}
+	}
+
+	return FALSE;
+}
 
 //Service Main function
 size_t WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
@@ -79,8 +185,7 @@ size_t WINAPI ServiceControl(const DWORD dwControlCode)
 BOOL WINAPI ExecuteService(void)
 {
 	DWORD dwThreadID = 0;
-	HANDLE hServiceThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)ServiceProc, NULL, 0, &dwThreadID);
-
+	HANDLE hServiceThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)ServiceProc, nullptr, 0, &dwThreadID);
 	if (hServiceThread != nullptr)
 	{
 		ServiceRunning = TRUE;

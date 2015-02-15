@@ -46,9 +46,9 @@
 
     *** UnKnown 找不到 www.google.com: No response from server
     
-* 如果出现以下结果，则说明服务已经运行成功但远程DNS服务器没有回应，请检查是否有错误报告生成
-  * 请务必设置一个正确的、有效的、可以使用的境外DNS服务器
-  * 出现这种情况可能为网络问题。部分地区ISP/运营商对UDP协议转发丢包率比较高，可尝试切换到TCP协议模式（参见 ReadMe 文档中 配置文件详细参数说明 中 Base 基本区域 的 Operation Mode 一节）或者多尝试请求几次
+* 如果出现以下结果，则说明服务已经运行成功但远程 DNS 服务器没有回应，请检查是否有错误报告生成
+  * 请务必设置一个正确的、有效的、可以使用的境外 DNS 服务器
+  * 出现这种情况可能为网络问题。部分地区ISP/运营商对 UDP 协议转发丢包率比较高，可尝试切换到 TCP 协议模式（参见 ReadMe 文档中 配置文件详细参数说明 中 Base 基本区域 的 Operation Mode 一节）或者多尝试请求几次
   * 也可能是因为长时间运行有错误累积造成，项目组正努力解决。可尝试重启服务（参见 ReadMe 文档中的 重启服务）
 
    >nslookup www.google.com
@@ -89,9 +89,9 @@ Error.log 详细错误报告，错误报告一共有7大类型：
     * 详细情况参见 ReadMe 文档中 安装方法 一节
     * 其它错误代码原因参见 http://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
   * Multi bytes to wide chars error - 多字节字符转换为宽字节字符错误，遇到此错误请与作者联系
-  * Old Error Log file deleted - 错误日志文件已满并被删除
+  * Old Error Log file was deleted - 错误日志文件已满并被删除
     * 日志文件最大容量的配置参见 详细说明文档 中 配置文件详细参数说明 中的 Log Maximum Size 参数
-  * Old Running Log file deleted - 运行日志文件已满并被删除
+  * Old Running Log file was deleted - 运行日志文件已满并被删除
     * 日志文件最大容量的配置参见 详细说明文档 中 配置文件详细参数说明 中的 Log Maximum Size 参数
   * Read Hosts module Monitor terminated - Hosts 读取模块已经停止监视，建议立即重新启动服务或程序
   * Read IPFilter module Monitor terminated - IPFilter 读取模块已经停止监视，建议立即重新启动服务或程序
@@ -157,17 +157,16 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Level error - IPFilter 过滤级别错误（可根据报告的行数查找）：过滤级别介乎与 0 - 0xFFFF(65535)
 
 4.Hosts Error - 读取 Hosts 文件错误
-  * Hosts file size is too large - Hosts文件容量过大：请确认Hosts文件的内容，整个文件的大小不要超过4GB
+  * Hosts file size is too large - Hosts 文件容量过大：请确认Hosts文件的内容，整个文件的大小不要超过4GB
   * Read file(s) error - 文件跳转读取错误：请与开发者联系
-  * Hosts file version error - Hosts 文件版本错误：请确认 Hosts 文件是否需要更新。注意，Windows/Linux/Mac版配置文件互不通用！
   * Data of a line is too long - 该 Hosts 条目过长（可根据文件名和行数查找）：一行数据切勿超过4096字节/4KB
   * Item format error - Hosts 条目格式错误（可根据报告的行数查找）：请检查该条目的格式
   * Data is too long when EDNS0 is available - 开启EDNS0标签的情况下该 Hosts 条目过长：请检查 Hosts 的地址列表是否过长
   * Default TTL redefinition - 默认生存时间重定义（可根据报告的行数查找）：以第一个出现的默认生存时间为准
   * Regular expression pattern error - 错误的正则表达式（可根据报告的行数查找）：请检查正则表达式的正确性
   * Repeating items error, the item is not available - 存在重复的 Hosts 条目（可根据报告的行数查找）：以第一个出现的 Hosts 条目为准
-  * IPv6 Address format error - Hosts的IPv6地址格式错误（可根据报告的行数查找）：请检查 Hosts 条目的地址
-  * IPv4 Address format error - Hosts的IPv4地址格式错误（可根据报告的行数查找）：请检查 Hosts 条目的地址
+  * IPv6 Address format error - Hosts 的IPv6地址格式错误（可根据报告的行数查找）：请检查 Hosts 条目的地址
+  * IPv4 Address format error - Hosts 的IPv4地址格式错误（可根据报告的行数查找）：请检查 Hosts 条目的地址
   * Too many Hosts IP addresses - Hosts 条目的平行地址过多
   
 5.Winsock Error - Windows Socket 错误
@@ -204,6 +203,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * ICMP Echo(Ping) request error - ICMP/Ping 协议请求错误：可能为网络错误，具体原因可参见错误代码
   * Set ICMPv6 socket timeout error - 设置 ICMPv6 协议套接字超时时间错误：具体原因可参见错误代码
   * ICMPv6 Echo(Ping) request error - ICMPv6/Ping 协议请求错误：可能为网络错误，具体原因可参见错误代码
+  * Not any available gateways to public network - 没有任何通往公共网络的可用网关：可能为网络错误，请检查网络是否通畅
   * Winsock 错误代码具体含义可移步 http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 
 6.WinPcap Error - WinPcap 错误

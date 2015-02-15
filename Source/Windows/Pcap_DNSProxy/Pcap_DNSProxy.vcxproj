@@ -136,6 +136,7 @@
       <Version>0.4</Version>
       <LargeAddressAware>true</LargeAddressAware>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -166,6 +167,7 @@
       <Version>0.4</Version>
       <LargeAddressAware>true</LargeAddressAware>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -227,8 +229,8 @@
     <ClInclude Include="LibSodium\sodium.h" />
     <ClInclude Include="LibSodium\utils.h" />
     <ClInclude Include="LibSodium\version.h" />
-    <ClInclude Include="Pcap_DNSProxy.h" />
-    <ClInclude Include="Pcap_DNSProxy_Base.h" />
+    <ClInclude Include="Main.h" />
+    <ClInclude Include="Base.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="WinPcap\bittypes.h" />
     <ClInclude Include="WinPcap\ip6_misc.h" />
@@ -257,9 +259,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Capture.cpp" />
-    <ClCompile Include="ClassInitialization.cpp" />
+    <ClCompile Include="Initialization.cpp" />
     <ClCompile Include="Configuration.cpp" />
-    <ClCompile Include="Console.cpp" />
     <ClCompile Include="DNSCurve.cpp" />
     <ClCompile Include="Keccak\Keccak-compact64.cpp" />
     <ClCompile Include="Keccak\KeccakHash.cpp" />
@@ -270,7 +271,7 @@
     <ClCompile Include="Process.cpp" />
     <ClCompile Include="Protocol.cpp" />
     <ClCompile Include="Request.cpp" />
-    <ClCompile Include="Service.cpp" />
+    <ClCompile Include="System.cpp" />
     <ClCompile Include="Sort.cpp" />
   </ItemGroup>
   <ItemGroup>

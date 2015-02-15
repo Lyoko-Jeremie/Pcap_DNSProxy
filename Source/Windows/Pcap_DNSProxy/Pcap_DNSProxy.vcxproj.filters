@@ -183,12 +183,6 @@
     <ClInclude Include="LibSodium\version.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
-    <ClInclude Include="Pcap_DNSProxy.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Pcap_DNSProxy_Base.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Keccak\brg_endian.h">
       <Filter>Keccak</Filter>
     </ClInclude>
@@ -255,6 +249,12 @@
     <ClInclude Include="resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Base.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Main.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="LibSodium\libsodium_x64.lib">
@@ -280,13 +280,7 @@
     <ClCompile Include="Capture.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="ClassInitialization.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Configuration.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Console.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="DNSCurve.cpp">
@@ -310,9 +304,6 @@
     <ClCompile Include="Request.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Service.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Keccak\Keccak-compact64.cpp">
       <Filter>Keccak</Filter>
     </ClCompile>
@@ -323,6 +314,12 @@
       <Filter>Keccak</Filter>
     </ClCompile>
     <ClCompile Include="Sort.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="System.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Initialization.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

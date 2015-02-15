@@ -17,7 +17,7 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#include "Pcap_DNSProxy_Base.h"
+#include "Base.h"
 
 //Base defines
 //#define RETURN_ERROR           (-1)
@@ -143,8 +143,16 @@
 #define DNSCURVE_TEST_NONCE                   0, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23   //DNSCurve Test Nonce, 0x00 - 0x23(ASCII)
 #define DEFAULT_SEQUENCE                      0x0001                                                                                                                                        //Default sequence of protocol
 #define DNS_PACKET_QUERY_LOCATE(Buffer)       (sizeof(dns_hdr) + CheckDNSQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U)                                                                    //Location of beginning of DNS Query
-#define DNS_TCP_PACKET_QUERY_LOCATE(Buffer)   (sizeof(tcp_dns_hdr) + CheckDNSQueryNameLength(Buffer + sizeof(tcp_dns_hdr)) + 1U)
+#define DNS_TCP_PACKET_QUERY_LOCATE(Buffer)   (sizeof(dns_tcp_hdr) + CheckDNSQueryNameLength(Buffer + sizeof(dns_tcp_hdr)) + 1U)
 #define DNS_PACKET_RR_LOCATE(Buffer)          (sizeof(dns_hdr) + CheckDNSQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U + sizeof(dns_qry))                                                  //Location of beginning of DNS Resource Records
+
+//Function Type defines
+//Windows XP with SP3 support
+#ifdef _WIN64
+#else //x86
+#define FUNCTION_GETTICKCOUNT64        1U
+#define FUNCTION_INET_NTOP             2U
+#endif
 
 //Error Type defines
 #define LOG_ERROR_SYSTEM     1U                      // 01: System Error
@@ -165,6 +173,9 @@
 #define LISTEN_IPV4                    0
 #define LISTEN_IPV6                    1U
 #define LISTEN_IPV4_IPV6               2U
+#define LISTEN_UDP                     0
+#define LISTEN_TCP                     1U
+#define LISTEN_TCP_UDP                 2U
 #define LISTEN_PROXYMODE               0
 #define LISTEN_PRIVATEMODE             1U 
 #define LISTEN_SERVERMODE              2U
@@ -186,6 +197,14 @@
 #define DNSCURVE_ALTERNATEIPV6         2U            //DNSCurve Alternate(IPv6)
 #define DNSCURVE_ALTERNATEIPV4         3U            //DNSCurve Alternate(IPv4)
 
+//Function Pointer defines
+//Windows XP with SP3 support
+#ifdef _WIN64
+#else //x86
+typedef ULONGLONG(CALLBACK *GetTickCount64Function)(void);
+typedef PCSTR(CALLBACK *Inet_Ntop_Function)(INT, PVOID, PSTR, size_t);
+#endif
+
 //Structure defines
 //Socket Data structure
 typedef struct _socket_data_
@@ -193,7 +212,7 @@ typedef struct _socket_data_
 	SYSTEM_SOCKET            Socket;
 	sockaddr_storage         SockAddr;
 	int                      AddrLen;
-}SOCKET_Data, SOCKET_DATA;
+}SocketData, SOCKET_DATA, *PSocketData, *PSOCKET_DATA;
 
 //File Data structure
 typedef struct _file_data_
@@ -201,7 +220,7 @@ typedef struct _file_data_
 	std::wstring                       FileName;
 	bool                               HashAvailable;
 	std::shared_ptr<BitSequence>       HashResult;
-}FileData, FILE_DATA;
+}FileData, FILE_DATA, *PFileData, *PFILE_DATA;
 
 //DNS Server Data structure
 typedef struct _dns_server_data_
@@ -215,7 +234,7 @@ typedef struct _dns_server_data_
 		uint8_t              TTL;
 		uint8_t              HopLimit;
 	}HopLimitData;
-}DNSServerData, DNS_SERVER_DATA;
+}DNSServerData, DNS_SERVER_DATA, *PDNSServerData, *PDNS_SERVER_DATA;
 
 //DNS Cache structure
 typedef struct _dnscache_data_
@@ -225,7 +244,7 @@ typedef struct _dnscache_data_
 	uint16_t                 Type;
 	size_t                   Length;
 	size_t                   ClearTime;
-}DNSCacheData, DNSCACHE_DATA;
+}DNSCacheData, DNSCACHE_DATA, *PDNSCacheData, *PDNSCACHE_DATA;
 
 //Address Prefix Block structure
 typedef struct _address_prefix_block_
@@ -237,7 +256,7 @@ typedef struct _address_prefix_block_
 		sockaddr_in6         IPv6;
 	}AddressData;
 	size_t Prefix;
-}AddressPrefixBlock, ADDRESS_PREFIX_BLOCK;
+}Address_Prefix_Block, ADDRESS_PREFIX_BLOCK, *PAddress_Prefix_Block, *PADDRESS_PREFIX_BLOCK;
 
 /* Old version(2014-12-23)
 //TCP Request Multithreading Parameter structure
@@ -277,7 +296,7 @@ typedef struct _dnscurve_server_data_
 	PUINT8                   ServerFingerprint;      //Server Fingerprints
 	PSTR                     ReceiveMagicNumber;     //Receive Magic Number(Same from server receive)
 	PSTR                     SendMagicNumber;        //Server Magic Number(Send to server)
-}DNSCurveServerData, DNSCURVE_SERVER_DATA;
+}DNSCurveServerData, DNSCURVE_SERVER_DATA, *PDNSCurveServerData, *PDNSCURVE_SERVER_DATA;
 
 /* Old version(2015-01-13)
 //DNSCurve TCP Request Multithreading Parameter structure
@@ -311,6 +330,7 @@ public:
 	size_t                           RequestMode;
 	bool                             HostsOnly;
 	bool                             LocalMain;
+	bool                             LocalHosts;
 	bool                             LocalRouting;
 	size_t                           CacheType;
 	size_t                           CacheParameter;
@@ -318,23 +338,26 @@ public:
 //[Listen] block
 	bool                             PcapCapture;
 	size_t                           OperationMode;
-	size_t                           ListenProtocol;
+	size_t                           ListenProtocol_NetworkLayer;
+	size_t                           ListenProtocol_TransportLayer;
 	uint16_t                         ListenPort;
 	bool                             IPFilterType;
 	size_t                           IPFilterLevel;
 	bool                             AcceptType;
 //[Addresses] block
+	sockaddr_storage                 *ListenAddress_IPv4;
+	sockaddr_storage                 *ListenAddress_IPv6;
 	struct _dns_target_ {
-		DNSServerData                IPv4;
-		DNSServerData                Alternate_IPv4;
-		DNSServerData                IPv6;
-		DNSServerData                Alternate_IPv6;
-		DNSServerData                Local_IPv4;
-		DNSServerData                Alternate_Local_IPv4;
-		DNSServerData                Local_IPv6;
-		DNSServerData                Alternate_Local_IPv6;
-		std::vector<DNSServerData>   *IPv4_Multi;
-		std::vector<DNSServerData>   *IPv6_Multi;
+		DNS_SERVER_DATA                IPv4;
+		DNS_SERVER_DATA                Alternate_IPv4;
+		DNS_SERVER_DATA                IPv6;
+		DNS_SERVER_DATA                Alternate_IPv6;
+		DNS_SERVER_DATA                Local_IPv4;
+		DNS_SERVER_DATA                Alternate_Local_IPv4;
+		DNS_SERVER_DATA                Local_IPv6;
+		DNS_SERVER_DATA                Alternate_Local_IPv6;
+		std::vector<DNS_SERVER_DATA>   *IPv4_Multi;
+		std::vector<DNS_SERVER_DATA>   *IPv6_Multi;
 	}DNSTarget;
 //[Values] block
 	size_t                           EDNS0PayloadSize;
@@ -392,10 +415,19 @@ public:
 	std::vector<std::string>         *LocalAddressPTR[QUEUE_PARTNUM / 2U];
 	std::vector<uint16_t>            *AcceptTypeList;
 
-//IPv6 tunnels support block
-	bool                             Tunnel_IPv6;
-//	std::vector<in_addr>             Tunnel_Teredo;          //Teredo address list
-//	bool                             Tunnel_ISATAP;          //6to4, ISATAP and others which using IPv4 Protocol 41
+//Windows XP with SP3 support
+#ifdef _WIN64
+#else //x86
+	HINSTANCE                        GetTickCount64DLL;
+	GetTickCount64Function           GetTickCount64PTR;
+	HINSTANCE                        Inet_Ntop_DLL;
+	Inet_Ntop_Function               Inet_Ntop_PTR;
+#endif
+
+//IPv6 support block
+	bool                             GatewayAvailable_IPv4;
+	bool                             GatewayAvailable_IPv6;
+	bool                             TunnelAvailable_IPv6;
 
 	::ConfigurationTable(void);
 	~ConfigurationTable(void);
@@ -469,10 +501,10 @@ public:
 	PUINT8                   Client_PublicKey;
 	PUINT8                   Client_SecretKey;
 	struct _dnscurve_target_ {
-		DNSCurveServerData   IPv4;
-		DNSCurveServerData   Alternate_IPv4;
-		DNSCurveServerData   IPv6;
-		DNSCurveServerData   Alternate_IPv6;
+		DNSCURVE_SERVER_DATA   IPv4;
+		DNSCURVE_SERVER_DATA   Alternate_IPv4;
+		DNSCURVE_SERVER_DATA   IPv6;
+		DNSCURVE_SERVER_DATA   Alternate_IPv6;
 	}DNSCurveTarget;
 
 	::DNSCurveConfigurationTable(void);
@@ -491,7 +523,8 @@ bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length);
 size_t __fastcall CaseConvert(bool IsLowerUpper, const PSTR Buffer, const size_t Length);
 size_t __fastcall AddressStringToBinary(const PSTR AddrString, void *OriginalAddr, const uint16_t Protocol, SSIZE_T &ErrCode);
 PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol);
-size_t __fastcall GetLocalAddressInformation(const uint16_t Protocol);
+void __fastcall GetGatewayInformation(const uint16_t Protocol);
+size_t __fastcall GetNetworkingInformation(void);
 uint16_t __fastcall ServiceNameToHex(const PSTR Buffer);
 uint16_t __fastcall DNSTypeNameToHex(const PSTR Buffer);
 bool __fastcall CheckSpecialAddress(const void *Addr, const uint16_t Protocol, const PSTR Domain);
@@ -505,11 +538,10 @@ size_t __fastcall AddLengthToTCPDNSHeader(PSTR Buffer, const size_t RecvLen, con
 size_t __fastcall CharToDNSQuery(const PSTR FName, PSTR TName);
 size_t __fastcall CheckDNSQueryNameLength(const PSTR Buffer);
 size_t __fastcall DNSQueryToChar(const PSTR TName, PSTR FName /* , uint16_t &Truncated */);
-BOOL WINAPI FlushDNSResolverCache(void);
 void __fastcall MakeRamdomDomain(PSTR Buffer);
 void __fastcall MakeDomainCaseConversion(PSTR Buffer);
 size_t __fastcall MakeCompressionPointerMutation(const PSTR Buffer, const size_t Length);
-bool __fastcall CheckResponseData(const PSTR Buffer, const size_t Length, bool IsLocal, bool *MarkHopLimit);
+bool __fastcall CheckResponseData(const PSTR Buffer, const size_t Length, bool IsLocal, bool *IsMarkHopLimit);
 
 //Sort.cpp
 size_t __fastcall CompareAddresses(const void *OriginalAddrBegin, const void *OriginalAddrEnd, const uint16_t Protocol);
@@ -522,21 +554,29 @@ bool __fastcall SortHostsListNORMAL(const HostsTable& HostsTableIter);
 
 //Configuration.cpp
 inline bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t FileIndex);
-inline size_t __fastcall ReadMultiLineComments(const PSTR Buffer, std::string &Data, bool &LabelComments);
+inline size_t __fastcall ReadMultiLineComments(const PSTR Buffer, std::string &Data, bool &IsLabelComments);
 size_t __fastcall ReadParameter(void);
-size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, const size_t Line, bool &LabelComments);
+size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, const size_t Line, bool &IsLabelComments);
 size_t __fastcall ReadIPFilter(void);
-size_t __fastcall ReadIPFilterData(const PSTR Buffer, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &LabelComments);
+size_t __fastcall ReadIPFilterData(const PSTR Buffer, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &IsLabelComments);
 inline size_t __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, const size_t Line);
 inline size_t __fastcall ReadLocalRoutingData(std::string Data, const size_t FileIndex, const size_t Line);
 inline size_t __fastcall ReadMainIPFilterData(std::string Data, const size_t FileIndex, const size_t Line);
 size_t __fastcall ReadHosts(void);
-size_t __fastcall ReadHostsData(const PSTR Buffer, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &LabelComments);
+size_t __fastcall ReadHostsData(const PSTR Buffer, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &IsLabelComments);
 inline size_t __fastcall ReadWhitelistAndBannedData(std::string Data, const size_t FileIndex, const size_t Line, const size_t LabelType);
 inline size_t __fastcall ReadLocalHostsData(std::string Data, const size_t FileIndex, const size_t Line);
 inline size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, const size_t Line);
 
-//Service.cpp
+//System.cpp
+//Windows XP with SP3 support
+#ifdef _WIN64
+#else //x86
+BOOL WINAPI IsGreaterThanVista(void);
+BOOL WINAPI GetFunctionPointer(size_t FunctionType);
+#endif
+BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType);
+BOOL WINAPI FlushDNSResolverCache(void);
 size_t WINAPI ServiceMain(DWORD argc, LPTSTR *argv);
 size_t WINAPI ServiceControl(const DWORD dwControlCode);
 BOOL WINAPI ExecuteService(void);
@@ -563,10 +603,10 @@ inline size_t LocalSignatureRequest(const PSTR OriginalSend, const size_t SendSi
 inline bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const bool IsAlternate);
 inline bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const bool IsAlternate);
 bool __fastcall GetSignatureData(const PSTR Buffer, const size_t ServerType);
-size_t __fastcall DNSCurveTCPRequest(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const SOCKET_DATA TargetData, const bool IsAlternate);
-size_t __fastcall DNSCurveTCPRequestMulti(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const SOCKET_DATA TargetData, const bool IsAlternate);
-size_t __fastcall DNSCurveUDPRequest(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const SOCKET_DATA TargetData, const bool IsAlternate);
-size_t __fastcall DNSCurveUDPRequestMulti(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const SOCKET_DATA TargetData, const bool IsAlternate);
+size_t __fastcall DNSCurveTCPRequest(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsAlternate);
+size_t __fastcall DNSCurveTCPRequestMulti(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsAlternate);
+size_t __fastcall DNSCurveUDPRequest(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsAlternate);
+size_t __fastcall DNSCurveUDPRequestMulti(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsAlternate);
 
 //Process.cpp
 size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Length, const SOCKET_DATA TargetData, const uint16_t Protocol, const size_t ListIndex);
@@ -582,7 +622,7 @@ size_t __fastcall MarkDomainCache(const PSTR Buffer, const size_t Length);
 //Captrue.cpp
 size_t __fastcall CaptureInit(void);
 inline void __fastcall FilterRulesInit(std::string &FilterRules);
-size_t __fastcall Capture(const pcap_if *pDrive, const bool IsList);
+size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList);
 size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint16_t Protocol);
 inline bool __fastcall ICMPCheck(const PSTR Buffer, const size_t Length, const uint16_t Protocol);
 inline bool __fastcall TCPCheck(const PSTR Buffer);
@@ -593,12 +633,9 @@ inline size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length,
 size_t __fastcall DomainTestRequest(const uint16_t Protocol);
 size_t __fastcall ICMPEcho(void);
 size_t __fastcall ICMPv6Echo(void);
-size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const SOCKET_DATA TargetData, const bool IsLocal, const bool IsAlternate);
-size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const SOCKET_DATA TargetData, const bool IsAlternate);
-size_t __fastcall UDPRequest(const PSTR OriginalSend, const size_t Length, const SOCKET_DATA TargetData, const size_t ListIndex, const bool IsAlternate);
-size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, const SOCKET_DATA TargetData, const size_t ListIndex, const bool IsAlternate);
-size_t __fastcall UDPCompleteRequest(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const SOCKET_DATA TargetData, const bool IsLocal, const bool IsAlternate);
-size_t __fastcall UDPCompleteRequestMulti(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const SOCKET_DATA TargetData, const bool IsAlternate);
-
-//Console.cpp
-BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType);
+size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal, const bool IsAlternate);
+size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsAlternate);
+size_t __fastcall UDPRequest(const PSTR OriginalSend, const size_t Length, const size_t ListIndex, const bool IsAlternate);
+size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, const size_t ListIndex, const bool IsAlternate);
+size_t __fastcall UDPCompleteRequest(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal, const bool IsAlternate);
+size_t __fastcall UDPCompleteRequestMulti(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsAlternate);

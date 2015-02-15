@@ -89,9 +89,9 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
     * 詳細情況參見 ReadMe 文檔中 安裝方法 一節
     * 其它錯誤代碼原因參見 HTTP://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
   * Multi bytes to wide chars error - 多位元組字元轉換為寬位元組字元錯誤，遇到此錯誤請與作者聯繫
-  * Old Error Log file deleted - 錯誤日誌檔已滿並被刪除
+  * Old Error Log file was deleted - 錯誤日誌檔已滿並被刪除
     * 日誌檔最大容量的配置參見 詳細說明文檔 中 設定檔詳細參數說明 中的 Log Maximum Size 參數
-  * Old Running Log file deleted - 運行日誌檔已滿並被刪除
+  * Old Running Log file was deleted - 運行日誌檔已滿並被刪除
     * 日誌檔最大容量的配置參見 詳細說明文檔 中 設定檔詳細參數說明 中的 Log Maximum Size 參數
   * Read Hosts module Monitor terminated - Hosts 讀取模組已經停止監視，建議立即重新開機服務或程式
   * Read IPFilter module Monitor terminated - IPFilter 讀取模組已經停止監視，建議立即重新開機服務或程式
@@ -204,6 +204,7 @@ DNS Targets error - DNS 目標伺服器配置錯誤：請檢查 DNS 伺服器的
   * ICMP Echo(Ping) request error - ICMP/Ping 協定請求錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
   * Set ICMPv6 socket timeout error - 設置 ICMPv6 協定通訊端超時時間錯誤：具體原因可參見錯誤代碼
   * ICMPv6 Echo(Ping) request error - ICMPv6/Ping 協定請求錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * Not any available gateways to public network - 沒有任何通往公共網路的可用閘道：可能為網路錯誤，請檢查網路是否通暢
   * Winsock 錯誤代碼具體含義可移步 HTTP://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 
 6.WinPcap Error - WinPcap 錯誤

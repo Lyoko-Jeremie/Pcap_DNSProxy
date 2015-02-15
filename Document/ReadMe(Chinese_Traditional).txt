@@ -232,7 +232,7 @@ Pcap_DNSProxy 支援平臺：
   * File Hash - 檔 Hash 功能，開啟此功能能降低刷新檔時的 CPU 佔用：開啟為1/關閉為0，預設為 1
   * Additional Path - 附加的資料檔案讀取路徑，附加在此處的目錄路徑下的 Hosts 檔和 IPFilter 檔會被依次讀取：預設為空
   * Hosts File Name - Hosts 檔的檔案名，附加在此處的 Hosts 檔案名將被依次讀取：預設為 Hosts.ini|Hosts.conf|Hosts|Hosts.txt|Hosts.csv|WhiteList.txt|White_List.txt
-  * IPFilter File Name - IPFilter 檔的檔案名，附加在此處的 IPFilter 檔案名將被依次讀取：預設為 IPFilter.ini|IPFilter.conf|IPFilter.dat|IPFilter.csv|IPFilter|Guarding.p2p|Guarding|Routing.txt|Route.txt|chnrouting.txt|chnroute.txt
+  * IPFilter File Name - IPFilter 檔的檔案名，附加在此處的 IPFilter 檔案名將被依次讀取：預設為 IPFilter.ini|IPFilter.conf|IPFilter.dat|IPFilter.csv|IPFilter|Guarding.p2p|Guarding|Routing.txt|chnrouting.txt|chnroute.txt
 
 * Log - 日誌參數區域
   * Print Error - 輸出錯誤報表功能：開啟為1/關閉為0，預設為 1
@@ -257,9 +257,10 @@ Pcap_DNSProxy 支援平臺：
     * Private/私有網路模式：打開DNS通用埠（TCP/UDP 同時打開），可為僅限於私有網路位址的設備提供代理功能變數名稱解析請求服務
     * Proxy/代理模式：只打開回環位址的DNS埠（TCP/UDP 同時打開），只能為本機提供代理功能變數名稱解析請求服務
     * Custom/自訂模式：打開DNS通用埠（TCP/UDP 同時打開），可用的位址由 IPFilter 參數決定
-  * Listen Protocol - 監聽協定，本地監聽的協定：可填入 IPv4 和 IPv6 和 IPv4 + IPv6，預設為 IPv4 + IPv6
-    * 只填 IPv4 或 IPv6 時，只監聽指定協定的本地埠
-    * IPv4 + IPv6 時同時監聽兩個協定的本地埠
+  * Listen Protocol - 監聽協定，本地監聽的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP，預設為 IPv4 + IPv6 + UDP
+    * 只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只監聽指定協定的本地埠
+    * IPv4 + IPv6 + TCP + UDP 時同時監聽兩個協定的本地埠
+    * 填入的協定可隨意組合
   * Listen Port - 監聽埠，本地監聽請求的埠：可填入 1-65535 之間的埠，如果留空則為53，預設為空
   * IPFilter Type - IPFilter 參數的類型：分為 Deny 禁止和 Permit 允許，對應 IPFilter 參數應用為黑名單或白名單，預設為 Deny
   * IPFilter Level - IPFilter 參數的過濾級別，級別越高過濾越嚴格，與 IPFilter 條目相對應：0為不啟用過濾，如果留空則為0，預設為空
@@ -350,6 +351,8 @@ Pcap_DNSProxy 支援平臺：
 
 * Addresses - 普通模式位址區域
 注意：IPv4 位址格式為 "IPv4 位址:埠"，IPv6位址格式為"[IPv6 位址]:埠"（均不含引號）
+  * IPv4 Listen Address - IPv4 本地監聽位址
+    * 填入此值後 IPv4 協定的 Operation Mode 和 Listen Port 參數將被自動忽略
   * IPv4 DNS Address - IPv4 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，預設為 8.8.4.4:53
     * 本參數支援同時請求多伺服器的功能，開啟後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果
     * 使用同時請求多伺服器格式為 "位址 A:埠|位址 B:埠|位址 C:埠"（不含引號），同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
@@ -447,6 +450,8 @@ Pcap_DNSProxy 支援平臺：
     * 指定埠時可使用服務名稱代替，參見上表
   * IPv4 Local Alternate DNS Address - IPv4備用境內DNS伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，預設為 114.114.114.114:53
     * 指定埠時可使用服務名稱代替，參見上表
+  * IPv6 Listen Address - IPv6 本地監聽位址
+    * 填入此值後 IPv6 協定的 Operation Mode 和 Listen Port 參數將被自動忽略
   * IPv6 DNS Address - IPv6主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
     * 指定埠時可使用服務名稱代替，參見上表
   * IPv6 Alternate DNS Address - IPv6備用DNS伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
@@ -568,7 +573,7 @@ File Refresh Time = 10
 File Hash = 1
 Additional Path = 
 Hosts File Name = Hosts.ini|Hosts.conf|Hosts|Hosts.txt|Hosts.csv|WhiteList.txt|White_List.txt
-IPFilter File Name = IPFilter.ini|IPFilter.conf|IPFilter.dat|IPFilter.csv|IPFilter|Guarding.p2p|Guarding|Routing.txt|Route.txt|chnrouting.txt|chnroute.txt
+IPFilter File Name = IPFilter.ini|IPFilter.conf|IPFilter.dat|IPFilter.csv|IPFilter|Guarding.p2p|Guarding|Routing.txt|chnrouting.txt|chnroute.txt
 
 [Log]
 Print Error = 1
@@ -579,6 +584,7 @@ Log Maximum Size =
 Protocol = UDP
 Hosts Only = 0
 Local Main = 0
+Local Hosts = 0
 Local Routing = 0
 Cache Type = Queue
 Cache Parameter = 256
@@ -587,21 +593,23 @@ Default TTL =
 [Listen]
 Pcap Capture = 1
 Operation Mode = Private
-Listen Protocol = IPv4 + IPv6
+Listen Protocol = IPv4 + IPv6 + UDP
 Listen Port = 
 IPFilter Type = Deny
 IPFilter Level < 
 Accept Type = 
 
 [Addresses]
+IPv4 Listen Address = 
 IPv4 DNS Address = 8.8.4.4:53
 IPv4 Alternate DNS Address = 8.8.8.8:53|208.67.220.220:53|208.67.222.222:53
 IPv4 Local DNS Address = 114.114.115.115:53
 IPv4 Local Alternate DNS Address = 114.114.114.114:53
+IPv6 Listen Address = 
 IPv6 DNS Address = 
-## Format -> IPv6 DNS Address = [2001:4860:4860::8844]:53
+#IPv6 DNS Address = [2001:4860:4860::8844]:53
 IPv6 Alternate DNS Address = 
-## Format -> IPv6 Alternate DNS Address = [2001:4860:4860::8888]:53
+#IPv6 Alternate DNS Address = [2001:4860:4860::8888]:53
 IPv6 Local DNS Address = 
 IPv6 Local Alternate DNS Address = 
 
@@ -652,15 +660,15 @@ Key Recheck Time = 3600
 DNSCurve IPv4 DNS Address = 208.67.220.220:443
 DNSCurve IPv4 Alternate DNS Address = 208.67.222.222:443
 DNSCurve IPv6 DNS Address = 
-## DNSCurve IPv6 DNS Address = [2620:0:CCC::2]:443
+#DNSCurve IPv6 DNS Address = [2620:0:CCC::2]:443
 DNSCurve IPv6 Alternate DNS Address = 
-## DNSCurve Alternate IPv6 DNS Address = [2620:0:CCD::2]:443
+#DNSCurve IPv6 Alternate DNS Address = [2620:0:CCD::2]:443
 DNSCurve IPv4 Provider Name = 2.dnscrypt-cert.opendns.com
 DNSCurve IPv4 Alternate Provider Name = 2.dnscrypt-cert.opendns.com
 DNSCurve IPv6 Provider Name = 
-## DNSCurve IPv6 Provider Name = 2.dnscrypt-cert.opendns.com
+#DNSCurve IPv6 Provider Name = 2.dnscrypt-cert.opendns.com
 DNSCurve IPv6 Alternate Provider Name = 
-## DNSCurve IPv6 Alternate Provider Name = 2.dnscrypt-cert.opendns.com
+#DNSCurve IPv6 Alternate Provider Name = 2.dnscrypt-cert.opendns.com
 
 [DNSCurve Keys]
 Client Public Key = 
@@ -668,17 +676,17 @@ Client Secret Key =
 IPv4 DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
 IPv4 Alternate DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
 IPv6 DNS Public Key = 
-## IPv6 DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
+#IPv6 DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
 IPv6 Alternate DNS Public Key = 
-## IPv6 Alternate DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
+#IPv6 Alternate DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
 IPv4 DNS Fingerprint = 
-## IPv4 DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
+#IPv4 DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
 IPv4 Alternate DNS Fingerprint = 
-## IPv4 Alternate DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
+#IPv4 Alternate DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
 IPv6 DNS Fingerprint = 
-##IPv6 DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
+#IPv6 DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
 IPv6 Alternate DNS Fingerprint = 
-##IPv6 Alternate DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
+#IPv6 Alternate DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
 
 [DNSCurve Magic Number]
 IPv4 Receive Magic Number = 

@@ -57,15 +57,15 @@
 #include <tchar.h>                 //Unicode(UTF-8/UTF-16)/Wide-Character Support
 //#include <winsock2.h>              //WinSock 2.0+(MUST be including before windows.h)
 //#include <winsvc.h>                //Service Control Manager
-//#include <iphlpapi.h>              //IP Stack for MIB-II and related functionality
+#include <iphlpapi.h>              //IP Stack for MIB-II and related functionality
 //#include <ws2tcpip.h>              //WinSock 2.0+ Extension for TCP/IP protocols
 //#include <mstcpip.h>               //Microsoft-specific extensions to the core Winsock definitions.
 //#include <windns.h>                //Windows DNS definitions and DNS API
 //#include <windows.h>               //Master include file
 
 //Static librarys
-#pragma comment(lib, "ws2_32.lib")            //WinSock 2.0+
-//#pragma comment(lib, "iphlpapi.lib")        //IP Stack for MIB-II and related functionality
+#pragma comment(lib, "ws2_32.lib")            //Winsock Library, WinSock 2.0+
+#pragma comment(lib, "iphlpapi.lib")          //IP Helper Library, IP Stack for MIB-II and related functionality
 #ifdef _WIN64
 	#pragma comment(lib, "WinPcap/wpcap_x64.lib") //WinPcap library(x64)
 	#pragma comment(lib, "LibSodium/libsodium_x64.lib") //LibSodium library(x64)
@@ -136,7 +136,7 @@ typedef struct _eth_hdr_
 	uint8_t                Dst[6U];
 	uint8_t                Src[6U];
 	uint16_t               Type;
-}eth_hdr;
+}eth_hdr, *peth_hdr;
 
 /* Point-to-Point Protocol over Ethernet/PPPoE Header(RFC 2516, https://tools.ietf.org/rfc/rfc2516)
 
@@ -158,7 +158,7 @@ typedef struct _pppoe_hdr_
 	uint16_t               SessionID;
 	uint16_t               Length;
 	uint16_t               Protocol;
-}pppoe_hdr;
+}pppoe_hdr, *ppppoe_hdr;
 
 /* 802.1X Protocol Header(RFC 3580, https://tools.ietf.org/html/rfc3580)
 
@@ -173,7 +173,7 @@ typedef struct _802_1x_hdr
 	uint8_t                Version;
 	uint8_t                Type;
 	uint16_t               Length;
-};
+}802_1x_hdr, *p802_1x_hdr;
 */
 
 //Internet Protocol Numbers
@@ -394,7 +394,7 @@ typedef struct _ipv4_hdr_
 	uint16_t               Checksum;
 	in_addr                Src;
 	in_addr                Dst;
-}ipv4_hdr;
+}ipv4_hdr, *pipv4_hdr;
 
 /* Internet Protocol version 6/IPv6 Header(RFC 2460, https://tools.ietf.org/html/rfc2460)
 
@@ -464,7 +464,7 @@ typedef struct _ipv6_hdr_
 	uint8_t                    HopLimit;
 	in6_addr                   Src;
 	in6_addr                   Dst;
-}ipv6_hdr;
+}ipv6_hdr, *pipv6_hdr;
 
 /* Generic Routing Encapsulation/GRE Protocol Header(RFC 2784, https://tools.ietf.org/html/rfc2784)
 
@@ -484,7 +484,7 @@ typedef struct _gre_hdr
 {
 	uint16_t               Flags_Version;
 	uint16_t               Type;
-}gre_hdr;
+}gre_hdr, *pgre_hdr;
 */
 
 /* Internet Control Message Protocol/ICMP Header(RFC 792, https://tools.ietf.org/html/rfc792)
@@ -511,7 +511,7 @@ typedef struct _icmp_hdr_
 	uint16_t               ID;
 	uint16_t               Sequence;
 //	uint32_t               TimeStamp;
-}icmp_hdr;
+}icmp_hdr, *picmp_hdr;
 
 /* Internet Control Message Protocol version 6/ICMPv6 Header(RFC 4443, https://tools.ietf.org/html/rfc4443)
 
@@ -537,7 +537,7 @@ typedef struct _icmpv6_hdr_
 	uint16_t               ID;
 	uint16_t               Sequence;
 //	uint16_t               Nonce;
-}icmpv6_hdr;
+}icmpv6_hdr, *picmpv6_hdr;
 
 /* Transmission Control Protocol/TCP Header(RFC 675/793/1122/2581/5681, https://tools.ietf.org/html/rfc675, https://tools.ietf.org/html/rfc793, https://tools.ietf.org/html/rfc1122, https://tools.ietf.org/html/rfc2581, https://tools.ietf.org/html/rfc5681)
 
@@ -668,7 +668,7 @@ typedef struct _tcp_hdr_
 	uint16_t               Windows;
 	uint16_t               Checksum;
 	uint16_t               UrgentPointer;
-}tcp_hdr;
+}tcp_hdr, *ptcp_hdr;
 
 /* User Datagram Protocol/UDP Header(RFC 768, https://tools.ietf.org/html/rfc768)
 
@@ -688,7 +688,7 @@ typedef struct _udp_hdr_
 	uint16_t               DstPort;
 	uint16_t               Length;
 	uint16_t               Checksum;
-}udp_hdr;
+}udp_hdr, *pudp_hdr;
 
 /* Transmission Control Protocol/TCP and User Datagram Protocol/UDP Pseudo Header with IPv4(RFC 675/768/793/1122/2581/5681, https://tools.ietf.org/html/rfc675, https://tools.ietf.org/html/rfc768, https://tools.ietf.org/html/rfc793, https://tools.ietf.org/html/rfc1122, https://tools.ietf.org/html/rfc2581, https://tools.ietf.org/html/rfc5681)
 
@@ -710,7 +710,7 @@ typedef struct _ipv4_psd_hdr_
 	uint8_t               Zero;
 	uint8_t               Protocol;
 	uint16_t              Length;
-}ipv4_psd_hdr;
+}ipv4_psd_hdr, *pipv4_psd_hdr;
 
 /* Internet Control Message Protocol version 6/ICMPv6, Transmission Control Protocol/TCP and User Datagram Protocol/UDP Pseudo Header with IPv4(RFC 675/768/793/1122/2581/4443/5681, https://tools.ietf.org/html/rfc675, https://tools.ietf.org/html/rfc768, https://tools.ietf.org/html/rfc793, https://tools.ietf.org/html/rfc1122, https://tools.ietf.org/html/rfc2581, https://tools.ietf.org/html/rfc4443, https://tools.ietf.org/html/rfc5681)
 
@@ -740,7 +740,7 @@ typedef struct _ipv6_psd_hdr_
 	uint32_t              Length;
 	uint8_t               Zero[3U];
 	uint8_t               Next_Header;
-}ipv6_psd_hdr;
+}ipv6_psd_hdr, *pipv6_psd_hdr;
 
 //Domain Name System/DNS Part
 /* About RFC standards
@@ -1011,7 +1011,7 @@ typedef struct _dns_hdr_
 	uint16_t              Answer;
 	uint16_t              Authority;
 	uint16_t              Additional;
-}dns_hdr;
+}dns_hdr, *pdns_hdr;
 
 /* Domain Name System/DNS Header
 //With Transmission Control Protocol/TCP
@@ -1030,7 +1030,7 @@ typedef struct _dns_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-typedef struct _tcp_dns_hdr_
+typedef struct _dns_tcp_hdr_
 {
 	uint16_t              Length;
 	uint16_t              ID;
@@ -1067,7 +1067,7 @@ typedef struct _tcp_dns_hdr_
 	uint16_t              Answer;
 	uint16_t              Authority;
 	uint16_t              Additional;
-}tcp_dns_hdr;
+}dns_tcp_hdr, *pdns_tcp_hdr;
 
 /* Domain Name System/DNS Query
 
@@ -1087,7 +1087,7 @@ typedef struct _dns_qry_
 //	PUCHAR                Name;
 	uint16_t              Type;
 	uint16_t              Classes;
-}dns_qry;
+}dns_qry, *pdns_qry;
 
 /* Domain Name System/DNS Standard Resource Record
 
@@ -1116,7 +1116,7 @@ typedef struct _dns_standard_
 	uint32_t              TTL;
 	uint16_t              Length;
 //	PUCHAR                Data;
-}dns_standard_record;
+}dns_record_standard, *pdns_record_standard;
 
 /* Domain Name System/DNS A(IPv4) Records
 
@@ -1137,7 +1137,7 @@ typedef struct _dns_standard_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-typedef struct _dns_a_
+typedef struct _dns_record_a_
 {
 	uint16_t              Name;
 	uint16_t              Type;
@@ -1145,7 +1145,7 @@ typedef struct _dns_a_
 	uint32_t              TTL;
 	uint16_t              Length;
 	in_addr               Addr;
-}dns_a_record;
+}dns_record_a, *pdns_record_a;
 
 /* Domain Name System/DNS Canonical Name/CNAME Records
 
@@ -1168,7 +1168,7 @@ typedef struct _dns_a_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-typedef struct _dns_cname_
+typedef struct _dns_record_cname_
 {
 	uint16_t              Name;
 	uint16_t              Type;
@@ -1176,7 +1176,7 @@ typedef struct _dns_cname_
 	uint32_t              TTL;
 	uint16_t              Length;
 //	PUCHAR                PrimaryName;
-}dns_cname_record;
+}dns_record_cname, *pdns_record_cname;
 
 /* Domain Name System/DNS Pointer/PTR Records
 
@@ -1195,7 +1195,7 @@ typedef struct _dns_cname_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-typedef struct _dns_ptr_
+typedef struct _dns_record_ptr_
 {
 	uint16_t              PTR;
 	uint16_t              Type;
@@ -1203,7 +1203,7 @@ typedef struct _dns_ptr_
 	uint32_t              TTL;
 	uint16_t              Length;
 //	PUCHAR                Name;
-}dns_ptr_record;
+}dns_record_ptr, *pdns_record_ptr;
 
 /* Domain Name System/DNS AAAA(IPv6) Records
 
@@ -1222,7 +1222,7 @@ typedef struct _dns_ptr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-typedef struct _dns_aaaa_
+typedef struct _dns_record_aaaa_
 {
 	uint16_t              Name;
 	uint16_t              Type;
@@ -1230,7 +1230,7 @@ typedef struct _dns_aaaa_
 	uint32_t              TTL;
 	uint16_t              Length;
 	in6_addr              Addr;
-}dns_aaaa_record;
+}dns_record_aaaa, *pdns_record_aaaa;
 
 /* Domain Name System/DNS Test Strings/TXT Records
 
@@ -1251,7 +1251,7 @@ typedef struct _dns_aaaa_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-typedef struct _dns_txt_
+typedef struct _dns_record_txt_
 {
 	uint16_t              Name;
 	uint16_t              Type;
@@ -1260,7 +1260,7 @@ typedef struct _dns_txt_
 	uint16_t              Length;
 	uint8_t               TXT_Length;
 //	PUCHAR                TXT;
-}dns_txt_record;
+}dns_record_txt, *pdns_record_txt;
 
 /* Extension Mechanisms for Domain Name System/DNS, EDNS0 Label/OPT Resource
 
@@ -1280,7 +1280,7 @@ typedef struct _dns_txt_
 
 */
 #define EDNS0_MINSIZE 1220U
-typedef struct _dns_opt_
+typedef struct _dns_record_opt_
 {
 	uint8_t               Name;
 	uint16_t              Type;              //Additional RRs Type
@@ -1301,7 +1301,7 @@ typedef struct _dns_opt_
 		}Z_Bits;
 	};
 	uint16_t              DataLength;
-}dns_opt_record;
+}dns_record_opt, *pdns_record_opt;
 
 //Domain Name System Curve/DNSCurve Part
 // About DNSCurve standards, see http://dnscurve.org. Also about DNSCrypt, see http://dnscrypt.org
@@ -1329,7 +1329,7 @@ typedef struct _dnscurve_txt_hdr_
 	uint32_t              CertMagicNumber;
 	uint16_t              MajorVersion;
 	uint16_t              MinorVersion;
-}dnscurve_txt_hdr;
+}dnscurve_txt_hdr, *pdnscurve_txt_hdr;
 
 /* Domain Name System Curve/DNSCurve Signature with Test Strings/TXT Data
 
@@ -1363,4 +1363,4 @@ typedef struct _dnscurve_txt_signature_
 	uint32_t              Serial;
 	uint32_t              CertTime_Begin;
 	uint32_t              CertTime_End;
-}dnscurve_txt_signature;
+}dnscurve_txt_signature, *pdnscurve_txt_signature;

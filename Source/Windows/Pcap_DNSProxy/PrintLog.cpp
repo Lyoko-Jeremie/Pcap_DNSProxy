@@ -17,7 +17,7 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#include "Pcap_DNSProxy.h"
+#include "Main.h"
 
 extern ConfigurationTable Parameter;
 extern time_t StartTime, RunningLogStartTime;
@@ -64,7 +64,7 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 		//System Error
 			case LOG_ERROR_SYSTEM:
 			{
-				if (ErrCode == NULL)
+				if (ErrCode == 0)
 				{
 					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> System Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 				}
@@ -73,7 +73,7 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 					if (ErrCode == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
 						wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> System Error: %ls, ERROR_FAILED_SERVICE_CONTROLLER_CONNECT(The service process could not connect to the service controller).\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 					else
-						wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> System Error: %ls, error Code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrCode);
+						wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> System Error: %ls, error code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrCode);
 				}
 			}break;
 		//Parameter Error
@@ -88,15 +88,15 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 						sFileName.erase(sFileName.find(L"\\\\"), 1U);
 
 				//Write to file
-					if (Line != NULL)
+					if (Line > 0)
 						wprintf_s(L" in line %d of %ls", (int)Line, sFileName.c_str());
 					else
 						wprintf_s(L" in %ls", sFileName.c_str());
 				}
 
 			//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
-				if (ErrCode != NULL)
-					wprintf_s(L", error Code is %d", (int)ErrCode);
+				if (ErrCode > 0)
+					wprintf_s(L", error code is %d", (int)ErrCode);
 
 				wprintf_s(L".\n");
 			}break;
@@ -112,15 +112,15 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 						sFileName.erase(sFileName.find(L"\\\\"), 1U);
 
 				//Write to file
-					if (Line != NULL)
+					if (Line > 0)
 						wprintf_s(L" in line %d of %ls", (int)Line, sFileName.c_str());
 					else
 						wprintf_s(L" in %ls", sFileName.c_str());
 				}
 
 			//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
-				if (ErrCode != NULL)
-					wprintf_s(L", error Code is %d", (int)ErrCode);
+				if (ErrCode > 0)
+					wprintf_s(L", error code is %d", (int)ErrCode);
 
 				wprintf_s(L".\n");
 			}break;
@@ -136,15 +136,15 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 						sFileName.erase(sFileName.find(L"\\\\"), 1U);
 
 				//Write to file
-					if (Line != NULL)
+					if (Line > 0)
 						wprintf_s(L" in line %d of %ls", (int)Line, sFileName.c_str());
 					else
 						wprintf_s(L" in %ls", sFileName.c_str());
 				}
 
 			//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
-				if (ErrCode != NULL)
-					wprintf_s(L", error Code is %d", (int)ErrCode);
+				if (ErrCode > 0)
+					wprintf_s(L", error code is %d", (int)ErrCode);
 
 				wprintf_s(L".\n");
 			}break;
@@ -152,10 +152,10 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 		//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
 			case LOG_ERROR_WINSOCK:
 			{
-				if (ErrCode == NULL)
+				if (ErrCode == 0)
 					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Winsock Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 				else
-					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Winsock Error: %ls, error Code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrCode);
+					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Winsock Error: %ls, error code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrCode);
 			}break;
 		//WinPcap Error
 			case LOG_ERROR_WINPCAP:
@@ -176,19 +176,19 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 
 //Check whole file size.
 	std::unique_lock<std::mutex> ErrLogMutex(ErrLogLock);
-	HANDLE ErrorFileHandle = CreateFileW(Parameter.ErrorLogPath->c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE ErrorFileHandle = CreateFileW(Parameter.ErrorLogPath->c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (ErrorFileHandle != INVALID_HANDLE_VALUE)
 	{
-		LARGE_INTEGER ErrorFileSize = {0};
-		if (GetFileSizeEx(ErrorFileHandle, &ErrorFileSize) == 0)
+		std::shared_ptr<LARGE_INTEGER> ErrorFileSize(new LARGE_INTEGER());
+		if (GetFileSizeEx(ErrorFileHandle, ErrorFileSize.get()) == 0)
 		{
 			CloseHandle(ErrorFileHandle);
 		}
 		else {
 			CloseHandle(ErrorFileHandle);
-			if (ErrorFileSize.QuadPart > 0 && (size_t)ErrorFileSize.QuadPart >= Parameter.LogMaxSize && 
+			if (ErrorFileSize->QuadPart > 0 && (size_t)ErrorFileSize->QuadPart >= Parameter.LogMaxSize && 
 				DeleteFileW(Parameter.ErrorLogPath->c_str()) != 0)
-					PrintError(LOG_ERROR_SYSTEM, L"Old Error Log file deleted", NULL, nullptr, NULL);
+					PrintError(LOG_ERROR_SYSTEM, L"Old Error Log file was deleted", 0, nullptr, 0);
 		}
 	}
 
@@ -212,7 +212,7 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 		//System Error
 			case LOG_ERROR_SYSTEM:
 			{
-				if (ErrCode == NULL)
+				if (ErrCode == 0)
 				{
 					fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> System Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 				}
@@ -221,7 +221,7 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 					if (ErrCode == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
 						fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> System Error: %ls, ERROR_FAILED_SERVICE_CONTROLLER_CONNECT(The service process could not connect to the service controller).\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 					else 
-						fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> System Error: %ls, error Code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrCode);
+						fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> System Error: %ls, error code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrCode);
 				}
 			}break;
 		//Parameter Error
@@ -236,15 +236,15 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 						sFileName.erase(sFileName.find(L"\\\\"), 1U);
 
 				//Write to file
-					if (Line != NULL)
+					if (Line > 0)
 						fwprintf_s(Output, L" in line %d of %ls", (int)Line, sFileName.c_str());
 					else 
 						fwprintf_s(Output, L" in %ls", sFileName.c_str());
 				}
 
 			//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
-				if (ErrCode != NULL)
-					fwprintf_s(Output, L", error Code is %d", (int)ErrCode);
+				if (ErrCode > 0)
+					fwprintf_s(Output, L", error code is %d", (int)ErrCode);
 
 				fwprintf_s(Output, L".\n");
 			}break;
@@ -260,15 +260,15 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 						sFileName.erase(sFileName.find(L"\\\\"), 1U);
 
 				//Write to file
-					if (Line != NULL)
+					if (Line > 0)
 						fwprintf_s(Output, L" in line %d of %ls", (int)Line, sFileName.c_str());
 					else 
 						fwprintf_s(Output, L" in %ls", sFileName.c_str());
 				}
 
 			//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
-				if (ErrCode != NULL)
-					fwprintf_s(Output, L", error Code is %d", (int)ErrCode);
+				if (ErrCode > 0)
+					fwprintf_s(Output, L", error code is %d", (int)ErrCode);
 
 				fwprintf_s(Output, L".\n");
 			}break;
@@ -284,15 +284,15 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 						sFileName.erase(sFileName.find(L"\\\\"), 1U);
 
 				//Write to file
-					if (Line != NULL)
+					if (Line > 0)
 						fwprintf_s(Output, L" in line %d of %ls", (int)Line, sFileName.c_str());
 					else 
 						fwprintf_s(Output, L" in %ls", sFileName.c_str());
 				}
 
 			//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
-				if (ErrCode != NULL)
-					fwprintf_s(Output, L", error Code is %d", (int)ErrCode);
+				if (ErrCode > 0)
+					fwprintf_s(Output, L", error code is %d", (int)ErrCode);
 
 				fwprintf_s(Output, L".\n");
 			}break;
@@ -300,10 +300,10 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 		//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
 			case LOG_ERROR_WINSOCK:
 			{
-				if (ErrCode == NULL)
+				if (ErrCode == 0)
 					fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Winsock Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 				else 
-					fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Winsock Error: %ls, error Code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrCode);
+					fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Winsock Error: %ls, error code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrCode);
 			}break;
 		//WinPcap Error
 			case LOG_ERROR_WINPCAP:
@@ -364,19 +364,19 @@ size_t __fastcall PrintStatus(const PWSTR Message)
 
 //Check whole file size.
 	std::unique_lock<std::mutex> RunningLogMutex(RunningLogLock);
-	HANDLE RunningFileHandle = CreateFileW(Parameter.RunningLogPath->c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	HANDLE RunningFileHandle = CreateFileW(Parameter.RunningLogPath->c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (RunningFileHandle != INVALID_HANDLE_VALUE)
 	{
-		LARGE_INTEGER RunningFileSize = {0};
-		if (GetFileSizeEx(RunningFileHandle, &RunningFileSize) == 0)
+		std::shared_ptr<LARGE_INTEGER> RunningFileSize(new LARGE_INTEGER());
+		if (GetFileSizeEx(RunningFileHandle, RunningFileSize.get()) == 0)
 		{
 			CloseHandle(RunningFileHandle);
 		}
 		else {
 			CloseHandle(RunningFileHandle);
-			if (RunningFileSize.QuadPart > 0 && (size_t)RunningFileSize.QuadPart >= Parameter.LogMaxSize && 
+			if (RunningFileSize->QuadPart > 0 && (size_t)RunningFileSize->QuadPart >= Parameter.LogMaxSize && 
 				DeleteFileW(Parameter.RunningLogPath->c_str()) != 0)
-					PrintError(LOG_ERROR_SYSTEM, L"Old Running Log file deleted", NULL, nullptr, NULL);
+					PrintError(LOG_ERROR_SYSTEM, L"Old Running Log file was deleted", 0, nullptr, 0);
 		}
 	}
 
@@ -424,7 +424,7 @@ size_t __fastcall PrintParameterList(void)
 	{
 	//Initialization
 		std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
-		//Minimum supported system of inet_ntop() and inet_pton() is Windows Vista. [Roy Tam]
+		//Minimum supported system of inet_ntop() and inet_pton() is Windows Vista(Windows XP with SP3 support). [Roy Tam]
 	#ifdef _WIN64
 	#else //x86
 		DWORD BufferLength = 0;
@@ -493,7 +493,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Operation Mode: Custom\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		else
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Operation Mode: Proxy\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-		if (Parameter.ListenProtocol == LISTEN_IPV4_IPV6) //Listen Protocol
+		if (Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV4_IPV6) //Listen Protocol
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Listen Protocol: IPv4 + IPv6\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		else if (Parameter.CacheType == LISTEN_IPV6)
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Listen Protocol: IPv6\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
@@ -515,19 +515,19 @@ size_t __fastcall PrintParameterList(void)
 		}
 		else {
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Accept Type: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-			for (auto AcceptTypeIter:*Parameter.AcceptTypeList)
+			for (auto AcceptTypeTableIter:*Parameter.AcceptTypeList)
 			{
-				if (AcceptTypeIter == Parameter.AcceptTypeList->at(Parameter.AcceptTypeList->size()))
-					fwprintf_s(Output, L"%u", AcceptTypeIter);
+				if (AcceptTypeTableIter == Parameter.AcceptTypeList->at(Parameter.AcceptTypeList->size()))
+					fwprintf_s(Output, L"%u", AcceptTypeTableIter);
 				else 
-					fwprintf_s(Output, L"%u|", AcceptTypeIter);
+					fwprintf_s(Output, L"%u|", AcceptTypeTableIter);
 			}
 			fwprintf_s(Output, L"\n");
 		}
 
 		//[Addresses] block
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv4 DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv4 DNS Address
-		if (Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_family == NULL)
+		if (Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -535,10 +535,16 @@ size_t __fastcall PrintParameterList(void)
 		#ifdef _WIN64
 			inet_ntop(AF_INET, (PSTR)&Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 		#else //x86
-			BufferLength = ADDR_STRING_MAXSIZE;
-			SockAddr->ss_family = AF_INET;
-			((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr;
-			WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), NULL, Addr.get(), &BufferLength);
+			if (Parameter.Inet_Ntop_PTR != nullptr)
+			{
+				(*Parameter.Inet_Ntop_PTR)(AF_INET, (PSTR)&Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+			}
+			else {
+				BufferLength = ADDR_STRING_MAXSIZE;
+				SockAddr->ss_family = AF_INET;
+				((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr;
+				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
+			}
 		#endif
 			fwprintf_s(Output, L"<");
 			for (size_t Index = 0;Index < strlen(Addr.get());Index++)
@@ -547,7 +553,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L":%u>\n", ntohs(Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_port));
 		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv4 Alternate DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv4 Alternate DNS Address
-		if (Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_family == NULL)
+		if (Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -555,10 +561,16 @@ size_t __fastcall PrintParameterList(void)
 		#ifdef _WIN64
 			inet_ntop(AF_INET, (PSTR)&Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 		#else //x86
-			BufferLength = ADDR_STRING_MAXSIZE;
-			SockAddr->ss_family = AF_INET;
-			((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr;
-			WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), NULL, Addr.get(), &BufferLength);
+			if (Parameter.Inet_Ntop_PTR != nullptr)
+			{
+				(*Parameter.Inet_Ntop_PTR)(AF_INET, (PSTR)&Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+			}
+			else {
+				BufferLength = ADDR_STRING_MAXSIZE;
+				SockAddr->ss_family = AF_INET;
+				((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr;
+				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
+			}
 		#endif
 			fwprintf_s(Output, L"<");
 			for (size_t Index = 0;Index < strlen(Addr.get());Index++)
@@ -567,7 +579,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L":%u>\n", ntohs(Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_port));
 		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv4 Local DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv4 Local DNS Address
-		if (Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_family == NULL)
+		if (Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -575,10 +587,16 @@ size_t __fastcall PrintParameterList(void)
 		#ifdef _WIN64
 			inet_ntop(AF_INET, (PSTR)&Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 		#else //x86
-			BufferLength = ADDR_STRING_MAXSIZE;
-			SockAddr->ss_family = AF_INET;
-			((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr;
-			WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), NULL, Addr.get(), &BufferLength);
+			if (Parameter.Inet_Ntop_PTR != nullptr)
+			{
+				(*Parameter.Inet_Ntop_PTR)(AF_INET, (PSTR)&Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+			}
+			else {
+				BufferLength = ADDR_STRING_MAXSIZE;
+				SockAddr->ss_family = AF_INET;
+				((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr;
+				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
+			}
 		#endif
 			fwprintf_s(Output, L"<");
 			for (size_t Index = 0;Index < strlen(Addr.get());Index++)
@@ -587,7 +605,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L":%u>\n", ntohs(Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_port));
 		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv4 Local Alternate DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv4 Local Alternate DNS Address
-		if (Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_family == NULL)
+		if (Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -595,10 +613,16 @@ size_t __fastcall PrintParameterList(void)
 		#ifdef _WIN64
 			inet_ntop(AF_INET, (PSTR)&Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 		#else //x86
-			BufferLength = ADDR_STRING_MAXSIZE;
-			SockAddr->ss_family = AF_INET;
-			((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr;
-			WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), NULL, Addr.get(), &BufferLength);
+			if (Parameter.Inet_Ntop_PTR != nullptr)
+			{
+				(*Parameter.Inet_Ntop_PTR)(AF_INET, (PSTR)&Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+			}
+			else {
+				BufferLength = ADDR_STRING_MAXSIZE;
+				SockAddr->ss_family = AF_INET;
+				((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr;
+				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
+			}
 		#endif
 			fwprintf_s(Output, L"<");
 			for (size_t Index = 0;Index < strlen(Addr.get());Index++)
@@ -607,7 +631,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L":%u>\n", ntohs(Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_port));
 		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv6 DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv6 DNS Address
-		if (Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_family == NULL)
+		if (Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -615,10 +639,16 @@ size_t __fastcall PrintParameterList(void)
 		#ifdef _WIN64
 			inet_ntop(AF_INET6, (PSTR)&Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 		#else //x86
-			BufferLength = ADDR_STRING_MAXSIZE;
-			SockAddr->ss_family = AF_INET6;
-			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr;
-			WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), NULL, Addr.get(), &BufferLength);
+			if (Parameter.Inet_Ntop_PTR != nullptr)
+			{
+				(*Parameter.Inet_Ntop_PTR)(AF_INET6, (PSTR)&Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+			}
+			else {
+				BufferLength = ADDR_STRING_MAXSIZE;
+				SockAddr->ss_family = AF_INET6;
+				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr;
+				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
+			}
 		#endif
 			CaseConvert(true, Addr.get(), strlen(Addr.get()));
 			fwprintf_s(Output, L"[");
@@ -628,7 +658,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"]:%u\n", ntohs(Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_port));
 		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv6 Alternate DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv6 Alternate DNS Address
-		if (Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_family == NULL)
+		if (Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -636,10 +666,16 @@ size_t __fastcall PrintParameterList(void)
 		#ifdef _WIN64
 			inet_ntop(AF_INET6, (PSTR)&Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 		#else //x86
-			BufferLength = ADDR_STRING_MAXSIZE;
-			SockAddr->ss_family = AF_INET6;
-			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr;
-			WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), NULL, Addr.get(), &BufferLength);
+			if (Parameter.Inet_Ntop_PTR != nullptr)
+			{
+				(*Parameter.Inet_Ntop_PTR)(AF_INET6, (PSTR)&Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+			}
+			else {
+				BufferLength = ADDR_STRING_MAXSIZE;
+				SockAddr->ss_family = AF_INET6;
+				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr;
+				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
+			}
 		#endif
 			CaseConvert(true, Addr.get(), strlen(Addr.get()));
 			fwprintf_s(Output, L"[");
@@ -649,7 +685,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"]:%u\n", ntohs(Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_port));
 		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv6 Local DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv6 Local DNS Address
-		if (Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_family == NULL)
+		if (Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -657,10 +693,16 @@ size_t __fastcall PrintParameterList(void)
 		#ifdef _WIN64
 			inet_ntop(AF_INET6, (PSTR)&Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 		#else //x86
-			BufferLength = ADDR_STRING_MAXSIZE;
-			SockAddr->ss_family = AF_INET6;
-			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr;
-			WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), NULL, Addr.get(), &BufferLength);
+			if (Parameter.Inet_Ntop_PTR != nullptr)
+			{
+				(*Parameter.Inet_Ntop_PTR)(AF_INET6, (PSTR)&Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+			}
+			else {
+				BufferLength = ADDR_STRING_MAXSIZE;
+				SockAddr->ss_family = AF_INET6;
+				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr;
+				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
+			}
 		#endif
 			CaseConvert(true, Addr.get(), strlen(Addr.get()));
 			fwprintf_s(Output, L"[");
@@ -670,7 +712,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"]:%u\n", ntohs(Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_port));
 		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv6 Local Alternate DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv6 Local Alternate DNS Address
-		if (Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_family == NULL)
+		if (Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -678,10 +720,16 @@ size_t __fastcall PrintParameterList(void)
 		#ifdef _WIN64
 			inet_ntop(AF_INET6, (PSTR)&Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 		#else //x86
-			BufferLength = ADDR_STRING_MAXSIZE;
-			SockAddr->ss_family = AF_INET6;
-			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr;
-			WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), NULL, Addr.get(), &BufferLength);
+			if (Parameter.Inet_Ntop_PTR != nullptr)
+			{
+				(*Parameter.Inet_Ntop_PTR)(AF_INET6, (PSTR)&Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+			}
+			else {
+				BufferLength = ADDR_STRING_MAXSIZE;
+				SockAddr->ss_family = AF_INET6;
+				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr;
+				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
+			}
 		#endif
 			CaseConvert(true, Addr.get(), strlen(Addr.get()));
 			fwprintf_s(Output, L"[");
