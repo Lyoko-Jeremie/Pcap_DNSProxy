@@ -36,7 +36,7 @@ goto %UserChoice%
 	if not exist Pcap_DNSProxy_x86.exe goto Warning
 
 	:Hash-A
-	Fciv -sha1 Pcap_DNSProxy.exe |findstr /I 1F4575D0D3442FDA0A908BD2CE02F7A78AFDCCED > NUL
+	Fciv -sha1 Pcap_DNSProxy.exe |findstr /I A2C6D770666119E3013C0C8CD2C0CE72399085E1 > NUL
 	goto HASH-%ERRORLEVEL%
 	:HASH-0
 	goto HASH-B
@@ -44,7 +44,7 @@ goto %UserChoice%
 	goto Warning
 
 	:Hash-B
-	Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 9E56C4E078C2C22DFBAFD59D398F77C2D5B3CEE3 > NUL
+	Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 55E91943DB7D5A0C930B953321D8A5A0D02B53DF > NUL
 	goto HASH-%ERRORLEVEL%
 	:HASH-0
 	goto Type
@@ -126,7 +126,7 @@ goto %UserChoice%
 	if not exist Pcap_DNSProxy_x86.exe goto Warning
 
 	:Hash-A
-	Fciv -sha1 Pcap_DNSProxy.exe |findstr /I 1F4575D0D3442FDA0A908BD2CE02F7A78AFDCCED > NUL
+	Fciv -sha1 Pcap_DNSProxy.exe |findstr /I A2C6D770666119E3013C0C8CD2C0CE72399085E1 > NUL
 	goto HASH-%ERRORLEVEL%
 	:HASH-0
 	goto HASH-B
@@ -134,7 +134,7 @@ goto %UserChoice%
 	goto Warning
 
 	:Hash-B
-	Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 9E56C4E078C2C22DFBAFD59D398F77C2D5B3CEE3 > NUL
+	Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 55E91943DB7D5A0C930B953321D8A5A0D02B53DF > NUL
 	goto HASH-%ERRORLEVEL%
 	:HASH-0
 	goto Main
@@ -185,7 +185,7 @@ goto %UserChoice%
 	if not exist Pcap_DNSProxy_x86.exe goto Warning
 
 	:Hash-A
-	Fciv -sha1 Pcap_DNSProxy.exe |findstr /I 1F4575D0D3442FDA0A908BD2CE02F7A78AFDCCED > NUL
+	Fciv -sha1 Pcap_DNSProxy.exe |findstr /I A2C6D770666119E3013C0C8CD2C0CE72399085E1 > NUL
 	goto HASH-%ERRORLEVEL%
 	:HASH-0
 	goto HASH-B
@@ -193,7 +193,7 @@ goto %UserChoice%
 	goto Warning
 
 	:Hash-B
-	Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 9E56C4E078C2C22DFBAFD59D398F77C2D5B3CEE3 > NUL
+	Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 55E91943DB7D5A0C930B953321D8A5A0D02B53DF > NUL
 	goto HASH-%ERRORLEVEL%
 	:HASH-0
 	goto Main
