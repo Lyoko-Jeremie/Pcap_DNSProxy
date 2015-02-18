@@ -191,9 +191,6 @@ Pcap_DNSProxy 支持平台：
 特别使用技巧：
 这里罗列出部分作者建议的介绍和使用技巧，供大家参考和使用。关于调整配置，参见下文 配置文件详细参数说明 一节
 
-* 一个含有大部分境内域名的 [Local Hosts] 如有需要可直接添加到 Pcap_DNSProxy 的 Hosts 里，参见 Hosts 文件格式说明 一节
-  * https://xinhugo-list.googlecode.com/svn/trunk/White_List.txt
-  * 或者可以直接使用 Local Main 功能，将大部分的解析请求发往境内的 DNS 服务器，参见 Local Main 参数
 * DNS缓存类型
   * Timer/计时型：可以自定义缓存的时间长度，队列长度不限
   * Queue/队列型：默认缓存时间15分钟，可通过 Default TTL 值自定义，同时可自定义缓存队列长度（亦即限制队列长度的 Timer/计时型）
@@ -243,6 +240,7 @@ Pcap_DNSProxy 支持平台：
     * 注意：此处所指的协议指的是程序请求远程 DNS 服务器时所使用的协议，而向本程序请求域名解析时可随意使用 UDP 或 TCP
   * Hosts Only - Hosts Only 直连模式，启用后将使用系统直接请求远程服务器而启用只使用本工具的 Hosts 功能：开启为1/关闭为0，默认为 0
   * Local Main - 主要境内服务器请求功能，开启后则平时使用 Local 的服务器进行解析，遇到遭投毒污染的解析结果时自动再向境外服务器请求
+  * Local Hosts - 白名单境内服务器请求功能，开启后才能使用自带或自定义的 Local Hosts 白名单：开启为1/关闭为0，默认为 0
   * Local Routing - Local 路由表识别功能，开启后所有使用 Local 请求的解析结果都会被检查，路由表命中后会直接返回结果，命中失败将丢弃解析结果并向境外服务器再次发起请求：开启为1/关闭为0，默认为 0
   * Cache Type - DNS 缓存的类型：分 Timer/计时型以及 Queue/队列型
   * Cache Parameter - DNS 缓存的参数：Timer/计时型 时为时间长度（单位为秒），Queue/队列型 时为队列长度
@@ -258,7 +256,7 @@ Pcap_DNSProxy 支持平台：
   * Listen Protocol - 监听协议，本地监听的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP，默认为 IPv4 + IPv6 + UDP
     * 只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只监听指定协议的本地端口
     * IPv4 + IPv6 + TCP + UDP 时同时监听两个协议的本地端口
-	* 填入的协议可随意组合
+    * 填入的协议可随意组合
   * Listen Port - 监听端口，本地监听请求的端口：可填入 1-65535 之间的端口，如果留空则为 53，默认为空
   * IPFilter Type - IPFilter 参数的类型：分为 Deny 禁止和 Permit 允许，对应 IPFilter 参数应用为黑名单或白名单，默认为 Deny
   * IPFilter Level - IPFilter 参数的过滤级别，级别越高过滤越严格，与 IPFilter 条目相对应：0为不启用过滤，如果留空则为 0，默认为空
@@ -349,7 +347,7 @@ Pcap_DNSProxy 支持平台：
     
 * Addresses - 普通模式地址区域
 注意：IPv4 地址格式为 "IPv4 地址:端口"，IPv6地址格式为"[IPv6 地址]:端口"（均不含引号）
-  * IPv4 Listen Address - IPv4 本地监听地址
+  * IPv4 Listen Address - IPv4 本地监听地址：默认为空
     * 填入此值后 IPv4 协议的 Operation Mode 和 Listen Port 参数将被自动忽略
   * IPv4 DNS Address - IPv4 主要 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 8.8.4.4:53
     * 本参数支持同时请求多服务器的功能，开启后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果
@@ -448,7 +446,7 @@ Pcap_DNSProxy 支持平台：
     * 指定端口时可使用服务名称代替，参见上表
   * IPv4 Local Alternate DNS Address - IPv4 备用境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，默认为 114.114.114.114:53
     * 指定端口时可使用服务名称代替，参见上表
-  * IPv6 Listen Address - IPv6 本地监听地址
+  * IPv6 Listen Address - IPv6 本地监听地址：默认为空
     * 填入此值后 IPv6 协议的 Operation Mode 和 Listen Port 参数将被自动忽略
   * IPv6 DNS Address - IPv6 主要 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为空
     * 指定端口时可使用服务名称代替，参见上表
@@ -606,9 +604,9 @@ IPv4 Local DNS Address = 114.114.115.115:53
 IPv4 Local Alternate DNS Address = 114.114.114.114:53
 IPv6 Listen Address = 
 IPv6 DNS Address = 
-#IPv6 DNS Address = [2001:4860:4860::8844]:53
+## IPv6 DNS Address = [2001:4860:4860::8844]:53
 IPv6 Alternate DNS Address = 
-#IPv6 Alternate DNS Address = [2001:4860:4860::8888]:53
+## IPv6 Alternate DNS Address = [2001:4860:4860::8888]:53
 IPv6 Local DNS Address = 
 IPv6 Local Alternate DNS Address = 
 
@@ -659,15 +657,15 @@ Key Recheck Time = 3600
 DNSCurve IPv4 DNS Address = 208.67.220.220:443
 DNSCurve IPv4 Alternate DNS Address = 208.67.222.222:443
 DNSCurve IPv6 DNS Address = 
-#DNSCurve IPv6 DNS Address = [2620:0:CCC::2]:443
+## DNSCurve IPv6 DNS Address = [2620:0:CCC::2]:443
 DNSCurve IPv6 Alternate DNS Address = 
-#DNSCurve IPv6 Alternate DNS Address = [2620:0:CCD::2]:443
+## DNSCurve IPv6 Alternate DNS Address = [2620:0:CCD::2]:443
 DNSCurve IPv4 Provider Name = 2.dnscrypt-cert.opendns.com
 DNSCurve IPv4 Alternate Provider Name = 2.dnscrypt-cert.opendns.com
 DNSCurve IPv6 Provider Name = 
-#DNSCurve IPv6 Provider Name = 2.dnscrypt-cert.opendns.com
+## DNSCurve IPv6 Provider Name = 2.dnscrypt-cert.opendns.com
 DNSCurve IPv6 Alternate Provider Name = 
-#DNSCurve IPv6 Alternate Provider Name = 2.dnscrypt-cert.opendns.com
+## DNSCurve IPv6 Alternate Provider Name = 2.dnscrypt-cert.opendns.com
 
 [DNSCurve Keys]
 Client Public Key = 
@@ -675,17 +673,17 @@ Client Secret Key =
 IPv4 DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
 IPv4 Alternate DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
 IPv6 DNS Public Key = 
-#IPv6 DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
+## IPv6 DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
 IPv6 Alternate DNS Public Key = 
-#IPv6 Alternate DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
+## IPv6 Alternate DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
 IPv4 DNS Fingerprint = 
-#IPv4 DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
+## IPv4 DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
 IPv4 Alternate DNS Fingerprint = 
-#IPv4 Alternate DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
+## IPv4 Alternate DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
 IPv6 DNS Fingerprint = 
-#IPv6 DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
+## IPv6 DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
 IPv6 Alternate DNS Fingerprint = 
-#IPv6 Alternate DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
+## IPv6 Alternate DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
 
 [DNSCurve Magic Number]
 IPv4 Receive Magic Number = 
@@ -758,6 +756,7 @@ Hosts 配置文件分为 Hosts/主要Hosts列表 和 Local Hosts/境内DNS解析
 * Local Hosts - 境内 DNS 解析域名列表
   本区域数据用于为域名使用境内 DNS 服务器解析提高访问速度，使用时请确认境内 DNS 服务器地址不为空（参见上文 配置文件详细参数说明 一节）
   有效参数格式为 "正则表达式"（不含引号）
+  * 要使用本功能，必须将配置文件内的 Local Hosts 选项打开！
   * 本功能不会对境内 DNS 服务器回复进行任何过滤，请确认本区域填入的数据不会受到 DNS 投毒污染的干扰
   * 例如有一个 [Local Hosts] 下有效数据区域：
 

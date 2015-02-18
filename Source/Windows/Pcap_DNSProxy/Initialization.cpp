@@ -158,7 +158,12 @@ ConfigurationTable::~ConfigurationTable(void)
 //HostsTable class constructor
 HostsTable::HostsTable(void)
 {
-	memset(this, 0, sizeof(HostsTable) - sizeof(std::shared_ptr<char>) - sizeof(std::regex) - sizeof(std::string));
+//	memset(this, 0, sizeof(HostsTable) - sizeof(std::shared_ptr<char>) - sizeof(std::regex) - sizeof(std::string));
+	FileIndex = 0;
+	Type = 0;
+	Protocol = 0;
+	Length = 0;
+
 	return;
 }
 
@@ -172,7 +177,8 @@ AddressRange::AddressRange(void)
 //PortTable class constructor
 PortTable::PortTable(void)
 {
-	memset(this, 0, sizeof(PortTable) - sizeof(SendData));
+//	memset(this, 0, sizeof(PortTable) - sizeof(SendData));
+	RecvData = nullptr;
 	try {
 		RecvData = new SOCKET_DATA[QUEUE_MAXLEN * QUEUE_PARTNUM]();
 	}
@@ -193,7 +199,8 @@ PortTable::PortTable(void)
 PortTable::~PortTable(void)
 {
 	delete[] RecvData;
-	memset(this, 0, sizeof(PortTable) - sizeof(SendData));
+//	memset(this, 0, sizeof(PortTable) - sizeof(SendData));
+	RecvData = nullptr;
 
 	return;
 }

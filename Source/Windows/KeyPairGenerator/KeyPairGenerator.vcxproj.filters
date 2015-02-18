@@ -21,6 +21,9 @@
     <ClInclude Include="KeyPairGenerator.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="LibSodium\core.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
@@ -171,23 +174,25 @@
     <ClInclude Include="LibSodium\runtime.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
-    <ClInclude Include="LibSodium\sodium.h">
-      <Filter>LibSodium</Filter>
-    </ClInclude>
     <ClInclude Include="LibSodium\utils.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
     <ClInclude Include="LibSodium\version.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="LibSodium\sodium.h">
+      <Filter>LibSodium</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="KeyPairGenerator.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="KeyPairGenerator.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <Library Include="LibSodium\libsodium_x64.lib">
@@ -198,8 +203,8 @@
     </Library>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="KeyPairGenerator.rc">
-      <Filter>资源文件</Filter>
-    </ResourceCompile>
+    <None Include="LibSodium\version.h.in">
+      <Filter>LibSodium</Filter>
+    </None>
   </ItemGroup>
 </Project>

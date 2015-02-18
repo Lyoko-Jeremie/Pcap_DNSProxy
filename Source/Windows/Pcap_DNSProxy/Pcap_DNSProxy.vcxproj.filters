@@ -24,6 +24,78 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Keccak\brg_endian.h">
+      <Filter>Keccak</Filter>
+    </ClInclude>
+    <ClInclude Include="Keccak\KeccakF-1600-interface.h">
+      <Filter>Keccak</Filter>
+    </ClInclude>
+    <ClInclude Include="Keccak\KeccakF-1600-int-set.h">
+      <Filter>Keccak</Filter>
+    </ClInclude>
+    <ClInclude Include="Keccak\KeccakHash.h">
+      <Filter>Keccak</Filter>
+    </ClInclude>
+    <ClInclude Include="Keccak\KeccakSponge.h">
+      <Filter>Keccak</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\bittypes.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\ip6_misc.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\Packet32.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap-bpf.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap-namedb.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap-stdinc.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\remote-ext.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\Win32-Extensions.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\bluetooth.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\bpf.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\namedb.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\pcap.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\sll.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\usb.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\vlan.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Base.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Main.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="LibSodium\core.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
@@ -174,95 +246,17 @@
     <ClInclude Include="LibSodium\runtime.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
-    <ClInclude Include="LibSodium\sodium.h">
-      <Filter>LibSodium</Filter>
-    </ClInclude>
     <ClInclude Include="LibSodium\utils.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
     <ClInclude Include="LibSodium\version.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
-    <ClInclude Include="Keccak\brg_endian.h">
-      <Filter>Keccak</Filter>
-    </ClInclude>
-    <ClInclude Include="Keccak\KeccakF-1600-interface.h">
-      <Filter>Keccak</Filter>
-    </ClInclude>
-    <ClInclude Include="Keccak\KeccakF-1600-int-set.h">
-      <Filter>Keccak</Filter>
-    </ClInclude>
-    <ClInclude Include="Keccak\KeccakHash.h">
-      <Filter>Keccak</Filter>
-    </ClInclude>
-    <ClInclude Include="Keccak\KeccakSponge.h">
-      <Filter>Keccak</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\bittypes.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\ip6_misc.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\Packet32.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\pcap.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\pcap-bpf.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\pcap-namedb.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\pcap-stdinc.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\remote-ext.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\Win32-Extensions.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\pcap\bluetooth.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\pcap\bpf.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\pcap\namedb.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\pcap\pcap.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\pcap\sll.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\pcap\usb.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="WinPcap\pcap\vlan.h">
-      <Filter>WinPcap</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Base.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Main.h">
-      <Filter>头文件</Filter>
+    <ClInclude Include="LibSodium\sodium.h">
+      <Filter>LibSodium</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="LibSodium\libsodium_x64.lib">
-      <Filter>LibSodium</Filter>
-    </Library>
-    <Library Include="LibSodium\libsodium_x86.lib">
-      <Filter>LibSodium</Filter>
-    </Library>
     <Library Include="WinPcap\Packet_x64.lib">
       <Filter>WinPcap</Filter>
     </Library>
@@ -274,6 +268,12 @@
     </Library>
     <Library Include="WinPcap\wpcap_x86.lib">
       <Filter>WinPcap</Filter>
+    </Library>
+    <Library Include="LibSodium\libsodium_x64.lib">
+      <Filter>LibSodium</Filter>
+    </Library>
+    <Library Include="LibSodium\libsodium_x86.lib">
+      <Filter>LibSodium</Filter>
     </Library>
   </ItemGroup>
   <ItemGroup>
@@ -326,6 +326,9 @@
   <ItemGroup>
     <None Include="WinPcap\Drivers\WinPcap_v4.1.3.exe">
       <Filter>WinPcap</Filter>
+    </None>
+    <None Include="LibSodium\version.h.in">
+      <Filter>LibSodium</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

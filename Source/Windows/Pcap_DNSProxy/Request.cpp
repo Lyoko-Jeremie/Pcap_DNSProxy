@@ -79,7 +79,7 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 
 //Send requesting.
 	size_t Times = 0;
-	auto IsIsReTest = false;
+	auto IsReTest = false;
 
 /* Old version(2014-12-09)
 	UDP_REQUEST_MULTITHREAD_PARAMETER UDPRequestParameter = {Buffer.get(), 0, *TargetData, QUEUE_MAXLEN * QUEUE_PARTNUM, 3U};
@@ -273,12 +273,12 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 			Times = 0;
 
 		//Test again check.
-			IsIsReTest = false;
+			IsReTest = false;
 			if (Protocol == AF_INET6) //IPv6
 			{
 				if (Parameter.DNSTarget.IPv6.HopLimitData.HopLimit == 0 || //Main
 					Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit == 0) //Alternate
-						IsIsReTest = true;
+						IsReTest = true;
 
 			//Other(Multi)
 				if (Parameter.DNSTarget.IPv6_Multi != nullptr)
@@ -287,7 +287,7 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 					{
 						if (DNSServerDataIter.HopLimitData.TTL == 0)
 						{
-							IsIsReTest = true;
+							IsReTest = true;
 							break;
 						}
 					}
@@ -296,7 +296,7 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 			else { //IPv4
 				if (Parameter.DNSTarget.IPv4.HopLimitData.TTL == 0 || //Main
 					Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL == 0) //Alternate
-						IsIsReTest = true;
+						IsReTest = true;
 
 			//Other(Multi)
 				if (Parameter.DNSTarget.IPv4_Multi != nullptr)
@@ -305,7 +305,7 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 					{
 						if (DNSServerDataIter.HopLimitData.TTL == 0)
 						{
-							IsIsReTest = true;
+							IsReTest = true;
 							break;
 						}
 					}
@@ -313,7 +313,7 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 			}
 
 		//Test again.
-			if (IsIsReTest)
+			if (IsReTest)
 			{
 				Sleep(SENDING_INTERVAL_TIME * SECOND_TO_MILLISECOND);
 				continue;

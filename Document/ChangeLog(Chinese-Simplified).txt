@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy v0.4 Beta 12(Windows)/v0.3(Linux)/v0.2(Mac) 更新日志(2015-01-28)：
+﻿Pcap_DNSProxy v0.4 Beta 13(Windows)/v0.3(Linux)/v0.2(Mac) 更新日志(2015-02-18)：
 
 * 添加对 Streamlined/精简 格式 DNSCurve/DNSCrypt 协议的支持
   * 提供随机 Curve25519/Salsa20/Poly1305(DNSCurve) 密钥对生成程序 KeyPairGenerator v0.1

@@ -193,9 +193,6 @@ Pcap_DNSProxy 支援平臺：
 特別使用技巧：
 這裡羅列出部分作者建議的介紹和使用技巧，供大家參考和使用。關於調整配置，參見下文 設定檔詳細參數說明 一節
 
-* 一個含有大部分境內功能變數名稱的 [Local Hosts] 如有需要可直接添加到 Pcap_DNSProxy 的 Hosts 裡，參見 Hosts 檔案格式說明 一節
-  * https://xinhugo-list.googlecode.com/svn/trunk/White_List.txt
-  * 或者可以直接使用 Local Main 功能，將大部分的解析請求發往境內的 DNS 伺服器，參見 Local Main 參數
 * DNS緩存類型
   * Timer/計時型：可以自訂緩存的時間長度，佇列長度不限
   * Queue/佇列型：預設緩存時間15分鐘，可通過 Default TTL 值自訂，同時可自訂緩存佇列長度（亦即限制佇列長度的 Timer/計時型）
@@ -245,6 +242,7 @@ Pcap_DNSProxy 支援平臺：
     * 注意：此處所指的協定指的是程式請求遠端 DNS 伺服器時所使用的協定，而向本程式請求功能變數名稱解析時可隨意使用 UDP 或 TCP
   * Hosts Only - Hosts Only 直連模式，啟用後將使用系統直接請求遠端伺服器而啟用只使用本工具的 Hosts 功能：開啟為1/關閉為0，預設為 0
   * Local Main - 主要境內伺服器請求功能，開啟後則平時使用 Local 的伺服器進行解析，遇到遭投毒污染的解析結果時自動再向境外伺服器請求
+  * Local Hosts - 白名單境內伺服器請求功能，開啟後才能使用自帶或自訂的 Local Hosts 白名單：開啟為1/關閉為0，預設為 0
   * Local Routing - Local 路由表識別功能，開啟後所有使用 Local 請求的解析結果都會被檢查，路由表命中後會直接返回結果，命中失敗將丟棄解析結果並向境外伺服器再次發起請求：開啟為1/關閉為0，預設為 0
   * Cache Type - DNS緩存的類型：分 Timer/計時型以及 Queue/佇列型
   * Cache Parameter - DNS緩存的參數：Timer/計時型 時為時間長度（單位為秒），Queue/佇列型 時為佇列長度
@@ -351,12 +349,12 @@ Pcap_DNSProxy 支援平臺：
 
 * Addresses - 普通模式位址區域
 注意：IPv4 位址格式為 "IPv4 位址:埠"，IPv6位址格式為"[IPv6 位址]:埠"（均不含引號）
-  * IPv4 Listen Address - IPv4 本地監聽位址
+  * IPv4 Listen Address - IPv4 本地監聽位址：預設為空
     * 填入此值後 IPv4 協定的 Operation Mode 和 Listen Port 參數將被自動忽略
   * IPv4 DNS Address - IPv4 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，預設為 8.8.4.4:53
     * 本參數支援同時請求多伺服器的功能，開啟後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果
     * 使用同時請求多伺服器格式為 "位址 A:埠|位址 B:埠|位址 C:埠"（不含引號），同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
-	* 指定埠時可使用服務名稱代替：
+    * 指定埠時可使用服務名稱代替：
       * TCPMUX
       * ECHO
       * DISCARD
@@ -445,12 +443,12 @@ Pcap_DNSProxy 支援平臺：
   * IPv4 Alternate DNS Address - IPv4 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，預設為 8.8.8.8:53|208.67.220.220:53|208.67.222.222:53
     * 本參數支援同時請求多伺服器的功能，開啟後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果
     * 使用同時請求多伺服器格式為 "位址 A:埠|位址 B:埠|位址 C:埠"（不含引號），同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
-	* 指定埠時可使用服務名稱代替，參見上表
+    * 指定埠時可使用服務名稱代替，參見上表
   * IPv4 Local DNS Address - IPv4主要境內DNS伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，預設為 114.114.115.115:53
     * 指定埠時可使用服務名稱代替，參見上表
   * IPv4 Local Alternate DNS Address - IPv4備用境內DNS伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，預設為 114.114.114.114:53
     * 指定埠時可使用服務名稱代替，參見上表
-  * IPv6 Listen Address - IPv6 本地監聽位址
+  * IPv6 Listen Address - IPv6 本地監聽位址：預設為空
     * 填入此值後 IPv6 協定的 Operation Mode 和 Listen Port 參數將被自動忽略
   * IPv6 DNS Address - IPv6主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
     * 指定埠時可使用服務名稱代替，參見上表
@@ -607,9 +605,9 @@ IPv4 Local DNS Address = 114.114.115.115:53
 IPv4 Local Alternate DNS Address = 114.114.114.114:53
 IPv6 Listen Address = 
 IPv6 DNS Address = 
-#IPv6 DNS Address = [2001:4860:4860::8844]:53
+## IPv6 DNS Address = [2001:4860:4860::8844]:53
 IPv6 Alternate DNS Address = 
-#IPv6 Alternate DNS Address = [2001:4860:4860::8888]:53
+## IPv6 Alternate DNS Address = [2001:4860:4860::8888]:53
 IPv6 Local DNS Address = 
 IPv6 Local Alternate DNS Address = 
 
@@ -660,15 +658,15 @@ Key Recheck Time = 3600
 DNSCurve IPv4 DNS Address = 208.67.220.220:443
 DNSCurve IPv4 Alternate DNS Address = 208.67.222.222:443
 DNSCurve IPv6 DNS Address = 
-#DNSCurve IPv6 DNS Address = [2620:0:CCC::2]:443
+## DNSCurve IPv6 DNS Address = [2620:0:CCC::2]:443
 DNSCurve IPv6 Alternate DNS Address = 
-#DNSCurve IPv6 Alternate DNS Address = [2620:0:CCD::2]:443
+## DNSCurve IPv6 Alternate DNS Address = [2620:0:CCD::2]:443
 DNSCurve IPv4 Provider Name = 2.dnscrypt-cert.opendns.com
 DNSCurve IPv4 Alternate Provider Name = 2.dnscrypt-cert.opendns.com
 DNSCurve IPv6 Provider Name = 
-#DNSCurve IPv6 Provider Name = 2.dnscrypt-cert.opendns.com
+## DNSCurve IPv6 Provider Name = 2.dnscrypt-cert.opendns.com
 DNSCurve IPv6 Alternate Provider Name = 
-#DNSCurve IPv6 Alternate Provider Name = 2.dnscrypt-cert.opendns.com
+## DNSCurve IPv6 Alternate Provider Name = 2.dnscrypt-cert.opendns.com
 
 [DNSCurve Keys]
 Client Public Key = 
@@ -676,17 +674,17 @@ Client Secret Key =
 IPv4 DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
 IPv4 Alternate DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
 IPv6 DNS Public Key = 
-#IPv6 DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
+## IPv6 DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
 IPv6 Alternate DNS Public Key = 
-#IPv6 Alternate DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
+## IPv6 Alternate DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
 IPv4 DNS Fingerprint = 
-#IPv4 DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
+## IPv4 DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
 IPv4 Alternate DNS Fingerprint = 
-#IPv4 Alternate DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
+## IPv4 Alternate DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
 IPv6 DNS Fingerprint = 
-#IPv6 DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
+## IPv6 DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
 IPv6 Alternate DNS Fingerprint = 
-#IPv6 Alternate DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
+## IPv6 Alternate DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
 
 [DNSCurve Magic Number]
 IPv4 Receive Magic Number = 
@@ -739,7 +737,7 @@ Hosts 設定檔分為 Hosts/主要Hosts清單 和 Local Hosts/境內DNS解析功
     雖然 .*\.localhost 包含了 .*\.test\.localhost 但由於優先順序別自上而下遞減，故先命中 .*\.test\.localhost 並直接返回功能變數名稱不存在
     從而繞過了下面的條目，達到遮罩功能變數名稱的目的
 
-* Hosts - 主要Hosts清單
+* Hosts - 主要 Hosts 清單
 有效參數格式為 "位址(|位址A|位址B) 正則運算式"（不含引號，括弧內為可選項目，注意間隔所在的位置）
   * 位址與正則運算式之間的間隔字元可為 Space/半形空格 或者 HT/水準定位符號，間隔長度不限，但切勿輸入全形空格
   * 一條條目只能接受一種網址類別型（IPv4/IPv6），如有同一個功能變數名稱需要同時進行 IPv4/IPv6 的 Hosts，請分為兩個條目輸入
@@ -760,6 +758,7 @@ Hosts 設定檔分為 Hosts/主要Hosts清單 和 Local Hosts/境內DNS解析功
 * Local Hosts - 境內 DNS 解析功能變數名稱清單
 本區域資料用於為功能變數名稱使用境內 DNS 伺服器解析提高存取速度，使用時請確認境內 DNS 伺服器位址不為空（參見上文 設定檔詳細參數說明 一節）
 有效參數格式為 "正則運算式"（不含引號）
+  * 要使用本功能，必須將設定檔內的 Local Hosts 選項打開！
   * 本功能不會對境內 DNS 伺服器回復進行任何過濾，請確認本區域填入的資料不會受到 DNS 投毒污染的干擾
   * 例如有一個 [Local Hosts] 下有效資料區域：
 

@@ -227,11 +227,14 @@
     <ClCompile Include="KeyPairGenerator.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ResourceCompile Include="KeyPairGenerator.rc" />
+  </ItemGroup>
+  <ItemGroup>
     <Library Include="LibSodium\libsodium_x64.lib" />
     <Library Include="LibSodium\libsodium_x86.lib" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="KeyPairGenerator.rc" />
+    <None Include="LibSodium\version.h.in" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

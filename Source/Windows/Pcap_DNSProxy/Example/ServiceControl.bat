@@ -27,16 +27,16 @@ goto %UserChoice%
 	echo "Permission check." >> %SystemPath%\TestPermission.log
 	if not exist %SystemPath%\TestPermission.log (echo Require Administrator permission. && pause > nul && Exit)
 	del /f /q %SystemPath%\TestPermission.log
+	cls
 
 	:: Files check
 	cd /d %~dp0
-	cls
 	if not exist Fciv.exe goto Warning
 	if not exist Pcap_DNSProxy.exe goto Warning
 	if not exist Pcap_DNSProxy_x86.exe goto Warning
 
 	:Hash-A
-	Fciv -sha1 Pcap_DNSProxy.exe |findstr /I A2C6D770666119E3013C0C8CD2C0CE72399085E1 > NUL
+	Fciv -sha1 Pcap_DNSProxy.exe |findstr /I AD10722A2DDCB592245BF22C8F1DB81FFAFEDED7 > NUL
 	goto HASH-%ERRORLEVEL%
 	:HASH-0
 	goto HASH-B
@@ -44,7 +44,7 @@ goto %UserChoice%
 	goto Warning
 
 	:Hash-B
-	Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 55E91943DB7D5A0C930B953321D8A5A0D02B53DF > NUL
+	Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 9F1DA9BDFE4BFFA60CCC0B3B1DD3BCC4BCDD3356 > NUL
 	goto HASH-%ERRORLEVEL%
 	:HASH-0
 	goto Type
@@ -97,15 +97,15 @@ goto %UserChoice%
 
 :: Service Uninstall part
 :: Author: Chengr28
-	:Case_2
+:Case_2
 	:: Permission check
 	if "%PROCESSOR_ARCHITECTURE%" == "AMD64" (set SystemPath=%SystemRoot%\SysWOW64) else (set SystemPath=%SystemRoot%\System32)
 	del /f /q %SystemPath%\TestPermission.log
 	echo "Permission check." >> %SystemPath%\TestPermission.log
 	if not exist %SystemPath%\TestPermission.log (echo Require Administrator permission. && pause > nul && Exit)
 	del /f /q %SystemPath%\TestPermission.log
-	
 	cls
+	
 	sc stop PcapDNSProxyService
 	sc delete PcapDNSProxyService
 	@echo.
@@ -118,15 +118,22 @@ goto %UserChoice%
 :: Service Start part
 :: Author: Hugo Chan, Chengr28
 :Case_3
+	:: Permission check
+	if "%PROCESSOR_ARCHITECTURE%" == "AMD64" (set SystemPath=%SystemRoot%\SysWOW64) else (set SystemPath=%SystemRoot%\System32)
+	del /f /q %SystemPath%\TestPermission.log
+	echo "Permission check." >> %SystemPath%\TestPermission.log
+	if not exist %SystemPath%\TestPermission.log (echo Require Administrator permission. && pause > nul && Exit)
+	del /f /q %SystemPath%\TestPermission.log
+	cls
+
 	:: Files check
 	cd /d %~dp0
-	cls
 	if not exist Fciv.exe goto Warning
 	if not exist Pcap_DNSProxy.exe goto Warning
 	if not exist Pcap_DNSProxy_x86.exe goto Warning
 
 	:Hash-A
-	Fciv -sha1 Pcap_DNSProxy.exe |findstr /I A2C6D770666119E3013C0C8CD2C0CE72399085E1 > NUL
+	Fciv -sha1 Pcap_DNSProxy.exe |findstr /I AD10722A2DDCB592245BF22C8F1DB81FFAFEDED7 > NUL
 	goto HASH-%ERRORLEVEL%
 	:HASH-0
 	goto HASH-B
@@ -134,7 +141,7 @@ goto %UserChoice%
 	goto Warning
 
 	:Hash-B
-	Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 55E91943DB7D5A0C930B953321D8A5A0D02B53DF > NUL
+	Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 9F1DA9BDFE4BFFA60CCC0B3B1DD3BCC4BCDD3356 > NUL
 	goto HASH-%ERRORLEVEL%
 	:HASH-0
 	goto Main
@@ -166,6 +173,14 @@ goto %UserChoice%
 :: Service Stop part
 :: Author: Chengr28
 :Case_4
+	:: Permission check
+	if "%PROCESSOR_ARCHITECTURE%" == "AMD64" (set SystemPath=%SystemRoot%\SysWOW64) else (set SystemPath=%SystemRoot%\System32)
+	del /f /q %SystemPath%\TestPermission.log
+	echo "Permission check." >> %SystemPath%\TestPermission.log
+	if not exist %SystemPath%\TestPermission.log (echo Require Administrator permission. && pause > nul && Exit)
+	del /f /q %SystemPath%\TestPermission.log
+	cls
+	
 	sc stop PcapDNSProxyService
 	@echo.
 	@echo Done. Please confirm the PcapDNSProxyService service had been stopped.
@@ -177,15 +192,22 @@ goto %UserChoice%
 :: Service Restart part
 :: Author: Chengr28
 :Case_5
+	:: Permission check
+	if "%PROCESSOR_ARCHITECTURE%" == "AMD64" (set SystemPath=%SystemRoot%\SysWOW64) else (set SystemPath=%SystemRoot%\System32)
+	del /f /q %SystemPath%\TestPermission.log
+	echo "Permission check." >> %SystemPath%\TestPermission.log
+	if not exist %SystemPath%\TestPermission.log (echo Require Administrator permission. && pause > nul && Exit)
+	del /f /q %SystemPath%\TestPermission.log
+	cls
+	
 	:: Files check
 	cd /d %~dp0
-	cls
 	if not exist Fciv.exe goto Warning
 	if not exist Pcap_DNSProxy.exe goto Warning
 	if not exist Pcap_DNSProxy_x86.exe goto Warning
 
 	:Hash-A
-	Fciv -sha1 Pcap_DNSProxy.exe |findstr /I A2C6D770666119E3013C0C8CD2C0CE72399085E1 > NUL
+	Fciv -sha1 Pcap_DNSProxy.exe |findstr /I AD10722A2DDCB592245BF22C8F1DB81FFAFEDED7 > NUL
 	goto HASH-%ERRORLEVEL%
 	:HASH-0
 	goto HASH-B
@@ -193,7 +215,7 @@ goto %UserChoice%
 	goto Warning
 
 	:Hash-B
-	Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 55E91943DB7D5A0C930B953321D8A5A0D02B53DF > NUL
+	Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 9F1DA9BDFE4BFFA60CCC0B3B1DD3BCC4BCDD3356 > NUL
 	goto HASH-%ERRORLEVEL%
 	:HASH-0
 	goto Main

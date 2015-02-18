@@ -709,9 +709,7 @@ size_t __fastcall GetNetworkingInformation(void)
 		{
 			if (!Parameter.GatewayAvailable_IPv6)
 				PrintError(LOG_ERROR_WINSOCK, L"Not any available gateways to public network", 0, nullptr, 0);
-
-			if (Parameter.TunnelAvailable_IPv6)
-				Parameter.TunnelAvailable_IPv6 = false;
+			Parameter.TunnelAvailable_IPv6 = false;
 		}
 
 	//Auto-refresh

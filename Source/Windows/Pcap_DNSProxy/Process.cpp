@@ -122,9 +122,8 @@ size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Leng
 	}
 
 //Hosts Only requesting
-	if (Parameter.HostsOnly)
+	if (Parameter.HostsOnly && DirectRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, TargetData) == EXIT_SUCCESS)
 	{
-		DirectRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, TargetData);
 	//Fin TCP request connection.
 		if (Protocol == IPPROTO_TCP && TargetData.Socket != INVALID_SOCKET)
 			closesocket(TargetData.Socket);
@@ -167,9 +166,9 @@ size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Leng
 		return EXIT_SUCCESS;
 
 //IPv6 tunnels support
-	if (Parameter.GatewayAvailable_IPv6 && Parameter.TunnelAvailable_IPv6)
+	if (Parameter.GatewayAvailable_IPv6 && Parameter.TunnelAvailable_IPv6 && 
+		DirectRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, TargetData) == EXIT_SUCCESS)
 	{
-		DirectRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, TargetData);
 	//Fin TCP request connection.
 		if (Protocol == IPPROTO_TCP && TargetData.Socket != INVALID_SOCKET)
 			closesocket(TargetData.Socket);
@@ -1385,7 +1384,10 @@ size_t __fastcall MarkDomainCache(const PSTR Buffer, const size_t Length)
 
 //Initialization(A part)
 	DNSCACHE_DATA DNSCacheDataTemp;
-	memset((PSTR)&DNSCacheDataTemp + sizeof(DNSCacheDataTemp.Domain) + sizeof(DNSCacheDataTemp.Response), 0, sizeof(DNSCACHE_DATA) - sizeof(DNSCacheDataTemp.Domain) - sizeof(DNSCacheDataTemp.Response));
+//	memset((PSTR)&DNSCacheDataTemp + sizeof(DNSCacheDataTemp.Domain) + sizeof(DNSCacheDataTemp.Response), 0, sizeof(DNSCACHE_DATA) - sizeof(DNSCacheDataTemp.Domain) - sizeof(DNSCacheDataTemp.Response));
+	DNSCacheDataTemp.Type = 0;
+	DNSCacheDataTemp.Length = 0;
+	DNSCacheDataTemp.ClearTime = 0;
 
 //Mark DNS A records and AAAA records only.
 	auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));

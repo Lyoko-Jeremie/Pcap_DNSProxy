@@ -4211,9 +4211,13 @@ size_t __fastcall ReadIPFilter(void)
 		{
 		//Auto-refresh
 			if (Parameter.FileRefreshTime > 0)
+			{
 				Sleep((DWORD)Parameter.FileRefreshTime);
-			else
+				continue;
+			}
+			else {
 				break;
+			}
 		}
 
 	//Blacklist part
@@ -5840,9 +5844,13 @@ size_t __fastcall ReadHosts(void)
 		{
 		//Auto-refresh
 			if (Parameter.FileRefreshTime > 0)
+			{
 				Sleep((DWORD)Parameter.FileRefreshTime);
-			else
+				continue;
+			}
+			else {
 				break;
+			}
 		}
 		else if (!HostsListModificating->empty())
 		{

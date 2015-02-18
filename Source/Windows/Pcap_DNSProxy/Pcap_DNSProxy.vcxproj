@@ -275,6 +275,7 @@
     <ClCompile Include="Sort.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="LibSodium\version.h.in" />
     <None Include="WinPcap\Drivers\WinPcap_v4.1.3.exe" />
   </ItemGroup>
   <ItemGroup>
