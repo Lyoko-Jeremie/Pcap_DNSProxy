@@ -1702,7 +1702,6 @@
 .*\bgongchang\.com
 .*\bgongpingjia\.com
 .*\bgoodbaby\.com
-.*\bgoogletagmanager\.com
 .*\bgooncheck\.com
 .*\bgooooal\.com
 .*\bgotoch\.com
