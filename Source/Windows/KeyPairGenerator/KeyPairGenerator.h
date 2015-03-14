@@ -17,16 +17,20 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-//Base Headers
-#include <cstdio>                  //File Input/Output
-#include <cstdlib>                 //Several general purpose functions.
-#include <exception>               //Exception
+//////////////////////////////////////////////////
+// Base Header
+// 
+//#include <cstdio>                  //File Input/Output
+//#include <cstdlib>                 //Several general purpose functions.
+//#include <cstdint>                 //A set of integral type aliases with specific width requirements.
+//#include <exception>               //Exception
 #include <memory>                  //Manage dynamic memory support
-#include <cstdint>                 //A set of integral type aliases with specific width requirements.
-#include <tchar.h>                 //Unicode(UTF-8/UTF-16)/Wide-Character Support
+//#include <tchar.h>                 //Unicode(UTF-8/UTF-16)/Wide-Character Support
 #include <windows.h>               //Microsoft Windows master include file
 
-//Sodium Headers
+//////////////////////////////////////////////////
+// Sodium headers
+// 
 //#include "LibSodium\core.h"
 //#include "LibSodium\crypto_box.h"
 #include "LibSodium\sodium.h"
@@ -42,7 +46,9 @@
 //Remember to add "WPCAP" and "HAVE_REMOTE" to preprocessor options!
 //Remember to add "SODIUM_STATIC" and "SODIUM_EXPORT=" to preprocessor options!
 
-//Base defines
+//////////////////////////////////////////////////
+// Base defines
+// 
 #pragma pack(1)                        //Memory alignment: 1 bytes/8 bits
 #define KEYPAIR_MESSAGE_LEN    80U     //Keypair messages length
 #define MBSTOWCS_NULLTERMINATE (-1)    //MultiByteToWideChar() find null-terminate.
@@ -52,5 +58,5 @@
 #define ASCII_DLE              16      //"␐"
 #define ASCII_COLON            58      //":"
 
-//Function
-inline size_t __fastcall BinaryToHex(PSTR Buffer, const size_t MaxLength, const PUINT8 Binary, const size_t Length);
+//Functions
+size_t __fastcall BinaryToHex(PSTR Buffer, const size_t MaxLength, const PUINT8 Binary, const size_t Length);

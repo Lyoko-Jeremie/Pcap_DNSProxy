@@ -1,7 +1,7 @@
 ﻿// This code is part of Pcap_DNSProxy(Windows)
 // Pcap_DNSProxy, A local DNS server base on WinPcap and LibPcap.
 // Copyright (C) 2012-2015 Chengr28
-//
+// 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either
@@ -17,21 +17,7 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#include "Main.h"
-
-ConfigurationTable Parameter;
-time_t StartTime, RunningLogStartTime;
-std::vector<std::wstring> ConfigFileList;
-std::vector<FILE_DATA> IPFilterFileList, HostsFileList;
-PortTable PortList;
-AlternateSwapTable AlternateSwapList;
-DNSCurveConfigurationTable DNSCurveParameter;
-std::vector<HostsTable> HostsList[2U], *HostsListUsing = &HostsList[0], *HostsListModificating = &HostsList[1U];
-std::vector<AddressRange> AddressRangeList[2U], *AddressRangeUsing = &AddressRangeList[0], *AddressRangeModificating = &AddressRangeList[1U];
-std::vector<ResultBlacklistTable> ResultBlacklistList[2U], *ResultBlacklistUsing = &ResultBlacklistList[0], *ResultBlacklistModificating = &ResultBlacklistList[1U];
-std::vector<ADDRESS_PREFIX_BLOCK> LocalRoutingList[2U], *LocalRoutingListUsing = &LocalRoutingList[0], *LocalRoutingListModificating = &LocalRoutingList[1U];
-std::deque<DNSCACHE_DATA> DNSCacheList;
-std::mutex ErrLogLock, RunningLogLock, CaptureLock, PortListLock, LocalAddressLock[QUEUE_PARTNUM / 2U], HostsListLock, DNSCacheListLock, AddressRangeLock, ResultBlacklistLock, LocalRoutingListLock;
+#include "Initialization.h"
 
 //Configuration class constructor
 ConfigurationTable::ConfigurationTable(void)
@@ -61,6 +47,7 @@ ConfigurationTable::ConfigurationTable(void)
 		IPFilterFileList = new std::vector<std::wstring>();
 		ErrorLogPath = new std::wstring();
 		RunningLogPath = new std::wstring();
+		RunningLogWriteQueue = new std::vector<RUNNING_LOG_DATA>();
 		DomainTable = new char[strlen(RFC_DOMAIN_TABLE) + 1U]();
 		AcceptTypeList = new std::vector<uint16_t>();
 	}
@@ -89,9 +76,10 @@ ConfigurationTable::ConfigurationTable(void)
 		delete IPFilterFileList;
 		delete ErrorLogPath;
 		delete RunningLogPath;
+		delete RunningLogWriteQueue;
 		delete[] DomainTable;
 		delete AcceptTypeList;
-		memset(this, 0, sizeof(ConfigurationTable));
+//		memset(this, 0, sizeof(ConfigurationTable));
 
 //		WSACleanup();
 //		TerminateService();
@@ -100,6 +88,22 @@ ConfigurationTable::ConfigurationTable(void)
 	}
 
 //Initialization
+	//[Addresses] block
+	memset(ListenAddress_IPv4, 0, sizeof(sockaddr_storage));
+	memset(ListenAddress_IPv6, 0, sizeof(sockaddr_storage));
+	//[Data] block(A part)
+	memset(ICMPPaddingData, 0, ICMP_PADDING_MAXSIZE);
+	memset(DomainTestData, 0, DOMAIN_MAXSIZE);
+	//[Data] block(B part)
+	memset(LocalFQDN, 0, DOMAIN_MAXSIZE);
+	memset(LocalServerResponse, 0, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt));
+	memset(LocalAddress[0], 0, PACKET_MAXSIZE);
+	memset(LocalAddress[1U], 0, PACKET_MAXSIZE);
+	//Global block
+	memset(DomainTable, 0, strlen(RFC_DOMAIN_TABLE) + 1U);
+
+//Default values
+//	strncpy(DomainTable, RFC_DOMAIN_TABLE, strlen(RFC_DOMAIN_TABLE));
 	strncpy_s(DomainTable, strlen(RFC_DOMAIN_TABLE) + 1U, RFC_DOMAIN_TABLE, strlen(RFC_DOMAIN_TABLE));
 	std::random_device RamdomDevice;
 	RamdomEngine->seed(RamdomDevice());
@@ -116,7 +120,8 @@ ConfigurationTable::ConfigurationTable(void)
 	DomainTestID = htons((uint16_t)GetCurrentProcessId()); //Default DNS ID is current process ID.
 	//Load default padding data from Microsoft Windows Ping.
 	ICMPPaddingDataLength = strlen(DEFAULT_PADDINGDATA) + 1U;
-	memcpy(ICMPPaddingData, DEFAULT_PADDINGDATA, Parameter.ICMPPaddingDataLength - 1U);
+//	memcpy(ICMPPaddingData, DEFAULT_PADDINGDATA, Parameter.ICMPPaddingDataLength - 1U);
+	memcpy_s(ICMPPaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_PADDINGDATA, Parameter.ICMPPaddingDataLength - 1U);
 	HostsDefaultTTL = DEFAULT_HOSTS_TTL;
 
 	return;
@@ -148,9 +153,10 @@ ConfigurationTable::~ConfigurationTable(void)
 	delete IPFilterFileList;
 	delete ErrorLogPath;
 	delete RunningLogPath;
+	delete RunningLogWriteQueue;
 	delete[] DomainTable;
 	delete AcceptTypeList;
-	memset(this, 0, sizeof(ConfigurationTable));
+//	memset(this, 0, sizeof(ConfigurationTable));
 
 	return;
 }
@@ -167,10 +173,26 @@ HostsTable::HostsTable(void)
 	return;
 }
 
-//AddressRange class constructor
+//Address Range class constructor
 AddressRange::AddressRange(void)
 {
 	memset(this, 0, sizeof(AddressRange));
+	return;
+}
+
+//Blacklist of results class constructor
+ResultBlacklistTable::ResultBlacklistTable(void)
+{
+	FileIndex = 0;
+	return;
+}
+
+//Address Hosts class constructor
+AddressHostsBlock::AddressHostsBlock(void)
+{
+	FileIndex = 0;
+	memset(&TargetAddress, 0, sizeof(sockaddr_storage));
+
 	return;
 }
 
@@ -184,13 +206,14 @@ PortTable::PortTable(void)
 	}
 	catch (std::bad_alloc)
 	{
-		memset(this, 0, sizeof(PortTable) - sizeof(SendData));
-
 //		WSACleanup();
 //		TerminateService();
 		exit(EXIT_FAILURE);
 		return;
 	}
+
+//Initialization
+	memset(RecvData, 0, sizeof(SOCKET_DATA) * QUEUE_MAXLEN * QUEUE_PARTNUM);
 
 	return;
 }
@@ -200,7 +223,7 @@ PortTable::~PortTable(void)
 {
 	delete[] RecvData;
 //	memset(this, 0, sizeof(PortTable) - sizeof(SendData));
-	RecvData = nullptr;
+//	RecvData = nullptr;
 
 	return;
 }
@@ -214,13 +237,14 @@ AlternateSwapTable::AlternateSwapTable(void)
 	}
 	catch (std::bad_alloc)
 	{
-		memset(this, 0, sizeof(AlternateSwapTable));
-
 //		WSACleanup();
 //		TerminateService();
 		exit(EXIT_FAILURE);
 		return;
 	}
+
+//Initialization
+	memset(PcapAlternateTimeout, 0, sizeof(size_t) * QUEUE_MAXLEN * QUEUE_PARTNUM);
 
 	return;
 }
@@ -229,7 +253,7 @@ AlternateSwapTable::AlternateSwapTable(void)
 AlternateSwapTable::~AlternateSwapTable(void)
 {
 	delete[] PcapAlternateTimeout;
-	memset(this, 0, sizeof(AlternateSwapTable));
+//	memset(this, 0, sizeof(AlternateSwapTable));
 
 	return;
 }
@@ -300,13 +324,44 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(void)
 		delete[] DNSCurveTarget.Alternate_IPv4.SendMagicNumber;
 		delete[] DNSCurveTarget.IPv6.SendMagicNumber;
 		delete[] DNSCurveTarget.Alternate_IPv6.SendMagicNumber;
-		memset(this, 0, sizeof(DNSCurveConfigurationTable));
+//		memset(this, 0, sizeof(DNSCurveConfigurationTable));
 
 //		WSACleanup();
 //		TerminateService();
 		exit(EXIT_FAILURE);
 		return;
 	}
+
+//Initialization
+	//DNSCurve Provider Names
+	memset(DNSCurveTarget.IPv4.ProviderName, 0, DOMAIN_MAXSIZE);
+	memset(DNSCurveTarget.Alternate_IPv4.ProviderName, 0, DOMAIN_MAXSIZE);
+	memset(DNSCurveTarget.IPv6.ProviderName, 0, DOMAIN_MAXSIZE);
+	memset(DNSCurveTarget.Alternate_IPv6.ProviderName, 0, DOMAIN_MAXSIZE);
+	//DNSCurve Keys
+	memset(Client_PublicKey, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
+	memset(Client_SecretKey, 0, sizeof(uint8_t) * crypto_box_SECRETKEYBYTES);
+	memset(DNSCurveTarget.IPv4.PrecomputationKey, 0, sizeof(uint8_t) * crypto_box_BEFORENMBYTES);
+	memset(DNSCurveTarget.Alternate_IPv4.PrecomputationKey, 0, sizeof(uint8_t) * crypto_box_BEFORENMBYTES);
+	memset(DNSCurveTarget.IPv6.PrecomputationKey, 0, sizeof(uint8_t) * crypto_box_BEFORENMBYTES);
+	memset(DNSCurveTarget.Alternate_IPv6.PrecomputationKey, 0, sizeof(uint8_t) * crypto_box_BEFORENMBYTES);
+	memset(DNSCurveTarget.IPv4.ServerPublicKey, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveTarget.Alternate_IPv4.ServerPublicKey, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveTarget.IPv6.ServerPublicKey, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveTarget.Alternate_IPv6.ServerPublicKey, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveTarget.IPv4.ServerFingerprint, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveTarget.Alternate_IPv4.ServerFingerprint, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveTarget.IPv6.ServerFingerprint, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveTarget.Alternate_IPv6.ServerFingerprint, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
+	//DNSCurve Magic Numbers
+	memset(DNSCurveTarget.IPv4.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	memset(DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	memset(DNSCurveTarget.IPv6.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	memset(DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	memset(DNSCurveTarget.IPv4.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	memset(DNSCurveTarget.Alternate_IPv4.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	memset(DNSCurveTarget.IPv6.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	memset(DNSCurveTarget.Alternate_IPv6.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
 
 	return;
 }
@@ -343,7 +398,7 @@ DNSCurveConfigurationTable::~DNSCurveConfigurationTable(void)
 	delete[] DNSCurveTarget.Alternate_IPv4.SendMagicNumber;
 	delete[] DNSCurveTarget.IPv6.SendMagicNumber;
 	delete[] DNSCurveTarget.Alternate_IPv6.SendMagicNumber;
-	memset(this, 0, sizeof(DNSCurveConfigurationTable));
+//	memset(this, 0, sizeof(DNSCurveConfigurationTable));
 
 	return;
 }

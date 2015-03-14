@@ -21,5 +21,12 @@
 
 //Global variables
 extern ConfigurationTable Parameter;
-extern time_t StartTime, RunningLogStartTime;
+extern std::vector<AddressRange> *AddressRangeUsing;
+extern std::vector<ResultBlacklistTable> *ResultBlacklistUsing;
+extern std::vector<AddressPrefixBlock> *LocalRoutingListUsing;
+extern std::vector<AddressHostsBlock> *AddressHostsListUsing;
 extern DNSCurveConfigurationTable DNSCurveParameter;
+extern std::mutex LocalAddressLock[QUEUE_PARTNUM / 2U], AddressRangeLock, LocalRoutingListLock, ResultBlacklistLock, AddressHostsListLock;
+
+//Functions
+void __fastcall GetGatewayInformation(const uint16_t Protocol);

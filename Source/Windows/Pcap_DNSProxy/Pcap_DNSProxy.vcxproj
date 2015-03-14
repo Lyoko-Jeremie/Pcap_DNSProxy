@@ -171,6 +171,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Capture.h" />
+    <ClInclude Include="Configuration.h" />
+    <ClInclude Include="DNSCurve.h" />
+    <ClInclude Include="Initialization.h" />
     <ClInclude Include="Keccak\brg_endian.h" />
     <ClInclude Include="Keccak\KeccakF-1600-int-set.h" />
     <ClInclude Include="Keccak\KeccakF-1600-interface.h" />
@@ -231,7 +235,13 @@
     <ClInclude Include="LibSodium\version.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="Base.h" />
+    <ClInclude Include="Monitor.h" />
+    <ClInclude Include="PrintLog.h" />
+    <ClInclude Include="Process.h" />
+    <ClInclude Include="Protocol.h" />
+    <ClInclude Include="Request.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="System.h" />
     <ClInclude Include="WinPcap\bittypes.h" />
     <ClInclude Include="WinPcap\ip6_misc.h" />
     <ClInclude Include="WinPcap\Packet32.h" />

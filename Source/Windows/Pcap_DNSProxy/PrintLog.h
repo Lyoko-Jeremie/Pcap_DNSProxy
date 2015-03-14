@@ -22,4 +22,4 @@
 //Global variables
 extern ConfigurationTable Parameter;
 extern time_t StartTime, RunningLogStartTime;
-extern DNSCurveConfigurationTable DNSCurveParameter;
+extern std::mutex ErrLogLock, RunningLogLock;

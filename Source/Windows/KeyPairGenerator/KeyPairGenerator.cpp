@@ -32,7 +32,7 @@ int wmain(int argc, wchar_t* argv[])
 	}
 
 	FILE *Output = nullptr;
-//Output
+//Output.
 	_wfopen_s(&Output, L"KeyPair.txt", L"w+,ccs=UTF-8");
 	if (Output != nullptr)
 	{
@@ -43,30 +43,30 @@ int wmain(int argc, wchar_t* argv[])
 
 	//Write public key.
 		BinaryToHex(Buffer.get(), KEYPAIR_MESSAGE_LEN, PublicKey.get(), crypto_box_PUBLICKEYBYTES);
-/*
-		if (sodium_bin2hex(Buffer.get(), KEYPAIR_MESSAGE_LEN, PublicKey.get(), crypto_box_PUBLICKEYBYTES) == nullptr)
+/*		if (sodium_bin2hex(Buffer.get(), KEYPAIR_MESSAGE_LEN, PublicKey.get(), crypto_box_PUBLICKEYBYTES) == nullptr)
 		{
 			wprintf_s(L"Convert binary to hex overflow.\n");
 			return EXIT_FAILURE;
 		}
 */
 		fwprintf_s(Output, L"Public Key: ");
-		for (size_t Index = 0;Index < strlen(Buffer.get());Index++)
+//		for (size_t Index = 0;Index < strlen(Buffer.get());Index++)
+		for (size_t Index = 0;Index < strnlen_s(Buffer.get(), KEYPAIR_MESSAGE_LEN);Index++)
 			fwprintf_s(Output, L"%c", Buffer.get()[Index]);
 		memset(Buffer.get(), 0, KEYPAIR_MESSAGE_LEN);
 		fwprintf_s(Output, L"\n");
 
 	//Write secret key.
 		BinaryToHex(Buffer.get(), KEYPAIR_MESSAGE_LEN, SecretKey.get(), crypto_box_SECRETKEYBYTES);
-/*
-		if (sodium_bin2hex(Buffer.get(), KEYPAIR_MESSAGE_LEN, SecretKey.get(), crypto_box_SECRETKEYBYTES) == nullptr)
+/*		if (sodium_bin2hex(Buffer.get(), KEYPAIR_MESSAGE_LEN, SecretKey.get(), crypto_box_SECRETKEYBYTES) == nullptr)
 		{
 			wprintf_s(L"Convert binary to hex overflow.\n");
 			return EXIT_FAILURE;
 		}
 */
 		fwprintf_s(Output, L"Secret Key: ");
-		for (size_t Index = 0;Index < strlen(Buffer.get());Index++)
+//		for (size_t Index = 0;Index < strlen(Buffer.get());Index++)
+		for (size_t Index = 0;Index < strnlen_s(Buffer.get(), KEYPAIR_MESSAGE_LEN);Index++)
 			fwprintf_s(Output, L"%c", Buffer.get()[Index]);
 		fwprintf_s(Output, L"\n");
 
@@ -86,7 +86,7 @@ int wmain(int argc, wchar_t* argv[])
 }
 
 //Convert binary to hex characters
-inline size_t __fastcall BinaryToHex(PSTR Buffer, const size_t MaxLength, const PUINT8 Binary, const size_t Length)
+size_t __fastcall BinaryToHex(PSTR Buffer, const size_t MaxLength, const PUINT8 Binary, const size_t Length)
 {
 	size_t BufferLength = 0, Colon = 0;
 	for (size_t Index = 0;Index < Length;Index++)

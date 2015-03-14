@@ -1,6 +1,7 @@
 :: Pcap_DNSProxy service control batch
 :: A local DNS server base on WinPcap and LibPcap.
 
+
 @echo off
 
 @echo Pcap_DNSProxy service control batch
@@ -12,62 +13,74 @@
 @echo 5: Restart service
 @echo 6: Service Query(Windows XP/2003 only)
 @echo.
+
+
+:: Choice(Part 1)
 set /p UserChoice="Choose: "
-set UserChoice=Case_%UserChoice%
+
+
+:: Permission check
+	if %UserChoice% GTR 0 (
+		if %UserChoice% LSS 6 (
+			@echo.
+			if %PROCESSOR_ARCHITECTURE% EQU AMD64 (
+				cd /d "%SystemRoot%\System32"
+			) else (
+				cd /d "%SystemRoot%\SysWOW64"
+			)
+			del /f /q TestPermission.log
+			@echo Permission check. > TestPermission.log
+			if not exist TestPermission.log (
+				@echo.
+				@echo Require Administrator permission!
+				@pause
+				exit
+			) else (
+				del /f /q TestPermission.log
+				cd /d %~dp0
+				cls
+			)
+		)
+	)
+
+:: Files check
+	set FileCheck=0
+	if %UserChoice% EQU 0 (set FileCheck=1)
+	if %UserChoice% EQU 3 (set FileCheck=1)
+	if %UserChoice% EQU 5 (set FileCheck=1)
+	if %FileCheck% EQU 1 (
+		cd /d %~dp0
+		if not exist Fciv.exe (goto WARNING)
+		if not exist Pcap_DNSProxy.exe (goto WARNING)
+		if not exist Pcap_DNSProxy_x86.exe (goto WARNING)
+		Fciv -sha1 Pcap_DNSProxy.exe |findstr /I 96A2A04C41DF0ADF45A21F0C9C66987E190C1BBC > NUL
+		if %ERRORLEVEL% NEQ 0 (goto WARNING)
+		Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 8B3587DB01E404803CA4FB0299994589B7DA32CC > NUL
+		if %ERRORLEVEL% NEQ 0 (goto WARNING)
+	)
+	goto CHOICE
+
+:WARNING
+	@echo.
+	@echo The file(s) may be damaged or corrupt!
+	@echo Please download all files again, also you can skip this check.
+	set /p UserChoice_File="Are you sure you want to continue? [Y/N]"
+	if /i %UserChoice_File% EQU Y (goto CHOICE) else exit
+
+:: Choice(Part 2)
+:CHOICE
+set UserChoice=CASE_%UserChoice%
 cls
 goto %UserChoice%
 
 
 :: Service Install part
 :: Author: Hugo Chan, Chengr28
-:Case_1
-	:: Permission check
-	if "%PROCESSOR_ARCHITECTURE%" == "AMD64" (set SystemPath=%SystemRoot%\SysWOW64) else (set SystemPath=%SystemRoot%\System32)
-	del /f /q %SystemPath%\TestPermission.log
-	echo "Permission check." >> %SystemPath%\TestPermission.log
-	if not exist %SystemPath%\TestPermission.log (echo Require Administrator permission. && pause > nul && Exit)
-	del /f /q %SystemPath%\TestPermission.log
-	cls
-
-	:: Files check
-	cd /d %~dp0
-	if not exist Fciv.exe goto Warning
-	if not exist Pcap_DNSProxy.exe goto Warning
-	if not exist Pcap_DNSProxy_x86.exe goto Warning
-
-	:Hash-A
-	Fciv -sha1 Pcap_DNSProxy.exe |findstr /I AD10722A2DDCB592245BF22C8F1DB81FFAFEDED7 > NUL
-	goto HASH-%ERRORLEVEL%
-	:HASH-0
-	goto HASH-B
-	:HASH-1
-	goto Warning
-
-	:Hash-B
-	Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 9F1DA9BDFE4BFFA60CCC0B3B1DD3BCC4BCDD3356 > NUL
-	goto HASH-%ERRORLEVEL%
-	:HASH-0
-	goto Type
-	:HASH-1
-	goto Warning
-
-	:Warning
-	@echo.
-	@echo The file(s) may be damaged or corrupt!
-	@echo Please download all files again, also you can skip this check.
-	:: Choice.exe cannot be run in Windows XP/2003.
-	:: choice /M "Are you sure you want to continue start service"
-	:: if errorlevel 2 exit
-	:: if errorlevel 1 echo.
-	set /p UserChoice="Are you sure you want to continue start service? [Y/N]"
-	if /i "%UserChoice%" == "Y" (goto Type) else exit
-
-	:: Architecture check and main process
-	:Type
+:CASE_1
 	sc stop PcapDNSProxyService
 	sc delete PcapDNSProxyService
 	ping 127.0.0.1 -n 3 >nul
-	if "%PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432%" == "x86" (goto X86) else goto X64
+	if %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (goto X86) else (goto X64)
 
 	:X86
 	sc create PcapDNSProxyService binPath= "%~dp0Pcap_DNSProxy_x86.exe" DisplayName= "PcapDNSProxy Service" start= auto
@@ -81,7 +94,6 @@ goto %UserChoice%
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v Application /d "%~dp0Pcap_DNSProxy.exe" /f
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v AppDirectory /d "%~dp0" /f
 	Pcap_DNSProxy --FirstStart
-	goto Exit
 
 	:Exit
 	sc description PcapDNSProxyService "A local DNS server base on WinPcap and LibPcap."
@@ -97,17 +109,10 @@ goto %UserChoice%
 
 :: Service Uninstall part
 :: Author: Chengr28
-:Case_2
-	:: Permission check
-	if "%PROCESSOR_ARCHITECTURE%" == "AMD64" (set SystemPath=%SystemRoot%\SysWOW64) else (set SystemPath=%SystemRoot%\System32)
-	del /f /q %SystemPath%\TestPermission.log
-	echo "Permission check." >> %SystemPath%\TestPermission.log
-	if not exist %SystemPath%\TestPermission.log (echo Require Administrator permission. && pause > nul && Exit)
-	del /f /q %SystemPath%\TestPermission.log
-	cls
-	
+:CASE_2
 	sc stop PcapDNSProxyService
 	sc delete PcapDNSProxyService
+	ipconfig /flushdns
 	@echo.
 	@echo Done. Please confirm the PcapDNSProxyService service had been deleted.
 	@echo.
@@ -117,50 +122,7 @@ goto %UserChoice%
 
 :: Service Start part
 :: Author: Hugo Chan, Chengr28
-:Case_3
-	:: Permission check
-	if "%PROCESSOR_ARCHITECTURE%" == "AMD64" (set SystemPath=%SystemRoot%\SysWOW64) else (set SystemPath=%SystemRoot%\System32)
-	del /f /q %SystemPath%\TestPermission.log
-	echo "Permission check." >> %SystemPath%\TestPermission.log
-	if not exist %SystemPath%\TestPermission.log (echo Require Administrator permission. && pause > nul && Exit)
-	del /f /q %SystemPath%\TestPermission.log
-	cls
-
-	:: Files check
-	cd /d %~dp0
-	if not exist Fciv.exe goto Warning
-	if not exist Pcap_DNSProxy.exe goto Warning
-	if not exist Pcap_DNSProxy_x86.exe goto Warning
-
-	:Hash-A
-	Fciv -sha1 Pcap_DNSProxy.exe |findstr /I AD10722A2DDCB592245BF22C8F1DB81FFAFEDED7 > NUL
-	goto HASH-%ERRORLEVEL%
-	:HASH-0
-	goto HASH-B
-	:HASH-1
-	goto Warning
-
-	:Hash-B
-	Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 9F1DA9BDFE4BFFA60CCC0B3B1DD3BCC4BCDD3356 > NUL
-	goto HASH-%ERRORLEVEL%
-	:HASH-0
-	goto Main
-	:HASH-1
-	goto Warning
-
-	:Warning
-	@echo.
-	@echo The file(s) may be damaged or corrupt!
-	@echo Please download all files again, also you can skip this check.
-	:: Choice.exe cannot be run in Windows XP/2003.
-	:: choice /M "Are you sure you want to continue start service"
-	:: if errorlevel 2 exit
-	:: if errorlevel 1 echo.
-	set /p UserChoice="Are you sure you want to continue start service? [Y/N]"
-	if /i "%UserChoice%" == "Y" (goto Main) else exit
-
-	:: Main process
-	:Main
+:CASE_3
 	sc start PcapDNSProxyService
 	ipconfig /flushdns
 	@echo.
@@ -172,16 +134,9 @@ goto %UserChoice%
 
 :: Service Stop part
 :: Author: Chengr28
-:Case_4
-	:: Permission check
-	if "%PROCESSOR_ARCHITECTURE%" == "AMD64" (set SystemPath=%SystemRoot%\SysWOW64) else (set SystemPath=%SystemRoot%\System32)
-	del /f /q %SystemPath%\TestPermission.log
-	echo "Permission check." >> %SystemPath%\TestPermission.log
-	if not exist %SystemPath%\TestPermission.log (echo Require Administrator permission. && pause > nul && Exit)
-	del /f /q %SystemPath%\TestPermission.log
-	cls
-	
+:CASE_4
 	sc stop PcapDNSProxyService
+	ipconfig /flushdns
 	@echo.
 	@echo Done. Please confirm the PcapDNSProxyService service had been stopped.
 	@echo.
@@ -191,50 +146,7 @@ goto %UserChoice%
 
 :: Service Restart part
 :: Author: Chengr28
-:Case_5
-	:: Permission check
-	if "%PROCESSOR_ARCHITECTURE%" == "AMD64" (set SystemPath=%SystemRoot%\SysWOW64) else (set SystemPath=%SystemRoot%\System32)
-	del /f /q %SystemPath%\TestPermission.log
-	echo "Permission check." >> %SystemPath%\TestPermission.log
-	if not exist %SystemPath%\TestPermission.log (echo Require Administrator permission. && pause > nul && Exit)
-	del /f /q %SystemPath%\TestPermission.log
-	cls
-	
-	:: Files check
-	cd /d %~dp0
-	if not exist Fciv.exe goto Warning
-	if not exist Pcap_DNSProxy.exe goto Warning
-	if not exist Pcap_DNSProxy_x86.exe goto Warning
-
-	:Hash-A
-	Fciv -sha1 Pcap_DNSProxy.exe |findstr /I AD10722A2DDCB592245BF22C8F1DB81FFAFEDED7 > NUL
-	goto HASH-%ERRORLEVEL%
-	:HASH-0
-	goto HASH-B
-	:HASH-1
-	goto Warning
-
-	:Hash-B
-	Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 9F1DA9BDFE4BFFA60CCC0B3B1DD3BCC4BCDD3356 > NUL
-	goto HASH-%ERRORLEVEL%
-	:HASH-0
-	goto Main
-	:HASH-1
-	goto Warning
-
-	:Warning
-	@echo.
-	@echo The file(s) may be damaged or corrupt!
-	@echo Please download all files again, also you can skip this check.
-	:: Choice.exe cannot be run in Windows XP/2003.
-	:: choice /M "Are you sure you want to continue start service"
-	:: if errorlevel 2 exit
-	:: if errorlevel 1 echo.
-	set /p UserChoice="Are you sure you want to continue start service? [Y/N]"
-	if /i "%UserChoice%" == "Y" (goto Main) else exit
-	
-	:: Main process
-	:Main
+:CASE_5
 	sc stop PcapDNSProxyService
 	ping 127.0.0.1 -n 3 >nul
 	sc start PcapDNSProxyService
@@ -250,7 +162,7 @@ goto %UserChoice%
 :: Author: PyDNSProxy project(https://code.google.com/p/pydnsproxy)
 :: In Windows XP/2003, 'sc query' will always exit with status code '0',
 :: No matter the query faild or not.
-:Case_6
+:CASE_6
 	@echo.
 	sc query PcapDNSProxyService | find "SERVICE_NAME: PcapDNSProxyService"
 	@echo.

@@ -1,7 +1,7 @@
 ﻿// This code is part of Pcap_DNSProxy(Windows)
 // Pcap_DNSProxy, A local DNS server base on WinPcap and LibPcap.
 // Copyright (C) 2012-2015 Chengr28
-//
+// 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either
@@ -17,14 +17,7 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#include "Main.h"
-
-extern ConfigurationTable Parameter;
-extern std::vector<AddressRange> *AddressRangeUsing;
-extern std::vector<ResultBlacklistTable> *ResultBlacklistUsing;
-extern std::vector<ADDRESS_PREFIX_BLOCK> *LocalRoutingListUsing;
-extern DNSCurveConfigurationTable DNSCurveParameter;
-extern std::mutex LocalAddressLock[QUEUE_PARTNUM / 2U], AddressRangeLock, LocalRoutingListLock;
+#include "Protocol.h"
 
 //Check empty buffer
 bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length)
@@ -71,13 +64,15 @@ size_t __fastcall CaseConvert(bool IsLowerUpper, const PSTR Buffer, const size_t
 	//Lowercase to uppercase
 		if (IsLowerUpper)
 		{
-			if (Buffer[Index] > ASCII_ACCENT && Buffer[Index] < ASCII_BRACES_LEAD)
-				Buffer[Index] -= ASCII_LOWER_TO_UPPER;
+//			if (Buffer[Index] > ASCII_ACCENT && Buffer[Index] < ASCII_BRACES_LEAD)
+//				Buffer[Index] -= ASCII_LOWER_TO_UPPER;
+			Buffer[Index] = (char)toupper(Buffer[Index]);
 		}
 	//Uppercase to lowercase
 		else {
-			if (Buffer[Index] > ASCII_AT && Buffer[Index] < ASCII_BRACKETS_LEAD)
-				Buffer[Index] += ASCII_UPPER_TO_LOWER;
+//			if (Buffer[Index] > ASCII_AT && Buffer[Index] < ASCII_BRACKETS_LEAD)
+//				Buffer[Index] += ASCII_UPPER_TO_LOWER;
+			Buffer[Index] = (char)tolower(Buffer[Index]);
 		}
 	}
 
@@ -94,6 +89,7 @@ size_t __fastcall AddressStringToBinary(const PSTR AddrString, void *OriginalAdd
 	SSIZE_T Result = 0;
 #else //x86
 	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
+	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
 	int SockLength = 0;
 #endif
 
@@ -132,7 +128,8 @@ size_t __fastcall AddressStringToBinary(const PSTR AddrString, void *OriginalAdd
 		}
 	#ifdef _WIN64
 	#else //x86
-		memcpy(OriginalAddr, &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, sizeof(in6_addr));
+//		memcpy(OriginalAddr, &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, sizeof(in6_addr));
+		memcpy_s(OriginalAddr, sizeof(in6_addr), &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, sizeof(in6_addr));
 	#endif
 	}
 	else { //IPv4
@@ -191,7 +188,8 @@ size_t __fastcall AddressStringToBinary(const PSTR AddrString, void *OriginalAdd
 		}
 	#ifdef _WIN64
 	#else //x86
-		memcpy(OriginalAddr, &((PSOCKADDR_IN)SockAddr.get())->sin_addr, sizeof(in_addr));
+//		memcpy(OriginalAddr, &((PSOCKADDR_IN)SockAddr.get())->sin_addr, sizeof(in_addr));
+		memcpy_s(OriginalAddr, sizeof(in_addr), &((PSOCKADDR_IN)SockAddr.get())->sin_addr, sizeof(in_addr));
 	#endif
 	}
 
@@ -203,7 +201,9 @@ PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol)
 {
 //Initialization
 	std::shared_ptr<char> HostName(new char[DOMAIN_MAXSIZE]());
+	memset(HostName.get(), 0, DOMAIN_MAXSIZE);
 	std::shared_ptr<addrinfo> Hints(new addrinfo());
+	memset(Hints.get(), 0, sizeof(addrinfo));
 	PADDRINFOA Result = nullptr /* , PTR = nullptr */;
 	
 	if (Protocol == AF_INET6) //IPv6
@@ -471,6 +471,7 @@ size_t __fastcall GetNetworkingInformation(void)
 {
 //Initialization
 	std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
+	memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 	std::string Result;
 	SSIZE_T Index = 0;
 
@@ -509,7 +510,8 @@ size_t __fastcall GetNetworkingInformation(void)
 			DNS_Header->Flags = htons(DNS_SQR_NEA);
 			DNS_Header->Questions = htons(U16_NUM_ONE);
 			Parameter.LocalAddressLength[0] += sizeof(dns_hdr);
-			memcpy(Parameter.LocalAddress[0] + Parameter.LocalAddressLength[0], Parameter.LocalFQDN, Parameter.LocalFQDNLength);
+//			memcpy(Parameter.LocalAddress[0] + Parameter.LocalAddressLength[0], Parameter.LocalFQDN, Parameter.LocalFQDNLength);
+			memcpy_s(Parameter.LocalAddress[0] + Parameter.LocalAddressLength[0], PACKET_MAXSIZE - Parameter.LocalAddressLength[0], Parameter.LocalFQDN, Parameter.LocalFQDNLength);
 			Parameter.LocalAddressLength[0] += Parameter.LocalFQDNLength;
 			DNS_Query = (pdns_qry)(Parameter.LocalAddress[0] + Parameter.LocalAddressLength[0]);
 			DNS_Query->Type = htons(DNS_RECORD_AAAA);
@@ -547,10 +549,13 @@ size_t __fastcall GetNetworkingInformation(void)
 						_ultoa_s(htons(((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr.u.Word[Index]), Addr.get(), ADDR_STRING_MAXSIZE, NUM_HEX);
 
 					//Add zeros to beginning of string.
-						if (strlen(Addr.get()) < 4U)
+//						if (strlen(Addr.get()) < 4U)
+						if (strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE) < 4U)
 						{
-							AddrStringLen = strlen(Addr.get());
-							memmove(Addr.get() + 4U - strlen(Addr.get()), Addr.get(), strlen(Addr.get()));
+//							AddrStringLen = strlen(Addr.get());
+							AddrStringLen = strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE);
+//							memmove(Addr.get() + 4U - strlen(Addr.get()), Addr.get(), strlen(Addr.get()));
+							memmove_s(Addr.get() + 4U - strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE), ADDR_STRING_MAXSIZE, Addr.get(), strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE));
 							memset(Addr.get(), ASCII_ZERO, 4U - AddrStringLen);
 						}
 						DNSPTRString.append(Addr.get());
@@ -629,7 +634,8 @@ size_t __fastcall GetNetworkingInformation(void)
 			DNS_Header->Flags = htons(DNS_SQR_NEA);
 			DNS_Header->Questions = htons(U16_NUM_ONE);
 			Parameter.LocalAddressLength[1U] += sizeof(dns_hdr);
-			memcpy(Parameter.LocalAddress[1U] + Parameter.LocalAddressLength[1U], Parameter.LocalFQDN, Parameter.LocalFQDNLength);
+//			memcpy(Parameter.LocalAddress[1U] + Parameter.LocalAddressLength[1U], Parameter.LocalFQDN, Parameter.LocalFQDNLength);
+			memcpy_s(Parameter.LocalAddress[1U] + Parameter.LocalAddressLength[1U], PACKET_MAXSIZE - Parameter.LocalAddressLength[1U], Parameter.LocalFQDN, Parameter.LocalFQDNLength);
 			Parameter.LocalAddressLength[1U] += Parameter.LocalFQDNLength;
 			DNS_Query = (pdns_qry)(Parameter.LocalAddress[1U] + Parameter.LocalAddressLength[1U]);
 			DNS_Query->Type = htons(DNS_RECORD_AAAA);
@@ -906,7 +912,7 @@ uint16_t __fastcall ServiceNameToHex(const PSTR Buffer)
 	else if (strstr(Buffer, ("TELNETS")) != nullptr || strstr(Buffer, ("telnets")) != nullptr)
 		return htons(IPPORT_TELNETS);
 //No match.
-	return 0;
+	return FALSE;
 }
 
 //Convert DNS type name to hex
@@ -1080,11 +1086,11 @@ uint16_t __fastcall DNSTypeNameToHex(const PSTR Buffer)
 	else if (strstr(Buffer, ("RESERVED")) != nullptr || strstr(Buffer, ("reserved")) != nullptr)
 		return htons(DNS_RECORD_RESERVED);
 //No match.
-	return 0;
+	return FALSE;
 }
 
-//Check IP(v4/v6) special addresses
-bool __fastcall CheckSpecialAddress(const void *Addr, const uint16_t Protocol, const PSTR Domain)
+//Check IPv4/IPv6 special addresses
+bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const PSTR Domain)
 {
 	if (Protocol == AF_INET6) //IPv6
 	{
@@ -1125,13 +1131,15 @@ bool __fastcall CheckSpecialAddress(const void *Addr, const uint16_t Protocol, c
 //			((in6_addr *)Addr)->u.Byte[0] == 0xFF || //Multicast Addresses(FF00::/8, Section 2.7 in RFC 4291)
 				return true;
 
-	//Extended check
+	//Result Blacklist check
 		if (Domain != nullptr)
 		{
 		//Domain Case Conversion
-			CaseConvert(false, Domain, strlen(Domain));
+//			CaseConvert(false, Domain, strlen(Domain));
+			CaseConvert(false, Domain, strnlen_s(Domain, DOMAIN_MAXSIZE));
 
 		//Main check
+			std::unique_lock<std::mutex> ResultBlacklistMutex(ResultBlacklistLock);
 			for (auto ResultBlacklistTableIter:*ResultBlacklistUsing)
 			{
 				if (ResultBlacklistTableIter.Addresses.front().Begin.ss_family == AF_INET6 && 
@@ -1144,6 +1152,30 @@ bool __fastcall CheckSpecialAddress(const void *Addr, const uint16_t Protocol, c
 							CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr, AF_INET6) <= ADDRESS_COMPARE_EQUAL || 
 							memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == 0)
 								return true;
+					}
+				}
+			}
+		}
+
+	//Address Hosts check
+		std::unique_lock<std::mutex> AddressHostsListMutex(AddressHostsListLock);
+		if (!AddressHostsListUsing->empty())
+		{
+		//Main check
+			for (auto AddressHostsTableIter:*AddressHostsListUsing)
+			{
+				if (AddressHostsTableIter.TargetAddress.ss_family == AF_INET6)
+				{
+					for (auto AddressRangeTableIter:AddressHostsTableIter.Addresses)
+					{
+						if (AddressRangeTableIter.Begin.ss_family == AF_INET6 && AddressRangeTableIter.End.ss_family == AF_INET6 &&
+							CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL &&
+							CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr, AF_INET6) <= ADDRESS_COMPARE_EQUAL ||
+							memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == 0)
+						{
+							*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.TargetAddress)->sin6_addr;
+							break;
+						}
 					}
 				}
 			}
@@ -1256,13 +1288,15 @@ bool __fastcall CheckSpecialAddress(const void *Addr, const uint16_t Protocol, c
 			((in_addr *)Addr)->S_un.S_un_b.s_b1 >= 0xF0) //Reserved for future use address(240.0.0.0/4, Section 4 in RFC 1112) and Broadcast Addresses(255.255.255.255/32, Section 7 in RFC 919/RFC 922)
 				return true;
 
-	//Extended check
+	//Result Blacklist check
 		if (Domain != nullptr)
 		{
 		//Domain Case Conversion
-			CaseConvert(false, Domain, strlen(Domain));
+//			CaseConvert(false, Domain, strlen(Domain));
+			CaseConvert(false, Domain, strnlen_s(Domain, DOMAIN_MAXSIZE));
 
 		//Main check
+			std::unique_lock<std::mutex> ResultBlacklistMutex(ResultBlacklistLock);
 			for (auto ResultBlacklistTableIter:*ResultBlacklistUsing)
 			{
 				if (ResultBlacklistTableIter.Addresses.front().Begin.ss_family == AF_INET && 
@@ -1275,6 +1309,30 @@ bool __fastcall CheckSpecialAddress(const void *Addr, const uint16_t Protocol, c
 							CompareAddresses(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr, AF_INET) <= ADDRESS_COMPARE_EQUAL || 
 							((in_addr *)Addr)->S_un.S_addr == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.S_un.S_addr)
 								return true;
+					}
+				}
+			}
+		}
+
+	//Address Hosts check
+		std::unique_lock<std::mutex> AddressHostsListMutex(AddressHostsListLock);
+		if (!AddressHostsListUsing->empty())
+		{
+		//Main check
+			for (auto AddressHostsTableIter:*AddressHostsListUsing)
+			{
+				if (AddressHostsTableIter.TargetAddress.ss_family == AF_INET)
+				{
+					for (auto AddressRangeTableIter:AddressHostsTableIter.Addresses)
+					{
+						if (AddressRangeTableIter.Begin.ss_family == AF_INET && AddressRangeTableIter.End.ss_family == AF_INET && 
+							CompareAddresses(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr, AF_INET) >= ADDRESS_COMPARE_EQUAL && 
+							CompareAddresses(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr, AF_INET) <= ADDRESS_COMPARE_EQUAL || 
+							((in_addr *)Addr)->S_un.S_addr == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.S_un.S_addr)
+						{
+							*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.TargetAddress)->sin_addr;
+							break;
+						}
 					}
 				}
 			}
@@ -1581,14 +1639,16 @@ uint16_t __fastcall GetChecksum(const uint16_t *Buffer, const size_t Length)
 uint16_t __fastcall ICMPv6Checksum(const PUINT8 Buffer, const size_t Length, const in6_addr Destination, const in6_addr Source)
 {
 	std::shared_ptr<char> Validation(new char[sizeof(ipv6_psd_hdr) + Length]());
+	memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length);
 
 //Get checksum
 	auto IPv6_Pseudo_Header = (pipv6_psd_hdr)Validation.get();
 	IPv6_Pseudo_Header->Dst = Destination;
 	IPv6_Pseudo_Header->Src = Source;
 	IPv6_Pseudo_Header->Length = htonl((uint32_t)Length);
-	IPv6_Pseudo_Header->Next_Header = IPPROTO_ICMPV6;
-	memcpy(Validation.get() + sizeof(ipv6_psd_hdr), Buffer + sizeof(ipv6_hdr), Length);
+	IPv6_Pseudo_Header->NextHeader = IPPROTO_ICMPV6;
+//	memcpy(Validation.get() + sizeof(ipv6_psd_hdr), Buffer + sizeof(ipv6_hdr), Length);
+	memcpy_s(Validation.get() + sizeof(ipv6_psd_hdr), Length, Buffer + sizeof(ipv6_hdr), Length);
 	return GetChecksum((PUINT16)Validation.get(), sizeof(ipv6_psd_hdr) + Length);
 }
 
@@ -1600,25 +1660,29 @@ uint16_t __fastcall TCPUDPChecksum(const PUINT8 Buffer, const size_t Length, con
 	if (NetworkLayer == AF_INET6) //IPv6
 	{
 		std::shared_ptr<char> Validation(new char[sizeof(ipv6_psd_hdr) + Length]());
+		memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length);
 		auto IPv6_Pseudo_Header = (pipv6_psd_hdr)Validation.get();
 		IPv6_Pseudo_Header->Dst = ((pipv6_hdr)Buffer)->Dst;
 		IPv6_Pseudo_Header->Src = ((pipv6_hdr)Buffer)->Src;
 		IPv6_Pseudo_Header->Length = htonl((uint32_t)Length);
-		IPv6_Pseudo_Header->Next_Header = (uint8_t)TransportLayer;
+		IPv6_Pseudo_Header->NextHeader = (uint8_t)TransportLayer;
 
-		memcpy(Validation.get() + sizeof(ipv6_psd_hdr), Buffer + sizeof(ipv6_hdr), Length);
+//		memcpy(Validation.get() + sizeof(ipv6_psd_hdr), Buffer + sizeof(ipv6_hdr), Length);
+		memcpy_s(Validation.get() + sizeof(ipv6_psd_hdr), Length, Buffer + sizeof(ipv6_hdr), Length);
 		Result = GetChecksum((PUINT16)Validation.get(), sizeof(ipv6_psd_hdr) + Length);
 	}
 	else { //IPv4
 		auto IPv4_Header = (pipv4_hdr)Buffer;
 		std::shared_ptr<char> Validation(new char[sizeof(ipv4_psd_hdr) + Length /* - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES */ ]());
+		memset(Validation.get(), 0, sizeof(ipv4_psd_hdr) + Length);
 		auto IPv4_Pseudo_Header = (pipv4_psd_hdr)Validation.get();
 		IPv4_Pseudo_Header->Dst = ((pipv4_hdr)Buffer)->Dst;
 		IPv4_Pseudo_Header->Src = ((pipv4_hdr)Buffer)->Src;
 		IPv4_Pseudo_Header->Length = htons((uint16_t) /* ( */ Length /* - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES) */);
 		IPv4_Pseudo_Header->Protocol = (uint8_t)TransportLayer;
 
-		memcpy(Validation.get() + sizeof(ipv4_psd_hdr), Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, Length /* - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES */ );
+//		memcpy(Validation.get() + sizeof(ipv4_psd_hdr), Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, Length /* - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES */ );
+		memcpy_s(Validation.get() + sizeof(ipv4_psd_hdr), Length, Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, Length /* - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES */);
 		Result = GetChecksum((PUINT16)Validation.get(), sizeof(ipv4_psd_hdr) + Length /* - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES */);
 	}
 
@@ -1630,7 +1694,8 @@ size_t __fastcall AddLengthToTCPDNSHeader(PSTR Buffer, const size_t RecvLen, con
 {
 	if (MaxLen >= RecvLen + sizeof(uint16_t))
 	{
-		memmove(Buffer + sizeof(uint16_t), Buffer, RecvLen);
+//		memmove(Buffer + sizeof(uint16_t), Buffer, RecvLen);
+		memmove_s(Buffer + sizeof(uint16_t), MaxLen, Buffer, RecvLen);
 		auto DNS_TCP_Header = (pdns_tcp_hdr)Buffer;
 		DNS_TCP_Header->Length = htons((uint16_t)RecvLen);
 		return RecvLen + sizeof(uint16_t);
@@ -1642,7 +1707,8 @@ size_t __fastcall AddLengthToTCPDNSHeader(PSTR Buffer, const size_t RecvLen, con
 //Convert data from chars to DNS query
 size_t __fastcall CharToDNSQuery(const PSTR FName, PSTR TName)
 {
-	int Index[] = {(int)strlen(FName) - 1, 0, 0};
+//	int Index[] = {(int)strlen(FName) - 1, 0, 0};
+	int Index[] = {(int)strnlen_s(FName, DOMAIN_MAXSIZE) - 1, 0, 0};
 	Index[2U] = Index[0] + 1;
 	TName[Index[0] + 2] = 0;
 
@@ -1661,7 +1727,8 @@ size_t __fastcall CharToDNSQuery(const PSTR FName, PSTR TName)
 	}
 	TName[Index[2U]] = (char)Index[1U];
 
-	return strlen(TName) + 1U;
+//	return strlen(TName) + 1U;
+	return strnlen_s(TName, DOMAIN_MAXSIZE - 1U) + 1U;
 }
 
 //Count DNS Query Name length
@@ -1684,7 +1751,7 @@ size_t __fastcall CheckDNSQueryNameLength(const PSTR Buffer)
 }
 
 //Convert data from DNS query to chars
-size_t __fastcall DNSQueryToChar(const PSTR TName, PSTR FName /* , uint16_t &Truncated */ )
+size_t __fastcall DNSQueryToChar(const PSTR TName, PSTR FName)
 {
 //Initialization
 	size_t uIndex = 0;
@@ -1696,9 +1763,6 @@ size_t __fastcall DNSQueryToChar(const PSTR TName, PSTR FName /* , uint16_t &Tru
 	//Pointer
 		if ((UCHAR)TName[uIndex] >= 0xC0)
 		{
-//			Truncated = (UCHAR)(TName[uIndex] & 0x3F);
-//			Truncated = Truncated << sizeof(char) * BYTES_TO_BITS;
-//			Truncated += (UCHAR)TName[uIndex + 1U];
 			return uIndex + sizeof(uint16_t);
 		}
 		else if (uIndex == 0)
@@ -1719,7 +1783,6 @@ size_t __fastcall DNSQueryToChar(const PSTR TName, PSTR FName /* , uint16_t &Tru
 		}
 	}
 
-//	Truncated = 0;
 	return uIndex;
 }
 
@@ -1747,7 +1810,7 @@ void __fastcall MakeRamdomDomain(PSTR Buffer)
 //Make ramdom domain length.
 	size_t RamdomLength = RamdomDistribution(*Parameter.RamdomEngine), Index = 0;
 	if (RamdomLength < 4U)
-		RamdomLength += 4U;
+		RamdomLength += 7U; //The shortest domain length is 3 bytes.
 
 //Make ramdom domain.
 	if (RamdomLength % 2U == 0)
@@ -1820,14 +1883,16 @@ void __fastcall MakeDomainCaseConversion(PSTR Buffer)
 //Make Case Conversion.
 	if (RamdomDistribution(*Parameter.RamdomEngine) % 2U == 0)
 	{
-		for (Index = 0;Index < strlen(Buffer);Index++)
+//		for (Index = 0;Index < strlen(Buffer);Index++)
+		for (Index = 0;Index < strnlen_s(Buffer, DOMAIN_MAXSIZE);Index++)
 		{
 			if (Index % 2U == 0 && *(Buffer + Index) > ASCII_ACCENT && *(Buffer + Index) < ASCII_BRACES_LEAD)
 				*(Buffer + Index) -= ASCII_LOWER_TO_UPPER;
 		}
 	}
 	else {
-		for (Index = 0;Index < strlen(Buffer);Index++)
+//		for (Index = 0;Index < strlen(Buffer);Index++)
+		for (Index = 0;Index < strnlen_s(Buffer, DOMAIN_MAXSIZE);Index++)
 		{
 			if (Index % 2U != 0 && *(Buffer + Index) > ASCII_ACCENT && *(Buffer + Index) < ASCII_BRACES_LEAD)
 				*(Buffer + Index) -= ASCII_LOWER_TO_UPPER;
@@ -1886,7 +1951,8 @@ size_t __fastcall MakeCompressionPointerMutation(const PSTR Buffer, const size_t
 //Make Compression Pointer Mutation.
 	if (Index == 0) //Pointer to header, like "[DNS Header][Domain][Pointer][Query]" and the pointer is point to [DNS Header].
 	{
-		memmove(Buffer + Length - sizeof(dns_qry) + 1U, Buffer + Length - sizeof(dns_qry), sizeof(dns_qry));
+//		memmove(Buffer + Length - sizeof(dns_qry) + 1U, Buffer + Length - sizeof(dns_qry), sizeof(dns_qry));
+		memmove_s(Buffer + Length - sizeof(dns_qry) + 1U, sizeof(dns_qry), Buffer + Length - sizeof(dns_qry), sizeof(dns_qry));
 		*(Buffer + Length - sizeof(dns_qry) - 1U) = '\xC0';
 
 	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
@@ -1926,9 +1992,13 @@ size_t __fastcall MakeCompressionPointerMutation(const PSTR Buffer, const size_t
 	}
 	else {
 		std::shared_ptr<dns_qry> DNS_Query(new dns_qry());
-		memcpy(DNS_Query.get(), Buffer + DNS_PACKET_QUERY_LOCATE(Buffer), sizeof(dns_qry));
-		memmove(Buffer + sizeof(dns_hdr) + sizeof(uint16_t) + sizeof(dns_qry), Buffer + sizeof(dns_hdr), strlen(Buffer + sizeof(dns_hdr)) + 1U);
-		memcpy(Buffer + sizeof(dns_hdr) + sizeof(uint16_t), DNS_Query.get(), sizeof(dns_qry));
+		memset(DNS_Query.get(), 0, sizeof(dns_qry));
+//		memcpy(DNS_Query.get(), Buffer + DNS_PACKET_QUERY_LOCATE(Buffer), sizeof(dns_qry));
+		memcpy_s(DNS_Query.get(), sizeof(dns_qry), Buffer + DNS_PACKET_QUERY_LOCATE(Buffer), sizeof(dns_qry));
+//		memmove(Buffer + sizeof(dns_hdr) + sizeof(uint16_t) + sizeof(dns_qry), Buffer + sizeof(dns_hdr), strlen(Buffer + sizeof(dns_hdr)) + 1U);
+		memmove_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t) + sizeof(dns_qry), Length, Buffer + sizeof(dns_hdr), strnlen_s(Buffer + sizeof(dns_hdr), Length - sizeof(dns_hdr)) + 1U);
+//		memcpy(Buffer + sizeof(dns_hdr) + sizeof(uint16_t), DNS_Query.get(), sizeof(dns_qry));
+		memcpy_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t), Length - sizeof(dns_hdr) - sizeof(uint16_t), DNS_Query.get(), sizeof(dns_qry));
 		*(Buffer + sizeof(dns_hdr)) = '\xC0';
 		*(Buffer + sizeof(dns_hdr) + 1U) = '\x12';
 
@@ -1980,9 +2050,9 @@ bool __fastcall CheckResponseData(const PSTR Buffer, const size_t Length, bool I
 //DNS Options part
 	if (Parameter.DNSDataCheck && (DNS_Header->Questions != htons(U16_NUM_ONE) || //Question Resource Records must be one.
 		ntohs(DNS_Header->Flags) >> 15U == 0 || //No any Question Resource Records
-		(ntohs(DNS_Header->Flags) & U4_MAXNUM) == DNS_RCODE_NOERROR && DNS_Header->Answer == 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 || //No any non-Question Resource Records when RCode is No Error(Normal)
+//		(ntohs(DNS_Header->Flags) & U4_MAXNUM) == DNS_RCODE_NOERROR && DNS_Header->Answer == 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 || //No any non-Question Resource Records when RCode is No Error(Normal)
 		(ntohs(DNS_Header->Flags) & 0x0400) >> 10U > 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 || //Responses are not authoritative when there are no any Authoritative Nameservers Records and Additional Resource Records.
-		IsLocal && (ntohs(DNS_Header->Flags) & U4_MAXNUM) > DNS_RCODE_NOERROR || //Local requesting failed
+		IsLocal && ((ntohs(DNS_Header->Flags) & U4_MAXNUM) > DNS_RCODE_NOERROR || (ntohs(DNS_Header->Flags) & 0x0200) >> 9U > 0 && DNS_Header->Answer == 0) || //Local requesting failed or Truncated(xxxxxx1xxxxxxxxx & 0000001000000000 >> 9 == 1)
 		Parameter.EDNS0Label && DNS_Header->Additional == 0)) //Additional EDNS0 Label Resource Records check
 			return false;
 
@@ -2010,12 +2080,15 @@ bool __fastcall CheckResponseData(const PSTR Buffer, const size_t Length, bool I
 	}
 
 	std::shared_ptr<char> Domain(new char[DOMAIN_MAXSIZE]());
+	memset(Domain.get(), 0, DOMAIN_MAXSIZE);
 	DNSQueryToChar(Buffer + sizeof(dns_hdr), Domain.get());
 //Domain Test part
 	if (IsMarkHopLimit != nullptr && Parameter.DomainTestData != nullptr)
 	{
-		if (strlen(Domain.get()) == strlen(Parameter.DomainTestData) && 
-			memcmp(Domain.get(), Parameter.DomainTestData, strlen(Parameter.DomainTestData)) == 0 && DNS_Header->ID == Parameter.DomainTestID)
+//		if (strlen(Domain.get()) == strlen(Parameter.DomainTestData) && 
+//			memcmp(Domain.get(), Parameter.DomainTestData, strlen(Parameter.DomainTestData)) == 0 && DNS_Header->ID == Parameter.DomainTestID)
+		if (strnlen_s(Domain.get(), DOMAIN_MAXSIZE) == strnlen_s(Parameter.DomainTestData, DOMAIN_MAXSIZE) && 
+			memcmp(Domain.get(), Parameter.DomainTestData, strnlen_s(Parameter.DomainTestData, DOMAIN_MAXSIZE)) == 0 && DNS_Header->ID == Parameter.DomainTestID)
 		{
 			*IsMarkHopLimit = true;
 			return true;
@@ -2054,7 +2127,6 @@ bool __fastcall CheckResponseData(const PSTR Buffer, const size_t Length, bool I
 	pdns_record_standard DNS_Record_Standard = nullptr;
 	in6_addr *pin6_addr = nullptr;
 	in_addr *pin_addr = nullptr;
-
 	if (DNS_Header->Answer == htons(U16_NUM_ONE) && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && DNS_Query->Classes == htons(DNS_CLASS_IN))
 	{
 /* Old version(2015-01-29)
@@ -2113,14 +2185,14 @@ bool __fastcall CheckResponseData(const PSTR Buffer, const size_t Length, bool I
 			{
 				pin6_addr = (in6_addr *)(Buffer + DataLength);
 				if (CheckSpecialAddress(pin6_addr, AF_INET6, Domain.get()) || 
-					Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin6_addr, AF_INET6))
+					!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin6_addr, AF_INET6))
 						return false;
 			}
 			else if (DNS_Record_Standard->Type == htons(DNS_RECORD_A) && DNS_Record_Standard->Length == htons(sizeof(in_addr)))
 			{
 				pin_addr = (in_addr *)(Buffer + DataLength);
 				if (CheckSpecialAddress(pin_addr, AF_INET, Domain.get()) || 
-					Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin_addr, AF_INET))
+					!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin_addr, AF_INET))
 						return false;
 			}
 		}

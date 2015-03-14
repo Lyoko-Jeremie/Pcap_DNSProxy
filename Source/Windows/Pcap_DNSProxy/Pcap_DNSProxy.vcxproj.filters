@@ -255,6 +255,36 @@
     <ClInclude Include="LibSodium\sodium.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
+    <ClInclude Include="Configuration.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="System.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Capture.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PrintLog.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocol.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Monitor.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DNSCurve.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Process.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Request.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Initialization.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="WinPcap\Packet_x64.lib">

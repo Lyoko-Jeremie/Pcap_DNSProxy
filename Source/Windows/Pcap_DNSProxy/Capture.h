@@ -21,5 +21,18 @@
 
 //Global variables
 extern ConfigurationTable Parameter;
-extern time_t StartTime, RunningLogStartTime;
-extern DNSCurveConfigurationTable DNSCurveParameter;
+extern PortTable PortList;
+extern AlternateSwapTable AlternateSwapList;
+extern std::deque<DNSCacheData> DNSCacheList;
+extern std::mutex CaptureLock, PortListLock;
+std::string PcapFilterRules;
+std::vector<std::string> PcapRunning;
+
+//Functions
+void __fastcall FilterRulesInit(std::string &FilterRules);
+size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList);
+size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint16_t Protocol);
+bool __fastcall ICMPCheck(const PSTR Buffer, const size_t Length, const uint16_t Protocol);
+bool __fastcall TCPCheck(const PSTR Buffer);
+//size_t __fastcall DNSMethod(const PSTR Recv, const size_t Length, const uint16_t Protocol);
+size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length, const uint16_t Port);

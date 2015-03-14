@@ -1,7 +1,7 @@
 ﻿// This code is part of Pcap_DNSProxy(Windows)
 // Pcap_DNSProxy, A local DNS server base on WinPcap and LibPcap.
 // Copyright (C) 2012-2015 Chengr28
-//
+// 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either
@@ -17,21 +17,8 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#include "Main.h"
+#include "Process.h"
 
-extern ConfigurationTable Parameter;
-extern PortTable PortList;
-extern AlternateSwapTable AlternateSwapList;
-extern DNSCurveConfigurationTable DNSCurveParameter;
-extern std::vector<HostsTable> *HostsListUsing;
-extern std::deque<DNSCACHE_DATA> DNSCacheList;
-extern std::mutex LocalAddressLock[QUEUE_PARTNUM / 2U], HostsListLock, DNSCacheListLock;
-
-/* Old version(2014-09-13)
-static const std::regex IPv4PrivateB(".(1[6-9]|2[0-9]|3[01]).172.in-addr.arpa", std::regex_constants::extended);
-static const std::regex IPv6ULA(".f.[cd].([0-9]|[a-f]).([0-9]|[a-f]).ip6.arpa", std::regex_constants::extended);
-static const std::regex IPv6LUC(".f.f.([89]|[ab]).([0-9]|[a-f]).ip6.arpa", std::regex_constants::extended);
-*/
 //Independent request process
 size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Length, const SOCKET_DATA TargetData, const uint16_t Protocol, const size_t ListIndex)
 {
@@ -42,33 +29,40 @@ size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Leng
 		if (Parameter.CPMPointerToAdditional)
 		{
 			std::shared_ptr<char> SendBufferTemp(new char[Length + 2U + sizeof(dns_record_aaaa)]());
+			memset(SendBufferTemp.get(), 0, Length + 2U + sizeof(dns_record_aaaa));
 			SendBufferTemp.swap(SendBuffer);
 		}
 		else if (Parameter.CPMPointerToRR)
 		{
 			std::shared_ptr<char> SendBufferTemp(new char[Length + 2U]());
+			memset(SendBufferTemp.get(), 0, Length + 2U);
 			SendBufferTemp.swap(SendBuffer);
 		}
 		else { //Pointer to header
 			std::shared_ptr<char> SendBufferTemp(new char[Length + 1U]());
+			memset(SendBufferTemp.get(), 0, Length + 1U);
 			SendBufferTemp.swap(SendBuffer);
 		}
 	}
 	else {
 		std::shared_ptr<char> SendBufferTemp(new char[Length]());
+		memset(SendBufferTemp.get(), 0, Length);
 		SendBufferTemp.swap(SendBuffer);
 	}
-	memcpy(SendBuffer.get(), OriginalSend, Length);
+//	memcpy(SendBuffer.get(), OriginalSend, Length);
+	memcpy_s(SendBuffer.get(), Length, OriginalSend, Length);
 
 //Initialization(Receive buffer part)
 	size_t DataLength = 0;
 	if (Parameter.RequestMode == REQUEST_TCPMODE || Parameter.DNSCurve && DNSCurveParameter.DNSCurveMode == DNSCURVE_REQUEST_TCPMODE || Protocol == IPPROTO_TCP) //TCP
 	{
 		std::shared_ptr<char> TCPRecvBuffer(new char[LARGE_PACKET_MAXSIZE]());
+		memset(TCPRecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 		RecvBuffer.swap(TCPRecvBuffer);
 	}
 	else { //UDP
 		std::shared_ptr<char> UDPRecvBuffer(new char[PACKET_MAXSIZE]());
+		memset(UDPRecvBuffer.get(), 0, PACKET_MAXSIZE);
 		RecvBuffer.swap(UDPRecvBuffer);
 	}
 
@@ -78,9 +72,10 @@ size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Leng
 	if (DNS_Header->Questions == htons(U16_NUM_ONE))
 	{
 		if (Protocol == IPPROTO_TCP) //TCP
-			DataLength = CheckHosts(SendBuffer.get(), Length, RecvBuffer.get(), LARGE_PACKET_MAXSIZE - sizeof(uint16_t), IsLocalRequest);
+			DataLength = LARGE_PACKET_MAXSIZE - sizeof(uint16_t);
 		else //UDP
-			DataLength = CheckHosts(SendBuffer.get(), Length, RecvBuffer.get(), PACKET_MAXSIZE, IsLocalRequest);
+			DataLength = PACKET_MAXSIZE;
+		DataLength = CheckHosts(SendBuffer.get(), Length, RecvBuffer.get(), DataLength, IsLocalRequest);
 
 	//Send response.
 		if (DataLength >= DNS_PACKET_MINSIZE)
@@ -90,7 +85,8 @@ size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Leng
 		}
 	}
 	else { //No any Question Resource Records
-		memcpy(RecvBuffer.get(), SendBuffer.get(), Length);
+//		memcpy(RecvBuffer.get(), SendBuffer.get(), Length);
+		memcpy_s(RecvBuffer.get(), Length, SendBuffer.get(), Length);
 		DNS_Header = (pdns_hdr)RecvBuffer.get();
 		DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | 0x8001); //Set 10000000000000001, DNS_SQR_FE
 
@@ -99,17 +95,14 @@ size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Leng
 	}
 
 //Local server requesting
-	if (IsLocalRequest || Parameter.LocalMain)
+	if ((IsLocalRequest || Parameter.LocalMain) && 
+		LocalRequestProcess(SendBuffer.get(), Length, RecvBuffer.get(), Protocol, TargetData) == EXIT_SUCCESS)
 	{
-		DataLength = LocalRequestProcess(SendBuffer.get(), Length, RecvBuffer.get(), Protocol, TargetData);
-		if (!Parameter.LocalMain || DataLength == EXIT_SUCCESS)
-		{
-		//Fin TCP request connection.
-			if (Protocol == IPPROTO_TCP && TargetData.Socket != INVALID_SOCKET)
-				closesocket(TargetData.Socket);
+	//Fin TCP request connection.
+		if (Protocol == IPPROTO_TCP && TargetData.Socket != INVALID_SOCKET)
+			closesocket(TargetData.Socket);
 
-			return EXIT_SUCCESS;
-		}
+		return EXIT_SUCCESS;
 	}
 
 	size_t SendLength = Length;
@@ -138,7 +131,7 @@ size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Leng
 		//Send Length check
 			(SendLength > DNSCurveParameter.DNSCurvePayloadSize + crypto_box_BOXZEROBYTES - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES) || 
 		//Receive Size check(TCP Mode)
-			(Parameter.RequestMode == REQUEST_TCPMODE || DNSCurveParameter.DNSCurveMode == DNSCURVE_REQUEST_TCPMODE || Protocol == IPPROTO_TCP) && DNSCurveParameter.DNSCurvePayloadSize >= LARGE_PACKET_MAXSIZE && 
+		(Parameter.RequestMode == REQUEST_TCPMODE || DNSCurveParameter.DNSCurveMode == DNSCURVE_REQUEST_TCPMODE || Protocol == IPPROTO_TCP) && DNSCurveParameter.DNSCurvePayloadSize >= LARGE_PACKET_MAXSIZE &&
 			crypto_box_ZEROBYTES + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES + SendLength >= LARGE_PACKET_MAXSIZE - sizeof(uint16_t) || 
 		//Receive Size check(UDP Mode)
 			Parameter.RequestMode != REQUEST_TCPMODE && DNSCurveParameter.DNSCurveMode != DNSCURVE_REQUEST_TCPMODE && Protocol != IPPROTO_TCP && DNSCurveParameter.DNSCurvePayloadSize >= PACKET_MAXSIZE && 
@@ -162,7 +155,7 @@ size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Leng
 	SkipDNSCurve: 
 
 //TCP requesting
-	if (Parameter.RequestMode == REQUEST_TCPMODE && TCPRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, TargetData) == EXIT_SUCCESS)
+	if ((Protocol == IPPROTO_TCP || Parameter.RequestMode == REQUEST_TCPMODE) && TCPRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, TargetData) == EXIT_SUCCESS)
 		return EXIT_SUCCESS;
 
 //IPv6 tunnels support
@@ -176,27 +169,29 @@ size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Leng
 		return EXIT_SUCCESS;
 	}
 
-	RecvBuffer.reset();
 //Pcap Capture check
 	if (!Parameter.PcapCapture)
 		return EXIT_SUCCESS;
+	RecvBuffer.reset();
 
 //UDP requesting
+/* Old version(2015-03-08)
 	if (Protocol == IPPROTO_UDP && SendLength <= Parameter.EDNS0PayloadSize || Protocol == IPPROTO_TCP)
 	{
-		UDPRequestProcess(SendBuffer.get(), SendLength, Protocol, TargetData, ListIndex);
-		return EXIT_SUCCESS;
+*/
+	UDPRequestProcess(SendBuffer.get(), SendLength, Protocol, TargetData, ListIndex);
+/*		return EXIT_SUCCESS;
 	}
 	else { //UDP Truncated retry TCP protocol failed.
 		DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | 0x8200); //Set 1000001000000000, DNS_SQR_NETC
 		sendto(TargetData.Socket, SendBuffer.get(), (int)SendLength, 0, (PSOCKADDR)&TargetData.SockAddr, TargetData.AddrLen);
 	}
-
+*/
 	return EXIT_FAILURE;
 }
 
 //Check hosts from list
-inline size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Result, const size_t ResultSize, bool &IsLocal)
+size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Result, const size_t ResultSize, bool &IsLocal)
 {
 //Initilization
 	auto DNS_Header = (pdns_hdr)OriginalRequest;
@@ -206,7 +201,8 @@ inline size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, P
 		if (DNSQueryToChar(OriginalRequest + sizeof(dns_hdr), Result) > DOMAIN_MINSIZE)
 		{
 		//Domain Case Conversion
-			CaseConvert(false, Result, strlen(Result));
+//			CaseConvert(false, Result, strlen(Result));
+			CaseConvert(false, Result, strnlen_s(Result, ResultSize));
 
 		//Copy domain string.
 			Domain = Result;
@@ -222,7 +218,8 @@ inline size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, P
 	}
 
 //Response
-	memcpy(Result, OriginalRequest, Length);
+//	memcpy(Result, OriginalRequest, Length);
+	memcpy_s(Result, ResultSize, OriginalRequest, Length);
 	DNS_Header = (pdns_hdr)Result;
 	auto DNS_Query = (pdns_qry)(Result + DNS_PACKET_QUERY_LOCATE(Result));
 
@@ -317,13 +314,15 @@ inline size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, P
 				if (DNS_Header->Additional > 0 && DNS_Record_OPT->Type == htons(DNS_RECORD_OPT))
 				{
 					memset(Result + Length - sizeof(dns_record_opt), 0, sizeof(dns_record_opt));
-					memcpy(Result + Length - sizeof(dns_record_opt), Parameter.LocalServerResponse, Parameter.LocalServerResponseLength);
+//					memcpy(Result + Length - sizeof(dns_record_opt), Parameter.LocalServerResponse, Parameter.LocalServerResponseLength);
+					memcpy_s(Result + Length - sizeof(dns_record_opt), ResultSize, Parameter.LocalServerResponse, Parameter.LocalServerResponseLength);
 
 					return Length - sizeof(dns_record_opt) + Parameter.LocalServerResponseLength;
 				}
 			}
 
-			memcpy(Result + Length, Parameter.LocalServerResponse, Parameter.LocalServerResponseLength);
+//			memcpy(Result + Length, Parameter.LocalServerResponse, Parameter.LocalServerResponseLength);
+			memcpy_s(Result + Length, ResultSize, Parameter.LocalServerResponse, Parameter.LocalServerResponseLength);
 			return Length + Parameter.LocalServerResponseLength;
 		}
 	}
@@ -337,7 +336,8 @@ inline size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, P
 			if (Parameter.LocalAddressLength[0] >= DNS_PACKET_MINSIZE)
 			{
 				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
-				memcpy(Result + sizeof(uint16_t), Parameter.LocalAddress[0] + sizeof(uint16_t), Parameter.LocalAddressLength[0] - sizeof(uint16_t));
+//				memcpy(Result + sizeof(uint16_t), Parameter.LocalAddress[0] + sizeof(uint16_t), Parameter.LocalAddressLength[0] - sizeof(uint16_t));
+				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), Parameter.LocalAddress[0] + sizeof(uint16_t), Parameter.LocalAddressLength[0] - sizeof(uint16_t));
 				return Parameter.LocalAddressLength[0];
 			}
 		}
@@ -347,7 +347,8 @@ inline size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, P
 			if (Parameter.LocalAddressLength[1U] >= DNS_PACKET_MINSIZE)
 			{
 				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
-				memcpy(Result + sizeof(uint16_t), Parameter.LocalAddress[1U] + sizeof(uint16_t), Parameter.LocalAddressLength[1U] - sizeof(uint16_t));
+//				memcpy(Result + sizeof(uint16_t), Parameter.LocalAddress[1U] + sizeof(uint16_t), Parameter.LocalAddressLength[1U] - sizeof(uint16_t));
+				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), Parameter.LocalAddress[1U] + sizeof(uint16_t), Parameter.LocalAddressLength[1U] - sizeof(uint16_t));
 				return Parameter.LocalAddressLength[1U];
 			}
 		}
@@ -387,23 +388,28 @@ inline size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, P
 						memset(Result + Length - sizeof(dns_record_opt), 0, sizeof(dns_record_opt));
 						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | 0x8000); //Set 1000000000000000, DNS_SQR_NE
 						DNS_Header->Answer = htons((uint16_t)(HostsTableIter.Length / sizeof(dns_record_aaaa)));
-						memcpy(Result + Length - sizeof(dns_record_opt), HostsTableIter.Response.get(), HostsTableIter.Length);
+//						memcpy(Result + Length - sizeof(dns_record_opt), HostsTableIter.Response.get(), HostsTableIter.Length);
+						memcpy_s(Result + Length - sizeof(dns_record_opt), Length, HostsTableIter.Response.get(), HostsTableIter.Length);
 
 					//Hosts load balancing
 						if (ntohs(DNS_Header->Answer) > U16_NUM_ONE)
 						{
 							std::shared_ptr<dns_record_aaaa> DNS_AAAA_Temp(new dns_record_aaaa());
+							memset(DNS_AAAA_Temp.get(), 0, sizeof(dns_record_aaaa));
 
 						//Select a ramdom preferred result.
 							std::uniform_int_distribution<int> RamdomDistribution(0, ntohs(DNS_Header->Answer) - 1U);
 							size_t RamdomIndex = RamdomDistribution(*Parameter.RamdomEngine);
 							if (RamdomIndex > 0)
 							{
-								memcpy(DNS_AAAA_Temp.get(), Result + Length - sizeof(dns_record_opt), sizeof(dns_record_aaaa));
+//								memcpy(DNS_AAAA_Temp.get(), Result + Length - sizeof(dns_record_opt), sizeof(dns_record_aaaa));
+								memcpy_s(DNS_AAAA_Temp.get(), sizeof(dns_record_aaaa), Result + Length - sizeof(dns_record_opt), sizeof(dns_record_aaaa));
 								memset(Result + Length - sizeof(dns_record_opt), 0, sizeof(dns_record_aaaa));
-								memcpy(Result + Length - sizeof(dns_record_opt), Result + Length - sizeof(dns_record_opt) + sizeof(dns_record_aaaa) * RamdomIndex, sizeof(dns_record_aaaa));
+//								memcpy(Result + Length - sizeof(dns_record_opt), Result + Length - sizeof(dns_record_opt) + sizeof(dns_record_aaaa) * RamdomIndex, sizeof(dns_record_aaaa));
+								memcpy_s(Result + Length - sizeof(dns_record_opt), ResultSize, Result + Length - sizeof(dns_record_opt) + sizeof(dns_record_aaaa) * RamdomIndex, sizeof(dns_record_aaaa));
 								memset(Result + Length - sizeof(dns_record_opt) + sizeof(dns_record_aaaa) * RamdomIndex, 0, sizeof(dns_record_aaaa));
-								memcpy(Result + Length - sizeof(dns_record_opt) + sizeof(dns_record_aaaa) * RamdomIndex, DNS_AAAA_Temp.get(), sizeof(dns_record_aaaa));
+//								memcpy(Result + Length - sizeof(dns_record_opt) + sizeof(dns_record_aaaa) * RamdomIndex, DNS_AAAA_Temp.get(), sizeof(dns_record_aaaa));
+								memcpy_s(Result + Length - sizeof(dns_record_opt) + sizeof(dns_record_aaaa) * RamdomIndex, ResultSize, DNS_AAAA_Temp.get(), sizeof(dns_record_aaaa));
 							}
 						}
 
@@ -427,23 +433,28 @@ inline size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, P
 					else {
 						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | 0x8000); //Set 1000000000000000, DNS_SQR_NE
 						DNS_Header->Answer = htons((uint16_t)(HostsTableIter.Length / sizeof(dns_record_aaaa)));
-						memcpy(Result + Length, HostsTableIter.Response.get(), HostsTableIter.Length);
+//						memcpy(Result + Length, HostsTableIter.Response.get(), HostsTableIter.Length);
+						memcpy_s(Result + Length, ResultSize, HostsTableIter.Response.get(), HostsTableIter.Length);
 						
 					//Hosts load balancing
 						if (ntohs(DNS_Header->Answer) > U16_NUM_ONE)
 						{
 							std::shared_ptr<dns_record_aaaa> DNS_AAAA_Temp(new dns_record_aaaa());
+							memset(DNS_AAAA_Temp.get(), 0, sizeof(dns_record_aaaa));
 
 						//Select a ramdom preferred result.
 							std::uniform_int_distribution<int> RamdomDistribution(0, ntohs(DNS_Header->Answer) - 1U);
 							size_t RamdomIndex = RamdomDistribution(*Parameter.RamdomEngine);
 							if (RamdomIndex > 0)
 							{
-								memcpy(DNS_AAAA_Temp.get(), Result + Length, sizeof(dns_record_aaaa));
+//								memcpy(DNS_AAAA_Temp.get(), Result + Length, sizeof(dns_record_aaaa));
+								memcpy_s(DNS_AAAA_Temp.get(), sizeof(dns_record_aaaa), Result + Length, sizeof(dns_record_aaaa));
 								memset(Result + Length, 0, sizeof(dns_record_aaaa));
-								memcpy(Result + Length, Result + Length + sizeof(dns_record_aaaa) * RamdomIndex, sizeof(dns_record_aaaa));
+//								memcpy(Result + Length, Result + Length + sizeof(dns_record_aaaa) * RamdomIndex, sizeof(dns_record_aaaa));
+								memcpy_s(Result + Length, ResultSize, Result + Length + sizeof(dns_record_aaaa) * RamdomIndex, sizeof(dns_record_aaaa));
 								memset(Result + Length + sizeof(dns_record_aaaa) * RamdomIndex, 0, sizeof(dns_record_aaaa));
-								memcpy(Result + Length + sizeof(dns_record_aaaa) * RamdomIndex, DNS_AAAA_Temp.get(), sizeof(dns_record_aaaa));
+//								memcpy(Result + Length + sizeof(dns_record_aaaa) * RamdomIndex, DNS_AAAA_Temp.get(), sizeof(dns_record_aaaa));
+								memcpy_s(Result + Length + sizeof(dns_record_aaaa) * RamdomIndex, ResultSize, DNS_AAAA_Temp.get(), sizeof(dns_record_aaaa));
 							}
 						}
 
@@ -458,23 +469,28 @@ inline size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, P
 						memset(Result + Length - sizeof(dns_record_opt), 0, sizeof(dns_record_opt));
 						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | 0x8000); //Set 1000000000000000, DNS_SQR_NE
 						DNS_Header->Answer = htons((uint16_t)(HostsTableIter.Length / sizeof(dns_record_a)));
-						memcpy(Result + Length - sizeof(dns_record_opt), HostsTableIter.Response.get(), HostsTableIter.Length);
+//						memcpy(Result + Length - sizeof(dns_record_opt), HostsTableIter.Response.get(), HostsTableIter.Length);
+						memcpy_s(Result + Length - sizeof(dns_record_opt), ResultSize, HostsTableIter.Response.get(), HostsTableIter.Length);
 
 					//Hosts load balancing
 						if (ntohs(DNS_Header->Answer) > U16_NUM_ONE)
 						{
 							std::shared_ptr<dns_record_a> DNS_A_Temp(new dns_record_a());
+							memset(DNS_A_Temp.get(), 0, sizeof(dns_record_a));
 
 						//Select a ramdom preferred result.
 							std::uniform_int_distribution<int> RamdomDistribution(0, ntohs(DNS_Header->Answer) - 1U);
 							size_t RamdomIndex = RamdomDistribution(*Parameter.RamdomEngine);
 							if (RamdomIndex > 0)
 							{
-								memcpy(DNS_A_Temp.get(), Result + Length - sizeof(dns_record_opt), sizeof(dns_record_a));
+//								memcpy(DNS_A_Temp.get(), Result + Length - sizeof(dns_record_opt), sizeof(dns_record_a));
+								memcpy_s(DNS_A_Temp.get(), sizeof(dns_record_a), Result + Length - sizeof(dns_record_opt), sizeof(dns_record_a));
 								memset(Result + Length - sizeof(dns_record_opt), 0, sizeof(dns_record_a));
-								memcpy(Result + Length - sizeof(dns_record_opt), Result + Length - sizeof(dns_record_opt) + sizeof(dns_record_a) * RamdomIndex, sizeof(dns_record_a));
+//								memcpy(Result + Length - sizeof(dns_record_opt), Result + Length - sizeof(dns_record_opt) + sizeof(dns_record_a) * RamdomIndex, sizeof(dns_record_a));
+								memcpy_s(Result + Length - sizeof(dns_record_opt), ResultSize, Result + Length - sizeof(dns_record_opt) + sizeof(dns_record_a) * RamdomIndex, sizeof(dns_record_a));
 								memset(Result + Length - sizeof(dns_record_opt) + sizeof(dns_record_a) * RamdomIndex, 0, sizeof(dns_record_a));
-								memcpy(Result + Length - sizeof(dns_record_opt) + sizeof(dns_record_a) * RamdomIndex, DNS_A_Temp.get(), sizeof(dns_record_a));
+//								memcpy(Result + Length - sizeof(dns_record_opt) + sizeof(dns_record_a) * RamdomIndex, DNS_A_Temp.get(), sizeof(dns_record_a));
+								memcpy_s(Result + Length - sizeof(dns_record_opt) + sizeof(dns_record_a) * RamdomIndex, ResultSize, DNS_A_Temp.get(), sizeof(dns_record_a));
 							}
 						}
 
@@ -498,23 +514,28 @@ inline size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, P
 					else {
 						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | 0x8000); //Set 1000000000000000, DNS_SQR_NE
 						DNS_Header->Answer = htons((uint16_t)(HostsTableIter.Length / sizeof(dns_record_a)));
-						memcpy(Result + Length, HostsTableIter.Response.get(), HostsTableIter.Length);
+//						memcpy(Result + Length, HostsTableIter.Response.get(), HostsTableIter.Length);
+						memcpy_s(Result + Length, ResultSize, HostsTableIter.Response.get(), HostsTableIter.Length);
 
 					//Hosts load balancing
 						if (ntohs(DNS_Header->Answer) > U16_NUM_ONE)
 						{
 							std::shared_ptr<dns_record_a> DNS_A_Temp(new dns_record_a());
+							memset(DNS_A_Temp.get(), 0, sizeof(dns_record_a));
 
 						//Select a ramdom preferred result.
 							std::uniform_int_distribution<int> RamdomDistribution(0, ntohs(DNS_Header->Answer) - 1U);
 							size_t RamdomIndex = RamdomDistribution(*Parameter.RamdomEngine);
 							if (RamdomIndex > 0)
 							{
-								memcpy(DNS_A_Temp.get(), Result + Length, sizeof(dns_record_a));
+//								memcpy(DNS_A_Temp.get(), Result + Length, sizeof(dns_record_a));
+								memcpy_s(DNS_A_Temp.get(), sizeof(dns_record_a), Result + Length, sizeof(dns_record_a));
 								memset(Result + Length, 0, sizeof(dns_record_a));
-								memcpy(Result + Length, Result + Length + sizeof(dns_record_a) * RamdomIndex, sizeof(dns_record_a));
+//								memcpy(Result + Length, Result + Length + sizeof(dns_record_a) * RamdomIndex, sizeof(dns_record_a));
+								memcpy_s(Result + Length, ResultSize, Result + Length + sizeof(dns_record_a) * RamdomIndex, sizeof(dns_record_a));
 								memset(Result + Length + sizeof(dns_record_a) * RamdomIndex, 0, sizeof(dns_record_a));
-								memcpy(Result + Length + sizeof(dns_record_a) * RamdomIndex, DNS_A_Temp.get(), sizeof(dns_record_a));
+//								memcpy(Result + Length + sizeof(dns_record_a) * RamdomIndex, DNS_A_Temp.get(), sizeof(dns_record_a));
+								memcpy_s(Result + Length + sizeof(dns_record_a) * RamdomIndex, ResultSize, DNS_A_Temp.get(), sizeof(dns_record_a));
 							}
 						}
 
@@ -535,7 +556,9 @@ inline size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, P
 //			DNS_Query->Type == htons(DNS_RECORD_A) && DNSCacheDataIter.Protocol == AF_INET))
 		{
 			memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
-			memcpy(Result + sizeof(uint16_t), DNSCacheDataIter.Response.get(), DNSCacheDataIter.Length);
+//			memcpy(Result + sizeof(uint16_t), DNSCacheDataIter.Response.get(), DNSCacheDataIter.Length);
+			memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), DNSCacheDataIter.Response.get(), DNSCacheDataIter.Length);
+
 			return DNSCacheDataIter.Length + sizeof(uint16_t);
 		}
 	}
@@ -550,13 +573,14 @@ inline size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, P
 }
 
 //Request Process(Local part)
-inline size_t __fastcall LocalRequestProcess(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA TargetData)
+size_t __fastcall LocalRequestProcess(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA TargetData)
 {
 	size_t DataLength = 0;
 
 //TCP Mode
 	if (Parameter.RequestMode == REQUEST_TCPMODE)
 	{
+/* Old version(2015-03-05)
 		if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 		{
 			DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), true, AlternateSwapList.IsSwap[4U]);
@@ -572,6 +596,8 @@ inline size_t __fastcall LocalRequestProcess(const PSTR OriginalSend, const size
 			if (!AlternateSwapList.IsSwap[5U] && DataLength == WSAETIMEDOUT && Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0)
 				AlternateSwapList.TimeoutTimes[5U]++;
 		}
+*/
+		DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), true);
 
 	//Send response.
 		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < LARGE_PACKET_MAXSIZE)
@@ -584,6 +610,7 @@ inline size_t __fastcall LocalRequestProcess(const PSTR OriginalSend, const size
 //UDP Mode(REQUEST_UDPMODE)
 	if (Protocol == IPPROTO_TCP) //TCP requesting
 	{
+/* Old version(2015-03-05)
 		if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 		{
 			DataLength = UDPCompleteRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), true, AlternateSwapList.IsSwap[6U]);
@@ -599,9 +626,12 @@ inline size_t __fastcall LocalRequestProcess(const PSTR OriginalSend, const size
 			if (!AlternateSwapList.IsSwap[7U] && DataLength == WSAETIMEDOUT && Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0)
 				AlternateSwapList.TimeoutTimes[7U]++;
 		}
+*/
+		DataLength = LARGE_PACKET_MAXSIZE - sizeof(uint16_t);
 	}
 //UDP requesting
 	else {
+/* Old version(2015-03-05)
 		if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 		{
 			DataLength = UDPCompleteRequest(OriginalSend, SendSize, OriginalRecv, PACKET_MAXSIZE, true, AlternateSwapList.IsSwap[6U]);
@@ -617,8 +647,12 @@ inline size_t __fastcall LocalRequestProcess(const PSTR OriginalSend, const size
 			if (!AlternateSwapList.IsSwap[7U] && DataLength == WSAETIMEDOUT && Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0)
 				AlternateSwapList.TimeoutTimes[7U]++;
 		}
+*/
+		DataLength = PACKET_MAXSIZE;
 	}
-		
+
+	DataLength = UDPCompleteRequest(OriginalSend, SendSize, OriginalRecv, DataLength, true);
+
 //Send response.
 	if (DataLength >= DNS_PACKET_MINSIZE && (DataLength < PACKET_MAXSIZE || Protocol == IPPROTO_TCP && DataLength < LARGE_PACKET_MAXSIZE))
 	{
@@ -630,7 +664,7 @@ inline size_t __fastcall LocalRequestProcess(const PSTR OriginalSend, const size
 }
 
 //Request Process(Direct connections part)
-inline size_t __fastcall DirectRequestProcess(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA TargetData)
+size_t __fastcall DirectRequestProcess(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA TargetData)
 {
 	size_t DataLength = 0;
 
@@ -638,7 +672,7 @@ inline size_t __fastcall DirectRequestProcess(const PSTR OriginalSend, const siz
 	if (Parameter.RequestMode == REQUEST_TCPMODE)
 	{
 	//Multi requesting.
-		if (Parameter.AlternateMultiRequest)
+		if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
 		{
 /* Old version(2014-12-09)
 		//Initialization
@@ -715,20 +749,24 @@ inline size_t __fastcall DirectRequestProcess(const PSTR OriginalSend, const siz
 			//Return.
 				if (MultiRequestingIter + 1U == MultiRequesting.end() && TCPRequestParameter.ReturnValue == EXIT_FAILURE)
 					return EXIT_SUCCESS;
-*/
+
 			if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 				DataLength = TCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), false);
 			else  //IPv4
-				DataLength = TCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), false);
+*/
+			DataLength = TCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t));
 		}
 	//Normal requesting
 		else {
+/* Old version(2015-03-05)
 			if (Parameter.MultiRequestTimes > 1U)
 			{
 				if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 					DataLength = TCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), AlternateSwapList.IsSwap[0]);
 				else //IPv4
 					DataLength = TCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), AlternateSwapList.IsSwap[1U]);
+
+				DataLength = TCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t));
 			}
 			else {
 				if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
@@ -736,8 +774,11 @@ inline size_t __fastcall DirectRequestProcess(const PSTR OriginalSend, const siz
 				else //IPv4
 					DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), false, AlternateSwapList.IsSwap[1U]);
 			}
+*/
+			DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), false);
 		}
 
+/* Old version(2015-03-05)
 	//Check timeout.
 		if (DataLength == WSAETIMEDOUT)
 		{
@@ -746,9 +787,9 @@ inline size_t __fastcall DirectRequestProcess(const PSTR OriginalSend, const siz
 			else if (TargetData.AddrLen == sizeof(sockaddr_in) && !AlternateSwapList.IsSwap[1U] && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
 				AlternateSwapList.TimeoutTimes[1U]++;
 		}
-
+*/
 	//Send response.
-		else if (DataLength >= DNS_PACKET_MINSIZE && DataLength < LARGE_PACKET_MAXSIZE)
+		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < LARGE_PACKET_MAXSIZE)
 		{
 			SendToRequester(OriginalRecv, DataLength, Protocol, TargetData);
 			return EXIT_SUCCESS;
@@ -756,8 +797,13 @@ inline size_t __fastcall DirectRequestProcess(const PSTR OriginalSend, const siz
 	}
 
 //UDP Mode(REQUEST_UDPMODE)
-	//Multi requesting.
-	if (Parameter.AlternateMultiRequest)
+	if (Protocol == IPPROTO_TCP) //TCP requesting
+		DataLength = LARGE_PACKET_MAXSIZE - sizeof(uint16_t);
+	else //UDP requesting
+		DataLength = PACKET_MAXSIZE;
+
+//Multi requesting.
+	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
 	{
 /* Old version(2014-12-09)
 	//Initialization
@@ -837,7 +883,7 @@ inline size_t __fastcall DirectRequestProcess(const PSTR OriginalSend, const siz
 		if (MultiRequestingIter + 1U == MultiRequesting.end() && UDPRequestParameter.ReturnValue == EXIT_FAILURE)
 			return EXIT_SUCCESS;
 	}
-*/
+
 		if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 		{
 			if (Protocol == IPPROTO_TCP) //TCP requesting
@@ -851,9 +897,12 @@ inline size_t __fastcall DirectRequestProcess(const PSTR OriginalSend, const siz
 			else //UDP requesting
 				DataLength = UDPCompleteRequestMulti(OriginalSend, SendSize, OriginalRecv, PACKET_MAXSIZE, false);
 		}
+*/
+		DataLength = UDPCompleteRequestMulti(OriginalSend, SendSize, OriginalRecv, DataLength);
 	}
 //Normal requesting
 	else {
+/* Old version(2015-03-05)
 		if (Parameter.MultiRequestTimes > 1U)
 		{
 			if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
@@ -871,22 +920,16 @@ inline size_t __fastcall DirectRequestProcess(const PSTR OriginalSend, const siz
 			}
 		}
 		else {
-			if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
-			{
-				if (Protocol == IPPROTO_TCP) //TCP requesting
-					DataLength = UDPCompleteRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), false, AlternateSwapList.IsSwap[2U]);
-				else //UDP requesting
-					DataLength = UDPCompleteRequest(OriginalSend, SendSize, OriginalRecv, PACKET_MAXSIZE, false, AlternateSwapList.IsSwap[2U]);
-			}
-			else { //IPv4
-				if (Protocol == IPPROTO_TCP) //TCP requesting
-					DataLength = UDPCompleteRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), false, AlternateSwapList.IsSwap[3U]);
-				else //UDP requesting
-					DataLength = UDPCompleteRequest(OriginalSend, SendSize, OriginalRecv, PACKET_MAXSIZE, false, AlternateSwapList.IsSwap[3U]);
-			}
+			if (Protocol == IPPROTO_TCP) //TCP requesting
+				DataLength = LARGE_PACKET_MAXSIZE - sizeof(uint16_t);
+			else //UDP requesting
+				DataLength = PACKET_MAXSIZE;
 		}
+*/
+		DataLength = UDPCompleteRequest(OriginalSend, SendSize, OriginalRecv, DataLength, false);
 	}
 
+/* Old version(2015-03-05)
 //Check timeout.
 	if (DataLength == WSAETIMEDOUT)
 	{
@@ -895,7 +938,7 @@ inline size_t __fastcall DirectRequestProcess(const PSTR OriginalSend, const siz
 		else if (TargetData.AddrLen == sizeof(sockaddr_in) && !AlternateSwapList.IsSwap[3U] && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
 			AlternateSwapList.TimeoutTimes[3U]++;
 	}
-
+*/
 //Send response.
 	if (DataLength >= DNS_PACKET_MINSIZE && (DataLength < PACKET_MAXSIZE || Protocol == IPPROTO_TCP && DataLength < LARGE_PACKET_MAXSIZE))
 	{
@@ -907,15 +950,15 @@ inline size_t __fastcall DirectRequestProcess(const PSTR OriginalSend, const siz
 }
 
 //Request Process(DNSCurve part)
-inline size_t __fastcall DNSCurveRequestProcess(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA TargetData)
+size_t __fastcall DNSCurveRequestProcess(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA TargetData)
 {
 	size_t DataLength = 0;
 
 //TCP requesting
-	if (DNSCurveParameter.DNSCurveMode == DNSCURVE_REQUEST_TCPMODE)
+	if (Protocol == IPPROTO_TCP || DNSCurveParameter.DNSCurveMode == DNSCURVE_REQUEST_TCPMODE)
 	{
 	//Multi requesting.
-		if (Parameter.AlternateMultiRequest)
+		if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
 		{
 /* Old version(2015-01-13)
 		//Initialization
@@ -954,14 +997,16 @@ inline size_t __fastcall DNSCurveRequestProcess(const PSTR OriginalSend, const s
 				if (MultiRequestingIter + 1U == MultiRequesting.end() && DNSCurveRequestParameter.ReturnValue == EXIT_FAILURE)
 					return EXIT_SUCCESS;
 			}
-*/
+
 			if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 				DataLength = DNSCurveTCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), false);
 			else  //IPv4
-				DataLength = DNSCurveTCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), false);
+*/
+			DataLength = DNSCurveTCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t));
 		}
 	//Normal requesting
 		else {
+/* Old version(2015-03-05)
 			if (Parameter.MultiRequestTimes > 1U)
 			{
 				if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
@@ -975,8 +1020,11 @@ inline size_t __fastcall DNSCurveRequestProcess(const PSTR OriginalSend, const s
 				else //IPv4
 					DataLength = DNSCurveTCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), AlternateSwapList.IsSwap[9U]);
 			}
+*/
+			DataLength = DNSCurveTCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t));
 		}
 
+/* Old version(2015-03-05)
 	//Check timeout.
 		if (DataLength == WSAETIMEDOUT)
 		{
@@ -985,9 +1033,9 @@ inline size_t __fastcall DNSCurveRequestProcess(const PSTR OriginalSend, const s
 			else if (TargetData.AddrLen == sizeof(sockaddr_in) && !AlternateSwapList.IsSwap[1U] && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
 				AlternateSwapList.TimeoutTimes[9U]++;
 		}
-
+*/
 	//Send response.
-		else if (DataLength >= DNS_PACKET_MINSIZE && DataLength < LARGE_PACKET_MAXSIZE)
+		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < LARGE_PACKET_MAXSIZE)
 		{
 			SendToRequester(OriginalRecv, DataLength, Protocol, TargetData);
 			return EXIT_SUCCESS;
@@ -995,8 +1043,13 @@ inline size_t __fastcall DNSCurveRequestProcess(const PSTR OriginalSend, const s
 	}
 
 //UDP Mode(REQUEST_UDPMODE)
-	//Multi requesting.
-	if (Parameter.AlternateMultiRequest)
+	if (Protocol == IPPROTO_TCP) //TCP requesting
+		DataLength = LARGE_PACKET_MAXSIZE - sizeof(uint16_t);
+	else //UDP requesting
+		DataLength = PACKET_MAXSIZE;
+
+//Multi requesting.
+	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
 	{
 /* Old version(2015-01-13)
 	//Initialization
@@ -1035,7 +1088,7 @@ inline size_t __fastcall DNSCurveRequestProcess(const PSTR OriginalSend, const s
 			if (MultiRequestingIter + 1U == MultiRequesting.end() && DNSCurveRequestParameter.ReturnValue == EXIT_FAILURE)
 				return EXIT_SUCCESS;
 		}
-*/
+
 		if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 		{
 			if (Protocol == IPPROTO_TCP) //TCP requesting
@@ -1049,9 +1102,12 @@ inline size_t __fastcall DNSCurveRequestProcess(const PSTR OriginalSend, const s
 			else //UDP requesting
 				DataLength = DNSCurveUDPRequestMulti(OriginalSend, SendSize, OriginalRecv, PACKET_MAXSIZE, false);
 		}
+*/
+		DataLength = DNSCurveUDPRequestMulti(OriginalSend, SendSize, OriginalRecv, DataLength);
 	}
 	//Normal requesting
 	else {
+/* Old version(2015-03-05)
 		if (Parameter.MultiRequestTimes > 1U)
 		{
 			if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
@@ -1083,8 +1139,11 @@ inline size_t __fastcall DNSCurveRequestProcess(const PSTR OriginalSend, const s
 					DataLength = DNSCurveUDPRequest(OriginalSend, SendSize, OriginalRecv, PACKET_MAXSIZE, AlternateSwapList.IsSwap[11U]);
 			}
 		}
+*/
+		DataLength = DNSCurveUDPRequest(OriginalSend, SendSize, OriginalRecv, DataLength);
 	}
 
+/* Old version(2015-03-05)
 //Check timeout.
 	if (DataLength == WSAETIMEDOUT)
 	{
@@ -1093,7 +1152,7 @@ inline size_t __fastcall DNSCurveRequestProcess(const PSTR OriginalSend, const s
 		else if (TargetData.AddrLen == sizeof(sockaddr_in) && !AlternateSwapList.IsSwap[11U] && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
 			AlternateSwapList.TimeoutTimes[11U]++;
 	}
-
+*/
 //Send response.
 	if (DataLength >= DNS_PACKET_MINSIZE && (DataLength < PACKET_MAXSIZE || Protocol == IPPROTO_TCP && DataLength < LARGE_PACKET_MAXSIZE))
 	{
@@ -1105,12 +1164,12 @@ inline size_t __fastcall DNSCurveRequestProcess(const PSTR OriginalSend, const s
 }
 
 //Request Process(TCP part)
-inline size_t __fastcall TCPRequestProcess(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA TargetData)
+size_t __fastcall TCPRequestProcess(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA TargetData)
 {
 	size_t DataLength = 0;
 
 //Multi requesting.
-	if (Parameter.AlternateMultiRequest)
+	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
 	{
 /* Old version(2014-12-09)
 	//Initialization
@@ -1189,14 +1248,16 @@ inline size_t __fastcall TCPRequestProcess(const PSTR OriginalSend, const size_t
 				return EXIT_SUCCESS;
 
 		}
-*/
+
 		if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 			DataLength = TCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), false);
 		else  //IPv4
-			DataLength = TCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), false);
+*/
+		DataLength = TCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t));
 	}
 //Normal requesting
 	else {
+/* Old version(2015-03-05)
 		if (Parameter.MultiRequestTimes > 1U)
 		{
 			if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
@@ -1210,8 +1271,11 @@ inline size_t __fastcall TCPRequestProcess(const PSTR OriginalSend, const size_t
 			else //IPv4
 				DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), false, AlternateSwapList.IsSwap[1U]);
 		}
+*/
+		DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), false);
 	}
 
+/* Old version(2015-03-05)
 //Check timeout.
 	if (DataLength == WSAETIMEDOUT)
 	{
@@ -1220,7 +1284,7 @@ inline size_t __fastcall TCPRequestProcess(const PSTR OriginalSend, const size_t
 		else if (TargetData.AddrLen == sizeof(sockaddr_in) && !AlternateSwapList.IsSwap[1U] && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
 			AlternateSwapList.TimeoutTimes[1U]++;
 	}
-
+*/
 //Send response.
 	if (DataLength >= sizeof(uint16_t) + DNS_PACKET_MINSIZE && DataLength < LARGE_PACKET_MAXSIZE)
 	{
@@ -1253,14 +1317,14 @@ inline size_t __fastcall TCPRequestProcess(const PSTR OriginalSend, const size_t
 }
 
 //Request Process(UDP part)
-inline size_t __fastcall UDPRequestProcess(const PSTR OriginalSend, const size_t SendSize, const uint16_t Protocol, const SOCKET_DATA TargetData, const size_t ListIndex)
+size_t __fastcall UDPRequestProcess(const PSTR OriginalSend, const size_t SendSize, const uint16_t Protocol, const SOCKET_DATA TargetData, const size_t ListIndex)
 {
 //Mark requesting data
 	PortList.RecvData[ListIndex] = TargetData;
 	PortList.SendData[ListIndex].clear();
 
 //Multi requesting.
-	if (Parameter.AlternateMultiRequest)
+	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
 	{
 /* Old version(2014-12-09)
 	//Initialization
@@ -1324,10 +1388,11 @@ inline size_t __fastcall UDPRequestProcess(const PSTR OriginalSend, const size_t
 				MultiRequestingIter->join();
 		}
 */
-		UDPRequestMulti(OriginalSend, SendSize, ListIndex, false);
+		UDPRequestMulti(OriginalSend, SendSize, ListIndex);
 	}
 //Normal requesting
 	else {
+/* Old version(2015-03-05)
 		if (Parameter.MultiRequestTimes > 1U)
 		{
 			if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
@@ -1341,6 +1406,8 @@ inline size_t __fastcall UDPRequestProcess(const PSTR OriginalSend, const size_t
 			else //IPv4
 				UDPRequest(OriginalSend, SendSize, ListIndex, AlternateSwapList.IsSwap[3U]);
 		}
+*/
+		UDPRequest(OriginalSend, SendSize, ListIndex);
 	}
 
 //Fin TCP request connection.
@@ -1351,7 +1418,7 @@ inline size_t __fastcall UDPRequestProcess(const PSTR OriginalSend, const size_t
 }
 
 //Send responses to requester
-inline size_t __fastcall SendToRequester(PSTR RecvBuffer, const size_t RecvSize, const uint16_t Protocol, const SOCKET_DATA TargetData)
+size_t __fastcall SendToRequester(PSTR RecvBuffer, const size_t RecvSize, const uint16_t Protocol, const SOCKET_DATA TargetData)
 {
 //TCP
 	if (Protocol == IPPROTO_TCP)
@@ -1383,8 +1450,8 @@ size_t __fastcall MarkDomainCache(const PSTR Buffer, const size_t Length)
 			return EXIT_FAILURE; 
 
 //Initialization(A part)
-	DNSCACHE_DATA DNSCacheDataTemp;
-//	memset((PSTR)&DNSCacheDataTemp + sizeof(DNSCacheDataTemp.Domain) + sizeof(DNSCacheDataTemp.Response), 0, sizeof(DNSCACHE_DATA) - sizeof(DNSCacheDataTemp.Domain) - sizeof(DNSCacheDataTemp.Response));
+	DNSCacheData DNSCacheDataTemp;
+//	memset((PSTR)&DNSCacheDataTemp + sizeof(DNSCacheDataTemp.Domain) + sizeof(DNSCacheDataTemp.Response), 0, sizeof(DNSCacheData) - sizeof(DNSCacheDataTemp.Domain) - sizeof(DNSCacheDataTemp.Response));
 	DNSCacheDataTemp.Type = 0;
 	DNSCacheDataTemp.Length = 0;
 	DNSCacheDataTemp.ClearTime = 0;
@@ -1494,10 +1561,12 @@ size_t __fastcall MarkDomainCache(const PSTR Buffer, const size_t Length)
 	if (Length <= DOMAIN_MAXSIZE)
 	{
 		std::shared_ptr<char> DNSCacheDataBufferTemp(new char[DOMAIN_MAXSIZE]());
+		memset(DNSCacheDataBufferTemp.get(), 0, DOMAIN_MAXSIZE);
 		DNSCacheDataTemp.Response.swap(DNSCacheDataBufferTemp);
 	}
 	else {
 		std::shared_ptr<char> DNSCacheDataBufferTemp(new char[Length]());
+		memset(DNSCacheDataBufferTemp.get(), 0, Length);
 		DNSCacheDataTemp.Response.swap(DNSCacheDataBufferTemp);
 	}
 
@@ -1505,10 +1574,12 @@ size_t __fastcall MarkDomainCache(const PSTR Buffer, const size_t Length)
 	if (DNSQueryToChar(Buffer + sizeof(dns_hdr), DNSCacheDataTemp.Response.get()) > DOMAIN_MINSIZE)
 	{
 	//Domain Case Conversion
-		CaseConvert(false, DNSCacheDataTemp.Response.get(), strlen(DNSCacheDataTemp.Response.get()));
+//		CaseConvert(false, DNSCacheDataTemp.Response.get(), strlen(DNSCacheDataTemp.Response.get()));
+		CaseConvert(false, DNSCacheDataTemp.Response.get(), strnlen_s(DNSCacheDataTemp.Response.get(), DOMAIN_MAXSIZE));
 		DNSCacheDataTemp.Domain = DNSCacheDataTemp.Response.get();
 		memset(DNSCacheDataTemp.Response.get(), 0, DOMAIN_MAXSIZE);
-		memcpy(DNSCacheDataTemp.Response.get(), Buffer + sizeof(uint16_t), Length - sizeof(uint16_t));
+//		memcpy(DNSCacheDataTemp.Response.get(), Buffer + sizeof(uint16_t), Length - sizeof(uint16_t));
+		memcpy_s(DNSCacheDataTemp.Response.get(), PACKET_MAXSIZE, Buffer + sizeof(uint16_t), Length - sizeof(uint16_t));
 		DNSCacheDataTemp.Length = Length - sizeof(uint16_t);
 
 	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).

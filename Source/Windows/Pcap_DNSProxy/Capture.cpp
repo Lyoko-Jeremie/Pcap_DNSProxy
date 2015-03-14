@@ -1,7 +1,7 @@
 ﻿// This code is part of Pcap_DNSProxy(Windows)
 // Pcap_DNSProxy, A local DNS server base on WinPcap and LibPcap.
 // Copyright (C) 2012-2015 Chengr28
-//
+// 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either
@@ -17,23 +17,16 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#include "Main.h"
-
-std::string PcapFilterRules;
-std::vector<std::string> PcapRunning;
-
-extern ConfigurationTable Parameter;
-extern PortTable PortList;
-extern AlternateSwapTable AlternateSwapList;
-extern std::deque<DNSCACHE_DATA> DNSCacheList;
-extern std::mutex CaptureLock, PortListLock;
+#include "Capture.h"
 
 //Capture initialization
 size_t __fastcall CaptureInit(void)
 {
 //Initialization
 	std::shared_ptr<char> ErrBuffer(new char[PCAP_ERRBUF_SIZE]());
+	memset(ErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
 	std::shared_ptr<wchar_t> wErrBuffer(new wchar_t[PCAP_ERRBUF_SIZE]());
+	wmemset(wErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
 	FilterRulesInit(PcapFilterRules);
 	pcap_if *pThedevs = nullptr, *pDrive = nullptr;
 	std::vector<std::string>::iterator CaptureIter;
@@ -50,7 +43,7 @@ size_t __fastcall CaptureInit(void)
 			{
 				PrintError(LOG_ERROR_WINPCAP, wErrBuffer.get(), 0, nullptr, 0);
 				memset(ErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
-				memset(wErrBuffer.get(), 0, sizeof(wchar_t) * PCAP_ERRBUF_SIZE);
+				wmemset(wErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
 			}
 			else {
 				PrintError(LOG_ERROR_SYSTEM, L"Multi bytes to wide chars error", 0, nullptr, 0);
@@ -114,17 +107,19 @@ size_t __fastcall CaptureInit(void)
 	return EXIT_SUCCESS;
 }
 
-inline void __fastcall FilterRulesInit(std::string &FilterRules)
+void __fastcall FilterRulesInit(std::string &FilterRules)
 {
 //Initialization
 	std::string AddressesString;
 	std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
+	memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 	FilterRules.clear();
 
 //Minimum supported system of inet_ntop() and inet_pton() is Windows Vista(Windows XP with SP3 support). [Roy Tam]
 #ifdef _WIN64
 #else //x86
 	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
+	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
 	DWORD BufferLength = ADDR_STRING_MAXSIZE;
 #endif
 
@@ -325,12 +320,15 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 //Initialization
 	pcap_t *DeviceHandle = nullptr;
 	std::shared_ptr<wchar_t> DeviceName(new wchar_t[PCAP_ERRBUF_SIZE]());
+	memset(DeviceName.get(), 0, PCAP_ERRBUF_SIZE);
 	std::shared_ptr<char> Buffer(new char[PACKET_MAXSIZE * BUFFER_RING_MAXNUM]());
+	memset(Buffer.get(), 0, PACKET_MAXSIZE * BUFFER_RING_MAXNUM);
 
 //Open device
 	if ((DeviceHandle = pcap_open(pDrive->name, PACKET_MAXSIZE, PCAP_OPENFLAG_NOCAPTURE_LOCAL, PCAP_CAPTURE_TIMEOUT, nullptr, Buffer.get())) == nullptr)
 	{
 		std::shared_ptr<wchar_t> ErrBuffer(new wchar_t[PCAP_ERRBUF_SIZE]());
+		wmemset(ErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
 		if (MultiByteToWideChar(CP_ACP, 0, Buffer.get(), MBSTOWCS_NULLTERMINATE, ErrBuffer.get(), PCAP_ERRBUF_SIZE) > 0)
 			PrintError(LOG_ERROR_WINPCAP, ErrBuffer.get(), 0, nullptr, 0);
 		else 
@@ -343,13 +341,17 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 	if (MultiByteToWideChar(CP_ACP, 0, pDrive->name, MBSTOWCS_NULLTERMINATE, DeviceName.get(), PCAP_ERRBUF_SIZE) <= 0)
 	{
 		PrintError(LOG_ERROR_SYSTEM, L"Multi bytes to wide chars error", 0, nullptr, 0);
-		wcsncpy_s(DeviceName.get(), PCAP_ERRBUF_SIZE, L"<Error device name>", lstrlenW(L"<Error device name>"));
+//		wcsncpy(DeviceName.get(), L"<Error device name>", wcslen(L"<Error device name>"));
+		wcsncpy_s(DeviceName.get(), PCAP_ERRBUF_SIZE, L"<Error device name>", wcslen(L"<Error device name>"));
 	}
 	if (pcap_datalink(DeviceHandle) != DLT_EN10MB && pcap_datalink(DeviceHandle) != DLT_PPP_ETHER && pcap_datalink(DeviceHandle) != DLT_EN3MB) //All Ethernet type
 	{
 		std::shared_ptr<wchar_t> ErrBuffer(new wchar_t[PCAP_ERRBUF_SIZE]());
-		wcsncpy_s(ErrBuffer.get(), PCAP_ERRBUF_SIZE, DeviceName.get(), lstrlenW(DeviceName.get()));
-		wcsncpy_s(ErrBuffer.get() + lstrlenW(DeviceName.get()), PCAP_ERRBUF_SIZE - lstrlenW(DeviceName.get()), L" is not a Ethernet device", lstrlenW(L" is not a Ethernet device"));
+		wmemset(ErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
+//		wcsncpy(ErrBuffer.get(), DeviceName.get(), wcsnlen_s(DeviceName.get(), PCAP_ERRBUF_SIZE));
+//		wcsncpy(ErrBuffer.get() + wcsnlen_s(DeviceName.get(), PCAP_ERRBUF_SIZE), L" is not a Ethernet device", wcslen(L" is not a Ethernet device"));
+		wcsncpy_s(ErrBuffer.get(), PCAP_ERRBUF_SIZE, DeviceName.get(), wcsnlen_s(DeviceName.get(), PCAP_ERRBUF_SIZE));
+		wcsncpy_s(ErrBuffer.get() + wcsnlen_s(DeviceName.get(), PCAP_ERRBUF_SIZE), PCAP_ERRBUF_SIZE - wcsnlen_s(DeviceName.get(), PCAP_ERRBUF_SIZE), L" is not a Ethernet device", wcslen(L" is not a Ethernet device"));
 		PrintError(LOG_ERROR_WINPCAP, ErrBuffer.get(), 0, nullptr, 0);
 
 		pcap_close(DeviceHandle);
@@ -358,9 +360,11 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 
 //Compile the string into a filter program.
 	std::shared_ptr<bpf_program> BPF_Code(new bpf_program());
+	memset(BPF_Code.get(), 0, sizeof(bpf_program));
 	if (pcap_compile(DeviceHandle, BPF_Code.get(), PcapFilterRules.c_str(), PCAP_COMPILE_OPTIMIZE, (bpf_u_int32)pDrive->addresses->netmask) == PCAP_ERROR)
 	{
 		std::shared_ptr<wchar_t> ErrBuffer(new wchar_t[PCAP_ERRBUF_SIZE]());
+		wmemset(ErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
 		if (MultiByteToWideChar(CP_ACP, 0, pcap_geterr(DeviceHandle), MBSTOWCS_NULLTERMINATE, ErrBuffer.get(), PCAP_ERRBUF_SIZE) > 0)
 			PrintError(LOG_ERROR_WINPCAP, ErrBuffer.get(), 0, nullptr, 0);
 		else 
@@ -374,6 +378,7 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 	if (pcap_setfilter(DeviceHandle, BPF_Code.get()) == PCAP_ERROR)
 	{
 		std::shared_ptr<wchar_t> ErrBuffer(new wchar_t[PCAP_ERRBUF_SIZE]());
+		wmemset(ErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
 		if (MultiByteToWideChar(CP_ACP, 0, pcap_geterr(DeviceHandle), MBSTOWCS_NULLTERMINATE, ErrBuffer.get(), PCAP_ERRBUF_SIZE) > 0)
 			PrintError(LOG_ERROR_WINPCAP, ErrBuffer.get(), 0, nullptr, 0);
 		else 
@@ -396,7 +401,6 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 //Start capture.
 	SSIZE_T Result = 0;
 	size_t Index = 0, HeaderLength = 0;
-
 	const UCHAR *PacketData = nullptr;
 	pcap_pkthdr *PacketHeader = nullptr;
 	peth_hdr Ethernet_Header = nullptr;
@@ -409,10 +413,13 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 			case PCAP_ERROR: //An error occurred.
 			{
 				std::shared_ptr<wchar_t> ErrBuffer(new wchar_t[PCAP_ERRBUF_SIZE]());
+				wmemset(ErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
 
 			//Devices are offline or other errors, wait for retrying.
-				wcsncpy_s(ErrBuffer.get(), PCAP_ERRBUF_SIZE, L"An error occurred in ", lstrlenW(L"An error occurred in "));
-				wcsncpy_s(ErrBuffer.get() + lstrlenW(L"An error occurred in "), PCAP_ERRBUF_SIZE - lstrlenW(L"An error occurred in "), DeviceName.get(), lstrlenW(DeviceName.get()));
+//				wcsncpy(ErrBuffer.get(), L"An error occurred in ", wcslen(L"An error occurred in "));
+//				wcsncpy(ErrBuffer.get() + wcslen(L"An error occurred in "), DeviceName.get(), wcsnlen_s(DeviceName.get(), PCAP_ERRBUF_SIZE));
+				wcsncpy_s(ErrBuffer.get(), PCAP_ERRBUF_SIZE, L"An error occurred in ", wcslen(L"An error occurred in "));
+				wcsncpy_s(ErrBuffer.get() + wcslen(L"An error occurred in "), PCAP_ERRBUF_SIZE - wcslen(L"An error occurred in "), DeviceName.get(), wcsnlen_s(DeviceName.get(), PCAP_ERRBUF_SIZE));
 				PrintError(LOG_ERROR_WINPCAP, ErrBuffer.get(), 0, nullptr, 0);
 
 			//Delete from devices list.
@@ -439,10 +446,13 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 			case PCAP_OFFLINE_EOF_ERROR:
 			{
 				std::shared_ptr<wchar_t> ErrBuffer(new wchar_t[PCAP_ERRBUF_SIZE]());
+				wmemset(ErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
 
 			//Devices are offline or other errors, wait for retrying.
-				wcsncpy_s(ErrBuffer.get(), PCAP_ERRBUF_SIZE, L"EOF was reached reading from an offline capture in ", lstrlenW(L"EOF was reached reading from an offline capture in "));
-				wcsncpy_s(ErrBuffer.get() + lstrlenW(L"EOF was reached reading from an offline capture in "), PCAP_ERRBUF_SIZE - lstrlenW(L"EOF was reached reading from an offline capture in "), DeviceName.get(), lstrlenW(DeviceName.get()));
+//				wcsncpy(ErrBuffer.get(), L"EOF was reached reading from an offline capture in ", wcslen(L"EOF was reached reading from an offline capture in "));
+//				wcsncpy(ErrBuffer.get() + wcslen(L"EOF was reached reading from an offline capture in "), DeviceName.get(), wcsnlen_s(DeviceName.get(), PCAP_ERRBUF_SIZE));
+				wcsncpy_s(ErrBuffer.get(), PCAP_ERRBUF_SIZE, L"EOF was reached reading from an offline capture in ", wcslen(L"EOF was reached reading from an offline capture in "));
+				wcsncpy_s(ErrBuffer.get() + wcslen(L"EOF was reached reading from an offline capture in "), PCAP_ERRBUF_SIZE - wcslen(L"EOF was reached reading from an offline capture in "), DeviceName.get(), wcsnlen_s(DeviceName.get(), PCAP_ERRBUF_SIZE));
 				PrintError(LOG_ERROR_WINPCAP, ErrBuffer.get(), 0, nullptr, 0);
 
 			//Delete from devices list.
@@ -477,6 +487,7 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 
 				Ethernet_Header = (peth_hdr)PacketData;
 				HeaderLength = sizeof(eth_hdr);
+
 			//PPPoE(Such as ADSL, a part of organization networks)
 				if (Ethernet_Header->Type == htons(ETHERTYPE_PPPOES) && PacketHeader->caplen > HeaderLength + sizeof(pppoe_hdr))
 				{
@@ -485,18 +496,21 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 					if (PPPoE_Header->Protocol == htons(PPPOETYPE_IPV6) && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && PacketHeader->caplen > HeaderLength + sizeof(ipv6_hdr) || //IPv6 over PPPoE
 						PPPoE_Header->Protocol == htons(PPPOETYPE_IPV4) && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && PacketHeader->caplen > HeaderLength + sizeof(ipv4_hdr)) //IPv4 over PPPoE
 					{
-						memcpy(Buffer.get() + PACKET_MAXSIZE * Index, PacketData + HeaderLength, PacketHeader->caplen - HeaderLength);
+//						memcpy(Buffer.get() + PACKET_MAXSIZE * Index, PacketData + HeaderLength, PacketHeader->caplen - HeaderLength);
+						memcpy_s(Buffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE, PacketData + HeaderLength, PacketHeader->caplen - HeaderLength);
 						std::thread NetworkLayerThread(NetworkLayer, Buffer.get() + PACKET_MAXSIZE * Index, PacketHeader->caplen - HeaderLength, ntohs(PPPoE_Header->Protocol));
 						NetworkLayerThread.detach();
 
 						Index = (Index + 1U) % BUFFER_RING_MAXNUM;
 					}
 				}
+
 			//LAN/WLAN/IEEE 802.1X, some Mobile Communications Standard/MCS drives which disguise as a LAN
 				else if (Ethernet_Header->Type == htons(ETHERTYPE_IPV6) && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && PacketHeader->caplen > HeaderLength + sizeof(ipv6_hdr) || //IPv6 over Ethernet
 					Ethernet_Header->Type == htons(ETHERTYPE_IP) && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && PacketHeader->caplen > HeaderLength + sizeof(ipv4_hdr)) //IPv4 over Ethernet
 				{
-					memcpy(Buffer.get() + PACKET_MAXSIZE * Index, PacketData + HeaderLength, PacketHeader->caplen - HeaderLength);
+//					memcpy(Buffer.get() + PACKET_MAXSIZE * Index, PacketData + HeaderLength, PacketHeader->caplen - HeaderLength);
+					memcpy_s(Buffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE, PacketData + HeaderLength, PacketHeader->caplen - HeaderLength);
 					std::thread NetworkLayerThread(NetworkLayer, Buffer.get() + PACKET_MAXSIZE * Index, PacketHeader->caplen - HeaderLength, ntohs(Ethernet_Header->Type));
 					NetworkLayerThread.detach();
 
@@ -525,7 +539,9 @@ size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint1
 {
 //Initialization
 	std::shared_ptr<char> Buffer(new char[Length]());
-	memcpy(Buffer.get(), Recv, Length);
+	memset(Buffer.get(), 0, Length);
+//	memcpy(Buffer.get(), Recv, Length);
+	memcpy_s(Buffer.get(), Length, Recv, Length);
 
 	if (Protocol == PPPOETYPE_IPV6 || Protocol == ETHERTYPE_IPV6 /* || Protocol == AF_INET6 */ ) //IPv6
 	{
@@ -534,6 +550,34 @@ size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint1
 	//Validate IPv6 header.
 		if (ntohs(IPv6_Header->PayloadLength) > Length - sizeof(ipv6_hdr))
 			return EXIT_FAILURE;
+
+	//Mark source of packet.
+		PDNS_SERVER_DATA PacketSource = nullptr;
+		if (memcmp(&IPv6_Header->Src, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0)
+		{
+			PacketSource = &Parameter.DNSTarget.IPv6;
+		}
+		else if (memcmp(&IPv6_Header->Src, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0)
+		{
+			PacketSource = &Parameter.DNSTarget.Alternate_IPv6;
+		}
+		else if (Parameter.DNSTarget.IPv6_Multi != nullptr)
+		{
+			for (size_t Index = 0;Index < Parameter.DNSTarget.IPv6_Multi->size();Index++)
+			{
+				if (memcmp(&IPv6_Header->Src, &Parameter.DNSTarget.IPv6_Multi->at(Index).AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0)
+				{
+					PacketSource = &Parameter.DNSTarget.IPv6_Multi->at(Index);
+					break;
+				}
+			}
+
+			if (PacketSource == nullptr)
+				return EXIT_FAILURE;
+		}
+		else {
+			return EXIT_FAILURE;
+		}
 
 	//Get Hop Limits from IPv6 DNS server.
 	//ICMPv6 Protocol
@@ -544,29 +588,7 @@ size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint1
 				return EXIT_FAILURE;
 
 			if (ICMPCheck(Buffer.get() + sizeof(ipv6_hdr), ntohs(IPv6_Header->PayloadLength), AF_INET6))
-			{
-			//Mark HopLimit.
-				if (memcmp(&IPv6_Header->Src, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0) //PREFERRED_SERVER
-				{
-					Parameter.DNSTarget.IPv6.HopLimitData.HopLimit = IPv6_Header->HopLimit;
-				}
-				else if (memcmp(&IPv6_Header->Src, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0) //ALTERNATE_SERVER
-				{
-					Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit = IPv6_Header->HopLimit;
-				}
-			//Other(Multi)
-				else if (Parameter.DNSTarget.IPv6_Multi != nullptr)
-				{
-					for (auto DNSServerDataIter = Parameter.DNSTarget.IPv6_Multi->begin();DNSServerDataIter != Parameter.DNSTarget.IPv6_Multi->end();DNSServerDataIter++)
-					{
-						if (memcmp(&IPv6_Header->Src, &DNSServerDataIter->AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0)
-						{
-							DNSServerDataIter->HopLimitData.HopLimit = IPv6_Header->HopLimit;
-							break;
-						}
-					}
-				}
-			}
+				PacketSource->HopLimitData.HopLimit = IPv6_Header->HopLimit;;
 
 			Parameter.TunnelAvailable_IPv6 = false;
 			return EXIT_SUCCESS;
@@ -580,29 +602,7 @@ size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint1
 				return EXIT_FAILURE;
 
 			if (TCPCheck(Buffer.get() + sizeof(ipv6_hdr)))
-			{
-			//Mark HopLimit.
-				if (memcmp(&IPv6_Header->Src, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0) //PREFERRED_SERVER
-				{
-					Parameter.DNSTarget.IPv6.HopLimitData.HopLimit = IPv6_Header->HopLimit;
-				}
-				else if (memcmp(&IPv6_Header->Src, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0) //ALTERNATE_SERVER
-				{
-					Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit = IPv6_Header->HopLimit;
-				}
-			//Other(Multi)
-				else if (Parameter.DNSTarget.IPv6_Multi != nullptr)
-				{
-					for (auto DNSServerDataIter = Parameter.DNSTarget.IPv6_Multi->begin();DNSServerDataIter != Parameter.DNSTarget.IPv6_Multi->end();DNSServerDataIter++)
-					{
-						if (memcmp(&IPv6_Header->Src, &DNSServerDataIter->AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0)
-						{
-							DNSServerDataIter->HopLimitData.HopLimit = IPv6_Header->HopLimit;
-							break;
-						}
-					}
-				}
-			}
+				PacketSource->HopLimitData.HopLimit = IPv6_Header->HopLimit;
 
 			Parameter.TunnelAvailable_IPv6 = false;
 			return EXIT_SUCCESS;
@@ -616,61 +616,25 @@ size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint1
 				return EXIT_FAILURE;
 
 			auto UDP_Header = (pudp_hdr)(Buffer.get() + sizeof(ipv6_hdr));
-			auto IsMarkPortHopLimit = false;
-			if (Parameter.DNSTarget.IPv6_Multi != nullptr)
-			{
-				for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv6_Multi)
-				{
-					if (UDP_Header->SrcPort == DNSServerDataIter.AddressData.IPv6.sin6_port)
-					{
-						IsMarkPortHopLimit = true;
-						break;
-					}
-				}
-			}
-
 		//Port check
-			if (UDP_Header->SrcPort == Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_port || 
-				UDP_Header->SrcPort == Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_port || 
-				IsMarkPortHopLimit)
+			if (UDP_Header->SrcPort == PacketSource->AddressData.IPv6.sin6_port)
 			{
 			//Domain Test and DNS Options check and get Hop Limit form Domain Test.
-				IsMarkPortHopLimit = false;
+				auto IsMarkPortHopLimit = false;
 				if (CheckResponseData(Buffer.get() + sizeof(ipv6_hdr) + sizeof(udp_hdr), ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), false, &IsMarkPortHopLimit))
 				{
 					if (IsMarkPortHopLimit)
-					{
-					//Mark HopLimit.
-						if (memcmp(&IPv6_Header->Src, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0) //PREFERRED_SERVER
-						{
-							Parameter.DNSTarget.IPv6.HopLimitData.HopLimit = IPv6_Header->HopLimit;
-						}
-						else if (memcmp(&IPv6_Header->Src, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0) //ALTERNATE_SERVER
-						{
-							Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit = IPv6_Header->HopLimit;
-						}
-					//Other(Multi)
-						else if (Parameter.DNSTarget.IPv6_Multi != nullptr)
-						{
-							for (auto DNSServerDataIter = Parameter.DNSTarget.IPv6_Multi->begin();DNSServerDataIter != Parameter.DNSTarget.IPv6_Multi->end();DNSServerDataIter++)
-							{
-								if (memcmp(&IPv6_Header->Src, &DNSServerDataIter->AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0)
-								{
-									DNSServerDataIter->HopLimitData.HopLimit = IPv6_Header->HopLimit;
-									break;
-								}
-							}
-						}
-					}
+						PacketSource->HopLimitData.HopLimit = IPv6_Header->HopLimit;
 				}
 				else {
 					return EXIT_FAILURE;
 				}
 
 			//Hop Limit must not a ramdom value.
-				if ((SSIZE_T)IPv6_Header->HopLimit > (SSIZE_T)Parameter.DNSTarget.IPv6.HopLimitData.HopLimit - (SSIZE_T)Parameter.HopLimitFluctuation && (size_t)IPv6_Header->HopLimit < (size_t)Parameter.DNSTarget.IPv6.HopLimitData.HopLimit + (size_t)Parameter.HopLimitFluctuation)
+				if ((size_t)IPv6_Header->HopLimit + (size_t)Parameter.HopLimitFluctuation > (size_t)PacketSource->HopLimitData.HopLimit && (size_t)IPv6_Header->HopLimit < (size_t)PacketSource->HopLimitData.HopLimit + (size_t)Parameter.HopLimitFluctuation)
 				{
-					DNSMethod(Buffer.get() + sizeof(ipv6_hdr), ntohs(IPv6_Header->PayloadLength), AF_INET6);
+//					DNSMethod(Buffer.get() + sizeof(ipv6_hdr), ntohs(IPv6_Header->PayloadLength), AF_INET6);
+					MatchPortToSend(Buffer.get() + sizeof(ipv6_hdr) + sizeof(udp_hdr), ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), UDP_Header->DstPort);
 					Parameter.TunnelAvailable_IPv6 = false;
 					return EXIT_SUCCESS;
 				}
@@ -685,34 +649,40 @@ size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint1
 			GetChecksum((PUINT16)Buffer.get(), sizeof(ipv4_hdr)) != CHECKSUM_SUCCESS) //Validate IPv4 header checksum.
 				return EXIT_FAILURE;
 
+	//Mark source of packet.
+		PDNS_SERVER_DATA PacketSource = nullptr;
+		if (IPv4_Header->Src.S_un.S_addr == Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.S_un.S_addr)
+		{
+			PacketSource = &Parameter.DNSTarget.IPv4;
+		}
+		else if (IPv4_Header->Src.S_un.S_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr)
+		{
+			PacketSource = &Parameter.DNSTarget.Alternate_IPv4;
+		}
+		else if (Parameter.DNSTarget.IPv4_Multi != nullptr)
+		{
+			for (size_t Index = 0;Index < Parameter.DNSTarget.IPv4_Multi->size();Index++)
+			{
+				if (IPv4_Header->Src.S_un.S_addr == Parameter.DNSTarget.IPv4_Multi->at(Index).AddressData.IPv4.sin_addr.S_un.S_addr)
+				{
+					PacketSource = &Parameter.DNSTarget.IPv4_Multi->at(Index);
+					break;
+				}
+			}
+
+			if (PacketSource == nullptr)
+				return EXIT_FAILURE;
+		}
+		else {
+			return EXIT_FAILURE;
+		}
+
 	//IPv4 options check
 		if (Parameter.IPv4DataCheck)
 		{
 		//No standard header length and header ID check
 			if (IPv4_Header->IHL > IPV4_STANDARDIHL || IPv4_Header->ID == 0)
-			{
-			//Mark TTL.
-				if (IPv4_Header->Src.S_un.S_addr == Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.S_un.S_addr) //PREFERRED_SERVER
-				{
-					Parameter.DNSTarget.IPv4.HopLimitData.TTL = IPv4_Header->TTL;
-				}
-				else if (IPv4_Header->Src.S_un.S_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr) //ALTERNATE_SERVER
-				{
-					Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL = IPv4_Header->TTL;
-				}
-			//Other(Multi)
-				else if (Parameter.DNSTarget.IPv4_Multi != nullptr)
-				{
-					for (auto DNSServerDataIter = Parameter.DNSTarget.IPv4_Multi->begin();DNSServerDataIter != Parameter.DNSTarget.IPv4_Multi->end();DNSServerDataIter++)
-					{
-						if (IPv4_Header->Src.S_un.S_addr == DNSServerDataIter->AddressData.IPv4.sin_addr.S_un.S_addr)
-						{
-							DNSServerDataIter->HopLimitData.TTL = IPv4_Header->TTL;
-							break;
-						}
-					}
-				}
-			}
+				PacketSource->HopLimitData.TTL = IPv4_Header->TTL;
 
 		//TOS and Flags should not be set.
 			if (IPv4_Header->TOS > 0 || IPv4_Header->Flags > 0)
@@ -726,30 +696,9 @@ size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint1
 		//Validate ICMP checksum.
 			if (GetChecksum((PUINT16)(Buffer.get() + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES) != CHECKSUM_SUCCESS)
 				return EXIT_FAILURE;
+
 			if (ICMPCheck(Buffer.get() + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, AF_INET))
-			{
-			//Mark TTL.
-				if (IPv4_Header->Src.S_un.S_addr == Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.S_un.S_addr) //PREFERRED_SERVER
-				{
-					Parameter.DNSTarget.IPv4.HopLimitData.TTL = IPv4_Header->TTL;
-				}
-				else if (IPv4_Header->Src.S_un.S_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr) //ALTERNATE_SERVER
-				{
-					Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL = IPv4_Header->TTL;
-				}
-			//Other(Multi)
-				else if (Parameter.DNSTarget.IPv4_Multi != nullptr)
-				{
-					for (auto DNSServerDataIter = Parameter.DNSTarget.IPv4_Multi->begin();DNSServerDataIter != Parameter.DNSTarget.IPv4_Multi->end();DNSServerDataIter++)
-					{
-						if (IPv4_Header->Src.S_un.S_addr == DNSServerDataIter->AddressData.IPv4.sin_addr.S_un.S_addr)
-						{
-							DNSServerDataIter->HopLimitData.TTL = IPv4_Header->TTL;
-							break;
-						}
-					}
-				}
-			}
+				PacketSource->HopLimitData.TTL = IPv4_Header->TTL;
 
 			return EXIT_SUCCESS;
 		}
@@ -762,29 +711,7 @@ size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint1
 				return EXIT_FAILURE;
 
 			if (TCPCheck(Buffer.get() + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES))
-			{
-			//Mark TTL.
-				if (IPv4_Header->Src.S_un.S_addr == Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.S_un.S_addr) //PREFERRED_SERVER
-				{
-					Parameter.DNSTarget.IPv4.HopLimitData.TTL = IPv4_Header->TTL;
-				}
-				else if (IPv4_Header->Src.S_un.S_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr) //ALTERNATE_SERVER
-				{
-					Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL = IPv4_Header->TTL;
-				}
-			//Other(Multi)
-				else if (Parameter.DNSTarget.IPv4_Multi != nullptr)
-				{
-					for (auto DNSServerDataIter = Parameter.DNSTarget.IPv4_Multi->begin();DNSServerDataIter != Parameter.DNSTarget.IPv4_Multi->end();DNSServerDataIter++)
-					{
-						if (IPv4_Header->Src.S_un.S_addr == DNSServerDataIter->AddressData.IPv4.sin_addr.S_un.S_addr)
-						{
-							DNSServerDataIter->HopLimitData.TTL = IPv4_Header->TTL;
-							break;
-						}
-					}
-				}
-			}
+				PacketSource->HopLimitData.TTL = IPv4_Header->TTL;
 
 			return EXIT_SUCCESS;
 		}
@@ -797,62 +724,25 @@ size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint1
 				return EXIT_FAILURE;
 
 			auto UDP_Header = (pudp_hdr)(Buffer.get() + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES);
-			auto IsMarkPortHopLimit = false;
-			if (Parameter.DNSTarget.IPv4_Multi != nullptr)
-			{
-				for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv4_Multi)
-				{
-					if (UDP_Header->SrcPort == DNSServerDataIter.AddressData.IPv4.sin_port)
-					{
-						IsMarkPortHopLimit = true;
-						break;
-					}
-				}
-			}
-
 		//Port check
-			if ( /* ntohs(IPv4_Header->Length) > IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(udp_hdr) + sizeof(dns_hdr) && ( */
-				UDP_Header->SrcPort == Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_port || 
-				UDP_Header->SrcPort == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_port || 
-				IsMarkPortHopLimit /* ) */)
+			if (UDP_Header->SrcPort == PacketSource->AddressData.IPv4.sin_port)
 			{
 			//Domain Test and DNS Options check and get TTL form Domain Test.
-				IsMarkPortHopLimit = false;
+				auto IsMarkPortHopLimit = false;
 				if (CheckResponseData(Buffer.get() + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(udp_hdr), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES - sizeof(udp_hdr), false, &IsMarkPortHopLimit))
 				{
 					if (IsMarkPortHopLimit)
-					{
-					//Mark TTL.
-						if (IPv4_Header->Src.S_un.S_addr == Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.S_un.S_addr) //PREFERRED_SERVER
-						{
-							Parameter.DNSTarget.IPv4.HopLimitData.TTL = IPv4_Header->TTL;
-						}
-						else if (IPv4_Header->Src.S_un.S_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr) //ALTERNATE_SERVER
-						{
-							Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL = IPv4_Header->TTL;
-						}
-					//Other(Multi)
-						else if (Parameter.DNSTarget.IPv4_Multi != nullptr)
-						{
-							for (auto DNSServerDataIter = Parameter.DNSTarget.IPv4_Multi->begin();DNSServerDataIter != Parameter.DNSTarget.IPv4_Multi->end();DNSServerDataIter++)
-							{
-								if (IPv4_Header->Src.S_un.S_addr == DNSServerDataIter->AddressData.IPv4.sin_addr.S_un.S_addr)
-								{
-									DNSServerDataIter->HopLimitData.TTL = IPv4_Header->TTL;
-									break;
-								}
-							}
-						}
-					}
+						PacketSource->HopLimitData.TTL = IPv4_Header->TTL;
 				}
 				else {
 					return EXIT_FAILURE;
 				}
 
 			//TTL must not a ramdom value.
-				if ((SSIZE_T)IPv4_Header->TTL > (SSIZE_T)Parameter.DNSTarget.IPv4.HopLimitData.TTL - (SSIZE_T)Parameter.HopLimitFluctuation && (size_t)IPv4_Header->TTL < (size_t)Parameter.DNSTarget.IPv4.HopLimitData.TTL + (size_t)Parameter.HopLimitFluctuation)
+				if ((size_t)IPv4_Header->TTL + (size_t)Parameter.HopLimitFluctuation > (size_t)PacketSource->HopLimitData.TTL && (size_t)IPv4_Header->TTL < (size_t)PacketSource->HopLimitData.TTL + (size_t)Parameter.HopLimitFluctuation)
 				{
-					DNSMethod(Buffer.get() + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, AF_INET);
+//					DNSMethod(Buffer.get() + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, AF_INET);
+					MatchPortToSend(Buffer.get() + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(udp_hdr), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES - sizeof(udp_hdr), UDP_Header->DstPort);
 					return EXIT_SUCCESS;
 				}
 			}
@@ -863,7 +753,7 @@ size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint1
 }
 
 //ICMP header options check
-inline bool __fastcall ICMPCheck(const PSTR Buffer, const size_t Length, const uint16_t Protocol)
+bool __fastcall ICMPCheck(const PSTR Buffer, const size_t Length, const uint16_t Protocol)
 {
 //ICMPv6
 	if (Protocol == AF_INET6)
@@ -888,7 +778,7 @@ inline bool __fastcall ICMPCheck(const PSTR Buffer, const size_t Length, const u
 }
 
 //TCP header options check
-inline bool __fastcall TCPCheck(const PSTR Buffer)
+bool __fastcall TCPCheck(const PSTR Buffer)
 {
 	auto TCP_Header = (ptcp_hdr)Buffer;
 	if (TCP_Header->Acknowledge == 0 && TCP_Header->StatusFlags.Flags == TCP_RST_STATUS && TCP_Header->Windows == 0 || //TCP Flags are 0x004(RST) which ACK shoule be 0 and Window size should be 0.
@@ -898,8 +788,9 @@ inline bool __fastcall TCPCheck(const PSTR Buffer)
 	return false;
 }
 
+/* Old version(2015-03-08)
 //Application Layer(Domain Name System/DNS) process
-inline size_t __fastcall DNSMethod(const PSTR Recv, const size_t Length, const uint16_t Protocol)
+size_t __fastcall DNSMethod(const PSTR Recv, const size_t Length , const uint16_t Protocol)
 {
 //Mark port and responses answers check
 	auto UDP_Header = (pudp_hdr)Recv;
@@ -933,12 +824,14 @@ inline size_t __fastcall DNSMethod(const PSTR Recv, const size_t Length, const u
 	MatchPortToSend(Recv + sizeof(udp_hdr), DataLength, UDP_Header->DstPort);
 	return EXIT_SUCCESS;
 }
+*/
 
 //Match port of responses and send responses to system sockets process
-inline size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length, const uint16_t Port)
+size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length, const uint16_t Port)
 {
 //Initialization
 	std::shared_ptr<SOCKET_DATA> RequesterData(new SOCKET_DATA());
+	memset(RequesterData.get(), 0, sizeof(SOCKET_DATA));
 	size_t Index = 0;
 
 //Match port.
@@ -997,7 +890,9 @@ inline size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length,
 	if (Index >= QUEUE_MAXLEN * QUEUE_PARTNUM / 2U) //TCP area
 	{
 		std::shared_ptr<char> RecvBuffer(new char[Length + sizeof(uint16_t)]());
-		memcpy(RecvBuffer.get(), Buffer, Length);
+		memset(RecvBuffer.get(), 0, Length + sizeof(uint16_t));
+//		memcpy(RecvBuffer.get(), Buffer, Length);
+		memcpy_s(RecvBuffer.get(), Length + sizeof(uint16_t), Buffer, Length);
 		if (AddLengthToTCPDNSHeader(RecvBuffer.get(), Length, Length + sizeof(uint16_t)) == EXIT_FAILURE)
 			return EXIT_FAILURE;
 
@@ -1006,11 +901,13 @@ inline size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length,
 		return EXIT_SUCCESS;
 	}
 	else { //UDP
+/* Old version(2015-03-08)
 	//UDP Truncated check
 		if (Length > Parameter.EDNS0PayloadSize)
 		{
 			std::shared_ptr<char> UDPBuffer(new char[DNS_PACKET_RR_LOCATE(Buffer) + sizeof(dns_record_opt)]());
-			memcpy(UDPBuffer.get(), Buffer, DNS_PACKET_RR_LOCATE(Buffer));
+//			memcpy(UDPBuffer.get(), Buffer, DNS_PACKET_RR_LOCATE(Buffer));
+			memcpy_s(UDPBuffer.get(), DNS_PACKET_RR_LOCATE(Buffer) + sizeof(dns_record_opt), Buffer, DNS_PACKET_RR_LOCATE(Buffer));
 			auto DNS_Header = (pdns_hdr)UDPBuffer.get();
 			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | 0x8200); //Set 1000001000000000, DNS_SQR_NETC
 			DNS_Header->Additional = htons(U16_NUM_ONE);
@@ -1021,8 +918,9 @@ inline size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length,
 			sendto(RequesterData->Socket, UDPBuffer.get(), (int)(DNS_PACKET_RR_LOCATE(Buffer) + sizeof(dns_record_opt)), 0, (PSOCKADDR)&RequesterData->SockAddr, RequesterData->AddrLen);
 		}
 		else {
-			sendto(RequesterData->Socket, Buffer, (int)Length, 0, (PSOCKADDR)&RequesterData->SockAddr, RequesterData->AddrLen);
-		}
+*/
+		sendto(RequesterData->Socket, Buffer, (int)Length, 0, (PSOCKADDR)&RequesterData->SockAddr, RequesterData->AddrLen);
+//		}
 	}
 
 //Clear socket.

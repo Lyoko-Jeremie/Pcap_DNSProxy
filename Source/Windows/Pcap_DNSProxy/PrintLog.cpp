@@ -1,7 +1,7 @@
 ﻿// This code is part of Pcap_DNSProxy(Windows)
 // Pcap_DNSProxy, A local DNS server base on WinPcap and LibPcap.
 // Copyright (C) 2012-2015 Chengr28
-//
+// 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either
@@ -17,11 +17,7 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#include "Main.h"
-
-extern ConfigurationTable Parameter;
-extern time_t StartTime, RunningLogStartTime;
-extern std::mutex ErrLogLock, RunningLogLock;
+#include "PrintLog.h"
 
 //Print errors to log file
 size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SSIZE_T ErrCode, const PWSTR FileName, const size_t Line)
@@ -42,9 +38,12 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 	asctime_s(TimeBuffer, TimeStructure.get());
 	fwprintf_s(Output, L"%s -> %ls.\n", TimeBuffer, Message);
 */
+//	tm *TimeStructure = nullptr;
 	std::shared_ptr<tm> TimeStructure(new tm());
+	memset(TimeStructure.get(), 0, sizeof(tm));
 	time_t TimeValues = 0;
 	time(&TimeValues);
+//	TimeStructure = localtime(&TimeValues);
 	localtime_s(TimeStructure.get(), &TimeValues);
 
 //Print to screen.
@@ -53,7 +52,10 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 	//Print start time before print errors.
 		if (StartTime > 0)
 		{
+//			tm *TimeStructureTemp = nullptr;
 			std::shared_ptr<tm> TimeStructureTemp(new tm());
+			memset(TimeStructureTemp.get(), 0, sizeof(tm));
+//			TimeStructureTemp = localtime(&StartTime);
 			localtime_s(TimeStructureTemp.get(), &StartTime);
 			wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Program starts.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
 		}
@@ -180,6 +182,7 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 	if (ErrorFileHandle != INVALID_HANDLE_VALUE)
 	{
 		std::shared_ptr<LARGE_INTEGER> ErrorFileSize(new LARGE_INTEGER());
+		memset(ErrorFileSize.get(), 0, sizeof(LARGE_INTEGER));
 		if (GetFileSizeEx(ErrorFileHandle, ErrorFileSize.get()) == 0)
 		{
 			CloseHandle(ErrorFileHandle);
@@ -201,6 +204,7 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 		if (StartTime > 0)
 		{
 			std::shared_ptr<tm> TimeStructureTemp(new tm());
+			memset(TimeStructureTemp.get(), 0, sizeof(tm));
 			localtime_s(TimeStructureTemp.get(), &StartTime);
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Program starts.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
 			StartTime = 0;
@@ -335,17 +339,33 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 }
 
 //Print running status to log file
-size_t __fastcall PrintStatus(const PWSTR Message)
+size_t __fastcall PrintRunningStatus(const PWSTR Message)
 {
+/* Old version(2015-03-10)
 //Print Running Status: Enable/Disable.
 	if (Parameter.RunningLogPath == nullptr)
 		return EXIT_SUCCESS;
-
+*/
 //Get current date and time.
 	std::shared_ptr<tm> TimeStructure(new tm());
+	memset(TimeStructure.get(), 0, sizeof(tm));
 	time_t TimeValues = 0;
 	time(&TimeValues);
-	localtime_s(TimeStructure.get(), &TimeValues);
+
+//Push messages back to writing list.
+	if (Parameter.RunningLogRefreshTime > 0)
+	{
+		RUNNING_LOG_DATA RunningLogDataTemp;
+		RunningLogDataTemp.Message = Message;
+		RunningLogDataTemp.TimeValues = TimeValues;
+
+		std::unique_lock<std::mutex> RunningLogMutex(RunningLogLock);
+		Parameter.RunningLogWriteQueue->push_back(RunningLogDataTemp);
+		return EXIT_SUCCESS;
+	}
+	else {
+		localtime_s(TimeStructure.get(), &TimeValues);
+	}
 
 //Print to screen.
 	if (Parameter.Console)
@@ -354,6 +374,7 @@ size_t __fastcall PrintStatus(const PWSTR Message)
 		if (RunningLogStartTime > 0)
 		{
 			std::shared_ptr<tm> TimeStructureTemp(new tm());
+			memset(TimeStructureTemp.get(), 0, sizeof(tm));
 			localtime_s(TimeStructureTemp.get(), &RunningLogStartTime);
 			wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Program starts.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
 		}
@@ -368,6 +389,7 @@ size_t __fastcall PrintStatus(const PWSTR Message)
 	if (RunningFileHandle != INVALID_HANDLE_VALUE)
 	{
 		std::shared_ptr<LARGE_INTEGER> RunningFileSize(new LARGE_INTEGER());
+		memset(RunningFileSize.get(), 0, sizeof(LARGE_INTEGER));
 		if (GetFileSizeEx(RunningFileHandle, RunningFileSize.get()) == 0)
 		{
 			CloseHandle(RunningFileHandle);
@@ -389,6 +411,7 @@ size_t __fastcall PrintStatus(const PWSTR Message)
 		if (RunningLogStartTime > 0)
 		{
 			std::shared_ptr<tm> TimeStructureTemp(new tm());
+			memset(TimeStructureTemp.get(), 0, sizeof(tm));
 			localtime_s(TimeStructureTemp.get(), &RunningLogStartTime);
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Program starts.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
 			RunningLogStartTime = 0;
@@ -411,8 +434,11 @@ size_t __fastcall PrintStatus(const PWSTR Message)
 
 size_t __fastcall PrintParameterList(void)
 {
+	size_t Index = 0;
+
 //Get current date&time.
 	std::shared_ptr<tm> TimeStructure(new tm());
+	memset(TimeStructure.get(), 0, sizeof(tm));
 	time_t TimeValues = 0;
 	time(&TimeValues);
 	localtime_s(TimeStructure.get(), &TimeValues);
@@ -424,11 +450,13 @@ size_t __fastcall PrintParameterList(void)
 	{
 	//Initialization
 		std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
+		memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 		//Minimum supported system of inet_ntop() and inet_pton() is Windows Vista(Windows XP with SP3 support). [Roy Tam]
 	#ifdef _WIN64
 	#else //x86
 		DWORD BufferLength = 0;
 		std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
+		memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
 	#endif
 
 	//Print to screen.
@@ -441,8 +469,7 @@ size_t __fastcall PrintParameterList(void)
 		//Start.
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ==================== Global Parameter List ====================\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //Start.
 		//[Base] block
-		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-		fwprintf_s(Output, L"Configuration file version: %.1lf\n", Parameter.Version); //Version
+		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Configuration file version: %.1lf\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Parameter.Version); //Version
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		if (Parameter.FileRefreshTime == 0) //File Refresh Time
 			fwprintf_s(Output, L"File Refresh Time: OFF\n");
@@ -452,13 +479,51 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> File Hash: ON\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		else 
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> File Hash: OFF\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+		if (Parameter.Path != nullptr && Parameter.Path->size() > 1U)
+		{
+			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Additional Path: \n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+			for (Index = 1U;Index < Parameter.Path->size();Index++)
+			{
+				if (Index == 1U)
+					fwprintf_s(Output, L"%ls", Parameter.Path->at(Index).c_str());
+				else 
+					fwprintf_s(Output, L"|%ls", Parameter.Path->at(Index).c_str());
+			}
+
+			fwprintf_s(Output, L"\n");
+		}
+		if (Parameter.HostsFileList != nullptr)
+		{
+			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Hosts File Name: \n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+			for (Index = 1U; Index < Parameter.HostsFileList->size(); Index++)
+			{
+				if (Index == 1U)
+					fwprintf_s(Output, L"%ls", Parameter.HostsFileList->at(Index).c_str());
+				else
+					fwprintf_s(Output, L"|%ls", Parameter.HostsFileList->at(Index).c_str());
+			}
+
+			fwprintf_s(Output, L"\n");
+		}
+		if (Parameter.IPFilterFileList != nullptr)
+		{
+			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPFilter File Name: \n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+			for (Index = 1U; Index < Parameter.IPFilterFileList->size(); Index++)
+			{
+				if (Index == 1U)
+					fwprintf_s(Output, L"%ls", Parameter.IPFilterFileList->at(Index).c_str());
+				else
+					fwprintf_s(Output, L"|%ls", Parameter.IPFilterFileList->at(Index).c_str());
+			}
+
+			fwprintf_s(Output, L"\n");
+		}
 		//[Log] block
 		if (Parameter.PrintError) //Print Error
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Print Error: ON\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		else 
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Print Error: OFF\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-		fwprintf_s(Output, L"Log Maximum Size: %u bytes\n",  (UINT)Parameter.LogMaxSize); //Log Maximum Size
+		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Log Maximum Size: %u bytes\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, (UINT)Parameter.LogMaxSize); //Log Maximum Size
 		//[DNS] block
 		if (Parameter.RequestMode == REQUEST_TCPMODE) //Protocol
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Protocol: TCP\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
@@ -472,14 +537,22 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Local Main: ON\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		else 
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Local Main: OFF\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+		if (Parameter.LocalHosts) //Local Hosts
+			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Local Hosts: ON\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+		else
+			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Local Hosts: OFF\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+		if (Parameter.LocalRouting) //Local Routing
+			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Local Routing: ON\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+		else
+			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Local Routing: OFF\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		if (Parameter.CacheType == CACHE_TIMER) //Cache Type
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Cache Type: Timer\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		else if (Parameter.CacheType == CACHE_QUEUE)
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Cache Type: Queue\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		else 
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Cache Type: OFF\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-		fwprintf_s(Output, L"Cache Parameter: %u\n", (UINT)Parameter.CacheParameter); //Cache Parameter
+		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Cache Parameter: %u\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, (UINT)Parameter.CacheParameter); //Cache Parameter
+		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Default TTL: %u seconds\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, (UINT)Parameter.HostsDefaultTTL); //Default TTL
 		//[Listen] block
 		if (Parameter.PcapCapture) //Pcap Capture
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Pcap Capture: ON\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
@@ -493,12 +566,24 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Operation Mode: Custom\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		else
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Operation Mode: Proxy\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-		if (Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV4_IPV6) //Listen Protocol
-			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Listen Protocol: IPv4 + IPv6\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+		
+		
+		
+		
+		if (Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV6_IPV4) //Listen Protocol(Network Layer)
+			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Listen Protocol: IPv4 + IPv6", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		else if (Parameter.CacheType == LISTEN_IPV6)
-			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Listen Protocol: IPv6\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Listen Protocol: IPv6", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		else
-			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Listen Protocol: IPv4\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Listen Protocol: IPv4", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+		if (Parameter.ListenProtocol_TransportLayer == LISTEN_TCP_UDP) //Listen Protocol(Transport Layer)
+			fwprintf_s(Output, L" TCP + UDP\n");
+		else if (Parameter.CacheType == LISTEN_TCP)
+			fwprintf_s(Output, L" TCP\n");
+		else if (Parameter.CacheType == LISTEN_UDP)
+			fwprintf_s(Output, L" UDP\n");
+		else 
+			fwprintf_s(Output, L" \n");
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		fwprintf_s(Output, L"Listen Port: %u\n", ntohs(Parameter.ListenPort)); //Listen Port
 		if (Parameter.IPFilterType) //IPFilter Type
@@ -526,6 +611,33 @@ size_t __fastcall PrintParameterList(void)
 		}
 
 		//[Addresses] block
+		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv4 Listen Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv4 Listen Address
+		if (Parameter.ListenAddress_IPv4 == nullptr || Parameter.ListenAddress_IPv4->ss_family == 0)
+		{
+			fwprintf_s(Output, L"N/A\n");
+		}
+		else {
+		#ifdef _WIN64
+			inet_ntop(AF_INET, (PSTR)&((PSOCKADDR_IN)Parameter.ListenAddress_IPv4)->sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+		#else //x86
+			if (Parameter.Inet_Ntop_PTR != nullptr)
+			{
+				(*Parameter.Inet_Ntop_PTR)(AF_INET, (PSTR)&((PSOCKADDR_IN)Parameter.ListenAddress_IPv4)->sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+			}
+			else {
+				BufferLength = ADDR_STRING_MAXSIZE;
+				SockAddr->ss_family = AF_INET;
+				((PSOCKADDR_IN)SockAddr.get())->sin_addr = ((PSOCKADDR_IN)Parameter.ListenAddress_IPv4)->sin_addr;
+				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
+			}
+		#endif
+			fwprintf_s(Output, L"<");
+//			for (Index = 0;Index < strlen(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
+			for (Index = 0;Index < strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
+				fwprintf_s(Output, L"%c", Addr.get()[Index]);
+			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+			fwprintf_s(Output, L":%u>\n", ntohs(((PSOCKADDR_IN)Parameter.ListenAddress_IPv4)->sin_port));
+		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv4 DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv4 DNS Address
 		if (Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_family == 0)
 		{
@@ -547,7 +659,8 @@ size_t __fastcall PrintParameterList(void)
 			}
 		#endif
 			fwprintf_s(Output, L"<");
-			for (size_t Index = 0;Index < strlen(Addr.get());Index++)
+//			for (Index = 0;Index < strlen(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
+			for (Index = 0;Index < strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
 				fwprintf_s(Output, L"%c", Addr.get()[Index]);
 			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 			fwprintf_s(Output, L":%u>\n", ntohs(Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_port));
@@ -573,7 +686,8 @@ size_t __fastcall PrintParameterList(void)
 			}
 		#endif
 			fwprintf_s(Output, L"<");
-			for (size_t Index = 0;Index < strlen(Addr.get());Index++)
+//			for (Index = 0;Index < strlen(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
+			for (Index = 0;Index < strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
 				fwprintf_s(Output, L"%c", Addr.get()[Index]);
 			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 			fwprintf_s(Output, L":%u>\n", ntohs(Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_port));
@@ -599,7 +713,8 @@ size_t __fastcall PrintParameterList(void)
 			}
 		#endif
 			fwprintf_s(Output, L"<");
-			for (size_t Index = 0;Index < strlen(Addr.get());Index++)
+//			for (Index = 0;Index < strlen(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
+			for (Index = 0;Index < strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
 				fwprintf_s(Output, L"%c", Addr.get()[Index]);
 			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 			fwprintf_s(Output, L":%u>\n", ntohs(Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_port));
@@ -625,10 +740,40 @@ size_t __fastcall PrintParameterList(void)
 			}
 		#endif
 			fwprintf_s(Output, L"<");
-			for (size_t Index = 0;Index < strlen(Addr.get());Index++)
+//			for (Index = 0;Index < strlen(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
+			for (Index = 0;Index < strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
 				fwprintf_s(Output, L"%c", Addr.get()[Index]);
 			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 			fwprintf_s(Output, L":%u>\n", ntohs(Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_port));
+		}
+		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv6 Listen Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv6 Listen Address
+		if (Parameter.ListenAddress_IPv6 == nullptr || Parameter.ListenAddress_IPv6->ss_family == 0)
+		{
+			fwprintf_s(Output, L"N/A\n");
+		}
+		else {
+		#ifdef _WIN64
+			inet_ntop(AF_INET6, (PSTR)&((PSOCKADDR_IN6)Parameter.ListenAddress_IPv6)->sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+		#else //x86
+			if (Parameter.Inet_Ntop_PTR != nullptr)
+			{
+				(*Parameter.Inet_Ntop_PTR)(AF_INET6, (PSTR)&((PSOCKADDR_IN6)Parameter.ListenAddress_IPv6)->sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+			}
+			else {
+				BufferLength = ADDR_STRING_MAXSIZE;
+				SockAddr->ss_family = AF_INET6;
+				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = ((PSOCKADDR_IN6)Parameter.ListenAddress_IPv6)->sin6_addr;
+				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
+			}
+		#endif
+//			CaseConvert(true, Addr.get(), strlen(Addr.get()));
+			CaseConvert(true, Addr.get(), strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE));
+			fwprintf_s(Output, L"[");
+//			for (Index = 0;Index < strlen(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
+			for (Index = 0;Index < strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
+				fwprintf_s(Output, L"%c", Addr.get()[Index]);
+			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+			fwprintf_s(Output, L"]:%u\n", ntohs(((PSOCKADDR_IN6)Parameter.ListenAddress_IPv6)->sin6_port));
 		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv6 DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv6 DNS Address
 		if (Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_family == 0)
@@ -650,9 +795,11 @@ size_t __fastcall PrintParameterList(void)
 				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
 			}
 		#endif
-			CaseConvert(true, Addr.get(), strlen(Addr.get()));
+//			CaseConvert(true, Addr.get(), strlen(Addr.get()));
+			CaseConvert(true, Addr.get(), strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE));
 			fwprintf_s(Output, L"[");
-			for (size_t Index = 0;Index < strlen(Addr.get());Index++)
+//			for (Index = 0;Index < strlen(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
+			for (Index = 0;Index < strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
 				fwprintf_s(Output, L"%c", Addr.get()[Index]);
 			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 			fwprintf_s(Output, L"]:%u\n", ntohs(Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_port));
@@ -677,9 +824,11 @@ size_t __fastcall PrintParameterList(void)
 				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
 			}
 		#endif
-			CaseConvert(true, Addr.get(), strlen(Addr.get()));
+//			CaseConvert(true, Addr.get(), strlen(Addr.get()));
+			CaseConvert(true, Addr.get(), strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE));
 			fwprintf_s(Output, L"[");
-			for (size_t Index = 0;Index < strlen(Addr.get());Index++)
+//			for (Index= 0;Index < strlen(Addr.get());Index++)
+			for (Index = 0;Index < strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
 				fwprintf_s(Output, L"%c", Addr.get()[Index]);
 			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 			fwprintf_s(Output, L"]:%u\n", ntohs(Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_port));
@@ -704,9 +853,11 @@ size_t __fastcall PrintParameterList(void)
 				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
 			}
 		#endif
-			CaseConvert(true, Addr.get(), strlen(Addr.get()));
+//			CaseConvert(true, Addr.get(), strlen(Addr.get()));
+			CaseConvert(true, Addr.get(), strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE));
 			fwprintf_s(Output, L"[");
-			for (size_t Index = 0;Index < strlen(Addr.get());Index++)
+//			for (Index= 0;Index < strlen(Addr.get());Index++)
+			for (Index = 0;Index < strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
 				fwprintf_s(Output, L"%c", Addr.get()[Index]);
 			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 			fwprintf_s(Output, L"]:%u\n", ntohs(Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_port));
@@ -731,9 +882,11 @@ size_t __fastcall PrintParameterList(void)
 				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
 			}
 		#endif
-			CaseConvert(true, Addr.get(), strlen(Addr.get()));
+//			CaseConvert(true, Addr.get(), strlen(Addr.get()));
+			CaseConvert(true, Addr.get(), strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE));
 			fwprintf_s(Output, L"[");
-			for (size_t Index = 0;Index < strlen(Addr.get());Index++)
+//			for (Index= 0;Index < strlen(Addr.get());Index++)
+			for (Index = 0;Index < strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
 				fwprintf_s(Output, L"%c", Addr.get()[Index]);
 			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 			fwprintf_s(Output, L"]:%u\n", ntohs(Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_port));
@@ -829,7 +982,7 @@ size_t __fastcall PrintParameterList(void)
 		fwprintf_s(Output, L"ICMP Sequence: %u\n", ntohs(Parameter.ICMPSequence)); //ICMP Sequence
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		fwprintf_s(Output, L"ICMP PaddingData: "); //ICMP PaddingData
-		for (size_t Index = 0;Index < Parameter.ICMPPaddingDataLength;Index++)
+		for (Index = 0;Index < Parameter.ICMPPaddingDataLength;Index++)
 			fwprintf_s(Output, L"%x", Parameter.ICMPPaddingData[Index]);
 		fwprintf_s(Output, L"\n");
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
@@ -841,14 +994,16 @@ size_t __fastcall PrintParameterList(void)
 		}
 		else {
 			fwprintf_s(Output, L"Domain Test Data: ");
-			for (size_t Index = 0;Index < strlen(Parameter.DomainTestData);Index++)
+//			for (Index = 0;Index < strlen(Parameter.DomainTestData);Index++)
+			for (Index = 0;Index < strnlen_s(Parameter.DomainTestData, DOMAIN_MAXSIZE);Index++)
 				fwprintf_s(Output, L"%c", Parameter.DomainTestData[Index]);
 			fwprintf_s(Output, L"\n");
 		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		fwprintf_s(Output, L"Localhost Server Name: "); //Localhost Server Name
 		DNSQueryToChar(Parameter.LocalFQDN, Addr.get());
-		for (size_t Index = 0;Index < strlen(Addr.get());Index++)
+//		for (Index= 0;Index < strlen(Addr.get());Index++)
+		for (Index = 0;Index < strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE);Index++)
 			fwprintf_s(Output, L"%c", Addr.get()[Index]);
 		memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 		fwprintf_s(Output, L"\n");

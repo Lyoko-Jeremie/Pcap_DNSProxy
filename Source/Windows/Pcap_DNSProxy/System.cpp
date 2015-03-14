@@ -1,7 +1,7 @@
 ﻿// This code is part of Pcap_DNSProxy(Windows)
 // Pcap_DNSProxy, A local DNS server base on WinPcap and LibPcap.
 // Copyright (C) 2012-2015 Chengr28
-//
+// 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either
@@ -17,14 +17,7 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#include "Main.h"
-
-extern ConfigurationTable Parameter;
-
-static DWORD ServiceCurrentStatus = 0;
-static BOOL ServiceRunning = false;
-SERVICE_STATUS_HANDLE ServiceStatusHandle = nullptr; 
-HANDLE ServiceEvent = nullptr;
+#include "System.h"
 
 //Windows XP with SP3 support
 #ifdef _WIN64
@@ -33,6 +26,7 @@ HANDLE ServiceEvent = nullptr;
 BOOL WINAPI IsGreaterThanVista(void)
 {
 	std::shared_ptr<OSVERSIONINFOEXW> OSVI(new OSVERSIONINFOEXW());
+	memset(OSVI.get(), 0, sizeof(OSVERSIONINFOEXW));
 	DWORDLONG dwlConditionMask = 0;
 
 //Initialization
@@ -53,7 +47,7 @@ BOOL WINAPI IsGreaterThanVista(void)
 }
 
 //Try to load library to get pointers of functions
-BOOL WINAPI GetFunctionPointer(size_t FunctionType)
+BOOL WINAPI GetFunctionPointer(const size_t FunctionType)
 {
 //GetTickCount64() function
 	if (FunctionType == FUNCTION_GETTICKCOUNT64)
@@ -91,6 +85,7 @@ BOOL WINAPI GetFunctionPointer(size_t FunctionType)
 //Catch Control-C exception from keyboard.
 BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType)
 {
+/*
 	switch (fdwCtrlType)
 	{
 	//Handle the CTRL-C signal.
@@ -125,6 +120,17 @@ BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType)
 //		default: {
 //			return FALSE;
 //		}
+	}
+*/
+//Print to screen.
+	if (Parameter.Console)
+	{
+	//Handle the CTRL-C signal.
+		if (fdwCtrlType == CTRL_C_EVENT)
+			wprintf_s(L"Get Control-C.\n");
+	//Handle the CTRL-Break signal.
+		else if (fdwCtrlType == CTRL_BREAK_EVENT)
+			wprintf_s(L"Get Control-Break.\n");
 	}
 
 	return FALSE;
@@ -178,7 +184,7 @@ size_t WINAPI ServiceControl(const DWORD dwControlCode)
 	}
 
 	UpdateServiceStatus(ServiceCurrentStatus, NO_ERROR, 0, 0, 0);
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 //Start Main process
@@ -214,6 +220,7 @@ DWORD WINAPI ServiceProc(LPVOID lpParameter)
 BOOL WINAPI UpdateServiceStatus(const DWORD dwCurrentState, const DWORD dwWin32ExitCode, const DWORD dwServiceSpecificExitCode, const DWORD dwCheckPoint, const DWORD dwWaitHint)
 {
 	std::shared_ptr<SERVICE_STATUS> ServiceStatus(new SERVICE_STATUS());
+	memset(ServiceStatus.get(), 0, sizeof(SERVICE_STATUS));
 	ServiceStatus->dwServiceType = SERVICE_WIN32;
 	ServiceStatus->dwCurrentState = dwCurrentState;
 

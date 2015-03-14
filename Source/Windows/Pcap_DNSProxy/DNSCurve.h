@@ -21,5 +21,11 @@
 
 //Global variables
 extern ConfigurationTable Parameter;
-extern time_t StartTime, RunningLogStartTime;
+extern AlternateSwapTable AlternateSwapList;
 extern DNSCurveConfigurationTable DNSCurveParameter;
+
+//Functions
+size_t LocalSignatureRequest(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
+bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const bool IsAlternate);
+bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const bool IsAlternate);
+bool __fastcall GetSignatureData(const PSTR Buffer, const size_t ServerType);

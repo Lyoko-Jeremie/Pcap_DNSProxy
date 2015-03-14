@@ -1,7 +1,7 @@
 ﻿// This code is part of Pcap_DNSProxy(Windows)
 // Pcap_DNSProxy, A local DNS server base on WinPcap and LibPcap.
 // Copyright (C) 2012-2015 Chengr28
-//
+// 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either
@@ -17,16 +17,77 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#include "Main.h"
+#include "Monitor.h"
 
-extern ConfigurationTable Parameter;
-extern DNSCurveConfigurationTable DNSCurveParameter;
-extern AlternateSwapTable AlternateSwapList;
-extern std::deque<DNSCACHE_DATA> DNSCacheList;
-extern std::mutex DNSCacheListLock;
+//Running Log writing Monitor
+size_t __fastcall RunningLogWriteMonitor(void)
+{
+//Initialization
+	FILE *Output = nullptr;
+	std::shared_ptr<tm> TimeStructure(new tm());
+	memset(TimeStructure.get(), 0, sizeof(tm));
+	HANDLE RunningFileHandle = nullptr;
+	std::shared_ptr<LARGE_INTEGER> RunningFileSize(new LARGE_INTEGER());
+	memset(RunningFileSize.get(), 0, sizeof(LARGE_INTEGER));
+	std::unique_lock<std::mutex> RunningLogMutex(RunningLogLock);
+	RunningLogMutex.unlock();
+
+//Write messages into file.
+	for (;;)
+	{
+		RunningLogMutex.lock();
+
+	//Check whole file size.
+		RunningFileHandle = CreateFileW(Parameter.RunningLogPath->c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+		if (RunningFileHandle != INVALID_HANDLE_VALUE)
+		{
+			memset(RunningFileSize.get(), 0, sizeof(LARGE_INTEGER));
+			if (GetFileSizeEx(RunningFileHandle, RunningFileSize.get()) == 0)
+			{
+				CloseHandle(RunningFileHandle);
+			}
+			else {
+				CloseHandle(RunningFileHandle);
+				if (RunningFileSize->QuadPart > 0 && (size_t)RunningFileSize->QuadPart >= Parameter.LogMaxSize && 
+					DeleteFileW(Parameter.RunningLogPath->c_str()) != 0)
+						PrintError(LOG_ERROR_SYSTEM, L"Old Running Log file was deleted", 0, nullptr, 0);
+			}
+		}
+
+	//Write all messages to file.
+		_wfopen_s(&Output, Parameter.RunningLogPath->c_str(), L"a,ccs=UTF-8");
+		if (Output != nullptr && Parameter.RunningLogWriteQueue != nullptr)
+		{
+			for (auto RunningLogDataIter:*Parameter.RunningLogWriteQueue)
+			{
+				memset(TimeStructure.get(), 0, sizeof(tm));
+				localtime_s(TimeStructure.get(), &RunningLogDataIter.TimeValues);
+
+			//Print to screen.
+				if (Parameter.Console)
+					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> %ls\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, RunningLogDataIter.Message.c_str());
+
+			//Print Running Log.
+				fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> %ls\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, RunningLogDataIter.Message.c_str());
+			}
+
+		//Clear list.
+			Parameter.RunningLogWriteQueue->clear();
+			Parameter.RunningLogWriteQueue->shrink_to_fit();
+
+		//Close file.
+			fclose(Output);
+		}
+
+		RunningLogMutex.unlock();
+		Sleep((DWORD)Parameter.RunningLogRefreshTime); //Time between writing.
+	}
+
+	return EXIT_SUCCESS;
+}
 
 //Local DNS server initialization
-size_t __fastcall MonitorInit()
+size_t __fastcall MonitorInit(void)
 {
 //Capture initialization
 	if (Parameter.PcapCapture && !Parameter.HostsOnly && !(Parameter.DNSCurve && DNSCurveParameter.IsEncryption && DNSCurveParameter.IsEncryptionOnly))
@@ -77,9 +138,10 @@ size_t __fastcall MonitorInit()
 	}
 
 	std::shared_ptr<SOCKET_DATA> LocalhostData(new SOCKET_DATA());
+	memset(LocalhostData.get(), 0, sizeof(SOCKET_DATA));
 	std::thread IPv6UDPMonitorThread, IPv4UDPMonitorThread, IPv6TCPMonitorThread, IPv4TCPMonitorThread;
 //Set localhost monitor sockets(IPv6/UDP).
-	if (Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV4_IPV6 || Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV6)
+	if (Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV6_IPV4 || Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV6)
 	{
 		if (Parameter.ListenProtocol_TransportLayer == LISTEN_TCP_UDP || Parameter.ListenProtocol_TransportLayer == LISTEN_UDP)
 		{
@@ -156,7 +218,7 @@ size_t __fastcall MonitorInit()
 	}
 
 //Set localhost socket(IPv4/UDP).
-	if (Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV4_IPV6 || Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV4)
+	if (Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV6_IPV4 || Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV4)
 	{
 		if (Parameter.ListenProtocol_TransportLayer == LISTEN_TCP_UDP || Parameter.ListenProtocol_TransportLayer == LISTEN_UDP)
 		{
@@ -289,6 +351,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData)
 
 //Start Monitor.
 	std::shared_ptr<char> Buffer(new char[PACKET_MAXSIZE * BUFFER_RING_MAXNUM]());
+	memset(Buffer.get(), 0, PACKET_MAXSIZE * BUFFER_RING_MAXNUM);
 	size_t Index[] = {0, 0, 0};
 
 	void *Addr = nullptr;
@@ -313,26 +376,30 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData)
 				((in6_addr *)Addr)->u.Byte[0] == 0xFE && ((in6_addr *)Addr)->u.Byte[1U] >= 0x80 && ((in6_addr *)Addr)->u.Byte[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
 				((in6_addr *)Addr)->u.Word[6U] == 0 && ((in6_addr *)Addr)->u.Word[7U] == htons(0x0001))) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
 			//Check Custom Mode(IPv6).
-				(Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET6)) || 
+				Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET6))
+/* Old version(2015-03-13)
 			//Check Server Mode(IPv6).
 				(Parameter.OperationMode == LISTEN_CUSTOMMODE || Parameter.OperationMode == LISTEN_SERVERMODE) && 
-				CheckSpecialAddress(Addr, AF_INET6, nullptr))
+				CheckSpecialAddress(Addr, AF_INET6, nullptr)
+*/
 					continue;
 		}
 		else { //IPv4
 			Addr = &((PSOCKADDR_IN)&LocalhostData.SockAddr)->sin_addr;
 			if ((*(in_addr *)Addr).S_un.S_addr == 0 || //Empty address
 			//Check Private Mode(IPv4).
-				(Parameter.OperationMode == LISTEN_PRIVATEMODE && 
+				(Parameter.OperationMode == LISTEN_PRIVATEMODE &&
 				!(((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
 				((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
 				((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0xAC && ((in_addr *)Addr)->S_un.S_un_b.s_b2 >= 0x10 && ((in_addr *)Addr)->S_un.S_un_b.s_b2 <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
 				((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0xC0 && ((in_addr *)Addr)->S_un.S_un_b.s_b2 == 0xA8)) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
 			//Check Custom Mode(IPv4).
-				(Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET)) || 
+				Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET))
+/* Old version(2015-03-13)
 			//Check Server Mode(IPv4).
-				(Parameter.OperationMode == LISTEN_CUSTOMMODE || Parameter.OperationMode == LISTEN_SERVERMODE) && 
+				(Parameter.OperationMode == LISTEN_CUSTOMMODE || Parameter.OperationMode == LISTEN_SERVERMODE) &&
 				CheckSpecialAddress(Addr, AF_INET, nullptr))
+*/
 					continue;
 		}
 
@@ -511,7 +578,8 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalhostData)
 	for (;;)
 	{
 		Sleep(LOOP_INTERVAL_TIME);
-		memset(ClientData.get(), 0, sizeof(SOCKET_DATA) - sizeof(int));
+//		memset(ClientData.get(), 0, sizeof(SOCKET_DATA) - sizeof(int));
+		memset(&ClientData->SockAddr, 0, sizeof(sockaddr_storage));
 		ClientData->Socket = accept(LocalhostData.Socket, (PSOCKADDR)&ClientData->SockAddr, (PINT)&ClientData->AddrLen);
 		if (ClientData->Socket == INVALID_SOCKET)
 			continue;
@@ -527,10 +595,12 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalhostData)
 				((in6_addr *)Addr)->u.Byte[0] == 0xFE && ((in6_addr *)Addr)->u.Byte[1U] >= 0x80 && ((in6_addr *)Addr)->u.Byte[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
 				((in6_addr *)Addr)->u.Word[6U] == 0 && ((in6_addr *)Addr)->u.Word[7U] == htons(0x0001))) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
 			//Check Custom Mode(IPv6).
-				(Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET6)) || 
+				(Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET6)))
+/* Old version(2015-03-13)
 			//Check Server Mode(IPv6).
 				(Parameter.OperationMode == LISTEN_CUSTOMMODE || Parameter.OperationMode == LISTEN_SERVERMODE) && 
 				CheckSpecialAddress(Addr, AF_INET6, nullptr))
+*/
 			{
 				closesocket(ClientData->Socket);
 				continue;
@@ -546,10 +616,12 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalhostData)
 				((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0xAC && ((in_addr *)Addr)->S_un.S_un_b.s_b2 >= 0x10 && ((in_addr *)Addr)->S_un.S_un_b.s_b2 <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
 				((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0xC0 && ((in_addr *)Addr)->S_un.S_un_b.s_b2 == 0xA8)) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
 			//Check Custom Mode(IPv4).
-				(Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET)) || 
+				(Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET)))
+/* Old version(2015-03-13)
 			//Check Server Mode(IPv4).
 				(Parameter.OperationMode == LISTEN_CUSTOMMODE || Parameter.OperationMode == LISTEN_SERVERMODE) && 
 				CheckSpecialAddress(Addr, AF_INET, nullptr))
+*/
 			{
 				closesocket(ClientData->Socket);
 				continue;
@@ -572,6 +644,7 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalhostData)
 size_t __fastcall TCPReceiveProcess(const SOCKET_DATA TargetData, const size_t ListIndex)
 {
 	std::shared_ptr<char> Buffer(new char[LARGE_PACKET_MAXSIZE]());
+	memset(Buffer.get(), 0, LARGE_PACKET_MAXSIZE);
 	size_t InnerIndex = 0;
 	SSIZE_T RecvLen = 0;
 
@@ -729,7 +802,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA TargetData, const size_t L
 }
 
 //Alternate DNS servers switcher
-inline void __fastcall AlternateServerMonitor(void)
+void __fastcall AlternateServerMonitor(void)
 {
 	size_t Index = 0, RangeTimer[ALTERNATE_SERVERNUM] = {0}, SwapTimer[ALTERNATE_SERVERNUM] = {0};
 
@@ -813,7 +886,7 @@ inline void __fastcall AlternateServerMonitor(void)
 			}
 		}
 
-		Sleep(STANDARD_TIMEOUT); //Time between checks.
+		Sleep(STANDARD_TIMEOUT); //Time between checking.
 	}
 
 	PrintError(LOG_ERROR_SYSTEM, L"Alternate Server module Monitor terminated", 0, nullptr, 0);
@@ -840,7 +913,7 @@ void __fastcall DNSCacheTimerMonitor(void)
 		DNSCacheList.shrink_to_fit();
 		DNSCacheListMutex.unlock();
 
-		Sleep(STANDARD_TIMEOUT); //Time between checks.
+		Sleep(STANDARD_TIMEOUT); //Time between checking.
 	}
 
 	PrintError(LOG_ERROR_SYSTEM, L"DNS Cache Timer module Monitor terminated", 0, nullptr, 0);

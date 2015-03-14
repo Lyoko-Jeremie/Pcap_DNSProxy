@@ -1,7 +1,7 @@
 ﻿// This code is part of Pcap_DNSProxy(Windows)
 // Pcap_DNSProxy, A local DNS server base on WinPcap and LibPcap.
 // Copyright (C) 2012-2015 Chengr28
-//
+// 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either
@@ -18,10 +18,6 @@
 
 
 #include "Main.h"
-
-extern ConfigurationTable Parameter;
-extern time_t StartTime, RunningLogStartTime;
-extern DNSCurveConfigurationTable DNSCurveParameter;
 
 //The Main function of program
 int wmain(int argc, wchar_t* argv[])
@@ -41,7 +37,7 @@ int wmain(int argc, wchar_t* argv[])
 			return EXIT_FAILURE;
 
 	//Windows Firewall Test in first start.
-		if (argc > 1 && lstrlenW(argv[1U]) == lstrlenW(L"--FirstStart") && wcsncmp(argv[1U], L"--FirstStart", lstrlenW(L"--FirstStart")) == 0)
+		if (argc > 1 && wcsnlen_s(argv[1U], STRING_BUFFER_MAXSIZE) == wcslen(L"--FirstStart") && wcsncmp(argv[1U], L"--FirstStart", wcslen(L"--FirstStart")) == 0)
 		{
 			if (FirewallTest(AF_INET6) == EXIT_FAILURE && FirewallTest(AF_INET) == EXIT_FAILURE)
 			{
@@ -120,7 +116,7 @@ int wmain(int argc, wchar_t* argv[])
 }
 
 //Get path of program from the main function parameter and Winsock initialization
-inline size_t __fastcall FileNameInit(const PWSTR OriginalPath)
+size_t __fastcall FileNameInit(const PWSTR OriginalPath)
 {
 //Path process.
 	Parameter.Path->push_back(OriginalPath);
@@ -159,10 +155,11 @@ inline size_t __fastcall FileNameInit(const PWSTR OriginalPath)
 }
 
 //Windows Firewall Test
-inline size_t __fastcall FirewallTest(const uint16_t Protocol)
+size_t __fastcall FirewallTest(const uint16_t Protocol)
 {
 //Initialization
 	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
+	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
 	SYSTEM_SOCKET FirewallSocket = 0;
 
 //Ramdom number distribution initialization
