@@ -37,7 +37,7 @@ set /p UserChoice="Choose: "
 				exit
 			) else (
 				del /f /q TestPermission.log
-				cd /d %~dp0
+				cd /d "%~dp0"
 				cls
 			)
 		)
@@ -49,14 +49,14 @@ set /p UserChoice="Choose: "
 	if %UserChoice% EQU 3 (set FileCheck=1)
 	if %UserChoice% EQU 5 (set FileCheck=1)
 	if %FileCheck% EQU 1 (
-		cd /d %~dp0
+		cd /d "%~dp0"
 		if not exist Fciv.exe (goto WARNING)
 		if not exist Pcap_DNSProxy.exe (goto WARNING)
 		if not exist Pcap_DNSProxy_x86.exe (goto WARNING)
-		Fciv -sha1 Pcap_DNSProxy.exe |findstr /I 96A2A04C41DF0ADF45A21F0C9C66987E190C1BBC > NUL
-		if %ERRORLEVEL% NEQ 0 (goto WARNING)
-		Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 8B3587DB01E404803CA4FB0299994589B7DA32CC > NUL
-		if %ERRORLEVEL% NEQ 0 (goto WARNING)
+		Fciv -sha1 Pcap_DNSProxy.exe |findstr /I 712685C61DB12EB0E1AF5271F4421E28E041CEDD > NUL
+		if ERRORLEVEL 1 (goto WARNING)
+		Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I AFF92F1F67A3C2172FA1EC1308E8FC2ABA2E9413 > NUL
+		if ERRORLEVEL 1 (goto WARNING)
 	)
 	goto CHOICE
 

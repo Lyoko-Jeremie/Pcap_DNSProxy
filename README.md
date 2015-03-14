@@ -6,9 +6,12 @@ A local DNS server base on WinPcap and LibPcap.
 本分支 master 为 Pcap_DNSProxy 项目的主分支，用于存放源代码，**编译版本请移步 [Release 分支](https://github.com/chengr28/Pcap_DNSProxy/tree/Release)**
 
 ### Usage
-* Windows [简体中文](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe(Chinese_Simplified))/[繁體中文](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe(Chinese_Traditional))
-* [Linux](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe_Linux)
-* [Mac](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe_Mac)
+参见项目 Documents 文件夹的内容/參見專案 Documents 資料夾的內容！
+* Windows
+   * 简体中文：ReadMe(Chinese_Simplified)
+   * 繁體中文：ReadMe(Chinese_Traditional)
+* Linux：ReadMe_Linux(Chinese_Simplified)
+* Mac：ReadMe_Mac(Chinese_Simplified)
 
 ### Updated
 * **Windows：0.4 Beta 14(2015-03-15)**
