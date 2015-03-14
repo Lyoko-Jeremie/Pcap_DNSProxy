@@ -88,25 +88,25 @@ size_t __fastcall CompareAddresses(const void *OriginalAddrBegin, const void *Or
 
 /* Old version(2015-01-28)
 //Sort ResultBlacklist(All)
-bool __fastcall SortResultBlacklistALL(const ResultBlacklistTable &ResultBlacklistTableIter)
+bool __fastcall SortResultBlacklistALL(const RESULT_BLACKLST_TABLE &ResultBlacklistTableIter)
 {
 	return ResultBlacklistTableIter.PatternString.empty();
 }
 
 //Sort HostsList(Banned)
-bool __fastcall SortHostsListBANNED(const HostsTable &HostsTableIter)
+bool __fastcall SortHostsListBANNED(const HOSTS_TABLE &HostsTableIter)
 {
 	return (HostsTableIter.Type == HOSTS_BANNED);
 }
 
 //Sort HostsList(White)
-bool __fastcall SortHostsListWHITE(const HostsTable &HostsTableIter)
+bool __fastcall SortHostsListWHITE(const HOSTS_TABLE &HostsTableIter)
 {
 	return (HostsTableIter.Type == HOSTS_WHITE);
 }
 
 //Sort HostsList(Normal)
-bool __fastcall SortHostsListNORMAL(const HostsTable &HostsTableIter)
+bool __fastcall SortHostsListNORMAL(const HOSTS_TABLE &HostsTableIter)
 {
 	return (HostsTableIter.Type == HOSTS_NORMAL);
 }

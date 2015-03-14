@@ -20,7 +20,7 @@
 #include "Base.h"
 
 //Global variables
-extern ConfigurationTable Parameter;
-extern PortTable PortList;
-extern AlternateSwapTable AlternateSwapList;
+extern CONFIGURATION_TABLE Parameter;
+extern PORT_TABLE PortList;
+extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 extern std::mutex PortListLock;

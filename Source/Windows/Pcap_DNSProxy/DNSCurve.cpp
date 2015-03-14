@@ -140,7 +140,7 @@ size_t LocalSignatureRequest(const PSTR OriginalSend, const size_t SendSize, PST
 		AddrLen = sizeof(sockaddr_in6);
 		((sockaddr_in6 *)SockAddr.get())->sin6_family = AF_INET6;
 		((sockaddr_in6 *)SockAddr.get())->sin6_addr = in6addr_loopback;
-		((sockaddr_in6 *)SockAddr.get())->sin6_port = Parameter.ListenPort;
+		((sockaddr_in6 *)SockAddr.get())->sin6_port = Parameter.ListenPort->front();
 		UDPSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	}
 	else if (Parameter.GatewayAvailable_IPv4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
@@ -148,7 +148,7 @@ size_t LocalSignatureRequest(const PSTR OriginalSend, const size_t SendSize, PST
 		AddrLen = sizeof(sockaddr_in);
 		((sockaddr_in *)SockAddr.get())->sin_family = AF_INET;
 		((sockaddr_in *)SockAddr.get())->sin_addr.S_un.S_addr = htonl(INADDR_LOOPBACK);
-		((sockaddr_in *)SockAddr.get())->sin_port = Parameter.ListenPort;
+		((sockaddr_in *)SockAddr.get())->sin_port = Parameter.ListenPort->front();
 		UDPSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	}
 	else {
@@ -648,7 +648,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const b
 //Initialization
 	std::shared_ptr<char> SendBuffer(new char[PACKET_MAXSIZE]()), RecvBuffer(new char[PACKET_MAXSIZE]());
 	memset(SendBuffer.get(), 0, PACKET_MAXSIZE);
-	memset(RecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
+	memset(RecvBuffer.get(), 0, PACKET_MAXSIZE);
 	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
 	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
 	SYSTEM_SOCKET UDPSocket = 0;

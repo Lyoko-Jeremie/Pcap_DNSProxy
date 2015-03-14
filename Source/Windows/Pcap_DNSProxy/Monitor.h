@@ -20,11 +20,13 @@
 #include "Base.h"
 
 //Global variables
-extern ConfigurationTable Parameter;
-extern DNSCurveConfigurationTable DNSCurveParameter;
-extern AlternateSwapTable AlternateSwapList;
-extern std::deque<DNSCacheData> DNSCacheList;
+extern CONFIGURATION_TABLE Parameter;
+extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+extern ALTERNATE_SWAP_TABLE AlternateSwapList;
+extern std::deque<DNSCACHE_DATA> DNSCacheList;
 extern std::mutex RunningLogLock, DNSCacheListLock;
+size_t TCPMonitorIndex = 0, UDPMonitorIndex = 0;
+std::mutex TCPMonitorIndexLock, UDPMonitorIndexLock;
 
 //Functions
 size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData);

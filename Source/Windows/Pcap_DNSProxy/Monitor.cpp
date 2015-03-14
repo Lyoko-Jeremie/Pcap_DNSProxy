@@ -137,9 +137,13 @@ size_t __fastcall MonitorInit(void)
 		AlternateServerMonitorThread.detach();
 	}
 
+//Initialization
 	std::shared_ptr<SOCKET_DATA> LocalhostData(new SOCKET_DATA());
 	memset(LocalhostData.get(), 0, sizeof(SOCKET_DATA));
-	std::thread IPv6UDPMonitorThread, IPv4UDPMonitorThread, IPv6TCPMonitorThread, IPv4TCPMonitorThread;
+//	std::thread IPv6UDPMonitorThread, IPv4UDPMonitorThread, IPv6TCPMonitorThread, IPv4TCPMonitorThread;
+	std::vector<std::thread> MonitorThread((Parameter.ListenPort->size() + 1U) * QUEUE_PARTNUM);
+	size_t MonitorThreadIndex = 0;
+
 //Set localhost monitor sockets(IPv6/UDP).
 	if (Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV6_IPV4 || Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV6)
 	{
@@ -152,13 +156,34 @@ size_t __fastcall MonitorInit(void)
 					PrintError(LOG_ERROR_WINSOCK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
-				Parameter.LocalSocket[0] = LocalhostData->Socket;
+//				Parameter.LocalSocket[0] = LocalhostData->Socket;
+				Parameter.LocalSocket->push_back(LocalhostData->Socket);
+				LocalhostData->SockAddr.ss_family = AF_INET6;
+				LocalhostData->AddrLen = sizeof(sockaddr_in6);
 
 			//Listen Address available(IPv6)
 				if (Parameter.ListenAddress_IPv6 != nullptr)
 				{
-					((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_addr = ((PSOCKADDR_IN6)Parameter.ListenAddress_IPv6)->sin6_addr;
-					((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_port = ((PSOCKADDR_IN6)Parameter.ListenAddress_IPv6)->sin6_port;
+					for (size_t Index = 0;Index < Parameter.ListenAddress_IPv6->size();Index++)
+					{
+						if (Index > 0)
+						{
+							LocalhostData->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+							if (LocalhostData->Socket == INVALID_SOCKET)
+							{
+								PrintError(LOG_ERROR_WINSOCK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								break;
+							}
+						}
+
+						((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_addr = ((PSOCKADDR_IN6)&Parameter.ListenAddress_IPv6->at(Index))->sin6_addr;
+						((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_port = ((PSOCKADDR_IN6)&Parameter.ListenAddress_IPv6->at(Index))->sin6_port;
+
+					//Add to global thread list.
+						std::thread MonitorThreadTemp(UDPMonitor, *LocalhostData);
+						MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
+						MonitorThreadIndex++;
+					}
 				}
 				else {
 				//Proxy Mode
@@ -167,13 +192,30 @@ size_t __fastcall MonitorInit(void)
 				//Server Mode, Priavte Mode and Custom Mode
 					else
 						((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_addr = in6addr_any;
-					((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_port = Parameter.ListenPort;
-				}
-				LocalhostData->SockAddr.ss_family = AF_INET6;
-				LocalhostData->AddrLen = sizeof(sockaddr_in6);
 
-				std::thread MonitorThreadTemp(UDPMonitor, *LocalhostData);
-				IPv6UDPMonitorThread.swap(MonitorThreadTemp);
+				//Set ports.
+//					((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_port = Parameter.ListenPort;
+					if (Parameter.ListenPort != nullptr)
+					{
+						for (auto ListenPortIter:*Parameter.ListenPort)
+						{
+							LocalhostData->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+							if (LocalhostData->Socket == INVALID_SOCKET)
+							{
+								PrintError(LOG_ERROR_WINSOCK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								break;
+							}
+
+							((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_port = ListenPortIter;
+							Parameter.LocalSocket->push_back(LocalhostData->Socket);
+
+						//Add to global thread list.
+							std::thread MonitorThreadTemp(UDPMonitor, *LocalhostData);
+							MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
+							MonitorThreadIndex++;
+						}
+					}
+				}
 			}
 
 			memset(LocalhostData.get(), 0, sizeof(SOCKET_DATA));
@@ -189,13 +231,34 @@ size_t __fastcall MonitorInit(void)
 					PrintError(LOG_ERROR_WINSOCK, L"IPv6 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
-				Parameter.LocalSocket[2U] = LocalhostData->Socket;
+//				Parameter.LocalSocket[2U] = LocalhostData->Socket;
+				Parameter.LocalSocket->push_back(LocalhostData->Socket);
+				LocalhostData->SockAddr.ss_family = AF_INET6;
+				LocalhostData->AddrLen = sizeof(sockaddr_in6);
 
 			//Listen Address available(IPv6)
 				if (Parameter.ListenAddress_IPv6 != nullptr)
 				{
-					((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_addr = ((PSOCKADDR_IN6)Parameter.ListenAddress_IPv6)->sin6_addr;
-					((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_port = ((PSOCKADDR_IN6)Parameter.ListenAddress_IPv6)->sin6_port;
+					for (size_t Index = 0;Index < Parameter.ListenAddress_IPv6->size();Index++)
+					{
+						if (Index > 0)
+						{
+							LocalhostData->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+							if (LocalhostData->Socket == INVALID_SOCKET)
+							{
+								PrintError(LOG_ERROR_WINSOCK, L"IPv6 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								break;
+							}
+						}
+
+						((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_addr = ((PSOCKADDR_IN6)&Parameter.ListenAddress_IPv6->at(Index))->sin6_addr;
+						((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_port = ((PSOCKADDR_IN6)&Parameter.ListenAddress_IPv6->at(Index))->sin6_port;
+
+					//Add to global thread list.
+						std::thread MonitorThreadTemp(TCPMonitor, *LocalhostData);
+						MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
+						MonitorThreadIndex++;
+					}
 				}
 				else {
 				//Proxy Mode
@@ -204,13 +267,30 @@ size_t __fastcall MonitorInit(void)
 				//Server Mode, Priavte Mode and Custom Mode
 					else
 						((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_addr = in6addr_any;
-					((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_port = Parameter.ListenPort;
-				}
-				LocalhostData->SockAddr.ss_family = AF_INET6;
-				LocalhostData->AddrLen = sizeof(sockaddr_in6);
 
-				std::thread MonitorThreadTemp(TCPMonitor, *LocalhostData);
-				IPv6TCPMonitorThread.swap(MonitorThreadTemp);
+				//Set ports.
+//					((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_port = Parameter.ListenPort;
+					if (Parameter.ListenPort != nullptr)
+					{
+						for (auto ListenPortIter:*Parameter.ListenPort)
+						{
+							LocalhostData->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+							if (LocalhostData->Socket == INVALID_SOCKET)
+							{
+								PrintError(LOG_ERROR_WINSOCK, L"IPv6 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								break;
+							}
+
+							((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_port = ListenPortIter;
+							Parameter.LocalSocket->push_back(LocalhostData->Socket);
+
+						//Add to global thread list.
+							std::thread MonitorThreadTemp(TCPMonitor, *LocalhostData);
+							MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
+							MonitorThreadIndex++;
+						}
+					}
+				}
 			}
 
 			memset(LocalhostData.get(), 0, sizeof(SOCKET_DATA));
@@ -228,13 +308,34 @@ size_t __fastcall MonitorInit(void)
 				PrintError(LOG_ERROR_WINSOCK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
-				Parameter.LocalSocket[1U] = LocalhostData->Socket;
+//				Parameter.LocalSocket[1U] = LocalhostData->Socket;
+				Parameter.LocalSocket->push_back(LocalhostData->Socket);
+				LocalhostData->SockAddr.ss_family = AF_INET;
+				LocalhostData->AddrLen = sizeof(sockaddr_in);
 
 			//Listen Address available(IPv6)
 				if (Parameter.ListenAddress_IPv4 != nullptr)
 				{
-					((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_addr = ((PSOCKADDR_IN)Parameter.ListenAddress_IPv4)->sin_addr;
-					((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_port = ((PSOCKADDR_IN)Parameter.ListenAddress_IPv4)->sin_port;
+					for (size_t Index = 0;Index < Parameter.ListenAddress_IPv4->size();Index++)
+					{
+						if (Index > 0)
+						{
+							LocalhostData->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+							if (LocalhostData->Socket == INVALID_SOCKET)
+							{
+								PrintError(LOG_ERROR_WINSOCK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								break;
+							}
+						}
+
+						((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_addr = ((PSOCKADDR_IN)&Parameter.ListenAddress_IPv4->at(Index))->sin_addr;
+						((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_port = ((PSOCKADDR_IN)&Parameter.ListenAddress_IPv4->at(Index))->sin_port;
+
+					//Add to global thread list.
+						std::thread MonitorThreadTemp(UDPMonitor, *LocalhostData);
+						MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
+						MonitorThreadIndex++;
+					}
 				}
 				else {
 				//Proxy Mode
@@ -243,13 +344,30 @@ size_t __fastcall MonitorInit(void)
 				//Server Mode, Priavte Mode and Custom Mode
 					else
 						((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_addr.S_un.S_addr = INADDR_ANY;
-					((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_port = Parameter.ListenPort;
-				}
-				LocalhostData->SockAddr.ss_family = AF_INET;
-				LocalhostData->AddrLen = sizeof(sockaddr_in);
 
-				std::thread MonitorThreadTemp(UDPMonitor, *LocalhostData);
-				IPv4UDPMonitorThread.swap(MonitorThreadTemp);
+				//Set ports.
+//					((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_port = Parameter.ListenPort;
+					if (Parameter.ListenPort != nullptr)
+					{
+						for (auto ListenPortIter:*Parameter.ListenPort)
+						{
+							LocalhostData->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+							if (LocalhostData->Socket == INVALID_SOCKET)
+							{
+								PrintError(LOG_ERROR_WINSOCK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								break;
+							}
+
+							((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_port = ListenPortIter;
+							Parameter.LocalSocket->push_back(LocalhostData->Socket);
+
+						//Add to global thread list.
+							std::thread MonitorThreadTemp(UDPMonitor, *LocalhostData);
+							MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
+							MonitorThreadIndex++;
+						}
+					}
+				}
 			}
 
 			memset(LocalhostData.get(), 0, sizeof(SOCKET_DATA));
@@ -264,13 +382,34 @@ size_t __fastcall MonitorInit(void)
 				PrintError(LOG_ERROR_WINSOCK, L"IPv4 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
-				Parameter.LocalSocket[3U] = LocalhostData->Socket;
+//				Parameter.LocalSocket[3U] = LocalhostData->Socket;
+				Parameter.LocalSocket->push_back(LocalhostData->Socket);
+				LocalhostData->SockAddr.ss_family = AF_INET;
+				LocalhostData->AddrLen = sizeof(sockaddr_in);
 
 			//Listen Address available(IPv6)
 				if (Parameter.ListenAddress_IPv4 != nullptr)
 				{
-					((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_addr = ((PSOCKADDR_IN)Parameter.ListenAddress_IPv4)->sin_addr;
-					((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_port = ((PSOCKADDR_IN)Parameter.ListenAddress_IPv4)->sin_port;
+					for (size_t Index = 0;Index < Parameter.ListenAddress_IPv4->size();Index++)
+					{
+						if (Index > 0)
+						{
+							LocalhostData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+							if (LocalhostData->Socket == INVALID_SOCKET)
+							{
+								PrintError(LOG_ERROR_WINSOCK, L"IPv4 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								break;
+							}
+						}
+
+						((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_addr = ((PSOCKADDR_IN)&Parameter.ListenAddress_IPv4->at(Index))->sin_addr;
+						((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_port = ((PSOCKADDR_IN)&Parameter.ListenAddress_IPv4->at(Index))->sin_port;
+
+					//Add to global thread list.
+						std::thread MonitorThreadTemp(TCPMonitor, *LocalhostData);
+						MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
+						MonitorThreadIndex++;
+					}
 				}
 				else {
 				//Proxy Mode
@@ -279,13 +418,30 @@ size_t __fastcall MonitorInit(void)
 				//Server Mode, Priavte Mode and Custom Mode
 					else
 						((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_addr.S_un.S_addr = INADDR_ANY;
-					((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_port = Parameter.ListenPort;
-				}
-				LocalhostData->SockAddr.ss_family = AF_INET;
-				LocalhostData->AddrLen = sizeof(sockaddr_in);
 
-				std::thread MonitorThreadTemp(TCPMonitor, *LocalhostData);
-				IPv4TCPMonitorThread.swap(MonitorThreadTemp);
+				//Set ports.
+//					((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_port = Parameter.ListenPort;
+					if (Parameter.ListenPort != nullptr)
+					{
+						for (auto ListenPortIter:*Parameter.ListenPort)
+						{
+							LocalhostData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+							if (LocalhostData->Socket == INVALID_SOCKET)
+							{
+								PrintError(LOG_ERROR_WINSOCK, L"IPv4 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								break;
+							}
+
+							((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_port = ListenPortIter;
+							Parameter.LocalSocket->push_back(LocalhostData->Socket);
+
+						//Add to global thread list.
+							std::thread InnerMonitorThreadTemp(TCPMonitor, *LocalhostData);
+							MonitorThread[MonitorThreadIndex].swap(InnerMonitorThreadTemp);
+							MonitorThreadIndex++;
+						}
+					}
+				}
 			}
 		}
 	}
@@ -293,6 +449,7 @@ size_t __fastcall MonitorInit(void)
 	LocalhostData.reset();
 
 //Join threads.
+/* Old version(2015-03-14)
 	if (IPv6UDPMonitorThread.joinable())
 		IPv6UDPMonitorThread.join();
 	if (IPv4UDPMonitorThread.joinable())
@@ -301,6 +458,12 @@ size_t __fastcall MonitorInit(void)
 		IPv6TCPMonitorThread.join();
 	if (IPv4TCPMonitorThread.joinable())
 		IPv4TCPMonitorThread.join();
+*/
+	for (size_t Index = 0;Index < MonitorThreadIndex;Index++)
+	{
+		if (MonitorThread[Index].joinable())
+			MonitorThread[Index].join();
+	}
 
 	return EXIT_SUCCESS;
 }
@@ -352,10 +515,12 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData)
 //Start Monitor.
 	std::shared_ptr<char> Buffer(new char[PACKET_MAXSIZE * BUFFER_RING_MAXNUM]());
 	memset(Buffer.get(), 0, PACKET_MAXSIZE * BUFFER_RING_MAXNUM);
-	size_t Index[] = {0, 0, 0};
-
 	void *Addr = nullptr;
 	pdns_hdr DNS_Header = nullptr;
+	std::unique_lock<std::mutex> UDPMonitorIndexMutex(UDPMonitorIndexLock);
+	UDPMonitorIndexMutex.unlock();
+	size_t Index[] = {0, 0};
+
 	for (;;)
 	{
 		Sleep(LOOP_INTERVAL_TIME);
@@ -443,12 +608,12 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData)
 			DNS_Header = (pdns_hdr)(Buffer.get() + PACKET_MAXSIZE * Index[0]);
 			if (DNS_Header->Questions != htons(U16_NUM_ONE) || DNS_Header->Answer > 0 || ntohs(DNS_Header->Additional) > U16_NUM_ONE || DNS_Header->Authority > 0)
 				continue;
-			for (Index[2U] = sizeof(dns_hdr);Index[2U] < DNS_PACKET_QUERY_LOCATE(Buffer.get() + PACKET_MAXSIZE * Index[0]);Index[2U]++)
+			for (Index[1U] = sizeof(dns_hdr);Index[1U] < DNS_PACKET_QUERY_LOCATE(Buffer.get() + PACKET_MAXSIZE * Index[0]);Index[1U]++)
 			{
-				if (*(Buffer.get() + PACKET_MAXSIZE * Index[0] + Index[2U]) == '\xC0')
+				if (*(Buffer.get() + PACKET_MAXSIZE * Index[0] + Index[1U]) == '\xC0')
 					continue;
 			}
-			if (Index[2U] != DNS_PACKET_QUERY_LOCATE(Buffer.get() + PACKET_MAXSIZE * Index[0]))
+			if (Index[1U] != DNS_PACKET_QUERY_LOCATE(Buffer.get() + PACKET_MAXSIZE * Index[0]))
 			{
 				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | 0x8001); //Set 10000000000000001, DNS_SQR_FE
 				sendto(LocalhostData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], (int)RecvLen, 0, (PSOCKADDR)&LocalhostData.SockAddr, LocalhostData.AddrLen);
@@ -486,18 +651,21 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData)
 			}
 
 		//Request process
+			UDPMonitorIndexMutex.lock();
 			if (LocalhostData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 			{
-				std::thread RequestProcessThread(EnterRequestProcess, Buffer.get() + PACKET_MAXSIZE * Index[0], RecvLen, LocalhostData, IPPROTO_UDP, Index[1U]);
+				std::thread RequestProcessThread(EnterRequestProcess, Buffer.get() + PACKET_MAXSIZE * Index[0], RecvLen, LocalhostData, IPPROTO_UDP, UDPMonitorIndex);
 				RequestProcessThread.detach();
 			}
 			else { //IPv4
-				std::thread RequestProcessThread(EnterRequestProcess, Buffer.get() + PACKET_MAXSIZE * Index[0], RecvLen, LocalhostData, IPPROTO_UDP, Index[1U] + QUEUE_MAXLEN);
+				std::thread RequestProcessThread(EnterRequestProcess, Buffer.get() + PACKET_MAXSIZE * Index[0], RecvLen, LocalhostData, IPPROTO_UDP, UDPMonitorIndex + QUEUE_MAXLEN);
 				RequestProcessThread.detach();
 			}
+			UDPMonitorIndex = (UDPMonitorIndex + 1U) % QUEUE_MAXLEN;
+			UDPMonitorIndexMutex.unlock();
 
 			Index[0] = (Index[0] + 1U) % BUFFER_RING_MAXNUM;
-			Index[1U] = (Index[1U] + 1U) % QUEUE_MAXLEN;
+//			Index[1U] = (Index[1U] + 1U) % QUEUE_MAXLEN;
 		}
 /*		else if (RecvLen == 0)
 		{
@@ -573,8 +741,11 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalhostData)
 //Start Monitor.
 	std::shared_ptr<SOCKET_DATA> ClientData(new SOCKET_DATA());
 	void *Addr = nullptr;
-	size_t Index = 0;
+//	size_t Index = 0;
+	std::unique_lock<std::mutex> TCPMonitorIndexMutex(TCPMonitorIndexLock);
+	TCPMonitorIndexMutex.unlock();
 	ClientData->AddrLen = LocalhostData.AddrLen;
+
 	for (;;)
 	{
 		Sleep(LOOP_INTERVAL_TIME);
@@ -629,10 +800,14 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalhostData)
 		}
 
 	//Accept process.
-		std::thread TCPReceiveThread(TCPReceiveProcess, *ClientData, Index);
+		TCPMonitorIndexMutex.lock();
+		std::thread TCPReceiveThread(TCPReceiveProcess, *ClientData, TCPMonitorIndex);
 		TCPReceiveThread.detach();
 
-		Index = (Index + 1U) % QUEUE_MAXLEN;
+		TCPMonitorIndex = (TCPMonitorIndex + 1U) % QUEUE_MAXLEN;
+		TCPMonitorIndexMutex.unlock();
+
+//		Index = (Index + 1U) % QUEUE_MAXLEN;
 	}
 
 	closesocket(LocalhostData.Socket);

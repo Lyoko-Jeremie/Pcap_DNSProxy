@@ -114,10 +114,14 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Data of a line is too long - 該參數過長（可根據檔案名和行數查找）：一行資料切勿超過 4096位元組/4KB
   * Log file size error - 設定檔指定的最大日誌檔容量錯誤：可接受範圍為 4KB - 4GB
   * Pcap Capture error - 抓包模組參數錯誤：請確定關閉抓包模組時是否有開啟其它請求功能變數名稱解析的方式
-  * DNS server IPv6 Port error - IPv6 的 DNS 目標伺服器埠錯誤（可根據檔案名和行數查找）：請檢查目標伺服器的埠
+  * IPv6 Listen Address format error - IPv6 本地監聽綁定位址格式錯誤（可根據檔案名和行數查找）：請檢查 IPv6 的本地監聽綁定位址
+  * IPv6 Listen Port error - IPv6 本地監聽綁定埠錯誤（可根據檔案名和行數查找）：請檢查 IPv6 的本地監聽綁定埠
+  * IPv4 Listen Address format error - IPv4 本地監聽綁定位址格式錯誤（可根據檔案名和行數查找）：請檢查 IPv4 的本地監聽綁定位址
+  * IPv4 Listen Port error - IPv4 本地監聽綁定埠錯誤（可根據檔案名和行數查找）：請檢查 IPv4 的本地監聽綁定埠
   * DNS server IPv6 Address format error - IPv6 的 DNS 伺服器位址格式錯誤（可根據檔案名和行數查找）：請檢查 IPv6 的 DNS 伺服器位址
-  * DNS server IPv4 Port error - IPv4的DNS目標伺服器埠錯誤（可根據檔案名和行數查找）：請檢查目標伺服器的埠
+  * DNS server IPv6 Port error - IPv6 的 DNS 目標伺服器埠錯誤（可根據檔案名和行數查找）：請檢查 IPv6 的 DNS 目標伺服器的埠
   * DNS server IPv4 Address format error - IPv4 的 DNS 伺服器位址格式錯誤（可根據檔案名和行數查找）：請檢查 IPv4 的 DNS 伺服器位址
+  * DNS server IPv4 Port error - IPv4 的 DNS 目標伺服器埠錯誤（可根據檔案名和行數查找）：請檢查 IPv4 的 DNS 目標伺服器的埠
   * Localhost server listening Port error - 本地監聽埠錯誤：請檢查本地監聽埠的值，可適用範圍為 1 - 65535
   * IPFilter Level error - IPFilter 過濾級別錯誤：請檢查過濾級別的值，可適用範圍為 1 - 65535
   * DNS Cache error - DNS 緩存配置錯誤：請檢查緩存的參數

@@ -321,11 +321,11 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 	pcap_t *DeviceHandle = nullptr;
 	std::shared_ptr<wchar_t> DeviceName(new wchar_t[PCAP_ERRBUF_SIZE]());
 	memset(DeviceName.get(), 0, PCAP_ERRBUF_SIZE);
-	std::shared_ptr<char> Buffer(new char[PACKET_MAXSIZE * BUFFER_RING_MAXNUM]());
-	memset(Buffer.get(), 0, PACKET_MAXSIZE * BUFFER_RING_MAXNUM);
+	std::shared_ptr<char> Buffer(new char[ORIGINAL_PACKET_MAXSIZE * BUFFER_RING_MAXNUM]());
+	memset(Buffer.get(), 0, ORIGINAL_PACKET_MAXSIZE * BUFFER_RING_MAXNUM);
 
 //Open device
-	if ((DeviceHandle = pcap_open(pDrive->name, PACKET_MAXSIZE, PCAP_OPENFLAG_NOCAPTURE_LOCAL, PCAP_CAPTURE_TIMEOUT, nullptr, Buffer.get())) == nullptr)
+	if ((DeviceHandle = pcap_open(pDrive->name, ORIGINAL_PACKET_MAXSIZE, PCAP_OPENFLAG_NOCAPTURE_LOCAL, PCAP_CAPTURE_TIMEOUT, nullptr, Buffer.get())) == nullptr)
 	{
 		std::shared_ptr<wchar_t> ErrBuffer(new wchar_t[PCAP_ERRBUF_SIZE]());
 		wmemset(ErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
@@ -483,7 +483,7 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 			}
 			case TRUE: //1, Packet has been read without problems.
 			{
-				memset(Buffer.get() + PACKET_MAXSIZE * Index, 0, PACKET_MAXSIZE);
+				memset(Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, 0, ORIGINAL_PACKET_MAXSIZE);
 
 				Ethernet_Header = (peth_hdr)PacketData;
 				HeaderLength = sizeof(eth_hdr);
@@ -496,9 +496,9 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 					if (PPPoE_Header->Protocol == htons(PPPOETYPE_IPV6) && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && PacketHeader->caplen > HeaderLength + sizeof(ipv6_hdr) || //IPv6 over PPPoE
 						PPPoE_Header->Protocol == htons(PPPOETYPE_IPV4) && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && PacketHeader->caplen > HeaderLength + sizeof(ipv4_hdr)) //IPv4 over PPPoE
 					{
-//						memcpy(Buffer.get() + PACKET_MAXSIZE * Index, PacketData + HeaderLength, PacketHeader->caplen - HeaderLength);
-						memcpy_s(Buffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE, PacketData + HeaderLength, PacketHeader->caplen - HeaderLength);
-						std::thread NetworkLayerThread(NetworkLayer, Buffer.get() + PACKET_MAXSIZE * Index, PacketHeader->caplen - HeaderLength, ntohs(PPPoE_Header->Protocol));
+//						memcpy(Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, PacketData + HeaderLength, PacketHeader->caplen - HeaderLength);
+						memcpy_s(Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, ORIGINAL_PACKET_MAXSIZE, PacketData + HeaderLength, PacketHeader->caplen - HeaderLength);
+						std::thread NetworkLayerThread(NetworkLayer, Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, PacketHeader->caplen - HeaderLength, ntohs(PPPoE_Header->Protocol));
 						NetworkLayerThread.detach();
 
 						Index = (Index + 1U) % BUFFER_RING_MAXNUM;
@@ -509,9 +509,9 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 				else if (Ethernet_Header->Type == htons(ETHERTYPE_IPV6) && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && PacketHeader->caplen > HeaderLength + sizeof(ipv6_hdr) || //IPv6 over Ethernet
 					Ethernet_Header->Type == htons(ETHERTYPE_IP) && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && PacketHeader->caplen > HeaderLength + sizeof(ipv4_hdr)) //IPv4 over Ethernet
 				{
-//					memcpy(Buffer.get() + PACKET_MAXSIZE * Index, PacketData + HeaderLength, PacketHeader->caplen - HeaderLength);
-					memcpy_s(Buffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE, PacketData + HeaderLength, PacketHeader->caplen - HeaderLength);
-					std::thread NetworkLayerThread(NetworkLayer, Buffer.get() + PACKET_MAXSIZE * Index, PacketHeader->caplen - HeaderLength, ntohs(Ethernet_Header->Type));
+//					memcpy(Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, PacketData + HeaderLength, PacketHeader->caplen - HeaderLength);
+					memcpy_s(Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, ORIGINAL_PACKET_MAXSIZE, PacketData + HeaderLength, PacketHeader->caplen - HeaderLength);
+					std::thread NetworkLayerThread(NetworkLayer, Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, PacketHeader->caplen - HeaderLength, ntohs(Ethernet_Header->Type));
 					NetworkLayerThread.detach();
 
 					Index = (Index + 1U) % BUFFER_RING_MAXNUM;
@@ -924,7 +924,8 @@ size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length, const 
 	}
 
 //Clear socket.
-	for (auto SocketIter:Parameter.LocalSocket)
+	if (Parameter.LocalSocket != nullptr && !Parameter.LocalSocket->empty())
+	for (auto SocketIter:*Parameter.LocalSocket)
 	{
 		if (SocketIter == RequesterData->Socket)
 			return EXIT_SUCCESS;

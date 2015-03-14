@@ -20,6 +20,6 @@
 #include "Base.h"
 
 //Global variables
-extern ConfigurationTable Parameter;
+extern CONFIGURATION_TABLE Parameter;
 extern time_t StartTime, RunningLogStartTime;
-extern DNSCurveConfigurationTable DNSCurveParameter;
+extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;

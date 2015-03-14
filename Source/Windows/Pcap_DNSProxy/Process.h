@@ -20,12 +20,12 @@
 #include "Base.h"
 
 //Global variables
-extern ConfigurationTable Parameter;
-extern PortTable PortList;
-extern AlternateSwapTable AlternateSwapList;
-extern DNSCurveConfigurationTable DNSCurveParameter;
-extern std::vector<HostsTable> *HostsListUsing;
-extern std::deque<DNSCacheData> DNSCacheList;
+extern CONFIGURATION_TABLE Parameter;
+extern PORT_TABLE PortList;
+extern ALTERNATE_SWAP_TABLE AlternateSwapList;
+extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+extern std::vector<HOSTS_TABLE> *HostsListUsing;
+extern std::deque<DNSCACHE_DATA> DNSCacheList;
 extern std::mutex LocalAddressLock[QUEUE_PARTNUM / 2U], HostsListLock, DNSCacheListLock;
 /* Old version(2014-09-13)
 static const std::regex IPv4PrivateB(".(1[6-9]|2[0-9]|3[01]).172.in-addr.arpa", std::regex_constants::extended);

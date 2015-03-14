@@ -1461,7 +1461,8 @@ typedef struct _dnscurve_txt_signature_
 #define DEFAULT_FILE_MAXSIZE           4294967296U                              //Maximum size of whole reading file(4GB/4294967296 bytes).
 #define DEFAULT_LOG_MAXSIZE            8388608U                                 //Maximum size of whole log file(8MB/8388608 bytes).
 #define DEFAULT_LOG_MINSIZE            4096U                                    //Minimum size of whole log file(4KB/4096 bytes).
-#define PACKET_MAXSIZE                 1512U                                    //Maximum size of packets(1500 bytes maximum payload length + 8 bytes Ethernet header + 4 bytes FCS), Standard MTU of Ethernet network
+#define PACKET_MAXSIZE                 1500U                                    //Maximum size of packets, Standard MTU of Ethernet II network
+#define ORIGINAL_PACKET_MAXSIZE        1512U                                    //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header + 4 bytes FCS)
 #define LARGE_PACKET_MAXSIZE           4096U                                    //Maximum size of packets(4KB/4096 bytes) of TCP protocol
 #define BUFFER_RING_MAXNUM             64U                                      //Maximum packet buffer number
 #define ADDR_STRING_MAXSIZE            64U                                      //Maximum size of addresses(IPv4/IPv6) words
@@ -1701,7 +1702,7 @@ typedef struct _dnscurve_request_multithread_parameter_
 
 //Class defines
 //Configuration class
-class ConfigurationTable {
+typedef class ConfigurationTable {
 public:
 // Parameters from configure files
 //[Base] block
@@ -1728,13 +1729,13 @@ public:
 	size_t                           OperationMode;
 	size_t                           ListenProtocol_NetworkLayer;
 	size_t                           ListenProtocol_TransportLayer;
-	uint16_t                         ListenPort;
+	std::vector<uint16_t>            *ListenPort;
 	bool                             IPFilterType;
 	size_t                           IPFilterLevel;
 	bool                             AcceptType;
 //[Addresses] block
-	sockaddr_storage                 *ListenAddress_IPv4;
-	sockaddr_storage                 *ListenAddress_IPv6;
+	std::vector<sockaddr_storage>    *ListenAddress_IPv4;
+	std::vector<sockaddr_storage>    *ListenAddress_IPv6;
 	struct _dns_target_ {
 		DNS_SERVER_DATA                IPv4;
 		DNS_SERVER_DATA                Alternate_IPv4;
@@ -1788,7 +1789,7 @@ public:
 // Global parameters from status
 //Global block
 	bool                             Console;
-	SYSTEM_SOCKET                    LocalSocket[QUEUE_PARTNUM];
+	std::vector<SYSTEM_SOCKET>       *LocalSocket;
 	std::default_random_engine       *RamdomEngine;
 	std::vector<std::wstring>        *Path;
 	std::vector<std::wstring>        *HostsFileList;
@@ -1820,10 +1821,10 @@ public:
 
 	::ConfigurationTable(void);
 	~ConfigurationTable(void);
-};
+}CONFIGURATION_TABLE;
 
 //Hosts lists class
-class HostsTable {
+typedef class HostsTable {
 public:
 	size_t                   FileIndex;
 	size_t                   Type;
@@ -1834,52 +1835,52 @@ public:
 	std::string              PatternString;
 
 	::HostsTable(void);
-};
+}HOSTS_TABLE;
 
 //IPv4/IPv6 addresses ranges class
-class AddressRange {
+typedef class AddressRangeTable {
 public:
 	size_t                   FileIndex;
 	sockaddr_storage         Begin;
 	sockaddr_storage         End;
 	size_t                   Level;
 
-	::AddressRange(void);
-};
+	::AddressRangeTable(void);
+}ADDRESS_RANGE_TABLE;
 
 //Blacklist of results class
-class ResultBlacklistTable {
+typedef class ResultBlacklistTable {
 public:
-	size_t                      FileIndex;
-	std::vector<AddressRange>   Addresses;
-	std::regex                  Pattern;
-	std::string                 PatternString;
+	size_t                           FileIndex;
+	std::vector<AddressRangeTable>   Addresses;
+	std::regex                       Pattern;
+	std::string                      PatternString;
 
 	::ResultBlacklistTable(void);
-};
+}RESULT_BLACKLIST_TABLE;
 
 //Address Hosts class
-class AddressHostsBlock {
+typedef class AddressHostsTable {
 public:
-	size_t                      FileIndex;
-	std::vector<AddressRange>   Addresses;
-	sockaddr_storage            TargetAddress;
+	size_t                           FileIndex;
+	std::vector<AddressRangeTable>   Addresses;
+	sockaddr_storage                 TargetAddress;
 
-	::AddressHostsBlock(void);
-};
+	::AddressHostsTable(void);
+}ADDRESS_HOSTS_TABLE;
 
 //System and Request port list class
-class PortTable {
+typedef class PortTable {
 public:
-	SOCKET_DATA              *RecvData;                                //System receive sockets/Addresses records
-	std::vector<SOCKET_DATA> SendData[QUEUE_MAXLEN * QUEUE_PARTNUM];   //Request ports records
+	SOCKET_DATA              *RecvData;                                //System receive sockets/Addresses messages
+	std::vector<SOCKET_DATA> SendData[QUEUE_MAXLEN * QUEUE_PARTNUM];   //Request ports messages
 
 	::PortTable(void);
 	~PortTable(void);
-};
+}PORT_TABLE;
 
 //Alternate swap table class
-class AlternateSwapTable {
+typedef class AlternateSwapTable {
 public:
 	bool                     IsSwap[ALTERNATE_SERVERNUM];
 	size_t                   TimeoutTimes[ALTERNATE_SERVERNUM];
@@ -1887,10 +1888,10 @@ public:
 
 	::AlternateSwapTable(void);
 	~AlternateSwapTable(void);
-};
+}ALTERNATE_SWAP_TABLE;
 
 //DNSCurve Configuration class
-class DNSCurveConfigurationTable {
+typedef class DNSCurveConfigurationTable {
 public:
 //[DNSCurve] block
 	size_t                   DNSCurvePayloadSize;
@@ -1910,7 +1911,7 @@ public:
 
 	::DNSCurveConfigurationTable(void);
 	~DNSCurveConfigurationTable(void);
-};
+}DNSCURVE_CONFIGURATON_TABLE;
 
 //////////////////////////////////////////////////
 // Main functions

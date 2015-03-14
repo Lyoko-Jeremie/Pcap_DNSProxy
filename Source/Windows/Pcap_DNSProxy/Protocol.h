@@ -20,12 +20,12 @@
 #include "Base.h"
 
 //Global variables
-extern ConfigurationTable Parameter;
-extern std::vector<AddressRange> *AddressRangeUsing;
-extern std::vector<ResultBlacklistTable> *ResultBlacklistUsing;
-extern std::vector<AddressPrefixBlock> *LocalRoutingListUsing;
-extern std::vector<AddressHostsBlock> *AddressHostsListUsing;
-extern DNSCurveConfigurationTable DNSCurveParameter;
+extern CONFIGURATION_TABLE Parameter;
+extern std::vector<ADDRESS_RANGE_TABLE> *AddressRangeUsing;
+extern std::vector<RESULT_BLACKLIST_TABLE> *ResultBlacklistUsing;
+extern std::vector<ADDRESS_PREFIX_BLOCK> *LocalRoutingListUsing;
+extern std::vector<ADDRESS_HOSTS_TABLE> *AddressHostsListUsing;
+extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
 extern std::mutex LocalAddressLock[QUEUE_PARTNUM / 2U], AddressRangeLock, LocalRoutingListLock, ResultBlacklistLock, AddressHostsListLock;
 
 //Functions

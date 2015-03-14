@@ -20,9 +20,9 @@
 #include "Base.h"
 
 //Global variables
-extern ConfigurationTable Parameter;
-extern AlternateSwapTable AlternateSwapList;
-extern DNSCurveConfigurationTable DNSCurveParameter;
+extern CONFIGURATION_TABLE Parameter;
+extern ALTERNATE_SWAP_TABLE AlternateSwapList;
+extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
 
 //Functions
 size_t LocalSignatureRequest(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);

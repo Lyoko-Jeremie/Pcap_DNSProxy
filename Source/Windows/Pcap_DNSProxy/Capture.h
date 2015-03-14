@@ -20,10 +20,10 @@
 #include "Base.h"
 
 //Global variables
-extern ConfigurationTable Parameter;
-extern PortTable PortList;
-extern AlternateSwapTable AlternateSwapList;
-extern std::deque<DNSCacheData> DNSCacheList;
+extern CONFIGURATION_TABLE Parameter;
+extern PORT_TABLE PortList;
+extern ALTERNATE_SWAP_TABLE AlternateSwapList;
+extern std::deque<DNSCACHE_DATA> DNSCacheList;
 extern std::mutex CaptureLock, PortListLock;
 std::string PcapFilterRules;
 std::vector<std::string> PcapRunning;

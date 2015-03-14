@@ -1450,7 +1450,7 @@ size_t __fastcall MarkDomainCache(const PSTR Buffer, const size_t Length)
 			return EXIT_FAILURE; 
 
 //Initialization(A part)
-	DNSCacheData DNSCacheDataTemp;
+	DNSCACHE_DATA DNSCacheDataTemp;
 //	memset((PSTR)&DNSCacheDataTemp + sizeof(DNSCacheDataTemp.Domain) + sizeof(DNSCacheDataTemp.Response), 0, sizeof(DNSCacheData) - sizeof(DNSCacheDataTemp.Domain) - sizeof(DNSCacheDataTemp.Response));
 	DNSCacheDataTemp.Type = 0;
 	DNSCacheDataTemp.Length = 0;

@@ -11,7 +11,7 @@ A local DNS server base on WinPcap and LibPcap.
 * [Mac](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe_Mac)
 
 ### Updated
-* **Windows：0.4 Beta 13(2015-03-14)**
+* **Windows：0.4 Beta 14(2015-03-15)**
 * **Linux：0.2(2014-08-19)**
 * **Mac：0.1(2014-08-19)**
 
@@ -20,7 +20,7 @@ A local DNS server base on WinPcap and LibPcap.
 * 本工具同时也支持使用 TCP 协议请求，在被连接重置时会自动切换到 UDP 协议，可以使请求者获得正确的域名解析。**完全支持正则表达式 Hosts 条目**，可以为使用者提供更加便捷的途径设定域名所对应的地址，避免修改系统文件的麻烦。而多线程或多服务器多线程的请求，更能提高在恶劣网络环境下域名解析的可靠性。
 
 ### Feature
-* 同时支持本地 IPv4/IPv6 协议以及自定义端口的监听和远程请求
+* 同时支持本地 IPv4/IPv6 协议以及自定义多端口的监听和远程请求
 * Native Code 原生编译，不含任何托管代码，x64版为原生64位目标平台编译
 * 作为服务工作于系统底层
 * 多线程请求模型，充分利用多线程处理器的硬件资源

@@ -114,10 +114,14 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Data of a line is too long - 该参数过长（可根据文件名和行数查找）：一行数据切勿超过 4096字节/4KB
   * Log file size error - 配置文件指定的最大日志文件容量错误：可接受范围为 4KB - 4GB
   * Pcap Capture error - 抓包模块参数错误：请确定关闭抓包模块时是否有开启其它请求域名解析的方式
-  * DNS server IPv6 Port error - IPv6 的 DNS 目标服务器端口错误（可根据文件名和行数查找）：请检查目标服务器的端口
+  * IPv6 Listen Address format error - IPv6 本地监听绑定地址格式错误（可根据文件名和行数查找）：请检查 IPv6 的本地监听绑定地址
+  * IPv6 Listen Port error - IPv6 本地监听绑定端口错误（可根据文件名和行数查找）：请检查 IPv6 的本地监听绑定端口
+  * IPv4 Listen Address format error - IPv4 本地监听绑定地址格式错误（可根据文件名和行数查找）：请检查 IPv4 的本地监听绑定地址
+  * IPv4 Listen Port error - IPv4 本地监听绑定端口错误（可根据文件名和行数查找）：请检查 IPv4 的本地监听绑定端口
   * DNS server IPv6 Address format error - IPv6 的 DNS 服务器地址格式错误（可根据文件名和行数查找）：请检查 IPv6 的 DNS 服务器地址
-  * DNS server IPv4 Port error - IPv4的DNS目标服务器端口错误（可根据文件名和行数查找）：请检查目标服务器的端口
+  * DNS server IPv6 Port error - IPv6 的 DNS 目标服务器端口错误（可根据文件名和行数查找）：请检查 IPv6 的 DNS 目标服务器的端口
   * DNS server IPv4 Address format error - IPv4 的 DNS 服务器地址格式错误（可根据文件名和行数查找）：请检查 IPv4 的 DNS 服务器地址
+  * DNS server IPv4 Port error - IPv4 的 DNS 目标服务器端口错误（可根据文件名和行数查找）：请检查 IPv4 的 DNS 目标服务器的端口
   * Localhost server listening Port error - 本地监听端口错误：请检查本地监听端口的值，可适用范围为 1 - 65535
   * IPFilter Level error - IPFilter 过滤级别错误：请检查过滤级别的值，可适用范围为 1 - 65535
   * DNS Cache error - DNS 缓存配置错误：请检查缓存的参数

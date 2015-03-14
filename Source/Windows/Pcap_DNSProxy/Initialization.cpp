@@ -22,11 +22,13 @@
 //Configuration class constructor
 ConfigurationTable::ConfigurationTable(void)
 {
-	memset(this, 0, sizeof(ConfigurationTable));
+	memset(this, 0, sizeof(CONFIGURATION_TABLE));
 	try {
+	//[Listen] block
+		ListenPort = new std::vector<uint16_t>();
 	//[Addresses] block
-		ListenAddress_IPv4 = new sockaddr_storage();
-		ListenAddress_IPv6 = new sockaddr_storage();
+		ListenAddress_IPv4 = new std::vector<sockaddr_storage>();
+		ListenAddress_IPv6 = new std::vector<sockaddr_storage>();
 		DNSTarget.IPv4_Multi = new std::vector<DNS_SERVER_DATA>();
 		DNSTarget.IPv6_Multi = new std::vector<DNS_SERVER_DATA>();
 	//[Data] block(A part)
@@ -41,6 +43,7 @@ ConfigurationTable::ConfigurationTable(void)
 		LocalAddressPTR[0] = new std::vector<std::string>();
 		LocalAddressPTR[1U] = new std::vector<std::string>();
 	//Global block
+		LocalSocket = new std::vector<SYSTEM_SOCKET>();
 		RamdomEngine = new std::default_random_engine();
 		Path = new std::vector<std::wstring>();
 		HostsFileList = new std::vector<std::wstring>();
@@ -53,6 +56,8 @@ ConfigurationTable::ConfigurationTable(void)
 	}
 	catch (std::bad_alloc)
 	{
+	//[Listen] block
+		delete ListenPort;
 	//[Addresses] block
 		delete ListenAddress_IPv4;
 		delete ListenAddress_IPv6;
@@ -70,6 +75,7 @@ ConfigurationTable::ConfigurationTable(void)
 		delete LocalAddressPTR[0];
 		delete LocalAddressPTR[1U];
 	//Global block
+		delete LocalSocket;
 		delete RamdomEngine;
 		delete Path;
 		delete HostsFileList;
@@ -79,7 +85,6 @@ ConfigurationTable::ConfigurationTable(void)
 		delete RunningLogWriteQueue;
 		delete[] DomainTable;
 		delete AcceptTypeList;
-//		memset(this, 0, sizeof(ConfigurationTable));
 
 //		WSACleanup();
 //		TerminateService();
@@ -88,9 +93,6 @@ ConfigurationTable::ConfigurationTable(void)
 	}
 
 //Initialization
-	//[Addresses] block
-	memset(ListenAddress_IPv4, 0, sizeof(sockaddr_storage));
-	memset(ListenAddress_IPv6, 0, sizeof(sockaddr_storage));
 	//[Data] block(A part)
 	memset(ICMPPaddingData, 0, ICMP_PADDING_MAXSIZE);
 	memset(DomainTestData, 0, DOMAIN_MAXSIZE);
@@ -111,7 +113,7 @@ ConfigurationTable::ConfigurationTable(void)
 //Default settings
 	LogMaxSize = DEFAULT_LOG_MAXSIZE;
 	GatewayAvailable_IPv4 = true;
-	ListenPort = htons(IPPORT_DNS);
+//	ListenPort->push_back(htons(IPPORT_DNS));
 	ReliableSocketTimeout = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
 	UnreliableSocketTimeout = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
 	ICMPID = htons((uint16_t)GetCurrentProcessId()); //Default ICMP ID is current process ID.
@@ -130,6 +132,8 @@ ConfigurationTable::ConfigurationTable(void)
 //Configuration class destructor
 ConfigurationTable::~ConfigurationTable(void)
 {
+//[Listen] block
+	delete ListenPort;
 //[Addresses] block
 	delete ListenAddress_IPv4;
 	delete ListenAddress_IPv6;
@@ -147,6 +151,7 @@ ConfigurationTable::~ConfigurationTable(void)
 	delete LocalAddressPTR[0];
 	delete LocalAddressPTR[1U];
 //Global block
+	delete LocalSocket;
 	delete RamdomEngine;
 	delete Path;
 	delete HostsFileList;
@@ -156,7 +161,6 @@ ConfigurationTable::~ConfigurationTable(void)
 	delete RunningLogWriteQueue;
 	delete[] DomainTable;
 	delete AcceptTypeList;
-//	memset(this, 0, sizeof(ConfigurationTable));
 
 	return;
 }
@@ -174,9 +178,9 @@ HostsTable::HostsTable(void)
 }
 
 //Address Range class constructor
-AddressRange::AddressRange(void)
+AddressRangeTable::AddressRangeTable(void)
 {
-	memset(this, 0, sizeof(AddressRange));
+	memset(this, 0, sizeof(ADDRESS_RANGE_TABLE));
 	return;
 }
 
@@ -188,7 +192,7 @@ ResultBlacklistTable::ResultBlacklistTable(void)
 }
 
 //Address Hosts class constructor
-AddressHostsBlock::AddressHostsBlock(void)
+AddressHostsTable::AddressHostsTable(void)
 {
 	FileIndex = 0;
 	memset(&TargetAddress, 0, sizeof(sockaddr_storage));
@@ -199,15 +203,12 @@ AddressHostsBlock::AddressHostsBlock(void)
 //PortTable class constructor
 PortTable::PortTable(void)
 {
-//	memset(this, 0, sizeof(PortTable) - sizeof(SendData));
 	RecvData = nullptr;
 	try {
 		RecvData = new SOCKET_DATA[QUEUE_MAXLEN * QUEUE_PARTNUM]();
 	}
 	catch (std::bad_alloc)
 	{
-//		WSACleanup();
-//		TerminateService();
 		exit(EXIT_FAILURE);
 		return;
 	}
@@ -231,7 +232,7 @@ PortTable::~PortTable(void)
 //AlternateSwapTable class constructor
 AlternateSwapTable::AlternateSwapTable(void)
 {
-	memset(this, 0, sizeof(AlternateSwapTable));
+	memset(this, 0, sizeof(ALTERNATE_SWAP_TABLE));
 	try {
 		PcapAlternateTimeout = new size_t[QUEUE_MAXLEN * QUEUE_PARTNUM]();
 	}
@@ -253,15 +254,13 @@ AlternateSwapTable::AlternateSwapTable(void)
 AlternateSwapTable::~AlternateSwapTable(void)
 {
 	delete[] PcapAlternateTimeout;
-//	memset(this, 0, sizeof(AlternateSwapTable));
-
 	return;
 }
 
 //DNSCurveConfiguration class constructor
 DNSCurveConfigurationTable::DNSCurveConfigurationTable(void)
 {
-	memset(this, 0, sizeof(DNSCurveConfigurationTable));
+	memset(this, 0, sizeof(DNSCURVE_CONFIGURATON_TABLE));
 	try {
 	//DNSCurve Provider Names
 		DNSCurveTarget.IPv4.ProviderName = new char[DOMAIN_MAXSIZE]();
@@ -324,7 +323,6 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(void)
 		delete[] DNSCurveTarget.Alternate_IPv4.SendMagicNumber;
 		delete[] DNSCurveTarget.IPv6.SendMagicNumber;
 		delete[] DNSCurveTarget.Alternate_IPv6.SendMagicNumber;
-//		memset(this, 0, sizeof(DNSCurveConfigurationTable));
 
 //		WSACleanup();
 //		TerminateService();
@@ -398,7 +396,6 @@ DNSCurveConfigurationTable::~DNSCurveConfigurationTable(void)
 	delete[] DNSCurveTarget.Alternate_IPv4.SendMagicNumber;
 	delete[] DNSCurveTarget.IPv6.SendMagicNumber;
 	delete[] DNSCurveTarget.Alternate_IPv6.SendMagicNumber;
-//	memset(this, 0, sizeof(DNSCurveConfigurationTable));
 
 	return;
 }

@@ -26,6 +26,14 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 	if (!Parameter.PrintError /* || Parameter.ErrorLogPath == nullptr || Message == nullptr */ )
 		return EXIT_SUCCESS;
 
+//Print Start Time at first printing.
+	time_t InnerStartTime = 0;
+	if (StartTime > 0)
+	{
+		InnerStartTime = StartTime;
+		StartTime = 0;
+	}
+
 //Get current date and time.
 /*
 //Windows API
@@ -50,13 +58,13 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 	if (Parameter.Console)
 	{
 	//Print start time before print errors.
-		if (StartTime > 0)
+		if (InnerStartTime > 0)
 		{
 //			tm *TimeStructureTemp = nullptr;
 			std::shared_ptr<tm> TimeStructureTemp(new tm());
 			memset(TimeStructureTemp.get(), 0, sizeof(tm));
-//			TimeStructureTemp = localtime(&StartTime);
-			localtime_s(TimeStructureTemp.get(), &StartTime);
+//			TimeStructureTemp = localtime(&InnerStartTime);
+			localtime_s(TimeStructureTemp.get(), &InnerStartTime);
 			wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Program starts.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
 		}
 
@@ -201,13 +209,13 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 	if (Output != nullptr)
 	{
 	//Print start time before print errors.
-		if (StartTime > 0)
+		if (InnerStartTime > 0)
 		{
 			std::shared_ptr<tm> TimeStructureTemp(new tm());
 			memset(TimeStructureTemp.get(), 0, sizeof(tm));
-			localtime_s(TimeStructureTemp.get(), &StartTime);
+			localtime_s(TimeStructureTemp.get(), &InnerStartTime);
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Program starts.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
-			StartTime = 0;
+//			StartTime = 0;
 		}
 
 	//Print errors.
@@ -330,11 +338,12 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 		fclose(Output);
 		return EXIT_SUCCESS;
 	}
+/* Old version(2015-03-15)
 	else if (Parameter.Console)
 	{
 		StartTime = 0;
 	}
-
+*/
 	return EXIT_FAILURE;
 }
 
@@ -346,6 +355,15 @@ size_t __fastcall PrintRunningStatus(const PWSTR Message)
 	if (Parameter.RunningLogPath == nullptr)
 		return EXIT_SUCCESS;
 */
+
+//Print Start Time of Running Log part at first printing.
+	time_t InnerStartTime = 0;
+	if (RunningLogStartTime > 0)
+	{
+		InnerStartTime = RunningLogStartTime;
+		RunningLogStartTime = 0;
+	}
+
 //Get current date and time.
 	std::shared_ptr<tm> TimeStructure(new tm());
 	memset(TimeStructure.get(), 0, sizeof(tm));
@@ -371,11 +389,11 @@ size_t __fastcall PrintRunningStatus(const PWSTR Message)
 	if (Parameter.Console)
 	{
 	//Print start time(Running Log part) before printing Running Log.
-		if (RunningLogStartTime > 0)
+		if (InnerStartTime > 0)
 		{
 			std::shared_ptr<tm> TimeStructureTemp(new tm());
 			memset(TimeStructureTemp.get(), 0, sizeof(tm));
-			localtime_s(TimeStructureTemp.get(), &RunningLogStartTime);
+			localtime_s(TimeStructureTemp.get(), &InnerStartTime);
 			wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Program starts.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
 		}
 
@@ -408,13 +426,13 @@ size_t __fastcall PrintRunningStatus(const PWSTR Message)
 	if (Output != nullptr)
 	{
 	//Print start time(Running Log part) before printing Running Log.
-		if (RunningLogStartTime > 0)
+		if (InnerStartTime > 0)
 		{
 			std::shared_ptr<tm> TimeStructureTemp(new tm());
 			memset(TimeStructureTemp.get(), 0, sizeof(tm));
-			localtime_s(TimeStructureTemp.get(), &RunningLogStartTime);
+			localtime_s(TimeStructureTemp.get(), &InnerStartTime);
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Program starts.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
-			RunningLogStartTime = 0;
+//			RunningLogStartTime = 0;
 		}
 
 	//Print Running Log.
@@ -424,11 +442,12 @@ size_t __fastcall PrintRunningStatus(const PWSTR Message)
 		fclose(Output);
 		return EXIT_SUCCESS;
 	}
+/* Old version(2015-03-15)
 	else if (Parameter.Console)
 	{
 		RunningLogStartTime = 0;
 	}
-
+*/
 	return EXIT_FAILURE;
 }
 
@@ -585,7 +604,7 @@ size_t __fastcall PrintParameterList(void)
 		else 
 			fwprintf_s(Output, L" \n");
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-		fwprintf_s(Output, L"Listen Port: %u\n", ntohs(Parameter.ListenPort)); //Listen Port
+		fwprintf_s(Output, L"Listen Port: %u\n", ntohs(Parameter.ListenPort->front())); //Listen Port
 		if (Parameter.IPFilterType) //IPFilter Type
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPFilter Type: Permit\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		else
@@ -612,7 +631,7 @@ size_t __fastcall PrintParameterList(void)
 
 		//[Addresses] block
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv4 Listen Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv4 Listen Address
-		if (Parameter.ListenAddress_IPv4 == nullptr || Parameter.ListenAddress_IPv4->ss_family == 0)
+/*		if (Parameter.ListenAddress_IPv4 == nullptr || Parameter.ListenAddress_IPv4->ss_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -638,6 +657,7 @@ size_t __fastcall PrintParameterList(void)
 			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 			fwprintf_s(Output, L":%u>\n", ntohs(((PSOCKADDR_IN)Parameter.ListenAddress_IPv4)->sin_port));
 		}
+*/
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv4 DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv4 DNS Address
 		if (Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_family == 0)
 		{
@@ -747,7 +767,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L":%u>\n", ntohs(Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_port));
 		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv6 Listen Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv6 Listen Address
-		if (Parameter.ListenAddress_IPv6 == nullptr || Parameter.ListenAddress_IPv6->ss_family == 0)
+/*		if (Parameter.ListenAddress_IPv6 == nullptr || Parameter.ListenAddress_IPv6->ss_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -775,6 +795,7 @@ size_t __fastcall PrintParameterList(void)
 			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 			fwprintf_s(Output, L"]:%u\n", ntohs(((PSOCKADDR_IN6)Parameter.ListenAddress_IPv6)->sin6_port));
 		}
+*/
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv6 DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv6 DNS Address
 		if (Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_family == 0)
 		{

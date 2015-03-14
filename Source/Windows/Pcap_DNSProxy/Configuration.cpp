@@ -356,12 +356,12 @@ size_t __fastcall ReadParameter(void)
 	}
 
 //DNS and Alternate Targets check
-	if (Parameter.ListenAddress_IPv4->ss_family == 0)
+	if (Parameter.ListenAddress_IPv4->empty())
 	{
 		delete Parameter.ListenAddress_IPv4;
 		Parameter.ListenAddress_IPv4 = nullptr;
 	}
-	if (Parameter.ListenAddress_IPv6->ss_family == 0)
+	if (Parameter.ListenAddress_IPv6->empty())
 	{
 		delete Parameter.ListenAddress_IPv6;
 		Parameter.ListenAddress_IPv6 = nullptr;
@@ -476,10 +476,14 @@ size_t __fastcall ReadParameter(void)
 	}
 	if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0 || 
 	//Check repeating items.
-		Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.S_un.S_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr || 
-		Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr == Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr || 
-		Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && memcmp(&Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 || 
-		Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 && memcmp(&Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0)
+		Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
+		Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.S_un.S_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr && Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_port == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_port || 
+		Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0 && 
+		Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr == Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr && Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_port == Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_port ||
+		Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
+		memcmp(&Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 && Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_port == Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_port || 
+		Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 && 
+		memcmp(&Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 && Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_port == Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_port)
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"DNS Targets error", 0, (PWSTR)ConfigFileList[Index].c_str(), 0);
 		return EXIT_FAILURE;
@@ -858,6 +862,9 @@ size_t __fastcall ReadParameter(void)
 	}
 
 //Default settings
+	if (Parameter.ListenPort != nullptr && Parameter.ListenPort->empty())
+		Parameter.ListenPort->push_back(htons(IPPORT_DNS));
+
 	if (!Parameter.EDNS0Label)
 	{
 		if (Parameter.DNSSECRequest)
@@ -1616,10 +1623,10 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 //[DNS] block
 	else if (Data.find("Protocol=TCP") == 0 || Data.find("Protocol=Tcp") == 0 || Data.find("Protocol=tcp") == 0)
 	{
-		if (Data.find("Protocol=TCP") == 0 || Data.find("Protocol=Tcp") == 0 || Data.find("Protocol=tcp") == 0)
+//		if (Data.find("Protocol=TCP") == 0 || Data.find("Protocol=Tcp") == 0 || Data.find("Protocol=tcp") == 0)
 			Parameter.RequestMode = REQUEST_TCPMODE;
-		else 
-			Parameter.RequestMode = REQUEST_UDPMODE;
+//		else 
+//			Parameter.RequestMode = REQUEST_UDPMODE;
 	}
 	else if (Data.find("HostsOnly=1") == 0)
 	{
@@ -1721,25 +1728,69 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	}
 	else if (Data.find("ListenPort=") == 0 && Data.length() > strlen("ListenPort="))
 	{
-		if (Data.length() < strlen("ListenPort=") + 6U)
+	//Multiple Ports
+		if (Data.find(ASCII_VERTICAL) != std::string::npos)
 		{
+			std::string PortString;
+			for (size_t Index = strlen("ListenPort=");Index < Data.length();Index++)
+			{
+				if (Index == Data.length() - 1U)
+				{
+					PortString.append(Data, Index, 1U);
+					Result = ServiceNameToHex((PSTR)PortString.c_str());
+					if (Result == 0)
+					{
+						Result = (SSIZE_T)strtoul(PortString.c_str(), nullptr, 0);
+						if (errno != ERANGE && Result > 0 && Result <= U16_MAXNUM)
+						{
+							Parameter.ListenPort->push_back(htons((uint16_t)Result));
+						}
+						else {
+							PrintError(LOG_ERROR_PARAMETER, L"Localhost server listening Port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
+							return EXIT_FAILURE;
+						}
+					}
+
+					break;
+				}
+				else if (Data[Index] == ASCII_VERTICAL)
+				{
+					Result = ServiceNameToHex((PSTR)PortString.c_str());
+					if (Result == 0)
+					{
+						Result = (SSIZE_T)strtoul(PortString.c_str(), nullptr, 0);
+						if (errno != ERANGE && Result > 0 && Result <= U16_MAXNUM)
+						{
+							Parameter.ListenPort->push_back(htons((uint16_t)Result));
+						}
+						else {
+							PrintError(LOG_ERROR_PARAMETER, L"Localhost server listening Port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
+							return EXIT_FAILURE;
+						}
+					}
+
+					PortString.clear();
+				}
+				else {
+					PortString.append(Data, Index, 1U);
+				}
+			}
+		}
+	//Single Ports
+		else {
 			Result = ServiceNameToHex((PSTR)Data.c_str() + strlen("ListenPort="));
 			if (Result == 0)
 			{
 				Result = (SSIZE_T)strtoul(Data.c_str() + strlen("ListenPort="), nullptr, 0);
 				if (errno != ERANGE && Result > 0 && Result <= U16_MAXNUM)
 				{
-					Parameter.ListenPort = htons((uint16_t)Result);
+					Parameter.ListenPort->push_back(htons((uint16_t)Result));
 				}
 				else {
 					PrintError(LOG_ERROR_PARAMETER, L"Localhost server listening Port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
 					return EXIT_FAILURE;
 				}
 			}
-		}
-		else {
-			PrintError(LOG_ERROR_PARAMETER, L"Item length error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
-			return EXIT_FAILURE;
 		}
 	}
 	else if (Data.find("IPFilterType=Permit") == 0 || Data.find("IPFilterType=permit") == 0)
@@ -1865,7 +1916,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 //[Addresses] block
 	else if (Data.find("IPv4ListenAddress=") == 0 && Data.length() > strlen("IPv4ListenAddress="))
 	{
-		if (Data.length() > strlen("IPv4ListenAddress=") + 8U && Data.length() < strlen("IPv4ListenAddress=") + 22U)
+		if (Data.length() > strlen("IPv4ListenAddress=") + 8U && (Data.length() < strlen("IPv4ListenAddress=") + 22U || Data.find(ASCII_VERTICAL) != std::string::npos))
 		{
 		//IPv4 Address and Port check
 			if (Data.find(ASCII_COLON) == std::string::npos || Data.find(ASCII_COLON) < strlen("IPv4ListenAddress=") + IPV4_SHORTEST_ADDRSTRING)
@@ -1874,33 +1925,125 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 				return EXIT_FAILURE;
 			}
 
-		//Convert IPv4 Address.
 			std::shared_ptr<char> Target(new char[ADDR_STRING_MAXSIZE]());
 			memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
-//			memcpy(Target.get(), Data.c_str() + strlen("IPv4ListenAddress="), Data.find(ASCII_COLON) - strlen("IPv4ListenAddress="));
-			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv4ListenAddress="), Data.find(ASCII_COLON) - strlen("IPv4ListenAddress="));
-			if (AddressStringToBinary(Target.get(), &((PSOCKADDR_IN)Parameter.ListenAddress_IPv4)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
-			{
-				PrintError(LOG_ERROR_PARAMETER, L"IPv4 Listen Address format error", Result, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
-				return EXIT_FAILURE;
-			}
+			std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
+			memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
 
-		//Convert IPv4 Port.
-			Result = ServiceNameToHex((PSTR)Data.c_str() + Data.find(ASCII_COLON) + 1U);
-			if (Result == 0)
+		//Multi requesting.
+			if (Data.find(ASCII_VERTICAL) != std::string::npos)
 			{
-				Result = (SSIZE_T)strtoul(Data.c_str() + Data.find(ASCII_COLON) + 1U, nullptr, 0);
-				if (errno == ERANGE || Result <= 0 || Result > U16_MAXNUM)
+				Data.erase(0, strlen("IPv4ListenAddress="));
+
+			//Read data.
+				while (Data.find(ASCII_COLON) != std::string::npos && Data.find(ASCII_VERTICAL) != std::string::npos && Data.find(ASCII_COLON) < Data.find(ASCII_VERTICAL))
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"IPv4 Listen Port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
-					return EXIT_FAILURE;
+				//Convert IPv4 Address.
+//					memcpy(Target.get(), Data.c_str(), Data.find(ASCII_COLON));
+					memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_COLON));
+					if (AddressStringToBinary(Target.get(), &((PSOCKADDR_IN)SockAddr.get())->sin_addr, AF_INET, Result) == EXIT_FAILURE)
+					{
+						PrintError(LOG_ERROR_PARAMETER, L"IPv4 Listen Address format error", Result, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
+						return EXIT_FAILURE;
+					}
+
+				//Convert IPv4 Port.
+					Data.erase(0, Data.find(ASCII_COLON) + 1U);
+					memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
+//					memcpy(Target.get(), Data.c_str(), Data.find(ASCII_VERTICAL));
+					memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_VERTICAL));
+					Result = ServiceNameToHex(Target.get());
+					if (Result == 0)
+					{
+						Result = (SSIZE_T)strtoul(Target.get(), nullptr, 0);
+						if (errno == ERANGE || Result <= 0 || Result > U16_MAXNUM)
+						{
+							PrintError(LOG_ERROR_PARAMETER, L"IPv4 Listen Port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
+							return EXIT_FAILURE;
+						}
+						else {
+							((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)Result);
+						}
+					}
+					memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
+
+				//Add to global list.
+					SockAddr->ss_family = AF_INET;
+					Parameter.ListenAddress_IPv4->push_back(*SockAddr);
+					memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
+					Data.erase(0, Data.find(ASCII_VERTICAL) + 1U);
+				}
+
+			//Last data
+				//Convert IPv4 Address.
+				if (Data.find(ASCII_COLON) != std::string::npos)
+				{
+//					memcpy(Target.get(), Data.c_str(), Data.find(ASCII_COLON));
+					memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_COLON));
 				}
 				else {
-					((PSOCKADDR_IN)Parameter.ListenAddress_IPv4)->sin_port = htons((uint16_t)Result);
+					PrintError(LOG_ERROR_PARAMETER, L"IPv4 Listen Address format error", Result, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
+					return EXIT_FAILURE;
 				}
-			}
+				if (AddressStringToBinary(Target.get(), &((PSOCKADDR_IN)SockAddr.get())->sin_addr, AF_INET, Result) == EXIT_FAILURE)
+				{
+					PrintError(LOG_ERROR_PARAMETER, L"IPv4 Listen Address format error", Result, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
+					return EXIT_FAILURE;
+				}
 
-			Parameter.ListenAddress_IPv4->ss_family = AF_INET;
+				//Convert IPv4 Port.
+				Data.erase(0, Data.find(ASCII_COLON) + 1U);
+				memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
+//				memcpy(Target.get(), Data.c_str(), Data.length());
+				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.length());
+				Result = ServiceNameToHex(Target.get());
+				if (Result == 0)
+				{
+					Result = (SSIZE_T)strtoul(Target.get(), nullptr, 0);
+					if (errno == ERANGE || Result <= 0 || Result > U16_MAXNUM)
+					{
+						PrintError(LOG_ERROR_PARAMETER, L"IPv4 Listen Port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
+						return EXIT_FAILURE;
+					}
+					else {
+						((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)Result);
+					}
+				}
+				Target.reset();
+
+			//Add to global list.
+				SockAddr->ss_family = AF_INET;
+				Parameter.ListenAddress_IPv4->push_back(*SockAddr);
+			}
+			else {
+			//Convert IPv4 Address.
+//				memcpy(Target.get(), Data.c_str() + strlen("IPv4ListenAddress="), Data.find(ASCII_COLON) - strlen("IPv4ListenAddress="));
+				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv4ListenAddress="), Data.find(ASCII_COLON) - strlen("IPv4ListenAddress="));
+				if (AddressStringToBinary(Target.get(), &((PSOCKADDR_IN)SockAddr.get())->sin_addr, AF_INET, Result) == EXIT_FAILURE)
+				{
+					PrintError(LOG_ERROR_PARAMETER, L"IPv4 Listen Address format error", Result, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
+					return EXIT_FAILURE;
+				}
+				Target.reset();
+
+			//Convert IPv4 Port.
+				Result = ServiceNameToHex((PSTR)Data.c_str() + Data.find(ASCII_COLON) + 1U);
+				if (Result == 0)
+				{
+					Result = (SSIZE_T)strtoul(Data.c_str() + Data.find(ASCII_COLON) + 1U, nullptr, 0);
+					if (errno == ERANGE || Result <= 0 || Result > U16_MAXNUM)
+					{
+						PrintError(LOG_ERROR_PARAMETER, L"IPv4 Listen Port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
+						return EXIT_FAILURE;
+					}
+					else {
+						((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)Result);
+					}
+				}
+
+				SockAddr->ss_family = AF_INET;
+				Parameter.ListenAddress_IPv4->push_back(*SockAddr);
+			}
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Item length error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
@@ -2265,43 +2408,139 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	}
 	else if (Data.find("IPv6ListenAddress=") == 0 && Data.length() > strlen("IPv6ListenAddress="))
 	{
-		if (Data.length() > strlen("IPv6ListenAddress=") + 6U && Data.length() < strlen("IPv6ListenAddress=") + 48U)
+		if (Data.length() > strlen("IPv6ListenAddress=") + 6U && (Data.length() < strlen("IPv6ListenAddress=") + 48U || Data.find(ASCII_VERTICAL) != std::string::npos))
 		{
 		//IPv6 Address and Port check.
-			if (Data.find(ASCII_BRACKETS_LEAD) == std::string::npos || Data.find(ASCII_BRACKETS_TRAIL) == std::string::npos ||
+			if (Data.find(ASCII_BRACKETS_LEAD) == std::string::npos || Data.find(ASCII_BRACKETS_TRAIL) == std::string::npos || 
 				Data.find(ASCII_BRACKETS_TRAIL) < strlen("IPv6ListenAddress=") + IPV6_SHORTEST_ADDRSTRING)
 			{
 				PrintError(LOG_ERROR_PARAMETER, L"IPv6 Listen Address format error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
 				return EXIT_FAILURE;
 			}
 
-		//Convert IPv6 Address.
 			std::shared_ptr<char> Target(new char[ADDR_STRING_MAXSIZE]());
 			memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
-//			memcpy(Target.get(), Data.c_str() + strlen("IPv6ListenAddress=") + 1U, Data.find(ASCII_BRACKETS_TRAIL) - strlen("IPv6ListenAddress=") - 1U);
-			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv6ListenAddress=") + 1U, Data.find(ASCII_BRACKETS_TRAIL) - strlen("IPv6ListenAddress=") - 1U);
-			if (AddressStringToBinary(Target.get(), &((PSOCKADDR_IN6)Parameter.ListenAddress_IPv6)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
-			{
-				PrintError(LOG_ERROR_PARAMETER, L"IPv6 Listen Address format error", Result, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
-				return EXIT_FAILURE;
-			}
+			std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
+			memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
 
-		//Convert IPv6 Port.
-			Result = ServiceNameToHex((PSTR)Data.c_str() + Data.find(ASCII_BRACKETS_TRAIL) + 2U);
-			if (Result == 0)
+		//Multi requesting
+			if (Data.find(ASCII_VERTICAL) != std::string::npos)
 			{
-				Result = (SSIZE_T)strtoul(Data.c_str() + Data.find(ASCII_BRACKETS_TRAIL) + 2U, nullptr, 0);
-				if (errno == ERANGE || Result <= 0 || Result > U16_MAXNUM)
+				Data.erase(0, strlen("IPv6ListenAddress="));
+
+			//Delete all front brackets and port colon.
+				while (Data.find(ASCII_BRACKETS_LEAD) != std::string::npos)
+					Data.erase(Data.find(ASCII_BRACKETS_LEAD), 1U);
+				while (Data.find("]:") != std::string::npos)
+					Data.erase(Data.find("]:") + 1U, 1U);
+
+			//Read data.
+				while (Data.find(ASCII_BRACKETS_TRAIL) != std::string::npos && Data.find(ASCII_VERTICAL) != std::string::npos && Data.find(ASCII_BRACKETS_TRAIL) < Data.find(ASCII_VERTICAL))
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"IPv6 Listen Port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
-					return EXIT_FAILURE;
+				//Convert IPv6 Address.
+//					memcpy(Target.get(), Data.c_str(), Data.find(ASCII_BRACKETS_TRAIL));
+					memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_BRACKETS_TRAIL));
+					if (AddressStringToBinary(Target.get(), &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
+					{
+						PrintError(LOG_ERROR_PARAMETER, L"IPv6 Listen Address format error", Result, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
+						return EXIT_FAILURE;
+					}
+
+				//Convert IPv6 Port.
+					Data.erase(0, Data.find(ASCII_BRACKETS_TRAIL) + 1U);
+					memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
+//					memcpy(Target.get(), Data.c_str(), Data.find(ASCII_VERTICAL));
+					memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_VERTICAL));
+					Result = ServiceNameToHex(Target.get());
+					if (Result == 0)
+					{
+						Result = (SSIZE_T)strtoul(Target.get(), nullptr, 0);
+						if (errno == ERANGE || Result <= 0 || Result > U16_MAXNUM)
+						{
+							PrintError(LOG_ERROR_PARAMETER, L"IPv6 Listen Port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
+							return EXIT_FAILURE;
+						}
+						else {
+							((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)Result);
+						}
+					}
+					memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
+
+				//Add to global list.
+					SockAddr->ss_family = AF_INET6;
+					Parameter.ListenAddress_IPv6->push_back(*SockAddr);
+					memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
+					Data.erase(0, Data.find(ASCII_VERTICAL) + 1U);
+				}
+
+			//Last data
+				//Convert IPv6 Address.
+				if (Data.find(ASCII_BRACKETS_TRAIL) != std::string::npos)
+				{
+//					memcpy(Target.get(), Data.c_str(), Data.find(ASCII_BRACKETS_TRAIL));
+					memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_BRACKETS_TRAIL));
 				}
 				else {
-					((PSOCKADDR_IN6)Parameter.ListenAddress_IPv6)->sin6_port = htons((uint16_t)Result);
+					PrintError(LOG_ERROR_PARAMETER, L"IPv6 Listen Address format error", Result, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
+					return EXIT_FAILURE;
 				}
-			}
+				if (AddressStringToBinary(Target.get(), &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
+				{
+					PrintError(LOG_ERROR_PARAMETER, L"IPv6 Listen Address format error", Result, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
+					return EXIT_FAILURE;
+				}
 
-			Parameter.ListenAddress_IPv6->ss_family = AF_INET6;
+				//Convert IPv6 Port.
+				Data.erase(0, Data.find(ASCII_BRACKETS_TRAIL) + 1U);
+				memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
+//				memcpy(Target.get(), Data.c_str(), Data.length());
+				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.length());
+				Result = ServiceNameToHex(Target.get());
+				if (Result == 0)
+				{
+					Result = (SSIZE_T)strtoul(Target.get(), nullptr, 0);
+					if (errno == ERANGE || Result <= 0 || Result > U16_MAXNUM)
+					{
+						PrintError(LOG_ERROR_PARAMETER, L"IPv6 Listen Port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
+						return EXIT_FAILURE;
+					}
+					else {
+						((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)Result);
+					}
+				}
+
+			//Add to global list.
+				SockAddr->ss_family = AF_INET6;
+				Parameter.ListenAddress_IPv6->push_back(*SockAddr);
+			}
+			else {
+			//Convert IPv6 Address.
+//				memcpy(Target.get(), Data.c_str() + strlen("IPv6ListenAddress=") + 1U, Data.find(ASCII_BRACKETS_TRAIL) - strlen("IPv6ListenAddress=") - 1U);
+				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv6ListenAddress=") + 1U, Data.find(ASCII_BRACKETS_TRAIL) - strlen("IPv6ListenAddress=") - 1U);
+				if (AddressStringToBinary(Target.get(), &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
+				{
+					PrintError(LOG_ERROR_PARAMETER, L"IPv6 Listen Address format error", Result, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
+					return EXIT_FAILURE;
+				}
+
+			//Convert IPv6 Port.
+				Result = ServiceNameToHex((PSTR)Data.c_str() + Data.find(ASCII_BRACKETS_TRAIL) + 2U);
+				if (Result == 0)
+				{
+					Result = (SSIZE_T)strtoul(Data.c_str() + Data.find(ASCII_BRACKETS_TRAIL) + 2U, nullptr, 0);
+					if (errno == ERANGE || Result <= 0 || Result > U16_MAXNUM)
+					{
+						PrintError(LOG_ERROR_PARAMETER, L"IPv6 Listen Port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
+						return EXIT_FAILURE;
+					}
+					else {
+						((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)Result);
+					}
+				}
+
+				SockAddr->ss_family = AF_INET6;
+				Parameter.ListenAddress_IPv6->push_back(*SockAddr);
+			}
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Item length error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
@@ -3844,7 +4083,7 @@ size_t __fastcall ReadIPFilter(void)
 //Initialization(Available when file hash check is ON.)
 	SSIZE_T Index = 0;
 	std::shared_ptr<char> Buffer;
-	FileData FileDataTemp[7U];
+	FILE_DATA FileDataTemp[7U];
 	if (Parameter.FileHash)
 	{
 		std::shared_ptr<char> FileDataBufferTemp(new char[FILE_BUFFER_SIZE]());
@@ -3860,7 +4099,7 @@ size_t __fastcall ReadIPFilter(void)
 
 //Open file.
 	FILE *Input = nullptr;
-	std::vector<FileData> FileList;
+	std::vector<FILE_DATA> FileList;
 	for (Index = 0;Index < sizeof(FileDataTemp) / sizeof(FileData);Index++)
 		FileDataTemp[Index].FileName = Parameter.Path->front();
 	FileDataTemp[0].FileName.append(L"IPFilter.ini");
@@ -3889,8 +4128,8 @@ size_t __fastcall ReadIPFilter(void)
 	{
 		for (auto InnerStringIter:*Parameter.IPFilterFileList)
 		{
-			FileData FileDataTemp;
-			memset(&FileDataTemp, 0, sizeof(FileData));
+			FILE_DATA FileDataTemp;
+			memset(&FileDataTemp, 0, sizeof(FILE_DATA));
 
 		//Reset.
 			FileDataTemp.HashAvailable = false;
@@ -3907,9 +4146,9 @@ size_t __fastcall ReadIPFilter(void)
 //Files monitor
 	size_t FileIndex = 0, ReadLength = 0;
 	auto IsFileChanged = false;
-	std::vector<AddressRange>::iterator AddressRangeTableIter;
-	std::vector<ResultBlacklistTable>::iterator ResultBlacklistTableIter;
-	std::vector<AddressPrefixBlock>::iterator LocalRoutingTableIter;
+	std::vector<ADDRESS_RANGE_TABLE>::iterator AddressRangeTableIter;
+	std::vector<RESULT_BLACKLIST_TABLE>::iterator ResultBlacklistTableIter;
+	std::vector<ADDRESS_PREFIX_BLOCK>::iterator LocalRoutingTableIter;
 	HANDLE IPFilterHandle = nullptr;
 	std::shared_ptr<LARGE_INTEGER> IPFilterFileSize(new LARGE_INTEGER());
 	memset(IPFilterFileSize.get(), 0, sizeof(LARGE_INTEGER));
@@ -4752,6 +4991,25 @@ size_t __fastcall ReadIPFilterData(const PSTR Buffer, const size_t FileIndex, co
 	if (ReadMultiLineComments(Buffer, Data, IsLabelComments) == EXIT_FAILURE || Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
 		return EXIT_SUCCESS;
 
+//[Base] block
+	if (Data.find("[Base]") == 0 || Data.find("[base]") == 0 || 
+		Data.find("Version = ") == 0 || Data.find("version = ") == 0 || 
+		Data.find("Default TTL = ") == 0 || Data.find("default ttl = ") == 0)
+	{
+/* Old version(2015-01-12)
+		if (Data.length() < strlen("Version = ") + 8U)
+		{
+			double ReadVersion = atof(Data.c_str() + strlen("Version = "));
+			if (ReadVersion > IPFILTER_VERSION)
+			{
+				PrintError(LOG_ERROR_IPFILTER, L"IPFilter file version error", nullptr, FileName, Line);
+				return EXIT_FAILURE;
+			}
+		}
+*/
+		return EXIT_SUCCESS;
+	}
+
 //[Local Routing] block(A part)
 	if (LabelType == 0 && (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0) && 
 /*		(IPFilterFileList[FileIndex].FileName.rfind(L"Routing.txt") != std::wstring::npos && IPFilterFileList[FileIndex].FileName.length() > wcslen(L"Routing.txt") &&
@@ -4783,23 +5041,6 @@ size_t __fastcall ReadIPFilterData(const PSTR Buffer, const size_t FileIndex, co
 	else if (Data.find("[Local Routing]") == 0 || Data.find("[Local routing]") == 0 || Data.find("[local routing]") == 0)
 	{
 		LabelType = LABEL_IPFILTER_LOCAL_ROUTING;
-		return EXIT_SUCCESS;
-	}
-
-//[Base] block
-	else if (Data.find("[Base]") == 0 || Data.find("[base]") == 0 || Data.find("Version = ") == 0 || Data.find("version = ") == 0)
-	{
-/* Old version(2015-01-12)
-		if (Data.length() < strlen("Version = ") + 8U)
-		{
-			double ReadVersion = atof(Data.c_str() + strlen("Version = "));
-			if (ReadVersion > IPFILTER_VERSION)
-			{
-				PrintError(LOG_ERROR_IPFILTER, L"IPFilter file version error", nullptr, FileName, Line);
-				return EXIT_FAILURE;
-			}
-		}
-*/
 		return EXIT_SUCCESS;
 	}
 
@@ -4855,23 +5096,17 @@ size_t __fastcall ReadIPFilterData(const PSTR Buffer, const size_t FileIndex, co
 //Read Blacklist items in IPFilter file from data
 size_t __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, const size_t Line)
 {
-//Initialization
-	AddressRange AddressRangeTemp;
-	size_t Index = 0, Separated = 0;
-	SSIZE_T Result = 0;
-
-//Delete spaces and horizontal tab/HT before data.
-	while (!Data.empty() && (Data[0] == ASCII_HT || Data[0] == ASCII_SPACE))
+//Convert horizontal tab/HT to space and delete spaces before or after data.
+	while (Data.find(ASCII_HT) != std::string::npos)
+		Data[Data.find(ASCII_HT)] = ASCII_SPACE;
+	while (!Data.empty() && Data[0] == ASCII_SPACE)
 		Data.erase(0, 1U);
+	while (!Data.empty() && Data.back() == ASCII_SPACE)
+		Data.pop_back();
 
-//Delete spaces and horizontal tab/HT before or after verticals.
-	while (Data.find("	|") != std::string::npos || Data.find("|	") != std::string::npos || 
-			Data.find(" |") != std::string::npos || Data.find("| ") != std::string::npos)
+//Delete spaces before or after verticals.
+	while (Data.find(" |") != std::string::npos || Data.find("| ") != std::string::npos)
 	{
-		if (Data.find("	|") != std::string::npos)
-			Data.erase(Data.find("	|"), 1U);
-		if (Data.find("|	") != std::string::npos)
-			Data.erase(Data.find("|	") + 1U, 1U);
 		if (Data.find(" |") != std::string::npos)
 			Data.erase(Data.find(" |"), 1U);
 		if (Data.find("| ") != std::string::npos)
@@ -4879,40 +5114,21 @@ size_t __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, co
 	}
 
 //Mark separated location.
+	size_t Separated = 0;
 	if (Data.find(ASCII_COMMA) != std::string::npos)
 	{
-	//Delete spaces and horizontal tab/HT before commas.
-		while (Data.find("	,") != std::string::npos || Data.find(" ,") != std::string::npos)
-		{
-			if (Data.find("	,") != std::string::npos)
-				Data.erase(Data.find("	,"), 1U);
-			if (Data.find(" ,") != std::string::npos)
-				Data.erase(Data.find(" ,"), 1U);
-		}
-
-	//Delete spaces and horizontal tab/HT after commas.
-		while (Data.find(ASCII_HT) != std::string::npos && Data.find(ASCII_HT) > Data.find(ASCII_COMMA))
-			Data.erase(Data.find(ASCII_HT), 1U);
+	//Delete spaces before or after commas.
+		while (Data.find(" ,") != std::string::npos)
+			Data.erase(Data.find(" ,"), 1U);
 		while (Data.find(ASCII_SPACE) != std::string::npos && Data.find(ASCII_SPACE) > Data.find(ASCII_COMMA))
 			Data.erase(Data.find(ASCII_SPACE), 1U);
 
 	//Common format
-		if (Data.find(ASCII_HT) != std::string::npos && Data.find(ASCII_SPACE) != std::string::npos)
-		{
-			if (Data.find(ASCII_HT) < Data.find(ASCII_SPACE))
-				Separated = Data.find(ASCII_HT);
-			else
-				Separated = Data.find(ASCII_SPACE);
-		}
-		else if (Data.find(ASCII_HT) != std::string::npos)
-		{
-			Separated = Data.find(ASCII_HT);
-		}
-		else if (Data.find(ASCII_SPACE) != std::string::npos)
+		if (Data.find(ASCII_SPACE) != std::string::npos)
 		{
 			Separated = Data.find(ASCII_SPACE);
 		}
-	//Comma-Separated Values/CSV, RFC 4180(https://tools.ietf.org/html/rfc4180), Common Format and MIME Type for Comma-Separated Values (CSV) Files).
+	//Comma-Separated Values/CSV, RFC 4180(https://tools.ietf.org/html/rfc4180), Common Format and MIME Type for Comma-Separated Values (CSV) Files.
 		else {
 			Separated = Data.find(ASCII_COMMA);
 			Data.erase(Separated, 1U);
@@ -4920,18 +5136,7 @@ size_t __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, co
 	}
 //Common format
 	else {
-		if (Data.find(ASCII_HT) != std::string::npos && Data.find(ASCII_SPACE) != std::string::npos)
-		{
-			if (Data.find(ASCII_HT) < Data.find(ASCII_SPACE))
-				Separated = Data.find(ASCII_HT);
-			else
-				Separated = Data.find(ASCII_SPACE);
-		}
-		else if (Data.find(ASCII_HT) != std::string::npos)
-		{
-			Separated = Data.find(ASCII_HT);
-		}
-		else if (Data.find(ASCII_SPACE) != std::string::npos)
+		if (Data.find(ASCII_SPACE) != std::string::npos)
 		{
 			Separated = Data.find(ASCII_SPACE);
 		}
@@ -4941,9 +5146,7 @@ size_t __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, co
 		}
 	}
 
-//Delete spaces and horizontal tab/HT.
-	while (Data.find(ASCII_HT) != std::string::npos)
-		Data.erase(Data.find(ASCII_HT), 1U);
+//Delete all spaces.
 	while (Data.find(ASCII_SPACE) != std::string::npos)
 		Data.erase(Data.find(ASCII_SPACE), 1U);
 
@@ -4956,10 +5159,15 @@ size_t __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, co
 		return EXIT_FAILURE;
 	}
 
-	ResultBlacklistTable ResultBlacklistTableTemp;
+//Initialization
+	ADDRESS_RANGE_TABLE AddressRangeTableTemp;
+	RESULT_BLACKLIST_TABLE ResultBlacklistTableTemp;
 	std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
 	memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-//Single address
+	size_t Index = 0;
+	SSIZE_T Result = 0;
+
+//Single Address
 	if (Data.find(ASCII_VERTICAL) == std::string::npos)
 	{
 	//AAAA Records(IPv6)
@@ -4982,26 +5190,26 @@ size_t __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, co
 			//Convert address(Begin).
 //				memcpy(Addr.get(), Data.c_str(), Data.find(ASCII_MINUS));
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_MINUS));
-				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
+				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
 				{
 					PrintError(LOG_ERROR_IPFILTER, L"IPv6 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
-				AddressRangeTemp.Begin.ss_family = AF_INET6;
+				AddressRangeTableTemp.Begin.ss_family = AF_INET6;
 
 			//Convert address(End).
 				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 //				memcpy(Addr.get(), Data.c_str() + Data.find(ASCII_MINUS) + 1U, Separated - Data.find(ASCII_MINUS) - 1U);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_MINUS) + 1U, Separated - Data.find(ASCII_MINUS) - 1U);
-				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTemp.End)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
+				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
 				{
 					PrintError(LOG_ERROR_IPFILTER, L"IPv6 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
-				AddressRangeTemp.End.ss_family = AF_INET6;
+				AddressRangeTableTemp.End.ss_family = AF_INET6;
 
 			//Check address range.
-				if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeTemp.End)->sin6_addr, AF_INET6) > ADDRESS_COMPARE_EQUAL)
+				if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, AF_INET6) > ADDRESS_COMPARE_EQUAL)
 				{
 					PrintError(LOG_ERROR_IPFILTER, L"IPv6 Address range error", WSAGetLastError(), (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
@@ -5012,25 +5220,25 @@ size_t __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, co
 			//Convert address.
 //				memcpy(Addr.get(), Data.c_str(), Separated);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Separated);
-				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
+				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
 				{
 					PrintError(LOG_ERROR_IPFILTER, L"IPv6 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
 
 			//Check repeating items.
-				if (CheckSpecialAddress(&((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr, AF_INET6, nullptr))
+				if (CheckSpecialAddress(&((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, AF_INET6, nullptr))
 				{
 					PrintError(LOG_ERROR_IPFILTER, L"Repeating items error, this item is not available", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
 
-				AddressRangeTemp.Begin.ss_family = AF_INET6;
-				AddressRangeTemp.End.ss_family = AF_INET6;
-				((PSOCKADDR_IN6)&AddressRangeTemp.End)->sin6_addr = ((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr;
+				AddressRangeTableTemp.Begin.ss_family = AF_INET6;
+				AddressRangeTableTemp.End.ss_family = AF_INET6;
+				((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr = ((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr;
 			}
 
-			ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTemp);
+			ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTableTemp);
 		}
 	//A Records(IPv4)
 		else {
@@ -5051,26 +5259,26 @@ size_t __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, co
 			//Convert address(Begin).
 //				memcpy(Addr.get(), Data.c_str(), Data.find(ASCII_MINUS));
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_MINUS));
-				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
+				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
 				{
 					PrintError(LOG_ERROR_IPFILTER, L"IPv4 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
-				AddressRangeTemp.Begin.ss_family = AF_INET;
+				AddressRangeTableTemp.Begin.ss_family = AF_INET;
 
 			//Convert address(End).
 				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 //				memcpy(Addr.get(), Data.c_str() + Data.find(ASCII_MINUS) + 1U, Separated - Data.find(ASCII_MINUS) - 1U);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_MINUS) + 1U, Separated - Data.find(ASCII_MINUS) - 1U);
-				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN)&AddressRangeTemp.End)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
+				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
 				{
 					PrintError(LOG_ERROR_IPFILTER, L"IPv4 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
-				AddressRangeTemp.End.ss_family = AF_INET;
+				AddressRangeTableTemp.End.ss_family = AF_INET;
 
 			//Check address range.
-				if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeTemp.End)->sin_addr, AF_INET) > ADDRESS_COMPARE_EQUAL)
+				if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, AF_INET) > ADDRESS_COMPARE_EQUAL)
 				{
 					PrintError(LOG_ERROR_IPFILTER, L"IPv4 Address range error", WSAGetLastError(), (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
@@ -5081,25 +5289,25 @@ size_t __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, co
 			//Convert address.
 //				memcpy(Addr.get(), Data.c_str(), Separated);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Separated);
-				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
+				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
 				{
 					PrintError(LOG_ERROR_IPFILTER, L"IPv4 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
 
 			//Check repeating items.
-				if (CheckSpecialAddress(&((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr, AF_INET, nullptr))
+				if (CheckSpecialAddress(&((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, AF_INET, nullptr))
 				{
 					PrintError(LOG_ERROR_IPFILTER, L"Repeating items error, this item is not available", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
 
-				AddressRangeTemp.Begin.ss_family = AF_INET;
-				AddressRangeTemp.End.ss_family = AF_INET;
-				((PSOCKADDR_IN)&AddressRangeTemp.End)->sin_addr = ((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr;
+				AddressRangeTableTemp.Begin.ss_family = AF_INET;
+				AddressRangeTableTemp.End.ss_family = AF_INET;
+				((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr = ((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr;
 			}
 
-			ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTemp);
+			ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTableTemp);
 		}
 	}
 //Multiple Addresses
@@ -5129,24 +5337,24 @@ size_t __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, co
 					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 //					memcpy(Addr.get(), Data.c_str() + VerticalIndex, Index - VerticalIndex);
 					memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str() + VerticalIndex, Index - VerticalIndex);
-					if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
+					if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
 					{
 						PrintError(LOG_ERROR_IPFILTER, L"IPv6 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 						return EXIT_FAILURE;
 					}
 
 				//Check repeating items.
-					if (CheckSpecialAddress(&((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr, AF_INET6, nullptr))
+					if (CheckSpecialAddress(&((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, AF_INET6, nullptr))
 					{
 						PrintError(LOG_ERROR_IPFILTER, L"Repeating items error, this item is not available", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 						return EXIT_FAILURE;
 					}
 
-					AddressRangeTemp.Begin.ss_family = AF_INET6;
-					AddressRangeTemp.End.ss_family = AF_INET6;
-					((PSOCKADDR_IN6)&AddressRangeTemp.End)->sin6_addr = ((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr;
-					ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTemp);
-					memset(&AddressRangeTemp, 0, sizeof(AddressRange));
+					AddressRangeTableTemp.Begin.ss_family = AF_INET6;
+					AddressRangeTableTemp.End.ss_family = AF_INET6;
+					((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr = ((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr;
+					ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTableTemp);
+					memset(&AddressRangeTableTemp, 0, sizeof(ADDRESS_RANGE_TABLE));
 					VerticalIndex = Index + 1U;
 				}
 			}
@@ -5173,24 +5381,24 @@ size_t __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, co
 					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 //					memcpy(Addr.get(), Data.c_str() + VerticalIndex, Index - VerticalIndex);
 					memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str() + VerticalIndex, Index - VerticalIndex);
-					if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
+					if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
 					{
 						PrintError(LOG_ERROR_IPFILTER, L"IPv4 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 						return EXIT_FAILURE;
 					}
 
 				//Check repeating items.
-					if (CheckSpecialAddress(&((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr, AF_INET, nullptr))
+					if (CheckSpecialAddress(&((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, AF_INET, nullptr))
 					{
 						PrintError(LOG_ERROR_IPFILTER, L"Repeating items error, this item is not available", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 						return EXIT_FAILURE;
 					}
 
-					AddressRangeTemp.Begin.ss_family = AF_INET;
-					AddressRangeTemp.End.ss_family = AF_INET;
-					((PSOCKADDR_IN)&AddressRangeTemp.End)->sin_addr = ((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr;
-					ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTemp);
-					memset(&AddressRangeTemp, 0, sizeof(AddressRange));
+					AddressRangeTableTemp.Begin.ss_family = AF_INET;
+					AddressRangeTableTemp.End.ss_family = AF_INET;
+					((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr = ((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr;
+					ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTableTemp);
+					memset(&AddressRangeTableTemp, 0, sizeof(ADDRESS_RANGE_TABLE));
 					VerticalIndex = Index + 1U;
 				}
 			}
@@ -5276,7 +5484,7 @@ size_t __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, co
 size_t __fastcall ReadLocalRoutingData(std::string Data, const size_t FileIndex, const size_t Line)
 {
 //Initialization
-	AddressPrefixBlock AddressPrefixBlockTemp;
+	ADDRESS_PREFIX_BLOCK AddressPrefixBlockTemp;
 
 //Main check
 	while (Data.find(ASCII_HT) != std::string::npos)
@@ -5444,7 +5652,7 @@ size_t __fastcall ReadLocalRoutingData(std::string Data, const size_t FileIndex,
 size_t __fastcall ReadMainIPFilterData(std::string Data, const size_t FileIndex, const size_t Line)
 {
 //Initialization
-	AddressRange AddressRangeTemp;
+	ADDRESS_RANGE_TABLE AddressRangeTableTemp;
 	SSIZE_T Result = 0;
 	size_t Index = 0;
 
@@ -5512,7 +5720,7 @@ size_t __fastcall ReadMainIPFilterData(std::string Data, const size_t FileIndex,
 		Result = (SSIZE_T)strtoul(Level.get(), nullptr, 0);
 		if (errno != ERANGE && Result >= 0 && Result <= U16_MAXNUM)
 		{
-			AddressRangeTemp.Level = (size_t)Result;
+			AddressRangeTableTemp.Level = (size_t)Result;
 		}
 		else {
 			PrintError(LOG_ERROR_IPFILTER, L"Level error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
@@ -5600,16 +5808,16 @@ size_t __fastcall ReadMainIPFilterData(std::string Data, const size_t FileIndex,
 	}
 
 //Read data
-	memset(&AddressRangeTemp, 0, sizeof(AddressRange));
+	memset(&AddressRangeTableTemp, 0, sizeof(ADDRESS_RANGE_TABLE));
 	std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
 	memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 	if (Data.find(ASCII_COLON) != std::string::npos) //IPv6
 	{
 	//Begin address
-		AddressRangeTemp.Begin.ss_family = AF_INET6;
+		AddressRangeTableTemp.Begin.ss_family = AF_INET6;
 //		memcpy(Addr.get(), Data.c_str(), Data.find(ASCII_MINUS));
 		memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_MINUS));
-		if (AddressStringToBinary((PSTR)Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
+		if (AddressStringToBinary((PSTR)Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv6 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 			return EXIT_FAILURE;
@@ -5617,10 +5825,10 @@ size_t __fastcall ReadMainIPFilterData(std::string Data, const size_t FileIndex,
 
 	//End address
 		memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-		AddressRangeTemp.End.ss_family = AF_INET6;
+		AddressRangeTableTemp.End.ss_family = AF_INET6;
 //		memcpy(Addr.get(), Data.c_str() + Data.find(ASCII_MINUS) + 1U, Data.length() - Data.find(ASCII_MINUS));
 		memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_MINUS) + 1U, Data.length() - Data.find(ASCII_MINUS));
-		if (AddressStringToBinary((PSTR)Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTemp.End)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
+		if (AddressStringToBinary((PSTR)Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv6 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 			return EXIT_FAILURE;
@@ -5628,7 +5836,7 @@ size_t __fastcall ReadMainIPFilterData(std::string Data, const size_t FileIndex,
 		Addr.reset();
 
 	//Check address range.
-		if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeTemp.End)->sin6_addr, AF_INET6) > ADDRESS_COMPARE_EQUAL)
+		if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, AF_INET6) > ADDRESS_COMPARE_EQUAL)
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv6 Address range error", WSAGetLastError(), (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 			return EXIT_FAILURE;
@@ -5637,10 +5845,10 @@ size_t __fastcall ReadMainIPFilterData(std::string Data, const size_t FileIndex,
 //IPv4
 	else {
 	//Begin address
-		AddressRangeTemp.Begin.ss_family = AF_INET;
+		AddressRangeTableTemp.Begin.ss_family = AF_INET;
 //		memcpy(Addr.get(), Data.c_str(), Data.find(ASCII_MINUS));
 		memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_MINUS));
-		if (AddressStringToBinary((PSTR)Addr.get(), &((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
+		if (AddressStringToBinary((PSTR)Addr.get(), &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv4 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 			return EXIT_FAILURE;
@@ -5648,10 +5856,10 @@ size_t __fastcall ReadMainIPFilterData(std::string Data, const size_t FileIndex,
 
 	//End address
 		memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-		AddressRangeTemp.End.ss_family = AF_INET;
+		AddressRangeTableTemp.End.ss_family = AF_INET;
 //		memcpy(Addr.get(), Data.c_str() + Data.find(ASCII_MINUS) + 1U, Data.length() - Data.find(ASCII_MINUS));
 		memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_MINUS) + 1U, Data.length() - Data.find(ASCII_MINUS));
-		if (AddressStringToBinary((PSTR)Addr.get(), &((PSOCKADDR_IN)&AddressRangeTemp.End)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
+		if (AddressStringToBinary((PSTR)Addr.get(), &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv4 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 			return EXIT_FAILURE;
@@ -5660,7 +5868,7 @@ size_t __fastcall ReadMainIPFilterData(std::string Data, const size_t FileIndex,
 		Addr.reset();
 
 	//Check address range.
-		if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeTemp.End)->sin_addr, AF_INET) > ADDRESS_COMPARE_EQUAL)
+		if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, AF_INET) > ADDRESS_COMPARE_EQUAL)
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv4 Address range error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 			return EXIT_FAILURE;
@@ -5668,8 +5876,8 @@ size_t __fastcall ReadMainIPFilterData(std::string Data, const size_t FileIndex,
 	}
 
 //Add to global AddressRangeTable.
-	AddressRangeTemp.FileIndex = FileIndex;
-	AddressRangeModificating->push_back(AddressRangeTemp);
+	AddressRangeTableTemp.FileIndex = FileIndex;
+	AddressRangeModificating->push_back(AddressRangeTableTemp);
 	return EXIT_SUCCESS;
 }
 
@@ -5695,7 +5903,7 @@ size_t __fastcall ReadHosts(void)
 
 //Open file.
 	FILE *Input = nullptr;
-	std::vector<FileData> FileList;
+	std::vector<FILE_DATA> FileList;
 	for (Index = 0;Index < sizeof(FileDataTemp) / sizeof(FileData);Index++)
 		FileDataTemp[Index].FileName = Parameter.Path->front();
 	FileDataTemp[0].FileName.append(L"Hosts.ini");
@@ -5722,7 +5930,7 @@ size_t __fastcall ReadHosts(void)
 	{
 		for (auto InnerStringIter:*Parameter.HostsFileList)
 		{
-			FileData FileDataTemp;
+			FILE_DATA FileDataTemp;
 
 		//Reset.
 			FileDataTemp.HashAvailable = false;
@@ -5742,8 +5950,8 @@ size_t __fastcall ReadHosts(void)
 	HANDLE HostsHandle = nullptr;
 	std::shared_ptr<LARGE_INTEGER> HostsFileSize(new LARGE_INTEGER());
 	memset(HostsFileSize.get(), 0, sizeof(LARGE_INTEGER));
-	std::vector<HostsTable>::iterator HostsListIter;
-	std::vector<AddressHostsBlock>::iterator AddressHostsTableIter;
+	std::vector<HOSTS_TABLE>::iterator HostsListIter;
+	std::vector<ADDRESS_HOSTS_TABLE>::iterator AddressHostsTableIter;
 	Keccak_HashInstance HashInstance = {0};
 
 	for (;;)
@@ -6225,29 +6433,10 @@ size_t __fastcall ReadHostsData(const PSTR Buffer, const size_t FileIndex, const
 	if (Data.length() < READ_HOSTS_MINSIZE)
 		return FALSE;
 
-//[Local Hosts] block(A part)
-	if (LabelType == 0 && (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0) && 
-/*		(HostsFileList[FileIndex].FileName.rfind(L"WhiteList.txt") != std::wstring::npos && HostsFileList[FileIndex].FileName.length() > wcslen(L"WhiteList.txt") && 
-		HostsFileList[FileIndex].FileName.rfind(L"WhiteList.txt") == HostsFileList[FileIndex].FileName.length() - wcslen(L"WhiteList.txt") ||
-		HostsFileList[FileIndex].FileName.rfind(L"White_List.txt") != std::wstring::npos && HostsFileList[FileIndex].FileName.length() > wcslen(L"White_List.txt") && 
-		HostsFileList[FileIndex].FileName.rfind(L"White_List.txt") == HostsFileList[FileIndex].FileName.length() - wcslen(L"White_List.txt") ||
-*/
-		(HostsFileList[FileIndex].FileName.rfind(L"whitelist.txt") != std::wstring::npos && HostsFileList[FileIndex].FileName.length() > wcslen(L"whitelist.txt") && 
-		HostsFileList[FileIndex].FileName.rfind(L"whitelist.txt") == HostsFileList[FileIndex].FileName.length() - wcslen(L"whitelist.txt") ||
-		HostsFileList[FileIndex].FileName.rfind(L"white_list.txt") != std::wstring::npos && HostsFileList[FileIndex].FileName.length() > wcslen(L"white_list.txt") && 
-		HostsFileList[FileIndex].FileName.rfind(L"white_list.txt") == HostsFileList[FileIndex].FileName.length() - wcslen(L"white_list.txt")))
-			LabelType = LABEL_HOSTS_LOCAL;
-
 //[Base] block
-	if (Data.find("[Base]") == 0 || Data.find("[base]") == 0)
-	{
-/* Old version(2015-01-12)
-		LabelStop = false;
-		Local = false;
-*/
-		return EXIT_SUCCESS;
-	}
-	else if (Data.find("Version = ") == 0 || Data.find("version = ") == 0)
+	if (Data.find("[Base]") == 0 || Data.find("[base]") == 0 || 
+		Data.find("Version = ") == 0 || Data.find("version = ") == 0 || 
+		Data.find("Default TTL = ") == 0 || Data.find("default ttl = ") == 0)
 	{
 /* Old version(2015-01-12)
 		if (Data.length() < strlen("Version = ") + 8U)
@@ -6262,6 +6451,19 @@ size_t __fastcall ReadHostsData(const PSTR Buffer, const size_t FileIndex, const
 */
 		return EXIT_SUCCESS;
 	}
+
+//[Local Hosts] block(A part)
+	if (LabelType == 0 && (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0) && 
+/*		(HostsFileList[FileIndex].FileName.rfind(L"WhiteList.txt") != std::wstring::npos && HostsFileList[FileIndex].FileName.length() > wcslen(L"WhiteList.txt") && 
+		HostsFileList[FileIndex].FileName.rfind(L"WhiteList.txt") == HostsFileList[FileIndex].FileName.length() - wcslen(L"WhiteList.txt") ||
+		HostsFileList[FileIndex].FileName.rfind(L"White_List.txt") != std::wstring::npos && HostsFileList[FileIndex].FileName.length() > wcslen(L"White_List.txt") && 
+		HostsFileList[FileIndex].FileName.rfind(L"White_List.txt") == HostsFileList[FileIndex].FileName.length() - wcslen(L"White_List.txt") ||
+*/
+		(HostsFileList[FileIndex].FileName.rfind(L"whitelist.txt") != std::wstring::npos && HostsFileList[FileIndex].FileName.length() > wcslen(L"whitelist.txt") && 
+		HostsFileList[FileIndex].FileName.rfind(L"whitelist.txt") == HostsFileList[FileIndex].FileName.length() - wcslen(L"whitelist.txt") ||
+		HostsFileList[FileIndex].FileName.rfind(L"white_list.txt") != std::wstring::npos && HostsFileList[FileIndex].FileName.length() > wcslen(L"white_list.txt") && 
+		HostsFileList[FileIndex].FileName.rfind(L"white_list.txt") == HostsFileList[FileIndex].FileName.length() - wcslen(L"white_list.txt")))
+			LabelType = LABEL_HOSTS_LOCAL;
 
 //[Hosts] block
 	if (Data.find("[Hosts]") == 0 || Data.find("[hosts]") == 0)
@@ -6336,23 +6538,17 @@ size_t __fastcall ReadHostsData(const PSTR Buffer, const size_t FileIndex, const
 //Read Whitelist and Banned items in Hosts file from data
 size_t __fastcall ReadWhitelistAndBannedData(std::string Data, const size_t FileIndex, const size_t Line, const size_t LabelType)
 {
-//Initialization
-	HostsTable HostsTableTemp;
-	size_t Separated = 0;
+//Convert horizontal tab/HT to space and delete spaces before or after data.
+	while (Data.find(ASCII_HT) != std::string::npos)
+		Data[Data.find(ASCII_HT)] = ASCII_SPACE;
+	while (!Data.empty() && Data[0] == ASCII_SPACE)
+		Data.erase(0, 1U);
+	while (!Data.empty() && Data.back() == ASCII_SPACE)
+		Data.pop_back();
 
 //Mark separated location.
-	if (Data.find(ASCII_HT) != std::string::npos && Data.find(ASCII_SPACE) != std::string::npos)
-	{
-		if (Data.find(ASCII_HT) < Data.find(ASCII_SPACE))
-			Separated = Data.find(ASCII_HT);
-		else
-			Separated = Data.find(ASCII_SPACE);
-	}
-	else if (Data.find(ASCII_HT) != std::string::npos)
-	{
-		Separated = Data.find(ASCII_HT);
-	}
-	else if (Data.find(ASCII_SPACE) != std::string::npos)
+	size_t Separated = 0;
+	if (Data.find(ASCII_SPACE) != std::string::npos)
 	{
 		Separated = Data.find(ASCII_SPACE);
 	}
@@ -6361,13 +6557,12 @@ size_t __fastcall ReadWhitelistAndBannedData(std::string Data, const size_t File
 		return EXIT_FAILURE;
 	}
 
-//Delete spaces and horizontal tab/HT.
-	while (Data.find(ASCII_HT) != std::string::npos)
-		Data.erase(Data.find(ASCII_HT), 1U);
+//Delete all spaces.
 	while (Data.find(ASCII_SPACE) != std::string::npos)
 		Data.erase(Data.find(ASCII_SPACE), 1U);
 
-//Mark patterns
+//Mark patterns.
+	HOSTS_TABLE HostsTableTemp;
 	HostsTableTemp.PatternString.append(Data, Separated, Data.length() - Separated);
 	try {
 		std::regex PatternHostsTableTemp(HostsTableTemp.PatternString /* , std::regex_constants::extended */);
@@ -6408,12 +6603,12 @@ size_t __fastcall ReadLocalHostsData(std::string Data, const size_t FileIndex, c
 //Local Hosts check
 	if (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0 && Parameter.LocalMain)
 		return EXIT_SUCCESS;
-	HostsTable HostsTableTemp;
+	HOSTS_TABLE HostsTableTemp;
 
 //Delete spaces and horizontal tab/HT.
-	while (Data.find(ASCII_HT) != std::string::npos)
+	while (!Data.empty() && Data.find(ASCII_HT) != std::string::npos)
 		Data.erase(Data.find(ASCII_HT), 1U);
-	while (Data.find(ASCII_SPACE) != std::string::npos)
+	while (!Data.empty() && Data.find(ASCII_SPACE) != std::string::npos)
 		Data.erase(Data.find(ASCII_SPACE), 1U);
 
 //Check repeating items.
@@ -6450,24 +6645,17 @@ size_t __fastcall ReadLocalHostsData(std::string Data, const size_t FileIndex, c
 //Read Address Hosts items in Hosts file from data
 size_t __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex, const size_t Line)
 {
-//Initialization
-	AddressHostsBlock AddressHostsBlockTemp;
-	AddressRange AddressRangeTemp;
-	size_t Index = 0, Separated = 0;
-	SSIZE_T Result = 0;
-
-//Delete spaces and horizontal tab/HT before data.
-	while (!Data.empty() && (Data[0] == ASCII_HT || Data[0] == ASCII_SPACE))
+//Convert horizontal tab/HT to space and delete spaces before or after data.
+	while (Data.find(ASCII_HT) != std::string::npos)
+		Data[Data.find(ASCII_HT)] = ASCII_SPACE;
+	while (!Data.empty() && Data[0] == ASCII_SPACE)
 		Data.erase(0, 1U);
+	while (!Data.empty() && Data.back() == ASCII_SPACE)
+		Data.pop_back();
 
-//Delete spaces and horizontal tab/HT before or after verticals.
-	while (Data.find("	|") != std::string::npos || Data.find("|	") != std::string::npos || 
-			Data.find(" |") != std::string::npos || Data.find("| ") != std::string::npos)
+//Delete spaces before or after verticals.
+	while (Data.find(" |") != std::string::npos || Data.find("| ") != std::string::npos)
 	{
-		if (Data.find("	|") != std::string::npos)
-			Data.erase(Data.find("	|"), 1U);
-		if (Data.find("|	") != std::string::npos)
-			Data.erase(Data.find("|	") + 1U, 1U);
 		if (Data.find(" |") != std::string::npos)
 			Data.erase(Data.find(" |"), 1U);
 		if (Data.find("| ") != std::string::npos)
@@ -6475,40 +6663,21 @@ size_t __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex,
 	}
 
 //Mark separated location.
+	size_t Separated = 0;
 	if (Data.find(ASCII_COMMA) != std::string::npos)
 	{
-	//Delete spaces and horizontal tab/HT before commas.
-		while (Data.find("	,") != std::string::npos || Data.find(" ,") != std::string::npos)
-		{
-			if (Data.find("	,") != std::string::npos)
-				Data.erase(Data.find("	,"), 1U);
-			if (Data.find(" ,") != std::string::npos)
-				Data.erase(Data.find(" ,"), 1U);
-		}
-
-	//Delete spaces and horizontal tab/HT after commas.
-		while (Data.find(ASCII_HT) != std::string::npos && Data.find(ASCII_HT) > Data.find(ASCII_COMMA))
-			Data.erase(Data.find(ASCII_HT), 1U);
+	//Delete spaces before or after commas.
+		while (Data.find(" ,") != std::string::npos)
+			Data.erase(Data.find(" ,"), 1U);
 		while (Data.find(ASCII_SPACE) != std::string::npos && Data.find(ASCII_SPACE) > Data.find(ASCII_COMMA))
 			Data.erase(Data.find(ASCII_SPACE), 1U);
 
 	//Common format
-		if (Data.find(ASCII_HT) != std::string::npos && Data.find(ASCII_SPACE) != std::string::npos)
-		{
-			if (Data.find(ASCII_HT) < Data.find(ASCII_SPACE))
-				Separated = Data.find(ASCII_HT);
-			else
-				Separated = Data.find(ASCII_SPACE);
-		}
-		else if (Data.find(ASCII_HT) != std::string::npos)
-		{
-			Separated = Data.find(ASCII_HT);
-		}
-		else if (Data.find(ASCII_SPACE) != std::string::npos)
+		if (Data.find(ASCII_SPACE) != std::string::npos)
 		{
 			Separated = Data.find(ASCII_SPACE);
 		}
-	//Comma-Separated Values/CSV, RFC 4180(https://tools.ietf.org/html/rfc4180), Common Format and MIME Type for Comma-Separated Values (CSV) Files).
+	//Comma-Separated Values/CSV, RFC 4180(https://tools.ietf.org/html/rfc4180), Common Format and MIME Type for Comma-Separated Values (CSV) Files.
 		else {
 			Separated = Data.find(ASCII_COMMA);
 			Data.erase(Separated, 1U);
@@ -6516,30 +6685,17 @@ size_t __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex,
 	}
 //Common format
 	else {
-		if (Data.find(ASCII_HT) != std::string::npos && Data.find(ASCII_SPACE) != std::string::npos)
-		{
-			if (Data.find(ASCII_HT) < Data.find(ASCII_SPACE))
-				Separated = Data.find(ASCII_HT);
-			else
-				Separated = Data.find(ASCII_SPACE);
-		}
-		else if (Data.find(ASCII_HT) != std::string::npos)
-		{
-			Separated = Data.find(ASCII_HT);
-		}
-		else if (Data.find(ASCII_SPACE) != std::string::npos)
+		if (Data.find(ASCII_SPACE) != std::string::npos)
 		{
 			Separated = Data.find(ASCII_SPACE);
 		}
 		else {
-			PrintError(LOG_ERROR_IPFILTER, L"Item format error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+			PrintError(LOG_ERROR_HOSTS, L"Item format error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 			return EXIT_FAILURE;
 		}
 	}
 
-//Delete spaces and horizontal tab/HT.
-	while (Data.find(ASCII_HT) != std::string::npos)
-		Data.erase(Data.find(ASCII_HT), 1U);
+//Delete all spaces.
 	while (Data.find(ASCII_SPACE) != std::string::npos)
 		Data.erase(Data.find(ASCII_SPACE), 1U);
 
@@ -6548,13 +6704,19 @@ size_t __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex,
 		Data.find(ASCII_MINUS) != std::string::npos && Data.find(ASCII_VERTICAL) != std::string::npos && 
 		Data.find(ASCII_MINUS) < Separated && Data.find(ASCII_VERTICAL) < Separated && Data.find(ASCII_MINUS) < Data.find(ASCII_VERTICAL))
 	{
-		PrintError(LOG_ERROR_IPFILTER, L"Item format error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+		PrintError(LOG_ERROR_HOSTS, L"Item format error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 		return EXIT_FAILURE;
 	}
 
+//Initialization
+	ADDRESS_HOSTS_TABLE AddressHostsTableTemp;
+	ADDRESS_RANGE_TABLE AddressRangeTableTemp;
 	std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
 	memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-//Single address
+	size_t Index = 0;
+	SSIZE_T Result = 0;
+
+//Single Address
 	if (Data.find(ASCII_VERTICAL) == std::string::npos)
 	{
 	//AAAA Records(IPv6)
@@ -6563,7 +6725,7 @@ size_t __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex,
 		//IPv6 addresses check
 			if (Separated > ADDR_STRING_MAXSIZE)
 			{
-				PrintError(LOG_ERROR_IPFILTER, L"IPv6 Address format error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+				PrintError(LOG_ERROR_HOSTS, L"IPv6 Address format error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 				return EXIT_FAILURE;
 			}
 			else if (Data[0] < ASCII_ZERO || Data[0] > ASCII_COLON && Data[0] < ASCII_UPPERCASE_A || Data[0] > ASCII_UPPERCASE_F && Data[0] < ASCII_LOWERCASE_A || Data[0] > ASCII_LOWERCASE_F)
@@ -6577,28 +6739,28 @@ size_t __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex,
 			//Convert address(Begin).
 //				memcpy(Addr.get(), Data.c_str(), Data.find(ASCII_MINUS));
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_MINUS));
-				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
+				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
 				{
-					PrintError(LOG_ERROR_IPFILTER, L"IPv6 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+					PrintError(LOG_ERROR_HOSTS, L"IPv6 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
-				AddressRangeTemp.Begin.ss_family = AF_INET6;
+				AddressRangeTableTemp.Begin.ss_family = AF_INET6;
 
 			//Convert address(End).
 				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 //				memcpy(Addr.get(), Data.c_str() + Data.find(ASCII_MINUS) + 1U, Separated - Data.find(ASCII_MINUS) - 1U);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_MINUS) + 1U, Separated - Data.find(ASCII_MINUS) - 1U);
-				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTemp.End)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
+				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
 				{
-					PrintError(LOG_ERROR_IPFILTER, L"IPv6 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+					PrintError(LOG_ERROR_HOSTS, L"IPv6 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
-				AddressRangeTemp.End.ss_family = AF_INET6;
+				AddressRangeTableTemp.End.ss_family = AF_INET6;
 
 			//Check address range.
-				if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeTemp.End)->sin6_addr, AF_INET6) > ADDRESS_COMPARE_EQUAL)
+				if (CompareAddresses(&((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, AF_INET6) > ADDRESS_COMPARE_EQUAL)
 				{
-					PrintError(LOG_ERROR_IPFILTER, L"IPv6 Address range error", WSAGetLastError(), (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+					PrintError(LOG_ERROR_HOSTS, L"IPv6 Address range error", WSAGetLastError(), (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
 			}
@@ -6607,33 +6769,33 @@ size_t __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex,
 			//Convert address.
 //				memcpy(Addr.get(), Data.c_str(), Separated);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Separated);
-				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
+				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
 				{
-					PrintError(LOG_ERROR_IPFILTER, L"IPv6 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+					PrintError(LOG_ERROR_HOSTS, L"IPv6 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
 
 			//Check repeating items.
-				if (CheckSpecialAddress(&((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr, AF_INET6, nullptr))
+				if (CheckSpecialAddress(&((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, AF_INET6, nullptr))
 				{
-					PrintError(LOG_ERROR_IPFILTER, L"Repeating items error, this item is not available", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+					PrintError(LOG_ERROR_HOSTS, L"Repeating items error, this item is not available", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
 
-				AddressRangeTemp.Begin.ss_family = AF_INET6;
-				AddressRangeTemp.End.ss_family = AF_INET6;
-				((PSOCKADDR_IN6)&AddressRangeTemp.End)->sin6_addr = ((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr;
+				AddressRangeTableTemp.Begin.ss_family = AF_INET6;
+				AddressRangeTableTemp.End.ss_family = AF_INET6;
+				((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr = ((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr;
 			}
 
 
-			AddressHostsBlockTemp.Addresses.push_back(AddressRangeTemp);
+			AddressHostsTableTemp.Addresses.push_back(AddressRangeTableTemp);
 		}
 	//A Records(IPv4)
 		else {
 		//IPv4 address check
 			if (Separated > ADDR_STRING_MAXSIZE)
 			{
-				PrintError(LOG_ERROR_IPFILTER, L"IPv4 Address format error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+				PrintError(LOG_ERROR_HOSTS, L"IPv4 Address format error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 				return EXIT_FAILURE;
 			}
 			else if (Data[0] < ASCII_ZERO || Data[0] > ASCII_NINE)
@@ -6647,28 +6809,28 @@ size_t __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex,
 			//Convert address(Begin).
 //				memcpy(Addr.get(), Data.c_str(), Data.find(ASCII_MINUS));
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_MINUS));
-				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
+				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
 				{
-					PrintError(LOG_ERROR_IPFILTER, L"IPv4 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+					PrintError(LOG_ERROR_HOSTS, L"IPv4 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
-				AddressRangeTemp.Begin.ss_family = AF_INET;
+				AddressRangeTableTemp.Begin.ss_family = AF_INET;
 
 			//Convert address(End).
 				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 //				memcpy(Addr.get(), Data.c_str() + Data.find(ASCII_MINUS) + 1U, Separated - Data.find(ASCII_MINUS) - 1U);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_MINUS) + 1U, Separated - Data.find(ASCII_MINUS) - 1U);
-				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN)&AddressRangeTemp.End)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
+				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
 				{
-					PrintError(LOG_ERROR_IPFILTER, L"IPv4 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+					PrintError(LOG_ERROR_HOSTS, L"IPv4 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
-				AddressRangeTemp.End.ss_family = AF_INET;
+				AddressRangeTableTemp.End.ss_family = AF_INET;
 
 			//Check address range.
-				if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeTemp.End)->sin_addr, AF_INET) > ADDRESS_COMPARE_EQUAL)
+				if (CompareAddresses(&((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, AF_INET) > ADDRESS_COMPARE_EQUAL)
 				{
-					PrintError(LOG_ERROR_IPFILTER, L"IPv4 Address range error", WSAGetLastError(), (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+					PrintError(LOG_ERROR_HOSTS, L"IPv4 Address range error", WSAGetLastError(), (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
 			}
@@ -6677,25 +6839,25 @@ size_t __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex,
 			//Convert address.
 //				memcpy(Addr.get(), Data.c_str(), Separated);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Separated);
-				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
+				if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
 				{
-					PrintError(LOG_ERROR_IPFILTER, L"IPv4 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+					PrintError(LOG_ERROR_HOSTS, L"IPv4 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
 
 			//Check repeating items.
-				if (CheckSpecialAddress(&((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr, AF_INET, nullptr))
+				if (CheckSpecialAddress(&((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, AF_INET, nullptr))
 				{
-					PrintError(LOG_ERROR_IPFILTER, L"Repeating items error, this item is not available", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+					PrintError(LOG_ERROR_HOSTS, L"Repeating items error, this item is not available", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 					return EXIT_FAILURE;
 				}
 
-				AddressRangeTemp.Begin.ss_family = AF_INET;
-				AddressRangeTemp.End.ss_family = AF_INET;
-				((PSOCKADDR_IN)&AddressRangeTemp.End)->sin_addr = ((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr;
+				AddressRangeTableTemp.Begin.ss_family = AF_INET;
+				AddressRangeTableTemp.End.ss_family = AF_INET;
+				((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr = ((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr;
 			}
 
-			AddressHostsBlockTemp.Addresses.push_back(AddressRangeTemp);
+			AddressHostsTableTemp.Addresses.push_back(AddressRangeTableTemp);
 		}
 	}
 //Multiple Addresses
@@ -6717,7 +6879,7 @@ size_t __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex,
 				//Length check
 					if (Index - VerticalIndex > ADDR_STRING_MAXSIZE)
 					{
-						PrintError(LOG_ERROR_IPFILTER, L"IPv6 Address format error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+						PrintError(LOG_ERROR_HOSTS, L"IPv6 Address format error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 						return EXIT_FAILURE;
 					}
 
@@ -6725,24 +6887,24 @@ size_t __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex,
 					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 //					memcpy(Addr.get(), Data.c_str() + VerticalIndex, Index - VerticalIndex);
 					memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str() + VerticalIndex, Index - VerticalIndex);
-					if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
+					if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
 					{
-						PrintError(LOG_ERROR_IPFILTER, L"IPv6 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+						PrintError(LOG_ERROR_HOSTS, L"IPv6 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 						return EXIT_FAILURE;
 					}
 
 				//Check repeating items.
-					if (CheckSpecialAddress(&((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr, AF_INET6, nullptr))
+					if (CheckSpecialAddress(&((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, AF_INET6, nullptr))
 					{
-						PrintError(LOG_ERROR_IPFILTER, L"Repeating items error, this item is not available", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+						PrintError(LOG_ERROR_HOSTS, L"Repeating items error, this item is not available", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 						return EXIT_FAILURE;
 					}
 
-					AddressRangeTemp.Begin.ss_family = AF_INET6;
-					AddressRangeTemp.End.ss_family = AF_INET6;
-					((PSOCKADDR_IN6)&AddressRangeTemp.End)->sin6_addr = ((PSOCKADDR_IN6)&AddressRangeTemp.Begin)->sin6_addr;
-					AddressHostsBlockTemp.Addresses.push_back(AddressRangeTemp);
-					memset(&AddressRangeTemp, 0, sizeof(AddressRange));
+					AddressRangeTableTemp.Begin.ss_family = AF_INET6;
+					AddressRangeTableTemp.End.ss_family = AF_INET6;
+					((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr = ((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr;
+					AddressHostsTableTemp.Addresses.push_back(AddressRangeTableTemp);
+					memset(&AddressRangeTableTemp, 0, sizeof(ADDRESS_RANGE_TABLE));
 					VerticalIndex = Index + 1U;
 				}
 			}
@@ -6761,7 +6923,7 @@ size_t __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex,
 				//Length check
 					if (Index - VerticalIndex > ADDR_STRING_MAXSIZE)
 					{
-						PrintError(LOG_ERROR_IPFILTER, L"IPv4 Address format error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+						PrintError(LOG_ERROR_HOSTS, L"IPv4 Address format error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 						return EXIT_FAILURE;
 					}
 
@@ -6769,24 +6931,24 @@ size_t __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex,
 					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 //					memcpy(Addr.get(), Data.c_str() + VerticalIndex, Index - VerticalIndex);
 					memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str() + VerticalIndex, Index - VerticalIndex);
-					if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
+					if (AddressStringToBinary(Addr.get(), &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
 					{
-						PrintError(LOG_ERROR_IPFILTER, L"IPv4 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+						PrintError(LOG_ERROR_HOSTS, L"IPv4 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 						return EXIT_FAILURE;
 					}
 
 				//Check repeating items.
-					if (CheckSpecialAddress(&((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr, AF_INET, nullptr))
+					if (CheckSpecialAddress(&((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, AF_INET, nullptr))
 					{
-						PrintError(LOG_ERROR_IPFILTER, L"Repeating items error, this item is not available", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+						PrintError(LOG_ERROR_HOSTS, L"Repeating items error, this item is not available", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 						return EXIT_FAILURE;
 					}
 
-					AddressRangeTemp.Begin.ss_family = AF_INET;
-					AddressRangeTemp.End.ss_family = AF_INET;
-					((PSOCKADDR_IN)&AddressRangeTemp.End)->sin_addr = ((PSOCKADDR_IN)&AddressRangeTemp.Begin)->sin_addr;
-					AddressHostsBlockTemp.Addresses.push_back(AddressRangeTemp);
-					memset(&AddressRangeTemp, 0, sizeof(AddressRange));
+					AddressRangeTableTemp.Begin.ss_family = AF_INET;
+					AddressRangeTableTemp.End.ss_family = AF_INET;
+					((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr = ((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr;
+					AddressHostsTableTemp.Addresses.push_back(AddressRangeTableTemp);
+					memset(&AddressRangeTableTemp, 0, sizeof(ADDRESS_RANGE_TABLE));
 					VerticalIndex = Index + 1U;
 				}
 			}
@@ -6795,51 +6957,50 @@ size_t __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex,
 
 //Mark target address
 	std::string AddressString(Data, Separated, Data.length() - Separated);
-	if (AddressHostsBlockTemp.Addresses.front().Begin.ss_family == AF_INET6) //IPv6
+	if (AddressHostsTableTemp.Addresses.front().Begin.ss_family == AF_INET6) //IPv6
 	{
 		memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-		if (AddressStringToBinary((PSTR)AddressString.c_str(), &((PSOCKADDR_IN6)&AddressHostsBlockTemp.TargetAddress)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
+		if (AddressStringToBinary((PSTR)AddressString.c_str(), &((PSOCKADDR_IN6)&AddressHostsTableTemp.TargetAddress)->sin6_addr, AF_INET6, Result) == EXIT_FAILURE)
 		{
-			PrintError(LOG_ERROR_IPFILTER, L"IPv6 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+			PrintError(LOG_ERROR_HOSTS, L"IPv6 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 			return EXIT_FAILURE;
 		}
 
-		AddressHostsBlockTemp.TargetAddress.ss_family = AF_INET6;
+		AddressHostsTableTemp.TargetAddress.ss_family = AF_INET6;
 	}
 	else { //IPv4
 		memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-		if (AddressStringToBinary((PSTR)AddressString.c_str(), &((PSOCKADDR_IN)&AddressHostsBlockTemp.TargetAddress)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
+		if (AddressStringToBinary((PSTR)AddressString.c_str(), &((PSOCKADDR_IN)&AddressHostsTableTemp.TargetAddress)->sin_addr, AF_INET, Result) == EXIT_FAILURE)
 		{
-			PrintError(LOG_ERROR_IPFILTER, L"IPv4 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
+			PrintError(LOG_ERROR_HOSTS, L"IPv4 Address format error", Result, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 			return EXIT_FAILURE;
 		}
 
-		AddressHostsBlockTemp.TargetAddress.ss_family = AF_INET;
+		AddressHostsTableTemp.TargetAddress.ss_family = AF_INET;
 	}
 
 	Addr.reset();
 
 //Add to global AddressHostsTable.
-	AddressHostsBlockTemp.FileIndex = FileIndex;
-	AddressHostsListModificating->push_back(AddressHostsBlockTemp);
+	AddressHostsTableTemp.FileIndex = FileIndex;
+	AddressHostsListModificating->push_back(AddressHostsTableTemp);
 	return EXIT_SUCCESS;
 }
 
 //Read Main Hosts items in Hosts file from data
 size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, const size_t Line)
 {
-//Delete spaces and horizontal tab/HT before data.
-	while (!Data.empty() && (Data[0] == ASCII_HT || Data[0] == ASCII_SPACE))
+//Convert horizontal tab/HT to space and delete spaces before or after data.
+	while (Data.find(ASCII_HT) != std::string::npos)
+		Data[Data.find(ASCII_HT)] = ASCII_SPACE;
+	while (!Data.empty() && Data[0] == ASCII_SPACE)
 		Data.erase(0, 1U);
+	while (!Data.empty() && Data.back() == ASCII_SPACE)
+		Data.pop_back();
 
-//Delete spaces and horizontal tab/HT before or after verticals.
-	while (Data.find("	|") != std::string::npos || Data.find("|	") != std::string::npos || 
-		Data.find(" |") != std::string::npos || Data.find("| ") != std::string::npos)
+//Delete spaces before or after verticals.
+	while (Data.find(" |") != std::string::npos || Data.find("| ") != std::string::npos)
 	{
-		if (Data.find("	|") != std::string::npos)
-			Data.erase(Data.find("	|"), 1U);
-		if (Data.find("|	") != std::string::npos)
-			Data.erase(Data.find("|	") + 1U, 1U);
 		if (Data.find(" |") != std::string::npos)
 			Data.erase(Data.find(" |"), 1U);
 		if (Data.find("| ") != std::string::npos)
@@ -6850,38 +7011,18 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 	size_t Separated = 0;
 	if (Data.find(ASCII_COMMA) != std::string::npos)
 	{
-	//Delete spaces and horizontal tab/HT before commas.
-		while (Data.find("	,") != std::string::npos || Data.find(" ,") != std::string::npos)
-		{
-			if (Data.find("	,") != std::string::npos)
-				Data.erase(Data.find("	,"), 1U);
-			if (Data.find(" ,") != std::string::npos)
-				Data.erase(Data.find(" ,"), 1U);
-		}
-
-	//Delete spaces and horizontal tab/HT after commas.
-		while (Data.find(ASCII_HT) != std::string::npos && Data.find(ASCII_HT) > Data.find(ASCII_COMMA))
-			Data.erase(Data.find(ASCII_HT), 1U);
+	//Delete spaces before or after commas.
+		while (Data.find(" ,") != std::string::npos)
+			Data.erase(Data.find(" ,"), 1U);
 		while (Data.find(ASCII_SPACE) != std::string::npos && Data.find(ASCII_SPACE) > Data.find(ASCII_COMMA))
 			Data.erase(Data.find(ASCII_SPACE), 1U);
 
 	//Common format
-		if (Data.find(ASCII_HT) != std::string::npos && Data.find(ASCII_SPACE) != std::string::npos)
-		{
-			if (Data.find(ASCII_HT) < Data.find(ASCII_SPACE))
-				Separated = Data.find(ASCII_HT);
-			else
-				Separated = Data.find(ASCII_SPACE);
-		}
-		else if (Data.find(ASCII_HT) != std::string::npos)
-		{
-			Separated = Data.find(ASCII_HT);
-		}
-		else if (Data.find(ASCII_SPACE) != std::string::npos)
+		if (Data.find(ASCII_SPACE) != std::string::npos)
 		{
 			Separated = Data.find(ASCII_SPACE);
 		}
-	//Comma-Separated Values/CSV, RFC 4180(https://tools.ietf.org/html/rfc4180), Common Format and MIME Type for Comma-Separated Values (CSV) Files).
+	//Comma-Separated Values/CSV, RFC 4180(https://tools.ietf.org/html/rfc4180), Common Format and MIME Type for Comma-Separated Values (CSV) Files.
 		else {
 			Separated = Data.find(ASCII_COMMA);
 			Data.erase(Separated, 1U);
@@ -6889,41 +7030,26 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 	}
 //Common format
 	else {
-		if (Data.find(ASCII_HT) != std::string::npos && Data.find(ASCII_SPACE) != std::string::npos)
-		{
-			if (Data.find(ASCII_HT) < Data.find(ASCII_SPACE))
-				Separated = Data.find(ASCII_HT);
-			else
-				Separated = Data.find(ASCII_SPACE);
-		}
-		else if (Data.find(ASCII_HT) != std::string::npos)
-		{
-			Separated = Data.find(ASCII_HT);
-		}
-		else if (Data.find(ASCII_SPACE) != std::string::npos)
+		if (Data.find(ASCII_SPACE) != std::string::npos)
 		{
 			Separated = Data.find(ASCII_SPACE);
 		}
 		else {
-			PrintError(LOG_ERROR_HOSTS, L"Item format error", 0, (PWSTR)HostsFileList[FileIndex].FileName.c_str(), Line);
+			PrintError(LOG_ERROR_HOSTS, L"Item format error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
 			return EXIT_FAILURE;
 		}
 	}
 
-//Delete spaces and horizontal tab/HT.
-	while (Data.find(ASCII_HT) != std::string::npos)
-		Data.erase(Data.find(ASCII_HT), 1U);
+//Delete all spaces and string length check.
 	while (Data.find(ASCII_SPACE) != std::string::npos)
 		Data.erase(Data.find(ASCII_SPACE), 1U);
-
-//String length check
 	if (Separated < 3U)
 		return EXIT_FAILURE;
 
 //Initialization
 	std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
 	memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-	HostsTable HostsTableTemp;
+	HOSTS_TABLE HostsTableTemp;
 
 //Response initialization
 	std::shared_ptr<char> BufferHostsTableTemp(new char[PACKET_MAXSIZE]());
@@ -6934,7 +7060,7 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 	pdns_record_a DNS_Record_A = nullptr;
 	SSIZE_T Result = 0;
 
-//Single address
+//Single Address
 	if (Data.find(ASCII_VERTICAL) == std::string::npos)
 	{
 	//AAAA Records(IPv6)

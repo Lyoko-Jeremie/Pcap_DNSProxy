@@ -19,7 +19,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 Pcap_DNSProxy 是一個基於 LibPcap/WinPcap 製作的用於忽略DNS投毒污染的小工具，後期也加入了對包含正則運算式的 Hosts 和 DNSCurve/DNSCrypt 協定以及多執行緒請求的支援。本工具同時也支援使用 TCP 協定請求，在被連接重置時會自動切換到 UDP 協定，可以使要求者獲得正確的功能變數名稱解析。完全支援正則運算式 Hosts 條目，可以為消費者提供更加便捷的途徑設定功能變數名稱所對應的位址，避免修改系統檔的麻煩。而多執行緒或多伺服器多執行緒的請求，更能提高在惡劣網路環境下功能變數名稱解析的可靠性。
 
 Pcap_DNSProxy 的特點：
-* 同時支援本地 IPv4/IPv6 協定以及自訂埠的監聽和遠端請求
+* 同時支援本地 IPv4/IPv6 協定以及自訂多埠的監聽和遠端請求
 * Native Code 原生編譯，不含任何託管代碼，x64版為原生64位目標平臺編譯
 * 作為服務工作于系統底層
 * 多執行緒請求模型，充分利用多執行緒處理器的硬體資源
@@ -234,6 +234,7 @@ Pcap_DNSProxy 支援平臺：
 * Log - 日誌參數區域
   * Print Error - 輸出錯誤報表功能：開啟為1/關閉為0，預設為 1
   * Print Running Log - 輸出運行日誌功能：預設為 0
+  * Running Log Refresh Time - 運行日誌寫入刷新間隔：單位為秒，最短間隔時間為5秒，預設為 10
   * Log Maximum Size - 日誌檔最大容量：直接填數位時單位為位元組，可加上單位，支援的單位有 KB/MB/GB，可接受範圍為 4KB - 4GB，如果留空則為 8MB，預設為空
     * 注意：日誌檔到達最大容量後將被直接刪除，然後重新生成新的日誌檔，原來的日誌將無法找回！
 
@@ -255,11 +256,15 @@ Pcap_DNSProxy 支援平臺：
     * Private/私有網路模式：打開DNS通用埠（TCP/UDP 同時打開），可為僅限於私有網路位址的設備提供代理功能變數名稱解析請求服務
     * Proxy/代理模式：只打開回環位址的DNS埠（TCP/UDP 同時打開），只能為本機提供代理功能變數名稱解析請求服務
     * Custom/自訂模式：打開DNS通用埠（TCP/UDP 同時打開），可用的位址由 IPFilter 參數決定
-  * Listen Protocol - 監聽協定，本地監聽的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP，預設為 IPv4 + IPv6 + UDP
+    * 當相應協定的 Listen Address 生效時，相應協定的本參數將會被自動忽略
+  * Listen Protocol - 監聽協定，本地監聽的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP，預設為 IPv4 + IPv6 + TCP + UDP
     * 只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只監聽指定協定的本地埠
-    * IPv4 + IPv6 + TCP + UDP 時同時監聽兩個協定的本地埠
     * 填入的協定可隨意組合
-  * Listen Port - 監聽埠，本地監聽請求的埠：可填入 1-65535 之間的埠，如果留空則為53，預設為空
+  * Listen Port - 監聽埠，本地監聽請求的埠：格式為 "埠A(|埠B)"（不含引號，括弧內為可選項目）
+    * 埠可填入服務名稱，服務名稱清單參見下文
+    * 也可填入 1-65535 之間的埠，如果留空則為 53，預設為空
+    * 填入多個埠時，程式將會同時監聽請求
+    * 當相應協定的 Listen Address 生效時，相應協定的本參數將會被自動忽略
   * IPFilter Type - IPFilter 參數的類型：分為 Deny 禁止和 Permit 允許，對應 IPFilter 參數應用為黑名單或白名單，預設為 Deny
   * IPFilter Level - IPFilter 參數的過濾級別，級別越高過濾越嚴格，與 IPFilter 條目相對應：0為不啟用過濾，如果留空則為0，預設為空
   * Accept Type - 禁止或只允許所列DNS類型的請求：格式為 "Deny:DNS記錄的名稱或ID(|DNS記錄的名稱或ID)" 或 "Permit:DNS記錄的名稱或ID(|DNS記錄的名稱或ID)"（不含引號，括弧內為可選項目）
@@ -349,7 +354,8 @@ Pcap_DNSProxy 支援平臺：
 
 * Addresses - 普通模式位址區域
 注意：IPv4 位址格式為 "IPv4 位址:埠"，IPv6位址格式為"[IPv6 位址]:埠"（均不含引號）
-  * IPv4 Listen Address - IPv4 本地監聽位址：預設為空
+  * IPv4 Listen Address - IPv4 本地監聽位址：需要輸入一個帶埠格式的位址，預設為空
+    * 本參數支援多個監聽位址，格式為 "位址A:埠|位址B:埠|位址C:埠"（不含引號）
     * 填入此值後 IPv4 協定的 Operation Mode 和 Listen Port 參數將被自動忽略
   * IPv4 DNS Address - IPv4 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，預設為 8.8.4.4:53
     * 本參數支援同時請求多伺服器的功能，開啟後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果
@@ -448,7 +454,8 @@ Pcap_DNSProxy 支援平臺：
     * 指定埠時可使用服務名稱代替，參見上表
   * IPv4 Local Alternate DNS Address - IPv4備用境內DNS伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，預設為 114.114.114.114:53
     * 指定埠時可使用服務名稱代替，參見上表
-  * IPv6 Listen Address - IPv6 本地監聽位址：預設為空
+  * IPv6 Listen Address - IPv6 本地監聽位址：需要輸入一個帶埠格式的位址，預設為空
+    * 本參數支援多個監聽位址，格式為 "位址A:埠|位址B:埠|位址C:埠"（不含引號）
     * 填入此值後 IPv6 協定的 Operation Mode 和 Listen Port 參數將被自動忽略
   * IPv6 DNS Address - IPv6主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
     * 指定埠時可使用服務名稱代替，參見上表
@@ -563,150 +570,13 @@ Pcap_DNSProxy 支援平臺：
   * IPv6 DNS Magic Number - 協定 IPv6 主要 DNS 伺服器發送魔數：長度必須為8位元組，留空則自動獲取，預設留空
   * IPv6 Alternate DNS Magic Number - DNSCurve 協定 IPv6 備用 DNS 伺服器發送魔數：長度必須為8位元組，留空則自動獲取，預設留空
 
-* 預設的設定檔內容
-
-[Base]
-Version = 0.4
-File Refresh Time = 10
-File Hash = 1
-Additional Path = 
-Hosts File Name = Hosts.ini|Hosts.conf|Hosts|Hosts.txt|Hosts.csv|WhiteList.txt|White_List.txt
-IPFilter File Name = IPFilter.ini|IPFilter.conf|IPFilter.dat|IPFilter.csv|IPFilter|Guarding.p2p|Guarding|Routing.txt|chnrouting.txt|chnroute.txt
-
-[Log]
-Print Error = 1
-Print Running Log = 0
-Log Maximum Size = 
-
-[DNS]
-Protocol = UDP
-Hosts Only = 0
-Local Main = 0
-Local Hosts = 0
-Local Routing = 0
-Cache Type = Queue
-Cache Parameter = 256
-Default TTL = 
-
-[Listen]
-Pcap Capture = 1
-Operation Mode = Private
-Listen Protocol = IPv4 + IPv6 + UDP
-Listen Port = 
-IPFilter Type = Deny
-IPFilter Level < 
-Accept Type = 
-
-[Addresses]
-IPv4 Listen Address = 
-IPv4 DNS Address = 8.8.4.4:53
-IPv4 Alternate DNS Address = 8.8.8.8:53|208.67.220.220:53|208.67.222.222:53
-IPv4 Local DNS Address = 114.114.115.115:53
-IPv4 Local Alternate DNS Address = 114.114.114.114:53
-IPv6 Listen Address = 
-IPv6 DNS Address = 
-## IPv6 DNS Address = [2001:4860:4860::8844]:53
-IPv6 Alternate DNS Address = 
-## IPv6 Alternate DNS Address = [2001:4860:4860::8888]:53
-IPv6 Local DNS Address = 
-IPv6 Local Alternate DNS Address = 
-
-[Values]
-EDNS0 Payload Size = 
-IPv4 TTL = 0
-IPv6 Hop Limits = 0
-IPv4 Alternate TTL = 0
-IPv6 Alternate Hop Limits = 0
-Hop Limits Fluctuation = 2
-Reliable Socket Timeout = 5000
-Unreliable Socket Timeout = 3000
-ICMP Test = 900
-Domain Test = 900
-Alternate Times = 5
-Alternate Time Range = 60
-Alternate Reset Time = 300
-Multi Request Times = 0
-
-[Switches]
-Domain Case Conversion = 1
-Compression Pointer Mutation = 0
-EDNS0 Label = 0
-DNSSEC Request = 0
-Alternate Multi Request = 0
-IPv4 Data Filter = 0
-TCP Data Filter = 1
-DNS Data Filter = 1
-Blacklist Filter = 1
-
-[Data]
-ICMP ID = 
-ICMP Sequence = 
-ICMP PaddingData = 
-Domain Test ID = 
-Domain Test Data = 
-Localhost Server Name = 
-
-[DNSCurve]
-DNSCurve = 0
-DNSCurve Protocol = UDP
-DNSCurve Payload Size = 
-Encryption = 1
-Encryption Only = 0
-Key Recheck Time = 3600
-
-[DNSCurve Addresses]
-DNSCurve IPv4 DNS Address = 208.67.220.220:443
-DNSCurve IPv4 Alternate DNS Address = 208.67.222.222:443
-DNSCurve IPv6 DNS Address = 
-## DNSCurve IPv6 DNS Address = [2620:0:CCC::2]:443
-DNSCurve IPv6 Alternate DNS Address = 
-## DNSCurve IPv6 Alternate DNS Address = [2620:0:CCD::2]:443
-DNSCurve IPv4 Provider Name = 2.dnscrypt-cert.opendns.com
-DNSCurve IPv4 Alternate Provider Name = 2.dnscrypt-cert.opendns.com
-DNSCurve IPv6 Provider Name = 
-## DNSCurve IPv6 Provider Name = 2.dnscrypt-cert.opendns.com
-DNSCurve IPv6 Alternate Provider Name = 
-## DNSCurve IPv6 Alternate Provider Name = 2.dnscrypt-cert.opendns.com
-
-[DNSCurve Keys]
-Client Public Key = 
-Client Secret Key = 
-IPv4 DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
-IPv4 Alternate DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
-IPv6 DNS Public Key = 
-## IPv6 DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
-IPv6 Alternate DNS Public Key = 
-## IPv6 Alternate DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
-IPv4 DNS Fingerprint = 
-## IPv4 DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
-IPv4 Alternate DNS Fingerprint = 
-## IPv4 Alternate DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
-IPv6 DNS Fingerprint = 
-## IPv6 DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
-IPv6 Alternate DNS Fingerprint = 
-## IPv6 Alternate DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
-
-[DNSCurve Magic Number]
-IPv4 Receive Magic Number = 
-IPv4 Alternate Receive Magic Number = 
-IPv6 Receive Magic Number = 
-IPv6 Alternate Receive Magic Number = 
-IPv4 DNS Magic Number = 
-## IPv4 DNS Magic Number = qe47QHHw
-IPv4 Alternate DNS Magic Number = 
-## IPv4 Alternate DNS Magic Number = qe47QHHw
-IPv6 DNS Magic Number = 
-## IPv6 DNS Magic Number = qe47QHHw
-IPv6 Alternate DNS Magic Number = 
-## IPv6 Alternate DNS Magic Number = qe47QHHw
-
 
 -------------------------------------------------------------------------------
 
 
 Hosts 檔案格式說明：
 
-Hosts 設定檔分為 Hosts/主要Hosts清單 和 Local Hosts/境內DNS解析功能變數名稱清單 區域
+Hosts 設定檔分為多個提供不同功能的區域
 * 區域通過標籤識別，修改時切勿將其刪除
 * 優先順序：Local Hosts/境內DNS解析功能變數名稱清單 > Hosts/主要Hosts清單，Whitelist/白名單條目 和 Banned/黑名單條目 的優先順序由位置決定，參見下文詳細說明
 * 一條條目的總長度切勿超過 4096位元組/4KB
@@ -767,6 +637,16 @@ Hosts 設定檔分為 Hosts/主要Hosts清單 和 Local Hosts/境內DNS解析功
 
     * 即所有符合以上正則運算式的功能變數名稱請求都將使用境內 DNS 伺服器解析
 
+* Address Hosts - 解析結果位址其他清單
+本區域資料用於替換解析結果中的位址，提供更精確的 Hosts 自訂能力
+  * 例如有一個 [Address Hosts] 下有效資料區域：
+
+    127.0.0.0-127.255.255.255 127.0.0.1
+    ::-::FFFF ::1
+
+  * 解析結果的位址範圍為 127.0.0.0 到 127.255.255.255 時將被替換為 127.0.0.1
+  * 解析結果的位址範圍為 :: 到 ::FFFF 時將被替換為 ::1
+
 * Stop - 臨時停止讀取標籤
 在需要停止讀取的資料前添加 "[Stop]"（不含引號） 標籤即可在中途停止對檔的讀取，直到有其它標籤時再重新開始讀取
   * 例如有一片資料區域：
@@ -819,8 +699,9 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 * Local Routing - 境內路由表區域
 當 Local Routing 為開啟時，將檢查本清單的路由表是否命中，檢查與否與功能變數名稱請求是否使用 Local 伺服器有關，路由表命中後會直接返回結果，命中失敗將丟棄解析結果並向境外伺服器再次發起請求
 有效參數格式為 "位址塊/網路前置長度"（不含引號）
-  * 本路由表支援 IPv4 和 IPv6 位址
+  * 本路由表支援 IPv4 和 IPv6 協定
   * IPv4 時網路前置長度範圍為 1-32，IPv6 時網路前置長度範圍為 1-128
 
 * Stop - 臨時停止讀取標籤
-在需要停止讀取的資料前添加 "[Stop]"（不含引號） 標籤即可在中途停止對檔的讀取，直到有其它標籤時再重新開始讀取
+  * 在需要停止讀取的資料前添加 "[Stop]"（不含引號） 標籤即可在中途停止對檔的讀取，直到有其它標籤時再重新開始讀取
+  * 具體情況參見上文的介紹

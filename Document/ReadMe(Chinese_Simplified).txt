@@ -19,7 +19,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 Pcap_DNSProxy 是一个基于 LibPcap/WinPcap 制作的用于忽略DNS投毒污染的小工具，后期也加入了对包含正则表达式的 Hosts 和 DNSCurve/DNSCrypt 协议以及多线程请求的支持。本工具同时也支持使用 TCP 协议请求，在被连接重置时会自动切换到 UDP 协议，可以使请求者获得正确的域名解析。完全支持正则表达式 Hosts 条目，可以为使用者提供更加便捷的途径设定域名所对应的地址，避免修改系统文件的麻烦。而多线程或多服务器多线程的请求，更能提高在恶劣网络环境下域名解析的可靠性。
 
 Pcap_DNSProxy 的特点：
-* 同时支持本地 IPv4/IPv6 协议以及自定义端口的监听和远程请求
+* 同时支持本地 IPv4/IPv6 协议以及自定义多端口的监听和远程请求
 * Native Code 原生编译，不含任何托管代码，x64版为原生64位目标平台编译
 * 作为服务工作于系统底层
 * 多线程请求模型，充分利用多线程处理器的硬件资源
@@ -232,6 +232,7 @@ Pcap_DNSProxy 支持平台：
 * Log - 日志参数区域
   * Print Error - 输出错误报告功能：开启为1/关闭为0，默认为 1
   * Print Running Log - 输出运行日志功能：默认为 0
+  * Running Log Refresh Time - 运行日志写入刷新间隔：单位为秒，最短间隔时间为5秒，默认为 10
   * Log Maximum Size - 日志文件最大容量：直接填数字时单位为字节，可加上单位，支持的单位有 KB/MB/GB，可接受范围为 4KB - 4GB，如果留空则为 8MB，默认为空
     * 注意：日志文件到达最大容量后将被直接删除，然后重新生成新的日志文件，原来的日志将无法找回！
 
@@ -253,11 +254,15 @@ Pcap_DNSProxy 支持平台：
     * Private/私有网络模式：打开 DNS 通用端口（TCP/UDP 同时打开），可为仅限于私有网络地址的设备提供代理域名解析请求服务
     * Proxy/代理模式：只打开回环地址的DNS 端口（TCP/UDP 同时打开），只能为本机提供代理域名解析请求服务
     * Custom/自定义模式：打开 DNS 通用端口（TCP/UDP 同时打开），可用的地址由 IPFilter 参数决定
-  * Listen Protocol - 监听协议，本地监听的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP，默认为 IPv4 + IPv6 + UDP
+    * 当相应协议的 Listen Address 生效时，相应协议的本参数将会被自动忽略
+  * Listen Protocol - 监听协议，本地监听的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP，默认为 IPv4 + IPv6 + TCP + UDP
     * 只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只监听指定协议的本地端口
-    * IPv4 + IPv6 + TCP + UDP 时同时监听两个协议的本地端口
     * 填入的协议可随意组合
-  * Listen Port - 监听端口，本地监听请求的端口：可填入 1-65535 之间的端口，如果留空则为 53，默认为空
+  * Listen Port - 监听端口，本地监听请求的端口：格式为 "端口A(|端口B)"（不含引号，括号内为可选项目）
+    * 端口可填入服务名称，服务名称列表参见下文
+    * 也可填入 1-65535 之间的端口，如果留空则为 53，默认为空
+    * 填入多个端口时，程序将会同时监听请求
+    * 当相应协议的 Listen Address 生效时，相应协议的本参数将会被自动忽略
   * IPFilter Type - IPFilter 参数的类型：分为 Deny 禁止和 Permit 允许，对应 IPFilter 参数应用为黑名单或白名单，默认为 Deny
   * IPFilter Level - IPFilter 参数的过滤级别，级别越高过滤越严格，与 IPFilter 条目相对应：0为不启用过滤，如果留空则为 0，默认为空
   * Accept Type - 禁止或只允许所列DNS类型的请求：格式为 "Deny:DNS记录的名称或ID(|DNS记录的名称或ID)" 或 "Permit:DNS记录的名称或ID(|DNS记录的名称或ID)"（不含引号，括号内为可选项目）
@@ -347,11 +352,12 @@ Pcap_DNSProxy 支持平台：
     
 * Addresses - 普通模式地址区域
 注意：IPv4 地址格式为 "IPv4 地址:端口"，IPv6地址格式为"[IPv6 地址]:端口"（均不含引号）
-  * IPv4 Listen Address - IPv4 本地监听地址：默认为空
+  * IPv4 Listen Address - IPv4 本地监听地址：需要输入一个带端口格式的地址，默认为空
+    * 本参数支持多个监听地址，格式为 "地址A:端口|地址B:端口|地址C:端口"（不含引号）
     * 填入此值后 IPv4 协议的 Operation Mode 和 Listen Port 参数将被自动忽略
   * IPv4 DNS Address - IPv4 主要 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 8.8.4.4:53
     * 本参数支持同时请求多服务器的功能，开启后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果
-    * 使用同时请求多服务器格式为 "地址 A:端口|地址 B:端口|地址 C:端口"（不含引号），同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
+    * 使用同时请求多服务器格式为 "地址A:端口|地址B:端口|地址C:端口"（不含引号），同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
     * 指定端口时可使用服务名称代替：
       * TCPMUX
       * ECHO
@@ -440,13 +446,14 @@ Pcap_DNSProxy 支持平台：
       * TELNETS
   * IPv4 Alternate DNS Address - IPv4 备用 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 8.8.8.8:53|208.67.220.220:53|208.67.222.222:53
     * 本参数支持同时请求多服务器的功能，开启后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果
-    * 使用同时请求多服务器格式为 "地址 A:端口|地址 B:端口|地址 C:端口"（不含引号），同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
+    * 使用同时请求多服务器格式为 "地址A:端口|地址B:端口|地址C:端口"（不含引号），同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
     * 指定端口时可使用服务名称代替，参见上表
   * IPv4 Local DNS Address - IPv4 主要境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，默认为 114.114.115.115:53
     * 指定端口时可使用服务名称代替，参见上表
   * IPv4 Local Alternate DNS Address - IPv4 备用境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，默认为 114.114.114.114:53
     * 指定端口时可使用服务名称代替，参见上表
-  * IPv6 Listen Address - IPv6 本地监听地址：默认为空
+  * IPv6 Listen Address - IPv6 本地监听地址：需要输入一个带端口格式的地址，默认为空
+    * 本参数支持多个监听地址，格式为 "[地址A]:端口|[地址B]:端口|[地址C]:端口"（不含引号）
     * 填入此值后 IPv6 协议的 Operation Mode 和 Listen Port 参数将被自动忽略
   * IPv6 DNS Address - IPv6 主要 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为空
     * 指定端口时可使用服务名称代替，参见上表
@@ -562,150 +569,12 @@ Pcap_DNSProxy 支持平台：
   * IPv6 Alternate DNS Magic Number - DNSCurve 协议 IPv6 备用 DNS 服务器发送魔数：长度必须为8字节，留空则自动获取，默认留空
 
 
-* 默认的配置文件内容
-
-[Base]
-Version = 0.4
-File Refresh Time = 10
-File Hash = 1
-Additional Path = 
-Hosts File Name = Hosts.ini|Hosts.conf|Hosts|Hosts.txt|Hosts.csv|WhiteList.txt|White_List.txt
-IPFilter File Name = IPFilter.ini|IPFilter.conf|IPFilter.dat|IPFilter.csv|IPFilter|Guarding.p2p|Guarding|Routing.txt|chnrouting.txt|chnroute.txt
-
-[Log]
-Print Error = 1
-Print Running Log = 0
-Log Maximum Size = 
-
-[DNS]
-Protocol = UDP
-Hosts Only = 0
-Local Main = 0
-Local Hosts = 0
-Local Routing = 0
-Cache Type = Queue
-Cache Parameter = 256
-Default TTL = 
-
-[Listen]
-Pcap Capture = 1
-Operation Mode = Private
-Listen Protocol = IPv4 + IPv6 + UDP
-Listen Port = 
-IPFilter Type = Deny
-IPFilter Level < 
-Accept Type = 
-
-[Addresses]
-IPv4 Listen Address = 
-IPv4 DNS Address = 8.8.4.4:53
-IPv4 Alternate DNS Address = 8.8.8.8:53|208.67.220.220:53|208.67.222.222:53
-IPv4 Local DNS Address = 114.114.115.115:53
-IPv4 Local Alternate DNS Address = 114.114.114.114:53
-IPv6 Listen Address = 
-IPv6 DNS Address = 
-## IPv6 DNS Address = [2001:4860:4860::8844]:53
-IPv6 Alternate DNS Address = 
-## IPv6 Alternate DNS Address = [2001:4860:4860::8888]:53
-IPv6 Local DNS Address = 
-IPv6 Local Alternate DNS Address = 
-
-[Values]
-EDNS0 Payload Size = 
-IPv4 TTL = 0
-IPv6 Hop Limits = 0
-IPv4 Alternate TTL = 0
-IPv6 Alternate Hop Limits = 0
-Hop Limits Fluctuation = 2
-Reliable Socket Timeout = 5000
-Unreliable Socket Timeout = 3000
-ICMP Test = 900
-Domain Test = 900
-Alternate Times = 5
-Alternate Time Range = 60
-Alternate Reset Time = 300
-Multi Request Times = 0
-
-[Switches]
-Domain Case Conversion = 1
-Compression Pointer Mutation = 0
-EDNS0 Label = 0
-DNSSEC Request = 0
-Alternate Multi Request = 0
-IPv4 Data Filter = 0
-TCP Data Filter = 1
-DNS Data Filter = 1
-Blacklist Filter = 1
-
-[Data]
-ICMP ID = 
-ICMP Sequence = 
-ICMP PaddingData = 
-Domain Test ID = 
-Domain Test Data = 
-Localhost Server Name = 
-
-[DNSCurve]
-DNSCurve = 0
-DNSCurve Protocol = UDP
-DNSCurve Payload Size = 
-Encryption = 1
-Encryption Only = 0
-Key Recheck Time = 3600
-
-[DNSCurve Addresses]
-DNSCurve IPv4 DNS Address = 208.67.220.220:443
-DNSCurve IPv4 Alternate DNS Address = 208.67.222.222:443
-DNSCurve IPv6 DNS Address = 
-## DNSCurve IPv6 DNS Address = [2620:0:CCC::2]:443
-DNSCurve IPv6 Alternate DNS Address = 
-## DNSCurve IPv6 Alternate DNS Address = [2620:0:CCD::2]:443
-DNSCurve IPv4 Provider Name = 2.dnscrypt-cert.opendns.com
-DNSCurve IPv4 Alternate Provider Name = 2.dnscrypt-cert.opendns.com
-DNSCurve IPv6 Provider Name = 
-## DNSCurve IPv6 Provider Name = 2.dnscrypt-cert.opendns.com
-DNSCurve IPv6 Alternate Provider Name = 
-## DNSCurve IPv6 Alternate Provider Name = 2.dnscrypt-cert.opendns.com
-
-[DNSCurve Keys]
-Client Public Key = 
-Client Secret Key = 
-IPv4 DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
-IPv4 Alternate DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
-IPv6 DNS Public Key = 
-## IPv6 DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
-IPv6 Alternate DNS Public Key = 
-## IPv6 Alternate DNS Public Key = B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
-IPv4 DNS Fingerprint = 
-## IPv4 DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
-IPv4 Alternate DNS Fingerprint = 
-## IPv4 Alternate DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
-IPv6 DNS Fingerprint = 
-## IPv6 DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
-IPv6 Alternate DNS Fingerprint = 
-## IPv6 Alternate DNS Fingerprint = 227C:86C7:7574:81AB:6AE2:402B:4627:6E18:CFBB:60FA:DF92:652F:D694:01E8:EBF2:B007
-
-[DNSCurve Magic Number]
-IPv4 Receive Magic Number = 
-IPv4 Alternate Receive Magic Number = 
-IPv6 Receive Magic Number = 
-IPv6 Alternate Receive Magic Number = 
-IPv4 DNS Magic Number = 
-## IPv4 DNS Magic Number = qe47QHHw
-IPv4 Alternate DNS Magic Number = 
-## IPv4 Alternate DNS Magic Number = qe47QHHw
-IPv6 DNS Magic Number = 
-## IPv6 DNS Magic Number = qe47QHHw
-IPv6 Alternate DNS Magic Number = 
-## IPv6 Alternate DNS Magic Number = qe47QHHw
-
-
 -------------------------------------------------------------------------------
 
 
 Hosts 文件格式说明：
 
-Hosts 配置文件分为 Hosts/主要Hosts列表 和 Local Hosts/境内DNS解析域名列表 区域
+Hosts 配置文件分为多个提供不同功能的区域
 * 区域通过标签识别，修改时切勿将其删除
 * 优先级：Local Hosts/境内DNS解析域名列表 > Hosts/主要Hosts列表，Whitelist/白名单条目 和 Banned/黑名单条目 的优先级由位置决定，参见下文详细说明
 * 一条条目的总长度切勿超过 4096字节/4KB
@@ -713,9 +582,10 @@ Hosts 配置文件分为 Hosts/主要Hosts列表 和 Local Hosts/境内DNS解析
 * 优先级别自上而下递减，条目越前优先级越高
 * 平行 Hosts 条目支持数量由请求域名以及 EDNS0 Payload 长度决定，建议不要超过70个 A 记录或40个 AAAA 记录
 
+
 * Whitelist - 白名单条目
-  此类型的条目列出的符合要求的域名会直接绕过 Hosts，不会使用 Hosts 功能
-  直接在条目前添加 "NULL"（不含引号）即可，有效参数格式为 "NULL 正则表达式"（不含引号）
+此类型的条目列出的符合要求的域名会直接绕过 Hosts，不会使用 Hosts 功能
+直接在条目前添加 "NULL"（不含引号）即可，有效参数格式为 "NULL 正则表达式"（不含引号）
   * 注意优先级的问题，例如有一片含白名单条目的区域：
 
     NULL .*\.test.localhost
@@ -725,8 +595,8 @@ Hosts 配置文件分为 Hosts/主要Hosts列表 和 Local Hosts/境内DNS解析
     从而绕过了下面的条目，不使用Hosts的功能
 
 * Banned - 黑名单条目
-  此类型的条目列出的符合要求的域名会直接返回域名不存在的功能，避免重定向导致的超时问题
-  直接在条目前添加 "BANNED"（不含引号）即可，有效参数格式为 "BANNED 正则表达式"（不含引号）
+此类型的条目列出的符合要求的域名会直接返回域名不存在的功能，避免重定向导致的超时问题
+直接在条目前添加 "BANNED"（不含引号）即可，有效参数格式为 "BANNED 正则表达式"（不含引号）
   * 注意优先级的问题，例如有一片含黑名单条目的区域：
 
     BANNED .*\.test.localhost
@@ -736,7 +606,7 @@ Hosts 配置文件分为 Hosts/主要Hosts列表 和 Local Hosts/境内DNS解析
     从而绕过了下面的条目，达到屏蔽域名的目的
 
 * Hosts - 主要 Hosts 列表
-  有效参数格式为 "地址(|地址A|地址B) 域名的正则表达式"（不含引号，括号内为可选项目，注意间隔所在的位置）
+有效参数格式为 "地址(|地址A|地址B) 域名的正则表达式"（不含引号，括号内为可选项目，注意间隔所在的位置）
   * 地址与正则表达式之间的间隔字符可为 Space/半角空格 或者 HT/水平定位符号，间隔长度不限，但切勿输入全角空格
   * 一条条目只能接受一种地址类型（IPv4/IPv6），如有同一个域名需要同时进行 IPv4/IPv6 的Hosts，请分为两个条目输入
   * 平行地址原理为一次返回多个记录，而具体使用哪个记录则由请求者决定，一般为第1个
@@ -754,8 +624,8 @@ Hosts 配置文件分为 Hosts/主要Hosts列表 和 Local Hosts/境内DNS解析
     * 请求解析 xxx.test.localhost 的 AAAA 记录（IPv6）会返回 ::1、::2 和 ::3
 
 * Local Hosts - 境内 DNS 解析域名列表
-  本区域数据用于为域名使用境内 DNS 服务器解析提高访问速度，使用时请确认境内 DNS 服务器地址不为空（参见上文 配置文件详细参数说明 一节）
-  有效参数格式为 "正则表达式"（不含引号）
+本区域数据用于为域名使用境内 DNS 服务器解析提高访问速度，使用时请确认境内 DNS 服务器地址不为空（参见上文 配置文件详细参数说明 一节）
+有效参数格式为 "正则表达式"（不含引号）
   * 要使用本功能，必须将配置文件内的 Local Hosts 选项打开！
   * 本功能不会对境内 DNS 服务器回复进行任何过滤，请确认本区域填入的数据不会受到 DNS 投毒污染的干扰
   * 例如有一个 [Local Hosts] 下有效数据区域：
@@ -765,8 +635,18 @@ Hosts 配置文件分为 Hosts/主要Hosts列表 和 Local Hosts/境内DNS解析
 
   * 即所有符合以上正则表达式的域名请求都将使用境内 DNS 服务器解析
   
+* Address Hosts - 解析结果地址替换列表
+本区域数据用于替换解析结果中的地址，提供更精确的 Hosts 自定义能力
+  * 例如有一个 [Address Hosts] 下有效数据区域：
+
+    127.0.0.0-127.255.255.255 127.0.0.1
+    ::-::FFFF ::1
+
+  * 解析结果的地址范围为 127.0.0.0 到 127.255.255.255 时将被替换为 127.0.0.1
+  * 解析结果的地址范围为 :: 到 ::FFFF 时将被替换为 ::1
+
 * Stop - 临时停止读取标签
-  在需要停止读取的数据前添加 "[Stop]"（不含引号） 标签即可在中途停止对文件的读取，直到有其它标签时再重新开始读取
+在需要停止读取的数据前添加 "[Stop]"（不含引号） 标签即可在中途停止对文件的读取，直到有其它标签时再重新开始读取
   * 例如有一片数据区域：
 
     [Hosts]
@@ -803,22 +683,23 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
 
 
 * Blacklist - 黑名单区域
-  当 Blacklist Filter 为开启时，将检查本列表域名与解析结果，如果解析结果里含有与域名对应的黑名单地址，则会直接丢弃此解析结果
-  有效参数格式为 "地址(|地址A|地址B) 正则表达式"（不含引号，括号内为可选项目，注意间隔所在的位置）
+当 Blacklist Filter 为开启时，将检查本列表域名与解析结果，如果解析结果里含有与域名对应的黑名单地址，则会直接丢弃此解析结果
+有效参数格式为 "地址(|地址A|地址B) 正则表达式"（不含引号，括号内为可选项目，注意间隔所在的位置）
   * 地址与正则表达式之间的间隔字符可为 Space/半角空格 或者 HT/水平定位符号，间隔长度不限，但切勿输入全角空格
   * 一条条目只能接受一种地址类型（IPv4/IPv6），如有同一个域名需要同时进行IPv4/IPv6地址的过滤，请分为两个条目输入
 
 * IPFilter - 地址过滤区域
-  地址过滤黑名单或白名单由配置文件的 IPFilter Type 值决定，Deny 禁止/黑名单和 Permit 允许/白名单
-  有效参数格式为 "开始地址 - 结束地址, 过滤等级, 条目简介注释"（不含引号）
+地址过滤黑名单或白名单由配置文件的 IPFilter Type 值决定，Deny 禁止/黑名单和 Permit 允许/白名单
+有效参数格式为 "开始地址 - 结束地址, 过滤等级, 条目简介注释"（不含引号）
   * 同时支持IPv4和IPv6地址，但填写时请分开为2个条目
   * 同一类型的地址地址段有重复的条目将会被自动合并
   
 * Local Routing - 境内路由表区域
-  当 Local Routing 为开启时，将检查本列表的路由表是否命中，检查与否与域名请求是否使用 Local 服务器有关，路由表命中后会直接返回结果，命中失败将丢弃解析结果并向境外服务器再次发起请求
-  有效参数格式为 "地址块/网络前缀长度"（不含引号）
-  * 本路由表支持 IPv4 和 IPv6 地址
+当 Local Routing 为开启时，将检查本列表的路由表是否命中，检查与否与域名请求是否使用 Local 服务器有关，路由表命中后会直接返回结果，命中失败将丢弃解析结果并向境外服务器再次发起请求
+有效参数格式为 "地址块/网络前缀长度"（不含引号）
+  * 本路由表支持 IPv4 和 IPv6 协议
   * IPv4 时网络前缀长度范围为 1-32，IPv6 时网络前缀长度范围为 1-128
   
 * Stop - 临时停止读取标签
-  在需要停止读取的数据前添加 "[Stop]"（不含引号） 标签即可在中途停止对文件的读取，直到有其它标签时再重新开始读取
+  * 在需要停止读取的数据前添加 "[Stop]"（不含引号） 标签即可在中途停止对文件的读取，直到有其它标签时再重新开始读取
+  * 具体情况参见上文的介绍

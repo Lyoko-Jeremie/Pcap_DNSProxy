@@ -44,16 +44,16 @@
 #define READ_IPFILTER_LOCAL_ROUTING_MINSIZE   4U
 
 //Global variables
-extern ConfigurationTable Parameter;
+extern CONFIGURATION_TABLE Parameter;
 extern std::vector<std::wstring> ConfigFileList;
-extern std::vector<FileData> IPFilterFileList, HostsFileList;
-extern DNSCurveConfigurationTable DNSCurveParameter;
-extern std::vector<HostsTable> *HostsListUsing, *HostsListModificating;
-extern std::vector<AddressRange> *AddressRangeUsing, *AddressRangeModificating;
-extern std::vector<ResultBlacklistTable> *ResultBlacklistUsing, *ResultBlacklistModificating;
-extern std::vector<AddressPrefixBlock> *LocalRoutingListUsing, *LocalRoutingListModificating;
-extern std::vector<AddressHostsBlock> *AddressHostsListUsing, *AddressHostsListModificating;
-extern std::deque<DNSCacheData> DNSCacheList;
+extern std::vector<FILE_DATA> IPFilterFileList, HostsFileList;
+extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+extern std::vector<HOSTS_TABLE> *HostsListUsing, *HostsListModificating;
+extern std::vector<ADDRESS_RANGE_TABLE> *AddressRangeUsing, *AddressRangeModificating;
+extern std::vector<RESULT_BLACKLIST_TABLE> *ResultBlacklistUsing, *ResultBlacklistModificating;
+extern std::vector<ADDRESS_PREFIX_BLOCK> *LocalRoutingListUsing, *LocalRoutingListModificating;
+extern std::vector<ADDRESS_HOSTS_TABLE> *AddressHostsListUsing, *AddressHostsListModificating;
+extern std::deque<DNSCACHE_DATA> DNSCacheList;
 extern std::mutex HostsListLock, AddressRangeLock, DNSCacheListLock, ResultBlacklistLock, LocalRoutingListLock, AddressHostsListLock;
 
 //Functions

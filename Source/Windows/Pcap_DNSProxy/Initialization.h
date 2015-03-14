@@ -20,17 +20,17 @@
 #include "Base.h"
 
 //Global variables
-ConfigurationTable Parameter;
+CONFIGURATION_TABLE Parameter;
 time_t StartTime, RunningLogStartTime;
 std::vector<std::wstring> ConfigFileList;
-std::vector<FileData> IPFilterFileList, HostsFileList;
-PortTable PortList;
-AlternateSwapTable AlternateSwapList;
-DNSCurveConfigurationTable DNSCurveParameter;
-std::vector<HostsTable> HostsList[2U], *HostsListUsing = &HostsList[0], *HostsListModificating = &HostsList[1U];
-std::vector<AddressRange> AddressRangeList[2U], *AddressRangeUsing = &AddressRangeList[0], *AddressRangeModificating = &AddressRangeList[1U];
-std::vector<ResultBlacklistTable> ResultBlacklistList[2U], *ResultBlacklistUsing = &ResultBlacklistList[0], *ResultBlacklistModificating = &ResultBlacklistList[1U];
-std::vector<AddressPrefixBlock> LocalRoutingList[2U], *LocalRoutingListUsing = &LocalRoutingList[0], *LocalRoutingListModificating = &LocalRoutingList[1U];
-std::vector<AddressHostsBlock> AddressHostsList[2U], *AddressHostsListUsing = &AddressHostsList[0], *AddressHostsListModificating = &AddressHostsList[1U];
-std::deque<DNSCacheData> DNSCacheList;
+std::vector<FILE_DATA> IPFilterFileList, HostsFileList;
+PORT_TABLE PortList;
+ALTERNATE_SWAP_TABLE AlternateSwapList;
+DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+std::vector<HOSTS_TABLE> HostsList[2U], *HostsListUsing = &HostsList[0], *HostsListModificating = &HostsList[1U];
+std::vector<ADDRESS_RANGE_TABLE> AddressRangeList[2U], *AddressRangeUsing = &AddressRangeList[0], *AddressRangeModificating = &AddressRangeList[1U];
+std::vector<RESULT_BLACKLIST_TABLE> ResultBlacklistList[2U], *ResultBlacklistUsing = &ResultBlacklistList[0], *ResultBlacklistModificating = &ResultBlacklistList[1U];
+std::vector<ADDRESS_PREFIX_BLOCK> LocalRoutingList[2U], *LocalRoutingListUsing = &LocalRoutingList[0], *LocalRoutingListModificating = &LocalRoutingList[1U];
+std::vector<ADDRESS_HOSTS_TABLE> AddressHostsList[2U], *AddressHostsListUsing = &AddressHostsList[0], *AddressHostsListModificating = &AddressHostsList[1U];
+std::deque<DNSCACHE_DATA> DNSCacheList;
 std::mutex ErrLogLock, RunningLogLock, CaptureLock, PortListLock, LocalAddressLock[QUEUE_PARTNUM / 2U], HostsListLock, DNSCacheListLock, AddressRangeLock, ResultBlacklistLock, AddressHostsListLock, LocalRoutingListLock;

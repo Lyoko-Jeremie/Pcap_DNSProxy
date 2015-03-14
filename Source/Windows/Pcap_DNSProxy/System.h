@@ -20,7 +20,7 @@
 #include "Base.h"
 
 //Global variables
-extern ConfigurationTable Parameter;
+extern CONFIGURATION_TABLE Parameter;
 static DWORD ServiceCurrentStatus = 0;
 static BOOL ServiceRunning = false;
 SERVICE_STATUS_HANDLE ServiceStatusHandle = nullptr;
