@@ -4,15 +4,15 @@
 
 @echo off
 
-@echo Pcap_DNSProxy service control batch
-@echo.
-@echo 1: Install service
-@echo 2: Uninstall service
-@echo 3: Start service
-@echo 4: Stop service
-@echo 5: Restart service
-@echo 6: Service Query(Windows XP/2003 only)
-@echo.
+echo Pcap_DNSProxy service control batch
+echo.
+echo 1: Install service
+echo 2: Uninstall service
+echo 3: Start service
+echo 4: Stop service
+echo 5: Restart service
+echo 6: Service Query(Windows XP/2003 only)
+echo.
 
 
 :: Choice(Part 1)
@@ -22,18 +22,18 @@ set /p UserChoice="Choose: "
 :: Permission check
 	if %UserChoice% GTR 0 (
 		if %UserChoice% LSS 6 (
-			@echo.
+			echo.
 			if %PROCESSOR_ARCHITECTURE% EQU AMD64 (
 				cd /d "%SystemRoot%\System32"
 			) else (
 				cd /d "%SystemRoot%\SysWOW64"
 			)
 			del /f /q TestPermission.log
-			@echo Permission check. > TestPermission.log
+			echo Permission check. > TestPermission.log
 			if not exist TestPermission.log (
-				@echo.
-				@echo Require Administrator permission!
-				@pause
+				echo.
+				echo Require Administrator permission!
+				pause
 				exit
 			) else (
 				del /f /q TestPermission.log
@@ -53,17 +53,17 @@ set /p UserChoice="Choose: "
 		if not exist Fciv.exe (goto WARNING)
 		if not exist Pcap_DNSProxy.exe (goto WARNING)
 		if not exist Pcap_DNSProxy_x86.exe (goto WARNING)
-		Fciv -sha1 Pcap_DNSProxy.exe |findstr /I 712685C61DB12EB0E1AF5271F4421E28E041CEDD > NUL
+		Fciv -sha1 Pcap_DNSProxy.exe |findstr /I 2F70C793C0015452B89459E742DED278F9E8E28A > NUL
 		if ERRORLEVEL 1 (goto WARNING)
-		Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I AFF92F1F67A3C2172FA1EC1308E8FC2ABA2E9413 > NUL
+		Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 6A371494E06B731AFFB9774836E774D91B91F35A > NUL
 		if ERRORLEVEL 1 (goto WARNING)
 	)
 	goto CHOICE
 
 :WARNING
-	@echo.
-	@echo The file(s) may be damaged or corrupt!
-	@echo Please download all files again, also you can skip this check.
+	echo.
+	echo The file(s) may be damaged or corrupt!
+	echo Please download all files again, also you can skip this check.
 	set /p UserChoice_File="Are you sure you want to continue? [Y/N]"
 	if /i %UserChoice_File% EQU Y (goto CHOICE) else exit
 
@@ -100,10 +100,18 @@ goto %UserChoice%
 	sc failure PcapDNSProxyService reset= 0 actions= restart/5000/restart/10000//
 	sc start PcapDNSProxyService
 	ipconfig /flushdns
-	@echo.
-	@echo Done. Please confirm the PcapDNSProxyService service had been installed.
-	@echo.
-	@pause
+	ping 127.0.0.1 -n 3 >nul
+	if %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (
+		Tasklist |findstr /I "Pcap_DNSProxy_x86.exe" > NUL
+	) else (
+		Tasklist |findstr /I "Pcap_DNSProxy.exe" > NUL
+	)
+	if ERRORLEVEL 1 (
+		echo.
+		echo Service start failed, please check the configuration.
+	)
+	echo.
+	pause
 	exit
 
 
@@ -113,10 +121,8 @@ goto %UserChoice%
 	sc stop PcapDNSProxyService
 	sc delete PcapDNSProxyService
 	ipconfig /flushdns
-	@echo.
-	@echo Done. Please confirm the PcapDNSProxyService service had been deleted.
-	@echo.
-	@pause
+	echo.
+	pause
 	exit
 
 
@@ -125,10 +131,18 @@ goto %UserChoice%
 :CASE_3
 	sc start PcapDNSProxyService
 	ipconfig /flushdns
-	@echo.
-	@echo Done. Please confirm the PcapDNSProxyService service had been started.
-	@echo.
-	@pause
+	ping 127.0.0.1 -n 3 >nul
+	if %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (
+		Tasklist |findstr /I "Pcap_DNSProxy_x86.exe" > NUL
+	) else (
+		Tasklist |findstr /I "Pcap_DNSProxy.exe" > NUL
+	)
+	if ERRORLEVEL 1 (
+		echo.
+		echo Service start failed, please check the configuration.
+	)
+	echo.
+	pause
 	exit
 
 
@@ -137,10 +151,8 @@ goto %UserChoice%
 :CASE_4
 	sc stop PcapDNSProxyService
 	ipconfig /flushdns
-	@echo.
-	@echo Done. Please confirm the PcapDNSProxyService service had been stopped.
-	@echo.
-	@pause
+	echo.
+	pause
 	exit
 
 
@@ -151,10 +163,18 @@ goto %UserChoice%
 	ping 127.0.0.1 -n 3 >nul
 	sc start PcapDNSProxyService
 	ipconfig /flushdns
-	@echo.
-	@echo Done. Please confirm the PcapDNSProxyService service had been restarted.
-	@echo.
-	@pause
+	ping 127.0.0.1 -n 3 >nul
+	if %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (
+		Tasklist |findstr /I "Pcap_DNSProxy_x86.exe" > NUL
+	) else (
+		Tasklist |findstr /I "Pcap_DNSProxy.exe" > NUL
+	)
+	if ERRORLEVEL 1 (
+		echo.
+		echo Service start failed, please check the configuration.
+	)
+	echo.
+	pause
 	exit
 
 
@@ -163,8 +183,8 @@ goto %UserChoice%
 :: In Windows XP/2003, 'sc query' will always exit with status code '0',
 :: No matter the query faild or not.
 :CASE_6
-	@echo.
+	echo.
 	sc query PcapDNSProxyService | find "SERVICE_NAME: PcapDNSProxyService"
-	@echo.
-	@pause
+	echo.
+	pause
 	exit

@@ -521,7 +521,7 @@ size_t __fastcall GetNetworkingInformation(void)
 		//Read addresses list and convert to Fully Qualified Domain Name/FQDN PTR.
 			for (LocalAddressTableIter = LocalAddressList;LocalAddressTableIter != nullptr;LocalAddressTableIter = LocalAddressTableIter->ai_next)
 			{
-				if (LocalAddressTableIter->ai_family == AF_INET6 && LocalAddressTableIter->ai_addrlen == sizeof(sockaddr_in6) &&
+				if (LocalAddressTableIter->ai_family == AF_INET6 && LocalAddressTableIter->ai_addrlen == sizeof(sockaddr_in6) && 
 					LocalAddressTableIter->ai_addr->sa_family == AF_INET6)
 				{
 				//Mark local addresses(B part).
@@ -645,7 +645,7 @@ size_t __fastcall GetNetworkingInformation(void)
 		//Read addresses list and convert to Fully Qualified Domain Name/FQDN PTR.
 			for (LocalAddressTableIter = LocalAddressList; LocalAddressTableIter != nullptr; LocalAddressTableIter = LocalAddressTableIter->ai_next)
 			{
-				if (LocalAddressTableIter->ai_family == AF_INET && LocalAddressTableIter->ai_addrlen == sizeof(sockaddr_in) &&
+				if (LocalAddressTableIter->ai_family == AF_INET && LocalAddressTableIter->ai_addrlen == sizeof(sockaddr_in) && 
 					LocalAddressTableIter->ai_addr->sa_family == AF_INET)
 				{
 				//Mark local addresses(B part).
@@ -1168,9 +1168,9 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const P
 				{
 					for (auto AddressRangeTableIter:AddressHostsTableIter.Addresses)
 					{
-						if (AddressRangeTableIter.Begin.ss_family == AF_INET6 && AddressRangeTableIter.End.ss_family == AF_INET6 &&
-							CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL &&
-							CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr, AF_INET6) <= ADDRESS_COMPARE_EQUAL ||
+						if (AddressRangeTableIter.Begin.ss_family == AF_INET6 && AddressRangeTableIter.End.ss_family == AF_INET6 && 
+							CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL && 
+							CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr, AF_INET6) <= ADDRESS_COMPARE_EQUAL || 
 							memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == 0)
 						{
 							*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.TargetAddress)->sin6_addr;

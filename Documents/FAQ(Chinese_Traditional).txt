@@ -22,11 +22,12 @@
   * The file(s) may be damaged or corrupt!
     Please download all files again, also you can skip this check.
     Are you sure you want to continue install service [Y/N]?
-    - 意思是壓縮檔的 SHA-1 檢查驗證失敗，意味著程式可能在下載或解壓途中被損壞
+    - 壓縮檔的 SHA-1 檢查驗證失敗，意味著程式可能在下載或解壓途中被損壞
     - 確保 bat 批次處理都是最新版本
-    - 如果修改或更新過程式，確認程式是沒有損壞的，請輸入 Y 跳過檢查繼續安裝或運行服務
+    - 如果修改或更新過程式，確認程式是沒有損壞的，請輸入 Y/y 跳過檢查繼續安裝或運行服務
     - 否則請重新下載程式
   * 服務沒有及時回應啟動或控制請求 - 請檢查是否有錯誤報表生成，詳細情況參見下文 Error.log 詳細錯誤報表 一節
+  * Service start failed, please check the configuration. - 請檢查是否有錯誤報表生成，詳細情況參見下文 Error.log 詳細錯誤報表 一節
 
 * 正常的運行結果應類似：
 
@@ -36,7 +37,7 @@
 
     非權威應答:
     名稱: www.google.com
-    Addresses: ......（IP位址或地址清單）
+    Addresses: ……（IP位址或地址清單）
 
 * 如果出現以下結果，則說明服務沒有運行成功或者設置出錯，請檢查是否有錯誤報表生成，或請移步 ReadMe 文檔中 安裝方法 一節
 
@@ -48,7 +49,7 @@
 
 * 如果出現以下結果，則說明服務已經運行成功但遠端DNS伺服器沒有回應，請檢查是否有錯誤報表生成
   * 請務必設置一個正確的、有效的、可以使用的境外DNS伺服器
-  * 出現這種情況可能為網路問題。部分地區ISP/運營商對UDP協定轉發丟包率比較高，可嘗試切換到TCP協定模式（參見 ReadMe 文檔中 設定檔詳細參數說明 中 Base 基本區域 的 Operation Mode 一節）或者多嘗試請求幾次
+  * 出現這種情況可能為網路問題。部分地區ISP/運營商對UDP協定轉發丟包率比較高，可嘗試切換到 TCP 協定模式（參見 ReadMe 文檔中 設定檔詳細參數說明 中 Base 基本區域 的 Operation Mode 一節）或者多嘗試請求幾次
   * 也可能是因為長時間運行有錯誤累積造成，專案組正努力解決。可嘗試重啟服務（參見 ReadMe 文檔中的 重啟服務）
 
    >nslookup www.google.com
@@ -87,7 +88,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Service start error - 服務啟動失敗：可能未在系統註冊服務，或在系統內註冊的服務路徑不正確
     * Pcap_DNSProxy will continue to run in console mode 一併顯示時為以視窗模式啟動的提示
     * 詳細情況參見 ReadMe 文檔中 安裝方法 一節
-    * 其它錯誤代碼原因參見 HTTP://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
+    * 其它錯誤代碼原因參見 http://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
   * Multi bytes to wide chars error - 多位元組字元轉換為寬位元組字元錯誤，遇到此錯誤請與作者聯繫
   * Old Error Log file was deleted - 錯誤日誌檔已滿並被刪除
     * 日誌檔最大容量的配置參見 詳細說明文檔 中 設定檔詳細參數說明 中的 Log Maximum Size 參數
@@ -125,12 +126,13 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Localhost server listening Port error - 本地監聽埠錯誤：請檢查本地監聽埠的值，可適用範圍為 1 - 65535
   * IPFilter Level error - IPFilter 過濾級別錯誤：請檢查過濾級別的值，可適用範圍為 1 - 65535
   * DNS Cache error - DNS 緩存配置錯誤：請檢查緩存的參數
-DNS Targets error - DNS 目標伺服器配置錯誤：請檢查 DNS 伺服器的位址
+  * DNS Targets error - DNS 目標伺服器配置錯誤：請檢查 DNS 伺服器的位址
   * Local Main error - 主要境內伺服器請求功能錯誤：請檢查境內伺服器是否可用
+  * Local Main / Local Hosts / Local Routing error - 主要境內伺服器、境內功能變數名稱白名單或境內路由表錯誤：參見 ReadMe 文檔中對這3個參數的介紹
   * DNS Records type error - DNS 記錄參數錯誤：請檢查 Accept Type 的值是否符合要求
   * Hop Limit or TTL Fluctuations error - Hop Limit 或 TTL 可接受範圍錯誤：請檢查範圍的值
-  * EDNS0 Payload Size must longer than 512 bytes(Old DNS packets minimum supported size) - EDNS0 載荷長度過短：實現DNS協定必須支援長度超過 512 bytes 的資料包
-  * EDNS0 Payload Size may be too long - EDNS0 載荷長度可能過長：此值建議不要超過乙太網的MTU(1512 bytes)
+  * EDNS0 Payload Size must longer than 512 bytes(Old DNS packets minimum supported size) - EDNS0 載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包
+  * EDNS0 Payload Size may be too long - EDNS0 載荷長度可能過長：此值建議不要超過乙太網的 MTU(1512 bytes)
   * EDNS0 Label must trun ON when request DNSSEC - 開啟 DNSSEC 請求時必須開啟 EDNS0 標籤請求功能
   * EDNS0 Label must trun ON when request DNSCurve - 開啟 DNSCurve 協定請求時必須開啟 EDNS0 標籤請求功能
   * Alternate Multi requesting error - 主要備用或多個伺服器下同時請求參數錯誤：請確認所有伺服器的資訊
@@ -161,17 +163,16 @@ DNS Targets error - DNS 目標伺服器配置錯誤：請檢查 DNS 伺服器的
   * Level error - IPFilter 過濾級別錯誤（可根據報告的行數查找）：過濾級別介乎與 0 - 0xFFFF(65535)
 
 4.Hosts Error - 讀取 Hosts 檔錯誤
-  * Hosts file size is too large - Hosts檔容量過大：請確認Hosts檔的內容，整個檔的大小不要超過4GB
+  * Hosts file size is too large - Hosts 檔容量過大：請確認Hosts檔的內容，整個檔的大小不要超過4GB
   * Read file(s) error - 檔跳轉讀取錯誤：請與開發者聯繫
-  * Hosts file version error - Hosts 檔版本錯誤：請確認 Hosts 檔是否需要更新。注意，Windows/Linux/Mac版設定檔互不通用！
   * Data of a line is too long - 該 Hosts 條目過長（可根據檔案名和行數查找）：一行資料切勿超過4096位元組/4KB
   * Item format error - Hosts 條目格式錯誤（可根據報告的行數查找）：請檢查該條目的格式
   * Data is too long when EDNS0 is available - 開啟EDNS0標籤的情況下該 Hosts 條目過長：請檢查 Hosts 的地址清單是否過長
   * Default TTL redefinition - 預設存留時間重定義（可根據報告的行數查找）：以第一個出現的預設存留時間為准
   * Regular expression pattern error - 錯誤的正則運算式（可根據報告的行數查找）：請檢查正則運算式的正確性
   * Repeating items error, the item is not available - 存在重複的 Hosts 條目（可根據報告的行數查找）：以第一個出現的 Hosts 條目為准
-  * IPv6 Address format error - Hosts的IPv6位址格式錯誤（可根據報告的行數查找）：請檢查 Hosts 條目的位址
-  * IPv4 Address format error - Hosts的IPv4位址格式錯誤（可根據報告的行數查找）：請檢查 Hosts 條目的位址
+  * IPv6 Address format error - Hosts 的 IPv6 位址格式錯誤（可根據報告的行數查找）：請檢查 Hosts 條目的位址
+  * IPv4 Address format error - Hosts 的 IPv4 位址格式錯誤（可根據報告的行數查找）：請檢查 Hosts 條目的位址
   * Too many Hosts IP addresses - Hosts 條目的平行位址過多
 
 5.Winsock Error - Windows Socket 錯誤
@@ -209,7 +210,7 @@ DNS Targets error - DNS 目標伺服器配置錯誤：請檢查 DNS 伺服器的
   * Set ICMPv6 socket timeout error - 設置 ICMPv6 協定通訊端超時時間錯誤：具體原因可參見錯誤代碼
   * ICMPv6 Echo(Ping) request error - ICMPv6/Ping 協定請求錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
   * Not any available gateways to public network - 沒有任何通往公共網路的可用閘道：可能為網路錯誤，請檢查網路是否通暢
-  * Winsock 錯誤代碼具體含義可移步 HTTP://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
+  * Winsock 錯誤代碼具體含義可移步 http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 
 6.WinPcap Error - WinPcap 錯誤
   * Insufficient permissions or not any available network devices - 沒有任何可用的網路介面卡：請檢查硬體設備和驅動程式是否安裝正確，也可能是許可權不足

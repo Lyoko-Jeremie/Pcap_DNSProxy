@@ -1,61 +1,9 @@
-﻿特別聲明：
-
-Pcap_DNSProxy 僅供學習交流，遵循 GNU GPL 通用公共許可證 (GNU General Public License) ，切勿將其用於任何非法用途！
-使用前請自行估量是否有載入 Pcap_DNSProxy 的需要，如果不能清楚判斷而造成之不良後果，專案組所有成員均不承擔一切責任！
-使用 Pcap_DNSProxy 原始程式碼前務必參閱 LICENSE 通用公共許可證之內容！
-
-
-Pcap_DNSProxy 專案的 GitHub 頁面：
+﻿Pcap_DNSProxy 專案的 GitHub 頁面：
 * 主分支: https://github.com/chengr28/Pcap_DNSProxy
 * Release 分支: https://github.com/chengr28/Pcap_DNSProxy/tree/Release
 
 Pcap_DNSProxy 專案的 Sourceforge 頁面：
 https://sourceforge.net/projects/pcap-dnsproxy
-
-
--------------------------------------------------------------------------------
-
-
-Pcap_DNSProxy 是一個基於 LibPcap/WinPcap 製作的用於忽略DNS投毒污染的小工具，後期也加入了對包含正則運算式的 Hosts 和 DNSCurve/DNSCrypt 協定以及多執行緒請求的支援。本工具同時也支援使用 TCP 協定請求，在被連接重置時會自動切換到 UDP 協定，可以使要求者獲得正確的功能變數名稱解析。完全支援正則運算式 Hosts 條目，可以為消費者提供更加便捷的途徑設定功能變數名稱所對應的位址，避免修改系統檔的麻煩。而多執行緒或多伺服器多執行緒的請求，更能提高在惡劣網路環境下功能變數名稱解析的可靠性。
-
-Pcap_DNSProxy 的特點：
-* 同時支援本地 IPv4/IPv6 協定以及自訂多埠的監聽和遠端請求
-* Native Code 原生編譯，不含任何託管代碼，x64版為原生64位目標平臺編譯
-* 作為服務工作于系統底層
-* 多執行緒請求模型，充分利用多執行緒處理器的硬體資源
-* 使用 WinPcap/LibPcap 利用系統底層驅動抓取資料包，多種過濾方式忽略接收到的偽造資料包
-* 支援伺服器模式，相當於小型的 DNS 伺服器，能為其它設備提供解析服務，並可限制可請求的範圍
-* 主要和備用雙伺服器模式，多伺服器多次請求功能，提高 DNS 解析的可靠性
-* DNS 緩存功能
-* 支援 EDNS0 標籤
-* 支援 DNSCurve/DNSCrypt 協定
-* Hosts Only 模式可只使用本工具支援正則運算式的 Hosts 的直連模式
-* Local Hosts 境內 DNS 伺服器解析功能，可提高對境內功能變數名稱的解析速度和伺服器的存取速度
-* 豐富的配置選項，設定檔支援 ANSI、UTF-8(/BOM)、UTF-16(LE/BE) 和 UTF-32(LE/BE) 編碼以及 Windows/Unix/Macintosh 換行格式
-* 錯誤報表功能
-* C/C++ 編寫而成，使用 Visual Studio 2013 Update 3/VC++ 進行編譯，完全支援 Unicode
-
-Pcap_DNSProxy 使用的庫：
-* 正則運算式支援由 C++ STL(Windows)/系統自帶的正則庫(Linux/Mac) 提供
-* 檔 Hash 使用的演算法由 SHA-3/Keccak 提供：http://keccak.noekeon.org
-* 由 C++ STL 自帶的梅森旋轉演算法引擎產生離散型均勻分佈亂數，用於隨機功能變數名稱探測
-* DNSCurve 協定使用的 Curve25519/Salsa20/Poly1305 演算法由 LibSodium 提供：https://github.com/jedisct1/libsodium
-* DNSCurve 協定加密模式使用的一次性 Nonce 亦由 LibSodium 附帶的亂數產生器提供
-
-Pcap_DNSProxy 支援平臺：
-* 本工具抓包模組所支援的網路類型
-  * 網路裝置類型為 Ethernet 的網路
-  * 原生 IPv4 網路和原生 IPv6 網路
-  * 基於 PPPoE 的 IPv4 網路和 PPPoEv6 的 IPv6網路
-  * 如果需要支援更多網路類型，可與作者聯繫
-* Windows
-  * Windows XP SP3/2003 SP2 以及更新的版本(32位/x86版本)和 Windows Vista/2008 以及更新的版本(64位/x64版本)
-  * 支援最新版本 [WinPcap](http://www.winpcap.org/install/default.htm)
-* Linux
-  * 支援 [編譯所需依賴包](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe_Linux) 的 Linux 發行版本
-  * 支援最新版本 [Libpcap](http://www.tcpdump.org)
-* Mac
-  * 採用Intel平臺處理器的 Mac OS X 10.5 Leopard 以及更新的版本
 
 
 -------------------------------------------------------------------------------
@@ -140,13 +88,13 @@ Pcap_DNSProxy 支援平臺：
 
 注意事項：
 
-* 修改 DNS 伺服器時請務必設置一個正確的、有效的、可以正常使用的境外DNS伺服器！
+* 修改 DNS 伺服器時請務必設置一個正確的、有效的、可以正常使用的境外 DNS 伺服器！
 * 關於 WinPacap
   * 如果程式啟動提示丟失 wpcap.dll 請重新安裝 WinPcap 或者將其更新到最新版本
   * 安裝前注意系統是否已經安裝過 WinPcap 建議不要重複安裝
 * Windows 平臺下讀取檔案名時不存在大小寫的區別
 * 設定檔 Hosts 檔 IPFilter 檔和錯誤報表所在的目錄以上文 安裝方法 一節中第4步註冊的服務資訊為准
-  * 填寫時一行不要超過4096位元組/4KB
+  * 填寫時一行不要超過 4096位元組/4KB
   * 檔讀取只支援整個文本單一的編碼和換行格式組合，切勿在文字檔中混合所支援的編碼或換行格式！
 * 服務啟動前請先確認沒有其它本地 DNS 伺服器運行或本工具多個拷貝運行中，否則可能會導致監聽衝突無法正常工作
   * 監聽衝突會建置錯誤報告，可留意 Windows Socket 相關的錯誤（參見 FAQ 文檔中 Error.log 詳細錯誤報表 一節）
@@ -163,15 +111,10 @@ Pcap_DNSProxy 支援平臺：
 * 批次處理的作用：
   * 運行結束會有運行結果，具體是否成功需要留意螢幕上的提示
   * 1: Install service - 將程式註冊為系統服務，並啟動程式進行 Windows 防火牆測試
-    * 運行結束時會顯示 "Done. Please confirm the PcapDNSProxyService service had been installed."
   * 2: Uninstall service - 停止並卸載工具的服務
-    * 運行結束時會顯示 "Done. Please confirm the PcapDNSProxyService service had been deleted."
   * 3: Start service - 啟動工具的服務
-    * 運行結束時會顯示 "Done. Please confirm the PcapDNSProxyService service had been started."
   * 4: Stop service - 停止工具的服務
-    * 運行結束時會顯示 "Done. Please confirm the PcapDNSProxyService service had been stopped."
   * 5: Restart service - 重啟工具的服務
-    * 運行結束時會顯示 "Done. Please confirm the PcapDNSProxyService service had been restarted."
   * 6: Service Query(Windows XP/2003 only) - 適用于 Windows XP/2003 以及更舊版本 Windows 的測試批次處理，能測試控管服務是否安裝成功
     * 如果服務安裝成功，運行後會顯示 "SERVICE_NAME: PcapDNSProxyService"（不含引號）
 * 設定檔支援的檔案名（只會讀取優先順序較高者，優先順序較低者將被直接忽略）：
@@ -180,7 +123,7 @@ Pcap_DNSProxy 支援平臺：
 * 請求功能變數名稱解析優先順序
   * 使用系統API函數進行功能變數名稱解析（大部分）：系統 Hosts > Pcap_DNSProxy 的 Hosts 條目（Whitelist/白名單條目 > Hosts/主要Hosts清單） > DNS緩存 > Local Hosts/境內DNS解析功能變數名稱清單 > 遠端DNS伺服器
   * 直接使用網路介面卡設置進行功能變數名稱解析（小部分）：Pcap_DNSProxy 的 Hosts.ini（Whitelist/白名單條目 > Hosts/主要Hosts清單） > DNS緩存 > Local Hosts/境內DNS解析功能變數名稱清單 > 遠端DNS伺服器
-  * 請求遠端DNS伺服器的優先順序：Hosts Only 模式 > TCP模式的DNSCurve 加密/非加密模式（如有） > UDP模式的DNSCurve 加密/非加密模式（如有） > TCP模式普通請求（如有） > UDP模式普通請求
+  * 請求遠端DNS伺服器的優先順序：Hosts Only 模式 > TCP 模式的DNSCurve 加密/非加密模式（如有） > UDP 模式的DNSCurve 加密/非加密模式（如有） > TCP模式普通請求（如有） > UDP模式普通請求
 * 本工具的 DNSCurve/DNSCrypt 協定是內置的實現，不需要安裝 DNSCrypt 官方的工具！
   * DNSCurve 協定為 Streamlined/精簡類型
   * 自動獲取連接資訊時必須保證系統時間的正確，否則證書驗證時會出錯導致連接資訊獲取失敗！
@@ -242,9 +185,15 @@ Pcap_DNSProxy 支援平臺：
   * Protocol - 發送請求所使用的協定，分 UDP 和 TCP：預設為 UDP
     * 注意：此處所指的協定指的是程式請求遠端 DNS 伺服器時所使用的協定，而向本程式請求功能變數名稱解析時可隨意使用 UDP 或 TCP
   * Hosts Only - Hosts Only 直連模式，啟用後將使用系統直接請求遠端伺服器而啟用只使用本工具的 Hosts 功能：開啟為1/關閉為0，預設為 0
-  * Local Main - 主要境內伺服器請求功能，開啟後則平時使用 Local 的伺服器進行解析，遇到遭投毒污染的解析結果時自動再向境外伺服器請求
-  * Local Hosts - 白名單境內伺服器請求功能，開啟後才能使用自帶或自訂的 Local Hosts 白名單：開啟為1/關閉為0，預設為 0
-  * Local Routing - Local 路由表識別功能，開啟後所有使用 Local 請求的解析結果都會被檢查，路由表命中後會直接返回結果，命中失敗將丟棄解析結果並向境外伺服器再次發起請求：開啟為1/關閉為0，預設為 0
+  * Local Main - 主要境內伺服器請求功能：開啟為1/關閉為0，預設為 0
+    * 開啟後所有請求先使用 Local 的伺服器進行解析，遇到遭投毒污染的解析結果時自動再向境外伺服器請求
+    * 本功能不能與 Local Hosts 同時啟用
+  * Local Hosts - 白名單境內伺服器請求功能：開啟為1/關閉為0，預設為 0
+    * 開啟後才能使用自帶或自訂的 Local Hosts 白名單，同時白名單內功能變數名稱的解析結果會被無條件信任！
+    * 本功能與 Local Hosts 和 Local Routing 不能同時啟用
+  * Local Routing - Local 路由表識別功能：開啟為1/關閉為0，預設為 0
+    * 開啟後使用 Local 請求的解析結果都會被檢查，路由表命中會直接返回結果，命中失敗將丟棄解析結果並向境外伺服器再次發起請求
+    * 本功能只能在 Local Main 為啟用狀態時才能啟用
   * Cache Type - DNS緩存的類型：分 Timer/計時型以及 Queue/佇列型
   * Cache Parameter - DNS緩存的參數：Timer/計時型 時為時間長度（單位為秒），Queue/佇列型 時為佇列長度
   * Default TTL - Hosts 條目預設存留時間：單位為秒，留空則為 900秒/15分鐘，預設為空
@@ -252,10 +201,10 @@ Pcap_DNSProxy 支援平臺：
 * Listen - 監聽參數區域
   * Pcap Capture - 抓包功能總開關，開啟後抓包模組才能正常使用：開啟為1/關閉為0，預設為1
   * Operation Mode - 程式的監聽工作模式：分 Server/伺服器模式、Private/私有網路模式 和 Proxy/代理模式，預設為 Private
-    * Server/伺服器模式：打開DNS通用埠（TCP/UDP 同時打開），可為所有其它設備提供代理功能變數名稱解析請求服務
-    * Private/私有網路模式：打開DNS通用埠（TCP/UDP 同時打開），可為僅限於私有網路位址的設備提供代理功能變數名稱解析請求服務
+    * Server/伺服器模式：打開 DNS 通用埠（TCP/UDP 同時打開），可為所有其它設備提供代理功能變數名稱解析請求服務
+    * Private/私有網路模式：打開 DNS 通用埠（TCP/UDP 同時打開），可為僅限於私有網路位址的設備提供代理功能變數名稱解析請求服務
     * Proxy/代理模式：只打開回環位址的DNS埠（TCP/UDP 同時打開），只能為本機提供代理功能變數名稱解析請求服務
-    * Custom/自訂模式：打開DNS通用埠（TCP/UDP 同時打開），可用的位址由 IPFilter 參數決定
+    * Custom/自訂模式：打開 DNS 通用埠（TCP/UDP 同時打開），可用的位址由 IPFilter 參數決定
     * 當相應協定的 Listen Address 生效時，相應協定的本參數將會被自動忽略
   * Listen Protocol - 監聽協定，本地監聽的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP，預設為 IPv4 + IPv6 + TCP + UDP
     * 只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只監聽指定協定的本地埠
@@ -359,7 +308,7 @@ Pcap_DNSProxy 支援平臺：
     * 填入此值後 IPv4 協定的 Operation Mode 和 Listen Port 參數將被自動忽略
   * IPv4 DNS Address - IPv4 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，預設為 8.8.4.4:53
     * 本參數支援同時請求多伺服器的功能，開啟後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果
-    * 使用同時請求多伺服器格式為 "位址 A:埠|位址 B:埠|位址 C:埠"（不含引號），同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
+    * 使用同時請求多伺服器格式為 "位址A:埠|位址B:埠|位址C:埠"（不含引號），同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
     * 指定埠時可使用服務名稱代替：
       * TCPMUX
       * ECHO
@@ -450,20 +399,20 @@ Pcap_DNSProxy 支援平臺：
     * 本參數支援同時請求多伺服器的功能，開啟後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果
     * 使用同時請求多伺服器格式為 "位址 A:埠|位址 B:埠|位址 C:埠"（不含引號），同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
     * 指定埠時可使用服務名稱代替，參見上表
-  * IPv4 Local DNS Address - IPv4主要境內DNS伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，預設為 114.114.115.115:53
+  * IPv4 Local DNS Address - IPv4 主要境內DNS伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，預設為 114.114.115.115:53
     * 指定埠時可使用服務名稱代替，參見上表
-  * IPv4 Local Alternate DNS Address - IPv4備用境內DNS伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，預設為 114.114.114.114:53
+  * IPv4 Local Alternate DNS Address - IPv4 備用境內DNS伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，預設為 114.114.114.114:53
     * 指定埠時可使用服務名稱代替，參見上表
   * IPv6 Listen Address - IPv6 本地監聽位址：需要輸入一個帶埠格式的位址，預設為空
     * 本參數支援多個監聽位址，格式為 "位址A:埠|位址B:埠|位址C:埠"（不含引號）
     * 填入此值後 IPv6 協定的 Operation Mode 和 Listen Port 參數將被自動忽略
-  * IPv6 DNS Address - IPv6主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
+  * IPv6 DNS Address - IPv6 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
     * 指定埠時可使用服務名稱代替，參見上表
-  * IPv6 Alternate DNS Address - IPv6備用DNS伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
+  * IPv6 Alternate DNS Address - IPv6 備用DNS伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
     * 指定埠時可使用服務名稱代替，參見上表
-  * IPv6 Local DNS Address - IPv6主要境內DNS伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
+  * IPv6 Local DNS Address - IPv6 主要境內DNS伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
     * 指定埠時可使用服務名稱代替，參見上表
-  * IPv6 Local Alternate DNS Address - IPv6備用境內DNS伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
+  * IPv6 Local Alternate DNS Address - IPv6 備用境內DNS伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
     * 指定埠時可使用服務名稱代替，參見上表
 
 * Values - 擴展參數值區域
@@ -480,7 +429,7 @@ Pcap_DNSProxy 支援平臺：
     * 本參數支援同時請求多伺服器的功能，與 IPv4 Alternate DNS Address 相對應
     * 使用同時請求多伺服器格式為 "TTL(A)|TTL(B)|TTL(C)"（不含引號），也可直接預設（即只填一個 0 不是用此格式）則所有 TTL 都將由程式自動獲取
     * 使用時多 TTL 值所對應的順序與 IPv4 Alternate DNS Address 中對應的位址順序相同
-  * IPv6 Alternate Hop Limits - IPv6備用DNS伺服器接受請求的遠端 DNS 伺服器資料包的 Hop Limits 值：0為自動獲取，取值為 1-255 之間，預設為 0
+  * IPv6 Alternate Hop Limits - IPv6 備用 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 Hop Limits 值：0為自動獲取，取值為 1-255 之間，預設為 0
     * 本參數支援同時請求多伺服器的功能，與 IPv6 Alternate DNS Address 相對應
     * 使用同時請求多伺服器格式為 "Hop Limits(A)|Hop Limits(B)|Hop Limits(C)"（不含引號），也可直接預設（即只填一個 0 不是用此格式）則所有 Hop Limits 都將由程式自動獲取
     * 使用時多 Hop Limits 值所對應的順序與 IPv6 Alternate DNS Address 中對應的位址順序相同

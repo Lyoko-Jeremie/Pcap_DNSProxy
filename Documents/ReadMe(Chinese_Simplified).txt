@@ -1,61 +1,9 @@
-﻿特别声明：
-
-Pcap_DNSProxy 仅供学习交流，遵循 GNU GPL 通用公共许可证 (GNU General Public License) ，切勿将其用于任何非法用途！
-使用前请自行估量是否有加载 Pcap_DNSProxy 的需要，如果不能清楚判断而造成之不良后果，项目组所有成员均不承担一切责任！
-使用 Pcap_DNSProxy 源代码前务必参阅 LICENSE 通用公共许可证之内容！
-
-
-Pcap_DNSProxy 项目的 GitHub 页面：
+﻿Pcap_DNSProxy 项目的 GitHub 页面：
 * 主分支: https://github.com/chengr28/Pcap_DNSProxy
 * Release 分支: https://github.com/chengr28/Pcap_DNSProxy/tree/Release
 
 Pcap_DNSProxy 项目的 Sourceforge 页面：
 https://sourceforge.net/projects/pcap-dnsproxy
-
-
--------------------------------------------------------------------------------
-
-
-Pcap_DNSProxy 是一个基于 LibPcap/WinPcap 制作的用于忽略DNS投毒污染的小工具，后期也加入了对包含正则表达式的 Hosts 和 DNSCurve/DNSCrypt 协议以及多线程请求的支持。本工具同时也支持使用 TCP 协议请求，在被连接重置时会自动切换到 UDP 协议，可以使请求者获得正确的域名解析。完全支持正则表达式 Hosts 条目，可以为使用者提供更加便捷的途径设定域名所对应的地址，避免修改系统文件的麻烦。而多线程或多服务器多线程的请求，更能提高在恶劣网络环境下域名解析的可靠性。
-
-Pcap_DNSProxy 的特点：
-* 同时支持本地 IPv4/IPv6 协议以及自定义多端口的监听和远程请求
-* Native Code 原生编译，不含任何托管代码，x64版为原生64位目标平台编译
-* 作为服务工作于系统底层
-* 多线程请求模型，充分利用多线程处理器的硬件资源
-* 使用 WinPcap/LibPcap 利用系统底层驱动抓取数据包，多种过滤方式忽略接收到的伪造数据包
-* 支持服务器模式，相当于小型的 DNS 服务器，能为其它设备提供解析服务，并可限制可请求的范围
-* 主要和备用双服务器模式，多服务器多次请求功能，提高 DNS 解析的可靠性
-* DNS 缓存功能
-* 支持 EDNS0 标签
-* 支持 DNSCurve/DNSCrypt 协议
-* Hosts Only 模式可只使用本工具支持正则表达式的 Hosts 的直连模式
-* Local Hosts 境内 DNS 服务器解析功能，可提高对境内域名的解析速度和服务器的访问速度
-* 丰富的配置选项，配置文件支持 ANSI、UTF-8(/BOM)、UTF-16(LE/BE) 和 UTF-32(LE/BE) 编码以及 Windows/Unix/Macintosh 换行格式
-* 错误报告功能
-* C/C++ 编写而成，使用 Visual Studio 2013 Update 3/VC++ 进行编译，完全支持 Unicode
-
-Pcap_DNSProxy 使用的库：
-* 正则表达式支持由 C++ STL(Windows)/系统自带的正则库(Linux/Mac) 提供
-* 文件 Hash 使用的算法由 SHA-3/Keccak 提供：http://keccak.noekeon.org
-* 由 C++ STL 自带的梅森旋转算法引擎产生离散型均匀分布随机数，用于随机域名探测
-* DNSCurve 协议使用的 Curve25519/Salsa20/Poly1305 算法由 LibSodium 提供：https://github.com/jedisct1/libsodium
-* DNSCurve 协议加密模式使用的一次性 Nonce 亦由 LibSodium 附带的随机数产生器提供
-
-Pcap_DNSProxy 支持平台：
-* 本工具抓包模块所支持的网络类型
-  * 网络设备类型为 Ethernet 的网络
-  * 原生 IPv4 网络和原生 IPv6 网络
-  * 基于 PPPoE 的 IPv4 网络和 PPPoEv6 的 IPv6网络
-  * 如果需要支持更多网络类型，可与作者联系
-* Windows
-  * Windows XP SP3/2003 SP2 以及更新的版本(32位/x86版本)或 Windows Vista/2008 以及更新的版本(64位/x64版本)
-  * 支持最新版本 [WinPcap](http://www.winpcap.org/install/default.htm)
-* Linux
-  * 支持 [编译所需依赖包](https://github.com/chengr28/Pcap_DNSProxy/wiki/ReadMe_Linux) 的 Linux 发行版
-  * 支持最新版本 [Libpcap](http://www.tcpdump.org)
-* Mac
-  * 采用Intel平台处理器的 Mac OS X 10.5 Leopard 以及更新的版本
 
 
 -------------------------------------------------------------------------------
@@ -144,7 +92,7 @@ Pcap_DNSProxy 支持平台：
   * 安装前注意系统是否已经安装过 WinPcap 建议不要重复安装
 * Windows 平台下读取文件名时不存在大小写的区别
 * 配置文件 Hosts 文件 IPFilter 文件和错误报告所在的目录以上文 安装方法 一节中第4步注册的服务信息为准
-  * 填写时一行不要超过4096字节/4KB
+  * 填写时一行不要超过 4096字节/4KB
   * 文件读取只支持整个文本单一的编码和换行格式组合，切勿在文本文件中混合所支持的编码或换行格式！
 * 服务启动前请先确认没有其它本地 DNS 服务器运行或本工具多个拷贝运行中，否则可能会导致监听冲突无法正常工作
   * 监听冲突会生成错误报告，可留意 Windows Socket 相关的错误（参见 FAQ 文档中 Error.log 详细错误报告 一节）
@@ -161,15 +109,10 @@ Pcap_DNSProxy 支持平台：
 * 批处理的作用：
   * 运行结束会有运行结果，具体是否成功需要留意屏幕上的提示
   * 1: Install service - 将程序注册为系统服务，并启动程序进行 Windows 防火墙测试
-    * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been installed."
   * 2: Uninstall service - 停止并卸载工具的服务
-    * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been deleted."
   * 3: Start service - 启动工具的服务
-    * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been started."
   * 4: Stop service - 停止工具的服务
-    * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been stopped."
   * 5: Restart service - 重启工具的服务
-    * 运行结束时会显示 "Done. Please confirm the PcapDNSProxyService service had been restarted."
   * 6: Service Query(Windows XP/2003 only) - 适用于 Windows XP/2003 以及更旧版本 Windows 的测试批处理，能测试工具服务是否安装成功
     * 如果服务安装成功，运行后会显示 "SERVICE_NAME: PcapDNSProxyService"（不含引号）
 * 配置文件支持的文件名（只会读取优先级较高者，优先级较低者将被直接忽略）：
@@ -240,9 +183,15 @@ Pcap_DNSProxy 支持平台：
   * Protocol - 发送请求所使用的协议，分 UDP 和 TCP：默认为 UDP
     * 注意：此处所指的协议指的是程序请求远程 DNS 服务器时所使用的协议，而向本程序请求域名解析时可随意使用 UDP 或 TCP
   * Hosts Only - Hosts Only 直连模式，启用后将使用系统直接请求远程服务器而启用只使用本工具的 Hosts 功能：开启为1/关闭为0，默认为 0
-  * Local Main - 主要境内服务器请求功能，开启后则平时使用 Local 的服务器进行解析，遇到遭投毒污染的解析结果时自动再向境外服务器请求
-  * Local Hosts - 白名单境内服务器请求功能，开启后才能使用自带或自定义的 Local Hosts 白名单：开启为1/关闭为0，默认为 0
-  * Local Routing - Local 路由表识别功能，开启后所有使用 Local 请求的解析结果都会被检查，路由表命中后会直接返回结果，命中失败将丢弃解析结果并向境外服务器再次发起请求：开启为1/关闭为0，默认为 0
+  * Local Main - 主要境内服务器请求功能：开启为1/关闭为0，默认为 0
+    * 开启后所有请求先使用 Local 的服务器进行解析，遇到遭投毒污染的解析结果时自动再向境外服务器请求
+    * 本功能不能与 Local Hosts 同时启用
+  * Local Hosts - 白名单境内服务器请求功能：开启为1/关闭为0，默认为 0
+    * 开启后才能使用自带或自定义的 Local Hosts 白名单，同时白名单内域名的解析结果会被无条件信任！
+    * 本功能与 Local Hosts 和 Local Routing 不能同时启用
+  * Local Routing - Local 路由表识别功能：开启为1/关闭为0，默认为 0
+    * 开启后使用 Local 请求的解析结果都会被检查，路由表命中会直接返回结果，命中失败将丢弃解析结果并向境外服务器再次发起请求
+    * 本功能只能在 Local Main 为启用状态时才能启用
   * Cache Type - DNS 缓存的类型：分 Timer/计时型以及 Queue/队列型
   * Cache Parameter - DNS 缓存的参数：Timer/计时型 时为时间长度（单位为秒），Queue/队列型 时为队列长度
   * Default TTL - Hosts 条目默认生存时间：单位为秒，留空则为 900秒/15分钟，默认为空
