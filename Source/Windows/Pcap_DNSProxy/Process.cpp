@@ -100,7 +100,10 @@ size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Leng
 	{
 	//Fin TCP request connection.
 		if (Protocol == IPPROTO_TCP && TargetData.Socket != INVALID_SOCKET)
+		{
+			shutdown(TargetData.Socket, SD_BOTH);
 			closesocket(TargetData.Socket);
+		}
 
 		return EXIT_SUCCESS;
 	}
@@ -119,7 +122,10 @@ size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Leng
 	{
 	//Fin TCP request connection.
 		if (Protocol == IPPROTO_TCP && TargetData.Socket != INVALID_SOCKET)
+		{
+			shutdown(TargetData.Socket, SD_BOTH);
 			closesocket(TargetData.Socket);
+		}
 
 		return EXIT_SUCCESS;
 	}
@@ -147,7 +153,10 @@ size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Leng
 		{
 		//Fin TCP request connection.
 			if (Protocol == IPPROTO_TCP && TargetData.Socket != INVALID_SOCKET)
+			{
+				shutdown(TargetData.Socket, SD_BOTH);
 				closesocket(TargetData.Socket);
+			}
 
 			return EXIT_SUCCESS;
 		}
@@ -164,7 +173,10 @@ size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Leng
 	{
 	//Fin TCP request connection.
 		if (Protocol == IPPROTO_TCP && TargetData.Socket != INVALID_SOCKET)
+		{
+			shutdown(TargetData.Socket, SD_BOTH);
 			closesocket(TargetData.Socket);
+		}
 
 		return EXIT_SUCCESS;
 	}
@@ -1412,7 +1424,10 @@ size_t __fastcall UDPRequestProcess(const PSTR OriginalSend, const size_t SendSi
 
 //Fin TCP request connection.
 	if (Protocol == IPPROTO_TCP && TargetData.Socket != INVALID_SOCKET)
+	{
+		shutdown(TargetData.Socket, SD_BOTH);
 		closesocket(TargetData.Socket);
+	}
 
 	return EXIT_SUCCESS;
 }
@@ -1425,11 +1440,13 @@ size_t __fastcall SendToRequester(PSTR RecvBuffer, const size_t RecvSize, const 
 	{
 		if (AddLengthToTCPDNSHeader(RecvBuffer, RecvSize, LARGE_PACKET_MAXSIZE) == EXIT_FAILURE)
 		{
+			shutdown(TargetData.Socket, SD_BOTH);
 			closesocket(TargetData.Socket);
 			return EXIT_FAILURE;
 		}
 
 		send(TargetData.Socket, RecvBuffer, (int)(RecvSize + sizeof(uint16_t)), 0);
+		shutdown(TargetData.Socket, SD_BOTH);
 		closesocket(TargetData.Socket);
 	}
 //UDP

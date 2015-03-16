@@ -137,18 +137,20 @@ size_t LocalSignatureRequest(const PSTR OriginalSend, const size_t SendSize, PST
 //Socket initialization
 	if (Parameter.GatewayAvailable_IPv6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
 	{
-		AddrLen = sizeof(sockaddr_in6);
-		((sockaddr_in6 *)SockAddr.get())->sin6_family = AF_INET6;
 		((sockaddr_in6 *)SockAddr.get())->sin6_addr = in6addr_loopback;
 		((sockaddr_in6 *)SockAddr.get())->sin6_port = Parameter.ListenPort->front();
+
+		AddrLen = sizeof(sockaddr_in6);
+		SockAddr->ss_family = AF_INET6;
 		UDPSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	}
 	else if (Parameter.GatewayAvailable_IPv4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
 	{
-		AddrLen = sizeof(sockaddr_in);
-		((sockaddr_in *)SockAddr.get())->sin_family = AF_INET;
 		((sockaddr_in *)SockAddr.get())->sin_addr.S_un.S_addr = htonl(INADDR_LOOPBACK);
 		((sockaddr_in *)SockAddr.get())->sin_port = Parameter.ListenPort->front();
+
+		AddrLen = sizeof(sockaddr_in);
+		SockAddr->ss_family = AF_INET;
 		UDPSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	}
 	else {
@@ -176,6 +178,7 @@ size_t LocalSignatureRequest(const PSTR OriginalSend, const size_t SendSize, PST
 	if (sendto(UDPSocket, OriginalSend, (int)SendSize, 0, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR)
 	{
 		PrintError(LOG_ERROR_WINSOCK, L"DNSCurve Local Signature request error", WSAGetLastError(), nullptr, 0);
+		shutdown(UDPSocket, SD_BOTH);
 		closesocket(UDPSocket);
 
 		return EXIT_FAILURE;
@@ -183,6 +186,7 @@ size_t LocalSignatureRequest(const PSTR OriginalSend, const size_t SendSize, PST
 
 //Receive result.
 	SSIZE_T RecvLen = recvfrom(UDPSocket, OriginalRecv, (int)RecvSize, 0, (PSOCKADDR)SockAddr.get(), (PINT)&AddrLen);
+	shutdown(UDPSocket, SD_BOTH);
 	closesocket(UDPSocket);
 	if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
 	{
@@ -246,10 +250,6 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
 	if (NetworkLayer == AF_INET6) //IPv6
 	{
-		AddrLen = sizeof(sockaddr_in6);
-		SockAddr->ss_family = AF_INET6;
-		TCPSocket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-
 		if (IsAlternate)
 		{
 			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr;
@@ -263,12 +263,12 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 			PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv6;
 			ServerType = DNSCURVE_MAINIPV6;
 		}
+
+		AddrLen = sizeof(sockaddr_in6);
+		SockAddr->ss_family = AF_INET6;
+		TCPSocket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 	}
 	else { //IPv4
-		AddrLen = sizeof(sockaddr_in);
-		SockAddr->ss_family = AF_INET;
-		TCPSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
 		if (IsAlternate)
 		{
 			((PSOCKADDR_IN)SockAddr.get())->sin_addr = DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4.sin_addr;
@@ -282,6 +282,10 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 			PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
 			ServerType = DNSCURVE_MAINIPV4;
 		}
+
+		AddrLen = sizeof(sockaddr_in);
+		SockAddr->ss_family = AF_INET;
+		TCPSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	}
 
 /* Old version(2015-01-14)
@@ -565,6 +569,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 					//Receive again.
 						else if (PDULen > 0)
 						{
+							shutdown(TCPSocket, SD_BOTH);
 							closesocket(TCPSocket);
 
 						//Jump to normal receive process.
@@ -584,6 +589,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 								goto JumpToRestart;
 							}
 							else {
+								shutdown(TCPSocket, SD_BOTH);
 								closesocket(TCPSocket);
 
 								RecvLen = (SSIZE_T)ntohs(((uint16_t *)RecvBuffer.get())[0]);
@@ -601,6 +607,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 										CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 										CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 									{
+										shutdown(TCPSocket, SD_BOTH);
 										closesocket(TCPSocket);
 										TCPSocket = socket(NetworkLayer, SOCK_STREAM, IPPROTO_TCP);
 										goto JumpToRestart;
@@ -692,10 +699,6 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const b
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
 	if (NetworkLayer == AF_INET6) //IPv6
 	{
-		AddrLen = sizeof(sockaddr_in6);
-		SockAddr->ss_family = AF_INET6;
-		UDPSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-
 		if (IsAlternate)
 		{
 			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr;
@@ -709,12 +712,12 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const b
 			PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv6;
 			ServerType = DNSCURVE_MAINIPV6;
 		}
+
+		SockAddr->ss_family = AF_INET6;
+		AddrLen = sizeof(sockaddr_in6);
+		UDPSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	}
 	else { //IPv4
-		AddrLen = sizeof(sockaddr_in);
-		SockAddr->ss_family = AF_INET;
-		UDPSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-
 		if (IsAlternate)
 		{
 			((PSOCKADDR_IN)SockAddr.get())->sin_addr = DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4.sin_addr;
@@ -728,6 +731,10 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const b
 			PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
 			ServerType = DNSCURVE_MAINIPV4;
 		}
+
+		AddrLen = sizeof(sockaddr_in);
+		SockAddr->ss_family = AF_INET;
+		UDPSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	}
 
 //Socket check
@@ -753,6 +760,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const b
 	{
 		if (sendto(UDPSocket, SendBuffer.get(), (int)DataLength, 0, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR)
 		{
+			shutdown(UDPSocket, SD_BOTH);
 			closesocket(UDPSocket);
 			PrintError(LOG_ERROR_DNSCURVE, L"UDP get signature data request error", WSAGetLastError(), nullptr, 0);
 			UDPSocket = socket(NetworkLayer, SOCK_DGRAM, IPPROTO_UDP);
@@ -954,9 +962,9 @@ size_t __fastcall DNSCurveTCPRequest(const PSTR OriginalSend, const size_t SendS
 			ServerType = DNSCURVE_MAINIPV6;
 		}
 
+		AddrLen = sizeof(sockaddr_in6);
 		SockAddr->ss_family = AF_INET6;
 		TCPSocket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-		AddrLen = sizeof(sockaddr_in6);
 	}
 	else if (Parameter.GatewayAvailable_IPv4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
 	{
@@ -988,9 +996,9 @@ size_t __fastcall DNSCurveTCPRequest(const PSTR OriginalSend, const size_t SendS
 			ServerType = DNSCURVE_MAINIPV4;
 		}
 
+		AddrLen = sizeof(sockaddr_in);
 		SockAddr->ss_family = AF_INET;
 		TCPSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-		AddrLen = sizeof(sockaddr_in);
 	}
 	else {
 		return EXIT_FAILURE;
@@ -1291,6 +1299,7 @@ size_t __fastcall DNSCurveTCPRequest(const PSTR OriginalSend, const size_t SendS
 				//Receive again.
 					else if (PDULen > 0)
 					{
+						shutdown(TCPSocket, SD_BOTH);
 						closesocket(TCPSocket);
 
 					//Jump to normal receive process.
@@ -1311,6 +1320,7 @@ size_t __fastcall DNSCurveTCPRequest(const PSTR OriginalSend, const size_t SendS
 							break;
 						}
 						else {
+							shutdown(TCPSocket, SD_BOTH);
 							closesocket(TCPSocket);
 
 							RecvLen = (SSIZE_T)ntohs(((uint16_t *)OriginalRecv)[0]);
@@ -1394,6 +1404,7 @@ size_t __fastcall DNSCurveTCPRequest(const PSTR OriginalSend, const size_t SendS
 	//Timeout
 		else if (SelectResult == 0)
 		{
+			shutdown(TCPSocket, SD_BOTH);
 			closesocket(TCPSocket);
 			memset(OriginalRecv, 0, RecvSize);
 			if (AlternateTimeoutTimes != nullptr)
@@ -1407,6 +1418,7 @@ size_t __fastcall DNSCurveTCPRequest(const PSTR OriginalSend, const size_t SendS
 		}
 	}
 
+	shutdown(TCPSocket, SD_BOTH);
 	closesocket(TCPSocket);
 	memset(OriginalRecv, 0, RecvSize);
 	return EXIT_FAILURE;
@@ -2348,7 +2360,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const PSTR OriginalSend, const size_t 
 		if (DNSCurveParameter.IsEncryption && 
 			(CheckEmptyBuffer(PacketTarget->PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 			CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
-			return EXIT_FAILURE;
+				return EXIT_FAILURE;
 
 		for (size_t Index = 0;Index < Parameter.MultiRequestTimes;Index++)
 		{
@@ -2505,6 +2517,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const PSTR OriginalSend, const size_t 
 						}
 					//Invalid packet.
 						else {
+							shutdown(TCPSocketDataList[Index].Socket, SD_BOTH);
 							closesocket(TCPSocketDataList[Index].Socket);
 							TCPSocketDataList[Index].Socket = 0;
 							break;
@@ -2514,6 +2527,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const PSTR OriginalSend, const size_t 
 					//Length check.
 						if ((SSIZE_T)PDULenList[Index] > RecvLen)
 						{
+							shutdown(TCPSocketDataList[Index].Socket, SD_BOTH);
 							closesocket(TCPSocketDataList[Index].Socket);
 							TCPSocketDataList[Index].Socket = 0;
 							break;
@@ -2540,6 +2554,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const PSTR OriginalSend, const size_t 
 						//Length check
 							if ((SSIZE_T)ntohs(((uint16_t *)OriginalRecv)[0]) > RecvLen)
 							{
+								shutdown(TCPSocketDataList[Index].Socket, SD_BOTH);
 								closesocket(TCPSocketDataList[Index].Socket);
 								TCPSocketDataList[Index].Socket = 0;
 								break;
@@ -2627,7 +2642,10 @@ size_t __fastcall DNSCurveTCPRequestMulti(const PSTR OriginalSend, const size_t 
 									for (auto SocketDataIter:TCPSocketDataList)
 									{
 										if (SocketDataIter.Socket > 0)
+										{
+											shutdown(SocketDataIter.Socket, SD_BOTH);
 											closesocket(SocketDataIter.Socket);
+										}
 									}
 
 								//Mark DNS Cache.
@@ -2638,6 +2656,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const PSTR OriginalSend, const size_t 
 								}
 							//Length check
 								else {
+									shutdown(TCPSocketDataList[Index].Socket, SD_BOTH);
 									closesocket(TCPSocketDataList[Index].Socket);
 									TCPSocketDataList[Index].Socket = 0;
 									break;
@@ -2676,14 +2695,19 @@ size_t __fastcall DNSCurveTCPRequestMulti(const PSTR OriginalSend, const size_t 
 	//Timeout
 		else if (SelectResult == 0)
 		{
-			for (auto SocketDataIter:TCPSocketDataList)
-			{
-				if (SocketDataIter.Socket > 0)
-					closesocket(SocketDataIter.Socket);
-			}
 			memset(OriginalRecv, 0, RecvSize);
 			AlternateSwapList.TimeoutTimes[8U]++;
 			AlternateSwapList.TimeoutTimes[9U]++;
+
+		//Close all sockets.
+			for (auto SocketDataIter:TCPSocketDataList)
+			{
+				if (SocketDataIter.Socket > 0)
+				{
+					shutdown(SocketDataIter.Socket, SD_BOTH);
+					closesocket(SocketDataIter.Socket);
+				}
+			}
 
 			return WSAETIMEDOUT;
 		}
@@ -2693,11 +2717,16 @@ size_t __fastcall DNSCurveTCPRequestMulti(const PSTR OriginalSend, const size_t 
 		}
 	}
 
+//Close all sockets.
 	for (auto SocketDataIter:TCPSocketDataList)
 	{
 		if (SocketDataIter.Socket > 0)
+		{
+			shutdown(SocketDataIter.Socket, SD_BOTH);
 			closesocket(SocketDataIter.Socket);
+		}
 	}
+
 	memset(OriginalRecv, 0, RecvSize);
 	return EXIT_FAILURE;
 }
@@ -2743,9 +2772,9 @@ size_t __fastcall DNSCurveUDPRequest(const PSTR OriginalSend, const size_t SendS
 			PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv6;
 		}
 
+		AddrLen = sizeof(sockaddr_in6);
 		SockAddr->ss_family = AF_INET6;
 		UDPSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-		AddrLen = sizeof(sockaddr_in6);
 	}
 	else if (Parameter.GatewayAvailable_IPv4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
 	{
@@ -2775,9 +2804,9 @@ size_t __fastcall DNSCurveUDPRequest(const PSTR OriginalSend, const size_t SendS
 			PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
 		}
 
+		AddrLen = sizeof(sockaddr_in);
 		SockAddr->ss_family = AF_INET;
 		UDPSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-		AddrLen = sizeof(sockaddr_in);
 	}
 	else {
 		return EXIT_FAILURE;
@@ -2848,6 +2877,7 @@ size_t __fastcall DNSCurveUDPRequest(const PSTR OriginalSend, const size_t SendS
 		if (sendto(UDPSocket, OriginalRecv, (int)DNSCurveParameter.DNSCurvePayloadSize, 0, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR)
 		{
 			PrintError(LOG_ERROR_WINSOCK, L"DNSCurve UDP request error", WSAGetLastError(), nullptr, 0);
+			shutdown(UDPSocket, SD_BOTH);
 			closesocket(UDPSocket);
 
 			return EXIT_FAILURE;
@@ -2874,6 +2904,7 @@ size_t __fastcall DNSCurveUDPRequest(const PSTR OriginalSend, const size_t SendS
 	{
 		if (WSAGetLastError() == WSAETIMEDOUT)
 		{
+			shutdown(UDPSocket, SD_BOTH);
 			closesocket(UDPSocket);
 			if (AlternateTimeoutTimes != nullptr)
 				(*AlternateTimeoutTimes)++;
@@ -2881,11 +2912,13 @@ size_t __fastcall DNSCurveUDPRequest(const PSTR OriginalSend, const size_t SendS
 			return WSAETIMEDOUT;
 		}
 		else {
+			shutdown(UDPSocket, SD_BOTH);
 			closesocket(UDPSocket);
 			return EXIT_FAILURE;
 		}
 	}
 
+	shutdown(UDPSocket, SD_BOTH);
 	closesocket(UDPSocket);
 //Encryption mode
 	if (DNSCurveParameter.IsEncryption)
@@ -3732,7 +3765,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const PSTR OriginalSend, const size_t 
 				WholeNonce.get(),
 				PacketTarget->PrecomputationKey) != 0)
 			{
-				for (auto SocketDataIter : UDPSocketDataList)
+				for (auto SocketDataIter:UDPSocketDataList)
 					closesocket(SocketDataIter.Socket);
 				return EXIT_FAILURE;
 			}
@@ -3829,7 +3862,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const PSTR OriginalSend, const size_t 
 				Alternate_WholeNonce.get(),
 				PacketTarget->PrecomputationKey) != 0)
 			{
-				for (auto SocketDataIter : UDPSocketDataList)
+				for (auto SocketDataIter:UDPSocketDataList)
 					closesocket(SocketDataIter.Socket);
 				return EXIT_FAILURE;
 			}
@@ -3894,6 +3927,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const PSTR OriginalSend, const size_t 
 							continue;
 						}
 						else {
+							shutdown(UDPSocketDataList[Index].Socket, SD_BOTH);
 							closesocket(UDPSocketDataList[Index].Socket);
 							UDPSocketDataList[Index].Socket = 0;
 							break;
@@ -3928,7 +3962,11 @@ size_t __fastcall DNSCurveUDPRequestMulti(const PSTR OriginalSend, const size_t 
 						if (memcmp(OriginalRecv, PacketTarget->ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) != 0)
 						{
 							memset(OriginalRecv, 0, RecvSize);
-							return EXIT_FAILURE;
+							shutdown(UDPSocketDataList[Index].Socket, SD_BOTH);
+							closesocket(UDPSocketDataList[Index].Socket);
+							UDPSocketDataList[Index].Socket = 0;
+
+							continue;
 						}
 
 					//Copy whole nonce.
@@ -3947,7 +3985,11 @@ size_t __fastcall DNSCurveUDPRequestMulti(const PSTR OriginalSend, const size_t 
 							PacketTarget->PrecomputationKey) != 0)
 						{
 							memset(OriginalRecv, 0, RecvSize);
-							return EXIT_FAILURE;
+							shutdown(UDPSocketDataList[Index].Socket, SD_BOTH);
+							closesocket(UDPSocketDataList[Index].Socket);
+							UDPSocketDataList[Index].Socket = 0;
+
+							continue;
 						}
 //						memmove(OriginalRecv, OriginalRecv + crypto_box_ZEROBYTES, RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES));
 						memmove_s(OriginalRecv, RecvSize, OriginalRecv + crypto_box_ZEROBYTES, RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES));
@@ -3965,7 +4007,21 @@ size_t __fastcall DNSCurveUDPRequestMulti(const PSTR OriginalSend, const size_t 
 						if ((Parameter.DNSDataCheck || Parameter.Blacklist) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
 						{
 							memset(OriginalRecv, 0, RecvSize);
-							return EXIT_FAILURE;
+							shutdown(UDPSocketDataList[Index].Socket, SD_BOTH);
+							closesocket(UDPSocketDataList[Index].Socket);
+							UDPSocketDataList[Index].Socket = 0;
+
+							continue;
+						}
+
+					//Close all sockets.
+						for (auto SocketDataIter:UDPSocketDataList)
+						{
+							if (SocketDataIter.Socket > 0)
+							{
+								shutdown(SocketDataIter.Socket, SD_BOTH);
+								closesocket(SocketDataIter.Socket);
+							}
 						}
 
 					//Mark DNS Cache.
@@ -3976,6 +4032,15 @@ size_t __fastcall DNSCurveUDPRequestMulti(const PSTR OriginalSend, const size_t 
 					}
 				//Normal mode
 					else {
+						for (auto SocketDataIter:UDPSocketDataList)
+						{
+							if (SocketDataIter.Socket > 0)
+							{
+								shutdown(SocketDataIter.Socket, SD_BOTH);
+								closesocket(SocketDataIter.Socket);
+							}
+						}
+
 					//Hosts Only Extended check
 						if ((Parameter.DNSDataCheck || Parameter.Blacklist) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
 						{
@@ -3987,10 +4052,14 @@ size_t __fastcall DNSCurveUDPRequestMulti(const PSTR OriginalSend, const size_t 
 						if (Parameter.CacheType > 0)
 							MarkDomainCache(OriginalRecv, RecvLen);
 
+					//Close all sockets.
 						for (auto SocketDataIter:UDPSocketDataList)
 						{
 							if (SocketDataIter.Socket > 0)
+							{
+								shutdown(SocketDataIter.Socket, SD_BOTH);
 								closesocket(SocketDataIter.Socket);
+							}
 						}
 
 						return RecvLen;
@@ -4033,14 +4102,19 @@ size_t __fastcall DNSCurveUDPRequestMulti(const PSTR OriginalSend, const size_t 
 	//Timeout
 		else if (SelectResult == 0)
 		{
-			for (auto SocketDataIter:UDPSocketDataList)
-			{
-				if (SocketDataIter.Socket > 0)
-					closesocket(SocketDataIter.Socket);
-			}
 			memset(OriginalRecv, 0, RecvSize);
 			AlternateSwapList.TimeoutTimes[10U]++;
 			AlternateSwapList.TimeoutTimes[11U]++;
+
+		//Close all sockets.
+			for (auto SocketDataIter:UDPSocketDataList)
+			{
+				if (SocketDataIter.Socket > 0)
+				{
+					shutdown(SocketDataIter.Socket, SD_BOTH);
+					closesocket(SocketDataIter.Socket);
+				}
+			}
 
 			return WSAETIMEDOUT;
 		}
@@ -4050,11 +4124,16 @@ size_t __fastcall DNSCurveUDPRequestMulti(const PSTR OriginalSend, const size_t 
 		}
 	}
 
+//Close all sockets.
 	for (auto SocketDataIter:UDPSocketDataList)
 	{
 		if (SocketDataIter.Socket > 0)
+		{
+			shutdown(SocketDataIter.Socket, SD_BOTH);
 			closesocket(SocketDataIter.Socket);
+		}
 	}
+
 	memset(OriginalRecv, 0, RecvSize);
 	return EXIT_FAILURE;
 }

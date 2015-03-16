@@ -168,10 +168,10 @@ size_t __fastcall FirewallTest(const uint16_t Protocol)
 //Socket initialization
 	if (Protocol == AF_INET6) //IPv6
 	{
-		FirewallSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-		SockAddr->ss_family = AF_INET6;
 		((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = in6addr_any;
 		((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
+		SockAddr->ss_family = AF_INET6;
+		FirewallSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 
 	//Bind local socket.
 		if (FirewallSocket == INVALID_SOCKET)
@@ -197,10 +197,10 @@ size_t __fastcall FirewallTest(const uint16_t Protocol)
 		}
 	}
 	else { //IPv4
-		FirewallSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-		SockAddr->ss_family = AF_INET;
 		((PSOCKADDR_IN)SockAddr.get())->sin_addr.S_un.S_addr = INADDR_ANY;
 		((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
+		SockAddr->ss_family = AF_INET;
+		FirewallSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 	//Bind local socket.
 		if (FirewallSocket == INVALID_SOCKET)

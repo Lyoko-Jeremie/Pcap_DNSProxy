@@ -692,6 +692,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData)
 		}
 	}
 
+	shutdown(LocalhostData.Socket, SD_BOTH);
 	closesocket(LocalhostData.Socket);
 	PrintError(LOG_ERROR_SYSTEM, L"UDP listening module Monitor terminated", 0, nullptr, 0);
 	return EXIT_SUCCESS;
@@ -773,6 +774,7 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalhostData)
 				CheckSpecialAddress(Addr, AF_INET6, nullptr))
 */
 			{
+				shutdown(LocalhostData.Socket, SD_BOTH);
 				closesocket(ClientData->Socket);
 				continue;
 			}
@@ -794,6 +796,7 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalhostData)
 				CheckSpecialAddress(Addr, AF_INET, nullptr))
 */
 			{
+				shutdown(LocalhostData.Socket, SD_BOTH);
 				closesocket(ClientData->Socket);
 				continue;
 			}
@@ -810,6 +813,7 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalhostData)
 //		Index = (Index + 1U) % QUEUE_MAXLEN;
 	}
 
+	shutdown(LocalhostData.Socket, SD_BOTH);
 	closesocket(LocalhostData.Socket);
 	PrintError(LOG_ERROR_SYSTEM, L"TCP listening module Monitor terminated", 0, nullptr, 0);
 	return EXIT_SUCCESS;
@@ -846,6 +850,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA TargetData, const size_t L
 			if (DNS_Header->Questions != htons(U16_NUM_ONE) || ntohs(DNS_Header->Flags) >> 15U > 0 || 
 				DNS_Header->Answer > 0 || ntohs(DNS_Header->Additional) > U16_NUM_ONE || DNS_Header->Authority > 0)
 			{
+				shutdown(TargetData.Socket, SD_BOTH);
 				closesocket(TargetData.Socket);
 				return EXIT_FAILURE;
 			}
@@ -859,6 +864,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA TargetData, const size_t L
 				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | 0x8001); //Set 10000000000000001, DNS_SQR_FE
 				send(TargetData.Socket, Buffer.get(), (int)RecvLen, 0);
 
+				shutdown(TargetData.Socket, SD_BOTH);
 				closesocket(TargetData.Socket);
 				return EXIT_FAILURE;
 			}
@@ -899,6 +905,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA TargetData, const size_t L
 				EnterRequestProcess(Buffer.get(), PDU_Len, TargetData, IPPROTO_TCP, ListIndex + QUEUE_MAXLEN * (QUEUE_PARTNUM - 1U));
 		}
 		else {
+			shutdown(TargetData.Socket, SD_BOTH);
 			closesocket(TargetData.Socket);
 			return EXIT_FAILURE;
 		}
@@ -912,6 +919,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA TargetData, const size_t L
 		if (DNS_Header->Questions != htons(U16_NUM_ONE) || ntohs(DNS_Header->Flags) >> 15U > 0 || 
 			DNS_Header->Answer > 0 || ntohs(DNS_Header->Additional) > U16_NUM_ONE || DNS_Header->Authority > 0)
 		{
+			shutdown(TargetData.Socket, SD_BOTH);
 			closesocket(TargetData.Socket);
 			return EXIT_FAILURE;
 		}
@@ -925,6 +933,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA TargetData, const size_t L
 			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | 0x8001); //Set 10000000000000001, DNS_SQR_FE
 			send(TargetData.Socket, Buffer.get(), (int)RecvLen + sizeof(uint16_t), 0);
 
+			shutdown(TargetData.Socket, SD_BOTH);
 			closesocket(TargetData.Socket);
 			return EXIT_FAILURE;
 		}
@@ -966,11 +975,13 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA TargetData, const size_t L
 			EnterRequestProcess(Buffer.get() + sizeof(uint16_t), RecvLen, TargetData, IPPROTO_TCP, ListIndex + QUEUE_MAXLEN * (QUEUE_PARTNUM - 1U));
 	}
 	else {
+		shutdown(TargetData.Socket, SD_BOTH);
 		closesocket(TargetData.Socket);
 		return EXIT_FAILURE;
 	}
 
 //Block Port Unreachable messages of system.
+	shutdown(TargetData.Socket, SD_BOTH);
 	Sleep(Parameter.ReliableSocketTimeout);
 	closesocket(TargetData.Socket);
 	return EXIT_SUCCESS;

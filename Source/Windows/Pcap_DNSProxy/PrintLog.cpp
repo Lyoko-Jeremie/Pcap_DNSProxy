@@ -659,7 +659,7 @@ size_t __fastcall PrintParameterList(void)
 		}
 */
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv4 DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv4 DNS Address
-		if (Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_family == 0)
+		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -686,7 +686,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L":%u>\n", ntohs(Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_port));
 		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv4 Alternate DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv4 Alternate DNS Address
-		if (Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_family == 0)
+		if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -713,7 +713,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L":%u>\n", ntohs(Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_port));
 		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv4 Local DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv4 Local DNS Address
-		if (Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_family == 0)
+		if (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -740,7 +740,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L":%u>\n", ntohs(Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_port));
 		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv4 Local Alternate DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv4 Local Alternate DNS Address
-		if (Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_family == 0)
+		if (Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -797,7 +797,7 @@ size_t __fastcall PrintParameterList(void)
 		}
 */
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv6 DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv6 DNS Address
-		if (Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_family == 0)
+		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -826,7 +826,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"]:%u\n", ntohs(Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_port));
 		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv6 Alternate DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv6 Alternate DNS Address
-		if (Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_family == 0)
+		if (Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -855,7 +855,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"]:%u\n", ntohs(Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_port));
 		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv6 Local DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv6 Local DNS Address
-		if (Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_family == 0)
+		if (Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -884,7 +884,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"]:%u\n", ntohs(Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_port));
 		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv6 Local Alternate DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv6 Local Alternate DNS Address
-		if (Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_family == 0)
+		if (Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}

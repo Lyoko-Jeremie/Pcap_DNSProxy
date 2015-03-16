@@ -897,6 +897,7 @@ size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length, const 
 			return EXIT_FAILURE;
 
 		send(RequesterData->Socket, RecvBuffer.get(), (int)(Length + sizeof(uint16_t)), 0);
+		shutdown(RequesterData->Socket, SD_BOTH);
 		closesocket(RequesterData->Socket);
 		return EXIT_SUCCESS;
 	}
@@ -931,6 +932,7 @@ size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length, const 
 			return EXIT_SUCCESS;
 	}
 
+	shutdown(RequesterData->Socket, SD_BOTH);
 	closesocket(RequesterData->Socket);
 	return EXIT_SUCCESS;
 }

@@ -482,6 +482,7 @@ size_t __fastcall ICMPEcho(void)
 		Sleep(SENDING_INTERVAL_TIME * SECOND_TO_MILLISECOND);
 	}
 
+	shutdown(ICMPSocket, SD_BOTH);
 	closesocket(ICMPSocket);
 	PrintError(LOG_ERROR_SYSTEM, L"ICMP Test module Monitor terminated", 0, nullptr, 0);
 	return EXIT_SUCCESS;
@@ -667,6 +668,7 @@ size_t __fastcall ICMPv6Echo(void)
 		Times++;
 	}
 
+	shutdown(ICMPv6Socket, SD_BOTH);
 	closesocket(ICMPv6Socket);
 	PrintError(LOG_ERROR_SYSTEM, L"ICMPv6 Test module Monitor terminated", 0, nullptr, 0);
 	return EXIT_SUCCESS;
@@ -1021,6 +1023,7 @@ size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PST
 				//Receive again.
 					else if (PDULen > 0)
 					{
+						shutdown(TCPSocket, SD_BOTH);
 						closesocket(TCPSocket);
 
 					//Jump to normal receive process.
@@ -1041,6 +1044,7 @@ size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PST
 							break;
 						}
 						else {
+							shutdown(TCPSocket, SD_BOTH);
 							closesocket(TCPSocket);
 
 							RecvLen = (SSIZE_T)ntohs(((uint16_t *)OriginalRecv)[0]);
@@ -1084,6 +1088,7 @@ size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PST
 	//Timeout
 		else if (SelectResult == 0)
 		{
+			shutdown(TCPSocket, SD_BOTH);
 			closesocket(TCPSocket);
 			memset(OriginalRecv, 0, RecvSize);
 			if (IsAlternate != nullptr && !*IsAlternate)
@@ -1097,6 +1102,7 @@ size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PST
 		}
 	}
 
+	shutdown(TCPSocket, SD_BOTH);
 	closesocket(TCPSocket);
 	memset(OriginalRecv, 0, RecvSize);
 	return EXIT_FAILURE;
@@ -1680,6 +1686,7 @@ size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize
 						}
 					//Invalid packet.
 						else {
+							shutdown(TCPSocketDataList[Index].Socket, SD_BOTH);
 							closesocket(TCPSocketDataList[Index].Socket);
 							TCPSocketDataList[Index].Socket = 0;
 							break;
@@ -1689,6 +1696,7 @@ size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize
 					//Length check.
 						if ((SSIZE_T)PDULenList[Index] > RecvLen)
 						{
+							shutdown(TCPSocketDataList[Index].Socket, SD_BOTH);
 							closesocket(TCPSocketDataList[Index].Socket);
 							TCPSocketDataList[Index].Socket = 0;
 							break;
@@ -1711,6 +1719,7 @@ size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize
 						//Length check
 							if ((SSIZE_T)ntohs(((uint16_t *)OriginalRecv)[0]) > RecvLen)
 							{
+								shutdown(TCPSocketDataList[Index].Socket, SD_BOTH);
 								closesocket(TCPSocketDataList[Index].Socket);
 								TCPSocketDataList[Index].Socket = 0;
 								break;
@@ -1736,7 +1745,10 @@ size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize
 									for (auto SocketDataIter:TCPSocketDataList)
 									{
 										if (SocketDataIter.Socket > 0)
+										{
+											shutdown(SocketDataIter.Socket, SD_BOTH);
 											closesocket(SocketDataIter.Socket);
+										}
 									}
 
 								//Mark DNS Cache.
@@ -1747,6 +1759,7 @@ size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize
 								}
 							//Length check
 								else {
+									shutdown(TCPSocketDataList[Index].Socket, SD_BOTH);
 									closesocket(TCPSocketDataList[Index].Socket);
 									TCPSocketDataList[Index].Socket = 0;
 									break;
@@ -1769,14 +1782,19 @@ size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize
 	//Timeout
 		else if (SelectResult == 0)
 		{
-			for (auto SocketDataIter:TCPSocketDataList)
-			{
-				if (SocketDataIter.Socket > 0)
-					closesocket(SocketDataIter.Socket);
-			}
 			memset(OriginalRecv, 0, RecvSize);
 			AlternateSwapList.TimeoutTimes[0]++;
 			AlternateSwapList.TimeoutTimes[1U]++;
+
+		//Close all sockets.
+			for (auto SocketDataIter:TCPSocketDataList)
+			{
+				if (SocketDataIter.Socket > 0)
+				{
+					shutdown(SocketDataIter.Socket, SD_BOTH);
+					closesocket(SocketDataIter.Socket);
+				}
+			}
 
 			return WSAETIMEDOUT;
 		}
@@ -1786,11 +1804,16 @@ size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize
 		}
 	}
 
+//Close all sockets.
 	for (auto SocketDataIter:TCPSocketDataList)
 	{
 		if (SocketDataIter.Socket > 0)
+		{
+			shutdown(SocketDataIter.Socket, SD_BOTH);
 			closesocket(SocketDataIter.Socket);
+		}
 	}
+
 	memset(OriginalRecv, 0, RecvSize);
 	return EXIT_FAILURE;
 }
@@ -1817,9 +1840,9 @@ size_t __fastcall UDPRequest(const PSTR OriginalSend, const size_t Length, const
 			((PSOCKADDR_IN6)SockAddr.get())->sin6_port = Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_port;
 		}
 
-		UDPSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-		SockAddr->ss_family = AF_INET6;
 		AddrLen = sizeof(sockaddr_in6);
+		SockAddr->ss_family = AF_INET6;
+		UDPSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	}
 	else if (Parameter.GatewayAvailable_IPv4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
 	{
@@ -1829,13 +1852,13 @@ size_t __fastcall UDPRequest(const PSTR OriginalSend, const size_t Length, const
 			((PSOCKADDR_IN)SockAddr.get())->sin_port = Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_port;
 		}
 		else { //Main
-			((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.IPv6.AddressData.IPv4.sin_addr;
-			((PSOCKADDR_IN)SockAddr.get())->sin_port = Parameter.DNSTarget.IPv6.AddressData.IPv4.sin_port;
+			((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr;
+			((PSOCKADDR_IN)SockAddr.get())->sin_port = Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_port;
 		}
 
-		UDPSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-		SockAddr->ss_family = AF_INET;
 		AddrLen = sizeof(sockaddr_in);
+		SockAddr->ss_family = AF_INET;
+		UDPSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	}
 	else {
 		return EXIT_FAILURE;
@@ -1861,6 +1884,7 @@ size_t __fastcall UDPRequest(const PSTR OriginalSend, const size_t Length, const
 	if (sendto(UDPSocket, OriginalSend, (int)Length, 0, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR)
 	{
 		PrintError(LOG_ERROR_WINSOCK, L"UDP request error", WSAGetLastError(), nullptr, 0);
+		shutdown(UDPSocket, SD_BOTH);
 		closesocket(UDPSocket);
 
 		return EXIT_FAILURE;
@@ -1871,6 +1895,7 @@ size_t __fastcall UDPRequest(const PSTR OriginalSend, const size_t Length, const
 	{
 		if (getsockname(UDPSocket, (PSOCKADDR)SockAddr.get(), (PINT)&AddrLen) != 0)
 		{
+			shutdown(UDPSocket, SD_BOTH);
 			closesocket(UDPSocket);
 			return EXIT_FAILURE;
 		}
@@ -1924,11 +1949,13 @@ size_t __fastcall UDPRequest(const PSTR OriginalSend, const size_t Length, const
 	}
 
 //Block Port Unreachable messages of system or close the TCP requesting connections.
+	shutdown(UDPSocket, SD_BOTH);
 	if (ListIndex > QUEUE_MAXLEN * QUEUE_PARTNUM / 2U && ListIndex < QUEUE_MAXLEN * QUEUE_PARTNUM) //TCP
 		Sleep(Parameter.ReliableSocketTimeout);
 	else //UDP
 		Sleep(Parameter.UnreliableSocketTimeout);
 	closesocket(UDPSocket);
+
 	return EXIT_SUCCESS;
 }
 
@@ -2328,8 +2355,13 @@ size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, 
 		}
 	//Timeout or SOCKET_ERROR
 		else {
+		//Close all sockets.
 			for (auto SocketDataIter:UDPSocketDataList)
+			{
+				shutdown(SocketDataIter.Socket, SD_BOTH);
 				closesocket(SocketDataIter.Socket);
+			}
+
 			return EXIT_FAILURE;
 		}
 	}
@@ -2346,6 +2378,7 @@ size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, 
 		//Get socket information.
 			if (getsockname(SocketDataIter.Socket, (PSOCKADDR)&SocketDataIter.SockAddr, (PINT)&SocketDataIter.AddrLen) != 0)
 			{
+				shutdown(SocketDataIter.Socket, SD_BOTH);
 				closesocket(SocketDataIter.Socket);
 				continue;
 			}
@@ -2399,12 +2432,15 @@ size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, 
 	}
 
 //Block Port Unreachable messages of system or close the TCP requesting connections.
+	for (auto SocketDataIter:UDPSocketDataList)
+		shutdown(SocketDataIter.Socket, SD_BOTH);
 	if (ListIndex > QUEUE_MAXLEN * QUEUE_PARTNUM / 2U && ListIndex < QUEUE_MAXLEN * QUEUE_PARTNUM) //TCP
 		Sleep(Parameter.ReliableSocketTimeout);
 	else //UDP
 		Sleep(Parameter.UnreliableSocketTimeout);
 	for (auto SocketDataIter:UDPSocketDataList)
 		closesocket(SocketDataIter.Socket);
+
 	return EXIT_FAILURE;
 }
 
@@ -2527,6 +2563,7 @@ size_t __fastcall UDPCompleteRequest(const PSTR OriginalSend, const size_t SendS
 	if (sendto(UDPSocket, OriginalSend, (int)SendSize, 0, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR)
 	{
 		PrintError(LOG_ERROR_WINSOCK, L"Complete UDP request error", WSAGetLastError(), nullptr, 0);
+		shutdown(UDPSocket, SD_BOTH);
 		closesocket(UDPSocket);
 
 		return EXIT_FAILURE;
@@ -2538,6 +2575,7 @@ size_t __fastcall UDPCompleteRequest(const PSTR OriginalSend, const size_t SendS
 	{
 		if (RecvLen == SOCKET_ERROR)
 			RecvLen = WSAGetLastError();
+		shutdown(UDPSocket, SD_BOTH);
 		closesocket(UDPSocket);
 		memset(OriginalRecv, 0, RecvSize);
 
@@ -2559,6 +2597,7 @@ size_t __fastcall UDPCompleteRequest(const PSTR OriginalSend, const size_t SendS
 					memset(OriginalRecv, 0, RecvSize);
 					if (IsLocal) //Stop waitting when it is Local requesting.
 					{
+						shutdown(UDPSocket, SD_BOTH);
 						closesocket(UDPSocket);
 						return EXIT_FAILURE;
 					}
@@ -2568,6 +2607,7 @@ size_t __fastcall UDPCompleteRequest(const PSTR OriginalSend, const size_t SendS
 						{
 							if (RecvLen == SOCKET_ERROR)
 								RecvLen = WSAGetLastError();
+							shutdown(UDPSocket, SD_BOTH);
 							closesocket(UDPSocket);
 							memset(OriginalRecv, 0, RecvSize);
 							if (RecvLen == WSAETIMEDOUT)
@@ -2585,6 +2625,7 @@ size_t __fastcall UDPCompleteRequest(const PSTR OriginalSend, const size_t SendS
 					}
 				}
 				else {
+					shutdown(UDPSocket, SD_BOTH);
 					closesocket(UDPSocket);
 					break;
 				}
@@ -3061,8 +3102,10 @@ size_t __fastcall UDPCompleteRequestMulti(const PSTR OriginalSend, const size_t 
 					if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 					{
 						memset(OriginalRecv, 0, RecvSize);
+						shutdown(UDPSocketDataList[Index].Socket, SD_BOTH);
 						closesocket(UDPSocketDataList[Index].Socket);
 						UDPSocketDataList[Index].Socket = 0;
+
 						continue;
 					}
 					else {
@@ -3070,8 +3113,10 @@ size_t __fastcall UDPCompleteRequestMulti(const PSTR OriginalSend, const size_t 
 						if ((Parameter.DNSDataCheck || Parameter.Blacklist) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
 						{
 							memset(OriginalRecv, 0, RecvSize);
+							shutdown(UDPSocketDataList[Index].Socket, SD_BOTH);
 							closesocket(UDPSocketDataList[Index].Socket);
 							UDPSocketDataList[Index].Socket = 0;
+
 							continue;
 						}
 
@@ -3082,7 +3127,10 @@ size_t __fastcall UDPCompleteRequestMulti(const PSTR OriginalSend, const size_t 
 						for (auto SocketDataIter:UDPSocketDataList)
 						{
 							if (SocketDataIter.Socket > 0)
+							{
+								shutdown(SocketDataIter.Socket, SD_BOTH);
 								closesocket(SocketDataIter.Socket);
+							}
 						}
 
 						return RecvLen;
@@ -3105,14 +3153,19 @@ size_t __fastcall UDPCompleteRequestMulti(const PSTR OriginalSend, const size_t 
 	//Timeout
 		else if (SelectResult == 0)
 		{
-			for (auto SocketDataIter:UDPSocketDataList)
-			{
-				if (SocketDataIter.Socket > 0)
-					closesocket(SocketDataIter.Socket);
-			}
 			memset(OriginalRecv, 0, RecvSize);
 			AlternateSwapList.TimeoutTimes[0]++;
 			AlternateSwapList.TimeoutTimes[1U]++;
+
+		//Close alls sockets.
+			for (auto SocketDataIter:UDPSocketDataList)
+			{
+				if (SocketDataIter.Socket > 0)
+				{
+					shutdown(SocketDataIter.Socket, SD_BOTH);
+					closesocket(SocketDataIter.Socket);
+				}
+			}
 
 			return WSAETIMEDOUT;
 		}
@@ -3122,11 +3175,16 @@ size_t __fastcall UDPCompleteRequestMulti(const PSTR OriginalSend, const size_t 
 		}
 	}
 
+//Close alls sockets.
 	for (auto SocketDataIter:UDPSocketDataList)
 	{
 		if (SocketDataIter.Socket > 0)
+		{
+			shutdown(SocketDataIter.Socket, SD_BOTH);
 			closesocket(SocketDataIter.Socket);
+		}
 	}
+
 	memset(OriginalRecv, 0, RecvSize);
 	return EXIT_FAILURE;
 }
