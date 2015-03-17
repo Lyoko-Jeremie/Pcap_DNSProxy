@@ -782,9 +782,16 @@ size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PST
 	}
 
 //Socket check
-	if (TCPSocket == INVALID_SOCKET || SockAddr->ss_family == 0)
+	if (TCPSocket == INVALID_SOCKET)
 	{
 		PrintError(LOG_ERROR_WINSOCK, L"TCP request initialization error", WSAGetLastError(), nullptr, 0);
+		return EXIT_FAILURE;
+	}
+	else if (SockAddr->ss_family == 0)
+	{
+		PrintError(LOG_ERROR_WINSOCK, L"TCP request initialization error", WSAGetLastError(), nullptr, 0);
+		closesocket(TCPSocket);
+
 		return EXIT_FAILURE;
 	}
 /*
@@ -813,6 +820,8 @@ size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PST
 	if (ioctlsocket(TCPSocket, FIONBIO, &SocketMode) == SOCKET_ERROR)
 	{
 		PrintError(LOG_ERROR_WINSOCK, L"Set TCP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
+		closesocket(TCPSocket);
+
 		return EXIT_FAILURE;
 	}
 
@@ -1467,6 +1476,9 @@ size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize
 				if (TCPSocketData->Socket == INVALID_SOCKET)
 				{
 					PrintError(LOG_ERROR_WINSOCK, L"TCP request initialization error", WSAGetLastError(), nullptr, 0);
+					for (auto SocketDataIter:TCPSocketDataList)
+						closesocket(SocketDataIter.Socket);
+
 					return EXIT_FAILURE;
 				}
 			//Set Non-blocking Mode
@@ -1498,6 +1510,9 @@ size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize
 					if (TCPSocketData->Socket == INVALID_SOCKET)
 					{
 						PrintError(LOG_ERROR_WINSOCK, L"TCP request initialization error", WSAGetLastError(), nullptr, 0);
+						for (auto SocketDataIter:TCPSocketDataList)
+							closesocket(SocketDataIter.Socket);
+
 						return EXIT_FAILURE;
 					}
 				//Set Non-blocking Mode
@@ -1563,6 +1578,9 @@ size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize
 				if (TCPSocketData->Socket == INVALID_SOCKET)
 				{
 					PrintError(LOG_ERROR_WINSOCK, L"TCP request initialization error", WSAGetLastError(), nullptr, 0);
+					for (auto SocketDataIter:TCPSocketDataList)
+						closesocket(SocketDataIter.Socket);
+
 					return EXIT_FAILURE;
 				}
 			//Set Non-blocking Mode
@@ -1594,6 +1612,9 @@ size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize
 					if (TCPSocketData->Socket == INVALID_SOCKET)
 					{
 						PrintError(LOG_ERROR_WINSOCK, L"TCP request initialization error", WSAGetLastError(), nullptr, 0);
+						for (auto SocketDataIter:TCPSocketDataList)
+							closesocket(SocketDataIter.Socket);
+
 						return EXIT_FAILURE;
 					}
 				//Set Non-blocking Mode
@@ -2184,6 +2205,9 @@ size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, 
 			if (UDPSocketData->Socket == INVALID_SOCKET)
 			{
 				PrintError(LOG_ERROR_WINSOCK, L"UDP request initialization error", WSAGetLastError(), nullptr, 0);
+				for (auto SocketDataIter:UDPSocketDataList)
+					closesocket(SocketDataIter.Socket);
+
 				return EXIT_FAILURE;
 			}
 		//Set Non-blocking Mode
@@ -2212,6 +2236,9 @@ size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, 
 				if (UDPSocketData->Socket == INVALID_SOCKET)
 				{
 					PrintError(LOG_ERROR_WINSOCK, L"UDP request initialization error", WSAGetLastError(), nullptr, 0);
+					for (auto SocketDataIter:UDPSocketDataList)
+						closesocket(SocketDataIter.Socket);
+
 					return EXIT_FAILURE;
 				}
 			//Set Non-blocking Mode
@@ -2271,6 +2298,9 @@ size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, 
 			if (UDPSocketData->Socket == INVALID_SOCKET)
 			{
 				PrintError(LOG_ERROR_WINSOCK, L"UDP request initialization error", WSAGetLastError(), nullptr, 0);
+				for (auto SocketDataIter:UDPSocketDataList)
+					closesocket(SocketDataIter.Socket);
+
 				return EXIT_FAILURE;
 			}
 		//Set Non-blocking Mode
@@ -2299,6 +2329,9 @@ size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, 
 				if (UDPSocketData->Socket == INVALID_SOCKET)
 				{
 					PrintError(LOG_ERROR_WINSOCK, L"UDP request initialization error", WSAGetLastError(), nullptr, 0);
+					for (auto SocketDataIter:UDPSocketDataList)
+						closesocket(SocketDataIter.Socket);
+
 					return EXIT_FAILURE;
 				}
 			//Set Non-blocking Mode
@@ -2441,7 +2474,7 @@ size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, 
 	for (auto SocketDataIter:UDPSocketDataList)
 		closesocket(SocketDataIter.Socket);
 
-	return EXIT_FAILURE;
+	return EXIT_SUCCESS;
 }
 
 //Complete transmission of UDP protocol
@@ -2543,9 +2576,16 @@ size_t __fastcall UDPCompleteRequest(const PSTR OriginalSend, const size_t SendS
 	}
 
 //Socket check
-	if (UDPSocket == INVALID_SOCKET || SockAddr->ss_family == 0)
+	if (UDPSocket == INVALID_SOCKET)
 	{
 		PrintError(LOG_ERROR_WINSOCK, L"Complete UDP request initialization error", WSAGetLastError(), nullptr, 0);
+		return EXIT_FAILURE;
+	}
+	else if (SockAddr->ss_family == 0)
+	{
+		PrintError(LOG_ERROR_WINSOCK, L"Complete UDP request initialization error", WSAGetLastError(), nullptr, 0);
+		closesocket(UDPSocket);
+
 		return EXIT_FAILURE;
 	}
 
@@ -2650,6 +2690,9 @@ size_t __fastcall UDPCompleteRequest(const PSTR OriginalSend, const size_t SendS
 			closesocket(UDPSocket);
 		}
 */
+		shutdown(UDPSocket, SD_BOTH);
+		closesocket(UDPSocket);
+
 	//Mark DNS Cache.
 		if (Parameter.CacheType > 0)
 			MarkDomainCache(OriginalRecv, RecvLen);
@@ -2924,6 +2967,9 @@ size_t __fastcall UDPCompleteRequestMulti(const PSTR OriginalSend, const size_t 
 			if (UDPSocketData->Socket == INVALID_SOCKET)
 			{
 				PrintError(LOG_ERROR_WINSOCK, L"Complete UDP request initialization error", WSAGetLastError(), nullptr, 0);
+				for (auto SocketDataIter:UDPSocketDataList)
+					closesocket(SocketDataIter.Socket);
+
 				return EXIT_FAILURE;
 			}
 		//Set Non-blocking Mode
@@ -2952,6 +2998,9 @@ size_t __fastcall UDPCompleteRequestMulti(const PSTR OriginalSend, const size_t 
 				if (UDPSocketData->Socket == INVALID_SOCKET)
 				{
 					PrintError(LOG_ERROR_WINSOCK, L"Complete UDP request initialization error", WSAGetLastError(), nullptr, 0);
+					for (auto SocketDataIter:UDPSocketDataList)
+						closesocket(SocketDataIter.Socket);
+
 					return EXIT_FAILURE;
 				}
 			//Set Non-blocking Mode
@@ -3011,6 +3060,9 @@ size_t __fastcall UDPCompleteRequestMulti(const PSTR OriginalSend, const size_t 
 			if (UDPSocketData->Socket == INVALID_SOCKET)
 			{
 				PrintError(LOG_ERROR_WINSOCK, L"Complete UDP request initialization error", WSAGetLastError(), nullptr, 0);
+				for (auto SocketDataIter:UDPSocketDataList)
+					closesocket(SocketDataIter.Socket);
+
 				return EXIT_FAILURE;
 			}
 		//Set Non-blocking Mode
@@ -3039,6 +3091,9 @@ size_t __fastcall UDPCompleteRequestMulti(const PSTR OriginalSend, const size_t 
 				if (UDPSocketData->Socket == INVALID_SOCKET)
 				{
 					PrintError(LOG_ERROR_WINSOCK, L"Complete UDP request initialization error", WSAGetLastError(), nullptr, 0);
+					for (auto SocketDataIter:UDPSocketDataList)
+						closesocket(SocketDataIter.Socket);
+
 					return EXIT_FAILURE;
 				}
 			//Set Non-blocking Mode

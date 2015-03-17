@@ -199,7 +199,7 @@ size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Leng
 		sendto(TargetData.Socket, SendBuffer.get(), (int)SendLength, 0, (PSOCKADDR)&TargetData.SockAddr, TargetData.AddrLen);
 	}
 */
-	return EXIT_FAILURE;
+	return EXIT_SUCCESS;
 }
 
 //Check hosts from list
@@ -557,6 +557,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 			}
 		}
 	}
+
 	HostsListMutex.unlock();
 
 //Check Cache.

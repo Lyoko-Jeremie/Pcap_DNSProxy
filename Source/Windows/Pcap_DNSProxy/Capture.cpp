@@ -924,7 +924,7 @@ size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length, const 
 //		}
 	}
 
-//Clear socket.
+//Close all sockets.
 	if (Parameter.LocalSocket != nullptr && !Parameter.LocalSocket->empty())
 	for (auto SocketIter:*Parameter.LocalSocket)
 	{

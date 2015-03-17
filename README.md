@@ -14,7 +14,7 @@ A local DNS server base on WinPcap and LibPcap.
 * Mac：ReadMe_Mac(Chinese_Simplified)
 
 ### Updated
-* **Windows：0.4 Beta 14(2015-03-16)**
+* **Windows：0.4 Beta 14(2015-03-17)**
 * **Linux：0.2(2014-08-19)**
 * **Mac：0.1(2014-08-19)**
 

@@ -1489,10 +1489,11 @@ typedef struct _dnscurve_txt_signature_
 //Time defines
 #define LOOP_MAX_TIMES                     8U        //Maximum of loop times, 8 times
 #define LOOP_INTERVAL_TIME                 10U       //Loop interval time, 10 ms
+#define MONITOR_LOOP_INTERVAL_TIME         10000U    //Monitor loop interval time, 10000 ms(10 seconds)
 #define STANDARD_TIMEOUT                   1000U     //Standard timeout, 1000 ms(1 second)
 #define SECOND_TO_MILLISECOND              1000U     //1000 milliseconds(1 second)
 #define UPDATESERVICE_TIME                 3U        //Update service timeout, 3 seconds
-//#define PCAP_FINALLDEVS_RETRY_TIME         90U       //Retry to get device list in 15 minutes(90*10 seconds).
+//#define PCAP_FINALLDEVS_RETRY_TIME         90U       //Retry to get device list in 15 minutes(900 seconds).
 #define PCAP_DEVICESRECHECK_TIME           10U       //Time between every WinPcap/LibPcap devices recheck, 10 seconds
 #define PCAP_CAPTURE_TIMEOUT               250U      //Pcap read timeout, 250 ms
 #define SOCKET_TIMEOUT_MIN                 500U      //The shortset socket timeout, 500 ms

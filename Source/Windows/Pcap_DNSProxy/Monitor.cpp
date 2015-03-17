@@ -1072,7 +1072,7 @@ void __fastcall AlternateServerMonitor(void)
 			}
 		}
 
-		Sleep(STANDARD_TIMEOUT); //Time between checking.
+		Sleep(MONITOR_LOOP_INTERVAL_TIME); //Time between checking.
 	}
 
 	PrintError(LOG_ERROR_SYSTEM, L"Alternate Server module Monitor terminated", 0, nullptr, 0);
@@ -1099,7 +1099,7 @@ void __fastcall DNSCacheTimerMonitor(void)
 		DNSCacheList.shrink_to_fit();
 		DNSCacheListMutex.unlock();
 
-		Sleep(STANDARD_TIMEOUT); //Time between checking.
+		Sleep(MONITOR_LOOP_INTERVAL_TIME); //Time between checking.
 	}
 
 	PrintError(LOG_ERROR_SYSTEM, L"DNS Cache Timer module Monitor terminated", 0, nullptr, 0);

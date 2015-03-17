@@ -1346,7 +1346,7 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const P
 bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol)
 {
 	std::unique_lock<std::mutex> LocalRoutingListMutex(LocalRoutingListLock);
-	
+
 //Check address routing.
 	for (auto AddressPrefixTableIter:*LocalRoutingListUsing)
 	{
