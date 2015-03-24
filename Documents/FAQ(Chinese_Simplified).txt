@@ -18,8 +18,7 @@
     * %WINDIR%\system32\pthreadVC.dll
 
 * 安装、运行或重启服务时出现：
-  * Require Administrator Permission - 请以管理员权限运行
-  * The file(s) may be damaged or corrupt!
+  * Files may be damaged or corrupt!
     Please download all files again, also you can skip this check.
     Are you sure you want to continue install service [Y/N]?
     - 文件的 SHA-1 检查验证失败，意味着程序可能在下载或解压途中被损坏
@@ -142,7 +141,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * DNSCurve Encryption Only mode error - DNSCurve 协议只使用加密模式配置错误：只使用加密模式必须提供服务器的魔数和指纹
   * DNSCurve empty Provider Name error - DNSCurve 协议服务器提供者错误：不存在魔数或指纹时必须提供服务器的提供者信息以自动获取连接参数
   * DNSCurve empty Public Key error - DNSCurve 协议服务器提供者错误：不存在魔数或指纹时必须提供服务器的公钥以自动获取连接参数
-  * EDNS0 Label must trun ON when request DNSCurve - 使用 DNSCurve 协议时必须开启 EDNS0 标签请求功能
   * Compression Pointer Mutation must trun OFF when request EDNS0 Label - 使用 Compression Pointer Mutation 时不能开启 EDNS0 标签请求功能，两者并不兼容
   * DNSCurve Payload Size must longer than 512 bytes(Old DNS packets minimum supported size) - DNSCurve 协议载荷长度过短：实现 DNS 协议必须支持长度超过 512 bytes 的数据包
   * DNSCurve Payload Size may be too long - DNSCurve 协议载荷长度可能过长：此值建议不要超过以太网的 MTU(1512 bytes)
@@ -213,7 +211,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Winsock 错误代码具体含义可移步 http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 
 6.WinPcap Error - WinPcap 错误
-  * Insufficient permissions or not any available network devices - 没有任何可用的网络适配器：请检查硬件设备和驱动程序是否安装正确，也可能是权限不足
+  * Insufficient privileges or not any available network devices - 没有任何可用的网络适配器：请检查硬件设备和驱动程序是否安装正确，也可能是权限不足
   * XXX is not a Ethernet device - 发现非 Ethernet 类型的网络适配器：这不是错误，但可以说明系统内存在非 Ethernet 类型的网络适配器
   * An error occurred in XXX - 名称为 XXX 的网络适配器抓取数据包错误
   * EOF was reached reading from an offline capture in XXX - 名称为 XXX 的网络适配器已经离线或不可用
@@ -226,6 +224,14 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * TCP get signature data request error - TCP 协议自动获取服务器连接参数信息错误：如果此错误持续并导致 DNSCurve 协议无法使用，请将服务器的魔数和指纹直接写入配置文件中
   * UDP get signature data request error - UDP 协议自动获取服务器连接参数信息错误：如果此错误持续并导致 DNSCurve 协议无法使用，请将服务器的魔数和指纹直接写入配置文件中
   * Ramdom module close error - 随机数生成模块关闭错误：请与开发者联系
+  * IPv6 Main Server TCP get signature data error - IPv6 TCP 协议主要服务器加密握手失败：请检查该服务器是否可用
+  * IPv6 Alternate Server TCP get signature data error - IPv6 TCP 协议备用服务器加密握手失败：请检查该服务器是否可用
+  * IPv4 Main Server TCP get signature data error - IPv4 TCP 协议主要服务器加密握手失败：请检查该服务器是否可用
+  * IPv4 Alternate Server TCP get signature data error - IPv4 TCP 协议备用服务器加密握手失败：请检查该服务器是否可用
+  * IPv6 Main Server UDP get signature data error - IPv6 UDP 协议主要服务器加密握手失败：请检查该服务器是否可用
+  * IPv6 Alternate Server UDP get signature data error - IPv6 UDP 协议备用服务器加密握手失败：请检查该服务器是否可用
+  * IPv4 Main Server UDP get signature data error - IPv4 UDP 协议主要服务器加密握手失败：请检查该服务器是否可用
+  * IPv4 Alternate Server UDP get signature data error - IPv4 UDP 协议备用服务器加密握手失败：请检查该服务器是否可用
   * IPv6 Main Server Fingerprint signature validation error - IPv6 主要服务器证书验证错误：请检查该服务器是否可用
   * IPv6 Alternate Server Fingerprint signature validation error - IPv6 备用服务器证书验证错误：请检查该服务器是否可用
   * IPv4 Main Server Fingerprint signature validation error - IPv4 主要服务器证书验证错误：请检查该服务器是否可用

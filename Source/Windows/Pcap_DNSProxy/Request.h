@@ -21,6 +21,6 @@
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
-extern PORT_TABLE PortList;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
+extern std::deque<PORT_TABLE> PortList;
 extern std::mutex PortListLock;

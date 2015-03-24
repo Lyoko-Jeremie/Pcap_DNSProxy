@@ -27,11 +27,11 @@ size_t __fastcall CompareAddresses(const void *OriginalAddrBegin, const void *Or
 		auto AddrBegin = (in6_addr *)OriginalAddrBegin, AddrEnd = (in6_addr *)OriginalAddrEnd;
 		for (size_t Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);Index++)
 		{
-			if (ntohs(AddrBegin->u.Word[Index]) > ntohs(AddrEnd->u.Word[Index]))
+			if (ntohs(AddrBegin->s6_words[Index]) > ntohs(AddrEnd->s6_words[Index]))
 			{
 				return ADDRESS_COMPARE_GREATER;
 			}
-			else if (AddrBegin->u.Word[Index] == AddrEnd->u.Word[Index])
+			else if (AddrBegin->s6_words[Index] == AddrEnd->s6_words[Index])
 			{
 				if (Index == sizeof(in6_addr) / sizeof(uint16_t) - 1U)
 					return ADDRESS_COMPARE_EQUAL;
@@ -45,27 +45,27 @@ size_t __fastcall CompareAddresses(const void *OriginalAddrBegin, const void *Or
 	}
 	else { //IPv4
 		auto AddrBegin = (in_addr *)OriginalAddrBegin, AddrEnd = (in_addr *)OriginalAddrEnd;
-		if (AddrBegin->S_un.S_un_b.s_b1 > AddrEnd->S_un.S_un_b.s_b1)
+		if (AddrBegin->s_net > AddrEnd->s_net)
 		{
 			return ADDRESS_COMPARE_GREATER;
 		}
-		else if (AddrBegin->S_un.S_un_b.s_b1 == AddrEnd->S_un.S_un_b.s_b1)
+		else if (AddrBegin->s_net == AddrEnd->s_net)
 		{
-			if (AddrBegin->S_un.S_un_b.s_b2 > AddrEnd->S_un.S_un_b.s_b2)
+			if (AddrBegin->s_host > AddrEnd->s_host)
 			{
 				return ADDRESS_COMPARE_GREATER;
 			}
-			else if (AddrBegin->S_un.S_un_b.s_b2 == AddrEnd->S_un.S_un_b.s_b2)
+			else if (AddrBegin->s_host == AddrEnd->s_host)
 			{
-				if (AddrBegin->S_un.S_un_b.s_b3 > AddrEnd->S_un.S_un_b.s_b3)
+				if (AddrBegin->s_lh > AddrEnd->s_lh)
 				{
 					return ADDRESS_COMPARE_GREATER;
 				}
-				else if (AddrBegin->S_un.S_un_b.s_b3 == AddrEnd->S_un.S_un_b.s_b3)
+				else if (AddrBegin->s_lh == AddrEnd->s_lh)
 				{
-					if (AddrBegin->S_un.S_un_b.s_b4 > AddrEnd->S_un.S_un_b.s_b4)
+					if (AddrBegin->s_impno > AddrEnd->s_impno)
 						return ADDRESS_COMPARE_GREATER;
-					else if (AddrBegin->S_un.S_un_b.s_b4 == AddrEnd->S_un.S_un_b.s_b4)
+					else if (AddrBegin->s_impno == AddrEnd->s_impno)
 						return ADDRESS_COMPARE_EQUAL;
 					else
 						return ADDRESS_COMPARE_LESS;

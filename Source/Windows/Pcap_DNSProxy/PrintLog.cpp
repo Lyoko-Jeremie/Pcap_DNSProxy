@@ -65,7 +65,7 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 			memset(TimeStructureTemp.get(), 0, sizeof(tm));
 //			TimeStructureTemp = localtime(&InnerStartTime);
 			localtime_s(TimeStructureTemp.get(), &InnerStartTime);
-			wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Program starts.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
+			wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
 		}
 
 	//Print errors.
@@ -214,7 +214,7 @@ size_t __fastcall PrintError(const size_t ErrType, const PWSTR Message, const SS
 			std::shared_ptr<tm> TimeStructureTemp(new tm());
 			memset(TimeStructureTemp.get(), 0, sizeof(tm));
 			localtime_s(TimeStructureTemp.get(), &InnerStartTime);
-			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Program starts.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
+			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
 //			StartTime = 0;
 		}
 
@@ -394,7 +394,7 @@ size_t __fastcall PrintRunningStatus(const PWSTR Message)
 			std::shared_ptr<tm> TimeStructureTemp(new tm());
 			memset(TimeStructureTemp.get(), 0, sizeof(tm));
 			localtime_s(TimeStructureTemp.get(), &InnerStartTime);
-			wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Program starts.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
+			wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
 		}
 
 	//Print Running Log.
@@ -431,7 +431,7 @@ size_t __fastcall PrintRunningStatus(const PWSTR Message)
 			std::shared_ptr<tm> TimeStructureTemp(new tm());
 			memset(TimeStructureTemp.get(), 0, sizeof(tm));
 			localtime_s(TimeStructureTemp.get(), &InnerStartTime);
-			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Program starts.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
+			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
 //			RunningLogStartTime = 0;
 		}
 
@@ -647,7 +647,7 @@ size_t __fastcall PrintParameterList(void)
 				BufferLength = ADDR_STRING_MAXSIZE;
 				SockAddr->ss_family = AF_INET;
 				((PSOCKADDR_IN)SockAddr.get())->sin_addr = ((PSOCKADDR_IN)Parameter.ListenAddress_IPv4)->sin_addr;
-				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
+				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
 			}
 		#endif
 			fwprintf_s(Output, L"<");
@@ -675,7 +675,7 @@ size_t __fastcall PrintParameterList(void)
 				BufferLength = ADDR_STRING_MAXSIZE;
 				SockAddr->ss_family = AF_INET;
 				((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr;
-				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
+				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
 			}
 		#endif
 			fwprintf_s(Output, L"<");
@@ -702,7 +702,7 @@ size_t __fastcall PrintParameterList(void)
 				BufferLength = ADDR_STRING_MAXSIZE;
 				SockAddr->ss_family = AF_INET;
 				((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr;
-				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
+				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
 			}
 		#endif
 			fwprintf_s(Output, L"<");
@@ -729,7 +729,7 @@ size_t __fastcall PrintParameterList(void)
 				BufferLength = ADDR_STRING_MAXSIZE;
 				SockAddr->ss_family = AF_INET;
 				((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr;
-				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
+				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
 			}
 		#endif
 			fwprintf_s(Output, L"<");
@@ -756,7 +756,7 @@ size_t __fastcall PrintParameterList(void)
 				BufferLength = ADDR_STRING_MAXSIZE;
 				SockAddr->ss_family = AF_INET;
 				((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr;
-				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
+				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
 			}
 		#endif
 			fwprintf_s(Output, L"<");
@@ -783,7 +783,7 @@ size_t __fastcall PrintParameterList(void)
 				BufferLength = ADDR_STRING_MAXSIZE;
 				SockAddr->ss_family = AF_INET6;
 				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = ((PSOCKADDR_IN6)Parameter.ListenAddress_IPv6)->sin6_addr;
-				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
+				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
 			}
 		#endif
 //			CaseConvert(true, Addr.get(), strlen(Addr.get()));
@@ -813,7 +813,7 @@ size_t __fastcall PrintParameterList(void)
 				BufferLength = ADDR_STRING_MAXSIZE;
 				SockAddr->ss_family = AF_INET6;
 				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr;
-				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
+				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
 			}
 		#endif
 //			CaseConvert(true, Addr.get(), strlen(Addr.get()));
@@ -842,7 +842,7 @@ size_t __fastcall PrintParameterList(void)
 				BufferLength = ADDR_STRING_MAXSIZE;
 				SockAddr->ss_family = AF_INET6;
 				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr;
-				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
+				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
 			}
 		#endif
 //			CaseConvert(true, Addr.get(), strlen(Addr.get()));
@@ -871,7 +871,7 @@ size_t __fastcall PrintParameterList(void)
 				BufferLength = ADDR_STRING_MAXSIZE;
 				SockAddr->ss_family = AF_INET6;
 				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr;
-				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
+				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
 			}
 		#endif
 //			CaseConvert(true, Addr.get(), strlen(Addr.get()));
@@ -900,7 +900,7 @@ size_t __fastcall PrintParameterList(void)
 				BufferLength = ADDR_STRING_MAXSIZE;
 				SockAddr->ss_family = AF_INET6;
 				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr;
-				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
+				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
 			}
 		#endif
 //			CaseConvert(true, Addr.get(), strlen(Addr.get()));

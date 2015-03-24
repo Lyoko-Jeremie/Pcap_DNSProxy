@@ -27,10 +27,10 @@ ConfigurationTable::ConfigurationTable(void)
 	//[Listen] block
 		ListenPort = new std::vector<uint16_t>();
 	//[Addresses] block
-		ListenAddress_IPv4 = new std::vector<sockaddr_storage>();
 		ListenAddress_IPv6 = new std::vector<sockaddr_storage>();
-		DNSTarget.IPv4_Multi = new std::vector<DNS_SERVER_DATA>();
+		ListenAddress_IPv4 = new std::vector<sockaddr_storage>();
 		DNSTarget.IPv6_Multi = new std::vector<DNS_SERVER_DATA>();
+		DNSTarget.IPv4_Multi = new std::vector<DNS_SERVER_DATA>();
 	//[Data] block(A part)
 		ICMPPaddingData = new char[ICMP_PADDING_MAXSIZE]();
 		DomainTestData = new char[DOMAIN_MAXSIZE]();
@@ -59,10 +59,10 @@ ConfigurationTable::ConfigurationTable(void)
 	//[Listen] block
 		delete ListenPort;
 	//[Addresses] block
-		delete ListenAddress_IPv4;
 		delete ListenAddress_IPv6;
-		delete DNSTarget.IPv4_Multi;
+		delete ListenAddress_IPv4;
 		delete DNSTarget.IPv6_Multi;
+		delete DNSTarget.IPv4_Multi;
 	//[Data] block(A part)
 		delete[] ICMPPaddingData;
 		delete[] DomainTestData;
@@ -135,10 +135,10 @@ ConfigurationTable::~ConfigurationTable(void)
 //[Listen] block
 	delete ListenPort;
 //[Addresses] block
-	delete ListenAddress_IPv4;
 	delete ListenAddress_IPv6;
-	delete DNSTarget.IPv4_Multi;
+	delete ListenAddress_IPv4;
 	delete DNSTarget.IPv6_Multi;
+	delete DNSTarget.IPv4_Multi;
 //[Data] block(A part)
 	delete[] ICMPPaddingData;
 	delete[] DomainTestData;
@@ -165,6 +165,13 @@ ConfigurationTable::~ConfigurationTable(void)
 	return;
 }
 
+//Address Range class constructor
+AddressRangeTable::AddressRangeTable(void)
+{
+	memset(this, 0, sizeof(ADDRESS_RANGE_TABLE));
+	return;
+}
+
 //HostsTable class constructor
 HostsTable::HostsTable(void)
 {
@@ -177,12 +184,37 @@ HostsTable::HostsTable(void)
 	return;
 }
 
-//Address Range class constructor
-AddressRangeTable::AddressRangeTable(void)
+//AlternateSwapTable class constructor
+AlternateSwapTable::AlternateSwapTable(void)
 {
-	memset(this, 0, sizeof(ADDRESS_RANGE_TABLE));
+	memset(this, 0, sizeof(ALTERNATE_SWAP_TABLE));
+
+/* Old version(2015-03-18)
+	try {
+		PcapAlternateTimeout = new size_t[QUEUE_MAXLEN * TRANSPORT_LAYER_PARTNUM]();
+	}
+	catch (std::bad_alloc)
+	{
+//		WSACleanup();
+//		TerminateService();
+		exit(EXIT_FAILURE);
+		return;
+	}
+
+//Initialization
+	memset(PcapAlternateTimeout, 0, sizeof(size_t) * QUEUE_MAXLEN * TRANSPORT_LAYER_PARTNUM);
+*/
 	return;
 }
+
+/* Old version(2015-03-18)
+//AlternateSwapTable class destructor
+AlternateSwapTable::~AlternateSwapTable(void)
+{
+	delete[] PcapAlternateTimeout;
+	return;
+}
+*/
 
 //Blacklist of results class constructor
 ResultBlacklistTable::ResultBlacklistTable(void)
@@ -200,12 +232,31 @@ AddressHostsTable::AddressHostsTable(void)
 	return;
 }
 
+//AddressRoutingTable_IPv6 class constructor
+AddressRoutingTable_IPv6::AddressRoutingTable_IPv6(void)
+{
+	FileIndex = 0;
+	Prefix = 0;
+
+	return;
+}
+
+//AddressRoutingTable_IPv4 class constructor
+AddressRoutingTable_IPv4::AddressRoutingTable_IPv4(void)
+{
+	FileIndex = 0;
+	Prefix = 0;
+
+	return;
+}
+
 //PortTable class constructor
 PortTable::PortTable(void)
 {
+/* Old version(2015-03-18)
 	RecvData = nullptr;
 	try {
-		RecvData = new SOCKET_DATA[QUEUE_MAXLEN * QUEUE_PARTNUM]();
+		RecvData = new SOCKET_DATA[QUEUE_MAXLEN * TRANSPORT_LAYER_PARTNUM]();
 	}
 	catch (std::bad_alloc)
 	{
@@ -214,11 +265,17 @@ PortTable::PortTable(void)
 	}
 
 //Initialization
-	memset(RecvData, 0, sizeof(SOCKET_DATA) * QUEUE_MAXLEN * QUEUE_PARTNUM);
+	memset(RecvData, 0, sizeof(SOCKET_DATA) * QUEUE_MAXLEN * TRANSPORT_LAYER_PARTNUM);
+*/
+	memset(&SystemData, 0, sizeof(SOCKET_DATA));
+	NetworkLayer = 0;
+	TransportLayer = 0;
+	ClearPortTime = 0;
 
 	return;
 }
 
+/* Old version(2015-03-18)
 //PortTable class destructor
 PortTable::~PortTable(void)
 {
@@ -228,34 +285,7 @@ PortTable::~PortTable(void)
 
 	return;
 }
-
-//AlternateSwapTable class constructor
-AlternateSwapTable::AlternateSwapTable(void)
-{
-	memset(this, 0, sizeof(ALTERNATE_SWAP_TABLE));
-	try {
-		PcapAlternateTimeout = new size_t[QUEUE_MAXLEN * QUEUE_PARTNUM]();
-	}
-	catch (std::bad_alloc)
-	{
-//		WSACleanup();
-//		TerminateService();
-		exit(EXIT_FAILURE);
-		return;
-	}
-
-//Initialization
-	memset(PcapAlternateTimeout, 0, sizeof(size_t) * QUEUE_MAXLEN * QUEUE_PARTNUM);
-
-	return;
-}
-
-//AlternateSwapTable class destructor
-AlternateSwapTable::~AlternateSwapTable(void)
-{
-	delete[] PcapAlternateTimeout;
-	return;
-}
+*/
 
 //DNSCurveConfiguration class constructor
 DNSCurveConfigurationTable::DNSCurveConfigurationTable(void)

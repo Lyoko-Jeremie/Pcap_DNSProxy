@@ -438,7 +438,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Unreliable Socket Timeout - 不可靠協定埠超時時間，不可靠埠指 UDP/ICMP/ICMPv6 協定，單位為毫秒：預設為 3000
   * ICMP Test - ICMP/Ping 測試間隔時間：單位為秒，最短間隔時間為5秒，預設為 900秒/15分鐘
   * Domain Test - DNS 伺服器解析功能變數名稱測試間隔時間：單位為秒，最短間隔時間為5秒，預設為 900秒/15分鐘
-  * Alternate Times - 待命伺服器失敗次數閾值，一定週期內如超出閾值會觸發伺服器切換：預設為5次
+  * Alternate Times - 待命伺服器失敗次數閾值，一定週期內如超出閾值會觸發伺服器切換：預設為 10 次
   * Alternate Time Range - 待命伺服器失敗次數閾值計算週期：單位為秒，預設為 60秒/1分鐘
   * Alternate Reset Time - 待命伺服器重置切換時間，切換產生後經過此事件會切換回主要伺服器：單位為秒，預設為 300秒/5分鐘
   * Multi Request Times - 接受一個功能變數名稱請求後向同一個遠端伺服器發送多次功能變數名稱解析請求：0為關閉，1時為收到一個請求時請求2次，2時為收到一個請求時請求3次......最大值為15，也就是最多可同時請求16次，預設為 0

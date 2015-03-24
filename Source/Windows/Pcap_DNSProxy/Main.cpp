@@ -67,13 +67,14 @@ int wmain(int argc, wchar_t* argv[])
 	std::thread GetNetworkingInformationThread(GetNetworkingInformation);
 	GetNetworkingInformationThread.detach();
 
-//Read IPFilter, start DNS Cache monitor(Timer type) and read Hosts.
+//Read IPFilter and Hosts.
+/* Old version(2015-03-24)
 	if (Parameter.CacheType > 0)
 	{
 		std::thread DNSCacheTimerThread(DNSCacheTimerMonitor);
 		DNSCacheTimerThread.detach();
 	}
-
+*/
 	if (Parameter.OperationMode == LISTEN_CUSTOMMODE || Parameter.Blacklist || Parameter.LocalRouting)
 	{
 		std::thread IPFilterThread(ReadIPFilter);
@@ -163,7 +164,7 @@ size_t __fastcall FirewallTest(const uint16_t Protocol)
 	SYSTEM_SOCKET FirewallSocket = 0;
 
 //Ramdom number distribution initialization
-	std::uniform_int_distribution<int> RamdomDistribution(DYNAMIC_MIN_PORT, U16_MAXNUM - 1U);
+	std::uniform_int_distribution<int> RamdomDistribution(DYNAMIC_MIN_PORT, UINT16_MAX - 1U);
 
 //Socket initialization
 	if (Protocol == AF_INET6) //IPv6
@@ -197,7 +198,7 @@ size_t __fastcall FirewallTest(const uint16_t Protocol)
 		}
 	}
 	else { //IPv4
-		((PSOCKADDR_IN)SockAddr.get())->sin_addr.S_un.S_addr = INADDR_ANY;
+		((PSOCKADDR_IN)SockAddr.get())->sin_addr.s_addr = INADDR_ANY;
 		((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
 		SockAddr->ss_family = AF_INET;
 		FirewallSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);

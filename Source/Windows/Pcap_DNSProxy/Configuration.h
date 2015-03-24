@@ -45,14 +45,16 @@
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
+extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
 extern std::vector<std::wstring> ConfigFileList;
 extern std::vector<FILE_DATA> IPFilterFileList, HostsFileList;
-extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
-extern std::vector<HOSTS_TABLE> *HostsListUsing, *HostsListModificating;
 extern std::vector<ADDRESS_RANGE_TABLE> *AddressRangeUsing, *AddressRangeModificating;
+extern std::vector<HOSTS_TABLE> *HostsListUsing, *HostsListModificating;
 extern std::vector<RESULT_BLACKLIST_TABLE> *ResultBlacklistUsing, *ResultBlacklistModificating;
-extern std::vector<ADDRESS_PREFIX_BLOCK> *LocalRoutingListUsing, *LocalRoutingListModificating;
 extern std::vector<ADDRESS_HOSTS_TABLE> *AddressHostsListUsing, *AddressHostsListModificating;
+//extern std::vector<ADDRESS_PREFIX_BLOCK> *LocalRoutingListUsing, *LocalRoutingListModificating;
+extern std::vector<ADDRESS_ROUTING_TABLE_IPV6> *LocalRoutingList_IPv6_Using, *LocalRoutingList_IPv6_Modificating;
+extern std::vector<ADDRESS_ROUTING_TABLE_IPV4> *LocalRoutingList_IPv4_Using, *LocalRoutingList_IPv4_Modificating;
 extern std::deque<DNSCACHE_DATA> DNSCacheList;
 extern std::mutex HostsListLock, AddressRangeLock, DNSCacheListLock, ResultBlacklistLock, LocalRoutingListLock, AddressHostsListLock;
 
@@ -77,3 +79,4 @@ size_t __fastcall ReadHopLimitData(std::string Data, const size_t DataOffset, ui
 size_t __fastcall ReadDNSCurveProviderName(std::string Data, const size_t DataOffset, PSTR ProviderNameData, const size_t FileIndex, const size_t Line);
 size_t __fastcall ReadDNSCurveKey(std::string Data, const size_t DataOffset, PUINT8 KeyData, const size_t FileIndex, const size_t Line);
 size_t __fastcall ReadMagicNumber(std::string Data, const size_t DataOffset, PSTR MagicNumber, const size_t FileIndex, const size_t Line);
+void __fastcall ClearListData(const size_t ClearType, const size_t FileIndex);

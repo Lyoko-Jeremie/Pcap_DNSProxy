@@ -26,6 +26,8 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 	std::shared_ptr<char> Buffer(new char[PACKET_MAXSIZE]()), DNSQuery(new char[PACKET_MAXSIZE]());
 	memset(Buffer.get(), 0, PACKET_MAXSIZE);
 	memset(DNSQuery.get(), 0, PACKET_MAXSIZE);
+
+/* Old version(2015-03-19)
 	std::shared_ptr<SOCKET_DATA> TargetData(new SOCKET_DATA());
 	memset(TargetData.get(), 0, sizeof(SOCKET_DATA));
 
@@ -34,7 +36,7 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 		TargetData->AddrLen = sizeof(sockaddr_in6);
 	else //IPv4
 		TargetData->AddrLen = sizeof(sockaddr_in);
-
+*/
 //Make a DNS request with Doamin Test packet.
 	auto DNS_Header = (pdns_hdr)Buffer.get();
 	DNS_Header->ID = Parameter.DomainTestID;
@@ -79,192 +81,6 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 //Send requesting.
 	size_t Times = 0;
 	auto IsReTest = false;
-
-/* Old version(2014-12-09)
-	UDP_REQUEST_MULTITHREAD_PARAMETER UDPRequestParameter = {Buffer.get(), 0, *TargetData, QUEUE_MAXLEN * QUEUE_PARTNUM, 3U};
-	for (;;)
-	{
-		if (Times == SENDING_ONCE_INTERVAL_TIMES)
-		{
-			Times = 0;
-
-		//Test again check.
-			IsReTest = false;
-			if (Protocol == AF_INET6) //IPv6
-			{
-				if (Parameter.DNSTarget.IPv6.HopLimitData.HopLimit == 0 || //IPv6 Main
-					Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit == 0) //IPv6 Alternate
-						IsReTest = true;
-
-			//Other(Multi)
-				if (Parameter.DNSTarget.IPv6_Multi != nullptr)
-				{
-					for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv6_Multi)
-					{
-						if (DNSServerDataIter.HopLimitData.TTL == 0)
-						{
-							IsReTest = true;
-							break;
-						}
-					}
-				}
-			}
-			else { //IPv4
-				if (Parameter.DNSTarget.IPv4.HopLimitData.TTL == 0 || //IPv4 Main
-					Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL == 0) //IPv4 Alternate
-						IsReTest = true;
-
-			//Other(Multi)
-				if (Parameter.DNSTarget.IPv4_Multi != nullptr)
-				{
-					for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv4_Multi)
-					{
-						if (DNSServerDataIter.HopLimitData.TTL == 0)
-						{
-							IsReTest = true;
-							break;
-						}
-					}
-				}
-			}
-
-			if (IsReTest)
-			{
-				Sleep(SENDING_INTERVAL_TIME * SECOND_TO_MILLISECOND); //5 seconds between every sending.
-				continue;
-			}
-
-			Sleep((DWORD)Parameter.DomainTestSpeed);
-		}
-		else {
-		//Main
-			if (Parameter.DomainTestData == nullptr) //Make ramdom domain request.
-			{
-				memset(Buffer.get() + sizeof(dns_hdr), 0, PACKET_MAXSIZE - sizeof(dns_hdr));
-				MakeRamdomDomain(DNSQuery.get());
-				DataLength = CharToDNSQuery(DNSQuery.get(), Buffer.get() + sizeof(dns_hdr));
-				memset(DNSQuery.get(), 0, DOMAIN_MAXSIZE);
-				
-				DNS_Query = (pdns_qry)(Buffer.get() + sizeof(dns_hdr) + DataLength);
-				DNS_Query->Classes = htons(DNS_CLASS_IN);
-				if (Protocol == AF_INET6) //IPv6
-					DNS_Query->Type = htons(DNS_RECORD_AAAA);
-				else //IPv4
-					DNS_Query->Type = htons(DNS_RECORD_A);
-				DataLength += sizeof(dns_hdr) + sizeof(dns_qry);
-
-			//EDNS0 Label
-				if (Parameter.EDNS0Label) //No additional
-				{
-					DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + DataLength);
-					DNS_Header->Additional = htons(U16_NUM_ONE);
-					DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-					DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
-					DataLength += sizeof(dns_record_opt);
-				}
-			}
-			UDPRequest(Buffer.get(), DataLength, *TargetData, QUEUE_MAXLEN * QUEUE_PARTNUM, false);
-
-		//Alternate
-			if (Parameter.DomainTestData == nullptr) //Make ramdom domain request.
-			{
-				memset(Buffer.get() + sizeof(dns_hdr), 0, PACKET_MAXSIZE - sizeof(dns_hdr));
-				MakeRamdomDomain(DNSQuery.get());
-				DataLength = CharToDNSQuery(DNSQuery.get(), Buffer.get() + sizeof(dns_hdr));
-				memset(DNSQuery.get(), 0, DOMAIN_MAXSIZE);
-				
-				DNS_Query = (pdns_qry)(Buffer.get() + sizeof(dns_hdr) + DataLength);
-				DNS_Query->Classes = htons(DNS_CLASS_IN);
-				if (Protocol == AF_INET6)
-					DNS_Query->Type = htons(DNS_RECORD_AAAA);
-				else 
-					DNS_Query->Type = htons(DNS_RECORD_A);
-				DataLength += sizeof(dns_hdr) + sizeof(dns_qry);
-
-			//EDNS0 Label
-				if (Parameter.EDNS0Label) //No additional
-				{
-					DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + DataLength);
-					DNS_Header->Additional = htons(U16_NUM_ONE);
-					DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-					DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
-					DataLength += sizeof(dns_record_opt);
-				}
-			}
-			UDPRequest(Buffer.get(), DataLength, *TargetData, QUEUE_MAXLEN * QUEUE_PARTNUM, true);
-
-		//Other(Multi)
-			if (Protocol == AF_INET6 && Parameter.DNSTarget.IPv6_Multi != nullptr) //IPv6
-			{
-				for (size_t Index = 0;Index < Parameter.DNSTarget.IPv6_Multi->size();Index++)
-				{
-					if (Parameter.DomainTestData == nullptr) //Make ramdom domain request.
-					{
-						memset(Buffer.get() + sizeof(dns_hdr), 0, PACKET_MAXSIZE - sizeof(dns_hdr));
-						MakeRamdomDomain(DNSQuery.get());
-						DataLength = CharToDNSQuery(DNSQuery.get(), Buffer.get() + sizeof(dns_hdr));
-						memset(DNSQuery.get(), 0, DOMAIN_MAXSIZE);
-				
-						DNS_Query = (pdns_qry)(Buffer.get() + sizeof(dns_hdr) + DataLength);
-						DNS_Query->Classes = htons(DNS_CLASS_IN);
-						DNS_Query->Type = htons(DNS_RECORD_AAAA);
-						DataLength += sizeof(dns_hdr) + sizeof(dns_qry);
-
-					//EDNS0 Label
-						if (Parameter.EDNS0Label) //No additional
-						{
-							DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + DataLength);
-							DNS_Header->Additional = htons(U16_NUM_ONE);
-							DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-							DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
-							DataLength += sizeof(dns_record_opt);
-						}
-					}
-
-					UDPRequestParameter.ServerIndex = Index + 3U;
-					UDPRequestParameter.Length = DataLength;
-					UDPRequestMulti(UDPRequestParameter);
-				}
-			}
-			else if (Parameter.DNSTarget.IPv4_Multi != nullptr) //IPv4
-			{
-				for (size_t Index = 0;Index < Parameter.DNSTarget.IPv4_Multi->size();Index++)
-				{
-					if (Parameter.DomainTestData == nullptr) //Make ramdom domain request.
-					{
-						memset(Buffer.get() + sizeof(dns_hdr), 0, PACKET_MAXSIZE - sizeof(dns_hdr));
-						MakeRamdomDomain(DNSQuery.get());
-						DataLength = CharToDNSQuery(DNSQuery.get(), Buffer.get() + sizeof(dns_hdr));
-						memset(DNSQuery.get(), 0, DOMAIN_MAXSIZE);
-				
-						DNS_Query = (pdns_qry)(Buffer.get() + sizeof(dns_hdr) + DataLength);
-						DNS_Query->Classes = htons(DNS_CLASS_IN);
-						DNS_Query->Type = htons(DNS_RECORD_A);
-						DataLength += sizeof(dns_hdr) + sizeof(dns_qry);
-
-					//EDNS0 Label
-						if (Parameter.EDNS0Label) //No additional
-						{
-							DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + DataLength);
-							DNS_Header->Additional = htons(U16_NUM_ONE);
-							DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-							DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
-							DataLength += sizeof(dns_record_opt);
-						}
-					}
-
-					UDPRequestParameter.ServerIndex = Index + 3U;
-					UDPRequestParameter.Length = DataLength;
-					UDPRequestMulti(UDPRequestParameter);
-				}
-			}
-
-		//Repeat
-			Sleep(SENDING_INTERVAL_TIME * SECOND_TO_MILLISECOND);
-			Times++;
-		}
-	}
-*/
 	for (;;)
 	{
 		if (Times == SENDING_ONCE_INTERVAL_TIMES)
@@ -352,7 +168,7 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 			}
 
 		//Send.
-			UDPRequestMulti(Buffer.get(), (int)DataLength, QUEUE_MAXLEN * QUEUE_PARTNUM);
+			UDPRequestMulti(Buffer.get(), (int)DataLength, nullptr, 0 /* QUEUE_MAXLEN * TRANSPORT_LAYER_PARTNUM */ );
 
 		//Repeat.
 			Times++;
@@ -467,7 +283,7 @@ size_t __fastcall ICMPEcho(void)
 		//Increase Sequence.
 			if (Parameter.ICMPSequence == htons(DEFAULT_SEQUENCE))
 			{
-				if (ICMP_Header->Sequence == U16_MAXNUM)
+				if (ICMP_Header->Sequence == UINT16_MAX)
 					ICMP_Header->Sequence = htons(DEFAULT_SEQUENCE);
 				else 
 					ICMP_Header->Sequence = htons(ntohs(ICMP_Header->Sequence) + 1U);
@@ -617,7 +433,7 @@ size_t __fastcall ICMPv6Echo(void)
 		if (Parameter.ICMPSequence == htons(DEFAULT_SEQUENCE)) //Increase Sequence.
 		{
 			ICMPv6_Header = (picmpv6_hdr)Buffer.front().get();
-			if (ICMPv6_Header->Sequence == U16_MAXNUM)
+			if (ICMPv6_Header->Sequence == UINT16_MAX)
 				ICMPv6_Header->Sequence = htons(DEFAULT_SEQUENCE);
 			else 
 				ICMPv6_Header->Sequence = htons(ntohs(ICMPv6_Header->Sequence) + 1U);
@@ -632,7 +448,7 @@ size_t __fastcall ICMPv6Echo(void)
 			if (Parameter.ICMPSequence == htons(DEFAULT_SEQUENCE)) //Increase Sequence.
 			{
 				ICMPv6_Header = (picmpv6_hdr)Buffer[1U].get();
-				if (ICMPv6_Header->Sequence == U16_MAXNUM)
+				if (ICMPv6_Header->Sequence == UINT16_MAX)
 					ICMPv6_Header->Sequence = htons(DEFAULT_SEQUENCE);
 				else 
 					ICMPv6_Header->Sequence = htons(ntohs(ICMPv6_Header->Sequence) + 1U);
@@ -651,7 +467,7 @@ size_t __fastcall ICMPv6Echo(void)
 				if (Parameter.ICMPSequence == htons(DEFAULT_SEQUENCE)) //Increase Sequence.
 				{
 					ICMPv6_Header = (picmpv6_hdr)Buffer[Index].get();
-					if (ICMPv6_Header->Sequence == U16_MAXNUM)
+					if (ICMPv6_Header->Sequence == UINT16_MAX)
 						ICMPv6_Header->Sequence = htons(DEFAULT_SEQUENCE);
 					else 
 						ICMPv6_Header->Sequence = htons(ntohs(ICMPv6_Header->Sequence) + 1U);
@@ -738,7 +554,7 @@ size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PST
 		}
 	}
 	
-	if ((TCPSocket == INVALID_SOCKET || SockAddr->ss_family == 0) && Parameter.GatewayAvailable_IPv4 /* && (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 || IsLocal && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0) */) //IPv4
+	if ((TCPSocket == INVALID_SOCKET || SockAddr->ss_family == 0) && Parameter.GatewayAvailable_IPv4 /* && (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 || IsLocal && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0) */ ) //IPv4
 	{
 	//Local requesting
 		if (IsLocal && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0)
@@ -794,8 +610,8 @@ size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PST
 
 		return EXIT_FAILURE;
 	}
-/*
-//TCP KeepAlive Mode
+
+/* TCP KeepAlive Mode
 	BOOL bKeepAlive = TRUE;
 	if (setsockopt(TCPSocket, SOL_SOCKET, SO_KEEPALIVE, (PSTR)&bKeepAlive, sizeof(bKeepAlive)) == SOCKET_ERROR)
 	{
@@ -815,6 +631,7 @@ size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PST
 		return EXIT_FAILURE;
 	}
 */
+
 //Set Non-blocking Mode
 	ULONG SocketMode = 1U;
 	if (ioctlsocket(TCPSocket, FIONBIO, &SocketMode) == SOCKET_ERROR)
@@ -825,17 +642,6 @@ size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PST
 		return EXIT_FAILURE;
 	}
 
-/* Old version(2014-12-08)
-//Set socket timeout.
-	if (setsockopt(TCPSocket, SOL_SOCKET, SO_SNDTIMEO, (PSTR)&Parameter.ReliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
-		setsockopt(TCPSocket, SOL_SOCKET, SO_RCVTIMEO, (PSTR)&Parameter.ReliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
-	{
-		PrintError(LOG_ERROR_WINSOCK, L"Set TCP socket timeout error", WSAGetLastError(), nullptr, 0);
-		closesocket(TCPSocket);
-
-		return EXIT_FAILURE;
-	}
-*/
 //Connect to server.
 	if (connect(TCPSocket, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK)
 	{
@@ -852,134 +658,6 @@ size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PST
 			return EXIT_FAILURE;
 		}
 	}
-
-/* Old version(2014-12-08)
-//Send requesting.
-	if (send(TCPSocket, SendBuffer.get(), (int)DataLength, 0) == SOCKET_ERROR) //Connection is RESET or other errors when sending.
-	{
-		if (!Alternate && WSAGetLastError() == WSAETIMEDOUT)
-		{
-			closesocket(TCPSocket);
-			return WSAETIMEDOUT;
-		}
-		else {
-			closesocket(TCPSocket);
-			return EXIT_FAILURE;
-		}
-	}
-	SendBuffer.reset();
-
-//Receive result.
-	SSIZE_T RecvLen = recv(TCPSocket, Recv, (int)RecvSize, 0) - (SSIZE_T)sizeof(uint16_t);
-	if (RecvLen <= 0 || (SSIZE_T)htons(((uint16_t *)Recv)[0]) > RecvLen) //Connection is RESET or other errors(including SOCKET_ERROR) when sending or server fin the connection.
-	{
-		memset(Recv, 0, RecvSize);
-		if (!Alternate && RecvLen == SOCKET_ERROR - (SSIZE_T)sizeof(uint16_t) && WSAGetLastError() == WSAETIMEDOUT)
-		{
-			closesocket(TCPSocket);
-			return WSAETIMEDOUT;
-		}
-		else {
-			closesocket(TCPSocket);
-			return EXIT_FAILURE;
-		}
-	}
-	else if (RecvLen < DNS_PACKET_MINSIZE && htons(((uint16_t *)Recv)[0]) >= DNS_PACKET_MINSIZE) //TCP segment of a reassembled PDU
-	{
-		uint16_t PDULen = htons(((uint16_t *)Recv)[0]);
-		memset(Recv, 0, RecvSize);
-		RecvLen = recv(TCPSocket, Recv, (int)RecvSize, 0) - (SSIZE_T)sizeof(uint16_t);
-		if (RecvLen < (SSIZE_T)PDULen) //Connection is RESET, corrupted packet or sother errors(including SOCKET_ERROR) after sending or finished.
-		{
-			memset(Recv, 0, RecvSize);
-			if (!Alternate && RecvLen == SOCKET_ERROR - (SSIZE_T)sizeof(uint16_t) && WSAGetLastError() == WSAETIMEDOUT)
-			{
-				closesocket(TCPSocket);
-				return WSAETIMEDOUT;
-			}
-			else {
-				closesocket(TCPSocket);
-				return EXIT_FAILURE;
-			}
-		}
-
-		closesocket(TCPSocket);
-		if (PDULen >= DNS_PACKET_MINSIZE && PDULen <= RecvSize)
-		{
-		//Responses question and answers check
-			if (Parameter.DNSDataCheck || Parameter.Blacklist)
-			{
-			//Pointer check
-				for (AddrLen = sizeof(dns_tcp_hdr);AddrLen < (int)((DNS_TCP_PACKET_QUERY_LOCATE(Recv));AddrLen++)
-				{
-					if (*(Recv + AddrLen) == '\xC0')
-						break;
-				}
-
-			//Last result check
-				if (!CheckResponseResult(Recv + sizeof(uint16_t), RecvLen) || 
-					AddrLen != (int)((DNS_TCP_PACKET_QUERY_LOCATE(Recv)))
-				{
-					memset(Recv, 0, RecvSize);
-					return EXIT_FAILURE;
-				}
-			}
-
-			memmove(Recv, Recv + sizeof(uint16_t), PDULen);
-		//Mark DNS Cache.
-			if (Parameter.CacheType > 0)
-				MarkDomainCache(Recv, PDULen);
-
-			return PDULen;
-		}
-		else {
-			closesocket(TCPSocket);
-			memset(Recv, 0, RecvSize);
-
-			return EXIT_FAILURE;
-		}
-	}
-	else if (RecvLen >= DNS_PACKET_MINSIZE)
-	{
-		closesocket(TCPSocket);
-		RecvLen = ntohs(((uint16_t *)Recv)[0]);
-		if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && RecvLen <= (SSIZE_T)RecvSize)
-		{
-		//Responses question and answers check
-			if (Parameter.DNSDataCheck || Parameter.Blacklist)
-			{
-			//Pointer check
-				for (AddrLen = sizeof(dns_tcp_hdr);AddrLen < (int)((DNS_TCP_PACKET_QUERY_LOCATE(Recv));AddrLen++)
-				{
-					if (*(Recv + AddrLen) == '\xC0')
-						break;
-				}
-
-			//Last result check
-				if (!CheckResponseResult(Recv + sizeof(uint16_t), RecvLen) || 
-					AddrLen != (int)((DNS_TCP_PACKET_QUERY_LOCATE(Recv)))
-				{
-					memset(Recv, 0, RecvSize);
-					return EXIT_FAILURE;
-				}
-			}
-
-			memmove(Recv, Recv + sizeof(uint16_t), RecvLen);
-		//Mark DNS Cache.
-			if (Parameter.CacheType > 0)
-				MarkDomainCache(Recv, RecvLen);
-
-			return RecvLen;
-		}
-		else {
-			return EXIT_FAILURE;
-		}
-	}
-	else {
-		closesocket(TCPSocket);
-		memset(Recv, 0, RecvSize);
-	}
-*/
 
 //Send request and receive result.
 	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
@@ -1116,303 +794,6 @@ size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PST
 	memset(OriginalRecv, 0, RecvSize);
 	return EXIT_FAILURE;
 }
-
-/* Old version(2014-12-09)
-//Transmission and reception of TCP protocol(Multithreading)
-size_t __fastcall TCPRequestMulti(TCPUDP_COMPLETE_REQUEST_MULTITHREAD_PARAMETER &TCPRequestParameter, std::mutex &Mutex)
-{
-//Initialization
-	std::shared_ptr<char> SendBuffer(new char[sizeof(uint16_t) + TCPRequestParameter.SendSize]()), RecvBuffer(new char[TCPRequestParameter.RecvSize]());
-	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
-	SYSTEM_SOCKET TCPSocket = 0;
-	int AddrLen = 0;
-	memcpy(SendBuffer.get(), TCPRequestParameter.Send, TCPRequestParameter.SendSize);
-
-//Add length of request packet(It must be written in header when transpot with TCP protocol).
-	size_t DataLength = AddLengthToTCPDNSHeader(SendBuffer.get(), TCPRequestParameter.SendSize, sizeof(uint16_t) + TCPRequestParameter.SendSize);
-	if (DataLength == EXIT_FAILURE)
-		return EXIT_FAILURE;
-
-//Socket initialization
-	if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && TCPRequestParameter.TargetData.AddrLen == sizeof(sockaddr_in6) || //IPv6
-		Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && TCPRequestParameter.TargetData.AddrLen == sizeof(sockaddr_in)) //Non-IPv4
-	{
-	//All server(including Alternate) Multi Request
-		if (TCPRequestParameter.ServerIndex > 0)
-		{
-		//Main
-			if (TCPRequestParameter.ServerIndex == 1U)
-			{
-				if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0)
-				{
-					((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr;
-					((PSOCKADDR_IN6)SockAddr.get())->sin6_port = Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_port;
-				}
-				else {
-					return EXIT_FAILURE;
-				}
-			}
-		//Alternate
-			else if (TCPRequestParameter.ServerIndex == 2U)
-			{
-				if (Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0)
-				{
-					((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr;
-					((PSOCKADDR_IN6)SockAddr.get())->sin6_port = Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_port;
-				}
-				else {
-					return EXIT_FAILURE;
-				}
-			}
-			else if (Parameter.DNSTarget.IPv6_Multi != nullptr && Parameter.DNSTarget.IPv6_Multi->size() > TCPRequestParameter.ServerIndex - 3U)
-			{
-				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.IPv6_Multi->at(TCPRequestParameter.ServerIndex - 3U).AddressData.IPv6.sin6_addr;
-				((PSOCKADDR_IN6)SockAddr.get())->sin6_port = Parameter.DNSTarget.IPv6_Multi->at(TCPRequestParameter.ServerIndex - 3U).AddressData.IPv6.sin6_port;
-			}
-			else {
-				return EXIT_FAILURE;
-			}
-		}
-
-		TCPSocket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-		SockAddr->ss_family = AF_INET6;
-		AddrLen = sizeof(sockaddr_in6);
-	}
-	else if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
-	{
-	//All server(including Alternate) Multi Request
-		if (TCPRequestParameter.ServerIndex > 0)
-		{
-		//Main
-			if (TCPRequestParameter.ServerIndex == 1U)
-			{
-				((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr;
-				((PSOCKADDR_IN)SockAddr.get())->sin_port = Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_port;
-			}
-		//Alternate
-			else if (TCPRequestParameter.ServerIndex == 2U)
-			{
-				if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
-				{
-					((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr;
-					((PSOCKADDR_IN)SockAddr.get())->sin_port = Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_port;
-				}
-				else {
-					return EXIT_FAILURE;
-				}
-			}
-			else if (Parameter.DNSTarget.IPv4_Multi != nullptr && Parameter.DNSTarget.IPv4_Multi->size() > TCPRequestParameter.ServerIndex - 3U)
-			{
-				((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.IPv4_Multi->at(TCPRequestParameter.ServerIndex - 3U).AddressData.IPv4.sin_addr;
-				((PSOCKADDR_IN)SockAddr.get())->sin_port = Parameter.DNSTarget.IPv4_Multi->at(TCPRequestParameter.ServerIndex - 3U).AddressData.IPv4.sin_port;
-			}
-			else {
-				return EXIT_FAILURE;
-			}
-		}
-
-		TCPSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-		SockAddr->ss_family = AF_INET;
-		AddrLen = sizeof(sockaddr_in);
-	}
-	else {
-		return EXIT_FAILURE;
-	}
-
-//Socket check
-	if (TCPSocket == INVALID_SOCKET)
-	{
-		PrintError(LOG_ERROR_WINSOCK, L"TCP request initialization error", WSAGetLastError(), nullptr, 0);
-		return EXIT_FAILURE;
-	}
-/*
-//TCP KeepAlive Mode
-	BOOL bKeepAlive = TRUE;
-	if (setsockopt(TCPSocket, SOL_SOCKET, SO_KEEPALIVE, (PSTR)&bKeepAlive, sizeof(bKeepAlive)) == SOCKET_ERROR)
-	{
-		closesocket(TCPSocket);
-		return EXIT_FAILURE;
-	}
-
-	tcp_keepalive alive_in = {0};
-	tcp_keepalive alive_out = {0};
-	alive_in.keepalivetime = STANDARD_TIMEOUT;
-	alive_in.keepaliveinterval = Parameter.ReliableSocketTimeout;
-	alive_in.onoff = TRUE;
-	ULONG ulBytesReturn = 0;
-	if (WSAIoctl(TCPSocket, SIO_KEEPALIVE_VALS, &alive_in, sizeof(alive_in), &alive_out, sizeof(alive_out), &ulBytesReturn, nullptr, nullptr) == SOCKET_ERROR)
-	{
-		closesocket(TCPSocket);
-		return EXIT_FAILURE;
-	}
-
-//Set socket timeout.
-	if (setsockopt(TCPSocket, SOL_SOCKET, SO_SNDTIMEO, (PSTR)&Parameter.ReliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
-		setsockopt(TCPSocket, SOL_SOCKET, SO_RCVTIMEO, (PSTR)&Parameter.ReliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
-	{
-		PrintError(LOG_ERROR_WINSOCK, L"Set TCP socket timeout error", WSAGetLastError(), nullptr, 0);
-		closesocket(TCPSocket);
-
-		return EXIT_FAILURE;
-	}
-
-//Connect to server.
-	if (connect(TCPSocket, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR) //Connection is RESET or other errors when connecting.
-	{
-		if (TCPRequestParameter.ServerIndex != 2U && WSAGetLastError() == WSAETIMEDOUT)
-		{
-			closesocket(TCPSocket);
-
-			std::unique_lock<std::mutex> TCPMutex(Mutex);
-			TCPRequestParameter.ReturnValue = WSAETIMEDOUT;
-			return WSAETIMEDOUT;
-		}
-		else {
-			closesocket(TCPSocket);
-			return EXIT_FAILURE;
-		}
-	}
-
-//Send requesting.
-	if (send(TCPSocket, SendBuffer.get(), (int)DataLength, 0) == SOCKET_ERROR) //Connection is RESET or other errors when sending.
-	{
-		if (TCPRequestParameter.ServerIndex != 2U && WSAGetLastError() == WSAETIMEDOUT)
-		{
-			closesocket(TCPSocket);
-
-			std::unique_lock<std::mutex> TCPMutex(Mutex);
-			TCPRequestParameter.ReturnValue = WSAETIMEDOUT;
-			return WSAETIMEDOUT;
-		}
-		else {
-			closesocket(TCPSocket);
-			return EXIT_FAILURE;
-		}
-	}
-	SendBuffer.reset();
-
-//Receive result.
-	SSIZE_T RecvLen = recv(TCPSocket, RecvBuffer.get(), (int)TCPRequestParameter.RecvSize, 0) - (SSIZE_T)sizeof(uint16_t);
-	if (RecvLen <= 0 || (SSIZE_T)htons(((uint16_t *)RecvBuffer.get())[0]) > RecvLen) //Connection is RESET or other errors(including SOCKET_ERROR) when sending or server fin the connection.
-	{
-		RecvBuffer.reset();
-		if (TCPRequestParameter.ServerIndex != 2U && RecvLen == SOCKET_ERROR - (SSIZE_T)sizeof(uint16_t) && WSAGetLastError() == WSAETIMEDOUT)
-		{
-			closesocket(TCPSocket);
-
-			std::unique_lock<std::mutex> TCPMutex(Mutex);
-			TCPRequestParameter.ReturnValue = WSAETIMEDOUT;
-			return WSAETIMEDOUT;
-		}
-		else {
-			closesocket(TCPSocket);
-			return EXIT_FAILURE;
-		}
-	}
-	else if (RecvLen < DNS_PACKET_MINSIZE && htons(((uint16_t *)RecvBuffer.get())[0]) >= DNS_PACKET_MINSIZE) //TCP segment of a reassembled PDU
-	{
-		uint16_t PDULen = htons(((uint16_t *)RecvBuffer.get())[0]);
-		memset(RecvBuffer.get(), 0, TCPRequestParameter.RecvSize);
-		RecvLen = recv(TCPSocket, RecvBuffer.get(), (int)TCPRequestParameter.RecvSize, 0) - (SSIZE_T)sizeof(uint16_t);
-		if (RecvLen < (SSIZE_T)PDULen) //Connection is RESET, corrupted packet or sother errors(including SOCKET_ERROR) after sending or finished.
-		{
-			RecvBuffer.reset();
-			if (TCPRequestParameter.ServerIndex != 2U && RecvLen == SOCKET_ERROR - (SSIZE_T)sizeof(uint16_t) && WSAGetLastError() == WSAETIMEDOUT)
-			{
-				closesocket(TCPSocket);
-
-				std::unique_lock<std::mutex> TCPMutex(Mutex);
-				TCPRequestParameter.ReturnValue = WSAETIMEDOUT;
-				return WSAETIMEDOUT;
-			}
-			else {
-				closesocket(TCPSocket);
-				return EXIT_FAILURE;
-			}
-		}
-
-		closesocket(TCPSocket);
-		if (PDULen >= DNS_PACKET_MINSIZE && PDULen <= TCPRequestParameter.RecvSize)
-		{
-		//Responses question and answers check
-			if (Parameter.DNSDataCheck || Parameter.Blacklist)
-			{
-			//Pointer check
-				for (AddrLen = sizeof(dns_tcp_hdr);AddrLen < (int)((DNS_TCP_PACKET_QUERY_LOCATE(RecvBuffer.get()));AddrLen++)
-				{
-					if (*(RecvBuffer.get() + AddrLen) == '\xC0')
-						break;
-				}
-
-			//Last result check
-				if (!CheckResponseResult(RecvBuffer.get() + sizeof(uint16_t), RecvLen) || 
-					AddrLen != (int)((DNS_TCP_PACKET_QUERY_LOCATE(RecvBuffer.get())))
-						return EXIT_FAILURE;
-			}
-
-			std::unique_lock<std::mutex> TCPMutex(Mutex);
-			if (CheckEmptyBuffer(TCPRequestParameter.Recv, TCPRequestParameter.RecvSize) && (TCPRequestParameter.ReturnValue == 0 || TCPRequestParameter.ReturnValue == WSAETIMEDOUT))
-			{
-				memcpy(TCPRequestParameter.Recv, RecvBuffer.get() + sizeof(uint16_t), PDULen);
-				TCPRequestParameter.ReturnValue = PDULen;
-
-			//Mark DNS Cache.
-				if (Parameter.CacheType > 0)
-					MarkDomainCache(TCPRequestParameter.Recv, PDULen);
-
-				return PDULen;
-			}
-			else {
-				return EXIT_SUCCESS;
-			}
-		}
-	}
-	else if (RecvLen >= DNS_PACKET_MINSIZE)
-	{
-		closesocket(TCPSocket);
-		RecvLen = ntohs(((uint16_t *)RecvBuffer.get())[0]);
-		if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && RecvLen <= (SSIZE_T)TCPRequestParameter.RecvSize)
-		{
-		//Responses question and answers check
-			if (Parameter.DNSDataCheck || Parameter.Blacklist)
-			{
-			//Pointer check
-				for (AddrLen = sizeof(dns_tcp_hdr);AddrLen < (int)((DNS_TCP_PACKET_QUERY_LOCATE(RecvBuffer.get()));AddrLen++)
-				{
-					if (*(RecvBuffer.get() + AddrLen) == '\xC0')
-						break;
-				}
-
-			//Last result check
-				if (!CheckResponseResult(RecvBuffer.get() + sizeof(uint16_t), RecvLen) || 
-					AddrLen != (int)((DNS_TCP_PACKET_QUERY_LOCATE(RecvBuffer.get())))
-						return EXIT_FAILURE;
-			}
-
-			std::unique_lock<std::mutex> TCPMutex(Mutex);
-			if (CheckEmptyBuffer(TCPRequestParameter.Recv, TCPRequestParameter.RecvSize) && (TCPRequestParameter.ReturnValue == 0 || TCPRequestParameter.ReturnValue == WSAETIMEDOUT))
-			{
-				memcpy(TCPRequestParameter.Recv, RecvBuffer.get() + sizeof(uint16_t), RecvLen);
-				TCPRequestParameter.ReturnValue = RecvLen;
-
-			//Mark DNS Cache.
-				if (Parameter.CacheType > 0)
-					MarkDomainCache(TCPRequestParameter.Recv, RecvLen);
-
-				return RecvLen;
-			}
-			else {
-				return EXIT_SUCCESS;
-			}
-		}
-	}
-	else {
-		closesocket(TCPSocket);
-	}
-
-	return EXIT_FAILURE;
-}
-*/
 
 //Transmission and reception of TCP protocol(Multithreading)
 size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize /* , const bool IsAlternate */ )
@@ -1652,7 +1033,6 @@ size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize
 			SocketDataIter++;
 		}
 	}
-//Stop loop.
 	StopLoop: 
 	if (TCPSocketDataList.empty())
 		return EXIT_FAILURE;
@@ -1840,7 +1220,7 @@ size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize
 }
 
 //Transmission of UDP protocol
-size_t __fastcall UDPRequest(const PSTR OriginalSend, const size_t Length, const size_t ListIndex /* , const bool IsAlternate */ )
+size_t __fastcall UDPRequest(const PSTR OriginalSend, const size_t Length, const SOCKET_DATA *LocalSocketData, const uint16_t Protocol /* , const size_t ListIndex, const bool IsAlternate */ )
 {
 //Initialization
 	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
@@ -1912,7 +1292,7 @@ size_t __fastcall UDPRequest(const PSTR OriginalSend, const size_t Length, const
 	}
 
 //Mark port to list.
-	if (ListIndex < QUEUE_MAXLEN * QUEUE_PARTNUM)
+	if (LocalSocketData != nullptr && Protocol > 0)
 	{
 		if (getsockname(UDPSocket, (PSOCKADDR)SockAddr.get(), (PINT)&AddrLen) != 0)
 		{
@@ -1921,31 +1301,34 @@ size_t __fastcall UDPRequest(const PSTR OriginalSend, const size_t Length, const
 			return EXIT_FAILURE;
 		}
 
+		std::shared_ptr<PORT_TABLE> PortListTemp(new PORT_TABLE());
+		memset(PortListTemp.get(), 0, sizeof(PORT_TABLE));
 		std::shared_ptr<SOCKET_DATA> SocketDataTemp(new SOCKET_DATA());
 		memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
+
+	//Mark system connection data.
+		PortListTemp->SystemData = *LocalSocketData;
+
+	//Mark sending connection data.
+		SocketDataTemp->AddrLen = AddrLen;
 		if (AddrLen == sizeof(sockaddr_in6)) //IPv6
 		{
-			SocketDataTemp->AddrLen = sizeof(sockaddr_in6);
 			SocketDataTemp->SockAddr.ss_family = AF_INET6;
 			((PSOCKADDR_IN6)&SocketDataTemp->SockAddr)->sin6_port = ((PSOCKADDR_IN6)SockAddr.get())->sin6_port;
-
-			std::unique_lock<std::mutex> PortListMutex(PortListLock);
-			PortList.SendData[ListIndex].push_back(*SocketDataTemp);
-			PortList.SendData[ListIndex].shrink_to_fit();
 		}
 		else { //IPv4
-			SocketDataTemp->AddrLen = sizeof(sockaddr_in);
 			SocketDataTemp->SockAddr.ss_family = AF_INET;
 			((PSOCKADDR_IN)&SocketDataTemp->SockAddr)->sin_port = ((PSOCKADDR_IN)SockAddr.get())->sin_port;
-
-			std::unique_lock<std::mutex> PortListMutex(PortListLock);
-			PortList.SendData[ListIndex].push_back(*SocketDataTemp);
-			PortList.SendData[ListIndex].shrink_to_fit();
 		}
+
+		PortListTemp->RequestData.push_back(*SocketDataTemp);
+		PortListTemp->NetworkLayer = SocketDataTemp->SockAddr.ss_family;
+		SocketDataTemp.reset();
 
 	//Mark send time.
 	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
-		if (ListIndex > QUEUE_MAXLEN * QUEUE_PARTNUM / 2U && ListIndex < QUEUE_MAXLEN * QUEUE_PARTNUM) //TCP
+/* Old version(2015-03-18)
+		if (ListIndex > QUEUE_MAXLEN * TRANSPORT_LAYER_PARTNUM / 2U && ListIndex < QUEUE_MAXLEN * TRANSPORT_LAYER_PARTNUM) //TCP
 		#ifdef _WIN64
 			AlternateSwapList.PcapAlternateTimeout[ListIndex] = GetTickCount64() + Parameter.ReliableSocketTimeout;
 		#else //x86
@@ -1968,10 +1351,37 @@ size_t __fastcall UDPRequest(const PSTR OriginalSend, const size_t Length, const
 		}
 		#endif
 	}
+*/
+		PortListTemp->TransportLayer = Protocol;
+		if (Protocol == IPPROTO_TCP) //TCP
+		{
+		#ifdef _WIN64
+			PortListTemp->ClearPortTime = GetTickCount64() + Parameter.ReliableSocketTimeout;
+		#else //x86
+			if (Parameter.GetTickCount64PTR != nullptr)
+				PortListTemp->ClearPortTime = (size_t)((*Parameter.GetTickCount64PTR)() + Parameter.ReliableSocketTimeout);
+			else 
+				PortListTemp->ClearPortTime = GetTickCount() + Parameter.ReliableSocketTimeout;
+		#endif
+		}
+		else { //UDP
+		#ifdef _WIN64
+			PortListTemp->ClearPortTime = GetTickCount64() + Parameter.UnreliableSocketTimeout;
+		#else //x86
+			if (Parameter.GetTickCount64PTR != nullptr)
+				PortListTemp->ClearPortTime = (size_t)((*Parameter.GetTickCount64PTR)() + Parameter.UnreliableSocketTimeout);
+			else 
+				PortListTemp->ClearPortTime = GetTickCount() + Parameter.UnreliableSocketTimeout;
+		#endif
+		}
+
+		std::unique_lock<std::mutex> PortListMutex(PortListLock);
+		PortList.push_back(*PortListTemp);
+	}
 
 //Block Port Unreachable messages of system or close the TCP requesting connections.
 	shutdown(UDPSocket, SD_BOTH);
-	if (ListIndex > QUEUE_MAXLEN * QUEUE_PARTNUM / 2U && ListIndex < QUEUE_MAXLEN * QUEUE_PARTNUM) //TCP
+	if (Protocol == IPPROTO_TCP) //TCP
 		Sleep(Parameter.ReliableSocketTimeout);
 	else //UDP
 		Sleep(Parameter.UnreliableSocketTimeout);
@@ -1980,185 +1390,8 @@ size_t __fastcall UDPRequest(const PSTR OriginalSend, const size_t Length, const
 	return EXIT_SUCCESS;
 }
 
-/* Old version(2014-12-09)
 //Transmission of UDP protocol(Multithreading)
-size_t __fastcall UDPRequestMulti(UDP_REQUEST_MULTITHREAD_PARAMETER UDPRequestParameter)
-{
-//Initialization
-	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
-	SYSTEM_SOCKET UDPSocket = 0;
-	int AddrLen = 0;
-
-//Socket initialization
-	if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && UDPRequestParameter.TargetData.AddrLen == sizeof(sockaddr_in6) || //IPv6
-		Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && UDPRequestParameter.TargetData.AddrLen == sizeof(sockaddr_in)) //Non-IPv4
-	{
-	//All server(including Alternate) Multi Request
-		if (UDPRequestParameter.ServerIndex > 0)
-		{
-		//Main
-			if (UDPRequestParameter.ServerIndex == 1U)
-			{
-				if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0)
-				{
-					((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr;
-					((PSOCKADDR_IN6)SockAddr.get())->sin6_port = Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_port;
-				}
-				else {
-					return EXIT_FAILURE;
-				}
-			}
-		//Alternate
-			else if (UDPRequestParameter.ServerIndex == 2U)
-			{
-				if (Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0)
-				{
-					((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr;
-					((PSOCKADDR_IN6)SockAddr.get())->sin6_port = Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_port;
-				}
-				else {
-					return EXIT_FAILURE;
-				}
-			}
-			else if (Parameter.DNSTarget.IPv6_Multi != nullptr && Parameter.DNSTarget.IPv6_Multi->size() > UDPRequestParameter.ServerIndex - 3U)
-			{
-				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.IPv6_Multi->at(UDPRequestParameter.ServerIndex - 3U).AddressData.IPv6.sin6_addr;
-				((PSOCKADDR_IN6)SockAddr.get())->sin6_port = Parameter.DNSTarget.IPv6_Multi->at(UDPRequestParameter.ServerIndex - 3U).AddressData.IPv6.sin6_port;
-			}
-			else {
-				return EXIT_FAILURE;
-			}
-		}
-
-		UDPSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-		SockAddr->ss_family = AF_INET6;
-		AddrLen = sizeof(sockaddr_in6);
-	}
-	else if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
-	{
-	//All server(including Alternate) Multi Request
-		if (UDPRequestParameter.ServerIndex > 0)
-		{
-		//Main
-			if (UDPRequestParameter.ServerIndex == 1U)
-			{
-				((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr;
-				((PSOCKADDR_IN)SockAddr.get())->sin_port = Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_port;
-			}
-		//Alternate
-			else if (UDPRequestParameter.ServerIndex == 2U)
-			{
-				if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
-				{
-					((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr;
-					((PSOCKADDR_IN)SockAddr.get())->sin_port = Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_port;
-				}
-				else {
-					return EXIT_FAILURE;
-				}
-			}
-			else if (Parameter.DNSTarget.IPv4_Multi != nullptr && Parameter.DNSTarget.IPv4_Multi->size() > UDPRequestParameter.ServerIndex - 3U)
-			{
-				((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.IPv4_Multi->at(UDPRequestParameter.ServerIndex - 3U).AddressData.IPv4.sin_addr;
-				((PSOCKADDR_IN)SockAddr.get())->sin_port = Parameter.DNSTarget.IPv4_Multi->at(UDPRequestParameter.ServerIndex - 3U).AddressData.IPv4.sin_port;
-			}
-			else {
-				return EXIT_FAILURE;
-			}
-		}
-
-		UDPSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-		SockAddr->ss_family = AF_INET;
-		AddrLen = sizeof(sockaddr_in);
-	}
-	else {
-		return EXIT_FAILURE;
-	}
-
-//Socket check
-	if (UDPSocket == INVALID_SOCKET)
-	{
-		PrintError(LOG_ERROR_WINSOCK, L"UDP request initialization error", WSAGetLastError(), nullptr, 0);
-		return EXIT_FAILURE;
-	}
-
-//Set socket timeout.
-	if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (PSTR)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
-	{
-		PrintError(LOG_ERROR_WINSOCK, L"Set UDP socket timeout error", WSAGetLastError(), nullptr, 0);
-		closesocket(UDPSocket);
-
-		return EXIT_FAILURE;
-	}
-
-//Send requesting.
-	if (sendto(UDPSocket, UDPRequestParameter.Send, (int)UDPRequestParameter.Length, 0, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR)
-	{
-		PrintError(LOG_ERROR_WINSOCK, L"UDP request error", WSAGetLastError(), nullptr, 0);
-		closesocket(UDPSocket);
-
-		return EXIT_FAILURE;
-	}
-
-//Mark port to list.
-	if (UDPRequestParameter.Index < QUEUE_MAXLEN * QUEUE_PARTNUM)
-	{
-		if (getsockname(UDPSocket, (PSOCKADDR)SockAddr.get(), (PINT)&AddrLen) != 0)
-		{
-			closesocket(UDPSocket);
-			return EXIT_FAILURE;
-		}
-
-		std::shared_ptr<SOCKET_DATA> SocketDataTemp(new SOCKET_DATA());
-	//Minimum supported system of GetTickCount64() is Windows Vista.
-		if (AddrLen == sizeof(sockaddr_in6)) //IPv6
-		{
-			SocketDataTemp->AddrLen = sizeof(sockaddr_in6);
-			SocketDataTemp->SockAddr.ss_family = AF_INET6;
-			((PSOCKADDR_IN6)&SocketDataTemp->SockAddr)->sin6_port = ((PSOCKADDR_IN6)SockAddr.get())->sin6_port;
-
-			std::unique_lock<std::mutex> PortListMutex(PortListLock);
-			PortList.SendData[UDPRequestParameter.Index].push_back(*SocketDataTemp);
-			PortList.SendData[UDPRequestParameter.Index].shrink_to_fit();
-		}
-		else //IPv4
-		{
-			SocketDataTemp->AddrLen = sizeof(sockaddr_in);
-			SocketDataTemp->SockAddr.ss_family = AF_INET;
-			((PSOCKADDR_IN)&SocketDataTemp->SockAddr)->sin_port = ((PSOCKADDR_IN)SockAddr.get())->sin_port;
-
-			std::unique_lock<std::mutex> PortListMutex(PortListLock);
-			PortList.SendData[UDPRequestParameter.Index].push_back(*SocketDataTemp);
-			PortList.SendData[UDPRequestParameter.Index].shrink_to_fit();
-		}
-
-	//Mark send time
-		if (UDPRequestParameter.Index > QUEUE_MAXLEN * QUEUE_PARTNUM / 2U && UDPRequestParameter.Index < QUEUE_MAXLEN * QUEUE_PARTNUM) //TCP
-		#ifdef _WIN64
-			AlternateSwapList.PcapAlternateTimeout[UDPRequestParameter.Index] = GetTickCount64() + Parameter.ReliableSocketTimeout;
-		#else //x86
-			AlternateSwapList.PcapAlternateTimeout[UDPRequestParameter.Index] = GetTickCount() + Parameter.ReliableSocketTimeout;
-		#endif
-		else
-		#ifdef _WIN64
-			AlternateSwapList.PcapAlternateTimeout[UDPRequestParameter.Index] = GetTickCount64() + Parameter.UnreliableSocketTimeout;
-		#else //x86
-			AlternateSwapList.PcapAlternateTimeout[UDPRequestParameter.Index] = GetTickCount() + Parameter.UnreliableSocketTimeout;
-		#endif
-	}
-
-//Block Port Unreachable messages of system or close the TCP requesting connections.
-	if (UDPRequestParameter.Index > QUEUE_MAXLEN * QUEUE_PARTNUM / 2U && UDPRequestParameter.Index < QUEUE_MAXLEN * QUEUE_PARTNUM) //TCP
-		Sleep(Parameter.ReliableSocketTimeout);
-	else //UDP
-		Sleep(Parameter.UnreliableSocketTimeout);
-	closesocket(UDPSocket);
-	return EXIT_SUCCESS;
-}
-*/
-
-//Transmission of UDP protocol(Multithreading)
-size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, const size_t ListIndex /* , const bool IsAlternate */ )
+size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, const SOCKET_DATA *LocalSocketData, const uint16_t Protocol /* , const size_t ListIndex, const bool IsAlternate */ )
 {
 //Initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList;
@@ -2197,7 +1430,7 @@ size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, 
 		}
 
 	//Alternate
-		if (Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && (IsAlternate || ListIndex == QUEUE_MAXLEN * QUEUE_PARTNUM || Parameter.AlternateMultiRequest))
+		if (Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && (IsAlternate || LocalSocketData == nullptr || Parameter.AlternateMultiRequest))
 		{
 			UDPSocketData->SockAddr = Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage;
 			UDPSocketData->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
@@ -2226,7 +1459,7 @@ size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, 
 		}
 
 	//Other servers
-		if (Parameter.DNSTarget.IPv6_Multi != nullptr && (!IsAlternate && Parameter.AlternateMultiRequest || ListIndex == QUEUE_MAXLEN * QUEUE_PARTNUM))
+		if (Parameter.DNSTarget.IPv6_Multi != nullptr && (!IsAlternate && Parameter.AlternateMultiRequest || LocalSocketData == nullptr))
 		{
 			for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv6_Multi)
 			{
@@ -2290,7 +1523,7 @@ size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, 
 		}
 
 	//Alternate
-		if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && (IsAlternate || ListIndex == QUEUE_MAXLEN * QUEUE_PARTNUM || Parameter.AlternateMultiRequest))
+		if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && (IsAlternate || LocalSocketData == nullptr || Parameter.AlternateMultiRequest))
 		{
 			UDPSocketData->SockAddr = Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage;
 			UDPSocketData->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -2319,7 +1552,7 @@ size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, 
 		}
 
 	//Other servers
-		if (Parameter.DNSTarget.IPv4_Multi != nullptr && (!IsAlternate && Parameter.AlternateMultiRequest || ListIndex == QUEUE_MAXLEN * QUEUE_PARTNUM))
+		if (Parameter.DNSTarget.IPv4_Multi != nullptr && (!IsAlternate && Parameter.AlternateMultiRequest || LocalSocketData == nullptr))
 		{
 			for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv4_Multi)
 			{
@@ -2400,10 +1633,16 @@ size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, 
 	}
 
 //Mark port to list.
-	if (ListIndex < QUEUE_MAXLEN * QUEUE_PARTNUM)
+	if (LocalSocketData != nullptr && Protocol > 0)
 	{
 		std::shared_ptr<SOCKET_DATA> SocketDataTemp(new SOCKET_DATA());
-		memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
+		std::shared_ptr<PORT_TABLE> PortListTemp(new PORT_TABLE());
+		memset(PortListTemp.get(), 0, sizeof(PORT_TABLE));
+
+	//Mark system connection data.
+		PortListTemp->SystemData = *LocalSocketData;
+
+	//Mark sending connection data.
 		for (auto SocketDataIter:UDPSocketDataList)
 		{
 			memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
@@ -2416,31 +1655,26 @@ size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, 
 				continue;
 			}
 
-		//Add to global list.
+			SocketDataTemp->AddrLen = SocketDataIter.AddrLen;
 			if (SocketDataIter.AddrLen == sizeof(sockaddr_in6)) //IPv6
 			{
-				SocketDataTemp->AddrLen = sizeof(sockaddr_in6);
 				SocketDataTemp->SockAddr.ss_family = AF_INET6;
 				((PSOCKADDR_IN6)&SocketDataTemp->SockAddr)->sin6_port = ((PSOCKADDR_IN6)&SocketDataIter.SockAddr)->sin6_port;
-
-				std::unique_lock<std::mutex> PortListMutex(PortListLock);
-				PortList.SendData[ListIndex].push_back(*SocketDataTemp);
-				PortList.SendData[ListIndex].shrink_to_fit();
 			}
 			else { //IPv4
-				SocketDataTemp->AddrLen = sizeof(sockaddr_in);
 				SocketDataTemp->SockAddr.ss_family = AF_INET;
 				((PSOCKADDR_IN)&SocketDataTemp->SockAddr)->sin_port = ((PSOCKADDR_IN)&SocketDataIter.SockAddr)->sin_port;
-
-				std::unique_lock<std::mutex> PortListMutex(PortListLock);
-				PortList.SendData[ListIndex].push_back(*SocketDataTemp);
-				PortList.SendData[ListIndex].shrink_to_fit();
 			}
+
+			PortListTemp->RequestData.push_back(*SocketDataTemp);
 		}
+
+		SocketDataTemp.reset();
 
 	//Mark send time.
 	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
-		if (ListIndex > QUEUE_MAXLEN * QUEUE_PARTNUM / 2U && ListIndex < QUEUE_MAXLEN * QUEUE_PARTNUM) //TCP
+/* Old version(2015-03-18)
+		if (ListIndex > QUEUE_MAXLEN * TRANSPORT_LAYER_PARTNUM / 2U && ListIndex < QUEUE_MAXLEN * TRANSPORT_LAYER_PARTNUM) //TCP
 		#ifdef _WIN64
 			AlternateSwapList.PcapAlternateTimeout[ListIndex] = GetTickCount64() + Parameter.ReliableSocketTimeout;
 		#else //x86
@@ -2451,7 +1685,7 @@ size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, 
 				AlternateSwapList.PcapAlternateTimeout[ListIndex] = GetTickCount() + Parameter.ReliableSocketTimeout;
 		}
 		#endif
-		else
+		else 
 		#ifdef _WIN64
 			AlternateSwapList.PcapAlternateTimeout[ListIndex] = GetTickCount64() + Parameter.UnreliableSocketTimeout;
 		#else //x86
@@ -2463,11 +1697,38 @@ size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, 
 		}
 		#endif
 	}
+*/
+		PortListTemp->NetworkLayer = Protocol;
+		if (Protocol == IPPROTO_TCP) //TCP
+		{
+		#ifdef _WIN64
+			PortListTemp->ClearPortTime = GetTickCount64() + Parameter.ReliableSocketTimeout;
+		#else //x86
+			if (Parameter.GetTickCount64PTR != nullptr)
+				PortListTemp->ClearPortTime = (size_t)((*Parameter.GetTickCount64PTR)() + Parameter.ReliableSocketTimeout);
+			else 
+				PortListTemp->ClearPortTime = GetTickCount() + Parameter.ReliableSocketTimeout;
+		#endif
+		}
+		else { //UDP
+		#ifdef _WIN64
+			PortListTemp->ClearPortTime = GetTickCount64() + Parameter.UnreliableSocketTimeout;
+		#else //x86
+			if (Parameter.GetTickCount64PTR != nullptr)
+				PortListTemp->ClearPortTime = (size_t)((*Parameter.GetTickCount64PTR)() + Parameter.UnreliableSocketTimeout);
+			else 
+				PortListTemp->ClearPortTime = GetTickCount() + Parameter.UnreliableSocketTimeout;
+		#endif
+		}
+
+		std::unique_lock<std::mutex> PortListMutex(PortListLock);
+		PortList.push_back(*PortListTemp);
+	}
 
 //Block Port Unreachable messages of system or close the TCP requesting connections.
 	for (auto SocketDataIter:UDPSocketDataList)
 		shutdown(SocketDataIter.Socket, SD_BOTH);
-	if (ListIndex > QUEUE_MAXLEN * QUEUE_PARTNUM / 2U && ListIndex < QUEUE_MAXLEN * QUEUE_PARTNUM) //TCP
+	if (Protocol == IPPROTO_TCP) //TCP
 		Sleep(Parameter.ReliableSocketTimeout);
 	else //UDP
 		Sleep(Parameter.UnreliableSocketTimeout);
@@ -2532,7 +1793,7 @@ size_t __fastcall UDPCompleteRequest(const PSTR OriginalSend, const size_t SendS
 		}
 	}
 
-	if ((UDPSocket == INVALID_SOCKET || SockAddr->ss_family == 0) && Parameter.GatewayAvailable_IPv4 /* && (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 || IsLocal && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0) */) //IPv4
+	if ((UDPSocket == INVALID_SOCKET || SockAddr->ss_family == 0) && Parameter.GatewayAvailable_IPv4 /* && (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 || IsLocal && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0) */ ) //IPv4
 	{
 	//Local requesting
 		if (IsLocal && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0)
@@ -2671,25 +1932,7 @@ size_t __fastcall UDPCompleteRequest(const PSTR OriginalSend, const size_t SendS
 				}
 			}
 		}
-/*
-	//Check timeout.
-		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
-		{
-			memset(Recv, 0, RecvSize);
-			if (RecvLen == SOCKET_ERROR && WSAGetLastError() == WSAETIMEDOUT)
-			{
-				closesocket(UDPSocket);
-				return WSAETIMEDOUT;
-			}
-			else {
-				closesocket(UDPSocket);
-				return EXIT_FAILURE;
-			}
-		}
-		else {
-			closesocket(UDPSocket);
-		}
-*/
+
 		shutdown(UDPSocket, SD_BOTH);
 		closesocket(UDPSocket);
 
@@ -2702,222 +1945,6 @@ size_t __fastcall UDPCompleteRequest(const PSTR OriginalSend, const size_t SendS
 
 	return EXIT_FAILURE;
 }
-
-/* Old version(2014-12-09)
-//Complete transmission of UDP protocol(Multithreading)
-size_t __fastcall UDPCompleteRequestMulti(TCPUDP_COMPLETE_REQUEST_MULTITHREAD_PARAMETER &UDPRequestParameter, std::mutex &Mutex)
-{
-//Initialization
-	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
-	SYSTEM_SOCKET UDPSocket = 0;
-	int AddrLen = 0;
-
-//Socket initialization
-	if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && UDPRequestParameter.TargetData.AddrLen == sizeof(sockaddr_in6) || //IPv6
-		Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && UDPRequestParameter.TargetData.AddrLen == sizeof(sockaddr_in)) //Non-IPv4
-	{
-	//All server(including Alternate) Multi Request
-		if (UDPRequestParameter.ServerIndex > 0)
-		{
-		//Main
-			if (UDPRequestParameter.ServerIndex == 1U)
-			{
-				if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0)
-				{
-					((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr;
-					((PSOCKADDR_IN6)SockAddr.get())->sin6_port = Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_port;
-				}
-				else {
-					return EXIT_FAILURE;
-				}
-			}
-		//Alternate
-			else if (UDPRequestParameter.ServerIndex == 2U)
-			{
-				if (Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0)
-				{
-					((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr;
-					((PSOCKADDR_IN6)SockAddr.get())->sin6_port = Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_port;
-				}
-				else {
-					return EXIT_FAILURE;
-				}
-			}
-			else if (Parameter.DNSTarget.IPv6_Multi != nullptr && Parameter.DNSTarget.IPv6_Multi->size() > UDPRequestParameter.ServerIndex - 3U)
-			{
-				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.IPv6_Multi->at(UDPRequestParameter.ServerIndex - 3U).AddressData.IPv6.sin6_addr;
-				((PSOCKADDR_IN6)SockAddr.get())->sin6_port = Parameter.DNSTarget.IPv6_Multi->at(UDPRequestParameter.ServerIndex - 3U).AddressData.IPv6.sin6_port;
-			}
-			else {
-				return EXIT_FAILURE;
-			}
-		}
-
-		UDPSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-		SockAddr->ss_family = AF_INET6;
-		AddrLen = sizeof(sockaddr_in6);
-	}
-	else if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
-	{
-	//All server(including Alternate) Multi Request
-		if (UDPRequestParameter.ServerIndex > 0)
-		{
-		//Main
-			if (UDPRequestParameter.ServerIndex == 1U)
-			{
-				((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr;
-				((PSOCKADDR_IN)SockAddr.get())->sin_port = Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_port;
-			}
-		//Alternate
-			else if (UDPRequestParameter.ServerIndex == 2U)
-			{
-				if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
-				{
-					((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr;
-					((PSOCKADDR_IN)SockAddr.get())->sin_port = Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_port;
-				}
-				else {
-					return EXIT_FAILURE;
-				}
-			}
-			else if (Parameter.DNSTarget.IPv4_Multi != nullptr && Parameter.DNSTarget.IPv4_Multi->size() > UDPRequestParameter.ServerIndex - 3U)
-			{
-				((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.IPv4_Multi->at(UDPRequestParameter.ServerIndex - 3U).AddressData.IPv4.sin_addr;
-				((PSOCKADDR_IN)SockAddr.get())->sin_port = Parameter.DNSTarget.IPv4_Multi->at(UDPRequestParameter.ServerIndex - 3U).AddressData.IPv4.sin_port;
-			}
-			else {
-				return EXIT_FAILURE;
-			}
-		}
-
-		UDPSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-		SockAddr->ss_family = AF_INET;
-		AddrLen = sizeof(sockaddr_in);
-	}
-	else {
-		return EXIT_FAILURE;
-	}
-
-//Socket check
-	if (UDPSocket == INVALID_SOCKET)
-	{
-		PrintError(LOG_ERROR_WINSOCK, L"Complete UDP request initialization error", WSAGetLastError(), nullptr, 0);
-		return EXIT_FAILURE;
-	}
-
-//Set socket timeout.
-	if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (PSTR)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
-		setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (PSTR)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
-	{
-		PrintError(LOG_ERROR_WINSOCK, L"Set UDP socket timeout error", WSAGetLastError(), nullptr, 0);
-		closesocket(UDPSocket);
-
-		return EXIT_FAILURE;
-	}
-
-//Send requesting.
-	if (sendto(UDPSocket, UDPRequestParameter.Send, (int)UDPRequestParameter.SendSize, 0, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR)
-	{
-		PrintError(LOG_ERROR_WINSOCK, L"Complete UDP request error", WSAGetLastError(), nullptr, 0);
-		closesocket(UDPSocket);
-
-		return EXIT_FAILURE;
-	}
-
-//Receive result.
-	std::shared_ptr<char> RecvBuffer(new char[UDPRequestParameter.RecvSize]());
-	SSIZE_T RecvLen = recvfrom(UDPSocket, RecvBuffer.get(), (int)UDPRequestParameter.RecvSize, 0, (PSOCKADDR)SockAddr.get(), (PINT)&AddrLen);
-	if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
-	{
-		if (RecvLen == SOCKET_ERROR)
-			RecvLen = WSAGetLastError();
-		closesocket(UDPSocket);
-
-		if (RecvLen == WSAETIMEDOUT)
-		{
-			std::unique_lock<std::mutex> UDPMutex(Mutex);
-			UDPRequestParameter.ReturnValue = WSAETIMEDOUT;
-			return WSAETIMEDOUT;
-		}
-		else {
-			return EXIT_FAILURE;
-		}
-	}
-	else {
-	//Hosts Only Extended check
-		if (Parameter.DNSDataCheck || Parameter.Blacklist)
-		{
-			for (;;)
-			{
-				if ((Parameter.DNSDataCheck || Parameter.Blacklist) && !CheckResponseResult(RecvBuffer.get(), RecvLen))
-				{
-					memset(RecvBuffer.get(), 0, UDPRequestParameter.RecvSize);
-					RecvLen = recvfrom(UDPSocket, RecvBuffer.get(), (int)UDPRequestParameter.RecvSize, 0, (PSOCKADDR)SockAddr.get(), (PINT)&AddrLen);
-					if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
-					{
-						if (RecvLen == SOCKET_ERROR)
-							RecvLen = WSAGetLastError();
-						closesocket(UDPSocket);
-
-						if (RecvLen == WSAETIMEDOUT)
-						{
-							std::unique_lock<std::mutex> UDPMutex(Mutex);
-							UDPRequestParameter.ReturnValue = WSAETIMEDOUT;
-							return WSAETIMEDOUT;
-						}
-						else {
-							return EXIT_FAILURE;
-						}
-					}
-				}
-				else {
-					closesocket(UDPSocket);
-					break;
-				}
-			}
-		}
-
-/*
-	//Check timeout.
-		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
-		{
-			if (RecvLen == SOCKET_ERROR && WSAGetLastError() == WSAETIMEDOUT)
-			{
-				closesocket(UDPSocket);
-
-				std::unique_lock<std::mutex> UDPMutex(Mutex);
-				UDPRequestParameter.ReturnValue = WSAETIMEDOUT;
-				return WSAETIMEDOUT;
-			}
-			else {
-				closesocket(UDPSocket);
-				return EXIT_FAILURE;
-			}
-		}
-		else {
-			closesocket(UDPSocket);
-		}
-
-		std::unique_lock<std::mutex> TCPMutex(Mutex);
-		if (CheckEmptyBuffer(UDPRequestParameter.Recv, UDPRequestParameter.RecvSize) && (UDPRequestParameter.ReturnValue == 0 || UDPRequestParameter.ReturnValue == WSAETIMEDOUT))
-		{
-			memcpy(UDPRequestParameter.Recv, RecvBuffer.get(), RecvLen);
-			UDPRequestParameter.ReturnValue = RecvLen;
-
-		//Mark DNS Cache.
-			if (Parameter.CacheType > 0)
-				MarkDomainCache(UDPRequestParameter.Recv, RecvLen);
-
-			return RecvLen;
-		}
-		else {
-			return EXIT_SUCCESS;
-		}
-	}
-
-	return EXIT_FAILURE;
-}
-*/
 
 //Complete transmission of UDP protocol(Multithreading)
 size_t __fastcall UDPCompleteRequestMulti(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize /* , const bool IsAlternate */ )

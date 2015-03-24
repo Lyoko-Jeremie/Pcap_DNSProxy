@@ -138,10 +138,10 @@ size_t __fastcall MonitorInit(void)
 	}
 
 //Initialization
-	std::shared_ptr<SOCKET_DATA> LocalhostData(new SOCKET_DATA());
-	memset(LocalhostData.get(), 0, sizeof(SOCKET_DATA));
+	std::shared_ptr<SOCKET_DATA> LocalSocketData(new SOCKET_DATA());
+	memset(LocalSocketData.get(), 0, sizeof(SOCKET_DATA));
 //	std::thread IPv6UDPMonitorThread, IPv4UDPMonitorThread, IPv6TCPMonitorThread, IPv4TCPMonitorThread;
-	std::vector<std::thread> MonitorThread((Parameter.ListenPort->size() + 1U) * QUEUE_PARTNUM);
+	std::vector<std::thread> MonitorThread((Parameter.ListenPort->size() + 1U) * TRANSPORT_LAYER_PARTNUM);
 	size_t MonitorThreadIndex = 0;
 
 //Set localhost monitor sockets(IPv6/UDP).
@@ -149,17 +149,16 @@ size_t __fastcall MonitorInit(void)
 	{
 		if (Parameter.ListenProtocol_TransportLayer == LISTEN_TCP_UDP || Parameter.ListenProtocol_TransportLayer == LISTEN_UDP)
 		{
-			LocalhostData->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-			if (LocalhostData->Socket == INVALID_SOCKET)
+			LocalSocketData->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+			if (LocalSocketData->Socket == INVALID_SOCKET)
 			{
 				if ( /* IsWindowsVistaOrGreater() || */ WSAGetLastError() != 0 && WSAGetLastError() != WSAEAFNOSUPPORT)
 					PrintError(LOG_ERROR_WINSOCK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
-//				Parameter.LocalSocket[0] = LocalhostData->Socket;
-				Parameter.LocalSocket->push_back(LocalhostData->Socket);
-				LocalhostData->SockAddr.ss_family = AF_INET6;
-				LocalhostData->AddrLen = sizeof(sockaddr_in6);
+				Parameter.LocalSocket->push_back(LocalSocketData->Socket);
+				LocalSocketData->SockAddr.ss_family = AF_INET6;
+				LocalSocketData->AddrLen = sizeof(sockaddr_in6);
 
 			//Listen Address available(IPv6)
 				if (Parameter.ListenAddress_IPv6 != nullptr)
@@ -168,19 +167,19 @@ size_t __fastcall MonitorInit(void)
 					{
 						if (Index > 0)
 						{
-							LocalhostData->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-							if (LocalhostData->Socket == INVALID_SOCKET)
+							LocalSocketData->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+							if (LocalSocketData->Socket == INVALID_SOCKET)
 							{
 								PrintError(LOG_ERROR_WINSOCK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 								break;
 							}
 						}
 
-						((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_addr = ((PSOCKADDR_IN6)&Parameter.ListenAddress_IPv6->at(Index))->sin6_addr;
-						((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_port = ((PSOCKADDR_IN6)&Parameter.ListenAddress_IPv6->at(Index))->sin6_port;
+						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr = ((PSOCKADDR_IN6)&Parameter.ListenAddress_IPv6->at(Index))->sin6_addr;
+						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_port = ((PSOCKADDR_IN6)&Parameter.ListenAddress_IPv6->at(Index))->sin6_port;
 
 					//Add to global thread list.
-						std::thread MonitorThreadTemp(UDPMonitor, *LocalhostData);
+						std::thread MonitorThreadTemp(UDPMonitor, *LocalSocketData);
 						MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
 						MonitorThreadIndex++;
 					}
@@ -188,29 +187,28 @@ size_t __fastcall MonitorInit(void)
 				else {
 				//Proxy Mode
 					if (Parameter.OperationMode == LISTEN_PROXYMODE)
-						((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_addr = in6addr_loopback;
+						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr = in6addr_loopback;
 				//Server Mode, Priavte Mode and Custom Mode
 					else
-						((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_addr = in6addr_any;
+						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr = in6addr_any;
 
 				//Set ports.
-//					((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_port = Parameter.ListenPort;
 					if (Parameter.ListenPort != nullptr)
 					{
 						for (auto ListenPortIter:*Parameter.ListenPort)
 						{
-							LocalhostData->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-							if (LocalhostData->Socket == INVALID_SOCKET)
+							LocalSocketData->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+							if (LocalSocketData->Socket == INVALID_SOCKET)
 							{
 								PrintError(LOG_ERROR_WINSOCK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 								break;
 							}
 
-							((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_port = ListenPortIter;
-							Parameter.LocalSocket->push_back(LocalhostData->Socket);
+							((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_port = ListenPortIter;
+							Parameter.LocalSocket->push_back(LocalSocketData->Socket);
 
 						//Add to global thread list.
-							std::thread MonitorThreadTemp(UDPMonitor, *LocalhostData);
+							std::thread MonitorThreadTemp(UDPMonitor, *LocalSocketData);
 							MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
 							MonitorThreadIndex++;
 						}
@@ -218,23 +216,22 @@ size_t __fastcall MonitorInit(void)
 				}
 			}
 
-			memset(LocalhostData.get(), 0, sizeof(SOCKET_DATA));
+			memset(LocalSocketData.get(), 0, sizeof(SOCKET_DATA));
 		}
 
 	//Set localhost socket(IPv6/TCP).
 		if (Parameter.ListenProtocol_TransportLayer == LISTEN_TCP_UDP || Parameter.ListenProtocol_TransportLayer == LISTEN_TCP)
 		{
-			LocalhostData->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-			if (LocalhostData->Socket == INVALID_SOCKET)
+			LocalSocketData->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+			if (LocalSocketData->Socket == INVALID_SOCKET)
 			{
 				if ( /* IsWindowsVistaOrGreater() || */ WSAGetLastError() != 0 && WSAGetLastError() != WSAEAFNOSUPPORT)
 					PrintError(LOG_ERROR_WINSOCK, L"IPv6 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
-//				Parameter.LocalSocket[2U] = LocalhostData->Socket;
-				Parameter.LocalSocket->push_back(LocalhostData->Socket);
-				LocalhostData->SockAddr.ss_family = AF_INET6;
-				LocalhostData->AddrLen = sizeof(sockaddr_in6);
+				Parameter.LocalSocket->push_back(LocalSocketData->Socket);
+				LocalSocketData->SockAddr.ss_family = AF_INET6;
+				LocalSocketData->AddrLen = sizeof(sockaddr_in6);
 
 			//Listen Address available(IPv6)
 				if (Parameter.ListenAddress_IPv6 != nullptr)
@@ -243,19 +240,19 @@ size_t __fastcall MonitorInit(void)
 					{
 						if (Index > 0)
 						{
-							LocalhostData->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-							if (LocalhostData->Socket == INVALID_SOCKET)
+							LocalSocketData->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+							if (LocalSocketData->Socket == INVALID_SOCKET)
 							{
 								PrintError(LOG_ERROR_WINSOCK, L"IPv6 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 								break;
 							}
 						}
 
-						((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_addr = ((PSOCKADDR_IN6)&Parameter.ListenAddress_IPv6->at(Index))->sin6_addr;
-						((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_port = ((PSOCKADDR_IN6)&Parameter.ListenAddress_IPv6->at(Index))->sin6_port;
+						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr = ((PSOCKADDR_IN6)&Parameter.ListenAddress_IPv6->at(Index))->sin6_addr;
+						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_port = ((PSOCKADDR_IN6)&Parameter.ListenAddress_IPv6->at(Index))->sin6_port;
 
 					//Add to global thread list.
-						std::thread MonitorThreadTemp(TCPMonitor, *LocalhostData);
+						std::thread MonitorThreadTemp(TCPMonitor, *LocalSocketData);
 						MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
 						MonitorThreadIndex++;
 					}
@@ -263,29 +260,28 @@ size_t __fastcall MonitorInit(void)
 				else {
 				//Proxy Mode
 					if (Parameter.OperationMode == LISTEN_PROXYMODE)
-						((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_addr = in6addr_loopback;
+						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr = in6addr_loopback;
 				//Server Mode, Priavte Mode and Custom Mode
 					else
-						((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_addr = in6addr_any;
+						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr = in6addr_any;
 
 				//Set ports.
-//					((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_port = Parameter.ListenPort;
 					if (Parameter.ListenPort != nullptr)
 					{
 						for (auto ListenPortIter:*Parameter.ListenPort)
 						{
-							LocalhostData->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-							if (LocalhostData->Socket == INVALID_SOCKET)
+							LocalSocketData->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+							if (LocalSocketData->Socket == INVALID_SOCKET)
 							{
 								PrintError(LOG_ERROR_WINSOCK, L"IPv6 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 								break;
 							}
 
-							((PSOCKADDR_IN6)&LocalhostData->SockAddr)->sin6_port = ListenPortIter;
-							Parameter.LocalSocket->push_back(LocalhostData->Socket);
+							((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_port = ListenPortIter;
+							Parameter.LocalSocket->push_back(LocalSocketData->Socket);
 
 						//Add to global thread list.
-							std::thread MonitorThreadTemp(TCPMonitor, *LocalhostData);
+							std::thread MonitorThreadTemp(TCPMonitor, *LocalSocketData);
 							MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
 							MonitorThreadIndex++;
 						}
@@ -293,7 +289,7 @@ size_t __fastcall MonitorInit(void)
 				}
 			}
 
-			memset(LocalhostData.get(), 0, sizeof(SOCKET_DATA));
+			memset(LocalSocketData.get(), 0, sizeof(SOCKET_DATA));
 		}
 	}
 
@@ -302,16 +298,15 @@ size_t __fastcall MonitorInit(void)
 	{
 		if (Parameter.ListenProtocol_TransportLayer == LISTEN_TCP_UDP || Parameter.ListenProtocol_TransportLayer == LISTEN_UDP)
 		{
-			LocalhostData->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-			if (LocalhostData->Socket == INVALID_SOCKET)
+			LocalSocketData->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+			if (LocalSocketData->Socket == INVALID_SOCKET)
 			{
 				PrintError(LOG_ERROR_WINSOCK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
-//				Parameter.LocalSocket[1U] = LocalhostData->Socket;
-				Parameter.LocalSocket->push_back(LocalhostData->Socket);
-				LocalhostData->SockAddr.ss_family = AF_INET;
-				LocalhostData->AddrLen = sizeof(sockaddr_in);
+				Parameter.LocalSocket->push_back(LocalSocketData->Socket);
+				LocalSocketData->SockAddr.ss_family = AF_INET;
+				LocalSocketData->AddrLen = sizeof(sockaddr_in);
 
 			//Listen Address available(IPv6)
 				if (Parameter.ListenAddress_IPv4 != nullptr)
@@ -320,19 +315,19 @@ size_t __fastcall MonitorInit(void)
 					{
 						if (Index > 0)
 						{
-							LocalhostData->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-							if (LocalhostData->Socket == INVALID_SOCKET)
+							LocalSocketData->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+							if (LocalSocketData->Socket == INVALID_SOCKET)
 							{
 								PrintError(LOG_ERROR_WINSOCK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 								break;
 							}
 						}
 
-						((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_addr = ((PSOCKADDR_IN)&Parameter.ListenAddress_IPv4->at(Index))->sin_addr;
-						((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_port = ((PSOCKADDR_IN)&Parameter.ListenAddress_IPv4->at(Index))->sin_port;
+						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr = ((PSOCKADDR_IN)&Parameter.ListenAddress_IPv4->at(Index))->sin_addr;
+						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_port = ((PSOCKADDR_IN)&Parameter.ListenAddress_IPv4->at(Index))->sin_port;
 
 					//Add to global thread list.
-						std::thread MonitorThreadTemp(UDPMonitor, *LocalhostData);
+						std::thread MonitorThreadTemp(UDPMonitor, *LocalSocketData);
 						MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
 						MonitorThreadIndex++;
 					}
@@ -340,29 +335,28 @@ size_t __fastcall MonitorInit(void)
 				else {
 				//Proxy Mode
 					if (Parameter.OperationMode == LISTEN_PROXYMODE)
-						((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_addr.S_un.S_addr = htonl(INADDR_LOOPBACK);
+						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 				//Server Mode, Priavte Mode and Custom Mode
 					else
-						((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_addr.S_un.S_addr = INADDR_ANY;
+						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr.s_addr = INADDR_ANY;
 
 				//Set ports.
-//					((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_port = Parameter.ListenPort;
 					if (Parameter.ListenPort != nullptr)
 					{
 						for (auto ListenPortIter:*Parameter.ListenPort)
 						{
-							LocalhostData->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-							if (LocalhostData->Socket == INVALID_SOCKET)
+							LocalSocketData->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+							if (LocalSocketData->Socket == INVALID_SOCKET)
 							{
 								PrintError(LOG_ERROR_WINSOCK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 								break;
 							}
 
-							((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_port = ListenPortIter;
-							Parameter.LocalSocket->push_back(LocalhostData->Socket);
+							((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_port = ListenPortIter;
+							Parameter.LocalSocket->push_back(LocalSocketData->Socket);
 
 						//Add to global thread list.
-							std::thread MonitorThreadTemp(UDPMonitor, *LocalhostData);
+							std::thread MonitorThreadTemp(UDPMonitor, *LocalSocketData);
 							MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
 							MonitorThreadIndex++;
 						}
@@ -370,22 +364,21 @@ size_t __fastcall MonitorInit(void)
 				}
 			}
 
-			memset(LocalhostData.get(), 0, sizeof(SOCKET_DATA));
+			memset(LocalSocketData.get(), 0, sizeof(SOCKET_DATA));
 		}
 
 	//Set localhost socket(IPv4/TCP).
 		if (Parameter.ListenProtocol_TransportLayer == LISTEN_TCP_UDP || Parameter.ListenProtocol_TransportLayer == LISTEN_TCP)
 		{
-			LocalhostData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-			if (LocalhostData->Socket == INVALID_SOCKET)
+			LocalSocketData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+			if (LocalSocketData->Socket == INVALID_SOCKET)
 			{
 				PrintError(LOG_ERROR_WINSOCK, L"IPv4 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
-//				Parameter.LocalSocket[3U] = LocalhostData->Socket;
-				Parameter.LocalSocket->push_back(LocalhostData->Socket);
-				LocalhostData->SockAddr.ss_family = AF_INET;
-				LocalhostData->AddrLen = sizeof(sockaddr_in);
+				Parameter.LocalSocket->push_back(LocalSocketData->Socket);
+				LocalSocketData->SockAddr.ss_family = AF_INET;
+				LocalSocketData->AddrLen = sizeof(sockaddr_in);
 
 			//Listen Address available(IPv6)
 				if (Parameter.ListenAddress_IPv4 != nullptr)
@@ -394,19 +387,19 @@ size_t __fastcall MonitorInit(void)
 					{
 						if (Index > 0)
 						{
-							LocalhostData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-							if (LocalhostData->Socket == INVALID_SOCKET)
+							LocalSocketData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+							if (LocalSocketData->Socket == INVALID_SOCKET)
 							{
 								PrintError(LOG_ERROR_WINSOCK, L"IPv4 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 								break;
 							}
 						}
 
-						((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_addr = ((PSOCKADDR_IN)&Parameter.ListenAddress_IPv4->at(Index))->sin_addr;
-						((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_port = ((PSOCKADDR_IN)&Parameter.ListenAddress_IPv4->at(Index))->sin_port;
+						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr = ((PSOCKADDR_IN)&Parameter.ListenAddress_IPv4->at(Index))->sin_addr;
+						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_port = ((PSOCKADDR_IN)&Parameter.ListenAddress_IPv4->at(Index))->sin_port;
 
 					//Add to global thread list.
-						std::thread MonitorThreadTemp(TCPMonitor, *LocalhostData);
+						std::thread MonitorThreadTemp(TCPMonitor, *LocalSocketData);
 						MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
 						MonitorThreadIndex++;
 					}
@@ -414,29 +407,28 @@ size_t __fastcall MonitorInit(void)
 				else {
 				//Proxy Mode
 					if (Parameter.OperationMode == LISTEN_PROXYMODE)
-						((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_addr.S_un.S_addr = htonl(INADDR_LOOPBACK);
+						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 				//Server Mode, Priavte Mode and Custom Mode
 					else
-						((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_addr.S_un.S_addr = INADDR_ANY;
+						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr.s_addr = INADDR_ANY;
 
 				//Set ports.
-//					((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_port = Parameter.ListenPort;
 					if (Parameter.ListenPort != nullptr)
 					{
 						for (auto ListenPortIter:*Parameter.ListenPort)
 						{
-							LocalhostData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-							if (LocalhostData->Socket == INVALID_SOCKET)
+							LocalSocketData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+							if (LocalSocketData->Socket == INVALID_SOCKET)
 							{
 								PrintError(LOG_ERROR_WINSOCK, L"IPv4 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 								break;
 							}
 
-							((PSOCKADDR_IN)&LocalhostData->SockAddr)->sin_port = ListenPortIter;
-							Parameter.LocalSocket->push_back(LocalhostData->Socket);
+							((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_port = ListenPortIter;
+							Parameter.LocalSocket->push_back(LocalSocketData->Socket);
 
 						//Add to global thread list.
-							std::thread InnerMonitorThreadTemp(TCPMonitor, *LocalhostData);
+							std::thread InnerMonitorThreadTemp(TCPMonitor, *LocalSocketData);
 							MonitorThread[MonitorThreadIndex].swap(InnerMonitorThreadTemp);
 							MonitorThreadIndex++;
 						}
@@ -446,7 +438,7 @@ size_t __fastcall MonitorInit(void)
 		}
 	}
 
-	LocalhostData.reset();
+	LocalSocketData.reset();
 
 //Join threads.
 /* Old version(2015-03-14)
@@ -469,45 +461,41 @@ size_t __fastcall MonitorInit(void)
 }
 
 //Local DNS server with UDP protocol
-size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData)
+size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 {
 //Block WSAECONNRESET error of UDP Monitor.
 	DWORD BytesReturned = 0;
 	BOOL NewBehavior = FALSE;
-	SSIZE_T RecvLen = WSAIoctl(LocalhostData.Socket, SIO_UDP_CONNRESET, &NewBehavior, sizeof(BOOL), nullptr, 0, &BytesReturned, nullptr, nullptr);
+	SSIZE_T RecvLen = WSAIoctl(LocalSocketData.Socket, SIO_UDP_CONNRESET, &NewBehavior, sizeof(BOOL), nullptr, 0, &BytesReturned, nullptr, nullptr);
 	if (RecvLen == SOCKET_ERROR)
 	{
 		PrintError(LOG_ERROR_WINSOCK, L"Set UDP socket SIO_UDP_CONNRESET error", WSAGetLastError(), nullptr, 0);
-		closesocket(LocalhostData.Socket);
+		closesocket(LocalSocketData.Socket);
 
 		return EXIT_FAILURE;
 	}
 
 //Set socket timeout.
-	if (setsockopt(LocalhostData.Socket, SOL_SOCKET, SO_SNDTIMEO, (PSTR)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
-		setsockopt(LocalhostData.Socket, SOL_SOCKET, SO_RCVTIMEO, (PSTR)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
+	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (PSTR)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
+		setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_RCVTIMEO, (PSTR)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
 	{
 		PrintError(LOG_ERROR_WINSOCK, L"Set UDP socket timeout error", WSAGetLastError(), nullptr, 0);
-		closesocket(LocalhostData.Socket);
+		closesocket(LocalSocketData.Socket);
 
 		return EXIT_FAILURE;
 	}
-/*
-//Set Non-blocking Mode
-	ULONG SocketMode = 1U;
-	if (ioctlsocket(Parameter.LocalhostSocket ,FIONBIO, &SocketMode) == SOCKET_ERROR)
-		return EXIT_FAILURE;
 
-//Preventing other sockets from being forcibly bound to the same address and port.
+/* Preventing other sockets from being forcibly bound to the same address and port.
 	int Val = 1;
 	if (setsockopt(Parameter.LocalhostSocket, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (PSTR)&Val, sizeof(int)) == SOCKET_ERROR)
 		return EXIT_FAILURE;
 */
+
 //Bind socket to port.
-	if (bind(LocalhostData.Socket, (PSOCKADDR)&LocalhostData.SockAddr, LocalhostData.AddrLen) == SOCKET_ERROR)
+	if (bind(LocalSocketData.Socket, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen) == SOCKET_ERROR)
 	{
 		PrintError(LOG_ERROR_WINSOCK, L"Bind UDP Monitor socket error", WSAGetLastError(), nullptr, 0);
-		closesocket(LocalhostData.Socket);
+		closesocket(LocalSocketData.Socket);
 
 		return EXIT_FAILURE;
 	}
@@ -517,8 +505,8 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData)
 	memset(Buffer.get(), 0, PACKET_MAXSIZE * BUFFER_RING_MAXNUM);
 	void *Addr = nullptr;
 	pdns_hdr DNS_Header = nullptr;
-	std::unique_lock<std::mutex> UDPMonitorIndexMutex(UDPMonitorIndexLock);
-	UDPMonitorIndexMutex.unlock();
+//	std::unique_lock<std::mutex> UDPMonitorIndexMutex(UDPMonitorIndexLock);
+//	UDPMonitorIndexMutex.unlock();
 	size_t Index[] = {0, 0};
 
 	for (;;)
@@ -526,20 +514,20 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData)
 		Sleep(LOOP_INTERVAL_TIME);
 		memset(Buffer.get() + PACKET_MAXSIZE * Index[0], 0, PACKET_MAXSIZE);
 		if (Parameter.EDNS0Label) //EDNS0 Label
-			RecvLen = recvfrom(LocalhostData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], PACKET_MAXSIZE - sizeof(dns_record_opt), 0, (PSOCKADDR)&LocalhostData.SockAddr, (PINT)&LocalhostData.AddrLen);
+			RecvLen = recvfrom(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], PACKET_MAXSIZE - sizeof(dns_record_opt), 0, (PSOCKADDR)&LocalSocketData.SockAddr, (PINT)&LocalSocketData.AddrLen);
 		else 
-			RecvLen = recvfrom(LocalhostData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], PACKET_MAXSIZE, 0, (PSOCKADDR)&LocalhostData.SockAddr, (PINT)&LocalhostData.AddrLen);
+			RecvLen = recvfrom(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], PACKET_MAXSIZE, 0, (PSOCKADDR)&LocalSocketData.SockAddr, (PINT)&LocalSocketData.AddrLen);
 
 	//Check address(es).
-		if (LocalhostData.AddrLen == sizeof(sockaddr_in6)) //IPv6
+		if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 		{
-			Addr = &((PSOCKADDR_IN6)&LocalhostData.SockAddr)->sin6_addr;
+			Addr = &((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr;
 			if (CheckEmptyBuffer(Addr, sizeof(in6_addr)) || //Empty address
 			//Check Private Mode(IPv6).
 				(Parameter.OperationMode == LISTEN_PRIVATEMODE && 
-				!(((in6_addr *)Addr)->u.Byte[0] >= 0xFC && ((in6_addr *)Addr)->u.Byte[0] <= 0xFD || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
-				((in6_addr *)Addr)->u.Byte[0] == 0xFE && ((in6_addr *)Addr)->u.Byte[1U] >= 0x80 && ((in6_addr *)Addr)->u.Byte[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
-				((in6_addr *)Addr)->u.Word[6U] == 0 && ((in6_addr *)Addr)->u.Word[7U] == htons(0x0001))) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
+				!(((in6_addr *)Addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)Addr)->s6_bytes[0] <= 0xFD || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
+				((in6_addr *)Addr)->s6_bytes[0] == 0xFE && ((in6_addr *)Addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
+				((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001))) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
 			//Check Custom Mode(IPv6).
 				Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET6))
 /* Old version(2015-03-13)
@@ -550,14 +538,14 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData)
 					continue;
 		}
 		else { //IPv4
-			Addr = &((PSOCKADDR_IN)&LocalhostData.SockAddr)->sin_addr;
-			if ((*(in_addr *)Addr).S_un.S_addr == 0 || //Empty address
+			Addr = &((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr;
+			if ((*(in_addr *)Addr).s_addr == 0 || //Empty address
 			//Check Private Mode(IPv4).
 				(Parameter.OperationMode == LISTEN_PRIVATEMODE &&
-				!(((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
-				((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
-				((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0xAC && ((in_addr *)Addr)->S_un.S_un_b.s_b2 >= 0x10 && ((in_addr *)Addr)->S_un.S_un_b.s_b2 <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
-				((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0xC0 && ((in_addr *)Addr)->S_un.S_un_b.s_b2 == 0xA8)) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
+				!(((in_addr *)Addr)->s_net == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
+				((in_addr *)Addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
+				((in_addr *)Addr)->s_net == 0xAC && ((in_addr *)Addr)->s_host >= 0x10 && ((in_addr *)Addr)->s_host <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
+				((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0xA8)) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
 			//Check Custom Mode(IPv4).
 				Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET))
 /* Old version(2015-03-13)
@@ -596,7 +584,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData)
 				}
 
 			//Send requesting.
-				sendto(LocalhostData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], (int)RecvLen, 0, (PSOCKADDR)&LocalhostData.SockAddr, LocalhostData.AddrLen);
+				sendto(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], (int)RecvLen, 0, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen);
 				continue;
 			}
 		}
@@ -616,7 +604,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData)
 			if (Index[1U] != DNS_PACKET_QUERY_LOCATE(Buffer.get() + PACKET_MAXSIZE * Index[0]))
 			{
 				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | 0x8001); //Set 10000000000000001, DNS_SQR_FE
-				sendto(LocalhostData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], (int)RecvLen, 0, (PSOCKADDR)&LocalhostData.SockAddr, LocalhostData.AddrLen);
+				sendto(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], (int)RecvLen, 0, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen);
 				continue;
 			}
 
@@ -651,90 +639,66 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData)
 			}
 
 		//Request process
-			UDPMonitorIndexMutex.lock();
-			if (LocalhostData.AddrLen == sizeof(sockaddr_in6)) //IPv6
+//			UDPMonitorIndexMutex.lock();
+			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 			{
-				std::thread RequestProcessThread(EnterRequestProcess, Buffer.get() + PACKET_MAXSIZE * Index[0], RecvLen, LocalhostData, IPPROTO_UDP, UDPMonitorIndex);
+				std::thread RequestProcessThread(EnterRequestProcess, Buffer.get() + PACKET_MAXSIZE * Index[0], RecvLen, LocalSocketData, IPPROTO_UDP /* , UDPMonitorIndex */ );
 				RequestProcessThread.detach();
 			}
 			else { //IPv4
-				std::thread RequestProcessThread(EnterRequestProcess, Buffer.get() + PACKET_MAXSIZE * Index[0], RecvLen, LocalhostData, IPPROTO_UDP, UDPMonitorIndex + QUEUE_MAXLEN);
+				std::thread RequestProcessThread(EnterRequestProcess, Buffer.get() + PACKET_MAXSIZE * Index[0], RecvLen, LocalSocketData, IPPROTO_UDP /* , UDPMonitorIndex + QUEUE_MAXLEN */ );
 				RequestProcessThread.detach();
 			}
-			UDPMonitorIndex = (UDPMonitorIndex + 1U) % QUEUE_MAXLEN;
-			UDPMonitorIndexMutex.unlock();
+//			UDPMonitorIndex = (UDPMonitorIndex + 1U) % QUEUE_MAXLEN;
+//			UDPMonitorIndexMutex.unlock();
 
 			Index[0] = (Index[0] + 1U) % BUFFER_RING_MAXNUM;
 //			Index[1U] = (Index[1U] + 1U) % QUEUE_MAXLEN;
 		}
-/*		else if (RecvLen == 0)
-		{
-			continue;
-		}
-		else if (RecvLen < 0) //SOCKET_ERROR
-		{
-			if (WSAGetLastError() != 0 && WSAGetLastError() != WSAETIMEDOUT)
-			{
-				PrintError(LOG_ERROR_WINSOCK, L"UDP Monitor socket listening error", WSAGetLastError(), nullptr, 0);
-				closesocket(LocalhostData.Socket);
-
-				return EXIT_FAILURE;
-			}
-			else {
-				continue;
-			}
-		}
-*/
 		else { //Incorrect packets
-//			DNS_Header->Flags = htons(DNS_SQR_FE);
-//			sendto(LocalhostData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], (int)RecvLen, 0, (PSOCKADDR)&LocalhostData.SockAddr, LocalhostData.AddrLen);
 			continue;
 		}
 	}
 
-	shutdown(LocalhostData.Socket, SD_BOTH);
-	closesocket(LocalhostData.Socket);
+	shutdown(LocalSocketData.Socket, SD_BOTH);
+	closesocket(LocalSocketData.Socket);
 	PrintError(LOG_ERROR_SYSTEM, L"UDP listening module Monitor terminated", 0, nullptr, 0);
 	return EXIT_SUCCESS;
 }
 
 //Local DNS server with TCP protocol
-size_t __fastcall TCPMonitor(const SOCKET_DATA LocalhostData)
+size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 {
 //Set socket timeout.
-	if (setsockopt(LocalhostData.Socket, SOL_SOCKET, SO_SNDTIMEO, (PSTR)&Parameter.ReliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
-		setsockopt(LocalhostData.Socket, SOL_SOCKET, SO_RCVTIMEO, (PSTR)&Parameter.ReliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
+	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (PSTR)&Parameter.ReliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
+		setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_RCVTIMEO, (PSTR)&Parameter.ReliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
 	{
 		PrintError(LOG_ERROR_WINSOCK, L"Set TCP socket timeout error", WSAGetLastError(), nullptr, 0);
-		closesocket(LocalhostData.Socket);
+		closesocket(LocalSocketData.Socket);
 
 		return EXIT_FAILURE;
 	}
-/*
-//Set Non-blocking Mode
-	ULONG SocketMode = 1U;
-	if (ioctlsocket(Parameter.LocalhostSocket ,FIONBIO, &SocketMode) == SOCKET_ERROR)
-		return EXIT_FAILURE;
 
-//Preventing other sockets from being forcibly bound to the same address and port.
+/* Preventing other sockets from being forcibly bound to the same address and port.
 	int Val = 1;
 	if (setsockopt(Parameter.LocalhostSocket, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (PSTR)&Val, sizeof(int)) == SOCKET_ERROR)
 		return EXIT_FAILURE;
 */
+
 //Bind socket to port.
-	if (bind(LocalhostData.Socket, (PSOCKADDR)&LocalhostData.SockAddr, LocalhostData.AddrLen) == SOCKET_ERROR)
+	if (bind(LocalSocketData.Socket, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen) == SOCKET_ERROR)
 	{
 		PrintError(LOG_ERROR_WINSOCK, L"Bind TCP Monitor socket error", WSAGetLastError(), nullptr, 0);
-		closesocket(LocalhostData.Socket);
+		closesocket(LocalSocketData.Socket);
 
 		return EXIT_FAILURE;
 	}
 
 //Listen request from socket.
-	if (listen(LocalhostData.Socket, SOMAXCONN) == SOCKET_ERROR)
+	if (listen(LocalSocketData.Socket, SOMAXCONN) == SOCKET_ERROR)
 	{
 		PrintError(LOG_ERROR_WINSOCK, L"TCP Monitor socket listening initialization error", WSAGetLastError(), nullptr, 0);
-		closesocket(LocalhostData.Socket);
+		closesocket(LocalSocketData.Socket);
 
 		return EXIT_FAILURE;
 	}
@@ -743,16 +707,16 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalhostData)
 	std::shared_ptr<SOCKET_DATA> ClientData(new SOCKET_DATA());
 	void *Addr = nullptr;
 //	size_t Index = 0;
-	std::unique_lock<std::mutex> TCPMonitorIndexMutex(TCPMonitorIndexLock);
-	TCPMonitorIndexMutex.unlock();
-	ClientData->AddrLen = LocalhostData.AddrLen;
+//	std::unique_lock<std::mutex> TCPMonitorIndexMutex(TCPMonitorIndexLock);
+//	TCPMonitorIndexMutex.unlock();
+	ClientData->AddrLen = LocalSocketData.AddrLen;
 
 	for (;;)
 	{
 		Sleep(LOOP_INTERVAL_TIME);
 //		memset(ClientData.get(), 0, sizeof(SOCKET_DATA) - sizeof(int));
 		memset(&ClientData->SockAddr, 0, sizeof(sockaddr_storage));
-		ClientData->Socket = accept(LocalhostData.Socket, (PSOCKADDR)&ClientData->SockAddr, (PINT)&ClientData->AddrLen);
+		ClientData->Socket = accept(LocalSocketData.Socket, (PSOCKADDR)&ClientData->SockAddr, (PINT)&ClientData->AddrLen);
 		if (ClientData->Socket == INVALID_SOCKET)
 			continue;
 
@@ -763,9 +727,9 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalhostData)
 			if (CheckEmptyBuffer(Addr, sizeof(in6_addr)) || //Empty address
 			//Check Private Mode(IPv6).
 				(Parameter.OperationMode == LISTEN_PRIVATEMODE && 
-				!(((in6_addr *)Addr)->u.Byte[0] >= 0xFC && ((in6_addr *)Addr)->u.Byte[0] <= 0xFD || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
-				((in6_addr *)Addr)->u.Byte[0] == 0xFE && ((in6_addr *)Addr)->u.Byte[1U] >= 0x80 && ((in6_addr *)Addr)->u.Byte[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
-				((in6_addr *)Addr)->u.Word[6U] == 0 && ((in6_addr *)Addr)->u.Word[7U] == htons(0x0001))) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
+				!(((in6_addr *)Addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)Addr)->s6_bytes[0] <= 0xFD || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
+				((in6_addr *)Addr)->s6_bytes[0] == 0xFE && ((in6_addr *)Addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
+				((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001))) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
 			//Check Custom Mode(IPv6).
 				(Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET6)))
 /* Old version(2015-03-13)
@@ -774,20 +738,20 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalhostData)
 				CheckSpecialAddress(Addr, AF_INET6, nullptr))
 */
 			{
-				shutdown(LocalhostData.Socket, SD_BOTH);
+				shutdown(LocalSocketData.Socket, SD_BOTH);
 				closesocket(ClientData->Socket);
 				continue;
 			}
 		}
 		else { //IPv4
 			Addr = &((PSOCKADDR_IN)&ClientData->SockAddr)->sin_addr;
-			if ((*(in_addr *)Addr).S_un.S_addr == 0 || //Empty address
+			if ((*(in_addr *)Addr).s_addr == 0 || //Empty address
 			//Check Private Mode(IPv4).
 				(Parameter.OperationMode == LISTEN_PRIVATEMODE && 
-				!(((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
-				((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
-				((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0xAC && ((in_addr *)Addr)->S_un.S_un_b.s_b2 >= 0x10 && ((in_addr *)Addr)->S_un.S_un_b.s_b2 <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
-				((in_addr *)Addr)->S_un.S_un_b.s_b1 == 0xC0 && ((in_addr *)Addr)->S_un.S_un_b.s_b2 == 0xA8)) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
+				!(((in_addr *)Addr)->s_net == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
+				((in_addr *)Addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
+				((in_addr *)Addr)->s_net == 0xAC && ((in_addr *)Addr)->s_host >= 0x10 && ((in_addr *)Addr)->s_host <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
+				((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0xA8)) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
 			//Check Custom Mode(IPv4).
 				(Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET)))
 /* Old version(2015-03-13)
@@ -796,31 +760,31 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalhostData)
 				CheckSpecialAddress(Addr, AF_INET, nullptr))
 */
 			{
-				shutdown(LocalhostData.Socket, SD_BOTH);
+				shutdown(LocalSocketData.Socket, SD_BOTH);
 				closesocket(ClientData->Socket);
 				continue;
 			}
 		}
 
 	//Accept process.
-		TCPMonitorIndexMutex.lock();
-		std::thread TCPReceiveThread(TCPReceiveProcess, *ClientData, TCPMonitorIndex);
+//		TCPMonitorIndexMutex.lock();
+		std::thread TCPReceiveThread(TCPReceiveProcess, *ClientData /* , TCPMonitorIndex */ );
 		TCPReceiveThread.detach();
 
-		TCPMonitorIndex = (TCPMonitorIndex + 1U) % QUEUE_MAXLEN;
-		TCPMonitorIndexMutex.unlock();
+//		TCPMonitorIndex = (TCPMonitorIndex + 1U) % QUEUE_MAXLEN;
+//		TCPMonitorIndexMutex.unlock();
 
 //		Index = (Index + 1U) % QUEUE_MAXLEN;
 	}
 
-	shutdown(LocalhostData.Socket, SD_BOTH);
-	closesocket(LocalhostData.Socket);
+	shutdown(LocalSocketData.Socket, SD_BOTH);
+	closesocket(LocalSocketData.Socket);
 	PrintError(LOG_ERROR_SYSTEM, L"TCP listening module Monitor terminated", 0, nullptr, 0);
 	return EXIT_SUCCESS;
 }
 
 //TCP protocol receive process
-size_t __fastcall TCPReceiveProcess(const SOCKET_DATA TargetData, const size_t ListIndex)
+size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData /* , const size_t ListIndex */ )
 {
 	std::shared_ptr<char> Buffer(new char[LARGE_PACKET_MAXSIZE]());
 	memset(Buffer.get(), 0, LARGE_PACKET_MAXSIZE);
@@ -829,18 +793,18 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA TargetData, const size_t L
 
 //Receive
 	if (Parameter.EDNS0Label) //EDNS0 Label
-		RecvLen = recv(TargetData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE - sizeof(dns_record_opt), 0);
+		RecvLen = recv(LocalSocketData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE - sizeof(dns_record_opt), 0);
 	else 
-		RecvLen = recv(TargetData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE, 0);
+		RecvLen = recv(LocalSocketData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE, 0);
 	if (RecvLen == (SSIZE_T)sizeof(uint16_t)) //TCP segment of a reassembled PDU
 	{
 	//Receive without PDU.
 		uint16_t PDU_Len = ntohs(((uint16_t *)Buffer.get())[0]);
 		memset(Buffer.get(), 0, RecvLen);
 		if (Parameter.EDNS0Label) //EDNS0 Label
-			RecvLen = recv(TargetData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE - sizeof(dns_record_opt), 0);
+			RecvLen = recv(LocalSocketData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE - sizeof(dns_record_opt), 0);
 		else 
-			RecvLen = recv(TargetData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE, 0);
+			RecvLen = recv(LocalSocketData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE, 0);
 
 	//Receive packet.
 		if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && (SSIZE_T)PDU_Len >= RecvLen)
@@ -850,8 +814,8 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA TargetData, const size_t L
 			if (DNS_Header->Questions != htons(U16_NUM_ONE) || ntohs(DNS_Header->Flags) >> 15U > 0 || 
 				DNS_Header->Answer > 0 || ntohs(DNS_Header->Additional) > U16_NUM_ONE || DNS_Header->Authority > 0)
 			{
-				shutdown(TargetData.Socket, SD_BOTH);
-				closesocket(TargetData.Socket);
+				shutdown(LocalSocketData.Socket, SD_BOTH);
+				closesocket(LocalSocketData.Socket);
 				return EXIT_FAILURE;
 			}
 			for (InnerIndex = sizeof(dns_hdr);InnerIndex < DNS_PACKET_QUERY_LOCATE(Buffer.get());InnerIndex++)
@@ -862,10 +826,10 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA TargetData, const size_t L
 			if (InnerIndex != DNS_PACKET_QUERY_LOCATE(Buffer.get()))
 			{
 				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | 0x8001); //Set 10000000000000001, DNS_SQR_FE
-				send(TargetData.Socket, Buffer.get(), (int)RecvLen, 0);
+				send(LocalSocketData.Socket, Buffer.get(), (int)RecvLen, 0);
 
-				shutdown(TargetData.Socket, SD_BOTH);
-				closesocket(TargetData.Socket);
+				shutdown(LocalSocketData.Socket, SD_BOTH);
+				closesocket(LocalSocketData.Socket);
 				return EXIT_FAILURE;
 			}
 
@@ -899,14 +863,14 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA TargetData, const size_t L
 				}
 			}
 
-			if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
-				EnterRequestProcess(Buffer.get(), PDU_Len, TargetData, IPPROTO_TCP, ListIndex + QUEUE_MAXLEN * (QUEUE_PARTNUM - 2U));
+			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
+				EnterRequestProcess(Buffer.get(), PDU_Len, LocalSocketData, IPPROTO_TCP /* , ListIndex + QUEUE_MAXLEN * (TRANSPORT_LAYER_PARTNUM - 2U) */ );
 			else //IPv4
-				EnterRequestProcess(Buffer.get(), PDU_Len, TargetData, IPPROTO_TCP, ListIndex + QUEUE_MAXLEN * (QUEUE_PARTNUM - 1U));
+				EnterRequestProcess(Buffer.get(), PDU_Len, LocalSocketData, IPPROTO_TCP /* , ListIndex + QUEUE_MAXLEN * (TRANSPORT_LAYER_PARTNUM - 1U) */ );
 		}
 		else {
-			shutdown(TargetData.Socket, SD_BOTH);
-			closesocket(TargetData.Socket);
+			shutdown(LocalSocketData.Socket, SD_BOTH);
+			closesocket(LocalSocketData.Socket);
 			return EXIT_FAILURE;
 		}
 	}
@@ -919,8 +883,8 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA TargetData, const size_t L
 		if (DNS_Header->Questions != htons(U16_NUM_ONE) || ntohs(DNS_Header->Flags) >> 15U > 0 || 
 			DNS_Header->Answer > 0 || ntohs(DNS_Header->Additional) > U16_NUM_ONE || DNS_Header->Authority > 0)
 		{
-			shutdown(TargetData.Socket, SD_BOTH);
-			closesocket(TargetData.Socket);
+			shutdown(LocalSocketData.Socket, SD_BOTH);
+			closesocket(LocalSocketData.Socket);
 			return EXIT_FAILURE;
 		}
 		for (InnerIndex = sizeof(dns_tcp_hdr);InnerIndex < DNS_TCP_PACKET_QUERY_LOCATE(Buffer.get());InnerIndex++)
@@ -931,10 +895,10 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA TargetData, const size_t L
 		if (InnerIndex != DNS_TCP_PACKET_QUERY_LOCATE(Buffer.get()))
 		{
 			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | 0x8001); //Set 10000000000000001, DNS_SQR_FE
-			send(TargetData.Socket, Buffer.get(), (int)RecvLen + sizeof(uint16_t), 0);
+			send(LocalSocketData.Socket, Buffer.get(), (int)RecvLen + sizeof(uint16_t), 0);
 
-			shutdown(TargetData.Socket, SD_BOTH);
-			closesocket(TargetData.Socket);
+			shutdown(LocalSocketData.Socket, SD_BOTH);
+			closesocket(LocalSocketData.Socket);
 			return EXIT_FAILURE;
 		}
 
@@ -969,21 +933,21 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA TargetData, const size_t L
 		}
 
 	//Request process
-		if (TargetData.AddrLen == sizeof(sockaddr_in6)) //IPv6
-			EnterRequestProcess(Buffer.get() + sizeof(uint16_t), RecvLen, TargetData, IPPROTO_TCP, ListIndex + QUEUE_MAXLEN * (QUEUE_PARTNUM - 2U));
+		if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
+			EnterRequestProcess(Buffer.get() + sizeof(uint16_t), RecvLen, LocalSocketData, IPPROTO_TCP /* , ListIndex + QUEUE_MAXLEN * (TRANSPORT_LAYER_PARTNUM - 2U) */ );
 		else //IPv4
-			EnterRequestProcess(Buffer.get() + sizeof(uint16_t), RecvLen, TargetData, IPPROTO_TCP, ListIndex + QUEUE_MAXLEN * (QUEUE_PARTNUM - 1U));
+			EnterRequestProcess(Buffer.get() + sizeof(uint16_t), RecvLen, LocalSocketData, IPPROTO_TCP /* , ListIndex + QUEUE_MAXLEN * (TRANSPORT_LAYER_PARTNUM - 1U) */ );
 	}
 	else {
-		shutdown(TargetData.Socket, SD_BOTH);
-		closesocket(TargetData.Socket);
+		shutdown(LocalSocketData.Socket, SD_BOTH);
+		closesocket(LocalSocketData.Socket);
 		return EXIT_FAILURE;
 	}
 
 //Block Port Unreachable messages of system.
-	shutdown(TargetData.Socket, SD_BOTH);
+	shutdown(LocalSocketData.Socket, SD_BOTH);
 	Sleep(Parameter.ReliableSocketTimeout);
-	closesocket(TargetData.Socket);
+	closesocket(LocalSocketData.Socket);
 	return EXIT_SUCCESS;
 }
 
@@ -996,29 +960,30 @@ void __fastcall AlternateServerMonitor(void)
 //Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
 	for (;;)
 	{
+/* Old version(2015-03-18)
 	//Pcap Requesting check
-		for (Index = 0;Index < QUEUE_MAXLEN * QUEUE_PARTNUM;Index++)
+		for (Index = 0;Index < QUEUE_MAXLEN * TRANSPORT_LAYER_PARTNUM;Index++)
 		{
 			if (AlternateSwapList.PcapAlternateTimeout[Index] != 0)
 			{
-#ifdef _WIN64
-				if (GetTickCount64() >= /* Parameter.ReliableSocketTimeout + */ AlternateSwapList.PcapAlternateTimeout[Index]) //Check timeout.
-#else //x86
+			#ifdef _WIN64
+				if (GetTickCount64() >= Parameter.ReliableSocketTimeout + AlternateSwapList.PcapAlternateTimeout[Index]) //Check timeout.
+			#else //x86
 			//Check timeout.
-				if (Parameter.GetTickCount64PTR != nullptr && (*Parameter.GetTickCount64PTR)() >= /* Parameter.ReliableSocketTimeout + */ AlternateSwapList.PcapAlternateTimeout[Index] || 
-					GetTickCount() >= /* Parameter.ReliableSocketTimeout + */ AlternateSwapList.PcapAlternateTimeout[Index])
-#endif
+				if (Parameter.GetTickCount64PTR != nullptr && (*Parameter.GetTickCount64PTR)() >= Parameter.ReliableSocketTimeout + AlternateSwapList.PcapAlternateTimeout[Index] || 
+					GetTickCount() >=  Parameter.ReliableSocketTimeout + AlternateSwapList.PcapAlternateTimeout[Index])
+			#endif
 				{
 					AlternateSwapList.PcapAlternateTimeout[Index] = 0;
 					if (AlternateSwapList.IsSwap[2U] == false && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
-						Index >= 0 && Index < QUEUE_MAXLEN * (QUEUE_PARTNUM - 3U) || Index >= QUEUE_MAXLEN * (QUEUE_PARTNUM - 2U) && Index < QUEUE_MAXLEN * (QUEUE_PARTNUM - 1U)) //IPv6
+						Index >= 0 && Index < QUEUE_MAXLEN * (TRANSPORT_LAYER_PARTNUM - 3U) || Index >= QUEUE_MAXLEN * (TRANSPORT_LAYER_PARTNUM - 2U) && Index < QUEUE_MAXLEN * (TRANSPORT_LAYER_PARTNUM - 1U)) //IPv6
 							AlternateSwapList.TimeoutTimes[2U]++;
 					else if (AlternateSwapList.IsSwap[3U] == false && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0) //IPv4
 						AlternateSwapList.TimeoutTimes[3U]++;
 				}
 			}
 		}
-
+*/
 	//Complete Requesting check
 		for (Index = 0;Index < ALTERNATE_SERVERNUM;Index++)
 		{
@@ -1079,29 +1044,32 @@ void __fastcall AlternateServerMonitor(void)
 	return;
 }
 
+/* Old version(2015-03-24)
 //DNS Cache timers monitor
 void __fastcall DNSCacheTimerMonitor(void)
 {
 	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
 	DNSCacheListMutex.unlock();
+
 	for (;;)
 	{
-	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
 		DNSCacheListMutex.lock();
+
+	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
 	#ifdef _WIN64
-		while (!DNSCacheList.empty() && GetTickCount64() >= DNSCacheList.front().ClearTime)
+		while (!DNSCacheList.empty() && GetTickCount64() >= DNSCacheList.front().ClearCacheTime)
 	#else //x86
-		while (!DNSCacheList.empty() && (Parameter.GetTickCount64PTR != nullptr && (*Parameter.GetTickCount64PTR)() >= DNSCacheList.front().ClearTime || 
-			GetTickCount() >= DNSCacheList.front().ClearTime))
+		while (!DNSCacheList.empty() && (Parameter.GetTickCount64PTR != nullptr && (*Parameter.GetTickCount64PTR)() >= DNSCacheList.front().ClearCacheTime || 
+			GetTickCount() >= DNSCacheList.front().ClearCacheTime))
 	#endif
 			DNSCacheList.pop_front();
 
 		DNSCacheList.shrink_to_fit();
 		DNSCacheListMutex.unlock();
-
 		Sleep(MONITOR_LOOP_INTERVAL_TIME); //Time between checking.
 	}
 
 	PrintError(LOG_ERROR_SYSTEM, L"DNS Cache Timer module Monitor terminated", 0, nullptr, 0);
 	return;
 }
+*/

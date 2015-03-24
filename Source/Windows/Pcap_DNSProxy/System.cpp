@@ -191,7 +191,7 @@ size_t WINAPI ServiceControl(const DWORD dwControlCode)
 BOOL WINAPI ExecuteService(void)
 {
 	DWORD dwThreadID = 0;
-	HANDLE hServiceThread = CreateThread(0, 0, (LPTHREAD_START_ROUTINE)ServiceProc, nullptr, 0, &dwThreadID);
+	HANDLE hServiceThread = CreateThread(0, 0, (PTHREAD_START_ROUTINE)ServiceProc, nullptr, 0, &dwThreadID);
 	if (hServiceThread != nullptr)
 	{
 		ServiceRunning = TRUE;
@@ -202,7 +202,7 @@ BOOL WINAPI ExecuteService(void)
 }
 
 //Service Main process thread
-DWORD WINAPI ServiceProc(LPVOID lpParameter)
+DWORD WINAPI ServiceProc(PVOID lpParameter)
 {
 	if (!ServiceRunning || MonitorInit() == EXIT_FAILURE)
 	{

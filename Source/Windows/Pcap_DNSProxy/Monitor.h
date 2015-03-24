@@ -21,15 +21,14 @@
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
-extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
+extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
 extern std::deque<DNSCACHE_DATA> DNSCacheList;
-extern std::mutex RunningLogLock, DNSCacheListLock;
-size_t TCPMonitorIndex = 0, UDPMonitorIndex = 0;
-std::mutex TCPMonitorIndexLock, UDPMonitorIndexLock;
+extern std::mutex RunningLogLock, DNSCacheListLock /* , TCPMonitorIndexLock, UDPMonitorIndexLock */ ;
+//size_t TCPMonitorIndex = 0, UDPMonitorIndex = 0;
 
 //Functions
 size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData);
 size_t __fastcall TCPMonitor(const SOCKET_DATA LocalhostData);
-size_t __fastcall TCPReceiveProcess(const SOCKET_DATA TargetData, const size_t ListIndex);
+size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData /* , const size_t ListIndex */ );
 void __fastcall AlternateServerMonitor(void);

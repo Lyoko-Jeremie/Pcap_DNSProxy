@@ -31,6 +31,8 @@
 //#include <string>                  //String support
 #include <vector>                  //Vector support
 #include <deque>                   //Double-ended queue support
+#include <set>                     //Set support
+#include <map>                     //Map support
 #include <memory>                  //Manage dynamic memory support
 #include <regex>                   //Regular expression support
 #include <thread>                  //Thread support
@@ -1399,15 +1401,11 @@ typedef struct _dnscurve_txt_signature_
 //#define PCAP_ERROR               (-1)
 #define LIBSODIUM_ERROR          (-1)
 #define BYTES_TO_BITS            8U
-#define U4_MAXNUM                0x000F                //Maximum value of 4 bits
-#define U8_MAXNUM                0x00FF                //Maximum value of uint8_t/8 bits
-#define U16_MAXNUM               0xFFFF                //Maximum value of uint16_t/16 bits
-#define U32_MAXNUM               0xFFFFFFFF            //Maximum value of uint32_t/32 bits
-//#define U64_MAXNUM               0xFFFFFFFFFFFFFFFF   //Maximum value of uint64_t/64 bits
-#define HIGHEST_BIT_U16          0x7FFF                //Get highest bit in uint16_t/16 bits data
-#define U16_NUM_ONE              0x0001
 #define NUM_DECIMAL              10
 #define NUM_HEX                  16
+#define UINT4_MAX                0x000F
+#define HIGHEST_BIT_U16          0x7FFF                //Get highest bit in uint16_t/16 bits data
+#define U16_NUM_ONE              0x0001
 
 //ASCII values defines
 #define ASCII_HT                9                    //"␉"
@@ -1456,20 +1454,21 @@ typedef struct _dnscurve_txt_signature_
 #define BOM_UTF_8_LENGTH               3U                                       //Length of UTF-8 BOM
 #define BOM_UTF_16_LENGTH              2U                                       //Length of UTF-16 BOM
 #define BOM_UTF_32_LENGTH              4U                                       //Length of UTF-32 BOM
-#define STRING_BUFFER_MAXSIZE          64U                                      //Maximum size of string buffer
-#define FILE_BUFFER_SIZE               4096U                                    //Maximum size of file buffer
+#define STRING_BUFFER_MAXSIZE          64U                                      //Maximum size of string buffer(64 bytes)
+#define FILE_BUFFER_SIZE               4096U                                    //Maximum size of file buffer(4KB/4096 bytes)
 #define DEFAULT_FILE_MAXSIZE           4294967296U                              //Maximum size of whole reading file(4GB/4294967296 bytes).
 #define DEFAULT_LOG_MAXSIZE            8388608U                                 //Maximum size of whole log file(8MB/8388608 bytes).
 #define DEFAULT_LOG_MINSIZE            4096U                                    //Minimum size of whole log file(4KB/4096 bytes).
 #define PACKET_MAXSIZE                 1500U                                    //Maximum size of packets, Standard MTU of Ethernet II network
 #define ORIGINAL_PACKET_MAXSIZE        1512U                                    //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header + 4 bytes FCS)
 #define LARGE_PACKET_MAXSIZE           4096U                                    //Maximum size of packets(4KB/4096 bytes) of TCP protocol
-#define BUFFER_RING_MAXNUM             64U                                      //Maximum packet buffer number
-#define ADDR_STRING_MAXSIZE            64U                                      //Maximum size of addresses(IPv4/IPv6) words
+#define BUFFER_RING_MAXNUM             32U                                      //Number of maximum packet buffer queues
+#define ADDR_STRING_MAXSIZE            64U                                      //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
 #define ICMP_PADDING_MAXSIZE           1484U                                    //Length of ICMP padding data must between 18 bytes and 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
 #define MULTI_REQUEST_TIMES_MAXNUM     16U                                      //Maximum times of multi requesting.
-#define QUEUE_MAXLEN                   64U                                      //Maximum length of queue
-#define QUEUE_PARTNUM                  4U                                       //Parts of queues(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
+//#define QUEUE_MAXLEN                   64U                                      //Maximum length of queues
+#define TRANSPORT_LAYER_PARTNUM        4U                                       //Number of transport layer protocols(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
+#define NETWORK_LAYER_PARTNUM          2U                                       //Number of network layer protocols(IPv6 and IPv4)
 #define ALTERNATE_SERVERNUM            12U                                      //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
 #define DOMAIN_MAXSIZE                 256U                                     //Maximum size of whole level domain is 256 bytes(Section 2.3.1 in RFC 1035).
 #define DOMAIN_DATA_MAXSIZE            253U                                     //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
@@ -1478,7 +1477,7 @@ typedef struct _dnscurve_txt_signature_
 #define DNS_PACKET_MINSIZE             (sizeof(dns_hdr) + 4U + sizeof(dns_qry)) //Minimum DNS packet size(DNS Header + Minimum Domain + DNS Query)
 
 //Code defines
-#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE   8192U      //Buffer maximum size of QueryServiceConfig() is 8KB/8192 Bytes.
+#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE   8192U      //Buffer maximum size of QueryServiceConfig() function(8KB/8192 Bytes)
 #define SYSTEM_SOCKET                         UINT_PTR   //System Socket defined(WinSock2.h), not the same in x86(unsigned int) and x64(unsigned __int64) platform, which define in WinSock2.h file.
 #define PCAP_COMPILE_OPTIMIZE                 1U         //Pcap optimization on the resulting code is performed.
 #define PCAP_OFFLINE_EOF_ERROR                (-2)       //Pcap EOF was reached reading from an offline capture.
@@ -1571,10 +1570,10 @@ typedef struct _dnscurve_txt_signature_
 #define DNSCURVE_REQUEST_TCPMODE       1U
 
 //Server type defines
-#define DNSCURVE_MAINIPV6              0             //DNSCurve Main(IPv6)
-#define DNSCURVE_MAINIPV4              1U            //DNSCurve Main(IPv4)
-#define DNSCURVE_ALTERNATEIPV6         2U            //DNSCurve Alternate(IPv6)
-#define DNSCURVE_ALTERNATEIPV4         3U            //DNSCurve Alternate(IPv4)
+#define DNSCURVE_IPV6_MAIN             0            //DNSCurve Main(IPv6)
+#define DNSCURVE_IPV4_MAIN             1U           //DNSCurve Main(IPv4)
+#define DNSCURVE_IPV6_ALTERNATE        2U           //DNSCurve Alternate(IPv6)
+#define DNSCURVE_IPV4_ALTERNATE        3U           //DNSCurve Alternate(IPv4)
 
 //Function Pointer defines
 //Windows XP with SP3 support
@@ -1615,8 +1614,8 @@ typedef struct _dns_server_data_
 {
 	union _address_data_ {
 		sockaddr_storage     Storage;
-		sockaddr_in          IPv4;
 		sockaddr_in6         IPv6;
+		sockaddr_in          IPv4;
 	}AddressData;
 	union _hoplimit_data_ {
 		uint8_t              TTL;
@@ -1629,11 +1628,13 @@ typedef struct _dnscache_data_
 {
 	std::string              Domain;
 	std::shared_ptr<char>    Response;
-	uint16_t                 Type;
 	size_t                   Length;
-	size_t                   ClearTime;
+	uint16_t                 RecordType;
+//	time_t                   ClearCacheTime;
+	ULONGLONG                ClearCacheTime;
 }DNSCacheData, DNSCACHE_DATA, *PDNSCacheData, *PDNSCACHE_DATA;
 
+/* Old version(2015-03-22)
 //Address Prefix Block structure
 typedef struct _address_prefix_block_
 {
@@ -1645,29 +1646,6 @@ typedef struct _address_prefix_block_
 	}AddressData;
 	size_t Prefix;
 }AddressPrefixBlock, ADDRESS_PREFIX_BLOCK, *PAddressPrefixBlock, *PADDRESS_PREFIX_BLOCK;
-
-/* Old version(2014-12-23)
-//TCP Request Multithreading Parameter structure
-typedef struct _tcpudp_complete_request_multithread_parameter_
-{
-	PSTR                     Send;
-	size_t                   SendSize;
-	PSTR                     Recv;
-	size_t                   RecvSize;
-	SOCKET_DATA              TargetData;
-	size_t                   ServerIndex;
-	size_t                   ReturnValue;
-}TCPUDPCompleteRequestMultithreadParameter, TCPUDP_COMPLETE_REQUEST_MULTITHREAD_PARAMETER;
-
-//UDP Request Multithreading Parameter structure
-typedef struct _udp_request_multithread_parameter_
-{
-	PSTR                     Send;
-	size_t                   Length;
-	SOCKET_DATA              TargetData;
-	size_t                   Index;
-	size_t                   ServerIndex;
-}UDPRequestMultithreadParameter, UDP_REQUEST_MULTITHREAD_PARAMETER;
 */
 
 //DNSCurve Server Data structure
@@ -1675,8 +1653,8 @@ typedef struct _dnscurve_server_data_
 {
 	union _address_data_ {
 		sockaddr_storage     Storage;
-		sockaddr_in          IPv4;
 		sockaddr_in6         IPv6;
+		sockaddr_in          IPv4;
 	}AddressData;
 	PSTR                     ProviderName;           //Server Provider Name
 	PUINT8                   PrecomputationKey;      //DNSCurve Precomputation Keys
@@ -1685,21 +1663,6 @@ typedef struct _dnscurve_server_data_
 	PSTR                     ReceiveMagicNumber;     //Receive Magic Number(Same from server receive)
 	PSTR                     SendMagicNumber;        //Server Magic Number(Send to server)
 }DNSCurveServerData, DNSCURVE_SERVER_DATA, *PDNSCurveServerData, *PDNSCURVE_SERVER_DATA;
-
-/* Old version(2015-01-13)
-//DNSCurve TCP Request Multithreading Parameter structure
-typedef struct _dnscurve_request_multithread_parameter_
-{
-	PSTR                     Send;
-	size_t                   SendSize;
-	PSTR                     Recv;
-	size_t                   RecvSize;
-	SOCKET_DATA              TargetData;
-	bool                     Alternate;
-	bool                     Encryption;
-	size_t                   ReturnValue;
-}DNSCurveRequestMultithreadParameter, DNSCURVE_REQUEST_MULTITHREAD_PARAMETER;
-*/
 
 //Class defines
 //Configuration class
@@ -1735,19 +1698,19 @@ public:
 	size_t                           IPFilterLevel;
 	bool                             AcceptType;
 //[Addresses] block
-	std::vector<sockaddr_storage>    *ListenAddress_IPv4;
 	std::vector<sockaddr_storage>    *ListenAddress_IPv6;
+	std::vector<sockaddr_storage>    *ListenAddress_IPv4;
 	struct _dns_target_ {
-		DNS_SERVER_DATA                IPv4;
-		DNS_SERVER_DATA                Alternate_IPv4;
 		DNS_SERVER_DATA                IPv6;
 		DNS_SERVER_DATA                Alternate_IPv6;
-		DNS_SERVER_DATA                Local_IPv4;
-		DNS_SERVER_DATA                Alternate_Local_IPv4;
+		DNS_SERVER_DATA                IPv4;
+		DNS_SERVER_DATA                Alternate_IPv4;
 		DNS_SERVER_DATA                Local_IPv6;
 		DNS_SERVER_DATA                Alternate_Local_IPv6;
-		std::vector<DNS_SERVER_DATA>   *IPv4_Multi;
+		DNS_SERVER_DATA                Local_IPv4;
+		DNS_SERVER_DATA                Alternate_Local_IPv4;
 		std::vector<DNS_SERVER_DATA>   *IPv6_Multi;
+		std::vector<DNS_SERVER_DATA>   *IPv4_Multi;
 	}DNSTarget;
 //[Values] block
 	size_t                           EDNS0PayloadSize;
@@ -1801,9 +1764,9 @@ public:
 	int                              ReliableSocketTimeout;
 	int                              UnreliableSocketTimeout;
 	PSTR                             DomainTable;
-	PSTR                             LocalAddress[QUEUE_PARTNUM / 2U];
-	size_t                           LocalAddressLength[QUEUE_PARTNUM / 2U];
-	std::vector<std::string>         *LocalAddressPTR[QUEUE_PARTNUM / 2U];
+	PSTR                             LocalAddress[NETWORK_LAYER_PARTNUM];
+	size_t                           LocalAddressLength[NETWORK_LAYER_PARTNUM];
+	std::vector<std::string>         *LocalAddressPTR[NETWORK_LAYER_PARTNUM];
 	std::vector<uint16_t>            *AcceptTypeList;
 
 //Windows XP with SP3 support
@@ -1816,13 +1779,24 @@ public:
 #endif
 
 //IPv6 support block
-	bool                             GatewayAvailable_IPv4;
 	bool                             GatewayAvailable_IPv6;
 	bool                             TunnelAvailable_IPv6;
+	bool                             GatewayAvailable_IPv4;
 
 	::ConfigurationTable(void);
 	~ConfigurationTable(void);
 }CONFIGURATION_TABLE;
+
+//IPv4/IPv6 addresses ranges class
+typedef class AddressRangeTable {
+public:
+	size_t                   FileIndex;
+	sockaddr_storage         Begin;
+	sockaddr_storage         End;
+	size_t                   Level;
+
+	::AddressRangeTable(void);
+}ADDRESS_RANGE_TABLE;
 
 //Hosts lists class
 typedef class HostsTable {
@@ -1838,16 +1812,16 @@ public:
 	::HostsTable(void);
 }HOSTS_TABLE;
 
-//IPv4/IPv6 addresses ranges class
-typedef class AddressRangeTable {
+//Alternate swap table class
+typedef class AlternateSwapTable {
 public:
-	size_t                   FileIndex;
-	sockaddr_storage         Begin;
-	sockaddr_storage         End;
-	size_t                   Level;
+	bool                     IsSwap[ALTERNATE_SERVERNUM];
+	size_t                   TimeoutTimes[ALTERNATE_SERVERNUM];
+//	size_t                   *PcapAlternateTimeout;
 
-	::AddressRangeTable(void);
-}ADDRESS_RANGE_TABLE;
+	::AlternateSwapTable(void);
+//	~AlternateSwapTable(void);
+}ALTERNATE_SWAP_TABLE;
 
 //Blacklist of results class
 typedef class ResultBlacklistTable {
@@ -1870,26 +1844,43 @@ public:
 	::AddressHostsTable(void);
 }ADDRESS_HOSTS_TABLE;
 
-//System and Request port list class
+//Address routing table(IPv6) class
+typedef class AddressRoutingTable_IPv6 {
+public:
+	size_t                                   FileIndex;
+	size_t                                   Prefix;
+	std::map<uint64_t, std::set<uint64_t>>   AddressRoutingList_IPv6;
+
+	::AddressRoutingTable_IPv6(void);
+}ADDRESS_ROUTING_TABLE_IPV6;
+
+//Address routing table(IPv4) class
+typedef class AddressRoutingTable_IPv4 {
+public:
+	size_t                   FileIndex;
+	size_t                   Prefix;
+	std::set<uint32_t>       AddressRoutingList_IPv4;
+
+	::AddressRoutingTable_IPv4(void);
+}ADDRESS_ROUTING_TABLE_IPV4;
+
 typedef class PortTable {
 public:
-	SOCKET_DATA              *RecvData;                                //System receive sockets/Addresses messages
-	std::vector<SOCKET_DATA> SendData[QUEUE_MAXLEN * QUEUE_PARTNUM];   //Request ports messages
+/* Old version(2015-03-18)
+//System and Request port list class
+	SOCKET_DATA                *RecvData;                                          //System receive sockets/Addresses messages
+	std::vector<SOCKET_DATA>   SendData[QUEUE_MAXLEN * TRANSPORT_LAYER_PARTNUM];   //Request ports messages
+*/
+	SOCKET_DATA                SystemData;
+	uint16_t                   NetworkLayer;
+	uint16_t                   TransportLayer;
+	std::vector<SOCKET_DATA>   RequestData;
+//	time_t                     ClearPortTime;
+	ULONGLONG                  ClearPortTime;
 
 	::PortTable(void);
-	~PortTable(void);
+//	~PortTable(void);
 }PORT_TABLE;
-
-//Alternate swap table class
-typedef class AlternateSwapTable {
-public:
-	bool                     IsSwap[ALTERNATE_SERVERNUM];
-	size_t                   TimeoutTimes[ALTERNATE_SERVERNUM];
-	size_t                   *PcapAlternateTimeout;
-
-	::AlternateSwapTable(void);
-	~AlternateSwapTable(void);
-}ALTERNATE_SWAP_TABLE;
 
 //DNSCurve Configuration class
 typedef class DNSCurveConfigurationTable {
@@ -1904,10 +1895,10 @@ public:
 	PUINT8                   Client_PublicKey;
 	PUINT8                   Client_SecretKey;
 	struct _dnscurve_target_ {
-		DNSCURVE_SERVER_DATA   IPv4;
-		DNSCURVE_SERVER_DATA   Alternate_IPv4;
 		DNSCURVE_SERVER_DATA   IPv6;
 		DNSCURVE_SERVER_DATA   Alternate_IPv6;
+		DNSCURVE_SERVER_DATA   IPv4;
+		DNSCURVE_SERVER_DATA   Alternate_IPv4;
 	}DNSCurveTarget;
 
 	::DNSCurveConfigurationTable(void);
@@ -1924,8 +1915,8 @@ size_t __fastcall PrintParameterList(void);
 
 //Protocol.h
 bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length);
-//uint64_t __fastcall hton64(const uint64_t Val);
-//uint64_t __fastcall ntoh64(const uint64_t Val);
+uint64_t __fastcall hton64(const uint64_t Val);
+uint64_t __fastcall ntoh64(const uint64_t Val);
 size_t __fastcall CaseConvert(bool IsLowerUpper, const PSTR Buffer, const size_t Length);
 size_t __fastcall AddressStringToBinary(const PSTR AddrString, void *OriginalAddr, const uint16_t Protocol, SSIZE_T &ErrCode);
 PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol);
@@ -1980,7 +1971,7 @@ size_t __fastcall FirewallTest(const uint16_t Protocol);
 //Monitor.h
 size_t __fastcall RunningLogWriteMonitor(void);
 size_t __fastcall MonitorInit(void);
-void __fastcall DNSCacheTimerMonitor(void);
+//void __fastcall DNSCacheTimerMonitor(void);
 
 //DNSCurve.h
 bool __fastcall VerifyKeypair(const PUINT8 PublicKey, const PUINT8 SecretKey);
@@ -1991,7 +1982,7 @@ size_t __fastcall DNSCurveUDPRequest(const PSTR OriginalSend, const size_t SendS
 size_t __fastcall DNSCurveUDPRequestMulti(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize /* , const bool IsAlternate */ );
 
 //Process.h
-size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Length, const SOCKET_DATA TargetData, const uint16_t Protocol, const size_t ListIndex);
+size_t __fastcall EnterRequestProcess(const PSTR OriginalSend, const size_t Length, const SOCKET_DATA LocalSocketData, const uint16_t Protocol /* , const size_t ListIndex */ );
 size_t __fastcall MarkDomainCache(const PSTR Buffer, const size_t Length);
 
 //Captrue.h
@@ -2003,7 +1994,7 @@ size_t __fastcall ICMPEcho(void);
 size_t __fastcall ICMPv6Echo(void);
 size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal /* , const bool IsAlternate */ );
 size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize /* , const bool IsAlternate */ );
-size_t __fastcall UDPRequest(const PSTR OriginalSend, const size_t Length, const size_t ListIndex /* , const bool IsAlternate */ );
-size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, const size_t ListIndex /* , const bool IsAlternate */ );
+size_t __fastcall UDPRequest(const PSTR OriginalSend, const size_t Length, const SOCKET_DATA *LocalSocketData, const uint16_t Protocol /* , const size_t ListIndex , const bool IsAlternate */ );
+size_t __fastcall UDPRequestMulti(const PSTR OriginalSend, const size_t Length, const SOCKET_DATA *LocalSocketData, const uint16_t Protocol /* , const size_t ListIndex, const bool IsAlternate */ );
 size_t __fastcall UDPCompleteRequest(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal /* , const bool IsAlternate */ );
 size_t __fastcall UDPCompleteRequestMulti(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize /* , const bool IsAlternate */ );

@@ -4,6 +4,28 @@
 
 @echo off
 
+:: Get Administrator Privileges
+>nul 2>&1 "%SystemRoot%\system32\cacls.exe" "%SystemRoot%\system32\config\system"
+if '%errorlevel%' NEQ '0' (
+	echo Requesting Administrative Privileges...
+	goto UAC_Prompt
+) else (
+	goto Get_Admin
+)
+
+:UAC_Prompt
+	echo set UAC = CreateObject^("Shell.Application"^) > "%TEMP%\GetAdmin.vbs"
+	echo UAC.ShellExecute "%~s0", "", "", "runas", 1 >> "%TEMP%\GetAdmin.vbs"
+	"%TEMP%\GetAdmin.vbs"
+	exit /b
+
+:Get_Admin
+	if exist "%TEMP%\GetAdmin.vbs" (del "%TEMP%\GetAdmin.vbs" )
+	pushd "%cd%"
+	cd /d "%~dp0"
+
+
+:: Main choice
 echo Pcap_DNSProxy service control batch
 echo.
 echo 1: Install service
@@ -14,34 +36,33 @@ echo 5: Restart service
 echo 6: Service Query(Windows XP/2003 only)
 echo.
 
-
 :: Choice(Part 1)
 set /p UserChoice="Choose: "
 
 
 :: Permission check
-	if %UserChoice% GTR 0 (
-		if %UserChoice% LSS 6 (
-			echo.
-			if %PROCESSOR_ARCHITECTURE% EQU AMD64 (
-				cd /d "%SystemRoot%\System32"
-			) else (
-				cd /d "%SystemRoot%\SysWOW64"
-			)
-			del /f /q TestPermission.log
-			echo Permission check. > TestPermission.log
-			if not exist TestPermission.log (
-				echo.
-				echo Require Administrator permission!
-				pause
-				exit
-			) else (
-				del /f /q TestPermission.log
-				cd /d "%~dp0"
-				cls
-			)
-		)
-	)
+::	if %UserChoice% GTR 0 (
+::		if %UserChoice% LSS 6 (
+::			echo.
+::			if %PROCESSOR_ARCHITECTURE% EQU AMD64 (
+::				cd /d "%SystemRoot%\System32"
+::			) else (
+::				cd /d "%SystemRoot%\SysWOW64"
+::			)
+::			del /f /q TestPermission.log
+::			echo Permission check. > TestPermission.log
+::			if not exist TestPermission.log (
+::				echo.
+::				echo Require Administrator privileges!
+::				pause
+::				exit
+::			) else (
+::				del /f /q TestPermission.log
+::				cd /d "%~dp0"
+::				cls
+::			)
+::		)
+::	)
 
 :: Files check
 	set FileCheck=0
@@ -53,16 +74,16 @@ set /p UserChoice="Choose: "
 		if not exist Fciv.exe (goto WARNING)
 		if not exist Pcap_DNSProxy.exe (goto WARNING)
 		if not exist Pcap_DNSProxy_x86.exe (goto WARNING)
-		Fciv -sha1 Pcap_DNSProxy.exe |findstr /I C1CC88B57C8959D74A3760A3F596401CF9A03F80 > NUL
+		Fciv -sha1 Pcap_DNSProxy.exe |findstr /I 0F8E240CEEA73B0CCA3C8317E8EDEDE23A0A6958 > NUL
 		if ERRORLEVEL 1 (goto WARNING)
-		Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I E9E0D1C55F1AD8F54526D3054CBB735849EBE148 > NUL
+		Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 0C2DD38112DEAFE529D461EFE8BFA39D43D4A669 > NUL
 		if ERRORLEVEL 1 (goto WARNING)
 	)
 	goto CHOICE
 
 :WARNING
 	echo.
-	echo The file(s) may be damaged or corrupt!
+	echo Files may be damaged or corrupt!
 	echo Please download all files again, also you can skip this check.
 	set /p UserChoice_File="Are you sure you want to continue? [Y/N]"
 	if /i %UserChoice_File% EQU Y (goto CHOICE) else exit
@@ -108,7 +129,7 @@ goto %UserChoice%
 	)
 	if ERRORLEVEL 1 (
 		echo.
-		echo Service start failed, please check the configuration.
+		echo Service start failed, please check the configurations.
 	)
 	echo.
 	pause
@@ -139,7 +160,7 @@ goto %UserChoice%
 	)
 	if ERRORLEVEL 1 (
 		echo.
-		echo Service start failed, please check the configuration.
+		echo Service start failed, please check the configurations.
 	)
 	echo.
 	pause
@@ -171,7 +192,7 @@ goto %UserChoice%
 	)
 	if ERRORLEVEL 1 (
 		echo.
-		echo Service start failed, please check the configuration.
+		echo Service start failed, please check the configurations.
 	)
 	echo.
 	pause

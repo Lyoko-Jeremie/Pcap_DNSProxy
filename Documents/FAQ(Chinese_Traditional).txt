@@ -18,8 +18,7 @@
     * %WINDIR%\system32\pthreadVC.dll
 
 * 安裝、運行或重啟服務時出現：
-  * Require Administrator Permission - 請以管理員許可權運行
-  * The file(s) may be damaged or corrupt!
+  * Files may be damaged or corrupt!
     Please download all files again, also you can skip this check.
     Are you sure you want to continue install service [Y/N]?
     - 壓縮檔的 SHA-1 檢查驗證失敗，意味著程式可能在下載或解壓途中被損壞
@@ -142,7 +141,6 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * DNSCurve Encryption Only mode error - DNSCurve 協定只使用加密模式配置錯誤：只使用加密模式必須提供伺服器的魔數和指紋
   * DNSCurve empty Provider Name error - DNSCurve 協定伺服器提供者錯誤：不存在魔數或指紋時必須提供伺服器的提供者資訊以自動獲取連接參數
   * DNSCurve empty Public Key error - DNSCurve 協定伺服器提供者錯誤：不存在魔數或指紋時必須提供伺服器的公開金鑰以自動獲取連接參數
-  * EDNS0 Label must trun ON when request DNSCurve - 使用 DNSCurve 協定時必須開啟 EDNS0 標籤請求功能
   * Compression Pointer Mutation must trun OFF when request EDNS0 Label - 使用 Compression Pointer Mutation 時不能開啟 EDNS0 標籤請求功能，兩者並不相容
   * DNSCurve Payload Size must longer than 512 bytes(Old DNS packets minimum supported size) - DNSCurve 協定載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包
   * DNSCurve Payload Size may be too long - DNSCurve 協定載荷長度可能過長：此值建議不要超過乙太網的 MTU(1512 bytes)
@@ -213,7 +211,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Winsock 錯誤代碼具體含義可移步 http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 
 6.WinPcap Error - WinPcap 錯誤
-  * Insufficient permissions or not any available network devices - 沒有任何可用的網路介面卡：請檢查硬體設備和驅動程式是否安裝正確，也可能是許可權不足
+  * Insufficient privileges or not any available network devices - 沒有任何可用的網路介面卡：請檢查硬體設備和驅動程式是否安裝正確，也可能是許可權不足
   * XXX is not a Ethernet device - 發現非 Ethernet 類型的網路介面卡：這不是錯誤，但可以說明系統記憶體在非 Ethernet 類型的網路介面卡
   * An error occurred in XXX - 名稱為 XXX 的網路介面卡抓取資料包錯誤
   * EOF was reached reading from an offline capture in XXX - 名稱為 XXX 的網路介面卡已經離線或不可用
@@ -226,6 +224,14 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * TCP get signature data request error - TCP 協定自動獲取伺服器連接參數資訊錯誤：如果此錯誤持續並導致 DNSCurve 協定無法使用，請將伺服器的魔數和指紋直接寫入設定檔中
   * UDP get signature data request error - UDP 協定自動獲取伺服器連接參數資訊錯誤：如果此錯誤持續並導致 DNSCurve 協定無法使用，請將伺服器的魔數和指紋直接寫入設定檔中
   * Ramdom module close error - 亂數產生模組關閉錯誤：請與開發者聯繫
+  * IPv6 Main Server TCP get signature data error - IPv6 TCP 協定主要伺服器加密握手失敗：請檢查該伺服器是否可用
+  * IPv6 Alternate Server TCP get signature data error - IPv6 TCP 協定待命伺服器加密握手失敗：請檢查該伺服器是否可用
+  * IPv4 Main Server TCP get signature data error - IPv4 TCP 協定主要伺服器加密握手失敗：請檢查該伺服器是否可用
+  * IPv4 Alternate Server TCP get signature data error - IPv4 TCP 協定待命伺服器加密握手失敗：請檢查該伺服器是否可用
+  * IPv6 Main Server UDP get signature data error - IPv6 UDP 協定主要伺服器加密握手失敗：請檢查該伺服器是否可用
+  * IPv6 Alternate Server UDP get signature data error - IPv6 UDP 協定待命伺服器加密握手失敗：請檢查該伺服器是否可用
+  * IPv4 Main Server UDP get signature data error - IPv4 UDP 協定主要伺服器加密握手失敗：請檢查該伺服器是否可用
+  * IPv4 Alternate Server UDP get signature data error - IPv4 UDP 協定待命伺服器加密握手失敗：請檢查該伺服器是否可用
   * IPv6 Main Server Fingerprint signature validation error - IPv6 主要伺服器憑證驗證錯誤：請檢查該伺服器是否可用
   * IPv6 Alternate Server Fingerprint signature validation error - IPv6 待命伺服器證書驗證錯誤：請檢查該伺服器是否可用
   * IPv4 Main Server Fingerprint signature validation error - IPv4 主要伺服器憑證驗證錯誤：請檢查該伺服器是否可用

@@ -21,9 +21,9 @@
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
-extern PORT_TABLE PortList;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
-extern std::deque<DNSCACHE_DATA> DNSCacheList;
+extern std::deque<PORT_TABLE> PortList;
+//extern std::deque<DNSCACHE_DATA> DNSCacheList;
 extern std::mutex CaptureLock, PortListLock;
 std::string PcapFilterRules;
 std::vector<std::string> PcapRunning;
@@ -35,4 +35,4 @@ size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint1
 bool __fastcall ICMPCheck(const PSTR Buffer, const size_t Length, const uint16_t Protocol);
 bool __fastcall TCPCheck(const PSTR Buffer);
 //size_t __fastcall DNSMethod(const PSTR Recv, const size_t Length, const uint16_t Protocol);
-size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length, const uint16_t Port);
+size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length, const uint16_t Protocol, const uint16_t Port);

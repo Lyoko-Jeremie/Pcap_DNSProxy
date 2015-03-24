@@ -56,7 +56,7 @@ size_t __fastcall CaptureInit(void)
 	//Permissions check and check available network devices.
 		if (pThedevs == nullptr)
 		{
-			PrintError(LOG_ERROR_WINPCAP, L"Insufficient permissions or no any available network devices", 0, nullptr, 0);
+			PrintError(LOG_ERROR_WINPCAP, L"Insufficient privileges or no any available network devices", 0, nullptr, 0);
 
 			Sleep(PCAP_DEVICESRECHECK_TIME * SECOND_TO_MILLISECOND);
 			continue;
@@ -74,7 +74,6 @@ size_t __fastcall CaptureInit(void)
 			//Scan all devices.
 				while (pDrive != nullptr)
 				{
-//					Sleep(LOOP_INTERVAL_TIME);
 					CaptureMutex.lock();
 					for (CaptureIter = PcapRunning.begin();CaptureIter != PcapRunning.end();CaptureIter++)
 					{
@@ -147,7 +146,7 @@ void __fastcall FilterRulesInit(std::string &FilterRules)
 			BufferLength = ADDR_STRING_MAXSIZE;
 			SockAddr->ss_family = AF_INET6;
 			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr;
-			WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
+			WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
 		}
 	#endif
 
@@ -172,7 +171,7 @@ void __fastcall FilterRulesInit(std::string &FilterRules)
 			BufferLength = ADDR_STRING_MAXSIZE;
 			SockAddr->ss_family = AF_INET6;
 			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr;
-			WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
+			WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
 		}
 	#endif
 
@@ -199,7 +198,7 @@ void __fastcall FilterRulesInit(std::string &FilterRules)
 				BufferLength = ADDR_STRING_MAXSIZE;
 				SockAddr->ss_family = AF_INET6;
 				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = DNSServerDataIter.AddressData.IPv6.sin6_addr;
-				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
+				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
 			}
 		#endif
 
@@ -225,7 +224,7 @@ void __fastcall FilterRulesInit(std::string &FilterRules)
 			BufferLength = ADDR_STRING_MAXSIZE;
 			SockAddr->ss_family = AF_INET;
 			((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr;
-			WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
+			WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
 		}
 	#endif
 
@@ -250,7 +249,7 @@ void __fastcall FilterRulesInit(std::string &FilterRules)
 			BufferLength = ADDR_STRING_MAXSIZE;
 			SockAddr->ss_family = AF_INET;
 			((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr;
-			WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
+			WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
 		}
 	#endif
 
@@ -277,7 +276,7 @@ void __fastcall FilterRulesInit(std::string &FilterRules)
 				BufferLength = ADDR_STRING_MAXSIZE;
 				SockAddr->ss_family = AF_INET;
 				((PSOCKADDR_IN)SockAddr.get())->sin_addr = DNSServerDataIter.AddressData.IPv4.sin_addr;
-				WSAAddressToStringA((LPSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
+				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
 			}
 		#endif
 
@@ -634,7 +633,7 @@ size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint1
 				if ((size_t)IPv6_Header->HopLimit + (size_t)Parameter.HopLimitFluctuation > (size_t)PacketSource->HopLimitData.HopLimit && (size_t)IPv6_Header->HopLimit < (size_t)PacketSource->HopLimitData.HopLimit + (size_t)Parameter.HopLimitFluctuation)
 				{
 //					DNSMethod(Buffer.get() + sizeof(ipv6_hdr), ntohs(IPv6_Header->PayloadLength), AF_INET6);
-					MatchPortToSend(Buffer.get() + sizeof(ipv6_hdr) + sizeof(udp_hdr), ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), UDP_Header->DstPort);
+					MatchPortToSend(Buffer.get() + sizeof(ipv6_hdr) + sizeof(udp_hdr), ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), AF_INET6, UDP_Header->DstPort);
 					Parameter.TunnelAvailable_IPv6 = false;
 					return EXIT_SUCCESS;
 				}
@@ -651,11 +650,11 @@ size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint1
 
 	//Mark source of packet.
 		PDNS_SERVER_DATA PacketSource = nullptr;
-		if (IPv4_Header->Src.S_un.S_addr == Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.S_un.S_addr)
+		if (IPv4_Header->Src.s_addr == Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.s_addr)
 		{
 			PacketSource = &Parameter.DNSTarget.IPv4;
 		}
-		else if (IPv4_Header->Src.S_un.S_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.S_un.S_addr)
+		else if (IPv4_Header->Src.s_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr)
 		{
 			PacketSource = &Parameter.DNSTarget.Alternate_IPv4;
 		}
@@ -663,7 +662,7 @@ size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint1
 		{
 			for (size_t Index = 0;Index < Parameter.DNSTarget.IPv4_Multi->size();Index++)
 			{
-				if (IPv4_Header->Src.S_un.S_addr == Parameter.DNSTarget.IPv4_Multi->at(Index).AddressData.IPv4.sin_addr.S_un.S_addr)
+				if (IPv4_Header->Src.s_addr == Parameter.DNSTarget.IPv4_Multi->at(Index).AddressData.IPv4.sin_addr.s_addr)
 				{
 					PacketSource = &Parameter.DNSTarget.IPv4_Multi->at(Index);
 					break;
@@ -742,7 +741,7 @@ size_t __fastcall NetworkLayer(const PSTR Recv, const size_t Length, const uint1
 				if ((size_t)IPv4_Header->TTL + (size_t)Parameter.HopLimitFluctuation > (size_t)PacketSource->HopLimitData.TTL && (size_t)IPv4_Header->TTL < (size_t)PacketSource->HopLimitData.TTL + (size_t)Parameter.HopLimitFluctuation)
 				{
 //					DNSMethod(Buffer.get() + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, AF_INET);
-					MatchPortToSend(Buffer.get() + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(udp_hdr), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES - sizeof(udp_hdr), UDP_Header->DstPort);
+					MatchPortToSend(Buffer.get() + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(udp_hdr), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES - sizeof(udp_hdr), AF_INET, UDP_Header->DstPort);
 					return EXIT_SUCCESS;
 				}
 			}
@@ -827,67 +826,113 @@ size_t __fastcall DNSMethod(const PSTR Recv, const size_t Length , const uint16_
 */
 
 //Match port of responses and send responses to system sockets process
-size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length, const uint16_t Port)
+size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length, const uint16_t Protocol, const uint16_t Port)
 {
 //Initialization
-	std::shared_ptr<SOCKET_DATA> RequesterData(new SOCKET_DATA());
-	memset(RequesterData.get(), 0, sizeof(SOCKET_DATA));
-	size_t Index = 0;
+	std::shared_ptr<SOCKET_DATA> SystemData(new SOCKET_DATA());
+	memset(SystemData.get(), 0, sizeof(SOCKET_DATA));
+	uint16_t SystemProtocol = 0;
 
 //Match port.
 	std::unique_lock<std::mutex> PortListMutex(PortListLock);
-	for (Index = 0;Index < QUEUE_MAXLEN * QUEUE_PARTNUM;Index++)
+	for (auto PortTableIter:PortList)
 	{
-		if (PortList.RecvData[Index].AddrLen != 0)
+		for (auto SocketDataIter:PortTableIter.RequestData)
 		{
-			for (auto SocketDataIter = PortList.SendData[Index].begin();SocketDataIter != PortList.SendData[Index].end();SocketDataIter++)
+			if (Protocol == AF_INET6 && SocketDataIter.AddrLen == sizeof(sockaddr_in6) && SocketDataIter.SockAddr.ss_family == AF_INET6 && 
+				Port == ((PSOCKADDR_IN6)&SocketDataIter.SockAddr)->sin6_port || //IPv6
+				Protocol == AF_INET && SocketDataIter.AddrLen == sizeof(sockaddr_in) && SocketDataIter.SockAddr.ss_family == AF_INET &&
+				Port == ((PSOCKADDR_IN)&SocketDataIter.SockAddr)->sin_port) //IPv4
 			{
-			//IPv6
-				if (SocketDataIter->AddrLen == sizeof(sockaddr_in6) && SocketDataIter->SockAddr.ss_family == AF_INET6)
-				{
-					if (Port == ((PSOCKADDR_IN6)&SocketDataIter->SockAddr)->sin6_port)
-					{
-						AlternateSwapList.PcapAlternateTimeout[Index] = 0;
-						*RequesterData = PortList.RecvData[Index];
-						memset(&PortList.RecvData[Index], 0, sizeof(SOCKET_DATA));
-						PortList.SendData[Index].clear();
-						PortList.SendData[Index].shrink_to_fit();
+				*SystemData = PortTableIter.SystemData;
+				SystemProtocol = PortTableIter.NetworkLayer;
 
-						goto StopLoop;
-					}
-				}
-			//IPv4
-				else if (SocketDataIter->AddrLen == sizeof(sockaddr_in) && SocketDataIter->SockAddr.ss_family == AF_INET)
-				{
-					if (Port == ((PSOCKADDR_IN)&SocketDataIter->SockAddr)->sin_port)
-					{
-						AlternateSwapList.PcapAlternateTimeout[Index] = 0;
-						*RequesterData = PortList.RecvData[Index];
-						memset(&PortList.RecvData[Index], 0, sizeof(SOCKET_DATA));
-						PortList.SendData[Index].clear();
-						PortList.SendData[Index].shrink_to_fit();
-
-						goto StopLoop;
-					}
-				}
+				goto StopLoop;
 			}
 		}
 	}
 
-//Stop loop.
+//Stop loop and clear timeout data.
+//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
 	StopLoop: 
+#ifdef _WIN64
+	while (!PortList.empty() && PortList.front().ClearPortTime <= GetTickCount64())
+	{
+	//Mark timeout.
+		if (PortList.front().NetworkLayer == AF_INET6) //IPv6
+		{
+			if (PortList.front().TransportLayer == IPPROTO_TCP) //TCP
+				AlternateSwapList.TimeoutTimes[0]++;
+			else //UDP
+				AlternateSwapList.TimeoutTimes[2U]++;
+		}
+		else if (PortList.front().NetworkLayer == AF_INET) //IPv4
+		{
+			if (PortList.front().TransportLayer == IPPROTO_TCP) //TCP
+				AlternateSwapList.TimeoutTimes[1U]++;
+			else //UDP
+				AlternateSwapList.TimeoutTimes[3U]++;
+		}
+
+		PortList.pop_front();
+	}
+#else //x86
+	if (Parameter.GetTickCount64PTR != nullptr)
+	{
+		while (!PortList.empty() && PortList.front().ClearPortTime <= (size_t)((*Parameter.GetTickCount64PTR)()))
+		{
+		//Mark timeout.
+			if (PortList.front().NetworkLayer == AF_INET6) //IPv6
+			{
+				if (PortList.front().TransportLayer == IPPROTO_TCP) //TCP
+					AlternateSwapList.TimeoutTimes[0]++;
+				else //UDP
+					AlternateSwapList.TimeoutTimes[2U]++;
+			}
+			else if (PortList.front().NetworkLayer == AF_INET) //IPv4
+			{
+				if (PortList.front().TransportLayer == IPPROTO_TCP) //TCP
+					AlternateSwapList.TimeoutTimes[1U]++;
+				else //UDP
+					AlternateSwapList.TimeoutTimes[3U]++;
+			}
+
+			PortList.pop_front();
+		}
+	}
+	else {
+		while (!PortList.empty() && PortList.front().ClearPortTime <= GetTickCount())
+		{
+		//Mark timeout.
+			if (PortList.front().NetworkLayer == AF_INET6) //IPv6
+			{
+				if (PortList.front().TransportLayer == IPPROTO_TCP) //TCP
+					AlternateSwapList.TimeoutTimes[0]++;
+				else //UDP
+					AlternateSwapList.TimeoutTimes[2U]++;
+			}
+			else if (PortList.front().NetworkLayer == AF_INET) //IPv4
+			{
+				if (PortList.front().TransportLayer == IPPROTO_TCP) //TCP
+					AlternateSwapList.TimeoutTimes[1U]++;
+				else //UDP
+					AlternateSwapList.TimeoutTimes[3U]++;
+			}
+
+			PortList.pop_front();
+		}
+	}
+#endif
 	PortListMutex.unlock();
 
-//Drop resopnses which not in PortList.
-	if (RequesterData->Socket == 0 || RequesterData->AddrLen == 0 || RequesterData->SockAddr.ss_family == 0)
+//Drop resopnses which not in PortList and mark DNS Cache.
+	if (SystemData->Socket == 0 || SystemData->AddrLen == 0 || SystemData->SockAddr.ss_family == 0 || SystemProtocol == 0)
 		return EXIT_FAILURE;
-
-//Mark DNS Cache.
 	if (Parameter.CacheType > 0)
 		MarkDomainCache(Buffer, Length);
 
 //Send to localhost.
-	if (Index >= QUEUE_MAXLEN * QUEUE_PARTNUM / 2U) //TCP area
+	if (SystemProtocol == IPPROTO_TCP)
 	{
 		std::shared_ptr<char> RecvBuffer(new char[Length + sizeof(uint16_t)]());
 		memset(RecvBuffer.get(), 0, Length + sizeof(uint16_t));
@@ -896,9 +941,9 @@ size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length, const 
 		if (AddLengthToTCPDNSHeader(RecvBuffer.get(), Length, Length + sizeof(uint16_t)) == EXIT_FAILURE)
 			return EXIT_FAILURE;
 
-		send(RequesterData->Socket, RecvBuffer.get(), (int)(Length + sizeof(uint16_t)), 0);
-		shutdown(RequesterData->Socket, SD_BOTH);
-		closesocket(RequesterData->Socket);
+		send(SystemData->Socket, RecvBuffer.get(), (int)(Length + sizeof(uint16_t)), 0);
+		shutdown(SystemData->Socket, SD_BOTH);
+		closesocket(SystemData->Socket);
 		return EXIT_SUCCESS;
 	}
 	else { //UDP
@@ -920,19 +965,21 @@ size_t __fastcall MatchPortToSend(const PSTR Buffer, const size_t Length, const 
 		}
 		else {
 */
-		sendto(RequesterData->Socket, Buffer, (int)Length, 0, (PSOCKADDR)&RequesterData->SockAddr, RequesterData->AddrLen);
+		sendto(SystemData->Socket, Buffer, (int)Length, 0, (PSOCKADDR)&SystemData->SockAddr, SystemData->AddrLen);
 //		}
 	}
 
 //Close all sockets.
 	if (Parameter.LocalSocket != nullptr && !Parameter.LocalSocket->empty())
-	for (auto SocketIter:*Parameter.LocalSocket)
 	{
-		if (SocketIter == RequesterData->Socket)
-			return EXIT_SUCCESS;
+		for (auto SocketIter:*Parameter.LocalSocket)
+		{
+			if (SocketIter == SystemData->Socket)
+				return EXIT_SUCCESS;
+		}
 	}
 
-	shutdown(RequesterData->Socket, SD_BOTH);
-	closesocket(RequesterData->Socket);
+	shutdown(SystemData->Socket, SD_BOTH);
+	closesocket(SystemData->Socket);
 	return EXIT_SUCCESS;
 }

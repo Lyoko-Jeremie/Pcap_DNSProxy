@@ -30,5 +30,5 @@ HANDLE ServiceEvent = nullptr;
 size_t WINAPI ServiceControl(const DWORD dwControlCode);
 BOOL WINAPI ExecuteService(void);
 void WINAPI TerminateService(void);
-DWORD WINAPI ServiceProc(LPVOID lpParameter);
+DWORD WINAPI ServiceProc(PVOID lpParameter);
 BOOL WINAPI UpdateServiceStatus(const DWORD dwCurrentState, const DWORD dwWin32ExitCode, const DWORD dwServiceSpecificExitCode, const DWORD dwCheckPoint, const DWORD dwWaitHint);

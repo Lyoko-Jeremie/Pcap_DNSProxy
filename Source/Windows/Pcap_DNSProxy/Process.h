@@ -21,23 +21,18 @@
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
-extern PORT_TABLE PortList;
-extern ALTERNATE_SWAP_TABLE AlternateSwapList;
+//extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
 extern std::vector<HOSTS_TABLE> *HostsListUsing;
+//extern std::deque<PORT_TABLE> PortList;
 extern std::deque<DNSCACHE_DATA> DNSCacheList;
-extern std::mutex LocalAddressLock[QUEUE_PARTNUM / 2U], HostsListLock, DNSCacheListLock;
-/* Old version(2014-09-13)
-static const std::regex IPv4PrivateB(".(1[6-9]|2[0-9]|3[01]).172.in-addr.arpa", std::regex_constants::extended);
-static const std::regex IPv6ULA(".f.[cd].([0-9]|[a-f]).([0-9]|[a-f]).ip6.arpa", std::regex_constants::extended);
-static const std::regex IPv6LUC(".f.f.([89]|[ab]).([0-9]|[a-f]).ip6.arpa", std::regex_constants::extended);
-*/
+extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM], HostsListLock, DNSCacheListLock;
 
 //Functions
 size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Result, const size_t ResultSize, bool &IsLocal);
-size_t __fastcall LocalRequestProcess(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA TargetData);
-size_t __fastcall DirectRequestProcess(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA TargetData);
-size_t __fastcall DNSCurveRequestProcess(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA TargetData);
-size_t __fastcall TCPRequestProcess(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA TargetData);
-size_t __fastcall UDPRequestProcess(const PSTR OriginalSend, const size_t SendSize, const uint16_t Protocol, const SOCKET_DATA TargetData, const size_t ListIndex);
-size_t __fastcall SendToRequester(PSTR RecvBuffer, const size_t RecvSize, const uint16_t Protocol, const SOCKET_DATA TargetData);
+size_t __fastcall LocalRequestProcess(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA LocalSocketData);
+size_t __fastcall DirectRequestProcess(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA LocalSocketData);
+size_t __fastcall DNSCurveRequestProcess(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA LocalSocketData);
+size_t __fastcall TCPRequestProcess(const PSTR OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA LocalSocketData);
+size_t __fastcall UDPRequestProcess(const PSTR OriginalSend, const size_t SendSize, const SOCKET_DATA LocalSocketData, const uint16_t Protocol /* , const size_t ListIndex */ );
+size_t __fastcall SendToRequester(PSTR RecvBuffer, const size_t RecvSize, const uint16_t Protocol, const SOCKET_DATA LocalSocketData);
