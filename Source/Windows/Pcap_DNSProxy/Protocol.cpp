@@ -542,7 +542,7 @@ size_t __fastcall GetNetworkingInformation(void)
 
 				//Convert from in6_addr to string.
 					size_t AddrStringLen = 0;
-					for (Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);Index++)
+					for (Index = 0;Index < (SSIZE_T)(sizeof(in6_addr) / sizeof(uint16_t));Index++)
 					{
 						_ultoa_s(htons(((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr.s6_words[Index]), Addr.get(), ADDR_STRING_MAXSIZE, NUM_HEX);
 
@@ -560,7 +560,7 @@ size_t __fastcall GetNetworkingInformation(void)
 						memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 
 					//Last
-						if (Index < sizeof(in6_addr) / sizeof(uint16_t) - 1U)
+						if (Index < (SSIZE_T)(sizeof(in6_addr) / sizeof(uint16_t) - 1U))
 							DNSPTRString.append(":");
 					}
 

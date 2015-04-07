@@ -5,6 +5,8 @@
 @echo off
 
 :: Get Administrator Privileges
+:: Author: Evan Greene
+:: https://sites.google.com/site/eneerge/home/BatchGotAdmin
 >nul 2>&1 "%SystemRoot%\system32\cacls.exe" "%SystemRoot%\system32\config\system"
 if '%errorlevel%' NEQ '0' (
 	echo Requesting Administrative Privileges...
@@ -74,9 +76,9 @@ set /p UserChoice="Choose: "
 		if not exist Fciv.exe (goto WARNING)
 		if not exist Pcap_DNSProxy.exe (goto WARNING)
 		if not exist Pcap_DNSProxy_x86.exe (goto WARNING)
-		Fciv -sha1 Pcap_DNSProxy.exe |findstr /I 0F8E240CEEA73B0CCA3C8317E8EDEDE23A0A6958 > NUL
+		Fciv -sha1 Pcap_DNSProxy.exe |findstr /I E04DB399224E21FBB950B81E32B39D95D1E93D20 > NUL
 		if ERRORLEVEL 1 (goto WARNING)
-		Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 0C2DD38112DEAFE529D461EFE8BFA39D43D4A669 > NUL
+		Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I 4717CD9E93D6D92D56A0671AD843CE918C352A91 > NUL
 		if ERRORLEVEL 1 (goto WARNING)
 	)
 	goto CHOICE
@@ -107,14 +109,14 @@ goto %UserChoice%
 	sc create PcapDNSProxyService binPath= "%~dp0Pcap_DNSProxy_x86.exe" DisplayName= "PcapDNSProxy Service" start= auto
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v Application /d "%~dp0Pcap_DNSProxy_x86.exe" /f
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v AppDirectory /d "%~dp0" /f
-	Pcap_DNSProxy_x86 --FirstStart
+	Pcap_DNSProxy_x86.exe --FirstStart
 	goto Exit
 
 	:X64
 	sc create PcapDNSProxyService binPath= "%~dp0Pcap_DNSProxy.exe" DisplayName= "PcapDNSProxy Service" start= auto
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v Application /d "%~dp0Pcap_DNSProxy.exe" /f
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v AppDirectory /d "%~dp0" /f
-	Pcap_DNSProxy --FirstStart
+	Pcap_DNSProxy.exe --FirstStart
 
 	:Exit
 	sc description PcapDNSProxyService "A local DNS server base on WinPcap and LibPcap."

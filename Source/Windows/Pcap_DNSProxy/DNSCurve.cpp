@@ -347,7 +347,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 					RecvLen = recv(TCPSocket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, 0);
 
 				//TCP segment of a reassembled PDU
-					if (RecvLen < DNS_PACKET_MINSIZE)
+					if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 					{
 						if (RecvLen > 0 && htons(((uint16_t *)RecvBuffer.get())[0]) >= DNS_PACKET_MINSIZE)
 						{
@@ -371,7 +371,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 					}
 					else {
 					//Length check.
-						if ((SSIZE_T)PDULen > RecvLen)
+						if (RecvLen < (SSIZE_T)PDULen)
 						{
 							if (ServerType == DNSCURVE_IPV6_MAIN)
 								PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
@@ -388,11 +388,11 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 						else if (PDULen > 0)
 						{
 						//Jump to normal receive process.
-							if (PDULen >= DNS_PACKET_MINSIZE)
+							if (PDULen >= (SSIZE_T)DNS_PACKET_MINSIZE)
 							{
 								shutdown(TCPSocket, SD_BOTH);
 								closesocket(TCPSocket);
-								RecvLen = (SSIZE_T)PDULen;
+								RecvLen = PDULen;
 
 								goto JumpFromPDU;
 							}
@@ -411,7 +411,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 					//First receive.
 						else {
 						//Length check
-							if ((SSIZE_T)ntohs(((uint16_t *)RecvBuffer.get())[0]) > RecvLen)
+							if (RecvLen < (SSIZE_T)ntohs(((uint16_t *)RecvBuffer.get())[0]))
 							{
 								if (ServerType == DNSCURVE_IPV6_MAIN)
 									PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
@@ -428,7 +428,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 								shutdown(TCPSocket, SD_BOTH);
 								closesocket(TCPSocket);
 
-								RecvLen = (SSIZE_T)ntohs(((uint16_t *)RecvBuffer.get())[0]);
+								RecvLen = ntohs(((uint16_t *)RecvBuffer.get())[0]);
 								if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
 								{
 //									memmove(RecvBuffer.get(), RecvBuffer.get() + sizeof(uint16_t), RecvLen);
@@ -1051,7 +1051,7 @@ size_t __fastcall DNSCurveTCPRequest(const PSTR OriginalSend, const size_t SendS
 				RecvLen = recv(TCPSocket, OriginalRecv, (int)RecvSize, 0);
 
 			//TCP segment of a reassembled PDU
-				if (RecvLen > 0 && RecvLen < DNS_PACKET_MINSIZE)
+				if (RecvLen > 0 && RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 				{
 					if (htons(((uint16_t *)OriginalRecv)[0]) >= DNS_PACKET_MINSIZE)
 					{
@@ -1066,7 +1066,7 @@ size_t __fastcall DNSCurveTCPRequest(const PSTR OriginalSend, const size_t SendS
 				}
 				else {
 				//Length check.
-					if ((SSIZE_T)PDULen > RecvLen)
+					if (RecvLen < (SSIZE_T)PDULen)
 					{
 						break;
 					}
@@ -1079,7 +1079,7 @@ size_t __fastcall DNSCurveTCPRequest(const PSTR OriginalSend, const size_t SendS
 					//Jump to normal receive process.
 						if (PDULen >= DNS_PACKET_MINSIZE)
 						{
-							RecvLen = (SSIZE_T)PDULen;
+							RecvLen = PDULen;
 							goto JumpFromPDU;
 						}
 
@@ -1089,7 +1089,7 @@ size_t __fastcall DNSCurveTCPRequest(const PSTR OriginalSend, const size_t SendS
 				//First receive.
 					else {
 					//Length check
-						if ((SSIZE_T)ntohs(((uint16_t *)OriginalRecv)[0]) > RecvLen)
+						if (RecvLen < (SSIZE_T)ntohs(((uint16_t *)OriginalRecv)[0]))
 						{
 							break;
 						}
@@ -1097,7 +1097,7 @@ size_t __fastcall DNSCurveTCPRequest(const PSTR OriginalSend, const size_t SendS
 							shutdown(TCPSocket, SD_BOTH);
 							closesocket(TCPSocket);
 
-							RecvLen = (SSIZE_T)ntohs(((uint16_t *)OriginalRecv)[0]);
+							RecvLen = ntohs(((uint16_t *)OriginalRecv)[0]);
 //							memmove(OriginalRecv, OriginalRecv + sizeof(uint16_t), RecvLen);
 							memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(uint16_t), RecvLen);
 							if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
@@ -1122,7 +1122,7 @@ size_t __fastcall DNSCurveTCPRequest(const PSTR OriginalSend, const size_t SendS
 									if (crypto_box_curve25519xsalsa20poly1305_open_afternm(
 										(PUCHAR)OriginalRecv, 
 										(PUCHAR)OriginalRecv, 
-										RecvLen + crypto_box_BOXZEROBYTES - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), 
+										RecvLen + crypto_box_BOXZEROBYTES - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES),
 										WholeNonce.get(), 
 										PacketTarget->PrecomputationKey) != 0)
 									{
@@ -1722,7 +1722,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const PSTR OriginalSend, const size_t 
 					RecvLen = recv(TCPSocketDataList[Index].Socket, OriginalRecv, (int)RecvSize, 0);
 
 				//TCP segment of a reassembled PDU
-					if (RecvLen < DNS_PACKET_MINSIZE)
+					if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 					{
 						if (RecvLen > 0 && htons(((uint16_t *)OriginalRecv)[0]) >= DNS_PACKET_MINSIZE)
 						{
@@ -1740,7 +1740,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const PSTR OriginalSend, const size_t 
 					}
 					else {
 					//Length check.
-						if ((SSIZE_T)PDULenList[Index] > RecvLen)
+						if (RecvLen < (SSIZE_T)PDULenList[Index])
 						{
 							shutdown(TCPSocketDataList[Index].Socket, SD_BOTH);
 							closesocket(TCPSocketDataList[Index].Socket);
@@ -1756,7 +1756,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const PSTR OriginalSend, const size_t 
 							//Jump to normal receive process.
 								if (PDULenList[Index] >= DNS_PACKET_MINSIZE)
 								{
-									RecvLen = (SSIZE_T)PDULenList[Index];
+									RecvLen = PDULenList[Index];
 									goto JumpFromPDU;
 								}
 
@@ -1767,7 +1767,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const PSTR OriginalSend, const size_t 
 					//First receive.
 						else {
 						//Length check
-							if ((SSIZE_T)ntohs(((uint16_t *)OriginalRecv)[0]) > RecvLen)
+							if (RecvLen < (SSIZE_T)ntohs(((uint16_t *)OriginalRecv)[0]))
 							{
 								shutdown(TCPSocketDataList[Index].Socket, SD_BOTH);
 								closesocket(TCPSocketDataList[Index].Socket);
@@ -1775,7 +1775,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const PSTR OriginalSend, const size_t 
 								break;
 							}
 							else {
-								RecvLen = (SSIZE_T)ntohs(((uint16_t *)OriginalRecv)[0]);
+								RecvLen = ntohs(((uint16_t *)OriginalRecv)[0]);
 								if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
 								{
 //									memmove(OriginalRecv, OriginalRecv + sizeof(uint16_t), RecvLen);

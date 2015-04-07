@@ -1006,7 +1006,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("Hop Limits/TTL Fluctuation = ") + 4U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("Hop Limits/TTL Fluctuation = "), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("Hop Limits/TTL Fluctuation = "), nullptr, 0);
 			if (errno != ERANGE && Result > 0 && Result < UINT8_MAX)
 				Parameter.HopLimitFluctuation = (uint8_t)Result;
 		}
@@ -1052,7 +1052,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 		{
 			if (Data.length() < strlen("Hosts=") + 6U)
 			{
-				Result = (SSIZE_T)strtoul(Data.c_str() + strlen("Hosts="), nullptr, 0);
+				Result = strtoul(Data.c_str() + strlen("Hosts="), nullptr, 0);
 				if (errno != ERANGE && Result >= SHORTEST_FILEREFRESH_TIME)
 					Parameter.FileRefreshTime = Result * SECOND_TO_MILLISECOND;
 				else if (Result > 0 && Result < SHORTEST_FILEREFRESH_TIME)
@@ -1177,7 +1177,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 		{
 			if (Data.length() < strlen("DomainTestSpeed=") + 6U)
 			{
-				Result = (SSIZE_T)strtoul(Data.c_str() + strlen("DomainTestSpeed="), nullptr, 0);
+				Result = strtoul(Data.c_str() + strlen("DomainTestSpeed="), nullptr, 0);
 				if (errno != ERANGE && Result > 0)
 					Parameter.DomainTestSpeed = Result * SECOND_TO_MILLISECOND;
 			}
@@ -1191,7 +1191,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("FileRefreshTime=") + 6U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("FileRefreshTime="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("FileRefreshTime="), nullptr, 0);
 			if (errno != ERANGE && Result >= SHORTEST_FILEREFRESH_TIME)
 				Parameter.FileRefreshTime = Result * SECOND_TO_MILLISECOND;
 			else if (Result > 0 && Result < SHORTEST_FILEREFRESH_TIME)
@@ -1332,7 +1332,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("PrintRunningLog=") + 2U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("PrintRunningLog="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("PrintRunningLog="), nullptr, 0);
 			if (errno != ERANGE && Result > LOG_STATUS_CLOSED)
 			{
 				Parameter.PrintStatus = Result;
@@ -1378,7 +1378,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("RunningLogRefreshTime=") + 6U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("RunningLogRefreshTime="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("RunningLogRefreshTime="), nullptr, 0);
 			if (errno != ERANGE && Result >= SHORTEST_FILEREFRESH_TIME)
 				Parameter.RunningLogRefreshTime = Result * SECOND_TO_MILLISECOND;
 			else if (Result > 0 && Result < SHORTEST_FILEREFRESH_TIME)
@@ -1398,7 +1398,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 			Data.erase(Data.length() - 2U, 2U);
 
 		//Mark bytes.
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
 			if (errno != ERANGE && Result >= 0)
 			{
 				Parameter.LogMaxSize = Result * KILOBYTE_TIMES;
@@ -1413,7 +1413,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 			Data.erase(Data.length() - 2U, 2U);
 
 		//Mark bytes.
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
 			if (errno != ERANGE && Result >= 0)
 			{
 				Parameter.LogMaxSize = Result * MEGABYTE_TIMES;
@@ -1428,7 +1428,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 			Data.erase(Data.length() - 2U, 2U);
 
 		//Mark bytes.
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
 			if (errno != ERANGE && Result >= 0)
 			{
 				Parameter.LogMaxSize = Result * GIGABYTE_TIMES;
@@ -1450,7 +1450,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 			}
 
 		//Mark bytes.
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
 			if (errno != ERANGE && Result >= 0)
 			{
 				Parameter.LogMaxSize = Result;
@@ -1495,7 +1495,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	}
 	else if (Parameter.CacheType > 0 && Data.find("CacheParameter=") == 0 && Data.length() > strlen("CacheParameter="))
 	{
-		Result = (SSIZE_T)strtoul(Data.c_str() + strlen("CacheParameter="), nullptr, 0);
+		Result = strtoul(Data.c_str() + strlen("CacheParameter="), nullptr, 0);
 		if (errno != ERANGE && Result > 0)
 		{
 			if (Parameter.CacheType == CACHE_TIMER)
@@ -1512,7 +1512,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("DefaultTTL=") + 6U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("DefaultTTL="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("DefaultTTL="), nullptr, 0);
 			if (errno != ERANGE && Result > 0 && Result <= UINT16_MAX)
 			{
 				Parameter.HostsDefaultTTL = (uint32_t)Result;
@@ -1582,7 +1582,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 					Result = ServiceNameToHex((PSTR)PortString.c_str());
 					if (Result == 0)
 					{
-						Result = (SSIZE_T)strtoul(PortString.c_str(), nullptr, 0);
+						Result = strtoul(PortString.c_str(), nullptr, 0);
 						if (errno != ERANGE && Result > 0 && Result <= UINT16_MAX)
 						{
 							Parameter.ListenPort->push_back(htons((uint16_t)Result));
@@ -1600,7 +1600,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 					Result = ServiceNameToHex((PSTR)PortString.c_str());
 					if (Result == 0)
 					{
-						Result = (SSIZE_T)strtoul(PortString.c_str(), nullptr, 0);
+						Result = strtoul(PortString.c_str(), nullptr, 0);
 						if (errno != ERANGE && Result > 0 && Result <= UINT16_MAX)
 						{
 							Parameter.ListenPort->push_back(htons((uint16_t)Result));
@@ -1623,7 +1623,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 			Result = ServiceNameToHex((PSTR)Data.c_str() + strlen("ListenPort="));
 			if (Result == 0)
 			{
-				Result = (SSIZE_T)strtoul(Data.c_str() + strlen("ListenPort="), nullptr, 0);
+				Result = strtoul(Data.c_str() + strlen("ListenPort="), nullptr, 0);
 				if (errno != ERANGE && Result > 0 && Result <= UINT16_MAX)
 				{
 					Parameter.ListenPort->push_back(htons((uint16_t)Result));
@@ -1643,7 +1643,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("IPFilterLevel<") + 4U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("IPFilterLevel<"), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("IPFilterLevel<"), nullptr, 0);
 			if (errno != ERANGE && Result > 0 && Result <= UINT16_MAX)
 			{
 				Parameter.IPFilterLevel = (size_t)Result;
@@ -1685,7 +1685,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 				if (Result == 0)
 				{
 				//Number types
-					Result = (SSIZE_T)strtoul(TypeString.c_str(), nullptr, 0);
+					Result = strtoul(TypeString.c_str(), nullptr, 0);
 					if (errno != ERANGE && Result > 0 && Result <= UINT16_MAX)
 					{
 						Parameter.AcceptTypeList->push_back(htons((uint16_t)Result));
@@ -1712,7 +1712,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 						if (Result == 0) 
 						{
 						//Number types
-							Result = (SSIZE_T)strtoul(TypeString.c_str(), nullptr, 0);
+							Result = strtoul(TypeString.c_str(), nullptr, 0);
 							if (errno != ERANGE && Result > 0 && Result <= UINT16_MAX)
 							{
 								Parameter.AcceptTypeList->push_back(htons((uint16_t)Result));
@@ -1733,7 +1733,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 						if (Result == 0)
 						{
 						//Number types
-							Result = (SSIZE_T)strtoul(TypeString.c_str(), nullptr, 0);
+							Result = strtoul(TypeString.c_str(), nullptr, 0);
 							if (errno != ERANGE && Result > 0 && Result <= UINT16_MAX)
 							{
 								Parameter.AcceptTypeList->push_back(htons((uint16_t)Result));
@@ -1812,7 +1812,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("EDNS0PayloadSize=") + 6U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("EDNS0PayloadSize="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("EDNS0PayloadSize="), nullptr, 0);
 			if (errno != ERANGE && Result >= 0)
 				Parameter.EDNS0PayloadSize = Result;
 		}
@@ -1845,7 +1845,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("HopLimitsFluctuation=") + 4U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("HopLimitsFluctuation="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("HopLimitsFluctuation="), nullptr, 0);
 			if (errno != ERANGE && Result > 0 && Result < UINT8_MAX)
 				Parameter.HopLimitFluctuation = (uint8_t)Result;
 		}
@@ -1858,7 +1858,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("ReliableSocketTimeout=") + 9U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("ReliableSocketTimeout="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("ReliableSocketTimeout="), nullptr, 0);
 			if (errno != ERANGE && Result > SOCKET_TIMEOUT_MIN)
 				Parameter.ReliableSocketTimeout = (int)Result;
 //			else 
@@ -1873,7 +1873,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("UnreliableSocketTimeout=") + 9U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("UnreliableSocketTimeout="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("UnreliableSocketTimeout="), nullptr, 0);
 			if (errno != ERANGE && Result > SOCKET_TIMEOUT_MIN)
 				Parameter.UnreliableSocketTimeout = (int)Result;
 //			else 
@@ -1888,7 +1888,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("ICMPTest=") + 6U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("ICMPTest="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("ICMPTest="), nullptr, 0);
 			if (errno != ERANGE && Result >= 5)
 				Parameter.ICMPSpeed = Result * SECOND_TO_MILLISECOND;
 			else if (Result > 0 && Result < DEFAULT_ICMPTEST_TIME)
@@ -1905,7 +1905,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("DomainTest=") + 6U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("DomainTest="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("DomainTest="), nullptr, 0);
 			if (errno != ERANGE && Result > 0)
 				Parameter.DomainTestSpeed = Result * SECOND_TO_MILLISECOND;
 		}
@@ -1919,7 +1919,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("AlternateTimes=") + 6U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("AlternateTimes="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("AlternateTimes="), nullptr, 0);
 			if (errno != ERANGE && Result > 0)
 				Parameter.AlternateTimes = Result;
 			else 
@@ -1934,7 +1934,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("AlternateTimeRange=") + 6U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("AlternateTimeRange="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("AlternateTimeRange="), nullptr, 0);
 			if (errno != ERANGE && Result >= DEFAULT_ALTERNATE_RANGE)
 				Parameter.AlternateTimeRange = Result * SECOND_TO_MILLISECOND;
 			else 
@@ -1949,7 +1949,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("AlternateResetTime=") + 6U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("AlternateResetTime="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("AlternateResetTime="), nullptr, 0);
 			if (errno != ERANGE && Result >= DEFAULT_ALTERNATERESET_TIME)
 				Parameter.AlternateResetTime = Result * SECOND_TO_MILLISECOND;
 			else 
@@ -1964,7 +1964,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("MultiRequestTimes=") + 6U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("MultiRequestTimes="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("MultiRequestTimes="), nullptr, 0);
 			if (errno != ERANGE && Result > 0)
 				Parameter.MultiRequestTimes = Result + 1U;
 		}
@@ -2024,7 +2024,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("ICMPID=") + 7U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("ICMPID="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("ICMPID="), nullptr, 0);
 			if (errno != ERANGE && Result > 0)
 				Parameter.ICMPID = htons((uint16_t)Result);
 		}
@@ -2037,7 +2037,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("ICMPSequence=") + 7U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("ICMPSequence="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("ICMPSequence="), nullptr, 0);
 			if (errno != ERANGE && Result > 0)
 				Parameter.ICMPSequence = htons((uint16_t)Result);
 		}
@@ -2063,7 +2063,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("DomainTestID=") + 7U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("DomainTestID="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("DomainTestID="), nullptr, 0);
 			if (errno != ERANGE && Result > 0)
 				Parameter.DomainTestID = htons((uint16_t)Result);
 		}
@@ -2124,7 +2124,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() > strlen("DNSCurvePayloadSize=") + 2U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("DNSCurvePayloadSize="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("DNSCurvePayloadSize="), nullptr, 0);
 			if (errno != ERANGE && Result > sizeof(eth_hdr) + sizeof(ipv4_hdr) + sizeof(udp_hdr) + sizeof(uint16_t) + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES)
 				DNSCurveParameter.DNSCurvePayloadSize = Result;
 		}
@@ -2145,7 +2145,7 @@ size_t __fastcall ReadParameterData(const PSTR Buffer, const size_t FileIndex, c
 	{
 		if (Data.length() < strlen("KeyRecheckTime=") + 6U)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + strlen("KeyRecheckTime="), nullptr, 0);
+			Result = strtoul(Data.c_str() + strlen("KeyRecheckTime="), nullptr, 0);
 			if (Result >= SHORTEST_DNSCURVE_RECHECK_TIME && Result < DEFAULT_DNSCURVE_RECHECK_TIME)
 				DNSCurveParameter.KeyRecheckTime = Result * SECOND_TO_MILLISECOND;
 			else 
@@ -3514,7 +3514,7 @@ size_t __fastcall ReadLocalRoutingData(std::string Data, const size_t FileIndex,
 		}
 
 	//Mark network prefix.
-		Result = (SSIZE_T)strtoul(Data.c_str(), nullptr, 0);
+		Result = strtoul(Data.c_str(), nullptr, 0);
 		if (Result <= 0 || Result > (SSIZE_T)(sizeof(in6_addr) * BYTES_TO_BITS))
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv6 Prefix error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
@@ -3538,7 +3538,7 @@ size_t __fastcall ReadLocalRoutingData(std::string Data, const size_t FileIndex,
 		}
 
 	//Mark network prefix.
-		Result = (SSIZE_T)strtoul(Data.c_str(), nullptr, 0);
+		Result = strtoul(Data.c_str(), nullptr, 0);
 		if (errno == ERANGE || Result <= 0 || Result > (SSIZE_T)(sizeof(in_addr) * BYTES_TO_BITS))
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv4 Prefix error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
@@ -3679,7 +3679,7 @@ size_t __fastcall ReadLocalRoutingData(std::string Data, const size_t FileIndex,
 		}
 
 	//Mark network prefix.
-		Result = (SSIZE_T)strtoul(Data.c_str(), nullptr, 0);
+		Result = strtoul(Data.c_str(), nullptr, 0);
 		if (Result <= 0 || Result > (SSIZE_T)(sizeof(in6_addr) * BYTES_TO_BITS))
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv6 Prefix error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
@@ -3752,7 +3752,7 @@ size_t __fastcall ReadLocalRoutingData(std::string Data, const size_t FileIndex,
 		}
 
 	//Mark network prefix.
-		Result = (SSIZE_T)strtoul(Data.c_str(), nullptr, 0);
+		Result = strtoul(Data.c_str(), nullptr, 0);
 		if (errno == ERANGE || Result <= 0 || Result > (SSIZE_T)(sizeof(in_addr) * BYTES_TO_BITS))
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv4 Prefix error", 0, (PWSTR)IPFilterFileList[FileIndex].FileName.c_str(), Line);
@@ -3856,7 +3856,7 @@ size_t __fastcall ReadMainIPFilterData(std::string Data, const size_t FileIndex,
 		memset(Level.get(), 0, ADDR_STRING_MAXSIZE);
 //		memcpy(Level.get(), Data.c_str() + Data.find(ASCII_COMMA) + 1U, Data.find(ASCII_COMMA, Data.find(ASCII_COMMA) + 1U) - Data.find(ASCII_COMMA) - 1U);
 		memcpy_s(Level.get(), ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COMMA) + 1U, Data.find(ASCII_COMMA, Data.find(ASCII_COMMA) + 1U) - Data.find(ASCII_COMMA) - 1U);
-		Result = (SSIZE_T)strtoul(Level.get(), nullptr, 0);
+		Result = strtoul(Level.get(), nullptr, 0);
 		if (errno != ERANGE && Result >= 0 && Result <= UINT16_MAX)
 		{
 			AddressRangeTableTemp.Level = (size_t)Result;
@@ -5378,7 +5378,7 @@ size_t __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, c
 					Result = ServiceNameToHex(Target.get());
 					if (Result == 0)
 					{
-						Result = (SSIZE_T)strtoul(Target.get(), nullptr, 0);
+						Result = strtoul(Target.get(), nullptr, 0);
 						if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
 						{
 							PrintError(LOG_ERROR_PARAMETER, L"IPv6 Listen port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
@@ -5422,7 +5422,7 @@ size_t __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, c
 				Result = ServiceNameToHex(Target.get());
 				if (Result == 0)
 				{
-					Result = (SSIZE_T)strtoul(Target.get(), nullptr, 0);
+					Result = strtoul(Target.get(), nullptr, 0);
 					if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
 					{
 						PrintError(LOG_ERROR_PARAMETER, L"IPv6 Listen port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
@@ -5451,7 +5451,7 @@ size_t __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, c
 				Result = ServiceNameToHex((PSTR)Data.c_str() + Data.find(ASCII_BRACKETS_TRAIL) + 2U);
 				if (Result == 0)
 				{
-					Result = (SSIZE_T)strtoul(Data.c_str() + Data.find(ASCII_BRACKETS_TRAIL) + 2U, nullptr, 0);
+					Result = strtoul(Data.c_str() + Data.find(ASCII_BRACKETS_TRAIL) + 2U, nullptr, 0);
 					if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
 					{
 						PrintError(LOG_ERROR_PARAMETER, L"IPv6 Listen port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
@@ -5512,7 +5512,7 @@ size_t __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, c
 					Result = ServiceNameToHex(Target.get());
 					if (Result == 0)
 					{
-						Result = (SSIZE_T)strtoul(Target.get(), nullptr, 0);
+						Result = strtoul(Target.get(), nullptr, 0);
 						if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
 						{
 							PrintError(LOG_ERROR_PARAMETER, L"IPv4 Listen port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
@@ -5556,7 +5556,7 @@ size_t __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, c
 				Result = ServiceNameToHex(Target.get());
 				if (Result == 0)
 				{
-					Result = (SSIZE_T)strtoul(Target.get(), nullptr, 0);
+					Result = strtoul(Target.get(), nullptr, 0);
 					if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
 					{
 						PrintError(LOG_ERROR_PARAMETER, L"IPv4 Listen port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
@@ -5587,7 +5587,7 @@ size_t __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, c
 				Result = ServiceNameToHex((PSTR)Data.c_str() + Data.find(ASCII_COLON) + 1U);
 				if (Result == 0)
 				{
-					Result = (SSIZE_T)strtoul(Data.c_str() + Data.find(ASCII_COLON) + 1U, nullptr, 0);
+					Result = strtoul(Data.c_str() + Data.find(ASCII_COLON) + 1U, nullptr, 0);
 					if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
 					{
 						PrintError(LOG_ERROR_PARAMETER, L"IPv4 Listen port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
@@ -5645,7 +5645,7 @@ size_t __fastcall ReadSingleAddress(std::string Data, const size_t DataOffset, s
 			Result = ServiceNameToHex((PSTR)Data.c_str() + Data.find(ASCII_BRACKETS_TRAIL) + 2U);
 			if (Result == 0)
 			{
-				Result = (SSIZE_T)strtoul(Data.c_str() + Data.find(ASCII_BRACKETS_TRAIL) + 2U, nullptr, 0);
+				Result = strtoul(Data.c_str() + Data.find(ASCII_BRACKETS_TRAIL) + 2U, nullptr, 0);
 				if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"DNS server IPv6 port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
@@ -5687,7 +5687,7 @@ size_t __fastcall ReadSingleAddress(std::string Data, const size_t DataOffset, s
 			Result = ServiceNameToHex((PSTR)Data.c_str() + Data.find(ASCII_COLON) + 1U);
 			if (Result == 0)
 			{
-				Result = (SSIZE_T)strtoul(Data.c_str() + Data.find(ASCII_COLON) + 1U, nullptr, 0);
+				Result = strtoul(Data.c_str() + Data.find(ASCII_COLON) + 1U, nullptr, 0);
 				if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"DNS server IPv4 port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
@@ -5762,7 +5762,7 @@ size_t __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffse
 					Result = ServiceNameToHex(Target.get());
 					if (Result == 0)
 					{
-						Result = (SSIZE_T)strtoul(Target.get(), nullptr, 0);
+						Result = strtoul(Target.get(), nullptr, 0);
 						if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
 						{
 							PrintError(LOG_ERROR_PARAMETER, L"DNS server IPv6 port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
@@ -5806,7 +5806,7 @@ size_t __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffse
 				Result = ServiceNameToHex(Target.get());
 				if (Result == 0)
 				{
-					Result = (SSIZE_T)strtoul(Target.get(), nullptr, 0);
+					Result = strtoul(Target.get(), nullptr, 0);
 					if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
 					{
 						PrintError(LOG_ERROR_PARAMETER, L"DNS server IPv6 port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
@@ -5835,7 +5835,7 @@ size_t __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffse
 				Result = ServiceNameToHex((PSTR)Data.c_str() + Data.find(ASCII_BRACKETS_TRAIL) + 2U);
 				if (Result == 0)
 				{
-					Result = (SSIZE_T)strtoul(Data.c_str() + Data.find(ASCII_BRACKETS_TRAIL) + 2U, nullptr, 0);
+					Result = strtoul(Data.c_str() + Data.find(ASCII_BRACKETS_TRAIL) + 2U, nullptr, 0);
 					if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
 					{
 						PrintError(LOG_ERROR_PARAMETER, L"DNS server IPv6 port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
@@ -5894,7 +5894,7 @@ size_t __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffse
 					Result = ServiceNameToHex(Target.get());
 					if (Result == 0)
 					{
-						Result = (SSIZE_T)strtoul(Target.get(), nullptr, 0);
+						Result = strtoul(Target.get(), nullptr, 0);
 						if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
 						{
 							PrintError(LOG_ERROR_PARAMETER, L"DNS server IPv4 port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
@@ -5938,7 +5938,7 @@ size_t __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffse
 				Result = ServiceNameToHex(Target.get());
 				if (Result == 0)
 				{
-					Result = (SSIZE_T)strtoul(Target.get(), nullptr, 0);
+					Result = strtoul(Target.get(), nullptr, 0);
 					if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
 					{
 						PrintError(LOG_ERROR_PARAMETER, L"DNS server IPv4 port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
@@ -5969,7 +5969,7 @@ size_t __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffse
 				Result = ServiceNameToHex((PSTR)Data.c_str() + Data.find(ASCII_COLON) + 1U);
 				if (Result == 0)
 				{
-					Result = (SSIZE_T)strtoul(Data.c_str() + Data.find(ASCII_COLON) + 1U, nullptr, 0);
+					Result = strtoul(Data.c_str() + Data.find(ASCII_COLON) + 1U, nullptr, 0);
 					if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
 					{
 						PrintError(LOG_ERROR_PARAMETER, L"DNS server IPv4 port error", 0, (PWSTR)ConfigFileList[FileIndex].c_str(), Line);
@@ -6000,7 +6000,7 @@ size_t __fastcall ReadHopLimitData(std::string Data, const size_t DataOffset, ui
 	{
 		if (Data.find(ASCII_VERTICAL) == std::string::npos)
 		{
-			Result = (SSIZE_T)strtoul(Data.c_str() + DataOffset, nullptr, 0);
+			Result = strtoul(Data.c_str() + DataOffset, nullptr, 0);
 			if (errno != ERANGE && Result > 0 && Result < UINT8_MAX)
 				HopLimit = (uint8_t)Result;
 		}
@@ -6016,7 +6016,7 @@ size_t __fastcall ReadHopLimitData(std::string Data, const size_t DataOffset, ui
 //				memcpy(Target.get(), Data.c_str(), Data.find(ASCII_VERTICAL));
 				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_VERTICAL));
 				Data.erase(0, Data.find(ASCII_VERTICAL) + 1U);
-				Result = (SSIZE_T)strtoul(Target.get(), nullptr, 0);
+				Result = strtoul(Target.get(), nullptr, 0);
 
 			//Mark TTL or HopLimit.
 				if (Protocol == AF_INET6) //IPv6
@@ -6036,7 +6036,7 @@ size_t __fastcall ReadHopLimitData(std::string Data, const size_t DataOffset, ui
 			memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 //			memcpy(Target.get(), Data.c_str(), Data.length());
 			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.length());
-			Result = (SSIZE_T)strtoul(Target.get(), nullptr, 0);
+			Result = strtoul(Target.get(), nullptr, 0);
 			if (Protocol == AF_INET6) //IPv6
 			{
 				if (errno != ERANGE && Result > 0 && Result < UINT8_MAX && Parameter.DNSTarget.IPv6_Multi->size() > Index)
@@ -6061,7 +6061,7 @@ size_t __fastcall ReadDNSCurveProviderName(std::string Data, const size_t DataOf
 {
 	if (Data.length() > DataOffset + DOMAIN_MINSIZE && Data.length() < DataOffset + DOMAIN_DATA_MAXSIZE)
 	{
-		for (SSIZE_T Result = DataOffset; Result < (SSIZE_T)(Data.length() - DataOffset); Result++)
+		for (SSIZE_T Result = DataOffset;Result < (SSIZE_T)(Data.length() - DataOffset);Result++)
 		{
 			for (size_t Index = 0;Index < strnlen_s(Parameter.DomainTable, DOMAIN_MAXSIZE);Index++)
 			{

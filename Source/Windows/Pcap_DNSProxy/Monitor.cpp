@@ -807,7 +807,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData /* , const
 			RecvLen = recv(LocalSocketData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE, 0);
 
 	//Receive packet.
-		if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && (SSIZE_T)PDU_Len >= RecvLen)
+		if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && RecvLen >= (SSIZE_T)PDU_Len)
 		{
 		//Check requesting.
 			auto DNS_Header = (pdns_hdr)Buffer.get();
@@ -874,7 +874,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData /* , const
 			return EXIT_FAILURE;
 		}
 	}
-	else if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && (SSIZE_T)htons(((uint16_t *)Buffer.get())[0]) <= RecvLen)
+	else if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && RecvLen >= (SSIZE_T)htons(((uint16_t *)Buffer.get())[0]))
 	{
 		RecvLen = htons(((uint16_t *)Buffer.get())[0]);
 

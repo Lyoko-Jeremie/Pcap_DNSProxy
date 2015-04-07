@@ -688,7 +688,7 @@ size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PST
 				RecvLen = recv(TCPSocket, OriginalRecv, (int)RecvSize, 0);
 
 			//TCP segment of a reassembled PDU
-				if (RecvLen < DNS_PACKET_MINSIZE)
+				if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 				{
 					if (RecvLen > 0 && htons(((uint16_t *)OriginalRecv)[0]) >= DNS_PACKET_MINSIZE)
 					{
@@ -703,7 +703,7 @@ size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PST
 				}
 				else {
 				//Length check.
-					if ((SSIZE_T)PDULen > RecvLen)
+					if (RecvLen < (SSIZE_T)PDULen)
 					{
 						break;
 					}
@@ -716,7 +716,7 @@ size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PST
 					//Jump to normal receive process.
 						if (PDULen >= DNS_PACKET_MINSIZE)
 						{
-							RecvLen = (SSIZE_T)PDULen;
+							RecvLen = PDULen;
 							goto JumpFromPDU;
 						}
 
@@ -726,7 +726,7 @@ size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PST
 				//First receive.
 					else {
 					//Length check
-						if ((SSIZE_T)ntohs(((uint16_t *)OriginalRecv)[0]) > RecvLen)
+						if (RecvLen < (SSIZE_T)ntohs(((uint16_t *)OriginalRecv)[0]))
 						{
 							break;
 						}
@@ -734,7 +734,7 @@ size_t __fastcall TCPRequest(const PSTR OriginalSend, const size_t SendSize, PST
 							shutdown(TCPSocket, SD_BOTH);
 							closesocket(TCPSocket);
 
-							RecvLen = (SSIZE_T)ntohs(((uint16_t *)OriginalRecv)[0]);
+							RecvLen = ntohs(((uint16_t *)OriginalRecv)[0]);
 							if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
 							{
 //								memmove(OriginalRecv, OriginalRecv + sizeof(uint16_t), RecvLen);
@@ -1126,7 +1126,7 @@ size_t __fastcall TCPRequestMulti(const PSTR OriginalSend, const size_t SendSize
 								break;
 							}
 							else {
-								RecvLen = (SSIZE_T)ntohs(((uint16_t *)OriginalRecv)[0]);
+								RecvLen = ntohs(((uint16_t *)OriginalRecv)[0]);
 								if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
 								{
 //									memmove(OriginalRecv, OriginalRecv + sizeof(uint16_t), RecvLen);
