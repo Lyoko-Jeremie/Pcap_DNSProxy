@@ -583,7 +583,6 @@
 .*\babc68888\.com
 .*\babcache\.com
 .*\babchina\.com
-.*\bacfun.tv
 .*\bacfun\.tv
 .*\bacg\.tv
 .*\bacgvideo\.com
