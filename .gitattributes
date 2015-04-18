@@ -1,1 +1,6 @@
-Source/Windows/Example/* eol=crlf
+Source/Example/Config.ini eol=crlf
+Source/Example/Hosts.ini eol=crlf
+Source/Example/IPFilter.ini eol=crlf
+Source/Example/Routing.txt eol=crlf
+Source/Example/ServiceControl.bat eol=crlf
+Source/Example/White_List.txt eol=crlf
