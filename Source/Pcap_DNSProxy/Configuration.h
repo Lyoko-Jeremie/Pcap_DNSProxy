@@ -73,7 +73,11 @@ size_t __fastcall ReadWhitelistAndBannedData(std::string Data, const size_t File
 size_t __fastcall ReadLocalHostsData(std::string Data, const size_t FileIndex, const size_t Line);
 size_t __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex, const size_t Line);
 size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, const size_t Line);
-size_t __fastcall ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData);
+#if defined(PLATFORM_WIN)
+	size_t __fastcall ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData);
+#elif defined(PLATFORM_LINUX)
+	size_t ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData, std::vector<std::string> *sListData);
+#endif
 size_t __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, const uint16_t Protocol, const size_t FileIndex, const size_t Line);
 size_t __fastcall ReadSingleAddress(std::string Data, const size_t DataOffset, sockaddr_storage &SockAddr, const uint16_t Protocol, const size_t FileIndex, const size_t Line);
 size_t __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffset, sockaddr_storage &SockAddr, const uint16_t Protocol, const size_t FileIndex, const size_t Line);

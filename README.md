@@ -7,7 +7,7 @@ A local DNS server base on WinPcap and LibPcap.
 说明文档等参见项目 [Documents 文件夹](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的内容
 
 ### Updated
-* 0.4 Beta 15 on Windows(2015-04-18)
+* 0.4 Beta 15 on Windows(2015-04-22)
 * 0.2 on Linux(2014-08-19)
 * 0.1 on Mac(2014-08-19)
 
@@ -36,7 +36,7 @@ Pcap_DNSProxy 是一个基于 LibPcap/WinPcap 制作用于忽略 DNS 投毒污�
 
 ### Platform
 * 本工具**抓包模块**所支持的网络类型
-  * 网络设备类型为 Ethernet 的网络
+  * 网络设备类型为 Ethernet 和 Apple IEEE 1394/FireWire 的网络
   * 原生 IPv4 网络和原生 IPv6 网络
   * 基于 PPPoE 的 IPv4 网络和 PPPoEv6 的 IPv6网络
   * 如果需要支持更多网络类型，可与作者联系

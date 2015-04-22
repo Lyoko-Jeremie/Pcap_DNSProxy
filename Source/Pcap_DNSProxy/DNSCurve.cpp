@@ -136,7 +136,11 @@ size_t LocalSignatureRequest(const char *OriginalSend, const size_t SendSize, PS
 //Socket initialization
 	if (Parameter.GatewayAvailable_IPv6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
 	{
+	#if defined(PLATFORM_WIN)
 		((sockaddr_in6 *)SockAddr.get())->sin6_addr = in6addr_loopback;
+	#elif defined(PLATFORM_LINUX)
+		((sockaddr_in6 *)SockAddr.get())->sin6_addr = *((in6_addr *)&in6addr_loopback);
+	#endif
 		((sockaddr_in6 *)SockAddr.get())->sin6_port = Parameter.ListenPort->front();
 
 		AddrLen = sizeof(sockaddr_in6);
@@ -159,24 +163,38 @@ size_t LocalSignatureRequest(const char *OriginalSend, const size_t SendSize, PS
 //Socket check
 	if (UDPSocket == INVALID_SOCKET)
 	{
-		PrintError(LOG_ERROR_WINSOCK, L"DNSCurve Local Signature request initialization error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_ERROR_NETWORK, L"DNSCurve Local Signature request initialization error", WSAGetLastError(), nullptr, 0);
 		return EXIT_FAILURE;
 	}
 
 //Set socket timeout.
+#if defined(PLATFORM_WIN)
 	if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
 		setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
+#elif defined(PLATFORM_LINUX)
+	if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR || 
+		setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR)
+#endif
 	{
-		PrintError(LOG_ERROR_WINSOCK, L"Set DNSCurve Local Signature socket timeout error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_ERROR_NETWORK, L"Set DNSCurve Local Signature socket timeout error", WSAGetLastError(), nullptr, 0);
+		closesocket(UDPSocket);
+
+		return EXIT_FAILURE;
+	}
+
+//UDP connecting
+	if (connect(UDPSocket, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR)
+	{
+		PrintError(LOG_ERROR_NETWORK, L"DNSCurve Local Signature request initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(UDPSocket);
 
 		return EXIT_FAILURE;
 	}
 
 //Send requesting.
-	if (sendto(UDPSocket, OriginalSend, (int)SendSize, 0, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR)
+	if (send(UDPSocket, OriginalSend, (int)SendSize, 0) == SOCKET_ERROR)
 	{
-		PrintError(LOG_ERROR_WINSOCK, L"DNSCurve Local Signature request error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_ERROR_NETWORK, L"DNSCurve Local Signature request error", WSAGetLastError(), nullptr, 0);
 		shutdown(UDPSocket, SD_BOTH);
 		closesocket(UDPSocket);
 
@@ -184,7 +202,7 @@ size_t LocalSignatureRequest(const char *OriginalSend, const size_t SendSize, PS
 	}
 
 //Receive result.
-	SSIZE_T RecvLen = recvfrom(UDPSocket, OriginalRecv, (int)RecvSize, 0, (PSOCKADDR)SockAddr.get(), &AddrLen);
+	SSIZE_T RecvLen = recv(UDPSocket, OriginalRecv, (int)RecvSize, 0);
 	shutdown(UDPSocket, SD_BOTH);
 	closesocket(UDPSocket);
 	if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
@@ -287,7 +305,11 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
+#if defined(PLATFORM_WIN)
 	ULONG SocketMode = 1U;
+#elif defined(PLATFORM_LINUX)
+	int Flags = 0;
+#endif
 	timeval Timeout = {0};
 	SSIZE_T SelectResult = 0, RecvLen = 0;
 	uint16_t PDULen = 0;
@@ -296,7 +318,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 	//Socket check
 		if (TCPSocket == INVALID_SOCKET)
 		{
-			PrintError(LOG_ERROR_WINSOCK, L"DNSCurve TCP sockets initialization error", WSAGetLastError(), nullptr, 0);
+			PrintError(LOG_ERROR_NETWORK, L"DNSCurve TCP sockets initialization error", WSAGetLastError(), nullptr, 0);
 			goto JumpToRestart;
 		}
 
@@ -304,11 +326,11 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 	#if defined(PLATFORM_WIN)
 		if (ioctlsocket(TCPSocket, FIONBIO, &SocketMode) == SOCKET_ERROR)
 		{
-			PrintError(LOG_ERROR_WINSOCK, L"Set TCP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
+			PrintError(LOG_ERROR_NETWORK, L"Set TCP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
 			goto JumpToRestart;
 		}
 	#elif defined(PLATFORM_LINUX)
-		int Flags = fcntl(TCPSocket, F_GETFL, 0);
+		Flags = fcntl(TCPSocket, F_GETFL, 0);
 		fcntl(TCPSocket, F_SETFL, Flags|O_NONBLOCK);
 	#endif
 
@@ -627,15 +649,20 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const b
 	//Socket check
 		if (UDPSocket == INVALID_SOCKET)
 		{
-			PrintError(LOG_ERROR_WINSOCK, L"DNSCurve UDP sockets initialization error", WSAGetLastError(), nullptr, 0);
+			PrintError(LOG_ERROR_NETWORK, L"DNSCurve UDP sockets initialization error", WSAGetLastError(), nullptr, 0);
 			goto JumpToRestart;
 		}
 
 	//Set socket timeout.
-		if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR ||
+	#if defined(PLATFORM_WIN)
+		if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
 			setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
+	#elif defined(PLATFORM_LINUX)
+		if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR || 
+			setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR)
+	#endif
 		{
-			PrintError(LOG_ERROR_WINSOCK, L"Set UDP socket timeout error", WSAGetLastError(), nullptr, 0);
+			PrintError(LOG_ERROR_NETWORK, L"Set UDP socket timeout error", WSAGetLastError(), nullptr, 0);
 			goto JumpToRestart;
 		}
 
@@ -719,7 +746,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const b
 		Sleep((DWORD)DNSCurveParameter.KeyRecheckTime);
 		continue;
 
-	//Restart
+	//Restart.
 		JumpToRestart:
 		shutdown(UDPSocket, SD_BOTH);
 		closesocket(UDPSocket);
@@ -927,7 +954,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 //Socket check
 	if (TCPSocket == INVALID_SOCKET)
 	{
-		PrintError(LOG_ERROR_WINSOCK, L"DNSCurve TCP sockets initialization error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_ERROR_NETWORK, L"DNSCurve TCP sockets initialization error", WSAGetLastError(), nullptr, 0);
 		return EXIT_FAILURE;
 	}
 
@@ -936,7 +963,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 	ULONG SocketMode = 1U;
 	if (ioctlsocket(TCPSocket, FIONBIO, &SocketMode) == SOCKET_ERROR)
 	{
-		PrintError(LOG_ERROR_WINSOCK, L"Set TCP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_ERROR_NETWORK, L"Set TCP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
 		closesocket(TCPSocket);
 
 		return EXIT_FAILURE;
@@ -1240,7 +1267,11 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 	std::shared_ptr<SOCKET_DATA> TCPSocketData(new SOCKET_DATA());
 	memset(TCPSocketData.get(), 0, sizeof(SOCKET_DATA));
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
+#if defined(PLATFORM_WIN)
 	ULONG SocketMode = 1U;
+#elif defined(PLATFORM_LINUX)
+	int Flags = 0;
+#endif
 
 	//Main
 	if (!IsAlternate)
@@ -1268,7 +1299,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 		//Socket check
 			if (TCPSocketData->Socket == INVALID_SOCKET)
 			{
-				PrintError(LOG_ERROR_WINSOCK, L"DNSCurve TCP request initialization error", WSAGetLastError(), nullptr, 0);
+				PrintError(LOG_ERROR_NETWORK, L"DNSCurve TCP request initialization error", WSAGetLastError(), nullptr, 0);
 				for (auto SocketDataIter:TCPSocketDataList)
 					closesocket(SocketDataIter.Socket);
 
@@ -1279,7 +1310,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 		#if defined(PLATFORM_WIN)
 			else if (ioctlsocket(TCPSocketData->Socket, FIONBIO, &SocketMode) == SOCKET_ERROR)
 			{
-				PrintError(LOG_ERROR_WINSOCK, L"Set TCP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
+				PrintError(LOG_ERROR_NETWORK, L"Set TCP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
 				closesocket(TCPSocketData->Socket);
 				for (auto SocketDataIter:TCPSocketDataList)
 					closesocket(SocketDataIter.Socket);
@@ -1287,7 +1318,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 				goto SkipMain;
 			}
 		#elif defined(PLATFORM_LINUX)
-			int Flags = fcntl(TCPSocketData->Socket, F_GETFL, 0);
+			Flags = fcntl(TCPSocketData->Socket, F_GETFL, 0);
 			fcntl(TCPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 		#endif
 
@@ -1388,7 +1419,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 		//Socket check
 			if (TCPSocketData->Socket == INVALID_SOCKET)
 			{
-				PrintError(LOG_ERROR_WINSOCK, L"DNSCurve TCP request initialization error", WSAGetLastError(), nullptr, 0);
+				PrintError(LOG_ERROR_NETWORK, L"DNSCurve TCP request initialization error", WSAGetLastError(), nullptr, 0);
 				for (auto SocketDataIter = TCPSocketDataList.begin();SocketDataIter != TCPSocketDataList.end();++SocketDataIter)
 				{
 					if (memcmp(&SocketDataIter->SockAddr, PacketTarget, sizeof(sockaddr_storage)) == 0)
@@ -1404,7 +1435,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 		#if defined(PLATFORM_WIN)
 			else if (ioctlsocket(TCPSocketData->Socket, FIONBIO, &SocketMode) == SOCKET_ERROR)
 			{
-				PrintError(LOG_ERROR_WINSOCK, L"Set TCP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
+				PrintError(LOG_ERROR_NETWORK, L"Set TCP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
 				closesocket(TCPSocketData->Socket);
 				for (auto SocketDataIter = TCPSocketDataList.begin();SocketDataIter != TCPSocketDataList.end();++SocketDataIter)
 				{
@@ -1417,7 +1448,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 				goto SkipAlternate;
 			}
 		#elif defined(PLATFORM_LINUX)
-			int Flags = fcntl(TCPSocketData->Socket, F_GETFL, 0);
+			Flags = fcntl(TCPSocketData->Socket, F_GETFL, 0);
 			fcntl(TCPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 		#endif
 
@@ -1878,15 +1909,29 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 //Socket check
 	if (UDPSocket == INVALID_SOCKET)
 	{
-		PrintError(LOG_ERROR_WINSOCK, L"DNSCurve UDP sockets initialization error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_ERROR_NETWORK, L"DNSCurve UDP sockets initialization error", WSAGetLastError(), nullptr, 0);
 		return EXIT_FAILURE;
 	}
 
 //Set socket timeout.
-	if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR ||
+#if defined(PLATFORM_WIN)
+	if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
 		setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
+#elif defined(PLATFORM_LINUX)
+	if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR || 
+		setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR)
+#endif
 	{
-		PrintError(LOG_ERROR_WINSOCK, L"Set UDP socket timeout error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket timeout error", WSAGetLastError(), nullptr, 0);
+		closesocket(UDPSocket);
+
+		return EXIT_FAILURE;
+	}
+
+//UDP connecting
+	if (connect(UDPSocket, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR)
+	{
+		PrintError(LOG_ERROR_NETWORK, L"DNSCurve UDP sockets initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(UDPSocket);
 
 		return EXIT_FAILURE;
@@ -1933,9 +1978,9 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 		memset(WholeNonce.get(), 0, crypto_box_NONCEBYTES);
 
 //Send requesting.
-		if (sendto(UDPSocket, OriginalRecv, (int)DNSCurveParameter.DNSCurvePayloadSize, 0, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR)
+		if (send(UDPSocket, OriginalRecv, (int)DNSCurveParameter.DNSCurvePayloadSize, 0) == SOCKET_ERROR)
 		{
-			PrintError(LOG_ERROR_WINSOCK, L"DNSCurve UDP request error", WSAGetLastError(), nullptr, 0);
+			PrintError(LOG_ERROR_NETWORK, L"DNSCurve UDP request error", WSAGetLastError(), nullptr, 0);
 			shutdown(UDPSocket, SD_BOTH);
 			closesocket(UDPSocket);
 
@@ -1947,9 +1992,9 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 //Normal mode
 	else {
 		WholeNonce.reset();
-		if (sendto(UDPSocket, OriginalSend, (int)SendSize, 0, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR)
+		if (send(UDPSocket, OriginalSend, (int)SendSize, 0) == SOCKET_ERROR)
 		{
-			PrintError(LOG_ERROR_WINSOCK, L"DNSCurve UDP request error", WSAGetLastError(), nullptr, 0);
+			PrintError(LOG_ERROR_NETWORK, L"DNSCurve UDP request error", WSAGetLastError(), nullptr, 0);
 			shutdown(UDPSocket, SD_BOTH);
 			closesocket(UDPSocket);
 
@@ -1958,7 +2003,7 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 	}
 
 //Receive result.
-	SSIZE_T RecvLen = recvfrom(UDPSocket, OriginalRecv, (int)RecvSize, 0, (PSOCKADDR)SockAddr.get(), &AddrLen);
+	SSIZE_T RecvLen = recv(UDPSocket, OriginalRecv, (int)RecvSize, 0);
 	if (DNSCurveParameter.IsEncryption && RecvLen < (SSIZE_T)(DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES + DNS_PACKET_MINSIZE) || 
 		RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 	{
@@ -2079,7 +2124,11 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 
 	std::shared_ptr<SOCKET_DATA> UDPSocketData(new SOCKET_DATA());
 	memset(UDPSocketData.get(), 0, sizeof(SOCKET_DATA));
+#if defined(PLATFORM_WIN)
 	ULONG SocketMode = 1U;
+#elif defined(PLATFORM_LINUX)
+	int Flags = 0;
+#endif
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
 
 	//Main
@@ -2106,7 +2155,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	//Socket check
 		if (UDPSocketData->Socket == INVALID_SOCKET)
 		{
-			PrintError(LOG_ERROR_WINSOCK, L"Complete UDP request initialization error", WSAGetLastError(), nullptr, 0);
+			PrintError(LOG_ERROR_NETWORK, L"Complete UDP request initialization error", WSAGetLastError(), nullptr, 0);
 			goto SkipMain;
 		}
 
@@ -2114,13 +2163,13 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	#if defined(PLATFORM_WIN)
 		else if (ioctlsocket(UDPSocketData->Socket, FIONBIO, &SocketMode) == SOCKET_ERROR)
 		{
-			PrintError(LOG_ERROR_WINSOCK, L"Set UDP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
+			PrintError(LOG_ERROR_NETWORK, L"Set UDP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
 			closesocket(UDPSocketData->Socket);
 
 			goto SkipMain;
 		}
 	#elif defined(PLATFORM_LINUX)
-		int Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
+		Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
 		fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 	#endif
 
@@ -2216,9 +2265,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	//Socket check
 		if (UDPSocketData->Socket == INVALID_SOCKET)
 		{
-			PrintError(LOG_ERROR_WINSOCK, L"Complete UDP request initialization error", WSAGetLastError(), nullptr, 0);
-//			for (auto SocketDataIter:UDPSocketDataList)
-//				closesocket(SocketDataIter.Socket);
+			PrintError(LOG_ERROR_NETWORK, L"Complete UDP request initialization error", WSAGetLastError(), nullptr, 0);
 			for (auto SocketDataIter = UDPSocketDataList.begin();SocketDataIter != UDPSocketDataList.end();++SocketDataIter)
 			{
 				if (memcmp(&SocketDataIter->SockAddr, PacketTarget, sizeof(sockaddr_storage)) == 0)
@@ -2234,7 +2281,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	#if defined(PLATFORM_WIN)
 		else if (ioctlsocket(UDPSocketData->Socket, FIONBIO, &SocketMode) == SOCKET_ERROR)
 		{
-			PrintError(LOG_ERROR_WINSOCK, L"Set UDP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
+			PrintError(LOG_ERROR_NETWORK, L"Set UDP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
 			for (auto SocketDataIter = UDPSocketDataList.begin();SocketDataIter != UDPSocketDataList.end();++SocketDataIter)
 			{
 				if (memcmp(&SocketDataIter->SockAddr, PacketTarget, sizeof(sockaddr_storage)) == 0)
@@ -2246,7 +2293,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 			goto SkipAlternate;
 		}
 	#elif defined(PLATFORM_LINUX)
-		int Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
+		Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
 		fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 	#endif
 

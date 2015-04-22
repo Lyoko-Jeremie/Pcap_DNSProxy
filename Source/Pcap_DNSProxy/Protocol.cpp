@@ -19,36 +19,6 @@
 
 #include "Protocol.h"
 
-//Check empty buffer
-bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length)
-{
-	if (Buffer == nullptr)
-		return true;
-
-	for (size_t Index = 0;Index < Length;++Index)
-	{
-		if (((uint8_t *)Buffer)[Index] != 0)
-			return false;
-	}
-
-	return true;
-}
-
-//Convert multiple bytes to wide char string
-void __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer)
-{
-	std::shared_ptr<wchar_t> TargetPTR(new wchar_t[strnlen(Buffer, LARGE_PACKET_MAXSIZE) + 1U]());
-	wmemset(TargetPTR.get(), 0, strnlen(Buffer, LARGE_PACKET_MAXSIZE) + 1U);
-#if defined(PLATFORM_WIN)
-	MultiByteToWideChar(CP_ACP, 0, Buffer, MBSTOWCS_NULLTERMINATE, TargetPTR.get(), (int)strnlen(Buffer, LARGE_PACKET_MAXSIZE));
-#elif defined(PLATFORM_LINUX)
-	mbstowcs(TargetPTR.get(), Buffer, strnlen(Buffer, LARGE_PACKET_MAXSIZE));
-#endif
-	Target = TargetPTR.get();
-
-	return;
-}
-
 //Convert host values to network byte order with 64 bits
 uint64_t __fastcall hton64(const uint64_t Val)
 {
@@ -69,21 +39,56 @@ uint64_t __fastcall ntoh64(const uint64_t Val)
 #endif
 }
 
-//Convert lowercase/uppercase words to uppercase/lowercase words.
-size_t __fastcall CaseConvert(const bool IsLowerUpper, char *Buffer, const size_t Length)
+/* Get Ethernet Frame Check Sequence/FCS
+uint32_t __fastcall GetFCS(const unsigned char *Buffer, const size_t Length)
 {
-	for (size_t Index = 0;Index < Length;++Index)
+	uint32_t Table[FCS_TABLE_SIZE] = {0}, Gx = 0x04C11DB7, Temp = 0, CRCTable = 0, Value = 0, UI = 0;
+	char ReflectNum[] = {8, 32};
+	int Index[3U] = {0};
+
+	for (Index[0] = 0;Index[0] <= UINT8_MAX;Index[0]++)
 	{
-	//Lowercase to uppercase
-		if (IsLowerUpper)
-			Buffer[Index] = (char)toupper(Buffer[Index]);
-	//Uppercase to lowercase
-		else 
-			Buffer[Index] = (char)tolower(Buffer[Index]);
+		Value = 0;
+		UI = Index[0];
+		for (Index[1U] = 1;Index[1U] < 9;Index[1U]++)
+		{
+			if (UI & 1)
+				Value |= 1 << (ReflectNum[0]-Index[1U]);
+			UI >>= 1;
+		}
+		Temp = Value;
+		Table[Index[0]] = Temp << 24U;
+
+		for (Index[2U] = 0;Index[2U] < 8;Index[2U]++)
+		{
+			unsigned long int t1 = 0, t2 = 0, Flag = Table[Index[0]] & 0x80000000;
+			t1 = (Table[Index[0]] << 1);
+			if (Flag == 0)
+				t2 = 0;
+			else
+				t2 = Gx;
+			Table[Index[0]] = t1 ^ t2;
+		}
+		CRCTable = Table[Index[0]];
+
+		UI = Table[Index[0]];
+		Value = 0;
+		for (Index[1U] = 1;Index[1U] < 33;Index[1U]++)
+		{
+			if (UI & 1)
+				Value |= 1 << (ReflectNum[1U] - Index[1U]);
+			UI >>= 1;
+		}
+		Table[Index[0]] = Value;
 	}
 
-	return EXIT_SUCCESS;
+	uint32_t CRC = UINT32_MAX;
+	for (Index[0] = 0;Index[0] < (int)Length;Index[0]++)
+		CRC = Table[(CRC ^ (*(Buffer + Index[0]))) & UINT8_MAX]^(CRC >> 8U);
+
+	return ~CRC;
 }
+*/
 
 //Convert address strings to binary.
 size_t __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr, const uint16_t Protocol, SSIZE_T &ErrCode)
@@ -91,7 +96,7 @@ size_t __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAd
 	std::string sAddrString(AddrString);
 
 //inet_ntop() and inet_pton() was only support in Windows Vista and newer system. [Roy Tam]
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //x86
+#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
 	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
 	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
 	int SockLength = 0;
@@ -121,7 +126,7 @@ size_t __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAd
 		}
 
 	//Convert to binary.
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //x86
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
 		SockLength = sizeof(sockaddr_in6);
 		if (WSAStringToAddressA((LPSTR)sAddrString.c_str(), AF_INET6, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
 	#else
@@ -132,7 +137,7 @@ size_t __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAd
 			ErrCode = WSAGetLastError();
 			return EXIT_FAILURE;
 		}
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //x86
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
 		memcpy_s(OriginalAddr, sizeof(in6_addr), &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, sizeof(in6_addr));
 	#endif
 	}
@@ -179,7 +184,7 @@ size_t __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAd
 			sAddrString.append("0");
 
 	//Convert to binary.
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //x86
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
 		SockLength = sizeof(sockaddr_in);
 		if (WSAStringToAddressA((LPSTR)sAddrString.c_str(), AF_INET, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
 	#else
@@ -190,9 +195,76 @@ size_t __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAd
 			ErrCode = WSAGetLastError();
 			return EXIT_FAILURE;
 		}
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //x86
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
 		memcpy_s(OriginalAddr, sizeof(in_addr), &((PSOCKADDR_IN)SockAddr.get())->sin_addr, sizeof(in_addr));
 	#endif
+	}
+
+	return EXIT_SUCCESS;
+}
+
+//Compare two addresses
+size_t __fastcall CompareAddresses(const void *OriginalAddrBegin, const void *OriginalAddrEnd, const uint16_t Protocol)
+{
+	if (Protocol == AF_INET6) //IPv6
+	{
+		auto AddrBegin = (in6_addr *)OriginalAddrBegin, AddrEnd = (in6_addr *)OriginalAddrEnd;
+		for (size_t Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);++Index)
+		{
+			if (ntohs(AddrBegin->s6_words[Index]) > ntohs(AddrEnd->s6_words[Index]))
+			{
+				return ADDRESS_COMPARE_GREATER;
+			}
+			else if (AddrBegin->s6_words[Index] == AddrEnd->s6_words[Index])
+			{
+				if (Index == sizeof(in6_addr) / sizeof(uint16_t) - 1U)
+					return ADDRESS_COMPARE_EQUAL;
+				else
+					continue;
+			}
+			else {
+				return ADDRESS_COMPARE_LESS;
+			}
+		}
+	}
+	else { //IPv4
+		auto AddrBegin = (in_addr *)OriginalAddrBegin, AddrEnd = (in_addr *)OriginalAddrEnd;
+		if (AddrBegin->s_net > AddrEnd->s_net)
+		{
+			return ADDRESS_COMPARE_GREATER;
+		}
+		else if (AddrBegin->s_net == AddrEnd->s_net)
+		{
+			if (AddrBegin->s_host > AddrEnd->s_host)
+			{
+				return ADDRESS_COMPARE_GREATER;
+			}
+			else if (AddrBegin->s_host == AddrEnd->s_host)
+			{
+				if (AddrBegin->s_lh > AddrEnd->s_lh)
+				{
+					return ADDRESS_COMPARE_GREATER;
+				}
+				else if (AddrBegin->s_lh == AddrEnd->s_lh)
+				{
+					if (AddrBegin->s_impno > AddrEnd->s_impno)
+						return ADDRESS_COMPARE_GREATER;
+					else if (AddrBegin->s_impno == AddrEnd->s_impno)
+						return ADDRESS_COMPARE_EQUAL;
+					else
+						return ADDRESS_COMPARE_LESS;
+				}
+				else {
+					return ADDRESS_COMPARE_LESS;
+				}
+			}
+			else {
+				return ADDRESS_COMPARE_LESS;
+			}
+		}
+		else {
+			return ADDRESS_COMPARE_LESS;
+		}
 	}
 
 	return EXIT_SUCCESS;
@@ -218,15 +290,19 @@ PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol)
 //Get localhost name.
 	if (gethostname(HostName.get(), DOMAIN_MAXSIZE) == SOCKET_ERROR)
 	{
-		PrintError(LOG_ERROR_WINSOCK, L"Get localhost names error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_ERROR_NETWORK, L"Get localhost name error", WSAGetLastError(), nullptr, 0);
 		return nullptr;
 	}
 
 //Get localhost data.
 	int ResultGetaddrinfo = getaddrinfo(HostName.get(), nullptr, Hints.get(), &Result);
+#if defined(PLATFORM_WIN)
 	if (ResultGetaddrinfo != 0)
+#elif defined(PLATFORM_LINUX)
+	if (ResultGetaddrinfo != 0 && ResultGetaddrinfo != (-2)) //EAI_NONAME(-2) is NAME or SERVICE is unknown. There are not any Protocol addresses when getting this error.
+#endif
 	{
-		PrintError(LOG_ERROR_WINSOCK, L"Get localhost addresses error", ResultGetaddrinfo, nullptr, 0);
+		PrintError(LOG_ERROR_NETWORK, L"Get localhost address error", ResultGetaddrinfo, nullptr, 0);
 
 		freeaddrinfo(Result);
 		return nullptr;
@@ -235,174 +311,96 @@ PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol)
 	return Result;
 }
 
+#if defined(PLATFORM_LINUX)
+//Get address from best network interface
+	size_t GetBestInterfaceAddress(const uint16_t Protocol, const sockaddr_storage *OriginalSockAddr)
+	{
+	//Initialization
+		std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
+		memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
+		SockAddr->ss_family = Protocol;
+		SOCKET InterfaceSocket = socket(Protocol, SOCK_DGRAM, IPPROTO_UDP);
+		socklen_t AddrLen = 0;
+
+	//Check socket.
+		if (InterfaceSocket == INVALID_SOCKET)
+		{
+			Parameter.TunnelAvailable_IPv6 = false;
+			if (Protocol == AF_INET6)
+				Parameter.GatewayAvailable_IPv6 = false;
+			else //IPv4
+				Parameter.GatewayAvailable_IPv4 = false;
+
+			PrintError(LOG_ERROR_NETWORK, L"UDP request initialization error", WSAGetLastError(), nullptr, 0);
+			return EXIT_FAILURE;
+		}
+
+	//Check parameter.
+		if (Protocol == AF_INET6)
+		{
+			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = ((PSOCKADDR_IN6)OriginalSockAddr)->sin6_addr;
+			((PSOCKADDR_IN6)SockAddr.get())->sin6_port = ((PSOCKADDR_IN6)OriginalSockAddr)->sin6_port;
+			AddrLen = sizeof(sockaddr_in6);
+
+		//UDP connecting
+			if (connect(InterfaceSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6)) == SOCKET_ERROR || 
+				getsockname(InterfaceSocket, (PSOCKADDR)SockAddr.get(), &AddrLen) == SOCKET_ERROR || SockAddr->ss_family != AF_INET6 || 
+				AddrLen != sizeof(sockaddr_in6) || CheckEmptyBuffer(&((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, sizeof(in6_addr)))
+			{
+				Parameter.GatewayAvailable_IPv6 = false;
+				Parameter.TunnelAvailable_IPv6 = false;
+
+				close(InterfaceSocket);
+				return EXIT_FAILURE;
+			}
+
+		//Address check(IPv6 tunnels support: 6to4, ISATAP and Teredo)
+			if (((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[0] == htons(0x2001) && ((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[1U] == 0 || //Teredo relay/tunnel Addresses(2001::/32, RFC 4380)
+				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[0] == htons(0x2002) || //6to4 relay/tunnel Addresses(2002::/16, Section 2 in RFC 3056)
+				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[0] >= 0x80 && ((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[1U] <= 0xBF && //Link-Local Unicast Contrast Addresses/LUC(FE80::/10, Section 2.5.6 in RFC 4291)
+				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[4U] == 0 && ((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[5U] == htons(0x5EFE)) //ISATAP Interface Identifiers Addresses(Prefix:0:5EFE:0:0:0:0/64, which also in Link-Local Unicast Contrast Addresses/LUC, Section 6.1 in RFC 5214)
+					Parameter.TunnelAvailable_IPv6 = true;
+		}
+		else { //IPv4
+			((PSOCKADDR_IN)SockAddr.get())->sin_addr = ((PSOCKADDR_IN)OriginalSockAddr)->sin_addr;
+			((PSOCKADDR_IN)SockAddr.get())->sin_port = ((PSOCKADDR_IN)OriginalSockAddr)->sin_port;
+			AddrLen = sizeof(sockaddr_in);
+
+		//UDP connecting
+			if (connect(InterfaceSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in)) == SOCKET_ERROR || 
+				getsockname(InterfaceSocket, (PSOCKADDR)SockAddr.get(), &AddrLen) == SOCKET_ERROR || SockAddr->ss_family != AF_INET || 
+				AddrLen != sizeof(sockaddr_in) || CheckEmptyBuffer(&((PSOCKADDR_IN)SockAddr.get())->sin_addr, sizeof(in_addr)))
+			{
+				Parameter.GatewayAvailable_IPv4 = false;
+				Parameter.TunnelAvailable_IPv6 = false;
+
+				close(InterfaceSocket);
+				return EXIT_FAILURE;
+			}
+		}
+
+		close(InterfaceSocket);
+		return EXIT_SUCCESS;
+	}
+#endif
+
 //Get gateway information
 void __fastcall GetGatewayInformation(const uint16_t Protocol)
 {
-/* Old version(2015-02-09)
-//Minimum supported system of GetIpForwardTable2() is Windows Vista(Windows XP with SP3 support).
-#ifdef _WIN64
-	PMIB_IPFORWARD_TABLE2 IPForwardTable = nullptr;
-	size_t Index = 0;
-	auto GatewayAvailable = false;
-
-	if (Protocol == AF_INET6) //IPv6
+//IPv6
+	if (Protocol == AF_INET6)
 	{
-	//Get default gateway.
-		if (GetIpForwardTable2(AF_INET6, &IPForwardTable) == NO_ERROR)
+		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0 &&
+			Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family == 0 &&
+			DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0)
 		{
-			for (Index = 0;Index < IPForwardTable->NumEntries;++Index)
-			{
-				if (!IPForwardTable->Table[Index].Loopback && IPForwardTable->Table[Index].DestinationPrefix.PrefixLength == 0 && 
-					IPForwardTable->Table[Index].DestinationPrefix.Prefix.si_family == AF_INET6 && CheckEmptyBuffer(&IPForwardTable->Table[Index].DestinationPrefix.Prefix.Ipv6.sin6_addr, sizeof(in6_addr)))
-				{
-					GatewayAvailable = true;
-					
-				//IPv6 tunnels support(6to4, ISATAP and Teredo), but only check preferred address.
-					if (IPForwardTable->Table[Index].NextHop.si_family == AF_INET6 && (CheckEmptyBuffer(&IPForwardTable->Table[Index].NextHop.Ipv6.sin6_addr, sizeof(in6_addr)) || //Default gateway is On-link.
-						IPForwardTable->Table[Index].NextHop.Ipv6.sin6_addr.s6_words[0] == htons(0x2001) && IPForwardTable->Table[Index].NextHop.Ipv6.sin6_addr.s6_words[1U] == 0 || //Teredo relay/tunnel Addresses(2001::/32, RFC 4380)
-						IPForwardTable->Table[Index].NextHop.Ipv6.sin6_addr.s6_words[0] == htons(0x2002) || //6to4 relay/tunnel Addresses(2002::/16, Section 2 in RFC 3056)
-						IPForwardTable->Table[Index].NextHop.Ipv6.sin6_addr.s6_words[0] >= 0x80 && IPForwardTable->Table[Index].NextHop.Ipv6.sin6_addr.s6_words[1U] <= 0xBF && //Link-Local Unicast Contrast Addresses/LUC(FE80::/10, Section 2.5.6 in RFC 4291)
-						IPForwardTable->Table[Index].NextHop.Ipv6.sin6_addr.s6_words[4U] == 0 && IPForwardTable->Table[Index].NextHop.Ipv6.sin6_addr.s6_words[5U] == htons(0x5EFE))) //ISATAP Interface Identifiers Addresses(Prefix:0:5EFE:0:0:0:0/64, which also in Link-Local Unicast Contrast Addresses/LUC, Section 6.1 in RFC 5214)
-							Parameter.TunnelAvailable_IPv6 = true;
-
-					break;
-				}
-			}
-
-			if (!GatewayAvailable)
-				Parameter.GatewayAvailable_IPv6 = false;
-			else 
-				Parameter.GatewayAvailable_IPv6 = true;
-		}
-		else {
-			Parameter.GatewayAvailable_IPv6 = false;
-		}
-	}
-	else { //IPv4
-	//Get default gateway.
-		if (GetIpForwardTable2(AF_INET, &IPForwardTable) == NO_ERROR)
-		{
-			for (Index = 0;Index < IPForwardTable->NumEntries;++Index)
-			{
-				if (!IPForwardTable->Table[Index].Loopback && IPForwardTable->Table[Index].DestinationPrefix.PrefixLength == 0 && 
-					IPForwardTable->Table[Index].DestinationPrefix.Prefix.si_family == AF_INET && IPForwardTable->Table[Index].DestinationPrefix.Prefix.Ipv4.sin_addr.s_addr == 0)
-				{
-					GatewayAvailable = true;
-					Parameter.GatewayAvailable_IPv4 = true;
-					break;
-				}
-			}
-
-			if (!GatewayAvailable)
-				Parameter.GatewayAvailable_IPv4 = false;
-		}
-		else {
-			Parameter.GatewayAvailable_IPv4 = false;
-		}
-	}
-
-//Cleanup structure.
-	if (IPForwardTable != nullptr)
-		FreeMibTable(IPForwardTable);
-#endif
-*/
-	DWORD AdaptersIndex = 0;
-	if (Protocol == AF_INET6) //IPv6
-	{
-/* Old version(2015-02-15)
-		PSOCKADDR SockAddr = nullptr;
-
-		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0)
-		{
-			SockAddr = (PSOCKADDR)&Parameter.DNSTarget.IPv6.AddressData.IPv6;
-		}
-		else if (Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0)
-		{
-			SockAddr = (PSOCKADDR)&Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6;
-		}
-		else if (Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0)
-		{
-			SockAddr = (PSOCKADDR)&Parameter.DNSTarget.Local_IPv6.AddressData.IPv6;
-		}
-		else if (Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0)
-		{
-			SockAddr = (PSOCKADDR)&Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6;
-		}
-		else if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0)
-		{
-			SockAddr = (PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6;
-		}
-		else if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0)
-		{
-			SockAddr = (PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6;
-		}
-	//IPv6 Multi
-		else if (Parameter.DNSTarget.IPv6_Multi != nullptr)
-		{
-			SockAddr = (PSOCKADDR)&Parameter.DNSTarget.IPv6_Multi->front().AddressData.IPv6;
-		}
-		else {
 			Parameter.GatewayAvailable_IPv6 = false;
 			Parameter.TunnelAvailable_IPv6 = false;
 			return;
 		}
-
-	//Get best interface to route.
-		if (GetBestInterfaceEx((PSOCKADDR)SockAddr, &AdaptersIndex) == NO_ERROR)
-		{
-			Parameter.GatewayAvailable_IPv6 = true;
-			ULONG BufferSize = 0;
-
-		//Get Adapter of Index addresses information.
-			if (GetAdaptersAddresses(AF_INET6, 0, nullptr, nullptr, &BufferSize) == ERROR_BUFFER_OVERFLOW && BufferSize > 0)
-			{
-				std::shared_ptr<char> AdaptersAddressesListBuffer(new char[BufferSize]());
-				PIP_ADAPTER_ADDRESSES AdaptersAddressesList = (PIP_ADAPTER_ADDRESSES)AdaptersAddressesListBuffer.get();
-				GetAdaptersAddresses(AF_INET6, 0, nullptr, AdaptersAddressesList, &BufferSize);
-				while (AdaptersAddressesList != nullptr)
-				{
-				//IPv6 tunnels support(6to4, ISATAP and Teredo)
-				//Windows XP with SP3 support
-					if ((AdaptersIndex == AdaptersAddressesList->IfIndex || AdaptersIndex == AdaptersAddressesList->Ipv6IfIndex) && 
-						(AdaptersAddressesList->IfType == IF_TYPE_TUNNEL || 
-					#ifdef _WIN64
-						AdaptersAddressesList->TunnelType != TUNNEL_TYPE_NONE))
-					#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //x86
-						IsGreaterThanVista() && AdaptersAddressesList->TunnelType != TUNNEL_TYPE_NONE || 
-						!IsGreaterThanVista() && AdaptersAddressesList->FirstUnicastAddress->Address.iSockaddrLength == sizeof(sockaddr_in6) && 
-						(((PSOCKADDR_IN6)AdaptersAddressesList->FirstUnicastAddress->Address.lpSockaddr)->sin6_addr.s6_words[0] == htons(0x2001) && ((PSOCKADDR_IN6)AdaptersAddressesList->FirstUnicastAddress->Address.lpSockaddr)->sin6_addr.s6_words[1U] == 0 || //Teredo relay/tunnel Addresses(2001::/32, RFC 4380)
-						((PSOCKADDR_IN6)AdaptersAddressesList->FirstUnicastAddress->Address.lpSockaddr)->sin6_addr.s6_words[0] == htons(0x2002) || //6to4 relay/tunnel Addresses(2002::/16, Section 2 in RFC 3056)
-						((PSOCKADDR_IN6)AdaptersAddressesList->FirstUnicastAddress->Address.lpSockaddr)->sin6_addr.s6_words[0] >= 0x80 && ((PSOCKADDR_IN6)AdaptersAddressesList->FirstUnicastAddress->Address.lpSockaddr)->sin6_addr.s6_words[1U] <= 0xBF && //Link-Local Unicast Contrast Addresses/LUC(FE80::/10, Section 2.5.6 in RFC 4291)
-						((PSOCKADDR_IN6)AdaptersAddressesList->FirstUnicastAddress->Address.lpSockaddr)->sin6_addr.s6_words[4U] == 0 && ((PSOCKADDR_IN6)AdaptersAddressesList->FirstUnicastAddress->Address.lpSockaddr)->sin6_addr.s6_words[5U] == htons(0x5EFE)))) //ISATAP Interface Identifiers Addresses(Prefix:0:5EFE:0:0:0:0/64, which also in Link-Local Unicast Contrast Addresses/LUC, Section 6.1 in RFC 5214)
-					#endif
-					{
-						Parameter.TunnelAvailable_IPv6 = true;
-						break;
-					}
-
-				//Not any available IPv6 tunnels.
-					if (AdaptersAddressesList->Next == nullptr)
-					{
-						Parameter.TunnelAvailable_IPv6 = false;
-						break;
-					}
-					else {
-						AdaptersAddressesList = AdaptersAddressesList->Next;
-					}
-				}
-			}
-		}
-		else {
-
-			Parameter.GatewayAvailable_IPv6 = false;
-			Parameter.TunnelAvailable_IPv6 = false;
-			return;
-		}
-*/
-		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0 && 
-			Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family == 0 && 
-			DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0 || 
-			Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
+	#if defined(PLATFORM_WIN)
+		DWORD AdaptersIndex = 0;
+		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
 			Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
 			Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Local_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
 			Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
@@ -427,15 +425,50 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 				}
 			}
 		}
+	#elif defined(PLATFORM_LINUX)
+		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.IPv6.AddressData.Storage) == EXIT_FAILURE || 
+			Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage) == EXIT_FAILURE ||
+			Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Local_IPv6.AddressData.Storage) == EXIT_FAILURE ||
+			Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage) == EXIT_FAILURE ||
+			DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage) == EXIT_FAILURE ||
+			DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage) == EXIT_FAILURE)
+		{
+			Parameter.GatewayAvailable_IPv4 = false;
+			Parameter.TunnelAvailable_IPv6 = false;
+			return;
+		}
+
+	//IPv6 Multi
+		if (Parameter.DNSTarget.IPv6_Multi != nullptr)
+		{
+			for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv6_Multi)
+			{
+				if (GetBestInterfaceAddress(AF_INET6, &DNSServerDataIter.AddressData.Storage) == EXIT_FAILURE)
+				{
+					Parameter.GatewayAvailable_IPv6 = false;
+					Parameter.TunnelAvailable_IPv6 = false;
+					return;
+				}
+			}
+		}
+	#endif
 
 		Parameter.GatewayAvailable_IPv6 = true;
 		Parameter.TunnelAvailable_IPv6 = true;
 	}
-	else { //IPv4
-		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0 && 
-			Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family == 0 && 
-			DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0 || 
-			Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
+//IPv4
+	else {
+		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0 &&
+			Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family == 0 &&
+			DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0)
+		{
+			Parameter.GatewayAvailable_IPv4 = false;
+			Parameter.TunnelAvailable_IPv6 = false;
+			return;
+		}
+	#if defined(PLATFORM_WIN)
+		DWORD AdaptersIndex = 0;
+		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
 			Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
 			Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Local_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
 			Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
@@ -460,6 +493,33 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 				}
 			}
 		}
+	#elif defined(PLATFORM_LINUX)
+		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.IPv4.AddressData.Storage) == EXIT_FAILURE || 
+			Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage) == EXIT_FAILURE || 
+			Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Local_IPv4.AddressData.Storage) == EXIT_FAILURE || 
+			Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage) == EXIT_FAILURE || 
+			DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage) == EXIT_FAILURE || 
+			DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage) == EXIT_FAILURE)
+		{
+			Parameter.GatewayAvailable_IPv4 = false;
+			Parameter.TunnelAvailable_IPv6 = false;
+			return;
+		}
+
+	//IPv4 Multi
+		if (Parameter.DNSTarget.IPv4_Multi != nullptr)
+		{
+			for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv4_Multi)
+			{
+				if (GetBestInterfaceAddress(AF_INET, &DNSServerDataIter.AddressData.Storage) == EXIT_FAILURE)
+				{
+					Parameter.GatewayAvailable_IPv4 = false;
+					Parameter.TunnelAvailable_IPv6 = false;
+					return;
+				}
+			}
+		}
+	#endif
 
 		Parameter.GatewayAvailable_IPv4 = true;
 	}
@@ -546,7 +606,7 @@ size_t __fastcall GetNetworkingInformation(void)
 					size_t AddrStringLen = 0;
 					for (Index = 0;Index < (SSIZE_T)(sizeof(in6_addr) / sizeof(uint16_t));++Index)
 					{
-						_ultoa_s(htons(((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr.s6_words[Index]), Addr.get(), ADDR_STRING_MAXSIZE, NUM_HEX);
+						sprintf_s(Addr.get(), ADDR_STRING_MAXSIZE, "%x", ntohs(((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr.s6_words[Index]));
 
 					//Add zeros to beginning of string.
 						if (strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE) < 4U)
@@ -710,7 +770,7 @@ size_t __fastcall GetNetworkingInformation(void)
 		if (!Parameter.GatewayAvailable_IPv4)
 		{
 			if (!Parameter.GatewayAvailable_IPv6)
-				PrintError(LOG_ERROR_WINSOCK, L"Not any available gateways to public network", 0, nullptr, 0);
+				PrintError(LOG_ERROR_NETWORK, L"Not any available gateways to public network", 0, nullptr, 0);
 			Parameter.TunnelAvailable_IPv6 = false;
 		}
 
@@ -1372,7 +1432,7 @@ bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol)
 	return false;
 }
 
-//Custom Mode addresses filter
+//Custom Mode address filter
 bool __fastcall CustomModeFilter(const void *OriginalAddr, const uint16_t Protocol)
 {
 	std::unique_lock<std::mutex> AddressRangeMutex(AddressRangeLock);
@@ -1541,58 +1601,6 @@ bool __fastcall CustomModeFilter(const void *OriginalAddr, const uint16_t Protoc
 	return true;
 }
 
-/*
-//Get Ethernet Frame Check Sequence/FCS
-uint32_t __fastcall GetFCS(const unsigned char *Buffer, const size_t Length)
-{
-	uint32_t Table[FCS_TABLE_SIZE] = {0}, Gx = 0x04C11DB7, Temp = 0, CRCTable = 0, Value = 0, UI = 0;
-	char ReflectNum[] = {8, 32};
-	int Index[3U] = {0};
-
-	for (Index[0] = 0;Index[0] <= UINT8_MAX;Index[0]++)
-	{
-		Value = 0;
-		UI = Index[0];
-		for (Index[1U] = 1;Index[1U] < 9;Index[1U]++)
-		{
-			if (UI & 1)
-				Value |= 1 << (ReflectNum[0]-Index[1U]);
-			UI >>= 1;
-		}
-		Temp = Value;
-		Table[Index[0]] = Temp << 24U;
-
-		for (Index[2U] = 0;Index[2U] < 8;Index[2U]++)
-		{
-			unsigned long int t1 = 0, t2 = 0, Flag = Table[Index[0]] & 0x80000000;
-			t1 = (Table[Index[0]] << 1);
-			if (Flag == 0)
-				t2 = 0;
-			else
-				t2 = Gx;
-			Table[Index[0]] = t1 ^ t2;
-		}
-		CRCTable = Table[Index[0]];
-
-		UI = Table[Index[0]];
-		Value = 0;
-		for (Index[1U] = 1;Index[1U] < 33;Index[1U]++)
-		{
-			if (UI & 1)
-				Value |= 1 << (ReflectNum[1U] - Index[1U]);
-			UI >>= 1;
-		}
-		Table[Index[0]] = Value;
-	}
-
-	uint32_t CRC = UINT32_MAX;
-	for (Index[0] = 0;Index[0] < (int)Length;Index[0]++)
-		CRC = Table[(CRC ^ (*(Buffer + Index[0]))) & UINT8_MAX]^(CRC >> 8U);
-
-	return ~CRC;
-}
-*/
-
 //Get Checksum
 uint16_t __fastcall GetChecksum(const uint16_t *Buffer, const size_t Length)
 {
@@ -1759,7 +1767,8 @@ size_t __fastcall DNSQueryToChar(const char *TName, PSTR FName)
 	return uIndex;
 }
 
-//Flush DNS Cache undocumented API of Microsoft Windows.
+//Flush DNS cache
+/* Old version(2015-04-20)
 #if defined(PLATFORM_WIN)
 	BOOL WINAPI FlushDNSResolverCache(void)
 	{
@@ -1775,6 +1784,22 @@ size_t __fastcall DNSQueryToChar(const char *TName, PSTR FName)
 		return FALSE;
 	}
 #endif
+*/
+void __fastcall FlushDNSCache(void)
+{
+#if defined(PLATFORM_WIN)
+	system("ipconfig /flushdns");
+#elif defined(PLATFORM_LINUX)
+	system("service nscd restart");
+	system("service dnsmasq restart");
+	system("rndc restart");
+#elif defined(PLATFORM_MACX)
+	system("dscacheutil -flushcache");
+	system("lookupd -flushcache");
+#endif
+
+	return;
+}
 
 //Make ramdom domains
 void __fastcall MakeRamdomDomain(PSTR Buffer)
@@ -1928,13 +1953,13 @@ size_t __fastcall MakeCompressionPointerMutation(char *Buffer, const size_t Leng
 		*(Buffer + Length - sizeof(dns_qry) - 1U) = '\xC0';
 
 	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
-	#if defined(PLATFORM_WIN64)
-		Index = GetTickCount64() % 4U;
-	#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
 		if (Parameter.GetTickCount64PTR != nullptr)
 			Index = (*Parameter.GetTickCount64PTR)() % 4U;
 		else 
 			Index = GetTickCount() % 4U;
+	#else
+		Index = GetTickCount64() % 4U;
 	#endif
 		switch (Index)
 		{

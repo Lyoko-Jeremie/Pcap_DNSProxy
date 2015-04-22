@@ -17,69 +17,7 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#include "System.h"
-
-//Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //x86
-//Verify version of system(Greater than Windows Vista)
-	BOOL WINAPI IsGreaterThanVista(void)
-	{
-		std::shared_ptr<OSVERSIONINFOEXW> OSVI(new OSVERSIONINFOEXW());
-		memset(OSVI.get(), 0, sizeof(OSVERSIONINFOEXW));
-		DWORDLONG dwlConditionMask = 0;
-
-	//Initialization
-		ZeroMemory(OSVI.get(), sizeof(OSVERSIONINFOEXW));
-		OSVI->dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
-		OSVI->dwMajorVersion = 6U; //Greater than Windows Vista.
-		OSVI->dwMinorVersion = 0;
-
-	//System Major version > dwMajorVersion
-		VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_GREATER);
-		if (VerifyVersionInfoW(OSVI.get(), VER_MAJORVERSION, dwlConditionMask))
-			return TRUE;
-
-	//Sytem Major version = dwMajorVersion and Minor version > dwMinorVersion
-		VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_EQUAL);
-		VER_SET_CONDITION(dwlConditionMask, VER_MINORVERSION, VER_GREATER);
-		return VerifyVersionInfoW(OSVI.get(), VER_MAJORVERSION|VER_MINORVERSION, dwlConditionMask);
-	}
-
-//Try to load library to get pointers of functions
-	BOOL WINAPI GetFunctionPointer(const size_t FunctionType)
-	{
-	//GetTickCount64() function
-		if (FunctionType == FUNCTION_GETTICKCOUNT64)
-		{
-			Parameter.GetTickCount64DLL = LoadLibraryW(L"Kernel32.dll");
-			if (Parameter.GetTickCount64DLL != nullptr)
-			{
-				Parameter.GetTickCount64PTR = (GetTickCount64Function)GetProcAddress(Parameter.GetTickCount64DLL, "GetTickCount64");
-				if (Parameter.GetTickCount64PTR == nullptr)
-				{
-					FreeLibrary(Parameter.GetTickCount64DLL);
-					return FALSE;
-				}
-			}
-		}
-	//inet_ntop() function
-		else if (FunctionType == FUNCTION_INET_NTOP)
-		{
-			Parameter.Inet_Ntop_DLL = LoadLibraryW(L"ws2_32.dll");
-			if (Parameter.Inet_Ntop_DLL != nullptr)
-			{
-				Parameter.Inet_Ntop_PTR = (Inet_Ntop_Function)GetProcAddress(Parameter.Inet_Ntop_DLL, "inet_ntop");
-				if (Parameter.Inet_Ntop_PTR == nullptr)
-				{
-					FreeLibrary(Parameter.Inet_Ntop_DLL);
-					return FALSE;
-				}
-			}
-		}
-
-		return TRUE;
-	}
-#endif
+#include "WindowsService.h"
 
 //Catch Control-C exception from keyboard.
 BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType)

@@ -239,9 +239,9 @@
     <ClInclude Include="PrintLog.h" />
     <ClInclude Include="Process.h" />
     <ClInclude Include="Protocol.h" />
-    <ClInclude Include="Request.h" />
+    <ClInclude Include="Network.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="System.h" />
+    <ClInclude Include="WindowsService.h" />
     <ClInclude Include="WinPcap\bittypes.h" />
     <ClInclude Include="WinPcap\ip6_misc.h" />
     <ClInclude Include="WinPcap\Packet32.h" />
@@ -268,6 +268,7 @@
     <Library Include="WinPcap\WPCAP_x86.lib" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Base.cpp" />
     <ClCompile Include="Capture.cpp" />
     <ClCompile Include="Initialization.cpp" />
     <ClCompile Include="Configuration.cpp" />
@@ -280,9 +281,8 @@
     <ClCompile Include="PrintLog.cpp" />
     <ClCompile Include="Process.cpp" />
     <ClCompile Include="Protocol.cpp" />
-    <ClCompile Include="Request.cpp" />
-    <ClCompile Include="System.cpp" />
-    <ClCompile Include="Sort.cpp" />
+    <ClCompile Include="Network.cpp" />
+    <ClCompile Include="WindowsService.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Pcap_DNSProxy.rc" />

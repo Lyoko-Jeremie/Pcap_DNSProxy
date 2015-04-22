@@ -8,9 +8,9 @@
 
 运行结果分析：
 
-* WinPcap 提示已安装旧版本无法继续：
-  * 到安装和卸载程序、运行菜单或 %PROGRAMFILES(x86)%(64位系统)/%PROGRAMFILES%(32位系统) 寻找 WinPcap 的卸载程序
-  * 如果找不到卸载程序，则可能需要进入安全模式删除 WinPcap 的所有文件然后重新安装：
+* Network 提示已安装旧版本无法继续：
+  * 到安装和卸载程序、运行菜单或 %PROGRAMFILES(x86)%(64位系统)/%PROGRAMFILES%(32位系统) 寻找 Network 的卸载程序
+  * 如果找不到卸载程序，则可能需要进入安全模式删除 Network 的所有文件然后重新安装：
     * %WINDIR%\system32\Packet.dll
     * %WINDIR%\system32\drivers\npf.sys
     * %WINDIR%\system32\WanPacket.dll
@@ -18,13 +18,6 @@
     * %WINDIR%\system32\pthreadVC.dll
 
 * 安装、运行或重启服务时出现：
-  * Files may be damaged or corrupt!
-    Please download all files again, also you can skip this check.
-    Are you sure you want to continue install service [Y/N]?
-    - 文件的 SHA-1 检查验证失败，意味着程序可能在下载或解压途中被损坏
-    - 确保 bat 批处理都是最新版本
-    - 如果修改或更新过程序，确认程序是没有损坏的，请输入 Y/y 跳过检查继续安装或运行服务
-    - 否则请重新下载程序
   * 服务没有及时响应启动或控制请求 - 请检查是否有错误报告生成，详细情况参见下文 Error.log 详细错误报告 一节
   * Service start failed, please check the configuration. - 请检查是否有错误报告生成，详细情况参见下文 Error.log 详细错误报告 一节
 
@@ -77,7 +70,7 @@
 
 当程序运行时发生错误，可能会生成错误报告也就是 Error.log 文件，其位于工具服务注册的目录内，对解决问题至关重要
 错误报告的格式为 "日期 时间 -> 错误类型: 详细错误信息(in line 行数 of 所在文件, error code is 错误代码)"（不含双引号，括号为可能出现内容）
-* 错误代码为 系统/Winsock/WinPcap API 提供的出错代码，详细情况参见下文 Error.log 详细错误报告
+* 错误代码为 系统/Winsock/Network API 提供的出错代码，详细情况参见下文 Error.log 详细错误报告
 * 由于程序重启时会自动删除之前生成的错误报告，所以如果有错误报告生成建议先备份并尝试解决后再重新启动工具服务
 
 
@@ -106,23 +99,23 @@ Error.log 详细错误报告，错误报告一共有7大类型：
 
 2.Parameter Error - 读取配置文件参数错误
   * Cannot open any configuration files - 没有发现任何配置文件：请确认文件是否存在
-  * Configuration file size is too large - 配置文件容量过大：请确认配置文件的内容，整个文件的大小不要超过4GB
-  * Item length error - 配置文件参数一行数据超过4096字节/4KB，或该行数据长度不符合要求（可根据文件名和行数查找）：请确认该行的内容是否符合要求
+  * Configuration file is too large - 配置文件容量过大：请确认配置文件的内容，整个文件的大小不要超过4GB
+  * Data length error - 配置文件参数一行数据超过4096字节/4KB，或该行数据长度不符合要求（可根据文件名和行数查找）：请确认该行的内容是否符合要求
   * Configuration file version error - 配置文件版本错误：请确认配置文件是否需要更新。注意，Windows/Linux/Mac 版配置文件互不通用！
   * Configuration file is not the latest version - 配置文件非最新版本：请确认配置文件是否需要更新
   * Data of a line is too short - 该参数过短（可根据文件名和行数查找）：请确认配置文件的内容
   * Data of a line is too long - 该参数过长（可根据文件名和行数查找）：一行数据切勿超过 4096字节/4KB
   * Log file size error - 配置文件指定的最大日志文件容量错误：可接受范围为 4KB - 4GB
   * Pcap Capture error - 抓包模块参数错误：请确定关闭抓包模块时是否有开启其它请求域名解析的方式
-  * IPv6 Listen Address format error - IPv6 本地监听绑定地址格式错误（可根据文件名和行数查找）：请检查 IPv6 的本地监听绑定地址
-  * IPv6 Listen Port error - IPv6 本地监听绑定端口错误（可根据文件名和行数查找）：请检查 IPv6 的本地监听绑定端口
-  * IPv4 Listen Address format error - IPv4 本地监听绑定地址格式错误（可根据文件名和行数查找）：请检查 IPv4 的本地监听绑定地址
-  * IPv4 Listen Port error - IPv4 本地监听绑定端口错误（可根据文件名和行数查找）：请检查 IPv4 的本地监听绑定端口
-  * DNS server IPv6 Address format error - IPv6 的 DNS 服务器地址格式错误（可根据文件名和行数查找）：请检查 IPv6 的 DNS 服务器地址
-  * DNS server IPv6 Port error - IPv6 的 DNS 目标服务器端口错误（可根据文件名和行数查找）：请检查 IPv6 的 DNS 目标服务器的端口
-  * DNS server IPv4 Address format error - IPv4 的 DNS 服务器地址格式错误（可根据文件名和行数查找）：请检查 IPv4 的 DNS 服务器地址
-  * DNS server IPv4 Port error - IPv4 的 DNS 目标服务器端口错误（可根据文件名和行数查找）：请检查 IPv4 的 DNS 目标服务器的端口
-  * Localhost server listening Port error - 本地监听端口错误：请检查本地监听端口的值，可适用范围为 1 - 65535
+  * IPv6 Listen address format error - IPv6 本地监听绑定地址格式错误（可根据文件名和行数查找）：请检查 IPv6 的本地监听绑定地址
+  * IPv6 Listen port error - IPv6 本地监听绑定端口错误（可根据文件名和行数查找）：请检查 IPv6 的本地监听绑定端口
+  * IPv4 Listen address format error - IPv4 本地监听绑定地址格式错误（可根据文件名和行数查找）：请检查 IPv4 的本地监听绑定地址
+  * IPv4 Listen port error - IPv4 本地监听绑定端口错误（可根据文件名和行数查找）：请检查 IPv4 的本地监听绑定端口
+  * DNS server IPv6 address format error - IPv6 的 DNS 服务器地址格式错误（可根据文件名和行数查找）：请检查 IPv6 的 DNS 服务器地址
+  * DNS server IPv6 port error - IPv6 的 DNS 目标服务器端口错误（可根据文件名和行数查找）：请检查 IPv6 的 DNS 目标服务器的端口
+  * DNS server IPv4 address format error - IPv4 的 DNS 服务器地址格式错误（可根据文件名和行数查找）：请检查 IPv4 的 DNS 服务器地址
+  * DNS server IPv4 port error - IPv4 的 DNS 目标服务器端口错误（可根据文件名和行数查找）：请检查 IPv4 的 DNS 目标服务器的端口
+  * Localhost server listening port error - 本地监听端口错误：请检查本地监听端口的值，可适用范围为 1 - 65535
   * IPFilter Level error - IPFilter 过滤级别错误：请检查过滤级别的值，可适用范围为 1 - 65535
   * DNS Cache error - DNS 缓存配置错误：请检查缓存的参数
   * DNS Targets error - DNS 目标服务器配置错误：请检查 DNS 服务器的地址
@@ -133,7 +126,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * EDNS0 Payload Size must longer than 512 bytes(Old DNS packets minimum supported size) - EDNS0 载荷长度过短：实现 DNS 协议必须支持长度超过 512 bytes 的数据包
   * EDNS0 Payload Size may be too long - EDNS0 载荷长度可能过长：此值建议不要超过以太网的 MTU(1512 bytes)
   * EDNS0 Label must trun ON when request DNSSEC - 开启 DNSSEC 请求时必须开启 EDNS0 标签请求功能
-  * EDNS0 Label must trun ON when request DNSCurve - 开启 DNSCurve 协议请求时必须开启 EDNS0 标签请求功能
   * Alternate Multi requesting error - 主要备用或多个服务器下同时请求参数错误：请确认所有服务器的信息
   * Multi requesting times error - 接收到一个解析请求向同一个远程服务器发送多次解析请求参数错误 ：一个解析请求的多次解析请求次数不能超过16次，也就是配置文件不能填大于15的值
   * DNSCurve Targets error - DNSCurve 协议使用的 DNS 目标服务器地址错误：请检查 DNSCurve 协议使用DNS服务器的地址
@@ -151,8 +143,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Data of a line is too long - 该 IPFilter 条目过长（可根据文件名和行数查找）：一行数据切勿超过 4096字节/4KB
   * Item format error - IPFilter 条目格式错误（可根据报告的行数查找）：请检查该条目的格式
   * Regular expression pattern error - 错误的正则表达式（可根据报告的行数查找）：请检查正则表达式的正确
-  * IPv6 Address format error - IPFilter 的 IPv6 地址格式错误（可根据报告的行数查找）：请检查 IPFilter 条目的地址
-  * IPv4 Address format error - IPFilter 的 IPv4 地址格式错误（可根据报告的行数查找）：请检查 IPFilter 条目的地址
+  * IPv6 address format error - IPFilter 的 IPv6 地址格式错误（可根据报告的行数查找）：请检查 IPFilter 条目的地址
+  * IPv4 address format error - IPFilter 的 IPv4 地址格式错误（可根据报告的行数查找）：请检查 IPFilter 条目的地址
   * IPv6 Addresses range error - IPFilter 的 IPv6 地址范围错误（可根据报告的行数查找）：请检查 IPFilter 条目的地址
   * IPv4 Addresses range error - IPFilter 的 IPv6 地址范围错误（可根据报告的行数查找）：请检查 IPFilter 条目的地址
   * Repeating items error, this item is not available - 存在重复的 IPFilter 条目（可根据报告的行数查找）：本条目将不启用的提示
@@ -169,11 +161,11 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Default TTL redefinition - 默认生存时间重定义（可根据报告的行数查找）：以第一个出现的默认生存时间为准
   * Regular expression pattern error - 错误的正则表达式（可根据报告的行数查找）：请检查正则表达式的正确性
   * Repeating items error, the item is not available - 存在重复的 Hosts 条目（可根据报告的行数查找）：以第一个出现的 Hosts 条目为准
-  * IPv6 Address format error - Hosts 的IPv6地址格式错误（可根据报告的行数查找）：请检查 Hosts 条目的地址
-  * IPv4 Address format error - Hosts 的IPv4地址格式错误（可根据报告的行数查找）：请检查 Hosts 条目的地址
+  * IPv6 address format error - Hosts 的IPv6地址格式错误（可根据报告的行数查找）：请检查 Hosts 条目的地址
+  * IPv4 address format error - Hosts 的IPv4地址格式错误（可根据报告的行数查找）：请检查 Hosts 条目的地址
   * Too many Hosts IP addresses - Hosts 条目的平行地址过多
   
-5.Winsock Error - Windows Socket 错误
+5.Network Error - 网络错误
   * Winsock initialization error - Winsock 初始化失败：请确认使用的操作系统平台是否受支持
   * Windows Firewall Test error - Windows 防火墙测试失败：请确认是否为管理员身份运行批处理
   * UDP Monitor socket initialization error - UDP 协议本地套接字初始化失败：原因参见错误代码
@@ -183,8 +175,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * TCP Monitor socket listening initialization error - TCP 协议本地套接字监听失败：原因参见错误代码
   * Get localhost names error - 获取本地计算机名称失败：原因参见错误代码
   * Get localhost addresses error - 获取本地计算机地址失败：没有任何生效的网络适配器，可能是硬件或者驱动程序的问题
-  * Local IPv4 Address format error - 本地计算机 IPv4 地址格式错误：原因参见错误代码
-  * Local IPv6 Address format error - 本地计算机 IPv6 地址格式错误：原因参见错误代码
+  * Local IPv4 address format error - 本地计算机 IPv4 地址格式错误：原因参见错误代码
+  * Local IPv6 address format error - 本地计算机 IPv6 地址格式错误：原因参见错误代码
   * UDP request initialization error - UDP 协议请求套接字初始化失败：原因参见错误代码
   * Complete UDP request initialization error - UDP 协议请求套接字初始化失败：原因参见错误代码
   * UDP request error - UDP 协议请求发送失败：可能为网络错误，具体原因可参见错误代码
@@ -210,7 +202,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Not any available gateways to public network - 没有任何通往公共网络的可用网关：可能为网络错误，请检查网络是否通畅
   * Winsock 错误代码具体含义可移步 http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 
-6.WinPcap Error - WinPcap 错误
+6.Pcap Error - Pcap 错误
   * Insufficient privileges or not any available network devices - 没有任何可用的网络适配器：请检查硬件设备和驱动程序是否安装正确，也可能是权限不足
   * XXX is not a Ethernet device - 发现非 Ethernet 类型的网络适配器：这不是错误，但可以说明系统内存在非 Ethernet 类型的网络适配器
   * An error occurred in XXX - 名称为 XXX 的网络适配器抓取数据包错误

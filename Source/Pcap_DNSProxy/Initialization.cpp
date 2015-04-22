@@ -50,6 +50,13 @@ ConfigurationTable::ConfigurationTable(void)
 		IPFilterFileList = new std::vector<std::wstring>();
 		ErrorLogPath = new std::wstring();
 		RunningLogPath = new std::wstring();
+	#if defined(PLATFORM_LINUX)
+		sPath = new std::vector<std::string>();
+		sHostsFileList = new std::vector<std::string>();
+		sIPFilterFileList = new std::vector<std::string>();
+		sErrorLogPath = new std::string();
+		sRunningLogPath = new std::string();
+	#endif
 		RunningLogWriteQueue = new std::vector<RUNNING_LOG_DATA>();
 		DomainTable = new char[strlen(RFC_DOMAIN_TABLE) + 1U]();
 		AcceptTypeList = new std::vector<uint16_t>();

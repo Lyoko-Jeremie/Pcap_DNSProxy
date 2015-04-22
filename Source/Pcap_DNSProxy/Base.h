@@ -210,9 +210,9 @@
 //	#include <windns.h>                //Windows DNS definitions and DNS API
 //	#include <windows.h>               //Master include file
 //Minimum supported system of Windows Version Helpers is Windows Vista.
-	#if defined(PLATFORM_WIN64)
+//	#if defined(PLATFORM_WIN64)
 //		#include <VersionHelpers.h>        //Version Helper functions
-	#endif
+//	#endif
 
 //Static libraries
 	#pragma comment(lib, "ws2_32.lib")            //Winsock Library, WinSock 2.0+
@@ -261,7 +261,7 @@
 	#include "Keccak/KeccakHash.h"
 
 //LibSodium Headers
-	#include "../LibSodium/sodium.h"
+	#include <sodium.h>
 
 //LibPcap header
 	#include <pcap/pcap.h>
@@ -297,7 +297,11 @@
 				uint8_t        Byte[16U];
 				uint16_t       Word[8U];
 			}u;
-//			uint8_t            s6_addr[16U];
+			union {
+				uint8_t	       __u6_addr8[16U];
+				uint16_t       __u6_addr16[8U];
+				uint32_t       __u6_addr32[4U];
+			};
 		};
 	}in6_addr_Windows;
 //	#define _S6_un             u
@@ -305,6 +309,15 @@
 //	#define s6_addr            _S6_un._S6_u8
 	#define s6_bytes           u.Byte
 	#define s6_words           u.Word
+
+//Internet Protocol version 4/IPv4 Socket Address(From Microsoft Windows)
+	typedef struct _sockaddr_in_windows_
+	{
+		sa_family_t       sin_family;     /* address family: AF_INET */
+		in_port_t         sin_port;       /* port in network byte order */
+		in_addr_Windows   sin_addr;       /* internet address */
+		uint8_t           sin_zero[8U];   /* Zero */
+	}sockaddr_in_Windows;
 
 //Internet Protocol version 6/IPv6 Socket Address(From Microsoft Windows)
 	typedef struct _sockaddr_in6_windows_ 
@@ -326,9 +339,13 @@
 	#define SD_BOTH                  SHUT_RDWR
 	#define WSAETIMEDOUT             ETIMEDOUT
 	#define WSAEWOULDBLOCK           EINPROGRESS
+	#define WSAEAFNOSUPPORT          EAFNOSUPPORT
 	#define in_addr                  in_addr_Windows
 	#define in6_addr                 in6_addr_Windows
+	#define sockaddr_in              sockaddr_in_Windows
 	#define sockaddr_in6             sockaddr_in6_Windows
+	#define in6addr_loopback         *(in6_addr *)&in6addr_loopback
+	#define in6addr_any              *(in6_addr *)&in6addr_any
 	typedef unsigned char            UCHAR;
 	typedef unsigned char            *PUCHAR;
 	typedef int                      *PINT;
@@ -352,6 +369,7 @@
 	#define strncpy_s(Dst, DstSize, Src, Size)                          strncpy(Dst, Src, Size)
 	#define memcpy_s(Dst, DstSize, Src, Size)                           memcpy(Dst, Src, Size)
 	#define memmove_s(Dst, DstSize, Src, Size)                          memmove(Dst, Src, Size)
+	#define sprintf_s                                                   snprintf
 	#define wcsnlen_s                                                   wcsnlen
 	#define wcsncpy_s(Dst, DstSize, Src, Size)                          wcsncpy(Dst, Src, Size)
 	#define wprintf_s                                                   wprintf
@@ -407,20 +425,48 @@
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-//#define ETHERTYPE_ARP      0x0806  //(Dynamic)RARP
-//#define ETHERTYPE_RARP     0x8035  //RARP
-#define ETHERTYPE_IP       0x0800  //IPv4 over Ethernet
-#define ETHERTYPE_IPV6     0x86DD  //IPv6 over Ethernet
-//#define ETHERTYPE_PPPOED   0x8863  //PPPoE(Discovery Stage)
-#define ETHERTYPE_PPPOES   0x8864  //PPPoE(Session Stage)
-//#define ETHERTYPE_EAPOL    0x888E  //802.1X
-//#define FCS_TABLE_SIZE     256U          //FCS Table size
+//#define OSI_L2_ARP        0x0806   //(Dynamic)RARP
+//#define OSI_L2_RARP       0x8035   //RARP
+#define OSI_L2_IPV4         0x0800   //IPv4
+#define OSI_L2_IPV6         0x86DD   //IPv6
+//#define OSI_L2_PPPOED     0x8863   //PPPoE(Discovery Stage)
+#define OSI_L2_PPPOES       0x8864   //PPPoE(Session Stage)
+//#define OSI_L2_EAPOL      0x888E   //802.1X
+//#define FCS_TABLE_SIZE   256U     //FCS Table size
 typedef struct _eth_hdr_
 {
 	uint8_t                Dst[6U];
 	uint8_t                Src[6U];
 	uint16_t               Type;
 }eth_hdr, *peth_hdr;
+
+/* Apple IEEE 1394/FireWire Header(RFC 2734 and RFC3146, https://www.ietf.org/rfc/rfc2734 and https://www.ietf.org/rfc/rfc3146)
+
+1                   2                   3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                      Destination Address                      |
+|                                                               |
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                        Source Address                         |
+|                                                               |
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|             Type              |                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               /
+/                                                               /
+/                             Data                              /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _ieee_1394_hdr_
+{
+	uint8_t                Dst[8U];
+	uint8_t                Src[8U];
+	uint16_t               Type;
+}ieee_1394_hdr, *pieee_1394_hdr;
 
 /* Point-to-Point Protocol over Ethernet/PPPoE Header(RFC 2516, https://tools.ietf.org/rfc/rfc2516)
 
@@ -1866,7 +1912,7 @@ typedef struct _dnscurve_txt_signature_
 
 //Function Type defines
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //x86
+#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
 	#define FUNCTION_GETTICKCOUNT64        1U
 	#define FUNCTION_INET_NTOP             2U
 #endif
@@ -1876,8 +1922,8 @@ typedef struct _dnscurve_txt_signature_
 #define LOG_ERROR_PARAMETER  2U                      // 02: Parameter Error
 #define LOG_ERROR_IPFILTER   3U                      // 03: IPFilter Error
 #define LOG_ERROR_HOSTS      4U                      // 04: Hosts Error
-#define LOG_ERROR_WINSOCK    5U                      // 05: Winsock Error
-#define LOG_ERROR_WINPCAP    6U                      // 06: WinPcap Error
+#define LOG_ERROR_NETWORK    5U                      // 05: Network Error
+#define LOG_ERROR_PCAP       6U                      // 06: Pcap Error
 #define LOG_ERROR_DNSCURVE   7U                      // 07: DNSCurve Error
 
 //Codes and types defines
@@ -1910,7 +1956,7 @@ typedef struct _dnscurve_txt_signature_
 
 //Function Pointer defines
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //x86
+#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
 	typedef ULONGLONG(CALLBACK *GetTickCount64Function)(void);
 	typedef PCSTR(CALLBACK *Inet_Ntop_Function)(INT, PVOID, PSTR, size_t);
 #endif
@@ -1973,11 +2019,7 @@ typedef struct _dnscache_data_
 	std::shared_ptr<char>    Response;
 	size_t                   Length;
 	uint16_t                 RecordType;
-#if defined(PLATFORM_WIN)
-	ULONGLONG                ClearCacheTime;
-#elif defined(PLATFORM_LINUX)
-	time_t                   ClearCacheTime;
-#endif
+	uint64_t                 ClearCacheTime;
 }DNSCacheData, DNSCACHE_DATA, *PDNSCacheData, *PDNSCACHE_DATA;
 
 //DNSCurve Server Data structure
@@ -2114,7 +2156,7 @@ public:
 	std::vector<uint16_t>            *AcceptTypeList;
 
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //x86
+#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
 	HINSTANCE                        GetTickCount64DLL;
 	GetTickCount64Function           GetTickCount64PTR;
 	HINSTANCE                        Inet_Ntop_DLL;
@@ -2211,11 +2253,7 @@ public:
 	uint16_t                   NetworkLayer;
 	uint16_t                   TransportLayer;
 	std::vector<SOCKET_DATA>   RequestData;
-#if defined(PLATFORM_WIN)
 	ULONGLONG                  ClearPortTime;
-#elif defined(PLATFORM_LINUX)
-	time_t                     ClearPortTime;
-#endif
 
 	PortTable(void);
 }PORT_TABLE;
@@ -2247,18 +2285,30 @@ public:
 //////////////////////////////////////////////////
 // Main functions
 // 
+//Base.cpp
+bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length);
+void __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer);
+size_t __fastcall CaseConvert(const bool IsLowerUpper, char *Buffer, const size_t Length);
+#if defined(PLATFORM_LINUX)
+	uint64_t GetTickCount64(void);
+#endif
+//Windows XP with SP3 support
+#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+	BOOL WINAPI IsGreaterThanVista(void);
+	BOOL WINAPI GetFunctionPointer(const size_t FunctionType);
+#endif
+
 //PrintLog.h
 size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const SSIZE_T ErrCode, const wchar_t *FileName, const size_t Line);
 size_t __fastcall PrintRunningStatus(const wchar_t *Message);
 size_t __fastcall PrintParameterList(void);
 
 //Protocol.h
-bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length);
-void __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer);
 uint64_t __fastcall hton64(const uint64_t Val);
 uint64_t __fastcall ntoh64(const uint64_t Val);
-size_t __fastcall CaseConvert(const bool IsLowerUpper, char *Buffer, const size_t Length);
+//uint32_t __fastcall GetFCS(const unsigned char *Buffer, const size_t Length);
 size_t __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr, const uint16_t Protocol, SSIZE_T &ErrCode);
+size_t __fastcall CompareAddresses(const void *OriginalAddrBegin, const void *OriginalAddrEnd, const uint16_t Protocol);
 PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol);
 size_t __fastcall GetNetworkingInformation(void);
 uint16_t __fastcall ServiceNameToHex(const char *Buffer);
@@ -2266,7 +2316,6 @@ uint16_t __fastcall DNSTypeNameToHex(const char *Buffer);
 bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, char *Domain);
 bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol);
 bool __fastcall CustomModeFilter(const void *OriginalAddr, const uint16_t Protocol);
-//uint32_t __fastcall GetFCS(const unsigned char *Buffer, const size_t Length);
 uint16_t __fastcall GetChecksum(const uint16_t *Buffer, const size_t Length);
 uint16_t __fastcall ICMPv6Checksum(const unsigned char *Buffer, const size_t Length, const in6_addr &Destination, const in6_addr &Source);
 uint16_t __fastcall TCPUDPChecksum(const unsigned char *Buffer, const size_t Length, const uint16_t NetworkLayer, const uint16_t TransportLayer);
@@ -2274,32 +2323,16 @@ size_t __fastcall AddLengthToTCPDNSHeader(PSTR Buffer, const size_t RecvLen, con
 size_t __fastcall CharToDNSQuery(const char *FName, PSTR TName);
 size_t __fastcall CheckDNSQueryNameLength(const char *Buffer);
 size_t __fastcall DNSQueryToChar(const char *TName, PSTR FName);
-#if defined(PLATFORM_WIN)
-	BOOL WINAPI FlushDNSResolverCache(void);
-#endif
+void __fastcall FlushDNSCache(void);
 void __fastcall MakeRamdomDomain(PSTR Buffer);
 void __fastcall MakeDomainCaseConversion(PSTR Buffer);
 size_t __fastcall MakeCompressionPointerMutation(char *Buffer, const size_t Length);
 bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal, bool *IsMarkHopLimit);
 
-//Sort.cpp
-size_t __fastcall CompareAddresses(const void *OriginalAddrBegin, const void *OriginalAddrEnd, const uint16_t Protocol);
-
 //Configuration.h
 size_t __fastcall ReadParameter(void);
 size_t __fastcall ReadIPFilter(void);
 size_t __fastcall ReadHosts(void);
-
-//System.h
-//Windows XP with SP3 support
-#if defined(PLATFORM_WIN)
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //x86
-		BOOL WINAPI IsGreaterThanVista(void);
-		BOOL WINAPI GetFunctionPointer(const size_t FunctionType);
-	#endif
-	BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType);
-	size_t WINAPI ServiceMain(DWORD argc, LPTSTR *argv);
-#endif
 
 //Monitor.h
 size_t __fastcall RunningLogWriteMonitor(void);
@@ -2320,7 +2353,7 @@ size_t __fastcall MarkDomainCache(const char *Buffer, const size_t Length);
 //Captrue.h
 size_t __fastcall CaptureInit(void);
 
-//Request.h
+//Network.h
 size_t __fastcall DomainTestRequest(const uint16_t Protocol);
 size_t __fastcall ICMPEcho(void);
 size_t __fastcall ICMPv6Echo(void);
@@ -2330,3 +2363,9 @@ size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, cons
 size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length, const SOCKET_DATA *LocalSocketData, const uint16_t Protocol);
 size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal);
 size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
+
+//WindowsService.h
+#if defined(PLATFORM_WIN)
+	BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType);
+	size_t WINAPI ServiceMain(DWORD argc, LPTSTR *argv);
+#endif

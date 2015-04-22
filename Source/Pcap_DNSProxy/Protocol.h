@@ -30,4 +30,7 @@ extern std::vector<ADDRESS_HOSTS_TABLE> *AddressHostsListUsing;
 extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM], AddressRangeLock, LocalRoutingListLock, ResultBlacklistLock, AddressHostsListLock;
 
 //Functions
+#if defined(PLATFORM_LINUX)
+	size_t GetBestInterfaceAddress(const uint16_t Protocol, const sockaddr_storage *OriginalSockAddr);
+#endif
 void __fastcall GetGatewayInformation(const uint16_t Protocol);

@@ -14,7 +14,7 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="LibSodium">
-      <UniqueIdentifier>{07d1d7b0-821d-4730-944a-cf082480b347}</UniqueIdentifier>
+      <UniqueIdentifier>{b96c9e71-3868-41e3-86e2-ae856cb54680}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -195,10 +195,10 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\LibSodium\libsodium_x64.lib">
+    <Library Include="..\LibSodium\LibSodium_x64.lib">
       <Filter>LibSodium</Filter>
     </Library>
-    <Library Include="..\LibSodium\libsodium_x86.lib">
+    <Library Include="..\LibSodium\LibSodium_x86.lib">
       <Filter>LibSodium</Filter>
     </Library>
   </ItemGroup>

@@ -868,13 +868,13 @@ size_t __fastcall MarkDomainCache(const char *Buffer, const size_t Length)
 		DNSCacheDataTemp.Length = Length - sizeof(uint16_t);
 
 	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
-	#if defined(PLATFORM_WIN64)
-		DNSCacheDataTemp.ClearCacheTime = GetTickCount64() + ResponseTTL * SECOND_TO_MILLISECOND;
-	#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //x86
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
 		if (Parameter.GetTickCount64PTR != nullptr)
 			DNSCacheDataTemp.ClearCacheTime = (size_t)((*Parameter.GetTickCount64PTR)() + ResponseTTL * SECOND_TO_MILLISECOND);
 		else 
 			DNSCacheDataTemp.ClearCacheTime = GetTickCount() + ResponseTTL * SECOND_TO_MILLISECOND;
+	#else
+		DNSCacheDataTemp.ClearCacheTime = GetTickCount64() + ResponseTTL * SECOND_TO_MILLISECOND;
 	#endif
 
 		std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
@@ -895,11 +895,11 @@ size_t __fastcall MarkDomainCache(const char *Buffer, const size_t Length)
 		}
 		else { //CACHE_TIMER
 		//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
-		#if defined(PLATFORM_WIN64)
-			while (!DNSCacheList.empty() && GetTickCount64() >= DNSCacheList.front().ClearCacheTime)
-		#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //x86
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
 			while (!DNSCacheList.empty() && (Parameter.GetTickCount64PTR != nullptr && (*Parameter.GetTickCount64PTR)() >= DNSCacheList.front().ClearCacheTime || 
 				GetTickCount() >= DNSCacheList.front().ClearCacheTime))
+		#else
+			while (!DNSCacheList.empty() && GetTickCount64() >= DNSCacheList.front().ClearCacheTime)
 		#endif
 				DNSCacheList.pop_front();
 		}

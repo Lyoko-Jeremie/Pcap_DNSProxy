@@ -26,9 +26,13 @@ size_t __fastcall RunningLogWriteMonitor(void)
 	FILE *Output = nullptr;
 	std::shared_ptr<tm> TimeStructure(new tm());
 	memset(TimeStructure.get(), 0, sizeof(tm));
+#if defined(PLATFORM_WIN)
 	HANDLE RunningFileHandle = nullptr;
 	std::shared_ptr<LARGE_INTEGER> RunningFileSize(new LARGE_INTEGER());
 	memset(RunningFileSize.get(), 0, sizeof(LARGE_INTEGER));
+#elif defined(PLATFORM_LINUX)
+	struct stat FileSata = {0};
+#endif
 	std::unique_lock<std::mutex> RunningLogMutex(RunningLogLock);
 	RunningLogMutex.unlock();
 
@@ -38,6 +42,7 @@ size_t __fastcall RunningLogWriteMonitor(void)
 		RunningLogMutex.lock();
 
 	//Check whole file size.
+	#if defined(PLATFORM_WIN)
 		RunningFileHandle = CreateFileW(Parameter.RunningLogPath->c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (RunningFileHandle != INVALID_HANDLE_VALUE)
 		{
@@ -53,9 +58,21 @@ size_t __fastcall RunningLogWriteMonitor(void)
 						PrintError(LOG_ERROR_SYSTEM, L"Old Running Log file was deleted", 0, nullptr, 0);
 			}
 		}
+	#elif defined(PLATFORM_LINUX)
+		memset(&FileSata, 0, sizeof(struct stat));
+		if (stat(Parameter.sRunningLogPath->c_str(), &FileSata) == 0)
+		{
+			if (FileSata.st_size >= Parameter.LogMaxSize && remove(Parameter.sRunningLogPath->c_str()) == 0)
+				PrintError(LOG_ERROR_SYSTEM, L"Old Running Log file was deleted", 0, nullptr, 0);
+		}
+	#endif
 
 	//Write all messages to file.
+	#if defined(PLATFORM_WIN)
 		_wfopen_s(&Output, Parameter.RunningLogPath->c_str(), L"a,ccs=UTF-8");
+	#elif defined(PLATFORM_LINUX)
+		Output = fopen(Parameter.sRunningLogPath->c_str(), "a");
+	#endif
 		if (Output != nullptr && Parameter.RunningLogWriteQueue != nullptr)
 		{
 			for (auto RunningLogDataIter:*Parameter.RunningLogWriteQueue)
@@ -153,7 +170,7 @@ size_t __fastcall MonitorInit(void)
 			if (LocalSocketData->Socket == INVALID_SOCKET)
 			{
 				if (WSAGetLastError() != 0 && WSAGetLastError() != WSAEAFNOSUPPORT)
-					PrintError(LOG_ERROR_WINSOCK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+					PrintError(LOG_ERROR_NETWORK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
 				Parameter.LocalSocket->push_back(LocalSocketData->Socket);
@@ -170,7 +187,7 @@ size_t __fastcall MonitorInit(void)
 							LocalSocketData->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 							if (LocalSocketData->Socket == INVALID_SOCKET)
 							{
-								PrintError(LOG_ERROR_WINSOCK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								PrintError(LOG_ERROR_NETWORK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 								break;
 							}
 						}
@@ -200,7 +217,7 @@ size_t __fastcall MonitorInit(void)
 							LocalSocketData->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 							if (LocalSocketData->Socket == INVALID_SOCKET)
 							{
-								PrintError(LOG_ERROR_WINSOCK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								PrintError(LOG_ERROR_NETWORK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 								break;
 							}
 
@@ -226,7 +243,7 @@ size_t __fastcall MonitorInit(void)
 			if (LocalSocketData->Socket == INVALID_SOCKET)
 			{
 				if (WSAGetLastError() != 0 && WSAGetLastError() != WSAEAFNOSUPPORT)
-					PrintError(LOG_ERROR_WINSOCK, L"IPv6 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+					PrintError(LOG_ERROR_NETWORK, L"IPv6 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
 				Parameter.LocalSocket->push_back(LocalSocketData->Socket);
@@ -243,7 +260,7 @@ size_t __fastcall MonitorInit(void)
 							LocalSocketData->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 							if (LocalSocketData->Socket == INVALID_SOCKET)
 							{
-								PrintError(LOG_ERROR_WINSOCK, L"IPv6 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								PrintError(LOG_ERROR_NETWORK, L"IPv6 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 								break;
 							}
 						}
@@ -273,7 +290,7 @@ size_t __fastcall MonitorInit(void)
 							LocalSocketData->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 							if (LocalSocketData->Socket == INVALID_SOCKET)
 							{
-								PrintError(LOG_ERROR_WINSOCK, L"IPv6 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								PrintError(LOG_ERROR_NETWORK, L"IPv6 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 								break;
 							}
 
@@ -301,7 +318,7 @@ size_t __fastcall MonitorInit(void)
 			LocalSocketData->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 			if (LocalSocketData->Socket == INVALID_SOCKET)
 			{
-				PrintError(LOG_ERROR_WINSOCK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+				PrintError(LOG_ERROR_NETWORK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
 				Parameter.LocalSocket->push_back(LocalSocketData->Socket);
@@ -318,7 +335,7 @@ size_t __fastcall MonitorInit(void)
 							LocalSocketData->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 							if (LocalSocketData->Socket == INVALID_SOCKET)
 							{
-								PrintError(LOG_ERROR_WINSOCK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								PrintError(LOG_ERROR_NETWORK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 								break;
 							}
 						}
@@ -348,7 +365,7 @@ size_t __fastcall MonitorInit(void)
 							LocalSocketData->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 							if (LocalSocketData->Socket == INVALID_SOCKET)
 							{
-								PrintError(LOG_ERROR_WINSOCK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								PrintError(LOG_ERROR_NETWORK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 								break;
 							}
 
@@ -373,7 +390,7 @@ size_t __fastcall MonitorInit(void)
 			LocalSocketData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 			if (LocalSocketData->Socket == INVALID_SOCKET)
 			{
-				PrintError(LOG_ERROR_WINSOCK, L"IPv4 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+				PrintError(LOG_ERROR_NETWORK, L"IPv4 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
 				Parameter.LocalSocket->push_back(LocalSocketData->Socket);
@@ -390,7 +407,7 @@ size_t __fastcall MonitorInit(void)
 							LocalSocketData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 							if (LocalSocketData->Socket == INVALID_SOCKET)
 							{
-								PrintError(LOG_ERROR_WINSOCK, L"IPv4 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								PrintError(LOG_ERROR_NETWORK, L"IPv4 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 								break;
 							}
 						}
@@ -420,7 +437,7 @@ size_t __fastcall MonitorInit(void)
 							LocalSocketData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 							if (LocalSocketData->Socket == INVALID_SOCKET)
 							{
-								PrintError(LOG_ERROR_WINSOCK, L"IPv4 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								PrintError(LOG_ERROR_NETWORK, L"IPv4 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 								break;
 							}
 
@@ -441,7 +458,7 @@ size_t __fastcall MonitorInit(void)
 	LocalSocketData.reset();
 
 //Join threads.
-	for (size_t Index = 0;Index < MonitorThreadIndex;++Index)
+	for (size_t Index = 0;Index < MonitorThread.size();++Index)
 	{
 		if (MonitorThread[Index].joinable())
 			MonitorThread[Index].join();
@@ -453,23 +470,32 @@ size_t __fastcall MonitorInit(void)
 //Local DNS server with UDP protocol
 size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 {
+	SSIZE_T RecvLen = 0;
+
+#if defined(PLATFORM_WIN)
 //Block WSAECONNRESET error of UDP Monitor.
 	DWORD BytesReturned = 0;
 	BOOL NewBehavior = FALSE;
-	SSIZE_T RecvLen = WSAIoctl(LocalSocketData.Socket, SIO_UDP_CONNRESET, &NewBehavior, sizeof(BOOL), nullptr, 0, &BytesReturned, nullptr, nullptr);
+	RecvLen = WSAIoctl(LocalSocketData.Socket, SIO_UDP_CONNRESET, &NewBehavior, sizeof(BOOL), nullptr, 0, &BytesReturned, nullptr, nullptr);
 	if (RecvLen == SOCKET_ERROR)
 	{
-		PrintError(LOG_ERROR_WINSOCK, L"Set UDP socket SIO_UDP_CONNRESET error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket SIO_UDP_CONNRESET error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
 
 		return EXIT_FAILURE;
 	}
+#endif
 
 //Set socket timeout.
-	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR ||
+#if defined(PLATFORM_WIN)
+	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
 		setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
+#elif defined(PLATFORM_LINUX)
+	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR || 
+		setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR)
+#endif
 	{
-		PrintError(LOG_ERROR_WINSOCK, L"Set UDP socket timeout error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket timeout error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
 
 		return EXIT_FAILURE;
@@ -484,7 +510,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 //Bind socket to port.
 	if (bind(LocalSocketData.Socket, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen) == SOCKET_ERROR)
 	{
-		PrintError(LOG_ERROR_WINSOCK, L"Bind UDP Monitor socket error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_ERROR_NETWORK, L"Bind UDP Monitor socket error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
 
 		return EXIT_FAILURE;
@@ -502,9 +528,9 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		Sleep(LOOP_INTERVAL_TIME);
 		memset(Buffer.get() + PACKET_MAXSIZE * Index[0], 0, PACKET_MAXSIZE);
 		if (Parameter.EDNS0Label) //EDNS0 Label
-			RecvLen = recvfrom(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], PACKET_MAXSIZE - sizeof(dns_record_opt), 0, (PSOCKADDR)&LocalSocketData.SockAddr, (PINT)&LocalSocketData.AddrLen);
+			RecvLen = recvfrom(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], PACKET_MAXSIZE - sizeof(dns_record_opt), 0, (PSOCKADDR)&LocalSocketData.SockAddr, (socklen_t *)&LocalSocketData.AddrLen);
 		else 
-			RecvLen = recvfrom(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], PACKET_MAXSIZE, 0, (PSOCKADDR)&LocalSocketData.SockAddr, (PINT)&LocalSocketData.AddrLen);
+			RecvLen = recvfrom(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], PACKET_MAXSIZE, 0, (PSOCKADDR)&LocalSocketData.SockAddr, (socklen_t *)&LocalSocketData.AddrLen);
 
 	//Check address(es).
 		if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
@@ -644,10 +670,15 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 {
 //Set socket timeout.
-	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.ReliableSocketTimeout, sizeof(int)) == SOCKET_ERROR ||
+#if defined(PLATFORM_WIN)
+	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.ReliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
 		setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.ReliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
+#elif defined(PLATFORM_LINUX)
+	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.ReliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR || 
+		setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.ReliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR)
+#endif
 	{
-		PrintError(LOG_ERROR_WINSOCK, L"Set TCP socket timeout error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_ERROR_NETWORK, L"Set TCP socket timeout error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
 
 		return EXIT_FAILURE;
@@ -662,7 +693,7 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 //Bind socket to port.
 	if (bind(LocalSocketData.Socket, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen) == SOCKET_ERROR)
 	{
-		PrintError(LOG_ERROR_WINSOCK, L"Bind TCP Monitor socket error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_ERROR_NETWORK, L"Bind TCP Monitor socket error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
 
 		return EXIT_FAILURE;
@@ -671,7 +702,7 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 //Listen request from socket.
 	if (listen(LocalSocketData.Socket, SOMAXCONN) == SOCKET_ERROR)
 	{
-		PrintError(LOG_ERROR_WINSOCK, L"TCP Monitor socket listening initialization error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_ERROR_NETWORK, L"TCP Monitor socket listening initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
 
 		return EXIT_FAILURE;
@@ -900,7 +931,11 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 
 //Block Port Unreachable messages of system.
 	shutdown(LocalSocketData.Socket, SD_BOTH);
+#if defined(PLATFORM_WIN)
 	Sleep(Parameter.ReliableSocketTimeout);
+#elif defined(PLATFORM_LINUX)
+	usleep(Parameter.ReliableSocketTimeout.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.ReliableSocketTimeout.tv_usec);
+#endif
 	closesocket(LocalSocketData.Socket);
 	return EXIT_SUCCESS;
 }
@@ -918,18 +953,17 @@ void __fastcall AlternateServerMonitor(void)
 		for (Index = 0;Index < ALTERNATE_SERVERNUM;++Index)
 		{
 		//Reset TimeoutTimes out of alternate time range.
-		#if defined(PLATFORM_WIN64)
-			if (GetTickCount64() >= RangeTimer[Index])
-			{
-				RangeTimer[Index] = GetTickCount64() + Parameter.AlternateTimeRange;
-		#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //x86
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
 			if (Parameter.GetTickCount64PTR != nullptr && (*Parameter.GetTickCount64PTR)() >= RangeTimer[Index] || GetTickCount() >= RangeTimer[Index])
 			{
 				if (Parameter.GetTickCount64PTR != nullptr)
 					RangeTimer[Index] = (size_t)((*Parameter.GetTickCount64PTR)() + Parameter.AlternateTimeRange);
 				else
 					RangeTimer[Index] = GetTickCount() + Parameter.AlternateTimeRange;
-
+		#else
+			if (GetTickCount64() >= RangeTimer[Index])
+			{
+				RangeTimer[Index] = GetTickCount64() + Parameter.AlternateTimeRange;
 		#endif
 				AlternateSwapList.TimeoutTimes[Index] = 0;
 				continue;
@@ -938,10 +972,10 @@ void __fastcall AlternateServerMonitor(void)
 		//Reset alternate switching.
 			if (AlternateSwapList.IsSwap[Index])
 			{
-			#if defined(PLATFORM_WIN64)
-				if (GetTickCount64() >= SwapTimer[Index])
-			#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //x86
+			#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
 				if (Parameter.GetTickCount64PTR != nullptr && (*Parameter.GetTickCount64PTR)() >= SwapTimer[Index] || GetTickCount() >= SwapTimer[Index])
+			#else
+				if (GetTickCount64() >= SwapTimer[Index])
 			#endif
 				{
 					AlternateSwapList.IsSwap[Index] = false;
@@ -955,13 +989,13 @@ void __fastcall AlternateServerMonitor(void)
 				{
 					AlternateSwapList.IsSwap[Index] = true;
 					AlternateSwapList.TimeoutTimes[Index] = 0;
-				#if defined(PLATFORM_WIN64)
-					SwapTimer[Index] = GetTickCount64() + Parameter.AlternateResetTime;
-				#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //x86
+				#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
 					if (Parameter.GetTickCount64PTR != nullptr)
 						SwapTimer[Index] = (size_t)((*Parameter.GetTickCount64PTR)() + Parameter.AlternateResetTime);
 					else 
 						SwapTimer[Index] = GetTickCount() + Parameter.AlternateResetTime;
+				#else
+					SwapTimer[Index] = GetTickCount64() + Parameter.AlternateResetTime;
 				#endif
 				}
 			}

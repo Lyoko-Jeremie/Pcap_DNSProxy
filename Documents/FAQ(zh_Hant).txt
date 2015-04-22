@@ -18,13 +18,6 @@
     * %WINDIR%\system32\pthreadVC.dll
 
 * 安裝、運行或重啟服務時出現：
-  * Files may be damaged or corrupt!
-    Please download all files again, also you can skip this check.
-    Are you sure you want to continue install service [Y/N]?
-    - 壓縮檔的 SHA-1 檢查驗證失敗，意味著程式可能在下載或解壓途中被損壞
-    - 確保 bat 批次處理都是最新版本
-    - 如果修改或更新過程式，確認程式是沒有損壞的，請輸入 Y/y 跳過檢查繼續安裝或運行服務
-    - 否則請重新下載程式
   * 服務沒有及時回應啟動或控制請求 - 請檢查是否有錯誤報表生成，詳細情況參見下文 Error.log 詳細錯誤報表 一節
   * Service start failed, please check the configuration. - 請檢查是否有錯誤報表生成，詳細情況參見下文 Error.log 詳細錯誤報表 一節
 
@@ -106,23 +99,23 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
 
 2.Parameter Error - 讀取設定檔參數錯誤
   * Cannot open any configuration files - 沒有發現任何設定檔：請確認檔是否存在
-  * Configuration file size is too large - 設定檔容量過大：請確認設定檔的內容，整個檔的大小不要超過4GB
-  * Item length error - 設定檔參數一行資料超過4096位元組/4KB，或該行資料長度不符合要求（可根據檔案名和行數查找）：請確認該行的內容是否符合要求
+  * Configuration file is too large - 設定檔容量過大：請確認設定檔的內容，整個檔的大小不要超過4GB
+  * Data length error - 設定檔參數一行資料超過4096位元組/4KB，或該行資料長度不符合要求（可根據檔案名和行數查找）：請確認該行的內容是否符合要求
   * Configuration file version error - 設定檔版本錯誤：請確認設定檔是否需要更新。注意，Windows/Linux/Mac 版設定檔互不通用！
   * Configuration file is not the latest version - 設定檔非最新版本：請確認設定檔是否需要更新
   * Data of a line is too short - 該參數過短（可根據檔案名和行數查找）：請確認設定檔的內容
   * Data of a line is too long - 該參數過長（可根據檔案名和行數查找）：一行資料切勿超過 4096位元組/4KB
   * Log file size error - 設定檔指定的最大日誌檔容量錯誤：可接受範圍為 4KB - 4GB
   * Pcap Capture error - 抓包模組參數錯誤：請確定關閉抓包模組時是否有開啟其它請求功能變數名稱解析的方式
-  * IPv6 Listen Address format error - IPv6 本地監聽綁定位址格式錯誤（可根據檔案名和行數查找）：請檢查 IPv6 的本地監聽綁定位址
-  * IPv6 Listen Port error - IPv6 本地監聽綁定埠錯誤（可根據檔案名和行數查找）：請檢查 IPv6 的本地監聽綁定埠
-  * IPv4 Listen Address format error - IPv4 本地監聽綁定位址格式錯誤（可根據檔案名和行數查找）：請檢查 IPv4 的本地監聽綁定位址
-  * IPv4 Listen Port error - IPv4 本地監聽綁定埠錯誤（可根據檔案名和行數查找）：請檢查 IPv4 的本地監聽綁定埠
-  * DNS server IPv6 Address format error - IPv6 的 DNS 伺服器位址格式錯誤（可根據檔案名和行數查找）：請檢查 IPv6 的 DNS 伺服器位址
-  * DNS server IPv6 Port error - IPv6 的 DNS 目標伺服器埠錯誤（可根據檔案名和行數查找）：請檢查 IPv6 的 DNS 目標伺服器的埠
-  * DNS server IPv4 Address format error - IPv4 的 DNS 伺服器位址格式錯誤（可根據檔案名和行數查找）：請檢查 IPv4 的 DNS 伺服器位址
-  * DNS server IPv4 Port error - IPv4 的 DNS 目標伺服器埠錯誤（可根據檔案名和行數查找）：請檢查 IPv4 的 DNS 目標伺服器的埠
-  * Localhost server listening Port error - 本地監聽埠錯誤：請檢查本地監聽埠的值，可適用範圍為 1 - 65535
+  * IPv6 Listen address format error - IPv6 本地監聽綁定位址格式錯誤（可根據檔案名和行數查找）：請檢查 IPv6 的本地監聽綁定位址
+  * IPv6 Listen port error - IPv6 本地監聽綁定埠錯誤（可根據檔案名和行數查找）：請檢查 IPv6 的本地監聽綁定埠
+  * IPv4 Listen address format error - IPv4 本地監聽綁定位址格式錯誤（可根據檔案名和行數查找）：請檢查 IPv4 的本地監聽綁定位址
+  * IPv4 Listen port error - IPv4 本地監聽綁定埠錯誤（可根據檔案名和行數查找）：請檢查 IPv4 的本地監聽綁定埠
+  * DNS server IPv6 address format error - IPv6 的 DNS 伺服器位址格式錯誤（可根據檔案名和行數查找）：請檢查 IPv6 的 DNS 伺服器位址
+  * DNS server IPv6 port error - IPv6 的 DNS 目標伺服器埠錯誤（可根據檔案名和行數查找）：請檢查 IPv6 的 DNS 目標伺服器的埠
+  * DNS server IPv4 address format error - IPv4 的 DNS 伺服器位址格式錯誤（可根據檔案名和行數查找）：請檢查 IPv4 的 DNS 伺服器位址
+  * DNS server IPv4 port error - IPv4 的 DNS 目標伺服器埠錯誤（可根據檔案名和行數查找）：請檢查 IPv4 的 DNS 目標伺服器的埠
+  * Localhost server listening port error - 本地監聽埠錯誤：請檢查本地監聽埠的值，可適用範圍為 1 - 65535
   * IPFilter Level error - IPFilter 過濾級別錯誤：請檢查過濾級別的值，可適用範圍為 1 - 65535
   * DNS Cache error - DNS 緩存配置錯誤：請檢查緩存的參數
   * DNS Targets error - DNS 目標伺服器配置錯誤：請檢查 DNS 伺服器的位址
@@ -133,7 +126,6 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * EDNS0 Payload Size must longer than 512 bytes(Old DNS packets minimum supported size) - EDNS0 載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包
   * EDNS0 Payload Size may be too long - EDNS0 載荷長度可能過長：此值建議不要超過乙太網的 MTU(1512 bytes)
   * EDNS0 Label must trun ON when request DNSSEC - 開啟 DNSSEC 請求時必須開啟 EDNS0 標籤請求功能
-  * EDNS0 Label must trun ON when request DNSCurve - 開啟 DNSCurve 協定請求時必須開啟 EDNS0 標籤請求功能
   * Alternate Multi requesting error - 主要備用或多個伺服器下同時請求參數錯誤：請確認所有伺服器的資訊
   * Multi requesting times error - 接收到一個解析請求向同一個遠端伺服器發送多次解析請求參數錯誤 ：一個解析請求的多次解析請求次數不能超過16次，也就是設定檔不能填大於15的值
   * DNSCurve Targets error - DNSCurve 協定使用的 DNS 目標伺服器位址錯誤：請檢查 DNSCurve 協定使用DNS伺服器的位址
@@ -151,8 +143,8 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Data of a line is too long - 該 IPFilter 條目過長（可根據檔案名和行數查找）：一行資料切勿超過 4096位元組/4KB
   * Item format error - IPFilter 條目格式錯誤（可根據報告的行數查找）：請檢查該條目的格式
   * Regular expression pattern error - 錯誤的正則運算式（可根據報告的行數查找）：請檢查正則運算式的正確
-  * IPv6 Address format error - IPFilter 的 IPv6 位址格式錯誤（可根據報告的行數查找）：請檢查 IPFilter 條目的位址
-  * IPv4 Address format error - IPFilter 的 IPv4 位址格式錯誤（可根據報告的行數查找）：請檢查 IPFilter 條目的位址
+  * IPv6 address format error - IPFilter 的 IPv6 位址格式錯誤（可根據報告的行數查找）：請檢查 IPFilter 條目的位址
+  * IPv4 address format error - IPFilter 的 IPv4 位址格式錯誤（可根據報告的行數查找）：請檢查 IPFilter 條目的位址
   * IPv6 Addresses range error - IPFilter 的 IPv6 位址範圍錯誤（可根據報告的行數查找）：請檢查 IPFilter 條目的位址
   * IPv4 Addresses range error - IPFilter 的 IPv6 位址範圍錯誤（可根據報告的行數查找）：請檢查 IPFilter 條目的位址
   * Repeating items error, this item is not available - 存在重複的 IPFilter 條目（可根據報告的行數查找）：本條目將不啟用的提示
@@ -169,11 +161,11 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Default TTL redefinition - 預設存留時間重定義（可根據報告的行數查找）：以第一個出現的預設存留時間為准
   * Regular expression pattern error - 錯誤的正則運算式（可根據報告的行數查找）：請檢查正則運算式的正確性
   * Repeating items error, the item is not available - 存在重複的 Hosts 條目（可根據報告的行數查找）：以第一個出現的 Hosts 條目為准
-  * IPv6 Address format error - Hosts 的 IPv6 位址格式錯誤（可根據報告的行數查找）：請檢查 Hosts 條目的位址
-  * IPv4 Address format error - Hosts 的 IPv4 位址格式錯誤（可根據報告的行數查找）：請檢查 Hosts 條目的位址
+  * IPv6 address format error - Hosts 的 IPv6 位址格式錯誤（可根據報告的行數查找）：請檢查 Hosts 條目的位址
+  * IPv4 address format error - Hosts 的 IPv4 位址格式錯誤（可根據報告的行數查找）：請檢查 Hosts 條目的位址
   * Too many Hosts IP addresses - Hosts 條目的平行位址過多
 
-5.Winsock Error - Windows Socket 錯誤
+5.Network Error - 網路錯誤
   * Winsock initialization error - Winsock 初始化失敗：請確認使用的作業系統平臺是否受支援
   * Windows Firewall Test error - Windows 防火牆測試失敗：請確認是否為管理員身份運行批次處理
   * UDP Monitor socket initialization error - UDP 協定本地通訊端初始化失敗：原因參見錯誤代碼
@@ -183,8 +175,8 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * TCP Monitor socket listening initialization error - TCP 協定本地通訊端監聽失敗：原因參見錯誤代碼
   * Get localhost names error - 獲取本地電腦名稱稱失敗：原因參見錯誤代碼
   * Get localhost addresses error - 獲取本地電腦位址失敗：沒有任何生效的網路介面卡，可能是硬體或者驅動程式的問題
-  * Local IPv4 Address format error - 本地電腦 IPv4 位址格式錯誤：原因參見錯誤代碼
-  * Local IPv6 Address format error - 本地電腦 IPv6 位址格式錯誤：原因參見錯誤代碼
+  * Local IPv4 address format error - 本地電腦 IPv4 位址格式錯誤：原因參見錯誤代碼
+  * Local IPv6 address format error - 本地電腦 IPv6 位址格式錯誤：原因參見錯誤代碼
   * UDP request initialization error - UDP 協定請求通訊端初始化失敗：原因參見錯誤代碼
   * Complete UDP request initialization error - UDP 協定請求通訊端初始化失敗：原因參見錯誤代碼
   * UDP request error - UDP 協定要求傳送失敗：可能為網路錯誤，具體原因可參見錯誤代碼
@@ -210,13 +202,13 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Not any available gateways to public network - 沒有任何通往公共網路的可用閘道：可能為網路錯誤，請檢查網路是否通暢
   * Winsock 錯誤代碼具體含義可移步 http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 
-6.WinPcap Error - WinPcap 錯誤
+6.Pcap Error - Pcap 錯誤
   * Insufficient privileges or not any available network devices - 沒有任何可用的網路介面卡：請檢查硬體設備和驅動程式是否安裝正確，也可能是許可權不足
   * XXX is not a Ethernet device - 發現非 Ethernet 類型的網路介面卡：這不是錯誤，但可以說明系統記憶體在非 Ethernet 類型的網路介面卡
   * An error occurred in XXX - 名稱為 XXX 的網路介面卡抓取資料包錯誤
   * EOF was reached reading from an offline capture in XXX - 名稱為 XXX 的網路介面卡已經離線或不可用
   * 本類型錯誤會直接將 WinPcap 的錯誤資訊直接列印至錯誤報表
-  * WinPcap錯誤資訊的具體含義可移步 http://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
+  * WinPcap 錯誤資訊的具體含義可移步 http://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
 
 7.DNSCurve Error - DNSCurve 協定錯誤
   * Libsodium initialization error - Libsodium 庫初始化錯誤：請與開發者聯繫

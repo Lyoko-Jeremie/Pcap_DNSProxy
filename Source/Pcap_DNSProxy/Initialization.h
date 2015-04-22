@@ -27,7 +27,7 @@ ALTERNATE_SWAP_TABLE AlternateSwapList;
 DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
 std::vector<std::wstring> ConfigFileList;
 #if defined(PLATFORM_LINUX)
-	extern std::vector<std::string> sConfigFileList;
+	std::vector<std::string> sConfigFileList;
 #endif
 std::vector<FILE_DATA> IPFilterFileList, HostsFileList;
 std::vector<ADDRESS_RANGE_TABLE> AddressRangeList[2U], *AddressRangeUsing = &AddressRangeList[0], *AddressRangeModificating = &AddressRangeList[1U];

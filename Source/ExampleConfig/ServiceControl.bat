@@ -27,7 +27,7 @@ if '%errorlevel%' NEQ '0' (
 	cd /D "%~dp0"
 
 
-:: Main choice
+:: Choice
 echo Pcap_DNSProxy service control batch
 echo.
 echo 1: Install service
@@ -37,61 +37,7 @@ echo 4: Stop service
 echo 5: Restart service
 echo 6: Service Query(Windows XP/2003 only)
 echo.
-
-:: Choice(Part 1)
 set /P UserChoice="Choose: "
-
-
-:: Permission check
-::	if %UserChoice% GTR 0 (
-::		if %UserChoice% LSS 6 (
-::			echo.
-::			if %PROCESSOR_ARCHITECTURE% EQU AMD64 (
-::				cd /D "%SystemRoot%\System32"
-::			) else (
-::				cd /D "%SystemRoot%\SysWOW64"
-::			)
-::			del /f /q TestPermission.log
-::			echo Permission check. > TestPermission.log
-::			if not exist TestPermission.log (
-::				echo.
-::				echo Require Administrator privileges!
-::				pause
-::				exit
-::			) else (
-::				del /f /q TestPermission.log
-::				cd /D "%~dp0"
-::				cls
-::			)
-::		)
-::	)
-
-:: Files check
-	set FileCheck=0
-	if %UserChoice% EQU 0 (set FileCheck=1)
-	if %UserChoice% EQU 3 (set FileCheck=1)
-	if %UserChoice% EQU 5 (set FileCheck=1)
-	if %FileCheck% EQU 1 (
-		cd /D "%~dp0"
-		if not exist Fciv.exe (goto WARNING)
-		if not exist Pcap_DNSProxy.exe (goto WARNING)
-		if not exist Pcap_DNSProxy_x86.exe (goto WARNING)
-		Fciv -sha1 Pcap_DNSProxy.exe |findstr /I 5E41DF916DCC8EBCA61191CD387F8E744804FB70 > NUL
-		if ERRORLEVEL 1 (goto WARNING)
-		Fciv -sha1 Pcap_DNSProxy_x86.exe |findstr /I D75FE1852BBA7ACFD5C89BA9177D5B1022D8D6B0 > NUL
-		if ERRORLEVEL 1 (goto WARNING)
-	)
-	goto CHOICE
-
-:WARNING
-	echo.
-	echo Files may be damaged or corrupt!
-	echo Please download all files again, also you can skip this check.
-	set /P UserChoice_File="Are you sure you want to continue? [Y/N]"
-	if /I %UserChoice_File% EQU Y (goto CHOICE) else exit
-
-:: Choice(Part 2)
-:CHOICE
 set UserChoice=CASE_%UserChoice%
 cls
 goto %UserChoice%

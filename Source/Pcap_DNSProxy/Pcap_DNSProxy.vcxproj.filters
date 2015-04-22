@@ -99,9 +99,6 @@
     <ClInclude Include="Configuration.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="System.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Capture.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -118,9 +115,6 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Process.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Request.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Initialization.h">
@@ -285,6 +279,12 @@
     <ClInclude Include="..\LibSodium\version.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
+    <ClInclude Include="Network.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsService.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="WinPcap\Packet_x64.lib">
@@ -331,9 +331,6 @@
     <ClCompile Include="Protocol.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Request.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Keccak\Keccak-compact64.cpp">
       <Filter>Keccak</Filter>
     </ClCompile>
@@ -343,13 +340,16 @@
     <ClCompile Include="Keccak\KeccakSponge.cpp">
       <Filter>Keccak</Filter>
     </ClCompile>
-    <ClCompile Include="Sort.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="System.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="Initialization.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Base.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Network.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowsService.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

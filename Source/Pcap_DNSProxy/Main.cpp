@@ -24,7 +24,7 @@
 	int wmain(int argc, wchar_t* argv[])
 {
 //Windows XP with SP3 support
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //x86
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
 		GetFunctionPointer(FUNCTION_GETTICKCOUNT64);
 		GetFunctionPointer(FUNCTION_INET_NTOP);
 	#endif
@@ -46,7 +46,7 @@
 		{
 			if (FirewallTest(AF_INET6) == EXIT_FAILURE && FirewallTest(AF_INET) == EXIT_FAILURE)
 			{
-				PrintError(LOG_ERROR_WINSOCK, L"Windows Firewall Test error", 0, nullptr, 0);
+				PrintError(LOG_ERROR_NETWORK, L"Windows Firewall Test error", 0, nullptr, 0);
 
 				WSACleanup();
 				return EXIT_FAILURE;
@@ -159,29 +159,27 @@
 	}
 #elif defined(PLATFORM_LINUX)
 	Parameter.sPath->push_back(OriginalPath);
+	Parameter.sPath->front().append("/");
 	std::wstring StringTemp;
 	MBSToWCSString(StringTemp, OriginalPath);
+	StringTemp.append(L"/");
 	Parameter.Path->push_back(StringTemp);
 	StringTemp.clear();
 #endif
 
 //Get path of error/running status log file and mark start time.
 	*Parameter.ErrorLogPath = Parameter.Path->front();
-#if defined(PLATFORM_WIN)
 	Parameter.ErrorLogPath->append(L"Error.log");
-#elif defined(PLATFORM_LINUX)
-	Parameter.ErrorLogPath->append(L"/Error.log");
+#if defined(PLATFORM_LINUX)
 	*Parameter.sErrorLogPath = Parameter.sPath->front();
-	Parameter.sErrorLogPath->append("/Error.log");
+	Parameter.sErrorLogPath->append("Error.log");
 #endif
 	Parameter.PrintError = true;
 	*Parameter.RunningLogPath = Parameter.Path->front();
-#if defined(PLATFORM_WIN)
 	Parameter.RunningLogPath->append(L"Running.log");
-#elif defined(PLATFORM_LINUX)
-	Parameter.RunningLogPath->append(L"/Running.log");
+#if defined(PLATFORM_LINUX)
 	*Parameter.sRunningLogPath = Parameter.sPath->front();
-	Parameter.sRunningLogPath->append("/Running.log");
+	Parameter.sRunningLogPath->append("Running.log");
 #endif
 	time(&StartTime);
 	time(&RunningLogStartTime);
@@ -191,7 +189,7 @@
 	WSAData WSAInitialization = {0};
 	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), &WSAInitialization) != 0 || LOBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_HIGH)
 	{
-		PrintError(LOG_ERROR_WINSOCK, L"Winsock initialization error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_ERROR_NETWORK, L"Winsock initialization error", WSAGetLastError(), nullptr, 0);
 
 		WSACleanup();
 		return EXIT_FAILURE;
