@@ -1,7 +1,7 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server base on WinPcap and LibPcap.
 // Copyright (C) 2012-2015 Chengr28
-//
+// 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either
@@ -166,31 +166,36 @@
 
 
 //////////////////////////////////////////////////
-// Base Header
+// Base header
 // 
-//#include <cstdio>                  //File Input/Output
-//#include <cstdlib>                 //Several general purpose functions.
+//C Standard Library and C++ Standard Template Library/STL Headers
+#include <cstdio>                  //File Input/Output
+#include <cstdlib>                 //Several general purpose functions.
 //#include <cstdint>                 //A set of integral type aliases with specific width requirements.
 //#include <exception>               //Exception
 #include <memory>                  //Manage dynamic memory support
-//#include <tchar.h>                 //Unicode(UTF-8/UTF-16)/Wide-Character Support
-#include <windows.h>               //Microsoft Windows master include file
+#include <string.h>                //String support
 
-//////////////////////////////////////////////////
-// Sodium headers
-// 
-#include "..\\LibSodium\\sodium.h"
+#if defined(PLATFORM_WIN)
+	#include <windows.h>               //Microsoft Windows master include file
+
+//LibSodium Headers
+	#include "..\\LibSodium\\sodium.h"
 
 //Static libraries
-#if defined(PLATFORM_WIN64)
-	#pragma comment(lib, "..\\LibSodium\\LibSodium_x64.lib") //LibSodium library(x64)
-#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	#pragma comment(lib, "..\\LibSodium\\LibSodium_x86.lib") //LibSodium library(x86)
+	#if defined(PLATFORM_WIN64)
+		#pragma comment(lib, "..\\LibSodium\\LibSodium_x64.lib") //LibSodium library(x64)
+	#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+		#pragma comment(lib, "..\\LibSodium\\LibSodium_x86.lib") //LibSodium library(x86)
+	#endif
+
+//	#pragma comment(linker, "/subsystem:windows /entry:mainCRTStartup") //Hide console.
+//Add "WPCAP", "HAVE_REMOTE", "SODIUM_STATIC" and "SODIUM_EXPORT=" to preprocessor options.
+#elif defined(PLATFORM_LINUX)
+//LibSodium Headers
+	#include <sodium.h>
 #endif
 
-//#pragma comment(linker, "/subsystem:windows /entry:mainCRTStartup") //Hide console.
-//Remember to add "WPCAP" and "HAVE_REMOTE" to preprocessor options!
-//Remember to add "SODIUM_STATIC" and "SODIUM_EXPORT=" to preprocessor options!
 
 //////////////////////////////////////////////////
 // Base defines
@@ -202,6 +207,15 @@
 #define ASCII_LF               10      //"␊"
 #define ASCII_DLE              16      //"␐"
 #define ASCII_COLON            58      //":"
+
+//Linux compatible
+#if defined(PLATFORM_LINUX)
+	typedef char               *PSTR;
+	#define __fastcall
+	#define strnlen_s          strnlen
+	#define wprintf_s          wprintf
+	#define fwprintf_s         fwprintf
+#endif
 
 //Functions
 size_t __fastcall BinaryToHex(PSTR Buffer, const size_t MaxLength, const unsigned char *Binary, const size_t Length);

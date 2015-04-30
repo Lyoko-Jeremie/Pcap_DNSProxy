@@ -8,9 +8,9 @@
 
 运行结果分析：
 
-* Network 提示已安装旧版本无法继续：
-  * 到安装和卸载程序、运行菜单或 %PROGRAMFILES(x86)%(64位系统)/%PROGRAMFILES%(32位系统) 寻找 Network 的卸载程序
-  * 如果找不到卸载程序，则可能需要进入安全模式删除 Network 的所有文件然后重新安装：
+* WinPcap 提示已安装旧版本无法继续：
+  * 到安装和卸载程序、运行菜单或 %PROGRAMFILES(x86)%(64位系统)/%PROGRAMFILES%(32位系统) 寻找 WinPcap 的卸载程序
+  * 如果找不到卸载程序，则可能需要进入安全模式删除 WinPcap 的所有文件然后重新安装：
     * %WINDIR%\system32\Packet.dll
     * %WINDIR%\system32\drivers\npf.sys
     * %WINDIR%\system32\WanPacket.dll
@@ -173,8 +173,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * TCP Monitor socket initialization error - TCP 协议本地套接字初始化失败：原因参见错误代码
   * Bind TCP Monitor socket error - TCP 协议本地套接字绑定失败：本地可能已经存在 DNS 服务器或者多重运行了本工具，具体原因参见错误代码
   * TCP Monitor socket listening initialization error - TCP 协议本地套接字监听失败：原因参见错误代码
-  * Get localhost names error - 获取本地计算机名称失败：原因参见错误代码
-  * Get localhost addresses error - 获取本地计算机地址失败：没有任何生效的网络适配器，可能是硬件或者驱动程序的问题
+  * Get localhost name error - 获取本地计算机名称失败：原因参见错误代码
+  * Get localhost address error - 获取本地计算机地址失败：没有任何生效的网络适配器，可能是硬件或者驱动程序的问题
   * Local IPv4 address format error - 本地计算机 IPv4 地址格式错误：原因参见错误代码
   * Local IPv6 address format error - 本地计算机 IPv6 地址格式错误：原因参见错误代码
   * UDP request initialization error - UDP 协议请求套接字初始化失败：原因参见错误代码
@@ -186,7 +186,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * DNSCurve TCP request error - DNSCurve 协议 TCP 请求发送失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve UDP sockets initialization error - DNSCurve 协议 UDP 协议套接字初始化失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve UDP request error - DNSCurve 协议 UDP 协议请求发送失败：可能为网络错误，具体原因可参见错误代码
-  * DNSCurve socket(s) initialization error - DNSCurve 协议请求套接字初始化失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve Local Signature request initialization error - DNSCurve 协议本地请求套接字初始化失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve Local Signature request error - DNSCurve 协议本地请求发送失败：可能为网络错误，具体原因可参见错误代码
   * Set TCP socket non-blocking mode error - 设置 TCP 协议套接字非阻塞模式错误：可能为网络错误，具体原因可参见错误代码

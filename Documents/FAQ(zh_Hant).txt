@@ -173,8 +173,8 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * TCP Monitor socket initialization error - TCP 協定本地通訊端初始化失敗：原因參見錯誤代碼
   * Bind TCP Monitor socket error - TCP 協定本地通訊端綁定失敗：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體原因參見錯誤代碼
   * TCP Monitor socket listening initialization error - TCP 協定本地通訊端監聽失敗：原因參見錯誤代碼
-  * Get localhost names error - 獲取本地電腦名稱稱失敗：原因參見錯誤代碼
-  * Get localhost addresses error - 獲取本地電腦位址失敗：沒有任何生效的網路介面卡，可能是硬體或者驅動程式的問題
+  * Get localhost name error - 獲取本地電腦名稱稱失敗：原因參見錯誤代碼
+  * Get localhost address error - 獲取本地電腦位址失敗：沒有任何生效的網路介面卡，可能是硬體或者驅動程式的問題
   * Local IPv4 address format error - 本地電腦 IPv4 位址格式錯誤：原因參見錯誤代碼
   * Local IPv6 address format error - 本地電腦 IPv6 位址格式錯誤：原因參見錯誤代碼
   * UDP request initialization error - UDP 協定請求通訊端初始化失敗：原因參見錯誤代碼
@@ -186,7 +186,6 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * DNSCurve TCP request error - DNSCurve 協定 TCP 要求傳送失敗：可能為網路錯誤，具體原因可參見錯誤代碼
   * DNSCurve UDP sockets initialization error - DNSCurve 協定 UDP 協定通訊端初始化失敗：可能為網路錯誤，具體原因可參見錯誤代碼
   * DNSCurve UDP request error - DNSCurve 協定 UDP 協定要求傳送失敗：可能為網路錯誤，具體原因可參見錯誤代碼
-  * DNSCurve socket(s) initialization error - DNSCurve 協定請求通訊端初始化失敗：可能為網路錯誤，具體原因可參見錯誤代碼
   * DNSCurve Local Signature request initialization error - DNSCurve 協定本地請求通訊端初始化失敗：可能為網路錯誤，具體原因可參見錯誤代碼
   * DNSCurve Local Signature request error - DNSCurve 協定本地要求傳送失敗：可能為網路錯誤，具體原因可參見錯誤代碼
   * Set TCP socket non-blocking mode error - 設置 TCP 協定通訊端非阻塞模式錯誤：可能為網路錯誤，具體原因可參見錯誤代碼

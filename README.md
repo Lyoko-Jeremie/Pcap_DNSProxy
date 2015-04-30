@@ -8,7 +8,7 @@ A local DNS server base on WinPcap and LibPcap.
 
 ### Updated
 * 0.4 Beta 15 on Windows(2015-04-22)
-* 0.2 on Linux(2014-08-19)
+* 0.4 Beta 1 on Linux(2015-04-30)
 * 0.1 on Mac(2014-08-19)
 
 ### Summary
@@ -28,9 +28,9 @@ Pcap_DNSProxy 是一个基于 LibPcap/WinPcap 制作用于忽略 DNS 投毒污�
 * 由 C/C++ 编写而成，完全支持 Unicode
 
 ### Library
-* 正则表达式支持由 C++ STL(Windows)/系统自带的正则库(Linux/Mac) 提供
+* 正则表达式支持由 C++ STL(Windows/Linux)/系统自带的正则库(Mac) 提供
 * 文件 Hash 使用的算法由 [SHA-3/Keccak](http://keccak.noekeon.org) 提供
-* 由 C++ STL 自带的梅森旋转算法引擎产生离散型均匀分布随机数，用于随机域名探测
+* 离散型均匀分布随机数由 C++ STL 自带的梅森旋转算法引擎产生
 * DNSCurve 协议使用的 Curve25519/Salsa20/Poly1305 算法由 [LibSodium](https://github.com/jedisct1/libsodium) 提供
 * DNSCurve 协议加密模式使用的一次性 Nonce 亦由 [LibSodium](https://github.com/jedisct1/libsodium) 附带的随机数产生器提供
 

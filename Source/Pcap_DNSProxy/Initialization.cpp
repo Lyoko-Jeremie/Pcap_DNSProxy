@@ -208,8 +208,6 @@ ResultBlacklistTable::ResultBlacklistTable(void)
 AddressHostsTable::AddressHostsTable(void)
 {
 	FileIndex = 0;
-	memset(&TargetAddress, 0, sizeof(sockaddr_storage));
-
 	return;
 }
 

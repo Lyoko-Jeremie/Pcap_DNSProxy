@@ -433,7 +433,7 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 			DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage) == EXIT_FAILURE ||
 			DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage) == EXIT_FAILURE)
 		{
-			Parameter.GatewayAvailable_IPv4 = false;
+			Parameter.GatewayAvailable_IPv6 = false;
 			Parameter.TunnelAvailable_IPv6 = false;
 			return;
 		}
@@ -1214,23 +1214,28 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, char *D
 
 	//Address Hosts check
 		std::unique_lock<std::mutex> AddressHostsListMutex(AddressHostsListLock);
-		if (!AddressHostsListUsing->empty())
+		for (auto AddressHostsTableIter:*AddressHostsListUsing)
 		{
-		//Main check
-			for (auto AddressHostsTableIter:*AddressHostsListUsing)
+			if (AddressHostsTableIter.TargetAddress.front().ss_family == AF_INET6)
 			{
-				if (AddressHostsTableIter.TargetAddress.ss_family == AF_INET6)
+				for (auto AddressRangeTableIter:AddressHostsTableIter.SourceAddress)
 				{
-					for (auto AddressRangeTableIter:AddressHostsTableIter.Addresses)
+					if (AddressRangeTableIter.Begin.ss_family == AF_INET6 && AddressRangeTableIter.End.ss_family == AF_INET6 && 
+						CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL && 
+						CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr, AF_INET6) <= ADDRESS_COMPARE_EQUAL || 
+						memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == 0)
 					{
-						if (AddressRangeTableIter.Begin.ss_family == AF_INET6 && AddressRangeTableIter.End.ss_family == AF_INET6 && 
-							CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL && 
-							CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr, AF_INET6) <= ADDRESS_COMPARE_EQUAL || 
-							memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == 0)
+						if (AddressHostsTableIter.TargetAddress.size() > 1U)
 						{
-							*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.TargetAddress)->sin6_addr;
-							break;
+						//Get a ramdom one.
+							std::uniform_int_distribution<int> RamdomDistribution(0, (int)AddressHostsTableIter.TargetAddress.size() - 1U);
+							*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.TargetAddress.at(RamdomDistribution(*Parameter.RamdomEngine)))->sin6_addr;
 						}
+						else {
+							*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.TargetAddress.front())->sin6_addr;
+						}
+
+						goto StopLoop;
 					}
 				}
 			}
@@ -1370,29 +1375,36 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, char *D
 
 	//Address Hosts check
 		std::unique_lock<std::mutex> AddressHostsListMutex(AddressHostsListLock);
-		if (!AddressHostsListUsing->empty())
+		for (auto AddressHostsTableIter:*AddressHostsListUsing)
 		{
-		//Main check
-			for (auto AddressHostsTableIter:*AddressHostsListUsing)
+			if (AddressHostsTableIter.TargetAddress.front().ss_family == AF_INET)
 			{
-				if (AddressHostsTableIter.TargetAddress.ss_family == AF_INET)
+				for (auto AddressRangeTableIter:AddressHostsTableIter.SourceAddress)
 				{
-					for (auto AddressRangeTableIter:AddressHostsTableIter.Addresses)
+					if (AddressRangeTableIter.Begin.ss_family == AF_INET && AddressRangeTableIter.End.ss_family == AF_INET && 
+						CompareAddresses(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr, AF_INET) >= ADDRESS_COMPARE_EQUAL && 
+						CompareAddresses(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr, AF_INET) <= ADDRESS_COMPARE_EQUAL || 
+						((in_addr *)Addr)->s_addr == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_addr)
 					{
-						if (AddressRangeTableIter.Begin.ss_family == AF_INET && AddressRangeTableIter.End.ss_family == AF_INET && 
-							CompareAddresses(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr, AF_INET) >= ADDRESS_COMPARE_EQUAL && 
-							CompareAddresses(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr, AF_INET) <= ADDRESS_COMPARE_EQUAL || 
-							((in_addr *)Addr)->s_addr == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_addr)
+						if (AddressHostsTableIter.TargetAddress.size() > 1U)
 						{
-							*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.TargetAddress)->sin_addr;
-							break;
+						//Get a ramdom one.
+							std::uniform_int_distribution<int> RamdomDistribution(0, (int)AddressHostsTableIter.TargetAddress.size() - 1U);
+							*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.TargetAddress.at(RamdomDistribution(*Parameter.RamdomEngine)))->sin_addr;
 						}
+						else {
+							*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.TargetAddress.front())->sin_addr;
+						}
+
+						break;
 					}
 				}
 			}
 		}
 	}
 
+//Stop loop.
+	StopLoop: 
 	return false;
 }
 

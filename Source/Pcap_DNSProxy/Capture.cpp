@@ -336,10 +336,7 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 	std::wstring DeviceName;
 	MBSToWCSString(DeviceName, pDrive->name);
 	if (DeviceName.empty())
-	{
-		PrintError(LOG_ERROR_SYSTEM, L"Convert multiple byte string to wide char string error", 0, nullptr, 0);
 		DeviceName = L"<Error device name>";
-	}
 
 	//Check device type.
 	uint16_t DeviceType = 0;
@@ -485,9 +482,9 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 			{
 				memset(Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, 0, ORIGINAL_PACKET_MAXSIZE);
 
-			//PPPoE(Such as ADSL, a part of organization networks)
-				if (DeviceType == DLT_EN10MB && ((peth_hdr)PacketData)->Type == htons(OSI_L2_PPPOES) && PacketHeader->caplen > sizeof(eth_hdr) + sizeof(pppoe_hdr) || //PPP over Ethernet II
-					DeviceType == DLT_APPLE_IP_OVER_IEEE1394 && ((pieee_1394_hdr)PacketData)->Type == htons(OSI_L2_PPPOES) && PacketHeader->caplen > sizeof(ieee_1394_hdr) + sizeof(pppoe_hdr)) //PPP over Apple IEEE 1394
+			//PPP(Such as ADSL, a part of organization networks)
+				if (DeviceType == DLT_EN10MB && ((peth_hdr)PacketData)->Type == htons(OSI_L2_PPPS) && PacketHeader->caplen > sizeof(eth_hdr) + sizeof(ppp_hdr) || //PPP over Ethernet II
+					DeviceType == DLT_APPLE_IP_OVER_IEEE1394 && ((pieee_1394_hdr)PacketData)->Type == htons(OSI_L2_PPPS) && PacketHeader->caplen > sizeof(ieee_1394_hdr) + sizeof(ppp_hdr)) //PPP over Apple IEEE 1394
 				{
 					size_t HeaderLength = 0;
 					if (DeviceType == DLT_EN10MB)
@@ -495,11 +492,11 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 					else if (DeviceType == DLT_APPLE_IP_OVER_IEEE1394)
 						HeaderLength += sizeof(ieee_1394_hdr);
 					
-					auto InnerHeader = (ppppoe_hdr)(PacketData + HeaderLength);
-					if (InnerHeader->Protocol == htons(PPPOETYPE_IPV6) && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && PacketHeader->caplen > HeaderLength + sizeof(pppoe_hdr) + sizeof(ipv6_hdr) || //IPv6 over PPP
-						InnerHeader->Protocol == htons(PPPOETYPE_IPV4) && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && PacketHeader->caplen > HeaderLength + sizeof(pppoe_hdr) + sizeof(ipv4_hdr)) //IPv4 over PPP
+					auto InnerHeader = (pppp_hdr)(PacketData + HeaderLength);
+					if (InnerHeader->Protocol == htons(PPP_IPV6) && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && PacketHeader->caplen > HeaderLength + sizeof(ppp_hdr) + sizeof(ipv6_hdr) || //IPv6 over PPP
+						InnerHeader->Protocol == htons(PPP_IPV4) && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && PacketHeader->caplen > HeaderLength + sizeof(ppp_hdr) + sizeof(ipv4_hdr)) //IPv4 over PPP
 					{
-						HeaderLength += sizeof(pppoe_hdr);
+						HeaderLength += sizeof(ppp_hdr);
 						memcpy_s(Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, ORIGINAL_PACKET_MAXSIZE, PacketData + HeaderLength, PacketHeader->caplen - HeaderLength);
 						std::thread NetworkLayerThread(NetworkLayer, Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, PacketHeader->caplen - HeaderLength, ntohs(InnerHeader->Protocol));
 						NetworkLayerThread.detach();
@@ -555,7 +552,7 @@ size_t __fastcall NetworkLayer(const char *Recv, const size_t Length, const uint
 	memset(Buffer.get(), 0, Length);
 	memcpy_s(Buffer.get(), Length, Recv, Length);
 
-	if (Protocol == PPPOETYPE_IPV6 || Protocol == OSI_L2_IPV6) //IPv6
+	if (Protocol == PPP_IPV6 || Protocol == OSI_L2_IPV6) //IPv6
 	{
 		auto IPv6_Header = (pipv6_hdr)Buffer.get();
 

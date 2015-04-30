@@ -39,6 +39,7 @@
 #define READ_TEXT_MINSIZE                     2U
 #define READ_PARAMETER_MINSIZE                8U
 #define READ_HOSTS_MINSIZE                    3U
+#define READ_HOSTS_ADDRESS_MINSIZE            5U
 #define READ_IPFILTER_MINSIZE                 5U
 #define READ_IPFILTER_BLACKLIST_MINSIZE       3U
 #define READ_IPFILTER_LOCAL_ROUTING_MINSIZE   4U

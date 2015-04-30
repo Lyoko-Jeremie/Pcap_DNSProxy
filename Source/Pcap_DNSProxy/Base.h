@@ -147,6 +147,7 @@
 #elif !defined(PLATFORM_UNIX)
 #  define PLATFORM_UNIX
 #endif
+/* XCode support
 #if defined(PLATFORM_MACX)
 #  ifdef MAC_OS_X_VERSION_MIN_REQUIRED
 #    undef MAC_OS_X_VERSION_MIN_REQUIRED
@@ -163,6 +164,7 @@
 #    error "This version of Mac OS X is unsupported"
 #  endif
 #endif
+*/
 
 
 //////////////////////////////////////////////////
@@ -174,9 +176,9 @@
 #endif
 
 //C Standard Library and C++ Standard Template Library/STL Headers
-//#include <cstdlib>                 //C Standard Library
-//#include <cstdio>                  //File Input/Output
-//#include <ctime>                   //Date&Time
+#include <cstdlib>                 //C Standard Library
+#include <cstdio>                  //File Input/Output
+#include <ctime>                   //Date&Time
 //#include <string>                  //String support
 #include <vector>                  //Vector support
 #include <deque>                   //Double-ended queue support
@@ -238,14 +240,13 @@
 
 //	#pragma comment(linker, "/subsystem:windows /entry:mainCRTStartup") //Hide console.
 //Add "WPCAP", "HAVE_REMOTE", "SODIUM_STATIC" and "SODIUM_EXPORT=" to preprocessor options.
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#include <climits>                 //Data limits
 	#include <cstring>                 //C-Style strings
 	#include <cwchar>                  //Wide characters
 	#include <cerrno>                  //Error report
 
 //Portable Operating System Interface/POSIX and Unix system header
-	#include <limits.h>                //Limits
 	#include <pthread.h>               //Threads
 	#include <signal.h>                //Signals
 	#include <unistd.h>                //Standard library API
@@ -336,6 +337,7 @@
 	#define SOCKET_ERROR             (-1)
 	#define INVALID_SOCKET           (-1)
 	#define MAX_PATH                 PATH_MAX
+	#define SD_SEND                  SHUT_WR
 	#define SD_BOTH                  SHUT_RDWR
 	#define WSAETIMEDOUT             ETIMEDOUT
 	#define WSAEWOULDBLOCK           EINPROGRESS
@@ -375,10 +377,12 @@
 	#define wprintf_s                                                   wprintf
 	#define fread_s(Dst, DstSize, ElementSize, Count, File)             fread(Dst, ElementSize, Count, File)
 	#define fwprintf_s                                                  fwprintf
-	#define send(Socket, Buffer, Length, Signal)                        send(Socket, Buffer, Length, MSG_NOSIGNAL)
-	#define recv(Socket, Buffer, Size, Signal)                          recv(Socket, Buffer, Size, MSG_NOSIGNAL)
-	#define sendto(Socket, Buffer, Length, Signal, SockAddr, AddrLen)   sendto(Socket, Buffer, Length, MSG_NOSIGNAL, SockAddr, AddrLen)
-	#define recvfrom(Socket, Buffer, Size, Signal, SockAddr, AddrLen)   recvfrom(Socket, Buffer, Size, MSG_NOSIGNAL, SockAddr, AddrLen)
+	#if defined(PLATFORM_LINUX)
+		#define send(Socket, Buffer, Length, Signal)                        send(Socket, Buffer, Length, MSG_NOSIGNAL)
+		#define recv(Socket, Buffer, Size, Signal)                          recv(Socket, Buffer, Size, MSG_NOSIGNAL)
+		#define sendto(Socket, Buffer, Length, Signal, SockAddr, AddrLen)   sendto(Socket, Buffer, Length, MSG_NOSIGNAL, SockAddr, AddrLen)
+		#define recvfrom(Socket, Buffer, Size, Signal, SockAddr, AddrLen)   recvfrom(Socket, Buffer, Size, MSG_NOSIGNAL, SockAddr, AddrLen)
+	#endif
 	#define GetLastError()                                              errno
 	#define closesocket                                                 close
 	#define WSAGetLastError()                                           GetLastError()
@@ -425,14 +429,14 @@
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-//#define OSI_L2_ARP        0x0806   //(Dynamic)RARP
-//#define OSI_L2_RARP       0x8035   //RARP
+//#define OSI_L2_ARP          0x0806   //(Dynamic)RARP
+//#define OSI_L2_RARP         0x8035   //RARP
 #define OSI_L2_IPV4         0x0800   //IPv4
 #define OSI_L2_IPV6         0x86DD   //IPv6
-//#define OSI_L2_PPPOED     0x8863   //PPPoE(Discovery Stage)
-#define OSI_L2_PPPOES       0x8864   //PPPoE(Session Stage)
-//#define OSI_L2_EAPOL      0x888E   //802.1X
-//#define FCS_TABLE_SIZE   256U     //FCS Table size
+//#define OSI_L2_PPPD         0x8863   //PPPoE(Discovery Stage)
+#define OSI_L2_PPPS         0x8864   //PPPoE(Session Stage)
+//#define OSI_L2_EAPOL        0x888E   //802.1X
+//#define FCS_TABLE_SIZE      256U     //FCS Table size
 typedef struct _eth_hdr_
 {
 	uint8_t                Dst[6U];
@@ -442,7 +446,7 @@ typedef struct _eth_hdr_
 
 /* Apple IEEE 1394/FireWire Header(RFC 2734 and RFC3146, https://www.ietf.org/rfc/rfc2734 and https://www.ietf.org/rfc/rfc3146)
 
-1                   2                   3
+                    1                   2                   3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                      Destination Address                      |
@@ -468,7 +472,7 @@ typedef struct _ieee_1394_hdr_
 	uint16_t               Type;
 }ieee_1394_hdr, *pieee_1394_hdr;
 
-/* Point-to-Point Protocol over Ethernet/PPPoE Header(RFC 2516, https://tools.ietf.org/rfc/rfc2516)
+/* Point-to-Point Protocol /PPP Header(RFC 2516, https://tools.ietf.org/rfc/rfc2516)
 
                     1                   2                   3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -479,16 +483,16 @@ typedef struct _ieee_1394_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define PPPOETYPE_IPV4     0x0021  //IPv4 over PPPoE
-#define PPPOETYPE_IPV6     0x0057  //IPv6 over PPPoE
-typedef struct _pppoe_hdr_
+#define PPP_IPV4           0x0021  //IPv4 over PPP
+#define PPP_IPV6           0x0057  //IPv6 over PPP
+typedef struct _ppp_hdr_
 {
 	uint8_t                VersionType;
 	uint8_t                Code;
 	uint16_t               SessionID;
 	uint16_t               Length;
 	uint16_t               Protocol;
-}pppoe_hdr, *ppppoe_hdr;
+}ppp_hdr, *pppp_hdr;
 
 /* 802.1X Protocol Header(RFC 3580, https://tools.ietf.org/html/rfc3580)
 
@@ -517,7 +521,7 @@ typedef struct _802_1x_hdr
 	#define IPPROTO_ST                5U                   //Stream
 #endif
 //#define IPPROTO_TCP               6U                   //Transmission Control
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define IPPROTO_CBT             7U                     //Core Based Tree
 #endif
 //#define IPPROTO_EGP               8U                   //Exterior Gateway Protocol
@@ -527,15 +531,21 @@ typedef struct _802_1x_hdr
 #define IPPROTO_BBN_RCC_MON       10U                  //BBN RCC Monitoring
 #define IPPROTO_NVP_II            11U                  //Network Voice Protocol
 //#define IPPROTO_PUP               12U                  //PUP
-#define IPPROTO_ARGUS             13U                  //ARGUS
-#define IPPROTO_EMCON             14U                  //EMCON
-#define IPPROTO_XNET              15U                  //Cross Net Debugger
-#define IPPROTO_CHAOS             16U                  //Chaos
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_ARGUS             13U                  //ARGUS
+	#define IPPROTO_EMCON             14U                  //EMCON
+	#define IPPROTO_XNET              15U                  //Cross Net Debugger
+	#define IPPROTO_CHAOS             16U                  //Chaos
+#endif
 //#define IPPROTO_UDP               17U                  //User Datagram
-#define IPPROTO_MUX               18U                  //Multiplexing
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_MUX               18U                  //Multiplexing
+#endif
 #define IPPROTO_DCN               19U                  //DCN Measurement Subsystems
-#define IPPROTO_HMP               20U                  //Host Monitoring
-#define IPPROTO_PRM               21U                  //Packet Radio Measurement
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_HMP               20U                  //Host Monitoring
+	#define IPPROTO_PRM               21U                  //Packet Radio Measurement
+#endif
 //#define IPPROTO_IDP               22U                  //XEROX NS IDP
 #define IPPROTO_TRUNK_1           23U                  //Trunk-1
 #define IPPROTO_TRUNK_2           24U                  //Trunk-2
@@ -544,26 +554,36 @@ typedef struct _802_1x_hdr
 #if defined(PLATFORM_LINUX)
 	#define IPPROTO_RDP               27U                  //Reliable Data Protocol
 #endif
-#define IPPROTO_IRTP              28U                  //Internet Reliable Transaction
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_IRTP              28U                  //Internet Reliable Transaction
+#endif
 #define IPPROTO_ISO_TP4           29U                  //ISO Transport Protocol Class 4
 #define IPPROTO_NETBLT            30U                  //Bulk Data Transfer Protocol
 #define IPPROTO_MFE               31U                  //MFE Network Services Protocol
 #define IPPROTO_MERIT             32U                  //MERIT Internodal Protocol
-#if defined(PLATFORM_WIN)
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_MACX))
 	#define IPPROTO_DCCP              33U                  //Datagram Congestion Control Protocol
 #endif
-#define IPPROTO_3PC               34U                  //Third Party Connect Protocol
-#define IPPROTO_IDPR              35U                  //Inter-Domain Policy Routing Protocol
-#define IPPROTO_XTP               36U                  //XTP
-#define IPPROTO_DDP               37U                  //Datagram Delivery Protocol
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_3PC               34U                  //Third Party Connect Protocol
+	#define IPPROTO_IDPR              35U                  //Inter-Domain Policy Routing Protocol
+	#define IPPROTO_XTP               36U                  //XTP
+	#define IPPROTO_DDP               37U                  //Datagram Delivery Protocol
+#endif
 #define IPPROTO_IDPR_CMTP         38U                  //IDPR Control Message Transport Proto
 #define IPPROTO_TPPLUS            39U                  //TP++ Transport Protocol
-#define IPPROTO_IL                40U                  //IL Transport Protocol
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_IL                40U                  //IL Transport Protocol
+#endif
 //#define IPPROTO_IPv6              41U                  //IPv6 encapsulation
-#define IPPROTO_SDRP              42U                  //Source Demand Routing Protocol
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_SDRP              42U                  //Source Demand Routing Protocol
+#endif
 //#define IPPROTO_ROUTING           43U                  //Route Routing Header for IPv6
 //#define IPPROTO_FRAGMENT          44U                  //Frag Fragment Header for IPv6
-#define IPPROTO_IDRP              45U                  //Inter - Domain Routing Protocol
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_IDRP              45U                  //Inter - Domain Routing Protocol
+#endif
 #if defined(PLATFORM_WIN)
 	#define IPPROTO_RSVP              46U                  //Reservation Protocol
 	#define IPPROTO_GRE               47U                  //Generic Routing Encapsulation
@@ -573,7 +593,9 @@ typedef struct _802_1x_hdr
 //#define IPPROTO_ESP               50U                  //Encap Security Payload
 //#define IPPROTO_AH                51U                  //Authentication Header
 #define IPPROTO_NLSP              52U                  //Integrated Net Layer Security TUBA
-#define IPPROTO_SWIPE             53U                  //IP with Encryption
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_SWIPE             53U                  //IP with Encryption
+#endif
 #define IPPROTO_NARP              54U                  //NBMA Address Resolution Protocol
 #define IPPROTO_MOBILE            55U                  //IP Mobility
 #define IPPROTO_TLSP              56U                  //Transport Layer Security Protocol using Kryptonet key management
@@ -582,53 +604,77 @@ typedef struct _802_1x_hdr
 //#define IPPROTO_NONE              59U                  //No Next Header for IPv6
 //#define IPPROTO_DSTOPTS           6OU                  //Destination Options for IPv6
 #define IPPROTO_AHI               61U                  //Any host internal protocol
-#define IPPROTO_CFTP              62U                  //CFTP
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_CFTP              62U                  //CFTP
+#endif
 #define IPPROTO_ALN               63U                  //Any local network
 #define IPPROTO_SAT               64U                  //EXPAK SATNET and Backroom EXPAK
-#define IPPROTO_KRYPTOLAN         65U                  //Kryptolan
-#define IPPROTO_RVD               66U                  //MIT Remote Virtual Disk Protocol
-#define IPPROTO_IPPC              67U                  //Internet Pluribus Packet Core
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_KRYPTOLAN         65U                  //Kryptolan
+	#define IPPROTO_RVD               66U                  //MIT Remote Virtual Disk Protocol
+	#define IPPROTO_IPPC              67U                  //Internet Pluribus Packet Core
+#endif
 #define IPPROTO_ADF               68U                  //Any distributed file system
 #define IPPROTO_SAT_MON           69U                  //SATNET Monitoring
-#define IPPROTO_VISA              70U                  //VISA Protocol
-#define IPPROTO_IPCV              71U                  //Internet Packet Core Utility
-#define IPPROTO_CPNX              72U                  //Computer Protocol Network Executive
-#define IPPROTO_CPHB              73U                  //Computer Protocol Heart Beat
-#define IPPROTO_WSN               74U                  //Wang Span Network
-#define IPPROTO_PVP               75U                  //Packet Video Protocol
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_VISA              70U                  //VISA Protocol
+	#define IPPROTO_IPCV              71U                  //Internet Packet Core Utility
+	#define IPPROTO_CPNX              72U                  //Computer Protocol Network Executive
+	#define IPPROTO_CPHB              73U                  //Computer Protocol Heart Beat
+	#define IPPROTO_WSN               74U                  //Wang Span Network
+	#define IPPROTO_PVP               75U                  //Packet Video Protocol
+#endif
 #define IPPROTO_BR                76U                  //SAT - MON Backroom SATNET Monitoring
-#if defined(PLATFORM_LINUX)
-	#define IPPROTO_ND                77U                  //SUN ND PROTOCOL - Temporary
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	#if !defined(PLATFORM_MACX)
+		#define IPPROTO_ND                77U                  //SUN ND PROTOCOL - Temporary
+	#endif
 	#define IPPROTO_ICLFXBM           78U                  //WIDEBAND Monitoring
 #endif
-#define IPPROTO_WBEXPAK           79U                  //WIDEBAND EXPAK
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_WBEXPAK           79U                  //WIDEBAND EXPAK
+#endif
 #define IPPROTO_ISO               80U                  //IP ISO Internet Protocol
-#define IPPROTO_VMTP              81U                  //VMTP
-#define IPPROTO_SVMTP             82U                  //SECURE - VMTP
-#define IPPROTO_VINES             83U                  //VINES
-#define IPPROTO_TTP               84U                  //Transaction Transport Protocol
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_VMTP              81U                  //VMTP
+	#define IPPROTO_SVMTP             82U                  //SECURE - VMTP
+	#define IPPROTO_VINES             83U                  //VINES
+	#define IPPROTO_TTP               84U                  //Transaction Transport Protocol
+#endif
 #define IPPROTO_IPTM              85U                  //Internet Protocol Traffic ManageR
 #define IPPROTO_NSFNET            86U                  //NSFNET - IGP
-#define IPPROTO_DGP               87U                  //Dissimilar Gateway Protocol
-#define IPPROTO_TCF               88U                  //TCF
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_DGP               87U                  //Dissimilar Gateway Protocol
+	#define IPPROTO_TCF               88U                  //TCF
+#endif
 #define IPPROTO_EIGRP             89U                  //EIGRP
 #define IPPROTO_SPRITE            90U                  //RPC Sprite RPC Protocol
-#define IPPROTO_LARP              91U                  //Locus Address Resolution Protocol
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_LARP              91U                  //Locus Address Resolution Protocol
+#endif
 #if defined(PLATFORM_WIN)
 	#define IPPROTO_MTP               92U                  //Multicast Transport Protocol
 #endif
-#define IPPROTO_AX25              93U                  //AX.25 Frames
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_AX25              93U                  //AX.25 Frames
+#endif
 #if defined(PLATFORM_WIN)
 	#define IPPROTO_IPIP              94U                  //IP - within - IP Encapsulation Protocol
 #endif
-#define IPPROTO_MICP              95U                  //Mobile Internetworking Control Pro.
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_MICP              95U                  //Mobile Internetworking Control Pro.
+#endif
 #define IPPROTO_SCC               96U                  //Semaphore Communications Sec.Pro.
-#define IPPROTO_ETHERIP           97U                  //Ethernet - within - IP Encapsulation
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_ETHERIP           97U                  //Ethernet - within - IP Encapsulation
+#endif
 #if defined(PLATFORM_WIN)
 	#define IPPROTO_ENCAP             98U                  //Encapsulation Header
 #endif
-#define IPPROTO_APES              100U                 //Any private encryption scheme
-#define IPPROTO_GMTP              101U                 //GMTP
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_APES              100U                 //Any private encryption scheme
+	#define IPPROTO_GMTP              101U                 //GMTP
+#endif
 #define IPPROTO_IFMP              102U                 //Ipsilon Flow Management Protocol
 #define IPPROTO_PNNI              103U                 //PNNI over IP
 //#define IPPROTO_PIM               104U                 //Protocol Independent Multicast
@@ -636,7 +682,9 @@ typedef struct _802_1x_hdr
 #define IPPROTO_SCPS              106U                 //SCPS
 #define IPPROTO_QNX               107U                 //QNX
 #define IPPROTO_AN                108U                 //Active Networks
-#define IPPROTO_IPCOMP            109U                 //IP Payload Compression Protocol
+#if !defined(PLATFORM_MACX)
+	#define IPPROTO_IPCOMP            109U                 //IP Payload Compression Protocol
+#endif
 #define IPPROTO_SNP               110U                 //Sitara Networks Protocol
 #define IPPROTO_COMPAQ            111U                 //Peer Compaq Peer Protocol
 #define IPPROTO_IPX               112U                 //IP IPX in IP
@@ -644,7 +692,7 @@ typedef struct _802_1x_hdr
 	#define IPPROTO_PGM               113U                 //PGM Reliable Transport Protocol
 #endif
 #define IPPROTO_0HOP              114U                 //Any 0-hop protocol
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define IPPROTO_L2TP              115U                 //Layer Two Tunneling Protocol
 #endif
 #define IPPROTO_DDX               116U                 //D - II Data Exchange(DDX)
@@ -667,7 +715,7 @@ typedef struct _802_1x_hdr
 #define IPPROTO_FC                133U                 //Fibre Channel
 #define IPPROTO_RSVP_E2E          134U                 //RSVP-E2E-IGNORE
 #define IPPROTO_MOBILITY          135U                 //Mobility Header
-#if defined(PLATFORM_WIN)
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_MACX))
 	#define IPPROTO_UDPLITE           136U                 //UDP Lite
 #endif
 #define IPPROTO_MPLS              137U                 //MPLS in IP
@@ -929,28 +977,61 @@ RFC 5681: https://tools.ietf.org/html/rfc5681
 
 //Port definitions(1 - 1024, well-known ports)
 //About this list, see https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define IPPORT_TCPMUX               1U
+#endif
+#if defined(PLATFORM_MACX)
+	#define IPPORT_ECHO                 7U
+	#define IPPORT_DISCARD              9U
+	#define IPPORT_SYSTAT               11U
+	#define IPPORT_DAYTIME              13U
+	#define IPPORT_NETSTAT              15U
+#endif
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define IPPORT_QOTD                 17U
 	#define IPPORT_MSP                  18U
 	#define IPPORT_CHARGEN              19U
 	#define IPPORT_FTP_DATA             20U
 #endif
+#if defined(PLATFORM_MACX)
+	#define IPPORT_FTP                  21U
+#endif
 #define IPPORT_SSH                  22U
+#if defined(PLATFORM_MACX)
+	#define IPPORT_TELNET               23U
+	#define IPPORT_SMTP                 25U
+	#define IPPORT_TIMESERVER           37U
+#endif
 #define IPPORT_RAP                  38U
 #define IPPORT_RLP                  39U
+#if defined(PLATFORM_MACX)
+	#define IPPORT_NAMESERVER           42U
+	#define IPPORT_WHOIS                43U
+#endif
 #define IPPORT_TACACS               49U
 #define IPPORT_XNSAUTH              56U
+#if defined(PLATFORM_MACX)
+	#define IPPORT_MTP                  57U
+#endif
 #define IPPORT_BOOTPS               67U
 #define IPPORT_BOOTPC               68U
+#if defined(PLATFORM_MACX)
+	#define IPPORT_TFTP                 69U
+	#define IPPORT_RJE                  77U
+	#define IPPORT_FINGER               79U
+#endif
 #define IPPORT_HTTP                 80U
 #define IPPORT_HTTPBACKUP           81U
-#if defined(PLATFORM_LINUX)
+#if defined(PLATFORM_MACX)
+	#define IPPORT_TTYLINK              87U
+	#define IPPORT_SUPDUP               95U
+#endif
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define IPPORT_POP3                 110U
 #endif
 #define IPPORT_SUNRPC               111U
 #define IPPORT_SQL                  118U
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define IPPORT_NTP                  123U
 	#define IPPORT_EPMAP                135U
 	#define IPPORT_NETBIOS_NS           137U
@@ -962,7 +1043,7 @@ RFC 5681: https://tools.ietf.org/html/rfc5681
 #define IPPORT_SGMP                 153U
 #define IPPORT_SQLSRV               156U
 #define IPPORT_DMSP                 158U
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define IPPORT_SNMP                 161U
 	#define IPPORT_SNMP_TRAP            162U
 #endif
@@ -970,7 +1051,7 @@ RFC 5681: https://tools.ietf.org/html/rfc5681
 #define IPPORT_ATHBP                202U
 #define IPPORT_QMTP                 209U
 #define IPPORT_IPX                  213U
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define IPPORT_IMAP3                220U
 #endif
 #define IPPORT_BGMP                 264U
@@ -982,23 +1063,30 @@ RFC 5681: https://tools.ietf.org/html/rfc5681
 #define IPPORT_HPALARMMGR           383U
 #define IPPORT_ARNS                 384U
 #define IPPORT_AURP                 387U
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define IPPORT_LDAP                 389U
 #endif
 #define IPPORT_UPS                  401U
 #define IPPORT_SLP                  427U
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define IPPORT_HTTPS                443U
 #endif
 #define IPPORT_SNPP                 444U
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define IPPORT_MICROSOFT_DS         445U
 #endif
 #define IPPORT_KPASSWD              464U
 #define IPPORT_TCPNETHASPSRV        475U
 #define IPPORT_RETROSPECT           497U
 #define IPPORT_ISAKMP               500U
+#if defined(PLATFORM_MACX)
+	#define IPPORT_BIFFUDP              512U
+	#define IPPORT_WHOSERVER			513U
+#endif
 #define IPPORT_SYSLOG               514U
+#if defined(PLATFORM_MACX)
+	#define IPPORT_ROUTESERVER          520U
+#endif
 #define IPPORT_NCP                  524U
 #define IPPORT_COURIER              530U
 #define IPPORT_COMMERCE             542U
@@ -1499,7 +1587,7 @@ typedef struct _dns_qry_
 
 /* Domain Name System/DNS Standard Resource Record
 
-1                   2                   3
+                    1                   2                   3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /                                                               /
@@ -1986,8 +2074,8 @@ typedef struct _file_data_
 #if defined(PLATFORM_LINUX)
 	std::string                        sFileName;
 #endif
-	bool                               HashAvailable;
 	std::shared_ptr<BitSequence>       HashResult;
+	bool                               HashAvailable;
 }FileData, FILE_DATA, *PFileData, *PFILE_DATA;
 
 //Socket Data structure
@@ -2186,13 +2274,13 @@ public:
 //Hosts lists class
 typedef class HostsTable {
 public:
+	std::shared_ptr<char>    Response;
+	std::regex               Pattern;
+	std::string              PatternString;
 	size_t                   FileIndex;
 	size_t                   Type;
 	uint16_t                 Protocol;
 	size_t                   Length;
-	std::shared_ptr<char>    Response;
-	std::regex               Pattern;
-	std::string              PatternString;
 
 	HostsTable(void);
 }HOSTS_TABLE;
@@ -2221,8 +2309,8 @@ public:
 typedef class AddressHostsTable {
 public:
 	size_t                           FileIndex;
-	std::vector<AddressRangeTable>   Addresses;
-	sockaddr_storage                 TargetAddress;
+	std::vector<sockaddr_storage>    TargetAddress;
+	std::vector<AddressRangeTable>   SourceAddress;
 
 	AddressHostsTable(void);
 }ADDRESS_HOSTS_TABLE;

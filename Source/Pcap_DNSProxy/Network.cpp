@@ -186,7 +186,14 @@ size_t __fastcall ICMPEcho(void)
 	ICMP_Header->Sequence = Parameter.ICMPSequence;
 	memcpy_s(Buffer.get() + sizeof(icmp_hdr), Parameter.ICMPPaddingDataLength - 1U, Parameter.ICMPPaddingData, Parameter.ICMPPaddingDataLength - 1U);
 	ICMP_Header->Checksum = GetChecksum((PUINT16)Buffer.get(), sizeof(icmp_hdr) + Parameter.ICMPPaddingDataLength - 1U);
+
+//Socket initialization
 	SYSTEM_SOCKET ICMPSocket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+	if (ICMPSocket == INVALID_SOCKET)
+	{
+		PrintError(LOG_ERROR_NETWORK, L"ICMP Echo(Ping) request error", WSAGetLastError(), nullptr, 0);
+		return EXIT_FAILURE;
+	}
 
 	//Main and Alternate
 	SockAddrTemp->ss_family = AF_INET;
@@ -211,13 +218,6 @@ size_t __fastcall ICMPEcho(void)
 			SockAddr.push_back(*SockAddrTemp);
 			memset(SockAddrTemp.get(), 0, sizeof(sockaddr_storage));
 		}
-	}
-
-//Socket check
-	if (ICMPSocket == INVALID_SOCKET)
-	{
-		PrintError(LOG_ERROR_NETWORK, L"ICMP Echo(Ping) request error", WSAGetLastError(), nullptr, 0);
-		return EXIT_FAILURE;
 	}
 
 //Set socket timeout.
@@ -366,7 +366,7 @@ size_t __fastcall ICMPv6Echo(void)
 		ICMPv6_Header->Checksum = ICMPv6Checksum((PUINT8)Buffer[Index].get(), sizeof(icmpv6_hdr) + Parameter.ICMPPaddingDataLength - 1U, Parameter.DNSTarget.IPv6_Multi->at(Index).AddressData.IPv6.sin6_addr, ((PSOCKADDR_IN6)SockAddr.get())->sin6_addr);
 	}
 
-//Socket check
+//Socket initialization
 	SYSTEM_SOCKET ICMPv6Socket = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
 	if (ICMPv6Socket == INVALID_SOCKET)
 	{
@@ -549,6 +549,9 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 
 	if ((TCPSocket == INVALID_SOCKET || SockAddr->ss_family == 0) && Parameter.GatewayAvailable_IPv4) //IPv4
 	{
+		if (TCPSocket == INVALID_SOCKET)
+			closesocket(TCPSocket);
+
 	//Local requesting
 		if (IsLocal && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0)
 		{
@@ -1887,6 +1890,9 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 
 	if ((UDPSocket == INVALID_SOCKET || SockAddr->ss_family == 0) && Parameter.GatewayAvailable_IPv4) //IPv4
 	{
+		if (UDPSocket == INVALID_SOCKET)
+			closesocket(UDPSocket);
+
 	//Local requesting
 		if (IsLocal && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0)
 		{

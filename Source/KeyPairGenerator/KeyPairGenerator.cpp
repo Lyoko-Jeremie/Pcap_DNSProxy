@@ -1,7 +1,7 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server base on WinPcap and LibPcap.
 // Copyright (C) 2012-2015 Chengr28
-//
+// 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
 // as published by the Free Software Foundation; either
@@ -20,31 +20,46 @@
 #include "KeyPairGenerator.h"
 
 //Main function of program
-int wmain(int argc, wchar_t* argv[])
-{
+#if defined(PLATFORM_WIN)
+	int wmain(int argc, wchar_t* argv[])
+	{
+#elif defined(PLATFORM_LINUX)
+	int main(int argc, char *argv[])
+	{
+#endif
 //Libsodium initialization
 	if (sodium_init() != EXIT_SUCCESS)
 	{
 		wprintf_s(L"Libsodium initialization error\n");
+#if defined(PLATFORM_WIN)
 		system("Pause");
+#endif
 
 		return EXIT_FAILURE;
 	}
 
 	FILE *Output = nullptr;
 //Output.
+#if defined(PLATFORM_WIN)
 	_wfopen_s(&Output, L"KeyPair.txt", L"w+,ccs=UTF-8");
+#elif defined(PLATFORM_LINUX)
+	Output = fopen("KeyPair.txt", "w+");
+#endif
 	if (Output != nullptr)
 	{
 	//Initialization and make keypair.
+		size_t Index = 0;
 		std::shared_ptr<char> Buffer(new char[KEYPAIR_MESSAGE_LEN]());
 		std::shared_ptr<uint8_t> PublicKey(new uint8_t[crypto_box_PUBLICKEYBYTES]()), SecretKey(new uint8_t[crypto_box_SECRETKEYBYTES]());
+		memset(Buffer.get(), 0, KEYPAIR_MESSAGE_LEN);
+		memset(PublicKey.get(), 0, crypto_box_PUBLICKEYBYTES);
+		memset(SecretKey.get(), 0, crypto_box_SECRETKEYBYTES);
 		crypto_box_curve25519xsalsa20poly1305_keypair(PublicKey.get(), SecretKey.get());
 
 	//Write public key.
 		BinaryToHex(Buffer.get(), KEYPAIR_MESSAGE_LEN, PublicKey.get(), crypto_box_PUBLICKEYBYTES);
 		fwprintf_s(Output, L"Public Key: ");
-		for (size_t Index = 0;Index < strnlen_s(Buffer.get(), KEYPAIR_MESSAGE_LEN);++Index)
+		for (Index = 0;Index < strnlen_s(Buffer.get(), KEYPAIR_MESSAGE_LEN);++Index)
 			fwprintf_s(Output, L"%c", Buffer.get()[Index]);
 		memset(Buffer.get(), 0, KEYPAIR_MESSAGE_LEN);
 		fwprintf_s(Output, L"\n");
@@ -52,7 +67,7 @@ int wmain(int argc, wchar_t* argv[])
 	//Write secret key.
 		BinaryToHex(Buffer.get(), KEYPAIR_MESSAGE_LEN, SecretKey.get(), crypto_box_SECRETKEYBYTES);
 		fwprintf_s(Output, L"Secret Key: ");
-		for (size_t Index = 0;Index < strnlen_s(Buffer.get(), KEYPAIR_MESSAGE_LEN);++Index)
+		for (Index = 0;Index < strnlen_s(Buffer.get(), KEYPAIR_MESSAGE_LEN);++Index)
 			fwprintf_s(Output, L"%c", Buffer.get()[Index]);
 		fwprintf_s(Output, L"\n");
 
@@ -60,13 +75,17 @@ int wmain(int argc, wchar_t* argv[])
 	}
 	else {
 		wprintf_s(L"Cannot create target file(KeyPair.txt)\n");
+	#if defined(PLATFORM_WIN)
 		system("Pause");
+	#endif
 
 		return EXIT_FAILURE;
 	}
 
 	wprintf_s(L"Create ramdom key pair success, please check KeyPair.txt.\n\n");
+#if defined(PLATFORM_WIN)
 	system("Pause");
+#endif
 
 	return EXIT_SUCCESS;
 }
