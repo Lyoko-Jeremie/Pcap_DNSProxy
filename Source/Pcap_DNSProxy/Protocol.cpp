@@ -271,6 +271,7 @@ size_t __fastcall CompareAddresses(const void *OriginalAddrBegin, const void *Or
 }
 
 //Get local address list
+#if defined(PLATFORM_WIN)
 PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol)
 {
 //Initialization
@@ -296,11 +297,7 @@ PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol)
 
 //Get localhost data.
 	int ResultGetaddrinfo = getaddrinfo(HostName.get(), nullptr, Hints.get(), &Result);
-#if defined(PLATFORM_WIN)
 	if (ResultGetaddrinfo != 0)
-#elif defined(PLATFORM_LINUX)
-	if (ResultGetaddrinfo != 0 && ResultGetaddrinfo != (-2)) //EAI_NONAME(-2) is NAME or SERVICE is unknown. There are not any Protocol addresses when getting this error.
-#endif
 	{
 		PrintError(LOG_ERROR_NETWORK, L"Get localhost address error", ResultGetaddrinfo, nullptr, 0);
 
@@ -310,6 +307,7 @@ PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol)
 
 	return Result;
 }
+#endif
 
 #if defined(PLATFORM_LINUX)
 //Get address from best network interface
@@ -536,7 +534,11 @@ size_t __fastcall GetNetworkingInformation(void)
 	std::string Result;
 	SSIZE_T Index = 0;
 
+#if defined(PLATFORM_WIN)
 	PADDRINFOA LocalAddressList = nullptr, LocalAddressTableIter = nullptr;
+#elif defined(PLATFORM_LINUX)
+	ifaddrs *InterfaceAddressList = nullptr, *InterfaceAddressIter = nullptr;
+#endif
 	pdns_hdr DNS_Header = nullptr;
 	pdns_qry DNS_Query = nullptr;
 	pdns_record_aaaa DNS_Record_AAAA = nullptr;
@@ -544,9 +546,18 @@ size_t __fastcall GetNetworkingInformation(void)
 	for (;;)
 	{
 	//Get localhost addresses(IPv6)
+	#if defined(PLATFORM_WIN)
 		LocalAddressList = GetLocalAddressList(AF_INET6);
 		if (LocalAddressList == nullptr)
 		{
+	#elif defined(PLATFORM_LINUX)
+		if (getifaddrs(&InterfaceAddressList) != 0 || InterfaceAddressList == nullptr)
+		{
+			if (InterfaceAddressList != nullptr)
+				freeifaddrs(InterfaceAddressList);
+			InterfaceAddressList = nullptr;
+			PrintError(LOG_ERROR_NETWORK, L"Get localhost address error", errno, nullptr, 0);
+	#endif
 		//Auto-refresh
 			if (Parameter.FileRefreshTime > 0)
 			{
@@ -579,6 +590,7 @@ size_t __fastcall GetNetworkingInformation(void)
 			Parameter.LocalAddressLength[0] += sizeof(dns_qry);
 
 		//Read addresses list and convert to Fully Qualified Domain Name/FQDN PTR.
+		#if defined(PLATFORM_WIN)
 			for (LocalAddressTableIter = LocalAddressList;LocalAddressTableIter != nullptr;LocalAddressTableIter = LocalAddressTableIter->ai_next)
 			{
 				if (LocalAddressTableIter->ai_family == AF_INET6 && LocalAddressTableIter->ai_addrlen == sizeof(sockaddr_in6) && 
@@ -646,6 +658,74 @@ size_t __fastcall GetNetworkingInformation(void)
 					Result.shrink_to_fit();
 				}
 			}
+		#elif defined(PLATFORM_LINUX)
+			for (InterfaceAddressIter = InterfaceAddressList;InterfaceAddressIter != nullptr;InterfaceAddressIter = InterfaceAddressIter->ifa_next)
+			{
+				if (InterfaceAddressIter->ifa_addr != nullptr && InterfaceAddressIter->ifa_addr->sa_family == AF_INET6)
+				{
+				//Mark local addresses(B part).
+					if (Parameter.LocalAddressLength[0] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
+					{
+						DNS_Record_AAAA = (pdns_record_aaaa)(Parameter.LocalAddress[0] + Parameter.LocalAddressLength[0]);
+						DNS_Record_AAAA->Name = htons(DNS_QUERY_PTR);
+						DNS_Record_AAAA->Classes = htons(DNS_CLASS_IN);
+						DNS_Record_AAAA->TTL = htonl(Parameter.HostsDefaultTTL);
+						DNS_Record_AAAA->Type = htons(DNS_RECORD_AAAA);
+						DNS_Record_AAAA->Length = htons(sizeof(in6_addr));
+						DNS_Record_AAAA->Addr = ((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr;
+						Parameter.LocalAddressLength[0] += sizeof(dns_record_aaaa);
+						++DNS_Header->Answer;
+					}
+
+				//Initialization
+					DNSPTRString.clear();
+					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+
+				//Convert from in6_addr to string.
+					size_t AddrStringLen = 0;
+					for (Index = 0;Index < (SSIZE_T)(sizeof(in6_addr) / sizeof(uint16_t));++Index)
+					{
+						snprintf(Addr.get(), ADDR_STRING_MAXSIZE, "%x", ntohs(((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr.s6_words[Index]));
+
+					//Add zeros to beginning of string.
+						if (strnlen(Addr.get(), ADDR_STRING_MAXSIZE) < 4U)
+						{
+							AddrStringLen = strnlen(Addr.get(), ADDR_STRING_MAXSIZE);
+							memmove_s(Addr.get() + 4U - strnlen(Addr.get(), ADDR_STRING_MAXSIZE), ADDR_STRING_MAXSIZE, Addr.get(), strnlen(Addr.get(), ADDR_STRING_MAXSIZE));
+							memset(Addr.get(), ASCII_ZERO, 4U - AddrStringLen);
+						}
+						DNSPTRString.append(Addr.get());
+						memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+
+					//Last
+						if (Index < (SSIZE_T)(sizeof(in6_addr) / sizeof(uint16_t) - 1U))
+							DNSPTRString.append(":");
+					}
+
+				//Convert to standard IPv6 address format(":0:" -> ":0000:").
+					Index = 0;
+					while (DNSPTRString.find(":0:", Index) != std::string::npos)
+						DNSPTRString.replace(DNSPTRString.find(":0:", Index), 3U, ":0000:");
+
+				//Delete all colons
+					while (DNSPTRString.find(":") != std::string::npos)
+						DNSPTRString.erase(DNSPTRString.find(":"), 1U);
+
+				//Convert standard IPv6 address string to DNS PTR.
+					for (Index = DNSPTRString.length() - 1U;Index >= 0;--Index)
+					{
+						Result.append(DNSPTRString, Index, 1U);
+						Result.append(".");
+					}
+					Result.append("ip6.arpa");
+
+				//Add to global list.
+					Parameter.LocalAddressPTR[0]->push_back(Result);
+					Result.clear();
+					Result.shrink_to_fit();
+				}
+			}
+		#endif
 
 		//Mark local addresses(C part).
 			if (DNS_Header->Answer == 0)
@@ -659,11 +739,14 @@ size_t __fastcall GetNetworkingInformation(void)
 
 		//Add to global list.
 			LocalAddressMutexIPv6.unlock();
+		#if defined(PLATFORM_WIN)
 			freeaddrinfo(LocalAddressList);
 			LocalAddressList = nullptr;
+		#endif
 		}
 
 	//Get localhost addresses(IPv4)
+	#if defined(PLATFORM_WIN)
 		LocalAddressList = GetLocalAddressList(AF_INET);
 		if (LocalAddressList == nullptr)
 		{
@@ -679,6 +762,9 @@ size_t __fastcall GetNetworkingInformation(void)
 			}
 		}
 		else {
+	#elif defined(PLATFORM_LINUX)
+		{
+	#endif
 			std::string DNSPTRString;
 			std::unique_lock<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[1U]);
 			memset(Parameter.LocalAddress[1U], 0, PACKET_MAXSIZE);
@@ -699,7 +785,8 @@ size_t __fastcall GetNetworkingInformation(void)
 			Parameter.LocalAddressLength[1U] += sizeof(dns_qry);
 
 		//Read addresses list and convert to Fully Qualified Domain Name/FQDN PTR.
-			for (LocalAddressTableIter = LocalAddressList; LocalAddressTableIter != nullptr; LocalAddressTableIter = LocalAddressTableIter->ai_next)
+		#if defined(PLATFORM_WIN)
+			for (LocalAddressTableIter = LocalAddressList;LocalAddressTableIter != nullptr;LocalAddressTableIter = LocalAddressTableIter->ai_next)
 			{
 				if (LocalAddressTableIter->ai_family == AF_INET && LocalAddressTableIter->ai_addrlen == sizeof(sockaddr_in) && 
 					LocalAddressTableIter->ai_addr->sa_family == AF_INET)
@@ -742,11 +829,60 @@ size_t __fastcall GetNetworkingInformation(void)
 					Result.append("in-addr.arpa");
 
 				//Add to global list.
-					(Parameter.LocalAddressPTR[1U])->push_back(Result);
+					Parameter.LocalAddressPTR[1U]->push_back(Result);
 					Result.clear();
 					Result.shrink_to_fit();
 				}
 			}
+		#elif defined(PLATFORM_LINUX)
+			for (InterfaceAddressIter = InterfaceAddressList;InterfaceAddressIter != nullptr;InterfaceAddressIter = InterfaceAddressIter->ifa_next)
+			{
+				if (InterfaceAddressIter->ifa_addr != nullptr && InterfaceAddressIter->ifa_addr->sa_family == AF_INET)
+				{
+				//Mark local addresses(B part).
+					if (Parameter.LocalAddressLength[1U] <= PACKET_MAXSIZE - sizeof(dns_record_a))
+					{
+						DNS_Record_A = (pdns_record_a)(Parameter.LocalAddress[1U] + Parameter.LocalAddressLength[1U]);
+						DNS_Record_A->Name = htons(DNS_QUERY_PTR);
+						DNS_Record_A->Classes = htons(DNS_CLASS_IN);
+						DNS_Record_A->TTL = htonl(Parameter.HostsDefaultTTL);
+						DNS_Record_A->Type = htons(DNS_RECORD_A);
+						DNS_Record_A->Length = htons(sizeof(in_addr));
+						DNS_Record_A->Addr = ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr;
+						Parameter.LocalAddressLength[1U] += sizeof(dns_record_a);
+						++DNS_Header->Answer;
+					}
+
+				//Initialization
+					DNSPTRString.clear();
+					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+
+				//Convert from in_addr to DNS PTR.
+					snprintf(Addr.get(), ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_impno);
+					Result.append(Addr.get());
+					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+					Result.append(".");
+					snprintf(Addr.get(), ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_lh);
+					Result.append(Addr.get());
+					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+					Result.append(".");
+					snprintf(Addr.get(), ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_host);
+					Result.append(Addr.get());
+					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+					Result.append(".");
+					snprintf(Addr.get(), ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_net);
+					Result.append(Addr.get());
+					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+					Result.append(".");
+					Result.append("in-addr.arpa");
+
+				//Add to global list.
+					Parameter.LocalAddressPTR[1U]->push_back(Result);
+					Result.clear();
+					Result.shrink_to_fit();
+				}
+			}
+		#endif
 
 		//Mark local addresses(C part).
 			if (DNS_Header->Answer == 0)
@@ -760,9 +896,18 @@ size_t __fastcall GetNetworkingInformation(void)
 
 		//Add to global list.
 			LocalAddressMutexIPv4.unlock();
+		#if defined(PLATFORM_WIN)
 			freeaddrinfo(LocalAddressList);
 			LocalAddressList = nullptr;
+		#endif
 		}
+
+	//Free list.
+	#if defined(PLATFORM_LINUX)
+		if (InterfaceAddressList != nullptr)
+			freeifaddrs(InterfaceAddressList);
+		InterfaceAddressList = nullptr;
+	#endif
 
 	//Get gateway information and check.
 		GetGatewayInformation(AF_INET6);

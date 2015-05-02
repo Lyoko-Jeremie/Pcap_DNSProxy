@@ -21,21 +21,11 @@
   * 服務沒有及時回應啟動或控制請求 - 請檢查是否有錯誤報表生成，詳細情況參見下文 Error.log 詳細錯誤報表 一節
   * Service start failed, please check the configuration. - 請檢查是否有錯誤報表生成，詳細情況參見下文 Error.log 詳細錯誤報表 一節
 
-* 正常的運行結果應類似：
-
-   >nslookup www.google.com
-    伺服器: pcap-dnsproxy.localhost.server（視設定檔設置的值而定，參見 ReadMe 文檔中 設定檔詳細參數說明）
-    Address: 127.0.0.1（視所在網路環境而定，本地監聽協定為 IPv6 時為 ::1）
-
-    非權威應答:
-    名稱: www.google.com
-    Addresses: ……（IP位址或地址清單）
-
 * 如果出現以下結果，則說明服務沒有運行成功或者設置出錯，請檢查是否有錯誤報表生成，或請移步 ReadMe 文檔中 安裝方法 一節
 
    >nslookup www.google.com
-    伺服器: UnKnown
-    Address: 127.0.0.1（視所在網路環境而定，本地監聽協定為 IPv6 時為 ::1）
+    伺服器:  UnKnown
+    Address:  127.0.0.1（視所在網路環境而定，本地監聽協定為 IPv6 時為 ::1）
 
     *** UnKnown 找不到 www.google.com: No response from server
 
@@ -59,8 +49,8 @@
     *** 請求 pcap-dnsproxy.localhost.server 超時（視設定檔設置的值而定，參見 ReadMe 文檔中 設定檔詳細參數說明）
 
    >nslookup -vc www.google.com
-    伺服器: pcap-dnsproxy.localhost.server（視設定檔設置的值而定，參見 ReadMe 文檔中 設定檔詳細參數說明）
-    Address: 127.0.0.1（視所在網路環境而定，本地監聽協定為 IPv6 時為 ::1）
+    伺服器:  pcap-dnsproxy.localhost.server（視設定檔設置的值而定，參見 ReadMe 文檔中 設定檔詳細參數說明）
+    Address:  127.0.0.1（視所在網路環境而定，本地監聽協定為 IPv6 時為 ::1）
 
     *** 沒有 www.google.com 可以使用的 internal type for both IPv4 and IPv6 Addresses (A+AAAA)記錄
 
@@ -194,6 +184,10 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Set Complete UDP socket timeout error - 設置 UDP 協定通訊端超時時間錯誤：具體原因可參見錯誤代碼
   * Set UDP socket SIO_UDP_CONNRESET error - 設置 UDP 協定通訊端遮罩 ICMP Port Unreachable 資訊錯誤：具體原因可參見錯誤代碼
   * Set TCP socket timeout error - 設置 TCP 協定通訊端超時時間錯誤：具體原因可參見錯誤代碼
+  * Set UDP socket disable reusing error - 設置 UDP 協定通訊端埠獨佔模式錯誤：具體原因可參見錯誤代碼
+  * Set TCP socket disable reusing error - 設置 TCP 協定通訊端埠獨佔模式錯誤：具體原因可參見錯誤代碼
+  * Set UDP socket treating wildcard bind error - 設置 UDP 協定通訊端協定獨佔模式錯誤：具體原因可參見錯誤代碼
+  * Set TCP socket treating wildcard bind error - 設置 TCP 協定通訊端協定獨佔模式錯誤：具體原因可參見錯誤代碼
   * Set ICMP socket timeout error - 設置 ICMP 協定通訊端超時時間錯誤：具體原因可參見錯誤代碼
   * ICMP Echo(Ping) request error - ICMP/Ping 協定請求錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
   * Set ICMPv6 socket timeout error - 設置 ICMPv6 協定通訊端超時時間錯誤：具體原因可參見錯誤代碼

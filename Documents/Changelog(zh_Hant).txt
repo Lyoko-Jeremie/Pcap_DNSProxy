@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy v0.4 Beta 15(Windows)/v0.4 Beta 1(Linux)/v0.2(Mac) 更新日誌(2015-04-30)：
+﻿Pcap_DNSProxy v0.4 Beta 16(Windows)/v0.4 Beta 2(Linux)/v0.2(Mac) 更新日誌(2015-05-02)：
 
 * 添加對 Apple IEEE 1394/FireWire 的支援
 * 添加對 Streamlined/精簡 格式 DNSCurve/DNSCrypt 協定的支援
@@ -66,6 +66,8 @@
 * 改進初次開機時進行的防火牆測試模組(Windows)
 * 改進無法找到或禁用重啟網路介面卡後自動重試的功能
 * 改進抓包模組的回復機制，降低資源佔用
+* 使用 CMake 套裝編譯(Linux)
+* 為 Debian 系 Linux 發行版本提供服務控制腳本自動安裝腳本
 * 移除建置錯誤報告
   * 找不到 Hosts 檔時
   * Windows XP 系統下不支援 IPv6 時
@@ -74,6 +76,8 @@
 * 修復 TCP 協定下因為遠端伺服器無回應而造成的過長時間不回應請求的錯誤
 * 修復存在橋接器配接器時可能造成的崩潰 [JonyOang]
 * 修復多執行緒模型下競爭讀寫全域物件可能造成的錯誤
+* 修復本地監聽埠可能被盜用的安全問題(Windows)
+* 修復因為系統預設 IPv6/IPv4 通訊端配置造成的衝突問題(Linux)
 * 修復自身伺服器名稱讀取和 IPv6 環境下回複自身伺服器名稱的錯誤
 * 修復反向解析功能變數名稱時回復自身伺服器名稱到所有私有網路位址對應功能變數名稱的錯誤
 * 修復在 IPv6 環境下抓包回復時的匹配錯誤
@@ -87,14 +91,14 @@
 * 合併批次處理(Windows) [yfdyh000]
 * 修復批次處理在開啟 UAC 的情況下無法使用的錯誤(Windows) [Haruyuki Arita/Hugo Chan/Ryans233/streamgo/watchingyoufall]
 * 在非管理員許可權下運行批次處理無法修改系統服務資訊的錯誤現在將有提醒(Windows) [Haruyuki Arita/Hugo Chan/Ryans233/watchingyoufall]
-* 使用 Microsoft 的 File Checksum Integrity Verifier 的 SHA-1 演算法，下載或解壓出錯導致檔損壞現在將有提醒(Windows) [Hugo Chan]
-* 修復 Makefile 的錯誤(Linux) [otakuchiyan]
 * 原始程式碼現在開始將使用 UTF-8 編碼
 * 專案升級到 Visual Studio 2013(Windows)
 * 修復在 IPv6 環境下抓取來自境內功能變數名稱解析伺服器回復包的錯誤，但此功能在新版已被移除，特此公告 [David Webb/eqielb]
+* 修復 Makefile 的錯誤，但此功能在新版已被移除，特此公告(Linux) [otakuchiyan]
 
 
 -------------------------------------------------------------------------------
+
 
 Pcap_DNSProxy v0.3.2(Windows)/v0.2(Linux)/v0.1(Mac) 更新日誌：
 * Pcap_DNSProxy v0.1 Mac Release 正式發佈！
@@ -104,7 +108,9 @@ Pcap_DNSProxy v0.3.2(Windows)/v0.2(Linux)/v0.1(Mac) 更新日誌：
 * 修復在部分情況下錯誤建置錯誤報告的 Bug(Linux)
 * 修正說明文檔的錯誤操作(Linux)
 
+
 -------------------------------------------------------------------------------
+
 
 Pcap_DNSProxy v0.3.1(Windows)/v0.1(Linux) 更新日誌：
 * Pcap_DNSProxy v0.1 Linux Release 正式發佈！
@@ -114,7 +120,9 @@ Pcap_DNSProxy v0.3.1(Windows)/v0.1(Linux) 更新日誌：
    * 修復自動刷新本地位址的 Bug
 * 修復本地可郵寄地址識別錯誤的 Bug(Windows)
 
+
 -------------------------------------------------------------------------------
+
 
 Pcap_DNSProxy v0.3 更新日誌：
 * 32位/x86版本使用 WSAAddressToString() 和 WSAStringToAddress() 替代 inet_ntop() 和 inet_pton() 以支援 Windows XP 以及更舊的系統 [Roy Tam]
@@ -133,7 +141,9 @@ Pcap_DNSProxy v0.3 更新日誌：
 * 注釋 Console 和部分 Ethernet 的調試代碼
 * 原始程式碼全部轉為 USC-2(Little-Endian) 編碼和 Dos\Windows 檔案格式
 
+
 -------------------------------------------------------------------------------
+
 
 Pcap_DNSProxy v0.2 更新日誌：
 * 重寫編碼讀取模組，新增支援 ·Macintosh· 換行格式
@@ -141,7 +151,9 @@ Pcap_DNSProxy v0.2 更新日誌：
 * 使用C語言標準庫傳回值
 * 巨集定義錯誤報表類型
 
+
 -------------------------------------------------------------------------------
+
 
 Pcap_DNSProxy v0.1 更新日誌：
 * v0.1 Release 正式發佈！

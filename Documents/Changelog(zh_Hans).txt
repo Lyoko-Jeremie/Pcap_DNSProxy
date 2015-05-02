@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy v0.4 Beta 15(Windows)/v0.4 Beta 1(Linux)/v0.2(Mac) 更新日志(2015-04-30)：
+﻿Pcap_DNSProxy v0.4 Beta 16(Windows)/v0.4 Beta 2(Linux)/v0.2(Mac) 更新日志(2015-05-02)：
 
 * 添加对 Apple IEEE 1394/FireWire 的支持
 * 添加对 Streamlined/精简 格式 DNSCurve/DNSCrypt 协议的支持
@@ -66,6 +66,8 @@
 * 改进首次启动时进行的防火墙测试模块(Windows)
 * 改进无法找到或禁用重启网络适配器后自动重试的功能
 * 改进抓包模块的回复机制，降低资源占用
+* 使用 CMake 套装编译(Linux)
+* 为 Debian 系 Linux 发行版提供服务控制脚本自动安装脚本
 * 移除生成错误报告
   * 找不到 Hosts 文件时
   * Windows XP 系统下不支持 IPv6 时
@@ -74,6 +76,8 @@
 * 修复 TCP 协议下因为远程服务器无响应而造成的过长时间不回应请求的错误
 * 修复存在网桥适配器时可能造成的崩溃 [JonyOang]
 * 修复多线程模型下竞争读写全局对象可能造成的错误
+* 修复本地监听端口可能被盗用的安全问题(Windows)
+* 修复因为系统默认 IPv6/IPv4 套接字配置造成的冲突问题(Linux)
 * 修复自身服务器名称读取和 IPv6 环境下回复自身服务器名称的错误
 * 修复反向解析域名时回复自身服务器名称到所有私有网络地址对应域名的错误
 * 修复在 IPv6 环境下抓包回复时的匹配错误
@@ -87,13 +91,14 @@
 * 合并批处理(Windows) [yfdyh000]
 * 修复批处理在开启 UAC 的情况下无法使用的错误(Windows) [Haruyuki Arita/Hugo Chan/Ryans233/streamgo/watchingyoufall]
 * 在非管理员权限下运行批处理无法修改系统服务信息的错误现在将有提醒(Windows) [Haruyuki Arita/Hugo Chan/Ryans233/watchingyoufall]
-* 使用 Microsoft 的 File Checksum Integrity Verifier 的 SHA-1 算法，下载或解压出错导致文件损坏现在将有提醒(Windows) [Hugo Chan]
-* 修复 Makefile 的错误(Linux) [otakuchiyan]
 * 源代码现在开始将使用 UTF-8 编码
 * 项目升级到 Visual Studio 2013(Windows)
 * 修复在 IPv6 环境下抓取来自境内域名解析服务器回复包的错误，但此功能在新版已被移除，特此公告 [David Webb/eqielb]
+* 修复 Makefile 的错误，但此功能在新版已被移除，特此公告(Linux) [otakuchiyan]
+
 
 -------------------------------------------------------------------------------
+
 
 Pcap_DNSProxy v0.3.2(Windows)/v0.2(Linux)/v0.1(Mac) 更新日志：
 
@@ -104,7 +109,9 @@ Pcap_DNSProxy v0.3.2(Windows)/v0.2(Linux)/v0.1(Mac) 更新日志：
 * 修复在部分情况下错误生成错误报告的Bug(Linux)
 * 修正说明文档的错误操作(Linux)
 
+
 -------------------------------------------------------------------------------
+
 
 Pcap_DNSProxy v0.3.1(Windows)/v0.1(Linux) 更新日志：
 
@@ -115,7 +122,9 @@ Pcap_DNSProxy v0.3.1(Windows)/v0.1(Linux) 更新日志：
   * 修复自动刷新本地地址的 Bug
 * 修复本地可通讯地址识别错误的 Bug(Windows)
 
+
 -------------------------------------------------------------------------------
+
 
 Pcap_DNSProxy v0.3 更新日志：
 
@@ -135,7 +144,9 @@ Pcap_DNSProxy v0.3 更新日志：
 * 注释 Console 和部分 Ethernet 的调试代码
 * 源代码全部转为 USC-2(Little-Endian) 编码和 Dos\Windows档案格式
 
+
 -------------------------------------------------------------------------------
+
 
 Pcap_DNSProxy v0.2 更新日志：
 
@@ -144,7 +155,9 @@ Pcap_DNSProxy v0.2 更新日志：
 * 使用C语言标准库返回值
 * 宏定义错误报告类型
 
+
 -------------------------------------------------------------------------------
+
 
 Pcap_DNSProxy v0.1 更新日志：
 

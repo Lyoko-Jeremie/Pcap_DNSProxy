@@ -191,10 +191,11 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 		}
 	}
 #elif defined(PLATFORM_LINUX)
-	struct stat FileSata = {0};
-	if (stat(Parameter.sErrorLogPath->c_str(), &FileSata) == 0)
+	std::shared_ptr<struct stat> FileStat(new struct stat());
+	memset(FileStat.get(), 0, sizeof(struct stat));
+	if (stat(Parameter.sErrorLogPath->c_str(), FileStat.get()) == 0)
 	{
-		if (FileSata.st_size >= (off_t)Parameter.LogMaxSize && remove(Parameter.sErrorLogPath->c_str()) == 0)
+		if (FileStat->st_size >= (off_t)Parameter.LogMaxSize && remove(Parameter.sErrorLogPath->c_str()) == 0)
 			PrintError(LOG_ERROR_SYSTEM, L"Old Error Log file was deleted", 0, nullptr, 0);
 	}
 #endif
@@ -411,10 +412,11 @@ size_t __fastcall PrintRunningStatus(const wchar_t *Message)
 		}
 	}
 #elif defined(PLATFORM_LINUX)
-	struct stat FileSata = {0};
-	if (stat(Parameter.sRunningLogPath->c_str(), &FileSata) == 0)
+	std::shared_ptr<struct stat> FileStat(new struct stat());
+	memset(FileStat.get(), 0, sizeof(struct stat));
+	if (stat(Parameter.sRunningLogPath->c_str(), FileStat.get()) == 0)
 	{
-		if (FileSata.st_size >= (off_t)Parameter.LogMaxSize && remove(Parameter.sRunningLogPath->c_str()) == 0)
+		if (FileStat->st_size >= (off_t)Parameter.LogMaxSize && remove(Parameter.sRunningLogPath->c_str()) == 0)
 			PrintError(LOG_ERROR_SYSTEM, L"Old Running Log file was deleted", 0, nullptr, 0);
 	}
 #endif

@@ -1,4 +1,5 @@
 ﻿Pcap_DNSProxy 專案的 GitHub 頁面：
+
 * 主分支: https://github.com/chengr28/Pcap_DNSProxy
 * Release 分支: https://github.com/chengr28/Pcap_DNSProxy/tree/Release
 
@@ -10,20 +11,25 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 
 安裝方法（需要以管理員身份進行）：
+
 1.訪問 http://www.winpcap.org/install/default.htm 下載並以管理員許可權安裝 WinPcap
   * WinPcap 只需要安裝一次，以前安裝過最新版本或以後更新本工具時請從第2步開始操作
   * 如果 WinPcap 提示已安裝舊版本無法繼續時，參見 FAQ 中 運行結果分析 一節
   * 安裝時自啟動選項對工具的運行沒有影響，因為本工具直接調用 WinPcap API，不需要經過伺服器程式
+
 2.訪問 https://github.com/chengr28/Pcap_DNSProxy/tree/Release 並使用 GitHub 的 Download ZIP 功能將所有檔下載到本地
   * Windows 版本的 Pcap_DNSProxy 在 ZIP 的 Windows 目錄內，可將整個目錄單獨抽出運行
+
 3.打開下載回來的 ZIP 檔，將 Windows 目錄解壓到磁片的任意位置
   * 目錄所在位置和程式檔案名可以隨意更改
   * 設定檔需要使用固定的檔案名（更多詳細情況參見下文 功能和技術 一節）
+
 4.確定工具目錄的名稱和路徑後進入目錄內，右鍵以管理員身份(Vista 以及更新版本)或直接以管理員登錄按兩下(XP/2003)運行 ServiceControl.bat
   * 輸入 1 並回車，即選擇 "1: Install service" 安裝服務
   * 批次處理會將程式註冊系統服務，並進行 Windows 防火牆測試，每次開機服務都將自動啟動
-5.此時 Windows 系統會詢問是否同意程式訪問網路，請將 "私人網路絡" 以及 "公用網路" 都勾上並確認
-6.打開 "網路和共用中心" - "更改配接器設置" 選擇 "本地連接" 或 "無線連接" 或 "寬頻連線"
+  * 此時 Windows 系統會詢問是否同意程式訪問網路，請將 "私人網路絡" 以及 "公用網路" 都勾上並確認
+
+5.打開 "網路和共用中心" - "更改配接器設置" 選擇 "本地連接" 或 "無線連接" 或 "寬頻連線"
   * 右擊 "屬性" - "Internet協定(TCP/IP)"(XP/2003) 或 "Internet協定版本4(IPv4)"(Vista 以及更新版本) - "屬性" - 勾選 "使用下面的DNS伺服器位址"
   * 在 "首選DNS伺服器" 內填入 "127.0.0.1"（不含引號） 確定保存並退出即可
   * 如果需要使用 IPv6 協定的本機伺服器
@@ -89,9 +95,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
 注意事項：
 
 * 修改 DNS 伺服器時請務必設置一個正確的、有效的、可以正常使用的境外 DNS 伺服器！
-* 關於 WinPacap
-  * 如果程式啟動提示丟失 wpcap.dll 請重新安裝 WinPcap 或者將其更新到最新版本
-  * 安裝前注意系統是否已經安裝過 WinPcap 建議不要重複安裝
 * Windows 平臺下讀取檔案名時不存在大小寫的區別
 * 設定檔 Hosts 檔 IPFilter 檔和錯誤報表所在的目錄以上文 安裝方法 一節中第4步註冊的服務資訊為准
   * 填寫時一行不要超過 4096位元組/4KB

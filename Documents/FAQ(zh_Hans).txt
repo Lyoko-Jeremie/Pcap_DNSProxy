@@ -21,16 +21,6 @@
   * 服务没有及时响应启动或控制请求 - 请检查是否有错误报告生成，详细情况参见下文 Error.log 详细错误报告 一节
   * Service start failed, please check the configuration. - 请检查是否有错误报告生成，详细情况参见下文 Error.log 详细错误报告 一节
 
-* 正常的运行结果应类似：
-
-   >nslookup www.google.com
-    服务器:  pcap-dnsproxy.localhost.server（视配置文件设置的值而定，参见 ReadMe 文档中 配置文件详细参数说明）
-    Address:  127.0.0.1（视所在网络环境而定，本地监听协议为 IPv6 时为 ::1）
-
-    非权威应答:
-    名称:    www.google.com
-    Addresses: ……（IP地址或地址列表）
-
 * 如果出现以下结果，则说明服务没有运行成功或者设置出错，请检查是否有错误报告生成，或请移步 ReadMe 文档中 安装方法 一节
 
    >nslookup www.google.com
@@ -194,6 +184,10 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Set Complete UDP socket timeout error - 设置 UDP 协议套接字超时时间错误：具体原因可参见错误代码
   * Set UDP socket SIO_UDP_CONNRESET error - 设置 UDP 协议套接字屏蔽 ICMP Port Unreachable 信息错误：具体原因可参见错误代码
   * Set TCP socket timeout error - 设置 TCP 协议套接字超时时间错误：具体原因可参见错误代码
+  * Set UDP socket disable reusing error - 设置 UDP 协议套接字端口独占模式错误：具体原因可参见错误代码
+  * Set TCP socket disable reusing error - 设置 TCP 协议套接字端口独占模式错误：具体原因可参见错误代码
+  * Set UDP socket treating wildcard bind error - 设置 UDP 协议套接字协议独占模式错误：具体原因可参见错误代码
+  * Set TCP socket treating wildcard bind error - 设置 TCP 协议套接字协议独占模式错误：具体原因可参见错误代码
   * Set ICMP socket timeout error - 设置 ICMP 协议套接字超时时间错误：具体原因可参见错误代码
   * ICMP Echo(Ping) request error - ICMP/Ping 协议请求错误：可能为网络错误，具体原因可参见错误代码
   * Set ICMPv6 socket timeout error - 设置 ICMPv6 协议套接字超时时间错误：具体原因可参见错误代码

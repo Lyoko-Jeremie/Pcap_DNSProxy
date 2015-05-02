@@ -172,7 +172,7 @@
 // 
 //Linux compatible(Part 1)
 #if defined(PLATFORM_LINUX)
-	#define _FILE_OFFSET_BITS          64
+	#define _FILE_OFFSET_BITS   64     //File offset data type size(64 bits).
 #endif
 
 //C Standard Library and C++ Standard Template Library/STL Headers
@@ -379,9 +379,7 @@
 	#define fwprintf_s                                                  fwprintf
 	#if defined(PLATFORM_LINUX)
 		#define send(Socket, Buffer, Length, Signal)                        send(Socket, Buffer, Length, MSG_NOSIGNAL)
-		#define recv(Socket, Buffer, Size, Signal)                          recv(Socket, Buffer, Size, MSG_NOSIGNAL)
 		#define sendto(Socket, Buffer, Length, Signal, SockAddr, AddrLen)   sendto(Socket, Buffer, Length, MSG_NOSIGNAL, SockAddr, AddrLen)
-		#define recvfrom(Socket, Buffer, Size, Signal, SockAddr, AddrLen)   recvfrom(Socket, Buffer, Size, MSG_NOSIGNAL, SockAddr, AddrLen)
 	#endif
 	#define GetLastError()                                              errno
 	#define closesocket                                                 close
@@ -907,6 +905,7 @@ typedef struct _gre_hdr
 #define ICMP_TYPE_ECHO      0
 #define ICMP_TYPE_REQUEST   8U
 #define ICMP_CODE_ECHO      0
+#define ICMP_CODE_REQUEST   0
 typedef struct _icmp_hdr_
 {
 	uint8_t                Type;
@@ -914,7 +913,11 @@ typedef struct _icmp_hdr_
 	uint16_t               Checksum;
 	uint16_t               ID;
 	uint16_t               Sequence;
-//	uint32_t               TimeStamp;
+//ICMP Timestamp option is defalut ON on Linux.
+#if defined(PLATFORM_LINUX)
+	uint64_t               Timestamp;
+	uint64_t               Nonce;
+#endif
 }icmp_hdr, *picmp_hdr;
 
 /* Internet Control Message Protocol version 6/ICMPv6 Header(RFC 4443, https://tools.ietf.org/html/rfc4443)
@@ -930,9 +933,10 @@ typedef struct _icmp_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define ICMPV6_REQUEST     128U
-#define ICMPV6_TYPE_REPLY  129U
-#define ICMPV6_CODE_REPLY  0
+#define ICMPV6_TYPE_REQUEST    128U
+#define ICMPV6_TYPE_REPLY      129U
+#define ICMPV6_CODE_REQUEST    0
+#define ICMPV6_CODE_REPLY      0
 typedef struct _icmpv6_hdr_
 {
 	uint8_t                Type;
@@ -940,7 +944,11 @@ typedef struct _icmpv6_hdr_
 	uint16_t               Checksum;
 	uint16_t               ID;
 	uint16_t               Sequence;
-//	uint16_t               Nonce;
+//ICMPv6 Timestamp option is defalut ON on Linux.
+#if defined(PLATFORM_LINUX)
+	uint64_t               Timestamp;
+	uint64_t               Nonce;
+#endif
 }icmpv6_hdr, *picmpv6_hdr;
 
 /* Transmission Control Protocol/TCP Header
@@ -1931,9 +1939,13 @@ typedef struct _dnscurve_txt_signature_
 #define BUFFER_RING_MAXNUM             32U                                      //Number of maximum packet buffer queues
 #define ADDR_STRING_MAXSIZE            64U                                      //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
 #define ICMP_PADDING_MAXSIZE           1484U                                    //Length of ICMP padding data must between 18 bytes and 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
+#if defined(PLATFORM_LINUX)
+	#define ICMP_STRING_START_NUM_LINUX    16U
+	#define ICMP_PADDING_LENGTH_LINUX      40U
+#endif
 #define MULTI_REQUEST_TIMES_MAXNUM     16U                                      //Maximum times of multi requesting.
-#define TRANSPORT_LAYER_PARTNUM        4U                                       //Number of transport layer protocols(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
 #define NETWORK_LAYER_PARTNUM          2U                                       //Number of network layer protocols(IPv6 and IPv4)
+#define TRANSPORT_LAYER_PARTNUM        4U                                       //Number of transport layer protocols(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
 #define ALTERNATE_SERVERNUM            12U                                      //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
 #define DOMAIN_MAXSIZE                 256U                                     //Maximum size of whole level domain is 256 bytes(Section 2.3.1 in RFC 1035).
 #define DOMAIN_DATA_MAXSIZE            253U                                     //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
@@ -1951,7 +1963,7 @@ typedef struct _dnscurve_txt_signature_
 #define PCAP_COMPILE_OPTIMIZE                 1U         //Pcap optimization on the resulting code is performed.
 #define PCAP_OFFLINE_EOF_ERROR                (-2)       //Pcap EOF was reached reading from an offline capture.
 #define SHA3_512_SIZE                         64U        //SHA3-512 instance as specified in the FIPS 202 draft in April 2014(http://csrc.nist.gov/publications/drafts/fips-202/fips_202_draft.pdf), 512 bits/64 bytes.
-#define CHECKSUM_SUCCESS                      0          //Result of getting correct checksums.
+#define CHECKSUM_SUCCESS                      0          //Result of getting correct checksum.
 #define DYNAMIC_MIN_PORT                      1024U      //Well-known port is from 1 to 1023.
 
 //Time defines
@@ -1990,7 +2002,10 @@ typedef struct _dnscurve_txt_signature_
 //Data defines
 #define DEFAULT_LOCAL_SERVICENAME             L"PcapDNSProxyService"                                                                                                                        //Default service name of system
 #define DEFAULT_LOCAL_SERVERNAME              ("pcap-dnsproxy.localhost.server")                                                                                                            //Default Local DNS server name
-#define DEFAULT_PADDINGDATA                   ("abcdefghijklmnopqrstuvwabcdefghi")                                                                                                          //ICMP padding data(Microsoft Windows Ping)
+//ICMP padding data
+#if defined(PLATFORM_WIN)
+	#define DEFAULT_PADDINGDATA                   ("abcdefghijklmnopqrstuvwabcdefghi")
+#endif
 #define RFC_DOMAIN_TABLE                      (".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")                                                                          //Preferred name syntax(Section 2.3.1 in RFC 1035)
 #define DNSCURVE_TEST_NONCE                   0, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23   //DNSCurve Test Nonce, 0x00 - 0x23(ASCII)
 #define DEFAULT_SEQUENCE                      0x0001                                                                                                                                        //Default sequence of protocol
@@ -2397,7 +2412,9 @@ uint64_t __fastcall ntoh64(const uint64_t Val);
 //uint32_t __fastcall GetFCS(const unsigned char *Buffer, const size_t Length);
 size_t __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr, const uint16_t Protocol, SSIZE_T &ErrCode);
 size_t __fastcall CompareAddresses(const void *OriginalAddrBegin, const void *OriginalAddrEnd, const uint16_t Protocol);
-PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol);
+#if defined(PLATFORM_WIN)
+	PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol);
+#endif
 size_t __fastcall GetNetworkingInformation(void);
 uint16_t __fastcall ServiceNameToHex(const char *Buffer);
 uint16_t __fastcall DNSTypeNameToHex(const char *Buffer);
@@ -2443,8 +2460,8 @@ size_t __fastcall CaptureInit(void);
 
 //Network.h
 size_t __fastcall DomainTestRequest(const uint16_t Protocol);
-size_t __fastcall ICMPEcho(void);
-size_t __fastcall ICMPv6Echo(void);
+size_t __fastcall ICMPEcho(const uint16_t Protocol);
+//size_t __fastcall ICMPv6Echo(void);
 size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal);
 size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
 size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, const SOCKET_DATA *LocalSocketData, const uint16_t Protocol);

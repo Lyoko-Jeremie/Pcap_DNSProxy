@@ -1,0 +1,43 @@
+常見問題
+
+* 本文檔為常見問題的處理方法，當工具無法正常使用時可先參考本文檔尋找解決方法
+* 錯誤報表的詳細情況，參見 FAQ(...). txt
+
+
+-------------------------------------------------------------------------------
+
+
+運行結果分析：
+
+  * 如果出現以下結果，則說明服務已經運行成功但遠端 DNS 伺服器沒有回應，請檢查是否有錯誤報表生成
+  * 請務必設置一個正確的、有效的、可以使用的境外 DNS 伺服器
+  * 出現這種情況可能為網路問題。 部分地區ISP/運營商對 UDP 協定轉發丟包率比較高，可嘗試切換到 TCP 協定模式（參見 ReadMe 文檔中 設定檔詳細參數說明 中 Base 基本區域 的 Operation Mode 一節）或者多嘗試請求幾次
+  * 也可能是因為長時間運行有錯誤累積造成，專案組正努力解決。 可嘗試重啟服務（參見 ReadMe 文檔中的 重啟服務）
+
+    >dig www.google.com
+
+    ; <<>> DiG 9.9.5-9-Debian <<>> www.google.com
+    ; (1 server found)
+    ;; global options: +cmd
+    ;; connection timed out; no servers could be reached
+
+* 錯誤由其它 DNS 伺服器回應，留意 "SERVER: ...#53(...)" 一行必須為 127.0.0.1（IPv4，IPv6下為 ::1 ）
+  * 請檢查系統的網路設置，或者也可能是服務沒有運行成功或者服務已經運行成功但遠端 DNS 伺服器沒有回應
+
+    >dig www.google.com
+    ; (1 server found)
+    ;; global options: +cmd
+    ;; Got answer:
+    ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: ...
+    ;; flags: ...; QUERY: ..., ANSWER: ..., AUTHORITY: ..., ADDITIONAL: ...
+
+    ;; QUESTION SECTION:
+    ;www.google.com.            IN    A
+
+    ;; ANSWER SECTION:
+    ...
+
+    ;; Query time: ... msec
+    ;; SERVER: ...#53(...)
+    ;; WHEN: ...
+    ;; MSG SIZE  rcvd: ...

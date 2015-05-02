@@ -297,7 +297,7 @@ void __fastcall FilterRulesInit(std::string &FilterRules)
 //Capture process
 size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 {
-	//Devices check
+//Devices check
 	if (pDrive->name == nullptr || pDrive->addresses == nullptr
 #if defined(PLATFORM_LINUX)
 		|| strstr(pDrive->name, "lo") != nullptr || strstr(pDrive->name, "any") != nullptr
@@ -318,7 +318,7 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 	std::shared_ptr<char> Buffer(new char[ORIGINAL_PACKET_MAXSIZE * BUFFER_RING_MAXNUM]());
 	memset(Buffer.get(), 0, ORIGINAL_PACKET_MAXSIZE * BUFFER_RING_MAXNUM);
 
-	//Open device
+//Open device
 #if defined(PLATFORM_WIN)
 	if ((DeviceHandle = pcap_open(pDrive->name, ORIGINAL_PACKET_MAXSIZE, PCAP_OPENFLAG_NOCAPTURE_LOCAL, PCAP_CAPTURE_TIMEOUT, nullptr, Buffer.get())) == nullptr)
 #elif defined(PLATFORM_LINUX)
@@ -332,13 +332,13 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 		return EXIT_FAILURE;
 	}
 
-	//Check device name.
+//Check device name.
 	std::wstring DeviceName;
 	MBSToWCSString(DeviceName, pDrive->name);
 	if (DeviceName.empty())
 		DeviceName = L"<Error device name>";
 
-	//Check device type.
+//Check device type.
 	uint16_t DeviceType = 0;
 	if (pcap_datalink(DeviceHandle) == DLT_EN10MB || pcap_datalink(DeviceHandle) == DLT_PPP_ETHER || pcap_datalink(DeviceHandle) == DLT_EN3MB) //Ethernet II
 		DeviceType = DLT_EN10MB;

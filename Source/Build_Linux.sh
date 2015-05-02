@@ -39,9 +39,9 @@ rm -Rrf Object
 # Set program
 chmod 777 Release/KeyPairGenerator
 chmod 777 Release/Pcap_DNSProxy
-chmod 777 Release/PcapDNSProxyService
 chmod 777 Build_Linux.Debian.sh
 cp -f ExampleConfig/PcapDNSProxyService Release/PcapDNSProxyService
+chmod 777 Release/PcapDNSProxyService
 cp -f ExampleConfig/Config.ini Release/Config.conf
 cp -f ExampleConfig/Hosts.ini Release/Hosts.conf
 cp -f ExampleConfig/IPFilter.ini Release/IPFilter.conf

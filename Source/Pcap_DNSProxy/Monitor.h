@@ -27,7 +27,7 @@ extern std::deque<DNSCACHE_DATA> DNSCacheList;
 extern std::mutex RunningLogLock, DNSCacheListLock;
 
 //Functions
-size_t __fastcall UDPMonitor(const SOCKET_DATA LocalhostData);
-size_t __fastcall TCPMonitor(const SOCKET_DATA LocalhostData);
+size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData);
+size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData);
 size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData);
 void __fastcall AlternateServerMonitor(void);

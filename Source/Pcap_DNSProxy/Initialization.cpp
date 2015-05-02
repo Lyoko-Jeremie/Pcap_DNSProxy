@@ -128,9 +128,16 @@ ConfigurationTable::ConfigurationTable(void)
 	ICMPSequence = htons(DEFAULT_SEQUENCE);
 	DomainTestSpeed = DEFAULT_DOMAINTEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
 	DomainTestID = htons((uint16_t)GetCurrentProcessId()); //Default DNS ID is current process ID.
-	//Load default padding data from Microsoft Windows Ping.
+	//Load default padding data.
+#if defined(PLATFORM_WIN)
 	ICMPPaddingDataLength = strlen(DEFAULT_PADDINGDATA) + 1U;
 	memcpy_s(ICMPPaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_PADDINGDATA, Parameter.ICMPPaddingDataLength - 1U);
+#elif defined(PLATFORM_LINUX)
+	size_t CharData = ICMP_STRING_START_NUM_LINUX;
+	for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_LINUX;++Index, ++CharData)
+		ICMPPaddingData[Index] = CharData;
+	ICMPPaddingDataLength = strlen(ICMPPaddingData) + 1U;
+#endif
 	HostsDefaultTTL = DEFAULT_HOSTS_TTL;
 
 	return;

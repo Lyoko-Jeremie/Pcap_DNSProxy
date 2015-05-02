@@ -336,10 +336,11 @@ size_t __fastcall ReadParameter(void)
 		}
 	}
 #elif defined(PLATFORM_LINUX)
-	struct stat FileSata = {0};
-	if (stat(sConfigFileList[Index].c_str(), &FileSata) == 0)
+	std::shared_ptr<struct stat> FileStat(new struct stat());
+	memset(FileStat.get(), 0, sizeof(struct stat));
+	if (stat(sConfigFileList[Index].c_str(), FileStat.get()) == 0)
 	{
-		if (FileSata.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+		if (FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 		{
 			PrintError(LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, ConfigFileList[Index].c_str(), 0);
 			return EXIT_FAILURE;
@@ -2420,10 +2421,11 @@ size_t __fastcall ReadIPFilter(void)
 					}
 				}
 			#elif defined(PLATFORM_LINUX)
-				struct stat FileSata = {0};
-				if (stat(IPFilterFileList[FileIndex].sFileName.c_str(), &FileSata) == 0)
+				std::shared_ptr<struct stat> FileStat(new struct stat());
+				memset(FileStat.get(), 0, sizeof(struct stat));
+				if (stat(IPFilterFileList[FileIndex].sFileName.c_str(), FileStat.get()) == 0)
 				{
-					if (FileSata.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+					if (FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 					{
 						PrintError(LOG_ERROR_PARAMETER, L"IPFilter file size is too large", 0, IPFilterFileList[FileIndex].FileName.c_str(), 0);
 						fclose(Input);
@@ -3617,10 +3619,11 @@ size_t __fastcall ReadHosts(void)
 					}
 				}
 			#elif defined(PLATFORM_LINUX)
-				struct stat FileSata = {0};
-				if (stat(HostsFileList[FileIndex].sFileName.c_str(), &FileSata) == 0)
+				std::shared_ptr<struct stat> FileStat(new struct stat());
+				memset(FileStat.get(), 0, sizeof(struct stat));
+				if (stat(HostsFileList[FileIndex].sFileName.c_str(), FileStat.get()) == 0)
 				{
-					if (FileSata.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+					if (FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 					{
 						PrintError(LOG_ERROR_PARAMETER, L"Hosts file size is too large", 0, HostsFileList[FileIndex].FileName.c_str(), 0);
 						fclose(Input);
