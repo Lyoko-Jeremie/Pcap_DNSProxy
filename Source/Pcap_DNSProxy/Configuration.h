@@ -32,7 +32,8 @@
 #define LABEL_HOSTS_LOCAL              6U
 #define LABEL_HOSTS_WHITELIST          7U
 #define LABEL_HOSTS_BANNED             8U
-#define LABEL_HOSTS_ADDRESS            9U
+#define LABEL_HOSTS_BANNED_TYPE        9U
+#define LABEL_HOSTS_ADDRESS            10U
 
 //Length defines
 #define READ_DATA_MINSIZE                     4U
@@ -46,7 +47,9 @@
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
-extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+#if defined(ENABLE_LIBSODIUM)
+	extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+#endif
 extern std::vector<std::wstring> ConfigFileList;
 #if defined(PLATFORM_LINUX)
 	extern std::vector<std::string> sConfigFileList;
@@ -83,7 +86,9 @@ size_t __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, c
 size_t __fastcall ReadSingleAddress(std::string Data, const size_t DataOffset, sockaddr_storage &SockAddr, const uint16_t Protocol, const size_t FileIndex, const size_t Line);
 size_t __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffset, sockaddr_storage &SockAddr, const uint16_t Protocol, const size_t FileIndex, const size_t Line);
 size_t __fastcall ReadHopLimitData(std::string Data, const size_t DataOffset, uint8_t &HopLimit, const uint16_t Protocol, const size_t FileIndex, const size_t Line);
-size_t __fastcall ReadDNSCurveProviderName(std::string Data, const size_t DataOffset, PSTR ProviderNameData, const size_t FileIndex, const size_t Line);
-size_t __fastcall ReadDNSCurveKey(std::string Data, const size_t DataOffset, PUINT8 KeyData, const size_t FileIndex, const size_t Line);
+#if defined(ENABLE_LIBSODIUM)
+	size_t __fastcall ReadDNSCurveProviderName(std::string Data, const size_t DataOffset, PSTR ProviderNameData, const size_t FileIndex, const size_t Line);
+	size_t __fastcall ReadDNSCurveKey(std::string Data, const size_t DataOffset, PUINT8 KeyData, const size_t FileIndex, const size_t Line);
+#endif
 size_t __fastcall ReadMagicNumber(std::string Data, const size_t DataOffset, PSTR MagicNumber, const size_t FileIndex, const size_t Line);
 void __fastcall ClearListData(const size_t ClearType, const size_t FileIndex);

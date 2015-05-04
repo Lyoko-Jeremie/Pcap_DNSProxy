@@ -22,7 +22,9 @@
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
-extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+#if defined(ENABLE_LIBSODIUM)
+	extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+#endif
 extern std::deque<DNSCACHE_DATA> DNSCacheList;
 extern std::mutex RunningLogLock, DNSCacheListLock;
 

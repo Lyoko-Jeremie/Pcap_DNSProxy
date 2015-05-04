@@ -168,13 +168,22 @@
 //////////////////////////////////////////////////
 // Base header
 // 
+#if defined(PLATFORM_WIN)
+	#define ENABLE_LIBSODIUM           //LibSodium is always enable on Windows.
+#endif
+
 //C Standard Library and C++ Standard Template Library/STL Headers
 #include <cstdio>                  //File Input/Output
 #include <cstdlib>                 //Several general purpose functions.
+#if !defined(ENABLE_LIBSODIUM)
+	#if defined(PLATFORM_LINUX)
+		#include <cwchar>                  //Wide-Character Support
+	#endif
+#else
+#include <cstring>                 //String support
 //#include <cstdint>                 //A set of integral type aliases with specific width requirements.
 //#include <exception>               //Exception
 #include <memory>                  //Manage dynamic memory support
-#include <string.h>                //String support
 
 #if defined(PLATFORM_WIN)
 	#include <windows.h>               //Microsoft Windows master include file
@@ -219,3 +228,4 @@
 
 //Functions
 size_t __fastcall BinaryToHex(PSTR Buffer, const size_t MaxLength, const unsigned char *Binary, const size_t Length);
+#endif

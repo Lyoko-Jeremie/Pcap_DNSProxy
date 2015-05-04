@@ -191,8 +191,8 @@ HostsTable::HostsTable(void)
 {
 	FileIndex = 0;
 	Type = 0;
-	Protocol = 0;
 	Length = 0;
+	TypeOperation = false;
 
 	return;
 }
@@ -249,6 +249,7 @@ PortTable::PortTable(void)
 }
 
 //DNSCurveConfiguration class constructor
+#if defined(ENABLE_LIBSODIUM)
 DNSCurveConfigurationTable::DNSCurveConfigurationTable(void)
 {
 	memset(this, 0, sizeof(DNSCURVE_CONFIGURATON_TABLE));
@@ -388,3 +389,4 @@ DNSCurveConfigurationTable::~DNSCurveConfigurationTable(void)
 
 	return;
 }
+#endif

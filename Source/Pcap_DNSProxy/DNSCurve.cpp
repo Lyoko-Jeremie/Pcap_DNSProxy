@@ -19,6 +19,7 @@
 
 #include "DNSCurve.h"
 
+#if defined(ENABLE_LIBSODIUM)
 //DNSCurve verify keypair
 bool __fastcall VerifyKeypair(const unsigned char *PublicKey, const unsigned char *SecretKey)
 {
@@ -472,9 +473,9 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 									JumpFromPDU: 
 
 								//Check Signature.
-									if (PacketTarget == nullptr ||
-										!GetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) ||
-										CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) ||
+									if (PacketTarget == nullptr || 
+										!GetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
+										CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 										CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 									{
 										if (ServerType == DNSCURVE_IPV6_MAIN)
@@ -685,9 +686,9 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const b
 			if (RecvLen >= (SSIZE_T)(DNS_PACKET_MINSIZE + sizeof(dns_record_txt) + DNSCRYPT_TXT_RECORDS_LEN))
 			{
 			//Check Signature.
-				if (PacketTarget == nullptr ||
-					!GetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) ||
-					CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) ||
+				if (PacketTarget == nullptr || 
+					!GetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
+					CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 					CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 				{
 					if (ServerType == DNSCURVE_IPV6_MAIN)
@@ -709,9 +710,9 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const b
 				if (LocalSignatureRequest(SendBuffer.get(), (int)DataLength, RecvBuffer.get(), PACKET_MAXSIZE) >= DNS_PACKET_MINSIZE + sizeof(dns_record_txt) + DNSCRYPT_TXT_RECORDS_LEN)
 				{
 				//Check Signature.
-					if (PacketTarget != nullptr ||
-						!GetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) ||
-						CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) ||
+					if (PacketTarget != nullptr || 
+						!GetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
+						CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 						CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 					{
 						if (ServerType == DNSCURVE_IPV6_MAIN)
@@ -878,7 +879,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 			if (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 				CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 					*IsAlternate = true;
-			if (*IsAlternate && (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) ||
+			if (*IsAlternate && (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 				CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 					*IsAlternate = false;
 		}
@@ -1283,8 +1284,8 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 			PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
 
 	//Encryption mode check
-		if (DNSCurveParameter.IsEncryption &&
-			(CheckEmptyBuffer(PacketTarget->PrecomputationKey, crypto_box_BEFORENMBYTES) ||
+		if (DNSCurveParameter.IsEncryption && 
+			(CheckEmptyBuffer(PacketTarget->PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 			CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 				goto SkipMain;
 
@@ -1834,10 +1835,10 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 	//Encryption mode check
 		if (DNSCurveParameter.IsEncryption)
 		{
-			if (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) ||
+			if (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 				CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 					*IsAlternate = true;
-			if (*IsAlternate && (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) ||
+			if (*IsAlternate && (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 				CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 					*IsAlternate = false;
 		}
@@ -1872,10 +1873,10 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 	//Encryption mode check
 		if (DNSCurveParameter.IsEncryption)
 		{
-			if (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) ||
+			if (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 				CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 				*IsAlternate = true;
-			if (*IsAlternate && (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) ||
+			if (*IsAlternate && (CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 				CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 				*IsAlternate = false;
 		}
@@ -1888,8 +1889,8 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 		}
 		else { //Main
 		//Encryption mode check
-			if (DNSCurveParameter.IsEncryption &&
-				(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) ||
+			if (DNSCurveParameter.IsEncryption && 
+				(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 				CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 					return EXIT_FAILURE;
 
@@ -2634,3 +2635,4 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	memset(OriginalRecv, 0, RecvSize);
 	return EXIT_FAILURE;
 }
+#endif

@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy v0.4 Beta 16(Windows)/v0.4 Beta 2(Linux)/v0.2(Mac) 更新日志(2015-05-02)：
+﻿Pcap_DNSProxy v0.4 Beta 17(Windows)/v0.4 Beta 3(Linux)/v0.2(Mac) 更新日志(2015-05-05)：
 
 * 添加对 Apple IEEE 1394/FireWire 的支持
 * 添加对 Streamlined/精简 格式 DNSCurve/DNSCrypt 协议的支持
@@ -38,6 +38,7 @@
   * 添加新的单行和多行注释格式支持
   * 为 Hosts 文件添加 CSV/逗号分隔值 格式的支持
   * 为 Hosts 文件添加 "BANNED 正则表达式"（不含引号）语法直接返回域名查找失败信息，用于快速屏蔽域名
+  * 为 Hosts 文件添加 "BANNED:xxx 正则表达式"（不含引号）语法屏蔽特定类型记录的域名查询
   * 为 IPFilter 数据库添加 "IP地址 ALL"（不含引号）语法直接屏蔽所有含此IP地址/地址范围的解析结果
   * URI 标准化 IPv6 地址格式，IPv4/IPv6 地址格式更改为带端口格式
   * 支持部分非标准的缩略 IPv4/IPv6 地址格式
@@ -51,7 +52,8 @@
   * 重写文本文件编码读取模块，支持混合换行格式编码（但不建议使用）
   * 可兼容 v0.3 以前的文件版本，但强烈建议升级为当前版本 v0.4
 * 添加窗口模式以支持在安全模式下的运行(Windows)
-* 错误报告在窗口模式下现在会实时显示
+* 错误报告在窗口模式下现在会实时显示(Windows)
+* 添加剥离 Libsodium 库的选项(Linux)
 * 请求本地服务器的完整网域名称现在会返回本地服务器的所有 IPv4/IPv6 地址
 * 调整请求本地 DNS 服务器由抓包模式到直连模式，加快响应速度降低资源占用
 * 调整 IPv4 Data Filter/IPv4数据包过滤器，默认为关闭

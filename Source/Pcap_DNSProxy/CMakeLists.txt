@@ -51,6 +51,10 @@ set(MAIN_SRC_FILES
 
 add_definitions(-std=c++11 -fpic)
 
+IF(ENABLE_LIBSODIUM)
+	add_definitions(-DENABLE_LIBSODIUM)
+ENDIF(ENABLE_LIBSODIUM)
+
 add_executable(Pcap_DNSProxy ${MAIN_SRC_FILES})
 
 target_link_libraries(Pcap_DNSProxy Keccak sodium pcap pthread)

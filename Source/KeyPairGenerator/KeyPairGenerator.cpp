@@ -27,6 +27,8 @@
 	int main(int argc, char *argv[])
 	{
 #endif
+
+#if defined(ENABLE_LIBSODIUM)
 //Libsodium initialization
 	if (sodium_init() != EXIT_SUCCESS)
 	{
@@ -86,11 +88,20 @@
 #if defined(PLATFORM_WIN)
 	system("Pause");
 #endif
+#else
+	#if defined(PLATFORM_WIN)
+		wprintf_s(L"LibSodium is disable.\n\n");
+		system("Pause");
+	#elif defined(PLATFORM_LINUX)
+		wprintf(L"LibSodium is disable.\n\n");
+	#endif
+#endif
 
 	return EXIT_SUCCESS;
 }
 
 //Convert binary to hex characters
+#if defined(ENABLE_LIBSODIUM)
 size_t __fastcall BinaryToHex(PSTR Buffer, const size_t MaxLength, const unsigned char *Binary, const size_t Length)
 {
 	size_t BufferLength = 0, Colon = 0;
@@ -131,3 +142,4 @@ size_t __fastcall BinaryToHex(PSTR Buffer, const size_t MaxLength, const unsigne
 
 	return BufferLength;
 }
+#endif

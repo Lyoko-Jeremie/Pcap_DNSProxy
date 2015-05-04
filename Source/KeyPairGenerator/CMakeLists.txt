@@ -29,6 +29,10 @@ set(GENERATOR_SRC_DIR
 
 add_definitions(-std=c++11 -fpic)
 
+IF(ENABLE_LIBSODIUM)
+	add_definitions(-DENABLE_LIBSODIUM)
+ENDIF(ENABLE_LIBSODIUM)
+
 add_executable(KeyPairGenerator ${GENERATOR_SRC_DIR})
 
-target_link_libraries(KeyPairGenerator -static sodium)
+target_link_libraries(KeyPairGenerator sodium)

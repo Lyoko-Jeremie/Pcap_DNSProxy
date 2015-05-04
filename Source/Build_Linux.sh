@@ -1,3 +1,5 @@
+#!/bin/sh
+# 
 # This code is part of Pcap_DNSProxy
 # A local DNS server base on WinPcap and LibPcap.
 # Copyright (C) 2012-2015 Chengr28
@@ -20,7 +22,11 @@
 # Build KeyPairGenerator
 mkdir Object
 cd Object
-cmake ../KeyPairGenerator
+if echo "$*" | grep -iq -e "--disable-libsodium"; then
+	cmake ../KeyPairGenerator
+else 
+	cmake -DENABLE_LIBSODIUM=ON ../KeyPairGenerator
+fi
 make
 cd ..
 mkdir Release
@@ -30,7 +36,11 @@ rm -Rrf Object
 # Build Pcap_DNSProxy
 mkdir Object
 cd Object
-cmake ../Pcap_DNSProxy
+if echo "$*" | grep -iq -e "--disable-libsodium"; then
+	cmake ../Pcap_DNSProxy
+else 
+	cmake -DENABLE_LIBSODIUM=ON ../Pcap_DNSProxy
+fi
 make
 cd ..
 mv -f Object/Pcap_DNSProxy Release
@@ -39,7 +49,7 @@ rm -Rrf Object
 # Set program
 chmod 777 Release/KeyPairGenerator
 chmod 777 Release/Pcap_DNSProxy
-chmod 777 Build_Linux.Debian.sh
+chmod 777 Build_Linux.SysV.sh
 cp -f ExampleConfig/PcapDNSProxyService Release/PcapDNSProxyService
 chmod 777 Release/PcapDNSProxyService
 cp -f ExampleConfig/Config.ini Release/Config.conf

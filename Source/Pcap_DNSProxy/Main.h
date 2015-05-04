@@ -22,7 +22,9 @@
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
 extern time_t StartTime, RunningLogStartTime;
-extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+#if defined(ENABLE_LIBSODIUM)
+	extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+#endif
 
 //Functions
 #if defined(PLATFORM_WIN)

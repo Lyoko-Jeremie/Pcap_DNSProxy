@@ -108,7 +108,11 @@ size_t __fastcall RunningLogWriteMonitor(void)
 size_t __fastcall MonitorInit(void)
 {
 //Capture initialization
+#if defined(ENABLE_LIBSODIUM)
 	if (Parameter.PcapCapture && !Parameter.HostsOnly && !(Parameter.DNSCurve && DNSCurveParameter.IsEncryption && DNSCurveParameter.IsEncryptionOnly))
+#else
+	if (Parameter.PcapCapture && !Parameter.HostsOnly)
+#endif
 	{
 		std::thread CaptureInitializationThread(CaptureInit);
 		CaptureInitializationThread.detach();
@@ -148,8 +152,11 @@ size_t __fastcall MonitorInit(void)
 //Set Preferred DNS servers switcher.
 	if (!Parameter.AlternateMultiRequest && 
 		Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 || 
-		Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0 || 
-		DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 || DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
+		Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0
+	#if defined(ENABLE_LIBSODIUM)
+		|| DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 || DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0
+	#endif
+		)
 	{
 		std::thread AlternateServerMonitorThread(AlternateServerMonitor);
 		AlternateServerMonitorThread.detach();
@@ -611,7 +618,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 			Addr = &((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr;
 			if ((*(in_addr *)Addr).s_addr == 0 || //Empty address
 			//Check Private Mode(IPv4).
-				(Parameter.OperationMode == LISTEN_PRIVATEMODE &&
+				(Parameter.OperationMode == LISTEN_PRIVATEMODE && 
 				!(((in_addr *)Addr)->s_net == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
 				((in_addr *)Addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
 				((in_addr *)Addr)->s_net == 0xAC && ((in_addr *)Addr)->s_host >= 0x10 && ((in_addr *)Addr)->s_host <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
@@ -628,7 +635,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 				RecvLen > (SSIZE_T)Parameter.EDNS0PayloadSize)
 			{
 			//Make packets with EDNS0 Lebal.
-				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | 0x8200); //Set 1000001000000000, DNS_SQR_NETC
+				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_RTC);
 				pdns_record_opt DNS_Record_OPT = nullptr;
 				if (DNS_Header->Additional == 0)
 				{
@@ -668,7 +675,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 			}
 			if (Index[1U] != DNS_PACKET_QUERY_LOCATE(Buffer.get() + PACKET_MAXSIZE * Index[0]))
 			{
-				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | 0x8001); //Set 10000000000000001, DNS_SQR_FE
+				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_FE);
 				sendto(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], (int)RecvLen, 0, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen);
 				continue;
 			}
@@ -900,7 +907,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 			}
 			if (InnerIndex != DNS_PACKET_QUERY_LOCATE(Buffer.get()))
 			{
-				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | 0x8001); //Set 10000000000000001, DNS_SQR_FE
+				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_FE);
 				send(LocalSocketData.Socket, Buffer.get(), (int)RecvLen, 0);
 
 				shutdown(LocalSocketData.Socket, SD_BOTH);
@@ -969,7 +976,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 		}
 		if (InnerIndex != DNS_TCP_PACKET_QUERY_LOCATE(Buffer.get()))
 		{
-			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | 0x8001); //Set 10000000000000001, DNS_SQR_FE
+			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_FE);
 			send(LocalSocketData.Socket, Buffer.get(), (int)RecvLen + sizeof(uint16_t), 0);
 
 			shutdown(LocalSocketData.Socket, SD_BOTH);

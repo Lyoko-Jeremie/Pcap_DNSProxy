@@ -160,10 +160,12 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 				wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Pcap Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 			}break;
 		//DNSCurve Error
+		#if defined(ENABLE_LIBSODIUM)
 			case LOG_ERROR_DNSCURVE:
 			{
 				wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> DNSCurve Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 			}break;
+		#endif
 			default:
 			{
 				return EXIT_FAILURE;
@@ -325,6 +327,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 				fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> WinPcap Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 			}break;
 		//DNSCurve Error
+		#if defined(ENABLE_LIBSODIUM)
 			case LOG_ERROR_DNSCURVE:
 			{
 				fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> DNSCurve Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
@@ -334,6 +337,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 				fclose(Output);
 				return EXIT_FAILURE;
 			}
+		#endif
 		}
 
 	//Close file.

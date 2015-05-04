@@ -388,9 +388,12 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 //IPv6
 	if (Protocol == AF_INET6)
 	{
-		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0 &&
-			Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family == 0 &&
-			DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0)
+		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0 && 
+			Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family == 0
+		#if defined(ENABLE_LIBSODIUM)
+			&& DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0
+		#endif
+			)
 		{
 			Parameter.GatewayAvailable_IPv6 = false;
 			Parameter.TunnelAvailable_IPv6 = false;
@@ -401,9 +404,12 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
 			Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
 			Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Local_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
-			Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
-			DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
-			DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR)
+			Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR
+		#if defined(ENABLE_LIBSODIUM)
+			|| DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
+			DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR
+		#endif
+			)
 		{
 			Parameter.GatewayAvailable_IPv6 = false;
 			Parameter.TunnelAvailable_IPv6 = false;
@@ -425,11 +431,14 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 		}
 	#elif defined(PLATFORM_LINUX)
 		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.IPv6.AddressData.Storage) == EXIT_FAILURE || 
-			Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage) == EXIT_FAILURE ||
-			Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Local_IPv6.AddressData.Storage) == EXIT_FAILURE ||
-			Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage) == EXIT_FAILURE ||
-			DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage) == EXIT_FAILURE ||
-			DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage) == EXIT_FAILURE)
+			Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage) == EXIT_FAILURE || 
+			Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Local_IPv6.AddressData.Storage) == EXIT_FAILURE || 
+			Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage) == EXIT_FAILURE
+		#if defined(ENABLE_LIBSODIUM)
+			|| DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage) == EXIT_FAILURE || 
+			DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage) == EXIT_FAILURE
+		#endif
+			)
 		{
 			Parameter.GatewayAvailable_IPv6 = false;
 			Parameter.TunnelAvailable_IPv6 = false;
@@ -456,9 +465,12 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 	}
 //IPv4
 	else {
-		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0 &&
-			Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family == 0 &&
-			DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0)
+		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0 && 
+			Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family == 0
+		#if defined(ENABLE_LIBSODIUM)
+			&& DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0
+		#endif
+			)
 		{
 			Parameter.GatewayAvailable_IPv4 = false;
 			Parameter.TunnelAvailable_IPv6 = false;
@@ -469,9 +481,12 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
 			Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
 			Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Local_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
-			Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
-			DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
-			DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR)
+			Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR
+		#if defined(ENABLE_LIBSODIUM)
+			|| DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
+			DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR
+		#endif
+			)
 		{
 			Parameter.GatewayAvailable_IPv4 = false;
 			Parameter.TunnelAvailable_IPv6 = false;
@@ -495,9 +510,12 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.IPv4.AddressData.Storage) == EXIT_FAILURE || 
 			Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage) == EXIT_FAILURE || 
 			Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Local_IPv4.AddressData.Storage) == EXIT_FAILURE || 
-			Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage) == EXIT_FAILURE || 
-			DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage) == EXIT_FAILURE || 
-			DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage) == EXIT_FAILURE)
+			Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage) == EXIT_FAILURE
+		#if defined(ENABLE_LIBSODIUM)
+			|| DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage) == EXIT_FAILURE || 
+			DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage) == EXIT_FAILURE
+		#endif
+			)
 		{
 			Parameter.GatewayAvailable_IPv4 = false;
 			Parameter.TunnelAvailable_IPv6 = false;
@@ -931,361 +949,367 @@ size_t __fastcall GetNetworkingInformation(void)
 }
 
 //Convert service name to port
-uint16_t __fastcall ServiceNameToHex(const char *Buffer)
+uint16_t __fastcall ServiceNameToHex(const char *OriginalBuffer)
 {
+	std::string Buffer(OriginalBuffer);
+
 //Server name
-	if (strstr(Buffer, ("TCPMUX")) != nullptr || strstr(Buffer, ("tcpmux")) != nullptr)
+	if (Buffer == "TCPMUX" || Buffer == "tcpmux")
 		return htons(IPPORT_TCPMUX);
-	else if (strstr(Buffer, ("ECHO")) != nullptr || strstr(Buffer, ("echo")) != nullptr)
+	else if (Buffer == "ECHO" || Buffer == "echo")
 		return htons(IPPORT_ECHO);
-	else if (strstr(Buffer, ("DISCARD")) != nullptr || strstr(Buffer, ("discard")) != nullptr)
+	else if (Buffer == "DISCARD" || Buffer == "discard")
 		return htons(IPPORT_DISCARD);
-	else if (strstr(Buffer, ("SYSTAT")) != nullptr || strstr(Buffer, ("systat")) != nullptr)
+	else if (Buffer == "SYSTAT" || Buffer == "systat")
 		return htons(IPPORT_SYSTAT);
-	else if (strstr(Buffer, ("DAYTIME")) != nullptr || strstr(Buffer, ("daytime")) != nullptr)
+	else if (Buffer == "DAYTIME" || Buffer == "daytime")
 		return htons(IPPORT_DAYTIME);
-	else if (strstr(Buffer, ("NETSTAT")) != nullptr || strstr(Buffer, ("netstat")) != nullptr)
+	else if (Buffer == "NETSTAT" || Buffer == "netstat")
 		return htons(IPPORT_NETSTAT);
-	else if (strstr(Buffer, ("QOTD")) != nullptr || strstr(Buffer, ("qotd")) != nullptr)
+	else if (Buffer == "QOTD" || Buffer == "qotd")
 		return htons(IPPORT_QOTD);
-	else if (strstr(Buffer, ("MSP")) != nullptr || strstr(Buffer, ("msp")) != nullptr)
+	else if (Buffer == "MSP" || Buffer == "msp")
 		return htons(IPPORT_MSP);
-	else if (strstr(Buffer, ("CHARGEN")) != nullptr || strstr(Buffer, ("chargen")) != nullptr)
+	else if (Buffer == "CHARGEN" || Buffer == "chargen")
 		return htons(IPPORT_CHARGEN);
-	else if (strstr(Buffer, ("FTPDATA")) != nullptr || strstr(Buffer, ("ftpdata")) != nullptr)
+	else if (Buffer == "FTPDATA" || Buffer == "ftpdata")
 		return htons(IPPORT_FTP_DATA);
-	else if (strstr(Buffer, ("FTP")) != nullptr || strstr(Buffer, ("ftp")) != nullptr)
+	else if (Buffer == "FTP" || Buffer == "ftp")
 		return htons(IPPORT_FTP);
-	else if (strstr(Buffer, ("SSH")) != nullptr || strstr(Buffer, ("ssh")) != nullptr)
+	else if (Buffer == "SSH" || Buffer == "ssh")
 		return htons(IPPORT_SSH);
-	else if (strstr(Buffer, ("TELNET")) != nullptr || strstr(Buffer, ("telnet")) != nullptr)
+	else if (Buffer == "TELNET" || Buffer == "telnet")
 		return htons(IPPORT_TELNET);
-	else if (strstr(Buffer, ("SMTP")) != nullptr || strstr(Buffer, ("smtp")) != nullptr)
+	else if (Buffer == "SMTP" || Buffer == "smtp")
 		return htons(IPPORT_SMTP);
-	else if (strstr(Buffer, ("TIME")) != nullptr || strstr(Buffer, ("time")) != nullptr)
+	else if (Buffer == "TIME" || Buffer == "time")
 		return htons(IPPORT_TIMESERVER);
-	else if (strstr(Buffer, ("RAP")) != nullptr || strstr(Buffer, ("rap")) != nullptr)
+	else if (Buffer == "RAP" || Buffer == "rap")
 		return htons(IPPORT_RAP);
-	else if (strstr(Buffer, ("RLP")) != nullptr || strstr(Buffer, ("rlp")) != nullptr)
+	else if (Buffer == "RLP" || Buffer == "rlp")
 		return htons(IPPORT_RLP);
-	else if (strstr(Buffer, ("NAME")) != nullptr || strstr(Buffer, ("name")) != nullptr)
+	else if (Buffer == "NAME" || Buffer == "name")
 		return htons(IPPORT_NAMESERVER);
-	else if (strstr(Buffer, ("WHOIS")) != nullptr || strstr(Buffer, ("whois")) != nullptr)
+	else if (Buffer == "WHOIS" || Buffer == "whois")
 		return htons(IPPORT_WHOIS);
-	else if (strstr(Buffer, ("TACACS")) != nullptr || strstr(Buffer, ("tacacs")) != nullptr)
+	else if (Buffer == "TACACS" || Buffer == "tacacs")
 		return htons(IPPORT_TACACS);
-	else if (strstr(Buffer, ("DNS")) != nullptr || strstr(Buffer, ("dns")) != nullptr)
+	else if (Buffer == "DNS" || Buffer == "dns")
 		return htons(IPPORT_DNS);
-	else if (strstr(Buffer, ("XNSAUTH")) != nullptr || strstr(Buffer, ("xnsauth")) != nullptr)
+	else if (Buffer == "XNSAUTH" || Buffer == "xnsauth")
 		return htons(IPPORT_XNSAUTH);
-	else if (strstr(Buffer, ("MTP")) != nullptr || strstr(Buffer, ("mtp")) != nullptr)
+	else if (Buffer == "MTP" || Buffer == "mtp")
 		return htons(IPPORT_MTP);
-	else if (strstr(Buffer, ("BOOTPS")) != nullptr || strstr(Buffer, ("bootps")) != nullptr)
+	else if (Buffer == "BOOTPS" || Buffer == "bootps")
 		return htons(IPPORT_BOOTPS);
-	else if (strstr(Buffer, ("BOOTPC")) != nullptr || strstr(Buffer, ("bootpc")) != nullptr)
+	else if (Buffer == "BOOTPC" || Buffer == "bootpc")
 		return htons(IPPORT_BOOTPC);
-	else if (strstr(Buffer, ("TFTP")) != nullptr || strstr(Buffer, ("tftp")) != nullptr)
+	else if (Buffer == "TFTP" || Buffer == "tftp")
 		return htons(IPPORT_TFTP);
-	else if (strstr(Buffer, ("RJE")) != nullptr || strstr(Buffer, ("rje")) != nullptr)
+	else if (Buffer == "RJE" || Buffer == "rje")
 		return htons(IPPORT_RJE);
-	else if (strstr(Buffer, ("FINGER")) != nullptr || strstr(Buffer, ("finger")) != nullptr)
+	else if (Buffer == "FINGER" || Buffer == "finger")
 		return htons(IPPORT_FINGER);
-	else if (strstr(Buffer, ("HTTP")) != nullptr || strstr(Buffer, ("http")) != nullptr)
+	else if (Buffer == "HTTP" || Buffer == "http")
 		return htons(IPPORT_HTTP);
-	else if (strstr(Buffer, ("HTTPBACKUP")) != nullptr || strstr(Buffer, ("httpbackup")) != nullptr)
+	else if (Buffer == "HTTPBACKUP" || Buffer == "httpbackup")
 		return htons(IPPORT_HTTPBACKUP);
-	else if (strstr(Buffer, ("TTYLINK")) != nullptr || strstr(Buffer, ("ttylink")) != nullptr)
+	else if (Buffer == "TTYLINK" || Buffer == "ttylink")
 		return htons(IPPORT_TTYLINK);
-	else if (strstr(Buffer, ("SUPDUP")) != nullptr || strstr(Buffer, ("supdup")) != nullptr)
+	else if (Buffer == "SUPDUP" || Buffer == "supdup")
 		return htons(IPPORT_SUPDUP);
-	else if (strstr(Buffer, ("POP3")) != nullptr || strstr(Buffer, ("pop3")) != nullptr)
+	else if (Buffer == "POP3" || Buffer == "pop3")
 		return htons(IPPORT_POP3);
-	else if (strstr(Buffer, ("SUNRPC")) != nullptr || strstr(Buffer, ("sunrpc")) != nullptr)
+	else if (Buffer == "SUNRPC" || Buffer == "sunrpc")
 		return htons(IPPORT_SUNRPC);
-	else if (strstr(Buffer, ("SQL")) != nullptr || strstr(Buffer, ("sql")) != nullptr)
+	else if (Buffer == "SQL" || Buffer == "sql")
 		return htons(IPPORT_SQL);
-	else if (strstr(Buffer, ("NTP")) != nullptr || strstr(Buffer, ("ntp")) != nullptr)
+	else if (Buffer == "NTP" || Buffer == "ntp")
 		return htons(IPPORT_NTP);
-	else if (strstr(Buffer, ("EPMAP")) != nullptr || strstr(Buffer, ("epmap")) != nullptr)
+	else if (Buffer == "EPMAP" || Buffer == "epmap")
 		return htons(IPPORT_EPMAP);
-	else if (strstr(Buffer, ("NETBIOSNS")) != nullptr || strstr(Buffer, ("netbiosns")) != nullptr)
+	else if (Buffer == "NETBIOSNS" || Buffer == "netbiosns")
 		return htons(IPPORT_NETBIOS_NS);
-	else if (strstr(Buffer, ("NETBIOSDGM")) != nullptr || strstr(Buffer, ("netbiosdgm")) != nullptr)
+	else if (Buffer == "NETBIOSDGM" || Buffer == "netbiosdgm")
 		return htons(IPPORT_NETBIOS_DGM);
-	else if (strstr(Buffer, ("NETBIOSSSN")) != nullptr || strstr(Buffer, ("netbiosssn")) != nullptr)
+	else if (Buffer == "NETBIOSSSN" || Buffer == "netbiosssn")
 		return htons(IPPORT_NETBIOS_SSN);
-	else if (strstr(Buffer, ("IMAP")) != nullptr || strstr(Buffer, ("imap")) != nullptr)
+	else if (Buffer == "IMAP" || Buffer == "imap")
 		return htons(IPPORT_IMAP);
-	else if (strstr(Buffer, ("BFTP")) != nullptr || strstr(Buffer, ("bftp")) != nullptr)
+	else if (Buffer == "BFTP" || Buffer == "bftp")
 		return htons(IPPORT_BFTP);
-	else if (strstr(Buffer, ("SGMP")) != nullptr || strstr(Buffer, ("sgmp")) != nullptr)
+	else if (Buffer == "SGMP" || Buffer == "sgmp")
 		return htons(IPPORT_SGMP);
-	else if (strstr(Buffer, ("SQLSRV")) != nullptr || strstr(Buffer, ("sqlsrv")) != nullptr)
+	else if (Buffer == "SQLSRV" || Buffer == "sqlsrv")
 		return htons(IPPORT_SQLSRV);
-	else if (strstr(Buffer, ("DMSP")) != nullptr || strstr(Buffer, ("dmsp")) != nullptr)
+	else if (Buffer == "DMSP" || Buffer == "dmsp")
 		return htons(IPPORT_DMSP);
-	else if (strstr(Buffer, ("SNMP")) != nullptr || strstr(Buffer, ("snmp")) != nullptr)
+	else if (Buffer == "SNMP" || Buffer == "snmp")
 		return htons(IPPORT_SNMP);
-	else if (strstr(Buffer, ("SNMPTRAP")) != nullptr || strstr(Buffer, ("snmptrap")) != nullptr)
+	else if (Buffer == "SNMPTRAP" || Buffer == "snmptrap")
 		return htons(IPPORT_SNMP_TRAP);
-	else if (strstr(Buffer, ("ATRTMP")) != nullptr || strstr(Buffer, ("atrtmp")) != nullptr)
+	else if (Buffer == "ATRTMP" || Buffer == "atrtmp")
 		return htons(IPPORT_ATRTMP);
-	else if (strstr(Buffer, ("ATHBP")) != nullptr || strstr(Buffer, ("athbp")) != nullptr)
+	else if (Buffer == "ATHBP" || Buffer == "athbp")
 		return htons(IPPORT_ATHBP);
-	else if (strstr(Buffer, ("QMTP")) != nullptr || strstr(Buffer, ("qmtp")) != nullptr)
+	else if (Buffer == "QMTP" || Buffer == "qmtp")
 		return htons(IPPORT_QMTP);
-	else if (strstr(Buffer, ("IPX")) != nullptr || strstr(Buffer, ("ipx")) != nullptr)
+	else if (Buffer == "IPX" || Buffer == "ipx")
 		return htons(IPPORT_IPX);
-	else if (strstr(Buffer, ("IMAP3")) != nullptr || strstr(Buffer, ("imap3")) != nullptr)
+	else if (Buffer == "IMAP3" || Buffer == "imap3")
 		return htons(IPPORT_IMAP3);
-	else if (strstr(Buffer, ("BGMP")) != nullptr || strstr(Buffer, ("bgmp")) != nullptr)
+	else if (Buffer == "BGMP" || Buffer == "bgmp")
 		return htons(IPPORT_BGMP);
-	else if (strstr(Buffer, ("TSP")) != nullptr || strstr(Buffer, ("tsp")) != nullptr)
+	else if (Buffer == "TSP" || Buffer == "tsp")
 		return htons(IPPORT_TSP);
-	else if (strstr(Buffer, ("IMMP")) != nullptr || strstr(Buffer, ("immp")) != nullptr)
+	else if (Buffer == "IMMP" || Buffer == "immp")
 		return htons(IPPORT_IMMP);
-	else if (strstr(Buffer, ("ODMR")) != nullptr || strstr(Buffer, ("odmr")) != nullptr)
+	else if (Buffer == "ODMR" || Buffer == "odmr")
 		return htons(IPPORT_ODMR);
-	else if (strstr(Buffer, ("RPC2PORTMAP")) != nullptr || strstr(Buffer, ("rpc2portmap")) != nullptr)
+	else if (Buffer == "RPC2PORTMAP" || Buffer == "rpc2portmap")
 		return htons(IPPORT_RPC2PORTMAP);
-	else if (strstr(Buffer, ("CLEARCASE")) != nullptr || strstr(Buffer, ("clearcase")) != nullptr)
+	else if (Buffer == "CLEARCASE" || Buffer == "clearcase")
 		return htons(IPPORT_CLEARCASE);
-	else if (strstr(Buffer, ("HPALARMMGR")) != nullptr || strstr(Buffer, ("hpalarmmgr")) != nullptr)
+	else if (Buffer == "HPALARMMGR" || Buffer == "hpalarmmgr")
 		return htons(IPPORT_HPALARMMGR);
-	else if (strstr(Buffer, ("ARNS")) != nullptr || strstr(Buffer, ("arns")) != nullptr)
+	else if (Buffer == "ARNS" || Buffer == "arns")
 		return htons(IPPORT_ARNS);
-	else if (strstr(Buffer, ("AURP")) != nullptr || strstr(Buffer, ("aurp")) != nullptr)
+	else if (Buffer == "AURP" || Buffer == "aurp")
 		return htons(IPPORT_AURP);
-	else if (strstr(Buffer, ("LDAP")) != nullptr || strstr(Buffer, ("ldap")) != nullptr)
+	else if (Buffer == "LDAP" || Buffer == "ldap")
 		return htons(IPPORT_LDAP);
-	else if (strstr(Buffer, ("UPS")) != nullptr || strstr(Buffer, ("ups")) != nullptr)
+	else if (Buffer == "UPS" || Buffer == "ups")
 		return htons(IPPORT_UPS);
-	else if (strstr(Buffer, ("SLP")) != nullptr || strstr(Buffer, ("slp")) != nullptr)
+	else if (Buffer == "SLP" || Buffer == "slp")
 		return htons(IPPORT_SLP);
-	else if (strstr(Buffer, ("HTTPS")) != nullptr || strstr(Buffer, ("https")) != nullptr)
+	else if (Buffer == "HTTPS" || Buffer == "https")
 		return htons(IPPORT_HTTPS);
-	else if (strstr(Buffer, ("SNPP")) != nullptr || strstr(Buffer, ("snpp")) != nullptr)
+	else if (Buffer == "SNPP" || Buffer == "snpp")
 		return htons(IPPORT_SNPP);
-	else if (strstr(Buffer, ("MICROSOFTDS")) != nullptr || strstr(Buffer, ("microsoftds")) != nullptr)
+	else if (Buffer == "MICROSOFTDS" || Buffer == "microsoftds")
 		return htons(IPPORT_MICROSOFT_DS);
-	else if (strstr(Buffer, ("KPASSWD")) != nullptr || strstr(Buffer, ("kpasswd")) != nullptr)
+	else if (Buffer == "KPASSWD" || Buffer == "kpasswd")
 		return htons(IPPORT_KPASSWD);
-	else if (strstr(Buffer, ("TCPNETHASPSRV")) != nullptr || strstr(Buffer, ("tcpnethaspsrv")) != nullptr)
+	else if (Buffer == "TCPNETHASPSRV" || Buffer == "tcpnethaspsrv")
 		return htons(IPPORT_TCPNETHASPSRV);
-	else if (strstr(Buffer, ("RETROSPECT")) != nullptr || strstr(Buffer, ("retrospect")) != nullptr)
+	else if (Buffer == "RETROSPECT" || Buffer == "retrospect")
 		return htons(IPPORT_RETROSPECT);
-	else if (strstr(Buffer, ("ISAKMP")) != nullptr || strstr(Buffer, ("isakmp")) != nullptr)
+	else if (Buffer == "ISAKMP" || Buffer == "isakmp")
 		return htons(IPPORT_ISAKMP);
-	else if (strstr(Buffer, ("BIFFUDP")) != nullptr || strstr(Buffer, ("biffudp")) != nullptr)
+	else if (Buffer == "BIFFUDP" || Buffer == "biffudp")
 		return htons(IPPORT_BIFFUDP);
-	else if (strstr(Buffer, ("WHOSERVER")) != nullptr || strstr(Buffer, ("whoserver")) != nullptr)
+	else if (Buffer == "WHOSERVER" || Buffer == "whoserver")
 		return htons(IPPORT_WHOSERVER);
-	else if (strstr(Buffer, ("SYSLOG")) != nullptr || strstr(Buffer, ("syslog")) != nullptr)
+	else if (Buffer == "SYSLOG" || Buffer == "syslog")
 		return htons(IPPORT_SYSLOG);
-	else if (strstr(Buffer, ("ROUTERSERVER")) != nullptr || strstr(Buffer, ("routerserver")) != nullptr)
+	else if (Buffer == "ROUTERSERVER" || Buffer == "routerserver")
 		return htons(IPPORT_ROUTESERVER);
-	else if (strstr(Buffer, ("NCP")) != nullptr || strstr(Buffer, ("ncp")) != nullptr)
+	else if (Buffer == "NCP" || Buffer == "ncp")
 		return htons(IPPORT_NCP);
-	else if (strstr(Buffer, ("COURIER")) != nullptr || strstr(Buffer, ("courier")) != nullptr)
+	else if (Buffer == "COURIER" || Buffer == "courier")
 		return htons(IPPORT_COURIER);
-	else if (strstr(Buffer, ("COMMERCE")) != nullptr || strstr(Buffer, ("commerce")) != nullptr)
+	else if (Buffer == "COMMERCE" || Buffer == "commerce")
 		return htons(IPPORT_COMMERCE);
-	else if (strstr(Buffer, ("RTSP")) != nullptr || strstr(Buffer, ("rtsp")) != nullptr)
+	else if (Buffer == "RTSP" || Buffer == "rtsp")
 		return htons(IPPORT_RTSP);
-	else if (strstr(Buffer, ("NNTP")) != nullptr || strstr(Buffer, ("nntp")) != nullptr)
+	else if (Buffer == "NNTP" || Buffer == "nntp")
 		return htons(IPPORT_NNTP);
-	else if (strstr(Buffer, ("HTTPRPCEPMAP")) != nullptr || strstr(Buffer, ("httprpcepmap")) != nullptr)
+	else if (Buffer == "HTTPRPCEPMAP" || Buffer == "httprpcepmap")
 		return htons(IPPORT_HTTPRPCEPMAP);
-	else if (strstr(Buffer, ("IPP")) != nullptr || strstr(Buffer, ("ipp")) != nullptr)
+	else if (Buffer == "IPP" || Buffer == "ipp")
 		return htons(IPPORT_IPP);
-	else if (strstr(Buffer, ("LDAPS")) != nullptr || strstr(Buffer, ("ldaps")) != nullptr)
+	else if (Buffer == "LDAPS" || Buffer == "ldaps")
 		return htons(IPPORT_LDAPS);
-	else if (strstr(Buffer, ("MSDP")) != nullptr || strstr(Buffer, ("msdp")) != nullptr)
+	else if (Buffer == "MSDP" || Buffer == "msdp")
 		return htons(IPPORT_MSDP);
-	else if (strstr(Buffer, ("AODV")) != nullptr || strstr(Buffer, ("aodv")) != nullptr)
+	else if (Buffer == "AODV" || Buffer == "aodv")
 		return htons(IPPORT_AODV);
-	else if (strstr(Buffer, ("FTPSDATA")) != nullptr || strstr(Buffer, ("ftpsdata")) != nullptr)
+	else if (Buffer == "FTPSDATA" || Buffer == "ftpsdata")
 		return htons(IPPORT_FTPSDATA);
-	else if (strstr(Buffer, ("FTPS")) != nullptr || strstr(Buffer, ("ftps")) != nullptr)
+	else if (Buffer == "FTPS" || Buffer == "ftps")
 		return htons(IPPORT_FTPS);
-	else if (strstr(Buffer, ("NAS")) != nullptr || strstr(Buffer, ("nas")) != nullptr)
+	else if (Buffer == "NAS" || Buffer == "nas")
 		return htons(IPPORT_NAS);
-	else if (strstr(Buffer, ("TELNETS")) != nullptr || strstr(Buffer, ("telnets")) != nullptr)
+	else if (Buffer == "TELNETS" || Buffer == "telnets")
 		return htons(IPPORT_TELNETS);
+
 //No match.
 	return FALSE;
 }
 
 //Convert DNS type name to hex
-uint16_t __fastcall DNSTypeNameToHex(const char *Buffer)
+uint16_t __fastcall DNSTypeNameToHex(const char *OriginalBuffer)
 {
+	std::string Buffer(OriginalBuffer);
+
 //DNS type name
-	if (strstr(Buffer, ("A")) != nullptr || strstr(Buffer, ("a")) != nullptr)
+	if (Buffer == "A" || Buffer == "a")
 		return htons(DNS_RECORD_A);
-	else if (strstr(Buffer, ("NS")) != nullptr || strstr(Buffer, ("ns")) != nullptr)
+	else if (Buffer == "NS" || Buffer == "ns")
 		return htons(DNS_RECORD_NS);
-	else if (strstr(Buffer, ("MD")) != nullptr || strstr(Buffer, ("md")) != nullptr)
+	else if (Buffer == "MD" || Buffer == "md")
 		return htons(DNS_RECORD_MD);
-	else if (strstr(Buffer, ("MF")) != nullptr || strstr(Buffer, ("mf")) != nullptr)
+	else if (Buffer == "MF" || Buffer == "mf")
 		return htons(DNS_RECORD_MF);
-	else if (strstr(Buffer, ("CNAME")) != nullptr || strstr(Buffer, ("cname")) != nullptr)
+	else if (Buffer == "CNAME" || Buffer == "cname")
 		return htons(DNS_RECORD_CNAME);
-	else if (strstr(Buffer, ("SOA")) != nullptr || strstr(Buffer, ("soa")) != nullptr)
+	else if (Buffer == "SOA" || Buffer == "soa")
 		return htons(DNS_RECORD_SOA);
-	else if (strstr(Buffer, ("MB")) != nullptr || strstr(Buffer, ("mb")) != nullptr)
+	else if (Buffer == "MB" || Buffer == "mb")
 		return htons(DNS_RECORD_MB);
-	else if (strstr(Buffer, ("MG")) != nullptr || strstr(Buffer, ("mg")) != nullptr)
+	else if (Buffer == "MG" || Buffer == "mg")
 		return htons(DNS_RECORD_MG);
-	else if (strstr(Buffer, ("MR")) != nullptr || strstr(Buffer, ("mr")) != nullptr)
+	else if (Buffer == "MR" || Buffer == "mr")
 		return htons(DNS_RECORD_MR);
-	else if (strstr(Buffer, ("PTR")) != nullptr || strstr(Buffer, ("ptr")) != nullptr)
+	else if (Buffer == "PTR" || Buffer == "ptr")
 		return htons(DNS_RECORD_PTR);
-	else if (strstr(Buffer, ("NULL")) != nullptr || strstr(Buffer, ("null")) != nullptr)
+	else if (Buffer == "NULL" || Buffer == "null")
 		return htons(DNS_RECORD_NULL);
-	else if (strstr(Buffer, ("WKS")) != nullptr || strstr(Buffer, ("wks")) != nullptr)
+	else if (Buffer == "WKS" || Buffer == "wks")
 		return htons(DNS_RECORD_WKS);
-	else if (strstr(Buffer, ("HINFO")) != nullptr || strstr(Buffer, ("hinfo")) != nullptr)
+	else if (Buffer == "HINFO" || Buffer == "hinfo")
 		return htons(DNS_RECORD_HINFO);
-	else if (strstr(Buffer, ("MINFO")) != nullptr || strstr(Buffer, ("minfo")) != nullptr)
+	else if (Buffer == "MINFO" || Buffer == "minfo")
 		return htons(DNS_RECORD_MINFO);
-	else if (strstr(Buffer, ("MX")) != nullptr || strstr(Buffer, ("mx")) != nullptr)
+	else if (Buffer == "MX" || Buffer == "mx")
 		return htons(DNS_RECORD_MX);
-	else if (strstr(Buffer, ("TXT")) != nullptr || strstr(Buffer, ("txt")) != nullptr)
+	else if (Buffer == "TXT" || Buffer == "txt")
 		return htons(DNS_RECORD_TXT);
-	else if (strstr(Buffer, ("RP")) != nullptr || strstr(Buffer, ("rp")) != nullptr)
+	else if (Buffer == "RP" || Buffer == "rp")
 		return htons(DNS_RECORD_RP);
-	else if (strstr(Buffer, ("SIG")) != nullptr || strstr(Buffer, ("sig")) != nullptr)
+	else if (Buffer == "SIG" || Buffer == "sig")
 		return htons(DNS_RECORD_SIG);
-	else if (strstr(Buffer, ("AFSDB")) != nullptr || strstr(Buffer, ("afsdb")) != nullptr)
+	else if (Buffer == "AFSDB" || Buffer == "afsdb")
 		return htons(DNS_RECORD_AFSDB);
-	else if (strstr(Buffer, ("X25")) != nullptr || strstr(Buffer, ("x25")) != nullptr)
+	else if (Buffer == "X25" || Buffer == "x25")
 		return htons(DNS_RECORD_X25);
-	else if (strstr(Buffer, ("ISDN")) != nullptr || strstr(Buffer, ("isdn")) != nullptr)
+	else if (Buffer == "ISDN" || Buffer == "isdn")
 		return htons(DNS_RECORD_ISDN);
-	else if (strstr(Buffer, ("RT")) != nullptr || strstr(Buffer, ("rt")) != nullptr)
+	else if (Buffer == "RT" || Buffer == "rt")
 		return htons(DNS_RECORD_RT);
-	else if (strstr(Buffer, ("NSAP")) != nullptr || strstr(Buffer, ("nsap")) != nullptr)
+	else if (Buffer == "NSAP" || Buffer == "nsap")
 		return htons(DNS_RECORD_NSAP);
-	else if (strstr(Buffer, ("NSAPPTR")) != nullptr || strstr(Buffer, ("nsapptr")) != nullptr)
+	else if (Buffer == "NSAPPTR" || Buffer == "nsapptr")
 		return htons(DNS_RECORD_NSAP_PTR);
-	else if (strstr(Buffer, ("SIG")) != nullptr || strstr(Buffer, ("sig")) != nullptr)
+	else if (Buffer == "SIG" || Buffer == "sig")
 		return htons(DNS_RECORD_SIG);
-	else if (strstr(Buffer, ("KEY")) != nullptr || strstr(Buffer, ("key")) != nullptr)
+	else if (Buffer == "KEY" || Buffer == "key")
 		return htons(DNS_RECORD_KEY);
-	else if (strstr(Buffer, ("AAAA")) != nullptr || strstr(Buffer, ("aaaa")) != nullptr)
+	else if (Buffer == "AAAA" || Buffer == "aaaa")
 		return htons(DNS_RECORD_AAAA);
-	else if (strstr(Buffer, ("PX")) != nullptr || strstr(Buffer, ("px")) != nullptr)
+	else if (Buffer == "PX" || Buffer == "px")
 		return htons(DNS_RECORD_PX);
-	else if (strstr(Buffer, ("GPOS")) != nullptr || strstr(Buffer, ("gpos")) != nullptr)
+	else if (Buffer == "GPOS" || Buffer == "gpos")
 		return htons(DNS_RECORD_GPOS);
-	else if (strstr(Buffer, ("LOC")) != nullptr || strstr(Buffer, ("loc")) != nullptr)
+	else if (Buffer == "LOC" || Buffer == "loc")
 		return htons(DNS_RECORD_LOC);
-	else if (strstr(Buffer, ("NXT")) != nullptr || strstr(Buffer, ("nxt")) != nullptr)
+	else if (Buffer == "NXT" || Buffer == "nxt")
 		return htons(DNS_RECORD_NXT);
-	else if (strstr(Buffer, ("EID")) != nullptr || strstr(Buffer, ("eid")) != nullptr)
+	else if (Buffer == "EID" || Buffer == "eid")
 		return htons(DNS_RECORD_EID);
-	else if (strstr(Buffer, ("NIMLOC")) != nullptr || strstr(Buffer, ("nimloc")) != nullptr)
+	else if (Buffer == "NIMLOC" || Buffer == "nimloc")
 		return htons(DNS_RECORD_NIMLOC);
-	else if (strstr(Buffer, ("SRV")) != nullptr || strstr(Buffer, ("srv")) != nullptr)
+	else if (Buffer == "SRV" || Buffer == "srv")
 		return htons(DNS_RECORD_SRV);
-	else if (strstr(Buffer, ("ATMA")) != nullptr || strstr(Buffer, ("atma")) != nullptr)
+	else if (Buffer == "ATMA" || Buffer == "atma")
 		return htons(DNS_RECORD_ATMA);
-	else if (strstr(Buffer, ("NAPTR")) != nullptr || strstr(Buffer, ("naptr")) != nullptr)
+	else if (Buffer == "NAPTR" || Buffer == "naptr")
 		return htons(DNS_RECORD_NAPTR);
-	else if (strstr(Buffer, ("KX")) != nullptr || strstr(Buffer, ("kx")) != nullptr)
+	else if (Buffer == "KX" || Buffer == "kx")
 		return htons(DNS_RECORD_KX);
-	else if (strstr(Buffer, ("CERT")) != nullptr || strstr(Buffer, ("cert")) != nullptr)
+	else if (Buffer == "CERT" || Buffer == "cert")
 		return htons(DNS_RECORD_CERT);
-	else if (strstr(Buffer, ("A6")) != nullptr || strstr(Buffer, ("a6")) != nullptr)
+	else if (Buffer == "A6" || Buffer == "a6")
 		return htons(DNS_RECORD_A6);
-	else if (strstr(Buffer, ("DNAME")) != nullptr || strstr(Buffer, ("dname")) != nullptr)
+	else if (Buffer == "DNAME" || Buffer == "dname")
 		return htons(DNS_RECORD_DNAME);
-	else if (strstr(Buffer, ("SINK")) != nullptr || strstr(Buffer, ("sink")) != nullptr)
+	else if (Buffer == "SINK" || Buffer == "sink")
 		return htons(DNS_RECORD_SINK);
-	else if (strstr(Buffer, ("OPT")) != nullptr || strstr(Buffer, ("opt")) != nullptr)
+	else if (Buffer == "OPT" || Buffer == "opt")
 		return htons(DNS_RECORD_OPT);
-	else if (strstr(Buffer, ("APL")) != nullptr || strstr(Buffer, ("apl")) != nullptr)
+	else if (Buffer == "APL" || Buffer == "apl")
 		return htons(DNS_RECORD_APL);
-	else if (strstr(Buffer, ("DS")) != nullptr || strstr(Buffer, ("ds")) != nullptr)
+	else if (Buffer == "DS" || Buffer == "ds")
 		return htons(DNS_RECORD_DS);
-	else if (strstr(Buffer, ("SSHFP")) != nullptr || strstr(Buffer, ("sshfp")) != nullptr)
+	else if (Buffer == "SSHFP" || Buffer == "sshfp")
 		return htons(DNS_RECORD_SSHFP);
-	else if (strstr(Buffer, ("IPSECKEY")) != nullptr || strstr(Buffer, ("ipseckey")) != nullptr)
+	else if (Buffer == "IPSECKEY" || Buffer == "ipseckey")
 		return htons(DNS_RECORD_IPSECKEY);
-	else if (strstr(Buffer, ("RRSIG")) != nullptr || strstr(Buffer, ("rrsig")) != nullptr)
+	else if (Buffer == "RRSIG" || Buffer == "rrsig")
 		return htons(DNS_RECORD_RRSIG);
-	else if (strstr(Buffer, ("NSEC")) != nullptr || strstr(Buffer, ("nsec")) != nullptr)
+	else if (Buffer == "NSEC" || Buffer == "nsec")
 		return htons(DNS_RECORD_NSEC);
-	else if (strstr(Buffer, ("DNSKEY")) != nullptr || strstr(Buffer, ("dnskey")) != nullptr)
+	else if (Buffer == "DNSKEY" || Buffer == "dnskey")
 		return htons(DNS_RECORD_DNSKEY);
-	else if (strstr(Buffer, ("DHCID")) != nullptr || strstr(Buffer, ("dhcid")) != nullptr)
+	else if (Buffer == "DHCID" || Buffer == "dhcid")
 		return htons(DNS_RECORD_DHCID);
-	else if (strstr(Buffer, ("NSEC3")) != nullptr || strstr(Buffer, ("nsec3")) != nullptr)
+	else if (Buffer == "NSEC3" || Buffer == "nsec3")
 		return htons(DNS_RECORD_NSEC3);
-	else if (strstr(Buffer, ("NSEC3PARAM")) != nullptr || strstr(Buffer, ("nsec3param")) != nullptr)
+	else if (Buffer == "NSEC3PARAM" || Buffer == "nsec3param")
 		return htons(DNS_RECORD_NSEC3PARAM);
-	else if (strstr(Buffer, ("TLSA")) != nullptr || strstr(Buffer, ("tlsa")) != nullptr)
+	else if (Buffer == "TLSA" || Buffer == "tlsa")
 		return htons(DNS_RECORD_TLSA);
-	else if (strstr(Buffer, ("HIP")) != nullptr || strstr(Buffer, ("hip")) != nullptr)
+	else if (Buffer == "HIP" || Buffer == "hip")
 		return htons(DNS_RECORD_HIP);
-	else if (strstr(Buffer, ("HINFO")) != nullptr || strstr(Buffer, ("hinfo")) != nullptr)
+	else if (Buffer == "HINFO" || Buffer == "hinfo")
 		return htons(DNS_RECORD_HINFO);
-	else if (strstr(Buffer, ("RKEY")) != nullptr || strstr(Buffer, ("rkey")) != nullptr)
+	else if (Buffer == "RKEY" || Buffer == "rkey")
 		return htons(DNS_RECORD_RKEY);
-	else if (strstr(Buffer, ("TALINK")) != nullptr || strstr(Buffer, ("talink")) != nullptr)
+	else if (Buffer == "TALINK" || Buffer == "talink")
 		return htons(DNS_RECORD_TALINK);
-	else if (strstr(Buffer, ("CDS")) != nullptr || strstr(Buffer, ("cds")) != nullptr)
+	else if (Buffer == "CDS" || Buffer == "cds")
 		return htons(DNS_RECORD_CDS);
-	else if (strstr(Buffer, ("CDNSKEY")) != nullptr || strstr(Buffer, ("cdnskey")) != nullptr)
+	else if (Buffer == "CDNSKEY" || Buffer == "cdnskey")
 		return htons(DNS_RECORD_CDNSKEY);
-	else if (strstr(Buffer, ("OPENPGPKEY")) != nullptr || strstr(Buffer, ("openpgpkey")) != nullptr)
+	else if (Buffer == "OPENPGPKEY" || Buffer == "openpgpkey")
 		return htons(DNS_RECORD_OPENPGPKEY);
-	else if (strstr(Buffer, ("SPF")) != nullptr || strstr(Buffer, ("spf")) != nullptr)
+	else if (Buffer == "SPF" || Buffer == "spf")
 		return htons(DNS_RECORD_SPF);
-	else if (strstr(Buffer, ("UINFO")) != nullptr || strstr(Buffer, ("uinfo")) != nullptr)
+	else if (Buffer == "UINFO" || Buffer == "uinfo")
 		return htons(DNS_RECORD_UINFO);
-	else if (strstr(Buffer, ("UID")) != nullptr || strstr(Buffer, ("uid")) != nullptr)
+	else if (Buffer == "UID" || Buffer == "uid")
 		return htons(DNS_RECORD_UID);
-	else if (strstr(Buffer, ("GID")) != nullptr || strstr(Buffer, ("gid")) != nullptr)
+	else if (Buffer == "GID" || Buffer == "gid")
 		return htons(DNS_RECORD_GID);
-	else if (strstr(Buffer, ("UNSPEC")) != nullptr || strstr(Buffer, ("unspec")) != nullptr)
+	else if (Buffer == "UNSPEC" || Buffer == "unspec")
 		return htons(DNS_RECORD_UNSPEC);
-	else if (strstr(Buffer, ("NID")) != nullptr || strstr(Buffer, ("nid")) != nullptr)
+	else if (Buffer == "NID" || Buffer == "nid")
 		return htons(DNS_RECORD_NID);
-	else if (strstr(Buffer, ("L32")) != nullptr || strstr(Buffer, ("l32")) != nullptr)
+	else if (Buffer == "L32" || Buffer == "l32")
 		return htons(DNS_RECORD_L32);
-	else if (strstr(Buffer, ("L64")) != nullptr || strstr(Buffer, ("l64")) != nullptr)
+	else if (Buffer == "L64" || Buffer == "l64")
 		return htons(DNS_RECORD_L64);
-	else if (strstr(Buffer, ("LP")) != nullptr || strstr(Buffer, ("lp")) != nullptr)
+	else if (Buffer == "LP" || Buffer == "lp")
 		return htons(DNS_RECORD_LP);
-	else if (strstr(Buffer, ("EUI48")) != nullptr || strstr(Buffer, ("eui48")) != nullptr)
+	else if (Buffer == "EUI48" || Buffer == "eui48")
 		return htons(DNS_RECORD_EUI48);
-	else if (strstr(Buffer, ("EUI64")) != nullptr || strstr(Buffer, ("eui64")) != nullptr)
+	else if (Buffer == "EUI64" || Buffer == "eui64")
 		return htons(DNS_RECORD_EUI64);
-	else if (strstr(Buffer, ("TKEY")) != nullptr || strstr(Buffer, ("tkey")) != nullptr)
+	else if (Buffer == "TKEY" || Buffer == "tkey")
 		return htons(DNS_RECORD_TKEY);
-	else if (strstr(Buffer, ("TSIG")) != nullptr || strstr(Buffer, ("tsig")) != nullptr)
+	else if (Buffer == "TSIG" || Buffer == "tsig")
 		return htons(DNS_RECORD_TSIG);
-	else if (strstr(Buffer, ("IXFR")) != nullptr || strstr(Buffer, ("ixfr")) != nullptr)
+	else if (Buffer == "IXFR" || Buffer == "ixfr")
 		return htons(DNS_RECORD_IXFR);
-	else if (strstr(Buffer, ("AXFR")) != nullptr || strstr(Buffer, ("axfr")) != nullptr)
+	else if (Buffer == "AXFR" || Buffer == "axfr")
 		return htons(DNS_RECORD_AXFR);
-	else if (strstr(Buffer, ("MAILB")) != nullptr || strstr(Buffer, ("mailb")) != nullptr)
+	else if (Buffer == "MAILB" || Buffer == "mailb")
 		return htons(DNS_RECORD_MAILB);
-	else if (strstr(Buffer, ("MAILA")) != nullptr || strstr(Buffer, ("maila")) != nullptr)
+	else if (Buffer == "MAILA" || Buffer == "maila")
 		return htons(DNS_RECORD_MAILA);
-	else if (strstr(Buffer, ("ANY")) != nullptr || strstr(Buffer, ("any")) != nullptr)
+	else if (Buffer == "ANY" || Buffer == "any")
 		return htons(DNS_RECORD_ANY);
-	else if (strstr(Buffer, ("URI")) != nullptr || strstr(Buffer, ("uri")) != nullptr)
+	else if (Buffer == "URI" || Buffer == "uri")
 		return htons(DNS_RECORD_URI);
-	else if (strstr(Buffer, ("CAA")) != nullptr || strstr(Buffer, ("caa")) != nullptr)
+	else if (Buffer == "CAA" || Buffer == "caa")
 		return htons(DNS_RECORD_CAA);
-	else if (strstr(Buffer, ("TA")) != nullptr || strstr(Buffer, ("ta")) != nullptr)
+	else if (Buffer == "TA" || Buffer == "ta")
 		return htons(DNS_RECORD_TA);
-	else if (strstr(Buffer, ("DLV")) != nullptr || strstr(Buffer, ("dlv")) != nullptr)
+	else if (Buffer == "DLV" || Buffer == "dlv")
 		return htons(DNS_RECORD_DLV);
-	else if (strstr(Buffer, ("RESERVED")) != nullptr || strstr(Buffer, ("reserved")) != nullptr)
+	else if (Buffer == "RESERVED" || Buffer == "reserved")
 		return htons(DNS_RECORD_RESERVED);
+
 //No match.
 	return FALSE;
 }
@@ -1572,7 +1596,7 @@ bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol)
 			}
 			else {
 				AddrMapIter = LocalRoutingTableIter.AddressRoutingList_IPv6.find(ntoh64(*AddrFront));
-				if (AddrMapIter != LocalRoutingTableIter.AddressRoutingList_IPv6.end() &&
+				if (AddrMapIter != LocalRoutingTableIter.AddressRoutingList_IPv6.end() && 
 					AddrMapIter->second.count(ntoh64(*AddrBack) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - LocalRoutingTableIter.Prefix))))
 						return true;
 			}
@@ -2268,8 +2292,8 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 	//Records Type in responses check
 		DataLength += CheckDNSQueryNameLength(Buffer + DataLength) + 1U;
 		DNS_Record_Standard = (pdns_record_standard)(Buffer + DataLength);
-		if (Parameter.DNSDataCheck && (DNS_Record_Standard->TTL == 0 || DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) &&
-			(DNS_Query->Type != htons(DNS_RECORD_A) && DNS_Record_Standard->Type == htons(DNS_RECORD_A) ||
+		if (Parameter.DNSDataCheck && (DNS_Record_Standard->TTL == 0 || DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && 
+			(DNS_Query->Type != htons(DNS_RECORD_A) && DNS_Record_Standard->Type == htons(DNS_RECORD_A) || 
 			DNS_Query->Type != htons(DNS_RECORD_AAAA) && DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA))))
 				return false;
 

@@ -179,7 +179,7 @@
 #include <cstdlib>                 //C Standard Library
 #include <cstdio>                  //File Input/Output
 #include <ctime>                   //Date&Time
-//#include <string>                  //String support
+#include <string>                  //String support
 #include <vector>                  //Vector support
 #include <deque>                   //Double-ended queue support
 #include <set>                     //Set support
@@ -197,7 +197,10 @@
 	#include "Keccak\\KeccakHash.h"
 
 //LibSodium Headers
-	#include "..\\LibSodium\\sodium.h"
+	#define ENABLE_LIBSODIUM           //LibSodium is always enable on Windows.
+	#if defined(ENABLE_LIBSODIUM)
+		#include "..\\LibSodium\\sodium.h"
+	#endif
 
 //WinPcap Header
 	#include "WinPcap\\pcap.h"
@@ -221,10 +224,14 @@
 	#pragma comment(lib, "iphlpapi.lib")          //IP Helper Library, IP Stack for MIB-II and related functionality
 	#if defined(PLATFORM_WIN64)
 		#pragma comment(lib, "WinPcap\\WPCAP_x64.lib") //WinPcap library(x64)
-		#pragma comment(lib, "..\\LibSodium\\LibSodium_x64.lib") //LibSodium library(x64)
+		#if defined(ENABLE_LIBSODIUM)
+			#pragma comment(lib, "..\\LibSodium\\LibSodium_x64.lib") //LibSodium library(x64)
+		#endif
 	#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		#pragma comment(lib, "WinPcap\\WPCAP_x86.lib") //WinPcap library(x86)
-		#pragma comment(lib, "..\\LibSodium\\LibSodium_x86.lib") //LibSodium library(x86)
+		#if defined(ENABLE_LIBSODIUM)
+			#pragma comment(lib, "..\\LibSodium\\LibSodium_x86.lib") //LibSodium library(x86)
+		#endif
 	#endif
 
 	#if defined(PLATFORM_WIN)
@@ -245,10 +252,10 @@
 	#include <cstring>                 //C-Style strings
 	#include <cwchar>                  //Wide characters
 	#include <cerrno>                  //Error report
+	#include <csignal>                 //Signals
 
 //Portable Operating System Interface/POSIX and Unix system header
 	#include <pthread.h>               //Threads
-	#include <signal.h>                //Signals
 	#include <unistd.h>                //Standard library API
 	#include <netdb.h>                 //Network database operations
 	#include <ifaddrs.h>               //Getting network interface addresses
@@ -262,7 +269,9 @@
 	#include "Keccak/KeccakHash.h"
 
 //LibSodium Headers
-	#include <sodium.h>
+	#if defined(ENABLE_LIBSODIUM)
+		#include <sodium.h>
+	#endif
 
 //LibPcap header
 	#include <pcap/pcap.h>
@@ -1330,12 +1339,17 @@ RFC 7314(https://tools.ietf.org/html/rfc7314), Extension Mechanisms for DNS (EDN
 #define IPPORT_MDNS             5353U    //Multicast Domain Name System/mDNS  Port
 #define IPPORT_LLMNR            5355U    //Link-Local Multicast Name Resolution/LLMNR Port
 #define DNS_STANDARD            0x0100   //System Standard query
-#define DNS_SQR_NE              0x8180   //Standard query response and no error.
-#define DNS_SQR_NEA             0x8580   //Standard query response, no error and authoritative.
-#define DNS_SQR_NETC            0x8380   //Standard query response and no error, but Truncated.
+#define DNS_SQR_NE              0x8180   //Standard query response and No Error.
+#define DNS_SQR_NEA             0x8580   //Standard query response, No Error and Authoritative.
+#define DNS_SQR_NETC            0x8380   //Standard query response and No Error, but Truncated.
 #define DNS_SQR_FE              0x8181   //Standard query response, Format Error
 #define DNS_SQR_SF              0x8182   //Standard query response, Server failure
-#define DNS_SQR_SNH             0x8183   //Standard query response, but No Such Name.
+#define DNS_SQR_SNH             0x8183   //Standard query response, No Such Name
+#define DNS_SET_R               0x8000   //Set Response bit.
+#define DNS_SET_RTC             0x8200   //Set Response bit and Truncated bit.
+#define DNS_SER_RA              0x8580   //Set Response bit and Authoritative bit.
+#define DNS_SET_R_FE            0x8001   //Set Response bit and Format Error RCode.
+#define DNS_SET_R_SNH           0x8003   //Set Response bit and No Such Name RCode.
 #define DNS_QUERY_PTR           0xC00C   //Pointer of first query
 
 //OPCode definitions
@@ -1808,6 +1822,7 @@ typedef struct _dns_record_opt_
 }dns_record_opt, *pdns_record_opt;
 
 //Domain Name System Curve/DNSCurve Part
+#if defined(ENABLE_LIBSODIUM)
 // About DNSCurve standards, see http://dnscurve.org. Also about DNSCrypt, see http://dnscrypt.org
 #define DNSCURVE_MAGIC_QUERY_LEN   8U
 #define DNSCRYPT_RECEIVE_MAGIC     ("r6fnvWj8")                   //Receive Magic Number
@@ -1868,20 +1883,23 @@ typedef struct _dnscurve_txt_signature_
 	uint32_t              CertTime_Begin;
 	uint32_t              CertTime_End;
 }dnscurve_txt_signature, *pdnscurve_txt_signature;
+#endif
 
 
 //////////////////////////////////////////////////
 // Main header
 // 
 #if defined(PLATFORM_WIN)
-	#define MBSTOWCS_NULLTERMINATE   (-1)                  //MultiByteToWideChar() find null-terminate.
+	#define MBSTOWCS_NULLTERMINATE   (-1)            //MultiByteToWideChar() find null-terminate.
 #endif
-#define LIBSODIUM_ERROR          (-1)
-#define BYTES_TO_BITS            8U
-#define NUM_HEX                  16
-#define UINT4_MAX                0x000F
-#define HIGHEST_BIT_U16          0x7FFF                //Get highest bit in uint16_t/16 bits data
-#define U16_NUM_ONE              0x0001
+#if defined(ENABLE_LIBSODIUM)
+	#define LIBSODIUM_ERROR          (-1)
+#endif
+#define BYTES_TO_BITS           8U
+#define NUM_HEX                 16
+#define UINT4_MAX               0x000F
+#define HIGHEST_BIT_U16         0x7FFF               //Get highest bit in uint16_t/16 bits data
+#define U16_NUM_ONE             0x0001
 
 //ASCII values defines
 #define ASCII_HT                9                    //"␉"
@@ -1925,37 +1943,37 @@ typedef struct _dnscurve_txt_signature_
 #define ADDRESS_COMPARE_GREATER   3U
 
 //Length defines
-#define BOM_UTF_8_LENGTH               3U                                       //Length of UTF-8 BOM
-#define BOM_UTF_16_LENGTH              2U                                       //Length of UTF-16 BOM
-#define BOM_UTF_32_LENGTH              4U                                       //Length of UTF-32 BOM
-#define STRING_BUFFER_MAXSIZE          64U                                      //Maximum size of string buffer(64 bytes)
-#define FILE_BUFFER_SIZE               4096U                                    //Maximum size of file buffer(4KB/4096 bytes)
-#define DEFAULT_FILE_MAXSIZE           4294967296U                              //Maximum size of whole reading file(4GB/4294967296 bytes).
-#define DEFAULT_LOG_MAXSIZE            8388608U                                 //Maximum size of whole log file(8MB/8388608 bytes).
-#define DEFAULT_LOG_MINSIZE            4096U                                    //Minimum size of whole log file(4KB/4096 bytes).
-#define PACKET_MAXSIZE                 1500U                                    //Maximum size of packets, Standard MTU of Ethernet II network
-#define ORIGINAL_PACKET_MAXSIZE        1512U                                    //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header + 4 bytes FCS)
-#define LARGE_PACKET_MAXSIZE           4096U                                    //Maximum size of packets(4KB/4096 bytes) of TCP protocol
-#define BUFFER_RING_MAXNUM             32U                                      //Number of maximum packet buffer queues
-#define ADDR_STRING_MAXSIZE            64U                                      //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
-#define ICMP_PADDING_MAXSIZE           1484U                                    //Length of ICMP padding data must between 18 bytes and 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
+#define BOM_UTF_8_LENGTH               3U                                         //Length of UTF-8 BOM
+#define BOM_UTF_16_LENGTH              2U                                         //Length of UTF-16 BOM
+#define BOM_UTF_32_LENGTH              4U                                         //Length of UTF-32 BOM
+#define STRING_BUFFER_MAXSIZE          64U                                        //Maximum size of string buffer(64 bytes)
+#define FILE_BUFFER_SIZE               4096U                                      //Maximum size of file buffer(4KB/4096 bytes)
+#define DEFAULT_FILE_MAXSIZE           4294967296U                                //Maximum size of whole reading file(4GB/4294967296 bytes).
+#define DEFAULT_LOG_MAXSIZE            8388608U                                   //Maximum size of whole log file(8MB/8388608 bytes).
+#define DEFAULT_LOG_MINSIZE            4096U                                      //Minimum size of whole log file(4KB/4096 bytes).
+#define PACKET_MAXSIZE                 1500U                                      //Maximum size of packets, Standard MTU of Ethernet II network
+#define ORIGINAL_PACKET_MAXSIZE        1512U                                      //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header + 4 bytes FCS)
+#define LARGE_PACKET_MAXSIZE           4096U                                      //Maximum size of packets(4KB/4096 bytes) of TCP protocol
+#define BUFFER_RING_MAXNUM             32U                                        //Number of maximum packet buffer queues
+#define ADDR_STRING_MAXSIZE            64U                                        //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
+#define ICMP_PADDING_MAXSIZE           1484U                                      //Length of ICMP padding data must between 18 bytes and 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
 #if defined(PLATFORM_LINUX)
 	#define ICMP_STRING_START_NUM_LINUX    16U
 	#define ICMP_PADDING_LENGTH_LINUX      40U
 #endif
-#define MULTI_REQUEST_TIMES_MAXNUM     16U                                      //Maximum times of multi requesting.
-#define NETWORK_LAYER_PARTNUM          2U                                       //Number of network layer protocols(IPv6 and IPv4)
-#define TRANSPORT_LAYER_PARTNUM        4U                                       //Number of transport layer protocols(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
-#define ALTERNATE_SERVERNUM            12U                                      //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
-#define DOMAIN_MAXSIZE                 256U                                     //Maximum size of whole level domain is 256 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_DATA_MAXSIZE            253U                                     //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_LEVEL_DATA_MAXSIZE      63U                                      //Domain length is between 3 and 63(Labels must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
-#define DOMAIN_MINSIZE                 2U                                       //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
-#define DNS_PACKET_MINSIZE             (sizeof(dns_hdr) + 4U + sizeof(dns_qry)) //Minimum DNS packet size(DNS Header + Minimum Domain + DNS Query)
+#define MULTI_REQUEST_TIMES_MAXNUM     16U                                        //Maximum times of multi requesting.
+#define NETWORK_LAYER_PARTNUM          2U                                         //Number of network layer protocols(IPv6 and IPv4)
+#define TRANSPORT_LAYER_PARTNUM        4U                                         //Number of transport layer protocols(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
+#define ALTERNATE_SERVERNUM            12U                                        //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
+#define DOMAIN_MAXSIZE                 256U                                       //Maximum size of whole level domain is 256 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_DATA_MAXSIZE            253U                                       //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_LEVEL_DATA_MAXSIZE      63U                                        //Domain length is between 3 and 63(Labels must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
+#define DOMAIN_MINSIZE                 2U                                         //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
+#define DNS_PACKET_MINSIZE             (sizeof(dns_hdr) + 4U + sizeof(dns_qry))   //Minimum DNS packet size(DNS Header + Minimum Domain + DNS Query)
 
 //Code defines
-#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE   8192U      //Buffer maximum size of QueryServiceConfig() function(8KB/8192 Bytes)
 #if defined(PLATFORM_WIN)
+	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE   8192U      //Buffer maximum size of QueryServiceConfig() function(8KB/8192 Bytes)
 	#define SYSTEM_SOCKET                         UINT_PTR   //System Socket defined(WinSock2.h), not the same in x86(unsigned int) and x64(unsigned __int64) platform, which define in WinSock2.h file.
 #elif defined(PLATFORM_LINUX)
 	#define SYSTEM_SOCKET                         int
@@ -1992,22 +2010,25 @@ typedef struct _dnscurve_txt_signature_
 #define DEFAULT_ALTERNATE_RANGE            10U       //Default time of checking timeout, 10 seconds
 #define DEFAULT_ALTERNATERESET_TIME        180U      //Default time to reset switching of alternate servers, 180 seconds
 #define DEFAULT_HOSTS_TTL                  900U      //Default Hosts DNS TTL, 15 minutes(900 seconds)
-#define DEFAULT_DNSCURVE_RECHECK_TIME      3600U     //Default DNSCurve keys recheck time, 1 hour(3600 seconds)
 #define SHORTEST_FILEREFRESH_TIME          5U        //The shortset time between files auto-refreshing, 5 seconds
 #define SHORTEST_DOMAINTEST_INTERVAL_TIME  5000U     //The shortset Domain Test time between every sending, 5 seconds(5000 ms)
-#define SHORTEST_DNSCURVE_RECHECK_TIME     10U       //The shortset DNSCurve keys recheck time, 10 seconds
 #define SENDING_INTERVAL_TIME              5U        //Time between every sending, 5 seconds
 #define SENDING_ONCE_INTERVAL_TIMES        3U        //Repeat 3 times between every sending.
+#if defined(ENABLE_LIBSODIUM)
+	#define DEFAULT_DNSCURVE_RECHECK_TIME      3600U     //Default DNSCurve keys recheck time, 1 hour(3600 seconds)
+	#define SHORTEST_DNSCURVE_RECHECK_TIME     10U       //The shortset DNSCurve keys recheck time, 10 seconds
+#endif
 
 //Data defines
-#define DEFAULT_LOCAL_SERVICENAME             L"PcapDNSProxyService"                                                                                                                        //Default service name of system
 #define DEFAULT_LOCAL_SERVERNAME              ("pcap-dnsproxy.localhost.server")                                                                                                            //Default Local DNS server name
-//ICMP padding data
 #if defined(PLATFORM_WIN)
-	#define DEFAULT_PADDINGDATA                   ("abcdefghijklmnopqrstuvwabcdefghi")
+	#define DEFAULT_LOCAL_SERVICENAME             L"PcapDNSProxyService"                                                                                                                        //Default service name of system
+	#define DEFAULT_PADDINGDATA                   ("abcdefghijklmnopqrstuvwabcdefghi")                                                                                                          //ICMP padding data on Windows
 #endif
 #define RFC_DOMAIN_TABLE                      (".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")                                                                          //Preferred name syntax(Section 2.3.1 in RFC 1035)
-#define DNSCURVE_TEST_NONCE                   0, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23   //DNSCurve Test Nonce, 0x00 - 0x23(ASCII)
+#if defined(ENABLE_LIBSODIUM)
+	#define DNSCURVE_TEST_NONCE                   0, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23   //DNSCurve Test Nonce, 0x00 - 0x23(ASCII)
+#endif
 #define DEFAULT_SEQUENCE                      0x0001                                                                                                                                        //Default sequence of protocol
 #define DNS_PACKET_QUERY_LOCATE(Buffer)       (sizeof(dns_hdr) + CheckDNSQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U)                                                                    //Location of beginning of DNS Query
 #define DNS_TCP_PACKET_QUERY_LOCATE(Buffer)   (sizeof(dns_tcp_hdr) + CheckDNSQueryNameLength(Buffer + sizeof(dns_tcp_hdr)) + 1U)
@@ -2021,13 +2042,15 @@ typedef struct _dnscurve_txt_signature_
 #endif
 
 //Error Type defines
-#define LOG_ERROR_SYSTEM     1U                      // 01: System Error
-#define LOG_ERROR_PARAMETER  2U                      // 02: Parameter Error
-#define LOG_ERROR_IPFILTER   3U                      // 03: IPFilter Error
-#define LOG_ERROR_HOSTS      4U                      // 04: Hosts Error
-#define LOG_ERROR_NETWORK    5U                      // 05: Network Error
-#define LOG_ERROR_PCAP       6U                      // 06: Pcap Error
-#define LOG_ERROR_DNSCURVE   7U                      // 07: DNSCurve Error
+#define LOG_ERROR_SYSTEM               1U            // 01: System Error
+#define LOG_ERROR_PARAMETER            2U            // 02: Parameter Error
+#define LOG_ERROR_IPFILTER             3U            // 03: IPFilter Error
+#define LOG_ERROR_HOSTS                4U            // 04: Hosts Error
+#define LOG_ERROR_NETWORK              5U            // 05: Network Error
+#define LOG_ERROR_PCAP                 6U            // 06: Pcap Error
+#if defined(ENABLE_LIBSODIUM)
+	#define LOG_ERROR_DNSCURVE             7U            // 07: DNSCurve Error
+#endif
 
 //Codes and types defines
 #define LISTEN_IPV6_IPV4               0
@@ -2048,14 +2071,18 @@ typedef struct _dnscurve_txt_signature_
 #define HOSTS_BANNED                   3U
 #define CACHE_TIMER                    1U
 #define CACHE_QUEUE                    2U
-#define DNSCURVE_REQUEST_UDPMODE       0
-#define DNSCURVE_REQUEST_TCPMODE       1U
+#if defined(ENABLE_LIBSODIUM)
+	#define DNSCURVE_REQUEST_UDPMODE       0
+	#define DNSCURVE_REQUEST_TCPMODE       1U
+#endif
 
 //Server type defines
-#define DNSCURVE_IPV6_MAIN             0            //DNSCurve Main(IPv6)
-#define DNSCURVE_IPV4_MAIN             1U           //DNSCurve Main(IPv4)
-#define DNSCURVE_IPV6_ALTERNATE        2U           //DNSCurve Alternate(IPv6)
-#define DNSCURVE_IPV4_ALTERNATE        3U           //DNSCurve Alternate(IPv4)
+#if defined(ENABLE_LIBSODIUM)
+	#define DNSCURVE_IPV6_MAIN             0            //DNSCurve Main(IPv6)
+	#define DNSCURVE_IPV4_MAIN             1U           //DNSCurve Main(IPv4)
+	#define DNSCURVE_IPV6_ALTERNATE        2U           //DNSCurve Alternate(IPv6)
+	#define DNSCURVE_IPV4_ALTERNATE        3U           //DNSCurve Alternate(IPv4)
+#endif
 
 //Function Pointer defines
 //Windows XP with SP3 support
@@ -2126,6 +2153,7 @@ typedef struct _dnscache_data_
 }DNSCacheData, DNSCACHE_DATA, *PDNSCacheData, *PDNSCACHE_DATA;
 
 //DNSCurve Server Data structure
+#if defined(ENABLE_LIBSODIUM)
 typedef struct _dnscurve_server_data_
 {
 	union _address_data_ {
@@ -2140,6 +2168,7 @@ typedef struct _dnscurve_server_data_
 	PSTR                     ReceiveMagicNumber;     //Receive Magic Number(Same from server receive)
 	PSTR                     SendMagicNumber;        //Server Magic Number(Send to server)
 }DNSCurveServerData, DNSCURVE_SERVER_DATA, *PDNSCurveServerData, *PDNSCURVE_SERVER_DATA;
+#endif
 
 //Class defines
 //Configuration class
@@ -2225,7 +2254,9 @@ public:
 	PSTR                             LocalServerResponse;
 	size_t                           LocalServerResponseLength;
 //[DNSCurve/DNSCrypt] block
+#if defined(ENABLE_LIBSODIUM)
 	bool                             DNSCurve;
+#endif
 
 // Global parameters from status
 //Global block
@@ -2292,10 +2323,11 @@ public:
 	std::shared_ptr<char>    Response;
 	std::regex               Pattern;
 	std::string              PatternString;
+	std::vector<uint16_t>    RecordType;
 	size_t                   FileIndex;
 	size_t                   Type;
-	uint16_t                 Protocol;
 	size_t                   Length;
+	bool                     TypeOperation;
 
 	HostsTable(void);
 }HOSTS_TABLE;
@@ -2362,6 +2394,7 @@ public:
 }PORT_TABLE;
 
 //DNSCurve Configuration class
+#if defined(ENABLE_LIBSODIUM)
 typedef class DNSCurveConfigurationTable {
 public:
 //[DNSCurve] block
@@ -2383,6 +2416,7 @@ public:
 	DNSCurveConfigurationTable(void);
 	~DNSCurveConfigurationTable(void);
 }DNSCURVE_CONFIGURATON_TABLE;
+#endif
 
 
 //////////////////////////////////////////////////
@@ -2416,8 +2450,8 @@ size_t __fastcall CompareAddresses(const void *OriginalAddrBegin, const void *Or
 	PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol);
 #endif
 size_t __fastcall GetNetworkingInformation(void);
-uint16_t __fastcall ServiceNameToHex(const char *Buffer);
-uint16_t __fastcall DNSTypeNameToHex(const char *Buffer);
+uint16_t __fastcall ServiceNameToHex(const char *OriginalBuffer);
+uint16_t __fastcall DNSTypeNameToHex(const char *OriginalBuffer);
 bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, char *Domain);
 bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol);
 bool __fastcall CustomModeFilter(const void *OriginalAddr, const uint16_t Protocol);
@@ -2444,12 +2478,14 @@ size_t __fastcall RunningLogWriteMonitor(void);
 size_t __fastcall MonitorInit(void);
 
 //DNSCurve.h
-bool __fastcall VerifyKeypair(const unsigned char *PublicKey, const unsigned char *SecretKey);
-size_t __fastcall DNSCurveInit(void);
-size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
-size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
-size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
-size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
+#if defined(ENABLE_LIBSODIUM)
+	bool __fastcall VerifyKeypair(const unsigned char *PublicKey, const unsigned char *SecretKey);
+	size_t __fastcall DNSCurveInit(void);
+	size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
+	size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
+	size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
+	size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
+#endif
 
 //Process.h
 size_t __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Length, const SOCKET_DATA LocalSocketData, const uint16_t Protocol);

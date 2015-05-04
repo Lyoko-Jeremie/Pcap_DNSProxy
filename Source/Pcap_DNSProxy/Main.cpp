@@ -103,12 +103,14 @@
 	HostsThread.detach();
 
 //DNSCurve initialization
+#if defined(ENABLE_LIBSODIUM)
 	if (Parameter.DNSCurve && DNSCurveParameter.IsEncryption)
 	{
 		randombytes_set_implementation(&randombytes_salsa20_implementation);
 		randombytes_stir();
 		DNSCurveInit();
 	}
+#endif
 
 #if defined(PLATFORM_WIN)
 //Service initialization and start service.

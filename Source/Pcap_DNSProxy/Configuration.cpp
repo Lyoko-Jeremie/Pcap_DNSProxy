@@ -523,11 +523,11 @@ size_t __fastcall ReadParameter(void)
 	if (Parameter.HopLimitFluctuation > 0)
 	{
 		//IPv6
-		if (Parameter.DNSTarget.IPv6.HopLimitData.HopLimit > 0 &&
-			((size_t)Parameter.DNSTarget.IPv6.HopLimitData.HopLimit + (size_t)Parameter.HopLimitFluctuation > UINT8_MAX ||
-			(SSIZE_T)Parameter.DNSTarget.IPv6.HopLimitData.HopLimit < (SSIZE_T)Parameter.HopLimitFluctuation + 1) ||
-			Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit > 0 &&
-			((size_t)Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit + (size_t)Parameter.HopLimitFluctuation > UINT8_MAX ||
+		if (Parameter.DNSTarget.IPv6.HopLimitData.HopLimit > 0 && 
+			((size_t)Parameter.DNSTarget.IPv6.HopLimitData.HopLimit + (size_t)Parameter.HopLimitFluctuation > UINT8_MAX || 
+			(SSIZE_T)Parameter.DNSTarget.IPv6.HopLimitData.HopLimit < (SSIZE_T)Parameter.HopLimitFluctuation + 1) || 
+			Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit > 0 && 
+			((size_t)Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit + (size_t)Parameter.HopLimitFluctuation > UINT8_MAX || 
 			(SSIZE_T)Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit < (SSIZE_T)Parameter.HopLimitFluctuation + 1) || 
 		//IPv4
 			Parameter.DNSTarget.IPv4.HopLimitData.TTL > 0 && 
@@ -543,7 +543,11 @@ size_t __fastcall ReadParameter(void)
 	}
 
 //Other error which need to print to log.
+#if defined(ENABLE_LIBSODIUM)
 	if (!Parameter.PcapCapture && !Parameter.HostsOnly && !Parameter.DNSCurve && Parameter.RequestMode != REQUEST_TCPMODE)
+#else
+	if (!Parameter.PcapCapture && !Parameter.HostsOnly && Parameter.RequestMode != REQUEST_TCPMODE)
+#endif
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"Pcap Capture error", 0, ConfigFileList[Index].c_str(), 0);
 		return EXIT_FAILURE;
@@ -576,8 +580,11 @@ size_t __fastcall ReadParameter(void)
 		Parameter.EDNS0PayloadSize = EDNS0_MINSIZE;
 	}
 	if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0 && 
-		Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family == 0 && 
-		Parameter.DNSCurve && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0)
+		Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family == 0
+	#if defined(ENABLE_LIBSODIUM)
+		&& Parameter.DNSCurve && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0
+	#endif
+		)
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"Alternate Multi requesting error", 0, ConfigFileList[Index].c_str(), 0);
 		return EXIT_FAILURE;
@@ -599,6 +606,7 @@ size_t __fastcall ReadParameter(void)
 		Parameter.IPv4DataCheck = false;
 
 	//DNSCurve options check
+#if defined(ENABLE_LIBSODIUM)
 	if (Parameter.DNSCurve)
 	{
 	//Libsodium initialization
@@ -890,6 +898,7 @@ size_t __fastcall ReadParameter(void)
 		DNSCurveParameter.DNSCurveTarget.IPv4.SendMagicNumber = nullptr, DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.SendMagicNumber = nullptr, DNSCurveParameter.DNSCurveTarget.IPv6.SendMagicNumber = nullptr, DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.SendMagicNumber = nullptr;
 		DNSCurveParameter.DNSCurveTarget.IPv4.ReceiveMagicNumber = nullptr, DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber = nullptr, DNSCurveParameter.DNSCurveTarget.IPv6.ReceiveMagicNumber = nullptr, DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber = nullptr;
 	}
+#endif
 
 //Default settings
 	if (Parameter.ListenPort != nullptr && Parameter.ListenPort->empty())
@@ -947,6 +956,7 @@ size_t __fastcall ReadParameter(void)
 	}
 
 //DNSCurve default settings
+#if defined(ENABLE_LIBSODIUM)
 	if (Parameter.DNSCurve && DNSCurveParameter.IsEncryption)
 	{
 	//DNSCurve PayloadSize check
@@ -982,6 +992,7 @@ size_t __fastcall ReadParameter(void)
 		if (DNSCurveParameter.KeyRecheckTime == 0)
 			DNSCurveParameter.KeyRecheckTime = DEFAULT_DNSCURVE_RECHECK_TIME * SECOND_TO_MILLISECOND;
 	}
+#endif
 
 //Sort AcceptTypeList.
 	std::sort(Parameter.AcceptTypeList->begin(), Parameter.AcceptTypeList->end());
@@ -1601,7 +1612,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 			}
 		}
 	}
-	else if (Data.find("IPFilterType=Permit") == 0 || Data.find("IPFilterType=permit") == 0)
+	else if (Data.find("IPFilterType=PERMIT") == 0 || Data.find("IPFilterType=Permit") == 0 || Data.find("IPFilterType=permit") == 0)
 	{
 		Parameter.IPFilterType = true;
 	}
@@ -1632,8 +1643,8 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 			return EXIT_FAILURE;
 		}
 		else {
-		//Permit or Deny.
-			if (Data.find("Permit:") != std::string::npos || Data.find("permit:") != std::string::npos)
+		//Permit or Deny
+			if (Data.find("PERMIT:") != std::string::npos || Data.find("Permit:") != std::string::npos || Data.find("permit:") != std::string::npos)
 				Parameter.AcceptType = true;
 			else 
 				Parameter.AcceptType = false;
@@ -2085,6 +2096,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 	}
 
 //[DNSCurve] block
+#if defined(ENABLE_LIBSODIUM)
 	else if (Data.find("DNSCurve=1") == 0)
 	{
 		Parameter.DNSCurve = true;
@@ -2266,6 +2278,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 		if (ReadMagicNumber(Data, strlen("IPv6AlternateDNSMagicNumber="), DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.SendMagicNumber, FileIndex, Line) == EXIT_FAILURE)
 			return EXIT_FAILURE;
 	}
+#endif
 
 	return EXIT_SUCCESS;
 }
@@ -3746,10 +3759,10 @@ size_t __fastcall ReadHosts(void)
 		//Check repeating items.
 			for (HostsListIter = HostsListModificating->begin();HostsListIter != HostsListModificating->end();++HostsListIter)
 			{
-				if (HostsListIter->Type == HOSTS_NORMAL)
+				if (HostsListIter->Type == HOSTS_NORMAL && !HostsListIter->RecordType.empty())
 				{
 				//AAAA records(IPv6)
-					if (HostsListIter->Protocol == AF_INET6 && HostsListIter->Length > sizeof(dns_record_aaaa))
+					if (HostsListIter->RecordType.front() == htons(DNS_RECORD_AAAA) && HostsListIter->Length > sizeof(dns_record_aaaa))
 					{
 						for (Index = 0;Index < HostsListIter->Length / sizeof(dns_record_aaaa);++Index)
 						{
@@ -3766,7 +3779,8 @@ size_t __fastcall ReadHosts(void)
 						}
 					}
 				//A records(IPv4)
-					else {
+					else if (HostsListIter->RecordType.front() == htons(DNS_RECORD_A) && HostsListIter->Length > sizeof(dns_record_a))
+					{
 						for (Index = 0;Index < HostsListIter->Length / sizeof(dns_record_a);++Index)
 						{
 							for (size_t InnerIndex = Index + 1U;InnerIndex < HostsListIter->Length / sizeof(dns_record_a);++InnerIndex)
@@ -3969,14 +3983,21 @@ size_t __fastcall ReadHostsData(const char *Buffer, const size_t FileIndex, cons
 	}
 
 //Banned items
-	else if (Data.find("BAN ") == 0 || Data.find("BAN	") == 0 || Data.find("BAN,") == 0 || 
-		Data.find("BANNED ") == 0 || Data.find("BANNED	") == 0 || Data.find("BANNED,") == 0 || 
-		Data.find("Ban ") == 0 || Data.find("Ban	") == 0 || Data.find("Ban,") == 0 || 
-		Data.find("Banned ") == 0 || Data.find("Banned	") == 0 || Data.find("Banned,") == 0 || 
-		Data.find("ban ") == 0 || Data.find("ban	") == 0 || Data.find("ban,") == 0 || 
-		Data.find("banned ") == 0 || Data.find("banned	") == 0 || Data.find("banned,") == 0)
+	else if (Data.find("BAN ") == 0 || Data.find("BAN,") == 0 || 
+		Data.find("BANNED ") == 0 || Data.find("BANNED,") == 0 || 
+		Data.find("Ban ") == 0 || Data.find("Ban,") == 0 || 
+		Data.find("Banned ") == 0 || Data.find("Banned,") == 0 || 
+		Data.find("ban ") == 0 || Data.find("ban,") == 0 || 
+		Data.find("banned ") == 0 || Data.find("banned,") == 0)
 	{
 		return ReadWhitelistAndBannedData(Data, FileIndex, Line, LABEL_HOSTS_BANNED);
+	}
+
+//Type Banned items
+	else if (Data.find("BAN") == 0 || Data.find("BANNED") == 0 || Data.find("Ban") == 0 || 
+		Data.find("Banned") == 0 || Data.find("ban") == 0 || Data.find("banned") == 0)
+	{
+		return ReadWhitelistAndBannedData(Data, FileIndex, Line, LABEL_HOSTS_BANNED_TYPE);
 	}
 
 //[Local Hosts] block
@@ -4022,13 +4043,18 @@ size_t __fastcall ReadHostsData(const char *Buffer, const size_t FileIndex, cons
 //Read Whitelist and Banned items in Hosts file from data
 size_t __fastcall ReadWhitelistAndBannedData(std::string Data, const size_t FileIndex, const size_t Line, const size_t LabelType)
 {
-//Mark separated location.
+//Mark separated location and check data format.
 	size_t Separated = 0;
 	if (Data.find(ASCII_SPACE) != std::string::npos)
 	{
 		Separated = Data.find(ASCII_SPACE);
 	}
-	else {
+	else if (Data.find(ASCII_COMMA) != std::string::npos)
+	{
+		Separated = Data.find(ASCII_COMMA);
+	}
+	if (Separated == 0 || (LabelType == LABEL_HOSTS_BANNED_TYPE && (Data.find(ASCII_COLON) == std::string::npos || Separated <= Data.find(ASCII_COLON) + 1U)))
+	{
 		PrintError(LOG_ERROR_HOSTS, L"Data format error", 0, HostsFileList[FileIndex].FileName.c_str(), Line);
 		return EXIT_FAILURE;
 	}
@@ -4037,8 +4063,50 @@ size_t __fastcall ReadWhitelistAndBannedData(std::string Data, const size_t File
 	while (Data.find(ASCII_SPACE) != std::string::npos)
 		Data.erase(Data.find(ASCII_SPACE), 1U);
 
-//Mark patterns.
 	HOSTS_TABLE HostsTableTemp;
+//Mark banned types.
+	if (LabelType == LABEL_HOSTS_BANNED_TYPE)
+	{
+	//Permit or Deny
+		if (Data.find("PERMIT") != std::string::npos && Data.find("PERMIT") <= Separated || 
+			Data.find("Permit") != std::string::npos && Data.find("Permit") <= Separated || 
+			Data.find("permit") != std::string::npos && Data.find("permit") <= Separated)
+				HostsTableTemp.TypeOperation = true;
+
+	//Mark types.
+		std::string TypeString;
+		uint16_t RecordType = 0;
+		for (size_t Index = Data.find(ASCII_COLON) + 1U;Index <= Separated;++Index)
+		{
+			if (Data.at(Index) == ASCII_VERTICAL || Index == Separated)
+			{
+				RecordType = DNSTypeNameToHex(TypeString.c_str());
+				if (RecordType <= 0)
+				{
+				//Number types
+					SSIZE_T Result = strtoul(TypeString.c_str(), nullptr, 0);
+					if (errno != ERANGE && Result > 0 && Result <= UINT16_MAX)
+					{
+						HostsTableTemp.RecordType.push_back(htons((uint16_t)Result));
+					}
+					else {
+						PrintError(LOG_ERROR_PARAMETER, L"DNS Records type error", 0, HostsFileList[FileIndex].FileName.c_str(), Line);
+						return EXIT_FAILURE;
+					}
+				}
+				else { //Name types
+					HostsTableTemp.RecordType.push_back(RecordType);
+				}
+
+				TypeString.clear();
+			}
+			else {
+				TypeString.append(Data, Index, 1U);
+			}
+		}
+	}
+
+//Mark patterns.
 	HostsTableTemp.PatternString.append(Data, Separated, Data.length() - Separated);
 	try {
 		std::regex PatternHostsTableTemp(HostsTableTemp.PatternString);
@@ -4056,7 +4124,7 @@ size_t __fastcall ReadWhitelistAndBannedData(std::string Data, const size_t File
 		if (HostsTableIter.PatternString == HostsTableTemp.PatternString)
 		{
 			if (HostsTableIter.Type == HOSTS_NORMAL || HostsTableIter.Type == HOSTS_WHITE && LabelType != LABEL_HOSTS_WHITELIST || 
-				HostsTableIter.Type == HOSTS_LOCAL || HostsTableIter.Type == HOSTS_BANNED && LabelType != LABEL_HOSTS_BANNED)
+				HostsTableIter.Type == HOSTS_LOCAL || HostsTableIter.Type == HOSTS_BANNED && LabelType != LABEL_HOSTS_BANNED && LabelType != LABEL_HOSTS_BANNED_TYPE)
 					PrintError(LOG_ERROR_HOSTS, L"Repeating items error, this item is not available", 0, HostsFileList[FileIndex].FileName.c_str(), Line);
 
 			return EXIT_FAILURE;
@@ -4064,7 +4132,7 @@ size_t __fastcall ReadWhitelistAndBannedData(std::string Data, const size_t File
 	}
 
 //Mark types.
-	if (LabelType == LABEL_HOSTS_BANNED)
+	if (LabelType == LABEL_HOSTS_BANNED || LabelType == LABEL_HOSTS_BANNED_TYPE)
 		HostsTableTemp.Type = HOSTS_BANNED;
 	else 
 		HostsTableTemp.Type = HOSTS_WHITE;
@@ -4572,7 +4640,7 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 				return EXIT_FAILURE;
 			}
 
-			HostsTableTemp.Protocol = AF_INET6;
+			HostsTableTemp.RecordType.push_back(htons(DNS_RECORD_AAAA));
 			HostsTableTemp.Length = sizeof(dns_record_aaaa);
 		}
 	//A records(IPv4)
@@ -4604,7 +4672,7 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 				return EXIT_FAILURE;
 			}
 
-			HostsTableTemp.Protocol = AF_INET;
+			HostsTableTemp.RecordType.push_back(htons(DNS_RECORD_A));
 			HostsTableTemp.Length = sizeof(dns_record_a);
 		}
 	}
@@ -4619,7 +4687,7 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 			if (Data[0] < ASCII_ZERO || Data[0] > ASCII_COLON && Data[0] < ASCII_UPPERCASE_A || Data[0] > ASCII_UPPERCASE_F && Data[0] < ASCII_LOWERCASE_A || Data[0] > ASCII_LOWERCASE_F)
 				return EXIT_FAILURE;
 
-			HostsTableTemp.Protocol = AF_INET6;
+			HostsTableTemp.RecordType.push_back(htons(DNS_RECORD_AAAA));
 			for (Index = 0;Index <= Separated;++Index)
 			{
 			//Read data.
@@ -4665,7 +4733,7 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 			if (Data[0] < ASCII_ZERO || Data[0] > ASCII_NINE)
 				return EXIT_FAILURE;
 
-			HostsTableTemp.Protocol = AF_INET;
+			HostsTableTemp.RecordType.push_back(htons(DNS_RECORD_A));
 			for (Index = 0;Index <= Separated;++Index)
 			{
 			//Read data.
@@ -4725,13 +4793,13 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 	{
 		if (HostsListIter->PatternString == HostsTableTemp.PatternString)
 		{
-			if (HostsListIter->Type != HOSTS_NORMAL || HostsListIter->Protocol == 0)
+			if (HostsListIter->Type != HOSTS_NORMAL || HostsListIter->RecordType.empty())
 			{
 				PrintError(LOG_ERROR_HOSTS, L"Repeating items error, this item is not available", 0, HostsFileList[FileIndex].FileName.c_str(), Line);
 				return EXIT_FAILURE;
 			}
 			else {
-				if (HostsListIter->Protocol == HostsTableTemp.Protocol)
+				if (HostsListIter->RecordType.front() == HostsTableTemp.RecordType.front())
 				{
 					if (HostsListIter->Length + HostsTableTemp.Length < PACKET_MAXSIZE)
 					{
@@ -5596,6 +5664,7 @@ size_t __fastcall ReadHopLimitData(std::string Data, const size_t DataOffset, ui
 }
 
 //Read Provider Name of DNSCurve server
+#if defined(ENABLE_LIBSODIUM)
 size_t __fastcall ReadDNSCurveProviderName(std::string Data, const size_t DataOffset, PSTR ProviderNameData, const size_t FileIndex, const size_t Line)
 {
 	if (Data.length() > DataOffset + DOMAIN_MINSIZE && Data.length() < DataOffset + DOMAIN_DATA_MAXSIZE)
@@ -5668,6 +5737,7 @@ size_t __fastcall ReadMagicNumber(std::string Data, const size_t DataOffset, PST
 
 	return EXIT_SUCCESS;
 }
+#endif
 
 //Clear data in list
 void __fastcall ClearListData(const size_t ClearType, const size_t FileIndex)

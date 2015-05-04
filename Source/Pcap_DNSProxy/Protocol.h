@@ -21,7 +21,9 @@
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
-extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+#if defined(ENABLE_LIBSODIUM)
+	extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+#endif
 extern std::vector<ADDRESS_RANGE_TABLE> *AddressRangeUsing;
 extern std::vector<RESULT_BLACKLIST_TABLE> *ResultBlacklistUsing;
 extern std::vector<ADDRESS_ROUTING_TABLE_IPV6> *LocalRoutingList_IPv6_Using;

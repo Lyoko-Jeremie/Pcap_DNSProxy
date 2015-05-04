@@ -23,8 +23,9 @@
 CONFIGURATION_TABLE Parameter;
 time_t StartTime, RunningLogStartTime;
 ALTERNATE_SWAP_TABLE AlternateSwapList;
-//PORT_TABLE PortList;
-DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+#if defined(ENABLE_LIBSODIUM)
+	DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+#endif
 std::vector<std::wstring> ConfigFileList;
 #if defined(PLATFORM_LINUX)
 	std::vector<std::string> sConfigFileList;
