@@ -2000,10 +2000,11 @@ typedef struct _dnscurve_txt_signature_
 	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT    3000U     //Default timeout of reliable sockets(Such as TCP, 3 seconds/3000ms)
 	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT  2000U     //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds/2000ms)
 #elif defined(PLATFORM_LINUX)
+	#define DEFAULT_BLOCK_GATEWAY_ERROR_TIME   10U       //Block gateway error messages when using systemd init, 10 seconds.
 	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT    3U        //Default timeout of reliable sockets(Such as TCP, 3 seconds)
 	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT  2U        //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds)
 #endif
-#define DEFAULT_FILEREFRESH_TIME           10U        //Default time between files auto-refreshing, 10 seconds
+#define DEFAULT_FILEREFRESH_TIME           10U       //Default time between files auto-refreshing, 10 seconds
 #define DEFAULT_ICMPTEST_TIME              5U        //Default time between ICMP Test, 5 seconds
 #define DEFAULT_DOMAINTEST_INTERVAL_TIME   900U      //Default Domain Test time between every sending, 15 minutes(900 seconds)
 #define DEFAULT_ALTERNATE_TIMES            5U        //Default times of requesting timeout, 5 times

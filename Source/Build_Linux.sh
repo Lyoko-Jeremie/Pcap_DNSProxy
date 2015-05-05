@@ -50,10 +50,13 @@ rm -Rrf Object
 chmod 777 Release/KeyPairGenerator
 chmod 777 Release/Pcap_DNSProxy
 chmod 777 Build_Linux.SysV.sh
-cp -f ExampleConfig/PcapDNSProxyService Release/PcapDNSProxyService
+chmod 777 Build_Linux.Systemd.sh
+cp ExampleConfig/PcapDNSProxyService Release/PcapDNSProxyService
+cp ExampleConfig/Pcap_DNSProxy.service Release/Pcap_DNSProxy.service
 chmod 777 Release/PcapDNSProxyService
-cp -f ExampleConfig/Config.ini Release/Config.conf
-cp -f ExampleConfig/Hosts.ini Release/Hosts.conf
-cp -f ExampleConfig/IPFilter.ini Release/IPFilter.conf
-cp -f ExampleConfig/Routing.txt Release/Routing.txt
-cp -f ExampleConfig/White_List.txt Release/White_List.txt
+chmod 777 Release/Pcap_DNSProxy.service
+cp ExampleConfig/Config.ini Release/Config.conf
+cp ExampleConfig/Hosts.ini Release/Hosts.conf
+cp ExampleConfig/IPFilter.ini Release/IPFilter.conf
+cp ExampleConfig/Routing.txt Release/Routing.txt
+cp ExampleConfig/White_List.txt Release/White_List.txt

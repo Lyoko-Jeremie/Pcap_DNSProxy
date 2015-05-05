@@ -556,6 +556,7 @@ size_t __fastcall GetNetworkingInformation(void)
 	PADDRINFOA LocalAddressList = nullptr, LocalAddressTableIter = nullptr;
 #elif defined(PLATFORM_LINUX)
 	ifaddrs *InterfaceAddressList = nullptr, *InterfaceAddressIter = nullptr;
+	usleep(DEFAULT_BLOCK_GATEWAY_ERROR_TIME * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND);
 #endif
 	pdns_hdr DNS_Header = nullptr;
 	pdns_qry DNS_Query = nullptr;

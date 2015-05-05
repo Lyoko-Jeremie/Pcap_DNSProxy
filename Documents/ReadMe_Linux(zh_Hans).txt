@@ -47,30 +47,44 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 使用 ./Build_Linux.sh 执行编译程序
     * 脚本所进行的操作：
       * CMake 将编译并在 Release 目录生成 Pcap_DNSProxy 和 KeyPairGenerator 程序
-      * 设置 Pcap_DNSProxy 和 KeyPairGenerator 程序以及 PcapDNSProxyService 服务控制脚本的可执行权限
+      * 设置 Pcap_DNSProxy 和 KeyPairGenerator 程序以及 PcapDNSProxyService 和 Pcap_DNSProxy.service 服务控制脚本的可执行权限
+      * 设置 Build_Linux.Systemd.sh 以及 Build_Linux.SysV.sh 服务控制安装脚本的可执行权限
       * 从 ExampleConfig 复制默认配置文件到 Release 目录
     * 执行时使用 ./Build_Linux.sh --disable-libsodium 可剥离 Libsodium 的依赖，不建议使用
       * 剥离后编译时将不需要 Libsodium 库的支持
       * 剥离后程序将完全失去支持 DNSCurve/DNSCrypt 协议的功能，且运行时将不会产生任何错误提示，慎用！
 
-3.配置 PcapDNSProxyService 服务
+3.配置系统守护进程服务
   * 由于不同的 Linux 发行版对系统服务和守护进程的处理方式不同，本步仅供参考
-    * 附带的脚本适用于 Linux Debian 6.0 官方发行版以及更新版本系统环境，测试通过可以直接使用
+    * 附带的 Build_Linux.Systemd.sh 脚本适用于默认使用 Systemd Init 的系统
+      * Linux Debian 8.x 官方发行版以及更新版本系统环境，经测试可直接使用
+    * 附带的 Build_Linux.SysV.sh 脚本适用于默认使用 System V Init 的系统
+      * Linux Debian 6.x - 7.x 官方发行版系统环境，经测试可直接使用
     * 更多详情可参见下文其它 Linux 发行版服务的说明，以及所使用 Linux 发行版的官方说明
-  * 进入 Release 目录并编辑 PcapDNSProxyService 文件，编辑完成后保存：
-    * NAME 项为程序的名称
-    * PATH 项为程序的绝对路径
-  * 回到 Source 目录，运行 chmod 777 Build_Linux.SysV.sh 使脚本获得执行权限
-  * 使用 ./Build_Linux.SysV.sh 执行服务安装脚本，脚本所进行的操作：
-    * 将 PcapDNSProxyService 服务控制脚本的所有者更改为 root
-    * 安装服务控制脚本
-    * 尝试启动 PcapDNSProxyService 服务
-  * 以后每次系统启动都将自动运行脚本启动服务
-  * 可直接输入 sh PcapDNSProxyService 不带参数查询用法
-    * start - 启动服务
-    * stop - 停止服务
-    * force-reload/restart - 重启服务
-    * status - 服务状态，如果 PID 为空则服务未启动
+  * 使用 Systemd Init 时：
+    * 进入 Release 目录并编辑 Pcap_DNSProxy.service 文件，编辑完成后保存： 
+      * WorkingDirectory= 项为程序所在目录的绝对路径
+      * ExecStart= 项为程序所在目录的绝对路径，并在最后加上程序的名称
+    * 在 root 权限下使用 ./Build_Linux.Systemd.sh 执行服务安装脚本，脚本所进行的操作：
+      * 将 Pcap_DNSProxy.service 服务控制脚本的所有者更改为 root
+      * 安装服务控制脚本到 /etc/systemd/system 目录中
+      * 尝试启动 Pcap_DNSProxy 服务，并显示执行操作后服务的状态
+      * 以后每次系统启动都将自动启动服务
+    * 更多 Systemd 服务控制的方法，参见各 Linux 发行版官方文档的说明
+  * 使用 System V Init 时：
+    * 进入 Release 目录并编辑 PcapDNSProxyService 文件，编辑完成后保存：
+      * NAME 项为程序的名称
+      * PATH 项为程序的绝对路径
+    * 在 root 权限下使用 ./Build_Linux.SysV.sh 执行服务安装脚本，脚本所进行的操作：
+      * 将 PcapDNSProxyService 服务控制脚本的所有者更改为 root
+      * 安装服务控制脚本到 /etc/init.d 目录中
+      * 尝试启动 PcapDNSProxyService 服务，并显示执行操作后服务的状态
+      * 以后每次系统启动都将自动运行脚本启动服务
+    * 可直接输入 sh PcapDNSProxyService 不带参数查询用法
+      * start - 启动服务
+      * stop - 停止服务
+      * force-reload/restart - 重启服务
+      * status - 服务状态，如果 PID 为空则服务未启动
 
 4.配置系统 DNS 服务器设置
   * 可参见 https://developers.google.com/speed/public-dns/docs/using 中 Changing your DNS servers settings 中 Linux 一节
@@ -150,8 +164,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
 其它 Linux 发行版服务的说明：
 
 * Linux Debian 系列：
-  * 官方发行版 6.0 以上版本使用 insserv 管理系统服务
-  * 官方发行版 6.0 以下版本需要使用 update-rc.d 管理系统服务，参见 https://wiki.debian.org/Daemon
+  * 官方发行版 8.x 以及更新版本默认需要使用 Systemd 管理系统服务
+  * 官方发行版 6.x - 7.x 版本默认需要使用 insserv 管理系统服务
+  * 官方发行版 6.x 以下版本默认需要使用 update-rc.d 管理系统服务，参见 https://wiki.debian.org/Daemon
 * Linux Red Hat 和 openSUSE 系列：
   * 使用 chkconfig 管理系统服务
   * 参见 https://access.redhat.com/site/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Deployment_Guide/s2-services-chkconfig.html

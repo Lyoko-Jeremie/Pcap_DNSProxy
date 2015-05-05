@@ -1,5 +1,3 @@
-#!/bin/sh
-# 
 # This code is part of Pcap_DNSProxy
 # A local DNS server base on WinPcap and LibPcap.
 # Copyright (C) 2012-2015 Chengr28
@@ -19,9 +17,18 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-chown root:root Release/PcapDNSProxyService
-ln -fs $(pwd)/Release/PcapDNSProxyService /etc/init.d
-cd /etc/init.d
-insserv PcapDNSProxyService
-service PcapDNSProxyService start
-service PcapDNSProxyService status
+[Unit]
+Description=Pcap_DNSProxy
+
+[Service]
+Type=forking
+After=network.target
+Wants=network-online.target
+WorkingDirectory=
+ExecStart=
+GuessMainPID=yes
+Restart=on-failure
+RestartSec=10s
+
+[Install]
+WantedBy=multi-user.target
