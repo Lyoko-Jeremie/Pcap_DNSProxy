@@ -43,7 +43,7 @@ size_t __fastcall CaptureInit(void)
 			memset(ErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
 			wErrBuffer.clear();
 
-			Sleep(PCAP_DEVICESRECHECK_TIME * SECOND_TO_MILLISECOND);
+			Sleep(PCAP_DEVICES_RECHECK_TIME * SECOND_TO_MILLISECOND);
 			continue;
 		}
 
@@ -52,7 +52,7 @@ size_t __fastcall CaptureInit(void)
 		{
 			PrintError(LOG_ERROR_PCAP, L"Insufficient privileges or no any available network devices", 0, nullptr, 0);
 
-			Sleep(PCAP_DEVICESRECHECK_TIME * SECOND_TO_MILLISECOND);
+			Sleep(PCAP_DEVICES_RECHECK_TIME * SECOND_TO_MILLISECOND);
 			continue;
 		}
 		else {
@@ -89,7 +89,7 @@ size_t __fastcall CaptureInit(void)
 			}
 		}
 
-		Sleep(PCAP_DEVICESRECHECK_TIME * SECOND_TO_MILLISECOND);
+		Sleep(PCAP_DEVICES_RECHECK_TIME * SECOND_TO_MILLISECOND);
 		pcap_freealldevs(pThedevs);
 	}
 
@@ -298,7 +298,7 @@ void __fastcall FilterRulesInit(std::string &FilterRules)
 size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 {
 //Devices check
-	if (pDrive->name == nullptr || pDrive->addresses == nullptr
+	if (pDrive->name == nullptr || pDrive->addresses == nullptr || pDrive->flags == PCAP_IF_LOOPBACK
 #if defined(PLATFORM_LINUX)
 		|| strstr(pDrive->name, "lo") != nullptr || strstr(pDrive->name, "any") != nullptr
 #endif
@@ -313,7 +313,7 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 		return EXIT_SUCCESS;
 	}
 
-	//Initialization
+//Initialization
 	pcap_t *DeviceHandle = nullptr;
 	std::shared_ptr<char> Buffer(new char[ORIGINAL_PACKET_MAXSIZE * BUFFER_RING_MAXNUM]());
 	memset(Buffer.get(), 0, ORIGINAL_PACKET_MAXSIZE * BUFFER_RING_MAXNUM);
@@ -473,11 +473,11 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 				pcap_close(DeviceHandle);
 				return EXIT_FAILURE;
 			}break;
-			case FALSE: //0, Timeout set with pcap_open_live() has elapsed. In this case pkt_header and pkt_data don't point to a valid packet.
+			case FALSE: //0, Read timeout with pcap_open_live() has elapsed. In this case pkt_header and pkt_data don't point to a valid packet.
 			{
 				Sleep(LOOP_INTERVAL_TIME);
 				continue;
-			}
+			}break;
 			case TRUE: //1, Packet has been read without problems.
 			{
 				memset(Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, 0, ORIGINAL_PACKET_MAXSIZE);

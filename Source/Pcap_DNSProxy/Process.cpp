@@ -168,8 +168,9 @@ size_t __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Len
 #endif
 
 //TCP requesting
-	if ((Protocol == IPPROTO_TCP || Parameter.RequestMode == REQUEST_TCPMODE) && TCPRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, LocalSocketData) == EXIT_SUCCESS)
-		return EXIT_SUCCESS;
+	if ((Protocol == IPPROTO_TCP || Parameter.RequestMode == REQUEST_TCPMODE) && 
+		TCPRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, LocalSocketData) == EXIT_SUCCESS)
+			return EXIT_SUCCESS;
 
 //IPv6 tunnels support
 	if (Parameter.GatewayAvailable_IPv6 && Parameter.TunnelAvailable_IPv6 && 
@@ -307,7 +308,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 	//Send Localhost PTR.
 		if (IsSendPTR)
 		{
-			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SER_RA); //Set 1000100000000000, DNS_SQR_NEA
+			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SER_RA);
 			DNS_Header->Answer = htons(U16_NUM_ONE);
 
 		//EDNS0 Label
@@ -813,7 +814,10 @@ size_t __fastcall MarkDomainCache(const char *Buffer, const size_t Length)
 //Check conditions.
 	auto DNS_Header = (pdns_hdr)Buffer;
 	if (DNS_Header->Questions != htons(U16_NUM_ONE) || //No any Question Record in responses
-		DNS_Header->Answer == 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0) //No any Resource Records 
+		DNS_Header->Answer == 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 || //No any Resource Records
+		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_OPCODE) != DNS_OPCODE_QUERY || //OPCode must be set Query/0.
+		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) != 0 || //Truncated bit must not be set.
+		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) != DNS_RCODE_NOERROR && (ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) != DNS_RCODE_NXDOMAIN) //RCode must be set No Error/0 or Non-Existent Domain/3.
 			return EXIT_FAILURE; 
 
 //Initialization(A part)

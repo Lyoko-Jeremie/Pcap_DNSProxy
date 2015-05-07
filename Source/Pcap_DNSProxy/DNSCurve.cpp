@@ -354,7 +354,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 		FD_ZERO(WriteFDS.get());
 		FD_SET(TCPSocket, WriteFDS.get());
 		SelectResult = 0, RecvLen = 0, PDULen = 0;
-		for (;;)
+		for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 		{
 			Sleep(LOOP_INTERVAL_TIME);
 
@@ -385,7 +385,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 				//TCP segment of a reassembled PDU
 					if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 					{
-						if (RecvLen > 0 && htons(((uint16_t *)RecvBuffer.get())[0]) >= DNS_PACKET_MINSIZE)
+						if (RecvLen > 0 && htons(((uint16_t *)RecvBuffer.get())[0]) >= DNS_PACKET_MINSIZE && htons(((uint16_t *)RecvBuffer.get())[0]) < LARGE_PACKET_MAXSIZE)
 						{
 							PDULen = htons(((uint16_t *)RecvBuffer.get())[0]);
 							memset(RecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
@@ -465,7 +465,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 								closesocket(TCPSocket);
 
 								RecvLen = ntohs(((uint16_t *)RecvBuffer.get())[0]);
-								if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
+								if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && RecvLen < (SSIZE_T)LARGE_PACKET_MAXSIZE)
 								{
 									memmove_s(RecvBuffer.get(), LARGE_PACKET_MAXSIZE, RecvBuffer.get() + sizeof(uint16_t), RecvLen);
 
@@ -1051,7 +1051,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 	FD_SET(TCPSocket, WriteFDS.get());
 	SSIZE_T SelectResult = 0, RecvLen = 0;
 	uint16_t PDULen = 0;
-	for (;;)
+	for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 	{
 		Sleep(LOOP_INTERVAL_TIME);
 
@@ -1082,7 +1082,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 			//TCP segment of a reassembled PDU
 				if (RecvLen > 0 && RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 				{
-					if (htons(((uint16_t *)OriginalRecv)[0]) >= DNS_PACKET_MINSIZE)
+					if (htons(((uint16_t *)OriginalRecv)[0]) >= DNS_PACKET_MINSIZE && htons(((uint16_t *)OriginalRecv)[0]) < RecvSize)
 					{
 						PDULen = htons(((uint16_t *)OriginalRecv)[0]);
 						memset(OriginalRecv, 0, RecvSize);
@@ -1127,9 +1127,10 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 							closesocket(TCPSocket);
 
 							RecvLen = ntohs(((uint16_t *)OriginalRecv)[0]);
-							memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(uint16_t), RecvLen);
-							if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
+							if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && RecvLen < (SSIZE_T)RecvSize)
 							{
+								memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(uint16_t), RecvLen);
+
 							//Encryption mode
 								if (DNSCurveParameter.IsEncryption)
 								{
@@ -1557,7 +1558,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 	}
 	SSIZE_T SelectResult = 0, RecvLen = 0;
 	std::vector<uint16_t> PDULenList(TCPSocketDataList.size(), 0);
-	for (;;)
+	for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 	{
 		Sleep(LOOP_INTERVAL_TIME);
 
@@ -1596,7 +1597,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 				//TCP segment of a reassembled PDU
 					if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 					{
-						if (RecvLen > 0 && htons(((uint16_t *)OriginalRecv)[0]) >= DNS_PACKET_MINSIZE)
+						if (RecvLen > 0 && htons(((uint16_t *)OriginalRecv)[0]) >= DNS_PACKET_MINSIZE && htons(((uint16_t *)OriginalRecv)[0]) < RecvSize)
 						{
 							PDULenList[Index] = htons(((uint16_t *)OriginalRecv)[0]);
 							memset(OriginalRecv, 0, RecvSize);
@@ -1648,7 +1649,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 							}
 							else {
 								RecvLen = ntohs(((uint16_t *)OriginalRecv)[0]);
-								if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
+								if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && RecvLen < (SSIZE_T)RecvSize)
 								{
 									memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(uint16_t), RecvLen);
 
@@ -2382,7 +2383,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	}
 	SSIZE_T SelectResult = 0, RecvLen = 0;
 	size_t Index = 0;
-	for (;;)
+	for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 	{
 		Sleep(LOOP_INTERVAL_TIME);
 

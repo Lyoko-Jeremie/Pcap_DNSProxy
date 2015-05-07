@@ -1345,6 +1345,10 @@ RFC 7314(https://tools.ietf.org/html/rfc7314), Extension Mechanisms for DNS (EDN
 #define DNS_SQR_FE              0x8181   //Standard query response, Format Error
 #define DNS_SQR_SF              0x8182   //Standard query response, Server failure
 #define DNS_SQR_SNH             0x8183   //Standard query response, No Such Name
+#define DNS_GET_BIT_OPCODE      0x7800   //Get OPCode in DNS flags.
+#define DNS_GET_BIT_AA          0x0400   //Get Authoritative bit in DNS flags.
+#define DNS_GET_BIT_TC          0x0200   //Get Truncated bit in DNS flags.
+#define DNS_GET_BIT_RCODE       0x000F   //Get RCode in DNS flags.
 #define DNS_SET_R               0x8000   //Set Response bit.
 #define DNS_SET_RTC             0x8200   //Set Response bit and Truncated bit.
 #define DNS_SER_RA              0x8580   //Set Response bit and Authoritative bit.
@@ -1961,7 +1965,7 @@ typedef struct _dnscurve_txt_signature_
 	#define ICMP_STRING_START_NUM_LINUX    16U
 	#define ICMP_PADDING_LENGTH_LINUX      40U
 #endif
-#define MULTI_REQUEST_TIMES_MAXNUM     16U                                        //Maximum times of multi requesting.
+#define MULTI_REQUEST_TIMES_MAXNUM     8U                                         //Maximum times of multi requesting.
 #define NETWORK_LAYER_PARTNUM          2U                                         //Number of network layer protocols(IPv6 and IPv4)
 #define TRANSPORT_LAYER_PARTNUM        4U                                         //Number of transport layer protocols(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
 #define ALTERNATE_SERVERNUM            12U                                        //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
@@ -1991,10 +1995,11 @@ typedef struct _dnscurve_txt_signature_
 #define STANDARD_TIMEOUT                   1000U     //Standard timeout, 1000 ms(1 second)
 #define SECOND_TO_MILLISECOND              1000U     //1000 milliseconds(1 second)
 #define MICROSECOND_TO_MILLISECOND         1000U     //1000 microseconds(1 millisecond)
-#define UPDATESERVICE_TIME                 3U        //Update service timeout, 3 seconds
-//#define PCAP_FINALLDEVS_RETRY_TIME         90U       //Retry to get device list in 15 minutes(900 seconds).
-#define PCAP_DEVICESRECHECK_TIME           10U       //Time between every WinPcap/LibPcap devices recheck, 10 seconds
-#define PCAP_CAPTURE_TIMEOUT               250U      //Pcap read timeout, 250 ms
+#if defined(PLATFORM_WIN)
+	#define UPDATE_SERVICE_TIME                3U        //Update service timeout, 3 seconds
+#endif
+#define PCAP_DEVICES_RECHECK_TIME          10U       //Time between every WinPcap/LibPcap devices recheck, 10 seconds
+#define PCAP_CAPTURE_TIMEOUT               5000U     //Pcap reading timeout, 5 seconds(5000 ms)
 #define SOCKET_TIMEOUT_MIN                 500U      //The shortset socket timeout, 500 ms
 #if defined(PLATFORM_WIN)
 	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT    3000U     //Default timeout of reliable sockets(Such as TCP, 3 seconds/3000ms)

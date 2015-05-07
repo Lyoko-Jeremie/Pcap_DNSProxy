@@ -2672,7 +2672,7 @@ size_t __fastcall ReadIPFilter(void)
 	//Auto-refresh
 		if (Parameter.FileRefreshTime > 0)
 			Sleep((DWORD)Parameter.FileRefreshTime);
-		else
+		else 
 			break;
 	}
 

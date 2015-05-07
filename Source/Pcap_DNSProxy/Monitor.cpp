@@ -590,7 +590,6 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 	void *Addr = nullptr;
 	pdns_hdr DNS_Header = nullptr;
 	size_t Index[] = {0, 0};
-
 	for (;;)
 	{
 		Sleep(LOOP_INTERVAL_TIME);
@@ -809,7 +808,6 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 	std::shared_ptr<SOCKET_DATA> ClientData(new SOCKET_DATA());
 	void *Addr = nullptr;
 	ClientData->AddrLen = LocalSocketData.AddrLen;
-
 	for (;;)
 	{
 		Sleep(LOOP_INTERVAL_TIME);
@@ -882,6 +880,12 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 	{
 	//Receive without PDU.
 		uint16_t PDU_Len = ntohs(((uint16_t *)Buffer.get())[0]);
+		if (PDU_Len > LARGE_PACKET_MAXSIZE)
+		{
+			shutdown(LocalSocketData.Socket, SD_BOTH);
+			closesocket(LocalSocketData.Socket);
+			return EXIT_FAILURE;
+		}
 		memset(Buffer.get(), 0, RecvLen);
 		if (Parameter.EDNS0Label) //EDNS0 Label
 			RecvLen = recv(LocalSocketData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE - sizeof(dns_record_opt), 0);
@@ -956,7 +960,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 			return EXIT_FAILURE;
 		}
 	}
-	else if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && RecvLen >= (SSIZE_T)htons(((uint16_t *)Buffer.get())[0]))
+	else if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && RecvLen >= (SSIZE_T)htons(((uint16_t *)Buffer.get())[0]) && htons(((uint16_t *)Buffer.get())[0]) < LARGE_PACKET_MAXSIZE)
 	{
 		RecvLen = htons(((uint16_t *)Buffer.get())[0]);
 

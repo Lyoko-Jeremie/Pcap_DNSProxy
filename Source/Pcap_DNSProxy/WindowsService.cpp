@@ -43,7 +43,7 @@ BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType)
 size_t WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
 {
 	ServiceStatusHandle = RegisterServiceCtrlHandlerW(DEFAULT_LOCAL_SERVICENAME, (LPHANDLER_FUNCTION)ServiceControl);
-	if (!ServiceStatusHandle || !UpdateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0, 1U, UPDATESERVICE_TIME * SECOND_TO_MILLISECOND))
+	if (!ServiceStatusHandle || !UpdateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0, 1U, UPDATE_SERVICE_TIME * SECOND_TO_MILLISECOND))
 		return FALSE;
 
 	ServiceEvent = CreateEventW(0, TRUE, FALSE, 0);
@@ -74,7 +74,7 @@ size_t WINAPI ServiceControl(const DWORD dwControlCode)
 		case SERVICE_CONTROL_STOP:
 		{
 			ServiceCurrentStatus = SERVICE_STOP_PENDING;
-			UpdateServiceStatus(SERVICE_STOP_PENDING, NO_ERROR, 0, 1U, UPDATESERVICE_TIME * SECOND_TO_MILLISECOND);
+			UpdateServiceStatus(SERVICE_STOP_PENDING, NO_ERROR, 0, 1U, UPDATE_SERVICE_TIME * SECOND_TO_MILLISECOND);
 			WSACleanup();
 			TerminateService();
 

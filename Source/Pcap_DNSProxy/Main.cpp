@@ -234,6 +234,8 @@
 				{
 					if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)
 					{
+						((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
+
 						++Index;
 						continue;
 					}
@@ -263,6 +265,8 @@
 				{
 					if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)
 					{
+						((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
+
 						++Index;
 						continue;
 					}

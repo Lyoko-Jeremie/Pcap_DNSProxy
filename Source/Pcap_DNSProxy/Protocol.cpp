@@ -2226,9 +2226,8 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 //DNS Options part
 	if (Parameter.DNSDataCheck && (DNS_Header->Questions != htons(U16_NUM_ONE) || //Question Resource Records must be one.
 		ntohs(DNS_Header->Flags) >> 15U == 0 || //No any Question Resource Records
-//		(ntohs(DNS_Header->Flags) & UINT4_MAX) == DNS_RCODE_NOERROR && DNS_Header->Answer == 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 || //No any non-Question Resource Records when RCode is No Error(Normal)
-		(ntohs(DNS_Header->Flags) & 0x0400) >> 10U > 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 || //Responses are not authoritative when there are no any Authoritative Nameservers Records and Additional Resource Records.
-		IsLocal && ((ntohs(DNS_Header->Flags) & UINT4_MAX) > DNS_RCODE_NOERROR || (ntohs(DNS_Header->Flags) & 0x0200) >> 9U > 0 && DNS_Header->Answer == 0) || //Local requesting failed or Truncated(xxxxxx1xxxxxxxxx & 0000001000000000 >> 9 == 1)
+		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_AA) != 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 || //Responses are not authoritative when there are no any Authoritative Nameservers Records and Additional Resource Records.
+		IsLocal && ((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) > DNS_RCODE_NOERROR || (ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) != 0 && DNS_Header->Answer == 0) || //Local requesting failed or Truncated(xxxxxx1xxxxxxxxx & 0000001000000000 >> 9 == 1)
 		Parameter.EDNS0Label && DNS_Header->Additional == 0)) //Additional EDNS0 Label Resource Records check
 			return false;
 
@@ -2239,7 +2238,7 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 
 //No Such Name, not standard query response and no error check.
 	if (IsMarkHopLimit != nullptr && Parameter.DNSDataCheck && 
-		(ntohs(DNS_Header->Flags) & UINT4_MAX) == DNS_RCODE_NXDOMAIN)
+		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NXDOMAIN)
 	{
 		*IsMarkHopLimit = true;
 		return true;

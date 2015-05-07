@@ -776,7 +776,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 	FD_SET(TCPSocket, WriteFDS.get());
 	SSIZE_T SelectResult = 0, RecvLen = 0;
 	uint16_t PDULen = 0;
-	for (;;)
+	for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 	{
 		Sleep(LOOP_INTERVAL_TIME);
 
@@ -807,7 +807,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 			//TCP segment of a reassembled PDU
 				if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 				{
-					if (RecvLen > 0 && htons(((uint16_t *)OriginalRecv)[0]) >= DNS_PACKET_MINSIZE)
+					if (RecvLen > 0 && htons(((uint16_t *)OriginalRecv)[0]) >= DNS_PACKET_MINSIZE && htons(((uint16_t *)OriginalRecv)[0]) < RecvSize)
 					{
 						PDULen = htons(((uint16_t *)OriginalRecv)[0]);
 						memset(OriginalRecv, 0, RecvSize);
@@ -852,7 +852,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 							closesocket(TCPSocket);
 
 							RecvLen = ntohs(((uint16_t *)OriginalRecv)[0]);
-							if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
+							if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && RecvLen < (SSIZE_T)RecvSize)
 							{
 								memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(uint16_t), RecvLen);
 
@@ -1209,7 +1209,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 	}
 	SSIZE_T SelectResult = 0, RecvLen = 0;
 	std::vector<uint16_t> PDULenList(TCPSocketDataList.size(), 0);
-	for (;;)
+	for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 	{
 		Sleep(LOOP_INTERVAL_TIME);
 
@@ -1248,7 +1248,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 				//TCP segment of a reassembled PDU
 					if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 					{
-						if (RecvLen > 0 && htons(((uint16_t *)OriginalRecv)[0]) >= DNS_PACKET_MINSIZE)
+						if (RecvLen > 0 && htons(((uint16_t *)OriginalRecv)[0]) >= DNS_PACKET_MINSIZE && htons(((uint16_t *)OriginalRecv)[0]) < RecvSize)
 						{
 							PDULenList[Index] = htons(((uint16_t *)OriginalRecv)[0]);
 							memset(OriginalRecv, 0, RecvSize);
@@ -1296,7 +1296,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 							}
 							else {
 								RecvLen = ntohs(((uint16_t *)OriginalRecv)[0]);
-								if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
+								if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && RecvLen < (SSIZE_T)RecvSize)
 								{
 									memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(uint16_t), RecvLen);
 
@@ -1801,7 +1801,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 		FD_SET(SocketDataIter.Socket, WriteFDS.get());
 	}
 	SSIZE_T SelectResult = 0;
-	for (;;)
+	for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 	{
 	//Reset parameters.
 	#if defined(PLATFORM_WIN)
@@ -2110,7 +2110,7 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 	//Hosts Only Extended check
 		if (Parameter.DNSDataCheck || Parameter.Blacklist)
 		{
-			for (;;)
+			for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 			{
 				if ((Parameter.DNSDataCheck || Parameter.Blacklist) && !CheckResponseData(OriginalRecv, RecvLen, IsLocal, nullptr))
 				{
@@ -2419,7 +2419,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 	}
 	SSIZE_T SelectResult = 0, RecvLen = 0;
 	size_t Index = 0;
-	for (;;)
+	for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 	{
 		Sleep(LOOP_INTERVAL_TIME);
 
