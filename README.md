@@ -7,12 +7,12 @@ A local DNS server base on WinPcap and LibPcap.
 说明文档等参见项目 [Documents 文件夹](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的内容
 
 ### Updated
-* 0.4 Beta 17   on Windows   (2015-05-07)
-* 0.4 Beta 3    on Linux     (2015-05-07)
-* 0.1           on Mac       (2014-08-19)
+* 0.4 Beta 17   on Windows
+* 0.4 Beta 3    on Linux
+* 0.4 Beta 1    on Mac
 
 ### Summary
-Pcap_DNSProxy 是一个基于 LibPcap/WinPcap 制作用于忽略 DNS 投毒污染的工具，包含对支持正则表达式的 Hosts 和 DNSCurve/DNSCrypt 协议以及多线程、TCP 协议请求的支持，可以提供便捷途径和更强大修改 Hosts 的方法，避免修改系统文件的麻烦。而多服务器多线程请求功能，更可提高在恶劣网络环境下域名解析的可靠性。
+Pcap_DNSProxy 是一个基于 WinPcap/LibPcap 制作用于过滤 DNS 投毒污染的工具，包含对支持正则表达式的 Hosts 和 DNSCurve/DNSCrypt 协议以及多线程、TCP 协议请求的支持，可以提供便捷途径和更强大修改 Hosts 的方法。多服务器多线程请求功能，更可提高在恶劣网络环境下域名解析的可靠性。
 * Native Code 原生编译不含任何托管代码，x64 版为原生 64 位目标平台编译
 * 多线程请求模型，充分利用多线程处理器的硬件资源
 * 支持 IPv4/IPv6 协议以及自定义多端口多地址监听和远程请求
@@ -31,16 +31,18 @@ Pcap_DNSProxy 是一个基于 LibPcap/WinPcap 制作用于忽略 DNS 投毒污�
   * 网络设备类型为 Ethernet 和 Apple IEEE 1394/FireWire 的网络
   * 原生 IPv4/PPPoE 网络和原生 IPv6/PPPoEv6 网络
 * Windows
-    * **Windows XP SP3/2003 SP2 以及更新的版本(32位/x86版本)和 Windows Vista/2008 以及更新的版本(64位/x64版本)**
+  * **64位/x64版本：Windows Vista/2008 以及更新的版本**
+  * **32位/x86版本：Windows XP SP3/2003 SP2 以及更新的版本**
 * Linux
-    * 支持 [编译所需依赖包](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的 Linux 发行版
+  * 支持 [编译所需依赖包](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的 Linux 发行版
 * Mac
-    * **采用Intel平台处理器的 Mac OS X 10.5 Leopard 以及更新的版本**
+  * **支持 64 位平台 Mac OS X 10.7 Lion 以及更新的版本**
+  * 不支持任何 32 位平台的 Mac OS X 系统
 
 ### Library
-* 正则表达式支持由 C++ STL(Windows/Linux)/系统自带的正则库(Mac) 提供
+* 正则表达式支持由 C++ 11 STL 提供
 * 文件 Hash 使用的算法由 [SHA-3/Keccak](http://keccak.noekeon.org) 提供
-* 离散型均匀分布随机数由 C++ STL 自带的梅森旋转算法引擎产生
+* 离散型均匀分布随机数由 C++ 11 STL 提供的梅森旋转算法引擎产生
 * DNSCurve 协议使用的 Curve25519/Salsa20/Poly1305 算法由 [LibSodium](https://github.com/jedisct1/libsodium) 提供
 * DNSCurve 协议加密模式使用的一次性 Nonce 亦由 [LibSodium](https://github.com/jedisct1/libsodium) 附带的随机数产生器提供
 

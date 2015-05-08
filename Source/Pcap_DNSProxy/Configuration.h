@@ -51,7 +51,7 @@ extern CONFIGURATION_TABLE Parameter;
 	extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
 #endif
 extern std::vector<std::wstring> ConfigFileList;
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	extern std::vector<std::string> sConfigFileList;
 #endif
 extern std::vector<FILE_DATA> IPFilterFileList, HostsFileList;
@@ -79,7 +79,7 @@ size_t __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex,
 size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, const size_t Line);
 #if defined(PLATFORM_WIN)
 	size_t __fastcall ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData);
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	size_t ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData, std::vector<std::string> *sListData);
 #endif
 size_t __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, const uint16_t Protocol, const size_t FileIndex, const size_t Line);

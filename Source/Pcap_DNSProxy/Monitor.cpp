@@ -30,7 +30,7 @@ size_t __fastcall RunningLogWriteMonitor(void)
 	HANDLE RunningFileHandle = nullptr;
 	std::shared_ptr<LARGE_INTEGER> RunningFileSize(new LARGE_INTEGER());
 	memset(RunningFileSize.get(), 0, sizeof(LARGE_INTEGER));
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::shared_ptr<struct stat> FileStat(new struct stat());
 	memset(FileStat.get(), 0, sizeof(struct stat));
 #endif
@@ -59,7 +59,7 @@ size_t __fastcall RunningLogWriteMonitor(void)
 						PrintError(LOG_ERROR_SYSTEM, L"Old Running Log file was deleted", 0, nullptr, 0);
 			}
 		}
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		memset(FileStat.get(), 0, sizeof(struct stat));
 		if (stat(Parameter.sRunningLogPath->c_str(), FileStat.get()) == 0)
 		{
@@ -71,7 +71,7 @@ size_t __fastcall RunningLogWriteMonitor(void)
 	//Write all messages to file.
 	#if defined(PLATFORM_WIN)
 		_wfopen_s(&Output, Parameter.RunningLogPath->c_str(), L"a,ccs=UTF-8");
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Output = fopen(Parameter.sRunningLogPath->c_str(), "a");
 	#endif
 		if (Output != nullptr && Parameter.RunningLogWriteQueue != nullptr)
@@ -98,7 +98,7 @@ size_t __fastcall RunningLogWriteMonitor(void)
 		}
 
 		RunningLogMutex.unlock();
-		Sleep((DWORD)Parameter.RunningLogRefreshTime); //Time between writing.
+		Sleep(Parameter.RunningLogRefreshTime); //Time between writing.
 	}
 
 	return EXIT_SUCCESS;
@@ -529,7 +529,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 #if defined(PLATFORM_WIN)
 	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
 		setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR || 
 		setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR)
 #endif
@@ -552,7 +552,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 
 		return EXIT_FAILURE;
 	}
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Socket reuse setting
 	int SetVal = 1;
 /*	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
@@ -740,7 +740,7 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 #if defined(PLATFORM_WIN)
 	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.ReliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
 		setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.ReliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.ReliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR || 
 		setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.ReliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR)
 #endif
@@ -763,7 +763,7 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 
 		return EXIT_FAILURE;
 	}
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Socket reuse setting
 	int SetVal = 1;
 /*	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
@@ -1034,7 +1034,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 	shutdown(LocalSocketData.Socket, SD_BOTH);
 #if defined(PLATFORM_WIN)
 	Sleep(Parameter.ReliableSocketTimeout);
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	usleep(Parameter.ReliableSocketTimeout.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.ReliableSocketTimeout.tv_usec);
 #endif
 	closesocket(LocalSocketData.Socket);

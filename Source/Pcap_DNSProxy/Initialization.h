@@ -27,7 +27,7 @@ ALTERNATE_SWAP_TABLE AlternateSwapList;
 	DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
 #endif
 std::vector<std::wstring> ConfigFileList;
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::vector<std::string> sConfigFileList;
 #endif
 std::vector<FILE_DATA> IPFilterFileList, HostsFileList;

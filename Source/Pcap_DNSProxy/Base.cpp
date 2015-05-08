@@ -43,7 +43,7 @@ void __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer)
 	wmemset(TargetPTR.get(), 0, strnlen(Buffer, LARGE_PACKET_MAXSIZE) + 1U);
 #if defined(PLATFORM_WIN)
 	MultiByteToWideChar(CP_ACP, 0, Buffer, MBSTOWCS_NULLTERMINATE, TargetPTR.get(), (int)strnlen(Buffer, LARGE_PACKET_MAXSIZE));
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	mbstowcs(TargetPTR.get(), Buffer, strnlen(Buffer, LARGE_PACKET_MAXSIZE));
 #endif
 	Target = TargetPTR.get();
@@ -67,8 +67,8 @@ size_t __fastcall CaseConvert(const bool IsLowerUpper, char *Buffer, const size_
 	return EXIT_SUCCESS;
 }
 
-#if defined(PLATFORM_LINUX)
-//Linux compatible with GetTickCount64
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+//Linux and Mac OS X compatible with GetTickCount64
 	uint64_t GetTickCount64(void)
 	{
 		timeval CurrentTime = {0};

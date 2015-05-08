@@ -30,6 +30,6 @@ extern time_t StartTime, RunningLogStartTime;
 #if defined(PLATFORM_WIN)
 	size_t __fastcall FileNameInit(const wchar_t *OriginalPath);
 	size_t __fastcall FirewallTest(const uint16_t Protocol);
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	size_t FileNameInit(const char *OriginalPath);
 #endif

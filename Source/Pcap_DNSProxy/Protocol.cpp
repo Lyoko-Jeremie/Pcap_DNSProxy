@@ -309,7 +309,7 @@ PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol)
 }
 #endif
 
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Get address from best network interface
 	size_t GetBestInterfaceAddress(const uint16_t Protocol, const sockaddr_storage *OriginalSockAddr)
 	{
@@ -429,7 +429,7 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 				}
 			}
 		}
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.IPv6.AddressData.Storage) == EXIT_FAILURE || 
 			Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage) == EXIT_FAILURE || 
 			Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Local_IPv6.AddressData.Storage) == EXIT_FAILURE || 
@@ -506,7 +506,7 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 				}
 			}
 		}
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.IPv4.AddressData.Storage) == EXIT_FAILURE || 
 			Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage) == EXIT_FAILURE || 
 			Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Local_IPv4.AddressData.Storage) == EXIT_FAILURE || 
@@ -554,7 +554,7 @@ size_t __fastcall GetNetworkingInformation(void)
 
 #if defined(PLATFORM_WIN)
 	PADDRINFOA LocalAddressList = nullptr, LocalAddressTableIter = nullptr;
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	ifaddrs *InterfaceAddressList = nullptr, *InterfaceAddressIter = nullptr;
 	usleep(DEFAULT_BLOCK_GATEWAY_ERROR_TIME * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND);
 #endif
@@ -569,7 +569,7 @@ size_t __fastcall GetNetworkingInformation(void)
 		LocalAddressList = GetLocalAddressList(AF_INET6);
 		if (LocalAddressList == nullptr)
 		{
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (getifaddrs(&InterfaceAddressList) != 0 || InterfaceAddressList == nullptr)
 		{
 			if (InterfaceAddressList != nullptr)
@@ -580,7 +580,7 @@ size_t __fastcall GetNetworkingInformation(void)
 		//Auto-refresh
 			if (Parameter.FileRefreshTime > 0)
 			{
-				Sleep((DWORD)Parameter.FileRefreshTime);
+				Sleep(Parameter.FileRefreshTime);
 				continue;
 			}
 			else {
@@ -677,7 +677,7 @@ size_t __fastcall GetNetworkingInformation(void)
 					Result.shrink_to_fit();
 				}
 			}
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			for (InterfaceAddressIter = InterfaceAddressList;InterfaceAddressIter != nullptr;InterfaceAddressIter = InterfaceAddressIter->ifa_next)
 			{
 				if (InterfaceAddressIter->ifa_addr != nullptr && InterfaceAddressIter->ifa_addr->sa_family == AF_INET6)
@@ -772,7 +772,7 @@ size_t __fastcall GetNetworkingInformation(void)
 		//Auto-refresh
 			if (Parameter.FileRefreshTime > 0)
 			{
-				Sleep((DWORD)Parameter.FileRefreshTime);
+				Sleep(Parameter.FileRefreshTime);
 				continue;
 			}
 			else {
@@ -781,7 +781,7 @@ size_t __fastcall GetNetworkingInformation(void)
 			}
 		}
 		else {
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		{
 	#endif
 			std::string DNSPTRString;
@@ -853,7 +853,7 @@ size_t __fastcall GetNetworkingInformation(void)
 					Result.shrink_to_fit();
 				}
 			}
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			for (InterfaceAddressIter = InterfaceAddressList;InterfaceAddressIter != nullptr;InterfaceAddressIter = InterfaceAddressIter->ifa_next)
 			{
 				if (InterfaceAddressIter->ifa_addr != nullptr && InterfaceAddressIter->ifa_addr->sa_family == AF_INET)
@@ -922,7 +922,7 @@ size_t __fastcall GetNetworkingInformation(void)
 		}
 
 	//Free list.
-	#if defined(PLATFORM_LINUX)
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (InterfaceAddressList != nullptr)
 			freeifaddrs(InterfaceAddressList);
 		InterfaceAddressList = nullptr;
@@ -940,7 +940,7 @@ size_t __fastcall GetNetworkingInformation(void)
 
 	//Auto-refresh
 		if (Parameter.FileRefreshTime > 0)
-			Sleep((DWORD)Parameter.FileRefreshTime);
+			Sleep(Parameter.FileRefreshTime);
 		else 
 			Sleep(LOOP_INTERVAL_TIME * SECOND_TO_MILLISECOND);
 	}
@@ -1972,12 +1972,14 @@ void __fastcall FlushDNSCache(void)
 #if defined(PLATFORM_WIN)
 	system("ipconfig /flushdns");
 #elif defined(PLATFORM_LINUX)
-	system("service nscd restart");
-	system("service dnsmasq restart");
-	system("rndc restart");
+	system("service nscd restart"); //Name Service Cache Daemon service
+	system("service dnsmasq restart"); //Dnsmasq service
+	system("rndc restart"); //Name server control utility or BIND DNS service
 #elif defined(PLATFORM_MACX)
-	system("dscacheutil -flushcache");
-	system("lookupd -flushcache");
+//	system("lookupd -flushcache"); //Less than Mac OS X Tiger(10.4)
+	system("dscacheutil -flushcache"); //Mac OS X Leopard(10.5) and Snow Leopard(10.6)
+	system("killall -HUP mDNSResponder"); //Mac OS X Lion(10.7), Mountain Lion(10.8) and Mavericks(10.9)
+	system("discoveryutil mdnsflushcache"); //Mac OS X Yosemite(10.10) and other latest version
 #endif
 
 	return;

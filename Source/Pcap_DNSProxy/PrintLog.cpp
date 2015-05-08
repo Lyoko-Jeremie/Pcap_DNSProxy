@@ -192,7 +192,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 					PrintError(LOG_ERROR_SYSTEM, L"Old Error Log file was deleted", 0, nullptr, 0);
 		}
 	}
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::shared_ptr<struct stat> FileStat(new struct stat());
 	memset(FileStat.get(), 0, sizeof(struct stat));
 	if (stat(Parameter.sErrorLogPath->c_str(), FileStat.get()) == 0)
@@ -206,7 +206,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 #if defined(PLATFORM_WIN)
 	FILE *Output = nullptr;
 	_wfopen_s(&Output, Parameter.ErrorLogPath->c_str(), L"a,ccs=UTF-8");
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	auto Output = fopen(Parameter.sErrorLogPath->c_str(), "a");
 #endif
 	if (Output != nullptr)
@@ -415,7 +415,7 @@ size_t __fastcall PrintRunningStatus(const wchar_t *Message)
 					PrintError(LOG_ERROR_SYSTEM, L"Old Running Log file was deleted", 0, nullptr, 0);
 		}
 	}
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::shared_ptr<struct stat> FileStat(new struct stat());
 	memset(FileStat.get(), 0, sizeof(struct stat));
 	if (stat(Parameter.sRunningLogPath->c_str(), FileStat.get()) == 0)
@@ -429,7 +429,7 @@ size_t __fastcall PrintRunningStatus(const wchar_t *Message)
 #if defined(PLATFORM_WIN)
 	FILE *Output = nullptr;
 	_wfopen_s(&Output, Parameter.RunningLogPath->c_str(), L"a,ccs=UTF-8");
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	auto Output = fopen(Parameter.sRunningLogPath->c_str(), "a");
 #endif
 	if (Output != nullptr)
@@ -469,7 +469,7 @@ size_t __fastcall PrintParameterList(void)
 #if defined(PLATFORM_WIN)
 	FILE *Output = nullptr;
 	_wfopen_s(&Output, Parameter.RunningLogPath->c_str(), L"a,ccs=UTF-8");
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	auto Output = fopen(Parameter.sRunningLogPath->c_str(), "a");
 #endif
 	if (Output != nullptr)

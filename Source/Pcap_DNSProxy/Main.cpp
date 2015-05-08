@@ -28,7 +28,7 @@
 		GetFunctionPointer(FUNCTION_GETTICKCOUNT64);
 		GetFunctionPointer(FUNCTION_INET_NTOP);
 	#endif
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	int main(int argc, char *argv[])
 {
 #endif
@@ -60,7 +60,7 @@
 	else {
 		return EXIT_FAILURE;
 	}
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Path initialization
 	std::shared_ptr<char> FileName(new char[PATH_MAX + 1U]());
 	memset(FileName.get(), 0, PATH_MAX + 1U);
@@ -72,7 +72,9 @@
 	if (FileNameInit(FileName.get()) == EXIT_FAILURE)
 		return EXIT_FAILURE;
 	FileName.reset();
+#endif
 
+#if defined(PLATFORM_LINUX)
 //Set Daemon
 	if (daemon(0, 0) == RETURN_ERROR)
 	{
@@ -133,7 +135,7 @@
 	}
 
 	WSACleanup();
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	MonitorInit();
 #endif
 
@@ -143,7 +145,7 @@
 //Get path of program from the main function parameter and Winsock initialization
 #if defined(PLATFORM_WIN)
 	size_t __fastcall FileNameInit(const wchar_t *OriginalPath)
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	size_t FileNameInit(const char *OriginalPath)
 #endif
 {
@@ -159,7 +161,7 @@
 			++Index;
 		}
 	}
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	Parameter.sPath->push_back(OriginalPath);
 	Parameter.sPath->front().append("/");
 	std::wstring StringTemp;
@@ -172,14 +174,14 @@
 //Get path of error/running status log file and mark start time.
 	*Parameter.ErrorLogPath = Parameter.Path->front();
 	Parameter.ErrorLogPath->append(L"Error.log");
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	*Parameter.sErrorLogPath = Parameter.sPath->front();
 	Parameter.sErrorLogPath->append("Error.log");
 #endif
 	Parameter.PrintError = true;
 	*Parameter.RunningLogPath = Parameter.Path->front();
 	Parameter.RunningLogPath->append(L"Running.log");
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	*Parameter.sRunningLogPath = Parameter.sPath->front();
 	Parameter.sRunningLogPath->append("Running.log");
 #endif

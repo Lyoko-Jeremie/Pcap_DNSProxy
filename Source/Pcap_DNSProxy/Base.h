@@ -170,8 +170,8 @@
 //////////////////////////////////////////////////
 // Base header
 // 
-//Linux compatible(Part 1)
-#if defined(PLATFORM_LINUX)
+//Linux and Mac OS X compatible(Part 1)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define _FILE_OFFSET_BITS   64     //File offset data type size(64 bits).
 #endif
 
@@ -197,7 +197,7 @@
 	#include "Keccak\\KeccakHash.h"
 
 //LibSodium Headers
-	#define ENABLE_LIBSODIUM           //LibSodium is always enable on Windows.
+	#define ENABLE_LIBSODIUM       //LibSodium is always enable on Windows.
 	#if defined(ENABLE_LIBSODIUM)
 		#include "..\\LibSodium\\sodium.h"
 	#endif
@@ -268,13 +268,17 @@
 //SHA-3(Keccak, FIPS-202 Draft) Header
 	#include "Keccak/KeccakHash.h"
 
-//LibSodium Headers
-	#if defined(ENABLE_LIBSODIUM)
-		#include <sodium.h>
+//LibPcap and LibSodium Header
+	#include <pcap/pcap.h>             //LibPcap Header
+	#if defined(PLATFORM_LINUX)
+		#if defined(ENABLE_LIBSODIUM)
+			#include <sodium.h>            //LibSodium Headers
+		#endif
+	#elif defined(PLATFORM_MACX)
+		#define ENABLE_LIBSODIUM           //LibSodium is always enable on Mac OS X.
+		#include "../LibSodium/sodium.h"
+		#pragma comment(lib, "../LibSodium/LibSodium_Mac.a")
 	#endif
-
-//LibPcap header
-	#include <pcap/pcap.h>
 
 //Internet Protocol version 4/IPv4 Address(From Microsoft Windows)
 	typedef struct _in_addr_windows_
@@ -339,7 +343,7 @@
 		uint32_t           sin6_scope_id; /* Scope ID (new in 2.4) */
 	}sockaddr_in6_Windows;
 
-//Linux compatible(Part 2)
+//Linux and Mac OS X compatible(Part 2)
 	#define FALSE                    0
 	#define TRUE                     1
 	#define RETURN_ERROR             (-1)
@@ -922,10 +926,12 @@ typedef struct _icmp_hdr_
 	uint16_t               Checksum;
 	uint16_t               ID;
 	uint16_t               Sequence;
-//ICMP Timestamp option is defalut ON on Linux.
+//ICMP Timestamp option is defalut ON on Linux and Mac OS X.
 #if defined(PLATFORM_LINUX)
 	uint64_t               Timestamp;
 	uint64_t               Nonce;
+#elif defined(PLATFORM_MACX)
+	uint64_t               Timestamp;
 #endif
 }icmp_hdr, *picmp_hdr;
 
@@ -953,10 +959,12 @@ typedef struct _icmpv6_hdr_
 	uint16_t               Checksum;
 	uint16_t               ID;
 	uint16_t               Sequence;
-//ICMPv6 Timestamp option is defalut ON on Linux.
+//ICMPv6 Timestamp option is defalut ON on Linux and Mac OS X.
 #if defined(PLATFORM_LINUX)
 	uint64_t               Timestamp;
 	uint64_t               Nonce;
+#elif defined(PLATFORM_MACX)
+	uint64_t               Timestamp;
 #endif
 }icmpv6_hdr, *picmpv6_hdr;
 
@@ -1964,6 +1972,9 @@ typedef struct _dnscurve_txt_signature_
 #if defined(PLATFORM_LINUX)
 	#define ICMP_STRING_START_NUM_LINUX    16U
 	#define ICMP_PADDING_LENGTH_LINUX      40U
+#elif defined(PLATFORM_MACX)
+	#define ICMP_STRING_START_NUM_MAC      8U
+	#define ICMP_PADDING_LENGTH_MAC        48U
 #endif
 #define MULTI_REQUEST_TIMES_MAXNUM     8U                                         //Maximum times of multi requesting.
 #define NETWORK_LAYER_PARTNUM          2U                                         //Number of network layer protocols(IPv6 and IPv4)
@@ -1979,7 +1990,7 @@ typedef struct _dnscurve_txt_signature_
 #if defined(PLATFORM_WIN)
 	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE   8192U      //Buffer maximum size of QueryServiceConfig() function(8KB/8192 Bytes)
 	#define SYSTEM_SOCKET                         UINT_PTR   //System Socket defined(WinSock2.h), not the same in x86(unsigned int) and x64(unsigned __int64) platform, which define in WinSock2.h file.
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define SYSTEM_SOCKET                         int
 #endif
 #define PCAP_COMPILE_OPTIMIZE                 1U         //Pcap optimization on the resulting code is performed.
@@ -2004,7 +2015,7 @@ typedef struct _dnscurve_txt_signature_
 #if defined(PLATFORM_WIN)
 	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT    3000U     //Default timeout of reliable sockets(Such as TCP, 3 seconds/3000ms)
 	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT  2000U     //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds/2000ms)
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define DEFAULT_BLOCK_GATEWAY_ERROR_TIME   10U       //Block gateway error messages when using systemd init, 10 seconds.
 	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT    3U        //Default timeout of reliable sockets(Such as TCP, 3 seconds)
 	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT  2U        //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds)
@@ -2035,7 +2046,11 @@ typedef struct _dnscurve_txt_signature_
 #if defined(ENABLE_LIBSODIUM)
 	#define DNSCURVE_TEST_NONCE                   0, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23   //DNSCurve Test Nonce, 0x00 - 0x23(ASCII)
 #endif
-#define DEFAULT_SEQUENCE                      0x0001                                                                                                                                        //Default sequence of protocol
+#if defined(PLATFORM_MACX)
+	#define DEFAULT_SEQUENCE                      0
+#else 
+	#define DEFAULT_SEQUENCE                      0x0001                                                                                                                                        //Default sequence of protocol
+#endif
 #define DNS_PACKET_QUERY_LOCATE(Buffer)       (sizeof(dns_hdr) + CheckDNSQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U)                                                                    //Location of beginning of DNS Query
 #define DNS_TCP_PACKET_QUERY_LOCATE(Buffer)   (sizeof(dns_tcp_hdr) + CheckDNSQueryNameLength(Buffer + sizeof(dns_tcp_hdr)) + 1U)
 #define DNS_PACKET_RR_LOCATE(Buffer)          (sizeof(dns_hdr) + CheckDNSQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U + sizeof(dns_qry))                                                  //Location of beginning of DNS Resource Records
@@ -2100,8 +2115,11 @@ typedef struct _dnscurve_txt_signature_
 
 //////////////////////////////////////////////////
 // Function defines(Part 2)
-#if defined(PLATFORM_LINUX)
-	#define Sleep(Millisecond)   usleep((Millisecond) * MICROSECOND_TO_MILLISECOND)
+#if defined(PLATFORM_WIN)
+	#define Sleep(Millisecond)    Sleep((DWORD)Millisecond)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	#define Sleep(Millisecond)    usleep((useconds_t)((Millisecond) * MICROSECOND_TO_MILLISECOND))
+	#define usleep(Millisecond)   usleep((useconds_t)Millisecond)
 #endif
 
 
@@ -2119,7 +2137,7 @@ typedef struct _running_log_data_
 typedef struct _file_data_
 {
 	std::wstring                       FileName;
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::string                        sFileName;
 #endif
 	std::shared_ptr<BitSequence>       HashResult;
@@ -2274,7 +2292,7 @@ public:
 	std::vector<std::wstring>        *IPFilterFileList;
 	std::wstring                     *ErrorLogPath;
 	std::wstring                     *RunningLogPath;
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::vector<std::string>         *sPath;
 	std::vector<std::string>         *sHostsFileList;
 	std::vector<std::string>         *sIPFilterFileList;
@@ -2285,7 +2303,7 @@ public:
 #if defined(PLATFORM_WIN)
 	int                              ReliableSocketTimeout;
 	int                              UnreliableSocketTimeout;
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	timeval                          ReliableSocketTimeout;
 	timeval                          UnreliableSocketTimeout;
 #endif
@@ -2432,7 +2450,7 @@ public:
 bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length);
 void __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer);
 size_t __fastcall CaseConvert(const bool IsLowerUpper, char *Buffer, const size_t Length);
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	uint64_t GetTickCount64(void);
 #endif
 //Windows XP with SP3 support

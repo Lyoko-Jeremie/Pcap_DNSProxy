@@ -321,7 +321,7 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 //Open device
 #if defined(PLATFORM_WIN)
 	if ((DeviceHandle = pcap_open(pDrive->name, ORIGINAL_PACKET_MAXSIZE, PCAP_OPENFLAG_NOCAPTURE_LOCAL, PCAP_CAPTURE_TIMEOUT, nullptr, Buffer.get())) == nullptr)
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if ((DeviceHandle = pcap_open_live(pDrive->name, ORIGINAL_PACKET_MAXSIZE, FALSE, PCAP_CAPTURE_TIMEOUT, Buffer.get())) == nullptr)
 #endif
 	{
@@ -346,7 +346,7 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 		DeviceType = DLT_APPLE_IP_OVER_IEEE1394;
 	if (DeviceType == 0)
 	{
-	#if defined(PLATFORM_LINUX)
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (pcap_datalink(DeviceHandle) != DLT_NULL && pcap_datalink(DeviceHandle) != DLT_NFLOG) //BSD loopback encapsulation and Linux NETLINK NFLOG socket log messages
 		{
 	#endif
@@ -355,7 +355,7 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 			wcsncpy_s(ErrBuffer.get(), PCAP_ERRBUF_SIZE, DeviceName.c_str(), DeviceName.length());
 			wcsncpy_s(ErrBuffer.get() + wcsnlen_s(DeviceName.c_str(), PCAP_ERRBUF_SIZE), PCAP_ERRBUF_SIZE - DeviceName.length(), L" is not a Ethernet device", wcslen(L" is not a Ethernet device"));
 			PrintError(LOG_ERROR_PCAP, ErrBuffer.get(), 0, nullptr, 0);
-	#if defined(PLATFORM_LINUX)
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		}
 	#endif
 
@@ -368,7 +368,7 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 	memset(BPF_Code.get(), 0, sizeof(bpf_program));
 #if defined(PLATFORM_WIN)
 	if (pcap_compile(DeviceHandle, BPF_Code.get(), PcapFilterRules.c_str(), PCAP_COMPILE_OPTIMIZE, (bpf_u_int32)pDrive->addresses->netmask) == PCAP_ERROR)
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (pcap_compile(DeviceHandle, BPF_Code.get(), PcapFilterRules.c_str(), PCAP_COMPILE_OPTIMIZE, FALSE) == PCAP_ERROR)
 #endif
 	{

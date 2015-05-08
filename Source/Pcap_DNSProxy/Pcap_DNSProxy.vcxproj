@@ -288,7 +288,26 @@
     <ResourceCompile Include="Pcap_DNSProxy.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\ExampleConfig\Config.ini" />
+    <None Include="..\ExampleConfig\Hosts.ini" />
+    <None Include="..\ExampleConfig\IPFilter.ini" />
+    <None Include="..\ExampleConfig\ServiceControl.bat" />
     <None Include="..\LibSodium\version.h.in" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\Documents\Changelog(zh_Hans).txt" />
+    <Text Include="..\Documents\Changelog(zh_Hant).txt" />
+    <Text Include="..\Documents\FAQ(zh_Hans).txt" />
+    <Text Include="..\Documents\FAQ(zh_Hant).txt" />
+    <Text Include="..\Documents\FAQ_Linux(zh_Hans).txt" />
+    <Text Include="..\Documents\FAQ_Linux(zh_Hant).txt" />
+    <Text Include="..\Documents\FAQ_Mac(zh_Hans).txt" />
+    <Text Include="..\Documents\ReadMe(zh_Hans).txt" />
+    <Text Include="..\Documents\ReadMe(zh_Hant).txt" />
+    <Text Include="..\Documents\ReadMe_Linux(zh_Hans).txt" />
+    <Text Include="..\Documents\ReadMe_Mac(zh_Hans).txt" />
+    <Text Include="..\ExampleConfig\Routing.txt" />
+    <Text Include="..\ExampleConfig\White_List.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -23,7 +23,7 @@
 #if defined(PLATFORM_WIN)
 	int wmain(int argc, wchar_t* argv[])
 	{
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	int main(int argc, char *argv[])
 	{
 #endif
@@ -44,7 +44,7 @@
 //Output.
 #if defined(PLATFORM_WIN)
 	_wfopen_s(&Output, L"KeyPair.txt", L"w+,ccs=UTF-8");
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	Output = fopen("KeyPair.txt", "w+");
 #endif
 	if (Output != nullptr)
@@ -92,7 +92,7 @@
 	#if defined(PLATFORM_WIN)
 		wprintf_s(L"LibSodium is disable.\n\n");
 		system("Pause");
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		wprintf(L"LibSodium is disable.\n\n");
 	#endif
 #endif

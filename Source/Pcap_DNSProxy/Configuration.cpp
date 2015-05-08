@@ -279,7 +279,7 @@ size_t __fastcall ReadParameter(void)
 	ConfigFileList.push_back(ConfigFileName);
 	ConfigFileName.clear();
 	ConfigFileName.shrink_to_fit();
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::string sConfigFileName(Parameter.sPath->front());
 	sConfigFileName.append("Config.ini");
 	sConfigFileList.push_back(sConfigFileName);
@@ -294,12 +294,12 @@ size_t __fastcall ReadParameter(void)
 #endif
 	for (Index = 0; Index < ConfigFileList.size(); ++Index)
 	{
-#if defined(PLATFORM_WIN)
+	#if defined(PLATFORM_WIN)
 		if (_wfopen_s(&Input, ConfigFileList[Index].c_str(), L"rb") != 0 || Input == nullptr)
-#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Input = fopen(sConfigFileList[Index].c_str(), "rb");
 		if (Input == nullptr)
-#endif
+	#endif
 		{
 		//Check all configuration files.
 			if (Index == ConfigFileList.size() - 1U)
@@ -335,7 +335,7 @@ size_t __fastcall ReadParameter(void)
 			}
 		}
 	}
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::shared_ptr<struct stat> FileStat(new struct stat());
 	memset(FileStat.get(), 0, sizeof(struct stat));
 	if (stat(sConfigFileList[Index].c_str(), FileStat.get()) == 0)
@@ -651,7 +651,7 @@ size_t __fastcall ReadParameter(void)
 		if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0 || 
 		//Check repeating items.
 			DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.IPv4.sin_addr.s_addr == DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr || 
-			DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && memcmp(&DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6.sin6_addr, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr) == 0))
+			DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && memcmp(&DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6.sin6_addr, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0)
 		{
 			PrintError(LOG_ERROR_PARAMETER, L"DNSCurve Targets error", 0, ConfigFileList[Index].c_str(), 0);
 			return EXIT_FAILURE;
@@ -1328,7 +1328,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 	{
 	#if defined(PLATFORM_WIN)
 		if (ReadFileName(Data, strlen("HostsFileName="), Parameter.HostsFileList) == EXIT_FAILURE)
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (ReadFileName(Data, strlen("HostsFileName="), Parameter.HostsFileList, Parameter.sHostsFileList) == EXIT_FAILURE)
 	#endif
 			return EXIT_FAILURE;
@@ -1337,7 +1337,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 	{
 	#if defined(PLATFORM_WIN)
 		if (ReadFileName(Data, strlen("IPFilterFileName="), Parameter.IPFilterFileList) == EXIT_FAILURE)
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (ReadFileName(Data, strlen("IPFilterFileName="), Parameter.IPFilterFileList, Parameter.sIPFilterFileList) == EXIT_FAILURE)
 	#endif
 			return EXIT_FAILURE;
@@ -1839,7 +1839,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 			if (errno != ERANGE && Result > SOCKET_TIMEOUT_MIN)
 			#if defined(PLATFORM_WIN)
 				Parameter.ReliableSocketTimeout = (int)Result;
-			#elif defined(PLATFORM_LINUX)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			{
 				Parameter.ReliableSocketTimeout.tv_sec = Result / SECOND_TO_MILLISECOND;
 				Parameter.ReliableSocketTimeout.tv_usec = Result % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -1859,7 +1859,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 			if (errno != ERANGE && Result > SOCKET_TIMEOUT_MIN)
 			#if defined(PLATFORM_WIN)
 				Parameter.UnreliableSocketTimeout = (int)Result;
-			#elif defined(PLATFORM_LINUX)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			{
 				Parameter.UnreliableSocketTimeout.tv_sec = Result / SECOND_TO_MILLISECOND;
 				Parameter.UnreliableSocketTimeout.tv_usec = Result % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -2313,7 +2313,7 @@ size_t __fastcall ReadIPFilter(void)
 		//Add to global list.
 			FileDataTemp.FileName.append(Parameter.Path->at(Index));
 			FileDataTemp.FileName.append(Parameter.IPFilterFileList->at(InnerIndex));
-		#if defined(PLATFORM_LINUX)
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			FileDataTemp.sFileName.append(Parameter.sPath->at(Index));
 			FileDataTemp.sFileName.append(Parameter.sIPFilterFileList->at(InnerIndex));
 		#endif
@@ -2375,7 +2375,7 @@ size_t __fastcall ReadIPFilter(void)
 				continue;
 			}
 			else {
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			Input = fopen(IPFilterFileList[FileIndex].sFileName.c_str(), "rb");
 		#endif
 				if (Input == nullptr)
@@ -2433,7 +2433,7 @@ size_t __fastcall ReadIPFilter(void)
 						}
 					}
 				}
-			#elif defined(PLATFORM_LINUX)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 				std::shared_ptr<struct stat> FileStat(new struct stat());
 				memset(FileStat.get(), 0, sizeof(struct stat));
 				if (stat(IPFilterFileList[FileIndex].sFileName.c_str(), FileStat.get()) == 0)
@@ -2480,7 +2480,7 @@ size_t __fastcall ReadIPFilter(void)
 				//Set file pointers to the beginning of file.
 				#if defined(PLATFORM_WIN)
 					if (_fseeki64(Input, 0, SEEK_SET) != 0)
-				#elif defined(PLATFORM_LINUX)
+				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 					if (fseeko(Input, 0, SEEK_SET) != 0)
 				#endif
 					{
@@ -2551,7 +2551,7 @@ size_t __fastcall ReadIPFilter(void)
 		//Auto-refresh
 			if (Parameter.FileRefreshTime > 0)
 			{
-				Sleep((DWORD)Parameter.FileRefreshTime);
+				Sleep(Parameter.FileRefreshTime);
 				continue;
 			}
 			else {
@@ -2671,7 +2671,7 @@ size_t __fastcall ReadIPFilter(void)
 
 	//Auto-refresh
 		if (Parameter.FileRefreshTime > 0)
-			Sleep((DWORD)Parameter.FileRefreshTime);
+			Sleep(Parameter.FileRefreshTime);
 		else 
 			break;
 	}
@@ -2697,17 +2697,17 @@ size_t __fastcall ReadIPFilterData(const char *Buffer, const size_t FileIndex, c
 
 //[Local Routing] block(A part)
 	if (LabelType == 0 && (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0) && 
-#if defined(PLATFORM_WIN) //Case-insensitive on Windows
+	#if defined(PLATFORM_WIN) //Case-insensitive on Windows
 		(IPFilterFileList[FileIndex].FileName.rfind(L"chnrouting.txt") != std::wstring::npos && IPFilterFileList[FileIndex].FileName.length() > wcslen(L"chnrouting.txt") && 
 		IPFilterFileList[FileIndex].FileName.rfind(L"chnrouting.txt") == IPFilterFileList[FileIndex].FileName.length() - wcslen(L"chnrouting.txt") || 
 		IPFilterFileList[FileIndex].FileName.rfind(L"chnroute.txt") != std::wstring::npos && IPFilterFileList[FileIndex].FileName.length() > wcslen(L"chnroute.txt") && 
 		IPFilterFileList[FileIndex].FileName.rfind(L"chnroute.txt") == IPFilterFileList[FileIndex].FileName.length() - wcslen(L"chnroute.txt")))
-#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		(IPFilterFileList[FileIndex].FileName.rfind(L"chnrouting.txt") != std::wstring::npos && IPFilterFileList[FileIndex].FileName.length() > wcslen(L"chnrouting.txt") && 
 		IPFilterFileList[FileIndex].FileName.rfind(L"chnrouting.txt") == IPFilterFileList[FileIndex].FileName.length() - wcslen(L"chnrouting.txt") || 
 		IPFilterFileList[FileIndex].FileName.rfind(L"chnroute.txt") != std::wstring::npos && IPFilterFileList[FileIndex].FileName.length() > wcslen(L"chnroute.txt") && 
 		IPFilterFileList[FileIndex].FileName.rfind(L"chnroute.txt") == IPFilterFileList[FileIndex].FileName.length() - wcslen(L"chnroute.txt")))
-#endif
+	#endif
 			LabelType = LABEL_IPFILTER_LOCAL_ROUTING;
 
 //[IPFilter] block
@@ -3518,7 +3518,7 @@ size_t __fastcall ReadHosts(void)
 		//Add to global list.
 			FileDataTemp.FileName.append(Parameter.Path->at(Index));
 			FileDataTemp.FileName.append(Parameter.HostsFileList->at(InnerIndex));
-		#if defined(PLATFORM_LINUX)
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			FileDataTemp.sFileName.append(Parameter.sPath->at(Index));
 			FileDataTemp.sFileName.append(Parameter.sHostsFileList->at(InnerIndex));
 		#endif
@@ -3573,7 +3573,7 @@ size_t __fastcall ReadHosts(void)
 				continue;
 			}
 			else {
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			Input = fopen(HostsFileList[FileIndex].sFileName.c_str(), "rb");
 		#endif
 				if (Input == nullptr)
@@ -3631,7 +3631,7 @@ size_t __fastcall ReadHosts(void)
 						}
 					}
 				}
-			#elif defined(PLATFORM_LINUX)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 				std::shared_ptr<struct stat> FileStat(new struct stat());
 				memset(FileStat.get(), 0, sizeof(struct stat));
 				if (stat(HostsFileList[FileIndex].sFileName.c_str(), FileStat.get()) == 0)
@@ -3678,7 +3678,7 @@ size_t __fastcall ReadHosts(void)
 				//Set file pointers to the beginning of file.
 				#if defined(PLATFORM_WIN)
 					if (_fseeki64(Input, 0, SEEK_SET) != 0)
-				#elif defined(PLATFORM_LINUX)
+				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 					if (fseeko(Input, 0, SEEK_SET) != 0)
 				#endif
 					{
@@ -3745,7 +3745,7 @@ size_t __fastcall ReadHosts(void)
 		//Auto-refresh
 			if (Parameter.FileRefreshTime > 0)
 			{
-				Sleep((DWORD)Parameter.FileRefreshTime);
+				Sleep(Parameter.FileRefreshTime);
 				continue;
 			}
 			else {
@@ -3874,7 +3874,7 @@ size_t __fastcall ReadHosts(void)
 
 	//Auto-refresh
 		if (Parameter.FileRefreshTime > 0)
-			Sleep((DWORD)Parameter.FileRefreshTime);
+			Sleep(Parameter.FileRefreshTime);
 		else
 			break;
 	}
@@ -3910,12 +3910,12 @@ size_t __fastcall ReadHostsData(const char *Buffer, const size_t FileIndex, cons
 
 //[Local Hosts] block(A part)
 	if (LabelType == 0 && (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0) && 
-#if defined(PLATFORM_WIN) //Case-insensitive on Windows
+	#if defined(PLATFORM_WIN) //Case-insensitive on Windows
 		(HostsFileList[FileIndex].FileName.rfind(L"whitelist.txt") != std::wstring::npos && HostsFileList[FileIndex].FileName.length() > wcslen(L"whitelist.txt") && 
 		HostsFileList[FileIndex].FileName.rfind(L"whitelist.txt") == HostsFileList[FileIndex].FileName.length() - wcslen(L"whitelist.txt") || 
 		HostsFileList[FileIndex].FileName.rfind(L"white_list.txt") != std::wstring::npos && HostsFileList[FileIndex].FileName.length() > wcslen(L"white_list.txt") && 
 		HostsFileList[FileIndex].FileName.rfind(L"white_list.txt") == HostsFileList[FileIndex].FileName.length() - wcslen(L"white_list.txt")))
-#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		(HostsFileList[FileIndex].FileName.rfind(L"WhiteList.txt") != std::wstring::npos && HostsFileList[FileIndex].FileName.length() > wcslen(L"WhiteList.txt") && 
 		HostsFileList[FileIndex].FileName.rfind(L"WhiteList.txt") == HostsFileList[FileIndex].FileName.length() - wcslen(L"WhiteList.txt") || 
 		HostsFileList[FileIndex].FileName.rfind(L"Whitelist.txt") != std::wstring::npos && HostsFileList[FileIndex].FileName.length() > wcslen(L"Whitelist.txt") && 
@@ -3928,7 +3928,7 @@ size_t __fastcall ReadHostsData(const char *Buffer, const size_t FileIndex, cons
 		HostsFileList[FileIndex].FileName.rfind(L"White_list.txt") == HostsFileList[FileIndex].FileName.length() - wcslen(L"White_list.txt") || 
 		HostsFileList[FileIndex].FileName.rfind(L"white_list.txt") != std::wstring::npos && HostsFileList[FileIndex].FileName.length() > wcslen(L"white_list.txt") && 
 		HostsFileList[FileIndex].FileName.rfind(L"white_list.txt") == HostsFileList[FileIndex].FileName.length() - wcslen(L"white_list.txt")))
-#endif
+	#endif
 			LabelType = LABEL_HOSTS_LOCAL;
 
 //[Hosts] block
@@ -4830,7 +4830,7 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 //Read file names from data
 #if defined(PLATFORM_WIN)
 	size_t __fastcall ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData)
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	size_t ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData, std::vector<std::string> *sListData)
 #endif
 {
@@ -4873,7 +4873,7 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 				}
 			}
 
-		#if defined(PLATFORM_LINUX)
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			if (sListData->empty())
 			{
 				sListData->push_back(NameStringTemp);
@@ -4924,7 +4924,7 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 				}
 			}
 
-		#if defined(PLATFORM_LINUX)
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			if (sListData->empty())
 			{
 				sListData->push_back(NameStringTemp);

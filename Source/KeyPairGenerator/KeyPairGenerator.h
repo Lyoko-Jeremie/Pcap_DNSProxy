@@ -147,6 +147,7 @@
 #elif !defined(PLATFORM_UNIX)
 #  define PLATFORM_UNIX
 #endif
+/* XCode support
 #if defined(PLATFORM_MACX)
 #  ifdef MAC_OS_X_VERSION_MIN_REQUIRED
 #    undef MAC_OS_X_VERSION_MIN_REQUIRED
@@ -163,20 +164,20 @@
 #    error "This version of Mac OS X is unsupported"
 #  endif
 #endif
-
+*/
 
 //////////////////////////////////////////////////
 // Base header
 // 
-#if defined(PLATFORM_WIN)
-	#define ENABLE_LIBSODIUM           //LibSodium is always enable on Windows.
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_MACX))
+	#define ENABLE_LIBSODIUM       //LibSodium is always enable on Windows and Mac OS X.
 #endif
 
 //C Standard Library and C++ Standard Template Library/STL Headers
 #include <cstdio>                  //File Input/Output
 #include <cstdlib>                 //Several general purpose functions.
 #if !defined(ENABLE_LIBSODIUM)
-	#if defined(PLATFORM_LINUX)
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		#include <cwchar>                  //Wide-Character Support
 	#endif
 #else
@@ -188,10 +189,8 @@
 #if defined(PLATFORM_WIN)
 	#include <windows.h>               //Microsoft Windows master include file
 
-//LibSodium Headers
+//LibSodium Headers and static libraries
 	#include "..\\LibSodium\\sodium.h"
-
-//Static libraries
 	#if defined(PLATFORM_WIN64)
 		#pragma comment(lib, "..\\LibSodium\\LibSodium_x64.lib") //LibSodium library(x64)
 	#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
@@ -201,8 +200,11 @@
 //	#pragma comment(linker, "/subsystem:windows /entry:mainCRTStartup") //Hide console.
 //Add "WPCAP", "HAVE_REMOTE", "SODIUM_STATIC" and "SODIUM_EXPORT=" to preprocessor options.
 #elif defined(PLATFORM_LINUX)
-//LibSodium Headers
-	#include <sodium.h>
+	#include <sodium.h>            //LibSodium Headers
+#elif defined(PLATFORM_MACX)
+//LibSodium Headers and static libraries
+	#include "../LibSodium/sodium.h"
+	#pragma comment(lib, "../LibSodium/LibSodium_Mac.a")
 #endif
 
 
@@ -217,8 +219,8 @@
 #define ASCII_DLE              16      //"␐"
 #define ASCII_COLON            58      //":"
 
-//Linux compatible
-#if defined(PLATFORM_LINUX)
+//Linux and Mac OS X compatible
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	typedef char               *PSTR;
 	#define __fastcall
 	#define strnlen_s          strnlen

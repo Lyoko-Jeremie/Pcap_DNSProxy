@@ -139,7 +139,7 @@ size_t LocalSignatureRequest(const char *OriginalSend, const size_t SendSize, PS
 	{
 	#if defined(PLATFORM_WIN)
 		((sockaddr_in6 *)SockAddr.get())->sin6_addr = in6addr_loopback;
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		((sockaddr_in6 *)SockAddr.get())->sin6_addr = *((in6_addr *)&in6addr_loopback);
 	#endif
 		((sockaddr_in6 *)SockAddr.get())->sin6_port = Parameter.ListenPort->front();
@@ -172,7 +172,7 @@ size_t LocalSignatureRequest(const char *OriginalSend, const size_t SendSize, PS
 #if defined(PLATFORM_WIN)
 	if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
 		setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR || 
 		setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR)
 #endif
@@ -308,7 +308,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
 #if defined(PLATFORM_WIN)
 	ULONG SocketMode = 1U;
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	int Flags = 0;
 #endif
 	timeval Timeout = {0};
@@ -330,7 +330,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 			PrintError(LOG_ERROR_NETWORK, L"Set TCP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
 			goto JumpToRestart;
 		}
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Flags = fcntl(TCPSocket, F_GETFL, 0);
 		fcntl(TCPSocket, F_SETFL, Flags|O_NONBLOCK);
 	#endif
@@ -362,7 +362,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 		#if defined(PLATFORM_WIN)
 			Timeout.tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
 			Timeout.tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			Timeout.tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
 			Timeout.tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
 		#endif
@@ -372,7 +372,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 		//Wait for system calling.
 		#if defined(PLATFORM_WIN)
 			SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			SelectResult = select(TCPSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
 		#endif
 			if (SelectResult > 0)
@@ -532,7 +532,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 			}
 		}
 
-		Sleep((DWORD)DNSCurveParameter.KeyRecheckTime);
+		Sleep(DNSCurveParameter.KeyRecheckTime);
 		continue;
 
 	//Restart.
@@ -658,7 +658,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const b
 	#if defined(PLATFORM_WIN)
 		if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
 			setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR || 
 			setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR)
 	#endif
@@ -744,7 +744,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const b
 			}
 		}
 
-		Sleep((DWORD)DNSCurveParameter.KeyRecheckTime);
+		Sleep(DNSCurveParameter.KeyRecheckTime);
 		continue;
 
 	//Restart.
@@ -969,7 +969,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 
 		return EXIT_FAILURE;
 	}
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	int Flags = fcntl(TCPSocket, F_GETFL, 0);
 	fcntl(TCPSocket, F_SETFL, Flags|O_NONBLOCK);
 #endif
@@ -1059,7 +1059,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 	#if defined(PLATFORM_WIN)
 		Timeout.tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
 		Timeout.tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Timeout.tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
 		Timeout.tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
 	#endif
@@ -1069,7 +1069,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
 		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		SelectResult = select(TCPSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
 	#endif
 		if (SelectResult > 0)
@@ -1271,7 +1271,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
 #if defined(PLATFORM_WIN)
 	ULONG SocketMode = 1U;
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	int Flags = 0;
 #endif
 
@@ -1319,7 +1319,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 
 				goto SkipMain;
 			}
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			Flags = fcntl(TCPSocketData->Socket, F_GETFL, 0);
 			fcntl(TCPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 		#endif
@@ -1449,7 +1449,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 
 				goto SkipAlternate;
 			}
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			Flags = fcntl(TCPSocketData->Socket, F_GETFL, 0);
 			fcntl(TCPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 		#endif
@@ -1544,13 +1544,13 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
 	timeval Timeout = {0};
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	SOCKET MaxSocket = 0;
 #endif
 	FD_ZERO(WriteFDS.get());
 	for (auto SocketDataIter:TCPSocketDataList)
 	{
-	#if defined(PLATFORM_LINUX)
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (SocketDataIter.Socket > MaxSocket)
 			MaxSocket = SocketDataIter.Socket;
 	#endif
@@ -1566,7 +1566,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 	#if defined(PLATFORM_WIN)
 		Timeout.tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
 		Timeout.tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Timeout.tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
 		Timeout.tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
 	#endif
@@ -1582,7 +1582,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
 		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		SelectResult = select(MaxSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
 	#endif
 		if (SelectResult > 0)
@@ -1919,7 +1919,7 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 #if defined(PLATFORM_WIN)
 	if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
 		setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR || 
 		setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR)
 #endif
@@ -2128,7 +2128,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	memset(UDPSocketData.get(), 0, sizeof(SOCKET_DATA));
 #if defined(PLATFORM_WIN)
 	ULONG SocketMode = 1U;
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	int Flags = 0;
 #endif
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
@@ -2170,7 +2170,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 
 			goto SkipMain;
 		}
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
 		fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 	#endif
@@ -2294,7 +2294,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 
 			goto SkipAlternate;
 		}
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
 		fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 	#endif
@@ -2369,13 +2369,13 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
 	timeval Timeout = {0};
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	SOCKET MaxSocket = 0;
 #endif
 	FD_ZERO(WriteFDS.get());
 	for (auto SocketDataIter:UDPSocketDataList)
 	{
-	#if defined(PLATFORM_LINUX)
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (SocketDataIter.Socket > MaxSocket)
 			MaxSocket = SocketDataIter.Socket;
 	#endif
@@ -2391,7 +2391,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	#if defined(PLATFORM_WIN)
 		Timeout.tv_sec = Parameter.UnreliableSocketTimeout / SECOND_TO_MILLISECOND;
 		Timeout.tv_usec = Parameter.UnreliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Timeout.tv_sec = Parameter.UnreliableSocketTimeout.tv_sec;
 		Timeout.tv_usec = Parameter.UnreliableSocketTimeout.tv_usec;
 	#endif
@@ -2407,7 +2407,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
 		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		SelectResult = select(MaxSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
 	#endif
 		if (SelectResult > 0)

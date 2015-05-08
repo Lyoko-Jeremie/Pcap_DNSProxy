@@ -110,7 +110,7 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 			}
 
 		//Test again.
-			Sleep((DWORD)Parameter.DomainTestSpeed);
+			Sleep(Parameter.DomainTestSpeed);
 			continue;
 
 		ReTest:
@@ -211,6 +211,8 @@ size_t __fastcall ICMPEcho(const uint16_t Protocol)
 	#if defined(PLATFORM_LINUX)
 		ICMPv6_Header->Timestamp = (uint64_t)time(nullptr);
 		ICMPv6_Header->Nonce = RamdomDistribution(*Parameter.RamdomEngine);
+	#elif defined(PLATFORM_MACX)
+		ICMPv6_Header->Timestamp = (uint64_t)time(nullptr);
 	#endif
 
 	//Target
@@ -254,6 +256,8 @@ size_t __fastcall ICMPEcho(const uint16_t Protocol)
 	#if defined(PLATFORM_LINUX)
 		ICMP_Header->Timestamp = (uint64_t)time(nullptr);
 		ICMP_Header->Nonce = RamdomDistribution(*Parameter.RamdomEngine);
+	#elif defined(PLATFORM_MACX)
+		ICMP_Header->Timestamp = (uint64_t)time(nullptr);
 	#endif
 		ICMP_Header->Checksum = GetChecksum((PUINT16)Buffer.get(), Length);
 
@@ -291,7 +295,7 @@ size_t __fastcall ICMPEcho(const uint16_t Protocol)
 //Set socket timeout.
 #if defined(PLATFORM_WIN)
 	if (setsockopt(ICMPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (setsockopt(ICMPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR)
 #endif
 	{
@@ -343,7 +347,7 @@ size_t __fastcall ICMPEcho(const uint16_t Protocol)
 				}
 			}
 
-			Sleep((DWORD)Parameter.ICMPSpeed);
+			Sleep(Parameter.ICMPSpeed);
 			continue;
 
 		ReTest: 
@@ -370,6 +374,8 @@ size_t __fastcall ICMPEcho(const uint16_t Protocol)
 				#if defined(PLATFORM_LINUX)
 					ICMPv6_Header->Timestamp = (uint64_t)time(nullptr);
 					ICMPv6_Header->Nonce = RamdomDistribution(*Parameter.RamdomEngine);
+				#elif defined(PLATFORM_MACX)
+					ICMPv6_Header->Timestamp = (uint64_t)time(nullptr);
 				#endif
 				}
 				else { //IPv4
@@ -382,6 +388,8 @@ size_t __fastcall ICMPEcho(const uint16_t Protocol)
 				#if defined(PLATFORM_LINUX)
 					ICMP_Header->Timestamp = (uint64_t)time(nullptr);
 					ICMP_Header->Nonce = RamdomDistribution(*Parameter.RamdomEngine);
+				#elif defined(PLATFORM_MACX)
+					ICMP_Header->Timestamp = (uint64_t)time(nullptr);
 				#endif
 
 					ICMP_Header->Checksum = 0;
@@ -483,7 +491,7 @@ size_t __fastcall ICMPv6Echo(void)
 //Set socket timeout.
 #if defined(PLATFORM_WIN)
 	if (setsockopt(ICMPv6Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (setsockopt(ICMPv6Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR)
 #endif
 	{
@@ -524,7 +532,7 @@ size_t __fastcall ICMPv6Echo(void)
 				continue;
 			}
 
-			Sleep((DWORD)Parameter.ICMPSpeed);
+			Sleep(Parameter.ICMPSpeed);
 		}
 
 	//Send.
@@ -745,7 +753,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 
 		return EXIT_FAILURE;
 	}
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	int Flags = fcntl(TCPSocket, F_GETFL, 0);
 	fcntl(TCPSocket, F_SETFL, Flags|O_NONBLOCK);
 #endif
@@ -784,7 +792,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 	#if defined(PLATFORM_WIN)
 		Timeout.tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
 		Timeout.tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Timeout.tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
 		Timeout.tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
 	#endif
@@ -794,7 +802,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
 		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		SelectResult = select(TCPSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
 	#endif
 		if (SelectResult > 0)
@@ -932,7 +940,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 		memset(TCPSocketData.get(), 0, sizeof(SOCKET_DATA));
 	#if defined(PLATFORM_WIN)
 		ULONG SocketMode = 1U;
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		int Flags = 0;
 	#endif
 		auto IsAlternate = AlternateSwapList.IsSwap[0];
@@ -959,7 +967,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 
 					return EXIT_FAILURE;
 				}
-			#elif defined(PLATFORM_LINUX)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 				Flags = fcntl(TCPSocketData->Socket, F_GETFL, 0);
 				fcntl(TCPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 			#endif
@@ -996,7 +1004,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 
 					return EXIT_FAILURE;
 				}
-			#elif defined(PLATFORM_LINUX)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 				Flags = fcntl(TCPSocketData->Socket, F_GETFL, 0);
 				fcntl(TCPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 			#endif
@@ -1035,7 +1043,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 
 						return EXIT_FAILURE;
 					}
-				#elif defined(PLATFORM_LINUX)
+				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 					Flags = fcntl(TCPSocketData->Socket, F_GETFL, 0);
 					fcntl(TCPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 				#endif
@@ -1053,7 +1061,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 		memset(TCPSocketData.get(), 0, sizeof(SOCKET_DATA));
 	#if defined(PLATFORM_WIN)
 		ULONG SocketMode = 1U;
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		int Flags = 0;
 	#endif
 		auto IsAlternate = AlternateSwapList.IsSwap[1U];
@@ -1080,7 +1088,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 
 					return EXIT_FAILURE;
 				}
-			#elif defined(PLATFORM_LINUX)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 				Flags = fcntl(TCPSocketData->Socket, F_GETFL, 0);
 				fcntl(TCPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 			#endif
@@ -1117,7 +1125,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 
 					return EXIT_FAILURE;
 				}
-			#elif defined(PLATFORM_LINUX)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 				Flags = fcntl(TCPSocketData->Socket, F_GETFL, 0);
 				fcntl(TCPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 			#endif
@@ -1156,7 +1164,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 
 						return EXIT_FAILURE;
 					}
-				#elif defined(PLATFORM_LINUX)
+				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 					Flags = fcntl(TCPSocketData->Socket, F_GETFL, 0);
 					fcntl(TCPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 				#endif
@@ -1195,13 +1203,13 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
 	timeval Timeout = {0};
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	SOCKET MaxSocket = 0;
 #endif
 	FD_ZERO(WriteFDS.get());
 	for (auto SocketDataIter:TCPSocketDataList)
 	{
-	#if defined(PLATFORM_LINUX)
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (SocketDataIter.Socket > MaxSocket)
 			MaxSocket = SocketDataIter.Socket;
 	#endif
@@ -1217,7 +1225,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 	#if defined(PLATFORM_WIN)
 		Timeout.tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
 		Timeout.tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Timeout.tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
 		Timeout.tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
 	#endif
@@ -1233,7 +1241,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
 		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		SelectResult = select(MaxSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
 	#endif
 		if (SelectResult > 0)
@@ -1443,7 +1451,7 @@ size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, cons
 //Set socket timeout.
 #if defined(PLATFORM_WIN)
 	if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR)
 #endif
 	{
@@ -1509,7 +1517,7 @@ size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, cons
 				PortListTemp->ClearPortTime = GetTickCount() + Parameter.ReliableSocketTimeout;
 		#elif defined(PLATFORM_WIN)
 			PortListTemp->ClearPortTime = GetTickCount64() + Parameter.ReliableSocketTimeout;
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			PortListTemp->ClearPortTime = GetTickCount64() + Parameter.ReliableSocketTimeout.tv_sec * SECOND_TO_MILLISECOND + Parameter.ReliableSocketTimeout.tv_usec / MICROSECOND_TO_MILLISECOND;
 		#endif
 		}
@@ -1521,7 +1529,7 @@ size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, cons
 				PortListTemp->ClearPortTime = GetTickCount() + Parameter.UnreliableSocketTimeout;
 		#elif defined(PLATFORM_WIN)
 			PortListTemp->ClearPortTime = GetTickCount64() + Parameter.UnreliableSocketTimeout;
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			PortListTemp->ClearPortTime = GetTickCount64() + Parameter.UnreliableSocketTimeout.tv_sec * SECOND_TO_MILLISECOND + Parameter.UnreliableSocketTimeout.tv_usec / MICROSECOND_TO_MILLISECOND;
 		#endif
 		}
@@ -1537,7 +1545,7 @@ size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, cons
 		Sleep(Parameter.ReliableSocketTimeout);
 	else //UDP
 		Sleep(Parameter.UnreliableSocketTimeout);
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (Protocol == IPPROTO_TCP) //TCP
 		usleep(Parameter.ReliableSocketTimeout.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.ReliableSocketTimeout.tv_usec);
 	else //UDP
@@ -1562,7 +1570,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 		memset(UDPSocketData.get(), 0, sizeof(SOCKET_DATA));
 	#if defined(PLATFORM_WIN)
 		ULONG SocketMode = 1U;
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		int Flags = 0;
 	#endif
 		auto IsAlternate = AlternateSwapList.IsSwap[0];
@@ -1587,7 +1595,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 
 				return EXIT_FAILURE;
 			}
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
 			fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 		#endif
@@ -1621,7 +1629,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 
 				return EXIT_FAILURE;
 			}
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
 			fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 		#endif
@@ -1657,7 +1665,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 
 					return EXIT_FAILURE;
 				}
-			#elif defined(PLATFORM_LINUX)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 				Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
 				fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 			#endif
@@ -1674,7 +1682,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 		memset(UDPSocketData.get(), 0, sizeof(SOCKET_DATA));
 	#if defined(PLATFORM_WIN)
 		ULONG SocketMode = 1U;
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		int Flags = 0;
 	#endif
 		auto IsAlternate = AlternateSwapList.IsSwap[1U];
@@ -1699,7 +1707,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 
 				return EXIT_FAILURE;
 			}
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
 			fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 		#endif
@@ -1733,7 +1741,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 
 				return EXIT_FAILURE;
 			}
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
 			fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 		#endif
@@ -1769,7 +1777,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 
 					return EXIT_FAILURE;
 				}
-			#elif defined(PLATFORM_LINUX)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 				Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
 				fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 			#endif
@@ -1788,13 +1796,13 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 	std::shared_ptr<fd_set> WriteFDS(new fd_set());
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
 	timeval Timeout = {0};
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	SOCKET MaxSocket = 0;
 #endif
 	FD_ZERO(WriteFDS.get());
 	for (auto SocketDataIter:UDPSocketDataList)
 	{
-	#if defined(PLATFORM_LINUX)
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (SocketDataIter.Socket > MaxSocket)
 			MaxSocket = SocketDataIter.Socket;
 	#endif
@@ -1807,7 +1815,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 	#if defined(PLATFORM_WIN)
 		Timeout.tv_sec = Parameter.UnreliableSocketTimeout / SECOND_TO_MILLISECOND;
 		Timeout.tv_usec = Parameter.UnreliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Timeout.tv_sec = Parameter.UnreliableSocketTimeout.tv_sec;
 		Timeout.tv_usec = Parameter.UnreliableSocketTimeout.tv_usec;
 	#endif
@@ -1815,7 +1823,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
 		SelectResult = select(0, nullptr, WriteFDS.get(), nullptr, &Timeout);
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		SelectResult = select(MaxSocket + 1U, nullptr, WriteFDS.get(), nullptr, &Timeout);
 	#endif
 		if (SelectResult > 0)
@@ -1896,7 +1904,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 				PortListTemp->ClearPortTime = GetTickCount() + Parameter.ReliableSocketTimeout;
 		#elif defined(PLATFORM_WIN)
 			PortListTemp->ClearPortTime = GetTickCount64() + Parameter.ReliableSocketTimeout;
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			PortListTemp->ClearPortTime = GetTickCount64() + Parameter.ReliableSocketTimeout.tv_sec * SECOND_TO_MILLISECOND + Parameter.ReliableSocketTimeout.tv_usec / MICROSECOND_TO_MILLISECOND;
 		#endif
 		}
@@ -1908,7 +1916,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 				PortListTemp->ClearPortTime = GetTickCount() + Parameter.UnreliableSocketTimeout;
 		#elif defined(PLATFORM_WIN)
 			PortListTemp->ClearPortTime = GetTickCount64() + Parameter.UnreliableSocketTimeout;
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			PortListTemp->ClearPortTime = GetTickCount64() + Parameter.UnreliableSocketTimeout.tv_sec * SECOND_TO_MILLISECOND + Parameter.UnreliableSocketTimeout.tv_usec / MICROSECOND_TO_MILLISECOND;
 		#endif
 		}
@@ -1925,7 +1933,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 		Sleep(Parameter.ReliableSocketTimeout);
 	else //UDP
 		Sleep(Parameter.UnreliableSocketTimeout);
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (Protocol == IPPROTO_TCP) //TCP
 		usleep(Parameter.ReliableSocketTimeout.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.ReliableSocketTimeout.tv_usec);
 	else //UDP
@@ -2059,7 +2067,7 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 #if defined(PLATFORM_WIN)
 	if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR || 
 		setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(int)) == SOCKET_ERROR)
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR || 
 		setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.UnreliableSocketTimeout, sizeof(timeval)) == SOCKET_ERROR)
 #endif
@@ -2178,7 +2186,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 		memset(UDPSocketData.get(), 0, sizeof(SOCKET_DATA));
 	#if defined(PLATFORM_WIN)
 		ULONG SocketMode = 1U;
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		int Flags = 0;
 	#endif
 		auto IsAlternate = AlternateSwapList.IsSwap[0];
@@ -2203,7 +2211,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 
 				return EXIT_FAILURE;
 			}
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
 			fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 		#endif
@@ -2237,7 +2245,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 
 				return EXIT_FAILURE;
 			}
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
 			fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 		#endif
@@ -2273,7 +2281,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 
 					return EXIT_FAILURE;
 				}
-			#elif defined(PLATFORM_LINUX)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 				Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
 				fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 			#endif
@@ -2290,7 +2298,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 		memset(UDPSocketData.get(), 0, sizeof(SOCKET_DATA));
 	#if defined(PLATFORM_WIN)
 		ULONG SocketMode = 1U;
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		int Flags = 0;
 	#endif
 		auto IsAlternate = AlternateSwapList.IsSwap[1U];
@@ -2315,7 +2323,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 
 				return EXIT_FAILURE;
 			}
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
 			fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 		#endif
@@ -2349,7 +2357,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 
 				return EXIT_FAILURE;
 			}
-		#elif defined(PLATFORM_LINUX)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
 			fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 		#endif
@@ -2385,7 +2393,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 
 					return EXIT_FAILURE;
 				}
-			#elif defined(PLATFORM_LINUX)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 				Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
 				fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
 			#endif
@@ -2405,13 +2413,13 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
 	timeval Timeout = {0};
-#if defined(PLATFORM_LINUX)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	SOCKET MaxSocket = 0;
 #endif
 	FD_ZERO(WriteFDS.get());
 	for (auto SocketDataIter:UDPSocketDataList)
 	{
-	#if defined(PLATFORM_LINUX)
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (SocketDataIter.Socket > MaxSocket)
 			MaxSocket = SocketDataIter.Socket;
 	#endif
@@ -2427,7 +2435,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 	#if defined(PLATFORM_WIN)
 		Timeout.tv_sec = Parameter.UnreliableSocketTimeout / SECOND_TO_MILLISECOND;
 		Timeout.tv_usec = Parameter.UnreliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Timeout.tv_sec = Parameter.UnreliableSocketTimeout.tv_sec;
 		Timeout.tv_usec = Parameter.UnreliableSocketTimeout.tv_usec;
 	#endif
@@ -2443,7 +2451,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
 		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
-	#elif defined(PLATFORM_LINUX)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		SelectResult = select(MaxSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
 	#endif
 		

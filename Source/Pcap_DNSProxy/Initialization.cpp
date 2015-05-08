@@ -50,7 +50,7 @@ ConfigurationTable::ConfigurationTable(void)
 		IPFilterFileList = new std::vector<std::wstring>();
 		ErrorLogPath = new std::wstring();
 		RunningLogPath = new std::wstring();
-	#if defined(PLATFORM_LINUX)
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		sPath = new std::vector<std::string>();
 		sHostsFileList = new std::vector<std::string>();
 		sIPFilterFileList = new std::vector<std::string>();
@@ -120,14 +120,22 @@ ConfigurationTable::ConfigurationTable(void)
 #if defined(PLATFORM_WIN)
 	ReliableSocketTimeout = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
 	UnreliableSocketTimeout = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
-#elif defined(PLATFORM_LINUX)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	ReliableSocketTimeout.tv_sec = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
 	UnreliableSocketTimeout.tv_sec = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
 #endif
+#if defined(PLATFORM_MACX)
+	ICMPID = htons(*(uint16_t *)pthread_self());
+#else
 	ICMPID = htons((uint16_t)GetCurrentProcessId()); //Default ICMP ID is current process ID.
+#endif
 	ICMPSequence = htons(DEFAULT_SEQUENCE);
 	DomainTestSpeed = DEFAULT_DOMAINTEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
+#if defined(PLATFORM_MACX)
+	DomainTestID = htons(*(uint16_t *)pthread_self());
+#else
 	DomainTestID = htons((uint16_t)GetCurrentProcessId()); //Default DNS ID is current process ID.
+#endif
 	//Load default padding data.
 #if defined(PLATFORM_WIN)
 	ICMPPaddingDataLength = strlen(DEFAULT_PADDINGDATA) + 1U;
@@ -135,6 +143,11 @@ ConfigurationTable::ConfigurationTable(void)
 #elif defined(PLATFORM_LINUX)
 	size_t CharData = ICMP_STRING_START_NUM_LINUX;
 	for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_LINUX;++Index, ++CharData)
+		ICMPPaddingData[Index] = CharData;
+	ICMPPaddingDataLength = strlen(ICMPPaddingData) + 1U;
+#elif defined(PLATFORM_MACX)
+	size_t CharData = ICMP_STRING_START_NUM_MAC;
+	for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_MAC;++Index, ++CharData)
 		ICMPPaddingData[Index] = CharData;
 	ICMPPaddingDataLength = strlen(ICMPPaddingData) + 1U;
 #endif

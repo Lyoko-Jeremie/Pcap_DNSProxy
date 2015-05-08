@@ -22,6 +22,12 @@
     <Filter Include="LibSodium">
       <UniqueIdentifier>{b84be7f8-c8b4-4217-b3c3-4bf2467f38b9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ExampleConfig">
+      <UniqueIdentifier>{24a2b186-b4ca-49f8-8e4a-b5dfa546e3bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Documents">
+      <UniqueIdentifier>{8841be11-7e9b-4669-bdc0-e8bea1656f2c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Keccak\brg_endian.h">
@@ -362,5 +368,58 @@
     <None Include="..\LibSodium\version.h.in">
       <Filter>LibSodium</Filter>
     </None>
+    <None Include="..\ExampleConfig\Config.ini">
+      <Filter>ExampleConfig</Filter>
+    </None>
+    <None Include="..\ExampleConfig\Hosts.ini">
+      <Filter>ExampleConfig</Filter>
+    </None>
+    <None Include="..\ExampleConfig\IPFilter.ini">
+      <Filter>ExampleConfig</Filter>
+    </None>
+    <None Include="..\ExampleConfig\ServiceControl.bat">
+      <Filter>ExampleConfig</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\ExampleConfig\Routing.txt">
+      <Filter>ExampleConfig</Filter>
+    </Text>
+    <Text Include="..\ExampleConfig\White_List.txt">
+      <Filter>ExampleConfig</Filter>
+    </Text>
+    <Text Include="..\Documents\Changelog(zh_Hans).txt">
+      <Filter>Documents</Filter>
+    </Text>
+    <Text Include="..\Documents\Changelog(zh_Hant).txt">
+      <Filter>Documents</Filter>
+    </Text>
+    <Text Include="..\Documents\FAQ(zh_Hans).txt">
+      <Filter>Documents</Filter>
+    </Text>
+    <Text Include="..\Documents\FAQ(zh_Hant).txt">
+      <Filter>Documents</Filter>
+    </Text>
+    <Text Include="..\Documents\FAQ_Linux(zh_Hans).txt">
+      <Filter>Documents</Filter>
+    </Text>
+    <Text Include="..\Documents\FAQ_Linux(zh_Hant).txt">
+      <Filter>Documents</Filter>
+    </Text>
+    <Text Include="..\Documents\FAQ_Mac(zh_Hans).txt">
+      <Filter>Documents</Filter>
+    </Text>
+    <Text Include="..\Documents\ReadMe(zh_Hans).txt">
+      <Filter>Documents</Filter>
+    </Text>
+    <Text Include="..\Documents\ReadMe(zh_Hant).txt">
+      <Filter>Documents</Filter>
+    </Text>
+    <Text Include="..\Documents\ReadMe_Linux(zh_Hans).txt">
+      <Filter>Documents</Filter>
+    </Text>
+    <Text Include="..\Documents\ReadMe_Mac(zh_Hans).txt">
+      <Filter>Documents</Filter>
+    </Text>
   </ItemGroup>
 </Project>
