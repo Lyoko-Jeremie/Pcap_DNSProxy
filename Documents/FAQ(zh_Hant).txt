@@ -70,22 +70,30 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Service start error - 服務啟動失敗：可能未在系統註冊服務，或在系統內註冊的服務路徑不正確
     * Pcap_DNSProxy will continue to run in console mode 一併顯示時為以視窗模式啟動的提示
     * 詳細情況參見 ReadMe 文檔中 安裝方法 一節
-    * 其它錯誤代碼原因參見 http://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
-  * Convert multiple byte string to wide char string error - 多位元組字元轉換為寬位元組字元錯誤，遇到此錯誤請與作者聯繫
+    * 其它錯誤代碼原因參見 https://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
+  * Convert multiple byte string to wide char string error - 多/寬位元組字元轉換錯誤：建議重新開機服務或程式
+  * Create mailslot error - MailSlot 創建失敗：建議重新開機服務或程式
+  * Get mailslot error - MailSlot 獲取失敗：建議重新開機服務或程式
+  * MailSlot read messages error - MailSlot 讀取資訊失敗：建議重新開機服務或程式
+  * MailSlot write messages error - MailSlot 寫入資訊失敗：建議重新開機服務或程式
+  * Create FIFO error - FIFO 創建失敗：建議重新開機服務或程式
+  * FIFO write messages error - FIFO 寫入資訊失敗：建議重新開機服務或程式
   * Old Error Log file was deleted - 錯誤日誌檔已滿並被刪除
     * 日誌檔最大容量的配置參見 詳細說明文檔 中 設定檔詳細參數說明 中的 Log Maximum Size 參數
   * Old Running Log file was deleted - 運行日誌檔已滿並被刪除
     * 日誌檔最大容量的配置參見 詳細說明文檔 中 設定檔詳細參數說明 中的 Log Maximum Size 參數
-  * Read Hosts module Monitor terminated - Hosts 讀取模組已經停止監視，建議立即重新開機服務或程式
-  * Read IPFilter module Monitor terminated - IPFilter 讀取模組已經停止監視，建議立即重新開機服務或程式
-  * Alternate Server module Monitor terminated - 待命伺服器切換模組已經停止運行，建議立即重新開機服務或程式
-  * DNS Cache Timer module Monitor terminated - DNS 緩存模組已經停止運行，建議立即重新開機服務或程式
-  * Get Local Address Information module Monitor terminated - 本地位址監控模組已經停止監視，建議立即重新開機服務或程式
-  * Domain Test module Monitor terminated - 功能變數名稱測試模組已經停止運行，建議立即重新開機服務或程式
-  * ICMP Test module Monitor terminated - ICMP 請求模組已經停止請求，建議立即重新開機服務或程式
-  * ICMPv6 Test module Monitor terminated - ICMPv6 請求已經停止請求，建議立即重新開機服務或程式
-  * UDP listening module Monitor terminated - UDP 協定監聽模組已經停止監視，建議立即重新開機服務或程式
-  * TCP listening module Monitor terminated - TCP 協定監聽模組已經停止監視，建議立即重新開機服務或程式
+  * Read Hosts module Monitor terminated - Hosts 讀取模組已經停止監視，建議重新開機服務或程式
+  * Read IPFilter module Monitor terminated - IPFilter 讀取模組已經停止監視，建議重新開機服務或程式
+  * Alternate Server module Monitor terminated - 待命伺服器切換模組已經停止運行，建議重新開機服務或程式
+  * DNS Cache Timer module Monitor terminated - DNS 緩存模組已經停止運行，建議重新開機服務或程式
+  * Get Local Address Information module Monitor terminated - 本地位址監視模組已經停止監視，建議重新開機服務或程式
+  * Domain Test module Monitor terminated - 功能變數名稱測試模組已經停止運行，建議重新開機服務或程式
+  * ICMP Test module Monitor terminated - ICMP 請求模組已經停止請求，建議重新開機服務或程式
+  * ICMPv6 Test module Monitor terminated - ICMPv6 請求已經停止請求，建議重新開機服務或程式
+  * UDP listening module Monitor terminated - UDP 協定監聽模組已經停止監視，建議重新開機服務或程式
+  * TCP listening module Monitor terminated - TCP 協定監聽模組已經停止監視，建議重新開機服務或程式
+  * MailSlot module Monitor terminated - MailSlot 監視模組已經停止運行，建議重新開機服務或程式
+  * FIFO module Monitor terminated - FIFO 監視模組已經停止運行，建議重新開機服務或程式
 
 2.Parameter Error - 讀取設定檔參數錯誤
   * Cannot open any configuration files - 沒有發現任何設定檔：請確認檔是否存在
@@ -193,7 +201,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Set ICMPv6 socket timeout error - 設置 ICMPv6 協定通訊端超時時間錯誤：具體原因可參見錯誤代碼
   * ICMPv6 Echo(Ping) request error - ICMPv6/Ping 協定請求錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
   * Not any available gateways to public network - 沒有任何通往公共網路的可用閘道：可能為網路錯誤，請檢查網路是否通暢
-  * Winsock 錯誤代碼具體含義可移步 http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
+  * Winsock 錯誤代碼具體含義可移步 https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 
 6.Pcap Error - Pcap 錯誤
   * Insufficient privileges or not any available network devices - 沒有任何可用的網路介面卡：請檢查硬體設備和驅動程式是否安裝正確，也可能是許可權不足

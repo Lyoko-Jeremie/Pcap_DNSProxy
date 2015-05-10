@@ -1,5 +1,5 @@
 :: Pcap_DNSProxy service control batch
-:: A local DNS server base on WinPcap and LibPcap.
+:: A local DNS server based on WinPcap and LibPcap
 
 
 @echo off
@@ -35,7 +35,7 @@ echo 2: Uninstall service
 echo 3: Start service
 echo 4: Stop service
 echo 5: Restart service
-echo 6: Service Query(Windows XP/2003 only)
+echo 6: Flush DNS cache in Pcap_DNSProxy
 echo.
 set /P UserChoice="Choose: "
 set UserChoice=CASE_%UserChoice%
@@ -55,17 +55,17 @@ goto %UserChoice%
 	sc create PcapDNSProxyService binPath= "%~dp0Pcap_DNSProxy_x86.exe" DisplayName= "PcapDNSProxy Service" start= auto
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v Application /d "%~dp0Pcap_DNSProxy_x86.exe" /f
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v AppDirectory /d "%~dp0" /f
-	Pcap_DNSProxy_x86.exe --FirstStart
+	Pcap_DNSProxy_x86.exe --firststart
 	goto Exit
 
 	:X64
 	sc create PcapDNSProxyService binPath= "%~dp0Pcap_DNSProxy.exe" DisplayName= "PcapDNSProxy Service" start= auto
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v Application /d "%~dp0Pcap_DNSProxy.exe" /f
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v AppDirectory /d "%~dp0" /f
-	Pcap_DNSProxy.exe --FirstStart
+	Pcap_DNSProxy.exe --firststart
 
 	:Exit
-	sc description PcapDNSProxyService "A local DNS server base on WinPcap and LibPcap."
+	sc description PcapDNSProxyService "A local DNS server based on WinPcap and LibPcap"
 	sc failure PcapDNSProxyService reset= 0 actions= restart/5000/restart/10000//
 	sc start PcapDNSProxyService
 	ipconfig /flushdns
@@ -147,13 +147,11 @@ goto %UserChoice%
 	exit
 
 
-:: Service Query part
-:: Author: PyDNSProxy project(https://code.google.com/p/pydnsproxy)
-:: In Windows XP/2003, 'sc query' will always exit with status code '0',
-:: No matter the query faild or not.
+:: Flush DNS cache part
+:: Author: Chengr28
 :CASE_6
 	echo.
-	sc query PcapDNSProxyService | find "SERVICE_NAME: PcapDNSProxyService"
+	Pcap_DNSProxy.exe --flushdns
 	echo.
 	pause
 	exit

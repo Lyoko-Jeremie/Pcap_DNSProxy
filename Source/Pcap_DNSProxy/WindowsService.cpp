@@ -1,5 +1,5 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server base on WinPcap and LibPcap.
+// A local DNS server based on WinPcap and LibPcap
 // Copyright (C) 2012-2015 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
@@ -159,4 +159,124 @@ void WINAPI TerminateService(void)
 	UpdateServiceStatus(SERVICE_STOPPED, NO_ERROR, 0, 0, 0);
 
 	return;
+}
+
+//MailSlot of flush DNS cache Monitor
+size_t WINAPI FlushDNSMailSlotMonitor(void)
+{
+//System security setting
+	SECURITY_DESCRIPTOR SecurityDescriptor = {0};
+	InitializeSecurityDescriptor(&SecurityDescriptor, SECURITY_DESCRIPTOR_REVISION);
+	SetSecurityDescriptorDacl(&SecurityDescriptor, true, nullptr, false);
+	SECURITY_ATTRIBUTES SecurityAttributes = {0};
+	SecurityAttributes.lpSecurityDescriptor = &SecurityDescriptor;
+	SecurityAttributes.bInheritHandle = true;
+
+//Create mailslot.
+	HANDLE hSlot = CreateMailslotW(MAILSLOT_NAME, PACKET_MAXSIZE - 1U, MAILSLOT_WAIT_FOREVER, &SecurityAttributes);
+	if (hSlot == INVALID_HANDLE_VALUE)
+	{
+		PrintError(LOG_ERROR_SYSTEM, L"Create mailslot error", GetLastError(), nullptr, 0);
+		return EXIT_FAILURE;
+	}
+
+//Initialization
+	BOOL Result = false, FlushDNS = false;
+	DWORD cbMessage = 0, cMessage = 0, cAllMessages = 0, cbRead = 0;
+	std::shared_ptr<wchar_t> lpszBuffer(new wchar_t[PACKET_MAXSIZE]());
+	memset(lpszBuffer.get(), 0, PACKET_MAXSIZE);
+
+//MailSlot Monitor
+	for (;;)
+	{
+		FlushDNS = false;
+
+	//Get mailslot messages.
+		Result = GetMailslotInfo(hSlot, nullptr, &cbMessage, &cMessage, nullptr);
+		if (!Result)
+		{
+			PrintError(LOG_ERROR_SYSTEM, L"Get mailslot error", GetLastError(), nullptr, 0);
+			
+			CloseHandle(hSlot);
+			return EXIT_FAILURE;
+		}
+
+	//Wait for messages.
+		if (cbMessage == MAILSLOT_NO_MESSAGE)
+		{
+			Sleep(MONITOR_LOOP_INTERVAL_TIME);
+			continue;
+		}
+
+	//Got messages.
+		cAllMessages = cMessage;
+		while (cMessage > 0)
+		{
+			Result = ReadFile(hSlot, lpszBuffer.get(), cbMessage, &cbRead, nullptr);
+			if (!Result)
+			{
+				PrintError(LOG_ERROR_SYSTEM, L"MailSlot read messages error", GetLastError(), nullptr, 0);
+				
+				CloseHandle(hSlot);
+				return EXIT_FAILURE;
+			}
+
+			if (!FlushDNS && memcmp(lpszBuffer.get(), MAILSLOT_MESSAGE_FLUSH_DNS, wcslen(MAILSLOT_MESSAGE_FLUSH_DNS)) == 0)
+			{
+				FlushDNS = true;
+
+			//Flush all DNS cache.
+				std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
+				DNSCacheList.clear();
+				DNSCacheList.shrink_to_fit();
+				DNSCacheListMutex.unlock();
+				FlushSystemDNSCache();
+			}
+			memset(lpszBuffer.get(), 0, PACKET_MAXSIZE);
+
+		//Get other mailslot messages.
+			Result = GetMailslotInfo(hSlot, nullptr, &cbMessage, &cMessage, nullptr);
+			if (!Result)
+			{
+				PrintError(LOG_ERROR_SYSTEM, L"Get mailslot error", GetLastError(), nullptr, 0);
+				
+				CloseHandle(hSlot);
+				return EXIT_FAILURE;
+			}
+		}
+	}
+
+	CloseHandle(hSlot);
+	PrintError(LOG_ERROR_SYSTEM, L"MailSlot module Monitor terminated", 0, nullptr, 0);
+	return EXIT_FAILURE;
+}
+
+//MailSlot of flush DNS cache sender
+size_t WINAPI FlushDNSMailSlotSender(void)
+{
+//Initialization
+	BOOL Result = false;
+	DWORD cbWritten = 0;
+
+//Create mailslot.
+	HANDLE hFile = CreateFileW(MAILSLOT_NAME, GENERIC_WRITE, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	if (hFile == INVALID_HANDLE_VALUE)
+	{
+		PrintError(LOG_ERROR_SYSTEM, L"Create mailslot error", GetLastError(), nullptr, 0);
+		return EXIT_FAILURE;
+	}
+
+//Write into mailslot.
+	Result = WriteFile(hFile, MAILSLOT_MESSAGE_FLUSH_DNS, (DWORD)(lstrlenW(MAILSLOT_MESSAGE_FLUSH_DNS) + 1U) * sizeof(wchar_t), &cbWritten, nullptr);
+	if (!Result)
+	{
+		PrintError(LOG_ERROR_SYSTEM, L"MailSlot write messages error", GetLastError(), nullptr, 0);
+
+		CloseHandle(hFile);
+		return EXIT_FAILURE;
+	}
+
+	CloseHandle(hFile);
+	wprintf(L"Flush DNS cache message was sent successfully.\n");
+	return EXIT_SUCCESS;
 }

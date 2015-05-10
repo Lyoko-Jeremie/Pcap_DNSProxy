@@ -1,5 +1,5 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server base on WinPcap and LibPcap.
+// A local DNS server based on WinPcap and LibPcap
 // Copyright (C) 2012-2015 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
@@ -2321,7 +2321,7 @@ size_t __fastcall ReadIPFilter(void)
 		}
 	}
 
-//Files monitor
+//Files Monitor
 	size_t FileIndex = 0, ReadLength = 0;
 	auto IsFileChanged = false;
 	std::vector<ADDRESS_RANGE_TABLE>::iterator AddressRangeTableIter;
@@ -2666,7 +2666,7 @@ size_t __fastcall ReadIPFilter(void)
 			DNSCacheListMutex.unlock();
 
 		//Clear system DNS cache.
-			FlushDNSCache();
+			FlushSystemDNSCache();
 		}
 
 	//Auto-refresh
@@ -3526,7 +3526,7 @@ size_t __fastcall ReadHosts(void)
 		}
 	}
 
-//Files monitor
+//Files Monitor
 	size_t FileIndex = 0, ReadLength = 0, Index = 0;
 	auto IsFileChanged = false;
 #if defined(PLATFORM_WIN)
@@ -3869,7 +3869,7 @@ size_t __fastcall ReadHosts(void)
 			DNSCacheListMutex.unlock();
 
 		//Clear system DNS cache.
-			FlushDNSCache();
+			FlushSystemDNSCache();
 		}
 
 	//Auto-refresh

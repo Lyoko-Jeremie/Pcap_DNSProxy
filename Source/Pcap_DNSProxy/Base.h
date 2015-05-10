@@ -1,5 +1,5 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server base on WinPcap and LibPcap.
+// A local DNS server based on WinPcap and LibPcap
 // Copyright (C) 2012-2015 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
@@ -2013,12 +2013,12 @@ typedef struct _dnscurve_txt_signature_
 #define PCAP_CAPTURE_TIMEOUT               5000U     //Pcap reading timeout, 5 seconds(5000 ms)
 #define SOCKET_TIMEOUT_MIN                 500U      //The shortset socket timeout, 500 ms
 #if defined(PLATFORM_WIN)
-	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT    3000U     //Default timeout of reliable sockets(Such as TCP, 3 seconds/3000ms)
-	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT  2000U     //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds/2000ms)
+	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT     3000U     //Default timeout of reliable sockets(Such as TCP, 3 seconds/3000ms)
+	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT   2000U     //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds/2000ms)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	#define DEFAULT_BLOCK_GATEWAY_ERROR_TIME   10U       //Block gateway error messages when using systemd init, 10 seconds.
-	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT    3U        //Default timeout of reliable sockets(Such as TCP, 3 seconds)
-	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT  2U        //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds)
+	#define DEFAULT_BLOCK_GATEWAY_ERROR_TIME    10U       //Block gateway error messages when using systemd init, 10 seconds.
+	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT     3U        //Default timeout of reliable sockets(Such as TCP, 3 seconds)
+	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT   2U        //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds)
 #endif
 #define DEFAULT_FILEREFRESH_TIME           10U       //Default time between files auto-refreshing, 10 seconds
 #define DEFAULT_ICMPTEST_TIME              5U        //Default time between ICMP Test, 5 seconds
@@ -2039,8 +2039,16 @@ typedef struct _dnscurve_txt_signature_
 //Data defines
 #define DEFAULT_LOCAL_SERVERNAME              ("pcap-dnsproxy.localhost.server")                                                                                                            //Default Local DNS server name
 #if defined(PLATFORM_WIN)
+	#define MESSAGE_FIREWALL_TEST                 L"--firststart"
+	#define MESSAGE_FLUSH_DNS                     L"--flushdns"
+	#define MAILSLOT_NAME                         L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot"                                                                                                    //MailSlot name
+	#define MAILSLOT_MESSAGE_FLUSH_DNS            L"Flush DNS cache of Pcap_DNSProxy."                                                                                                          //The mailslot message to flush dns cache
 	#define DEFAULT_LOCAL_SERVICENAME             L"PcapDNSProxyService"                                                                                                                        //Default service name of system
 	#define DEFAULT_PADDINGDATA                   ("abcdefghijklmnopqrstuvwabcdefghi")                                                                                                          //ICMP padding data on Windows
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	#define MESSAGE_FLUSH_DNS                     ("--flushdns")
+	#define FIFO_PATH_NAME                        ("/tmp/pcap_dnsproxy_fifo")                                                                                                                   //FIFO pathname
+	#define FIFO_MESSAGE_FLUSH_DNS                ("Flush DNS cache of Pcap_DNSProxy.")                                                                                                         //The FIFO message to flush dns cache
 #endif
 #define RFC_DOMAIN_TABLE                      (".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")                                                                          //Preferred name syntax(Section 2.3.1 in RFC 1035)
 #if defined(ENABLE_LIBSODIUM)
@@ -2486,7 +2494,7 @@ size_t __fastcall AddLengthToTCPDNSHeader(PSTR Buffer, const size_t RecvLen, con
 size_t __fastcall CharToDNSQuery(const char *FName, PSTR TName);
 size_t __fastcall CheckDNSQueryNameLength(const char *Buffer);
 size_t __fastcall DNSQueryToChar(const char *TName, PSTR FName);
-void __fastcall FlushDNSCache(void);
+void __fastcall FlushSystemDNSCache(void);
 void __fastcall MakeRamdomDomain(PSTR Buffer);
 void __fastcall MakeDomainCaseConversion(PSTR Buffer);
 size_t __fastcall MakeCompressionPointerMutation(char *Buffer, const size_t Length);
@@ -2500,6 +2508,10 @@ size_t __fastcall ReadHosts(void);
 //Monitor.h
 size_t __fastcall RunningLogWriteMonitor(void);
 size_t __fastcall MonitorInit(void);
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	size_t FlushDNSFIFOMonitor(void);
+	size_t FlushDNSFIFOSender(void);
+#endif
 
 //DNSCurve.h
 #if defined(ENABLE_LIBSODIUM)
@@ -2533,4 +2545,6 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 #if defined(PLATFORM_WIN)
 	BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType);
 	size_t WINAPI ServiceMain(DWORD argc, LPTSTR *argv);
+	size_t WINAPI FlushDNSMailSlotMonitor(void);
+	size_t WINAPI FlushDNSMailSlotSender(void);
 #endif

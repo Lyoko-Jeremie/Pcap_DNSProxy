@@ -1,5 +1,5 @@
 # This code is part of Pcap_DNSProxy
-# A local DNS server base on WinPcap and LibPcap.
+# A local DNS server based on WinPcap and LibPcap
 # Copyright (C) 2012-2015 Chengr28
 # 
 # This program is free software; you can redistribute it and/or

@@ -70,22 +70,30 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Service start error - 服务启动失败：可能未在系统注册服务，或在系统内注册的服务路径不正确
     * Pcap_DNSProxy will continue to run in console mode 一并显示时为以窗口模式启动的提示
     * 详细情况参见 ReadMe 文档中 安装方法 一节
-    * 其它错误代码原因参见 http://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
-  * Convert multiple byte string to wide char string error - 多字节字符转换为宽字节字符错误，遇到此错误请与作者联系
+    * 其它错误代码原因参见 https://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
+  * Convert multiple byte string to wide char string error - 多/宽字节字符转换错误：建议重新启动服务或程序
+  * Create mailslot error - MailSlot 创建失败：建议重新启动服务或程序
+  * Get mailslot error - MailSlot 获取失败：建议重新启动服务或程序
+  * MailSlot read messages error - MailSlot 读取信息失败：建议重新启动服务或程序
+  * MailSlot write messages error - MailSlot 写入信息失败：建议重新启动服务或程序
+  * Create FIFO error - FIFO 创建失败：建议重新启动服务或程序
+  * FIFO write messages error - FIFO 写入信息失败：建议重新启动服务或程序
   * Old Error Log file was deleted - 错误日志文件已满并被删除
     * 日志文件最大容量的配置参见 详细说明文档 中 配置文件详细参数说明 中的 Log Maximum Size 参数
   * Old Running Log file was deleted - 运行日志文件已满并被删除
     * 日志文件最大容量的配置参见 详细说明文档 中 配置文件详细参数说明 中的 Log Maximum Size 参数
-  * Read Hosts module Monitor terminated - Hosts 读取模块已经停止监视，建议立即重新启动服务或程序
-  * Read IPFilter module Monitor terminated - IPFilter 读取模块已经停止监视，建议立即重新启动服务或程序
-  * Alternate Server module Monitor terminated - 备用服务器切换模块已经停止运行，建议立即重新启动服务或程序
-  * DNS Cache Timer module Monitor terminated - DNS 缓存模块已经停止运行，建议立即重新启动服务或程序
-  * Get Local Address Information module Monitor terminated - 本地地址监控模块已经停止监视，建议立即重新启动服务或程序
-  * Domain Test module Monitor terminated - 域名测试模块已经停止运行，建议立即重新启动服务或程序
-  * ICMP Test module Monitor terminated - ICMP 请求模块已经停止请求，建议立即重新启动服务或程序
-  * ICMPv6 Test module Monitor terminated - ICMPv6 请求已经停止请求，建议立即重新启动服务或程序
-  * UDP listening module Monitor terminated - UDP 协议监听模块已经停止监视，建议立即重新启动服务或程序
-  * TCP listening module Monitor terminated - TCP 协议监听模块已经停止监视，建议立即重新启动服务或程序
+  * Read Hosts module Monitor terminated - Hosts 读取模块已经停止监视，建议重新启动服务或程序
+  * Read IPFilter module Monitor terminated - IPFilter 读取模块已经停止监视，建议重新启动服务或程序
+  * Alternate Server module Monitor terminated - 备用服务器切换模块已经停止运行，建议重新启动服务或程序
+  * DNS Cache Timer module Monitor terminated - DNS 缓存模块已经停止运行，建议重新启动服务或程序
+  * Get Local Address Information module Monitor terminated - 本地地址监视模块已经停止监视，建议重新启动服务或程序
+  * Domain Test module Monitor terminated - 域名测试模块已经停止运行，建议重新启动服务或程序
+  * ICMP Test module Monitor terminated - ICMP 请求模块已经停止请求，建议重新启动服务或程序
+  * ICMPv6 Test module Monitor terminated - ICMPv6 请求已经停止请求，建议重新启动服务或程序
+  * UDP listening module Monitor terminated - UDP 协议监听模块已经停止监视，建议重新启动服务或程序
+  * TCP listening module Monitor terminated - TCP 协议监听模块已经停止监视，建议重新启动服务或程序
+  * MailSlot module Monitor terminated - MailSlot 监视模块已经停止运行，建议重新启动服务或程序
+  * FIFO module Monitor terminated - FIFO 监视模块已经停止运行，建议重新启动服务或程序
 
 2.Parameter Error - 读取配置文件参数错误
   * Cannot open any configuration files - 没有发现任何配置文件：请确认文件是否存在
@@ -193,7 +201,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Set ICMPv6 socket timeout error - 设置 ICMPv6 协议套接字超时时间错误：具体原因可参见错误代码
   * ICMPv6 Echo(Ping) request error - ICMPv6/Ping 协议请求错误：可能为网络错误，具体原因可参见错误代码
   * Not any available gateways to public network - 没有任何通往公共网络的可用网关：可能为网络错误，请检查网络是否通畅
-  * Winsock 错误代码具体含义可移步 http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
+  * Winsock 错误代码具体含义可移步 https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 
 6.Pcap Error - Pcap 错误
   * Insufficient privileges or not any available network devices - 没有任何可用的网络适配器：请检查硬件设备和驱动程序是否安装正确，也可能是权限不足

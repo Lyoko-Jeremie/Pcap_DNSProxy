@@ -1,5 +1,5 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server base on WinPcap and LibPcap.
+// A local DNS server based on WinPcap and LibPcap
 // Copyright (C) 2012-2015 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
@@ -21,6 +21,8 @@
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
+extern std::deque<DNSCACHE_DATA> DNSCacheList;
+extern std::mutex DNSCacheListLock;
 static DWORD ServiceCurrentStatus = 0;
 static BOOL ServiceRunning = false;
 SERVICE_STATUS_HANDLE ServiceStatusHandle = nullptr;

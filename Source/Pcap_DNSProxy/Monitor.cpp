@@ -1,5 +1,5 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server base on WinPcap and LibPcap.
+// A local DNS server based on WinPcap and LibPcap
 // Copyright (C) 2012-2015 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
@@ -168,7 +168,7 @@ size_t __fastcall MonitorInit(void)
 	std::vector<std::thread> MonitorThread((Parameter.ListenPort->size() + 1U) * TRANSPORT_LAYER_PARTNUM);
 	size_t MonitorThreadIndex = 0;
 
-//Set localhost monitor sockets(IPv6/UDP).
+//Set localhost Monitor sockets(IPv6/UDP).
 	if (Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV6_IPV4 || Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV6)
 	{
 		if (Parameter.ListenProtocol_TransportLayer == LISTEN_TCP_UDP || Parameter.ListenProtocol_TransportLayer == LISTEN_UDP)
@@ -1102,9 +1102,80 @@ void __fastcall AlternateServerMonitor(void)
 			}
 		}
 
-		Sleep(MONITOR_LOOP_INTERVAL_TIME); //Time between checking.
+		Sleep(MONITOR_LOOP_INTERVAL_TIME);
 	}
 
 	PrintError(LOG_ERROR_SYSTEM, L"Alternate Server module Monitor terminated", 0, nullptr, 0);
 	return;
 }
+
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+//Flush DNS cache FIFO Monitor
+size_t FlushDNSFIFOMonitor(void)
+{
+//Initialization
+	unlink(FIFO_PATH_NAME);
+	std::shared_ptr<char> Buffer(new char[PACKET_MAXSIZE]());
+	memset(Buffer.get(), 0, PACKET_MAXSIZE);
+	int FIFO_FD = 0;
+
+//Create FIFO.
+	if (mkfifo(FIFO_PATH_NAME, O_CREAT) < 0 || chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) < 0)
+	{
+		PrintError(LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
+
+		unlink(FIFO_PATH_NAME);
+		return EXIT_FAILURE;
+	}
+
+//Open FIFO.
+	FIFO_FD = open(FIFO_PATH_NAME, O_RDONLY, 0);
+	if (FIFO_FD < 0)
+	{
+		PrintError(LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
+
+		unlink(FIFO_PATH_NAME);
+		return EXIT_FAILURE;
+	}
+
+//FIFO Monitor
+	for (;;)
+	{
+		if (read(FIFO_FD, Buffer.get(), PACKET_MAXSIZE) > 0 && 
+			memcmp(Buffer.get(), FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) == 0)
+		{
+		//Flush all DNS cache.
+			std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
+			DNSCacheList.clear();
+			DNSCacheList.shrink_to_fit();
+			DNSCacheListMutex.unlock();
+			FlushSystemDNSCache();
+		}
+
+		memset(Buffer.get(), 0, PACKET_MAXSIZE);
+		Sleep(MONITOR_LOOP_INTERVAL_TIME);
+	}
+
+	close(FIFO_FD);
+	unlink(FIFO_PATH_NAME);
+	PrintError(LOG_ERROR_SYSTEM, L"FIFO module Monitor terminated", 0, nullptr, 0);
+	return EXIT_SUCCESS;
+}
+
+//Flush DNS cache FIFO sender
+size_t FlushDNSFIFOSender(void)
+{
+	int FIFO_FD = open(FIFO_PATH_NAME, O_WRONLY|O_TRUNC|O_NONBLOCK, 0);
+	if (FIFO_FD > 0 && write(FIFO_FD, FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) > 0)
+	{
+		wprintf(L"Flush DNS cache message was sent successfully.\n");
+		close(FIFO_FD);
+	}
+	else {
+		PrintError(LOG_ERROR_SYSTEM, L"FIFO write messages error", GetLastError(), nullptr, 0);
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
+}
+#endif

@@ -1,5 +1,5 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server base on WinPcap and LibPcap.
+// A local DNS server based on WinPcap and LibPcap
 // Copyright (C) 2012-2015 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
@@ -556,7 +556,7 @@ size_t __fastcall GetNetworkingInformation(void)
 	PADDRINFOA LocalAddressList = nullptr, LocalAddressTableIter = nullptr;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	ifaddrs *InterfaceAddressList = nullptr, *InterfaceAddressIter = nullptr;
-	usleep(DEFAULT_BLOCK_GATEWAY_ERROR_TIME * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND);
+	auto ErrorFirstPrint = true;
 #endif
 	pdns_hdr DNS_Header = nullptr;
 	pdns_qry DNS_Query = nullptr;
@@ -933,9 +933,17 @@ size_t __fastcall GetNetworkingInformation(void)
 		GetGatewayInformation(AF_INET);
 		if (!Parameter.GatewayAvailable_IPv4)
 		{
+		#if defined(PLATFORM_WIN)
 			if (!Parameter.GatewayAvailable_IPv6)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			if (!ErrorFirstPrint &&!Parameter.GatewayAvailable_IPv6)
+		#endif
 				PrintError(LOG_ERROR_NETWORK, L"Not any available gateways to public network", 0, nullptr, 0);
+
 			Parameter.TunnelAvailable_IPv6 = false;
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			ErrorFirstPrint = false;
+		#endif
 		}
 
 	//Auto-refresh
@@ -1967,7 +1975,7 @@ size_t __fastcall DNSQueryToChar(const char *TName, PSTR FName)
 	}
 #endif
 */
-void __fastcall FlushDNSCache(void)
+void __fastcall FlushSystemDNSCache(void)
 {
 #if defined(PLATFORM_WIN)
 	system("ipconfig /flushdns");
@@ -1977,7 +1985,7 @@ void __fastcall FlushDNSCache(void)
 	system("rndc restart"); //Name server control utility or BIND DNS service
 #elif defined(PLATFORM_MACX)
 //	system("lookupd -flushcache"); //Less than Mac OS X Tiger(10.4)
-	system("dscacheutil -flushcache"); //Mac OS X Leopard(10.5) and Snow Leopard(10.6)
+//	system("dscacheutil -flushcache"); //Mac OS X Leopard(10.5) and Snow Leopard(10.6)
 	system("killall -HUP mDNSResponder"); //Mac OS X Lion(10.7), Mountain Lion(10.8) and Mavericks(10.9)
 	system("discoveryutil mdnsflushcache"); //Mac OS X Yosemite(10.10) and other latest version
 #endif

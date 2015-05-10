@@ -118,8 +118,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 3: Start service - 啟動工具的服務
   * 4: Stop service - 停止工具的服務
   * 5: Restart service - 重啟工具的服務
-  * 6: Service Query(Windows XP/2003 only) - 適用于 Windows XP/2003 以及更舊版本 Windows 的測試批次處理，能測試控管服務是否安裝成功
-    * 如果服務安裝成功，運行後會顯示 "SERVICE_NAME: PcapDNSProxyService"（不含引號）
+  * 6: Flush DNS cache in Pcap_DNSProxy - 刷新程序的内部 DNS 缓存
 * 設定檔支援的檔案名（只會讀取優先順序較高者，優先順序較低者將被直接忽略）：
   * Windows: Config.ini > Config.conf > Config
   * Linux/Mac: Config.conf > Config.ini > Config

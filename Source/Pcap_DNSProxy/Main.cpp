@@ -1,5 +1,5 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server base on WinPcap and LibPcap.
+// A local DNS server based on WinPcap and LibPcap
 // Copyright (C) 2012-2015 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
@@ -41,25 +41,38 @@
 		if (FileNameInit(argv[0]) == EXIT_FAILURE)
 			return EXIT_FAILURE;
 
-	//Windows Firewall Test in first start.
-		if (argc > 1 && wcsnlen_s(argv[1U], STRING_BUFFER_MAXSIZE) == wcslen(L"--FirstStart") && wcsncmp(argv[1U], L"--FirstStart", wcslen(L"--FirstStart")) == 0)
+	//Read parameters.
+		if (argc > 1)
 		{
-			if (FirewallTest(AF_INET6) == EXIT_FAILURE && FirewallTest(AF_INET) == EXIT_FAILURE)
+			Parameter.Console = true;
+
+		//Windows Firewall Test in first start.
+			if (wcsnlen_s(argv[1U], STRING_BUFFER_MAXSIZE) == wcslen(MESSAGE_FIREWALL_TEST) && wcsncmp(argv[1U], MESSAGE_FIREWALL_TEST, wcslen(MESSAGE_FIREWALL_TEST)) == 0 && 
+				FirewallTest(AF_INET6) == EXIT_FAILURE && FirewallTest(AF_INET) == EXIT_FAILURE)
 			{
 				PrintError(LOG_ERROR_NETWORK, L"Windows Firewall Test error", 0, nullptr, 0);
 
 				WSACleanup();
 				return EXIT_FAILURE;
 			}
-			else {
-				WSACleanup();
-				return EXIT_SUCCESS;
+
+		//Flush DNS Cache from user.
+			else if (wcsnlen_s(argv[1U], STRING_BUFFER_MAXSIZE) == wcslen(MESSAGE_FLUSH_DNS) && wcsncmp(argv[1U], MESSAGE_FLUSH_DNS, wcslen(MESSAGE_FLUSH_DNS)) == 0)
+			{
+				FlushDNSMailSlotSender();
 			}
+
+			WSACleanup();
+			return EXIT_SUCCESS;
 		}
 	}
 	else {
 		return EXIT_FAILURE;
 	}
+
+//Set MailSlot Monitor.
+	std::thread FlushDNSMailSlotMonitorThread(FlushDNSMailSlotMonitor);
+	FlushDNSMailSlotMonitorThread.detach();
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Path initialization
 	std::shared_ptr<char> FileName(new char[PATH_MAX + 1U]());
@@ -72,18 +85,29 @@
 	if (FileNameInit(FileName.get()) == EXIT_FAILURE)
 		return EXIT_FAILURE;
 	FileName.reset();
-#endif
 
-#if defined(PLATFORM_LINUX)
-//Set Daemon
-	if (daemon(0, 0) == RETURN_ERROR)
+	#if defined(PLATFORM_LINUX)
+	//Set Daemon
+		if (daemon(0, 0) == RETURN_ERROR)
+		{
+			PrintError(LOG_ERROR_SYSTEM, L"Set system daemon error", 0, nullptr, 0);
+			return EXIT_FAILURE;
+		}
+	#endif
+
+	if (argc > 1 && strnlen(argv[1U], STRING_BUFFER_MAXSIZE) == strlen(MESSAGE_FLUSH_DNS) && 
+		memcmp(argv[1U], MESSAGE_FLUSH_DNS, strlen(MESSAGE_FLUSH_DNS)) == 0)
 	{
-		PrintError(LOG_ERROR_SYSTEM, L"Set system daemon error", 0, nullptr, 0);
-		return EXIT_FAILURE;
+		FlushDNSFIFOSender();
+		return EXIT_SUCCESS;
 	}
+
+//Set FIFO Monitor.
+	std::thread FlushDNSFIFOMonitorThread(FlushDNSFIFOMonitor);
+	FlushDNSFIFOMonitorThread.detach();
 #endif
 
-//Read configuration file and WinPcap initialization.
+//Read configuration file and WinPcap or LibPcap initialization.
 	if (ReadParameter() == EXIT_FAILURE)
 	{
 		WSACleanup();
