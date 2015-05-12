@@ -9,9 +9,6 @@
 /* Begin PBXBuildFile section */
 		D9672DD31AFCB67300330EB8 /* LibSodium_Mac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D9672DD21AFCB67300330EB8 /* LibSodium_Mac.a */; };
 		D99B47461AFCE4BB004BDEAE /* libpcap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D99B47451AFCE4BB004BDEAE /* libpcap.dylib */; };
-		D99E2DD71AFCB1DB00F36FCD /* Keccak-compact64.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99E2DD01AFCB1DB00F36FCD /* Keccak-compact64.cpp */; };
-		D99E2DD81AFCB1DB00F36FCD /* KeccakHash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99E2DD31AFCB1DB00F36FCD /* KeccakHash.cpp */; };
-		D99E2DD91AFCB1DB00F36FCD /* KeccakSponge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99E2DD51AFCB1DB00F36FCD /* KeccakSponge.cpp */; };
 		D99E2DFC1AFCB27A00F36FCD /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99E2DF81AFCB27A00F36FCD /* Base.cpp */; };
 		D99E2DFD1AFCB27A00F36FCD /* Capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99E2DFA1AFCB27A00F36FCD /* Capture.cpp */; };
 		D99E2E041AFCB28D00F36FCD /* Configuration.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99E2DFE1AFCB28D00F36FCD /* Configuration.cpp */; };
@@ -105,14 +102,6 @@
 		D99E2DCC1AFCB1BF00F36FCD /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utils.h; path = LibSodium/utils.h; sourceTree = SOURCE_ROOT; };
 		D99E2DCD1AFCB1BF00F36FCD /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = version.h; path = LibSodium/version.h; sourceTree = SOURCE_ROOT; };
 		D99E2DCE1AFCB1BF00F36FCD /* version.h.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = version.h.in; path = LibSodium/version.h.in; sourceTree = SOURCE_ROOT; };
-		D99E2DD01AFCB1DB00F36FCD /* Keccak-compact64.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "Keccak-compact64.cpp"; path = "Keccak/Keccak-compact64.cpp"; sourceTree = "<group>"; };
-		D99E2DD11AFCB1DB00F36FCD /* KeccakF-1600-int-set.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "KeccakF-1600-int-set.h"; path = "Keccak/KeccakF-1600-int-set.h"; sourceTree = "<group>"; };
-		D99E2DD21AFCB1DB00F36FCD /* KeccakF-1600-interface.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "KeccakF-1600-interface.h"; path = "Keccak/KeccakF-1600-interface.h"; sourceTree = "<group>"; };
-		D99E2DD31AFCB1DB00F36FCD /* KeccakHash.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KeccakHash.cpp; path = Keccak/KeccakHash.cpp; sourceTree = "<group>"; };
-		D99E2DD41AFCB1DB00F36FCD /* KeccakHash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KeccakHash.h; path = Keccak/KeccakHash.h; sourceTree = "<group>"; };
-		D99E2DD51AFCB1DB00F36FCD /* KeccakSponge.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = KeccakSponge.cpp; path = Keccak/KeccakSponge.cpp; sourceTree = "<group>"; };
-		D99E2DD61AFCB1DB00F36FCD /* KeccakSponge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = KeccakSponge.h; path = Keccak/KeccakSponge.h; sourceTree = "<group>"; };
-		D99E2DDA1AFCB1EB00F36FCD /* brg_endian.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = brg_endian.h; path = Keccak/brg_endian.h; sourceTree = "<group>"; };
 		D99E2DDC1AFCB21100F36FCD /* Config.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Config.ini; path = ExampleConfig/Config.ini; sourceTree = SOURCE_ROOT; };
 		D99E2DDD1AFCB21100F36FCD /* Hosts.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Hosts.ini; path = ExampleConfig/Hosts.ini; sourceTree = SOURCE_ROOT; };
 		D99E2DDE1AFCB21100F36FCD /* IPFilter.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = IPFilter.ini; path = ExampleConfig/IPFilter.ini; sourceTree = SOURCE_ROOT; };
@@ -212,7 +201,6 @@
 				D99E2E131AFCB2C500F36FCD /* Process.h */,
 				D99E2E151AFCB2C500F36FCD /* Protocol.h */,
 				D99E2DDB1AFCB1FC00F36FCD /* ExampleConfig */,
-				D99E2DCF1AFCB1C900F36FCD /* Keccak */,
 				D99E2D981AFCB19400F36FCD /* LibSodium */,
 			);
 			path = Pcap_DNSProxy;
@@ -278,21 +266,6 @@
 				D99E2DC61AFCB1AD00F36FCD /* export.h */,
 			);
 			name = LibSodium;
-			sourceTree = "<group>";
-		};
-		D99E2DCF1AFCB1C900F36FCD /* Keccak */ = {
-			isa = PBXGroup;
-			children = (
-				D99E2DDA1AFCB1EB00F36FCD /* brg_endian.h */,
-				D99E2DD01AFCB1DB00F36FCD /* Keccak-compact64.cpp */,
-				D99E2DD11AFCB1DB00F36FCD /* KeccakF-1600-int-set.h */,
-				D99E2DD21AFCB1DB00F36FCD /* KeccakF-1600-interface.h */,
-				D99E2DD31AFCB1DB00F36FCD /* KeccakHash.cpp */,
-				D99E2DD41AFCB1DB00F36FCD /* KeccakHash.h */,
-				D99E2DD51AFCB1DB00F36FCD /* KeccakSponge.cpp */,
-				D99E2DD61AFCB1DB00F36FCD /* KeccakSponge.h */,
-			);
-			name = Keccak;
 			sourceTree = "<group>";
 		};
 		D99E2DDB1AFCB1FC00F36FCD /* ExampleConfig */ = {
@@ -414,10 +387,7 @@
 				D99E2E0E1AFCB2A700F36FCD /* Monitor.cpp in Sources */,
 				D99E2E171AFCB2C500F36FCD /* Process.cpp in Sources */,
 				D99E2E061AFCB28D00F36FCD /* Initialization.cpp in Sources */,
-				D99E2DD91AFCB1DB00F36FCD /* KeccakSponge.cpp in Sources */,
-				D99E2DD71AFCB1DB00F36FCD /* Keccak-compact64.cpp in Sources */,
 				D99E2E041AFCB28D00F36FCD /* Configuration.cpp in Sources */,
-				D99E2DD81AFCB1DB00F36FCD /* KeccakHash.cpp in Sources */,
 				D99E2E181AFCB2C500F36FCD /* Protocol.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

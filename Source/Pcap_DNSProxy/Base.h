@@ -130,7 +130,7 @@
 #elif defined(__svr4__) && defined(i386) /* Open UNIX 8 + GCC */
 #  define PLATFORM_UNIXWARE
 #  define PLATFORM_UNIXWARE7
-#elif defined(__MAKEDEPEND__)
+#elif defined(__MAcDEPEND__)
 #else
 #  error "Qt has not been ported to this OS - talk to qt-bugs@trolltech.com"
 #endif
@@ -193,9 +193,6 @@
 //#include <algorithm>               //Algorithm support
 
 #if defined(PLATFORM_WIN)
-//SHA-3(Keccak, FIPS-202 Draft) Header
-	#include "Keccak\\KeccakHash.h"
-
 //LibSodium Headers
 	#define ENABLE_LIBSODIUM       //LibSodium is always enable on Windows.
 	#if defined(ENABLE_LIBSODIUM)
@@ -213,6 +210,7 @@
 //	#include <ws2tcpip.h>              //WinSock 2.0+ Extension for TCP/IP protocols
 //	#include <mstcpip.h>               //Microsoft-specific extensions to the core Winsock definitions.
 //	#include <windns.h>                //Windows DNS definitions and DNS API
+	#include <sddl.h>                  //Support and conversions routines necessary for SDDL
 //	#include <windows.h>               //Master include file
 //Minimum supported system of Windows Version Helpers is Windows Vista.
 //	#if defined(PLATFORM_WIN64)
@@ -264,9 +262,6 @@
 	#include <sys/socket.h>            //Socket
 	#include <sys/time.h>              //Date and time
 	#include <arpa/inet.h>             //Internet operations
-
-//SHA-3(Keccak, FIPS-202 Draft) Header
-	#include "Keccak/KeccakHash.h"
 
 //LibPcap and LibSodium Header
 	#include <pcap/pcap.h>             //LibPcap Header
@@ -440,13 +435,10 @@
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-//#define OSI_L2_ARP          0x0806   //(Dynamic)RARP
-//#define OSI_L2_RARP         0x8035   //RARP
 #define OSI_L2_IPV4         0x0800   //IPv4
 #define OSI_L2_IPV6         0x86DD   //IPv6
 //#define OSI_L2_PPPD         0x8863   //PPPoE(Discovery Stage)
 #define OSI_L2_PPPS         0x8864   //PPPoE(Session Stage)
-//#define OSI_L2_EAPOL        0x888E   //802.1X
 //#define FCS_TABLE_SIZE      256U     //FCS Table size
 typedef struct _eth_hdr_
 {
@@ -504,22 +496,6 @@ typedef struct _ppp_hdr_
 	uint16_t               Length;
 	uint16_t               Protocol;
 }ppp_hdr, *pppp_hdr;
-
-/* 802.1X Protocol Header(RFC 3580, https://tools.ietf.org/html/rfc3580)
-
-                    1                   2                   3
-0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|    Version    |     Type      |             Length            |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
-typedef struct _802_1x_hdr
-{
-	uint8_t                Version;
-	uint8_t                Type;
-	uint16_t               Length;
-}802_1x_hdr, *p802_1x_hdr;
-*/
 
 //Internet Protocol Numbers
 //About this list, see http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
@@ -880,27 +856,6 @@ typedef struct _ipv6_hdr_
 	in6_addr                   Src;
 	in6_addr                   Dst;
 }ipv6_hdr, *pipv6_hdr;
-
-/* Generic Routing Encapsulation/GRE Protocol Header(RFC 2784, https://tools.ietf.org/html/rfc2784)
-
-                    1                   2                   3
-0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|C|K|S|     Reserved0     |VER|          Protocol Type          |  VER/Version
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|      Checksum(Optional)       |      Reserved1(Optional)      |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                         Key(Optional)                         |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                  Sequence Number(Optional)                    |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
-typedef struct _gre_hdr
-{
-	uint16_t               Flags_Version;
-	uint16_t               Type;
-}gre_hdr, *pgre_hdr;
-*/
 
 /* Internet Control Message Protocol/ICMP Header(RFC 792, https://tools.ietf.org/html/rfc792)
 
@@ -1908,9 +1863,6 @@ typedef struct _dnscurve_txt_signature_
 	#define LIBSODIUM_ERROR          (-1)
 #endif
 #define BYTES_TO_BITS           8U
-#define NUM_HEX                 16
-#define UINT4_MAX               0x000F
-#define HIGHEST_BIT_U16         0x7FFF               //Get highest bit in uint16_t/16 bits data
 #define U16_NUM_ONE             0x0001
 
 //ASCII values defines
@@ -1960,7 +1912,7 @@ typedef struct _dnscurve_txt_signature_
 #define BOM_UTF_32_LENGTH              4U                                         //Length of UTF-32 BOM
 #define STRING_BUFFER_MAXSIZE          64U                                        //Maximum size of string buffer(64 bytes)
 #define FILE_BUFFER_SIZE               4096U                                      //Maximum size of file buffer(4KB/4096 bytes)
-#define DEFAULT_FILE_MAXSIZE           4294967296U                                //Maximum size of whole reading file(4GB/4294967296 bytes).
+#define DEFAULT_FILE_MAXSIZE           1073741824U                                //Maximum size of whole reading file(1GB/1073741824 bytes).
 #define DEFAULT_LOG_MAXSIZE            8388608U                                   //Maximum size of whole log file(8MB/8388608 bytes).
 #define DEFAULT_LOG_MINSIZE            4096U                                      //Minimum size of whole log file(4KB/4096 bytes).
 #define PACKET_MAXSIZE                 1500U                                      //Maximum size of packets, Standard MTU of Ethernet II network
@@ -2002,8 +1954,8 @@ typedef struct _dnscurve_txt_signature_
 //Time defines
 #define LOOP_MAX_TIMES                     8U        //Maximum of loop times, 8 times
 #define LOOP_INTERVAL_TIME                 10U       //Loop interval time, 10 ms
-#define MONITOR_LOOP_INTERVAL_TIME         10000U    //Monitor loop interval time, 10000 ms(10 seconds)
 #define STANDARD_TIMEOUT                   1000U     //Standard timeout, 1000 ms(1 second)
+#define MONITOR_LOOP_INTERVAL_TIME         10000U    //Monitor loop interval time, 10000 ms(10 seconds)
 #define SECOND_TO_MILLISECOND              1000U     //1000 milliseconds(1 second)
 #define MICROSECOND_TO_MILLISECOND         1000U     //1000 microseconds(1 millisecond)
 #if defined(PLATFORM_WIN)
@@ -2011,12 +1963,11 @@ typedef struct _dnscurve_txt_signature_
 #endif
 #define PCAP_DEVICES_RECHECK_TIME          10U       //Time between every WinPcap/LibPcap devices recheck, 10 seconds
 #define PCAP_CAPTURE_TIMEOUT               5000U     //Pcap reading timeout, 5 seconds(5000 ms)
-#define SOCKET_TIMEOUT_MIN                 500U      //The shortset socket timeout, 500 ms
+#define SOCKET_MIN_TIMEOUT                 500U      //The shortset socket timeout, 500 ms
 #if defined(PLATFORM_WIN)
 	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT     3000U     //Default timeout of reliable sockets(Such as TCP, 3 seconds/3000ms)
 	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT   2000U     //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds/2000ms)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	#define DEFAULT_BLOCK_GATEWAY_ERROR_TIME    10U       //Block gateway error messages when using systemd init, 10 seconds.
 	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT     3U        //Default timeout of reliable sockets(Such as TCP, 3 seconds)
 	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT   2U        //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds)
 #endif
@@ -2028,7 +1979,6 @@ typedef struct _dnscurve_txt_signature_
 #define DEFAULT_ALTERNATERESET_TIME        180U      //Default time to reset switching of alternate servers, 180 seconds
 #define DEFAULT_HOSTS_TTL                  900U      //Default Hosts DNS TTL, 15 minutes(900 seconds)
 #define SHORTEST_FILEREFRESH_TIME          5U        //The shortset time between files auto-refreshing, 5 seconds
-#define SHORTEST_DOMAINTEST_INTERVAL_TIME  5000U     //The shortset Domain Test time between every sending, 5 seconds(5000 ms)
 #define SENDING_INTERVAL_TIME              5U        //Time between every sending, 5 seconds
 #define SENDING_ONCE_INTERVAL_TIMES        3U        //Repeat 3 times between every sending.
 #if defined(ENABLE_LIBSODIUM)
@@ -2041,6 +1991,7 @@ typedef struct _dnscurve_txt_signature_
 #if defined(PLATFORM_WIN)
 	#define MESSAGE_FIREWALL_TEST                 L"--firststart"
 	#define MESSAGE_FLUSH_DNS                     L"--flushdns"
+	#define SID_ADMINISTRATORS_GROUP              L"S-1-5-32-544"                                                                                                                               //Windows SID of Administrators group
 	#define MAILSLOT_NAME                         L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot"                                                                                                    //MailSlot name
 	#define MAILSLOT_MESSAGE_FLUSH_DNS            L"Flush DNS cache of Pcap_DNSProxy."                                                                                                          //The mailslot message to flush dns cache
 	#define DEFAULT_LOCAL_SERVICENAME             L"PcapDNSProxyService"                                                                                                                        //Default service name of system
@@ -2144,12 +2095,11 @@ typedef struct _running_log_data_
 //File Data structure
 typedef struct _file_data_
 {
-	std::wstring                       FileName;
+	std::wstring             FileName;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::string                        sFileName;
+	std::string              sFileName;
 #endif
-	std::shared_ptr<BitSequence>       HashResult;
-	bool                               HashAvailable;
+	time_t                   ModificationTime;
 }FileData, FILE_DATA, *PFileData, *PFILE_DATA;
 
 //Socket Data structure
@@ -2210,10 +2160,8 @@ public:
 //[Base] block
 	double                           Version;
 	size_t                           FileRefreshTime;
-	bool                             FileHash;
 //[Log] block
 	bool                             PrintError;
-//	size_t                           PrintStatus;
 	bool                             PrintRunningLog;
 	size_t                           RunningLogRefreshTime;
 	size_t                           LogMaxSize;
@@ -2256,7 +2204,7 @@ public:
 	uint16_t                         ICMPID;
 	uint16_t                         ICMPSequence;
 	size_t                           ICMPSpeed;
-	//[Data] block(A part)
+//[Data] block(A part)
 	PSTR                             ICMPPaddingData;
 	size_t                           ICMPPaddingDataLength;
 	PSTR                             DomainTestData;
@@ -2341,7 +2289,6 @@ public:
 //IPv4/IPv6 addresses ranges class
 typedef class AddressRangeTable {
 public:
-	size_t                   FileIndex;
 	sockaddr_storage         Begin;
 	sockaddr_storage         End;
 	size_t                   Level;
@@ -2356,7 +2303,6 @@ public:
 	std::regex               Pattern;
 	std::string              PatternString;
 	std::vector<uint16_t>    RecordType;
-	size_t                   FileIndex;
 	size_t                   Type;
 	size_t                   Length;
 	bool                     TypeOperation;
@@ -2376,28 +2322,21 @@ public:
 //Blacklist of results class
 typedef class ResultBlacklistTable {
 public:
-	size_t                           FileIndex;
 	std::vector<AddressRangeTable>   Addresses;
 	std::regex                       Pattern;
 	std::string                      PatternString;
-
-	ResultBlacklistTable(void);
 }RESULT_BLACKLIST_TABLE;
 
 //Address Hosts class
 typedef class AddressHostsTable {
 public:
-	size_t                           FileIndex;
 	std::vector<sockaddr_storage>    TargetAddress;
 	std::vector<AddressRangeTable>   SourceAddress;
-
-	AddressHostsTable(void);
 }ADDRESS_HOSTS_TABLE;
 
 //Address routing table(IPv6) class
 typedef class AddressRoutingTable_IPv6 {
 public:
-	size_t                                   FileIndex;
 	size_t                                   Prefix;
 	std::map<uint64_t, std::set<uint64_t>>   AddressRoutingList_IPv6;
 
@@ -2407,13 +2346,13 @@ public:
 //Address routing table(IPv4) class
 typedef class AddressRoutingTable_IPv4 {
 public:
-	size_t                   FileIndex;
 	size_t                   Prefix;
 	std::set<uint32_t>       AddressRoutingList_IPv4;
 
 	AddressRoutingTable_IPv4(void);
 }ADDRESS_ROUTING_TABLE_IPV4;
 
+//Port table class
 typedef class PortTable {
 public:
 	SOCKET_DATA                SystemData;
@@ -2425,6 +2364,31 @@ public:
 	PortTable(void);
 }PORT_TABLE;
 
+//Differnet IPFilter file sets structure
+typedef class DiffernetIPFilterFileSet
+{
+public:
+	std::vector<ADDRESS_RANGE_TABLE>          AddressRange;
+	std::vector<RESULT_BLACKLIST_TABLE>       ResultBlacklist;
+	std::vector<ADDRESS_ROUTING_TABLE_IPV6>   LocalRoutingList_IPv6;
+	std::vector<ADDRESS_ROUTING_TABLE_IPV4>   LocalRoutingList_IPv4;
+	size_t                                    FileIndex;
+
+	DiffernetIPFilterFileSet(void);
+}DIFFERNET_IPFILTER_FILE_SET;
+
+//Differnet Hosts file sets structure
+typedef class DiffernetHostsFileSet
+{
+public:
+	std::vector<HOSTS_TABLE>           HostsList;
+	std::vector<ADDRESS_HOSTS_TABLE>   AddressHostsList;
+	size_t                             FileIndex;
+
+	DiffernetHostsFileSet(void);
+}DIFFERNET_HOSTS_FILE_SET;
+
+
 //DNSCurve Configuration class
 #if defined(ENABLE_LIBSODIUM)
 typedef class DNSCurveConfigurationTable {
@@ -2435,7 +2399,7 @@ public:
 	bool                     IsEncryption;
 	bool                     IsEncryptionOnly;
 	size_t                   KeyRecheckTime;
-//[DNSCurve Addresses]
+//[DNSCurve Addresses] block
 	PUINT8                   Client_PublicKey;
 	PUINT8                   Client_SecretKey;
 	struct _dnscurve_target_ {

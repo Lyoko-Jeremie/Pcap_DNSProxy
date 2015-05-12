@@ -158,7 +158,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Data is too long when EDNS0 is available - 开启EDNS0标签的情况下该 Hosts 条目过长：请检查 Hosts 的地址列表是否过长
   * Default TTL redefinition - 默认生存时间重定义（可根据报告的行数查找）：以第一个出现的默认生存时间为准
   * Regular expression pattern error - 错误的正则表达式（可根据报告的行数查找）：请检查正则表达式的正确性
-  * Repeating items error, the item is not available - 存在重复的 Hosts 条目（可根据报告的行数查找）：以第一个出现的 Hosts 条目为准
   * IPv6 address format error - Hosts 的IPv6地址格式错误（可根据报告的行数查找）：请检查 Hosts 条目的地址
   * IPv4 address format error - Hosts 的IPv4地址格式错误（可根据报告的行数查找）：请检查 Hosts 条目的地址
   * Too many Hosts IP addresses - Hosts 条目的平行地址过多

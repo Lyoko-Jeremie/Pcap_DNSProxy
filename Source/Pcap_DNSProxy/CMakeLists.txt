@@ -23,8 +23,6 @@ project(Pcap_DNSProxy)
 
 set(CMAKE_BUILD_TYPE "Release")
 
-add_subdirectory(Keccak)
-
 set(MAIN_SRC_FILES 
 		"Base.h"
 		"Capture.h"
@@ -57,4 +55,4 @@ ENDIF(ENABLE_LIBSODIUM)
 
 add_executable(Pcap_DNSProxy ${MAIN_SRC_FILES})
 
-target_link_libraries(Pcap_DNSProxy Keccak sodium pcap pthread)
+target_link_libraries(Pcap_DNSProxy sodium pcap pthread)

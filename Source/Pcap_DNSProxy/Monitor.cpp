@@ -27,9 +27,10 @@ size_t __fastcall RunningLogWriteMonitor(void)
 	std::shared_ptr<tm> TimeStructure(new tm());
 	memset(TimeStructure.get(), 0, sizeof(tm));
 #if defined(PLATFORM_WIN)
-	HANDLE RunningFileHandle = nullptr;
 	std::shared_ptr<LARGE_INTEGER> RunningFileSize(new LARGE_INTEGER());
+	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
 	memset(RunningFileSize.get(), 0, sizeof(LARGE_INTEGER));
+	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::shared_ptr<struct stat> FileStat(new struct stat());
 	memset(FileStat.get(), 0, sizeof(struct stat));
@@ -44,28 +45,21 @@ size_t __fastcall RunningLogWriteMonitor(void)
 
 	//Check whole file size.
 	#if defined(PLATFORM_WIN)
-		RunningFileHandle = CreateFileW(Parameter.RunningLogPath->c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-		if (RunningFileHandle != INVALID_HANDLE_VALUE)
+		memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+		if (GetFileAttributesExW(Parameter.RunningLogPath->c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) != FALSE)
 		{
 			memset(RunningFileSize.get(), 0, sizeof(LARGE_INTEGER));
-			if (GetFileSizeEx(RunningFileHandle, RunningFileSize.get()) == 0)
-			{
-				CloseHandle(RunningFileHandle);
-			}
-			else {
-				CloseHandle(RunningFileHandle);
-				if (RunningFileSize->QuadPart > 0 && (size_t)RunningFileSize->QuadPart >= Parameter.LogMaxSize && 
-					DeleteFileW(Parameter.RunningLogPath->c_str()) != 0)
-						PrintError(LOG_ERROR_SYSTEM, L"Old Running Log file was deleted", 0, nullptr, 0);
-			}
+			RunningFileSize->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
+			RunningFileSize->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
+			if (RunningFileSize->QuadPart > 0 && (size_t)RunningFileSize->QuadPart >= Parameter.LogMaxSize && 
+				DeleteFileW(Parameter.RunningLogPath->c_str()) != 0)
+					PrintError(LOG_ERROR_SYSTEM, L"Old Running Log file was deleted", 0, nullptr, 0);
 		}
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		memset(FileStat.get(), 0, sizeof(struct stat));
-		if (stat(Parameter.sRunningLogPath->c_str(), FileStat.get()) == 0)
-		{
-			if (FileStat->st_size >= Parameter.LogMaxSize && remove(Parameter.sRunningLogPath->c_str()) == 0)
+		if (stat(Parameter.sRunningLogPath->c_str(), FileStat.get()) == 0 && FileStat->st_size >= (off_t)Parameter.LogMaxSize && 
+			remove(Parameter.sRunningLogPath->c_str()) == 0)
 				PrintError(LOG_ERROR_SYSTEM, L"Old Running Log file was deleted", 0, nullptr, 0);
-		}
 	#endif
 
 	//Write all messages to file.
@@ -495,6 +489,16 @@ size_t __fastcall MonitorInit(void)
 	}
 
 	LocalSocketData.reset();
+
+#if defined(PLATFORM_WIN)
+//Set MailSlot Monitor.
+	std::thread FlushDNSMailSlotMonitorThread(FlushDNSMailSlotMonitor);
+	FlushDNSMailSlotMonitorThread.detach();
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+//Set FIFO Monitor.
+	std::thread FlushDNSFIFOMonitorThread(FlushDNSFIFOMonitor);
+	FlushDNSFIFOMonitorThread.detach();
+#endif
 
 //Join threads.
 	for (size_t Index = 0;Index < MonitorThread.size();++Index)
@@ -1143,14 +1147,7 @@ size_t FlushDNSFIFOMonitor(void)
 	{
 		if (read(FIFO_FD, Buffer.get(), PACKET_MAXSIZE) > 0 && 
 			memcmp(Buffer.get(), FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) == 0)
-		{
-		//Flush all DNS cache.
-			std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
-			DNSCacheList.clear();
-			DNSCacheList.shrink_to_fit();
-			DNSCacheListMutex.unlock();
-			FlushSystemDNSCache();
-		}
+				FlushSystemDNSCache();
 
 		memset(Buffer.get(), 0, PACKET_MAXSIZE);
 		Sleep(MONITOR_LOOP_INTERVAL_TIME);

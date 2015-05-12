@@ -109,7 +109,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 		}
 
 	//Lines length check
-		if (!CRLF_Length)
+		if (!CRLF_Length && ReadLength == FILE_BUFFER_SIZE)
 		{
 			if (InputType == READTEXT_HOSTS) //ReadHosts
 				PrintError(LOG_ERROR_HOSTS, L"Data of a line is too long", 0, HostsFileList[FileIndex].FileName.c_str(), Line);
@@ -317,35 +317,32 @@ size_t __fastcall ReadParameter(void)
 
 //Check whole file size.
 #if defined(PLATFORM_WIN)
-	HANDLE ConfigFileHandle = CreateFileW(ConfigFileList[Index].c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-	if (ConfigFileHandle != INVALID_HANDLE_VALUE)
+	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
+	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+	if (GetFileAttributesExW(ConfigFileList[Index].c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) != FALSE)
 	{
 		std::shared_ptr<LARGE_INTEGER> ConfigFileSize(new LARGE_INTEGER());
 		memset(ConfigFileSize.get(), 0, sizeof(LARGE_INTEGER));
-		if (GetFileSizeEx(ConfigFileHandle, ConfigFileSize.get()) == 0)
-		{
-			CloseHandle(ConfigFileHandle);
-		}
-		else {
-			CloseHandle(ConfigFileHandle);
-			if (ConfigFileSize->QuadPart >= DEFAULT_FILE_MAXSIZE)
-			{
-				PrintError(LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, ConfigFileList[Index].c_str(), 0);
-				return EXIT_FAILURE;
-			}
-		}
-	}
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::shared_ptr<struct stat> FileStat(new struct stat());
-	memset(FileStat.get(), 0, sizeof(struct stat));
-	if (stat(sConfigFileList[Index].c_str(), FileStat.get()) == 0)
-	{
-		if (FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+		ConfigFileSize->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
+		ConfigFileSize->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
+		if (ConfigFileSize->QuadPart >= DEFAULT_FILE_MAXSIZE)
 		{
 			PrintError(LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, ConfigFileList[Index].c_str(), 0);
 			return EXIT_FAILURE;
 		}
 	}
+
+	File_WIN32_FILE_ATTRIBUTE_DATA.reset();
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	std::shared_ptr<struct stat> FileStat(new struct stat());
+	memset(FileStat.get(), 0, sizeof(struct stat));
+	if (stat(sConfigFileList[Index].c_str(), FileStat.get()) == 0 && FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+	{
+		PrintError(LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, ConfigFileList[Index].c_str(), 0);
+		return EXIT_FAILURE;
+	}
+
+	FileStat.reset();
 #endif
 
 //Read data.
@@ -1076,17 +1073,15 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 	if (Parameter.Version < PRODUCT_VERSION)
 	{
 	//[Base] block
-		if (Parameter.FileRefreshTime == 0 && Data.find("Hosts=") == 0 && Data.length() > strlen("Hosts="))
+		if (Data.find("Hosts=") == 0 && Data.length() > strlen("Hosts="))
 		{
 			if (Data.length() < strlen("Hosts=") + 6U)
 			{
 				Result = strtoul(Data.c_str() + strlen("Hosts="), nullptr, 0);
 				if (errno != ERANGE && Result >= SHORTEST_FILEREFRESH_TIME)
 					Parameter.FileRefreshTime = Result * SECOND_TO_MILLISECOND;
-				else if (Result > 0 && Result < SHORTEST_FILEREFRESH_TIME)
-					Parameter.FileRefreshTime = DEFAULT_FILEREFRESH_TIME * SECOND_TO_MILLISECOND;
 				else 
-					Parameter.FileRefreshTime = 0; //Read file again set Disable.
+					Parameter.FileRefreshTime = DEFAULT_FILEREFRESH_TIME * SECOND_TO_MILLISECOND;
 			}
 			else {
 				PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList[FileIndex].c_str(), Line);
@@ -1218,19 +1213,13 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 			Result = strtoul(Data.c_str() + strlen("FileRefreshTime="), nullptr, 0);
 			if (errno != ERANGE && Result >= SHORTEST_FILEREFRESH_TIME)
 				Parameter.FileRefreshTime = Result * SECOND_TO_MILLISECOND;
-			else if (Result > 0 && Result < SHORTEST_FILEREFRESH_TIME)
-				Parameter.FileRefreshTime = DEFAULT_FILEREFRESH_TIME * SECOND_TO_MILLISECOND;
 			else 
-				Parameter.FileRefreshTime = 0; //Read file again Disable.
+				Parameter.FileRefreshTime = DEFAULT_FILEREFRESH_TIME * SECOND_TO_MILLISECOND;
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList[FileIndex].c_str(), Line);
 			return EXIT_FAILURE;
 		}
-	}
-	else if (Data.find("FileHash=1") == 0)
-	{
-		Parameter.FileHash = true;
 	}
 	else if (Data.find("AdditionalPath=") == 0 && Data.length() > strlen("AdditionalPath="))
 	{
@@ -1836,7 +1825,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 		if (Data.length() < strlen("ReliableSocketTimeout=") + 9U)
 		{
 			Result = strtoul(Data.c_str() + strlen("ReliableSocketTimeout="), nullptr, 0);
-			if (errno != ERANGE && Result > SOCKET_TIMEOUT_MIN)
+			if (errno != ERANGE && Result > SOCKET_MIN_TIMEOUT)
 			#if defined(PLATFORM_WIN)
 				Parameter.ReliableSocketTimeout = (int)Result;
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -1856,7 +1845,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 		if (Data.length() < strlen("UnreliableSocketTimeout=") + 9U)
 		{
 			Result = strtoul(Data.c_str() + strlen("UnreliableSocketTimeout="), nullptr, 0);
-			if (errno != ERANGE && Result > SOCKET_TIMEOUT_MIN)
+			if (errno != ERANGE && Result > SOCKET_MIN_TIMEOUT)
 			#if defined(PLATFORM_WIN)
 				Parameter.UnreliableSocketTimeout = (int)Result;
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -2286,29 +2275,17 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 //Read ipfilter from file
 size_t __fastcall ReadIPFilter(void)
 {
-//Initialization
-	std::shared_ptr<char> Buffer;
-	if (Parameter.FileHash)
-	{
-		std::shared_ptr<char> FileDataBufferTemp(new char[FILE_BUFFER_SIZE]());
-		memset(FileDataBufferTemp.get(), 0, FILE_BUFFER_SIZE);
-		Buffer.swap(FileDataBufferTemp);
-		FileDataBufferTemp.reset();
-	}
-
 //Create file list.
-	FILE *Input = nullptr;
 	for (size_t Index = 0;Index < Parameter.Path->size();++Index)
 	{
 		for (size_t InnerIndex = 0;InnerIndex < Parameter.IPFilterFileList->size();++InnerIndex)
 		{
 			FILE_DATA FileDataTemp;
-			FileDataTemp.HashAvailable = false;
-
-		//Reset.
-			FileDataTemp.HashAvailable = false;
 			FileDataTemp.FileName.clear();
-			FileDataTemp.HashResult.reset();
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			FileDataTemp.sFileName.clear();
+		#endif
+			FileDataTemp.ModificationTime = 0;
 
 		//Add to global list.
 			FileDataTemp.FileName.append(Parameter.Path->at(Index));
@@ -2322,358 +2299,170 @@ size_t __fastcall ReadIPFilter(void)
 	}
 
 //Files Monitor
-	size_t FileIndex = 0, ReadLength = 0;
-	auto IsFileChanged = false;
-	std::vector<ADDRESS_RANGE_TABLE>::iterator AddressRangeTableIter;
-	std::vector<RESULT_BLACKLIST_TABLE>::iterator ResultBlacklistTableIter;
-	std::vector<ADDRESS_ROUTING_TABLE_IPV4>::iterator LocalRoutingTableIter_IPv4;
-	std::vector<ADDRESS_ROUTING_TABLE_IPV6>::iterator LocalRoutingTableIter_IPv6;
+	FILE *Input = nullptr;
+	size_t FileIndex = 0;
+	auto IsFileModified = false;
 #if defined(PLATFORM_WIN)
-	HANDLE IPFilterHandle = nullptr;
-	std::shared_ptr<LARGE_INTEGER> IPFilterFileSize(new LARGE_INTEGER());
-	memset(IPFilterFileSize.get(), 0, sizeof(LARGE_INTEGER));
+	std::shared_ptr<LARGE_INTEGER> File_LARGE_INTEGER(new LARGE_INTEGER());
+	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
+	memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	std::shared_ptr<struct stat> FileStat(new struct stat());
+	memset(FileStat.get(), 0, sizeof(struct stat));
 #endif
-	Keccak_HashInstance HashInstance = {0};
+	std::unique_lock<std::mutex> ResultBlacklistMutex(ResultBlacklistLock);
+	std::unique_lock<std::mutex> AddressHostsListMutex(AddressHostsListLock);
+	std::unique_lock<std::mutex> LocalRoutingListMutex(LocalRoutingListLock);
+	ResultBlacklistMutex.unlock();
+	AddressHostsListMutex.unlock();
+	LocalRoutingListMutex.unlock();
 
 	for (;;)
 	{
-		IsFileChanged = false;
-		if (Parameter.FileHash)
-		{
-			if (!AddressRangeUsing->empty())
-				*AddressRangeModificating = *AddressRangeUsing;
-
-			if (!ResultBlacklistUsing->empty())
-				*ResultBlacklistModificating = *ResultBlacklistUsing;
-
-			if (LocalRoutingList_IPv6_Modificating->empty())
-				*LocalRoutingList_IPv6_Modificating = *LocalRoutingList_IPv6_Using;
-			if (LocalRoutingList_IPv4_Modificating->empty())
-				*LocalRoutingList_IPv4_Modificating = *LocalRoutingList_IPv4_Using;
-		}
+		IsFileModified = false;
 
 	//Check File lists.
 		for (FileIndex = 0;FileIndex < IPFilterFileList.size();++FileIndex)
 		{
+		//Get attributes of file.
 		#if defined(PLATFORM_WIN)
-			if (_wfopen_s(&Input, IPFilterFileList[FileIndex].FileName.c_str(), L"rb") != 0)
+			if (GetFileAttributesExW(IPFilterFileList[FileIndex].FileName.c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) == FALSE)
 			{
-			//Clear hash results.
-				if (Parameter.FileHash)
-				{
-					if (IPFilterFileList[FileIndex].HashAvailable)
-					{
-						IsFileChanged = true;
-						IPFilterFileList[FileIndex].HashResult.reset();
-					}
-					IPFilterFileList[FileIndex].HashAvailable = false;
+				memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			if (stat(IPFilterFileList[FileIndex].sFileName.c_str(), FileStat.get()) != 0)
+			{
+				memset(FileStat.get(), 0, sizeof(struct stat));
+		#endif
+				if (IPFilterFileList[FileIndex].ModificationTime > 0)
+					IsFileModified = true;
+				IPFilterFileList[FileIndex].ModificationTime = 0;
 
-				//Clear old iteams.
-					ClearListData(READTEXT_IPFILTER, FileIndex);
-				}
-
-				continue;
+				ClearListData(READTEXT_IPFILTER, FileIndex);
 			}
 			else {
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			Input = fopen(IPFilterFileList[FileIndex].sFileName.c_str(), "rb");
-		#endif
-				if (Input == nullptr)
+			//Check whole file size.
+			#if defined(PLATFORM_WIN)
+				File_LARGE_INTEGER->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
+				File_LARGE_INTEGER->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
+				if (File_LARGE_INTEGER->QuadPart >= DEFAULT_FILE_MAXSIZE)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				if (FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+			#endif
 				{
-				//Clear hash results.
-					if (Parameter.FileHash)
-					{
-						if (IPFilterFileList[FileIndex].HashAvailable)
-						{
-							IsFileChanged = true;
-							IPFilterFileList[FileIndex].HashResult.reset();
-						}
-						IPFilterFileList[FileIndex].HashAvailable = false;
+					PrintError(LOG_ERROR_PARAMETER, L"IPFilter file size is too large", 0, IPFilterFileList[FileIndex].FileName.c_str(), 0);
 
-					//Clear old iteams.
-						ClearListData(READTEXT_IPFILTER, FileIndex);
-					}
+				#if defined(PLATFORM_WIN)
+					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+					memset(FileStat.get(), 0, sizeof(struct stat));
+				#endif
+					if (IPFilterFileList[FileIndex].ModificationTime > 0)
+						IsFileModified = true;
+					IPFilterFileList[FileIndex].ModificationTime = 0;
 
+					ClearListData(READTEXT_IPFILTER, FileIndex);
 					continue;
 				}
 
-			//Check whole file size.
+			//Check modification time of file.
 			#if defined(PLATFORM_WIN)
-				IPFilterHandle = CreateFileW(IPFilterFileList[FileIndex].FileName.c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-				if (IPFilterHandle != INVALID_HANDLE_VALUE)
+				memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+				File_LARGE_INTEGER->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwHighDateTime;
+				File_LARGE_INTEGER->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwLowDateTime;
+				if (IPFilterFileList[FileIndex].ModificationTime == 0 || //File was not available.
+					IPFilterFileList[FileIndex].ModificationTime > 0 && File_LARGE_INTEGER->QuadPart > IPFilterFileList[FileIndex].ModificationTime) //File was modified.
 				{
-					memset(IPFilterFileSize.get(), 0, sizeof(LARGE_INTEGER));
-					if (GetFileSizeEx(IPFilterHandle, IPFilterFileSize.get()) == 0)
+					IPFilterFileList[FileIndex].ModificationTime = File_LARGE_INTEGER->QuadPart;
+					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				if (IPFilterFileList[FileIndex].ModificationTime == 0 || //File was not available.
+					IPFilterFileList[FileIndex].ModificationTime > 0 && FileStat->st_mtime > IPFilterFileList[FileIndex].ModificationTime) //File was modified.
+				{
+					IPFilterFileList[FileIndex].ModificationTime = FileStat->st_mtime;
+					memset(FileStat.get(), 0, sizeof(struct stat));
+			#endif
+					ClearListData(READTEXT_IPFILTER, FileIndex);
+					IsFileModified = true;
+
+				//Read file.
+				#if defined(PLATFORM_WIN)
+					if (_wfopen_s(&Input, IPFilterFileList[FileIndex].FileName.c_str(), L"rb") == 0)
 					{
-						CloseHandle(IPFilterHandle);
-					}
-					else {
-						CloseHandle(IPFilterHandle);
-						if (IPFilterFileSize->QuadPart >= DEFAULT_FILE_MAXSIZE)
+				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+					Input = fopen(IPFilterFileList[FileIndex].sFileName.c_str(), "rb");
+				#endif
+						if (Input == nullptr)
 						{
-							PrintError(LOG_ERROR_PARAMETER, L"IPFilter file size is too large", 0, IPFilterFileList[FileIndex].FileName.c_str(), 0);
-							fclose(Input);
-							Input = nullptr;
-
-						//Clear hash results.
-							if (Parameter.FileHash)
-							{
-								if (IPFilterFileList[FileIndex].HashAvailable)
-								{
-									IsFileChanged = true;
-									IPFilterFileList[FileIndex].HashResult.reset();
-								}
-								IPFilterFileList[FileIndex].HashAvailable = false;
-								
-							//Clear old iteams.
-								ClearListData(READTEXT_IPFILTER, FileIndex);
-							}
-
 							continue;
 						}
-					}
-				}
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				std::shared_ptr<struct stat> FileStat(new struct stat());
-				memset(FileStat.get(), 0, sizeof(struct stat));
-				if (stat(IPFilterFileList[FileIndex].sFileName.c_str(), FileStat.get()) == 0)
-				{
-					if (FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
-					{
-						PrintError(LOG_ERROR_PARAMETER, L"IPFilter file size is too large", 0, IPFilterFileList[FileIndex].FileName.c_str(), 0);
-						fclose(Input);
-						Input = nullptr;
-
-					//Clear hash results.
-						if (Parameter.FileHash)
-						{
-							if (IPFilterFileList[FileIndex].HashAvailable)
-							{
-								IsFileChanged = true;
-								IPFilterFileList[FileIndex].HashResult.reset();
-							}
-							IPFilterFileList[FileIndex].HashAvailable = false;
-
-						//Clear old iteams.
-							ClearListData(READTEXT_IPFILTER, FileIndex);
-						}
-
-						continue;
-					}
-				}
-			#endif
-
-			//Mark or check files hash.
-				if (Parameter.FileHash)
-				{
-					memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
-					memset(&HashInstance, 0, sizeof(Keccak_HashInstance));
-					Keccak_HashInitialize_SHA3_512(&HashInstance);
-					while (!feof(Input))
-					{
-						ReadLength = fread_s(Buffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, Input);
-						Keccak_HashUpdate(&HashInstance, (BitSequence *)Buffer.get(), ReadLength * BYTES_TO_BITS);
-					}
-					memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
-					Keccak_HashFinal(&HashInstance, (BitSequence *)Buffer.get());
-
-				//Set file pointers to the beginning of file.
-				#if defined(PLATFORM_WIN)
-					if (_fseeki64(Input, 0, SEEK_SET) != 0)
-				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-					if (fseeko(Input, 0, SEEK_SET) != 0)
-				#endif
-					{
-						PrintError(LOG_ERROR_IPFILTER, L"Read files error", 0, IPFilterFileList[FileIndex].FileName.c_str(), 0);
-						fclose(Input);
-						Input = nullptr;
-
-					//Clear hash results.
-						if (Parameter.FileHash)
-						{
-							if (IPFilterFileList[FileIndex].HashAvailable)
-							{
-								IsFileChanged = true;
-								IPFilterFileList[FileIndex].HashResult.reset();
-							}
-							IPFilterFileList[FileIndex].HashAvailable = false;
-
-						//Clear old iteams.
-							ClearListData(READTEXT_IPFILTER, FileIndex);
-						}
-
-						continue;
-					}
-					else {
-						if (IPFilterFileList[FileIndex].HashAvailable)
-						{
-							if (memcmp(IPFilterFileList[FileIndex].HashResult.get(), Buffer.get(), SHA3_512_SIZE) == 0)
-							{
-								fclose(Input);
-								Input = nullptr;
-								continue;
-							}
-							else {
-								IsFileChanged = true;
-								memcpy_s(IPFilterFileList[FileIndex].HashResult.get(), SHA3_512_SIZE, Buffer.get(), SHA3_512_SIZE);
-
-							//Clear old iteams.
-								ClearListData(READTEXT_IPFILTER, FileIndex);
-							}
-						}
 						else {
-							IsFileChanged = true;
-							IPFilterFileList[FileIndex].HashAvailable = true;
-							std::shared_ptr<BitSequence> HashBufferTemp(new BitSequence[SHA3_512_SIZE]());
-							memset(HashBufferTemp.get(), 0, sizeof(BitSequence) * SHA3_512_SIZE);
-							memcpy_s(HashBufferTemp.get(), SHA3_512_SIZE, Buffer.get(), SHA3_512_SIZE);
-							IPFilterFileList[FileIndex].HashResult.swap(HashBufferTemp);
+						//Scan global list.
+							for (auto IPFilterFileSetIter = IPFilterFileSetModificating->begin();IPFilterFileSetIter != IPFilterFileSetModificating->end();++IPFilterFileSetIter)
+							{
+								if (IPFilterFileSetIter->FileIndex == FileIndex)
+								{
+									break;
+								}
+								else if (IPFilterFileSetIter + 1U == IPFilterFileSetModificating->end())
+								{
+									DIFFERNET_IPFILTER_FILE_SET IPFilterFileSetTemp;
+									IPFilterFileSetTemp.FileIndex = FileIndex;
+									IPFilterFileSetModificating->push_back(IPFilterFileSetTemp);
+									break;
+								}
+							}
+							if (IPFilterFileSetModificating->empty())
+							{
+								DIFFERNET_IPFILTER_FILE_SET IPFilterFileSetTemp;
+								IPFilterFileSetTemp.FileIndex = FileIndex;
+								IPFilterFileSetModificating->push_back(IPFilterFileSetTemp);
+							}
 
-						//Clear old iteams.
-							ClearListData(READTEXT_IPFILTER, FileIndex);
+						//Read data.
+							ReadText(Input, READTEXT_IPFILTER, FileIndex);
+							fclose(Input);
+							Input = nullptr;
 						}
+				#if defined(PLATFORM_WIN)
 					}
+				#endif
 				}
-		#if defined(PLATFORM_WIN)
+				else {
+				#if defined(PLATFORM_WIN)
+					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+					memset(FileStat.get(), 0, sizeof(struct stat));
+				#endif
+				}
 			}
-		#endif
-
-		//Read data.
-			IsFileChanged = true;
-			ReadText(Input, READTEXT_IPFILTER, FileIndex);
-			fclose(Input);
-			Input = nullptr;
 		}
 
 	//Update global lists.
-		if (!IsFileChanged)
+		if (!IsFileModified)
 		{
-		//Auto-refresh
-			if (Parameter.FileRefreshTime > 0)
-			{
-				Sleep(Parameter.FileRefreshTime);
-				continue;
-			}
-			else {
-				break;
-			}
-		}
-
-	//Blacklist part
-		if (!ResultBlacklistModificating->empty())
-		{
-			std::unique_lock<std::mutex> HostsListMutex(HostsListLock);
-			for (auto HostsListIter:*HostsListUsing)
-			{
-				if (HostsListIter.Type == HOSTS_NORMAL || HostsListIter.Type == HOSTS_BANNED)
-				{
-					for (ResultBlacklistTableIter = ResultBlacklistModificating->begin();ResultBlacklistTableIter != ResultBlacklistModificating->end();)
-					{
-						if (ResultBlacklistTableIter->PatternString == HostsListIter.PatternString)
-						{
-							ResultBlacklistTableIter = ResultBlacklistModificating->erase(ResultBlacklistTableIter);
-							if (ResultBlacklistTableIter == ResultBlacklistModificating->end())
-								goto StopLoop;
-						}
-						else {
-							++ResultBlacklistTableIter;
-						}
-					}
-				}
-			}
-			StopLoop: 
-			HostsListMutex.unlock();
-
-		//Swap(or cleanup) using list.
-			ResultBlacklistModificating->shrink_to_fit();
-			std::unique_lock<std::mutex> ResultBlacklistMutex(ResultBlacklistLock);
-			ResultBlacklistUsing->swap(*ResultBlacklistModificating);
-			ResultBlacklistMutex.unlock();
-			ResultBlacklistModificating->clear();
-			ResultBlacklistModificating->shrink_to_fit();
-		}
-		else { //ResultBlacklist Table is empty.
-			std::unique_lock<std::mutex> ResultBlacklistMutex(ResultBlacklistLock);
-			ResultBlacklistUsing->clear();
-			ResultBlacklistUsing->shrink_to_fit();
-			ResultBlacklistMutex.unlock();
-			ResultBlacklistModificating->clear();
-			ResultBlacklistModificating->shrink_to_fit();
-		}
-
-	//Local Routing part(IPv6)
-		if (!LocalRoutingList_IPv6_Modificating->empty()) //Swap(or cleanup) using list.
-		{
-			LocalRoutingList_IPv6_Modificating->shrink_to_fit();
-			std::unique_lock<std::mutex> LocalRoutingListMutex(LocalRoutingListLock);
-			LocalRoutingList_IPv6_Using->swap(*LocalRoutingList_IPv6_Modificating);
-			LocalRoutingListMutex.unlock();
-			LocalRoutingList_IPv6_Modificating->clear();
-			LocalRoutingList_IPv6_Modificating->shrink_to_fit();
-		}
-		else { //LocalRoutingList Table is empty.
-			LocalRoutingList_IPv6_Modificating->shrink_to_fit();
-			std::unique_lock<std::mutex> LocalRoutingListMutex(LocalRoutingListLock);
-			LocalRoutingList_IPv6_Using->clear();
-			LocalRoutingList_IPv6_Using->shrink_to_fit();
-		}
-
-	//Local Routing part(IPv4)
-		if (!LocalRoutingList_IPv4_Modificating->empty()) //Swap(or cleanup) using list.
-		{
-			LocalRoutingList_IPv4_Modificating->shrink_to_fit();
-			std::unique_lock<std::mutex> LocalRoutingListMutex(LocalRoutingListLock);
-			LocalRoutingList_IPv4_Using->swap(*LocalRoutingList_IPv4_Modificating);
-			LocalRoutingListMutex.unlock();
-			LocalRoutingList_IPv4_Modificating->clear();
-			LocalRoutingList_IPv4_Modificating->shrink_to_fit();
-		}
-		else { //LocalRoutingList Table is empty.
-			LocalRoutingList_IPv4_Modificating->shrink_to_fit();
-			std::unique_lock<std::mutex> LocalRoutingListMutex(LocalRoutingListLock);
-			LocalRoutingList_IPv4_Using->clear();
-			LocalRoutingList_IPv4_Using->shrink_to_fit();
-		}
-
-	//Address Range part
-		if (!AddressRangeModificating->empty())
-		{
-		//Swap(or cleanup) using list.
-			AddressRangeModificating->shrink_to_fit();
-			std::unique_lock<std::mutex> AddressRangeMutex(AddressRangeLock);
-			AddressRangeUsing->swap(*AddressRangeModificating);
-			AddressRangeMutex.unlock();
-			AddressRangeModificating->clear();
-			AddressRangeModificating->shrink_to_fit();
-		}
-	//AddressRange Table is empty.
-		else {
-			std::unique_lock<std::mutex> AddressRangeMutex(AddressRangeLock);
-			AddressRangeUsing->clear();
-			AddressRangeUsing->shrink_to_fit();
-			AddressRangeMutex.unlock();
-			AddressRangeModificating->clear();
-			AddressRangeModificating->shrink_to_fit();
-		}
-
-	//Flush DNS cache.
-		if (Parameter.FileHash)
-		{
-		//Clear DNS cache after updating.
-			std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
-			DNSCacheList.clear();
-			DNSCacheList.shrink_to_fit();
-			DNSCacheListMutex.unlock();
-
-		//Clear system DNS cache.
-			FlushSystemDNSCache();
-		}
-
-	//Auto-refresh
-		if (Parameter.FileRefreshTime > 0)
 			Sleep(Parameter.FileRefreshTime);
-		else 
-			break;
+			continue;
+		}
+
+	//Copy to using list.
+		ResultBlacklistMutex.lock();
+		AddressHostsListMutex.lock();
+		LocalRoutingListMutex.lock();
+		*IPFilterFileSetUsing = *IPFilterFileSetModificating;
+		IPFilterFileSetUsing->shrink_to_fit();
+		ResultBlacklistMutex.unlock();
+		AddressHostsListMutex.unlock();
+		LocalRoutingListMutex.unlock();
+		IPFilterFileSetModificating->shrink_to_fit();
+
+	//Flush DNS cache and Auto-refresh
+		FlushSystemDNSCache();
+		Sleep(Parameter.FileRefreshTime);
 	}
 
 	PrintError(LOG_ERROR_SYSTEM, L"Read IPFilter module Monitor terminated", 0, nullptr, 0);
@@ -3121,8 +2910,15 @@ size_t __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, co
 	}
 
 //Add to global ResultBlacklistTable.
-	ResultBlacklistTableTemp.FileIndex = FileIndex;
-	ResultBlacklistModificating->push_back(ResultBlacklistTableTemp);
+	for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
+	{
+		if (IPFilterFileSetIter.FileIndex == FileIndex)
+		{
+			IPFilterFileSetIter.ResultBlacklist.push_back(ResultBlacklistTableTemp);
+			break;
+		}
+	}
+
 	return EXIT_SUCCESS;
 }
 
@@ -3155,12 +2951,12 @@ size_t __fastcall ReadLocalRoutingData(std::string Data, const size_t FileIndex,
 	if (Data.find(":") != std::string::npos) 
 	{
 		AddressRoutingTable_IPv6 AddressRoutingTableTemp;
-		AddressRoutingTableTemp.FileIndex = FileIndex;
-		in6_addr BinaryAddr = {0};
+		std::shared_ptr<in6_addr> BinaryAddr(new in6_addr());
+		memset(BinaryAddr.get(), 0, sizeof(in6_addr));
 		Data.erase(0, Data.find("/") + 1U);
 
 	//Convert address.
-		if (AddressStringToBinary(Addr.get(), &BinaryAddr, AF_INET6, Result) == EXIT_FAILURE)
+		if (AddressStringToBinary(Addr.get(), BinaryAddr.get(), AF_INET6, Result) == EXIT_FAILURE)
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv6 address format error", Result, IPFilterFileList[FileIndex].FileName.c_str(), Line);
 			return EXIT_FAILURE;
@@ -3178,62 +2974,68 @@ size_t __fastcall ReadLocalRoutingData(std::string Data, const size_t FileIndex,
 		}
 
 	//Add to global LocalRoutingList(IPv6).
-		uint64_t *AddrFront = (uint64_t *)&BinaryAddr, *AddrBack = (uint64_t *)((PUCHAR)&BinaryAddr + 8U);
-		if (LocalRoutingList_IPv6_Modificating->empty())
+		uint64_t *AddrFront = (uint64_t *)BinaryAddr.get(), *AddrBack = (uint64_t *)((PUCHAR)BinaryAddr.get() + 8U);
+		for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
 		{
-			goto AddToGlobalList_IPv6;
-		}
-		for (auto LocalRoutingTableIter = LocalRoutingList_IPv6_Modificating->begin();LocalRoutingTableIter != LocalRoutingList_IPv6_Modificating->end();++LocalRoutingTableIter)
-		{
-			if (LocalRoutingTableIter->FileIndex == AddressRoutingTableTemp.FileIndex && LocalRoutingTableIter->Prefix == AddressRoutingTableTemp.Prefix)
+			if (IPFilterFileSetIter.FileIndex == FileIndex)
 			{
-				auto AddressRoutingListIter = LocalRoutingTableIter->AddressRoutingList_IPv6.find(hton64(*AddrFront) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)));
-				if (AddressRoutingListIter != LocalRoutingTableIter->AddressRoutingList_IPv6.end())
+				if (IPFilterFileSetIter.LocalRoutingList_IPv6.empty())
 				{
-					if (!AddressRoutingListIter->second.count(hton64(*AddrBack) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix))))
-						AddressRoutingListIter->second.insert(hton64(*AddrBack) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
+					goto AddToGlobalList_IPv6;
+				}
+				for (auto LocalRoutingTableIter = IPFilterFileSetIter.LocalRoutingList_IPv6.begin();LocalRoutingTableIter != IPFilterFileSetIter.LocalRoutingList_IPv6.end();++LocalRoutingTableIter)
+				{
+					if (LocalRoutingTableIter->Prefix == AddressRoutingTableTemp.Prefix)
+					{
+						auto AddressRoutingListIter = LocalRoutingTableIter->AddressRoutingList_IPv6.find(hton64(*AddrFront) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)));
+						if (AddressRoutingListIter != LocalRoutingTableIter->AddressRoutingList_IPv6.end())
+						{
+							if (!AddressRoutingListIter->second.count(hton64(*AddrBack) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix))))
+								AddressRoutingListIter->second.insert(hton64(*AddrBack) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
+						}
+						else {
+							std::set<uint64_t> AddrBackSet;
+							if (AddressRoutingTableTemp.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
+							{
+								AddrBackSet.insert(0);
+								LocalRoutingTableIter->AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*AddrFront) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)), AddrBackSet));
+							}
+							else {
+								AddrBackSet.insert(hton64(*AddrBack) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
+								LocalRoutingTableIter->AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*AddrFront), AddrBackSet));
+							}
+						}
+
+						return EXIT_SUCCESS;
+					}
+				}
+
+			//Add new item to global list.
+				AddToGlobalList_IPv6: 
+				std::set<uint64_t> AddrBackSet;
+				if (AddressRoutingTableTemp.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
+				{
+					AddrBackSet.insert(0);
+					AddressRoutingTableTemp.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*AddrFront) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)), AddrBackSet));
 				}
 				else {
-					std::set<uint64_t> AddrBackSet;
-					if (AddressRoutingTableTemp.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
-					{
-						AddrBackSet.insert(0);
-						LocalRoutingTableIter->AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*AddrFront) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)), AddrBackSet));
-					}
-					else {
-						AddrBackSet.insert(hton64(*AddrBack) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
-						LocalRoutingTableIter->AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*AddrFront), AddrBackSet));
-					}
+					AddrBackSet.insert(hton64(*AddrBack) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
+					AddressRoutingTableTemp.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*AddrFront), AddrBackSet));
 				}
 
-				return EXIT_SUCCESS;
+				IPFilterFileSetIter.LocalRoutingList_IPv6.push_back(AddressRoutingTableTemp);
 			}
 		}
-
-	//Add new item to global list.
-		AddToGlobalList_IPv6: 
-		std::set<uint64_t> AddrBackSet;
-		if (AddressRoutingTableTemp.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
-		{
-			AddrBackSet.insert(0);
-			AddressRoutingTableTemp.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*AddrFront) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)), AddrBackSet));
-		}
-		else {
-			AddrBackSet.insert(hton64(*AddrBack) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
-			AddressRoutingTableTemp.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*AddrFront), AddrBackSet));
-		}
-
-		LocalRoutingList_IPv6_Modificating->push_back(AddressRoutingTableTemp);
 	}
 //IPv4
 	else {
 		AddressRoutingTable_IPv4 AddressRoutingTableTemp;
-		AddressRoutingTableTemp.FileIndex = FileIndex;
-		in_addr BinaryAddr = {0};
+		std::shared_ptr<in_addr> BinaryAddr(new in_addr());
+		memset(BinaryAddr.get(), 0, sizeof(in_addr));
 		Data.erase(0, Data.find("/") + 1U);
 
 	//Convert address.
-		if (AddressStringToBinary(Addr.get(), &BinaryAddr, AF_INET, Result) == EXIT_FAILURE)
+		if (AddressStringToBinary(Addr.get(), BinaryAddr.get(), AF_INET, Result) == EXIT_FAILURE)
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv4 address format error", Result, IPFilterFileList[FileIndex].FileName.c_str(), Line);
 			return EXIT_FAILURE;
@@ -3251,25 +3053,31 @@ size_t __fastcall ReadLocalRoutingData(std::string Data, const size_t FileIndex,
 		}
 
 	//Add to global LocalRoutingTable(IPv4).
-		if (LocalRoutingList_IPv4_Modificating->empty())
+		for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
 		{
-			goto AddToGlobalList_IPv4;
-		}
-		for (auto LocalRoutingTableIter = LocalRoutingList_IPv4_Modificating->begin();LocalRoutingTableIter != LocalRoutingList_IPv4_Modificating->end();++LocalRoutingTableIter)
-		{
-			if (LocalRoutingTableIter->FileIndex == AddressRoutingTableTemp.FileIndex && LocalRoutingTableIter->Prefix == AddressRoutingTableTemp.Prefix)
+			if (IPFilterFileSetIter.FileIndex == FileIndex)
 			{
-				if (!LocalRoutingTableIter->AddressRoutingList_IPv4.count(htonl(BinaryAddr.s_addr)))
-					LocalRoutingTableIter->AddressRoutingList_IPv4.insert(htonl(BinaryAddr.s_addr));
+				if (IPFilterFileSetIter.LocalRoutingList_IPv4.empty())
+				{
+					goto AddToGlobalList_IPv4;
+				}
+				for (auto LocalRoutingTableIter = IPFilterFileSetIter.LocalRoutingList_IPv4.begin();LocalRoutingTableIter != IPFilterFileSetIter.LocalRoutingList_IPv4.end();++LocalRoutingTableIter)
+				{
+					if (LocalRoutingTableIter->Prefix == AddressRoutingTableTemp.Prefix)
+					{
+						if (!LocalRoutingTableIter->AddressRoutingList_IPv4.count(htonl(BinaryAddr->s_addr)))
+							LocalRoutingTableIter->AddressRoutingList_IPv4.insert(htonl(BinaryAddr->s_addr));
 
-				return EXIT_SUCCESS;
+						return EXIT_SUCCESS;
+					}
+				}
+
+			//Add new item to global list.
+				AddToGlobalList_IPv4: 
+				AddressRoutingTableTemp.AddressRoutingList_IPv4.insert(htonl(BinaryAddr->s_addr));
+				IPFilterFileSetIter.LocalRoutingList_IPv4.push_back(AddressRoutingTableTemp);
 			}
 		}
-
-	//Add new item to global list.
-		AddToGlobalList_IPv4: 
-		AddressRoutingTableTemp.AddressRoutingList_IPv4.insert(htonl(BinaryAddr.s_addr));
-		LocalRoutingList_IPv4_Modificating->push_back(AddressRoutingTableTemp);
 	}
 
 	return EXIT_SUCCESS;
@@ -3483,37 +3291,32 @@ size_t __fastcall ReadMainIPFilterData(std::string Data, const size_t FileIndex,
 	}
 
 //Add to global AddressRangeTable.
-	AddressRangeTableTemp.FileIndex = FileIndex;
-	AddressRangeModificating->push_back(AddressRangeTableTemp);
+	for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
+	{
+		if (IPFilterFileSetIter.FileIndex == FileIndex)
+		{
+			IPFilterFileSetIter.AddressRange.push_back(AddressRangeTableTemp);
+			break;
+		}
+	}
+
 	return EXIT_SUCCESS;
 }
 
 //Read hosts from file
 size_t __fastcall ReadHosts(void)
 {
-//Initialization
-	std::shared_ptr<char> Buffer;
-	if (Parameter.FileHash)
-	{
-		std::shared_ptr<char> FileDataBufferTemp(new char[FILE_BUFFER_SIZE]());
-		memset(FileDataBufferTemp.get(), 0, FILE_BUFFER_SIZE);
-		Buffer.swap(FileDataBufferTemp);
-		FileDataBufferTemp.reset();
-	}
-
 //Create file list.
-	FILE *Input = nullptr;
 	for (size_t Index = 0;Index < Parameter.Path->size();++Index)
 	{
 		for (size_t InnerIndex = 0;InnerIndex < Parameter.HostsFileList->size();++InnerIndex)
 		{
 			FILE_DATA FileDataTemp;
-			FileDataTemp.HashAvailable = false;
-
-		//Reset.
-			FileDataTemp.HashAvailable = false;
 			FileDataTemp.FileName.clear();
-			FileDataTemp.HashResult.reset();
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			FileDataTemp.sFileName.clear();
+		#endif
+			FileDataTemp.ModificationTime = 0;
 
 		//Add to global list.
 			FileDataTemp.FileName.append(Parameter.Path->at(Index));
@@ -3527,356 +3330,193 @@ size_t __fastcall ReadHosts(void)
 	}
 
 //Files Monitor
-	size_t FileIndex = 0, ReadLength = 0, Index = 0;
-	auto IsFileChanged = false;
+	FILE *Input = nullptr;
+	size_t FileIndex = 0;
+	auto IsFileModified = false;
 #if defined(PLATFORM_WIN)
-	HANDLE HostsHandle = nullptr;
-	std::shared_ptr<LARGE_INTEGER> HostsFileSize(new LARGE_INTEGER());
-	memset(HostsFileSize.get(), 0, sizeof(LARGE_INTEGER));
+	std::shared_ptr<LARGE_INTEGER> File_LARGE_INTEGER(new LARGE_INTEGER());
+	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
+	memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	std::shared_ptr<struct stat> FileStat(new struct stat());
+	memset(FileStat.get(), 0, sizeof(struct stat));
 #endif
-	std::vector<HOSTS_TABLE>::iterator HostsListIter;
-	std::vector<ADDRESS_HOSTS_TABLE>::iterator AddressHostsTableIter;
-	Keccak_HashInstance HashInstance = {0};
+	std::unique_lock<std::mutex> HostsListMutex(HostsListLock);
+	std::unique_lock<std::mutex> AddressRangeMutex(AddressRangeLock);
+	HostsListMutex.unlock();
+	AddressRangeMutex.unlock();
 
 	for (;;)
 	{
-		IsFileChanged = false;
-		if (Parameter.FileHash)
-		{
-			if (!HostsListUsing->empty())
-				*HostsListModificating = *HostsListUsing;
-
-			if (!AddressHostsListUsing->empty())
-				*AddressHostsListModificating = *AddressHostsListUsing;
-		}
+		IsFileModified = false;
 
 	//Check File lists.
 		for (FileIndex = 0;FileIndex < HostsFileList.size();++FileIndex)
 		{
+		//Get attributes of file.
 		#if defined(PLATFORM_WIN)
-			if (_wfopen_s(&Input, HostsFileList[FileIndex].FileName.c_str(), L"rb") != 0)
+			if (GetFileAttributesExW(HostsFileList[FileIndex].FileName.c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) == FALSE)
 			{
-			//Clear hash results.
-				if (Parameter.FileHash)
-				{
-					if (HostsFileList[FileIndex].HashAvailable)
-					{
-						IsFileChanged = true;
-						HostsFileList[FileIndex].HashResult.reset();
-					}
-					HostsFileList[FileIndex].HashAvailable = false;
+				memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			if (stat(HostsFileList[FileIndex].sFileName.c_str(), FileStat.get()) != 0)
+			{
+				memset(FileStat.get(), 0, sizeof(struct stat));
+		#endif
+				if (HostsFileList[FileIndex].ModificationTime > 0)
+					IsFileModified = true;
+				HostsFileList[FileIndex].ModificationTime = 0;
 
-				//Clear old iteams.
-					ClearListData(READTEXT_HOSTS, FileIndex);
-				}
-
-				continue;
+				ClearListData(READTEXT_HOSTS, FileIndex);
 			}
 			else {
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			Input = fopen(HostsFileList[FileIndex].sFileName.c_str(), "rb");
-		#endif
-				if (Input == nullptr)
+			//Check whole file size.
+			#if defined(PLATFORM_WIN)
+				File_LARGE_INTEGER->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
+				File_LARGE_INTEGER->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
+				if (File_LARGE_INTEGER->QuadPart >= DEFAULT_FILE_MAXSIZE)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				if (FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+			#endif
 				{
-				//Clear hash results.
-					if (Parameter.FileHash)
-					{
-						if (HostsFileList[FileIndex].HashAvailable)
-						{
-							IsFileChanged = true;
-							HostsFileList[FileIndex].HashResult.reset();
-						}
-						HostsFileList[FileIndex].HashAvailable = false;
-						
-					//Clear old iteams.
-						ClearListData(READTEXT_HOSTS, FileIndex);
-					}
+					PrintError(LOG_ERROR_PARAMETER, L"Hosts file size is too large", 0, HostsFileList[FileIndex].FileName.c_str(), 0);
 
+				#if defined(PLATFORM_WIN)
+					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+					memset(FileStat.get(), 0, sizeof(struct stat));
+				#endif
+					if (HostsFileList[FileIndex].ModificationTime > 0)
+						IsFileModified = true;
+					HostsFileList[FileIndex].ModificationTime = 0;
+
+					ClearListData(READTEXT_HOSTS, FileIndex);
 					continue;
 				}
 
-			//Check whole file size.
+			//Check modification time of file.
 			#if defined(PLATFORM_WIN)
-				HostsHandle = CreateFileW(HostsFileList[FileIndex].FileName.c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-				if (HostsHandle != INVALID_HANDLE_VALUE)
+				memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+				File_LARGE_INTEGER->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwHighDateTime;
+				File_LARGE_INTEGER->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwLowDateTime;
+				if (HostsFileList[FileIndex].ModificationTime == 0 || //File was not available.
+					HostsFileList[FileIndex].ModificationTime > 0 && File_LARGE_INTEGER->QuadPart > HostsFileList[FileIndex].ModificationTime) //File was modified.
 				{
-					memset(HostsFileSize.get(), 0, sizeof(LARGE_INTEGER));
-					if (GetFileSizeEx(HostsHandle, HostsFileSize.get()) == 0)
+					HostsFileList[FileIndex].ModificationTime = File_LARGE_INTEGER->QuadPart;
+					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				if (HostsFileList[FileIndex].ModificationTime == 0 || //File was not available.
+					HostsFileList[FileIndex].ModificationTime > 0 && FileStat->st_mtime > HostsFileList[FileIndex].ModificationTime) //File was modified.
+				{
+					HostsFileList[FileIndex].ModificationTime = FileStat->st_mtime;
+					memset(FileStat.get(), 0, sizeof(struct stat));
+			#endif
+					ClearListData(READTEXT_HOSTS, FileIndex);
+					IsFileModified = true;
+
+				//Read file.
+				#if defined(PLATFORM_WIN)
+					if (_wfopen_s(&Input, HostsFileList[FileIndex].FileName.c_str(), L"rb") == 0)
 					{
-						CloseHandle(HostsHandle);
-					}
-					else {
-						CloseHandle(HostsHandle);
-						if (HostsFileSize->QuadPart >= DEFAULT_FILE_MAXSIZE)
+				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+					Input = fopen(HostsFileList[FileIndex].sFileName.c_str(), "rb");
+				#endif
+						if (Input == nullptr)
 						{
-							PrintError(LOG_ERROR_PARAMETER, L"Hosts file size is too large", 0, HostsFileList[FileIndex].FileName.c_str(), 0);
-							fclose(Input);
-							Input = nullptr;
-
-						//Clear hash results.
-							if (Parameter.FileHash)
-							{
-								if (HostsFileList[FileIndex].HashAvailable)
-								{
-									IsFileChanged = true;
-									HostsFileList[FileIndex].HashResult.reset();
-								}
-								HostsFileList[FileIndex].HashAvailable = false;
-							
-							//Clear old iteams.
-								ClearListData(READTEXT_HOSTS, FileIndex);
-							}
-
 							continue;
 						}
-					}
-				}
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				std::shared_ptr<struct stat> FileStat(new struct stat());
-				memset(FileStat.get(), 0, sizeof(struct stat));
-				if (stat(HostsFileList[FileIndex].sFileName.c_str(), FileStat.get()) == 0)
-				{
-					if (FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
-					{
-						PrintError(LOG_ERROR_PARAMETER, L"Hosts file size is too large", 0, HostsFileList[FileIndex].FileName.c_str(), 0);
-						fclose(Input);
-						Input = nullptr;
-
-					//Clear hash results.
-						if (Parameter.FileHash)
-						{
-							if (HostsFileList[FileIndex].HashAvailable)
-							{
-								IsFileChanged = true;
-								HostsFileList[FileIndex].HashResult.reset();
-							}
-							HostsFileList[FileIndex].HashAvailable = false;
-
-						//Clear old iteams.
-							ClearListData(READTEXT_HOSTS, FileIndex);
-						}
-
-						continue;
-					}
-				}
-			#endif
-
-			//Mark or check files hash.
-				if (Parameter.FileHash)
-				{
-					memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
-					memset(&HashInstance, 0, sizeof(Keccak_HashInstance));
-					Keccak_HashInitialize_SHA3_512(&HashInstance);
-					while (!feof(Input))
-					{
-						ReadLength = fread_s(Buffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, Input);
-						Keccak_HashUpdate(&HashInstance, (BitSequence *)Buffer.get(), ReadLength * BYTES_TO_BITS);
-					}
-					memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
-					Keccak_HashFinal(&HashInstance, (BitSequence *)Buffer.get());
-
-				//Set file pointers to the beginning of file.
-				#if defined(PLATFORM_WIN)
-					if (_fseeki64(Input, 0, SEEK_SET) != 0)
-				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-					if (fseeko(Input, 0, SEEK_SET) != 0)
-				#endif
-					{
-						PrintError(LOG_ERROR_HOSTS, L"Read files error", 0, HostsFileList[FileIndex].FileName.c_str(), 0);
-						fclose(Input);
-						Input = nullptr;
-
-					//Clear hash results.
-						if (HostsFileList[FileIndex].HashAvailable)
-						{
-							IsFileChanged = true;
-							HostsFileList[FileIndex].HashResult.reset();
-						}
-						HostsFileList[FileIndex].HashAvailable = false;
-						
-					//Clear old iteams.
-						ClearListData(READTEXT_HOSTS, FileIndex);
-						continue;
-					}
-					else {
-						if (HostsFileList[FileIndex].HashAvailable)
-						{
-							if (memcmp(HostsFileList[FileIndex].HashResult.get(), Buffer.get(), SHA3_512_SIZE) == 0)
-							{
-								fclose(Input);
-								Input = nullptr;
-								continue;
-							}
-							else {
-								IsFileChanged = true;
-								memcpy_s(HostsFileList[FileIndex].HashResult.get(), SHA3_512_SIZE, Buffer.get(), SHA3_512_SIZE);
-
-							//Clear old iteams.
-								ClearListData(READTEXT_HOSTS, FileIndex);
-							}
-						}
 						else {
-							IsFileChanged = true;
-							HostsFileList[FileIndex].HashAvailable = true;
-							std::shared_ptr<BitSequence> HashBufferTemp(new BitSequence[SHA3_512_SIZE]());
-							memset(HashBufferTemp.get(), 0, sizeof(BitSequence) * SHA3_512_SIZE);
-							memcpy_s(HashBufferTemp.get(), SHA3_512_SIZE, Buffer.get(), SHA3_512_SIZE);
-							HostsFileList[FileIndex].HashResult.swap(HashBufferTemp);
+						//Scan global list.
+							for (auto HostsFileSetIter = HostsFileSetModificating->begin();HostsFileSetIter != HostsFileSetModificating->end();++HostsFileSetIter)
+							{
+								if (HostsFileSetIter->FileIndex == FileIndex)
+								{
+									break;
+								}
+								else if (HostsFileSetIter + 1U == HostsFileSetModificating->end())
+								{
+									DIFFERNET_HOSTS_FILE_SET HostsFileSetTemp;
+									HostsFileSetTemp.FileIndex = FileIndex;
+									HostsFileSetModificating->push_back(HostsFileSetTemp);
+									break;
+								}
+							}
+							if (HostsFileSetModificating->empty())
+							{
+								DIFFERNET_HOSTS_FILE_SET HostsFileSetTemp;
+								HostsFileSetTemp.FileIndex = FileIndex;
+								HostsFileSetModificating->push_back(HostsFileSetTemp);
+							}
 
-						//Clear old iteams.
-							ClearListData(READTEXT_HOSTS, FileIndex);
+						//Read data.
+							ReadText(Input, READTEXT_HOSTS, FileIndex);
+							fclose(Input);
+							Input = nullptr;
 						}
+				#if defined(PLATFORM_WIN)
 					}
+				#endif
 				}
-		#if defined(PLATFORM_WIN)
+				else {
+				#if defined(PLATFORM_WIN)
+					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+					memset(FileStat.get(), 0, sizeof(struct stat));
+				#endif
+				}
 			}
-		#endif
-
-		//Read data.
-			IsFileChanged = true;
-			ReadText(Input, READTEXT_HOSTS, FileIndex);
-			fclose(Input);
-			Input = nullptr;
 		}
 
 	//Update global list.
-		if (!IsFileChanged)
+		if (!IsFileModified)
 		{
-		//Auto-refresh
-			if (Parameter.FileRefreshTime > 0)
-			{
-				Sleep(Parameter.FileRefreshTime);
-				continue;
-			}
-			else {
-				break;
-			}
+			Sleep(Parameter.FileRefreshTime);
+			continue;
 		}
 
-	//Hosts list part
-		if (!HostsListModificating->empty())
+	//EDNS0 Lebal
+		if (Parameter.EDNS0Label)
 		{
-		//Check repeating items.
-			for (HostsListIter = HostsListModificating->begin();HostsListIter != HostsListModificating->end();++HostsListIter)
+			pdns_record_opt DNS_Record_OPT = nullptr;
+			for (auto HostsFileSetIter:*HostsFileSetModificating)
 			{
-				if (HostsListIter->Type == HOSTS_NORMAL && !HostsListIter->RecordType.empty())
+				for (auto &HostsListIter:HostsFileSetIter.HostsList)
 				{
-				//AAAA records(IPv6)
-					if (HostsListIter->RecordType.front() == htons(DNS_RECORD_AAAA) && HostsListIter->Length > sizeof(dns_record_aaaa))
-					{
-						for (Index = 0;Index < HostsListIter->Length / sizeof(dns_record_aaaa);++Index)
-						{
-							for (size_t InnerIndex = Index + 1U;InnerIndex < HostsListIter->Length / sizeof(dns_record_aaaa);++InnerIndex)
-							{
-								if (memcmp(HostsListIter->Response.get() + sizeof(dns_record_aaaa) * Index, 
-									HostsListIter->Response.get() + sizeof(dns_record_aaaa) * InnerIndex, sizeof(dns_record_aaaa)) == 0)
-								{
-									memmove_s(HostsListIter->Response.get() + sizeof(dns_record_aaaa) * InnerIndex, PACKET_MAXSIZE - sizeof(dns_record_aaaa) * InnerIndex, HostsListIter->Response.get() + sizeof(dns_record_aaaa) * (InnerIndex + 1U), sizeof(dns_record_aaaa) * (HostsListIter->Length / sizeof(dns_record_aaaa) - InnerIndex));
-									HostsListIter->Length -= sizeof(dns_record_aaaa);
-									--InnerIndex;
-								}
-							}
-						}
-					}
-				//A records(IPv4)
-					else if (HostsListIter->RecordType.front() == htons(DNS_RECORD_A) && HostsListIter->Length > sizeof(dns_record_a))
-					{
-						for (Index = 0;Index < HostsListIter->Length / sizeof(dns_record_a);++Index)
-						{
-							for (size_t InnerIndex = Index + 1U;InnerIndex < HostsListIter->Length / sizeof(dns_record_a);++InnerIndex)
-							{
-								if (memcmp(HostsListIter->Response.get() + sizeof(dns_record_a) * Index, 
-									HostsListIter->Response.get() + sizeof(dns_record_a) * InnerIndex, sizeof(dns_record_a)) == 0)
-								{
-									memmove_s(HostsListIter->Response.get() + sizeof(dns_record_a) * InnerIndex, PACKET_MAXSIZE - sizeof(dns_record_a) * InnerIndex, HostsListIter->Response.get() + sizeof(dns_record_a) * (InnerIndex + 1U), sizeof(dns_record_a) * (HostsListIter->Length / sizeof(dns_record_a) - InnerIndex));
-									HostsListIter->Length -= sizeof(dns_record_a);
-									--InnerIndex;
-								}
-							}
-						}
-					}
-				}
-			}
-
-		//EDNS0 Lebal
-			if (Parameter.EDNS0Label)
-			{
-				pdns_record_opt DNS_Record_OPT = nullptr;
-				for (HostsListIter = HostsListModificating->begin();HostsListIter != HostsListModificating->end();++HostsListIter)
-				{
-					if (HostsListIter->Length > PACKET_MAXSIZE - sizeof(dns_record_opt))
+					if (HostsListIter.Length > PACKET_MAXSIZE - sizeof(dns_record_opt))
 					{
 						PrintError(LOG_ERROR_HOSTS, L"Data is too long when EDNS0 is available", 0, nullptr, 0);
 						continue;
 					}
-					else if (!HostsListIter->Response)
+					else if (!HostsListIter.Response)
 					{
 						continue;
 					}
 					else {
-						DNS_Record_OPT = (pdns_record_opt)(HostsListIter->Response.get() + HostsListIter->Length);
+						DNS_Record_OPT = (pdns_record_opt)(HostsListIter.Response.get() + HostsListIter.Length);
 						DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
 						DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
-						HostsListIter->Length += sizeof(dns_record_opt);
+						HostsListIter.Length += sizeof(dns_record_opt);
 					}
 				}
 			}
-
-		//Swap(or cleanup) using list.
-			HostsListModificating->shrink_to_fit();
-			std::unique_lock<std::mutex> HostsListMutex(HostsListLock);
-			HostsListUsing->swap(*HostsListModificating);
-			HostsListMutex.unlock();
-			HostsListModificating->clear();
-			HostsListModificating->shrink_to_fit();
-		}
-		else { //Hosts Table is empty.
-			std::unique_lock<std::mutex> HostsListMutex(HostsListLock);
-			HostsListUsing->clear();
-			HostsListUsing->shrink_to_fit();
-			HostsListMutex.unlock();
-			HostsListModificating->clear();
-			HostsListModificating->shrink_to_fit();
 		}
 
-	//Address Hosts part
-		if (!AddressHostsListModificating->empty())
-		{
-		//Swap(or cleanup) using list.
-			AddressHostsListModificating->shrink_to_fit();
-			std::unique_lock<std::mutex> AddressHostsListMutex(AddressHostsListLock);
-			AddressHostsListUsing->swap(*AddressHostsListModificating);
-			AddressHostsListMutex.unlock();
-			AddressHostsListModificating->clear();
-			AddressHostsListModificating->shrink_to_fit();
-		}
-		else { //Address Hosts Table is empty.
-			std::unique_lock<std::mutex> AddressHostsListMutex(AddressHostsListLock);
-			AddressHostsListUsing->clear();
-			AddressHostsListUsing->shrink_to_fit();
-			AddressHostsListMutex.unlock();
-			AddressHostsListModificating->clear();
-			AddressHostsListModificating->shrink_to_fit();
-		}
+	//Copy to using list.
+		HostsListMutex.lock();
+		AddressRangeMutex.lock();
+		*HostsFileSetUsing = *HostsFileSetModificating;
+		HostsFileSetUsing->shrink_to_fit();
+		HostsListMutex.unlock();
+		AddressRangeMutex.unlock();
+		HostsFileSetModificating->shrink_to_fit();
 
-	//Flush DNS cache.
-		if (Parameter.FileHash)
-		{
-		//Clear DNS cache after updating.
-			std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
-			DNSCacheList.clear();
-			DNSCacheList.shrink_to_fit();
-			DNSCacheListMutex.unlock();
-
-		//Clear system DNS cache.
-			FlushSystemDNSCache();
-		}
-
-	//Auto-refresh
-		if (Parameter.FileRefreshTime > 0)
-			Sleep(Parameter.FileRefreshTime);
-		else
-			break;
+	//Flush DNS cache and Auto-refresh
+		FlushSystemDNSCache();
+		Sleep(Parameter.FileRefreshTime);
 	}
 
 	PrintError(LOG_ERROR_SYSTEM, L"Read Hosts module Monitor terminated", 0, nullptr, 0);
@@ -4118,26 +3758,22 @@ size_t __fastcall ReadWhitelistAndBannedData(std::string Data, const size_t File
 		return EXIT_FAILURE;
 	}
 
-//Check repeating items.
-	for (auto HostsTableIter:*HostsListModificating)
-	{
-		if (HostsTableIter.PatternString == HostsTableTemp.PatternString)
-		{
-			if (HostsTableIter.Type == HOSTS_NORMAL || HostsTableIter.Type == HOSTS_WHITE && LabelType != LABEL_HOSTS_WHITELIST || 
-				HostsTableIter.Type == HOSTS_LOCAL || HostsTableIter.Type == HOSTS_BANNED && LabelType != LABEL_HOSTS_BANNED && LabelType != LABEL_HOSTS_BANNED_TYPE)
-					PrintError(LOG_ERROR_HOSTS, L"Repeating items error, this item is not available", 0, HostsFileList[FileIndex].FileName.c_str(), Line);
-
-			return EXIT_FAILURE;
-		}
-	}
-
 //Mark types.
 	if (LabelType == LABEL_HOSTS_BANNED || LabelType == LABEL_HOSTS_BANNED_TYPE)
 		HostsTableTemp.Type = HOSTS_BANNED;
 	else 
 		HostsTableTemp.Type = HOSTS_WHITE;
-	HostsTableTemp.FileIndex = FileIndex;
-	HostsListModificating->push_back(HostsTableTemp);
+
+//Add to global HostsList.
+	for (auto &HostsFileSetIter:*HostsFileSetModificating)
+	{
+		if (HostsFileSetIter.FileIndex == FileIndex)
+		{
+			HostsFileSetIter.HostsList.push_back(HostsTableTemp);
+			break;
+		}
+	}
+
 	return EXIT_SUCCESS;
 }
 
@@ -4145,19 +3781,6 @@ size_t __fastcall ReadWhitelistAndBannedData(std::string Data, const size_t File
 size_t __fastcall ReadLocalHostsData(std::string Data, const size_t FileIndex, const size_t Line)
 {
 	HOSTS_TABLE HostsTableTemp;
-
-//Check repeating items.
-	HostsTableTemp.PatternString = Data;
-	for (auto HostsTableIter:*HostsListModificating)
-	{
-		if (HostsTableIter.PatternString == HostsTableTemp.PatternString)
-		{
-			if (HostsTableIter.Type != HOSTS_LOCAL)
-				PrintError(LOG_ERROR_HOSTS, L"Repeating items error, this item is not available", 0, HostsFileList[FileIndex].FileName.c_str(), Line);
-
-			return EXIT_FAILURE;
-		}
-	}
 
 //Mark patterns.
 	try {
@@ -4172,8 +3795,15 @@ size_t __fastcall ReadLocalHostsData(std::string Data, const size_t FileIndex, c
 
 //Add to global HostsTable.
 	HostsTableTemp.Type = HOSTS_LOCAL;
-	HostsTableTemp.FileIndex = FileIndex;
-	HostsListModificating->push_back(HostsTableTemp);
+	for (auto &HostsFileSetIter:*HostsFileSetModificating)
+	{
+		if (HostsFileSetIter.FileIndex == FileIndex)
+		{
+			HostsFileSetIter.HostsList.push_back(HostsTableTemp);
+			break;
+		}
+	}
+
 	return EXIT_SUCCESS;
 }
 
@@ -4548,8 +4178,15 @@ size_t __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex,
 	Addr.reset();
 
 //Add to global AddressHostsTable.
-	AddressHostsTableTemp.FileIndex = FileIndex;
-	AddressHostsListModificating->push_back(AddressHostsTableTemp);
+	for (auto &HostsFileSetIter:*HostsFileSetModificating)
+	{
+		if (HostsFileSetIter.FileIndex == FileIndex)
+		{
+			HostsFileSetIter.AddressHostsList.push_back(AddressHostsTableTemp);
+			break;
+		}
+	}
+
 	return EXIT_SUCCESS;
 }
 
@@ -4788,40 +4425,18 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 		return EXIT_FAILURE;
 	}
 
-//Check repeating items.
-	for (auto HostsListIter = HostsListModificating->begin();HostsListIter != HostsListModificating->end();++HostsListIter)
-	{
-		if (HostsListIter->PatternString == HostsTableTemp.PatternString)
-		{
-			if (HostsListIter->Type != HOSTS_NORMAL || HostsListIter->RecordType.empty())
-			{
-				PrintError(LOG_ERROR_HOSTS, L"Repeating items error, this item is not available", 0, HostsFileList[FileIndex].FileName.c_str(), Line);
-				return EXIT_FAILURE;
-			}
-			else {
-				if (HostsListIter->RecordType.front() == HostsTableTemp.RecordType.front())
-				{
-					if (HostsListIter->Length + HostsTableTemp.Length < PACKET_MAXSIZE)
-					{
-						memcpy_s(HostsListIter->Response.get() + HostsListIter->Length, PACKET_MAXSIZE - HostsListIter->Length, HostsTableTemp.Response.get(), HostsTableTemp.Length);
-						HostsListIter->Length += HostsTableTemp.Length;
-					}
-
-					return EXIT_SUCCESS;
-				}
-				else {
-					continue;
-				}
-			}
-		}
-	}
-
 //Add to global HostsTable.
 	if (HostsTableTemp.Length >= sizeof(dns_qry) + sizeof(in_addr)) //Shortest reply is a A Records with Question part.
 	{
 		HostsTableTemp.Type = HOSTS_NORMAL;
-		HostsTableTemp.FileIndex = FileIndex;
-		HostsListModificating->push_back(HostsTableTemp);
+		for (auto &HostsFileSetIter:*HostsFileSetModificating)
+		{
+			if (HostsFileSetIter.FileIndex == FileIndex)
+			{
+				HostsFileSetIter.HostsList.push_back(HostsTableTemp);
+				break;
+			}
+		}
 	}
 
 	return EXIT_SUCCESS;
@@ -5742,87 +5357,28 @@ size_t __fastcall ReadMagicNumber(std::string Data, const size_t DataOffset, PST
 //Clear data in list
 void __fastcall ClearListData(const size_t ClearType, const size_t FileIndex)
 {
-//Clear Hosts list.
+//Clear Hosts set.
 	if (ClearType == READTEXT_HOSTS)
 	{
-		for (auto HostsListIter = HostsListModificating->begin();HostsListIter != HostsListModificating->end();)
+		for (auto HostsFileSetIter = HostsFileSetModificating->begin();HostsFileSetIter != HostsFileSetModificating->end();++HostsFileSetIter)
 		{
-			if (HostsListIter->FileIndex == FileIndex)
+			if (HostsFileSetIter->FileIndex == FileIndex)
 			{
-				HostsListIter = HostsListModificating->erase(HostsListIter);
-				if (HostsListIter == HostsListModificating->end())
-					break;
-			}
-			else {
-				++HostsListIter;
-			}
-		}
-
-		for (auto AddressHostsTableIter = AddressHostsListModificating->begin();AddressHostsTableIter != AddressHostsListModificating->end();)
-		{
-			if (AddressHostsTableIter->FileIndex == FileIndex)
-			{
-				AddressHostsTableIter = AddressHostsListModificating->erase(AddressHostsTableIter);
-				if (AddressHostsTableIter == AddressHostsListModificating->end())
-					break;
-			}
-			else {
-				++AddressHostsTableIter;
+				HostsFileSetModificating->erase(HostsFileSetIter);
+				break;
 			}
 		}
 	}
 
-//Clear IPFilter list.
-	else {
-		for (auto AddressRangeTableIter = AddressRangeModificating->begin();AddressRangeTableIter != AddressRangeModificating->end();)
+//Clear IPFilter set.
+	else if (ClearType == READTEXT_IPFILTER)
+	{
+		for (auto IPFilterFileSetIter = IPFilterFileSetModificating->begin();IPFilterFileSetIter != IPFilterFileSetModificating->end();++IPFilterFileSetIter)
 		{
-			if (AddressRangeTableIter->FileIndex == FileIndex)
+			if (IPFilterFileSetIter->FileIndex == FileIndex)
 			{
-				AddressRangeTableIter = AddressRangeModificating->erase(AddressRangeTableIter);
-				if (AddressRangeTableIter == AddressRangeModificating->end())
-					break;
-			}
-			else {
-				++AddressRangeTableIter;
-			}
-		}
-
-		for (auto ResultBlacklistTableIter = ResultBlacklistModificating->begin();ResultBlacklistTableIter != ResultBlacklistModificating->end();)
-		{
-			if (ResultBlacklistTableIter->FileIndex == FileIndex)
-			{
-				ResultBlacklistTableIter = ResultBlacklistModificating->erase(ResultBlacklistTableIter);
-				if (ResultBlacklistTableIter == ResultBlacklistModificating->end())
-					break;
-			}
-			else {
-				++ResultBlacklistTableIter;
-			}
-		}
-
-		for (auto LocalRoutingTableIter_IPv6 = LocalRoutingList_IPv6_Modificating->begin();LocalRoutingTableIter_IPv6 != LocalRoutingList_IPv6_Modificating->end();)
-		{
-			if (LocalRoutingTableIter_IPv6->FileIndex == FileIndex)
-			{
-				LocalRoutingTableIter_IPv6 = LocalRoutingList_IPv6_Modificating->erase(LocalRoutingTableIter_IPv6);
-				if (LocalRoutingTableIter_IPv6 == LocalRoutingList_IPv6_Modificating->end())
-					break;
-			}
-			else {
-				++LocalRoutingTableIter_IPv6;
-			}
-		}
-
-		for (auto LocalRoutingTableIter_IPv4 = LocalRoutingList_IPv4_Modificating->begin();LocalRoutingTableIter_IPv4 != LocalRoutingList_IPv4_Modificating->end();)
-		{
-			if (LocalRoutingTableIter_IPv4->FileIndex == FileIndex)
-			{
-				LocalRoutingTableIter_IPv4 = LocalRoutingList_IPv4_Modificating->erase(LocalRoutingTableIter_IPv4);
-				if (LocalRoutingTableIter_IPv4 == LocalRoutingList_IPv4_Modificating->end())
-					break;
-			}
-			else {
-				++LocalRoutingTableIter_IPv4;
+				IPFilterFileSetModificating->erase(IPFilterFileSetIter);
+				break;
 			}
 		}
 	}

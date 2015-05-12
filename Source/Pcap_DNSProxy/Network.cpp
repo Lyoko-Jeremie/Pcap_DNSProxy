@@ -147,12 +147,10 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 				DataLength += sizeof(dns_hdr);
 			}
 
-		//Send.
+		//Send and repeat.
 			UDPRequestMulti(Buffer.get(), (int)DataLength, nullptr, 0);
-
-		//Repeat.
-			++Times;
 			Sleep(SENDING_INTERVAL_TIME * SECOND_TO_MILLISECOND);
+			++Times;
 		}
 	}
 
@@ -399,8 +397,8 @@ size_t __fastcall ICMPEcho(const uint16_t Protocol)
 		}
 
 	//Repeat.
-		++Times;
 		Sleep(SENDING_INTERVAL_TIME * SECOND_TO_MILLISECOND);
+		++Times;
 	}
 
 	shutdown(ICMPSocket, SD_BOTH);
@@ -777,9 +775,10 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 
 //Send request and receive result.
 	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
+	std::shared_ptr<timeval> Timeout(new timeval());
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
-	timeval Timeout = {0};
+	memset(Timeout.get(), 0, sizeof(timeval));
 	FD_ZERO(WriteFDS.get());
 	FD_SET(TCPSocket, WriteFDS.get());
 	SSIZE_T SelectResult = 0, RecvLen = 0;
@@ -790,20 +789,20 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 
 	//Reset parameters.
 	#if defined(PLATFORM_WIN)
-		Timeout.tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
-		Timeout.tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+		Timeout->tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
+		Timeout->tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		Timeout.tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
-		Timeout.tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
+		Timeout->tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
+		Timeout->tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
 	#endif
 		FD_ZERO(ReadFDS.get());
 		FD_SET(TCPSocket, ReadFDS.get());
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
-		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
+		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, Timeout.get());
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		SelectResult = select(TCPSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
+		SelectResult = select(TCPSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, Timeout.get());
 	#endif
 		if (SelectResult > 0)
 		{
@@ -1200,9 +1199,10 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 
 //Send request and receive result.
 	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
+	std::shared_ptr<timeval> Timeout(new timeval());
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
-	timeval Timeout = {0};
+	memset(Timeout.get(), 0, sizeof(timeval));
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	SOCKET MaxSocket = 0;
 #endif
@@ -1223,11 +1223,11 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 
 	//Reset parameters.
 	#if defined(PLATFORM_WIN)
-		Timeout.tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
-		Timeout.tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+		Timeout->tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
+		Timeout->tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		Timeout.tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
-		Timeout.tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
+		Timeout->tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
+		Timeout->tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
 	#endif
 		FD_ZERO(ReadFDS.get());
 		for (auto SocketDataIter:TCPSocketDataList)
@@ -1240,9 +1240,9 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
-		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
+		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, Timeout.get());
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		SelectResult = select(MaxSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
+		SelectResult = select(MaxSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, Timeout.get());
 	#endif
 		if (SelectResult > 0)
 		{
@@ -1794,8 +1794,9 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 
 //Send request and receive result.
 	std::shared_ptr<fd_set> WriteFDS(new fd_set());
+	std::shared_ptr<timeval> Timeout(new timeval());
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
-	timeval Timeout = {0};
+	memset(Timeout.get(), 0, sizeof(timeval));
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	SOCKET MaxSocket = 0;
 #endif
@@ -1813,18 +1814,18 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 	{
 	//Reset parameters.
 	#if defined(PLATFORM_WIN)
-		Timeout.tv_sec = Parameter.UnreliableSocketTimeout / SECOND_TO_MILLISECOND;
-		Timeout.tv_usec = Parameter.UnreliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+		Timeout->tv_sec = Parameter.UnreliableSocketTimeout / SECOND_TO_MILLISECOND;
+		Timeout->tv_usec = Parameter.UnreliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		Timeout.tv_sec = Parameter.UnreliableSocketTimeout.tv_sec;
-		Timeout.tv_usec = Parameter.UnreliableSocketTimeout.tv_usec;
+		Timeout->tv_sec = Parameter.UnreliableSocketTimeout.tv_sec;
+		Timeout->tv_usec = Parameter.UnreliableSocketTimeout.tv_usec;
 	#endif
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
-		SelectResult = select(0, nullptr, WriteFDS.get(), nullptr, &Timeout);
+		SelectResult = select(0, nullptr, WriteFDS.get(), nullptr, Timeout.get());
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		SelectResult = select(MaxSocket + 1U, nullptr, WriteFDS.get(), nullptr, &Timeout);
+		SelectResult = select(MaxSocket + 1U, nullptr, WriteFDS.get(), nullptr, Timeout.get());
 	#endif
 		if (SelectResult > 0)
 		{
@@ -2410,9 +2411,10 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 
 //Send request and receive result.
 	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
+	std::shared_ptr<timeval> Timeout(new timeval());
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
-	timeval Timeout = {0};
+	memset(Timeout.get(), 0, sizeof(timeval));
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	SOCKET MaxSocket = 0;
 #endif
@@ -2433,11 +2435,11 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 
 	//Reset parameters.
 	#if defined(PLATFORM_WIN)
-		Timeout.tv_sec = Parameter.UnreliableSocketTimeout / SECOND_TO_MILLISECOND;
-		Timeout.tv_usec = Parameter.UnreliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+		Timeout->tv_sec = Parameter.UnreliableSocketTimeout / SECOND_TO_MILLISECOND;
+		Timeout->tv_usec = Parameter.UnreliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		Timeout.tv_sec = Parameter.UnreliableSocketTimeout.tv_sec;
-		Timeout.tv_usec = Parameter.UnreliableSocketTimeout.tv_usec;
+		Timeout->tv_sec = Parameter.UnreliableSocketTimeout.tv_sec;
+		Timeout->tv_usec = Parameter.UnreliableSocketTimeout.tv_usec;
 	#endif
 		FD_ZERO(ReadFDS.get());
 		for (auto SocketDataIter:UDPSocketDataList)
@@ -2450,9 +2452,9 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
-		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
+		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, Timeout.get());
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		SelectResult = select(MaxSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
+		SelectResult = select(MaxSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, Timeout.get());
 	#endif
 		
 		if (SelectResult > 0)

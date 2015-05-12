@@ -21,8 +21,6 @@
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
-extern std::deque<DNSCACHE_DATA> DNSCacheList;
-extern std::mutex DNSCacheListLock;
 static DWORD ServiceCurrentStatus = 0;
 static BOOL ServiceRunning = false;
 SERVICE_STATUS_HANDLE ServiceStatusHandle = nullptr;

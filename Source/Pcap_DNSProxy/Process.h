@@ -24,7 +24,7 @@ extern CONFIGURATION_TABLE Parameter;
 #if defined(ENABLE_LIBSODIUM)
 	extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
 #endif
-extern std::vector<HOSTS_TABLE> *HostsListUsing;
+	extern std::vector<DIFFERNET_HOSTS_FILE_SET> *HostsFileSetUsing, *HostsFileSetModificating;
 extern std::deque<DNSCACHE_DATA> DNSCacheList;
 extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM], HostsListLock, DNSCacheListLock;
 

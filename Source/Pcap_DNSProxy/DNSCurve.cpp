@@ -311,9 +311,11 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	int Flags = 0;
 #endif
-	timeval Timeout = {0};
+	std::shared_ptr<timeval> Timeout(new timeval());
+	memset(Timeout.get(), 0, sizeof(timeval));
 	SSIZE_T SelectResult = 0, RecvLen = 0;
 	uint16_t PDULen = 0;
+
 	for (;;)
 	{
 	//Socket check
@@ -360,20 +362,20 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 
 		//Reset parameters.
 		#if defined(PLATFORM_WIN)
-			Timeout.tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
-			Timeout.tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+			Timeout->tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
+			Timeout->tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			Timeout.tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
-			Timeout.tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
+			Timeout->tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
+			Timeout->tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
 		#endif
 			FD_ZERO(ReadFDS.get());
 			FD_SET(TCPSocket, ReadFDS.get());
 
 		//Wait for system calling.
 		#if defined(PLATFORM_WIN)
-			SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
+			SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, Timeout.get());
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			SelectResult = select(TCPSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
+			SelectResult = select(TCPSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, Timeout.get());
 		#endif
 			if (SelectResult > 0)
 			{
@@ -1044,33 +1046,35 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 
 //Requesting
 	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
+	std::shared_ptr<timeval> Timeout(new timeval());
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
-	timeval Timeout = {0};
+	memset(Timeout.get(), 0, sizeof(timeval));
 	FD_ZERO(WriteFDS.get());
 	FD_SET(TCPSocket, WriteFDS.get());
 	SSIZE_T SelectResult = 0, RecvLen = 0;
 	uint16_t PDULen = 0;
+
 	for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 	{
 		Sleep(LOOP_INTERVAL_TIME);
 
 	//Reset parameters.
 	#if defined(PLATFORM_WIN)
-		Timeout.tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
-		Timeout.tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+		Timeout->tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
+		Timeout->tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		Timeout.tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
-		Timeout.tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
+		Timeout->tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
+		Timeout->tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
 	#endif
 		FD_ZERO(ReadFDS.get());
 		FD_SET(TCPSocket, ReadFDS.get());
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
-		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
+		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, Timeout.get());
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		SelectResult = select(TCPSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
+		SelectResult = select(TCPSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, Timeout.get());
 	#endif
 		if (SelectResult > 0)
 		{
@@ -1541,13 +1545,15 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 
 //Send request and receive result.
 	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
+	std::shared_ptr<timeval> Timeout(new timeval());
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
-	timeval Timeout = {0};
+	memset(Timeout.get(), 0, sizeof(timeval));
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	SOCKET MaxSocket = 0;
 #endif
 	FD_ZERO(WriteFDS.get());
+
 	for (auto SocketDataIter:TCPSocketDataList)
 	{
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -1564,11 +1570,11 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 
 	//Reset parameters.
 	#if defined(PLATFORM_WIN)
-		Timeout.tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
-		Timeout.tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+		Timeout->tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
+		Timeout->tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		Timeout.tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
-		Timeout.tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
+		Timeout->tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
+		Timeout->tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
 	#endif
 		FD_ZERO(ReadFDS.get());
 		for (auto SocketDataIter:TCPSocketDataList)
@@ -1581,9 +1587,9 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
-		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
+		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, Timeout.get());
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		SelectResult = select(MaxSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
+		SelectResult = select(MaxSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, Timeout.get());
 	#endif
 		if (SelectResult > 0)
 		{
@@ -2366,9 +2372,11 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 
 //Send request and receive result.
 	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
+	std::shared_ptr<timeval> Timeout(new timeval());
+	memset(Timeout.get(), 0, sizeof(timeval));
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
-	timeval Timeout = {0};
+	memset(Timeout.get(), 0, sizeof(timeval));
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	SOCKET MaxSocket = 0;
 #endif
@@ -2389,11 +2397,11 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 
 	//Reset parameters.
 	#if defined(PLATFORM_WIN)
-		Timeout.tv_sec = Parameter.UnreliableSocketTimeout / SECOND_TO_MILLISECOND;
-		Timeout.tv_usec = Parameter.UnreliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+		Timeout->tv_sec = Parameter.UnreliableSocketTimeout / SECOND_TO_MILLISECOND;
+		Timeout->tv_usec = Parameter.UnreliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		Timeout.tv_sec = Parameter.UnreliableSocketTimeout.tv_sec;
-		Timeout.tv_usec = Parameter.UnreliableSocketTimeout.tv_usec;
+		Timeout->tv_sec = Parameter.UnreliableSocketTimeout.tv_sec;
+		Timeout->tv_usec = Parameter.UnreliableSocketTimeout.tv_usec;
 	#endif
 		FD_ZERO(ReadFDS.get());
 		for (auto SocketDataIter:UDPSocketDataList)
@@ -2406,9 +2414,9 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
-		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
+		SelectResult = select(0, ReadFDS.get(), WriteFDS.get(), nullptr, Timeout.get());
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		SelectResult = select(MaxSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, &Timeout);
+		SelectResult = select(MaxSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, Timeout.get());
 	#endif
 		if (SelectResult > 0)
 		{

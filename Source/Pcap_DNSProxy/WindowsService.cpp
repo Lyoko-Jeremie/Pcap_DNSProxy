@@ -165,20 +165,30 @@ void WINAPI TerminateService(void)
 size_t WINAPI FlushDNSMailSlotMonitor(void)
 {
 //System security setting
-	SECURITY_DESCRIPTOR SecurityDescriptor = {0};
-	InitializeSecurityDescriptor(&SecurityDescriptor, SECURITY_DESCRIPTOR_REVISION);
-	SetSecurityDescriptorDacl(&SecurityDescriptor, true, nullptr, false);
-	SECURITY_ATTRIBUTES SecurityAttributes = {0};
-	SecurityAttributes.lpSecurityDescriptor = &SecurityDescriptor;
-	SecurityAttributes.bInheritHandle = true;
+	std::shared_ptr<SECURITY_ATTRIBUTES> SecurityAttributes(new SECURITY_ATTRIBUTES());
+	std::shared_ptr<SECURITY_DESCRIPTOR> SecurityDescriptor(new SECURITY_DESCRIPTOR());
+	std::shared_ptr<char> ACL_Buffer(new char[PACKET_MAXSIZE]());
+	memset(ACL_Buffer.get(), 0, PACKET_MAXSIZE);
+	PSID SID_Value = nullptr;
+
+	InitializeSecurityDescriptor(SecurityDescriptor.get(), SECURITY_DESCRIPTOR_REVISION);
+	InitializeAcl((PACL)ACL_Buffer.get(), PACKET_MAXSIZE, ACL_REVISION);
+	ConvertStringSidToSidW(SID_ADMINISTRATORS_GROUP, &SID_Value);
+	AddAccessAllowedAce((PACL)ACL_Buffer.get(), ACL_REVISION, GENERIC_ALL, SID_Value);
+	SetSecurityDescriptorDacl(SecurityDescriptor.get(), true, (PACL)ACL_Buffer.get(), false);
+	SecurityAttributes->lpSecurityDescriptor = SecurityDescriptor.get();
+	SecurityAttributes->bInheritHandle = true;
 
 //Create mailslot.
-	HANDLE hSlot = CreateMailslotW(MAILSLOT_NAME, PACKET_MAXSIZE - 1U, MAILSLOT_WAIT_FOREVER, &SecurityAttributes);
+	HANDLE hSlot = CreateMailslotW(MAILSLOT_NAME, PACKET_MAXSIZE - 1U, MAILSLOT_WAIT_FOREVER, SecurityAttributes.get());
 	if (hSlot == INVALID_HANDLE_VALUE)
 	{
 		PrintError(LOG_ERROR_SYSTEM, L"Create mailslot error", GetLastError(), nullptr, 0);
 		return EXIT_FAILURE;
 	}
+
+	ACL_Buffer.reset();
+	LocalFree(SID_Value);
 
 //Initialization
 	BOOL Result = false, FlushDNS = false;
@@ -224,12 +234,6 @@ size_t WINAPI FlushDNSMailSlotMonitor(void)
 			if (!FlushDNS && memcmp(lpszBuffer.get(), MAILSLOT_MESSAGE_FLUSH_DNS, wcslen(MAILSLOT_MESSAGE_FLUSH_DNS)) == 0)
 			{
 				FlushDNS = true;
-
-			//Flush all DNS cache.
-				std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
-				DNSCacheList.clear();
-				DNSCacheList.shrink_to_fit();
-				DNSCacheListMutex.unlock();
 				FlushSystemDNSCache();
 			}
 			memset(lpszBuffer.get(), 0, PACKET_MAXSIZE);

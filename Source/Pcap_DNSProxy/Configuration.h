@@ -55,14 +55,9 @@ extern std::vector<std::wstring> ConfigFileList;
 	extern std::vector<std::string> sConfigFileList;
 #endif
 extern std::vector<FILE_DATA> IPFilterFileList, HostsFileList;
-extern std::vector<ADDRESS_RANGE_TABLE> *AddressRangeUsing, *AddressRangeModificating;
-extern std::vector<HOSTS_TABLE> *HostsListUsing, *HostsListModificating;
-extern std::vector<RESULT_BLACKLIST_TABLE> *ResultBlacklistUsing, *ResultBlacklistModificating;
-extern std::vector<ADDRESS_HOSTS_TABLE> *AddressHostsListUsing, *AddressHostsListModificating;
-extern std::vector<ADDRESS_ROUTING_TABLE_IPV6> *LocalRoutingList_IPv6_Using, *LocalRoutingList_IPv6_Modificating;
-extern std::vector<ADDRESS_ROUTING_TABLE_IPV4> *LocalRoutingList_IPv4_Using, *LocalRoutingList_IPv4_Modificating;
-extern std::deque<DNSCACHE_DATA> DNSCacheList;
-extern std::mutex HostsListLock, AddressRangeLock, DNSCacheListLock, ResultBlacklistLock, LocalRoutingListLock, AddressHostsListLock;
+extern std::vector<DIFFERNET_IPFILTER_FILE_SET> *IPFilterFileSetUsing, *IPFilterFileSetModificating;
+extern std::vector<DIFFERNET_HOSTS_FILE_SET> *HostsFileSetUsing, *HostsFileSetModificating;
+extern std::mutex HostsListLock, AddressRangeLock, ResultBlacklistLock, AddressHostsListLock, LocalRoutingListLock;
 
 //Functions
 size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, const size_t Line, bool &IsLabelComments);

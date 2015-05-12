@@ -173,7 +173,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Base - 基本參數區域
   * Version - 設定檔的版本，用於正確識別設定檔：本參數與程式版本號不相關，切勿修改，預設為發佈時的最新設定檔版本
   * File Refresh Time - 檔刷新間隔時間：單位為秒，最短間隔時間為5秒，預設為 10 秒
-  * File Hash - 檔 Hash 功能，開啟此功能能降低刷新檔時的 CPU 佔用：開啟為1/關閉為0，預設為 1
   * Additional Path - 附加的資料檔案讀取路徑，附加在此處的目錄路徑下的 Hosts 檔和 IPFilter 檔會被依次讀取：預設為空
   * Hosts File Name - Hosts 檔的檔案名，附加在此處的 Hosts 檔案名將被依次讀取：預設為 Hosts.ini|Hosts.conf|Hosts|Hosts.txt|Hosts.csv|WhiteList.txt|White_List.txt
   * IPFilter File Name - IPFilter 檔的檔案名，附加在此處的 IPFilter 檔案名將被依次讀取：預設為 IPFilter.ini|IPFilter.conf|IPFilter.dat|IPFilter.csv|IPFilter|Guarding.p2p|Guarding|Routing.txt|chnrouting.txt|chnroute.txt

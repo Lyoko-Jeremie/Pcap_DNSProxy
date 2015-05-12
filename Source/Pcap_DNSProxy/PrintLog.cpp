@@ -176,30 +176,28 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 //Check whole file size.
 	std::unique_lock<std::mutex> ErrLogMutex(ErrLogLock);
 #if defined(PLATFORM_WIN)
-	HANDLE ErrorFileHandle = CreateFileW(Parameter.ErrorLogPath->c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-	if (ErrorFileHandle != INVALID_HANDLE_VALUE)
+	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
+	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+	if (GetFileAttributesExW(Parameter.ErrorLogPath->c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) != FALSE)
 	{
 		std::shared_ptr<LARGE_INTEGER> ErrorFileSize(new LARGE_INTEGER());
 		memset(ErrorFileSize.get(), 0, sizeof(LARGE_INTEGER));
-		if (GetFileSizeEx(ErrorFileHandle, ErrorFileSize.get()) == 0)
-		{
-			CloseHandle(ErrorFileHandle);
-		}
-		else {
-			CloseHandle(ErrorFileHandle);
-			if (ErrorFileSize->QuadPart > 0 && (size_t)ErrorFileSize->QuadPart >= Parameter.LogMaxSize && 
-				DeleteFileW(Parameter.ErrorLogPath->c_str()) != 0)
-					PrintError(LOG_ERROR_SYSTEM, L"Old Error Log file was deleted", 0, nullptr, 0);
-		}
+		ErrorFileSize->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
+		ErrorFileSize->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
+		if (ErrorFileSize->QuadPart > 0 && (size_t)ErrorFileSize->QuadPart >= Parameter.LogMaxSize && 
+			DeleteFileW(Parameter.ErrorLogPath->c_str()) != 0)
+				PrintError(LOG_ERROR_SYSTEM, L"Old Error Log file was deleted", 0, nullptr, 0);
 	}
+
+	File_WIN32_FILE_ATTRIBUTE_DATA.reset();
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::shared_ptr<struct stat> FileStat(new struct stat());
 	memset(FileStat.get(), 0, sizeof(struct stat));
-	if (stat(Parameter.sErrorLogPath->c_str(), FileStat.get()) == 0)
-	{
-		if (FileStat->st_size >= (off_t)Parameter.LogMaxSize && remove(Parameter.sErrorLogPath->c_str()) == 0)
+	if (stat(Parameter.sErrorLogPath->c_str(), FileStat.get()) == 0 && FileStat->st_size >= (off_t)Parameter.LogMaxSize && 
+		remove(Parameter.sErrorLogPath->c_str()) == 0)
 			PrintError(LOG_ERROR_SYSTEM, L"Old Error Log file was deleted", 0, nullptr, 0);
-	}
+
+	FileStat.reset();
 #endif
 
 //Main print
@@ -399,30 +397,28 @@ size_t __fastcall PrintRunningStatus(const wchar_t *Message)
 //Check whole file size.
 	std::unique_lock<std::mutex> RunningLogMutex(RunningLogLock);
 #if defined(PLATFORM_WIN)
-	HANDLE RunningFileHandle = CreateFileW(Parameter.RunningLogPath->c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-	if (RunningFileHandle != INVALID_HANDLE_VALUE)
+	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
+	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+	if (GetFileAttributesExW(Parameter.RunningLogPath->c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) != FALSE)
 	{
 		std::shared_ptr<LARGE_INTEGER> RunningFileSize(new LARGE_INTEGER());
 		memset(RunningFileSize.get(), 0, sizeof(LARGE_INTEGER));
-		if (GetFileSizeEx(RunningFileHandle, RunningFileSize.get()) == 0)
-		{
-			CloseHandle(RunningFileHandle);
-		}
-		else {
-			CloseHandle(RunningFileHandle);
-			if (RunningFileSize->QuadPart > 0 && (size_t)RunningFileSize->QuadPart >= Parameter.LogMaxSize && 
-				DeleteFileW(Parameter.RunningLogPath->c_str()) != 0)
-					PrintError(LOG_ERROR_SYSTEM, L"Old Running Log file was deleted", 0, nullptr, 0);
-		}
+		RunningFileSize->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
+		RunningFileSize->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
+		if (RunningFileSize->QuadPart > 0 && (size_t)RunningFileSize->QuadPart >= Parameter.LogMaxSize && 
+			DeleteFileW(Parameter.RunningLogPath->c_str()) != 0)
+				PrintError(LOG_ERROR_SYSTEM, L"Old Running Log file was deleted", 0, nullptr, 0);
 	}
+
+	File_WIN32_FILE_ATTRIBUTE_DATA.reset();
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::shared_ptr<struct stat> FileStat(new struct stat());
 	memset(FileStat.get(), 0, sizeof(struct stat));
-	if (stat(Parameter.sRunningLogPath->c_str(), FileStat.get()) == 0)
-	{
-		if (FileStat->st_size >= (off_t)Parameter.LogMaxSize && remove(Parameter.sRunningLogPath->c_str()) == 0)
+	if (stat(Parameter.sRunningLogPath->c_str(), FileStat.get()) == 0 && FileStat->st_size >= (off_t)Parameter.LogMaxSize && 
+		remove(Parameter.sRunningLogPath->c_str()) == 0)
 			PrintError(LOG_ERROR_SYSTEM, L"Old Running Log file was deleted", 0, nullptr, 0);
-	}
+
+	FileStat.reset();
 #endif
 
 //Main print
@@ -495,15 +491,7 @@ size_t __fastcall PrintParameterList(void)
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ==================== Global Parameter List ====================\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //Start.
 		//[Base] block
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Configuration file version: %.1lf\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Parameter.Version); //Version
-		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-		if (Parameter.FileRefreshTime == 0) //File Refresh Time
-			fwprintf_s(Output, L"File Refresh Time: OFF\n");
-		else 
-			fwprintf_s(Output, L"File Refresh Time: %u seconds\n", (UINT)(Parameter.FileRefreshTime / SECOND_TO_MILLISECOND));
-		if (Parameter.FileHash) //File Hash
-			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> File Hash: ON\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-		else 
-			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> File Hash: OFF\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> File Refresh Time: %u seconds\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, (UINT)(Parameter.FileRefreshTime / SECOND_TO_MILLISECOND)); //File Refresh Time
 		if (Parameter.Path != nullptr && Parameter.Path->size() > 1U)
 		{
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Additional Path: \n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);

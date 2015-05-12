@@ -228,11 +228,6 @@
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="DNSCurve.h" />
     <ClInclude Include="Initialization.h" />
-    <ClInclude Include="Keccak\brg_endian.h" />
-    <ClInclude Include="Keccak\KeccakF-1600-int-set.h" />
-    <ClInclude Include="Keccak\KeccakF-1600-interface.h" />
-    <ClInclude Include="Keccak\KeccakHash.h" />
-    <ClInclude Include="Keccak\KeccakSponge.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="Base.h" />
     <ClInclude Include="Monitor.h" />
@@ -273,9 +268,6 @@
     <ClCompile Include="Initialization.cpp" />
     <ClCompile Include="Configuration.cpp" />
     <ClCompile Include="DNSCurve.cpp" />
-    <ClCompile Include="Keccak\Keccak-compact64.cpp" />
-    <ClCompile Include="Keccak\KeccakHash.cpp" />
-    <ClCompile Include="Keccak\KeccakSponge.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Monitor.cpp" />
     <ClCompile Include="PrintLog.cpp" />

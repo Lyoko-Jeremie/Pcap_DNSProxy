@@ -69,10 +69,6 @@
 	else {
 		return EXIT_FAILURE;
 	}
-
-//Set MailSlot Monitor.
-	std::thread FlushDNSMailSlotMonitorThread(FlushDNSMailSlotMonitor);
-	FlushDNSMailSlotMonitorThread.detach();
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Path initialization
 	std::shared_ptr<char> FileName(new char[PATH_MAX + 1U]());
@@ -101,10 +97,6 @@
 		FlushDNSFIFOSender();
 		return EXIT_SUCCESS;
 	}
-
-//Set FIFO Monitor.
-	std::thread FlushDNSFIFOMonitorThread(FlushDNSFIFOMonitor);
-	FlushDNSFIFOMonitorThread.detach();
 #endif
 
 //Read configuration file and WinPcap or LibPcap initialization.
@@ -147,22 +139,16 @@
 		PrintError(LOG_ERROR_SYSTEM, L"Service start error", GetLastError(), nullptr, 0);
 		PrintError(LOG_ERROR_SYSTEM, L"Pcap_DNSProxy will continue to run in console mode", 0, nullptr, 0);
 
-	//Handle the system signal.
+	//Handle the system signal and start all monitors.
 		SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, TRUE);
-
-	//Switch to run as a program.
 		MonitorInit();
-
-	//Exit.
-		WSACleanup();
-		return EXIT_SUCCESS;
 	}
 
-	WSACleanup();
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	MonitorInit();
 #endif
 
+	WSACleanup();
 	return EXIT_SUCCESS;
 }
 
@@ -214,8 +200,9 @@
 
 #if defined(PLATFORM_WIN)
 //Winsock initialization
-	WSAData WSAInitialization = {0};
-	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), &WSAInitialization) != 0 || LOBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_HIGH)
+	std::shared_ptr<WSAData> WSAInitialization(new WSAData());
+	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), WSAInitialization.get()) != 0 || 
+		LOBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_HIGH)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"Winsock initialization error", WSAGetLastError(), nullptr, 0);
 

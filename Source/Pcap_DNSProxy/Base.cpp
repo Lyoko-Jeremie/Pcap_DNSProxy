@@ -71,9 +71,10 @@ size_t __fastcall CaseConvert(const bool IsLowerUpper, char *Buffer, const size_
 //Linux and Mac OS X compatible with GetTickCount64
 	uint64_t GetTickCount64(void)
 	{
-		timeval CurrentTime = {0};
-		gettimeofday(&CurrentTime, nullptr);
-		return (uint64_t)CurrentTime.tv_sec * SECOND_TO_MILLISECOND + (uint64_t)CurrentTime.tv_usec / MICROSECOND_TO_MILLISECOND;
+		std::shared_ptr<timeval> CurrentTime(new timeval());
+		memset(CurrentTime.get(), 0, sizeof(timeval));
+		gettimeofday(CurrentTime.get(), nullptr);
+		return (uint64_t)CurrentTime->tv_sec * SECOND_TO_MILLISECOND + (uint64_t)CurrentTime->tv_usec / MICROSECOND_TO_MILLISECOND;
 	}
 #endif
 

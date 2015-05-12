@@ -24,12 +24,10 @@ extern CONFIGURATION_TABLE Parameter;
 #if defined(ENABLE_LIBSODIUM)
 	extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
 #endif
-extern std::vector<ADDRESS_RANGE_TABLE> *AddressRangeUsing;
-extern std::vector<RESULT_BLACKLIST_TABLE> *ResultBlacklistUsing;
-extern std::vector<ADDRESS_ROUTING_TABLE_IPV6> *LocalRoutingList_IPv6_Using;
-extern std::vector<ADDRESS_ROUTING_TABLE_IPV4> *LocalRoutingList_IPv4_Using;
-extern std::vector<ADDRESS_HOSTS_TABLE> *AddressHostsListUsing;
-extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM], AddressRangeLock, LocalRoutingListLock, ResultBlacklistLock, AddressHostsListLock;
+	extern std::vector<DIFFERNET_IPFILTER_FILE_SET> *IPFilterFileSetUsing, *IPFilterFileSetModificating;
+extern std::vector<DIFFERNET_HOSTS_FILE_SET> *HostsFileSetUsing, *HostsFileSetModificating;
+extern std::deque<DNSCACHE_DATA> DNSCacheList;
+extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM], DNSCacheListLock, HostsListLock, AddressRangeLock, ResultBlacklistLock, AddressHostsListLock, LocalRoutingListLock;
 
 //Functions
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))

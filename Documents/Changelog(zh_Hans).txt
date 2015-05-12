@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy v0.4 Beta 18(Windows)/v0.4 Beta 4(Linux)/v0.4 Beta 2(Mac) 更新日志(2015-05-10)：
+﻿Pcap_DNSProxy v0.4 Beta 18(Windows)/v0.4 Beta 4(Linux)/v0.4 Beta 2(Mac) 更新日志(2015-05-12)：
 
 * 添加对 Apple IEEE 1394/FireWire 的支持
 * 添加对 Streamlined/精简 格式 DNSCurve/DNSCrypt 协议的支持
@@ -45,7 +45,6 @@
   * 支持检查文件大小的功能
   * 支持自定义文件最大占用空间的设定
   * 支持自定义 Hosts 和 IPFilter 数据库文件名称的功能
-  * 为 Hosts 文件和 IPFilter 数据库监视模块添加 Keccak/SHA-3_512(FIPS 202 Draft, April 2014) 散列算法特征检测，在数据量较大时可降低监视时的 CPU 资源占用
   * 为数据库添加排序的功能，避免因为错误的顺序造成问题
   * 在开启散列算法特征检测文件改变以及开启 DNS 缓存的情况下，自动更新 Hosts 列表和 IPFilter 数据库时将自动清空程序的 DNS 缓存
   * 在开启散列算法特征检测文件改变的情况下，自动更新 Hosts 列表时将自动清空系统 DNS 缓存

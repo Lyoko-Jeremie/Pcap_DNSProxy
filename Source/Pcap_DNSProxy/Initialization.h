@@ -31,12 +31,8 @@ std::vector<std::wstring> ConfigFileList;
 	std::vector<std::string> sConfigFileList;
 #endif
 std::vector<FILE_DATA> IPFilterFileList, HostsFileList;
-std::vector<ADDRESS_RANGE_TABLE> AddressRangeList[2U], *AddressRangeUsing = &AddressRangeList[0], *AddressRangeModificating = &AddressRangeList[1U];
-std::vector<HOSTS_TABLE> HostsList[2U], *HostsListUsing = &HostsList[0], *HostsListModificating = &HostsList[1U];
-std::vector<RESULT_BLACKLIST_TABLE> ResultBlacklistList[2U], *ResultBlacklistUsing = &ResultBlacklistList[0], *ResultBlacklistModificating = &ResultBlacklistList[1U];
-std::vector<ADDRESS_HOSTS_TABLE> AddressHostsList[2U], *AddressHostsListUsing = &AddressHostsList[0], *AddressHostsListModificating = &AddressHostsList[1U];
-std::vector<ADDRESS_ROUTING_TABLE_IPV6> LocalRoutingList_IPv6[2U], *LocalRoutingList_IPv6_Using = &LocalRoutingList_IPv6[0], *LocalRoutingList_IPv6_Modificating = &LocalRoutingList_IPv6[1U];
-std::vector<ADDRESS_ROUTING_TABLE_IPV4> LocalRoutingList_IPv4[2U], *LocalRoutingList_IPv4_Using = &LocalRoutingList_IPv4[0], *LocalRoutingList_IPv4_Modificating = &LocalRoutingList_IPv4[1U];
+std::vector<DIFFERNET_IPFILTER_FILE_SET> IPFilterFileSet[2U], *IPFilterFileSetUsing = &IPFilterFileSet[0], *IPFilterFileSetModificating = &IPFilterFileSet[1U];
+std::vector<DIFFERNET_HOSTS_FILE_SET> HostsFileSet[2U], *HostsFileSetUsing = &HostsFileSet[0], *HostsFileSetModificating = &HostsFileSet[1U];
 std::deque<PORT_TABLE> PortList;
 std::deque<DNSCACHE_DATA> DNSCacheList;
-std::mutex ErrLogLock, RunningLogLock, CaptureLock, PortListLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], HostsListLock, DNSCacheListLock, AddressRangeLock, ResultBlacklistLock, AddressHostsListLock, LocalRoutingListLock;
+std::mutex ErrLogLock, RunningLogLock, CaptureLock, PortListLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], DNSCacheListLock, HostsListLock, AddressRangeLock, ResultBlacklistLock, AddressHostsListLock, LocalRoutingListLock;

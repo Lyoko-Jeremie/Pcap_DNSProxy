@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Keccak">
-      <UniqueIdentifier>{b0becb4a-4e54-4b15-9a62-07dc752e3b15}</UniqueIdentifier>
-    </Filter>
     <Filter Include="WinPcap">
       <UniqueIdentifier>{702cda2a-056e-4587-95a6-b19fa0846a4a}</UniqueIdentifier>
     </Filter>
@@ -30,21 +27,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Keccak\brg_endian.h">
-      <Filter>Keccak</Filter>
-    </ClInclude>
-    <ClInclude Include="Keccak\KeccakF-1600-interface.h">
-      <Filter>Keccak</Filter>
-    </ClInclude>
-    <ClInclude Include="Keccak\KeccakF-1600-int-set.h">
-      <Filter>Keccak</Filter>
-    </ClInclude>
-    <ClInclude Include="Keccak\KeccakHash.h">
-      <Filter>Keccak</Filter>
-    </ClInclude>
-    <ClInclude Include="Keccak\KeccakSponge.h">
-      <Filter>Keccak</Filter>
-    </ClInclude>
     <ClInclude Include="WinPcap\bittypes.h">
       <Filter>WinPcap</Filter>
     </ClInclude>
@@ -336,15 +318,6 @@
     </ClCompile>
     <ClCompile Include="Protocol.cpp">
       <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="Keccak\Keccak-compact64.cpp">
-      <Filter>Keccak</Filter>
-    </ClCompile>
-    <ClCompile Include="Keccak\KeccakHash.cpp">
-      <Filter>Keccak</Filter>
-    </ClCompile>
-    <ClCompile Include="Keccak\KeccakSponge.cpp">
-      <Filter>Keccak</Filter>
     </ClCompile>
     <ClCompile Include="Initialization.cpp">
       <Filter>源文件</Filter>

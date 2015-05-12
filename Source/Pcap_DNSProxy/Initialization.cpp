@@ -115,6 +115,7 @@ ConfigurationTable::ConfigurationTable(void)
 	RamdomEngine->seed(RamdomDevice());
 
 //Default settings
+	FileRefreshTime = DEFAULT_FILEREFRESH_TIME * SECOND_TO_MILLISECOND;
 	LogMaxSize = DEFAULT_LOG_MAXSIZE;
 	GatewayAvailable_IPv4 = true;
 #if defined(PLATFORM_WIN)
@@ -125,6 +126,7 @@ ConfigurationTable::ConfigurationTable(void)
 	UnreliableSocketTimeout.tv_sec = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
 #endif
 #if defined(PLATFORM_MACX)
+	Console = true;
 	ICMPID = htons(*(uint16_t *)pthread_self());
 #else
 	ICMPID = htons((uint16_t)GetCurrentProcessId()); //Default ICMP ID is current process ID.
@@ -202,7 +204,6 @@ AddressRangeTable::AddressRangeTable(void)
 //HostsTable class constructor
 HostsTable::HostsTable(void)
 {
-	FileIndex = 0;
 	Type = 0;
 	Length = 0;
 	TypeOperation = false;
@@ -217,35 +218,17 @@ AlternateSwapTable::AlternateSwapTable(void)
 	return;
 }
 
-//Blacklist of results class constructor
-ResultBlacklistTable::ResultBlacklistTable(void)
-{
-	FileIndex = 0;
-	return;
-}
-
-//Address Hosts class constructor
-AddressHostsTable::AddressHostsTable(void)
-{
-	FileIndex = 0;
-	return;
-}
-
 //AddressRoutingTable_IPv6 class constructor
 AddressRoutingTable_IPv6::AddressRoutingTable_IPv6(void)
 {
-	FileIndex = 0;
 	Prefix = 0;
-
 	return;
 }
 
 //AddressRoutingTable_IPv4 class constructor
 AddressRoutingTable_IPv4::AddressRoutingTable_IPv4(void)
 {
-	FileIndex = 0;
 	Prefix = 0;
-
 	return;
 }
 
@@ -258,6 +241,20 @@ PortTable::PortTable(void)
 	TransportLayer = 0;
 	ClearPortTime = 0;
 
+	return;
+}
+
+//Differnet IPFilter File Set class constructor
+DiffernetIPFilterFileSet::DiffernetIPFilterFileSet(void)
+{
+	FileIndex = 0;
+	return;
+}
+
+//Differnet Hosts File Set class constructor
+DiffernetHostsFileSet::DiffernetHostsFileSet(void)
+{
+	FileIndex = 0;
 	return;
 }
 

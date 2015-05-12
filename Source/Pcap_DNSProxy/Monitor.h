@@ -25,8 +25,7 @@ extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 #if defined(ENABLE_LIBSODIUM)
 	extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
 #endif
-extern std::deque<DNSCACHE_DATA> DNSCacheList;
-extern std::mutex RunningLogLock, DNSCacheListLock;
+extern std::mutex RunningLogLock;
 
 //Functions
 size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData);

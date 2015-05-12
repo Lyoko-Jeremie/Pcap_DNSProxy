@@ -577,16 +577,9 @@ size_t __fastcall GetNetworkingInformation(void)
 			InterfaceAddressList = nullptr;
 			PrintError(LOG_ERROR_NETWORK, L"Get localhost address error", errno, nullptr, 0);
 	#endif
-		//Auto-refresh
-			if (Parameter.FileRefreshTime > 0)
-			{
-				Sleep(Parameter.FileRefreshTime);
-				continue;
-			}
-			else {
-				Sleep(LOOP_INTERVAL_TIME * SECOND_TO_MILLISECOND);
-				continue;
-			}
+
+			Sleep(Parameter.FileRefreshTime);
+			continue;
 		}
 		else {
 			std::string DNSPTRString;
@@ -769,16 +762,8 @@ size_t __fastcall GetNetworkingInformation(void)
 		LocalAddressList = GetLocalAddressList(AF_INET);
 		if (LocalAddressList == nullptr)
 		{
-		//Auto-refresh
-			if (Parameter.FileRefreshTime > 0)
-			{
-				Sleep(Parameter.FileRefreshTime);
-				continue;
-			}
-			else {
-				Sleep(LOOP_INTERVAL_TIME * SECOND_TO_MILLISECOND);
-				continue;
-			}
+			Sleep(Parameter.FileRefreshTime);
+			continue;
 		}
 		else {
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -947,10 +932,7 @@ size_t __fastcall GetNetworkingInformation(void)
 		}
 
 	//Auto-refresh
-		if (Parameter.FileRefreshTime > 0)
-			Sleep(Parameter.FileRefreshTime);
-		else 
-			Sleep(LOOP_INTERVAL_TIME * SECOND_TO_MILLISECOND);
+		Sleep(Parameter.FileRefreshTime);
 	}
 
 	PrintError(LOG_ERROR_SYSTEM, L"Get Local Address Information module Monitor terminated", 0, nullptr, 0);
@@ -1373,18 +1355,21 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, char *D
 
 		//Main check
 			std::unique_lock<std::mutex> ResultBlacklistMutex(ResultBlacklistLock);
-			for (auto ResultBlacklistTableIter:*ResultBlacklistUsing)
+			for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
 			{
-				if (ResultBlacklistTableIter.Addresses.front().Begin.ss_family == AF_INET6 && 
-					(ResultBlacklistTableIter.PatternString.empty() || std::regex_match(Domain, ResultBlacklistTableIter.Pattern)))
+				for (auto ResultBlacklistTableIter:IPFilterFileSetIter.ResultBlacklist)
 				{
-					for (auto AddressRangeTableIter:ResultBlacklistTableIter.Addresses)
+					if (ResultBlacklistTableIter.Addresses.front().Begin.ss_family == AF_INET6 && 
+						(ResultBlacklistTableIter.PatternString.empty() || std::regex_match(Domain, ResultBlacklistTableIter.Pattern)))
 					{
-						if (AddressRangeTableIter.End.ss_family == AF_INET6 && 
-							CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL && 
-							CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr, AF_INET6) <= ADDRESS_COMPARE_EQUAL || 
-							memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == 0)
-								return true;
+						for (auto AddressRangeTableIter:ResultBlacklistTableIter.Addresses)
+						{
+							if (AddressRangeTableIter.End.ss_family == AF_INET6 && 
+								CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL && 
+								CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr, AF_INET6) <= ADDRESS_COMPARE_EQUAL || 
+								memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == 0)
+									return true;
+						}
 					}
 				}
 			}
@@ -1392,28 +1377,31 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, char *D
 
 	//Address Hosts check
 		std::unique_lock<std::mutex> AddressHostsListMutex(AddressHostsListLock);
-		for (auto AddressHostsTableIter:*AddressHostsListUsing)
+		for (auto HostsFileSetIter:*HostsFileSetUsing)
 		{
-			if (AddressHostsTableIter.TargetAddress.front().ss_family == AF_INET6)
+			for (auto AddressHostsTableIter:HostsFileSetIter.AddressHostsList)
 			{
-				for (auto AddressRangeTableIter:AddressHostsTableIter.SourceAddress)
+				if (AddressHostsTableIter.TargetAddress.front().ss_family == AF_INET6)
 				{
-					if (AddressRangeTableIter.Begin.ss_family == AF_INET6 && AddressRangeTableIter.End.ss_family == AF_INET6 && 
-						CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL && 
-						CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr, AF_INET6) <= ADDRESS_COMPARE_EQUAL || 
-						memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == 0)
+					for (auto AddressRangeTableIter:AddressHostsTableIter.SourceAddress)
 					{
-						if (AddressHostsTableIter.TargetAddress.size() > 1U)
+						if (AddressRangeTableIter.Begin.ss_family == AF_INET6 && AddressRangeTableIter.End.ss_family == AF_INET6 && 
+							CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL && 
+							CompareAddresses(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr, AF_INET6) <= ADDRESS_COMPARE_EQUAL || 
+							memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == 0)
 						{
-						//Get a ramdom one.
-							std::uniform_int_distribution<int> RamdomDistribution(0, (int)AddressHostsTableIter.TargetAddress.size() - 1U);
-							*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.TargetAddress.at(RamdomDistribution(*Parameter.RamdomEngine)))->sin6_addr;
-						}
-						else {
-							*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.TargetAddress.front())->sin6_addr;
-						}
+							if (AddressHostsTableIter.TargetAddress.size() > 1U)
+							{
+							//Get a ramdom one.
+								std::uniform_int_distribution<int> RamdomDistribution(0, (int)AddressHostsTableIter.TargetAddress.size() - 1U);
+								*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.TargetAddress.at(RamdomDistribution(*Parameter.RamdomEngine)))->sin6_addr;
+							}
+							else {
+								*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.TargetAddress.front())->sin6_addr;
+							}
 
-						goto StopLoop;
+							goto StopLoop;
+						}
 					}
 				}
 			}
@@ -1534,18 +1522,21 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, char *D
 
 		//Main check
 			std::unique_lock<std::mutex> ResultBlacklistMutex(ResultBlacklistLock);
-			for (auto ResultBlacklistTableIter:*ResultBlacklistUsing)
+			for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
 			{
-				if (ResultBlacklistTableIter.Addresses.front().Begin.ss_family == AF_INET && 
-					(ResultBlacklistTableIter.PatternString.empty() || std::regex_match(Domain, ResultBlacklistTableIter.Pattern)))
+				for (auto ResultBlacklistTableIter:IPFilterFileSetIter.ResultBlacklist)
 				{
-					for (auto AddressRangeTableIter:ResultBlacklistTableIter.Addresses)
+					if (ResultBlacklistTableIter.Addresses.front().Begin.ss_family == AF_INET && 
+						(ResultBlacklistTableIter.PatternString.empty() || std::regex_match(Domain, ResultBlacklistTableIter.Pattern)))
 					{
-						if (AddressRangeTableIter.End.ss_family == AF_INET && 
-							CompareAddresses(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr, AF_INET) >= ADDRESS_COMPARE_EQUAL && 
-							CompareAddresses(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr, AF_INET) <= ADDRESS_COMPARE_EQUAL || 
-							((in_addr *)Addr)->s_addr == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_addr)
-								return true;
+						for (auto AddressRangeTableIter:ResultBlacklistTableIter.Addresses)
+						{
+							if (AddressRangeTableIter.End.ss_family == AF_INET && 
+								CompareAddresses(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr, AF_INET) >= ADDRESS_COMPARE_EQUAL && 
+								CompareAddresses(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr, AF_INET) <= ADDRESS_COMPARE_EQUAL || 
+								((in_addr *)Addr)->s_addr == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_addr)
+									return true;
+						}
 					}
 				}
 			}
@@ -1553,28 +1544,31 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, char *D
 
 	//Address Hosts check
 		std::unique_lock<std::mutex> AddressHostsListMutex(AddressHostsListLock);
-		for (auto AddressHostsTableIter:*AddressHostsListUsing)
+		for (auto HostsFileSetIter:*HostsFileSetUsing)
 		{
-			if (AddressHostsTableIter.TargetAddress.front().ss_family == AF_INET)
+			for (auto AddressHostsTableIter:HostsFileSetIter.AddressHostsList)
 			{
-				for (auto AddressRangeTableIter:AddressHostsTableIter.SourceAddress)
+				if (AddressHostsTableIter.TargetAddress.front().ss_family == AF_INET)
 				{
-					if (AddressRangeTableIter.Begin.ss_family == AF_INET && AddressRangeTableIter.End.ss_family == AF_INET && 
-						CompareAddresses(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr, AF_INET) >= ADDRESS_COMPARE_EQUAL && 
-						CompareAddresses(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr, AF_INET) <= ADDRESS_COMPARE_EQUAL || 
-						((in_addr *)Addr)->s_addr == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_addr)
+					for (auto AddressRangeTableIter:AddressHostsTableIter.SourceAddress)
 					{
-						if (AddressHostsTableIter.TargetAddress.size() > 1U)
+						if (AddressRangeTableIter.Begin.ss_family == AF_INET && AddressRangeTableIter.End.ss_family == AF_INET && 
+							CompareAddresses(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr, AF_INET) >= ADDRESS_COMPARE_EQUAL && 
+							CompareAddresses(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr, AF_INET) <= ADDRESS_COMPARE_EQUAL || 
+							((in_addr *)Addr)->s_addr == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_addr)
 						{
-						//Get a ramdom one.
-							std::uniform_int_distribution<int> RamdomDistribution(0, (int)AddressHostsTableIter.TargetAddress.size() - 1U);
-							*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.TargetAddress.at(RamdomDistribution(*Parameter.RamdomEngine)))->sin_addr;
-						}
-						else {
-							*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.TargetAddress.front())->sin_addr;
-						}
+							if (AddressHostsTableIter.TargetAddress.size() > 1U)
+							{
+							//Get a ramdom one.
+								std::uniform_int_distribution<int> RamdomDistribution(0, (int)AddressHostsTableIter.TargetAddress.size() - 1U);
+								*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.TargetAddress.at(RamdomDistribution(*Parameter.RamdomEngine)))->sin_addr;
+							}
+							else {
+								*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.TargetAddress.front())->sin_addr;
+							}
 
-						break;
+							break;
+						}
 					}
 				}
 			}
@@ -1596,26 +1590,32 @@ bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol)
 	{
 		uint64_t *AddrFront = (uint64_t *)Addr, *AddrBack = (uint64_t *)((PUCHAR)Addr + 8U);
 		std::map<uint64_t, std::set<uint64_t>>::iterator AddrMapIter;
-		for (auto LocalRoutingTableIter:*LocalRoutingList_IPv6_Using)
+		for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
 		{
-			if (LocalRoutingTableIter.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
+			for (auto LocalRoutingTableIter:IPFilterFileSetIter.LocalRoutingList_IPv6)
 			{
-				if (LocalRoutingTableIter.AddressRoutingList_IPv6.count(ntoh64(*AddrFront) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - LocalRoutingTableIter.Prefix))))
-					return true;
-			}
-			else {
-				AddrMapIter = LocalRoutingTableIter.AddressRoutingList_IPv6.find(ntoh64(*AddrFront));
-				if (AddrMapIter != LocalRoutingTableIter.AddressRoutingList_IPv6.end() && 
-					AddrMapIter->second.count(ntoh64(*AddrBack) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - LocalRoutingTableIter.Prefix))))
+				if (LocalRoutingTableIter.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
+				{
+					if (LocalRoutingTableIter.AddressRoutingList_IPv6.count(ntoh64(*AddrFront) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - LocalRoutingTableIter.Prefix))))
 						return true;
+				}
+				else {
+					AddrMapIter = LocalRoutingTableIter.AddressRoutingList_IPv6.find(ntoh64(*AddrFront));
+					if (AddrMapIter != LocalRoutingTableIter.AddressRoutingList_IPv6.end() && 
+						AddrMapIter->second.count(ntoh64(*AddrBack) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - LocalRoutingTableIter.Prefix))))
+							return true;
+				}
 			}
 		}
 	}
 	else { //IPv4
-		for (auto LocalRoutingTableIter:*LocalRoutingList_IPv4_Using)
+		for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
 		{
-			if (LocalRoutingTableIter.AddressRoutingList_IPv4.count(ntohl(((in_addr *)Addr)->s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - LocalRoutingTableIter.Prefix))))
-				return true;
+			for (auto LocalRoutingTableIter:IPFilterFileSetIter.LocalRoutingList_IPv4)
+			{
+				if (LocalRoutingTableIter.AddressRoutingList_IPv4.count(ntohl(((in_addr *)Addr)->s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - LocalRoutingTableIter.Prefix))))
+					return true;
+			}
 		}
 	}
 
@@ -1632,56 +1632,62 @@ bool __fastcall CustomModeFilter(const void *OriginalAddr, const uint16_t Protoc
 	//Permit
 		if (Parameter.IPFilterType)
 		{
-			for (auto AddressRangeTableIter:*AddressRangeUsing)
+			for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
 			{
-			//Check Protocol and Level.
-				if (AddressRangeTableIter.Begin.ss_family != AF_INET6 || Parameter.IPFilterLevel > 0 && AddressRangeTableIter.Level < Parameter.IPFilterLevel)
-					continue;
-
-			//Check address.
-				for (size_t Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);++Index)
+				for (auto AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
 				{
-					if (ntohs(Addr->s6_words[Index]) > ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index]) && ntohs(Addr->s6_words[Index]) < ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index]))
+				//Check Protocol and Level.
+					if (AddressRangeTableIter.Begin.ss_family != AF_INET6 || Parameter.IPFilterLevel > 0 && AddressRangeTableIter.Level < Parameter.IPFilterLevel)
+						continue;
+
+				//Check address.
+					for (size_t Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);++Index)
 					{
-						return true;
-					}
-					else if (Addr->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index] || Addr->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index])
-					{
-						if (Index == sizeof(in6_addr) / sizeof(uint16_t) - 1U)
+						if (ntohs(Addr->s6_words[Index]) > ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index]) && ntohs(Addr->s6_words[Index]) < ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index]))
+						{
 							return true;
-						else 
-							continue;
-					}
-					else {
-						return false;
+						}
+						else if (Addr->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index] || Addr->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index])
+						{
+							if (Index == sizeof(in6_addr) / sizeof(uint16_t) - 1U)
+								return true;
+							else 
+								continue;
+						}
+						else {
+							return false;
+						}
 					}
 				}
 			}
 		}
 	//Deny
 		else {
-			for (auto AddressRangeTableIter:*AddressRangeUsing)
+			for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
 			{
-			//Check Protocol and Level.
-				if (AddressRangeTableIter.Begin.ss_family != AF_INET6 || Parameter.IPFilterLevel > 0 && AddressRangeTableIter.Level < Parameter.IPFilterLevel)
-					continue;
-
-			//Check address.
-				for (size_t Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);++Index)
+				for (auto AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
 				{
-					if (ntohs(Addr->s6_words[Index]) > ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index]) && ntohs(Addr->s6_words[Index]) < ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index]))
+				//Check Protocol and Level.
+					if (AddressRangeTableIter.Begin.ss_family != AF_INET6 || Parameter.IPFilterLevel > 0 && AddressRangeTableIter.Level < Parameter.IPFilterLevel)
+						continue;
+
+				//Check address.
+					for (size_t Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);++Index)
 					{
-						return false;
-					}
-					else if (Addr->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index] || Addr->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index])
-					{
-						if (Index == sizeof(in6_addr) / sizeof(uint16_t) - 1U)
+						if (ntohs(Addr->s6_words[Index]) > ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index]) && ntohs(Addr->s6_words[Index]) < ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index]))
+						{
 							return false;
-						else 
-							continue;
-					}
-					else {
-						return true;
+						}
+						else if (Addr->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index] || Addr->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index])
+						{
+							if (Index == sizeof(in6_addr) / sizeof(uint16_t) - 1U)
+								return false;
+							else 
+								continue;
+						}
+						else {
+							return true;
+						}
 					}
 				}
 			}
@@ -1692,34 +1698,40 @@ bool __fastcall CustomModeFilter(const void *OriginalAddr, const uint16_t Protoc
 	//Permit
 		if (Parameter.IPFilterType)
 		{
-			for (auto AddressRangeTableIter:*AddressRangeUsing)
+			for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
 			{
-			//Check Protocol and Level.
-				if (AddressRangeTableIter.Begin.ss_family != AF_INET || Parameter.IPFilterLevel > 0 && AddressRangeTableIter.Level < Parameter.IPFilterLevel)
-					continue;
+				for (auto AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
+				{
+				//Check Protocol and Level.
+					if (AddressRangeTableIter.Begin.ss_family != AF_INET || Parameter.IPFilterLevel > 0 && AddressRangeTableIter.Level < Parameter.IPFilterLevel)
+						continue;
 
-			//Check address.
-				if (Addr->s_net > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net && Addr->s_net < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
-				{
-					return true;
-				}
-				else if (Addr->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net || Addr->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
-				{
-					if (Addr->s_host > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host && Addr->s_host < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
+				//Check address.
+					if (Addr->s_net > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net && Addr->s_net < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
 					{
 						return true;
 					}
-					else if (Addr->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host || Addr->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
+					else if (Addr->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net || Addr->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
 					{
-						if (Addr->s_lh > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh && Addr->s_lh < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
+						if (Addr->s_host > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host && Addr->s_host < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
 						{
 							return true;
 						}
-						else if (Addr->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh || Addr->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
+						else if (Addr->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host || Addr->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
 						{
-							if (Addr->s_impno >= ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_impno && Addr->s_impno <= ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_impno)
+							if (Addr->s_lh > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh && Addr->s_lh < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
 							{
 								return true;
+							}
+							else if (Addr->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh || Addr->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
+							{
+								if (Addr->s_impno >= ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_impno && Addr->s_impno <= ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_impno)
+								{
+									return true;
+								}
+								else {
+									return false;
+								}
 							}
 							else {
 								return false;
@@ -1732,42 +1744,45 @@ bool __fastcall CustomModeFilter(const void *OriginalAddr, const uint16_t Protoc
 					else {
 						return false;
 					}
-				}
-				else {
-					return false;
 				}
 			}
 		}
 	//Deny
 		else {
-			for (auto AddressRangeTableIter:*AddressRangeUsing)
+			for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
 			{
-			//Check Protocol and Level.
-				if (AddressRangeTableIter.Begin.ss_family != AF_INET || Parameter.IPFilterLevel > 0 && AddressRangeTableIter.Level < Parameter.IPFilterLevel)
-					continue;
+				for (auto AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
+				{
+				//Check Protocol and Level.
+					if (AddressRangeTableIter.Begin.ss_family != AF_INET || Parameter.IPFilterLevel > 0 && AddressRangeTableIter.Level < Parameter.IPFilterLevel)
+						continue;
 
-			//Check address.
-				if (Addr->s_net > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net && Addr->s_net < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
-				{
-					return false;
-				}
-				else if (Addr->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net || Addr->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
-				{
-					if (Addr->s_host > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host && Addr->s_host < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
+				//Check address.
+					if (Addr->s_net > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net && Addr->s_net < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
 					{
 						return false;
 					}
-					else if (Addr->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host || Addr->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
+					else if (Addr->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net || Addr->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
 					{
-						if (Addr->s_lh > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh && Addr->s_lh < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
+						if (Addr->s_host > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host && Addr->s_host < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
 						{
 							return false;
 						}
-						else if (Addr->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh || Addr->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
+						else if (Addr->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host || Addr->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
 						{
-							if (Addr->s_impno >= ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_impno && Addr->s_impno <= ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_impno)
+							if (Addr->s_lh > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh && Addr->s_lh < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
 							{
 								return false;
+							}
+							else if (Addr->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh || Addr->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
+							{
+								if (Addr->s_impno >= ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_impno && Addr->s_impno <= ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_impno)
+								{
+									return false;
+								}
+								else {
+									return true;
+								}
 							}
 							else {
 								return true;
@@ -1780,9 +1795,6 @@ bool __fastcall CustomModeFilter(const void *OriginalAddr, const uint16_t Protoc
 					else {
 						return true;
 					}
-				}
-				else {
-					return true;
 				}
 			}
 		}
@@ -1958,25 +1970,15 @@ size_t __fastcall DNSQueryToChar(const char *TName, PSTR FName)
 }
 
 //Flush DNS cache
-/* Old version(2015-04-20)
-#if defined(PLATFORM_WIN)
-	BOOL WINAPI FlushDNSResolverCache(void)
-	{
-		BOOL(WINAPI *DnsFlushResolverCache)(void);
-		HMODULE HM_DNSAPI = LoadLibraryW(L"dnsapi.dll");
-		if (HM_DNSAPI != nullptr)
-		{
-			*(FARPROC *)&DnsFlushResolverCache = GetProcAddress(HM_DNSAPI, "DnsFlushResolverCache");
-			if (DnsFlushResolverCache)
-				return DnsFlushResolverCache();
-		}
-
-		return FALSE;
-	}
-#endif
-*/
 void __fastcall FlushSystemDNSCache(void)
 {
+//Flush DNS cache in program.
+	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
+	DNSCacheList.clear();
+	DNSCacheList.shrink_to_fit();
+	DNSCacheListMutex.unlock();
+
+//Flush DNS cache in system.
 #if defined(PLATFORM_WIN)
 	system("ipconfig /flushdns");
 #elif defined(PLATFORM_LINUX)

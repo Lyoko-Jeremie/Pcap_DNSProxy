@@ -151,7 +151,11 @@ goto %UserChoice%
 :: Author: Chengr28
 :CASE_6
 	echo.
-	Pcap_DNSProxy.exe --flushdns
+	if %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (
+		Pcap_DNSProxy_x86.exe --flushdns
+	) else (
+		Pcap_DNSProxy.exe --flushdns
+	)
 	echo.
 	pause
 	exit
