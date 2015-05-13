@@ -182,8 +182,6 @@
 	#endif
 #else
 #include <cstring>                 //String support
-//#include <cstdint>                 //A set of integral type aliases with specific width requirements.
-//#include <exception>               //Exception
 #include <memory>                  //Manage dynamic memory support
 
 #if defined(PLATFORM_WIN)

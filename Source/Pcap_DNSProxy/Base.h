@@ -177,8 +177,8 @@
 
 //C Standard Library and C++ Standard Template Library/STL Headers
 #include <cstdlib>                 //C Standard Library
-#include <cstdio>                  //File Input/Output
-#include <ctime>                   //Date&Time
+#include <cstdio>                  //File Input/Output support
+#include <ctime>                   //Date and Time support
 #include <string>                  //String support
 #include <vector>                  //Vector support
 #include <deque>                   //Double-ended queue support
@@ -212,23 +212,24 @@
 //	#include <windns.h>                //Windows DNS definitions and DNS API
 	#include <sddl.h>                  //Support and conversions routines necessary for SDDL
 //	#include <windows.h>               //Master include file
-//Minimum supported system of Windows Version Helpers is Windows Vista.
-//	#if defined(PLATFORM_WIN64)
-//		#include <VersionHelpers.h>        //Version Helper functions
-//	#endif
-
+/* Minimum supported system of Windows Version Helpers is Windows Vista.
+	#if defined(PLATFORM_WIN64)
+		#include <VersionHelpers.h>        //Version Helper functions
+	#endif
+*/
 //Static libraries
 	#pragma comment(lib, "ws2_32.lib")            //Winsock Library, WinSock 2.0+
 	#pragma comment(lib, "iphlpapi.lib")          //IP Helper Library, IP Stack for MIB-II and related functionality
+	//WinPcap and LibSodium libraries
 	#if defined(PLATFORM_WIN64)
-		#pragma comment(lib, "WinPcap\\WPCAP_x64.lib") //WinPcap library(x64)
+		#pragma comment(lib, "WinPcap\\WPCAP_x64.lib")
 		#if defined(ENABLE_LIBSODIUM)
-			#pragma comment(lib, "..\\LibSodium\\LibSodium_x64.lib") //LibSodium library(x64)
+			#pragma comment(lib, "..\\LibSodium\\LibSodium_x64.lib")
 		#endif
 	#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		#pragma comment(lib, "WinPcap\\WPCAP_x86.lib") //WinPcap library(x86)
+		#pragma comment(lib, "WinPcap\\WPCAP_x86.lib")
 		#if defined(ENABLE_LIBSODIUM)
-			#pragma comment(lib, "..\\LibSodium\\LibSodium_x86.lib") //LibSodium library(x86)
+			#pragma comment(lib, "..\\LibSodium\\LibSodium_x86.lib")
 		#endif
 	#endif
 
@@ -264,10 +265,10 @@
 	#include <arpa/inet.h>             //Internet operations
 
 //LibPcap and LibSodium Header
-	#include <pcap/pcap.h>             //LibPcap Header
+	#include <pcap/pcap.h>
 	#if defined(PLATFORM_LINUX)
 		#if defined(ENABLE_LIBSODIUM)
-			#include <sodium.h>            //LibSodium Headers
+			#include <sodium.h>
 		#endif
 	#elif defined(PLATFORM_MACX)
 		#define ENABLE_LIBSODIUM           //LibSodium is always enable on Mac OS X.

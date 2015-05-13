@@ -7,9 +7,7 @@ A local DNS server base on WinPcap and LibPcap.
 说明文档等参见项目 [Documents 文件夹](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的内容
 
 ### Updated
-* 0.4 Beta 18   on Windows
-* 0.4 Beta 4    on Linux
-* 0.4 Beta 2    on Mac
+**0.4 Release** for Windows/Linux/Mac
 
 ### Summary
 Pcap_DNSProxy 是一个基于 WinPcap/LibPcap 制作用于过滤 DNS 投毒污染的工具，包含对支持正则表达式的 Hosts 和 DNSCurve/DNSCrypt 协议以及多线程、TCP 协议请求的支持，提供更便捷和强大的修改 Hosts 的方法。多服务器多线程请求功能，更可提高在恶劣网络环境下域名解析的可靠性。

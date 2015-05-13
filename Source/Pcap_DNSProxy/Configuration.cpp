@@ -89,11 +89,11 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 				memset(FileBuffer.get() + FILE_BUFFER_SIZE - BOM_UTF_16_LENGTH, 0, BOM_UTF_16_LENGTH);
 				ReadLength -= BOM_UTF_16_LENGTH;
 			}
-		//8-bit Unicode Transformation Format/UTF-8 without BOM/Microsoft Windows ANSI Codepages
-//			else {
-//				;
-//			}
-		}
+/*		  8-bit Unicode Transformation Format/UTF-8 without BOM/Microsoft Windows ANSI Codepages
+			else {
+				;
+			}
+*/		}
 
 	//Mark words.
 		for (Index = 0;Index < ReadLength;++Index)
@@ -369,6 +369,8 @@ size_t __fastcall ReadParameter(void)
 	}
 
 //Clear when Print Running Log is disable.
+//Print Running Log disable
+	Parameter.PrintRunningLog = false;
 	if (!Parameter.PrintRunningLog)
 	{
 		delete Parameter.RunningLogPath;

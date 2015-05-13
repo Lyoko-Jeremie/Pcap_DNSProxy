@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy v0.4 Beta 18(Windows)/v0.4 Beta 4(Linux)/v0.4 Beta 2(Mac) 更新日志(2015-05-12)：
+﻿Pcap_DNSProxy v0.4(Windows/Linux/Mac) 更新日志(2015-05-13)：
 
 * 添加对 Apple IEEE 1394/FireWire 的支持
 * 添加对 Streamlined/精简 格式 DNSCurve/DNSCrypt 协议的支持
