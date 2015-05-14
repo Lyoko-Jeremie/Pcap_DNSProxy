@@ -1999,12 +1999,12 @@ void __fastcall FlushSystemDNSCache(void)
 void __fastcall MakeRamdomDomain(PSTR Buffer)
 {
 //Ramdom number distribution initialization
-	std::uniform_int_distribution<int> RamdomDistribution(0, DOMAIN_LEVEL_DATA_MAXSIZE);
+	std::uniform_int_distribution<int> RamdomDistribution(1U, DOMAIN_LEVEL_DATA_MAXSIZE);
 
 //Make ramdom domain length.
 	size_t RamdomLength = RamdomDistribution(*Parameter.RamdomEngine), Index = 0;
-	if (RamdomLength < 4U)
-		RamdomLength += 7U; //The shortest domain length is 3 bytes.
+	if (RamdomLength < DOMAIN_RAMDOM_MINSIZE)
+		RamdomLength = DOMAIN_RAMDOM_MINSIZE;
 
 //Make ramdom domain.
 	if (RamdomLength % 2U == 0)
@@ -2017,7 +2017,7 @@ void __fastcall MakeRamdomDomain(PSTR Buffer)
 				Buffer[Index] += ASCII_UPPER_TO_LOWER;
 		}
 
-	//Make random domain like a normal Top-level domain/TLD.
+	//Make random domain like a normal Top-Level Domain/TLD.
 		Buffer[RamdomLength - 3U] = ASCII_PERIOD;
 		Index = RamdomDistribution(*Parameter.RamdomEngine);
 		if (Index < ASCII_FF)

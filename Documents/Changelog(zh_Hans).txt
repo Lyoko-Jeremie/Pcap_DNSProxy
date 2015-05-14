@@ -1,4 +1,14 @@
-﻿Pcap_DNSProxy v0.4(Windows/Linux/Mac) 更新日志(2015-05-13)：
+﻿Pcap_DNSProxy v0.4.0.1(Windows/Linux/Mac) 更新日志(2015-05-14)：
+
+* 修复 Hosts 条目过长导致数据包溢出的问题 [yfdyh000]
+* 修复 Hosts 添加 EDNS0 标签的问题
+* 修复随机域名生成模块产生非标准域名查询的错误
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.4(Windows/Linux/Mac) 更新日志(2015-05-13)：
 
 * 添加对 Apple IEEE 1394/FireWire 的支持
 * 添加对 Streamlined/精简 格式 DNSCurve/DNSCrypt 协议的支持

@@ -160,7 +160,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Regular expression pattern error - 错误的正则表达式（可根据报告的行数查找）：请检查正则表达式的正确性
   * IPv6 address format error - Hosts 的IPv6地址格式错误（可根据报告的行数查找）：请检查 Hosts 条目的地址
   * IPv4 address format error - Hosts 的IPv4地址格式错误（可根据报告的行数查找）：请检查 Hosts 条目的地址
-  * Too many Hosts IP addresses - Hosts 条目的平行地址过多
+  * Too many Hosts IP addresses - Hosts 条目的平行地址过多：请检查 Hosts 条目地址的数量，A 记录不能超过75个，AAAA 记录不能超过43个
   
 5.Network Error - 网络错误
   * Winsock initialization error - Winsock 初始化失败：请确认使用的操作系统平台是否受支持

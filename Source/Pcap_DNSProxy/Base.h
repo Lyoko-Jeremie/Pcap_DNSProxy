@@ -1937,7 +1937,10 @@ typedef struct _dnscurve_txt_signature_
 #define DOMAIN_DATA_MAXSIZE            253U                                       //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
 #define DOMAIN_LEVEL_DATA_MAXSIZE      63U                                        //Domain length is between 3 and 63(Labels must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
 #define DOMAIN_MINSIZE                 2U                                         //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_RAMDOM_MINSIZE          6U                                         //Minimum size of ramdom domain requesting
 #define DNS_PACKET_MINSIZE             (sizeof(dns_hdr) + 4U + sizeof(dns_qry))   //Minimum DNS packet size(DNS Header + Minimum Domain + DNS Query)
+#define DNS_RR_MAXCOUNT_AAAA           43U                                        //Maximum Record Resources of AAAA answers, 28 bytes * 43 = 1204 bytes
+#define DNS_RR_MAXCOUNT_A              75U                                        //Maximum Record Resources of A answers, 16 bytes * 75 = 1200 bytes
 
 //Code defines
 #if defined(PLATFORM_WIN)

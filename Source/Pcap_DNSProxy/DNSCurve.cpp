@@ -1306,7 +1306,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 			if (TCPSocketData->Socket == INVALID_SOCKET)
 			{
 				PrintError(LOG_ERROR_NETWORK, L"DNSCurve TCP request initialization error", WSAGetLastError(), nullptr, 0);
-				for (auto SocketDataIter:TCPSocketDataList)
+				for (auto &SocketDataIter:TCPSocketDataList)
 					closesocket(SocketDataIter.Socket);
 
 				goto SkipMain;
@@ -1318,7 +1318,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 			{
 				PrintError(LOG_ERROR_NETWORK, L"Set TCP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
 				closesocket(TCPSocketData->Socket);
-				for (auto SocketDataIter:TCPSocketDataList)
+				for (auto &SocketDataIter:TCPSocketDataList)
 					closesocket(SocketDataIter.Socket);
 
 				goto SkipMain;
@@ -1373,7 +1373,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 				WholeNonce.get(),
 				PacketTarget->PrecomputationKey) != 0)
 			{
-				for (auto SocketDataIter:TCPSocketDataList)
+				for (auto &SocketDataIter:TCPSocketDataList)
 					closesocket(SocketDataIter.Socket);
 				
 				goto SkipMain;
@@ -1554,7 +1554,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 #endif
 	FD_ZERO(WriteFDS.get());
 
-	for (auto SocketDataIter:TCPSocketDataList)
+	for (auto &SocketDataIter:TCPSocketDataList)
 	{
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (SocketDataIter.Socket > MaxSocket)
@@ -1577,7 +1577,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 		Timeout->tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
 	#endif
 		FD_ZERO(ReadFDS.get());
-		for (auto SocketDataIter:TCPSocketDataList)
+		for (auto &SocketDataIter:TCPSocketDataList)
 		{
 			if (SocketDataIter.Socket > 0)
 			{
@@ -1729,7 +1729,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 									}
 
 								//Close sockets and remove response length of TCP requesting.
-									for (auto SocketDataIter:TCPSocketDataList)
+									for (auto &SocketDataIter:TCPSocketDataList)
 									{
 										if (SocketDataIter.Socket > 0)
 										{
@@ -1759,7 +1759,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 
 		//Send.
 			size_t Alternate = 0;
-			for (auto SocketDataIter:TCPSocketDataList)
+			for (auto &SocketDataIter:TCPSocketDataList)
 			{
 				if (FD_ISSET(SocketDataIter.Socket, WriteFDS.get()))
 				{
@@ -1790,7 +1790,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 			++AlternateSwapList.TimeoutTimes[9U];
 
 		//Close all sockets.
-			for (auto SocketDataIter:TCPSocketDataList)
+			for (auto &SocketDataIter:TCPSocketDataList)
 			{
 				if (SocketDataIter.Socket > 0)
 				{
@@ -1808,7 +1808,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 	}
 
 //Close all sockets.
-	for (auto SocketDataIter:TCPSocketDataList)
+	for (auto &SocketDataIter:TCPSocketDataList)
 	{
 		if (SocketDataIter.Socket > 0)
 		{
@@ -2225,7 +2225,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 				WholeNonce.get(),
 				PacketTarget->PrecomputationKey) != 0)
 			{
-				for (auto SocketDataIter:UDPSocketDataList)
+				for (auto &SocketDataIter:UDPSocketDataList)
 					closesocket(SocketDataIter.Socket);
 				
 				goto SkipMain;
@@ -2381,7 +2381,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	SOCKET MaxSocket = 0;
 #endif
 	FD_ZERO(WriteFDS.get());
-	for (auto SocketDataIter:UDPSocketDataList)
+	for (auto &SocketDataIter:UDPSocketDataList)
 	{
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (SocketDataIter.Socket > MaxSocket)
@@ -2404,7 +2404,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 		Timeout->tv_usec = Parameter.UnreliableSocketTimeout.tv_usec;
 	#endif
 		FD_ZERO(ReadFDS.get());
-		for (auto SocketDataIter:UDPSocketDataList)
+		for (auto &SocketDataIter:UDPSocketDataList)
 		{
 			if (SocketDataIter.Socket > 0)
 			{
@@ -2522,7 +2522,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 						}
 
 					//Close all sockets.
-						for (auto SocketDataIter:UDPSocketDataList)
+						for (auto &SocketDataIter:UDPSocketDataList)
 						{
 							if (SocketDataIter.Socket > 0)
 							{
@@ -2539,7 +2539,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 					}
 				//Normal mode
 					else {
-						for (auto SocketDataIter:UDPSocketDataList)
+						for (auto &SocketDataIter:UDPSocketDataList)
 						{
 							if (SocketDataIter.Socket > 0)
 							{
@@ -2560,7 +2560,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 							MarkDomainCache(OriginalRecv, RecvLen);
 
 					//Close all sockets.
-						for (auto SocketDataIter:UDPSocketDataList)
+						for (auto &SocketDataIter:UDPSocketDataList)
 						{
 							if (SocketDataIter.Socket > 0)
 							{
@@ -2578,7 +2578,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 
 		//Send.
 			InnerIsAlternate = false;
-			for (auto SocketDataIter:UDPSocketDataList)
+			for (auto &SocketDataIter:UDPSocketDataList)
 			{
 				if (FD_ISSET(SocketDataIter.Socket, WriteFDS.get()))
 				{
@@ -2614,7 +2614,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 			++AlternateSwapList.TimeoutTimes[11U];
 
 		//Close all sockets.
-			for (auto SocketDataIter:UDPSocketDataList)
+			for (auto &SocketDataIter:UDPSocketDataList)
 			{
 				if (SocketDataIter.Socket > 0)
 				{
@@ -2632,7 +2632,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	}
 
 //Close all sockets.
-	for (auto SocketDataIter:UDPSocketDataList)
+	for (auto &SocketDataIter:UDPSocketDataList)
 	{
 		if (SocketDataIter.Socket > 0)
 		{

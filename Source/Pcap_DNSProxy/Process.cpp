@@ -256,7 +256,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 	else { //Deny
 		for (auto AcceptTypeTableIter:*Parameter.AcceptTypeList)
 		{
-			if (AcceptTypeTableIter == DNS_Query->Type)
+			if (DNS_Query->Type == AcceptTypeTableIter)
 			{
 				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_SNH);
 				return Length;
@@ -445,7 +445,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 								}
 							}
 
-						//Different result.
+						//Different result
 							if (!Parameter.EDNS0Label)
 							{
 								auto DNS_Record_OPT = (pdns_record_opt)(Result + Length - sizeof(dns_record_opt) + HostsTableIter.Length);
@@ -518,7 +518,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 								}
 							}
 
-						//Different result.
+						//Different result
 							if (!Parameter.EDNS0Label)
 							{
 								auto DNS_Record_OPT = (pdns_record_opt)(Result + Length - sizeof(dns_record_opt) + HostsTableIter.Length);

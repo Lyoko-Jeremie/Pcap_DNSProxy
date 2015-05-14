@@ -2374,15 +2374,13 @@ size_t __fastcall ReadIPFilter(void)
 				memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
 				File_LARGE_INTEGER->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwHighDateTime;
 				File_LARGE_INTEGER->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwLowDateTime;
-				if (IPFilterFileList[FileIndex].ModificationTime == 0 || //File was not available.
-					IPFilterFileList[FileIndex].ModificationTime > 0 && File_LARGE_INTEGER->QuadPart > IPFilterFileList[FileIndex].ModificationTime) //File was modified.
+				if (IPFilterFileList[FileIndex].ModificationTime == 0 || File_LARGE_INTEGER->QuadPart != IPFilterFileList[FileIndex].ModificationTime)
 				{
 					IPFilterFileList[FileIndex].ModificationTime = File_LARGE_INTEGER->QuadPart;
 					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				if (IPFilterFileList[FileIndex].ModificationTime == 0 || //File was not available.
-					IPFilterFileList[FileIndex].ModificationTime > 0 && FileStat->st_mtime > IPFilterFileList[FileIndex].ModificationTime) //File was modified.
+				if (IPFilterFileList[FileIndex].ModificationTime == 0 || FileStat->st_mtime != IPFilterFileList[FileIndex].ModificationTime)
 				{
 					IPFilterFileList[FileIndex].ModificationTime = FileStat->st_mtime;
 					memset(FileStat.get(), 0, sizeof(struct stat));
@@ -3403,15 +3401,13 @@ size_t __fastcall ReadHosts(void)
 				memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
 				File_LARGE_INTEGER->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwHighDateTime;
 				File_LARGE_INTEGER->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwLowDateTime;
-				if (HostsFileList[FileIndex].ModificationTime == 0 || //File was not available.
-					HostsFileList[FileIndex].ModificationTime > 0 && File_LARGE_INTEGER->QuadPart > HostsFileList[FileIndex].ModificationTime) //File was modified.
+				if (IPFilterFileList[FileIndex].ModificationTime == 0 || File_LARGE_INTEGER->QuadPart != HostsFileList[FileIndex].ModificationTime)
 				{
 					HostsFileList[FileIndex].ModificationTime = File_LARGE_INTEGER->QuadPart;
 					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				if (HostsFileList[FileIndex].ModificationTime == 0 || //File was not available.
-					HostsFileList[FileIndex].ModificationTime > 0 && FileStat->st_mtime > HostsFileList[FileIndex].ModificationTime) //File was modified.
+				if (IPFilterFileList[FileIndex].ModificationTime == 0 || FileStat->st_mtime != HostsFileList[FileIndex].ModificationTime)
 				{
 					HostsFileList[FileIndex].ModificationTime = FileStat->st_mtime;
 					memset(FileStat.get(), 0, sizeof(struct stat));
@@ -3484,7 +3480,7 @@ size_t __fastcall ReadHosts(void)
 		if (Parameter.EDNS0Label)
 		{
 			pdns_record_opt DNS_Record_OPT = nullptr;
-			for (auto HostsFileSetIter:*HostsFileSetModificating)
+			for (auto &HostsFileSetIter:*HostsFileSetModificating)
 			{
 				for (auto &HostsListIter:HostsFileSetIter.HostsList)
 				{
@@ -4317,7 +4313,7 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 	}
 //Multiple addresses
 	else {
-		size_t Index = 0, VerticalIndex = 0;
+		size_t Index = 0, VerticalIndex = 0, ResultCount = 0;
 
 	//AAAA records(IPv6)
 		if (Data.find(ASCII_COLON) < Separated)
@@ -4327,13 +4323,16 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 				return EXIT_FAILURE;
 
 			HostsTableTemp.RecordType.push_back(htons(DNS_RECORD_AAAA));
-			for (Index = 0;Index <= Separated;++Index)
+			for (Index = 0, ResultCount = 0;Index <= Separated;++Index)
 			{
 			//Read data.
 				if (Data[Index] == ASCII_VERTICAL || Index == Separated)
 				{
+					++ResultCount;
+
 				//Length check
-					if (HostsTableTemp.Length + sizeof(dns_record_aaaa) > PACKET_MAXSIZE)
+//					if (HostsTableTemp.Length + sizeof(dns_record_aaaa) > PACKET_MAXSIZE)
+					if (ResultCount > DNS_RR_MAXCOUNT_AAAA)
 					{
 						PrintError(LOG_ERROR_HOSTS, L"Too many Hosts IP addresses", 0, HostsFileList[FileIndex].FileName.c_str(), Line);
 						return EXIT_FAILURE;
@@ -4373,13 +4372,16 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 				return EXIT_FAILURE;
 
 			HostsTableTemp.RecordType.push_back(htons(DNS_RECORD_A));
-			for (Index = 0;Index <= Separated;++Index)
+			for (Index = 0, ResultCount = 0;Index <= Separated;++Index)
 			{
 			//Read data.
 				if (Data[Index] == ASCII_VERTICAL || Index == Separated)
 				{
+					++ResultCount;
+
 				//Length check
-					if (HostsTableTemp.Length + sizeof(dns_record_a) > PACKET_MAXSIZE)
+//					if (HostsTableTemp.Length + sizeof(dns_record_a) > PACKET_MAXSIZE)
+					if (ResultCount > DNS_RR_MAXCOUNT_A)
 					{
 						PrintError(LOG_ERROR_HOSTS, L"Too many Hosts IP addresses", 0, HostsFileList[FileIndex].FileName.c_str(), Line);
 						return EXIT_FAILURE;
