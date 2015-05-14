@@ -1,5 +1,6 @@
-﻿Pcap_DNSProxy v0.4.0.1(Windows/Linux/Mac) 更新日志(2015-05-14)：
+﻿Pcap_DNSProxy v0.4.0.1-0.4.0.2(Windows/Linux/Mac) 更新日志(2015-05-14)：
 
+* 调整抓包模块的超时时间保证回复及时被抓取 [France is Bacon]
 * 修复 Hosts 条目过长导致数据包溢出的问题 [yfdyh000]
 * 修复 Hosts 添加 EDNS0 标签的问题
 * 修复随机域名生成模块产生非标准域名查询的错误

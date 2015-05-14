@@ -2314,10 +2314,10 @@ size_t __fastcall ReadIPFilter(void)
 	memset(FileStat.get(), 0, sizeof(struct stat));
 #endif
 	std::unique_lock<std::mutex> ResultBlacklistMutex(ResultBlacklistLock);
-	std::unique_lock<std::mutex> AddressHostsListMutex(AddressHostsListLock);
+	std::unique_lock<std::mutex> AddressRangeMutex(AddressRangeLock);
 	std::unique_lock<std::mutex> LocalRoutingListMutex(LocalRoutingListLock);
 	ResultBlacklistMutex.unlock();
-	AddressHostsListMutex.unlock();
+	AddressRangeMutex.unlock();
 	LocalRoutingListMutex.unlock();
 
 	for (;;)
@@ -2451,12 +2451,12 @@ size_t __fastcall ReadIPFilter(void)
 
 	//Copy to using list.
 		ResultBlacklistMutex.lock();
-		AddressHostsListMutex.lock();
+		AddressRangeMutex.lock();
 		LocalRoutingListMutex.lock();
 		*IPFilterFileSetUsing = *IPFilterFileSetModificating;
 		IPFilterFileSetUsing->shrink_to_fit();
 		ResultBlacklistMutex.unlock();
-		AddressHostsListMutex.unlock();
+		AddressRangeMutex.unlock();
 		LocalRoutingListMutex.unlock();
 		IPFilterFileSetModificating->shrink_to_fit();
 
@@ -2536,7 +2536,7 @@ size_t __fastcall ReadIPFilterData(const char *Buffer, const size_t FileIndex, c
 		return EXIT_FAILURE;
 	}
 
-//Multi-line comments check, delete comments(Number Sign/NS and double slashs) and check minimum length of hosts items.
+//Multi-line comments check, delete comments(Number Sign/NS and double slashs) and check minimum length.
 	else if (Data.rfind(" //") != std::string::npos)
 	{
 		Data.erase(Data.rfind(" //"), Data.length() - Data.rfind(" //"));
@@ -3343,9 +3343,9 @@ size_t __fastcall ReadHosts(void)
 	memset(FileStat.get(), 0, sizeof(struct stat));
 #endif
 	std::unique_lock<std::mutex> HostsListMutex(HostsListLock);
-	std::unique_lock<std::mutex> AddressRangeMutex(AddressRangeLock);
+	std::unique_lock<std::mutex> AddressHostsListMutex(AddressHostsListLock);
 	HostsListMutex.unlock();
-	AddressRangeMutex.unlock();
+	AddressHostsListMutex.unlock();
 
 	for (;;)
 	{
@@ -3401,13 +3401,13 @@ size_t __fastcall ReadHosts(void)
 				memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
 				File_LARGE_INTEGER->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwHighDateTime;
 				File_LARGE_INTEGER->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwLowDateTime;
-				if (IPFilterFileList[FileIndex].ModificationTime == 0 || File_LARGE_INTEGER->QuadPart != HostsFileList[FileIndex].ModificationTime)
+				if (HostsFileList[FileIndex].ModificationTime == 0 || File_LARGE_INTEGER->QuadPart != HostsFileList[FileIndex].ModificationTime)
 				{
 					HostsFileList[FileIndex].ModificationTime = File_LARGE_INTEGER->QuadPart;
 					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				if (IPFilterFileList[FileIndex].ModificationTime == 0 || FileStat->st_mtime != HostsFileList[FileIndex].ModificationTime)
+				if (HostsFileList[FileIndex].ModificationTime == 0 || FileStat->st_mtime != HostsFileList[FileIndex].ModificationTime)
 				{
 					HostsFileList[FileIndex].ModificationTime = FileStat->st_mtime;
 					memset(FileStat.get(), 0, sizeof(struct stat));
@@ -3505,11 +3505,11 @@ size_t __fastcall ReadHosts(void)
 
 	//Copy to using list.
 		HostsListMutex.lock();
-		AddressRangeMutex.lock();
+		AddressHostsListMutex.lock();
 		*HostsFileSetUsing = *HostsFileSetModificating;
 		HostsFileSetUsing->shrink_to_fit();
 		HostsListMutex.unlock();
-		AddressRangeMutex.unlock();
+		AddressHostsListMutex.unlock();
 		HostsFileSetModificating->shrink_to_fit();
 
 	//Flush DNS cache and Auto-refresh

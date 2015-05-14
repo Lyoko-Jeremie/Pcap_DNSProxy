@@ -1966,7 +1966,7 @@ typedef struct _dnscurve_txt_signature_
 	#define UPDATE_SERVICE_TIME                3U        //Update service timeout, 3 seconds
 #endif
 #define PCAP_DEVICES_RECHECK_TIME          10U       //Time between every WinPcap/LibPcap devices recheck, 10 seconds
-#define PCAP_CAPTURE_TIMEOUT               5000U     //Pcap reading timeout, 5 seconds(5000 ms)
+#define PCAP_CAPTURE_TIMEOUT               250U      //Pcap reading timeout, 250 ms
 #define SOCKET_MIN_TIMEOUT                 500U      //The shortset socket timeout, 500 ms
 #if defined(PLATFORM_WIN)
 	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT     3000U     //Default timeout of reliable sockets(Such as TCP, 3 seconds/3000ms)
