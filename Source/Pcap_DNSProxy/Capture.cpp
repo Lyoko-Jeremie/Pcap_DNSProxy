@@ -50,7 +50,7 @@ size_t __fastcall CaptureInit(void)
 	//Permissions check and check available network devices.
 		if (pThedevs == nullptr)
 		{
-			PrintError(LOG_ERROR_PCAP, L"Insufficient privileges or no any available network devices", 0, nullptr, 0);
+			PrintError(LOG_ERROR_PCAP, L"Insufficient privileges or not any available network devices", 0, nullptr, 0);
 
 			Sleep(PCAP_DEVICES_RECHECK_TIME * SECOND_TO_MILLISECOND);
 			continue;
@@ -109,7 +109,7 @@ void __fastcall FilterRulesInit(std::string &FilterRules)
 	FilterRules.clear();
 
 //Minimum supported system of inet_ntop() and inet_pton() is Windows Vista(Windows XP with SP3 support). [Roy Tam]
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
 	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
 	DWORD BufferLength = ADDR_STRING_MAXSIZE;
@@ -128,7 +128,7 @@ void __fastcall FilterRulesInit(std::string &FilterRules)
 	//Main(IPv6)
 	if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0)
 	{
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		if (Parameter.Inet_Ntop_PTR != nullptr)
 		{
 			(*Parameter.Inet_Ntop_PTR)(AF_INET6, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
@@ -153,7 +153,7 @@ void __fastcall FilterRulesInit(std::string &FilterRules)
 	//Alternate(IPv6)
 	if (Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0)
 	{
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		if (Parameter.Inet_Ntop_PTR != nullptr)
 		{
 			(*Parameter.Inet_Ntop_PTR)(AF_INET6, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
@@ -180,7 +180,7 @@ void __fastcall FilterRulesInit(std::string &FilterRules)
 	{
 		for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv6_Multi)
 		{
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.Inet_Ntop_PTR != nullptr)
 			{
 				(*Parameter.Inet_Ntop_PTR)(AF_INET6, &DNSServerDataIter.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
@@ -206,7 +206,7 @@ void __fastcall FilterRulesInit(std::string &FilterRules)
 	//Main(IPv4)
 	if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0)
 	{
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		if (Parameter.Inet_Ntop_PTR != nullptr)
 		{
 			(*Parameter.Inet_Ntop_PTR)(AF_INET, &Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
@@ -231,7 +231,7 @@ void __fastcall FilterRulesInit(std::string &FilterRules)
 	//Alternate(IPv4)
 	if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
 	{
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		if (Parameter.Inet_Ntop_PTR != nullptr)
 		{
 			(*Parameter.Inet_Ntop_PTR)(AF_INET, &Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
@@ -258,7 +258,7 @@ void __fastcall FilterRulesInit(std::string &FilterRules)
 	{
 		for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv4_Multi)
 		{
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.Inet_Ntop_PTR != nullptr)
 			{
 				(*Parameter.Inet_Ntop_PTR)(AF_INET, &DNSServerDataIter.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
@@ -826,7 +826,7 @@ size_t __fastcall MatchPortToSend(const char *Buffer, const size_t Length, const
 //Stop loop and clear timeout data.
 //Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
 	StopLoop: 
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 	if (Parameter.GetTickCount64PTR != nullptr)
 	{
 		while (!PortList.empty() && PortList.front().ClearPortTime <= (size_t)((*Parameter.GetTickCount64PTR)()))

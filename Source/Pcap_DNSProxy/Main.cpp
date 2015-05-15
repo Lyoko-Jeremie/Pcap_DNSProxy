@@ -24,7 +24,7 @@
 	int wmain(int argc, wchar_t* argv[])
 {
 //Windows XP with SP3 support
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		GetFunctionPointer(FUNCTION_GETTICKCOUNT64);
 		GetFunctionPointer(FUNCTION_INET_NTOP);
 	#endif

@@ -52,7 +52,7 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 			DataLength += sizeof(dns_qry);
 
 		//EDNS0 Label
-			if (Parameter.EDNS0Label) //No any Additional
+			if (Parameter.EDNS0Label) //Not any Additional Resource Records
 			{
 				auto DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + sizeof(dns_hdr) + DataLength);
 				DNS_Header->Additional = htons(U16_NUM_ONE);
@@ -135,7 +135,7 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 				DataLength += sizeof(dns_qry);
 
 			//EDNS0 Label
-				if (Parameter.EDNS0Label) //No any Additional
+				if (Parameter.EDNS0Label) //Not any Additional Resource Records
 				{
 					auto DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + DataLength);
 					DNS_Header->Additional = htons(U16_NUM_ONE);
@@ -1318,7 +1318,7 @@ size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, cons
 		PortListTemp->TransportLayer = Protocol;
 		if (Protocol == IPPROTO_TCP) //TCP
 		{
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.GetTickCount64PTR != nullptr)
 				PortListTemp->ClearPortTime = (size_t)((*Parameter.GetTickCount64PTR)() + Parameter.ReliableSocketTimeout);
 			else 
@@ -1330,7 +1330,7 @@ size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, cons
 		#endif
 		}
 		else { //UDP
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.GetTickCount64PTR != nullptr)
 				PortListTemp->ClearPortTime = (size_t)((*Parameter.GetTickCount64PTR)() + Parameter.UnreliableSocketTimeout);
 			else 
@@ -1706,7 +1706,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 		PortListTemp->NetworkLayer = Protocol;
 		if (Protocol == IPPROTO_TCP) //TCP
 		{
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.GetTickCount64PTR != nullptr)
 				PortListTemp->ClearPortTime = (size_t)((*Parameter.GetTickCount64PTR)() + Parameter.ReliableSocketTimeout);
 			else 
@@ -1718,7 +1718,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 		#endif
 		}
 		else { //UDP
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.GetTickCount64PTR != nullptr)
 				PortListTemp->ClearPortTime = (size_t)((*Parameter.GetTickCount64PTR)() + Parameter.UnreliableSocketTimeout);
 			else 

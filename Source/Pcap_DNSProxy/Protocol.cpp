@@ -96,7 +96,7 @@ size_t __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAd
 	std::string sAddrString(AddrString);
 
 //inet_ntop() and inet_pton() was only support in Windows Vista and newer system. [Roy Tam]
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
 	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
 	int SockLength = 0;
@@ -126,7 +126,7 @@ size_t __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAd
 		}
 
 	//Convert to binary.
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		SockLength = sizeof(sockaddr_in6);
 		if (WSAStringToAddressA((LPSTR)sAddrString.c_str(), AF_INET6, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
 	#else
@@ -137,7 +137,7 @@ size_t __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAd
 			ErrCode = WSAGetLastError();
 			return EXIT_FAILURE;
 		}
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		memcpy_s(OriginalAddr, sizeof(in6_addr), &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, sizeof(in6_addr));
 	#endif
 	}
@@ -184,7 +184,7 @@ size_t __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAd
 			sAddrString.append("0");
 
 	//Convert to binary.
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		SockLength = sizeof(sockaddr_in);
 		if (WSAStringToAddressA((LPSTR)sAddrString.c_str(), AF_INET, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
 	#else
@@ -195,7 +195,7 @@ size_t __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAd
 			ErrCode = WSAGetLastError();
 			return EXIT_FAILURE;
 		}
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		memcpy_s(OriginalAddr, sizeof(in_addr), &((PSOCKADDR_IN)SockAddr.get())->sin_addr, sizeof(in_addr));
 	#endif
 	}
@@ -2147,7 +2147,7 @@ size_t __fastcall MakeCompressionPointerMutation(char *Buffer, const size_t Leng
 		*(Buffer + Length - sizeof(dns_qry) - 1U) = '\xC0';
 
 	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		if (Parameter.GetTickCount64PTR != nullptr)
 			Index = (*Parameter.GetTickCount64PTR)() % 4U;
 		else 
@@ -2237,8 +2237,8 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 
 //DNS Options part
 	if (Parameter.DNSDataCheck && (DNS_Header->Questions != htons(U16_NUM_ONE) || //Question Resource Records must be one.
-		ntohs(DNS_Header->Flags) >> 15U == 0 || //No any Question Resource Records
-		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_AA) != 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 || //Responses are not authoritative when there are no any Authoritative Nameservers Records and Additional Resource Records.
+		ntohs(DNS_Header->Flags) >> 15U == 0 || //Not any Question Resource Records
+//		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_AA) != 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 || //Responses are not authoritative when there are no Authoritative Nameservers Records and Additional Resource Records.
 		IsLocal && ((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) > DNS_RCODE_NOERROR || (ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) != 0 && DNS_Header->Answer == 0) || //Local requesting failed or Truncated(xxxxxx1xxxxxxxxx & 0000001000000000 >> 9 == 1)
 		Parameter.EDNS0Label && DNS_Header->Additional == 0)) //Additional EDNS0 Label Resource Records check
 			return false;
@@ -2293,7 +2293,7 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 				return false;
 	}
 
-//DNS Responses which have one Answer Resource Records and no any Authority Resource Records or Additional Resource Records may fake.
+//DNS Responses which have one Answer Resource Records and not any Authority Resource Records or Additional Resource Records may fake.
 	auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
 	size_t DataLength = DNS_PACKET_RR_LOCATE(Buffer);
 	pdns_record_standard DNS_Record_Standard = nullptr;

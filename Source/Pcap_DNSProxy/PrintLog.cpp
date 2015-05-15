@@ -474,7 +474,7 @@ size_t __fastcall PrintParameterList(void)
 		std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
 		memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 		//Minimum supported system of inet_ntop() and inet_pton() is Windows Vista(Windows XP with SP3 support). [Roy Tam]
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		DWORD BufferLength = 0;
 		std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
 		memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
@@ -632,7 +632,7 @@ size_t __fastcall PrintParameterList(void)
 		else {
 		#ifdef _WIN64
 			inet_ntop(AF_INET, &((PSOCKADDR_IN)Parameter.ListenAddress_IPv4)->sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
-		#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.Inet_Ntop_PTR != nullptr)
 			{
 				(*Parameter.Inet_Ntop_PTR)(AF_INET, &((PSOCKADDR_IN)Parameter.ListenAddress_IPv4)->sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
@@ -658,7 +658,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"N/A\n");
 		}
 		else {
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.Inet_Ntop_PTR != nullptr)
 			{
 				(*Parameter.Inet_Ntop_PTR)(AF_INET, &Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
@@ -685,7 +685,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"N/A\n");
 		}
 		else {
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.Inet_Ntop_PTR != nullptr)
 			{
 				(*Parameter.Inet_Ntop_PTR)(AF_INET, &Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
@@ -712,7 +712,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"N/A\n");
 		}
 		else {
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.Inet_Ntop_PTR != nullptr)
 			{
 				(*Parameter.Inet_Ntop_PTR)(AF_INET, &Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
@@ -739,7 +739,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"N/A\n");
 		}
 		else {
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.Inet_Ntop_PTR != nullptr)
 			{
 				(*Parameter.Inet_Ntop_PTR)(AF_INET, &Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
@@ -768,7 +768,7 @@ size_t __fastcall PrintParameterList(void)
 		else {
 		#ifdef _WIN64
 			inet_ntop(AF_INET6, &((PSOCKADDR_IN6)Parameter.ListenAddress_IPv6)->sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
-		#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.Inet_Ntop_PTR != nullptr)
 			{
 				(*Parameter.Inet_Ntop_PTR)(AF_INET6, &((PSOCKADDR_IN6)Parameter.ListenAddress_IPv6)->sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
@@ -794,7 +794,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"N/A\n");
 		}
 		else {
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.Inet_Ntop_PTR != nullptr)
 			{
 				(*Parameter.Inet_Ntop_PTR)(AF_INET6, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
@@ -822,7 +822,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"N/A\n");
 		}
 		else {
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.Inet_Ntop_PTR != nullptr)
 			{
 				(*Parameter.Inet_Ntop_PTR)(AF_INET6, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
@@ -850,7 +850,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"N/A\n");
 		}
 		else {
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.Inet_Ntop_PTR != nullptr)
 			{
 				(*Parameter.Inet_Ntop_PTR)(AF_INET6, &Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
@@ -878,7 +878,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"N/A\n");
 		}
 		else {
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.Inet_Ntop_PTR != nullptr)
 			{
 				(*Parameter.Inet_Ntop_PTR)(AF_INET6, &Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);

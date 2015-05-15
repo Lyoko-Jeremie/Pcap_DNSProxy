@@ -87,7 +87,7 @@ size_t __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Len
 			return EXIT_SUCCESS;
 		}
 	}
-	else { //No any Question Resource Records
+	else { //Not any Question Resource Records
 		memcpy_s(RecvBuffer.get(), Length, SendBuffer.get(), Length);
 		DNS_Header = (pdns_hdr)RecvBuffer.get();
 		DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_FE);
@@ -172,23 +172,24 @@ size_t __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Len
 		TCPRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, LocalSocketData) == EXIT_SUCCESS)
 			return EXIT_SUCCESS;
 
-//IPv6 tunnels support
-	if (Parameter.GatewayAvailable_IPv6 && Parameter.TunnelAvailable_IPv6 && 
-		DirectRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, LocalSocketData) == EXIT_SUCCESS)
+//IPv6 tunnels support and Hosts Only requesting when Pcap Capture is turn OFF.
+	if (Parameter.GatewayAvailable_IPv6 && Parameter.TunnelAvailable_IPv6 || !Parameter.PcapCapture)
 	{
-	//Fin TCP request connection.
-		if (Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
+		if (DirectRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, LocalSocketData) == EXIT_SUCCESS)
 		{
-			shutdown(LocalSocketData.Socket, SD_BOTH);
-			closesocket(LocalSocketData.Socket);
+		//Fin TCP request connection.
+			if (Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
+			{
+				shutdown(LocalSocketData.Socket, SD_BOTH);
+				closesocket(LocalSocketData.Socket);
+			}
+
+			return EXIT_SUCCESS;
 		}
 
-		return EXIT_SUCCESS;
+		if (!Parameter.PcapCapture)
+			return EXIT_FAILURE;
 	}
-
-//Pcap Capture check
-	if (!Parameter.PcapCapture)
-		return EXIT_SUCCESS;
 	RecvBuffer.reset();
 
 //UDP requesting
@@ -816,12 +817,12 @@ size_t __fastcall MarkDomainCache(const char *Buffer, const size_t Length)
 {
 //Check conditions.
 	auto DNS_Header = (pdns_hdr)Buffer;
-	if (DNS_Header->Questions != htons(U16_NUM_ONE) || //No any Question Record in responses
-		DNS_Header->Answer == 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 || //No any Resource Records
+	if (DNS_Header->Questions != htons(U16_NUM_ONE) || //Not any Question Record in responses
+		DNS_Header->Answer == 0 /* && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 */ || //Not any Answer Resource Records
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_OPCODE) != DNS_OPCODE_QUERY || //OPCode must be set Query/0.
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) != 0 || //Truncated bit must not be set.
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) != DNS_RCODE_NOERROR && (ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) != DNS_RCODE_NXDOMAIN) //RCode must be set No Error/0 or Non-Existent Domain/3.
-			return EXIT_FAILURE; 
+			return EXIT_FAILURE;
 
 //Initialization(A part)
 	DNSCACHE_DATA DNSCacheDataTemp;
@@ -873,13 +874,16 @@ size_t __fastcall MarkDomainCache(const char *Buffer, const size_t Length)
 			ResponseTTL = ResponseTTL / (uint32_t)TTLCount + ResponseTTL % (uint32_t)TTLCount;
 	}
 
-//Set cache TTL(Not any A or AAAA answers).
-	if (ResponseTTL == 0)
+//Set cache TTL.
+	if (ResponseTTL == 0) //Only mark A and AAAA records.
 	{
+/* Old version(2015-05-16)
 		if (Parameter.CacheType == CACHE_TIMER)
 			ResponseTTL = (uint32_t)(Parameter.CacheParameter / SECOND_TO_MILLISECOND);
 		else //CACHE_QUEUE
 			ResponseTTL = Parameter.HostsDefaultTTL;
+*/
+		return EXIT_FAILURE;
 	}
 	else {
 		if (Parameter.CacheType == CACHE_TIMER)
@@ -917,7 +921,7 @@ size_t __fastcall MarkDomainCache(const char *Buffer, const size_t Length)
 		DNSCacheDataTemp.Length = Length - sizeof(uint16_t);
 
 	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		if (Parameter.GetTickCount64PTR != nullptr)
 			DNSCacheDataTemp.ClearCacheTime = (size_t)((*Parameter.GetTickCount64PTR)() + ResponseTTL * SECOND_TO_MILLISECOND);
 		else 
@@ -944,7 +948,7 @@ size_t __fastcall MarkDomainCache(const char *Buffer, const size_t Length)
 		}
 		else { //CACHE_TIMER
 		//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			while (!DNSCacheList.empty() && (Parameter.GetTickCount64PTR != nullptr && (*Parameter.GetTickCount64PTR)() >= DNSCacheList.front().ClearCacheTime || 
 				GetTickCount() >= DNSCacheList.front().ClearCacheTime))
 		#else

@@ -1058,7 +1058,7 @@ void __fastcall AlternateServerMonitor(void)
 		for (Index = 0;Index < ALTERNATE_SERVERNUM;++Index)
 		{
 		//Reset TimeoutTimes out of alternate time range.
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.GetTickCount64PTR != nullptr && (*Parameter.GetTickCount64PTR)() >= RangeTimer[Index] || GetTickCount() >= RangeTimer[Index])
 			{
 				if (Parameter.GetTickCount64PTR != nullptr)
@@ -1077,7 +1077,7 @@ void __fastcall AlternateServerMonitor(void)
 		//Reset alternate switching.
 			if (AlternateSwapList.IsSwap[Index])
 			{
-			#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+			#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 				if (Parameter.GetTickCount64PTR != nullptr && (*Parameter.GetTickCount64PTR)() >= SwapTimer[Index] || GetTickCount() >= SwapTimer[Index])
 			#else
 				if (GetTickCount64() >= SwapTimer[Index])
@@ -1094,7 +1094,7 @@ void __fastcall AlternateServerMonitor(void)
 				{
 					AlternateSwapList.IsSwap[Index] = true;
 					AlternateSwapList.TimeoutTimes[Index] = 0;
-				#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+				#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 					if (Parameter.GetTickCount64PTR != nullptr)
 						SwapTimer[Index] = (size_t)((*Parameter.GetTickCount64PTR)() + Parameter.AlternateResetTime);
 					else 

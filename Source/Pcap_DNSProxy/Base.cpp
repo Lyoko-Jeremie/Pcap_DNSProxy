@@ -79,7 +79,7 @@ size_t __fastcall CaseConvert(const bool IsLowerUpper, char *Buffer, const size_
 #endif
 
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64)) //Windows(x86)
+#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 //Verify version of system(Greater than Windows Vista)
 	BOOL WINAPI IsGreaterThanVista(void)
 	{

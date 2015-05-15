@@ -3227,7 +3227,6 @@ size_t __fastcall ReadMainIPFilterData(std::string Data, const size_t FileIndex,
 	}
 
 //Read data.
-	memset(&AddressRangeTableTemp, 0, sizeof(ADDRESS_RANGE_TABLE));
 	std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
 	memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 	if (Data.find(ASCII_COLON) != std::string::npos) //IPv6
@@ -3641,8 +3640,7 @@ size_t __fastcall ReadHostsData(const char *Buffer, const size_t FileIndex, cons
 //[Local Hosts] block
 	else if (LabelType == LABEL_HOSTS_LOCAL)
 	{
-		if ((Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0) && Parameter.LocalHosts && 
-			!(Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0 && Parameter.LocalMain))
+		if ((Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0) && Parameter.LocalHosts && !(Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0 && Parameter.LocalMain))
 				return ReadLocalHostsData(Data, FileIndex, Line);
 	}
 
@@ -3781,6 +3779,7 @@ size_t __fastcall ReadLocalHostsData(std::string Data, const size_t FileIndex, c
 	HOSTS_TABLE HostsTableTemp;
 
 //Mark patterns.
+	HostsTableTemp.PatternString = Data;
 	try {
 		std::regex PatternHostsTableTemp(HostsTableTemp.PatternString);
 		HostsTableTemp.Pattern.swap(PatternHostsTableTemp);
