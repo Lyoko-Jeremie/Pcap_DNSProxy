@@ -1,4 +1,4 @@
-﻿#ifndef crypto_hash_H
+#ifndef crypto_hash_H
 #define crypto_hash_H
 
 /*

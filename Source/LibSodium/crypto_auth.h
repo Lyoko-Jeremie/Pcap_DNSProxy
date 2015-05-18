@@ -1,4 +1,4 @@
-﻿#ifndef crypto_auth_H
+#ifndef crypto_auth_H
 #define crypto_auth_H
 
 #include <stddef.h>

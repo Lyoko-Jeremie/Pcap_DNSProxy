@@ -28,7 +28,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 	memset(TextBuffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(TextData.get(), 0, FILE_BUFFER_SIZE);
 	size_t ReadLength = 0, Index = 0, TextLength = 0, TextBufferLength = 0, Line = 0, LabelType = 0;
-	auto CRLF_Length = false, IsEraseBOM = true, IsLabelComments = false;
+	auto CRLF_Point = false, IsEraseBOM = true, IsLabelComments = false;
 
 //Read data.
 	while (!feof((FILE *)Input))
@@ -100,8 +100,8 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 		{
 			if (FileBuffer.get()[Index] != 0)
 			{
-				if (!CRLF_Length && (FileBuffer.get()[Index] == ASCII_CR || FileBuffer.get()[Index] == ASCII_LF))
-					CRLF_Length = true;
+				if (!CRLF_Point && (FileBuffer.get()[Index] == ASCII_CR || FileBuffer.get()[Index] == ASCII_LF))
+					CRLF_Point = true;
 
 				TextBuffer.get()[TextBufferLength] = FileBuffer.get()[Index];
 				++TextBufferLength;
@@ -109,7 +109,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 		}
 
 	//Lines length check
-		if (!CRLF_Length && ReadLength == FILE_BUFFER_SIZE)
+		if (!CRLF_Point && ReadLength == FILE_BUFFER_SIZE)
 		{
 			if (InputType == READTEXT_HOSTS) //ReadHosts
 				PrintError(LOG_ERROR_HOSTS, L"Data of a line is too long", 0, HostsFileList[FileIndex].FileName.c_str(), Line);
@@ -121,7 +121,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 			return false;
 		}
 		else {
-			CRLF_Length = false;
+			CRLF_Point = false;
 		}
 
 		memset(FileBuffer.get(), 0, FILE_BUFFER_SIZE);
@@ -292,7 +292,7 @@ size_t __fastcall ReadParameter(void)
 	sConfigFileName.clear();
 	sConfigFileName.shrink_to_fit();
 #endif
-	for (Index = 0; Index < ConfigFileList.size(); ++Index)
+	for (Index = 0;Index < ConfigFileList.size();++Index)
 	{
 	#if defined(PLATFORM_WIN)
 		if (_wfopen_s(&Input, ConfigFileList[Index].c_str(), L"rb") != 0 || Input == nullptr)
@@ -302,7 +302,7 @@ size_t __fastcall ReadParameter(void)
 	#endif
 		{
 		//Check all configuration files.
-			if (Index == ConfigFileList.size() - 1U)
+			if (Index + 1U == ConfigFileList.size())
 			{
 				PrintError(LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
 				return EXIT_FAILURE;
@@ -542,6 +542,7 @@ size_t __fastcall ReadParameter(void)
 	}
 
 //Other error which need to print to log.
+/* Old version(2015-05-16)
 #if defined(ENABLE_LIBSODIUM)
 	if (!Parameter.PcapCapture && !Parameter.HostsOnly && !Parameter.DNSCurve && Parameter.RequestMode != REQUEST_TCPMODE)
 #else
@@ -551,6 +552,7 @@ size_t __fastcall ReadParameter(void)
 		PrintError(LOG_ERROR_PARAMETER, L"Pcap Capture error", 0, ConfigFileList[Index].c_str(), 0);
 		return EXIT_FAILURE;
 	}
+*/
 	if (Parameter.LocalMain && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family || 
 		Parameter.LocalMain && Parameter.LocalHosts)
 	{
@@ -567,11 +569,11 @@ size_t __fastcall ReadParameter(void)
 		PrintError(LOG_ERROR_PARAMETER, L"DNS Cache error", 0, ConfigFileList[Index].c_str(), 0);
 		return EXIT_FAILURE;
 	}
-	if (Parameter.EDNS0PayloadSize < OLD_DNS_MAXSIZE)
+	if (Parameter.EDNS0PayloadSize < DNS_PACKET_MAXSIZE_TRADITIONAL)
 	{
 		if (Parameter.EDNS0PayloadSize > 0)
-			PrintError(LOG_ERROR_PARAMETER, L"EDNS0 Payload Size must longer than 512 bytes(Old DNS packets minimum supported size)", 0, ConfigFileList[Index].c_str(), 0);
-		Parameter.EDNS0PayloadSize = EDNS0_MINSIZE; //Default UDP maximum payload size.
+			PrintError(LOG_ERROR_PARAMETER, L"EDNS0 Payload Size must longer than 512 bytes(Traditional DNS packet minimum supported size)", 0, ConfigFileList[Index].c_str(), 0);
+		Parameter.EDNS0PayloadSize = EDNS0_MINSIZE;
 	}
 	else if (Parameter.EDNS0PayloadSize >= PACKET_MAXSIZE - sizeof(ipv6_hdr) - sizeof(udp_hdr))
 	{
@@ -599,9 +601,9 @@ size_t __fastcall ReadParameter(void)
 	}
 
 //Set before checking.
-	if (Parameter.RequestMode != REQUEST_TCPMODE) //TCP Mode options check
+	if (Parameter.RequestMode != REQUEST_TCPMODE) //TCP Mode option check
 		Parameter.TCPDataCheck = false;
-	if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)
+	if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0) //IPv4 Data Filter option check
 		Parameter.IPv4DataCheck = false;
 
 	//DNSCurve options check
@@ -959,11 +961,11 @@ size_t __fastcall ReadParameter(void)
 	if (Parameter.DNSCurve && DNSCurveParameter.IsEncryption)
 	{
 	//DNSCurve PayloadSize check
-		if (DNSCurveParameter.DNSCurvePayloadSize < OLD_DNS_MAXSIZE)
+		if (DNSCurveParameter.DNSCurvePayloadSize < DNS_PACKET_MAXSIZE_TRADITIONAL)
 		{
 			if (DNSCurveParameter.DNSCurvePayloadSize > 0)
-				PrintError(LOG_ERROR_PARAMETER, L"DNSCurve Payload Size must longer than 512 bytes(Old DNS packets minimum supported size)", 0, ConfigFileList[Index].c_str(), 0);
-			DNSCurveParameter.DNSCurvePayloadSize = OLD_DNS_MAXSIZE; //Default DNSCurve UDP maximum payload size.
+				PrintError(LOG_ERROR_PARAMETER, L"DNSCurve Payload Size must longer than 512 bytes(Traditional DNS packet minimum supported size)", 0, ConfigFileList[Index].c_str(), 0);
+			DNSCurveParameter.DNSCurvePayloadSize = DNS_PACKET_MAXSIZE_TRADITIONAL;
 		}
 		else if (DNSCurveParameter.DNSCurvePayloadSize >= PACKET_MAXSIZE - sizeof(ipv6_hdr) - sizeof(udp_hdr))
 		{
@@ -1071,8 +1073,8 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 		}
 	}
 
-//Parameter version less than 0.4 compatible support.
-	if (Parameter.Version < PRODUCT_VERSION)
+//Parameter version less than 0.4(0.3-) compatible support.
+	if (Parameter.Version <= PRODUCT_VERSION_POINT_THREE)
 	{
 	//[Base] block
 		if (Data.find("Hosts=") == 0 && Data.length() > strlen("Hosts="))
@@ -2888,16 +2890,16 @@ size_t __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, co
 
 	Addr.reset();
 
-//Mark patterns.
-	ResultBlacklistTableTemp.PatternString.append(Data, Separated, Data.length() - Separated);
 
 //Block those IP addresses from all requesting.
+	ResultBlacklistTableTemp.PatternString.append(Data, Separated, Data.length() - Separated);
 	if (ResultBlacklistTableTemp.PatternString == ("ALL") || ResultBlacklistTableTemp.PatternString == ("All") || ResultBlacklistTableTemp.PatternString == ("all"))
 	{
 		ResultBlacklistTableTemp.PatternString.clear();
 		ResultBlacklistTableTemp.PatternString.shrink_to_fit();
 	}
-	else { //Other requesting
+//Other requesting
+	else {
 		try {
 			std::regex PatternTemp(ResultBlacklistTableTemp.PatternString);
 			ResultBlacklistTableTemp.Pattern.swap(PatternTemp);
@@ -4330,7 +4332,6 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 					++ResultCount;
 
 				//Length check
-//					if (HostsTableTemp.Length + sizeof(dns_record_aaaa) > PACKET_MAXSIZE)
 					if (ResultCount > DNS_RR_MAXCOUNT_AAAA)
 					{
 						PrintError(LOG_ERROR_HOSTS, L"Too many Hosts IP addresses", 0, HostsFileList[FileIndex].FileName.c_str(), Line);
@@ -4379,7 +4380,6 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 					++ResultCount;
 
 				//Length check
-//					if (HostsTableTemp.Length + sizeof(dns_record_a) > PACKET_MAXSIZE)
 					if (ResultCount > DNS_RR_MAXCOUNT_A)
 					{
 						PrintError(LOG_ERROR_HOSTS, L"Too many Hosts IP addresses", 0, HostsFileList[FileIndex].FileName.c_str(), Line);
@@ -4462,8 +4462,8 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 		if (Result == (SSIZE_T)(Data.length() - 1U))
 		{
 			NameStringTemp.append(Data, Result, 1U);
-		//Case Convert.
-		#if defined(PLATFORM_WIN) //Case-insensitive on Windows
+		//Case Convert(Case-insensitive on Windows).
+		#if defined(PLATFORM_WIN)
 			for (auto &StringIter:NameStringTemp)
 			{
 				if (StringIter > ASCII_AT && StringIter < ASCII_BRACKETS_LEAD)
@@ -4513,8 +4513,8 @@ size_t __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, co
 		}
 		else if (Data[Result] == ASCII_VERTICAL)
 		{
-		//Case Convert.
-		#if defined(PLATFORM_WIN) //Case-insensitive on Windows
+		//Case Convert(Case-insensitive on Windows).
+		#if defined(PLATFORM_WIN)
 			for (auto &StringIter:NameStringTemp)
 			{
 				if (StringIter > ASCII_AT && StringIter < ASCII_BRACKETS_LEAD)
@@ -4618,7 +4618,7 @@ size_t __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, c
 						return EXIT_FAILURE;
 					}
 
-				//Convert IPv6 Port.
+				//Convert IPv6 port.
 					Data.erase(0, Data.find(ASCII_BRACKETS_TRAIL) + 1U);
 					memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 					memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_VERTICAL));
@@ -4660,7 +4660,7 @@ size_t __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, c
 					return EXIT_FAILURE;
 				}
 
-				//Convert IPv6 Port.
+				//Convert IPv6 port.
 				Data.erase(0, Data.find(ASCII_BRACKETS_TRAIL) + 1U);
 				memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.length());
@@ -4691,7 +4691,7 @@ size_t __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, c
 					return EXIT_FAILURE;
 				}
 
-			//Convert IPv6 Port.
+			//Convert IPv6 port.
 				Result = ServiceNameToHex(Data.c_str() + Data.find(ASCII_BRACKETS_TRAIL) + 2U);
 				if (Result == 0)
 				{
@@ -4747,7 +4747,7 @@ size_t __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, c
 						return EXIT_FAILURE;
 					}
 
-				//Convert IPv4 Port.
+				//Convert IPv4 port.
 					Data.erase(0, Data.find(ASCII_COLON) + 1U);
 					memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 					memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_VERTICAL));
@@ -4789,7 +4789,7 @@ size_t __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, c
 					return EXIT_FAILURE;
 				}
 
-				//Convert IPv4 Port.
+				//Convert IPv4 port.
 				Data.erase(0, Data.find(ASCII_COLON) + 1U);
 				memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.length());
@@ -4822,7 +4822,7 @@ size_t __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, c
 				}
 				Target.reset();
 
-			//Convert IPv4 Port.
+			//Convert IPv4 port.
 				Result = ServiceNameToHex(Data.c_str() + Data.find(ASCII_COLON) + 1U);
 				if (Result == 0)
 				{
@@ -4879,7 +4879,7 @@ size_t __fastcall ReadSingleAddress(std::string Data, const size_t DataOffset, s
 				return EXIT_FAILURE;
 			}
 
-		//Convert IPv6 Port.
+		//Convert IPv6 port.
 			Result = ServiceNameToHex(Data.c_str() + Data.find(ASCII_BRACKETS_TRAIL) + 2U);
 			if (Result == 0)
 			{
@@ -4920,7 +4920,7 @@ size_t __fastcall ReadSingleAddress(std::string Data, const size_t DataOffset, s
 				return EXIT_FAILURE;
 			}
 
-		//Convert IPv4 Port.
+		//Convert IPv4 port.
 			Result = ServiceNameToHex(Data.c_str() + Data.find(ASCII_COLON) + 1U);
 			if (Result == 0)
 			{
@@ -4990,7 +4990,7 @@ size_t __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffse
 						return EXIT_FAILURE;
 					}
 
-				//Convert IPv6 Port.
+				//Convert IPv6 port.
 					Data.erase(0, Data.find(ASCII_BRACKETS_TRAIL) + 1U);
 					memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 					memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_VERTICAL));
@@ -5032,7 +5032,7 @@ size_t __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffse
 					return EXIT_FAILURE;
 				}
 
-			//Convert IPv6 Port.
+			//Convert IPv6 port.
 				Data.erase(0, Data.find(ASCII_BRACKETS_TRAIL) + 1U);
 				memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.length());
@@ -5063,7 +5063,7 @@ size_t __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffse
 					return EXIT_FAILURE;
 				}
 
-			//Convert IPv6 Port.
+			//Convert IPv6 port.
 				Result = ServiceNameToHex(Data.c_str() + Data.find(ASCII_BRACKETS_TRAIL) + 2U);
 				if (Result == 0)
 				{
@@ -5117,7 +5117,7 @@ size_t __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffse
 						return EXIT_FAILURE;
 					}
 
-				//Convert IPv4 Port.
+				//Convert IPv4 port.
 					Data.erase(0, Data.find(ASCII_COLON) + 1U);
 					memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 					memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_VERTICAL));
@@ -5159,7 +5159,7 @@ size_t __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffse
 					return EXIT_FAILURE;
 				}
 
-			//Convert IPv4 Port.
+			//Convert IPv4 port.
 				Data.erase(0, Data.find(ASCII_COLON) + 1U);
 				memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.length());
@@ -5192,7 +5192,7 @@ size_t __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffse
 				}
 				Target.reset();
 
-			//Convert IPv4 Port.
+			//Convert IPv4 port.
 				Result = ServiceNameToHex(Data.c_str() + Data.find(ASCII_COLON) + 1U);
 				if (Result == 0)
 				{

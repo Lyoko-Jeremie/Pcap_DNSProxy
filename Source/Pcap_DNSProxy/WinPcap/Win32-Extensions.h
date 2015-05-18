@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 1999 - 2005 NetGroup, Politecnico di Torino (Italy)
  * Copyright (c) 2005 - 2006 CACE Technologies, Davis (California)
  * All rights reserved.

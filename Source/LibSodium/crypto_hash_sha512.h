@@ -1,4 +1,4 @@
-﻿#ifndef crypto_hash_sha512_H
+#ifndef crypto_hash_sha512_H
 #define crypto_hash_sha512_H
 
 /*

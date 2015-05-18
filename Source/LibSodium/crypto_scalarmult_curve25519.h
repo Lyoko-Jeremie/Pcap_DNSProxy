@@ -1,4 +1,4 @@
-﻿#ifndef crypto_scalarmult_curve25519_H
+#ifndef crypto_scalarmult_curve25519_H
 #define crypto_scalarmult_curve25519_H
 
 #include <stddef.h>

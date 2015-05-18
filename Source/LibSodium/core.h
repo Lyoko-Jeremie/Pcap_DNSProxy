@@ -1,4 +1,4 @@
-﻿
+
 #ifndef sodium_core_H
 #define sodium_core_H
 

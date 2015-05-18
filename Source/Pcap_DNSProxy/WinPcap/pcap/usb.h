@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2006 Paolo Abeni (Italy)
  * All rights reserved.
  *

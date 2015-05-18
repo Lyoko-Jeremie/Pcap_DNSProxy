@@ -1,4 +1,4 @@
-﻿#ifndef crypto_verify_32_H
+#ifndef crypto_verify_32_H
 #define crypto_verify_32_H
 
 #include <stddef.h>

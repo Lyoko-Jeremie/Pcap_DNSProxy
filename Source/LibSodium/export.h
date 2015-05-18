@@ -1,4 +1,4 @@
-﻿
+
 #ifndef sodium_export_H
 #define sodium_export_H
 

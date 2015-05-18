@@ -233,9 +233,6 @@
     <Library Include="..\LibSodium\LibSodium_x64.lib" />
     <Library Include="..\LibSodium\LibSodium_x86.lib" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\LibSodium\version.h.in" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

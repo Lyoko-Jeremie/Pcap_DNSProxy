@@ -176,11 +176,11 @@
 #endif
 
 //C Standard Library and C++ Standard Template Library/STL Headers
-#include <cstdlib>                 //C Standard Library
-#include <cstdio>                  //File Input/Output support
-#include <ctime>                   //Date and Time support
-#include <string>                  //String support
-#include <vector>                  //Vector support
+//#include <cstdlib>                 //C Standard Library
+//#include <cstdio>                  //File Input/Output support
+//#include <ctime>                   //Date and Time support
+//#include <string>                  //String support
+//#include <vector>                  //Vector support
 #include <deque>                   //Double-ended queue support
 #include <set>                     //Set support
 #include <map>                     //Map support
@@ -234,9 +234,9 @@
 	#endif
 
 	#if defined(PLATFORM_WIN)
-		#define __LITTLE_ENDIAN            1U                 //Little Endian
-//		#define __BIG_ENDIAN               2U                 //Big Endian
-		#define __BYTE_ORDER               __LITTLE_ENDIAN    //x86 and x86-64/x64
+		#define __LITTLE_ENDIAN            1U                        //Little Endian
+//		#define __BIG_ENDIAN               2U                        //Big Endian
+		#define __BYTE_ORDER               __LITTLE_ENDIAN           //x86 and x86-64/x64 is Little Endian.
 
 	//Code defines
 		#define WINSOCK_VERSION_LOW        2                         //Low byte of Winsock version
@@ -402,16 +402,16 @@
 //////////////////////////////////////////////////
 // Base defines
 // 
-#pragma pack(1)                                          //Memory alignment: 1 bytes/8 bits
-#define KILOBYTE_TIMES         1024U                     //1KB = 1024 bytes
-#define MEGABYTE_TIMES         1048576U                  //1MB = 1048576 bytes
-#define GIGABYTE_TIMES         1073741824U               //1GB = 1073741824 bytes
-#define ANSI                   1U                        //ANSI Codepage
-#define UTF_8                  65001U                    //Microsoft Windows Codepage of UTF-8
-#define UTF_16_LE              1200U                     //Microsoft Windows Codepage of UTF-16 Little Endian/LE
-#define UTF_16_BE              1201U                     //Microsoft Windows Codepage of UTF-16 Big Endian/BE
-#define UTF_32_LE              12000U                    //Microsoft Windows Codepage of UTF-32 Little Endian/LE
-#define UTF_32_BE              12001U                    //Microsoft Windows Codepage of UTF-32 Big Endian/BE
+#pragma pack(1)                              //Memory alignment: 1 bytes/8 bits
+#define KILOBYTE_TIMES         1024U         //1KB = 1024 bytes
+#define MEGABYTE_TIMES         1048576U      //1MB = 1048576 bytes
+#define GIGABYTE_TIMES         1073741824U   //1GB = 1073741824 bytes
+#define ANSI                   1U            //Microsoft Windows Codepage of ANSI
+#define UTF_8                  65001U        //Microsoft Windows Codepage of UTF-8
+#define UTF_16_LE              1200U         //Microsoft Windows Codepage of UTF-16 Little Endian/LE
+#define UTF_16_BE              1201U         //Microsoft Windows Codepage of UTF-16 Big Endian/BE
+#define UTF_32_LE              12000U        //Microsoft Windows Codepage of UTF-32 Little Endian/LE
+#define UTF_32_BE              12001U        //Microsoft Windows Codepage of UTF-32 Big Endian/BE
 
 
 //////////////////////////////////////////////////
@@ -737,9 +737,8 @@ typedef struct _ppp_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define IPV4_STANDARDIHL             0x05   //Standard IPv4 header length(0x05/20 bytes)
+#define IPV4_STANDARD_IHL            0x05   //Standard IPv4 header length(0x05/20 bytes)
 #define IPv4_IHL_BYTES_TIMES         4U     //IHL is number of 32-bit words(4 bytes).
-#define IPV4_SHORTEST_ADDRSTRING     6U     //The shortest address strings(*.*.*.*).
 typedef struct _ipv4_hdr_
 {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
@@ -811,7 +810,6 @@ typedef struct _ipv4_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define IPV6_SHORTEST_ADDRSTRING     3U   //The shortest address strings(::).
 typedef struct _ipv6_hdr_
 {
 	union {
@@ -1460,7 +1458,7 @@ RFC 7314(https://tools.ietf.org/html/rfc7314), Extension Mechanisms for DNS (EDN
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define OLD_DNS_MAXSIZE 512U
+#define DNS_PACKET_MAXSIZE_TRADITIONAL 512U   //Traditional DNS packet maximum size(512 bytes)
 typedef struct _dns_hdr_
 {
 	uint16_t              ID;
@@ -1809,8 +1807,8 @@ typedef struct _dns_record_opt_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define DNSCURVE_VERSION_MAJOR     0x0001    //Major version of DNSCurve
-#define DNSCURVE_VERSION_MINOR     0         //Minor version of DNSCurve
+#define DNSCURVE_VERSION_MAJOR     0x0001    //Latest major version of DNSCurve
+#define DNSCURVE_VERSION_MINOR     0         //Latest minor version of DNSCurve
 typedef struct _dnscurve_txt_hdr_
 {
 	uint32_t              CertMagicNumber;
@@ -1899,8 +1897,9 @@ typedef struct _dnscurve_txt_signature_
 #define ASCII_UPPER_TO_LOWER    32U                  //Uppercase to lowercase
 #define ASCII_LOWER_TO_UPPER    32U                  //Lowercase to uppercase
 
-//Version define
-#define PRODUCT_VERSION         0.4                  //Current version
+//Version defines
+#define PRODUCT_VERSION_POINT_THREE   0.3
+#define PRODUCT_VERSION               0.4            //Current version
 
 //Length defines
 #define BOM_UTF_8_LENGTH               3U                                         //Length of UTF-8 BOM
@@ -1916,6 +1915,8 @@ typedef struct _dnscurve_txt_signature_
 #define LARGE_PACKET_MAXSIZE           4096U                                      //Maximum size of packets(4KB/4096 bytes) of TCP protocol
 #define BUFFER_RING_MAXNUM             32U                                        //Number of maximum packet buffer queues
 #define ADDR_STRING_MAXSIZE            64U                                        //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
+#define IPV4_SHORTEST_ADDRSTRING       6U                                         //The shortest IPv4 address strings(*.*.*.*).
+#define IPV6_SHORTEST_ADDRSTRING       3U                                         //The shortest IPv6 address strings(::).
 #define ICMP_PADDING_MAXSIZE           1484U                                      //Length of ICMP padding data must between 18 bytes and 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
 #if defined(PLATFORM_LINUX)
 	#define ICMP_STRING_START_NUM_LINUX    16U

@@ -196,7 +196,7 @@
 	Parameter.sRunningLogPath->append("Running.log");
 #endif
 	time(&StartTime);
-	time(&RunningLogStartTime);
+	RunningLogStartTime = StartTime;
 
 #if defined(PLATFORM_WIN)
 //Winsock initialization

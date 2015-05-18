@@ -1,4 +1,4 @@
-﻿#ifndef crypto_pwhash_scryptsalsa208sha256_H
+#ifndef crypto_pwhash_scryptsalsa208sha256_H
 #define crypto_pwhash_scryptsalsa208sha256_H
 
 #include <stddef.h>

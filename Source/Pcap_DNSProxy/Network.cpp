@@ -39,7 +39,7 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 	if (Parameter.DomainTestData != nullptr)
 	{
 		DataLength = CharToDNSQuery(Parameter.DomainTestData, DNSQuery.get());
-		if (DataLength > 2U && DataLength < PACKET_MAXSIZE - sizeof(dns_hdr))
+		if (DataLength > DOMAIN_MINSIZE && DataLength < PACKET_MAXSIZE - sizeof(dns_hdr))
 		{
 			memcpy_s(Buffer.get() + sizeof(dns_hdr), PACKET_MAXSIZE - sizeof(dns_hdr), DNSQuery.get(), DataLength);
 			DNS_Query = (pdns_qry)(Buffer.get() + sizeof(dns_hdr) + DataLength);

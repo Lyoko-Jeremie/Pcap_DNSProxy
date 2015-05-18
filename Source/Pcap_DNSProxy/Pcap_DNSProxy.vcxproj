@@ -284,7 +284,6 @@
     <None Include="..\ExampleConfig\Hosts.ini" />
     <None Include="..\ExampleConfig\IPFilter.ini" />
     <None Include="..\ExampleConfig\ServiceControl.bat" />
-    <None Include="..\LibSodium\version.h.in" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\Documents\Changelog(zh_Hans).txt" />

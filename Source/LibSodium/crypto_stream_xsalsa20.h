@@ -1,4 +1,4 @@
-﻿#ifndef crypto_stream_xsalsa20_H
+#ifndef crypto_stream_xsalsa20_H
 #define crypto_stream_xsalsa20_H
 
 /*

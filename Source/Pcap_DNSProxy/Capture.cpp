@@ -689,7 +689,7 @@ size_t __fastcall NetworkLayer(const char *Recv, const size_t Length, const uint
 		if (Parameter.IPv4DataCheck)
 		{
 		//No standard header length and header ID check
-			if (IPv4_Header->IHL > IPV4_STANDARDIHL || IPv4_Header->ID == 0)
+			if (IPv4_Header->IHL > IPV4_STANDARD_IHL || IPv4_Header->ID == 0)
 				PacketSource->HopLimitData.TTL = IPv4_Header->TTL;
 
 		//TOS and Flags should not be set.

@@ -1,4 +1,4 @@
-﻿#ifndef crypto_shorthash_siphash24_H
+#ifndef crypto_shorthash_siphash24_H
 #define crypto_shorthash_siphash24_H
 
 #include <stddef.h>

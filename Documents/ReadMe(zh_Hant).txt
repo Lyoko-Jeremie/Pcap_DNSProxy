@@ -181,7 +181,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Print Error - 輸出錯誤報表功能：開啟為1/關閉為0，預設為 1
   * Print Running Log - 輸出運行日誌功能：預設為 0
   * Running Log Refresh Time - 運行日誌寫入刷新間隔：單位為秒，最短間隔時間為5秒，預設為 10
-  * Log Maximum Size - 日誌檔最大容量：直接填數位時單位為位元組，可加上單位，支援的單位有 KB/MB/GB，可接受範圍為 4KB - 4GB，如果留空則為 8MB，預設為空
+  * Log Maximum Size - 日誌檔最大容量：直接填數位時單位為位元組，可加上單位，支援的單位有 KB/MB/GB，可接受範圍為 4KB - 1GB，如果留空則為 8MB，預設為 8MB
     * 注意：日誌檔到達最大容量後將被直接刪除，然後重新生成新的日誌檔，原來的日誌將無法找回！
 
 * DNS - 功能變數名稱解析參數區域
@@ -192,8 +192,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 開啟後所有請求先使用 Local 的伺服器進行解析，遇到遭投毒污染的解析結果時自動再向境外伺服器請求
     * 本功能不能與 Local Hosts 同時啟用
   * Local Hosts - 白名單境內伺服器請求功能：開啟為1/關閉為0，預設為 0
-    * 開啟後才能使用自帶或自訂的 Local Hosts 白名單，同時白名單內功能變數名稱的解析結果會被無條件信任！
-    * 本功能與 Local Hosts 和 Local Routing 不能同時啟用
+    * 開啟後才能使用自帶或自訂的 Local Hosts 白名單，且不能與 Local Hosts 和 Local Routing 同時啟用
   * Local Routing - Local 路由表識別功能：開啟為1/關閉為0，預設為 0
     * 開啟後使用 Local 請求的解析結果都會被檢查，路由表命中會直接返回結果，命中失敗將丟棄解析結果並向境外伺服器再次發起請求
     * 本功能只能在 Local Main 為啟用狀態時才能啟用

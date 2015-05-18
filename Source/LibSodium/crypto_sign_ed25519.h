@@ -1,4 +1,4 @@
-﻿#ifndef crypto_sign_ed25519_H
+#ifndef crypto_sign_ed25519_H
 #define crypto_sign_ed25519_H
 
 #include <stddef.h>

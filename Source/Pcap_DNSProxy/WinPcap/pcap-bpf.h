@@ -1,4 +1,4 @@
-﻿/*-
+/*-
  * Copyright (c) 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -44,4 +44,4 @@
  * Note to OS vendors: do NOT get rid of this file!  Some applications
  * might expect to be able to include <pcap-bpf.h>.
  */
-#include <pcap/bpf.h>
+#include "WinPcap/pcap/bpf.h"

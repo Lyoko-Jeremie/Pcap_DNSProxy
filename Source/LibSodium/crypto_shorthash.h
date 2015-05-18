@@ -1,4 +1,4 @@
-﻿#ifndef crypto_shorthash_H
+#ifndef crypto_shorthash_H
 #define crypto_shorthash_H
 
 #include <stddef.h>

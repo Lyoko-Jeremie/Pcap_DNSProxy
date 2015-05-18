@@ -1,4 +1,4 @@
-﻿#ifndef crypto_generichash_H
+#ifndef crypto_generichash_H
 #define crypto_generichash_H
 
 #include <stddef.h>

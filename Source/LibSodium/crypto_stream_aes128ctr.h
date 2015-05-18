@@ -1,4 +1,4 @@
-﻿#ifndef crypto_stream_aes128ctr_H
+#ifndef crypto_stream_aes128ctr_H
 #define crypto_stream_aes128ctr_H
 
 /*

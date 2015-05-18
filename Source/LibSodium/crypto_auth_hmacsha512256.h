@@ -1,4 +1,4 @@
-﻿#ifndef crypto_auth_hmacsha512256_H
+#ifndef crypto_auth_hmacsha512256_H
 #define crypto_auth_hmacsha512256_H
 
 #include <stddef.h>
@@ -11,10 +11,6 @@
 # endif
 extern "C" {
 #endif
-
-typedef crypto_auth_hmacsha512_state crypto_auth_hmacsha512256_state;
-SODIUM_EXPORT
-size_t crypto_auth_hmacsha512256_statebytes(void);
 
 #define crypto_auth_hmacsha512256_BYTES 32U
 SODIUM_EXPORT
@@ -33,6 +29,12 @@ int crypto_auth_hmacsha512256_verify(const unsigned char *h,
                                      const unsigned char *in,
                                      unsigned long long inlen,
                                      const unsigned char *k);
+
+/* ------------------------------------------------------------------------- */
+
+typedef crypto_auth_hmacsha512_state crypto_auth_hmacsha512256_state;
+SODIUM_EXPORT
+size_t crypto_auth_hmacsha512256_statebytes(void);
 
 SODIUM_EXPORT
 int crypto_auth_hmacsha512256_init(crypto_auth_hmacsha512256_state *state,

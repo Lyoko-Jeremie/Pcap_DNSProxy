@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 1993, 1994, 1995, 1996, 1997
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -42,4 +42,4 @@
  * OSes that have "helpfully" moved pcap.h to <pcap/pcap.h> without
  * leaving behind a <pcap.h> file.
  */
-#include "pcap/pcap.h"
+#include "WinPcap/pcap/pcap.h"

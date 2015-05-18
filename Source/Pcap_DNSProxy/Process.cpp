@@ -190,6 +190,7 @@ size_t __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Len
 		if (!Parameter.PcapCapture)
 			return EXIT_FAILURE;
 	}
+
 	RecvBuffer.reset();
 
 //UDP requesting

@@ -1,4 +1,4 @@
-﻿
+
 #ifndef sodium_runtime_H
 #define sodium_runtime_H
 

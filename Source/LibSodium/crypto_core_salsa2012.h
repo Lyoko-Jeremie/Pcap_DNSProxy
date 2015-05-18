@@ -1,4 +1,4 @@
-﻿#ifndef crypto_core_salsa2012_H
+#ifndef crypto_core_salsa2012_H
 #define crypto_core_salsa2012_H
 
 #include <stddef.h>

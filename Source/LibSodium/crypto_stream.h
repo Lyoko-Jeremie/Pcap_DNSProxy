@@ -1,4 +1,4 @@
-﻿#ifndef crypto_stream_H
+#ifndef crypto_stream_H
 #define crypto_stream_H
 
 /*

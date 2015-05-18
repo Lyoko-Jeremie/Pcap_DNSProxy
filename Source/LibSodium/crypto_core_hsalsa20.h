@@ -1,4 +1,4 @@
-﻿#ifndef crypto_core_hsalsa20_H
+#ifndef crypto_core_hsalsa20_H
 #define crypto_core_hsalsa20_H
 
 #include <stddef.h>

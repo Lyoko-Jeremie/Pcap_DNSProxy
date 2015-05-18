@@ -1,4 +1,4 @@
-﻿#ifndef crypto_stream_salsa208_H
+#ifndef crypto_stream_salsa208_H
 #define crypto_stream_salsa208_H
 
 /*

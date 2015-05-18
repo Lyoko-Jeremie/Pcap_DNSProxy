@@ -1,4 +1,4 @@
-﻿#ifndef crypto_secretbox_H
+#ifndef crypto_secretbox_H
 #define crypto_secretbox_H
 
 #include <stddef.h>

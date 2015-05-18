@@ -108,6 +108,12 @@
     <ClInclude Include="Initialization.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Network.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowsService.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="..\LibSodium\core.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
@@ -267,12 +273,6 @@
     <ClInclude Include="..\LibSodium\version.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
-    <ClInclude Include="Network.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="WindowsService.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="WinPcap\Packet_x64.lib">
@@ -281,17 +281,17 @@
     <Library Include="WinPcap\Packet_x86.lib">
       <Filter>WinPcap</Filter>
     </Library>
-    <Library Include="..\LibSodium\LibSodium_x64.lib">
-      <Filter>LibSodium</Filter>
-    </Library>
-    <Library Include="..\LibSodium\LibSodium_x86.lib">
-      <Filter>LibSodium</Filter>
-    </Library>
     <Library Include="WinPcap\WPCAP_x64.lib">
       <Filter>WinPcap</Filter>
     </Library>
     <Library Include="WinPcap\WPCAP_x86.lib">
       <Filter>WinPcap</Filter>
+    </Library>
+    <Library Include="..\LibSodium\LibSodium_x64.lib">
+      <Filter>LibSodium</Filter>
+    </Library>
+    <Library Include="..\LibSodium\LibSodium_x86.lib">
+      <Filter>LibSodium</Filter>
     </Library>
   </ItemGroup>
   <ItemGroup>
@@ -338,9 +338,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\LibSodium\version.h.in">
-      <Filter>LibSodium</Filter>
-    </None>
     <None Include="..\ExampleConfig\Config.ini">
       <Filter>ExampleConfig</Filter>
     </None>

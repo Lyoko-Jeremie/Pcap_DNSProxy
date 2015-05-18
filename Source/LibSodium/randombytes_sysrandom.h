@@ -1,4 +1,4 @@
-﻿
+
 #ifndef randombytes_sysrandom_H
 #define randombytes_sysrandom_H
 

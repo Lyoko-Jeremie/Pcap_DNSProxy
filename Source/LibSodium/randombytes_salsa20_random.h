@@ -1,4 +1,4 @@
-﻿
+
 #ifndef randombytes_salsa20_random_H
 #define randombytes_salsa20_random_H
 

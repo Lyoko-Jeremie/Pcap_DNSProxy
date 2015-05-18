@@ -183,6 +183,8 @@ size_t WINAPI FlushDNSMailSlotMonitor(void)
 	HANDLE hSlot = CreateMailslotW(MAILSLOT_NAME, PACKET_MAXSIZE - 1U, MAILSLOT_WAIT_FOREVER, SecurityAttributes.get());
 	if (hSlot == INVALID_HANDLE_VALUE)
 	{
+		LocalFree(SID_Value);
+
 		PrintError(LOG_ERROR_SYSTEM, L"Create mailslot error", GetLastError(), nullptr, 0);
 		return EXIT_FAILURE;
 	}

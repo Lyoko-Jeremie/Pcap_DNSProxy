@@ -1,4 +1,4 @@
-﻿#ifndef crypto_onetimeauth_H
+#ifndef crypto_onetimeauth_H
 #define crypto_onetimeauth_H
 
 #include <stddef.h>

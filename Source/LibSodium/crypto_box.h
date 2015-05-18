@@ -1,4 +1,4 @@
-﻿#ifndef crypto_box_H
+#ifndef crypto_box_H
 #define crypto_box_H
 
 /*
@@ -105,6 +105,21 @@ int crypto_box_open_detached_afternm(unsigned char *m, const unsigned char *c,
                                      const unsigned char *mac,
                                      unsigned long long clen, const unsigned char *n,
                                      const unsigned char *k);
+
+/* -- Ephemeral SK interface -- */
+
+#define crypto_box_SEALBYTES (crypto_box_PUBLICKEYBYTES + crypto_box_MACBYTES)
+SODIUM_EXPORT
+size_t crypto_box_sealbytes(void);
+
+SODIUM_EXPORT
+int crypto_box_seal(unsigned char *c, const unsigned char *m,
+                    unsigned long long mlen, const unsigned char *pk);
+
+SODIUM_EXPORT
+int crypto_box_seal_open(unsigned char *m, const unsigned char *c,
+                         unsigned long long clen,
+                         const unsigned char *pk, const unsigned char *sk);
 
 /* -- NaCl compatibility interface ; Requires padding -- */
 

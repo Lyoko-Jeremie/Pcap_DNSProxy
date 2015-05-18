@@ -202,9 +202,4 @@
       <Filter>LibSodium</Filter>
     </Library>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\LibSodium\version.h.in">
-      <Filter>LibSodium</Filter>
-    </None>
-  </ItemGroup>
 </Project>

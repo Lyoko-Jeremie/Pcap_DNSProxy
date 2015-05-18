@@ -1,4 +1,4 @@
-﻿#ifndef crypto_uint16_H
+#ifndef crypto_uint16_H
 #define crypto_uint16_H
 
 #include <stdint.h>

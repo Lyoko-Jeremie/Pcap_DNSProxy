@@ -1,4 +1,4 @@
-﻿#ifndef crypto_sign_H
+#ifndef crypto_sign_H
 #define crypto_sign_H
 
 /*

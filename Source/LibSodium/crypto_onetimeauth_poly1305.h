@@ -1,4 +1,4 @@
-﻿#ifndef crypto_onetimeauth_poly1305_H
+#ifndef crypto_onetimeauth_poly1305_H
 #define crypto_onetimeauth_poly1305_H
 
 #include <stddef.h>

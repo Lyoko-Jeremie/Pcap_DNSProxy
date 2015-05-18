@@ -1,4 +1,4 @@
-﻿
+
 #ifndef sodium_utils_H
 #define sodium_utils_H
 

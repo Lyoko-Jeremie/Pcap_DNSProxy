@@ -1,4 +1,4 @@
-﻿#ifndef crypto_scalarmult_H
+#ifndef crypto_scalarmult_H
 #define crypto_scalarmult_H
 
 #include <stddef.h>

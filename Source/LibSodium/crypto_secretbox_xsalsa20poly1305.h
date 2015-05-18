@@ -1,4 +1,4 @@
-﻿#ifndef crypto_secretbox_xsalsa20poly1305_H
+#ifndef crypto_secretbox_xsalsa20poly1305_H
 #define crypto_secretbox_xsalsa20poly1305_H
 
 #include <stddef.h>
