@@ -19,6 +19,7 @@
 
 #include "Network.h"
 
+#if defined(ENABLE_PCAP)
 //Get TTL(IPv4)/Hop Limits(IPv6) with normal DNS request
 size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 {
@@ -404,6 +405,7 @@ size_t __fastcall ICMPEcho(const uint16_t Protocol)
 	PrintError(LOG_ERROR_SYSTEM, L"ICMP Test module Monitor terminated", 0, nullptr, 0);
 	return EXIT_SUCCESS;
 }
+#endif
 
 //Transmission and reception of TCP protocol(Independent)
 size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal)
@@ -598,7 +600,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 	//Reset parameters.
 	#if defined(PLATFORM_WIN)
 		Timeout->tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
-		Timeout->tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+		Timeout->tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Timeout->tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
 		Timeout->tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
@@ -675,7 +677,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 								JumpFromPDU: 
 
 							//Responses question and answers check
-								if ((Parameter.DNSDataCheck || Parameter.Blacklist) && !CheckResponseData(OriginalRecv, RecvLen, IsLocal, nullptr))
+								if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && !CheckResponseData(OriginalRecv, RecvLen, IsLocal, nullptr))
 								{
 									memset(OriginalRecv, 0, RecvSize);
 									return EXIT_FAILURE;
@@ -1032,7 +1034,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 	//Reset parameters.
 	#if defined(PLATFORM_WIN)
 		Timeout->tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
-		Timeout->tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+		Timeout->tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Timeout->tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
 		Timeout->tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
@@ -1120,7 +1122,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 									JumpFromPDU: 
 
 								//Responses question and answers check
-									if ((Parameter.DNSDataCheck || Parameter.Blacklist) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
+									if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
 									{
 										memset(OriginalRecv, 0, RecvSize);
 										continue;
@@ -1204,6 +1206,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 }
 
 //Transmission of UDP protocol
+#if defined(ENABLE_PCAP)
 size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, const SOCKET_DATA *LocalSocketData, const uint16_t Protocol)
 {
 //Initialization
@@ -1623,7 +1626,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 	//Reset parameters.
 	#if defined(PLATFORM_WIN)
 		Timeout->tv_sec = Parameter.UnreliableSocketTimeout / SECOND_TO_MILLISECOND;
-		Timeout->tv_usec = Parameter.UnreliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+		Timeout->tv_usec = Parameter.UnreliableSocketTimeout % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Timeout->tv_sec = Parameter.UnreliableSocketTimeout.tv_sec;
 		Timeout->tv_usec = Parameter.UnreliableSocketTimeout.tv_usec;
@@ -1756,6 +1759,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 
 	return EXIT_SUCCESS;
 }
+#endif
 
 //Complete transmission of UDP protocol
 size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal)
@@ -1925,41 +1929,64 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 	}
 	else {
 	//Hosts Only Extended check
-		if (Parameter.DNSDataCheck || Parameter.Blacklist)
+		if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && !CheckResponseData(OriginalRecv, RecvLen, IsLocal, nullptr))
 		{
+			memset(OriginalRecv, 0, RecvSize);
+
+		//Set socket timeout.
+			if (!IsLocal && Parameter.ReceiveWaiting > 0)
+			{
+			#if defined(PLATFORM_WIN)
+				int SocketTimeoutTemp = (int)Parameter.ReceiveWaiting;
+				if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&SocketTimeoutTemp, sizeof(int)) == SOCKET_ERROR || 
+					setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&SocketTimeoutTemp, sizeof(int)) == SOCKET_ERROR)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				timeval SocketTimeoutTemp = {0};
+				SocketTimeoutTemp.tv_sec = Parameter.ReceiveWaiting / SECOND_TO_MILLISECOND;
+				SocketTimeoutTemp.tv_usec = Parameter.ReceiveWaiting % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+				if (setsockopt(UDPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&SocketTimeoutTemp, sizeof(timeval)) == SOCKET_ERROR || 
+					setsockopt(UDPSocket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&SocketTimeoutTemp, sizeof(timeval)) == SOCKET_ERROR)
+			#endif
+				{
+					PrintError(LOG_ERROR_NETWORK, L"Set UDP socket timeout error", WSAGetLastError(), nullptr, 0);
+					closesocket(UDPSocket);
+
+					return EXIT_FAILURE;
+				}
+			}
+		//Stop waitting when it is Local requesting.
+			else {
+				shutdown(UDPSocket, SD_BOTH);
+				closesocket(UDPSocket);
+				return EXIT_FAILURE;
+			}
+
+		//Try to receive packets.
 			for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 			{
-				if ((Parameter.DNSDataCheck || Parameter.Blacklist) && !CheckResponseData(OriginalRecv, RecvLen, IsLocal, nullptr))
+				if (!CheckResponseData(OriginalRecv, RecvLen, IsLocal, nullptr))
 				{
 					memset(OriginalRecv, 0, RecvSize);
-					if (IsLocal) //Stop waitting when it is Local requesting.
+					RecvLen = recv(UDPSocket, OriginalRecv, (int)RecvSize, 0);
+					if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 					{
+						if (RecvLen == SOCKET_ERROR)
+							RecvLen = WSAGetLastError();
 						shutdown(UDPSocket, SD_BOTH);
 						closesocket(UDPSocket);
-						return EXIT_FAILURE;
-					}
-					else {
-						RecvLen = recv(UDPSocket, OriginalRecv, (int)RecvSize, 0);
-						if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+						memset(OriginalRecv, 0, RecvSize);
+						if (RecvLen == WSAETIMEDOUT)
 						{
-							if (RecvLen == SOCKET_ERROR)
-								RecvLen = WSAGetLastError();
-							shutdown(UDPSocket, SD_BOTH);
-							closesocket(UDPSocket);
-							memset(OriginalRecv, 0, RecvSize);
-							if (RecvLen == WSAETIMEDOUT)
-							{
-								if (IsAlternate != nullptr && !*IsAlternate && AlternateTimeoutTimes != nullptr)
-									++(*AlternateTimeoutTimes);
-								return WSAETIMEDOUT;
-							}
-							else {
-								return EXIT_FAILURE;
-							}
+							if (IsAlternate != nullptr && !*IsAlternate && AlternateTimeoutTimes != nullptr)
+								++(*AlternateTimeoutTimes);
+							return WSAETIMEDOUT;
 						}
-
-						Sleep(LOOP_INTERVAL_TIME);
+						else {
+							return EXIT_FAILURE;
+						}
 					}
+
+					Sleep(LOOP_INTERVAL_TIME);
 				}
 				else {
 					shutdown(UDPSocket, SD_BOTH);
@@ -2244,7 +2271,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 	//Reset parameters.
 	#if defined(PLATFORM_WIN)
 		Timeout->tv_sec = Parameter.UnreliableSocketTimeout / SECOND_TO_MILLISECOND;
-		Timeout->tv_usec = Parameter.UnreliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+		Timeout->tv_usec = Parameter.UnreliableSocketTimeout % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Timeout->tv_sec = Parameter.UnreliableSocketTimeout.tv_sec;
 		Timeout->tv_usec = Parameter.UnreliableSocketTimeout.tv_usec;
@@ -2284,7 +2311,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 					}
 					else {
 					//Hosts Only Extended check
-						if ((Parameter.DNSDataCheck || Parameter.Blacklist) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
+						if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
 						{
 							memset(OriginalRecv, 0, RecvSize);
 							shutdown(UDPSocketDataList[Index].Socket, SD_BOTH);

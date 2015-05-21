@@ -17,12 +17,16 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+# CMake minimum version
 cmake_minimum_required(VERSION 3.0.2)
 
+# Project name
 project(Pcap_DNSProxy)
 
+# Release version
 set(CMAKE_BUILD_TYPE "Release")
 
+# All source files
 set(MAIN_SRC_FILES 
 		"Base.h"
 		"Capture.h"
@@ -47,12 +51,23 @@ set(MAIN_SRC_FILES
 		"Process.cpp"
 		"Protocol.cpp")
 
+# Compiling and linking flags
 add_definitions(-std=c++11 -fpic)
-
+IF(ENABLE_PCAP)
+	add_definitions(-DENABLE_PCAP)
+ENDIF(ENABLE_PCAP)
 IF(ENABLE_LIBSODIUM)
 	add_definitions(-DENABLE_LIBSODIUM)
 ENDIF(ENABLE_LIBSODIUM)
 
+# Executable file name
 add_executable(Pcap_DNSProxy ${MAIN_SRC_FILES})
 
-target_link_libraries(Pcap_DNSProxy sodium pcap pthread)
+# Static libraries
+target_link_libraries(Pcap_DNSProxy pthread)
+IF(ENABLE_PCAP)
+	target_link_libraries(Pcap_DNSProxy pcap)
+ENDIF(ENABLE_PCAP)
+IF(ENABLE_LIBSODIUM)
+	target_link_libraries(Pcap_DNSProxy sodium)
+ENDIF(ENABLE_LIBSODIUM)

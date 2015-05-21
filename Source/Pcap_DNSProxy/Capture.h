@@ -19,13 +19,14 @@
 
 #include "Base.h"
 
+#if defined(ENABLE_PCAP)
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 extern std::deque<PORT_TABLE> PortList;
 extern std::mutex CaptureLock, PortListLock;
 std::string PcapFilterRules;
-std::vector<std::string> PcapRunning;
+std::vector<std::string> PcapRunningList;
 
 //Functions
 void __fastcall FilterRulesInit(std::string &FilterRules);
@@ -34,3 +35,4 @@ size_t __fastcall NetworkLayer(const char *Recv, const size_t Length, const uint
 bool __fastcall ICMPCheck(const char *Buffer, const size_t Length, const uint16_t Protocol);
 bool __fastcall TCPCheck(const char *Buffer);
 size_t __fastcall MatchPortToSend(const char *Buffer, const size_t Length, const uint16_t Protocol, const uint16_t Port);
+#endif

@@ -97,7 +97,7 @@ BOOL WINAPI ExecuteService(void)
 	HANDLE hServiceThread = CreateThread(0, 0, (PTHREAD_START_ROUTINE)ServiceProc, nullptr, 0, &dwThreadID);
 	if (hServiceThread != nullptr)
 	{
-		ServiceRunning = TRUE;
+		IsServiceRunning = TRUE;
 		return TRUE;
 	}
 
@@ -107,7 +107,7 @@ BOOL WINAPI ExecuteService(void)
 //Service Main process thread
 DWORD WINAPI ServiceProc(PVOID lpParameter)
 {
-	if (!ServiceRunning || MonitorInit() == EXIT_FAILURE)
+	if (!IsServiceRunning || MonitorInit() == EXIT_FAILURE)
 	{
 		WSACleanup();
 		TerminateService();
@@ -154,7 +154,7 @@ BOOL WINAPI UpdateServiceStatus(const DWORD dwCurrentState, const DWORD dwWin32E
 //Terminate service
 void WINAPI TerminateService(void)
 {
-	ServiceRunning = FALSE;
+	IsServiceRunning = FALSE;
 	SetEvent(ServiceEvent);
 	UpdateServiceStatus(SERVICE_STOPPED, NO_ERROR, 0, 0, 0);
 

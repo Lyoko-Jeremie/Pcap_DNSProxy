@@ -370,13 +370,10 @@
     <Text Include="..\Documents\FAQ(zh_Hant).txt">
       <Filter>Documents</Filter>
     </Text>
-    <Text Include="..\Documents\FAQ_Linux(zh_Hans).txt">
+    <Text Include="..\Documents\FAQ_Linux_Mac(zh_Hans).txt">
       <Filter>Documents</Filter>
     </Text>
-    <Text Include="..\Documents\FAQ_Linux(zh_Hant).txt">
-      <Filter>Documents</Filter>
-    </Text>
-    <Text Include="..\Documents\FAQ_Mac(zh_Hans).txt">
+    <Text Include="..\Documents\FAQ_Linux_Mac(zh_Hant).txt">
       <Filter>Documents</Filter>
     </Text>
     <Text Include="..\Documents\ReadMe(zh_Hans).txt">
@@ -388,7 +385,13 @@
     <Text Include="..\Documents\ReadMe_Linux(zh_Hans).txt">
       <Filter>Documents</Filter>
     </Text>
+    <Text Include="..\Documents\ReadMe_Linux(zh_Hant).txt">
+      <Filter>Documents</Filter>
+    </Text>
     <Text Include="..\Documents\ReadMe_Mac(zh_Hans).txt">
+      <Filter>Documents</Filter>
+    </Text>
+    <Text Include="..\Documents\ReadMe_Mac(zh_Hant).txt">
       <Filter>Documents</Filter>
     </Text>
   </ItemGroup>

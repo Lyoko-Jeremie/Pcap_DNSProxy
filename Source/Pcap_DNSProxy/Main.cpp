@@ -111,7 +111,7 @@
 	GetNetworkingInformationThread.detach();
 
 //Read IPFilter and Hosts.
-	if (Parameter.OperationMode == LISTEN_CUSTOMMODE || Parameter.Blacklist || Parameter.LocalRouting)
+	if (Parameter.OperationMode == LISTEN_CUSTOMMODE || Parameter.BlacklistCheck || Parameter.LocalRouting)
 	{
 		std::thread IPFilterThread(ReadIPFilter);
 		IPFilterThread.detach();
@@ -136,8 +136,9 @@
 	if (!StartServiceCtrlDispatcherW(ServiceTable))
 	{
 		Parameter.Console = true;
-		PrintError(LOG_ERROR_SYSTEM, L"Service start error", GetLastError(), nullptr, 0);
-		PrintError(LOG_ERROR_SYSTEM, L"Pcap_DNSProxy will continue to run in console mode", 0, nullptr, 0);
+		wprintf_s(L"System Error: Service start error, error code is %lu.\n", GetLastError());
+		wprintf_s(L"System Error: Program will continue to run in console mode.\n");
+		wprintf_s(L"Please ignore those error messages if you want to run in console mode.\n");
 
 	//Handle the system signal and start all monitors.
 		SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, TRUE);
@@ -189,14 +190,7 @@
 	Parameter.sErrorLogPath->append("Error.log");
 #endif
 	Parameter.PrintError = true;
-	*Parameter.RunningLogPath = Parameter.Path->front();
-	Parameter.RunningLogPath->append(L"Running.log");
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	*Parameter.sRunningLogPath = Parameter.sPath->front();
-	Parameter.sRunningLogPath->append("Running.log");
-#endif
 	time(&StartTime);
-	RunningLogStartTime = StartTime;
 
 #if defined(PLATFORM_WIN)
 //Winsock initialization

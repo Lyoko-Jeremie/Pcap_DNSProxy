@@ -19,6 +19,7 @@
 
 #include "Capture.h"
 
+#if defined(ENABLE_PCAP)
 //Capture initialization
 size_t __fastcall CaptureInit(void)
 {
@@ -57,7 +58,7 @@ size_t __fastcall CaptureInit(void)
 		}
 		else {
 		//Mark captures.
-			if (PcapRunning.empty())
+			if (PcapRunningList.empty())
 			{
 				std::thread CaptureThread(Capture, pThedevs, true);
 				CaptureThread.detach();
@@ -69,9 +70,9 @@ size_t __fastcall CaptureInit(void)
 				while (pDrive != nullptr)
 				{
 					CaptureMutex.lock();
-					for (CaptureIter = PcapRunning.begin();CaptureIter != PcapRunning.end();++CaptureIter)
+					for (CaptureIter = PcapRunningList.begin();CaptureIter != PcapRunningList.end();++CaptureIter)
 					{
-						if (CaptureIter == PcapRunning.end() - 1U)
+						if (CaptureIter == PcapRunningList.end() - 1U)
 						{
 							std::thread CaptureThread(Capture, pDrive, false);
 							CaptureThread.detach();
@@ -320,9 +321,9 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 
 //Open device
 #if defined(PLATFORM_WIN)
-	if ((DeviceHandle = pcap_open(pDrive->name, ORIGINAL_PACKET_MAXSIZE, PCAP_OPENFLAG_NOCAPTURE_LOCAL, PCAP_CAPTURE_TIMEOUT, nullptr, Buffer.get())) == nullptr)
+	if ((DeviceHandle = pcap_open(pDrive->name, ORIGINAL_PACKET_MAXSIZE, PCAP_OPENFLAG_NOCAPTURE_LOCAL, (int)Parameter.PcapReadingTimeout, nullptr, Buffer.get())) == nullptr)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	if ((DeviceHandle = pcap_open_live(pDrive->name, ORIGINAL_PACKET_MAXSIZE, FALSE, PCAP_CAPTURE_TIMEOUT, Buffer.get())) == nullptr)
+	if ((DeviceHandle = pcap_open_live(pDrive->name, ORIGINAL_PACKET_MAXSIZE, FALSE, (int)Parameter.PcapReadingTimeout, Buffer.get())) == nullptr)
 #endif
 	{
 		std::wstring ErrBuffer;
@@ -394,7 +395,7 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 
 //Start captures with other devices.
 	std::string CaptureDevice(pDrive->name);
-	PcapRunning.push_back(CaptureDevice);
+	PcapRunningList.push_back(CaptureDevice);
 	if (IsCaptureList && pDrive->next != nullptr)
 	{
 		std::thread CaptureThread(Capture, pDrive->next, true);
@@ -423,19 +424,19 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 
 			//Delete from devices list.
 				std::unique_lock<std::mutex> CaptureMutex(CaptureLock);
-				for (auto CaptureIter = PcapRunning.begin();CaptureIter != PcapRunning.end();)
+				for (auto CaptureIter = PcapRunningList.begin();CaptureIter != PcapRunningList.end();)
 				{
 					if (*CaptureIter == CaptureDevice)
 					{
-						CaptureIter = PcapRunning.erase(CaptureIter);
-						if (CaptureIter == PcapRunning.end())
+						CaptureIter = PcapRunningList.erase(CaptureIter);
+						if (CaptureIter == PcapRunningList.end())
 							break;
 					}
 					else {
 						++CaptureIter;
 					}
 				}
-				PcapRunning.shrink_to_fit();
+				PcapRunningList.shrink_to_fit();
 				CaptureMutex.unlock();
 				
 				pcap_freecode(BPF_Code.get());
@@ -454,19 +455,19 @@ size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList)
 
 			//Delete from devices list.
 				std::unique_lock<std::mutex> CaptureMutex(CaptureLock);
-				for (auto CaptureIter = PcapRunning.begin();CaptureIter != PcapRunning.end();)
+				for (auto CaptureIter = PcapRunningList.begin();CaptureIter != PcapRunningList.end();)
 				{
 					if (*CaptureIter == CaptureDevice)
 					{
-						CaptureIter = PcapRunning.erase(CaptureIter);
-						if (CaptureIter == PcapRunning.end())
+						CaptureIter = PcapRunningList.erase(CaptureIter);
+						if (CaptureIter == PcapRunningList.end())
 							break;
 					}
 					else {
 						++CaptureIter;
 					}
 				}
-				PcapRunning.shrink_to_fit();
+				PcapRunningList.shrink_to_fit();
 				CaptureMutex.unlock();
 				
 				pcap_freecode(BPF_Code.get());
@@ -802,6 +803,7 @@ size_t __fastcall MatchPortToSend(const char *Buffer, const size_t Length, const
 	std::shared_ptr<SOCKET_DATA> SystemData(new SOCKET_DATA());
 	memset(SystemData.get(), 0, sizeof(SOCKET_DATA));
 	uint16_t SystemProtocol = 0;
+	size_t ReceiveIndex = 0;
 
 //Match port.
 	std::unique_lock<std::mutex> PortListMutex(PortListLock);
@@ -809,23 +811,65 @@ size_t __fastcall MatchPortToSend(const char *Buffer, const size_t Length, const
 	{
 		for (auto &SocketDataIter:PortTableIter.RequestData)
 		{
-			if (Protocol == AF_INET6 && SocketDataIter.AddrLen == sizeof(sockaddr_in6) && SocketDataIter.SockAddr.ss_family == AF_INET6 && 
+			if (PortTableIter.ClearPortTime > 0 && //Do not scan timeout data.
+				Protocol == AF_INET6 && SocketDataIter.AddrLen == sizeof(sockaddr_in6) && SocketDataIter.SockAddr.ss_family == AF_INET6 && 
 				Port == ((PSOCKADDR_IN6)&SocketDataIter.SockAddr)->sin6_port || //IPv6
 				Protocol == AF_INET && SocketDataIter.AddrLen == sizeof(sockaddr_in) && SocketDataIter.SockAddr.ss_family == AF_INET && 
 				Port == ((PSOCKADDR_IN)&SocketDataIter.SockAddr)->sin_port) //IPv4
 			{
-				*SystemData = PortTableIter.SystemData;
-				SystemProtocol = PortTableIter.NetworkLayer;
-				PortTableIter.ClearPortTime = 0;
+				if (Parameter.ReceiveWaiting > 0)
+				{
+					++PortTableIter.ReceiveIndex;
+					ReceiveIndex = PortTableIter.ReceiveIndex;
 
-				goto StopLoop;
+					PortListLock.unlock();
+					goto StopLoop;
+				}
+				else {
+					*SystemData = PortTableIter.SystemData;
+					SystemProtocol = PortTableIter.NetworkLayer;
+					PortTableIter.ClearPortTime = 0;
+
+					goto ClearPortListData;
+				}
+			}
+		}
+	}
+
+	goto ClearPortListData;
+
+//Stop loop, wait receiving and match port again.
+	StopLoop: 
+	Sleep(Parameter.ReceiveWaiting);
+	PortListLock.lock();
+	for (auto &PortTableIter:PortList)
+	{
+		for (auto &SocketDataIter:PortTableIter.RequestData)
+		{
+			if (PortTableIter.ClearPortTime > 0 && //Do not scan timeout data.
+				Protocol == AF_INET6 && SocketDataIter.AddrLen == sizeof(sockaddr_in6) && SocketDataIter.SockAddr.ss_family == AF_INET6 && 
+				Port == ((PSOCKADDR_IN6)&SocketDataIter.SockAddr)->sin6_port || //IPv6
+				Protocol == AF_INET && SocketDataIter.AddrLen == sizeof(sockaddr_in) && SocketDataIter.SockAddr.ss_family == AF_INET && 
+				Port == ((PSOCKADDR_IN)&SocketDataIter.SockAddr)->sin_port) //IPv4
+			{
+				if (PortTableIter.ReceiveIndex == ReceiveIndex)
+				{
+					*SystemData = PortTableIter.SystemData;
+					SystemProtocol = PortTableIter.NetworkLayer;
+					PortTableIter.ClearPortTime = 0;
+				}
+				else {
+					return EXIT_FAILURE;
+				}
+
+				goto ClearPortListData;
 			}
 		}
 	}
 
 //Stop loop and clear timeout data.
+	ClearPortListData: 
 //Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
-	StopLoop: 
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 	if (Parameter.GetTickCount64PTR != nullptr)
 	{
@@ -943,3 +987,4 @@ size_t __fastcall MatchPortToSend(const char *Buffer, const size_t Length, const
 	closesocket(SystemData->Socket);
 	return EXIT_SUCCESS;
 }
+#endif

@@ -175,7 +175,7 @@
 	#define _FILE_OFFSET_BITS   64     //File offset data type size(64 bits).
 #endif
 
-//C Standard Library and C++ Standard Template Library/STL Headers
+//C Standard Library and C++ Standard Template Library/STL headers
 //#include <cstdlib>                 //C Standard Library
 //#include <cstdio>                  //File Input/Output support
 //#include <ctime>                   //Date and Time support
@@ -193,21 +193,24 @@
 //#include <algorithm>               //Algorithm support
 
 #if defined(PLATFORM_WIN)
-//LibSodium Headers
+//LibSodium header
 	#define ENABLE_LIBSODIUM       //LibSodium is always enable on Windows.
 	#if defined(ENABLE_LIBSODIUM)
 		#include "..\\LibSodium\\sodium.h"
 	#endif
 
-//WinPcap Header
-	#include "WinPcap\\pcap.h"
+//WinPcap header
+	#define ENABLE_PCAP           //WinPcap is always enable on Windows.
+	#if defined(ENABLE_PCAP)
+		#include "WinPcap\\pcap.h"
+	#endif
 
-//Windows API Headers
+//Windows API headers
 //	#include <tchar.h>                 //Unicode(UTF-8/UTF-16)/Wide-Character Support
-//	#include <winsock2.h>              //WinSock 2.0+(MUST be including before windows.h)
+	#include <winsock2.h>              //WinSock 2.0+(MUST be including before windows.h)
 //	#include <winsvc.h>                //Service Control Manager
 	#include <iphlpapi.h>              //IP Stack for MIB-II and related functionality
-//	#include <ws2tcpip.h>              //WinSock 2.0+ Extension for TCP/IP protocols
+	#include <ws2tcpip.h>              //WinSock 2.0+ Extension for TCP/IP protocols
 //	#include <mstcpip.h>               //Microsoft-specific extensions to the core Winsock definitions.
 //	#include <windns.h>                //Windows DNS definitions and DNS API
 	#include <sddl.h>                  //Support and conversions routines necessary for SDDL
@@ -222,12 +225,16 @@
 	#pragma comment(lib, "iphlpapi.lib")          //IP Helper Library, IP Stack for MIB-II and related functionality
 	//WinPcap and LibSodium libraries
 	#if defined(PLATFORM_WIN64)
-		#pragma comment(lib, "WinPcap\\WPCAP_x64.lib")
+		#if defined(ENABLE_PCAP)
+			#pragma comment(lib, "WinPcap\\WPCAP_x64.lib")
+		#endif
 		#if defined(ENABLE_LIBSODIUM)
 			#pragma comment(lib, "..\\LibSodium\\LibSodium_x64.lib")
 		#endif
 	#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		#pragma comment(lib, "WinPcap\\WPCAP_x86.lib")
+		#if defined(ENABLE_PCAP)
+			#pragma comment(lib, "WinPcap\\WPCAP_x86.lib")
+		#endif
 		#if defined(ENABLE_LIBSODIUM)
 			#pragma comment(lib, "..\\LibSodium\\LibSodium_x86.lib")
 		#endif
@@ -264,14 +271,18 @@
 	#include <sys/time.h>              //Date and time
 	#include <arpa/inet.h>             //Internet operations
 
-//LibPcap and LibSodium Header
-	#include <pcap/pcap.h>
+//LibPcap and LibSodium header
 	#if defined(PLATFORM_LINUX)
+		#if defined(ENABLE_PCAP)
+			#include <pcap/pcap.h>
+		#endif
 		#if defined(ENABLE_LIBSODIUM)
 			#include <sodium.h>
 		#endif
 	#elif defined(PLATFORM_MACX)
+		#define ENABLE_PCAP                //LibPcap is always enable on Mac OS X.
 		#define ENABLE_LIBSODIUM           //LibSodium is always enable on Mac OS X.
+		#include <pcap/pcap.h>
 		#include "../LibSodium/sodium.h"
 		#pragma comment(lib, "../LibSodium/LibSodium_Mac.a")
 	#endif
@@ -376,26 +387,31 @@
 
 //Function defines(Part 1)
 	#define __fastcall
-	#define strnlen_s                                                   strnlen
-	#define strncpy_s(Dst, DstSize, Src, Size)                          strncpy(Dst, Src, Size)
-	#define memcpy_s(Dst, DstSize, Src, Size)                           memcpy(Dst, Src, Size)
-	#define memmove_s(Dst, DstSize, Src, Size)                          memmove(Dst, Src, Size)
-	#define sprintf_s                                                   snprintf
-	#define wcsnlen_s                                                   wcsnlen
-	#define wcsncpy_s(Dst, DstSize, Src, Size)                          wcsncpy(Dst, Src, Size)
-	#define wprintf_s                                                   wprintf
-	#define fread_s(Dst, DstSize, ElementSize, Count, File)             fread(Dst, ElementSize, Count, File)
-	#define fwprintf_s                                                  fwprintf
+	#define strnlen_s                                                    strnlen
+	#define strncpy_s(Dst, DstSize, Src, Size)                           strncpy(Dst, Src, Size)
+	#define memcpy_s(Dst, DstSize, Src, Size)                            memcpy(Dst, Src, Size)
+	#define memmove_s(Dst, DstSize, Src, Size)                           memmove(Dst, Src, Size)
+	#define sprintf_s                                                    snprintf
+	#define wcsnlen_s                                                    wcsnlen
+	#define wcsncpy_s(Dst, DstSize, Src, Size)                           wcsncpy(Dst, Src, Size)
+	#define wprintf_s                                                    wprintf
+	#define fread_s(Dst, DstSize, ElementSize, Count, File)              fread(Dst, ElementSize, Count, File)
+	#define fwprintf_s                                                   fwprintf
 	#if defined(PLATFORM_LINUX)
-		#define send(Socket, Buffer, Length, Signal)                        send(Socket, Buffer, Length, MSG_NOSIGNAL)
-		#define sendto(Socket, Buffer, Length, Signal, SockAddr, AddrLen)   sendto(Socket, Buffer, Length, MSG_NOSIGNAL, SockAddr, AddrLen)
+		#define send(Socket, Buffer, Length, Signal)                         send(Socket, Buffer, Length, MSG_NOSIGNAL)
+		#define sendto(Socket, Buffer, Length, Signal, SockAddr, AddrLen)    sendto(Socket, Buffer, Length, MSG_NOSIGNAL, SockAddr, AddrLen)
 	#endif
-	#define GetLastError()                                              errno
-	#define closesocket                                                 close
-	#define WSAGetLastError()                                           GetLastError()
+	#define GetLastError()                                               errno
+	#define closesocket                                                  close
+	#define WSAGetLastError()                                            GetLastError()
 	#define WSACleanup()
-	#define GetCurrentProcessId()                                       pthread_self()
-	#define localtime_s(TimeStructure, TimeValue)                       localtime_r(TimeValue, TimeStructure)
+	#define GetCurrentProcessId()                                        pthread_self()
+	#define localtime_s(TimeStructure, TimeValue)                        localtime_r(TimeValue, TimeStructure)
+#endif
+
+//Function defines
+#if !defined(ENABLE_PCAP)
+	#define CheckResponseData(Buffer, Length, IsLocal, IsMarkHopLimit)   CheckResponseData(Buffer, Length, IsLocal)
 #endif
 
 
@@ -417,7 +433,7 @@
 //////////////////////////////////////////////////
 // Protocol header structures
 // 
-/* Ethernet II Frame Header in OSI Layer 2(RFC 894, https://tools.ietf.org/html/rfc894)
+/* Ethernet II Frame header in OSI Layer 2(RFC 894, https://tools.ietf.org/html/rfc894)
 
                     1                   2                   3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -448,7 +464,7 @@ typedef struct _eth_hdr_
 	uint16_t               Type;
 }eth_hdr, *peth_hdr;
 
-/* Apple IEEE 1394/FireWire Header(RFC 2734 and RFC3146, https://www.ietf.org/rfc/rfc2734 and https://www.ietf.org/rfc/rfc3146)
+/* Apple IEEE 1394/FireWire header(RFC 2734 and RFC3146, https://www.ietf.org/rfc/rfc2734 and https://www.ietf.org/rfc/rfc3146)
 
                     1                   2                   3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -476,7 +492,7 @@ typedef struct _ieee_1394_hdr_
 	uint16_t               Type;
 }ieee_1394_hdr, *pieee_1394_hdr;
 
-/* Point-to-Point Protocol /PPP Header(RFC 2516, https://tools.ietf.org/rfc/rfc2516)
+/* Point-to-Point Protocol /PPP header(RFC 2516, https://tools.ietf.org/rfc/rfc2516)
 
                     1                   2                   3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -716,7 +732,7 @@ typedef struct _ppp_hdr_
 #define IPPROTO_TEST_2            254U                 //Use for experimentation and testing
 //#define IPPROTO_RESERVED          255U                 //Reserved
 
-/* Internet Protocol version 4/IPv4 Header(RFC 791, https://www.ietf.org/rfc/rfc791)
+/* Internet Protocol version 4/IPv4 header(RFC 791, https://www.ietf.org/rfc/rfc791)
 
                     1                   2                   3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -787,7 +803,7 @@ typedef struct _ipv4_hdr_
 	in_addr                Dst;
 }ipv4_hdr, *pipv4_hdr;
 
-/* Internet Protocol version 6/IPv6 Header(RFC 2460, https://tools.ietf.org/html/rfc2460)
+/* Internet Protocol version 6/IPv6 header(RFC 2460, https://tools.ietf.org/html/rfc2460)
 
                     1                   2                   3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -856,7 +872,7 @@ typedef struct _ipv6_hdr_
 	in6_addr                   Dst;
 }ipv6_hdr, *pipv6_hdr;
 
-/* Internet Control Message Protocol/ICMP Header(RFC 792, https://tools.ietf.org/html/rfc792)
+/* Internet Control Message Protocol/ICMP header(RFC 792, https://tools.ietf.org/html/rfc792)
 
                     1                   2                   3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -889,7 +905,7 @@ typedef struct _icmp_hdr_
 #endif
 }icmp_hdr, *picmp_hdr;
 
-/* Internet Control Message Protocol version 6/ICMPv6 Header(RFC 4443, https://tools.ietf.org/html/rfc4443)
+/* Internet Control Message Protocol version 6/ICMPv6 header(RFC 4443, https://tools.ietf.org/html/rfc4443)
 
                     1                   2                   3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -922,7 +938,7 @@ typedef struct _icmpv6_hdr_
 #endif
 }icmpv6_hdr, *picmpv6_hdr;
 
-/* Transmission Control Protocol/TCP Header
+/* Transmission Control Protocol/TCP header
 RFC 675: https://tools.ietf.org/html/rfc675
 RFC 793: https://tools.ietf.org/html/rfc793
 RFC 1122: https://tools.ietf.org/html/rfc1122
@@ -1132,7 +1148,7 @@ typedef struct _tcp_hdr_
 	uint16_t               UrgentPointer;
 }tcp_hdr, *ptcp_hdr;
 
-/* User Datagram Protocol/UDP Header(RFC 768, https://tools.ietf.org/html/rfc768)
+/* User Datagram Protocol/UDP header(RFC 768, https://tools.ietf.org/html/rfc768)
 
                     1                   2                   3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -1152,7 +1168,7 @@ typedef struct _udp_hdr_
 	uint16_t               Checksum;
 }udp_hdr, *pudp_hdr;
 
-/* Transmission Control Protocol/TCP and User Datagram Protocol/UDP Pseudo Header with IPv4
+/* Transmission Control Protocol/TCP and User Datagram Protocol/UDP Pseudo header with IPv4
 RFC 675: https://tools.ietf.org/html/rfc675
 RFC 768: https://tools.ietf.org/html/rfc768
 RFC 793: https://tools.ietf.org/html/rfc793
@@ -1180,7 +1196,7 @@ typedef struct _ipv4_psd_hdr_
 	uint16_t              Length;
 }ipv4_psd_hdr, *pipv4_psd_hdr;
 
-/* Internet Control Message Protocol version 6/ICMPv6, Transmission Control Protocol/TCP and User Datagram Protocol/UDP Pseudo Header with IPv4
+/* Internet Control Message Protocol version 6/ICMPv6, Transmission Control Protocol/TCP and User Datagram Protocol/UDP Pseudo header with IPv4
 RFC 675: https://tools.ietf.org/html/rfc675
 RFC 768: https://tools.ietf.org/html/rfc768
 RFC 793: https://tools.ietf.org/html/rfc793
@@ -1443,7 +1459,7 @@ RFC 7314(https://tools.ietf.org/html/rfc7314), Extension Mechanisms for DNS (EDN
 #define DNS_RECORD_PRIVATE_B    0xFFFE   //DNS Reserved Private use records, ID is end at 65534.
 #define DNS_RECORD_RESERVED     0xFFFF   //DNS Reserved records, ID is 65535.
 
-/* Domain Name System/DNS Header
+/* Domain Name System/DNS header
 // With User Datagram Protocol/UDP
 
                     1                   2                   3
@@ -1497,7 +1513,7 @@ typedef struct _dns_hdr_
 	uint16_t              Additional;
 }dns_hdr, *pdns_hdr;
 
-/* Domain Name System/DNS Header
+/* Domain Name System/DNS header
 //With Transmission Control Protocol/TCP
 
                     1                   2                   3
@@ -1796,7 +1812,7 @@ typedef struct _dns_record_opt_
 #define crypto_box_HALF_NONCEBYTES   (crypto_box_NONCEBYTES / 2U)
 #define DNSCRYPT_TXT_RECORDS_LEN     124U                           //Length of DNScrypt TXT records
 
-/* Domain Name System Curve/DNSCurve Test Strings/TXT Data Header
+/* Domain Name System Curve/DNSCurve Test Strings/TXT Data header
 
                     1                   2                   3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -1898,8 +1914,8 @@ typedef struct _dnscurve_txt_signature_
 #define ASCII_LOWER_TO_UPPER    32U                  //Lowercase to uppercase
 
 //Version defines
-#define PRODUCT_VERSION_POINT_THREE   0.3
-#define PRODUCT_VERSION               0.4            //Current version
+#define CONFIG_VERSION_POINT_THREE   0.3
+#define CONFIG_VERSION               0.4             //Current configuration version
 
 //Length defines
 #define BOM_UTF_8_LENGTH               3U                                         //Length of UTF-8 BOM
@@ -1914,6 +1930,8 @@ typedef struct _dnscurve_txt_signature_
 #define ORIGINAL_PACKET_MAXSIZE        1512U                                      //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header + 4 bytes FCS)
 #define LARGE_PACKET_MAXSIZE           4096U                                      //Maximum size of packets(4KB/4096 bytes) of TCP protocol
 #define BUFFER_RING_MAXNUM             32U                                        //Number of maximum packet buffer queues
+#define UINT16_MAX_STRING_LENGTH       6U                                         //Maximum number of 16 bits is 65535, its length is 6.
+#define UINT32_MAX_STRING_LENGTH       10U                                        //Maximum number of 32 bits is 4294967295, its length is 10.
 #define ADDR_STRING_MAXSIZE            64U                                        //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
 #define IPV4_SHORTEST_ADDRSTRING       6U                                         //The shortest IPv4 address strings(*.*.*.*).
 #define IPV6_SHORTEST_ADDRSTRING       3U                                         //The shortest IPv6 address strings(::).
@@ -1945,8 +1963,10 @@ typedef struct _dnscurve_txt_signature_
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define SYSTEM_SOCKET                         int
 #endif
-#define PCAP_COMPILE_OPTIMIZE                 1U         //Pcap optimization on the resulting code is performed.
-#define PCAP_OFFLINE_EOF_ERROR                (-2)       //Pcap EOF was reached reading from an offline capture.
+#if defined(ENABLE_PCAP)
+	#define PCAP_COMPILE_OPTIMIZE                 1U         //Pcap optimization on the resulting code is performed.
+	#define PCAP_OFFLINE_EOF_ERROR                (-2)       //Pcap EOF was reached reading from an offline capture.
+#endif
 #define SHA3_512_SIZE                         64U        //SHA3-512 instance as specified in the FIPS 202 draft in April 2014(http://csrc.nist.gov/publications/drafts/fips-202/fips_202_draft.pdf), 512 bits/64 bytes.
 #define CHECKSUM_SUCCESS                      0          //Result of getting correct checksum.
 #define DYNAMIC_MIN_PORT                      1024U      //Well-known port is from 1 to 1023.
@@ -1961,8 +1981,11 @@ typedef struct _dnscurve_txt_signature_
 #if defined(PLATFORM_WIN)
 	#define UPDATE_SERVICE_TIME                3U        //Update service timeout, 3 seconds
 #endif
-#define PCAP_DEVICES_RECHECK_TIME          10U       //Time between every WinPcap/LibPcap devices recheck, 10 seconds
-#define PCAP_CAPTURE_TIMEOUT               200U      //Pcap reading timeout, 200 ms
+#if defined(ENABLE_PCAP)
+	#define PCAP_DEVICES_RECHECK_TIME          10U       //Time between every WinPcap/LibPcap devices recheck, 10 seconds
+	#define PCAP_CAPTURE_MIN_TIMEOUT           10U       //Minimum Pcap Capture reading timeout, 10 ms
+	#define DEFAULT_PCAP_CAPTURE_TIMEOUT       200U      //Default Pcap Capture reading timeout, 200 ms
+#endif
 #define SOCKET_MIN_TIMEOUT                 500U      //The shortset socket timeout, 500 ms
 #if defined(PLATFORM_WIN)
 	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT     3000U     //Default timeout of reliable sockets(Such as TCP, 3 seconds/3000ms)
@@ -2032,7 +2055,9 @@ typedef struct _dnscurve_txt_signature_
 #define LOG_ERROR_IPFILTER             3U            // 03: IPFilter Error
 #define LOG_ERROR_HOSTS                4U            // 04: Hosts Error
 #define LOG_ERROR_NETWORK              5U            // 05: Network Error
-#define LOG_ERROR_PCAP                 6U            // 06: Pcap Error
+#if defined(ENABLE_PCAP)
+	#define LOG_ERROR_PCAP                 6U            // 06: Pcap Error
+#endif
 #if defined(ENABLE_LIBSODIUM)
 	#define LOG_ERROR_DNSCURVE             7U            // 07: DNSCurve Error
 #endif
@@ -2090,12 +2115,14 @@ typedef struct _dnscurve_txt_signature_
 //////////////////////////////////////////////////
 // Main structures and classes
 // 
+/* Old version(2015-05-20)
 //Running Log structure
 typedef struct _running_log_data_
 {
 	time_t                   TimeValues;
 	std::wstring             Message;
 }RunningLogData, RUNNING_LOG_DATA, *PRunningLogData, *PRUNNING_LOG_DATA;
+*/
 
 //File Data structure
 typedef struct _file_data_
@@ -2123,10 +2150,12 @@ typedef struct _dns_server_data_
 		sockaddr_in6         IPv6;
 		sockaddr_in          IPv4;
 	}AddressData;
+#if defined(ENABLE_PCAP)
 	union _hoplimit_data_ {
 		uint8_t              TTL;
 		uint8_t              HopLimit;
 	}HopLimitData;
+#endif
 }DNSServerData, DNS_SERVER_DATA, *PDNSServerData, *PDNS_SERVER_DATA;
 
 //DNS Cache structure
@@ -2167,8 +2196,6 @@ public:
 	size_t                           FileRefreshTime;
 //[Log] block
 	bool                             PrintError;
-	bool                             PrintRunningLog;
-	size_t                           RunningLogRefreshTime;
 	size_t                           LogMaxSize;
 //[DNS] block
 	size_t                           RequestMode;
@@ -2180,7 +2207,10 @@ public:
 	size_t                           CacheParameter;
 	uint32_t                         HostsDefaultTTL;
 //[Listen] block
+#if defined(ENABLE_PCAP)
 	bool                             PcapCapture;
+	size_t                           PcapReadingTimeout;
+#endif
 	size_t                           OperationMode;
 	size_t                           ListenProtocol_NetworkLayer;
 	size_t                           ListenProtocol_TransportLayer;
@@ -2192,19 +2222,20 @@ public:
 	std::vector<sockaddr_storage>    *ListenAddress_IPv6;
 	std::vector<sockaddr_storage>    *ListenAddress_IPv4;
 	struct _dns_target_ {
-		DNS_SERVER_DATA                IPv6;
-		DNS_SERVER_DATA                Alternate_IPv6;
-		DNS_SERVER_DATA                IPv4;
-		DNS_SERVER_DATA                Alternate_IPv4;
-		DNS_SERVER_DATA                Local_IPv6;
-		DNS_SERVER_DATA                Alternate_Local_IPv6;
-		DNS_SERVER_DATA                Local_IPv4;
-		DNS_SERVER_DATA                Alternate_Local_IPv4;
-		std::vector<DNS_SERVER_DATA>   *IPv6_Multi;
-		std::vector<DNS_SERVER_DATA>   *IPv4_Multi;
+		DNS_SERVER_DATA                  IPv6;
+		DNS_SERVER_DATA                  Alternate_IPv6;
+		DNS_SERVER_DATA                  IPv4;
+		DNS_SERVER_DATA                  Alternate_IPv4;
+		DNS_SERVER_DATA                  Local_IPv6;
+		DNS_SERVER_DATA                  Alternate_Local_IPv6;
+		DNS_SERVER_DATA                  Local_IPv4;
+		DNS_SERVER_DATA                  Alternate_Local_IPv4;
+		std::vector<DNS_SERVER_DATA>     *IPv6_Multi;
+		std::vector<DNS_SERVER_DATA>     *IPv4_Multi;
 	}DNSTarget;
 //[Values] block
 	size_t                           EDNS0PayloadSize;
+#if defined(ENABLE_PCAP)
 	uint8_t                          HopLimitFluctuation;
 	uint16_t                         ICMPID;
 	uint16_t                         ICMPSequence;
@@ -2215,6 +2246,7 @@ public:
 	PSTR                             DomainTestData;
 	uint16_t                         DomainTestID;
 	size_t                           DomainTestSpeed;
+#endif
 	size_t                           AlternateTimes;
 	size_t                           AlternateTimeRange;
 	size_t                           AlternateResetTime;
@@ -2229,15 +2261,19 @@ public:
 	bool                             DNSSECRequest;
 	bool                             AlternateMultiRequest;
 	bool                             IPv4DataCheck;
+#if defined(ENABLE_PCAP)
 	bool                             TCPDataCheck;
+#endif
 	bool                             DNSDataCheck;
-	bool                             Blacklist;
+	bool                             BlacklistCheck;
 //[Data] block(B part)
 	std::string                      *LocalFQDNString;
-	PSTR                             LocalFQDN;
+	PSTR                             LocalFQDNResponse;
 	size_t                           LocalFQDNLength;
+#if !defined(PLATFORM_MACX)
 	PSTR                             LocalServerResponse;
 	size_t                           LocalServerResponseLength;
+#endif
 //[DNSCurve/DNSCrypt] block
 #if defined(ENABLE_LIBSODIUM)
 	bool                             DNSCurve;
@@ -2252,15 +2288,12 @@ public:
 	std::vector<std::wstring>        *HostsFileList;
 	std::vector<std::wstring>        *IPFilterFileList;
 	std::wstring                     *ErrorLogPath;
-	std::wstring                     *RunningLogPath;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::vector<std::string>         *sPath;
 	std::vector<std::string>         *sHostsFileList;
 	std::vector<std::string>         *sIPFilterFileList;
 	std::string                      *sErrorLogPath;
-	std::string                      *sRunningLogPath;
 #endif
-	std::vector<RUNNING_LOG_DATA>    *RunningLogWriteQueue;
 #if defined(PLATFORM_WIN)
 	int                              ReliableSocketTimeout;
 	int                              UnreliableSocketTimeout;
@@ -2268,10 +2301,13 @@ public:
 	timeval                          ReliableSocketTimeout;
 	timeval                          UnreliableSocketTimeout;
 #endif
+	size_t                           ReceiveWaiting;
 	PSTR                             DomainTable;
-	PSTR                             LocalAddress[NETWORK_LAYER_PARTNUM];
+	PSTR                             LocalAddressResponse[NETWORK_LAYER_PARTNUM];
 	size_t                           LocalAddressLength[NETWORK_LAYER_PARTNUM];
-	std::vector<std::string>         *LocalAddressPTR[NETWORK_LAYER_PARTNUM];
+#if !defined(PLATFORM_MACX)
+	std::vector<std::string>         *LocalAddressPTRResponse[NETWORK_LAYER_PARTNUM];
+#endif
 	std::vector<uint16_t>            *AcceptTypeList;
 
 //Windows XP with SP3 support
@@ -2358,6 +2394,7 @@ public:
 }ADDRESS_ROUTING_TABLE_IPV4;
 
 //Port table class
+#if defined(ENABLE_PCAP)
 typedef class PortTable {
 public:
 	SOCKET_DATA                SystemData;
@@ -2365,9 +2402,11 @@ public:
 	uint16_t                   TransportLayer;
 	std::vector<SOCKET_DATA>   RequestData;
 	ULONGLONG                  ClearPortTime;
+	size_t                     ReceiveIndex;
 
 	PortTable(void);
 }PORT_TABLE;
+#endif
 
 //Differnet IPFilter file sets structure
 typedef class DiffernetIPFilterFileSet
@@ -2438,8 +2477,10 @@ size_t __fastcall CaseConvert(const bool IsLowerUpper, char *Buffer, const size_
 
 //PrintLog.h
 size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const SSIZE_T ErrCode, const wchar_t *FileName, const size_t Line);
+/* Old version(2015-05-20)
 size_t __fastcall PrintRunningStatus(const wchar_t *Message);
 size_t __fastcall PrintParameterList(void);
+*/
 
 //Protocol.h
 uint64_t __fastcall hton64(const uint64_t Val);
@@ -2475,7 +2516,9 @@ size_t __fastcall ReadIPFilter(void);
 size_t __fastcall ReadHosts(void);
 
 //Monitor.h
+/* Old version(2015-05-20)
 size_t __fastcall RunningLogWriteMonitor(void);
+*/
 size_t __fastcall MonitorInit(void);
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	size_t FlushDNSFIFOMonitor(void);
@@ -2497,16 +2540,21 @@ size_t __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Len
 size_t __fastcall MarkDomainCache(const char *Buffer, const size_t Length);
 
 //Captrue.h
-size_t __fastcall CaptureInit(void);
+#if defined(ENABLE_PCAP)
+	size_t __fastcall CaptureInit(void);
+#endif
 
 //Network.h
+#if defined(ENABLE_PCAP)
 size_t __fastcall DomainTestRequest(const uint16_t Protocol);
 size_t __fastcall ICMPEcho(const uint16_t Protocol);
-//size_t __fastcall ICMPv6Echo(void);
+#endif
 size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal);
 size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
-size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, const SOCKET_DATA *LocalSocketData, const uint16_t Protocol);
-size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length, const SOCKET_DATA *LocalSocketData, const uint16_t Protocol);
+#if defined(ENABLE_PCAP)
+	size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, const SOCKET_DATA *LocalSocketData, const uint16_t Protocol);
+	size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length, const SOCKET_DATA *LocalSocketData, const uint16_t Protocol);
+#endif
 size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal);
 size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
 

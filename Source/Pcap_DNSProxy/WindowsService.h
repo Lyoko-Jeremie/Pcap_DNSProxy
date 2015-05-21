@@ -22,7 +22,7 @@
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
 static DWORD ServiceCurrentStatus = 0;
-static BOOL ServiceRunning = false;
+static BOOL IsServiceRunning = false;
 SERVICE_STATUS_HANDLE ServiceStatusHandle = nullptr;
 HANDLE ServiceEvent = nullptr;
 

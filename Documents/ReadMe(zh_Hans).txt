@@ -35,6 +35,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 如果需要使用 IPv6 协议的本地服务器
     * 右击 "属性" - "Internet协议版本6(IPv6)" - "属性" - 勾选 "使用下面的DNS服务器地址"
     * 在 "首选DNS服务器" 内填入 "::1"（不含引号） 确定保存并退出即可
+  * 请务必确保只填入这两个地址，填入其它地址可能会导致系统选择其它 DNS 服务器绕过程序的代理
   * 注意：建议将 "本地连接" 和 "无线连接" 以及 "宽带连接" 全部修改！
 
 
@@ -44,7 +45,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 
 更新程序方法（需要以管理员身份进行）：
-注意：更新程序切勿直接覆盖，否则可能会造成不可预料的错误！请按照以下的步骤进行：
+* 注意：更新程序切勿直接覆盖，否则可能会造成不可预料的错误！请按照以下的步骤进行：
 1.提前下载好新版本的 Pcap_DNSProxy（亦即 安装方法 中第2步），更新过程可能会造成域名解析短暂中断
 2.备份好所有配置文件 Hosts 文件 IPFilter 文件的自定义内容
 3.右键以管理员身份(Vista 以及更新版本)或直接以管理员登录双击(XP/2003)运行 ServiceControl.bat
@@ -56,10 +57,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 
 安全模式下的使用方法（需要以管理员身份进行）：
-程序具备在安全模式下运行的能力，在安全模式下右键以管理员身份直接运行程序
+* 程序具备在安全模式下运行的能力，在安全模式下右键以管理员身份直接运行程序
 * 直接运行模式有控制台窗口，关闭程序时直接关闭控制台窗口即可
-* 注意：直接运行可能会生成 Service start error, ERROR_FAILED_SERVICE_CONTROLLER_CONNECT(The service process could not connect to the service controller). 错误，因为程序是设计运行于系统服务模式，虽然也可直接运行但并不推荐
-
 
 卸载方法（需要以管理员身份进行）：
 1.按照 安装方法 中第6步还原 DNS 域名服务器地址配置
@@ -136,7 +135,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 特别使用技巧：
 这里罗列出部分作者建议的介绍和使用技巧，供大家参考和使用。关于调整配置，参见下文 配置文件详细参数说明 一节
 
-* DNS缓存类型
+* DNS 缓存类型
   * Timer/计时型：可以自定义缓存的时间长度，队列长度不限
   * Queue/队列型：默认缓存时间15分钟，可通过 Default TTL 值自定义，同时可自定义缓存队列长度（亦即限制队列长度的 Timer/计时型）
   * 强烈建议打开 DNS 缓存功能！
@@ -170,15 +169,13 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * Base - 基本参数区域
   * Version - 配置文件的版本，用于正确识别配置文件：本参数与程序版本号不相关，切勿修改，默认为发布时的最新配置文件版本
-  * File Refresh Time - 文件刷新间隔时间：单位为秒，最短间隔时间为5秒，默认为 10 秒
+  * File Refresh Time - 文件刷新间隔时间：单位为秒，最短间隔时间为 5 秒，默认为 10
   * Additional Path - 附加的数据文件读取路径，附加在此处的目录路径下的 Hosts 文件和 IPFilter 文件会被依次读取：默认为空
   * Hosts File Name - Hosts 文件的文件名，附加在此处的 Hosts 文件名将被依次读取：默认为 Hosts.ini|Hosts.conf|Hosts|Hosts.txt|Hosts.csv|WhiteList.txt|White_List.txt
   * IPFilter File Name - IPFilter 文件的文件名，附加在此处的 IPFilter 文件名将被依次读取：默认为 IPFilter.ini|IPFilter.conf|IPFilter.dat|IPFilter.csv|IPFilter|Guarding.p2p|Guarding|Routing.txt|chnrouting.txt|chnroute.txt
 
 * Log - 日志参数区域
   * Print Error - 输出错误报告功能：开启为1/关闭为0，默认为 1
-  * Print Running Log - 输出运行日志功能：默认为 0
-  * Running Log Refresh Time - 运行日志写入刷新间隔：单位为秒，最短间隔时间为5秒，默认为 10
   * Log Maximum Size - 日志文件最大容量：直接填数字时单位为字节，可加上单位，支持的单位有 KB/MB/GB，可接受范围为 4KB - 1GB，如果留空则为 8MB，默认为 8MB
     * 注意：日志文件到达最大容量后将被直接删除，然后重新生成新的日志文件，原来的日志将无法找回！
 
@@ -194,12 +191,15 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Local Routing - Local 路由表识别功能：开启为1/关闭为0，默认为 0
     * 开启后使用 Local 请求的解析结果都会被检查，路由表命中会直接返回结果，命中失败将丢弃解析结果并向境外服务器再次发起请求
     * 本功能只能在 Local Main 为启用状态时才能启用
-  * Cache Type - DNS 缓存的类型：分 Timer/计时型以及 Queue/队列型
-  * Cache Parameter - DNS 缓存的参数：Timer/计时型 时为时间长度（单位为秒），Queue/队列型 时为队列长度
-  * Default TTL - Hosts 条目默认生存时间：单位为秒，留空则为 900秒/15分钟，默认为空
+  * Cache Type - DNS 缓存的类型：分 Timer/计时型以及 Queue/队列型：默认为 Queue
+  * Cache Parameter - DNS 缓存的参数：Timer/计时型 时为时间长度（单位为秒），Queue/队列型 时为队列长度：默认为 256
+  * Default TTL - Hosts 条目默认生存时间：单位为秒，留空则为 900秒/15分钟，默认为 900
 
 * Listen - 监听参数区域
   * Pcap Capture - 抓包功能总开关，开启后抓包模块才能正常使用：开启为1/关闭为0，默认为 1
+    * 此参数关闭时要求需要有其它直连请求方式（例如 TCP 模式或者 DNSCurve/DNSCrypt 协议等），否则将会导致解析无法获得结果
+  * Pcap Reading Timeout - 抓包模块读取超时时间，数据包只会在等待超时时间后才会被读取，其余时间抓包模块处于休眠状态：单位为毫秒，最短间隔时间为10毫秒，默认为 200
+    * 读取超时时间需要平衡需求和资源占用，时间设置太长会导致域名解析请求响应缓慢导致请求解析超时，太快则会占用过多系统处理的资源
   * Operation Mode - 程序的监听工作模式：分 Server/服务器模式、Private/私有网络模式、Proxy/代理模式 和 Custom/自定义模式，默认为 Private
     * Server/服务器模式：打开 DNS 通用端口（TCP/UDP 同时打开），可为所有其它设备提供代理域名解析请求服务
     * Private/私有网络模式：打开 DNS 通用端口（TCP/UDP 同时打开），可为仅限于私有网络地址的设备提供代理域名解析请求服务
@@ -211,7 +211,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入的协议可随意组合
   * Listen Port - 监听端口，本地监听请求的端口：格式为 "端口A(|端口B)"（不含引号，括号内为可选项目）
     * 端口可填入服务名称，服务名称列表参见下文
-    * 也可填入 1-65535 之间的端口，如果留空则为 53，默认为空
+    * 也可填入 1-65535 之间的端口，如果留空则为 53，默认为 53
     * 填入多个端口时，程序将会同时监听请求
     * 当相应协议的 Listen Address 生效时，相应协议的本参数将会被自动忽略
   * IPFilter Type - IPFilter 参数的类型：分为 Deny 禁止和 Permit 允许，对应 IPFilter 参数应用为黑名单或白名单，默认为 Deny
@@ -303,10 +303,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
     
 * Addresses - 普通模式地址区域
 注意：IPv4 地址格式为 "IPv4 地址:端口"，IPv6地址格式为"[IPv6 地址]:端口"（均不含引号）
-  * IPv4 Listen Address - IPv4 本地监听地址：需要输入一个带端口格式的地址，默认为空
+  * IPv4 Listen Address - IPv4 本地监听地址：需要输入一个带端口格式的地址，留空为不启用，默认为空
     * 本参数支持多个监听地址，格式为 "地址A:端口|地址B:端口|地址C:端口"（不含引号）
     * 填入此值后 IPv4 协议的 Operation Mode 和 Listen Port 参数将被自动忽略
-  * IPv4 DNS Address - IPv4 主要 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 8.8.4.4:53
+  * IPv4 DNS Address - IPv4 主要 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为 8.8.4.4:53
     * 本参数支持同时请求多服务器的功能，开启后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果
     * 使用同时请求多服务器格式为 "地址A:端口|地址B:端口|地址C:端口"（不含引号），同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
     * 指定端口时可使用服务名称代替：
@@ -395,15 +395,15 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * FTPS
       * NAS
       * TELNETS
-  * IPv4 Alternate DNS Address - IPv4 备用 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 8.8.8.8:53|208.67.220.220:53|208.67.222.222:53
+  * IPv4 Alternate DNS Address - IPv4 备用 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为 8.8.8.8:53|208.67.220.220:53|208.67.222.222:5353
     * 本参数支持同时请求多服务器的功能，开启后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果
     * 使用同时请求多服务器格式为 "地址A:端口|地址B:端口|地址C:端口"（不含引号），同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
     * 指定端口时可使用服务名称代替，参见上表
-  * IPv4 Local DNS Address - IPv4 主要境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，默认为 114.114.115.115:53
+  * IPv4 Local DNS Address - IPv4 主要境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，留空为不启用，默认为 114.114.115.115:53
     * 指定端口时可使用服务名称代替，参见上表
-  * IPv4 Local Alternate DNS Address - IPv4 备用境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，默认为 114.114.114.114:53
+  * IPv4 Local Alternate DNS Address - IPv4 备用境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，留空为不启用，默认为 114.114.114.114:53
     * 指定端口时可使用服务名称代替，参见上表
-  * IPv6 Listen Address - IPv6 本地监听地址：需要输入一个带端口格式的地址，默认为空
+  * IPv6 Listen Address - IPv6 本地监听地址：需要输入一个带端口格式的地址，留空为不启用，默认为空
     * 本参数支持多个监听地址，格式为 "[地址A]:端口|[地址B]:端口|[地址C]:端口"（不含引号）
     * 填入此值后 IPv6 协议的 Operation Mode 和 Listen Port 参数将被自动忽略
   * IPv6 DNS Address - IPv6 主要 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为空
@@ -416,29 +416,32 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 指定端口时可使用服务名称代替，参见上表
 
 * Values - 扩展参数值区域
-  * EDNS0 Payload Size - EDNS0 标签附带使用的最大载荷长度：最小为 DNS 协议实现要求的 512(bytes)，留空则使用 EDNS0 标签要求最短的 1220(bytes)，默认为留空
+  * EDNS0 Payload Size - EDNS0 标签附带使用的最大载荷长度：最小为 DNS 协议实现要求的 512(bytes)，留空则使用 EDNS0 标签要求最短的 1220(bytes)，默认为空
   * IPv4 TTL - IPv4 主要 DNS 服务器接受请求的远程 DNS 服务器数据包的 TTL 值：0为自动获取，取值为 1-255 之间：默认为 0
     * 本参数支持同时请求多服务器的功能，与 IPv4 DNS Address 相对应
-    * 使用同时请求多服务器格式为 "TTL(A)|TTL(B)|TTL(C)"（不含引号），也可直接默认（即只填一个 0 不是用此格式）则所有 TTL 都将由程序自动获取
+    * 使用同时请求多服务器格式为 "TTL(A)|TTL(B)|TTL(C)"（不含引号），也可直接默认（即只填一个 0 不使用此格式）则所有 TTL 都将由程序自动获取
     * 使用时多 TTL 值所对应的顺序与 IPv4 DNS Address 中对应的地址顺序相同
   * IPv6 Hop Limits - IPv6 主要 DNS 服务器接受请求的远程 DNS 服务器数据包的 Hop Limits 值：0为自动获取，取值为 1-255 之间，默认为 0
     * 本参数支持同时请求多服务器的功能，与 IPv6 DNS Address 相对应
-    * 使用同时请求多服务器格式为 "Hop Limits(A)|Hop Limits(B)|Hop LimitsC)"（不含引号），也可直接默认（即只填一个 0 不是用此格式）则所有 Hop Limits 都将由程序自动获取
+    * 使用同时请求多服务器格式为 "Hop Limits(A)|Hop Limits(B)|Hop LimitsC)"（不含引号），也可直接默认（即只填一个 0 不使用此格式）则所有 Hop Limits 都将由程序自动获取
     * 使用时多 Hop Limits 值所对应的顺序与 IPv6 DNS Address 中对应的地址顺序相同
   * IPv4 Alternate TTL - IPv4 备用 DNS 服务器接受请求的远程 DNS 服务器数据包的 TTL 值：0为自动获取，取值为 1-255 之间：默认为 0
     * 本参数支持同时请求多服务器的功能，与 IPv4 Alternate DNS Address 相对应
-    * 使用同时请求多服务器格式为 "TTL(A)|TTL(B)|TTL(C)"（不含引号），也可直接默认（即只填一个 0 不是用此格式）则所有 TTL 都将由程序自动获取
+    * 使用同时请求多服务器格式为 "TTL(A)|TTL(B)|TTL(C)"（不含引号），也可直接默认（即只填一个 0 不使用此格式）则所有 TTL 都将由程序自动获取
     * 使用时多 TTL 值所对应的顺序与 IPv4 Alternate DNS Address 中对应的地址顺序相同
   * IPv6 Alternate Hop Limits - IPv6 备用 DNS 服务器接受请求的远程 DNS 服务器数据包的 Hop Limits 值：0为自动获取，取值为 1-255 之间，默认为 0
     * 本参数支持同时请求多服务器的功能，与 IPv6 Alternate DNS Address 相对应
-    * 使用同时请求多服务器格式为 "Hop Limits(A)|Hop Limits(B)|Hop Limits(C)"（不含引号），也可直接默认（即只填一个 0 不是用此格式）则所有 Hop Limits 都将由程序自动获取
+    * 使用同时请求多服务器格式为 "Hop Limits(A)|Hop Limits(B)|Hop Limits(C)"（不含引号），也可直接默认（即只填一个 0 不使用此格式）则所有 Hop Limits 都将由程序自动获取
     * 使用时多 Hop Limits 值所对应的顺序与 IPv6 Alternate DNS Address 中对应的地址顺序相同
-  * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受范围，即 IPv4 TTL/IPv6 Hop Limits 的值 ± 数值的范围内的数据包均可被接受，用于避免网络环境短暂变化造成解析失败的问题：取值为 1-255 之间，默认为2
+  * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受范围，即 IPv4 TTL/IPv6 Hop Limits 的值 ± 数值的范围内的数据包均可被接受，用于避免网络环境短暂变化造成解析失败的问题：取值为 1-255 之间，默认为 2
   * Reliable Socket Timeout - 可靠协议端口超时时间，可靠端口指 TCP 协议，单位为毫秒：默认为 5000
-  * Unreliable Socket Timeout - 不可靠协议端口超时时间，不可靠端口指 UDP/ICMP/ICMPv6 协议，单位为毫秒：默认为 3000
+  * Unreliable Socket Timeout - 不可靠协议端口超时时间，不可靠端口指 UDP/ICMP/ICMPv6 协议：单位为毫秒，默认为 3000
+  * Receive Waiting - 数据包接收等待时间，启用后程序会尝试等待一段时间以尝试接收所有数据包并返回最后到达的数据包：单位为毫秒，留空或填 0 表示关闭此功能，默认为 0
+    * 本参数与 Pcap Reading Timeout 密切相关，由于抓包模块每隔一段读取超时时间才会返回给程序一次，当数据包接收等待时间小于读取超时时间时会导致本参数变得没有意义，在一些情况下甚至会拖慢域名解析的响应速度
+    * 一般情况下，越靠后所收到的数据包，其可靠性可能会更高
   * ICMP Test - ICMP/Ping 测试间隔时间：单位为秒，最短间隔时间为5秒，默认为 900秒/15分钟
   * Domain Test - DNS 服务器解析域名测试间隔时间：单位为秒，最短间隔时间为5秒，默认为 900秒/15分钟
-  * Alternate Times - 备用服务器失败次数阈值，一定周期内如超出阈值会触发服务器切换：默认为 10 次
+  * Alternate Times - 备用服务器失败次数阈值，一定周期内如超出阈值会触发服务器切换：默认为 10
   * Alternate Time Range - 备用服务器失败次数阈值计算周期：单位为秒，默认为 60秒/1分钟
   * Alternate Reset Time - 备用服务器重置切换时间，切换产生后经过此事件会切换回主要服务器：单位为秒，默认为 300秒/5分钟
   * Multi Request Times - 接受一个域名请求后向同一个远程服务器发送多次域名解析请求：0为关闭，1时为收到一个请求时请求2次，2时为收到一个请求时请求3次……最大值为7，也就是最多可同时请求8次，默认为 0
@@ -464,9 +467,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Data - 数据区域
   * ICMP ID - ICMP/Ping 数据包头部ID的值：格式为 0x**** 的十六进制字符，如果留空则获取线程的 ID 作为请求用 ID 默认为空
   * ICMP Sequence - ICMP/Ping 数据包头部 Sequence/序列号 的值：格式为 0x**** 的十六进制字符，如果留空则为 0x0001 默认为空
-  * Domain Test Data - DNS 服务器解析域名测试：请输入正确、确认不会被投毒污染的域名并且不要超过 253 字节 ASCII 数据，留空则会随机生成一个域名进行测试：默认为空
+  * Domain Test Data - DNS 服务器解析域名测试：请输入正确、确认不会被投毒污染的域名并且不要超过 253 字节 ASCII 数据，留空则会随机生成一个域名进行测试，默认为空
   * Domain Test ID - DNS 数据包头部 ID 的值：格式为 0x**** 的十六进制字符，如果留空则为 0x0001 默认为空
-  * ICMP PaddingData - ICMP 附加数据，Ping 程序发送请求时为补足数据使其达到 Ethernet 类型网络最低的可发送长度时添加的数据：长度介乎于 18字节 - 1512字节 ASCII 数据之间，留空则使用 Microsoft Windows Ping 程序的 ICMP 附加数据 默认为空
+  * ICMP PaddingData - ICMP 附加数据，Ping 程序发送请求时为补足数据使其达到 Ethernet 类型网络最低的可发送长度时添加的数据：长度介乎于 18字节 - 1512字节 ASCII 数据之间，留空则使用 Microsoft Windows Ping 程序的 ICMP 附加数据，默认为空
   * Localhost Server Name - 本地 DNS 服务器名称：请输入正确的域名并且不要超过253字节ASCII数据，留空则使用 pcap-dnsproxy.localhost.server 作为本地服务器名称，默认为空
 
 * DNSCurve - DNSCurve 协议基本参数区域
@@ -531,7 +534,7 @@ Hosts 配置文件分为多个提供不同功能的区域
 * 一条条目的总长度切勿超过 4096字节/4KB
 * 需要注释请在条目开头添加 #/井号
 * 优先级别自上而下递减，条目越前优先级越高
-* 平行 Hosts 条目支持数量由请求域名以及 EDNS0 Payload 长度决定，建议不要超过70个 A 记录或40个 AAAA 记录
+* 平行 Hosts 条目支持数量由请求域名以及 EDNS0 Payload 长度决定，建议不要超过75个 A 记录或43个 AAAA 记录
 
 
 * Whitelist - 白名单条目

@@ -549,8 +549,10 @@ size_t __fastcall GetNetworkingInformation(void)
 //Initialization
 	std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
 	memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+#if !defined(PLATFORM_MACX)
 	std::string Result;
 	SSIZE_T Index = 0;
+#endif
 
 #if defined(PLATFORM_WIN)
 	PADDRINFOA LocalAddressList = nullptr, LocalAddressTableIter = nullptr;
@@ -582,21 +584,23 @@ size_t __fastcall GetNetworkingInformation(void)
 			continue;
 		}
 		else {
-			std::string DNSPTRString;
 			std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0]);
-			memset(Parameter.LocalAddress[0], 0, PACKET_MAXSIZE);
+			memset(Parameter.LocalAddressResponse[0], 0, PACKET_MAXSIZE);
 			Parameter.LocalAddressLength[0] = 0;
-			Parameter.LocalAddressPTR[0]->clear();
-			Parameter.LocalAddressPTR[0]->shrink_to_fit();
+		#if !defined(PLATFORM_MACX)
+			std::string DNSPTRString;
+			Parameter.LocalAddressPTRResponse[0]->clear();
+			Parameter.LocalAddressPTRResponse[0]->shrink_to_fit();
+		#endif
 
 		//Mark local addresses(A part).
-			DNS_Header = (pdns_hdr)Parameter.LocalAddress[0];
+			DNS_Header = (pdns_hdr)Parameter.LocalAddressResponse[0];
 			DNS_Header->Flags = htons(DNS_SQR_NEA);
 			DNS_Header->Questions = htons(U16_NUM_ONE);
 			Parameter.LocalAddressLength[0] += sizeof(dns_hdr);
-			memcpy_s(Parameter.LocalAddress[0] + Parameter.LocalAddressLength[0], PACKET_MAXSIZE - Parameter.LocalAddressLength[0], Parameter.LocalFQDN, Parameter.LocalFQDNLength);
+			memcpy_s(Parameter.LocalAddressResponse[0] + Parameter.LocalAddressLength[0], PACKET_MAXSIZE - Parameter.LocalAddressLength[0], Parameter.LocalFQDNResponse, Parameter.LocalFQDNLength);
 			Parameter.LocalAddressLength[0] += Parameter.LocalFQDNLength;
-			DNS_Query = (pdns_qry)(Parameter.LocalAddress[0] + Parameter.LocalAddressLength[0]);
+			DNS_Query = (pdns_qry)(Parameter.LocalAddressResponse[0] + Parameter.LocalAddressLength[0]);
 			DNS_Query->Type = htons(DNS_RECORD_AAAA);
 			DNS_Query->Classes = htons(DNS_CLASS_IN);
 			Parameter.LocalAddressLength[0] += sizeof(dns_qry);
@@ -611,7 +615,7 @@ size_t __fastcall GetNetworkingInformation(void)
 				//Mark local addresses(B part).
 					if (Parameter.LocalAddressLength[0] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
 					{
-						DNS_Record_AAAA = (pdns_record_aaaa)(Parameter.LocalAddress[0] + Parameter.LocalAddressLength[0]);
+						DNS_Record_AAAA = (pdns_record_aaaa)(Parameter.LocalAddressResponse[0] + Parameter.LocalAddressLength[0]);
 						DNS_Record_AAAA->Name = htons(DNS_QUERY_PTR);
 						DNS_Record_AAAA->Classes = htons(DNS_CLASS_IN);
 						DNS_Record_AAAA->TTL = htonl(Parameter.HostsDefaultTTL);
@@ -622,6 +626,7 @@ size_t __fastcall GetNetworkingInformation(void)
 						++DNS_Header->Answer;
 					}
 
+				#if !defined(PLATFORM_MACX)
 				//Initialization
 					DNSPTRString.clear();
 					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
@@ -665,9 +670,10 @@ size_t __fastcall GetNetworkingInformation(void)
 					Result.append("ip6.arpa");
 
 				//Add to global list.
-					Parameter.LocalAddressPTR[0]->push_back(Result);
+					Parameter.LocalAddressPTRResponse[0]->push_back(Result);
 					Result.clear();
 					Result.shrink_to_fit();
+				#endif
 				}
 			}
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -678,7 +684,7 @@ size_t __fastcall GetNetworkingInformation(void)
 				//Mark local addresses(B part).
 					if (Parameter.LocalAddressLength[0] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
 					{
-						DNS_Record_AAAA = (pdns_record_aaaa)(Parameter.LocalAddress[0] + Parameter.LocalAddressLength[0]);
+						DNS_Record_AAAA = (pdns_record_aaaa)(Parameter.LocalAddressResponse[0] + Parameter.LocalAddressLength[0]);
 						DNS_Record_AAAA->Name = htons(DNS_QUERY_PTR);
 						DNS_Record_AAAA->Classes = htons(DNS_CLASS_IN);
 						DNS_Record_AAAA->TTL = htonl(Parameter.HostsDefaultTTL);
@@ -689,6 +695,7 @@ size_t __fastcall GetNetworkingInformation(void)
 						++DNS_Header->Answer;
 					}
 
+				#if !defined(PLATFORM_MACX)
 				//Initialization
 					DNSPTRString.clear();
 					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
@@ -732,9 +739,10 @@ size_t __fastcall GetNetworkingInformation(void)
 					Result.append("ip6.arpa");
 
 				//Add to global list.
-					Parameter.LocalAddressPTR[0]->push_back(Result);
+					Parameter.LocalAddressPTRResponse[0]->push_back(Result);
 					Result.clear();
 					Result.shrink_to_fit();
+				#endif
 				}
 			}
 		#endif
@@ -742,7 +750,7 @@ size_t __fastcall GetNetworkingInformation(void)
 		//Mark local addresses(C part).
 			if (DNS_Header->Answer == 0)
 			{
-				memset(Parameter.LocalAddress[0], 0, PACKET_MAXSIZE);
+				memset(Parameter.LocalAddressResponse[0], 0, PACKET_MAXSIZE);
 				Parameter.LocalAddressLength[0] = 0;
 			}
 			else {
@@ -769,21 +777,23 @@ size_t __fastcall GetNetworkingInformation(void)
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		{
 	#endif
-			std::string DNSPTRString;
 			std::unique_lock<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[1U]);
-			memset(Parameter.LocalAddress[1U], 0, PACKET_MAXSIZE);
+			memset(Parameter.LocalAddressResponse[1U], 0, PACKET_MAXSIZE);
 			Parameter.LocalAddressLength[1U] = 0;
-			Parameter.LocalAddressPTR[1U]->clear();
-			Parameter.LocalAddressPTR[1U]->shrink_to_fit();
+		#if !defined(PLATFORM_MACX)
+			std::string DNSPTRString;
+			Parameter.LocalAddressPTRResponse[1U]->clear();
+			Parameter.LocalAddressPTRResponse[1U]->shrink_to_fit();
+		#endif
 
 		//Mark local addresses(A part).
-			DNS_Header = (pdns_hdr)Parameter.LocalAddress[1U];
+			DNS_Header = (pdns_hdr)Parameter.LocalAddressResponse[1U];
 			DNS_Header->Flags = htons(DNS_SQR_NEA);
 			DNS_Header->Questions = htons(U16_NUM_ONE);
 			Parameter.LocalAddressLength[1U] += sizeof(dns_hdr);
-			memcpy_s(Parameter.LocalAddress[1U] + Parameter.LocalAddressLength[1U], PACKET_MAXSIZE - Parameter.LocalAddressLength[1U], Parameter.LocalFQDN, Parameter.LocalFQDNLength);
+			memcpy_s(Parameter.LocalAddressResponse[1U] + Parameter.LocalAddressLength[1U], PACKET_MAXSIZE - Parameter.LocalAddressLength[1U], Parameter.LocalFQDNResponse, Parameter.LocalFQDNLength);
 			Parameter.LocalAddressLength[1U] += Parameter.LocalFQDNLength;
-			DNS_Query = (pdns_qry)(Parameter.LocalAddress[1U] + Parameter.LocalAddressLength[1U]);
+			DNS_Query = (pdns_qry)(Parameter.LocalAddressResponse[1U] + Parameter.LocalAddressLength[1U]);
 			DNS_Query->Type = htons(DNS_RECORD_AAAA);
 			DNS_Query->Classes = htons(DNS_CLASS_IN);
 			Parameter.LocalAddressLength[1U] += sizeof(dns_qry);
@@ -798,7 +808,7 @@ size_t __fastcall GetNetworkingInformation(void)
 				//Mark local addresses(B part).
 					if (Parameter.LocalAddressLength[1U] <= PACKET_MAXSIZE - sizeof(dns_record_a))
 					{
-						DNS_Record_A = (pdns_record_a)(Parameter.LocalAddress[1U] + Parameter.LocalAddressLength[1U]);
+						DNS_Record_A = (pdns_record_a)(Parameter.LocalAddressResponse[1U] + Parameter.LocalAddressLength[1U]);
 						DNS_Record_A->Name = htons(DNS_QUERY_PTR);
 						DNS_Record_A->Classes = htons(DNS_CLASS_IN);
 						DNS_Record_A->TTL = htonl(Parameter.HostsDefaultTTL);
@@ -809,6 +819,7 @@ size_t __fastcall GetNetworkingInformation(void)
 						++DNS_Header->Answer;
 					}
 
+				#if !defined(PLATFORM_MACX)
 				//Initialization
 					DNSPTRString.clear();
 					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
@@ -833,9 +844,10 @@ size_t __fastcall GetNetworkingInformation(void)
 					Result.append("in-addr.arpa");
 
 				//Add to global list.
-					Parameter.LocalAddressPTR[1U]->push_back(Result);
+					Parameter.LocalAddressPTRResponse[1U]->push_back(Result);
 					Result.clear();
 					Result.shrink_to_fit();
+				#endif
 				}
 			}
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -846,7 +858,7 @@ size_t __fastcall GetNetworkingInformation(void)
 				//Mark local addresses(B part).
 					if (Parameter.LocalAddressLength[1U] <= PACKET_MAXSIZE - sizeof(dns_record_a))
 					{
-						DNS_Record_A = (pdns_record_a)(Parameter.LocalAddress[1U] + Parameter.LocalAddressLength[1U]);
+						DNS_Record_A = (pdns_record_a)(Parameter.LocalAddressResponse[1U] + Parameter.LocalAddressLength[1U]);
 						DNS_Record_A->Name = htons(DNS_QUERY_PTR);
 						DNS_Record_A->Classes = htons(DNS_CLASS_IN);
 						DNS_Record_A->TTL = htonl(Parameter.HostsDefaultTTL);
@@ -857,6 +869,7 @@ size_t __fastcall GetNetworkingInformation(void)
 						++DNS_Header->Answer;
 					}
 
+				#if !defined(PLATFORM_MACX)
 				//Initialization
 					DNSPTRString.clear();
 					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
@@ -881,9 +894,10 @@ size_t __fastcall GetNetworkingInformation(void)
 					Result.append("in-addr.arpa");
 
 				//Add to global list.
-					Parameter.LocalAddressPTR[1U]->push_back(Result);
+					Parameter.LocalAddressPTRResponse[1U]->push_back(Result);
 					Result.clear();
 					Result.shrink_to_fit();
+				#endif
 				}
 			}
 		#endif
@@ -891,7 +905,7 @@ size_t __fastcall GetNetworkingInformation(void)
 		//Mark local addresses(C part).
 			if (DNS_Header->Answer == 0)
 			{
-				memset(Parameter.LocalAddress[1U], 0, PACKET_MAXSIZE);
+				memset(Parameter.LocalAddressResponse[1U], 0, PACKET_MAXSIZE);
 				Parameter.LocalAddressLength[1U] = 0;
 			}
 			else {
@@ -1495,6 +1509,8 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, char *D
 			((in_addr *)Addr)->s_addr == htonl(0xDD08451B) || //221.8.69.27
 //			((in_addr *)Addr)->s_addr == htonl(0xF3B9BB03) || //243.185.187.3, including in reserved address ranges
 //			((in_addr *)Addr)->s_addr == htonl(0xF3B9BB1E) || //243.185.187.30, including in reserved address ranges
+		//New DNS Poisoning address which had been added in May 2015.
+//			((in_addr *)Addr)->s_addr == 0 || //0.0.0.0, including in reserved address ranges
 		//Special-use and reserved addresses, see https://en.wikipedia.org/wiki/IPv4#Special-use_addresses and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv4_addresses.
 			((in_addr *)Addr)->s_net == 0 || //Current network whick only valid as source Addresses(0.0.0.0/8, Section 3.2.1.3 in RFC 1122)
 //			((in_addr *)Addr)->s_net == 0x0A || //Private class A Addresses(10.0.0.0/8, Section 3 in RFC 1918)
@@ -2243,6 +2259,7 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 		Parameter.EDNS0Label && DNS_Header->Additional == 0)) //Additional EDNS0 Label Resource Records check
 			return false;
 
+#if defined(ENABLE_PCAP)
 	if (IsMarkHopLimit != nullptr && (Parameter.DNSDataCheck && 
 		DNS_Header->Answer != htons(U16_NUM_ONE) || //Less than or more than one Answer Record
 		DNS_Header->Authority > 0 || DNS_Header->Additional > 0)) //Authority Records and/or Additional Records
@@ -2255,6 +2272,7 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 		*IsMarkHopLimit = true;
 		return true;
 	}
+#endif
 
 //Responses question pointer check
 	if (Parameter.DNSDataCheck)
@@ -2270,6 +2288,7 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 	memset(Domain.get(), 0, DOMAIN_MAXSIZE);
 	DNSQueryToChar(Buffer + sizeof(dns_hdr), Domain.get());
 //Domain Test part
+#if defined(ENABLE_PCAP)
 	if (IsMarkHopLimit != nullptr && Parameter.DomainTestData != nullptr)
 	{
 		if (strnlen_s(Domain.get(), DOMAIN_MAXSIZE) == strnlen_s(Parameter.DomainTestData, DOMAIN_MAXSIZE) && 
@@ -2279,6 +2298,7 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 			return true;
 		}
 	}
+#endif
 
 //Check repeating DNS Domain without Compression.
 	if (Parameter.DNSDataCheck && DNS_Header->Answer == htons(U16_NUM_ONE) && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && 
@@ -2310,7 +2330,7 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 				return false;
 
 	//Check addresses.
-		if (Parameter.Blacklist)
+		if (Parameter.BlacklistCheck)
 		{
 			DataLength += sizeof(dns_record_standard);
 			if (DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA) && DNS_Record_Standard->Length == htons(sizeof(in6_addr)))
@@ -2357,7 +2377,7 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 
 				//Check addresses.
 					pin6_addr = (in6_addr *)(Buffer + DataLength);
-					if (Parameter.Blacklist && CheckSpecialAddress(pin6_addr, AF_INET6, Domain.get()) || 
+					if (Parameter.BlacklistCheck && CheckSpecialAddress(pin6_addr, AF_INET6, Domain.get()) || 
 						!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin6_addr, AF_INET6))
 							return false;
 				}
@@ -2369,7 +2389,7 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 
 				//Check addresses.
 					pin_addr = (in_addr *)(Buffer + DataLength);
-					if (Parameter.Blacklist && CheckSpecialAddress(pin_addr, AF_INET, Domain.get()) || 
+					if (Parameter.BlacklistCheck && CheckSpecialAddress(pin_addr, AF_INET, Domain.get()) || 
 						!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin_addr, AF_INET))
 							return false;
 				}

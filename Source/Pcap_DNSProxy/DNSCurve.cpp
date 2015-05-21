@@ -227,7 +227,9 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 //Packet
 	size_t DataLength = sizeof(dns_tcp_hdr);
 	auto DNS_TCP_Header = (pdns_tcp_hdr)SendBuffer.get();
+#if defined(ENABLE_PCAP)
 	DNS_TCP_Header->ID = Parameter.DomainTestID;
+#endif
 	DNS_TCP_Header->Flags = htons(DNS_STANDARD);
 	DNS_TCP_Header->Questions = htons(U16_NUM_ONE);
 
@@ -363,7 +365,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 		//Reset parameters.
 		#if defined(PLATFORM_WIN)
 			Timeout->tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
-			Timeout->tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+			Timeout->tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			Timeout->tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
 			Timeout->tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
@@ -571,7 +573,9 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const b
 //Packet
 	size_t DataLength = sizeof(dns_hdr);
 	auto DNS_Header = (pdns_hdr)SendBuffer.get();
+#if defined(ENABLE_PCAP)
 	DNS_Header->ID = Parameter.DomainTestID;
+#endif
 	DNS_Header->Flags = htons(DNS_STANDARD);
 	DNS_Header->Questions = htons(U16_NUM_ONE);
 
@@ -1062,7 +1066,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 	//Reset parameters.
 	#if defined(PLATFORM_WIN)
 		Timeout->tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
-		Timeout->tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+		Timeout->tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Timeout->tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
 		Timeout->tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
@@ -1176,7 +1180,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 								JumpFromPDU: 
 
 							//Responses question and answers check
-								if ((Parameter.DNSDataCheck || Parameter.Blacklist) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
+								if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
 								{
 									memset(OriginalRecv, 0, RecvSize);
 									return EXIT_FAILURE;
@@ -1571,7 +1575,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 	//Reset parameters.
 	#if defined(PLATFORM_WIN)
 		Timeout->tv_sec = Parameter.ReliableSocketTimeout / SECOND_TO_MILLISECOND;
-		Timeout->tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+		Timeout->tv_usec = Parameter.ReliableSocketTimeout % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Timeout->tv_sec = Parameter.ReliableSocketTimeout.tv_sec;
 		Timeout->tv_usec = Parameter.ReliableSocketTimeout.tv_usec;
@@ -1722,7 +1726,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 									}
 
 								//Hosts Only Extended check
-									if ((Parameter.DNSDataCheck || Parameter.Blacklist) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
+									if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
 									{
 										memset(OriginalRecv, 0, RecvSize);
 										continue;
@@ -2071,7 +2075,7 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 		}
 
 	//Responses question and answers check
-		if ((Parameter.DNSDataCheck || Parameter.Blacklist) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
+		if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
 		{
 			memset(OriginalRecv, 0, RecvSize);
 			return EXIT_FAILURE;
@@ -2087,7 +2091,7 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 	else {
 	//Responses question and answers check
 		auto DNS_Header = (pdns_hdr)OriginalRecv;
-		if (DNS_Header->Additional == 0 || (Parameter.DNSDataCheck || Parameter.Blacklist) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
+		if (DNS_Header->Additional == 0 || (Parameter.DNSDataCheck || Parameter.BlacklistCheck) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
 		{
 			memset(OriginalRecv, 0, RecvSize);
 			return EXIT_FAILURE;
@@ -2398,7 +2402,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	//Reset parameters.
 	#if defined(PLATFORM_WIN)
 		Timeout->tv_sec = Parameter.UnreliableSocketTimeout / SECOND_TO_MILLISECOND;
-		Timeout->tv_usec = Parameter.UnreliableSocketTimeout % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+		Timeout->tv_usec = Parameter.UnreliableSocketTimeout % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Timeout->tv_sec = Parameter.UnreliableSocketTimeout.tv_sec;
 		Timeout->tv_usec = Parameter.UnreliableSocketTimeout.tv_usec;
@@ -2511,7 +2515,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 						}
 
 					//Responses question and answers check
-						if ((Parameter.DNSDataCheck || Parameter.Blacklist) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
+						if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
 						{
 							memset(OriginalRecv, 0, RecvSize);
 							shutdown(UDPSocketDataList[Index].Socket, SD_BOTH);
@@ -2549,7 +2553,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 						}
 
 					//Hosts Only Extended check
-						if ((Parameter.DNSDataCheck || Parameter.Blacklist) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
+						if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
 						{
 							memset(OriginalRecv, 0, RecvSize);
 							continue;

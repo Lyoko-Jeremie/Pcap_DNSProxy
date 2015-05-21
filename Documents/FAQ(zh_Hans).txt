@@ -68,9 +68,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
 
 1.System Error - 系统错误
   * Service start error - 服务启动失败：可能未在系统注册服务，或在系统内注册的服务路径不正确
-    * Pcap_DNSProxy will continue to run in console mode 一并显示时为以窗口模式启动的提示
-    * 详细情况参见 ReadMe 文档中 安装方法 一节
-    * 其它错误代码原因参见 https://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
+    * 错误代码参见 https://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
   * Convert multiple byte string to wide char string error - 多/宽字节字符转换错误：建议重新启动服务或程序
   * Create mailslot error - MailSlot 创建失败：建议重新启动服务或程序
   * Get mailslot error - MailSlot 获取失败：建议重新启动服务或程序
@@ -79,8 +77,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Create FIFO error - FIFO 创建失败：建议重新启动服务或程序
   * FIFO write messages error - FIFO 写入信息失败：建议重新启动服务或程序
   * Old Error Log file was deleted - 错误日志文件已满并被删除
-    * 日志文件最大容量的配置参见 详细说明文档 中 配置文件详细参数说明 中的 Log Maximum Size 参数
-  * Old Running Log file was deleted - 运行日志文件已满并被删除
     * 日志文件最大容量的配置参见 详细说明文档 中 配置文件详细参数说明 中的 Log Maximum Size 参数
   * Read Hosts module Monitor terminated - Hosts 读取模块已经停止监视，建议重新启动服务或程序
   * Read IPFilter module Monitor terminated - IPFilter 读取模块已经停止监视，建议重新启动服务或程序
@@ -112,6 +108,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * DNS server IPv6 port error - IPv6 的 DNS 目标服务器端口错误（可根据文件名和行数查找）：请检查 IPv6 的 DNS 目标服务器的端口
   * DNS server IPv4 address format error - IPv4 的 DNS 服务器地址格式错误（可根据文件名和行数查找）：请检查 IPv4 的 DNS 服务器地址
   * DNS server IPv4 port error - IPv4 的 DNS 目标服务器端口错误（可根据文件名和行数查找）：请检查 IPv4 的 DNS 目标服务器的端口
+  * Pcap Capture error - 抓包模块参数错误：请检查相关参数的使用要求说明
   * Localhost server listening port error - 本地监听端口错误：请检查本地监听端口的值，可适用范围为 1 - 65535
   * IPFilter Level error - IPFilter 过滤级别错误：请检查过滤级别的值，可适用范围为 1 - 65535
   * DNS Cache error - DNS 缓存配置错误：请检查缓存的参数

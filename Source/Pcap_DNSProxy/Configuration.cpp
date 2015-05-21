@@ -358,17 +358,17 @@ size_t __fastcall ReadParameter(void)
 	}
 
 //Check parameters.
-	if (Parameter.Version > PRODUCT_VERSION) //Version check
+	if (Parameter.Version > CONFIG_VERSION) //Version check
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"Configuration file version error", 0, ConfigFileList[Index].c_str(), 0);
 		return EXIT_FAILURE;
 	}
-	else if (Parameter.Version < PRODUCT_VERSION)
+	else if (Parameter.Version < CONFIG_VERSION)
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"Configuration file is not the latest version", 0, ConfigFileList[Index].c_str(), 0);
 	}
 
-//Clear when Print Running Log is disable.
+/* Old version(2015-05-20)
 //Print Running Log disable
 	Parameter.PrintRunningLog = false;
 	if (!Parameter.PrintRunningLog)
@@ -376,7 +376,7 @@ size_t __fastcall ReadParameter(void)
 		delete Parameter.RunningLogPath;
 		Parameter.RunningLogPath = nullptr;
 	}
-
+*/
 //Log max size check
 	if (Parameter.LogMaxSize < DEFAULT_LOG_MINSIZE || Parameter.LogMaxSize > DEFAULT_FILE_MAXSIZE)
 	{
@@ -400,6 +400,7 @@ size_t __fastcall ReadParameter(void)
 		Parameter.AlternateMultiRequest = true;
 
 	//Copy DNS Server Data when Main or Alternate data are empty.
+	#if defined(ENABLE_PCAP)
 		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)
 		{
 			uint8_t HopLimitTemp = 0;
@@ -419,6 +420,7 @@ size_t __fastcall ReadParameter(void)
 			Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit = HopLimitTemp;
 			Parameter.DNSTarget.IPv6_Multi->erase(Parameter.DNSTarget.IPv6_Multi->begin());
 		}
+	#endif
 
 	//Multi select mode check
 		if (Parameter.DNSTarget.IPv6_Multi->size() + 2U > FD_SETSIZE || //UDP requesting
@@ -444,6 +446,7 @@ size_t __fastcall ReadParameter(void)
 		Parameter.AlternateMultiRequest = true;
 
 	//Copy DNS Server Data when Main or Alternate data are empty.
+	#if defined(ENABLE_PCAP)
 		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)
 		{
 			uint8_t TTLTemp = 0;
@@ -463,6 +466,7 @@ size_t __fastcall ReadParameter(void)
 			Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL = TTLTemp;
 			Parameter.DNSTarget.IPv4_Multi->erase(Parameter.DNSTarget.IPv4_Multi->begin());
 		}
+	#endif
 
 	//Multi select mode check
 		if (Parameter.DNSTarget.IPv4_Multi->size() + 2U > FD_SETSIZE || //UDP requesting
@@ -519,6 +523,7 @@ size_t __fastcall ReadParameter(void)
 	}
 
 //Hop Limit or TTL Fluctuations check
+#if defined(ENABLE_PCAP)
 	if (Parameter.HopLimitFluctuation > 0)
 	{
 		//IPv6
@@ -540,19 +545,30 @@ size_t __fastcall ReadParameter(void)
 			return EXIT_FAILURE;
 		}
 	}
+#endif
 
 //Other error which need to print to log.
-/* Old version(2015-05-16)
-#if defined(ENABLE_LIBSODIUM)
-	if (!Parameter.PcapCapture && !Parameter.HostsOnly && !Parameter.DNSCurve && Parameter.RequestMode != REQUEST_TCPMODE)
-#else
-	if (!Parameter.PcapCapture && !Parameter.HostsOnly && Parameter.RequestMode != REQUEST_TCPMODE)
-#endif
+#if defined(ENABLE_PCAP)
+	#if defined(ENABLE_LIBSODIUM)
+		if (!Parameter.PcapCapture && !Parameter.HostsOnly && !Parameter.DNSCurve && Parameter.RequestMode != REQUEST_TCPMODE)
+	#else
+		if (!Parameter.PcapCapture && !Parameter.HostsOnly && Parameter.RequestMode != REQUEST_TCPMODE)
+	#endif
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"Pcap Capture error", 0, ConfigFileList[Index].c_str(), 0);
 		return EXIT_FAILURE;
 	}
-*/
+#else
+	#if defined(ENABLE_LIBSODIUM)
+		if (!Parameter.HostsOnly && !Parameter.DNSCurve && Parameter.RequestMode != REQUEST_TCPMODE)
+	#else
+		if (!Parameter.HostsOnly && Parameter.RequestMode != REQUEST_TCPMODE)
+	#endif
+	{
+		PrintError(LOG_ERROR_PARAMETER, L"Pcap Capture error", 0, ConfigFileList[Index].c_str(), 0);
+		return EXIT_FAILURE;
+	}
+#endif
 	if (Parameter.LocalMain && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family || 
 		Parameter.LocalMain && Parameter.LocalHosts)
 	{
@@ -601,8 +617,10 @@ size_t __fastcall ReadParameter(void)
 	}
 
 //Set before checking.
+#if defined(ENABLE_PCAP)
 	if (Parameter.RequestMode != REQUEST_TCPMODE) //TCP Mode option check
 		Parameter.TCPDataCheck = false;
+#endif
 	if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0) //IPv4 Data Filter option check
 		Parameter.IPv4DataCheck = false;
 
@@ -913,27 +931,32 @@ size_t __fastcall ReadParameter(void)
 			Parameter.EDNS0Label = true;
 		}
 	}
-	if (Parameter.CompressionPointerMutation && Parameter.EDNS0Label)
-	{
-		PrintError(LOG_ERROR_PARAMETER, L"Compression Pointer Mutation must turn OFF when request EDNS0 Label", 0, ConfigFileList[Index].c_str(), 0);
-		Parameter.CompressionPointerMutation = false;
+	else {
+		if (Parameter.CompressionPointerMutation)
+		{
+			PrintError(LOG_ERROR_PARAMETER, L"Compression Pointer Mutation must turn OFF when request EDNS0 Label", 0, ConfigFileList[Index].c_str(), 0);
+			Parameter.CompressionPointerMutation = false;
+		}
 	}
 
+#if defined(ENABLE_PCAP)
 	if (CheckEmptyBuffer(Parameter.DomainTestData, DOMAIN_MAXSIZE))
 	{
 		delete[] Parameter.DomainTestData;
 		Parameter.DomainTestData = nullptr;
 	}
+#endif
 
 	//Default Local DNS server name
 	if (Parameter.LocalFQDNLength <= 0)
 	{
-		Parameter.LocalFQDNLength = CharToDNSQuery(DEFAULT_LOCAL_SERVERNAME, Parameter.LocalFQDN);
+		Parameter.LocalFQDNLength = CharToDNSQuery(DEFAULT_LOCAL_SERVERNAME, Parameter.LocalFQDNResponse);
 		*Parameter.LocalFQDNString = DEFAULT_LOCAL_SERVERNAME;
 	}
 
 	//Set Local DNS server PTR response.
-	if (Parameter.LocalServerResponseLength <= 0)
+#if !defined(PLATFORM_MACX)
+	if (Parameter.LocalServerResponseLength == 0)
 	{
 		auto DNS_Record_PTR = (pdns_record_ptr)Parameter.LocalServerResponse;
 		DNS_Record_PTR->PTR = htons(DNS_QUERY_PTR);
@@ -943,7 +966,7 @@ size_t __fastcall ReadParameter(void)
 		DNS_Record_PTR->Length = htons((uint16_t)Parameter.LocalFQDNLength);
 		Parameter.LocalServerResponseLength += sizeof(dns_record_ptr);
 
-		memcpy_s(Parameter.LocalServerResponse + Parameter.LocalServerResponseLength, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt) - Parameter.LocalServerResponseLength, Parameter.LocalFQDN, Parameter.LocalFQDNLength);
+		memcpy_s(Parameter.LocalServerResponse + Parameter.LocalServerResponseLength, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt) - Parameter.LocalServerResponseLength, Parameter.LocalFQDNResponse, Parameter.LocalFQDNLength);
 		Parameter.LocalServerResponseLength += Parameter.LocalFQDNLength;
 
 	//EDNS0 Label
@@ -955,6 +978,7 @@ size_t __fastcall ReadParameter(void)
 			Parameter.LocalServerResponseLength += sizeof(dns_record_opt);
 		}
 	}
+#endif
 
 //DNSCurve default settings
 #if defined(ENABLE_LIBSODIUM)
@@ -998,6 +1022,7 @@ size_t __fastcall ReadParameter(void)
 //Sort AcceptTypeList.
 	std::sort(Parameter.AcceptTypeList->begin(), Parameter.AcceptTypeList->end());
 
+/* Old version(2015-05-20)
 //Print global parameter list and run Running Log writing Monitor.
 	if (Parameter.PrintRunningLog)
 	{
@@ -1016,6 +1041,7 @@ size_t __fastcall ReadParameter(void)
 		delete Parameter.RunningLogWriteQueue;
 		Parameter.RunningLogWriteQueue = nullptr;
 	}
+*/
 
 	return EXIT_SUCCESS;
 }
@@ -1030,7 +1056,8 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 		return EXIT_SUCCESS;
 
 	SSIZE_T Result = 0;
-//Parameter version less than 0.4 compatible support.
+//Parameter version less than 0.4(0.3-) compatible support.
+#if defined(ENABLE_PCAP)
 	if (Data.find("Hop Limits/TTL Fluctuation = ") == 0 && Data.length() > strlen("Hop Limits/TTL Fluctuation = "))
 	{
 		if (Data.length() < strlen("Hop Limits/TTL Fluctuation = ") + 4U)
@@ -1044,6 +1071,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 			return EXIT_FAILURE;
 		}
 	}
+#endif
 
 //Delete delete spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs) and check minimum length of ipfilter items.
 //Delete comments(Number Sign/NS and double slashs) and check minimum length of configuration items.
@@ -1074,18 +1102,16 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 	}
 
 //Parameter version less than 0.4(0.3-) compatible support.
-	if (Parameter.Version <= PRODUCT_VERSION_POINT_THREE)
+	if (Parameter.Version <= CONFIG_VERSION_POINT_THREE)
 	{
 	//[Base] block
 		if (Data.find("Hosts=") == 0 && Data.length() > strlen("Hosts="))
 		{
-			if (Data.length() < strlen("Hosts=") + 6U)
+			if (Data.length() < strlen("Hosts=") + UINT16_MAX_STRING_LENGTH)
 			{
 				Result = strtoul(Data.c_str() + strlen("Hosts="), nullptr, 0);
-				if (errno != ERANGE && Result >= SHORTEST_FILEREFRESH_TIME)
+				if (errno != ERANGE && Result > 0 && Result >= SHORTEST_FILEREFRESH_TIME)
 					Parameter.FileRefreshTime = Result * SECOND_TO_MILLISECOND;
-				else 
-					Parameter.FileRefreshTime = DEFAULT_FILEREFRESH_TIME * SECOND_TO_MILLISECOND;
 			}
 			else {
 				PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList[FileIndex].c_str(), Line);
@@ -1186,19 +1212,22 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 		{
 			Parameter.IPv4DataCheck = true;
 		}
+	#if defined(ENABLE_PCAP)
 		else if (Data.find("TCPOptionsFilter=1") == 0)
 		{
 			Parameter.TCPDataCheck = true;
 		}
+	#endif
 		else if (Data.find("DNSOptionsFilter=1") == 0)
 		{
 			Parameter.DNSDataCheck = true;
 		}
 
 	//[Data] block
+	#if defined(ENABLE_PCAP)
 		else if (Parameter.DomainTestSpeed == 0 && Data.find("DomainTestSpeed=") == 0 && Data.length() > strlen("DomainTestSpeed="))
 		{
-			if (Data.length() < strlen("DomainTestSpeed=") + 6U)
+			if (Data.length() < strlen("DomainTestSpeed=") + UINT16_MAX_STRING_LENGTH)
 			{
 				Result = strtoul(Data.c_str() + strlen("DomainTestSpeed="), nullptr, 0);
 				if (errno != ERANGE && Result > 0)
@@ -1209,16 +1238,15 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 				return EXIT_FAILURE;
 			}
 		}
+	#endif
 	}
 	else if (Data.find("FileRefreshTime=") == 0 && Data.length() > strlen("FileRefreshTime="))
 	{
-		if (Data.length() < strlen("FileRefreshTime=") + 6U)
+		if (Data.length() < strlen("FileRefreshTime=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("FileRefreshTime="), nullptr, 0);
-			if (errno != ERANGE && Result >= SHORTEST_FILEREFRESH_TIME)
+			if (errno != ERANGE && Result > 0 && Result >= SHORTEST_FILEREFRESH_TIME)
 				Parameter.FileRefreshTime = Result * SECOND_TO_MILLISECOND;
-			else 
-				Parameter.FileRefreshTime = DEFAULT_FILEREFRESH_TIME * SECOND_TO_MILLISECOND;
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList[FileIndex].c_str(), Line);
@@ -1343,6 +1371,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 		delete Parameter.ErrorLogPath;
 		Parameter.ErrorLogPath = nullptr;
 	}
+/* Old version(2015-05-20)
 	else if (Data.find("PrintRunningLog=1") == 0)
 	{
 		Parameter.PrintRunningLog = true;
@@ -1364,6 +1393,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 			return EXIT_FAILURE;
 		}
 	}
+*/
 	else if (Data.find("LogMaximumSize=") == 0 && Data.length() > strlen("LogMaximumSize="))
 	{
 		if (Data.find("KB") != std::string::npos || Data.find("Kb") != std::string::npos || Data.find("kB") != std::string::npos || Data.find("kb") != std::string::npos)
@@ -1480,7 +1510,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 	}
 	else if (Data.find("DefaultTTL=") == 0 && Data.length() > strlen("DefaultTTL="))
 	{
-		if (Data.length() < strlen("DefaultTTL=") + 6U)
+		if (Data.length() < strlen("DefaultTTL=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("DefaultTTL="), nullptr, 0);
 			if (errno != ERANGE && Result > 0 && Result <= UINT16_MAX)
@@ -1499,10 +1529,25 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 	}
 
 //[Listen] block
+#if defined(ENABLE_PCAP)
 	else if (Data.find("PcapCapture=1") == 0)
 	{
 		Parameter.PcapCapture = true;
 	}
+	else if (Data.find("PcapReadingTimeout=") == 0)
+	{
+		if (Data.length() < strlen("PcapReadingTimeout=") + UINT32_MAX_STRING_LENGTH)
+		{
+			Result = strtoul(Data.c_str() + strlen("PcapReadingTimeout="), nullptr, 0);
+			if (errno != ERANGE && Result > 0 && Result > PCAP_CAPTURE_MIN_TIMEOUT)
+				Parameter.PcapReadingTimeout = (size_t)Result;
+		}
+		else {
+			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList[FileIndex].c_str(), Line);
+			return EXIT_FAILURE;
+		}
+	}
+#endif
 	else if (Data.find("OperationMode=") == 0)
 	{
 		if (Data.find("Private") != std::string::npos || Data.find("private") != std::string::npos)
@@ -1780,7 +1825,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 //[Values] block
 	else if (Data.find("EDNS0PayloadSize=") == 0 && Data.length() > strlen("EDNS0PayloadSize="))
 	{
-		if (Data.length() < strlen("EDNS0PayloadSize=") + 6U)
+		if (Data.length() < strlen("EDNS0PayloadSize=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("EDNS0PayloadSize="), nullptr, 0);
 			if (errno != ERANGE && Result >= 0)
@@ -1791,6 +1836,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 			return EXIT_FAILURE;
 		}
 	}
+#if defined(ENABLE_PCAP)
 	else if (Data.find("IPv4TTL=") == 0 && Data.length() > strlen("IPv4TTL="))
 	{
 		if (ReadHopLimitData(Data, strlen("IPv4TTL="), Parameter.DNSTarget.IPv4.HopLimitData.TTL, AF_INET, FileIndex, Line) == EXIT_FAILURE)
@@ -1824,18 +1870,19 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 			return EXIT_FAILURE;
 		}
 	}
+#endif
 	else if (Data.find("ReliableSocketTimeout=") == 0 && Data.length() > strlen("ReliableSocketTimeout="))
 	{
-		if (Data.length() < strlen("ReliableSocketTimeout=") + 9U)
+		if (Data.length() < strlen("ReliableSocketTimeout=") + UINT32_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("ReliableSocketTimeout="), nullptr, 0);
-			if (errno != ERANGE && Result > SOCKET_MIN_TIMEOUT)
+			if (errno != ERANGE && Result > 0 && Result > SOCKET_MIN_TIMEOUT)
 			#if defined(PLATFORM_WIN)
 				Parameter.ReliableSocketTimeout = (int)Result;
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			{
 				Parameter.ReliableSocketTimeout.tv_sec = Result / SECOND_TO_MILLISECOND;
-				Parameter.ReliableSocketTimeout.tv_usec = Result % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+				Parameter.ReliableSocketTimeout.tv_usec = Result % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 			}
 			#endif
 		}
@@ -1846,16 +1893,16 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 	}
 	else if (Data.find("UnreliableSocketTimeout=") == 0 && Data.length() > strlen("UnreliableSocketTimeout="))
 	{
-		if (Data.length() < strlen("UnreliableSocketTimeout=") + 9U)
+		if (Data.length() < strlen("UnreliableSocketTimeout=") + UINT32_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("UnreliableSocketTimeout="), nullptr, 0);
-			if (errno != ERANGE && Result > SOCKET_MIN_TIMEOUT)
+			if (errno != ERANGE && Result > 0 && Result > SOCKET_MIN_TIMEOUT)
 			#if defined(PLATFORM_WIN)
 				Parameter.UnreliableSocketTimeout = (int)Result;
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			{
 				Parameter.UnreliableSocketTimeout.tv_sec = Result / SECOND_TO_MILLISECOND;
-				Parameter.UnreliableSocketTimeout.tv_usec = Result % SECOND_TO_MILLISECOND * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+				Parameter.UnreliableSocketTimeout.tv_usec = Result % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 			}
 			#endif
 		}
@@ -1864,9 +1911,23 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 			return EXIT_FAILURE;
 		}
 	}
+	else if (Data.find("ReceiveWaiting=") == 0 && Data.length() > strlen("ReceiveWaiting="))
+	{
+		if (Data.length() < strlen("ReceiveWaiting=") + UINT16_MAX_STRING_LENGTH)
+		{
+			Result = strtoul(Data.c_str() + strlen("ReceiveWaiting="), nullptr, 0);
+			if (errno != ERANGE && Result > 0)
+				Parameter.ReceiveWaiting = (size_t)Result;
+		}
+		else {
+			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList[FileIndex].c_str(), Line);
+			return EXIT_FAILURE;
+		}
+	}
+#if defined(ENABLE_PCAP)
 	else if (Data.find("ICMPTest=") == 0 && Data.length() > strlen("ICMPTest="))
 	{
-		if (Data.length() < strlen("ICMPTest=") + 6U)
+		if (Data.length() < strlen("ICMPTest=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("ICMPTest="), nullptr, 0);
 			if (errno != ERANGE && Result >= 5)
@@ -1883,7 +1944,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 	}
 	else if (Data.find("DomainTest=") == 0 && Data.length() > strlen("DomainTest="))
 	{
-		if (Data.length() < strlen("DomainTest=") + 6U)
+		if (Data.length() < strlen("DomainTest=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("DomainTest="), nullptr, 0);
 			if (errno != ERANGE && Result > 0)
@@ -1895,15 +1956,14 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 			return EXIT_FAILURE;
 		}
 	}
+#endif
 	else if (Data.find("AlternateTimes=") == 0 && Data.length() > strlen("AlternateTimes="))
 	{
-		if (Data.length() < strlen("AlternateTimes=") + 6U)
+		if (Data.length() < strlen("AlternateTimes=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("AlternateTimes="), nullptr, 0);
 			if (errno != ERANGE && Result > 0)
 				Parameter.AlternateTimes = Result;
-			else 
-				Parameter.AlternateTimes = DEFAULT_ALTERNATE_TIMES;
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList[FileIndex].c_str(), Line);
@@ -1912,13 +1972,11 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 	}
 	else if (Data.find("AlternateTimeRange=") == 0 && Data.length() > strlen("AlternateTimeRange="))
 	{
-		if (Data.length() < strlen("AlternateTimeRange=") + 6U)
+		if (Data.length() < strlen("AlternateTimeRange=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("AlternateTimeRange="), nullptr, 0);
-			if (errno != ERANGE && Result >= DEFAULT_ALTERNATE_RANGE)
+			if (errno != ERANGE && Result > 0 && Result >= DEFAULT_ALTERNATE_RANGE)
 				Parameter.AlternateTimeRange = Result * SECOND_TO_MILLISECOND;
-			else 
-				Parameter.AlternateTimeRange = DEFAULT_ALTERNATE_RANGE * SECOND_TO_MILLISECOND;
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList[FileIndex].c_str(), Line);
@@ -1927,13 +1985,11 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 	}
 	else if (Data.find("AlternateResetTime=") == 0 && Data.length() > strlen("AlternateResetTime="))
 	{
-		if (Data.length() < strlen("AlternateResetTime=") + 6U)
+		if (Data.length() < strlen("AlternateResetTime=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("AlternateResetTime="), nullptr, 0);
-			if (errno != ERANGE && Result >= DEFAULT_ALTERNATERESET_TIME)
+			if (errno != ERANGE && Result > 0 && Result >= DEFAULT_ALTERNATERESET_TIME)
 				Parameter.AlternateResetTime = Result * SECOND_TO_MILLISECOND;
-			else 
-				Parameter.AlternateResetTime = DEFAULT_ALTERNATERESET_TIME * SECOND_TO_MILLISECOND;
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList[FileIndex].c_str(), Line);
@@ -1942,7 +1998,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 	}
 	else if (Data.find("MultiRequestTimes=") == 0 && Data.length() > strlen("MultiRequestTimes="))
 	{
-		if (Data.length() < strlen("MultiRequestTimes=") + 6U)
+		if (Data.length() < strlen("MultiRequestTimes=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("MultiRequestTimes="), nullptr, 0);
 			if (errno != ERANGE && Result > 0)
@@ -1986,20 +2042,23 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 	{
 		Parameter.IPv4DataCheck = true;
 	}
+#if defined(ENABLE_PCAP)
 	else if (Data.find("TCPDataFilter=1") == 0)
 	{
 		Parameter.TCPDataCheck = true;
 	}
+#endif
 	else if (Data.find("DNSDataFilter=1") == 0)
 	{
 		Parameter.DNSDataCheck = true;
 	}
 	else if (Data.find("BlacklistFilter=1") == 0)
 	{
-		Parameter.Blacklist = true;
+		Parameter.BlacklistCheck = true;
 	}
 
 //[Data] block
+#if defined(ENABLE_PCAP)
 	else if (Data.find("ICMPID=") == 0 && Data.length() > strlen("ICMPID="))
 	{
 		if (Data.length() < strlen("ICMPID=") + 7U)
@@ -2062,6 +2121,7 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 			return EXIT_FAILURE;
 		}
 	}
+#endif
 	else if (Data.find("LocalhostServerName=") == 0 && Data.length() > strlen("LocalhostServerName="))
 	{
 		if (Data.length() > strlen("LocalhostServerName=") + DOMAIN_MINSIZE && Data.length() < strlen("LocalhostServerName=") + DOMAIN_DATA_MAXSIZE)
@@ -2071,14 +2131,14 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 			Parameter.LocalFQDNLength = Data.length() - strlen("LocalhostServerName=");
 			memcpy_s(LocalFQDN.get(), DOMAIN_MAXSIZE, Data.c_str() + strlen("LocalhostServerName="), Parameter.LocalFQDNLength);
 			*Parameter.LocalFQDNString = LocalFQDN.get();
-			Result = CharToDNSQuery(LocalFQDN.get(), Parameter.LocalFQDN);
+			Result = CharToDNSQuery(LocalFQDN.get(), Parameter.LocalFQDNResponse);
 			if (Result > DOMAIN_MINSIZE)
 			{
 				Parameter.LocalFQDNLength = Result;
 			}
 			else {
 				Parameter.LocalFQDNLength = 0;
-				memset(Parameter.LocalFQDN, 0, DOMAIN_MAXSIZE);
+				memset(Parameter.LocalFQDNResponse, 0, DOMAIN_MAXSIZE);
 				Parameter.LocalFQDNString->clear();
 			}
 		}
@@ -2121,13 +2181,11 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 	}
 	else if (Data.find("KeyRecheckTime=") == 0 && Data.length() > strlen("KeyRecheckTime="))
 	{
-		if (Data.length() < strlen("KeyRecheckTime=") + 6U)
+		if (Data.length() < strlen("KeyRecheckTime=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("KeyRecheckTime="), nullptr, 0);
 			if (Result >= SHORTEST_DNSCURVE_RECHECK_TIME && Result < DEFAULT_DNSCURVE_RECHECK_TIME)
 				DNSCurveParameter.KeyRecheckTime = Result * SECOND_TO_MILLISECOND;
-			else 
-				DNSCurveParameter.KeyRecheckTime = DEFAULT_DNSCURVE_RECHECK_TIME * SECOND_TO_MILLISECOND;
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList[FileIndex].c_str(), Line);
@@ -2570,7 +2628,7 @@ size_t __fastcall ReadIPFilterData(const char *Buffer, const size_t FileIndex, c
 		Data.erase(Data.find("  "), 1U);
 
 //Blacklist items
-	if (Parameter.Blacklist && LabelType == LABEL_IPFILTER_BLACKLIST)
+	if (Parameter.BlacklistCheck && LabelType == LABEL_IPFILTER_BLACKLIST)
 	{
 	//Delete spaces before or after verticals.
 		while (Data.find(" |") != std::string::npos || Data.find("| ") != std::string::npos)
@@ -3485,7 +3543,7 @@ size_t __fastcall ReadHosts(void)
 			{
 				for (auto &HostsListIter:HostsFileSetIter.HostsList)
 				{
-					if (HostsListIter.Length > PACKET_MAXSIZE - sizeof(dns_record_opt))
+					if (HostsListIter.Length + sizeof(dns_record_opt) >= PACKET_MAXSIZE)
 					{
 						PrintError(LOG_ERROR_HOSTS, L"Data is too long when EDNS0 is available", 0, nullptr, 0);
 						continue;
@@ -5220,6 +5278,7 @@ size_t __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffse
 }
 
 //Read TTL or HopLimit from data
+#if defined(ENABLE_PCAP)
 size_t __fastcall ReadHopLimitData(std::string Data, const size_t DataOffset, uint8_t &HopLimit, const uint16_t Protocol, const size_t FileIndex, const size_t Line)
 {
 	SSIZE_T Result = 0;
@@ -5280,6 +5339,7 @@ size_t __fastcall ReadHopLimitData(std::string Data, const size_t DataOffset, ui
 
 	return EXIT_SUCCESS;
 }
+#endif
 
 //Read Provider Name of DNSCurve server
 #if defined(ENABLE_LIBSODIUM)

@@ -21,7 +21,7 @@
 
 //Global variables
 CONFIGURATION_TABLE Parameter;
-time_t StartTime, RunningLogStartTime;
+time_t StartTime;
 ALTERNATE_SWAP_TABLE AlternateSwapList;
 #if defined(ENABLE_LIBSODIUM)
 	DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
@@ -33,6 +33,11 @@ std::vector<std::wstring> ConfigFileList;
 std::vector<FILE_DATA> IPFilterFileList, HostsFileList;
 std::vector<DIFFERNET_IPFILTER_FILE_SET> IPFilterFileSet[2U], *IPFilterFileSetUsing = &IPFilterFileSet[0], *IPFilterFileSetModificating = &IPFilterFileSet[1U];
 std::vector<DIFFERNET_HOSTS_FILE_SET> HostsFileSet[2U], *HostsFileSetUsing = &HostsFileSet[0], *HostsFileSetModificating = &HostsFileSet[1U];
-std::deque<PORT_TABLE> PortList;
+#if defined(ENABLE_PCAP)
+	std::deque<PORT_TABLE> PortList;
+#endif
 std::deque<DNSCACHE_DATA> DNSCacheList;
-std::mutex ErrLogLock, RunningLogLock, CaptureLock, PortListLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], DNSCacheListLock, HostsListLock, AddressRangeLock, ResultBlacklistLock, AddressHostsListLock, LocalRoutingListLock;
+std::mutex ErrorLogLock, CaptureLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], DNSCacheListLock, HostsListLock, AddressRangeLock, ResultBlacklistLock, AddressHostsListLock, LocalRoutingListLock;
+#if defined(ENABLE_PCAP)
+	std::mutex PortListLock;
+#endif

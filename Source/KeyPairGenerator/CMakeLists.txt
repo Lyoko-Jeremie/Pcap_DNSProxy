@@ -17,22 +17,30 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+# CMake minimum version
 cmake_minimum_required(VERSION 3.0.2)
 
+# Project name
 project(KeyPairGenerator)
 
+# Release version
 set(CMAKE_BUILD_TYPE "Release")
 
+# All source files
 set(GENERATOR_SRC_DIR 
 		"KeyPairGenerator.h"
 		"KeyPairGenerator.cpp")
 
+# Compiling and linking flags
 add_definitions(-std=c++11 -fpic)
-
 IF(ENABLE_LIBSODIUM)
 	add_definitions(-DENABLE_LIBSODIUM)
 ENDIF(ENABLE_LIBSODIUM)
 
+# Executable file name
 add_executable(KeyPairGenerator ${GENERATOR_SRC_DIR})
 
-target_link_libraries(KeyPairGenerator sodium)
+# Static libraries
+IF(ENABLE_LIBSODIUM)
+	target_link_libraries(KeyPairGenerator sodium)
+ENDIF(ENABLE_LIBSODIUM)

@@ -1,4 +1,17 @@
-﻿Pcap_DNSProxy v0.4.0.1-0.4.0.4(Windows/Linux/Mac) 更新日志(2015-05-18)：
+﻿Pcap_DNSProxy v0.4.1(Windows/Linux/Mac) 更新日志(2015-05-21)：
+
+* 添加 Pcap Reading Timeout 参数自定义抓包模块读取超时/间隔时间
+* 添加 Receive Waiting 参数自定义数据包接收等待时间，丢弃过早达到可能为伪造的数据包
+* 添加剥离 LibPcap 库的选项(Linux)
+* 視窗模式運行提示將不會寫入錯誤報表中(Windows)
+* 移除覆盖系统 Hostname 的行为(Mac) [messiahluo]
+* 移除之前尚未完成的打印详细运行日志的功能
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.4.0.1-0.4.0.4(Windows/Linux/Mac) 更新日志(2015-05-18)：
 
 * 调整抓包模块的超时时间保证回复及时被抓取 [France is Bacon]
 * 调整数据包过滤的参数避免误伤部分权威 DNS 服务器 [France is Bacon]

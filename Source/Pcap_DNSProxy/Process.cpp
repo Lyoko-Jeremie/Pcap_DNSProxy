@@ -52,7 +52,6 @@ size_t __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Len
 	memcpy_s(SendBuffer.get(), Length, OriginalSend, Length);
 
 //Initialization(Receive buffer part)
-	size_t DataLength = 0;
 #if defined(ENABLE_LIBSODIUM)
 	if (Parameter.RequestMode == REQUEST_TCPMODE || Parameter.DNSCurve && DNSCurveParameter.DNSCurveMode == DNSCURVE_REQUEST_TCPMODE || Protocol == IPPROTO_TCP)
 #else
@@ -69,6 +68,7 @@ size_t __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Len
 		RecvBuffer.swap(UDPRecvBuffer);
 	}
 
+	size_t DataLength = 0;
 //Check hosts.
 	auto IsLocalRequest = false;
 	auto DNS_Header = (pdns_hdr)SendBuffer.get();
@@ -172,29 +172,31 @@ size_t __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Len
 		TCPRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, LocalSocketData) == EXIT_SUCCESS)
 			return EXIT_SUCCESS;
 
-//IPv6 tunnels support and Hosts Only requesting when Pcap Capture is turn OFF.
-	if (Parameter.GatewayAvailable_IPv6 && Parameter.TunnelAvailable_IPv6 || !Parameter.PcapCapture)
+//IPv6 tunnels support.
+	if (Parameter.GatewayAvailable_IPv6 && Parameter.TunnelAvailable_IPv6 && 
+		DirectRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, LocalSocketData) == EXIT_SUCCESS)
 	{
-		if (DirectRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, LocalSocketData) == EXIT_SUCCESS)
+	//Fin TCP request connection.
+		if (Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
 		{
-		//Fin TCP request connection.
-			if (Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
-			{
-				shutdown(LocalSocketData.Socket, SD_BOTH);
-				closesocket(LocalSocketData.Socket);
-			}
-
-			return EXIT_SUCCESS;
+			shutdown(LocalSocketData.Socket, SD_BOTH);
+			closesocket(LocalSocketData.Socket);
 		}
 
-		if (!Parameter.PcapCapture)
-			return EXIT_FAILURE;
+		return EXIT_SUCCESS;
 	}
 
+#if defined(ENABLE_PCAP)
 	RecvBuffer.reset();
+
+//Stop here when Pcap Capture module is trun OFF.
+	if (!Parameter.PcapCapture)
+		return EXIT_SUCCESS;
 
 //UDP requesting
 	UDPRequestProcess(SendBuffer.get(), SendLength, LocalSocketData, Protocol);
+#endif
+
 	return EXIT_SUCCESS;
 }
 
@@ -267,6 +269,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 	}
 
 //PTR Records
+#if !defined(PLATFORM_MACX)
 	if (DNS_Query->Type == htons(DNS_RECORD_PTR) && Parameter.LocalServerResponseLength + Length <= ResultSize)
 	{
 		auto IsSendPTR = false;
@@ -282,7 +285,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 		else {
 		//IPv6 check
 			std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0]);
-			for (auto StringIter:*Parameter.LocalAddressPTR[0])
+			for (auto StringIter:*Parameter.LocalAddressPTRResponse[0])
 			{
 				if (Domain == StringIter)
 				{
@@ -296,7 +299,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 			if (!IsSendPTR)
 			{
 				std::unique_lock<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[1U]);
-				for (auto StringIter:*Parameter.LocalAddressPTR[1U])
+				for (auto StringIter:*Parameter.LocalAddressPTRResponse[1U])
 				{
 					if (Domain == StringIter)
 					{
@@ -330,27 +333,30 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 			return Length + Parameter.LocalServerResponseLength;
 		}
 	}
+#endif
 
 //LocalFQDN check
-	if (*Parameter.LocalFQDNString == Domain)
+	if (Domain == *Parameter.LocalFQDNString)
 	{
-		if (DNS_Query->Type == htons(DNS_RECORD_AAAA)) //IPv6
+	//IPv6
+		if (DNS_Query->Type == htons(DNS_RECORD_AAAA))
 		{
 			std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0]);
 			if (Parameter.LocalAddressLength[0] >= DNS_PACKET_MINSIZE)
 			{
 				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
-				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), Parameter.LocalAddress[0] + sizeof(uint16_t), Parameter.LocalAddressLength[0] - sizeof(uint16_t));
+				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), Parameter.LocalAddressResponse[0] + sizeof(uint16_t), Parameter.LocalAddressLength[0] - sizeof(uint16_t));
 				return Parameter.LocalAddressLength[0];
 			}
 		}
-		else if (DNS_Query->Type == htons(DNS_RECORD_A)) //IPv4
+	//IPv4
+		else if (DNS_Query->Type == htons(DNS_RECORD_A))
 		{
 			std::unique_lock<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[1U]);
 			if (Parameter.LocalAddressLength[1U] >= DNS_PACKET_MINSIZE)
 			{
 				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
-				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), Parameter.LocalAddress[1U] + sizeof(uint16_t), Parameter.LocalAddressLength[1U] - sizeof(uint16_t));
+				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), Parameter.LocalAddressResponse[1U] + sizeof(uint16_t), Parameter.LocalAddressLength[1U] - sizeof(uint16_t));
 				return Parameter.LocalAddressLength[1U];
 			}
 		}
@@ -456,7 +462,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 
 							//DNSSEC
 								if (Parameter.DNSSECRequest)
-									DNS_Record_OPT->Z_Bits.DO = ~DNS_Record_OPT->Z_Bits.DO; //Accepts DNSSEC security Resource Records
+									DNS_Record_OPT->Z_Bits.DO = ~DNS_Record_OPT->Z_Bits.DO; //Accept DNSSEC security Resource Records
 
 								return Length + HostsTableIter.Length;
 							}
@@ -529,7 +535,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 
 							//DNSSEC
 								if (Parameter.DNSSECRequest)
-									DNS_Record_OPT->Z_Bits.DO = ~DNS_Record_OPT->Z_Bits.DO; //Accepts DNSSEC security Resource Records
+									DNS_Record_OPT->Z_Bits.DO = ~DNS_Record_OPT->Z_Bits.DO; //Accept DNSSEC security Resource Records
 
 								return Length + HostsTableIter.Length;
 							}
@@ -769,6 +775,7 @@ size_t __fastcall TCPRequestProcess(const char *OriginalSend, const size_t SendS
 }
 
 //Request Process(UDP part)
+#if defined(ENABLE_PCAP)
 size_t __fastcall UDPRequestProcess(const char *OriginalSend, const size_t SendSize, const SOCKET_DATA &LocalSocketData, const uint16_t Protocol)
 {
 //Multi requesting.
@@ -787,6 +794,7 @@ size_t __fastcall UDPRequestProcess(const char *OriginalSend, const size_t SendS
 
 	return EXIT_SUCCESS;
 }
+#endif
 
 //Send responses to requester
 size_t __fastcall SendToRequester(PSTR RecvBuffer, const size_t RecvSize, const uint16_t Protocol, const SOCKET_DATA &LocalSocketData)
@@ -878,12 +886,6 @@ size_t __fastcall MarkDomainCache(const char *Buffer, const size_t Length)
 //Set cache TTL.
 	if (ResponseTTL == 0) //Only mark A and AAAA records.
 	{
-/* Old version(2015-05-16)
-		if (Parameter.CacheType == CACHE_TIMER)
-			ResponseTTL = (uint32_t)(Parameter.CacheParameter / SECOND_TO_MILLISECOND);
-		else //CACHE_QUEUE
-			ResponseTTL = Parameter.HostsDefaultTTL;
-*/
 		return EXIT_FAILURE;
 	}
 	else {

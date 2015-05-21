@@ -173,7 +173,7 @@
 	#define ENABLE_LIBSODIUM       //LibSodium is always enable on Windows and Mac OS X.
 #endif
 
-//C Standard Library and C++ Standard Template Library/STL Headers
+//C Standard Library and C++ Standard Template Library/STL headers
 #include <cstdio>                  //File Input/Output
 #include <cstdlib>                 //Several general purpose functions.
 #if !defined(ENABLE_LIBSODIUM)
@@ -187,7 +187,7 @@
 #if defined(PLATFORM_WIN)
 	#include <windows.h>               //Microsoft Windows master include file
 
-//LibSodium Headers and static libraries
+//LibSodium header and static libraries
 	#include "..\\LibSodium\\sodium.h"
 	#if defined(PLATFORM_WIN64)
 		#pragma comment(lib, "..\\LibSodium\\LibSodium_x64.lib") //LibSodium library(x64)
@@ -198,9 +198,9 @@
 //	#pragma comment(linker, "/subsystem:windows /entry:mainCRTStartup") //Hide console.
 //Add "WPCAP", "HAVE_REMOTE", "SODIUM_STATIC" and "SODIUM_EXPORT=" to preprocessor options.
 #elif defined(PLATFORM_LINUX)
-	#include <sodium.h>            //LibSodium Headers
+	#include <sodium.h>            //LibSodium header
 #elif defined(PLATFORM_MACX)
-//LibSodium Headers and static libraries
+//LibSodium header and static libraries
 	#include "../LibSodium/sodium.h"
 	#pragma comment(lib, "../LibSodium/LibSodium_Mac.a")
 #endif

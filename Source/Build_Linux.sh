@@ -22,11 +22,12 @@
 # Build KeyPairGenerator
 mkdir Object
 cd Object
-if echo "$*" | grep -iq -e "--disable-libsodium"; then
-	cmake ../KeyPairGenerator
-else 
-	cmake -DENABLE_LIBSODIUM=ON ../KeyPairGenerator
+CMakeShell="cmake "
+if !(echo "$*" | grep -iq -e "--disable-libsodium"); then
+	CMakeShell="${CMakeShell}\-DENABLE_LIBSODIUM=ON "
 fi
+CMakeShell="${CMakeShell}../KeyPairGenerator"
+${CMakeShell}
 make
 cd ..
 mkdir Release
@@ -36,11 +37,15 @@ rm -Rrf Object
 # Build Pcap_DNSProxy
 mkdir Object
 cd Object
-if echo "$*" | grep -iq -e "--disable-libsodium"; then
-	cmake ../Pcap_DNSProxy
-else 
-	cmake -DENABLE_LIBSODIUM=ON ../Pcap_DNSProxy
+CMakeShell="cmake "
+if !(echo "$*" | grep -iq -e "--disable-libsodium"); then
+	CMakeShell="${CMakeShell}-DENABLE_LIBSODIUM=ON "
 fi
+if !(echo "$*" | grep -iq -e "--disable-libpcap"); then
+	CMakeShell="${CMakeShell}-DENABLE_PCAP=ON "
+fi
+CMakeShell="${CMakeShell}../Pcap_DNSProxy"
+${CMakeShell}
 make
 cd ..
 mv -f Object/Pcap_DNSProxy Release

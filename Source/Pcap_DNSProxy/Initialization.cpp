@@ -32,16 +32,22 @@ ConfigurationTable::ConfigurationTable(void)
 		DNSTarget.IPv6_Multi = new std::vector<DNS_SERVER_DATA>();
 		DNSTarget.IPv4_Multi = new std::vector<DNS_SERVER_DATA>();
 	//[Data] block(A part)
+	#if defined(ENABLE_PCAP)
 		ICMPPaddingData = new char[ICMP_PADDING_MAXSIZE]();
 		DomainTestData = new char[DOMAIN_MAXSIZE]();
+	#endif
 	//[Data] block(B part)
-		LocalFQDN = new char[DOMAIN_MAXSIZE]();
+		LocalFQDNResponse = new char[DOMAIN_MAXSIZE]();
 		LocalFQDNString = new std::string();
+	#if !defined(PLATFORM_MACX)
 		LocalServerResponse = new char[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt)]();
-		LocalAddress[0] = new char[PACKET_MAXSIZE]();
-		LocalAddress[1U] = new char[PACKET_MAXSIZE]();
-		LocalAddressPTR[0] = new std::vector<std::string>();
-		LocalAddressPTR[1U] = new std::vector<std::string>();
+	#endif
+		LocalAddressResponse[0] = new char[PACKET_MAXSIZE]();
+		LocalAddressResponse[1U] = new char[PACKET_MAXSIZE]();
+	#if !defined(PLATFORM_MACX)
+		LocalAddressPTRResponse[0] = new std::vector<std::string>();
+		LocalAddressPTRResponse[1U] = new std::vector<std::string>();
+	#endif
 	//Global block
 		LocalSocket = new std::vector<SYSTEM_SOCKET>();
 		RamdomEngine = new std::default_random_engine();
@@ -49,15 +55,12 @@ ConfigurationTable::ConfigurationTable(void)
 		HostsFileList = new std::vector<std::wstring>();
 		IPFilterFileList = new std::vector<std::wstring>();
 		ErrorLogPath = new std::wstring();
-		RunningLogPath = new std::wstring();
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		sPath = new std::vector<std::string>();
 		sHostsFileList = new std::vector<std::string>();
 		sIPFilterFileList = new std::vector<std::string>();
 		sErrorLogPath = new std::string();
-		sRunningLogPath = new std::string();
 	#endif
-		RunningLogWriteQueue = new std::vector<RUNNING_LOG_DATA>();
 		DomainTable = new char[strlen(RFC_DOMAIN_TABLE) + 1U]();
 		AcceptTypeList = new std::vector<uint16_t>();
 	}
@@ -71,16 +74,22 @@ ConfigurationTable::ConfigurationTable(void)
 		delete DNSTarget.IPv6_Multi;
 		delete DNSTarget.IPv4_Multi;
 	//[Data] block(A part)
+	#if defined(ENABLE_PCAP)
 		delete[] ICMPPaddingData;
 		delete[] DomainTestData;
+	#endif
 	//[Data] block(B part)
-		delete[] LocalFQDN;
+		delete[] LocalFQDNResponse;
 		delete LocalFQDNString;
+	#if !defined(PLATFORM_MACX)
 		delete[] LocalServerResponse;
-		delete[] LocalAddress[0];
-		delete[] LocalAddress[1U];
-		delete LocalAddressPTR[0];
-		delete LocalAddressPTR[1U];
+	#endif
+		delete[] LocalAddressResponse[0];
+		delete[] LocalAddressResponse[1U];
+	#if !defined(PLATFORM_MACX)
+		delete LocalAddressPTRResponse[0];
+		delete LocalAddressPTRResponse[1U];
+	#endif
 	//Global block
 		delete LocalSocket;
 		delete RamdomEngine;
@@ -88,8 +97,6 @@ ConfigurationTable::ConfigurationTable(void)
 		delete HostsFileList;
 		delete IPFilterFileList;
 		delete ErrorLogPath;
-		delete RunningLogPath;
-		delete RunningLogWriteQueue;
 		delete[] DomainTable;
 		delete AcceptTypeList;
 
@@ -99,25 +106,32 @@ ConfigurationTable::ConfigurationTable(void)
 
 //Initialization
 	//[Data] block(A part)
+#if defined(ENABLE_PCAP)
 	memset(ICMPPaddingData, 0, ICMP_PADDING_MAXSIZE);
 	memset(DomainTestData, 0, DOMAIN_MAXSIZE);
+#endif
 	//[Data] block(B part)
-	memset(LocalFQDN, 0, DOMAIN_MAXSIZE);
+	memset(LocalFQDNResponse, 0, DOMAIN_MAXSIZE);
+#if !defined(PLATFORM_MACX)
 	memset(LocalServerResponse, 0, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt));
-	memset(LocalAddress[0], 0, PACKET_MAXSIZE);
-	memset(LocalAddress[1U], 0, PACKET_MAXSIZE);
+#endif
+	memset(LocalAddressResponse[0], 0, PACKET_MAXSIZE);
+	memset(LocalAddressResponse[1U], 0, PACKET_MAXSIZE);
 	//Global block
 	memset(DomainTable, 0, strlen(RFC_DOMAIN_TABLE) + 1U);
 
-//Default values
+//Default settings
 	strncpy_s(DomainTable, strlen(RFC_DOMAIN_TABLE) + 1U, RFC_DOMAIN_TABLE, strlen(RFC_DOMAIN_TABLE));
 	std::random_device RamdomDevice;
 	RamdomEngine->seed(RamdomDevice());
 
-//Default settings
+//Default values
 	FileRefreshTime = DEFAULT_FILEREFRESH_TIME * SECOND_TO_MILLISECOND;
 	LogMaxSize = DEFAULT_LOG_MAXSIZE;
-	GatewayAvailable_IPv4 = true;
+	HostsDefaultTTL = DEFAULT_HOSTS_TTL;
+	AlternateTimes = DEFAULT_ALTERNATE_TIMES;
+	AlternateTimeRange = DEFAULT_ALTERNATE_RANGE * SECOND_TO_MILLISECOND;
+	AlternateResetTime = DEFAULT_ALTERNATERESET_TIME * SECOND_TO_MILLISECOND;
 #if defined(PLATFORM_WIN)
 	ReliableSocketTimeout = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
 	UnreliableSocketTimeout = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
@@ -127,33 +141,39 @@ ConfigurationTable::ConfigurationTable(void)
 #endif
 #if defined(PLATFORM_MACX)
 	Console = true;
-	ICMPID = htons(*(uint16_t *)pthread_self());
-#else
-	ICMPID = htons((uint16_t)GetCurrentProcessId()); //Default ICMP ID is current process ID.
 #endif
-	ICMPSequence = htons(DEFAULT_SEQUENCE);
-	DomainTestSpeed = DEFAULT_DOMAINTEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
-#if defined(PLATFORM_MACX)
-	DomainTestID = htons(*(uint16_t *)pthread_self());
-#else
-	DomainTestID = htons((uint16_t)GetCurrentProcessId()); //Default DNS ID is current process ID.
+#if defined(ENABLE_PCAP)
+	PcapReadingTimeout = DEFAULT_PCAP_CAPTURE_TIMEOUT;
+	#if defined(PLATFORM_MACX)
+		ICMPID = htons(*(uint16_t *)pthread_self());
+	#else
+		ICMPID = htons((uint16_t)GetCurrentProcessId()); //Default ICMP ID is current process ID.
+	#endif
+		ICMPSequence = htons(DEFAULT_SEQUENCE);
+		DomainTestSpeed = DEFAULT_DOMAINTEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
+	#if defined(PLATFORM_MACX)
+		DomainTestID = htons(*(uint16_t *)pthread_self());
+	#else
+		DomainTestID = htons((uint16_t)GetCurrentProcessId()); //Default DNS ID is current process ID.
+	#endif
+	#if defined(PLATFORM_WIN)
+		ICMPPaddingDataLength = strlen(DEFAULT_PADDINGDATA) + 1U;
+		memcpy_s(ICMPPaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_PADDINGDATA, Parameter.ICMPPaddingDataLength - 1U); //Load default padding data.
+	#elif defined(PLATFORM_LINUX)
+		size_t CharData = ICMP_STRING_START_NUM_LINUX;
+		for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_LINUX;++Index, ++CharData)
+			ICMPPaddingData[Index] = CharData;
+		ICMPPaddingDataLength = strlen(ICMPPaddingData) + 1U;
+	#elif defined(PLATFORM_MACX)
+		size_t CharData = ICMP_STRING_START_NUM_MAC;
+		for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_MAC;++Index, ++CharData)
+			ICMPPaddingData[Index] = CharData;
+		ICMPPaddingDataLength = strlen(ICMPPaddingData) + 1U;
+	#endif
 #endif
-	//Load default padding data.
-#if defined(PLATFORM_WIN)
-	ICMPPaddingDataLength = strlen(DEFAULT_PADDINGDATA) + 1U;
-	memcpy_s(ICMPPaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_PADDINGDATA, Parameter.ICMPPaddingDataLength - 1U);
-#elif defined(PLATFORM_LINUX)
-	size_t CharData = ICMP_STRING_START_NUM_LINUX;
-	for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_LINUX;++Index, ++CharData)
-		ICMPPaddingData[Index] = CharData;
-	ICMPPaddingDataLength = strlen(ICMPPaddingData) + 1U;
-#elif defined(PLATFORM_MACX)
-	size_t CharData = ICMP_STRING_START_NUM_MAC;
-	for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_MAC;++Index, ++CharData)
-		ICMPPaddingData[Index] = CharData;
-	ICMPPaddingDataLength = strlen(ICMPPaddingData) + 1U;
-#endif
-	HostsDefaultTTL = DEFAULT_HOSTS_TTL;
+
+//Default status
+	GatewayAvailable_IPv4 = true;
 
 	return;
 }
@@ -169,16 +189,22 @@ ConfigurationTable::~ConfigurationTable(void)
 	delete DNSTarget.IPv6_Multi;
 	delete DNSTarget.IPv4_Multi;
 //[Data] block(A part)
+#if defined(ENABLE_PCAP)
 	delete[] ICMPPaddingData;
 	delete[] DomainTestData;
+#endif
 //[Data] block(B part)
-	delete[] LocalFQDN;
+	delete[] LocalFQDNResponse;
 	delete LocalFQDNString;
+#if !defined(PLATFORM_MACX)
 	delete[] LocalServerResponse;
-	delete[] LocalAddress[0];
-	delete[] LocalAddress[1U];
-	delete LocalAddressPTR[0];
-	delete LocalAddressPTR[1U];
+#endif
+	delete[] LocalAddressResponse[0];
+	delete[] LocalAddressResponse[1U];
+#if !defined(PLATFORM_MACX)
+	delete LocalAddressPTRResponse[0];
+	delete LocalAddressPTRResponse[1U];
+#endif
 //Global block
 	delete LocalSocket;
 	delete RamdomEngine;
@@ -186,8 +212,6 @@ ConfigurationTable::~ConfigurationTable(void)
 	delete HostsFileList;
 	delete IPFilterFileList;
 	delete ErrorLogPath;
-	delete RunningLogPath;
-	delete RunningLogWriteQueue;
 	delete[] DomainTable;
 	delete AcceptTypeList;
 
@@ -233,6 +257,7 @@ AddressRoutingTable_IPv4::AddressRoutingTable_IPv4(void)
 }
 
 //PortTable class constructor
+#if defined(ENABLE_PCAP)
 PortTable::PortTable(void)
 {
 //Initialization
@@ -240,9 +265,11 @@ PortTable::PortTable(void)
 	NetworkLayer = 0;
 	TransportLayer = 0;
 	ClearPortTime = 0;
+	ReceiveIndex = 0;
 
 	return;
 }
+#endif
 
 //Differnet IPFilter File Set class constructor
 DiffernetIPFilterFileSet::DiffernetIPFilterFileSet(void)
@@ -360,6 +387,9 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(void)
 	memset(DNSCurveTarget.Alternate_IPv4.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
 	memset(DNSCurveTarget.IPv6.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
 	memset(DNSCurveTarget.Alternate_IPv6.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+
+//Default settings
+	KeyRecheckTime = DEFAULT_DNSCURVE_RECHECK_TIME * SECOND_TO_MILLISECOND;
 
 	return;
 }

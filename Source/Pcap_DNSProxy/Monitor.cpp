@@ -19,6 +19,7 @@
 
 #include "Monitor.h"
 
+/* Old version(2015-05-20)
 //Running Log writing Monitor
 size_t __fastcall RunningLogWriteMonitor(void)
 {
@@ -97,19 +98,23 @@ size_t __fastcall RunningLogWriteMonitor(void)
 
 	return EXIT_SUCCESS;
 }
+*/
 
 //Local DNS server initialization
 size_t __fastcall MonitorInit(void)
 {
 //Capture initialization
-#if defined(ENABLE_LIBSODIUM)
-	if (Parameter.PcapCapture && !Parameter.HostsOnly && !(Parameter.DNSCurve && DNSCurveParameter.IsEncryption && DNSCurveParameter.IsEncryptionOnly))
-#else
-	if (Parameter.PcapCapture && !Parameter.HostsOnly)
-#endif
+#if defined(ENABLE_PCAP)
+	#if defined(ENABLE_LIBSODIUM)
+		if (Parameter.PcapCapture && !Parameter.HostsOnly && !(Parameter.DNSCurve && DNSCurveParameter.IsEncryption && DNSCurveParameter.IsEncryptionOnly))
+	#else
+		if (Parameter.PcapCapture && !Parameter.HostsOnly)
+	#endif
 	{
+	#if defined(ENABLE_PCAP)
 		std::thread CaptureInitializationThread(CaptureInit);
 		CaptureInitializationThread.detach();
+	#endif
 
 	//Get Hop Limits/TTL with normal DNS request.
 		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0)
@@ -142,6 +147,7 @@ size_t __fastcall MonitorInit(void)
 			}
 		}
 	}
+#endif
 
 //Set Preferred DNS servers switcher.
 	if (!Parameter.AlternateMultiRequest && 
@@ -688,7 +694,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 			{
 				pdns_record_opt DNS_Record_OPT = nullptr;
 
-			//No additional
+			//Not any Additional Resource Records
 				if (DNS_Header->Additional == 0)
 				{
 					DNS_Header->Additional = htons(U16_NUM_ONE);
@@ -928,7 +934,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 			{
 				pdns_record_opt DNS_Record_OPT = nullptr;
 
-			//No additional
+			//Not any Additional Resource Records
 				if (DNS_Header->Additional == 0)
 				{
 					DNS_Header->Additional = htons(U16_NUM_ONE);
@@ -997,7 +1003,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 		{
 			pdns_record_opt DNS_Record_OPT = nullptr;
 
-		//No additional
+		//Not any Additional Resource Records
 			if (DNS_Header->Additional == 0)
 			{
 				DNS_Header->Additional = htons(U16_NUM_ONE);

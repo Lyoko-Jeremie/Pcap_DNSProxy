@@ -155,10 +155,12 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Network Error: %ls, error code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrCode);
 			}break;
 		//WinPcap Error
+		#if defined(ENABLE_PCAP)
 			case LOG_ERROR_PCAP:
 			{
 				wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Pcap Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 			}break;
+		#endif
 		//DNSCurve Error
 		#if defined(ENABLE_LIBSODIUM)
 			case LOG_ERROR_DNSCURVE:
@@ -174,7 +176,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 	}
 
 //Check whole file size.
-	std::unique_lock<std::mutex> ErrLogMutex(ErrLogLock);
+	std::unique_lock<std::mutex> ErrLogMutex(ErrorLogLock);
 #if defined(PLATFORM_WIN)
 	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
 	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
@@ -320,10 +322,12 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 					fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Network Error: %ls, error code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrCode);
 			}break;
 		//WinPcap Error
+		#if defined(ENABLE_PCAP)
 			case LOG_ERROR_PCAP:
 			{
 				fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> WinPcap Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 			}break;
+		#endif
 		//DNSCurve Error
 		#if defined(ENABLE_LIBSODIUM)
 			case LOG_ERROR_DNSCURVE:
@@ -346,6 +350,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 	return EXIT_FAILURE;
 }
 
+/* Old version(2015-05-20)
 //Print running status to log file
 size_t __fastcall PrintRunningStatus(const wchar_t *Message)
 {
@@ -567,10 +572,12 @@ size_t __fastcall PrintParameterList(void)
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Cache Parameter: %u\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, (UINT)Parameter.CacheParameter); //Cache Parameter
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Default TTL: %u seconds\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, (UINT)Parameter.HostsDefaultTTL); //Default TTL
 		//[Listen] block
+	#if defined(ENABLE_PCAP)
 		if (Parameter.PcapCapture) //Pcap Capture
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Pcap Capture: ON\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		else
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Pcap Capture: OFF\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+	#endif
 		if (Parameter.OperationMode == LISTEN_PRIVATEMODE) //Operation Mode
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Operation Mode: Private\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		else if (Parameter.CacheType == LISTEN_SERVERMODE)
@@ -625,7 +632,7 @@ size_t __fastcall PrintParameterList(void)
 
 		//[Addresses] block
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv4 Listen Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv4 Listen Address
-/*		if (Parameter.ListenAddress_IPv4 == nullptr || Parameter.ListenAddress_IPv4->ss_family == 0)
+		if (Parameter.ListenAddress_IPv4 == nullptr || Parameter.ListenAddress_IPv4->ss_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -651,7 +658,7 @@ size_t __fastcall PrintParameterList(void)
 			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 			fwprintf_s(Output, L":%u>\n", ntohs(((PSOCKADDR_IN)Parameter.ListenAddress_IPv4)->sin_port));
 		}
-*/
+
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv4 DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv4 DNS Address
 		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)
 		{
@@ -761,7 +768,7 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L":%u>\n", ntohs(Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_port));
 		}
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv6 Listen Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv6 Listen Address
-/*		if (Parameter.ListenAddress_IPv6 == nullptr || Parameter.ListenAddress_IPv6->ss_family == 0)
+		if (Parameter.ListenAddress_IPv6 == nullptr || Parameter.ListenAddress_IPv6->ss_family == 0)
 		{
 			fwprintf_s(Output, L"N/A\n");
 		}
@@ -787,7 +794,7 @@ size_t __fastcall PrintParameterList(void)
 			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 			fwprintf_s(Output, L"]:%u\n", ntohs(((PSOCKADDR_IN6)Parameter.ListenAddress_IPv6)->sin6_port));
 		}
-*/
+
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> IPv6 DNS Address: ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec); //IPv6 DNS Address
 		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)
 		{
@@ -904,6 +911,7 @@ size_t __fastcall PrintParameterList(void)
 		//[Values] block
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		fwprintf_s(Output, L"EDNS0 Payload Size: %u bytes\n", (UINT)Parameter.EDNS0PayloadSize); //EDNS0 Payload Size
+	#if defined(ENABLE_PCAP)
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		if (Parameter.DNSTarget.IPv4.HopLimitData.TTL == 0) //IPv4 TTL
 			fwprintf_s(Output, L"IPv4 TTL: Auto\n");
@@ -930,6 +938,7 @@ size_t __fastcall PrintParameterList(void)
 		fwprintf_s(Output, L"ICMP Test: %u seconds\n", (UINT)(Parameter.ICMPSpeed / SECOND_TO_MILLISECOND)); //ICMP Test
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		fwprintf_s(Output, L"Domain Test: %u seconds\n", (UINT)(Parameter.DomainTestSpeed / SECOND_TO_MILLISECOND)); //Domain Test
+#endif
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		fwprintf_s(Output, L"Alternate Times: %u\n", (UINT)Parameter.AlternateTimes); //Alternate Times
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
@@ -968,23 +977,26 @@ size_t __fastcall PrintParameterList(void)
 			fwprintf_s(Output, L"IPv4 Data Filter: ON\n");
 		else
 			fwprintf_s(Output, L"IPv4 Data Filter: OFF\n");
+	#if defined(ENABLE_PCAP)
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		if (Parameter.TCPDataCheck) //TCP Data Filter
 			fwprintf_s(Output, L"TCP Data Filter: ON");
 		else
 			fwprintf_s(Output, L"TCP Data Filter: OFF\n");
+	#endif
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		if (Parameter.DNSDataCheck) //DNS Data Filter
 			fwprintf_s(Output, L"DNS Data Filter: ON\n");
 		else
 			fwprintf_s(Output, L"DNS Data Filter: OFF\n");
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-		if (Parameter.Blacklist) //Blacklist Filter
+		if (Parameter.BlacklistCheck) //Blacklist Filter
 			fwprintf_s(Output, L"Blacklist Filter: ON\n");
 		else
 			fwprintf_s(Output, L"Blacklist Filter: OFF\n");
 
 		//[Data] block
+	#if defined(ENABLE_PCAP)
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		fwprintf_s(Output, L"ICMP ID: %u\n", ntohs(Parameter.ICMPID)); //ICMP ID
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
@@ -1007,6 +1019,7 @@ size_t __fastcall PrintParameterList(void)
 				fwprintf_s(Output, L"%c", Parameter.DomainTestData[Index]);
 			fwprintf_s(Output, L"\n");
 		}
+	#endif
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		fwprintf_s(Output, L"Localhost Server Name: "); //Localhost Server Name
 		DNSQueryToChar(Parameter.LocalFQDN, Addr.get());
@@ -1026,3 +1039,4 @@ size_t __fastcall PrintParameterList(void)
 
 	return EXIT_FAILURE;
 }
+*/
