@@ -172,10 +172,13 @@ size_t __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Len
 		TCPRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, LocalSocketData) == EXIT_SUCCESS)
 			return EXIT_SUCCESS;
 
-//IPv6 tunnels support.
-	if (Parameter.GatewayAvailable_IPv6 && Parameter.TunnelAvailable_IPv6 && 
-		DirectRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, LocalSocketData) == EXIT_SUCCESS)
+//IPv6 tunnels support and direct requesting when Pcap Capture module is turn OFF.
+#if defined(ENABLE_PCAP)
+	if (!Parameter.PcapCapture || Parameter.GatewayAvailable_IPv6 && Parameter.TunnelAvailable_IPv6)
 	{
+#endif
+		DirectRequestProcess(SendBuffer.get(), SendLength, RecvBuffer.get(), Protocol, LocalSocketData);
+
 	//Fin TCP request connection.
 		if (Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
 		{
@@ -184,20 +187,16 @@ size_t __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Len
 		}
 
 		return EXIT_SUCCESS;
+#if defined(ENABLE_PCAP)
 	}
 
-#if defined(ENABLE_PCAP)
 	RecvBuffer.reset();
-
-//Stop here when Pcap Capture module is trun OFF.
-	if (!Parameter.PcapCapture)
-		return EXIT_SUCCESS;
 
 //UDP requesting
 	UDPRequestProcess(SendBuffer.get(), SendLength, LocalSocketData, Protocol);
-#endif
 
 	return EXIT_SUCCESS;
+#endif
 }
 
 //Check hosts from list
@@ -316,9 +315,10 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SER_RA);
 			DNS_Header->Answer = htons(U16_NUM_ONE);
 
-		//EDNS0 Label
-			if (Parameter.EDNS0Label)
+		//EDNS Label
+			if (Parameter.EDNSLabel)
 			{
+/* Old version(2015-05-24)
 				auto DNS_Record_OPT = (pdns_record_opt)(Result + Length - sizeof(dns_record_opt));
 				if (DNS_Header->Additional > 0 && DNS_Record_OPT->Type == htons(DNS_RECORD_OPT))
 				{
@@ -327,6 +327,12 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 
 					return Length - sizeof(dns_record_opt) + Parameter.LocalServerResponseLength;
 				}
+*/
+				DNS_Header->Authority = 0;
+				DNS_Header->Additional = htons(U16_NUM_ONE);
+				memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), 0, ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)));
+				memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)), Parameter.LocalServerResponse, Parameter.LocalServerResponseLength);
+				return DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + Parameter.LocalServerResponseLength;
 			}
 
 			memcpy_s(Result + Length, ResultSize, Parameter.LocalServerResponse, Parameter.LocalServerResponseLength);
@@ -426,7 +432,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 				//IPv6
 					if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && HostsTableIter.RecordType.front() == htons(DNS_RECORD_AAAA))
 					{
-					//EDNS0 Lebal
+					//EDNS Lebal
 						if (DNS_Header->Additional == htons(U16_NUM_ONE))
 						{
 							memset(Result + Length - sizeof(dns_record_opt), 0, sizeof(dns_record_opt));
@@ -454,11 +460,11 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 							}
 
 						//Different result
-							if (!Parameter.EDNS0Label)
+							if (!Parameter.EDNSLabel)
 							{
 								auto DNS_Record_OPT = (pdns_record_opt)(Result + Length - sizeof(dns_record_opt) + HostsTableIter.Length);
 								DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-								DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
+								DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 
 							//DNSSEC
 								if (Parameter.DNSSECRequest)
@@ -499,7 +505,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 					}
 					else if (DNS_Query->Type == htons(DNS_RECORD_A) && HostsTableIter.RecordType.front() == htons(DNS_RECORD_A))
 					{
-					//EDNS0 Lebal
+					//EDNS Lebal
 						if (DNS_Header->Additional == htons(U16_NUM_ONE))
 						{
 							memset(Result + Length - sizeof(dns_record_opt), 0, sizeof(dns_record_opt));
@@ -527,11 +533,11 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 							}
 
 						//Different result
-							if (!Parameter.EDNS0Label)
+							if (!Parameter.EDNSLabel)
 							{
 								auto DNS_Record_OPT = (pdns_record_opt)(Result + Length - sizeof(dns_record_opt) + HostsTableIter.Length);
 								DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-								DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
+								DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 
 							//DNSSEC
 								if (Parameter.DNSSECRequest)
@@ -746,7 +752,8 @@ size_t __fastcall TCPRequestProcess(const char *OriginalSend, const size_t SendS
 //Send response.
 	if (DataLength >= sizeof(uint16_t) + DNS_PACKET_MINSIZE && DataLength < LARGE_PACKET_MAXSIZE)
 	{
-	//EDNS0 Label
+/* Old version(2015-05-24)
+	//EDNS Label
 		auto DNS_Header = (pdns_hdr)OriginalSend;
 		if (Protocol == IPPROTO_UDP && DNS_Header->Additional > 0)
 		{
@@ -754,7 +761,7 @@ size_t __fastcall TCPRequestProcess(const char *OriginalSend, const size_t SendS
 			DNS_Header->Additional = htons(U16_NUM_ONE);
 			auto DNS_Record_OPT = (pdns_record_opt)(OriginalRecv + DataLength);
 			DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-			DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
+			DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 
 		//DNSSEC
 			if (Parameter.DNSSECRequest)
@@ -766,7 +773,7 @@ size_t __fastcall TCPRequestProcess(const char *OriginalSend, const size_t SendS
 
 			DataLength += sizeof(dns_record_opt);
 		}
-
+*/
 		SendToRequester(OriginalRecv, DataLength, Protocol, LocalSocketData);
 		return EXIT_SUCCESS;
 	}
@@ -802,7 +809,7 @@ size_t __fastcall SendToRequester(PSTR RecvBuffer, const size_t RecvSize, const 
 //TCP
 	if (Protocol == IPPROTO_TCP)
 	{
-		if (AddLengthToTCPDNSHeader(RecvBuffer, RecvSize, LARGE_PACKET_MAXSIZE) == EXIT_FAILURE)
+		if (AddLengthDataToDNSHeader(RecvBuffer, RecvSize, LARGE_PACKET_MAXSIZE) == EXIT_FAILURE)
 		{
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);

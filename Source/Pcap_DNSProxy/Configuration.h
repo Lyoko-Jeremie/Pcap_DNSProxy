@@ -66,6 +66,7 @@ size_t __fastcall ReadMultiLineComments(const char *Buffer, std::string &Data, b
 size_t __fastcall ReadIPFilterData(const char *Buffer, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &IsLabelComments);
 size_t __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, const size_t Line);
 size_t __fastcall ReadLocalRoutingData(std::string Data, const size_t FileIndex, const size_t Line);
+size_t __fastcall ReadAddressPrefixBlock(std::string OriginalData, const size_t DataOffset, const size_t FileIndex, const size_t Line);
 size_t __fastcall ReadMainIPFilterData(std::string Data, const size_t FileIndex, const size_t Line);
 size_t __fastcall ReadHostsData(const char *Buffer, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &IsLabelComments);
 size_t __fastcall ReadWhitelistAndBannedData(std::string Data, const size_t FileIndex, const size_t Line, const size_t LabelType);

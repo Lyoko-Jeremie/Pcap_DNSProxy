@@ -29,6 +29,8 @@ ConfigurationTable::ConfigurationTable(void)
 	//[Addresses] block
 		ListenAddress_IPv6 = new std::vector<sockaddr_storage>();
 		ListenAddress_IPv4 = new std::vector<sockaddr_storage>();
+		LocalhostSubnet.IPv6 = new ADDRESS_PREFIX_BLOCK();
+		LocalhostSubnet.IPv4 = new ADDRESS_PREFIX_BLOCK();
 		DNSTarget.IPv6_Multi = new std::vector<DNS_SERVER_DATA>();
 		DNSTarget.IPv4_Multi = new std::vector<DNS_SERVER_DATA>();
 	//[Data] block(A part)
@@ -71,6 +73,8 @@ ConfigurationTable::ConfigurationTable(void)
 	//[Addresses] block
 		delete ListenAddress_IPv6;
 		delete ListenAddress_IPv4;
+		delete LocalhostSubnet.IPv6;
+		delete LocalhostSubnet.IPv4;
 		delete DNSTarget.IPv6_Multi;
 		delete DNSTarget.IPv4_Multi;
 	//[Data] block(A part)
@@ -186,6 +190,8 @@ ConfigurationTable::~ConfigurationTable(void)
 //[Addresses] block
 	delete ListenAddress_IPv6;
 	delete ListenAddress_IPv4;
+	delete LocalhostSubnet.IPv6;
+	delete LocalhostSubnet.IPv4;
 	delete DNSTarget.IPv6_Multi;
 	delete DNSTarget.IPv4_Multi;
 //[Data] block(A part)

@@ -145,7 +145,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 此组合的过滤效果依靠境内路由表，不可靠
   * Protocol = TCP：先 TCP 请求失败后再 UDP 请求 + 抓包模式，对网络资源的占用比较高
     * 由于 TCP 请求大部分时候不会被投毒污染，此组合的过滤效果比较可靠
-  * EDNS0 Label = 1：开启 EDNS0 请求标签功能
+  * EDNS Label = 1：开启 EDNS 请求标签功能
     * 此功能开启后将有利于对伪造数据包的过滤能力，此组合的过滤效果比较可靠
   * 将目标服务器的请求端口改为非标准 DNS 端口：例如 OpenDNS 支持 53 标准端口和 5353 非标准端口的请求
     * 非标准 DNS 端口现阶段尚未被干扰，此组合的过滤效果比较可靠
@@ -197,7 +197,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * Listen - 监听参数区域
   * Pcap Capture - 抓包功能总开关，开启后抓包模块才能正常使用：开启为1/关闭为0，默认为 1
-    * 此参数关闭时要求需要有其它直连请求方式（例如 TCP 模式或者 DNSCurve/DNSCrypt 协议等），否则将会导致解析无法获得结果
+    * 此参数关闭后程序会自动切换为直连模式
+	* 直连模式下不能完全避免 DNS 投毒污染的问题，需要依赖其它的检测方式，例如 EDNS 标签等方法
   * Pcap Reading Timeout - 抓包模块读取超时时间，数据包只会在等待超时时间后才会被读取，其余时间抓包模块处于休眠状态：单位为毫秒，最短间隔时间为10毫秒，默认为 200
     * 读取超时时间需要平衡需求和资源占用，时间设置太长会导致域名解析请求响应缓慢导致请求解析超时，太快则会占用过多系统处理的资源
   * Operation Mode - 程序的监听工作模式：分 Server/服务器模式、Private/私有网络模式、Proxy/代理模式 和 Custom/自定义模式，默认为 Private
@@ -302,10 +303,12 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * RESERVED/65535
     
 * Addresses - 普通模式地址区域
-注意：IPv4 地址格式为 "IPv4 地址:端口"，IPv6地址格式为"[IPv6 地址]:端口"（均不含引号）
+注意：IPv4 地址格式为 "IPv4 地址:端口"，IPv6 地址格式为"[IPv6 地址]:端口"，带前缀长度地址格式为"IP 地址/网络前缀长度"（均不含引号）
   * IPv4 Listen Address - IPv4 本地监听地址：需要输入一个带端口格式的地址，留空为不启用，默认为空
     * 本参数支持多个监听地址，格式为 "地址A:端口|地址B:端口|地址C:端口"（不含引号）
     * 填入此值后 IPv4 协议的 Operation Mode 和 Listen Port 参数将被自动忽略
+  * IPv4 EDNS Client Subnet Address - IPv4 客户端子网地址：需要输入一个带前缀长度的本机公共网络地址，留空为不启用，默认为空
+    * 启用本功能前需要启用 EDNS Client Subnet 总开关，否则将直接忽略此参数
   * IPv4 DNS Address - IPv4 主要 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为 8.8.4.4:53
     * 本参数支持同时请求多服务器的功能，开启后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果
     * 使用同时请求多服务器格式为 "地址A:端口|地址B:端口|地址C:端口"（不含引号），同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
@@ -406,6 +409,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv6 Listen Address - IPv6 本地监听地址：需要输入一个带端口格式的地址，留空为不启用，默认为空
     * 本参数支持多个监听地址，格式为 "[地址A]:端口|[地址B]:端口|[地址C]:端口"（不含引号）
     * 填入此值后 IPv6 协议的 Operation Mode 和 Listen Port 参数将被自动忽略
+  * IPv6 EDNS Client Subnet Address - IPv6 客户端子网地址：需要输入一个带前缀长度的本机公共网络地址，留空为不启用，默认为空
+    * 启用本功能前需要启用 EDNS Client Subnet 总开关，否则将直接忽略此参数
   * IPv6 DNS Address - IPv6 主要 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为空
     * 指定端口时可使用服务名称代替，参见上表
   * IPv6 Alternate DNS Address - IPv6 备用 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为空
@@ -416,7 +421,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 指定端口时可使用服务名称代替，参见上表
 
 * Values - 扩展参数值区域
-  * EDNS0 Payload Size - EDNS0 标签附带使用的最大载荷长度：最小为 DNS 协议实现要求的 512(bytes)，留空则使用 EDNS0 标签要求最短的 1220(bytes)，默认为空
+  * EDNS Payload Size - EDNS 标签附带使用的最大载荷长度：最小为 DNS 协议实现要求的 512(bytes)，留空则使用 EDNS 标签要求最短的 1220(bytes)，默认为空
   * IPv4 TTL - IPv4 主要 DNS 服务器接受请求的远程 DNS 服务器数据包的 TTL 值：0为自动获取，取值为 1-255 之间：默认为 0
     * 本参数支持同时请求多服务器的功能，与 IPv4 DNS Address 相对应
     * 使用同时请求多服务器格式为 "TTL(A)|TTL(B)|TTL(C)"（不含引号），也可直接默认（即只填一个 0 不使用此格式）则所有 TTL 都将由程序自动获取
@@ -454,9 +459,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 随机添加压缩指针有3种不同的类型，对应 1 和 2 和 3
     * 可单独使用其中一个，即只填一个数字，或填入多个，中间使用 + 号连接
     * 填入多个时，当实际需要使用随机添加压缩指针时将随机使用其中的一种，每个请求都有可能不相同
-  * EDNS0 Label - EDNS0 标签支持，开启后将为所有请求添加 EDNS0 标签：开启为1/关闭为0，默认为 0
+  * EDNS Label - EDNS 标签支持，开启后将为所有请求添加 EDNS 标签：开启为1/关闭为0，默认为 0
   * DNSSEC Request - DNSSEC 请求，开启后将尝试为所有请求添加 DNSSEC 请求：开启为1/关闭为0，默认为 0
     * 注意：此功能为实验性质，本程序不具备任何验证 DNSSEC 回复的能力，单独开启此功能理论上并不能避免 DNS 投毒污染的问题
+  * EDNS Client Subnet - EDNS 客户端子网支持，开启后将为所有请求添加 EDNS 客户端子网信息：开启为1/关闭为0，默认为 0
   * Alternate Multi Request - 备用服务器同时请求参数，开启后将同时请求主要服务器和备用服务器并采用最快回应的服务器的结果：开启为1/关闭为0，默认为 0
     * 同时请求多服务器启用后本参数将强制启用，将同时请求所有存在于列表中的服务器，并采用最快回应的服务器的结果
   * IPv4 Data Filter - IPv4 数据包头检测：开启为1/关闭为0，默认为 0
@@ -475,7 +481,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * DNSCurve - DNSCurve 协议基本参数区域
   * DNSCurve - DNSCurve 协议总开关，控制所有和 DNSCurve 协议有关的选项：开启为1/关闭为0，默认为 0
   * DNSCurve Protocol - 发送请求所使用的协议：分 UDP 和 TCP，默认为 UDP
-  * DNSCurve Payload Size - DNSCurve EDNS0 标签附带使用的最大载荷长度，同时亦为发送请求的总长度，并决定请求的填充长度：最小为 DNS 协议实现要求的 512(bytes)，留空则为 512(bytes)，默认为留空
+  * DNSCurve Payload Size - DNSCurve EDNS 标签附带使用的最大载荷长度，同时亦为发送请求的总长度，并决定请求的填充长度：最小为 DNS 协议实现要求的 512(bytes)，留空则为 512(bytes)，默认为留空
   * Encryption - 启用加密，DNSCurve 协议支持加密和非加密模式：开启为1/关闭为0，默认为 1
   * Encryption Only - 只使用加密模式：开启为1/关闭为0，默认为 1
     * 注意：使用 只使用加密模式 时必须提供服务器的魔数和指纹用于请求和接收
@@ -534,7 +540,7 @@ Hosts 配置文件分为多个提供不同功能的区域
 * 一条条目的总长度切勿超过 4096字节/4KB
 * 需要注释请在条目开头添加 #/井号
 * 优先级别自上而下递减，条目越前优先级越高
-* 平行 Hosts 条目支持数量由请求域名以及 EDNS0 Payload 长度决定，建议不要超过75个 A 记录或43个 AAAA 记录
+* 平行 Hosts 条目支持数量由请求域名以及 EDNS Payload 长度决定，建议不要超过75个 A 记录或43个 AAAA 记录
 
 
 * Whitelist - 白名单条目

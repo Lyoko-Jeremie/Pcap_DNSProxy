@@ -33,71 +33,15 @@
 {
 #endif
 
-//Get parameter.
-#if defined(PLATFORM_WIN)
+//Get commands.
 	if (argc > 0)
 	{
-	//Path initialization and Winsock initialization.
-		if (FileNameInit(argv[0]) == EXIT_FAILURE)
-			return EXIT_FAILURE;
-
-	//Read parameters.
-		if (argc > 1)
-		{
-			Parameter.Console = true;
-
-		//Windows Firewall Test in first start.
-			if (wcsnlen_s(argv[1U], STRING_BUFFER_MAXSIZE) == wcslen(MESSAGE_FIREWALL_TEST) && wcsncmp(argv[1U], MESSAGE_FIREWALL_TEST, wcslen(MESSAGE_FIREWALL_TEST)) == 0 && 
-				FirewallTest(AF_INET6) == EXIT_FAILURE && FirewallTest(AF_INET) == EXIT_FAILURE)
-			{
-				PrintError(LOG_ERROR_NETWORK, L"Windows Firewall Test error", 0, nullptr, 0);
-
-				WSACleanup();
-				return EXIT_FAILURE;
-			}
-
-		//Flush DNS Cache from user.
-			else if (wcsnlen_s(argv[1U], STRING_BUFFER_MAXSIZE) == wcslen(MESSAGE_FLUSH_DNS) && wcsncmp(argv[1U], MESSAGE_FLUSH_DNS, wcslen(MESSAGE_FLUSH_DNS)) == 0)
-			{
-				FlushDNSMailSlotSender();
-			}
-
-			WSACleanup();
+		if (ReadCommand(argc, argv) == EXIT_FAILURE)
 			return EXIT_SUCCESS;
-		}
 	}
 	else {
 		return EXIT_FAILURE;
 	}
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-//Path initialization
-	std::shared_ptr<char> FileName(new char[PATH_MAX + 1U]());
-	memset(FileName.get(), 0, PATH_MAX + 1U);
-	if (getcwd(FileName.get(), PATH_MAX) == nullptr)
-	{
-		PrintError(LOG_ERROR_SYSTEM, L"Path initialization error", 0, nullptr, 0);
-		return EXIT_FAILURE;
-	}
-	if (FileNameInit(FileName.get()) == EXIT_FAILURE)
-		return EXIT_FAILURE;
-	FileName.reset();
-
-	#if defined(PLATFORM_LINUX)
-	//Set Daemon
-		if (daemon(0, 0) == RETURN_ERROR)
-		{
-			PrintError(LOG_ERROR_SYSTEM, L"Set system daemon error", 0, nullptr, 0);
-			return EXIT_FAILURE;
-		}
-	#endif
-
-	if (argc > 1 && strnlen(argv[1U], STRING_BUFFER_MAXSIZE) == strlen(MESSAGE_FLUSH_DNS) && 
-		memcmp(argv[1U], MESSAGE_FLUSH_DNS, strlen(MESSAGE_FLUSH_DNS)) == 0)
-	{
-		FlushDNSFIFOSender();
-		return EXIT_SUCCESS;
-	}
-#endif
 
 //Read configuration file and WinPcap or LibPcap initialization.
 	if (ReadParameter() == EXIT_FAILURE)
@@ -153,6 +97,140 @@
 	return EXIT_SUCCESS;
 }
 
+//Read commands from main program
+#if defined(PLATFORM_WIN)
+	size_t __fastcall ReadCommand(int argc, wchar_t* argv[])
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	size_t __fastcall ReadCommand(int argc, char *argv[])
+#endif
+{
+#if defined(PLATFORM_WIN)
+//Winsock initialization
+	std::shared_ptr<WSAData> WSAInitialization(new WSAData());
+	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), WSAInitialization.get()) != 0 ||
+		LOBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_HIGH)
+	{
+		wprintf_s(L"Winsock initialization error, error code is %d.\n", WSAGetLastError());
+
+		WSACleanup();
+		return EXIT_FAILURE;
+	}
+
+//Read commands.
+	if (argc == 2U)
+	{
+	//Windows Firewall Test in first start.
+		if (wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_FIREWALL_TEST) && wcsncmp(argv[1U], COMMAND_FIREWALL_TEST, wcslen(COMMAND_FIREWALL_TEST)) == 0 && 
+			FirewallTest(AF_INET6) == EXIT_FAILURE && FirewallTest(AF_INET) == EXIT_FAILURE)
+		{
+			wprintf_s(L"Windows Firewall Test error.\n");
+		}
+
+	//Flush DNS Cache from user.
+		else if (wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_FLUSH_DNS) && wcsncmp(argv[1U], COMMAND_FLUSH_DNS, wcslen(COMMAND_FLUSH_DNS)) == 0)
+		{
+			FlushDNSMailSlotSender();
+		}
+
+	//Print current version.
+		else if (wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_LONG_PRINT_VERSION) && wcsncmp(argv[1U], COMMAND_LONG_PRINT_VERSION, wcslen(COMMAND_LONG_PRINT_VERSION)) == 0 || 
+			wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_SHORT_PRINT_VERSION) && wcsncmp(argv[1U], COMMAND_SHORT_PRINT_VERSION, wcslen(COMMAND_SHORT_PRINT_VERSION)) == 0)
+		{
+			wprintf_s(L"Pcap_DNSProxy ");
+			wprintf_s(FULL_VERSION);
+			wprintf_s(L"\n");
+		}
+	}
+	else if (argc == 3U)
+	{
+	//Set working directory from commands.
+		if (wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_LONG_SET_PATH) && wcsncmp(argv[1U], COMMAND_LONG_SET_PATH, wcslen(COMMAND_LONG_SET_PATH)) == 0 ||
+			wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_SHORT_SET_PATH) && wcsncmp(argv[1U], COMMAND_SHORT_SET_PATH, wcslen(COMMAND_SHORT_SET_PATH)) == 0)
+		{
+			if (wcsnlen_s(argv[2U], COMMAND_BUFFER_MAXSIZE) > MAX_PATH) //Check path limits.
+			{
+				wprintf_s(L"Path in command is too long.\n");
+				return EXIT_FAILURE;
+			}
+			else {
+				return FileNameInit(argv[2U]);
+			}
+		}
+	}
+
+//Bad commands.
+	if (argc > 1U)
+	{
+		WSACleanup();
+		return EXIT_FAILURE;
+	}
+
+//Path initialization
+	return FileNameInit(argv[0]);
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+//Read commands.
+	if (argc == 2U)
+	{
+	//Flush DNS Cache from user.
+		if (strnlen(argv[1U], COMMAND_BUFFER_MAXSIZE) == strlen(COMMAND_FLUSH_DNS) && memcmp(argv[1U], COMMAND_FLUSH_DNS, strlen(COMMAND_FLUSH_DNS)) == 0)
+		{
+			FlushDNSFIFOSender();
+		}
+
+	//Print current version.
+		else if (strnlen(argv[1U], COMMAND_BUFFER_MAXSIZE) == strlen(COMMAND_LONG_PRINT_VERSION) && memcmp(argv[1U], COMMAND_LONG_PRINT_VERSION, strlen(COMMAND_LONG_PRINT_VERSION)) == 0 || 
+			strnlen(argv[1U], COMMAND_BUFFER_MAXSIZE) == strlen(COMMAND_SHORT_PRINT_VERSION) && memcmp(argv[1U], COMMAND_SHORT_PRINT_VERSION, strlen(COMMAND_SHORT_PRINT_VERSION)) == 0)
+		{
+			wprintf(L"Pcap_DNSProxy ");
+			wprintf(FULL_VERSION);
+			wprintf(L"\n");
+		}
+	}
+	else if (argc == 3U)
+	{
+	//Set working directory from commands.
+		if (strnlen(argv[1U], COMMAND_BUFFER_MAXSIZE) == strlen(COMMAND_LONG_SET_PATH) && memcmp(argv[1U], COMMAND_LONG_SET_PATH, strlen(COMMAND_LONG_SET_PATH)) == 0 ||
+			strnlen(argv[1U], COMMAND_BUFFER_MAXSIZE) == strlen(COMMAND_SHORT_SET_PATH) && memcmp(argv[1U], COMMAND_SHORT_SET_PATH, strlen(COMMAND_SHORT_SET_PATH)) == 0)
+		{
+			if (strnlen(argv[2U], COMMAND_BUFFER_MAXSIZE) > MAX_PATH) //Check path limits.
+			{
+				wprintf(L"Path in command is too long.\n");
+				return EXIT_FAILURE;
+			}
+			else {
+				return FileNameInit(argv[2U]);
+			}
+		}
+	}
+
+//Bad commands.
+	if (argc > 1U)
+		return EXIT_FAILURE;
+
+//Path initialization
+	std::shared_ptr<char> FileName(new char[PATH_MAX + 1U]());
+	memset(FileName.get(), 0, PATH_MAX + 1U);
+	if (getcwd(FileName.get(), PATH_MAX) == nullptr)
+	{
+		wprintf(L"Path initialization error.\n");
+		return EXIT_FAILURE;
+	}
+	if (FileNameInit(FileName.get()) == EXIT_FAILURE)
+		return EXIT_FAILURE;
+
+	//Set system daemon.
+	#if defined(PLATFORM_LINUX)
+		if (daemon(0, 0) == RETURN_ERROR)
+		{
+			PrintError(LOG_ERROR_SYSTEM, L"Set system daemon error", 0, nullptr, 0);
+			return EXIT_FAILURE;
+		}
+	#endif
+#endif
+
+	return EXIT_SUCCESS;
+}
+
 //Get path of program from the main function parameter and Winsock initialization
 #if defined(PLATFORM_WIN)
 	size_t __fastcall FileNameInit(const wchar_t *OriginalPath)
@@ -160,13 +238,13 @@
 	size_t FileNameInit(const char *OriginalPath)
 #endif
 {
-//Path process.
+//Path process
 #if defined(PLATFORM_WIN)
 	Parameter.Path->push_back(OriginalPath);
 	Parameter.Path->front().erase(Parameter.Path->front().rfind(L"\\") + 1U);
 	for (size_t Index = 0;Index < Parameter.Path->front().length();++Index)
 	{
-		if ((Parameter.Path->front())[Index] == L'\\')
+		if ((Parameter.Path->front()).at(Index) == L'\\')
 		{
 			Parameter.Path->front().insert(Index, L"\\");
 			++Index;
@@ -191,19 +269,6 @@
 #endif
 	Parameter.PrintError = true;
 	time(&StartTime);
-
-#if defined(PLATFORM_WIN)
-//Winsock initialization
-	std::shared_ptr<WSAData> WSAInitialization(new WSAData());
-	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), WSAInitialization.get()) != 0 || 
-		LOBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_HIGH)
-	{
-		PrintError(LOG_ERROR_NETWORK, L"Winsock initialization error", WSAGetLastError(), nullptr, 0);
-
-		WSACleanup();
-		return EXIT_FAILURE;
-	}
-#endif
 
 	return EXIT_SUCCESS;
 }

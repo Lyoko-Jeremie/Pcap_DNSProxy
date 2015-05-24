@@ -268,7 +268,7 @@ size_t WINAPI FlushDNSMailSlotSender(void)
 	HANDLE hFile = CreateFileW(MAILSLOT_NAME, GENERIC_WRITE, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
-		PrintError(LOG_ERROR_SYSTEM, L"Create mailslot error", GetLastError(), nullptr, 0);
+		wprintf_s(L"Create mailslot error, error code is %d.\n", GetLastError());
 		return EXIT_FAILURE;
 	}
 
@@ -276,13 +276,13 @@ size_t WINAPI FlushDNSMailSlotSender(void)
 	Result = WriteFile(hFile, MAILSLOT_MESSAGE_FLUSH_DNS, (DWORD)(lstrlenW(MAILSLOT_MESSAGE_FLUSH_DNS) + 1U) * sizeof(wchar_t), &cbWritten, nullptr);
 	if (!Result)
 	{
-		PrintError(LOG_ERROR_SYSTEM, L"MailSlot write messages error", GetLastError(), nullptr, 0);
+		wprintf_s(L"MailSlot write messages error, error code is %d.\n", GetLastError());
 
 		CloseHandle(hFile);
 		return EXIT_FAILURE;
 	}
 
 	CloseHandle(hFile);
-	wprintf(L"Flush DNS cache message was sent successfully.\n");
+	wprintf_s(L"Flush DNS cache message was sent successfully.\n");
 	return EXIT_SUCCESS;
 }

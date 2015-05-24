@@ -55,14 +55,14 @@ goto %UserChoice%
 	sc create PcapDNSProxyService binPath= "%~dp0Pcap_DNSProxy_x86.exe" DisplayName= "PcapDNSProxy Service" start= auto
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v Application /d "%~dp0Pcap_DNSProxy_x86.exe" /f
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v AppDirectory /d "%~dp0" /f
-	Pcap_DNSProxy_x86.exe --firststart
+	Pcap_DNSProxy_x86.exe --first-setup
 	goto Exit
 
 	:X64
 	sc create PcapDNSProxyService binPath= "%~dp0Pcap_DNSProxy.exe" DisplayName= "PcapDNSProxy Service" start= auto
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v Application /d "%~dp0Pcap_DNSProxy.exe" /f
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v AppDirectory /d "%~dp0" /f
-	Pcap_DNSProxy.exe --firststart
+	Pcap_DNSProxy.exe --first-setup
 
 	:Exit
 	sc description PcapDNSProxyService "A local DNS server based on WinPcap and LibPcap"
@@ -152,9 +152,9 @@ goto %UserChoice%
 :CASE_6
 	echo.
 	if %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (
-		Pcap_DNSProxy_x86.exe --flushdns
+		Pcap_DNSProxy_x86.exe --flush-dns
 	) else (
-		Pcap_DNSProxy.exe --flushdns
+		Pcap_DNSProxy.exe --flush-dns
 	)
 	echo.
 	pause

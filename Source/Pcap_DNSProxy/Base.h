@@ -1266,7 +1266,7 @@ RFC 2535(https://tools.ietf.org/html/rfc2535), Domain Name System Security Exten
 RFC 2536(https://tools.ietf.org/html/rfc2536), DSA KEYs and SIGs in the Domain Name System (DNS)
 RFC 2537(https://tools.ietf.org/html/rfc2537), RSA/MD5 KEYs and SIGs in the Domain Name System (DNS)
 RFC 2539(https://tools.ietf.org/html/rfc2539), Storage of Diffie-Hellman Keys in the Domain Name System (DNS)
-RFC 2671(https://tools.ietf.org/html/rfc2671), Extension Mechanisms for DNS (EDNS0)
+RFC 2671(https://tools.ietf.org/html/rfc2671), Extension Mechanisms for DNS (EDNS)
 RFC 2672(https://tools.ietf.org/html/rfc2672), Non-Terminal DNS Name Redirection
 RFC 2845(https://tools.ietf.org/html/rfc2845), Secret Key Transaction Authentication for DNS (TSIG)
 RFC 2874(https://tools.ietf.org/html/rfc2874), DNS Extensions to Support IPv6 Address Aggregation and Renumbering
@@ -1414,7 +1414,7 @@ RFC 7314(https://tools.ietf.org/html/rfc7314), Extension Mechanisms for DNS (EDN
 #define DNS_RECORD_A6           0x0026   //DNS A6 Record, ID is 38.(Obsolete)
 #define DNS_RECORD_DNAME        0x0027   //DNS DNAME Record, ID is 39.
 #define DNS_RECORD_SINK         0x0028   //DNS SINK Record, ID is 40.
-#define DNS_RECORD_OPT          0x0029   //DNS OPT/EDNS0 Record, ID is 41.
+#define DNS_RECORD_OPT          0x0029   //DNS OPT/EDNS Record, ID is 41.
 #define DNS_RECORD_APL          0x002A   //DNS APL Record, ID is 42.
 #define DNS_RECORD_DS           0x002B   //DNS DS Record, ID is 43.
 #define DNS_RECORD_SSHFP        0x002C   //DNS SSHFP Record, ID is 44.
@@ -1608,7 +1608,7 @@ typedef struct _dns_qry_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-typedef struct _dns_standard_
+typedef struct _dns_record_standard_
 {
 //	PUCHAR                Name;
 	uint16_t              Type;
@@ -1762,7 +1762,7 @@ typedef struct _dns_record_txt_
 //	PUCHAR                TXT;
 }dns_record_txt, *pdns_record_txt;
 
-/* Extension Mechanisms for Domain Name System/DNS, EDNS0 Label/OPT Resource
+/* Extension Mechanisms for Domain Name System/DNS, EDNS Label/OPT Resource
 
                     1                   2                   3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -1773,20 +1773,20 @@ typedef struct _dns_record_txt_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |             Type              |       UDP Payload Size        |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|Extended RCode | EDNS0 Version |D|          Reserved           |  Extended RCode/Higher bits in extended Return Code, D/DO bit
+|Extended RCode | EDNS Version |D|          Reserved           |  Extended RCode/Higher bits in extended Return Code, D/DO bit
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |            Length             |\---------- Z Field -----------/
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define EDNS0_MINSIZE 1220U
+#define EDNS_PACKET_MINSIZE 1220U
 typedef struct _dns_record_opt_
 {
 	uint8_t               Name;
 	uint16_t              Type;              //Additional RRs Type
 	uint16_t              UDPPayloadSize;
 	uint8_t               Extended_RCode;
-	uint8_t               Version;           //EDNS0 Version
+	uint8_t               Version;           //EDNS Version
 	union {
 		uint16_t          Z_Field;
 		struct {
@@ -1801,7 +1801,22 @@ typedef struct _dns_record_opt_
 		}Z_Bits;
 	};
 	uint16_t              DataLength;
-}dns_record_opt, *pdns_record_opt;
+}dns_record_opt, *pdns_record_opt, edns_header, *pedns_header;
+
+//Client subnet in DNS requests(https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02)
+//About Address Family Numbers, see https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml.
+#define EDNS_CODE_CSUBNET            0x0008
+#define ADDRESS_FAMILY_IPV4          0x0001
+#define ADDRESS_FAMILY_IPV6          0x0002
+typedef struct _edns_client_subnet_
+{
+	uint16_t              Code;
+	uint16_t              Length;
+	uint16_t              Family;
+	uint8_t               Netmask_Source;
+	uint8_t               Netmask_Scope;
+//	PUCHAR                Address;
+}edns_client_subnet, *pedns_client_subnet;
 
 //Domain Name System Curve/DNSCurve Part
 #if defined(ENABLE_LIBSODIUM)
@@ -1916,12 +1931,13 @@ typedef struct _dnscurve_txt_signature_
 //Version defines
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4             //Current configuration version
+#define FULL_VERSION                 L"0.4.1.1"
 
-//Length defines
+//Size and length defines
 #define BOM_UTF_8_LENGTH               3U                                         //Length of UTF-8 BOM
 #define BOM_UTF_16_LENGTH              2U                                         //Length of UTF-16 BOM
 #define BOM_UTF_32_LENGTH              4U                                         //Length of UTF-32 BOM
-#define STRING_BUFFER_MAXSIZE          64U                                        //Maximum size of string buffer(64 bytes)
+#define COMMAND_BUFFER_MAXSIZE         4096U                                      //Maximum size of commands buffer(4096 bytes)
 #define FILE_BUFFER_SIZE               4096U                                      //Maximum size of file buffer(4KB/4096 bytes)
 #define DEFAULT_FILE_MAXSIZE           1073741824U                                //Maximum size of whole reading file(1GB/1073741824 bytes).
 #define DEFAULT_LOG_MAXSIZE            8388608U                                   //Maximum size of whole log file(8MB/8388608 bytes).
@@ -1943,18 +1959,19 @@ typedef struct _dnscurve_txt_signature_
 	#define ICMP_STRING_START_NUM_MAC      8U
 	#define ICMP_PADDING_LENGTH_MAC        48U
 #endif
-#define MULTI_REQUEST_TIMES_MAXNUM     8U                                         //Maximum times of multi requesting.
-#define NETWORK_LAYER_PARTNUM          2U                                         //Number of network layer protocols(IPv6 and IPv4)
-#define TRANSPORT_LAYER_PARTNUM        4U                                         //Number of transport layer protocols(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
-#define ALTERNATE_SERVERNUM            12U                                        //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
-#define DOMAIN_MAXSIZE                 256U                                       //Maximum size of whole level domain is 256 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_DATA_MAXSIZE            253U                                       //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_LEVEL_DATA_MAXSIZE      63U                                        //Domain length is between 3 and 63(Labels must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
-#define DOMAIN_MINSIZE                 2U                                         //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_RAMDOM_MINSIZE          6U                                         //Minimum size of ramdom domain requesting
-#define DNS_PACKET_MINSIZE             (sizeof(dns_hdr) + 4U + sizeof(dns_qry))   //Minimum DNS packet size(DNS Header + Minimum Domain + DNS Query)
-#define DNS_RR_MAXCOUNT_AAAA           43U                                        //Maximum Record Resources of AAAA answers, 28 bytes * 43 = 1204 bytes
-#define DNS_RR_MAXCOUNT_A              75U                                        //Maximum Record Resources of A answers, 16 bytes * 75 = 1200 bytes
+#define MULTI_REQUEST_TIMES_MAXNUM     8U                                                                              //Maximum times of multi requesting.
+#define NETWORK_LAYER_PARTNUM          2U                                                                              //Number of network layer protocols(IPv6 and IPv4)
+#define TRANSPORT_LAYER_PARTNUM        4U                                                                              //Number of transport layer protocols(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
+#define ALTERNATE_SERVERNUM            12U                                                                             //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
+#define DOMAIN_MAXSIZE                 256U                                                                            //Maximum size of whole level domain is 256 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_DATA_MAXSIZE            253U                                                                            //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_LEVEL_DATA_MAXSIZE      63U                                                                             //Domain length is between 3 and 63(Labels must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
+#define DOMAIN_MINSIZE                 2U                                                                              //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_RAMDOM_MINSIZE          6U                                                                              //Minimum size of ramdom domain requesting
+#define DNS_PACKET_MINSIZE             (sizeof(dns_hdr) + 4U + sizeof(dns_qry))                                        //Minimum DNS packet size(DNS Header + Minimum Domain + DNS Query)
+#define DNS_RR_MAXCOUNT_AAAA           43U                                                                             //Maximum Record Resources size of AAAA answers, 28 bytes * 43 = 1204 bytes
+#define DNS_RR_MAXCOUNT_A              75U                                                                             //Maximum Record Resources size of A answers, 16 bytes * 75 = 1200 bytes
+#define EDNS_ADDITIONAL_MAXSIZE       (sizeof(dns_record_opt) * 2U + sizeof(edns_client_subnet) + sizeof(in6_addr))    //Maximum of EDNS Additional Record Resources size
 
 //Code defines
 #if defined(PLATFORM_WIN)
@@ -2012,15 +2029,23 @@ typedef struct _dnscurve_txt_signature_
 //Data defines
 #define DEFAULT_LOCAL_SERVERNAME              ("pcap-dnsproxy.localhost.server")                                                                                                            //Default Local DNS server name
 #if defined(PLATFORM_WIN)
-	#define MESSAGE_FIREWALL_TEST                 L"--firststart"
-	#define MESSAGE_FLUSH_DNS                     L"--flushdns"
+	#define COMMAND_LONG_PRINT_VERSION            L"--version"
+	#define COMMAND_SHORT_PRINT_VERSION           L"-v"
+	#define COMMAND_FIREWALL_TEST                 L"--first-setup"
+	#define COMMAND_FLUSH_DNS                     L"--flush-dns"
+	#define COMMAND_LONG_SET_PATH                 L"--config-file"
+	#define COMMAND_SHORT_SET_PATH                L"-c"
 	#define SID_ADMINISTRATORS_GROUP              L"S-1-5-32-544"                                                                                                                               //Windows SID of Administrators group
 	#define MAILSLOT_NAME                         L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot"                                                                                                    //MailSlot name
 	#define MAILSLOT_MESSAGE_FLUSH_DNS            L"Flush DNS cache of Pcap_DNSProxy."                                                                                                          //The mailslot message to flush dns cache
 	#define DEFAULT_LOCAL_SERVICENAME             L"PcapDNSProxyService"                                                                                                                        //Default service name of system
 	#define DEFAULT_PADDINGDATA                   ("abcdefghijklmnopqrstuvwabcdefghi")                                                                                                          //ICMP padding data on Windows
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	#define MESSAGE_FLUSH_DNS                     ("--flushdns")
+	#define COMMAND_LONG_PRINT_VERSION            ("--version")
+	#define COMMAND_SHORT_PRINT_VERSION           ("-v")
+	#define COMMAND_FLUSH_DNS                     ("--flush-dns")
+	#define COMMAND_LONG_SET_PATH                 ("--config-file")
+	#define COMMAND_SHORT_SET_PATH                ("-c")
 	#define FIFO_PATH_NAME                        ("/tmp/pcap_dnsproxy_fifo")                                                                                                                   //FIFO pathname
 	#define FIFO_MESSAGE_FLUSH_DNS                ("Flush DNS cache of Pcap_DNSProxy.")                                                                                                         //The FIFO message to flush dns cache
 #endif
@@ -2033,9 +2058,9 @@ typedef struct _dnscurve_txt_signature_
 #else 
 	#define DEFAULT_SEQUENCE                      0x0001                                                                                                                                        //Default sequence of protocol
 #endif
-#define DNS_PACKET_QUERY_LOCATE(Buffer)       (sizeof(dns_hdr) + CheckDNSQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U)                                                                    //Location of beginning of DNS Query
+#define DNS_PACKET_QUERY_LOCATE(Buffer)       (sizeof(dns_hdr) + CheckDNSQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U)                                                                    //Location the beginning of DNS Query
 #define DNS_TCP_PACKET_QUERY_LOCATE(Buffer)   (sizeof(dns_tcp_hdr) + CheckDNSQueryNameLength(Buffer + sizeof(dns_tcp_hdr)) + 1U)
-#define DNS_PACKET_RR_LOCATE(Buffer)          (sizeof(dns_hdr) + CheckDNSQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U + sizeof(dns_qry))                                                  //Location of beginning of DNS Resource Records
+#define DNS_PACKET_RR_LOCATE(Buffer)          (sizeof(dns_hdr) + CheckDNSQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U + sizeof(dns_qry))                                                  //Location the beginning of DNS Resource Records
 
 //Function Type defines
 //Windows XP with SP3 support
@@ -2142,6 +2167,13 @@ typedef struct _socket_data_
 	socklen_t                AddrLen;
 }SocketData, SOCKET_DATA, *PSocketData, *PSOCKET_DATA;
 
+//Address Prefix Block structure
+typedef struct _address_prefix_block_
+{
+	sockaddr_storage         Address;
+	size_t                   Prefix;
+}AddressPrefixBlock, ADDRESS_PREFIX_BLOCK, *PAddressPrefixBlock, *PADDRESS_PREFIX_BLOCK;
+
 //DNS Server Data structure
 typedef struct _dns_server_data_
 {
@@ -2221,6 +2253,12 @@ public:
 //[Addresses] block
 	std::vector<sockaddr_storage>    *ListenAddress_IPv6;
 	std::vector<sockaddr_storage>    *ListenAddress_IPv4;
+	struct _localhost_subnet_ {
+		ADDRESS_PREFIX_BLOCK             *IPv6;
+		bool                             Setting_IPv6;
+		ADDRESS_PREFIX_BLOCK             *IPv4;
+		bool                             Setting_IPv4;
+	}LocalhostSubnet;
 	struct _dns_target_ {
 		DNS_SERVER_DATA                  IPv6;
 		DNS_SERVER_DATA                  Alternate_IPv6;
@@ -2234,7 +2272,7 @@ public:
 		std::vector<DNS_SERVER_DATA>     *IPv4_Multi;
 	}DNSTarget;
 //[Values] block
-	size_t                           EDNS0PayloadSize;
+	size_t                           EDNSPayloadSize;
 #if defined(ENABLE_PCAP)
 	uint8_t                          HopLimitFluctuation;
 	uint16_t                         ICMPID;
@@ -2257,8 +2295,9 @@ public:
 	bool                             CPMPointerToHeader;
 	bool                             CPMPointerToRR;
 	bool                             CPMPointerToAdditional;
-	bool                             EDNS0Label;
+	bool                             EDNSLabel;
 	bool                             DNSSECRequest;
+	bool                             EDNSClientSubnet;
 	bool                             AlternateMultiRequest;
 	bool                             IPv4DataCheck;
 #if defined(ENABLE_PCAP)
@@ -2465,7 +2504,7 @@ public:
 //Base.cpp
 bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length);
 void __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer);
-size_t __fastcall CaseConvert(const bool IsLowerUpper, char *Buffer, const size_t Length);
+size_t __fastcall CaseConvert(const bool IsLowerUpper, PSTR Buffer, const size_t Length);
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	uint64_t GetTickCount64(void);
 #endif
@@ -2494,19 +2533,20 @@ size_t __fastcall CompareAddresses(const void *OriginalAddrBegin, const void *Or
 size_t __fastcall GetNetworkingInformation(void);
 uint16_t __fastcall ServiceNameToHex(const char *OriginalBuffer);
 uint16_t __fastcall DNSTypeNameToHex(const char *OriginalBuffer);
-bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, char *Domain);
+bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const bool IsPrivateUse, char *Domain);
 bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol);
 bool __fastcall CustomModeFilter(const void *OriginalAddr, const uint16_t Protocol);
 uint16_t __fastcall GetChecksum(const uint16_t *Buffer, const size_t Length);
 uint16_t __fastcall ICMPv6Checksum(const unsigned char *Buffer, const size_t Length, const in6_addr &Destination, const in6_addr &Source);
 uint16_t __fastcall TCPUDPChecksum(const unsigned char *Buffer, const size_t Length, const uint16_t NetworkLayer, const uint16_t TransportLayer);
-size_t __fastcall AddLengthToTCPDNSHeader(PSTR Buffer, const size_t RecvLen, const size_t MaxLen);
+size_t __fastcall AddLengthDataToDNSHeader(PSTR Buffer, const size_t RecvLen, const size_t MaxLen);
 size_t __fastcall CharToDNSQuery(const char *FName, PSTR TName);
 size_t __fastcall CheckDNSQueryNameLength(const char *Buffer);
 size_t __fastcall DNSQueryToChar(const char *TName, PSTR FName);
 void __fastcall FlushSystemDNSCache(void);
 void __fastcall MakeRamdomDomain(PSTR Buffer);
 void __fastcall MakeDomainCaseConversion(PSTR Buffer);
+size_t __fastcall AddEDNSToAdditionalRR(PSTR Buffer, const size_t Length);
 size_t __fastcall MakeCompressionPointerMutation(char *Buffer, const size_t Length);
 bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal, bool *IsMarkHopLimit);
 

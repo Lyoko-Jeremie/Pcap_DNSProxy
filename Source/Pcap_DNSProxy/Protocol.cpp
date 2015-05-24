@@ -180,7 +180,7 @@ size_t __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAd
 			sAddrString.replace(sAddrString.find(".0"), 2U, ("."));
 		while (sAddrString.find("..") != std::string::npos)
 			sAddrString.replace(sAddrString.find(".."), 2U, (".0."));
-		if (sAddrString[sAddrString.length() - 1U] == ASCII_PERIOD)
+		if (sAddrString.at(sAddrString.length() - 1U) == ASCII_PERIOD)
 			sAddrString.append("0");
 
 	//Convert to binary.
@@ -558,14 +558,18 @@ size_t __fastcall GetNetworkingInformation(void)
 	PADDRINFOA LocalAddressList = nullptr, LocalAddressTableIter = nullptr;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	ifaddrs *InterfaceAddressList = nullptr, *InterfaceAddressIter = nullptr;
-	auto ErrorFirstPrint = true;
+	auto IsErrorFirstPrint = true;
 #endif
 	pdns_hdr DNS_Header = nullptr;
 	pdns_qry DNS_Query = nullptr;
 	pdns_record_aaaa DNS_Record_AAAA = nullptr;
 	pdns_record_a DNS_Record_A = nullptr;
+	auto IsSubnetMark = false;
+
 	for (;;)
 	{
+		IsSubnetMark = false;
+
 	//Get localhost addresses(IPv6)
 	#if defined(PLATFORM_WIN)
 		LocalAddressList = GetLocalAddressList(AF_INET6);
@@ -612,6 +616,18 @@ size_t __fastcall GetNetworkingInformation(void)
 				if (LocalAddressTableIter->ai_family == AF_INET6 && LocalAddressTableIter->ai_addrlen == sizeof(sockaddr_in6) && 
 					LocalAddressTableIter->ai_addr->sa_family == AF_INET6)
 				{
+				//Mark localhost subnet(IPv6).
+					if (Parameter.EDNSClientSubnet && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv6 && 
+						Parameter.LocalhostSubnet.IPv6 != nullptr && Parameter.LocalhostSubnet.IPv6->Address.ss_family == 0 &&
+						!CheckSpecialAddress(&((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr, AF_INET6, true, nullptr))
+					{
+						Parameter.LocalhostSubnet.IPv6->Address.ss_family = AF_INET6;
+						((PSOCKADDR_IN6)&Parameter.LocalhostSubnet.IPv6->Address)->sin6_addr = ((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr;
+						Parameter.LocalhostSubnet.IPv6->Prefix = sizeof(in6_addr) * BYTES_TO_BITS; //No recommendation is provided for IPv6 at this time so keep all bits, see https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02.
+
+						IsSubnetMark = true;
+					}
+
 				//Mark local addresses(B part).
 					if (Parameter.LocalAddressLength[0] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
 					{
@@ -681,6 +697,18 @@ size_t __fastcall GetNetworkingInformation(void)
 			{
 				if (InterfaceAddressIter->ifa_addr != nullptr && InterfaceAddressIter->ifa_addr->sa_family == AF_INET6)
 				{
+				//Mark localhost subnet(IPv6).
+					if (Parameter.EDNSClientSubnet && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv6 && 
+						Parameter.LocalhostSubnet.IPv6 != nullptr && Parameter.LocalhostSubnet.IPv6->Address.ss_family == 0 &&
+						!CheckSpecialAddress(&((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr, AF_INET6, true, nullptr))
+					{
+						Parameter.LocalhostSubnet.IPv6->Address.ss_family = AF_INET6;
+						((PSOCKADDR_IN6)&Parameter.LocalhostSubnet.IPv6->Address)->sin6_addr = ((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr;
+						Parameter.LocalhostSubnet.IPv6->Prefix = sizeof(in6_addr) * BYTES_TO_BITS; //No recommendation is provided for IPv6 at this time so keep all bits, see https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02.
+
+						IsSubnetMark = true;
+					}
+
 				//Mark local addresses(B part).
 					if (Parameter.LocalAddressLength[0] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
 					{
@@ -763,6 +791,13 @@ size_t __fastcall GetNetworkingInformation(void)
 			freeaddrinfo(LocalAddressList);
 			LocalAddressList = nullptr;
 		#endif
+
+		//Reset localhost subnet settings if there no any addresses which can be marked.
+			if (Parameter.EDNSClientSubnet && Parameter.LocalhostSubnet.IPv6 != nullptr && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv6)
+			{
+				Parameter.LocalhostSubnet.IPv6->Prefix = 0;
+				memset(&Parameter.LocalhostSubnet.IPv6->Address, 0, sizeof(sockaddr_storage));
+			}
 		}
 
 	//Get localhost addresses(IPv4)
@@ -805,6 +840,19 @@ size_t __fastcall GetNetworkingInformation(void)
 				if (LocalAddressTableIter->ai_family == AF_INET && LocalAddressTableIter->ai_addrlen == sizeof(sockaddr_in) && 
 					LocalAddressTableIter->ai_addr->sa_family == AF_INET)
 				{
+				//Mark localhost subnet(IPv4).
+					if (Parameter.EDNSClientSubnet && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4 &&
+						Parameter.LocalhostSubnet.IPv4 != nullptr && Parameter.LocalhostSubnet.IPv4->Address.ss_family == 0 &&
+						!CheckSpecialAddress(&((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr, AF_INET, true, nullptr))
+					{
+						Parameter.LocalhostSubnet.IPv4->Address.ss_family = AF_INET;
+						((PSOCKADDR_IN)&Parameter.LocalhostSubnet.IPv4->Address)->sin_addr = ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr;
+						((PSOCKADDR_IN)&Parameter.LocalhostSubnet.IPv4->Address)->sin_addr.s_impno = 0;
+						Parameter.LocalhostSubnet.IPv4->Prefix = (sizeof(in_addr) - 1U) * BYTES_TO_BITS; //Keep 24 bits of IPv4 address, see https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02.
+
+						IsSubnetMark = true;
+					}
+
 				//Mark local addresses(B part).
 					if (Parameter.LocalAddressLength[1U] <= PACKET_MAXSIZE - sizeof(dns_record_a))
 					{
@@ -855,6 +903,19 @@ size_t __fastcall GetNetworkingInformation(void)
 			{
 				if (InterfaceAddressIter->ifa_addr != nullptr && InterfaceAddressIter->ifa_addr->sa_family == AF_INET)
 				{
+				//Mark localhost subnet(IPv4).
+					if (Parameter.EDNSClientSubnet && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4 && 
+						Parameter.LocalhostSubnet.IPv4 != nullptr && Parameter.LocalhostSubnet.IPv4->Address.ss_family == 0 &&
+						!CheckSpecialAddress(&((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr, AF_INET, true, nullptr))
+					{
+						Parameter.LocalhostSubnet.IPv4->Address.ss_family = AF_INET;
+						((PSOCKADDR_IN)&Parameter.LocalhostSubnet.IPv4->Address)->sin_addr = ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr;
+						((PSOCKADDR_IN)&Parameter.LocalhostSubnet.IPv4->Address)->sin_addr.s_impno = 0;
+						Parameter.LocalhostSubnet.IPv4->Prefix = (sizeof(in_addr) - 1U) * BYTES_TO_BITS; //Keep 24 bits of IPv4 address, see https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02.
+
+						IsSubnetMark = true;
+					}
+
 				//Mark local addresses(B part).
 					if (Parameter.LocalAddressLength[1U] <= PACKET_MAXSIZE - sizeof(dns_record_a))
 					{
@@ -918,6 +979,13 @@ size_t __fastcall GetNetworkingInformation(void)
 			freeaddrinfo(LocalAddressList);
 			LocalAddressList = nullptr;
 		#endif
+
+		//Reset localhost subnet settings if there no any addresses which can be marked.
+			if (Parameter.EDNSClientSubnet && Parameter.LocalhostSubnet.IPv4 != nullptr && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4)
+			{
+				Parameter.LocalhostSubnet.IPv4->Prefix = 0;
+				memset(&Parameter.LocalhostSubnet.IPv4->Address, 0, sizeof(sockaddr_storage));
+			}
 		}
 
 	//Free list.
@@ -935,13 +1003,13 @@ size_t __fastcall GetNetworkingInformation(void)
 		#if defined(PLATFORM_WIN)
 			if (!Parameter.GatewayAvailable_IPv6)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (!ErrorFirstPrint &&!Parameter.GatewayAvailable_IPv6)
+			if (!IsErrorFirstPrint &&!Parameter.GatewayAvailable_IPv6)
 		#endif
 				PrintError(LOG_ERROR_NETWORK, L"Not any available gateways to public network", 0, nullptr, 0);
 
 			Parameter.TunnelAvailable_IPv6 = false;
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			ErrorFirstPrint = false;
+			IsErrorFirstPrint = false;
 		#endif
 		}
 
@@ -1320,7 +1388,7 @@ uint16_t __fastcall DNSTypeNameToHex(const char *OriginalBuffer)
 }
 
 //Check IPv4/IPv6 special addresses
-bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, char *Domain)
+bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const bool IsPrivateUse, char *Domain)
 {
 	if (Protocol == AF_INET6) //IPv6
 	{
@@ -1331,18 +1399,18 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, char *D
 			((in6_addr *)Addr)->s6_words[0] == htons(0x0021) && ((in6_addr *)Addr)->s6_words[1U] == htons(0x0002) && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0002) || //21:2::2
 			((in6_addr *)Addr)->s6_words[0] == htons(0x0101) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x1234) || //101::1234
 			((in6_addr *)Addr)->s6_words[0] == htons(0x2001) && 
-//			(((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0212) || //2001::212
-			((in6_addr *)Addr)->s6_words[1U] == htons(0x0DA8) && ((in6_addr *)Addr)->s6_words[2U] == htons(0x0112) && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x21AE) || //2001:DA8:112::21AE
+			(IsPrivateUse && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0212) || //2001::212
+			((in6_addr *)Addr)->s6_words[1U] == htons(0x0DA8) && ((in6_addr *)Addr)->s6_words[2U] == htons(0x0112) && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x21AE)) || //2001:DA8:112::21AE
 			((in6_addr *)Addr)->s6_words[0] == htons(0x2003) && ((in6_addr *)Addr)->s6_words[1U] == htons(0x00FF) && ((in6_addr *)Addr)->s6_words[2U] == htons(0x0001) && ((in6_addr *)Addr)->s6_words[3U] == htons(0x0002) && ((in6_addr *)Addr)->s6_words[4U] == htons(0x0003) && ((in6_addr *)Addr)->s6_words[5U] == htons(0x0004) && ((in6_addr *)Addr)->s6_words[6U] == htons(0x5FFF) /* && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0006) */ || //2003:FF:1:2:3:4:5FFF:xxxx
 			((in6_addr *)Addr)->s6_words[0] == htons(0x2123) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x3E12) || //2123::3E12
-		//Special-use and reserved addresses, see https://en.wikipedia.org/wiki/IPv6_address#Presentation and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv6_addresses.
+		//Special-use or reserved addresses, see https://en.wikipedia.org/wiki/IPv6_address#Presentation and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv6_addresses.
 			(((in6_addr *)Addr)->s6_words[0] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && 
 			((((in6_addr *)Addr)->s6_words[5U] == 0 && 
 			((((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == 0 || //Unspecified Addresses(::, Section 2.5.2 in RFC 4291)
 			((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001)) || //Loopback Addresses(::1, Section 2.5.3 in RFC 4291)
 			((in6_addr *)Addr)->s6_words[5U] == 0)) || //IPv4-Compatible Contrast Addresses(::/96, Section 2.5.5.1 in RFC 4291)
 			((in6_addr *)Addr)->s6_words[5U] == htons(0xFFFF))) || //IPv4-mapped Addresses(::FFFF:0:0/96, Section 2.5.5 in RFC 4291)
-//			((in6_addr *)Addr)->s6_words[0] == htons(0x0064) && ((in6_addr *)Addr)->s6_words[1U] == htons(0xFF9B) && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 || //Well Known Prefix Addresses(64:FF9B::/96, Section 2.1 in RFC 4773)
+			IsPrivateUse && ((in6_addr *)Addr)->s6_words[0] == htons(0x0064) && ((in6_addr *)Addr)->s6_words[1U] == htons(0xFF9B) && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 || //Well Known Prefix Addresses(64:FF9B::/96, Section 2.1 in RFC 4773)
 			((in6_addr *)Addr)->s6_words[0] == htons(0x0100) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 || //Discard Prefix Addresses(100::/64, Section 4 RFC 6666)
 			((in6_addr *)Addr)->s6_words[0] == htons(0x2001) && 
 			(((in6_addr *)Addr)->s6_words[1U] == 0 || //Teredo relay/tunnel Addresses(2001::/32, RFC 4380)
@@ -1350,15 +1418,15 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, char *D
 			((in6_addr *)Addr)->s6_bytes[3U] >= 0x10 && ((in6_addr *)Addr)->s6_bytes[3U] <= 0x1F || //Overlay Routable Cryptographic Hash IDentifiers/ORCHID Addresses(2001:10::/28 in RFC 4843)
 			((in6_addr *)Addr)->s6_bytes[2U] >= 0x01 && ((in6_addr *)Addr)->s6_bytes[3U] >= 0xF8 || //Sub-TLA IDs assigned to IANA Addresses(2001:01F8::/29, Section 2 in RFC 4773)
 			((in6_addr *)Addr)->s6_words[1U] == htons(0x0DB8)) || //Contrast Address prefix reserved for documentation Addresses(2001:DB8::/32, RFC 3849)
-//			((in6_addr *)Addr)->s6_words[0] == htons(0x2002) || //6to4 relay/tunnel Addresses(2002::/16, Section 2 in RFC 3056)
+			IsPrivateUse && ((in6_addr *)Addr)->s6_words[0] == htons(0x2002) || //6to4 relay/tunnel Addresses(2002::/16, Section 2 in RFC 3056)
 			((in6_addr *)Addr)->s6_words[0] == htons(0x3FFE) && ((in6_addr *)Addr)->s6_words[1U] == 0 || //6bone Addresses(3FFE::/16, RFC 3701)
 			((in6_addr *)Addr)->s6_bytes[0] == 0x5F || //6bone(5F00::/8, RFC 3701)
-//			((in6_addr *)Addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)Addr)->s6_bytes[0] <= 0xFD || //Unique Local Unicast Addresses/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
+			IsPrivateUse && ((in6_addr *)Addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)Addr)->s6_bytes[0] <= 0xFD || //Unique Local Unicast Addresses/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
 			((in6_addr *)Addr)->s6_bytes[0] == 0xFE && 
-			(((in6_addr *)Addr)->s6_bytes[1U] >= 0x80 && (((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF || //Link-Local Unicast Contrast Addresses/LUC(FE80::/10, Section 2.5.6 in RFC 4291)
-//			((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == htons(0x5EFE)) || //ISATAP Interface Identifiers Addresses(Prefix:0:5EFE:0:0:0:0/64, which also in Link-Local Unicast Contrast Addresses/LUC, Section 6.1 in RFC 5214)
-			((in6_addr *)Addr)->s6_bytes[1U] >= 0xC0))) //Site-Local scoped Addresses(FEC0::/10, RFC 3879)
-//			((in6_addr *)Addr)->s6_bytes[0] == 0xFF || //Multicast Addresses(FF00::/8, Section 2.7 in RFC 4291)
+			IsPrivateUse && (((in6_addr *)Addr)->s6_bytes[1U] >= 0x80 && (((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF || //Link-Local Unicast Contrast Addresses/LUC(FE80::/10, Section 2.5.6 in RFC 4291)
+			IsPrivateUse && ((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == htons(0x5EFE)) || //ISATAP Interface Identifiers Addresses(Prefix:0:5EFE:0:0:0:0/64, which also in Link-Local Unicast Contrast Addresses/LUC, Section 6.1 in RFC 5214)
+			((in6_addr *)Addr)->s6_bytes[1U] >= 0xC0) || //Site-Local scoped Addresses(FEC0::/10, RFC 3879)
+			IsPrivateUse && ((in6_addr *)Addr)->s6_bytes[0] == 0xFF) //Multicast Addresses(FF00::/8, Section 2.7 in RFC 4291)
 				return true;
 
 	//Result Blacklist check
@@ -1509,24 +1577,22 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, char *D
 			((in_addr *)Addr)->s_addr == htonl(0xDD08451B) || //221.8.69.27
 //			((in_addr *)Addr)->s_addr == htonl(0xF3B9BB03) || //243.185.187.3, including in reserved address ranges
 //			((in_addr *)Addr)->s_addr == htonl(0xF3B9BB1E) || //243.185.187.30, including in reserved address ranges
-		//New DNS Poisoning address which had been added in May 2015.
-//			((in_addr *)Addr)->s_addr == 0 || //0.0.0.0, including in reserved address ranges
-		//Special-use and reserved addresses, see https://en.wikipedia.org/wiki/IPv4#Special-use_addresses and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv4_addresses.
+		//Special-use or reserved addresses, see https://en.wikipedia.org/wiki/IPv4#Special-use_addresses and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv4_addresses.
 			((in_addr *)Addr)->s_net == 0 || //Current network whick only valid as source Addresses(0.0.0.0/8, Section 3.2.1.3 in RFC 1122)
-//			((in_addr *)Addr)->s_net == 0x0A || //Private class A Addresses(10.0.0.0/8, Section 3 in RFC 1918)
+			IsPrivateUse && ((in_addr *)Addr)->s_net == 0x0A || //Private class A Addresses(10.0.0.0/8, Section 3 in RFC 1918)
 			((in_addr *)Addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
-//			((in_addr *)Addr)->s_net == && ((in_addr *)Addr)->s_host > 0x40 && ((in_addr *)Addr)->s_host < 0x7F || //Carrier-grade NAT Addresses(100.64.0.0/10, Section 7 in RFC 6598)
+			IsPrivateUse && ((in_addr *)Addr)->s_net == 0x64 && ((in_addr *)Addr)->s_host > 0x40 && ((in_addr *)Addr)->s_host < 0x7F || //Carrier-grade NAT Addresses(100.64.0.0/10, Section 7 in RFC 6598)
 			((in_addr *)Addr)->s_net == 0xA9 && ((in_addr *)Addr)->s_host >= 0xFE || //Link-local Addresses(169.254.0.0/16, Section 1.5 in RFC 3927)
-//			((in_addr *)Addr)->s_net == 0xAC && ((in_addr *)Addr)->s_host >= 0x10 && ((in_addr *)Addr)->s_host <= 0x1F || //Private class B Addresses(172.16.0.0/16, Section 3 in RFC 1918)
+			IsPrivateUse && ((in_addr *)Addr)->s_net == 0xAC && ((in_addr *)Addr)->s_host >= 0x10 && ((in_addr *)Addr)->s_host <= 0x1F || //Private class B Addresses(172.16.0.0/16, Section 3 in RFC 1918)
 			((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0 && ((in_addr *)Addr)->s_lh == 0 && ((in_addr *)Addr)->s_impno >= 0 && ((in_addr *)Addr)->s_impno < 0x08 || //DS-Lite transition mechanism Addresses(192.0.0.0/29, Section 3 in RFC 6333)
 			((in_addr *)Addr)->s_net == 0xC0 && (((in_addr *)Addr)->s_host == 0 && (((in_addr *)Addr)->s_lh == 0 || //Reserved for IETF protocol assignments Addresses(192.0.0.0/24, Section 3 in RFC 5735)
 			((in_addr *)Addr)->s_lh == 0x02)) || //TEST-NET-1 Addresses(192.0.2.0/24, Section 3 in RFC 5735)
-//			((in_addr *)Addr)->s_host == 0x58 && ((in_addr *)Addr)->s_lh == 0x63 || //6to4 relay/tunnel Addresses(192.88.99.0/24, Section 2.3 in RFC 3068)
-//			((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0xA8 || //Private class C Addresses(192.168.0.0/24, Section 3 in RFC 1918)
+			IsPrivateUse && ((in_addr *)Addr)->s_host == 0x58 && ((in_addr *)Addr)->s_lh == 0x63 || //6to4 relay/tunnel Addresses(192.88.99.0/24, Section 2.3 in RFC 3068)
+			IsPrivateUse && ((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0xA8 || //Private class C Addresses(192.168.0.0/24, Section 3 in RFC 1918)
 			((in_addr *)Addr)->s_net == 0xC6 && (((in_addr *)Addr)->s_host == 0x12 || //Benchmarking Methodology for Network Interconnect Devices Addresses(198.18.0.0/15, Section 11.4.1 in RFC 2544)
 			((in_addr *)Addr)->s_host == 0x33 && ((in_addr *)Addr)->s_lh == 0x64) || //TEST-NET-2 Addresses(198.51.100.0/24, Section 3 in RFC 5737)
 			((in_addr *)Addr)->s_net == 0xCB && ((in_addr *)Addr)->s_host == 0 && ((in_addr *)Addr)->s_lh == 0x71 || //TEST-NET-3 Addresses(203.0.113.0/24, Section 3 in RFC 5737)
-//			((in_addr *)Addr)->s_net == 0xE0 || //Multicast Addresses(224.0.0.0/4, Section 2 in RFC 3171)
+			IsPrivateUse && ((in_addr *)Addr)->s_net == 0xE0 || //Multicast Addresses(224.0.0.0/4, Section 2 in RFC 3171)
 			((in_addr *)Addr)->s_net >= 0xF0) //Reserved for future use address(240.0.0.0/4, Section 4 in RFC 1112) and Broadcast Addresses(255.255.255.255/32, Section 7 in RFC 919/RFC 922)
 				return true;
 
@@ -1604,7 +1670,7 @@ bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol)
 //Check address routing.
 	if (Protocol == AF_INET6) //IPv6
 	{
-		uint64_t *AddrFront = (uint64_t *)Addr, *AddrBack = (uint64_t *)((PUCHAR)Addr + 8U);
+		uint64_t *AddrFront = (uint64_t *)Addr, *AddrBack = (uint64_t *)((PUCHAR)Addr + sizeof(in6_addr) / 2U);
 		std::map<uint64_t, std::set<uint64_t>>::iterator AddrMapIter;
 		for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
 		{
@@ -1891,8 +1957,8 @@ uint16_t __fastcall TCPUDPChecksum(const unsigned char *Buffer, const size_t Len
 	return Result;
 }
 
-//Add length parameters to TCP DNS transmission
-size_t __fastcall AddLengthToTCPDNSHeader(PSTR Buffer, const size_t RecvLen, const size_t MaxLen)
+//Add length data to TCP DNS transmission
+size_t __fastcall AddLengthDataToDNSHeader(PSTR Buffer, const size_t RecvLen, const size_t MaxLen)
 {
 	if (MaxLen >= RecvLen + sizeof(uint16_t))
 	{
@@ -2110,6 +2176,69 @@ void __fastcall MakeDomainCaseConversion(PSTR Buffer)
 	return;
 }
 
+//Add EDNS options to Additional Resource Records in DNS packet
+size_t __fastcall AddEDNSToAdditionalRR(PSTR Buffer, const size_t Length)
+{
+	size_t DataLength = Length;
+
+//Add a new EDNS/OPT Additional Resource Records.
+	auto DNS_Header = (pdns_hdr)Buffer;
+	DNS_Header->Additional = htons(ntohs(DNS_Header->Additional) + 1U);
+	auto DNS_Record_OPT = (pdns_record_opt)(Buffer + DataLength);
+	DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
+	DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
+	DataLength += sizeof(dns_record_opt);
+
+//DNSSEC requesting
+	if (Parameter.DNSSECRequest)
+	{
+		DNS_Header->FlagsBits.AD = ~DNS_Header->FlagsBits.AD; //Local DNSSEC Server validate
+		DNS_Header->FlagsBits.CD = ~DNS_Header->FlagsBits.CD; //Client validate
+		DNS_Record_OPT->Z_Bits.DO = ~DNS_Record_OPT->Z_Bits.DO; //Accepts DNSSEC security Resource Records
+	}
+
+//EDNS client subnet
+	if (Parameter.EDNSClientSubnet)
+	{
+		auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
+		if (DNS_Query->Classes == htons(DNS_CLASS_IN))
+		{
+		//IPv6
+			if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && Parameter.LocalhostSubnet.IPv6 != nullptr && 
+				Parameter.LocalhostSubnet.IPv6->Address.ss_family > 0 && Parameter.LocalhostSubnet.IPv6->Prefix > 0)
+			{
+				auto EDNS_Subnet_Header = (pedns_client_subnet)(Buffer + DataLength);
+				EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
+				EDNS_Subnet_Header->Family = htons(ADDRESS_FAMILY_IPV6);
+				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet.IPv6->Prefix;
+				DataLength += sizeof(edns_client_subnet);
+				auto Addr = (in6_addr *)(Buffer + DataLength);
+				*Addr = ((PSOCKADDR_IN6)&Parameter.LocalhostSubnet.IPv6->Address)->sin6_addr;
+				EDNS_Subnet_Header->Length = htons((uint16_t)(sizeof(uint16_t) + sizeof(uint8_t) * 2U + sizeof(in6_addr)));
+				DNS_Record_OPT->DataLength = htons(sizeof(edns_client_subnet) + sizeof(in6_addr));
+				DataLength += sizeof(in6_addr);
+			}
+		//IPv4
+			else if (DNS_Query->Type == htons(DNS_RECORD_A) && Parameter.LocalhostSubnet.IPv4 != nullptr && 
+				Parameter.LocalhostSubnet.IPv4->Address.ss_family > 0 && Parameter.LocalhostSubnet.IPv4->Prefix > 0)
+			{
+				auto EDNS_Subnet_Header = (pedns_client_subnet)(Buffer + DataLength);
+				EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
+				EDNS_Subnet_Header->Family = htons(ADDRESS_FAMILY_IPV4);
+				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet.IPv4->Prefix;
+				DataLength += sizeof(edns_client_subnet);
+				auto Addr = (in_addr *)(Buffer + DataLength);
+				*Addr = ((PSOCKADDR_IN)&Parameter.LocalhostSubnet.IPv4->Address)->sin_addr;
+				EDNS_Subnet_Header->Length = htons((uint16_t)(sizeof(uint16_t) + sizeof(uint8_t) * 2U + sizeof(in_addr)));
+				DNS_Record_OPT->DataLength = htons(sizeof(edns_client_subnet) + sizeof(in_addr));
+				DataLength += sizeof(in_addr);
+			}
+		}
+	}
+
+	return DataLength;
+}
+
 //Make Compression Pointer Mutation
 size_t __fastcall MakeCompressionPointerMutation(char *Buffer, const size_t Length)
 {
@@ -2256,7 +2385,7 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 		ntohs(DNS_Header->Flags) >> 15U == 0 || //Not any Question Resource Records
 //		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_AA) != 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 || //Responses are not authoritative when there are no Authoritative Nameservers Records and Additional Resource Records.
 		IsLocal && ((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) > DNS_RCODE_NOERROR || (ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) != 0 && DNS_Header->Answer == 0) || //Local requesting failed or Truncated(xxxxxx1xxxxxxxxx & 0000001000000000 >> 9 == 1)
-		Parameter.EDNS0Label && DNS_Header->Additional == 0)) //Additional EDNS0 Label Resource Records check
+		Parameter.EDNSLabel && DNS_Header->Additional == 0)) //Additional EDNS Label Resource Records check
 			return false;
 
 #if defined(ENABLE_PCAP)
@@ -2336,14 +2465,14 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 			if (DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA) && DNS_Record_Standard->Length == htons(sizeof(in6_addr)))
 			{
 				pin6_addr = (in6_addr *)(Buffer + DataLength);
-				if (CheckSpecialAddress(pin6_addr, AF_INET6, Domain.get()) || 
+				if (CheckSpecialAddress(pin6_addr, AF_INET6, false, Domain.get()) || 
 					!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin6_addr, AF_INET6))
 						return false;
 			}
 			else if (DNS_Record_Standard->Type == htons(DNS_RECORD_A) && DNS_Record_Standard->Length == htons(sizeof(in_addr)))
 			{
 				pin_addr = (in_addr *)(Buffer + DataLength);
-				if (CheckSpecialAddress(pin_addr, AF_INET, Domain.get()) || 
+				if (CheckSpecialAddress(pin_addr, AF_INET, false, Domain.get()) || 
 					!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin_addr, AF_INET))
 						return false;
 			}
@@ -2377,7 +2506,7 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 
 				//Check addresses.
 					pin6_addr = (in6_addr *)(Buffer + DataLength);
-					if (Parameter.BlacklistCheck && CheckSpecialAddress(pin6_addr, AF_INET6, Domain.get()) || 
+					if (Parameter.BlacklistCheck && CheckSpecialAddress(pin6_addr, AF_INET6, false, Domain.get()) || 
 						!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin6_addr, AF_INET6))
 							return false;
 				}
@@ -2389,7 +2518,7 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 
 				//Check addresses.
 					pin_addr = (in_addr *)(Buffer + DataLength);
-					if (Parameter.BlacklistCheck && CheckSpecialAddress(pin_addr, AF_INET, Domain.get()) || 
+					if (Parameter.BlacklistCheck && CheckSpecialAddress(pin_addr, AF_INET, false, Domain.get()) || 
 						!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin_addr, AF_INET))
 							return false;
 				}

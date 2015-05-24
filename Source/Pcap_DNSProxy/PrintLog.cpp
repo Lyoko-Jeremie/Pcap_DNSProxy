@@ -910,7 +910,7 @@ size_t __fastcall PrintParameterList(void)
 
 		//[Values] block
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-		fwprintf_s(Output, L"EDNS0 Payload Size: %u bytes\n", (UINT)Parameter.EDNS0PayloadSize); //EDNS0 Payload Size
+		fwprintf_s(Output, L"EDNS Payload Size: %u bytes\n", (UINT)Parameter.EDNSPayloadSize); //EDNS Payload Size
 	#if defined(ENABLE_PCAP)
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		if (Parameter.DNSTarget.IPv4.HopLimitData.TTL == 0) //IPv4 TTL
@@ -958,10 +958,10 @@ size_t __fastcall PrintParameterList(void)
 		else
 			fwprintf_s(Output, L"Domain Case Conversion: OFF\n");
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-		if (Parameter.EDNS0Label) //EDNS0 Label
-			fwprintf_s(Output, L"EDNS0 Label: ON\n");
+		if (Parameter.EDNSLabel) //EDNS Label
+			fwprintf_s(Output, L"EDNS Label: ON\n");
 		else
-			fwprintf_s(Output, L"EDNS0 Label: OFF\n");
+			fwprintf_s(Output, L"EDNS Label: OFF\n");
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
 		if (Parameter.DNSSECRequest) //DNSSEC Request
 			fwprintf_s(Output, L"DNSSEC Request: ON\n");

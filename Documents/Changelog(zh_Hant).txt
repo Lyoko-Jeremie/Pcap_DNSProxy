@@ -1,4 +1,16 @@
-﻿Pcap_DNSProxy v0.4.1(Windows/Linux/Mac) 更新日誌(2015-05-21)：
+﻿Pcap_DNSProxy v0.4.1.1(Windows/Linux/Mac) 更新日誌(2015-05-24)：
+
+* 添加對 EDNS Client Subnet 的支援
+* 添加對 Local 境內 DNS 伺服器的路由表檢查，但只會進行提示而不會中斷程式的運行
+* 添加 -c/--config-file 参数，可在启动时指定配置文件的目录 [BlackGear]
+* 添加 -v/--version 参数，可输出程序的版本号 [BlackGear]
+* EDNS0 Label 參數改名為 EDNS Label
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.4.1(Windows/Linux/Mac) 更新日誌(2015-05-21)：
 
 * 添加 Pcap Reading Timeout 參數自訂抓包模組讀取超時/間隔時間
 * 添加 Receive Waiting 參數自訂資料包接收等待時間，丟棄過早達到可能為偽造的資料包
@@ -18,7 +30,7 @@ Pcap_DNSProxy v0.4.0.1-0.4.0.4(Windows/Linux/Mac) 更新日誌(2015-05-18)：
 * 調整 DNS 緩存的機制只緩存有結果的資料包 [shuangzhijinghua]
 * 修復 Hosts 條目過長導致資料包溢出的問題 [yfdyh000]
 * 修復 Local Hosts 無法讀取的問題 [France is Bacon]
-* 修復 Hosts 添加 EDNS0 標籤的問題
+* 修復 Hosts 添加 EDNS 標籤的問題
 * 修復隨機功能變數名稱生成模組產生非標準功能變數名稱查詢的錯誤
 * 調整在關閉抓包模組時請求功能變數名稱解析的策略
 
@@ -57,7 +69,7 @@ Pcap_DNSProxy v0.4(Windows/Linux/Mac) 更新日誌(2015-05-12)：
   * Custom 模式禁止或只允許清單中的位址請求解析，使用單獨的位址過濾庫（支援 IPFilter.dat 和 Guarding.P2P 格式）進行控制
 * 為 IPFilter 位址過濾庫添加黑名單解析結果過濾功能
 * 添加對超過 UDP 協定最大不分片長度的截斷資料包使用 TCP 協定重試的功能
-* 添加對 EDNS0 標籤和 DNSSEC(AD/CD/DO) 請求功能的支援（開啟 DNSSEC 請求後必須強制添加 EDNS0 標籤）
+* 添加對 EDNS 標籤和 DNSSEC(AD/CD/DO) 請求功能的支援（開啟 DNSSEC 請求後必須強制添加 EDNS 標籤）
 * 添加 Hosts Only 直連模式只使用本工具具有正則運算式的 Hosts 功能
 * 添加 Local Routing 本地路由表功能
 * 添加自訂 Hosts 存留時間的功能

@@ -28,8 +28,10 @@ extern time_t StartTime;
 
 //Functions
 #if defined(PLATFORM_WIN)
+	size_t __fastcall ReadCommand(int argc, wchar_t* argv[]);
 	size_t __fastcall FileNameInit(const wchar_t *OriginalPath);
 	size_t __fastcall FirewallTest(const uint16_t Protocol);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	size_t __fastcall ReadCommand(int argc, char *argv[]);
 	size_t FileNameInit(const char *OriginalPath);
 #endif

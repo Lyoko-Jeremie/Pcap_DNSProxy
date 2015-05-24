@@ -52,7 +52,7 @@ void __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer)
 }
 
 //Convert lowercase/uppercase words to uppercase/lowercase words
-size_t __fastcall CaseConvert(const bool IsLowerUpper, char *Buffer, const size_t Length)
+size_t __fastcall CaseConvert(const bool IsLowerUpper, PSTR Buffer, const size_t Length)
 {
 	for (size_t Index = 0;Index < Length;++Index)
 	{

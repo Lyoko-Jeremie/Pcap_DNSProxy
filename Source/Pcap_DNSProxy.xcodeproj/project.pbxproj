@@ -46,6 +46,18 @@
 
 /* Begin PBXFileReference section */
 		D9672DD21AFCB67300330EB8 /* LibSodium_Mac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibSodium_Mac.a; path = ../LibSodium/LibSodium_Mac.a; sourceTree = "<group>"; };
+		D98EE5011B11DF9C00C7C217 /* Changelog(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "Changelog(zh_Hans).txt"; path = "Documents/Changelog(zh_Hans).txt"; sourceTree = "<group>"; };
+		D98EE5021B11DF9C00C7C217 /* Changelog(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "Changelog(zh_Hant).txt"; path = "Documents/Changelog(zh_Hant).txt"; sourceTree = "<group>"; };
+		D98EE5031B11DF9C00C7C217 /* FAQ_Linux_Mac(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ_Linux_Mac(zh_Hans).txt"; path = "Documents/FAQ_Linux_Mac(zh_Hans).txt"; sourceTree = "<group>"; };
+		D98EE5041B11DF9C00C7C217 /* FAQ_Linux_Mac(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ_Linux_Mac(zh_Hant).txt"; path = "Documents/FAQ_Linux_Mac(zh_Hant).txt"; sourceTree = "<group>"; };
+		D98EE5051B11DF9C00C7C217 /* FAQ(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ(zh_Hans).txt"; path = "Documents/FAQ(zh_Hans).txt"; sourceTree = "<group>"; };
+		D98EE5061B11DF9C00C7C217 /* FAQ(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ(zh_Hant).txt"; path = "Documents/FAQ(zh_Hant).txt"; sourceTree = "<group>"; };
+		D98EE5071B11DF9C00C7C217 /* ReadMe_Linux(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe_Linux(zh_Hans).txt"; path = "Documents/ReadMe_Linux(zh_Hans).txt"; sourceTree = "<group>"; };
+		D98EE5081B11DF9C00C7C217 /* ReadMe_Linux(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe_Linux(zh_Hant).txt"; path = "Documents/ReadMe_Linux(zh_Hant).txt"; sourceTree = "<group>"; };
+		D98EE5091B11DF9C00C7C217 /* ReadMe_Mac(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe_Mac(zh_Hans).txt"; path = "Documents/ReadMe_Mac(zh_Hans).txt"; sourceTree = "<group>"; };
+		D98EE50A1B11DF9C00C7C217 /* ReadMe_Mac(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe_Mac(zh_Hant).txt"; path = "Documents/ReadMe_Mac(zh_Hant).txt"; sourceTree = "<group>"; };
+		D98EE50B1B11DF9C00C7C217 /* ReadMe(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe(zh_Hans).txt"; path = "Documents/ReadMe(zh_Hans).txt"; sourceTree = "<group>"; };
+		D98EE50C1B11DF9C00C7C217 /* ReadMe(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe(zh_Hant).txt"; path = "Documents/ReadMe(zh_Hant).txt"; sourceTree = "<group>"; };
 		D99B47451AFCE4BB004BDEAE /* libpcap.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpcap.dylib; path = usr/lib/libpcap.dylib; sourceTree = SDKROOT; };
 		D99E2D3F1AFCAF2200F36FCD /* Pcap_DNSProxy */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Pcap_DNSProxy; sourceTree = BUILT_PRODUCTS_DIR; };
 		D99E2D991AFCB1AD00F36FCD /* core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = core.h; path = LibSodium/core.h; sourceTree = SOURCE_ROOT; };
@@ -101,23 +113,11 @@
 		D99E2DCB1AFCB1BF00F36FCD /* sodium.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sodium.h; path = LibSodium/sodium.h; sourceTree = SOURCE_ROOT; };
 		D99E2DCC1AFCB1BF00F36FCD /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utils.h; path = LibSodium/utils.h; sourceTree = SOURCE_ROOT; };
 		D99E2DCD1AFCB1BF00F36FCD /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = version.h; path = LibSodium/version.h; sourceTree = SOURCE_ROOT; };
-		D99E2DCE1AFCB1BF00F36FCD /* version.h.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = version.h.in; path = LibSodium/version.h.in; sourceTree = SOURCE_ROOT; };
 		D99E2DDC1AFCB21100F36FCD /* Config.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Config.ini; path = ExampleConfig/Config.ini; sourceTree = SOURCE_ROOT; };
 		D99E2DDD1AFCB21100F36FCD /* Hosts.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Hosts.ini; path = ExampleConfig/Hosts.ini; sourceTree = SOURCE_ROOT; };
 		D99E2DDE1AFCB21100F36FCD /* IPFilter.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = IPFilter.ini; path = ExampleConfig/IPFilter.ini; sourceTree = SOURCE_ROOT; };
 		D99E2DDF1AFCB22200F36FCD /* Routing.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Routing.txt; path = ExampleConfig/Routing.txt; sourceTree = SOURCE_ROOT; };
 		D99E2DE01AFCB22B00F36FCD /* White_List.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = White_List.txt; path = ExampleConfig/White_List.txt; sourceTree = SOURCE_ROOT; };
-		D99E2DED1AFCB26200F36FCD /* Changelog(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "Changelog(zh_Hans).txt"; path = "Documents/Changelog(zh_Hans).txt"; sourceTree = "<group>"; };
-		D99E2DEE1AFCB26200F36FCD /* Changelog(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "Changelog(zh_Hant).txt"; path = "Documents/Changelog(zh_Hant).txt"; sourceTree = "<group>"; };
-		D99E2DEF1AFCB26200F36FCD /* FAQ_Linux(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ_Linux(zh_Hans).txt"; path = "Documents/FAQ_Linux(zh_Hans).txt"; sourceTree = "<group>"; };
-		D99E2DF01AFCB26200F36FCD /* FAQ_Linux(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ_Linux(zh_Hant).txt"; path = "Documents/FAQ_Linux(zh_Hant).txt"; sourceTree = "<group>"; };
-		D99E2DF11AFCB26200F36FCD /* FAQ_Mac(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ_Mac(zh_Hans).txt"; path = "Documents/FAQ_Mac(zh_Hans).txt"; sourceTree = "<group>"; };
-		D99E2DF21AFCB26200F36FCD /* FAQ(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ(zh_Hans).txt"; path = "Documents/FAQ(zh_Hans).txt"; sourceTree = "<group>"; };
-		D99E2DF31AFCB26200F36FCD /* FAQ(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ(zh_Hant).txt"; path = "Documents/FAQ(zh_Hant).txt"; sourceTree = "<group>"; };
-		D99E2DF41AFCB26200F36FCD /* ReadMe_Linux(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe_Linux(zh_Hans).txt"; path = "Documents/ReadMe_Linux(zh_Hans).txt"; sourceTree = "<group>"; };
-		D99E2DF51AFCB26200F36FCD /* ReadMe_Mac(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe_Mac(zh_Hans).txt"; path = "Documents/ReadMe_Mac(zh_Hans).txt"; sourceTree = "<group>"; };
-		D99E2DF61AFCB26200F36FCD /* ReadMe(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe(zh_Hans).txt"; path = "Documents/ReadMe(zh_Hans).txt"; sourceTree = "<group>"; };
-		D99E2DF71AFCB26200F36FCD /* ReadMe(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe(zh_Hant).txt"; path = "Documents/ReadMe(zh_Hant).txt"; sourceTree = "<group>"; };
 		D99E2DF81AFCB27A00F36FCD /* Base.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Base.cpp; sourceTree = "<group>"; };
 		D99E2DF91AFCB27A00F36FCD /* Base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Base.h; sourceTree = "<group>"; };
 		D99E2DFA1AFCB27A00F36FCD /* Capture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Capture.cpp; sourceTree = "<group>"; };
@@ -217,7 +217,6 @@
 				D99E2DCB1AFCB1BF00F36FCD /* sodium.h */,
 				D99E2DCC1AFCB1BF00F36FCD /* utils.h */,
 				D99E2DCD1AFCB1BF00F36FCD /* version.h */,
-				D99E2DCE1AFCB1BF00F36FCD /* version.h.in */,
 				D99E2D991AFCB1AD00F36FCD /* core.h */,
 				D99E2D9A1AFCB1AD00F36FCD /* crypto_aead_chacha20poly1305.h */,
 				D99E2D9B1AFCB1AD00F36FCD /* crypto_auth_hmacsha256.h */,
@@ -283,17 +282,18 @@
 		D99E2DEC1AFCB25300F36FCD /* Documents */ = {
 			isa = PBXGroup;
 			children = (
-				D99E2DED1AFCB26200F36FCD /* Changelog(zh_Hans).txt */,
-				D99E2DEE1AFCB26200F36FCD /* Changelog(zh_Hant).txt */,
-				D99E2DEF1AFCB26200F36FCD /* FAQ_Linux(zh_Hans).txt */,
-				D99E2DF01AFCB26200F36FCD /* FAQ_Linux(zh_Hant).txt */,
-				D99E2DF11AFCB26200F36FCD /* FAQ_Mac(zh_Hans).txt */,
-				D99E2DF21AFCB26200F36FCD /* FAQ(zh_Hans).txt */,
-				D99E2DF31AFCB26200F36FCD /* FAQ(zh_Hant).txt */,
-				D99E2DF41AFCB26200F36FCD /* ReadMe_Linux(zh_Hans).txt */,
-				D99E2DF51AFCB26200F36FCD /* ReadMe_Mac(zh_Hans).txt */,
-				D99E2DF61AFCB26200F36FCD /* ReadMe(zh_Hans).txt */,
-				D99E2DF71AFCB26200F36FCD /* ReadMe(zh_Hant).txt */,
+				D98EE5011B11DF9C00C7C217 /* Changelog(zh_Hans).txt */,
+				D98EE5021B11DF9C00C7C217 /* Changelog(zh_Hant).txt */,
+				D98EE5031B11DF9C00C7C217 /* FAQ_Linux_Mac(zh_Hans).txt */,
+				D98EE5041B11DF9C00C7C217 /* FAQ_Linux_Mac(zh_Hant).txt */,
+				D98EE5051B11DF9C00C7C217 /* FAQ(zh_Hans).txt */,
+				D98EE5061B11DF9C00C7C217 /* FAQ(zh_Hant).txt */,
+				D98EE5071B11DF9C00C7C217 /* ReadMe_Linux(zh_Hans).txt */,
+				D98EE5081B11DF9C00C7C217 /* ReadMe_Linux(zh_Hant).txt */,
+				D98EE5091B11DF9C00C7C217 /* ReadMe_Mac(zh_Hans).txt */,
+				D98EE50A1B11DF9C00C7C217 /* ReadMe_Mac(zh_Hant).txt */,
+				D98EE50B1B11DF9C00C7C217 /* ReadMe(zh_Hans).txt */,
+				D98EE50C1B11DF9C00C7C217 /* ReadMe(zh_Hant).txt */,
 			);
 			name = Documents;
 			sourceTree = "<group>";

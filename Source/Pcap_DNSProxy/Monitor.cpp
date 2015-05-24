@@ -206,7 +206,7 @@ size_t __fastcall MonitorInit(void)
 
 					//Add to global thread list.
 						std::thread MonitorThreadTemp(UDPMonitor, *LocalSocketData);
-						MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
+						MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 						++MonitorThreadIndex;
 						LocalSocketData->Socket = 0;
 					}
@@ -240,7 +240,7 @@ size_t __fastcall MonitorInit(void)
 
 						//Add to global thread list.
 							std::thread MonitorThreadTemp(UDPMonitor, *LocalSocketData);
-							MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
+							MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 							++MonitorThreadIndex;
 							LocalSocketData->Socket = 0;
 						}
@@ -287,7 +287,7 @@ size_t __fastcall MonitorInit(void)
 
 					//Add to global thread list.
 						std::thread MonitorThreadTemp(TCPMonitor, *LocalSocketData);
-						MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
+						MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 						++MonitorThreadIndex;
 						LocalSocketData->Socket = 0;
 					}
@@ -321,7 +321,7 @@ size_t __fastcall MonitorInit(void)
 
 						//Add to global thread list.
 							std::thread MonitorThreadTemp(TCPMonitor, *LocalSocketData);
-							MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
+							MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 							++MonitorThreadIndex;
 							LocalSocketData->Socket = 0;
 						}
@@ -370,7 +370,7 @@ size_t __fastcall MonitorInit(void)
 
 					//Add to global thread list.
 						std::thread MonitorThreadTemp(UDPMonitor, *LocalSocketData);
-						MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
+						MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 						++MonitorThreadIndex;
 						LocalSocketData->Socket = 0;
 					}
@@ -404,7 +404,7 @@ size_t __fastcall MonitorInit(void)
 
 						//Add to global thread list.
 							std::thread MonitorThreadTemp(UDPMonitor, *LocalSocketData);
-							MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
+							MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 							++MonitorThreadIndex;
 							LocalSocketData->Socket = 0;
 						}
@@ -450,7 +450,7 @@ size_t __fastcall MonitorInit(void)
 
 					//Add to global thread list.
 						std::thread MonitorThreadTemp(TCPMonitor, *LocalSocketData);
-						MonitorThread[MonitorThreadIndex].swap(MonitorThreadTemp);
+						MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 						++MonitorThreadIndex;
 						LocalSocketData->Socket = 0;
 					}
@@ -484,7 +484,7 @@ size_t __fastcall MonitorInit(void)
 
 						//Add to global thread list.
 							std::thread InnerMonitorThreadTemp(TCPMonitor, *LocalSocketData);
-							MonitorThread[MonitorThreadIndex].swap(InnerMonitorThreadTemp);
+							MonitorThread.at(MonitorThreadIndex).swap(InnerMonitorThreadTemp);
 							++MonitorThreadIndex;
 							LocalSocketData->Socket = 0;
 						}
@@ -509,8 +509,8 @@ size_t __fastcall MonitorInit(void)
 //Join threads.
 	for (size_t Index = 0;Index < MonitorThread.size();++Index)
 	{
-		if (MonitorThread[Index].joinable())
-			MonitorThread[Index].join();
+		if (MonitorThread.at(Index).joinable())
+			MonitorThread.at(Index).join();
 	}
 
 	return EXIT_SUCCESS;
@@ -604,8 +604,8 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 	{
 		Sleep(LOOP_INTERVAL_TIME);
 		memset(Buffer.get() + PACKET_MAXSIZE * Index[0], 0, PACKET_MAXSIZE);
-		if (Parameter.EDNS0Label) //EDNS0 Label
-			RecvLen = recvfrom(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], PACKET_MAXSIZE - sizeof(dns_record_opt), 0, (PSOCKADDR)&LocalSocketData.SockAddr, (socklen_t *)&LocalSocketData.AddrLen);
+		if (Parameter.EDNSLabel) //EDNS Label
+			RecvLen = recvfrom(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0, (PSOCKADDR)&LocalSocketData.SockAddr, (socklen_t *)&LocalSocketData.AddrLen);
 		else 
 			RecvLen = recvfrom(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], PACKET_MAXSIZE, 0, (PSOCKADDR)&LocalSocketData.SockAddr, (socklen_t *)&LocalSocketData.AddrLen);
 
@@ -615,10 +615,10 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 			Addr = &((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr;
 			if (CheckEmptyBuffer(Addr, sizeof(in6_addr)) || //Empty address
 			//Check Private Mode(IPv6).
-				(Parameter.OperationMode == LISTEN_PRIVATEMODE && 
+				Parameter.OperationMode == LISTEN_PRIVATEMODE && 
 				!(((in6_addr *)Addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)Addr)->s6_bytes[0] <= 0xFD || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
 				((in6_addr *)Addr)->s6_bytes[0] == 0xFE && ((in6_addr *)Addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
-				((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001))) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
+				((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001)) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
 			//Check Custom Mode(IPv6).
 				Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET6))
 					continue;
@@ -627,23 +627,23 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 			Addr = &((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr;
 			if ((*(in_addr *)Addr).s_addr == 0 || //Empty address
 			//Check Private Mode(IPv4).
-				(Parameter.OperationMode == LISTEN_PRIVATEMODE && 
+				Parameter.OperationMode == LISTEN_PRIVATEMODE && 
 				!(((in_addr *)Addr)->s_net == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
 				((in_addr *)Addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
 				((in_addr *)Addr)->s_net == 0xAC && ((in_addr *)Addr)->s_host >= 0x10 && ((in_addr *)Addr)->s_host <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
-				((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0xA8)) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
+				((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0xA8) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
 			//Check Custom Mode(IPv4).
 				Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET))
 					continue;
 		}
 
 	//UDP Truncated check
-		if (RecvLen > (SSIZE_T)(Parameter.EDNS0PayloadSize - sizeof(dns_record_opt)))
+		if (RecvLen > (SSIZE_T)(Parameter.EDNSPayloadSize - EDNS_ADDITIONAL_MAXSIZE))
 		{
-			if (Parameter.EDNS0Label || //EDNS0 Lebal
-				RecvLen > (SSIZE_T)Parameter.EDNS0PayloadSize)
+			if (Parameter.EDNSLabel || //EDNS Lebal
+				RecvLen > (SSIZE_T)Parameter.EDNSPayloadSize)
 			{
-			//Make packets with EDNS0 Lebal.
+			//Make packets with EDNS Lebal.
 				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_RTC);
 				pdns_record_opt DNS_Record_OPT = nullptr;
 				if (DNS_Header->Additional == 0)
@@ -651,14 +651,14 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 					DNS_Header->Additional = htons(U16_NUM_ONE);
 					DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + PACKET_MAXSIZE * Index[0] + RecvLen);
 					DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-					DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
+					DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 					RecvLen += sizeof(dns_record_opt);
 				}
 				else if (DNS_Header->Additional == htons(U16_NUM_ONE))
 				{
 					DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + PACKET_MAXSIZE * Index[0] + RecvLen - sizeof(dns_record_opt));
 					if (DNS_Record_OPT->Type == htons(DNS_RECORD_OPT))
-						DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
+						DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 				}
 				else {
 					continue;
@@ -689,35 +689,9 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 				continue;
 			}
 
-		//EDNS0 Label
-			if (Parameter.EDNS0Label)
-			{
-				pdns_record_opt DNS_Record_OPT = nullptr;
-
-			//Not any Additional Resource Records
-				if (DNS_Header->Additional == 0)
-				{
-					DNS_Header->Additional = htons(U16_NUM_ONE);
-					DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + PACKET_MAXSIZE * Index[0] + RecvLen);
-					DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-					DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
-					RecvLen += sizeof(dns_record_opt);
-				}
-			//Already have Additional Resource Records
-				else {
-					DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + PACKET_MAXSIZE * Index[0] + RecvLen - sizeof(dns_record_opt));
-					if (DNS_Record_OPT->Type == htons(DNS_RECORD_OPT))
-						DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
-				}
-
-			//DNSSEC
-				if (Parameter.DNSSECRequest && DNS_Record_OPT->Type == htons(DNS_RECORD_OPT))
-				{
-					DNS_Header->FlagsBits.AD = ~DNS_Header->FlagsBits.AD; //Local DNSSEC Server validate
-					DNS_Header->FlagsBits.CD = ~DNS_Header->FlagsBits.CD; //Client validate
-					DNS_Record_OPT->Z_Bits.DO = ~DNS_Record_OPT->Z_Bits.DO; //Accepts DNSSEC security Resource Records
-				}
-			}
+		//EDNS Label
+			if (Parameter.EDNSLabel)
+				RecvLen = AddEDNSToAdditionalRR(Buffer.get() + PACKET_MAXSIZE * Index[0], (size_t)RecvLen);
 
 		//Request process
 			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
@@ -882,8 +856,8 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 	SSIZE_T RecvLen = 0;
 
 //Receive
-	if (Parameter.EDNS0Label) //EDNS0 Label
-		RecvLen = recv(LocalSocketData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE - sizeof(dns_record_opt), 0);
+	if (Parameter.EDNSLabel) //EDNS Label
+		RecvLen = recv(LocalSocketData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0);
 	else 
 		RecvLen = recv(LocalSocketData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE, 0);
 	if (RecvLen == (SSIZE_T)sizeof(uint16_t)) //TCP segment of a reassembled PDU
@@ -897,8 +871,8 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 			return EXIT_FAILURE;
 		}
 		memset(Buffer.get(), 0, RecvLen);
-		if (Parameter.EDNS0Label) //EDNS0 Label
-			RecvLen = recv(LocalSocketData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE - sizeof(dns_record_opt), 0);
+		if (Parameter.EDNSLabel) //EDNS Label
+			RecvLen = recv(LocalSocketData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0);
 		else 
 			RecvLen = recv(LocalSocketData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE, 0);
 
@@ -929,36 +903,11 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 				return EXIT_FAILURE;
 			}
 
-		//EDNS0 Label
-			if (Parameter.EDNS0Label)
-			{
-				pdns_record_opt DNS_Record_OPT = nullptr;
+		//EDNS Label
+			if (Parameter.EDNSLabel)
+				RecvLen = AddEDNSToAdditionalRR(Buffer.get(), (size_t)RecvLen);
 
-			//Not any Additional Resource Records
-				if (DNS_Header->Additional == 0)
-				{
-					DNS_Header->Additional = htons(U16_NUM_ONE);
-					DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + PDU_Len);
-					DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-					DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
-					PDU_Len += sizeof(dns_record_opt);
-				}
-			//Already have Additional Resource Records
-				else {
-					DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + PDU_Len - sizeof(dns_record_opt));
-					if (DNS_Record_OPT->Type == htons(DNS_RECORD_OPT))
-						DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
-				}
-
-			//DNSSEC
-				if (Parameter.DNSSECRequest && DNS_Record_OPT->Type == htons(DNS_RECORD_OPT))
-				{
-					DNS_Header->FlagsBits.AD = ~DNS_Header->FlagsBits.AD; //Local DNSSEC Server validate
-					DNS_Header->FlagsBits.CD = ~DNS_Header->FlagsBits.CD; //Client validate
-					DNS_Record_OPT->Z_Bits.DO = ~DNS_Record_OPT->Z_Bits.DO; //Accepts DNSSEC security Resource Records
-				}
-			}
-
+		//Requesting process
 			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 				EnterRequestProcess(Buffer.get(), PDU_Len, LocalSocketData, IPPROTO_TCP);
 			else //IPv4
@@ -998,37 +947,11 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 			return EXIT_FAILURE;
 		}
 
-	//EDNS0 Label
-		if (Parameter.EDNS0Label)
-		{
-			pdns_record_opt DNS_Record_OPT = nullptr;
+	//EDNS Label
+		if (Parameter.EDNSLabel)
+			RecvLen = AddEDNSToAdditionalRR(Buffer.get() + sizeof(uint16_t), (size_t)RecvLen);
 
-		//Not any Additional Resource Records
-			if (DNS_Header->Additional == 0)
-			{
-				DNS_Header->Additional = htons(U16_NUM_ONE);
-				DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + sizeof(uint16_t) + RecvLen);
-				DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-				DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
-				RecvLen += sizeof(dns_record_opt);
-			}
-		//Already have Additional Resource Records
-			else {
-				DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + sizeof(uint16_t) + RecvLen - sizeof(dns_record_opt));
-				if (DNS_Record_OPT->Type == htons(DNS_RECORD_OPT))
-					DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
-			}
-
-		//DNSSEC
-			if (Parameter.DNSSECRequest && DNS_Record_OPT->Type == htons(DNS_RECORD_OPT))
-			{
-				DNS_Header->FlagsBits.AD = ~DNS_Header->FlagsBits.AD; //Local DNSSEC Server validate
-				DNS_Header->FlagsBits.CD = ~DNS_Header->FlagsBits.CD; //Client validate
-				DNS_Record_OPT->Z_Bits.DO = ~DNS_Record_OPT->Z_Bits.DO; //Accepts DNSSEC security Resource Records
-			}
-		}
-
-	//Request process
+	//Requesting process
 		if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 			EnterRequestProcess(Buffer.get() + sizeof(uint16_t), RecvLen, LocalSocketData, IPPROTO_TCP);
 		else //IPv4
@@ -1175,7 +1098,7 @@ size_t FlushDNSFIFOSender(void)
 		close(FIFO_FD);
 	}
 	else {
-		PrintError(LOG_ERROR_SYSTEM, L"FIFO write messages error", GetLastError(), nullptr, 0);
+		wprintf(L"FIFO write messages error, error code is %d.\n", errno);
 		return EXIT_FAILURE;
 	}
 

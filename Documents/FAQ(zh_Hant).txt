@@ -69,6 +69,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
 1.System Error - 系統錯誤
   * Service start error - 服務啟動失敗：可能未在系統註冊服務，或在系統內註冊的服務路徑不正確
     * 錯誤代碼參見 https://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
+    * Linux/Mac 的錯誤代碼參見 http://man7.org/linux/man-pages/man3/errno.3.html
   * Convert multiple byte string to wide char string error - 多/寬位元組字元轉換錯誤：建議重新開機服務或程式
   * Create mailslot error - MailSlot 創建失敗：建議重新開機服務或程式
   * Get mailslot error - MailSlot 獲取失敗：建議重新開機服務或程式
@@ -92,75 +93,81 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * FIFO module Monitor terminated - FIFO 監視模組已經停止運行，建議重新開機服務或程式
 
 2.Parameter Error - 讀取設定檔參數錯誤
-  * Cannot open any configuration files - 沒有發現任何設定檔：請確認檔是否存在
-  * Configuration file is too large - 設定檔容量過大：請確認設定檔的內容，整個檔的大小不要超過4GB
-  * Data length error - 設定檔參數一行資料超過4096位元組/4KB，或該行資料長度不符合要求（可根據檔案名和行數查找）：請確認該行的內容是否符合要求
-  * Configuration file version error - 設定檔版本錯誤：請確認設定檔是否需要更新。注意，Windows/Linux/Mac 版設定檔互不通用！
+  * Cannot open any configuration files - 未發現任何設定檔：請確認檔是否存在
+  * Configuration file is too large - 設定檔容量過大：請確認設定檔的內容，整個檔的大小不要超過 4GB
+  * Configuration file version error - 設定檔版本錯誤：請確認設定檔是否需要更新
   * Configuration file is not the latest version - 設定檔非最新版本：請確認設定檔是否需要更新
-  * Data of a line is too short - 該參數過短（可根據檔案名和行數查找）：請確認設定檔的內容
-  * Data of a line is too long - 該參數過長（可根據檔案名和行數查找）：一行資料切勿超過 4096位元組/4KB
+  * Data length error - 設定檔參數一行資料超過 4096 位元組/4KB，或該行資料長度不符合要求：請確認該行的內容是否符合要求
+  * Data of a line is too short - 該參數過短：請確認設定檔的內容
+  * Data of a line is too long - 該參數過長：一行資料切勿超過 4096 位元組/4KB
   * Log file size error - 設定檔指定的最大日誌檔容量錯誤：可接受範圍為 4KB - 4GB
-  * IPv6 Listen address format error - IPv6 本地監聽綁定位址格式錯誤（可根據檔案名和行數查找）：請檢查 IPv6 的本地監聽綁定位址
-  * IPv6 Listen port error - IPv6 本地監聽綁定埠錯誤（可根據檔案名和行數查找）：請檢查 IPv6 的本地監聽綁定埠
-  * IPv4 Listen address format error - IPv4 本地監聽綁定位址格式錯誤（可根據檔案名和行數查找）：請檢查 IPv4 的本地監聽綁定位址
-  * IPv4 Listen port error - IPv4 本地監聽綁定埠錯誤（可根據檔案名和行數查找）：請檢查 IPv4 的本地監聽綁定埠
-  * DNS server IPv6 address format error - IPv6 的 DNS 伺服器位址格式錯誤（可根據檔案名和行數查找）：請檢查 IPv6 的 DNS 伺服器位址
-  * DNS server IPv6 port error - IPv6 的 DNS 目標伺服器埠錯誤（可根據檔案名和行數查找）：請檢查 IPv6 的 DNS 目標伺服器的埠
-  * DNS server IPv4 address format error - IPv4 的 DNS 伺服器位址格式錯誤（可根據檔案名和行數查找）：請檢查 IPv4 的 DNS 伺服器位址
-  * DNS server IPv4 port error - IPv4 的 DNS 目標伺服器埠錯誤（可根據檔案名和行數查找）：請檢查 IPv4 的 DNS 目標伺服器的埠
+  * IPv6 address format error - IPv6 位址格式錯誤：請檢查 IPv6 的位址格式
+  * IPv6 address port error - IPv6 位址埠格式錯誤：請檢查 IPv6 的位址埠格式
+  * IPv4 address format error - IPv4 位址格式錯誤：請檢查 IPv4 的位址格式
+  * IPv4 address port error - IPv4 位址埠格式錯誤：請檢查 IPv4 的位址埠格式
+  * IPv6 special address error - IPv6 特殊位址檢查錯誤：請檢查 IPv6 位址是否為特殊位址
+  * IPv4 special address error - IPv4 特殊位址檢查錯誤：請檢查 IPv4 位址是否為特殊位址
+  * Address Prefix Block format error - 帶前置長度的位址塊格式錯誤：請檢查位址塊的格式
+  * IPv4 prefix error - IPv4 網路尾碼長度錯誤：IPv4 網路尾碼的長度介乎與 1-32
+  * IPv6 prefix error - IPv6 網路尾碼長度錯誤：IPv6 網路尾碼的長度介乎與 1-128
+  * Address of IPv6 Main Local Server is not in Local Routing list - IPv6 境內主要伺服器不在境內路由表中，填入的位址可能不是境內的位址：此為提示，請檢查該位址的地理位置
+  * Address of IPv6 Alternate Local Server is not in Local Routing list - IPv6 境內待命伺服器不在境內路由表中，填入的位址可能不是境內的位址：此為提示，請檢查該位址的地理位置
+  * Address of IPv4 Main Local Server is not in Local Routing list - IPv4 境內主要伺服器不在境內路由表中，填入的位址可能不是境內的位址：此為提示，請檢查該位址的地理位置
+  * Address of IPv4 Alternate Local Server is not in Local Routing list - IPv4 境內待命伺服器不在境內路由表中，填入的位址可能不是境內的位址：此為提示，請檢查該位址的地理位置
   * Pcap Capture error - 抓包模塊參數錯誤：請檢查相關參數的使用要求說明
   * Localhost server listening port error - 本地監聽埠錯誤：請檢查本地監聽埠的值，可適用範圍為 1 - 65535
   * IPFilter Level error - IPFilter 過濾級別錯誤：請檢查過濾級別的值，可適用範圍為 1 - 65535
   * DNS Cache error - DNS 緩存配置錯誤：請檢查緩存的參數
-  * DNS Targets error - DNS 目標伺服器配置錯誤：請檢查 DNS 伺服器的位址
+  * DNS target error - DNS 目標伺服器配置錯誤：請檢查 DNS 伺服器的位址
   * Local Main error - 主要境內伺服器請求功能錯誤：請檢查境內伺服器是否可用
   * Local Main / Local Hosts / Local Routing error - 主要境內伺服器、境內功能變數名稱白名單或境內路由表錯誤：參見 ReadMe 文檔中對這3個參數的介紹
   * DNS Records type error - DNS 記錄參數錯誤：請檢查 Accept Type 的值是否符合要求
-  * Hop Limit or TTL Fluctuations error - Hop Limit 或 TTL 可接受範圍錯誤：請檢查範圍的值
-  * EDNS0 Payload Size must longer than 512 bytes(TraditionalDNS packet minimum supported size) - EDNS0 載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包
-  * EDNS0 Payload Size may be too long - EDNS0 載荷長度可能過長：此值建議不要超過乙太網的 MTU(1512 bytes)
-  * EDNS0 Label must trun ON when request DNSSEC - 開啟 DNSSEC 請求時必須開啟 EDNS0 標籤請求功能
+  * Hop Limit Fluctuations error - Hop Limit 或 TTL 可接受範圍錯誤：請檢查範圍的值
+  * EDNS Payload Size must longer than 512 bytes(TraditionalDNS packet minimum supported size) - EDNS 載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包
+  * EDNS Payload Size may be too long - EDNS 載荷長度可能過長：此值建議不要超過乙太網的 MTU(1512 bytes)
+  * EDNS Label must turn ON when request DNSSEC - 開啟 DNSSEC 請求時必須開啟 EDNS 標籤請求功能
+  * EDNS Label must turn ON when request EDNS Client Subnet - 開啟 EDNS Client Subnet 請求時必須開啟 EDNS 標籤請求功能
+  * EDNS Label must turn OFF when request Compression Pointer Mutation - 使用 Compression Pointer Mutation 時不能開啟 EDNS 標籤請求功能，兩者並不相容
   * Alternate Multi requesting error - 主要備用或多個伺服器下同時請求參數錯誤：請確認所有伺服器的資訊
   * Multi requesting times error - 接收到一個解析請求向同一個遠端伺服器發送多次解析請求參數錯誤 ：一個解析請求的多次解析請求次數不能超過16次，也就是設定檔不能填大於15的值
-  * DNSCurve Targets error - DNSCurve 協定使用的 DNS 目標伺服器位址錯誤：請檢查 DNSCurve 協定使用DNS伺服器的位址
+  * DNSCurve target error - DNSCurve 協定使用的 DNS 目標伺服器位址錯誤：請檢查 DNSCurve 協定使用DNS伺服器的位址
   * DNSCurve encryption options error - DNSCurve 協定加密選項配置錯誤：開啟加密選項和只使用加密模式選項衝突
   * DNSCurve Encryption Only mode error - DNSCurve 協定只使用加密模式配置錯誤：只使用加密模式必須提供伺服器的魔數和指紋
   * DNSCurve empty Provider Name error - DNSCurve 協定伺服器提供者錯誤：不存在魔數或指紋時必須提供伺服器的提供者資訊以自動獲取連接參數
   * DNSCurve empty Public Key error - DNSCurve 協定伺服器提供者錯誤：不存在魔數或指紋時必須提供伺服器的公開金鑰以自動獲取連接參數
-  * Compression Pointer Mutation must trun OFF when request EDNS0 Label - 使用 Compression Pointer Mutation 時不能開啟 EDNS0 標籤請求功能，兩者並不相容
   * DNSCurve Payload Size must longer than 512 bytes(Traditional DNS packet minimum supported size) - DNSCurve 協定載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包
   * DNSCurve Payload Size may be too long - DNSCurve 協定載荷長度可能過長：此值建議不要超過乙太網的 MTU(1512 bytes)
 
 3.IPFilter Error - 讀取 IPFilter 檔錯誤
   * IPFilter file size is too large - IPFilter 檔容量過大：請確認 IPFilter 檔的內容，整個檔的大小不要超過 4GB
   * Read file(s) error - 檔跳轉讀取錯誤：請與開發者聯繫
-  * Data of a line is too long - 該 IPFilter 條目過長（可根據檔案名和行數查找）：一行資料切勿超過 4096位元組/4KB
-  * Item format error - IPFilter 條目格式錯誤（可根據報告的行數查找）：請檢查該條目的格式
-  * Regular expression pattern error - 錯誤的正則運算式（可根據報告的行數查找）：請檢查正則運算式的正確
-  * IPv6 address format error - IPFilter 的 IPv6 位址格式錯誤（可根據報告的行數查找）：請檢查 IPFilter 條目的位址
-  * IPv4 address format error - IPFilter 的 IPv4 位址格式錯誤（可根據報告的行數查找）：請檢查 IPFilter 條目的位址
-  * IPv6 Addresses range error - IPFilter 的 IPv6 位址範圍錯誤（可根據報告的行數查找）：請檢查 IPFilter 條目的位址
-  * IPv4 Addresses range error - IPFilter 的 IPv6 位址範圍錯誤（可根據報告的行數查找）：請檢查 IPFilter 條目的位址
-  * Repeating items error, this item is not available - 存在重複的 IPFilter 條目（可根據報告的行數查找）：本條目將不啟用的提示
-  * IPv4 Prefix error - IPv4 網路尾碼長度錯誤（可根據報告的行數查找）：IPv4 網路尾碼的長度介乎與 1-32
-  * IPv6 Prefix error - IPv6 網路尾碼長度錯誤（可根據報告的行數查找）：IPv6 網路尾碼的長度介乎與 1-128
-  * Level error - IPFilter 過濾級別錯誤（可根據報告的行數查找）：過濾級別介乎與 0 - 0xFFFF(65535)
+  * Data of a line is too long - 該 IPFilter 條目過長：一行資料切勿超過 4096位元組/4KB
+  * Item format error - IPFilter 條目格式錯誤：請檢查該條目的格式
+  * Regular expression pattern error - 錯誤的正則運算式：請檢查正則運算式的正確
+  * IPv6 address format error - IPFilter 的 IPv6 位址格式錯誤：請檢查 IPFilter 條目的位址
+  * IPv4 address format error - IPFilter 的 IPv4 位址格式錯誤：請檢查 IPFilter 條目的位址
+  * IPv6 address range error - IPFilter 的 IPv6 位址範圍錯誤：請檢查 IPFilter 條目的位址
+  * IPv4 address range error - IPFilter 的 IPv6 位址範圍錯誤：請檢查 IPFilter 條目的位址
+  * Repeating items error, this item is not available - 存在重複的 IPFilter 條目：本條目將不啟用的提示
+  * IPv4 prefix error - IPv4 網路尾碼長度錯誤：IPv4 網路尾碼的長度介乎與 1-32
+  * IPv6 prefix error - IPv6 網路尾碼長度錯誤：IPv6 網路尾碼的長度介乎與 1-128
+  * Level error - IPFilter 過濾級別錯誤：過濾級別介乎與 0 - 0xFFFF(65535)
 
 4.Hosts Error - 讀取 Hosts 檔錯誤
-  * Hosts file size is too large - Hosts 檔容量過大：請確認Hosts檔的內容，整個檔的大小不要超過4GB
+  * Hosts file size is too large - Hosts 檔容量過大：請確認 Hosts 檔的內容，整個檔的大小不要超過 4GB
   * Read file(s) error - 檔跳轉讀取錯誤：請與開發者聯繫
-  * Data of a line is too long - 該 Hosts 條目過長（可根據檔案名和行數查找）：一行資料切勿超過4096位元組/4KB
-  * Item format error - Hosts 條目格式錯誤（可根據報告的行數查找）：請檢查該條目的格式
-  * Data is too long when EDNS0 is available - 開啟EDNS0標籤的情況下該 Hosts 條目過長：請檢查 Hosts 的地址清單是否過長
-  * Default TTL redefinition - 預設存留時間重定義（可根據報告的行數查找）：以第一個出現的預設存留時間為准
-  * Regular expression pattern error - 錯誤的正則運算式（可根據報告的行數查找）：請檢查正則運算式的正確性
-  * IPv6 address format error - Hosts 的 IPv6 位址格式錯誤（可根據報告的行數查找）：請檢查 Hosts 條目的位址
-  * IPv4 address format error - Hosts 的 IPv4 位址格式錯誤（可根據報告的行數查找）：請檢查 Hosts 條目的位址
+  * Data of a line is too long - 該 Hosts 條目過長：一行資料切勿超過4096位元組/4KB
+  * Item format error - Hosts 條目格式錯誤：請檢查該條目的格式
+  * Data is too long when EDNS is available - 開啟EDNS標籤的情況下該 Hosts 條目過長：請檢查 Hosts 的地址清單是否過長
+  * Default TTL redefinition - 預設存留時間重定義：以第一個出現的預設存留時間為准
+  * Regular expression pattern error - 錯誤的正則運算式：請檢查正則運算式的正確性
+  * IPv6 address format error - Hosts 的 IPv6 位址格式錯誤：請檢查 Hosts 條目的位址
+  * IPv4 address format error - Hosts 的 IPv4 位址格式錯誤：請檢查 Hosts 條目的位址
   * Too many Hosts IP addresses - Hosts 條目的平行位址過多：請檢查 Hosts 條目位址的數量，A 記錄不能超過75個，AAAA 記錄不能超過43個
 
 5.Network Error - 網路錯誤
   * Winsock initialization error - Winsock 初始化失敗：請確認使用的作業系統平臺是否受支援
-  * Windows Firewall Test error - Windows 防火牆測試失敗：請確認是否為管理員身份運行批次處理
+  * Windows Firewall Test error - Windows 防火牆測試失敗：請確認是否以管理員身份運行批次處理
   * UDP Monitor socket initialization error - UDP 協定本地通訊端初始化失敗：原因參見錯誤代碼
   * Bind UDP Monitor socket error - UDP 協定本地通訊端綁定失敗：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體原因參見錯誤代碼
   * TCP Monitor socket initialization error - TCP 協定本地通訊端初始化失敗：原因參見錯誤代碼
@@ -168,8 +175,6 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * TCP Monitor socket listening initialization error - TCP 協定本地通訊端監聽失敗：原因參見錯誤代碼
   * Get localhost name error - 獲取本地電腦名稱稱失敗：原因參見錯誤代碼
   * Get localhost address error - 獲取本地電腦位址失敗：沒有任何生效的網路介面卡，可能是硬體或者驅動程式的問題
-  * Local IPv4 address format error - 本地電腦 IPv4 位址格式錯誤：原因參見錯誤代碼
-  * Local IPv6 address format error - 本地電腦 IPv6 位址格式錯誤：原因參見錯誤代碼
   * UDP request initialization error - UDP 協定請求通訊端初始化失敗：原因參見錯誤代碼
   * Complete UDP request initialization error - UDP 協定請求通訊端初始化失敗：原因參見錯誤代碼
   * UDP request error - UDP 協定要求傳送失敗：可能為網路錯誤，具體原因可參見錯誤代碼

@@ -961,7 +961,7 @@ size_t __fastcall MatchPortToSend(const char *Buffer, const size_t Length, const
 		std::shared_ptr<char> RecvBuffer(new char[Length + sizeof(uint16_t)]());
 		memset(RecvBuffer.get(), 0, Length + sizeof(uint16_t));
 		memcpy_s(RecvBuffer.get(), Length + sizeof(uint16_t), Buffer, Length);
-		if (AddLengthToTCPDNSHeader(RecvBuffer.get(), Length, Length + sizeof(uint16_t)) == EXIT_FAILURE)
+		if (AddLengthDataToDNSHeader(RecvBuffer.get(), Length, Length + sizeof(uint16_t)) == EXIT_FAILURE)
 			return EXIT_FAILURE;
 
 		send(SystemData->Socket, RecvBuffer.get(), (int)(Length + sizeof(uint16_t)), 0);

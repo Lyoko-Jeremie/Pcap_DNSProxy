@@ -147,7 +147,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 此組合的過濾效果依靠境內路由表，不可靠
   * Protocol = TCP：先 TCP 請求失敗後再 UDP 請求 + 抓包模式，對網路資源的佔用比較高
     * 由於 TCP 請求大部分時候不會被投毒污染，此組合的過濾效果比較可靠
-  * EDNS0 Label = 1：開啟 EDNS0 請求標籤功能
+  * EDNS Label = 1：開啟 EDNS 請求標籤功能
     * 此功能開啟後將有利於對偽造資料包的過濾能力，此組合的過濾效果比較可靠
   * 將目標伺服器的請求埠改為非標準 DNS 埠：例如 OpenDNS 支援 53 標準埠和 5353 非標準埠的請求
     * 非標準 DNS 埠現階段尚未被干擾，此組合的過濾效果比較可靠
@@ -199,7 +199,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * Listen - 監聽參數區域
   * Pcap Capture - 抓包功能總開關，開啟後抓包模組才能正常使用：開啟為1/關閉為0，預設為 1
-    * 此參數關閉時要求需要有其它直連請求方式（例如 TCP 模式或者 DNSCurve/DNSCrypt 協定等），否則將會導致解析無法獲得結果
+    * 此參數關閉後程式會自動切換為直連模式
+    * 直連模式下不能完全避免 DNS 投毒污染的問題，需要依賴其它的檢測方式，例如 EDNS 標籤等方法
   * Pcap Reading Timeout - 抓包模塊讀取超時時間，數據包只會在等待超時時間後才會被讀取，其餘時間抓包模塊處於休眠狀態：單位為毫秒，最短間隔時間為10毫秒，預設為 200
     * 讀取超時時間需要平衡需求和資源佔用，時間設置太長會導致域名解析請求響應緩慢導致請求解析超時，太快則會佔用過多系統處理的資源
   * Operation Mode - 程式的監聽工作模式：分 Server/伺服器模式、Private/私有網路模式 和 Proxy/代理模式，預設為 Private
@@ -304,10 +305,12 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * RESERVED/65535
 
 * Addresses - 普通模式位址區域
-注意：IPv4 位址格式為 "IPv4 位址:埠"，IPv6位址格式為"[IPv6 位址]:埠"（均不含引號）
+注意：IPv4 位址格式為 "IPv4 位址:埠"，IPv6 位址格式為"[IPv6 位址]:埠"，帶前置長度位址格式為"IP 位址/網路前置長度"（均不含引號）
   * IPv4 Listen Address - IPv4 本地監聽位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
     * 本參數支援多個監聽位址，格式為 "位址A:埠|位址B:埠|位址C:埠"（不含引號）
     * 填入此值後 IPv4 協定的 Operation Mode 和 Listen Port 參數將被自動忽略
+  * IPv4 EDNS Client Subnet Address - IPv4 用戶端子網位址：需要輸入一個帶前置長度的本機公共網路位址，留空為不啟用，預設為空
+    * 啟用本功能前需要啟用 EDNS Client Subnet 總開關，否則將直接忽略此參數
   * IPv4 DNS Address - IPv4 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 8.8.4.4:53
     * 本參數支援同時請求多伺服器的功能，開啟後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果
     * 使用同時請求多伺服器格式為 "位址A:埠|位址B:埠|位址C:埠"（不含引號），同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
@@ -408,6 +411,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv6 Listen Address - IPv6 本地監聽位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
     * 本參數支援多個監聽位址，格式為 "位址A:埠|位址B:埠|位址C:埠"（不含引號）
     * 填入此值後 IPv6 協定的 Operation Mode 和 Listen Port 參數將被自動忽略
+  * IPv6 EDNS Client Subnet Address - IPv6 用戶端子網位址：需要輸入一個帶前置長度的本機公共網路位址，留空為不啟用，預設為空
+    * 啟用本功能前需要啟用 EDNS Client Subnet 總開關，否則將直接忽略此參數
   * IPv6 DNS Address - IPv6 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
     * 指定埠時可使用服務名稱代替，參見上表
   * IPv6 Alternate DNS Address - IPv6 備用DNS伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
@@ -418,7 +423,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 指定埠時可使用服務名稱代替，參見上表
 
 * Values - 擴展參數值區域
-  * EDNS0 Payload Size - EDNS0 標籤附帶使用的最大載荷長度：最小為 DNS 協定實現要求的 512(bytes)，留空則使用 EDNS0 標籤要求最短的 1220(bytes)，預設為空
+  * EDNS Payload Size - EDNS 標籤附帶使用的最大載荷長度：最小為 DNS 協定實現要求的 512(bytes)，留空則使用 EDNS 標籤要求最短的 1220(bytes)，預設為空
   * IPv4 TTL - IPv4 主要 DNS 伺服器接受請求的遠端DNS伺服器資料包的 TTL 值：0為自動獲取，取值為 1-255 之間：預設為 0
     * 本參數支援同時請求多伺服器的功能，與 IPv4 DNS Address 相對應
     * 使用同時請求多伺服器格式為 "TTL(A)|TTL(B)|TTL(C)"（不含引號），也可直接預設（即只填一個 0 不使用此格式）則所有 TTL 都將由程式自動獲取
@@ -456,9 +461,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 隨機添加壓縮指標有3種不同的類型，對應 1 和 2 和 3
     * 可單獨使用其中一個，即只填一個數位，或填入多個，中間使用 + 號連接
     * 填入多個時，當實際需要使用隨機添加壓縮指標時將隨機使用其中的一種，每個請求都有可能不相同
-  * EDNS0 Label - EDNS0 標籤支援，開啟後將為所有請求添加 EDNS0 標籤：開啟為1/關閉為0，預設為 0
+  * EDNS Label - EDNS 標籤支援，開啟後將為所有請求添加 EDNS 標籤：開啟為1/關閉為0，預設為 0
   * DNSSEC Request - DNSSEC 請求，開啟後將嘗試為所有請求添加 DNSSEC 請求：開啟為1/關閉為0，預設為 0
     * 注意：此功能為實驗性質，本程式不具備任何驗證 DNSSEC 回復的能力，單獨開啟此功能理論上並不能避免 DNS 投毒污染的問題
+  * EDNS Client Subnet - EDNS 用戶端子網支援，開啟後將為所有請求添加 EDNS 用戶端子網資訊：開啟為1/關閉為0，預設為 0
   * Alternate Multi Request - 待命伺服器同時請求參數，開啟後將同時請求主要伺服器和待命伺服器並採用最快回應的伺服器的結果：開啟為1/關閉為0，預設為 0
     * 同時請求多伺服器啟用後本參數將強制啟用，將同時請求所有存在於清單中的伺服器，並採用最快回應的伺服器的結果
   * IPv4 Data Filter - IPv4 資料包頭檢測：開啟為1/關閉為0，預設為 0
@@ -477,7 +483,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * DNSCurve - DNSCurve 協定基本參數區域
   * DNSCurve - DNSCurve 協定總開關，控制所有和 DNSCurve 協定有關的選項：開啟為1/關閉為0，預設為 0
   * DNSCurve Protocol - 發送請求所使用的協定：分 UDP 和 TCP，預設為 UDP
-  * DNSCurve Payload Size - DNSCurve EDNS0 標籤附帶使用的最大載荷長度，同時亦為發送請求的總長度，並決定請求的填充長度：最小為 DNS 協定實現要求的 512(bytes)，留空則為 512(bytes)，預設為留空
+  * DNSCurve Payload Size - DNSCurve EDNS 標籤附帶使用的最大載荷長度，同時亦為發送請求的總長度，並決定請求的填充長度：最小為 DNS 協定實現要求的 512(bytes)，留空則為 512(bytes)，預設為留空
   * Encryption - 啟用加密，DNSCurve 協定支援加密和非加密模式：開啟為1/關閉為0，預設為 1
   * Encryption Only - 只使用加密模式：開啟為1/關閉為0，預設為 1
     * 注意：使用 只使用加密模式 時必須提供伺服器的魔數和指紋用於請求和接收
@@ -536,7 +542,7 @@ Hosts 設定檔分為多個提供不同功能的區域
 * 一條條目的總長度切勿超過 4096位元組/4KB
 * 需要注釋請在條目開頭添加 #/井號
 * 優先順序別自上而下遞減，條目越前優先順序越高
-* 平行 Hosts 條目支援數量由請求功能變數名稱以及 EDNS0 Payload 長度決定，不要超過75個 A 記錄或43個 AAAA 記錄
+* 平行 Hosts 條目支援數量由請求功能變數名稱以及 EDNS Payload 長度決定，不要超過75個 A 記錄或43個 AAAA 記錄
 
 
 * Whitelist - 白名單條目

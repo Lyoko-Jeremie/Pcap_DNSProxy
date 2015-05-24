@@ -52,13 +52,13 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 			DNSQuery.reset();
 			DataLength += sizeof(dns_qry);
 
-		//EDNS0 Label
-			if (Parameter.EDNS0Label) //Not any Additional Resource Records
+		//EDNS Label
+			if (Parameter.EDNSLabel) //Not any Additional Resource Records
 			{
 				auto DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + sizeof(dns_hdr) + DataLength);
 				DNS_Header->Additional = htons(U16_NUM_ONE);
 				DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-				DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
+				DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 				DataLength += sizeof(dns_record_opt);
 			}
 		}
@@ -135,13 +135,13 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 					DNS_Query->Type = htons(DNS_RECORD_A);
 				DataLength += sizeof(dns_qry);
 
-			//EDNS0 Label
-				if (Parameter.EDNS0Label) //Not any Additional Resource Records
+			//EDNS Label
+				if (Parameter.EDNSLabel) //Not any Additional Resource Records
 				{
 					auto DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + DataLength);
 					DNS_Header->Additional = htons(U16_NUM_ONE);
 					DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-					DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNS0PayloadSize);
+					DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 					DataLength += sizeof(dns_record_opt);
 				}
 			}
@@ -420,7 +420,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 	memcpy_s(SendBuffer.get(), SendSize, OriginalSend, SendSize);
 
 //Add length of request packet(It must be written in header when transpot with TCP protocol).
-	size_t DataLength = AddLengthToTCPDNSHeader(SendBuffer.get(), SendSize, sizeof(uint16_t) + SendSize);
+	size_t DataLength = AddLengthDataToDNSHeader(SendBuffer.get(), SendSize, sizeof(uint16_t) + SendSize);
 	if (DataLength == EXIT_FAILURE)
 		return EXIT_FAILURE;
 
@@ -738,7 +738,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 	memcpy_s(SendBuffer.get(), SendSize, OriginalSend, SendSize);
 
 //Add length of request packet(It must be written in header when transpot with TCP protocol).
-	size_t DataLength = AddLengthToTCPDNSHeader(SendBuffer.get(), SendSize, sizeof(uint16_t) + SendSize);
+	size_t DataLength = AddLengthDataToDNSHeader(SendBuffer.get(), SendSize, sizeof(uint16_t) + SendSize);
 	if (DataLength == EXIT_FAILURE)
 		return EXIT_FAILURE;
 
@@ -1059,9 +1059,9 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 		//Receive.
 			for (size_t Index = 0;Index < TCPSocketDataList.size();++Index)
 			{
-				if (FD_ISSET(TCPSocketDataList[Index].Socket, ReadFDS.get()))
+				if (FD_ISSET(TCPSocketDataList.at(Index).Socket, ReadFDS.get()))
 				{
-					RecvLen = recv(TCPSocketDataList[Index].Socket, OriginalRecv, (int)RecvSize, 0);
+					RecvLen = recv(TCPSocketDataList.at(Index).Socket, OriginalRecv, (int)RecvSize, 0);
 
 				//TCP segment of a reassembled PDU
 					if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
@@ -1074,9 +1074,9 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 						}
 					//Invalid packet.
 						else {
-							shutdown(TCPSocketDataList[Index].Socket, SD_BOTH);
-							closesocket(TCPSocketDataList[Index].Socket);
-							TCPSocketDataList[Index].Socket = 0;
+							shutdown(TCPSocketDataList.at(Index).Socket, SD_BOTH);
+							closesocket(TCPSocketDataList.at(Index).Socket);
+							TCPSocketDataList.at(Index).Socket = 0;
 							break;
 						}
 					}
@@ -1084,9 +1084,9 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 					//Length check.
 						if ((SSIZE_T)PDULenList[Index] > RecvLen)
 						{
-							shutdown(TCPSocketDataList[Index].Socket, SD_BOTH);
-							closesocket(TCPSocketDataList[Index].Socket);
-							TCPSocketDataList[Index].Socket = 0;
+							shutdown(TCPSocketDataList.at(Index).Socket, SD_BOTH);
+							closesocket(TCPSocketDataList.at(Index).Socket);
+							TCPSocketDataList.at(Index).Socket = 0;
 							break;
 						}
 					//Receive again.
@@ -1107,9 +1107,9 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 						//Length check
 							if ((SSIZE_T)ntohs(((uint16_t *)OriginalRecv)[0]) > RecvLen)
 							{
-								shutdown(TCPSocketDataList[Index].Socket, SD_BOTH);
-								closesocket(TCPSocketDataList[Index].Socket);
-								TCPSocketDataList[Index].Socket = 0;
+								shutdown(TCPSocketDataList.at(Index).Socket, SD_BOTH);
+								closesocket(TCPSocketDataList.at(Index).Socket);
+								TCPSocketDataList.at(Index).Socket = 0;
 								break;
 							}
 							else {
@@ -1146,9 +1146,9 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 								}
 							//Length check
 								else {
-									shutdown(TCPSocketDataList[Index].Socket, SD_BOTH);
-									closesocket(TCPSocketDataList[Index].Socket);
-									TCPSocketDataList[Index].Socket = 0;
+									shutdown(TCPSocketDataList.at(Index).Socket, SD_BOTH);
+									closesocket(TCPSocketDataList.at(Index).Socket);
+									TCPSocketDataList.at(Index).Socket = 0;
 									break;
 								}
 							}
@@ -2297,15 +2297,15 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 		//Receive.
 			for (Index = 0;Index < UDPSocketDataList.size();++Index)
 			{
-				if (FD_ISSET(UDPSocketDataList[Index].Socket, ReadFDS.get()))
+				if (FD_ISSET(UDPSocketDataList.at(Index).Socket, ReadFDS.get()))
 				{
-					RecvLen = recvfrom(UDPSocketDataList[Index].Socket, OriginalRecv, (int)RecvSize, 0, (PSOCKADDR)&UDPSocketDataList[Index].SockAddr, &UDPSocketDataList[Index].AddrLen);
+					RecvLen = recvfrom(UDPSocketDataList.at(Index).Socket, OriginalRecv, (int)RecvSize, 0, (PSOCKADDR)&UDPSocketDataList.at(Index).SockAddr, &UDPSocketDataList.at(Index).AddrLen);
 					if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 					{
 						memset(OriginalRecv, 0, RecvSize);
-						shutdown(UDPSocketDataList[Index].Socket, SD_BOTH);
-						closesocket(UDPSocketDataList[Index].Socket);
-						UDPSocketDataList[Index].Socket = 0;
+						shutdown(UDPSocketDataList.at(Index).Socket, SD_BOTH);
+						closesocket(UDPSocketDataList.at(Index).Socket);
+						UDPSocketDataList.at(Index).Socket = 0;
 
 						continue;
 					}
@@ -2314,9 +2314,9 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 						if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && !CheckResponseData(OriginalRecv, RecvLen, false, nullptr))
 						{
 							memset(OriginalRecv, 0, RecvSize);
-							shutdown(UDPSocketDataList[Index].Socket, SD_BOTH);
-							closesocket(UDPSocketDataList[Index].Socket);
-							UDPSocketDataList[Index].Socket = 0;
+							shutdown(UDPSocketDataList.at(Index).Socket, SD_BOTH);
+							closesocket(UDPSocketDataList.at(Index).Socket);
+							UDPSocketDataList.at(Index).Socket = 0;
 
 							continue;
 						}
