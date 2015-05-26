@@ -128,6 +128,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * EDNS Label must turn ON when request DNSSEC - 开启 DNSSEC 请求时必须开启 EDNS 标签请求功能
   * EDNS Label must turn ON when request EDNS Client Subnet - 开启 EDNS Client Subnet 请求时必须开启 EDNS 标签请求功能
   * EDNS Label must turn OFF when request Compression Pointer Mutation - 使用 Compression Pointer Mutation 时不能开启 EDNS 标签请求功能，两者并不兼容
+  * EDNS Label and DNSSEC Request must turn ON when request DNSSEC Validation - 开启 DNSSEC Validation 请求时必须开启 EDNS 标签请求和 DNSSEC 请求功能
+  * EDNS Label, DNSSEC Request and DNSSEC Validation must turn ON when request DNSSEC Force Validation - 开启 DNSSEC Force Validation 请求时必须开启 EDNS 标签请求、DNSSEC 请求和 DNSSEC Validation 验证功能
   * Alternate Multi requesting error - 主要备用或多个服务器下同时请求参数错误：请确认所有服务器的信息
   * Multi requesting times error - 接收到一个解析请求向同一个远程服务器发送多次解析请求参数错误 ：一个解析请求的多次解析请求次数不能超过16次，也就是配置文件不能填大于15的值
   * DNSCurve target error - DNSCurve 协议使用的 DNS 目标服务器地址错误：请检查 DNSCurve 协议使用DNS服务器的地址

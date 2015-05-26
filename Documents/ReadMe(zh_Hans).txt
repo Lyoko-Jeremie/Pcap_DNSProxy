@@ -313,91 +313,92 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 本参数支持同时请求多服务器的功能，开启后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果
     * 使用同时请求多服务器格式为 "地址A:端口|地址B:端口|地址C:端口"（不含引号），同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
     * 指定端口时可使用服务名称代替：
-      * TCPMUX
-      * ECHO
-      * DISCARD
-      * SYSTAT
-      * DAYTIME
-      * NETSTAT
-      * QOTD
-      * MSP
-      * CHARGEN
-      * FTP
-      * SSH
-      * TELNET
-      * SMTP
-      * TIME
-      * RAP
-      * RLP
-      * NAME
-      * WHOIS
-      * TACACS
-      * DNS
-      * XNSAUTH
-      * MTP
-      * BOOTPS
-      * BOOTPC
-      * TFTP
-      * RJE
-      * FINGER
-      * TTYLINK
-      * SUPDUP
-      * SUNRPC
-      * SQL
-      * NTP
-      * EPMAP
-      * NETBIOSNS
-      * NETBIOSDGM
-      * NETBIOSSSN
-      * IMAP
-      * BFTP
-      * SGMP
-      * SQLSRV
-      * DMSP
-      * SNMP
-      * SNMPTRAP
-      * ATRTMP
-      * ATHBP
-      * QMTP
-      * IPX
-      * IMAP
-      * IMAP3
-      * BGMP
-      * TSP
-      * IMMP
-      * ODMR
-      * RPC2PORTMAP
-      * CLEARCASE
-      * HPALARMMGR
-      * ARNS
-      * AURP
-      * LDAP
-      * UPS
-      * SLP
-      * SNPP
-      * MICROSOFTDS
-      * KPASSWD
-      * TCPNETHASPSRV
-      * RETROSPECT
-      * ISAKMP
-      * BIFFUDP
-      * WHOSERVER
-      * SYSLOG
-      * ROUTERSERVER
-      * NCP
-      * COURIER
-      * COMMERCE
-      * RTSP
-      * NNTP
-      * HTTPRPCEPMAP
-      * IPP
-      * LDAPS
-      * MSDP
-      * AODV
-      * FTPSDATA
-      * FTPS
-      * NAS
-      * TELNETS
+      * TCPMUX/1
+      * ECHO/7
+      * DISCARD/9
+      * SYSTAT/11
+      * DAYTIME/13
+      * NETSTAT/15
+      * QOTD/17
+      * MSP/18
+      * CHARGEN/19
+      * FTP_DATA/20
+      * FTP_DATA/21
+      * SSH/22
+      * TELNET/23
+      * SMTP/25
+      * TIMESERVER/37
+      * RAP/38
+      * RLP/39
+      * NAMESERVER/42
+      * WHOIS/43
+      * TACACS/49
+      * DNS/53
+      * XNSAUTH/56
+      * MTP/57
+      * BOOTPS/67
+      * BOOTPC/68
+      * TFTP/69
+      * RJE/77
+      * FINGER/79
+      * TTYLINK/87
+      * SUPDUP/95
+      * SUNRPC/111
+      * SQL/118
+      * NTP/123
+      * EPMAP/135
+      * NETBIOS_NS/137
+      * NETBIOS_DGM/138
+      * NETBIOS_SSN/139
+      * IMAP/143
+      * BFTP/152
+      * SGMP/153
+      * SQLSRV/156
+      * DMSP/158
+      * SNMP/161
+      * SNMP_TRAP/162
+      * ATRTMP/201
+      * ATHBP/202
+      * QMTP/209
+      * IPX/213
+      * IMAP3/220
+      * BGMP/246
+      * TSP/318
+      * IMMP/323
+      * ODMR/366
+      * RPC2PORTMAP/369
+      * CLEARCASE/371
+      * HPALARMMGR/383
+      * ARNS/384
+      * AURP/387
+      * LDAP/389
+      * UPS/401
+      * SLP/427
+      * HTTPS/443
+      * SNPP/444
+      * MICROSOFTDS/445
+      * KPASSWD/464
+      * TCPNETHASPSRV/475
+      * RETROSPECT/497
+      * ISAKMP/500
+      * BIFFUDP/512
+      * WHOSERVER/513
+      * SYSLOG/514
+      * ROUTERSERVER/520
+      * NCP/524
+      * COURIER/530
+      * COMMERCE/542
+      * RTSP/554
+      * NNTP/563
+      * HTTPRPCEPMAP/593
+      * IPP/631
+      * LDAPS/636
+      * MSDP/639
+      * AODV/654
+      * FTPSDATA/989
+      * FTPS/990
+      * NAS/991
+      * TELNETS/992
   * IPv4 Alternate DNS Address - IPv4 备用 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为 8.8.8.8:53|208.67.220.220:53|208.67.222.222:5353
     * 本参数支持同时请求多服务器的功能，开启后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果
     * 使用同时请求多服务器格式为 "地址A:端口|地址B:端口|地址C:端口"（不含引号），同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
@@ -460,9 +461,19 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 可单独使用其中一个，即只填一个数字，或填入多个，中间使用 + 号连接
     * 填入多个时，当实际需要使用随机添加压缩指针时将随机使用其中的一种，每个请求都有可能不相同
   * EDNS Label - EDNS 标签支持，开启后将为所有请求添加 EDNS 标签：开启为1/关闭为0，默认为 0
-  * DNSSEC Request - DNSSEC 请求，开启后将尝试为所有请求添加 DNSSEC 请求：开启为1/关闭为0，默认为 0
-    * 注意：此功能为实验性质，本程序不具备任何验证 DNSSEC 回复的能力，单独开启此功能理论上并不能避免 DNS 投毒污染的问题
   * EDNS Client Subnet - EDNS 客户端子网支持，开启后将为所有请求添加 EDNS 客户端子网信息：开启为1/关闭为0，默认为 0
+    * 本功能要求启用 EDNS Label 参数
+  * DNSSEC Request - DNSSEC 请求，开启后将尝试为所有请求添加 DNSSEC 请求：开启为1/关闭为0，默认为 0
+    * 本功能要求启用 EDNS Label 参数
+    * 此功能不具备任何验证 DNSSEC 记录的能力，单独开启理论上并不能避免 DNS 投毒污染的问题
+  * DNSSEC Validation - DNSSEC 记录验证功能，将检查所有带有 DNSSEC 记录的域名解析，验证失败将被丢弃：开启为1/关闭为0，默认为 0
+    * 本功能要求启用 EDNS Label 和 DNSSEC Request 参数
+    * 此功能不具备完整的 DNSSEC 记录检验的能力，单独开启理论上不能避免 DNS 投毒污染的问题
+    * 本功能不检查不存在 DNSSEC 记录的域名解析
+  * DNSSEC Force Validation - 强制 DNSSEC 记录验证功能，将丢弃所有没有 DNSSEC 记录的域名解析：开启为1/关闭为0，默认为 0
+    * 本功能要求启用 EDNS Label、DNSSEC Request 和 DNSSEC Validation 参数
+    * 此功能不具备完整的 DNSSEC 记录检验的能力，单独开启理论上不能避免 DNS 投毒污染的问题
+    * 警告：由于现时已经部署 DNSSEC 的域名数量极少，未部署 DNSSEC 的域名解析没有 DNSSEC 记录，这将导致所有未部署 DNSSEC 的域名解析失败，现阶段切勿开启本功能！
   * Alternate Multi Request - 备用服务器同时请求参数，开启后将同时请求主要服务器和备用服务器并采用最快回应的服务器的结果：开启为1/关闭为0，默认为 0
     * 同时请求多服务器启用后本参数将强制启用，将同时请求所有存在于列表中的服务器，并采用最快回应的服务器的结果
   * IPv4 Data Filter - IPv4 数据包头检测：开启为1/关闭为0，默认为 0

@@ -930,19 +930,27 @@ size_t __fastcall ReadParameter(void)
 	if (Parameter.ListenPort != nullptr && Parameter.ListenPort->empty())
 		Parameter.ListenPort->push_back(htons(IPPORT_DNS));
 
+	if (Parameter.DNSSECForceValidation && (!Parameter.EDNSLabel || !Parameter.DNSSECRequest || !Parameter.DNSSECValidation))
+	{
+		PrintError(LOG_ERROR_PARAMETER, L"EDNS Label, DNSSEC Request and DNSSEC Validation must turn ON when request DNSSEC Force Validation", 0, ConfigFileList.at(Index).c_str(), 0);
+		Parameter.EDNSLabel = true;
+		Parameter.DNSSECRequest = true;
+		Parameter.DNSSECValidation = true;
+	}
+	if (Parameter.DNSSECValidation && (!Parameter.EDNSLabel || !Parameter.DNSSECRequest))
+	{
+		PrintError(LOG_ERROR_PARAMETER, L"EDNS Label and DNSSEC Request must turn ON when request DNSSEC Validation", 0, ConfigFileList.at(Index).c_str(), 0);
+		Parameter.EDNSLabel = true;
+		Parameter.DNSSECRequest = true;
+	}
 	if (!Parameter.EDNSLabel)
 	{
-		if (Parameter.DNSSECRequest)
-		{
-			PrintError(LOG_ERROR_PARAMETER, L"EDNS Label must turn ON when request DNSSEC", 0, ConfigFileList.at(Index).c_str(), 0);
-			Parameter.EDNSLabel = true;
-		}
-
 		if (Parameter.EDNSClientSubnet)
-		{
 			PrintError(LOG_ERROR_PARAMETER, L"EDNS Label must turn ON when request EDNS Client Subnet", 0, ConfigFileList.at(Index).c_str(), 0);
-			Parameter.EDNSLabel = true;
-		}
+		if (Parameter.DNSSECRequest)
+			PrintError(LOG_ERROR_PARAMETER, L"EDNS Label must turn ON when request DNSSEC", 0, ConfigFileList.at(Index).c_str(), 0);
+
+		Parameter.EDNSLabel = true;
 	}
 	else {
 		if (Parameter.CompressionPointerMutation)
@@ -2048,17 +2056,25 @@ size_t __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, 
 		if (Parameter.CPMPointerToHeader || Parameter.CPMPointerToRR || Parameter.CPMPointerToAdditional)
 			Parameter.CompressionPointerMutation = true;
 	}
-	else if (Data.find("EDNSLabel=1") == 0)
+	else if (Data.find("EDNSLabel=1") == 0 || Data.find("EDNS0Label=1") == 0) //EDNS0 Label has changed to EDNS Label.
 	{
 		Parameter.EDNSLabel = true;
+	}
+	else if (Data.find("EDNSClientSubnet=1") == 0)
+	{
+		Parameter.EDNSClientSubnet = true;
 	}
 	else if (Data.find("DNSSECRequest=1") == 0)
 	{
 		Parameter.DNSSECRequest = true;
 	}
-	else if (Data.find("EDNSClientSubnet=1") == 0)
+	else if (Data.find("DNSSECValidation=1") == 0)
 	{
-		Parameter.EDNSClientSubnet = true;
+		Parameter.DNSSECValidation = true;
+	}
+	else if (Data.find("DNSSECForceValidation=1") == 0)
+	{
+		Parameter.DNSSECForceValidation = true;
 	}
 	else if (Data.find("AlternateMultiRequest=1") == 0)
 	{

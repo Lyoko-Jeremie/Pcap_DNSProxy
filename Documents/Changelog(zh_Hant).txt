@@ -1,9 +1,12 @@
-﻿Pcap_DNSProxy v0.4.1.1(Windows/Linux/Mac) 更新日誌(2015-05-24)：
+﻿Pcap_DNSProxy v0.4.1.1-v0.4.1.2(Windows/Linux/Mac) 更新日誌(2015-05-26)：
 
 * 添加對 EDNS Client Subnet 的支援
+* 增強對 DNSSEC 的請求能力以及添加不完整的認證功能
 * 添加對 Local 境內 DNS 伺服器的路由表檢查，但只會進行提示而不會中斷程式的運行
+* 添加 DNSSEC Force Validation 参数，可强制携带 DNSSEC 记录的域名解析才能被接受
 * 添加 -c/--config-file 参数，可在启动时指定配置文件的目录 [BlackGear]
 * 添加 -v/--version 参数，可输出程序的版本号 [BlackGear]
+* 添加對 homebrew 的支援(Mac) [BlackGear]
 * EDNS0 Label 參數改名為 EDNS Label
 
 

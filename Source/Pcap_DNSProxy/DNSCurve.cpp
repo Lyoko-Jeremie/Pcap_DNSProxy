@@ -831,7 +831,7 @@ bool __fastcall GetSignatureData(const char *Buffer, const size_t ServerType)
 			}
 
 			auto SignatureData = (pdnscurve_txt_signature)DeBuffer.get();
-		//Check available(time) Signature.
+		//Signature available time check
 			if (SignatureData != nullptr && PacketTarget->ServerFingerprint != nullptr && 
 				time(nullptr) >= (time_t)ntohl(SignatureData->CertTime_Begin) && time(nullptr) <= (time_t)ntohl(SignatureData->CertTime_End))
 			{

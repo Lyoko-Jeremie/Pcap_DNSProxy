@@ -22,8 +22,8 @@
 # Set service
 chmod 777 KeyPairGenerator
 chmod 777 Pcap_DNSProxy
-chmod 777 PcapDNSProxyService.plist
-cp PcapDNSProxyService.plist /Library/LaunchDaemons/PcapDNSProxyService.plist
+chmod 777 pcap_dnsproxy.service.plist
+cp pcap_dnsproxy.service.plist /Library/LaunchDaemons/pcap_dnsproxy.service.plist
 cd /Library/LaunchDaemons
-chown root PcapDNSProxyService.plist
-launchctl load PcapDNSProxyService.plist
+chown root pcap_dnsproxy.service.plist
+launchctl load pcap_dnsproxy.service.plist

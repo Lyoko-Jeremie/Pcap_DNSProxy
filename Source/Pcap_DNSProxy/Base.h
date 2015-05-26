@@ -422,12 +422,12 @@
 #define KILOBYTE_TIMES         1024U         //1KB = 1024 bytes
 #define MEGABYTE_TIMES         1048576U      //1MB = 1048576 bytes
 #define GIGABYTE_TIMES         1073741824U   //1GB = 1073741824 bytes
-#define ANSI                   1U            //Microsoft Windows Codepage of ANSI
-#define UTF_8                  65001U        //Microsoft Windows Codepage of UTF-8
-#define UTF_16_LE              1200U         //Microsoft Windows Codepage of UTF-16 Little Endian/LE
-#define UTF_16_BE              1201U         //Microsoft Windows Codepage of UTF-16 Big Endian/BE
-#define UTF_32_LE              12000U        //Microsoft Windows Codepage of UTF-32 Little Endian/LE
-#define UTF_32_BE              12001U        //Microsoft Windows Codepage of UTF-32 Big Endian/BE
+#define CODEPAGE_ANSI          1U            //Microsoft Windows Codepage of ANSI
+#define CODEPAGE_UTF_8         65001U        //Microsoft Windows Codepage of UTF-8
+#define CODEPAGE_UTF_16_LE     1200U         //Microsoft Windows Codepage of UTF-16 Little Endian/LE
+#define CODEPAGE_UTF_16_BE     1201U         //Microsoft Windows Codepage of UTF-16 Big Endian/BE
+#define CODEPAGE_UTF_32_LE     12000U        //Microsoft Windows Codepage of UTF-32 Little Endian/LE
+#define CODEPAGE_UTF_32_BE     12001U        //Microsoft Windows Codepage of UTF-32 Big Endian/BE
 
 
 //////////////////////////////////////////////////
@@ -435,7 +435,7 @@
 // 
 /* Ethernet II Frame header in OSI Layer 2(RFC 894, https://tools.ietf.org/html/rfc894)
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                      Destination Address                      |
@@ -466,7 +466,7 @@ typedef struct _eth_hdr_
 
 /* Apple IEEE 1394/FireWire header(RFC 2734 and RFC3146, https://www.ietf.org/rfc/rfc2734 and https://www.ietf.org/rfc/rfc3146)
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                      Destination Address                      |
@@ -494,7 +494,7 @@ typedef struct _ieee_1394_hdr_
 
 /* Point-to-Point Protocol /PPP header(RFC 2516, https://tools.ietf.org/rfc/rfc2516)
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |Version|  Type |     Code      |           SessionID           |
@@ -734,7 +734,7 @@ typedef struct _ppp_hdr_
 
 /* Internet Protocol version 4/IPv4 header(RFC 791, https://www.ietf.org/rfc/rfc791)
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |Version|  IHL  |   DSCP    |ECN|         Total Length          |  IHL/Internet Header Length, DSCP/Differentiated Services Code Point and ECN/Explicit Congestion Notification
@@ -805,7 +805,7 @@ typedef struct _ipv4_hdr_
 
 /* Internet Protocol version 6/IPv6 header(RFC 2460, https://tools.ietf.org/html/rfc2460)
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |Version|    DSF    |T|E|              Flow Label               |  DSF/Differentiated Services Field, E/ECT/Explicit Congestion Notification - Capable Transport, T/ECN-CE/Explicit Congestion Notification - Congestion Encountered
@@ -874,7 +874,7 @@ typedef struct _ipv6_hdr_
 
 /* Internet Control Message Protocol/ICMP header(RFC 792, https://tools.ietf.org/html/rfc792)
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |     Type      |     Code      |           Checksum            |
@@ -907,7 +907,7 @@ typedef struct _icmp_hdr_
 
 /* Internet Control Message Protocol version 6/ICMPv6 header(RFC 4443, https://tools.ietf.org/html/rfc4443)
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |     Type      |     Code      |           Checksum            |
@@ -945,7 +945,7 @@ RFC 1122: https://tools.ietf.org/html/rfc1122
 RFC 2581: https://tools.ietf.org/html/rfc2581
 RFC 5681: https://tools.ietf.org/html/rfc5681
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |          Source Port          |        Destination Port       |
@@ -1150,7 +1150,7 @@ typedef struct _tcp_hdr_
 
 /* User Datagram Protocol/UDP header(RFC 768, https://tools.ietf.org/html/rfc768)
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |          Source Port          |       Destination Port        |
@@ -1176,7 +1176,7 @@ RFC 1122: https://tools.ietf.org/html/rfc1122
 RFC 2581: https://tools.ietf.org/html/rfc2581
 RFC 5681: https://tools.ietf.org/html/rfc5681
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                        Source Address                         |
@@ -1205,7 +1205,7 @@ RFC 2581: https://tools.ietf.org/html/rfc2581
 RFC 4443: https://tools.ietf.org/html/rfc4443
 RFC 5681: https://tools.ietf.org/html/rfc5681
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                                                               |
@@ -1326,6 +1326,9 @@ RFC 7314(https://tools.ietf.org/html/rfc7314), Extension Mechanisms for DNS (EDN
 #define DNS_GET_BIT_OPCODE      0x7800   //Get OPCode in DNS flags.
 #define DNS_GET_BIT_AA          0x0400   //Get Authoritative bit in DNS flags.
 #define DNS_GET_BIT_TC          0x0200   //Get Truncated bit in DNS flags.
+#define DNS_GET_BIT_RD          0x0100   //Get Recursion Desired bit in DNS flags.
+#define DNS_GET_BIT_AD          0x0020   //Get Authentic Data bit in DNS flags.
+#define DNS_GET_BIT_CD          0x0010   //Get Checking Disabled bit in DNS flags.
 #define DNS_GET_BIT_RCODE       0x000F   //Get RCode in DNS flags.
 #define DNS_SET_R               0x8000   //Set Response bit.
 #define DNS_SET_RTC             0x8200   //Set Response bit and Truncated bit.
@@ -1462,7 +1465,7 @@ RFC 7314(https://tools.ietf.org/html/rfc7314), Extension Mechanisms for DNS (EDN
 /* Domain Name System/DNS header
 // With User Datagram Protocol/UDP
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |        Identification         |Q|OPCode |A|T|R|R|Z|A|C| RCode |  QR/Query and Response, AA/Authoritative Answer, TC/Truncated, RD/Recursion Desired, RA/Recursion Available
@@ -1516,7 +1519,7 @@ typedef struct _dns_hdr_
 /* Domain Name System/DNS header
 //With Transmission Control Protocol/TCP
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |            Length             |        Identification         |
@@ -1571,7 +1574,7 @@ typedef struct _dns_tcp_hdr_
 
 /* Domain Name System/DNS Query
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /                                                               /
@@ -1589,9 +1592,9 @@ typedef struct _dns_qry_
 	uint16_t              Classes;
 }dns_qry, *pdns_qry;
 
-/* Domain Name System/DNS Standard Resource Record
+/* Domain Name System/DNS Standard Resource Records
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /                                                               /
@@ -1620,7 +1623,7 @@ typedef struct _dns_record_standard_
 
 /* Domain Name System/DNS A(IPv4) Records
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /                                                               /
@@ -1649,7 +1652,7 @@ typedef struct _dns_record_a_
 
 /* Domain Name System/DNS Canonical Name/CNAME Records
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /                                                               /
@@ -1678,9 +1681,45 @@ typedef struct _dns_record_cname_
 //	PUCHAR                PrimaryName;
 }dns_record_cname, *pdns_record_cname;
 
+/* Domain Name System/DNS Start Of a zone of Authority/SOA Resource Records
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                         Primary Name                          /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                         Mailbox Name                          /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                            Serial                             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                        Refresh Interval                       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                         Retry Interval                        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                          Expire Limit                         |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                          Minimum TTL                          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _dns_record_soa_
+{
+//	PUCHAR                PrimaryName;
+//	PUCHAR                MailboxName;
+	uint32_t              Serial;
+	uint32_t              RefreshInterval;
+	uint32_t              RetryInterval;
+	uint32_t              ExpireLimit;
+	uint32_t              MinimumTTL;
+}dns_record_soa, *pdns_record_soa;
+
 /* Domain Name System/DNS Pointer/PTR Records
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |            Pointer            |             Type              |
@@ -1705,36 +1744,28 @@ typedef struct _dns_record_ptr_
 //	PUCHAR                Name;
 }dns_record_ptr, *pdns_record_ptr;
 
-/* Domain Name System/DNS AAAA(IPv6) Records
+/* Domain Name System/DNS Mail eXchange/MX Resource Records
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|            Pointer            |             Type              |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|            Classes            |         Time To Live          |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|         Time To Live          |            Length             |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|          Preference           |                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               /
 /                                                               /
-/                            Domain                             /
+/                      Mail Exchange Name                       /
 /                                                               /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-typedef struct _dns_record_aaaa_
+typedef struct _dns_record_mx_
 {
-	uint16_t              Name;
-	uint16_t              Type;
-	uint16_t              Classes;
-	uint32_t              TTL;
-	uint16_t              Length;
-	in6_addr              Addr;
-}dns_record_aaaa, *pdns_record_aaaa;
+	uint16_t              Preference;
+//	PUCHAR                MailExchangeName;
+}dns_record_mx, *pdns_record_mx;
 
 /* Domain Name System/DNS Test Strings/TXT Records
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |             Name              |             Type              |
@@ -1762,9 +1793,59 @@ typedef struct _dns_record_txt_
 //	PUCHAR                TXT;
 }dns_record_txt, *pdns_record_txt;
 
-/* Extension Mechanisms for Domain Name System/DNS, EDNS Label/OPT Resource
+/* Domain Name System/DNS AAAA(IPv6) Records
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|            Pointer            |             Type              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|            Classes            |         Time To Live          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|         Time To Live          |            Length             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                            Domain                             /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _dns_record_aaaa_
+{
+	uint16_t              Name;
+	uint16_t              Type;
+	uint16_t              Classes;
+	uint32_t              TTL;
+	uint16_t              Length;
+	in6_addr              Addr;
+}dns_record_aaaa, *pdns_record_aaaa;
+
+/* Domain Name System/DNS Server Selection/SRV Resource Records
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           Priority            |            Weight             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|             Port              |                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               /
+/                                                               /
+/                            Target                             /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _dns_record_srv_
+{
+	uint16_t             Priority;
+	uint16_t             Weight;
+	uint16_t             Port;
+//	PUCHAR               Target;
+}dns_record_srv, *pdns_record_srv;
+
+/* Extension Mechanisms for Domain Name System/DNS, EDNS Label/OPT Resource Records
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /                                                               /
@@ -1773,13 +1854,14 @@ typedef struct _dns_record_txt_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |             Type              |       UDP Payload Size        |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|Extended RCode | EDNS Version |D|          Reserved           |  Extended RCode/Higher bits in extended Return Code, D/DO bit
+|Extended RCode |EDNS Version |D|           Reserved            |  Extended RCode/Higher bits in extended Return Code, D/DO bit
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |            Length             |\---------- Z Field -----------/
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define EDNS_PACKET_MINSIZE 1220U
+#define EDNS_PACKET_MINSIZE    1220U
+#define EDNS_GET_BIT_DO        0x8000        //Get DO bit in Z field.
 typedef struct _dns_record_opt_
 {
 	uint8_t               Name;
@@ -1803,11 +1885,34 @@ typedef struct _dns_record_opt_
 	uint16_t              DataLength;
 }dns_record_opt, *pdns_record_opt, edns_header, *pedns_header;
 
-//Client subnet in DNS requests(https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02)
+/* Extension Mechanisms for Domain Name System/DNS, Client subnet in EDNS requests(https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02)
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|             Code              |            Length             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|            Family             |Source Netmask | Scope Netmask |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
+/                                                               /
+/                           Address                             /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+#define EDNS_CODE_LLQ                 0x0001   //Long-lived query
+#define EDNS_CODE_UL                  0x0002   //Update lease
+#define EDNS_CODE_NSID                0x0003   //Name Server Identifier (RFC 5001)
+#define EDNS_CODE_OWNER               0x0004   //Owner, reserved
+#define EDNS_CODE_DAU                 0x0005   //DNSSEC Algorithm Understood (RFC6975)
+#define EDNS_CODE_DHU                 0x0006   //DS Hash Understood (RFC6975)
+#define EDNS_CODE_N3U                 0x0007   //DSEC3 Hash Understood (RFC6975)
+#define EDNS_CODE_CSUBNET             0x0008   //Client subnet as assigned by IANA
+#define EDNS_CODE_EDNS_EXPIRE         0x0009   //EDNS Expire (RFC7314)
+
 //About Address Family Numbers, see https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml.
-#define EDNS_CODE_CSUBNET            0x0008
-#define ADDRESS_FAMILY_IPV4          0x0001
-#define ADDRESS_FAMILY_IPV6          0x0002
+#define ADDRESS_FAMILY_IPV4           0x0001
+#define ADDRESS_FAMILY_IPV6           0x0002
 typedef struct _edns_client_subnet_
 {
 	uint16_t              Code;
@@ -1818,6 +1923,279 @@ typedef struct _edns_client_subnet_
 //	PUCHAR                Address;
 }edns_client_subnet, *pedns_client_subnet;
 
+/* Domain Name System/DNS Delegation Signer/DS Resource Records
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|            Key Tag            |   Algorithm   |     Type      |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                            Digest                             /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+#define DNSSEC_DS_DIGEST_RESERVED              0
+#define DNSSEC_DS_DIGEST_SHA1                  1U       //Delegation Signer (DS) Resource Record (RR), see https://tools.ietf.org/html/rfc3658
+#define DNSSEC_DS_DIGEST_SHA256                2U       //Use of SHA-256 in DNSSEC Delegation Signer (DS) Resource Records (RRs), see https://tools.ietf.org/html/rfc4509
+#define DNSSEC_DS_DIGEST_GOST                  3U       //Use of GOST Signature Algorithms in DNSKEY and RRSIG Resource Records for DNSSEC, see https://tools.ietf.org/html/rfc5933
+#define DNSSEC_DS_DIGEST_SHA384                4U       //Elliptic Curve Digital Signature Algorithm (DSA) for DNSSEC, see https://tools.ietf.org/html/rfc6605
+
+//About this list, see https://www.iana.org/assignments/ds-rr-types/ds-rr-types.xhtml
+#define DNSSEC_DS_TYPE_RESERVED                0
+#define DNSSEC_DS_TYPE_SHA1                    1U
+#define DNSSEC_DS_TYPE_SHA256                  2U
+#define DNSSEC_DS_TYPE_GOST                    3U
+#define DNSSEC_DS_TYPE_SHA384                  4U
+#define SHA1_LENGTH                            20       //SHA-1 output is 160 bits/20 bytes lentgh
+#define SHA256_LENGTH                          32       //SHA-256 output is 256 bits/32 bytes lentgh
+#define GOST_LENGTH                            32       //GOST R 34.11-94 output is 256 bits/32 bytes lentgh
+#define SHA384_LENGTH                          48       //SHA-384 output is 384 bits/48 bytes lentgh
+typedef struct _dns_record_ds_
+{
+	uint16_t              KeyTag;
+	uint8_t               Algorithm;
+	uint8_t               Type;
+//	PUCHAR                Digest;
+}dns_record_ds, *pdns_record_ds;
+
+/* Domain Name System/DNS Resource Record Digital Signature/RRSIG Records
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|        Type Covered           |   Algorithm   |    Labels     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                         Original TTL                          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                      Signature Expiration                     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                      Signature Inception                      |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|            Key Tag            |                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+         Signer's Name         /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                            Signature                          /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+#define DNSSEC_AlGORITHM_RESERVED_0            0        //Reserved(Resource Records for the DNS Security Extensions, see https://tools.ietf.org/html/rfc4034)
+#define DNSSEC_AlGORITHM_RSA_MD5               1U       //RSA-MD5(RSA/SHA-1 SIGs and RSA KEYs in the Domain Name System (DNS), see https://tools.ietf.org/html/rfc3110)
+#define DNSSEC_AlGORITHM_DH                    2U       //Diffie-Hellman(Storage of Diffie-Hellman Keys in the Domain Name System (DNS), see https://tools.ietf.org/html/rfc2539)
+#define DNSSEC_AlGORITHM_DSA                   3U       //DSA-SHA1(Legacy Resolver Compatibility for Delegation Signer (DS), see https://tools.ietf.org/html/rfc3755)
+#define DNSSEC_AlGORITHM_RESERVED_4            4U       //Reserved(DNS Security (DNSSEC) DNSKEY Algorithm IANA Registry Updates, see https://tools.ietf.org/html/rfc6725)
+#define DNSSEC_AlGORITHM_RSA_SHA1              5U       //RSA-SHA-1(Resource Records for the DNS Security Extensions, see https://tools.ietf.org/html/rfc4034)
+#define DNSSEC_AlGORITHM_DSA_NSEC3_SHA1        6U       //DSA-NSEC3-SHA-1(DNS Security (DNSSEC) Hashed Authenticated Denial of Existence, see https://tools.ietf.org/html/rfc5155)
+#define DNSSEC_AlGORITHM_RSA_SHA1_NSEC3_SHA1   7U       //RSA-SHA-1-NSEC3-SHA-1(DNS Security (DNSSEC) Hashed Authenticated Denial of Existence, see https://tools.ietf.org/html/rfc5155)
+#define DNSSEC_AlGORITHM_RSA_SHA256            8U       //RSA-SHA-256(Use of SHA-2 Algorithms with RSA in DNSKEY and RRSIG Resource Records for DNSSEC, see https://tools.ietf.org/html/rfc5702)
+#define DNSSEC_AlGORITHM_RESERVED_9            9U       //Reserved(DNS Security (DNSSEC) DNSKEY Algorithm IANA Registry Updates, see https://tools.ietf.org/html/rfc6725)
+#define DNSSEC_AlGORITHM_RSA_SHA512            10U      //RSA-SHA-512(Use of SHA-2 Algorithms with RSA in DNSKEY and RRSIG Resource Records for DNSSEC, see https://tools.ietf.org/html/rfc5702)
+#define DNSSEC_AlGORITHM_RESERVED_11           11U      //Reserved(DNS Security (DNSSEC) DNSKEY Algorithm IANA Registry Updates, see https://tools.ietf.org/html/rfc6725)
+#define DNSSEC_AlGORITHM_ECC_GOST              12U      //GOST R 34.10-2001(Use of GOST Signature Algorithms in DNSKEY and RRSIG Resource Records for DNSSEC, see https://tools.ietf.org/html/rfc5933)
+#define DNSSEC_AlGORITHM_ECDSA_P256_SHA256     13U      //ECDSA Curve P-256 with SHA-256(Elliptic Curve Digital Signature Algorithm (DSA) for DNSSEC, see https://tools.ietf.org/html/rfc6605)
+#define DNSSEC_AlGORITHM_ECDSA_P386_SHA386     14U      //ECDSA Curve P-384 with SHA-384(Elliptic Curve Digital Signature Algorithm (DSA) for DNSSEC, see https://tools.ietf.org/html/rfc6605)
+#define DNSSEC_AlGORITHM_RESERVED_123          123U     //Reserved area between 123 and 251(Resource Records for the DNS Security Extensions, see https://tools.ietf.org/html/rfc4034)
+#define DNSSEC_AlGORITHM_RESERVED_251          251U     //Reserved area between 123 and 251(Resource Records for the DNS Security Extensions, see https://tools.ietf.org/html/rfc4034)
+#define DNSSEC_AlGORITHM_INDIRECT              252U     //Reserved for Indirect Keys(Resource Records for the DNS Security Extensions, see https://tools.ietf.org/html/rfc4034)
+#define DNSSEC_AlGORITHM_PRIVATE_DNS           253U     //Private algorithm(Resource Records for the DNS Security Extensions, see https://tools.ietf.org/html/rfc4034)
+#define DNSSEC_AlGORITHM_PRIVATE_OID           254U     //Private algorithm(Resource Records for the DNS Security Extensions, see https://tools.ietf.org/html/rfc4034)
+#define DNSSEC_AlGORITHM_RESERVED_255          255U     //Reserved(Resource Records for the DNS Security Extensions, see https://tools.ietf.org/html/rfc4034)
+#define RSA_MIN_LENGTH                         64U
+#define DH_MIN_LENGTH                          96U
+#define DSA_MIN_LENGTH                         128U
+#define ECC_MIN_LENGTH                         24U
+typedef struct _dns_record_rrsig_
+{
+	uint16_t              TypeCovered;
+	uint8_t               Algorithm;
+	uint8_t               Labels;
+	uint32_t              TTL;
+	uint32_t              Expiration;
+	uint32_t              Inception;
+	uint16_t              KeyTag;
+//	PUCHAR                SignerName;
+//	PUCHAR                Signature;
+}dns_record_rrsig, *pdns_record_rrsig;
+
+/* Domain Name System/DNS DNS Key/DNSKEY Resource Records
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|             Flags             |    Protocol   |   Algorithm   |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                            Digest                             /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+#define DNSSEC_DNSKEY_FLAGS_ZK                 0x0100
+#define DNSSEC_DNSKEY_FLAGS_KR                 0x0080
+#define DNSSEC_DNSKEY_FLAGS_SEP                0x0001
+#define DNSSEC_DNSKEY_FLAGS_RSV                0xFE7E
+#define DNSSEC_DNSKEY_PROTOCOL                 3U
+typedef struct _dns_record_dnskey_
+{
+	union {
+		uint16_t          Flags;
+		struct {
+		#if __BYTE_ORDER == __LITTLE_ENDIAN
+			uint8_t       ZoneKey:1;         //Zone Key bit
+			uint8_t       Zero_A:7;
+			uint8_t       KeySigningKey:1;   //Key Signing Key bit
+			uint8_t       Zero_B:6;
+			uint8_t       KeyRevoked:1;      //Key Revoked bit
+		#else //BIG_ENDIAN
+			uint8_t       Zero_A:7;
+			uint8_t       ZoneKey:1;         //Zone Key bit
+			uint8_t       KeyRevoked:1;      //Key Revoked bit
+			uint8_t       Zero_B:6;
+			uint8_t       KeySigningKey:1;   //Key Signing Key bit
+		#endif
+		}FlagsBits;
+	};
+	uint8_t               Protocol;
+	uint8_t               Algorithm;
+//	PUCHAR                PublicKey;
+}dns_record_dnskey, *pdns_record_dnskey;
+
+/* Domain Name System/DNS Next-Secure/NSEC Resource Records
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                       Next Domain Name                        /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                        Type Bit Maps                          /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+typedef struct _dns_record_nsec_
+{
+//	PUCHAR                NextDomainName;
+//	PUCHAR                TypeBitMap;
+}dns_record_nsec, *pdns_record_nsec;
+*/
+
+/* Domain Name System/DNS NSEC version 3/NSEC3 Resource Records
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|     Hash      |     Flags     |          Iterations           |
+|   Algorithm   |               |                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  Salt Length  |                     Salt                      /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  Hash Length  |            Next Hashed Owner Name             /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                         Type Bit Maps                         /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+//About this list, see https://www.iana.org/assignments/dnssec-nsec3-parameters/dnssec-nsec3-parameters.xhtml
+#define DNSSEC_NSEC3_ALGORITHM_SHA1            1U
+typedef struct _dns_record_nsec3_
+{
+	uint8_t               Algorithm;
+	union {
+		uint8_t           Flags;
+		struct {
+		#if __BYTE_ORDER == __LITTLE_ENDIAN
+			uint8_t       OptOut:1;
+			uint8_t       Zero:7;
+		#else //BIG_ENDIAN
+			uint8_t       Zero:7;
+			uint8_t       OptOut:1;
+		#endif
+		}FlagsBits;
+	};
+	uint16_t              Iterations;
+	uint8_t               SaltLength;
+//	PUCHAR                Salt;
+//	uint8_t               HashLength;
+//	PUCHAR                NextHashedOwnerName;
+//	PUCHAR                TypeBitMap;
+}dns_record_nsec3, *pdns_record_nsec3;
+
+/* Domain Name System/DNS NSEC version 3 Parameters/NSEC3PARAM Resource Records
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|     Hash      |     Flags     |          Iterations           |
+|   Algorithm   |               |                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  Salt Length  |                     Salt                      /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+//About this list, see https://www.iana.org/assignments/dnssec-nsec3-parameters/dnssec-nsec3-parameters.xhtml
+typedef struct _dns_record_nsec3param_
+{
+	uint8_t               Algorithm;
+	union {
+		uint8_t           Flags;
+		struct {
+		#if __BYTE_ORDER == __LITTLE_ENDIAN
+			uint8_t       Reserved:1;
+			uint8_t       Zero:7;
+		#else //BIG_ENDIAN
+			uint8_t       Zero:7;
+			uint8_t       Reserved:1;
+		#endif
+		}FlagsBits;
+	};
+	uint16_t              Iterations;
+	uint8_t               SaltLength;
+//	PUCHAR                Salt;
+}dns_record_nsec3param, *pdns_record_nsec3param;
+
+/* Domain Name System/DNS Certification Authority Authorization/CAA Resource Records
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|     Flags     |    Length     |                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               /
+/                             Tag                               /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                            Value                              /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _dns_record_caa_
+{
+	union {
+		uint8_t           Flags;
+		struct {
+		#if __BYTE_ORDER == __LITTLE_ENDIAN
+			uint8_t       Zero:7;
+			uint8_t       IssuerCritical:1;
+		#else //BIG_ENDIAN
+			uint8_t       IssuerCritical:1;
+			uint8_t       Zero:7;
+		#endif
+		}FlagsBits;
+	};
+	uint8_t               Length;
+//	PUCHAR                Tag;
+//	PUCHAR                Value;
+}dns_record_caa, *pdns_record_caa;
+
 //Domain Name System Curve/DNSCurve Part
 #if defined(ENABLE_LIBSODIUM)
 // About DNSCurve standards, see http://dnscurve.org. Also about DNSCrypt, see http://dnscrypt.org
@@ -1825,11 +2203,11 @@ typedef struct _edns_client_subnet_
 #define DNSCRYPT_RECEIVE_MAGIC       ("r6fnvWj8")                   //Receive Magic Number
 #define DNSCRYPT_CERT_MAGIC          ("DNSC")                       //Signature Magic Number
 #define crypto_box_HALF_NONCEBYTES   (crypto_box_NONCEBYTES / 2U)
-#define DNSCRYPT_TXT_RECORDS_LEN     124U                           //Length of DNScrypt TXT records
+#define DNSCRYPT_TXT_RECORDS_LEN     124U                           //Length of DNScrypt TXT Records
 
 /* Domain Name System Curve/DNSCurve Test Strings/TXT Data header
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                   Certificate Magic Number                    |
@@ -1849,7 +2227,7 @@ typedef struct _dnscurve_txt_hdr_
 
 /* Domain Name System Curve/DNSCurve Signature with Test Strings/TXT Data
 
-                    1                   2                   3
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                                                               |
@@ -1931,12 +2309,12 @@ typedef struct _dnscurve_txt_signature_
 //Version defines
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4             //Current configuration version
-#define FULL_VERSION                 L"0.4.1.1"
+#define FULL_VERSION                 L"0.4.1.2"
 
 //Size and length defines
-#define BOM_UTF_8_LENGTH               3U                                         //Length of UTF-8 BOM
-#define BOM_UTF_16_LENGTH              2U                                         //Length of UTF-16 BOM
-#define BOM_UTF_32_LENGTH              4U                                         //Length of UTF-32 BOM
+#define BOM_UTF_8_LENGTH               3U                                         //UTF-8 BOM length
+#define BOM_UTF_16_LENGTH              2U                                         //UTF-16 BOM length
+#define BOM_UTF_32_LENGTH              4U                                         //UTF-32 BOM length
 #define COMMAND_BUFFER_MAXSIZE         4096U                                      //Maximum size of commands buffer(4096 bytes)
 #define FILE_BUFFER_SIZE               4096U                                      //Maximum size of file buffer(4KB/4096 bytes)
 #define DEFAULT_FILE_MAXSIZE           1073741824U                                //Maximum size of whole reading file(1GB/1073741824 bytes).
@@ -1971,7 +2349,7 @@ typedef struct _dnscurve_txt_signature_
 #define DNS_PACKET_MINSIZE             (sizeof(dns_hdr) + 4U + sizeof(dns_qry))                                        //Minimum DNS packet size(DNS Header + Minimum Domain + DNS Query)
 #define DNS_RR_MAXCOUNT_AAAA           43U                                                                             //Maximum Record Resources size of AAAA answers, 28 bytes * 43 = 1204 bytes
 #define DNS_RR_MAXCOUNT_A              75U                                                                             //Maximum Record Resources size of A answers, 16 bytes * 75 = 1200 bytes
-#define EDNS_ADDITIONAL_MAXSIZE       (sizeof(dns_record_opt) * 2U + sizeof(edns_client_subnet) + sizeof(in6_addr))    //Maximum of EDNS Additional Record Resources size
+#define EDNS_ADDITIONAL_MAXSIZE        (sizeof(dns_record_opt) * 2U + sizeof(edns_client_subnet) + sizeof(in6_addr))   //Maximum of EDNS Additional Record Resources size
 
 //Code defines
 #if defined(PLATFORM_WIN)
@@ -2296,8 +2674,10 @@ public:
 	bool                             CPMPointerToRR;
 	bool                             CPMPointerToAdditional;
 	bool                             EDNSLabel;
-	bool                             DNSSECRequest;
 	bool                             EDNSClientSubnet;
+	bool                             DNSSECRequest;
+	bool                             DNSSECValidation;
+	bool                             DNSSECForceValidation;
 	bool                             AlternateMultiRequest;
 	bool                             IPv4DataCheck;
 #if defined(ENABLE_PCAP)

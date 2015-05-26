@@ -468,7 +468,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 
 							//DNSSEC
 								if (Parameter.DNSSECRequest)
-									DNS_Record_OPT->Z_Bits.DO = ~DNS_Record_OPT->Z_Bits.DO; //Accept DNSSEC security Resource Records
+									DNS_Record_OPT->Z_Field = htons(ntohs(DNS_Record_OPT->Z_Field) | EDNS_GET_BIT_DO); //Set Accepts DNSSEC security Resource Records bit.
 
 								return Length + HostsTableIter.Length;
 							}
@@ -541,7 +541,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 
 							//DNSSEC
 								if (Parameter.DNSSECRequest)
-									DNS_Record_OPT->Z_Bits.DO = ~DNS_Record_OPT->Z_Bits.DO; //Accept DNSSEC security Resource Records
+									DNS_Record_OPT->Z_Field = htons(ntohs(DNS_Record_OPT->Z_Field) | EDNS_GET_BIT_DO); //Set Accepts DNSSEC security Resource Records bit.
 
 								return Length + HostsTableIter.Length;
 							}
@@ -855,20 +855,18 @@ size_t __fastcall MarkDomainCache(const char *Buffer, const size_t Length)
 		pdns_record_standard DNS_Record_Standard = nullptr;
 		size_t TTLCount = 0;
 
-	//Scan all results.
-		for (size_t Index = 0;Index < (size_t)(ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional));++Index)
+	//Scan all Answers Resource Records.
+		for (size_t Index = 0;Index < (size_t)ntohs(DNS_Header->Answer);++Index)
 		{
-		//Resource Records Name(domain)
+		//Resource Records Name(Domain Name)
 			DataLength += CheckDNSQueryNameLength(Buffer + DataLength) + 1U;
-		//Length check
-			if (DataLength > Length)
+			if (DataLength + sizeof(dns_record_standard) > Length)
 				break;
 
 		//Standard Resource Records
 			DNS_Record_Standard = (pdns_record_standard)(Buffer + DataLength);
 			DataLength += sizeof(dns_record_standard);
-		//Length check
-			if (DataLength > Length)
+			if (DataLength > Length || DNS_Record_Standard != nullptr && DataLength + ntohs(DNS_Record_Standard->Length) > Length)
 				break;
 
 		//Resource Records Data
@@ -881,11 +879,9 @@ size_t __fastcall MarkDomainCache(const char *Buffer, const size_t Length)
 			}
 
 			DataLength += ntohs(DNS_Record_Standard->Length);
-		//Length check
-			if (DataLength > Length)
-				break;
 		}
 
+	//Calculate average TTL.
 		if (TTLCount > 0)
 			ResponseTTL = ResponseTTL / (uint32_t)TTLCount + ResponseTTL % (uint32_t)TTLCount;
 	}

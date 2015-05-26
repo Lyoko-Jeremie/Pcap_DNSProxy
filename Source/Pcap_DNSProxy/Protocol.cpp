@@ -1055,13 +1055,13 @@ uint16_t __fastcall ServiceNameToHex(const char *OriginalBuffer)
 		return htons(IPPORT_TELNET);
 	else if (Buffer == "SMTP" || Buffer == "smtp")
 		return htons(IPPORT_SMTP);
-	else if (Buffer == "TIME" || Buffer == "time")
+	else if (Buffer == "TIMESERVER" || Buffer == "timeserver")
 		return htons(IPPORT_TIMESERVER);
 	else if (Buffer == "RAP" || Buffer == "rap")
 		return htons(IPPORT_RAP);
 	else if (Buffer == "RLP" || Buffer == "rlp")
 		return htons(IPPORT_RLP);
-	else if (Buffer == "NAME" || Buffer == "name")
+	else if (Buffer == "NAMESERVER" || Buffer == "nameserver")
 		return htons(IPPORT_NAMESERVER);
 	else if (Buffer == "WHOIS" || Buffer == "whois")
 		return htons(IPPORT_WHOIS);
@@ -1101,11 +1101,11 @@ uint16_t __fastcall ServiceNameToHex(const char *OriginalBuffer)
 		return htons(IPPORT_NTP);
 	else if (Buffer == "EPMAP" || Buffer == "epmap")
 		return htons(IPPORT_EPMAP);
-	else if (Buffer == "NETBIOSNS" || Buffer == "netbiosns")
+	else if (Buffer == "NETBIOS_NS" || Buffer == "netbios_ns")
 		return htons(IPPORT_NETBIOS_NS);
-	else if (Buffer == "NETBIOSDGM" || Buffer == "netbiosdgm")
+	else if (Buffer == "NETBIOS_DGM" || Buffer == "netbios_dgm")
 		return htons(IPPORT_NETBIOS_DGM);
-	else if (Buffer == "NETBIOSSSN" || Buffer == "netbiosssn")
+	else if (Buffer == "NETBIOS_SSN" || Buffer == "netbios_ssn")
 		return htons(IPPORT_NETBIOS_SSN);
 	else if (Buffer == "IMAP" || Buffer == "imap")
 		return htons(IPPORT_IMAP);
@@ -1119,7 +1119,7 @@ uint16_t __fastcall ServiceNameToHex(const char *OriginalBuffer)
 		return htons(IPPORT_DMSP);
 	else if (Buffer == "SNMP" || Buffer == "snmp")
 		return htons(IPPORT_SNMP);
-	else if (Buffer == "SNMPTRAP" || Buffer == "snmptrap")
+	else if (Buffer == "SNMP_TRAP" || Buffer == "snmp_trap")
 		return htons(IPPORT_SNMP_TRAP);
 	else if (Buffer == "ATRTMP" || Buffer == "atrtmp")
 		return htons(IPPORT_ATRTMP);
@@ -2192,9 +2192,9 @@ size_t __fastcall AddEDNSToAdditionalRR(PSTR Buffer, const size_t Length)
 //DNSSEC requesting
 	if (Parameter.DNSSECRequest)
 	{
-		DNS_Header->FlagsBits.AD = ~DNS_Header->FlagsBits.AD; //Local DNSSEC Server validate
-		DNS_Header->FlagsBits.CD = ~DNS_Header->FlagsBits.CD; //Client validate
-		DNS_Record_OPT->Z_Bits.DO = ~DNS_Record_OPT->Z_Bits.DO; //Accepts DNSSEC security Resource Records
+		DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_GET_BIT_AD); //Set Authentic Data bit.
+//		DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_GET_BIT_CD); //Set Checking Disabled bit.
+		DNS_Record_OPT->Z_Field = htons(ntohs(DNS_Record_OPT->Z_Field) | EDNS_GET_BIT_DO); //Set Accepts DNSSEC security Resource Records bit.
 	}
 
 //EDNS client subnet
@@ -2384,6 +2384,7 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 	if (Parameter.DNSDataCheck && (DNS_Header->Questions != htons(U16_NUM_ONE) || //Question Resource Records must be one.
 		ntohs(DNS_Header->Flags) >> 15U == 0 || //Not any Question Resource Records
 //		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_AA) != 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 || //Responses are not authoritative when there are no Authoritative Nameservers Records and Additional Resource Records.
+		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RD) == 0 && (ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NOERROR && DNS_Header->Answer == 0 || //Do query recursively bit must be set when RCode is No Error and there are Answers Resource Records.
 		IsLocal && ((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) > DNS_RCODE_NOERROR || (ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) != 0 && DNS_Header->Answer == 0) || //Local requesting failed or Truncated(xxxxxx1xxxxxxxxx & 0000001000000000 >> 9 == 1)
 		Parameter.EDNSLabel && DNS_Header->Additional == 0)) //Additional EDNS Label Resource Records check
 			return false;
@@ -2448,6 +2449,7 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 	pdns_record_standard DNS_Record_Standard = nullptr;
 	in6_addr *pin6_addr = nullptr;
 	in_addr *pin_addr = nullptr;
+
 	if (DNS_Header->Answer == htons(U16_NUM_ONE) && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && DNS_Query->Classes == htons(DNS_CLASS_IN))
 	{
 	//Records Type in responses check
@@ -2478,26 +2480,47 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 			}
 		}
 	}
-//Scan all results.
+//Scan all Resource Records.
 	else {
+		uint16_t BeforeType = 0;
+		auto IsEDNSLabel = false, IsDNSSEC_Records = false;	
 		for (size_t Index = 0;Index < (size_t)(ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional));++Index)
 		{
 		//Resource Records Name(Domain)
 			DataLength += CheckDNSQueryNameLength(Buffer + DataLength) + 1U;
-		//Length check
-			if (DataLength > Length)
+			if (DataLength + sizeof(dns_record_standard) > Length)
 				return false;
 
 		//Standard Resource Records
 			DNS_Record_Standard = (pdns_record_standard)(Buffer + DataLength);
 			DataLength += sizeof(dns_record_standard);
-		//Length check
-			if (DataLength > Length)
+			if (DataLength > Length || DataLength + ntohs(DNS_Record_Standard->Length) > Length)
 				return false;
 
-		//Resource Records Data
+		//EDNS Label(OPT Records) and DNSSEC Records(RRSIG/DNSKEY/DS/NSEC/NSEC3/NSEC3PARAM) check
+			if (Parameter.EDNSLabel)
+			{
+				if (DNS_Record_Standard->Type == htons(DNS_RECORD_OPT))
+					IsEDNSLabel = true;
+				else if (Parameter.DNSSECRequest && 
+					(DNS_Record_Standard->Type == htons(DNS_RECORD_SIG) || DNS_Record_Standard->Type == htons(DNS_RECORD_KEY) || DNS_Record_Standard->Type == htons(DNS_RECORD_DS) || 
+					DNS_Record_Standard->Type == htons(DNS_RECORD_RRSIG) || DNS_Record_Standard->Type == htons(DNS_RECORD_NSEC) || DNS_Record_Standard->Type == htons(DNS_RECORD_DNSKEY) || 
+					DNS_Record_Standard->Type == htons(DNS_RECORD_NSEC3) || DNS_Record_Standard->Type == htons(DNS_RECORD_NSEC3PARAM) || DNS_Record_Standard->Type == htons(DNS_RECORD_CDS) || 
+					DNS_Record_Standard->Type == htons(DNS_RECORD_CDNSKEY)))
+				{
+					IsDNSSEC_Records = true;
+
+				//DNSSEC Validation
+					if (Parameter.DNSSECValidation && !CheckDNSSECRecords(Buffer + DataLength, ntohs(DNS_Record_Standard->Length), DNS_Record_Standard->Type, BeforeType))
+						return false;
+				}
+			}
+
+
+		//Read Resource Records data
 			if (DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && DNS_Record_Standard->TTL > 0)
 			{
+			//AAAA Records
 				if (DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA) && DNS_Record_Standard->Length == htons(sizeof(in6_addr)))
 				{
 				//Records Type in responses check
@@ -2507,9 +2530,10 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 				//Check addresses.
 					pin6_addr = (in6_addr *)(Buffer + DataLength);
 					if (Parameter.BlacklistCheck && CheckSpecialAddress(pin6_addr, AF_INET6, false, Domain.get()) || 
-						!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin6_addr, AF_INET6))
+						!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && Index < ntohs(DNS_Header->Answer) && !CheckAddressRouting(pin6_addr, AF_INET6))
 							return false;
 				}
+			//A Records
 				else if (DNS_Record_Standard->Type == htons(DNS_RECORD_A) && DNS_Record_Standard->Length == htons(sizeof(in_addr)))
 				{
 				//Records Type in responses check
@@ -2519,16 +2543,119 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 				//Check addresses.
 					pin_addr = (in_addr *)(Buffer + DataLength);
 					if (Parameter.BlacklistCheck && CheckSpecialAddress(pin_addr, AF_INET, false, Domain.get()) || 
-						!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin_addr, AF_INET))
+						!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && Index < ntohs(DNS_Header->Answer) && !CheckAddressRouting(pin_addr, AF_INET))
 							return false;
 				}
 			}
 
 			DataLength += ntohs(DNS_Record_Standard->Length);
-		//Length check
-			if (DataLength > Length)
-				return false;
+		//Mark Resource Records type.
+			if (Parameter.EDNSLabel && Parameter.DNSSECRequest && Parameter.DNSSECValidation)
+				BeforeType = DNS_Record_Standard->Type;
 		}
+
+	//Additional EDNS Label Resource Records and DNSSEC Validation check
+		if (Parameter.EDNSLabel && (!IsEDNSLabel || Parameter.DNSSECRequest && Parameter.DNSSECForceValidation && !IsDNSSEC_Records))
+			return false;
+	}
+
+	return true;
+}
+
+//Check DNSSEC Records
+bool __fastcall CheckDNSSECRecords(const char *Buffer, const size_t Length, const uint16_t Type, const uint16_t BeforeType)
+{
+//DS and CDS Records
+	if (Type == htons(DNS_RECORD_DS) || Type == htons(DNS_RECORD_CDS))
+	{
+		auto DNS_Record_DS = (pdns_record_ds)Buffer;
+
+	//Key Tag, Algorithm and Digest Type check
+		if (DNS_Record_DS->KeyTag == 0 || 
+			DNS_Record_DS->Algorithm == DNSSEC_AlGORITHM_RESERVED_0 || DNS_Record_DS->Algorithm == DNSSEC_AlGORITHM_RESERVED_4 || DNS_Record_DS->Algorithm == DNSSEC_AlGORITHM_RESERVED_9 || 
+			DNS_Record_DS->Algorithm == DNSSEC_AlGORITHM_RESERVED_11 || DNS_Record_DS->Algorithm >= DNSSEC_AlGORITHM_RESERVED_123 && DNS_Record_DS->Algorithm >= DNSSEC_AlGORITHM_RESERVED_251 || 
+			DNS_Record_DS->Algorithm == DNSSEC_AlGORITHM_RESERVED_255 || 
+			DNS_Record_DS->Type == DNSSEC_DS_TYPE_RESERVED)
+				return false;
+
+	//Algorithm length check
+		if (DNS_Record_DS->Type == DNSSEC_DS_TYPE_SHA1 && Length != sizeof(dns_record_ds) + SHA1_LENGTH || 
+			DNS_Record_DS->Type == DNSSEC_DS_TYPE_SHA256 && Length != sizeof(dns_record_ds) + SHA256_LENGTH || 
+			DNS_Record_DS->Type == DNSSEC_DS_TYPE_GOST && Length != sizeof(dns_record_ds) + GOST_LENGTH || 
+			DNS_Record_DS->Type == DNSSEC_DS_TYPE_SHA384 && Length != sizeof(dns_record_ds) + SHA384_LENGTH)
+				return false;
+	}
+//SIG and RRSIG Records
+	else if (Type == htons(DNS_RECORD_SIG) || Type == htons(DNS_RECORD_RRSIG))
+	{
+		auto DNS_Record_RRSIG = (pdns_record_rrsig)Buffer;
+
+	//RRSIG header check
+		if (
+		//Type Coverded check
+			DNS_Record_RRSIG->TypeCovered != BeforeType || 
+		//Algorithm check
+			DNS_Record_RRSIG->Algorithm == DNSSEC_AlGORITHM_RESERVED_0 || DNS_Record_RRSIG->Algorithm == DNSSEC_AlGORITHM_RESERVED_4 || DNS_Record_RRSIG->Algorithm == DNSSEC_AlGORITHM_RESERVED_9 || 
+			DNS_Record_RRSIG->Algorithm == DNSSEC_AlGORITHM_RESERVED_11 || DNS_Record_RRSIG->Algorithm >= DNSSEC_AlGORITHM_RESERVED_123 && DNS_Record_RRSIG->Algorithm >= DNSSEC_AlGORITHM_RESERVED_251 || 
+			DNS_Record_RRSIG->Algorithm == DNSSEC_AlGORITHM_RESERVED_255 || 
+		//Labels, Original TTL and Key Tag check
+			DNS_Record_RRSIG->Labels == 0 || DNS_Record_RRSIG->TTL == 0 || DNS_Record_RRSIG->KeyTag == 0 || 
+		//Signature available time check
+			time(nullptr) < (time_t)ntohl(DNS_Record_RRSIG->Inception) || time(nullptr) > (time_t)ntohl(DNS_Record_RRSIG->Expiration))
+				return false;
+
+	//Algorithm length check
+		if (
+		//The Signature length must longer than 512 bits/64 bytes in RSA suite.
+			(DNS_Record_RRSIG->Algorithm == DNSSEC_AlGORITHM_RSA_MD5 || DNS_Record_RRSIG->Algorithm == DNSSEC_AlGORITHM_RSA_SHA1 || DNS_Record_RRSIG->Algorithm == DNSSEC_AlGORITHM_RSA_SHA1_NSEC3_SHA1 ||
+			DNS_Record_RRSIG->Algorithm == DNSSEC_AlGORITHM_RSA_SHA256 || DNS_Record_RRSIG->Algorithm == DNSSEC_AlGORITHM_RSA_SHA512) && Length <= sizeof(dns_record_rrsig) + RSA_MIN_LENGTH || 
+		//The Signature length must longer than 768 bits/96 bytes in Diffie-Hellman suite.
+			DNS_Record_RRSIG->Algorithm == DNSSEC_AlGORITHM_DH && Length <= sizeof(dns_record_rrsig) + DH_MIN_LENGTH || 
+		//The Signature length must longer than 1024 bits/128 bytes in DSA suite.
+			(DNS_Record_RRSIG->Algorithm == DNSSEC_AlGORITHM_DSA || DNS_Record_RRSIG->Algorithm == DNSSEC_AlGORITHM_DSA_NSEC3_SHA1) && Length <= sizeof(dns_record_rrsig) + DSA_MIN_LENGTH || 
+		//The Signature length must longer than 192 bits/24 bytes in ECC suite.
+			(DNS_Record_RRSIG->Algorithm == DNSSEC_AlGORITHM_ECC_GOST || DNS_Record_RRSIG->Algorithm == DNSSEC_AlGORITHM_ECDSA_P256_SHA256 || DNS_Record_RRSIG->Algorithm == DNSSEC_AlGORITHM_ECDSA_P386_SHA386) && 
+			Length <= sizeof(dns_record_rrsig) + ECC_MIN_LENGTH)
+				return false;
+	}
+//DNSKEY and CDNSKEY Records
+	else if (Type == htons(DNS_RECORD_DNSKEY) || Type == htons(DNS_RECORD_CDNSKEY))
+	{
+		auto DNS_Record_DNSKEY = (pdns_record_dnskey)Buffer;
+
+	//Key Revoked bit, Protocol and Algorithm check
+		if ((ntohs(DNS_Record_DNSKEY->Flags) & DNSSEC_DNSKEY_FLAGS_RSV) > 0 || DNS_Record_DNSKEY->Protocol != DNSSEC_DNSKEY_PROTOCOL ||
+			DNS_Record_DNSKEY->Algorithm == DNSSEC_AlGORITHM_RESERVED_0 || DNS_Record_DNSKEY->Algorithm == DNSSEC_AlGORITHM_RESERVED_4 || DNS_Record_DNSKEY->Algorithm == DNSSEC_AlGORITHM_RESERVED_9 || 
+			DNS_Record_DNSKEY->Algorithm == DNSSEC_AlGORITHM_RESERVED_11 || DNS_Record_DNSKEY->Algorithm >= DNSSEC_AlGORITHM_RESERVED_123 && DNS_Record_DNSKEY->Algorithm >= DNSSEC_AlGORITHM_RESERVED_251 || 
+			DNS_Record_DNSKEY->Algorithm == DNSSEC_AlGORITHM_RESERVED_255)
+				return false;
+	}
+//NSEC3 Records
+	else if (Type == htons(DNS_RECORD_NSEC3))
+	{
+		auto DNS_Record_NSEC3 = (pdns_record_nsec3)Buffer;
+
+	//Algorithm check
+		if (DNS_Record_NSEC3->Algorithm == DNSSEC_AlGORITHM_RESERVED_0 || DNS_Record_NSEC3->Algorithm == DNSSEC_AlGORITHM_RESERVED_4 || DNS_Record_NSEC3->Algorithm == DNSSEC_AlGORITHM_RESERVED_9 || 
+			DNS_Record_NSEC3->Algorithm == DNSSEC_AlGORITHM_RESERVED_11 || DNS_Record_NSEC3->Algorithm >= DNSSEC_AlGORITHM_RESERVED_123 && DNS_Record_NSEC3->Algorithm >= DNSSEC_AlGORITHM_RESERVED_251 || 
+			DNS_Record_NSEC3->Algorithm == DNSSEC_AlGORITHM_RESERVED_255)
+				return false;
+
+	//Hash Length check
+		if (sizeof(dns_record_nsec3param) + DNS_Record_NSEC3->SaltLength < Length && DNS_Record_NSEC3->Algorithm == DNSSEC_NSEC3_ALGORITHM_SHA1 &&
+			*(uint8_t *)(Buffer + sizeof(dns_record_nsec3param) + DNS_Record_NSEC3->SaltLength) != SHA1_LENGTH)
+				return false;
+	}
+//NSEC3PARAM Records
+	else if (Type == htons(DNS_RECORD_NSEC3PARAM))
+	{
+		auto DNS_Record_NSEC3PARAM = (pdns_record_nsec3param)Buffer;
+
+	//Algorithm check
+		if (DNS_Record_NSEC3PARAM->Algorithm == DNSSEC_AlGORITHM_RESERVED_0 || DNS_Record_NSEC3PARAM->Algorithm == DNSSEC_AlGORITHM_RESERVED_4 || DNS_Record_NSEC3PARAM->Algorithm == DNSSEC_AlGORITHM_RESERVED_9 || 
+			DNS_Record_NSEC3PARAM->Algorithm == DNSSEC_AlGORITHM_RESERVED_11 || DNS_Record_NSEC3PARAM->Algorithm >= DNSSEC_AlGORITHM_RESERVED_123 && DNS_Record_NSEC3PARAM->Algorithm >= DNSSEC_AlGORITHM_RESERVED_251 || 
+			DNS_Record_NSEC3PARAM->Algorithm == DNSSEC_AlGORITHM_RESERVED_255)
+				return false;
 	}
 
 	return true;

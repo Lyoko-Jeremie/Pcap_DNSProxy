@@ -17,17 +17,17 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 1.訪問 https://github.com/chengr28/Pcap_DNSProxy/tree/Release 使用 GitHub 的 Download ZIP 功能將所有檔下載到本地
 2.打開下載回來的 ZIP 檔，將 Mac 目錄解壓到磁片的任意位置
-3.編輯 PcapDNSProxyService.plist
-  * 在 <key>Program</key> 下方 <string></string> 標籤內填入 "程式所在的完整路徑/程式名稱"（不含引號）
-  * 在 <key>WorkingDirectory</key> 下方 <string></string> 標籤內填入 "程式所在的完整路徑"（不含引號）
-5.打開終端，使用 sudo -i 獲得 root 許可權並進入 Mac 目錄內：
+3.編輯 pcap_dnsproxy.service.plist 檔案
+  * 清空 <string>/usr/local/opt/pcap_dnsproxy/bin/Pcap_DNSProxy</string> 標籤內的內容，改為 "<string>程式所在的完整路徑/程式名稱</string>"（不含引號）
+  * 清空 <string>/usr/local/etc/pcap_dnsproxy/</string> 標籤內的內容，改為 "<string>程式所在的完整路徑</string>"（不含引號）
+4.打開終端，使用 sudo -i 獲得 root 許可權並進入 Mac 目錄內：
   * 使用 chmod 777 Build_Mac.sh 使服務安裝腳本獲得可執行許可權
   * 使用 ./Build_Mac.sh 執行服務安裝腳本
   * 腳本所進行的操作：
-    * 將位於 /Library/LaunchDaemons 目錄的 PcapDNSProxyService.plist 擁有者更改為 root
+    * 將位於 /Library/LaunchDaemons 目錄的 pcap_dnsproxy.service.plist 擁有者更改為 root
     * 裝載並啟動守護進程服務
   * 以後每次開機在登錄前守護進程服務都將自動啟動
-6.打開 "系統偏好設置" 視窗
+5.打開 "系統偏好設置" 視窗
   * 進入 "網路" 部分
   * 選中使用的網路介面卡，點擊 "高級" 按鈕
   * 切換到 "DNS" 選項卡，並點擊 "DNS伺服器" 下的 "+" 號
