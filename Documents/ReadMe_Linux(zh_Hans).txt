@@ -43,29 +43,29 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 2.编译 Pcap_DNSProxy 程序并配置程序属性
   * 切勿更改脚本的换行格式 (UNIX/LF)
-  * 使用终端进入 Source 目录，使用 chmod 777 Build_Linux.sh 使脚本获得执行权限
-  * 使用 ./Build_Linux.sh 执行编译程序
+  * 使用终端进入 Source/Scripts 目录，使用 chmod 755 Linux_Build.sh 使脚本获得执行权限
+  * 使用 ./Linux_Build.sh 执行编译程序
     * 脚本所进行的操作：
       * CMake 将编译并在 Release 目录生成 Pcap_DNSProxy 和 KeyPairGenerator 程序
-      * 设置 Pcap_DNSProxy 和 KeyPairGenerator 程序以及 PcapDNSProxyService 和 Pcap_DNSProxy.service 服务控制脚本的可执行权限
-      * 设置 Build_Linux.Systemd.sh 以及 Build_Linux.SysV.sh 服务控制安装脚本的可执行权限
+      * 设置 Pcap_DNSProxy 和 KeyPairGenerator 程序以及 PcapDNSProxyService 和 Pcap_DNSProxy.service 服务控制脚本的基本读写可执行权限
+      * 设置 Linux_(Un)Install.Systemd.sh 以及 Linux_(Un)Install.SysV.sh 服务控制安装脚本的基本读写可执行权限
       * 从 ExampleConfig 复制默认配置文件到 Release 目录
-    * 执行时使用 ./Build_Linux.sh --disable-libsodium 可剥离 Libsodium 的依赖，不建议使用
+    * 执行时使用 ./Linux_Build.sh --disable-libsodium 可剥离 Libsodium 的依赖，不建议使用
       * 剥离后编译时将不需要 Libsodium 库的支持
       * 剥离后程序将完全失去支持 DNSCurve/DNSCrypt 协议的功能，且运行时将不会产生任何错误提示，慎用！
 
 3.配置系统守护进程服务
   * 由于不同的 Linux 发行版对系统服务和守护进程的处理方式不同，本步仅供参考
-    * 附带的 Build_Linux.Systemd.sh 脚本适用于默认使用 Systemd Init 的系统
+    * 附带的 Linux_Install.Systemd.sh 脚本适用于默认使用 Systemd Init 的系统
       * Linux Debian 8.x 官方发行版以及更新版本系统环境，经测试可直接使用
-    * 附带的 Build_Linux.SysV.sh 脚本适用于默认使用 System V Init 的系统
+    * 附带的 Linux_Install.SysV.sh 脚本适用于默认使用 System V Init 的系统
       * Linux Debian 6.x - 7.x 官方发行版系统环境，经测试可直接使用
     * 更多详情可参见下文其它 Linux 发行版服务的说明，以及所使用 Linux 发行版的官方说明
   * 使用 Systemd Init 时：
     * 进入 Release 目录并编辑 Pcap_DNSProxy.service 文件，编辑完成后保存： 
       * WorkingDirectory= 项为程序所在目录的绝对路径
       * ExecStart= 项为程序所在目录的绝对路径，并在最后加上程序的名称
-    * 在 root 权限下使用 ./Build_Linux.Systemd.sh 执行服务安装脚本，脚本所进行的操作：
+    * 在 root 权限下使用 ./Linux_Install.Systemd.sh 执行服务安装脚本，脚本所进行的操作：
       * 将 Pcap_DNSProxy.service 服务控制脚本的所有者更改为 root
       * 安装服务控制脚本到 /etc/systemd/system 目录中
       * 尝试启动 Pcap_DNSProxy 服务，并显示执行操作后服务的状态
@@ -75,7 +75,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 进入 Release 目录并编辑 PcapDNSProxyService 文件，编辑完成后保存：
       * NAME 项为程序的名称
       * PATH 项为程序的绝对路径
-    * 在 root 权限下使用 ./Build_Linux.SysV.sh 执行服务安装脚本，脚本所进行的操作：
+    * 在 root 权限下使用 ./Linux_Install.SysV.sh 执行服务安装脚本，脚本所进行的操作：
       * 将 PcapDNSProxyService 服务控制脚本的所有者更改为 root
       * 安装服务控制脚本到 /etc/init.d 目录中
       * 尝试启动 PcapDNSProxyService 服务，并显示执行操作后服务的状态
@@ -120,13 +120,29 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * 由于不同的 Linux 发行版对系统服务和守护进程的处理方式不同，本步仅供参考
 
 1.还原系统网络配置
-  * 将所有修改过的文件恢复原状即可，参见 安装方法 一节
-2.停止服务
-  * 以 root 权限，使用 service PcapDNSProxyService stop 停止服务
-3.删除服务
-  * 以 root 权限，切换到 /etc/init.d 目录，使用 insserv -r PcapDNSProxyService 删除服务
-  * 以 root 权限，使用 rm PcapDNSProxyService 删除脚本的链接
-4.删除所有 Pcap_DNSProxy 相关文件即可
+2.以 root 权限进入 Release 目录，执行 ./Linux_Uninstall.Systemd.sh 或 ./Linux_Uninstall.SysV.sh
+3.删除所有 Pcap_DNSProxy 相关文件
+
+
+-------------------------------------------------------------------------------
+
+
+建议的升级方法：
+
+* Systemd 部分：
+  1.打开终端，使用 sudo -i 获得 root 权限并进入 Release 目录内
+  2.使用 ./Linux_Uninstall.Systemd.sh 执行服务卸载脚本
+  3.备份所有配置文件，删除所有 Pcap_DNSProxy 相关文件
+  4.按照安装方法重新部署 Pcap_DNSProxy
+    * 进行第4步前先将备份的配置文件还原到 Release 目录内
+    * Config.conf 文件建议按照备份的配置文件重新设置一次，如直接覆盖可能会导致没有新功能的选项
+* SysV 部分：
+  1.打开终端，使用 sudo -i 获得 root 权限并进入 Release 目录内
+  2.使用 ./Linux_Uninstall.SysV.sh 执行服务卸载脚本
+  3.备份所有配置文件，删除所有 Pcap_DNSProxy 相关文件
+  4.按照安装方法重新部署 Pcap_DNSProxy
+    * 进行第4步前先将备份的配置文件还原到 Release 目录内
+    * Config.conf 文件建议按照备份的配置文件重新设置一次，如直接覆盖可能会导致没有新功能的选项
 
 
 -------------------------------------------------------------------------------

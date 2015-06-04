@@ -21,7 +21,7 @@
 
 #if defined(ENABLE_PCAP)
 //Get TTL(IPv4)/Hop Limits(IPv6) with normal DNS request
-size_t __fastcall DomainTestRequest(const uint16_t Protocol)
+bool __fastcall DomainTestRequest(const uint16_t Protocol)
 {
 //Initialization
 	std::shared_ptr<char> Buffer(new char[PACKET_MAXSIZE]()), DNSQuery(new char[PACKET_MAXSIZE]());
@@ -63,7 +63,7 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 			}
 		}
 		else {
-			return EXIT_FAILURE;
+			return false;
 		}
 	}
 
@@ -154,11 +154,11 @@ size_t __fastcall DomainTestRequest(const uint16_t Protocol)
 	}
 
 	PrintError(LOG_ERROR_SYSTEM, L"Domain Test module Monitor terminated", 0, nullptr, 0);
-	return EXIT_SUCCESS;
+	return true;
 }
 
 //Internet Control Message Protocol(version 6)/ICMP(v6) Echo(Ping) request
-size_t __fastcall ICMPEcho(const uint16_t Protocol)
+bool __fastcall ICMPEcho(const uint16_t Protocol)
 {
 //Initialization
 	size_t Length = 0;
@@ -171,7 +171,7 @@ size_t __fastcall ICMPEcho(const uint16_t Protocol)
 		if (ICMPSocket == INVALID_SOCKET)
 		{
 			PrintError(LOG_ERROR_NETWORK, L"ICMPv6 Echo(Ping) request error", WSAGetLastError(), nullptr, 0);
-			return EXIT_FAILURE;
+			return false;
 		}
 
 		Length = sizeof(icmpv6_hdr) + Parameter.ICMPPaddingDataLength - 1U;
@@ -181,7 +181,7 @@ size_t __fastcall ICMPEcho(const uint16_t Protocol)
 		if (ICMPSocket == INVALID_SOCKET)
 		{
 			PrintError(LOG_ERROR_NETWORK, L"ICMP Echo(Ping) request error", WSAGetLastError(), nullptr, 0);
-			return EXIT_FAILURE;
+			return false;
 		}
 
 		Length = sizeof(icmp_hdr) + Parameter.ICMPPaddingDataLength - 1U;
@@ -302,7 +302,7 @@ size_t __fastcall ICMPEcho(const uint16_t Protocol)
 			PrintError(LOG_ERROR_NETWORK, L"Set ICMP socket timeout error", WSAGetLastError(), nullptr, 0);
 		closesocket(ICMPSocket);
 
-		return EXIT_FAILURE;
+		return false;
 	}
 
 //Send requesting.
@@ -403,7 +403,7 @@ size_t __fastcall ICMPEcho(const uint16_t Protocol)
 	shutdown(ICMPSocket, SD_BOTH);
 	closesocket(ICMPSocket);
 	PrintError(LOG_ERROR_SYSTEM, L"ICMP Test module Monitor terminated", 0, nullptr, 0);
-	return EXIT_SUCCESS;
+	return true;
 }
 #endif
 
@@ -427,7 +427,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 //Socket initialization
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
-	if (Parameter.GatewayAvailable_IPv6) //IPv6
+	if (Parameter.GatewayAvailable_IPv6 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) //IPv6
 	{
 	//Local requesting
 		if (IsLocal && Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0)
@@ -470,7 +470,8 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 		}
 	}
 
-	if ((TCPSocket == INVALID_SOCKET || SockAddr->ss_family == 0) && Parameter.GatewayAvailable_IPv4) //IPv4
+	if ((TCPSocket == INVALID_SOCKET || SockAddr->ss_family == 0) && 
+		(Parameter.GatewayAvailable_IPv4 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4)) //IPv4
 	{
 		if (TCPSocket == INVALID_SOCKET)
 			closesocket(TCPSocket);
@@ -514,6 +515,10 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 			TCPSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 			AddrLen = sizeof(sockaddr_in);
 		}
+	}
+	else if (TCPSocket == 0)
+	{
+		return EXIT_FAILURE;
 	}
 
 //Socket check
@@ -743,7 +748,8 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 		return EXIT_FAILURE;
 
 //Socket initialization
-	if (Parameter.GatewayAvailable_IPv6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
+	if ((Parameter.GatewayAvailable_IPv6 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) && 
+		Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
 	{
 		std::shared_ptr<SOCKET_DATA> TCPSocketData(new SOCKET_DATA());
 		memset(TCPSocketData.get(), 0, sizeof(SOCKET_DATA));
@@ -864,7 +870,8 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 			}
 		}
 	}
-	else if (Parameter.GatewayAvailable_IPv4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
+	else if ((Parameter.GatewayAvailable_IPv4 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4) && 
+		Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
 	{
 		std::shared_ptr<SOCKET_DATA> TCPSocketData(new SOCKET_DATA());
 		memset(TCPSocketData.get(), 0, sizeof(SOCKET_DATA));
@@ -1216,7 +1223,8 @@ size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, cons
 	socklen_t AddrLen = 0;
 
 //Socket initialization
-	if (Parameter.GatewayAvailable_IPv6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
+	if ((Parameter.GatewayAvailable_IPv6 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) && 
+		Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
 	{
 		if (AlternateSwapList.IsSwap[2U] && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0) //Alternate
 		{
@@ -1232,7 +1240,8 @@ size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, cons
 		SockAddr->ss_family = AF_INET6;
 		UDPSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	}
-	else if (Parameter.GatewayAvailable_IPv4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
+	else if ((Parameter.GatewayAvailable_IPv4 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4) && 
+		Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
 	{
 		if (AlternateSwapList.IsSwap[3U] && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0) //Alternate
 		{
@@ -1375,7 +1384,8 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 	std::vector<SOCKET_DATA> UDPSocketDataList;
 
 //Socket initialization
-	if (Parameter.GatewayAvailable_IPv6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
+	if ((Parameter.GatewayAvailable_IPv6 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) && 
+		Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
 	{
 		std::shared_ptr<SOCKET_DATA> UDPSocketData(new SOCKET_DATA());
 		memset(UDPSocketData.get(), 0, sizeof(SOCKET_DATA));
@@ -1487,7 +1497,8 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 			}
 		}
 	}
-	else if (Parameter.GatewayAvailable_IPv4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
+	else if ((Parameter.GatewayAvailable_IPv4 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4) && 
+		Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
 	{
 		std::shared_ptr<SOCKET_DATA> UDPSocketData(new SOCKET_DATA());
 		memset(UDPSocketData.get(), 0, sizeof(SOCKET_DATA));
@@ -1773,7 +1784,7 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 //Socket initialization
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
-	if (Parameter.GatewayAvailable_IPv6) //IPv6
+	if (Parameter.GatewayAvailable_IPv6 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) //IPv6
 	{
 	//Local requesting
 		if (IsLocal && Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0)
@@ -1816,7 +1827,8 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 		}
 	}
 
-	if ((UDPSocket == INVALID_SOCKET || SockAddr->ss_family == 0) && Parameter.GatewayAvailable_IPv4) //IPv4
+	if ((UDPSocket == INVALID_SOCKET || SockAddr->ss_family == 0) && 
+		(Parameter.GatewayAvailable_IPv4 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4)) //IPv4
 	{
 		if (UDPSocket == INVALID_SOCKET)
 			closesocket(UDPSocket);
@@ -1860,6 +1872,10 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 			UDPSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 			AddrLen = sizeof(sockaddr_in);
 		}
+	}
+	else if (UDPSocket == 0)
+	{
+		return EXIT_FAILURE;
 	}
 
 //Socket check
@@ -2016,7 +2032,8 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 	std::vector<SOCKET_DATA> UDPSocketDataList;
 
 //Socket initialization
-	if (Parameter.GatewayAvailable_IPv6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
+	if ((Parameter.GatewayAvailable_IPv6 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) && 
+		Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
 	{
 		std::shared_ptr<SOCKET_DATA> UDPSocketData(new SOCKET_DATA());
 		memset(UDPSocketData.get(), 0, sizeof(SOCKET_DATA));
@@ -2128,7 +2145,8 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 			}
 		}
 	}
-	else if (Parameter.GatewayAvailable_IPv4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
+	else if ((Parameter.GatewayAvailable_IPv4 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4) && 
+		Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
 	{
 		std::shared_ptr<SOCKET_DATA> UDPSocketData(new SOCKET_DATA());
 		memset(UDPSocketData.get(), 0, sizeof(SOCKET_DATA));

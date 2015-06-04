@@ -1,9 +1,21 @@
-﻿Pcap_DNSProxy v0.4.1.1-v0.4.1.2(Windows/Linux/Mac) 更新日誌(2015-05-26)：
+﻿Pcap_DNSProxy v0.4.2(Windows/Linux/Mac) 更新日誌(2015-06-04)：
+
+* 為 Protocol 參數添加優先指定網路層協定功能
+* 添加不終止程式運行的錯誤提示類型
+* 設定檔新增 cfg 副檔名的支援
+* 添加可用於卸載服務的 Shell 腳本(Linux/Mac)
+* 修改讀寫執行許可權的設置，以增加安全性 [BlackGear]
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.4.1.1-v0.4.1.2(Windows/Linux/Mac) 更新日誌(2015-05-26)：
 
 * 添加對 EDNS Client Subnet 的支援
 * 增強對 DNSSEC 的請求能力以及添加不完整的認證功能
 * 添加對 Local 境內 DNS 伺服器的路由表檢查，但只會進行提示而不會中斷程式的運行
-* 添加 DNSSEC Force Validation 参数，可强制携带 DNSSEC 记录的域名解析才能被接受
+* 添加 DNSSEC Force Validation 參數，可強制攜帶 DNSSEC 記錄的功能變數名稱解析才能被接受
 * 添加 -c/--config-file 参数，可在启动时指定配置文件的目录 [BlackGear]
 * 添加 -v/--version 参数，可输出程序的版本号 [BlackGear]
 * 添加對 homebrew 的支援(Mac) [BlackGear]

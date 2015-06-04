@@ -96,7 +96,6 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Cannot open any configuration files - 未發現任何設定檔：請確認檔是否存在
   * Configuration file is too large - 設定檔容量過大：請確認設定檔的內容，整個檔的大小不要超過 4GB
   * Configuration file version error - 設定檔版本錯誤：請確認設定檔是否需要更新
-  * Configuration file is not the latest version - 設定檔非最新版本：請確認設定檔是否需要更新
   * Data length error - 設定檔參數一行資料超過 4096 位元組/4KB，或該行資料長度不符合要求：請確認該行的內容是否符合要求
   * Data of a line is too short - 該參數過短：請確認設定檔的內容
   * Data of a line is too long - 該參數過長：一行資料切勿超過 4096 位元組/4KB
@@ -110,10 +109,6 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Address Prefix Block format error - 帶前置長度的位址塊格式錯誤：請檢查位址塊的格式
   * IPv4 prefix error - IPv4 網路尾碼長度錯誤：IPv4 網路尾碼的長度介乎與 1-32
   * IPv6 prefix error - IPv6 網路尾碼長度錯誤：IPv6 網路尾碼的長度介乎與 1-128
-  * Address of IPv6 Main Local Server is not in Local Routing list - IPv6 境內主要伺服器不在境內路由表中，填入的位址可能不是境內的位址：此為提示，請檢查該位址的地理位置
-  * Address of IPv6 Alternate Local Server is not in Local Routing list - IPv6 境內待命伺服器不在境內路由表中，填入的位址可能不是境內的位址：此為提示，請檢查該位址的地理位置
-  * Address of IPv4 Main Local Server is not in Local Routing list - IPv4 境內主要伺服器不在境內路由表中，填入的位址可能不是境內的位址：此為提示，請檢查該位址的地理位置
-  * Address of IPv4 Alternate Local Server is not in Local Routing list - IPv4 境內待命伺服器不在境內路由表中，填入的位址可能不是境內的位址：此為提示，請檢查該位址的地理位置
   * Pcap Capture error - 抓包模塊參數錯誤：請檢查相關參數的使用要求說明
   * Localhost server listening port error - 本地監聽埠錯誤：請檢查本地監聽埠的值，可適用範圍為 1 - 65535
   * IPFilter Level error - IPFilter 過濾級別錯誤：請檢查過濾級別的值，可適用範圍為 1 - 65535
@@ -123,22 +118,13 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Local Main / Local Hosts / Local Routing error - 主要境內伺服器、境內功能變數名稱白名單或境內路由表錯誤：參見 ReadMe 文檔中對這3個參數的介紹
   * DNS Records type error - DNS 記錄參數錯誤：請檢查 Accept Type 的值是否符合要求
   * Hop Limit Fluctuations error - Hop Limit 或 TTL 可接受範圍錯誤：請檢查範圍的值
-  * EDNS Payload Size must longer than 512 bytes(TraditionalDNS packet minimum supported size) - EDNS 載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包
-  * EDNS Payload Size may be too long - EDNS 載荷長度可能過長：此值建議不要超過乙太網的 MTU(1512 bytes)
-  * EDNS Label must turn ON when request DNSSEC - 開啟 DNSSEC 請求時必須開啟 EDNS 標籤請求功能
-  * EDNS Label must turn ON when request EDNS Client Subnet - 開啟 EDNS Client Subnet 請求時必須開啟 EDNS 標籤請求功能
-  * EDNS Label must turn OFF when request Compression Pointer Mutation - 使用 Compression Pointer Mutation 時不能開啟 EDNS 標籤請求功能，兩者並不相容
-  * EDNS Label and DNSSEC Request must turn ON when request DNSSEC Validation - 開啟 DNSSEC Validation 請求時必須開啟 EDNS 標籤請求和 DNSSEC 請求功能
-  * EDNS Label, DNSSEC Request and DNSSEC Validation must turn ON when request DNSSEC Force Validation - 開啟 DNSSEC Force Validation 請求時必須開啟 EDNS 標籤請求、DNSSEC 請求和 DNSSEC Validation 驗證功能
   * Alternate Multi requesting error - 主要備用或多個伺服器下同時請求參數錯誤：請確認所有伺服器的資訊
-  * Multi requesting times error - 接收到一個解析請求向同一個遠端伺服器發送多次解析請求參數錯誤 ：一個解析請求的多次解析請求次數不能超過16次，也就是設定檔不能填大於15的值
+  * Multi requesting times error - 接收到一個解析請求向同一個遠端伺服器發送多次解析請求參數錯誤 ：一個解析請求的多次解析請求次數不能超過8次，也就是設定檔不能填大於7的值
   * DNSCurve target error - DNSCurve 協定使用的 DNS 目標伺服器位址錯誤：請檢查 DNSCurve 協定使用DNS伺服器的位址
   * DNSCurve encryption options error - DNSCurve 協定加密選項配置錯誤：開啟加密選項和只使用加密模式選項衝突
   * DNSCurve Encryption Only mode error - DNSCurve 協定只使用加密模式配置錯誤：只使用加密模式必須提供伺服器的魔數和指紋
   * DNSCurve empty Provider Name error - DNSCurve 協定伺服器提供者錯誤：不存在魔數或指紋時必須提供伺服器的提供者資訊以自動獲取連接參數
   * DNSCurve empty Public Key error - DNSCurve 協定伺服器提供者錯誤：不存在魔數或指紋時必須提供伺服器的公開金鑰以自動獲取連接參數
-  * DNSCurve Payload Size must longer than 512 bytes(Traditional DNS packet minimum supported size) - DNSCurve 協定載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包
-  * DNSCurve Payload Size may be too long - DNSCurve 協定載荷長度可能過長：此值建議不要超過乙太網的 MTU(1512 bytes)
 
 3.IPFilter Error - 讀取 IPFilter 檔錯誤
   * IPFilter file size is too large - IPFilter 檔容量過大：請確認 IPFilter 檔的內容，整個檔的大小不要超過 4GB
@@ -160,7 +146,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Read file(s) error - 檔跳轉讀取錯誤：請與開發者聯繫
   * Data of a line is too long - 該 Hosts 條目過長：一行資料切勿超過4096位元組/4KB
   * Item format error - Hosts 條目格式錯誤：請檢查該條目的格式
-  * Data is too long when EDNS is available - 開啟EDNS標籤的情況下該 Hosts 條目過長：請檢查 Hosts 的地址清單是否過長
+  * Data is too long when EDNS is available - 開啟 EDNS 標籤的情況下該 Hosts 條目過長：請檢查 Hosts 的地址清單是否過長
   * Default TTL redefinition - 預設存留時間重定義：以第一個出現的預設存留時間為准
   * Regular expression pattern error - 錯誤的正則運算式：請檢查正則運算式的正確性
   * IPv6 address format error - Hosts 的 IPv6 位址格式錯誤：請檢查 Hosts 條目的位址
@@ -231,3 +217,24 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * IPv6 Alternate Server Fingerprint signature validation error - IPv6 待命伺服器證書驗證錯誤：請檢查該伺服器是否可用
   * IPv4 Main Server Fingerprint signature validation error - IPv4 主要伺服器憑證驗證錯誤：請檢查該伺服器是否可用
   * IPv4 Alternate Server Fingerprint signature validation error - IPv4 待命伺服器證書驗證錯誤：請檢查該伺服器是否可用
+
+8.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
+  * Configuration file is not the latest version - 設定檔非最新版本：請確認設定檔是否需要更新
+  * Listen Port is empty, set to standard DNS port(53) - 本地監聽埠參數為空：程式將自動設置為標準 DNS 協定埠（53）
+  * TCP Data Filter require TCP Request Mode - 開啟 TCP 資料包頭檢測時必須將 Request Mode 設置為 TCP：程式將自動關閉此功能
+  * TCP Data Filter require Pcap Cpature - 開啟 TCP 資料包頭檢測時必須啟用 Pcap Cpature：程式將自動關閉此功能
+  * IPv4 Data Filter require IPv4 DNS server - 開啟 IPv4 資料包頭檢測時必須存在 IPv4 協定的 DNS 伺服器：程式將自動關閉此功能
+  * IPv4 Data Filter require Pcap Cpature - 開啟 IPv4 資料包頭檢測時必須啟用 Pcap Cpature：程式將自動關閉此功能
+  * EDNS Payload Size must longer than 512 bytes(Traditional DNS packet minimum supported size) - EDNS 載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包
+  * EDNS Payload Size may be too long - EDNS 載荷長度可能過長：此值建議不要超過乙太網的 MTU(1512 bytes)
+  * DNSSEC Request require EDNS Label - 開啟 DNSSEC 請求時必須開啟 EDNS 標籤請求功能
+  * EDNS Client Subnet require EDNS Label - 開啟 EDNS Client Subnet 請求時必須開啟 EDNS 標籤請求功能
+  * Turn OFF Compression Pointer Mutation when EDNS Label is available - 使用 Compression Pointer Mutation 時不能開啟 EDNS 標籤請求功能，兩者並不相容
+  * DNSSEC Validation require EDNS Label and DNSSEC Request - 開啟 DNSSEC Validation 請求時必須開啟 EDNS 標籤請求和 DNSSEC 請求功能
+  * DNSSEC Force Validation require EDNS Label, DNSSEC Request and DNSSEC Validation - 開啟 DNSSEC Force Validation 請求時必須開啟 EDNS 標籤請求、DNSSEC 請求和 DNSSEC Validation 驗證功能
+  * DNSCurve Payload Size must longer than 512 bytes(Traditional DNS packet minimum supported size) - DNSCurve 協定載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包
+  * DNSCurve Payload Size may be too long - DNSCurve 協定載荷長度可能過長：此值建議不要超過乙太網的 MTU(1512 bytes)
+  * Address of IPv6 Main Local Server is not in Local Routing list - IPv6 境內主要伺服器不在境內路由表中，填入的位址可能不是境內的位址：此為提示，請檢查該位址的地理位置
+  * Address of IPv6 Alternate Local Server is not in Local Routing list - IPv6 境內待命伺服器不在境內路由表中，填入的位址可能不是境內的位址：此為提示，請檢查該位址的地理位置
+  * Address of IPv4 Main Local Server is not in Local Routing list - IPv4 境內主要伺服器不在境內路由表中，填入的位址可能不是境內的位址：此為提示，請檢查該位址的地理位置
+  * Address of IPv4 Alternate Local Server is not in Local Routing list - IPv4 境內待命伺服器不在境內路由表中，填入的位址可能不是境內的位址：此為提示，請檢查該位址的地理位置

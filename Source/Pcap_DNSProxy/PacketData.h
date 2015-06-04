@@ -18,15 +18,6 @@
 
 
 #include "Base.h"
-#if defined(ENABLE_LIBSODIUM)
-//Global variables
-	extern CONFIGURATION_TABLE Parameter;
-	extern ALTERNATE_SWAP_TABLE AlternateSwapList;
-	extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
 
-//Functions
-	size_t DNSCurveSignatureRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
-	bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const bool IsAlternate);
-	bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const bool IsAlternate);
-	bool __fastcall DNSCruveGetSignatureData(const char *Buffer, const size_t ServerType);
-#endif
+//Global variables
+extern CONFIGURATION_TABLE Parameter;

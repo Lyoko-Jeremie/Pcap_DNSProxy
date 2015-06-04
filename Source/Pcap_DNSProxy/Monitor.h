@@ -25,9 +25,16 @@ extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 #if defined(ENABLE_LIBSODIUM)
 	extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
 #endif
+extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM];
 
 //Functions
-size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData);
-size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData);
-size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData);
+bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData);
+bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData);
+bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData);
 void __fastcall AlternateServerMonitor(void);
+#if defined(PLATFORM_WIN)
+	PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol);
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	bool GetBestInterfaceAddress(const uint16_t Protocol, const sockaddr_storage *OriginalSockAddr);
+#endif
+void __fastcall GetGatewayInformation(const uint16_t Protocol);

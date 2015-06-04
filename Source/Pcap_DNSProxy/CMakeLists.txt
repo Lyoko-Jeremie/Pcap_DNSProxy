@@ -36,9 +36,11 @@ set(MAIN_SRC_FILES
 		"Main.h"
 		"Monitor.h"
 		"Network.h"
+		"PacketData.h"
 		"PrintLog.h"
 		"Process.h"
 		"Protocol.h"
+		"Service.h"
 		"Base.cpp"
 		"Capture.cpp"
 		"Configuration.cpp"
@@ -47,9 +49,14 @@ set(MAIN_SRC_FILES
 		"Main.cpp"
 		"Monitor.cpp"
 		"Network.cpp"
+		"PacketData.cpp"
 		"PrintLog.cpp"
 		"Process.cpp"
-		"Protocol.cpp")
+		"Protocol.cpp"
+		"ReadHosts.cpp"
+		"ReadIPFilter.cpp"
+		"ReadParameter.cpp"
+		"Service.cpp")
 
 # Compiling and linking flags
 add_definitions(-std=c++11 -fpic)

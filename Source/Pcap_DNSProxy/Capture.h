@@ -29,10 +29,10 @@ std::string PcapFilterRules;
 std::vector<std::string> PcapRunningList;
 
 //Functions
-void __fastcall FilterRulesInit(std::string &FilterRules);
-size_t __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList);
-size_t __fastcall NetworkLayer(const char *Recv, const size_t Length, const uint16_t Protocol);
+void __fastcall CaptureFilterRulesInit(std::string &FilterRules);
+bool __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList);
+bool __fastcall NetworkLayer(const char *Recv, const size_t Length, const uint16_t Protocol);
 bool __fastcall ICMPCheck(const char *Buffer, const size_t Length, const uint16_t Protocol);
 bool __fastcall TCPCheck(const char *Buffer);
-size_t __fastcall MatchPortToSend(const char *Buffer, const size_t Length, const uint16_t Protocol, const uint16_t Port);
+bool __fastcall MatchPortToSend(const char *Buffer, const size_t Length, const uint16_t Protocol, const uint16_t Port);
 #endif

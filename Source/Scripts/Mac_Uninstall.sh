@@ -19,11 +19,6 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-# Set service
-chmod 777 KeyPairGenerator
-chmod 777 Pcap_DNSProxy
-chmod 777 pcap_dnsproxy.service.plist
-cp pcap_dnsproxy.service.plist /Library/LaunchDaemons/pcap_dnsproxy.service.plist
 cd /Library/LaunchDaemons
-chown root pcap_dnsproxy.service.plist
-launchctl load pcap_dnsproxy.service.plist
+launchctl unload pcap_dnsproxy.service.plist
+rm -rf pcap_dnsproxy.service.plist

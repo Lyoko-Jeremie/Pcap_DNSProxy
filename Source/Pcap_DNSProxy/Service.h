@@ -20,7 +20,14 @@
 #include "Base.h"
 
 //Global variables
-extern CONFIGURATION_TABLE Parameter;
+#if defined(PLATFORM_WIN)
+	extern CONFIGURATION_TABLE Parameter;
+#endif
+extern std::deque<DNSCACHE_DATA> DNSCacheList;
+extern std::mutex DNSCacheListLock;
+
+#if defined(PLATFORM_WIN)
+//Local variables
 static DWORD ServiceCurrentStatus = 0;
 static BOOL IsServiceRunning = false;
 SERVICE_STATUS_HANDLE ServiceStatusHandle = nullptr;
@@ -32,3 +39,4 @@ BOOL WINAPI ExecuteService(void);
 void WINAPI TerminateService(void);
 DWORD WINAPI ServiceProc(PVOID lpParameter);
 BOOL WINAPI UpdateServiceStatus(const DWORD dwCurrentState, const DWORD dwWin32ExitCode, const DWORD dwServiceSpecificExitCode, const DWORD dwCheckPoint, const DWORD dwWaitHint);
+#endif

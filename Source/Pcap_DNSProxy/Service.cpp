@@ -17,8 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#include "WindowsService.h"
+#include "Service.h"
 
+#if defined(PLATFORM_WIN)
 //Catch Control-C exception from keyboard.
 BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType)
 {
@@ -107,7 +108,7 @@ BOOL WINAPI ExecuteService(void)
 //Service Main process thread
 DWORD WINAPI ServiceProc(PVOID lpParameter)
 {
-	if (!IsServiceRunning || MonitorInit() == EXIT_FAILURE)
+	if (!IsServiceRunning || !MonitorInit())
 	{
 		WSACleanup();
 		TerminateService();
@@ -162,7 +163,7 @@ void WINAPI TerminateService(void)
 }
 
 //MailSlot of flush DNS cache Monitor
-size_t WINAPI FlushDNSMailSlotMonitor(void)
+bool WINAPI FlushDNSMailSlotMonitor(void)
 {
 //System security setting
 	std::shared_ptr<SECURITY_ATTRIBUTES> SecurityAttributes(new SECURITY_ATTRIBUTES());
@@ -186,7 +187,7 @@ size_t WINAPI FlushDNSMailSlotMonitor(void)
 		LocalFree(SID_Value);
 
 		PrintError(LOG_ERROR_SYSTEM, L"Create mailslot error", GetLastError(), nullptr, 0);
-		return EXIT_FAILURE;
+		return false;
 	}
 
 	ACL_Buffer.reset();
@@ -210,7 +211,7 @@ size_t WINAPI FlushDNSMailSlotMonitor(void)
 			PrintError(LOG_ERROR_SYSTEM, L"Get mailslot error", GetLastError(), nullptr, 0);
 			
 			CloseHandle(hSlot);
-			return EXIT_FAILURE;
+			return false;
 		}
 
 	//Wait for messages.
@@ -230,13 +231,13 @@ size_t WINAPI FlushDNSMailSlotMonitor(void)
 				PrintError(LOG_ERROR_SYSTEM, L"MailSlot read messages error", GetLastError(), nullptr, 0);
 				
 				CloseHandle(hSlot);
-				return EXIT_FAILURE;
+				return false;
 			}
 
 			if (!FlushDNS && memcmp(lpszBuffer.get(), MAILSLOT_MESSAGE_FLUSH_DNS, wcslen(MAILSLOT_MESSAGE_FLUSH_DNS)) == 0)
 			{
 				FlushDNS = true;
-				FlushSystemDNSCache();
+				FlushAllDNSCache();
 			}
 			memset(lpszBuffer.get(), 0, PACKET_MAXSIZE);
 
@@ -247,21 +248,20 @@ size_t WINAPI FlushDNSMailSlotMonitor(void)
 				PrintError(LOG_ERROR_SYSTEM, L"Get mailslot error", GetLastError(), nullptr, 0);
 				
 				CloseHandle(hSlot);
-				return EXIT_FAILURE;
+				return false;
 			}
 		}
 	}
 
 	CloseHandle(hSlot);
 	PrintError(LOG_ERROR_SYSTEM, L"MailSlot module Monitor terminated", 0, nullptr, 0);
-	return EXIT_FAILURE;
+	return false;
 }
 
 //MailSlot of flush DNS cache sender
-size_t WINAPI FlushDNSMailSlotSender(void)
+bool WINAPI FlushDNSMailSlotSender(void)
 {
 //Initialization
-	BOOL Result = false;
 	DWORD cbWritten = 0;
 
 //Create mailslot.
@@ -269,20 +269,109 @@ size_t WINAPI FlushDNSMailSlotSender(void)
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
 		wprintf_s(L"Create mailslot error, error code is %lu.\n", GetLastError());
-		return EXIT_FAILURE;
+		return false;
 	}
 
 //Write into mailslot.
-	Result = WriteFile(hFile, MAILSLOT_MESSAGE_FLUSH_DNS, (DWORD)(lstrlenW(MAILSLOT_MESSAGE_FLUSH_DNS) + 1U) * sizeof(wchar_t), &cbWritten, nullptr);
-	if (!Result)
+	if (!WriteFile(hFile, MAILSLOT_MESSAGE_FLUSH_DNS, (DWORD)(lstrlenW(MAILSLOT_MESSAGE_FLUSH_DNS) + 1U) * sizeof(wchar_t), &cbWritten, nullptr))
 	{
 		wprintf_s(L"MailSlot write messages error, error code is %lu.\n", GetLastError());
 
 		CloseHandle(hFile);
-		return EXIT_FAILURE;
+		return false;
 	}
 
 	CloseHandle(hFile);
 	wprintf_s(L"Flush DNS cache message was sent successfully.\n");
-	return EXIT_SUCCESS;
+	return true;
+}
+
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+//Flush DNS cache FIFO Monitor
+bool FlushDNSFIFOMonitor(void)
+{
+//Initialization
+	unlink(FIFO_PATH_NAME);
+	std::shared_ptr<char> Buffer(new char[PACKET_MAXSIZE]());
+	memset(Buffer.get(), 0, PACKET_MAXSIZE);
+	int FIFO_FD = 0;
+
+//Create FIFO.
+	if (mkfifo(FIFO_PATH_NAME, O_CREAT) < 0 || chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) < 0)
+	{
+		PrintError(LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
+
+		unlink(FIFO_PATH_NAME);
+		return false;
+	}
+
+//Open FIFO.
+	FIFO_FD = open(FIFO_PATH_NAME, O_RDONLY, 0);
+	if (FIFO_FD < 0)
+	{
+		PrintError(LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
+
+		unlink(FIFO_PATH_NAME);
+		return false;
+	}
+
+//FIFO Monitor
+	for (;;)
+	{
+		if (read(FIFO_FD, Buffer.get(), PACKET_MAXSIZE) > 0 && 
+			memcmp(Buffer.get(), FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) == 0)
+				FlushAllDNSCache();
+
+		memset(Buffer.get(), 0, PACKET_MAXSIZE);
+		Sleep(MONITOR_LOOP_INTERVAL_TIME);
+	}
+
+	close(FIFO_FD);
+	unlink(FIFO_PATH_NAME);
+	PrintError(LOG_ERROR_SYSTEM, L"FIFO module Monitor terminated", 0, nullptr, 0);
+	return true;
+}
+
+//Flush DNS cache FIFO sender
+bool FlushDNSFIFOSender(void)
+{
+	int FIFO_FD = open(FIFO_PATH_NAME, O_WRONLY|O_TRUNC|O_NONBLOCK, 0);
+	if (FIFO_FD > 0 && write(FIFO_FD, FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) > 0)
+	{
+		wprintf(L"Flush DNS cache message was sent successfully.\n");
+		close(FIFO_FD);
+	}
+	else {
+		wprintf(L"FIFO write messages error, error code is %d.\n", errno);
+		return false;
+	}
+
+	return true;
+}
+#endif
+
+//Flush DNS cache
+void __fastcall FlushAllDNSCache(void)
+{
+//Flush DNS cache in program.
+	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
+	DNSCacheList.clear();
+	DNSCacheList.shrink_to_fit();
+	DNSCacheListMutex.unlock();
+
+//Flush DNS cache in system.
+#if defined(PLATFORM_WIN)
+	system("ipconfig /flushdns");
+#elif defined(PLATFORM_LINUX)
+	system("service nscd restart"); //Name Service Cache Daemon service
+	system("service dnsmasq restart"); //Dnsmasq service
+	system("rndc restart"); //Name server control utility or BIND DNS service
+#elif defined(PLATFORM_MACX)
+//	system("lookupd -flushcache"); //Less than Mac OS X Tiger(10.4)
+//	system("dscacheutil -flushcache"); //Mac OS X Leopard(10.5) and Snow Leopard(10.6)
+	system("killall -HUP mDNSResponder"); //Mac OS X Lion(10.7), Mountain Lion(10.8) and Mavericks(10.9)
+	system("discoveryutil mdnsflushcache"); //Mac OS X Yosemite(10.10) and other latest version
+#endif
+
+	return;
 }

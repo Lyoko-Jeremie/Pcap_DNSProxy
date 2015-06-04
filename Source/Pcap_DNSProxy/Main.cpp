@@ -21,7 +21,7 @@
 
 //The Main function of program
 #if defined(PLATFORM_WIN)
-	int wmain(int argc, wchar_t* argv[])
+int wmain(int argc, wchar_t* argv[])
 {
 //Windows XP with SP3 support
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
@@ -29,14 +29,14 @@
 		GetFunctionPointer(FUNCTION_INET_NTOP);
 	#endif
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	int main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 #endif
 
 //Get commands.
 	if (argc > 0)
 	{
-		if (ReadCommand(argc, argv) == EXIT_FAILURE)
+		if (!ReadCommand(argc, argv))
 			return EXIT_SUCCESS;
 	}
 	else {
@@ -44,18 +44,18 @@
 	}
 
 //Read configuration file and WinPcap or LibPcap initialization.
-	if (ReadParameter() == EXIT_FAILURE)
+	if (!ReadParameter())
 	{
 		WSACleanup();
 		return EXIT_FAILURE;
 	}
 
 //Mark Local DNS address to PTR Records.
-	std::thread GetNetworkingInformationThread(GetNetworkingInformation);
-	GetNetworkingInformationThread.detach();
+	std::thread NetworkInformationMonitorThread(NetworkInformationMonitor);
+	NetworkInformationMonitorThread.detach();
 
 //Read IPFilter and Hosts.
-	if (Parameter.OperationMode == LISTEN_CUSTOMMODE || Parameter.BlacklistCheck || Parameter.LocalRouting)
+	if (Parameter.OperationMode == LISTEN_MODE_CUSTOM || Parameter.BlacklistCheck || Parameter.LocalRouting)
 	{
 		std::thread IPFilterThread(ReadIPFilter);
 		IPFilterThread.detach();
@@ -99,9 +99,9 @@
 
 //Read commands from main program
 #if defined(PLATFORM_WIN)
-	size_t __fastcall ReadCommand(int argc, wchar_t* argv[])
+bool __fastcall ReadCommand(int argc, wchar_t* argv[])
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	size_t __fastcall ReadCommand(int argc, char *argv[])
+bool ReadCommand(int argc, char *argv[])
 #endif
 {
 #if defined(PLATFORM_WIN)
@@ -113,7 +113,7 @@
 		wprintf_s(L"Winsock initialization error, error code is %d.\n", WSAGetLastError());
 
 		WSACleanup();
-		return EXIT_FAILURE;
+		return false;
 	}
 
 //Read commands.
@@ -121,7 +121,7 @@
 	{
 	//Windows Firewall Test in first start.
 		if (wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_FIREWALL_TEST) && wcsncmp(argv[1U], COMMAND_FIREWALL_TEST, wcslen(COMMAND_FIREWALL_TEST)) == 0 && 
-			FirewallTest(AF_INET6) == EXIT_FAILURE && FirewallTest(AF_INET) == EXIT_FAILURE)
+			!FirewallTest(AF_INET6) && !FirewallTest(AF_INET))
 		{
 			wprintf_s(L"Windows Firewall Test error.\n");
 		}
@@ -150,7 +150,7 @@
 			if (wcsnlen_s(argv[2U], COMMAND_BUFFER_MAXSIZE) > MAX_PATH) //Check path limits.
 			{
 				wprintf_s(L"Path in command is too long.\n");
-				return EXIT_FAILURE;
+				return false;
 			}
 			else {
 				return FileNameInit(argv[2U]);
@@ -162,7 +162,7 @@
 	if (argc > 1U)
 	{
 		WSACleanup();
-		return EXIT_FAILURE;
+		return false;
 	}
 
 //Path initialization
@@ -195,7 +195,7 @@
 			if (strnlen(argv[2U], COMMAND_BUFFER_MAXSIZE) > MAX_PATH) //Check path limits.
 			{
 				wprintf(L"Path in command is too long.\n");
-				return EXIT_FAILURE;
+				return false;
 			}
 			else {
 				return FileNameInit(argv[2U]);
@@ -205,7 +205,7 @@
 
 //Bad commands.
 	if (argc > 1U)
-		return EXIT_FAILURE;
+		return false;
 
 //Path initialization
 	std::shared_ptr<char> FileName(new char[PATH_MAX + 1U]());
@@ -213,29 +213,29 @@
 	if (getcwd(FileName.get(), PATH_MAX) == nullptr)
 	{
 		wprintf(L"Path initialization error.\n");
-		return EXIT_FAILURE;
+		return false;
 	}
-	if (FileNameInit(FileName.get()) == EXIT_FAILURE)
-		return EXIT_FAILURE;
+	if (!FileNameInit(FileName.get()))
+		return false;
 
 	//Set system daemon.
 	#if defined(PLATFORM_LINUX)
 		if (daemon(0, 0) == RETURN_ERROR)
 		{
 			PrintError(LOG_ERROR_SYSTEM, L"Set system daemon error", 0, nullptr, 0);
-			return EXIT_FAILURE;
+			return false;
 		}
 	#endif
 #endif
 
-	return EXIT_SUCCESS;
+	return true;
 }
 
 //Get path of program from the main function parameter and Winsock initialization
 #if defined(PLATFORM_WIN)
-	size_t __fastcall FileNameInit(const wchar_t *OriginalPath)
+bool __fastcall FileNameInit(const wchar_t *OriginalPath)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	size_t FileNameInit(const char *OriginalPath)
+bool FileNameInit(const char *OriginalPath)
 #endif
 {
 //Path process
@@ -270,87 +270,88 @@
 	Parameter.PrintError = true;
 	time(&StartTime);
 
-	return EXIT_SUCCESS;
+	return true;
 }
 
 #if defined(PLATFORM_WIN)
 //Windows Firewall Test
-	size_t __fastcall FirewallTest(const uint16_t Protocol)
+bool __fastcall FirewallTest(const uint16_t Protocol)
+{
+//Initialization
+	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
+	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
+	SYSTEM_SOCKET FirewallSocket = 0;
+
+//Ramdom number distribution initialization
+	std::uniform_int_distribution<int> RamdomDistribution(DYNAMIC_MIN_PORT, UINT16_MAX - 1U);
+
+//IPv6
+	if (Protocol == AF_INET6)
 	{
-	//Initialization
-		std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
-		memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
-		SYSTEM_SOCKET FirewallSocket = 0;
+		((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = in6addr_any;
+		((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
+		SockAddr->ss_family = AF_INET6;
+		FirewallSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 
-	//Ramdom number distribution initialization
-		std::uniform_int_distribution<int> RamdomDistribution(DYNAMIC_MIN_PORT, UINT16_MAX - 1U);
-
-	//Socket initialization
-		if (Protocol == AF_INET6) //IPv6
+	//Bind local socket.
+		if (FirewallSocket == INVALID_SOCKET)
 		{
-			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = in6addr_any;
+			return false;
+		}
+		else if (bind(FirewallSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6)) == SOCKET_ERROR)
+		{
 			((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
-			SockAddr->ss_family = AF_INET6;
-			FirewallSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-
-		//Bind local socket.
-			if (FirewallSocket == INVALID_SOCKET)
+			size_t Index = 0;
+			while (bind(FirewallSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6)) == SOCKET_ERROR)
 			{
-				return EXIT_FAILURE;
-			}
-			else if (bind(FirewallSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6)) == SOCKET_ERROR)
-			{
-				((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
-				size_t Index = 0;
-				while (bind(FirewallSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6)) == SOCKET_ERROR)
+				if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)
 				{
-					if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)
-					{
-						((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
+					((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
 
-						++Index;
-						continue;
-					}
-					else {
-						closesocket(FirewallSocket);
-						return EXIT_FAILURE;
-					}
+					++Index;
+					continue;
+				}
+				else {
+					closesocket(FirewallSocket);
+					return false;
 				}
 			}
 		}
-		else { //IPv4
-			((PSOCKADDR_IN)SockAddr.get())->sin_addr.s_addr = INADDR_ANY;
-			((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
-			SockAddr->ss_family = AF_INET;
-			FirewallSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-
-		//Bind local socket.
-			if (FirewallSocket == INVALID_SOCKET)
-			{
-				return EXIT_FAILURE;
-			}
-			else if (bind(FirewallSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in)) == SOCKET_ERROR)
-			{
-				((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
-				size_t Index = 0;
-				while (bind(FirewallSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in)) == SOCKET_ERROR)
-				{
-					if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)
-					{
-						((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
-
-						++Index;
-						continue;
-					}
-					else {
-						closesocket(FirewallSocket);
-						return EXIT_FAILURE;
-					}
-				}
-			}
-		}
-
-		closesocket(FirewallSocket);
-		return EXIT_SUCCESS;
 	}
+//IPv4
+	else {
+		((PSOCKADDR_IN)SockAddr.get())->sin_addr.s_addr = INADDR_ANY;
+		((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
+		SockAddr->ss_family = AF_INET;
+		FirewallSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+	//Bind local socket.
+		if (FirewallSocket == INVALID_SOCKET)
+		{
+			return false;
+		}
+		else if (bind(FirewallSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in)) == SOCKET_ERROR)
+		{
+			((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
+			size_t Index = 0;
+			while (bind(FirewallSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in)) == SOCKET_ERROR)
+			{
+				if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)
+				{
+					((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
+
+					++Index;
+					continue;
+				}
+				else {
+					closesocket(FirewallSocket);
+					return false;
+				}
+			}
+		}
+	}
+
+	closesocket(FirewallSocket);
+	return true;
+}
 #endif

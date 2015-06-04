@@ -111,9 +111,6 @@
     <ClInclude Include="Network.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="WindowsService.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="..\LibSodium\core.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
@@ -273,6 +270,12 @@
     <ClInclude Include="..\LibSodium\version.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
+    <ClInclude Include="Service.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketData.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="WinPcap\Packet_x64.lib">
@@ -328,7 +331,19 @@
     <ClCompile Include="Network.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="WindowsService.cpp">
+    <ClCompile Include="Service.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketData.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ReadHosts.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ReadIPFilter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ReadParameter.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

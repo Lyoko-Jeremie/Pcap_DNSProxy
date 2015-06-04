@@ -117,11 +117,11 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 5: Restart service - 重启工具的服务
   * 6: Flush DNS cache in Pcap_DNSProxy - 刷新程序的内部 DNS 缓存
 * 配置文件支持的文件名（只会读取优先级较高者，优先级较低者将被直接忽略）：
-  * Windows: Config.ini > Config.conf > Config
-  * Linux/Mac: Config.conf > Config.ini > Config
+  * Windows: Config.ini > Config.conf > Config.cfg > Config
+  * Linux/Mac: Config.conf > Config.ini > Config.cfg > Config
 * 请求域名解析优先级
   * 使用系统 API函数进行域名解析（大部分）：系统 Hosts > Pcap_DNSProxy 的 Hosts 条目（Whitelist/白名单条目 > Hosts/主要 Hosts 列表） > DNS 缓存 > Local Hosts/境内 DNS 解析域名列表 > 远程 DNS 服务器
-  * 直接使用网络适配器设置进行域名解析（小部分）：Pcap_DNSProxy 的 Hosts.ini（Whitelist/白名单条目 > Hosts/主要 Hosts 列表） > DNS 缓存 > Local Hosts/境内 DNS 解析域名列表 > 远程 DNS 服务器
+  * 直接使用网络适配器设置进行域名解析（小部分）：Pcap_DNSProxy 的 Hosts 配置文件（Whitelist/白名单条目 > Hosts/主要 Hosts 列表） > DNS 缓存 > Local Hosts/境内 DNS 解析域名列表 > 远程 DNS 服务器
   * 请求远程 DNS 服务器的优先级：Hosts Only 模式 > TCP 模式的 DNSCurve 加密/非加密模式（如有） > UDP 模式的 DNSCurve 加密/非加密模式（如有） > TCP 模式普通请求（如有） > UDP 模式普通请求
 * 本工具的 DNSCurve/DNSCrypt 协议是内置的实现，不需要安装 DNSCrypt 官方的工具！
   * DNSCurve 协议为 Streamlined/精简类型
@@ -143,7 +143,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 默认配置：UDP 请求 + 抓包模式
   * Local Main = 1 同时 Local Routing = 1 时：将大部分的解析请求发往境内的 DNS 服务器，遇到解析出来的是境外的地址后切换到境外服务器进行解析
     * 此组合的过滤效果依靠境内路由表，不可靠
-  * Protocol = TCP：先 TCP 请求失败后再 UDP 请求 + 抓包模式，对网络资源的占用比较高
+  * Protocol = ...TCP：先 TCP 请求失败后再 UDP 请求 + 抓包模式，对网络资源的占用比较高
     * 由于 TCP 请求大部分时候不会被投毒污染，此组合的过滤效果比较可靠
   * EDNS Label = 1：开启 EDNS 请求标签功能
     * 此功能开启后将有利于对伪造数据包的过滤能力，此组合的过滤效果比较可靠
@@ -180,8 +180,11 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 注意：日志文件到达最大容量后将被直接删除，然后重新生成新的日志文件，原来的日志将无法找回！
 
 * DNS - 域名解析参数区域
-  * Protocol - 发送请求所使用的协议，分 UDP 和 TCP：默认为 UDP
-    * 注意：此处所指的协议指的是程序请求远程 DNS 服务器时所使用的协议，而向本程序请求域名解析时可随意使用 UDP 或 TCP
+  * Protocol - 发送请求所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP，默认为 IPv4 + UDP
+    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求
+	* 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
+	* 同时填入 TCP 和 UDP 等于只填入 TCP，因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
+    * 注意：此处的协议指的是程序请求远程 DNS 服务器时所使用的协议，而向本程序请求域名解析时可使用的协议由 Listen Protocol 参数决定
   * Hosts Only - Hosts Only 直连模式，启用后将使用系统直接请求远程服务器而启用只使用本工具的 Hosts 功能：开启为1/关闭为0，默认为 0
   * Local Main - 主要境内服务器请求功能：开启为1/关闭为0，默认为 0
     * 开启后所有请求先使用 Local 的服务器进行解析，遇到遭投毒污染的解析结果时自动再向境外服务器请求
@@ -192,7 +195,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 开启后使用 Local 请求的解析结果都会被检查，路由表命中会直接返回结果，命中失败将丢弃解析结果并向境外服务器再次发起请求
     * 本功能只能在 Local Main 为启用状态时才能启用
   * Cache Type - DNS 缓存的类型：分 Timer/计时型以及 Queue/队列型：默认为 Queue
-  * Cache Parameter - DNS 缓存的参数：Timer/计时型 时为时间长度（单位为秒），Queue/队列型 时为队列长度：默认为 256
+  * Cache Parameter - DNS 缓存的参数：Timer/计时型 时为时间长度（单位为秒），Queue/队列型 时为队列长度：默认为 128
   * Default TTL - Hosts 条目默认生存时间：单位为秒，留空则为 900秒/15分钟，默认为 900
 
 * Listen - 监听参数区域
@@ -201,19 +204,19 @@ https://sourceforge.net/projects/pcap-dnsproxy
 	* 直连模式下不能完全避免 DNS 投毒污染的问题，需要依赖其它的检测方式，例如 EDNS 标签等方法
   * Pcap Reading Timeout - 抓包模块读取超时时间，数据包只会在等待超时时间后才会被读取，其余时间抓包模块处于休眠状态：单位为毫秒，最短间隔时间为10毫秒，默认为 200
     * 读取超时时间需要平衡需求和资源占用，时间设置太长会导致域名解析请求响应缓慢导致请求解析超时，太快则会占用过多系统处理的资源
+  * Listen Protocol - 监听协议，本地监听的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP，默认为 IPv6 + IPv4 + TCP + UDP
+    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只监听指定协议的本地端口
+    * 注意：此处的协议指的是向本程序请求域名解析时可使用的协议，而程序请求远程 DNS 服务器时所使用的协议由 Protocol 参数决定
+  * Listen Port - 监听端口，本地监听请求的端口：格式为 "端口A(|端口B)"（不含引号，括号内为可选项目）
+    * 端口可填入服务名称，服务名称列表参见下文
+    * 也可填入 1-65535 之间的端口，如果留空则为 53，默认为 53
+    * 填入多个端口时，程序将会同时监听请求
+    * 当相应协议的 Listen Address 生效时，相应协议的本参数将会被自动忽略
   * Operation Mode - 程序的监听工作模式：分 Server/服务器模式、Private/私有网络模式、Proxy/代理模式 和 Custom/自定义模式，默认为 Private
     * Server/服务器模式：打开 DNS 通用端口（TCP/UDP 同时打开），可为所有其它设备提供代理域名解析请求服务
     * Private/私有网络模式：打开 DNS 通用端口（TCP/UDP 同时打开），可为仅限于私有网络地址的设备提供代理域名解析请求服务
     * Proxy/代理模式：只打开回环地址的DNS 端口（TCP/UDP 同时打开），只能为本机提供代理域名解析请求服务
     * Custom/自定义模式：打开 DNS 通用端口（TCP/UDP 同时打开），可用的地址由 IPFilter 参数决定
-    * 当相应协议的 Listen Address 生效时，相应协议的本参数将会被自动忽略
-  * Listen Protocol - 监听协议，本地监听的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP，默认为 IPv4 + IPv6 + TCP + UDP
-    * 只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只监听指定协议的本地端口
-    * 填入的协议可随意组合
-  * Listen Port - 监听端口，本地监听请求的端口：格式为 "端口A(|端口B)"（不含引号，括号内为可选项目）
-    * 端口可填入服务名称，服务名称列表参见下文
-    * 也可填入 1-65535 之间的端口，如果留空则为 53，默认为 53
-    * 填入多个端口时，程序将会同时监听请求
     * 当相应协议的 Listen Address 生效时，相应协议的本参数将会被自动忽略
   * IPFilter Type - IPFilter 参数的类型：分为 Deny 禁止和 Permit 允许，对应 IPFilter 参数应用为黑名单或白名单，默认为 Deny
   * IPFilter Level - IPFilter 参数的过滤级别，级别越高过滤越严格，与 IPFilter 条目相对应：0为不启用过滤，如果留空则为 0，默认为空
@@ -440,8 +443,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 使用同时请求多服务器格式为 "Hop Limits(A)|Hop Limits(B)|Hop Limits(C)"（不含引号），也可直接默认（即只填一个 0 不使用此格式）则所有 Hop Limits 都将由程序自动获取
     * 使用时多 Hop Limits 值所对应的顺序与 IPv6 Alternate DNS Address 中对应的地址顺序相同
   * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受范围，即 IPv4 TTL/IPv6 Hop Limits 的值 ± 数值的范围内的数据包均可被接受，用于避免网络环境短暂变化造成解析失败的问题：取值为 1-255 之间，默认为 2
-  * Reliable Socket Timeout - 可靠协议端口超时时间，可靠端口指 TCP 协议，单位为毫秒：默认为 5000
-  * Unreliable Socket Timeout - 不可靠协议端口超时时间，不可靠端口指 UDP/ICMP/ICMPv6 协议：单位为毫秒，默认为 3000
+  * Reliable Socket Timeout - 可靠协议端口超时时间，可靠端口指 TCP 协议，单位为毫秒：默认为 3000
+  * Unreliable Socket Timeout - 不可靠协议端口超时时间，不可靠端口指 UDP/ICMP/ICMPv6 协议：单位为毫秒，默认为 2000
   * Receive Waiting - 数据包接收等待时间，启用后程序会尝试等待一段时间以尝试接收所有数据包并返回最后到达的数据包：单位为毫秒，留空或填 0 表示关闭此功能，默认为 0
     * 本参数与 Pcap Reading Timeout 密切相关，由于抓包模块每隔一段读取超时时间才会返回给程序一次，当数据包接收等待时间小于读取超时时间时会导致本参数变得没有意义，在一些情况下甚至会拖慢域名解析的响应速度
     * 一般情况下，越靠后所收到的数据包，其可靠性可能会更高
@@ -477,7 +480,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Alternate Multi Request - 备用服务器同时请求参数，开启后将同时请求主要服务器和备用服务器并采用最快回应的服务器的结果：开启为1/关闭为0，默认为 0
     * 同时请求多服务器启用后本参数将强制启用，将同时请求所有存在于列表中的服务器，并采用最快回应的服务器的结果
   * IPv4 Data Filter - IPv4 数据包头检测：开启为1/关闭为0，默认为 0
-  * TCP Data Filter - TCP 数据包头检测；开启为1/关闭为0，默认为 1
+  * TCP Data Filter - TCP 数据包头检测：开启为1/关闭为0，默认为 1
   * DNS Data Filter - DNS 数据包头检测：开启为1/关闭为0，默认为 1
   * Blacklist Filter - 解析结果黑名单过滤：开启为1/关闭为0，默认为 1
   
@@ -503,17 +506,17 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 指定端口时可使用服务名称代替，参见上表
   * DNSCurve IPv4 Alternate DNS Address - DNSCurve 协议 IPv4 备用 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 208.67.222.222:443
     * 指定端口时可使用服务名称代替，参见上表
-  * DNSCurve IPv6 DNS Address - DNSCurve 协议 IPv6 主要 DNS 服务器地址：需要输入一个带端口格式的地址，默认为空
+  * DNSCurve IPv6 DNS Address - DNSCurve 协议 IPv6 主要 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 [2620:0:CCD::2]:443
     * 指定端口时可使用服务名称代替，参见上表
-  * DNSCurve IPv6 Alternate DNS Address - DNSCurve 协议 IPv6 备用 DNS 服务器地址：需要输入一个带端口格式的地址，默认为空
+  * DNSCurve IPv6 Alternate DNS Address - DNSCurve 协议 IPv6 备用 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 [2620:0:CCC::2]:443
     * 指定端口时可使用服务名称代替，参见上表
-  * DNSCurve IPv4 Provider Name - DNSCurve 协议 IPv4 主要 DNS 服务器提供者，请输入正确的域名并且不要超过253字节 ASCII 数据，默认为 2.dnscrypt-cert.opendns.com
+  * DNSCurve IPv4 Provider Name - DNSCurve 协议 IPv4 主要 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.opendns.com
     * 注意：自动获取 DNSCurve 服务器连接信息时必须输入提供者的域名，不能留空
-  * DNSCurve IPv4 Alternate Provider Name - DNSCurve 协议 IPv4 备用 DNS 服务器提供者，请输入正确的域名并且不要超过253字节 ASCII 数据，默认为 2.dnscrypt-cert.opendns.com
+  * DNSCurve IPv4 Alternate Provider Name - DNSCurve 协议 IPv4 备用 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.opendns.com
     * 注意：自动获取 DNSCurve 服务器连接信息时必须输入提供者的域名，不能留空
-  * DNSCurve IPv6 Provider Name - DNSCurve 协议 IPv6 主要 DNS 服务器提供者，请输入正确的域名并且不要超过253字节 ASCII 数据，默认为空
+  * DNSCurve IPv6 Provider Name - DNSCurve 协议 IPv6 主要 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.opendns.com
     * 注意：自动获取 DNSCurve 服务器连接信息时必须输入提供者的域名，不能留空
-  * DNSCurve IPv6 Provider Name - DNSCurve 协议 IPv6 备用 DNS 服务器提供者，请输入正确的域名并且不要超过253字节 ASCII 数据，默认为空
+  * DNSCurve IPv6 Provider Name - DNSCurve 协议 IPv6 备用 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.opendns.com
     * 注意：自动获取 DNSCurve 服务器连接信息时必须输入提供者的域名，不能留空
 
 * DNSCurve Keys - DNSCurve 协议密钥区域
@@ -522,8 +525,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Client Secret Key - 自定义客户端私钥：可使用 KeyPairGenerator 生成，留空则每次启动时自动生成，默认为空
   * IPv4 DNS Public Key - DNSCurve 协议 IPv4 主要 DNS 服务器验证用公钥，默认为 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
   * IPv4 Alternate DNS Public Key - DNSCurve 协议 IPv4 备用 DNS 服务器验证用公钥，默认为 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
-  * IPv6 DNS Public Key - DNSCurve 协议 IPv6 主要 DNS 服务器验证用公钥，默认为空
-  * IPv6 Alternate DNS Public Key - DNSCurve 协议 IPv6 备用 DNS 服务器验证用公钥，默认为空
+  * IPv6 DNS Public Key - DNSCurve 协议 IPv6 主要 DNS 服务器验证用公钥，默认为 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
+  * IPv6 Alternate DNS Public Key - DNSCurve 协议 IPv6 备用 DNS 服务器验证用公钥，默认为 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
   * IPv4 DNS Fingerprint - DNSCurve 协议 IPv4 主要 DNS 服务器传输用指纹，留空则自动通过服务器提供者和公钥获取，默认为空
   * IPv4 Alternate DNS Fingerprint - DNSCurve 协议 IPv4 备用 DNS 服务器传输用指纹，留空则自动通过服务器提供者和公钥获取，默认为空
   * IPv6 DNS Fingerprint - DNSCurve 协议 IPv6 备用 DNS 服务器传输用指纹，留空则自动通过服务器提供者和公钥获取，默认为空

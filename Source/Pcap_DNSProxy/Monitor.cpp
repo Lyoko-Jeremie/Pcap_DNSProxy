@@ -19,89 +19,8 @@
 
 #include "Monitor.h"
 
-/* Old version(2015-05-20)
-//Running Log writing Monitor
-size_t __fastcall RunningLogWriteMonitor(void)
-{
-//Initialization
-	FILE *Output = nullptr;
-	std::shared_ptr<tm> TimeStructure(new tm());
-	memset(TimeStructure.get(), 0, sizeof(tm));
-#if defined(PLATFORM_WIN)
-	std::shared_ptr<LARGE_INTEGER> RunningFileSize(new LARGE_INTEGER());
-	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
-	memset(RunningFileSize.get(), 0, sizeof(LARGE_INTEGER));
-	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::shared_ptr<struct stat> FileStat(new struct stat());
-	memset(FileStat.get(), 0, sizeof(struct stat));
-#endif
-	std::unique_lock<std::mutex> RunningLogMutex(RunningLogLock);
-	RunningLogMutex.unlock();
-
-//Write messages into file.
-	for (;;)
-	{
-		RunningLogMutex.lock();
-
-	//Check whole file size.
-	#if defined(PLATFORM_WIN)
-		memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
-		if (GetFileAttributesExW(Parameter.RunningLogPath->c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) != FALSE)
-		{
-			memset(RunningFileSize.get(), 0, sizeof(LARGE_INTEGER));
-			RunningFileSize->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
-			RunningFileSize->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
-			if (RunningFileSize->QuadPart > 0 && (size_t)RunningFileSize->QuadPart >= Parameter.LogMaxSize && 
-				DeleteFileW(Parameter.RunningLogPath->c_str()) != 0)
-					PrintError(LOG_ERROR_SYSTEM, L"Old Running Log file was deleted", 0, nullptr, 0);
-		}
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		memset(FileStat.get(), 0, sizeof(struct stat));
-		if (stat(Parameter.sRunningLogPath->c_str(), FileStat.get()) == 0 && FileStat->st_size >= (off_t)Parameter.LogMaxSize && 
-			remove(Parameter.sRunningLogPath->c_str()) == 0)
-				PrintError(LOG_ERROR_SYSTEM, L"Old Running Log file was deleted", 0, nullptr, 0);
-	#endif
-
-	//Write all messages to file.
-	#if defined(PLATFORM_WIN)
-		_wfopen_s(&Output, Parameter.RunningLogPath->c_str(), L"a,ccs=UTF-8");
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		Output = fopen(Parameter.sRunningLogPath->c_str(), "a");
-	#endif
-		if (Output != nullptr && Parameter.RunningLogWriteQueue != nullptr)
-		{
-			for (auto RunningLogDataIter:*Parameter.RunningLogWriteQueue)
-			{
-				memset(TimeStructure.get(), 0, sizeof(tm));
-				localtime_s(TimeStructure.get(), &RunningLogDataIter.TimeValues);
-
-			//Print to screen.
-				if (Parameter.Console)
-					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> %ls\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, RunningLogDataIter.Message.c_str());
-
-			//Print Running Log.
-				fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> %ls\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, RunningLogDataIter.Message.c_str());
-			}
-
-		//Clear list.
-			Parameter.RunningLogWriteQueue->clear();
-			Parameter.RunningLogWriteQueue->shrink_to_fit();
-
-		//Close file.
-			fclose(Output);
-		}
-
-		RunningLogMutex.unlock();
-		Sleep(Parameter.RunningLogRefreshTime); //Time between writing.
-	}
-
-	return EXIT_SUCCESS;
-}
-*/
-
 //Local DNS server initialization
-size_t __fastcall MonitorInit(void)
+bool __fastcall MonitorInit(void)
 {
 //Capture initialization
 #if defined(ENABLE_PCAP)
@@ -117,13 +36,15 @@ size_t __fastcall MonitorInit(void)
 	#endif
 
 	//Get Hop Limits/TTL with normal DNS request.
-		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0)
+		if ((Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) && 
+			Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0)
 		{
-			std::thread IPv6TestDoaminThread(DomainTestRequest, AF_INET6); //Get Hop Limits.
+			std::thread IPv6TestDoaminThread(DomainTestRequest, AF_INET6);
 			IPv6TestDoaminThread.detach();
 		}
 
-		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0) //Get TTL.
+		if ((Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4) && 
+			Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0)
 		{
 			std::thread IPv4TestDoaminThread(DomainTestRequest, AF_INET);
 			IPv4TestDoaminThread.detach();
@@ -133,14 +54,16 @@ size_t __fastcall MonitorInit(void)
 		if (Parameter.ICMPSpeed > 0)
 		{
 		//ICMPv6
-			if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0)
+			if ((Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) && 
+				Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0)
 			{
 				std::thread ICMPv6Thread(ICMPEcho, AF_INET6);
 				ICMPv6Thread.detach();
 			}
 
 		//ICMP
-			if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0)
+			if ((Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4) && 
+				Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0)
 			{
 				std::thread ICMPThread(ICMPEcho, AF_INET);
 				ICMPThread.detach();
@@ -151,12 +74,17 @@ size_t __fastcall MonitorInit(void)
 
 //Set Preferred DNS servers switcher.
 	if (!Parameter.AlternateMultiRequest && 
-		Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 || 
-		Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0
+		((Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) && 
+		(Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0
 	#if defined(ENABLE_LIBSODIUM)
-		|| DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 || DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0
+		|| DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0
 	#endif
-		)
+		)) || ((Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4) &&
+		(Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0
+	#if defined(ENABLE_LIBSODIUM)
+		|| DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0
+	#endif
+		)))
 	{
 		std::thread AlternateServerMonitorThread(AlternateServerMonitor);
 		AlternateServerMonitorThread.detach();
@@ -169,9 +97,9 @@ size_t __fastcall MonitorInit(void)
 	size_t MonitorThreadIndex = 0;
 
 //Set localhost Monitor sockets(IPv6/UDP).
-	if (Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV6_IPV4 || Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV6)
+	if (Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV6_IPV4 || Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV6)
 	{
-		if (Parameter.ListenProtocol_TransportLayer == LISTEN_TCP_UDP || Parameter.ListenProtocol_TransportLayer == LISTEN_UDP)
+		if (Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TCP_UDP || Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_UDP)
 		{
 			LocalSocketData->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 			if (LocalSocketData->Socket == INVALID_SOCKET)
@@ -213,7 +141,7 @@ size_t __fastcall MonitorInit(void)
 				}
 				else {
 				//Proxy Mode
-					if (Parameter.OperationMode == LISTEN_PROXYMODE)
+					if (Parameter.OperationMode == LISTEN_MODE_PROXY)
 						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr = in6addr_loopback;
 				//Server Mode, Priavte Mode and Custom Mode
 					else
@@ -252,7 +180,7 @@ size_t __fastcall MonitorInit(void)
 		}
 
 	//Set localhost socket(IPv6/TCP).
-		if (Parameter.ListenProtocol_TransportLayer == LISTEN_TCP_UDP || Parameter.ListenProtocol_TransportLayer == LISTEN_TCP)
+		if (Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TCP_UDP || Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TCP)
 		{
 			LocalSocketData->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 			if (LocalSocketData->Socket == INVALID_SOCKET)
@@ -294,7 +222,7 @@ size_t __fastcall MonitorInit(void)
 				}
 				else {
 				//Proxy Mode
-					if (Parameter.OperationMode == LISTEN_PROXYMODE)
+					if (Parameter.OperationMode == LISTEN_MODE_PROXY)
 						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr = in6addr_loopback;
 				//Server Mode, Priavte Mode and Custom Mode
 					else
@@ -334,9 +262,9 @@ size_t __fastcall MonitorInit(void)
 	}
 
 //Set localhost socket(IPv4/UDP).
-	if (Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV6_IPV4 || Parameter.ListenProtocol_NetworkLayer == LISTEN_IPV4)
+	if (Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV6_IPV4 || Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV4)
 	{
-		if (Parameter.ListenProtocol_TransportLayer == LISTEN_TCP_UDP || Parameter.ListenProtocol_TransportLayer == LISTEN_UDP)
+		if (Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TCP_UDP || Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_UDP)
 		{
 			LocalSocketData->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 			if (LocalSocketData->Socket == INVALID_SOCKET)
@@ -377,7 +305,7 @@ size_t __fastcall MonitorInit(void)
 				}
 				else {
 				//Proxy Mode
-					if (Parameter.OperationMode == LISTEN_PROXYMODE)
+					if (Parameter.OperationMode == LISTEN_MODE_PROXY)
 						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 				//Server Mode, Priavte Mode and Custom Mode
 					else
@@ -416,7 +344,7 @@ size_t __fastcall MonitorInit(void)
 		}
 
 	//Set localhost socket(IPv4/TCP).
-		if (Parameter.ListenProtocol_TransportLayer == LISTEN_TCP_UDP || Parameter.ListenProtocol_TransportLayer == LISTEN_TCP)
+		if (Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TCP_UDP || Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TCP)
 		{
 			LocalSocketData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 			if (LocalSocketData->Socket == INVALID_SOCKET)
@@ -457,7 +385,7 @@ size_t __fastcall MonitorInit(void)
 				}
 				else {
 				//Proxy Mode
-					if (Parameter.OperationMode == LISTEN_PROXYMODE)
+					if (Parameter.OperationMode == LISTEN_MODE_PROXY)
 						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 				//Server Mode, Priavte Mode and Custom Mode
 					else
@@ -513,11 +441,11 @@ size_t __fastcall MonitorInit(void)
 			MonitorThread.at(Index).join();
 	}
 
-	return EXIT_SUCCESS;
+	return true;
 }
 
 //Local DNS server with UDP protocol
-size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
+bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 {
 	SSIZE_T RecvLen = 0;
 
@@ -531,7 +459,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket SIO_UDP_CONNRESET error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
 
-		return EXIT_FAILURE;
+		return false;
 	}
 #endif
 
@@ -547,7 +475,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket timeout error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
 
-		return EXIT_FAILURE;
+		return false;
 	}
 
 //Preventing other sockets from being forcibly bound to the same address and port(Windows).
@@ -560,7 +488,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket disable reusing error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
 
-		return EXIT_FAILURE;
+		return false;
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Socket reuse setting
@@ -570,18 +498,18 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket enable reusing error", errno, nullptr, 0);
 		close(LocalSocketData.Socket);
 
-		return EXIT_FAILURE;
+		return false;
 	}
 */
 //Set an IPv6 server socket that cannot accept IPv4 connections on Linux.
 //	SetVal = 1;
-	if (LocalSocketData.SockAddr.ss_family == AF_INET6 && Parameter.OperationMode != LISTEN_PROXYMODE && 
+	if (LocalSocketData.SockAddr.ss_family == AF_INET6 && Parameter.OperationMode != LISTEN_MODE_PROXY && 
 		setsockopt(LocalSocketData.Socket, IPPROTO_IPV6, IPV6_V6ONLY, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket treating wildcard bind error", errno, nullptr, 0);
 		close(LocalSocketData.Socket);
 
-		return EXIT_FAILURE;
+		return false;
 	}
 #endif
 
@@ -591,7 +519,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		PrintError(LOG_ERROR_NETWORK, L"Bind UDP Monitor socket error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
 
-		return EXIT_FAILURE;
+		return false;
 	}
 
 //Start Monitor.
@@ -615,59 +543,56 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 			Addr = &((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr;
 			if (CheckEmptyBuffer(Addr, sizeof(in6_addr)) || //Empty address
 			//Check Private Mode(IPv6).
-				Parameter.OperationMode == LISTEN_PRIVATEMODE && 
+				Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
 				!(((in6_addr *)Addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)Addr)->s6_bytes[0] <= 0xFD || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
 				((in6_addr *)Addr)->s6_bytes[0] == 0xFE && ((in6_addr *)Addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
 				((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001)) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
 			//Check Custom Mode(IPv6).
-				Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET6))
+				Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(Addr, AF_INET6))
 					continue;
 		}
 		else { //IPv4
 			Addr = &((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr;
 			if ((*(in_addr *)Addr).s_addr == 0 || //Empty address
 			//Check Private Mode(IPv4).
-				Parameter.OperationMode == LISTEN_PRIVATEMODE && 
+				Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
 				!(((in_addr *)Addr)->s_net == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
 				((in_addr *)Addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
 				((in_addr *)Addr)->s_net == 0xAC && ((in_addr *)Addr)->s_host >= 0x10 && ((in_addr *)Addr)->s_host <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
 				((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0xA8) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
 			//Check Custom Mode(IPv4).
-				Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET))
+				Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(Addr, AF_INET))
 					continue;
 		}
 
 	//UDP Truncated check
-		if (RecvLen > (SSIZE_T)(Parameter.EDNSPayloadSize - EDNS_ADDITIONAL_MAXSIZE))
+		if (RecvLen > (SSIZE_T)(Parameter.EDNSPayloadSize - EDNS_ADDITIONAL_MAXSIZE) && 
+			(Parameter.EDNSLabel || RecvLen > (SSIZE_T)Parameter.EDNSPayloadSize))
 		{
-			if (Parameter.EDNSLabel || //EDNS Lebal
-				RecvLen > (SSIZE_T)Parameter.EDNSPayloadSize)
+		//Make packets with EDNS Lebal.
+			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_RTC);
+			pdns_record_opt DNS_Record_OPT = nullptr;
+			if (DNS_Header->Additional == 0)
 			{
-			//Make packets with EDNS Lebal.
-				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_RTC);
-				pdns_record_opt DNS_Record_OPT = nullptr;
-				if (DNS_Header->Additional == 0)
-				{
-					DNS_Header->Additional = htons(U16_NUM_ONE);
-					DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + PACKET_MAXSIZE * Index[0] + RecvLen);
-					DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
+				DNS_Header->Additional = htons(U16_NUM_ONE);
+				DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + PACKET_MAXSIZE * Index[0] + RecvLen);
+				DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
+				DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
+				RecvLen += sizeof(dns_record_opt);
+			}
+			else if (DNS_Header->Additional == htons(U16_NUM_ONE))
+			{
+				DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + PACKET_MAXSIZE * Index[0] + RecvLen - sizeof(dns_record_opt));
+				if (DNS_Record_OPT->Type == htons(DNS_RECORD_OPT))
 					DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
-					RecvLen += sizeof(dns_record_opt);
-				}
-				else if (DNS_Header->Additional == htons(U16_NUM_ONE))
-				{
-					DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + PACKET_MAXSIZE * Index[0] + RecvLen - sizeof(dns_record_opt));
-					if (DNS_Record_OPT->Type == htons(DNS_RECORD_OPT))
-						DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
-				}
-				else {
-					continue;
-				}
-
-			//Send requesting.
-				sendto(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], (int)RecvLen, 0, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen);
+			}
+			else {
 				continue;
 			}
+
+		//Send requesting.
+			sendto(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], (int)RecvLen, 0, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen);
+			continue;
 		}
 
 	//Receive process.
@@ -691,7 +616,7 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 
 		//EDNS Label
 			if (Parameter.EDNSLabel)
-				RecvLen = AddEDNSToAdditionalRR(Buffer.get() + PACKET_MAXSIZE * Index[0], (size_t)RecvLen);
+				RecvLen = AddEDNSLabelToAdditionalRR(Buffer.get() + PACKET_MAXSIZE * Index[0], (size_t)RecvLen);
 
 		//Request process
 			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
@@ -714,11 +639,11 @@ size_t __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 	shutdown(LocalSocketData.Socket, SD_BOTH);
 	closesocket(LocalSocketData.Socket);
 	PrintError(LOG_ERROR_SYSTEM, L"UDP listening module Monitor terminated", 0, nullptr, 0);
-	return EXIT_SUCCESS;
+	return true;
 }
 
 //Local DNS server with TCP protocol
-size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
+bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 {
 //Set socket timeout.
 #if defined(PLATFORM_WIN)
@@ -732,7 +657,7 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 		PrintError(LOG_ERROR_NETWORK, L"Set TCP socket timeout error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
 
-		return EXIT_FAILURE;
+		return false;
 	}
 
 //Preventing other sockets from being forcibly bound to the same address and port(Windows).
@@ -745,7 +670,7 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 		PrintError(LOG_ERROR_NETWORK, L"Set TCP socket disable reusing error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
 
-		return EXIT_FAILURE;
+		return false;
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Socket reuse setting
@@ -755,18 +680,18 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 		PrintError(LOG_ERROR_NETWORK, L"Set TCP socket enable reusing error", errno, nullptr, 0);
 		close(LocalSocketData.Socket);
 
-		return EXIT_FAILURE;
+		return false;
 	}
 */
 //Create an IPv6 server socket that can also accept IPv4 connections on Linux.
 //	SetVal = 1;
-	if (LocalSocketData.SockAddr.ss_family == AF_INET6 && Parameter.OperationMode != LISTEN_PROXYMODE && 
+	if (LocalSocketData.SockAddr.ss_family == AF_INET6 && Parameter.OperationMode != LISTEN_MODE_PROXY && 
 		setsockopt(LocalSocketData.Socket, IPPROTO_IPV6, IPV6_V6ONLY, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"Set TCP socket treating wildcard bind error", errno, nullptr, 0);
 		close(LocalSocketData.Socket);
 
-		return EXIT_FAILURE;
+		return false;
 	}
 #endif
 
@@ -776,7 +701,7 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 		PrintError(LOG_ERROR_NETWORK, L"Bind TCP Monitor socket error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
 
-		return EXIT_FAILURE;
+		return false;
 	}
 
 //Listen requesting from socket.
@@ -785,7 +710,7 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 		PrintError(LOG_ERROR_NETWORK, L"TCP Monitor socket listening initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
 
-		return EXIT_FAILURE;
+		return false;
 	}
 
 //Start Monitor.
@@ -806,12 +731,12 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 			Addr = &((PSOCKADDR_IN6)&ClientData->SockAddr)->sin6_addr;
 			if (CheckEmptyBuffer(Addr, sizeof(in6_addr)) || //Empty address
 			//Check Private Mode(IPv6).
-				(Parameter.OperationMode == LISTEN_PRIVATEMODE && 
+				(Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
 				!(((in6_addr *)Addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)Addr)->s6_bytes[0] <= 0xFD || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
 				((in6_addr *)Addr)->s6_bytes[0] == 0xFE && ((in6_addr *)Addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
 				((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001))) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
 			//Check Custom Mode(IPv6).
-				(Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET6)))
+				(Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(Addr, AF_INET6)))
 			{
 				shutdown(LocalSocketData.Socket, SD_BOTH);
 				closesocket(ClientData->Socket);
@@ -822,13 +747,13 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 			Addr = &((PSOCKADDR_IN)&ClientData->SockAddr)->sin_addr;
 			if ((*(in_addr *)Addr).s_addr == 0 || //Empty address
 			//Check Private Mode(IPv4).
-				(Parameter.OperationMode == LISTEN_PRIVATEMODE && 
+				(Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
 				!(((in_addr *)Addr)->s_net == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
 				((in_addr *)Addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
 				((in_addr *)Addr)->s_net == 0xAC && ((in_addr *)Addr)->s_host >= 0x10 && ((in_addr *)Addr)->s_host <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
 				((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0xA8)) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
 			//Check Custom Mode(IPv4).
-				(Parameter.OperationMode == LISTEN_CUSTOMMODE && !CustomModeFilter(Addr, AF_INET)))
+				(Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(Addr, AF_INET)))
 			{
 				shutdown(LocalSocketData.Socket, SD_BOTH);
 				closesocket(ClientData->Socket);
@@ -844,11 +769,11 @@ size_t __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 	shutdown(LocalSocketData.Socket, SD_BOTH);
 	closesocket(LocalSocketData.Socket);
 	PrintError(LOG_ERROR_SYSTEM, L"TCP listening module Monitor terminated", 0, nullptr, 0);
-	return EXIT_SUCCESS;
+	return true;
 }
 
 //TCP protocol receive process
-size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
+bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 {
 	std::shared_ptr<char> Buffer(new char[LARGE_PACKET_MAXSIZE]());
 	memset(Buffer.get(), 0, LARGE_PACKET_MAXSIZE);
@@ -868,7 +793,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 		{
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);
-			return EXIT_FAILURE;
+			return false;
 		}
 		memset(Buffer.get(), 0, RecvLen);
 		if (Parameter.EDNSLabel) //EDNS Label
@@ -886,7 +811,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 			{
 				shutdown(LocalSocketData.Socket, SD_BOTH);
 				closesocket(LocalSocketData.Socket);
-				return EXIT_FAILURE;
+				return false;
 			}
 			for (InnerIndex = sizeof(dns_hdr);InnerIndex < DNS_PACKET_QUERY_LOCATE(Buffer.get());++InnerIndex)
 			{
@@ -900,12 +825,12 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 
 				shutdown(LocalSocketData.Socket, SD_BOTH);
 				closesocket(LocalSocketData.Socket);
-				return EXIT_FAILURE;
+				return false;
 			}
 
 		//EDNS Label
 			if (Parameter.EDNSLabel)
-				RecvLen = AddEDNSToAdditionalRR(Buffer.get(), (size_t)RecvLen);
+				RecvLen = AddEDNSLabelToAdditionalRR(Buffer.get(), (size_t)RecvLen);
 
 		//Requesting process
 			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
@@ -916,7 +841,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 		else {
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);
-			return EXIT_FAILURE;
+			return false;
 		}
 	}
 	else if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && RecvLen >= (SSIZE_T)htons(((uint16_t *)Buffer.get())[0]) && htons(((uint16_t *)Buffer.get())[0]) < LARGE_PACKET_MAXSIZE)
@@ -930,7 +855,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 		{
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);
-			return EXIT_FAILURE;
+			return false;
 		}
 		for (InnerIndex = sizeof(dns_tcp_hdr);InnerIndex < DNS_TCP_PACKET_QUERY_LOCATE(Buffer.get());++InnerIndex)
 		{
@@ -944,12 +869,12 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);
-			return EXIT_FAILURE;
+			return false;
 		}
 
 	//EDNS Label
 		if (Parameter.EDNSLabel)
-			RecvLen = AddEDNSToAdditionalRR(Buffer.get() + sizeof(uint16_t), (size_t)RecvLen);
+			RecvLen = AddEDNSLabelToAdditionalRR(Buffer.get() + sizeof(uint16_t), (size_t)RecvLen);
 
 	//Requesting process
 		if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
@@ -960,7 +885,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 	else {
 		shutdown(LocalSocketData.Socket, SD_BOTH);
 		closesocket(LocalSocketData.Socket);
-		return EXIT_FAILURE;
+		return false;
 	}
 
 //Block Port Unreachable messages of system.
@@ -971,7 +896,7 @@ size_t __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 	usleep(Parameter.ReliableSocketTimeout.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.ReliableSocketTimeout.tv_usec);
 #endif
 	closesocket(LocalSocketData.Socket);
-	return EXIT_SUCCESS;
+	return true;
 }
 
 //Alternate DNS servers switcher
@@ -1042,66 +967,761 @@ void __fastcall AlternateServerMonitor(void)
 	return;
 }
 
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-//Flush DNS cache FIFO Monitor
-size_t FlushDNSFIFOMonitor(void)
+//Get local address list
+#if defined(PLATFORM_WIN)
+PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol)
 {
 //Initialization
-	unlink(FIFO_PATH_NAME);
-	std::shared_ptr<char> Buffer(new char[PACKET_MAXSIZE]());
-	memset(Buffer.get(), 0, PACKET_MAXSIZE);
-	int FIFO_FD = 0;
+	std::shared_ptr<char> HostName(new char[DOMAIN_MAXSIZE]());
+	memset(HostName.get(), 0, DOMAIN_MAXSIZE);
+	std::shared_ptr<addrinfo> Hints(new addrinfo());
+	memset(Hints.get(), 0, sizeof(addrinfo));
+	PADDRINFOA Result = nullptr;
 
-//Create FIFO.
-	if (mkfifo(FIFO_PATH_NAME, O_CREAT) < 0 || chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) < 0)
+	if (Protocol == AF_INET6) //IPv6
+		Hints->ai_family = AF_INET6;
+	else //IPv4
+		Hints->ai_family = AF_INET;
+	Hints->ai_socktype = SOCK_DGRAM;
+	Hints->ai_protocol = IPPROTO_UDP;
+
+//Get localhost name.
+	if (gethostname(HostName.get(), DOMAIN_MAXSIZE) == SOCKET_ERROR)
 	{
-		PrintError(LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
-
-		unlink(FIFO_PATH_NAME);
-		return EXIT_FAILURE;
+		PrintError(LOG_ERROR_NETWORK, L"Get localhost name error", WSAGetLastError(), nullptr, 0);
+		return nullptr;
 	}
 
-//Open FIFO.
-	FIFO_FD = open(FIFO_PATH_NAME, O_RDONLY, 0);
-	if (FIFO_FD < 0)
+//Get localhost data.
+	int ResultGetaddrinfo = getaddrinfo(HostName.get(), nullptr, Hints.get(), &Result);
+	if (ResultGetaddrinfo != 0)
 	{
-		PrintError(LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
+		PrintError(LOG_ERROR_NETWORK, L"Get localhost address error", ResultGetaddrinfo, nullptr, 0);
 
-		unlink(FIFO_PATH_NAME);
-		return EXIT_FAILURE;
+		freeaddrinfo(Result);
+		return nullptr;
 	}
 
-//FIFO Monitor
-	for (;;)
-	{
-		if (read(FIFO_FD, Buffer.get(), PACKET_MAXSIZE) > 0 && 
-			memcmp(Buffer.get(), FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) == 0)
-				FlushSystemDNSCache();
-
-		memset(Buffer.get(), 0, PACKET_MAXSIZE);
-		Sleep(MONITOR_LOOP_INTERVAL_TIME);
-	}
-
-	close(FIFO_FD);
-	unlink(FIFO_PATH_NAME);
-	PrintError(LOG_ERROR_SYSTEM, L"FIFO module Monitor terminated", 0, nullptr, 0);
-	return EXIT_SUCCESS;
-}
-
-//Flush DNS cache FIFO sender
-size_t FlushDNSFIFOSender(void)
-{
-	int FIFO_FD = open(FIFO_PATH_NAME, O_WRONLY|O_TRUNC|O_NONBLOCK, 0);
-	if (FIFO_FD > 0 && write(FIFO_FD, FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) > 0)
-	{
-		wprintf(L"Flush DNS cache message was sent successfully.\n");
-		close(FIFO_FD);
-	}
-	else {
-		wprintf(L"FIFO write messages error, error code is %d.\n", errno);
-		return EXIT_FAILURE;
-	}
-
-	return EXIT_SUCCESS;
+	return Result;
 }
 #endif
+
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+//Get address from best network interface
+bool GetBestInterfaceAddress(const uint16_t Protocol, const sockaddr_storage *OriginalSockAddr)
+{
+//Initialization
+	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
+	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
+	SockAddr->ss_family = Protocol;
+	SOCKET InterfaceSocket = socket(Protocol, SOCK_DGRAM, IPPROTO_UDP);
+	socklen_t AddrLen = 0;
+
+//Check socket.
+	if (InterfaceSocket == INVALID_SOCKET)
+	{
+		Parameter.TunnelAvailable_IPv6 = false;
+		if (Protocol == AF_INET6)
+			Parameter.GatewayAvailable_IPv6 = false;
+		else //IPv4
+			Parameter.GatewayAvailable_IPv4 = false;
+
+		PrintError(LOG_ERROR_NETWORK, L"UDP request initialization error", WSAGetLastError(), nullptr, 0);
+		return false;
+	}
+
+//Check parameter.
+	if (Protocol == AF_INET6)
+	{
+		((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = ((PSOCKADDR_IN6)OriginalSockAddr)->sin6_addr;
+		((PSOCKADDR_IN6)SockAddr.get())->sin6_port = ((PSOCKADDR_IN6)OriginalSockAddr)->sin6_port;
+		AddrLen = sizeof(sockaddr_in6);
+
+	//UDP connecting
+		if (connect(InterfaceSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6)) == SOCKET_ERROR || 
+			getsockname(InterfaceSocket, (PSOCKADDR)SockAddr.get(), &AddrLen) == SOCKET_ERROR || SockAddr->ss_family != AF_INET6 || 
+			AddrLen != sizeof(sockaddr_in6) || CheckEmptyBuffer(&((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, sizeof(in6_addr)))
+		{
+			Parameter.GatewayAvailable_IPv6 = false;
+			Parameter.TunnelAvailable_IPv6 = false;
+
+			close(InterfaceSocket);
+			return false;
+		}
+
+	//Address check(IPv6 tunnels support: 6to4, ISATAP and Teredo)
+		if (((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[0] == htons(0x2001) && ((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[1U] == 0 || //Teredo relay/tunnel Addresses(2001::/32, RFC 4380)
+			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[0] == htons(0x2002) || //6to4 relay/tunnel Addresses(2002::/16, Section 2 in RFC 3056)
+			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[0] >= 0x80 && ((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[1U] <= 0xBF && //Link-Local Unicast Contrast Addresses/LUC(FE80::/10, Section 2.5.6 in RFC 4291)
+			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[4U] == 0 && ((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[5U] == htons(0x5EFE)) //ISATAP Interface Identifiers Addresses(Prefix:0:5EFE:0:0:0:0/64, which also in Link-Local Unicast Contrast Addresses/LUC, Section 6.1 in RFC 5214)
+				Parameter.TunnelAvailable_IPv6 = true;
+	}
+	else { //IPv4
+		((PSOCKADDR_IN)SockAddr.get())->sin_addr = ((PSOCKADDR_IN)OriginalSockAddr)->sin_addr;
+		((PSOCKADDR_IN)SockAddr.get())->sin_port = ((PSOCKADDR_IN)OriginalSockAddr)->sin_port;
+		AddrLen = sizeof(sockaddr_in);
+
+	//UDP connecting
+		if (connect(InterfaceSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in)) == SOCKET_ERROR || 
+			getsockname(InterfaceSocket, (PSOCKADDR)SockAddr.get(), &AddrLen) == SOCKET_ERROR || SockAddr->ss_family != AF_INET || 
+			AddrLen != sizeof(sockaddr_in) || CheckEmptyBuffer(&((PSOCKADDR_IN)SockAddr.get())->sin_addr, sizeof(in_addr)))
+		{
+			Parameter.GatewayAvailable_IPv4 = false;
+			Parameter.TunnelAvailable_IPv6 = false;
+
+			close(InterfaceSocket);
+			return false;
+		}
+	}
+
+	close(InterfaceSocket);
+	return true;
+}
+#endif
+
+//Get gateway information
+void __fastcall GetGatewayInformation(const uint16_t Protocol)
+{
+//IPv6
+	if (Protocol == AF_INET6)
+	{
+		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0 && 
+			Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family == 0
+		#if defined(ENABLE_LIBSODIUM)
+			&& DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0
+		#endif
+			)
+		{
+			Parameter.GatewayAvailable_IPv6 = false;
+			Parameter.TunnelAvailable_IPv6 = false;
+			return;
+		}
+	#if defined(PLATFORM_WIN)
+		DWORD AdaptersIndex = 0;
+		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
+			Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
+			Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Local_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
+			Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR
+		#if defined(ENABLE_LIBSODIUM)
+			|| DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
+			DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR
+		#endif
+			)
+		{
+			Parameter.GatewayAvailable_IPv6 = false;
+			Parameter.TunnelAvailable_IPv6 = false;
+			return;
+		}
+
+	//IPv6 Multi
+		if (Parameter.DNSTarget.IPv6_Multi != nullptr)
+		{
+			for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv6_Multi)
+			{
+				if (GetBestInterfaceEx((PSOCKADDR)&DNSServerDataIter.AddressData.IPv6, &AdaptersIndex) != NO_ERROR)
+				{
+					Parameter.GatewayAvailable_IPv6 = false;
+					Parameter.TunnelAvailable_IPv6 = false;
+					return;
+				}
+			}
+		}
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.IPv6.AddressData.Storage) || 
+			Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage) || 
+			Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Local_IPv6.AddressData.Storage) || 
+			Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage)
+		#if defined(ENABLE_LIBSODIUM)
+			|| DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET6, &DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage) || 
+			DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET6, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage)
+		#endif
+			)
+		{
+			Parameter.GatewayAvailable_IPv6 = false;
+			Parameter.TunnelAvailable_IPv6 = false;
+			return;
+		}
+
+	//IPv6 Multi
+		if (Parameter.DNSTarget.IPv6_Multi != nullptr)
+		{
+			for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv6_Multi)
+			{
+				if (!GetBestInterfaceAddress(AF_INET6, &DNSServerDataIter.AddressData.Storage))
+				{
+					Parameter.GatewayAvailable_IPv6 = false;
+					Parameter.TunnelAvailable_IPv6 = false;
+					return;
+				}
+			}
+		}
+	#endif
+
+		Parameter.GatewayAvailable_IPv6 = true;
+		Parameter.TunnelAvailable_IPv6 = true;
+	}
+//IPv4
+	else {
+		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0 && 
+			Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family == 0
+		#if defined(ENABLE_LIBSODIUM)
+			&& DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0
+		#endif
+			)
+		{
+			Parameter.GatewayAvailable_IPv4 = false;
+			Parameter.TunnelAvailable_IPv6 = false;
+			return;
+		}
+	#if defined(PLATFORM_WIN)
+		DWORD AdaptersIndex = 0;
+		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
+			Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
+			Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Local_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
+			Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR
+		#if defined(ENABLE_LIBSODIUM)
+			|| DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
+			DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR
+		#endif
+			)
+		{
+			Parameter.GatewayAvailable_IPv4 = false;
+			Parameter.TunnelAvailable_IPv6 = false;
+			return;
+		}
+
+	//IPv4 Multi
+		if (Parameter.DNSTarget.IPv4_Multi != nullptr)
+		{
+			for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv4_Multi)
+			{
+				if (GetBestInterfaceEx((PSOCKADDR)&DNSServerDataIter.AddressData.IPv4, &AdaptersIndex) != NO_ERROR)
+				{
+					Parameter.GatewayAvailable_IPv4 = false;
+					Parameter.TunnelAvailable_IPv6 = false;
+					return;
+				}
+			}
+		}
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.IPv4.AddressData.Storage) || 
+			Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage) || 
+			Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Local_IPv4.AddressData.Storage) || 
+			Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage)
+		#if defined(ENABLE_LIBSODIUM)
+			|| DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET, &DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage) || 
+			DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage)
+		#endif
+			)
+		{
+			Parameter.GatewayAvailable_IPv4 = false;
+			Parameter.TunnelAvailable_IPv6 = false;
+			return;
+		}
+
+	//IPv4 Multi
+		if (Parameter.DNSTarget.IPv4_Multi != nullptr)
+		{
+			for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv4_Multi)
+			{
+				if (!GetBestInterfaceAddress(AF_INET, &DNSServerDataIter.AddressData.Storage))
+				{
+					Parameter.GatewayAvailable_IPv4 = false;
+					Parameter.TunnelAvailable_IPv6 = false;
+					return;
+				}
+			}
+		}
+	#endif
+
+		Parameter.GatewayAvailable_IPv4 = true;
+	}
+
+	return;
+}
+
+//Local network information monitor
+void __fastcall NetworkInformationMonitor(void)
+{
+//Initialization
+	std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
+	memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+#if !defined(PLATFORM_MACX)
+	std::string Result;
+	SSIZE_T Index = 0;
+#endif
+#if defined(PLATFORM_WIN)
+	PADDRINFOA LocalAddressList = nullptr, LocalAddressTableIter = nullptr;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	ifaddrs *InterfaceAddressList = nullptr, *InterfaceAddressIter = nullptr;
+	auto IsErrorFirstPrint = true;
+#endif
+	pdns_hdr DNS_Header = nullptr;
+	pdns_qry DNS_Query = nullptr;
+	pdns_record_aaaa DNS_Record_AAAA = nullptr;
+	pdns_record_a DNS_Record_A = nullptr;
+	auto IsSubnetMark = false;
+
+//Monitor
+	for (;;)
+	{
+		IsSubnetMark = false;
+
+	//Get localhost addresses(IPv6)
+		if (Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV6_IPV4 || Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV6)
+		{
+		#if defined(PLATFORM_WIN)
+			LocalAddressList = GetLocalAddressList(AF_INET6);
+			if (LocalAddressList == nullptr)
+			{
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			if (getifaddrs(&InterfaceAddressList) != 0 || InterfaceAddressList == nullptr)
+			{
+				if (InterfaceAddressList != nullptr)
+					freeifaddrs(InterfaceAddressList);
+				InterfaceAddressList = nullptr;
+				PrintError(LOG_ERROR_NETWORK, L"Get localhost address error", errno, nullptr, 0);
+		#endif
+
+				Sleep(Parameter.FileRefreshTime);
+				continue;
+			}
+			else {
+				std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0]);
+				memset(Parameter.LocalAddressResponse[0], 0, PACKET_MAXSIZE);
+				Parameter.LocalAddressLength[0] = 0;
+			#if !defined(PLATFORM_MACX)
+				std::string DNSPTRString;
+				Parameter.LocalAddressPTRResponse[0]->clear();
+				Parameter.LocalAddressPTRResponse[0]->shrink_to_fit();
+			#endif
+
+			//Mark local addresses(A part).
+				DNS_Header = (pdns_hdr)Parameter.LocalAddressResponse[0];
+				DNS_Header->Flags = htons(DNS_SQR_NEA);
+				DNS_Header->Questions = htons(U16_NUM_ONE);
+				Parameter.LocalAddressLength[0] += sizeof(dns_hdr);
+				memcpy_s(Parameter.LocalAddressResponse[0] + Parameter.LocalAddressLength[0], PACKET_MAXSIZE - Parameter.LocalAddressLength[0], Parameter.LocalFQDNResponse, Parameter.LocalFQDNLength);
+				Parameter.LocalAddressLength[0] += Parameter.LocalFQDNLength;
+				DNS_Query = (pdns_qry)(Parameter.LocalAddressResponse[0] + Parameter.LocalAddressLength[0]);
+				DNS_Query->Type = htons(DNS_RECORD_AAAA);
+				DNS_Query->Classes = htons(DNS_CLASS_IN);
+				Parameter.LocalAddressLength[0] += sizeof(dns_qry);
+
+			//Read addresses list and convert to Fully Qualified Domain Name/FQDN PTR.
+			#if defined(PLATFORM_WIN)
+				for (LocalAddressTableIter = LocalAddressList;LocalAddressTableIter != nullptr;LocalAddressTableIter = LocalAddressTableIter->ai_next)
+				{
+					if (LocalAddressTableIter->ai_family == AF_INET6 && LocalAddressTableIter->ai_addrlen == sizeof(sockaddr_in6) && 
+						LocalAddressTableIter->ai_addr->sa_family == AF_INET6)
+					{
+					//Mark localhost subnet(IPv6).
+						if (Parameter.EDNSClientSubnet && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv6 && 
+							Parameter.LocalhostSubnet.IPv6 != nullptr && Parameter.LocalhostSubnet.IPv6->Address.ss_family == 0 &&
+							!CheckSpecialAddress(&((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr, AF_INET6, true, nullptr))
+						{
+							Parameter.LocalhostSubnet.IPv6->Address.ss_family = AF_INET6;
+							((PSOCKADDR_IN6)&Parameter.LocalhostSubnet.IPv6->Address)->sin6_addr = ((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr;
+							Parameter.LocalhostSubnet.IPv6->Prefix = sizeof(in6_addr) * BYTES_TO_BITS; //No recommendation is provided for IPv6 at this time so keep all bits, see https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02.
+
+							IsSubnetMark = true;
+						}
+
+					//Mark local addresses(B part).
+						if (Parameter.LocalAddressLength[0] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
+						{
+							DNS_Record_AAAA = (pdns_record_aaaa)(Parameter.LocalAddressResponse[0] + Parameter.LocalAddressLength[0]);
+							DNS_Record_AAAA->Name = htons(DNS_QUERY_PTR);
+							DNS_Record_AAAA->Classes = htons(DNS_CLASS_IN);
+							DNS_Record_AAAA->TTL = htonl(Parameter.HostsDefaultTTL);
+							DNS_Record_AAAA->Type = htons(DNS_RECORD_AAAA);
+							DNS_Record_AAAA->Length = htons(sizeof(in6_addr));
+							DNS_Record_AAAA->Addr = ((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr;
+							Parameter.LocalAddressLength[0] += sizeof(dns_record_aaaa);
+							++DNS_Header->Answer;
+						}
+
+					#if !defined(PLATFORM_MACX)
+					//Initialization
+						DNSPTRString.clear();
+						memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+
+					//Convert from in6_addr to string.
+						size_t AddrStringLen = 0;
+						for (Index = 0;Index < (SSIZE_T)(sizeof(in6_addr) / sizeof(uint16_t));++Index)
+						{
+							sprintf_s(Addr.get(), ADDR_STRING_MAXSIZE, "%x", ntohs(((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr.s6_words[Index]));
+
+						//Add zeros to beginning of string.
+							if (strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE) < 4U)
+							{
+								AddrStringLen = strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE);
+								memmove_s(Addr.get() + 4U - strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE), ADDR_STRING_MAXSIZE, Addr.get(), strnlen_s(Addr.get(), ADDR_STRING_MAXSIZE));
+								memset(Addr.get(), ASCII_ZERO, 4U - AddrStringLen);
+							}
+							DNSPTRString.append(Addr.get());
+							memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+
+						//Last
+							if (Index < (SSIZE_T)(sizeof(in6_addr) / sizeof(uint16_t) - 1U))
+								DNSPTRString.append(":");
+						}
+
+					//Convert to standard IPv6 address format(":0:" -> ":0000:").
+						Index = 0;
+						while (DNSPTRString.find(":0:", Index) != std::string::npos)
+							DNSPTRString.replace(DNSPTRString.find(":0:", Index), 3U, ":0000:");
+
+					//Delete all colons
+						while (DNSPTRString.find(":") != std::string::npos)
+							DNSPTRString.erase(DNSPTRString.find(":"), 1U);
+
+					//Convert standard IPv6 address string to DNS PTR.
+						for (Index = DNSPTRString.length() - 1U;Index >= 0;--Index)
+						{
+							Result.append(DNSPTRString, Index, 1U);
+							Result.append(".");
+						}
+						Result.append("ip6.arpa");
+
+					//Add to global list.
+						Parameter.LocalAddressPTRResponse[0]->push_back(Result);
+						Result.clear();
+						Result.shrink_to_fit();
+					#endif
+					}
+				}
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				for (InterfaceAddressIter = InterfaceAddressList;InterfaceAddressIter != nullptr;InterfaceAddressIter = InterfaceAddressIter->ifa_next)
+				{
+					if (InterfaceAddressIter->ifa_addr != nullptr && InterfaceAddressIter->ifa_addr->sa_family == AF_INET6)
+					{
+					//Mark localhost subnet(IPv6).
+						if (Parameter.EDNSClientSubnet && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv6 && 
+							Parameter.LocalhostSubnet.IPv6 != nullptr && Parameter.LocalhostSubnet.IPv6->Address.ss_family == 0 &&
+							!CheckSpecialAddress(&((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr, AF_INET6, true, nullptr))
+						{
+							Parameter.LocalhostSubnet.IPv6->Address.ss_family = AF_INET6;
+							((PSOCKADDR_IN6)&Parameter.LocalhostSubnet.IPv6->Address)->sin6_addr = ((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr;
+							Parameter.LocalhostSubnet.IPv6->Prefix = sizeof(in6_addr) * BYTES_TO_BITS; //No recommendation is provided for IPv6 at this time so keep all bits, see https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02.
+
+							IsSubnetMark = true;
+						}
+
+					//Mark local addresses(B part).
+						if (Parameter.LocalAddressLength[0] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
+						{
+							DNS_Record_AAAA = (pdns_record_aaaa)(Parameter.LocalAddressResponse[0] + Parameter.LocalAddressLength[0]);
+							DNS_Record_AAAA->Name = htons(DNS_QUERY_PTR);
+							DNS_Record_AAAA->Classes = htons(DNS_CLASS_IN);
+							DNS_Record_AAAA->TTL = htonl(Parameter.HostsDefaultTTL);
+							DNS_Record_AAAA->Type = htons(DNS_RECORD_AAAA);
+							DNS_Record_AAAA->Length = htons(sizeof(in6_addr));
+							DNS_Record_AAAA->Addr = ((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr;
+							Parameter.LocalAddressLength[0] += sizeof(dns_record_aaaa);
+							++DNS_Header->Answer;
+						}
+
+					#if !defined(PLATFORM_MACX)
+					//Initialization
+						DNSPTRString.clear();
+						memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+
+					//Convert from in6_addr to string.
+						size_t AddrStringLen = 0;
+						for (Index = 0;Index < (SSIZE_T)(sizeof(in6_addr) / sizeof(uint16_t));++Index)
+						{
+							snprintf(Addr.get(), ADDR_STRING_MAXSIZE, "%x", ntohs(((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr.s6_words[Index]));
+
+						//Add zeros to beginning of string.
+							if (strnlen(Addr.get(), ADDR_STRING_MAXSIZE) < 4U)
+							{
+								AddrStringLen = strnlen(Addr.get(), ADDR_STRING_MAXSIZE);
+								memmove_s(Addr.get() + 4U - strnlen(Addr.get(), ADDR_STRING_MAXSIZE), ADDR_STRING_MAXSIZE, Addr.get(), strnlen(Addr.get(), ADDR_STRING_MAXSIZE));
+								memset(Addr.get(), ASCII_ZERO, 4U - AddrStringLen);
+							}
+							DNSPTRString.append(Addr.get());
+							memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+
+						//Last
+							if (Index < (SSIZE_T)(sizeof(in6_addr) / sizeof(uint16_t) - 1U))
+								DNSPTRString.append(":");
+						}
+
+					//Convert to standard IPv6 address format(":0:" -> ":0000:").
+						Index = 0;
+						while (DNSPTRString.find(":0:", Index) != std::string::npos)
+							DNSPTRString.replace(DNSPTRString.find(":0:", Index), 3U, ":0000:");
+
+					//Delete all colons
+						while (DNSPTRString.find(":") != std::string::npos)
+							DNSPTRString.erase(DNSPTRString.find(":"), 1U);
+
+					//Convert standard IPv6 address string to DNS PTR.
+						for (Index = DNSPTRString.length() - 1U;Index >= 0;--Index)
+						{
+							Result.append(DNSPTRString, Index, 1U);
+							Result.append(".");
+						}
+						Result.append("ip6.arpa");
+
+					//Add to global list.
+						Parameter.LocalAddressPTRResponse[0]->push_back(Result);
+						Result.clear();
+						Result.shrink_to_fit();
+					#endif
+					}
+				}
+			#endif
+
+			//Mark local addresses(C part).
+				if (DNS_Header->Answer == 0)
+				{
+					memset(Parameter.LocalAddressResponse[0], 0, PACKET_MAXSIZE);
+					Parameter.LocalAddressLength[0] = 0;
+				}
+				else {
+					DNS_Header->Answer = htons(DNS_Header->Answer);
+				}
+
+			//Add to global list.
+				LocalAddressMutexIPv6.unlock();
+			#if defined(PLATFORM_WIN)
+				freeaddrinfo(LocalAddressList);
+				LocalAddressList = nullptr;
+			#endif
+
+			//Reset localhost subnet settings if there no any addresses which can be marked.
+				if (Parameter.EDNSClientSubnet && Parameter.LocalhostSubnet.IPv6 != nullptr && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv6)
+				{
+					Parameter.LocalhostSubnet.IPv6->Prefix = 0;
+					memset(&Parameter.LocalhostSubnet.IPv6->Address, 0, sizeof(sockaddr_storage));
+				}
+			}
+		}
+
+	//Get localhost addresses(IPv4)
+		if (Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV6_IPV4 || Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV4)
+		{
+		#if defined(PLATFORM_WIN)
+			LocalAddressList = GetLocalAddressList(AF_INET);
+			if (LocalAddressList == nullptr)
+			{
+				Sleep(Parameter.FileRefreshTime);
+				continue;
+			}
+			else {
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			{
+		#endif
+				std::unique_lock<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[1U]);
+				memset(Parameter.LocalAddressResponse[1U], 0, PACKET_MAXSIZE);
+				Parameter.LocalAddressLength[1U] = 0;
+			#if !defined(PLATFORM_MACX)
+				std::string DNSPTRString;
+				Parameter.LocalAddressPTRResponse[1U]->clear();
+				Parameter.LocalAddressPTRResponse[1U]->shrink_to_fit();
+			#endif
+
+			//Mark local addresses(A part).
+				DNS_Header = (pdns_hdr)Parameter.LocalAddressResponse[1U];
+				DNS_Header->Flags = htons(DNS_SQR_NEA);
+				DNS_Header->Questions = htons(U16_NUM_ONE);
+				Parameter.LocalAddressLength[1U] += sizeof(dns_hdr);
+				memcpy_s(Parameter.LocalAddressResponse[1U] + Parameter.LocalAddressLength[1U], PACKET_MAXSIZE - Parameter.LocalAddressLength[1U], Parameter.LocalFQDNResponse, Parameter.LocalFQDNLength);
+				Parameter.LocalAddressLength[1U] += Parameter.LocalFQDNLength;
+				DNS_Query = (pdns_qry)(Parameter.LocalAddressResponse[1U] + Parameter.LocalAddressLength[1U]);
+				DNS_Query->Type = htons(DNS_RECORD_AAAA);
+				DNS_Query->Classes = htons(DNS_CLASS_IN);
+				Parameter.LocalAddressLength[1U] += sizeof(dns_qry);
+
+			//Read addresses list and convert to Fully Qualified Domain Name/FQDN PTR.
+			#if defined(PLATFORM_WIN)
+				for (LocalAddressTableIter = LocalAddressList;LocalAddressTableIter != nullptr;LocalAddressTableIter = LocalAddressTableIter->ai_next)
+				{
+					if (LocalAddressTableIter->ai_family == AF_INET && LocalAddressTableIter->ai_addrlen == sizeof(sockaddr_in) && 
+						LocalAddressTableIter->ai_addr->sa_family == AF_INET)
+					{
+					//Mark localhost subnet(IPv4).
+						if (Parameter.EDNSClientSubnet && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4 &&
+							Parameter.LocalhostSubnet.IPv4 != nullptr && Parameter.LocalhostSubnet.IPv4->Address.ss_family == 0 &&
+							!CheckSpecialAddress(&((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr, AF_INET, true, nullptr))
+						{
+							Parameter.LocalhostSubnet.IPv4->Address.ss_family = AF_INET;
+							((PSOCKADDR_IN)&Parameter.LocalhostSubnet.IPv4->Address)->sin_addr = ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr;
+							((PSOCKADDR_IN)&Parameter.LocalhostSubnet.IPv4->Address)->sin_addr.s_impno = 0;
+							Parameter.LocalhostSubnet.IPv4->Prefix = (sizeof(in_addr) - 1U) * BYTES_TO_BITS; //Keep 24 bits of IPv4 address, see https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02.
+
+							IsSubnetMark = true;
+						}
+
+					//Mark local addresses(B part).
+						if (Parameter.LocalAddressLength[1U] <= PACKET_MAXSIZE - sizeof(dns_record_a))
+						{
+							DNS_Record_A = (pdns_record_a)(Parameter.LocalAddressResponse[1U] + Parameter.LocalAddressLength[1U]);
+							DNS_Record_A->Name = htons(DNS_QUERY_PTR);
+							DNS_Record_A->Classes = htons(DNS_CLASS_IN);
+							DNS_Record_A->TTL = htonl(Parameter.HostsDefaultTTL);
+							DNS_Record_A->Type = htons(DNS_RECORD_A);
+							DNS_Record_A->Length = htons(sizeof(in_addr));
+							DNS_Record_A->Addr = ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr;
+							Parameter.LocalAddressLength[1U] += sizeof(dns_record_a);
+							++DNS_Header->Answer;
+						}
+
+					#if !defined(PLATFORM_MACX)
+					//Initialization
+						DNSPTRString.clear();
+						memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+
+					//Convert from in_addr to DNS PTR.
+						sprintf_s(Addr.get(), ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_impno);
+						Result.append(Addr.get());
+						memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+						Result.append(".");
+						sprintf_s(Addr.get(), ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_lh);
+						Result.append(Addr.get());
+						memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+						Result.append(".");
+						sprintf_s(Addr.get(), ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_host);
+						Result.append(Addr.get());
+						memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+						Result.append(".");
+						sprintf_s(Addr.get(), ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_net);
+						Result.append(Addr.get());
+						memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+						Result.append(".");
+						Result.append("in-addr.arpa");
+
+					//Add to global list.
+						Parameter.LocalAddressPTRResponse[1U]->push_back(Result);
+						Result.clear();
+						Result.shrink_to_fit();
+					#endif
+					}
+				}
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				for (InterfaceAddressIter = InterfaceAddressList;InterfaceAddressIter != nullptr;InterfaceAddressIter = InterfaceAddressIter->ifa_next)
+				{
+					if (InterfaceAddressIter->ifa_addr != nullptr && InterfaceAddressIter->ifa_addr->sa_family == AF_INET)
+					{
+					//Mark localhost subnet(IPv4).
+						if (Parameter.EDNSClientSubnet && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4 && 
+							Parameter.LocalhostSubnet.IPv4 != nullptr && Parameter.LocalhostSubnet.IPv4->Address.ss_family == 0 &&
+							!CheckSpecialAddress(&((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr, AF_INET, true, nullptr))
+						{
+							Parameter.LocalhostSubnet.IPv4->Address.ss_family = AF_INET;
+							((PSOCKADDR_IN)&Parameter.LocalhostSubnet.IPv4->Address)->sin_addr = ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr;
+							((PSOCKADDR_IN)&Parameter.LocalhostSubnet.IPv4->Address)->sin_addr.s_impno = 0;
+							Parameter.LocalhostSubnet.IPv4->Prefix = (sizeof(in_addr) - 1U) * BYTES_TO_BITS; //Keep 24 bits of IPv4 address, see https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02.
+
+							IsSubnetMark = true;
+						}
+
+					//Mark local addresses(B part).
+						if (Parameter.LocalAddressLength[1U] <= PACKET_MAXSIZE - sizeof(dns_record_a))
+						{
+							DNS_Record_A = (pdns_record_a)(Parameter.LocalAddressResponse[1U] + Parameter.LocalAddressLength[1U]);
+							DNS_Record_A->Name = htons(DNS_QUERY_PTR);
+							DNS_Record_A->Classes = htons(DNS_CLASS_IN);
+							DNS_Record_A->TTL = htonl(Parameter.HostsDefaultTTL);
+							DNS_Record_A->Type = htons(DNS_RECORD_A);
+							DNS_Record_A->Length = htons(sizeof(in_addr));
+							DNS_Record_A->Addr = ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr;
+							Parameter.LocalAddressLength[1U] += sizeof(dns_record_a);
+							++DNS_Header->Answer;
+						}
+
+					#if !defined(PLATFORM_MACX)
+					//Initialization
+						DNSPTRString.clear();
+						memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+
+					//Convert from in_addr to DNS PTR.
+						snprintf(Addr.get(), ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_impno);
+						Result.append(Addr.get());
+						memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+						Result.append(".");
+						snprintf(Addr.get(), ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_lh);
+						Result.append(Addr.get());
+						memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+						Result.append(".");
+						snprintf(Addr.get(), ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_host);
+						Result.append(Addr.get());
+						memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+						Result.append(".");
+						snprintf(Addr.get(), ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_net);
+						Result.append(Addr.get());
+						memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+						Result.append(".");
+						Result.append("in-addr.arpa");
+
+					//Add to global list.
+						Parameter.LocalAddressPTRResponse[1U]->push_back(Result);
+						Result.clear();
+						Result.shrink_to_fit();
+					#endif
+					}
+				}
+			#endif
+
+			//Mark local addresses(C part).
+				if (DNS_Header->Answer == 0)
+				{
+					memset(Parameter.LocalAddressResponse[1U], 0, PACKET_MAXSIZE);
+					Parameter.LocalAddressLength[1U] = 0;
+				}
+				else {
+					DNS_Header->Answer = htons(DNS_Header->Answer);
+				}
+
+			//Add to global list.
+				LocalAddressMutexIPv4.unlock();
+			#if defined(PLATFORM_WIN)
+				freeaddrinfo(LocalAddressList);
+				LocalAddressList = nullptr;
+			#endif
+
+			//Reset localhost subnet settings if there no any addresses which can be marked.
+				if (Parameter.EDNSClientSubnet && Parameter.LocalhostSubnet.IPv4 != nullptr && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4)
+				{
+					Parameter.LocalhostSubnet.IPv4->Prefix = 0;
+					memset(&Parameter.LocalhostSubnet.IPv4->Address, 0, sizeof(sockaddr_storage));
+				}
+			}
+		}
+
+	//Free list.
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		if (InterfaceAddressList != nullptr)
+			freeifaddrs(InterfaceAddressList);
+		InterfaceAddressList = nullptr;
+	#endif
+
+	//Get gateway information and check.
+		if (Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6)
+			GetGatewayInformation(AF_INET6);
+		if (Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4)
+			GetGatewayInformation(AF_INET);
+		if (!Parameter.GatewayAvailable_IPv4)
+		{
+		#if defined(PLATFORM_WIN)
+			if (!Parameter.GatewayAvailable_IPv6)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			if (!IsErrorFirstPrint && !Parameter.GatewayAvailable_IPv6)
+		#endif
+				PrintError(LOG_ERROR_NETWORK, L"Not any available gateways to public network", 0, nullptr, 0);
+
+			Parameter.TunnelAvailable_IPv6 = false;
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			IsErrorFirstPrint = false;
+		#endif
+		}
+
+	//Auto-refresh
+		Sleep(Parameter.FileRefreshTime);
+	}
+
+	PrintError(LOG_ERROR_SYSTEM, L"Get Local Address Information module Monitor terminated", 0, nullptr, 0);
+	return;
+}

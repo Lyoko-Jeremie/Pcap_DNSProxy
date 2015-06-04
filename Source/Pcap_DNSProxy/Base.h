@@ -351,8 +351,6 @@
 	}sockaddr_in6_Windows;
 
 //Linux and Mac OS X compatible(Part 2)
-	#define FALSE                    0
-	#define TRUE                     1
 	#define RETURN_ERROR             (-1)
 	#define SOCKET_ERROR             (-1)
 	#define INVALID_SOCKET           (-1)
@@ -2309,7 +2307,7 @@ typedef struct _dnscurve_txt_signature_
 //Version defines
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4             //Current configuration version
-#define FULL_VERSION                 L"0.4.1.2"
+#define FULL_VERSION                 L"0.4.2.0"
 
 //Size and length defines
 #define BOM_UTF_8_LENGTH               3U                                         //UTF-8 BOM length
@@ -2359,8 +2357,9 @@ typedef struct _dnscurve_txt_signature_
 	#define SYSTEM_SOCKET                         int
 #endif
 #if defined(ENABLE_PCAP)
+	#define PCAP_READ_TIMEOUT                     0          //Pcap read timeout with pcap_open_live() has elapsed. In this case pkt_header and pkt_data don't point to a valid packet.
+	#define PCAP_READ_SUCCESS                     1          //Pcap packet has been read without problems.
 	#define PCAP_COMPILE_OPTIMIZE                 1U         //Pcap optimization on the resulting code is performed.
-	#define PCAP_OFFLINE_EOF_ERROR                (-2)       //Pcap EOF was reached reading from an offline capture.
 #endif
 #define SHA3_512_SIZE                         64U        //SHA3-512 instance as specified in the FIPS 202 draft in April 2014(http://csrc.nist.gov/publications/drafts/fips-202/fips_202_draft.pdf), 512 bits/64 bytes.
 #define CHECKSUM_SUCCESS                      0          //Result of getting correct checksum.
@@ -2452,41 +2451,46 @@ typedef struct _dnscurve_txt_signature_
 #define ADDRESS_COMPARE_EQUAL          2U
 #define ADDRESS_COMPARE_GREATER        3U
 
-//Error Type defines
-#define LOG_ERROR_SYSTEM               1U            // 01: System Error
-#define LOG_ERROR_PARAMETER            2U            // 02: Parameter Error
-#define LOG_ERROR_IPFILTER             3U            // 03: IPFilter Error
-#define LOG_ERROR_HOSTS                4U            // 04: Hosts Error
-#define LOG_ERROR_NETWORK              5U            // 05: Network Error
+//Error type defines
+#define LOG_MESSAGE_NOTICE             1U            // 01: Notice Message
+#define LOG_ERROR_SYSTEM               2U            // 02: System Error
+#define LOG_ERROR_PARAMETER            3U            // 03: Parameter Error
+#define LOG_ERROR_IPFILTER             4U            // 04: IPFilter Error
+#define LOG_ERROR_HOSTS                5U            // 05: Hosts Error
+#define LOG_ERROR_NETWORK              6U            // 06: Network Error
 #if defined(ENABLE_PCAP)
-	#define LOG_ERROR_PCAP                 6U            // 06: Pcap Error
+	#define LOG_ERROR_PCAP                 7U            // 07: Pcap Error
 #endif
 #if defined(ENABLE_LIBSODIUM)
-	#define LOG_ERROR_DNSCURVE             7U            // 07: DNSCurve Error
+	#define LOG_ERROR_DNSCURVE             8U            // 08: DNSCurve Error
 #endif
 
+
 //Codes and types defines
-#define LISTEN_IPV6_IPV4               0
-#define LISTEN_IPV6                    1U
-#define LISTEN_IPV4                    2U
-#define LISTEN_TCP_UDP                 0
-#define LISTEN_TCP                     1U
-#define LISTEN_UDP                     2U
-#define LISTEN_PROXYMODE               0
-#define LISTEN_PRIVATEMODE             1U 
-#define LISTEN_SERVERMODE              2U
-#define LISTEN_CUSTOMMODE              3U
-#define REQUEST_UDPMODE                0
-#define REQUEST_TCPMODE                1U
-#define HOSTS_NORMAL                   0
-#define HOSTS_WHITE                    1U
-#define HOSTS_LOCAL                    2U
-#define HOSTS_BANNED                   3U
-#define CACHE_TIMER                    1U
-#define CACHE_QUEUE                    2U
+#define LISTEN_PROTOCOL_IPV6_IPV4      0
+#define LISTEN_PROTOCOL_IPV6           1U
+#define LISTEN_PROTOCOL_IPV4           2U
+#define LISTEN_PROTOCOL_TCP_UDP        0
+#define LISTEN_PROTOCOL_TCP            1U
+#define LISTEN_PROTOCOL_UDP            2U
+#define LISTEN_MODE_PROXY              0
+#define LISTEN_MODE_PRIVATE            1U 
+#define LISTEN_MODE_SERVER             2U
+#define LISTEN_MODE_CUSTOM             3U
+#define REQUEST_MODE_IPV6_IPV4         0
+#define REQUEST_MODE_IPV6              1U
+#define REQUEST_MODE_IPV4              2U
+#define REQUEST_MODE_UDP               0
+#define REQUEST_MODE_TCP               1U
+#define HOSTS_TYPE_NORMAL              0
+#define HOSTS_TYPE_WHITE               1U
+#define HOSTS_TYPE_LOCAL               2U
+#define HOSTS_TYPE_BANNED              3U
+#define CACHE_TYPE_TIMER               1U
+#define CACHE_TYPE_QUEUE               2U
 #if defined(ENABLE_LIBSODIUM)
-	#define DNSCURVE_REQUEST_UDPMODE       0
-	#define DNSCURVE_REQUEST_TCPMODE       1U
+	#define DNSCURVE_REQUEST_MODE_UDP       0
+	#define DNSCURVE_REQUEST_MODE_TCP       1U
 #endif
 
 //Server type defines
@@ -2518,15 +2522,6 @@ typedef struct _dnscurve_txt_signature_
 //////////////////////////////////////////////////
 // Main structures and classes
 // 
-/* Old version(2015-05-20)
-//Running Log structure
-typedef struct _running_log_data_
-{
-	time_t                   TimeValues;
-	std::wstring             Message;
-}RunningLogData, RUNNING_LOG_DATA, *PRunningLogData, *PRUNNING_LOG_DATA;
-*/
-
 //File Data structure
 typedef struct _file_data_
 {
@@ -2608,7 +2603,8 @@ public:
 	bool                             PrintError;
 	size_t                           LogMaxSize;
 //[DNS] block
-	size_t                           RequestMode;
+	size_t                           RequestMode_Network;
+	size_t                           RequestMode_Transport;
 	bool                             HostsOnly;
 	bool                             LocalMain;
 	bool                             LocalHosts;
@@ -2622,8 +2618,8 @@ public:
 	size_t                           PcapReadingTimeout;
 #endif
 	size_t                           OperationMode;
-	size_t                           ListenProtocol_NetworkLayer;
-	size_t                           ListenProtocol_TransportLayer;
+	size_t                           ListenProtocol_Network;
+	size_t                           ListenProtocol_Transport;
 	std::vector<uint16_t>            *ListenPort;
 	bool                             IPFilterType;
 	size_t                           IPFilterLevel;
@@ -2679,8 +2675,8 @@ public:
 	bool                             DNSSECValidation;
 	bool                             DNSSECForceValidation;
 	bool                             AlternateMultiRequest;
-	bool                             IPv4DataCheck;
 #if defined(ENABLE_PCAP)
+	bool                             IPv4DataCheck;
 	bool                             TCPDataCheck;
 #endif
 	bool                             DNSDataCheck;
@@ -2883,8 +2879,10 @@ public:
 // 
 //Base.cpp
 bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length);
+uint64_t __fastcall hton64(const uint64_t Val);
+uint64_t __fastcall ntoh64(const uint64_t Val);
 void __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer);
-size_t __fastcall CaseConvert(const bool IsLowerUpper, PSTR Buffer, const size_t Length);
+void __fastcall CaseConvert(const bool IsLowerUpper, PSTR Buffer, const size_t Length);
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	uint64_t GetTickCount64(void);
 #endif
@@ -2896,59 +2894,44 @@ size_t __fastcall CaseConvert(const bool IsLowerUpper, PSTR Buffer, const size_t
 
 //PrintLog.h
 size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const SSIZE_T ErrCode, const wchar_t *FileName, const size_t Line);
-/* Old version(2015-05-20)
-size_t __fastcall PrintRunningStatus(const wchar_t *Message);
-size_t __fastcall PrintParameterList(void);
-*/
 
-//Protocol.h
-uint64_t __fastcall hton64(const uint64_t Val);
-uint64_t __fastcall ntoh64(const uint64_t Val);
+//PacketData.h
 //uint32_t __fastcall GetFCS(const unsigned char *Buffer, const size_t Length);
-size_t __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr, const uint16_t Protocol, SSIZE_T &ErrCode);
-size_t __fastcall CompareAddresses(const void *OriginalAddrBegin, const void *OriginalAddrEnd, const uint16_t Protocol);
-#if defined(PLATFORM_WIN)
-	PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol);
-#endif
-size_t __fastcall GetNetworkingInformation(void);
-uint16_t __fastcall ServiceNameToHex(const char *OriginalBuffer);
-uint16_t __fastcall DNSTypeNameToHex(const char *OriginalBuffer);
-bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const bool IsPrivateUse, char *Domain);
-bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol);
-bool __fastcall CustomModeFilter(const void *OriginalAddr, const uint16_t Protocol);
 uint16_t __fastcall GetChecksum(const uint16_t *Buffer, const size_t Length);
-uint16_t __fastcall ICMPv6Checksum(const unsigned char *Buffer, const size_t Length, const in6_addr &Destination, const in6_addr &Source);
-uint16_t __fastcall TCPUDPChecksum(const unsigned char *Buffer, const size_t Length, const uint16_t NetworkLayer, const uint16_t TransportLayer);
+uint16_t __fastcall GetICMPv6Checksum(const unsigned char *Buffer, const size_t Length, const in6_addr &Destination, const in6_addr &Source);
+uint16_t __fastcall GetTCPUDPChecksum(const unsigned char *Buffer, const size_t Length, const uint16_t NetworkLayer, const uint16_t TransportLayer);
 size_t __fastcall AddLengthDataToDNSHeader(PSTR Buffer, const size_t RecvLen, const size_t MaxLen);
 size_t __fastcall CharToDNSQuery(const char *FName, PSTR TName);
-size_t __fastcall CheckDNSQueryNameLength(const char *Buffer);
 size_t __fastcall DNSQueryToChar(const char *TName, PSTR FName);
-void __fastcall FlushSystemDNSCache(void);
 void __fastcall MakeRamdomDomain(PSTR Buffer);
 void __fastcall MakeDomainCaseConversion(PSTR Buffer);
-size_t __fastcall AddEDNSToAdditionalRR(PSTR Buffer, const size_t Length);
-size_t __fastcall MakeCompressionPointerMutation(char *Buffer, const size_t Length);
+size_t __fastcall AddEDNSLabelToAdditionalRR(PSTR Buffer, const size_t Length);
+size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Length);
+
+//Protocol.h
+bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr, const uint16_t Protocol, SSIZE_T &ErrCode);
+size_t __fastcall AddressesComparing(const void *OriginalAddrBegin, const void *OriginalAddrEnd, const uint16_t Protocol);
+bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const bool IsPrivateUse, char *Domain);
+bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol);
+bool __fastcall CheckCustomModeFilter(const void *OriginalAddr, const uint16_t Protocol);
+size_t __fastcall CheckDNSQueryNameLength(const char *Buffer);
 bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal, bool *IsMarkHopLimit);
 
 //Configuration.h
-size_t __fastcall ReadParameter(void);
-size_t __fastcall ReadIPFilter(void);
-size_t __fastcall ReadHosts(void);
+bool __fastcall ReadParameter(void);
+void __fastcall ReadIPFilter(void);
+void __fastcall ReadHosts(void);
+uint16_t __fastcall ServiceNameToHex(const char *OriginalBuffer);
+uint16_t __fastcall DNSTypeNameToHex(const char *OriginalBuffer);
 
 //Monitor.h
-/* Old version(2015-05-20)
-size_t __fastcall RunningLogWriteMonitor(void);
-*/
-size_t __fastcall MonitorInit(void);
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	size_t FlushDNSFIFOMonitor(void);
-	size_t FlushDNSFIFOSender(void);
-#endif
+bool __fastcall MonitorInit(void);
+void __fastcall NetworkInformationMonitor(void);
 
 //DNSCurve.h
 #if defined(ENABLE_LIBSODIUM)
-	bool __fastcall VerifyKeypair(const unsigned char *PublicKey, const unsigned char *SecretKey);
-	size_t __fastcall DNSCurveInit(void);
+	bool __fastcall DNSCurveVerifyKeypair(const unsigned char *PublicKey, const unsigned char *SecretKey);
+	void __fastcall DNSCurveInit(void);
 	size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
 	size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
 	size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
@@ -2956,18 +2939,18 @@ size_t __fastcall MonitorInit(void);
 #endif
 
 //Process.h
-size_t __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Length, const SOCKET_DATA LocalSocketData, const uint16_t Protocol);
-size_t __fastcall MarkDomainCache(const char *Buffer, const size_t Length);
+bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Length, const SOCKET_DATA LocalSocketData, const uint16_t Protocol);
+bool __fastcall MarkDomainCache(const char *Buffer, const size_t Length);
 
 //Captrue.h
 #if defined(ENABLE_PCAP)
-	size_t __fastcall CaptureInit(void);
+	void __fastcall CaptureInit(void);
 #endif
 
 //Network.h
 #if defined(ENABLE_PCAP)
-size_t __fastcall DomainTestRequest(const uint16_t Protocol);
-size_t __fastcall ICMPEcho(const uint16_t Protocol);
+bool __fastcall DomainTestRequest(const uint16_t Protocol);
+bool __fastcall ICMPEcho(const uint16_t Protocol);
 #endif
 size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal);
 size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
@@ -2978,10 +2961,14 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal);
 size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
 
-//WindowsService.h
+//Service.h
 #if defined(PLATFORM_WIN)
 	BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType);
 	size_t WINAPI ServiceMain(DWORD argc, LPTSTR *argv);
-	size_t WINAPI FlushDNSMailSlotMonitor(void);
-	size_t WINAPI FlushDNSMailSlotSender(void);
+	bool WINAPI FlushDNSMailSlotMonitor(void);
+	bool WINAPI FlushDNSMailSlotSender(void);
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	bool FlushDNSFIFOMonitor(void);
+	bool FlushDNSFIFOSender(void);
 #endif
+void __fastcall FlushAllDNSCache(void);

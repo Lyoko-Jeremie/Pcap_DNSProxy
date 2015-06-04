@@ -36,6 +36,26 @@ bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length)
 	return true;
 }
 
+//Convert host values to network byte order with 64 bits
+uint64_t __fastcall hton64(const uint64_t Val)
+{
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+	return (((uint64_t)htonl((int32_t)((Val << 32U) >> 32U))) << 32U)|(uint32_t)htonl((int32_t)(Val >> 32U));
+#else //BIG_ENDIAN
+	return Val;
+#endif
+}
+
+//Convert network byte order to host values with 64 bits
+uint64_t __fastcall ntoh64(const uint64_t Val)
+{
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+	return (((uint64_t)ntohl((int32_t)((Val << 32U) >> 32U))) << 32U)|(uint32_t)ntohl((int32_t)(Val >> 32U));
+#else //BIG_ENDIAN
+	return Val;
+#endif
+}
+
 //Convert multiple bytes to wide char string
 void __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer)
 {
@@ -52,7 +72,7 @@ void __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer)
 }
 
 //Convert lowercase/uppercase words to uppercase/lowercase words
-size_t __fastcall CaseConvert(const bool IsLowerUpper, PSTR Buffer, const size_t Length)
+void __fastcall CaseConvert(const bool IsLowerUpper, PSTR Buffer, const size_t Length)
 {
 	for (size_t Index = 0;Index < Length;++Index)
 	{
@@ -64,78 +84,77 @@ size_t __fastcall CaseConvert(const bool IsLowerUpper, PSTR Buffer, const size_t
 			Buffer[Index] = (char)tolower(Buffer[Index]);
 	}
 
-	return EXIT_SUCCESS;
+	return;
 }
 
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Linux and Mac OS X compatible with GetTickCount64
-	uint64_t GetTickCount64(void)
-	{
-		std::shared_ptr<timeval> CurrentTime(new timeval());
-		memset(CurrentTime.get(), 0, sizeof(timeval));
-		gettimeofday(CurrentTime.get(), nullptr);
-		return (uint64_t)CurrentTime->tv_sec * SECOND_TO_MILLISECOND + (uint64_t)CurrentTime->tv_usec / MICROSECOND_TO_MILLISECOND;
-	}
-#endif
+uint64_t GetTickCount64(void)
+{
+	std::shared_ptr<timeval> CurrentTime(new timeval());
+	memset(CurrentTime.get(), 0, sizeof(timeval));
+	gettimeofday(CurrentTime.get(), nullptr);
+	return (uint64_t)CurrentTime->tv_sec * SECOND_TO_MILLISECOND + (uint64_t)CurrentTime->tv_usec / MICROSECOND_TO_MILLISECOND;
+}
 
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 //Verify version of system(Greater than Windows Vista)
-	BOOL WINAPI IsGreaterThanVista(void)
-	{
-		std::shared_ptr<OSVERSIONINFOEXW> OSVI(new OSVERSIONINFOEXW());
-		memset(OSVI.get(), 0, sizeof(OSVERSIONINFOEXW));
-		DWORDLONG dwlConditionMask = 0;
+BOOL WINAPI IsGreaterThanVista(void)
+{
+	std::shared_ptr<OSVERSIONINFOEXW> OSVI(new OSVERSIONINFOEXW());
+	memset(OSVI.get(), 0, sizeof(OSVERSIONINFOEXW));
+	DWORDLONG dwlConditionMask = 0;
 
-	//Initialization
-		ZeroMemory(OSVI.get(), sizeof(OSVERSIONINFOEXW));
-		OSVI->dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
-		OSVI->dwMajorVersion = 6U; //Greater than Windows Vista.
-		OSVI->dwMinorVersion = 0;
+//Initialization
+	ZeroMemory(OSVI.get(), sizeof(OSVERSIONINFOEXW));
+	OSVI->dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
+	OSVI->dwMajorVersion = 6U; //Greater than Windows Vista.
+	OSVI->dwMinorVersion = 0;
 
-	//System Major version > dwMajorVersion
-		VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_GREATER);
-		if (VerifyVersionInfoW(OSVI.get(), VER_MAJORVERSION, dwlConditionMask))
-			return TRUE;
+//System Major version > dwMajorVersion
+	VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_GREATER);
+	if (VerifyVersionInfoW(OSVI.get(), VER_MAJORVERSION, dwlConditionMask))
+		return TRUE;
 
-	//Sytem Major version = dwMajorVersion and Minor version > dwMinorVersion
-		VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_EQUAL);
-		VER_SET_CONDITION(dwlConditionMask, VER_MINORVERSION, VER_GREATER);
-		return VerifyVersionInfoW(OSVI.get(), VER_MAJORVERSION|VER_MINORVERSION, dwlConditionMask);
-	}
+//Sytem Major version = dwMajorVersion and Minor version > dwMinorVersion
+	VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_EQUAL);
+	VER_SET_CONDITION(dwlConditionMask, VER_MINORVERSION, VER_GREATER);
+	return VerifyVersionInfoW(OSVI.get(), VER_MAJORVERSION|VER_MINORVERSION, dwlConditionMask);
+}
 
 //Try to load library to get pointers of functions
-	BOOL WINAPI GetFunctionPointer(const size_t FunctionType)
+BOOL WINAPI GetFunctionPointer(const size_t FunctionType)
+{
+//GetTickCount64() function
+	if (FunctionType == FUNCTION_GETTICKCOUNT64)
 	{
-	//GetTickCount64() function
-		if (FunctionType == FUNCTION_GETTICKCOUNT64)
+		Parameter.GetTickCount64DLL = LoadLibraryW(L"Kernel32.dll");
+		if (Parameter.GetTickCount64DLL != nullptr)
 		{
-			Parameter.GetTickCount64DLL = LoadLibraryW(L"Kernel32.dll");
-			if (Parameter.GetTickCount64DLL != nullptr)
+			Parameter.GetTickCount64PTR = (GetTickCount64Function)GetProcAddress(Parameter.GetTickCount64DLL, "GetTickCount64");
+			if (Parameter.GetTickCount64PTR == nullptr)
 			{
-				Parameter.GetTickCount64PTR = (GetTickCount64Function)GetProcAddress(Parameter.GetTickCount64DLL, "GetTickCount64");
-				if (Parameter.GetTickCount64PTR == nullptr)
-				{
-					FreeLibrary(Parameter.GetTickCount64DLL);
-					return FALSE;
-				}
+				FreeLibrary(Parameter.GetTickCount64DLL);
+				return FALSE;
 			}
 		}
-	//inet_ntop() function
-		else if (FunctionType == FUNCTION_INET_NTOP)
-		{
-			Parameter.Inet_Ntop_DLL = LoadLibraryW(L"ws2_32.dll");
-			if (Parameter.Inet_Ntop_DLL != nullptr)
-			{
-				Parameter.Inet_Ntop_PTR = (Inet_Ntop_Function)GetProcAddress(Parameter.Inet_Ntop_DLL, "inet_ntop");
-				if (Parameter.Inet_Ntop_PTR == nullptr)
-				{
-					FreeLibrary(Parameter.Inet_Ntop_DLL);
-					return FALSE;
-				}
-			}
-		}
-
-		return TRUE;
 	}
+//inet_ntop() function
+	else if (FunctionType == FUNCTION_INET_NTOP)
+	{
+		Parameter.Inet_Ntop_DLL = LoadLibraryW(L"ws2_32.dll");
+		if (Parameter.Inet_Ntop_DLL != nullptr)
+		{
+			Parameter.Inet_Ntop_PTR = (Inet_Ntop_Function)GetProcAddress(Parameter.Inet_Ntop_DLL, "inet_ntop");
+			if (Parameter.Inet_Ntop_PTR == nullptr)
+			{
+				FreeLibrary(Parameter.Inet_Ntop_DLL);
+				return FALSE;
+			}
+		}
+	}
+
+	return TRUE;
+}
 #endif

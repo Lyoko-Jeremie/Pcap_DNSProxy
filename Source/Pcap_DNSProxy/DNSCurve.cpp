@@ -21,7 +21,7 @@
 
 #if defined(ENABLE_LIBSODIUM)
 //DNSCurve verify keypair
-bool __fastcall VerifyKeypair(const unsigned char *PublicKey, const unsigned char *SecretKey)
+bool __fastcall DNSCurveVerifyKeypair(const unsigned char *PublicKey, const unsigned char *SecretKey)
 {
 	std::shared_ptr<uint8_t> Test_PublicKey(new uint8_t[crypto_box_PUBLICKEYBYTES]()), Test_SecretKey(new uint8_t[crypto_box_PUBLICKEYBYTES]()), Validation(new uint8_t[crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES + crypto_box_ZEROBYTES]());
 	memset(Test_PublicKey.get(), 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
@@ -47,13 +47,13 @@ bool __fastcall VerifyKeypair(const unsigned char *PublicKey, const unsigned cha
 }
 
 //DNSCurve initialization
-size_t __fastcall DNSCurveInit(void)
+void __fastcall DNSCurveInit(void)
 {
 //DNSCurve signature request TCP Mode
-	if (DNSCurveParameter.DNSCurveMode == DNSCURVE_REQUEST_TCPMODE)
+	if (DNSCurveParameter.DNSCurveMode == DNSCURVE_REQUEST_MODE_TCP)
 	{
 	//Main
-		if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && 
+		if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && (Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) && 
 			(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
@@ -61,7 +61,7 @@ size_t __fastcall DNSCurveInit(void)
 			DNSCurveTCPSignatureRequestThread.detach();
 		}
 
-		if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && 
+		if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && (Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4) && 
 			(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
@@ -70,7 +70,7 @@ size_t __fastcall DNSCurveInit(void)
 		}
 
 	//Alternate
-		if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
+		if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && (Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) && 
 			(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
@@ -78,7 +78,7 @@ size_t __fastcall DNSCurveInit(void)
 			DNSCurveTCPSignatureRequestThread.detach();
 		}
 
-		if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
+		if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && (Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4) && 
 			(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
@@ -89,7 +89,7 @@ size_t __fastcall DNSCurveInit(void)
 
 //DNSCurve signature request UDP Mode
 //Main
-	if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && 
+	if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && (Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) && 
 		(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
@@ -97,7 +97,7 @@ size_t __fastcall DNSCurveInit(void)
 		DNSCurveUDPSignatureRequestThread.detach();
 	}
 
-	if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && 
+	if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && (Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4) && 
 		(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
@@ -106,7 +106,7 @@ size_t __fastcall DNSCurveInit(void)
 	}
 
 //Alternate
-	if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
+	if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && (Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) && 
 		(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
@@ -114,7 +114,7 @@ size_t __fastcall DNSCurveInit(void)
 		DNSCurveUDPSignatureRequestThread.detach();
 	}
 
-	if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
+	if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && (Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4) && 
 		(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
@@ -122,11 +122,11 @@ size_t __fastcall DNSCurveInit(void)
 		DNSCurveUDPSignatureRequestThread.detach();
 	}
 
-	return EXIT_SUCCESS;
+	return;
 }
 
 //DNSCurve Local Signature Request
-size_t LocalSignatureRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize)
+size_t DNSCurveSignatureRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize)
 {
 //Initialization
 	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
@@ -135,7 +135,8 @@ size_t LocalSignatureRequest(const char *OriginalSend, const size_t SendSize, PS
 	socklen_t AddrLen = 0;
 
 //Socket initialization
-	if (Parameter.GatewayAvailable_IPv6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
+	if ((Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV6_IPV4 || Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV6) && 
+		DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
 	{
 	#if defined(PLATFORM_WIN)
 		((sockaddr_in6 *)SockAddr.get())->sin6_addr = in6addr_loopback;
@@ -148,7 +149,8 @@ size_t LocalSignatureRequest(const char *OriginalSend, const size_t SendSize, PS
 		SockAddr->ss_family = AF_INET6;
 		UDPSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	}
-	else if (Parameter.GatewayAvailable_IPv4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
+	else if ((Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV6_IPV4 || Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV4) && 
+		DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
 	{
 		((sockaddr_in *)SockAddr.get())->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 		((sockaddr_in *)SockAddr.get())->sin_port = Parameter.ListenPort->front();
@@ -478,7 +480,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const b
 
 								//Check Signature.
 									if (PacketTarget == nullptr || 
-										!GetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
+										!DNSCruveGetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
 										CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 										CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 									{
@@ -693,7 +695,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const b
 			{
 			//Check Signature.
 				if (PacketTarget == nullptr || 
-					!GetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
+					!DNSCruveGetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
 					CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 					CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 				{
@@ -713,11 +715,11 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const b
 			}
 			else {
 				memset(RecvBuffer.get(), 0, PACKET_MAXSIZE);
-				if (LocalSignatureRequest(SendBuffer.get(), (int)DataLength, RecvBuffer.get(), PACKET_MAXSIZE) >= DNS_PACKET_MINSIZE + sizeof(dns_record_txt) + DNSCRYPT_TXT_RECORDS_LEN)
+				if (DNSCurveSignatureRequest(SendBuffer.get(), (int)DataLength, RecvBuffer.get(), PACKET_MAXSIZE) >= DNS_PACKET_MINSIZE + sizeof(dns_record_txt) + DNSCRYPT_TXT_RECORDS_LEN)
 				{
 				//Check Signature.
 					if (PacketTarget != nullptr || 
-						!GetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
+						!DNSCruveGetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
 						CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 						CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 					{
@@ -774,7 +776,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const b
 }
 
 //Get Signature Data of server from packets
-bool __fastcall GetSignatureData(const char *Buffer, const size_t ServerType)
+bool __fastcall DNSCruveGetSignatureData(const char *Buffer, const size_t ServerType)
 {
 	auto DNS_Record_TXT = (pdns_record_txt)Buffer;
 	if (DNS_Record_TXT->Name == htons(DNS_QUERY_PTR) && 
@@ -874,7 +876,8 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
-	if (Parameter.GatewayAvailable_IPv6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
+	if ((Parameter.GatewayAvailable_IPv6 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) && 
+		DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
 	{
 		IsAlternate = &AlternateSwapList.IsSwap[8U];
 		AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[8U];
@@ -914,7 +917,8 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 		SockAddr->ss_family = AF_INET6;
 		TCPSocket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 	}
-	else if (Parameter.GatewayAvailable_IPv4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
+	else if ((Parameter.GatewayAvailable_IPv4 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4) && 
+		DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
 	{
 		IsAlternate = &AlternateSwapList.IsSwap[9U];
 		AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[9U];
@@ -1260,12 +1264,14 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 //Socket initialization
 	auto IsIPv6 = false;
 	auto IsAlternate = false;
-	if (Parameter.GatewayAvailable_IPv6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
+	if ((Parameter.GatewayAvailable_IPv6 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) && 
+		DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
 	{
 		IsIPv6 = true;
 		IsAlternate = AlternateSwapList.IsSwap[8U];
 	}
-	else if (Parameter.GatewayAvailable_IPv4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
+	else if ((Parameter.GatewayAvailable_IPv4 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4) &&
+		DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
 	{
 		IsIPv6 = false;
 		IsAlternate = AlternateSwapList.IsSwap[9U];
@@ -1838,7 +1844,8 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 //Socket initialization
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
-	if (Parameter.GatewayAvailable_IPv6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
+	if ((Parameter.GatewayAvailable_IPv6 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) && 
+		DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
 	{
 		IsAlternate = &AlternateSwapList.IsSwap[10U];
 		AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[10U];
@@ -1876,7 +1883,8 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 		SockAddr->ss_family = AF_INET6;
 		UDPSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	}
-	else if (Parameter.GatewayAvailable_IPv4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
+	else if ((Parameter.GatewayAvailable_IPv4 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4) && 
+		DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
 	{
 		IsAlternate = &AlternateSwapList.IsSwap[11U];
 		AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[11U];
@@ -2120,12 +2128,14 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 //Socket initialization
 	auto IsIPv6 = false;
 	auto IsAlternate = false;
-	if (Parameter.GatewayAvailable_IPv6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
+	if ((Parameter.GatewayAvailable_IPv6 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) && 
+		DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0) //IPv6
 	{
 		IsIPv6 = true;
 		IsAlternate = AlternateSwapList.IsSwap[10U];
 	}
-	else if (Parameter.GatewayAvailable_IPv4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
+	else if ((Parameter.GatewayAvailable_IPv4 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4) && 
+		DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) //IPv4
 	{
 		IsIPv6 = false;
 		IsAlternate = AlternateSwapList.IsSwap[11U];

@@ -8,18 +8,23 @@
 
 /* Begin PBXBuildFile section */
 		D9672DD31AFCB67300330EB8 /* LibSodium_Mac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D9672DD21AFCB67300330EB8 /* LibSodium_Mac.a */; };
+		D97C985C1B17413900674884 /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98581B17413900674884 /* Base.cpp */; };
+		D97C985D1B17413900674884 /* Capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C985A1B17413900674884 /* Capture.cpp */; };
+		D97C986C1B17414A00674884 /* Configuration.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C985E1B17414A00674884 /* Configuration.cpp */; };
+		D97C986D1B17414A00674884 /* DNSCurve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98601B17414A00674884 /* DNSCurve.cpp */; };
+		D97C986E1B17414A00674884 /* Initialization.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98621B17414A00674884 /* Initialization.cpp */; };
+		D97C986F1B17414A00674884 /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98641B17414A00674884 /* Main.cpp */; };
+		D97C98701B17414A00674884 /* Monitor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98661B17414A00674884 /* Monitor.cpp */; };
+		D97C98711B17414A00674884 /* Network.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98681B17414A00674884 /* Network.cpp */; };
+		D97C98721B17414A00674884 /* PacketData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C986A1B17414A00674884 /* PacketData.cpp */; };
+		D97C987C1B17415C00674884 /* PrintLog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98731B17415C00674884 /* PrintLog.cpp */; };
+		D97C987D1B17415C00674884 /* Process.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98751B17415C00674884 /* Process.cpp */; };
+		D97C987E1B17415C00674884 /* Protocol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98771B17415C00674884 /* Protocol.cpp */; };
+		D97C987F1B17415C00674884 /* ReadHosts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98791B17415C00674884 /* ReadHosts.cpp */; };
+		D97C98801B17415C00674884 /* ReadIPFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C987A1B17415C00674884 /* ReadIPFilter.cpp */; };
+		D97C98811B17415C00674884 /* ReadParameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C987B1B17415C00674884 /* ReadParameter.cpp */; };
+		D97C98841B17417100674884 /* Service.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98821B17417100674884 /* Service.cpp */; };
 		D99B47461AFCE4BB004BDEAE /* libpcap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D99B47451AFCE4BB004BDEAE /* libpcap.dylib */; };
-		D99E2DFC1AFCB27A00F36FCD /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99E2DF81AFCB27A00F36FCD /* Base.cpp */; };
-		D99E2DFD1AFCB27A00F36FCD /* Capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99E2DFA1AFCB27A00F36FCD /* Capture.cpp */; };
-		D99E2E041AFCB28D00F36FCD /* Configuration.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99E2DFE1AFCB28D00F36FCD /* Configuration.cpp */; };
-		D99E2E051AFCB28D00F36FCD /* DNSCurve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99E2E001AFCB28D00F36FCD /* DNSCurve.cpp */; };
-		D99E2E061AFCB28D00F36FCD /* Initialization.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99E2E021AFCB28D00F36FCD /* Initialization.cpp */; };
-		D99E2E0D1AFCB2A700F36FCD /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99E2E071AFCB2A700F36FCD /* Main.cpp */; };
-		D99E2E0E1AFCB2A700F36FCD /* Monitor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99E2E091AFCB2A700F36FCD /* Monitor.cpp */; };
-		D99E2E0F1AFCB2A700F36FCD /* Network.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99E2E0B1AFCB2A700F36FCD /* Network.cpp */; };
-		D99E2E161AFCB2C500F36FCD /* PrintLog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99E2E101AFCB2C500F36FCD /* PrintLog.cpp */; };
-		D99E2E171AFCB2C500F36FCD /* Process.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99E2E121AFCB2C500F36FCD /* Process.cpp */; };
-		D99E2E181AFCB2C500F36FCD /* Protocol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99E2E141AFCB2C500F36FCD /* Protocol.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +51,35 @@
 
 /* Begin PBXFileReference section */
 		D9672DD21AFCB67300330EB8 /* LibSodium_Mac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibSodium_Mac.a; path = ../LibSodium/LibSodium_Mac.a; sourceTree = "<group>"; };
+		D97C98581B17413900674884 /* Base.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Base.cpp; sourceTree = "<group>"; };
+		D97C98591B17413900674884 /* Base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Base.h; sourceTree = "<group>"; };
+		D97C985A1B17413900674884 /* Capture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Capture.cpp; sourceTree = "<group>"; };
+		D97C985B1B17413900674884 /* Capture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Capture.h; sourceTree = "<group>"; };
+		D97C985E1B17414A00674884 /* Configuration.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Configuration.cpp; sourceTree = "<group>"; };
+		D97C985F1B17414A00674884 /* Configuration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Configuration.h; sourceTree = "<group>"; };
+		D97C98601B17414A00674884 /* DNSCurve.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DNSCurve.cpp; sourceTree = "<group>"; };
+		D97C98611B17414A00674884 /* DNSCurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DNSCurve.h; sourceTree = "<group>"; };
+		D97C98621B17414A00674884 /* Initialization.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Initialization.cpp; sourceTree = "<group>"; };
+		D97C98631B17414A00674884 /* Initialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Initialization.h; sourceTree = "<group>"; };
+		D97C98641B17414A00674884 /* Main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Main.cpp; sourceTree = "<group>"; };
+		D97C98651B17414A00674884 /* Main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Main.h; sourceTree = "<group>"; };
+		D97C98661B17414A00674884 /* Monitor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Monitor.cpp; sourceTree = "<group>"; };
+		D97C98671B17414A00674884 /* Monitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Monitor.h; sourceTree = "<group>"; };
+		D97C98681B17414A00674884 /* Network.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Network.cpp; sourceTree = "<group>"; };
+		D97C98691B17414A00674884 /* Network.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Network.h; sourceTree = "<group>"; };
+		D97C986A1B17414A00674884 /* PacketData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PacketData.cpp; sourceTree = "<group>"; };
+		D97C986B1B17414A00674884 /* PacketData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PacketData.h; sourceTree = "<group>"; };
+		D97C98731B17415C00674884 /* PrintLog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PrintLog.cpp; sourceTree = "<group>"; };
+		D97C98741B17415C00674884 /* PrintLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PrintLog.h; sourceTree = "<group>"; };
+		D97C98751B17415C00674884 /* Process.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Process.cpp; sourceTree = "<group>"; };
+		D97C98761B17415C00674884 /* Process.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Process.h; sourceTree = "<group>"; };
+		D97C98771B17415C00674884 /* Protocol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Protocol.cpp; sourceTree = "<group>"; };
+		D97C98781B17415C00674884 /* Protocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Protocol.h; sourceTree = "<group>"; };
+		D97C98791B17415C00674884 /* ReadHosts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ReadHosts.cpp; sourceTree = "<group>"; };
+		D97C987A1B17415C00674884 /* ReadIPFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ReadIPFilter.cpp; sourceTree = "<group>"; };
+		D97C987B1B17415C00674884 /* ReadParameter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ReadParameter.cpp; sourceTree = "<group>"; };
+		D97C98821B17417100674884 /* Service.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Service.cpp; sourceTree = "<group>"; };
+		D97C98831B17417100674884 /* Service.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Service.h; sourceTree = "<group>"; };
 		D98EE5011B11DF9C00C7C217 /* Changelog(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "Changelog(zh_Hans).txt"; path = "Documents/Changelog(zh_Hans).txt"; sourceTree = "<group>"; };
 		D98EE5021B11DF9C00C7C217 /* Changelog(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "Changelog(zh_Hant).txt"; path = "Documents/Changelog(zh_Hant).txt"; sourceTree = "<group>"; };
 		D98EE5031B11DF9C00C7C217 /* FAQ_Linux_Mac(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ_Linux_Mac(zh_Hans).txt"; path = "Documents/FAQ_Linux_Mac(zh_Hans).txt"; sourceTree = "<group>"; };
@@ -118,28 +152,6 @@
 		D99E2DDE1AFCB21100F36FCD /* IPFilter.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = IPFilter.ini; path = ExampleConfig/IPFilter.ini; sourceTree = SOURCE_ROOT; };
 		D99E2DDF1AFCB22200F36FCD /* Routing.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Routing.txt; path = ExampleConfig/Routing.txt; sourceTree = SOURCE_ROOT; };
 		D99E2DE01AFCB22B00F36FCD /* White_List.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = White_List.txt; path = ExampleConfig/White_List.txt; sourceTree = SOURCE_ROOT; };
-		D99E2DF81AFCB27A00F36FCD /* Base.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Base.cpp; sourceTree = "<group>"; };
-		D99E2DF91AFCB27A00F36FCD /* Base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Base.h; sourceTree = "<group>"; };
-		D99E2DFA1AFCB27A00F36FCD /* Capture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Capture.cpp; sourceTree = "<group>"; };
-		D99E2DFB1AFCB27A00F36FCD /* Capture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Capture.h; sourceTree = "<group>"; };
-		D99E2DFE1AFCB28D00F36FCD /* Configuration.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Configuration.cpp; sourceTree = "<group>"; };
-		D99E2DFF1AFCB28D00F36FCD /* Configuration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Configuration.h; sourceTree = "<group>"; };
-		D99E2E001AFCB28D00F36FCD /* DNSCurve.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DNSCurve.cpp; sourceTree = "<group>"; };
-		D99E2E011AFCB28D00F36FCD /* DNSCurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DNSCurve.h; sourceTree = "<group>"; };
-		D99E2E021AFCB28D00F36FCD /* Initialization.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Initialization.cpp; sourceTree = "<group>"; };
-		D99E2E031AFCB28D00F36FCD /* Initialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Initialization.h; sourceTree = "<group>"; };
-		D99E2E071AFCB2A700F36FCD /* Main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Main.cpp; sourceTree = "<group>"; };
-		D99E2E081AFCB2A700F36FCD /* Main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Main.h; sourceTree = "<group>"; };
-		D99E2E091AFCB2A700F36FCD /* Monitor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Monitor.cpp; sourceTree = "<group>"; };
-		D99E2E0A1AFCB2A700F36FCD /* Monitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Monitor.h; sourceTree = "<group>"; };
-		D99E2E0B1AFCB2A700F36FCD /* Network.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Network.cpp; sourceTree = "<group>"; };
-		D99E2E0C1AFCB2A700F36FCD /* Network.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Network.h; sourceTree = "<group>"; };
-		D99E2E101AFCB2C500F36FCD /* PrintLog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PrintLog.cpp; sourceTree = "<group>"; };
-		D99E2E111AFCB2C500F36FCD /* PrintLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PrintLog.h; sourceTree = "<group>"; };
-		D99E2E121AFCB2C500F36FCD /* Process.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Process.cpp; sourceTree = "<group>"; };
-		D99E2E131AFCB2C500F36FCD /* Process.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Process.h; sourceTree = "<group>"; };
-		D99E2E141AFCB2C500F36FCD /* Protocol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Protocol.cpp; sourceTree = "<group>"; };
-		D99E2E151AFCB2C500F36FCD /* Protocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Protocol.h; sourceTree = "<group>"; };
 		D9F760F01AFCB498007F351A /* KeyPairGenerator.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = KeyPairGenerator.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -177,29 +189,36 @@
 		D99E2D411AFCAF2200F36FCD /* Pcap_DNSProxy */ = {
 			isa = PBXGroup;
 			children = (
+				D97C98581B17413900674884 /* Base.cpp */,
+				D97C985A1B17413900674884 /* Capture.cpp */,
+				D97C985E1B17414A00674884 /* Configuration.cpp */,
+				D97C98601B17414A00674884 /* DNSCurve.cpp */,
+				D97C98621B17414A00674884 /* Initialization.cpp */,
+				D97C98641B17414A00674884 /* Main.cpp */,
+				D97C98661B17414A00674884 /* Monitor.cpp */,
+				D97C98681B17414A00674884 /* Network.cpp */,
+				D97C986A1B17414A00674884 /* PacketData.cpp */,
+				D97C98731B17415C00674884 /* PrintLog.cpp */,
+				D97C98751B17415C00674884 /* Process.cpp */,
+				D97C98771B17415C00674884 /* Protocol.cpp */,
+				D97C98791B17415C00674884 /* ReadHosts.cpp */,
+				D97C987A1B17415C00674884 /* ReadIPFilter.cpp */,
+				D97C987B1B17415C00674884 /* ReadParameter.cpp */,
+				D97C98821B17417100674884 /* Service.cpp */,
 				D99B47451AFCE4BB004BDEAE /* libpcap.dylib */,
-				D99E2DF81AFCB27A00F36FCD /* Base.cpp */,
-				D99E2DFA1AFCB27A00F36FCD /* Capture.cpp */,
-				D99E2DFE1AFCB28D00F36FCD /* Configuration.cpp */,
-				D99E2E001AFCB28D00F36FCD /* DNSCurve.cpp */,
-				D99E2E021AFCB28D00F36FCD /* Initialization.cpp */,
-				D99E2E071AFCB2A700F36FCD /* Main.cpp */,
-				D99E2E091AFCB2A700F36FCD /* Monitor.cpp */,
-				D99E2E0B1AFCB2A700F36FCD /* Network.cpp */,
-				D99E2E101AFCB2C500F36FCD /* PrintLog.cpp */,
-				D99E2E121AFCB2C500F36FCD /* Process.cpp */,
-				D99E2E141AFCB2C500F36FCD /* Protocol.cpp */,
-				D99E2DF91AFCB27A00F36FCD /* Base.h */,
-				D99E2DFB1AFCB27A00F36FCD /* Capture.h */,
-				D99E2DFF1AFCB28D00F36FCD /* Configuration.h */,
-				D99E2E011AFCB28D00F36FCD /* DNSCurve.h */,
-				D99E2E031AFCB28D00F36FCD /* Initialization.h */,
-				D99E2E081AFCB2A700F36FCD /* Main.h */,
-				D99E2E0A1AFCB2A700F36FCD /* Monitor.h */,
-				D99E2E0C1AFCB2A700F36FCD /* Network.h */,
-				D99E2E111AFCB2C500F36FCD /* PrintLog.h */,
-				D99E2E131AFCB2C500F36FCD /* Process.h */,
-				D99E2E151AFCB2C500F36FCD /* Protocol.h */,
+				D97C98591B17413900674884 /* Base.h */,
+				D97C985B1B17413900674884 /* Capture.h */,
+				D97C985F1B17414A00674884 /* Configuration.h */,
+				D97C98611B17414A00674884 /* DNSCurve.h */,
+				D97C98631B17414A00674884 /* Initialization.h */,
+				D97C98651B17414A00674884 /* Main.h */,
+				D97C98671B17414A00674884 /* Monitor.h */,
+				D97C98691B17414A00674884 /* Network.h */,
+				D97C986B1B17414A00674884 /* PacketData.h */,
+				D97C98741B17415C00674884 /* PrintLog.h */,
+				D97C98761B17415C00674884 /* Process.h */,
+				D97C98781B17415C00674884 /* Protocol.h */,
+				D97C98831B17417100674884 /* Service.h */,
 				D99E2DDB1AFCB1FC00F36FCD /* ExampleConfig */,
 				D99E2D981AFCB19400F36FCD /* LibSodium */,
 			);
@@ -378,17 +397,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D99E2E0F1AFCB2A700F36FCD /* Network.cpp in Sources */,
-				D99E2E0D1AFCB2A700F36FCD /* Main.cpp in Sources */,
-				D99E2E051AFCB28D00F36FCD /* DNSCurve.cpp in Sources */,
-				D99E2DFD1AFCB27A00F36FCD /* Capture.cpp in Sources */,
-				D99E2E161AFCB2C500F36FCD /* PrintLog.cpp in Sources */,
-				D99E2DFC1AFCB27A00F36FCD /* Base.cpp in Sources */,
-				D99E2E0E1AFCB2A700F36FCD /* Monitor.cpp in Sources */,
-				D99E2E171AFCB2C500F36FCD /* Process.cpp in Sources */,
-				D99E2E061AFCB28D00F36FCD /* Initialization.cpp in Sources */,
-				D99E2E041AFCB28D00F36FCD /* Configuration.cpp in Sources */,
-				D99E2E181AFCB2C500F36FCD /* Protocol.cpp in Sources */,
+				D97C987D1B17415C00674884 /* Process.cpp in Sources */,
+				D97C986F1B17414A00674884 /* Main.cpp in Sources */,
+				D97C98701B17414A00674884 /* Monitor.cpp in Sources */,
+				D97C98811B17415C00674884 /* ReadParameter.cpp in Sources */,
+				D97C98721B17414A00674884 /* PacketData.cpp in Sources */,
+				D97C985D1B17413900674884 /* Capture.cpp in Sources */,
+				D97C987C1B17415C00674884 /* PrintLog.cpp in Sources */,
+				D97C986C1B17414A00674884 /* Configuration.cpp in Sources */,
+				D97C987E1B17415C00674884 /* Protocol.cpp in Sources */,
+				D97C987F1B17415C00674884 /* ReadHosts.cpp in Sources */,
+				D97C985C1B17413900674884 /* Base.cpp in Sources */,
+				D97C98801B17415C00674884 /* ReadIPFilter.cpp in Sources */,
+				D97C986D1B17414A00674884 /* DNSCurve.cpp in Sources */,
+				D97C98841B17417100674884 /* Service.cpp in Sources */,
+				D97C98711B17414A00674884 /* Network.cpp in Sources */,
+				D97C986E1B17414A00674884 /* Initialization.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -21,11 +21,11 @@
 
 //Main function of program
 #if defined(PLATFORM_WIN)
-	int wmain(int argc, wchar_t* argv[])
-	{
+int wmain(int argc, wchar_t* argv[])
+{
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	int main(int argc, char *argv[])
-	{
+int main(int argc, char *argv[])
+{
 #endif
 
 #if defined(ENABLE_LIBSODIUM)

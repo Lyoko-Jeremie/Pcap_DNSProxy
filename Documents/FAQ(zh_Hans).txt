@@ -96,7 +96,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Cannot open any configuration files - 未发现任何配置文件：请确认文件是否存在
   * Configuration file is too large - 配置文件容量过大：请确认配置文件的内容，整个文件的大小不要超过 4GB
   * Configuration file version error - 配置文件版本错误：请确认配置文件是否需要更新
-  * Configuration file is not the latest version - 配置文件非最新版本：请确认配置文件是否需要更新
   * Data length error - 配置文件参数一行数据超过 4096 字节/4KB，或该行数据长度不符合要求：请确认该行的内容是否符合要求
   * Data of a line is too short - 该参数过短：请确认配置文件的内容
   * Data of a line is too long - 该参数过长：一行数据切勿超过 4096 字节/4KB
@@ -110,10 +109,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * IPv6 prefix error - IPv6 网络后缀长度错误：IPv6 网络后缀的长度介乎与 1-128
   * IPv6 special address error - IPv6 特殊地址检查错误：请检查 IPv6 地址是否为特殊地址
   * IPv4 special address error - IPv4 特殊地址检查错误：请检查 IPv4 地址是否为特殊地址
-  * Address of IPv6 Main Local Server is not in Local Routing list - IPv6 境内主要服务器不在境内路由表中，填入的地址可能不是境内的地址：此为提示，请检查该地址的地理位置
-  * Address of IPv6 Alternate Local Server is not in Local Routing list - IPv6 境内备用服务器不在境内路由表中，填入的地址可能不是境内的地址：此为提示，请检查该地址的地理位置
-  * Address of IPv4 Main Local Server is not in Local Routing list - IPv4 境内主要服务器不在境内路由表中，填入的地址可能不是境内的地址：此为提示，请检查该地址的地理位置
-  * Address of IPv4 Alternate Local Server is not in Local Routing list - IPv4 境内备用服务器不在境内路由表中，填入的地址可能不是境内的地址：此为提示，请检查该地址的地理位置
   * Pcap Capture error - 抓包模块参数错误：请检查相关参数的使用要求说明
   * Localhost server listening port error - 本地监听端口错误：请检查本地监听端口的值，可适用范围为 1 - 65535
   * IPFilter Level error - IPFilter 过滤级别错误：请检查过滤级别的值，可适用范围为 1 - 65535
@@ -123,22 +118,13 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Local Main / Local Hosts / Local Routing error - 主要境内服务器、境内域名白名单或境内路由表错误：参见 ReadMe 文档中对这3个参数的介绍
   * DNS Records type error - DNS 记录参数错误：请检查 Accept Type 的值是否符合要求
   * Hop Limit Fluctuations error - Hop Limit 或 TTL 可接受范围错误：请检查范围的值
-  * EDNS Payload Size must longer than 512 bytes(TraditionalDNS packet minimum supported size) - EDNS 载荷长度过短：实现 DNS 协议必须支持长度超过 512 bytes 的数据包
-  * EDNS Payload Size may be too long - EDNS 载荷长度可能过长：此值建议不要超过以太网的 MTU(1512 bytes)
-  * EDNS Label must turn ON when request DNSSEC - 开启 DNSSEC 请求时必须开启 EDNS 标签请求功能
-  * EDNS Label must turn ON when request EDNS Client Subnet - 开启 EDNS Client Subnet 请求时必须开启 EDNS 标签请求功能
-  * EDNS Label must turn OFF when request Compression Pointer Mutation - 使用 Compression Pointer Mutation 时不能开启 EDNS 标签请求功能，两者并不兼容
-  * EDNS Label and DNSSEC Request must turn ON when request DNSSEC Validation - 开启 DNSSEC Validation 请求时必须开启 EDNS 标签请求和 DNSSEC 请求功能
-  * EDNS Label, DNSSEC Request and DNSSEC Validation must turn ON when request DNSSEC Force Validation - 开启 DNSSEC Force Validation 请求时必须开启 EDNS 标签请求、DNSSEC 请求和 DNSSEC Validation 验证功能
   * Alternate Multi requesting error - 主要备用或多个服务器下同时请求参数错误：请确认所有服务器的信息
-  * Multi requesting times error - 接收到一个解析请求向同一个远程服务器发送多次解析请求参数错误 ：一个解析请求的多次解析请求次数不能超过16次，也就是配置文件不能填大于15的值
+  * Multi requesting times error - 接收到一个解析请求向同一个远程服务器发送多次解析请求参数错误 ：一个解析请求的多次解析请求次数不能超过8次，也就是配置文件不能填大于7的值
   * DNSCurve target error - DNSCurve 协议使用的 DNS 目标服务器地址错误：请检查 DNSCurve 协议使用DNS服务器的地址
   * DNSCurve encryption options error - DNSCurve 协议加密选项配置错误：开启加密选项和只使用加密模式选项冲突
   * DNSCurve Encryption Only mode error - DNSCurve 协议只使用加密模式配置错误：只使用加密模式必须提供服务器的魔数和指纹
   * DNSCurve empty Provider Name error - DNSCurve 协议服务器提供者错误：不存在魔数或指纹时必须提供服务器的提供者信息以自动获取连接参数
   * DNSCurve empty Public Key error - DNSCurve 协议服务器提供者错误：不存在魔数或指纹时必须提供服务器的公钥以自动获取连接参数
-  * DNSCurve Payload Size must longer than 512 bytes(Traditional DNS packet minimum supported size) - DNSCurve 协议载荷长度过短：实现 DNS 协议必须支持长度超过 512 bytes 的数据包
-  * DNSCurve Payload Size may be too long - DNSCurve 协议载荷长度可能过长：此值建议不要超过以太网的 MTU(1512 bytes)
 
 3.IPFilter Error - 读取 IPFilter 文件错误
   * IPFilter file size is too large - IPFilter 文件容量过大：请确认 IPFilter 文件的内容，整个文件的大小不要超过 4GB
@@ -160,7 +146,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Read file(s) error - 文件跳转读取错误：请与开发者联系
   * Data of a line is too long - 该 Hosts 条目过长：一行数据切勿超过 4096 字节/4KB
   * Item format error - Hosts 条目格式错误：请检查该条目的格式
-  * Data is too long when EDNS is available - 开启EDNS标签的情况下该 Hosts 条目过长：请检查 Hosts 的地址列表是否过长
+  * Data is too long when EDNS is available - 开启 EDNS 标签的情况下该 Hosts 条目过长：请检查 Hosts 的地址列表是否过长
   * Default TTL redefinition - 默认生存时间重定义：以第一个出现的默认生存时间为准
   * Regular expression pattern error - 错误的正则表达式：请检查正则表达式的正确性
   * IPv6 address format error - Hosts 的IPv6地址格式错误：请检查 Hosts 条目的地址
@@ -231,3 +217,24 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * IPv6 Alternate Server Fingerprint signature validation error - IPv6 备用服务器证书验证错误：请检查该服务器是否可用
   * IPv4 Main Server Fingerprint signature validation error - IPv4 主要服务器证书验证错误：请检查该服务器是否可用
   * IPv4 Alternate Server Fingerprint signature validation error - IPv4 备用服务器证书验证错误：请检查该服务器是否可用
+
+8.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
+  * Configuration file is not the latest version - 配置文件非最新版本：请确认配置文件是否需要更新
+  * Listen Port is empty, set to standard DNS port(53) - 本地监听端口参数为空：程序将自动设置为标准 DNS 协议端口（53）
+  * TCP Data Filter require TCP Request Mode - 开启 TCP 数据包头检测时必须将 Request Mode 设置为 TCP：程序将自动关闭此功能
+  * TCP Data Filter require Pcap Cpature - 开启 TCP 数据包头检测时必须启用 Pcap Cpature：程序将自动关闭此功能
+  * IPv4 Data Filter require IPv4 DNS server - 开启 IPv4 数据包头检测时必须存在 IPv4 协议的 DNS 服务器：程序将自动关闭此功能
+  * IPv4 Data Filter require Pcap Cpature - 开启 IPv4 数据包头检测时必须启用 Pcap Cpature：程序将自动关闭此功能
+  * EDNS Payload Size must longer than 512 bytes(Traditional DNS packet minimum supported size) - EDNS 载荷长度过短：实现 DNS 协议必须支持长度超过 512 bytes 的数据包
+  * EDNS Payload Size may be too long - EDNS 载荷长度可能过长：此值建议不要超过以太网的 MTU(1512 bytes)
+  * DNSSEC Request require EDNS Label - 开启 DNSSEC 请求时必须开启 EDNS 标签请求功能
+  * EDNS Client Subnet require EDNS Label - 开启 EDNS Client Subnet 请求时必须开启 EDNS 标签请求功能
+  * Turn OFF Compression Pointer Mutation when EDNS Label is available - 使用 Compression Pointer Mutation 时不能开启 EDNS 标签请求功能，两者并不兼容
+  * DNSSEC Validation require EDNS Label and DNSSEC Request - 开启 DNSSEC Validation 请求时必须开启 EDNS 标签请求和 DNSSEC 请求功能
+  * DNSSEC Force Validation require EDNS Label, DNSSEC Request and DNSSEC Validation - 开启 DNSSEC Force Validation 请求时必须开启 EDNS 标签请求、DNSSEC 请求和 DNSSEC Validation 验证功能
+  * DNSCurve Payload Size must longer than 512 bytes(Traditional DNS packet minimum supported size) - DNSCurve 协议载荷长度过短：实现 DNS 协议必须支持长度超过 512 bytes 的数据包
+  * DNSCurve Payload Size may be too long - DNSCurve 协议载荷长度可能过长：此值建议不要超过以太网的 MTU(1512 bytes)
+  * Address of IPv6 Main Local Server is not in Local Routing list - IPv6 境内主要服务器不在境内路由表中，填入的地址可能不是境内的地址：此为提示，请检查该地址的地理位置
+  * Address of IPv6 Alternate Local Server is not in Local Routing list - IPv6 境内备用服务器不在境内路由表中，填入的地址可能不是境内的地址：此为提示，请检查该地址的地理位置
+  * Address of IPv4 Main Local Server is not in Local Routing list - IPv4 境内主要服务器不在境内路由表中，填入的地址可能不是境内的地址：此为提示，请检查该地址的地理位置
+  * Address of IPv4 Alternate Local Server is not in Local Routing list - IPv4 境内备用服务器不在境内路由表中，填入的地址可能不是境内的地址：此为提示，请检查该地址的地理位置

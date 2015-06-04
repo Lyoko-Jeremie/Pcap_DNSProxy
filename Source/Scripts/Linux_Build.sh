@@ -19,7 +19,10 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-# Build KeyPairGenerator
+# Back to Pcap_DNSProxy main directory
+cd ..
+
+# Build KeyPairGenerator.
 mkdir Object
 cd Object
 CMakeShell="cmake "
@@ -34,7 +37,7 @@ mkdir Release
 mv -f Object/KeyPairGenerator Release
 rm -Rrf Object
 
-# Build Pcap_DNSProxy
+# Build Pcap_DNSProxy.
 mkdir Object
 cd Object
 CMakeShell="cmake "
@@ -51,15 +54,15 @@ cd ..
 mv -f Object/Pcap_DNSProxy Release
 rm -Rrf Object
 
-# Set program
-chmod 777 Release/KeyPairGenerator
-chmod 777 Release/Pcap_DNSProxy
-chmod 777 Build_Linux.SysV.sh
-chmod 777 Build_Linux.Systemd.sh
+# Set program.
+chmod 755 Release/KeyPairGenerator
+chmod 755 Release/Pcap_DNSProxy
+chmod 755 Scripts/Linux_Install.Systemd.sh
+chmod 755 Scripts/Linux_Install.SysV.sh
+chmod 755 Scripts/Linux_Uninstall.Systemd.sh
+chmod 755 Scripts/Linux_Uninstall.SysV.sh
 cp ExampleConfig/PcapDNSProxyService Release/PcapDNSProxyService
 cp ExampleConfig/Pcap_DNSProxy.service Release/Pcap_DNSProxy.service
-chmod 777 Release/PcapDNSProxyService
-chmod 777 Release/Pcap_DNSProxy.service
 cp ExampleConfig/Config.ini Release/Config.conf
 cp ExampleConfig/Hosts.ini Release/Hosts.conf
 cp ExampleConfig/IPFilter.ini Release/IPFilter.conf

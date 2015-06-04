@@ -19,8 +19,7 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-cp -f Release/Pcap_DNSProxy.service /etc/systemd/system/Pcap_DNSProxy.service
-chown root:root /etc/systemd/system/Pcap_DNSProxy.service
-systemctl enable Pcap_DNSProxy
-systemctl start Pcap_DNSProxy
-systemctl status Pcap_DNSProxy
+cd /etc/init.d
+service PcapDNSProxyService stop
+insserv -r PcapDNSProxyService
+rm -rf PcapDNSProxyService

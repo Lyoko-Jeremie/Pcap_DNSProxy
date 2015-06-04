@@ -231,12 +231,13 @@
     <ClInclude Include="Main.h" />
     <ClInclude Include="Base.h" />
     <ClInclude Include="Monitor.h" />
+    <ClInclude Include="PacketData.h" />
     <ClInclude Include="PrintLog.h" />
     <ClInclude Include="Process.h" />
     <ClInclude Include="Protocol.h" />
     <ClInclude Include="Network.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="WindowsService.h" />
+    <ClInclude Include="Service.h" />
     <ClInclude Include="WinPcap\bittypes.h" />
     <ClInclude Include="WinPcap\ip6_misc.h" />
     <ClInclude Include="WinPcap\Packet32.h" />
@@ -270,11 +271,15 @@
     <ClCompile Include="DNSCurve.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Monitor.cpp" />
+    <ClCompile Include="PacketData.cpp" />
     <ClCompile Include="PrintLog.cpp" />
     <ClCompile Include="Process.cpp" />
     <ClCompile Include="Protocol.cpp" />
     <ClCompile Include="Network.cpp" />
-    <ClCompile Include="WindowsService.cpp" />
+    <ClCompile Include="ReadHosts.cpp" />
+    <ClCompile Include="ReadIPFilter.cpp" />
+    <ClCompile Include="ReadParameter.cpp" />
+    <ClCompile Include="Service.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Pcap_DNSProxy.rc" />
