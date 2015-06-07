@@ -42,9 +42,9 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 			if (ReadLength <= READ_DATA_MINSIZE)
 			{
 				if (InputType == READ_TEXT_HOSTS) //ReadHosts
-					PrintError(LOG_ERROR_HOSTS, L"Data of a line is too short", 0, HostsFileList.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_ERROR_HOSTS, L"Data of a line is too short", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				else if (InputType == READ_TEXT_IPFILTER) //ReadIPFilter
-					PrintError(LOG_ERROR_IPFILTER, L"Data of a line is too short", 0, IPFilterFileList.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_ERROR_IPFILTER, L"Data of a line is too short", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 				else //ReadParameter
 					PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, ConfigFileList.at(FileIndex).c_str(), Line);
 
@@ -112,9 +112,9 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 		if (!CRLF_Point && ReadLength == FILE_BUFFER_SIZE)
 		{
 			if (InputType == READ_TEXT_HOSTS) //ReadHosts
-				PrintError(LOG_ERROR_HOSTS, L"Data of a line is too long", 0, HostsFileList.at(FileIndex).FileName.c_str(), Line);
+				PrintError(LOG_ERROR_HOSTS, L"Data of a line is too long", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 			else if (InputType == READ_TEXT_IPFILTER) //ReadIPFilter
-				PrintError(LOG_ERROR_IPFILTER, L"Data of a line is too long", 0, IPFilterFileList.at(FileIndex).FileName.c_str(), Line);
+				PrintError(LOG_ERROR_IPFILTER, L"Data of a line is too long", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			else //ReadParameter
 				PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too long", 0, ConfigFileList.at(FileIndex).c_str(), Line);
 
@@ -235,7 +235,7 @@ bool __fastcall ReadMultiLineComments(const char *Buffer, std::string &Data, boo
 	{
 		if (Data.find("*/") != std::string::npos)
 		{
-			Data = Buffer + Data.find("*/") + 2U;
+			Data = Buffer + Data.find("*/") + strlen("*/");
 			IsLabelComments = false;
 		}
 		else {
@@ -251,7 +251,7 @@ bool __fastcall ReadMultiLineComments(const char *Buffer, std::string &Data, boo
 			break;
 		}
 		else {
-			Data.erase(Data.find("/*"), Data.find("*/") - Data.find("/*") + 2U);
+			Data.erase(Data.find("/*"), Data.find("*/") - Data.find("/*") + strlen("/*"));
 		}
 	}
 
@@ -266,40 +266,40 @@ bool __fastcall ReadParameter(void)
 	size_t Index = 0;
 
 //Open file.
-	std::wstring ConfigFileName(Parameter.Path->front());
+	std::wstring ConfigFileName(Parameter.Path_Global->front());
 #if defined(PLATFORM_WIN)
 	ConfigFileName.append(L"Config.ini");
 	ConfigFileList.push_back(ConfigFileName);
-	ConfigFileName = Parameter.Path->front();
+	ConfigFileName = Parameter.Path_Global->front();
 	ConfigFileName.append(L"Config.conf");
 	ConfigFileList.push_back(ConfigFileName);
-	ConfigFileName = Parameter.Path->front();
+	ConfigFileName = Parameter.Path_Global->front();
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	ConfigFileName.append(L"Config.conf");
 	ConfigFileList.push_back(ConfigFileName);
-	ConfigFileName = Parameter.Path->front();
+	ConfigFileName = Parameter.Path_Global->front();
 	ConfigFileName.append(L"Config.ini");
 	ConfigFileList.push_back(ConfigFileName);
-	ConfigFileName = Parameter.Path->front();
+	ConfigFileName = Parameter.Path_Global->front();
 #endif
 	ConfigFileName.append(L"Config.cfg");
 	ConfigFileList.push_back(ConfigFileName);
-	ConfigFileName = Parameter.Path->front();
+	ConfigFileName = Parameter.Path_Global->front();
 	ConfigFileName.append(L"Config");
 	ConfigFileList.push_back(ConfigFileName);
 	ConfigFileName.clear();
 	ConfigFileName.shrink_to_fit();
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::string sConfigFileName(Parameter.sPath->front());
+	std::string sConfigFileName(Parameter.sPath_Global->front());
 	sConfigFileName.append("Config.conf");
 	sConfigFileList.push_back(sConfigFileName);
-	sConfigFileName = Parameter.sPath->front();
+	sConfigFileName = Parameter.sPath_Global->front();
 	sConfigFileName.append("Config.ini");
 	sConfigFileList.push_back(sConfigFileName);
-	sConfigFileName = Parameter.sPath->front();
+	sConfigFileName = Parameter.sPath_Global->front();
 	sConfigFileName.append("Config.cfg");
 	sConfigFileList.push_back(sConfigFileName);
-	sConfigFileName = Parameter.sPath->front();
+	sConfigFileName = Parameter.sPath_Global->front();
 	sConfigFileName.append("Config");
 	sConfigFileList.push_back(sConfigFileName);
 	sConfigFileName.clear();
@@ -378,9 +378,9 @@ bool __fastcall ReadParameter(void)
 void __fastcall ReadIPFilter(void)
 {
 //Create file list.
-	for (size_t Index = 0;Index < Parameter.Path->size();++Index)
+	for (size_t Index = 0;Index < Parameter.Path_Global->size();++Index)
 	{
-		for (size_t InnerIndex = 0;InnerIndex < Parameter.IPFilterFileList->size();++InnerIndex)
+		for (size_t InnerIndex = 0;InnerIndex < Parameter.FileList_IPFilter->size();++InnerIndex)
 		{
 			FILE_DATA FileDataTemp;
 			FileDataTemp.FileName.clear();
@@ -390,13 +390,13 @@ void __fastcall ReadIPFilter(void)
 			FileDataTemp.ModificationTime = 0;
 
 		//Add to global list.
-			FileDataTemp.FileName.append(Parameter.Path->at(Index));
-			FileDataTemp.FileName.append(Parameter.IPFilterFileList->at(InnerIndex));
+			FileDataTemp.FileName.append(Parameter.Path_Global->at(Index));
+			FileDataTemp.FileName.append(Parameter.FileList_IPFilter->at(InnerIndex));
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			FileDataTemp.sFileName.append(Parameter.sPath->at(Index));
-			FileDataTemp.sFileName.append(Parameter.sIPFilterFileList->at(InnerIndex));
+			FileDataTemp.sFileName.append(Parameter.sPath_Global->at(Index));
+			FileDataTemp.sFileName.append(Parameter.sFileList_IPFilter->at(InnerIndex));
 		#endif
-			IPFilterFileList.push_back(FileDataTemp);
+			FileList_IPFilter.push_back(FileDataTemp);
 		}
 	}
 
@@ -425,21 +425,21 @@ void __fastcall ReadIPFilter(void)
 		IsFileModified = false;
 
 	//Check File lists.
-		for (FileIndex = 0;FileIndex < IPFilterFileList.size();++FileIndex)
+		for (FileIndex = 0;FileIndex < FileList_IPFilter.size();++FileIndex)
 		{
 		//Get attributes of file.
 		#if defined(PLATFORM_WIN)
-			if (GetFileAttributesExW(IPFilterFileList.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) == FALSE)
+			if (GetFileAttributesExW(FileList_IPFilter.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) == FALSE)
 			{
 				memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (stat(IPFilterFileList.at(FileIndex).sFileName.c_str(), FileStat.get()) != 0)
+			if (stat(FileList_IPFilter.at(FileIndex).sFileName.c_str(), FileStat.get()) != 0)
 			{
 				memset(FileStat.get(), 0, sizeof(struct stat));
 		#endif
-				if (IPFilterFileList.at(FileIndex).ModificationTime > 0)
+				if (FileList_IPFilter.at(FileIndex).ModificationTime > 0)
 					IsFileModified = true;
-				IPFilterFileList.at(FileIndex).ModificationTime = 0;
+				FileList_IPFilter.at(FileIndex).ModificationTime = 0;
 
 				ClearListData(READ_TEXT_IPFILTER, FileIndex);
 			}
@@ -453,7 +453,7 @@ void __fastcall ReadIPFilter(void)
 				if (FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 			#endif
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"IPFilter file size is too large", 0, IPFilterFileList.at(FileIndex).FileName.c_str(), 0);
+					PrintError(LOG_ERROR_PARAMETER, L"IPFilter file size is too large", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), 0);
 
 				#if defined(PLATFORM_WIN)
 					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
@@ -461,9 +461,9 @@ void __fastcall ReadIPFilter(void)
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 					memset(FileStat.get(), 0, sizeof(struct stat));
 				#endif
-					if (IPFilterFileList.at(FileIndex).ModificationTime > 0)
+					if (FileList_IPFilter.at(FileIndex).ModificationTime > 0)
 						IsFileModified = true;
-					IPFilterFileList.at(FileIndex).ModificationTime = 0;
+					FileList_IPFilter.at(FileIndex).ModificationTime = 0;
 
 					ClearListData(READ_TEXT_IPFILTER, FileIndex);
 					continue;
@@ -474,15 +474,15 @@ void __fastcall ReadIPFilter(void)
 				memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
 				File_LARGE_INTEGER->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwHighDateTime;
 				File_LARGE_INTEGER->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwLowDateTime;
-				if (IPFilterFileList.at(FileIndex).ModificationTime == 0 || File_LARGE_INTEGER->QuadPart != IPFilterFileList.at(FileIndex).ModificationTime)
+				if (FileList_IPFilter.at(FileIndex).ModificationTime == 0 || File_LARGE_INTEGER->QuadPart != FileList_IPFilter.at(FileIndex).ModificationTime)
 				{
-					IPFilterFileList.at(FileIndex).ModificationTime = File_LARGE_INTEGER->QuadPart;
+					FileList_IPFilter.at(FileIndex).ModificationTime = File_LARGE_INTEGER->QuadPart;
 					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				if (IPFilterFileList.at(FileIndex).ModificationTime == 0 || FileStat->st_mtime != IPFilterFileList.at(FileIndex).ModificationTime)
+				if (FileList_IPFilter.at(FileIndex).ModificationTime == 0 || FileStat->st_mtime != FileList_IPFilter.at(FileIndex).ModificationTime)
 				{
-					IPFilterFileList.at(FileIndex).ModificationTime = FileStat->st_mtime;
+					FileList_IPFilter.at(FileIndex).ModificationTime = FileStat->st_mtime;
 					memset(FileStat.get(), 0, sizeof(struct stat));
 			#endif
 					ClearListData(READ_TEXT_IPFILTER, FileIndex);
@@ -490,10 +490,10 @@ void __fastcall ReadIPFilter(void)
 
 				//Read file.
 				#if defined(PLATFORM_WIN)
-					if (_wfopen_s(&Input, IPFilterFileList.at(FileIndex).FileName.c_str(), L"rb") == 0)
+					if (_wfopen_s(&Input, FileList_IPFilter.at(FileIndex).FileName.c_str(), L"rb") == 0)
 					{
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-					Input = fopen(IPFilterFileList.at(FileIndex).sFileName.c_str(), "rb");
+					Input = fopen(FileList_IPFilter.at(FileIndex).sFileName.c_str(), "rb");
 				#endif
 						if (Input == nullptr)
 						{
@@ -576,12 +576,10 @@ void __fastcall ReadIPFilter(void)
 		//Check local servers(IPv6).
 			if (IsLocalServerPrint)
 			{
-				if (Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && (Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) && 
-					!CheckAddressRouting(&Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr, AF_INET6))
-						PrintError(LOG_MESSAGE_NOTICE, L"Address of IPv6 Main Local Server is not in Local Routing list", 0, nullptr, 0);
-				if (Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 && (Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV6) && 
-					!CheckAddressRouting(&Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr, AF_INET6))
-						PrintError(LOG_MESSAGE_NOTICE, L"Address of IPv6 Alternate Local Server is not in Local Routing list", 0, nullptr, 0);
+				if (Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && !CheckAddressRouting(&Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr, AF_INET6))
+					PrintError(LOG_MESSAGE_NOTICE, L"Address of IPv6 Main Local Server is not in Local Routing list", 0, nullptr, 0);
+				if (Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 && !CheckAddressRouting(&Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr, AF_INET6))
+					PrintError(LOG_MESSAGE_NOTICE, L"Address of IPv6 Alternate Local Server is not in Local Routing list", 0, nullptr, 0);
 			}
 
 			IsLocalServerPrint = false;
@@ -599,12 +597,10 @@ void __fastcall ReadIPFilter(void)
 		//Check local servers(IPv4).
 			if (IsLocalServerPrint)
 			{
-				if (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 && (Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4) && 
-					!CheckAddressRouting(&Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr, AF_INET))
-						PrintError(LOG_MESSAGE_NOTICE, L"Address of IPv4 Main Local Server is not in Local Routing list", 0, nullptr, 0);
-				if (Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0 && (Parameter.RequestMode_Network == REQUEST_MODE_IPV6_IPV4 || Parameter.RequestMode_Network == REQUEST_MODE_IPV4) && 
-					!CheckAddressRouting(&Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr, AF_INET))
-						PrintError(LOG_MESSAGE_NOTICE, L"Address of IPv4 Alternate Local Server is not in Local Routing list", 0, nullptr, 0);
+				if (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 && !CheckAddressRouting(&Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr, AF_INET))
+					PrintError(LOG_MESSAGE_NOTICE, L"Address of IPv4 Main Local Server is not in Local Routing list", 0, nullptr, 0);
+				if (Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0 && !CheckAddressRouting(&Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr, AF_INET))
+					PrintError(LOG_MESSAGE_NOTICE, L"Address of IPv4 Alternate Local Server is not in Local Routing list", 0, nullptr, 0);
 			}
 
 			IsLocalServerPrint = true;
@@ -623,9 +619,9 @@ void __fastcall ReadIPFilter(void)
 void __fastcall ReadHosts(void)
 {
 //Create file list.
-	for (size_t Index = 0;Index < Parameter.Path->size();++Index)
+	for (size_t Index = 0;Index < Parameter.Path_Global->size();++Index)
 	{
-		for (size_t InnerIndex = 0;InnerIndex < Parameter.HostsFileList->size();++InnerIndex)
+		for (size_t InnerIndex = 0;InnerIndex < Parameter.FileList_Hosts->size();++InnerIndex)
 		{
 			FILE_DATA FileDataTemp;
 			FileDataTemp.FileName.clear();
@@ -635,13 +631,13 @@ void __fastcall ReadHosts(void)
 			FileDataTemp.ModificationTime = 0;
 
 		//Add to global list.
-			FileDataTemp.FileName.append(Parameter.Path->at(Index));
-			FileDataTemp.FileName.append(Parameter.HostsFileList->at(InnerIndex));
+			FileDataTemp.FileName.append(Parameter.Path_Global->at(Index));
+			FileDataTemp.FileName.append(Parameter.FileList_Hosts->at(InnerIndex));
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			FileDataTemp.sFileName.append(Parameter.sPath->at(Index));
-			FileDataTemp.sFileName.append(Parameter.sHostsFileList->at(InnerIndex));
+			FileDataTemp.sFileName.append(Parameter.sPath_Global->at(Index));
+			FileDataTemp.sFileName.append(Parameter.sFileList_Hosts->at(InnerIndex));
 		#endif
-			HostsFileList.push_back(FileDataTemp);
+			FileList_Hosts.push_back(FileDataTemp);
 		}
 	}
 
@@ -668,21 +664,21 @@ void __fastcall ReadHosts(void)
 		IsFileModified = false;
 
 	//Check File lists.
-		for (FileIndex = 0;FileIndex < HostsFileList.size();++FileIndex)
+		for (FileIndex = 0;FileIndex < FileList_Hosts.size();++FileIndex)
 		{
 		//Get attributes of file.
 		#if defined(PLATFORM_WIN)
-			if (GetFileAttributesExW(HostsFileList.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) == FALSE)
+			if (GetFileAttributesExW(FileList_Hosts.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) == FALSE)
 			{
 				memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (stat(HostsFileList.at(FileIndex).sFileName.c_str(), FileStat.get()) != 0)
+			if (stat(FileList_Hosts.at(FileIndex).sFileName.c_str(), FileStat.get()) != 0)
 			{
 				memset(FileStat.get(), 0, sizeof(struct stat));
 		#endif
-				if (HostsFileList.at(FileIndex).ModificationTime > 0)
+				if (FileList_Hosts.at(FileIndex).ModificationTime > 0)
 					IsFileModified = true;
-				HostsFileList.at(FileIndex).ModificationTime = 0;
+				FileList_Hosts.at(FileIndex).ModificationTime = 0;
 
 				ClearListData(READ_TEXT_HOSTS, FileIndex);
 			}
@@ -696,7 +692,7 @@ void __fastcall ReadHosts(void)
 				if (FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 			#endif
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Hosts file size is too large", 0, HostsFileList.at(FileIndex).FileName.c_str(), 0);
+					PrintError(LOG_ERROR_PARAMETER, L"Hosts file size is too large", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), 0);
 
 				#if defined(PLATFORM_WIN)
 					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
@@ -704,9 +700,9 @@ void __fastcall ReadHosts(void)
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 					memset(FileStat.get(), 0, sizeof(struct stat));
 				#endif
-					if (HostsFileList.at(FileIndex).ModificationTime > 0)
+					if (FileList_Hosts.at(FileIndex).ModificationTime > 0)
 						IsFileModified = true;
-					HostsFileList.at(FileIndex).ModificationTime = 0;
+					FileList_Hosts.at(FileIndex).ModificationTime = 0;
 
 					ClearListData(READ_TEXT_HOSTS, FileIndex);
 					continue;
@@ -717,15 +713,15 @@ void __fastcall ReadHosts(void)
 				memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
 				File_LARGE_INTEGER->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwHighDateTime;
 				File_LARGE_INTEGER->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwLowDateTime;
-				if (HostsFileList.at(FileIndex).ModificationTime == 0 || File_LARGE_INTEGER->QuadPart != HostsFileList.at(FileIndex).ModificationTime)
+				if (FileList_Hosts.at(FileIndex).ModificationTime == 0 || File_LARGE_INTEGER->QuadPart != FileList_Hosts.at(FileIndex).ModificationTime)
 				{
-					HostsFileList.at(FileIndex).ModificationTime = File_LARGE_INTEGER->QuadPart;
+					FileList_Hosts.at(FileIndex).ModificationTime = File_LARGE_INTEGER->QuadPart;
 					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				if (HostsFileList.at(FileIndex).ModificationTime == 0 || FileStat->st_mtime != HostsFileList.at(FileIndex).ModificationTime)
+				if (FileList_Hosts.at(FileIndex).ModificationTime == 0 || FileStat->st_mtime != FileList_Hosts.at(FileIndex).ModificationTime)
 				{
-					HostsFileList.at(FileIndex).ModificationTime = FileStat->st_mtime;
+					FileList_Hosts.at(FileIndex).ModificationTime = FileStat->st_mtime;
 					memset(FileStat.get(), 0, sizeof(struct stat));
 			#endif
 					ClearListData(READ_TEXT_HOSTS, FileIndex);
@@ -733,10 +729,10 @@ void __fastcall ReadHosts(void)
 
 				//Read file.
 				#if defined(PLATFORM_WIN)
-					if (_wfopen_s(&Input, HostsFileList.at(FileIndex).FileName.c_str(), L"rb") == 0)
+					if (_wfopen_s(&Input, FileList_Hosts.at(FileIndex).FileName.c_str(), L"rb") == 0)
 					{
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-					Input = fopen(HostsFileList.at(FileIndex).sFileName.c_str(), "rb");
+					Input = fopen(FileList_Hosts.at(FileIndex).sFileName.c_str(), "rb");
 				#endif
 						if (Input == nullptr)
 						{
@@ -793,7 +789,7 @@ void __fastcall ReadHosts(void)
 		}
 
 	//EDNS Lebal
-		if (Parameter.EDNSLabel)
+		if (Parameter.EDNS_Label)
 		{
 			pdns_record_opt DNS_Record_OPT = nullptr;
 			for (auto &HostsFileSetIter:*HostsFileSetModificating)

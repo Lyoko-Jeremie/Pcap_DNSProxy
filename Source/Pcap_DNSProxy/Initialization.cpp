@@ -35,33 +35,33 @@ ConfigurationTable::ConfigurationTable(void)
 		DNSTarget.IPv4_Multi = new std::vector<DNS_SERVER_DATA>();
 	//[Data] block(A part)
 	#if defined(ENABLE_PCAP)
-		ICMPPaddingData = new char[ICMP_PADDING_MAXSIZE]();
-		DomainTestData = new char[DOMAIN_MAXSIZE]();
+		ICMP_PaddingData = new char[ICMP_PADDING_MAXSIZE]();
+		DomainTest_Data = new char[DOMAIN_MAXSIZE]();
 	#endif
 	//[Data] block(B part)
-		LocalFQDNResponse = new char[DOMAIN_MAXSIZE]();
-		LocalFQDNString = new std::string();
+		LocalFQDN_Response = new char[DOMAIN_MAXSIZE]();
+		LocalFQDN_String = new std::string();
 	#if !defined(PLATFORM_MACX)
-		LocalServerResponse = new char[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt)]();
+		LocalServer_Response = new char[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt)]();
 	#endif
-		LocalAddressResponse[0] = new char[PACKET_MAXSIZE]();
-		LocalAddressResponse[1U] = new char[PACKET_MAXSIZE]();
+		LocalAddress_Response[0] = new char[PACKET_MAXSIZE]();
+		LocalAddress_Response[1U] = new char[PACKET_MAXSIZE]();
 	#if !defined(PLATFORM_MACX)
-		LocalAddressPTRResponse[0] = new std::vector<std::string>();
-		LocalAddressPTRResponse[1U] = new std::vector<std::string>();
+		LocalAddress_ResponsePTR[0] = new std::vector<std::string>();
+		LocalAddress_ResponsePTR[1U] = new std::vector<std::string>();
 	#endif
 	//Global block
 		LocalSocket = new std::vector<SYSTEM_SOCKET>();
 		RamdomEngine = new std::default_random_engine();
-		Path = new std::vector<std::wstring>();
-		HostsFileList = new std::vector<std::wstring>();
-		IPFilterFileList = new std::vector<std::wstring>();
-		ErrorLogPath = new std::wstring();
+		Path_Global = new std::vector<std::wstring>();
+		Path_ErrorLog = new std::wstring();
+		FileList_Hosts = new std::vector<std::wstring>();
+		FileList_IPFilter = new std::vector<std::wstring>();
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		sPath = new std::vector<std::string>();
-		sHostsFileList = new std::vector<std::string>();
-		sIPFilterFileList = new std::vector<std::string>();
-		sErrorLogPath = new std::string();
+		sPath_Global = new std::vector<std::string>();
+		sPath_ErrorLog = new std::string();
+		sFileList_Hosts = new std::vector<std::string>();
+		sFileList_IPFilter = new std::vector<std::string>();
 	#endif
 		DomainTable = new char[strlen(RFC_DOMAIN_TABLE) + 1U]();
 		AcceptTypeList = new std::vector<uint16_t>();
@@ -79,28 +79,28 @@ ConfigurationTable::ConfigurationTable(void)
 		delete DNSTarget.IPv4_Multi;
 	//[Data] block(A part)
 	#if defined(ENABLE_PCAP)
-		delete[] ICMPPaddingData;
-		delete[] DomainTestData;
+		delete[] ICMP_PaddingData;
+		delete[] DomainTest_Data;
 	#endif
 	//[Data] block(B part)
-		delete[] LocalFQDNResponse;
-		delete LocalFQDNString;
+		delete[] LocalFQDN_Response;
+		delete LocalFQDN_String;
 	#if !defined(PLATFORM_MACX)
-		delete[] LocalServerResponse;
+		delete[] LocalServer_Response;
 	#endif
-		delete[] LocalAddressResponse[0];
-		delete[] LocalAddressResponse[1U];
+		delete[] LocalAddress_Response[0];
+		delete[] LocalAddress_Response[1U];
 	#if !defined(PLATFORM_MACX)
-		delete LocalAddressPTRResponse[0];
-		delete LocalAddressPTRResponse[1U];
+		delete LocalAddress_ResponsePTR[0];
+		delete LocalAddress_ResponsePTR[1U];
 	#endif
 	//Global block
 		delete LocalSocket;
 		delete RamdomEngine;
-		delete Path;
-		delete HostsFileList;
-		delete IPFilterFileList;
-		delete ErrorLogPath;
+		delete Path_Global;
+		delete Path_ErrorLog;
+		delete FileList_Hosts;
+		delete FileList_IPFilter;
 		delete[] DomainTable;
 		delete AcceptTypeList;
 
@@ -109,18 +109,19 @@ ConfigurationTable::ConfigurationTable(void)
 	}
 
 //Initialization
+	BufferQueueSize = DEFAULT_BUFFER_QUEUE;
 	//[Data] block(A part)
 #if defined(ENABLE_PCAP)
-	memset(ICMPPaddingData, 0, ICMP_PADDING_MAXSIZE);
-	memset(DomainTestData, 0, DOMAIN_MAXSIZE);
+	memset(ICMP_PaddingData, 0, ICMP_PADDING_MAXSIZE);
+	memset(DomainTest_Data, 0, DOMAIN_MAXSIZE);
 #endif
 	//[Data] block(B part)
-	memset(LocalFQDNResponse, 0, DOMAIN_MAXSIZE);
+	memset(LocalFQDN_Response, 0, DOMAIN_MAXSIZE);
 #if !defined(PLATFORM_MACX)
-	memset(LocalServerResponse, 0, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt));
+	memset(LocalServer_Response, 0, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt));
 #endif
-	memset(LocalAddressResponse[0], 0, PACKET_MAXSIZE);
-	memset(LocalAddressResponse[1U], 0, PACKET_MAXSIZE);
+	memset(LocalAddress_Response[0], 0, PACKET_MAXSIZE);
+	memset(LocalAddress_Response[1U], 0, PACKET_MAXSIZE);
 	//Global block
 	memset(DomainTable, 0, strlen(RFC_DOMAIN_TABLE) + 1U);
 
@@ -135,13 +136,13 @@ ConfigurationTable::ConfigurationTable(void)
 	HostsDefaultTTL = DEFAULT_HOSTS_TTL;
 	AlternateTimes = DEFAULT_ALTERNATE_TIMES;
 	AlternateTimeRange = DEFAULT_ALTERNATE_RANGE * SECOND_TO_MILLISECOND;
-	AlternateResetTime = DEFAULT_ALTERNATERESET_TIME * SECOND_TO_MILLISECOND;
+	AlternateResetTime = DEFAULT_ALTERNATE_RESET_TIME * SECOND_TO_MILLISECOND;
 #if defined(PLATFORM_WIN)
-	ReliableSocketTimeout = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
-	UnreliableSocketTimeout = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
+	SocketTimeout_Reliable = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
+	SocketTimeout_Unreliable = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	ReliableSocketTimeout.tv_sec = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
-	UnreliableSocketTimeout.tv_sec = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
+	SocketTimeout_Reliable.tv_sec = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
+	SocketTimeout_Unreliable.tv_sec = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
 #endif
 #if defined(PLATFORM_MACX)
 	Console = true;
@@ -149,30 +150,30 @@ ConfigurationTable::ConfigurationTable(void)
 #if defined(ENABLE_PCAP)
 	PcapReadingTimeout = DEFAULT_PCAP_CAPTURE_TIMEOUT;
 	#if defined(PLATFORM_MACX)
-		ICMPID = htons(*(uint16_t *)pthread_self());
+		ICMP_ID = htons(*(uint16_t *)pthread_self());
 	#else
-		ICMPID = htons((uint16_t)GetCurrentProcessId()); //Default ICMP ID is current process ID.
+		ICMP_ID = htons((uint16_t)GetCurrentProcessId()); //Default ICMP ID is current process ID.
 	#endif
-		ICMPSequence = htons(DEFAULT_SEQUENCE);
-		DomainTestSpeed = DEFAULT_DOMAINTEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
+		ICMP_Sequence = htons(DEFAULT_SEQUENCE);
+		DomainTest_Speed = DEFAULT_DOMAINTEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
 	#if defined(PLATFORM_MACX)
-		DomainTestID = htons(*(uint16_t *)pthread_self());
+		DomainTest_ID = htons(*(uint16_t *)pthread_self());
 	#else
-		DomainTestID = htons((uint16_t)GetCurrentProcessId()); //Default DNS ID is current process ID.
+		DomainTest_ID = htons((uint16_t)GetCurrentProcessId()); //Default DNS ID is current process ID.
 	#endif
 	#if defined(PLATFORM_WIN)
-		ICMPPaddingDataLength = strlen(DEFAULT_PADDINGDATA) + 1U;
-		memcpy_s(ICMPPaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_PADDINGDATA, Parameter.ICMPPaddingDataLength - 1U); //Load default padding data.
+		ICMP_PaddingLength = strlen(DEFAULT_PADDINGDATA) + 1U;
+		memcpy_s(ICMP_PaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_PADDINGDATA, Parameter.ICMP_PaddingLength - 1U); //Load default padding data.
 	#elif defined(PLATFORM_LINUX)
 		size_t CharData = ICMP_STRING_START_NUM_LINUX;
 		for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_LINUX;++Index, ++CharData)
-			ICMPPaddingData[Index] = CharData;
-		ICMPPaddingDataLength = strlen(ICMPPaddingData) + 1U;
+			ICMP_PaddingData[Index] = CharData;
+		ICMP_PaddingLength = strlen(ICMP_PaddingData) + 1U;
 	#elif defined(PLATFORM_MACX)
 		size_t CharData = ICMP_STRING_START_NUM_MAC;
 		for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_MAC;++Index, ++CharData)
-			ICMPPaddingData[Index] = CharData;
-		ICMPPaddingDataLength = strlen(ICMPPaddingData) + 1U;
+			ICMP_PaddingData[Index] = CharData;
+		ICMP_PaddingLength = strlen(ICMP_PaddingData) + 1U;
 	#endif
 #endif
 
@@ -196,28 +197,28 @@ ConfigurationTable::~ConfigurationTable(void)
 	delete DNSTarget.IPv4_Multi;
 //[Data] block(A part)
 #if defined(ENABLE_PCAP)
-	delete[] ICMPPaddingData;
-	delete[] DomainTestData;
+	delete[] ICMP_PaddingData;
+	delete[] DomainTest_Data;
 #endif
 //[Data] block(B part)
-	delete[] LocalFQDNResponse;
-	delete LocalFQDNString;
+	delete[] LocalFQDN_Response;
+	delete LocalFQDN_String;
 #if !defined(PLATFORM_MACX)
-	delete[] LocalServerResponse;
+	delete[] LocalServer_Response;
 #endif
-	delete[] LocalAddressResponse[0];
-	delete[] LocalAddressResponse[1U];
+	delete[] LocalAddress_Response[0];
+	delete[] LocalAddress_Response[1U];
 #if !defined(PLATFORM_MACX)
-	delete LocalAddressPTRResponse[0];
-	delete LocalAddressPTRResponse[1U];
+	delete LocalAddress_ResponsePTR[0];
+	delete LocalAddress_ResponsePTR[1U];
 #endif
 //Global block
 	delete LocalSocket;
 	delete RamdomEngine;
-	delete Path;
-	delete HostsFileList;
-	delete IPFilterFileList;
-	delete ErrorLogPath;
+	delete Path_Global;
+	delete Path_ErrorLog;
+	delete FileList_Hosts;
+	delete FileList_IPFilter;
 	delete[] DomainTable;
 	delete AcceptTypeList;
 
@@ -234,9 +235,9 @@ AddressRangeTable::AddressRangeTable(void)
 //HostsTable class constructor
 HostsTable::HostsTable(void)
 {
-	Type = 0;
+	Type_Hosts = 0;
 	Length = 0;
-	TypeOperation = false;
+	Type_Operation = false;
 
 	return;
 }
@@ -262,14 +263,14 @@ AddressRoutingTable_IPv4::AddressRoutingTable_IPv4(void)
 	return;
 }
 
-//PortTable class constructor
+//InputPacketTable class constructor
 #if defined(ENABLE_PCAP)
-PortTable::PortTable(void)
+OutputPacketTable::OutputPacketTable(void)
 {
 //Initialization
-	memset(&SystemData, 0, sizeof(SOCKET_DATA));
-	NetworkLayer = 0;
-	TransportLayer = 0;
+	memset(&SocketData_Input, 0, sizeof(SOCKET_DATA));
+	Protocol_Network = 0;
+	Protocol_Transport = 0;
 	ClearPortTime = 0;
 	ReceiveIndex = 0;
 

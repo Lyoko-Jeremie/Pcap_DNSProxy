@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 
 #if defined(PLATFORM_WIN)
 //Service initialization and start service.
-	SERVICE_TABLE_ENTRYW ServiceTable[] = {{DEFAULT_LOCAL_SERVICENAME, (LPSERVICE_MAIN_FUNCTIONW)ServiceMain}, {nullptr, nullptr}};
+	SERVICE_TABLE_ENTRYW ServiceTable[] = {{DEFAULT_LOCAL_SERVICE_NAME, (LPSERVICE_MAIN_FUNCTIONW)ServiceMain}, {nullptr, nullptr}};
 	if (!StartServiceCtrlDispatcherW(ServiceTable))
 	{
 		Parameter.Console = true;
@@ -117,7 +117,7 @@ bool ReadCommand(int argc, char *argv[])
 	}
 
 //Read commands.
-	if (argc == 2U)
+	if (argc == 2)
 	{
 	//Windows Firewall Test in first start.
 		if (wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_FIREWALL_TEST) && wcsncmp(argv[1U], COMMAND_FIREWALL_TEST, wcslen(COMMAND_FIREWALL_TEST)) == 0 && 
@@ -140,8 +140,15 @@ bool ReadCommand(int argc, char *argv[])
 			wprintf_s(FULL_VERSION);
 			wprintf_s(L"\n");
 		}
+
+	//Print help messages.
+		else if (wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_LONG_HELP) && wcsncmp(argv[1U], COMMAND_LONG_HELP, wcslen(COMMAND_LONG_HELP)) == 0 ||
+			wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_SHORT_HELP) && wcsncmp(argv[1U], COMMAND_SHORT_HELP, wcslen(COMMAND_SHORT_HELP)) == 0)
+		{
+			wprintf_s(L"Usage: Please see ReadMe... files in Documents folder.\n");
+		}
 	}
-	else if (argc == 3U)
+	else if (argc == 3)
 	{
 	//Set working directory from commands.
 		if (wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_LONG_SET_PATH) && wcsncmp(argv[1U], COMMAND_LONG_SET_PATH, wcslen(COMMAND_LONG_SET_PATH)) == 0 ||
@@ -159,7 +166,7 @@ bool ReadCommand(int argc, char *argv[])
 	}
 
 //Bad commands.
-	if (argc > 1U)
+	if (argc > 1)
 	{
 		WSACleanup();
 		return false;
@@ -169,7 +176,7 @@ bool ReadCommand(int argc, char *argv[])
 	return FileNameInit(argv[0]);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Read commands.
-	if (argc == 2U)
+	if (argc == 2)
 	{
 	//Flush DNS Cache from user.
 		if (strnlen(argv[1U], COMMAND_BUFFER_MAXSIZE) == strlen(COMMAND_FLUSH_DNS) && memcmp(argv[1U], COMMAND_FLUSH_DNS, strlen(COMMAND_FLUSH_DNS)) == 0)
@@ -186,7 +193,7 @@ bool ReadCommand(int argc, char *argv[])
 			wprintf(L"\n");
 		}
 	}
-	else if (argc == 3U)
+	else if (argc == 3)
 	{
 	//Set working directory from commands.
 		if (strnlen(argv[1U], COMMAND_BUFFER_MAXSIZE) == strlen(COMMAND_LONG_SET_PATH) && memcmp(argv[1U], COMMAND_LONG_SET_PATH, strlen(COMMAND_LONG_SET_PATH)) == 0 ||
@@ -204,7 +211,7 @@ bool ReadCommand(int argc, char *argv[])
 	}
 
 //Bad commands.
-	if (argc > 1U)
+	if (argc > 1)
 		return false;
 
 //Path initialization
@@ -240,32 +247,32 @@ bool FileNameInit(const char *OriginalPath)
 {
 //Path process
 #if defined(PLATFORM_WIN)
-	Parameter.Path->push_back(OriginalPath);
-	Parameter.Path->front().erase(Parameter.Path->front().rfind(L"\\") + 1U);
-	for (size_t Index = 0;Index < Parameter.Path->front().length();++Index)
+	Parameter.Path_Global->push_back(OriginalPath);
+	Parameter.Path_Global->front().erase(Parameter.Path_Global->front().rfind(L"\\") + 1U);
+	for (size_t Index = 0;Index < Parameter.Path_Global->front().length();++Index)
 	{
-		if ((Parameter.Path->front()).at(Index) == L'\\')
+		if ((Parameter.Path_Global->front()).at(Index) == L'\\')
 		{
-			Parameter.Path->front().insert(Index, L"\\");
+			Parameter.Path_Global->front().insert(Index, L"\\");
 			++Index;
 		}
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	Parameter.sPath->push_back(OriginalPath);
-	Parameter.sPath->front().append("/");
+	Parameter.sPath_Global->push_back(OriginalPath);
+	Parameter.sPath_Global->front().append("/");
 	std::wstring StringTemp;
 	MBSToWCSString(StringTemp, OriginalPath);
 	StringTemp.append(L"/");
-	Parameter.Path->push_back(StringTemp);
+	Parameter.Path_Global->push_back(StringTemp);
 	StringTemp.clear();
 #endif
 
 //Get path of error/running status log file and mark start time.
-	*Parameter.ErrorLogPath = Parameter.Path->front();
-	Parameter.ErrorLogPath->append(L"Error.log");
+	*Parameter.Path_ErrorLog = Parameter.Path_Global->front();
+	Parameter.Path_ErrorLog->append(L"Error.log");
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	*Parameter.sErrorLogPath = Parameter.sPath->front();
-	Parameter.sErrorLogPath->append("Error.log");
+	*Parameter.sPath_ErrorLog = Parameter.sPath_Global->front();
+	Parameter.sPath_ErrorLog->append("Error.log");
 #endif
 	Parameter.PrintError = true;
 	time(&StartTime);

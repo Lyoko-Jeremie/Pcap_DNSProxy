@@ -171,7 +171,11 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * Base - 基本參數區域
   * Version - 設定檔的版本，用於正確識別設定檔：本參數與程式版本號不相關，切勿修改，預設為發佈時的最新設定檔版本
-  * File Refresh Time - 檔刷新間隔時間：單位為秒，最短間隔時間為5秒，預設為 10
+  * File Refresh Time - 檔刷新間隔時間：單位為秒，最短間隔時間為 5 秒，預設為 10
+  * Buffer Queue Limits - 資料緩衝區佇列數量限制：單位為個，最小個數為 8 最大個數為 1488095，預設為 64
+    * 啟用 Queue Limits Reset Time 參數時，此參數為單位時間內最多可接受請求的數量
+    * 不啟用 Queue Limits Reset Time 參數時為用於接收資料的緩衝區的數量，由於記憶體資料的複製比網路 I/O 快超過一個數量級，故此情況下不需要設置太多緩衝區
+  * Queue Limits Reset Time - 資料緩衝區佇列數量限制重置時間：單位為秒，設置為 0 時關閉此功能，預設為 0
   * Additional Path - 附加的資料檔案讀取路徑，附加在此處的目錄路徑下的 Hosts 檔和 IPFilter 檔會被依次讀取：預設為空
   * Hosts File Name - Hosts 檔的檔案名，附加在此處的 Hosts 檔案名將被依次讀取：預設為 Hosts.ini|Hosts.conf|Hosts|Hosts.txt|Hosts.csv|WhiteList.txt|White_List.txt
   * IPFilter File Name - IPFilter 檔的檔案名，附加在此處的 IPFilter 檔案名將被依次讀取：預設為 IPFilter.ini|IPFilter.conf|IPFilter.dat|IPFilter.csv|IPFilter|Guarding.p2p|Guarding|Routing.txt|chnrouting.txt|chnroute.txt

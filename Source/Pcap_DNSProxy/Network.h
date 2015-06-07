@@ -23,6 +23,10 @@
 extern CONFIGURATION_TABLE Parameter;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 #if defined(ENABLE_PCAP)
-	extern std::deque<PORT_TABLE> PortList;
-	extern std::mutex PortListLock;
+	extern std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
+	extern std::mutex OutputPacketListLock;
 #endif
+
+//Functions
+bool __fastcall SelectTargetSocket(SOCKET_DATA *SockData, bool *&IsAlternate, size_t *&AlternateTimeoutTimes, const uint16_t Protocol, const bool IsLocal);
+bool __fastcall SelectTargetSocketMulti(std::vector<SOCKET_DATA> &SockDataList, const uint16_t Protocol);

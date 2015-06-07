@@ -54,7 +54,7 @@ extern std::vector<std::wstring> ConfigFileList;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	extern std::vector<std::string> sConfigFileList;
 #endif
-extern std::vector<FILE_DATA> IPFilterFileList, HostsFileList;
+extern std::vector<FILE_DATA> FileList_IPFilter, FileList_Hosts;
 extern std::vector<DIFFERNET_IPFILTER_FILE_SET> *IPFilterFileSetUsing, *IPFilterFileSetModificating;
 extern std::vector<DIFFERNET_HOSTS_FILE_SET> *HostsFileSetUsing, *HostsFileSetModificating;
 extern std::mutex HostsListLock, AddressRangeLock, ResultBlacklistLock, AddressHostsListLock, LocalRoutingListLock;

@@ -275,23 +275,23 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const b
 		{
 			for (auto AddressHostsTableIter:HostsFileSetIter.AddressHostsList)
 			{
-				if (AddressHostsTableIter.TargetAddress.front().ss_family == AF_INET6)
+				if (AddressHostsTableIter.Address_Target.front().ss_family == AF_INET6)
 				{
-					for (auto AddressRangeTableIter:AddressHostsTableIter.SourceAddress)
+					for (auto AddressRangeTableIter:AddressHostsTableIter.Address_Source)
 					{
 						if (AddressRangeTableIter.Begin.ss_family == AF_INET6 && AddressRangeTableIter.End.ss_family == AF_INET6 && 
 							AddressesComparing(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL && 
 							AddressesComparing(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr, AF_INET6) <= ADDRESS_COMPARE_EQUAL || 
 							memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == 0)
 						{
-							if (AddressHostsTableIter.TargetAddress.size() > 1U)
+							if (AddressHostsTableIter.Address_Target.size() > 1U)
 							{
 							//Get a ramdom one.
-								std::uniform_int_distribution<int> RamdomDistribution(0, (int)AddressHostsTableIter.TargetAddress.size() - 1U);
-								*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.TargetAddress.at(RamdomDistribution(*Parameter.RamdomEngine)))->sin6_addr;
+								std::uniform_int_distribution<int> RamdomDistribution(0, (int)AddressHostsTableIter.Address_Target.size() - 1U);
+								*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*Parameter.RamdomEngine)))->sin6_addr;
 							}
 							else {
-								*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.TargetAddress.front())->sin6_addr;
+								*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.Address_Target.front())->sin6_addr;
 							}
 
 							goto StopLoop;
@@ -442,23 +442,23 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const b
 		{
 			for (auto AddressHostsTableIter:HostsFileSetIter.AddressHostsList)
 			{
-				if (AddressHostsTableIter.TargetAddress.front().ss_family == AF_INET)
+				if (AddressHostsTableIter.Address_Target.front().ss_family == AF_INET)
 				{
-					for (auto AddressRangeTableIter:AddressHostsTableIter.SourceAddress)
+					for (auto AddressRangeTableIter:AddressHostsTableIter.Address_Source)
 					{
 						if (AddressRangeTableIter.Begin.ss_family == AF_INET && AddressRangeTableIter.End.ss_family == AF_INET && 
 							AddressesComparing(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr, AF_INET) >= ADDRESS_COMPARE_EQUAL && 
 							AddressesComparing(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr, AF_INET) <= ADDRESS_COMPARE_EQUAL || 
 							((in_addr *)Addr)->s_addr == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_addr)
 						{
-							if (AddressHostsTableIter.TargetAddress.size() > 1U)
+							if (AddressHostsTableIter.Address_Target.size() > 1U)
 							{
 							//Get a ramdom one.
-								std::uniform_int_distribution<int> RamdomDistribution(0, (int)AddressHostsTableIter.TargetAddress.size() - 1U);
-								*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.TargetAddress.at(RamdomDistribution(*Parameter.RamdomEngine)))->sin_addr;
+								std::uniform_int_distribution<int> RamdomDistribution(0, (int)AddressHostsTableIter.Address_Target.size() - 1U);
+								*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*Parameter.RamdomEngine)))->sin_addr;
 							}
 							else {
-								*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.TargetAddress.front())->sin_addr;
+								*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.Address_Target.front())->sin_addr;
 							}
 
 							break;
@@ -707,7 +707,7 @@ size_t __fastcall CheckDNSQueryNameLength(const char *Buffer)
 		{
 			break;
 		}
-		else if ((UCHAR)Buffer[Index] >= 0xC0) //Pointer
+		else if ((UCHAR)Buffer[Index] >= DNS_POINTER_BITS)
 		{
 			return Index + sizeof(uint16_t) - 1U;
 		}
@@ -717,89 +717,82 @@ size_t __fastcall CheckDNSQueryNameLength(const char *Buffer)
 }
 
 //Check DNS response results.
-bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal, bool *IsMarkHopLimit)
+size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal)
 {
 	auto DNS_Header = (pdns_hdr)Buffer;
 
 //DNS Options part
-	if (Parameter.DNSDataCheck && (DNS_Header->Questions != htons(U16_NUM_ONE) || //Question Resource Records must be one.
-		ntohs(DNS_Header->Flags) >> 15U == 0 || //Not any Question Resource Records
-//		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_AA) != 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 || //Responses are not authoritative when there are no Authoritative Nameservers Records and Additional Resource Records.
-		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RD) == 0 && (ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NOERROR && DNS_Header->Answer == 0 || //Do query recursively bit must be set when RCode is No Error and there are Answers Resource Records.
-		IsLocal && ((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) > DNS_RCODE_NOERROR || (ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) != 0 && DNS_Header->Answer == 0) || //Local requesting failed or Truncated(xxxxxx1xxxxxxxxx & 0000001000000000 >> 9 == 1)
-		Parameter.EDNSLabel && DNS_Header->Additional == 0)) //Additional EDNS Label Resource Records check
-			return false;
-
-#if defined(ENABLE_PCAP)
-	if (IsMarkHopLimit != nullptr && (Parameter.DNSDataCheck && 
-		DNS_Header->Answer != htons(U16_NUM_ONE) || //Less than or more than one Answer Record
-		DNS_Header->Authority > 0 || DNS_Header->Additional > 0)) //Authority Records and/or Additional Records
-			*IsMarkHopLimit = true;
-
-//No Such Name, not standard query response and no error check.
-	if (IsMarkHopLimit != nullptr && Parameter.DNSDataCheck && 
-		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NXDOMAIN)
-	{
-		*IsMarkHopLimit = true;
-		return true;
-	}
-#endif
+	if (Parameter.DNSDataCheck && 
+	//Not a response packet
+		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RESPONSE) == 0 ||
+	//Question Resource Records must be one.
+		DNS_Header->Questions != htons(U16_NUM_ONE) || 
+	//Not any Non-Question Resource Records when RCode is No Error
+		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NOERROR && DNS_Header->Answer == 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 || 
+	//Responses are not authoritative when there are no Authoritative Nameservers Records and Additional Resource Records.
+//		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_AA) != 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 || 
+	//Do query recursively bit must be set when RCode is No Error and there are Answers Resource Records.
+		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RD) == 0 && (ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NOERROR && DNS_Header->Answer == 0 || 
+	//Local requesting failed or Truncated
+		IsLocal && ((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) > DNS_RCODE_NOERROR || (ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) > 0 && DNS_Header->Answer == 0) || 
+	//Additional EDNS Label Resource Records check
+		Parameter.EDNS_Label && DNS_Header->Additional == 0))
+			return EXIT_FAILURE;
 
 //Responses question pointer check
 	if (Parameter.DNSDataCheck)
 	{
-		for (size_t Index = sizeof(dns_hdr);Index < DNS_PACKET_QUERY_LOCATE(Buffer);++Index)
+		for (size_t Index = sizeof(dns_hdr); Index < DNS_PACKET_QUERY_LOCATE(Buffer); ++Index)
 		{
-			if (*(Buffer + Index) == '\xC0')
-				return false;
+			if (*(Buffer + Index) == DNS_POINTER_BITS_STRING)
+				return EXIT_FAILURE;
+		}
+
+	//Check repeating DNS Domain without Compression.
+		if (DNS_Header->Answer == htons(U16_NUM_ONE) && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && 
+			CheckDNSQueryNameLength(Buffer + sizeof(dns_hdr)) == CheckDNSQueryNameLength(Buffer + DNS_PACKET_RR_LOCATE(Buffer)))
+		{
+			auto QuestionDomain = (uint8_t *)(Buffer + sizeof(dns_hdr));
+			auto AnswerDomain = (uint8_t *)(Buffer + DNS_PACKET_RR_LOCATE(Buffer));
+			auto DNS_Record_Standard = (pdns_record_standard)(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckDNSQueryNameLength((PSTR)QuestionDomain) + 1U);
+			if (DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) &&
+				(DNS_Record_Standard->Type == htons(DNS_RECORD_A) || DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA)) &&
+				memcmp(QuestionDomain, AnswerDomain, CheckDNSQueryNameLength((PSTR)QuestionDomain) + 1U) == 0)
+					return EXIT_FAILURE;
 		}
 	}
 
+//Mark domain.
 	std::shared_ptr<char> Domain(new char[DOMAIN_MAXSIZE]());
 	memset(Domain.get(), 0, DOMAIN_MAXSIZE);
 	DNSQueryToChar(Buffer + sizeof(dns_hdr), Domain.get());
-//Domain Test part
-#if defined(ENABLE_PCAP)
-	if (IsMarkHopLimit != nullptr && Parameter.DomainTestData != nullptr)
-	{
-		if (strnlen_s(Domain.get(), DOMAIN_MAXSIZE) == strnlen_s(Parameter.DomainTestData, DOMAIN_MAXSIZE) && 
-			memcmp(Domain.get(), Parameter.DomainTestData, strnlen_s(Parameter.DomainTestData, DOMAIN_MAXSIZE)) == 0 && DNS_Header->ID == Parameter.DomainTestID)
-		{
-			*IsMarkHopLimit = true;
-			return true;
-		}
-	}
-#endif
 
-//Check repeating DNS Domain without Compression.
-	if (Parameter.DNSDataCheck && DNS_Header->Answer == htons(U16_NUM_ONE) && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && 
-		CheckDNSQueryNameLength(Buffer + sizeof(dns_hdr)) == CheckDNSQueryNameLength(Buffer + DNS_PACKET_RR_LOCATE(Buffer)))
-	{
-		auto QuestionDomain = (uint8_t *)(Buffer + sizeof(dns_hdr));
-		auto AnswerDomain = (uint8_t *)(Buffer + DNS_PACKET_RR_LOCATE(Buffer));
-		auto DNS_Record_Standard = (pdns_record_standard)(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckDNSQueryNameLength((PSTR)QuestionDomain) + 1U);
-		if (DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && 
-			(DNS_Record_Standard->Type == htons(DNS_RECORD_A) || DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA)) && 
-			memcmp(QuestionDomain, AnswerDomain, CheckDNSQueryNameLength((PSTR)QuestionDomain) + 1U) == 0)
-				return false;
-	}
-
-//DNS Responses which have one Answer Resource Records and not any Authority Resource Records or Additional Resource Records may fake.
+//Initialization
 	auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
 	size_t DataLength = DNS_PACKET_RR_LOCATE(Buffer);
+	uint16_t DNS_Pointer = 0;
 	pdns_record_standard DNS_Record_Standard = nullptr;
 	in6_addr *pin6_addr = nullptr;
 	in_addr *pin_addr = nullptr;
 
+//DNS Responses which have one Answer Resource Records and not any Authority Resource Records or Additional Resource Records may fake.
 	if (DNS_Header->Answer == htons(U16_NUM_ONE) && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && DNS_Query->Classes == htons(DNS_CLASS_IN))
 	{
+	//Pointer check
+		if (DataLength + sizeof(uint16_t) < Length && (UCHAR)Buffer[DataLength] >= DNS_POINTER_BITS)
+		{
+			DNS_Pointer = ntohs(*(uint16_t *)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
+			if (DNS_Pointer >= Length || DNS_Pointer < sizeof(dns_hdr) || DNS_Pointer == DataLength || DNS_Pointer == DataLength + 1U)
+				return EXIT_FAILURE;
+		}
+
 	//Records Type in responses check
 		DataLength += CheckDNSQueryNameLength(Buffer + DataLength) + 1U;
 		DNS_Record_Standard = (pdns_record_standard)(Buffer + DataLength);
 		if (Parameter.DNSDataCheck && (DNS_Record_Standard->TTL == 0 || DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && 
 			(DNS_Query->Type != htons(DNS_RECORD_A) && DNS_Record_Standard->Type == htons(DNS_RECORD_A) || 
 			DNS_Query->Type != htons(DNS_RECORD_AAAA) && DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA))))
-				return false;
+				return EXIT_FAILURE;
 
 	//Check addresses.
 		if (Parameter.BlacklistCheck)
@@ -810,40 +803,48 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 				pin6_addr = (in6_addr *)(Buffer + DataLength);
 				if (CheckSpecialAddress(pin6_addr, AF_INET6, false, Domain.get()) || 
 					!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin6_addr, AF_INET6))
-						return false;
+						return EXIT_FAILURE;
 			}
 			else if (DNS_Record_Standard->Type == htons(DNS_RECORD_A) && DNS_Record_Standard->Length == htons(sizeof(in_addr)))
 			{
 				pin_addr = (in_addr *)(Buffer + DataLength);
 				if (CheckSpecialAddress(pin_addr, AF_INET, false, Domain.get()) || 
 					!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin_addr, AF_INET))
-						return false;
+						return EXIT_FAILURE;
 			}
 		}
 	}
 //Scan all Resource Records.
 	else {
 		uint16_t BeforeType = 0;
-		auto IsEDNSLabel = false, IsDNSSEC_Records = false;	
+		auto IsEDNS_Label = false, IsDNSSEC_Records = false;	
 		for (size_t Index = 0;Index < (size_t)(ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional));++Index)
 		{
+		//Pointer check
+			if (DataLength + sizeof(uint16_t) < Length && (UCHAR)Buffer[DataLength] >= DNS_POINTER_BITS)
+			{
+				DNS_Pointer = ntohs(*(uint16_t *)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
+				if (DNS_Pointer >= Length || DNS_Pointer < sizeof(dns_hdr) || DNS_Pointer == DataLength || DNS_Pointer == DataLength + 1U)
+					return EXIT_FAILURE;
+			}
+
 		//Resource Records Name(Domain)
 			DataLength += CheckDNSQueryNameLength(Buffer + DataLength) + 1U;
 			if (DataLength + sizeof(dns_record_standard) > Length)
-				return false;
+				return EXIT_FAILURE;
 
 		//Standard Resource Records
 			DNS_Record_Standard = (pdns_record_standard)(Buffer + DataLength);
 			DataLength += sizeof(dns_record_standard);
 			if (DataLength > Length || DataLength + ntohs(DNS_Record_Standard->Length) > Length)
-				return false;
+				return EXIT_FAILURE;
 
 		//EDNS Label(OPT Records) and DNSSEC Records(RRSIG/DNSKEY/DS/NSEC/NSEC3/NSEC3PARAM) check
-			if (Parameter.EDNSLabel)
+			if (Parameter.EDNS_Label)
 			{
 				if (DNS_Record_Standard->Type == htons(DNS_RECORD_OPT))
-					IsEDNSLabel = true;
-				else if (Parameter.DNSSECRequest && 
+					IsEDNS_Label = true;
+				else if (Parameter.DNSSEC_Request && 
 					(DNS_Record_Standard->Type == htons(DNS_RECORD_SIG) || DNS_Record_Standard->Type == htons(DNS_RECORD_KEY) || DNS_Record_Standard->Type == htons(DNS_RECORD_DS) || 
 					DNS_Record_Standard->Type == htons(DNS_RECORD_RRSIG) || DNS_Record_Standard->Type == htons(DNS_RECORD_NSEC) || DNS_Record_Standard->Type == htons(DNS_RECORD_DNSKEY) || 
 					DNS_Record_Standard->Type == htons(DNS_RECORD_NSEC3) || DNS_Record_Standard->Type == htons(DNS_RECORD_NSEC3PARAM) || DNS_Record_Standard->Type == htons(DNS_RECORD_CDS) || 
@@ -852,11 +853,10 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 					IsDNSSEC_Records = true;
 
 				//DNSSEC Validation
-					if (Parameter.DNSSECValidation && !CheckDNSSECRecords(Buffer + DataLength, ntohs(DNS_Record_Standard->Length), DNS_Record_Standard->Type, BeforeType))
-						return false;
+					if (Parameter.DNSSEC_Validation && !CheckDNSSECRecords(Buffer + DataLength, ntohs(DNS_Record_Standard->Length), DNS_Record_Standard->Type, BeforeType))
+						return EXIT_FAILURE;
 				}
 			}
-
 
 		//Read Resource Records data
 			if (DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && DNS_Record_Standard->TTL > 0)
@@ -866,41 +866,51 @@ bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const
 				{
 				//Records Type in responses check
 					if (Parameter.DNSDataCheck && DNS_Query->Type == htons(DNS_RECORD_A))
-						return false;
+						return EXIT_FAILURE;
 
 				//Check addresses.
 					pin6_addr = (in6_addr *)(Buffer + DataLength);
 					if (Parameter.BlacklistCheck && CheckSpecialAddress(pin6_addr, AF_INET6, false, Domain.get()) || 
-						!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && Index < ntohs(DNS_Header->Answer) && !CheckAddressRouting(pin6_addr, AF_INET6))
-							return false;
+						Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin6_addr, AF_INET6))
+							return EXIT_FAILURE;
 				}
 			//A Records
 				else if (DNS_Record_Standard->Type == htons(DNS_RECORD_A) && DNS_Record_Standard->Length == htons(sizeof(in_addr)))
 				{
 				//Records Type in responses check
 					if (Parameter.DNSDataCheck && DNS_Query->Type == htons(DNS_RECORD_AAAA))
-						return false;
+						return EXIT_FAILURE;
 
 				//Check addresses.
 					pin_addr = (in_addr *)(Buffer + DataLength);
 					if (Parameter.BlacklistCheck && CheckSpecialAddress(pin_addr, AF_INET, false, Domain.get()) || 
-						!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && Index < ntohs(DNS_Header->Answer) && !CheckAddressRouting(pin_addr, AF_INET))
-							return false;
+						Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin_addr, AF_INET))
+							return EXIT_FAILURE;
 				}
 			}
 
 			DataLength += ntohs(DNS_Record_Standard->Length);
 		//Mark Resource Records type.
-			if (Parameter.EDNSLabel && Parameter.DNSSECRequest && Parameter.DNSSECValidation)
+			if (Parameter.EDNS_Label && Parameter.DNSSEC_Request && Parameter.DNSSEC_Validation)
 				BeforeType = DNS_Record_Standard->Type;
 		}
 
 	//Additional EDNS Label Resource Records and DNSSEC Validation check
-		if (Parameter.EDNSLabel && (!IsEDNSLabel || Parameter.DNSSECRequest && Parameter.DNSSECForceValidation && !IsDNSSEC_Records))
-			return false;
+		if (Parameter.EDNS_Label && (!IsEDNS_Label || Parameter.DNSSEC_Request && Parameter.DNSSEC_ForceValidation && !IsDNSSEC_Records))
+			return EXIT_FAILURE;
 	}
 
-	return true;
+#if defined(ENABLE_PCAP)
+//Mark Hop Limits or TTL.
+	if (Parameter.DNSDataCheck && (DNS_Header->Answer != htons(U16_NUM_ONE) || DNS_Header->Authority > 0 || DNS_Header->Additional > 0 || //Less than or more than one Answer Records or Authority Records and/or Additional Records
+		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NXDOMAIN) || //No Such Name, not standard query response and no error check.
+	//Domain Test part
+		Parameter.DomainTest_Data != nullptr && strnlen_s(Domain.get(), DOMAIN_MAXSIZE) == strnlen_s(Parameter.DomainTest_Data, DOMAIN_MAXSIZE) && 
+		memcmp(Domain.get(), Parameter.DomainTest_Data, strnlen_s(Parameter.DomainTest_Data, DOMAIN_MAXSIZE)) == 0 && DNS_Header->ID == Parameter.DomainTest_ID)
+			return EXIT_CHECK_RESPONSE_DATA_MARK_HOP_LIMITS;
+#endif
+
+	return EXIT_SUCCESS;
 }
 
 //Check DNSSEC Records

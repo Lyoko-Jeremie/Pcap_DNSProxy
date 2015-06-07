@@ -129,13 +129,13 @@ BOOL WINAPI GetFunctionPointer(const size_t FunctionType)
 //GetTickCount64() function
 	if (FunctionType == FUNCTION_GETTICKCOUNT64)
 	{
-		Parameter.GetTickCount64DLL = LoadLibraryW(L"Kernel32.dll");
-		if (Parameter.GetTickCount64DLL != nullptr)
+		Parameter.GetTickCount64_DLL = LoadLibraryW(L"Kernel32.dll");
+		if (Parameter.GetTickCount64_DLL != nullptr)
 		{
-			Parameter.GetTickCount64PTR = (GetTickCount64Function)GetProcAddress(Parameter.GetTickCount64DLL, "GetTickCount64");
-			if (Parameter.GetTickCount64PTR == nullptr)
+			Parameter.GetTickCount64_PTR = (GetTickCount64Function)GetProcAddress(Parameter.GetTickCount64_DLL, "GetTickCount64");
+			if (Parameter.GetTickCount64_PTR == nullptr)
 			{
-				FreeLibrary(Parameter.GetTickCount64DLL);
+				FreeLibrary(Parameter.GetTickCount64_DLL);
 				return FALSE;
 			}
 		}

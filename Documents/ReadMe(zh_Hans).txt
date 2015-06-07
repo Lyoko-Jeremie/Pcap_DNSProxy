@@ -170,6 +170,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Base - 基本参数区域
   * Version - 配置文件的版本，用于正确识别配置文件：本参数与程序版本号不相关，切勿修改，默认为发布时的最新配置文件版本
   * File Refresh Time - 文件刷新间隔时间：单位为秒，最短间隔时间为 5 秒，默认为 10
+  * Buffer Queue Limits - 数据缓冲区队列数量限制：单位为个，最小个数为 8 最大个数为 1488095，默认为 64
+    * 启用 Queue Limits Reset Time 参数时，此参数为单位时间内最多可接受请求的数量
+    * 不启用 Queue Limits Reset Time 参数时为用于接收数据的缓冲区的数量，由于内存数据的复制比网络 I/O 快超过一个数量级，故此情况下不需要设置太多缓冲区
+  * Queue Limits Reset Time - 数据缓冲区队列数量限制重置时间：单位为秒，设置为 0 时关闭此功能，默认为 0
   * Additional Path - 附加的数据文件读取路径，附加在此处的目录路径下的 Hosts 文件和 IPFilter 文件会被依次读取：默认为空
   * Hosts File Name - Hosts 文件的文件名，附加在此处的 Hosts 文件名将被依次读取：默认为 Hosts.ini|Hosts.conf|Hosts|Hosts.txt|Hosts.csv|WhiteList.txt|White_List.txt
   * IPFilter File Name - IPFilter 文件的文件名，附加在此处的 IPFilter 文件名将被依次读取：默认为 IPFilter.ini|IPFilter.conf|IPFilter.dat|IPFilter.csv|IPFilter|Guarding.p2p|Guarding|Routing.txt|chnrouting.txt|chnroute.txt

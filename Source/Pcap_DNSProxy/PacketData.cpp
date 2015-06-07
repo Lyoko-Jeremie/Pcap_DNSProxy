@@ -24,7 +24,7 @@ uint32_t __fastcall GetFCS(const unsigned char *Buffer, const size_t Length)
 {
 	uint32_t Table[FCS_TABLE_SIZE] = {0}, Gx = 0x04C11DB7, Temp = 0, CRCTable = 0, Value = 0, UI = 0;
 	char ReflectNum[] = {8, 32};
-	int Index[3U] = {0};
+	int Index[] = {0, 0, 0};
 
 	for (Index[0] = 0;Index[0] <= UINT8_MAX;++Index[0])
 	{
@@ -99,8 +99,8 @@ uint16_t __fastcall GetICMPv6Checksum(const unsigned char *Buffer, const size_t 
 
 //Get checksum
 	auto IPv6_Pseudo_Header = (pipv6_psd_hdr)Validation.get();
-	IPv6_Pseudo_Header->Dst = Destination;
-	IPv6_Pseudo_Header->Src = Source;
+	IPv6_Pseudo_Header->Destination= Destination;
+	IPv6_Pseudo_Header->Source = Source;
 	IPv6_Pseudo_Header->Length = htonl((uint32_t)Length);
 	IPv6_Pseudo_Header->NextHeader = IPPROTO_ICMPV6;
 	memcpy_s(Validation.get() + sizeof(ipv6_psd_hdr), Length, Buffer + sizeof(ipv6_hdr), Length);
@@ -108,19 +108,19 @@ uint16_t __fastcall GetICMPv6Checksum(const unsigned char *Buffer, const size_t 
 }
 
 //Get TCP or UDP checksum
-uint16_t __fastcall GetTCPUDPChecksum(const unsigned char *Buffer, const size_t Length, const uint16_t NetworkLayer, const uint16_t TransportLayer)
+uint16_t __fastcall GetTCPUDPChecksum(const unsigned char *Buffer, const size_t Length, const uint16_t Protocol_Network, const uint16_t Protocol_Transport)
 {
 //Get checksum.
 	uint16_t Result = EXIT_FAILURE;
-	if (NetworkLayer == AF_INET6) //IPv6
+	if (Protocol_Network == AF_INET6) //IPv6
 	{
 		std::shared_ptr<char> Validation(new char[sizeof(ipv6_psd_hdr) + Length]());
 		memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length);
 		auto IPv6_Pseudo_Header = (pipv6_psd_hdr)Validation.get();
-		IPv6_Pseudo_Header->Dst = ((pipv6_hdr)Buffer)->Dst;
-		IPv6_Pseudo_Header->Src = ((pipv6_hdr)Buffer)->Src;
+		IPv6_Pseudo_Header->Destination= ((pipv6_hdr)Buffer)->Destination;
+		IPv6_Pseudo_Header->Source = ((pipv6_hdr)Buffer)->Source;
 		IPv6_Pseudo_Header->Length = htonl((uint32_t)Length);
-		IPv6_Pseudo_Header->NextHeader = (uint8_t)TransportLayer;
+		IPv6_Pseudo_Header->NextHeader = (uint8_t)Protocol_Transport;
 
 		memcpy_s(Validation.get() + sizeof(ipv6_psd_hdr), Length, Buffer + sizeof(ipv6_hdr), Length);
 		Result = GetChecksum((PUINT16)Validation.get(), sizeof(ipv6_psd_hdr) + Length);
@@ -130,10 +130,10 @@ uint16_t __fastcall GetTCPUDPChecksum(const unsigned char *Buffer, const size_t 
 		std::shared_ptr<char> Validation(new char[sizeof(ipv4_psd_hdr) + Length]());
 		memset(Validation.get(), 0, sizeof(ipv4_psd_hdr) + Length);
 		auto IPv4_Pseudo_Header = (pipv4_psd_hdr)Validation.get();
-		IPv4_Pseudo_Header->Dst = ((pipv4_hdr)Buffer)->Dst;
-		IPv4_Pseudo_Header->Src = ((pipv4_hdr)Buffer)->Src;
+		IPv4_Pseudo_Header->Destination= ((pipv4_hdr)Buffer)->Destination;
+		IPv4_Pseudo_Header->Source = ((pipv4_hdr)Buffer)->Source;
 		IPv4_Pseudo_Header->Length = htons((uint16_t)Length);
-		IPv4_Pseudo_Header->Protocol = (uint8_t)TransportLayer;
+		IPv4_Pseudo_Header->Protocol = (uint8_t)Protocol_Transport;
 
 		memcpy_s(Validation.get() + sizeof(ipv4_psd_hdr), Length, Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, Length);
 		Result = GetChecksum((PUINT16)Validation.get(), sizeof(ipv4_psd_hdr) + Length);
@@ -192,7 +192,7 @@ size_t __fastcall DNSQueryToChar(const char *TName, PSTR FName)
 	for (uIndex = 0;uIndex < DOMAIN_MAXSIZE;++uIndex)
 	{
 	//Pointer
-		if ((UCHAR)TName[uIndex] >= 0xC0)
+		if ((UCHAR)TName[uIndex] >= DNS_POINTER_BITS)
 		{
 			return uIndex + sizeof(uint16_t);
 		}
@@ -308,7 +308,7 @@ void __fastcall MakeDomainCaseConversion(PSTR Buffer)
 	else {
 		for (Index = 0;Index < strnlen_s(Buffer, DOMAIN_MAXSIZE);++Index)
 		{
-			if (Index % 2U != 0 && *(Buffer + Index) > ASCII_ACCENT && *(Buffer + Index) < ASCII_BRACES_LEAD)
+			if (Index % 2U > 0 && *(Buffer + Index) > ASCII_ACCENT && *(Buffer + Index) < ASCII_BRACES_LEAD)
 				*(Buffer + Index) -= ASCII_LOWER_TO_UPPER;
 		}
 	}
@@ -317,7 +317,7 @@ void __fastcall MakeDomainCaseConversion(PSTR Buffer)
 }
 
 //Add EDNS options to Additional Resource Records in DNS packet
-size_t __fastcall AddEDNSLabelToAdditionalRR(PSTR Buffer, const size_t Length)
+size_t __fastcall AddEDNS_LabelToAdditionalRR(PSTR Buffer, const size_t Length)
 {
 	size_t DataLength = Length;
 
@@ -330,7 +330,7 @@ size_t __fastcall AddEDNSLabelToAdditionalRR(PSTR Buffer, const size_t Length)
 	DataLength += sizeof(dns_record_opt);
 
 //DNSSEC requesting
-	if (Parameter.DNSSECRequest)
+	if (Parameter.DNSSEC_Request)
 	{
 		DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_GET_BIT_AD); //Set Authentic Data bit.
 //		DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_GET_BIT_CD); //Set Checking Disabled bit.
@@ -338,7 +338,7 @@ size_t __fastcall AddEDNSLabelToAdditionalRR(PSTR Buffer, const size_t Length)
 	}
 
 //EDNS client subnet
-	if (Parameter.EDNSClientSubnet)
+	if (Parameter.EDNS_ClientSubnet)
 	{
 		auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
 		if (DNS_Query->Classes == htons(DNS_CLASS_IN))
@@ -391,9 +391,9 @@ size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Lengt
 	{
 		case 0:
 		{
-			if (!Parameter.CPMPointerToHeader)
+			if (!Parameter.CPM_PointerToHeader)
 			{
-				if (Parameter.CPMPointerToRR)
+				if (Parameter.CPM_PointerToRR)
 					++Index;
 				else //Pointer to Additional(2)
 					Index += 2U;
@@ -401,9 +401,9 @@ size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Lengt
 		}break;
 		case 1U:
 		{
-			if (!Parameter.CPMPointerToRR)
+			if (!Parameter.CPM_PointerToRR)
 			{
-				if (Parameter.CPMPointerToHeader)
+				if (Parameter.CPM_PointerToHeader)
 					--Index;
 				else //Pointer to Additional(1)
 					Index += 1U;
@@ -411,9 +411,9 @@ size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Lengt
 		}break;
 		case 2U:
 		{
-			if (!Parameter.CPMPointerToAdditional)
+			if (!Parameter.CPM_PointerToAdditional)
 			{
-				if (Parameter.CPMPointerToHeader)
+				if (Parameter.CPM_PointerToHeader)
 					Index -= 2U;
 				else //Pointer to header
 					--Index;
@@ -429,12 +429,12 @@ size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Lengt
 	if (Index == 0) //Pointer to header, like "[DNS Header][Domain][Pointer][Query]" and the pointer is point to [DNS Header].
 	{
 		memmove_s(Buffer + Length - sizeof(dns_qry) + 1U, sizeof(dns_qry), Buffer + Length - sizeof(dns_qry), sizeof(dns_qry));
-		*(Buffer + Length - sizeof(dns_qry) - 1U) = '\xC0';
+		*(Buffer + Length - sizeof(dns_qry) - 1U) = DNS_POINTER_BITS_STRING;
 
 	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		if (Parameter.GetTickCount64PTR != nullptr)
-			Index = (*Parameter.GetTickCount64PTR)() % 4U;
+		if (Parameter.GetTickCount64_PTR != nullptr)
+			Index = (*Parameter.GetTickCount64_PTR)() % 4U;
 		else 
 			Index = GetTickCount() % 4U;
 	#else
@@ -472,7 +472,7 @@ size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Lengt
 		memcpy_s(DNS_Query.get(), sizeof(dns_qry), Buffer + DNS_PACKET_QUERY_LOCATE(Buffer), sizeof(dns_qry));
 		memmove_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t) + sizeof(dns_qry), Length, Buffer + sizeof(dns_hdr), strnlen_s(Buffer + sizeof(dns_hdr), Length - sizeof(dns_hdr)) + 1U);
 		memcpy_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t), Length - sizeof(dns_hdr) - sizeof(uint16_t), DNS_Query.get(), sizeof(dns_qry));
-		*(Buffer + sizeof(dns_hdr)) = '\xC0';
+		*(Buffer + sizeof(dns_hdr)) = DNS_POINTER_BITS_STRING;
 		*(Buffer + sizeof(dns_hdr) + 1U) = '\x12';
 
 		if (Index == 1U) //Pointer to RR, like "[DNS Header][Pointer][Query][Domain]" and the pointer is point to [Domain].

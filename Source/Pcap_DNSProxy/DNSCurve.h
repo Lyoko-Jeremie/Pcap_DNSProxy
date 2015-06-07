@@ -26,7 +26,9 @@
 
 //Functions
 	size_t DNSCurveSignatureRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
-	bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t NetworkLayer, const bool IsAlternate);
-	bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t NetworkLayer, const bool IsAlternate);
+	size_t __fastcall SelectTargetSocket(SOCKET_DATA *SockData, PDNSCURVE_SERVER_DATA &PacketTarget, bool *&IsAlternate, size_t *&AlternateTimeoutTimes, const uint16_t Protocol);
+	bool __fastcall SelectTargetSocketMulti(bool &IsIPv6, bool *&IsAlternate, const uint16_t Protocol);
+	bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool IsAlternate);
+	bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t Protocol, const bool IsAlternate);
 	bool __fastcall DNSCruveGetSignatureData(const char *Buffer, const size_t ServerType);
 #endif

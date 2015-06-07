@@ -82,7 +82,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 				//Delete double backslash.
 					std::wstring sFileName(FileName);
 					while (sFileName.find(L"\\\\") != std::wstring::npos)
-						sFileName.erase(sFileName.find(L"\\\\"), 1U);
+						sFileName.erase(sFileName.find(L"\\\\"), wcslen(L"\\"));
 
 				//Write to file
 					if (Line > 0)
@@ -106,7 +106,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 				//Delete double backslash.
 					std::wstring sFileName(FileName);
 					while (sFileName.find(L"\\\\") != std::wstring::npos)
-						sFileName.erase(sFileName.find(L"\\\\"), 1U);
+						sFileName.erase(sFileName.find(L"\\\\"), wcslen(L"\\"));
 
 				//Write to file
 					if (Line > 0)
@@ -130,7 +130,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 				//Delete double backslash.
 					std::wstring sFileName(FileName);
 					while (sFileName.find(L"\\\\") != std::wstring::npos)
-						sFileName.erase(sFileName.find(L"\\\\"), 1U);
+						sFileName.erase(sFileName.find(L"\\\\"), wcslen(L"\\"));
 
 				//Write to file
 					if (Line > 0)
@@ -185,14 +185,14 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 #if defined(PLATFORM_WIN)
 	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
 	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
-	if (GetFileAttributesExW(Parameter.ErrorLogPath->c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) != FALSE)
+	if (GetFileAttributesExW(Parameter.Path_ErrorLog->c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) != FALSE)
 	{
 		std::shared_ptr<LARGE_INTEGER> ErrorFileSize(new LARGE_INTEGER());
 		memset(ErrorFileSize.get(), 0, sizeof(LARGE_INTEGER));
 		ErrorFileSize->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
 		ErrorFileSize->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
 		if (ErrorFileSize->QuadPart > 0 && (size_t)ErrorFileSize->QuadPart >= Parameter.LogMaxSize && 
-			DeleteFileW(Parameter.ErrorLogPath->c_str()) != 0)
+			DeleteFileW(Parameter.Path_ErrorLog->c_str()) != 0)
 				PrintError(LOG_ERROR_SYSTEM, L"Old Error Log file was deleted", 0, nullptr, 0);
 	}
 
@@ -200,8 +200,8 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::shared_ptr<struct stat> FileStat(new struct stat());
 	memset(FileStat.get(), 0, sizeof(struct stat));
-	if (stat(Parameter.sErrorLogPath->c_str(), FileStat.get()) == 0 && FileStat->st_size >= (off_t)Parameter.LogMaxSize && 
-		remove(Parameter.sErrorLogPath->c_str()) == 0)
+	if (stat(Parameter.sPath_ErrorLog->c_str(), FileStat.get()) == 0 && FileStat->st_size >= (off_t)Parameter.LogMaxSize && 
+		remove(Parameter.sPath_ErrorLog->c_str()) == 0)
 			PrintError(LOG_ERROR_SYSTEM, L"Old Error Log file was deleted", 0, nullptr, 0);
 
 	FileStat.reset();
@@ -210,9 +210,9 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 //Main print
 #if defined(PLATFORM_WIN)
 	FILE *Output = nullptr;
-	_wfopen_s(&Output, Parameter.ErrorLogPath->c_str(), L"a,ccs=UTF-8");
+	_wfopen_s(&Output, Parameter.Path_ErrorLog->c_str(), L"a,ccs=UTF-8");
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	auto Output = fopen(Parameter.sErrorLogPath->c_str(), "a");
+	auto Output = fopen(Parameter.sPath_ErrorLog->c_str(), "a");
 #endif
 	if (Output != nullptr)
 	{
@@ -254,7 +254,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 				//Delete double backslash.
 					std::wstring sFileName(FileName);
 					while (sFileName.find(L"\\\\") != std::wstring::npos)
-						sFileName.erase(sFileName.find(L"\\\\"), 1U);
+						sFileName.erase(sFileName.find(L"\\\\"), wcslen(L"\\"));
 
 				//Write to file
 					if (Line > 0)
@@ -278,7 +278,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 				//Delete double backslash.
 					std::wstring sFileName(FileName);
 					while (sFileName.find(L"\\\\") != std::wstring::npos)
-						sFileName.erase(sFileName.find(L"\\\\"), 1U);
+						sFileName.erase(sFileName.find(L"\\\\"), wcslen(L"\\"));
 
 				//Write to file
 					if (Line > 0)
@@ -302,7 +302,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 				//Delete double backslash.
 					std::wstring sFileName(FileName);
 					while (sFileName.find(L"\\\\") != std::wstring::npos)
-						sFileName.erase(sFileName.find(L"\\\\"), 1U);
+						sFileName.erase(sFileName.find(L"\\\\"), wcslen(L"\\"));
 
 				//Write to file
 					if (Line > 0)

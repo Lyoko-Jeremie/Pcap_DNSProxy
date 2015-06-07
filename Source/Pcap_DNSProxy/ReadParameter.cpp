@@ -51,7 +51,7 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 		delete Parameter.ListenAddress_IPv4;
 		Parameter.ListenAddress_IPv4 = nullptr;
 	}
-	if (!Parameter.EDNSClientSubnet)
+	if (!Parameter.EDNS_ClientSubnet)
 	{
 		delete Parameter.LocalhostSubnet.IPv6;
 		delete Parameter.LocalhostSubnet.IPv4;
@@ -232,13 +232,9 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 		return false;
 	}
 #endif
-	if (Parameter.LocalMain && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family || 
-		Parameter.LocalMain && Parameter.LocalHosts)
-	{
-		PrintError(LOG_ERROR_PARAMETER, L"Local Main and Local Hosts error", 0, ConfigFileList.at(FileIndex).c_str(), 0);
-		return false;
-	}
-	else if (Parameter.LocalHosts && (Parameter.LocalMain || Parameter.LocalRouting) || Parameter.LocalRouting && !Parameter.LocalMain)
+	if ((Parameter.LocalMain || Parameter.LocalHosts || Parameter.LocalRouting) && 
+		Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family || 
+		Parameter.LocalHosts && (Parameter.LocalMain || Parameter.LocalRouting) || Parameter.LocalRouting && !Parameter.LocalMain)
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"Local Main / Local Hosts / Local Routing error", 0, ConfigFileList.at(FileIndex).c_str(), 0);
 		return false;
@@ -281,23 +277,23 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 
 //Set values before check
 #if defined(ENABLE_PCAP)
-	if (Parameter.TCPDataCheck) //TCP Mode option check
+	if (Parameter.HeaderCheck_TCP) //TCP Mode option check
 	{
 //		if (Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
 //			PrintError(LOG_MESSAGE_NOTICE, L"TCP Data Filter require TCP Request Mode", 0, nullptr, 0);
 		if (!Parameter.PcapCapture)
 			PrintError(LOG_MESSAGE_NOTICE, L"TCP Data Filter require Pcap Cpature", 0, nullptr, 0);
 
-		Parameter.TCPDataCheck = false;
+		Parameter.HeaderCheck_TCP = false;
 	}
-	if (Parameter.IPv4DataCheck) //IPv4 Data Filter option check
+	if (Parameter.HeaderCheck_IPv4) //IPv4 Data Filter option check
 	{
 		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)
 			PrintError(LOG_MESSAGE_NOTICE, L"IPv4 Data Filter require IPv4 DNS server", 0, nullptr, 0);
 		if (!Parameter.PcapCapture)
 			PrintError(LOG_MESSAGE_NOTICE, L"IPv4 Data Filter require Pcap Cpature", 0, nullptr, 0);
 
-		Parameter.IPv4DataCheck = false;
+		Parameter.HeaderCheck_IPv4 = false;
 	}
 #endif
 
@@ -612,7 +608,7 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 		)
 	{
 		PrintError(LOG_MESSAGE_NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, nullptr, 0);
-		Parameter.RequestMode_Network = REQUEST_MODE_IPV6_IPV4;
+		Parameter.RequestMode_Network = REQUEST_MODE_NETWORK_BOTH;
 	}
 	if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0
 	#if defined(ENABLE_LIBSODIUM)
@@ -621,34 +617,34 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 		)
 	{
 		PrintError(LOG_MESSAGE_NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, nullptr, 0);
-		Parameter.RequestMode_Network = REQUEST_MODE_IPV6_IPV4;
+		Parameter.RequestMode_Network = REQUEST_MODE_NETWORK_BOTH;
 	}
 
 	//EDNS Label
-	if (Parameter.DNSSECForceValidation && (!Parameter.EDNSLabel || !Parameter.DNSSECRequest || !Parameter.DNSSECValidation))
+	if (Parameter.DNSSEC_ForceValidation && (!Parameter.EDNS_Label || !Parameter.DNSSEC_Request || !Parameter.DNSSEC_Validation))
 	{
 		PrintError(LOG_MESSAGE_NOTICE, L"DNSSEC Force Validation require EDNS Label, DNSSEC Request and DNSSEC Validation", 0, nullptr, 0);
-		Parameter.EDNSLabel = true;
-		Parameter.DNSSECRequest = true;
-		Parameter.DNSSECValidation = true;
+		Parameter.EDNS_Label = true;
+		Parameter.DNSSEC_Request = true;
+		Parameter.DNSSEC_Validation = true;
 	}
-	if (Parameter.DNSSECValidation && (!Parameter.EDNSLabel || !Parameter.DNSSECRequest))
+	if (Parameter.DNSSEC_Validation && (!Parameter.EDNS_Label || !Parameter.DNSSEC_Request))
 	{
 		PrintError(LOG_MESSAGE_NOTICE, L"DNSSEC Validation require EDNS Label and DNSSEC Request", 0, nullptr, 0);
-		Parameter.EDNSLabel = true;
-		Parameter.DNSSECRequest = true;
+		Parameter.EDNS_Label = true;
+		Parameter.DNSSEC_Request = true;
 	}
-	if (!Parameter.EDNSLabel)
+	if (!Parameter.EDNS_Label)
 	{
-		if (Parameter.EDNSClientSubnet)
+		if (Parameter.EDNS_ClientSubnet)
 		{
 			PrintError(LOG_MESSAGE_NOTICE, L"EDNS Client Subnet require EDNS Label", 0, nullptr, 0);
-			Parameter.EDNSLabel = true;
+			Parameter.EDNS_Label = true;
 		}
-		if (Parameter.DNSSECRequest)
+		if (Parameter.DNSSEC_Request)
 		{
 			PrintError(LOG_MESSAGE_NOTICE, L"DNSSEC Request require EDNS Label", 0, nullptr, 0);
-			Parameter.EDNSLabel = true;
+			Parameter.EDNS_Label = true;
 		}
 	}
 	else {
@@ -661,42 +657,42 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 
 	//Domain Test
 #if defined(ENABLE_PCAP)
-	if (CheckEmptyBuffer(Parameter.DomainTestData, DOMAIN_MAXSIZE))
+	if (CheckEmptyBuffer(Parameter.DomainTest_Data, DOMAIN_MAXSIZE))
 	{
-		delete[] Parameter.DomainTestData;
-		Parameter.DomainTestData = nullptr;
+		delete[] Parameter.DomainTest_Data;
+		Parameter.DomainTest_Data = nullptr;
 	}
 #endif
 
 	//Default Local DNS server name
-	if (Parameter.LocalFQDNLength <= 0)
+	if (Parameter.LocalFQDN_Length <= 0)
 	{
-		Parameter.LocalFQDNLength = CharToDNSQuery(DEFAULT_LOCAL_SERVERNAME, Parameter.LocalFQDNResponse);
-		*Parameter.LocalFQDNString = DEFAULT_LOCAL_SERVERNAME;
+		Parameter.LocalFQDN_Length = CharToDNSQuery(DEFAULT_LOCAL_SERVERNAME, Parameter.LocalFQDN_Response);
+		*Parameter.LocalFQDN_String = DEFAULT_LOCAL_SERVERNAME;
 	}
 
 	//Set Local DNS server PTR response.
 #if !defined(PLATFORM_MACX)
-	if (Parameter.LocalServerResponseLength == 0)
+	if (Parameter.LocalServer_Length == 0)
 	{
-		auto DNS_Record_PTR = (pdns_record_ptr)Parameter.LocalServerResponse;
-		DNS_Record_PTR->PTR = htons(DNS_QUERY_PTR);
+		auto DNS_Record_PTR = (pdns_record_ptr)Parameter.LocalServer_Response;
+		DNS_Record_PTR->PTR = htons(DNS_POINTER_QUERY);
 		DNS_Record_PTR->Classes = htons(DNS_CLASS_IN);
 		DNS_Record_PTR->TTL = htonl(Parameter.HostsDefaultTTL);
 		DNS_Record_PTR->Type = htons(DNS_RECORD_PTR);
-		DNS_Record_PTR->Length = htons((uint16_t)Parameter.LocalFQDNLength);
-		Parameter.LocalServerResponseLength += sizeof(dns_record_ptr);
+		DNS_Record_PTR->Length = htons((uint16_t)Parameter.LocalFQDN_Length);
+		Parameter.LocalServer_Length += sizeof(dns_record_ptr);
 
-		memcpy_s(Parameter.LocalServerResponse + Parameter.LocalServerResponseLength, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt) - Parameter.LocalServerResponseLength, Parameter.LocalFQDNResponse, Parameter.LocalFQDNLength);
-		Parameter.LocalServerResponseLength += Parameter.LocalFQDNLength;
+		memcpy_s(Parameter.LocalServer_Response + Parameter.LocalServer_Length, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt) - Parameter.LocalServer_Length, Parameter.LocalFQDN_Response, Parameter.LocalFQDN_Length);
+		Parameter.LocalServer_Length += Parameter.LocalFQDN_Length;
 
 	//EDNS Label
-		if (Parameter.EDNSLabel)
+		if (Parameter.EDNS_Label)
 		{
-			auto DNS_Record_OPT = (pdns_record_opt)(Parameter.LocalServerResponse + Parameter.LocalServerResponseLength);
+			auto DNS_Record_OPT = (pdns_record_opt)(Parameter.LocalServer_Response + Parameter.LocalServer_Length);
 			DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
 			DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
-			Parameter.LocalServerResponseLength += sizeof(dns_record_opt);
+			Parameter.LocalServer_Length += sizeof(dns_record_opt);
 		}
 	}
 #endif
@@ -1276,11 +1272,11 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 	#if defined(ENABLE_PCAP)
 		else if (Data.find("IPv4OptionsFilter=1") == 0)
 		{
-			Parameter.IPv4DataCheck = true;
+			Parameter.HeaderCheck_IPv4 = true;
 		}
 		else if (Data.find("TCPOptionsFilter=1") == 0)
 		{
-			Parameter.TCPDataCheck = true;
+			Parameter.HeaderCheck_TCP = true;
 		}
 	#endif
 		else if (Data.find("DNSOptionsFilter=1") == 0)
@@ -1290,13 +1286,13 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 
 	//[Data] block
 	#if defined(ENABLE_PCAP)
-		else if (Parameter.DomainTestSpeed == 0 && Data.find("DomainTestSpeed=") == 0 && Data.length() > strlen("DomainTestSpeed="))
+		else if (Parameter.DomainTest_Speed == 0 && Data.find("DomainTestSpeed=") == 0 && Data.length() > strlen("DomainTestSpeed="))
 		{
 			if (Data.length() < strlen("DomainTestSpeed=") + UINT16_MAX_STRING_LENGTH)
 			{
 				Result = strtoul(Data.c_str() + strlen("DomainTestSpeed="), nullptr, 0);
 				if (errno != ERANGE && Result > 0)
-					Parameter.DomainTestSpeed = Result * SECOND_TO_MILLISECOND;
+					Parameter.DomainTest_Speed = Result * SECOND_TO_MILLISECOND;
 			}
 			else {
 				PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
@@ -1312,6 +1308,32 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 			Result = strtoul(Data.c_str() + strlen("FileRefreshTime="), nullptr, 0);
 			if (errno != ERANGE && Result > 0 && Result >= SHORTEST_FILEREFRESH_TIME)
 				Parameter.FileRefreshTime = Result * SECOND_TO_MILLISECOND;
+		}
+		else {
+			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+			return false;
+		}
+	}
+	else if (Data.find("BufferQueueLimits=") == 0 && Data.length() > strlen("BufferQueueLimits="))
+	{
+		if (Data.length() < strlen("BufferQueueLimits=") + UINT32_MAX_STRING_LENGTH - 1U)
+		{
+			Result = strtoul(Data.c_str() + strlen("BufferQueueLimits="), nullptr, 0);
+			if (errno != ERANGE && Result > 0 && Result >= BUFFER_QUEUE_MINNUM && Result <= BUFFER_QUEUE_MAXNUM)
+				Parameter.BufferQueueSize = Result;
+		}
+		else {
+			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+			return false;
+		}
+	}
+	else if (Data.find("QueueLimitsResetTime=") == 0 && Data.length() > strlen("QueueLimitsResetTime="))
+	{
+		if (Data.length() < strlen("QueueLimitsResetTime=") + UINT16_MAX_STRING_LENGTH)
+		{
+			Result = strtoul(Data.c_str() + strlen("QueueLimitsResetTime="), nullptr, 0);
+			if (errno != ERANGE && Result > 0)
+				Parameter.QueueResetTime = Result * SECOND_TO_MILLISECOND;
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
@@ -1343,19 +1365,19 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 
 			//Convert to wide string.
 				MBSToWCSString(wNameStringTemp, NameStringTemp.c_str());
-				for (auto wStringIter = Parameter.Path->begin();wStringIter < Parameter.Path->end();++wStringIter)
+				for (auto wStringIter = Parameter.Path_Global->begin();wStringIter < Parameter.Path_Global->end();++wStringIter)
 				{
 					if (*wStringIter == wNameStringTemp)
 						break;
 
-					if (wStringIter + 1U == Parameter.Path->end())
+					if (wStringIter + 1U == Parameter.Path_Global->end())
 					{
-						Parameter.Path->push_back(wNameStringTemp);
-						for (size_t Index = 0;Index < Parameter.Path->back().length();++Index)
+						Parameter.Path_Global->push_back(wNameStringTemp);
+						for (size_t Index = 0;Index < Parameter.Path_Global->back().length();++Index)
 						{
-							if ((Parameter.Path->back())[Index] == L'\\')
+							if ((Parameter.Path_Global->back())[Index] == L'\\')
 							{
-								Parameter.Path->back().insert(Index, L"\\");
+								Parameter.Path_Global->back().insert(Index, L"\\");
 								++Index;
 							}
 						}
@@ -1381,19 +1403,19 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 
 			//Convert to wide string.
 				MBSToWCSString(wNameStringTemp, NameStringTemp.c_str());
-				for (auto wStringIter = Parameter.Path->begin();wStringIter < Parameter.Path->end();++wStringIter)
+				for (auto wStringIter = Parameter.Path_Global->begin();wStringIter < Parameter.Path_Global->end();++wStringIter)
 				{
 					if (*wStringIter == wNameStringTemp)
 						break;
 
-					if (wStringIter + 1U == Parameter.Path->end())
+					if (wStringIter + 1U == Parameter.Path_Global->end())
 					{
-						Parameter.Path->push_back(wNameStringTemp);
-						for (size_t Index = 0;Index < Parameter.Path->back().length();++Index)
+						Parameter.Path_Global->push_back(wNameStringTemp);
+						for (size_t Index = 0;Index < Parameter.Path_Global->back().length();++Index)
 						{
-							if ((Parameter.Path->back())[Index] == L'\\')
+							if ((Parameter.Path_Global->back())[Index] == L'\\')
 							{
-								Parameter.Path->back().insert(Index, L"\\");
+								Parameter.Path_Global->back().insert(Index, L"\\");
 								++Index;
 							}
 
@@ -1413,17 +1435,17 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 	else if (Data.find("HostsFileName=") == 0 && Data.length() > strlen("HostsFileName="))
 	{
 	#if defined(PLATFORM_WIN)
-		ReadFileName(Data, strlen("HostsFileName="), Parameter.HostsFileList);
+		ReadFileName(Data, strlen("HostsFileName="), Parameter.FileList_Hosts);
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		ReadFileName(Data, strlen("HostsFileName="), Parameter.HostsFileList, Parameter.sHostsFileList);
+		ReadFileName(Data, strlen("HostsFileName="), Parameter.FileList_Hosts, Parameter.sFileList_Hosts);
 	#endif
 	}
 	else if (Data.find("IPFilterFileName=") == 0 && Data.length() > strlen("IPFilterFileName="))
 	{
 	#if defined(PLATFORM_WIN)
-		ReadFileName(Data, strlen("IPFilterFileName="), Parameter.IPFilterFileList);
+		ReadFileName(Data, strlen("IPFilterFileName="), Parameter.FileList_IPFilter);
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		ReadFileName(Data, strlen("IPFilterFileName="), Parameter.IPFilterFileList, Parameter.sIPFilterFileList);
+		ReadFileName(Data, strlen("IPFilterFileName="), Parameter.FileList_IPFilter, Parameter.sFileList_IPFilter);
 	#endif
 	}
 
@@ -1431,8 +1453,8 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 	else if (Data.find("PrintError=0") == 0)
 	{
 		Parameter.PrintError = false;
-		delete Parameter.ErrorLogPath;
-		Parameter.ErrorLogPath = nullptr;
+		delete Parameter.Path_ErrorLog;
+		Parameter.Path_ErrorLog = nullptr;
 	}
 	else if (Data.find("LogMaximumSize=") == 0 && Data.length() > strlen("LogMaximumSize="))
 	{
@@ -1511,7 +1533,7 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 		if (Data.find("IPv6") != std::string::npos || Data.find("IPV6") != std::string::npos || Data.find("ipv6") != std::string::npos)
 		{
 			if (Data.find("IPv4") != std::string::npos || Data.find("IPV4") != std::string::npos || Data.find("ipv4") != std::string::npos)
-				Parameter.RequestMode_Network = REQUEST_MODE_IPV6_IPV4;
+				Parameter.RequestMode_Network = REQUEST_MODE_NETWORK_BOTH;
 			else
 				Parameter.RequestMode_Network = REQUEST_MODE_IPV6;
 		}
@@ -1607,7 +1629,7 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 		if (Data.find("IPv6") != std::string::npos || Data.find("IPV6") != std::string::npos || Data.find("ipv6") != std::string::npos)
 		{
 			if (Data.find("IPv4") != std::string::npos || Data.find("IPV4") != std::string::npos || Data.find("ipv4") != std::string::npos)
-				Parameter.ListenProtocol_Network = LISTEN_PROTOCOL_IPV6_IPV4;
+				Parameter.ListenProtocol_Network = LISTEN_PROTOCOL_NETWORK_BOTH;
 			else 
 				Parameter.ListenProtocol_Network = LISTEN_PROTOCOL_IPV6;
 		}
@@ -1618,7 +1640,7 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 		if (Data.find("TCP") != std::string::npos || Data.find("tcp") != std::string::npos)
 		{
 			if (Data.find("UDP") != std::string::npos || Data.find("udp") != std::string::npos)
-				Parameter.ListenProtocol_Transport = LISTEN_PROTOCOL_TCP_UDP;
+				Parameter.ListenProtocol_Transport = LISTEN_PROTOCOL_TRANSPORT_BOTH;
 			else 
 				Parameter.ListenProtocol_Transport = LISTEN_PROTOCOL_TCP;
 		}
@@ -1942,11 +1964,11 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 			Result = strtoul(Data.c_str() + strlen("ReliableSocketTimeout="), nullptr, 0);
 			if (errno != ERANGE && Result > 0 && Result > SOCKET_MIN_TIMEOUT)
 			#if defined(PLATFORM_WIN)
-				Parameter.ReliableSocketTimeout = (int)Result;
+				Parameter.SocketTimeout_Reliable = (int)Result;
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			{
-				Parameter.ReliableSocketTimeout.tv_sec = Result / SECOND_TO_MILLISECOND;
-				Parameter.ReliableSocketTimeout.tv_usec = Result % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+				Parameter.SocketTimeout_Reliable.tv_sec = Result / SECOND_TO_MILLISECOND;
+				Parameter.SocketTimeout_Reliable.tv_usec = Result % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 			}
 			#endif
 		}
@@ -1962,11 +1984,11 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 			Result = strtoul(Data.c_str() + strlen("UnreliableSocketTimeout="), nullptr, 0);
 			if (errno != ERANGE && Result > 0 && Result > SOCKET_MIN_TIMEOUT)
 			#if defined(PLATFORM_WIN)
-				Parameter.UnreliableSocketTimeout = (int)Result;
+				Parameter.SocketTimeout_Unreliable = (int)Result;
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			{
-				Parameter.UnreliableSocketTimeout.tv_sec = Result / SECOND_TO_MILLISECOND;
-				Parameter.UnreliableSocketTimeout.tv_usec = Result % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+				Parameter.SocketTimeout_Unreliable.tv_sec = Result / SECOND_TO_MILLISECOND;
+				Parameter.SocketTimeout_Unreliable.tv_usec = Result % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 			}
 			#endif
 		}
@@ -1995,11 +2017,11 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 		{
 			Result = strtoul(Data.c_str() + strlen("ICMPTest="), nullptr, 0);
 			if (errno != ERANGE && Result >= 5)
-				Parameter.ICMPSpeed = Result * SECOND_TO_MILLISECOND;
+				Parameter.ICMP_Speed = Result * SECOND_TO_MILLISECOND;
 			else if (Result > 0 && Result < DEFAULT_ICMPTEST_TIME)
-				Parameter.ICMPSpeed = DEFAULT_ICMPTEST_TIME * SECOND_TO_MILLISECOND;
+				Parameter.ICMP_Speed = DEFAULT_ICMPTEST_TIME * SECOND_TO_MILLISECOND;
 			else 
-				Parameter.ICMPSpeed = 0; //ICMP Test Disable.
+				Parameter.ICMP_Speed = 0; //ICMP Test Disable.
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
@@ -2012,7 +2034,7 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 		{
 			Result = strtoul(Data.c_str() + strlen("DomainTest="), nullptr, 0);
 			if (errno != ERANGE && Result > 0)
-				Parameter.DomainTestSpeed = Result * SECOND_TO_MILLISECOND;
+				Parameter.DomainTest_Speed = Result * SECOND_TO_MILLISECOND;
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
@@ -2052,7 +2074,7 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 		if (Data.length() < strlen("AlternateResetTime=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("AlternateResetTime="), nullptr, 0);
-			if (errno != ERANGE && Result > 0 && Result >= DEFAULT_ALTERNATERESET_TIME)
+			if (errno != ERANGE && Result > 0 && Result >= DEFAULT_ALTERNATE_RESET_TIME)
 				Parameter.AlternateResetTime = Result * SECOND_TO_MILLISECOND;
 		}
 		else {
@@ -2082,33 +2104,33 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 	else if (Data.find("CompressionPointerMutation=") == 0 && Data.length() > strlen("CompressionPointerMutation="))
 	{
 		if (Data.find(ASCII_ONE) != std::string::npos)
-			Parameter.CPMPointerToHeader = true;
+			Parameter.CPM_PointerToHeader = true;
 		if (Data.find(ASCII_TWO) != std::string::npos)
-			Parameter.CPMPointerToRR = true;
+			Parameter.CPM_PointerToRR = true;
 		if (Data.find(ASCII_THREE) != std::string::npos)
-			Parameter.CPMPointerToAdditional = true;
-		if (Parameter.CPMPointerToHeader || Parameter.CPMPointerToRR || Parameter.CPMPointerToAdditional)
+			Parameter.CPM_PointerToAdditional = true;
+		if (Parameter.CPM_PointerToHeader || Parameter.CPM_PointerToRR || Parameter.CPM_PointerToAdditional)
 			Parameter.CompressionPointerMutation = true;
 	}
 	else if (Data.find("EDNSLabel=1") == 0 || Data.find("EDNS0Label=1") == 0) //EDNS0 Label has changed to EDNS Label.
 	{
-		Parameter.EDNSLabel = true;
+		Parameter.EDNS_Label = true;
 	}
 	else if (Data.find("EDNSClientSubnet=1") == 0)
 	{
-		Parameter.EDNSClientSubnet = true;
+		Parameter.EDNS_ClientSubnet = true;
 	}
 	else if (Data.find("DNSSECRequest=1") == 0)
 	{
-		Parameter.DNSSECRequest = true;
+		Parameter.DNSSEC_Request = true;
 	}
 	else if (Data.find("DNSSECValidation=1") == 0)
 	{
-		Parameter.DNSSECValidation = true;
+		Parameter.DNSSEC_Validation = true;
 	}
 	else if (Data.find("DNSSECForceValidation=1") == 0)
 	{
-		Parameter.DNSSECForceValidation = true;
+		Parameter.DNSSEC_ForceValidation = true;
 	}
 	else if (Data.find("AlternateMultiRequest=1") == 0)
 	{
@@ -2117,11 +2139,11 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 #if defined(ENABLE_PCAP)
 	else if (Data.find("IPv4DataFilter=1") == 0)
 	{
-		Parameter.IPv4DataCheck = true;
+		Parameter.HeaderCheck_IPv4 = true;
 	}
 	else if (Data.find("TCPDataFilter=1") == 0)
 	{
-		Parameter.TCPDataCheck = true;
+		Parameter.HeaderCheck_TCP = true;
 	}
 #endif
 	else if (Data.find("DNSDataFilter=1") == 0)
@@ -2141,7 +2163,7 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 		{
 			Result = strtoul(Data.c_str() + strlen("ICMPID="), nullptr, 0);
 			if (errno != ERANGE && Result > 0)
-				Parameter.ICMPID = htons((uint16_t)Result);
+				Parameter.ICMP_ID = htons((uint16_t)Result);
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
@@ -2154,7 +2176,7 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 		{
 			Result = strtoul(Data.c_str() + strlen("ICMPSequence="), nullptr, 0);
 			if (errno != ERANGE && Result > 0)
-				Parameter.ICMPSequence = htons((uint16_t)Result);
+				Parameter.ICMP_Sequence = htons((uint16_t)Result);
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
@@ -2165,8 +2187,8 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 	{
 		if (Data.length() > strlen("ICMPPaddingData=") + 17U && Data.length() < strlen("ICMPPaddingData=") + ICMP_PADDING_MAXSIZE - 1U)
 		{
-			Parameter.ICMPPaddingDataLength = Data.length() - strlen("ICMPPaddingData=") - 1U;
-			memcpy_s(Parameter.ICMPPaddingData, ICMP_PADDING_MAXSIZE, Data.c_str() + strlen("ICMPPaddingData="), Data.length() - strlen("ICMPPaddingData="));
+			Parameter.ICMP_PaddingLength = Data.length() - strlen("ICMPPaddingData=") - 1U;
+			memcpy_s(Parameter.ICMP_PaddingData, ICMP_PADDING_MAXSIZE, Data.c_str() + strlen("ICMPPaddingData="), Data.length() - strlen("ICMPPaddingData="));
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
@@ -2179,7 +2201,7 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 		{
 			Result = strtoul(Data.c_str() + strlen("DomainTestID="), nullptr, 0);
 			if (errno != ERANGE && Result > 0)
-				Parameter.DomainTestID = htons((uint16_t)Result);
+				Parameter.DomainTest_ID = htons((uint16_t)Result);
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
@@ -2190,7 +2212,7 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 	{
 		if (Data.length() > strlen("DomainTestData=") + DOMAIN_MINSIZE && Data.length() < strlen("DomainTestData=") + DOMAIN_DATA_MAXSIZE)
 		{
-			memcpy_s(Parameter.DomainTestData, DOMAIN_MAXSIZE, Data.c_str() + strlen("DomainTestData="), Data.length() - strlen("DomainTestData="));
+			memcpy_s(Parameter.DomainTest_Data, DOMAIN_MAXSIZE, Data.c_str() + strlen("DomainTestData="), Data.length() - strlen("DomainTestData="));
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
@@ -2204,18 +2226,18 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 		{
 			std::shared_ptr<char> LocalFQDN(new char[DOMAIN_MAXSIZE]());
 			memset(LocalFQDN.get(), 0, DOMAIN_MAXSIZE);
-			Parameter.LocalFQDNLength = Data.length() - strlen("LocalhostServerName=");
-			memcpy_s(LocalFQDN.get(), DOMAIN_MAXSIZE, Data.c_str() + strlen("LocalhostServerName="), Parameter.LocalFQDNLength);
-			*Parameter.LocalFQDNString = LocalFQDN.get();
-			Result = CharToDNSQuery(LocalFQDN.get(), Parameter.LocalFQDNResponse);
+			Parameter.LocalFQDN_Length = Data.length() - strlen("LocalhostServerName=");
+			memcpy_s(LocalFQDN.get(), DOMAIN_MAXSIZE, Data.c_str() + strlen("LocalhostServerName="), Parameter.LocalFQDN_Length);
+			*Parameter.LocalFQDN_String = LocalFQDN.get();
+			Result = CharToDNSQuery(LocalFQDN.get(), Parameter.LocalFQDN_Response);
 			if (Result > DOMAIN_MINSIZE)
 			{
-				Parameter.LocalFQDNLength = Result;
+				Parameter.LocalFQDN_Length = Result;
 			}
 			else {
-				Parameter.LocalFQDNLength = 0;
-				memset(Parameter.LocalFQDNResponse, 0, DOMAIN_MAXSIZE);
-				Parameter.LocalFQDNString->clear();
+				Parameter.LocalFQDN_Length = 0;
+				memset(Parameter.LocalFQDN_Response, 0, DOMAIN_MAXSIZE);
+				Parameter.LocalFQDN_String->clear();
 			}
 		}
 		else {
@@ -2570,7 +2592,7 @@ bool __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, con
 				while (Data.find(ASCII_BRACKETS_LEAD) != std::string::npos)
 					Data.erase(Data.find(ASCII_BRACKETS_LEAD), 1U);
 				while (Data.find("]:") != std::string::npos)
-					Data.erase(Data.find("]:") + 1U, 1U);
+					Data.erase(Data.find("]:") + 1U, strlen(":"));
 
 			//Read data.
 				while (Data.find(ASCII_BRACKETS_TRAIL) != std::string::npos && Data.find(ASCII_VERTICAL) != std::string::npos && Data.find(ASCII_BRACKETS_TRAIL) < Data.find(ASCII_VERTICAL))
@@ -2942,7 +2964,7 @@ bool __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffset,
 				while (Data.find(ASCII_BRACKETS_LEAD) != std::string::npos)
 					Data.erase(Data.find(ASCII_BRACKETS_LEAD), 1U);
 				while (Data.find("]:") != std::string::npos)
-					Data.erase(Data.find("]:") + 1U, 1U);
+					Data.erase(Data.find("]:") + 1U, strlen(":"));
 
 			//Read data.
 				while (Data.find(ASCII_BRACKETS_TRAIL) != std::string::npos && Data.find(ASCII_VERTICAL) != std::string::npos && Data.find(ASCII_BRACKETS_TRAIL) < Data.find(ASCII_VERTICAL))

@@ -23,16 +23,16 @@
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
-extern std::deque<PORT_TABLE> PortList;
-extern std::mutex CaptureLock, PortListLock;
+extern std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
+extern std::mutex CaptureLock, OutputPacketListLock;
 std::string PcapFilterRules;
 std::vector<std::string> PcapRunningList;
 
 //Functions
 void __fastcall CaptureFilterRulesInit(std::string &FilterRules);
-bool __fastcall Capture(const pcap_if *pDrive, const bool IsCaptureList);
-bool __fastcall NetworkLayer(const char *Recv, const size_t Length, const uint16_t Protocol);
-bool __fastcall ICMPCheck(const char *Buffer, const size_t Length, const uint16_t Protocol);
-bool __fastcall TCPCheck(const char *Buffer);
+bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList);
+bool __fastcall CaptureNetworkLayer(const char *Recv, const size_t Length, const uint16_t Protocol);
+bool __fastcall CaptureCheck_ICMP(const char *Buffer, const size_t Length, const uint16_t Protocol);
+bool __fastcall CaptureCheck_TCP(const char *Buffer);
 bool __fastcall MatchPortToSend(const char *Buffer, const size_t Length, const uint16_t Protocol, const uint16_t Port);
 #endif

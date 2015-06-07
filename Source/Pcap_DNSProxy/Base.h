@@ -246,9 +246,9 @@
 		#define __BYTE_ORDER               __LITTLE_ENDIAN           //x86 and x86-64/x64 is Little Endian.
 
 	//Code defines
-		#define WINSOCK_VERSION_LOW        2                         //Low byte of Winsock version
-		#define WINSOCK_VERSION_HIGH       2                         //High byte of Winsock version
-		#define SIO_UDP_CONNRESET          _WSAIOW(IOC_VENDOR, 12)
+		#define WINSOCK_VERSION_LOW        2                         //Low byte of Winsock version(2.2)
+		#define WINSOCK_VERSION_HIGH       2                         //High byte of Winsock version(2.2)
+		#define SIO_UDP_CONNRESET          _WSAIOW(IOC_VENDOR, 12)   //Block connection reset error message from system.
 	#endif
 
 //	#pragma comment(linker, "/subsystem:windows /entry:mainCRTStartup") //Hide console.
@@ -407,11 +407,6 @@
 	#define localtime_s(TimeStructure, TimeValue)                        localtime_r(TimeValue, TimeStructure)
 #endif
 
-//Function defines
-#if !defined(ENABLE_PCAP)
-	#define CheckResponseData(Buffer, Length, IsLocal, IsMarkHopLimit)   CheckResponseData(Buffer, Length, IsLocal)
-#endif
-
 
 //////////////////////////////////////////////////
 // Base defines
@@ -445,8 +440,10 @@
 |             Type              |                               /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               /
 /                                                               /
-/                             Data                      +-+-+-+-+
-/                                                       |  FCS  | FCS/Ethernet Frame Check Sequence
+/                             Data                              /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                 Ethernet Frame Check Sequence                 |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
@@ -460,6 +457,8 @@ typedef struct _eth_hdr_
 	uint8_t                Dst[6U];
 	uint8_t                Src[6U];
 	uint16_t               Type;
+//	PUCHAR                 Payload;
+//	uint32_t               FCS;
 }eth_hdr, *peth_hdr;
 
 /* Apple IEEE 1394/FireWire header(RFC 2734 and RFC3146, https://www.ietf.org/rfc/rfc2734 and https://www.ietf.org/rfc/rfc3146)
@@ -797,8 +796,8 @@ typedef struct _ipv4_hdr_
 	uint8_t                TTL;
 	uint8_t                Protocol;
 	uint16_t               Checksum;
-	in_addr                Src;
-	in_addr                Dst;
+	in_addr                Source;
+	in_addr                Destination;
 }ipv4_hdr, *pipv4_hdr;
 
 /* Internet Protocol version 6/IPv6 header(RFC 2460, https://tools.ietf.org/html/rfc2460)
@@ -866,8 +865,8 @@ typedef struct _ipv6_hdr_
 	uint16_t                   PayloadLength;
 	uint8_t                    NextHeader;
 	uint8_t                    HopLimit;
-	in6_addr                   Src;
-	in6_addr                   Dst;
+	in6_addr                   Source;
+	in6_addr                   Destination;
 }ipv6_hdr, *pipv6_hdr;
 
 /* Internet Control Message Protocol/ICMP header(RFC 792, https://tools.ietf.org/html/rfc792)
@@ -1187,8 +1186,8 @@ RFC 5681: https://tools.ietf.org/html/rfc5681
 */
 typedef struct _ipv4_psd_hdr_
 {
-	in_addr               Src;
-	in_addr               Dst;
+	in_addr               Source;
+	in_addr               Destination;
 	uint8_t               Zero;
 	uint8_t               Protocol;
 	uint16_t              Length;
@@ -1224,8 +1223,8 @@ RFC 5681: https://tools.ietf.org/html/rfc5681
 */
 typedef struct _ipv6_psd_hdr_
 {
-	in6_addr              Src;
-	in6_addr              Dst;
+	in6_addr              Source;
+	in6_addr              Destination;
 	uint32_t              Length;
 	uint8_t               Zero[3U];
 	uint8_t               NextHeader;
@@ -1311,29 +1310,33 @@ RFC 7314(https://tools.ietf.org/html/rfc7314), Extension Mechanisms for DNS (EDN
 
 //About this list, see https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
 //Port and Flags definitions
-#define IPPORT_DNS              53U      //Standard DNS(TCP and UDP) Port
-#define IPPORT_MDNS             5353U    //Multicast Domain Name System/mDNS  Port
-#define IPPORT_LLMNR            5355U    //Link-Local Multicast Name Resolution/LLMNR Port
-#define DNS_STANDARD            0x0100   //System Standard query
-#define DNS_SQR_NE              0x8180   //Standard query response and No Error.
-#define DNS_SQR_NEA             0x8580   //Standard query response, No Error and Authoritative.
-#define DNS_SQR_NETC            0x8380   //Standard query response and No Error, but Truncated.
-#define DNS_SQR_FE              0x8181   //Standard query response, Format Error
-#define DNS_SQR_SF              0x8182   //Standard query response, Server failure
-#define DNS_SQR_SNH             0x8183   //Standard query response, No Such Name
-#define DNS_GET_BIT_OPCODE      0x7800   //Get OPCode in DNS flags.
-#define DNS_GET_BIT_AA          0x0400   //Get Authoritative bit in DNS flags.
-#define DNS_GET_BIT_TC          0x0200   //Get Truncated bit in DNS flags.
-#define DNS_GET_BIT_RD          0x0100   //Get Recursion Desired bit in DNS flags.
-#define DNS_GET_BIT_AD          0x0020   //Get Authentic Data bit in DNS flags.
-#define DNS_GET_BIT_CD          0x0010   //Get Checking Disabled bit in DNS flags.
-#define DNS_GET_BIT_RCODE       0x000F   //Get RCode in DNS flags.
-#define DNS_SET_R               0x8000   //Set Response bit.
-#define DNS_SET_RTC             0x8200   //Set Response bit and Truncated bit.
-#define DNS_SER_RA              0x8580   //Set Response bit and Authoritative bit.
-#define DNS_SET_R_FE            0x8001   //Set Response bit and Format Error RCode.
-#define DNS_SET_R_SNH           0x8003   //Set Response bit and No Such Name RCode.
-#define DNS_QUERY_PTR           0xC00C   //Pointer of first query
+#define IPPORT_DNS                    53U        //Standard DNS(TCP and UDP) Port
+#define IPPORT_MDNS                   5353U      //Multicast Domain Name System/mDNS  Port
+#define IPPORT_LLMNR                  5355U      //Link-Local Multicast Name Resolution/LLMNR Port
+#define DNS_STANDARD                  0x0100     //System Standard query
+#define DNS_SQR_NE                    0x8180     //Standard query response and No Error.
+#define DNS_SQR_NEA                   0x8580     //Standard query response, No Error and Authoritative.
+#define DNS_SQR_NETC                  0x8380     //Standard query response and No Error, but Truncated.
+#define DNS_SQR_FE                    0x8181     //Standard query response, Format Error
+#define DNS_SQR_SF                    0x8182     //Standard query response, Server failure
+#define DNS_SQR_SNH                   0x8183     //Standard query response, No Such Name
+#define DNS_GET_BIT_RESPONSE          0x8000     //Get Response bit in DNS flags.
+#define DNS_GET_BIT_OPCODE            0x7800     //Get OPCode in DNS flags.
+#define DNS_GET_BIT_AA                0x0400     //Get Authoritative bit in DNS flags.
+#define DNS_GET_BIT_TC                0x0200     //Get Truncated bit in DNS flags.
+#define DNS_GET_BIT_RD                0x0100     //Get Recursion Desired bit in DNS flags.
+#define DNS_GET_BIT_AD                0x0020     //Get Authentic Data bit in DNS flags.
+#define DNS_GET_BIT_CD                0x0010     //Get Checking Disabled bit in DNS flags.
+#define DNS_GET_BIT_RCODE             0x000F     //Get RCode in DNS flags.
+#define DNS_SET_R                     0x8000     //Set Response bit.
+#define DNS_SET_RTC                   0x8200     //Set Response bit and Truncated bit.
+#define DNS_SER_RA                    0x8580     //Set Response bit and Authoritative bit.
+#define DNS_SET_R_FE                  0x8001     //Set Response bit and Format Error RCode.
+#define DNS_SET_R_SNH                 0x8003     //Set Response bit and No Such Name RCode.
+#define DNS_POINTER_BITS              0xC0       //DNS compression pointer(1100000000000000)
+#define DNS_POINTER_BITS_STRING       ('\xC0')
+#define DNS_POINTER_BITS_GET_LOCATE   0x3FFF     //Get location of DNS compression pointer(00111111111111111)
+#define DNS_POINTER_QUERY             0xC00C     //Pointer of first query
 
 //OPCode definitions
 #define DNS_OPCODE_QUERY        0        //Query, ID is 0.
@@ -2307,7 +2310,11 @@ typedef struct _dnscurve_txt_signature_
 //Version defines
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4             //Current configuration version
-#define FULL_VERSION                 L"0.4.2.0"
+#define FULL_VERSION                 L"0.4.2.1"
+
+//Exit code defines
+#define EXIT_CHECK_HOSTS_TYPE_LOCAL                2U   //Type is Local in CheckHosts function.
+#define EXIT_CHECK_RESPONSE_DATA_MARK_HOP_LIMITS   2U   //Mark Hop Limits in CheckresponseData function.
 
 //Size and length defines
 #define BOM_UTF_8_LENGTH               3U                                         //UTF-8 BOM length
@@ -2321,7 +2328,9 @@ typedef struct _dnscurve_txt_signature_
 #define PACKET_MAXSIZE                 1500U                                      //Maximum size of packets, Standard MTU of Ethernet II network
 #define ORIGINAL_PACKET_MAXSIZE        1512U                                      //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header + 4 bytes FCS)
 #define LARGE_PACKET_MAXSIZE           4096U                                      //Maximum size of packets(4KB/4096 bytes) of TCP protocol
-#define BUFFER_RING_MAXNUM             32U                                        //Number of maximum packet buffer queues
+#define BUFFER_QUEUE_MAXNUM            1488095U                                   //Number of maximum packet buffer queues, 1488095 pps or 1.488Mpps in Gigabit Ethernet
+#define BUFFER_QUEUE_MINNUM            8U                                         //Number of minimum packet buffer queues
+#define DEFAULT_BUFFER_QUEUE           64U                                        //Default number of packet buffer queues
 #define UINT16_MAX_STRING_LENGTH       6U                                         //Maximum number of 16 bits is 65535, its length is 6.
 #define UINT32_MAX_STRING_LENGTH       10U                                        //Maximum number of 32 bits is 4294967295, its length is 10.
 #define ADDR_STRING_MAXSIZE            64U                                        //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -2393,7 +2402,7 @@ typedef struct _dnscurve_txt_signature_
 #define DEFAULT_DOMAINTEST_INTERVAL_TIME   900U      //Default Domain Test time between every sending, 15 minutes(900 seconds)
 #define DEFAULT_ALTERNATE_TIMES            5U        //Default times of requesting timeout, 5 times
 #define DEFAULT_ALTERNATE_RANGE            10U       //Default time of checking timeout, 10 seconds
-#define DEFAULT_ALTERNATERESET_TIME        180U      //Default time to reset switching of alternate servers, 180 seconds
+#define DEFAULT_ALTERNATE_RESET_TIME       180U      //Default time to reset switching of alternate servers, 180 seconds
 #define DEFAULT_HOSTS_TTL                  900U      //Default Hosts DNS TTL, 15 minutes(900 seconds)
 #define SHORTEST_FILEREFRESH_TIME          5U        //The shortset time between files auto-refreshing, 5 seconds
 #define SENDING_INTERVAL_TIME              5U        //Time between every sending, 5 seconds
@@ -2408,6 +2417,8 @@ typedef struct _dnscurve_txt_signature_
 #if defined(PLATFORM_WIN)
 	#define COMMAND_LONG_PRINT_VERSION            L"--version"
 	#define COMMAND_SHORT_PRINT_VERSION           L"-v"
+	#define COMMAND_LONG_HELP                     L"--help"
+	#define COMMAND_SHORT_HELP                    L"-h"
 	#define COMMAND_FIREWALL_TEST                 L"--first-setup"
 	#define COMMAND_FLUSH_DNS                     L"--flush-dns"
 	#define COMMAND_LONG_SET_PATH                 L"--config-file"
@@ -2415,11 +2426,13 @@ typedef struct _dnscurve_txt_signature_
 	#define SID_ADMINISTRATORS_GROUP              L"S-1-5-32-544"                                                                                                                               //Windows SID of Administrators group
 	#define MAILSLOT_NAME                         L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot"                                                                                                    //MailSlot name
 	#define MAILSLOT_MESSAGE_FLUSH_DNS            L"Flush DNS cache of Pcap_DNSProxy."                                                                                                          //The mailslot message to flush dns cache
-	#define DEFAULT_LOCAL_SERVICENAME             L"PcapDNSProxyService"                                                                                                                        //Default service name of system
+	#define DEFAULT_LOCAL_SERVICE_NAME            L"PcapDNSProxyService"                                                                                                                        //Default service name of system
 	#define DEFAULT_PADDINGDATA                   ("abcdefghijklmnopqrstuvwabcdefghi")                                                                                                          //ICMP padding data on Windows
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define COMMAND_LONG_PRINT_VERSION            ("--version")
 	#define COMMAND_SHORT_PRINT_VERSION           ("-v")
+	#define COMMAND_LONG_HELP                     ("--help")
+	#define COMMAND_SHORT_HELP                    ("-h")
 	#define COMMAND_FLUSH_DNS                     ("--flush-dns")
 	#define COMMAND_LONG_SET_PATH                 ("--config-file")
 	#define COMMAND_SHORT_SET_PATH                ("-c")
@@ -2465,40 +2478,39 @@ typedef struct _dnscurve_txt_signature_
 	#define LOG_ERROR_DNSCURVE             8U            // 08: DNSCurve Error
 #endif
 
-
 //Codes and types defines
-#define LISTEN_PROTOCOL_IPV6_IPV4      0
-#define LISTEN_PROTOCOL_IPV6           1U
-#define LISTEN_PROTOCOL_IPV4           2U
-#define LISTEN_PROTOCOL_TCP_UDP        0
-#define LISTEN_PROTOCOL_TCP            1U
-#define LISTEN_PROTOCOL_UDP            2U
-#define LISTEN_MODE_PROXY              0
-#define LISTEN_MODE_PRIVATE            1U 
-#define LISTEN_MODE_SERVER             2U
-#define LISTEN_MODE_CUSTOM             3U
-#define REQUEST_MODE_IPV6_IPV4         0
-#define REQUEST_MODE_IPV6              1U
-#define REQUEST_MODE_IPV4              2U
-#define REQUEST_MODE_UDP               0
-#define REQUEST_MODE_TCP               1U
-#define HOSTS_TYPE_NORMAL              0
-#define HOSTS_TYPE_WHITE               1U
-#define HOSTS_TYPE_LOCAL               2U
-#define HOSTS_TYPE_BANNED              3U
-#define CACHE_TYPE_TIMER               1U
-#define CACHE_TYPE_QUEUE               2U
+#define LISTEN_PROTOCOL_NETWORK_BOTH     0
+#define LISTEN_PROTOCOL_IPV6             1U
+#define LISTEN_PROTOCOL_IPV4             2U
+#define LISTEN_PROTOCOL_TRANSPORT_BOTH   0
+#define LISTEN_PROTOCOL_TCP              1U
+#define LISTEN_PROTOCOL_UDP              2U
+#define LISTEN_MODE_PROXY                0
+#define LISTEN_MODE_PRIVATE              1U 
+#define LISTEN_MODE_SERVER               2U
+#define LISTEN_MODE_CUSTOM               3U
+#define REQUEST_MODE_NETWORK_BOTH        0
+#define REQUEST_MODE_IPV6                1U
+#define REQUEST_MODE_IPV4                2U
+#define REQUEST_MODE_UDP                 0
+#define REQUEST_MODE_TCP                 1U
+#define HOSTS_TYPE_NORMAL                0
+#define HOSTS_TYPE_WHITE                 1U
+#define HOSTS_TYPE_LOCAL                 2U
+#define HOSTS_TYPE_BANNED                3U
+#define CACHE_TYPE_TIMER                 1U
+#define CACHE_TYPE_QUEUE                 2U
 #if defined(ENABLE_LIBSODIUM)
-	#define DNSCURVE_REQUEST_MODE_UDP       0
-	#define DNSCURVE_REQUEST_MODE_TCP       1U
+	#define DNSCURVE_REQUEST_MODE_UDP         0
+	#define DNSCURVE_REQUEST_MODE_TCP         1U
 #endif
 
 //Server type defines
 #if defined(ENABLE_LIBSODIUM)
-	#define DNSCURVE_IPV6_MAIN             0            //DNSCurve Main(IPv6)
-	#define DNSCURVE_IPV4_MAIN             1U           //DNSCurve Main(IPv4)
-	#define DNSCURVE_IPV6_ALTERNATE        2U           //DNSCurve Alternate(IPv6)
-	#define DNSCURVE_IPV4_ALTERNATE        3U           //DNSCurve Alternate(IPv4)
+	#define DNSCURVE_MAIN_IPV6             1U           //DNSCurve Main(IPv6)
+	#define DNSCURVE_MAIN_IPV4             2U           //DNSCurve Main(IPv4)
+	#define DNSCURVE_ALTERNATE_IPV6        3U           //DNSCurve Alternate(IPv6)
+	#define DNSCURVE_ALTERNATE_IPV4        4U           //DNSCurve Alternate(IPv4)
 #endif
 
 //Function Pointer defines
@@ -2512,10 +2524,10 @@ typedef struct _dnscurve_txt_signature_
 //////////////////////////////////////////////////
 // Function defines(Part 2)
 #if defined(PLATFORM_WIN)
-	#define Sleep(Millisecond)    Sleep((DWORD)Millisecond)
+	#define Sleep(Millisecond)    Sleep((DWORD)(Millisecond))
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define Sleep(Millisecond)    usleep((useconds_t)((Millisecond) * MICROSECOND_TO_MILLISECOND))
-	#define usleep(Millisecond)   usleep((useconds_t)Millisecond)
+	#define usleep(Millisecond)   usleep((useconds_t)(Millisecond))
 #endif
 
 
@@ -2597,36 +2609,38 @@ typedef class ConfigurationTable {
 public:
 // Parameters from configure files
 //[Base] block
-	double                           Version;
-	size_t                           FileRefreshTime;
+	double                               Version;
+	size_t                               FileRefreshTime;
+	size_t                               BufferQueueSize;
+	size_t                               QueueResetTime;
 //[Log] block
-	bool                             PrintError;
-	size_t                           LogMaxSize;
+	bool                                 PrintError;
+	size_t                               LogMaxSize;
 //[DNS] block
-	size_t                           RequestMode_Network;
-	size_t                           RequestMode_Transport;
-	bool                             HostsOnly;
-	bool                             LocalMain;
-	bool                             LocalHosts;
-	bool                             LocalRouting;
-	size_t                           CacheType;
-	size_t                           CacheParameter;
-	uint32_t                         HostsDefaultTTL;
+	size_t                               RequestMode_Network;
+	size_t                               RequestMode_Transport;
+	bool                                 HostsOnly;
+	bool                                 LocalMain;
+	bool                                 LocalHosts;
+	bool                                 LocalRouting;
+	size_t                               CacheType;
+	size_t                               CacheParameter;
+	uint32_t                             HostsDefaultTTL;
 //[Listen] block
 #if defined(ENABLE_PCAP)
-	bool                             PcapCapture;
-	size_t                           PcapReadingTimeout;
+	bool                                 PcapCapture;
+	size_t                               PcapReadingTimeout;
 #endif
-	size_t                           OperationMode;
-	size_t                           ListenProtocol_Network;
-	size_t                           ListenProtocol_Transport;
-	std::vector<uint16_t>            *ListenPort;
-	bool                             IPFilterType;
-	size_t                           IPFilterLevel;
-	bool                             AcceptType;
+	size_t                               OperationMode;
+	size_t                               ListenProtocol_Network;
+	size_t                               ListenProtocol_Transport;
+	std::vector<uint16_t>                *ListenPort;
+	bool                                 IPFilterType;
+	size_t                               IPFilterLevel;
+	bool                                 AcceptType;
 //[Addresses] block
-	std::vector<sockaddr_storage>    *ListenAddress_IPv6;
-	std::vector<sockaddr_storage>    *ListenAddress_IPv4;
+	std::vector<sockaddr_storage>        *ListenAddress_IPv6;
+	std::vector<sockaddr_storage>        *ListenAddress_IPv4;
 	struct _localhost_subnet_ {
 		ADDRESS_PREFIX_BLOCK             *IPv6;
 		bool                             Setting_IPv6;
@@ -2646,97 +2660,97 @@ public:
 		std::vector<DNS_SERVER_DATA>     *IPv4_Multi;
 	}DNSTarget;
 //[Values] block
-	size_t                           EDNSPayloadSize;
+	size_t                               EDNSPayloadSize;
 #if defined(ENABLE_PCAP)
-	uint8_t                          HopLimitFluctuation;
-	uint16_t                         ICMPID;
-	uint16_t                         ICMPSequence;
-	size_t                           ICMPSpeed;
+	uint8_t                              HopLimitFluctuation;
+	uint16_t                             ICMP_ID;
+	uint16_t                             ICMP_Sequence;
+	size_t                               ICMP_Speed;
 //[Data] block(A part)
-	PSTR                             ICMPPaddingData;
-	size_t                           ICMPPaddingDataLength;
-	PSTR                             DomainTestData;
-	uint16_t                         DomainTestID;
-	size_t                           DomainTestSpeed;
+	PSTR                                 ICMP_PaddingData;
+	size_t                               ICMP_PaddingLength;
+	PSTR                                 DomainTest_Data;
+	uint16_t                             DomainTest_ID;
+	size_t                               DomainTest_Speed;
 #endif
-	size_t                           AlternateTimes;
-	size_t                           AlternateTimeRange;
-	size_t                           AlternateResetTime;
-	size_t                           MultiRequestTimes;
+	size_t                               AlternateTimes;
+	size_t                               AlternateTimeRange;
+	size_t                               AlternateResetTime;
+	size_t                               MultiRequestTimes;
 //[Switches] block
-	bool                             DomainCaseConversion;
-	bool                             CompressionPointerMutation;
-	bool                             CPMPointerToHeader;
-	bool                             CPMPointerToRR;
-	bool                             CPMPointerToAdditional;
-	bool                             EDNSLabel;
-	bool                             EDNSClientSubnet;
-	bool                             DNSSECRequest;
-	bool                             DNSSECValidation;
-	bool                             DNSSECForceValidation;
-	bool                             AlternateMultiRequest;
+	bool                                 DomainCaseConversion;
+	bool                                 CompressionPointerMutation;
+	bool                                 CPM_PointerToHeader;
+	bool                                 CPM_PointerToRR;
+	bool                                 CPM_PointerToAdditional;
+	bool                                 EDNS_Label;
+	bool                                 EDNS_ClientSubnet;
+	bool                                 DNSSEC_Request;
+	bool                                 DNSSEC_Validation;
+	bool                                 DNSSEC_ForceValidation;
+	bool                                 AlternateMultiRequest;
 #if defined(ENABLE_PCAP)
-	bool                             IPv4DataCheck;
-	bool                             TCPDataCheck;
+	bool                                 HeaderCheck_IPv4;
+	bool                                 HeaderCheck_TCP;
 #endif
-	bool                             DNSDataCheck;
-	bool                             BlacklistCheck;
+	bool                                 DNSDataCheck;
+	bool                                 BlacklistCheck;
 //[Data] block(B part)
-	std::string                      *LocalFQDNString;
-	PSTR                             LocalFQDNResponse;
-	size_t                           LocalFQDNLength;
+	std::string                          *LocalFQDN_String;
+	PSTR                                 LocalFQDN_Response;
+	size_t                               LocalFQDN_Length;
 #if !defined(PLATFORM_MACX)
-	PSTR                             LocalServerResponse;
-	size_t                           LocalServerResponseLength;
+	PSTR                                 LocalServer_Response;
+	size_t                               LocalServer_Length;
 #endif
 //[DNSCurve/DNSCrypt] block
 #if defined(ENABLE_LIBSODIUM)
-	bool                             DNSCurve;
+	bool                                 DNSCurve;
 #endif
 
 // Global parameters from status
 //Global block
-	bool                             Console;
-	std::vector<SYSTEM_SOCKET>       *LocalSocket;
-	std::default_random_engine       *RamdomEngine;
-	std::vector<std::wstring>        *Path;
-	std::vector<std::wstring>        *HostsFileList;
-	std::vector<std::wstring>        *IPFilterFileList;
-	std::wstring                     *ErrorLogPath;
+	bool                                 Console;
+	std::vector<SYSTEM_SOCKET>           *LocalSocket;
+	std::default_random_engine           *RamdomEngine;
+	std::vector<std::wstring>            *Path_Global;
+	std::wstring                         *Path_ErrorLog;
+	std::vector<std::wstring>            *FileList_Hosts;
+	std::vector<std::wstring>            *FileList_IPFilter;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::vector<std::string>         *sPath;
-	std::vector<std::string>         *sHostsFileList;
-	std::vector<std::string>         *sIPFilterFileList;
-	std::string                      *sErrorLogPath;
+	std::vector<std::string>             *sPath_Global;
+	std::string                          *sPath_ErrorLog;
+	std::vector<std::string>             *sFileList_Hosts;
+	std::vector<std::string>             *sFileList_IPFilter;
 #endif
 #if defined(PLATFORM_WIN)
-	int                              ReliableSocketTimeout;
-	int                              UnreliableSocketTimeout;
+	int                                  SocketTimeout_Reliable;
+	int                                  SocketTimeout_Unreliable;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	timeval                          ReliableSocketTimeout;
-	timeval                          UnreliableSocketTimeout;
+	timeval                              SocketTimeout_Reliable;
+	timeval                              SocketTimeout_Unreliable;
 #endif
-	size_t                           ReceiveWaiting;
-	PSTR                             DomainTable;
-	PSTR                             LocalAddressResponse[NETWORK_LAYER_PARTNUM];
-	size_t                           LocalAddressLength[NETWORK_LAYER_PARTNUM];
+	size_t                               ReceiveWaiting;
+	PSTR                                 DomainTable;
+	PSTR                                 LocalAddress_Response[NETWORK_LAYER_PARTNUM];
+	size_t                               LocalAddress_Length[NETWORK_LAYER_PARTNUM];
 #if !defined(PLATFORM_MACX)
-	std::vector<std::string>         *LocalAddressPTRResponse[NETWORK_LAYER_PARTNUM];
+	std::vector<std::string>             *LocalAddress_ResponsePTR[NETWORK_LAYER_PARTNUM];
 #endif
-	std::vector<uint16_t>            *AcceptTypeList;
+	std::vector<uint16_t>                *AcceptTypeList;
 
 //Windows XP with SP3 support
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	HINSTANCE                        GetTickCount64DLL;
-	GetTickCount64Function           GetTickCount64PTR;
-	HINSTANCE                        Inet_Ntop_DLL;
-	Inet_Ntop_Function               Inet_Ntop_PTR;
+	HINSTANCE                            GetTickCount64_DLL;
+	GetTickCount64Function               GetTickCount64_PTR;
+	HINSTANCE                            Inet_Ntop_DLL;
+	Inet_Ntop_Function                   Inet_Ntop_PTR;
 #endif
 
 //IPv6 support block
-	bool                             GatewayAvailable_IPv6;
-	bool                             TunnelAvailable_IPv6;
-	bool                             GatewayAvailable_IPv4;
+	bool                                 GatewayAvailable_IPv6;
+	bool                                 GatewayAvailable_IPv4;
+	bool                                 TunnelAvailable_IPv6;
 
 	ConfigurationTable(void);
 	~ConfigurationTable(void);
@@ -2758,10 +2772,10 @@ public:
 	std::shared_ptr<char>    Response;
 	std::regex               Pattern;
 	std::string              PatternString;
-	std::vector<uint16_t>    RecordType;
-	size_t                   Type;
+	std::vector<uint16_t>    Type_Record;
+	size_t                   Type_Hosts;
 	size_t                   Length;
-	bool                     TypeOperation;
+	bool                     Type_Operation;
 
 	HostsTable(void);
 }HOSTS_TABLE;
@@ -2786,8 +2800,8 @@ public:
 //Address Hosts class
 typedef class AddressHostsTable {
 public:
-	std::vector<sockaddr_storage>    TargetAddress;
-	std::vector<AddressRangeTable>   SourceAddress;
+	std::vector<sockaddr_storage>    Address_Target;
+	std::vector<AddressRangeTable>   Address_Source;
 }ADDRESS_HOSTS_TABLE;
 
 //Address routing table(IPv6) class
@@ -2810,17 +2824,17 @@ public:
 
 //Port table class
 #if defined(ENABLE_PCAP)
-typedef class PortTable {
+typedef class OutputPacketTable {
 public:
-	SOCKET_DATA                SystemData;
-	uint16_t                   NetworkLayer;
-	uint16_t                   TransportLayer;
-	std::vector<SOCKET_DATA>   RequestData;
+	std::vector<SOCKET_DATA>   SocketData_Output;
+	SOCKET_DATA                SocketData_Input;
+	uint16_t                   Protocol_Network;
+	uint16_t                   Protocol_Transport;
 	ULONGLONG                  ClearPortTime;
 	size_t                     ReceiveIndex;
 
-	PortTable(void);
-}PORT_TABLE;
+	OutputPacketTable(void);
+}OUTPUT_PACKET_TABLE;
 #endif
 
 //Differnet IPFilter file sets structure
@@ -2899,13 +2913,13 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 //uint32_t __fastcall GetFCS(const unsigned char *Buffer, const size_t Length);
 uint16_t __fastcall GetChecksum(const uint16_t *Buffer, const size_t Length);
 uint16_t __fastcall GetICMPv6Checksum(const unsigned char *Buffer, const size_t Length, const in6_addr &Destination, const in6_addr &Source);
-uint16_t __fastcall GetTCPUDPChecksum(const unsigned char *Buffer, const size_t Length, const uint16_t NetworkLayer, const uint16_t TransportLayer);
+uint16_t __fastcall GetTCPUDPChecksum(const unsigned char *Buffer, const size_t Length, const uint16_t Protocol_Network, const uint16_t Protocol_Transport);
 size_t __fastcall AddLengthDataToDNSHeader(PSTR Buffer, const size_t RecvLen, const size_t MaxLen);
 size_t __fastcall CharToDNSQuery(const char *FName, PSTR TName);
 size_t __fastcall DNSQueryToChar(const char *TName, PSTR FName);
 void __fastcall MakeRamdomDomain(PSTR Buffer);
 void __fastcall MakeDomainCaseConversion(PSTR Buffer);
-size_t __fastcall AddEDNSLabelToAdditionalRR(PSTR Buffer, const size_t Length);
+size_t __fastcall AddEDNS_LabelToAdditionalRR(PSTR Buffer, const size_t Length);
 size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Length);
 
 //Protocol.h
@@ -2915,7 +2929,7 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const b
 bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol);
 bool __fastcall CheckCustomModeFilter(const void *OriginalAddr, const uint16_t Protocol);
 size_t __fastcall CheckDNSQueryNameLength(const char *Buffer);
-bool __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal, bool *IsMarkHopLimit);
+size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal);
 
 //Configuration.h
 bool __fastcall ReadParameter(void);

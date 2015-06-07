@@ -30,14 +30,14 @@ std::vector<std::wstring> ConfigFileList;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::vector<std::string> sConfigFileList;
 #endif
-std::vector<FILE_DATA> IPFilterFileList, HostsFileList;
+std::vector<FILE_DATA> FileList_IPFilter, FileList_Hosts;
 std::vector<DIFFERNET_IPFILTER_FILE_SET> IPFilterFileSet[2U], *IPFilterFileSetUsing = &IPFilterFileSet[0], *IPFilterFileSetModificating = &IPFilterFileSet[1U];
 std::vector<DIFFERNET_HOSTS_FILE_SET> HostsFileSet[2U], *HostsFileSetUsing = &HostsFileSet[0], *HostsFileSetModificating = &HostsFileSet[1U];
 #if defined(ENABLE_PCAP)
-	std::deque<PORT_TABLE> PortList;
+	std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
 #endif
 std::deque<DNSCACHE_DATA> DNSCacheList;
 std::mutex ErrorLogLock, CaptureLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], DNSCacheListLock, HostsListLock, AddressRangeLock, ResultBlacklistLock, AddressHostsListLock, LocalRoutingListLock;
 #if defined(ENABLE_PCAP)
-	std::mutex PortListLock;
+	std::mutex OutputPacketListLock;
 #endif
