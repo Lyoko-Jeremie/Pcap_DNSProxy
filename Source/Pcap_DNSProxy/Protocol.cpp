@@ -320,6 +320,7 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const b
 			((in_addr *)Addr)->s_addr == htonl(0x4E10310F) || //78.16.49.15
 			((in_addr *)Addr)->s_addr == htonl(0x5D2E0859) || //93.46.8.89
 			((in_addr *)Addr)->s_addr == htonl(0x80797E8B) || //128.121.126.139
+			((in_addr *)Addr)->s_addr == htonl(0x9F1803AD) || //159.24.3.173
 			((in_addr *)Addr)->s_addr == htonl(0x9F6A794B) || //159.106.121.75
 			((in_addr *)Addr)->s_addr == htonl(0xA9840D67) || //169.132.13.103
 			((in_addr *)Addr)->s_addr == htonl(0xC043C606) || //192.67.198.6
@@ -482,7 +483,7 @@ bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol)
 //Check address routing.
 	if (Protocol == AF_INET6) //IPv6
 	{
-		uint64_t *AddrFront = (uint64_t *)Addr, *AddrBack = (uint64_t *)((PUCHAR)Addr + sizeof(in6_addr) / 2U);
+		auto AddrFront = (uint64_t *)Addr, AddrBack = (uint64_t *)((PUCHAR)Addr + sizeof(in6_addr) / 2U);
 		std::map<uint64_t, std::set<uint64_t>>::iterator AddrMapIter;
 		for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
 		{
@@ -772,8 +773,7 @@ size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, con
 	size_t DataLength = DNS_PACKET_RR_LOCATE(Buffer);
 	uint16_t DNS_Pointer = 0;
 	pdns_record_standard DNS_Record_Standard = nullptr;
-	in6_addr *pin6_addr = nullptr;
-	in_addr *pin_addr = nullptr;
+	void *Addr = nullptr;
 
 //DNS Responses which have one Answer Resource Records and not any Authority Resource Records or Additional Resource Records may fake.
 	if (DNS_Header->Answer == htons(U16_NUM_ONE) && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && DNS_Query->Classes == htons(DNS_CLASS_IN))
@@ -800,16 +800,16 @@ size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, con
 			DataLength += sizeof(dns_record_standard);
 			if (DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA) && DNS_Record_Standard->Length == htons(sizeof(in6_addr)))
 			{
-				pin6_addr = (in6_addr *)(Buffer + DataLength);
-				if (CheckSpecialAddress(pin6_addr, AF_INET6, false, Domain.get()) || 
-					!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin6_addr, AF_INET6))
+				Addr = (in6_addr *)(Buffer + DataLength);
+				if (CheckSpecialAddress(Addr, AF_INET6, false, Domain.get()) || 
+					!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(Addr, AF_INET6))
 						return EXIT_FAILURE;
 			}
 			else if (DNS_Record_Standard->Type == htons(DNS_RECORD_A) && DNS_Record_Standard->Length == htons(sizeof(in_addr)))
 			{
-				pin_addr = (in_addr *)(Buffer + DataLength);
-				if (CheckSpecialAddress(pin_addr, AF_INET, false, Domain.get()) || 
-					!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin_addr, AF_INET))
+				Addr = (in_addr *)(Buffer + DataLength);
+				if (CheckSpecialAddress(Addr, AF_INET, false, Domain.get()) ||
+					!Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(Addr, AF_INET))
 						return EXIT_FAILURE;
 			}
 		}
@@ -869,9 +869,9 @@ size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, con
 						return EXIT_FAILURE;
 
 				//Check addresses.
-					pin6_addr = (in6_addr *)(Buffer + DataLength);
-					if (Parameter.BlacklistCheck && CheckSpecialAddress(pin6_addr, AF_INET6, false, Domain.get()) || 
-						Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin6_addr, AF_INET6))
+					Addr = (in6_addr *)(Buffer + DataLength);
+					if (Parameter.BlacklistCheck && CheckSpecialAddress(Addr, AF_INET6, false, Domain.get()) ||
+						Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(Addr, AF_INET6))
 							return EXIT_FAILURE;
 				}
 			//A Records
@@ -882,9 +882,9 @@ size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, con
 						return EXIT_FAILURE;
 
 				//Check addresses.
-					pin_addr = (in_addr *)(Buffer + DataLength);
-					if (Parameter.BlacklistCheck && CheckSpecialAddress(pin_addr, AF_INET, false, Domain.get()) || 
-						Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(pin_addr, AF_INET))
+					Addr = (in_addr *)(Buffer + DataLength);
+					if (Parameter.BlacklistCheck && CheckSpecialAddress(Addr, AF_INET, false, Domain.get()) ||
+						Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(Addr, AF_INET))
 							return EXIT_FAILURE;
 				}
 			}

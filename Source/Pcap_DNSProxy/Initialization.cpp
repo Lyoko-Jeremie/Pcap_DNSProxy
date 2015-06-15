@@ -144,8 +144,8 @@ ConfigurationTable::ConfigurationTable(void)
 	SocketTimeout_Reliable.tv_sec = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
 	SocketTimeout_Unreliable.tv_sec = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
 #endif
-#if defined(PLATFORM_MACX)
-	Console = true;
+#if defined(PLATFORM_LINUX)
+	Daemon = true;
 #endif
 #if defined(ENABLE_PCAP)
 	PcapReadingTimeout = DEFAULT_PCAP_CAPTURE_TIMEOUT;

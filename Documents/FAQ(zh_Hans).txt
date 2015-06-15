@@ -67,6 +67,7 @@
 Error.log 详细错误报告，错误报告一共有7大类型：
 
 1.System Error - 系统错误
+  * Commands error - 程序启动参数错误：请检查为程序传入的参数
   * Service start error - 服务启动失败：可能未在系统注册服务，或在系统内注册的服务路径不正确
     * Windows 的错误代码参见 https://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
     * Linux/Mac 的错误代码参见 http://man7.org/linux/man-pages/man3/errno.3.html
@@ -97,6 +98,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Configuration file is too large - 配置文件容量过大：请确认配置文件的内容，整个文件的大小不要超过 4GB
   * Configuration file version error - 配置文件版本错误：请确认配置文件是否需要更新
   * Data length error - 配置文件参数一行数据超过 4096 字节/4KB，或该行数据长度不符合要求：请确认该行的内容是否符合要求
+  * Text encoding error - 配置文件编码错误：请确认配置文件的编码类型
   * Data of a line is too short - 该参数过短：请确认配置文件的内容
   * Data of a line is too long - 该参数过长：一行数据切勿超过 4096 字节/4KB
   * Log file size error - 配置文件指定的最大日志文件容量错误：可接受范围为 4KB - 4GB
@@ -127,7 +129,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
 
 3.IPFilter Error - 读取 IPFilter 文件错误
   * IPFilter file size is too large - IPFilter 文件容量过大：请确认 IPFilter 文件的内容，整个文件的大小不要超过 4GB
-  * Read file(s) error - 文件跳转读取错误：请与开发者联系
+  * Text encoding error - 文件编码错误：请确认文件的编码类型
+  * Data of a line is too short - 该 IPFilter 条目过短：请确认该条目的内容
   * Data of a line is too long - 该 IPFilter 条目过长：一行数据切勿超过 4096 字节/4KB
   * Item format error - IPFilter 条目格式错误：请检查该条目的格式
   * Regular expression pattern error - 错误的正则表达式：请检查正则表达式的正确
@@ -142,7 +145,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
 
 4.Hosts Error - 读取 Hosts 文件错误
   * Hosts file size is too large - Hosts 文件容量过大：请确认Hosts文件的内容，整个文件的大小不要超过4GB
-  * Read file(s) error - 文件跳转读取错误：请与开发者联系
+  * Text encoding error - 文件编码错误：请确认文件的编码类型
+  * Data of a line is too short - 该 Hosts 条目过短：请确认该条目的内容
   * Data of a line is too long - 该 Hosts 条目过长：一行数据切勿超过 4096 字节/4KB
   * Item format error - Hosts 条目格式错误：请检查该条目的格式
   * Data is too long when EDNS is available - 开启 EDNS 标签的情况下该 Hosts 条目过长：请检查 Hosts 的地址列表是否过长
@@ -176,6 +180,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Set UDP socket timeout error - 设置 UDP 协议套接字超时时间错误：具体原因可参见错误代码
   * Set UDP socket SIO_UDP_CONNRESET error - 设置 UDP 协议套接字屏蔽 ICMP Port Unreachable 信息错误：具体原因可参见错误代码
   * Set TCP socket timeout error - 设置 TCP 协议套接字超时时间错误：具体原因可参见错误代码
+  * Set TCP socket Fast Open error - 设置 TCP Fast Open 错误：请检查系统是否支持此功能
   * Set UDP socket disable reusing error - 设置 UDP 协议套接字端口独占模式错误：具体原因可参见错误代码
   * Set TCP socket disable reusing error - 设置 TCP 协议套接字端口独占模式错误：具体原因可参见错误代码
   * Set UDP socket treating wildcard bind error - 设置 UDP 协议套接字协议独占模式错误：具体原因可参见错误代码
@@ -190,7 +195,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
 6.Pcap Error - Pcap 错误
   * Insufficient privileges or not any available network devices - 没有任何可用的网络适配器：请检查硬件设备和驱动程序是否安装正确，也可能是权限不足
   * XXX is not a Ethernet device - 发现非 Ethernet 类型的网络适配器：这不是错误，但可以说明系统内存在非 Ethernet 类型的网络适配器
-  * An error occurred in XXX - 名称为 XXX 的网络适配器抓取数据包错误
   * EOF was reached reading from an offline capture in XXX - 名称为 XXX 的网络适配器已经离线或不可用
   * 本类型错误会直接将 WinPcap 的错误信息直接打印至错误报告
   * WinPcap 错误信息的具体含义可移步 http://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html

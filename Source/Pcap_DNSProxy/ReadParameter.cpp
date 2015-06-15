@@ -1109,12 +1109,10 @@ uint16_t __fastcall DNSTypeNameToHex(const char *OriginalBuffer)
 }
 
 //Read parameter data from files
-bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, const size_t Line, bool &IsLabelComments)
+bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, const size_t Line, bool &IsLabelComments)
 {
-	std::string Data(Buffer);
-
 //Multi-line comments check
-	if (!ReadMultiLineComments(Buffer, Data, IsLabelComments))
+	if (!ReadMultiLineComments(Data, IsLabelComments))
 		return true;
 
 	SSIZE_T Result = 0;
@@ -2097,6 +2095,10 @@ bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, co
 	}
 
 //[Switches] block
+	else if (Data.find("TCPFastOpen=1") == 0)
+	{
+		Parameter.TCP_FastOpen = true;
+	}
 	else if (Data.find("DomainCaseConversion=1") == 0)
 	{
 		Parameter.DomainCaseConversion = true;

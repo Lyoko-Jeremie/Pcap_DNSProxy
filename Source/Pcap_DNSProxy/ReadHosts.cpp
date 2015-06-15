@@ -20,14 +20,12 @@
 #include "Configuration.h"
 
 //Read hosts data from files
-bool __fastcall ReadHostsData(const char *Buffer, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &IsLabelComments)
+bool __fastcall ReadHostsData(std::string Data, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &IsLabelComments)
 {
-	std::string Data(Buffer);
-
 //Multi-line comments check, delete comments(Number Sign/NS and double slashs) and check minimum length of hosts items.
-	if (!ReadMultiLineComments(Buffer, Data, IsLabelComments) || Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
+	if (!ReadMultiLineComments(Data, IsLabelComments) || Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
 		return true;
-	else if (Data.rfind(" //") != std::string::npos)
+	if (Data.rfind(" //") != std::string::npos)
 		Data.erase(Data.rfind(" //"), Data.length() - Data.rfind(" //"));
 	else if (Data.rfind("	//") != std::string::npos)
 		Data.erase(Data.rfind("	//"), Data.length() - Data.rfind("	//"));
@@ -736,8 +734,7 @@ bool __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, cons
 	memset(BufferHostsTableTemp.get(), 0, PACKET_MAXSIZE);
 	HostsTableTemp.Response.swap(BufferHostsTableTemp);
 	BufferHostsTableTemp.reset();
-	pdns_record_aaaa DNS_Record_AAAA = nullptr;
-	pdns_record_a DNS_Record_A = nullptr;
+	void *DNS_Record = nullptr;
 	SSIZE_T Result = 0;
 
 //Single address
@@ -758,16 +755,16 @@ bool __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, cons
 			}
 
 		//Make responses.
-			DNS_Record_AAAA = (pdns_record_aaaa)HostsTableTemp.Response.get();
-			DNS_Record_AAAA->Name = htons(DNS_POINTER_QUERY);
-			DNS_Record_AAAA->Classes = htons(DNS_CLASS_IN);
-			DNS_Record_AAAA->TTL = htonl(Parameter.HostsDefaultTTL);
-			DNS_Record_AAAA->Type = htons(DNS_RECORD_AAAA);
-			DNS_Record_AAAA->Length = htons(sizeof(in6_addr));
+			DNS_Record = (pdns_record_aaaa)HostsTableTemp.Response.get();
+			((pdns_record_aaaa)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
+			((pdns_record_aaaa)DNS_Record)->Classes = htons(DNS_CLASS_IN);
+			((pdns_record_aaaa)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
+			((pdns_record_aaaa)DNS_Record)->Type = htons(DNS_RECORD_AAAA);
+			((pdns_record_aaaa)DNS_Record)->Length = htons(sizeof(in6_addr));
 
 		//Convert addresses.
 			memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Separated);
-			if (!AddressStringToBinary(Addr.get(), &DNS_Record_AAAA->Addr, AF_INET6, Result))
+			if (!AddressStringToBinary(Addr.get(), &((pdns_record_aaaa)DNS_Record)->Addr, AF_INET6, Result))
 			{
 				PrintError(LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -790,16 +787,16 @@ bool __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, cons
 			}
 
 		//Make responses.
-			DNS_Record_A = (pdns_record_a)HostsTableTemp.Response.get();
-			DNS_Record_A->Name = htons(DNS_POINTER_QUERY);
-			DNS_Record_A->Classes = htons(DNS_CLASS_IN);
-			DNS_Record_A->TTL = htonl(Parameter.HostsDefaultTTL);
-			DNS_Record_A->Type = htons(DNS_RECORD_A);
-			DNS_Record_A->Length = htons(sizeof(in_addr));
+			DNS_Record = (pdns_record_a)HostsTableTemp.Response.get();
+			((pdns_record_a)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
+			((pdns_record_a)DNS_Record)->Classes = htons(DNS_CLASS_IN);
+			((pdns_record_a)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
+			((pdns_record_a)DNS_Record)->Type = htons(DNS_RECORD_A);
+			((pdns_record_a)DNS_Record)->Length = htons(sizeof(in_addr));
 
 		//Convert addresses.
 			memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Separated);
-			if (!AddressStringToBinary(Addr.get(), &DNS_Record_A->Addr, AF_INET, Result))
+			if (!AddressStringToBinary(Addr.get(), &((pdns_record_a)DNS_Record)->Addr, AF_INET, Result))
 			{
 				PrintError(LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -841,17 +838,17 @@ bool __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, cons
 					}
 
 				//Make responses
-					DNS_Record_AAAA = (pdns_record_aaaa)(HostsTableTemp.Response.get() + HostsTableTemp.Length);
-					DNS_Record_AAAA->Name = htons(DNS_POINTER_QUERY);
-					DNS_Record_AAAA->Classes = htons(DNS_CLASS_IN);
-					DNS_Record_AAAA->TTL = htonl(Parameter.HostsDefaultTTL);
-					DNS_Record_AAAA->Type = htons(DNS_RECORD_AAAA);
-					DNS_Record_AAAA->Length = htons(sizeof(in6_addr));
+					DNS_Record = (pdns_record_aaaa)(HostsTableTemp.Response.get() + HostsTableTemp.Length);
+					((pdns_record_aaaa)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
+					((pdns_record_aaaa)DNS_Record)->Classes = htons(DNS_CLASS_IN);
+					((pdns_record_aaaa)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
+					((pdns_record_aaaa)DNS_Record)->Type = htons(DNS_RECORD_AAAA);
+					((pdns_record_aaaa)DNS_Record)->Length = htons(sizeof(in6_addr));
 
 				//Convert addresses.
 					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 					memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str() + VerticalIndex, Index - VerticalIndex);
-					if (!AddressStringToBinary(Addr.get(), &DNS_Record_AAAA->Addr, AF_INET6, Result))
+					if (!AddressStringToBinary(Addr.get(), &((pdns_record_aaaa)DNS_Record)->Addr, AF_INET6, Result))
 					{
 						PrintError(LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 						return false;
@@ -889,17 +886,17 @@ bool __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, cons
 					}
 
 				//Make responses.
-					DNS_Record_A = (pdns_record_a)(HostsTableTemp.Response.get() + HostsTableTemp.Length);
-					DNS_Record_A->Name = htons(DNS_POINTER_QUERY);
-					DNS_Record_A->Classes = htons(DNS_CLASS_IN);
-					DNS_Record_A->TTL = htonl(Parameter.HostsDefaultTTL);
-					DNS_Record_A->Type = htons(DNS_RECORD_A);
-					DNS_Record_A->Length = htons(sizeof(in_addr));
+					DNS_Record = (pdns_record_a)(HostsTableTemp.Response.get() + HostsTableTemp.Length);
+					((pdns_record_a)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
+					((pdns_record_a)DNS_Record)->Classes = htons(DNS_CLASS_IN);
+					((pdns_record_a)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
+					((pdns_record_a)DNS_Record)->Type = htons(DNS_RECORD_A);
+					((pdns_record_a)DNS_Record)->Length = htons(sizeof(in_addr));
 
 				//Convert addresses.
 					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 					memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str() + VerticalIndex, Index - VerticalIndex);
-					if (!AddressStringToBinary(Addr.get(), &DNS_Record_A->Addr, AF_INET, Result))
+					if (!AddressStringToBinary(Addr.get(), &((pdns_record_a)DNS_Record)->Addr, AF_INET, Result))
 					{
 						PrintError(LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 						return false;

@@ -3,11 +3,11 @@
 A local DNS server based on WinPcap and LibPcap
 
 ### Usage
-**本分支 master 为 Pcap_DNSProxy 项目的主分支用于存放源代码，编译版本请移步 [Release 分支](https://github.com/chengr28/Pcap_DNSProxy/tree/Release)**<br />
+**本分支 master 为 Pcap_DNSProxy 项目用于存放源代码和文档的分支，可执行编译版本请移步 [Release 分支](https://github.com/chengr28/Pcap_DNSProxy/tree/Release)**<br />
 说明文档等参见项目 [Documents 文件夹](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的内容
 
 ### Updated
-**0.4.2.1** for Windows/Linux/Mac
+**0.4.2.2** for Windows/Linux/Mac
 
 ### Summary
 Pcap_DNSProxy 是一个基于 WinPcap/LibPcap 制作用于过滤 DNS 投毒污染的工具，提供了支持正则表达式的 Hosts 提供更便捷和强大的修改 Hosts 的方法，以及对 DNSCurve/DNSCrypt 协议、多线程和 TCP 协议请求的支持。多服务器多线程请求功能，更可提高在恶劣网络环境下域名解析的可靠性。
@@ -34,11 +34,6 @@ Pcap_DNSProxy 是一个基于 WinPcap/LibPcap 制作用于过滤 DNS 投毒污�
   * 支持 [编译所需依赖包](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的 Linux 发行版
 * Mac
   * **支持 64 位平台 Mac OS X 10.7 Lion 以及更新的版本**
-  * 不支持任何 32 位平台的 Mac OS X 系统
-
-### Library
-* 正则表达式支持由 C++ 11 STL 提供
-* DNSCurve 协议使用的 Curve25519/Salsa20/Poly1305 以及随机数生成算法由 [LibSodium](https://github.com/jedisct1/libsodium) 提供
 
 ### License
 GNU General Public License/GNU GPL v2

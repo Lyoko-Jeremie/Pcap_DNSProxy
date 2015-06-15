@@ -605,7 +605,7 @@ bool __fastcall LocalRequestProcess(const char *OriginalSend, const size_t SendS
 	size_t DataLength = 0;
 
 //TCP Mode
-	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP)
+	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
 	{
 		DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), true);
 
@@ -642,7 +642,7 @@ bool __fastcall DirectRequestProcess(const char *OriginalSend, const size_t Send
 	size_t DataLength = 0;
 
 //TCP Mode
-	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP)
+	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
 	{
 	//Multi requesting.
 		if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
@@ -689,7 +689,7 @@ bool __fastcall DNSCurveRequestProcess(const char *OriginalSend, const size_t Se
 	size_t DataLength = 0;
 
 //TCP requesting
-	if (Protocol == IPPROTO_TCP || DNSCurveParameter.DNSCurveMode == DNSCURVE_REQUEST_MODE_TCP)
+	if (DNSCurveParameter.DNSCurveMode == DNSCURVE_REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
 	{
 	//Multi requesting.
 		if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)

@@ -581,8 +581,6 @@ bool __fastcall SelectTargetSocketMulti(std::vector<SOCKET_DATA> &SockDataList, 
 	bool *IsAlternate = nullptr;
 #if defined(PLATFORM_WIN)
 	ULONG SocketMode = 1U;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	int Flags = 0;
 #endif
 	if (Protocol == IPPROTO_TCP) //TCP
 		SocketType = SOCK_STREAM;
@@ -631,8 +629,7 @@ bool __fastcall SelectTargetSocketMulti(std::vector<SOCKET_DATA> &SockDataList, 
 					return false;
 				}
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				Flags = fcntl(SockData->Socket, F_GETFL, 0);
-				fcntl(SockData->Socket, F_SETFL, Flags|O_NONBLOCK);
+				fcntl(SockData->Socket, F_SETFL, fcntl(SockData->Socket, F_GETFL, 0)|O_NONBLOCK);
 			#endif
 
 				SockData->AddrLen = sizeof(sockaddr_in6);
@@ -674,8 +671,7 @@ bool __fastcall SelectTargetSocketMulti(std::vector<SOCKET_DATA> &SockDataList, 
 					return false;
 				}
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				Flags = fcntl(SockData->Socket, F_GETFL, 0);
-				fcntl(SockData->Socket, F_SETFL, Flags|O_NONBLOCK);
+				fcntl(SockData->Socket, F_SETFL, fcntl(SockData->Socket, F_GETFL, 0)|O_NONBLOCK);
 			#endif
 
 				SockData->AddrLen = sizeof(sockaddr_in6);
@@ -719,8 +715,7 @@ bool __fastcall SelectTargetSocketMulti(std::vector<SOCKET_DATA> &SockDataList, 
 						return false;
 					}
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-					Flags = fcntl(SockData->Socket, F_GETFL, 0);
-					fcntl(SockData->Socket, F_SETFL, Flags|O_NONBLOCK);
+					fcntl(SockData->Socket, F_SETFL, fcntl(SockData->Socket, F_GETFL, 0)|O_NONBLOCK);
 				#endif
 
 					SockData->AddrLen = sizeof(sockaddr_in6);
@@ -772,8 +767,7 @@ bool __fastcall SelectTargetSocketMulti(std::vector<SOCKET_DATA> &SockDataList, 
 					return EXIT_FAILURE;
 				}
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				Flags = fcntl(SockData->Socket, F_GETFL, 0);
-				fcntl(SockData->Socket, F_SETFL, Flags|O_NONBLOCK);
+				fcntl(SockData->Socket, F_SETFL, fcntl(SockData->Socket, F_GETFL, 0)|O_NONBLOCK);
 			#endif
 
 				SockData->AddrLen = sizeof(sockaddr_in);
@@ -815,8 +809,7 @@ bool __fastcall SelectTargetSocketMulti(std::vector<SOCKET_DATA> &SockDataList, 
 					return EXIT_FAILURE;
 				}
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				Flags = fcntl(SockData->Socket, F_GETFL, 0);
-				fcntl(SockData->Socket, F_SETFL, Flags|O_NONBLOCK);
+				fcntl(SockData->Socket, F_SETFL, fcntl(SockData->Socket, F_GETFL, 0)|O_NONBLOCK);
 			#endif
 
 				SockData->AddrLen = sizeof(sockaddr_in);
@@ -861,8 +854,7 @@ bool __fastcall SelectTargetSocketMulti(std::vector<SOCKET_DATA> &SockDataList, 
 						return EXIT_FAILURE;
 					}
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-					Flags = fcntl(SockData->Socket, F_GETFL, 0);
-					fcntl(SockData->Socket, F_SETFL, Flags|O_NONBLOCK);
+					fcntl(SockData->Socket, F_SETFL, fcntl(SockData->Socket, F_GETFL, 0)|O_NONBLOCK);
 				#endif
 
 					SockData->AddrLen = sizeof(sockaddr_in);
@@ -882,7 +874,7 @@ bool __fastcall SelectTargetSocketMulti(std::vector<SOCKET_DATA> &SockDataList, 
 //Transmission and reception of TCP protocol(Independent)
 size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal)
 {
-//Initialization
+//Initialization(Part 1)
 	std::shared_ptr<char> SendBuffer(new char[sizeof(uint16_t) + SendSize]());
 	memset(SendBuffer.get(), 0, sizeof(uint16_t) + SendSize);
 	std::shared_ptr<SOCKET_DATA> TCPSockData(new SOCKET_DATA());
@@ -937,12 +929,35 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 		return EXIT_FAILURE;
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	int Flags = fcntl(TCPSockData->Socket, F_GETFL, 0);
-	fcntl(TCPSockData->Socket, F_SETFL, Flags|O_NONBLOCK);
+	fcntl(TCPSockData->Socket, F_SETFL, fcntl(TCPSockData->Socket, F_GETFL, 0)|O_NONBLOCK);
 #endif
 
 //Connect to server.
+	SSIZE_T RecvLen = 0;
+#if (defined(PLATFORM_WIN))
 	if (connect(TCPSockData->Socket, (PSOCKADDR)&TCPSockData->SockAddr, TCPSockData->AddrLen) == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK)
+#elif defined(PLATFORM_MACX)
+	if (connect(TCPSockData->Socket, (PSOCKADDR)&TCPSockData->SockAddr, TCPSockData->AddrLen) == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+#elif defined(PLATFORM_LINUX)
+	auto IsError = false, IsSend = false;
+	if (Parameter.TCP_FastOpen)
+	{
+		RecvLen = sendto(TCPSockData->Socket, SendBuffer.get(), (int)DataLength, MSG_FASTOPEN, (PSOCKADDR)&TCPSockData->SockAddr, TCPSockData->AddrLen);
+		if (RecvLen == SOCKET_ERROR || RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+		{
+			if (errno != EAGAIN && errno != EINPROGRESS)
+				IsError = true;
+		}
+		else {
+			IsSend = true;
+		}
+	}
+	else {
+		if (connect(TCPSockData->Socket, (PSOCKADDR)&TCPSockData->SockAddr, TCPSockData->AddrLen) == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+			IsError = true;
+	}
+	if (IsError)
+#endif
 	{
 		if (IsAlternate != nullptr && !*IsAlternate && WSAGetLastError() == WSAETIMEDOUT)
 		{
@@ -958,16 +973,21 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 		}
 	}
 
-//Send request and receive result.
+//Initialization(Part 2)
 	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
 	std::shared_ptr<timeval> Timeout(new timeval());
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
 	memset(Timeout.get(), 0, sizeof(timeval));
 	FD_ZERO(WriteFDS.get());
-	FD_SET(TCPSockData->Socket, WriteFDS.get());
-	SSIZE_T SelectResult = 0, RecvLen = 0;
+#if defined(PLATFORM_LINUX)
+	if (IsSend)
+#endif
+		FD_SET(TCPSockData->Socket, WriteFDS.get());
+	SSIZE_T SelectResult = 0;
 	uint16_t PDULen = 0;
+
+//Send request and receive result.
 	for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 	{
 		Sleep(LOOP_INTERVAL_TIME);
@@ -1074,7 +1094,11 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 			}
 
 		//Send.
+		#if (defined(PLATFORM_WIN) || defined(PLATFORM_MACX))
 			if (FD_ISSET(TCPSockData->Socket, WriteFDS.get()))
+		#elif defined(PLATFORM_LINUX)
+			if (!IsSend && FD_ISSET(TCPSockData->Socket, WriteFDS.get()))
+		#endif
 			{
 				send(TCPSockData->Socket, SendBuffer.get(), (int)DataLength, 0);
 				FD_ZERO(WriteFDS.get());
@@ -1106,7 +1130,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 //Transmission and reception of TCP protocol(Multithreading)
 size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize)
 {
-//Initialization
+//Initialization(Part 1)
 	std::shared_ptr<char> SendBuffer(new char[sizeof(uint16_t) + SendSize]());
 	memset(SendBuffer.get(), 0, sizeof(uint16_t) + SendSize);
 	memcpy_s(SendBuffer.get(), SendSize, OriginalSend, SendSize);
@@ -1122,12 +1146,42 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 		return EXIT_FAILURE;
 
 //Connect to servers.
-	for (auto SocketDataIter = TCPSocketDataList.begin();SocketDataIter != TCPSocketDataList.end();)
+	SSIZE_T SelectResult = 0, RecvLen = 0;
+#if defined(PLATFORM_LINUX)
+	std::vector<bool> IsSend(TCPSocketDataList.size());
+#endif
+	for (auto SocketDataIter = TCPSocketDataList.begin();SocketDataIter != TCPSocketDataList.end();++SelectResult)
 	{
+	#if (defined(PLATFORM_WIN))
 		if (connect(SocketDataIter->Socket, (PSOCKADDR)&SocketDataIter->SockAddr, SocketDataIter->AddrLen) == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK)
+	#elif defined(PLATFORM_MACX)
+		if (connect(SocketDataIter->Socket, (PSOCKADDR)&SocketDataIter->SockAddr, SocketDataIter->AddrLen) == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+	#elif defined(PLATFORM_LINUX)
+		auto IsError = false;
+		if (Parameter.TCP_FastOpen)
+		{
+			RecvLen = sendto(SocketDataIter->Socket, SendBuffer.get(), (int)DataLength, MSG_FASTOPEN, (PSOCKADDR)&SocketDataIter->SockAddr, SocketDataIter->AddrLen);
+			if (RecvLen == SOCKET_ERROR || RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+			{
+				if (errno != EAGAIN && errno != EINPROGRESS)
+					IsError = true;
+			}
+			else {
+				IsSend.at(SelectResult) = true;
+			}
+		}
+		else {
+			if (connect(SocketDataIter->Socket, (PSOCKADDR)&SocketDataIter->SockAddr, SocketDataIter->AddrLen) == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+				IsError = true;
+		}
+		if (IsError)
+	#endif
 		{
 			closesocket(SocketDataIter->Socket);
 			SocketDataIter = TCPSocketDataList.erase(SocketDataIter);
+		#if defined(PLATFORM_LINUX)
+			IsSend.erase(IsSend.begin() + SelectResult);
+		#endif
 			if (SocketDataIter == TCPSocketDataList.end())
 				goto StopLoop;
 		}
@@ -1139,7 +1193,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 	if (TCPSocketDataList.empty())
 		return EXIT_FAILURE;
 
-//Send request and receive result.
+//Initialization(Part 2)
 	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
 	std::shared_ptr<timeval> Timeout(new timeval());
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
@@ -1147,6 +1201,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 	memset(Timeout.get(), 0, sizeof(timeval));
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	SOCKET MaxSocket = 0;
+	SelectResult = 0;
 #endif
 	FD_ZERO(WriteFDS.get());
 	for (auto &SocketDataIter:TCPSocketDataList)
@@ -1155,10 +1210,18 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 		if (SocketDataIter.Socket > MaxSocket)
 			MaxSocket = SocketDataIter.Socket;
 	#endif
-		FD_SET(SocketDataIter.Socket, WriteFDS.get());
+	#if defined(PLATFORM_LINUX)
+		if (!IsSend.at(SelectResult))
+	#endif
+			FD_SET(SocketDataIter.Socket, WriteFDS.get());
+
+	#if defined(PLATFORM_LINUX)
+		++SelectResult;
+	#endif
 	}
-	SSIZE_T SelectResult = 0, RecvLen = 0;
 	std::vector<uint16_t> PDULenList(TCPSocketDataList.size(), 0);
+
+//Send request and receive result.
 	for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 	{
 		Sleep(LOOP_INTERVAL_TIME);
@@ -1290,10 +1353,21 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 			}
 
 		//Send.
+		#if defined(PLATFORM_LINUX)
+			size_t Index = 0;
+		#endif
 			for (auto &SocketDataIter:TCPSocketDataList)
 			{
+			#if (defined(PLATFORM_WIN) || defined(PLATFORM_MACX))
 				if (FD_ISSET(SocketDataIter.Socket, WriteFDS.get()))
+			#elif defined(PLATFORM_LINUX)
+				if (!IsSend.at(Index) && FD_ISSET(SocketDataIter.Socket, WriteFDS.get()))
+			#endif
 					send(SocketDataIter.Socket, SendBuffer.get(), (int)DataLength, 0);
+
+			#if defined(PLATFORM_LINUX)
+				++Index;
+			#endif
 			}
 
 			FD_ZERO(WriteFDS.get());
@@ -1457,7 +1531,7 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 	if (!SelectTargetSocketMulti(UDPSocketDataList, IPPROTO_UDP))
 		return EXIT_FAILURE;
 
-//Send request and receive result.
+//Initialization
 	std::shared_ptr<fd_set> WriteFDS(new fd_set());
 	std::shared_ptr<timeval> Timeout(new timeval());
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
@@ -1475,6 +1549,8 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 		FD_SET(SocketDataIter.Socket, WriteFDS.get());
 	}
 	SSIZE_T SelectResult = 0;
+
+//Send request and receive result.
 	for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 	{
 	//Reset parameters.
@@ -1774,7 +1850,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 	if (!SelectTargetSocketMulti(UDPSocketDataList, IPPROTO_UDP))
 		return EXIT_FAILURE;
 
-//Send request and receive result.
+//Initialization
 	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
 	std::shared_ptr<timeval> Timeout(new timeval());
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
@@ -1794,6 +1870,8 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 	}
 	SSIZE_T SelectResult = 0, RecvLen = 0;
 	size_t Index = 0;
+
+//Send request and receive result.
 	for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 	{
 		Sleep(LOOP_INTERVAL_TIME);

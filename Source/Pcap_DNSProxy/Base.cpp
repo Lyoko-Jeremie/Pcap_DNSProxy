@@ -36,23 +36,51 @@ bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length)
 	return true;
 }
 
+//Convert host values to network byte order with 16 bits(Force)
+uint16_t __fastcall hton16_Force(const uint16_t Value)
+{
+	uint8_t *Result = (uint8_t *)&Value;
+	return (uint16_t)(Result[0] << 8U | Result[1U]);
+}
+
+//Convert network byte order to host values with 16 bits(Force)
+uint16_t __fastcall ntoh16_Force(const uint16_t Value)
+{
+	uint8_t *Result = (uint8_t *)&Value;
+	return (uint16_t)(Result[0] << 8U | Result[1U]);
+}
+
+//Convert host values to network byte order with 32 bits(Force)
+uint32_t __fastcall hton32_Force(const uint32_t Value)
+{
+	uint8_t *Result = (uint8_t *)&Value;
+	return (uint32_t)(Result[0] << 24U | Result[1U] << 16U | Result[2U] << 8U | Result[3U]);
+}
+
+//Convert network byte order to host values with 32 bits(Force)
+uint32_t __fastcall ntoh32_Force(const uint32_t Value)
+{
+	uint8_t *Result = (uint8_t *)&Value;
+	return (uint32_t)(Result[0] << 24U | Result[1U] << 16U | Result[2U] << 8U | Result[3U]);
+}
+
 //Convert host values to network byte order with 64 bits
-uint64_t __fastcall hton64(const uint64_t Val)
+uint64_t __fastcall hton64(const uint64_t Value)
 {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-	return (((uint64_t)htonl((int32_t)((Val << 32U) >> 32U))) << 32U)|(uint32_t)htonl((int32_t)(Val >> 32U));
+	return (((uint64_t)htonl((int32_t)((Value << 32U) >> 32U))) << 32U) | (uint32_t)htonl((int32_t)(Value >> 32U));
 #else //BIG_ENDIAN
-	return Val;
+	return Value;
 #endif
 }
 
 //Convert network byte order to host values with 64 bits
-uint64_t __fastcall ntoh64(const uint64_t Val)
+uint64_t __fastcall ntoh64(const uint64_t Value)
 {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-	return (((uint64_t)ntohl((int32_t)((Val << 32U) >> 32U))) << 32U)|(uint32_t)ntohl((int32_t)(Val >> 32U));
+	return (((uint64_t)ntohl((int32_t)((Value << 32U) >> 32U))) << 32U) | (uint32_t)ntohl((int32_t)(Value >> 32U));
 #else //BIG_ENDIAN
-	return Val;
+	return Value;
 #endif
 }
 

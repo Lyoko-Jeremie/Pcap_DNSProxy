@@ -276,6 +276,12 @@
     <ClInclude Include="PacketData.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Platform.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Structures.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="WinPcap\Packet_x64.lib">

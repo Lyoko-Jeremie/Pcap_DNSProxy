@@ -20,12 +20,10 @@
 #include "Configuration.h"
 
 //Read ipfilter data from files
-bool __fastcall ReadIPFilterData(const char *Buffer, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &IsLabelComments)
+bool __fastcall ReadIPFilterData(std::string Data, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &IsLabelComments)
 {
-	std::string Data(Buffer);
-
 //Multi-line comments check, delete spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs) and check minimum length of ipfilter items.
-	if (!ReadMultiLineComments(Buffer, Data, IsLabelComments) || Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
+	if (!ReadMultiLineComments(Data, IsLabelComments) || Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
 		return true;
 
 //[Base] block

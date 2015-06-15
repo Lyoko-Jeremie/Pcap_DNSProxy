@@ -23,12 +23,12 @@
 bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t FileIndex)
 {
 //Initialization
-	std::shared_ptr<char> FileBuffer(new char[FILE_BUFFER_SIZE]()), TextBuffer(new char[FILE_BUFFER_SIZE]()), TextData(new char[FILE_BUFFER_SIZE]());
+	std::string TextData;
+	std::shared_ptr<char> FileBuffer(new char[FILE_BUFFER_SIZE]()), TextBuffer(new char[FILE_BUFFER_SIZE]());
 	memset(FileBuffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(TextBuffer.get(), 0, FILE_BUFFER_SIZE);
-	memset(TextData.get(), 0, FILE_BUFFER_SIZE);
-	size_t ReadLength = 0, Index = 0, TextLength = 0, TextBufferLength = 0, Line = 0, LabelType = 0;
-	auto CRLF_Point = false, IsEraseBOM = true, IsLabelComments = false;
+	size_t ReadLength = 0, Encoding = 0, Index = 0, Line = 0, LabelType = 0;
+	auto IsEraseBOM = true, NewLine_Point = false, IsLabelComments = false;
 
 //Read data.
 	while (!feof((FILE *)Input))
@@ -60,6 +60,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 				memmove_s(FileBuffer.get(), FILE_BUFFER_SIZE, FileBuffer.get() + BOM_UTF_8_LENGTH, FILE_BUFFER_SIZE - BOM_UTF_8_LENGTH);
 				memset(FileBuffer.get() + FILE_BUFFER_SIZE - BOM_UTF_8_LENGTH, 0, BOM_UTF_8_LENGTH);
 				ReadLength -= BOM_UTF_8_LENGTH;
+				Encoding = CODEPAGE_UTF_8;
 			}
 		//32-bit Unicode Transformation Format/UTF-32 Little Endian/LE
 			else if ((UCHAR)FileBuffer.get()[0] == 0xFF && (UCHAR)FileBuffer.get()[1U] == 0xFE && FileBuffer.get()[2U] == 0 && FileBuffer.get()[3U] == 0) //0xFF, 0xFE, 0x00, 0x00
@@ -67,6 +68,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 				memmove_s(FileBuffer.get(), FILE_BUFFER_SIZE, FileBuffer.get() + BOM_UTF_32_LENGTH, FILE_BUFFER_SIZE - BOM_UTF_32_LENGTH);
 				memset(FileBuffer.get() + FILE_BUFFER_SIZE - BOM_UTF_32_LENGTH, 0, BOM_UTF_32_LENGTH);
 				ReadLength -= BOM_UTF_32_LENGTH;
+				Encoding = CODEPAGE_UTF_32_LE;
 			}
 		//32-bit Unicode Transformation Format/UTF-32 Big Endian/BE
 			else if (FileBuffer.get()[0] == 0 && FileBuffer.get()[1U] == 0 && (UCHAR)FileBuffer.get()[2U] == 0xFE && (UCHAR)FileBuffer.get()[3U] == 0xFF) //0x00, 0x00, 0xFE, 0xFF
@@ -74,6 +76,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 				memmove_s(FileBuffer.get(), FILE_BUFFER_SIZE, FileBuffer.get() + BOM_UTF_32_LENGTH, FILE_BUFFER_SIZE - BOM_UTF_32_LENGTH);
 				memset(FileBuffer.get() + FILE_BUFFER_SIZE - BOM_UTF_32_LENGTH, 0, BOM_UTF_32_LENGTH);
 				ReadLength -= BOM_UTF_32_LENGTH;
+				Encoding = CODEPAGE_UTF_32_BE;
 			}
 		//16-bit Unicode Transformation Format/UTF-16 Little Endian/LE
 			else if ((UCHAR)FileBuffer.get()[0] == 0xFF && (UCHAR)FileBuffer.get()[1U] == 0xFE) //0xFF, 0xFE
@@ -81,6 +84,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 				memmove_s(FileBuffer.get(), FILE_BUFFER_SIZE, FileBuffer.get() + BOM_UTF_16_LENGTH, FILE_BUFFER_SIZE - BOM_UTF_16_LENGTH);
 				memset(FileBuffer.get() + FILE_BUFFER_SIZE - BOM_UTF_16_LENGTH, 0, BOM_UTF_16_LENGTH);
 				ReadLength -= BOM_UTF_16_LENGTH;
+				Encoding = CODEPAGE_UTF_16_LE;
 			}
 		//16-bit Unicode Transformation Format/UTF-16 Big Endian/BE
 			else if ((UCHAR)FileBuffer.get()[0] == 0xFE && (UCHAR)FileBuffer.get()[1U] == 0xFF) //0xFE, 0xFF
@@ -88,28 +92,190 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 				memmove_s(FileBuffer.get(), FILE_BUFFER_SIZE, FileBuffer.get() + BOM_UTF_16_LENGTH, FILE_BUFFER_SIZE - BOM_UTF_16_LENGTH);
 				memset(FileBuffer.get() + FILE_BUFFER_SIZE - BOM_UTF_16_LENGTH, 0, BOM_UTF_16_LENGTH);
 				ReadLength -= BOM_UTF_16_LENGTH;
+				Encoding = CODEPAGE_UTF_16_BE;
 			}
-/*		  8-bit Unicode Transformation Format/UTF-8 without BOM/Microsoft Windows ANSI Codepages
+		//8-bit Unicode Transformation Format/UTF-8 without BOM or other ASCII part of encoding
 			else {
-				;
-			}
-*/		}
-
-	//Mark words.
-		for (Index = 0;Index < ReadLength;++Index)
-		{
-			if (FileBuffer.get()[Index] != 0)
-			{
-				if (!CRLF_Point && (FileBuffer.get()[Index] == ASCII_CR || FileBuffer.get()[Index] == ASCII_LF))
-					CRLF_Point = true;
-
-				TextBuffer.get()[TextBufferLength] = FileBuffer.get()[Index];
-				++TextBufferLength;
+				Encoding = CODEPAGE_ANSI;
 			}
 		}
 
+	//Text check
+		if (Encoding == CODEPAGE_ANSI || Encoding == CODEPAGE_UTF_8)
+		{
+			uint16_t SingleText = 0;
+			for (Index = 0;Index < ReadLength;)
+			{
+			//About this process, see https://en.wikipedia.org/wiki/UTF-8.
+				if ((UCHAR)FileBuffer.get()[Index] > 0xE0 && Index >= 3U)
+				{
+					SingleText = (((uint16_t)(FileBuffer.get()[Index] & 0x0F)) << 12U) + (((uint16_t)(FileBuffer.get()[Index + 1U] & 0x3F)) << 6U) + (uint16_t)(FileBuffer.get()[Index + 2U] & 0x3F);
+				
+				//Next line format
+					if (SingleText == UNICODE_LS || SingleText == UNICODE_PS)
+					{
+						FileBuffer.get()[Index] = 0;
+						FileBuffer.get()[Index + 1U] = 0;
+						FileBuffer.get()[Index + 2U] = ASCII_LF;
+						Index += 3U;
+						continue;
+					}
+				//Space format
+					else if (SingleText == UNICODE_MVS || SingleText == UNICODE_NUT || SingleText == UNICODE_MUTTON || 
+						SingleText == UNICODE_TPES || SingleText == UNICODE_FPES || SingleText == UNICODE_SPES || 
+						SingleText == UNICODE_FS || SingleText == UNICODE_PCS || SingleText == UNICODE_TS || 
+						SingleText == UNICODE_HS || SingleText == UNICODE_ZWSP || SingleText == UNICODE_ZWNJ || 
+						SingleText == UNICODE_ZWJ || SingleText == UNICODE_NNBS || SingleText == UNICODE_MMSP || 
+						SingleText == UNICODE_WJ || SingleText == UNICODE_IS)
+					{
+						FileBuffer.get()[Index] = ASCII_SPACE;
+						FileBuffer.get()[Index + 1U] = 0;
+						FileBuffer.get()[Index + 2U] = 0;
+						Index += 3U;
+						continue;
+					}
+				}
+				else if ((UCHAR)FileBuffer.get()[Index] > 0xC0 && Index >= 2U)
+				{
+					SingleText = (((uint16_t)(FileBuffer.get()[Index] & 0x1F)) << 6U) + (uint16_t)(FileBuffer.get()[Index] & 0x3F);
+
+				//Next line format
+					if (SingleText == UNICODE_NEL)
+					{
+						FileBuffer.get()[Index] = 0;
+						FileBuffer.get()[Index + 1U] = ASCII_LF;
+						Index += 2U;
+						continue;
+					}
+				//Space format
+					if (SingleText == UNICODE_NBS)
+					{
+						FileBuffer.get()[Index] = ASCII_SPACE;
+						FileBuffer.get()[Index + 1U] = 0;
+						Index += 2U;
+						continue;
+					}
+				}
+				
+			//Delete all Non-ASCII.
+				if ((UCHAR)FileBuffer.get()[Index] > ASCII_MAX_NUM)
+					FileBuffer.get()[Index] = 0;
+			//Next line format
+				if (FileBuffer.get()[Index] == ASCII_CR && Index + 1U < ReadLength && FileBuffer.get()[Index + 1U] == ASCII_LF)
+					FileBuffer.get()[Index] = 0;
+				else if (FileBuffer.get()[Index] == ASCII_CR || FileBuffer.get()[Index] == ASCII_VT || FileBuffer.get()[Index] == ASCII_FF)
+					FileBuffer.get()[Index] = ASCII_LF;
+
+			//Next text.
+				++Index;
+			}
+		}
+		else if (Encoding == CODEPAGE_UTF_16_LE || Encoding == CODEPAGE_UTF_16_BE)
+		{
+			uint16_t *SingleText = nullptr;
+			for (Index = 0;Index < ReadLength;Index += sizeof(uint16_t))
+			{
+				SingleText = (uint16_t *)(FileBuffer.get() + Index);
+
+			//Endian
+			#if __BYTE_ORDER == __LITTLE_ENDIAN
+				if (Encoding == CODEPAGE_UTF_16_BE)
+					*SingleText = ntoh16_Force(*SingleText);
+			#else
+				if (Encoding == CODEPAGE_UTF_16_LE)
+					*SingleText = ntoh16_Force(*SingleText);
+			#endif
+			//Next line format
+				if (*SingleText == ASCII_CR && Index + sizeof(uint16_t) < ReadLength && 
+				#if __BYTE_ORDER == __LITTLE_ENDIAN
+					(Encoding == CODEPAGE_UTF_16_BE && ntoh16_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_16_LE && *(SingleText + 1U) == ASCII_LF))
+				#else
+					(Encoding == CODEPAGE_UTF_16_LE && ntoh16_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_16_BE && *(SingleText + 1U) == ASCII_LF))
+				#endif
+						*SingleText = 0;
+				else if (*SingleText == ASCII_CR || *SingleText == ASCII_VT || *SingleText == ASCII_FF || *SingleText == UNICODE_NEL || 
+					*SingleText == UNICODE_LS || *SingleText == UNICODE_PS)
+						*SingleText = ASCII_LF;
+			//Space format
+				else if (*SingleText == UNICODE_NBS || *SingleText == UNICODE_MVS || *SingleText == UNICODE_NUT || 
+					*SingleText == UNICODE_MUTTON || *SingleText == UNICODE_TPES || *SingleText == UNICODE_FPES || 
+					*SingleText == UNICODE_SPES || *SingleText == UNICODE_FS || *SingleText == UNICODE_PCS || 
+					*SingleText == UNICODE_TS || *SingleText == UNICODE_HS || *SingleText == UNICODE_ZWSP || 
+					*SingleText == UNICODE_ZWNJ || *SingleText == UNICODE_ZWJ || *SingleText == UNICODE_NNBS || 
+					*SingleText == UNICODE_MMSP || *SingleText == UNICODE_WJ || *SingleText == UNICODE_IS)
+						*SingleText = ASCII_SPACE;
+			//Delete all Non-ASCII.
+				else if (*SingleText > ASCII_MAX_NUM)
+					*SingleText = 0;
+			}
+		}
+		else if (Encoding == CODEPAGE_UTF_32_LE || Encoding == CODEPAGE_UTF_32_BE)
+		{
+			uint32_t *SingleText = nullptr;
+			for (Index = 0;Index < ReadLength;Index += sizeof(uint32_t))
+			{
+				SingleText = (uint32_t *)(FileBuffer.get() + Index);
+
+			//Endian
+			#if __BYTE_ORDER == __LITTLE_ENDIAN
+				if (Encoding == CODEPAGE_UTF_32_BE)
+					*SingleText = ntoh32_Force(*SingleText);
+			#else
+				if (Encoding == CODEPAGE_UTF_32_LE)
+					*SingleText = ntoh32_Force(*SingleText);
+			#endif
+			//Next line format
+				if (*SingleText == ASCII_CR && Index + sizeof(uint32_t) < ReadLength && 
+				#if __BYTE_ORDER == __LITTLE_ENDIAN
+					(Encoding == CODEPAGE_UTF_32_BE && ntoh32_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_32_LE && *(SingleText + 1U) == ASCII_LF))
+				#else
+					(Encoding == CODEPAGE_UTF_32_LE && ntoh32_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_32_BE && *(SingleText + 1U) == ASCII_LF))
+				#endif
+						*SingleText = 0;
+				else if (*SingleText == ASCII_CR || *SingleText == ASCII_VT || *SingleText == ASCII_FF || *SingleText == UNICODE_NEL || 
+					*SingleText == UNICODE_LS || *SingleText == UNICODE_PS)
+						*SingleText = ASCII_LF;
+			//Space format
+				else if (*SingleText == UNICODE_NBS || *SingleText == UNICODE_MVS || *SingleText == UNICODE_NUT || 
+					*SingleText == UNICODE_MUTTON || *SingleText == UNICODE_TPES || *SingleText == UNICODE_FPES || 
+					*SingleText == UNICODE_SPES || *SingleText == UNICODE_FS || *SingleText == UNICODE_PCS || 
+					*SingleText == UNICODE_TS || *SingleText == UNICODE_HS || *SingleText == UNICODE_ZWSP || 
+					*SingleText == UNICODE_ZWNJ || *SingleText == UNICODE_ZWJ || *SingleText == UNICODE_NNBS || 
+					*SingleText == UNICODE_MMSP || *SingleText == UNICODE_WJ || *SingleText == UNICODE_IS)
+						*SingleText = ASCII_SPACE;
+			//Delete all Non-ASCII.
+				else if (*SingleText > ASCII_MAX_NUM)
+					*SingleText = 0;
+			}
+		}
+		else {
+			if (InputType == READ_TEXT_HOSTS) //ReadHosts
+				PrintError(LOG_ERROR_HOSTS, L"Text encoding error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+			else if (InputType == READ_TEXT_IPFILTER) //ReadIPFilter
+				PrintError(LOG_ERROR_IPFILTER, L"Text encoding error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+			else //ReadParameter
+				PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+			
+			return false;
+		}
+
+	//Delete all null characters.
+		for (Index = 0;Index < ReadLength;++Index)
+		{
+			if ((UCHAR)FileBuffer.get()[Index] > 0)
+			{
+				TextBuffer.get()[strnlen_s(TextBuffer.get(), FILE_BUFFER_SIZE)] = FileBuffer.get()[Index];
+
+			//Mark next line format.
+				if (!NewLine_Point && FileBuffer.get()[Index] == ASCII_LF)
+					NewLine_Point = true;
+			}
+		}
+
+		memset(FileBuffer.get(), 0, FILE_BUFFER_SIZE);
+
 	//Lines length check
-		if (!CRLF_Point && ReadLength == FILE_BUFFER_SIZE)
+		if (!NewLine_Point && ReadLength == FILE_BUFFER_SIZE)
 		{
 			if (InputType == READ_TEXT_HOSTS) //ReadHosts
 				PrintError(LOG_ERROR_HOSTS, L"Data of a line is too long", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
@@ -121,121 +287,63 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 			return false;
 		}
 		else {
-			CRLF_Point = false;
+			NewLine_Point = false;
 		}
-
-		memset(FileBuffer.get(), 0, FILE_BUFFER_SIZE);
-		memcpy_s(FileBuffer.get(), FILE_BUFFER_SIZE, TextBuffer.get(), TextBufferLength);
-		ReadLength = TextBufferLength;
-		memset(TextBuffer.get(), 0, FILE_BUFFER_SIZE);
-		TextBufferLength = 0;
 
 	//Read data.
-		for (Index = 0;Index < ReadLength;++Index)
+		for (Index = 0;Index < strnlen_s(TextBuffer.get(), FILE_BUFFER_SIZE);++Index)
 		{
-			if (FileBuffer.get()[Index] == ASCII_CR) //Macintosh format.
+		//New line
+			if (TextBuffer.get()[Index] == ASCII_LF || Index + 1U == strnlen_s(TextBuffer.get(), FILE_BUFFER_SIZE) && feof((FILE *)Input))
 			{
 				++Line;
 
 			//Read texts.
-				if (TextLength > READ_TEXT_MINSIZE)
+				if (TextData.length() > READ_TEXT_MINSIZE)
 				{
 				//ReadHosts
 					if (InputType == READ_TEXT_HOSTS)
 					{
-						ReadHostsData(TextData.get(), FileIndex, Line, LabelType, IsLabelComments);
+						ReadHostsData(TextData, FileIndex, Line, LabelType, IsLabelComments);
 					}
 				//ReadIPFilter
 					else if (InputType == READ_TEXT_IPFILTER)
 					{
-						ReadIPFilterData(TextData.get(), FileIndex, Line, LabelType, IsLabelComments);
+						ReadIPFilterData(TextData, FileIndex, Line, LabelType, IsLabelComments);
 					}
 				//ReadParameter
 					else {
-						if (!ReadParameterData(TextData.get(), FileIndex, Line, IsLabelComments))
+						if (!ReadParameterData(TextData, FileIndex, Line, IsLabelComments))
 							return false;
 					}
 				}
 
-				memset(TextData.get(), 0, FILE_BUFFER_SIZE);
-				TextLength = 0;
-			}
-			else if (FileBuffer.get()[Index] == ASCII_LF) //Unix format.
-			{
-				++Line;
-				if (Index > 0 && FileBuffer.get()[Index - 1U] == ASCII_CR) //Windows format.
-					--Line;
-
-			//Read texts.
-				if (TextLength > READ_TEXT_MINSIZE)
-				{
-				//ReadHosts
-					if (InputType == READ_TEXT_HOSTS)
-					{
-						ReadHostsData(TextData.get(), FileIndex, Line, LabelType, IsLabelComments);
-					}
-				//ReadIPFilter
-					else if (InputType == READ_TEXT_IPFILTER)
-					{
-						ReadIPFilterData(TextData.get(), FileIndex, Line, LabelType, IsLabelComments);
-					}
-				//ReadParameter
-					else {
-						if (!ReadParameterData(TextData.get(), FileIndex, Line, IsLabelComments))
-							return false;
-					}
-				}
-
-				memset(TextData.get(), 0, FILE_BUFFER_SIZE);
-				TextLength = 0;
-			}
-			else if (Index == ReadLength - 1U && feof((FILE *)Input)) //Last line
-			{
-				++Line;
-				TextData.get()[TextLength] = FileBuffer.get()[Index];
-
-			//Read texts.
-				if (TextLength > READ_TEXT_MINSIZE)
-				{
-				//ReadHosts
-					if (InputType == READ_TEXT_HOSTS)
-					{
-						ReadHostsData(TextData.get(), FileIndex, Line, LabelType, IsLabelComments);
-					}
-				//ReadIPFilter
-					else if (InputType == READ_TEXT_IPFILTER)
-					{
-						ReadIPFilterData(TextData.get(), FileIndex, Line, LabelType, IsLabelComments);
-					}
-				//ReadParameter
-					else {
-						if (!ReadParameterData(TextData.get(), FileIndex, Line, IsLabelComments))
-							return false;
-					}
-				}
-
-				return true;
+			//Next step
+				if (Index + 1U == strnlen_s(TextBuffer.get(), FILE_BUFFER_SIZE) && feof((FILE *)Input))
+					return true;
+				else 
+					TextData.clear();
 			}
 			else {
-				TextData.get()[TextLength] = FileBuffer.get()[Index];
-				++TextLength;
+				TextData.append(1U, TextBuffer.get()[Index]);
 			}
 		}
 
-		memset(FileBuffer.get(), 0, FILE_BUFFER_SIZE);
+		memset(TextBuffer.get(), 0, FILE_BUFFER_SIZE);
 	}
 
 	return true;
 }
 
 //Check Multi-line comments
-bool __fastcall ReadMultiLineComments(const char *Buffer, std::string &Data, bool &IsLabelComments)
+bool __fastcall ReadMultiLineComments(std::string &Data, bool &IsLabelComments)
 {
 	if (IsLabelComments)
 	{
-		if (Data.find("*/") != std::string::npos)
+		if (Data.find("*/") != std::string::npos && Data.find("*/") + strlen("*/") < Data.length())
 		{
-			Data = Buffer + Data.find("*/") + strlen("*/");
+			std::string DataTemp(Data, Data.find("*/") + strlen("*/"), Data.length() - (Data.find("*/") + strlen("*/")));
+			Data = DataTemp;
 			IsLabelComments = false;
 		}
 		else {

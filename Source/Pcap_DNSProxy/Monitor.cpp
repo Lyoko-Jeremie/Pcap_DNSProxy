@@ -38,7 +38,7 @@ bool __fastcall MonitorInit(void)
 	//Get Hop Limits/TTL with normal DNS request.
 		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0)) //Non-IPv4
+			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 		{
 			std::thread IPv6TestDoaminThread(DomainTestRequest, AF_INET6);
 			IPv6TestDoaminThread.detach();
@@ -46,7 +46,7 @@ bool __fastcall MonitorInit(void)
 
 		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 &&
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0)) //Non-IPv6
+			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 		{
 			std::thread IPv4TestDoaminThread(DomainTestRequest, AF_INET);
 			IPv4TestDoaminThread.detach();
@@ -58,7 +58,7 @@ bool __fastcall MonitorInit(void)
 		//ICMPv6
 			if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 &&
 				(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-				Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0)) //Non-IPv4
+				Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 			{
 				std::thread ICMPv6Thread(ICMPEcho, AF_INET6);
 				ICMPv6Thread.detach();
@@ -67,7 +67,7 @@ bool __fastcall MonitorInit(void)
 		//ICMP
 			if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 &&
 				(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-				Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0)) //Non-IPv6
+				Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 			{
 				std::thread ICMPThread(ICMPEcho, AF_INET);
 				ICMPThread.detach();
@@ -535,8 +535,8 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		LastMarkTime = GetTickCount64();
 	#endif
 	}
-	void *Addr = nullptr;
 	pdns_hdr DNS_Header = nullptr;
+	void *Addr = nullptr;
 	size_t Index[] = {0, 0};
 
 //Start Monitor.
@@ -603,6 +603,9 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 					continue;
 		}
 
+	//Mark DNS Header pointer.
+		DNS_Header = (pdns_hdr)(Buffer.get() + PACKET_MAXSIZE * Index[0]);
+
 	//UDP Truncated check
 		if (RecvLen > (SSIZE_T)(Parameter.EDNSPayloadSize - EDNS_ADDITIONAL_MAXSIZE) && 
 			(Parameter.EDNS_Label || RecvLen > (SSIZE_T)Parameter.EDNSPayloadSize))
@@ -637,7 +640,6 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
 		{
 		//Check requesting.
-			DNS_Header = (pdns_hdr)(Buffer.get() + PACKET_MAXSIZE * Index[0]);
 			if (DNS_Header->Questions != htons(U16_NUM_ONE) || DNS_Header->Answer > 0 || ntohs(DNS_Header->Additional) > U16_NUM_ONE || DNS_Header->Authority > 0)
 				continue;
 			for (Index[1U] = sizeof(dns_hdr);Index[1U] < DNS_PACKET_QUERY_LOCATE(Buffer.get() + PACKET_MAXSIZE * Index[0]);++Index[1U])
@@ -721,7 +723,7 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 		return false;
 	}
 */
-//Create an IPv6 server socket that can also accept IPv4 connections on Linux.
+//An IPv6 server socket that can also accept IPv4 connections on Linux by default.
 //	SetVal = 1;
 	if (LocalSocketData.SockAddr.ss_family == AF_INET6 && Parameter.OperationMode != LISTEN_MODE_PROXY && 
 		setsockopt(LocalSocketData.Socket, IPPROTO_IPV6, IPV6_V6ONLY, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
@@ -731,6 +733,17 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 
 		return false;
 	}
+//TCP Fast Open setting
+	#if defined(PLATFORM_LINUX)
+		SetVal = TCP_FASTOPEN_HINT;
+		if (setsockopt(LocalSocketData.Socket, SOL_TCP, TCP_FASTOPEN, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
+		{
+			PrintError(LOG_ERROR_NETWORK, L"Set TCP socket Fast Open error", errno, nullptr, 0);
+			close(LocalSocketData.Socket);
+
+			return false;
+		}
+	#endif
 #endif
 
 //Bind socket to port.
@@ -1338,8 +1351,7 @@ void __fastcall NetworkInformationMonitor(void)
 #endif
 	pdns_hdr DNS_Header = nullptr;
 	pdns_qry DNS_Query = nullptr;
-	pdns_record_aaaa DNS_Record_AAAA = nullptr;
-	pdns_record_a DNS_Record_A = nullptr;
+	void *DNS_Record = nullptr;
 	auto IsSubnetMark = false;
 
 //Monitor
@@ -1410,13 +1422,13 @@ void __fastcall NetworkInformationMonitor(void)
 					//Mark local addresses(B part).
 						if (Parameter.LocalAddress_Length[0] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
 						{
-							DNS_Record_AAAA = (pdns_record_aaaa)(Parameter.LocalAddress_Response[0] + Parameter.LocalAddress_Length[0]);
-							DNS_Record_AAAA->Name = htons(DNS_POINTER_QUERY);
-							DNS_Record_AAAA->Classes = htons(DNS_CLASS_IN);
-							DNS_Record_AAAA->TTL = htonl(Parameter.HostsDefaultTTL);
-							DNS_Record_AAAA->Type = htons(DNS_RECORD_AAAA);
-							DNS_Record_AAAA->Length = htons(sizeof(in6_addr));
-							DNS_Record_AAAA->Addr = ((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr;
+							DNS_Record = (pdns_record_aaaa)(Parameter.LocalAddress_Response[0] + Parameter.LocalAddress_Length[0]);
+							((pdns_record_aaaa)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
+							((pdns_record_aaaa)DNS_Record)->Classes = htons(DNS_CLASS_IN);
+							((pdns_record_aaaa)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
+							((pdns_record_aaaa)DNS_Record)->Type = htons(DNS_RECORD_AAAA);
+							((pdns_record_aaaa)DNS_Record)->Length = htons(sizeof(in6_addr));
+							((pdns_record_aaaa)DNS_Record)->Addr = ((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr;
 							Parameter.LocalAddress_Length[0] += sizeof(dns_record_aaaa);
 							++DNS_Header->Answer;
 						}
@@ -1491,13 +1503,13 @@ void __fastcall NetworkInformationMonitor(void)
 					//Mark local addresses(B part).
 						if (Parameter.LocalAddress_Length[0] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
 						{
-							DNS_Record_AAAA = (pdns_record_aaaa)(Parameter.LocalAddress_Response[0] + Parameter.LocalAddress_Length[0]);
-							DNS_Record_AAAA->Name = htons(DNS_POINTER_QUERY);
-							DNS_Record_AAAA->Classes = htons(DNS_CLASS_IN);
-							DNS_Record_AAAA->TTL = htonl(Parameter.HostsDefaultTTL);
-							DNS_Record_AAAA->Type = htons(DNS_RECORD_AAAA);
-							DNS_Record_AAAA->Length = htons(sizeof(in6_addr));
-							DNS_Record_AAAA->Addr = ((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr;
+							DNS_Record = (pdns_record_aaaa)(Parameter.LocalAddress_Response[0] + Parameter.LocalAddress_Length[0]);
+							((pdns_record_aaaa)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
+							((pdns_record_aaaa)DNS_Record)->Classes = htons(DNS_CLASS_IN);
+							((pdns_record_aaaa)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
+							((pdns_record_aaaa)DNS_Record)->Type = htons(DNS_RECORD_AAAA);
+							((pdns_record_aaaa)DNS_Record)->Length = htons(sizeof(in6_addr));
+							((pdns_record_aaaa)DNS_Record)->Addr = ((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr;
 							Parameter.LocalAddress_Length[0] += sizeof(dns_record_aaaa);
 							++DNS_Header->Answer;
 						}
@@ -1638,13 +1650,13 @@ void __fastcall NetworkInformationMonitor(void)
 					//Mark local addresses(B part).
 						if (Parameter.LocalAddress_Length[1U] <= PACKET_MAXSIZE - sizeof(dns_record_a))
 						{
-							DNS_Record_A = (pdns_record_a)(Parameter.LocalAddress_Response[1U] + Parameter.LocalAddress_Length[1U]);
-							DNS_Record_A->Name = htons(DNS_POINTER_QUERY);
-							DNS_Record_A->Classes = htons(DNS_CLASS_IN);
-							DNS_Record_A->TTL = htonl(Parameter.HostsDefaultTTL);
-							DNS_Record_A->Type = htons(DNS_RECORD_A);
-							DNS_Record_A->Length = htons(sizeof(in_addr));
-							DNS_Record_A->Addr = ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr;
+							DNS_Record = (pdns_record_a)(Parameter.LocalAddress_Response[1U] + Parameter.LocalAddress_Length[1U]);
+							((pdns_record_a)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
+							((pdns_record_a)DNS_Record)->Classes = htons(DNS_CLASS_IN);
+							((pdns_record_a)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
+							((pdns_record_a)DNS_Record)->Type = htons(DNS_RECORD_A);
+							((pdns_record_a)DNS_Record)->Length = htons(sizeof(in_addr));
+							((pdns_record_a)DNS_Record)->Addr = ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr;
 							Parameter.LocalAddress_Length[1U] += sizeof(dns_record_a);
 							++DNS_Header->Answer;
 						}
@@ -1701,13 +1713,13 @@ void __fastcall NetworkInformationMonitor(void)
 					//Mark local addresses(B part).
 						if (Parameter.LocalAddress_Length[1U] <= PACKET_MAXSIZE - sizeof(dns_record_a))
 						{
-							DNS_Record_A = (pdns_record_a)(Parameter.LocalAddress_Response[1U] + Parameter.LocalAddress_Length[1U]);
-							DNS_Record_A->Name = htons(DNS_POINTER_QUERY);
-							DNS_Record_A->Classes = htons(DNS_CLASS_IN);
-							DNS_Record_A->TTL = htonl(Parameter.HostsDefaultTTL);
-							DNS_Record_A->Type = htons(DNS_RECORD_A);
-							DNS_Record_A->Length = htons(sizeof(in_addr));
-							DNS_Record_A->Addr = ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr;
+							DNS_Record = (pdns_record_a)(Parameter.LocalAddress_Response[1U] + Parameter.LocalAddress_Length[1U]);
+							((pdns_record_a)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
+							((pdns_record_a)DNS_Record)->Classes = htons(DNS_CLASS_IN);
+							((pdns_record_a)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
+							((pdns_record_a)DNS_Record)->Type = htons(DNS_RECORD_A);
+							((pdns_record_a)DNS_Record)->Length = htons(sizeof(in_addr));
+							((pdns_record_a)DNS_Record)->Addr = ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr;
 							Parameter.LocalAddress_Length[1U] += sizeof(dns_record_a);
 							++DNS_Header->Answer;
 						}

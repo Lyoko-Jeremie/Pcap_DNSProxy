@@ -27,7 +27,9 @@ project(Pcap_DNSProxy)
 set(CMAKE_BUILD_TYPE "Release")
 
 # All source files
-set(MAIN_SRC_FILES 
+set(MAIN_SRC_FILES
+		"Platform.h"
+		"Structures.h"
 		"Base.h"
 		"Capture.h"
 		"Configuration.h"
@@ -59,7 +61,11 @@ set(MAIN_SRC_FILES
 		"Service.cpp")
 
 # Compiling and linking flags
-add_definitions(-std=c++11 -fpic)
+IF(COMPILE_OPENWRT)
+	add_definitions(-std=c++11)
+ELSE(COMPILE_OPENWRT)
+	add_definitions(-std=c++11 -fpic)
+ENDIF(COMPILE_OPENWRT)
 IF(ENABLE_PCAP)
 	add_definitions(-DENABLE_PCAP)
 ENDIF(ENABLE_PCAP)
@@ -69,8 +75,11 @@ ENDIF(ENABLE_LIBSODIUM)
 
 # Executable file name
 add_executable(Pcap_DNSProxy ${MAIN_SRC_FILES})
+IF(COMPILE_OPENWRT)
+	INSTALL(TARGETS Pcap_DNSProxy RUNTIME DESTINATION sbin)
+ENDIF(COMPILE_OPENWRT)
 
-# Static libraries
+# Libraries linking
 target_link_libraries(Pcap_DNSProxy pthread)
 IF(ENABLE_PCAP)
 	target_link_libraries(Pcap_DNSProxy pcap)
@@ -78,3 +87,7 @@ ENDIF(ENABLE_PCAP)
 IF(ENABLE_LIBSODIUM)
 	target_link_libraries(Pcap_DNSProxy sodium)
 ENDIF(ENABLE_LIBSODIUM)
+IF(COMPILE_OPENWRT)
+	target_link_libraries(Pcap_DNSProxy pcap)
+	target_link_libraries(Pcap_DNSProxy sodium)
+ENDIF(COMPILE_OPENWRT)

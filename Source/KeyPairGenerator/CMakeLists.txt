@@ -32,15 +32,24 @@ set(GENERATOR_SRC_DIR
 		"KeyPairGenerator.cpp")
 
 # Compiling and linking flags
-add_definitions(-std=c++11 -fpic)
+IF(COMPILE_OPENWRT)
+	add_definitions(-std=c++11)
+ELSE(COMPILE_OPENWRT)
+	add_definitions(-std=c++11 -fpic)
+ENDIF(COMPILE_OPENWRT)
 IF(ENABLE_LIBSODIUM)
 	add_definitions(-DENABLE_LIBSODIUM)
 ENDIF(ENABLE_LIBSODIUM)
 
 # Executable file name
 add_executable(KeyPairGenerator ${GENERATOR_SRC_DIR})
+IF(COMPILE_OPENWRT)
+	INSTALL(TARGETS KeyPairGenerator RUNTIME DESTINATION sbin)
+ENDIF(COMPILE_OPENWRT)
 
-# Static libraries
+# Libraries linking
 IF(ENABLE_LIBSODIUM)
+	target_link_libraries(KeyPairGenerator sodium)
+ELSEIF(COMPILE_OPENWRT)
 	target_link_libraries(KeyPairGenerator sodium)
 ENDIF(ENABLE_LIBSODIUM)

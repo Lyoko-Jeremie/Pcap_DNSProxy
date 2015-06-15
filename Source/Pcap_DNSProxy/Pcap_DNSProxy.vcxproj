@@ -232,12 +232,14 @@
     <ClInclude Include="Base.h" />
     <ClInclude Include="Monitor.h" />
     <ClInclude Include="PacketData.h" />
+    <ClInclude Include="Platform.h" />
     <ClInclude Include="PrintLog.h" />
     <ClInclude Include="Process.h" />
     <ClInclude Include="Protocol.h" />
     <ClInclude Include="Network.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Service.h" />
+    <ClInclude Include="Structures.h" />
     <ClInclude Include="WinPcap\bittypes.h" />
     <ClInclude Include="WinPcap\ip6_misc.h" />
     <ClInclude Include="WinPcap\Packet32.h" />

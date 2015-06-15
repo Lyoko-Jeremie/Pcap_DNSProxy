@@ -61,12 +61,12 @@ extern std::mutex HostsListLock, AddressRangeLock, ResultBlacklistLock, AddressH
 
 //Functions in Configuration.cpp
 bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t FileIndex);
-bool __fastcall ReadMultiLineComments(const char *Buffer, std::string &Data, bool &IsLabelComments);
+bool __fastcall ReadMultiLineComments(std::string &Data, bool &IsLabelComments);
 void __fastcall ClearListData(const size_t ClearType, const size_t FileIndex);
 
 //Functions in ReadParameter.cpp
 bool __fastcall ParameterCheckAndSetting(const size_t FileIndex);
-bool __fastcall ReadParameterData(const char *Buffer, const size_t FileIndex, const size_t Line, bool &IsLabelComments);
+bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, const size_t Line, bool &IsLabelComments);
 #if defined(PLATFORM_WIN)
 	void __fastcall ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -85,14 +85,14 @@ bool __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffset,
 bool __fastcall ReadMagicNumber(std::string Data, const size_t DataOffset, PSTR MagicNumber, const size_t FileIndex, const size_t Line);
 
 //Functions in ReadIPFilter.cpp
-bool __fastcall ReadIPFilterData(const char *Buffer, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &IsLabelComments);
+bool __fastcall ReadIPFilterData(std::string Data, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &IsLabelComments);
 bool __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, const size_t Line);
 bool __fastcall ReadLocalRoutingData(std::string Data, const size_t FileIndex, const size_t Line);
 bool __fastcall ReadAddressPrefixBlock(std::string OriginalData, const size_t DataOffset, const size_t FileIndex, const size_t Line);
 bool __fastcall ReadMainIPFilterData(std::string Data, const size_t FileIndex, const size_t Line);
 
 //Functions in ReadHosts.cpp
-bool __fastcall ReadHostsData(const char *Buffer, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &IsLabelComments);
+bool __fastcall ReadHostsData(std::string Data, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &IsLabelComments);
 bool __fastcall ReadWhitelistAndBannedData(std::string Data, const size_t FileIndex, const size_t Line, const size_t LabelType);
 bool __fastcall ReadLocalHostsData(std::string Data, const size_t FileIndex, const size_t Line);
 bool __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex, const size_t Line);

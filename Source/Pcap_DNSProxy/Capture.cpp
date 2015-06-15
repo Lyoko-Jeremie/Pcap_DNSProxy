@@ -30,6 +30,7 @@ void __fastcall CaptureInit(void)
 	CaptureFilterRulesInit(PcapFilterRules);
 	pcap_if *pThedevs = nullptr, *pDrive = nullptr;
 	std::vector<std::string>::iterator CaptureIter;
+	auto IsErrorFirstPrint = true;
 
 //Capture Monitor
 	std::unique_lock<std::mutex> CaptureMutex(CaptureLock);
@@ -51,7 +52,10 @@ void __fastcall CaptureInit(void)
 	//Permissions check and check available network devices.
 		if (pThedevs == nullptr)
 		{
-			PrintError(LOG_ERROR_PCAP, L"Insufficient privileges or not any available network devices", 0, nullptr, 0);
+			if (IsErrorFirstPrint)
+				IsErrorFirstPrint = false;
+			else 
+				PrintError(LOG_ERROR_PCAP, L"Insufficient privileges or not any available network devices", 0, nullptr, 0);
 
 			Sleep(PCAP_DEVICES_RECHECK_TIME * SECOND_TO_MILLISECOND);
 			continue;
@@ -414,8 +418,8 @@ bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList)
 //Start capture.
 	SSIZE_T Result = 0;
 	size_t Index = 0;
-	const UCHAR *PacketData = nullptr;
 	pcap_pkthdr *PacketHeader = nullptr;
+	const unsigned char *PacketData = nullptr;
 	for (;;)
 	{
 		Result = pcap_next_ex(DeviceHandle, &PacketHeader, &PacketData);
@@ -423,6 +427,7 @@ bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList)
 		{
 			case PCAP_ERROR: //An error occurred.
 			{
+/* Old version(2015-06-14)
 				std::shared_ptr<wchar_t> ErrBuffer(new wchar_t[PCAP_ERRBUF_SIZE]());
 				wmemset(ErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
 
@@ -430,7 +435,7 @@ bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList)
 				wcsncpy_s(ErrBuffer.get(), PCAP_ERRBUF_SIZE, L"An error occurred in ", wcslen(L"An error occurred in "));
 				wcsncpy_s(ErrBuffer.get() + wcslen(L"An error occurred in "), PCAP_ERRBUF_SIZE - wcslen(L"An error occurred in "), DeviceName.c_str(), DeviceName.length());
 				PrintError(LOG_ERROR_PCAP, ErrBuffer.get(), 0, nullptr, 0);
-
+*/
 			//Delete from devices list.
 				std::unique_lock<std::mutex> CaptureMutex(CaptureLock);
 				for (auto CaptureIter = PcapRunningList.begin();CaptureIter != PcapRunningList.end();)
@@ -602,7 +607,8 @@ bool __fastcall CaptureNetworkLayer(const char *Recv, const size_t Length, const
 	memset(Buffer.get(), 0, Length);
 	memcpy_s(Buffer.get(), Length, Recv, Length);
 
-	if (Protocol == PPP_IPV6 || Protocol == OSI_L2_IPV6) //IPv6
+//IPv6
+	if (Protocol == PPP_IPV6 || Protocol == OSI_L2_IPV6)
 	{
 		auto IPv6_Header = (pipv6_hdr)Buffer.get();
 
@@ -702,7 +708,8 @@ bool __fastcall CaptureNetworkLayer(const char *Recv, const size_t Length, const
 			}
 		}
 	}
-	else { //IPv4
+//IPv4
+	else {
 		auto IPv4_Header = (pipv4_hdr)Buffer.get();
 
 	//Validate IPv4 header.

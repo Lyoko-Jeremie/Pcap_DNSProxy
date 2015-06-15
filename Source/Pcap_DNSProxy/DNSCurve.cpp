@@ -212,7 +212,7 @@ void __fastcall DNSCurveInit(void)
 	//Main
 		if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //Auto select and IPv6
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) && //Non-IPv4
+			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0) && //Non-IPv4
 			(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
@@ -222,7 +222,7 @@ void __fastcall DNSCurveInit(void)
 
 		if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //Auto select and IPv4
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0) && //Non-IPv6
+			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0) && //Non-IPv6
 			(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
@@ -233,7 +233,7 @@ void __fastcall DNSCurveInit(void)
 	//Alternate
 		if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 &&
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //Auto select and IPv6
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) && //Non-IPv4
+			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0) && //Non-IPv4
 			(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
@@ -243,7 +243,7 @@ void __fastcall DNSCurveInit(void)
 
 		if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //Auto select and IPv4
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0) && //Non-IPv6
+			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0) && //Non-IPv6
 			(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
@@ -256,7 +256,7 @@ void __fastcall DNSCurveInit(void)
 //Main
 	if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && 
 		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //Auto select and IPv6
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) && //Non-IPv4
+		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0) && //Non-IPv4
 		(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
@@ -266,7 +266,7 @@ void __fastcall DNSCurveInit(void)
 
 	if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && 
 		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //Auto select and IPv4
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0) && //Non-IPv6
+		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0) && //Non-IPv6
 		(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
@@ -277,7 +277,7 @@ void __fastcall DNSCurveInit(void)
 //Alternate
 	if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
 		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //Auto select and IPv6
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0) && //Non-IPv4
+		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0) && //Non-IPv4
 		(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
@@ -287,7 +287,7 @@ void __fastcall DNSCurveInit(void)
 
 	if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
 		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //Auto select and IPv4
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0) && //Non-IPv6
+		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0) && //Non-IPv6
 		(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
@@ -391,7 +391,7 @@ size_t DNSCurveSignatureRequest(const char *OriginalSend, const size_t SendSize,
 //Send TCP request to get Signature Data of servers
 bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool IsAlternate)
 {
-//Initialization
+//Initialization(Part 1)
 	std::shared_ptr<char> SendBuffer(new char[PACKET_MAXSIZE]()), RecvBuffer(new char[LARGE_PACKET_MAXSIZE]());
 	memset(SendBuffer.get(), 0, PACKET_MAXSIZE);
 	memset(RecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
@@ -480,20 +480,22 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 		TCPSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	}
 
-//Requesting
+//Initialization(Part 2)
 	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
 #if defined(PLATFORM_WIN)
 	ULONG SocketMode = 1U;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	int Flags = 0;
 #endif
 	std::shared_ptr<timeval> Timeout(new timeval());
 	memset(Timeout.get(), 0, sizeof(timeval));
 	SSIZE_T SelectResult = 0, RecvLen = 0;
 	uint16_t PDULen = 0;
+#if defined(PLATFORM_LINUX)
+	auto IsError = false, IsSend = false;
+#endif
 
+//Requesting
 	for (;;)
 	{
 	//Socket check
@@ -511,12 +513,34 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 			goto JumpToRestart;
 		}
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		Flags = fcntl(TCPSocket, F_GETFL, 0);
-		fcntl(TCPSocket, F_SETFL, Flags|O_NONBLOCK);
+		fcntl(TCPSocket, F_SETFL, fcntl(TCPSocket, F_GETFL, 0)|O_NONBLOCK);
 	#endif
 
 	//Connect to server.
+	#if defined(PLATFORM_WIN)
 		if (connect(TCPSocket, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK)
+	#elif defined(PLATFORM_MACX)
+		if (connect(TCPSocket, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+	#elif defined(PLATFORM_LINUX)
+		IsError = false, IsSend = false;
+		if (Parameter.TCP_FastOpen)
+		{
+			RecvLen = sendto(TCPSocket, SendBuffer.get(), (int)DataLength, MSG_FASTOPEN, (PSOCKADDR)SockAddr.get(), AddrLen);
+			if (RecvLen == SOCKET_ERROR || RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+			{
+				if (errno != EAGAIN && errno != EINPROGRESS)
+					IsError = true;
+			}
+			else {
+				IsSend = true;
+			}
+		}
+		else {
+			if (connect(TCPSocket, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+				IsError = true;
+		}
+		if (IsError)
+	#endif
 		{
 			if (ServerType == DNSCURVE_MAIN_IPV6)
 				PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
@@ -532,7 +556,10 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 
 	//Send request and receive result.
 		FD_ZERO(WriteFDS.get());
-		FD_SET(TCPSocket, WriteFDS.get());
+	#if defined(PLATFORM_LINUX)
+		if (!IsSend)
+	#endif
+			FD_SET(TCPSocket, WriteFDS.get());
 		SelectResult = 0, RecvLen = 0, PDULen = 0;
 		for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 		{
@@ -691,7 +718,11 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 				}
 
 			//Send.
+			#if (defined(PLATFORM_WIN) || defined(PLATFORM_MACX))
 				if (FD_ISSET(TCPSocket, WriteFDS.get()))
+			#elif defined(PLATFORM_LINUX)
+				if (!IsSend && FD_ISSET(TCPSocket, WriteFDS.get()))
+			#endif
 				{
 					send(TCPSocket, SendBuffer.get(), (int)DataLength, 0);
 					FD_ZERO(WriteFDS.get());
@@ -1040,7 +1071,7 @@ bool __fastcall DNSCruveGetSignatureData(const char *Buffer, const size_t Server
 //Transmission of DNSCurve TCP protocol
 size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize)
 {
-//Initialization
+//Initialization(Part 1)
 	std::shared_ptr<SOCKET_DATA> TCPSockData(new SOCKET_DATA());
 	memset(TCPSockData.get(), 0, sizeof(SOCKET_DATA));
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
@@ -1067,8 +1098,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 		return EXIT_FAILURE;
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	int Flags = fcntl(TCPSockData->Socket, F_GETFL, 0);
-	fcntl(TCPSockData->Socket, F_SETFL, Flags|O_NONBLOCK);
+	fcntl(TCPSockData->Socket, F_SETFL, fcntl(TCPSockData->Socket, F_GETFL, 0)|O_NONBLOCK);
 #endif
 
 	size_t DataLength = DNSCurveParameter.DNSCurvePayloadSize;
@@ -1116,14 +1146,39 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 	}
 //Normal mode
 	else {
-		memcpy_s(OriginalRecv + sizeof(uint16_t), RecvSize - sizeof(uint16_t), OriginalSend, SendSize);
-		auto BufferLength = (uint16_t *)OriginalRecv;
-		*BufferLength = htons((uint16_t)SendSize);
-		DataLength = sizeof(uint16_t) + SendSize;
+	//Add length of request packet(It must be written in header when transpot with TCP protocol).
+		memcpy_s(OriginalRecv, RecvSize, OriginalSend, SendSize);
+		DataLength = AddLengthDataToDNSHeader(OriginalRecv, SendSize, RecvSize);
+		if (DataLength == EXIT_FAILURE)
+			return EXIT_FAILURE;
 	}
 
 //Connect to server.
+	SSIZE_T RecvLen = 0;
+#if defined(PLATFORM_WIN)
 	if (connect(TCPSockData->Socket, (PSOCKADDR)&TCPSockData->SockAddr, TCPSockData->AddrLen) == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK)
+#elif defined(PLATFORM_MACX)
+	if (connect(TCPSockData->Socket, (PSOCKADDR)&TCPSockData->SockAddr, TCPSockData->AddrLen) == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+#elif defined(PLATFORM_LINUX)
+	auto IsError = false, IsSend = false;
+	if (Parameter.TCP_FastOpen)
+	{
+		RecvLen = sendto(TCPSockData->Socket, OriginalRecv, (int)DataLength, MSG_FASTOPEN, (PSOCKADDR)&TCPSockData->SockAddr, TCPSockData->AddrLen);
+		if (RecvLen == SOCKET_ERROR || RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+		{
+			if (errno != EAGAIN && errno != EINPROGRESS)
+				IsError = true;
+		}
+		else {
+			IsSend = true;
+		}
+	}
+	else {
+		if (connect(TCPSockData->Socket, (PSOCKADDR)&TCPSockData->SockAddr, TCPSockData->AddrLen) == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+			IsError = true;
+	}
+	if (IsError)
+#endif
 	{
 		if (IsAlternate != nullptr && !*IsAlternate && WSAGetLastError() == WSAETIMEDOUT)
 		{
@@ -1139,17 +1194,21 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 		}
 	}
 
-//Requesting
+//Initialization(Part 2)
 	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
 	std::shared_ptr<timeval> Timeout(new timeval());
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
 	memset(Timeout.get(), 0, sizeof(timeval));
 	FD_ZERO(WriteFDS.get());
-	FD_SET(TCPSockData->Socket, WriteFDS.get());
-	SSIZE_T SelectResult = 0, RecvLen = 0;
+#if defined(PLATFORM_LINUX)
+	if (!IsSend)
+#endif
+		FD_SET(TCPSockData->Socket, WriteFDS.get());
+	SSIZE_T SelectResult = 0;
 	uint16_t PDULen = 0;
 
+//Requesting
 	for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 	{
 		Sleep(LOOP_INTERVAL_TIME);
@@ -1293,7 +1352,11 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 			}
 
 		//Send.
+		#if (defined(PLATFORM_WIN) || defined(PLATFORM_MACX))
 			if (FD_ISSET(TCPSockData->Socket, WriteFDS.get()))
+		#elif defined(PLATFORM_LINUX)
+			if (!IsSend && FD_ISSET(TCPSockData->Socket, WriteFDS.get()))
+		#endif
 			{
 				send(TCPSockData->Socket, OriginalRecv, (int)DataLength, 0);
 				memset(OriginalRecv, 0, RecvSize);
@@ -1326,7 +1389,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 //Transmission of DNSCurve TCP protocol(Multithreading)
 size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize)
 {
-//Initialization
+//Initialization(Part 1)
 	std::vector<SOCKET_DATA> TCPSocketDataList;
 	std::vector<size_t> ServerTypeList;
 	std::shared_ptr<char> SendBuffer, Alternate_SendBuffer;
@@ -1359,8 +1422,6 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
 #if defined(PLATFORM_WIN)
 	ULONG SocketMode = 1U;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	int Flags = 0;
 #endif
 
 	//Main
@@ -1408,8 +1469,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 				goto SkipMain;
 			}
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			Flags = fcntl(TCPSocketData->Socket, F_GETFL, 0);
-			fcntl(TCPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
+			fcntl(TCPSocketData->Socket, F_SETFL, fcntl(TCPSocketData->Socket, F_GETFL, 0)|O_NONBLOCK);
 		#endif
 
 			if (IsIPv6) //IPv6
@@ -1538,8 +1598,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 				goto SkipAlternate;
 			}
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			Flags = fcntl(TCPSocketData->Socket, F_GETFL, 0);
-			fcntl(TCPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
+			fcntl(TCPSocketData->Socket, F_SETFL, fcntl(TCPSocketData->Socket, F_GETFL, 0)|O_NONBLOCK);
 		#endif
 
 			if (IsIPv6) //IPv6
@@ -1610,12 +1669,45 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 		return EXIT_FAILURE;
 
 //Connect to servers.
-	for (auto SocketDataIter = TCPSocketDataList.begin();SocketDataIter != TCPSocketDataList.end();)
+	SSIZE_T SelectResult = 0, RecvLen = 0;
+#if defined(PLATFORM_LINUX)
+	std::vector<bool> IsSend(TCPSocketDataList.size());
+#endif
+	for (auto SocketDataIter = TCPSocketDataList.begin();SocketDataIter != TCPSocketDataList.end();++SelectResult)
 	{
+	#if defined(PLATFORM_WIN)
 		if (connect(SocketDataIter->Socket, (PSOCKADDR)&SocketDataIter->SockAddr, SocketDataIter->AddrLen) == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK)
+	#elif defined(PLATFORM_MACX)
+		if (connect(SocketDataIter->Socket, (PSOCKADDR)&SocketDataIter->SockAddr, SocketDataIter->AddrLen) == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+	#elif defined(PLATFORM_LINUX)
+		auto IsError = false;
+		if (Parameter.TCP_FastOpen)
+		{
+			if (SelectResult > 0 && SelectResult >= (SSIZE_T)TCPSocketDataList.size() / 2U && Alternate_SendBuffer)
+				RecvLen = sendto(SocketDataIter->Socket, Alternate_SendBuffer.get(), (int)DataLength, MSG_FASTOPEN, (PSOCKADDR)&SocketDataIter->SockAddr, SocketDataIter->AddrLen);
+			else 
+				RecvLen = sendto(SocketDataIter->Socket, SendBuffer.get(), (int)DataLength, MSG_FASTOPEN, (PSOCKADDR)&SocketDataIter->SockAddr, SocketDataIter->AddrLen);
+			if (RecvLen == SOCKET_ERROR || RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+			{
+				if (errno != EAGAIN && errno != EINPROGRESS)
+					IsError = true;
+			}
+			else {
+				IsSend.at(SelectResult) = true;
+			}
+		}
+		else {
+			if (connect(SocketDataIter->Socket, (PSOCKADDR)&SocketDataIter->SockAddr, SocketDataIter->AddrLen) == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+				IsError = true;
+		}
+		if (IsError)
+	#endif
 		{
 			closesocket(SocketDataIter->Socket);
 			SocketDataIter = TCPSocketDataList.erase(SocketDataIter);
+		#if defined(PLATFORM_LINUX)
+			IsSend.erase(IsSend.begin() + SelectResult);
+		#endif
 			if (SocketDataIter == TCPSocketDataList.end())
 				goto StopLoop;
 		}
@@ -1627,7 +1719,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 	if (TCPSocketDataList.empty())
 		return EXIT_FAILURE;
 
-//Send request and receive result.
+//Initialization(Part 2)
 	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
 	std::shared_ptr<timeval> Timeout(new timeval());
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
@@ -1635,18 +1727,26 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 	memset(Timeout.get(), 0, sizeof(timeval));
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	SOCKET MaxSocket = 0;
+	SelectResult = 0;
 #endif
 	FD_ZERO(WriteFDS.get());
 
+//Send request and receive result.
 	for (auto &SocketDataIter:TCPSocketDataList)
 	{
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (SocketDataIter.Socket > MaxSocket)
 			MaxSocket = SocketDataIter.Socket;
 	#endif
-		FD_SET(SocketDataIter.Socket, WriteFDS.get());
+	#if defined(PLATFORM_LINUX)
+		if (!IsSend.at(SelectResult))
+	#endif
+			FD_SET(SocketDataIter.Socket, WriteFDS.get());
+
+	#if defined(PLATFORM_LINUX)
+		++SelectResult;
+	#endif
 	}
-	SSIZE_T SelectResult = 0, RecvLen = 0;
 	std::vector<uint16_t> PDULenList(TCPSocketDataList.size(), 0);
 	for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 	{
@@ -1842,15 +1942,19 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 			}
 
 		//Send.
-			size_t Alternate = 0;
+			size_t Index = 0;
 			for (auto &SocketDataIter:TCPSocketDataList)
 			{
+			#if (defined(PLATFORM_WIN) || defined(PLATFORM_MACX))
 				if (FD_ISSET(SocketDataIter.Socket, WriteFDS.get()))
+			#elif defined(PLATFORM_LINUX)
+				if (!IsSend.at(Index) && FD_ISSET(SocketDataIter.Socket, WriteFDS.get()))
+			#endif
 				{
 				//Encryption mode
 					if (DNSCurveParameter.IsEncryption)
 					{
-						if (Alternate > 0 && Alternate >= TCPSocketDataList.size() / 2U && Alternate_SendBuffer)
+						if (Index > 0 && Index >= TCPSocketDataList.size() / 2U && Alternate_SendBuffer)
 							send(SocketDataIter.Socket, Alternate_SendBuffer.get(), (int)DNSCurveParameter.DNSCurvePayloadSize, 0);
 						else 
 							send(SocketDataIter.Socket, SendBuffer.get(), (int)DNSCurveParameter.DNSCurvePayloadSize, 0);
@@ -1860,7 +1964,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 						send(SocketDataIter.Socket, SendBuffer.get(), (int)DataLength, 0);
 					}
 
-					++Alternate;
+					++Index;
 				}
 			}
 
@@ -2109,7 +2213,7 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 //Transmission of DNSCurve UDP protocol(Multithreading)
 size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize)
 {
-//Initialization
+//Initialization(Part 1)
 	std::vector<SOCKET_DATA> UDPSocketDataList;
 	std::vector<size_t> ServerTypeList;
 	std::shared_ptr<char> SendBuffer, Alternate_SendBuffer;
@@ -2125,8 +2229,6 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	memset(UDPSocketData.get(), 0, sizeof(SOCKET_DATA));
 #if defined(PLATFORM_WIN)
 	ULONG SocketMode = 1U;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	int Flags = 0;
 #endif
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
 
@@ -2168,8 +2270,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 			goto SkipMain;
 		}
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
-		fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
+		fcntl(UDPSocketData->Socket, F_SETFL, fcntl(UDPSocketData->Socket, F_GETFL, 0)|O_NONBLOCK);
 	#endif
 
 		if (IsIPv6) //IPv6
@@ -2292,8 +2393,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 			goto SkipAlternate;
 		}
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		Flags = fcntl(UDPSocketData->Socket, F_GETFL, 0);
-		fcntl(UDPSocketData->Socket, F_SETFL, Flags|O_NONBLOCK);
+		fcntl(UDPSocketData->Socket, F_SETFL, fcntl(UDPSocketData->Socket, F_GETFL, 0)|O_NONBLOCK);
 	#endif
 
 		if (IsIPv6) //IPv6
@@ -2361,7 +2461,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	if (UDPSocketDataList.empty())
 		return EXIT_FAILURE;
 
-//Send request and receive result.
+//Initialization(Part 2)
 	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
 	std::shared_ptr<timeval> Timeout(new timeval());
 	memset(Timeout.get(), 0, sizeof(timeval));
@@ -2382,6 +2482,8 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	}
 	SSIZE_T SelectResult = 0, RecvLen = 0;
 	size_t Index = 0;
+
+//Send request and receive result.
 	for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 	{
 		Sleep(LOOP_INTERVAL_TIME);

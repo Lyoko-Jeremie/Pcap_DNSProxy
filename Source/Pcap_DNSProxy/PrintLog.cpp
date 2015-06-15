@@ -42,7 +42,11 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 	localtime_s(TimeStructure.get(), &TimeValues);
 
 //Print to screen.
+#if defined(PLATFORM_WIN)
 	if (Parameter.Console)
+#elif defined(PLATFORM_LINUX)
+	if (!Parameter.Daemon)
+#endif
 	{
 	//Print start time before print errors.
 		if (InnerStartTime > 0)

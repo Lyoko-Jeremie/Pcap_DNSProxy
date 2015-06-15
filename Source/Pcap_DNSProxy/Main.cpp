@@ -104,117 +104,11 @@ bool __fastcall ReadCommand(int argc, wchar_t* argv[])
 bool ReadCommand(int argc, char *argv[])
 #endif
 {
+//Path initialization
 #if defined(PLATFORM_WIN)
-//Winsock initialization
-	std::shared_ptr<WSAData> WSAInitialization(new WSAData());
-	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), WSAInitialization.get()) != 0 ||
-		LOBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_HIGH)
-	{
-		wprintf_s(L"Winsock initialization error, error code is %d.\n", WSAGetLastError());
-
-		WSACleanup();
+	if (!FileNameInit(argv[0]))
 		return false;
-	}
-
-//Read commands.
-	if (argc == 2)
-	{
-	//Windows Firewall Test in first start.
-		if (wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_FIREWALL_TEST) && wcsncmp(argv[1U], COMMAND_FIREWALL_TEST, wcslen(COMMAND_FIREWALL_TEST)) == 0 && 
-			!FirewallTest(AF_INET6) && !FirewallTest(AF_INET))
-		{
-			wprintf_s(L"Windows Firewall Test error.\n");
-		}
-
-	//Flush DNS Cache from user.
-		else if (wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_FLUSH_DNS) && wcsncmp(argv[1U], COMMAND_FLUSH_DNS, wcslen(COMMAND_FLUSH_DNS)) == 0)
-		{
-			FlushDNSMailSlotSender();
-		}
-
-	//Print current version.
-		else if (wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_LONG_PRINT_VERSION) && wcsncmp(argv[1U], COMMAND_LONG_PRINT_VERSION, wcslen(COMMAND_LONG_PRINT_VERSION)) == 0 || 
-			wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_SHORT_PRINT_VERSION) && wcsncmp(argv[1U], COMMAND_SHORT_PRINT_VERSION, wcslen(COMMAND_SHORT_PRINT_VERSION)) == 0)
-		{
-			wprintf_s(L"Pcap_DNSProxy ");
-			wprintf_s(FULL_VERSION);
-			wprintf_s(L"\n");
-		}
-
-	//Print help messages.
-		else if (wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_LONG_HELP) && wcsncmp(argv[1U], COMMAND_LONG_HELP, wcslen(COMMAND_LONG_HELP)) == 0 ||
-			wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_SHORT_HELP) && wcsncmp(argv[1U], COMMAND_SHORT_HELP, wcslen(COMMAND_SHORT_HELP)) == 0)
-		{
-			wprintf_s(L"Usage: Please see ReadMe... files in Documents folder.\n");
-		}
-	}
-	else if (argc == 3)
-	{
-	//Set working directory from commands.
-		if (wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_LONG_SET_PATH) && wcsncmp(argv[1U], COMMAND_LONG_SET_PATH, wcslen(COMMAND_LONG_SET_PATH)) == 0 ||
-			wcsnlen_s(argv[1U], COMMAND_BUFFER_MAXSIZE) == wcslen(COMMAND_SHORT_SET_PATH) && wcsncmp(argv[1U], COMMAND_SHORT_SET_PATH, wcslen(COMMAND_SHORT_SET_PATH)) == 0)
-		{
-			if (wcsnlen_s(argv[2U], COMMAND_BUFFER_MAXSIZE) > MAX_PATH) //Check path limits.
-			{
-				wprintf_s(L"Path in command is too long.\n");
-				return false;
-			}
-			else {
-				return FileNameInit(argv[2U]);
-			}
-		}
-	}
-
-//Bad commands.
-	if (argc > 1)
-	{
-		WSACleanup();
-		return false;
-	}
-
-//Path initialization
-	return FileNameInit(argv[0]);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-//Read commands.
-	if (argc == 2)
-	{
-	//Flush DNS Cache from user.
-		if (strnlen(argv[1U], COMMAND_BUFFER_MAXSIZE) == strlen(COMMAND_FLUSH_DNS) && memcmp(argv[1U], COMMAND_FLUSH_DNS, strlen(COMMAND_FLUSH_DNS)) == 0)
-		{
-			FlushDNSFIFOSender();
-		}
-
-	//Print current version.
-		else if (strnlen(argv[1U], COMMAND_BUFFER_MAXSIZE) == strlen(COMMAND_LONG_PRINT_VERSION) && memcmp(argv[1U], COMMAND_LONG_PRINT_VERSION, strlen(COMMAND_LONG_PRINT_VERSION)) == 0 || 
-			strnlen(argv[1U], COMMAND_BUFFER_MAXSIZE) == strlen(COMMAND_SHORT_PRINT_VERSION) && memcmp(argv[1U], COMMAND_SHORT_PRINT_VERSION, strlen(COMMAND_SHORT_PRINT_VERSION)) == 0)
-		{
-			wprintf(L"Pcap_DNSProxy ");
-			wprintf(FULL_VERSION);
-			wprintf(L"\n");
-		}
-	}
-	else if (argc == 3)
-	{
-	//Set working directory from commands.
-		if (strnlen(argv[1U], COMMAND_BUFFER_MAXSIZE) == strlen(COMMAND_LONG_SET_PATH) && memcmp(argv[1U], COMMAND_LONG_SET_PATH, strlen(COMMAND_LONG_SET_PATH)) == 0 ||
-			strnlen(argv[1U], COMMAND_BUFFER_MAXSIZE) == strlen(COMMAND_SHORT_SET_PATH) && memcmp(argv[1U], COMMAND_SHORT_SET_PATH, strlen(COMMAND_SHORT_SET_PATH)) == 0)
-		{
-			if (strnlen(argv[2U], COMMAND_BUFFER_MAXSIZE) > MAX_PATH) //Check path limits.
-			{
-				wprintf(L"Path in command is too long.\n");
-				return false;
-			}
-			else {
-				return FileNameInit(argv[2U]);
-			}
-		}
-	}
-
-//Bad commands.
-	if (argc > 1)
-		return false;
-
-//Path initialization
 	std::shared_ptr<char> FileName(new char[PATH_MAX + 1U]());
 	memset(FileName.get(), 0, PATH_MAX + 1U);
 	if (getcwd(FileName.get(), PATH_MAX) == nullptr)
@@ -224,15 +118,122 @@ bool ReadCommand(int argc, char *argv[])
 	}
 	if (!FileNameInit(FileName.get()))
 		return false;
+	FileName.reset();
+#endif
 
-	//Set system daemon.
-	#if defined(PLATFORM_LINUX)
-		if (daemon(0, 0) == RETURN_ERROR)
+#if defined(PLATFORM_WIN)
+//Winsock initialization
+	std::shared_ptr<WSAData> WSAInitialization(new WSAData());
+	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), WSAInitialization.get()) != 0 ||
+		LOBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_HIGH)
+	{
+		wprintf_s(L"Winsock initialization error, error code is %d.\n", WSAGetLastError());
+		PrintError(LOG_ERROR_NETWORK, L"Winsock initialization error", WSAGetLastError(), nullptr, 0);
+
+		WSACleanup();
+		return false;
+	}
+
+//Read commands.
+	std::wstring Commands;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	std::string Commands;
+#endif
+	for (size_t Index = 1U;(SSIZE_T)Index < argc;++Index)
+	{
+		Commands = argv[Index];
+
+	//Flush DNS Cache from user.
+		if (Commands == COMMAND_FLUSH_DNS)
 		{
-			PrintError(LOG_ERROR_SYSTEM, L"Set system daemon error", 0, nullptr, 0);
+		#if defined(PLATFORM_WIN)
+			FlushDNSMailSlotSender();
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			FlushDNSFIFOSender();
+		#endif
+
+			WSACleanup();
+			return false;
+		}
+	//Windows Firewall Test in first start.
+	#if defined(PLATFORM_WIN)
+		else if (Commands == COMMAND_FIREWALL_TEST)
+		{
+			if (!FirewallTest(AF_INET6) && !FirewallTest(AF_INET))
+			{
+				wprintf_s(L"Windows Firewall Test error.\n");
+				PrintError(LOG_ERROR_NETWORK, L"Windows Firewall Test error", WSAGetLastError(), nullptr, 0);
+			}
+
+			WSACleanup();
 			return false;
 		}
 	#endif
+	//Set system daemon.
+	#if defined(PLATFORM_LINUX)
+		else if (Commands == COMMAND_DISABLE_DAEMON)
+		{
+			Parameter.Daemon = false;
+		}
+	#endif
+	//Print current version.
+		else if (Commands == COMMAND_LONG_PRINT_VERSION || Commands == COMMAND_SHORT_PRINT_VERSION)
+		{
+			wprintf_s(L"Pcap_DNSProxy ");
+			wprintf_s(FULL_VERSION);
+			wprintf_s(L"\n");
+
+			WSACleanup();
+			return false;
+		}
+	//Print help messages.
+		else if (Commands == COMMAND_LONG_HELP || Commands == COMMAND_SHORT_HELP)
+		{
+			wprintf_s(L"Usage: Please see ReadMe... files in Documents folder.\n");
+
+			WSACleanup();
+			return false;
+		}
+	//Set working directory from commands.
+		else if (Commands == COMMAND_LONG_SET_PATH || Commands == COMMAND_SHORT_SET_PATH)
+		{
+		//Commands check
+			if ((SSIZE_T)Index + 1 >= argc)
+			{
+				wprintf_s(L"Commands error.\n");
+				PrintError(LOG_ERROR_SYSTEM, L"Commands error", 0, nullptr, 0);
+
+				WSACleanup();
+				return false;
+			}
+			else {
+				++Index;
+				Commands = argv[Index];
+
+			//Path check.
+				if (Commands.length() > MAX_PATH)
+				{
+					wprintf_s(L"Commands error.\n");
+					PrintError(LOG_ERROR_SYSTEM, L"Commands error", 0, nullptr, 0);
+
+					WSACleanup();
+					return false;
+				}
+				else {
+					if (!FileNameInit(Commands.c_str()))
+						return false;
+				}
+			}
+		}
+	}
+
+//Set system daemon.
+#if defined(PLATFORM_LINUX)
+	if (Parameter.Daemon && daemon(0, 0) == RETURN_ERROR)
+	{
+		PrintError(LOG_ERROR_SYSTEM, L"Set system daemon error", 0, nullptr, 0);
+		return false;
+	}
 #endif
 
 	return true;
@@ -247,6 +248,7 @@ bool FileNameInit(const char *OriginalPath)
 {
 //Path process
 #if defined(PLATFORM_WIN)
+	Parameter.Path_Global->clear();
 	Parameter.Path_Global->push_back(OriginalPath);
 	Parameter.Path_Global->front().erase(Parameter.Path_Global->front().rfind(L"\\") + 1U);
 	for (size_t Index = 0;Index < Parameter.Path_Global->front().length();++Index)
@@ -258,19 +260,23 @@ bool FileNameInit(const char *OriginalPath)
 		}
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	Parameter.sPath_Global->clear();
 	Parameter.sPath_Global->push_back(OriginalPath);
 	Parameter.sPath_Global->front().append("/");
 	std::wstring StringTemp;
 	MBSToWCSString(StringTemp, OriginalPath);
 	StringTemp.append(L"/");
+	Parameter.Path_Global->clear();
 	Parameter.Path_Global->push_back(StringTemp);
 	StringTemp.clear();
 #endif
 
 //Get path of error/running status log file and mark start time.
+	Parameter.Path_ErrorLog->clear();
 	*Parameter.Path_ErrorLog = Parameter.Path_Global->front();
 	Parameter.Path_ErrorLog->append(L"Error.log");
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	Parameter.sPath_ErrorLog->clear();
 	*Parameter.sPath_ErrorLog = Parameter.sPath_Global->front();
 	Parameter.sPath_ErrorLog->append("Error.log");
 #endif

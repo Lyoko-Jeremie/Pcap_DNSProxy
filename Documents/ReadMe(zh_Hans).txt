@@ -462,6 +462,16 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 一般除非丢包非常严重干扰正常使用否则不建议开启，开启也不建议将值设得太大。实际使用可以每次+1后重启服务测试效果，找到最合适的值
 
 * Switches - 控制开关区域
+  * TCP Fast Open - TCP 快速打开功能：开启为1/关闭为0，默认为 0
+    * 目前本功能只支持 Linux 平台，非 Linux 平台将直接忽略此参数，其中：
+      * IPv4 需要 3.7 以及更新版本的内核支持
+      * IPv6 需要 3.16 以及更新版本的内核支持
+      * 切勿在不受支持的内核版本上开启本功能，否则可能导致程序无法正常收发数据包！
+    * 开启系统对本功能的支持：
+      * 临时支持：需要在拥有 ROOT 权限的终端执行 echo 3 > /proc/sys/net/ipv4/tcp_fastopen
+      * 长期支持：
+        * 在 /etc/rc.local 文件最下面添加 echo 3 > /proc/sys/net/ipv4/tcp_fastopen 保存，以后每次启动都将自动设置此指
+        * 在 /etc/sysctl.conf 文件中添加 net.ipv4.tcp_fastopen = 3 保存
   * Domain Case Conversion - 随机转换域名请求大小写：开启为1/关闭为0，默认为 1
   * Compression Pointer Mutation - 随机添加压缩指针：可填入 1 (+ 2 + 3)，关闭为0，默认为 0
     * 随机添加压缩指针有3种不同的类型，对应 1 和 2 和 3

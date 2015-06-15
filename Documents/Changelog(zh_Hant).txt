@@ -1,8 +1,19 @@
-﻿Pcap_DNSProxy v0.4.2.1(Windows/Linux/Mac) 更新日誌(2015-06-07)：
+﻿Pcap_DNSProxy v0.4.2.1-v0.4.2.2(Windows/Linux/Mac) 更新日誌(2015-06-15)：
 
 * 添加限制請求數量的功能
 * 添加 DNS 壓縮指標檢查功能，避免接受格式錯誤的資料包
+* 添加遺漏的 DNS 投毒污染黑名單位址
+* 添加對 Unicode 標準包含的所有換行以及空格類別格式的支援
+* 添加對 TCP Fast Open 的支援(Linux)
+* 添加 --disable-daemon 參數，可控制程式是否以 Daemon 守護進程的方式運行(Linux)
+* 完整的 ANSI/UTF-8/UTF-16(LE/BE)/UTF-32(LE/BE) 編碼支援
 * 優化優先指定網路層協定功能
+* 修復睡眠或休眠前可能產生的錯誤報表輸出(Windows)
+  * 啟動第一次遇到 Insufficient privileges or not any available network devices 錯誤資訊時將暫時不輸出到錯誤報表檔
+  * 移除 An error occurred in XXX 錯誤資訊
+* 終端視窗也將輸出錯誤資訊
+  * 運行在非 Daemon 守護進程模式下的終端視窗時(Linux)
+  * 任何時候(Mac)
 
 
 -------------------------------------------------------------------------------
