@@ -50,38 +50,36 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		D944E6F41B2E855100BA45FD /* Base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Base.h; sourceTree = "<group>"; };
-		D944E6F51B2E855100BA45FD /* Capture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Capture.h; sourceTree = "<group>"; };
-		D944E6F61B2E855E00BA45FD /* Configuration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Configuration.h; sourceTree = "<group>"; };
-		D944E6F71B2E855E00BA45FD /* DNSCurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DNSCurve.h; sourceTree = "<group>"; };
-		D944E6F81B2E855E00BA45FD /* Initialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Initialization.h; sourceTree = "<group>"; };
-		D944E6F91B2E855E00BA45FD /* Main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Main.h; sourceTree = "<group>"; };
-		D944E6FA1B2E855E00BA45FD /* Monitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Monitor.h; sourceTree = "<group>"; };
-		D944E6FB1B2E855E00BA45FD /* Network.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Network.h; sourceTree = "<group>"; };
-		D944E6FC1B2E855E00BA45FD /* PacketData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PacketData.h; sourceTree = "<group>"; };
-		D944E6FE1B2E857E00BA45FD /* Platform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Platform.h; sourceTree = "<group>"; };
-		D944E6FF1B2E857E00BA45FD /* PrintLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PrintLog.h; sourceTree = "<group>"; };
-		D944E7001B2E857E00BA45FD /* Process.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Process.h; sourceTree = "<group>"; };
-		D944E7011B2E857E00BA45FD /* Protocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Protocol.h; sourceTree = "<group>"; };
-		D944E7021B2E859400BA45FD /* Service.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Service.h; sourceTree = "<group>"; };
-		D944E7031B2E859400BA45FD /* Structures.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Structures.h; sourceTree = "<group>"; };
 		D9672DD21AFCB67300330EB8 /* LibSodium_Mac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibSodium_Mac.a; path = ../LibSodium/LibSodium_Mac.a; sourceTree = "<group>"; };
 		D97C98581B17413900674884 /* Base.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Base.cpp; sourceTree = "<group>"; };
+		D97C98591B17413900674884 /* Base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Base.h; sourceTree = "<group>"; };
 		D97C985A1B17413900674884 /* Capture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Capture.cpp; sourceTree = "<group>"; };
+		D97C985B1B17413900674884 /* Capture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Capture.h; sourceTree = "<group>"; };
 		D97C985E1B17414A00674884 /* Configuration.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Configuration.cpp; sourceTree = "<group>"; };
+		D97C985F1B17414A00674884 /* Configuration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Configuration.h; sourceTree = "<group>"; };
 		D97C98601B17414A00674884 /* DNSCurve.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DNSCurve.cpp; sourceTree = "<group>"; };
+		D97C98611B17414A00674884 /* DNSCurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DNSCurve.h; sourceTree = "<group>"; };
 		D97C98621B17414A00674884 /* Initialization.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Initialization.cpp; sourceTree = "<group>"; };
+		D97C98631B17414A00674884 /* Initialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Initialization.h; sourceTree = "<group>"; };
 		D97C98641B17414A00674884 /* Main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Main.cpp; sourceTree = "<group>"; };
+		D97C98651B17414A00674884 /* Main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Main.h; sourceTree = "<group>"; };
 		D97C98661B17414A00674884 /* Monitor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Monitor.cpp; sourceTree = "<group>"; };
+		D97C98671B17414A00674884 /* Monitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Monitor.h; sourceTree = "<group>"; };
 		D97C98681B17414A00674884 /* Network.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Network.cpp; sourceTree = "<group>"; };
+		D97C98691B17414A00674884 /* Network.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Network.h; sourceTree = "<group>"; };
 		D97C986A1B17414A00674884 /* PacketData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PacketData.cpp; sourceTree = "<group>"; };
+		D97C986B1B17414A00674884 /* PacketData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PacketData.h; sourceTree = "<group>"; };
 		D97C98731B17415C00674884 /* PrintLog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PrintLog.cpp; sourceTree = "<group>"; };
+		D97C98741B17415C00674884 /* PrintLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PrintLog.h; sourceTree = "<group>"; };
 		D97C98751B17415C00674884 /* Process.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Process.cpp; sourceTree = "<group>"; };
+		D97C98761B17415C00674884 /* Process.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Process.h; sourceTree = "<group>"; };
 		D97C98771B17415C00674884 /* Protocol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Protocol.cpp; sourceTree = "<group>"; };
+		D97C98781B17415C00674884 /* Protocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Protocol.h; sourceTree = "<group>"; };
 		D97C98791B17415C00674884 /* ReadHosts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ReadHosts.cpp; sourceTree = "<group>"; };
 		D97C987A1B17415C00674884 /* ReadIPFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ReadIPFilter.cpp; sourceTree = "<group>"; };
 		D97C987B1B17415C00674884 /* ReadParameter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ReadParameter.cpp; sourceTree = "<group>"; };
 		D97C98821B17417100674884 /* Service.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Service.cpp; sourceTree = "<group>"; };
+		D97C98831B17417100674884 /* Service.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Service.h; sourceTree = "<group>"; };
 		D98EE5011B11DF9C00C7C217 /* Changelog(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "Changelog(zh_Hans).txt"; path = "Documents/Changelog(zh_Hans).txt"; sourceTree = "<group>"; };
 		D98EE5021B11DF9C00C7C217 /* Changelog(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "Changelog(zh_Hant).txt"; path = "Documents/Changelog(zh_Hant).txt"; sourceTree = "<group>"; };
 		D98EE5031B11DF9C00C7C217 /* FAQ_Linux_Mac(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ_Linux_Mac(zh_Hans).txt"; path = "Documents/FAQ_Linux_Mac(zh_Hans).txt"; sourceTree = "<group>"; };
@@ -208,21 +206,19 @@
 				D97C987B1B17415C00674884 /* ReadParameter.cpp */,
 				D97C98821B17417100674884 /* Service.cpp */,
 				D99B47451AFCE4BB004BDEAE /* libpcap.dylib */,
-				D944E6F41B2E855100BA45FD /* Base.h */,
-				D944E6F51B2E855100BA45FD /* Capture.h */,
-				D944E6F61B2E855E00BA45FD /* Configuration.h */,
-				D944E6F71B2E855E00BA45FD /* DNSCurve.h */,
-				D944E6F81B2E855E00BA45FD /* Initialization.h */,
-				D944E6F91B2E855E00BA45FD /* Main.h */,
-				D944E6FA1B2E855E00BA45FD /* Monitor.h */,
-				D944E6FB1B2E855E00BA45FD /* Network.h */,
-				D944E6FC1B2E855E00BA45FD /* PacketData.h */,
-				D944E6FE1B2E857E00BA45FD /* Platform.h */,
-				D944E6FF1B2E857E00BA45FD /* PrintLog.h */,
-				D944E7001B2E857E00BA45FD /* Process.h */,
-				D944E7011B2E857E00BA45FD /* Protocol.h */,
-				D944E7021B2E859400BA45FD /* Service.h */,
-				D944E7031B2E859400BA45FD /* Structures.h */,
+				D97C98591B17413900674884 /* Base.h */,
+				D97C985B1B17413900674884 /* Capture.h */,
+				D97C985F1B17414A00674884 /* Configuration.h */,
+				D97C98611B17414A00674884 /* DNSCurve.h */,
+				D97C98631B17414A00674884 /* Initialization.h */,
+				D97C98651B17414A00674884 /* Main.h */,
+				D97C98671B17414A00674884 /* Monitor.h */,
+				D97C98691B17414A00674884 /* Network.h */,
+				D97C986B1B17414A00674884 /* PacketData.h */,
+				D97C98741B17415C00674884 /* PrintLog.h */,
+				D97C98761B17415C00674884 /* Process.h */,
+				D97C98781B17415C00674884 /* Protocol.h */,
+				D97C98831B17417100674884 /* Service.h */,
 				D99E2DDB1AFCB1FC00F36FCD /* ExampleConfig */,
 				D99E2D981AFCB19400F36FCD /* LibSodium */,
 			);

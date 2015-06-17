@@ -50,6 +50,4 @@ ENDIF(COMPILE_OPENWRT)
 # Libraries linking
 IF(ENABLE_LIBSODIUM)
 	target_link_libraries(KeyPairGenerator sodium)
-ELSEIF(COMPILE_OPENWRT)
-	target_link_libraries(KeyPairGenerator sodium)
 ENDIF(ENABLE_LIBSODIUM)
