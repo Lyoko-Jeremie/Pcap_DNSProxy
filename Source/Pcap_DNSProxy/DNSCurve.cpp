@@ -598,7 +598,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 							memset(RecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 							continue;
 						}
-					//Invalid packet.
+					//Invalid packet
 						else {
 							if (ServerType == DNSCURVE_MAIN_IPV6)
 								PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
@@ -1246,7 +1246,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 						memset(OriginalRecv, 0, RecvSize);
 						continue;
 					}
-				//Invalid packet.
+				//Invalid packet
 					else {
 						break;
 					}
@@ -1793,7 +1793,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 							memset(OriginalRecv, 0, RecvSize);
 							continue;
 						}
-					//Invalid packet.
+					//Invalid packet
 						else {
 							shutdown(TCPSocketDataList.at(Index).Socket, SD_BOTH);
 							closesocket(TCPSocketDataList.at(Index).Socket);

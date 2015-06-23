@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 		Parameter.Console = true;
 		wprintf_s(L"System Error: Service start error, error code is %lu.\n", GetLastError());
 		wprintf_s(L"System Error: Program will continue to run in console mode.\n");
-		wprintf_s(L"Please ignore those error messages if you want to run in console mode.\n");
+		wprintf_s(L"Please ignore these error messages if you want to run in console mode.\n");
 
 	//Handle the system signal and start all monitors.
 		SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, TRUE);

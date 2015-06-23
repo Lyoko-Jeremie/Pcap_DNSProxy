@@ -363,9 +363,13 @@ void __fastcall FlushAllDNSCache(void)
 #if defined(PLATFORM_WIN)
 	system("ipconfig /flushdns");
 #elif defined(PLATFORM_LINUX)
-	system("service nscd restart"); //Name Service Cache Daemon service
-	system("service dnsmasq restart"); //Dnsmasq service
-	system("rndc restart"); //Name server control utility or BIND DNS service
+	#if defined(PLATFORM_OPENWRT)
+		system("/etc/init.d/dnsmasq restart"); //Dnsmasq manage DNS cache on OpenWrt, restart it to flush cache.
+	#else 
+		system("service nscd restart"); //Name Service Cache Daemon service
+		system("service dnsmasq restart"); //Dnsmasq service
+		system("rndc restart"); //Name server control utility or BIND DNS service
+	#endif
 #elif defined(PLATFORM_MACX)
 //	system("lookupd -flushcache"); //Less than Mac OS X Tiger(10.4)
 //	system("dscacheutil -flushcache"); //Mac OS X Leopard(10.5) and Snow Leopard(10.6)

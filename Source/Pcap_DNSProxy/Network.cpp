@@ -1025,7 +1025,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 						memset(OriginalRecv, 0, RecvSize);
 						continue;
 					}
-				//Invalid packet.
+				//Invalid packet
 					else {
 						break;
 					}
@@ -1267,7 +1267,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 							memset(OriginalRecv, 0, RecvSize);
 							continue;
 						}
-					//Invalid packet.
+					//Invalid packet
 						else {
 							shutdown(TCPSocketDataList.at(Index).Socket, SD_BOTH);
 							closesocket(TCPSocketDataList.at(Index).Socket);

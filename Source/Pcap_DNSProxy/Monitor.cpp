@@ -491,14 +491,14 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Socket reuse setting
 	int SetVal = 1;
-	/*	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
+/*	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
 		{
 		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket enable reusing error", errno, nullptr, 0);
 		close(LocalSocketData.Socket);
 
 		return false;
 		}
-		*/
+*/
 //Set an IPv6 server socket that cannot accept IPv4 connections on Linux.
 //	SetVal = 1;
 	if (LocalSocketData.SockAddr.ss_family == AF_INET6 && Parameter.OperationMode != LISTEN_MODE_PROXY && 
@@ -509,6 +509,20 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 
 		return false;
 	}
+#endif
+
+//Set Non-blocking Mode.
+#if defined(PLATFORM_WIN)
+	ULONG SocketMode = 1U;
+	if (ioctlsocket(LocalSocketData.Socket, FIONBIO, &SocketMode) == SOCKET_ERROR)
+	{
+		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
+		closesocket(LocalSocketData.Socket);
+
+		return EXIT_FAILURE;
+	}
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	fcntl(LocalSocketData.Socket, F_SETFL, fcntl(LocalSocketData.Socket, F_GETFL, 0) | O_NONBLOCK);
 #endif
 
 //Bind socket to port.
@@ -522,7 +536,20 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 
 //Initialization
 	std::shared_ptr<char> Buffer(new char[PACKET_MAXSIZE * Parameter.BufferQueueSize]());
+	std::shared_ptr<fd_set> ReadFDS(new fd_set());
+	std::shared_ptr<timeval> OriginalTimeout(new timeval()), Timeout(new timeval());
 	memset(Buffer.get(), 0, PACKET_MAXSIZE * Parameter.BufferQueueSize);
+	memset(ReadFDS.get(), 0, sizeof(fd_set));
+	memset(OriginalTimeout.get(), 0, sizeof(timeval));
+	memset(Timeout.get(), 0, sizeof(timeval));
+#if defined(PLATFORM_WIN)
+	OriginalTimeout->tv_sec = Parameter.SocketTimeout_Unreliable / SECOND_TO_MILLISECOND;
+	OriginalTimeout->tv_usec = Parameter.SocketTimeout_Unreliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	OriginalTimeout->tv_sec = Parameter.SocketTimeout_Unreliable.tv_sec;
+	OriginalTimeout->tv_usec = Parameter.SocketTimeout_Unreliable.tv_usec;
+#endif
+	SSIZE_T SelectResult = 0;
 	uint64_t LastMarkTime = 0, NowTime = 0;
 	if (Parameter.QueueResetTime > 0)
 	{
@@ -535,16 +562,16 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		LastMarkTime = GetTickCount64();
 	#endif
 	}
-	pdns_hdr DNS_Header = nullptr;
-	void *Addr = nullptr;
 	size_t Index[] = {0, 0};
+	void *Addr = nullptr;
+	pdns_hdr DNS_Header = nullptr;
+	pdns_record_opt DNS_Record_OPT = nullptr;
 
-//Start Monitor.
+//Listening module
 	for (;;)
 	{
-		memset(Buffer.get() + PACKET_MAXSIZE * Index[0], 0, PACKET_MAXSIZE);
 		Sleep(LOOP_INTERVAL_TIME);
-	
+
 	//Interval time between receive
 		if (Parameter.QueueResetTime > 0 && Index[0] + 1U == Parameter.BufferQueueSize)
 		{
@@ -569,109 +596,129 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		#endif
 		}
 
-	//Receive
-		if (Parameter.EDNS_Label) //EDNS Label
-			RecvLen = recvfrom(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0, (PSOCKADDR)&LocalSocketData.SockAddr, (socklen_t *)&LocalSocketData.AddrLen);
-		else 
-			RecvLen = recvfrom(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], PACKET_MAXSIZE, 0, (PSOCKADDR)&LocalSocketData.SockAddr, (socklen_t *)&LocalSocketData.AddrLen);
+	//Reset parameters.
+		memset(Buffer.get() + PACKET_MAXSIZE * Index[0], 0, PACKET_MAXSIZE);
+		memcpy_s(Timeout.get(), sizeof(timeval), OriginalTimeout.get(), sizeof(timeval));
+		FD_ZERO(ReadFDS.get());
+		FD_SET(LocalSocketData.Socket, ReadFDS.get());
 
-	//Check address.
-		if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
+	//Wait for system calling.
+	#if defined(PLATFORM_WIN)
+		SelectResult = select(0, ReadFDS.get(), nullptr, nullptr, Timeout.get());
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		SelectResult = select(LocalSocketData.Socket + 1U, ReadFDS.get(), nullptr, nullptr, Timeout.get());
+	#endif
+		if (SelectResult > 0 && FD_ISSET(LocalSocketData.Socket, ReadFDS.get()))
 		{
-			Addr = &((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr;
-			if (CheckEmptyBuffer(Addr, sizeof(in6_addr)) || //Empty address
-			//Check Private Mode(IPv6).
-				Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
-				!(((in6_addr *)Addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)Addr)->s6_bytes[0] <= 0xFD || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
-				((in6_addr *)Addr)->s6_bytes[0] == 0xFE && ((in6_addr *)Addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
-				((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001)) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
-			//Check Custom Mode(IPv6).
-				Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(Addr, AF_INET6))
-					continue;
-		}
-		else { //IPv4
-			Addr = &((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr;
-			if ((*(in_addr *)Addr).s_addr == 0 || //Empty address
-			//Check Private Mode(IPv4).
-				Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
-				!(((in_addr *)Addr)->s_net == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
-				((in_addr *)Addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
-				((in_addr *)Addr)->s_net == 0xAC && ((in_addr *)Addr)->s_host >= 0x10 && ((in_addr *)Addr)->s_host <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
-				((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0xA8) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
-			//Check Custom Mode(IPv4).
-				Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(Addr, AF_INET))
-					continue;
-		}
+		//Receive.
+			if (Parameter.EDNS_Label) //EDNS Label
+				RecvLen = recvfrom(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0, (PSOCKADDR)&LocalSocketData.SockAddr, (socklen_t *)&LocalSocketData.AddrLen);
+			else
+				RecvLen = recvfrom(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], PACKET_MAXSIZE, 0, (PSOCKADDR)&LocalSocketData.SockAddr, (socklen_t *)&LocalSocketData.AddrLen);
 
-	//Mark DNS Header pointer.
-		DNS_Header = (pdns_hdr)(Buffer.get() + PACKET_MAXSIZE * Index[0]);
-
-	//UDP Truncated check
-		if (RecvLen > (SSIZE_T)(Parameter.EDNSPayloadSize - EDNS_ADDITIONAL_MAXSIZE) && 
-			(Parameter.EDNS_Label || RecvLen > (SSIZE_T)Parameter.EDNSPayloadSize))
-		{
-		//Make packets with EDNS Lebal.
-			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_RTC);
-			pdns_record_opt DNS_Record_OPT = nullptr;
-			if (DNS_Header->Additional == 0)
+		//Check address.
+			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 			{
-				DNS_Header->Additional = htons(U16_NUM_ONE);
-				DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + PACKET_MAXSIZE * Index[0] + RecvLen);
-				DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-				DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
-				RecvLen += sizeof(dns_record_opt);
+				Addr = &((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr;
+				if (CheckEmptyBuffer(Addr, sizeof(in6_addr)) || //Empty address
+				//Check Private Mode(IPv6).
+					Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
+					!(((in6_addr *)Addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)Addr)->s6_bytes[0] <= 0xFD || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
+					((in6_addr *)Addr)->s6_bytes[0] == 0xFE && ((in6_addr *)Addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
+					((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001)) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
+				//Check Custom Mode(IPv6).
+					Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(Addr, AF_INET6))
+						continue;
 			}
-			else if (DNS_Header->Additional == htons(U16_NUM_ONE))
+			else { //IPv4
+				Addr = &((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr;
+				if ((*(in_addr *)Addr).s_addr == 0 || //Empty address
+				//Check Private Mode(IPv4).
+					Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
+					!(((in_addr *)Addr)->s_net == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
+					((in_addr *)Addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
+					((in_addr *)Addr)->s_net == 0xAC && ((in_addr *)Addr)->s_host >= 0x10 && ((in_addr *)Addr)->s_host <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
+					((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0xA8) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
+				//Check Custom Mode(IPv4).
+					Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(Addr, AF_INET))
+						continue;
+			}
+
+		//UDP Truncated check
+			if (RecvLen > (SSIZE_T)(Parameter.EDNSPayloadSize - EDNS_ADDITIONAL_MAXSIZE) && 
+				(Parameter.EDNS_Label || RecvLen > (SSIZE_T)Parameter.EDNSPayloadSize))
 			{
-				DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + PACKET_MAXSIZE * Index[0] + RecvLen - sizeof(dns_record_opt));
-				if (DNS_Record_OPT->Type == htons(DNS_RECORD_OPT))
+			//Make packets with EDNS Lebal.
+				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_RTC);
+				if (DNS_Header->Additional == 0)
+				{
+					DNS_Header->Additional = htons(U16_NUM_ONE);
+					DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + PACKET_MAXSIZE * Index[0] + RecvLen);
+					DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
 					DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
-			}
-			else {
-				continue;
-			}
-
-		//Send requesting.
-			sendto(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], (int)RecvLen, 0, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen);
-			continue;
-		}
-
-	//Receive process.
-		if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
-		{
-		//Check requesting.
-			if (DNS_Header->Questions != htons(U16_NUM_ONE) || DNS_Header->Answer > 0 || ntohs(DNS_Header->Additional) > U16_NUM_ONE || DNS_Header->Authority > 0)
-				continue;
-			for (Index[1U] = sizeof(dns_hdr);Index[1U] < DNS_PACKET_QUERY_LOCATE(Buffer.get() + PACKET_MAXSIZE * Index[0]);++Index[1U])
-			{
-				if (*(Buffer.get() + PACKET_MAXSIZE * Index[0] + Index[1U]) == DNS_POINTER_BITS_STRING)
+					RecvLen += sizeof(dns_record_opt);
+				}
+				else if (DNS_Header->Additional == htons(U16_NUM_ONE))
+				{
+					DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + PACKET_MAXSIZE * Index[0] + RecvLen - sizeof(dns_record_opt));
+					if (DNS_Record_OPT->Type == htons(DNS_RECORD_OPT))
+						DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
+				}
+				else {
 					continue;
-			}
-			if (Index[1U] != DNS_PACKET_QUERY_LOCATE(Buffer.get() + PACKET_MAXSIZE * Index[0]))
-			{
-				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_FE);
+				}
+
+			//Send requesting.
 				sendto(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], (int)RecvLen, 0, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen);
 				continue;
 			}
 
-		//EDNS Label
-			if (Parameter.EDNS_Label)
-				RecvLen = AddEDNS_LabelToAdditionalRR(Buffer.get() + PACKET_MAXSIZE * Index[0], (size_t)RecvLen);
+		//Mark DNS Header pointer.
+			DNS_Header = (pdns_hdr)(Buffer.get() + PACKET_MAXSIZE * Index[0]);
 
-		//Request process
-			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
+		//Invalid packet
+			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			{
-				std::thread RequestProcessThread(EnterRequestProcess, Buffer.get() + PACKET_MAXSIZE * Index[0], RecvLen, LocalSocketData, IPPROTO_UDP);
-				RequestProcessThread.detach();
+				continue;
 			}
-			else { //IPv4
-				std::thread RequestProcessThread(EnterRequestProcess, Buffer.get() + PACKET_MAXSIZE * Index[0], RecvLen, LocalSocketData, IPPROTO_UDP);
-				RequestProcessThread.detach();
-			}
+		//Request process
+			else {
+			//Check requesting.
+				if (DNS_Header->Questions != htons(U16_NUM_ONE) || DNS_Header->Answer > 0 || ntohs(DNS_Header->Additional) > U16_NUM_ONE || DNS_Header->Authority > 0)
+					continue;
+				for (Index[1U] = sizeof(dns_hdr);Index[1U] < DNS_PACKET_QUERY_LOCATE(Buffer.get() + PACKET_MAXSIZE * Index[0]);++Index[1U])
+				{
+					if (*(Buffer.get() + PACKET_MAXSIZE * Index[0] + Index[1U]) == DNS_POINTER_BITS_STRING)
+						continue;
+				}
+				if (Index[1U] != DNS_PACKET_QUERY_LOCATE(Buffer.get() + PACKET_MAXSIZE * Index[0]))
+				{
+					DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_FE);
+					sendto(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], (int)RecvLen, 0, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen);
+					continue;
+				}
 
-			Index[0] = (Index[0] + 1U) % Parameter.BufferQueueSize;
+			//EDNS Label
+				if (Parameter.EDNS_Label)
+					RecvLen = AddEDNS_LabelToAdditionalRR(Buffer.get() + PACKET_MAXSIZE * Index[0], (size_t)RecvLen);
+
+			//IPv6
+				if (LocalSocketData.AddrLen == sizeof(sockaddr_in6))
+				{
+					std::thread RequestProcessThread(EnterRequestProcess, Buffer.get() + PACKET_MAXSIZE * Index[0], RecvLen, LocalSocketData, IPPROTO_UDP);
+					RequestProcessThread.detach();
+				}
+			//IPv4
+				else {
+					std::thread RequestProcessThread(EnterRequestProcess, Buffer.get() + PACKET_MAXSIZE * Index[0], RecvLen, LocalSocketData, IPPROTO_UDP);
+					RequestProcessThread.detach();
+				}
+
+				Index[0] = (Index[0] + 1U) % Parameter.BufferQueueSize;
+			}
 		}
-		else { //Incorrect packets
+	//Timeout or SOCKET_ERROR
+		else {
 			continue;
 		}
 	}

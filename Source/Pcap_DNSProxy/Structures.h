@@ -290,7 +290,7 @@ typedef struct _ppp_hdr_
 	#define IPPROTO_NONE              59U                  //No Next Header for IPv6
 #endif
 #ifndef IPPROTO_DSTOPTS
-	#define IPPROTO_DSTOPTS           6OU                  //Destination Options for IPv6
+	#define IPPROTO_DSTOPTS           60U                  //Destination Options for IPv6
 #endif
 #ifndef IPPROTO_AHI
 	#define IPPROTO_AHI               61U                  //Any host internal protocol

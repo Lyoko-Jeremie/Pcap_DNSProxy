@@ -3,8 +3,7 @@
 A local DNS server based on WinPcap and LibPcap
 
 ### Usage
-**本分支 master 为 Pcap_DNSProxy 项目用于存放源代码和文档的分支，可执行编译版本请移步 [Release 分支](https://github.com/chengr28/Pcap_DNSProxy/tree/Release)**<br />
-说明文档等参见项目 [Documents 文件夹](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的内容
+**本分支 master 为 Pcap_DNSProxy 项目用于存放源代码和文档的分支，可执行编译版本请移步 [Release 分支](https://github.com/chengr28/Pcap_DNSProxy/tree/Release) 说明文档等参见项目 [Documents 文件夹](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的内容**
 
 ### Updated
 **0.4.2.2** for Windows/Linux/Mac
@@ -34,6 +33,7 @@ Pcap_DNSProxy 是一个基于 WinPcap/LibPcap 制作用于过滤 DNS 投毒污�
   * 支持 [编译所需依赖包](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的 Linux 发行版
 * Mac
   * **支持 64 位平台 Mac OS X 10.7 Lion 以及更新的版本**
+  * Mac OS X 平台可通过 Homebrew 进行安装
 
 ### License
 GNU General Public License/GNU GPL v2

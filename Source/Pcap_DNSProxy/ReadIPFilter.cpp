@@ -437,7 +437,7 @@ bool __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, cons
 	Addr.reset();
 
 
-//Block those IP addresses from all requesting.
+//Block these IP addresses from all requesting.
 	ResultBlacklistTableTemp.PatternString.append(Data, Separated, Data.length() - Separated);
 	if (ResultBlacklistTableTemp.PatternString == ("ALL") || ResultBlacklistTableTemp.PatternString == ("All") || ResultBlacklistTableTemp.PatternString == ("all"))
 	{

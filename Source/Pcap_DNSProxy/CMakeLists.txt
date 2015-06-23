@@ -18,7 +18,11 @@
 
 
 # CMake minimum version
-cmake_minimum_required(VERSION 3.0.2)
+IF(PLATFORM_OPENWRT)
+	cmake_minimum_required(VERSION 2.8.12.2)
+ELSE(PLATFORM_OPENWRT)
+	cmake_minimum_required(VERSION 3.0.2)
+ENDIF(PLATFORM_OPENWRT)
 
 # Project name
 project(Pcap_DNSProxy)
@@ -61,11 +65,11 @@ set(MAIN_SRC_FILES
 		"Service.cpp")
 
 # Compiling and linking flags
-IF(COMPILE_OPENWRT)
+IF(PLATFORM_OPENWRT)
 	add_definitions(-std=c++11)
-ELSE(COMPILE_OPENWRT)
+ELSE(PLATFORM_OPENWRT)
 	add_definitions(-std=c++11 -fpic)
-ENDIF(COMPILE_OPENWRT)
+ENDIF(PLATFORM_OPENWRT)
 IF(ENABLE_PCAP)
 	add_definitions(-DENABLE_PCAP)
 ENDIF(ENABLE_PCAP)
@@ -75,9 +79,9 @@ ENDIF(ENABLE_LIBSODIUM)
 
 # Executable file name
 add_executable(Pcap_DNSProxy ${MAIN_SRC_FILES})
-IF(COMPILE_OPENWRT)
+IF(PLATFORM_OPENWRT)
 	INSTALL(TARGETS Pcap_DNSProxy RUNTIME DESTINATION sbin)
-ENDIF(COMPILE_OPENWRT)
+ENDIF(PLATFORM_OPENWRT)
 
 # Libraries linking
 target_link_libraries(Pcap_DNSProxy pthread)

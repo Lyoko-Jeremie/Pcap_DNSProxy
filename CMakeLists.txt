@@ -24,34 +24,6 @@ ELSE(PLATFORM_OPENWRT)
 	cmake_minimum_required(VERSION 3.0.2)
 ENDIF(PLATFORM_OPENWRT)
 
-# Project name
-project(KeyPairGenerator)
-
-# Release version
-set(CMAKE_BUILD_TYPE "Release")
-
-# All source files
-set(GENERATOR_SRC_DIR 
-		"KeyPairGenerator.h"
-		"KeyPairGenerator.cpp")
-
-# Compiling and linking flags
-IF(PLATFORM_OPENWRT)
-	add_definitions(-std=c++11)
-ELSE(PLATFORM_OPENWRT)
-	add_definitions(-std=c++11 -fpic)
-ENDIF(PLATFORM_OPENWRT)
-IF(ENABLE_LIBSODIUM)
-	add_definitions(-DENABLE_LIBSODIUM)
-ENDIF(ENABLE_LIBSODIUM)
-
-# Executable file name
-add_executable(KeyPairGenerator ${GENERATOR_SRC_DIR})
-IF(PLATFORM_OPENWRT)
-	INSTALL(TARGETS KeyPairGenerator RUNTIME DESTINATION sbin)
-ENDIF(PLATFORM_OPENWRT)
-
-# Libraries linking
-IF(ENABLE_LIBSODIUM)
-	target_link_libraries(KeyPairGenerator sodium)
-ENDIF(ENABLE_LIBSODIUM)
+# Add sub directories
+add_subdirectory(Source/KeyPairGenerator)
+add_subdirectory(Source/Pcap_DNSProxy)
