@@ -746,185 +746,186 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 uint16_t __fastcall ServiceNameToHex(const char *OriginalBuffer)
 {
 	std::string Buffer(OriginalBuffer);
+	CaseConvert(true, Buffer);
 
 //Server name
-	if (Buffer == "TCPMUX" || Buffer == "tcpmux")
+	if (Buffer == "TCPMUX")
 		return htons(IPPORT_TCPMUX);
-	else if (Buffer == "ECHO" || Buffer == "echo")
+	else if (Buffer == "ECHO")
 		return htons(IPPORT_ECHO);
-	else if (Buffer == "DISCARD" || Buffer == "discard")
+	else if (Buffer == "DISCARD")
 		return htons(IPPORT_DISCARD);
-	else if (Buffer == "SYSTAT" || Buffer == "systat")
+	else if (Buffer == "SYSTAT")
 		return htons(IPPORT_SYSTAT);
-	else if (Buffer == "DAYTIME" || Buffer == "daytime")
+	else if (Buffer == "DAYTIME")
 		return htons(IPPORT_DAYTIME);
-	else if (Buffer == "NETSTAT" || Buffer == "netstat")
+	else if (Buffer == "NETSTAT")
 		return htons(IPPORT_NETSTAT);
-	else if (Buffer == "QOTD" || Buffer == "qotd")
+	else if (Buffer == "QOTD")
 		return htons(IPPORT_QOTD);
-	else if (Buffer == "MSP" || Buffer == "msp")
+	else if (Buffer == "MSP")
 		return htons(IPPORT_MSP);
-	else if (Buffer == "CHARGEN" || Buffer == "chargen")
+	else if (Buffer == "CHARGEN")
 		return htons(IPPORT_CHARGEN);
-	else if (Buffer == "FTPDATA" || Buffer == "ftpdata")
+	else if (Buffer == "FTPDATA")
 		return htons(IPPORT_FTP_DATA);
-	else if (Buffer == "FTP" || Buffer == "ftp")
+	else if (Buffer == "FTP")
 		return htons(IPPORT_FTP);
-	else if (Buffer == "SSH" || Buffer == "ssh")
+	else if (Buffer == "SSH")
 		return htons(IPPORT_SSH);
-	else if (Buffer == "TELNET" || Buffer == "telnet")
+	else if (Buffer == "TELNET")
 		return htons(IPPORT_TELNET);
-	else if (Buffer == "SMTP" || Buffer == "smtp")
+	else if (Buffer == "SMTP")
 		return htons(IPPORT_SMTP);
-	else if (Buffer == "TIMESERVER" || Buffer == "timeserver")
+	else if (Buffer == "TIMESERVER")
 		return htons(IPPORT_TIMESERVER);
-	else if (Buffer == "RAP" || Buffer == "rap")
+	else if (Buffer == "RAP")
 		return htons(IPPORT_RAP);
-	else if (Buffer == "RLP" || Buffer == "rlp")
+	else if (Buffer == "RLP")
 		return htons(IPPORT_RLP);
-	else if (Buffer == "NAMESERVER" || Buffer == "nameserver")
+	else if (Buffer == "NAMESERVER")
 		return htons(IPPORT_NAMESERVER);
-	else if (Buffer == "WHOIS" || Buffer == "whois")
+	else if (Buffer == "WHOIS")
 		return htons(IPPORT_WHOIS);
-	else if (Buffer == "TACACS" || Buffer == "tacacs")
+	else if (Buffer == "TACACS")
 		return htons(IPPORT_TACACS);
-	else if (Buffer == "DNS" || Buffer == "dns")
+	else if (Buffer == "DNS")
 		return htons(IPPORT_DNS);
-	else if (Buffer == "XNSAUTH" || Buffer == "xnsauth")
+	else if (Buffer == "XNSAUTH")
 		return htons(IPPORT_XNSAUTH);
-	else if (Buffer == "MTP" || Buffer == "mtp")
+	else if (Buffer == "MTP")
 		return htons(IPPORT_MTP);
-	else if (Buffer == "BOOTPS" || Buffer == "bootps")
+	else if (Buffer == "BOOTPS")
 		return htons(IPPORT_BOOTPS);
-	else if (Buffer == "BOOTPC" || Buffer == "bootpc")
+	else if (Buffer == "BOOTPC")
 		return htons(IPPORT_BOOTPC);
-	else if (Buffer == "TFTP" || Buffer == "tftp")
+	else if (Buffer == "TFTP")
 		return htons(IPPORT_TFTP);
-	else if (Buffer == "RJE" || Buffer == "rje")
+	else if (Buffer == "RJE")
 		return htons(IPPORT_RJE);
-	else if (Buffer == "FINGER" || Buffer == "finger")
+	else if (Buffer == "FINGER")
 		return htons(IPPORT_FINGER);
-	else if (Buffer == "HTTP" || Buffer == "http")
+	else if (Buffer == "HTTP")
 		return htons(IPPORT_HTTP);
-	else if (Buffer == "HTTPBACKUP" || Buffer == "httpbackup")
+	else if (Buffer == "HTTPBACKUP")
 		return htons(IPPORT_HTTPBACKUP);
-	else if (Buffer == "TTYLINK" || Buffer == "ttylink")
+	else if (Buffer == "TTYLINK")
 		return htons(IPPORT_TTYLINK);
-	else if (Buffer == "SUPDUP" || Buffer == "supdup")
+	else if (Buffer == "SUPDUP")
 		return htons(IPPORT_SUPDUP);
-	else if (Buffer == "POP3" || Buffer == "pop3")
+	else if (Buffer == "POP3")
 		return htons(IPPORT_POP3);
-	else if (Buffer == "SUNRPC" || Buffer == "sunrpc")
+	else if (Buffer == "SUNRPC")
 		return htons(IPPORT_SUNRPC);
-	else if (Buffer == "SQL" || Buffer == "sql")
+	else if (Buffer == "SQL")
 		return htons(IPPORT_SQL);
-	else if (Buffer == "NTP" || Buffer == "ntp")
+	else if (Buffer == "NTP")
 		return htons(IPPORT_NTP);
-	else if (Buffer == "EPMAP" || Buffer == "epmap")
+	else if (Buffer == "EPMAP")
 		return htons(IPPORT_EPMAP);
-	else if (Buffer == "NETBIOS_NS" || Buffer == "netbios_ns")
+	else if (Buffer == "NETBIOS_NS")
 		return htons(IPPORT_NETBIOS_NS);
-	else if (Buffer == "NETBIOS_DGM" || Buffer == "netbios_dgm")
+	else if (Buffer == "NETBIOS_DGM")
 		return htons(IPPORT_NETBIOS_DGM);
-	else if (Buffer == "NETBIOS_SSN" || Buffer == "netbios_ssn")
+	else if (Buffer == "NETBIOS_SSN")
 		return htons(IPPORT_NETBIOS_SSN);
-	else if (Buffer == "IMAP" || Buffer == "imap")
+	else if (Buffer == "IMAP")
 		return htons(IPPORT_IMAP);
-	else if (Buffer == "BFTP" || Buffer == "bftp")
+	else if (Buffer == "BFTP")
 		return htons(IPPORT_BFTP);
-	else if (Buffer == "SGMP" || Buffer == "sgmp")
+	else if (Buffer == "SGMP")
 		return htons(IPPORT_SGMP);
-	else if (Buffer == "SQLSRV" || Buffer == "sqlsrv")
+	else if (Buffer == "SQLSRV")
 		return htons(IPPORT_SQLSRV);
-	else if (Buffer == "DMSP" || Buffer == "dmsp")
+	else if (Buffer == "DMSP")
 		return htons(IPPORT_DMSP);
-	else if (Buffer == "SNMP" || Buffer == "snmp")
+	else if (Buffer == "SNMP")
 		return htons(IPPORT_SNMP);
-	else if (Buffer == "SNMP_TRAP" || Buffer == "snmp_trap")
+	else if (Buffer == "SNMP_TRAP")
 		return htons(IPPORT_SNMP_TRAP);
-	else if (Buffer == "ATRTMP" || Buffer == "atrtmp")
+	else if (Buffer == "ATRTMP")
 		return htons(IPPORT_ATRTMP);
-	else if (Buffer == "ATHBP" || Buffer == "athbp")
+	else if (Buffer == "ATHBP")
 		return htons(IPPORT_ATHBP);
-	else if (Buffer == "QMTP" || Buffer == "qmtp")
+	else if (Buffer == "QMTP")
 		return htons(IPPORT_QMTP);
-	else if (Buffer == "IPX" || Buffer == "ipx")
+	else if (Buffer == "IPX")
 		return htons(IPPORT_IPX);
-	else if (Buffer == "IMAP3" || Buffer == "imap3")
+	else if (Buffer == "IMAP3")
 		return htons(IPPORT_IMAP3);
-	else if (Buffer == "BGMP" || Buffer == "bgmp")
+	else if (Buffer == "BGMP")
 		return htons(IPPORT_BGMP);
-	else if (Buffer == "TSP" || Buffer == "tsp")
+	else if (Buffer == "TSP")
 		return htons(IPPORT_TSP);
-	else if (Buffer == "IMMP" || Buffer == "immp")
+	else if (Buffer == "IMMP")
 		return htons(IPPORT_IMMP);
-	else if (Buffer == "ODMR" || Buffer == "odmr")
+	else if (Buffer == "ODMR")
 		return htons(IPPORT_ODMR);
-	else if (Buffer == "RPC2PORTMAP" || Buffer == "rpc2portmap")
+	else if (Buffer == "RPC2PORTMAP")
 		return htons(IPPORT_RPC2PORTMAP);
-	else if (Buffer == "CLEARCASE" || Buffer == "clearcase")
+	else if (Buffer == "CLEARCASE")
 		return htons(IPPORT_CLEARCASE);
-	else if (Buffer == "HPALARMMGR" || Buffer == "hpalarmmgr")
+	else if (Buffer == "HPALARMMGR")
 		return htons(IPPORT_HPALARMMGR);
-	else if (Buffer == "ARNS" || Buffer == "arns")
+	else if (Buffer == "ARNS")
 		return htons(IPPORT_ARNS);
-	else if (Buffer == "AURP" || Buffer == "aurp")
+	else if (Buffer == "AURP")
 		return htons(IPPORT_AURP);
-	else if (Buffer == "LDAP" || Buffer == "ldap")
+	else if (Buffer == "LDAP")
 		return htons(IPPORT_LDAP);
-	else if (Buffer == "UPS" || Buffer == "ups")
+	else if (Buffer == "UPS")
 		return htons(IPPORT_UPS);
-	else if (Buffer == "SLP" || Buffer == "slp")
+	else if (Buffer == "SLP")
 		return htons(IPPORT_SLP);
-	else if (Buffer == "HTTPS" || Buffer == "https")
+	else if (Buffer == "HTTPS")
 		return htons(IPPORT_HTTPS);
-	else if (Buffer == "SNPP" || Buffer == "snpp")
+	else if (Buffer == "SNPP")
 		return htons(IPPORT_SNPP);
-	else if (Buffer == "MICROSOFTDS" || Buffer == "microsoftds")
+	else if (Buffer == "MICROSOFTDS")
 		return htons(IPPORT_MICROSOFT_DS);
-	else if (Buffer == "KPASSWD" || Buffer == "kpasswd")
+	else if (Buffer == "KPASSWD")
 		return htons(IPPORT_KPASSWD);
-	else if (Buffer == "TCPNETHASPSRV" || Buffer == "tcpnethaspsrv")
+	else if (Buffer == "TCPNETHASPSRV")
 		return htons(IPPORT_TCPNETHASPSRV);
-	else if (Buffer == "RETROSPECT" || Buffer == "retrospect")
+	else if (Buffer == "RETROSPECT")
 		return htons(IPPORT_RETROSPECT);
-	else if (Buffer == "ISAKMP" || Buffer == "isakmp")
+	else if (Buffer == "ISAKMP")
 		return htons(IPPORT_ISAKMP);
-	else if (Buffer == "BIFFUDP" || Buffer == "biffudp")
+	else if (Buffer == "BIFFUDP")
 		return htons(IPPORT_BIFFUDP);
-	else if (Buffer == "WHOSERVER" || Buffer == "whoserver")
+	else if (Buffer == "WHOSERVER")
 		return htons(IPPORT_WHOSERVER);
-	else if (Buffer == "SYSLOG" || Buffer == "syslog")
+	else if (Buffer == "SYSLOG")
 		return htons(IPPORT_SYSLOG);
-	else if (Buffer == "ROUTERSERVER" || Buffer == "routerserver")
+	else if (Buffer == "ROUTERSERVER")
 		return htons(IPPORT_ROUTESERVER);
-	else if (Buffer == "NCP" || Buffer == "ncp")
+	else if (Buffer == "NCP")
 		return htons(IPPORT_NCP);
-	else if (Buffer == "COURIER" || Buffer == "courier")
+	else if (Buffer == "COURIER")
 		return htons(IPPORT_COURIER);
-	else if (Buffer == "COMMERCE" || Buffer == "commerce")
+	else if (Buffer == "COMMERCE")
 		return htons(IPPORT_COMMERCE);
-	else if (Buffer == "RTSP" || Buffer == "rtsp")
+	else if (Buffer == "RTSP")
 		return htons(IPPORT_RTSP);
-	else if (Buffer == "NNTP" || Buffer == "nntp")
+	else if (Buffer == "NNTP")
 		return htons(IPPORT_NNTP);
-	else if (Buffer == "HTTPRPCEPMAP" || Buffer == "httprpcepmap")
+	else if (Buffer == "HTTPRPCEPMAP")
 		return htons(IPPORT_HTTPRPCEPMAP);
-	else if (Buffer == "IPP" || Buffer == "ipp")
+	else if (Buffer == "IPP")
 		return htons(IPPORT_IPP);
-	else if (Buffer == "LDAPS" || Buffer == "ldaps")
+	else if (Buffer == "LDAPS")
 		return htons(IPPORT_LDAPS);
-	else if (Buffer == "MSDP" || Buffer == "msdp")
+	else if (Buffer == "MSDP")
 		return htons(IPPORT_MSDP);
-	else if (Buffer == "AODV" || Buffer == "aodv")
+	else if (Buffer == "AODV")
 		return htons(IPPORT_AODV);
-	else if (Buffer == "FTPSDATA" || Buffer == "ftpsdata")
+	else if (Buffer == "FTPSDATA")
 		return htons(IPPORT_FTPSDATA);
-	else if (Buffer == "FTPS" || Buffer == "ftps")
+	else if (Buffer == "FTPS")
 		return htons(IPPORT_FTPS);
-	else if (Buffer == "NAS" || Buffer == "nas")
+	else if (Buffer == "NAS")
 		return htons(IPPORT_NAS);
-	else if (Buffer == "TELNETS" || Buffer == "telnets")
+	else if (Buffer == "TELNETS")
 		return htons(IPPORT_TELNETS);
 
 //No match.
@@ -935,173 +936,174 @@ uint16_t __fastcall ServiceNameToHex(const char *OriginalBuffer)
 uint16_t __fastcall DNSTypeNameToHex(const char *OriginalBuffer)
 {
 	std::string Buffer(OriginalBuffer);
+	CaseConvert(true, Buffer);
 
 //DNS type name
-	if (Buffer == "A" || Buffer == "a")
+	if (Buffer == "A")
 		return htons(DNS_RECORD_A);
-	else if (Buffer == "NS" || Buffer == "ns")
+	else if (Buffer == "NS")
 		return htons(DNS_RECORD_NS);
-	else if (Buffer == "MD" || Buffer == "md")
+	else if (Buffer == "MD")
 		return htons(DNS_RECORD_MD);
-	else if (Buffer == "MF" || Buffer == "mf")
+	else if (Buffer == "MF")
 		return htons(DNS_RECORD_MF);
-	else if (Buffer == "CNAME" || Buffer == "cname")
+	else if (Buffer == "CNAME")
 		return htons(DNS_RECORD_CNAME);
-	else if (Buffer == "SOA" || Buffer == "soa")
+	else if (Buffer == "SOA")
 		return htons(DNS_RECORD_SOA);
-	else if (Buffer == "MB" || Buffer == "mb")
+	else if (Buffer == "MB")
 		return htons(DNS_RECORD_MB);
-	else if (Buffer == "MG" || Buffer == "mg")
+	else if (Buffer == "MG")
 		return htons(DNS_RECORD_MG);
-	else if (Buffer == "MR" || Buffer == "mr")
+	else if (Buffer == "MR")
 		return htons(DNS_RECORD_MR);
-	else if (Buffer == "PTR" || Buffer == "ptr")
+	else if (Buffer == "PTR")
 		return htons(DNS_RECORD_PTR);
-	else if (Buffer == "NULL" || Buffer == "null")
+	else if (Buffer == "NULL")
 		return htons(DNS_RECORD_NULL);
-	else if (Buffer == "WKS" || Buffer == "wks")
+	else if (Buffer == "WKS")
 		return htons(DNS_RECORD_WKS);
-	else if (Buffer == "HINFO" || Buffer == "hinfo")
+	else if (Buffer == "HINFO")
 		return htons(DNS_RECORD_HINFO);
-	else if (Buffer == "MINFO" || Buffer == "minfo")
+	else if (Buffer == "MINFO")
 		return htons(DNS_RECORD_MINFO);
-	else if (Buffer == "MX" || Buffer == "mx")
+	else if (Buffer == "MX")
 		return htons(DNS_RECORD_MX);
-	else if (Buffer == "TXT" || Buffer == "txt")
+	else if (Buffer == "TXT")
 		return htons(DNS_RECORD_TXT);
-	else if (Buffer == "RP" || Buffer == "rp")
+	else if (Buffer == "RP")
 		return htons(DNS_RECORD_RP);
-	else if (Buffer == "SIG" || Buffer == "sig")
+	else if (Buffer == "SIG")
 		return htons(DNS_RECORD_SIG);
-	else if (Buffer == "AFSDB" || Buffer == "afsdb")
+	else if (Buffer == "AFSDB")
 		return htons(DNS_RECORD_AFSDB);
-	else if (Buffer == "X25" || Buffer == "x25")
+	else if (Buffer == "X25")
 		return htons(DNS_RECORD_X25);
-	else if (Buffer == "ISDN" || Buffer == "isdn")
+	else if (Buffer == "ISDN")
 		return htons(DNS_RECORD_ISDN);
-	else if (Buffer == "RT" || Buffer == "rt")
+	else if (Buffer == "RT")
 		return htons(DNS_RECORD_RT);
-	else if (Buffer == "NSAP" || Buffer == "nsap")
+	else if (Buffer == "NSAP")
 		return htons(DNS_RECORD_NSAP);
-	else if (Buffer == "NSAPPTR" || Buffer == "nsapptr")
+	else if (Buffer == "NSAPPTR")
 		return htons(DNS_RECORD_NSAP_PTR);
-	else if (Buffer == "SIG" || Buffer == "sig")
+	else if (Buffer == "SIG")
 		return htons(DNS_RECORD_SIG);
-	else if (Buffer == "KEY" || Buffer == "key")
+	else if (Buffer == "KEY")
 		return htons(DNS_RECORD_KEY);
-	else if (Buffer == "AAAA" || Buffer == "aaaa")
+	else if (Buffer == "AAAA")
 		return htons(DNS_RECORD_AAAA);
-	else if (Buffer == "PX" || Buffer == "px")
+	else if (Buffer == "PX")
 		return htons(DNS_RECORD_PX);
-	else if (Buffer == "GPOS" || Buffer == "gpos")
+	else if (Buffer == "GPOS")
 		return htons(DNS_RECORD_GPOS);
-	else if (Buffer == "LOC" || Buffer == "loc")
+	else if (Buffer == "LOC")
 		return htons(DNS_RECORD_LOC);
-	else if (Buffer == "NXT" || Buffer == "nxt")
+	else if (Buffer == "NXT")
 		return htons(DNS_RECORD_NXT);
-	else if (Buffer == "EID" || Buffer == "eid")
+	else if (Buffer == "EID")
 		return htons(DNS_RECORD_EID);
-	else if (Buffer == "NIMLOC" || Buffer == "nimloc")
+	else if (Buffer == "NIMLOC")
 		return htons(DNS_RECORD_NIMLOC);
-	else if (Buffer == "SRV" || Buffer == "srv")
+	else if (Buffer == "SRV")
 		return htons(DNS_RECORD_SRV);
-	else if (Buffer == "ATMA" || Buffer == "atma")
+	else if (Buffer == "ATMA")
 		return htons(DNS_RECORD_ATMA);
-	else if (Buffer == "NAPTR" || Buffer == "naptr")
+	else if (Buffer == "NAPTR")
 		return htons(DNS_RECORD_NAPTR);
-	else if (Buffer == "KX" || Buffer == "kx")
+	else if (Buffer == "KX")
 		return htons(DNS_RECORD_KX);
-	else if (Buffer == "CERT" || Buffer == "cert")
+	else if (Buffer == "CERT")
 		return htons(DNS_RECORD_CERT);
-	else if (Buffer == "A6" || Buffer == "a6")
+	else if (Buffer == "A6")
 		return htons(DNS_RECORD_A6);
-	else if (Buffer == "DNAME" || Buffer == "dname")
+	else if (Buffer == "DNAME")
 		return htons(DNS_RECORD_DNAME);
-	else if (Buffer == "SINK" || Buffer == "sink")
+	else if (Buffer == "SINK")
 		return htons(DNS_RECORD_SINK);
-	else if (Buffer == "OPT" || Buffer == "opt")
+	else if (Buffer == "OPT")
 		return htons(DNS_RECORD_OPT);
-	else if (Buffer == "APL" || Buffer == "apl")
+	else if (Buffer == "APL")
 		return htons(DNS_RECORD_APL);
-	else if (Buffer == "DS" || Buffer == "ds")
+	else if (Buffer == "DS")
 		return htons(DNS_RECORD_DS);
-	else if (Buffer == "SSHFP" || Buffer == "sshfp")
+	else if (Buffer == "SSHFP")
 		return htons(DNS_RECORD_SSHFP);
-	else if (Buffer == "IPSECKEY" || Buffer == "ipseckey")
+	else if (Buffer == "IPSECKEY")
 		return htons(DNS_RECORD_IPSECKEY);
-	else if (Buffer == "RRSIG" || Buffer == "rrsig")
+	else if (Buffer == "RRSIG")
 		return htons(DNS_RECORD_RRSIG);
-	else if (Buffer == "NSEC" || Buffer == "nsec")
+	else if (Buffer == "NSEC")
 		return htons(DNS_RECORD_NSEC);
-	else if (Buffer == "DNSKEY" || Buffer == "dnskey")
+	else if (Buffer == "DNSKEY")
 		return htons(DNS_RECORD_DNSKEY);
-	else if (Buffer == "DHCID" || Buffer == "dhcid")
+	else if (Buffer == "DHCID")
 		return htons(DNS_RECORD_DHCID);
-	else if (Buffer == "NSEC3" || Buffer == "nsec3")
+	else if (Buffer == "NSEC3")
 		return htons(DNS_RECORD_NSEC3);
-	else if (Buffer == "NSEC3PARAM" || Buffer == "nsec3param")
+	else if (Buffer == "NSEC3PARAM")
 		return htons(DNS_RECORD_NSEC3PARAM);
-	else if (Buffer == "TLSA" || Buffer == "tlsa")
+	else if (Buffer == "TLSA")
 		return htons(DNS_RECORD_TLSA);
-	else if (Buffer == "HIP" || Buffer == "hip")
+	else if (Buffer == "HIP")
 		return htons(DNS_RECORD_HIP);
-	else if (Buffer == "HINFO" || Buffer == "hinfo")
+	else if (Buffer == "HINFO")
 		return htons(DNS_RECORD_HINFO);
-	else if (Buffer == "RKEY" || Buffer == "rkey")
+	else if (Buffer == "RKEY")
 		return htons(DNS_RECORD_RKEY);
-	else if (Buffer == "TALINK" || Buffer == "talink")
+	else if (Buffer == "TALINK")
 		return htons(DNS_RECORD_TALINK);
-	else if (Buffer == "CDS" || Buffer == "cds")
+	else if (Buffer == "CDS")
 		return htons(DNS_RECORD_CDS);
-	else if (Buffer == "CDNSKEY" || Buffer == "cdnskey")
+	else if (Buffer == "CDNSKEY")
 		return htons(DNS_RECORD_CDNSKEY);
-	else if (Buffer == "OPENPGPKEY" || Buffer == "openpgpkey")
+	else if (Buffer == "OPENPGPKEY")
 		return htons(DNS_RECORD_OPENPGPKEY);
-	else if (Buffer == "SPF" || Buffer == "spf")
+	else if (Buffer == "SPF")
 		return htons(DNS_RECORD_SPF);
-	else if (Buffer == "UINFO" || Buffer == "uinfo")
+	else if (Buffer == "UINFO")
 		return htons(DNS_RECORD_UINFO);
-	else if (Buffer == "UID" || Buffer == "uid")
+	else if (Buffer == "UID")
 		return htons(DNS_RECORD_UID);
-	else if (Buffer == "GID" || Buffer == "gid")
+	else if (Buffer == "GID")
 		return htons(DNS_RECORD_GID);
-	else if (Buffer == "UNSPEC" || Buffer == "unspec")
+	else if (Buffer == "UNSPEC")
 		return htons(DNS_RECORD_UNSPEC);
-	else if (Buffer == "NID" || Buffer == "nid")
+	else if (Buffer == "NID")
 		return htons(DNS_RECORD_NID);
-	else if (Buffer == "L32" || Buffer == "l32")
+	else if (Buffer == "L32")
 		return htons(DNS_RECORD_L32);
-	else if (Buffer == "L64" || Buffer == "l64")
+	else if (Buffer == "L64")
 		return htons(DNS_RECORD_L64);
-	else if (Buffer == "LP" || Buffer == "lp")
+	else if (Buffer == "LP")
 		return htons(DNS_RECORD_LP);
-	else if (Buffer == "EUI48" || Buffer == "eui48")
+	else if (Buffer == "EUI48")
 		return htons(DNS_RECORD_EUI48);
-	else if (Buffer == "EUI64" || Buffer == "eui64")
+	else if (Buffer == "EUI64")
 		return htons(DNS_RECORD_EUI64);
-	else if (Buffer == "TKEY" || Buffer == "tkey")
+	else if (Buffer == "TKEY")
 		return htons(DNS_RECORD_TKEY);
-	else if (Buffer == "TSIG" || Buffer == "tsig")
+	else if (Buffer == "TSIG")
 		return htons(DNS_RECORD_TSIG);
-	else if (Buffer == "IXFR" || Buffer == "ixfr")
+	else if (Buffer == "IXFR")
 		return htons(DNS_RECORD_IXFR);
-	else if (Buffer == "AXFR" || Buffer == "axfr")
+	else if (Buffer == "AXFR")
 		return htons(DNS_RECORD_AXFR);
-	else if (Buffer == "MAILB" || Buffer == "mailb")
+	else if (Buffer == "MAILB")
 		return htons(DNS_RECORD_MAILB);
-	else if (Buffer == "MAILA" || Buffer == "maila")
+	else if (Buffer == "MAILA")
 		return htons(DNS_RECORD_MAILA);
-	else if (Buffer == "ANY" || Buffer == "any")
+	else if (Buffer == "ANY")
 		return htons(DNS_RECORD_ANY);
-	else if (Buffer == "URI" || Buffer == "uri")
+	else if (Buffer == "URI")
 		return htons(DNS_RECORD_URI);
-	else if (Buffer == "CAA" || Buffer == "caa")
+	else if (Buffer == "CAA")
 		return htons(DNS_RECORD_CAA);
-	else if (Buffer == "TA" || Buffer == "ta")
+	else if (Buffer == "TA")
 		return htons(DNS_RECORD_TA);
-	else if (Buffer == "DLV" || Buffer == "dlv")
+	else if (Buffer == "DLV")
 		return htons(DNS_RECORD_DLV);
-	else if (Buffer == "RESERVED" || Buffer == "reserved")
+	else if (Buffer == "RESERVED")
 		return htons(DNS_RECORD_RESERVED);
 
 //No match.
@@ -1348,13 +1350,16 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 			{
 				NameStringTemp.append(Data, Result, 1U);
 
-			//Case Convert.
-			#if defined(PLATFORM_WIN) //Case-insensitive on Windows
+			//Case-insensitive on Windows
+			#if defined(PLATFORM_WIN)
+/* Old version(2015-06-27)
 				for (auto &StringIter:NameStringTemp)
 				{
 					if (StringIter > ASCII_AT && StringIter < ASCII_BRACKETS_LEAD)
 						StringIter += ASCII_UPPER_TO_LOWER;
 				}
+*/
+				CaseConvert(false, NameStringTemp);
 			#endif
 
 			//Add backslash.
@@ -1386,13 +1391,16 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 			}
 			else if (Data.at(Result) == ASCII_VERTICAL)
 			{
-			//Case Convert.
-			#if defined(PLATFORM_WIN) //Case-insensitive on Windows
+			//Case-insensitive on Windows
+			#if defined(PLATFORM_WIN)
+/* Old version(2015-06-27)
 				for (auto &StringIter:NameStringTemp)
 				{
 					if (StringIter > ASCII_AT && StringIter < ASCII_BRACKETS_LEAD)
 						StringIter += ASCII_UPPER_TO_LOWER;
 				}
+*/
+				CaseConvert(false, NameStringTemp);
 			#endif
 
 			//Add backslash.
@@ -1456,7 +1464,8 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 	}
 	else if (Data.find("LogMaximumSize=") == 0 && Data.length() > strlen("LogMaximumSize="))
 	{
-		if (Data.find("KB") != std::string::npos || Data.find("Kb") != std::string::npos || Data.find("kB") != std::string::npos || Data.find("kb") != std::string::npos)
+		CaseConvert(true, Data);
+		if (Data.find("KB") != std::string::npos)
 		{
 			Data.erase(Data.length() - 2U, 2U);
 
@@ -1471,7 +1480,7 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 				return false;
 			}
 		}
-		else if (Data.find("MB") != std::string::npos || Data.find("Mb") != std::string::npos || Data.find("mB") != std::string::npos || Data.find("mb") != std::string::npos)
+		else if (Data.find("MB") != std::string::npos)
 		{
 			Data.erase(Data.length() - 2U, 2U);
 
@@ -1486,7 +1495,7 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 				return false;
 			}
 		}
-		else if (Data.find("GB") != std::string::npos || Data.find("Gb") != std::string::npos || Data.find("gB") != std::string::npos || Data.find("gb") != std::string::npos)
+		else if (Data.find("GB") != std::string::npos)
 		{
 			Data.erase(Data.length() - 2U, 2U);
 
@@ -1528,9 +1537,10 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 //[DNS] block
 	else if (Data.find("Protocol=") == 0)
 	{
-		if (Data.find("IPv6") != std::string::npos || Data.find("IPV6") != std::string::npos || Data.find("ipv6") != std::string::npos)
+		CaseConvert(true, Data);
+		if (Data.find("IPV6") != std::string::npos)
 		{
-			if (Data.find("IPv4") != std::string::npos || Data.find("IPV4") != std::string::npos || Data.find("ipv4") != std::string::npos)
+			if (Data.find("IPV4") != std::string::npos)
 				Parameter.RequestMode_Network = REQUEST_MODE_NETWORK_BOTH;
 			else
 				Parameter.RequestMode_Network = REQUEST_MODE_IPV6;
@@ -1539,7 +1549,7 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 			Parameter.RequestMode_Network = REQUEST_MODE_IPV4;
 		}
 
-		if (Data.find("TCP") != std::string::npos || Data.find("tcp") != std::string::npos)
+		if (Data.find("TCP") != std::string::npos)
 			Parameter.RequestMode_Transport = REQUEST_MODE_TCP;
 		else 
 			Parameter.RequestMode_Transport = REQUEST_MODE_UDP;
@@ -1562,9 +1572,10 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 	}
 	else if (Data.find("CacheType=") == 0 && Data.length() > strlen("CacheType="))
 	{
-		if (Data.find("Timer") != std::string::npos || Data.find("timer") != std::string::npos)
+		CaseConvert(true, Data);
+		if (Data.find("TIMER") != std::string::npos)
 			Parameter.CacheType = CACHE_TYPE_TIMER;
-		else if (Data.find("Queue") != std::string::npos || Data.find("queue") != std::string::npos)
+		else if (Data.find("QUEUE") != std::string::npos)
 			Parameter.CacheType = CACHE_TYPE_QUEUE;
 	}
 	else if (Parameter.CacheType > 0 && Data.find("CacheParameter=") == 0 && Data.length() > strlen("CacheParameter="))
@@ -1574,7 +1585,7 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 		{
 			if (Parameter.CacheType == CACHE_TYPE_TIMER)
 				Parameter.CacheParameter = Result * SECOND_TO_MILLISECOND;
-			else //CACHE_TYPE_QUEUE
+			else if (Parameter.CacheType == CACHE_TYPE_QUEUE)
 				Parameter.CacheParameter = Result;
 		}
 		else {
@@ -1624,9 +1635,10 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 #endif
 	else if (Data.find("ListenProtocol=") == 0)
 	{
-		if (Data.find("IPv6") != std::string::npos || Data.find("IPV6") != std::string::npos || Data.find("ipv6") != std::string::npos)
+		CaseConvert(true, Data);
+		if (Data.find("IPV6") != std::string::npos)
 		{
-			if (Data.find("IPv4") != std::string::npos || Data.find("IPV4") != std::string::npos || Data.find("ipv4") != std::string::npos)
+			if (Data.find("IPV4") != std::string::npos)
 				Parameter.ListenProtocol_Network = LISTEN_PROTOCOL_NETWORK_BOTH;
 			else 
 				Parameter.ListenProtocol_Network = LISTEN_PROTOCOL_IPV6;
@@ -1635,9 +1647,9 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 			Parameter.ListenProtocol_Network = LISTEN_PROTOCOL_IPV4;
 		}
 
-		if (Data.find("TCP") != std::string::npos || Data.find("tcp") != std::string::npos)
+		if (Data.find("TCP") != std::string::npos)
 		{
-			if (Data.find("UDP") != std::string::npos || Data.find("udp") != std::string::npos)
+			if (Data.find("UDP") != std::string::npos)
 				Parameter.ListenProtocol_Transport = LISTEN_PROTOCOL_TRANSPORT_BOTH;
 			else 
 				Parameter.ListenProtocol_Transport = LISTEN_PROTOCOL_TCP;
@@ -1715,11 +1727,12 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 	}
 	else if (Data.find("OperationMode=") == 0)
 	{
-		if (Data.find("PRIVATE") != std::string::npos || Data.find("Private") != std::string::npos || Data.find("private") != std::string::npos)
+		CaseConvert(true, Data);
+		if (Data.find("PRIVATE") != std::string::npos)
 			Parameter.OperationMode = LISTEN_MODE_PRIVATE;
-		else if (Data.find("SERVER") != std::string::npos || Data.find("Server") != std::string::npos || Data.find("server") != std::string::npos)
+		else if (Data.find("SERVER") != std::string::npos)
 			Parameter.OperationMode = LISTEN_MODE_SERVER;
-		else if (Data.find("CUSTOM") != std::string::npos || Data.find("Custom") != std::string::npos || Data.find("custom") != std::string::npos)
+		else if (Data.find("CUSTOM") != std::string::npos)
 			Parameter.OperationMode = LISTEN_MODE_CUSTOM;
 		else 
 			Parameter.OperationMode = LISTEN_MODE_PROXY;
@@ -1756,7 +1769,7 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 		}
 		else {
 		//Permit or Deny
-			if (Data.find("PERMIT:") != std::string::npos || Data.find("Permit:") != std::string::npos || Data.find("permit:") != std::string::npos)
+			if (Data.find("Permit:") != std::string::npos || Data.find("PERMIT:") != std::string::npos || Data.find("permit:") != std::string::npos)
 				Parameter.AcceptType = true;
 			else 
 				Parameter.AcceptType = false;
@@ -2451,13 +2464,16 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 		if (Result == (SSIZE_T)(Data.length() - 1U))
 		{
 			NameStringTemp.append(Data, Result, 1U);
-		//Case Convert(Case-insensitive on Windows).
+		//Case-insensitive on Windows
 		#if defined(PLATFORM_WIN)
+/* Old version(2015-06-27)
 			for (auto &StringIter:NameStringTemp)
 			{
 				if (StringIter > ASCII_AT && StringIter < ASCII_BRACKETS_LEAD)
 					StringIter += ASCII_UPPER_TO_LOWER;
 			}
+*/
+			CaseConvert(false, NameStringTemp);
 		#endif
 
 		//Add to global list.
@@ -2502,13 +2518,16 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 		}
 		else if (Data.at(Result) == ASCII_VERTICAL)
 		{
-		//Case Convert(Case-insensitive on Windows).
+		//Case-insensitive on Windows
 		#if defined(PLATFORM_WIN)
+/* Old version(2015-06-27)
 			for (auto &StringIter:NameStringTemp)
 			{
 				if (StringIter > ASCII_AT && StringIter < ASCII_BRACKETS_LEAD)
 					StringIter += ASCII_UPPER_TO_LOWER;
 			}
+*/
+			CaseConvert(false, NameStringTemp);
 		#endif
 
 		//Add to global list.

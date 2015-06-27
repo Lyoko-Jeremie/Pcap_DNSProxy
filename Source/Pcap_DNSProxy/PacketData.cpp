@@ -235,8 +235,11 @@ void __fastcall MakeRamdomDomain(PSTR Buffer)
 		{
 			Buffer[Index] = Parameter.DomainTable[RamdomDistribution(*Parameter.RamdomEngine)];
 		//Convert to lowercase letters.
+/* Old version(2015-06-27)
 			if (Buffer[Index] > ASCII_AT && Buffer[Index] < ASCII_BRACKETS_LEAD)
 				Buffer[Index] += ASCII_UPPER_TO_LOWER;
+*/
+			Buffer[Index] = (char)tolower(Buffer[Index]);
 		}
 
 	//Make random domain like a normal Top-Level Domain/TLD.
@@ -259,8 +262,11 @@ void __fastcall MakeRamdomDomain(PSTR Buffer)
 		{
 			Buffer[Index] = Parameter.DomainTable[RamdomDistribution(*Parameter.RamdomEngine)];
 		//Convert to lowercase letters.
+/* Old version(2015-06-27)
 			if (Buffer[Index] > ASCII_AT && Buffer[Index] < ASCII_BRACKETS_LEAD)
 				Buffer[Index] += ASCII_UPPER_TO_LOWER;
+*/
+			Buffer[Index] = (char)tolower(Buffer[Index]);
 		}
 
 	//Make random domain like a normal Top-level domain/TLD.
@@ -291,25 +297,31 @@ void __fastcall MakeRamdomDomain(PSTR Buffer)
 //Make Domain Case Conversion
 void __fastcall MakeDomainCaseConversion(PSTR Buffer)
 {
-	size_t Index = 0;
-
 //Ramdom number distribution initialization
 	std::uniform_int_distribution<int> RamdomDistribution(0, 1U);
 
 //Make Case Conversion.
 	if (RamdomDistribution(*Parameter.RamdomEngine) % 2U == 0)
 	{
-		for (Index = 0;Index < strnlen_s(Buffer, DOMAIN_MAXSIZE);++Index)
+		for (size_t Index = 0;Index < strnlen_s(Buffer, DOMAIN_MAXSIZE);++Index)
 		{
+/* Old version(2015-06-27)
 			if (Index % 2U == 0 && *(Buffer + Index) > ASCII_ACCENT && *(Buffer + Index) < ASCII_BRACES_LEAD)
 				*(Buffer + Index) -= ASCII_LOWER_TO_UPPER;
+*/
+			if (Index % 2U == 0)
+				*(Buffer + Index) = (char)toupper(*(Buffer + Index));
 		}
 	}
 	else {
-		for (Index = 0;Index < strnlen_s(Buffer, DOMAIN_MAXSIZE);++Index)
+		for (size_t Index = 0;Index < strnlen_s(Buffer, DOMAIN_MAXSIZE);++Index)
 		{
+/* Old version(2015-06-27)
 			if (Index % 2U > 0 && *(Buffer + Index) > ASCII_ACCENT && *(Buffer + Index) < ASCII_BRACES_LEAD)
 				*(Buffer + Index) -= ASCII_LOWER_TO_UPPER;
+*/
+			if (Index % 2U > 0)
+				*(Buffer + Index) = (char)toupper(*(Buffer + Index));
 		}
 	}
 

@@ -28,25 +28,25 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 	{
 		if (Parameter.CPM_PointerToAdditional)
 		{
-			std::shared_ptr<char> SendBufferTemp(new char[Length + 2U + sizeof(dns_record_aaaa)]());
-			memset(SendBufferTemp.get(), 0, Length + 2U + sizeof(dns_record_aaaa));
+			std::shared_ptr<char> SendBufferTemp(new char[Length + 2U + sizeof(dns_record_aaaa) + sizeof(uint16_t)]());
+			memset(SendBufferTemp.get(), 0, Length + 2U + sizeof(dns_record_aaaa) + sizeof(uint16_t));
 			SendBufferTemp.swap(SendBuffer);
 		}
 		else if (Parameter.CPM_PointerToRR)
 		{
-			std::shared_ptr<char> SendBufferTemp(new char[Length + 2U]());
-			memset(SendBufferTemp.get(), 0, Length + 2U);
+			std::shared_ptr<char> SendBufferTemp(new char[Length + 2U + sizeof(uint16_t)]());
+			memset(SendBufferTemp.get(), 0, Length + 2U + sizeof(uint16_t));
 			SendBufferTemp.swap(SendBuffer);
 		}
 		else { //Pointer to header
-			std::shared_ptr<char> SendBufferTemp(new char[Length + 1U]());
-			memset(SendBufferTemp.get(), 0, Length + 1U);
+			std::shared_ptr<char> SendBufferTemp(new char[Length + 1U + sizeof(uint16_t)]());
+			memset(SendBufferTemp.get(), 0, Length + 1U + sizeof(uint16_t));
 			SendBufferTemp.swap(SendBuffer);
 		}
 	}
 	else {
-		std::shared_ptr<char> SendBufferTemp(new char[Length]());
-		memset(SendBufferTemp.get(), 0, Length);
+		std::shared_ptr<char> SendBufferTemp(new char[Length + sizeof(uint16_t)]()); //Reserved 2 bytes for TCP header length.
+		memset(SendBufferTemp.get(), 0, Length + sizeof(uint16_t));
 		SendBufferTemp.swap(SendBuffer);
 	}
 	memcpy_s(SendBuffer.get(), Length, OriginalSend, Length);
@@ -58,13 +58,13 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
 #endif
 	{
-		std::shared_ptr<char> TCPRecvBuffer(new char[LARGE_PACKET_MAXSIZE]());
-		memset(TCPRecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
+		std::shared_ptr<char> TCPRecvBuffer(new char[LARGE_PACKET_MAXSIZE + sizeof(uint16_t)]());
+		memset(TCPRecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE + sizeof(uint16_t));
 		RecvBuffer.swap(TCPRecvBuffer);
 	}
 	else { //UDP
-		std::shared_ptr<char> UDPRecvBuffer(new char[PACKET_MAXSIZE]());
-		memset(UDPRecvBuffer.get(), 0, PACKET_MAXSIZE);
+		std::shared_ptr<char> UDPRecvBuffer(new char[PACKET_MAXSIZE + sizeof(uint16_t)]());
+		memset(UDPRecvBuffer.get(), 0, PACKET_MAXSIZE + sizeof(uint16_t));
 		RecvBuffer.swap(UDPRecvBuffer);
 	}
 
@@ -74,7 +74,7 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 	if (DNS_Header->Questions == htons(U16_NUM_ONE))
 	{
 		if (Protocol == IPPROTO_TCP) //TCP
-			DataLength = LARGE_PACKET_MAXSIZE - sizeof(uint16_t);
+			DataLength = LARGE_PACKET_MAXSIZE;
 		else //UDP
 			DataLength = PACKET_MAXSIZE;
 		DataLength = CheckHosts(SendBuffer.get(), Length, RecvBuffer.get(), DataLength);
@@ -140,7 +140,7 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 			(DataLength > DNSCurveParameter.DNSCurvePayloadSize + crypto_box_BOXZEROBYTES - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES) ||
 		//Receive Size check(TCP Mode)
 		(Parameter.RequestMode_Transport == REQUEST_MODE_TCP || DNSCurveParameter.DNSCurveMode == DNSCURVE_REQUEST_MODE_TCP || Protocol == IPPROTO_TCP) && DNSCurveParameter.DNSCurvePayloadSize >= LARGE_PACKET_MAXSIZE && 
-			crypto_box_ZEROBYTES + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES + DataLength >= LARGE_PACKET_MAXSIZE - sizeof(uint16_t) ||
+			crypto_box_ZEROBYTES + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES + DataLength >= LARGE_PACKET_MAXSIZE ||
 		//Receive Size check(UDP Mode)
 			Parameter.RequestMode_Transport != REQUEST_MODE_TCP && DNSCurveParameter.DNSCurveMode != DNSCURVE_REQUEST_MODE_TCP && Protocol != IPPROTO_TCP && DNSCurveParameter.DNSCurvePayloadSize >= PACKET_MAXSIZE && 
 			crypto_box_ZEROBYTES + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES + DataLength >= PACKET_MAXSIZE))
@@ -173,7 +173,7 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 
 //IPv6 tunnels support and direct requesting when Pcap Capture module is turn OFF.
 #if defined(ENABLE_PCAP)
-	if (!Parameter.PcapCapture || Parameter.GatewayAvailable_IPv6 && Parameter.TunnelAvailable_IPv6)
+	if (!Parameter.PcapCapture /* || Parameter.GatewayAvailable_IPv6 && Parameter.TunnelAvailable_IPv6 */ )
 	{
 #endif
 		DirectRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), Protocol, LocalSocketData);
@@ -573,7 +573,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 
 	HostsListMutex.unlock();
 
-//Check Cache.
+//Check DNS cache.
 	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
 	for (auto DNSCacheDataIter:DNSCacheList)
 	{
@@ -607,7 +607,7 @@ bool __fastcall LocalRequestProcess(const char *OriginalSend, const size_t SendS
 //TCP Mode
 	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
 	{
-		DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), true);
+		DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE, true);
 
 	//Send response.
 		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < LARGE_PACKET_MAXSIZE)
@@ -619,7 +619,7 @@ bool __fastcall LocalRequestProcess(const char *OriginalSend, const size_t SendS
 
 //UDP Mode(REQUEST_MODE_UDP)
 	if (Protocol == IPPROTO_TCP) //TCP requesting
-		DataLength = LARGE_PACKET_MAXSIZE - sizeof(uint16_t);
+		DataLength = LARGE_PACKET_MAXSIZE;
 //UDP requesting
 	else 
 		DataLength = PACKET_MAXSIZE;
@@ -646,10 +646,10 @@ bool __fastcall DirectRequestProcess(const char *OriginalSend, const size_t Send
 	{
 	//Multi requesting.
 		if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
-			DataLength = TCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t));
+			DataLength = TCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE);
 	//Normal requesting
 		else 
-			DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), false);
+			DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE, false);
 
 	//Send response.
 		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < LARGE_PACKET_MAXSIZE)
@@ -661,7 +661,7 @@ bool __fastcall DirectRequestProcess(const char *OriginalSend, const size_t Send
 
 //UDP Mode(REQUEST_MODE_UDP)
 	if (Protocol == IPPROTO_TCP) //TCP requesting
-		DataLength = LARGE_PACKET_MAXSIZE - sizeof(uint16_t);
+		DataLength = LARGE_PACKET_MAXSIZE;
 	else //UDP requesting
 		DataLength = PACKET_MAXSIZE;
 
@@ -693,10 +693,10 @@ bool __fastcall DNSCurveRequestProcess(const char *OriginalSend, const size_t Se
 	{
 	//Multi requesting.
 		if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
-			DataLength = DNSCurveTCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t));
+			DataLength = DNSCurveTCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE);
 	//Normal requesting
 		else 
-			DataLength = DNSCurveTCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t));
+			DataLength = DNSCurveTCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE);
 
 	//Send response.
 		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < LARGE_PACKET_MAXSIZE)
@@ -708,7 +708,7 @@ bool __fastcall DNSCurveRequestProcess(const char *OriginalSend, const size_t Se
 
 //UDP Mode(REQUEST_MODE_UDP)
 	if (Protocol == IPPROTO_TCP) //TCP requesting
-		DataLength = LARGE_PACKET_MAXSIZE - sizeof(uint16_t);
+		DataLength = LARGE_PACKET_MAXSIZE;
 	else //UDP requesting
 		DataLength = PACKET_MAXSIZE;
 
@@ -737,10 +737,10 @@ bool __fastcall TCPRequestProcess(const char *OriginalSend, const size_t SendSiz
 
 //Multi requesting.
 	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
-		DataLength = TCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t));
+		DataLength = TCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE);
 //Normal requesting
 	else 
-		DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE - sizeof(uint16_t), false);
+		DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE, false);
 
 //Send response.
 	if (DataLength >= sizeof(uint16_t) + DNS_PACKET_MINSIZE && DataLength < LARGE_PACKET_MAXSIZE)

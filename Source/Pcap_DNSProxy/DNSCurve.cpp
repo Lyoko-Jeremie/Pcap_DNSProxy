@@ -404,6 +404,8 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 	auto DNS_TCP_Header = (pdns_tcp_hdr)SendBuffer.get();
 #if defined(ENABLE_PCAP)
 	DNS_TCP_Header->ID = Parameter.DomainTest_ID;
+#else 
+	DNS_TCP_Header->ID = htons(U16_NUM_ONE);
 #endif
 	DNS_TCP_Header->Flags = htons(DNS_STANDARD);
 	DNS_TCP_Header->Questions = htons(U16_NUM_ONE);
@@ -520,7 +522,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 	#if defined(PLATFORM_WIN)
 		if (connect(TCPSocket, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK)
 	#elif defined(PLATFORM_MACX)
-		if (connect(TCPSocket, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+		if (connect(TCPSocket, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR && errno != EWOULDBLOCK && errno != EAGAIN && errno != EINPROGRESS)
 	#elif defined(PLATFORM_LINUX)
 		IsError = false, IsSend = false;
 		if (Parameter.TCP_FastOpen)
@@ -542,14 +544,25 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 		if (IsError)
 	#endif
 		{
-			if (ServerType == DNSCURVE_MAIN_IPV6)
-				PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
-			else if (ServerType == DNSCURVE_MAIN_IPV4)
-				PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server TCP get signature data error", 0, nullptr, 0);
-			else if (ServerType == DNSCURVE_ALTERNATE_IPV6)
-				PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server TCP get signature data error", 0, nullptr, 0);
-			else if (ServerType == DNSCURVE_ALTERNATE_IPV4)
-				PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server TCP get signature data error", 0, nullptr, 0);
+			switch (ServerType)
+			{
+				case DNSCURVE_MAIN_IPV6:
+				{
+					PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
+				}break;
+				case DNSCURVE_MAIN_IPV4:
+				{
+					PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server TCP get signature data error", 0, nullptr, 0);
+				}break;
+				case DNSCURVE_ALTERNATE_IPV6:
+				{
+					PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server TCP get signature data error", 0, nullptr, 0);
+				}break;
+				case DNSCURVE_ALTERNATE_IPV4:
+				{
+					PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server TCP get signature data error", 0, nullptr, 0);
+				}break;
+			}
 
 			goto JumpToRestart;
 		}
@@ -584,7 +597,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 		#endif
 			if (SelectResult > 0)
 			{
-			//Receive.
+			//Receive
 				if (FD_ISSET(TCPSocket, ReadFDS.get()))
 				{
 					RecvLen = recv(TCPSocket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, 0);
@@ -600,14 +613,25 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 						}
 					//Invalid packet
 						else {
-							if (ServerType == DNSCURVE_MAIN_IPV6)
-								PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
-							else if (ServerType == DNSCURVE_MAIN_IPV4)
-								PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server TCP get signature data error", 0, nullptr, 0);
-							else if (ServerType == DNSCURVE_ALTERNATE_IPV6)
-								PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server TCP get signature data error", 0, nullptr, 0);
-							else if (ServerType == DNSCURVE_ALTERNATE_IPV4)
-								PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server TCP get signature data error", 0, nullptr, 0);
+							switch (ServerType)
+							{
+								case DNSCURVE_MAIN_IPV6:
+								{
+									PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
+								}break;
+								case DNSCURVE_MAIN_IPV4:
+								{
+									PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server TCP get signature data error", 0, nullptr, 0);
+								}break;
+								case DNSCURVE_ALTERNATE_IPV6:
+								{
+									PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server TCP get signature data error", 0, nullptr, 0);
+								}break;
+								case DNSCURVE_ALTERNATE_IPV4:
+								{
+									PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server TCP get signature data error", 0, nullptr, 0);
+								}break;
+							}
 
 							goto JumpToRestart;
 						}
@@ -616,14 +640,25 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 					//Length check.
 						if (RecvLen < (SSIZE_T)PDULen)
 						{
-							if (ServerType == DNSCURVE_MAIN_IPV6)
-								PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
-							else if (ServerType == DNSCURVE_MAIN_IPV4)
-								PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server TCP get signature data error", 0, nullptr, 0);
-							else if (ServerType == DNSCURVE_ALTERNATE_IPV6)
-								PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server TCP get signature data error", 0, nullptr, 0);
-							else if (ServerType == DNSCURVE_ALTERNATE_IPV4)
-								PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server TCP get signature data error", 0, nullptr, 0);
+							switch (ServerType)
+							{
+								case DNSCURVE_MAIN_IPV6:
+								{
+									PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
+								}break;
+								case DNSCURVE_MAIN_IPV4:
+								{
+									PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server TCP get signature data error", 0, nullptr, 0);
+								}break;
+								case DNSCURVE_ALTERNATE_IPV6:
+								{
+									PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server TCP get signature data error", 0, nullptr, 0);
+								}break;
+								case DNSCURVE_ALTERNATE_IPV4:
+								{
+									PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server TCP get signature data error", 0, nullptr, 0);
+								}break;
+							}
 
 							goto JumpToRestart;
 						}
@@ -640,14 +675,26 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 								goto JumpFromPDU;
 							}
 
-							if (ServerType == DNSCURVE_MAIN_IPV6)
-								PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
-							else if (ServerType == DNSCURVE_MAIN_IPV4)
-								PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server TCP get signature data error", 0, nullptr, 0);
-							else if (ServerType == DNSCURVE_ALTERNATE_IPV6)
-								PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server TCP get signature data error", 0, nullptr, 0);
-							else if (ServerType == DNSCURVE_ALTERNATE_IPV4)
-								PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server TCP get signature data error", 0, nullptr, 0);
+						//Print error.
+							switch (ServerType)
+							{
+								case DNSCURVE_MAIN_IPV6:
+								{
+									PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
+								}break;
+								case DNSCURVE_MAIN_IPV4:
+								{
+									PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server TCP get signature data error", 0, nullptr, 0);
+								}break;
+								case DNSCURVE_ALTERNATE_IPV6:
+								{
+									PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server TCP get signature data error", 0, nullptr, 0);
+								}break;
+								case DNSCURVE_ALTERNATE_IPV4:
+								{
+									PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server TCP get signature data error", 0, nullptr, 0);
+								}break;
+							}
 
 							goto JumpToRestart;
 						}
@@ -656,14 +703,25 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 						//Length check
 							if (RecvLen < (SSIZE_T)ntohs(((uint16_t *)RecvBuffer.get())[0]))
 							{
-								if (ServerType == DNSCURVE_MAIN_IPV6)
-									PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
-								else if (ServerType == DNSCURVE_MAIN_IPV4)
-									PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server TCP get signature data error", 0, nullptr, 0);
-								else if (ServerType == DNSCURVE_ALTERNATE_IPV6)
-									PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server TCP get signature data error", 0, nullptr, 0);
-								else if (ServerType == DNSCURVE_ALTERNATE_IPV4)
-									PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server TCP get signature data error", 0, nullptr, 0);
+								switch (ServerType)
+								{
+									case DNSCURVE_MAIN_IPV6:
+									{
+										PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
+									}break;
+									case DNSCURVE_MAIN_IPV4:
+									{
+										PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server TCP get signature data error", 0, nullptr, 0);
+									}break;
+									case DNSCURVE_ALTERNATE_IPV6:
+									{
+										PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server TCP get signature data error", 0, nullptr, 0);
+									}break;
+									case DNSCURVE_ALTERNATE_IPV4:
+									{
+										PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server TCP get signature data error", 0, nullptr, 0);
+									}break;
+								}
 								
 								goto JumpToRestart;
 							}
@@ -685,14 +743,25 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 										CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 										CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 									{
-										if (ServerType == DNSCURVE_MAIN_IPV6)
-											PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
-										else if (ServerType == DNSCURVE_MAIN_IPV4)
-											PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server TCP get signature data error", 0, nullptr, 0);
-										else if (ServerType == DNSCURVE_ALTERNATE_IPV6)
-											PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server TCP get signature data error", 0, nullptr, 0);
-										else if (ServerType == DNSCURVE_ALTERNATE_IPV4)
-											PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server TCP get signature data error", 0, nullptr, 0);
+										switch (ServerType)
+										{
+											case DNSCURVE_MAIN_IPV6:
+											{
+												PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
+											}break;
+											case DNSCURVE_MAIN_IPV4:
+											{
+												PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server TCP get signature data error", 0, nullptr, 0);
+											}break;
+											case DNSCURVE_ALTERNATE_IPV6:
+											{
+												PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server TCP get signature data error", 0, nullptr, 0);
+											}break;
+											case DNSCURVE_ALTERNATE_IPV4:
+											{
+												PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server TCP get signature data error", 0, nullptr, 0);
+											}break;
+										}
 
 										goto JumpToRestart;
 									}
@@ -701,14 +770,25 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 								}
 							//Length check
 								else {
-									if (ServerType == DNSCURVE_MAIN_IPV6)
-										PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
-									else if (ServerType == DNSCURVE_MAIN_IPV4)
-										PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server TCP get signature data error", 0, nullptr, 0);
-									else if (ServerType == DNSCURVE_ALTERNATE_IPV6)
-										PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server TCP get signature data error", 0, nullptr, 0);
-									else if (ServerType == DNSCURVE_ALTERNATE_IPV4)
-										PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server TCP get signature data error", 0, nullptr, 0);
+									switch (ServerType)
+									{
+										case DNSCURVE_MAIN_IPV6:
+										{
+											PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
+										}break;
+										case DNSCURVE_MAIN_IPV4:
+										{
+											PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server TCP get signature data error", 0, nullptr, 0);
+										}break;
+										case DNSCURVE_ALTERNATE_IPV6:
+										{
+											PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server TCP get signature data error", 0, nullptr, 0);
+										}break;
+										case DNSCURVE_ALTERNATE_IPV4:
+										{
+											PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server TCP get signature data error", 0, nullptr, 0);
+										}break;
+									}
 
 									goto JumpToRestart;
 								}
@@ -730,14 +810,25 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 			}
 		//Timeout or SOCKET_ERROR
 			else {
-				if (ServerType == DNSCURVE_MAIN_IPV6)
-					PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
-				else if (ServerType == DNSCURVE_MAIN_IPV4)
-					PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server TCP get signature data error", 0, nullptr, 0);
-				else if (ServerType == DNSCURVE_ALTERNATE_IPV6)
-					PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server TCP get signature data error", 0, nullptr, 0);
-				else if (ServerType == DNSCURVE_ALTERNATE_IPV4)
-					PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server TCP get signature data error", 0, nullptr, 0);
+				switch (ServerType)
+				{
+					case DNSCURVE_MAIN_IPV6:
+					{
+						PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server TCP get signature data error", 0, nullptr, 0);
+					}break;
+					case DNSCURVE_MAIN_IPV4:
+					{
+						PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server TCP get signature data error", 0, nullptr, 0);
+					}break;
+					case DNSCURVE_ALTERNATE_IPV6:
+					{
+						PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server TCP get signature data error", 0, nullptr, 0);
+					}break;
+					case DNSCURVE_ALTERNATE_IPV4:
+					{
+						PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server TCP get signature data error", 0, nullptr, 0);
+					}break;
+				}
 
 				goto JumpToRestart;
 			}
@@ -782,6 +873,8 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t Protocol, const bool 
 	auto DNS_Header = (pdns_hdr)SendBuffer.get();
 #if defined(ENABLE_PCAP)
 	DNS_Header->ID = Parameter.DomainTest_ID;
+#else 
+	DNS_Header->ID = htons(U16_NUM_ONE);
 #endif
 	DNS_Header->Flags = htons(DNS_STANDARD);
 	DNS_Header->Questions = htons(U16_NUM_ONE);
@@ -884,14 +977,25 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t Protocol, const bool 
 	//Requesting
 		if (sendto(UDPSocket, SendBuffer.get(), (int)DataLength, 0, (PSOCKADDR)SockAddr.get(), AddrLen) == SOCKET_ERROR)
 		{
-			if (ServerType == DNSCURVE_MAIN_IPV6)
-				PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server UDP get signature data error", 0, nullptr, 0);
-			else if (ServerType == DNSCURVE_MAIN_IPV4)
-				PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server UDP get signature data error", 0, nullptr, 0);
-			else if (ServerType == DNSCURVE_ALTERNATE_IPV6)
-				PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server UDP get signature data error", 0, nullptr, 0);
-			else if (ServerType == DNSCURVE_ALTERNATE_IPV4)
-				PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server UDP get signature data error", 0, nullptr, 0);
+			switch (ServerType)
+			{
+				case DNSCURVE_MAIN_IPV6:
+				{
+					PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server UDP get signature data error", 0, nullptr, 0);
+				}break;
+				case DNSCURVE_MAIN_IPV4:
+				{
+					PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server UDP get signature data error", 0, nullptr, 0);
+				}break;
+				case DNSCURVE_ALTERNATE_IPV6:
+				{
+					PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server UDP get signature data error", 0, nullptr, 0);
+				}break;
+				case DNSCURVE_ALTERNATE_IPV4:
+				{
+					PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server UDP get signature data error", 0, nullptr, 0);
+				}break;
+			}
 
 			goto JumpToRestart;
 		}
@@ -929,14 +1033,25 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t Protocol, const bool 
 						CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 						CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 					{
-						if (ServerType == DNSCURVE_MAIN_IPV6)
-							PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server UDP get signature data error", 0, nullptr, 0);
-						else if (ServerType == DNSCURVE_MAIN_IPV4)
-							PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server UDP get signature data error", 0, nullptr, 0);
-						else if (ServerType == DNSCURVE_ALTERNATE_IPV6)
-							PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server UDP get signature data error", 0, nullptr, 0);
-						else if (ServerType == DNSCURVE_ALTERNATE_IPV4)
-							PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server UDP get signature data error", 0, nullptr, 0);
+						switch (ServerType)
+						{
+							case DNSCURVE_MAIN_IPV6:
+							{
+								PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server UDP get signature data error", 0, nullptr, 0);
+							}break;
+							case DNSCURVE_MAIN_IPV4:
+							{
+								PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server UDP get signature data error", 0, nullptr, 0);
+							}break;
+							case DNSCURVE_ALTERNATE_IPV6:
+							{
+								PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server UDP get signature data error", 0, nullptr, 0);
+							}break;
+							case DNSCURVE_ALTERNATE_IPV4:
+							{
+								PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server UDP get signature data error", 0, nullptr, 0);
+							}break;
+						}
 
 						goto JumpToRestart;
 					}
@@ -944,14 +1059,25 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t Protocol, const bool 
 					memset(RecvBuffer.get(), 0, PACKET_MAXSIZE);
 				}
 				else {
-					if (ServerType == DNSCURVE_MAIN_IPV6)
-						PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server UDP get signature data error", 0, nullptr, 0);
-					else if (ServerType == DNSCURVE_MAIN_IPV4)
-						PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server UDP get signature data error", 0, nullptr, 0);
-					else if (ServerType == DNSCURVE_ALTERNATE_IPV6)
-						PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server UDP get signature data error", 0, nullptr, 0);
-					else if (ServerType == DNSCURVE_ALTERNATE_IPV4)
-						PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server UDP get signature data error", 0, nullptr, 0);
+					switch (ServerType)
+					{
+						case DNSCURVE_MAIN_IPV6:
+						{
+							PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server UDP get signature data error", 0, nullptr, 0);
+						}break;
+						case DNSCURVE_MAIN_IPV4:
+						{
+							PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server UDP get signature data error", 0, nullptr, 0);
+						}break;
+						case DNSCURVE_ALTERNATE_IPV6:
+						{
+							PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server UDP get signature data error", 0, nullptr, 0);
+						}break;
+						case DNSCURVE_ALTERNATE_IPV4:
+						{
+							PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server UDP get signature data error", 0, nullptr, 0);
+						}break;
+					}
 
 					goto JumpToRestart;
 				}
@@ -1026,14 +1152,25 @@ bool __fastcall DNSCruveGetSignatureData(const char *Buffer, const size_t Server
 			if (PacketTarget == nullptr || 
 				crypto_sign_ed25519_open((PUINT8)DeBuffer.get(), &SignatureLength, (PUINT8)(Buffer + sizeof(dns_record_txt) + sizeof(dnscurve_txt_hdr)), DNS_Record_TXT->TXT_Length - sizeof(dnscurve_txt_hdr), PacketTarget->ServerPublicKey) == LIBSODIUM_ERROR)
 			{
-				if (ServerType == DNSCURVE_MAIN_IPV6)
-					PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server Fingerprint signature validation error", 0, nullptr, 0);
-				else if (ServerType == DNSCURVE_MAIN_IPV4)
-					PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server Fingerprint signature validation error", 0, nullptr, 0);
-				else if (ServerType == DNSCURVE_ALTERNATE_IPV6)
-					PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server Fingerprint signature validation error", 0, nullptr, 0);
-				else if (ServerType == DNSCURVE_ALTERNATE_IPV4)
-					PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server Fingerprint signature validation error", 0, nullptr, 0);
+				switch (ServerType)
+				{
+					case DNSCURVE_MAIN_IPV6:
+					{
+						PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server Fingerprint signature validation error", 0, nullptr, 0);
+					}break;
+					case DNSCURVE_MAIN_IPV4:
+					{
+						PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server Fingerprint signature validation error", 0, nullptr, 0);
+					}break;
+					case DNSCURVE_ALTERNATE_IPV6:
+					{
+						PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server Fingerprint signature validation error", 0, nullptr, 0);
+					}break;
+					case DNSCURVE_ALTERNATE_IPV4:
+					{
+						PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server Fingerprint signature validation error", 0, nullptr, 0);
+					}break;
+				}
 
 				return false;
 			}
@@ -1053,14 +1190,25 @@ bool __fastcall DNSCruveGetSignatureData(const char *Buffer, const size_t Server
 				return true;
 			}
 			else {
-				if (ServerType == DNSCURVE_MAIN_IPV6)
-					PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server Fingerprint signature validation error", 0, nullptr, 0);
-				else if (ServerType == DNSCURVE_MAIN_IPV4)
-					PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server Fingerprint signature validation error", 0, nullptr, 0);
-				else if (ServerType == DNSCURVE_ALTERNATE_IPV6)
-					PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server Fingerprint signature validation error", 0, nullptr, 0);
-				else if (ServerType == DNSCURVE_ALTERNATE_IPV4)
-					PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server Fingerprint signature validation error", 0, nullptr, 0);
+				switch (ServerType)
+				{
+					case DNSCURVE_MAIN_IPV6:
+					{
+						PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Main Server Fingerprint signature validation error", 0, nullptr, 0);
+					}break;
+					case DNSCURVE_MAIN_IPV4:
+					{
+						PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Main Server Fingerprint signature validation error", 0, nullptr, 0);
+					}break;
+					case DNSCURVE_ALTERNATE_IPV6:
+					{
+						PrintError(LOG_ERROR_DNSCURVE, L"IPv6 Alternate Server Fingerprint signature validation error", 0, nullptr, 0);
+					}break;
+					case DNSCURVE_ALTERNATE_IPV4:
+					{
+						PrintError(LOG_ERROR_DNSCURVE, L"IPv4 Alternate Server Fingerprint signature validation error", 0, nullptr, 0);
+					}break;
+				}
 			}
 		}
 	}
@@ -1158,7 +1306,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 #if defined(PLATFORM_WIN)
 	if (connect(TCPSockData->Socket, (PSOCKADDR)&TCPSockData->SockAddr, TCPSockData->AddrLen) == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK)
 #elif defined(PLATFORM_MACX)
-	if (connect(TCPSockData->Socket, (PSOCKADDR)&TCPSockData->SockAddr, TCPSockData->AddrLen) == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+	if (connect(TCPSockData->Socket, (PSOCKADDR)&TCPSockData->SockAddr, TCPSockData->AddrLen) == SOCKET_ERROR && errno != EWOULDBLOCK && errno != EAGAIN && errno != EINPROGRESS)
 #elif defined(PLATFORM_LINUX)
 	auto IsError = false, IsSend = false;
 	if (Parameter.TCP_FastOpen)
@@ -1232,7 +1380,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 	#endif
 		if (SelectResult > 0)
 		{
-		//Receive.
+		//Receive
 			if (FD_ISSET(TCPSockData->Socket, ReadFDS.get()))
 			{
 				RecvLen = recv(TCPSockData->Socket, OriginalRecv, (int)RecvSize, 0);
@@ -1678,7 +1826,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 	#if defined(PLATFORM_WIN)
 		if (connect(SocketDataIter->Socket, (PSOCKADDR)&SocketDataIter->SockAddr, SocketDataIter->AddrLen) == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK)
 	#elif defined(PLATFORM_MACX)
-		if (connect(SocketDataIter->Socket, (PSOCKADDR)&SocketDataIter->SockAddr, SocketDataIter->AddrLen) == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+		if (connect(SocketDataIter->Socket, (PSOCKADDR)&SocketDataIter->SockAddr, SocketDataIter->AddrLen) == SOCKET_ERROR && errno != EWOULDBLOCK && errno != EAGAIN && errno != EINPROGRESS)
 	#elif defined(PLATFORM_LINUX)
 		auto IsError = false;
 		if (Parameter.TCP_FastOpen)
@@ -1777,7 +1925,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 	#endif
 		if (SelectResult > 0)
 		{
-		//Receive.
+		//Receive
 			for (size_t Index = 0;Index < TCPSocketDataList.size();++Index)
 			{
 				if (FD_ISSET(TCPSocketDataList.at(Index).Socket, ReadFDS.get()))
@@ -1852,24 +2000,46 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 									//Check receive magic number.
 										if (ServerTypeList.back() != ServerTypeList.front() && Index > 0 && Index >= TCPSocketDataList.size() / 2U)
 										{
-											if (ServerTypeList.back() == DNSCURVE_ALTERNATE_IPV6)
-												PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6;
-											else if (ServerTypeList.back() == DNSCURVE_MAIN_IPV6)
-												PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv6;
-											else if (ServerTypeList.back() == DNSCURVE_ALTERNATE_IPV4)
-												PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4;
-											else if (ServerTypeList.back() == DNSCURVE_MAIN_IPV4)
-												PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
+											switch (ServerTypeList.back())
+											{
+												case DNSCURVE_MAIN_IPV6:
+												{
+													PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv6;
+												}break;
+												case DNSCURVE_MAIN_IPV4:
+												{
+													PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
+												}break;
+												case DNSCURVE_ALTERNATE_IPV6:
+												{
+													PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6;
+												}break;
+												case DNSCURVE_ALTERNATE_IPV4:
+												{
+													PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4;
+												}break;
+											}
 										}
 										else {
-											if (ServerTypeList.front() == DNSCURVE_ALTERNATE_IPV6)
-												PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6;
-											else if (ServerTypeList.front() == DNSCURVE_MAIN_IPV6)
-												PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv6;
-											else if (ServerTypeList.front() == DNSCURVE_ALTERNATE_IPV4)
-												PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4;
-											else if (ServerTypeList.front() == DNSCURVE_MAIN_IPV4)
-												PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
+											switch (ServerTypeList.front())
+											{
+												case DNSCURVE_MAIN_IPV6:
+												{
+													PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv6;
+												}break;
+												case DNSCURVE_MAIN_IPV4:
+												{
+													PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
+												}break;
+												case DNSCURVE_ALTERNATE_IPV6:
+												{
+													PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6;
+												}break;
+												case DNSCURVE_ALTERNATE_IPV4:
+												{
+													PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4;
+												}break;
+											}
 										}
 										if (memcmp(OriginalRecv, PacketTarget->ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) != 0)
 										{
@@ -2515,7 +2685,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 		{
 			auto InnerIsAlternate = false;
 
-		//Receive.
+		//Receive
 			for (Index = 0;Index < UDPSocketDataList.size();++Index)
 			{
 				if (FD_ISSET(UDPSocketDataList.at(Index).Socket, ReadFDS.get()))
@@ -2543,24 +2713,46 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 					//Check receive magic number.
 						if (InnerIsAlternate)
 						{
-							if (ServerTypeList.back() == DNSCURVE_ALTERNATE_IPV6)
-								PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6;
-							else if (ServerTypeList.back() == DNSCURVE_MAIN_IPV6)
-								PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv6;
-							else if (ServerTypeList.back() == DNSCURVE_ALTERNATE_IPV4)
-								PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4;
-							else if (ServerTypeList.back() == DNSCURVE_MAIN_IPV4)
-								PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
+							switch (ServerTypeList.back())
+							{
+								case DNSCURVE_MAIN_IPV6:
+								{
+									PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv6;
+								}break;
+								case DNSCURVE_MAIN_IPV4:
+								{
+									PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
+								}break;
+								case DNSCURVE_ALTERNATE_IPV6:
+								{
+									PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6;
+								}break;
+								case DNSCURVE_ALTERNATE_IPV4:
+								{
+									PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4;
+								}break;
+							}
 						}
 						else {
-							if (ServerTypeList.front() == DNSCURVE_ALTERNATE_IPV6)
-								PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6;
-							else if (ServerTypeList.front() == DNSCURVE_MAIN_IPV6)
-								PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv6;
-							else if (ServerTypeList.front() == DNSCURVE_ALTERNATE_IPV4)
-								PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4;
-							else if (ServerTypeList.front() == DNSCURVE_MAIN_IPV4)
-								PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
+							switch (ServerTypeList.front())
+							{
+								case DNSCURVE_MAIN_IPV6:
+								{
+									PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv6;
+								}break;
+								case DNSCURVE_MAIN_IPV4:
+								{
+									PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
+								}break;
+								case DNSCURVE_ALTERNATE_IPV6:
+								{
+									PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6;
+								}break;
+								case DNSCURVE_ALTERNATE_IPV4:
+								{
+									PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4;
+								}break;
+							}
 						}
 						if (memcmp(OriginalRecv, PacketTarget->ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) != 0)
 						{

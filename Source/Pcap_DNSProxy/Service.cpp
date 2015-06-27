@@ -26,15 +26,21 @@ BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType)
 //Print to screen.
 	if (Parameter.Console)
 	{
-	//Handle the CTRL-C signal.
-		if (fdwCtrlType == CTRL_C_EVENT)
-			wprintf_s(L"Get Control-C.\n");
-	//Handle the CTRL-Break signal.
-		else if (fdwCtrlType == CTRL_BREAK_EVENT)
-			wprintf_s(L"Get Control-Break.\n");
-	//Handle other signals.
-		else 
-			wprintf_s(L"Get closing signal.\n");
+		switch (fdwCtrlType)
+		{
+			case CTRL_C_EVENT: //Handle the CTRL-C signal.
+			{
+				wprintf_s(L"Get Control-C.\n");
+			}break;
+			case CTRL_BREAK_EVENT: //Handle the CTRL-Break signal.
+			{
+				wprintf_s(L"Get Control-Break.\n");
+			}break;
+			default: //Handle other signals.
+			{
+				wprintf_s(L"Get closing signal.\n");
+			}break;
+		}
 	}
 
 	return FALSE;
@@ -253,6 +259,7 @@ bool WINAPI FlushDNSMailSlotMonitor(void)
 		}
 	}
 
+//Monitor terminated
 	CloseHandle(hSlot);
 	PrintError(LOG_ERROR_SYSTEM, L"MailSlot module Monitor terminated", 0, nullptr, 0);
 	return false;
@@ -326,6 +333,7 @@ bool FlushDNSFIFOMonitor(void)
 		Sleep(MONITOR_LOOP_INTERVAL_TIME);
 	}
 
+//Monitor terminated
 	close(FIFO_FD);
 	unlink(FIFO_PATH_NAME);
 	PrintError(LOG_ERROR_SYSTEM, L"FIFO module Monitor terminated", 0, nullptr, 0);

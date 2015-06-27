@@ -99,17 +99,33 @@ void __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer)
 	return;
 }
 
-//Convert lowercase/uppercase words to uppercase/lowercase words
-void __fastcall CaseConvert(const bool IsLowerUpper, PSTR Buffer, const size_t Length)
+//Convert lowercase/uppercase words to uppercase/lowercase words(Character version)
+void __fastcall CaseConvert(const bool IsLowerToUpper, PSTR Buffer, const size_t Length)
 {
 	for (size_t Index = 0;Index < Length;++Index)
 	{
 	//Lowercase to uppercase
-		if (IsLowerUpper)
+		if (IsLowerToUpper)
 			Buffer[Index] = (char)toupper(Buffer[Index]);
 	//Uppercase to lowercase
 		else 
 			Buffer[Index] = (char)tolower(Buffer[Index]);
+	}
+
+	return;
+}
+
+//Convert lowercase/uppercase words to uppercase/lowercase words(String version)
+void __fastcall CaseConvert(const bool IsLowerToUpper, std::string &Buffer)
+{
+	for (auto &StringIter:Buffer)
+	{
+	//Lowercase to uppercase
+		if (IsLowerToUpper)
+			StringIter = (char)toupper(StringIter);
+	//Uppercase to lowercase
+		else 
+			StringIter = (char)tolower(StringIter);
 	}
 
 	return;

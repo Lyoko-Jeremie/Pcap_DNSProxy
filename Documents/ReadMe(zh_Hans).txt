@@ -544,7 +544,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv4 DNS Fingerprint - DNSCurve 协议 IPv4 主要 DNS 服务器传输用指纹，留空则自动通过服务器提供者和公钥获取，默认为空
   * IPv4 Alternate DNS Fingerprint - DNSCurve 协议 IPv4 备用 DNS 服务器传输用指纹，留空则自动通过服务器提供者和公钥获取，默认为空
   * IPv6 DNS Fingerprint - DNSCurve 协议 IPv6 备用 DNS 服务器传输用指纹，留空则自动通过服务器提供者和公钥获取，默认为空
-  * IPv6 Alternate DNS Fingerprint - DNSCurve 协议IPv6备用 DNS 服务器传输用指纹，留空则自动通过服务器提供者和公钥获取，默认为空
+  * IPv6 Alternate DNS Fingerprint - DNSCurve 协议 IPv6 备用 DNS 服务器传输用指纹，留空则自动通过服务器提供者和公钥获取，默认为空
   
 * DNSCurve Magic Number - DNSCurve 协议魔数区域
   * IPv4 Receive Magic Number - DNSCurve 协议 IPv4 主要 DNS 服务器接收魔数：长度必须为8字节，留空则使用程序内置的接收魔数，默认留空
@@ -684,12 +684,12 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
 当 Blacklist Filter 为开启时，将检查本列表域名与解析结果，如果解析结果里含有与域名对应的黑名单地址，则会直接丢弃此解析结果
 有效参数格式为 "地址(|地址A|地址B) 正则表达式"（不含引号，括号内为可选项目，注意间隔所在的位置）
   * 地址与正则表达式之间的间隔字符可为 Space/半角空格 或者 HT/水平定位符号，间隔长度不限，但切勿输入全角空格
-  * 一条条目只能接受一种地址类型（IPv4/IPv6），如有同一个域名需要同时进行IPv4/IPv6地址的过滤，请分为两个条目输入
+  * 一条条目只能接受一种地址类型（IPv4/IPv6），如有同一个域名需要同时进行 IPv4/IPv6 地址的过滤，请分为两个条目输入
 
 * IPFilter - 地址过滤区域
 地址过滤黑名单或白名单由配置文件的 IPFilter Type 值决定，Deny 禁止/黑名单和 Permit 允许/白名单
 有效参数格式为 "开始地址 - 结束地址, 过滤等级, 条目简介注释"（不含引号）
-  * 同时支持IPv4和IPv6地址，但填写时请分开为2个条目
+  * 同时支持 IPv4 和 IPv6 地址，但填写时请分开为2个条目
   * 同一类型的地址地址段有重复的条目将会被自动合并
   
 * Local Routing - 境内路由表区域

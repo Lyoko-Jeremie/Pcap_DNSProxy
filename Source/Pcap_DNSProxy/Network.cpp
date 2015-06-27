@@ -153,6 +153,7 @@ bool __fastcall DomainTestRequest(const uint16_t Protocol)
 		}
 	}
 
+//Monitor terminated
 	PrintError(LOG_ERROR_SYSTEM, L"Domain Test module Monitor terminated", 0, nullptr, 0);
 	return true;
 }
@@ -400,6 +401,7 @@ bool __fastcall ICMPEcho(const uint16_t Protocol)
 		++Times;
 	}
 
+//Monitor terminated
 	shutdown(ICMPSocket, SD_BOTH);
 	closesocket(ICMPSocket);
 	PrintError(LOG_ERROR_SYSTEM, L"ICMP Test module Monitor terminated", 0, nullptr, 0);
@@ -875,14 +877,19 @@ bool __fastcall SelectTargetSocketMulti(std::vector<SOCKET_DATA> &SockDataList, 
 size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal)
 {
 //Initialization(Part 1)
+/* Old version(2015-06-27)
 	std::shared_ptr<char> SendBuffer(new char[sizeof(uint16_t) + SendSize]());
 	memset(SendBuffer.get(), 0, sizeof(uint16_t) + SendSize);
+	memcpy_s(SendBuffer.get(), SendSize, OriginalSend, SendSize);
+*/
 	std::shared_ptr<SOCKET_DATA> TCPSockData(new SOCKET_DATA());
 	memset(TCPSockData.get(), 0, sizeof(SOCKET_DATA));
-	memcpy_s(SendBuffer.get(), SendSize, OriginalSend, SendSize);
+	auto SendBuffer = OriginalRecv;
+	memset(SendBuffer, 0, RecvSize);
+	memcpy_s(SendBuffer, RecvSize, OriginalSend, SendSize);
 
 //Add length of request packet(It must be written in header when transpot with TCP protocol).
-	size_t DataLength = AddLengthDataToDNSHeader(SendBuffer.get(), SendSize, sizeof(uint16_t) + SendSize);
+	size_t DataLength = AddLengthDataToDNSHeader(SendBuffer, SendSize, RecvSize);
 	if (DataLength == EXIT_FAILURE)
 		return EXIT_FAILURE;
 
@@ -937,12 +944,12 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 #if (defined(PLATFORM_WIN))
 	if (connect(TCPSockData->Socket, (PSOCKADDR)&TCPSockData->SockAddr, TCPSockData->AddrLen) == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK)
 #elif defined(PLATFORM_MACX)
-	if (connect(TCPSockData->Socket, (PSOCKADDR)&TCPSockData->SockAddr, TCPSockData->AddrLen) == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+	if (connect(TCPSockData->Socket, (PSOCKADDR)&TCPSockData->SockAddr, TCPSockData->AddrLen) == SOCKET_ERROR && errno != EWOULDBLOCK && errno != EAGAIN && errno != EINPROGRESS)
 #elif defined(PLATFORM_LINUX)
 	auto IsError = false, IsSend = false;
 	if (Parameter.TCP_FastOpen)
 	{
-		RecvLen = sendto(TCPSockData->Socket, SendBuffer.get(), (int)DataLength, MSG_FASTOPEN, (PSOCKADDR)&TCPSockData->SockAddr, TCPSockData->AddrLen);
+		RecvLen = sendto(TCPSockData->Socket, SendBuffer, (int)DataLength, MSG_FASTOPEN, (PSOCKADDR)&TCPSockData->SockAddr, TCPSockData->AddrLen);
 		if (RecvLen == SOCKET_ERROR || RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 		{
 			if (errno != EAGAIN && errno != EINPROGRESS)
@@ -1011,7 +1018,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 	#endif
 		if (SelectResult > 0)
 		{
-		//Receive.
+		//Receive
 			if (FD_ISSET(TCPSockData->Socket, ReadFDS.get()))
 			{
 				RecvLen = recv(TCPSockData->Socket, OriginalRecv, (int)RecvSize, 0);
@@ -1100,7 +1107,8 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 			if (!IsSend && FD_ISSET(TCPSockData->Socket, WriteFDS.get()))
 		#endif
 			{
-				send(TCPSockData->Socket, SendBuffer.get(), (int)DataLength, 0);
+				send(TCPSockData->Socket, SendBuffer, (int)DataLength, 0);
+				memset(SendBuffer, 0, RecvSize);
 				FD_ZERO(WriteFDS.get());
 			}
 		}
@@ -1131,12 +1139,17 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize)
 {
 //Initialization(Part 1)
+/* Old version(2015-06-27)
 	std::shared_ptr<char> SendBuffer(new char[sizeof(uint16_t) + SendSize]());
 	memset(SendBuffer.get(), 0, sizeof(uint16_t) + SendSize);
 	memcpy_s(SendBuffer.get(), SendSize, OriginalSend, SendSize);
+*/
+	auto SendBuffer = OriginalRecv;
+	memset(SendBuffer, 0, RecvSize);
+	memcpy_s(SendBuffer, RecvSize, OriginalSend, SendSize);
 
 //Add length of request packet(It must be written in header when transpot with TCP protocol).
-	size_t DataLength = AddLengthDataToDNSHeader(SendBuffer.get(), SendSize, sizeof(uint16_t) + SendSize);
+	size_t DataLength = AddLengthDataToDNSHeader(SendBuffer, SendSize, RecvSize);
 	if (DataLength == EXIT_FAILURE)
 		return EXIT_FAILURE;
 
@@ -1155,12 +1168,12 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 	#if (defined(PLATFORM_WIN))
 		if (connect(SocketDataIter->Socket, (PSOCKADDR)&SocketDataIter->SockAddr, SocketDataIter->AddrLen) == SOCKET_ERROR && WSAGetLastError() != WSAEWOULDBLOCK)
 	#elif defined(PLATFORM_MACX)
-		if (connect(SocketDataIter->Socket, (PSOCKADDR)&SocketDataIter->SockAddr, SocketDataIter->AddrLen) == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+		if (connect(SocketDataIter->Socket, (PSOCKADDR)&SocketDataIter->SockAddr, SocketDataIter->AddrLen) == SOCKET_ERROR && errno != EWOULDBLOCK && errno != EAGAIN && errno != EINPROGRESS)
 	#elif defined(PLATFORM_LINUX)
 		auto IsError = false;
 		if (Parameter.TCP_FastOpen)
 		{
-			RecvLen = sendto(SocketDataIter->Socket, SendBuffer.get(), (int)DataLength, MSG_FASTOPEN, (PSOCKADDR)&SocketDataIter->SockAddr, SocketDataIter->AddrLen);
+			RecvLen = sendto(SocketDataIter->Socket, SendBuffer, (int)DataLength, MSG_FASTOPEN, (PSOCKADDR)&SocketDataIter->SockAddr, SocketDataIter->AddrLen);
 			if (RecvLen == SOCKET_ERROR || RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			{
 				if (errno != EAGAIN && errno != EINPROGRESS)
@@ -1251,7 +1264,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 	#endif
 		if (SelectResult > 0)
 		{
-		//Receive.
+		//Receive
 			for (size_t Index = 0;Index < TCPSocketDataList.size();++Index)
 			{
 				if (FD_ISSET(TCPSocketDataList.at(Index).Socket, ReadFDS.get()))
@@ -1363,13 +1376,14 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 			#elif defined(PLATFORM_LINUX)
 				if (!IsSend.at(Index) && FD_ISSET(SocketDataIter.Socket, WriteFDS.get()))
 			#endif
-					send(SocketDataIter.Socket, SendBuffer.get(), (int)DataLength, 0);
+					send(SocketDataIter.Socket, SendBuffer, (int)DataLength, 0);
 
 			#if defined(PLATFORM_LINUX)
 				++Index;
 			#endif
 			}
 
+			memset(SendBuffer, 0, RecvSize);
 			FD_ZERO(WriteFDS.get());
 		}
 	//Timeout
@@ -1902,7 +1916,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 		
 		if (SelectResult > 0)
 		{
-		//Receive.
+		//Receive
 			for (Index = 0;Index < UDPSocketDataList.size();++Index)
 			{
 				if (FD_ISSET(UDPSocketDataList.at(Index).Socket, ReadFDS.get()))

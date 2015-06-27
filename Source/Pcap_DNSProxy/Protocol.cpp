@@ -87,19 +87,22 @@ bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr
 			sAddrString.erase(0, 1U);
 
 	//Check abbreviation format.
-		if (CommaNum == 0)
+		switch (CommaNum)
 		{
-			sAddrString.clear();
-			sAddrString.append("0.0.0.");
-			sAddrString.append(AddrString);
-		}
-		else if (CommaNum == 1U)
-		{
-			sAddrString.replace(sAddrString.find(ASCII_PERIOD), 1U, (".0.0."));
-		}
-		else if (CommaNum == 2U)
-		{
-			sAddrString.replace(sAddrString.find(ASCII_PERIOD), 1U, (".0."));
+			case 0:
+			{
+				sAddrString.clear();
+				sAddrString.append("0.0.0.");
+				sAddrString.append(AddrString);
+			}break;
+			case 1U:
+			{
+				sAddrString.replace(sAddrString.find(ASCII_PERIOD), 1U, (".0.0."));
+			}break;
+			case 2U:
+			{
+				sAddrString.replace(sAddrString.find(ASCII_PERIOD), 1U, (".0."));
+			}break;
 		}
 
 	//Delete zeros before data.

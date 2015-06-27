@@ -41,12 +41,21 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 		{
 			if (ReadLength <= READ_DATA_MINSIZE)
 			{
-				if (InputType == READ_TEXT_HOSTS) //ReadHosts
-					PrintError(LOG_ERROR_HOSTS, L"Data of a line is too short", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
-				else if (InputType == READ_TEXT_IPFILTER) //ReadIPFilter
-					PrintError(LOG_ERROR_IPFILTER, L"Data of a line is too short", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
-				else //ReadParameter
-					PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+				switch (InputType)
+				{
+					case READ_TEXT_HOSTS: //ReadHosts
+					{
+						PrintError(LOG_ERROR_HOSTS, L"Data of a line is too short", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+					}break;
+					case READ_TEXT_IPFILTER: //ReadIPFilter
+					{
+						PrintError(LOG_ERROR_IPFILTER, L"Data of a line is too short", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+					}break;
+					case READ_TEXT_PARAMETER: //ReadParameter
+					{
+						PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+					}break;
+				}
 
 				return false;
 			}
@@ -249,12 +258,21 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 			}
 		}
 		else {
-			if (InputType == READ_TEXT_HOSTS) //ReadHosts
-				PrintError(LOG_ERROR_HOSTS, L"Text encoding error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
-			else if (InputType == READ_TEXT_IPFILTER) //ReadIPFilter
-				PrintError(LOG_ERROR_IPFILTER, L"Text encoding error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
-			else //ReadParameter
-				PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+			switch (InputType)
+			{
+				case READ_TEXT_HOSTS: //ReadHosts
+				{
+					PrintError(LOG_ERROR_HOSTS, L"Text encoding error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+				}break;
+				case READ_TEXT_IPFILTER: //ReadIPFilter
+				{
+					PrintError(LOG_ERROR_IPFILTER, L"Text encoding error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+				}break;
+				case READ_TEXT_PARAMETER: //ReadParameter
+				{
+					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+				}break;
+			}
 			
 			return false;
 		}
@@ -277,12 +295,21 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 	//Lines length check
 		if (!NewLine_Point && ReadLength == FILE_BUFFER_SIZE)
 		{
-			if (InputType == READ_TEXT_HOSTS) //ReadHosts
-				PrintError(LOG_ERROR_HOSTS, L"Data of a line is too long", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
-			else if (InputType == READ_TEXT_IPFILTER) //ReadIPFilter
-				PrintError(LOG_ERROR_IPFILTER, L"Data of a line is too long", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
-			else //ReadParameter
-				PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too long", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+			switch (InputType)
+			{
+				case READ_TEXT_HOSTS: //ReadHosts
+				{
+					PrintError(LOG_ERROR_HOSTS, L"Data of a line is too long", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+				}break;
+				case READ_TEXT_IPFILTER: //ReadIPFilter
+				{
+					PrintError(LOG_ERROR_IPFILTER, L"Data of a line is too long", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+				}break;
+				case READ_TEXT_PARAMETER: //ReadParameter
+				{
+					PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too long", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+				}break;
+			}
 
 			return false;
 		}
@@ -301,20 +328,21 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 			//Read texts.
 				if (TextData.length() > READ_TEXT_MINSIZE)
 				{
-				//ReadHosts
-					if (InputType == READ_TEXT_HOSTS)
+					switch (InputType)
 					{
-						ReadHostsData(TextData, FileIndex, Line, LabelType, IsLabelComments);
-					}
-				//ReadIPFilter
-					else if (InputType == READ_TEXT_IPFILTER)
-					{
-						ReadIPFilterData(TextData, FileIndex, Line, LabelType, IsLabelComments);
-					}
-				//ReadParameter
-					else {
-						if (!ReadParameterData(TextData, FileIndex, Line, IsLabelComments))
-							return false;
+						case READ_TEXT_HOSTS: //ReadHosts
+						{
+							ReadHostsData(TextData, FileIndex, Line, LabelType, IsLabelComments);
+						}break;
+						case READ_TEXT_IPFILTER: //ReadIPFilter
+						{
+							ReadIPFilterData(TextData, FileIndex, Line, LabelType, IsLabelComments);
+						}break;
+						case READ_TEXT_PARAMETER: //ReadParameter
+						{
+							if (!ReadParameterData(TextData, FileIndex, Line, IsLabelComments))
+								return false;
+						}break;
 					}
 				}
 
@@ -719,6 +747,7 @@ void __fastcall ReadIPFilter(void)
 		Sleep(Parameter.FileRefreshTime);
 	}
 
+//Monitor terminated
 	PrintError(LOG_ERROR_SYSTEM, L"Read IPFilter module Monitor terminated", 0, nullptr, 0);
 	return;
 }
@@ -937,6 +966,7 @@ void __fastcall ReadHosts(void)
 		Sleep(Parameter.FileRefreshTime);
 	}
 
+//Monitor terminated
 	PrintError(LOG_ERROR_SYSTEM, L"Read Hosts module Monitor terminated", 0, nullptr, 0);
 	return;
 }

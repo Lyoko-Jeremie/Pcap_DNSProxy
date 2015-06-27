@@ -74,8 +74,8 @@
 #define ASCII_VERTICAL          124                  //"|"
 #define ASCII_TILDE             126                  //"~"
 #define ASCII_MAX_NUM           0x7F
-#define ASCII_UPPER_TO_LOWER    32U                  //Uppercase to lowercase
-#define ASCII_LOWER_TO_UPPER    32U                  //Lowercase to uppercase
+//#define ASCII_UPPER_TO_LOWER    32U                  //Uppercase to lowercase
+//#define ASCII_LOWER_TO_UPPER    32U                  //Lowercase to uppercase
 
 //Unicode value defines
 #define UNICODE_NEL             0x0085               //Next Line/NEL
@@ -104,7 +104,7 @@
 //Version defines
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4             //Current configuration version
-#define FULL_VERSION                 L"0.4.2.2"
+#define FULL_VERSION                 L"0.4.2.3"
 
 //Exit code defines
 #define EXIT_CHECK_HOSTS_TYPE_LOCAL                2U   //Type is Local in CheckHosts function.
@@ -120,7 +120,7 @@
 #define DEFAULT_LOG_MAXSIZE            8388608U                                   //Maximum size of whole log file(8MB/8388608 bytes).
 #define DEFAULT_LOG_MINSIZE            4096U                                      //Minimum size of whole log file(4KB/4096 bytes).
 #define PACKET_MAXSIZE                 1500U                                      //Maximum size of packets, Standard MTU of Ethernet II network
-#define ORIGINAL_PACKET_MAXSIZE        1512U                                      //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header + 4 bytes FCS)
+#define ORIGINAL_PACKET_MAXSIZE        1508U                                      //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header)
 #define LARGE_PACKET_MAXSIZE           4096U                                      //Maximum size of packets(4KB/4096 bytes) of TCP protocol
 #define BUFFER_QUEUE_MAXNUM            1488095U                                   //Number of maximum packet buffer queues, 1488095 pps or 1.488Mpps in Gigabit Ethernet
 #define BUFFER_QUEUE_MINNUM            8U                                         //Number of minimum packet buffer queues
@@ -160,9 +160,10 @@
 	#define SYSTEM_SOCKET                         int
 #endif
 #if defined(ENABLE_PCAP)
-	#define PCAP_READ_TIMEOUT                     0          //Pcap read timeout with pcap_open_live() has elapsed. In this case pkt_header and pkt_data don't point to a valid packet.
-	#define PCAP_READ_SUCCESS                     1          //Pcap packet has been read without problems.
-	#define PCAP_COMPILE_OPTIMIZE                 1U         //Pcap optimization on the resulting code is performed.
+//	#define PCAP_READ_TIMEOUT                     0          //Pcap read timeout with pcap_open_live() has elapsed. In this case pkt_header and pkt_data don't point to a valid packet.
+//	#define PCAP_READ_SUCCESS                     1          //Pcap packets has been read without problems.
+	#define PCAP_LOOP_INFINITY                    (-1)       //Pcap packets are processed until another ending condition occurs.
+	#define PCAP_COMPILE_OPTIMIZE                 1          //Pcap optimization on the resulting code is performed.
 #endif
 #define SHA3_512_SIZE                         64U        //SHA3-512 instance as specified in the FIPS 202 draft in April 2014(http://csrc.nist.gov/publications/drafts/fips-202/fips_202_draft.pdf), 512 bits/64 bytes.
 #define CHECKSUM_SUCCESS                      0          //Result of getting correct checksum.
@@ -702,7 +703,8 @@ uint32_t __fastcall ntoh32_Force(const uint32_t Value);
 uint64_t __fastcall hton64(const uint64_t Value);
 uint64_t __fastcall ntoh64(const uint64_t Value);
 void __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer);
-void __fastcall CaseConvert(const bool IsLowerUpper, PSTR Buffer, const size_t Length);
+void __fastcall CaseConvert(const bool IsLowerToUpper, PSTR Buffer, const size_t Length);
+void __fastcall CaseConvert(const bool IsLowerToUpper, std::string &Buffer);
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	uint64_t GetTickCount64(void);
 #endif

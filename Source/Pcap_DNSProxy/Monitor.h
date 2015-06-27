@@ -33,7 +33,7 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData);
 bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData);
 void __fastcall AlternateServerMonitor(void);
 #if defined(PLATFORM_WIN)
-	PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol);
+	PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol, PSTR HostName);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	bool GetBestInterfaceAddress(const uint16_t Protocol, const sockaddr_storage *OriginalSockAddr);
 #endif
