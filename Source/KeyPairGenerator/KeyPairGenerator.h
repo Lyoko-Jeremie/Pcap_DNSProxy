@@ -211,6 +211,7 @@
 // 
 #pragma pack(1)                        //Memory alignment: 1 bytes/8 bits
 #define KEYPAIR_MESSAGE_LEN    80U     //Keypair messages length
+#define KEYPAIR_INTERVAL       4U
 
 //ASCII values defines
 #define ASCII_LF               10      //"␊"
@@ -227,5 +228,5 @@
 #endif
 
 //Functions
-size_t __fastcall BinaryToHex(PSTR Buffer, const size_t MaxLength, const unsigned char *Binary, const size_t Length);
+void __fastcall CaseConvert(const bool IsLowerToUpper, PSTR Buffer, const size_t Length);
 #endif

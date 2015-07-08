@@ -549,9 +549,7 @@ void __fastcall ReadIPFilter(void)
 	std::shared_ptr<struct stat> FileStat(new struct stat());
 	memset(FileStat.get(), 0, sizeof(struct stat));
 #endif
-	std::unique_lock<std::mutex> ResultBlacklistMutex(ResultBlacklistLock);
-	std::unique_lock<std::mutex> AddressRangeMutex(AddressRangeLock);
-	std::unique_lock<std::mutex> LocalRoutingListMutex(LocalRoutingListLock);
+	std::unique_lock<std::mutex> ResultBlacklistMutex(ResultBlacklistLock), AddressRangeMutex(AddressRangeLock), LocalRoutingListMutex(LocalRoutingListLock);
 	ResultBlacklistMutex.unlock();
 	AddressRangeMutex.unlock();
 	LocalRoutingListMutex.unlock();
@@ -791,8 +789,7 @@ void __fastcall ReadHosts(void)
 	std::shared_ptr<struct stat> FileStat(new struct stat());
 	memset(FileStat.get(), 0, sizeof(struct stat));
 #endif
-	std::unique_lock<std::mutex> HostsListMutex(HostsListLock);
-	std::unique_lock<std::mutex> AddressHostsListMutex(AddressHostsListLock);
+	std::unique_lock<std::mutex> HostsListMutex(HostsListLock), AddressHostsListMutex(AddressHostsListLock);
 	HostsListMutex.unlock();
 	AddressHostsListMutex.unlock();
 

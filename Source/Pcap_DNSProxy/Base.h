@@ -104,7 +104,7 @@
 //Version defines
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4             //Current configuration version
-#define FULL_VERSION                 L"0.4.2.3"
+#define FULL_VERSION                 L"0.4.2.4"
 
 //Exit code defines
 #define EXIT_CHECK_HOSTS_TYPE_LOCAL                2U   //Type is Local in CheckHosts function.
@@ -120,7 +120,7 @@
 #define DEFAULT_LOG_MAXSIZE            8388608U                                   //Maximum size of whole log file(8MB/8388608 bytes).
 #define DEFAULT_LOG_MINSIZE            4096U                                      //Minimum size of whole log file(4KB/4096 bytes).
 #define PACKET_MAXSIZE                 1500U                                      //Maximum size of packets, Standard MTU of Ethernet II network
-#define ORIGINAL_PACKET_MAXSIZE        1508U                                      //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header)
+#define ORIGINAL_PACKET_MAXSIZE        1512U                                      //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header + 4 bytes FCS)
 #define LARGE_PACKET_MAXSIZE           4096U                                      //Maximum size of packets(4KB/4096 bytes) of TCP protocol
 #define BUFFER_QUEUE_MAXNUM            1488095U                                   //Number of maximum packet buffer queues, 1488095 pps or 1.488Mpps in Gigabit Ethernet
 #define BUFFER_QUEUE_MINNUM            8U                                         //Number of minimum packet buffer queues
@@ -180,7 +180,7 @@
 	#define UPDATE_SERVICE_TIME                3U        //Update service timeout, 3 seconds
 #endif
 #if defined(ENABLE_PCAP)
-	#define PCAP_DEVICES_RECHECK_TIME          10U       //Time between every WinPcap/LibPcap devices recheck, 10 seconds
+//	#define PCAP_DEVICES_RECHECK_TIME          10U       //Time between every WinPcap/LibPcap devices recheck, 10 seconds
 	#define PCAP_CAPTURE_MIN_TIMEOUT           10U       //Minimum Pcap Capture reading timeout, 10 ms
 	#define DEFAULT_PCAP_CAPTURE_TIMEOUT       200U      //Default Pcap Capture reading timeout, 200 ms
 #endif
@@ -292,6 +292,10 @@
 #define REQUEST_MODE_IPV4                2U
 #define REQUEST_MODE_UDP                 0
 #define REQUEST_MODE_TCP                 1U
+#define HOSTS_ONLY_MODE_NONE             0
+#define HOSTS_ONLY_MODE_BOTH             1U
+#define HOSTS_ONLY_MODE_IPV6             2U
+#define HOSTS_ONLY_MODE_IPV4             3U
 #define HOSTS_TYPE_NORMAL                0
 #define HOSTS_TYPE_WHITE                 1U
 #define HOSTS_TYPE_LOCAL                 2U
@@ -417,7 +421,7 @@ public:
 //[DNS] block
 	size_t                               RequestMode_Network;
 	size_t                               RequestMode_Transport;
-	bool                                 HostsOnly;
+	size_t                               HostsOnly;
 	bool                                 LocalMain;
 	bool                                 LocalHosts;
 	bool                                 LocalRouting;
@@ -550,10 +554,9 @@ public:
 	Inet_Ntop_Function                   Inet_Ntop_PTR;
 #endif
 
-//IPv6 support block
+//Network layers support block
 	bool                                 GatewayAvailable_IPv6;
 	bool                                 GatewayAvailable_IPv4;
-	bool                                 TunnelAvailable_IPv6;
 
 	ConfigurationTable(void);
 	~ConfigurationTable(void);

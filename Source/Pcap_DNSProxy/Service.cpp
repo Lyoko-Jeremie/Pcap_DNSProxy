@@ -203,7 +203,7 @@ bool WINAPI FlushDNSMailSlotMonitor(void)
 	BOOL Result = false, FlushDNS = false;
 	DWORD cbMessage = 0, cMessage = 0, cAllMessages = 0, cbRead = 0;
 	std::shared_ptr<wchar_t> lpszBuffer(new wchar_t[PACKET_MAXSIZE]());
-	memset(lpszBuffer.get(), 0, PACKET_MAXSIZE);
+	wmemset(lpszBuffer.get(), 0, PACKET_MAXSIZE);
 
 //MailSlot Monitor
 	for (;;)

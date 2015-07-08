@@ -24,9 +24,9 @@
 bool __fastcall DNSCurveVerifyKeypair(const unsigned char *PublicKey, const unsigned char *SecretKey)
 {
 	std::shared_ptr<uint8_t> Test_PublicKey(new uint8_t[crypto_box_PUBLICKEYBYTES]()), Test_SecretKey(new uint8_t[crypto_box_PUBLICKEYBYTES]()), Validation(new uint8_t[crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES + crypto_box_ZEROBYTES]());
-	memset(Test_PublicKey.get(), 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(Test_SecretKey.get(), 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(Validation.get(), 0, sizeof(uint8_t) * (crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES + crypto_box_ZEROBYTES));
+	memset(Test_PublicKey.get(), 0, crypto_box_PUBLICKEYBYTES);
+	memset(Test_SecretKey.get(), 0, crypto_box_PUBLICKEYBYTES);
+	memset(Validation.get(), 0, crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES + crypto_box_ZEROBYTES);
 
 //Keypair, Nonce and validation data
 	crypto_box_curve25519xsalsa20poly1305_keypair(Test_PublicKey.get(), Test_SecretKey.get());
@@ -36,10 +36,10 @@ bool __fastcall DNSCurveVerifyKeypair(const unsigned char *PublicKey, const unsi
 //Verify keys
 	crypto_box_curve25519xsalsa20poly1305(Validation.get(), Validation.get(), crypto_box_PUBLICKEYBYTES + crypto_box_ZEROBYTES, Nonce, Test_PublicKey.get(), SecretKey);
 	if (crypto_box_curve25519xsalsa20poly1305_open(
-			Validation.get(), 
-			Validation.get(), 
-			crypto_box_PUBLICKEYBYTES + crypto_box_ZEROBYTES, 
-			Nonce, PublicKey, 
+			Validation.get(),
+			Validation.get(),
+			crypto_box_PUBLICKEYBYTES + crypto_box_ZEROBYTES,
+			Nonce, PublicKey,
 			Test_SecretKey.get()) == LIBSODIUM_ERROR)
 		return false;
 
@@ -47,7 +47,7 @@ bool __fastcall DNSCurveVerifyKeypair(const unsigned char *PublicKey, const unsi
 }
 
 //Select socket data of DNS target(DNSCurve)
-size_t __fastcall SelectTargetSocket(SOCKET_DATA *SockData, PDNSCURVE_SERVER_DATA &PacketTarget, bool *&IsAlternate, size_t *&AlternateTimeoutTimes, const uint16_t Protocol)
+size_t __fastcall DNSCurveSelectTargetSocket(SOCKET_DATA *SockData, PDNSCURVE_SERVER_DATA &PacketTarget, bool *&IsAlternate, size_t *&AlternateTimeoutTimes, const uint16_t Protocol)
 {
 //Socket initialization
 	size_t ServerType = 0;
@@ -170,7 +170,7 @@ size_t __fastcall SelectTargetSocket(SOCKET_DATA *SockData, PDNSCURVE_SERVER_DAT
 }
 
 //Select socket data of DNS target(DNSCurve Multithreading)
-bool __fastcall SelectTargetSocketMulti(bool &IsIPv6, bool *&IsAlternate, const uint16_t Protocol)
+bool __fastcall DNSCurveSelectTargetSocketMulti(bool &IsIPv6, bool *&IsAlternate, const uint16_t Protocol)
 {
 //IPv6
 	if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 &&
@@ -306,6 +306,7 @@ size_t DNSCurveSignatureRequest(const char *OriginalSend, const size_t SendSize,
 	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
 	SYSTEM_SOCKET UDPSocket = 0;
 	socklen_t AddrLen = 0;
+	memset(OriginalRecv, 0, RecvSize);
 
 //Socket initialization
 	if ((Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_NETWORK_BOTH || Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV6) && 
@@ -1225,9 +1226,10 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
+	memset(OriginalRecv, 0, RecvSize);
 
 //Socket initialization
-	if (SelectTargetSocket(TCPSockData.get(), PacketTarget, IsAlternate, AlternateTimeoutTimes, IPPROTO_TCP) == 0 || TCPSockData->Socket == INVALID_SOCKET)
+	if (DNSCurveSelectTargetSocket(TCPSockData.get(), PacketTarget, IsAlternate, AlternateTimeoutTimes, IPPROTO_TCP) == 0 || TCPSockData->Socket == INVALID_SOCKET)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"DNSCurve TCP sockets initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(TCPSockData->Socket);
@@ -1280,8 +1282,6 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 			PacketTarget->PrecomputationKey) != 0)
 		{
 			closesocket(TCPSockData->Socket);
-			memset(OriginalRecv, 0, RecvSize);
-
 			return EXIT_FAILURE;
 		}
 
@@ -1418,7 +1418,6 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 							goto JumpFromPDU;
 						}
 
-						memset(OriginalRecv, 0, RecvSize);
 						return EXIT_FAILURE;
 					}
 				//First receive.
@@ -1441,10 +1440,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 								if (DNSCurveParameter.IsEncryption)
 								{
 									if (memcmp(OriginalRecv, PacketTarget->ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) != 0)
-									{
-										memset(OriginalRecv, 0, RecvSize);
 										return EXIT_FAILURE;
-									}
 
 								//Copy whole nonce.
 									memcpy_s(WholeNonce.get(), crypto_box_NONCEBYTES, OriginalRecv + DNSCURVE_MAGIC_QUERY_LEN, crypto_box_NONCEBYTES);
@@ -1458,13 +1454,10 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 										RecvLen + crypto_box_BOXZEROBYTES - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES),
 										WholeNonce.get(), 
 										PacketTarget->PrecomputationKey) != 0)
-									{
-										memset(OriginalRecv, 0, RecvSize);
-										return EXIT_FAILURE;
-									}
+											return EXIT_FAILURE;
 									memmove_s(OriginalRecv, RecvSize, OriginalRecv + crypto_box_ZEROBYTES, RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES));
 									memset(OriginalRecv + RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), 0, RecvSize - (RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES)));
-									for (SSIZE_T Index = RecvLen - (SSIZE_T)(DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES);Index >= (SSIZE_T)DNS_PACKET_MINSIZE;--Index)
+									for (SSIZE_T Index = RecvLen - (SSIZE_T)(DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES);Index > (SSIZE_T)DNS_PACKET_MINSIZE;--Index)
 									{
 										if ((UCHAR)OriginalRecv[Index] == 0x80)
 										{
@@ -1479,10 +1472,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 
 							//Responses question and answers check
 								if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && CheckResponseData(OriginalRecv, RecvLen, false) == EXIT_FAILURE)
-								{
-									memset(OriginalRecv, 0, RecvSize);
 									return EXIT_FAILURE;
-								}
 
 							//Mark DNS Cache.
 								if (Parameter.CacheType > 0)
@@ -1516,7 +1506,6 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 		{
 			shutdown(TCPSockData->Socket, SD_BOTH);
 			closesocket(TCPSockData->Socket);
-			memset(OriginalRecv, 0, RecvSize);
 			if (AlternateTimeoutTimes != nullptr)
 				++(*AlternateTimeoutTimes);
 
@@ -1530,7 +1519,6 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 
 	shutdown(TCPSockData->Socket, SD_BOTH);
 	closesocket(TCPSockData->Socket);
-	memset(OriginalRecv, 0, RecvSize);
 	return EXIT_FAILURE;
 }
 
@@ -1542,6 +1530,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 	std::vector<size_t> ServerTypeList;
 	std::shared_ptr<char> SendBuffer, Alternate_SendBuffer;
 	std::shared_ptr<uint8_t> WholeNonce, Alternate_WholeNonce;
+	memset(OriginalRecv, 0, RecvSize);
 
 //Normal mode
 	size_t DataLength = DNSCurveParameter.DNSCurvePayloadSize;
@@ -1562,7 +1551,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 //Socket initialization
 	auto IsIPv6 = false;
 	bool *IsAlternate = nullptr;
-	if (!SelectTargetSocketMulti(IsIPv6, IsAlternate, IPPROTO_TCP))
+	if (!DNSCurveSelectTargetSocketMulti(IsIPv6, IsAlternate, IPPROTO_TCP))
 		return EXIT_FAILURE;
 
 	std::shared_ptr<SOCKET_DATA> TCPSocketData(new SOCKET_DATA());
@@ -1695,12 +1684,17 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 			(CheckEmptyBuffer(PacketTarget->PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 			CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
-			for (auto SocketDataIter = TCPSocketDataList.begin();SocketDataIter != TCPSocketDataList.end();++SocketDataIter)
+			for (auto SocketDataIter = TCPSocketDataList.begin();SocketDataIter != TCPSocketDataList.end();)
 			{
 				if (memcmp(&SocketDataIter->SockAddr, PacketTarget, sizeof(sockaddr_storage)) == 0)
+				{
 					SocketDataIter = TCPSocketDataList.erase(SocketDataIter);
+					continue;
+				}
 				if (SocketDataIter + 1U == TCPSocketDataList.end())
 					break;
+
+				++SocketDataIter;
 			}
 
 			goto SkipAlternate;
@@ -1718,12 +1712,17 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 			if (TCPSocketData->Socket == INVALID_SOCKET)
 			{
 				PrintError(LOG_ERROR_NETWORK, L"DNSCurve TCP request initialization error", WSAGetLastError(), nullptr, 0);
-				for (auto SocketDataIter = TCPSocketDataList.begin();SocketDataIter != TCPSocketDataList.end();++SocketDataIter)
+				for (auto SocketDataIter = TCPSocketDataList.begin();SocketDataIter != TCPSocketDataList.end();)
 				{
 					if (memcmp(&SocketDataIter->SockAddr, PacketTarget, sizeof(sockaddr_storage)) == 0)
+					{
 						SocketDataIter = TCPSocketDataList.erase(SocketDataIter);
+						continue;
+					}
 					if (SocketDataIter + 1U == TCPSocketDataList.end())
 						break;
+
+					++SocketDataIter;
 				}
 
 				goto SkipAlternate;
@@ -1735,12 +1734,17 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 			{
 				PrintError(LOG_ERROR_NETWORK, L"Set TCP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
 				closesocket(TCPSocketData->Socket);
-				for (auto SocketDataIter = TCPSocketDataList.begin();SocketDataIter != TCPSocketDataList.end();++SocketDataIter)
+				for (auto SocketDataIter = TCPSocketDataList.begin();SocketDataIter != TCPSocketDataList.end();)
 				{
 					if (memcmp(&SocketDataIter->SockAddr, PacketTarget, sizeof(sockaddr_storage)) == 0)
+					{
 						SocketDataIter = TCPSocketDataList.erase(SocketDataIter);
+						continue;
+					}
 					if (SocketDataIter + 1U == TCPSocketDataList.end())
 						break;
+
+					++SocketDataIter;
 				}
 
 				goto SkipAlternate;
@@ -1793,12 +1797,17 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 				WholeNonce.get(),
 				PacketTarget->PrecomputationKey) != 0)
 			{
-				for (auto SocketDataIter = TCPSocketDataList.begin();SocketDataIter != TCPSocketDataList.end();++SocketDataIter)
+				for (auto SocketDataIter = TCPSocketDataList.begin();SocketDataIter != TCPSocketDataList.end();)
 				{
 					if (memcmp(&SocketDataIter->SockAddr, PacketTarget, sizeof(sockaddr_storage)) == 0)
+					{
 						SocketDataIter = TCPSocketDataList.erase(SocketDataIter);
+						continue;
+					}
 					if (SocketDataIter + 1U == TCPSocketDataList.end())
 						break;
+
+					++SocketDataIter;
 				}
 
 				goto SkipAlternate;
@@ -2065,7 +2074,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 										}
 										memmove_s(OriginalRecv, RecvSize, OriginalRecv + crypto_box_ZEROBYTES, RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES));
 										memset(OriginalRecv + RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), 0, RecvSize - (RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES)));
-										for (SSIZE_T InnerIndex = RecvLen - (SSIZE_T)(DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES);InnerIndex >= (SSIZE_T)DNS_PACKET_MINSIZE;--InnerIndex)
+										for (SSIZE_T InnerIndex = RecvLen - (SSIZE_T)(DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES);InnerIndex > (SSIZE_T)DNS_PACKET_MINSIZE;--InnerIndex)
 										{
 											if ((UCHAR)OriginalRecv[InnerIndex] == 0x80)
 											{
@@ -2143,7 +2152,6 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 	//Timeout
 		else if (SelectResult == 0)
 		{
-			memset(OriginalRecv, 0, RecvSize);
 			++AlternateSwapList.TimeoutTimes[8U];
 			++AlternateSwapList.TimeoutTimes[9U];
 
@@ -2175,7 +2183,6 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 		}
 	}
 
-	memset(OriginalRecv, 0, RecvSize);
 	return EXIT_FAILURE;
 }
 
@@ -2188,9 +2195,10 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
+	memset(OriginalRecv, 0, RecvSize);
 
 //Socket initialization
-	if (SelectTargetSocket(UDPSockData.get(), PacketTarget, IsAlternate, AlternateTimeoutTimes, IPPROTO_UDP) == 0 || UDPSockData->Socket == INVALID_SOCKET)
+	if (DNSCurveSelectTargetSocket(UDPSockData.get(), PacketTarget, IsAlternate, AlternateTimeoutTimes, IPPROTO_UDP) == 0 || UDPSockData->Socket == INVALID_SOCKET)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"DNSCurve UDP sockets initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(UDPSockData->Socket);
@@ -2251,8 +2259,6 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 			PacketTarget->PrecomputationKey) != 0)
 		{
 			closesocket(UDPSockData->Socket);
-			memset(OriginalRecv, 0, RecvSize);
-
 			return EXIT_FAILURE;
 		}
 
@@ -2315,10 +2321,7 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 	{
 		memset(OriginalRecv + RecvLen, 0, RecvSize - RecvLen);
 		if (memcmp(OriginalRecv, PacketTarget->ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) != 0)
-		{
-			memset(OriginalRecv, 0, RecvSize);
 			return EXIT_FAILURE;
-		}
 
 	//Copy whole nonce.
 		memcpy_s(WholeNonce.get(), crypto_box_NONCEBYTES, OriginalRecv + DNSCURVE_MAGIC_QUERY_LEN, crypto_box_NONCEBYTES);
@@ -2332,13 +2335,10 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 			RecvLen + crypto_box_BOXZEROBYTES - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES),
 			WholeNonce.get(),
 			PacketTarget->PrecomputationKey) != 0)
-		{
-			memset(OriginalRecv, 0, RecvSize);
-			return EXIT_FAILURE;
-		}
+				return EXIT_FAILURE;
 		memmove_s(OriginalRecv, RecvSize, OriginalRecv + crypto_box_ZEROBYTES, RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES));
 		memset(OriginalRecv + RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), 0, RecvSize - (RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES)));
-		for (SSIZE_T Index = RecvLen - (SSIZE_T)(DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES);Index >= (SSIZE_T)DNS_PACKET_MINSIZE;--Index)
+		for (SSIZE_T Index = RecvLen - (SSIZE_T)(DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES);Index > (SSIZE_T)DNS_PACKET_MINSIZE;--Index)
 		{
 			if ((UCHAR)OriginalRecv[Index] == 0x80)
 			{
@@ -2349,10 +2349,7 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 
 	//Responses question and answers check
 		if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && CheckResponseData(OriginalRecv, RecvLen, false) == EXIT_FAILURE)
-		{
-			memset(OriginalRecv, 0, RecvSize);
 			return EXIT_FAILURE;
-		}
 
 	//Mark DNS Cache.
 		if (Parameter.CacheType > 0)
@@ -2364,10 +2361,7 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 	else {
 	//Responses question and answers check
 		if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && CheckResponseData(OriginalRecv, RecvLen, false) == EXIT_FAILURE)
-		{
-			memset(OriginalRecv, 0, RecvSize);
 			return EXIT_FAILURE;
-		}
 
 	//Mark DNS Cache.
 		if (Parameter.CacheType > 0)
@@ -2376,7 +2370,6 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 		return RecvLen;
 	}
 
-	memset(OriginalRecv, 0, RecvSize);
 	return EXIT_FAILURE;
 }
 
@@ -2388,11 +2381,12 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	std::vector<size_t> ServerTypeList;
 	std::shared_ptr<char> SendBuffer, Alternate_SendBuffer;
 	std::shared_ptr<uint8_t> WholeNonce, Alternate_WholeNonce;
+	memset(OriginalRecv, 0, RecvSize);
 
 //Socket initialization
 	auto IsIPv6 = false;
 	bool *IsAlternate = nullptr;
-	if (!SelectTargetSocketMulti(IsIPv6, IsAlternate, IPPROTO_UDP))
+	if (!DNSCurveSelectTargetSocketMulti(IsIPv6, IsAlternate, IPPROTO_UDP))
 		return EXIT_FAILURE;
 
 	std::shared_ptr<SOCKET_DATA> UDPSocketData(new SOCKET_DATA());
@@ -2515,12 +2509,17 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 			(CheckEmptyBuffer(PacketTarget->PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 			CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
-			for (auto SocketDataIter = UDPSocketDataList.begin();SocketDataIter != UDPSocketDataList.end();++SocketDataIter)
+			for (auto SocketDataIter = UDPSocketDataList.begin();SocketDataIter != UDPSocketDataList.end();)
 			{
 				if (memcmp(&SocketDataIter->SockAddr, PacketTarget, sizeof(sockaddr_storage)) == 0)
+				{
 					SocketDataIter = UDPSocketDataList.erase(SocketDataIter);
+					continue;
+				}
 				if (SocketDataIter + 1U == UDPSocketDataList.end())
 					break;
+
+				++SocketDataIter;
 			}
 
 			goto SkipAlternate;
@@ -2536,12 +2535,17 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 		if (UDPSocketData->Socket == INVALID_SOCKET)
 		{
 			PrintError(LOG_ERROR_NETWORK, L"Complete UDP request initialization error", WSAGetLastError(), nullptr, 0);
-			for (auto SocketDataIter = UDPSocketDataList.begin();SocketDataIter != UDPSocketDataList.end();++SocketDataIter)
+			for (auto SocketDataIter = UDPSocketDataList.begin();SocketDataIter != UDPSocketDataList.end();)
 			{
 				if (memcmp(&SocketDataIter->SockAddr, PacketTarget, sizeof(sockaddr_storage)) == 0)
+				{
 					SocketDataIter = UDPSocketDataList.erase(SocketDataIter);
+					continue;
+				}
 				if (SocketDataIter + 1U == UDPSocketDataList.end())
 					break;
+
+				++SocketDataIter;
 			}
 
 			goto SkipAlternate;
@@ -2552,12 +2556,17 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 		else if (ioctlsocket(UDPSocketData->Socket, FIONBIO, &SocketMode) == SOCKET_ERROR)
 		{
 			PrintError(LOG_ERROR_NETWORK, L"Set UDP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
-			for (auto SocketDataIter = UDPSocketDataList.begin();SocketDataIter != UDPSocketDataList.end();++SocketDataIter)
+			for (auto SocketDataIter = UDPSocketDataList.begin();SocketDataIter != UDPSocketDataList.end();)
 			{
 				if (memcmp(&SocketDataIter->SockAddr, PacketTarget, sizeof(sockaddr_storage)) == 0)
+				{
 					SocketDataIter = UDPSocketDataList.erase(SocketDataIter);
+					continue;
+				}
 				if (SocketDataIter + 1U == UDPSocketDataList.end())
 					break;
+
+				++SocketDataIter;
 			}
 
 			goto SkipAlternate;
@@ -2609,12 +2618,17 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 				Alternate_WholeNonce.get(),
 				PacketTarget->PrecomputationKey) != 0)
 			{
-				for (auto SocketDataIter = UDPSocketDataList.begin();SocketDataIter != UDPSocketDataList.end();++SocketDataIter)
+				for (auto SocketDataIter = UDPSocketDataList.begin();SocketDataIter != UDPSocketDataList.end();)
 				{
 					if (memcmp(&SocketDataIter->SockAddr, PacketTarget, sizeof(sockaddr_storage)) == 0)
+					{
 						SocketDataIter = UDPSocketDataList.erase(SocketDataIter);
+						continue;
+					}
 					if (SocketDataIter + 1U == UDPSocketDataList.end())
 						break;
+
+					++SocketDataIter;
 				}
 
 				goto SkipAlternate;
@@ -2786,7 +2800,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 						}
 						memmove_s(OriginalRecv, RecvSize, OriginalRecv + crypto_box_ZEROBYTES, RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES));
 						memset(OriginalRecv + RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), 0, RecvSize - (RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES)));
-						for (SSIZE_T InnerIndex = RecvLen - (SSIZE_T)(DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES);InnerIndex >= (SSIZE_T)DNS_PACKET_MINSIZE;--InnerIndex)
+						for (SSIZE_T InnerIndex = RecvLen - (SSIZE_T)(DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES);InnerIndex > (SSIZE_T)DNS_PACKET_MINSIZE;--InnerIndex)
 						{
 							if ((UCHAR)OriginalRecv[InnerIndex] == 0x80)
 							{
@@ -2894,7 +2908,6 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 	//Timeout
 		else if (SelectResult == 0)
 		{
-			memset(OriginalRecv, 0, RecvSize);
 			++AlternateSwapList.TimeoutTimes[10U];
 			++AlternateSwapList.TimeoutTimes[11U];
 
@@ -2926,7 +2939,6 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 		}
 	}
 
-	memset(OriginalRecv, 0, RecvSize);
 	return EXIT_FAILURE;
 }
 #endif

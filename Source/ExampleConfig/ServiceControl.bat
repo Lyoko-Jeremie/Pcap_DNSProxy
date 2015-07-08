@@ -4,28 +4,6 @@
 
 @echo off
 
-:: Get Administrator Privileges
-:: Author: Evan Greene
-:: https://sites.google.com/site/eneerge/home/BatchGotAdmin
->nul 2>&1 "%SystemRoot%\system32\cacls.exe" "%SystemRoot%\system32\config\system"
-if '%errorlevel%' NEQ '0' (
-	echo Requesting Administrative Privileges...
-	goto UAC_Prompt
-) else (
-	goto Get_Admin
-)
-
-:UAC_Prompt
-	echo set UAC = CreateObject^("Shell.Application"^) > "%TEMP%\GetAdmin.vbs"
-	echo UAC.ShellExecute "%~s0", "", "", "runas", 1 >> "%TEMP%\GetAdmin.vbs"
-	"%TEMP%\GetAdmin.vbs"
-	exit /B
-
-:Get_Admin
-	if exist "%TEMP%\GetAdmin.vbs" (del "%TEMP%\GetAdmin.vbs" )
-	pushd "%cd%"
-	cd /D "%~dp0"
-
 
 :: Choice
 echo Pcap_DNSProxy service control batch
@@ -39,9 +17,9 @@ echo 6: Flush DNS cache in Pcap_DNSProxy
 echo.
 set /P UserChoice="Choose: "
 set UserChoice=CASE_%UserChoice%
+cd /D "%~dp0"
 cls
 goto %UserChoice%
-
 
 :: Service Install part
 :: Author: Hugo Chan, Chengr28

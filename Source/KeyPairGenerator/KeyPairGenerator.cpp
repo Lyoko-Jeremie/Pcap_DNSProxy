@@ -59,20 +59,36 @@ int main(int argc, char *argv[])
 		crypto_box_curve25519xsalsa20poly1305_keypair(PublicKey.get(), SecretKey.get());
 
 	//Write public key.
-		BinaryToHex(Buffer.get(), KEYPAIR_MESSAGE_LEN, PublicKey.get(), crypto_box_PUBLICKEYBYTES);
-		fwprintf_s(Output, L"Public Key: ");
+		memset(Buffer.get(), 0, KEYPAIR_MESSAGE_LEN);
+		if (sodium_bin2hex(Buffer.get(), KEYPAIR_MESSAGE_LEN, PublicKey.get(), crypto_box_PUBLICKEYBYTES) == nullptr)
+			wprintf_s(L"Create ramdom key pair failed, please try again.\n");
+		CaseConvert(true, Buffer.get(), KEYPAIR_MESSAGE_LEN);
+		fwprintf_s(Output, L"Client Public Key = ");
 		for (Index = 0;Index < strnlen_s(Buffer.get(), KEYPAIR_MESSAGE_LEN);++Index)
+		{
+			if (Index > 0 && Index % KEYPAIR_INTERVAL == 0 && Index + 1U < strnlen_s(Buffer.get(), KEYPAIR_MESSAGE_LEN))
+				fwprintf_s(Output, L":");
+
 			fwprintf_s(Output, L"%c", Buffer.get()[Index]);
+		}
 		memset(Buffer.get(), 0, KEYPAIR_MESSAGE_LEN);
 		fwprintf_s(Output, L"\n");
 
 	//Write secret key.
-		BinaryToHex(Buffer.get(), KEYPAIR_MESSAGE_LEN, SecretKey.get(), crypto_box_SECRETKEYBYTES);
-		fwprintf_s(Output, L"Secret Key: ");
+		if (sodium_bin2hex(Buffer.get(), KEYPAIR_MESSAGE_LEN, SecretKey.get(), crypto_box_SECRETKEYBYTES) == nullptr)
+			wprintf_s(L"Create ramdom key pair failed, please try again.\n");
+		CaseConvert(true, Buffer.get(), KEYPAIR_MESSAGE_LEN);
+		fwprintf_s(Output, L"Client Secret Key = ");
 		for (Index = 0;Index < strnlen_s(Buffer.get(), KEYPAIR_MESSAGE_LEN);++Index)
+		{
+			if (Index > 0 && Index % KEYPAIR_INTERVAL == 0 && Index + 1U < strnlen_s(Buffer.get(), KEYPAIR_MESSAGE_LEN))
+				fwprintf_s(Output, L":");
+
 			fwprintf_s(Output, L"%c", Buffer.get()[Index]);
+		}
 		fwprintf_s(Output, L"\n");
 
+	//Close file.
 		fclose(Output);
 	}
 	else {
@@ -100,8 +116,8 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
+/* Old version(2015-07-08)
 //Convert binary to hex characters
-#if defined(ENABLE_LIBSODIUM)
 size_t __fastcall BinaryToHex(PSTR Buffer, const size_t MaxLength, const unsigned char *Binary, const size_t Length)
 {
 	size_t BufferLength = 0, Colon = 0;
@@ -115,11 +131,11 @@ size_t __fastcall BinaryToHex(PSTR Buffer, const size_t MaxLength, const unsigne
 
 		//Convert to ASCII.
 			if (Buffer[BufferLength] < ASCII_LF)
-				Buffer[BufferLength] += 48U; //Number
+				Buffer[BufferLength] += 48U; //Numbers
 			else if (Buffer[BufferLength] <= ASCII_DLE)
 				Buffer[BufferLength] += 55U; //Captain letters
 			if (Buffer[BufferLength + 1U] < ASCII_LF)
-				Buffer[BufferLength + 1U] += 48U; //Number
+				Buffer[BufferLength + 1U] += 48U; //Numbers
 			else if (Buffer[BufferLength + 1U] <= ASCII_DLE)
 				Buffer[BufferLength + 1U] += 55U; //Captain letters
 
@@ -141,5 +157,23 @@ size_t __fastcall BinaryToHex(PSTR Buffer, const size_t MaxLength, const unsigne
 	}
 
 	return BufferLength;
+}
+*/
+
+//Convert lowercase/uppercase words to uppercase/lowercase words(Character version)
+#if defined(ENABLE_LIBSODIUM)
+void __fastcall CaseConvert(const bool IsLowerToUpper, PSTR Buffer, const size_t Length)
+{
+	for (size_t Index = 0;Index < Length;++Index)
+	{
+	//Lowercase to uppercase
+		if (IsLowerToUpper)
+			Buffer[Index] = (char)toupper(Buffer[Index]);
+	//Uppercase to lowercase
+		else 
+			Buffer[Index] = (char)tolower(Buffer[Index]);
+	}
+
+	return;
 }
 #endif

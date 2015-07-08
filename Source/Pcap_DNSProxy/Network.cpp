@@ -548,7 +548,6 @@ bool __fastcall SelectTargetSocket(SOCKET_DATA *SockData, bool *&IsAlternate, si
 				AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[3U];
 			}
 			
-
 		//Alternate
 			if (*IsAlternate && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
 			{
@@ -884,8 +883,8 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 */
 	std::shared_ptr<SOCKET_DATA> TCPSockData(new SOCKET_DATA());
 	memset(TCPSockData.get(), 0, sizeof(SOCKET_DATA));
+	memset(OriginalRecv, 0, RecvSize);
 	auto SendBuffer = OriginalRecv;
-	memset(SendBuffer, 0, RecvSize);
 	memcpy_s(SendBuffer, RecvSize, OriginalSend, SendSize);
 
 //Add length of request packet(It must be written in header when transpot with TCP protocol).
@@ -1056,7 +1055,6 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 							goto JumpFromPDU;
 						}
 
-						memset(OriginalRecv, 0, RecvSize);
 						return EXIT_FAILURE;
 					}
 				//First receive.
@@ -1080,10 +1078,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 
 							//Responses question and answers check
 								if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && CheckResponseData(OriginalRecv, RecvLen, IsLocal) == EXIT_FAILURE)
-								{
-									memset(OriginalRecv, 0, RecvSize);
 									return EXIT_FAILURE;
-								}
 
 							//Mark DNS Cache.
 								if (Parameter.CacheType > 0)
@@ -1117,7 +1112,6 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 		{
 			shutdown(TCPSockData->Socket, SD_BOTH);
 			closesocket(TCPSockData->Socket);
-			memset(OriginalRecv, 0, RecvSize);
 			if (IsAlternate != nullptr && !*IsAlternate)
 				++(*AlternateTimeoutTimes);
 
@@ -1131,7 +1125,6 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 
 	shutdown(TCPSockData->Socket, SD_BOTH);
 	closesocket(TCPSockData->Socket);
-	memset(OriginalRecv, 0, RecvSize);
 	return EXIT_FAILURE;
 }
 
@@ -1144,8 +1137,8 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 	memset(SendBuffer.get(), 0, sizeof(uint16_t) + SendSize);
 	memcpy_s(SendBuffer.get(), SendSize, OriginalSend, SendSize);
 */
+	memset(OriginalRecv, 0, RecvSize);
 	auto SendBuffer = OriginalRecv;
-	memset(SendBuffer, 0, RecvSize);
 	memcpy_s(SendBuffer, RecvSize, OriginalSend, SendSize);
 
 //Add length of request packet(It must be written in header when transpot with TCP protocol).
@@ -1389,7 +1382,6 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 	//Timeout
 		else if (SelectResult == 0)
 		{
-			memset(OriginalRecv, 0, RecvSize);
 			++AlternateSwapList.TimeoutTimes[0];
 			++AlternateSwapList.TimeoutTimes[1U];
 
@@ -1421,7 +1413,6 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 		}
 	}
 
-	memset(OriginalRecv, 0, RecvSize);
 	return EXIT_FAILURE;
 }
 
@@ -1713,6 +1704,7 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 	memset(UDPSockData.get(), 0, sizeof(SOCKET_DATA));
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
+	memset(OriginalRecv, 0, RecvSize);
 
 //Socket initialization
 	if (!SelectTargetSocket(UDPSockData.get(), IsAlternate, AlternateTimeoutTimes, IPPROTO_UDP, IsLocal) || UDPSockData->Socket == INVALID_SOCKET)
@@ -1765,7 +1757,6 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 			RecvLen = WSAGetLastError();
 		shutdown(UDPSockData->Socket, SD_BOTH);
 		closesocket(UDPSockData->Socket);
-		memset(OriginalRecv, 0, RecvSize);
 
 		if (RecvLen == WSAETIMEDOUT)
 		{
@@ -1778,8 +1769,6 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 	//Hosts Only Extended check
 		if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && CheckResponseData(OriginalRecv, RecvLen, IsLocal) == EXIT_FAILURE)
 		{
-			memset(OriginalRecv, 0, RecvSize);
-
 		//Set socket timeout.
 			if (!IsLocal && Parameter.ReceiveWaiting > 0)
 			{
@@ -1809,6 +1798,7 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 			}
 
 		//Try to receive packets.
+			memset(OriginalRecv, 0, RecvSize);
 			for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 			{
 				if (CheckResponseData(OriginalRecv, RecvLen, IsLocal) == EXIT_FAILURE)
@@ -1821,7 +1811,6 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 							RecvLen = WSAGetLastError();
 						shutdown(UDPSockData->Socket, SD_BOTH);
 						closesocket(UDPSockData->Socket);
-						memset(OriginalRecv, 0, RecvSize);
 						if (RecvLen == WSAETIMEDOUT)
 						{
 							if (IsAlternate != nullptr && !*IsAlternate && AlternateTimeoutTimes != nullptr)
@@ -1863,6 +1852,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 	std::vector<SOCKET_DATA> UDPSocketDataList;
 	if (!SelectTargetSocketMulti(UDPSocketDataList, IPPROTO_UDP))
 		return EXIT_FAILURE;
+	memset(OriginalRecv, 0, RecvSize);
 
 //Initialization
 	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
@@ -1976,7 +1966,6 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 	//Timeout
 		else if (SelectResult == 0)
 		{
-			memset(OriginalRecv, 0, RecvSize);
 			++AlternateSwapList.TimeoutTimes[0];
 			++AlternateSwapList.TimeoutTimes[1U];
 
@@ -2008,6 +1997,5 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 		}
 	}
 
-	memset(OriginalRecv, 0, RecvSize);
 	return EXIT_FAILURE;
 }

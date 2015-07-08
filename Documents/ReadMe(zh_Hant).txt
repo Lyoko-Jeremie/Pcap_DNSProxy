@@ -191,7 +191,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
     * 同時填入 TCP 和 UDP 等於只填入 TCP，因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
     * 注意：此處的協定指的是程式請求遠端 DNS 伺服器時所使用的協定，而向本程式請求功能變數名稱解析時可使用的協定由 Listen Protocol 參數決定
-  * Hosts Only - Hosts Only 直連模式，啟用後將使用系統直接請求遠端伺服器而啟用只使用本工具的 Hosts 功能：開啟為1/關閉為0，預設為 0
+  * Hosts Only - Hosts Only 直連模式，啟用後將使用系統的 API 直接請求遠端伺服器而啟用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，關閉為 0，預設為 0
+    * 建議當系統使用全域代理功能時啟用，程式將除 Local 外的所有請求直接交給系統處理，系統會將請求自動發往遠端伺服器進行解析
+    * 填入 IPv4 或 IPv6 時將會啟用對應協定的 Hosts Only 功能，同時填入 IPv4 和 IPv6 將會啟用所有協定的功能
   * Local Main - 主要境內伺服器請求功能：開啟為1/關閉為0，預設為 0
     * 開啟後所有請求先使用 Local 的伺服器進行解析，遇到遭投毒污染的解析結果時自動再向境外伺服器請求
     * 本功能不能與 Local Hosts 同時啟用
@@ -408,27 +410,35 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * FTPS/990
       * NAS/991
       * TELNETS/992
-  * IPv4 Alternate DNS Address - IPv4 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 8.8.8.8:53|208.67.220.220:53|208.67.222.222:5353
+  * IPv4 Alternate DNS Address - IPv4 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 8.8.8.8:53|208.67.220.220:443|208.67.222.222:5353
     * 本參數支援同時請求多伺服器的功能，開啟後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果
-    * 使用同時請求多伺服器格式為 "位址 A:埠|位址 B:埠|位址 C:埠"（不含引號），同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
+    * 使用同時請求多伺服器格式為 "位址A:埠|位址B:埠|位址C:埠"（不含引號），同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
     * 指定埠時可使用服務名稱代替，參見上表
-  * IPv4 Local DNS Address - IPv4 主要境內DNS伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 114.114.115.115:53
+  * IPv4 Local DNS Address - IPv4 主要境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 114.114.115.115:53
     * 指定埠時可使用服務名稱代替，參見上表
-  * IPv4 Local Alternate DNS Address - IPv4 備用境內DNS伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 114.114.114.114:53
+    * 本參數不支援同時請求多伺服器的功能
+  * IPv4 Local Alternate DNS Address - IPv4 備用境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 223.6.6.6:53
     * 指定埠時可使用服務名稱代替，參見上表
+    * 本參數不支援同時請求多伺服器的功能
   * IPv6 Listen Address - IPv6 本地監聽位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
-    * 本參數支援多個監聽位址，格式為 "位址A:埠|位址B:埠|位址C:埠"（不含引號）
+    * 本參數支援多個監聽位址，格式為 "[位址A]:埠| [位址B]:埠| [位址C]:埠"（不含引號）
     * 填入此值後 IPv6 協定的 Operation Mode 和 Listen Port 參數將被自動忽略
   * IPv6 EDNS Client Subnet Address - IPv6 用戶端子網位址：需要輸入一個帶前置長度的本機公共網路位址，留空為不啟用，預設為空
     * 啟用本功能前需要啟用 EDNS Client Subnet 總開關，否則將直接忽略此參數
-  * IPv6 DNS Address - IPv6 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
+  * IPv6 DNS Address - IPv6 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 [2001:4860:4860::8844]:53
+    * 本參數支援同時請求多伺服器的功能，開啟後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果
+    * 使用同時請求多伺服器格式為 "[位址A]:埠| [位址B]:埠| [位址C]:埠"（不含引號），同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
     * 指定埠時可使用服務名稱代替，參見上表
-  * IPv6 Alternate DNS Address - IPv6 備用DNS伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
+  * IPv6 Alternate DNS Address - IPv6 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 [2001:4860:4860::8888]:53| [2620:0:CCD::2]:443| [2620:0:CCC::2]:5353
+    * 本參數支援同時請求多伺服器的功能，開啟後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果
+    * 使用同時請求多伺服器格式為 "[位址A]:埠| [位址B]:埠| [位址C]:埠"（不含引號），同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
     * 指定埠時可使用服務名稱代替，參見上表
-  * IPv6 Local DNS Address - IPv6 主要境內DNS伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
+  * IPv6 Local DNS Address - IPv6 主要境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
     * 指定埠時可使用服務名稱代替，參見上表
-  * IPv6 Local Alternate DNS Address - IPv6 備用境內DNS伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
+    * 本參數不支援同時請求多伺服器的功能
+  * IPv6 Local Alternate DNS Address - IPv6 備用境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
     * 指定埠時可使用服務名稱代替，參見上表
+    * 本參數不支援同時請求多伺服器的功能
 
 * Values - 擴展參數值區域
   * EDNS Payload Size - EDNS 標籤附帶使用的最大載荷長度：最小為 DNS 協定實現要求的 512(bytes)，留空則使用 EDNS 標籤要求最短的 1220(bytes)，預設為空
@@ -541,8 +551,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Client Secret Key - 自訂用戶端私密金鑰：可使用 KeyPairGenerator 生成，留空則每次啟動時自動生成，預設為空
   * IPv4 DNS Public Key - DNSCurve 協定 IPv4 主要 DNS 伺服器驗證用公開金鑰，預設為 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
   * IPv4 Alternate DNS Public Key - DNSCurve 協定 IPv4 備用 DNS 伺服器驗證用公開金鑰，預設為 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
-  * IPv6 DNS Public Key - DNSCurve 協定 IPv6 主要 DNS 伺服器驗證用公開金鑰，預設為空
-  * IPv6 Alternate DNS Public Key - DNSCurve 協定 IPv6 備用 DNS 伺服器驗證用公開金鑰，預設為空
+  * IPv6 DNS Public Key - DNSCurve 協定 IPv6 主要 DNS 伺服器驗證用公開金鑰，預設為 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
+  * IPv6 Alternate DNS Public Key - DNSCurve 協定 IPv6 備用 DNS 伺服器驗證用公開金鑰，預設為 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
   * IPv4 DNS Fingerprint - DNSCurve 協定 IPv4 主要 DNS 伺服器傳輸用指紋，留空則自動通過伺服器提供者和公開金鑰獲取，預設為空
   * IPv4 Alternate DNS Fingerprint - DNSCurve 協定 IPv4 備用 DNS 伺服器傳輸用指紋，留空則自動通過伺服器提供者和公開金鑰獲取，預設為空
   * IPv6 DNS Fingerprint - DNSCurve 協定 IPv6 備用 DNS 伺服器傳輸用指紋，留空則自動通過伺服器提供者和公開金鑰獲取，預設為空
@@ -582,7 +592,7 @@ Hosts 設定檔分為多個提供不同功能的區域
     127.0.0.1|127.0.0.2|127.0.0.3 .*\.localhost
 
   * 雖然 .*\.localhost 包含了 .*\.test\.localhost 但由於優先順序別自上而下遞減，故先命中 .*\.test\.localhost 並返回使用遠端伺服器解析
-  * 從而繞過了下面的條目，不使用Hosts的功能
+  * 從而繞過了下面的條目，不使用 Hosts 的功能
 
 * Banned - 黑名單條目
   * 此類型的條目列出的符合要求的功能變數名稱會直接返回功能變數名稱不存在的功能，避免重定向導致的超時問題
@@ -592,9 +602,10 @@ Hosts 設定檔分為多個提供不同功能的區域
     Banned .*\.test.localhost
     127.0.0.1|127.0.0.2|127.0.0.3 .*\.localhost
 
-    雖然 .*\.localhost 包含了 .*\.test\.localhost 但由於優先順序別自上而下遞減，故先命中 .*\.test\.localhost 並直接返回功能變數名稱不存在
-    從而繞過了下面的條目，達到遮罩功能變數名稱的目的
+  * 雖然 .*\.localhost 包含了 .*\.test\.localhost 但由於優先順序別自上而下遞減，故先命中 .*\.test\.localhost 並直接返回功能變數名稱不存在
+  * 從而繞過了下面的條目，達到遮罩功能變數名稱的目的
 
+* Banned - 黑名單條目擴展功能
   * 此類型的條目還支援對符合規則的特定類型功能變數名稱請求進行遮罩或放行
   * 有效參數格式為 "BANNED:DNS類型(| DNS類型) 正則運算式"（不含引號）
   * 只允許特定類型功能變數名稱請求，有效參數格式為 "BANNED(Permit):DNS類型(| DNS類型) 正則運算式"（不含引號）

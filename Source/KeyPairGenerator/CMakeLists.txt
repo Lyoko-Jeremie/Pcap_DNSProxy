@@ -38,6 +38,7 @@ set(GENERATOR_SRC_DIR
 # Compiling and linking flags
 IF(PLATFORM_OPENWRT)
 	add_definitions(-std=c++11)
+	add_definitions(-DPLATFORM_OPENWRT)
 ELSE(PLATFORM_OPENWRT)
 	add_definitions(-std=c++11 -fpic)
 ENDIF(PLATFORM_OPENWRT)

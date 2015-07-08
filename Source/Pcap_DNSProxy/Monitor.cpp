@@ -25,9 +25,9 @@ bool __fastcall MonitorInit(void)
 //Capture initialization
 #if defined(ENABLE_PCAP)
 	#if defined(ENABLE_LIBSODIUM)
-		if (Parameter.PcapCapture && !Parameter.HostsOnly && !(Parameter.DNSCurve && DNSCurveParameter.IsEncryption && DNSCurveParameter.IsEncryptionOnly))
+		if (Parameter.PcapCapture && Parameter.HostsOnly != HOSTS_ONLY_MODE_BOTH && !(Parameter.DNSCurve && DNSCurveParameter.IsEncryption && DNSCurveParameter.IsEncryptionOnly))
 	#else
-		if (Parameter.PcapCapture && !Parameter.HostsOnly)
+		if (Parameter.PcapCapture && Parameter.HostsOnly != HOSTS_ONLY_MODE_BOTH)
 	#endif
 	{
 	#if defined(ENABLE_PCAP)
@@ -781,17 +781,17 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 	}
 //TCP Fast Open setting
 	#if defined(PLATFORM_LINUX)
-	if (Parameter.TCP_FastOpen)
-	{
-		SetVal = TCP_FASTOPEN_HINT;
-		if (setsockopt(LocalSocketData.Socket, SOL_TCP, TCP_FASTOPEN, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
+		if (Parameter.TCP_FastOpen)
 		{
-			PrintError(LOG_ERROR_NETWORK, L"Set TCP socket Fast Open error", errno, nullptr, 0);
-			close(LocalSocketData.Socket);
+			SetVal = TCP_FASTOPEN_HINT;
+			if (setsockopt(LocalSocketData.Socket, SOL_TCP, TCP_FASTOPEN, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
+			{
+				PrintError(LOG_ERROR_NETWORK, L"Set TCP socket Fast Open error", errno, nullptr, 0);
+				close(LocalSocketData.Socket);
 
-			return false;
+				return false;
+			}
 		}
-	}
 	#endif
 #endif
 
@@ -978,7 +978,7 @@ bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 	if (RecvLen == (SSIZE_T)sizeof(uint16_t)) //TCP segment of a reassembled PDU
 	{
 	//Receive without PDU.
-		uint16_t PDU_Len = ntohs(((uint16_t *)Buffer.get())[0]);	
+		uint16_t PDU_Len = ntohs(((uint16_t *)Buffer.get())[0]);
 		if (PDU_Len > LARGE_PACKET_MAXSIZE)
 		{
 			shutdown(LocalSocketData.Socket, SD_BOTH);
@@ -1241,7 +1241,6 @@ bool GetBestInterfaceAddress(const uint16_t Protocol, const sockaddr_storage *Or
 //Check socket.
 	if (InterfaceSocket == INVALID_SOCKET)
 	{
-		Parameter.TunnelAvailable_IPv6 = false;
 		if (Protocol == AF_INET6)
 			Parameter.GatewayAvailable_IPv6 = false;
 		else //IPv4
@@ -1264,18 +1263,19 @@ bool GetBestInterfaceAddress(const uint16_t Protocol, const sockaddr_storage *Or
 			AddrLen != sizeof(sockaddr_in6) || CheckEmptyBuffer(&((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, sizeof(in6_addr)))
 		{
 			Parameter.GatewayAvailable_IPv6 = false;
-			Parameter.TunnelAvailable_IPv6 = false;
 
 			close(InterfaceSocket);
 			return false;
 		}
 
+/* Old version(2015-07-08)
 	//Address check(IPv6 tunnels support: 6to4, ISATAP and Teredo)
 		if (((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[0] == htons(0x2001) && ((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[1U] == 0 || //Teredo relay/tunnel Addresses(2001::/32, RFC 4380)
 			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[0] == htons(0x2002) || //6to4 relay/tunnel Addresses(2002::/16, Section 2 in RFC 3056)
 			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[0] >= 0x80 && ((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[1U] <= 0xBF && //Link-Local Unicast Contrast Addresses/LUC(FE80::/10, Section 2.5.6 in RFC 4291)
 			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[4U] == 0 && ((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[5U] == htons(0x5EFE)) //ISATAP Interface Identifiers Addresses(Prefix:0:5EFE:0:0:0:0/64, which also in Link-Local Unicast Contrast Addresses/LUC, Section 6.1 in RFC 5214)
 				Parameter.TunnelAvailable_IPv6 = true;
+*/
 	}
 	else { //IPv4
 		((PSOCKADDR_IN)SockAddr.get())->sin_addr = ((PSOCKADDR_IN)OriginalSockAddr)->sin_addr;
@@ -1288,7 +1288,6 @@ bool GetBestInterfaceAddress(const uint16_t Protocol, const sockaddr_storage *Or
 			AddrLen != sizeof(sockaddr_in) || CheckEmptyBuffer(&((PSOCKADDR_IN)SockAddr.get())->sin_addr, sizeof(in_addr)))
 		{
 			Parameter.GatewayAvailable_IPv4 = false;
-			Parameter.TunnelAvailable_IPv6 = false;
 
 			close(InterfaceSocket);
 			return false;
@@ -1314,7 +1313,6 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 			)
 		{
 			Parameter.GatewayAvailable_IPv6 = false;
-			Parameter.TunnelAvailable_IPv6 = false;
 			return;
 		}
 	#if defined(PLATFORM_WIN)
@@ -1330,7 +1328,6 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 			)
 		{
 			Parameter.GatewayAvailable_IPv6 = false;
-			Parameter.TunnelAvailable_IPv6 = false;
 			return;
 		}
 
@@ -1342,7 +1339,6 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 				if (GetBestInterfaceEx((PSOCKADDR)&DNSServerDataIter.AddressData.IPv6, &AdaptersIndex) != NO_ERROR)
 				{
 					Parameter.GatewayAvailable_IPv6 = false;
-					Parameter.TunnelAvailable_IPv6 = false;
 					return;
 				}
 			}
@@ -1359,7 +1355,6 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 			)
 		{
 			Parameter.GatewayAvailable_IPv6 = false;
-			Parameter.TunnelAvailable_IPv6 = false;
 			return;
 		}
 
@@ -1371,7 +1366,6 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 				if (!GetBestInterfaceAddress(AF_INET6, &DNSServerDataIter.AddressData.Storage))
 				{
 					Parameter.GatewayAvailable_IPv6 = false;
-					Parameter.TunnelAvailable_IPv6 = false;
 					return;
 				}
 			}
@@ -1379,7 +1373,6 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 	#endif
 
 		Parameter.GatewayAvailable_IPv6 = true;
-		Parameter.TunnelAvailable_IPv6 = true;
 	}
 //IPv4
 	else {
@@ -1391,7 +1384,6 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 			)
 		{
 			Parameter.GatewayAvailable_IPv4 = false;
-			Parameter.TunnelAvailable_IPv6 = false;
 			return;
 		}
 	#if defined(PLATFORM_WIN)
@@ -1407,7 +1399,6 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 			)
 		{
 			Parameter.GatewayAvailable_IPv4 = false;
-			Parameter.TunnelAvailable_IPv6 = false;
 			return;
 		}
 
@@ -1419,7 +1410,6 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 				if (GetBestInterfaceEx((PSOCKADDR)&DNSServerDataIter.AddressData.IPv4, &AdaptersIndex) != NO_ERROR)
 				{
 					Parameter.GatewayAvailable_IPv4 = false;
-					Parameter.TunnelAvailable_IPv6 = false;
 					return;
 				}
 			}
@@ -1436,7 +1426,6 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 			)
 		{
 			Parameter.GatewayAvailable_IPv4 = false;
-			Parameter.TunnelAvailable_IPv6 = false;
 			return;
 		}
 
@@ -1448,7 +1437,6 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 				if (!GetBestInterfaceAddress(AF_INET, &DNSServerDataIter.AddressData.Storage))
 				{
 					Parameter.GatewayAvailable_IPv4 = false;
-					Parameter.TunnelAvailable_IPv6 = false;
 					return;
 				}
 			}
@@ -1483,6 +1471,9 @@ void __fastcall NetworkInformationMonitor(void)
 	pdns_qry DNS_Query = nullptr;
 	void *DNS_Record = nullptr;
 	auto IsSubnetMark = false;
+	std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0]), LocalAddressMutexIPv4(LocalAddressLock[1U]);
+	LocalAddressMutexIPv6.unlock();
+	LocalAddressMutexIPv4.unlock();
 
 //Monitor
 	for (;;)
@@ -1510,7 +1501,7 @@ void __fastcall NetworkInformationMonitor(void)
 				continue;
 			}
 			else {
-				std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0]);
+				LocalAddressMutexIPv6.lock();
 				memset(Parameter.LocalAddress_Response[0], 0, PACKET_MAXSIZE);
 				Parameter.LocalAddress_Length[0] = 0;
 			#if !defined(PLATFORM_MACX)
@@ -1707,7 +1698,7 @@ void __fastcall NetworkInformationMonitor(void)
 					DNS_Header->Answer = htons(DNS_Header->Answer);
 				}
 
-			//Add to global list.
+			//Free all lists.
 				LocalAddressMutexIPv6.unlock();
 			#if defined(PLATFORM_WIN)
 				freeaddrinfo(LocalAddressList);
@@ -1738,7 +1729,7 @@ void __fastcall NetworkInformationMonitor(void)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			{
 		#endif
-				std::unique_lock<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[1U]);
+				LocalAddressMutexIPv4.lock();
 				memset(Parameter.LocalAddress_Response[1U], 0, PACKET_MAXSIZE);
 				Parameter.LocalAddress_Length[1U] = 0;
 			#if !defined(PLATFORM_MACX)
@@ -1899,7 +1890,7 @@ void __fastcall NetworkInformationMonitor(void)
 					DNS_Header->Answer = htons(DNS_Header->Answer);
 				}
 
-			//Add to global list.
+			//Free all lists.
 				LocalAddressMutexIPv4.unlock();
 			#if defined(PLATFORM_WIN)
 				freeaddrinfo(LocalAddressList);
@@ -1915,7 +1906,7 @@ void __fastcall NetworkInformationMonitor(void)
 			}
 		}
 
-	//Free list.
+	//Free all lists.
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (InterfaceAddressList != nullptr)
 			freeifaddrs(InterfaceAddressList);
@@ -1934,7 +1925,6 @@ void __fastcall NetworkInformationMonitor(void)
 		#endif
 				PrintError(LOG_ERROR_NETWORK, L"Not any available gateways to public network", 0, nullptr, 0);
 
-			Parameter.TunnelAvailable_IPv6 = false;
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			IsErrorFirstPrint = false;
 		#endif

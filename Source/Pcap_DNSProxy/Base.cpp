@@ -25,7 +25,7 @@ extern CONFIGURATION_TABLE Parameter;
 bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length)
 {
 	if (Buffer == nullptr)
-		return true;
+		return false;
 
 	for (size_t Index = 0;Index < Length;++Index)
 	{

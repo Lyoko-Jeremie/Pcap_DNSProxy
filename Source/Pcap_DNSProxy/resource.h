@@ -33,5 +33,5 @@
 #endif
 
 //Resource including and defining
-#define FULL_VERSION      L"0.4.2.3"
-#define DETACH_VERSION    0,4,2,3
+#define FULL_VERSION      L"0.4.2.4"
+#define DETACH_VERSION    0,4,2,4

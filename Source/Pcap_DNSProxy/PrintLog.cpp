@@ -91,7 +91,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 				//Write to file
 					if (Line > 0)
 						wprintf_s(L" in line %d of %ls", (int)Line, sFileName.c_str());
-					else
+					else 
 						wprintf_s(L" in %ls", sFileName.c_str());
 				}
 
@@ -115,7 +115,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 				//Write to file
 					if (Line > 0)
 						wprintf_s(L" in line %d of %ls", (int)Line, sFileName.c_str());
-					else
+					else 
 						wprintf_s(L" in %ls", sFileName.c_str());
 				}
 
@@ -139,7 +139,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 				//Write to file
 					if (Line > 0)
 						wprintf_s(L" in line %d of %ls", (int)Line, sFileName.c_str());
-					else
+					else 
 						wprintf_s(L" in %ls", sFileName.c_str());
 				}
 
@@ -155,7 +155,11 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 			{
 				if (ErrCode == 0)
 					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Network Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
-				else
+			#if defined(PLATFORM_WIN)
+				else if (ErrCode == WSAENETUNREACH) //Block error messages when network is unreachable.
+					return EXIT_SUCCESS;
+			#endif
+				else 
 					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Network Error: %ls, error code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrCode);
 			}break;
 		//WinPcap Error
@@ -169,7 +173,12 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 		#if defined(ENABLE_LIBSODIUM)
 			case LOG_ERROR_DNSCURVE:
 			{
-				wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> DNSCurve Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
+			#if defined(PLATFORM_WIN)
+				if (ErrCode == WSAENETUNREACH) //Block error messages when network is unreachable.
+					return EXIT_SUCCESS;
+				else 
+			#endif
+					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> DNSCurve Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 			}break;
 		#endif
 		//Notice
@@ -327,6 +336,10 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 			{
 				if (ErrCode == 0)
 					fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Network Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
+			#if defined(PLATFORM_WIN)
+				else if (ErrCode == WSAENETUNREACH) //Block error messages when network is unreachable.
+					break;
+			#endif
 				else 
 					fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Network Error: %ls, error code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrCode);
 			}break;
@@ -341,7 +354,12 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 		#if defined(ENABLE_LIBSODIUM)
 			case LOG_ERROR_DNSCURVE:
 			{
-				fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> DNSCurve Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
+			#if defined(PLATFORM_WIN)
+				if (ErrCode == WSAENETUNREACH) //Block error messages when network is unreachable.
+					break;
+				else 
+			#endif
+					fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> DNSCurve Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 			}break;
 		#endif
 		//Notice

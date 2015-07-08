@@ -1,5 +1,6 @@
-﻿Pcap_DNSProxy v0.4.2.1-v0.4.2.3(Windows/Linux/Mac) 更新日誌(2015-06-27)：
+﻿Pcap_DNSProxy v0.4.2.1-v0.4.2.4(Windows/Linux/Mac) 更新日誌(2015-07-08)：
 
+* 添加不同協定的 Hosts Only 功能 [AVC A]
 * 添加限制請求數量的功能
 * 添加 DNS 壓縮指標檢查功能，避免接受格式錯誤的資料包
 * 添加遺漏的 DNS 投毒污染黑名單位址
@@ -8,15 +9,23 @@
 * 添加 --disable-daemon 參數，可控制程式是否以 Daemon 守護進程的方式運行(Linux)
 * 完整的 ANSI/UTF-8/UTF-16(LE/BE)/UTF-32(LE/BE) 編碼支援
 * 調整抓包模組為回檔模式降低資源的佔用
+* 調整抓包模組工作模式，避免 WinPcap 與 CFosSpeed 之間的衝突 [軒轅無雙]
 * 優化優先指定網路層協定功能
 * 優化對大小寫敏感字元的讀取
 * 修復抓包模組非 Ethernet 和 Apple IEEE 1394/FireWire 設備的錯誤識別
+* 修復資料包過濾模組的演算法錯誤 [AVC A]
+* 修復檔讀取模組對於前後留空的錯誤 [wen kangcheng]
+* 修復檔讀取模組對於多重空格處理的問題 [yuyangzxw]
+* 修復 KeyPairGenerator 生成用戶端金鑰組的錯誤 [wongsyrone]
+* 修復 Accept List 參數讀取 DNS 類型名稱的錯誤 [wongsyrone]
+* 修復 Address Hosts 功能溢出錯誤 [jzp820927]
 * 修復睡眠或休眠前可能產生的錯誤報表輸出(Windows)
   * 啟動第一次遇到 Insufficient privileges or not any available network devices 錯誤資訊時將暫時不輸出到錯誤報表檔
   * 移除 An error occurred in XXX 錯誤資訊
 * 終端視窗也將輸出錯誤資訊
   * 運行在非 Daemon 守護進程模式下的終端視窗時(Linux)
   * 任何時候(Mac)
+* 移除服務管理批次處理的強制管理員許可權請求(Windows) [5sq]
 
 
 -------------------------------------------------------------------------------

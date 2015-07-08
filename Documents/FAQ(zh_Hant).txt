@@ -193,7 +193,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
 
 6.Pcap Error - Pcap 錯誤
   * Insufficient privileges or not any available network devices - 沒有任何可用的網路介面卡：請檢查硬體設備和驅動程式是否安裝正確，也可能是許可權不足
-  * XXX is not a Ethernet device - 發現非 Ethernet 類型的網路介面卡：這不是錯誤，但可以說明系統記憶體在非 Ethernet 類型的網路介面卡
+  * XXX is not supported - 發現不支持類型的網路介面卡：這不是錯誤，但可以說明系統記憶體在非 Ethernet 類型的網路介面卡
   * EOF was reached reading from an offline capture in XXX - 名稱為 XXX 的網路介面卡已經離線或不可用
   * 本類型錯誤會直接將 WinPcap 的錯誤資訊直接列印至錯誤報表
   * WinPcap 錯誤資訊的具體含義可移步 http://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html

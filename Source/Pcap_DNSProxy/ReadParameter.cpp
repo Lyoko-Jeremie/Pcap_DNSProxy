@@ -213,9 +213,9 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 //Other errors which need to print to log.
 #if defined(ENABLE_PCAP)
 	#if defined(ENABLE_LIBSODIUM)
-		if (!Parameter.PcapCapture && !Parameter.HostsOnly && !Parameter.DNSCurve && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
+		if (!Parameter.PcapCapture && Parameter.HostsOnly != HOSTS_ONLY_MODE_BOTH && !Parameter.DNSCurve && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
 	#else
-		if (!Parameter.PcapCapture && !Parameter.HostsOnly && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
+		if (!Parameter.PcapCapture && Parameter.HostsOnly != HOSTS_ONLY_MODE_BOTH && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
 	#endif
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"Pcap Capture error", 0, ConfigFileList.at(FileIndex).c_str(), 0);
@@ -223,9 +223,9 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 	}
 #else
 	#if defined(ENABLE_LIBSODIUM)
-		if (!Parameter.HostsOnly && !Parameter.DNSCurve && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
+		if (Parameter.HostsOnly != HOSTS_ONLY_MODE_BOTH && !Parameter.DNSCurve && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
 	#else
-		if (!Parameter.HostsOnly && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
+		if (Parameter.HostsOnly != HOSTS_ONLY_MODE_BOTH && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
 	#endif
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"Pcap Capture error", 0, ConfigFileList.at(FileIndex).c_str(), 0);
@@ -279,8 +279,6 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 #if defined(ENABLE_PCAP)
 	if (Parameter.HeaderCheck_TCP) //TCP Mode option check
 	{
-//		if (Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
-//			PrintError(LOG_MESSAGE_NOTICE, L"TCP Data Filter require TCP Request Mode", 0, nullptr, 0);
 		if (!Parameter.PcapCapture)
 			PrintError(LOG_MESSAGE_NOTICE, L"TCP Data Filter require Pcap Cpature", 0, nullptr, 0);
 
@@ -309,17 +307,22 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 		}
 
 	//Client keys check
-		if (!CheckEmptyBuffer(DNSCurveParameter.Client_PublicKey, crypto_box_PUBLICKEYBYTES) && !CheckEmptyBuffer(DNSCurveParameter.Client_SecretKey, crypto_box_SECRETKEYBYTES) && 
-			!DNSCurveVerifyKeypair(DNSCurveParameter.Client_PublicKey, DNSCurveParameter.Client_SecretKey))
+		if (DNSCurveParameter.IsEncryption)
 		{
-			PrintError(LOG_ERROR_DNSCURVE, L"Client keypair(public key and secret key) error", 0, ConfigFileList.at(FileIndex).c_str(), 0);
-			return false;
-		}
-		else if (DNSCurveParameter.IsEncryption)
-		{
-			memset(DNSCurveParameter.Client_PublicKey, 0, crypto_box_PUBLICKEYBYTES);
-			memset(DNSCurveParameter.Client_SecretKey, 0, crypto_box_SECRETKEYBYTES);
-			crypto_box_curve25519xsalsa20poly1305_keypair(DNSCurveParameter.Client_PublicKey, DNSCurveParameter.Client_SecretKey);
+			if (!CheckEmptyBuffer(DNSCurveParameter.Client_PublicKey, crypto_box_PUBLICKEYBYTES) && 
+				!CheckEmptyBuffer(DNSCurveParameter.Client_SecretKey, crypto_box_SECRETKEYBYTES))
+			{
+				if (!DNSCurveVerifyKeypair(DNSCurveParameter.Client_PublicKey, DNSCurveParameter.Client_SecretKey))
+				{
+					PrintError(LOG_ERROR_DNSCURVE, L"Client keypair(public key and secret key) error", 0, ConfigFileList.at(FileIndex).c_str(), 0);
+					return false;
+				}
+			}
+			else {
+				memset(DNSCurveParameter.Client_PublicKey, 0, crypto_box_PUBLICKEYBYTES);
+				memset(DNSCurveParameter.Client_SecretKey, 0, crypto_box_SECRETKEYBYTES);
+				crypto_box_curve25519xsalsa20poly1305_keypair(DNSCurveParameter.Client_PublicKey, DNSCurveParameter.Client_SecretKey);
+			}
 		}
 		else {
 			delete[] DNSCurveParameter.Client_PublicKey;
@@ -342,8 +345,10 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 
 		if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0 || 
 		//Check repeating items.
-			DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.IPv4.sin_addr.s_addr == DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr || 
-			DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && memcmp(&DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6.sin6_addr, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0)
+			DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
+			DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.IPv4.sin_addr.s_addr == DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr || 
+			DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
+			memcmp(&DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6.sin6_addr, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0)
 		{
 			PrintError(LOG_ERROR_PARAMETER, L"DNSCurve target error", 0, ConfigFileList.at(FileIndex).c_str(), 0);
 			return false;
@@ -715,20 +720,24 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 		}
 
 	//Main(IPv6)
-		if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
-			memcpy_s(DNSCurveParameter.DNSCurveTarget.IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCRYPT_RECEIVE_MAGIC, DNSCURVE_MAGIC_QUERY_LEN);
+		if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && 
+			CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
+				memcpy_s(DNSCurveParameter.DNSCurveTarget.IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCRYPT_RECEIVE_MAGIC, DNSCURVE_MAGIC_QUERY_LEN);
 
 	//Main(IPv4)
-		if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
-			memcpy_s(DNSCurveParameter.DNSCurveTarget.IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCRYPT_RECEIVE_MAGIC, DNSCURVE_MAGIC_QUERY_LEN);
+		if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && 
+			CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
+				memcpy_s(DNSCurveParameter.DNSCurveTarget.IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCRYPT_RECEIVE_MAGIC, DNSCURVE_MAGIC_QUERY_LEN);
 
 	//Alternate(IPv6)
-		if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
-			memcpy_s(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCRYPT_RECEIVE_MAGIC, DNSCURVE_MAGIC_QUERY_LEN);
+		if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
+			CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
+				memcpy_s(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCRYPT_RECEIVE_MAGIC, DNSCURVE_MAGIC_QUERY_LEN);
 
 	//Alternate(IPv4)
-		if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
-			memcpy_s(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCRYPT_RECEIVE_MAGIC, DNSCURVE_MAGIC_QUERY_LEN);
+		if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
+			CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
+				memcpy_s(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCRYPT_RECEIVE_MAGIC, DNSCURVE_MAGIC_QUERY_LEN);
 
 	//DNSCurve keys recheck time
 		if (DNSCurveParameter.KeyRecheckTime == 0)
@@ -1113,12 +1122,6 @@ uint16_t __fastcall DNSTypeNameToHex(const char *OriginalBuffer)
 //Read parameter data from files
 bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, const size_t Line, bool &IsLabelComments)
 {
-//Multi-line comments check
-	if (!ReadMultiLineComments(Data, IsLabelComments))
-		return true;
-
-	SSIZE_T Result = 0;
-	
 //Delete delete spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs) and check minimum length of ipfilter items.
 //Delete comments(Number Sign/NS and double slashs) and check minimum length of configuration items.
 	if (Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
@@ -1128,11 +1131,16 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 	while (Data.find(ASCII_SPACE) != std::string::npos)
 		Data.erase(Data.find(ASCII_SPACE), 1U);
 	if (Data.find(ASCII_HASHTAG) != std::string::npos)
-		Data.erase(Data.find(ASCII_HASHTAG));
-	else if (Data.find("//") != std::string::npos)
-		Data.erase(Data.find("//"), 2U);
+		Data.erase(Data.find(ASCII_HASHTAG), Data.length() - Data.find(ASCII_HASHTAG));
+	if (Data.find("//") != std::string::npos)
+		Data.erase(Data.find("//"), Data.length() - Data.find("//"));
 	if (Data.length() < READ_PARAMETER_MINSIZE)
 		return true;
+
+//Multi-line comments check
+	if (!ReadMultiLineComments(Data, IsLabelComments))
+		return true;
+	SSIZE_T Result = 0;
 
 //[Base] block
 	if (Data.find("Version=") == 0)
@@ -1554,9 +1562,29 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 		else 
 			Parameter.RequestMode_Transport = REQUEST_MODE_UDP;
 	}
-	else if (Data.find("HostsOnly=1") == 0)
+	else if (Data.find("HostsOnly=") == 0)
 	{
-		Parameter.HostsOnly = true;
+		if (Data.find("HostsOnly=1") == 0)
+		{
+			Parameter.HostsOnly = HOSTS_ONLY_MODE_BOTH;
+		}
+		else {
+			CaseConvert(true, Data);
+			if (Data.find("IPV6") != std::string::npos)
+			{
+				if (Data.find("IPV4") != std::string::npos)
+					Parameter.HostsOnly = HOSTS_ONLY_MODE_BOTH;
+				else 
+					Parameter.HostsOnly = HOSTS_ONLY_MODE_IPV6;
+			}
+			else if (Data.find("IPV4") != std::string::npos)
+			{
+				if (Data.find("IPV6") != std::string::npos)
+					Parameter.HostsOnly = HOSTS_ONLY_MODE_BOTH;
+				else 
+					Parameter.HostsOnly = HOSTS_ONLY_MODE_IPV4;
+			}
+		}
 	}
 	else if (Data.find("LocalMain=1") == 0)
 	{
@@ -1810,11 +1838,11 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 					if (Index == TypeString.length() - 1U)
 					{
 						TypeStringTemp.append(TypeString, Result, (SSIZE_T)Index - Result + 1U);
-						Result = DNSTypeNameToHex(TypeString.c_str());
+						Result = DNSTypeNameToHex(TypeStringTemp.c_str());
 						if (Result == 0) 
 						{
 						//Number types
-							Result = strtoul(TypeString.c_str(), nullptr, 0);
+							Result = strtoul(TypeStringTemp.c_str(), nullptr, 0);
 							if (errno != ERANGE && Result > 0 && Result <= UINT16_MAX)
 							{
 								Parameter.AcceptTypeList->push_back(htons((uint16_t)Result));
@@ -1831,11 +1859,11 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 					else if (TypeString.at(Index) == ASCII_COMMA || TypeString.at(Index) == ASCII_VERTICAL)
 					{
 						TypeStringTemp.append(TypeString, Result, (SSIZE_T)Index - Result);
-						Result = DNSTypeNameToHex(TypeString.c_str());
+						Result = DNSTypeNameToHex(TypeStringTemp.c_str());
 						if (Result == 0)
 						{
 						//Number types
-							Result = strtoul(TypeString.c_str(), nullptr, 0);
+							Result = strtoul(TypeStringTemp.c_str(), nullptr, 0);
 							if (errno != ERANGE && Result > 0 && Result <= UINT16_MAX)
 							{
 								Parameter.AcceptTypeList->push_back(htons((uint16_t)Result));

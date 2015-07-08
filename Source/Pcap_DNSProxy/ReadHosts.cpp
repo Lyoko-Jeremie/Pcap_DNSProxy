@@ -22,17 +22,26 @@
 //Read hosts data from files
 bool __fastcall ReadHostsData(std::string Data, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &IsLabelComments)
 {
+//Convert horizontal tab/HT to space and delete spaces before or after data.
+	for (auto &StringIter:Data)
+	{
+		if (StringIter == ASCII_HT)
+			StringIter = ASCII_SPACE;
+	}
+	while (!Data.empty() && Data.at(0) == ASCII_SPACE)
+		Data.erase(0, 1U);
+	while (!Data.empty() && Data.back() == ASCII_SPACE)
+		Data.pop_back();
+	while (!Data.empty() && Data.find("  ") != std::string::npos)
+		Data.erase(Data.find("  "), 1U);
+
 //Multi-line comments check, delete comments(Number Sign/NS and double slashs) and check minimum length of hosts items.
 	if (!ReadMultiLineComments(Data, IsLabelComments) || Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
 		return true;
 	if (Data.rfind(" //") != std::string::npos)
 		Data.erase(Data.rfind(" //"), Data.length() - Data.rfind(" //"));
-	else if (Data.rfind("	//") != std::string::npos)
-		Data.erase(Data.rfind("	//"), Data.length() - Data.rfind("	//"));
-	else if (Data.rfind(" #") != std::string::npos)
+	if (Data.rfind(" #") != std::string::npos)
 		Data.erase(Data.rfind(" #"), Data.length() - Data.rfind(" #"));
-	else if (Data.rfind("	#") != std::string::npos)
-		Data.erase(Data.rfind("	#"), Data.length() - Data.rfind("	#"));
 	if (Data.length() < READ_HOSTS_MINSIZE)
 		return true;
 
@@ -95,23 +104,10 @@ bool __fastcall ReadHostsData(std::string Data, const size_t FileIndex, const si
 	if (LabelType == LABEL_STOP)
 		return true;
 
-//Convert horizontal tab/HT to space and delete spaces before or after data.
-	for (auto &StringIter:Data)
-	{
-		if (StringIter == ASCII_HT)
-			StringIter = ASCII_SPACE;
-	}
-	while (!Data.empty() && Data.at(0) == ASCII_SPACE)
-		Data.erase(0, 1U);
-	while (!Data.empty() && Data.back() == ASCII_SPACE)
-		Data.pop_back();
-	while (!Data.empty() && Data.find("  ") != std::string::npos)
-		Data.erase(Data.find("  "), strlen("  "));
-
 //Whitelist items
-	if (Data.find("NULL ") == 0 || Data.find("NULL	") == 0 || Data.find("NULL,") == 0 || 
-		Data.find("Null ") == 0 || Data.find("Null	") == 0 || Data.find("Null,") == 0 || 
-		Data.find("null ") == 0 || Data.find("null	") == 0 || Data.find("null,") == 0)
+	if (Data.find("NULL ") == 0 || Data.find("NULL,") == 0 || 
+		Data.find("Null ") == 0 || Data.find("Null,") == 0 || 
+		Data.find("null ") == 0 || Data.find("null,") == 0)
 	{
 		return ReadWhitelistAndBannedData(Data, FileIndex, Line, LABEL_HOSTS_TYPE_WHITELIST);
 	}
@@ -211,7 +207,7 @@ bool __fastcall ReadWhitelistAndBannedData(std::string Data, const size_t FileIn
 		uint16_t RecordType = 0;
 		for (size_t Index = Data.find(ASCII_COLON) + 1U;Index <= Separated;++Index)
 		{
-			if (Data.at(Index) == ASCII_VERTICAL || Index == Separated)
+			if (Index == Separated || Data.at(Index) == ASCII_VERTICAL)
 			{
 				RecordType = DNSTypeNameToHex(TypeString.c_str());
 				if (RecordType <= 0)
@@ -400,7 +396,7 @@ bool __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex, c
 		{
 			for (Index = 0;Index <= TargetString.length();++Index)
 			{
-				if (TargetString.at(Index) == ASCII_VERTICAL || Index == TargetString.length())
+				if (Index == TargetString.length() || TargetString.at(Index) == ASCII_VERTICAL)
 				{
 				//Convert addresses.
 					memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
@@ -423,7 +419,7 @@ bool __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex, c
 		else {
 			for (Index = 0;Index <= TargetString.length();++Index)
 			{
-				if (TargetString.at(Index) == ASCII_VERTICAL || Index == TargetString.length())
+				if (Index == TargetString.length() || TargetString.at(Index) == ASCII_VERTICAL)
 				{
 				//Convert addresses.
 					memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
@@ -554,7 +550,7 @@ bool __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex, c
 		{
 			for (Index = 0;Index <= SourceString.length();++Index)
 			{
-				if (SourceString.at(Index) == ASCII_VERTICAL || Index == SourceString.length())
+				if (Index == SourceString.length() || SourceString.at(Index) == ASCII_VERTICAL)
 				{
 					memset(&AddressRangeTableTemp, 0, sizeof(ADDRESS_RANGE_TABLE));
 					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
@@ -613,7 +609,7 @@ bool __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex, c
 		else {
 			for (Index = 0;Index <= SourceString.length();++Index)
 			{
-				if (SourceString.at(Index) == ASCII_VERTICAL || Index == SourceString.length())
+				if (Index == SourceString.length() || SourceString.at(Index) == ASCII_VERTICAL)
 				{
 					memset(&AddressRangeTableTemp, 0, sizeof(ADDRESS_RANGE_TABLE));
 					memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
@@ -821,7 +817,7 @@ bool __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, cons
 			for (Index = 0, ResultCount = 0;Index <= Separated;++Index)
 			{
 			//Read data.
-				if (Data.at(Index) == ASCII_VERTICAL || Index == Separated)
+				if (Index == Separated || Data.at(Index) == ASCII_VERTICAL)
 				{
 					++ResultCount;
 
@@ -869,7 +865,7 @@ bool __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, cons
 			for (Index = 0, ResultCount = 0;Index <= Separated;++Index)
 			{
 			//Read data.
-				if (Data.at(Index) == ASCII_VERTICAL || Index == Separated)
+				if (Index == Separated || Data.at(Index) == ASCII_VERTICAL)
 				{
 					++ResultCount;
 

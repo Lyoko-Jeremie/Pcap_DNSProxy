@@ -147,7 +147,7 @@ size_t __fastcall AddLengthDataToDNSHeader(PSTR Buffer, const size_t RecvLen, co
 {
 	if (MaxLen >= RecvLen + sizeof(uint16_t))
 	{
-		memmove_s(Buffer + sizeof(uint16_t), MaxLen, Buffer, RecvLen);
+		memmove_s(Buffer + sizeof(uint16_t), MaxLen - sizeof(uint16_t), Buffer, RecvLen);
 		auto DNS_TCP_Header = (pdns_tcp_hdr)Buffer;
 		DNS_TCP_Header->Length = htons((uint16_t)RecvLen);
 		return RecvLen + sizeof(uint16_t);

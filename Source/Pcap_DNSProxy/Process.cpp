@@ -108,9 +108,9 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 
 		return true;
 	}
-
-	DataLength = Length;
+	
 //Compression Pointer Mutation
+	DataLength = Length;
 	if (Parameter.CompressionPointerMutation && DNS_Header->Additional == 0)
 	{
 		DataLength = MakeCompressionPointerMutation(SendBuffer.get(), Length);
@@ -119,7 +119,7 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 	}
 
 //Hosts Only requesting
-	if (Parameter.HostsOnly && DirectRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), Protocol, LocalSocketData))
+	if (Parameter.HostsOnly > HOSTS_ONLY_MODE_NONE && DirectRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), Protocol, true, LocalSocketData))
 	{
 	//Fin TCP request connection.
 		if (Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
@@ -171,12 +171,12 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 		TCPRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), Protocol, LocalSocketData))
 			return true;
 
-//IPv6 tunnels support and direct requesting when Pcap Capture module is turn OFF.
+//Direct requesting when Pcap Capture module is turn OFF.
 #if defined(ENABLE_PCAP)
-	if (!Parameter.PcapCapture /* || Parameter.GatewayAvailable_IPv6 && Parameter.TunnelAvailable_IPv6 */ )
+	if (!Parameter.PcapCapture)
 	{
 #endif
-		DirectRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), Protocol, LocalSocketData);
+		DirectRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), Protocol, false, LocalSocketData);
 
 	//Fin TCP request connection.
 		if (Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
@@ -189,9 +189,8 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 #if defined(ENABLE_PCAP)
 	}
 
-	RecvBuffer.reset();
-
 //UDP requesting
+	RecvBuffer.reset();
 	UDPRequestProcess(SendBuffer.get(), DataLength, LocalSocketData, Protocol);
 
 	return true;
@@ -204,6 +203,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 //Initilization
 	auto DNS_Header = (pdns_hdr)OriginalRequest;
 	std::string Domain;
+	memset(Result, 0, ResultSize);
 	if (DNS_Header->Questions == htons(U16_NUM_ONE) && CheckDNSQueryNameLength(OriginalRequest + sizeof(dns_hdr)) + 1U < DOMAIN_MAXSIZE)
 	{
 		if (DNSQueryToChar(OriginalRequest + sizeof(dns_hdr), Result) > DOMAIN_MINSIZE)
@@ -216,7 +216,6 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 			memset(Result, 0, ResultSize);
 		}
 		else {
-			memset(Result, 0, ResultSize);
 			return EXIT_FAILURE;
 		}
 	}
@@ -231,10 +230,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 
 //Check Classes.
 	if (DNS_Query->Classes != htons(DNS_CLASS_IN))
-	{
-		memset(Result, 0, ResultSize);
 		return EXIT_FAILURE;
-	}
 
 //Check Accept Types list.
 	if (Parameter.AcceptType) //Permit
@@ -592,7 +588,6 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 	if (Parameter.DomainCaseConversion)
 		MakeDomainCaseConversion(OriginalRequest + sizeof(dns_hdr));
 
-	memset(Result, 0, ResultSize);
 	if (IsLocal)
 		return EXIT_CHECK_HOSTS_TYPE_LOCAL;
 
@@ -637,9 +632,14 @@ bool __fastcall LocalRequestProcess(const char *OriginalSend, const size_t SendS
 }
 
 //Request Process(Direct connections part)
-bool __fastcall DirectRequestProcess(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA &LocalSocketData)
+bool __fastcall DirectRequestProcess(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const bool HostsOnly, const SOCKET_DATA &LocalSocketData)
 {
 	size_t DataLength = 0;
+
+//Hosts Only mode check
+	if (HostsOnly && (SelectNetworkProtocol() == AF_INET6 && Parameter.HostsOnly == HOSTS_ONLY_MODE_IPV4 || //IPv6
+		SelectNetworkProtocol() == AF_INET && Parameter.HostsOnly == HOSTS_ONLY_MODE_IPV6)) //IPv4
+			return false;
 
 //TCP Mode
 	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
@@ -745,33 +745,30 @@ bool __fastcall TCPRequestProcess(const char *OriginalSend, const size_t SendSiz
 //Send response.
 	if (DataLength >= sizeof(uint16_t) + DNS_PACKET_MINSIZE && DataLength < LARGE_PACKET_MAXSIZE)
 	{
-/* Old version(2015-05-24)
-	//EDNS Label
-		auto DNS_Header = (pdns_hdr)OriginalSend;
-		if (Protocol == IPPROTO_UDP && DNS_Header->Additional > 0)
-		{
-			DNS_Header = (pdns_hdr)OriginalRecv;
-			DNS_Header->Additional = htons(U16_NUM_ONE);
-			auto DNS_Record_OPT = (pdns_record_opt)(OriginalRecv + DataLength);
-			DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-			DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
-
-		//DNSSEC
-			if (Parameter.DNSSEC_Request)
-			{
-				DNS_Header->FlagsBits.AD = ~DNS_Header->FlagsBits.AD; //Local DNSSEC Server validate
-				DNS_Header->FlagsBits.CD = ~DNS_Header->FlagsBits.CD; //Client validate
-				DNS_Record_OPT->Z_Bits.DO = ~DNS_Record_OPT->Z_Bits.DO; //Accepts DNSSEC security Resource Records
-			}
-
-			DataLength += sizeof(dns_record_opt);
-		}
-*/
 		SendToRequester(OriginalRecv, DataLength, Protocol, LocalSocketData);
 		return true;
 	}
 
 	return false;
+}
+
+//Select network layer protocol of packets sending
+uint16_t __fastcall SelectNetworkProtocol(void)
+{
+//IPv6
+	if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 &&
+		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv6 || //Auto select
+		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
+		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
+			return AF_INET6;
+//IPv4
+	else if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
+		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv4 || //Auto select
+		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
+		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
+			return AF_INET;
+
+	return 0;
 }
 
 //Request Process(UDP part)

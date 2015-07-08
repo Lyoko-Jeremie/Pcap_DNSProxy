@@ -22,6 +22,19 @@
 //Read ipfilter data from files
 bool __fastcall ReadIPFilterData(std::string Data, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &IsLabelComments)
 {
+//Convert horizontal tab/HT to space and delete spaces before or after data.
+	for (auto &StringIter:Data)
+	{
+		if (StringIter == ASCII_HT)
+			StringIter = ASCII_SPACE;
+	}
+	while (!Data.empty() && Data.at(0) == ASCII_SPACE)
+		Data.erase(0, 1U);
+	while (!Data.empty() && Data.back() == ASCII_SPACE)
+		Data.pop_back();
+	while (!Data.empty() && Data.find("  ") != std::string::npos)
+		Data.erase(Data.find("  "), 1U);
+
 //Multi-line comments check, delete spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs) and check minimum length of ipfilter items.
 	if (!ReadMultiLineComments(Data, IsLabelComments) || Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
 		return true;
@@ -89,31 +102,10 @@ bool __fastcall ReadIPFilterData(std::string Data, const size_t FileIndex, const
 	{
 		Data.erase(Data.rfind(" //"), Data.length() - Data.rfind(" //"));
 	}
-	else if (Data.rfind("	//") != std::string::npos)
-	{
-		Data.erase(Data.rfind("	//"), Data.length() - Data.rfind("	//"));
-	}
 	else if (Data.rfind(" #") != std::string::npos)
 	{
 		Data.erase(Data.rfind(" #"), Data.length() - Data.rfind(" #"));
 	}
-	else if (Data.rfind("	#") != std::string::npos)
-	{
-		Data.erase(Data.rfind("	#"), Data.length() - Data.rfind("	#"));
-	}
-
-//Convert horizontal tab/HT to space and delete spaces before or after data.
-	for (auto &StringIter:Data)
-	{
-		if (StringIter == ASCII_HT)
-			StringIter = ASCII_SPACE;
-	}
-	while (!Data.empty() && Data.at(0) == ASCII_SPACE)
-		Data.erase(0, 1U);
-	while (!Data.empty() && Data.back() == ASCII_SPACE)
-		Data.pop_back();
-	while (!Data.empty() && Data.find("  ") != std::string::npos)
-		Data.erase(Data.find("  "), strlen("  "));
 
 //Blacklist items
 	if (Parameter.BlacklistCheck && LabelType == LABEL_IPFILTER_BLACKLIST)
@@ -355,7 +347,7 @@ bool __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, cons
 			for (Index = 0;Index <= Separated;++Index)
 			{
 			//Read data.
-				if (Data.at(Index) == ASCII_VERTICAL || Index == Separated)
+				if (Index == Separated || Data.at(Index) == ASCII_VERTICAL)
 				{
 				//Length check
 					if (Index - VerticalIndex > ADDR_STRING_MAXSIZE)
@@ -398,7 +390,7 @@ bool __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, cons
 			for (Index = 0;Index <= Separated;++Index)
 			{
 			//Read data.
-				if (Data.at(Index) == ASCII_VERTICAL || Index == Separated)
+				if (Index == Separated || Data.at(Index) == ASCII_VERTICAL)
 				{
 				//Length check
 					if (Index - VerticalIndex > ADDR_STRING_MAXSIZE)
