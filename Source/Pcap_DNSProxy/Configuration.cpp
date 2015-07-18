@@ -175,7 +175,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 				else if (FileBuffer.get()[Index] == ASCII_CR || FileBuffer.get()[Index] == ASCII_VT || FileBuffer.get()[Index] == ASCII_FF)
 					FileBuffer.get()[Index] = ASCII_LF;
 
-			//Next text.
+			//Next text
 				++Index;
 			}
 		}
@@ -401,46 +401,31 @@ bool __fastcall ReadParameter(void)
 	FILE *Input = nullptr;
 	size_t Index = 0;
 
-//Open file.
-	std::wstring ConfigFileName(Parameter.Path_Global->front());
-#if defined(PLATFORM_WIN)
-	ConfigFileName.append(L"Config.ini");
-	ConfigFileList.push_back(ConfigFileName);
-	ConfigFileName = Parameter.Path_Global->front();
-	ConfigFileName.append(L"Config.conf");
-	ConfigFileList.push_back(ConfigFileName);
-	ConfigFileName = Parameter.Path_Global->front();
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	ConfigFileName.append(L"Config.conf");
-	ConfigFileList.push_back(ConfigFileName);
-	ConfigFileName = Parameter.Path_Global->front();
-	ConfigFileName.append(L"Config.ini");
-	ConfigFileList.push_back(ConfigFileName);
-	ConfigFileName = Parameter.Path_Global->front();
-#endif
-	ConfigFileName.append(L"Config.cfg");
-	ConfigFileList.push_back(ConfigFileName);
-	ConfigFileName = Parameter.Path_Global->front();
-	ConfigFileName.append(L"Config");
-	ConfigFileList.push_back(ConfigFileName);
+//List file.
+	std::wstring ConfigFileName;
+	const wchar_t *ConfigFileNameList[]{CONFIG_FILE_NAME_LIST};
+	for (Index = 0;Index < sizeof(ConfigFileNameList) / sizeof(PWSTR);++Index)
+	{
+		ConfigFileName = Parameter.Path_Global->front();
+		ConfigFileName.append(ConfigFileNameList[Index]);
+		ConfigFileList.push_back(ConfigFileName);
+	}
 	ConfigFileName.clear();
 	ConfigFileName.shrink_to_fit();
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::string sConfigFileName(Parameter.sPath_Global->front());
-	sConfigFileName.append("Config.conf");
-	sConfigFileList.push_back(sConfigFileName);
-	sConfigFileName = Parameter.sPath_Global->front();
-	sConfigFileName.append("Config.ini");
-	sConfigFileList.push_back(sConfigFileName);
-	sConfigFileName = Parameter.sPath_Global->front();
-	sConfigFileName.append("Config.cfg");
-	sConfigFileList.push_back(sConfigFileName);
-	sConfigFileName = Parameter.sPath_Global->front();
-	sConfigFileName.append("Config");
-	sConfigFileList.push_back(sConfigFileName);
+	const char *sConfigFileNameList[]{CONFIG_FILE_NAME_LIST_STRING};
+	std::string sConfigFileName;
+	for (Index = 0;Index < sizeof(sConfigFileNameList) / sizeof(PSTR);++Index)
+	{
+		sConfigFileName = Parameter.sPath_Global->front();
+		sConfigFileName.append(sConfigFileNameList[Index]);
+		sConfigFileList.push_back(sConfigFileName);
+	}
 	sConfigFileName.clear();
 	sConfigFileName.shrink_to_fit();
 #endif
+
+//Open file.
 	for (Index = 0;Index < ConfigFileList.size();++Index)
 	{
 	#if defined(PLATFORM_WIN)
@@ -480,7 +465,6 @@ bool __fastcall ReadParameter(void)
 			return false;
 		}
 	}
-
 	File_WIN32_FILE_ATTRIBUTE_DATA.reset();
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::shared_ptr<struct stat> FileStat(new struct stat());
@@ -490,7 +474,6 @@ bool __fastcall ReadParameter(void)
 		PrintError(LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, ConfigFileList.at(Index).c_str(), 0);
 		return false;
 	}
-
 	FileStat.reset();
 #endif
 
@@ -513,12 +496,14 @@ bool __fastcall ReadParameter(void)
 //Read IPFilter from file
 void __fastcall ReadIPFilter(void)
 {
+	size_t FileIndex = 0;
+
 //Create file list.
 	for (size_t Index = 0;Index < Parameter.Path_Global->size();++Index)
 	{
-		for (size_t InnerIndex = 0;InnerIndex < Parameter.FileList_IPFilter->size();++InnerIndex)
+		FILE_DATA FileDataTemp;
+		for (FileIndex = 0;FileIndex < Parameter.FileList_IPFilter->size();++FileIndex)
 		{
-			FILE_DATA FileDataTemp;
 			FileDataTemp.FileName.clear();
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			FileDataTemp.sFileName.clear();
@@ -527,18 +512,17 @@ void __fastcall ReadIPFilter(void)
 
 		//Add to global list.
 			FileDataTemp.FileName.append(Parameter.Path_Global->at(Index));
-			FileDataTemp.FileName.append(Parameter.FileList_IPFilter->at(InnerIndex));
+			FileDataTemp.FileName.append(Parameter.FileList_IPFilter->at(FileIndex));
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			FileDataTemp.sFileName.append(Parameter.sPath_Global->at(Index));
-			FileDataTemp.sFileName.append(Parameter.sFileList_IPFilter->at(InnerIndex));
+			FileDataTemp.sFileName.append(Parameter.sFileList_IPFilter->at(FileIndex));
 		#endif
 			FileList_IPFilter.push_back(FileDataTemp);
 		}
 	}
 
-//Files Monitor
+//Initialization
 	FILE *Input = nullptr;
-	size_t FileIndex = 0;
 	auto IsFileModified = false, IsLocalServerPrint = false;
 #if defined(PLATFORM_WIN)
 	std::shared_ptr<LARGE_INTEGER> File_LARGE_INTEGER(new LARGE_INTEGER());
@@ -549,11 +533,10 @@ void __fastcall ReadIPFilter(void)
 	std::shared_ptr<struct stat> FileStat(new struct stat());
 	memset(FileStat.get(), 0, sizeof(struct stat));
 #endif
-	std::unique_lock<std::mutex> ResultBlacklistMutex(ResultBlacklistLock), AddressRangeMutex(AddressRangeLock), LocalRoutingListMutex(LocalRoutingListLock);
-	ResultBlacklistMutex.unlock();
-	AddressRangeMutex.unlock();
-	LocalRoutingListMutex.unlock();
-
+	std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock);
+	IPFilterFileMutex.unlock();
+	
+//Files Monitor
 	for (;;)
 	{
 		IsFileModified = false;
@@ -635,6 +618,7 @@ void __fastcall ReadIPFilter(void)
 						}
 						else {
 						//Scan global list.
+							DIFFERNET_IPFILTER_FILE_SET IPFilterFileSetTemp;
 							for (auto IPFilterFileSetIter = IPFilterFileSetModificating->begin();IPFilterFileSetIter != IPFilterFileSetModificating->end();++IPFilterFileSetIter)
 							{
 								if (IPFilterFileSetIter->FileIndex == FileIndex)
@@ -643,7 +627,6 @@ void __fastcall ReadIPFilter(void)
 								}
 								else if (IPFilterFileSetIter + 1U == IPFilterFileSetModificating->end())
 								{
-									DIFFERNET_IPFILTER_FILE_SET IPFilterFileSetTemp;
 									IPFilterFileSetTemp.FileIndex = FileIndex;
 									IPFilterFileSetModificating->push_back(IPFilterFileSetTemp);
 									break;
@@ -651,7 +634,6 @@ void __fastcall ReadIPFilter(void)
 							}
 							if (IPFilterFileSetModificating->empty())
 							{
-								DIFFERNET_IPFILTER_FILE_SET IPFilterFileSetTemp;
 								IPFilterFileSetTemp.FileIndex = FileIndex;
 								IPFilterFileSetModificating->push_back(IPFilterFileSetTemp);
 							}
@@ -684,14 +666,10 @@ void __fastcall ReadIPFilter(void)
 		}
 
 	//Copy to using list.
-		ResultBlacklistMutex.lock();
-		AddressRangeMutex.lock();
-		LocalRoutingListMutex.lock();
+		IPFilterFileMutex.lock();
 		*IPFilterFileSetUsing = *IPFilterFileSetModificating;
 		IPFilterFileSetUsing->shrink_to_fit();
-		ResultBlacklistMutex.unlock();
-		AddressRangeMutex.unlock();
-		LocalRoutingListMutex.unlock();
+		IPFilterFileMutex.unlock();
 		IPFilterFileSetModificating->shrink_to_fit();
 
 	//Check local routing of local servers.
@@ -753,12 +731,14 @@ void __fastcall ReadIPFilter(void)
 //Read hosts from file
 void __fastcall ReadHosts(void)
 {
+	size_t FileIndex = 0;
+
 //Create file list.
 	for (size_t Index = 0;Index < Parameter.Path_Global->size();++Index)
 	{
-		for (size_t InnerIndex = 0;InnerIndex < Parameter.FileList_Hosts->size();++InnerIndex)
+		FILE_DATA FileDataTemp;
+		for (size_t FileIndex = 0;FileIndex < Parameter.FileList_Hosts->size();++FileIndex)
 		{
-			FILE_DATA FileDataTemp;
 			FileDataTemp.FileName.clear();
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			FileDataTemp.sFileName.clear();
@@ -767,18 +747,17 @@ void __fastcall ReadHosts(void)
 
 		//Add to global list.
 			FileDataTemp.FileName.append(Parameter.Path_Global->at(Index));
-			FileDataTemp.FileName.append(Parameter.FileList_Hosts->at(InnerIndex));
+			FileDataTemp.FileName.append(Parameter.FileList_Hosts->at(FileIndex));
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			FileDataTemp.sFileName.append(Parameter.sPath_Global->at(Index));
-			FileDataTemp.sFileName.append(Parameter.sFileList_Hosts->at(InnerIndex));
+			FileDataTemp.sFileName.append(Parameter.sFileList_Hosts->at(FileIndex));
 		#endif
 			FileList_Hosts.push_back(FileDataTemp);
 		}
 	}
 
-//Files Monitor
+//Initialization
 	FILE *Input = nullptr;
-	size_t FileIndex = 0;
 	auto IsFileModified = false;
 #if defined(PLATFORM_WIN)
 	std::shared_ptr<LARGE_INTEGER> File_LARGE_INTEGER(new LARGE_INTEGER());
@@ -789,10 +768,10 @@ void __fastcall ReadHosts(void)
 	std::shared_ptr<struct stat> FileStat(new struct stat());
 	memset(FileStat.get(), 0, sizeof(struct stat));
 #endif
-	std::unique_lock<std::mutex> HostsListMutex(HostsListLock), AddressHostsListMutex(AddressHostsListLock);
-	HostsListMutex.unlock();
-	AddressHostsListMutex.unlock();
+	std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock);
+	HostsFileMutex.unlock();
 
+//Files Monitor
 	for (;;)
 	{
 		IsFileModified = false;
@@ -874,6 +853,7 @@ void __fastcall ReadHosts(void)
 						}
 						else {
 						//Scan global list.
+							DIFFERNET_HOSTS_FILE_SET HostsFileSetTemp;
 							for (auto HostsFileSetIter = HostsFileSetModificating->begin();HostsFileSetIter != HostsFileSetModificating->end();++HostsFileSetIter)
 							{
 								if (HostsFileSetIter->FileIndex == FileIndex)
@@ -882,7 +862,6 @@ void __fastcall ReadHosts(void)
 								}
 								else if (HostsFileSetIter + 1U == HostsFileSetModificating->end())
 								{
-									DIFFERNET_HOSTS_FILE_SET HostsFileSetTemp;
 									HostsFileSetTemp.FileIndex = FileIndex;
 									HostsFileSetModificating->push_back(HostsFileSetTemp);
 									break;
@@ -890,7 +869,6 @@ void __fastcall ReadHosts(void)
 							}
 							if (HostsFileSetModificating->empty())
 							{
-								DIFFERNET_HOSTS_FILE_SET HostsFileSetTemp;
 								HostsFileSetTemp.FileIndex = FileIndex;
 								HostsFileSetModificating->push_back(HostsFileSetTemp);
 							}
@@ -922,10 +900,9 @@ void __fastcall ReadHosts(void)
 			continue;
 		}
 
-	//EDNS Lebal
+	//EDNS Label
 		if (Parameter.EDNS_Label)
 		{
-			pdns_record_opt DNS_Record_OPT = nullptr;
 			for (auto &HostsFileSetIter:*HostsFileSetModificating)
 			{
 				for (auto &HostsListIter:HostsFileSetIter.HostsList)
@@ -940,22 +917,23 @@ void __fastcall ReadHosts(void)
 						continue;
 					}
 					else {
-						DNS_Record_OPT = (pdns_record_opt)(HostsListIter.Response.get() + HostsListIter.Length);
+/* Old version(2015-07-18);
+						auto DNS_Record_OPT = (pdns_record_opt)(HostsListIter.Response.get() + HostsListIter.Length);
 						DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
 						DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 						HostsListIter.Length += sizeof(dns_record_opt);
+*/
+						HostsListIter.Length = AddEDNS_LabelToAdditionalRR(HostsListIter.Response.get(), HostsListIter.Length, PACKET_MAXSIZE, true);
 					}
 				}
 			}
 		}
 
 	//Copy to using list.
-		HostsListMutex.lock();
-		AddressHostsListMutex.lock();
+		HostsFileMutex.lock();
 		*HostsFileSetUsing = *HostsFileSetModificating;
 		HostsFileSetUsing->shrink_to_fit();
-		HostsListMutex.unlock();
-		AddressHostsListMutex.unlock();
+		HostsFileMutex.unlock();
 		HostsFileSetModificating->shrink_to_fit();
 
 	//Flush DNS cache and Auto-refresh

@@ -162,8 +162,8 @@ ConfigurationTable::ConfigurationTable(void)
 		DomainTest_ID = htons((uint16_t)GetCurrentProcessId()); //Default DNS ID is current process ID.
 	#endif
 	#if defined(PLATFORM_WIN)
-		ICMP_PaddingLength = strlen(DEFAULT_PADDINGDATA) + 1U;
-		memcpy_s(ICMP_PaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_PADDINGDATA, Parameter.ICMP_PaddingLength - 1U); //Load default padding data.
+		ICMP_PaddingLength = strlen(DEFAULT_PADDING_DATA) + 1U;
+		memcpy_s(ICMP_PaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_PADDING_DATA, Parameter.ICMP_PaddingLength - 1U); //Load default padding data.
 	#elif defined(PLATFORM_LINUX)
 		size_t CharData = ICMP_STRING_START_NUM_LINUX;
 		for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_LINUX;++Index, ++CharData)

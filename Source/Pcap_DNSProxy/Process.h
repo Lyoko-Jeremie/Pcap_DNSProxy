@@ -26,12 +26,11 @@ extern CONFIGURATION_TABLE Parameter;
 #endif
 extern std::vector<DIFFERNET_HOSTS_FILE_SET> *HostsFileSetUsing, *HostsFileSetModificating;
 extern std::deque<DNSCACHE_DATA> DNSCacheList;
-extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM], HostsListLock, DNSCacheListLock;
+extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM], HostsFileLock, DNSCacheListLock;
 
 //Functions
-size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Result, const size_t ResultSize);
 bool __fastcall LocalRequestProcess(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA &LocalSocketData);
-bool __fastcall DirectRequestProcess(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const bool HostsOnly, const SOCKET_DATA &LocalSocketData);
+bool __fastcall DirectRequestProcess(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const bool DirectRequest, const SOCKET_DATA &LocalSocketData);
 #if defined(ENABLE_LIBSODIUM)
 	bool __fastcall DNSCurveRequestProcess(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA &LocalSocketData);
 #endif
@@ -40,4 +39,3 @@ bool __fastcall TCPRequestProcess(const char *OriginalSend, const size_t SendSiz
 	void __fastcall UDPRequestProcess(const char *OriginalSend, const size_t SendSize, const SOCKET_DATA &LocalSocketData, const uint16_t Protocol);
 #endif
 uint16_t __fastcall SelectNetworkProtocol(void);
-bool __fastcall SendToRequester(PSTR RecvBuffer, const size_t RecvSize, const uint16_t Protocol, const SOCKET_DATA &LocalSocketData);

@@ -25,9 +25,9 @@ bool __fastcall MonitorInit(void)
 //Capture initialization
 #if defined(ENABLE_PCAP)
 	#if defined(ENABLE_LIBSODIUM)
-		if (Parameter.PcapCapture && Parameter.HostsOnly != HOSTS_ONLY_MODE_BOTH && !(Parameter.DNSCurve && DNSCurveParameter.IsEncryption && DNSCurveParameter.IsEncryptionOnly))
+		if (Parameter.PcapCapture && Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH && !(Parameter.DNSCurve && DNSCurveParameter.IsEncryption && DNSCurveParameter.IsEncryptionOnly))
 	#else
-		if (Parameter.PcapCapture && Parameter.HostsOnly != HOSTS_ONLY_MODE_BOTH)
+		if (Parameter.PcapCapture && Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH)
 	#endif
 	{
 	#if defined(ENABLE_PCAP)
@@ -44,7 +44,7 @@ bool __fastcall MonitorInit(void)
 			IPv6TestDoaminThread.detach();
 		}
 
-		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 &&
+		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 		{
@@ -56,7 +56,7 @@ bool __fastcall MonitorInit(void)
 		if (Parameter.ICMP_Speed > 0)
 		{
 		//ICMPv6
-			if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 &&
+			if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
 				(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
 				Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 			{
@@ -65,7 +65,7 @@ bool __fastcall MonitorInit(void)
 			}
 
 		//ICMP
-			if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 &&
+			if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
 				(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 				Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 			{
@@ -463,7 +463,7 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 
 //Set socket timeout.
 #if defined(PLATFORM_WIN)
-	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(int)) == SOCKET_ERROR ||
+	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(int)) == SOCKET_ERROR || 
 		setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(int)) == SOCKET_ERROR)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(timeval)) == SOCKET_ERROR || 
@@ -534,10 +534,12 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 	}
 
 //Initialization
-	std::shared_ptr<char> Buffer(new char[PACKET_MAXSIZE * Parameter.BufferQueueSize]());
+	std::shared_ptr<char> RecvBuffer(new char[PACKET_MAXSIZE * Parameter.BufferQueueSize]());
+	std::shared_ptr<char> SendBuffer(new char[PACKET_MAXSIZE]());
 	std::shared_ptr<fd_set> ReadFDS(new fd_set());
 	std::shared_ptr<timeval> OriginalTimeout(new timeval()), Timeout(new timeval());
-	memset(Buffer.get(), 0, PACKET_MAXSIZE * Parameter.BufferQueueSize);
+	memset(RecvBuffer.get(), 0, PACKET_MAXSIZE * Parameter.BufferQueueSize);
+	memset(SendBuffer.get(), 0, PACKET_MAXSIZE);
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(OriginalTimeout.get(), 0, sizeof(timeval));
 	memset(Timeout.get(), 0, sizeof(timeval));
@@ -561,10 +563,7 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		LastMarkTime = GetTickCount64();
 	#endif
 	}
-	void *Addr = nullptr;
-	pdns_hdr DNS_Header = nullptr;
-	pdns_record_opt DNS_Record_OPT = nullptr;
-	size_t Index[] = {0, 0};
+	size_t Index = 0;
 
 //Listening module
 	for (;;)
@@ -572,7 +571,7 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		Sleep(LOOP_INTERVAL_TIME);
 
 	//Interval time between receive
-		if (Parameter.QueueResetTime > 0 && Index[0] + 1U == Parameter.BufferQueueSize)
+		if (Parameter.QueueResetTime > 0 && Index + 1U == Parameter.BufferQueueSize)
 		{
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.GetTickCount64_PTR != nullptr)
@@ -596,7 +595,7 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		}
 
 	//Reset parameters.
-		memset(Buffer.get() + PACKET_MAXSIZE * Index[0], 0, PACKET_MAXSIZE);
+		memset(RecvBuffer.get() + PACKET_MAXSIZE * Index, 0, PACKET_MAXSIZE);
 		memcpy_s(Timeout.get(), sizeof(timeval), OriginalTimeout.get(), sizeof(timeval));
 		FD_ZERO(ReadFDS.get());
 		FD_SET(LocalSocketData.Socket, ReadFDS.get());
@@ -609,112 +608,33 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 	#endif
 		if (SelectResult > 0 && FD_ISSET(LocalSocketData.Socket, ReadFDS.get()))
 		{
-		//Receive
+		//Receive request and check DNS query data.
 			if (Parameter.EDNS_Label) //EDNS Label
-				RecvLen = recvfrom(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0, (PSOCKADDR)&LocalSocketData.SockAddr, (socklen_t *)&LocalSocketData.AddrLen);
-			else
-				RecvLen = recvfrom(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], PACKET_MAXSIZE, 0, (PSOCKADDR)&LocalSocketData.SockAddr, (socklen_t *)&LocalSocketData.AddrLen);
-
-		//Check address.
-			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
-			{
-				Addr = &((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr;
-				if (CheckEmptyBuffer(Addr, sizeof(in6_addr)) || //Empty address
-				//Check Private Mode(IPv6).
-					Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
-					!(((in6_addr *)Addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)Addr)->s6_bytes[0] <= 0xFD || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
-					((in6_addr *)Addr)->s6_bytes[0] == 0xFE && ((in6_addr *)Addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
-					((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001)) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
-				//Check Custom Mode(IPv6).
-					Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(Addr, AF_INET6))
-						continue;
-			}
-			else { //IPv4
-				Addr = &((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr;
-				if ((*(in_addr *)Addr).s_addr == 0 || //Empty address
-				//Check Private Mode(IPv4).
-					Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
-					!(((in_addr *)Addr)->s_net == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
-					((in_addr *)Addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
-					((in_addr *)Addr)->s_net == 0xAC && ((in_addr *)Addr)->s_host >= 0x10 && ((in_addr *)Addr)->s_host <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
-					((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0xA8) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
-				//Check Custom Mode(IPv4).
-					Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(Addr, AF_INET))
-						continue;
-			}
-
-		//UDP Truncated check
-			if (RecvLen > (SSIZE_T)(Parameter.EDNSPayloadSize - EDNS_ADDITIONAL_MAXSIZE) && 
-				(Parameter.EDNS_Label || RecvLen > (SSIZE_T)Parameter.EDNSPayloadSize))
-			{
-			//Make packets with EDNS Lebal.
-				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_RTC);
-				if (DNS_Header->Additional == 0)
-				{
-					DNS_Header->Additional = htons(U16_NUM_ONE);
-					DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + PACKET_MAXSIZE * Index[0] + RecvLen);
-					DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-					DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
-					RecvLen += sizeof(dns_record_opt);
-				}
-				else if (DNS_Header->Additional == htons(U16_NUM_ONE))
-				{
-					DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + PACKET_MAXSIZE * Index[0] + RecvLen - sizeof(dns_record_opt));
-					if (DNS_Record_OPT->Type == htons(DNS_RECORD_OPT))
-						DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
-				}
-				else {
-					continue;
-				}
-
-			//Send requesting.
-				sendto(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], (int)RecvLen, 0, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen);
-				continue;
-			}
-
-		//Mark DNS Header pointer.
-			DNS_Header = (pdns_hdr)(Buffer.get() + PACKET_MAXSIZE * Index[0]);
-
-		//Invalid packet
+				RecvLen = recvfrom(LocalSocketData.Socket, RecvBuffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0, (PSOCKADDR)&LocalSocketData.SockAddr, (socklen_t *)&LocalSocketData.AddrLen);
+			else 
+				RecvLen = recvfrom(LocalSocketData.Socket, RecvBuffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE, 0, (PSOCKADDR)&LocalSocketData.SockAddr, (socklen_t *)&LocalSocketData.AddrLen);
 			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			{
 				continue;
 			}
-		//Request process
 			else {
-			//Check requesting.
-				if (DNS_Header->Questions != htons(U16_NUM_ONE) || DNS_Header->Answer > 0 || ntohs(DNS_Header->Additional) > U16_NUM_ONE || DNS_Header->Authority > 0)
+				RecvLen = CheckQueryData(RecvBuffer.get() + PACKET_MAXSIZE * Index, SendBuffer.get(), RecvLen, LocalSocketData, IPPROTO_UDP);
+				if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 					continue;
-				for (Index[1U] = sizeof(dns_hdr);Index[1U] < DNS_PACKET_QUERY_LOCATE(Buffer.get() + PACKET_MAXSIZE * Index[0]);++Index[1U])
-				{
-					if (*(Buffer.get() + PACKET_MAXSIZE * Index[0] + Index[1U]) == DNS_POINTER_BITS_STRING)
-						continue;
-				}
-				if (Index[1U] != DNS_PACKET_QUERY_LOCATE(Buffer.get() + PACKET_MAXSIZE * Index[0]))
-				{
-					DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_FE);
-					sendto(LocalSocketData.Socket, Buffer.get() + PACKET_MAXSIZE * Index[0], (int)RecvLen, 0, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen);
-					continue;
-				}
-
-			//EDNS Label
-				if (Parameter.EDNS_Label)
-					RecvLen = AddEDNS_LabelToAdditionalRR(Buffer.get() + PACKET_MAXSIZE * Index[0], (size_t)RecvLen);
-
-			//IPv6
-				if (LocalSocketData.AddrLen == sizeof(sockaddr_in6))
-				{
-					std::thread RequestProcessThread(EnterRequestProcess, Buffer.get() + PACKET_MAXSIZE * Index[0], RecvLen, LocalSocketData, IPPROTO_UDP);
-					RequestProcessThread.detach();
-				}
-			//IPv4
-				else {
-					std::thread RequestProcessThread(EnterRequestProcess, Buffer.get() + PACKET_MAXSIZE * Index[0], RecvLen, LocalSocketData, IPPROTO_UDP);
-					RequestProcessThread.detach();
-				}
-
-				Index[0] = (Index[0] + 1U) % Parameter.BufferQueueSize;
 			}
+
+		//Request process
+			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
+			{
+				std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, LocalSocketData, IPPROTO_UDP);
+				RequestProcessThread.detach();
+			}
+			else { //IPv4
+				std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, LocalSocketData, IPPROTO_UDP);
+				RequestProcessThread.detach();
+			}
+
+			Index = (Index + 1U) % Parameter.BufferQueueSize;
 		}
 	//Timeout or SOCKET_ERROR
 		else {
@@ -856,7 +776,6 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 		LastMarkTime = GetTickCount64();
 	#endif
 	}
-	void *Addr = nullptr;
 	size_t Index = 0;
 
 //Start Monitor.
@@ -902,45 +821,15 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 	#endif
 		if (SelectResult > 0 && FD_ISSET(LocalSocketData.Socket, ReadFDS.get()))
 		{
-		//Accept connection.
+		//Accept connection and check address.
 			ClientData->Socket = accept(LocalSocketData.Socket, (PSOCKADDR)&ClientData->SockAddr, &ClientData->AddrLen);
 			if (ClientData->Socket == INVALID_SOCKET)
 				continue;
-
-		//Check address.
-			if (ClientData->AddrLen == sizeof(sockaddr_in6)) //IPv6
+			if (CheckQueryData(nullptr, nullptr, 0, *ClientData.get(), 0) != EXIT_SUCCESS)
 			{
-				Addr = &((PSOCKADDR_IN6)&ClientData->SockAddr)->sin6_addr;
-				if (CheckEmptyBuffer(Addr, sizeof(in6_addr)) || //Empty address
-				//Check Private Mode(IPv6).
-					(Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
-					!(((in6_addr *)Addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)Addr)->s6_bytes[0] <= 0xFD || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
-					((in6_addr *)Addr)->s6_bytes[0] == 0xFE && ((in6_addr *)Addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
-					((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001))) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
-				//Check Custom Mode(IPv6).
-					(Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(Addr, AF_INET6)))
-				{
-					shutdown(ClientData->Socket, SD_BOTH);
-					closesocket(ClientData->Socket);
-					continue;
-				}
-			}
-			else { //IPv4
-				Addr = &((PSOCKADDR_IN)&ClientData->SockAddr)->sin_addr;
-				if ((*(in_addr *)Addr).s_addr == 0 || //Empty address
-				//Check Private Mode(IPv4).
-					(Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
-					!(((in_addr *)Addr)->s_net == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
-					((in_addr *)Addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
-					((in_addr *)Addr)->s_net == 0xAC && ((in_addr *)Addr)->s_host >= 0x10 && ((in_addr *)Addr)->s_host <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
-					((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0xA8)) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
-				//Check Custom Mode(IPv4).
-					(Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(Addr, AF_INET)))
-				{
-					shutdown(ClientData->Socket, SD_BOTH);
-					closesocket(ClientData->Socket);
-					continue;
-				}
+				shutdown(ClientData->Socket, SD_BOTH);
+				closesocket(ClientData->Socket);
+				continue;
 			}
 
 		//Accept process.
@@ -965,27 +854,26 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 {
 //Initialization(Part 1)
-	std::shared_ptr<char> Buffer(new char[LARGE_PACKET_MAXSIZE]());
-	memset(Buffer.get(), 0, LARGE_PACKET_MAXSIZE);
-	size_t InnerIndex = 0;
+	std::shared_ptr<char> RecvBuffer(new char[LARGE_PACKET_MAXSIZE]());
+	memset(RecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 	SSIZE_T RecvLen = 0;
 
 //Receive
 	if (Parameter.EDNS_Label) //EDNS Label
-		RecvLen = recv(LocalSocketData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0);
+		RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0);
 	else 
-		RecvLen = recv(LocalSocketData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE, 0);
+		RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, 0);
 	if (RecvLen == (SSIZE_T)sizeof(uint16_t)) //TCP segment of a reassembled PDU
 	{
 	//Receive without PDU.
-		uint16_t PDU_Len = ntohs(((uint16_t *)Buffer.get())[0]);
+		uint16_t PDU_Len = ntohs(((uint16_t *)RecvBuffer.get())[0]);
 		if (PDU_Len > LARGE_PACKET_MAXSIZE)
 		{
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);
 			return false;
 		}
-		memset(Buffer.get(), 0, RecvLen);
+		memset(RecvBuffer.get(), 0, RecvLen);
 
 	//Initialization(Part 2)
 		std::shared_ptr<fd_set> ReadFDS(new fd_set());
@@ -1012,9 +900,9 @@ bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 		if (SelectResult > 0 && FD_ISSET(LocalSocketData.Socket, ReadFDS.get()))
 		{
 			if (Parameter.EDNS_Label) //EDNS Label
-				RecvLen = recv(LocalSocketData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0);
+				RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0);
 			else 
-				RecvLen = recv(LocalSocketData.Socket, Buffer.get(), LARGE_PACKET_MAXSIZE, 0);
+				RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, 0);
 		}
 	//Timeout or SOCKET_ERROR
 		else {
@@ -1026,39 +914,22 @@ bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 	//Receive packet.
 		if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && RecvLen >= (SSIZE_T)PDU_Len)
 		{
-		//Check requesting.
-			auto DNS_Header = (pdns_hdr)Buffer.get();
-			if (DNS_Header->Questions != htons(U16_NUM_ONE) || (ntohs(DNS_Header->Flags) & DNS_GET_BIT_RESPONSE) > 0 || 
-				DNS_Header->Answer > 0 || ntohs(DNS_Header->Additional) > U16_NUM_ONE || DNS_Header->Authority > 0)
+		//Check DNS query data.
+			std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
+			RecvLen = CheckQueryData(RecvBuffer.get(), SendBuffer.get(), PDU_Len, LocalSocketData, IPPROTO_TCP);
+			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			{
 				shutdown(LocalSocketData.Socket, SD_BOTH);
 				closesocket(LocalSocketData.Socket);
 				return false;
 			}
-			for (InnerIndex = sizeof(dns_hdr);InnerIndex < DNS_PACKET_QUERY_LOCATE(Buffer.get());++InnerIndex)
-			{
-				if (*(Buffer.get() + InnerIndex) == DNS_POINTER_BITS_STRING)
-					break;
-			}
-			if (InnerIndex != DNS_PACKET_QUERY_LOCATE(Buffer.get()))
-			{
-				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_FE);
-				send(LocalSocketData.Socket, Buffer.get(), (int)RecvLen, 0);
-
-				shutdown(LocalSocketData.Socket, SD_BOTH);
-				closesocket(LocalSocketData.Socket);
-				return false;
-			}
-
-		//EDNS Label
-			if (Parameter.EDNS_Label)
-				RecvLen = AddEDNS_LabelToAdditionalRR(Buffer.get(), (size_t)RecvLen);
+			SendBuffer.reset();
 
 		//Requesting process
 			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
-				EnterRequestProcess(Buffer.get(), PDU_Len, LocalSocketData, IPPROTO_TCP);
+				EnterRequestProcess(RecvBuffer.get(), PDU_Len, LocalSocketData, IPPROTO_TCP);
 			else //IPv4
-				EnterRequestProcess(Buffer.get(), PDU_Len, LocalSocketData, IPPROTO_TCP);
+				EnterRequestProcess(RecvBuffer.get(), PDU_Len, LocalSocketData, IPPROTO_TCP);
 		}
 		else {
 			shutdown(LocalSocketData.Socket, SD_BOTH);
@@ -1066,43 +937,26 @@ bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 			return false;
 		}
 	}
-	else if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && RecvLen >= (SSIZE_T)htons(((uint16_t *)Buffer.get())[0]) && htons(((uint16_t *)Buffer.get())[0]) < LARGE_PACKET_MAXSIZE)
+	else if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && RecvLen >= (SSIZE_T)htons(((uint16_t *)RecvBuffer.get())[0]) && htons(((uint16_t *)RecvBuffer.get())[0]) < LARGE_PACKET_MAXSIZE)
 	{
-		RecvLen = htons(((uint16_t *)Buffer.get())[0]);
+		RecvLen = htons(((uint16_t *)RecvBuffer.get())[0]);
 
-	//Check requesting.
-		auto DNS_Header = (pdns_hdr)(Buffer.get() + sizeof(uint16_t));
-		if (DNS_Header->Questions != htons(U16_NUM_ONE) || (ntohs(DNS_Header->Flags) & DNS_GET_BIT_RESPONSE) > 0 ||
-			DNS_Header->Answer > 0 || ntohs(DNS_Header->Additional) > U16_NUM_ONE || DNS_Header->Authority > 0)
+	//Check DNS query data.
+		std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
+		RecvLen = CheckQueryData(RecvBuffer.get() + sizeof(uint16_t), SendBuffer.get(), RecvLen, LocalSocketData, IPPROTO_TCP);
+		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 		{
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);
 			return false;
 		}
-		for (InnerIndex = sizeof(dns_tcp_hdr);InnerIndex < DNS_TCP_PACKET_QUERY_LOCATE(Buffer.get());++InnerIndex)
-		{
-			if (*(Buffer.get() + InnerIndex) == DNS_POINTER_BITS_STRING)
-				break;
-		}
-		if (InnerIndex != DNS_TCP_PACKET_QUERY_LOCATE(Buffer.get()))
-		{
-			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_FE);
-			send(LocalSocketData.Socket, Buffer.get(), (int)RecvLen + sizeof(uint16_t), 0);
-
-			shutdown(LocalSocketData.Socket, SD_BOTH);
-			closesocket(LocalSocketData.Socket);
-			return false;
-		}
-
-	//EDNS Label
-		if (Parameter.EDNS_Label)
-			RecvLen = AddEDNS_LabelToAdditionalRR(Buffer.get() + sizeof(uint16_t), (size_t)RecvLen);
+		SendBuffer.reset();
 
 	//Requesting process
 		if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
-			EnterRequestProcess(Buffer.get() + sizeof(uint16_t), RecvLen, LocalSocketData, IPPROTO_TCP);
+			EnterRequestProcess(RecvBuffer.get() + sizeof(uint16_t), RecvLen, LocalSocketData, IPPROTO_TCP);
 		else //IPv4
-			EnterRequestProcess(Buffer.get() + sizeof(uint16_t), RecvLen, LocalSocketData, IPPROTO_TCP);
+			EnterRequestProcess(RecvBuffer.get() + sizeof(uint16_t), RecvLen, LocalSocketData, IPPROTO_TCP);
 	}
 	else {
 		shutdown(LocalSocketData.Socket, SD_BOTH);
@@ -1124,7 +978,7 @@ bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 //Alternate DNS servers switcher
 void __fastcall AlternateServerMonitor(void)
 {
-	size_t Index = 0, RangeTimer[ALTERNATE_SERVERNUM] = {0}, SwapTimer[ALTERNATE_SERVERNUM] = {0};
+	size_t Index = 0, RangeTimer[ALTERNATE_SERVERNUM]{0}, SwapTimer[ALTERNATE_SERVERNUM]{0};
 
 //Switcher
 //Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
@@ -1531,7 +1385,7 @@ void __fastcall NetworkInformationMonitor(void)
 					{
 					//Mark localhost subnet(IPv6).
 						if (Parameter.EDNS_ClientSubnet && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv6 && 
-							Parameter.LocalhostSubnet.IPv6 != nullptr && Parameter.LocalhostSubnet.IPv6->Address.ss_family == 0 &&
+							Parameter.LocalhostSubnet.IPv6 != nullptr && Parameter.LocalhostSubnet.IPv6->Address.ss_family == 0 && 
 							!CheckSpecialAddress(&((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr, AF_INET6, true, nullptr))
 						{
 							Parameter.LocalhostSubnet.IPv6->Address.ss_family = AF_INET6;
@@ -1576,7 +1430,7 @@ void __fastcall NetworkInformationMonitor(void)
 							DNSPTRString.append(Addr.get());
 							memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 
-						//Last
+						//Last item
 							if (Index < (SSIZE_T)(sizeof(in6_addr) / sizeof(uint16_t) - 1U))
 								DNSPTRString.append(":");
 						}
@@ -1612,7 +1466,7 @@ void __fastcall NetworkInformationMonitor(void)
 					{
 					//Mark localhost subnet(IPv6).
 						if (Parameter.EDNS_ClientSubnet && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv6 && 
-							Parameter.LocalhostSubnet.IPv6 != nullptr && Parameter.LocalhostSubnet.IPv6->Address.ss_family == 0 &&
+							Parameter.LocalhostSubnet.IPv6 != nullptr && Parameter.LocalhostSubnet.IPv6->Address.ss_family == 0 && 
 							!CheckSpecialAddress(&((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr, AF_INET6, true, nullptr))
 						{
 							Parameter.LocalhostSubnet.IPv6->Address.ss_family = AF_INET6;
@@ -1657,7 +1511,7 @@ void __fastcall NetworkInformationMonitor(void)
 							DNSPTRString.append(Addr.get());
 							memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 
-						//Last
+						//Last item
 							if (Index < (SSIZE_T)(sizeof(in6_addr) / sizeof(uint16_t) - 1U))
 								DNSPTRString.append(":");
 						}
@@ -1758,8 +1612,8 @@ void __fastcall NetworkInformationMonitor(void)
 						LocalAddressTableIter->ai_addr->sa_family == AF_INET)
 					{
 					//Mark localhost subnet(IPv4).
-						if (Parameter.EDNS_ClientSubnet && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4 &&
-							Parameter.LocalhostSubnet.IPv4 != nullptr && Parameter.LocalhostSubnet.IPv4->Address.ss_family == 0 &&
+						if (Parameter.EDNS_ClientSubnet && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4 && 
+							Parameter.LocalhostSubnet.IPv4 != nullptr && Parameter.LocalhostSubnet.IPv4->Address.ss_family == 0 && 
 							!CheckSpecialAddress(&((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr, AF_INET, true, nullptr))
 						{
 							Parameter.LocalhostSubnet.IPv4->Address.ss_family = AF_INET;
@@ -1822,7 +1676,7 @@ void __fastcall NetworkInformationMonitor(void)
 					{
 					//Mark localhost subnet(IPv4).
 						if (Parameter.EDNS_ClientSubnet && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4 && 
-							Parameter.LocalhostSubnet.IPv4 != nullptr && Parameter.LocalhostSubnet.IPv4->Address.ss_family == 0 &&
+							Parameter.LocalhostSubnet.IPv4 != nullptr && Parameter.LocalhostSubnet.IPv4->Address.ss_family == 0 && 
 							!CheckSpecialAddress(&((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr, AF_INET, true, nullptr))
 						{
 							Parameter.LocalhostSubnet.IPv4->Address.ss_family = AF_INET;

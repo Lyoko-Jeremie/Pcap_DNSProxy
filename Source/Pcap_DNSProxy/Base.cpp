@@ -24,9 +24,11 @@ extern CONFIGURATION_TABLE Parameter;
 //Check empty buffer
 bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length)
 {
+//Null pointer
 	if (Buffer == nullptr)
 		return false;
 
+//Scan all data.
 	for (size_t Index = 0;Index < Length;++Index)
 	{
 		if (((uint8_t *)Buffer)[Index] != 0)
@@ -43,12 +45,14 @@ uint16_t __fastcall hton16_Force(const uint16_t Value)
 	return (uint16_t)(Result[0] << 8U | Result[1U]);
 }
 
+/* Redirect to hton16_Force.
 //Convert network byte order to host values with 16 bits(Force)
 uint16_t __fastcall ntoh16_Force(const uint16_t Value)
 {
 	uint8_t *Result = (uint8_t *)&Value;
 	return (uint16_t)(Result[0] << 8U | Result[1U]);
 }
+*/
 
 //Convert host values to network byte order with 32 bits(Force)
 uint32_t __fastcall hton32_Force(const uint32_t Value)
@@ -57,12 +61,14 @@ uint32_t __fastcall hton32_Force(const uint32_t Value)
 	return (uint32_t)(Result[0] << 24U | Result[1U] << 16U | Result[2U] << 8U | Result[3U]);
 }
 
+/* Redirect to hton32_Force.
 //Convert network byte order to host values with 32 bits(Force)
 uint32_t __fastcall ntoh32_Force(const uint32_t Value)
 {
 	uint8_t *Result = (uint8_t *)&Value;
 	return (uint32_t)(Result[0] << 24U | Result[1U] << 16U | Result[2U] << 8U | Result[3U]);
 }
+*/
 
 //Convert host values to network byte order with 64 bits
 uint64_t __fastcall hton64(const uint64_t Value)
@@ -85,18 +91,25 @@ uint64_t __fastcall ntoh64(const uint64_t Value)
 }
 
 //Convert multiple bytes to wide char string
-void __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer)
+bool __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer)
 {
-	std::shared_ptr<wchar_t> TargetPTR(new wchar_t[strnlen(Buffer, LARGE_PACKET_MAXSIZE) + 1U]());
-	wmemset(TargetPTR.get(), 0, strnlen(Buffer, LARGE_PACKET_MAXSIZE) + 1U);
-#if defined(PLATFORM_WIN)
-	MultiByteToWideChar(CP_ACP, 0, Buffer, MBSTOWCS_NULLTERMINATE, TargetPTR.get(), (int)strnlen(Buffer, LARGE_PACKET_MAXSIZE));
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	mbstowcs(TargetPTR.get(), Buffer, strnlen(Buffer, LARGE_PACKET_MAXSIZE));
-#endif
-	Target = TargetPTR.get();
+//Check buffer.
+	if (CheckEmptyBuffer(Buffer, strnlen_s(Buffer, LARGE_PACKET_MAXSIZE)))
+		return false;
 
-	return;
+//Convert string.
+	std::shared_ptr<wchar_t> TargetPTR(new wchar_t[strnlen_s(Buffer, LARGE_PACKET_MAXSIZE) + 1U]());
+	wmemset(TargetPTR.get(), 0, strnlen_s(Buffer, LARGE_PACKET_MAXSIZE) + 1U);
+#if defined(PLATFORM_WIN)
+	if (MultiByteToWideChar(CP_ACP, 0, Buffer, MBSTOWCS_NULLTERMINATE, TargetPTR.get(), (int)(strnlen_s(Buffer, LARGE_PACKET_MAXSIZE) + 1U)) == 0)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	if (mbstowcs(TargetPTR.get(), Buffer, strnlen(Buffer, LARGE_PACKET_MAXSIZE) + 1U) == RETURN_ERROR)
+#endif
+		return false;
+	else 
+		Target = TargetPTR.get();
+
+	return true;
 }
 
 //Convert lowercase/uppercase words to uppercase/lowercase words(Character version)

@@ -397,6 +397,7 @@
 	typedef int                      SOCKET;
 	typedef addrinfo                 ADDRINFOA;
 	typedef char                     *PSTR;
+	typedef wchar_t                  *PWSTR;
 	typedef uint8_t                  *PUINT8;
 	typedef sockaddr                 *PSOCKADDR;
 	typedef sockaddr_in              *PSOCKADDR_IN;
@@ -424,7 +425,6 @@
 	#define WSAGetLastError()                                            GetLastError()
 	#define WSACleanup()
 	#define GetCurrentProcessId()                                        pthread_self()
-	#define localtime_s(TimeStructure, TimeValue)                        localtime_r(TimeValue, TimeStructure)
 #endif
 
 //Memory alignment: 1 bytes/8 bits

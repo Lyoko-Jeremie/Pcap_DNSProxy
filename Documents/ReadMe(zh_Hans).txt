@@ -122,7 +122,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * 请求域名解析优先级
   * 使用系统 API函数进行域名解析（大部分）：系统 Hosts > Pcap_DNSProxy 的 Hosts 条目（Whitelist/白名单条目 > Hosts/主要 Hosts 列表） > DNS 缓存 > Local Hosts/境内 DNS 解析域名列表 > 远程 DNS 服务器
   * 直接使用网络适配器设置进行域名解析（小部分）：Pcap_DNSProxy 的 Hosts 配置文件（Whitelist/白名单条目 > Hosts/主要 Hosts 列表） > DNS 缓存 > Local Hosts/境内 DNS 解析域名列表 > 远程 DNS 服务器
-  * 请求远程 DNS 服务器的优先级：Hosts Only 模式 > TCP 模式的 DNSCurve 加密/非加密模式（如有） > UDP 模式的 DNSCurve 加密/非加密模式（如有） > TCP 模式普通请求（如有） > UDP 模式普通请求
+  * 请求远程 DNS 服务器的优先级：Direct Request 模式 > TCP 模式的 DNSCurve 加密/非加密模式（如有） > UDP 模式的 DNSCurve 加密/非加密模式（如有） > TCP 模式普通请求（如有） > UDP 模式普通请求
 * 本工具的 DNSCurve/DNSCrypt 协议是内置的实现，不需要安装 DNSCrypt 官方的工具！
   * DNSCurve 协议为 Streamlined/精简类型
   * 自动获取连接信息时必须保证系统时间的正确，否则证书验证时会出错导致连接信息获取失败！
@@ -189,9 +189,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
 	* 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
 	* 同时填入 TCP 和 UDP 等于只填入 TCP，因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
     * 注意：此处的协议指的是程序请求远程 DNS 服务器时所使用的协议，而向本程序请求域名解析时可使用的协议由 Listen Protocol 参数决定
-  * Hosts Only - Hosts Only 直连模式，启用后将使用系统的 API 直接请求远程服务器而启用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，关闭为 0，默认为 0
+  * Direct Request - 直连模式，启用后将使用系统的 API 直接请求远程服务器而启用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，关闭为 0，默认为 0
     * 建议当系统使用全局代理功能时启用，程序将除 Local 外的所有请求直接交给系统处理，系统会将请求自动发往远程服务器进行解析
-    * 填入 IPv4 或 IPv6 时将会启用对应协议的 Hosts Only 功能，同时填入 IPv4 和 IPv6 将会启用所有协议的功能
+    * 填入 IPv4 或 IPv6 时将会启用对应协议的 Direct Request 功能，同时填入 IPv4 和 IPv6 将会启用所有协议的功能
   * Local Main - 主要境内服务器请求功能：开启为1/关闭为0，默认为 0
     * 开启后所有请求先使用 Local 的服务器进行解析，遇到遭投毒污染的解析结果时自动再向境外服务器请求
     * 本功能不能与 Local Hosts 同时启用
@@ -712,3 +712,24 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
 * Stop - 临时停止读取标签
 在需要停止读取的数据前添加 "[Stop]"（不含引号） 标签即可在中途停止对文件的读取，直到有其它标签时再重新开始读取
   * 具体情况参见上文的介绍
+
+
+-------------------------------------------------------------------------------
+
+
+程序运行参数说明：
+由于部分功能无法通过使用配置文件指定使用，故而使用程序外挂参数进行支持
+所有外挂参数也可通过 -h 和 --help 参数查询
+
+* -v 和 --version
+  输出程序版本号信息到屏幕上
+* -h 和 --help
+  输出程序帮助信息到屏幕上
+* --flush-dns
+  立即清空所有程序内以及系统的 DNS 缓存
+* --first-setup
+  进行本地防火墙测试(Windows)
+* -c Path 和 --config-file Path
+  启动时指定配置文件所在的以及程序的工作目录
+* --disable-daemon
+  关闭守护进程模式(Linux)

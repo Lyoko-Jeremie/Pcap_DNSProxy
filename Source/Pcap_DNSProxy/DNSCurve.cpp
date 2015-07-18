@@ -23,14 +23,17 @@
 //DNSCurve verify keypair
 bool __fastcall DNSCurveVerifyKeypair(const unsigned char *PublicKey, const unsigned char *SecretKey)
 {
-	std::shared_ptr<uint8_t> Test_PublicKey(new uint8_t[crypto_box_PUBLICKEYBYTES]()), Test_SecretKey(new uint8_t[crypto_box_PUBLICKEYBYTES]()), Validation(new uint8_t[crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES + crypto_box_ZEROBYTES]());
+//Initialization
+	std::shared_ptr<uint8_t> Test_PublicKey(new uint8_t[crypto_box_PUBLICKEYBYTES]()), 
+		Test_SecretKey(new uint8_t[crypto_box_PUBLICKEYBYTES]()), 
+		Validation(new uint8_t[crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES + crypto_box_ZEROBYTES]());
 	memset(Test_PublicKey.get(), 0, crypto_box_PUBLICKEYBYTES);
 	memset(Test_SecretKey.get(), 0, crypto_box_PUBLICKEYBYTES);
 	memset(Validation.get(), 0, crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES + crypto_box_ZEROBYTES);
 
 //Keypair, Nonce and validation data
 	crypto_box_curve25519xsalsa20poly1305_keypair(Test_PublicKey.get(), Test_SecretKey.get());
-	uint8_t Nonce[crypto_box_NONCEBYTES] = {DNSCURVE_TEST_NONCE};
+	uint8_t Nonce[crypto_box_NONCEBYTES]{DNSCURVE_TEST_NONCE};
 	memcpy_s(Validation.get() + crypto_box_ZEROBYTES, crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES, PublicKey, crypto_box_PUBLICKEYBYTES);
 
 //Verify keys
@@ -173,7 +176,7 @@ size_t __fastcall DNSCurveSelectTargetSocket(SOCKET_DATA *SockData, PDNSCURVE_SE
 bool __fastcall DNSCurveSelectTargetSocketMulti(bool &IsIPv6, bool *&IsAlternate, const uint16_t Protocol)
 {
 //IPv6
-	if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 &&
+	if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && 
 		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv6 || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
@@ -185,7 +188,7 @@ bool __fastcall DNSCurveSelectTargetSocketMulti(bool &IsIPv6, bool *&IsAlternate
 			IsAlternate = &AlternateSwapList.IsSwap[10U];
 	}
 //IPv4
-	else if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 &&
+	else if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && 
 		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv4 || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
@@ -231,7 +234,7 @@ void __fastcall DNSCurveInit(void)
 		}
 
 	//Alternate
-		if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 &&
+		if (DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //Auto select and IPv6
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0) && //Non-IPv4
 			(CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
@@ -432,11 +435,15 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 	DataLength += sizeof(dns_qry);
 
 //EDNS Label
+/* Old version(2015-07-18)
 	DNS_TCP_Header->Additional = htons(U16_NUM_ONE);
 	auto DNS_Record_OPT = (pdns_record_opt)(SendBuffer.get() + DataLength);
 	DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
 	DNS_Record_OPT->UDPPayloadSize = htons(EDNS_PACKET_MINSIZE);
 	DataLength += sizeof(dns_record_opt);
+*/
+	DataLength = AddEDNS_LabelToAdditionalRR(SendBuffer.get() + sizeof(uint16_t), DataLength - sizeof(uint16_t), PACKET_MAXSIZE, false);
+	DataLength += sizeof(uint16_t);
 
 	DNS_TCP_Header->Length = htons((uint16_t)(DataLength - sizeof(uint16_t)));
 //Socket initialization
@@ -901,11 +908,14 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t Protocol, const bool 
 	DataLength += sizeof(dns_qry);
 
 //EDNS Label
+/* Old version(2015-07-18)
 	DNS_Header->Additional = htons(U16_NUM_ONE);
 	auto DNS_Record_OPT = (pdns_record_opt)(SendBuffer.get() + DataLength);
 	DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
 	DNS_Record_OPT->UDPPayloadSize = htons(EDNS_PACKET_MINSIZE);
 	DataLength += sizeof(dns_record_opt);
+*/
+	DataLength = AddEDNS_LabelToAdditionalRR(SendBuffer.get(), DataLength, PACKET_MAXSIZE, false);
 
 //Socket initialization
 	socklen_t AddrLen = 0;
@@ -1457,6 +1467,8 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 											return EXIT_FAILURE;
 									memmove_s(OriginalRecv, RecvSize, OriginalRecv + crypto_box_ZEROBYTES, RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES));
 									memset(OriginalRecv + RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), 0, RecvSize - (RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES)));
+									
+								//Check padding data.
 									for (SSIZE_T Index = RecvLen - (SSIZE_T)(DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES);Index > (SSIZE_T)DNS_PACKET_MINSIZE;--Index)
 									{
 										if ((UCHAR)OriginalRecv[Index] == 0x80)
@@ -2074,6 +2086,8 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 										}
 										memmove_s(OriginalRecv, RecvSize, OriginalRecv + crypto_box_ZEROBYTES, RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES));
 										memset(OriginalRecv + RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), 0, RecvSize - (RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES)));
+										
+									//Check padding data.
 										for (SSIZE_T InnerIndex = RecvLen - (SSIZE_T)(DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES);InnerIndex > (SSIZE_T)DNS_PACKET_MINSIZE;--InnerIndex)
 										{
 											if ((UCHAR)OriginalRecv[InnerIndex] == 0x80)
@@ -2338,6 +2352,8 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 				return EXIT_FAILURE;
 		memmove_s(OriginalRecv, RecvSize, OriginalRecv + crypto_box_ZEROBYTES, RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES));
 		memset(OriginalRecv + RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), 0, RecvSize - (RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES)));
+
+	//Check padding data.
 		for (SSIZE_T Index = RecvLen - (SSIZE_T)(DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES);Index > (SSIZE_T)DNS_PACKET_MINSIZE;--Index)
 		{
 			if ((UCHAR)OriginalRecv[Index] == 0x80)
@@ -2800,6 +2816,8 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 						}
 						memmove_s(OriginalRecv, RecvSize, OriginalRecv + crypto_box_ZEROBYTES, RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES));
 						memset(OriginalRecv + RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), 0, RecvSize - (RecvLen - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES)));
+						
+					//Check padding data.
 						for (SSIZE_T InnerIndex = RecvLen - (SSIZE_T)(DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES);InnerIndex > (SSIZE_T)DNS_PACKET_MINSIZE;--InnerIndex)
 						{
 							if ((UCHAR)OriginalRecv[InnerIndex] == 0x80)

@@ -49,7 +49,7 @@ BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType)
 //Service Main function
 size_t WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
 {
-	ServiceStatusHandle = RegisterServiceCtrlHandlerW(DEFAULT_LOCAL_SERVICE_NAME, (LPHANDLER_FUNCTION)ServiceControl);
+	ServiceStatusHandle = RegisterServiceCtrlHandlerW(SYSTEM_SERVICE_NAME, (LPHANDLER_FUNCTION)ServiceControl);
 	if (!ServiceStatusHandle || !UpdateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0, 1U, UPDATE_SERVICE_TIME * SECOND_TO_MILLISECOND))
 		return FALSE;
 
@@ -200,7 +200,8 @@ bool WINAPI FlushDNSMailSlotMonitor(void)
 	LocalFree(SID_Value);
 
 //Initialization
-	BOOL Result = false, FlushDNS = false;
+	BOOL Result = false;
+	bool FlushDNS = false;
 	DWORD cbMessage = 0, cMessage = 0, cAllMessages = 0, cbRead = 0;
 	std::shared_ptr<wchar_t> lpszBuffer(new wchar_t[PACKET_MAXSIZE]());
 	wmemset(lpszBuffer.get(), 0, PACKET_MAXSIZE);
@@ -212,7 +213,7 @@ bool WINAPI FlushDNSMailSlotMonitor(void)
 
 	//Get mailslot messages.
 		Result = GetMailslotInfo(hSlot, nullptr, &cbMessage, &cMessage, nullptr);
-		if (!Result)
+		if (Result == FALSE)
 		{
 			PrintError(LOG_ERROR_SYSTEM, L"Get mailslot error", GetLastError(), nullptr, 0);
 			
@@ -232,7 +233,7 @@ bool WINAPI FlushDNSMailSlotMonitor(void)
 		while (cMessage > 0)
 		{
 			Result = ReadFile(hSlot, lpszBuffer.get(), cbMessage, &cbRead, nullptr);
-			if (!Result)
+			if (Result == FALSE)
 			{
 				PrintError(LOG_ERROR_SYSTEM, L"MailSlot read messages error", GetLastError(), nullptr, 0);
 				
@@ -249,7 +250,7 @@ bool WINAPI FlushDNSMailSlotMonitor(void)
 
 		//Get other mailslot messages.
 			Result = GetMailslotInfo(hSlot, nullptr, &cbMessage, &cMessage, nullptr);
-			if (!Result)
+			if (Result == FALSE)
 			{
 				PrintError(LOG_ERROR_SYSTEM, L"Get mailslot error", GetLastError(), nullptr, 0);
 				
@@ -344,7 +345,7 @@ bool FlushDNSFIFOMonitor(void)
 bool FlushDNSFIFOSender(void)
 {
 	int FIFO_FD = open(FIFO_PATH_NAME, O_WRONLY|O_TRUNC|O_NONBLOCK, 0);
-	if (FIFO_FD > 0 && write(FIFO_FD, FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) > 0)
+	if (FIFO_FD > 0 && write(FIFO_FD, FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS) + 1U) > 0)
 	{
 		wprintf(L"Flush DNS cache message was sent successfully.\n");
 		close(FIFO_FD);

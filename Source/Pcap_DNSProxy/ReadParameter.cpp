@@ -213,9 +213,9 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 //Other errors which need to print to log.
 #if defined(ENABLE_PCAP)
 	#if defined(ENABLE_LIBSODIUM)
-		if (!Parameter.PcapCapture && Parameter.HostsOnly != HOSTS_ONLY_MODE_BOTH && !Parameter.DNSCurve && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
+		if (!Parameter.PcapCapture && Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH && !Parameter.DNSCurve && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
 	#else
-		if (!Parameter.PcapCapture && Parameter.HostsOnly != HOSTS_ONLY_MODE_BOTH && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
+		if (!Parameter.PcapCapture && Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
 	#endif
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"Pcap Capture error", 0, ConfigFileList.at(FileIndex).c_str(), 0);
@@ -223,9 +223,9 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 	}
 #else
 	#if defined(ENABLE_LIBSODIUM)
-		if (Parameter.HostsOnly != HOSTS_ONLY_MODE_BOTH && !Parameter.DNSCurve && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
+		if (Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH && !Parameter.DNSCurve && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
 	#else
-		if (Parameter.HostsOnly != HOSTS_ONLY_MODE_BOTH && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
+		if (Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
 	#endif
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"Pcap Capture error", 0, ConfigFileList.at(FileIndex).c_str(), 0);
@@ -694,10 +694,13 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 	//EDNS Label
 		if (Parameter.EDNS_Label)
 		{
+/* Old version(2015-07-18)
 			auto DNS_Record_OPT = (pdns_record_opt)(Parameter.LocalServer_Response + Parameter.LocalServer_Length);
 			DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
 			DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 			Parameter.LocalServer_Length += sizeof(dns_record_opt);
+*/
+			Parameter.LocalServer_Length = AddEDNS_LabelToAdditionalRR(Parameter.LocalServer_Response, Parameter.LocalServer_Length, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt), true);
 		}
 	}
 #endif
@@ -1375,7 +1378,11 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 					NameStringTemp.append("\\");
 
 			//Convert to wide string.
-				MBSToWCSString(wNameStringTemp, NameStringTemp.c_str());
+				if (!MBSToWCSString(wNameStringTemp, NameStringTemp.c_str()))
+				{
+					PrintError(LOG_ERROR_PARAMETER, L"Read file path error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+					return false;
+				}
 				for (auto wStringIter = Parameter.Path_Global->begin();wStringIter < Parameter.Path_Global->end();++wStringIter)
 				{
 					if (*wStringIter == wNameStringTemp)
@@ -1416,7 +1423,11 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 					NameStringTemp.append("\\");
 
 			//Convert to wide string.
-				MBSToWCSString(wNameStringTemp, NameStringTemp.c_str());
+				if (!MBSToWCSString(wNameStringTemp, NameStringTemp.c_str()))
+				{
+					PrintError(LOG_ERROR_PARAMETER, L"Read file path error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+					return false;
+				}
 				for (auto wStringIter = Parameter.Path_Global->begin();wStringIter < Parameter.Path_Global->end();++wStringIter)
 				{
 					if (*wStringIter == wNameStringTemp)
@@ -1449,18 +1460,20 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 	else if (Data.find("HostsFileName=") == 0 && Data.length() > strlen("HostsFileName="))
 	{
 	#if defined(PLATFORM_WIN)
-		ReadFileName(Data, strlen("HostsFileName="), Parameter.FileList_Hosts);
+		if (!ReadFileName(Data, strlen("HostsFileName="), Parameter.FileList_Hosts, FileIndex, Line))
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		ReadFileName(Data, strlen("HostsFileName="), Parameter.FileList_Hosts, Parameter.sFileList_Hosts);
+		if (!ReadFileName(Data, strlen("HostsFileName="), Parameter.FileList_Hosts, Parameter.sFileList_Hosts, FileIndex, Line))
 	#endif
+			return false;
 	}
 	else if (Data.find("IPFilterFileName=") == 0 && Data.length() > strlen("IPFilterFileName="))
 	{
 	#if defined(PLATFORM_WIN)
-		ReadFileName(Data, strlen("IPFilterFileName="), Parameter.FileList_IPFilter);
+		if (!ReadFileName(Data, strlen("IPFilterFileName="), Parameter.FileList_IPFilter, FileIndex, Line))
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		ReadFileName(Data, strlen("IPFilterFileName="), Parameter.FileList_IPFilter, Parameter.sFileList_IPFilter);
+		if (!ReadFileName(Data, strlen("IPFilterFileName="), Parameter.FileList_IPFilter, Parameter.sFileList_IPFilter, FileIndex, Line))
 	#endif
+			return false;
 	}
 
 //[Log] block
@@ -1543,7 +1556,7 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 	}
 
 //[DNS] block
-	else if (Data.find("Protocol=") == 0)
+	else if (Data.find("Protocol=") == 0 && Data.length() > strlen("Protocol="))
 	{
 		CaseConvert(true, Data);
 		if (Data.find("IPV6") != std::string::npos)
@@ -1562,27 +1575,28 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 		else 
 			Parameter.RequestMode_Transport = REQUEST_MODE_UDP;
 	}
-	else if (Data.find("HostsOnly=") == 0)
+	else if (Data.find("DirectRequest=") == 0 && Data.length() > strlen("DirectRequest=") || 
+		Data.find("HostsOnly=") == 0 && Data.length() > strlen("HostsOnly="))
 	{
-		if (Data.find("HostsOnly=1") == 0)
+		if (Data.find("DirectRequest=1") == 0 || Data.find("HostsOnly=1") == 0)
 		{
-			Parameter.HostsOnly = HOSTS_ONLY_MODE_BOTH;
+			Parameter.DirectRequest = DIRECT_REQUEST_MODE_BOTH;
 		}
 		else {
 			CaseConvert(true, Data);
 			if (Data.find("IPV6") != std::string::npos)
 			{
 				if (Data.find("IPV4") != std::string::npos)
-					Parameter.HostsOnly = HOSTS_ONLY_MODE_BOTH;
+					Parameter.DirectRequest = DIRECT_REQUEST_MODE_BOTH;
 				else 
-					Parameter.HostsOnly = HOSTS_ONLY_MODE_IPV6;
+					Parameter.DirectRequest = DIRECT_REQUEST_MODE_IPV6;
 			}
 			else if (Data.find("IPV4") != std::string::npos)
 			{
 				if (Data.find("IPV6") != std::string::npos)
-					Parameter.HostsOnly = HOSTS_ONLY_MODE_BOTH;
+					Parameter.DirectRequest = DIRECT_REQUEST_MODE_BOTH;
 				else 
-					Parameter.HostsOnly = HOSTS_ONLY_MODE_IPV4;
+					Parameter.DirectRequest = DIRECT_REQUEST_MODE_IPV4;
 			}
 		}
 	}
@@ -1661,7 +1675,7 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 		}
 	}
 #endif
-	else if (Data.find("ListenProtocol=") == 0)
+	else if (Data.find("ListenProtocol=") == 0 && Data.length() > strlen("ListenProtocol="))
 	{
 		CaseConvert(true, Data);
 		if (Data.find("IPV6") != std::string::npos)
@@ -1753,7 +1767,7 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 			}
 		}
 	}
-	else if (Data.find("OperationMode=") == 0)
+	else if (Data.find("OperationMode=") == 0 && Data.length() > strlen("OperationMode="))
 	{
 		CaseConvert(true, Data);
 		if (Data.find("PRIVATE") != std::string::npos)
@@ -2477,9 +2491,9 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 
 //Read file names from data
 #if defined(PLATFORM_WIN)
-	void __fastcall ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData)
+	bool __fastcall ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData, const size_t FileIndex, const size_t Line)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	void ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData, std::vector<std::string> *sListData)
+	bool ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData, std::vector<std::string> *sListData, const size_t FileIndex, const size_t Line)
 #endif
 {
 //Initialization
@@ -2505,7 +2519,11 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 		#endif
 
 		//Add to global list.
-			MBSToWCSString(wNameStringTemp, NameStringTemp.c_str());
+			if (!MBSToWCSString(wNameStringTemp, NameStringTemp.c_str()))
+			{
+				PrintError(LOG_ERROR_PARAMETER, L"Read file name error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+				return false;
+			}
 			if (ListData->empty())
 			{
 				ListData->push_back(wNameStringTemp);
@@ -2559,7 +2577,11 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 		#endif
 
 		//Add to global list.
-			MBSToWCSString(wNameStringTemp, NameStringTemp.c_str());
+			if (!MBSToWCSString(wNameStringTemp, NameStringTemp.c_str()))
+			{
+				PrintError(LOG_ERROR_PARAMETER, L"Read file name error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+				return false;
+			}
 			if (ListData->empty())
 			{
 				ListData->push_back(wNameStringTemp);
@@ -2606,7 +2628,7 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 		}
 	}
 
-	return;
+	return true;
 }
 
 //Read listen address

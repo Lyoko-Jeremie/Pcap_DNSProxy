@@ -1,6 +1,7 @@
-﻿Pcap_DNSProxy v0.4.2.1-v0.4.2.4(Windows/Linux/Mac) 更新日志(2015-07-08)：
+﻿Pcap_DNSProxy v0.4.2.1-v0.4.2.5(Windows/Linux/Mac) 更新日志(2015-07-18)：
 
-* 添加不同协议的 Hosts Only 功能 [AVC A]
+* Hosts Only 参数现在更名为 Direct Request 并支持指定 IPv4 或 IPv6 功能
+* 添加不同协议的 Direct Request 功能 [AVC A]
 * 添加限制请求数量的功能
 * 添加 DNS 压缩指针检查功能，避免接受格式错误的数据包
 * 添加遗漏的 DNS 投毒污染黑名单地址
@@ -9,7 +10,7 @@
 * 添加 --disable-daemon 参数，可控制程序是否以 Daemon 守护进程的方式运行(Linux)
 * 完整的 ANSI/UTF-8/UTF-16(LE/BE)/UTF-32(LE/BE) 编码支持
 * 调整抓包模块为回调模式降低资源的占用
-* 调整抓包模块工作模式，避免 WinPcap 与 CFosSpeed 之间的冲突 [軒轅無雙]
+* 调整抓包模块工作模式，避免 WinPcap 与 cFosSpeed 之间的冲突 [軒轅無雙]
 * 优化优先指定网络层协议功能
 * 优化对大小写敏感字符的读取
 * 修复抓包模块非 Ethernet 和 Apple IEEE 1394/FireWire 设备的错误识别
@@ -19,6 +20,8 @@
 * 修复 KeyPairGenerator 生成客户端密钥对的错误 [wongsyrone]
 * 修复 Accept List 参数读取 DNS 类型名称的错误 [wongsyrone]
 * 修复 Address Hosts 功能溢出错误 [jzp820927]
+* 修复当请求的数据中带有 EDNS Label 时的错误 [wongsyrone]
+* 修复收到截断数据包时无法重新按照标准适用 TCP 协议重新解析的错误 [shuangzhijinghua]
 * 修复睡眠或休眠前可能产生的错误报告输出(Windows)
   * 启动第一次遇到 Insufficient privileges or not any available network devices 错误信息时将暂时不输出到错误报告文件
   * 移除 An error occurred in XXX 错误信息

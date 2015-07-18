@@ -57,7 +57,7 @@ extern std::vector<std::wstring> ConfigFileList;
 extern std::vector<FILE_DATA> FileList_IPFilter, FileList_Hosts;
 extern std::vector<DIFFERNET_IPFILTER_FILE_SET> *IPFilterFileSetUsing, *IPFilterFileSetModificating;
 extern std::vector<DIFFERNET_HOSTS_FILE_SET> *HostsFileSetUsing, *HostsFileSetModificating;
-extern std::mutex HostsListLock, AddressRangeLock, ResultBlacklistLock, AddressHostsListLock, LocalRoutingListLock;
+extern std::mutex IPFilterFileLock, HostsFileLock;
 
 //Functions in Configuration.cpp
 bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t FileIndex);
@@ -68,9 +68,9 @@ void __fastcall ClearListData(const size_t ClearType, const size_t FileIndex);
 bool __fastcall ParameterCheckAndSetting(const size_t FileIndex);
 bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, const size_t Line, bool &IsLabelComments);
 #if defined(PLATFORM_WIN)
-	void __fastcall ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData);
+	bool __fastcall ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData, const size_t FileIndex, const size_t Line);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	void ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData, std::vector<std::string> *sListData);
+	bool ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData, std::vector<std::string> *sListData, const size_t FileIndex, const size_t Line);
 #endif
 bool __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, const uint16_t Protocol, const size_t FileIndex, const size_t Line);
 bool __fastcall ReadSingleAddress(std::string Data, const size_t DataOffset, sockaddr_storage &SockAddr, const uint16_t Protocol, const size_t FileIndex, const size_t Line);

@@ -69,32 +69,6 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 	}
 
 	size_t DataLength = 0;
-//Check hosts.
-	auto DNS_Header = (pdns_hdr)SendBuffer.get();
-	if (DNS_Header->Questions == htons(U16_NUM_ONE))
-	{
-		if (Protocol == IPPROTO_TCP) //TCP
-			DataLength = LARGE_PACKET_MAXSIZE;
-		else //UDP
-			DataLength = PACKET_MAXSIZE;
-		DataLength = CheckHosts(SendBuffer.get(), Length, RecvBuffer.get(), DataLength);
-
-	//Send response.
-		if (DataLength >= DNS_PACKET_MINSIZE)
-		{
-			SendToRequester(RecvBuffer.get(), DataLength, Protocol, LocalSocketData);
-			return true;
-		}
-	}
-	else { //Not any Question Resource Records
-		memcpy_s(RecvBuffer.get(), Length, SendBuffer.get(), Length);
-		DNS_Header = (pdns_hdr)RecvBuffer.get();
-		DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_FE);
-
-		SendToRequester(RecvBuffer.get(), Length, Protocol, LocalSocketData);
-		return false;
-	}
-
 //Local server requesting
 	if ((DataLength == EXIT_CHECK_HOSTS_TYPE_LOCAL || Parameter.LocalMain) && 
 		LocalRequestProcess(SendBuffer.get(), Length, RecvBuffer.get(), Protocol, LocalSocketData))
@@ -109,6 +83,7 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 		return true;
 	}
 	
+	auto DNS_Header = (pdns_hdr)SendBuffer.get();
 //Compression Pointer Mutation
 	DataLength = Length;
 	if (Parameter.CompressionPointerMutation && DNS_Header->Additional == 0)
@@ -119,7 +94,7 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 	}
 
 //Hosts Only requesting
-	if (Parameter.HostsOnly > HOSTS_ONLY_MODE_NONE && DirectRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), Protocol, true, LocalSocketData))
+	if (Parameter.DirectRequest > DIRECT_REQUEST_MODE_NONE && DirectRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), Protocol, true, LocalSocketData))
 	{
 	//Fin TCP request connection.
 		if (Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
@@ -137,10 +112,10 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 	{
 		if (DNSCurveParameter.IsEncryption && 
 		//Send Length check
-			(DataLength > DNSCurveParameter.DNSCurvePayloadSize + crypto_box_BOXZEROBYTES - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES) ||
+			(DataLength > DNSCurveParameter.DNSCurvePayloadSize + crypto_box_BOXZEROBYTES - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES) || 
 		//Receive Size check(TCP Mode)
 		(Parameter.RequestMode_Transport == REQUEST_MODE_TCP || DNSCurveParameter.DNSCurveMode == DNSCURVE_REQUEST_MODE_TCP || Protocol == IPPROTO_TCP) && DNSCurveParameter.DNSCurvePayloadSize >= LARGE_PACKET_MAXSIZE && 
-			crypto_box_ZEROBYTES + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES + DataLength >= LARGE_PACKET_MAXSIZE ||
+			crypto_box_ZEROBYTES + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES + DataLength >= LARGE_PACKET_MAXSIZE || 
 		//Receive Size check(UDP Mode)
 			Parameter.RequestMode_Transport != REQUEST_MODE_TCP && DNSCurveParameter.DNSCurveMode != DNSCURVE_REQUEST_MODE_TCP && Protocol != IPPROTO_TCP && DNSCurveParameter.DNSCurvePayloadSize >= PACKET_MAXSIZE && 
 			crypto_box_ZEROBYTES + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES + DataLength >= PACKET_MAXSIZE))
@@ -237,7 +212,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 	{
 		for (auto AcceptTypeTableIter = Parameter.AcceptTypeList->begin();AcceptTypeTableIter != Parameter.AcceptTypeList->end();++AcceptTypeTableIter)
 		{
-			if (AcceptTypeTableIter + 1U == Parameter.AcceptTypeList->end()) //Last
+			if (AcceptTypeTableIter + 1U == Parameter.AcceptTypeList->end())
 			{
 				if (*AcceptTypeTableIter != DNS_Query->Type)
 				{
@@ -355,7 +330,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 
 //Main check
 	auto IsLocal = false;
-	std::unique_lock<std::mutex> HostsListMutex(HostsListLock);
+	std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock);
 	for (auto HostsFileSetIter:*HostsFileSetUsing)
 	{
 		for (auto HostsTableIter:HostsFileSetIter.HostsList)
@@ -418,7 +393,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 				//IPv6
 					if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && HostsTableIter.Type_Record.front() == htons(DNS_RECORD_AAAA))
 					{
-					//EDNS Lebal
+					//EDNS Label
 						if (DNS_Header->Additional == htons(U16_NUM_ONE))
 						{
 							memset(Result + Length - sizeof(dns_record_opt), 0, sizeof(dns_record_opt));
@@ -448,6 +423,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 						//Different result
 							if (!Parameter.EDNS_Label)
 							{
+/* Old version(2015-07-18)
 								auto DNS_Record_OPT = (pdns_record_opt)(Result + Length - sizeof(dns_record_opt) + HostsTableIter.Length);
 								DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
 								DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
@@ -457,6 +433,9 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 									DNS_Record_OPT->Z_Field = htons(ntohs(DNS_Record_OPT->Z_Field) | EDNS_GET_BIT_DO); //Set Accepts DNSSEC security Resource Records bit.
 
 								return Length + HostsTableIter.Length;
+*/
+								DNS_Header->Additional = 0;
+								return AddEDNS_LabelToAdditionalRR(Result, Length - sizeof(dns_record_opt) + HostsTableIter.Length, ResultSize, false);
 							}
 							else {
 								return Length - sizeof(dns_record_opt) + HostsTableIter.Length;
@@ -491,7 +470,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 					}
 					else if (DNS_Query->Type == htons(DNS_RECORD_A) && HostsTableIter.Type_Record.front() == htons(DNS_RECORD_A))
 					{
-					//EDNS Lebal
+					//EDNS Label
 						if (DNS_Header->Additional == htons(U16_NUM_ONE))
 						{
 							memset(Result + Length - sizeof(dns_record_opt), 0, sizeof(dns_record_opt));
@@ -521,6 +500,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 						//Different result
 							if (!Parameter.EDNS_Label)
 							{
+/* Old version(2015-07-18)
 								auto DNS_Record_OPT = (pdns_record_opt)(Result + Length - sizeof(dns_record_opt) + HostsTableIter.Length);
 								DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
 								DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
@@ -530,6 +510,9 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 									DNS_Record_OPT->Z_Field = htons(ntohs(DNS_Record_OPT->Z_Field) | EDNS_GET_BIT_DO); //Set Accepts DNSSEC security Resource Records bit.
 
 								return Length + HostsTableIter.Length;
+*/
+								DNS_Header->Additional = 0;
+								return AddEDNS_LabelToAdditionalRR(Result, Length - sizeof(dns_record_opt) + HostsTableIter.Length, ResultSize, false);
 							}
 							else {
 								return Length - sizeof(dns_record_opt) + HostsTableIter.Length;
@@ -567,7 +550,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 		}
 	}
 
-	HostsListMutex.unlock();
+	HostsFileMutex.unlock();
 
 //Check DNS cache.
 	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
@@ -632,13 +615,14 @@ bool __fastcall LocalRequestProcess(const char *OriginalSend, const size_t SendS
 }
 
 //Request Process(Direct connections part)
-bool __fastcall DirectRequestProcess(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const bool HostsOnly, const SOCKET_DATA &LocalSocketData)
+bool __fastcall DirectRequestProcess(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const bool DirectRequest, const SOCKET_DATA &LocalSocketData)
 {
 	size_t DataLength = 0;
 
 //Hosts Only mode check
-	if (HostsOnly && (SelectNetworkProtocol() == AF_INET6 && Parameter.HostsOnly == HOSTS_ONLY_MODE_IPV4 || //IPv6
-		SelectNetworkProtocol() == AF_INET && Parameter.HostsOnly == HOSTS_ONLY_MODE_IPV6)) //IPv4
+	DataLength = SelectNetworkProtocol();
+	if (DirectRequest && (DataLength == AF_INET6 && Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV4 || //IPv6
+		DataLength == AF_INET && Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV6)) //IPv4
 			return false;
 
 //TCP Mode
@@ -756,7 +740,7 @@ bool __fastcall TCPRequestProcess(const char *OriginalSend, const size_t SendSiz
 uint16_t __fastcall SelectNetworkProtocol(void)
 {
 //IPv6
-	if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 &&
+	if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
 		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv6 || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4

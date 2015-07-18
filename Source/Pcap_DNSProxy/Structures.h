@@ -1287,6 +1287,7 @@ RFC 7314(https://tools.ietf.org/html/rfc7314), Extension Mechanisms for DNS (EDN
 #define DNS_GET_BIT_AA                0x0400     //Get Authoritative bit in DNS flags.
 #define DNS_GET_BIT_TC                0x0200     //Get Truncated bit in DNS flags.
 #define DNS_GET_BIT_RD                0x0100     //Get Recursion Desired bit in DNS flags.
+#define DNS_GET_BIT_Z                 0x0040     //Get Reserved bit in DNS flags.
 #define DNS_GET_BIT_AD                0x0020     //Get Authentic Data bit in DNS flags.
 #define DNS_GET_BIT_CD                0x0010     //Get Checking Disabled bit in DNS flags.
 #define DNS_GET_BIT_RCODE             0x000F     //Get RCode in DNS flags.

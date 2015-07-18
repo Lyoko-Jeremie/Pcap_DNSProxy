@@ -159,7 +159,7 @@ size_t __fastcall AddLengthDataToDNSHeader(PSTR Buffer, const size_t RecvLen, co
 //Convert data from chars to DNS query
 size_t __fastcall CharToDNSQuery(const char *FName, PSTR TName)
 {
-	int Index[] = {(int)strnlen_s(FName, DOMAIN_MAXSIZE) - 1, 0, 0};
+	int Index[]{(int)strnlen_s(FName, DOMAIN_MAXSIZE) - 1, 0, 0};
 	Index[2U] = Index[0] + 1;
 	TName[Index[0] + 2] = 0;
 
@@ -186,7 +186,7 @@ size_t __fastcall DNSQueryToChar(const char *TName, PSTR FName)
 {
 //Initialization
 	size_t uIndex = 0;
-	int Index[] = {0, 0};
+	int Index[]{0, 0};
 
 //Convert domain.
 	for (uIndex = 0;uIndex < DOMAIN_MAXSIZE;++uIndex)
@@ -329,13 +329,22 @@ void __fastcall MakeDomainCaseConversion(PSTR Buffer)
 }
 
 //Add EDNS options to Additional Resource Records in DNS packet
-size_t __fastcall AddEDNS_LabelToAdditionalRR(PSTR Buffer, const size_t Length)
+size_t __fastcall AddEDNS_LabelToAdditionalRR(PSTR Buffer, const size_t Length, const size_t MaxLen, const bool NoHeader)
 {
+//Initialization
+	auto DNS_Header = (pdns_hdr)Buffer;
+	if (!NoHeader)
+	{
+		if (DNS_Header->Additional > 0)
+			return Length;
+		else 
+			DNS_Header->Additional = htons(U16_NUM_ONE);
+	}
 	size_t DataLength = Length;
 
 //Add a new EDNS/OPT Additional Resource Records.
-	auto DNS_Header = (pdns_hdr)Buffer;
-	DNS_Header->Additional = htons(ntohs(DNS_Header->Additional) + 1U);
+	if (DataLength + sizeof(dns_record_opt) > MaxLen)
+		return DataLength;
 	auto DNS_Record_OPT = (pdns_record_opt)(Buffer + DataLength);
 	DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
 	DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
@@ -344,8 +353,11 @@ size_t __fastcall AddEDNS_LabelToAdditionalRR(PSTR Buffer, const size_t Length)
 //DNSSEC requesting
 	if (Parameter.DNSSEC_Request)
 	{
-		DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_GET_BIT_AD); //Set Authentic Data bit.
-//		DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_GET_BIT_CD); //Set Checking Disabled bit.
+		if (!NoHeader)
+		{
+			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_GET_BIT_AD); //Set Authentic Data bit.
+//			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_GET_BIT_CD); //Set Checking Disabled bit.
+		}
 		DNS_Record_OPT->Z_Field = htons(ntohs(DNS_Record_OPT->Z_Field) | EDNS_GET_BIT_DO); //Set Accepts DNSSEC security Resource Records bit.
 	}
 
@@ -359,11 +371,22 @@ size_t __fastcall AddEDNS_LabelToAdditionalRR(PSTR Buffer, const size_t Length)
 			if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && Parameter.LocalhostSubnet.IPv6 != nullptr && 
 				Parameter.LocalhostSubnet.IPv6->Address.ss_family > 0 && Parameter.LocalhostSubnet.IPv6->Prefix > 0)
 			{
+			//Length check
+				if (DataLength + sizeof(edns_client_subnet) > MaxLen)
+					return DataLength;
+
+			//Make EDNS Subnet header.
 				auto EDNS_Subnet_Header = (pedns_client_subnet)(Buffer + DataLength);
 				EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
 				EDNS_Subnet_Header->Family = htons(ADDRESS_FAMILY_IPV6);
 				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet.IPv6->Prefix;
 				DataLength += sizeof(edns_client_subnet);
+
+			//Length check
+				if (DataLength + sizeof(in6_addr) > MaxLen)
+					return DataLength;
+
+			//Copy subnet address.
 				auto Addr = (in6_addr *)(Buffer + DataLength);
 				*Addr = ((PSOCKADDR_IN6)&Parameter.LocalhostSubnet.IPv6->Address)->sin6_addr;
 				EDNS_Subnet_Header->Length = htons((uint16_t)(sizeof(uint16_t) + sizeof(uint8_t) * 2U + sizeof(in6_addr)));
@@ -374,11 +397,22 @@ size_t __fastcall AddEDNS_LabelToAdditionalRR(PSTR Buffer, const size_t Length)
 			else if (DNS_Query->Type == htons(DNS_RECORD_A) && Parameter.LocalhostSubnet.IPv4 != nullptr && 
 				Parameter.LocalhostSubnet.IPv4->Address.ss_family > 0 && Parameter.LocalhostSubnet.IPv4->Prefix > 0)
 			{
+			//Length check
+				if (DataLength + sizeof(edns_client_subnet) > MaxLen)
+					return DataLength;
+
+			//Make EDNS Subnet header.
 				auto EDNS_Subnet_Header = (pedns_client_subnet)(Buffer + DataLength);
 				EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
 				EDNS_Subnet_Header->Family = htons(ADDRESS_FAMILY_IPV4);
 				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet.IPv4->Prefix;
 				DataLength += sizeof(edns_client_subnet);
+
+			//Length check
+				if (DataLength + sizeof(in_addr) > MaxLen)
+					return DataLength;
+
+			//Copy subnet address.
 				auto Addr = (in_addr *)(Buffer + DataLength);
 				*Addr = ((PSOCKADDR_IN)&Parameter.LocalhostSubnet.IPv4->Address)->sin_addr;
 				EDNS_Subnet_Header->Length = htons((uint16_t)(sizeof(uint16_t) + sizeof(uint8_t) * 2U + sizeof(in_addr)));

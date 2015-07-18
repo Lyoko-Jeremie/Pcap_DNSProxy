@@ -20,11 +20,25 @@
 #include "PrintLog.h"
 
 //Print errors to log file
-size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const SSIZE_T ErrCode, const wchar_t *FileName, const size_t Line)
+bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const SSIZE_T ErrCode, const wchar_t *FileName, const size_t Line)
 {
 //Print Error: Enable/Disable.
-	if (!Parameter.PrintError)
-		return EXIT_SUCCESS;
+	if (!Parameter.PrintError || Message == nullptr || FileName == nullptr || 
+		CheckEmptyBuffer(FileName, wcsnlen_s(FileName, ORIGINAL_PACKET_MAXSIZE)) * sizeof(wchar_t) || 
+		CheckEmptyBuffer(Message, wcsnlen_s(Message, ORIGINAL_PACKET_MAXSIZE)) * sizeof(wchar_t))
+			return false;
+
+//Get current date and time.
+	std::shared_ptr<tm> TimeStructure(new tm());
+	memset(TimeStructure.get(), 0, sizeof(tm));
+	time_t TimeValues = 0;
+	time(&TimeValues);
+#if defined(PLATFORM_WIN)
+	if (localtime_s(TimeStructure.get(), &TimeValues) > 0)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	if (localtime_r(&TimeValues, TimeStructure.get()) == nullptr)
+#endif
+		return false;
 
 //Print Start Time at first printing.
 	time_t InnerStartTime = 0;
@@ -33,13 +47,6 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 		InnerStartTime = StartTime;
 		StartTime = 0;
 	}
-
-//Get current date and time.
-	std::shared_ptr<tm> TimeStructure(new tm());
-	memset(TimeStructure.get(), 0, sizeof(tm));
-	time_t TimeValues = 0;
-	time(&TimeValues);
-	localtime_s(TimeStructure.get(), &TimeValues);
 
 //Print to screen.
 #if defined(PLATFORM_WIN)
@@ -53,7 +60,13 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 		{
 			std::shared_ptr<tm> TimeStructureTemp(new tm());
 			memset(TimeStructureTemp.get(), 0, sizeof(tm));
-			localtime_s(TimeStructureTemp.get(), &InnerStartTime);
+		#if defined(PLATFORM_WIN)
+			if (localtime_s(TimeStructureTemp.get(), &InnerStartTime) > 0)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			if (localtime_r(&InnerStartTime, TimeStructureTemp.get()) == nullptr)
+		#endif
+				return false;
+
 			wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
 		}
 
@@ -157,7 +170,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Network Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 			#if defined(PLATFORM_WIN)
 				else if (ErrCode == WSAENETUNREACH) //Block error messages when network is unreachable.
-					return EXIT_SUCCESS;
+					return true;
 			#endif
 				else 
 					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Network Error: %ls, error code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrCode);
@@ -175,7 +188,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 			{
 			#if defined(PLATFORM_WIN)
 				if (ErrCode == WSAENETUNREACH) //Block error messages when network is unreachable.
-					return EXIT_SUCCESS;
+					return true;
 				else 
 			#endif
 					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> DNSCurve Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
@@ -188,7 +201,7 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 			}break;
 			default:
 			{
-				return EXIT_FAILURE;
+				return false;
 			}
 		}
 	}
@@ -223,18 +236,28 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 //Main print
 #if defined(PLATFORM_WIN)
 	FILE *Output = nullptr;
-	_wfopen_s(&Output, Parameter.Path_ErrorLog->c_str(), L"a,ccs=UTF-8");
+	if (_wfopen_s(&Output, Parameter.Path_ErrorLog->c_str(), L"a,ccs=UTF-8") == 0 && Output != nullptr)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	auto Output = fopen(Parameter.sPath_ErrorLog->c_str(), "a");
-#endif
 	if (Output != nullptr)
+#endif
 	{
 	//Print start time before print errors.
 		if (InnerStartTime > 0)
 		{
 			std::shared_ptr<tm> TimeStructureTemp(new tm());
 			memset(TimeStructureTemp.get(), 0, sizeof(tm));
-			localtime_s(TimeStructureTemp.get(), &InnerStartTime);
+			
+		#if defined(PLATFORM_WIN)
+			if (localtime_s(TimeStructureTemp.get(), &InnerStartTime) > 0)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			if (localtime_r(&InnerStartTime, TimeStructureTemp.get()) == nullptr)
+		#endif
+			{
+				fclose(Output);
+				return false;
+			}
+
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", TimeStructureTemp->tm_year + 1900, TimeStructureTemp->tm_mon + 1, TimeStructureTemp->tm_mday, TimeStructureTemp->tm_hour, TimeStructureTemp->tm_min, TimeStructureTemp->tm_sec);
 		}
 
@@ -370,14 +393,14 @@ size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const
 			default:
 			{
 				fclose(Output);
-				return EXIT_FAILURE;
+				return false;
 			}
 		}
 
 	//Close file.
 		fclose(Output);
-		return EXIT_SUCCESS;
+		return true;
 	}
 
-	return EXIT_FAILURE;
+	return false;
 }

@@ -55,11 +55,15 @@ bool __fastcall DomainTestRequest(const uint16_t Protocol)
 		//EDNS Label
 			if (Parameter.EDNS_Label) //Not any Additional Resource Records
 			{
+/* Old version(2015-07-18)
 				auto DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + sizeof(dns_hdr) + DataLength);
 				DNS_Header->Additional = htons(U16_NUM_ONE);
 				DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
 				DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 				DataLength += sizeof(dns_record_opt);
+*/
+				DataLength = AddEDNS_LabelToAdditionalRR(Buffer.get(), DataLength + sizeof(dns_hdr), PACKET_MAXSIZE, false);
+				DataLength -= sizeof(dns_hdr);
 			}
 		}
 		else {
@@ -68,7 +72,6 @@ bool __fastcall DomainTestRequest(const uint16_t Protocol)
 	}
 
 	DataLength += sizeof(dns_hdr);
-
 //Send requesting.
 	size_t Times = 0;
 	for (;;)
@@ -138,11 +141,15 @@ bool __fastcall DomainTestRequest(const uint16_t Protocol)
 			//EDNS Label
 				if (Parameter.EDNS_Label) //Not any Additional Resource Records
 				{
+/* Old version(2015-07-18)
 					auto DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + DataLength);
 					DNS_Header->Additional = htons(U16_NUM_ONE);
 					DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
 					DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 					DataLength += sizeof(dns_record_opt);
+*/
+					DNS_Header->Additional = 0;
+					DataLength = AddEDNS_LabelToAdditionalRR(Buffer.get(), DataLength, PACKET_MAXSIZE, false);
 				}
 			}
 
@@ -727,7 +734,7 @@ bool __fastcall SelectTargetSocketMulti(std::vector<SOCKET_DATA> &SockDataList, 
 		}
 	}
 //IPv4
-	else if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 &&
+	else if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
 		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv4 || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
@@ -1777,7 +1784,7 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 				if (setsockopt(UDPSockData->Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&SocketTimeoutTemp, sizeof(int)) == SOCKET_ERROR || 
 					setsockopt(UDPSockData->Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&SocketTimeoutTemp, sizeof(int)) == SOCKET_ERROR)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				timeval SocketTimeoutTemp = {0};
+				timeval SocketTimeoutTemp{0};
 				SocketTimeoutTemp.tv_sec = Parameter.ReceiveWaiting / SECOND_TO_MILLISECOND;
 				SocketTimeoutTemp.tv_usec = Parameter.ReceiveWaiting % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 				if (setsockopt(UDPSockData->Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&SocketTimeoutTemp, sizeof(timeval)) == SOCKET_ERROR || 

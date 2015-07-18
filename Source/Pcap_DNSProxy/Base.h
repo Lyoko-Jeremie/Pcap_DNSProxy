@@ -103,8 +103,9 @@
 
 //Version defines
 #define CONFIG_VERSION_POINT_THREE   0.3
-#define CONFIG_VERSION               0.4             //Current configuration version
-#define FULL_VERSION                 L"0.4.2.4"
+#define CONFIG_VERSION               0.4                                   //Current configuration version
+#define FULL_VERSION                 L"0.4.2.5"
+#define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2015 Chengr28"
 
 //Exit code defines
 #define EXIT_CHECK_HOSTS_TYPE_LOCAL                2U   //Type is Local in CheckHosts function.
@@ -155,7 +156,7 @@
 //Code defines
 #if defined(PLATFORM_WIN)
 	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE   8192U      //Buffer maximum size of QueryServiceConfig() function(8KB/8192 Bytes)
-	#define SYSTEM_SOCKET                         UINT_PTR   //System Socket defined(WinSock2.h), not the same in x86(unsigned int) and x64(unsigned __int64) platform, which define in WinSock2.h file.
+	#define SYSTEM_SOCKET                         UINT_PTR   //System Socket defined(WinSock2.h), which is not the same in x86(unsigned int) and x64(unsigned __int64) platform and defined in WinSock2.h file.
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define SYSTEM_SOCKET                         int
 #endif
@@ -210,6 +211,7 @@
 //Data defines
 #define DEFAULT_LOCAL_SERVERNAME              ("pcap-dnsproxy.localhost.server")                                                                                                            //Default Local DNS server name
 #if defined(PLATFORM_WIN)
+	#define CONFIG_FILE_NAME_LIST                 L"Config.ini", L"Config.conf", L"Config.cfg", L"Config"
 	#define COMMAND_LONG_PRINT_VERSION            L"--version"
 	#define COMMAND_SHORT_PRINT_VERSION           L"-v"
 	#define COMMAND_LONG_HELP                     L"--help"
@@ -221,9 +223,11 @@
 	#define SID_ADMINISTRATORS_GROUP              L"S-1-5-32-544"                                                                                                                               //Windows SID of Administrators group
 	#define MAILSLOT_NAME                         L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot"                                                                                                    //MailSlot name
 	#define MAILSLOT_MESSAGE_FLUSH_DNS            L"Flush DNS cache of Pcap_DNSProxy."                                                                                                          //The mailslot message to flush dns cache
-	#define DEFAULT_LOCAL_SERVICE_NAME            L"PcapDNSProxyService"                                                                                                                        //Default service name of system
-	#define DEFAULT_PADDINGDATA                   ("abcdefghijklmnopqrstuvwabcdefghi")                                                                                                          //ICMP padding data on Windows
+	#define SYSTEM_SERVICE_NAME                   L"PcapDNSProxyService"                                                                                                                        //System service name
+	#define DEFAULT_PADDING_DATA                  ("abcdefghijklmnopqrstuvwabcdefghi")                                                                                                          //ICMP padding data on Windows
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	#define CONFIG_FILE_NAME_LIST                 L"Config.conf", L"Config.ini", L"Config.cfg", L"Config"
+	#define CONFIG_FILE_NAME_LIST_STRING          "Config.conf", "Config.ini", "Config.cfg", "Config"
 	#define COMMAND_LONG_PRINT_VERSION            ("--version")
 	#define COMMAND_SHORT_PRINT_VERSION           ("-v")
 	#define COMMAND_LONG_HELP                     ("--help")
@@ -292,10 +296,10 @@
 #define REQUEST_MODE_IPV4                2U
 #define REQUEST_MODE_UDP                 0
 #define REQUEST_MODE_TCP                 1U
-#define HOSTS_ONLY_MODE_NONE             0
-#define HOSTS_ONLY_MODE_BOTH             1U
-#define HOSTS_ONLY_MODE_IPV6             2U
-#define HOSTS_ONLY_MODE_IPV4             3U
+#define DIRECT_REQUEST_MODE_NONE         0
+#define DIRECT_REQUEST_MODE_BOTH         1U
+#define DIRECT_REQUEST_MODE_IPV6         2U
+#define DIRECT_REQUEST_MODE_IPV4         3U
 #define HOSTS_TYPE_NORMAL                0
 #define HOSTS_TYPE_WHITE                 1U
 #define HOSTS_TYPE_LOCAL                 2U
@@ -325,6 +329,8 @@
 
 //////////////////////////////////////////////////
 // Function defines(Part 2)
+#define ntoh16_Force          hton16_Force
+#define ntoh32_Force          hton32_Force
 #if defined(PLATFORM_WIN)
 	#define Sleep(Millisecond)    Sleep((DWORD)(Millisecond))
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -421,7 +427,7 @@ public:
 //[DNS] block
 	size_t                               RequestMode_Network;
 	size_t                               RequestMode_Transport;
-	size_t                               HostsOnly;
+	size_t                               DirectRequest;
 	bool                                 LocalMain;
 	bool                                 LocalHosts;
 	bool                                 LocalRouting;
@@ -705,7 +711,7 @@ uint32_t __fastcall hton32_Force(const uint32_t Value);
 uint32_t __fastcall ntoh32_Force(const uint32_t Value);
 uint64_t __fastcall hton64(const uint64_t Value);
 uint64_t __fastcall ntoh64(const uint64_t Value);
-void __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer);
+bool __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer);
 void __fastcall CaseConvert(const bool IsLowerToUpper, PSTR Buffer, const size_t Length);
 void __fastcall CaseConvert(const bool IsLowerToUpper, std::string &Buffer);
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -718,7 +724,7 @@ void __fastcall CaseConvert(const bool IsLowerToUpper, std::string &Buffer);
 #endif
 
 //PrintLog.h
-size_t __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const SSIZE_T ErrCode, const wchar_t *FileName, const size_t Line);
+bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const SSIZE_T ErrCode, const wchar_t *FileName, const size_t Line);
 
 //PacketData.h
 //uint32_t __fastcall GetFCS(const unsigned char *Buffer, const size_t Length);
@@ -730,7 +736,7 @@ size_t __fastcall CharToDNSQuery(const char *FName, PSTR TName);
 size_t __fastcall DNSQueryToChar(const char *TName, PSTR FName);
 void __fastcall MakeRamdomDomain(PSTR Buffer);
 void __fastcall MakeDomainCaseConversion(PSTR Buffer);
-size_t __fastcall AddEDNS_LabelToAdditionalRR(PSTR Buffer, const size_t Length);
+size_t __fastcall AddEDNS_LabelToAdditionalRR(PSTR Buffer, const size_t Length, const size_t MaxLen, const bool NoHeader);
 size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Length);
 
 //Protocol.h
@@ -740,6 +746,7 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const b
 bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol);
 bool __fastcall CheckCustomModeFilter(const void *OriginalAddr, const uint16_t Protocol);
 size_t __fastcall CheckDNSQueryNameLength(const char *Buffer);
+size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t Length, const SOCKET_DATA &LocalSocketData, const uint16_t Protocol);
 size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal);
 
 //Configuration.h
@@ -765,6 +772,8 @@ void __fastcall NetworkInformationMonitor(void);
 
 //Process.h
 bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Length, const SOCKET_DATA LocalSocketData, const uint16_t Protocol);
+size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Result, const size_t ResultSize);
+bool __fastcall SendToRequester(PSTR RecvBuffer, const size_t RecvSize, const uint16_t Protocol, const SOCKET_DATA &LocalSocketData);
 bool __fastcall MarkDomainCache(const char *Buffer, const size_t Length);
 
 //Captrue.h

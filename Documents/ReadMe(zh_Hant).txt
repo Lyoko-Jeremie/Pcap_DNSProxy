@@ -124,7 +124,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * 請求功能變數名稱解析優先順序
   * 使用系統API函數進行功能變數名稱解析（大部分）：系統 Hosts > Pcap_DNSProxy 的 Hosts 條目（Whitelist/白名單條目 > Hosts/主要Hosts清單） > DNS緩存 > Local Hosts/境內DNS解析功能變數名稱清單 > 遠端DNS伺服器
   * 直接使用網路介面卡設置進行功能變數名稱解析（小部分）：Pcap_DNSProxy 的 Hosts 配置檔案（Whitelist/白名單條目 > Hosts/主要Hosts清單） > DNS緩存 > Local Hosts/境內DNS解析功能變數名稱清單 > 遠端DNS伺服器
-  * 請求遠端DNS伺服器的優先順序：Hosts Only 模式 > TCP 模式的DNSCurve 加密/非加密模式（如有） > UDP 模式的DNSCurve 加密/非加密模式（如有） > TCP模式普通請求（如有） > UDP模式普通請求
+  * 請求遠端DNS伺服器的優先順序：Direct Request 模式 > TCP 模式的 DNSCurve 加密/非加密模式（如有） > UDP 模式的DNSCurve 加密/非加密模式（如有） > TCP模式普通請求（如有） > UDP模式普通請求
 * 本工具的 DNSCurve/DNSCrypt 協定是內置的實現，不需要安裝 DNSCrypt 官方的工具！
   * DNSCurve 協定為 Streamlined/精簡類型
   * 自動獲取連接資訊時必須保證系統時間的正確，否則證書驗證時會出錯導致連接資訊獲取失敗！
@@ -191,9 +191,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
     * 同時填入 TCP 和 UDP 等於只填入 TCP，因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
     * 注意：此處的協定指的是程式請求遠端 DNS 伺服器時所使用的協定，而向本程式請求功能變數名稱解析時可使用的協定由 Listen Protocol 參數決定
-  * Hosts Only - Hosts Only 直連模式，啟用後將使用系統的 API 直接請求遠端伺服器而啟用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，關閉為 0，預設為 0
+  * Direct Request - 直連模式，啟用後將使用系統的 API 直接請求遠端伺服器而啟用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，關閉為 0，預設為 0
     * 建議當系統使用全域代理功能時啟用，程式將除 Local 外的所有請求直接交給系統處理，系統會將請求自動發往遠端伺服器進行解析
-    * 填入 IPv4 或 IPv6 時將會啟用對應協定的 Hosts Only 功能，同時填入 IPv4 和 IPv6 將會啟用所有協定的功能
+    * 填入 IPv4 或 IPv6 時將會啟用對應協定的 Direct Request 功能，同時填入 IPv4 和 IPv6 將會啟用所有協定的功能
   * Local Main - 主要境內伺服器請求功能：開啟為1/關閉為0，預設為 0
     * 開啟後所有請求先使用 Local 的伺服器進行解析，遇到遭投毒污染的解析結果時自動再向境外伺服器請求
     * 本功能不能與 Local Hosts 同時啟用
@@ -714,3 +714,24 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 * Stop - 臨時停止讀取標籤
 在需要停止讀取的資料前添加 "[Stop]"（不含引號） 標籤即可在中途停止對檔的讀取，直到有其它標籤時再重新開始讀取
   * 具體情況參見上文的介紹
+
+
+-------------------------------------------------------------------------------
+
+
+程序運行參數說明：
+由於部分功能無法通過使用配置文件指定使用，故而使用程序外掛參數進行支持
+所有外掛參數也可通過-h 和--help 參數查詢
+
+* -v 和 --version
+  輸出程序版本號信息到屏幕上
+* -h 和 --help
+  輸出程序幫助信息到屏幕上
+* --flush-dns
+  立即清空所有程序內以及系統的DNS 緩存
+* --first-setup
+  進行本地防火牆測試(Windows)
+* -c Path 和 --config-file Path
+  啟動時指定配置文件所在的以及程序的工作目錄
+* --disable-daemon
+  關閉守護進程模式(Linux)

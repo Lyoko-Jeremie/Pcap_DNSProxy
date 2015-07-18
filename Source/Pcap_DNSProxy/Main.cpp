@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 
 #if defined(PLATFORM_WIN)
 //Service initialization and start service.
-	SERVICE_TABLE_ENTRYW ServiceTable[] = {{DEFAULT_LOCAL_SERVICE_NAME, (LPSERVICE_MAIN_FUNCTIONW)ServiceMain}, {nullptr, nullptr}};
+	SERVICE_TABLE_ENTRYW ServiceTable[]{{SYSTEM_SERVICE_NAME, (LPSERVICE_MAIN_FUNCTIONW)ServiceMain}, {nullptr, nullptr}};
 	if (!StartServiceCtrlDispatcherW(ServiceTable))
 	{
 		Parameter.Console = true;
@@ -88,7 +88,6 @@ int main(int argc, char *argv[])
 		SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, TRUE);
 		MonitorInit();
 	}
-
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	MonitorInit();
 #endif
@@ -99,9 +98,9 @@ int main(int argc, char *argv[])
 
 //Read commands from main program
 #if defined(PLATFORM_WIN)
-bool __fastcall ReadCommand(int argc, wchar_t* argv[])
+	bool __fastcall ReadCommand(int argc, wchar_t* argv[])
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-bool ReadCommand(int argc, char *argv[])
+	bool ReadCommand(int argc, char *argv[])
 #endif
 {
 //Path initialization
@@ -124,7 +123,7 @@ bool ReadCommand(int argc, char *argv[])
 #if defined(PLATFORM_WIN)
 //Winsock initialization
 	std::shared_ptr<WSAData> WSAInitialization(new WSAData());
-	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), WSAInitialization.get()) != 0 ||
+	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), WSAInitialization.get()) != 0 || 
 		LOBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_HIGH)
 	{
 		wprintf_s(L"Winsock initialization error, error code is %d.\n", WSAGetLastError());
@@ -161,7 +160,7 @@ bool ReadCommand(int argc, char *argv[])
 		{
 			if (!FirewallTest(AF_INET6) && !FirewallTest(AF_INET))
 			{
-				wprintf_s(L"Windows Firewall Test error.\n");
+				wprintf_s(L"Windows Firewall Test error, error code is %d.\n", WSAGetLastError());
 				PrintError(LOG_ERROR_NETWORK, L"Windows Firewall Test error", WSAGetLastError(), nullptr, 0);
 			}
 
@@ -189,7 +188,23 @@ bool ReadCommand(int argc, char *argv[])
 	//Print help messages.
 		else if (Commands == COMMAND_LONG_HELP || Commands == COMMAND_SHORT_HELP)
 		{
-			wprintf_s(L"Usage: Please see ReadMe... files in Documents folder.\n");
+			wprintf_s(L"Pcap_DNSProxy ");
+			wprintf_s(FULL_VERSION);
+		#if defined(PLATFORM_WIN)
+			wprintf_s(L"(Windows)\n");
+		#elif defined(PLATFORM_LINUX)
+			wprintf(L"(Linux)\n");
+		#elif defined(PLATFORM_MACX)
+			wprintf(L"(Mac)\n");
+		#endif
+			wprintf_s(COPYRIGHT_MESSAGE);
+			wprintf_s(L"\nUsage: Please see ReadMe... files in Documents folder.\n");
+			wprintf_s(L"   -v/--version:          Print current version on screen.\n");
+			wprintf_s(L"   -h/--help:             Print help messages on screen.\n");
+			wprintf_s(L"   --flush-dns:           Flush all DNS cache in program and system immediately.\n");
+			wprintf_s(L"   --first-setup:         Test local firewall(Windows).\n");
+			wprintf_s(L"   -c/--config-file Path: Set path of configuration file.\n");
+			wprintf_s(L"   --disable-daemon:      Disable daemon mode(Linux).\n");
 
 			WSACleanup();
 			return false;
@@ -241,9 +256,9 @@ bool ReadCommand(int argc, char *argv[])
 
 //Get path of program from the main function parameter and Winsock initialization
 #if defined(PLATFORM_WIN)
-bool __fastcall FileNameInit(const wchar_t *OriginalPath)
+	bool __fastcall FileNameInit(const wchar_t *OriginalPath)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-bool FileNameInit(const char *OriginalPath)
+	bool FileNameInit(const char *OriginalPath)
 #endif
 {
 //Path process
@@ -264,7 +279,8 @@ bool FileNameInit(const char *OriginalPath)
 	Parameter.sPath_Global->push_back(OriginalPath);
 	Parameter.sPath_Global->front().append("/");
 	std::wstring StringTemp;
-	MBSToWCSString(StringTemp, OriginalPath);
+	if (!MBSToWCSString(StringTemp, OriginalPath))
+		return false;
 	StringTemp.append(L"/");
 	Parameter.Path_Global->clear();
 	Parameter.Path_Global->push_back(StringTemp);

@@ -37,7 +37,7 @@ std::vector<DIFFERNET_HOSTS_FILE_SET> HostsFileSet[2U], *HostsFileSetUsing = &Ho
 	std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
 #endif
 std::deque<DNSCACHE_DATA> DNSCacheList;
-std::mutex ErrorLogLock, CaptureLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], DNSCacheListLock, HostsListLock, AddressRangeLock, ResultBlacklistLock, AddressHostsListLock, LocalRoutingListLock;
+std::mutex ErrorLogLock, CaptureLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], DNSCacheListLock, IPFilterFileLock, HostsFileLock;
 #if defined(ENABLE_PCAP)
 	std::mutex OutputPacketListLock;
 #endif
