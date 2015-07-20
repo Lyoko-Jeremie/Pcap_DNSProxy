@@ -150,7 +150,6 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Text encoding error - 檔編碼錯誤：請確認檔的編碼類型
   * Data of a line is too short - 該 Hosts 條目過短：請確認該條目的內容
   * Data of a line is too long - 該 Hosts 條目過長：一行資料切勿超過 4096 位元組/4KB
-  * Data is too long when EDNS is available - 開啟 EDNS 標籤的情況下該 Hosts 條目過長：請檢查 Hosts 的地址清單是否過長
   * Default TTL redefinition - 預設存留時間重定義：以第一個出現的預設存留時間為准
   * Regular expression pattern error - 錯誤的正則運算式：請檢查正則運算式的正確性
   * IPv6 address format error - Hosts 的 IPv6 位址格式錯誤：請檢查 Hosts 條目的位址

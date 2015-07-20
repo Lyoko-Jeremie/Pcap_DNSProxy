@@ -680,6 +680,7 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 #if !defined(PLATFORM_MACX)
 	if (Parameter.LocalServer_Length == 0)
 	{
+	//Make PTR response packet.
 		auto DNS_Record_PTR = (pdns_record_ptr)Parameter.LocalServer_Response;
 		DNS_Record_PTR->PTR = htons(DNS_POINTER_QUERY);
 		DNS_Record_PTR->Classes = htons(DNS_CLASS_IN);
@@ -688,20 +689,22 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 		DNS_Record_PTR->Length = htons((uint16_t)Parameter.LocalFQDN_Length);
 		Parameter.LocalServer_Length += sizeof(dns_record_ptr);
 
+	//Copy to global buffer.
 		memcpy_s(Parameter.LocalServer_Response + Parameter.LocalServer_Length, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt) - Parameter.LocalServer_Length, Parameter.LocalFQDN_Response, Parameter.LocalFQDN_Length);
 		Parameter.LocalServer_Length += Parameter.LocalFQDN_Length;
 
+/* Old version(2015-07-19)
 	//EDNS Label
 		if (Parameter.EDNS_Label)
 		{
-/* Old version(2015-07-18)
 			auto DNS_Record_OPT = (pdns_record_opt)(Parameter.LocalServer_Response + Parameter.LocalServer_Length);
 			DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
 			DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 			Parameter.LocalServer_Length += sizeof(dns_record_opt);
-*/
+
 			Parameter.LocalServer_Length = AddEDNS_LabelToAdditionalRR(Parameter.LocalServer_Response, Parameter.LocalServer_Length, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt), true);
 		}
+*/
 	}
 #endif
 

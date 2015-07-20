@@ -53,7 +53,7 @@ bool __fastcall DomainTestRequest(const uint16_t Protocol)
 			DataLength += sizeof(dns_qry);
 
 		//EDNS Label
-			if (Parameter.EDNS_Label) //Not any Additional Resource Records
+			if (Parameter.EDNS_Label)
 			{
 /* Old version(2015-07-18)
 				auto DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + sizeof(dns_hdr) + DataLength);
@@ -139,7 +139,7 @@ bool __fastcall DomainTestRequest(const uint16_t Protocol)
 				DataLength += sizeof(dns_qry);
 
 			//EDNS Label
-				if (Parameter.EDNS_Label) //Not any Additional Resource Records
+				if (Parameter.EDNS_Label)
 				{
 /* Old version(2015-07-18)
 					auto DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + DataLength);

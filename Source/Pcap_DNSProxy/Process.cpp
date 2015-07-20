@@ -20,7 +20,7 @@
 #include "Process.h"
 
 //Independent request process
-bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Length, const SOCKET_DATA LocalSocketData, const uint16_t Protocol)
+bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Length, const SOCKET_DATA LocalSocketData, const uint16_t Protocol, const bool IsLocalRequest)
 {
 //Initialization(Send buffer part)
 	std::shared_ptr<char> SendBuffer, RecvBuffer;
@@ -70,7 +70,7 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 
 	size_t DataLength = 0;
 //Local server requesting
-	if ((DataLength == EXIT_CHECK_HOSTS_TYPE_LOCAL || Parameter.LocalMain) && 
+	if ((Parameter.LocalMain || IsLocalRequest) && 
 		LocalRequestProcess(SendBuffer.get(), Length, RecvBuffer.get(), Protocol, LocalSocketData))
 	{
 	//Fin TCP request connection.
@@ -84,8 +84,8 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 	}
 	
 	auto DNS_Header = (pdns_hdr)SendBuffer.get();
-//Compression Pointer Mutation
 	DataLength = Length;
+//Compression Pointer Mutation
 	if (Parameter.CompressionPointerMutation && DNS_Header->Additional == 0)
 	{
 		DataLength = MakeCompressionPointerMutation(SendBuffer.get(), Length);
@@ -237,6 +237,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 		}
 	}
 
+	size_t DataLength = 0;
 //PTR Records
 #if !defined(PLATFORM_MACX)
 	if (DNS_Query->Type == htons(DNS_RECORD_PTR) && Parameter.LocalServer_Length + Length <= ResultSize)
@@ -282,21 +283,21 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 	//Send Localhost PTR.
 		if (IsSendPTR)
 		{
+		//Set header flags and copy response to buffer.
 			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SER_RA);
 			DNS_Header->Answer = htons(U16_NUM_ONE);
+			memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), 0, ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)));
+			memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)), Parameter.LocalServer_Response, Parameter.LocalServer_Length);
+			DataLength = DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + Parameter.LocalServer_Length;
 
 		//EDNS Label
-			if (Parameter.EDNS_Label)
+			if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
 			{
-				DNS_Header->Authority = 0;
-				DNS_Header->Additional = htons(U16_NUM_ONE);
-				memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), 0, ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)));
-				memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)), Parameter.LocalServer_Response, Parameter.LocalServer_Length);
-				return DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + Parameter.LocalServer_Length;
+				DNS_Header->Additional = 0;
+				DataLength = AddEDNS_LabelToAdditionalRR(Result, DataLength, ResultSize, false);
 			}
-
-			memcpy_s(Result + Length, ResultSize, Parameter.LocalServer_Response, Parameter.LocalServer_Length);
-			return Length + Parameter.LocalServer_Length;
+			
+			return DataLength;
 		}
 	}
 #endif
@@ -393,6 +394,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 				//IPv6
 					if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && HostsTableIter.Type_Record.front() == htons(DNS_RECORD_AAAA))
 					{
+/* Old version(2015-07-19)
 					//EDNS Label
 						if (DNS_Header->Additional == htons(U16_NUM_ONE))
 						{
@@ -423,7 +425,6 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 						//Different result
 							if (!Parameter.EDNS_Label)
 							{
-/* Old version(2015-07-18)
 								auto DNS_Record_OPT = (pdns_record_opt)(Result + Length - sizeof(dns_record_opt) + HostsTableIter.Length);
 								DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
 								DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
@@ -433,7 +434,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 									DNS_Record_OPT->Z_Field = htons(ntohs(DNS_Record_OPT->Z_Field) | EDNS_GET_BIT_DO); //Set Accepts DNSSEC security Resource Records bit.
 
 								return Length + HostsTableIter.Length;
-*/
+
 								DNS_Header->Additional = 0;
 								return AddEDNS_LabelToAdditionalRR(Result, Length - sizeof(dns_record_opt) + HostsTableIter.Length, ResultSize, false);
 							}
@@ -467,9 +468,65 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 
 							return Length + HostsTableIter.Length;
 						}
+*/
+
+					//Set header flags.
+						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
+						DNS_Header->Answer = htons((uint16_t)(HostsTableIter.Length / sizeof(dns_record_aaaa)));
+						
+					//Hosts item length check
+						DataLength = DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + HostsTableIter.Length;
+						if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
+						{
+							while (DataLength > PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE)
+							{
+								DataLength -= sizeof(dns_record_aaaa);
+								DNS_Header->Answer = htons(ntohs(DNS_Header->Answer) - 1U);
+							}
+						}
+						else {
+							while (DataLength > PACKET_MAXSIZE)
+							{
+								DataLength -= sizeof(dns_record_aaaa);
+								DNS_Header->Answer = htons(ntohs(DNS_Header->Answer) - 1U);
+							}
+						}
+
+					//Copy response to buffer.
+						memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), 0, ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)));
+						memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)), HostsTableIter.Response.get(), DataLength - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)));
+
+					//Hosts load balancing
+						if (ntohs(DNS_Header->Answer) > U16_NUM_ONE)
+						{
+							std::shared_ptr<dns_record_aaaa> DNS_AAAA_Temp(new dns_record_aaaa());
+							memset(DNS_AAAA_Temp.get(), 0, sizeof(dns_record_aaaa));
+
+						//Select a ramdom preferred result.
+							std::uniform_int_distribution<int> RamdomDistribution(0, ntohs(DNS_Header->Answer) - 1U);
+							size_t RamdomIndex = RamdomDistribution(*Parameter.RamdomEngine);
+							if (RamdomIndex > 0)
+							{
+								memcpy_s(DNS_AAAA_Temp.get(), sizeof(dns_record_aaaa), Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), sizeof(dns_record_aaaa));
+								memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), 0, sizeof(dns_record_aaaa));
+								memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)), Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_aaaa) * RamdomIndex, sizeof(dns_record_aaaa));
+								memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_aaaa) * RamdomIndex, 0, sizeof(dns_record_aaaa));
+								memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_aaaa) * RamdomIndex, sizeof(dns_record_aaaa), DNS_AAAA_Temp.get(), sizeof(dns_record_aaaa));
+							}
+						}
+
+					//EDNS Label
+						if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
+						{
+							DNS_Header->Additional = 0;
+							DataLength = AddEDNS_LabelToAdditionalRR(Result, DataLength, ResultSize, false);
+						}
+
+						return DataLength;
 					}
 					else if (DNS_Query->Type == htons(DNS_RECORD_A) && HostsTableIter.Type_Record.front() == htons(DNS_RECORD_A))
 					{
+/* Old version(2015-07-19)
 					//EDNS Label
 						if (DNS_Header->Additional == htons(U16_NUM_ONE))
 						{
@@ -500,7 +557,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 						//Different result
 							if (!Parameter.EDNS_Label)
 							{
-/* Old version(2015-07-18)
+
 								auto DNS_Record_OPT = (pdns_record_opt)(Result + Length - sizeof(dns_record_opt) + HostsTableIter.Length);
 								DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
 								DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
@@ -510,13 +567,14 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 									DNS_Record_OPT->Z_Field = htons(ntohs(DNS_Record_OPT->Z_Field) | EDNS_GET_BIT_DO); //Set Accepts DNSSEC security Resource Records bit.
 
 								return Length + HostsTableIter.Length;
-*/
+
 								DNS_Header->Additional = 0;
 								return AddEDNS_LabelToAdditionalRR(Result, Length - sizeof(dns_record_opt) + HostsTableIter.Length, ResultSize, false);
 							}
 							else {
 								return Length - sizeof(dns_record_opt) + HostsTableIter.Length;
 							}
+
 						}
 						else {
 							DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
@@ -544,6 +602,60 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 
 							return Length + HostsTableIter.Length;
 						}
+*/
+					//Set header flags.
+						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
+						DNS_Header->Answer = htons((uint16_t)(HostsTableIter.Length / sizeof(dns_record_a)));
+						
+					//Hosts item length check
+						DataLength = DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + HostsTableIter.Length;
+						if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
+						{
+							while (DataLength > PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE)
+							{
+								DataLength -= sizeof(dns_record_a);
+								DNS_Header->Answer = htons(ntohs(DNS_Header->Answer) - 1U);
+							}
+						}
+						else {
+							while (DataLength > PACKET_MAXSIZE)
+							{
+								DataLength -= sizeof(dns_record_a);
+								DNS_Header->Answer = htons(ntohs(DNS_Header->Answer) - 1U);
+							}
+						}
+
+					//Copy response to buffer.
+						memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), 0, ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)));
+						memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)), HostsTableIter.Response.get(), DataLength - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)));
+
+					//Hosts load balancing
+						if (ntohs(DNS_Header->Answer) > U16_NUM_ONE)
+						{
+							std::shared_ptr<dns_record_a> DNS_A_Temp(new dns_record_a());
+							memset(DNS_A_Temp.get(), 0, sizeof(dns_record_a));
+
+						//Select a ramdom preferred result.
+							std::uniform_int_distribution<int> RamdomDistribution(0, ntohs(DNS_Header->Answer) - 1U);
+							size_t RamdomIndex = RamdomDistribution(*Parameter.RamdomEngine);
+							if (RamdomIndex > 0)
+							{
+								memcpy_s(DNS_A_Temp.get(), sizeof(dns_record_a), Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), sizeof(dns_record_a));
+								memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), 0, sizeof(dns_record_a));
+								memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)), Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_a) * RamdomIndex, sizeof(dns_record_a));
+								memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_a) * RamdomIndex, 0, sizeof(dns_record_a));
+								memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_a) * RamdomIndex, sizeof(dns_record_a), DNS_A_Temp.get(), sizeof(dns_record_a));
+							}
+						}
+
+					//EDNS Label
+						if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
+						{
+							DNS_Header->Additional = 0;
+							DataLength = AddEDNS_LabelToAdditionalRR(Result, DataLength, ResultSize, false);
+						}
+
+						return DataLength;
 					}
 				}
 			}

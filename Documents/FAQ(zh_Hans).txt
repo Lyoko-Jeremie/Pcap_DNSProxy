@@ -151,7 +151,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Data of a line is too short - 该 Hosts 条目过短：请确认该条目的内容
   * Data of a line is too long - 该 Hosts 条目过长：一行数据切勿超过 4096 字节/4KB
   * Item format error - Hosts 条目格式错误：请检查该条目的格式
-  * Data is too long when EDNS is available - 开启 EDNS 标签的情况下该 Hosts 条目过长：请检查 Hosts 的地址列表是否过长
   * Default TTL redefinition - 默认生存时间重定义：以第一个出现的默认生存时间为准
   * Regular expression pattern error - 错误的正则表达式：请检查正则表达式的正确性
   * IPv6 address format error - Hosts 的 IPv6 地址格式错误：请检查 Hosts 条目的地址

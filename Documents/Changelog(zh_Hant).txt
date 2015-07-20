@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy v0.4.2.1-v0.4.2.5(Windows/Linux/Mac) 更新日誌(2015-07-18)：
+﻿Pcap_DNSProxy v0.4.2.1-v0.4.2.5(Windows/Linux/Mac) 更新日誌(2015-07-21)：
 
 * Hosts Only 參數現在更名為 Direct Request 並支援指定 IPv4 或 IPv6 功能
 * 添加不同協定的 Direct Request 功能 [AVC A]
@@ -8,11 +8,12 @@
 * 添加對 Unicode 標準包含的所有換行以及空格類別格式的支援
 * 添加對 TCP Fast Open 的支援(Linux)
 * 添加 --disable-daemon 參數，可控制程式是否以 Daemon 守護進程的方式運行(Linux)
-* 完整的 ANSI/UTF-8/UTF-16(LE/BE)/UTF-32(LE/BE) 編碼支援
+* 添加完整的 ANSI/UTF-8/UTF-16(LE/BE)/UTF-32(LE/BE) 編碼支援
 * 調整抓包模組為回檔模式降低資源的佔用
 * 調整抓包模組工作模式，避免 WinPcap 與 cFosSpeed 之間的衝突 [軒轅無雙]
 * 優化優先指定網路層協定功能
 * 優化對大小寫敏感字元的讀取
+* 優化對 Hosts 和 Local Hosts 的讀取和檢測 [yuyangzxw/gaoyan1234]
 * 修復抓包模組非 Ethernet 和 Apple IEEE 1394/FireWire 設備的錯誤識別
 * 修復資料包過濾模組的演算法錯誤 [AVC A]
 * 修復檔讀取模組對於前後留空的錯誤 [wen kangcheng]

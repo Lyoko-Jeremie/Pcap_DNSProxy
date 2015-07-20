@@ -721,7 +721,7 @@ size_t __fastcall CheckDNSQueryNameLength(const char *Buffer)
 }
 
 //Check DNS query data
-size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t Length, const SOCKET_DATA &LocalSocketData, const uint16_t Protocol)
+size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t Length, const SOCKET_DATA &LocalSocketData, const uint16_t Protocol, bool *IsLocalRequest)
 {
 //Check address.
 	if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
@@ -843,6 +843,10 @@ size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t 
 	{
 		SendToRequester(SendBuffer, DataLength[0], Protocol, LocalSocketData);
 		return EXIT_FAILURE;
+	}
+	else if (DataLength[0] == EXIT_CHECK_HOSTS_TYPE_LOCAL && IsLocalRequest != nullptr)
+	{
+		*IsLocalRequest = true;
 	}
 
 	return DataLength[1U];
