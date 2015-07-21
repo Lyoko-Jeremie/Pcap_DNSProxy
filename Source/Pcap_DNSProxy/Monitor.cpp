@@ -600,6 +600,7 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		memcpy_s(Timeout.get(), sizeof(timeval), OriginalTimeout.get(), sizeof(timeval));
 		FD_ZERO(ReadFDS.get());
 		FD_SET(LocalSocketData.Socket, ReadFDS.get());
+		IsLocalRequest = false;
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
