@@ -49,14 +49,14 @@ bool __fastcall ReadIPFilterData(std::string Data, const size_t FileIndex, const
 	if (LabelType == 0 && (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0) && 
 	#if defined(PLATFORM_WIN) //Case-insensitive on Windows
 		(FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") != std::wstring::npos && FileList_IPFilter.at(FileIndex).FileName.length() > wcslen(L"chnrouting.txt") && 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") == FileList_IPFilter.at(FileIndex).FileName.length() - wcslen(L"chnrouting.txt") || 
+		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") + wcslen(L"chnrouting.txt") == FileList_IPFilter.at(FileIndex).FileName.length() || 
 		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") != std::wstring::npos && FileList_IPFilter.at(FileIndex).FileName.length() > wcslen(L"chnroute.txt") && 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") == FileList_IPFilter.at(FileIndex).FileName.length() - wcslen(L"chnroute.txt")))
+		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") + wcslen(L"chnroute.txt") == FileList_IPFilter.at(FileIndex).FileName.length()))
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		(FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") != std::wstring::npos && FileList_IPFilter.at(FileIndex).FileName.length() > wcslen(L"chnrouting.txt") && 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") == FileList_IPFilter.at(FileIndex).FileName.length() - wcslen(L"chnrouting.txt") || 
+		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") + wcslen(L"chnrouting.txt") == FileList_IPFilter.at(FileIndex).FileName.length() || 
 		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") != std::wstring::npos && FileList_IPFilter.at(FileIndex).FileName.length() > wcslen(L"chnroute.txt") && 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") == FileList_IPFilter.at(FileIndex).FileName.length() - wcslen(L"chnroute.txt")))
+		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") + wcslen(L"chnroute.txt") == FileList_IPFilter.at(FileIndex).FileName.length()))
 	#endif
 			LabelType = LABEL_IPFILTER_LOCAL_ROUTING;
 

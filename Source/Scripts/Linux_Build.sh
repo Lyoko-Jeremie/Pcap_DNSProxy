@@ -67,4 +67,4 @@ cp ExampleConfig/Config.ini Release/Config.conf
 cp ExampleConfig/Hosts.ini Release/Hosts.conf
 cp ExampleConfig/IPFilter.ini Release/IPFilter.conf
 cp ExampleConfig/Routing.txt Release/Routing.txt
-cp ExampleConfig/White_List.txt Release/White_List.txt
+cp ExampleConfig/WhiteList.txt Release/WhiteList.txt

@@ -23,14 +23,13 @@
 bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr, const uint16_t Protocol, SSIZE_T &ErrCode)
 {
 	std::string sAddrString(AddrString);
+	SSIZE_T Result = 0;
 
 //inet_ntop() and inet_pton() was only support in Windows Vista and newer system. [Roy Tam]
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
 	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
 	int SockLength = 0;
-#else
-	SSIZE_T Result = 0;
 #endif
 
 	if (Protocol == AF_INET6) //IPv6
@@ -56,16 +55,31 @@ bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr
 
 	//Convert to binary.
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		SockLength = sizeof(sockaddr_in6);
-		if (WSAStringToAddressA((LPSTR)sAddrString.c_str(), AF_INET6, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
+		if (Parameter.FunctionPTR_InetPton != nullptr)
+		{
+			Result = (*Parameter.FunctionPTR_InetPton)(AF_INET6, sAddrString.c_str(), OriginalAddr);
+			if (Result == SOCKET_ERROR || Result == 0)
+			{
+				ErrCode = WSAGetLastError();
+				return false;
+			}
+		}
+		else {
+			SockLength = sizeof(sockaddr_in6);
+			if (WSAStringToAddressA((LPSTR)sAddrString.c_str(), AF_INET6, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
+			{
+				ErrCode = WSAGetLastError();
+				return false;
+			}
+		}
 	#else
 		Result = inet_pton(AF_INET6, sAddrString.c_str(), OriginalAddr);
 		if (Result == SOCKET_ERROR || Result == 0)
-	#endif
 		{
 			ErrCode = WSAGetLastError();
 			return false;
 		}
+	#endif
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		memcpy_s(OriginalAddr, sizeof(in6_addr), &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, sizeof(in6_addr));
 	#endif
@@ -117,16 +131,31 @@ bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr
 
 	//Convert to binary.
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		SockLength = sizeof(sockaddr_in);
-		if (WSAStringToAddressA((LPSTR)sAddrString.c_str(), AF_INET, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
+		if (Parameter.FunctionPTR_InetPton != nullptr)
+		{
+			Result = (*Parameter.FunctionPTR_InetPton)(AF_INET, sAddrString.c_str(), OriginalAddr);
+			if (Result == SOCKET_ERROR || Result == 0)
+			{
+				ErrCode = WSAGetLastError();
+				return false;
+			}
+		}
+		else {
+			SockLength = sizeof(sockaddr_in);
+			if (WSAStringToAddressA((LPSTR)sAddrString.c_str(), AF_INET, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
+			{
+				ErrCode = WSAGetLastError();
+				return false;
+			}
+		}
 	#else
 		Result = inet_pton(AF_INET, sAddrString.c_str(), OriginalAddr);
 		if (Result == SOCKET_ERROR || Result == 0)
-	#endif
 		{
 			ErrCode = WSAGetLastError();
 			return false;
 		}
+	#endif
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		memcpy_s(OriginalAddr, sizeof(in_addr), &((PSOCKADDR_IN)SockAddr.get())->sin_addr, sizeof(in_addr));
 	#endif
@@ -264,7 +293,7 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const b
 							if (AddressRangeTableIter.End.ss_family == AF_INET6 && 
 								AddressesComparing(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL && 
 								AddressesComparing(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr, AF_INET6) <= ADDRESS_COMPARE_EQUAL || 
-								memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == 0)
+								memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS)
 									return true;
 						}
 					}
@@ -285,7 +314,7 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const b
 						if (AddressRangeTableIter.Begin.ss_family == AF_INET6 && AddressRangeTableIter.End.ss_family == AF_INET6 && 
 							AddressesComparing(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL && 
 							AddressesComparing(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr, AF_INET6) <= ADDRESS_COMPARE_EQUAL || 
-							memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == 0)
+							memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS)
 						{
 							if (AddressHostsTableIter.Address_Target.size() > 1U)
 							{
@@ -702,7 +731,7 @@ bool __fastcall CheckCustomModeFilter(const void *OriginalAddr, const uint16_t P
 }
 
 //Count DNS Query Name length
-size_t __fastcall CheckDNSQueryNameLength(const char *Buffer)
+size_t __fastcall CheckQueryNameLength(const char *Buffer)
 {
 	size_t Index = 0;
 	for (Index = 0;Index < DOMAIN_MAXSIZE;++Index)
@@ -721,7 +750,7 @@ size_t __fastcall CheckDNSQueryNameLength(const char *Buffer)
 }
 
 //Check DNS query data
-size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t Length, const SOCKET_DATA &LocalSocketData, const uint16_t Protocol, bool *IsLocalRequest)
+size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t Length, const SOCKET_DATA &LocalSocketData, const uint16_t Protocol, bool *IsLocal)
 {
 //Check address.
 	if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
@@ -808,9 +837,9 @@ size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t 
 				DataLength[0] += sizeof(dns_record_opt);
 */
 				if (Protocol == IPPROTO_TCP)
-					DataLength[0] = AddEDNS_LabelToAdditionalRR(RecvBuffer, DataLength[0], LARGE_PACKET_MAXSIZE, false);
+					DataLength[0] = AddEDNSLabelToAdditionalRR(RecvBuffer, DataLength[0], LARGE_PACKET_MAXSIZE, false);
 				else //UDP
-					DataLength[0] = AddEDNS_LabelToAdditionalRR(RecvBuffer, DataLength[0], PACKET_MAXSIZE, false);
+					DataLength[0] = AddEDNSLabelToAdditionalRR(RecvBuffer, DataLength[0], PACKET_MAXSIZE, false);
 			}
 
 		//Send requesting.
@@ -823,9 +852,9 @@ size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t 
 	if (Parameter.EDNS_Label)
 	{
 		if (Protocol == IPPROTO_TCP)
-			DataLength[0] = AddEDNS_LabelToAdditionalRR(RecvBuffer, Length, LARGE_PACKET_MAXSIZE, false);
+			DataLength[0] = AddEDNSLabelToAdditionalRR(RecvBuffer, Length, LARGE_PACKET_MAXSIZE, false);
 		else //UDP
-			DataLength[0] = AddEDNS_LabelToAdditionalRR(RecvBuffer, Length, PACKET_MAXSIZE, false);
+			DataLength[0] = AddEDNSLabelToAdditionalRR(RecvBuffer, Length, PACKET_MAXSIZE, false);
 	}
 	DataLength[1U] = DataLength[0];
 
@@ -833,20 +862,20 @@ size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t 
 	if (Protocol == IPPROTO_TCP)
 	{
 		memset(SendBuffer, 0, LARGE_PACKET_MAXSIZE);
-		DataLength[0] = CheckHosts(RecvBuffer, DataLength[0], SendBuffer, LARGE_PACKET_MAXSIZE);
+		DataLength[0] = CheckHostsProcess(RecvBuffer, DataLength[0], SendBuffer, LARGE_PACKET_MAXSIZE);
 	}
 	else { //UDP
 		memset(SendBuffer, 0, PACKET_MAXSIZE);
-		DataLength[0] = CheckHosts(RecvBuffer, DataLength[0], SendBuffer, PACKET_MAXSIZE);
+		DataLength[0] = CheckHostsProcess(RecvBuffer, DataLength[0], SendBuffer, PACKET_MAXSIZE);
 	}
 	if (DataLength[0] >= DNS_PACKET_MINSIZE)
 	{
 		SendToRequester(SendBuffer, DataLength[0], Protocol, LocalSocketData);
 		return EXIT_FAILURE;
 	}
-	else if (DataLength[0] == EXIT_CHECK_HOSTS_TYPE_LOCAL && IsLocalRequest != nullptr)
+	else if (DataLength[0] == EXIT_CHECK_HOSTS_TYPE_LOCAL && IsLocal != nullptr)
 	{
-		*IsLocalRequest = true;
+		*IsLocal = true;
 	}
 
 	return DataLength[1U];
@@ -881,7 +910,7 @@ size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, con
 //Responses question pointer check
 	if (Parameter.DNSDataCheck)
 	{
-		for (size_t Index = sizeof(dns_hdr); Index < DNS_PACKET_QUERY_LOCATE(Buffer); ++Index)
+		for (size_t Index = sizeof(dns_hdr);Index < DNS_PACKET_QUERY_LOCATE(Buffer);++Index)
 		{
 			if (*(Buffer + Index) == DNS_POINTER_BITS_STRING)
 				return EXIT_FAILURE;
@@ -889,14 +918,14 @@ size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, con
 
 	//Check repeating DNS Domain without Compression.
 		if (DNS_Header->Answer == htons(U16_NUM_ONE) && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && 
-			CheckDNSQueryNameLength(Buffer + sizeof(dns_hdr)) == CheckDNSQueryNameLength(Buffer + DNS_PACKET_RR_LOCATE(Buffer)))
+			CheckQueryNameLength(Buffer + sizeof(dns_hdr)) == CheckQueryNameLength(Buffer + DNS_PACKET_RR_LOCATE(Buffer)))
 		{
 			auto QuestionDomain = (uint8_t *)(Buffer + sizeof(dns_hdr));
 			auto AnswerDomain = (uint8_t *)(Buffer + DNS_PACKET_RR_LOCATE(Buffer));
-			auto DNS_Record_Standard = (pdns_record_standard)(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckDNSQueryNameLength((PSTR)QuestionDomain) + 1U);
+			auto DNS_Record_Standard = (pdns_record_standard)(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckQueryNameLength((PSTR)QuestionDomain) + 1U);
 			if (DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && 
 				(DNS_Record_Standard->Type == htons(DNS_RECORD_A) || DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA)) && 
-				memcmp(QuestionDomain, AnswerDomain, CheckDNSQueryNameLength((PSTR)QuestionDomain) + 1U) == 0)
+				memcmp(QuestionDomain, AnswerDomain, CheckQueryNameLength((PSTR)QuestionDomain) + 1U) == EXIT_SUCCESS)
 					return EXIT_FAILURE;
 		}
 	}
@@ -925,7 +954,7 @@ size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, con
 		}
 
 	//Records Type in responses check
-		DataLength += CheckDNSQueryNameLength(Buffer + DataLength) + 1U;
+		DataLength += CheckQueryNameLength(Buffer + DataLength) + 1U;
 		DNS_Record_Standard = (pdns_record_standard)(Buffer + DataLength);
 		if (Parameter.DNSDataCheck && (DNS_Record_Standard->TTL == 0 || DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && 
 			(DNS_Query->Type != htons(DNS_RECORD_A) && DNS_Record_Standard->Type == htons(DNS_RECORD_A) || 
@@ -967,7 +996,7 @@ size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, con
 			}
 
 		//Resource Records Name(Domain)
-			DataLength += CheckDNSQueryNameLength(Buffer + DataLength) + 1U;
+			DataLength += CheckQueryNameLength(Buffer + DataLength) + 1U;
 			if (DataLength + sizeof(dns_record_standard) > Length)
 				return EXIT_FAILURE;
 
@@ -1044,7 +1073,7 @@ size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, con
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NXDOMAIN) || //No Such Name, not standard query response and no error check.
 	//Domain Test part
 		Parameter.DomainTest_Data != nullptr && strnlen_s(Domain.get(), DOMAIN_MAXSIZE) == strnlen_s(Parameter.DomainTest_Data, DOMAIN_MAXSIZE) && 
-		memcmp(Domain.get(), Parameter.DomainTest_Data, strnlen_s(Parameter.DomainTest_Data, DOMAIN_MAXSIZE)) == 0 && DNS_Header->ID == Parameter.DomainTest_ID)
+		memcmp(Domain.get(), Parameter.DomainTest_Data, strnlen_s(Parameter.DomainTest_Data, DOMAIN_MAXSIZE)) == EXIT_SUCCESS && DNS_Header->ID == Parameter.DomainTest_ID)
 			return EXIT_CHECK_RESPONSE_DATA_MARK_HOP_LIMITS;
 #endif
 

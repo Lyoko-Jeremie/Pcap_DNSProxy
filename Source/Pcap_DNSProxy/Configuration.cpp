@@ -23,10 +23,10 @@
 bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t FileIndex)
 {
 //Initialization
-	std::string TextData;
 	std::shared_ptr<char> FileBuffer(new char[FILE_BUFFER_SIZE]()), TextBuffer(new char[FILE_BUFFER_SIZE]());
 	memset(FileBuffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(TextBuffer.get(), 0, FILE_BUFFER_SIZE);
+	std::string TextData;
 	size_t ReadLength = 0, Encoding = 0, Index = 0, Line = 0, LabelType = 0;
 	auto IsEraseBOM = true, NewLine_Point = false, IsLabelComments = false;
 
@@ -413,8 +413,8 @@ bool __fastcall ReadParameter(void)
 	ConfigFileName.clear();
 	ConfigFileName.shrink_to_fit();
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	const char *sConfigFileNameList[]{CONFIG_FILE_NAME_LIST_STRING};
 	std::string sConfigFileName;
+	const char *sConfigFileNameList[]{CONFIG_FILE_NAME_LIST_STRING};
 	for (Index = 0;Index < sizeof(sConfigFileNameList) / sizeof(PSTR);++Index)
 	{
 		sConfigFileName = Parameter.sPath_Global->front();
@@ -429,7 +429,7 @@ bool __fastcall ReadParameter(void)
 	for (Index = 0;Index < ConfigFileList.size();++Index)
 	{
 	#if defined(PLATFORM_WIN)
-		if (_wfopen_s(&Input, ConfigFileList.at(Index).c_str(), L"rb") != 0 || Input == nullptr)
+		if (_wfopen_s(&Input, ConfigFileList.at(Index).c_str(), L"rb") != EXIT_SUCCESS || Input == nullptr)
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		Input = fopen(sConfigFileList.at(Index).c_str(), "rb");
 		if (Input == nullptr)
@@ -469,7 +469,7 @@ bool __fastcall ReadParameter(void)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::shared_ptr<struct stat> FileStat(new struct stat());
 	memset(FileStat.get(), 0, sizeof(struct stat));
-	if (stat(sConfigFileList.at(Index).c_str(), FileStat.get()) == 0 && FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+	if (stat(sConfigFileList.at(Index).c_str(), FileStat.get()) == EXIT_SUCCESS && FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, ConfigFileList.at(Index).c_str(), 0);
 		return false;
@@ -558,7 +558,7 @@ void __fastcall ReadIPFilter(void)
 					IsFileModified = true;
 				FileList_IPFilter.at(FileIndex).ModificationTime = 0;
 
-				ClearListData(READ_TEXT_IPFILTER, FileIndex);
+				ClearModificatingListData(READ_TEXT_IPFILTER, FileIndex);
 			}
 			else {
 			//Check whole file size.
@@ -582,7 +582,7 @@ void __fastcall ReadIPFilter(void)
 						IsFileModified = true;
 					FileList_IPFilter.at(FileIndex).ModificationTime = 0;
 
-					ClearListData(READ_TEXT_IPFILTER, FileIndex);
+					ClearModificatingListData(READ_TEXT_IPFILTER, FileIndex);
 					continue;
 				}
 
@@ -602,12 +602,12 @@ void __fastcall ReadIPFilter(void)
 					FileList_IPFilter.at(FileIndex).ModificationTime = FileStat->st_mtime;
 					memset(FileStat.get(), 0, sizeof(struct stat));
 			#endif
-					ClearListData(READ_TEXT_IPFILTER, FileIndex);
+					ClearModificatingListData(READ_TEXT_IPFILTER, FileIndex);
 					IsFileModified = true;
 
 				//Read file.
 				#if defined(PLATFORM_WIN)
-					if (_wfopen_s(&Input, FileList_IPFilter.at(FileIndex).FileName.c_str(), L"rb") == 0)
+					if (_wfopen_s(&Input, FileList_IPFilter.at(FileIndex).FileName.c_str(), L"rb") == EXIT_SUCCESS)
 					{
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 					Input = fopen(FileList_IPFilter.at(FileIndex).sFileName.c_str(), "rb");
@@ -678,7 +678,7 @@ void __fastcall ReadIPFilter(void)
 		//Check local routing list(IPv6).
 			for (auto IPFilterFileSetIter:*IPFilterFileSetModificating)
 			{
-				for (auto LocalRoutingTableIter:IPFilterFileSetIter.LocalRoutingList_IPv6)
+				if (!IPFilterFileSetIter.LocalRoutingList_IPv6.empty())
 				{
 					IsLocalServerPrint = true;
 					break;
@@ -699,7 +699,7 @@ void __fastcall ReadIPFilter(void)
 		//Check local routing list(IPv4).
 			for (auto IPFilterFileSetIter:*IPFilterFileSetModificating)
 			{
-				for (auto LocalRoutingTableIter:IPFilterFileSetIter.LocalRoutingList_IPv4)
+				if (!IPFilterFileSetIter.LocalRoutingList_IPv4.empty())
 				{
 					IsLocalServerPrint = true;
 					break;
@@ -737,7 +737,7 @@ void __fastcall ReadHosts(void)
 	for (size_t Index = 0;Index < Parameter.Path_Global->size();++Index)
 	{
 		FILE_DATA FileDataTemp;
-		for (size_t FileIndex = 0;FileIndex < Parameter.FileList_Hosts->size();++FileIndex)
+		for (FileIndex = 0;FileIndex < Parameter.FileList_Hosts->size();++FileIndex)
 		{
 			FileDataTemp.FileName.clear();
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -793,7 +793,7 @@ void __fastcall ReadHosts(void)
 					IsFileModified = true;
 				FileList_Hosts.at(FileIndex).ModificationTime = 0;
 
-				ClearListData(READ_TEXT_HOSTS, FileIndex);
+				ClearModificatingListData(READ_TEXT_HOSTS, FileIndex);
 			}
 			else {
 			//Check whole file size.
@@ -817,7 +817,7 @@ void __fastcall ReadHosts(void)
 						IsFileModified = true;
 					FileList_Hosts.at(FileIndex).ModificationTime = 0;
 
-					ClearListData(READ_TEXT_HOSTS, FileIndex);
+					ClearModificatingListData(READ_TEXT_HOSTS, FileIndex);
 					continue;
 				}
 
@@ -837,12 +837,12 @@ void __fastcall ReadHosts(void)
 					FileList_Hosts.at(FileIndex).ModificationTime = FileStat->st_mtime;
 					memset(FileStat.get(), 0, sizeof(struct stat));
 			#endif
-					ClearListData(READ_TEXT_HOSTS, FileIndex);
+					ClearModificatingListData(READ_TEXT_HOSTS, FileIndex);
 					IsFileModified = true;
 
 				//Read file.
 				#if defined(PLATFORM_WIN)
-					if (_wfopen_s(&Input, FileList_Hosts.at(FileIndex).FileName.c_str(), L"rb") == 0)
+					if (_wfopen_s(&Input, FileList_Hosts.at(FileIndex).FileName.c_str(), L"rb") == EXIT_SUCCESS)
 					{
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 					Input = fopen(FileList_Hosts.at(FileIndex).sFileName.c_str(), "rb");
@@ -923,7 +923,7 @@ void __fastcall ReadHosts(void)
 						DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 						HostsListIter.Length += sizeof(dns_record_opt);
 
-						HostsListIter.Length = AddEDNS_LabelToAdditionalRR(HostsListIter.Response.get(), HostsListIter.Length, PACKET_MAXSIZE, true);
+						HostsListIter.Length = AddEDNSLabelToAdditionalRR(HostsListIter.Response.get(), HostsListIter.Length, PACKET_MAXSIZE, true);
 					}
 				}
 			}
@@ -948,7 +948,7 @@ void __fastcall ReadHosts(void)
 }
 
 //Clear data in list
-void __fastcall ClearListData(const size_t ClearType, const size_t FileIndex)
+void __fastcall ClearModificatingListData(const size_t ClearType, const size_t FileIndex)
 {
 //Clear Hosts set.
 	if (ClearType == READ_TEXT_HOSTS)

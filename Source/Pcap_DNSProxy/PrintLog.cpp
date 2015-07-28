@@ -31,8 +31,7 @@ bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const S
 //Get current date and time.
 	std::shared_ptr<tm> TimeStructure(new tm());
 	memset(TimeStructure.get(), 0, sizeof(tm));
-	time_t TimeValues = 0;
-	time(&TimeValues);
+	auto TimeValues = time(nullptr);
 #if defined(PLATFORM_WIN)
 	if (localtime_s(TimeStructure.get(), &TimeValues) > 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -226,8 +225,8 @@ bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const S
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::shared_ptr<struct stat> FileStat(new struct stat());
 	memset(FileStat.get(), 0, sizeof(struct stat));
-	if (stat(Parameter.sPath_ErrorLog->c_str(), FileStat.get()) == 0 && FileStat->st_size >= (off_t)Parameter.LogMaxSize && 
-		remove(Parameter.sPath_ErrorLog->c_str()) == 0)
+	if (stat(Parameter.sPath_ErrorLog->c_str(), FileStat.get()) == EXIT_SUCCESS && FileStat->st_size >= (off_t)Parameter.LogMaxSize && 
+		remove(Parameter.sPath_ErrorLog->c_str()) == EXIT_SUCCESS)
 			PrintError(LOG_ERROR_SYSTEM, L"Old Error Log file was deleted", 0, nullptr, 0);
 
 	FileStat.reset();
@@ -236,7 +235,7 @@ bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const S
 //Main print
 #if defined(PLATFORM_WIN)
 	FILE *Output = nullptr;
-	if (_wfopen_s(&Output, Parameter.Path_ErrorLog->c_str(), L"a,ccs=UTF-8") == 0 && Output != nullptr)
+	if (_wfopen_s(&Output, Parameter.Path_ErrorLog->c_str(), L"a,ccs=UTF-8") == EXIT_SUCCESS && Output != nullptr)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	auto Output = fopen(Parameter.sPath_ErrorLog->c_str(), "a");
 	if (Output != nullptr)

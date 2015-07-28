@@ -177,9 +177,9 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 		Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0 && 
 		Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr.s_addr == Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr.s_addr && Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_port == Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_port || 
 		Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
-		memcmp(&Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 && Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_port == Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_port || 
+		memcmp(&Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS && Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_port == Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_port || 
 		Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 && 
-		memcmp(&Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 && Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_port == Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_port)
+		memcmp(&Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS && Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_port == Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_port)
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"DNS target error", 0, ConfigFileList.at(FileIndex).c_str(), 0);
 		return false;
@@ -265,7 +265,7 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 		PrintError(LOG_ERROR_PARAMETER, L"Alternate Multi requesting error", 0, ConfigFileList.at(FileIndex).c_str(), 0);
 		return false;
 	}
-	if (Parameter.MultiRequestTimes > MULTI_REQUEST_TIMES_MAXNUM) //Multi Request Times check
+	if (Parameter.MultiRequestTimes > MULTI_REQUEST_TIMES_MAXNUM)
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"Multi requesting times error", 0, ConfigFileList.at(FileIndex).c_str(), 0);
 		return false;
@@ -348,7 +348,7 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 			DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
 			DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.IPv4.sin_addr.s_addr == DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr || 
 			DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
-			memcmp(&DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6.sin6_addr, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0)
+			memcmp(&DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6.sin6_addr, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS)
 		{
 			PrintError(LOG_ERROR_PARAMETER, L"DNSCurve target error", 0, ConfigFileList.at(FileIndex).c_str(), 0);
 			return false;
@@ -702,7 +702,7 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 			DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 			Parameter.LocalServer_Length += sizeof(dns_record_opt);
 
-			Parameter.LocalServer_Length = AddEDNS_LabelToAdditionalRR(Parameter.LocalServer_Response, Parameter.LocalServer_Length, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt), true);
+			Parameter.LocalServer_Length = AddEDNSLabelToAdditionalRR(Parameter.LocalServer_Response, Parameter.LocalServer_Length, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt), true);
 		}
 */
 	}
@@ -1161,7 +1161,7 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 		}
 	}
 
-//Parameter version less than 0.4(0.3-) compatible support.
+//Parameter version less than 0.4 compatible support
 	if (Parameter.Version <= CONFIG_VERSION_POINT_THREE)
 	{
 	//[Base] block
@@ -1360,19 +1360,12 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 		std::wstring wNameStringTemp;
 		for (Result = strlen("AdditionalPath=");Result < (SSIZE_T)Data.length();++Result)
 		{
-			if (Result == (SSIZE_T)(Data.length() - 1U))
+			if (Result + 1 == (SSIZE_T)Data.length())
 			{
 				NameStringTemp.append(Data, Result, 1U);
 
 			//Case-insensitive on Windows
 			#if defined(PLATFORM_WIN)
-/* Old version(2015-06-27)
-				for (auto &StringIter:NameStringTemp)
-				{
-					if (StringIter > ASCII_AT && StringIter < ASCII_BRACKETS_LEAD)
-						StringIter += ASCII_UPPER_TO_LOWER;
-				}
-*/
 				CaseConvert(false, NameStringTemp);
 			#endif
 
@@ -1411,13 +1404,6 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 			{
 			//Case-insensitive on Windows
 			#if defined(PLATFORM_WIN)
-/* Old version(2015-06-27)
-				for (auto &StringIter:NameStringTemp)
-				{
-					if (StringIter > ASCII_AT && StringIter < ASCII_BRACKETS_LEAD)
-						StringIter += ASCII_UPPER_TO_LOWER;
-				}
-*/
 				CaseConvert(false, NameStringTemp);
 			#endif
 
@@ -1664,6 +1650,33 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 	{
 		Parameter.PcapCapture = true;
 	}
+	else if (Data.find("PcapDevicesBlacklist=") == 0)
+	{
+		std::string NameString;
+		for (size_t Index = strlen("PcapDevicesBlacklist=");Index < Data.length();++Index)
+		{
+		//Last data
+			if (Index + 1U == Data.length())
+			{
+				NameString.append(Data, Index, 1U);
+				CaseConvert(false, NameString);
+				Parameter.PcapDevicesBlacklist->push_back(NameString);
+
+				break;
+			}
+		//Separated
+			else if (Data.at(Index) == ASCII_VERTICAL)
+			{
+				CaseConvert(false, NameString);
+				Parameter.PcapDevicesBlacklist->push_back(NameString);
+
+				NameString.clear();
+			}
+			else {
+				NameString.append(Data, Index, 1U);
+			}
+		}
+	}
 	else if (Data.find("PcapReadingTimeout=") == 0)
 	{
 		if (Data.length() < strlen("PcapReadingTimeout=") + UINT32_MAX_STRING_LENGTH)
@@ -1711,7 +1724,7 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 			std::string PortString;
 			for (size_t Index = strlen("ListenPort=");Index < Data.length();++Index)
 			{
-				if (Index == Data.length() - 1U)
+				if (Index + 1U == Data.length())
 				{
 					PortString.append(Data, Index, 1U);
 					Result = ServiceNameToHex(PortString.c_str());
@@ -1851,8 +1864,8 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 				Result = 0;
 				for (size_t Index = 0;Index < TypeString.length();++Index)
 				{
-				//Last value
-					if (Index == TypeString.length() - 1U)
+				//Last data
+					if (Index + 1U == TypeString.length())
 					{
 						TypeStringTemp.append(TypeString, Result, (SSIZE_T)Index - Result + 1U);
 						Result = DNSTypeNameToHex(TypeStringTemp.c_str());
@@ -1873,6 +1886,7 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 							Parameter.AcceptTypeList->push_back((uint16_t)Result);
 						}
 					}
+				//Separated
 					else if (TypeString.at(Index) == ASCII_COMMA || TypeString.at(Index) == ASCII_VERTICAL)
 					{
 						TypeStringTemp.append(TypeString, Result, (SSIZE_T)Index - Result);
@@ -2506,18 +2520,11 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 //Read file name.
 	for (SSIZE_T Result = DataOffset;Result < (SSIZE_T)Data.length();++Result)
 	{
-		if (Result == (SSIZE_T)(Data.length() - 1U))
+		if (Result + 1 == (SSIZE_T)Data.length())
 		{
 			NameStringTemp.append(Data, Result, 1U);
 		//Case-insensitive on Windows
 		#if defined(PLATFORM_WIN)
-/* Old version(2015-06-27)
-			for (auto &StringIter:NameStringTemp)
-			{
-				if (StringIter > ASCII_AT && StringIter < ASCII_BRACKETS_LEAD)
-					StringIter += ASCII_UPPER_TO_LOWER;
-			}
-*/
 			CaseConvert(false, NameStringTemp);
 		#endif
 
@@ -2569,13 +2576,6 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 		{
 		//Case-insensitive on Windows
 		#if defined(PLATFORM_WIN)
-/* Old version(2015-06-27)
-			for (auto &StringIter:NameStringTemp)
-			{
-				if (StringIter > ASCII_AT && StringIter < ASCII_BRACKETS_LEAD)
-					StringIter += ASCII_UPPER_TO_LOWER;
-			}
-*/
 			CaseConvert(false, NameStringTemp);
 		#endif
 
@@ -3320,7 +3320,7 @@ bool __fastcall ReadHopLimitData(std::string Data, const size_t DataOffset, uint
 				++Index;
 			}
 
-		//Last item
+		//Last data
 			memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.length());
 			Result = strtoul(Target.get(), nullptr, 0);

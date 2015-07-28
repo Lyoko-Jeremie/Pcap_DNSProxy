@@ -62,7 +62,7 @@ bool __fastcall DomainTestRequest(const uint16_t Protocol)
 				DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 				DataLength += sizeof(dns_record_opt);
 */
-				DataLength = AddEDNS_LabelToAdditionalRR(Buffer.get(), DataLength + sizeof(dns_hdr), PACKET_MAXSIZE, false);
+				DataLength = AddEDNSLabelToAdditionalRR(Buffer.get(), DataLength + sizeof(dns_hdr), PACKET_MAXSIZE, false);
 				DataLength -= sizeof(dns_hdr);
 			}
 		}
@@ -149,7 +149,7 @@ bool __fastcall DomainTestRequest(const uint16_t Protocol)
 					DataLength += sizeof(dns_record_opt);
 */
 					DNS_Header->Additional = 0;
-					DataLength = AddEDNS_LabelToAdditionalRR(Buffer.get(), DataLength, PACKET_MAXSIZE, false);
+					DataLength = AddEDNSLabelToAdditionalRR(Buffer.get(), DataLength, PACKET_MAXSIZE, false);
 				}
 			}
 
@@ -166,7 +166,7 @@ bool __fastcall DomainTestRequest(const uint16_t Protocol)
 }
 
 //Internet Control Message Protocol(version 6)/ICMP(v6) Echo(Ping) request
-bool __fastcall ICMPEcho(const uint16_t Protocol)
+bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 {
 //Initialization
 	size_t Length = 0;
@@ -883,11 +883,6 @@ bool __fastcall SelectTargetSocketMulti(std::vector<SOCKET_DATA> &SockDataList, 
 size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal)
 {
 //Initialization(Part 1)
-/* Old version(2015-06-27)
-	std::shared_ptr<char> SendBuffer(new char[sizeof(uint16_t) + SendSize]());
-	memset(SendBuffer.get(), 0, sizeof(uint16_t) + SendSize);
-	memcpy_s(SendBuffer.get(), SendSize, OriginalSend, SendSize);
-*/
 	std::shared_ptr<SOCKET_DATA> TCPSockData(new SOCKET_DATA());
 	memset(TCPSockData.get(), 0, sizeof(SOCKET_DATA));
 	memset(OriginalRecv, 0, RecvSize);
@@ -895,7 +890,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 	memcpy_s(SendBuffer, RecvSize, OriginalSend, SendSize);
 
 //Add length of request packet(It must be written in header when transpot with TCP protocol).
-	size_t DataLength = AddLengthDataToDNSHeader(SendBuffer, SendSize, RecvSize);
+	size_t DataLength = AddLengthDataToHeader(SendBuffer, SendSize, RecvSize);
 	if (DataLength == EXIT_FAILURE)
 		return EXIT_FAILURE;
 
@@ -1139,17 +1134,12 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize)
 {
 //Initialization(Part 1)
-/* Old version(2015-06-27)
-	std::shared_ptr<char> SendBuffer(new char[sizeof(uint16_t) + SendSize]());
-	memset(SendBuffer.get(), 0, sizeof(uint16_t) + SendSize);
-	memcpy_s(SendBuffer.get(), SendSize, OriginalSend, SendSize);
-*/
 	memset(OriginalRecv, 0, RecvSize);
 	auto SendBuffer = OriginalRecv;
 	memcpy_s(SendBuffer, RecvSize, OriginalSend, SendSize);
 
 //Add length of request packet(It must be written in header when transpot with TCP protocol).
-	size_t DataLength = AddLengthDataToDNSHeader(SendBuffer, SendSize, RecvSize);
+	size_t DataLength = AddLengthDataToHeader(SendBuffer, SendSize, RecvSize);
 	if (DataLength == EXIT_FAILURE)
 		return EXIT_FAILURE;
 
@@ -1489,8 +1479,8 @@ size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, cons
 		if (Protocol == IPPROTO_TCP) //TCP
 		{
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.GetTickCount64_PTR != nullptr)
-				OutputPacketListTemp->ClearPortTime = (size_t)((*Parameter.GetTickCount64_PTR)() + Parameter.SocketTimeout_Reliable);
+			if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
+				OutputPacketListTemp->ClearPortTime = (size_t)((*Parameter.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Reliable);
 			else 
 				OutputPacketListTemp->ClearPortTime = GetTickCount() + Parameter.SocketTimeout_Reliable;
 		#elif defined(PLATFORM_WIN)
@@ -1501,8 +1491,8 @@ size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, cons
 		}
 		else { //UDP
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.GetTickCount64_PTR != nullptr)
-				OutputPacketListTemp->ClearPortTime = (size_t)((*Parameter.GetTickCount64_PTR)() + Parameter.SocketTimeout_Unreliable);
+			if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
+				OutputPacketListTemp->ClearPortTime = (size_t)((*Parameter.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Unreliable);
 			else 
 				OutputPacketListTemp->ClearPortTime = GetTickCount() + Parameter.SocketTimeout_Unreliable;
 		#elif defined(PLATFORM_WIN)
@@ -1652,8 +1642,8 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 		if (Protocol == IPPROTO_TCP) //TCP
 		{
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.GetTickCount64_PTR != nullptr)
-				OutputPacketListTemp->ClearPortTime = (size_t)((*Parameter.GetTickCount64_PTR)() + Parameter.SocketTimeout_Reliable);
+			if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
+				OutputPacketListTemp->ClearPortTime = (size_t)((*Parameter.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Reliable);
 			else 
 				OutputPacketListTemp->ClearPortTime = GetTickCount() + Parameter.SocketTimeout_Reliable;
 		#elif defined(PLATFORM_WIN)
@@ -1664,8 +1654,8 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 		}
 		else { //UDP
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.GetTickCount64_PTR != nullptr)
-				OutputPacketListTemp->ClearPortTime = (size_t)((*Parameter.GetTickCount64_PTR)() + Parameter.SocketTimeout_Unreliable);
+			if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
+				OutputPacketListTemp->ClearPortTime = (size_t)((*Parameter.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Unreliable);
 			else 
 				OutputPacketListTemp->ClearPortTime = GetTickCount() + Parameter.SocketTimeout_Unreliable;
 		#elif defined(PLATFORM_WIN)
@@ -1773,7 +1763,7 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 		}
 	}
 	else {
-	//Hosts Only Extended check
+	//Direct Request Extended check
 		if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && CheckResponseData(OriginalRecv, RecvLen, IsLocal) == EXIT_FAILURE)
 		{
 		//Set socket timeout.
@@ -1929,7 +1919,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 						continue;
 					}
 					else {
-					//Hosts Only Extended check
+					//Direct Request Extended check
 						if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && CheckResponseData(OriginalRecv, RecvLen, false) == EXIT_FAILURE)
 						{
 							memset(OriginalRecv, 0, RecvSize);

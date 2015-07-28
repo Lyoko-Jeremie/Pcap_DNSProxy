@@ -92,7 +92,7 @@ uint16_t __fastcall GetChecksum(const uint16_t *Buffer, const size_t Length)
 }
 
 //Get ICMPv6 checksum
-uint16_t __fastcall GetICMPv6Checksum(const unsigned char *Buffer, const size_t Length, const in6_addr &Destination, const in6_addr &Source)
+uint16_t __fastcall GetChecksum_ICMPv6(const unsigned char *Buffer, const size_t Length, const in6_addr &Destination, const in6_addr &Source)
 {
 	std::shared_ptr<char> Validation(new char[sizeof(ipv6_psd_hdr) + Length]());
 	memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length);
@@ -108,7 +108,7 @@ uint16_t __fastcall GetICMPv6Checksum(const unsigned char *Buffer, const size_t 
 }
 
 //Get TCP or UDP checksum
-uint16_t __fastcall GetTCPUDPChecksum(const unsigned char *Buffer, const size_t Length, const uint16_t Protocol_Network, const uint16_t Protocol_Transport)
+uint16_t __fastcall GetChecksum_TCPUDP(const unsigned char *Buffer, const size_t Length, const uint16_t Protocol_Network, const uint16_t Protocol_Transport)
 {
 //Get checksum.
 	uint16_t Result = EXIT_FAILURE;
@@ -143,7 +143,7 @@ uint16_t __fastcall GetTCPUDPChecksum(const unsigned char *Buffer, const size_t 
 }
 
 //Add length data to TCP DNS transmission
-size_t __fastcall AddLengthDataToDNSHeader(PSTR Buffer, const size_t RecvLen, const size_t MaxLen)
+size_t __fastcall AddLengthDataToHeader(PSTR Buffer, const size_t RecvLen, const size_t MaxLen)
 {
 	if (MaxLen >= RecvLen + sizeof(uint16_t))
 	{
@@ -234,11 +234,6 @@ void __fastcall MakeRamdomDomain(PSTR Buffer)
 		for (Index = 0;Index < RamdomLength - 3U;++Index)
 		{
 			Buffer[Index] = Parameter.DomainTable[RamdomDistribution(*Parameter.RamdomEngine)];
-		//Convert to lowercase letters.
-/* Old version(2015-06-27)
-			if (Buffer[Index] > ASCII_AT && Buffer[Index] < ASCII_BRACKETS_LEAD)
-				Buffer[Index] += ASCII_UPPER_TO_LOWER;
-*/
 			Buffer[Index] = (char)tolower(Buffer[Index]);
 		}
 
@@ -261,11 +256,6 @@ void __fastcall MakeRamdomDomain(PSTR Buffer)
 		for (Index = 0;Index < RamdomLength - 4U;++Index)
 		{
 			Buffer[Index] = Parameter.DomainTable[RamdomDistribution(*Parameter.RamdomEngine)];
-		//Convert to lowercase letters.
-/* Old version(2015-06-27)
-			if (Buffer[Index] > ASCII_AT && Buffer[Index] < ASCII_BRACKETS_LEAD)
-				Buffer[Index] += ASCII_UPPER_TO_LOWER;
-*/
 			Buffer[Index] = (char)tolower(Buffer[Index]);
 		}
 
@@ -305,10 +295,6 @@ void __fastcall MakeDomainCaseConversion(PSTR Buffer)
 	{
 		for (size_t Index = 0;Index < strnlen_s(Buffer, DOMAIN_MAXSIZE);++Index)
 		{
-/* Old version(2015-06-27)
-			if (Index % 2U == 0 && *(Buffer + Index) > ASCII_ACCENT && *(Buffer + Index) < ASCII_BRACES_LEAD)
-				*(Buffer + Index) -= ASCII_LOWER_TO_UPPER;
-*/
 			if (Index % 2U == 0)
 				*(Buffer + Index) = (char)toupper(*(Buffer + Index));
 		}
@@ -316,10 +302,6 @@ void __fastcall MakeDomainCaseConversion(PSTR Buffer)
 	else {
 		for (size_t Index = 0;Index < strnlen_s(Buffer, DOMAIN_MAXSIZE);++Index)
 		{
-/* Old version(2015-06-27)
-			if (Index % 2U > 0 && *(Buffer + Index) > ASCII_ACCENT && *(Buffer + Index) < ASCII_BRACES_LEAD)
-				*(Buffer + Index) -= ASCII_LOWER_TO_UPPER;
-*/
 			if (Index % 2U > 0)
 				*(Buffer + Index) = (char)toupper(*(Buffer + Index));
 		}
@@ -329,7 +311,7 @@ void __fastcall MakeDomainCaseConversion(PSTR Buffer)
 }
 
 //Add EDNS options to Additional Resource Records in DNS packet
-size_t __fastcall AddEDNS_LabelToAdditionalRR(PSTR Buffer, const size_t Length, const size_t MaxLen, const bool NoHeader)
+size_t __fastcall AddEDNSLabelToAdditionalRR(PSTR Buffer, const size_t Length, const size_t MaxLen, const bool NoHeader)
 {
 //Initialization
 	auto DNS_Header = (pdns_hdr)Buffer;
@@ -479,8 +461,8 @@ size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Lengt
 
 	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		if (Parameter.GetTickCount64_PTR != nullptr)
-			Index = (*Parameter.GetTickCount64_PTR)() % 4U;
+		if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
+			Index = (*Parameter.FunctionPTR_GetTickCount64)() % 4U;
 		else 
 			Index = GetTickCount() % 4U;
 	#else

@@ -60,7 +60,7 @@ bool __fastcall MonitorInit(void)
 				(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
 				Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 			{
-				std::thread ICMPv6Thread(ICMPEcho, AF_INET6);
+				std::thread ICMPv6Thread(ICMPTestRequest, AF_INET6);
 				ICMPv6Thread.detach();
 			}
 
@@ -69,7 +69,7 @@ bool __fastcall MonitorInit(void)
 				(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 				Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 			{
-				std::thread ICMPThread(ICMPEcho, AF_INET);
+				std::thread ICMPThread(ICMPTestRequest, AF_INET);
 				ICMPThread.detach();
 			}
 		}
@@ -433,10 +433,10 @@ bool __fastcall MonitorInit(void)
 #endif
 
 //Join threads.
-	for (size_t Index = 0;Index < MonitorThread.size();++Index)
+	for (auto &ThreadIter:MonitorThread)
 	{
-		if (MonitorThread.at(Index).joinable())
-			MonitorThread.at(Index).join();
+		if (ThreadIter.joinable())
+			ThreadIter.join();
 	}
 
 	return true;
@@ -477,7 +477,7 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 	}
 
 //Preventing other sockets from being forcibly bound to the same address and port(Windows).
-//Set TIME_WAIT resuing(Linux).
+//Set TIME_WAIT resuing(Linux/Mac).
 	int SetVal = 1;
 #if defined(PLATFORM_WIN)
 //Socket reuse setting
@@ -555,8 +555,8 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 	if (Parameter.QueueResetTime > 0)
 	{
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		if (Parameter.GetTickCount64_PTR != nullptr)
-			LastMarkTime = (*Parameter.GetTickCount64_PTR)();
+		if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
+			LastMarkTime = (*Parameter.FunctionPTR_GetTickCount64)();
 		else 
 			LastMarkTime = GetTickCount();
 	#else
@@ -564,7 +564,7 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 	#endif
 	}
 	size_t Index = 0;
-	auto IsLocalRequest = false;
+	auto IsLocal = false;
 
 //Listening module
 	for (;;)
@@ -575,8 +575,8 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		if (Parameter.QueueResetTime > 0 && Index + 1U == Parameter.BufferQueueSize)
 		{
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.GetTickCount64_PTR != nullptr)
-				NowTime = (*Parameter.GetTickCount64_PTR)();
+			if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
+				NowTime = (*Parameter.FunctionPTR_GetTickCount64)();
 			else 
 				NowTime = GetTickCount();
 		#else
@@ -586,8 +586,8 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 				Sleep(LastMarkTime + Parameter.QueueResetTime - NowTime);
 
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.GetTickCount64_PTR != nullptr)
-				LastMarkTime = (*Parameter.GetTickCount64_PTR)();
+			if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
+				LastMarkTime = (*Parameter.FunctionPTR_GetTickCount64)();
 			else
 				LastMarkTime = GetTickCount();
 		#else
@@ -600,7 +600,7 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		memcpy_s(Timeout.get(), sizeof(timeval), OriginalTimeout.get(), sizeof(timeval));
 		FD_ZERO(ReadFDS.get());
 		FD_SET(LocalSocketData.Socket, ReadFDS.get());
-		IsLocalRequest = false;
+		IsLocal = false;
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
@@ -620,7 +620,7 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 				continue;
 			}
 			else {
-				RecvLen = CheckQueryData(RecvBuffer.get() + PACKET_MAXSIZE * Index, SendBuffer.get(), RecvLen, LocalSocketData, IPPROTO_UDP, &IsLocalRequest);
+				RecvLen = CheckQueryData(RecvBuffer.get() + PACKET_MAXSIZE * Index, SendBuffer.get(), RecvLen, LocalSocketData, IPPROTO_UDP, &IsLocal);
 				if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 					continue;
 			}
@@ -628,11 +628,11 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		//Request process
 			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 			{
-				std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, LocalSocketData, IPPROTO_UDP, IsLocalRequest);
+				std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, LocalSocketData, IPPROTO_UDP, IsLocal);
 				RequestProcessThread.detach();
 			}
 			else { //IPv4
-				std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, LocalSocketData, IPPROTO_UDP, IsLocalRequest);
+				std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, LocalSocketData, IPPROTO_UDP, IsLocal);
 				RequestProcessThread.detach();
 			}
 
@@ -670,7 +670,7 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 	}
 
 //Preventing other sockets from being forcibly bound to the same address and port(Windows).
-//Set TIME_WAIT resuing(Linux).
+//Set TIME_WAIT resuing(Linux/Mac).
 	int SetVal = 1;
 #if defined(PLATFORM_WIN)
 //Socket reuse setting
@@ -770,8 +770,8 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 	if (Parameter.QueueResetTime > 0)
 	{
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		if (Parameter.GetTickCount64_PTR != nullptr)
-			LastMarkTime = (*Parameter.GetTickCount64_PTR)();
+		if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
+			LastMarkTime = (*Parameter.FunctionPTR_GetTickCount64)();
 		else
 			LastMarkTime = GetTickCount();
 	#else
@@ -789,8 +789,8 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 		if (Parameter.QueueResetTime > 0 && Index + 1U == Parameter.BufferQueueSize)
 		{
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.GetTickCount64_PTR != nullptr)
-				NowTime = (*Parameter.GetTickCount64_PTR)();
+			if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
+				NowTime = (*Parameter.FunctionPTR_GetTickCount64)();
 			else 
 				NowTime = GetTickCount();
 		#else
@@ -800,8 +800,8 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 				Sleep(LastMarkTime + Parameter.QueueResetTime - NowTime);
 
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.GetTickCount64_PTR != nullptr)
-				LastMarkTime = (*Parameter.GetTickCount64_PTR)();
+			if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
+				LastMarkTime = (*Parameter.FunctionPTR_GetTickCount64)();
 			else
 				LastMarkTime = GetTickCount();
 		#else
@@ -859,7 +859,7 @@ bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 	std::shared_ptr<char> RecvBuffer(new char[LARGE_PACKET_MAXSIZE]());
 	memset(RecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 	SSIZE_T RecvLen = 0;
-	auto IsLocalRequest = false;
+	auto IsLocal = false;
 
 //Receive
 	if (Parameter.EDNS_Label) //EDNS Label
@@ -919,7 +919,7 @@ bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 		{
 		//Check DNS query data.
 			std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
-			RecvLen = CheckQueryData(RecvBuffer.get(), SendBuffer.get(), PDU_Len, LocalSocketData, IPPROTO_TCP, &IsLocalRequest);
+			RecvLen = CheckQueryData(RecvBuffer.get(), SendBuffer.get(), PDU_Len, LocalSocketData, IPPROTO_TCP, &IsLocal);
 			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			{
 				shutdown(LocalSocketData.Socket, SD_BOTH);
@@ -930,9 +930,9 @@ bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 
 		//Requesting process
 			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
-				EnterRequestProcess(RecvBuffer.get(), PDU_Len, LocalSocketData, IPPROTO_TCP, IsLocalRequest);
+				EnterRequestProcess(RecvBuffer.get(), PDU_Len, LocalSocketData, IPPROTO_TCP, IsLocal);
 			else //IPv4
-				EnterRequestProcess(RecvBuffer.get(), PDU_Len, LocalSocketData, IPPROTO_TCP, IsLocalRequest);
+				EnterRequestProcess(RecvBuffer.get(), PDU_Len, LocalSocketData, IPPROTO_TCP, IsLocal);
 		}
 		else {
 			shutdown(LocalSocketData.Socket, SD_BOTH);
@@ -946,7 +946,7 @@ bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 
 	//Check DNS query data.
 		std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
-		RecvLen = CheckQueryData(RecvBuffer.get() + sizeof(uint16_t), SendBuffer.get(), RecvLen, LocalSocketData, IPPROTO_TCP, &IsLocalRequest);
+		RecvLen = CheckQueryData(RecvBuffer.get() + sizeof(uint16_t), SendBuffer.get(), RecvLen, LocalSocketData, IPPROTO_TCP, &IsLocal);
 		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 		{
 			shutdown(LocalSocketData.Socket, SD_BOTH);
@@ -957,9 +957,9 @@ bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 
 	//Requesting process
 		if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
-			EnterRequestProcess(RecvBuffer.get() + sizeof(uint16_t), RecvLen, LocalSocketData, IPPROTO_TCP, IsLocalRequest);
+			EnterRequestProcess(RecvBuffer.get() + sizeof(uint16_t), RecvLen, LocalSocketData, IPPROTO_TCP, IsLocal);
 		else //IPv4
-			EnterRequestProcess(RecvBuffer.get() + sizeof(uint16_t), RecvLen, LocalSocketData, IPPROTO_TCP, IsLocalRequest);
+			EnterRequestProcess(RecvBuffer.get() + sizeof(uint16_t), RecvLen, LocalSocketData, IPPROTO_TCP, IsLocal);
 	}
 	else {
 		shutdown(LocalSocketData.Socket, SD_BOTH);
@@ -992,10 +992,10 @@ void __fastcall AlternateServerMonitor(void)
 		{
 		//Reset TimeoutTimes out of alternate time range.
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.GetTickCount64_PTR != nullptr && (*Parameter.GetTickCount64_PTR)() >= RangeTimer[Index] || GetTickCount() >= RangeTimer[Index])
+			if (Parameter.FunctionPTR_GetTickCount64 != nullptr && (*Parameter.FunctionPTR_GetTickCount64)() >= RangeTimer[Index] || GetTickCount() >= RangeTimer[Index])
 			{
-				if (Parameter.GetTickCount64_PTR != nullptr)
-					RangeTimer[Index] = (size_t)((*Parameter.GetTickCount64_PTR)() + Parameter.AlternateTimeRange);
+				if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
+					RangeTimer[Index] = (size_t)((*Parameter.FunctionPTR_GetTickCount64)() + Parameter.AlternateTimeRange);
 				else
 					RangeTimer[Index] = GetTickCount() + Parameter.AlternateTimeRange;
 		#else
@@ -1011,7 +1011,7 @@ void __fastcall AlternateServerMonitor(void)
 			if (AlternateSwapList.IsSwap[Index])
 			{
 			#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-				if (Parameter.GetTickCount64_PTR != nullptr && (*Parameter.GetTickCount64_PTR)() >= SwapTimer[Index] || GetTickCount() >= SwapTimer[Index])
+				if (Parameter.FunctionPTR_GetTickCount64 != nullptr && (*Parameter.FunctionPTR_GetTickCount64)() >= SwapTimer[Index] || GetTickCount() >= SwapTimer[Index])
 			#else
 				if (GetTickCount64() >= SwapTimer[Index])
 			#endif
@@ -1028,8 +1028,8 @@ void __fastcall AlternateServerMonitor(void)
 					AlternateSwapList.IsSwap[Index] = true;
 					AlternateSwapList.TimeoutTimes[Index] = 0;
 				#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-					if (Parameter.GetTickCount64_PTR != nullptr)
-						SwapTimer[Index] = (size_t)((*Parameter.GetTickCount64_PTR)() + Parameter.AlternateResetTime);
+					if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
+						SwapTimer[Index] = (size_t)((*Parameter.FunctionPTR_GetTickCount64)() + Parameter.AlternateResetTime);
 					else 
 						SwapTimer[Index] = GetTickCount() + Parameter.AlternateResetTime;
 				#else
@@ -1072,7 +1072,7 @@ PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol, PSTR HostName
 
 //Get localhost data.
 	int ResultGetaddrinfo = getaddrinfo(HostName, nullptr, Hints.get(), &Result);
-	if (ResultGetaddrinfo != 0)
+	if (ResultGetaddrinfo != EXIT_SUCCESS)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"Get localhost address error", ResultGetaddrinfo, nullptr, 0);
 
@@ -1433,7 +1433,7 @@ void __fastcall NetworkInformationMonitor(void)
 							DNSPTRString.append(Addr.get());
 							memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 
-						//Last item
+						//Last data
 							if (Index < (SSIZE_T)(sizeof(in6_addr) / sizeof(uint16_t) - 1U))
 								DNSPTRString.append(":");
 						}
@@ -1514,7 +1514,7 @@ void __fastcall NetworkInformationMonitor(void)
 							DNSPTRString.append(Addr.get());
 							memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 
-						//Last item
+						//Last data
 							if (Index < (SSIZE_T)(sizeof(in6_addr) / sizeof(uint16_t) - 1U))
 								DNSPTRString.append(":");
 						}

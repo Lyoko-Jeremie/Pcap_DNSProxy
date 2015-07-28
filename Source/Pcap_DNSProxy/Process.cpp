@@ -20,7 +20,7 @@
 #include "Process.h"
 
 //Independent request process
-bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Length, const SOCKET_DATA LocalSocketData, const uint16_t Protocol, const bool IsLocalRequest)
+bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Length, const SOCKET_DATA LocalSocketData, const uint16_t Protocol, const bool IsLocal)
 {
 //Initialization(Send buffer part)
 	std::shared_ptr<char> SendBuffer, RecvBuffer;
@@ -70,7 +70,7 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 
 	size_t DataLength = 0;
 //Local server requesting
-	if ((Parameter.LocalMain || IsLocalRequest) && 
+	if ((Parameter.LocalMain || IsLocal) && 
 		LocalRequestProcess(SendBuffer.get(), Length, RecvBuffer.get(), Protocol, LocalSocketData))
 	{
 	//Fin TCP request connection.
@@ -93,7 +93,7 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 			DataLength = Length;
 	}
 
-//Hosts Only requesting
+//Direct Request requesting
 	if (Parameter.DirectRequest > DIRECT_REQUEST_MODE_NONE && DirectRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), Protocol, true, LocalSocketData))
 	{
 	//Fin TCP request connection.
@@ -173,13 +173,15 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 }
 
 //Check hosts from list
-size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Result, const size_t ResultSize)
+size_t __fastcall CheckHostsProcess(PSTR OriginalRequest, const size_t Length, PSTR Result, const size_t ResultSize)
 {
 //Initilization
-	auto DNS_Header = (pdns_hdr)OriginalRequest;
 	std::string Domain;
+	auto DNS_Header = (pdns_hdr)OriginalRequest;
 	memset(Result, 0, ResultSize);
-	if (DNS_Header->Questions == htons(U16_NUM_ONE) && CheckDNSQueryNameLength(OriginalRequest + sizeof(dns_hdr)) + 1U < DOMAIN_MAXSIZE)
+
+//Request check
+	if (DNS_Header->Questions == htons(U16_NUM_ONE) && CheckQueryNameLength(OriginalRequest + sizeof(dns_hdr)) + 1U < DOMAIN_MAXSIZE)
 	{
 		if (DNSQueryToChar(OriginalRequest + sizeof(dns_hdr), Result) > DOMAIN_MINSIZE)
 		{
@@ -294,7 +296,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 			if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
 			{
 				DNS_Header->Additional = 0;
-				DataLength = AddEDNS_LabelToAdditionalRR(Result, DataLength, ResultSize, false);
+				DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, false);
 			}
 			
 			return DataLength;
@@ -436,7 +438,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 								return Length + HostsTableIter.Length;
 
 								DNS_Header->Additional = 0;
-								return AddEDNS_LabelToAdditionalRR(Result, Length - sizeof(dns_record_opt) + HostsTableIter.Length, ResultSize, false);
+								return AddEDNSLabelToAdditionalRR(Result, Length - sizeof(dns_record_opt) + HostsTableIter.Length, ResultSize, false);
 							}
 							else {
 								return Length - sizeof(dns_record_opt) + HostsTableIter.Length;
@@ -519,7 +521,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 						if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
 						{
 							DNS_Header->Additional = 0;
-							DataLength = AddEDNS_LabelToAdditionalRR(Result, DataLength, ResultSize, false);
+							DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, false);
 						}
 
 						return DataLength;
@@ -569,7 +571,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 								return Length + HostsTableIter.Length;
 
 								DNS_Header->Additional = 0;
-								return AddEDNS_LabelToAdditionalRR(Result, Length - sizeof(dns_record_opt) + HostsTableIter.Length, ResultSize, false);
+								return AddEDNSLabelToAdditionalRR(Result, Length - sizeof(dns_record_opt) + HostsTableIter.Length, ResultSize, false);
 							}
 							else {
 								return Length - sizeof(dns_record_opt) + HostsTableIter.Length;
@@ -652,7 +654,7 @@ size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Res
 						if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
 						{
 							DNS_Header->Additional = 0;
-							DataLength = AddEDNS_LabelToAdditionalRR(Result, DataLength, ResultSize, false);
+							DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, false);
 						}
 
 						return DataLength;
@@ -731,7 +733,7 @@ bool __fastcall DirectRequestProcess(const char *OriginalSend, const size_t Send
 {
 	size_t DataLength = 0;
 
-//Hosts Only mode check
+//Direct Request mode check
 	DataLength = SelectNetworkProtocol();
 	if (DirectRequest && (DataLength == AF_INET6 && Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV4 || //IPv6
 		DataLength == AF_INET && Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV6)) //IPv4
@@ -895,7 +897,7 @@ bool __fastcall SendToRequester(PSTR RecvBuffer, const size_t RecvSize, const ui
 //TCP
 	if (Protocol == IPPROTO_TCP)
 	{
-		if (AddLengthDataToDNSHeader(RecvBuffer, RecvSize, LARGE_PACKET_MAXSIZE) == EXIT_FAILURE)
+		if (AddLengthDataToHeader(RecvBuffer, RecvSize, LARGE_PACKET_MAXSIZE) == EXIT_FAILURE)
 		{
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);
@@ -961,7 +963,7 @@ bool __fastcall MarkDomainCache(const char *Buffer, const size_t Length)
 			}
 
 		//Resource Records Name(Domain Name)
-			DataLength += CheckDNSQueryNameLength(Buffer + DataLength) + 1U;
+			DataLength += CheckQueryNameLength(Buffer + DataLength) + 1U;
 			if (DataLength + sizeof(dns_record_standard) > Length)
 				break;
 
@@ -1030,8 +1032,8 @@ bool __fastcall MarkDomainCache(const char *Buffer, const size_t Length)
 
 	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		if (Parameter.GetTickCount64_PTR != nullptr)
-			DNSCacheDataTemp.ClearCacheTime = (size_t)((*Parameter.GetTickCount64_PTR)() + ResponseTTL * SECOND_TO_MILLISECOND);
+		if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
+			DNSCacheDataTemp.ClearCacheTime = (size_t)((*Parameter.FunctionPTR_GetTickCount64)() + ResponseTTL * SECOND_TO_MILLISECOND);
 		else 
 			DNSCacheDataTemp.ClearCacheTime = GetTickCount() + ResponseTTL * SECOND_TO_MILLISECOND;
 	#else
@@ -1057,7 +1059,7 @@ bool __fastcall MarkDomainCache(const char *Buffer, const size_t Length)
 		else { //CACHE_TYPE_TIMER
 		//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			while (!DNSCacheList.empty() && (Parameter.GetTickCount64_PTR != nullptr && (*Parameter.GetTickCount64_PTR)() >= DNSCacheList.front().ClearCacheTime || 
+			while (!DNSCacheList.empty() && (Parameter.FunctionPTR_GetTickCount64 != nullptr && (*Parameter.FunctionPTR_GetTickCount64)() >= DNSCacheList.front().ClearCacheTime || 
 				GetTickCount() >= DNSCacheList.front().ClearCacheTime))
 		#else
 			while (!DNSCacheList.empty() && GetTickCount64() >= DNSCacheList.front().ClearCacheTime)

@@ -1,10 +1,10 @@
 ﻿[Local Routing]
 ## China Mainland Routing blocks
-## Last update: 2015-07-19
+## Last update: 2015-07-28
 
 
 ## IPv4
-## Get the latest database from APNIC -> "curl 'https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' | grep ipv4 | grep CN | awk -F\| '{printf("%s/%d\n", $4, 32-log($5)/log(2))}' > Routing.txt"
+## Get the latest database from APNIC -> "curl 'https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' | grep ipv4 | grep CN | awk -F\| '{printf("%s/%d\n", $4, 32-log($5)/log(2))}' > Routing_IPv4.txt"
 1.0.1.0/24
 1.0.2.0/23
 1.0.8.0/21
@@ -1199,6 +1199,18 @@
 45.123.248.0/22
 45.123.252.0/22
 45.124.0.0/22
+45.124.20.0/22
+45.124.28.0/22
+45.124.32.0/22
+45.124.36.0/22
+45.124.44.0/22
+45.124.68.0/22
+45.124.76.0/22
+45.124.80.0/22
+45.124.100.0/22
+45.124.124.0/22
+45.124.172.0/22
+45.124.176.0/22
 47.92.0.0/14
 47.96.0.0/11
 49.4.0.0/14
@@ -2475,6 +2487,19 @@
 103.192.104.0/22
 103.192.108.0/22
 103.192.112.0/22
+103.192.128.0/22
+103.192.132.0/22
+103.192.136.0/22
+103.192.140.0/22
+103.192.144.0/22
+103.192.164.0/22
+103.192.188.0/22
+103.192.208.0/22
+103.192.212.0/22
+103.192.216.0/22
+103.192.252.0/22
+103.193.40.0/22
+103.193.44.0/22
 103.224.40.0/22
 103.224.44.0/22
 103.224.60.0/22
@@ -5755,7 +5780,7 @@
 
 
 ## IPv6
-## Get the latest database from APNIC -> "curl 'https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' | grep ipv6 | grep CN | awk -F\| '{printf("%s/%d\n", $4, $5)}' > Routing.txt"
+## Get the latest database from APNIC -> "curl 'https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' | grep ipv6 | grep CN | awk -F\| '{printf("%s/%d\n", $4, $5)}' > Routing_IPv6.txt"
 2001:250::/35
 2001:250:2000::/35
 2001:250:4000::/34
@@ -6006,7 +6031,18 @@
 2402:8800::/32
 2402:8900::/32
 2402:8F80::/32
+2402:9480::/32
+2402:9580::/32
+2402:9680::/32
+2402:9980::/32
+2402:9A80::/32
+2402:9B80::/32
+2402:9F80::/32
+2402:A080::/32
+2402:A180::/32
 2402:A200::/32
+2402:A280::/32
+2402:A380::/32
 2402:AE00::/32
 2402:B200::/32
 2402:CF00::/32

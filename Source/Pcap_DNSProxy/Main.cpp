@@ -23,11 +23,6 @@
 #if defined(PLATFORM_WIN)
 int wmain(int argc, wchar_t* argv[])
 {
-//Windows XP with SP3 support
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		GetFunctionPointer(FUNCTION_GETTICKCOUNT64);
-		GetFunctionPointer(FUNCTION_INET_NTOP);
-	#endif
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 int main(int argc, char *argv[])
 {
@@ -43,7 +38,7 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-//Read configuration file and WinPcap or LibPcap initialization.
+//Read configuration file.
 	if (!ReadParameter())
 	{
 		WSACleanup();
@@ -123,7 +118,7 @@ int main(int argc, char *argv[])
 #if defined(PLATFORM_WIN)
 //Winsock initialization
 	std::shared_ptr<WSAData> WSAInitialization(new WSAData());
-	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), WSAInitialization.get()) != 0 || 
+	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), WSAInitialization.get()) != EXIT_SUCCESS || 
 		LOBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_HIGH)
 	{
 		wprintf_s(L"Winsock initialization error, error code is %d.\n", WSAGetLastError());
@@ -297,7 +292,7 @@ int main(int argc, char *argv[])
 	Parameter.sPath_ErrorLog->append("Error.log");
 #endif
 	Parameter.PrintError = true;
-	time(&StartTime);
+	StartTime = time(nullptr);
 
 	return true;
 }

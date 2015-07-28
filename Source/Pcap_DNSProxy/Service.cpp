@@ -169,7 +169,7 @@ void WINAPI TerminateService(void)
 }
 
 //MailSlot of flush DNS cache Monitor
-bool WINAPI FlushDNSMailSlotMonitor(void)
+bool __fastcall FlushDNSMailSlotMonitor(void)
 {
 //System security setting
 	std::shared_ptr<SECURITY_ATTRIBUTES> SecurityAttributes(new SECURITY_ATTRIBUTES());
@@ -200,7 +200,7 @@ bool WINAPI FlushDNSMailSlotMonitor(void)
 	LocalFree(SID_Value);
 
 //Initialization
-	BOOL Result = false;
+	BOOL Result = FALSE;
 	bool FlushDNS = false;
 	DWORD cbMessage = 0, cMessage = 0, cAllMessages = 0, cbRead = 0;
 	std::shared_ptr<wchar_t> lpszBuffer(new wchar_t[PACKET_MAXSIZE]());
@@ -241,7 +241,7 @@ bool WINAPI FlushDNSMailSlotMonitor(void)
 				return false;
 			}
 
-			if (!FlushDNS && memcmp(lpszBuffer.get(), MAILSLOT_MESSAGE_FLUSH_DNS, wcslen(MAILSLOT_MESSAGE_FLUSH_DNS)) == 0)
+			if (!FlushDNS && memcmp(lpszBuffer.get(), MAILSLOT_MESSAGE_FLUSH_DNS, wcslen(MAILSLOT_MESSAGE_FLUSH_DNS)) == EXIT_SUCCESS)
 			{
 				FlushDNS = true;
 				FlushAllDNSCache();
@@ -269,9 +269,6 @@ bool WINAPI FlushDNSMailSlotMonitor(void)
 //MailSlot of flush DNS cache sender
 bool WINAPI FlushDNSMailSlotSender(void)
 {
-//Initialization
-	DWORD cbWritten = 0;
-
 //Create mailslot.
 	HANDLE hFile = CreateFileW(MAILSLOT_NAME, GENERIC_WRITE, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE)
@@ -281,6 +278,7 @@ bool WINAPI FlushDNSMailSlotSender(void)
 	}
 
 //Write into mailslot.
+	DWORD cbWritten = 0;
 	if (!WriteFile(hFile, MAILSLOT_MESSAGE_FLUSH_DNS, (DWORD)(lstrlenW(MAILSLOT_MESSAGE_FLUSH_DNS) + 1U) * sizeof(wchar_t), &cbWritten, nullptr))
 	{
 		wprintf_s(L"MailSlot write messages error, error code is %lu.\n", GetLastError());
@@ -305,7 +303,7 @@ bool FlushDNSFIFOMonitor(void)
 	int FIFO_FD = 0;
 
 //Create FIFO.
-	if (mkfifo(FIFO_PATH_NAME, O_CREAT) < 0 || chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) < 0)
+	if (mkfifo(FIFO_PATH_NAME, O_CREAT) < EXIT_SUCCESS || chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) < EXIT_SUCCESS)
 	{
 		PrintError(LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
 
@@ -315,7 +313,7 @@ bool FlushDNSFIFOMonitor(void)
 
 //Open FIFO.
 	FIFO_FD = open(FIFO_PATH_NAME, O_RDONLY, 0);
-	if (FIFO_FD < 0)
+	if (FIFO_FD < EXIT_SUCCESS)
 	{
 		PrintError(LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
 
@@ -327,7 +325,7 @@ bool FlushDNSFIFOMonitor(void)
 	for (;;)
 	{
 		if (read(FIFO_FD, Buffer.get(), PACKET_MAXSIZE) > 0 && 
-			memcmp(Buffer.get(), FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) == 0)
+			memcmp(Buffer.get(), FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) == EXIT_SUCCESS)
 				FlushAllDNSCache();
 
 		memset(Buffer.get(), 0, PACKET_MAXSIZE);
@@ -345,7 +343,7 @@ bool FlushDNSFIFOMonitor(void)
 bool FlushDNSFIFOSender(void)
 {
 	int FIFO_FD = open(FIFO_PATH_NAME, O_WRONLY|O_TRUNC|O_NONBLOCK, 0);
-	if (FIFO_FD > 0 && write(FIFO_FD, FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS) + 1U) > 0)
+	if (FIFO_FD > EXIT_SUCCESS && write(FIFO_FD, FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS) + 1U) > 0)
 	{
 		wprintf(L"Flush DNS cache message was sent successfully.\n");
 		close(FIFO_FD);

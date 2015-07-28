@@ -210,6 +210,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Pcap Capture - 抓包功能總開關，開啟後抓包模組才能正常使用：開啟為1/關閉為0，預設為 1
     * 此參數關閉後程式會自動切換為直連模式
     * 直連模式下不能完全避免 DNS 投毒污染的問題，需要依賴其它的檢測方式，例如 EDNS 標籤等方法
+  * Pcap Devices Blacklist - 指定不對含有此名稱的網路介面卡進行抓包，名稱或簡介裡含有此字串的網路介面卡將被直接忽略：預設為 Pseudo|Virtual|Tunnel|VPN|PPTP|L2TP|IKE|ISATAP|Teredo|AnyConnect|Hyper|Oracle|Host|Only|VMware|VMNet|lo|any
+    * 本參數支援指定多個名稱，大小寫不敏感，格式為 "網路介面卡的名稱(|網路介面卡的名稱)"（不含引號）
+    * 以抓包模組從系統中獲取的名稱或簡介為准，與其它網路設定程式所顯示的不一定相同
   * Pcap Reading Timeout - 抓包模塊讀取超時時間，數據包只會在等待超時時間後才會被讀取，其餘時間抓包模塊處於休眠狀態：單位為毫秒，最短間隔時間為10毫秒，預設為 200
     * 讀取超時時間需要平衡需求和資源佔用，時間設置太長會導致域名解析請求響應緩慢導致請求解析超時，太快則會佔用過多系統處理的資源
   * Listen Protocol - 監聽協定，本地監聽的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP，預設為 IPv6 + IPv4 + TCP + UDP
@@ -228,7 +231,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 當相應協定的 Listen Address 生效時，相應協定的本參數將會被自動忽略
   * IPFilter Type - IPFilter 參數的類型：分為 Deny 禁止和 Permit 允許，對應 IPFilter 參數應用為黑名單或白名單，預設為 Deny
   * IPFilter Level - IPFilter 參數的過濾級別，級別越高過濾越嚴格，與 IPFilter 條目相對應：0為不啟用過濾，如果留空則為0，預設為空
-  * Accept Type - 禁止或只允許所列DNS類型的請求：格式為 "Deny:DNS記錄的名稱或ID(|DNS記錄的名稱或ID)" 或 "Permit:DNS記錄的名稱或ID(|DNS記錄的名稱或ID)"（不含引號，括弧內為可選項目）
+  * Accept Type - 禁止或只允許所列 DNS 類型的請求：格式為 "Deny:DNS記錄的名稱或ID(|DNS記錄的名稱或ID)" 或 "Permit:DNS記錄的名稱或ID(|DNS記錄的名稱或ID)"（不含引號，括弧內為可選項目）
     * 所有可用的DNS類型清單：
       * A/1
       * NS/2
@@ -314,15 +317,43 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * RESERVED/65535
 
 * Addresses - 普通模式位址區域
-注意：IPv4 位址格式為 "IPv4 位址:埠"，IPv6 位址格式為"[IPv6 位址]:埠"，帶前置長度位址格式為"IP 位址/網路前置長度"（均不含引號）
   * IPv4 Listen Address - IPv4 本地監聽位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
-    * 本參數支援多個監聽位址，格式為 "位址A:埠|位址B:埠|位址C:埠"（不含引號）
+    * 支援多個位址
     * 填入此值後 IPv4 協定的 Operation Mode 和 Listen Port 參數將被自動忽略
   * IPv4 EDNS Client Subnet Address - IPv4 用戶端子網位址：需要輸入一個帶前置長度的本機公共網路位址，留空為不啟用，預設為空
     * 啟用本功能前需要啟用 EDNS Client Subnet 總開關，否則將直接忽略此參數
   * IPv4 DNS Address - IPv4 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 8.8.4.4:53
-    * 本參數支援同時請求多伺服器的功能，開啟後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果
-    * 使用同時請求多伺服器格式為 "位址A:埠|位址B:埠|位址C:埠"（不含引號），同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
+    * 支援多個位址
+    * 支援使用服務名稱代替埠號
+  * IPv4 Alternate DNS Address - IPv4 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 8.8.8.8:53|208.67.220.220:443|208.67.222.222:5353
+    * 支援多個位址
+    * 支援使用服務名稱代替埠號
+  * IPv4 Local DNS Address - IPv4 主要境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 114.114.115.115:53
+    * 不支援多個位址，只能填入單個位址
+    * 支援使用服務名稱代替埠號
+  * IPv4 Local Alternate DNS Address - IPv4 備用境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 223.6.6.6:53
+    * 不支援多個位址，只能填入單個位址
+    * 支援使用服務名稱代替埠號
+  * IPv6 Listen Address - IPv6 本地監聽位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
+    * 支援多個位址
+    * 填入此值後 IPv6 協定的 Operation Mode 和 Listen Port 參數將被自動忽略
+  * IPv6 EDNS Client Subnet Address - IPv6 用戶端子網位址：需要輸入一個帶前置長度的本機公共網路位址，留空為不啟用，預設為空
+    * 啟用本功能前需要啟用 EDNS Client Subnet 總開關，否則將直接忽略此參數
+  * IPv6 DNS Address - IPv6 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 [2001:4860:4860::8844]:53
+    * 支援多個位址
+    * 支援使用服務名稱代替埠號
+  * IPv6 Alternate DNS Address - IPv6 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 [2001:4860:4860::8888]:53| [2620:0:CCD::2]:443| [2620:0:CCC::2]:5353
+    * 支援多個位址
+    * 支援使用服務名稱代替埠號
+  * IPv6 Local DNS Address - IPv6 主要境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
+    * 不支援多個位址，只能填入單個位址
+    * 支援使用服務名稱代替埠號
+  * IPv6 Local Alternate DNS Address - IPv6 備用境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
+    * 不支援多個位址，只能填入單個位址
+    * 支援使用服務名稱代替埠號
+  * 注意：
+    * 單個 IPv4 位址格式為 "IPv4 位址:埠"，單個 IPv6 位址格式為"[IPv6 位址]:埠"，帶前置長度位址格式為 "IP 位址/網路前置長度"（均不含引號）
+    * 多個 IPv4 位址格式為 "位址A:埠|位址B:埠|位址C:埠"，多個 IPv6 位址格式為 "[位址A]:埠| [位址B]:埠| [位址C]:埠"（均不含引號），啟用同時請求多伺服器後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果，同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
     * 指定埠時可使用服務名稱代替：
       * TCPMUX/1
       * ECHO/7
@@ -410,54 +441,17 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * FTPS/990
       * NAS/991
       * TELNETS/992
-  * IPv4 Alternate DNS Address - IPv4 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 8.8.8.8:53|208.67.220.220:443|208.67.222.222:5353
-    * 本參數支援同時請求多伺服器的功能，開啟後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果
-    * 使用同時請求多伺服器格式為 "位址A:埠|位址B:埠|位址C:埠"（不含引號），同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
-    * 指定埠時可使用服務名稱代替，參見上表
-  * IPv4 Local DNS Address - IPv4 主要境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 114.114.115.115:53
-    * 指定埠時可使用服務名稱代替，參見上表
-    * 本參數不支援同時請求多伺服器的功能
-  * IPv4 Local Alternate DNS Address - IPv4 備用境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 223.6.6.6:53
-    * 指定埠時可使用服務名稱代替，參見上表
-    * 本參數不支援同時請求多伺服器的功能
-  * IPv6 Listen Address - IPv6 本地監聽位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
-    * 本參數支援多個監聽位址，格式為 "[位址A]:埠| [位址B]:埠| [位址C]:埠"（不含引號）
-    * 填入此值後 IPv6 協定的 Operation Mode 和 Listen Port 參數將被自動忽略
-  * IPv6 EDNS Client Subnet Address - IPv6 用戶端子網位址：需要輸入一個帶前置長度的本機公共網路位址，留空為不啟用，預設為空
-    * 啟用本功能前需要啟用 EDNS Client Subnet 總開關，否則將直接忽略此參數
-  * IPv6 DNS Address - IPv6 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 [2001:4860:4860::8844]:53
-    * 本參數支援同時請求多伺服器的功能，開啟後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果
-    * 使用同時請求多伺服器格式為 "[位址A]:埠| [位址B]:埠| [位址C]:埠"（不含引號），同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
-    * 指定埠時可使用服務名稱代替，參見上表
-  * IPv6 Alternate DNS Address - IPv6 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 [2001:4860:4860::8888]:53| [2620:0:CCD::2]:443| [2620:0:CCC::2]:5353
-    * 本參數支援同時請求多伺服器的功能，開啟後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果
-    * 使用同時請求多伺服器格式為 "[位址A]:埠| [位址B]:埠| [位址C]:埠"（不含引號），同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
-    * 指定埠時可使用服務名稱代替，參見上表
-  * IPv6 Local DNS Address - IPv6 主要境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
-    * 指定埠時可使用服務名稱代替，參見上表
-    * 本參數不支援同時請求多伺服器的功能
-  * IPv6 Local Alternate DNS Address - IPv6 備用境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
-    * 指定埠時可使用服務名稱代替，參見上表
-    * 本參數不支援同時請求多伺服器的功能
 
 * Values - 擴展參數值區域
   * EDNS Payload Size - EDNS 標籤附帶使用的最大載荷長度：最小為 DNS 協定實現要求的 512(bytes)，留空則使用 EDNS 標籤要求最短的 1220(bytes)，預設為空
-  * IPv4 TTL - IPv4 主要 DNS 伺服器接受請求的遠端DNS伺服器資料包的 TTL 值：0為自動獲取，取值為 1-255 之間：預設為 0
-    * 本參數支援同時請求多伺服器的功能，與 IPv4 DNS Address 相對應
-    * 使用同時請求多伺服器格式為 "TTL(A)|TTL(B)|TTL(C)"（不含引號），也可直接預設（即只填一個 0 不使用此格式）則所有 TTL 都將由程式自動獲取
-    * 使用時多 TTL 值所對應的順序與 IPv4 DNS Address 中對應的位址順序相同
-  * IPv6 Hop Limits - IPv6 主要 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 Hop Limits 值：0為自動獲取，取值為 1-255 之間，預設為 0
-    * 本參數支援同時請求多伺服器的功能，與 IPv6 DNS Address 相對應
-    * 使用同時請求多伺服器格式為 "Hop Limits(A)|Hop Limits(B)|Hop LimitsC)"（不含引號），也可直接預設（即只填一個 0 不使用此格式）則所有 Hop Limits 都將由程式自動獲取
-    * 使用時多 Hop Limits 值所對應的順序與 IPv6 DNS Address 中對應的位址順序相同
+  * IPv4 TTL - IPv4 主要 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 TTL 值：0為自動獲取，取值為 1-255 之間：預設為 0
+    * 支援多個 TTL 值，與 IPv4 DNS Address 相對應
   * IPv4 Alternate TTL - IPv4 備用 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 TTL 值：0為自動獲取，取值為 1-255 之間：預設為 0
-    * 本參數支援同時請求多伺服器的功能，與 IPv4 Alternate DNS Address 相對應
-    * 使用同時請求多伺服器格式為 "TTL(A)|TTL(B)|TTL(C)"（不含引號），也可直接預設（即只填一個 0 不使用此格式）則所有 TTL 都將由程式自動獲取
-    * 使用時多 TTL 值所對應的順序與 IPv4 Alternate DNS Address 中對應的位址順序相同
+    * 支援多個 TTL 值，與 IPv4 Alternate DNS Address 相對應
+  * IPv6 Hop Limits - IPv6 主要 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 Hop Limits 值：0為自動獲取，取值為 1-255 之間，預設為 0
+    * 支援多個 Hop Limits 值，與 IPv6 DNS Address 相對應
   * IPv6 Alternate Hop Limits - IPv6 備用 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 Hop Limits 值：0為自動獲取，取值為 1-255 之間，預設為 0
-    * 本參數支援同時請求多伺服器的功能，與 IPv6 Alternate DNS Address 相對應
-    * 使用同時請求多伺服器格式為 "Hop Limits(A)|Hop Limits(B)|Hop Limits(C)"（不含引號），也可直接預設（即只填一個 0 不使用此格式）則所有 Hop Limits 都將由程式自動獲取
-    * 使用時多 Hop Limits 值所對應的順序與 IPv6 Alternate DNS Address 中對應的位址順序相同
+    * 支援多個 Hop Limits 值，與 IPv6 Alternate DNS Address 相對應
   * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受範圍，即 IPv4 TTL/IPv6 Hop Limits 的值 ± 數值的範圍內的資料包均可被接受，用於避免網路環境短暫變化造成解析失敗的問題：取值為 1-255 之間，預設為 2
   * Reliable Socket Timeout - 可靠協定埠超時時間，可靠埠指 TCP 協定，單位為毫秒：預設為 3000
   * Unreliable Socket Timeout - 不可靠協定埠超時時間，不可靠埠指 UDP/ICMP/ICMPv6 協定，單位為毫秒：預設為 2000
@@ -470,8 +464,12 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Alternate Time Range - 待命伺服器失敗次數閾值計算週期：單位為秒，預設為 60秒/1分鐘
   * Alternate Reset Time - 待命伺服器重置切換時間，切換產生後經過此事件會切換回主要伺服器：單位為秒，預設為 300秒/5分鐘
   * Multi Request Times - 接受一個功能變數名稱請求後向同一個遠端伺服器發送多次功能變數名稱解析請求：0為關閉，1時為收到一個請求時請求2次，2時為收到一個請求時請求3次......最大值為7，也就是最多可同時請求8次，預設為 0
-    * 注意：此值將應用到 Local Hosts 外對所有遠端伺服器所有協定的請求，因此可能會對系統以及遠端伺服器造成壓力，請謹慎考慮開啟的風險！
+    * 此值將應用到 Local Hosts 外對所有遠端伺服器所有協定的請求，因此可能會對系統以及遠端伺服器造成壓力，請謹慎考慮開啟的風險！
     * 一般除非丟包非常嚴重干擾正常使用否則不建議開啟，開啟也不建議將值設得太大。實際使用可以每次+1後重啟服務測試效果，找到最合適的值
+  * 注意：
+    * IPv4 協定使用多 TTL 值的格式為 "TTL(A)|TTL(B)|TTL(C)"（不含引號），也可直接預設（即只填一個 0 不使用此格式）則所有 TTL 都將由程式自動獲取
+    * 使用同時請求多伺服器格式為 "Hop Limits(A)|Hop Limits(B)|Hop Limits(C)"（不含引號），也可直接預設（即只填一個 0 不使用此格式）則所有 Hop Limits 都將由程式自動獲取
+    * 使用多 TTL/Hop Limits 值所對應的順序與對應位址參數中的位址順序相同
 
 * Switches - 控制開關區域
   * TCP Fast Open - TCP 快速打開功能：開啟為1/關閉為0，預設為 0
@@ -511,7 +509,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Blacklist Filter - 解析結果黑名單過濾：開啟為1/關閉為0，預設為 1
 
 * Data - 資料區域
-  * ICMP ID - ICMP/Ping 資料包頭部ID的值：格式為 0x**** 的十六進位字元，如果留空則獲取執行緒的 ID 作為請求用 ID 預設為空
+  * ICMP ID - ICMP/Ping 資料包頭部 ID 的值：格式為 0x**** 的十六進位字元，如果留空則獲取執行緒的 ID 作為請求用 ID 預設為空
   * ICMP Sequence - ICMP/Ping 資料包頭部 Sequence/序號 的值：格式為 0x**** 的十六進位字元，如果留空則為 0x0001 預設為空
   * Domain Test Data - DNS 伺服器解析功能變數名稱測試：請輸入正確、確認不會被投毒污染的功能變數名稱並且不要超過 253 位元組 ASCII 資料，留空則會隨機生成一個功能變數名稱進行測試，預設為空
   * Domain Test ID - DNS 資料包頭部 ID 的值：格式為 0x**** 的十六進位字元，如果留空則為 0x0001 預設為空
@@ -524,29 +522,30 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSCurve Payload Size - DNSCurve EDNS 標籤附帶使用的最大載荷長度，同時亦為發送請求的總長度，並決定請求的填充長度：最小為 DNS 協定實現要求的 512(bytes)，留空則為 512(bytes)，預設為留空
   * Encryption - 啟用加密，DNSCurve 協定支援加密和非加密模式：開啟為1/關閉為0，預設為 1
   * Encryption Only - 只使用加密模式：開啟為1/關閉為0，預設為 1
-    * 注意：使用 只使用加密模式 時必須提供伺服器的魔數和指紋用於請求和接收
+    * 注意：使用 "只使用加密模式" 時必須提供伺服器的魔數和指紋用於請求和接收
   * Key Recheck Time - DNSCurve 協定DNS伺服器連接資訊檢查間隔：單位為秒，最短為10秒，預設為 3600秒/1小時
 
 * DNSCurve Addresses - DNSCurve 協定位址區域
   * DNSCurve IPv4 DNS Address - DNSCurve 協定 IPv4 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，預設為 208.67.220.220:443
-    * 指定埠時可使用服務名稱代替，參見上表
+    * 不支援多個位址，只能填入單個位址
+    * 支援使用服務名稱代替埠號
   * DNSCurve IPv4 Alternate DNS Address - DNSCurve 協定 IPv4 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，預設為 208.67.222.222:443
-    * 指定埠時可使用服務名稱代替，參見上表
+    * 不支援多個位址，只能填入單個位址
+    * 支援使用服務名稱代替埠號
   * DNSCurve IPv6 DNS Address - DNSCurve 協定 IPv6 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，預設為 [2620:0:CCD::2]:443
-    * 指定埠時可使用服務名稱代替，參見上表
+    * 不支援多個位址，只能填入單個位址
+    * 支援使用服務名稱代替埠號
   * DNSCurve IPv6 Alternate DNS Address - DNSCurve 協定 IPv6 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，預設 [2620:0:CCC::2]:443
-    * 指定埠時可使用服務名稱代替，參見上表
+    * 不支援多個位址，只能填入單個位址
+    * 支援使用服務名稱代替埠號
   * DNSCurve IPv4 Provider Name - DNSCurve 協定 IPv4 主要 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，預設為 2.dnscrypt-cert.opendns.com
-    * 注意：自動獲取 DNSCurve 伺服器連接資訊時必須輸入提供者的功能變數名稱，不能留空
   * DNSCurve IPv4 Alternate Provider Name - DNSCurve 協定 IPv4 備用 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，預設為 2.dnscrypt-cert.opendns.com
-    * 注意：自動獲取 DNSCurve 伺服器連接資訊時必須輸入提供者的功能變數名稱，不能留空
   * DNSCurve IPv6 Provider Name - DNSCurve 協定 IPv6 主要 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，預設為 2.dnscrypt-cert.opendns.com
-    * 注意：自動獲取 DNSCurve 伺服器連接資訊時必須輸入提供者的功能變數名稱，不能留空
   * DNSCurve IPv6 Provider Name - DNSCurve 協定 IPv6 備用 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，預設為 2.dnscrypt-cert.opendns.com
-    * 注意：自動獲取 DNSCurve 伺服器連接資訊時必須輸入提供者的功能變數名稱，不能留空
+  * 注意：
+    * 自動獲取 DNSCurve 伺服器連接資訊時必須輸入提供者的功能變數名稱，不能留空
 
 * DNSCurve Keys - DNSCurve 協定金鑰區域
-注意：公開網站上的 "公開金鑰" 普遍為驗證用的公開金鑰，用於驗證與伺服器通訊時使用的指紋，兩者為不同性質的公開金鑰不可混用！
   * Client Public Key - 自訂用戶端公開金鑰：可使用 KeyPairGenerator 生成，留空則每次啟動時自動生成，預設為空
   * Client Secret Key - 自訂用戶端私密金鑰：可使用 KeyPairGenerator 生成，留空則每次啟動時自動生成，預設為空
   * IPv4 DNS Public Key - DNSCurve 協定 IPv4 主要 DNS 伺服器驗證用公開金鑰，預設為 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
@@ -557,6 +556,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv4 Alternate DNS Fingerprint - DNSCurve 協定 IPv4 備用 DNS 伺服器傳輸用指紋，留空則自動通過伺服器提供者和公開金鑰獲取，預設為空
   * IPv6 DNS Fingerprint - DNSCurve 協定 IPv6 備用 DNS 伺服器傳輸用指紋，留空則自動通過伺服器提供者和公開金鑰獲取，預設為空
   * IPv6 Alternate DNS Fingerprint - DNSCurve 協定 IPv6 備用 DNS 伺服器傳輸用指紋，留空則自動通過伺服器提供者和公開金鑰獲取，預設為空
+  * 注意：
+    * 公開網站上的 "公開金鑰" 普遍為驗證用的公開金鑰，用於驗證與伺服器通訊時使用的指紋，兩者為不同性質的公開金鑰不可混用！
 
 * DNSCurve Magic Number - DNSCurve 協定魔數區域
   * IPv4 Receive Magic Number - DNSCurve 協定 IPv4 主要 DNS 伺服器接收魔數：長度必須為8位元組，留空則使用程式內置的接收魔數，預設留空

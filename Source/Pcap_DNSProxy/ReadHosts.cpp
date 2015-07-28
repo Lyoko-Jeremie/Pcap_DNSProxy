@@ -55,22 +55,22 @@ bool __fastcall ReadHostsData(std::string Data, const size_t FileIndex, const si
 	if (LabelType == 0 && (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0) && 
 	#if defined(PLATFORM_WIN) //Case-insensitive on Windows
 		(FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") != std::wstring::npos && FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"whitelist.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") == FileList_Hosts.at(FileIndex).FileName.length() - wcslen(L"whitelist.txt") || 
+		FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") + wcslen(L"whitelist.txt") == FileList_Hosts.at(FileIndex).FileName.length() || 
 		FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") != std::wstring::npos && FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"white_list.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") == FileList_Hosts.at(FileIndex).FileName.length() - wcslen(L"white_list.txt")))
+		FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") + wcslen(L"white_list.txt") == FileList_Hosts.at(FileIndex).FileName.length()))
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		(FileList_Hosts.at(FileIndex).FileName.rfind(L"WhiteList.txt") != std::wstring::npos && FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"WhiteList.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"WhiteList.txt") == FileList_Hosts.at(FileIndex).FileName.length() - wcslen(L"WhiteList.txt") || 
+		FileList_Hosts.at(FileIndex).FileName.rfind(L"WhiteList.txt") + wcslen(L"WhiteList.txt") == FileList_Hosts.at(FileIndex).FileName.length() || 
 		FileList_Hosts.at(FileIndex).FileName.rfind(L"Whitelist.txt") != std::wstring::npos && FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"Whitelist.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"Whitelist.txt") == FileList_Hosts.at(FileIndex).FileName.length() - wcslen(L"Whitelist.txt") || 
+		FileList_Hosts.at(FileIndex).FileName.rfind(L"Whitelist.txt") + wcslen(L"Whitelist.txt") == FileList_Hosts.at(FileIndex).FileName.length() || 
 		FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") != std::wstring::npos && FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"whitelist.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") == FileList_Hosts.at(FileIndex).FileName.length() - wcslen(L"whitelist.txt") || 
+		FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") + wcslen(L"whitelist.txt")== FileList_Hosts.at(FileIndex).FileName.length() || 
 		FileList_Hosts.at(FileIndex).FileName.rfind(L"White_List.txt") != std::wstring::npos && FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"White_List.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"White_List.txt") == FileList_Hosts.at(FileIndex).FileName.length() - wcslen(L"White_List.txt") || 
+		FileList_Hosts.at(FileIndex).FileName.rfind(L"White_List.txt") + wcslen(L"White_List.txt") == FileList_Hosts.at(FileIndex).FileName.length() || 
 		FileList_Hosts.at(FileIndex).FileName.rfind(L"White_list.txt") != std::wstring::npos && FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"White_list.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"White_list.txt") == FileList_Hosts.at(FileIndex).FileName.length() - wcslen(L"White_list.txt") || 
+		FileList_Hosts.at(FileIndex).FileName.rfind(L"White_list.txt") + wcslen(L"White_list.txt")== FileList_Hosts.at(FileIndex).FileName.length() || 
 		FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") != std::wstring::npos && FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"white_list.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") == FileList_Hosts.at(FileIndex).FileName.length() - wcslen(L"white_list.txt")))
+		FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") + wcslen(L"white_list.txt") == FileList_Hosts.at(FileIndex).FileName.length()))
 	#endif
 			LabelType = LABEL_HOSTS_TYPE_LOCAL;
 

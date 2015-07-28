@@ -80,6 +80,7 @@ uint64_t __fastcall hton64(const uint64_t Value)
 #endif
 }
 
+/* Redirect to hton64.
 //Convert network byte order to host values with 64 bits
 uint64_t __fastcall ntoh64(const uint64_t Value)
 {
@@ -89,12 +90,13 @@ uint64_t __fastcall ntoh64(const uint64_t Value)
 	return Value;
 #endif
 }
+*/
 
 //Convert multiple bytes to wide char string
 bool __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer)
 {
 //Check buffer.
-	if (CheckEmptyBuffer(Buffer, strnlen_s(Buffer, LARGE_PACKET_MAXSIZE)))
+	if (Buffer == nullptr || CheckEmptyBuffer(Buffer, strnlen_s(Buffer, LARGE_PACKET_MAXSIZE)) || strnlen_s(Buffer, LARGE_PACKET_MAXSIZE) == 0)
 		return false;
 
 //Convert string.
@@ -112,7 +114,7 @@ bool __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer)
 	return true;
 }
 
-//Convert lowercase/uppercase words to uppercase/lowercase words(Character version)
+//Convert lowercase/uppercase words to uppercase/lowercase words(C-Style version)
 void __fastcall CaseConvert(const bool IsLowerToUpper, PSTR Buffer, const size_t Length)
 {
 	for (size_t Index = 0;Index < Length;++Index)
@@ -128,7 +130,7 @@ void __fastcall CaseConvert(const bool IsLowerToUpper, PSTR Buffer, const size_t
 	return;
 }
 
-//Convert lowercase/uppercase words to uppercase/lowercase words(String version)
+//Convert lowercase/uppercase words to uppercase/lowercase words(C++ String version)
 void __fastcall CaseConvert(const bool IsLowerToUpper, std::string &Buffer)
 {
 	for (auto &StringIter:Buffer)
@@ -146,12 +148,14 @@ void __fastcall CaseConvert(const bool IsLowerToUpper, std::string &Buffer)
 
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Linux and Mac OS X compatible with GetTickCount64
-uint64_t GetTickCount64(void)
+uint64_t GetCurrentSystemTime(void)
 {
 	std::shared_ptr<timeval> CurrentTime(new timeval());
 	memset(CurrentTime.get(), 0, sizeof(timeval));
-	gettimeofday(CurrentTime.get(), nullptr);
-	return (uint64_t)CurrentTime->tv_sec * SECOND_TO_MILLISECOND + (uint64_t)CurrentTime->tv_usec / MICROSECOND_TO_MILLISECOND;
+	if (gettimeofday(CurrentTime.get(), nullptr) == EXIT_SUCCESS)
+		return (uint64_t)CurrentTime->tv_sec * SECOND_TO_MILLISECOND + (uint64_t)CurrentTime->tv_usec / MICROSECOND_TO_MILLISECOND;
+
+	return 0;
 }
 
 //Windows XP with SP3 support
@@ -186,13 +190,15 @@ BOOL WINAPI GetFunctionPointer(const size_t FunctionType)
 //GetTickCount64() function
 	if (FunctionType == FUNCTION_GETTICKCOUNT64)
 	{
-		Parameter.GetTickCount64_DLL = LoadLibraryW(L"Kernel32.dll");
-		if (Parameter.GetTickCount64_DLL != nullptr)
+		Parameter.FunctionLibrary_GetTickCount64 = LoadLibraryW(L"Kernel32.dll");
+		if (Parameter.FunctionLibrary_GetTickCount64 != nullptr)
 		{
-			Parameter.GetTickCount64_PTR = (GetTickCount64Function)GetProcAddress(Parameter.GetTickCount64_DLL, "GetTickCount64");
-			if (Parameter.GetTickCount64_PTR == nullptr)
+			Parameter.FunctionPTR_GetTickCount64 = (FunctionType_GetTickCount64)GetProcAddress(Parameter.FunctionLibrary_GetTickCount64, "GetTickCount64");
+			if (Parameter.FunctionPTR_GetTickCount64 == nullptr)
 			{
-				FreeLibrary(Parameter.GetTickCount64_DLL);
+				FreeLibrary(Parameter.FunctionLibrary_GetTickCount64);
+				Parameter.FunctionLibrary_GetTickCount64 = nullptr;
+
 				return FALSE;
 			}
 		}
@@ -200,13 +206,31 @@ BOOL WINAPI GetFunctionPointer(const size_t FunctionType)
 //inet_ntop() function
 	else if (FunctionType == FUNCTION_INET_NTOP)
 	{
-		Parameter.Inet_Ntop_DLL = LoadLibraryW(L"ws2_32.dll");
-		if (Parameter.Inet_Ntop_DLL != nullptr)
+		Parameter.FunctionLibrary_InetNtop = LoadLibraryW(L"ws2_32.dll");
+		if (Parameter.FunctionLibrary_InetNtop != nullptr)
 		{
-			Parameter.Inet_Ntop_PTR = (Inet_Ntop_Function)GetProcAddress(Parameter.Inet_Ntop_DLL, "inet_ntop");
-			if (Parameter.Inet_Ntop_PTR == nullptr)
+			Parameter.FunctionPTR_InetNtop = (FunctionType_InetNtop)GetProcAddress(Parameter.FunctionLibrary_InetNtop, "inet_ntop");
+			if (Parameter.FunctionPTR_InetNtop == nullptr)
 			{
-				FreeLibrary(Parameter.Inet_Ntop_DLL);
+				FreeLibrary(Parameter.FunctionLibrary_InetNtop);
+				Parameter.FunctionLibrary_InetNtop = nullptr;
+
+				return FALSE;
+			}
+		}
+	}
+//inet_pton() function
+	else if (FunctionType == FUNCTION_INET_PTON)
+	{
+		Parameter.FunctionLibrary_InetPton = LoadLibraryW(L"ws2_32.dll");
+		if (Parameter.FunctionLibrary_InetPton != nullptr)
+		{
+			Parameter.FunctionPTR_InetPton = (FunctionType_InetPton)GetProcAddress(Parameter.FunctionLibrary_InetPton, "inet_pton");
+			if (Parameter.FunctionPTR_InetPton == nullptr)
+			{
+				FreeLibrary(Parameter.FunctionLibrary_InetPton);
+				Parameter.FunctionLibrary_InetPton = nullptr;
+
 				return FALSE;
 			}
 		}

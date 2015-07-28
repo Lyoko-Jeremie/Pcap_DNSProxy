@@ -208,6 +208,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Pcap Capture - 抓包功能总开关，开启后抓包模块才能正常使用：开启为1/关闭为0，默认为 1
     * 此参数关闭后程序会自动切换为直连模式
 	* 直连模式下不能完全避免 DNS 投毒污染的问题，需要依赖其它的检测方式，例如 EDNS 标签等方法
+  * Pcap Devices Blacklist - 指定不对含有此名称的网络适配器进行抓包，名称或简介里含有此字符串的网络适配器将被直接忽略：默认为 Pseudo|Virtual|Tunnel|VPN|PPTP|L2TP|IKE|ISATAP|Teredo|AnyConnect|Hyper|Oracle|Host|Only|VMware|VMNet|lo|any
+    * 本参数支持指定多个名称，大小写不敏感，格式为 "网络适配器的名称(|网络适配器的名称)"（不含引号）
+    * 以抓包模块从系统中获取的名称或简介为准，与其它网络配置程序所显示的不一定相同
   * Pcap Reading Timeout - 抓包模块读取超时时间，数据包只会在等待超时时间后才会被读取，其余时间抓包模块处于休眠状态：单位为毫秒，最短间隔时间为10毫秒，默认为 200
     * 读取超时时间需要平衡需求和资源占用，时间设置太长会导致域名解析请求响应缓慢导致请求解析超时，太快则会占用过多系统处理的资源
   * Listen Protocol - 监听协议，本地监听的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP，默认为 IPv6 + IPv4 + TCP + UDP
@@ -226,7 +229,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 当相应协议的 Listen Address 生效时，相应协议的本参数将会被自动忽略
   * IPFilter Type - IPFilter 参数的类型：分为 Deny 禁止和 Permit 允许，对应 IPFilter 参数应用为黑名单或白名单，默认为 Deny
   * IPFilter Level - IPFilter 参数的过滤级别，级别越高过滤越严格，与 IPFilter 条目相对应：0为不启用过滤，如果留空则为 0，默认为空
-  * Accept Type - 禁止或只允许所列DNS类型的请求：格式为 "Deny:DNS记录的名称或ID(|DNS记录的名称或ID)" 或 "Permit:DNS记录的名称或ID(|DNS记录的名称或ID)"（不含引号，括号内为可选项目）
+  * Accept Type - 禁止或只允许所列 DNS 类型的请求：格式为 "Deny:DNS记录的名称或ID(|DNS记录的名称或ID)" 或 "Permit:DNS记录的名称或ID(|DNS记录的名称或ID)"（不含引号，括号内为可选项目）
     * 所有可用的 DNS 类型列表：
       * A/1
       * NS/2
@@ -312,15 +315,43 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * RESERVED/65535
     
 * Addresses - 普通模式地址区域
-注意：IPv4 地址格式为 "IPv4 地址:端口"，IPv6 地址格式为"[IPv6 地址]:端口"，带前缀长度地址格式为"IP 地址/网络前缀长度"（均不含引号）
   * IPv4 Listen Address - IPv4 本地监听地址：需要输入一个带端口格式的地址，留空为不启用，默认为空
-    * 本参数支持多个监听地址，格式为 "地址A:端口|地址B:端口|地址C:端口"（不含引号）
+    * 支持多个地址
     * 填入此值后 IPv4 协议的 Operation Mode 和 Listen Port 参数将被自动忽略
   * IPv4 EDNS Client Subnet Address - IPv4 客户端子网地址：需要输入一个带前缀长度的本机公共网络地址，留空为不启用，默认为空
     * 启用本功能前需要启用 EDNS Client Subnet 总开关，否则将直接忽略此参数
   * IPv4 DNS Address - IPv4 主要 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为 8.8.4.4:53
-    * 本参数支持同时请求多服务器的功能，开启后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果
-    * 使用同时请求多服务器格式为 "地址A:端口|地址B:端口|地址C:端口"（不含引号），同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
+    * 支持多个地址
+    * 支持使用服务名称代替端口号
+  * IPv4 Alternate DNS Address - IPv4 备用 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为 8.8.8.8:53|208.67.220.220:443|208.67.222.222:5353
+    * 支持多个地址
+    * 支持使用服务名称代替端口号
+  * IPv4 Local DNS Address - IPv4 主要境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，留空为不启用，默认为 114.114.115.115:53
+    * 不支持多个地址，只能填入单个地址
+    * 支持使用服务名称代替端口号
+  * IPv4 Local Alternate DNS Address - IPv4 备用境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，留空为不启用，默认为 223.6.6.6:53
+    * 不支持多个地址，只能填入单个地址
+    * 支持使用服务名称代替端口号
+  * IPv6 Listen Address - IPv6 本地监听地址：需要输入一个带端口格式的地址，留空为不启用，默认为空
+    * 支持多个地址
+    * 填入此值后 IPv6 协议的 Operation Mode 和 Listen Port 参数将被自动忽略
+  * IPv6 EDNS Client Subnet Address - IPv6 客户端子网地址：需要输入一个带前缀长度的本机公共网络地址，留空为不启用，默认为空
+    * 启用本功能前需要启用 EDNS Client Subnet 总开关，否则将直接忽略此参数
+  * IPv6 DNS Address - IPv6 主要 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为 [2001:4860:4860::8844]:53
+    * 支持多个地址
+    * 支持使用服务名称代替端口号
+  * IPv6 Alternate DNS Address - IPv6 备用 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为 [2001:4860:4860::8888]:53|[2620:0:CCD::2]:443|[2620:0:CCC::2]:5353
+    * 支持多个地址
+    * 支持使用服务名称代替端口号
+  * IPv6 Local DNS Address - IPv6 主要境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，留空为不启用，默认为空
+    * 不支持多个地址，只能填入单个地址
+    * 支持使用服务名称代替端口号
+  * IPv6 Local Alternate DNS Address - IPv6 备用境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，留空为不启用，默认为空
+    * 不支持多个地址，只能填入单个地址
+    * 支持使用服务名称代替端口号
+  * 注意：
+    * 单个 IPv4 地址格式为 "IPv4 地址:端口"，单个 IPv6 地址格式为"[IPv6 地址]:端口"，带前缀长度地址格式为 "IP 地址/网络前缀长度"（均不含引号）
+    * 多个 IPv4 地址格式为 "地址A:端口|地址B:端口|地址C:端口"，多个 IPv6 地址格式为 "[地址A]:端口|[地址B]:端口|[地址C]:端口"（均不含引号），启用同时请求多服务器后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果，同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
     * 指定端口时可使用服务名称代替：
       * TCPMUX/1
       * ECHO/7
@@ -408,54 +439,17 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * FTPS/990
       * NAS/991
       * TELNETS/992
-  * IPv4 Alternate DNS Address - IPv4 备用 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为 8.8.8.8:53|208.67.220.220:443|208.67.222.222:5353
-    * 本参数支持同时请求多服务器的功能，开启后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果
-    * 使用同时请求多服务器格式为 "地址A:端口|地址B:端口|地址C:端口"（不含引号），同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
-    * 指定端口时可使用服务名称代替，参见上表
-  * IPv4 Local DNS Address - IPv4 主要境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，留空为不启用，默认为 114.114.115.115:53
-    * 指定端口时可使用服务名称代替，参见上表
-    * 本参数不支持同时请求多服务器的功能
-  * IPv4 Local Alternate DNS Address - IPv4 备用境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，留空为不启用，默认为 223.6.6.6:53
-    * 指定端口时可使用服务名称代替，参见上表
-    * 本参数不支持同时请求多服务器的功能
-  * IPv6 Listen Address - IPv6 本地监听地址：需要输入一个带端口格式的地址，留空为不启用，默认为空
-    * 本参数支持多个监听地址，格式为 "[地址A]:端口|[地址B]:端口|[地址C]:端口"（不含引号）
-    * 填入此值后 IPv6 协议的 Operation Mode 和 Listen Port 参数将被自动忽略
-  * IPv6 EDNS Client Subnet Address - IPv6 客户端子网地址：需要输入一个带前缀长度的本机公共网络地址，留空为不启用，默认为空
-    * 启用本功能前需要启用 EDNS Client Subnet 总开关，否则将直接忽略此参数
-  * IPv6 DNS Address - IPv6 主要 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为 [2001:4860:4860::8844]:53
-    * 本参数支持同时请求多服务器的功能，开启后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果
-    * 使用同时请求多服务器格式为 "[地址A]:端口|[地址B]:端口|[地址C]:端口"（不含引号），同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
-    * 指定端口时可使用服务名称代替，参见上表
-  * IPv6 Alternate DNS Address - IPv6 备用 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为 [2001:4860:4860::8888]:53|[2620:0:CCD::2]:443|[2620:0:CCC::2]:5353
-    * 本参数支持同时请求多服务器的功能，开启后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果
-    * 使用同时请求多服务器格式为 "[地址A]:端口|[地址B]:端口|[地址C]:端口"（不含引号），同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
-    * 指定端口时可使用服务名称代替，参见上表
-  * IPv6 Local DNS Address - IPv6 主要境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，留空为不启用，默认为空
-    * 指定端口时可使用服务名称代替，参见上表
-    * 本参数不支持同时请求多服务器的功能
-  * IPv6 Local Alternate DNS Address - IPv6 备用境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，留空为不启用，默认为空
-    * 指定端口时可使用服务名称代替，参见上表
-    * 本参数不支持同时请求多服务器的功能
 
 * Values - 扩展参数值区域
   * EDNS Payload Size - EDNS 标签附带使用的最大载荷长度：最小为 DNS 协议实现要求的 512(bytes)，留空则使用 EDNS 标签要求最短的 1220(bytes)，默认为空
   * IPv4 TTL - IPv4 主要 DNS 服务器接受请求的远程 DNS 服务器数据包的 TTL 值：0为自动获取，取值为 1-255 之间：默认为 0
-    * 本参数支持同时请求多服务器的功能，与 IPv4 DNS Address 相对应
-    * 使用同时请求多服务器格式为 "TTL(A)|TTL(B)|TTL(C)"（不含引号），也可直接默认（即只填一个 0 不使用此格式）则所有 TTL 都将由程序自动获取
-    * 使用时多 TTL 值所对应的顺序与 IPv4 DNS Address 中对应的地址顺序相同
-  * IPv6 Hop Limits - IPv6 主要 DNS 服务器接受请求的远程 DNS 服务器数据包的 Hop Limits 值：0为自动获取，取值为 1-255 之间，默认为 0
-    * 本参数支持同时请求多服务器的功能，与 IPv6 DNS Address 相对应
-    * 使用同时请求多服务器格式为 "Hop Limits(A)|Hop Limits(B)|Hop LimitsC)"（不含引号），也可直接默认（即只填一个 0 不使用此格式）则所有 Hop Limits 都将由程序自动获取
-    * 使用时多 Hop Limits 值所对应的顺序与 IPv6 DNS Address 中对应的地址顺序相同
+    * 支持多个 TTL 值，与 IPv4 DNS Address 相对应
   * IPv4 Alternate TTL - IPv4 备用 DNS 服务器接受请求的远程 DNS 服务器数据包的 TTL 值：0为自动获取，取值为 1-255 之间：默认为 0
-    * 本参数支持同时请求多服务器的功能，与 IPv4 Alternate DNS Address 相对应
-    * 使用同时请求多服务器格式为 "TTL(A)|TTL(B)|TTL(C)"（不含引号），也可直接默认（即只填一个 0 不使用此格式）则所有 TTL 都将由程序自动获取
-    * 使用时多 TTL 值所对应的顺序与 IPv4 Alternate DNS Address 中对应的地址顺序相同
+    * 支持多个 TTL 值，与 IPv4 Alternate DNS Address 相对应
+  * IPv6 Hop Limits - IPv6 主要 DNS 服务器接受请求的远程 DNS 服务器数据包的 Hop Limits 值：0为自动获取，取值为 1-255 之间，默认为 0
+    * 支持多个 Hop Limits 值，与 IPv6 DNS Address 相对应
   * IPv6 Alternate Hop Limits - IPv6 备用 DNS 服务器接受请求的远程 DNS 服务器数据包的 Hop Limits 值：0为自动获取，取值为 1-255 之间，默认为 0
-    * 本参数支持同时请求多服务器的功能，与 IPv6 Alternate DNS Address 相对应
-    * 使用同时请求多服务器格式为 "Hop Limits(A)|Hop Limits(B)|Hop Limits(C)"（不含引号），也可直接默认（即只填一个 0 不使用此格式）则所有 Hop Limits 都将由程序自动获取
-    * 使用时多 Hop Limits 值所对应的顺序与 IPv6 Alternate DNS Address 中对应的地址顺序相同
+    * 支持多个 Hop Limits 值，与 IPv6 Alternate DNS Address 相对应
   * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受范围，即 IPv4 TTL/IPv6 Hop Limits 的值 ± 数值的范围内的数据包均可被接受，用于避免网络环境短暂变化造成解析失败的问题：取值为 1-255 之间，默认为 2
   * Reliable Socket Timeout - 可靠协议端口超时时间，可靠端口指 TCP 协议，单位为毫秒：默认为 3000
   * Unreliable Socket Timeout - 不可靠协议端口超时时间，不可靠端口指 UDP/ICMP/ICMPv6 协议：单位为毫秒，默认为 2000
@@ -468,8 +462,12 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Alternate Time Range - 备用服务器失败次数阈值计算周期：单位为秒，默认为 60秒/1分钟
   * Alternate Reset Time - 备用服务器重置切换时间，切换产生后经过此事件会切换回主要服务器：单位为秒，默认为 300秒/5分钟
   * Multi Request Times - 接受一个域名请求后向同一个远程服务器发送多次域名解析请求：0为关闭，1时为收到一个请求时请求2次，2时为收到一个请求时请求3次……最大值为7，也就是最多可同时请求8次，默认为 0
-    * 注意：此值将应用到 Local Hosts 外对所有远程服务器所有协议的请求，因此可能会对系统以及远程服务器造成压力，请谨慎考虑开启的风险！
+    * 此值将应用到 Local Hosts 外对所有远程服务器所有协议的请求，因此可能会对系统以及远程服务器造成压力，请谨慎考虑开启的风险！
     * 一般除非丢包非常严重干扰正常使用否则不建议开启，开启也不建议将值设得太大。实际使用可以每次+1后重启服务测试效果，找到最合适的值
+  * 注意：
+    * IPv4 协议使用多 TTL 值的格式为 "TTL(A)|TTL(B)|TTL(C)"（不含引号），也可直接默认（即只填一个 0 不使用此格式）则所有 TTL 都将由程序自动获取
+    * 使用同时请求多服务器格式为 "Hop Limits(A)|Hop Limits(B)|Hop Limits(C)"（不含引号），也可直接默认（即只填一个 0 不使用此格式）则所有 Hop Limits 都将由程序自动获取
+    * 使用多 TTL/Hop Limits 值所对应的顺序与对应地址参数中的地址顺序相同
 
 * Switches - 控制开关区域
   * TCP Fast Open - TCP 快速打开功能：开启为1/关闭为0，默认为 0
@@ -509,7 +507,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Blacklist Filter - 解析结果黑名单过滤：开启为1/关闭为0，默认为 1
   
 * Data - 数据区域
-  * ICMP ID - ICMP/Ping 数据包头部ID的值：格式为 0x**** 的十六进制字符，如果留空则获取线程的 ID 作为请求用 ID 默认为空
+  * ICMP ID - ICMP/Ping 数据包头部 ID 的值：格式为 0x**** 的十六进制字符，如果留空则获取线程的 ID 作为请求用 ID 默认为空
   * ICMP Sequence - ICMP/Ping 数据包头部 Sequence/序列号 的值：格式为 0x**** 的十六进制字符，如果留空则为 0x0001 默认为空
   * Domain Test Data - DNS 服务器解析域名测试：请输入正确、确认不会被投毒污染的域名并且不要超过 253 字节 ASCII 数据，留空则会随机生成一个域名进行测试，默认为空
   * Domain Test ID - DNS 数据包头部 ID 的值：格式为 0x**** 的十六进制字符，如果留空则为 0x0001 默认为空
@@ -522,29 +520,30 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSCurve Payload Size - DNSCurve EDNS 标签附带使用的最大载荷长度，同时亦为发送请求的总长度，并决定请求的填充长度：最小为 DNS 协议实现要求的 512(bytes)，留空则为 512(bytes)，默认为留空
   * Encryption - 启用加密，DNSCurve 协议支持加密和非加密模式：开启为1/关闭为0，默认为 1
   * Encryption Only - 只使用加密模式：开启为1/关闭为0，默认为 1
-    * 注意：使用 只使用加密模式 时必须提供服务器的魔数和指纹用于请求和接收
+    * 注意：使用 "只使用加密模式" 时必须提供服务器的魔数和指纹用于请求和接收
   * Key Recheck Time - DNSCurve 协议 DNS 服务器连接信息检查间隔：单位为秒，最短为10秒，默认为 3600秒/1小时
 
 * DNSCurve Addresses - DNSCurve 协议地址区域
   * DNSCurve IPv4 DNS Address - DNSCurve 协议 IPv4 主要 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 208.67.220.220:443
-    * 指定端口时可使用服务名称代替，参见上表
+    * 不支持多个地址，只能填入单个地址
+    * 支持使用服务名称代替端口号
   * DNSCurve IPv4 Alternate DNS Address - DNSCurve 协议 IPv4 备用 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 208.67.222.222:443
-    * 指定端口时可使用服务名称代替，参见上表
+    * 不支持多个地址，只能填入单个地址
+    * 支持使用服务名称代替端口号
   * DNSCurve IPv6 DNS Address - DNSCurve 协议 IPv6 主要 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 [2620:0:CCD::2]:443
-    * 指定端口时可使用服务名称代替，参见上表
+    * 不支持多个地址，只能填入单个地址
+    * 支持使用服务名称代替端口号
   * DNSCurve IPv6 Alternate DNS Address - DNSCurve 协议 IPv6 备用 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 [2620:0:CCC::2]:443
-    * 指定端口时可使用服务名称代替，参见上表
+    * 不支持多个地址，只能填入单个地址
+    * 支持使用服务名称代替端口号
   * DNSCurve IPv4 Provider Name - DNSCurve 协议 IPv4 主要 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.opendns.com
-    * 注意：自动获取 DNSCurve 服务器连接信息时必须输入提供者的域名，不能留空
   * DNSCurve IPv4 Alternate Provider Name - DNSCurve 协议 IPv4 备用 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.opendns.com
-    * 注意：自动获取 DNSCurve 服务器连接信息时必须输入提供者的域名，不能留空
   * DNSCurve IPv6 Provider Name - DNSCurve 协议 IPv6 主要 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.opendns.com
-    * 注意：自动获取 DNSCurve 服务器连接信息时必须输入提供者的域名，不能留空
   * DNSCurve IPv6 Provider Name - DNSCurve 协议 IPv6 备用 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.opendns.com
-    * 注意：自动获取 DNSCurve 服务器连接信息时必须输入提供者的域名，不能留空
+  * 注意：
+    * 自动获取 DNSCurve 服务器连接信息时必须输入提供者的域名，不能留空
 
 * DNSCurve Keys - DNSCurve 协议密钥区域
-注意：公开网站上的 "公钥" 普遍为验证用的公钥，用于验证与服务器通讯时使用的指纹，两者为不同性质的公钥不可混用！
   * Client Public Key - 自定义客户端公钥：可使用 KeyPairGenerator 生成，留空则每次启动时自动生成，默认为空
   * Client Secret Key - 自定义客户端私钥：可使用 KeyPairGenerator 生成，留空则每次启动时自动生成，默认为空
   * IPv4 DNS Public Key - DNSCurve 协议 IPv4 主要 DNS 服务器验证用公钥，默认为 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
@@ -555,6 +554,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv4 Alternate DNS Fingerprint - DNSCurve 协议 IPv4 备用 DNS 服务器传输用指纹，留空则自动通过服务器提供者和公钥获取，默认为空
   * IPv6 DNS Fingerprint - DNSCurve 协议 IPv6 备用 DNS 服务器传输用指纹，留空则自动通过服务器提供者和公钥获取，默认为空
   * IPv6 Alternate DNS Fingerprint - DNSCurve 协议 IPv6 备用 DNS 服务器传输用指纹，留空则自动通过服务器提供者和公钥获取，默认为空
+  * 注意：
+    * 公开网站上的 "公钥" 普遍为验证用的公钥，用于验证与服务器通讯时使用的指纹，两者为不同性质的公钥不可混用！
   
 * DNSCurve Magic Number - DNSCurve 协议魔数区域
   * IPv4 Receive Magic Number - DNSCurve 协议 IPv4 主要 DNS 服务器接收魔数：长度必须为8字节，留空则使用程序内置的接收魔数，默认留空

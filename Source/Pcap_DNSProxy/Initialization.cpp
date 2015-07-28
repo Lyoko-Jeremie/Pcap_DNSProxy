@@ -25,6 +25,7 @@ ConfigurationTable::ConfigurationTable(void)
 	memset(this, 0, sizeof(CONFIGURATION_TABLE));
 	try {
 	//[Listen] block
+		PcapDevicesBlacklist = new std::vector<std::string>();
 		ListenPort = new std::vector<uint16_t>();
 	//[Addresses] block
 		ListenAddress_IPv6 = new std::vector<sockaddr_storage>();
@@ -69,6 +70,7 @@ ConfigurationTable::ConfigurationTable(void)
 	catch (std::bad_alloc)
 	{
 	//[Listen] block
+		delete PcapDevicesBlacklist;
 		delete ListenPort;
 	//[Addresses] block
 		delete ListenAddress_IPv6;
@@ -180,6 +182,13 @@ ConfigurationTable::ConfigurationTable(void)
 //Default status
 	GatewayAvailable_IPv4 = true;
 
+//Windows XP with SP3 support
+#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+	GetFunctionPointer(FUNCTION_GETTICKCOUNT64);
+	GetFunctionPointer(FUNCTION_INET_NTOP);
+	GetFunctionPointer(FUNCTION_INET_PTON);
+#endif
+
 	return;
 }
 
@@ -187,6 +196,7 @@ ConfigurationTable::ConfigurationTable(void)
 ConfigurationTable::~ConfigurationTable(void)
 {
 //[Listen] block
+	delete PcapDevicesBlacklist;
 	delete ListenPort;
 //[Addresses] block
 	delete ListenAddress_IPv6;
@@ -221,6 +231,17 @@ ConfigurationTable::~ConfigurationTable(void)
 	delete FileList_IPFilter;
 	delete[] DomainTable;
 	delete AcceptTypeList;
+
+//Free Libraries
+//Windows XP with SP3 support
+#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+	if (Parameter.FunctionLibrary_GetTickCount64 != nullptr)
+		FreeLibrary(Parameter.FunctionLibrary_GetTickCount64);
+	if (Parameter.FunctionLibrary_InetNtop != nullptr)
+		FreeLibrary(Parameter.FunctionLibrary_InetNtop);
+	if (Parameter.FunctionLibrary_InetPton != nullptr)
+		FreeLibrary(Parameter.FunctionLibrary_InetPton);
+#endif
 
 	return;
 }

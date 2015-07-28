@@ -26,15 +26,17 @@ void __fastcall CaptureInit(void)
 //Initialization
 	std::shared_ptr<char> ErrBuffer(new char[PCAP_ERRBUF_SIZE]());
 	memset(ErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
-	CaptureFilterRulesInit(PcapFilterRules);
 	std::wstring wErrBuffer;
-	pcap_if *pThedevs = nullptr, *pDrive = nullptr;
 	std::vector<std::string>::iterator CaptureIter;
+	pcap_if *pThedevs = nullptr, *pDrive = nullptr;
 	auto IsErrorFirstPrint = true;
-
-//Capture Monitor
 	std::unique_lock<std::mutex> CaptureMutex(CaptureLock);
 	CaptureMutex.unlock();
+
+//Capture filter initialization
+	CaptureFilterRulesInit(PcapFilterRules);
+
+//Capture Monitor
 	for (;;)
 	{
 	//Open all devices.
@@ -107,11 +109,120 @@ void __fastcall CaptureInit(void)
 
 void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 {
-//Initialization
-	std::string AddressesString;
+//Initialization(Part 1)
+	std::vector<PDNS_SERVER_DATA> AddrList;
+	auto RepeatingItem = false;
+
+//IPv6
+	if (Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
+		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0) //Non-IPv4
+	{
+	//Main
+		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0)
+			AddrList.push_back(&Parameter.DNSTarget.IPv6);
+
+	//Alternate
+		if (Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0)
+		{
+		//Check repeating items.
+			for (auto DNSServerDataIter:AddrList)
+			{
+				if (DNSServerDataIter->AddressData.Storage.ss_family == Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family && 
+					memcmp(&DNSServerDataIter->AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS)
+				{
+					RepeatingItem = true;
+					break;
+				}
+			}
+
+		//Add to address list.
+			if (!RepeatingItem)
+				AddrList.push_back(&Parameter.DNSTarget.Alternate_IPv6);
+			RepeatingItem = false;
+		}
+
+	//Other(Multi)
+		if (Parameter.DNSTarget.IPv6_Multi != nullptr)
+		{
+			for (auto &DNSServerDataIter:*Parameter.DNSTarget.IPv6_Multi)
+			{
+			//Check repeating items.
+				for (auto DNSServerDataInnerIter:AddrList)
+				{
+					if (DNSServerDataInnerIter->AddressData.Storage.ss_family == DNSServerDataIter.AddressData.Storage.ss_family && 
+						memcmp(&DNSServerDataInnerIter->AddressData.IPv6.sin6_addr, &DNSServerDataIter.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS)
+					{
+						RepeatingItem = true;
+						break;
+					}
+				}
+
+			//Add to address list.
+				if (!RepeatingItem)
+					AddrList.push_back(&DNSServerDataIter);
+				RepeatingItem = false;
+			}
+		}
+	}
+
+//IPv4
+	if (Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
+		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0) //Non-IPv6
+	{
+	//Main
+		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0)
+			AddrList.push_back(&Parameter.DNSTarget.IPv4);
+
+	//Alternate
+		if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
+		{
+		//Check repeating items.
+			for (auto DNSServerDataIter:AddrList)
+			{
+				if (DNSServerDataIter->AddressData.Storage.ss_family == Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family && 
+					DNSServerDataIter->AddressData.IPv4.sin_addr.s_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr)
+				{
+					RepeatingItem = true;
+					break;
+				}
+			}
+
+		//Add to address list.
+			if (!RepeatingItem)
+				AddrList.push_back(&Parameter.DNSTarget.Alternate_IPv4);
+			RepeatingItem = false;
+		}
+
+	//Other(Multi)
+		if (Parameter.DNSTarget.IPv4_Multi != nullptr)
+		{
+			for (auto &DNSServerDataIter:*Parameter.DNSTarget.IPv4_Multi)
+			{
+			//Check repeating items.
+				for (auto DNSServerDataInnerIter:AddrList)
+				{
+					if (DNSServerDataInnerIter->AddressData.Storage.ss_family == DNSServerDataIter.AddressData.Storage.ss_family && 
+						DNSServerDataInnerIter->AddressData.IPv4.sin_addr.s_addr == DNSServerDataIter.AddressData.IPv4.sin_addr.s_addr)
+					{
+						RepeatingItem = true;
+						break;
+					}
+				}
+
+			//Add to address list.
+				if (!RepeatingItem)
+					AddrList.push_back(&DNSServerDataIter);
+				RepeatingItem = false;
+			}
+		}
+	}
+
+//Initialization(Part 2)
+	std::string AddrString;
 	std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
 	memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 	FilterRules.clear();
+	FilterRules.append("(src host ");
 
 //Minimum supported system of inet_ntop() and inet_pton() is Windows Vista(Windows XP with SP3 support). [Roy Tam]
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
@@ -120,8 +231,63 @@ void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 	DWORD BufferLength = ADDR_STRING_MAXSIZE;
 #endif
 
-	FilterRules.append("(src host ");
+//List all target addresses.
+	RepeatingItem = false;
+	for (auto DNSServerDataIter:AddrList)
+	{
+	//IPv6
+		if (DNSServerDataIter->AddressData.Storage.ss_family == AF_INET6)
+		{
+			if (RepeatingItem)
+				AddrString.append(" or ");
+			RepeatingItem = true;
 
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+			if (Parameter.FunctionPTR_InetNtop != nullptr)
+			{
+				(*Parameter.FunctionPTR_InetNtop)(AF_INET6, &DNSServerDataIter->AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+			}
+			else {
+				BufferLength = ADDR_STRING_MAXSIZE;
+				SockAddr->ss_family = AF_INET6;
+				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = DNSServerDataIter->AddressData.IPv6.sin6_addr;
+				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
+			}
+		#else
+			inet_ntop(AF_INET6, &DNSServerDataIter->AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+		#endif
+
+			AddrString.append(Addr.get());
+			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+		}
+	//IPv4
+		else if (DNSServerDataIter->AddressData.Storage.ss_family == AF_INET)
+		{
+			if (RepeatingItem)
+				AddrString.append(" or ");
+			RepeatingItem = true;
+
+		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+			if (Parameter.FunctionPTR_InetNtop != nullptr)
+			{
+				(*Parameter.FunctionPTR_InetNtop)(AF_INET, &DNSServerDataIter->AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+			}
+			else {
+				BufferLength = ADDR_STRING_MAXSIZE;
+				SockAddr->ss_family = AF_INET;
+				((PSOCKADDR_IN)SockAddr.get())->sin_addr = DNSServerDataIter->AddressData.IPv4.sin_addr;
+				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
+			}
+		#else
+			inet_ntop(AF_INET, &DNSServerDataIter->AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+		#endif
+
+			AddrString.append(Addr.get());
+			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+		}
+	}
+
+/* Old version(2015-07-26)
 //Set capture filter.
 	auto IsNoSingle = false, IsConnection = false;
 	if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 || 
@@ -137,9 +303,9 @@ void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 	{
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		if (Parameter.Inet_Ntop_PTR != nullptr)
+		if (Parameter.FunctionPTR_InetNtop != nullptr)
 		{
-			(*Parameter.Inet_Ntop_PTR)(AF_INET6, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+			(*Parameter.FunctionPTR_InetNtop)(AF_INET6, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 		}
 		else {
 			BufferLength = ADDR_STRING_MAXSIZE;
@@ -164,9 +330,9 @@ void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 	{
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		if (Parameter.Inet_Ntop_PTR != nullptr)
+		if (Parameter.FunctionPTR_InetNtop != nullptr)
 		{
-			(*Parameter.Inet_Ntop_PTR)(AF_INET6, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+			(*Parameter.FunctionPTR_InetNtop)(AF_INET6, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 		}
 		else {
 			BufferLength = ADDR_STRING_MAXSIZE;
@@ -193,9 +359,9 @@ void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 		for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv6_Multi)
 		{
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.Inet_Ntop_PTR != nullptr)
+			if (Parameter.FunctionPTR_InetNtop != nullptr)
 			{
-				(*Parameter.Inet_Ntop_PTR)(AF_INET6, &DNSServerDataIter.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+				(*Parameter.FunctionPTR_InetNtop)(AF_INET6, &DNSServerDataIter.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 			}
 			else {
 				BufferLength = ADDR_STRING_MAXSIZE;
@@ -221,9 +387,9 @@ void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 	{
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		if (Parameter.Inet_Ntop_PTR != nullptr)
+		if (Parameter.FunctionPTR_InetNtop != nullptr)
 		{
-			(*Parameter.Inet_Ntop_PTR)(AF_INET, &Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+			(*Parameter.FunctionPTR_InetNtop)(AF_INET, &Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 		}
 		else {
 			BufferLength = ADDR_STRING_MAXSIZE;
@@ -248,9 +414,9 @@ void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 	{
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		if (Parameter.Inet_Ntop_PTR != nullptr)
+		if (Parameter.FunctionPTR_InetNtop != nullptr)
 		{
-			(*Parameter.Inet_Ntop_PTR)(AF_INET, &Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+			(*Parameter.FunctionPTR_InetNtop)(AF_INET, &Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 		}
 		else {
 			BufferLength = ADDR_STRING_MAXSIZE;
@@ -277,9 +443,9 @@ void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 		for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv4_Multi)
 		{
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.Inet_Ntop_PTR != nullptr)
+			if (Parameter.FunctionPTR_InetNtop != nullptr)
 			{
-				(*Parameter.Inet_Ntop_PTR)(AF_INET, &DNSServerDataIter.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+				(*Parameter.FunctionPTR_InetNtop)(AF_INET, &DNSServerDataIter.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 			}
 			else {
 				BufferLength = ADDR_STRING_MAXSIZE;
@@ -299,13 +465,11 @@ void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 		}
 	}
-
+*/
 //End of address list
-	if (IsNoSingle)
-		AddressesString.append(")");
-	FilterRules.append(AddressesString);
+	FilterRules.append(AddrString);
 	FilterRules.append(") or (pppoes and src host ");
-	FilterRules.append(AddressesString);
+	FilterRules.append(AddrString);
 	FilterRules.append(")");
 
 	return;
@@ -314,8 +478,10 @@ void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 //Capture process
 bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList)
 {
-//Devices check
-	if (pDrive->name == nullptr || pDrive->addresses == nullptr || pDrive->flags == PCAP_IF_LOOPBACK
+	std::string CaptureDevice;
+
+//Devices name, address and type check
+	if (pDrive->name == nullptr || pDrive->addresses == nullptr || pDrive->flags == PCAP_IF_LOOPBACK)
 /* Old version(2015-07-12)
 	#if defined(PLATFORM_LINUX)
 		|| strnlen(pDrive->name, PACKET_MAXSIZE) >= strlen("lo") && memcmp(pDrive->name, "lo", strlen("lo")) == 0
@@ -325,25 +491,48 @@ bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList)
 		#endif
 	#endif
 */
-		)
-	{
-		if (IsCaptureList && pDrive->next != nullptr)
-		{
-			std::thread CaptureThread(CaptureModule, pDrive->next, true);
-			CaptureThread.detach();
-		}
+		goto DevicesSkip;
 
-		return true;
+//Pcap devices blacklist check
+	if (pDrive->description != nullptr)
+	{
+		CaptureDevice.append(pDrive->description);
+		CaseConvert(false, CaptureDevice);
+		for (auto CaptureIter:*Parameter.PcapDevicesBlacklist)
+		{
+			if (CaptureIter.find(CaptureDevice) != std::string::npos)
+				goto DevicesSkip;
+		}
+	}
+	CaptureDevice.clear();
+	CaptureDevice.append(pDrive->name);
+	CaseConvert(false, CaptureDevice);
+	for (auto CaptureIter:*Parameter.PcapDevicesBlacklist)
+	{
+		if (CaptureIter.find(CaptureDevice) != std::string::npos)
+			goto DevicesSkip;
 	}
 
+//Skip this devices.
+	goto DevicesNotSkip;
+
+	DevicesSkip:
+	if (IsCaptureList && pDrive->next != nullptr)
+	{
+		std::thread CaptureThread(CaptureModule, pDrive->next, true);
+		CaptureThread.detach();
+	}
+
+	return true;
+
+	DevicesNotSkip:
 //Initialization(Part 1)
 	pcap_t *DeviceHandle = nullptr;
-/* Old version(2015-06-27)
-	std::shared_ptr<char> Buffer(new char[ORIGINAL_PACKET_MAXSIZE * Parameter.BufferQueueSize]());
-	memset(Buffer.get(), 0, ORIGINAL_PACKET_MAXSIZE * Parameter.BufferQueueSize);
-*/
 	std::shared_ptr<char> Buffer(new char[ORIGINAL_PACKET_MAXSIZE + sizeof(uint16_t)]()); //Reserved 2 bytes for TCP header length.
 	memset(Buffer.get(), 0, ORIGINAL_PACKET_MAXSIZE + sizeof(uint16_t));
+	CaptureDevice.clear();
+	CaptureDevice.append(pDrive->name);
+	CaptureDevice.shrink_to_fit();
 
 //Open device
 #if defined(PLATFORM_WIN)
@@ -422,7 +611,6 @@ bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList)
 	}
 
 //Start captures with other devices.
-	std::string CaptureDevice(pDrive->name);
 	PcapRunningList.push_back(CaptureDevice);
 	if (IsCaptureList && pDrive->next != nullptr)
 	{
@@ -430,190 +618,6 @@ bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList)
 		CaptureThread.detach();
 	}
 
-/* Old version(2015-06-27)
-	size_t Index = 0;
-	pcap_pkthdr *PacketHeader = nullptr;
-	const unsigned char *PacketData = nullptr;
-	for (;;)
-	{
-		Result = pcap_next_ex(DeviceHandle, &PacketHeader, &PacketData);
-		switch (Result)
-		{
-			case PCAP_ERROR: //An error occurred.
-			{
-
-				std::shared_ptr<wchar_t> ErrBuffer(new wchar_t[PCAP_ERRBUF_SIZE]());
-				wmemset(ErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
-
-			//Devices are offline or other errors, wait for retrying.
-				wcsncpy_s(ErrBuffer.get(), PCAP_ERRBUF_SIZE, L"An error occurred in ", wcslen(L"An error occurred in "));
-				wcsncpy_s(ErrBuffer.get() + wcslen(L"An error occurred in "), PCAP_ERRBUF_SIZE - wcslen(L"An error occurred in "), DeviceName.c_str(), DeviceName.length());
-				PrintError(LOG_ERROR_PCAP, ErrBuffer.get(), 0, nullptr, 0);
-
-			//Delete from devices list.
-				std::unique_lock<std::mutex> CaptureMutex(CaptureLock);
-				for (auto CaptureIter = PcapRunningList.begin();CaptureIter != PcapRunningList.end();)
-				{
-					if (*CaptureIter == CaptureDevice)
-					{
-						CaptureIter = PcapRunningList.erase(CaptureIter);
-						if (CaptureIter == PcapRunningList.end())
-							break;
-					}
-					else {
-						++CaptureIter;
-					}
-				}
-				PcapRunningList.shrink_to_fit();
-				CaptureMutex.unlock();
-				
-				pcap_freecode(BPF_Code.get());
-				pcap_close(DeviceHandle);
-				return false;
-			}break;
-			case PCAP_ERROR_BREAK:
-			{
-				std::shared_ptr<wchar_t> ErrBuffer(new wchar_t[PCAP_ERRBUF_SIZE]());
-				wmemset(ErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
-
-			//Devices are offline or other errors, wait for retrying.
-				wcsncpy_s(ErrBuffer.get(), PCAP_ERRBUF_SIZE, L"EOF was reached reading from an offline capture in ", wcslen(L"EOF was reached reading from an offline capture in "));
-				wcsncpy_s(ErrBuffer.get() + wcslen(L"EOF was reached reading from an offline capture in "), PCAP_ERRBUF_SIZE - wcslen(L"EOF was reached reading from an offline capture in "), DeviceName.c_str(), DeviceName.length());
-				PrintError(LOG_ERROR_PCAP, ErrBuffer.get(), 0, nullptr, 0);
-
-			//Delete from devices list.
-				std::unique_lock<std::mutex> CaptureMutex(CaptureLock);
-				for (auto CaptureIter = PcapRunningList.begin();CaptureIter != PcapRunningList.end();)
-				{
-					if (*CaptureIter == CaptureDevice)
-					{
-						CaptureIter = PcapRunningList.erase(CaptureIter);
-						if (CaptureIter == PcapRunningList.end())
-							break;
-					}
-					else {
-						++CaptureIter;
-					}
-				}
-				PcapRunningList.shrink_to_fit();
-				CaptureMutex.unlock();
-				
-				pcap_freecode(BPF_Code.get());
-				pcap_close(DeviceHandle);
-				return false;
-			}break;
-			case PCAP_READ_TIMEOUT:
-			{
-				Sleep(LOOP_INTERVAL_TIME);
-				continue;
-			}break;
-			case PCAP_READ_SUCCESS:
-			{
-//				memset(Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, 0, ORIGINAL_PACKET_MAXSIZE);
-				memset(Buffer.get(), 0, ORIGINAL_PACKET_MAXSIZE);
-
-			//PPP(Such as ADSL, a part of organization networks)
-				if (DeviceType == DLT_EN10MB && ((peth_hdr)PacketData)->Type == htons(OSI_L2_PPPS) && PacketHeader->caplen > sizeof(eth_hdr) + sizeof(ppp_hdr) || //PPP over Ethernet II
-					DeviceType == DLT_APPLE_IP_OVER_IEEE1394 && ((pieee_1394_hdr)PacketData)->Type == htons(OSI_L2_PPPS) && PacketHeader->caplen > sizeof(ieee_1394_hdr) + sizeof(ppp_hdr)) //PPP over Apple IEEE 1394
-				{
-					size_t HeaderLength = 0;
-					if (DeviceType == DLT_EN10MB)
-						HeaderLength += sizeof(eth_hdr);
-					else if (DeviceType == DLT_APPLE_IP_OVER_IEEE1394)
-						HeaderLength += sizeof(ieee_1394_hdr);
-					
-					auto InnerHeader = (pppp_hdr)(PacketData + HeaderLength);
-					if (
-					//IPv6 over PPP
-						InnerHeader->Protocol == htons(PPP_IPV6) && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
-						PacketHeader->caplen > HeaderLength + sizeof(ppp_hdr) + sizeof(ipv6_hdr) || 
-					//IPv4 over PPP
-						InnerHeader->Protocol == htons(PPP_IPV4) && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
-						PacketHeader->caplen > HeaderLength + sizeof(ppp_hdr) + sizeof(ipv4_hdr))
-					{
-						HeaderLength += sizeof(ppp_hdr);
-//						memcpy_s(Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, ORIGINAL_PACKET_MAXSIZE, PacketData + HeaderLength, PacketHeader->caplen - HeaderLength);
-//						std::thread CaptureNetworkLayerThread(CaptureNetworkLayer, Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, PacketHeader->caplen - HeaderLength, ntohs(InnerHeader->Protocol));
-//						CaptureNetworkLayerThread.detach();
-						memcpy_s(Buffer.get(), ORIGINAL_PACKET_MAXSIZE, PacketData + HeaderLength, PacketHeader->caplen - HeaderLength);
-						CaptureNetworkLayer(Buffer.get(), PacketHeader->caplen - HeaderLength, ntohs(InnerHeader->Protocol));
-
-//						Index = (Index + 1U) % Parameter.BufferQueueSize;
-					}
-				}
-
-			//LAN/WLAN/IEEE 802.1X, some Mobile Communications Standard/MCS drives which disguise as a LAN
-				else if (
-				//IPv6 over Ethernet II
-					(DeviceType == DLT_EN10MB && (((peth_hdr)PacketData)->Type == htons(OSI_L2_IPV6) && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
-					PacketHeader->caplen > sizeof(eth_hdr) + sizeof(ipv6_hdr) || 
-				//IPv4 over Ethernet II
-					((peth_hdr)PacketData)->Type == htons(OSI_L2_IPV4) && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
-					PacketHeader->caplen > sizeof(eth_hdr) + sizeof(ipv4_hdr))) || 
-				//IPv6 over Apple IEEE 1394
-					(DeviceType == DLT_APPLE_IP_OVER_IEEE1394 && ((((pieee_1394_hdr)PacketData)->Type == htons(OSI_L2_IPV6) && 
-					Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && PacketHeader->caplen > sizeof(ieee_1394_hdr) + sizeof(ipv6_hdr) || 
-				//IPv4 over Apple IEEE 1394
-					((pieee_1394_hdr)PacketData)->Type == htons(OSI_L2_IPV4) && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
-					PacketHeader->caplen > sizeof(ipv4_hdr)))))
-				{
-					if (DeviceType == DLT_EN10MB)
-					{
-//						memcpy_s(Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, ORIGINAL_PACKET_MAXSIZE, PacketData + sizeof(eth_hdr), PacketHeader->caplen - sizeof(eth_hdr));
-//						std::thread CaptureNetworkLayerThread(CaptureNetworkLayer, Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, PacketHeader->caplen - sizeof(eth_hdr), ntohs(((peth_hdr)PacketData)->Type));
-//						CaptureNetworkLayerThread.detach();
-						memcpy_s(Buffer.get(), ORIGINAL_PACKET_MAXSIZE, PacketData + sizeof(eth_hdr), PacketHeader->caplen - sizeof(eth_hdr));
-						CaptureNetworkLayer(Buffer.get(), PacketHeader->caplen - sizeof(eth_hdr), ntohs(((peth_hdr)PacketData)->Type));
-					}
-					else if (DeviceType == DLT_APPLE_IP_OVER_IEEE1394)
-					{
-//						memcpy_s(Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, ORIGINAL_PACKET_MAXSIZE, PacketData + sizeof(ieee_1394_hdr), PacketHeader->caplen - sizeof(ieee_1394_hdr));
-//						std::thread CaptureNetworkLayerThread(CaptureNetworkLayer, Buffer.get() + ORIGINAL_PACKET_MAXSIZE * Index, PacketHeader->caplen - sizeof(ieee_1394_hdr), ntohs(((pieee_1394_hdr)PacketData)->Type));
-//						CaptureNetworkLayerThread.detach();
-						memcpy_s(Buffer.get(), ORIGINAL_PACKET_MAXSIZE, PacketData + sizeof(ieee_1394_hdr), PacketHeader->caplen - sizeof(ieee_1394_hdr));
-						CaptureNetworkLayer(Buffer.get(), PacketHeader->caplen - sizeof(ieee_1394_hdr), ntohs(((pieee_1394_hdr)PacketData)->Type));
-					}
-
-//					Index = (Index + 1U) % Parameter.BufferQueueSize;
-				}
-				else {
-					Sleep(LOOP_INTERVAL_TIME);
-					continue;
-				}
-			}break;
-			default: {
-				if (Result == PCAP_ERROR_NO_SUCH_DEVICE || Result == PCAP_ERROR_RFMON_NOTSUP || Result == PCAP_ERROR_NOT_RFMON)
-				{
-				//Delete from devices list.
-					std::unique_lock<std::mutex> CaptureMutex(CaptureLock);
-					for (auto CaptureIter = PcapRunningList.begin();CaptureIter != PcapRunningList.end();)
-					{
-						if (*CaptureIter == CaptureDevice)
-						{
-							CaptureIter = PcapRunningList.erase(CaptureIter);
-							if (CaptureIter == PcapRunningList.end())
-								break;
-						}
-						else {
-							++CaptureIter;
-						}
-					}
-					PcapRunningList.shrink_to_fit();
-					CaptureMutex.unlock();
-
-				//Exit this capture thread.
-					pcap_freecode(BPF_Code.get());
-					pcap_close(DeviceHandle);
-					return true;
-				}
-				else {
-					Sleep(MONITOR_LOOP_INTERVAL_TIME);
-					continue;
-				}
-			}
-		}
-	}
-*/
 //Initialization(Part 2)
 	std::shared_ptr<CAPTURE_HANDLER_PARAM> ParamList(new CAPTURE_HANDLER_PARAM());
 	memset(ParamList.get(), 0, sizeof(CAPTURE_HANDLER_PARAM));
@@ -628,7 +632,7 @@ bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList)
 	{
 		Result = pcap_loop(DeviceHandle, PCAP_LOOP_INFINITY, CaptureHandler, (PUCHAR)ParamList.get());
 //		if (Result == PCAP_ERROR || Result == PCAP_ERROR_BREAK || Result == PCAP_ERROR_NO_SUCH_DEVICE || Result == PCAP_ERROR_RFMON_NOTSUP || Result == PCAP_ERROR_NOT_RFMON)
-		if (Result < 0)
+		if (Result < EXIT_SUCCESS)
 		{
 		//Delete this capture from devices list.
 			CaptureMutex.lock();
@@ -676,12 +680,14 @@ void CaptureHandler(unsigned char *Param, const struct pcap_pkthdr *PacketHeader
 	if (ParamList->DeviceType == DLT_EN10MB && ((peth_hdr)PacketData)->Type == htons(OSI_L2_PPPS) && PacketHeader->caplen > sizeof(eth_hdr) + sizeof(ppp_hdr) || //PPP over Ethernet II
 		ParamList->DeviceType == DLT_APPLE_IP_OVER_IEEE1394 && ((pieee_1394_hdr)PacketData)->Type == htons(OSI_L2_PPPS) && PacketHeader->caplen > sizeof(ieee_1394_hdr) + sizeof(ppp_hdr)) //PPP over Apple IEEE 1394
 	{
+	//Check header length.
 		size_t HeaderLength = 0;
 		if (ParamList->DeviceType == DLT_EN10MB)
 			HeaderLength += sizeof(eth_hdr);
 		else if (ParamList->DeviceType == DLT_APPLE_IP_OVER_IEEE1394)
 			HeaderLength += sizeof(ieee_1394_hdr);
 
+	//Header check
 		auto InnerHeader = (pppp_hdr)(PacketData + HeaderLength);
 		if (
 		//IPv6 over PPP
@@ -731,11 +737,6 @@ void CaptureHandler(unsigned char *Param, const struct pcap_pkthdr *PacketHeader
 bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, const uint16_t Protocol)
 {
 //Initialization
-/* Old version(2015-06-24)
-	std::shared_ptr<char> Buffer(new char[Length]());
-	memset(Buffer.get(), 0, Length);
-	memcpy_s(Buffer.get(), Length, Recv, Length);
-*/
 	PDNS_SERVER_DATA PacketSource = nullptr;
 
 //IPv6
@@ -748,21 +749,21 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 			return false;
 
 	//Mark source of packet.
-		if (memcmp(&IPv6_Header->Source, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0)
+		if (memcmp(&IPv6_Header->Source, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS)
 		{
 			PacketSource = &Parameter.DNSTarget.IPv6;
 		}
-		else if (memcmp(&IPv6_Header->Source, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0)
+		else if (memcmp(&IPv6_Header->Source, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS)
 		{
 			PacketSource = &Parameter.DNSTarget.Alternate_IPv6;
 		}
 		else if (Parameter.DNSTarget.IPv6_Multi != nullptr)
 		{
-			for (size_t Index = 0;Index < Parameter.DNSTarget.IPv6_Multi->size();++Index)
+			for (auto &DNSServerDataIter:*Parameter.DNSTarget.IPv6_Multi)
 			{
-				if (memcmp(&IPv6_Header->Source, &Parameter.DNSTarget.IPv6_Multi->at(Index).AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0)
+				if (memcmp(&IPv6_Header->Source, &DNSServerDataIter.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS)
 				{
-					PacketSource = &Parameter.DNSTarget.IPv6_Multi->at(Index);
+					PacketSource = &DNSServerDataIter;
 					break;
 				}
 			}
@@ -779,7 +780,7 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 		if (Parameter.ICMP_Speed > 0 && IPv6_Header->NextHeader == IPPROTO_ICMPV6 && ntohs(IPv6_Header->PayloadLength) >= sizeof(icmpv6_hdr))
 		{
 		//Validate ICMPv6 checksum.
-			if (GetICMPv6Checksum((PUINT8)Buffer, ntohs(IPv6_Header->PayloadLength), IPv6_Header->Destination, IPv6_Header->Source) != CHECKSUM_SUCCESS)
+			if (GetChecksum_ICMPv6((PUINT8)Buffer, ntohs(IPv6_Header->PayloadLength), IPv6_Header->Destination, IPv6_Header->Source) != CHECKSUM_SUCCESS)
 				return false;
 
 		//ICMP check
@@ -793,7 +794,7 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 		if (Parameter.HeaderCheck_TCP && IPv6_Header->NextHeader == IPPROTO_TCP && ntohs(IPv6_Header->PayloadLength) >= sizeof(tcp_hdr))
 		{
 		//Validate TCP checksum.
-			if (GetTCPUDPChecksum((PUINT8)Buffer, ntohs(IPv6_Header->PayloadLength), AF_INET6, IPPROTO_TCP) != CHECKSUM_SUCCESS)
+			if (GetChecksum_TCPUDP((PUINT8)Buffer, ntohs(IPv6_Header->PayloadLength), AF_INET6, IPPROTO_TCP) != CHECKSUM_SUCCESS)
 				return false;
 
 		//TCP check
@@ -807,7 +808,7 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 		if (IPv6_Header->NextHeader == IPPROTO_UDP && ntohs(IPv6_Header->PayloadLength) >= sizeof(udp_hdr) + DNS_PACKET_MINSIZE)
 		{
 		//Validate UDP checksum.
-			if (GetTCPUDPChecksum((PUINT8)Buffer, ntohs(IPv6_Header->PayloadLength), AF_INET6, IPPROTO_UDP) != CHECKSUM_SUCCESS)
+			if (GetChecksum_TCPUDP((PUINT8)Buffer, ntohs(IPv6_Header->PayloadLength), AF_INET6, IPPROTO_UDP) != CHECKSUM_SUCCESS)
 				return false;
 
 		//Port check
@@ -832,10 +833,10 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 				if (Parameter.DNSCurve && 
 				//Main(IPv6)
 					(DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.IPv6.ReceiveMagicNumber != nullptr && 
-					memcmp(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0 || 
+					memcmp(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == EXIT_SUCCESS || 
 				//Alternate(IPv6)
 					DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber != nullptr && 
-					memcmp(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0))
+					memcmp(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == EXIT_SUCCESS))
 						return false;
 			#endif
 
@@ -869,11 +870,11 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 		}
 		else if (Parameter.DNSTarget.IPv4_Multi != nullptr)
 		{
-			for (size_t Index = 0;Index < Parameter.DNSTarget.IPv4_Multi->size();++Index)
+			for (auto &DNSServerDataIter:*Parameter.DNSTarget.IPv4_Multi)
 			{
-				if (IPv4_Header->Source.s_addr == Parameter.DNSTarget.IPv4_Multi->at(Index).AddressData.IPv4.sin_addr.s_addr)
+				if (IPv4_Header->Source.s_addr == DNSServerDataIter.AddressData.IPv4.sin_addr.s_addr)
 				{
-					PacketSource = &Parameter.DNSTarget.IPv4_Multi->at(Index);
+					PacketSource = &DNSServerDataIter;
 					break;
 				}
 			}
@@ -916,7 +917,7 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 		if (Parameter.HeaderCheck_TCP && IPv4_Header->Protocol == IPPROTO_TCP && ntohs(IPv4_Header->Length) >= IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(tcp_hdr))
 		{
 		//Validate TCP checksum.
-			if (GetTCPUDPChecksum((PUINT8)Buffer, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, AF_INET, IPPROTO_TCP) != CHECKSUM_SUCCESS)
+			if (GetChecksum_TCPUDP((PUINT8)Buffer, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, AF_INET, IPPROTO_TCP) != CHECKSUM_SUCCESS)
 				return false;
 
 		//TCP check
@@ -930,7 +931,7 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 		if (IPv4_Header->Protocol == IPPROTO_UDP && ntohs(IPv4_Header->Length) >= IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(udp_hdr) + DNS_PACKET_MINSIZE)
 		{
 		//Validate UDP checksum.
-			if (GetTCPUDPChecksum((PUINT8)Buffer, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, AF_INET, IPPROTO_UDP) != CHECKSUM_SUCCESS)
+			if (GetChecksum_TCPUDP((PUINT8)Buffer, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, AF_INET, IPPROTO_UDP) != CHECKSUM_SUCCESS)
 				return false;
 
 		//Port check
@@ -955,10 +956,10 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 				if (Parameter.DNSCurve && 
 				//Main(IPv4)
 					(DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.IPv4.ReceiveMagicNumber != nullptr &&  
-					memcmp(Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0 || 
+					memcmp(Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == EXIT_SUCCESS || 
 				//Alternate(IPv4)
 					DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber != nullptr && 
-					memcmp(Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0))
+					memcmp(Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == EXIT_SUCCESS))
 						return false;
 			#endif
 
@@ -994,7 +995,7 @@ bool __fastcall CaptureCheck_ICMP(const char *Buffer, const size_t Length, const
 		//Validate ICMP packet
 			ICMP_Header->ID == Parameter.ICMP_ID && 
 			Parameter.ICMP_PaddingData != nullptr && Length == sizeof(icmp_hdr) + Parameter.ICMP_PaddingLength - 1U && 
-			memcmp(Parameter.ICMP_PaddingData, (PSTR)ICMP_Header + sizeof(icmp_hdr), Parameter.ICMP_PaddingLength - 1U) == 0) //Validate ICMP additional data.
+			memcmp(Parameter.ICMP_PaddingData, (PSTR)ICMP_Header + sizeof(icmp_hdr), Parameter.ICMP_PaddingLength - 1U) == EXIT_SUCCESS) //Validate ICMP additional data.
 				return true;
 	}
 
@@ -1084,12 +1085,12 @@ bool __fastcall MatchPortToSend(const char *Buffer, const size_t Length, const u
 	}
 
 //Stop loop and clear timeout data.
-	ClearOutputPacketListData: 
+	ClearOutputPacketListData:
 //Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	if (Parameter.GetTickCount64_PTR != nullptr)
+	if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
 	{
-		while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= (size_t)((*Parameter.GetTickCount64_PTR)()))
+		while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= (size_t)((*Parameter.FunctionPTR_GetTickCount64)()))
 		{
 		//Mark timeout.
 			if (OutputPacketList.front().ClearPortTime > 0)
@@ -1177,25 +1178,6 @@ bool __fastcall MatchPortToSend(const char *Buffer, const size_t Length, const u
 	SendToRequester((PSTR)Buffer, Length, SystemProtocol, *SocketData_Input);
 	if (SystemProtocol == IPPROTO_TCP)
 		return true;
-/* Old version(2015-06-24)
-		std::shared_ptr<char> RecvBuffer(new char[Length + sizeof(uint16_t)]());
-		memset(RecvBuffer.get(), 0, Length + sizeof(uint16_t));
-		memcpy_s(RecvBuffer.get(), Length + sizeof(uint16_t), Buffer, Length);
-		if (AddLengthDataToDNSHeader(RecvBuffer.get(), Length, Length + sizeof(uint16_t)) == EXIT_FAILURE)
-			return false;
-
-		if (AddLengthDataToDNSHeader((PSTR)Buffer, Length, Length + sizeof(uint16_t)) == EXIT_FAILURE)
-			return false;
-
-		send(SocketData_Input->Socket, Buffer, (int)(Length + sizeof(uint16_t)), 0);
-		shutdown(SocketData_Input->Socket, SD_BOTH);
-		closesocket(SocketData_Input->Socket);
-		return true;
-	}
-	else { //UDP
-		sendto(SocketData_Input->Socket, Buffer, (int)Length, 0, (PSOCKADDR)&SocketData_Input->SockAddr, SocketData_Input->AddrLen);
-	}
-*/
 
 //Check global sockets.
 	if (Parameter.LocalSocket != nullptr && !Parameter.LocalSocket->empty())

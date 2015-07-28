@@ -1,7 +1,8 @@
-﻿Pcap_DNSProxy v0.4.2.1-v0.4.2.5(Windows/Linux/Mac) 更新日志(2015-07-21)：
+﻿Pcap_DNSProxy v0.4.2.1-v0.4.3 更新日志(2015-07-28)：
 
 * Hosts Only 参数现在更名为 Direct Request 并支持指定 IPv4 或 IPv6 功能
 * 添加不同协议的 Direct Request 功能 [AVC A]
+* 添加 Pcap Devices Blacklist 参数，可指定不对含有此名称的网络适配器进行抓包
 * 添加限制请求数量的功能
 * 添加 DNS 压缩指针检查功能，避免接受格式错误的数据包
 * 添加遗漏的 DNS 投毒污染黑名单地址

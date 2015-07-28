@@ -104,11 +104,11 @@
 //Version defines
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4                                   //Current configuration version
-#define FULL_VERSION                 L"0.4.2.5"
+#define FULL_VERSION                 L"0.4.3.0"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2015 Chengr28"
 
 //Exit code defines
-#define EXIT_CHECK_HOSTS_TYPE_LOCAL                2U   //Type is Local in CheckHosts function.
+#define EXIT_CHECK_HOSTS_TYPE_LOCAL                2U   //Type is Local in CheckHostsProcess function.
 #define EXIT_CHECK_RESPONSE_DATA_MARK_HOP_LIMITS   2U   //Mark Hop Limits in CheckresponseData function.
 
 //Size and length defines
@@ -250,15 +250,16 @@
 #else 
 	#define DEFAULT_SEQUENCE                      0x0001                                                                                                                                        //Default sequence of protocol
 #endif
-#define DNS_PACKET_QUERY_LOCATE(Buffer)       (sizeof(dns_hdr) + CheckDNSQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U)                                                                    //Location the beginning of DNS Query
-#define DNS_TCP_PACKET_QUERY_LOCATE(Buffer)   (sizeof(dns_tcp_hdr) + CheckDNSQueryNameLength(Buffer + sizeof(dns_tcp_hdr)) + 1U)
-#define DNS_PACKET_RR_LOCATE(Buffer)          (sizeof(dns_hdr) + CheckDNSQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U + sizeof(dns_qry))                                                  //Location the beginning of DNS Resource Records
+#define DNS_PACKET_QUERY_LOCATE(Buffer)       (sizeof(dns_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U)                                                                    //Location the beginning of DNS Query
+#define DNS_TCP_PACKET_QUERY_LOCATE(Buffer)   (sizeof(dns_tcp_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_tcp_hdr)) + 1U)
+#define DNS_PACKET_RR_LOCATE(Buffer)          (sizeof(dns_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U + sizeof(dns_qry))                                                  //Location the beginning of DNS Resource Records
 
 //Function Type defines
 //Windows XP with SP3 support
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 	#define FUNCTION_GETTICKCOUNT64        1U
 	#define FUNCTION_INET_NTOP             2U
+	#define FUNCTION_INET_PTON             3U
 #endif
 
 //Compare addresses own defines
@@ -322,8 +323,9 @@
 //Function Pointer defines
 //Windows XP with SP3 support
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	typedef ULONGLONG(CALLBACK *GetTickCount64Function)(void);
-	typedef PCSTR(CALLBACK *Inet_Ntop_Function)(INT, PVOID, PSTR, size_t);
+	typedef ULONGLONG(CALLBACK *FunctionType_GetTickCount64)(void);
+	typedef PCSTR(CALLBACK *FunctionType_InetNtop)(INT, PVOID, PSTR, size_t);
+	typedef INT(CALLBACK *FunctionType_InetPton)(INT, PCSTR, PVOID);
 #endif
 
 
@@ -331,11 +333,13 @@
 // Function defines(Part 2)
 #define ntoh16_Force          hton16_Force
 #define ntoh32_Force          hton32_Force
+#define ntoh64                hton64
 #if defined(PLATFORM_WIN)
 	#define Sleep(Millisecond)    Sleep((DWORD)(Millisecond))
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define Sleep(Millisecond)    usleep((useconds_t)((Millisecond) * MICROSECOND_TO_MILLISECOND))
 	#define usleep(Millisecond)   usleep((useconds_t)(Millisecond))
+	#define GetTickCount64        GetCurrentSystemTime
 #endif
 
 
@@ -437,6 +441,7 @@ public:
 //[Listen] block
 #if defined(ENABLE_PCAP)
 	bool                                 PcapCapture;
+	std::vector<std::string>             *PcapDevicesBlacklist;
 	size_t                               PcapReadingTimeout;
 #endif
 	size_t                               OperationMode;
@@ -554,10 +559,12 @@ public:
 
 //Windows XP with SP3 support
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	HINSTANCE                            GetTickCount64_DLL;
-	GetTickCount64Function               GetTickCount64_PTR;
-	HINSTANCE                            Inet_Ntop_DLL;
-	Inet_Ntop_Function                   Inet_Ntop_PTR;
+	HINSTANCE                            FunctionLibrary_GetTickCount64;
+	HINSTANCE                            FunctionLibrary_InetNtop;
+	HINSTANCE                            FunctionLibrary_InetPton;
+	FunctionType_GetTickCount64          FunctionPTR_GetTickCount64;
+	FunctionType_InetNtop                FunctionPTR_InetNtop;
+	FunctionType_InetPton                FunctionPTR_InetPton;
 #endif
 
 //Network layers support block
@@ -706,16 +713,16 @@ public:
 //Base.cpp
 bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length);
 uint16_t __fastcall hton16_Force(const uint16_t Value);
-uint16_t __fastcall ntoh16_Force(const uint16_t Value);
+//uint16_t __fastcall ntoh16_Force(const uint16_t Value);
 uint32_t __fastcall hton32_Force(const uint32_t Value);
-uint32_t __fastcall ntoh32_Force(const uint32_t Value);
+//uint32_t __fastcall ntoh32_Force(const uint32_t Value);
 uint64_t __fastcall hton64(const uint64_t Value);
-uint64_t __fastcall ntoh64(const uint64_t Value);
+//uint64_t __fastcall ntoh64(const uint64_t Value);
 bool __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer);
 void __fastcall CaseConvert(const bool IsLowerToUpper, PSTR Buffer, const size_t Length);
 void __fastcall CaseConvert(const bool IsLowerToUpper, std::string &Buffer);
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	uint64_t GetTickCount64(void);
+	uint64_t GetCurrentSystemTime(void);
 #endif
 //Windows XP with SP3 support
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
@@ -729,14 +736,14 @@ bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const S
 //PacketData.h
 //uint32_t __fastcall GetFCS(const unsigned char *Buffer, const size_t Length);
 uint16_t __fastcall GetChecksum(const uint16_t *Buffer, const size_t Length);
-uint16_t __fastcall GetICMPv6Checksum(const unsigned char *Buffer, const size_t Length, const in6_addr &Destination, const in6_addr &Source);
-uint16_t __fastcall GetTCPUDPChecksum(const unsigned char *Buffer, const size_t Length, const uint16_t Protocol_Network, const uint16_t Protocol_Transport);
-size_t __fastcall AddLengthDataToDNSHeader(PSTR Buffer, const size_t RecvLen, const size_t MaxLen);
+uint16_t __fastcall GetChecksum_ICMPv6(const unsigned char *Buffer, const size_t Length, const in6_addr &Destination, const in6_addr &Source);
+uint16_t __fastcall GetChecksum_TCPUDP(const unsigned char *Buffer, const size_t Length, const uint16_t Protocol_Network, const uint16_t Protocol_Transport);
+size_t __fastcall AddLengthDataToHeader(PSTR Buffer, const size_t RecvLen, const size_t MaxLen);
 size_t __fastcall CharToDNSQuery(const char *FName, PSTR TName);
 size_t __fastcall DNSQueryToChar(const char *TName, PSTR FName);
 void __fastcall MakeRamdomDomain(PSTR Buffer);
 void __fastcall MakeDomainCaseConversion(PSTR Buffer);
-size_t __fastcall AddEDNS_LabelToAdditionalRR(PSTR Buffer, const size_t Length, const size_t MaxLen, const bool NoHeader);
+size_t __fastcall AddEDNSLabelToAdditionalRR(PSTR Buffer, const size_t Length, const size_t MaxLen, const bool NoHeader);
 size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Length);
 
 //Protocol.h
@@ -745,8 +752,8 @@ size_t __fastcall AddressesComparing(const void *OriginalAddrBegin, const void *
 bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const bool IsPrivateUse, char *Domain);
 bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol);
 bool __fastcall CheckCustomModeFilter(const void *OriginalAddr, const uint16_t Protocol);
-size_t __fastcall CheckDNSQueryNameLength(const char *Buffer);
-size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t Length, const SOCKET_DATA &LocalSocketData, const uint16_t Protocol, bool *IsLocalRequest);
+size_t __fastcall CheckQueryNameLength(const char *Buffer);
+size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t Length, const SOCKET_DATA &LocalSocketData, const uint16_t Protocol, bool *IsLocal);
 size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal);
 
 //Configuration.h
@@ -771,8 +778,8 @@ void __fastcall NetworkInformationMonitor(void);
 #endif
 
 //Process.h
-bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Length, const SOCKET_DATA LocalSocketData, const uint16_t Protocol, const bool IsLocalRequest);
-size_t __fastcall CheckHosts(PSTR OriginalRequest, const size_t Length, PSTR Result, const size_t ResultSize);
+bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Length, const SOCKET_DATA LocalSocketData, const uint16_t Protocol, const bool IsLocal);
+size_t __fastcall CheckHostsProcess(PSTR OriginalRequest, const size_t Length, PSTR Result, const size_t ResultSize);
 bool __fastcall SendToRequester(PSTR RecvBuffer, const size_t RecvSize, const uint16_t Protocol, const SOCKET_DATA &LocalSocketData);
 bool __fastcall MarkDomainCache(const char *Buffer, const size_t Length);
 
@@ -784,7 +791,7 @@ bool __fastcall MarkDomainCache(const char *Buffer, const size_t Length);
 //Network.h
 #if defined(ENABLE_PCAP)
 bool __fastcall DomainTestRequest(const uint16_t Protocol);
-bool __fastcall ICMPEcho(const uint16_t Protocol);
+bool __fastcall ICMPTestRequest(const uint16_t Protocol);
 #endif
 size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal);
 size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
@@ -799,7 +806,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 #if defined(PLATFORM_WIN)
 	BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType);
 	size_t WINAPI ServiceMain(DWORD argc, LPTSTR *argv);
-	bool WINAPI FlushDNSMailSlotMonitor(void);
+	bool __fastcall FlushDNSMailSlotMonitor(void);
 	bool WINAPI FlushDNSMailSlotSender(void);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	bool FlushDNSFIFOMonitor(void);

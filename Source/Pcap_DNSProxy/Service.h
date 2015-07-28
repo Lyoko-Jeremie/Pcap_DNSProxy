@@ -29,7 +29,7 @@ extern std::mutex DNSCacheListLock;
 #if defined(PLATFORM_WIN)
 //Local variables
 static DWORD ServiceCurrentStatus = 0;
-static BOOL IsServiceRunning = false;
+static BOOL IsServiceRunning = FALSE;
 SERVICE_STATUS_HANDLE ServiceStatusHandle = nullptr;
 HANDLE ServiceEvent = nullptr;
 
