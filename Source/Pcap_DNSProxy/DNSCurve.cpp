@@ -1512,7 +1512,8 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 								JumpFromPDU: 
 
 							//Responses question and answers check
-								if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && CheckResponseData(OriginalRecv, RecvLen, false) == EXIT_FAILURE)
+								RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+								if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 									return EXIT_FAILURE;
 
 							//Mark DNS Cache.
@@ -2126,7 +2127,8 @@ size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t
 									}
 
 								//Direct Request Extended check
-									if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && CheckResponseData(OriginalRecv, RecvLen, false) == EXIT_FAILURE)
+									RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+									if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 									{
 										memset(OriginalRecv, 0, RecvSize);
 										continue;
@@ -2385,9 +2387,15 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 
 	//Check padding data and responses question and answers check.
 		RecvLen = DNSCurvePaddingData(false, OriginalRecv, RecvLen);
-		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE || 
-			(Parameter.DNSDataCheck || Parameter.BlacklistCheck) && CheckResponseData(OriginalRecv, RecvLen, false) == EXIT_FAILURE)
+		if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
+		{
+			RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 				return EXIT_FAILURE;
+		}
+		else {
+			return EXIT_FAILURE;
+		}
 
 	//Mark DNS Cache.
 		if (Parameter.CacheType > 0)
@@ -2398,7 +2406,8 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 //Normal mode
 	else {
 	//Responses question and answers check
-		if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && CheckResponseData(OriginalRecv, RecvLen, false) == EXIT_FAILURE)
+		RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			return EXIT_FAILURE;
 
 	//Mark DNS Cache.
@@ -2841,9 +2850,20 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 						
 					//Check padding data and responses question and answers check.
 						RecvLen = DNSCurvePaddingData(false, OriginalRecv, RecvLen);
-						if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE || 
-							(Parameter.DNSDataCheck || Parameter.BlacklistCheck) && CheckResponseData(OriginalRecv, RecvLen, false) == EXIT_FAILURE)
+						if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
 						{
+							RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+							if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+							{
+								memset(OriginalRecv, 0, RecvSize);
+								shutdown(UDPSocketDataList.at(Index).Socket, SD_BOTH);
+								closesocket(UDPSocketDataList.at(Index).Socket);
+								UDPSocketDataList.at(Index).Socket = 0;
+
+								continue;
+							}
+						}
+						else {
 							memset(OriginalRecv, 0, RecvSize);
 							shutdown(UDPSocketDataList.at(Index).Socket, SD_BOTH);
 							closesocket(UDPSocketDataList.at(Index).Socket);
@@ -2880,7 +2900,8 @@ size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t
 						}
 
 					//Direct Request Extended check
-						if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && CheckResponseData(OriginalRecv, RecvLen, false) == EXIT_FAILURE)
+						RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+						if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 						{
 							memset(OriginalRecv, 0, RecvSize);
 							continue;

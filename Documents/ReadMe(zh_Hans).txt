@@ -191,7 +191,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 注意：此处的协议指的是程序请求远程 DNS 服务器时所使用的协议，而向本程序请求域名解析时可使用的协议由 Listen Protocol 参数决定
   * Direct Request - 直连模式，启用后将使用系统的 API 直接请求远程服务器而启用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，关闭为 0，默认为 0
     * 建议当系统使用全局代理功能时启用，程序将除境内服务器外的所有请求直接交给系统而不作任何过滤等处理，系统会将请求自动发往远程服务器进行解析
-    * 填入 IPv4 或 IPv6 时将会启用对应协议的 Direct Request 功能，同时填入 IPv4 和 IPv6 将会启用所有协议的功能
+    * 填入 IPv4 或 IPv6 时将会启用对应协议的 Direct Request 功能，填入 IPv4 + IPv6 将会启用所有协议的功能
   * Local Main - 主要境内服务器请求功能：开启为1/关闭为0，默认为 0
     * 开启后所有请求先使用 Local 的服务器进行解析，遇到遭投毒污染的解析结果时自动再向境外服务器请求
     * 本功能不能与 Local Hosts 同时启用
@@ -340,7 +340,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv6 DNS Address - IPv6 主要 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为 [2001:4860:4860::8844]:53
     * 支持多个地址
     * 支持使用服务名称代替端口号
-  * IPv6 Alternate DNS Address - IPv6 备用 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为 [2001:4860:4860::8888]:53|[2620:0:CCD::2]:443|[2620:0:CCC::2]:5353
+  * IPv6 Alternate DNS Address - IPv6 备用 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为 [2001:4860:4860::8888]:53|[2620:0:CCC::2]:443|[2620:0:CCD::2]:5353
     * 支持多个地址
     * 支持使用服务名称代替端口号
   * IPv6 Local DNS Address - IPv6 主要境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，留空为不启用，默认为空
@@ -512,7 +512,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Domain Test Data - DNS 服务器解析域名测试：请输入正确、确认不会被投毒污染的域名并且不要超过 253 字节 ASCII 数据，留空则会随机生成一个域名进行测试，默认为空
   * Domain Test ID - DNS 数据包头部 ID 的值：格式为 0x**** 的十六进制字符，如果留空则为 0x0001 默认为空
   * ICMP PaddingData - ICMP 附加数据，Ping 程序发送请求时为补足数据使其达到 Ethernet 类型网络最低的可发送长度时添加的数据：长度介乎于 18字节 - 1512字节 ASCII 数据之间，留空则使用 Microsoft Windows Ping 程序的 ICMP 附加数据，默认为空
-  * Localhost Server Name - 本地 DNS 服务器名称：请输入正确的域名并且不要超过253字节ASCII数据，留空则使用 pcap-dnsproxy.localhost.server 作为本地服务器名称，默认为空
+  * Localhost Server Name - 本地 DNS 服务器名称：请输入正确的域名并且不要超过253字节 ASCII 数据，留空则使用 pcap-dnsproxy.localhost.server 作为本地服务器名称，默认为空
 
 * DNSCurve - DNSCurve 协议基本参数区域
   * DNSCurve - DNSCurve 协议总开关，控制所有和 DNSCurve 协议有关的选项：开启为1/关闭为0，默认为 0
@@ -527,19 +527,19 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSCurve IPv4 DNS Address - DNSCurve 协议 IPv4 主要 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 208.67.220.220:443
     * 不支持多个地址，只能填入单个地址
     * 支持使用服务名称代替端口号
-  * DNSCurve IPv4 Alternate DNS Address - DNSCurve 协议 IPv4 备用 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 208.67.222.222:443
+  * DNSCurve IPv4 Alternate DNS Address - DNSCurve 协议 IPv4 备用 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 151.236.20.236:443
     * 不支持多个地址，只能填入单个地址
     * 支持使用服务名称代替端口号
-  * DNSCurve IPv6 DNS Address - DNSCurve 协议 IPv6 主要 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 [2620:0:CCD::2]:443
+  * DNSCurve IPv6 DNS Address - DNSCurve 协议 IPv6 主要 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 [2620:0:CCC::2]:443
     * 不支持多个地址，只能填入单个地址
     * 支持使用服务名称代替端口号
-  * DNSCurve IPv6 Alternate DNS Address - DNSCurve 协议 IPv6 备用 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 [2620:0:CCC::2]:443
+  * DNSCurve IPv6 Alternate DNS Address - DNSCurve 协议 IPv6 备用 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 [2A03:F80:852:151:236:20:236:1]:443
     * 不支持多个地址，只能填入单个地址
     * 支持使用服务名称代替端口号
   * DNSCurve IPv4 Provider Name - DNSCurve 协议 IPv4 主要 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.opendns.com
-  * DNSCurve IPv4 Alternate Provider Name - DNSCurve 协议 IPv4 备用 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.opendns.com
+  * DNSCurve IPv4 Alternate Provider Name - DNSCurve 协议 IPv4 备用 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.fvz-rec-hk-nt-01.dnsrec.meo.ws
   * DNSCurve IPv6 Provider Name - DNSCurve 协议 IPv6 主要 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.opendns.com
-  * DNSCurve IPv6 Provider Name - DNSCurve 协议 IPv6 备用 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.opendns.com
+  * DNSCurve IPv6 Provider Name - DNSCurve 协议 IPv6 备用 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.fvz-rec-hk-nt-01.dnsrec.meo.ws
   * 注意：
     * 自动获取 DNSCurve 服务器连接信息时必须输入提供者的域名，不能留空
 
@@ -547,9 +547,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Client Public Key - 自定义客户端公钥：可使用 KeyPairGenerator 生成，留空则每次启动时自动生成，默认为空
   * Client Secret Key - 自定义客户端私钥：可使用 KeyPairGenerator 生成，留空则每次启动时自动生成，默认为空
   * IPv4 DNS Public Key - DNSCurve 协议 IPv4 主要 DNS 服务器验证用公钥，默认为 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
-  * IPv4 Alternate DNS Public Key - DNSCurve 协议 IPv4 备用 DNS 服务器验证用公钥，默认为 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
+  * IPv4 Alternate DNS Public Key - DNSCurve 协议 IPv4 备用 DNS 服务器验证用公钥，默认为 34D5:C07A:E0BD:50A4:D5BF:03A2:A890:63DF:0514:0494:A4DD:C4B3:C394:0DB1:E95F:35FF
   * IPv6 DNS Public Key - DNSCurve 协议 IPv6 主要 DNS 服务器验证用公钥，默认为 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
-  * IPv6 Alternate DNS Public Key - DNSCurve 协议 IPv6 备用 DNS 服务器验证用公钥，默认为 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
+  * IPv6 Alternate DNS Public Key - DNSCurve 协议 IPv6 备用 DNS 服务器验证用公钥，默认为 34D5:C07A:E0BD:50A4:D5BF:03A2:A890:63DF:0514:0494:A4DD:C4B3:C394:0DB1:E95F:35FF
   * IPv4 DNS Fingerprint - DNSCurve 协议 IPv4 主要 DNS 服务器传输用指纹，留空则自动通过服务器提供者和公钥获取，默认为空
   * IPv4 Alternate DNS Fingerprint - DNSCurve 协议 IPv4 备用 DNS 服务器传输用指纹，留空则自动通过服务器提供者和公钥获取，默认为空
   * IPv6 DNS Fingerprint - DNSCurve 协议 IPv6 备用 DNS 服务器传输用指纹，留空则自动通过服务器提供者和公钥获取，默认为空
@@ -558,14 +558,17 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 公开网站上的 "公钥" 普遍为验证用的公钥，用于验证与服务器通讯时使用的指纹，两者为不同性质的公钥不可混用！
   
 * DNSCurve Magic Number - DNSCurve 协议魔数区域
-  * IPv4 Receive Magic Number - DNSCurve 协议 IPv4 主要 DNS 服务器接收魔数：长度必须为8字节，留空则使用程序内置的接收魔数，默认留空
-  * IPv4 Alternate Receive Magic Number - DNSCurve 协议 IPv4 备用 DNS 服务器接收魔数：长度必须为8字节，留空则使用程序内置的接收魔数，默认留空
-  * IPv6 Receive Magic Number - DNSCurve 协议 IPv6 主要 DNS 服务器接收魔数：长度必须为8字节，留空则使用程序内置的接收魔数，默认留空
-  * IPv6 Alternate Receive Magic Number - DNSCurve 协议 IPv6 备用 DNS 服务器接收魔数：长度必须为8字节，留空则使用程序内置的接收魔数，默认留空
-  * IPv4 DNS Magic Number - DNSCurve 协议 IPv4 主要 DNS 服务器发送魔数：长度必须为8字节，留空则自动获取，默认留空
-  * IPv4 Alternate DNS Magic Number - DNSCurve 协议 IPv4 备用 DNS 服务器发送魔数：长度必须为8字节，留空则自动获取，默认留空
-  * IPv6 DNS Magic Number - 协议 IPv6 主要 DNS 服务器发送魔数：长度必须为8字节，留空则自动获取，默认留空
-  * IPv6 Alternate DNS Magic Number - DNSCurve 协议 IPv6 备用 DNS 服务器发送魔数：长度必须为8字节，留空则自动获取，默认留空
+  * IPv4 Receive Magic Number - DNSCurve 协议 IPv4 主要 DNS 服务器接收魔数：长度必须为 8 字节（ASCII）或 18 字节（十六进制），留空则使用程序内置的接收魔数，默认留空
+  * IPv4 Alternate Receive Magic Number - DNSCurve 协议 IPv4 备用 DNS 服务器接收魔数：长度必须为 8 字节（ASCII）或 18 字节（十六进制），留空则使用程序内置的接收魔数，默认留空
+  * IPv6 Receive Magic Number - DNSCurve 协议 IPv6 主要 DNS 服务器接收魔数：长度必须为 8 字节（ASCII）或 18 字节（十六进制），留空则使用程序内置的接收魔数，默认留空
+  * IPv6 Alternate Receive Magic Number - DNSCurve 协议 IPv6 备用 DNS 服务器接收魔数：长度必须为 8 字节（ASCII）或 18 字节（十六进制），留空则使用程序内置的接收魔数，默认留空
+  * IPv4 DNS Magic Number - DNSCurve 协议 IPv4 主要 DNS 服务器发送魔数：长度必须为 8 字节（ASCII）或 18 字节（十六进制），留空则自动获取，默认留空
+  * IPv4 Alternate DNS Magic Number - DNSCurve 协议 IPv4 备用 DNS 服务器发送魔数：长度必须为 8 字节（ASCII）或 18 字节（十六进制），留空则自动获取，默认留空
+  * IPv6 DNS Magic Number - 协议 IPv6 主要 DNS 服务器发送魔数：长度必须为 8 字节（ASCII）或 18 字节（十六进制），留空则自动获取，默认留空
+  * IPv6 Alternate DNS Magic Number - DNSCurve 协议 IPv6 备用 DNS 服务器发送魔数：长度必须为 8 字节（ASCII）或 18 字节（十六进制），留空则自动获取，默认留空
+  * 注意：Magic Number 参数均同时支持使用 ASCII 字符或十六进制字符串进行指定
+    * 直接填入可打印 ASCII 字符串即可
+    * 十六进制字符串需要在字符串前面加上 0x（大小写敏感）
 
 
 -------------------------------------------------------------------------------

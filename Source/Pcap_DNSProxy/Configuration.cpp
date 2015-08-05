@@ -105,12 +105,12 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 			}
 		//8-bit Unicode Transformation Format/UTF-8 without BOM or other ASCII part of encoding
 			else {
-				Encoding = CODEPAGE_ANSI;
+				Encoding = CODEPAGE_ASCII;
 			}
 		}
 
 	//Text check
-		if (Encoding == CODEPAGE_ANSI || Encoding == CODEPAGE_UTF_8)
+		if (Encoding == CODEPAGE_ASCII || Encoding == CODEPAGE_UTF_8)
 		{
 			uint16_t SingleText = 0;
 			for (Index = 0;Index < ReadLength;)
@@ -973,6 +973,34 @@ void __fastcall ClearModificatingListData(const size_t ClearType, const size_t F
 				IPFilterFileSetModificating->erase(IPFilterFileSetIter);
 				break;
 			}
+		}
+	}
+
+	return;
+}
+
+//Get data list from file
+void __fastcall GetParameterListData(std::vector<std::string> &ListData, const std::string Data, const size_t DataOffset, const size_t Length)
+{
+	std::string NameString;
+	for (size_t Index = DataOffset;Index < Length;++Index)
+	{
+	//Last data
+		if (Index + 1U == Length)
+		{
+			NameString.append(Data, Index, 1U);
+			ListData.push_back(NameString);
+
+			break;
+		}
+	//Separated
+		else if (Data.at(Index) == ASCII_VERTICAL)
+		{
+			ListData.push_back(NameString);
+			NameString.clear();
+		}
+		else {
+			NameString.append(Data, Index, 1U);
 		}
 	}
 

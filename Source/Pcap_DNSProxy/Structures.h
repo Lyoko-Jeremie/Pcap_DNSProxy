@@ -2163,11 +2163,12 @@ typedef struct _dns_record_caa_
 //Domain Name System Curve/DNSCurve Part
 #if defined(ENABLE_LIBSODIUM)
 // About DNSCurve standards, see http://dnscurve.org. Also about DNSCrypt, see http://dnscrypt.org
-#define DNSCURVE_MAGIC_QUERY_LEN     8U
-#define DNSCRYPT_RECEIVE_MAGIC       ("r6fnvWj8")                   //Receive Magic Number
-#define DNSCRYPT_CERT_MAGIC          ("DNSC")                       //Signature Magic Number
-#define crypto_box_HALF_NONCEBYTES   (crypto_box_NONCEBYTES / 2U)
-#define DNSCRYPT_TXT_RECORDS_LEN     124U                           //Length of DNScrypt TXT Records
+#define DNSCURVE_MAGIC_QUERY_LEN       8U
+#define DNSCURVE_MAGIC_QUERY_HEX_LEN   16U
+#define DNSCRYPT_RECEIVE_MAGIC         ("r6fnvWj8")                   //Receive Magic Number
+#define DNSCRYPT_CERT_MAGIC            ("DNSC")                       //Signature Magic Number
+#define crypto_box_HALF_NONCEBYTES     (crypto_box_NONCEBYTES / 2U)
+#define DNSCRYPT_TXT_RECORDS_LEN       124U                           //Length of DNScrypt TXT Records
 
 /* Domain Name System Curve/DNSCurve Test Strings/TXT Data header
 

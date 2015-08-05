@@ -114,7 +114,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * IPv4 prefix error - IPv4 網路尾碼長度錯誤：IPv4 網路尾碼的長度介乎與 1-32
   * IPv6 prefix error - IPv6 網路尾碼長度錯誤：IPv6 網路尾碼的長度介乎與 1-128
   * Pcap Capture error - 抓包模塊參數錯誤：請檢查相關參數的使用要求說明
-  * Localhost server listening port error - 本地監聽埠錯誤：請檢查本地監聽埠的值，可適用範圍為 1 - 65535
+  * Localhost listening port error - 本地監聽埠錯誤：請檢查本地監聽埠的值，可適用範圍為 1 - 65535
   * IPFilter Level error - IPFilter 過濾級別錯誤：請檢查過濾級別的值，可適用範圍為 1 - 65535
   * DNS Cache error - DNS 緩存配置錯誤：請檢查緩存的參數
   * DNS target error - DNS 目標伺服器配置錯誤：請檢查 DNS 伺服器的位址

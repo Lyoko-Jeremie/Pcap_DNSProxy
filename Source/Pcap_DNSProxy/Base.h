@@ -26,7 +26,7 @@
 #define KILOBYTE_TIMES         1024U         //1KB = 1024 bytes
 #define MEGABYTE_TIMES         1048576U      //1MB = 1048576 bytes
 #define GIGABYTE_TIMES         1073741824U   //1GB = 1073741824 bytes
-#define CODEPAGE_ANSI          1U            //Microsoft Windows Codepage of ANSI
+#define CODEPAGE_ASCII          1U            //Microsoft Windows Codepage of ANSI
 #define CODEPAGE_UTF_8         65001U        //Microsoft Windows Codepage of UTF-8
 #define CODEPAGE_UTF_16_LE     1200U         //Microsoft Windows Codepage of UTF-16 Little Endian/LE
 #define CODEPAGE_UTF_16_BE     1201U         //Microsoft Windows Codepage of UTF-16 Big Endian/BE
@@ -70,6 +70,7 @@
 #define ASCII_ACCENT            96                   //"`"
 #define ASCII_LOWERCASE_A       97                   //"a"
 #define ASCII_LOWERCASE_F       102                  //"f"
+#define ASCII_LOWERCASE_X       120                  //"x"
 #define ASCII_BRACES_LEAD       123                  //"{"
 #define ASCII_VERTICAL          124                  //"|"
 #define ASCII_TILDE             126                  //"~"
@@ -104,12 +105,11 @@
 //Version defines
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4                                   //Current configuration version
-#define FULL_VERSION                 L"0.4.3.0"
+#define FULL_VERSION                 L"0.4.3.1"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2015 Chengr28"
 
 //Exit code defines
 #define EXIT_CHECK_HOSTS_TYPE_LOCAL                2U   //Type is Local in CheckHostsProcess function.
-#define EXIT_CHECK_RESPONSE_DATA_MARK_HOP_LIMITS   2U   //Mark Hop Limits in CheckresponseData function.
 
 //Size and length defines
 #define BOM_UTF_8_LENGTH               3U                                         //UTF-8 BOM length
@@ -754,14 +754,13 @@ bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol);
 bool __fastcall CheckCustomModeFilter(const void *OriginalAddr, const uint16_t Protocol);
 size_t __fastcall CheckQueryNameLength(const char *Buffer);
 size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t Length, const SOCKET_DATA &LocalSocketData, const uint16_t Protocol, bool *IsLocal);
-size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal);
+size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal, bool *IsMarkHopLimit);
 
 //Configuration.h
 bool __fastcall ReadParameter(void);
 void __fastcall ReadIPFilter(void);
 void __fastcall ReadHosts(void);
-uint16_t __fastcall ServiceNameToHex(const char *OriginalBuffer);
-uint16_t __fastcall DNSTypeNameToHex(const char *OriginalBuffer);
+void __fastcall GetParameterListData(std::vector<std::string> &ListData, const std::string Data, const size_t DataOffset, const size_t Length);
 
 //Monitor.h
 bool __fastcall MonitorInit(void);

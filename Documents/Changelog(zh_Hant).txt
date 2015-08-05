@@ -1,4 +1,15 @@
-﻿Pcap_DNSProxy v0.4.2.1-v0.4.3 更新日誌(2015-07-28)：
+﻿Pcap_DNSProxy v0.4.3.1 更新日誌(2015-08-04)：
+
+* 添加對十六進位 DNSCurve/DNSCrypt 協定 Magic Number 參數的支援 [BiliBbb]
+* 修復 32 位系統對 IPv4/IPv6 位址轉換的錯誤 (Windows Vista+) [Nine Forty/fabe004]
+* 修復部分參數讀取使用網路層服務名/DNS記錄名稱代替數位時的錯誤
+* 修復 Additional Path 參數讀取不完全的問題 (Linux/Mac)
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.4.2.1-v0.4.3 更新日誌(2015-07-28)：
 
 * Hosts Only 參數現在更名為 Direct Request 並支援指定 IPv4 或 IPv6 功能
 * 添加不同協定的 Direct Request 功能 [AVC A]
@@ -9,7 +20,7 @@
 * 添加對 Unicode 標準包含的所有換行以及空格類別格式的支援
 * 添加對 TCP Fast Open 的支援(Linux)
 * 添加 --disable-daemon 參數，可控制程式是否以 Daemon 守護進程的方式運行(Linux)
-* 添加完整的 ANSI/UTF-8/UTF-16(LE/BE)/UTF-32(LE/BE) 編碼支援
+* 添加完整的 ASCII/UTF-8/UTF-16(LE/BE)/UTF-32(LE/BE) 編碼支援
 * 調整抓包模組為回檔模式降低資源的佔用
 * 調整抓包模組工作模式，避免 WinPcap 與 cFosSpeed 之間的衝突 [軒轅無雙]
 * 優化優先指定網路層協定功能

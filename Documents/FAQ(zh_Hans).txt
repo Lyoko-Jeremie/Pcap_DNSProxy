@@ -114,7 +114,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * IPv6 special address error - IPv6 特殊地址检查错误：请检查 IPv6 地址是否为特殊地址
   * IPv4 special address error - IPv4 特殊地址检查错误：请检查 IPv4 地址是否为特殊地址
   * Pcap Capture error - 抓包模块参数错误：请检查相关参数的使用要求说明
-  * Localhost server listening port error - 本地监听端口错误：请检查本地监听端口的值，可适用范围为 1 - 65535
+  * Localhost listening port error - 本地监听端口错误：请检查本地监听端口的值，可适用范围为 1 - 65535
   * IPFilter Level error - IPFilter 过滤级别错误：请检查过滤级别的值，可适用范围为 1 - 65535
   * DNS Cache error - DNS 缓存配置错误：请检查缓存的参数
   * DNS target error - DNS 目标服务器配置错误：请检查 DNS 服务器的地址

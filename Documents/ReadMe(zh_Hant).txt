@@ -193,7 +193,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 注意：此處的協定指的是程式請求遠端 DNS 伺服器時所使用的協定，而向本程式請求功能變數名稱解析時可使用的協定由 Listen Protocol 參數決定
   * Direct Request - 直連模式，啟用後將使用系統的 API 直接請求遠端伺服器而啟用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，關閉為 0，預設為 0
     * 建議當系統使用全域代理功能時啟用，程式將除境內服務器外的所有請求直接交給系統而不作任何過濾等處理，系統會將請求自動發往遠端伺服器進行解析
-    * 填入 IPv4 或 IPv6 時將會啟用對應協定的 Direct Request 功能，同時填入 IPv4 和 IPv6 將會啟用所有協定的功能
+    * 填入 IPv4 或 IPv6 時將會啟用對應協定的 Direct Request 功能，填入 IPv4 + IPv6 將會啟用所有協定的功能
   * Local Main - 主要境內伺服器請求功能：開啟為1/關閉為0，預設為 0
     * 開啟後所有請求先使用 Local 的伺服器進行解析，遇到遭投毒污染的解析結果時自動再向境外伺服器請求
     * 本功能不能與 Local Hosts 同時啟用
@@ -529,19 +529,19 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSCurve IPv4 DNS Address - DNSCurve 協定 IPv4 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，預設為 208.67.220.220:443
     * 不支援多個位址，只能填入單個位址
     * 支援使用服務名稱代替埠號
-  * DNSCurve IPv4 Alternate DNS Address - DNSCurve 協定 IPv4 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，預設為 208.67.222.222:443
+  * DNSCurve IPv4 Alternate DNS Address - DNSCurve 協定 IPv4 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，預設為 151.236.20.236:443
     * 不支援多個位址，只能填入單個位址
     * 支援使用服務名稱代替埠號
-  * DNSCurve IPv6 DNS Address - DNSCurve 協定 IPv6 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，預設為 [2620:0:CCD::2]:443
+  * DNSCurve IPv6 DNS Address - DNSCurve 協定 IPv6 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，預設為 [2620:0:CCC::2]:443
     * 不支援多個位址，只能填入單個位址
     * 支援使用服務名稱代替埠號
-  * DNSCurve IPv6 Alternate DNS Address - DNSCurve 協定 IPv6 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，預設 [2620:0:CCC::2]:443
+  * DNSCurve IPv6 Alternate DNS Address - DNSCurve 協定 IPv6 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，預設為 [2A03:F80:852:151:236:20:236:1]:443
     * 不支援多個位址，只能填入單個位址
     * 支援使用服務名稱代替埠號
   * DNSCurve IPv4 Provider Name - DNSCurve 協定 IPv4 主要 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，預設為 2.dnscrypt-cert.opendns.com
-  * DNSCurve IPv4 Alternate Provider Name - DNSCurve 協定 IPv4 備用 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，預設為 2.dnscrypt-cert.opendns.com
+  * DNSCurve IPv4 Alternate Provider Name - DNSCurve 協定 IPv4 備用 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，預設為 2.dnscrypt-cert.fvz-rec-hk-nt-01.dnsrec.meo.ws
   * DNSCurve IPv6 Provider Name - DNSCurve 協定 IPv6 主要 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，預設為 2.dnscrypt-cert.opendns.com
-  * DNSCurve IPv6 Provider Name - DNSCurve 協定 IPv6 備用 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，預設為 2.dnscrypt-cert.opendns.com
+  * DNSCurve IPv6 Provider Name - DNSCurve 協定 IPv6 備用 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，預設為 2.dnscrypt-cert.fvz-rec-hk-nt-01.dnsrec.meo.ws
   * 注意：
     * 自動獲取 DNSCurve 伺服器連接資訊時必須輸入提供者的功能變數名稱，不能留空
 
@@ -549,9 +549,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Client Public Key - 自訂用戶端公開金鑰：可使用 KeyPairGenerator 生成，留空則每次啟動時自動生成，預設為空
   * Client Secret Key - 自訂用戶端私密金鑰：可使用 KeyPairGenerator 生成，留空則每次啟動時自動生成，預設為空
   * IPv4 DNS Public Key - DNSCurve 協定 IPv4 主要 DNS 伺服器驗證用公開金鑰，預設為 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
-  * IPv4 Alternate DNS Public Key - DNSCurve 協定 IPv4 備用 DNS 伺服器驗證用公開金鑰，預設為 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
+  * IPv4 Alternate DNS Public Key - DNSCurve 協定 IPv4 備用 DNS 伺服器驗證用公開金鑰，預設為 34D5:C07A:E0BD:50A4:D5BF:03A2:A890:63DF:0514:0494:A4DD:C4B3:C394:0DB1:E95F:35FF
   * IPv6 DNS Public Key - DNSCurve 協定 IPv6 主要 DNS 伺服器驗證用公開金鑰，預設為 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
-  * IPv6 Alternate DNS Public Key - DNSCurve 協定 IPv6 備用 DNS 伺服器驗證用公開金鑰，預設為 B735:1140:206F:225D:3E2B:D822:D7FD:691E:A1C3:3CC8:D666:8D0C:BE04:BFAB:CA43:FB79
+  * IPv6 Alternate DNS Public Key - DNSCurve 協定 IPv6 備用 DNS 伺服器驗證用公開金鑰，預設為 34D5:C07A:E0BD:50A4:D5BF:03A2:A890:63DF:0514:0494:A4DD:C4B3:C394:0DB1:E95F:35FF
   * IPv4 DNS Fingerprint - DNSCurve 協定 IPv4 主要 DNS 伺服器傳輸用指紋，留空則自動通過伺服器提供者和公開金鑰獲取，預設為空
   * IPv4 Alternate DNS Fingerprint - DNSCurve 協定 IPv4 備用 DNS 伺服器傳輸用指紋，留空則自動通過伺服器提供者和公開金鑰獲取，預設為空
   * IPv6 DNS Fingerprint - DNSCurve 協定 IPv6 備用 DNS 伺服器傳輸用指紋，留空則自動通過伺服器提供者和公開金鑰獲取，預設為空
@@ -560,14 +560,17 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 公開網站上的 "公開金鑰" 普遍為驗證用的公開金鑰，用於驗證與伺服器通訊時使用的指紋，兩者為不同性質的公開金鑰不可混用！
 
 * DNSCurve Magic Number - DNSCurve 協定魔數區域
-  * IPv4 Receive Magic Number - DNSCurve 協定 IPv4 主要 DNS 伺服器接收魔數：長度必須為8位元組，留空則使用程式內置的接收魔數，預設留空
-  * IPv4 Alternate Receive Magic Number - DNSCurve 協定 IPv4 備用 DNS 伺服器接收魔數：長度必須為8位元組，留空則使用程式內置的接收魔數，預設留空
-  * IPv6 Receive Magic Number - DNSCurve 協定 IPv6 主要 DNS 伺服器接收魔數：長度必須為8位元組，留空則使用程式內置的接收魔數，預設留空
-  * IPv6 Alternate Receive Magic Number - DNSCurve 協定 IPv6 備用 DNS 伺服器接收魔數：長度必須為8位元組，留空則使用程式內置的接收魔數，預設留空
-  * IPv4 DNS Magic Number - DNSCurve 協定 IPv4 主要 DNS 伺服器發送魔數：長度必須為8位元組，留空則自動獲取，預設留空
-  * IPv4 Alternate DNS Magic Number - DNSCurve 協定 IPv4 備用 DNS 伺服器發送魔數：長度必須為8位元組，留空則自動獲取，預設留空
-  * IPv6 DNS Magic Number - 協定 IPv6 主要 DNS 伺服器發送魔數：長度必須為8位元組，留空則自動獲取，預設留空
-  * IPv6 Alternate DNS Magic Number - DNSCurve 協定 IPv6 備用 DNS 伺服器發送魔數：長度必須為8位元組，留空則自動獲取，預設留空
+  * IPv4 Receive Magic Number - DNSCurve 協定 IPv4 主要 DNS 伺服器接收魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則使用程式內置的接收魔數，預設留空
+  * IPv4 Alternate Receive Magic Number - DNSCurve 協定 IPv4 備用 DNS 伺服器接收魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則使用程式內置的接收魔數，預設留空
+  * IPv6 Receive Magic Number - DNSCurve 協定 IPv6 主要 DNS 伺服器接收魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則使用程式內置的接收魔數，預設留空
+  * IPv6 Alternate Receive Magic Number - DNSCurve 協定 IPv6 備用 DNS 伺服器接收魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則使用程式內置的接收魔數，預設留空
+  * IPv4 DNS Magic Number - DNSCurve 協定 IPv4 主要 DNS 伺服器發送魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則自動獲取，預設留空
+  * IPv4 Alternate DNS Magic Number - DNSCurve 協定 IPv4 備用 DNS 伺服器發送魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則自動獲取，預設留空
+  * IPv6 DNS Magic Number - 協定 IPv6 主要 DNS 伺服器發送魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則自動獲取，預設留空
+  * IPv6 Alternate DNS Magic Number - DNSCurve 協定 IPv6 備用 DNS 伺服器發送魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則自動獲取，預設留空
+  * 注意：Magic Number 參數均同時支援使用 ASCII 字元或十六進位字串進行指定
+    * 直接填入可列印 ASCII 字串即可
+    * 十六進位字串需要在字串前面加上 0x（大小寫敏感）
 
 
 -------------------------------------------------------------------------------

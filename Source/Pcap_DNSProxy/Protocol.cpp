@@ -71,6 +71,8 @@ bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr
 				ErrCode = WSAGetLastError();
 				return false;
 			}
+
+			memcpy_s(OriginalAddr, sizeof(in6_addr), &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, sizeof(in6_addr));
 		}
 	#else
 		Result = inet_pton(AF_INET6, sAddrString.c_str(), OriginalAddr);
@@ -79,9 +81,6 @@ bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr
 			ErrCode = WSAGetLastError();
 			return false;
 		}
-	#endif
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		memcpy_s(OriginalAddr, sizeof(in6_addr), &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, sizeof(in6_addr));
 	#endif
 	}
 	else { //IPv4
@@ -147,6 +146,8 @@ bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr
 				ErrCode = WSAGetLastError();
 				return false;
 			}
+
+			memcpy_s(OriginalAddr, sizeof(in_addr), &((PSOCKADDR_IN)SockAddr.get())->sin_addr, sizeof(in_addr));
 		}
 	#else
 		Result = inet_pton(AF_INET, sAddrString.c_str(), OriginalAddr);
@@ -155,9 +156,6 @@ bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr
 			ErrCode = WSAGetLastError();
 			return false;
 		}
-	#endif
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		memcpy_s(OriginalAddr, sizeof(in_addr), &((PSOCKADDR_IN)SockAddr.get())->sin_addr, sizeof(in_addr));
 	#endif
 	}
 
@@ -882,8 +880,13 @@ size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t 
 }
 
 //Check DNS response results
-size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal)
+size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal, bool *IsMarkHopLimit)
 {
+//Response check options
+	if (!Parameter.DNSDataCheck && !Parameter.BlacklistCheck)
+		return Length;
+
+//Initialization(Part 1)
 	auto DNS_Header = (pdns_hdr)Buffer;
 
 //DNS Options part
@@ -935,7 +938,7 @@ size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, con
 	memset(Domain.get(), 0, DOMAIN_MAXSIZE);
 	DNSQueryToChar(Buffer + sizeof(dns_hdr), Domain.get());
 
-//Initialization
+//Initialization(Part 2)
 	auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
 	size_t DataLength = DNS_PACKET_RR_LOCATE(Buffer);
 	uint16_t DNS_Pointer = 0;
@@ -1069,15 +1072,16 @@ size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, con
 
 #if defined(ENABLE_PCAP)
 //Mark Hop Limits or TTL.
-	if (Parameter.DNSDataCheck && (DNS_Header->Answer != htons(U16_NUM_ONE) || DNS_Header->Authority > 0 || DNS_Header->Additional > 0 || //Less than or more than one Answer Records or Authority Records and/or Additional Records
+	if (IsMarkHopLimit != nullptr && Parameter.DNSDataCheck && 
+		(DNS_Header->Answer != htons(U16_NUM_ONE) || DNS_Header->Authority > 0 || DNS_Header->Additional > 0 || //Less than or more than one Answer Records or Authority Records and/or Additional Records
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NXDOMAIN) || //No Such Name, not standard query response and no error check.
 	//Domain Test part
 		Parameter.DomainTest_Data != nullptr && strnlen_s(Domain.get(), DOMAIN_MAXSIZE) == strnlen_s(Parameter.DomainTest_Data, DOMAIN_MAXSIZE) && 
 		memcmp(Domain.get(), Parameter.DomainTest_Data, strnlen_s(Parameter.DomainTest_Data, DOMAIN_MAXSIZE)) == EXIT_SUCCESS && DNS_Header->ID == Parameter.DomainTest_ID)
-			return EXIT_CHECK_RESPONSE_DATA_MARK_HOP_LIMITS;
+			*IsMarkHopLimit = true;
 #endif
 
-	return EXIT_SUCCESS;
+	return Length;
 }
 
 //Check DNSSEC Records

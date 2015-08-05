@@ -66,15 +66,17 @@ void __fastcall ClearModificatingListData(const size_t ClearType, const size_t F
 
 //Functions in ReadParameter.cpp
 bool __fastcall ParameterCheckAndSetting(const size_t FileIndex);
+uint16_t __fastcall ServiceNameToHex(const char *OriginalBuffer);
+uint16_t __fastcall DNSTypeNameToHex(const char *OriginalBuffer);
 bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, const size_t Line, bool &IsLabelComments);
 #if defined(PLATFORM_WIN)
-	bool __fastcall ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData, const size_t FileIndex, const size_t Line);
+	bool __fastcall ReadPathAndFileName(std::string Data, const size_t DataOffset, const bool Path, std::vector<std::wstring> *ListData, const size_t FileIndex, const size_t Line);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	bool ReadFileName(std::string Data, const size_t DataOffset, std::vector<std::wstring> *ListData, std::vector<std::string> *sListData, const size_t FileIndex, const size_t Line);
+	bool ReadPathAndFileName(std::string Data, const size_t DataOffset, const bool Path, std::vector<std::wstring> *ListData, std::vector<std::string> *sListData, const size_t FileIndex, const size_t Line);
 #endif
-bool __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, const uint16_t Protocol, const size_t FileIndex, const size_t Line);
-bool __fastcall ReadSingleAddress(std::string Data, const size_t DataOffset, sockaddr_storage &SockAddr, const uint16_t Protocol, const size_t FileIndex, const size_t Line);
-bool __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffset, sockaddr_storage &SockAddr, const uint16_t Protocol, const size_t FileIndex, const size_t Line);
+//bool __fastcall ReadListenAddress(std::string Data, const size_t DataOffset, const uint16_t Protocol, const size_t FileIndex, const size_t Line);
+//bool __fastcall ReadSingleAddress(std::string Data, const size_t DataOffset, sockaddr_storage &SockAddr, const uint16_t Protocol, const size_t FileIndex, const size_t Line);
+bool __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffset, sockaddr_storage &SockAddr, std::vector<sockaddr_storage> *ListenSockAddr, const uint16_t Protocol, const size_t FileIndex, const size_t Line);
 #if defined(ENABLE_PCAP)
 	bool __fastcall ReadHopLimitData(std::string Data, const size_t DataOffset, uint8_t &HopLimit, const uint16_t Protocol, const size_t FileIndex, const size_t Line);
 #endif

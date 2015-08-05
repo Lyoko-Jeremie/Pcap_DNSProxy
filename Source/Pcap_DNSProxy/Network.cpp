@@ -1079,7 +1079,8 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 								JumpFromPDU: 
 
 							//Responses question and answers check
-								if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && CheckResponseData(OriginalRecv, RecvLen, IsLocal) == EXIT_FAILURE)
+								RecvLen = CheckResponseData(OriginalRecv, RecvLen, IsLocal, nullptr);
+								if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 									return EXIT_FAILURE;
 
 							//Mark DNS Cache.
@@ -1320,7 +1321,8 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 									JumpFromPDU: 
 
 								//Responses question and answers check
-									if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && CheckResponseData(OriginalRecv, RecvLen, false) == EXIT_FAILURE)
+									RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+									if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 									{
 										memset(OriginalRecv, 0, RecvSize);
 										continue;
@@ -1764,7 +1766,8 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 	}
 	else {
 	//Direct Request Extended check
-		if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && CheckResponseData(OriginalRecv, RecvLen, IsLocal) == EXIT_FAILURE)
+		RecvLen = CheckResponseData(OriginalRecv, RecvLen, IsLocal, nullptr);
+		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 		{
 		//Set socket timeout.
 			if (!IsLocal && Parameter.ReceiveWaiting > 0)
@@ -1798,7 +1801,8 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 			memset(OriginalRecv, 0, RecvSize);
 			for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 			{
-				if (CheckResponseData(OriginalRecv, RecvLen, IsLocal) == EXIT_FAILURE)
+				RecvLen = CheckResponseData(OriginalRecv, RecvLen, IsLocal, nullptr);
+				if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 				{
 					memset(OriginalRecv, 0, RecvSize);
 					RecvLen = recv(UDPSockData->Socket, OriginalRecv, (int)RecvSize, 0);
@@ -1920,7 +1924,8 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 					}
 					else {
 					//Direct Request Extended check
-						if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && CheckResponseData(OriginalRecv, RecvLen, false) == EXIT_FAILURE)
+						RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+						if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 						{
 							memset(OriginalRecv, 0, RecvSize);
 							shutdown(UDPSocketDataList.at(Index).Socket, SD_BOTH);

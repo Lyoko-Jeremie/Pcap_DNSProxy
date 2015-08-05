@@ -783,7 +783,7 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 			if (GetChecksum_ICMPv6((PUINT8)Buffer, ntohs(IPv6_Header->PayloadLength), IPv6_Header->Destination, IPv6_Header->Source) != CHECKSUM_SUCCESS)
 				return false;
 
-		//ICMP check
+		//ICMPv6 check
 			if (CaptureCheck_ICMP(Buffer + sizeof(ipv6_hdr), ntohs(IPv6_Header->PayloadLength), AF_INET6))
 				PacketSource->HopLimitData.HopLimit = IPv6_Header->HopLimit;
 
@@ -816,17 +816,11 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 			if (UDP_Header->SrcPort == PacketSource->AddressData.IPv6.sin6_port)
 			{
 			//Domain Test and DNS Options check and get Hop Limit from Domain Test.
-				switch (CheckResponseData(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), false))
-				{
-					case EXIT_CHECK_RESPONSE_DATA_MARK_HOP_LIMITS:
-					{
-						PacketSource->HopLimitData.HopLimit = IPv6_Header->HopLimit;
-					}break;
-					case EXIT_FAILURE:
-					{
-						return false;
-					}break;
-				}
+				auto IsMarkHopLimit = false;
+				if (CheckResponseData(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), false, &IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
+					return false;
+				if (IsMarkHopLimit)
+					PacketSource->HopLimitData.HopLimit = IPv6_Header->HopLimit;
 
 			//DNSCurve encryption packet check
 			#if defined(ENABLE_LIBSODIUM)
@@ -939,17 +933,11 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 			if (UDP_Header->SrcPort == PacketSource->AddressData.IPv4.sin_port)
 			{
 			//Domain Test and DNS Options check and get TTL from Domain Test.
-				switch (CheckResponseData(Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(udp_hdr), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES - sizeof(udp_hdr), false))
-				{
-					case EXIT_CHECK_RESPONSE_DATA_MARK_HOP_LIMITS:
-					{
-						PacketSource->HopLimitData.TTL = IPv4_Header->TTL;
-					}break;
-					case EXIT_FAILURE:
-					{
-						return false;
-					}break;
-				}
+				auto IsMarkHopLimit = false;
+				if (CheckResponseData(Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(udp_hdr), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES - sizeof(udp_hdr), false, &IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
+					return false;
+				if (IsMarkHopLimit)
+					PacketSource->HopLimitData.TTL = IPv4_Header->TTL;
 
 			//DNSCurve encryption packet check
 			#if defined(ENABLE_LIBSODIUM)
