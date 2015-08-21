@@ -287,185 +287,6 @@ void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 		}
 	}
 
-/* Old version(2015-07-26)
-//Set capture filter.
-	auto IsNoSingle = false, IsConnection = false;
-	if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 || 
-		Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
-	{
-		IsNoSingle = true;
-		AddressesString = ("(");
-	}
-
-	//Main(IPv6)
-	if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
-	{
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		if (Parameter.FunctionPTR_InetNtop != nullptr)
-		{
-			(*Parameter.FunctionPTR_InetNtop)(AF_INET6, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
-		}
-		else {
-			BufferLength = ADDR_STRING_MAXSIZE;
-			SockAddr->ss_family = AF_INET6;
-			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr;
-			WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
-		}
-	#else
-		inet_ntop(AF_INET6, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
-	#endif
-
-		if (!IsConnection)
-			IsConnection = true;
-		else 
-			AddressesString.append(" or ");
-		AddressesString.append(Addr.get());
-		memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-	}
-	//Alternate(IPv6)
-	if (Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
-	{
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		if (Parameter.FunctionPTR_InetNtop != nullptr)
-		{
-			(*Parameter.FunctionPTR_InetNtop)(AF_INET6, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
-		}
-		else {
-			BufferLength = ADDR_STRING_MAXSIZE;
-			SockAddr->ss_family = AF_INET6;
-			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr;
-			WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
-		}
-	#else
-		inet_ntop(AF_INET6, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
-	#endif
-
-		if (!IsConnection)
-			IsConnection = true;
-		else 
-			AddressesString.append(" or ");
-		AddressesString.append(Addr.get());
-		memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-	}
-	//Other(Multi/IPv6)
-	if (Parameter.DNSTarget.IPv6_Multi != nullptr && 
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
-	{
-		for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv6_Multi)
-		{
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.FunctionPTR_InetNtop != nullptr)
-			{
-				(*Parameter.FunctionPTR_InetNtop)(AF_INET6, &DNSServerDataIter.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
-			}
-			else {
-				BufferLength = ADDR_STRING_MAXSIZE;
-				SockAddr->ss_family = AF_INET6;
-				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = DNSServerDataIter.AddressData.IPv6.sin6_addr;
-				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
-			}
-		#else
-			inet_ntop(AF_INET6, &DNSServerDataIter.AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
-		#endif
-
-			if (!IsConnection)
-				IsConnection = true;
-			else 
-				AddressesString.append(" or ");
-			AddressesString.append(Addr.get());
-			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-		}
-	}
-	//Main(IPv4)
-	if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
-	{
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		if (Parameter.FunctionPTR_InetNtop != nullptr)
-		{
-			(*Parameter.FunctionPTR_InetNtop)(AF_INET, &Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
-		}
-		else {
-			BufferLength = ADDR_STRING_MAXSIZE;
-			SockAddr->ss_family = AF_INET;
-			((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr;
-			WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
-		}
-	#else
-		inet_ntop(AF_INET, &Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
-	#endif
-
-		if (!IsConnection)
-			IsConnection = true;
-		else 
-			AddressesString.append(" or ");
-		AddressesString.append(Addr.get());
-		memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-	}
-	//Alternate(IPv4)
-	if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
-	{
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		if (Parameter.FunctionPTR_InetNtop != nullptr)
-		{
-			(*Parameter.FunctionPTR_InetNtop)(AF_INET, &Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
-		}
-		else {
-			BufferLength = ADDR_STRING_MAXSIZE;
-			SockAddr->ss_family = AF_INET;
-			((PSOCKADDR_IN)SockAddr.get())->sin_addr = Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr;
-			WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
-		}
-	#else
-		inet_ntop(AF_INET, &Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
-	#endif
-
-		if (!IsConnection)
-			IsConnection = true;
-		else 
-			AddressesString.append(" or ");
-		AddressesString.append(Addr.get());
-		memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-	}
-	//Other(Multi/IPv4)
-	if (Parameter.DNSTarget.IPv4_Multi != nullptr && 
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
-	{
-		for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv4_Multi)
-		{
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.FunctionPTR_InetNtop != nullptr)
-			{
-				(*Parameter.FunctionPTR_InetNtop)(AF_INET, &DNSServerDataIter.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
-			}
-			else {
-				BufferLength = ADDR_STRING_MAXSIZE;
-				SockAddr->ss_family = AF_INET;
-				((PSOCKADDR_IN)SockAddr.get())->sin_addr = DNSServerDataIter.AddressData.IPv4.sin_addr;
-				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
-			}
-		#else
-			inet_ntop(AF_INET, &DNSServerDataIter.AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
-		#endif
-
-			if (!IsConnection)
-				IsConnection = true;
-			else 
-				AddressesString.append(" or ");
-			AddressesString.append(Addr.get());
-			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-		}
-	}
-*/
 //End of address list
 	FilterRules.append(AddrString);
 	FilterRules.append(") or (pppoes and src host ");
@@ -482,15 +303,6 @@ bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList)
 
 //Devices name, address and type check
 	if (pDrive->name == nullptr || pDrive->addresses == nullptr || pDrive->flags == PCAP_IF_LOOPBACK)
-/* Old version(2015-07-12)
-	#if defined(PLATFORM_LINUX)
-		|| strnlen(pDrive->name, PACKET_MAXSIZE) >= strlen("lo") && memcmp(pDrive->name, "lo", strlen("lo")) == 0
-		|| strnlen(pDrive->name, PACKET_MAXSIZE) >= strlen("any") && memcmp(pDrive->name, "any", strlen("any")) == 0
-		#if defined(PLATFORM_OPENWRT)
-			|| strnlen(pDrive->name, PACKET_MAXSIZE) >= strlen("pppoe-wan") && memcmp(pDrive->name, "pppoe-wan", strlen("pppoe-wan")) == 0
-		#endif
-	#endif
-*/
 		goto DevicesSkip;
 
 //Pcap devices blacklist check
@@ -548,13 +360,6 @@ bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList)
 		return false;
 	}
 
-//Check device name.
-/* Old version(2015-07-09)
-	std::wstring DeviceName;
-	MBSToWCSString(DeviceName, pDrive->name);
-	if (DeviceName.empty())
-		DeviceName = L"<Error device name>";
-*/
 //Check device type.
 	uint16_t DeviceType = 0;
 	if (pcap_datalink(DeviceHandle) == DLT_EN10MB || pcap_datalink(DeviceHandle) == DLT_PPP_ETHER || pcap_datalink(DeviceHandle) == DLT_EN3MB) //Ethernet II(Including PPPoE)
@@ -563,20 +368,6 @@ bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList)
 		DeviceType = DLT_APPLE_IP_OVER_IEEE1394;
 	if (DeviceType == 0)
 	{
-/* Old version(2015-07-09)
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		if (pcap_datalink(DeviceHandle) != DLT_NULL && pcap_datalink(DeviceHandle) != DLT_NFLOG) //BSD loopback encapsulation and Linux NETLINK NFLOG socket log messages
-		{
-	#endif
-			std::shared_ptr<wchar_t> ErrBuffer(new wchar_t[PCAP_ERRBUF_SIZE]());
-			wmemset(ErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
-			wcsncpy_s(ErrBuffer.get(), PCAP_ERRBUF_SIZE, DeviceName.c_str(), DeviceName.length());
-			wcsncpy_s(ErrBuffer.get() + wcsnlen_s(DeviceName.c_str(), PCAP_ERRBUF_SIZE), PCAP_ERRBUF_SIZE - DeviceName.length(), L" is not supported", wcslen(L" is not supported"));
-			PrintError(LOG_ERROR_PCAP, ErrBuffer.get(), 0, nullptr, 0);
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		}
-	#endif
-*/
 		pcap_close(DeviceHandle);
 		return false;
 	}

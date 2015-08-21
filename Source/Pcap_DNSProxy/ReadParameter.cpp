@@ -606,24 +606,40 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 	}
 
 	//Protocol
-	if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0
-	#if defined(ENABLE_LIBSODIUM)
-		&& DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0
-	#endif
-		)
+	if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6)
 	{
 		PrintError(LOG_MESSAGE_NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, nullptr, 0);
 		Parameter.RequestMode_Network = REQUEST_MODE_NETWORK_BOTH;
 	}
-	if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0
-	#if defined(ENABLE_LIBSODIUM)
-		&& DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0
-	#endif
-		)
+	if (Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0 && Parameter.RequestMode_Local_Network == REQUEST_MODE_IPV6)
+	{
+		PrintError(LOG_MESSAGE_NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, nullptr, 0);
+		Parameter.RequestMode_Local_Network = REQUEST_MODE_NETWORK_BOTH;
+	}
+#if defined(ENABLE_LIBSODIUM)
+	if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_IPV6)
+	{
+		PrintError(LOG_MESSAGE_NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, nullptr, 0);
+		DNSCurveParameter.RequestMode_DNSCurve_Network = REQUEST_MODE_NETWORK_BOTH;
+	}
+#endif
+	if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && Parameter.RequestMode_Network == REQUEST_MODE_IPV4)
 	{
 		PrintError(LOG_MESSAGE_NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, nullptr, 0);
 		Parameter.RequestMode_Network = REQUEST_MODE_NETWORK_BOTH;
 	}
+	if (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.RequestMode_Local_Network == REQUEST_MODE_IPV4)
+	{
+		PrintError(LOG_MESSAGE_NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, nullptr, 0);
+		Parameter.RequestMode_Local_Network = REQUEST_MODE_NETWORK_BOTH;
+	}
+#if defined(ENABLE_LIBSODIUM)
+	if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_IPV4)
+	{
+		PrintError(LOG_MESSAGE_NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, nullptr, 0);
+		DNSCurveParameter.RequestMode_DNSCurve_Network = REQUEST_MODE_NETWORK_BOTH;
+	}
+#endif
 
 	//EDNS Label
 	if (Parameter.DNSSEC_ForceValidation && (!Parameter.EDNS_Label || !Parameter.DNSSEC_Request || !Parameter.DNSSEC_Validation))
@@ -692,19 +708,6 @@ bool __fastcall ParameterCheckAndSetting(const size_t FileIndex)
 	//Copy to global buffer.
 		memcpy_s(Parameter.LocalServer_Response + Parameter.LocalServer_Length, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt) - Parameter.LocalServer_Length, Parameter.LocalFQDN_Response, Parameter.LocalFQDN_Length);
 		Parameter.LocalServer_Length += Parameter.LocalFQDN_Length;
-
-/* Old version(2015-07-19)
-	//EDNS Label
-		if (Parameter.EDNS_Label)
-		{
-			auto DNS_Record_OPT = (pdns_record_opt)(Parameter.LocalServer_Response + Parameter.LocalServer_Length);
-			DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-			DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
-			Parameter.LocalServer_Length += sizeof(dns_record_opt);
-
-			Parameter.LocalServer_Length = AddEDNSLabelToAdditionalRR(Parameter.LocalServer_Response, Parameter.LocalServer_Length, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt), true);
-		}
-*/
 	}
 #endif
 
@@ -1328,32 +1331,6 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 			return false;
 		}
 	}
-	else if (Data.find("BufferQueueLimits=") == 0 && Data.length() > strlen("BufferQueueLimits="))
-	{
-		if (Data.length() < strlen("BufferQueueLimits=") + UINT32_MAX_STRING_LENGTH - 1U)
-		{
-			Result = strtoul(Data.c_str() + strlen("BufferQueueLimits="), nullptr, 0);
-			if (errno != ERANGE && Result > 0 && Result >= BUFFER_QUEUE_MINNUM && Result <= BUFFER_QUEUE_MAXNUM)
-				Parameter.BufferQueueSize = Result;
-		}
-		else {
-			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
-			return false;
-		}
-	}
-	else if (Data.find("QueueLimitsResetTime=") == 0 && Data.length() > strlen("QueueLimitsResetTime="))
-	{
-		if (Data.length() < strlen("QueueLimitsResetTime=") + UINT16_MAX_STRING_LENGTH)
-		{
-			Result = strtoul(Data.c_str() + strlen("QueueLimitsResetTime="), nullptr, 0);
-			if (errno != ERANGE && Result > 0)
-				Parameter.QueueResetTime = Result * SECOND_TO_MILLISECOND;
-		}
-		else {
-			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
-			return false;
-		}
-	}
 	else if (Data.find("AdditionalPath=") == 0 && Data.length() > strlen("AdditionalPath="))
 	{
 /* Old version(2015-08-03)
@@ -1549,106 +1526,6 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 				PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
 				return false;
 			}
-		}
-	}
-
-//[DNS] block
-	else if (Data.find("Protocol=") == 0 && Data.length() > strlen("Protocol="))
-	{
-		CaseConvert(true, Data);
-		if (Data.find("IPV6") != std::string::npos)
-		{
-			if (Data.find("IPV4") != std::string::npos)
-				Parameter.RequestMode_Network = REQUEST_MODE_NETWORK_BOTH;
-			else
-				Parameter.RequestMode_Network = REQUEST_MODE_IPV6;
-		}
-		else {
-			Parameter.RequestMode_Network = REQUEST_MODE_IPV4;
-		}
-
-		if (Data.find("TCP") != std::string::npos)
-			Parameter.RequestMode_Transport = REQUEST_MODE_TCP;
-		else 
-			Parameter.RequestMode_Transport = REQUEST_MODE_UDP;
-	}
-	else if (Data.find("DirectRequest=") == 0 && Data.length() > strlen("DirectRequest=") || 
-		Data.find("HostsOnly=") == 0 && Data.length() > strlen("HostsOnly="))
-	{
-		if (Data.find("DirectRequest=1") == 0 || Data.find("HostsOnly=1") == 0)
-		{
-			Parameter.DirectRequest = DIRECT_REQUEST_MODE_BOTH;
-		}
-		else {
-			CaseConvert(true, Data);
-			if (Data.find("IPV6") != std::string::npos)
-			{
-				if (Data.find("IPV4") != std::string::npos)
-					Parameter.DirectRequest = DIRECT_REQUEST_MODE_BOTH;
-				else 
-					Parameter.DirectRequest = DIRECT_REQUEST_MODE_IPV6;
-			}
-			else if (Data.find("IPV4") != std::string::npos)
-			{
-				if (Data.find("IPV6") != std::string::npos)
-					Parameter.DirectRequest = DIRECT_REQUEST_MODE_BOTH;
-				else 
-					Parameter.DirectRequest = DIRECT_REQUEST_MODE_IPV4;
-			}
-		}
-	}
-	else if (Data.find("LocalMain=1") == 0)
-	{
-		Parameter.LocalMain = true;
-	}
-	else if (Data.find("LocalHosts=1") == 0)
-	{
-		Parameter.LocalHosts = true;
-	}
-	else if (Data.find("LocalRouting=1") == 0)
-	{
-		Parameter.LocalRouting = true;
-	}
-	else if (Data.find("CacheType=") == 0 && Data.length() > strlen("CacheType="))
-	{
-		CaseConvert(true, Data);
-		if (Data.find("TIMER") != std::string::npos)
-			Parameter.CacheType = CACHE_TYPE_TIMER;
-		else if (Data.find("QUEUE") != std::string::npos)
-			Parameter.CacheType = CACHE_TYPE_QUEUE;
-	}
-	else if (Parameter.CacheType > 0 && Data.find("CacheParameter=") == 0 && Data.length() > strlen("CacheParameter="))
-	{
-		Result = strtoul(Data.c_str() + strlen("CacheParameter="), nullptr, 0);
-		if (errno != ERANGE && Result > 0)
-		{
-			if (Parameter.CacheType == CACHE_TYPE_TIMER)
-				Parameter.CacheParameter = Result * SECOND_TO_MILLISECOND;
-			else if (Parameter.CacheType == CACHE_TYPE_QUEUE)
-				Parameter.CacheParameter = Result;
-		}
-		else {
-			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
-			return false;
-		}
-	}
-	else if (Data.find("DefaultTTL=") == 0 && Data.length() > strlen("DefaultTTL="))
-	{
-		if (Data.length() < strlen("DefaultTTL=") + UINT16_MAX_STRING_LENGTH)
-		{
-			Result = strtoul(Data.c_str() + strlen("DefaultTTL="), nullptr, 0);
-			if (errno != ERANGE && Result > 0 && Result <= UINT16_MAX)
-			{
-				Parameter.HostsDefaultTTL = (uint32_t)Result;
-			}
-			else {
-				PrintError(LOG_ERROR_PARAMETER, L"Default TTL error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
-				return false;
-			}
-		}
-		else {
-			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
-			return false;
 		}
 	}
 
@@ -1973,6 +1850,133 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 		}
 	}
 
+//[DNS] block
+	else if (Data.find("Protocol=") == 0 && Data.length() > strlen("Protocol="))
+	{
+		CaseConvert(true, Data);
+
+	//Network layer
+		if (Data.find("IPV6") != std::string::npos)
+		{
+			if (Data.find("IPV4") != std::string::npos)
+				Parameter.RequestMode_Network = REQUEST_MODE_NETWORK_BOTH;
+			else 
+				Parameter.RequestMode_Network = REQUEST_MODE_IPV6;
+		}
+		else {
+			Parameter.RequestMode_Network = REQUEST_MODE_IPV4;
+		}
+
+	//Transport layer
+		if (Data.find("TCP") != std::string::npos)
+			Parameter.RequestMode_Transport = REQUEST_MODE_TCP;
+		else 
+			Parameter.RequestMode_Transport = REQUEST_MODE_UDP;
+	}
+	else if (Data.find("DirectRequest=") == 0 && Data.length() > strlen("DirectRequest=") || 
+		Data.find("HostsOnly=") == 0 && Data.length() > strlen("HostsOnly="))
+	{
+		if (Data.find("DirectRequest=1") == 0 || Data.find("HostsOnly=1") == 0)
+		{
+			Parameter.DirectRequest = DIRECT_REQUEST_MODE_BOTH;
+		}
+		else {
+			CaseConvert(true, Data);
+			if (Data.find("IPV6") != std::string::npos)
+			{
+				if (Data.find("IPV4") != std::string::npos)
+					Parameter.DirectRequest = DIRECT_REQUEST_MODE_BOTH;
+				else 
+					Parameter.DirectRequest = DIRECT_REQUEST_MODE_IPV6;
+			}
+			else if (Data.find("IPV4") != std::string::npos)
+			{
+				if (Data.find("IPV6") != std::string::npos)
+					Parameter.DirectRequest = DIRECT_REQUEST_MODE_BOTH;
+				else 
+					Parameter.DirectRequest = DIRECT_REQUEST_MODE_IPV4;
+			}
+		}
+	}
+	else if (Data.find("CacheType=") == 0 && Data.length() > strlen("CacheType="))
+	{
+		CaseConvert(true, Data);
+		if (Data.find("TIMER") != std::string::npos)
+			Parameter.CacheType = CACHE_TYPE_TIMER;
+		else if (Data.find("QUEUE") != std::string::npos)
+			Parameter.CacheType = CACHE_TYPE_QUEUE;
+	}
+	else if (Parameter.CacheType > 0 && Data.find("CacheParameter=") == 0 && Data.length() > strlen("CacheParameter="))
+	{
+		Result = strtoul(Data.c_str() + strlen("CacheParameter="), nullptr, 0);
+		if (errno != ERANGE && Result > 0)
+		{
+			if (Parameter.CacheType == CACHE_TYPE_TIMER)
+				Parameter.CacheParameter = Result * SECOND_TO_MILLISECOND;
+			else if (Parameter.CacheType == CACHE_TYPE_QUEUE)
+				Parameter.CacheParameter = Result;
+		}
+		else {
+			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+			return false;
+		}
+	}
+	else if (Data.find("DefaultTTL=") == 0 && Data.length() > strlen("DefaultTTL="))
+	{
+		if (Data.length() < strlen("DefaultTTL=") + UINT16_MAX_STRING_LENGTH)
+		{
+			Result = strtoul(Data.c_str() + strlen("DefaultTTL="), nullptr, 0);
+			if (errno != ERANGE && Result > 0 && Result <= UINT16_MAX)
+			{
+				Parameter.HostsDefaultTTL = (uint32_t)Result;
+			}
+			else {
+				PrintError(LOG_ERROR_PARAMETER, L"Default TTL error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+				return false;
+			}
+		}
+		else {
+			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+			return false;
+		}
+	}
+
+//[Local DNS] block
+	else if (Data.find("LocalProtocol=") == 0)
+	{
+		CaseConvert(true, Data);
+
+	//Network layer
+		if (Data.find("IPV6") != std::string::npos)
+		{
+			if (Data.find("IPV4") != std::string::npos)
+				Parameter.RequestMode_Local_Network = REQUEST_MODE_NETWORK_BOTH;
+			else 
+				Parameter.RequestMode_Local_Network = REQUEST_MODE_IPV6;
+		}
+		else {
+			Parameter.RequestMode_Local_Network = REQUEST_MODE_IPV4;
+		}
+
+	//Transport layer
+		if (Data.find("TCP") != std::string::npos)
+			Parameter.RequestMode_Local_Transport = REQUEST_MODE_TCP;
+		else 
+			Parameter.RequestMode_Local_Transport = REQUEST_MODE_UDP;
+	}
+	else if (Data.find("LocalHosts=1") == 0)
+	{
+		Parameter.LocalHosts = true;
+	}
+	else if (Data.find("LocalMain=1") == 0)
+	{
+		Parameter.LocalMain = true;
+	}
+	else if (Data.find("LocalRouting=1") == 0)
+	{
+		Parameter.LocalRouting = true;
+	}
+
 //[Addresses] block
 	else if (Data.find("IPv4ListenAddress=") == 0 && Data.length() > strlen("IPv4ListenAddress="))
 	{
@@ -2040,6 +2044,32 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 	}
 
 //[Values] block
+	else if (Data.find("BufferQueueLimits=") == 0 && Data.length() > strlen("BufferQueueLimits="))
+	{
+		if (Data.length() < strlen("BufferQueueLimits=") + UINT32_MAX_STRING_LENGTH - 1U)
+		{
+			Result = strtoul(Data.c_str() + strlen("BufferQueueLimits="), nullptr, 0);
+			if (errno != ERANGE && Result > 0 && Result >= BUFFER_QUEUE_MINNUM && Result <= BUFFER_QUEUE_MAXNUM)
+				Parameter.BufferQueueSize = Result;
+		}
+		else {
+			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+			return false;
+		}
+	}
+	else if (Data.find("QueueLimitsResetTime=") == 0 && Data.length() > strlen("QueueLimitsResetTime="))
+	{
+		if (Data.length() < strlen("QueueLimitsResetTime=") + UINT16_MAX_STRING_LENGTH)
+		{
+			Result = strtoul(Data.c_str() + strlen("QueueLimitsResetTime="), nullptr, 0);
+			if (errno != ERANGE && Result > 0)
+				Parameter.QueueResetTime = Result * SECOND_TO_MILLISECOND;
+		}
+		else {
+			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+			return false;
+		}
+	}
 	else if (Data.find("EDNSPayloadSize=") == 0 && Data.length() > strlen("EDNSPayloadSize="))
 	{
 		if (Data.length() < strlen("EDNSPayloadSize=") + UINT16_MAX_STRING_LENGTH)
@@ -2387,9 +2417,27 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 	{
 		Parameter.DNSCurve = true;
 	}
-	else if (Data.find("DNSCurveProtocol=TCP") == 0 || Data.find("DNSCurveProtocol=Tcp") == 0 || Data.find("DNSCurveProtocol=tcp") == 0)
+	else if (Data.find("DNSCurveProtocol=") == 0)
 	{
-		DNSCurveParameter.DNSCurveMode = DNSCURVE_REQUEST_MODE_TCP;
+		CaseConvert(true, Data);
+
+	//Network layer
+		if (Data.find("IPV6") != std::string::npos)
+		{
+			if (Data.find("IPV4") != std::string::npos)
+				DNSCurveParameter.RequestMode_DNSCurve_Network = REQUEST_MODE_NETWORK_BOTH;
+			else 
+				DNSCurveParameter.RequestMode_DNSCurve_Network = REQUEST_MODE_IPV6;
+		}
+		else {
+			DNSCurveParameter.RequestMode_DNSCurve_Network = REQUEST_MODE_IPV4;
+		}
+
+	//Transport layer
+		if (Data.find("TCP") != std::string::npos)
+			DNSCurveParameter.RequestMode_DNSCurve_Transport = REQUEST_MODE_TCP;
+		else 
+			DNSCurveParameter.RequestMode_DNSCurve_Transport = REQUEST_MODE_UDP;
 	}
 	else if (Data.find("DNSCurvePayloadSize=") == 0 && Data.length() > strlen("DNSCurvePayloadSize="))
 	{

@@ -32,7 +32,7 @@
 #define LABEL_HOSTS_TYPE_LOCAL                6U
 #define LABEL_HOSTS_TYPE_WHITELIST            7U
 #define LABEL_HOSTS_TYPE_BANNED               8U
-#define LABEL_HOSTS_TYPE_BANNED_TYPE          9U
+#define LABEL_HOSTS_TYPE_RECOED_BANNED        9U
 #define LABEL_HOSTS_ADDRESS                   10U
 
 //Length defines

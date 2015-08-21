@@ -142,7 +142,7 @@ bool __fastcall MonitorInit(void)
 					if (Parameter.OperationMode == LISTEN_MODE_PROXY)
 						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr = in6addr_loopback;
 				//Server Mode, Priavte Mode and Custom Mode
-					else
+					else 
 						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr = in6addr_any;
 
 				//Set ports.
@@ -223,7 +223,7 @@ bool __fastcall MonitorInit(void)
 					if (Parameter.OperationMode == LISTEN_MODE_PROXY)
 						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr = in6addr_loopback;
 				//Server Mode, Priavte Mode and Custom Mode
-					else
+					else 
 						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr = in6addr_any;
 
 				//Set ports.
@@ -306,7 +306,7 @@ bool __fastcall MonitorInit(void)
 					if (Parameter.OperationMode == LISTEN_MODE_PROXY)
 						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 				//Server Mode, Priavte Mode and Custom Mode
-					else
+					else 
 						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr.s_addr = INADDR_ANY;
 
 				//Set ports.
@@ -386,7 +386,7 @@ bool __fastcall MonitorInit(void)
 					if (Parameter.OperationMode == LISTEN_MODE_PROXY)
 						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 				//Server Mode, Priavte Mode and Custom Mode
-					else
+					else 
 						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr.s_addr = INADDR_ANY;
 
 				//Set ports.
@@ -500,7 +500,7 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 */
 //Set an IPv6 server socket that cannot accept IPv4 connections on Linux.
 	SetVal = 1;
-	if (LocalSocketData.SockAddr.ss_family == AF_INET6 && Parameter.OperationMode != LISTEN_MODE_PROXY && 
+	if (LocalSocketData.SockAddr.ss_family == AF_INET6 /* && Parameter.OperationMode != LISTEN_MODE_PROXY */ && 
 		setsockopt(LocalSocketData.Socket, IPPROTO_IPV6, IPV6_V6ONLY, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket treating wildcard bind error", errno, nullptr, 0);
@@ -534,10 +534,12 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 	}
 
 //Initialization
+	std::shared_ptr<SOCKET_DATA> ClientData(new SOCKET_DATA());
 	std::shared_ptr<char> RecvBuffer(new char[PACKET_MAXSIZE * Parameter.BufferQueueSize]());
 	std::shared_ptr<char> SendBuffer(new char[PACKET_MAXSIZE]());
 	std::shared_ptr<fd_set> ReadFDS(new fd_set());
 	std::shared_ptr<timeval> OriginalTimeout(new timeval()), Timeout(new timeval());
+	memset(ClientData.get(), 0, sizeof(SOCKET_DATA));
 	memset(RecvBuffer.get(), 0, PACKET_MAXSIZE * Parameter.BufferQueueSize);
 	memset(SendBuffer.get(), 0, PACKET_MAXSIZE);
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
@@ -588,7 +590,7 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
 				LastMarkTime = (*Parameter.FunctionPTR_GetTickCount64)();
-			else
+			else 
 				LastMarkTime = GetTickCount();
 		#else
 			LastMarkTime = GetTickCount64();
@@ -598,41 +600,42 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 	//Reset parameters.
 		memset(RecvBuffer.get() + PACKET_MAXSIZE * Index, 0, PACKET_MAXSIZE);
 		memcpy_s(Timeout.get(), sizeof(timeval), OriginalTimeout.get(), sizeof(timeval));
+		memcpy_s(ClientData.get(), sizeof(SOCKET_DATA), &LocalSocketData, sizeof(SOCKET_DATA));
 		FD_ZERO(ReadFDS.get());
-		FD_SET(LocalSocketData.Socket, ReadFDS.get());
+		FD_SET(ClientData->Socket, ReadFDS.get());
 		IsLocal = false;
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
 		SelectResult = select(0, ReadFDS.get(), nullptr, nullptr, Timeout.get());
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		SelectResult = select(LocalSocketData.Socket + 1U, ReadFDS.get(), nullptr, nullptr, Timeout.get());
+		SelectResult = select(ClientData->Socket + 1U, ReadFDS.get(), nullptr, nullptr, Timeout.get());
 	#endif
-		if (SelectResult > 0 && FD_ISSET(LocalSocketData.Socket, ReadFDS.get()))
+		if (SelectResult > 0 && FD_ISSET(ClientData->Socket, ReadFDS.get()))
 		{
 		//Receive request and check DNS query data.
 			if (Parameter.EDNS_Label) //EDNS Label
-				RecvLen = recvfrom(LocalSocketData.Socket, RecvBuffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0, (PSOCKADDR)&LocalSocketData.SockAddr, (socklen_t *)&LocalSocketData.AddrLen);
+				RecvLen = recvfrom(ClientData->Socket, RecvBuffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0, (PSOCKADDR)&ClientData->SockAddr, (socklen_t *)&ClientData->AddrLen);
 			else 
-				RecvLen = recvfrom(LocalSocketData.Socket, RecvBuffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE, 0, (PSOCKADDR)&LocalSocketData.SockAddr, (socklen_t *)&LocalSocketData.AddrLen);
+				RecvLen = recvfrom(ClientData->Socket, RecvBuffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE, 0, (PSOCKADDR)&ClientData->SockAddr, (socklen_t *)&ClientData->AddrLen);
 			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			{
 				continue;
 			}
 			else {
-				RecvLen = CheckQueryData(RecvBuffer.get() + PACKET_MAXSIZE * Index, SendBuffer.get(), RecvLen, LocalSocketData, IPPROTO_UDP, &IsLocal);
+				RecvLen = CheckQueryData(RecvBuffer.get() + PACKET_MAXSIZE * Index, SendBuffer.get(), RecvLen, *ClientData, IPPROTO_UDP, &IsLocal);
 				if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 					continue;
 			}
 
 		//Request process
-			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
+			if (ClientData->AddrLen == sizeof(sockaddr_in6)) //IPv6
 			{
-				std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, LocalSocketData, IPPROTO_UDP, IsLocal);
+				std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, *ClientData, IPPROTO_UDP, IsLocal);
 				RequestProcessThread.detach();
 			}
 			else { //IPv4
-				std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, LocalSocketData, IPPROTO_UDP, IsLocal);
+				std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, *ClientData, IPPROTO_UDP, IsLocal);
 				RequestProcessThread.detach();
 			}
 
@@ -693,7 +696,7 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 */
 //An IPv6 server socket that can also accept IPv4 connections on Linux by default.
 	SetVal = 1;
-	if (LocalSocketData.SockAddr.ss_family == AF_INET6 && Parameter.OperationMode != LISTEN_MODE_PROXY && 
+	if (LocalSocketData.SockAddr.ss_family == AF_INET6 /* && Parameter.OperationMode != LISTEN_MODE_PROXY */ && 
 		setsockopt(LocalSocketData.Socket, IPPROTO_IPV6, IPV6_V6ONLY, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"Set TCP socket treating wildcard bind error", errno, nullptr, 0);
@@ -728,7 +731,7 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 		return EXIT_FAILURE;
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		fcntl(LocalSocketData.Socket, F_SETFL, fcntl(LocalSocketData.Socket, F_GETFL, 0)|O_NONBLOCK);
+	fcntl(LocalSocketData.Socket, F_SETFL, fcntl(LocalSocketData.Socket, F_GETFL, 0)|O_NONBLOCK);
 #endif
 
 //Bind socket to port.
@@ -757,7 +760,6 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(OriginalTimeout.get(), 0, sizeof(timeval));
 	memset(Timeout.get(), 0, sizeof(timeval));
-	ClientData->AddrLen = LocalSocketData.AddrLen;
 #if defined(PLATFORM_WIN)
 	OriginalTimeout->tv_sec = Parameter.SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
 	OriginalTimeout->tv_usec = Parameter.SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -772,7 +774,7 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
 			LastMarkTime = (*Parameter.FunctionPTR_GetTickCount64)();
-		else
+		else 
 			LastMarkTime = GetTickCount();
 	#else
 		LastMarkTime = GetTickCount64();
@@ -811,6 +813,8 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 
 	//Reset parameters.
 		memset(&ClientData->SockAddr, 0, sizeof(sockaddr_storage));
+		ClientData->AddrLen = LocalSocketData.AddrLen;
+		ClientData->SockAddr.ss_family = LocalSocketData.SockAddr.ss_family;
 		memcpy_s(Timeout.get(), sizeof(timeval), OriginalTimeout.get(), sizeof(timeval));
 		FD_ZERO(ReadFDS.get());
 		FD_SET(LocalSocketData.Socket, ReadFDS.get());
@@ -996,7 +1000,7 @@ void __fastcall AlternateServerMonitor(void)
 			{
 				if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
 					RangeTimer[Index] = (size_t)((*Parameter.FunctionPTR_GetTickCount64)() + Parameter.AlternateTimeRange);
-				else
+				else 
 					RangeTimer[Index] = GetTickCount() + Parameter.AlternateTimeRange;
 		#else
 			if (GetTickCount64() >= RangeTimer[Index])
@@ -1124,15 +1128,6 @@ bool GetBestInterfaceAddress(const uint16_t Protocol, const sockaddr_storage *Or
 			close(InterfaceSocket);
 			return false;
 		}
-
-/* Old version(2015-07-08)
-	//Address check(IPv6 tunnels support: 6to4, ISATAP and Teredo)
-		if (((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[0] == htons(0x2001) && ((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[1U] == 0 || //Teredo relay/tunnel Addresses(2001::/32, RFC 4380)
-			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[0] == htons(0x2002) || //6to4 relay/tunnel Addresses(2002::/16, Section 2 in RFC 3056)
-			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[0] >= 0x80 && ((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[1U] <= 0xBF && //Link-Local Unicast Contrast Addresses/LUC(FE80::/10, Section 2.5.6 in RFC 4291)
-			((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[4U] == 0 && ((PSOCKADDR_IN6)SockAddr.get())->sin6_addr.__u6_addr16[5U] == htons(0x5EFE)) //ISATAP Interface Identifiers Addresses(Prefix:0:5EFE:0:0:0:0/64, which also in Link-Local Unicast Contrast Addresses/LUC, Section 6.1 in RFC 5214)
-				Parameter.TunnelAvailable_IPv6 = true;
-*/
 	}
 	else { //IPv4
 		((PSOCKADDR_IN)SockAddr.get())->sin_addr = ((PSOCKADDR_IN)OriginalSockAddr)->sin_addr;

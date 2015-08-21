@@ -30,13 +30,22 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 此時 Windows 系統會詢問是否同意程式訪問網路，請將 "私人網路絡" 以及 "公用網路" 都勾上並確認
 
 5.打開 "網路和共用中心" - "更改配接器設置" 選擇 "本地連接" 或 "無線連接" 或 "寬頻連線"
-  * 右擊 "屬性" - "Internet協定(TCP/IP)"(XP/2003) 或 "Internet協定版本4(IPv4)"(Vista 以及更新版本) - "屬性" - 勾選 "使用下面的DNS伺服器位址"
+  * 右擊 "屬性" - "Internet協定(TCP/IP)"(XP/2003) 或 "Internet協定版本4(IPv4)"(Vista 以及更新版本) - "屬性" - 勾選 "使用下面的 DNS 伺服器位址"
   * 在 "首選DNS伺服器" 內填入 "127.0.0.1"（不含引號） 確定保存並退出即可
   * 如果需要使用 IPv6 協定的本機伺服器
-    * 右擊 "屬性" - "Internet協定版本6(IPv6)" - "屬性" - 勾選 "使用下面的DNS伺服器位址"
+    * 右擊 "屬性" - "Internet協定版本6(IPv6)" - "屬性" - 勾選 "使用下面的 DNS 伺服器位址"
     * 在 "首選DNS伺服器" 內填入 "::1"（不含引號） 確定保存並退出即可
   * 請務必確保只填入這兩個地址，填入其它地址可能會導致系統選擇其它 DNS 服務器繞過程序的代理
   * 注意：建議將 "本地連接" 和 "無線連接" 以及 "寬頻連線" 全部修改！
+
+6.特別注意：
+  * 如需使用境內 DNS 伺服器解析境內功能變數名稱加速訪問 CDN 速度功能，請選擇其中一種方案，配置完成後重啟服務：
+    * Local Main = 1 同時 Local Routing = 1 開啟境內位址路由表識別功能
+    * Local Hosts = 1 開啟境內功能變數名稱白名單功能
+  * 如需讓程式的流量通過系統路由級別的代理（例如 VPN 等）進行變數名稱解析，請選擇其中一種方案，配置完成後重啟服務：
+    * Direct Request = IPv4
+    * Direct Request = IPv6
+    * Direct Request = IPv4 + IPv6
 
 
 重啟服務方法（需要以管理員身份進行）：
@@ -124,7 +133,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * 請求功能變數名稱解析優先順序
   * 使用系統API函數進行功能變數名稱解析（大部分）：系統 Hosts > Pcap_DNSProxy 的 Hosts 條目（Whitelist/白名單條目 > Hosts/主要Hosts清單） > DNS緩存 > Local Hosts/境內DNS解析功能變數名稱清單 > 遠端DNS伺服器
   * 直接使用網路介面卡設置進行功能變數名稱解析（小部分）：Pcap_DNSProxy 的 Hosts 配置檔案（Whitelist/白名單條目 > Hosts/主要Hosts清單） > DNS緩存 > Local Hosts/境內DNS解析功能變數名稱清單 > 遠端DNS伺服器
-  * 請求遠端DNS伺服器的優先順序：Direct Request 模式 > TCP 模式的 DNSCurve 加密/非加密模式（如有） > UDP 模式的DNSCurve 加密/非加密模式（如有） > TCP模式普通請求（如有） > UDP模式普通請求
+  * 請求遠端DNS伺服器的優先順序：Direct Request 模式 > TCP 模式的 DNSCurve 加密/非加密模式（如有） > UDP 模式的 DNSCurve 加密/非加密模式（如有） > TCP模式普通請求（如有） > UDP模式普通請求
 * 本工具的 DNSCurve/DNSCrypt 協定是內置的實現，不需要安裝 DNSCrypt 官方的工具！
   * DNSCurve 協定為 Streamlined/精簡類型
   * 自動獲取連接資訊時必須保證系統時間的正確，否則證書驗證時會出錯導致連接資訊獲取失敗！
@@ -143,8 +152,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 強烈建議打開DNS緩存功能！
 * 本工具配置選項豐富，配置不同的組合會有不同的效果，介紹幾個比較常用的組合：
   * 預設配置：UDP 請求 + 抓包模式
-  * Local Main = 1 同時 Local Routing = 1 時：將大部分的解析請求發往境內的 DNS 伺服器，遇到解析出來的是境外的位址後切換到境外伺服器進行解析
-    * 此組合的過濾效果依靠境內路由表，不可靠
   * Protocol = ...TCP：先 TCP 請求失敗後再 UDP 請求 + 抓包模式，對網路資源的佔用比較高
     * 由於 TCP 請求大部分時候不會被投毒污染，此組合的過濾效果比較可靠
   * EDNS Label = 1：開啟 EDNS 請求標籤功能
@@ -172,10 +179,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Base - 基本參數區域
   * Version - 設定檔的版本，用於正確識別設定檔：本參數與程式版本號不相關，切勿修改，預設為發佈時的最新設定檔版本
   * File Refresh Time - 檔刷新間隔時間：單位為秒，最短間隔時間為 5 秒，預設為 10
-  * Buffer Queue Limits - 資料緩衝區佇列數量限制：單位為個，最小個數為 8 最大個數為 1488095，預設為 64
-    * 啟用 Queue Limits Reset Time 參數時，此參數為單位時間內最多可接受請求的數量
-    * 不啟用 Queue Limits Reset Time 參數時為用於接收資料的緩衝區的數量，由於記憶體資料的複製比網路 I/O 快超過一個數量級，故此情況下不需要設置太多緩衝區
-  * Queue Limits Reset Time - 資料緩衝區佇列數量限制重置時間：單位為秒，設置為 0 時關閉此功能，預設為 0
   * Additional Path - 附加的資料檔案讀取路徑，附加在此處的目錄路徑下的 Hosts 檔和 IPFilter 檔會被依次讀取：預設為空
   * Hosts File Name - Hosts 檔的檔案名，附加在此處的 Hosts 檔案名將被依次讀取：預設為 Hosts.ini|Hosts.conf|Hosts|Hosts.txt|Hosts.csv|WhiteList.txt|White_List.txt
   * IPFilter File Name - IPFilter 檔的檔案名，附加在此處的 IPFilter 檔案名將被依次讀取：預設為 IPFilter.ini|IPFilter.conf|IPFilter.dat|IPFilter.csv|IPFilter|Guarding.p2p|Guarding|Routing.txt|chnrouting.txt|chnroute.txt
@@ -184,27 +187,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Print Error - 輸出錯誤報表功能：開啟為1/關閉為0，預設為 1
   * Log Maximum Size - 日誌檔最大容量：直接填數位時單位為位元組，可加上單位，支援的單位有 KB/MB/GB，可接受範圍為 4KB - 1GB，如果留空則為 8MB，預設為 8MB
     * 注意：日誌檔到達最大容量後將被直接刪除，然後重新生成新的日誌檔，原來的日誌將無法找回！
-
-* DNS - 功能變數名稱解析參數區域
-  * Protocol - 發送請求所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP，預設為 IPv4 + UDP
-    * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向遠端 DNS 伺服器發出請求
-    * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
-    * 同時填入 TCP 和 UDP 等於只填入 TCP，因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
-    * 注意：此處的協定指的是程式請求遠端 DNS 伺服器時所使用的協定，而向本程式請求功能變數名稱解析時可使用的協定由 Listen Protocol 參數決定
-  * Direct Request - 直連模式，啟用後將使用系統的 API 直接請求遠端伺服器而啟用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，關閉為 0，預設為 0
-    * 建議當系統使用全域代理功能時啟用，程式將除境內服務器外的所有請求直接交給系統而不作任何過濾等處理，系統會將請求自動發往遠端伺服器進行解析
-    * 填入 IPv4 或 IPv6 時將會啟用對應協定的 Direct Request 功能，填入 IPv4 + IPv6 將會啟用所有協定的功能
-  * Local Main - 主要境內伺服器請求功能：開啟為1/關閉為0，預設為 0
-    * 開啟後所有請求先使用 Local 的伺服器進行解析，遇到遭投毒污染的解析結果時自動再向境外伺服器請求
-    * 本功能不能與 Local Hosts 同時啟用
-  * Local Hosts - 白名單境內伺服器請求功能：開啟為1/關閉為0，預設為 0
-    * 開啟後才能使用自帶或自訂的 Local Hosts 白名單，且不能與 Local Hosts 和 Local Routing 同時啟用
-  * Local Routing - Local 路由表識別功能：開啟為1/關閉為0，預設為 0
-    * 開啟後使用 Local 請求的解析結果都會被檢查，路由表命中會直接返回結果，命中失敗將丟棄解析結果並向境外伺服器再次發起請求
-    * 本功能只能在 Local Main 為啟用狀態時才能啟用
-  * Cache Type - DNS 緩存的類型：分 Timer/計時型以及 Queue/佇列型：預設為 Queue
-  * Cache Parameter - DNS 緩存的參數：Timer/計時型 時為時間長度（單位為秒），Queue/佇列型 時為佇列長度：預設為 128
-  * Default TTL - Hosts 條目預設存留時間：單位為秒，留空則為 900秒/15分鐘，預設為 900
 
 * Listen - 監聽參數區域
   * Pcap Capture - 抓包功能總開關，開啟後抓包模組才能正常使用：開啟為1/關閉為0，預設為 1
@@ -226,13 +208,13 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Operation Mode - 程式的監聽工作模式：分 Server/伺服器模式、Private/私有網路模式 和 Proxy/代理模式，預設為 Private
     * Server/伺服器模式：打開 DNS 通用埠（TCP/UDP 同時打開），可為所有其它設備提供代理功能變數名稱解析請求服務
     * Private/私有網路模式：打開 DNS 通用埠（TCP/UDP 同時打開），可為僅限於私有網路位址的設備提供代理功能變數名稱解析請求服務
-    * Proxy/代理模式：只打開回環位址的DNS埠（TCP/UDP 同時打開），只能為本機提供代理功能變數名稱解析請求服務
+    * Proxy/代理模式：只打開回環位址的 DNS 埠（TCP/UDP 同時打開），只能為本機提供代理功能變數名稱解析請求服務
     * Custom/自訂模式：打開 DNS 通用埠（TCP/UDP 同時打開），可用的位址由 IPFilter 參數決定
     * 當相應協定的 Listen Address 生效時，相應協定的本參數將會被自動忽略
   * IPFilter Type - IPFilter 參數的類型：分為 Deny 禁止和 Permit 允許，對應 IPFilter 參數應用為黑名單或白名單，預設為 Deny
   * IPFilter Level - IPFilter 參數的過濾級別，級別越高過濾越嚴格，與 IPFilter 條目相對應：0為不啟用過濾，如果留空則為0，預設為空
   * Accept Type - 禁止或只允許所列 DNS 類型的請求：格式為 "Deny:DNS記錄的名稱或ID(|DNS記錄的名稱或ID)" 或 "Permit:DNS記錄的名稱或ID(|DNS記錄的名稱或ID)"（不含引號，括弧內為可選項目）
-    * 所有可用的DNS類型清單：
+    * 所有可用的 DNS 類型清單：
       * A/1
       * NS/2
       * MD/3
@@ -315,6 +297,32 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * TA/32768
       * DLV/32769
       * RESERVED/65535
+	  
+* DNS - 功能變數名稱解析參數區域
+  * Protocol - 發送請求所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP，預設為 IPv4 + UDP
+    * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向遠端 DNS 伺服器發出請求
+    * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
+    * 同時填入 TCP 和 UDP 等於只填入 TCP，因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
+  * Direct Request - 直連模式，啟用後將使用系統的 API 直接請求遠端伺服器而啟用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，關閉為 0，預設為 0
+    * 建議當系統使用全域代理功能時啟用，程式將除境內服務器外的所有請求直接交給系統而不作任何過濾等處理，系統會將請求自動發往遠端伺服器進行解析
+    * 填入 IPv4 或 IPv6 時將會啟用對應協定的 Direct Request 功能，填入 IPv4 + IPv6 將會啟用所有協定的功能
+  * Cache Type - DNS 緩存的類型：分 Timer/計時型以及 Queue/佇列型：預設為 Queue
+  * Cache Parameter - DNS 緩存的參數：Timer/計時型 時為時間長度（單位為秒），Queue/佇列型 時為佇列長度：預設為 128
+  * Default TTL - Hosts 條目預設存留時間：單位為秒，留空則為 900秒/15分鐘，預設為 900
+  
+* Local DNS - 境內功能變數名稱解析參數區域
+  * Local Protocol - 發送境內請求所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP，預設為 IPv4 + UDP
+    * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向境內 DNS 伺服器發出請求
+    * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
+    * 同時填入 TCP 和 UDP 等於只填入 TCP，因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
+  * Local Hosts - 白名單境內伺服器請求功能：開啟為1/關閉為0，預設為 0
+    * 開啟後才能使用自帶或自訂的 Local Hosts 白名單，且不能與 Local Hosts 和 Local Routing 同時啟用
+  * Local Main - 主要境內伺服器請求功能：開啟為1/關閉為0，預設為 0
+    * 開啟後所有請求先使用 Local 的伺服器進行解析，遇到遭投毒污染的解析結果時自動再向境外伺服器請求
+    * 本功能不能與 Local Hosts 同時啟用
+  * Local Routing - Local 路由表識別功能：開啟為1/關閉為0，預設為 0
+    * 開啟後使用 Local 請求的解析結果都會被檢查，路由表命中會直接返回結果，命中失敗將丟棄解析結果並向境外伺服器再次發起請求
+    * 本功能只能在 Local Main 為啟用狀態時才能啟用
 
 * Addresses - 普通模式位址區域
   * IPv4 Listen Address - IPv4 本地監聽位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
@@ -342,7 +350,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv6 DNS Address - IPv6 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 [2001:4860:4860::8844]:53
     * 支援多個位址
     * 支援使用服務名稱代替埠號
-  * IPv6 Alternate DNS Address - IPv6 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 [2001:4860:4860::8888]:53| [2620:0:CCD::2]:443| [2620:0:CCC::2]:5353
+  * IPv6 Alternate DNS Address - IPv6 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用，預設為 [2001:4860:4860::8888]:53|[2620:0:CCD::2]:443|[2620:0:CCC::2]:5353
     * 支援多個位址
     * 支援使用服務名稱代替埠號
   * IPv6 Local DNS Address - IPv6 主要境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用，預設為空
@@ -443,6 +451,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * TELNETS/992
 
 * Values - 擴展參數值區域
+  * Buffer Queue Limits - 資料緩衝區佇列數量限制：單位為個，最小個數為 8 最大個數為 1488095，預設為 64
+    * 啟用 Queue Limits Reset Time 參數時，此參數為單位時間內最多可接受請求的數量
+    * 不啟用 Queue Limits Reset Time 參數時為用於接收資料的緩衝區的數量，由於記憶體資料的複製比網路 I/O 快超過一個數量級，故此情況下不需要設置太多緩衝區
+  * Queue Limits Reset Time - 資料緩衝區佇列數量限制重置時間：單位為秒，設置為 0 時關閉此功能，預設為 0
   * EDNS Payload Size - EDNS 標籤附帶使用的最大載荷長度：最小為 DNS 協定實現要求的 512(bytes)，留空則使用 EDNS 標籤要求最短的 1220(bytes)，預設為空
   * IPv4 TTL - IPv4 主要 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 TTL 值：0為自動獲取，取值為 1-255 之間：預設為 0
     * 支援多個 TTL 值，與 IPv4 DNS Address 相對應
@@ -518,7 +530,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * DNSCurve - DNSCurve 協定基本參數區域
   * DNSCurve - DNSCurve 協定總開關，控制所有和 DNSCurve 協定有關的選項：開啟為1/關閉為0，預設為 0
-  * DNSCurve Protocol - 發送請求所使用的協定：分 UDP 和 TCP，預設為 UDP
+  * DNSCurve Protocol - DNSCurve 發送請求所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP，預設為 IPv4 + UDP
+    * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向遠端 DNS 伺服器發出請求
+    * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
+    * 同時填入 TCP 和 UDP 等於只填入 TCP，因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
   * DNSCurve Payload Size - DNSCurve EDNS 標籤附帶使用的最大載荷長度，同時亦為發送請求的總長度，並決定請求的填充長度：最小為 DNS 協定實現要求的 512(bytes)，留空則為 512(bytes)，預設為留空
   * Encryption - 啟用加密，DNSCurve 協定支援加密和非加密模式：開啟為1/關閉為0，預設為 1
   * Encryption Only - 只使用加密模式：開啟為1/關閉為0，預設為 1
@@ -541,9 +556,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSCurve IPv4 Provider Name - DNSCurve 協定 IPv4 主要 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，預設為 2.dnscrypt-cert.opendns.com
   * DNSCurve IPv4 Alternate Provider Name - DNSCurve 協定 IPv4 備用 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，預設為 2.dnscrypt-cert.fvz-rec-hk-nt-01.dnsrec.meo.ws
   * DNSCurve IPv6 Provider Name - DNSCurve 協定 IPv6 主要 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，預設為 2.dnscrypt-cert.opendns.com
-  * DNSCurve IPv6 Provider Name - DNSCurve 協定 IPv6 備用 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，預設為 2.dnscrypt-cert.fvz-rec-hk-nt-01.dnsrec.meo.ws
+  * DNSCurve IPv6 Alternate Provider Name - DNSCurve 協定 IPv6 備用 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，預設為 2.dnscrypt-cert.fvz-rec-hk-nt-01.dnsrec.meo.ws
   * 注意：
     * 自動獲取 DNSCurve 伺服器連接資訊時必須輸入提供者的功能變數名稱，不能留空
+    * 更多支援 DNSCurve/DNSCrypt 的伺服器請移步 https://github.com/jedisct1/dnscrypt-proxy/blob/master/dnscrypt-resolvers.csv
 
 * DNSCurve Keys - DNSCurve 協定金鑰區域
   * Client Public Key - 自訂用戶端公開金鑰：可使用 KeyPairGenerator 生成，留空則每次啟動時自動生成，預設為空
@@ -732,7 +748,7 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 * -h 和 --help
   輸出程序幫助信息到屏幕上
 * --flush-dns
-  立即清空所有程序內以及系統的DNS 緩存
+  立即清空所有程序內以及系統的 DNS 緩存
 * --first-setup
   進行本地防火牆測試(Windows)
 * -c Path 和 --config-file Path

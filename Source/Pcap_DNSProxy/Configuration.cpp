@@ -900,36 +900,6 @@ void __fastcall ReadHosts(void)
 			continue;
 		}
 
-/* Old version(2015-07-19)
-	//EDNS Label
-		if (Parameter.EDNS_Label)
-		{
-			for (auto &HostsFileSetIter:*HostsFileSetModificating)
-			{
-				for (auto &HostsListIter:HostsFileSetIter.HostsList)
-				{
-					if (HostsListIter.Length + sizeof(dns_record_opt) >= PACKET_MAXSIZE)
-					{
-						PrintError(LOG_ERROR_HOSTS, L"Data is too long when EDNS is available", 0, nullptr, 0);
-						continue;
-					}
-					else if (!HostsListIter.Response)
-					{
-						continue;
-					}
-					else {
-						auto DNS_Record_OPT = (pdns_record_opt)(HostsListIter.Response.get() + HostsListIter.Length);
-						DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-						DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
-						HostsListIter.Length += sizeof(dns_record_opt);
-
-						HostsListIter.Length = AddEDNSLabelToAdditionalRR(HostsListIter.Response.get(), HostsListIter.Length, PACKET_MAXSIZE, true);
-					}
-				}
-			}
-
-		}
-*/
 	//Copy to using list.
 		HostsFileMutex.lock();
 		*HostsFileSetUsing = *HostsFileSetModificating;

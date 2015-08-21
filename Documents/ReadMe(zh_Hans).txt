@@ -30,13 +30,22 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 此时 Windows 系统会询问是否同意程序访问网络，请将 "专用网络" 以及 "公用网络" 都勾上并确认
 
 5.打开 "网络和共享中心" - "更改适配器设置" 选择 "本地连接" 或 "无线连接" 或 "宽带连接"
-  * 右击 "属性" - "Internet协议(TCP/IP)"(XP/2003) 或 "Internet协议版本4(IPv4)"(Vista 以及更新版本) - "属性" - 勾选 "使用下面的DNS服务器地址"
+  * 右击 "属性" - "Internet协议(TCP/IP)"(XP/2003) 或 "Internet协议版本4(IPv4)"(Vista 以及更新版本) - "属性" - 勾选 "使用下面的 DNS 服务器地址"
   * 在 "首选DNS服务器" 内填入 "127.0.0.1"（不含引号） 确定保存并退出即可
   * 如果需要使用 IPv6 协议的本地服务器
-    * 右击 "属性" - "Internet协议版本6(IPv6)" - "属性" - 勾选 "使用下面的DNS服务器地址"
+    * 右击 "属性" - "Internet协议版本6(IPv6)" - "属性" - 勾选 "使用下面的 DNS 服务器地址"
     * 在 "首选DNS服务器" 内填入 "::1"（不含引号） 确定保存并退出即可
   * 请务必确保只填入这两个地址，填入其它地址可能会导致系统选择其它 DNS 服务器绕过程序的代理
   * 注意：建议将 "本地连接" 和 "无线连接" 以及 "宽带连接" 全部修改！
+
+6.特别注意：
+  * 如需使用境内 DNS 服务器解析境内域名加速访问 CDN 速度功能，请选择其中一种方案，配置完成后重启服务：
+    * Local Main = 1 同时 Local Routing = 1 开启境内地址路由表识别功能
+    * Local Hosts = 1 开启境内域名白名单功能
+  * 如需让程序的流量通过系统路由级别的代理（例如 VPN 等）进行域名解析，请选择其中一种方案，配置完成后重启服务：
+    * Direct Request = IPv4
+    * Direct Request = IPv6
+    * Direct Request = IPv4 + IPv6
 
 
 重启服务方法（需要以管理员身份进行）：
@@ -141,8 +150,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 强烈建议打开 DNS 缓存功能！
 * 本工具配置选项丰富，配置不同的组合会有不同的效果，介绍几个比较常用的组合：
   * 默认配置：UDP 请求 + 抓包模式
-  * Local Main = 1 同时 Local Routing = 1 时：将大部分的解析请求发往境内的 DNS 服务器，遇到解析出来的是境外的地址后切换到境外服务器进行解析
-    * 此组合的过滤效果依靠境内路由表，不可靠
   * Protocol = ...TCP：先 TCP 请求失败后再 UDP 请求 + 抓包模式，对网络资源的占用比较高
     * 由于 TCP 请求大部分时候不会被投毒污染，此组合的过滤效果比较可靠
   * EDNS Label = 1：开启 EDNS 请求标签功能
@@ -170,10 +177,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Base - 基本参数区域
   * Version - 配置文件的版本，用于正确识别配置文件：本参数与程序版本号不相关，切勿修改，默认为发布时的最新配置文件版本
   * File Refresh Time - 文件刷新间隔时间：单位为秒，最短间隔时间为 5 秒，默认为 10
-  * Buffer Queue Limits - 数据缓冲区队列数量限制：单位为个，最小个数为 8 最大个数为 1488095，默认为 64
-    * 启用 Queue Limits Reset Time 参数时，此参数为单位时间内最多可接受请求的数量
-    * 不启用 Queue Limits Reset Time 参数时为用于接收数据的缓冲区的数量，由于内存数据的复制比网络 I/O 快超过一个数量级，故此情况下不需要设置太多缓冲区
-  * Queue Limits Reset Time - 数据缓冲区队列数量限制重置时间：单位为秒，设置为 0 时关闭此功能，默认为 0
   * Additional Path - 附加的数据文件读取路径，附加在此处的目录路径下的 Hosts 文件和 IPFilter 文件会被依次读取：默认为空
   * Hosts File Name - Hosts 文件的文件名，附加在此处的 Hosts 文件名将被依次读取：默认为 Hosts.ini|Hosts.conf|Hosts|Hosts.txt|Hosts.csv|WhiteList.txt|White_List.txt
   * IPFilter File Name - IPFilter 文件的文件名，附加在此处的 IPFilter 文件名将被依次读取：默认为 IPFilter.ini|IPFilter.conf|IPFilter.dat|IPFilter.csv|IPFilter|Guarding.p2p|Guarding|Routing.txt|chnrouting.txt|chnroute.txt
@@ -182,27 +185,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Print Error - 输出错误报告功能：开启为1/关闭为0，默认为 1
   * Log Maximum Size - 日志文件最大容量：直接填数字时单位为字节，可加上单位，支持的单位有 KB/MB/GB，可接受范围为 4KB - 1GB，如果留空则为 8MB，默认为 8MB
     * 注意：日志文件到达最大容量后将被直接删除，然后重新生成新的日志文件，原来的日志将无法找回！
-
-* DNS - 域名解析参数区域
-  * Protocol - 发送请求所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP，默认为 IPv4 + UDP
-    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求
-	* 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
-	* 同时填入 TCP 和 UDP 等于只填入 TCP，因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
-    * 注意：此处的协议指的是程序请求远程 DNS 服务器时所使用的协议，而向本程序请求域名解析时可使用的协议由 Listen Protocol 参数决定
-  * Direct Request - 直连模式，启用后将使用系统的 API 直接请求远程服务器而启用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，关闭为 0，默认为 0
-    * 建议当系统使用全局代理功能时启用，程序将除境内服务器外的所有请求直接交给系统而不作任何过滤等处理，系统会将请求自动发往远程服务器进行解析
-    * 填入 IPv4 或 IPv6 时将会启用对应协议的 Direct Request 功能，填入 IPv4 + IPv6 将会启用所有协议的功能
-  * Local Main - 主要境内服务器请求功能：开启为1/关闭为0，默认为 0
-    * 开启后所有请求先使用 Local 的服务器进行解析，遇到遭投毒污染的解析结果时自动再向境外服务器请求
-    * 本功能不能与 Local Hosts 同时启用
-  * Local Hosts - 白名单境内服务器请求功能：开启为1/关闭为0，默认为 0
-    * 开启后才能使用自带或自定义的 Local Hosts 白名单，且不能与 Local Hosts 和 Local Routing 同时启用
-  * Local Routing - Local 路由表识别功能：开启为1/关闭为0，默认为 0
-    * 开启后使用 Local 请求的解析结果都会被检查，路由表命中会直接返回结果，命中失败将丢弃解析结果并向境外服务器再次发起请求
-    * 本功能只能在 Local Main 为启用状态时才能启用
-  * Cache Type - DNS 缓存的类型：分 Timer/计时型以及 Queue/队列型：默认为 Queue
-  * Cache Parameter - DNS 缓存的参数：Timer/计时型 时为时间长度（单位为秒），Queue/队列型 时为队列长度：默认为 128
-  * Default TTL - Hosts 条目默认生存时间：单位为秒，留空则为 900秒/15分钟，默认为 900
 
 * Listen - 监听参数区域
   * Pcap Capture - 抓包功能总开关，开启后抓包模块才能正常使用：开启为1/关闭为0，默认为 1
@@ -224,7 +206,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Operation Mode - 程序的监听工作模式：分 Server/服务器模式、Private/私有网络模式、Proxy/代理模式 和 Custom/自定义模式，默认为 Private
     * Server/服务器模式：打开 DNS 通用端口（TCP/UDP 同时打开），可为所有其它设备提供代理域名解析请求服务
     * Private/私有网络模式：打开 DNS 通用端口（TCP/UDP 同时打开），可为仅限于私有网络地址的设备提供代理域名解析请求服务
-    * Proxy/代理模式：只打开回环地址的DNS 端口（TCP/UDP 同时打开），只能为本机提供代理域名解析请求服务
+    * Proxy/代理模式：只打开回环地址的 DNS 端口（TCP/UDP 同时打开），只能为本机提供代理域名解析请求服务
     * Custom/自定义模式：打开 DNS 通用端口（TCP/UDP 同时打开），可用的地址由 IPFilter 参数决定
     * 当相应协议的 Listen Address 生效时，相应协议的本参数将会被自动忽略
   * IPFilter Type - IPFilter 参数的类型：分为 Deny 禁止和 Permit 允许，对应 IPFilter 参数应用为黑名单或白名单，默认为 Deny
@@ -313,6 +295,32 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * TA/32768
       * DLV/32769
       * RESERVED/65535
+	  
+* DNS - 域名解析参数区域
+  * Protocol - 发送请求所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP，默认为 IPv4 + UDP
+    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求
+	* 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
+	* 同时填入 TCP 和 UDP 等于只填入 TCP，因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
+  * Direct Request - 直连模式，启用后将使用系统的 API 直接请求远程服务器而启用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，关闭为 0，默认为 0
+    * 建议当系统使用全局代理功能时启用，程序将除境内服务器外的所有请求直接交给系统而不作任何过滤等处理，系统会将请求自动发往远程服务器进行解析
+    * 填入 IPv4 或 IPv6 时将会启用对应协议的 Direct Request 功能，填入 IPv4 + IPv6 将会启用所有协议的功能
+  * Cache Type - DNS 缓存的类型：分 Timer/计时型以及 Queue/队列型：默认为 Queue
+  * Cache Parameter - DNS 缓存的参数：Timer/计时型 时为时间长度（单位为秒），Queue/队列型 时为队列长度：默认为 128
+  * Default TTL - Hosts 条目默认生存时间：单位为秒，留空则为 900秒/15分钟，默认为 900
+  
+* Local DNS - 境内域名解析参数区域
+  * Local Protocol - 发送境内请求所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP，默认为 IPv4 + UDP
+    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向境内 DNS 服务器发出请求
+	* 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
+	* 同时填入 TCP 和 UDP 等于只填入 TCP，因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
+  * Local Hosts - 白名单境内服务器请求功能：开启为1/关闭为0，默认为 0
+    * 开启后才能使用自带或自定义的 Local Hosts 白名单，且不能与 Local Hosts 和 Local Routing 同时启用
+  * Local Main - 主要境内服务器请求功能：开启为1/关闭为0，默认为 0
+    * 开启后所有请求先使用 Local 的服务器进行解析，遇到遭投毒污染的解析结果时自动再向境外服务器请求
+    * 本功能不能与 Local Hosts 同时启用
+  * Local Routing - Local 路由表识别功能：开启为1/关闭为0，默认为 0
+    * 开启后使用 Local 请求的解析结果都会被检查，路由表命中会直接返回结果，命中失败将丢弃解析结果并向境外服务器再次发起请求
+    * 本功能只能在 Local Main 为启用状态时才能启用
     
 * Addresses - 普通模式地址区域
   * IPv4 Listen Address - IPv4 本地监听地址：需要输入一个带端口格式的地址，留空为不启用，默认为空
@@ -340,7 +348,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv6 DNS Address - IPv6 主要 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为 [2001:4860:4860::8844]:53
     * 支持多个地址
     * 支持使用服务名称代替端口号
-  * IPv6 Alternate DNS Address - IPv6 备用 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为 [2001:4860:4860::8888]:53|[2620:0:CCC::2]:443|[2620:0:CCD::2]:5353
+  * IPv6 Alternate DNS Address - IPv6 备用 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用，默认为 [2001:4860:4860::8888]:53|[2620:0:CCD::2]:443|[2620:0:CCC::2]:5353
     * 支持多个地址
     * 支持使用服务名称代替端口号
   * IPv6 Local DNS Address - IPv6 主要境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，留空为不启用，默认为空
@@ -441,6 +449,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * TELNETS/992
 
 * Values - 扩展参数值区域
+  * Buffer Queue Limits - 数据缓冲区队列数量限制：单位为个，最小个数为 8 最大个数为 1488095，默认为 64
+    * 启用 Queue Limits Reset Time 参数时，此参数为单位时间内最多可接受请求的数量
+    * 不启用 Queue Limits Reset Time 参数时为用于接收数据的缓冲区的数量，由于内存数据的复制比网络 I/O 快超过一个数量级，故此情况下不需要设置太多缓冲区
+  * Queue Limits Reset Time - 数据缓冲区队列数量限制重置时间：单位为秒，设置为 0 时关闭此功能，默认为 0
   * EDNS Payload Size - EDNS 标签附带使用的最大载荷长度：最小为 DNS 协议实现要求的 512(bytes)，留空则使用 EDNS 标签要求最短的 1220(bytes)，默认为空
   * IPv4 TTL - IPv4 主要 DNS 服务器接受请求的远程 DNS 服务器数据包的 TTL 值：0为自动获取，取值为 1-255 之间：默认为 0
     * 支持多个 TTL 值，与 IPv4 DNS Address 相对应
@@ -516,7 +528,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * DNSCurve - DNSCurve 协议基本参数区域
   * DNSCurve - DNSCurve 协议总开关，控制所有和 DNSCurve 协议有关的选项：开启为1/关闭为0，默认为 0
-  * DNSCurve Protocol - 发送请求所使用的协议：分 UDP 和 TCP，默认为 UDP
+  * DNSCurve Protocol - DNSCurve 发送请求所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP，默认为 IPv4 + UDP
+    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求
+	* 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
+	* 同时填入 TCP 和 UDP 等于只填入 TCP，因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
   * DNSCurve Payload Size - DNSCurve EDNS 标签附带使用的最大载荷长度，同时亦为发送请求的总长度，并决定请求的填充长度：最小为 DNS 协议实现要求的 512(bytes)，留空则为 512(bytes)，默认为留空
   * Encryption - 启用加密，DNSCurve 协议支持加密和非加密模式：开启为1/关闭为0，默认为 1
   * Encryption Only - 只使用加密模式：开启为1/关闭为0，默认为 1
@@ -539,9 +554,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSCurve IPv4 Provider Name - DNSCurve 协议 IPv4 主要 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.opendns.com
   * DNSCurve IPv4 Alternate Provider Name - DNSCurve 协议 IPv4 备用 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.fvz-rec-hk-nt-01.dnsrec.meo.ws
   * DNSCurve IPv6 Provider Name - DNSCurve 协议 IPv6 主要 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.opendns.com
-  * DNSCurve IPv6 Provider Name - DNSCurve 协议 IPv6 备用 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.fvz-rec-hk-nt-01.dnsrec.meo.ws
+  * DNSCurve IPv6 Alternate Provider Name - DNSCurve 协议 IPv6 备用 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据，默认为 2.dnscrypt-cert.fvz-rec-hk-nt-01.dnsrec.meo.ws
   * 注意：
     * 自动获取 DNSCurve 服务器连接信息时必须输入提供者的域名，不能留空
+    * 更多支持 DNSCurve/DNSCrypt 的服务器请移步 https://github.com/jedisct1/dnscrypt-proxy/blob/master/dnscrypt-resolvers.csv
 
 * DNSCurve Keys - DNSCurve 协议密钥区域
   * Client Public Key - 自定义客户端公钥：可使用 KeyPairGenerator 生成，留空则每次启动时自动生成，默认为空

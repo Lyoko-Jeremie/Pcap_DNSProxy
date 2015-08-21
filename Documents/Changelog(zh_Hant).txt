@@ -1,6 +1,9 @@
-﻿Pcap_DNSProxy v0.4.3.1 更新日誌(2015-08-04)：
+﻿Pcap_DNSProxy v0.4.3.1-0.4.3.2 更新日誌(2015-08-21)：
 
+* 添加 Local Protocol 參數用於指定請求境內伺服器時所使用的協定組合 [muink]
 * 添加對十六進位 DNSCurve/DNSCrypt 協定 Magic Number 參數的支援 [BiliBbb]
+* 增強 DNSCurve Protocol 參數對協定組合的支援
+* 修正 Local Main 模式生效時對 Local Hosts 清單的讀取策略 [c1024]
 * 修復 32 位系統對 IPv4/IPv6 位址轉換的錯誤 (Windows Vista+) [Nine Forty/fabe004]
 * 修復部分參數讀取使用網路層服務名/DNS記錄名稱代替數位時的錯誤
 * 修復 Additional Path 參數讀取不完全的問題 (Linux/Mac)

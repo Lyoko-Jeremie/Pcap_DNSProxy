@@ -136,12 +136,12 @@ BOOL WINAPI UpdateServiceStatus(const DWORD dwCurrentState, const DWORD dwWin32E
 
 	if (dwCurrentState == SERVICE_START_PENDING)
 		ServiceStatus->dwControlsAccepted = 0;
-	else
+	else 
 		ServiceStatus->dwControlsAccepted = (SERVICE_ACCEPT_STOP|SERVICE_ACCEPT_SHUTDOWN);
 
 	if (dwServiceSpecificExitCode == 0)
 		ServiceStatus->dwWin32ExitCode = dwWin32ExitCode;
-	else
+	else 
 		ServiceStatus->dwWin32ExitCode = ERROR_SERVICE_SPECIFIC_ERROR;
 
 	ServiceStatus->dwServiceSpecificExitCode = dwServiceSpecificExitCode;

@@ -41,3 +41,6 @@ std::mutex ErrorLogLock, CaptureLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], D
 #if defined(ENABLE_PCAP)
 	std::mutex OutputPacketListLock;
 #endif
+
+//Functions
+void __fastcall ConfigurationTableSetting(ConfigurationTable *Parameter);

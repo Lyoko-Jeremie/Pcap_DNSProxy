@@ -105,7 +105,7 @@
 //Version defines
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4                                   //Current configuration version
-#define FULL_VERSION                 L"0.4.3.1"
+#define FULL_VERSION                 L"0.4.3.2"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2015 Chengr28"
 
 //Exit code defines
@@ -292,25 +292,27 @@
 #define LISTEN_MODE_PRIVATE              1U 
 #define LISTEN_MODE_SERVER               2U
 #define LISTEN_MODE_CUSTOM               3U
+#define DIRECT_REQUEST_MODE_NONE         0
+#define DIRECT_REQUEST_MODE_BOTH         1U
+#define DIRECT_REQUEST_MODE_IPV6         2U
+#define DIRECT_REQUEST_MODE_IPV4         3U
 #define REQUEST_MODE_NETWORK_BOTH        0
 #define REQUEST_MODE_IPV6                1U
 #define REQUEST_MODE_IPV4                2U
 #define REQUEST_MODE_UDP                 0
 #define REQUEST_MODE_TCP                 1U
-#define DIRECT_REQUEST_MODE_NONE         0
-#define DIRECT_REQUEST_MODE_BOTH         1U
-#define DIRECT_REQUEST_MODE_IPV6         2U
-#define DIRECT_REQUEST_MODE_IPV4         3U
 #define HOSTS_TYPE_NORMAL                0
 #define HOSTS_TYPE_WHITE                 1U
 #define HOSTS_TYPE_LOCAL                 2U
 #define HOSTS_TYPE_BANNED                3U
 #define CACHE_TYPE_TIMER                 1U
 #define CACHE_TYPE_QUEUE                 2U
+/* Old version(2015-08-20)
 #if defined(ENABLE_LIBSODIUM)
 	#define DNSCURVE_REQUEST_MODE_UDP         0
 	#define DNSCURVE_REQUEST_MODE_TCP         1U
 #endif
+*/
 
 //Server type defines
 #if defined(ENABLE_LIBSODIUM)
@@ -423,21 +425,9 @@ public:
 //[Base] block
 	double                               Version;
 	size_t                               FileRefreshTime;
-	size_t                               BufferQueueSize;
-	size_t                               QueueResetTime;
 //[Log] block
 	bool                                 PrintError;
 	size_t                               LogMaxSize;
-//[DNS] block
-	size_t                               RequestMode_Network;
-	size_t                               RequestMode_Transport;
-	size_t                               DirectRequest;
-	bool                                 LocalMain;
-	bool                                 LocalHosts;
-	bool                                 LocalRouting;
-	size_t                               CacheType;
-	size_t                               CacheParameter;
-	uint32_t                             HostsDefaultTTL;
 //[Listen] block
 #if defined(ENABLE_PCAP)
 	bool                                 PcapCapture;
@@ -451,6 +441,19 @@ public:
 	bool                                 IPFilterType;
 	size_t                               IPFilterLevel;
 	bool                                 AcceptType;
+//[DNS] block
+	size_t                               RequestMode_Network;
+	size_t                               RequestMode_Transport;
+	size_t                               DirectRequest;
+	size_t                               CacheType;
+	size_t                               CacheParameter;
+	uint32_t                             HostsDefaultTTL;
+//[Local DNS] block
+	size_t                               RequestMode_Local_Network;
+	size_t                               RequestMode_Local_Transport;
+	bool                                 LocalMain;
+	bool                                 LocalHosts;
+	bool                                 LocalRouting;
 //[Addresses] block
 	std::vector<sockaddr_storage>        *ListenAddress_IPv6;
 	std::vector<sockaddr_storage>        *ListenAddress_IPv4;
@@ -473,6 +476,8 @@ public:
 		std::vector<DNS_SERVER_DATA>     *IPv4_Multi;
 	}DNSTarget;
 //[Values] block
+	size_t                               BufferQueueSize;
+	size_t                               QueueResetTime;
 	size_t                               EDNSPayloadSize;
 #if defined(ENABLE_PCAP)
 	uint8_t                              HopLimitFluctuation;
@@ -687,7 +692,8 @@ typedef class DNSCurveConfigurationTable {
 public:
 //[DNSCurve] block
 	size_t                   DNSCurvePayloadSize;
-	size_t                   DNSCurveMode;
+	size_t                   RequestMode_DNSCurve_Network;
+	size_t                   RequestMode_DNSCurve_Transport;
 	bool                     IsEncryption;
 	bool                     IsEncryptionOnly;
 	size_t                   KeyRecheckTime;

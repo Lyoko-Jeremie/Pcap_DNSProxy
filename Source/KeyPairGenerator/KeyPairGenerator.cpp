@@ -116,50 +116,6 @@ int main(int argc, char *argv[])
 	return EXIT_SUCCESS;
 }
 
-/* Old version(2015-07-08)
-//Convert binary to hex characters
-size_t __fastcall BinaryToHex(PSTR Buffer, const size_t MaxLength, const unsigned char *Binary, const size_t Length)
-{
-	size_t BufferLength = 0, Colon = 0;
-	for (size_t Index = 0;Index < Length;++Index)
-	{
-		if (BufferLength < MaxLength)
-		{
-			Buffer[BufferLength] = Binary[Index] >> 4U;
-			Buffer[BufferLength + 1U] = Binary[Index] << 4U;
-			Buffer[BufferLength + 1U] = Binary[BufferLength + 1U] >> 4U;
-
-		//Convert to ASCII.
-			if (Buffer[BufferLength] < ASCII_LF)
-				Buffer[BufferLength] += 48U; //Numbers
-			else if (Buffer[BufferLength] <= ASCII_DLE)
-				Buffer[BufferLength] += 55U; //Captain letters
-			if (Buffer[BufferLength + 1U] < ASCII_LF)
-				Buffer[BufferLength + 1U] += 48U; //Numbers
-			else if (Buffer[BufferLength + 1U] <= ASCII_DLE)
-				Buffer[BufferLength + 1U] += 55U; //Captain letters
-
-		//Add colons.
-			++Colon;
-			if (Colon == 2U && Index != Length - 1U)
-			{
-				Colon = 0;
-				Buffer[BufferLength + 2U] = ASCII_COLON;
-				BufferLength += 3U;
-			}
-			else {
-				BufferLength += 2U;
-			}
-		}
-		else {
-			break;
-		}
-	}
-
-	return BufferLength;
-}
-*/
-
 //Convert lowercase/uppercase words to uppercase/lowercase words(Character version)
 #if defined(ENABLE_LIBSODIUM)
 void __fastcall CaseConvert(const bool IsLowerToUpper, PSTR Buffer, const size_t Length)

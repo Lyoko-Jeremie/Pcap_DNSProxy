@@ -45,7 +45,7 @@ uint32_t __fastcall GetFCS(const unsigned char *Buffer, const size_t Length)
 			t1 = (Table[Index[0]] << 1);
 			if (Flag == 0)
 				t2 = 0;
-			else
+			else 
 				t2 = Gx;
 			Table[Index[0]] = t1 ^ t2;
 		}
@@ -170,8 +170,7 @@ size_t __fastcall CharToDNSQuery(const char *FName, PSTR TName)
 			TName[Index[2U]] = (char)Index[1U];
 			Index[1U] = 0;
 		}
-		else
-		{
+		else {
 			TName[Index[2U]] = FName[Index[0]];
 			++Index[1U];
 		}

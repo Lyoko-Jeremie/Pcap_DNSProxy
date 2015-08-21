@@ -110,77 +110,82 @@ ConfigurationTable::ConfigurationTable(void)
 		return;
 	}
 
-//Initialization
-	BufferQueueSize = DEFAULT_BUFFER_QUEUE;
-	//[Data] block(A part)
+	ConfigurationTableSetting(this);
+	return;
+}
+
+void __fastcall ConfigurationTableSetting(ConfigurationTable *Parameter)
+{
+//[Data] block(A part)
 #if defined(ENABLE_PCAP)
-	memset(ICMP_PaddingData, 0, ICMP_PADDING_MAXSIZE);
-	memset(DomainTest_Data, 0, DOMAIN_MAXSIZE);
+	memset(Parameter->ICMP_PaddingData, 0, ICMP_PADDING_MAXSIZE);
+	memset(Parameter->DomainTest_Data, 0, DOMAIN_MAXSIZE);
 #endif
-	//[Data] block(B part)
-	memset(LocalFQDN_Response, 0, DOMAIN_MAXSIZE);
+//[Data] block(B part)
+	memset(Parameter->LocalFQDN_Response, 0, DOMAIN_MAXSIZE);
 #if !defined(PLATFORM_MACX)
-	memset(LocalServer_Response, 0, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt));
+	memset(Parameter->LocalServer_Response, 0, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt));
 #endif
-	memset(LocalAddress_Response[0], 0, PACKET_MAXSIZE);
-	memset(LocalAddress_Response[1U], 0, PACKET_MAXSIZE);
+	memset(Parameter->LocalAddress_Response[0], 0, PACKET_MAXSIZE);
+	memset(Parameter->LocalAddress_Response[1U], 0, PACKET_MAXSIZE);
 	//Global block
-	memset(DomainTable, 0, strlen(RFC_DOMAIN_TABLE) + 1U);
+	memset(Parameter->DomainTable, 0, strlen(RFC_DOMAIN_TABLE) + 1U);
 
 //Default settings
-	strncpy_s(DomainTable, strlen(RFC_DOMAIN_TABLE) + 1U, RFC_DOMAIN_TABLE, strlen(RFC_DOMAIN_TABLE));
+	strncpy_s(Parameter->DomainTable, strlen(RFC_DOMAIN_TABLE) + 1U, RFC_DOMAIN_TABLE, strlen(RFC_DOMAIN_TABLE));
 	std::random_device RamdomDevice;
-	RamdomEngine->seed(RamdomDevice());
+	Parameter->RamdomEngine->seed(RamdomDevice());
 
 //Default values
-	FileRefreshTime = DEFAULT_FILEREFRESH_TIME * SECOND_TO_MILLISECOND;
-	LogMaxSize = DEFAULT_LOG_MAXSIZE;
-	HostsDefaultTTL = DEFAULT_HOSTS_TTL;
-	AlternateTimes = DEFAULT_ALTERNATE_TIMES;
-	AlternateTimeRange = DEFAULT_ALTERNATE_RANGE * SECOND_TO_MILLISECOND;
-	AlternateResetTime = DEFAULT_ALTERNATE_RESET_TIME * SECOND_TO_MILLISECOND;
+	Parameter->FileRefreshTime = DEFAULT_FILEREFRESH_TIME * SECOND_TO_MILLISECOND;
+	Parameter->LogMaxSize = DEFAULT_LOG_MAXSIZE;
+	Parameter->HostsDefaultTTL = DEFAULT_HOSTS_TTL;
+	Parameter->BufferQueueSize = DEFAULT_BUFFER_QUEUE;
+	Parameter->AlternateTimes = DEFAULT_ALTERNATE_TIMES;
+	Parameter->AlternateTimeRange = DEFAULT_ALTERNATE_RANGE * SECOND_TO_MILLISECOND;
+	Parameter->AlternateResetTime = DEFAULT_ALTERNATE_RESET_TIME * SECOND_TO_MILLISECOND;
 #if defined(PLATFORM_WIN)
-	SocketTimeout_Reliable = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
-	SocketTimeout_Unreliable = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
+	Parameter->SocketTimeout_Reliable = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
+	Parameter->SocketTimeout_Unreliable = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	SocketTimeout_Reliable.tv_sec = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
-	SocketTimeout_Unreliable.tv_sec = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
+	Parameter->SocketTimeout_Reliable.tv_sec = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
+	Parameter->SocketTimeout_Unreliable.tv_sec = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
 #endif
 #if defined(PLATFORM_LINUX)
-	Daemon = true;
+	Parameter->Daemon = true;
 #endif
 #if defined(ENABLE_PCAP)
-	PcapReadingTimeout = DEFAULT_PCAP_CAPTURE_TIMEOUT;
+	Parameter->PcapReadingTimeout = DEFAULT_PCAP_CAPTURE_TIMEOUT;
 	#if defined(PLATFORM_MACX)
-		ICMP_ID = htons(*(uint16_t *)pthread_self());
+		Parameter->ICMP_ID = htons(*(uint16_t *)pthread_self());
 	#else
-		ICMP_ID = htons((uint16_t)GetCurrentProcessId()); //Default ICMP ID is current process ID.
+		Parameter->ICMP_ID = htons((uint16_t)GetCurrentProcessId()); //Default ICMP ID is current process ID.
 	#endif
-		ICMP_Sequence = htons(DEFAULT_SEQUENCE);
-		DomainTest_Speed = DEFAULT_DOMAINTEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
+		Parameter->ICMP_Sequence = htons(DEFAULT_SEQUENCE);
+		Parameter->DomainTest_Speed = DEFAULT_DOMAINTEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
 	#if defined(PLATFORM_MACX)
-		DomainTest_ID = htons(*(uint16_t *)pthread_self());
+		Parameter->DomainTest_ID = htons(*(uint16_t *)pthread_self());
 	#else
-		DomainTest_ID = htons((uint16_t)GetCurrentProcessId()); //Default DNS ID is current process ID.
+		Parameter->DomainTest_ID = htons((uint16_t)GetCurrentProcessId()); //Default DNS ID is current process ID.
 	#endif
 	#if defined(PLATFORM_WIN)
-		ICMP_PaddingLength = strlen(DEFAULT_PADDING_DATA) + 1U;
-		memcpy_s(ICMP_PaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_PADDING_DATA, Parameter.ICMP_PaddingLength - 1U); //Load default padding data.
+		Parameter->ICMP_PaddingLength = strlen(DEFAULT_PADDING_DATA) + 1U;
+		memcpy_s(Parameter->ICMP_PaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_PADDING_DATA, Parameter->ICMP_PaddingLength - 1U); //Load default padding data.
 	#elif defined(PLATFORM_LINUX)
 		size_t CharData = ICMP_STRING_START_NUM_LINUX;
 		for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_LINUX;++Index, ++CharData)
-			ICMP_PaddingData[Index] = CharData;
-		ICMP_PaddingLength = strlen(ICMP_PaddingData) + 1U;
+			Parameter->ICMP_PaddingData[Index] = CharData;
+		Parameter->ICMP_PaddingLength = strlen(Parameter->ICMP_PaddingData) + 1U;
 	#elif defined(PLATFORM_MACX)
 		size_t CharData = ICMP_STRING_START_NUM_MAC;
 		for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_MAC;++Index, ++CharData)
-			ICMP_PaddingData[Index] = CharData;
-		ICMP_PaddingLength = strlen(ICMP_PaddingData) + 1U;
+			Parameter->ICMP_PaddingData[Index] = CharData;
+		Parameter->ICMP_PaddingLength = strlen(Parameter->ICMP_PaddingData) + 1U;
 	#endif
 #endif
 
 //Default status
-	GatewayAvailable_IPv4 = true;
+	Parameter->GatewayAvailable_IPv4 = true;
 
 //Windows XP with SP3 support
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
@@ -235,12 +240,12 @@ ConfigurationTable::~ConfigurationTable(void)
 //Free Libraries
 //Windows XP with SP3 support
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	if (Parameter.FunctionLibrary_GetTickCount64 != nullptr)
-		FreeLibrary(Parameter.FunctionLibrary_GetTickCount64);
-	if (Parameter.FunctionLibrary_InetNtop != nullptr)
-		FreeLibrary(Parameter.FunctionLibrary_InetNtop);
-	if (Parameter.FunctionLibrary_InetPton != nullptr)
-		FreeLibrary(Parameter.FunctionLibrary_InetPton);
+	if (FunctionLibrary_GetTickCount64 != nullptr)
+		FreeLibrary(FunctionLibrary_GetTickCount64);
+	if (FunctionLibrary_InetNtop != nullptr)
+		FreeLibrary(FunctionLibrary_InetNtop);
+	if (FunctionLibrary_InetPton != nullptr)
+		FreeLibrary(FunctionLibrary_InetPton);
 #endif
 
 	return;

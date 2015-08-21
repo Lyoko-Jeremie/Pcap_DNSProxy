@@ -55,13 +55,6 @@ bool __fastcall DomainTestRequest(const uint16_t Protocol)
 		//EDNS Label
 			if (Parameter.EDNS_Label)
 			{
-/* Old version(2015-07-18)
-				auto DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + sizeof(dns_hdr) + DataLength);
-				DNS_Header->Additional = htons(U16_NUM_ONE);
-				DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-				DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
-				DataLength += sizeof(dns_record_opt);
-*/
 				DataLength = AddEDNSLabelToAdditionalRR(Buffer.get(), DataLength + sizeof(dns_hdr), PACKET_MAXSIZE, false);
 				DataLength -= sizeof(dns_hdr);
 			}
@@ -141,13 +134,6 @@ bool __fastcall DomainTestRequest(const uint16_t Protocol)
 			//EDNS Label
 				if (Parameter.EDNS_Label)
 				{
-/* Old version(2015-07-18)
-					auto DNS_Record_OPT = (pdns_record_opt)(Buffer.get() + DataLength);
-					DNS_Header->Additional = htons(U16_NUM_ONE);
-					DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-					DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
-					DataLength += sizeof(dns_record_opt);
-*/
 					DNS_Header->Additional = 0;
 					DataLength = AddEDNSLabelToAdditionalRR(Buffer.get(), DataLength, PACKET_MAXSIZE, false);
 				}
@@ -170,38 +156,15 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 {
 //Initialization
 	size_t Length = 0;
-
-//Socket initialization
-	SYSTEM_SOCKET ICMPSocket = 0;
 	if (Protocol == AF_INET6) //IPv6
-	{
-		ICMPSocket = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
-		if (ICMPSocket == INVALID_SOCKET)
-		{
-			PrintError(LOG_ERROR_NETWORK, L"ICMPv6 Echo(Ping) request error", WSAGetLastError(), nullptr, 0);
-			return false;
-		}
-
-		Length = sizeof(icmpv6_hdr) + Parameter.ICMP_PaddingLength - 1U;
-	}
-	else { //IPv4
-		ICMPSocket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-		if (ICMPSocket == INVALID_SOCKET)
-		{
-			PrintError(LOG_ERROR_NETWORK, L"ICMP Echo(Ping) request error", WSAGetLastError(), nullptr, 0);
-			return false;
-		}
-
-		Length = sizeof(icmp_hdr) + Parameter.ICMP_PaddingLength - 1U;
-	}
-
-//Initialization
+		Length = sizeof(icmpv6_hdr) + Parameter.ICMP_PaddingLength;
+	else 
+		Length = sizeof(icmp_hdr) + Parameter.ICMP_PaddingLength;
 	std::shared_ptr<char> Buffer(new char[Length]());
 	memset(Buffer.get(), 0, Length);
-	std::vector<sockaddr_storage> SockAddr;
 	auto ICMP_Header = (picmp_hdr)Buffer.get();
 	auto ICMPv6_Header = (picmpv6_hdr)Buffer.get();
-	socklen_t AddrLen = 0;
+	std::vector<SOCKET_DATA> ICMPSocketData;
 	std::uniform_int_distribution<uint32_t> RamdomDistribution(0, UINT32_MAX);
 
 //ICMPv6
@@ -220,22 +183,52 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 		ICMPv6_Header->Timestamp = (uint64_t)time(nullptr);
 	#endif
 
-	//Target
-		std::shared_ptr<sockaddr_storage> SockAddrTemp(new sockaddr_storage());
-		memset(SockAddrTemp.get(), 0, sizeof(sockaddr_storage));
-		AddrLen = sizeof(sockaddr_in6);
+	//Socket initialization
+		std::shared_ptr<SOCKET_DATA> SocketDataTemp(new SOCKET_DATA());
+		memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
 		
-	//Main and Alternate
-		SockAddrTemp->ss_family = AF_INET6;
-		((PSOCKADDR_IN6)SockAddrTemp.get())->sin6_addr = Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr;
-		SockAddr.push_back(*SockAddrTemp);
-		memset(SockAddrTemp.get(), 0, sizeof(sockaddr_storage));
+	//Main
+	#if defined(PLATFORM_WIN)
+		SocketDataTemp->Socket = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		SocketDataTemp->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
+	#endif
+		if (SocketDataTemp->Socket == INVALID_SOCKET)
+		{
+			PrintError(LOG_ERROR_NETWORK, L"ICMPv6 Echo(Ping) request error", WSAGetLastError(), nullptr, 0);
+			return false;
+		}
+		else {
+			SocketDataTemp->SockAddr.ss_family = Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family;
+			((PSOCKADDR_IN6)&SocketDataTemp->SockAddr)->sin6_addr = Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr;
+			SocketDataTemp->AddrLen = sizeof(sockaddr_in6);
+			ICMPSocketData.push_back(*SocketDataTemp);
+			memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
+		}
+
+	//Alternate
 		if (Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0)
 		{
-			SockAddrTemp->ss_family = AF_INET6;
-			((PSOCKADDR_IN6)SockAddrTemp.get())->sin6_addr = Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr;
-			SockAddr.push_back(*SockAddrTemp);
-			memset(SockAddrTemp.get(), 0, sizeof(sockaddr_storage));
+		#if defined(PLATFORM_WIN)
+			SocketDataTemp->Socket = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			SocketDataTemp->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
+		#endif
+			if (SocketDataTemp->Socket == INVALID_SOCKET)
+			{
+				PrintError(LOG_ERROR_NETWORK, L"ICMPv6 Echo(Ping) request error", WSAGetLastError(), nullptr, 0);
+				for (auto SocketDataIter:ICMPSocketData)
+					closesocket(SocketDataIter.Socket);
+
+				return false;
+			}
+			else {
+				SocketDataTemp->SockAddr.ss_family = Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family;
+				((PSOCKADDR_IN6)&SocketDataTemp->SockAddr)->sin6_addr = Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr;
+				SocketDataTemp->AddrLen = sizeof(sockaddr_in6);
+				ICMPSocketData.push_back(*SocketDataTemp);
+				memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
+			}
 		}
 
 	//Other(Multi)
@@ -243,10 +236,26 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 		{
 			for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv6_Multi)
 			{
-				SockAddrTemp->ss_family = AF_INET6;
-				((PSOCKADDR_IN6)SockAddrTemp.get())->sin6_addr = DNSServerDataIter.AddressData.IPv6.sin6_addr;
-				SockAddr.push_back(*SockAddrTemp);
-				memset(SockAddrTemp.get(), 0, sizeof(sockaddr_storage));
+			#if defined(PLATFORM_WIN)
+				SocketDataTemp->Socket = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				SocketDataTemp->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
+			#endif
+				if (SocketDataTemp->Socket == INVALID_SOCKET)
+				{
+					PrintError(LOG_ERROR_NETWORK, L"ICMPv6 Echo(Ping) request error", WSAGetLastError(), nullptr, 0);
+					for (auto SocketDataIter:ICMPSocketData)
+						closesocket(SocketDataIter.Socket);
+
+					return false;
+				}
+				else {
+					SocketDataTemp->SockAddr.ss_family = DNSServerDataIter.AddressData.Storage.ss_family;
+					((PSOCKADDR_IN6)&SocketDataTemp->SockAddr)->sin6_addr = DNSServerDataIter.AddressData.IPv6.sin6_addr;
+					SocketDataTemp->AddrLen = sizeof(sockaddr_in6);
+					ICMPSocketData.push_back(*SocketDataTemp);
+					memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
+				}
 			}
 		}
 	}
@@ -266,22 +275,52 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 	#endif
 		ICMP_Header->Checksum = GetChecksum((PUINT16)Buffer.get(), Length);
 
-	//Target
-		std::shared_ptr<sockaddr_storage> SockAddrTemp(new sockaddr_storage());
-		memset(SockAddrTemp.get(), 0, sizeof(sockaddr_storage));
-		AddrLen = sizeof(sockaddr_in);
+	//Socket initialization
+		std::shared_ptr<SOCKET_DATA> SocketDataTemp(new SOCKET_DATA());
+		memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
 
-	//Main and Alternate
-		SockAddrTemp->ss_family = AF_INET;
-		((PSOCKADDR_IN)SockAddrTemp.get())->sin_addr = Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr;
-		SockAddr.push_back(*SockAddrTemp);
-		memset(SockAddrTemp.get(), 0, sizeof(sockaddr_storage));
+	//Main
+	#if defined(PLATFORM_WIN)
+		SocketDataTemp->Socket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		SocketDataTemp->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
+	#endif
+		if (SocketDataTemp->Socket == INVALID_SOCKET)
+		{
+			PrintError(LOG_ERROR_NETWORK, L"ICMP Echo(Ping) request error", WSAGetLastError(), nullptr, 0);
+			return false;
+		}
+		else {
+			SocketDataTemp->SockAddr.ss_family = Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family;
+			((PSOCKADDR_IN)&SocketDataTemp->SockAddr)->sin_addr = Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr;
+			SocketDataTemp->AddrLen = sizeof(sockaddr_in);
+			ICMPSocketData.push_back(*SocketDataTemp);
+			memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
+		}
+
+	//Alternate
 		if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
 		{
-			SockAddrTemp->ss_family = AF_INET;
-			((PSOCKADDR_IN)SockAddrTemp.get())->sin_addr = Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr;
-			SockAddr.push_back(*SockAddrTemp);
-			memset(SockAddrTemp.get(), 0, sizeof(sockaddr_storage));
+		#if defined(PLATFORM_WIN)
+			SocketDataTemp->Socket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			SocketDataTemp->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
+		#endif
+			if (SocketDataTemp->Socket == INVALID_SOCKET)
+			{
+				PrintError(LOG_ERROR_NETWORK, L"ICMP Echo(Ping) request error", WSAGetLastError(), nullptr, 0);
+				for (auto SocketDataIter:ICMPSocketData)
+					closesocket(SocketDataIter.Socket);
+
+				return false;
+			}
+			else {
+				SocketDataTemp->SockAddr.ss_family = Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family;
+				((PSOCKADDR_IN)&SocketDataTemp->SockAddr)->sin_addr = Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr;
+				SocketDataTemp->AddrLen = sizeof(sockaddr_in);
+				ICMPSocketData.push_back(*SocketDataTemp);
+				memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
+			}
 		}
 
 	//Other(Multi)
@@ -289,28 +328,50 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 		{
 			for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv4_Multi)
 			{
-				SockAddrTemp->ss_family = AF_INET;
-				((PSOCKADDR_IN)SockAddrTemp.get())->sin_addr = DNSServerDataIter.AddressData.IPv4.sin_addr;
-				SockAddr.push_back(*SockAddrTemp);
-				memset(SockAddrTemp.get(), 0, sizeof(sockaddr_storage));
+			#if defined(PLATFORM_WIN)
+				SocketDataTemp->Socket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				SocketDataTemp->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
+			#endif
+				if (SocketDataTemp->Socket == INVALID_SOCKET)
+				{
+					PrintError(LOG_ERROR_NETWORK, L"ICMP Echo(Ping) request error", WSAGetLastError(), nullptr, 0);
+					for (auto SocketDataIter:ICMPSocketData)
+						closesocket(SocketDataIter.Socket);
+
+					return false;
+				}
+				else {
+					SocketDataTemp->SockAddr.ss_family = DNSServerDataIter.AddressData.Storage.ss_family;
+					((PSOCKADDR_IN)&SocketDataTemp->SockAddr)->sin_addr = DNSServerDataIter.AddressData.IPv4.sin_addr;
+					SocketDataTemp->AddrLen = sizeof(sockaddr_in);
+					ICMPSocketData.push_back(*SocketDataTemp);
+					memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
+				}
 			}
 		}
 	}
 
 //Set socket timeout.
-#if defined(PLATFORM_WIN)
-	if (setsockopt(ICMPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(int)) == SOCKET_ERROR)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	if (setsockopt(ICMPSocket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(timeval)) == SOCKET_ERROR)
-#endif
+	for (auto SocketDataIter:ICMPSocketData)
 	{
-		if (Protocol == AF_INET6) //IPv6
-			PrintError(LOG_ERROR_NETWORK, L"Set ICMPv6 socket timeout error", WSAGetLastError(), nullptr, 0);
-		else //IPv4
-			PrintError(LOG_ERROR_NETWORK, L"Set ICMP socket timeout error", WSAGetLastError(), nullptr, 0);
-		closesocket(ICMPSocket);
+	#if defined(PLATFORM_WIN)
+		if (setsockopt(SocketDataIter.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(int)) == SOCKET_ERROR || 
+			setsockopt(SocketDataIter.Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(int)) == SOCKET_ERROR)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		if (setsockopt(SocketDataIter.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(timeval)) == SOCKET_ERROR || 
+			setsockopt(SocketDataIter.Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(timeval)) == SOCKET_ERROR)
+	#endif
+		{
+			if (Protocol == AF_INET6) //IPv6
+				PrintError(LOG_ERROR_NETWORK, L"Set ICMPv6 socket timeout error", WSAGetLastError(), nullptr, 0);
+			else //IPv4
+				PrintError(LOG_ERROR_NETWORK, L"Set ICMP socket timeout error", WSAGetLastError(), nullptr, 0);
+			for (auto InnerSocketDataIter:ICMPSocketData)
+				closesocket(InnerSocketDataIter.Socket);
 
-		return false;
+			return false;
+		}
 	}
 
 //Send requesting.
@@ -326,7 +387,7 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 			{
 				if (Parameter.DNSTarget.IPv6.HopLimitData.HopLimit == 0 || //Main
 					Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit == 0) //Alternate
-					goto ReTest;
+						goto ReTest;
 
 				if (Parameter.DNSTarget.IPv6_Multi != nullptr) //Other(Multi)
 				{
@@ -361,9 +422,9 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 		}
 
 	//Send.
-		for (auto HostsTableIter:SockAddr)
+		for (auto SocketDataIter:ICMPSocketData)
 		{
-			sendto(ICMPSocket, Buffer.get(), (int)Length, 0, (PSOCKADDR)&HostsTableIter, AddrLen);
+			sendto(SocketDataIter.Socket, Buffer.get(), (int)Length, 0, (PSOCKADDR)&SocketDataIter.SockAddr, SocketDataIter.AddrLen);
 
 		//Increase Sequence.
 			if (Parameter.ICMP_Sequence == htons(DEFAULT_SEQUENCE))
@@ -372,7 +433,7 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 				{
 					if (ICMPv6_Header->Sequence == UINT16_MAX)
 						ICMPv6_Header->Sequence = htons(DEFAULT_SEQUENCE);
-					else
+					else 
 						ICMPv6_Header->Sequence = htons(ntohs(ICMPv6_Header->Sequence) + 1U);
 
 					//Get UTC time.
@@ -386,7 +447,7 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 				else { //IPv4
 					if (ICMP_Header->Sequence == UINT16_MAX)
 						ICMP_Header->Sequence = htons(DEFAULT_SEQUENCE);
-					else
+					else 
 						ICMP_Header->Sequence = htons(ntohs(ICMP_Header->Sequence) + 1U);
 
 					//Get UTC time.
@@ -409,8 +470,11 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 	}
 
 //Monitor terminated
-	shutdown(ICMPSocket, SD_BOTH);
-	closesocket(ICMPSocket);
+	for (auto SocketDataIter:ICMPSocketData)
+	{
+		shutdown(SocketDataIter.Socket, SD_BOTH);
+		closesocket(SocketDataIter.Socket);
+	}
 	PrintError(LOG_ERROR_SYSTEM, L"ICMP Test module Monitor terminated", 0, nullptr, 0);
 	return true;
 }
@@ -431,9 +495,9 @@ bool __fastcall SelectTargetSocket(SOCKET_DATA *SockData, bool *&IsAlternate, si
 	{
 	//IPv6
 		if (Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv6 || //Auto select
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
+			(Parameter.RequestMode_Local_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv6 || //Auto select
+			Parameter.RequestMode_Local_Network == REQUEST_MODE_IPV6 || //IPv6
+			Parameter.RequestMode_Local_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 		{
 		//TCP
 			if (Protocol == IPPROTO_TCP)
@@ -465,9 +529,9 @@ bool __fastcall SelectTargetSocket(SOCKET_DATA *SockData, bool *&IsAlternate, si
 		}
 	//IPv4
 		else if (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv4 || //Auto select
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
+			(Parameter.RequestMode_Local_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv4 || //Auto select
+			Parameter.RequestMode_Local_Network == REQUEST_MODE_IPV4 || //IPv4
+			Parameter.RequestMode_Local_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 		{
 		//TCP
 			if (Protocol == IPPROTO_TCP)
@@ -1436,9 +1500,11 @@ size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, cons
 
 //Set socket timeout.
 #if defined(PLATFORM_WIN)
-	if (setsockopt(UDPSockData->Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(int)) == SOCKET_ERROR)
+	if (setsockopt(UDPSockData->Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(int)) == SOCKET_ERROR || 
+		setsockopt(UDPSockData->Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(int)) == SOCKET_ERROR)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	if (setsockopt(UDPSockData->Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(timeval)) == SOCKET_ERROR)
+	if (setsockopt(UDPSockData->Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(timeval)) == SOCKET_ERROR || 
+		setsockopt(UDPSockData->Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(timeval)) == SOCKET_ERROR)
 #endif
 	{
 		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket timeout error", WSAGetLastError(), nullptr, 0);

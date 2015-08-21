@@ -178,7 +178,7 @@ size_t __fastcall AddressesComparing(const void *OriginalAddrBegin, const void *
 			{
 				if (Index == sizeof(in6_addr) / sizeof(uint16_t) - 1U)
 					return ADDRESS_COMPARE_EQUAL;
-				else
+				else 
 					continue;
 			}
 			else {
@@ -210,7 +210,7 @@ size_t __fastcall AddressesComparing(const void *OriginalAddrBegin, const void *
 						return ADDRESS_COMPARE_GREATER;
 					else if (AddrBegin->s_impno == AddrEnd->s_impno)
 						return ADDRESS_COMPARE_EQUAL;
-					else
+					else 
 						return ADDRESS_COMPARE_LESS;
 				}
 				else {
@@ -827,13 +827,6 @@ size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t 
 			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_RTC);
 			if (DNS_Header->Additional == 0)
 			{
-/* Old version(2015-07-18)
-				DNS_Header->Additional = htons(U16_NUM_ONE);
-				auto DNS_Record_OPT = (pdns_record_opt)(RecvBuffer + DataLength[0]);
-				DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
-				DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
-				DataLength[0] += sizeof(dns_record_opt);
-*/
 				if (Protocol == IPPROTO_TCP)
 					DataLength[0] = AddEDNSLabelToAdditionalRR(RecvBuffer, DataLength[0], LARGE_PACKET_MAXSIZE, false);
 				else //UDP
