@@ -297,7 +297,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * TA/32768
       * DLV/32769
       * RESERVED/65535
-	  
+
 * DNS - 功能變數名稱解析參數區域
   * Protocol - 發送請求所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP，預設為 IPv4 + UDP
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向遠端 DNS 伺服器發出請求
@@ -538,7 +538,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Encryption - 啟用加密，DNSCurve 協定支援加密和非加密模式：開啟為1/關閉為0，預設為 1
   * Encryption Only - 只使用加密模式：開啟為1/關閉為0，預設為 1
     * 注意：使用 "只使用加密模式" 時必須提供伺服器的魔數和指紋用於請求和接收
-  * Key Recheck Time - DNSCurve 協定DNS伺服器連接資訊檢查間隔：單位為秒，最短為10秒，預設為 3600秒/1小時
+  * Client Ephemeral Key - 一次性用戶端金鑰組模式：每次請求解析均使用隨機生成的一次性用戶端金鑰組：開啟為1/關閉為0，預設為 0
+  * Key Recheck Time - DNSCurve 協定DNS伺服器連接資訊檢查間隔：單位為秒，最短為10秒，預設為 1800 秒
 
 * DNSCurve Addresses - DNSCurve 協定位址區域
   * DNSCurve IPv4 DNS Address - DNSCurve 協定 IPv4 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，預設為 208.67.220.220:443
@@ -592,6 +593,59 @@ https://sourceforge.net/projects/pcap-dnsproxy
 -------------------------------------------------------------------------------
 
 
+設定檔自動刷新支援參數清單：
+
+* 以下清單中的參數在寫入設定檔後會自動刷新而無須重新開機程式，其它參數的刷新則必須重新開機程式
+* 如非必要建議不要依賴程式的自動刷新功能，強烈建議修改設定檔後重新開機程式！
+* Version
+* FileRefreshTime
+* PrintError
+* LogMaximumSize
+* IPFilterType
+* IPFilterLevel
+* AcceptType
+* DirectRequest
+* DefaultTTL
+* LocalProtocol
+* IPv4TTL
+* IPv6HopLimits
+* IPv4AlternateTTL
+* IPv6AlternateHopLimits
+* HopLimitsFluctuation
+* ReliableSocketTimeout
+* UnreliableSocketTimeout
+* ReceiveWaiting
+* ICMPTest
+* DomainTest
+* MultiRequestTimes
+* DomainCaseConversion
+* IPv4DataFilter
+* TCPDataFilter
+* DNSDataFilter
+* Key Recheck Time
+* Client Public Key
+* Client Secret Key
+* IPv4 DNS Public Key
+* IPv4 Alternate DNS Public Key
+* IPv6 DNS Public Key
+* IPv6 Alternate DNS Public Key
+* IPv4 DNS Fingerprint
+* IPv4 Alternate DNS Fingerprint
+* IPv6 DNS Fingerprint
+* IPv6 Alternate DNS Fingerprint
+* IPv4 Receive Magic Number
+* IPv4 Alternate Receive Magic Number
+* IPv6 Receive Magic Number
+* IPv6 Alternate Receive Magic Number
+* IPv4 DNS Magic Number
+* IPv4 Alternate DNS Magic Number
+* IPv6 DNS Magic Number
+* IPv6 Alternate DNS Magic Number
+
+
+-------------------------------------------------------------------------------
+
+
 Hosts 檔案格式說明：
 
 Hosts 設定檔分為多個提供不同功能的區域
@@ -604,8 +658,8 @@ Hosts 設定檔分為多個提供不同功能的區域
 
 
 * Whitelist - 白名單條目
-  * 此類型的條目列出的符合要求的功能變數名稱會直接繞過 Hosts，不會使用 Hosts 功能
-  * 直接在條目前添加 "NULL"（不含引號）即可，有效參數格式為 "NULL 正則運算式"（不含引號）
+  * 此類型的條目列出的符合要求的功能變數名稱會直接繞過 Hosts 不會使用 Hosts 功能
+  * 有效參數格式為 "NNULL 正則運算式"（不含引號）
   * 注意優先順序的問題，例如有一片含白名單條目的區域：
 
     NULL .*\.test.localhost
@@ -614,9 +668,20 @@ Hosts 設定檔分為多個提供不同功能的區域
   * 雖然 .*\.localhost 包含了 .*\.test\.localhost 但由於優先順序別自上而下遞減，故先命中 .*\.test\.localhost 並返回使用遠端伺服器解析
   * 從而繞過了下面的條目，不使用 Hosts 的功能
 
+* Whitelist Extended - 白名單條目擴展功能
+  * 此類型的條目還支援對符合規則的特定類型功能變數名稱請求直接繞過 Hosts 不會使用 Hosts 功能
+  * 有效參數格式為 "NULL:DNS類型(| DNS類型) 正則運算式"（不含引號）
+  * 只允許特定類型功能變數名稱請求，有效參數格式為 "NULL(Permit):DNS類型(| DNS類型) 正則運算式"（不含引號）
+
+    NULL:A| AAAA .*\.test.localhost
+    NULL(Deny):NS| SOA .*\.localhost
+
+  * 第一條即直接跳過匹配規則的 A 記錄和 AAAA 記錄的功能變數名稱請求，其它類型的請求則被匹配規則
+  * 而第二條則只匹配規則的 NS 記錄和 SOA 記錄的功能變數名稱請求，其它類型的請求則被直接跳過
+
 * Banned - 黑名單條目
   * 此類型的條目列出的符合要求的功能變數名稱會直接返回功能變數名稱不存在的功能，避免重定向導致的超時問題
-  * 直接在條目前添加 "BANNED"（不含引號）即可，有效參數格式為 "BANNED 正則運算式"（不含引號）
+  * 有效參數格式為 "BANNED 正則運算式"（不含引號）
   * 注意優先順序的問題，例如有一片含黑名單條目的區域：
 
     Banned .*\.test.localhost
@@ -625,7 +690,7 @@ Hosts 設定檔分為多個提供不同功能的區域
   * 雖然 .*\.localhost 包含了 .*\.test\.localhost 但由於優先順序別自上而下遞減，故先命中 .*\.test\.localhost 並直接返回功能變數名稱不存在
   * 從而繞過了下面的條目，達到遮罩功能變數名稱的目的
 
-* Banned - 黑名單條目擴展功能
+* Banned Extended - 黑名單條目擴展功能
   * 此類型的條目還支援對符合規則的特定類型功能變數名稱請求進行遮罩或放行
   * 有效參數格式為 "BANNED:DNS類型(| DNS類型) 正則運算式"（不含引號）
   * 只允許特定類型功能變數名稱請求，有效參數格式為 "BANNED(Permit):DNS類型(| DNS類型) 正則運算式"（不含引號）
@@ -645,8 +710,8 @@ Hosts 設定檔分為多個提供不同功能的區域
 
     127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.localhost
     127.0.0.4|127.0.0.5|127.0.0.6 .*\.localhost
-    ::1|::2|::3    .*\.test\.localhost
-    ::4|::5|::6    .*\.localhost
+    ::1|::2|::3 .*\.test\.localhost
+    ::4|::5|::6 .*\.localhost
 
   * 雖然 .*\.localhost 包含了 .*\.test\.localhost 但由於優先順序別自上而下遞減，故先命中 .*\.test\.localhost 並直接返回，不會再進行其它檢查
     * 請求解析 xxx.localhost 的 A 記錄（IPv4）會返回 127.0.0.4、127.0.0.5 和 127.0.0.6
@@ -684,8 +749,8 @@ Hosts 設定檔分為多個提供不同功能的區域
     127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.localhost
     [Stop]
     127.0.0.4|127.0.0.5|127.0.0.6 .*\.localhost
-    ::1|::2|::3    .*\.test\.localhost
-    ::4|::5|::6    .*\.localhost
+    ::1|::2|::3 .*\.test\.localhost
+    ::4|::5|::6 .*\.localhost
 
     [Local Hosts]
     .*\.test\.localhost

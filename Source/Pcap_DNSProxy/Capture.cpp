@@ -253,7 +253,7 @@ void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = DNSServerDataIter->AddressData.IPv6.sin6_addr;
 				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
 			}
-		#else
+		#else 
 			inet_ntop(AF_INET6, &DNSServerDataIter->AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 		#endif
 
@@ -278,7 +278,7 @@ void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 				((PSOCKADDR_IN)SockAddr.get())->sin_addr = DNSServerDataIter->AddressData.IPv4.sin_addr;
 				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
 			}
-		#else
+		#else 
 			inet_ntop(AF_INET, &DNSServerDataIter->AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 		#endif
 
@@ -303,7 +303,7 @@ bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList)
 
 //Devices name, address and type check
 	if (pDrive->name == nullptr || pDrive->addresses == nullptr || pDrive->flags == PCAP_IF_LOOPBACK)
-		goto DevicesSkip;
+		goto SkipDevices;
 
 //Pcap devices blacklist check
 	if (pDrive->description != nullptr)
@@ -313,7 +313,7 @@ bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList)
 		for (auto CaptureIter:*Parameter.PcapDevicesBlacklist)
 		{
 			if (CaptureIter.find(CaptureDevice) != std::string::npos)
-				goto DevicesSkip;
+				goto SkipDevices;
 		}
 	}
 	CaptureDevice.clear();
@@ -322,13 +322,13 @@ bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList)
 	for (auto CaptureIter:*Parameter.PcapDevicesBlacklist)
 	{
 		if (CaptureIter.find(CaptureDevice) != std::string::npos)
-			goto DevicesSkip;
+			goto SkipDevices;
 	}
 
 //Skip this devices.
 	goto DevicesNotSkip;
 
-	DevicesSkip:
+SkipDevices:
 	if (IsCaptureList && pDrive->next != nullptr)
 	{
 		std::thread CaptureThread(CaptureModule, pDrive->next, true);
@@ -337,7 +337,7 @@ bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList)
 
 	return true;
 
-	DevicesNotSkip:
+DevicesNotSkip:
 //Initialization(Part 1)
 	pcap_t *DeviceHandle = nullptr;
 	std::shared_ptr<char> Buffer(new char[ORIGINAL_PACKET_MAXSIZE + sizeof(uint16_t)]()); //Reserved 2 bytes for TCP header length.
@@ -835,7 +835,7 @@ bool __fastcall MatchPortToSend(const char *Buffer, const size_t Length, const u
 	goto ClearOutputPacketListData;
 
 //Stop loop, wait receiving and match port again.
-	StopLoop: 
+StopLoop: 
 	Sleep(Parameter.ReceiveWaiting);
 	OutputPacketListLock.lock();
 	for (auto &PortTableIter:OutputPacketList)
@@ -864,7 +864,7 @@ bool __fastcall MatchPortToSend(const char *Buffer, const size_t Length, const u
 	}
 
 //Stop loop and clear timeout data.
-	ClearOutputPacketListData:
+ClearOutputPacketListData:
 //Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 	if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
@@ -918,7 +918,7 @@ bool __fastcall MatchPortToSend(const char *Buffer, const size_t Length, const u
 			OutputPacketList.pop_front();
 		}
 	}
-#else
+#else 
 	while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= GetTickCount64())
 	{
 	//Mark timeout.

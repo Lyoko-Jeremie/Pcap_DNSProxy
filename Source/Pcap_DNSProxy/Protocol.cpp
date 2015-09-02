@@ -20,7 +20,7 @@
 #include "Protocol.h"
 
 //Convert address strings to binary.
-bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr, const uint16_t Protocol, SSIZE_T &ErrCode)
+bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr, const uint16_t Protocol, SSIZE_T &ErrorCode)
 {
 	std::string sAddrString(AddrString);
 	SSIZE_T Result = 0;
@@ -60,7 +60,7 @@ bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr
 			Result = (*Parameter.FunctionPTR_InetPton)(AF_INET6, sAddrString.c_str(), OriginalAddr);
 			if (Result == SOCKET_ERROR || Result == 0)
 			{
-				ErrCode = WSAGetLastError();
+				ErrorCode = WSAGetLastError();
 				return false;
 			}
 		}
@@ -68,17 +68,17 @@ bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr
 			SockLength = sizeof(sockaddr_in6);
 			if (WSAStringToAddressA((LPSTR)sAddrString.c_str(), AF_INET6, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
 			{
-				ErrCode = WSAGetLastError();
+				ErrorCode = WSAGetLastError();
 				return false;
 			}
 
 			memcpy_s(OriginalAddr, sizeof(in6_addr), &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, sizeof(in6_addr));
 		}
-	#else
+	#else 
 		Result = inet_pton(AF_INET6, sAddrString.c_str(), OriginalAddr);
 		if (Result == SOCKET_ERROR || Result == 0)
 		{
-			ErrCode = WSAGetLastError();
+			ErrorCode = WSAGetLastError();
 			return false;
 		}
 	#endif
@@ -135,7 +135,7 @@ bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr
 			Result = (*Parameter.FunctionPTR_InetPton)(AF_INET, sAddrString.c_str(), OriginalAddr);
 			if (Result == SOCKET_ERROR || Result == 0)
 			{
-				ErrCode = WSAGetLastError();
+				ErrorCode = WSAGetLastError();
 				return false;
 			}
 		}
@@ -143,17 +143,17 @@ bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr
 			SockLength = sizeof(sockaddr_in);
 			if (WSAStringToAddressA((LPSTR)sAddrString.c_str(), AF_INET, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
 			{
-				ErrCode = WSAGetLastError();
+				ErrorCode = WSAGetLastError();
 				return false;
 			}
 
 			memcpy_s(OriginalAddr, sizeof(in_addr), &((PSOCKADDR_IN)SockAddr.get())->sin_addr, sizeof(in_addr));
 		}
-	#else
+	#else 
 		Result = inet_pton(AF_INET, sAddrString.c_str(), OriginalAddr);
 		if (Result == SOCKET_ERROR || Result == 0)
 		{
-			ErrCode = WSAGetLastError();
+			ErrorCode = WSAGetLastError();
 			return false;
 		}
 	#endif

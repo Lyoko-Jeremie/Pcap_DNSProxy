@@ -1,9 +1,12 @@
-﻿Pcap_DNSProxy v0.4.3.1-0.4.3.2 更新日志(2015-08-21)：
+﻿Pcap_DNSProxy v0.4.3.1-0.4.3.3 更新日志(2015-09-02)：
 
+* 添加 Client Ephemeral Key 一次性客户端密钥对功能，增强 DNSCurve 协议传输数据的安全性 [DNSCrypt]
+* 添加对配置文件部分参数的自动刷新功能，具体受支持的参数参见说明文档 [jedisct1/icylogic]
 * 添加 Local Protocol 参数用于指定请求境内服务器时所使用的协议组合 [muink]
 * 添加对十六进制 DNSCurve/DNSCrypt 协议 Magic Number 参数的支持 [BiliBbb]
 * 增强 DNSCurve Protocol 参数对协议组合的支持
-* 修正 Local Main 模式生效时对 Local Hosts 列表的读取策略 [c1024]
+* 增强 NULL 扩展 Hosts 白名单功能的支持，现在可以指定只对部分 DNS 类型生效
+* 修正 Local Main 模式生效时对 Local Hosts 列表的读取策略 [c1024/gaoyan1234]
 * 修复 32 位系统对 IPv4/IPv6 地址转换的错误 (Windows Vista+) [Nine Forty/fabe004]
 * 修复部分参数读取使用网络层服务名/DNS记录名称代替数字时的错误
 * 修复 Additional Path 参数读取不完全的问题 (Linux/Mac)

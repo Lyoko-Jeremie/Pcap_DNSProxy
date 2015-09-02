@@ -72,7 +72,7 @@
 #elif defined(__OS2__)
 #  if defined(__EMX__)
 #    define PLATFORM_OS2EMX
-#  else
+#  else 
 #    define PLATFORM_OS2
 #  endif
 #elif !defined(SAG_COM) && (defined(WIN64) || defined(_WIN64) || defined(__WIN64__))
@@ -131,7 +131,7 @@
 #  define PLATFORM_UNIXWARE
 #  define PLATFORM_UNIXWARE7
 #elif defined(__MAcDEPEND__)
-#else
+#else 
 #  error "Qt has not been ported to this OS - talk to qt-bugs@trolltech.com"
 #endif
 

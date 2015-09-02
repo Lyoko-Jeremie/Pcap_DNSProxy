@@ -54,7 +54,7 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 //Initialization(Receive buffer part)
 #if defined(ENABLE_LIBSODIUM)
 	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Parameter.DNSCurve && DNSCurveParameter.RequestMode_DNSCurve_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
-#else
+#else 
 	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
 #endif
 	{
@@ -113,10 +113,10 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 		//Send Length check
 			(DataLength > DNSCurveParameter.DNSCurvePayloadSize + crypto_box_BOXZEROBYTES - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES) || 
 		//Receive Size check(TCP Mode)
-			(Parameter.RequestMode_Transport == REQUEST_MODE_TCP || DNSCurveParameter.RequestMode_DNSCurve_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP) && DNSCurveParameter.DNSCurvePayloadSize >= LARGE_PACKET_MAXSIZE &&
+			(Parameter.RequestMode_Transport == REQUEST_MODE_TCP || DNSCurveParameter.RequestMode_DNSCurve_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP) && DNSCurveParameter.DNSCurvePayloadSize >= LARGE_PACKET_MAXSIZE && 
 			crypto_box_ZEROBYTES + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES + DataLength >= LARGE_PACKET_MAXSIZE || 
 		//Receive Size check(UDP Mode)
-			Parameter.RequestMode_Transport != REQUEST_MODE_TCP && DNSCurveParameter.RequestMode_DNSCurve_Transport != REQUEST_MODE_TCP && Protocol != IPPROTO_TCP && DNSCurveParameter.DNSCurvePayloadSize >= PACKET_MAXSIZE &&
+			Parameter.RequestMode_Transport != REQUEST_MODE_TCP && DNSCurveParameter.RequestMode_DNSCurve_Transport != REQUEST_MODE_TCP && Protocol != IPPROTO_TCP && DNSCurveParameter.DNSCurvePayloadSize >= PACKET_MAXSIZE && 
 			crypto_box_ZEROBYTES + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES + DataLength >= PACKET_MAXSIZE))
 				goto SkipDNSCurve;
 
@@ -137,7 +137,8 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 			return true;
 		}
 	}
-	SkipDNSCurve: 
+	
+SkipDNSCurve: 
 #endif
 
 //TCP requesting
@@ -343,28 +344,54 @@ size_t __fastcall CheckHostsProcess(PSTR OriginalRequest, const size_t Length, P
 		{
 			if (std::regex_match(Domain, HostsTableIter.Pattern))
 			{
-			//Check white list.
-				if (HostsTableIter.Type_Hosts == HOSTS_TYPE_WHITE)
-				{
-					IsLocal = false;
-					break;
-				}
 			//Check local request.
-				else if (HostsTableIter.Type_Hosts == HOSTS_TYPE_LOCAL)
+				if (HostsTableIter.Type_Hosts == HOSTS_TYPE_LOCAL)
 				{
 					IsLocal = true;
-					break;
+					goto StopLoop;
+				}
+			//Check white list.
+				else if (HostsTableIter.Type_Hosts == HOSTS_TYPE_WHITE)
+				{
+					IsLocal = false;
+					if (HostsTableIter.Type_Record.empty()) //Ignore all types.
+					{
+						goto StopLoop;
+					}
+					else {
+					//Permit or Deny check
+						if (HostsTableIter.Type_Operation)
+						{
+						//Only ignore some types.
+							for (auto RecordTypeIter = HostsTableIter.Type_Record.begin();RecordTypeIter != HostsTableIter.Type_Record.end();++RecordTypeIter)
+							{
+								if (DNS_Query->Type == *RecordTypeIter)
+									break;
+								else if (RecordTypeIter + 1U == HostsTableIter.Type_Record.end())
+									goto StopLoop;
+							}
+						}
+						else {
+						//Ignore some types.
+							for (auto RecordTypeIter:HostsTableIter.Type_Record)
+							{
+								if (DNS_Query->Type == RecordTypeIter)
+									goto StopLoop;
+							}
+						}
+					}
 				}
 			//Check banned list.
 				else if (HostsTableIter.Type_Hosts == HOSTS_TYPE_BANNED)
 				{
-					if (HostsTableIter.Type_Record.empty()) //Block all types
+					IsLocal = false;
+					if (HostsTableIter.Type_Record.empty()) //Block all types.
 					{
 						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_SNH);
 						return Length;
 					}
 					else {
-					//Permit or Deny
+					//Permit or Deny check
 						if (HostsTableIter.Type_Operation)
 						{
 						//Only allow some types.
@@ -372,7 +399,6 @@ size_t __fastcall CheckHostsProcess(PSTR OriginalRequest, const size_t Length, P
 							{
 								if (DNS_Query->Type == *RecordTypeIter)
 								{
-									IsLocal = false;
 									break;
 								}
 								else if (RecordTypeIter + 1U == HostsTableIter.Type_Record.end())
@@ -516,6 +542,7 @@ size_t __fastcall CheckHostsProcess(PSTR OriginalRequest, const size_t Length, P
 		}
 	}
 
+StopLoop:
 	HostsFileMutex.unlock();
 
 //Check DNS cache.
@@ -889,7 +916,7 @@ bool __fastcall MarkDomainCache(const char *Buffer, const size_t Length)
 			DNSCacheDataTemp.ClearCacheTime = (size_t)((*Parameter.FunctionPTR_GetTickCount64)() + ResponseTTL * SECOND_TO_MILLISECOND);
 		else 
 			DNSCacheDataTemp.ClearCacheTime = GetTickCount() + ResponseTTL * SECOND_TO_MILLISECOND;
-	#else
+	#else 
 		DNSCacheDataTemp.ClearCacheTime = GetTickCount64() + ResponseTTL * SECOND_TO_MILLISECOND;
 	#endif
 
@@ -914,7 +941,7 @@ bool __fastcall MarkDomainCache(const char *Buffer, const size_t Length)
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			while (!DNSCacheList.empty() && (Parameter.FunctionPTR_GetTickCount64 != nullptr && (*Parameter.FunctionPTR_GetTickCount64)() >= DNSCacheList.front().ClearCacheTime || 
 				GetTickCount() >= DNSCacheList.front().ClearCacheTime))
-		#else
+		#else 
 			while (!DNSCacheList.empty() && GetTickCount64() >= DNSCacheList.front().ClearCacheTime)
 		#endif
 				DNSCacheList.pop_front();

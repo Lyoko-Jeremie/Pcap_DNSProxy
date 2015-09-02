@@ -80,6 +80,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * FIFO write messages error - FIFO 寫入資訊失敗：建議重新開機服務或程式
   * Old Error Log file was deleted - 錯誤日誌檔已滿並被刪除
     * 日誌檔最大容量的配置參見 詳細說明文檔 中 設定檔詳細參數說明 中的 Log Maximum Size 參數
+  * Read Parameter module Monitor terminated - 設定檔讀取模組已經停止監視，建議重新開機服務或程式
   * Read Hosts module Monitor terminated - Hosts 讀取模組已經停止監視，建議重新開機服務或程式
   * Read IPFilter module Monitor terminated - IPFilter 讀取模組已經停止監視，建議重新開機服務或程式
   * Alternate Server module Monitor terminated - 待命伺服器切換模組已經停止運行，建議重新開機服務或程式
@@ -96,6 +97,8 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
 2.Parameter Error - 讀取設定檔參數錯誤
   * Cannot open any configuration files - 未發現任何設定檔：請確認檔是否存在
   * Configuration file is too large - 設定檔容量過大：請確認設定檔的內容，整個檔的大小不要超過 4GB
+  * IPFilter file size is too large - IPFilter 檔容量過大：請確認 IPFilter 檔的內容，整個檔的大小不要超過 4GB
+  * Hosts file size is too large - Hosts 檔容量過大：請確認 Hosts 檔的內容，整個檔的大小不要超過 4GB
   * Configuration file version error - 設定檔版本錯誤：請確認設定檔是否需要更新
   * Data length error - 設定檔參數一行資料超過 4096 位元組/4KB，或該行資料長度不符合要求：請確認該行的內容是否符合要求
   * Text encoding error - 設定檔編碼錯誤：請確認設定檔的編碼類型
@@ -130,7 +133,6 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * DNSCurve empty Public Key error - DNSCurve 協定伺服器提供者錯誤：不存在魔數或指紋時必須提供伺服器的公開金鑰以自動獲取連接參數
 
 3.IPFilter Error - 讀取 IPFilter 檔錯誤
-  * IPFilter file size is too large - IPFilter 檔容量過大：請確認 IPFilter 檔的內容，整個檔的大小不要超過 4GB
   * Text encoding error - 檔編碼錯誤：請確認檔的編碼類型
   * Data of a line is too short - 該 IPFilter 條目過短：請確認該條目的內容
   * Data of a line is too long - 該 IPFilter 條目過長：一行資料切勿超過 4096 位元組/4KB
@@ -146,7 +148,6 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Level error - IPFilter 過濾級別錯誤：過濾級別介乎與 0 - 0xFFFF(65535)
 
 4.Hosts Error - 讀取 Hosts 檔錯誤
-  * Hosts file size is too large - Hosts 檔容量過大：請確認 Hosts 檔的內容，整個檔的大小不要超過 4GB
   * Text encoding error - 檔編碼錯誤：請確認檔的編碼類型
   * Data of a line is too short - 該 Hosts 條目過短：請確認該條目的內容
   * Data of a line is too long - 該 Hosts 條目過長：一行資料切勿超過 4096 位元組/4KB
@@ -154,7 +155,8 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Regular expression pattern error - 錯誤的正則運算式：請檢查正則運算式的正確性
   * IPv6 address format error - Hosts 的 IPv6 位址格式錯誤：請檢查 Hosts 條目的位址
   * IPv4 address format error - Hosts 的 IPv4 位址格式錯誤：請檢查 Hosts 條目的位址
-  * Too many Hosts IP addresses - Hosts 條目的平行位址過多：請檢查 Hosts 條目位址的數量，A 記錄不能超過75個，AAAA 記錄不能超過43個
+  * Too many Hosts IPv4 addresses - Hosts 條目的平行位址過多：請檢查 Hosts 條目位址的數量，A 記錄不能超過75個
+  * Too many Hosts IPv6 addresses - Hosts 條目的平行位址過多：請檢查 Hosts 條目位址的數量，AAAA 記錄不能超過43個
 
 5.Network Error - 網路錯誤
   * Winsock initialization error - Winsock 初始化失敗：請確認使用的作業系統平臺是否受支援

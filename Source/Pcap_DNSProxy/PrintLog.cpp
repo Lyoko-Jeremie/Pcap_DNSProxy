@@ -20,7 +20,7 @@
 #include "PrintLog.h"
 
 //Print errors to log file
-bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const SSIZE_T ErrCode, const wchar_t *FileName, const size_t Line)
+bool __fastcall PrintError(const size_t ErrorType, const wchar_t *Message, const SSIZE_T ErrorCode, const wchar_t *FileName, const size_t Line)
 {
 //Print Error: Enable/Disable.
 	if (!Parameter.PrintError || Message == nullptr || FileName == nullptr || 
@@ -70,23 +70,23 @@ bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const S
 		}
 
 	//Print errors.
-		switch (ErrType)
+		switch (ErrorType)
 		{
 		//System Error
 			case LOG_ERROR_SYSTEM:
 			{
-				if (ErrCode == 0)
+				if (ErrorCode == 0)
 				{
 					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> System Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 				}
 				else {
 				#if defined(PLATFORM_WIN)
 				//About System Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx.
-					if (ErrCode == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
+					if (ErrorCode == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
 						wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> System Error: %ls, ERROR_FAILED_SERVICE_CONTROLLER_CONNECT(The service process could not connect to the service controller).\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 					else 
 				#endif
-						wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> System Error: %ls, error code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrCode);
+						wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> System Error: %ls, error code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrorCode);
 				}
 			}break;
 		//Parameter Error
@@ -108,8 +108,8 @@ bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const S
 				}
 
 			//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
-				if (ErrCode > 0)
-					wprintf_s(L", error code is %d", (int)ErrCode);
+				if (ErrorCode > 0)
+					wprintf_s(L", error code is %d", (int)ErrorCode);
 
 				wprintf_s(L".\n");
 			}break;
@@ -132,8 +132,8 @@ bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const S
 				}
 
 			//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
-				if (ErrCode > 0)
-					wprintf_s(L", error code is %d", (int)ErrCode);
+				if (ErrorCode > 0)
+					wprintf_s(L", error code is %d", (int)ErrorCode);
 
 				wprintf_s(L".\n");
 			}break;
@@ -156,8 +156,8 @@ bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const S
 				}
 
 			//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
-				if (ErrCode > 0)
-					wprintf_s(L", error code is %d", (int)ErrCode);
+				if (ErrorCode > 0)
+					wprintf_s(L", error code is %d", (int)ErrorCode);
 
 				wprintf_s(L".\n");
 			}break;
@@ -165,14 +165,14 @@ bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const S
 		//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
 			case LOG_ERROR_NETWORK:
 			{
-				if (ErrCode == 0)
+				if (ErrorCode == 0)
 					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Network Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 			#if defined(PLATFORM_WIN)
-				else if (ErrCode == WSAENETUNREACH) //Block error messages when network is unreachable.
+				else if (ErrorCode == WSAENETUNREACH) //Block error messages when network is unreachable.
 					return true;
 			#endif
 				else 
-					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Network Error: %ls, error code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrCode);
+					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Network Error: %ls, error code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrorCode);
 			}break;
 		//WinPcap Error
 		#if defined(ENABLE_PCAP)
@@ -186,7 +186,7 @@ bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const S
 			case LOG_ERROR_DNSCURVE:
 			{
 			#if defined(PLATFORM_WIN)
-				if (ErrCode == WSAENETUNREACH) //Block error messages when network is unreachable.
+				if (ErrorCode == WSAENETUNREACH) //Block error messages when network is unreachable.
 					return true;
 				else 
 			#endif
@@ -261,23 +261,23 @@ bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const S
 		}
 
 	//Print errors.
-		switch (ErrType)
+		switch (ErrorType)
 		{
 		//System Error
 			case LOG_ERROR_SYSTEM:
 			{
-				if (ErrCode == 0)
+				if (ErrorCode == 0)
 				{
 					fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> System Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 				}
 				else {
 				#if defined(PLATFORM_WIN)
 				//About System Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx.
-					if (ErrCode == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
+					if (ErrorCode == ERROR_FAILED_SERVICE_CONTROLLER_CONNECT)
 						fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> System Error: %ls, ERROR_FAILED_SERVICE_CONTROLLER_CONNECT(The service process could not connect to the service controller).\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 					else 
 				#endif
-						fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> System Error: %ls, error code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrCode);
+						fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> System Error: %ls, error code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrorCode);
 				}
 			}break;
 		//Parameter Error
@@ -299,8 +299,8 @@ bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const S
 				}
 
 			//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
-				if (ErrCode > 0)
-					fwprintf_s(Output, L", error code is %d", (int)ErrCode);
+				if (ErrorCode > 0)
+					fwprintf_s(Output, L", error code is %d", (int)ErrorCode);
 
 				fwprintf_s(Output, L".\n");
 			}break;
@@ -323,8 +323,8 @@ bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const S
 				}
 
 			//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
-				if (ErrCode > 0)
-					fwprintf_s(Output, L", error code is %d", (int)ErrCode);
+				if (ErrorCode > 0)
+					fwprintf_s(Output, L", error code is %d", (int)ErrorCode);
 
 				fwprintf_s(Output, L".\n");
 			}break;
@@ -347,8 +347,8 @@ bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const S
 				}
 
 			//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
-				if (ErrCode > 0)
-					fwprintf_s(Output, L", error code is %d", (int)ErrCode);
+				if (ErrorCode > 0)
+					fwprintf_s(Output, L", error code is %d", (int)ErrorCode);
 
 				fwprintf_s(Output, L".\n");
 			}break;
@@ -356,14 +356,14 @@ bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const S
 		//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
 			case LOG_ERROR_NETWORK:
 			{
-				if (ErrCode == 0)
+				if (ErrorCode == 0)
 					fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Network Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 			#if defined(PLATFORM_WIN)
-				else if (ErrCode == WSAENETUNREACH) //Block error messages when network is unreachable.
+				else if (ErrorCode == WSAENETUNREACH) //Block error messages when network is unreachable.
 					break;
 			#endif
 				else 
-					fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Network Error: %ls, error code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrCode);
+					fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Network Error: %ls, error code is %d.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message, (int)ErrorCode);
 			}break;
 		//WinPcap Error
 		#if defined(ENABLE_PCAP)
@@ -377,7 +377,7 @@ bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const S
 			case LOG_ERROR_DNSCURVE:
 			{
 			#if defined(PLATFORM_WIN)
-				if (ErrCode == WSAENETUNREACH) //Block error messages when network is unreachable.
+				if (ErrorCode == WSAENETUNREACH) //Block error messages when network is unreachable.
 					break;
 				else 
 			#endif

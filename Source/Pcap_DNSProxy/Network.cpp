@@ -66,9 +66,28 @@ bool __fastcall DomainTestRequest(const uint16_t Protocol)
 
 	DataLength += sizeof(dns_hdr);
 //Send requesting.
-	size_t Times = 0;
+	size_t SleepTime_DomainTest = 0, SpeedTime_DomainTest = Parameter.DomainTest_Speed, Times = 0;
 	for (;;)
 	{
+	//Sleep time controller
+		if (SleepTime_DomainTest > 0)
+		{
+			if (SpeedTime_DomainTest != Parameter.DomainTest_Speed)
+			{
+				SpeedTime_DomainTest = Parameter.DomainTest_Speed;
+			}
+			else if (SleepTime_DomainTest < SpeedTime_DomainTest)
+			{
+				SleepTime_DomainTest += Parameter.FileRefreshTime;
+
+				Sleep(Parameter.FileRefreshTime);
+				continue;
+			}
+
+			SleepTime_DomainTest = 0;
+		}
+
+	//Interval time
 		if (Times == SENDING_ONCE_INTERVAL_TIMES)
 		{
 			Times = 0;
@@ -78,7 +97,7 @@ bool __fastcall DomainTestRequest(const uint16_t Protocol)
 			{
 				if (Parameter.DNSTarget.IPv6.HopLimitData.HopLimit == 0 || //Main
 					Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit == 0) //Alternate
-						goto ReTest;
+						goto JumpToRetest;
 
 			//Other(Multi)
 				if (Parameter.DNSTarget.IPv6_Multi != nullptr)
@@ -86,14 +105,14 @@ bool __fastcall DomainTestRequest(const uint16_t Protocol)
 					for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv6_Multi)
 					{
 						if (DNSServerDataIter.HopLimitData.TTL == 0)
-							goto ReTest;
+							goto JumpToRetest;
 					}
 				}
 			}
 			else { //IPv4
 				if (Parameter.DNSTarget.IPv4.HopLimitData.TTL == 0 || //Main
 					Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL == 0) //Alternate
-						goto ReTest;
+						goto JumpToRetest;
 
 			//Other(Multi)
 				if (Parameter.DNSTarget.IPv4_Multi != nullptr)
@@ -101,16 +120,16 @@ bool __fastcall DomainTestRequest(const uint16_t Protocol)
 					for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv4_Multi)
 					{
 						if (DNSServerDataIter.HopLimitData.TTL == 0)
-							goto ReTest;
+							goto JumpToRetest;
 					}
 				}
 			}
 
-		//Test again.
-			Sleep(Parameter.DomainTest_Speed);
+		//Wait for testing again.
+			SleepTime_DomainTest += Parameter.FileRefreshTime;
 			continue;
 
-		ReTest:
+		JumpToRetest:
 			Sleep(SENDING_INTERVAL_TIME * SECOND_TO_MILLISECOND);
 			continue;
 		}
@@ -375,9 +394,34 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 	}
 
 //Send requesting.
-	size_t Times = 0;
+	size_t SleepTime_ICMP = 0, SpeedTime_ICMP = Parameter.ICMP_Speed, Times = 0;
 	for (;;)
 	{
+	//ICMP Test Disable
+		if (Parameter.ICMP_Speed == 0)
+		{
+			Sleep(Parameter.FileRefreshTime);
+			continue;
+		}
+	//Sleep time controller
+		else if (SleepTime_ICMP > 0)
+		{
+			if (SpeedTime_ICMP != Parameter.ICMP_Speed)
+			{
+				SpeedTime_ICMP = Parameter.ICMP_Speed;
+			}
+			else if (SleepTime_ICMP < SpeedTime_ICMP)
+			{
+				SleepTime_ICMP += Parameter.FileRefreshTime;
+
+				Sleep(Parameter.FileRefreshTime);
+				continue;
+			}
+
+			SleepTime_ICMP = 0;
+		}
+
+	//Interval time
 		if (Times == SENDING_ONCE_INTERVAL_TIMES)
 		{
 			Times = 0;
@@ -387,36 +431,37 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 			{
 				if (Parameter.DNSTarget.IPv6.HopLimitData.HopLimit == 0 || //Main
 					Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit == 0) //Alternate
-						goto ReTest;
+						goto JumpToRetest;
 
 				if (Parameter.DNSTarget.IPv6_Multi != nullptr) //Other(Multi)
 				{
 					for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv6_Multi)
 					{
 						if (DNSServerDataIter.HopLimitData.HopLimit == 0)
-							goto ReTest;
+							goto JumpToRetest;
 					}
 				}
 			}
 			else { //IPv4
 				if (Parameter.DNSTarget.IPv4.HopLimitData.TTL == 0 || //Main
 					Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL == 0) //Alternate
-					goto ReTest;
+					goto JumpToRetest;
 
 				if (Parameter.DNSTarget.IPv4_Multi != nullptr) //Other(Multi)
 				{
 					for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv4_Multi)
 					{
 						if (DNSServerDataIter.HopLimitData.TTL == 0)
-							goto ReTest;
+							goto JumpToRetest;
 					}
 				}
 			}
 
-			Sleep(Parameter.ICMP_Speed);
+		//Wait for testing again.
+			SleepTime_ICMP += Parameter.FileRefreshTime;
 			continue;
 
-		ReTest: 
+		JumpToRetest: 
 			Sleep(SENDING_INTERVAL_TIME * SECOND_TO_MILLISECOND);
 			continue;
 		}
@@ -1140,7 +1185,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 								memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(uint16_t), RecvLen);
 
 							//Jump here when TCP segment of a reassembled PDU.
-								JumpFromPDU: 
+							JumpFromPDU: 
 
 							//Responses question and answers check
 								RecvLen = CheckResponseData(OriginalRecv, RecvLen, IsLocal, nullptr);
@@ -1257,7 +1302,8 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 			++SocketDataIter;
 		}
 	}
-	StopLoop: 
+	
+StopLoop: 
 	if (TCPSocketDataList.empty())
 		return EXIT_FAILURE;
 
@@ -1382,7 +1428,7 @@ size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSiz
 									memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(uint16_t), RecvLen);
 
 								//Jump here when TCP segment of a reassembled PDU.
-									JumpFromPDU: 
+								JumpFromPDU: 
 
 								//Responses question and answers check
 									RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);

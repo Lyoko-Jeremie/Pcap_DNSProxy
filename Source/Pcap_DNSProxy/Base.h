@@ -26,7 +26,7 @@
 #define KILOBYTE_TIMES         1024U         //1KB = 1024 bytes
 #define MEGABYTE_TIMES         1048576U      //1MB = 1048576 bytes
 #define GIGABYTE_TIMES         1073741824U   //1GB = 1073741824 bytes
-#define CODEPAGE_ASCII          1U            //Microsoft Windows Codepage of ANSI
+#define CODEPAGE_ASCII         1U            //Microsoft Windows Codepage of ANSI
 #define CODEPAGE_UTF_8         65001U        //Microsoft Windows Codepage of UTF-8
 #define CODEPAGE_UTF_16_LE     1200U         //Microsoft Windows Codepage of UTF-16 Little Endian/LE
 #define CODEPAGE_UTF_16_BE     1201U         //Microsoft Windows Codepage of UTF-16 Big Endian/BE
@@ -79,33 +79,33 @@
 //#define ASCII_LOWER_TO_UPPER    32U                  //Lowercase to uppercase
 
 //Unicode value defines
-#define UNICODE_NEL             0x0085               //Next Line/NEL
-#define UNICODE_NBS             0x00A0               //No-Break Space/NBS
-#define UNICODE_OSM             0x1680               //Ogham Space Mark/OSM
-#define UNICODE_MVS             0x180E               //Mongolian Vowel Separator/MVS
-#define UNICODE_LS              0x2028               //Line Separator/LS
-#define UNICODE_PS              0x2029               //Paragraph Separator/PS
-#define UNICODE_NUT             0x2002               //En Space or Nut
-#define UNICODE_MUTTON          0x2003               //Em Space or Mutton
-#define UNICODE_TPES            0x2004               //Three-Per-Em Space/TPES or Thick Space
-#define UNICODE_FPES            0x2005               //Four-Per-Em Space/FPES or Mid Space
-#define UNICODE_SPES            0x2006               //Six-Per-Em Space/SPES
-#define UNICODE_FS              0x2007               //Figure Space/FS
-#define UNICODE_PCS             0x2008               //Punctuation Space/PS
-#define UNICODE_TS              0x2009               //Thin Space/TS
-#define UNICODE_HS              0x200A               //Hair Space/HS
-#define UNICODE_ZWSP            0x200B               //Zero Width Space/ZWSP
-#define UNICODE_ZWNJ            0x200C               //Zero Width Non Joiner/ZWNJ
-#define UNICODE_ZWJ             0x200D               //Zero Width Joiner/ZWJ
-#define UNICODE_NNBS            0x202F               //Narrow No-Break Space/NNBS
-#define UNICODE_MMSP            0x205F               //Medium Mathematical Space/MMSP
-#define UNICODE_WJ              0x2060               //Word Joiner/WJ
-#define UNICODE_IS              0x3000               //Ideographic Space/IS in CJK
+#define UNICODE_NEXT_LINE                   0x0085               //Next Line
+#define UNICODE_NO_BREAK_SPACE              0x00A0               //No-Break Space
+#define UNICODE_OGHAM_SPACE_MARK            0x1680               //Ogham Space Mark
+#define UNICODE_MONGOLIAN_VOWEL_SEPARATOR   0x180E               //Mongolian Vowel Separator
+#define UNICODE_LINE_SEPARATOR              0x2028               //Line Separator
+#define UNICODE_PARAGRAPH_SEPARATOR         0x2029               //Paragraph Separator
+#define UNICODE_EN_SPACE                    0x2002               //En Space or Nut
+#define UNICODE_EM_SPACE                    0x2003               //Em Space or Mutton
+#define UNICODE_THICK_SPACE                 0x2004               //Three-Per-Em Space/TPES or Thick Space
+#define UNICODE_MID_SPACE                   0x2005               //Four-Per-Em Space/FPES or Mid Space
+#define UNICODE_SIX_PER_EM_SPACE            0x2006               //Six-Per-Em Space
+#define UNICODE_FIGURE_SPACE                0x2007               //Figure Space
+#define UNICODE_PUNCTUATION_SPACE           0x2008               //Punctuation Space
+#define UNICODE_THIN_SPACE                  0x2009               //Thin Space
+#define UNICODE_HAIR_SPACE                  0x200A               //Hair Space
+#define UNICODE_ZERO_WIDTH_SPACE            0x200B               //Zero Width Space
+#define UNICODE_ZERO_WIDTH_NON_JOINER       0x200C               //Zero Width Non Joiner
+#define UNICODE_ZERO_WIDTH_JOINER           0x200D               //Zero Width Joiner
+#define UNICODE_NARROW_NO_BREAK_SPACE       0x202F               //Narrow No-Break Space
+#define UNICODE_MEDIUM_MATHEMATICAL_SPACE   0x205F               //Medium Mathematical Space
+#define UNICODE_WORD_JOINER                 0x2060               //Word Joiner
+#define UNICODE_IDEOGRAPHIC_SPACE           0x3000               //Ideographic Space in CJK
 
 //Version defines
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4                                   //Current configuration version
-#define FULL_VERSION                 L"0.4.3.2"
+#define FULL_VERSION                 L"0.4.3.3"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2015 Chengr28"
 
 //Exit code defines
@@ -204,7 +204,7 @@
 #define SENDING_INTERVAL_TIME              5U        //Time between every sending, 5 seconds
 #define SENDING_ONCE_INTERVAL_TIMES        3U        //Repeat 3 times between every sending.
 #if defined(ENABLE_LIBSODIUM)
-	#define DEFAULT_DNSCURVE_RECHECK_TIME      3600U     //Default DNSCurve keys recheck time, 1 hour(3600 seconds)
+	#define DEFAULT_DNSCURVE_RECHECK_TIME      1800U     //Default DNSCurve keys recheck time, 1800 seconds
 	#define SHORTEST_DNSCURVE_RECHECK_TIME     10U       //The shortset DNSCurve keys recheck time, 10 seconds
 #endif
 
@@ -307,12 +307,6 @@
 #define HOSTS_TYPE_BANNED                3U
 #define CACHE_TYPE_TIMER                 1U
 #define CACHE_TYPE_QUEUE                 2U
-/* Old version(2015-08-20)
-#if defined(ENABLE_LIBSODIUM)
-	#define DNSCURVE_REQUEST_MODE_UDP         0
-	#define DNSCURVE_REQUEST_MODE_TCP         1U
-#endif
-*/
 
 //Server type defines
 #if defined(ENABLE_LIBSODIUM)
@@ -576,8 +570,12 @@ public:
 	bool                                 GatewayAvailable_IPv6;
 	bool                                 GatewayAvailable_IPv4;
 
+//Member functions
 	ConfigurationTable(void);
 	~ConfigurationTable(void);
+	void SetToMonitorItem(void);
+	void MonitorItemToUsing(ConfigurationTable *ConfigurationParameter);
+	void MonitorItemReset(void);
 }CONFIGURATION_TABLE;
 
 //IPv4/IPv6 addresses ranges class
@@ -696,6 +694,7 @@ public:
 	size_t                   RequestMode_DNSCurve_Transport;
 	bool                     IsEncryption;
 	bool                     IsEncryptionOnly;
+	bool                     ClientEphemeralKey;
 	size_t                   KeyRecheckTime;
 //[DNSCurve Addresses] block
 	PUINT8                   Client_PublicKey;
@@ -707,9 +706,13 @@ public:
 		DNSCURVE_SERVER_DATA   Alternate_IPv4;
 	}DNSCurveTarget;
 
+//Member functions
 	DNSCurveConfigurationTable(void);
 	~DNSCurveConfigurationTable(void);
-}DNSCURVE_CONFIGURATON_TABLE;
+	void SetToMonitorItem(void);
+	void MonitorItemToUsing(DNSCurveConfigurationTable *DNSCurveConfigurationParameter);
+	void MonitorItemReset(void);
+}DNSCURVE_CONFIGURATION_TABLE;
 #endif
 
 
@@ -737,7 +740,7 @@ void __fastcall CaseConvert(const bool IsLowerToUpper, std::string &Buffer);
 #endif
 
 //PrintLog.h
-bool __fastcall PrintError(const size_t ErrType, const wchar_t *Message, const SSIZE_T ErrCode, const wchar_t *FileName, const size_t Line);
+bool __fastcall PrintError(const size_t ErrorType, const wchar_t *Message, const SSIZE_T ErrorCode, const wchar_t *FileName, const size_t Line);
 
 //PacketData.h
 //uint32_t __fastcall GetFCS(const unsigned char *Buffer, const size_t Length);
@@ -753,7 +756,7 @@ size_t __fastcall AddEDNSLabelToAdditionalRR(PSTR Buffer, const size_t Length, c
 size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Length);
 
 //Protocol.h
-bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr, const uint16_t Protocol, SSIZE_T &ErrCode);
+bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr, const uint16_t Protocol, SSIZE_T &ErrorCode);
 size_t __fastcall AddressesComparing(const void *OriginalAddrBegin, const void *OriginalAddrEnd, const uint16_t Protocol);
 bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const bool IsPrivateUse, char *Domain);
 bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol);
@@ -763,7 +766,7 @@ size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t 
 size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal, bool *IsMarkHopLimit);
 
 //Configuration.h
-bool __fastcall ReadParameter(void);
+bool __fastcall ReadParameter(const bool IsFirstRead);
 void __fastcall ReadIPFilter(void);
 void __fastcall ReadHosts(void);
 void __fastcall GetParameterListData(std::vector<std::string> &ListData, const std::string Data, const size_t DataOffset, const size_t Length);

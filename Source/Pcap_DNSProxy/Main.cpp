@@ -39,35 +39,51 @@ int main(int argc, char *argv[])
 	}
 
 //Read configuration file.
-	if (!ReadParameter())
+	if (!ReadParameter(true))
 	{
 		WSACleanup();
 		return EXIT_FAILURE;
 	}
 
-//Mark Local DNS address to PTR Records.
-	std::thread NetworkInformationMonitorThread(NetworkInformationMonitor);
-	NetworkInformationMonitorThread.detach();
-
-//Read IPFilter and Hosts.
-	if (Parameter.OperationMode == LISTEN_MODE_CUSTOM || Parameter.BlacklistCheck || Parameter.LocalRouting)
-	{
-		std::thread IPFilterThread(ReadIPFilter);
-		IPFilterThread.detach();
-	}
-
-	std::thread HostsThread(ReadHosts);
-	HostsThread.detach();
-
 //DNSCurve initialization
 #if defined(ENABLE_LIBSODIUM)
-	if (Parameter.DNSCurve && DNSCurveParameter.IsEncryption)
+	if (Parameter.DNSCurve)
 	{
-		randombytes_set_implementation(&randombytes_salsa20_implementation);
-		randombytes_stir();
-		DNSCurveInit();
+		DNSCurveParameterModificating.SetToMonitorItem();
+
+	//Libsodium initialization
+		if (sodium_init() != EXIT_SUCCESS)
+		{
+			PrintError(LOG_ERROR_DNSCURVE, L"Libsodium initialization error", 0, nullptr, 0);
+
+			WSACleanup();
+			return EXIT_FAILURE;
+		}
+
+	//Encryption mode initialization
+		if (DNSCurveParameter.IsEncryption)
+		{
+			randombytes_set_implementation(&randombytes_salsa20_implementation);
+			randombytes_stir();
+			DNSCurveInit();
+		}
 	}
 #endif
+
+//Mark Local DNS address to PTR Records, read Parameter(Monitor mode), IPFilter and Hosts.
+	ParameterModificating.SetToMonitorItem();
+	std::thread NetworkInformationMonitorThread(NetworkInformationMonitor);
+	std::thread ReadParameterThread(ReadParameter, false);
+	std::thread ReadHostsThread(ReadHosts);
+	NetworkInformationMonitorThread.detach();
+	ReadParameterThread.detach();
+	ReadHostsThread.detach();
+	
+	if (Parameter.OperationMode == LISTEN_MODE_CUSTOM || Parameter.BlacklistCheck || Parameter.LocalRouting)
+	{
+		std::thread ReadIPFilterThread(ReadIPFilter);
+		ReadIPFilterThread.detach();
+	}
 
 #if defined(PLATFORM_WIN)
 //Service initialization and start service.

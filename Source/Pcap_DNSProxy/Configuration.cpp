@@ -53,7 +53,11 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 					}break;
 					case READ_TEXT_PARAMETER: //ReadParameter
 					{
-						PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+						PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+					}break;
+					case READ_TEXT_PARAMETER_MONITOR: //ReadParameter(Monitor mode)
+					{
+						PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					}break;
 				}
 
@@ -121,7 +125,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 					SingleText = (((uint16_t)(FileBuffer.get()[Index] & 0x0F)) << 12U) + (((uint16_t)(FileBuffer.get()[Index + 1U] & 0x3F)) << 6U) + (uint16_t)(FileBuffer.get()[Index + 2U] & 0x3F);
 				
 				//Next line format
-					if (SingleText == UNICODE_LS || SingleText == UNICODE_PS)
+					if (SingleText == UNICODE_LINE_SEPARATOR || SingleText == UNICODE_PARAGRAPH_SEPARATOR)
 					{
 						FileBuffer.get()[Index] = 0;
 						FileBuffer.get()[Index + 1U] = 0;
@@ -130,12 +134,12 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 						continue;
 					}
 				//Space format
-					else if (SingleText == UNICODE_MVS || SingleText == UNICODE_NUT || SingleText == UNICODE_MUTTON || 
-						SingleText == UNICODE_TPES || SingleText == UNICODE_FPES || SingleText == UNICODE_SPES || 
-						SingleText == UNICODE_FS || SingleText == UNICODE_PCS || SingleText == UNICODE_TS || 
-						SingleText == UNICODE_HS || SingleText == UNICODE_ZWSP || SingleText == UNICODE_ZWNJ || 
-						SingleText == UNICODE_ZWJ || SingleText == UNICODE_NNBS || SingleText == UNICODE_MMSP || 
-						SingleText == UNICODE_WJ || SingleText == UNICODE_IS)
+					else if (SingleText == UNICODE_MONGOLIAN_VOWEL_SEPARATOR || SingleText == UNICODE_EN_SPACE || SingleText == UNICODE_EM_SPACE || 
+						SingleText == UNICODE_THICK_SPACE || SingleText == UNICODE_MID_SPACE || SingleText == UNICODE_SIX_PER_EM_SPACE || 
+						SingleText == UNICODE_FIGURE_SPACE || SingleText == UNICODE_PUNCTUATION_SPACE || SingleText == UNICODE_THIN_SPACE || 
+						SingleText == UNICODE_HAIR_SPACE || SingleText == UNICODE_ZERO_WIDTH_SPACE || SingleText == UNICODE_ZERO_WIDTH_NON_JOINER || 
+						SingleText == UNICODE_ZERO_WIDTH_JOINER || SingleText == UNICODE_NARROW_NO_BREAK_SPACE || SingleText == UNICODE_MEDIUM_MATHEMATICAL_SPACE || 
+						SingleText == UNICODE_WORD_JOINER || SingleText == UNICODE_IDEOGRAPHIC_SPACE)
 					{
 						FileBuffer.get()[Index] = ASCII_SPACE;
 						FileBuffer.get()[Index + 1U] = 0;
@@ -149,7 +153,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 					SingleText = (((uint16_t)(FileBuffer.get()[Index] & 0x1F)) << 6U) + (uint16_t)(FileBuffer.get()[Index] & 0x3F);
 
 				//Next line format
-					if (SingleText == UNICODE_NEL)
+					if (SingleText == UNICODE_NEXT_LINE)
 					{
 						FileBuffer.get()[Index] = 0;
 						FileBuffer.get()[Index + 1U] = ASCII_LF;
@@ -157,7 +161,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 						continue;
 					}
 				//Space format
-					if (SingleText == UNICODE_NBS)
+					if (SingleText == UNICODE_NO_BREAK_SPACE)
 					{
 						FileBuffer.get()[Index] = ASCII_SPACE;
 						FileBuffer.get()[Index + 1U] = 0;
@@ -190,7 +194,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 			#if __BYTE_ORDER == __LITTLE_ENDIAN
 				if (Encoding == CODEPAGE_UTF_16_BE)
 					*SingleText = ntoh16_Force(*SingleText);
-			#else
+			#else 
 				if (Encoding == CODEPAGE_UTF_16_LE)
 					*SingleText = ntoh16_Force(*SingleText);
 			#endif
@@ -198,20 +202,20 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 				if (*SingleText == ASCII_CR && Index + sizeof(uint16_t) < ReadLength && 
 				#if __BYTE_ORDER == __LITTLE_ENDIAN
 					(Encoding == CODEPAGE_UTF_16_BE && ntoh16_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_16_LE && *(SingleText + 1U) == ASCII_LF))
-				#else
+				#else 
 					(Encoding == CODEPAGE_UTF_16_LE && ntoh16_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_16_BE && *(SingleText + 1U) == ASCII_LF))
 				#endif
 						*SingleText = 0;
-				else if (*SingleText == ASCII_CR || *SingleText == ASCII_VT || *SingleText == ASCII_FF || *SingleText == UNICODE_NEL || 
-					*SingleText == UNICODE_LS || *SingleText == UNICODE_PS)
+				else if (*SingleText == ASCII_CR || *SingleText == ASCII_VT || *SingleText == ASCII_FF || *SingleText == UNICODE_NEXT_LINE || 
+					*SingleText == UNICODE_LINE_SEPARATOR || *SingleText == UNICODE_PARAGRAPH_SEPARATOR)
 						*SingleText = ASCII_LF;
 			//Space format
-				else if (*SingleText == UNICODE_NBS || *SingleText == UNICODE_MVS || *SingleText == UNICODE_NUT || 
-					*SingleText == UNICODE_MUTTON || *SingleText == UNICODE_TPES || *SingleText == UNICODE_FPES || 
-					*SingleText == UNICODE_SPES || *SingleText == UNICODE_FS || *SingleText == UNICODE_PCS || 
-					*SingleText == UNICODE_TS || *SingleText == UNICODE_HS || *SingleText == UNICODE_ZWSP || 
-					*SingleText == UNICODE_ZWNJ || *SingleText == UNICODE_ZWJ || *SingleText == UNICODE_NNBS || 
-					*SingleText == UNICODE_MMSP || *SingleText == UNICODE_WJ || *SingleText == UNICODE_IS)
+				else if (*SingleText == UNICODE_NO_BREAK_SPACE || *SingleText == UNICODE_MONGOLIAN_VOWEL_SEPARATOR || *SingleText == UNICODE_EN_SPACE || 
+					*SingleText == UNICODE_EM_SPACE || *SingleText == UNICODE_THICK_SPACE || *SingleText == UNICODE_MID_SPACE || 
+					*SingleText == UNICODE_SIX_PER_EM_SPACE || *SingleText == UNICODE_FIGURE_SPACE || *SingleText == UNICODE_PUNCTUATION_SPACE || 
+					*SingleText == UNICODE_THIN_SPACE || *SingleText == UNICODE_HAIR_SPACE || *SingleText == UNICODE_ZERO_WIDTH_SPACE || 
+					*SingleText == UNICODE_ZERO_WIDTH_NON_JOINER || *SingleText == UNICODE_ZERO_WIDTH_JOINER || *SingleText == UNICODE_NARROW_NO_BREAK_SPACE || 
+					*SingleText == UNICODE_MEDIUM_MATHEMATICAL_SPACE || *SingleText == UNICODE_WORD_JOINER || *SingleText == UNICODE_IDEOGRAPHIC_SPACE)
 						*SingleText = ASCII_SPACE;
 			//Delete all Non-ASCII.
 				else if (*SingleText > ASCII_MAX_NUM)
@@ -229,7 +233,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 			#if __BYTE_ORDER == __LITTLE_ENDIAN
 				if (Encoding == CODEPAGE_UTF_32_BE)
 					*SingleText = ntoh32_Force(*SingleText);
-			#else
+			#else 
 				if (Encoding == CODEPAGE_UTF_32_LE)
 					*SingleText = ntoh32_Force(*SingleText);
 			#endif
@@ -237,20 +241,20 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 				if (*SingleText == ASCII_CR && Index + sizeof(uint32_t) < ReadLength && 
 				#if __BYTE_ORDER == __LITTLE_ENDIAN
 					(Encoding == CODEPAGE_UTF_32_BE && ntoh32_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_32_LE && *(SingleText + 1U) == ASCII_LF))
-				#else
+				#else 
 					(Encoding == CODEPAGE_UTF_32_LE && ntoh32_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_32_BE && *(SingleText + 1U) == ASCII_LF))
 				#endif
 						*SingleText = 0;
-				else if (*SingleText == ASCII_CR || *SingleText == ASCII_VT || *SingleText == ASCII_FF || *SingleText == UNICODE_NEL || 
-					*SingleText == UNICODE_LS || *SingleText == UNICODE_PS)
+				else if (*SingleText == ASCII_CR || *SingleText == ASCII_VT || *SingleText == ASCII_FF || *SingleText == UNICODE_NEXT_LINE || 
+					*SingleText == UNICODE_LINE_SEPARATOR || *SingleText == UNICODE_PARAGRAPH_SEPARATOR)
 						*SingleText = ASCII_LF;
 			//Space format
-				else if (*SingleText == UNICODE_NBS || *SingleText == UNICODE_MVS || *SingleText == UNICODE_NUT || 
-					*SingleText == UNICODE_MUTTON || *SingleText == UNICODE_TPES || *SingleText == UNICODE_FPES || 
-					*SingleText == UNICODE_SPES || *SingleText == UNICODE_FS || *SingleText == UNICODE_PCS || 
-					*SingleText == UNICODE_TS || *SingleText == UNICODE_HS || *SingleText == UNICODE_ZWSP || 
-					*SingleText == UNICODE_ZWNJ || *SingleText == UNICODE_ZWJ || *SingleText == UNICODE_NNBS || 
-					*SingleText == UNICODE_MMSP || *SingleText == UNICODE_WJ || *SingleText == UNICODE_IS)
+				else if (*SingleText == UNICODE_NO_BREAK_SPACE || *SingleText == UNICODE_MONGOLIAN_VOWEL_SEPARATOR || *SingleText == UNICODE_EN_SPACE || 
+					*SingleText == UNICODE_EM_SPACE || *SingleText == UNICODE_THICK_SPACE || *SingleText == UNICODE_MID_SPACE || 
+					*SingleText == UNICODE_SIX_PER_EM_SPACE || *SingleText == UNICODE_FIGURE_SPACE || *SingleText == UNICODE_PUNCTUATION_SPACE || 
+					*SingleText == UNICODE_THIN_SPACE || *SingleText == UNICODE_HAIR_SPACE || *SingleText == UNICODE_ZERO_WIDTH_SPACE || 
+					*SingleText == UNICODE_ZERO_WIDTH_NON_JOINER || *SingleText == UNICODE_ZERO_WIDTH_JOINER || *SingleText == UNICODE_NARROW_NO_BREAK_SPACE || 
+					*SingleText == UNICODE_MEDIUM_MATHEMATICAL_SPACE || *SingleText == UNICODE_WORD_JOINER || *SingleText == UNICODE_IDEOGRAPHIC_SPACE)
 						*SingleText = ASCII_SPACE;
 			//Delete all Non-ASCII.
 				else if (*SingleText > ASCII_MAX_NUM)
@@ -270,7 +274,11 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 				}break;
 				case READ_TEXT_PARAMETER: //ReadParameter
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+				}break;
+				case READ_TEXT_PARAMETER_MONITOR: //ReadParameter(Monitor mode)
+				{
+					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				}break;
 			}
 			
@@ -307,7 +315,11 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 				}break;
 				case READ_TEXT_PARAMETER: //ReadParameter
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too long", 0, ConfigFileList.at(FileIndex).c_str(), Line);
+					PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too long", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+				}break;
+				case READ_TEXT_PARAMETER_MONITOR: //ReadParameter(Monitor mode)
+				{
+					PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too long", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				}break;
 			}
 
@@ -340,7 +352,12 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 						}break;
 						case READ_TEXT_PARAMETER: //ReadParameter
 						{
-							if (!ReadParameterData(TextData, FileIndex, Line, IsLabelComments))
+							if (!ReadParameterData(TextData, FileIndex, true, Line, IsLabelComments))
+								return false;
+						}break;
+						case READ_TEXT_PARAMETER_MONITOR: //ReadParameter(Monitor mode)
+						{
+							if (!ReadParameterData(TextData, FileIndex, false, Line, IsLabelComments))
 								return false;
 						}break;
 					}
@@ -395,102 +412,278 @@ bool __fastcall ReadMultiLineComments(std::string &Data, bool &IsLabelComments)
 }
 
 //Read parameter from file
-bool __fastcall ReadParameter(void)
+bool __fastcall ReadParameter(const bool IsFirstRead)
 {
+	size_t FileIndex = 0;
+
+//Create file list.
+	if (IsFirstRead)
+	{
+		const wchar_t *ConfigFileNameList[]{CONFIG_FILE_NAME_LIST};
+		for (FileIndex = 0; FileIndex < sizeof(ConfigFileNameList) / sizeof(PWSTR); ++FileIndex)
+		{
+			FILE_DATA ConfigFileTemp;
+			ConfigFileTemp.FileName = Parameter.Path_Global->front();
+			ConfigFileTemp.FileName.append(ConfigFileNameList[FileIndex]);
+			FileList_Config.push_back(ConfigFileTemp);
+		}
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		const char *sConfigFileNameList[]{CONFIG_FILE_NAME_LIST_STRING};
+		for (FileIndex = 0;FileIndex < sizeof(sConfigFileNameList) / sizeof(PSTR);++FileIndex)
+		{
+			FILE_DATA ConfigFileTemp;
+			ConfigFileTemp.sFileName = Parameter.sPath_Global->front();
+			ConfigFileTemp.sFileName.append(sConfigFileNameList[FileIndex]);
+			FileList_Config.push_back(ConfigFileTemp);
+		}
+	#endif
+	}
+
 //Initialization
 	FILE *Input = nullptr;
-	size_t Index = 0;
-
-//List file.
-	std::wstring ConfigFileName;
-	const wchar_t *ConfigFileNameList[]{CONFIG_FILE_NAME_LIST};
-	for (Index = 0;Index < sizeof(ConfigFileNameList) / sizeof(PWSTR);++Index)
-	{
-		ConfigFileName = Parameter.Path_Global->front();
-		ConfigFileName.append(ConfigFileNameList[Index]);
-		ConfigFileList.push_back(ConfigFileName);
-	}
-	ConfigFileName.clear();
-	ConfigFileName.shrink_to_fit();
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::string sConfigFileName;
-	const char *sConfigFileNameList[]{CONFIG_FILE_NAME_LIST_STRING};
-	for (Index = 0;Index < sizeof(sConfigFileNameList) / sizeof(PSTR);++Index)
-	{
-		sConfigFileName = Parameter.sPath_Global->front();
-		sConfigFileName.append(sConfigFileNameList[Index]);
-		sConfigFileList.push_back(sConfigFileName);
-	}
-	sConfigFileName.clear();
-	sConfigFileName.shrink_to_fit();
-#endif
-
-//Open file.
-	for (Index = 0;Index < ConfigFileList.size();++Index)
-	{
-	#if defined(PLATFORM_WIN)
-		if (_wfopen_s(&Input, ConfigFileList.at(Index).c_str(), L"rb") != EXIT_SUCCESS || Input == nullptr)
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		Input = fopen(sConfigFileList.at(Index).c_str(), "rb");
-		if (Input == nullptr)
-	#endif
-		{
-		//Check all configuration files.
-			if (Index + 1U == ConfigFileList.size())
-			{
-				PrintError(LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
-				return false;
-			}
-
-			continue;
-		}
-		else {
-			break;
-		}
-	}
-
-//Check whole file size.
 #if defined(PLATFORM_WIN)
 	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
 	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
-	if (GetFileAttributesExW(ConfigFileList.at(Index).c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) != FALSE)
-	{
-		std::shared_ptr<LARGE_INTEGER> ConfigFileSize(new LARGE_INTEGER());
-		memset(ConfigFileSize.get(), 0, sizeof(LARGE_INTEGER));
-		ConfigFileSize->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
-		ConfigFileSize->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
-		if (ConfigFileSize->QuadPart >= DEFAULT_FILE_MAXSIZE)
-		{
-			PrintError(LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, ConfigFileList.at(Index).c_str(), 0);
-			return false;
-		}
-	}
-	File_WIN32_FILE_ATTRIBUTE_DATA.reset();
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::shared_ptr<struct stat> FileStat(new struct stat());
 	memset(FileStat.get(), 0, sizeof(struct stat));
-	if (stat(sConfigFileList.at(Index).c_str(), FileStat.get()) == EXIT_SUCCESS && FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
-	{
-		PrintError(LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, ConfigFileList.at(Index).c_str(), 0);
-		return false;
-	}
-	FileStat.reset();
 #endif
 
-//Read data.
-	if (Input != nullptr)
+//Read parameters at first.
+	if (IsFirstRead)
 	{
-		if (!ReadText(Input, READ_TEXT_PARAMETER, Index))
+	//Open configuration file.
+		for (FileIndex = 0;FileIndex < FileList_Config.size();++FileIndex)
+		{
+		#if defined(PLATFORM_WIN)
+			if (_wfopen_s(&Input, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") != EXIT_SUCCESS || Input == nullptr)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			Input = fopen(FileList_Config.at(FileIndex).sFileName.c_str(), "rb");
+			if (Input == nullptr)
+		#endif
+			{
+			//Check all configuration files.
+				if (FileIndex + 1U == FileList_Config.size())
+				{
+					PrintError(LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
+					return false;
+				}
+
+				continue;
+			}
+			else {
+				break;
+			}
+		}
+
+	//Check whole file size.
+	#if defined(PLATFORM_WIN)
+		if (GetFileAttributesExW(FileList_Config.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) != FALSE)
+		{
+			std::shared_ptr<LARGE_INTEGER> ConfigFileSize(new LARGE_INTEGER());
+			memset(ConfigFileSize.get(), 0, sizeof(LARGE_INTEGER));
+			ConfigFileSize->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
+			ConfigFileSize->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
+			if (ConfigFileSize->QuadPart >= DEFAULT_FILE_MAXSIZE)
+			{
+				PrintError(LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+				return false;
+			}
+		}
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		if (stat(FileList_Config.at(FileIndex).sFileName.c_str(), FileStat.get()) == EXIT_SUCCESS && FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+		{
+			PrintError(LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
-		fclose(Input);
+		}
+	#endif
+
+	//Read data.
+		if (Input != nullptr)
+		{
+			if (!ReadText(Input, READ_TEXT_PARAMETER, FileIndex))
+			{
+				fclose(Input);
+				return false;
+			}
+
+			fclose(Input);
+		}
+		else {
+			PrintError(LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
+			return false;
+		}
+
+	//Check parameter list and set default values.
+		return ParameterCheckAndSetting(true, FileIndex);
 	}
+//Monitor mode
 	else {
-		PrintError(LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
-		return false;
+	//Open configuration file.
+		for (;;)
+		{
+			for (FileIndex = 0;FileIndex < FileList_Config.size();++FileIndex)
+			{
+			#if defined(PLATFORM_WIN)
+				if (_wfopen_s(&Input, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") != EXIT_SUCCESS || Input == nullptr)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				Input = fopen(FileList_Config.at(FileIndex).sFileName.c_str(), "rb");
+				if (Input == nullptr)
+			#endif
+				{
+				//Check all configuration files.
+					if (FileIndex + 1U == FileList_Config.size())
+					{
+						PrintError(LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
+						continue;
+					}
+
+					continue;
+				}
+				else {
+					fclose(Input);
+					Input = nullptr;
+
+					goto StopLoop;
+				}
+			}
+
+			Sleep(Parameter.FileRefreshTime);
+		}
+
+	StopLoop:
+	//Initialization
+	#if defined(PLATFORM_WIN)
+		std::shared_ptr<LARGE_INTEGER> File_LARGE_INTEGER(new LARGE_INTEGER());
+		memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+	#endif
+		auto InnerIsFirstRead = true, IsFileModified = false;
+
+	//File Monitor
+		for (;;)
+		{
+			IsFileModified = false;
+
+		//Get attributes of file.
+		#if defined(PLATFORM_WIN)
+			if (GetFileAttributesExW(FileList_Config.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) == FALSE)
+			{
+				memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			if (stat(FileList_Config.at(FileIndex).sFileName.c_str(), FileStat.get()) != 0)
+			{
+				memset(FileStat.get(), 0, sizeof(struct stat));
+		#endif
+				FileList_Config.at(FileIndex).ModificationTime = 0;
+			}
+			else {
+			//Check whole file size.
+			#if defined(PLATFORM_WIN)
+				File_LARGE_INTEGER->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
+				File_LARGE_INTEGER->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
+				if (File_LARGE_INTEGER->QuadPart >= DEFAULT_FILE_MAXSIZE)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				if (FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+			#endif
+				{
+					PrintError(LOG_ERROR_PARAMETER, L"Configuration file size is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+
+				#if defined(PLATFORM_WIN)
+					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+					memset(FileStat.get(), 0, sizeof(struct stat));
+				#endif
+					FileList_Config.at(FileIndex).ModificationTime = 0;
+
+					Sleep(Parameter.FileRefreshTime);
+					continue;
+				}
+
+			//Check modification time of file.
+			#if defined(PLATFORM_WIN)
+				memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+				File_LARGE_INTEGER->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwHighDateTime;
+				File_LARGE_INTEGER->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwLowDateTime;
+				if (FileList_Config.at(FileIndex).ModificationTime == 0 || File_LARGE_INTEGER->QuadPart != FileList_Config.at(FileIndex).ModificationTime)
+				{
+					FileList_Config.at(FileIndex).ModificationTime = File_LARGE_INTEGER->QuadPart;
+					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				if (FileList_Config.at(FileIndex).ModificationTime == 0 || FileStat->st_mtime != FileList_Config.at(FileIndex).ModificationTime)
+				{
+					FileList_Config.at(FileIndex).ModificationTime = FileStat->st_mtime;
+					memset(FileStat.get(), 0, sizeof(struct stat));
+			#endif
+					IsFileModified = true;
+
+				//Read file.
+				#if defined(PLATFORM_WIN)
+					if (_wfopen_s(&Input, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") == EXIT_SUCCESS)
+					{
+				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+					Input = fopen(FileList_Config.at(FileIndex).sFileName.c_str(), "rb");
+				#endif
+						if (Input == nullptr)
+						{
+							Sleep(Parameter.FileRefreshTime);
+							continue;
+						}
+						else {
+							if (!InnerIsFirstRead)
+							{
+							//Read data.
+								if (ReadText(Input, READ_TEXT_PARAMETER_MONITOR, FileIndex))
+								{
+								//Copy to global list.
+									if (ParameterCheckAndSetting(false, FileIndex))
+									{
+										ParameterModificating.MonitorItemToUsing(&Parameter);
+										if (Parameter.DNSCurve)
+											DNSCurveParameterModificating.MonitorItemToUsing(&DNSCurveParameter);
+									}
+								}
+
+							//Reset modificating list.
+								ParameterModificating.MonitorItemReset();
+								if (Parameter.DNSCurve)
+									DNSCurveParameterModificating.MonitorItemReset();
+							}
+							else {
+								InnerIsFirstRead = false;
+							}
+
+							fclose(Input);
+							Input = nullptr;
+						}
+				#if defined(PLATFORM_WIN)
+					}
+				#endif
+				}
+				else {
+			#if defined(PLATFORM_WIN)
+					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+					memset(FileStat.get(), 0, sizeof(struct stat));
+			#endif
+				}
+			}
+
+		//Copy to using list, flush DNS cache and Auto-refresh
+			if (IsFileModified)
+			{
+				FlushAllDNSCache();
+			}
+
+			Sleep(Parameter.FileRefreshTime);
+		}
 	}
 
-//Check parameter list and set default values.
-	return ParameterCheckAndSetting(Index);
+//Monitor terminated
+	PrintError(LOG_ERROR_SYSTEM, L"Read Parameter module Monitor terminated", 0, nullptr, 0);
+	return false;
 }
 
 //Read IPFilter from file
@@ -536,7 +729,7 @@ void __fastcall ReadIPFilter(void)
 	std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 	IPFilterFileMutex.unlock();
 	
-//Files Monitor
+//File Monitor
 	for (;;)
 	{
 		IsFileModified = false;
@@ -771,7 +964,7 @@ void __fastcall ReadHosts(void)
 	std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock);
 	HostsFileMutex.unlock();
 
-//Files Monitor
+//File Monitor
 	for (;;)
 	{
 		IsFileModified = false;

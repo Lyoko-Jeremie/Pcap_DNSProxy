@@ -25,9 +25,9 @@ bool __fastcall MonitorInit(void)
 //Capture initialization
 #if defined(ENABLE_PCAP)
 	#if defined(ENABLE_LIBSODIUM)
-		if (Parameter.PcapCapture && Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH && !(Parameter.DNSCurve && DNSCurveParameter.IsEncryption && DNSCurveParameter.IsEncryptionOnly))
-	#else
-		if (Parameter.PcapCapture && Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH)
+		if (Parameter.PcapCapture && /* Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH && */ !(Parameter.DNSCurve && DNSCurveParameter.IsEncryption && DNSCurveParameter.IsEncryptionOnly))
+	#else 
+		if (Parameter.PcapCapture /* && Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH */ )
 	#endif
 	{
 	#if defined(ENABLE_PCAP)
@@ -53,25 +53,22 @@ bool __fastcall MonitorInit(void)
 		}
 
 	//Get Hop Limits/TTL with ICMP Echo.
-		if (Parameter.ICMP_Speed > 0)
+	//ICMPv6
+		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
+			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
+			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 		{
-		//ICMPv6
-			if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
-				(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-				Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
-			{
-				std::thread ICMPv6Thread(ICMPTestRequest, AF_INET6);
-				ICMPv6Thread.detach();
-			}
+			std::thread ICMPv6Thread(ICMPTestRequest, AF_INET6);
+			ICMPv6Thread.detach();
+		}
 
-		//ICMP
-			if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
-				(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-				Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
-			{
-				std::thread ICMPThread(ICMPTestRequest, AF_INET);
-				ICMPThread.detach();
-			}
+	//ICMP
+		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
+			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
+			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
+		{
+			std::thread ICMPThread(ICMPTestRequest, AF_INET);
+			ICMPThread.detach();
 		}
 	}
 #endif
@@ -561,7 +558,7 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 			LastMarkTime = (*Parameter.FunctionPTR_GetTickCount64)();
 		else 
 			LastMarkTime = GetTickCount();
-	#else
+	#else 
 		LastMarkTime = GetTickCount64();
 	#endif
 	}
@@ -581,7 +578,7 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 				NowTime = (*Parameter.FunctionPTR_GetTickCount64)();
 			else 
 				NowTime = GetTickCount();
-		#else
+		#else 
 			NowTime = GetTickCount64();
 		#endif
 			if (LastMarkTime + Parameter.QueueResetTime > NowTime)
@@ -592,7 +589,7 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 				LastMarkTime = (*Parameter.FunctionPTR_GetTickCount64)();
 			else 
 				LastMarkTime = GetTickCount();
-		#else
+		#else 
 			LastMarkTime = GetTickCount64();
 		#endif
 		}
@@ -776,7 +773,7 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 			LastMarkTime = (*Parameter.FunctionPTR_GetTickCount64)();
 		else 
 			LastMarkTime = GetTickCount();
-	#else
+	#else 
 		LastMarkTime = GetTickCount64();
 	#endif
 	}
@@ -795,7 +792,7 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 				NowTime = (*Parameter.FunctionPTR_GetTickCount64)();
 			else 
 				NowTime = GetTickCount();
-		#else
+		#else 
 			NowTime = GetTickCount64();
 		#endif
 			if (LastMarkTime + Parameter.QueueResetTime > NowTime)
@@ -804,9 +801,9 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 			if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
 				LastMarkTime = (*Parameter.FunctionPTR_GetTickCount64)();
-			else
+			else 
 				LastMarkTime = GetTickCount();
-		#else
+		#else 
 			LastMarkTime = GetTickCount64();
 		#endif
 		}
@@ -1002,7 +999,7 @@ void __fastcall AlternateServerMonitor(void)
 					RangeTimer[Index] = (size_t)((*Parameter.FunctionPTR_GetTickCount64)() + Parameter.AlternateTimeRange);
 				else 
 					RangeTimer[Index] = GetTickCount() + Parameter.AlternateTimeRange;
-		#else
+		#else 
 			if (GetTickCount64() >= RangeTimer[Index])
 			{
 				RangeTimer[Index] = GetTickCount64() + Parameter.AlternateTimeRange;
@@ -1016,7 +1013,7 @@ void __fastcall AlternateServerMonitor(void)
 			{
 			#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 				if (Parameter.FunctionPTR_GetTickCount64 != nullptr && (*Parameter.FunctionPTR_GetTickCount64)() >= SwapTimer[Index] || GetTickCount() >= SwapTimer[Index])
-			#else
+			#else 
 				if (GetTickCount64() >= SwapTimer[Index])
 			#endif
 				{
@@ -1036,7 +1033,7 @@ void __fastcall AlternateServerMonitor(void)
 						SwapTimer[Index] = (size_t)((*Parameter.FunctionPTR_GetTickCount64)() + Parameter.AlternateResetTime);
 					else 
 						SwapTimer[Index] = GetTickCount() + Parameter.AlternateResetTime;
-				#else
+				#else 
 					SwapTimer[Index] = GetTickCount64() + Parameter.AlternateResetTime;
 				#endif
 				}

@@ -31,7 +31,7 @@ typedef struct _capture_handler_param_
 extern CONFIGURATION_TABLE Parameter;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 #if defined(ENABLE_LIBSODIUM)
-	extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 #endif
 extern std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
 extern std::mutex CaptureLock, OutputPacketListLock;

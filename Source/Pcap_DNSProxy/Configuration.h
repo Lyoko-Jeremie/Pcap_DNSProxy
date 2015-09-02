@@ -22,8 +22,9 @@
 //Base defines
 //Read Texts input and Label types defines
 #define READ_TEXT_PARAMETER                   0
-#define READ_TEXT_HOSTS                       1U
-#define READ_TEXT_IPFILTER                    2U
+#define READ_TEXT_PARAMETER_MONITOR           1U
+#define READ_TEXT_HOSTS                       2U
+#define READ_TEXT_IPFILTER                    3U
 #define LABEL_STOP                            1U
 #define LABEL_IPFILTER                        2U
 #define LABEL_IPFILTER_BLACKLIST              3U
@@ -32,8 +33,9 @@
 #define LABEL_HOSTS_TYPE_LOCAL                6U
 #define LABEL_HOSTS_TYPE_WHITELIST            7U
 #define LABEL_HOSTS_TYPE_BANNED               8U
-#define LABEL_HOSTS_TYPE_RECOED_BANNED        9U
-#define LABEL_HOSTS_ADDRESS                   10U
+#define LABEL_HOSTS_TYPE_WHITELIST_EXTENDED   9U
+#define LABEL_HOSTS_TYPE_BANNED_EXTENDED      10U
+#define LABEL_HOSTS_ADDRESS                   11U
 
 //Length defines
 #define READ_DATA_MINSIZE                     4U
@@ -46,15 +48,11 @@
 #define READ_IPFILTER_LOCAL_ROUTING_MINSIZE   4U
 
 //Global variables
-extern CONFIGURATION_TABLE Parameter;
+extern CONFIGURATION_TABLE Parameter, ParameterModificating;
 #if defined(ENABLE_LIBSODIUM)
-	extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
 #endif
-extern std::vector<std::wstring> ConfigFileList;
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	extern std::vector<std::string> sConfigFileList;
-#endif
-extern std::vector<FILE_DATA> FileList_IPFilter, FileList_Hosts;
+extern std::vector<FILE_DATA> FileList_Config, FileList_IPFilter, FileList_Hosts;
 extern std::vector<DIFFERNET_IPFILTER_FILE_SET> *IPFilterFileSetUsing, *IPFilterFileSetModificating;
 extern std::vector<DIFFERNET_HOSTS_FILE_SET> *HostsFileSetUsing, *HostsFileSetModificating;
 extern std::mutex IPFilterFileLock, HostsFileLock;
@@ -65,10 +63,10 @@ bool __fastcall ReadMultiLineComments(std::string &Data, bool &IsLabelComments);
 void __fastcall ClearModificatingListData(const size_t ClearType, const size_t FileIndex);
 
 //Functions in ReadParameter.cpp
-bool __fastcall ParameterCheckAndSetting(const size_t FileIndex);
+bool __fastcall ParameterCheckAndSetting(const bool IsFirstRead, const size_t FileIndex);
 uint16_t __fastcall ServiceNameToHex(const char *OriginalBuffer);
 uint16_t __fastcall DNSTypeNameToHex(const char *OriginalBuffer);
-bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, const size_t Line, bool &IsLabelComments);
+bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, const bool IsFirstRead, const size_t Line, bool &IsLabelComments);
 #if defined(PLATFORM_WIN)
 	bool __fastcall ReadPathAndFileName(std::string Data, const size_t DataOffset, const bool Path, std::vector<std::wstring> *ListData, const size_t FileIndex, const size_t Line);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))

@@ -339,6 +339,7 @@ size_t __fastcall AddEDNSLabelToAdditionalRR(PSTR Buffer, const size_t Length, c
 			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_GET_BIT_AD); //Set Authentic Data bit.
 //			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_GET_BIT_CD); //Set Checking Disabled bit.
 		}
+
 		DNS_Record_OPT->Z_Field = htons(ntohs(DNS_Record_OPT->Z_Field) | EDNS_GET_BIT_DO); //Set Accepts DNSSEC security Resource Records bit.
 	}
 
@@ -464,7 +465,7 @@ size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Lengt
 			Index = (*Parameter.FunctionPTR_GetTickCount64)() % 4U;
 		else 
 			Index = GetTickCount() % 4U;
-	#else
+	#else 
 		Index = GetTickCount64() % 4U;
 	#endif
 		switch (Index)

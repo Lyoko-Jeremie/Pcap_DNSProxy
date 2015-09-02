@@ -20,10 +20,10 @@
 #include "Base.h"
 
 //Global variables
-extern CONFIGURATION_TABLE Parameter;
+extern CONFIGURATION_TABLE Parameter, ParameterModificating;
 extern time_t StartTime;
 #if defined(ENABLE_LIBSODIUM)
-	extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
 #endif
 
 //Functions

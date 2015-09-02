@@ -5844,7 +5844,6 @@
 223.255.252.0/23
 
 
-
 ## IPv6
 ## Get the latest database from APNIC -> "curl 'https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest' | grep ipv6 | grep CN | awk -F\| '{printf("%s/%d\n", $4, $5)}' > Routing_IPv6.txt"
 2001:250::/35

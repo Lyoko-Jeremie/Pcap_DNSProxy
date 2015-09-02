@@ -72,7 +72,7 @@
 #elif defined(__OS2__)
 #  if defined(__EMX__)
 #    define PLATFORM_OS2EMX
-#  else
+#  else 
 #    define PLATFORM_OS2
 #  endif
 #elif !defined(SAG_COM) && (defined(WIN64) || defined(_WIN64) || defined(__WIN64__))
@@ -131,7 +131,7 @@
 #  define PLATFORM_UNIXWARE
 #  define PLATFORM_UNIXWARE7
 #elif defined(__MAKEDEPEND__)
-#else
+#else 
 #  error "Qt has not been ported to this OS - talk to qt-bugs@trolltech.com"
 #endif
 
@@ -180,7 +180,7 @@
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		#include <cwchar>                  //Wide-Character Support
 	#endif
-#else
+#else 
 #include <cstring>                 //String support
 #include <memory>                  //Manage dynamic memory support
 
@@ -226,6 +226,9 @@
 	#define wprintf_s          wprintf
 	#define fwprintf_s         fwprintf
 #endif
+
+// Function defines
+#define crypto_box_keypair crypto_box_curve25519xsalsa20poly1305_keypair
 
 //Functions
 void __fastcall CaseConvert(const bool IsLowerToUpper, PSTR Buffer, const size_t Length);

@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
 		memset(Buffer.get(), 0, KEYPAIR_MESSAGE_LEN);
 		memset(PublicKey.get(), 0, crypto_box_PUBLICKEYBYTES);
 		memset(SecretKey.get(), 0, crypto_box_SECRETKEYBYTES);
-		crypto_box_curve25519xsalsa20poly1305_keypair(PublicKey.get(), SecretKey.get());
+		crypto_box_keypair(PublicKey.get(), SecretKey.get());
 
 	//Write public key.
 		memset(Buffer.get(), 0, KEYPAIR_MESSAGE_LEN);
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
 #if defined(PLATFORM_WIN)
 	system("Pause");
 #endif
-#else
+#else 
 	#if defined(PLATFORM_WIN)
 		wprintf_s(L"LibSodium is disable.\n\n");
 		system("Pause");

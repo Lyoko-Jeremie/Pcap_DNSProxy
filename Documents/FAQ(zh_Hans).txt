@@ -80,6 +80,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * FIFO write messages error - FIFO 写入信息失败：建议重新启动服务或程序
   * Old Error Log file was deleted - 错误日志文件已满并被删除
     * 日志文件最大容量的配置参见 详细说明文档 中 配置文件详细参数说明 中的 Log Maximum Size 参数
+  * Read Parameter module Monitor terminated - 配置文件读取模块已经停止监视，建议重新启动服务或程序
   * Read Hosts module Monitor terminated - Hosts 读取模块已经停止监视，建议重新启动服务或程序
   * Read IPFilter module Monitor terminated - IPFilter 读取模块已经停止监视，建议重新启动服务或程序
   * Alternate Server module Monitor terminated - 备用服务器切换模块已经停止运行，建议重新启动服务或程序
@@ -96,6 +97,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
 2.Parameter Error - 读取配置文件参数错误
   * Cannot open any configuration files - 未发现任何配置文件：请确认文件是否存在
   * Configuration file is too large - 配置文件容量过大：请确认配置文件的内容，整个文件的大小不要超过 4GB
+  * IPFilter file size is too large - IPFilter 文件容量过大：请确认 IPFilter 文件的内容，整个文件的大小不要超过 4GB
+  * Hosts file size is too large - Hosts 文件容量过大：请确认Hosts文件的内容，整个文件的大小不要超过 4GB
   * Configuration file version error - 配置文件版本错误：请确认配置文件是否需要更新
   * Data length error - 配置文件参数一行数据超过 4096 字节/4KB，或该行数据长度不符合要求：请确认该行的内容是否符合要求
   * Text encoding error - 配置文件编码错误：请确认配置文件的编码类型
@@ -130,7 +133,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * DNSCurve empty Public Key error - DNSCurve 协议服务器提供者错误：不存在魔数或指纹时必须提供服务器的公钥以自动获取连接参数
 
 3.IPFilter Error - 读取 IPFilter 文件错误
-  * IPFilter file size is too large - IPFilter 文件容量过大：请确认 IPFilter 文件的内容，整个文件的大小不要超过 4GB
   * Text encoding error - 文件编码错误：请确认文件的编码类型
   * Data of a line is too short - 该 IPFilter 条目过短：请确认该条目的内容
   * Data of a line is too long - 该 IPFilter 条目过长：一行数据切勿超过 4096 字节/4KB
@@ -146,7 +148,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Level error - IPFilter 过滤级别错误：过滤级别介乎与 0 - 0xFFFF(65535)
 
 4.Hosts Error - 读取 Hosts 文件错误
-  * Hosts file size is too large - Hosts 文件容量过大：请确认Hosts文件的内容，整个文件的大小不要超过4GB
   * Text encoding error - 文件编码错误：请确认文件的编码类型
   * Data of a line is too short - 该 Hosts 条目过短：请确认该条目的内容
   * Data of a line is too long - 该 Hosts 条目过长：一行数据切勿超过 4096 字节/4KB
@@ -155,7 +156,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Regular expression pattern error - 错误的正则表达式：请检查正则表达式的正确性
   * IPv6 address format error - Hosts 的 IPv6 地址格式错误：请检查 Hosts 条目的地址
   * IPv4 address format error - Hosts 的 IPv4 地址格式错误：请检查 Hosts 条目的地址
-  * Too many Hosts IP addresses - Hosts 条目的平行地址过多：请检查 Hosts 条目地址的数量，A 记录不能超过75个，AAAA 记录不能超过43个
+  * Too many Hosts IPv4 addresses - Hosts 条目的平行地址过多：请检查 Hosts 条目地址的数量，A 记录不能超过75个
+  * Too many Hosts IPv6 addresses - Hosts 条目的平行地址过多：请检查 Hosts 条目地址的数量，AAAA 记录不能超过43个
   
 5.Network Error - 网络错误
   * Winsock initialization error - Winsock 初始化失败：请确认使用的操作系统平台是否受支持

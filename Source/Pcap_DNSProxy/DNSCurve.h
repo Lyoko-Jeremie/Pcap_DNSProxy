@@ -22,7 +22,7 @@
 //Global variables
 	extern CONFIGURATION_TABLE Parameter;
 	extern ALTERNATE_SWAP_TABLE AlternateSwapList;
-	extern DNSCURVE_CONFIGURATON_TABLE DNSCurveParameter;
+	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 
 //Functions
 	SSIZE_T __fastcall DNSCurvePaddingData(const bool SetPadding, PSTR Buffer, const SSIZE_T Length);

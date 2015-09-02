@@ -189,7 +189,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Listen - 监听参数区域
   * Pcap Capture - 抓包功能总开关，开启后抓包模块才能正常使用：开启为1/关闭为0，默认为 1
     * 此参数关闭后程序会自动切换为直连模式
-	* 直连模式下不能完全避免 DNS 投毒污染的问题，需要依赖其它的检测方式，例如 EDNS 标签等方法
+    * 直连模式下不能完全避免 DNS 投毒污染的问题，需要依赖其它的检测方式，例如 EDNS 标签等方法
   * Pcap Devices Blacklist - 指定不对含有此名称的网络适配器进行抓包，名称或简介里含有此字符串的网络适配器将被直接忽略：默认为 Pseudo|Virtual|Tunnel|VPN|PPTP|L2TP|IKE|ISATAP|Teredo|AnyConnect|Hyper|Oracle|Host|Only|VMware|VMNet|lo|any
     * 本参数支持指定多个名称，大小写不敏感，格式为 "网络适配器的名称(|网络适配器的名称)"（不含引号）
     * 以抓包模块从系统中获取的名称或简介为准，与其它网络配置程序所显示的不一定相同
@@ -295,12 +295,12 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * TA/32768
       * DLV/32769
       * RESERVED/65535
-	  
+      
 * DNS - 域名解析参数区域
   * Protocol - 发送请求所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP，默认为 IPv4 + UDP
     * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求
-	* 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
-	* 同时填入 TCP 和 UDP 等于只填入 TCP，因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
+    * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
+    * 同时填入 TCP 和 UDP 等于只填入 TCP，因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
   * Direct Request - 直连模式，启用后将使用系统的 API 直接请求远程服务器而启用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，关闭为 0，默认为 0
     * 建议当系统使用全局代理功能时启用，程序将除境内服务器外的所有请求直接交给系统而不作任何过滤等处理，系统会将请求自动发往远程服务器进行解析
     * 填入 IPv4 或 IPv6 时将会启用对应协议的 Direct Request 功能，填入 IPv4 + IPv6 将会启用所有协议的功能
@@ -311,8 +311,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Local DNS - 境内域名解析参数区域
   * Local Protocol - 发送境内请求所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP，默认为 IPv4 + UDP
     * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向境内 DNS 服务器发出请求
-	* 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
-	* 同时填入 TCP 和 UDP 等于只填入 TCP，因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
+    * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
+    * 同时填入 TCP 和 UDP 等于只填入 TCP，因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
   * Local Hosts - 白名单境内服务器请求功能：开启为1/关闭为0，默认为 0
     * 开启后才能使用自带或自定义的 Local Hosts 白名单，且不能与 Local Hosts 和 Local Routing 同时启用
   * Local Main - 主要境内服务器请求功能：开启为1/关闭为0，默认为 0
@@ -530,13 +530,14 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSCurve - DNSCurve 协议总开关，控制所有和 DNSCurve 协议有关的选项：开启为1/关闭为0，默认为 0
   * DNSCurve Protocol - DNSCurve 发送请求所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP，默认为 IPv4 + UDP
     * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求
-	* 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
-	* 同时填入 TCP 和 UDP 等于只填入 TCP，因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
+    * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
+    * 同时填入 TCP 和 UDP 等于只填入 TCP，因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
   * DNSCurve Payload Size - DNSCurve EDNS 标签附带使用的最大载荷长度，同时亦为发送请求的总长度，并决定请求的填充长度：最小为 DNS 协议实现要求的 512(bytes)，留空则为 512(bytes)，默认为留空
   * Encryption - 启用加密，DNSCurve 协议支持加密和非加密模式：开启为1/关闭为0，默认为 1
   * Encryption Only - 只使用加密模式：开启为1/关闭为0，默认为 1
     * 注意：使用 "只使用加密模式" 时必须提供服务器的魔数和指纹用于请求和接收
-  * Key Recheck Time - DNSCurve 协议 DNS 服务器连接信息检查间隔：单位为秒，最短为10秒，默认为 3600秒/1小时
+  * Client Ephemeral Key - 一次性客户端密钥对模式：每次请求解析均使用随机生成的一次性客户端密钥对：开启为1/关闭为0，默认为 0
+  * Key Recheck Time - DNSCurve 协议 DNS 服务器连接信息检查间隔：单位为秒，最短为10秒，默认为 1800 秒
 
 * DNSCurve Addresses - DNSCurve 协议地址区域
   * DNSCurve IPv4 DNS Address - DNSCurve 协议 IPv4 主要 DNS 服务器地址：需要输入一个带端口格式的地址，默认为 208.67.220.220:443
@@ -590,6 +591,59 @@ https://sourceforge.net/projects/pcap-dnsproxy
 -------------------------------------------------------------------------------
 
 
+配置文件自动刷新支持参数列表：
+
+* 以下列表中的参数在写入配置文件后会自动刷新而无须重新启动程序，其它参数的刷新则必须重新启动程序
+* 如非必要建议不要依赖程序的自动刷新功能，强烈建议修改配置文件后重新启动程序！
+* Version
+* FileRefreshTime
+* PrintError
+* LogMaximumSize
+* IPFilterType
+* IPFilterLevel
+* AcceptType
+* DirectRequest
+* DefaultTTL
+* LocalProtocol
+* IPv4TTL
+* IPv6HopLimits
+* IPv4AlternateTTL
+* IPv6AlternateHopLimits
+* HopLimitsFluctuation
+* ReliableSocketTimeout
+* UnreliableSocketTimeout
+* ReceiveWaiting
+* ICMPTest
+* DomainTest
+* MultiRequestTimes
+* DomainCaseConversion
+* IPv4DataFilter
+* TCPDataFilter
+* DNSDataFilter
+* Key Recheck Time
+* Client Public Key
+* Client Secret Key
+* IPv4 DNS Public Key
+* IPv4 Alternate DNS Public Key
+* IPv6 DNS Public Key
+* IPv6 Alternate DNS Public Key
+* IPv4 DNS Fingerprint
+* IPv4 Alternate DNS Fingerprint
+* IPv6 DNS Fingerprint
+* IPv6 Alternate DNS Fingerprint
+* IPv4 Receive Magic Number
+* IPv4 Alternate Receive Magic Number
+* IPv6 Receive Magic Number
+* IPv6 Alternate Receive Magic Number
+* IPv4 DNS Magic Number
+* IPv4 Alternate DNS Magic Number
+* IPv6 DNS Magic Number
+* IPv6 Alternate DNS Magic Number
+
+
+-------------------------------------------------------------------------------
+
+
 Hosts 文件格式说明：
 
 Hosts 配置文件分为多个提供不同功能的区域
@@ -602,8 +656,8 @@ Hosts 配置文件分为多个提供不同功能的区域
 
 
 * Whitelist - 白名单条目
-  * 此类型的条目列出的符合要求的域名会直接绕过 Hosts，不会使用 Hosts 功能
-  * 直接在条目前添加 "NULL"（不含引号）即可，有效参数格式为 "NULL 正则表达式"（不含引号）
+  * 此类型的条目列出的符合要求的域名会直接绕过 Hosts 不会使用 Hosts 功能
+  * 有效参数格式为 "NULL 正则表达式"（不含引号）
   * 注意优先级的问题，例如有一片含白名单条目的区域：
 
     NULL .*\.test.localhost
@@ -612,9 +666,20 @@ Hosts 配置文件分为多个提供不同功能的区域
   * 虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并返回使用远程服务器解析
   * 从而绕过了下面的条目，不使用 Hosts 的功能
 
+* Whitelist Extended - 白名单条目扩展功能
+  * 此类型的条目还支持对符合规则的特定类型域名请求直接绕过 Hosts 不会使用 Hosts 功能
+  * 有效参数格式为 "NULL:DNS类型(|DNS类型) 正则表达式"（不含引号）
+  * 只允许特定类型域名请求，有效参数格式为 "NULL(Permit):DNS类型(|DNS类型) 正则表达式"（不含引号）
+
+    NULL:A|AAAA .*\.test.localhost
+    NULL(Deny):NS|SOA .*\.localhost
+
+  * 第一条即直接跳过匹配规则的 A 记录和 AAAA 记录的域名请求，其它类型的请求则被匹配规则
+  * 而第二条则只匹配规则的 NS 记录和 SOA 记录的域名请求，其它类型的请求则被直接跳过
+
 * Banned - 黑名单条目
   * 此类型的条目列出的符合要求的域名会直接返回域名不存在的功能，避免重定向导致的超时问题
-  * 直接在条目前添加 "BANNED"（不含引号）即可，有效参数格式为 "BANNED 正则表达式"（不含引号）
+  * 有效参数格式为 "BANNED 正则表达式"（不含引号）
   * 注意优先级的问题，例如有一片含黑名单条目的区域：
 
     BANNED .*\.test.localhost
@@ -623,7 +688,7 @@ Hosts 配置文件分为多个提供不同功能的区域
   * 虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并直接返回域名不存在
   * 从而绕过了下面的条目，达到屏蔽域名的目的
   
-* Banned - 黑名单条目扩展功能
+* Banned Extended - 黑名单条目扩展功能
   * 此类型的条目还支持对符合规则的特定类型域名请求进行屏蔽或放行
   * 有效参数格式为 "BANNED:DNS类型(|DNS类型) 正则表达式"（不含引号）
   * 只允许特定类型域名请求，有效参数格式为 "BANNED(Permit):DNS类型(|DNS类型) 正则表达式"（不含引号）
@@ -643,8 +708,8 @@ Hosts 配置文件分为多个提供不同功能的区域
 
     127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.localhost
     127.0.0.4|127.0.0.5|127.0.0.6 .*\.localhost
-    ::1|::2|::3    .*\.test\.localhost
-    ::4|::5|::6    .*\.localhost
+    ::1|::2|::3 .*\.test\.localhost
+    ::4|::5|::6 .*\.localhost
 
   * 虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并直接返回，不会再进行其它检查
     * 请求解析 xxx.localhost 的 A 记录（IPv4）会返回 127.0.0.4、127.0.0.5 和 127.0.0.6
@@ -682,8 +747,8 @@ Hosts 配置文件分为多个提供不同功能的区域
     127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.localhost
     [Stop]
     127.0.0.4|127.0.0.5|127.0.0.6 .*\.localhost
-    ::1|::2|::3    .*\.test\.localhost
-    ::4|::5|::6    .*\.localhost
+    ::1|::2|::3 .*\.test\.localhost
+    ::4|::5|::6 .*\.localhost
 
     [Local Hosts]
     .*\.test\.localhost
