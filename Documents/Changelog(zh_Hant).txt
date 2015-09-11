@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy v0.4.3.1-0.4.3.3 更新日誌(2015-09-02)：
+﻿Pcap_DNSProxy v0.4.3.1-0.4.3.4 更新日誌(2015-09-11)：
 
 * 添加 Client Ephemeral Key 一次性用戶端金鑰組功能，增強 DNSCurve 協定傳輸資料的安全性 [DNSCrypt]
 * 添加對設定檔部分參數的自動刷新功能，具體受支援的參數參見說明文檔 [jedisct1/icylogic]
@@ -7,9 +7,12 @@
 * 增強 DNSCurve Protocol 參數對協定組合的支援
 * 增強 NULL 擴展 Hosts 白名單功能的支援，現在可以指定只對部分 DNS 類型生效
 * 修正 Local Main 模式生效時對 Local Hosts 清單的讀取策略 [c1024/gaoyan1234]
-* 修復 32 位系統對 IPv4/IPv6 位址轉換的錯誤 (Windows Vista+) [Nine Forty/fabe004]
 * 修復部分參數讀取使用網路層服務名/DNS記錄名稱代替數位時的錯誤
+* 修復 32 位系統對 IPv4/IPv6 位址轉換的錯誤 (Windows Vista+) [Nine Forty/fabe004]
+* 修復 ICMP/ICMPv6 通訊端參數在預設情況下造成 Ping 功能不正常的問題 (Linux/Mac)
+* 修復啟用 TCP 協定時 Local 請求造成程式崩潰的問題 (Linux/Mac)
 * 修復 Additional Path 參數讀取不完全的問題 (Linux/Mac)
+* 修復不啟用 TCP Fast Open 時發送請求可能會出現的問題 (Linux)
 
 
 -------------------------------------------------------------------------------

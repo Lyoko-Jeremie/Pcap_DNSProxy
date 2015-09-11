@@ -19,8 +19,8 @@
 
 #include "Base.h"
 
-//Base defines
-//Read Texts input and Label types defines
+//Base definitions
+//Read Texts input and Label types definitions
 #define READ_TEXT_PARAMETER                   0
 #define READ_TEXT_PARAMETER_MONITOR           1U
 #define READ_TEXT_HOSTS                       2U
@@ -37,7 +37,7 @@
 #define LABEL_HOSTS_TYPE_BANNED_EXTENDED      10U
 #define LABEL_HOSTS_ADDRESS                   11U
 
-//Length defines
+//Length definitions
 #define READ_DATA_MINSIZE                     4U
 #define READ_TEXT_MINSIZE                     2U
 #define READ_PARAMETER_MINSIZE                8U
@@ -49,6 +49,7 @@
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter, ParameterModificating;
+extern GLOBAL_STATUS GlobalRunningStatus;
 #if defined(ENABLE_LIBSODIUM)
 	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
 #endif

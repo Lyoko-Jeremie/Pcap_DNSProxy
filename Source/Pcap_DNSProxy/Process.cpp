@@ -53,9 +53,10 @@ bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Lengt
 
 //Initialization(Receive buffer part)
 #if defined(ENABLE_LIBSODIUM)
-	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Parameter.DNSCurve && DNSCurveParameter.RequestMode_DNSCurve_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
-#else 
-	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
+	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Parameter.DNSCurve && DNSCurveParameter.RequestMode_DNSCurve_Transport == REQUEST_MODE_TCP || 
+		Parameter.RequestMode_Local_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
+#else
+	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Parameter.RequestMode_Local_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
 #endif
 	{
 		std::shared_ptr<char> TCPRecvBuffer(new char[LARGE_PACKET_MAXSIZE + sizeof(uint16_t)]());
@@ -142,7 +143,7 @@ SkipDNSCurve:
 #endif
 
 //TCP requesting
-	if ((Protocol == IPPROTO_TCP || Parameter.RequestMode_Transport == REQUEST_MODE_TCP) && 
+	if ((Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP) &&
 		TCPRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), Protocol, LocalSocketData))
 			return true;
 
@@ -257,7 +258,7 @@ size_t __fastcall CheckHostsProcess(PSTR OriginalRequest, const size_t Length, P
 		else {
 		//IPv6 check
 			std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0]);
-			for (auto StringIter:*Parameter.LocalAddress_ResponsePTR[0])
+			for (auto StringIter:*GlobalRunningStatus.LocalAddress_ResponsePTR[0])
 			{
 				if (Domain == StringIter)
 				{
@@ -271,7 +272,7 @@ size_t __fastcall CheckHostsProcess(PSTR OriginalRequest, const size_t Length, P
 			if (!IsSendPTR)
 			{
 				std::unique_lock<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[1U]);
-				for (auto StringIter:*Parameter.LocalAddress_ResponsePTR[1U])
+				for (auto StringIter:*GlobalRunningStatus.LocalAddress_ResponsePTR[1U])
 				{
 					if (Domain == StringIter)
 					{
@@ -311,22 +312,22 @@ size_t __fastcall CheckHostsProcess(PSTR OriginalRequest, const size_t Length, P
 		if (DNS_Query->Type == htons(DNS_RECORD_AAAA))
 		{
 			std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0]);
-			if (Parameter.LocalAddress_Length[0] >= DNS_PACKET_MINSIZE)
+			if (GlobalRunningStatus.LocalAddress_Length[0] >= DNS_PACKET_MINSIZE)
 			{
 				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
-				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), Parameter.LocalAddress_Response[0] + sizeof(uint16_t), Parameter.LocalAddress_Length[0] - sizeof(uint16_t));
-				return Parameter.LocalAddress_Length[0];
+				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), GlobalRunningStatus.LocalAddress_Response[0] + sizeof(uint16_t), GlobalRunningStatus.LocalAddress_Length[0] - sizeof(uint16_t));
+				return GlobalRunningStatus.LocalAddress_Length[0];
 			}
 		}
 	//IPv4
 		else if (DNS_Query->Type == htons(DNS_RECORD_A))
 		{
 			std::unique_lock<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[1U]);
-			if (Parameter.LocalAddress_Length[1U] >= DNS_PACKET_MINSIZE)
+			if (GlobalRunningStatus.LocalAddress_Length[1U] >= DNS_PACKET_MINSIZE)
 			{
 				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
-				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), Parameter.LocalAddress_Response[1U] + sizeof(uint16_t), Parameter.LocalAddress_Length[1U] - sizeof(uint16_t));
-				return Parameter.LocalAddress_Length[1U];
+				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), GlobalRunningStatus.LocalAddress_Response[1U] + sizeof(uint16_t), GlobalRunningStatus.LocalAddress_Length[1U] - sizeof(uint16_t));
+				return GlobalRunningStatus.LocalAddress_Length[1U];
 			}
 		}
 	}
@@ -461,7 +462,7 @@ size_t __fastcall CheckHostsProcess(PSTR OriginalRequest, const size_t Length, P
 
 						//Select a ramdom preferred result.
 							std::uniform_int_distribution<int> RamdomDistribution(0, ntohs(DNS_Header->Answer) - 1U);
-							size_t RamdomIndex = RamdomDistribution(*Parameter.RamdomEngine);
+							size_t RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 							if (RamdomIndex > 0)
 							{
 								memcpy_s(DNS_AAAA_Temp.get(), sizeof(dns_record_aaaa), Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), sizeof(dns_record_aaaa));
@@ -517,7 +518,7 @@ size_t __fastcall CheckHostsProcess(PSTR OriginalRequest, const size_t Length, P
 
 						//Select a ramdom preferred result.
 							std::uniform_int_distribution<int> RamdomDistribution(0, ntohs(DNS_Header->Answer) - 1U);
-							size_t RamdomIndex = RamdomDistribution(*Parameter.RamdomEngine);
+							size_t RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 							if (RamdomIndex > 0)
 							{
 								memcpy_s(DNS_A_Temp.get(), sizeof(dns_record_a), Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), sizeof(dns_record_a));
@@ -735,13 +736,13 @@ uint16_t __fastcall SelectNetworkProtocol(void)
 {
 //IPv6
 	if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv6 || //Auto select
+		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6 || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 			return AF_INET6;
 //IPv4
 	else if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv4 || //Auto select
+		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 			return AF_INET;
@@ -912,11 +913,11 @@ bool __fastcall MarkDomainCache(const char *Buffer, const size_t Length)
 
 	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
-			DNSCacheDataTemp.ClearCacheTime = (size_t)((*Parameter.FunctionPTR_GetTickCount64)() + ResponseTTL * SECOND_TO_MILLISECOND);
+		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
+			DNSCacheDataTemp.ClearCacheTime = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + ResponseTTL * SECOND_TO_MILLISECOND);
 		else 
 			DNSCacheDataTemp.ClearCacheTime = GetTickCount() + ResponseTTL * SECOND_TO_MILLISECOND;
-	#else 
+	#else
 		DNSCacheDataTemp.ClearCacheTime = GetTickCount64() + ResponseTTL * SECOND_TO_MILLISECOND;
 	#endif
 
@@ -939,9 +940,9 @@ bool __fastcall MarkDomainCache(const char *Buffer, const size_t Length)
 		else { //CACHE_TYPE_TIMER
 		//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			while (!DNSCacheList.empty() && (Parameter.FunctionPTR_GetTickCount64 != nullptr && (*Parameter.FunctionPTR_GetTickCount64)() >= DNSCacheList.front().ClearCacheTime || 
+			while (!DNSCacheList.empty() && (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr && (*GlobalRunningStatus.FunctionPTR_GetTickCount64)() >= DNSCacheList.front().ClearCacheTime || 
 				GetTickCount() >= DNSCacheList.front().ClearCacheTime))
-		#else 
+		#else
 			while (!DNSCacheList.empty() && GetTickCount64() >= DNSCacheList.front().ClearCacheTime)
 		#endif
 				DNSCacheList.pop_front();

@@ -22,7 +22,7 @@
 //////////////////////////////////////////////////
 // Main Header
 // 
-//Base defines
+//Base definitions
 #define KILOBYTE_TIMES         1024U         //1KB = 1024 bytes
 #define MEGABYTE_TIMES         1048576U      //1MB = 1048576 bytes
 #define GIGABYTE_TIMES         1073741824U   //1GB = 1073741824 bytes
@@ -42,7 +42,7 @@
 #define BYTES_TO_BITS           8U
 #define U16_NUM_ONE             0x0001
 
-//ASCII value defines
+//ASCII value definitions
 #define ASCII_HT                9                    //"␉"
 #define ASCII_LF                0x0A                 //10, Line Feed
 #define ASCII_VT                0x0B                 //11, Vertical Tab
@@ -78,7 +78,7 @@
 //#define ASCII_UPPER_TO_LOWER    32U                  //Uppercase to lowercase
 //#define ASCII_LOWER_TO_UPPER    32U                  //Lowercase to uppercase
 
-//Unicode value defines
+//Unicode value definitions
 #define UNICODE_NEXT_LINE                   0x0085               //Next Line
 #define UNICODE_NO_BREAK_SPACE              0x00A0               //No-Break Space
 #define UNICODE_OGHAM_SPACE_MARK            0x1680               //Ogham Space Mark
@@ -102,16 +102,16 @@
 #define UNICODE_WORD_JOINER                 0x2060               //Word Joiner
 #define UNICODE_IDEOGRAPHIC_SPACE           0x3000               //Ideographic Space in CJK
 
-//Version defines
+//Version definitions
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4                                   //Current configuration version
-#define FULL_VERSION                 L"0.4.3.3"
+#define FULL_VERSION                 L"0.4.3.4"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2015 Chengr28"
 
-//Exit code defines
+//Exit code definitions
 #define EXIT_CHECK_HOSTS_TYPE_LOCAL                2U   //Type is Local in CheckHostsProcess function.
 
-//Size and length defines
+//Size and length definitions
 #define BOM_UTF_8_LENGTH               3U                                         //UTF-8 BOM length
 #define BOM_UTF_16_LENGTH              2U                                         //UTF-16 BOM length
 #define BOM_UTF_32_LENGTH              4U                                         //UTF-32 BOM length
@@ -153,7 +153,7 @@
 #define DNS_RR_MAXCOUNT_A              75U                                                                             //Maximum Record Resources size of A answers, 16 bytes * 75 = 1200 bytes
 #define EDNS_ADDITIONAL_MAXSIZE        (sizeof(dns_record_opt) * 2U + sizeof(edns_client_subnet) + sizeof(in6_addr))   //Maximum of EDNS Additional Record Resources size
 
-//Code defines
+//Code definitions
 #if defined(PLATFORM_WIN)
 	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE   8192U      //Buffer maximum size of QueryServiceConfig() function(8KB/8192 Bytes)
 	#define SYSTEM_SOCKET                         UINT_PTR   //System Socket defined(WinSock2.h), which is not the same in x86(unsigned int) and x64(unsigned __int64) platform and defined in WinSock2.h file.
@@ -166,11 +166,11 @@
 	#define PCAP_LOOP_INFINITY                    (-1)       //Pcap packets are processed until another ending condition occurs.
 	#define PCAP_COMPILE_OPTIMIZE                 1          //Pcap optimization on the resulting code is performed.
 #endif
-#define SHA3_512_SIZE                         64U        //SHA3-512 instance as specified in the FIPS 202 draft in April 2014(http://csrc.nist.gov/publications/drafts/fips-202/fips_202_draft.pdf), 512 bits/64 bytes.
+//#define SHA3_512_SIZE                         64U        //SHA3-512 instance as specified in the FIPS 202(http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf), 512 bits/64 bytes.
 #define CHECKSUM_SUCCESS                      0          //Result of getting correct checksum.
 #define DYNAMIC_MIN_PORT                      1024U      //Well-known port is from 1 to 1023.
 
-//Time defines
+//Time definitions
 #define LOOP_MAX_TIMES                     8U        //Maximum of loop times, 8 times
 #define LOOP_INTERVAL_TIME                 10U       //Loop interval time, 10 ms
 #define STANDARD_TIMEOUT                   1000U     //Standard timeout, 1000 ms(1 second)
@@ -208,7 +208,7 @@
 	#define SHORTEST_DNSCURVE_RECHECK_TIME     10U       //The shortset DNSCurve keys recheck time, 10 seconds
 #endif
 
-//Data defines
+//Data definitions
 #define DEFAULT_LOCAL_SERVERNAME              ("pcap-dnsproxy.localhost.server")                                                                                                            //Default Local DNS server name
 #if defined(PLATFORM_WIN)
 	#define CONFIG_FILE_NAME_LIST                 L"Config.ini", L"Config.conf", L"Config.cfg", L"Config"
@@ -247,14 +247,14 @@
 #endif
 #if defined(PLATFORM_MACX)
 	#define DEFAULT_SEQUENCE                      0
-#else 
+#else
 	#define DEFAULT_SEQUENCE                      0x0001                                                                                                                                        //Default sequence of protocol
 #endif
 #define DNS_PACKET_QUERY_LOCATE(Buffer)       (sizeof(dns_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U)                                                                    //Location the beginning of DNS Query
 #define DNS_TCP_PACKET_QUERY_LOCATE(Buffer)   (sizeof(dns_tcp_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_tcp_hdr)) + 1U)
 #define DNS_PACKET_RR_LOCATE(Buffer)          (sizeof(dns_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U + sizeof(dns_qry))                                                  //Location the beginning of DNS Resource Records
 
-//Function Type defines
+//Function Type definitions
 //Windows XP with SP3 support
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 	#define FUNCTION_GETTICKCOUNT64        1U
@@ -262,12 +262,12 @@
 	#define FUNCTION_INET_PTON             3U
 #endif
 
-//Compare addresses own defines
+//Compare addresses own definitions
 #define ADDRESS_COMPARE_LESS           1U
 #define ADDRESS_COMPARE_EQUAL          2U
 #define ADDRESS_COMPARE_GREATER        3U
 
-//Error type defines
+//Error type definitions
 #define LOG_MESSAGE_NOTICE             1U            // 01: Notice Message
 #define LOG_ERROR_SYSTEM               2U            // 02: System Error
 #define LOG_ERROR_PARAMETER            3U            // 03: Parameter Error
@@ -281,7 +281,7 @@
 	#define LOG_ERROR_DNSCURVE             8U            // 08: DNSCurve Error
 #endif
 
-//Codes and types defines
+//Codes and types definitions
 #define LISTEN_PROTOCOL_NETWORK_BOTH     0
 #define LISTEN_PROTOCOL_IPV6             1U
 #define LISTEN_PROTOCOL_IPV4             2U
@@ -308,7 +308,7 @@
 #define CACHE_TYPE_TIMER                 1U
 #define CACHE_TYPE_QUEUE                 2U
 
-//Server type defines
+//Server type definitions
 #if defined(ENABLE_LIBSODIUM)
 	#define DNSCURVE_MAIN_IPV6             1U           //DNSCurve Main(IPv6)
 	#define DNSCURVE_MAIN_IPV4             2U           //DNSCurve Main(IPv4)
@@ -316,7 +316,7 @@
 	#define DNSCURVE_ALTERNATE_IPV4        4U           //DNSCurve Alternate(IPv4)
 #endif
 
-//Function Pointer defines
+//Function Pointer definitions
 //Windows XP with SP3 support
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 	typedef ULONGLONG(CALLBACK *FunctionType_GetTickCount64)(void);
@@ -326,7 +326,7 @@
 
 
 //////////////////////////////////////////////////
-// Function defines(Part 2)
+// Function definitions(Part 2)
 #define ntoh16_Force          hton16_Force
 #define ntoh32_Force          hton32_Force
 #define ntoh64                hton64
@@ -411,7 +411,7 @@ typedef struct _dnscurve_server_data_
 }DNSCurveServerData, DNSCURVE_SERVER_DATA, *PDNSCurveServerData, *PDNSCURVE_SERVER_DATA;
 #endif
 
-//Class defines
+//Class definitions
 //Configuration class
 typedef class ConfigurationTable {
 public:
@@ -435,6 +435,7 @@ public:
 	bool                                 IPFilterType;
 	size_t                               IPFilterLevel;
 	bool                                 AcceptType;
+	std::vector<uint16_t>                *AcceptTypeList;
 //[DNS] block
 	size_t                               RequestMode_Network;
 	size_t                               RequestMode_Transport;
@@ -475,16 +476,15 @@ public:
 	size_t                               EDNSPayloadSize;
 #if defined(ENABLE_PCAP)
 	uint8_t                              HopLimitFluctuation;
-	uint16_t                             ICMP_ID;
-	uint16_t                             ICMP_Sequence;
-	size_t                               ICMP_Speed;
-//[Data] block(A part)
-	PSTR                                 ICMP_PaddingData;
-	size_t                               ICMP_PaddingLength;
-	PSTR                                 DomainTest_Data;
-	uint16_t                             DomainTest_ID;
-	size_t                               DomainTest_Speed;
 #endif
+#if defined(PLATFORM_WIN)
+	int                                  SocketTimeout_Reliable;
+	int                                  SocketTimeout_Unreliable;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	timeval                              SocketTimeout_Reliable;
+	timeval                              SocketTimeout_Unreliable;
+#endif
+	size_t                               ReceiveWaiting;
 	size_t                               AlternateTimes;
 	size_t                               AlternateTimeRange;
 	size_t                               AlternateResetTime;
@@ -508,7 +508,17 @@ public:
 #endif
 	bool                                 DNSDataCheck;
 	bool                                 BlacklistCheck;
-//[Data] block(B part)
+//[Data] block
+#if defined(ENABLE_PCAP)
+	uint16_t                             ICMP_ID;
+	uint16_t                             ICMP_Sequence;
+	size_t                               ICMP_Speed;
+	PSTR                                 ICMP_PaddingData;
+	size_t                               ICMP_PaddingLength;
+	PSTR                                 DomainTest_Data;
+	uint16_t                             DomainTest_ID;
+	size_t                               DomainTest_Speed;
+#endif
 	std::string                          *LocalFQDN_String;
 	PSTR                                 LocalFQDN_Response;
 	size_t                               LocalFQDN_Length;
@@ -521,8 +531,17 @@ public:
 	bool                                 DNSCurve;
 #endif
 
-// Global parameters from status
-//Global block
+//Member functions
+	ConfigurationTable(void);
+	~ConfigurationTable(void);
+	void SetToMonitorItem(void);
+	void MonitorItemToUsing(ConfigurationTable *ConfigurationParameter);
+	void MonitorItemReset(void);
+}CONFIGURATION_TABLE;
+
+//Global status class
+typedef class GlobalStatus {
+public:
 #if defined(PLATFORM_WIN)
 	bool                                 Console;
 #elif defined(PLATFORM_LINUX)
@@ -530,6 +549,9 @@ public:
 #endif
 	std::vector<SYSTEM_SOCKET>           *LocalSocket;
 	std::default_random_engine           *RamdomEngine;
+	PSTR                                 DomainTable;
+
+//Path and file status
 	std::vector<std::wstring>            *Path_Global;
 	std::wstring                         *Path_ErrorLog;
 	std::vector<std::wstring>            *FileList_Hosts;
@@ -540,21 +562,17 @@ public:
 	std::vector<std::string>             *sFileList_Hosts;
 	std::vector<std::string>             *sFileList_IPFilter;
 #endif
-#if defined(PLATFORM_WIN)
-	int                                  SocketTimeout_Reliable;
-	int                                  SocketTimeout_Unreliable;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	timeval                              SocketTimeout_Reliable;
-	timeval                              SocketTimeout_Unreliable;
-#endif
-	size_t                               ReceiveWaiting;
-	PSTR                                 DomainTable;
+
+//Network layer status
+	bool                                 GatewayAvailable_IPv6;
+	bool                                 GatewayAvailable_IPv4;
+
+//Local address status
 	PSTR                                 LocalAddress_Response[NETWORK_LAYER_PARTNUM];
 	size_t                               LocalAddress_Length[NETWORK_LAYER_PARTNUM];
 #if !defined(PLATFORM_MACX)
 	std::vector<std::string>             *LocalAddress_ResponsePTR[NETWORK_LAYER_PARTNUM];
 #endif
-	std::vector<uint16_t>                *AcceptTypeList;
 
 //Windows XP with SP3 support
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
@@ -566,17 +584,10 @@ public:
 	FunctionType_InetPton                FunctionPTR_InetPton;
 #endif
 
-//Network layers support block
-	bool                                 GatewayAvailable_IPv6;
-	bool                                 GatewayAvailable_IPv4;
-
 //Member functions
-	ConfigurationTable(void);
-	~ConfigurationTable(void);
-	void SetToMonitorItem(void);
-	void MonitorItemToUsing(ConfigurationTable *ConfigurationParameter);
-	void MonitorItemReset(void);
-}CONFIGURATION_TABLE;
+	GlobalStatus(void);
+	~GlobalStatus(void);
+}GLOBAL_STATUS;
 
 //IPv4/IPv6 addresses ranges class
 typedef class AddressRangeTable {
@@ -763,7 +774,11 @@ bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol);
 bool __fastcall CheckCustomModeFilter(const void *OriginalAddr, const uint16_t Protocol);
 size_t __fastcall CheckQueryNameLength(const char *Buffer);
 size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t Length, const SOCKET_DATA &LocalSocketData, const uint16_t Protocol, bool *IsLocal);
-size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal, bool *IsMarkHopLimit);
+#if defined(ENABLE_PCAP)
+	size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal, bool *IsMarkHopLimit);
+#else
+	size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal);
+#endif
 
 //Configuration.h
 bool __fastcall ReadParameter(const bool IsFirstRead);

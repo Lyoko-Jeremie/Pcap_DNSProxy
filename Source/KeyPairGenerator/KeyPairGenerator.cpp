@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
 #if defined(PLATFORM_WIN)
 	system("Pause");
 #endif
-#else 
+#else
 	#if defined(PLATFORM_WIN)
 		wprintf_s(L"LibSodium is disable.\n\n");
 		system("Pause");

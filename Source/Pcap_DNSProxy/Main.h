@@ -21,6 +21,7 @@
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter, ParameterModificating;
+extern GLOBAL_STATUS GlobalRunningStatus;
 extern time_t StartTime;
 #if defined(ENABLE_LIBSODIUM)
 	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;

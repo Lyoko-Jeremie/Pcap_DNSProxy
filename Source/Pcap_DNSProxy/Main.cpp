@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 	SERVICE_TABLE_ENTRYW ServiceTable[]{{SYSTEM_SERVICE_NAME, (LPSERVICE_MAIN_FUNCTIONW)ServiceMain}, {nullptr, nullptr}};
 	if (!StartServiceCtrlDispatcherW(ServiceTable))
 	{
-		Parameter.Console = true;
+		GlobalRunningStatus.Console = true;
 		wprintf_s(L"System Error: Service start error, error code is %lu.\n", GetLastError());
 		wprintf_s(L"System Error: Program will continue to run in console mode.\n");
 		wprintf_s(L"Please ignore these error messages if you want to run in console mode.\n");
@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
 	#if defined(PLATFORM_LINUX)
 		else if (Commands == COMMAND_DISABLE_DAEMON)
 		{
-			Parameter.Daemon = false;
+			GlobalRunningStatus.Daemon = false;
 		}
 	#endif
 	//Print current version.
@@ -255,7 +255,7 @@ int main(int argc, char *argv[])
 
 //Set system daemon.
 #if defined(PLATFORM_LINUX)
-	if (Parameter.Daemon && daemon(0, 0) == RETURN_ERROR)
+	if (GlobalRunningStatus.Daemon && daemon(0, 0) == RETURN_ERROR)
 	{
 		PrintError(LOG_ERROR_SYSTEM, L"Set system daemon error", 0, nullptr, 0);
 		return false;
@@ -274,38 +274,38 @@ int main(int argc, char *argv[])
 {
 //Path process
 #if defined(PLATFORM_WIN)
-	Parameter.Path_Global->clear();
-	Parameter.Path_Global->push_back(OriginalPath);
-	Parameter.Path_Global->front().erase(Parameter.Path_Global->front().rfind(L"\\") + 1U);
-	for (size_t Index = 0;Index < Parameter.Path_Global->front().length();++Index)
+	GlobalRunningStatus.Path_Global->clear();
+	GlobalRunningStatus.Path_Global->push_back(OriginalPath);
+	GlobalRunningStatus.Path_Global->front().erase(GlobalRunningStatus.Path_Global->front().rfind(L"\\") + 1U);
+	for (size_t Index = 0;Index < GlobalRunningStatus.Path_Global->front().length();++Index)
 	{
-		if ((Parameter.Path_Global->front()).at(Index) == L'\\')
+		if ((GlobalRunningStatus.Path_Global->front()).at(Index) == L'\\')
 		{
-			Parameter.Path_Global->front().insert(Index, L"\\");
+			GlobalRunningStatus.Path_Global->front().insert(Index, L"\\");
 			++Index;
 		}
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	Parameter.sPath_Global->clear();
-	Parameter.sPath_Global->push_back(OriginalPath);
-	Parameter.sPath_Global->front().append("/");
+	GlobalRunningStatus.sPath_Global->clear();
+	GlobalRunningStatus.sPath_Global->push_back(OriginalPath);
+	GlobalRunningStatus.sPath_Global->front().append("/");
 	std::wstring StringTemp;
 	if (!MBSToWCSString(StringTemp, OriginalPath))
 		return false;
 	StringTemp.append(L"/");
-	Parameter.Path_Global->clear();
-	Parameter.Path_Global->push_back(StringTemp);
+	GlobalRunningStatus.Path_Global->clear();
+	GlobalRunningStatus.Path_Global->push_back(StringTemp);
 	StringTemp.clear();
 #endif
 
 //Get path of error/running status log file and mark start time.
-	Parameter.Path_ErrorLog->clear();
-	*Parameter.Path_ErrorLog = Parameter.Path_Global->front();
-	Parameter.Path_ErrorLog->append(L"Error.log");
+	GlobalRunningStatus.Path_ErrorLog->clear();
+	*GlobalRunningStatus.Path_ErrorLog = GlobalRunningStatus.Path_Global->front();
+	GlobalRunningStatus.Path_ErrorLog->append(L"Error.log");
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	Parameter.sPath_ErrorLog->clear();
-	*Parameter.sPath_ErrorLog = Parameter.sPath_Global->front();
-	Parameter.sPath_ErrorLog->append("Error.log");
+	GlobalRunningStatus.sPath_ErrorLog->clear();
+	*GlobalRunningStatus.sPath_ErrorLog = GlobalRunningStatus.sPath_Global->front();
+	GlobalRunningStatus.sPath_ErrorLog->append("Error.log");
 #endif
 	Parameter.PrintError = true;
 	StartTime = time(nullptr);
@@ -329,7 +329,7 @@ bool __fastcall FirewallTest(const uint16_t Protocol)
 	if (Protocol == AF_INET6)
 	{
 		((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = in6addr_any;
-		((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
+		((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 		SockAddr->ss_family = AF_INET6;
 		FirewallSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 
@@ -340,13 +340,13 @@ bool __fastcall FirewallTest(const uint16_t Protocol)
 		}
 		else if (bind(FirewallSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6)) == SOCKET_ERROR)
 		{
-			((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
+			((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 			size_t Index = 0;
 			while (bind(FirewallSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6)) == SOCKET_ERROR)
 			{
 				if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)
 				{
-					((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
+					((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 
 					++Index;
 					continue;
@@ -361,7 +361,7 @@ bool __fastcall FirewallTest(const uint16_t Protocol)
 //IPv4
 	else {
 		((PSOCKADDR_IN)SockAddr.get())->sin_addr.s_addr = INADDR_ANY;
-		((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
+		((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 		SockAddr->ss_family = AF_INET;
 		FirewallSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
@@ -372,13 +372,13 @@ bool __fastcall FirewallTest(const uint16_t Protocol)
 		}
 		else if (bind(FirewallSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in)) == SOCKET_ERROR)
 		{
-			((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
+			((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 			size_t Index = 0;
 			while (bind(FirewallSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in)) == SOCKET_ERROR)
 			{
 				if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)
 				{
-					((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*Parameter.RamdomEngine));
+					((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 
 					++Index;
 					continue;

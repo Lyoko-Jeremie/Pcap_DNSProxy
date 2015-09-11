@@ -197,7 +197,7 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 		memcpy_s(Buffer.get() + sizeof(icmpv6_hdr), Parameter.ICMP_PaddingLength - 1U, Parameter.ICMP_PaddingData, Parameter.ICMP_PaddingLength - 1U);
 	#if defined(PLATFORM_LINUX)
 		ICMPv6_Header->Timestamp = (uint64_t)time(nullptr);
-		ICMPv6_Header->Nonce = RamdomDistribution(*Parameter.RamdomEngine);
+		ICMPv6_Header->Nonce = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 	#elif defined(PLATFORM_MACX)
 		ICMPv6_Header->Timestamp = (uint64_t)time(nullptr);
 	#endif
@@ -288,7 +288,7 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 		memcpy_s(Buffer.get() + sizeof(icmp_hdr), Parameter.ICMP_PaddingLength - 1U, Parameter.ICMP_PaddingData, Parameter.ICMP_PaddingLength - 1U);
 	#if defined(PLATFORM_LINUX)
 		ICMP_Header->Timestamp = (uint64_t)time(nullptr);
-		ICMP_Header->Nonce = RamdomDistribution(*Parameter.RamdomEngine);
+		ICMP_Header->Nonce = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 	#elif defined(PLATFORM_MACX)
 		ICMP_Header->Timestamp = (uint64_t)time(nullptr);
 	#endif
@@ -299,11 +299,7 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 		memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
 
 	//Main
-	#if defined(PLATFORM_WIN)
 		SocketDataTemp->Socket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		SocketDataTemp->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
-	#endif
 		if (SocketDataTemp->Socket == INVALID_SOCKET)
 		{
 			PrintError(LOG_ERROR_NETWORK, L"ICMP Echo(Ping) request error", WSAGetLastError(), nullptr, 0);
@@ -320,11 +316,7 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 	//Alternate
 		if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
 		{
-		#if defined(PLATFORM_WIN)
 			SocketDataTemp->Socket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			SocketDataTemp->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
-		#endif
 			if (SocketDataTemp->Socket == INVALID_SOCKET)
 			{
 				PrintError(LOG_ERROR_NETWORK, L"ICMP Echo(Ping) request error", WSAGetLastError(), nullptr, 0);
@@ -347,11 +339,7 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 		{
 			for (auto DNSServerDataIter:*Parameter.DNSTarget.IPv4_Multi)
 			{
-			#if defined(PLATFORM_WIN)
 				SocketDataTemp->Socket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				SocketDataTemp->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
-			#endif
 				if (SocketDataTemp->Socket == INVALID_SOCKET)
 				{
 					PrintError(LOG_ERROR_NETWORK, L"ICMP Echo(Ping) request error", WSAGetLastError(), nullptr, 0);
@@ -484,7 +472,7 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 					//Get UTC time.
 				#if defined(PLATFORM_LINUX)
 					ICMPv6_Header->Timestamp = (uint64_t)time(nullptr);
-					ICMPv6_Header->Nonce = RamdomDistribution(*Parameter.RamdomEngine);
+					ICMPv6_Header->Nonce = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 				#elif defined(PLATFORM_MACX)
 					ICMPv6_Header->Timestamp = (uint64_t)time(nullptr);
 				#endif
@@ -498,7 +486,7 @@ bool __fastcall ICMPTestRequest(const uint16_t Protocol)
 					//Get UTC time.
 				#if defined(PLATFORM_LINUX)
 					ICMP_Header->Timestamp = (uint64_t)time(nullptr);
-					ICMP_Header->Nonce = RamdomDistribution(*Parameter.RamdomEngine);
+					ICMP_Header->Nonce = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 				#elif defined(PLATFORM_MACX)
 					ICMP_Header->Timestamp = (uint64_t)time(nullptr);
 				#endif
@@ -540,7 +528,7 @@ bool __fastcall SelectTargetSocket(SOCKET_DATA *SockData, bool *&IsAlternate, si
 	{
 	//IPv6
 		if (Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Local_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv6 || //Auto select
+			(Parameter.RequestMode_Local_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6 || //Auto select
 			Parameter.RequestMode_Local_Network == REQUEST_MODE_IPV6 || //IPv6
 			Parameter.RequestMode_Local_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 		{
@@ -574,7 +562,7 @@ bool __fastcall SelectTargetSocket(SOCKET_DATA *SockData, bool *&IsAlternate, si
 		}
 	//IPv4
 		else if (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Local_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv4 || //Auto select
+			(Parameter.RequestMode_Local_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
 			Parameter.RequestMode_Local_Network == REQUEST_MODE_IPV4 || //IPv4
 			Parameter.RequestMode_Local_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 		{
@@ -614,7 +602,7 @@ bool __fastcall SelectTargetSocket(SOCKET_DATA *SockData, bool *&IsAlternate, si
 	else {
 	//IPv6
 		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv6 || //Auto select
+			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6 || //Auto select
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 		{
@@ -648,7 +636,7 @@ bool __fastcall SelectTargetSocket(SOCKET_DATA *SockData, bool *&IsAlternate, si
 		}
 	//IPv4
 		else if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv4 || //Auto select
+			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 		{
@@ -706,7 +694,7 @@ bool __fastcall SelectTargetSocketMulti(std::vector<SOCKET_DATA> &SockDataList, 
 
 //IPv6
 	if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv6 || //Auto select
+		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6 || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 	{
@@ -844,7 +832,7 @@ bool __fastcall SelectTargetSocketMulti(std::vector<SOCKET_DATA> &SockDataList, 
 	}
 //IPv4
 	else if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv4 || //Auto select
+		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 	{
@@ -1098,7 +1086,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 	memset(Timeout.get(), 0, sizeof(timeval));
 	FD_ZERO(WriteFDS.get());
 #if defined(PLATFORM_LINUX)
-	if (IsSend)
+	if (!IsSend)
 #endif
 		FD_SET(TCPSockData->Socket, WriteFDS.get());
 	SSIZE_T SelectResult = 0;
@@ -1128,7 +1116,7 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 	#endif
 		if (SelectResult > 0)
 		{
-		//Receive
+		//Receive.
 			if (FD_ISSET(TCPSockData->Socket, ReadFDS.get()))
 			{
 				RecvLen = recv(TCPSockData->Socket, OriginalRecv, (int)RecvSize, 0);
@@ -1188,7 +1176,11 @@ size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PS
 							JumpFromPDU: 
 
 							//Responses question and answers check
+							#if defined(ENABLE_PCAP)
 								RecvLen = CheckResponseData(OriginalRecv, RecvLen, IsLocal, nullptr);
+							#else
+								RecvLen = CheckResponseData(OriginalRecv, RecvLen, IsLocal);
+							#endif
 								if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 									return EXIT_FAILURE;
 
@@ -1365,7 +1357,7 @@ StopLoop:
 	#endif
 		if (SelectResult > 0)
 		{
-		//Receive
+		//Receive.
 			for (size_t Index = 0;Index < TCPSocketDataList.size();++Index)
 			{
 				if (FD_ISSET(TCPSocketDataList.at(Index).Socket, ReadFDS.get()))
@@ -1431,7 +1423,11 @@ StopLoop:
 								JumpFromPDU: 
 
 								//Responses question and answers check
+								#if defined(ENABLE_PCAP)
 									RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+								#else
+									RecvLen = CheckResponseData(OriginalRecv, RecvLen, false);
+								#endif
 									if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 									{
 										memset(OriginalRecv, 0, RecvSize);
@@ -1593,8 +1589,8 @@ size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, cons
 		if (Protocol == IPPROTO_TCP) //TCP
 		{
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
-				OutputPacketListTemp->ClearPortTime = (size_t)((*Parameter.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Reliable);
+			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
+				OutputPacketListTemp->ClearPortTime = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Reliable);
 			else 
 				OutputPacketListTemp->ClearPortTime = GetTickCount() + Parameter.SocketTimeout_Reliable;
 		#elif defined(PLATFORM_WIN)
@@ -1605,8 +1601,8 @@ size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, cons
 		}
 		else { //UDP
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
-				OutputPacketListTemp->ClearPortTime = (size_t)((*Parameter.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Unreliable);
+			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
+				OutputPacketListTemp->ClearPortTime = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Unreliable);
 			else 
 				OutputPacketListTemp->ClearPortTime = GetTickCount() + Parameter.SocketTimeout_Unreliable;
 		#elif defined(PLATFORM_WIN)
@@ -1756,8 +1752,8 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 		if (Protocol == IPPROTO_TCP) //TCP
 		{
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
-				OutputPacketListTemp->ClearPortTime = (size_t)((*Parameter.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Reliable);
+			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
+				OutputPacketListTemp->ClearPortTime = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Reliable);
 			else 
 				OutputPacketListTemp->ClearPortTime = GetTickCount() + Parameter.SocketTimeout_Reliable;
 		#elif defined(PLATFORM_WIN)
@@ -1768,8 +1764,8 @@ size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length,
 		}
 		else { //UDP
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
-				OutputPacketListTemp->ClearPortTime = (size_t)((*Parameter.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Unreliable);
+			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
+				OutputPacketListTemp->ClearPortTime = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Unreliable);
 			else 
 				OutputPacketListTemp->ClearPortTime = GetTickCount() + Parameter.SocketTimeout_Unreliable;
 		#elif defined(PLATFORM_WIN)
@@ -1878,7 +1874,11 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 	}
 	else {
 	//Direct Request Extended check
+	#if defined(ENABLE_PCAP)
 		RecvLen = CheckResponseData(OriginalRecv, RecvLen, IsLocal, nullptr);
+	#else
+		RecvLen = CheckResponseData(OriginalRecv, RecvLen, IsLocal);
+	#endif
 		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 		{
 		//Set socket timeout.
@@ -1913,7 +1913,11 @@ size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t Send
 			memset(OriginalRecv, 0, RecvSize);
 			for (size_t LoopLimits = 0;LoopLimits < LOOP_MAX_TIMES;++LoopLimits)
 			{
+			#if defined(ENABLE_PCAP)
 				RecvLen = CheckResponseData(OriginalRecv, RecvLen, IsLocal, nullptr);
+			#else
+				RecvLen = CheckResponseData(OriginalRecv, RecvLen, IsLocal);
+			#endif
 				if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 				{
 					memset(OriginalRecv, 0, RecvSize);
@@ -2019,7 +2023,7 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 		
 		if (SelectResult > 0)
 		{
-		//Receive
+		//Receive.
 			for (Index = 0;Index < UDPSocketDataList.size();++Index)
 			{
 				if (FD_ISSET(UDPSocketDataList.at(Index).Socket, ReadFDS.get()))
@@ -2036,7 +2040,11 @@ size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t
 					}
 					else {
 					//Direct Request Extended check
+					#if defined(ENABLE_PCAP)
 						RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+					#else
+						RecvLen = CheckResponseData(OriginalRecv, RecvLen, false);
+					#endif
 						if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 						{
 							memset(OriginalRecv, 0, RecvSize);

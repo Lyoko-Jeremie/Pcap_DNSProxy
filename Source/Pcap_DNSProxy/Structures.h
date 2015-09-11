@@ -22,7 +22,9 @@
 //////////////////////////////////////////////////
 // Protocol Header structures
 // 
-/* Ethernet II Frame header in OSI Layer 2(RFC 894, https://tools.ietf.org/html/rfc894)
+/* Ethernet II Frame header in OSI Layer 2
+* IEEE 802.2/802.3, IEEE Standard for Local and Metropolitan Area Networks(https://standards.ieee.org/about/get/802/802.html)
+* RFC 894, A Standard for the Transmission of IP Datagrams over Ethernet Networks(https://tools.ietf.org/html/rfc894)
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -57,7 +59,10 @@ typedef struct _eth_hdr_
 //	uint32_t               FCS;
 }eth_hdr, *peth_hdr;
 
-/* Apple IEEE 1394/FireWire header(RFC 2734 and RFC3146, https://www.ietf.org/rfc/rfc2734 and https://www.ietf.org/rfc/rfc3146)
+/* Apple IEEE 1394/FireWire header
+* IEEE 1394-1995, IEEE Standard for a High Performance Serial Bus(https://standards.ieee.org/findstds/standard/1394-1995.html)
+* RFC 2734, IPv4 over IEEE 1394(https://tools.ietf.org/html/rfc2734)
+* RFC 3146, Transmission of IPv6 Packets over IEEE 1394 Networks(https://tools.ietf.org/html/rfc3146)
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -85,7 +90,8 @@ typedef struct _ieee_1394_hdr_
 	uint16_t               Type;
 }ieee_1394_hdr, *pieee_1394_hdr;
 
-/* Point-to-Point Protocol /PPP header(RFC 2516, https://tools.ietf.org/rfc/rfc2516)
+/* Point-to-Point Protocol /PPP header
+* RFC 2516, A Method for Transmitting PPP Over Ethernet (PPPoE)(https://tools.ietf.org/html/rfc2516)
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -108,7 +114,7 @@ typedef struct _ppp_hdr_
 }ppp_hdr, *pppp_hdr;
 
 //Internet Protocol Numbers
-//About this list, see http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
+//About this list, see IANA Assigned Internet Protocol Numbers(https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)
 #ifndef IPPROTO_HOPOPTS
 	#define IPPROTO_HOPOPTS           0                    //IPv6 Hop-by-Hop Option
 #endif
@@ -545,7 +551,9 @@ typedef struct _ppp_hdr_
 	#define IPPROTO_RESERVED          255U                 //Reserved
 #endif
 
-/* Internet Protocol version 4/IPv4 header(RFC 791, https://www.ietf.org/rfc/rfc791)
+/* Internet Protocol version 4/IPv4 header
+* RFC 791, INTERNET PROTOCOL(https://tools.ietf.org/html/rfc791)
+* RFC 2474, Definition of the Differentiated Services Field (DS Field) in the IPv4 and IPv6 Headers(https://tools.ietf.org/html/rfc2474)
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -616,7 +624,8 @@ typedef struct _ipv4_hdr_
 	in_addr                Destination;
 }ipv4_hdr, *pipv4_hdr;
 
-/* Internet Protocol version 6/IPv6 header(RFC 2460, https://tools.ietf.org/html/rfc2460)
+/* Internet Protocol version 6/IPv6 header
+* RFC 2460, Internet Protocol, Version 6 (IPv6) Specification(https://tools.ietf.org/html/rfc2460)
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -685,7 +694,8 @@ typedef struct _ipv6_hdr_
 	in6_addr                   Destination;
 }ipv6_hdr, *pipv6_hdr;
 
-/* Internet Control Message Protocol/ICMP header(RFC 792, https://tools.ietf.org/html/rfc792)
+/* Internet Control Message Protocol/ICMP header
+* RFC 792, INTERNET CONTROL MESSAGE PROTOCOL(https://tools.ietf.org/html/rfc792)
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -718,7 +728,8 @@ typedef struct _icmp_hdr_
 #endif
 }icmp_hdr, *picmp_hdr;
 
-/* Internet Control Message Protocol version 6/ICMPv6 header(RFC 4443, https://tools.ietf.org/html/rfc4443)
+/* Internet Control Message Protocol version 6/ICMPv6 header
+* RFC 4443, Internet Control Message Protocol (ICMPv6) for the Internet Protocol Version 6 (IPv6) Specification(https://tools.ietf.org/html/rfc4443)
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -752,11 +763,22 @@ typedef struct _icmpv6_hdr_
 }icmpv6_hdr, *picmpv6_hdr;
 
 /* Transmission Control Protocol/TCP header
-RFC 675: https://tools.ietf.org/html/rfc675
-RFC 793: https://tools.ietf.org/html/rfc793
-RFC 1122: https://tools.ietf.org/html/rfc1122
-RFC 2581: https://tools.ietf.org/html/rfc2581
-RFC 5681: https://tools.ietf.org/html/rfc5681
+* RFC 675, SPECIFICATION OF INTERNET TRANSMISSION CONTROL PROGRAM(https://tools.ietf.org/html/rfc675)
+* RFC 793, TRANSMISSION CONTROL PROTOCOL(https://tools.ietf.org/html/rfc793)
+* RFC 1122, Requirements for Internet Hosts -- Communication Layers(https://tools.ietf.org/html/rfc1122)
+* RFC 1349, Type of Service in the Internet Protocol Suite(https://tools.ietf.org/html/rfc1349)
+* RFC 2401, Security Architecture for the Internet Protocol https://tools.ietf.org/html/rfc2401)
+* RFC 2474, Definition of the Differentiated Services Field (DS Field) in the IPv4 and IPv6 Headers https://tools.ietf.org/html/rfc2474)
+* RFC 2581, TCP Congestion Control(https://tools.ietf.org/html/rfc2581)
+* RFC 3168, The Addition of Explicit Congestion Notification (ECN) to IP https://tools.ietf.org/html/rfc3168)
+* RFC 4379, Detecting Multi-Protocol Label Switched (MPLS) Data Plane Failures https://tools.ietf.org/html/rfc4379)
+* RFC 5681, TCP Congestion Control(https://tools.ietf.org/html/rfc5681)
+* RFC 5884, Bidirectional Forwarding Detection (BFD) for MPLS Label Switched Paths (LSPs) https://tools.ietf.org/html/rfc5884)
+* RFC 6093, On the Implementation of the TCP Urgent Mechanism https://tools.ietf.org/html/rfc6093)
+* RFC 6298, Computing TCP's Retransmission Timer(https://tools.ietf.org/html/rfc6298)
+* RFC 6528, Defending against Sequence Number Attacks https://tools.ietf.org/html/rfc6528)
+* RFC 6633, Deprecation of ICMP Source Quench Messages https://tools.ietf.org/html/rfc6633)
+* RFC 6864, Updated Specification of the IPv4 ID Field https://tools.ietf.org/html/rfc6864)
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -784,7 +806,7 @@ RFC 5681: https://tools.ietf.org/html/rfc5681
 #define TCP_RST_STATUS       0x004   //RST bit was set.
 
 //Port definitions(1 - 1024, well-known ports)
-//About this list, see https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml
+//About this list, see IANA Service Name and Transport Protocol Port Number Registry(https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml)
 #ifndef IPPORT_TCPMUX
 	#define IPPORT_TCPMUX               1U
 #endif
@@ -1101,7 +1123,12 @@ typedef struct _tcp_hdr_
 	uint16_t               UrgentPointer;
 }tcp_hdr, *ptcp_hdr;
 
-/* User Datagram Protocol/UDP header(RFC 768, https://tools.ietf.org/html/rfc768)
+/* User Datagram Protocol/UDP header
+* RFC 768, User Datagram Protocol(https://tools.ietf.org/html/rfc768)
+* RFC 2460, Internet Protocol, Version 6 (IPv6) Specification(https://tools.ietf.org/html/rfc2460)
+* RFC 2675, IPv6 Jumbograms(https://tools.ietf.org/html/rfc2675)
+* RFC 4113, Management Information Base for the UDP(https://tools.ietf.org/html/rfc4113)
+* RFC 5405, Unicast UDP Usage Guidelines for Application Designers(https://tools.ietf.org/html/rfc5405)
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -1122,12 +1149,6 @@ typedef struct _udp_hdr_
 }udp_hdr, *pudp_hdr;
 
 /* Transmission Control Protocol/TCP and User Datagram Protocol/UDP Pseudo header with IPv4
-RFC 675: https://tools.ietf.org/html/rfc675
-RFC 768: https://tools.ietf.org/html/rfc768
-RFC 793: https://tools.ietf.org/html/rfc793
-RFC 1122: https://tools.ietf.org/html/rfc1122
-RFC 2581: https://tools.ietf.org/html/rfc2581
-RFC 5681: https://tools.ietf.org/html/rfc5681
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -1150,13 +1171,6 @@ typedef struct _ipv4_psd_hdr_
 }ipv4_psd_hdr, *pipv4_psd_hdr;
 
 /* Internet Control Message Protocol version 6/ICMPv6, Transmission Control Protocol/TCP and User Datagram Protocol/UDP Pseudo header with IPv4
-RFC 675: https://tools.ietf.org/html/rfc675
-RFC 768: https://tools.ietf.org/html/rfc768
-RFC 793: https://tools.ietf.org/html/rfc793
-RFC 1122: https://tools.ietf.org/html/rfc1122
-RFC 2581: https://tools.ietf.org/html/rfc2581
-RFC 4443: https://tools.ietf.org/html/rfc4443
-RFC 5681: https://tools.ietf.org/html/rfc5681
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -1186,85 +1200,86 @@ typedef struct _ipv6_psd_hdr_
 	uint8_t               NextHeader;
 }ipv6_psd_hdr, *pipv6_psd_hdr;
 
-//Domain Name System/DNS Part
+
+//Domain Name System/DNS part
 /* About RFC standards
-RFC 920(https://tools.ietf.org/html/rfc920), Domain Requirements – Specified original top-level domains
-RFC 1032(https://tools.ietf.org/html/rfc1032), Domain Administrators Guide
-RFC 1033(https://tools.ietf.org/html/rfc1033), Domain Administrators Operations Guide
-RFC 1034(https://tools.ietf.org/html/rfc1034), Domain Names - Concepts and Facilities
-RFC 1035(https://tools.ietf.org/html/rfc1035), Domain Names - Implementation and Specification
-RFC 1101(https://tools.ietf.org/html/rfc1101), DNS Encodings of Network Names and Other Types
-RFC 1123(https://tools.ietf.org/html/rfc1123), Requirements for Internet Hosts—Application and Support
-RFC 1178(https://tools.ietf.org/html/rfc1178), Choosing a Name for Your Computer (FYI 5)
-RFC 1183(https://tools.ietf.org/html/rfc1183), New DNS RR Definitions
-RFC 1348(https://tools.ietf.org/html/rfc1348), DNS NSAP RRs
-RFC 1591(https://tools.ietf.org/html/rfc1591), Domain Name System Structure and Delegation (Informational)
-RFC 1664(https://tools.ietf.org/html/rfc1664), Using the Internet DNS to Distribute RFC1327 Mail Address Mapping Tables
-RFC 1706(https://tools.ietf.org/html/rfc1706), DNS NSAP Resource Records
-RFC 1712(https://tools.ietf.org/html/rfc1712), DNS Encoding of Geographical Location
-RFC 1876(https://tools.ietf.org/html/rfc1876), A Means for Expressing Location Information in the Domain Name System
-RFC 1886(https://tools.ietf.org/html/rfc1886), DNS Extensions to support IP version 6
-RFC 1912(https://tools.ietf.org/html/rfc1912), Common DNS Operational and Configuration Errors
-RFC 1995(https://tools.ietf.org/html/rfc1995), Incremental Zone Transfer in DNS
-RFC 1996(https://tools.ietf.org/html/rfc1996), A Mechanism for Prompt Notification of Zone Changes (DNS NOTIFY)
-RFC 2052(https://tools.ietf.org/html/rfc2052), A DNS RR for specifying the location of services (DNS SRV)
-RFC 2100(https://tools.ietf.org/html/rfc2100), The Naming of Hosts (Informational)
-RFC 2136(https://tools.ietf.org/html/rfc2136), Dynamic Updates in the domain name system (DNS UPDATE)
-RFC 2181(https://tools.ietf.org/html/rfc2181), Clarifications to the DNS Specification
-RFC 2182(https://tools.ietf.org/html/rfc2182), Selection and Operation of Secondary DNS Servers
-RFC 2230(https://tools.ietf.org/html/rfc2230), Key Exchange Delegation Record for the DNS
-RFC 2308(https://tools.ietf.org/html/rfc2308), Negative Caching of DNS Queries (DNS NCACHE)
-RFC 2317(https://tools.ietf.org/html/rfc2317), Classless IN-ADDR.ARPA delegation (BCP 20)
-RFC 2535(https://tools.ietf.org/html/rfc2535), Domain Name System Security Extensions
-RFC 2536(https://tools.ietf.org/html/rfc2536), DSA KEYs and SIGs in the Domain Name System (DNS)
-RFC 2537(https://tools.ietf.org/html/rfc2537), RSA/MD5 KEYs and SIGs in the Domain Name System (DNS)
-RFC 2539(https://tools.ietf.org/html/rfc2539), Storage of Diffie-Hellman Keys in the Domain Name System (DNS)
-RFC 2671(https://tools.ietf.org/html/rfc2671), Extension Mechanisms for DNS (EDNS)
-RFC 2672(https://tools.ietf.org/html/rfc2672), Non-Terminal DNS Name Redirection
-RFC 2845(https://tools.ietf.org/html/rfc2845), Secret Key Transaction Authentication for DNS (TSIG)
-RFC 2874(https://tools.ietf.org/html/rfc2874), DNS Extensions to Support IPv6 Address Aggregation and Renumbering
-RFC 2930(https://tools.ietf.org/html/rfc2930), Secret Key Establishment for DNS (TKEY RR)
-RFC 3110(https://tools.ietf.org/html/rfc3110), RSA/SHA-1 SIGs and RSA KEYs in the Domain Name System (DNS)
-RFC 3123(https://tools.ietf.org/html/rfc3123), A DNS RR Type for Lists of Address Prefixes (APL RR)
-RFC 3225(https://tools.ietf.org/html/rfc3225), Indicating Resolver Support of DNSSEC
-RFC 3226(https://tools.ietf.org/html/rfc3226), DNSSEC and IPv6 A6 aware server/resolver message size requirements
-RFC 3403(https://tools.ietf.org/html/rfc3403), Dynamic Delegation Discovery System (DDDS) Part Three: The Domain Name System (DNS) Database
-RFC 3597(https://tools.ietf.org/html/rfc3597), Handling of Unknown DNS Resource Record (RR) Types
-RFC 3696(https://tools.ietf.org/html/rfc3696), Application Techniques for Checking and Transformation of Names (Informational)
-RFC 4025(https://tools.ietf.org/html/rfc4025), A Method for Storing IPsec Keying Material in DNS
-RFC 4034(https://tools.ietf.org/html/rfc4034), Resource Records for the DNS Security Extensions
-RFC 4255(https://tools.ietf.org/html/rfc4255), Using DNS to Securely Publish Secure Shell (SSH) Key Fingerprints
-RFC 4343(https://tools.ietf.org/html/rfc4343), Domain Name System (DNS) Case Insensitivity Clarification
-RFC 4398(https://tools.ietf.org/html/rfc4398), Storing Certificates in the Domain Name System (DNS)
-RFC 4408(https://tools.ietf.org/html/rfc4408), Sender Policy Framework (SPF) for Authorizing Use of Domains in E-Mail, Version 1
-RFC 4431(https://tools.ietf.org/html/rfc4431), The DNSSEC Lookaside Validation (DLV) DNS Resource Record
-RFC 4592(https://tools.ietf.org/html/rfc4592), The Role of Wildcards in the Domain Name System
-RFC 4635(https://tools.ietf.org/html/rfc4635), HMAC SHA TSIG Algorithm Identifiers
-RFC 4701(https://tools.ietf.org/html/rfc4701), A DNS Resource Record (RR) for Encoding Dynamic Host Configuration Protocol (DHCP) Information (DHCID RR)
-RFC 4892(https://tools.ietf.org/html/rfc4892), Requirements for a Mechanism Identifying a Name Server Instance (Informational)
-RFC 5001(https://tools.ietf.org/html/rfc5001), DNS Name Server Identifier (NSID) Option
-RFC 5155(https://tools.ietf.org/html/rfc5155), DNS Security (DNSSEC) Hashed Authenticated Denial of Existence
-RFC 5205(https://tools.ietf.org/html/rfc5205), Host Identity Protocol (HIP) Domain Name System (DNS) Extension
-RFC 5452(https://tools.ietf.org/html/rfc5452), Measures for Making DNS More Resilient against Forged Answers
-RFC 5625(https://tools.ietf.org/html/rfc5625), DNS Proxy Implementation Guidelines (BCP 152)
-RFC 5890(https://tools.ietf.org/html/rfc5890), Internationalized Domain Names for Applications (IDNA):Definitions and Document Framework
-RFC 5891(https://tools.ietf.org/html/rfc5891), Internationalized Domain Names in Applications (IDNA): Protocol
-RFC 5892(https://tools.ietf.org/html/rfc5892), The Unicode Code Points and Internationalized Domain Names for Applications (IDNA)
-RFC 5893(https://tools.ietf.org/html/rfc5893), Right-to-Left Scripts for Internationalized Domain Names for Applications (IDNA)
-RFC 5894(https://tools.ietf.org/html/rfc5894), Internationalized Domain Names for Applications (IDNA):Background, Explanation, and Rationale (Informational)
-RFC 5895(https://tools.ietf.org/html/rfc5895), Mapping Characters for Internationalized Domain Names in Applications (IDNA) 2008 (Informational)
-RFC 5936(https://tools.ietf.org/html/rfc5936), DNS Zone Transfer Protocol (AXFR)
-RFC 5966(https://tools.ietf.org/html/rfc5966), DNS Transport over TCP - Implementation Requirements
-RFC 6195(https://tools.ietf.org/html/rfc6195), Domain Name System (DNS) IANA Considerations (BCP 42)
-RFC 6698(https://tools.ietf.org/html/rfc6698), The DNS-Based Authentication of Named Entities (DANE) Transport Layer Security (TLS) Protocol: TLSA
-RFC 6742(https://tools.ietf.org/html/rfc6742), DNS Resource Records for the Identifier-Locator Network Protocol (ILNP)
-RFC 6844(https://tools.ietf.org/html/rfc6844), DNS Certification Authority Authorization (CAA) Resource Record
-RFC 6975(https://tools.ietf.org/html/rfc6975), Signaling Cryptographic Algorithm Understanding in DNS Security Extensions (DNSSEC)
-RFC 7043(https://tools.ietf.org/html/rfc7043), Resource Records for EUI-48 and EUI-64 Addresses in the DNS
-RFC 7314(https://tools.ietf.org/html/rfc7314), Extension Mechanisms for DNS (EDNS) EXPIRE Option
+* RFC 920, Domain Requirements – Specified original top-level domains(https://tools.ietf.org/html/rfc920)
+* RFC 1032, Domain Administrators Guide(https://tools.ietf.org/html/rfc1032)
+* RFC 1033, Domain Administrators Operations Guide(https://tools.ietf.org/html/rfc1033)
+* RFC 1034, Domain Names - Concepts and Facilities(https://tools.ietf.org/html/rfc1034)
+* RFC 1035, Domain Names - Implementation and Specification(https://tools.ietf.org/html/rfc1035)
+* RFC 1101, DNS Encodings of Network Names and Other Types(https://tools.ietf.org/html/rfc1101)
+* RFC 1123, Requirements for Internet Hosts—Application and Support(https://tools.ietf.org/html/rfc1123)
+* RFC 1178, Choosing a Name for Your Computer (FYI 5)(https://tools.ietf.org/html/rfc1178)
+* RFC 1183, New DNS RR Definitions(https://tools.ietf.org/html/rfc1183)
+* RFC 1348, DNS NSAP RRs(https://tools.ietf.org/html/rfc1348)
+* RFC 1591, Domain Name System Structure and Delegation (Informational)(https://tools.ietf.org/html/rfc1591)
+* RFC 1664, Using the Internet DNS to Distribute RFC1327 Mail Address Mapping Tables(https://tools.ietf.org/html/rfc1664)
+* RFC 1706, DNS NSAP Resource Records(https://tools.ietf.org/html/rfc1706)
+* RFC 1712, DNS Encoding of Geographical Location(https://tools.ietf.org/html/rfc1712)
+* RFC 1876, A Means for Expressing Location Information in the Domain Name System(https://tools.ietf.org/html/rfc1876)
+* RFC 1886, DNS Extensions to support IP version 6(https://tools.ietf.org/html/rfc1886)
+* RFC 1912, Common DNS Operational and Configuration Errors(https://tools.ietf.org/html/rfc1912)
+* RFC 1995, Incremental Zone Transfer in DNS(https://tools.ietf.org/html/rfc1995)
+* RFC 1996, A Mechanism for Prompt Notification of Zone Changes (DNS NOTIFY)(https://tools.ietf.org/html/rfc1996)
+* RFC 2052, A DNS RR for specifying the location of services (DNS SRV)(https://tools.ietf.org/html/rfc2052)
+* RFC 2100, The Naming of Hosts (Informational)(https://tools.ietf.org/html/rfc2100)
+* RFC 2136, Dynamic Updates in the domain name system (DNS UPDATE)(https://tools.ietf.org/html/rfc2136)
+* RFC 2181, Clarifications to the DNS Specification(https://tools.ietf.org/html/rfc2181)
+* RFC 2182, Selection and Operation of Secondary DNS Servers(https://tools.ietf.org/html/rfc2182)
+* RFC 2230, Key Exchange Delegation Record for the DNS(https://tools.ietf.org/html/rfc2230)
+* RFC 2308, Negative Caching of DNS Queries (DNS NCACHE)(https://tools.ietf.org/html/rfc2308)
+* RFC 2317, Classless IN-ADDR.ARPA delegation (BCP 20)(https://tools.ietf.org/html/rfc2317)
+* RFC 2535, Domain Name System Security Extensions(https://tools.ietf.org/html/rfc2535)
+* RFC 2536, DSA KEYs and SIGs in the Domain Name System (DNS)(https://tools.ietf.org/html/rfc2536)
+* RFC 2537, RSA/MD5 KEYs and SIGs in the Domain Name System (DNS)(https://tools.ietf.org/html/rfc2537)
+* RFC 2539, Storage of Diffie-Hellman Keys in the Domain Name System (DNS)(https://tools.ietf.org/html/rfc2539)
+* RFC 2671, Extension Mechanisms for DNS (EDNS)(https://tools.ietf.org/html/rfc2671)
+* RFC 2672, Non-Terminal DNS Name Redirection(https://tools.ietf.org/html/rfc2672)
+* RFC 2845, Secret Key Transaction Authentication for DNS (TSIG)(https://tools.ietf.org/html/rfc2845)
+* RFC 2874, DNS Extensions to Support IPv6 Address Aggregation and Renumbering(https://tools.ietf.org/html/rfc2874)
+* RFC 2930, Secret Key Establishment for DNS (TKEY RR)(https://tools.ietf.org/html/rfc2930)
+* RFC 3110, RSA/SHA-1 SIGs and RSA KEYs in the Domain Name System (DNS)(https://tools.ietf.org/html/rfc3110)
+* RFC 3123, A DNS RR Type for Lists of Address Prefixes (APL RR)(https://tools.ietf.org/html/rfc3123)
+* RFC 3225, Indicating Resolver Support of DNSSEC(https://tools.ietf.org/html/rfc3225)
+* RFC 3226, DNSSEC and IPv6 A6 aware server/resolver message size requirements(https://tools.ietf.org/html/rfc3226)
+* RFC 3403, Dynamic Delegation Discovery System (DDDS) Part Three: The Domain Name System (DNS Database)(https://tools.ietf.org/html/rfc3403)
+* RFC 3597, Handling of Unknown DNS Resource Record (RR Types)(https://tools.ietf.org/html/rfc3597)
+* RFC 3696, Application Techniques for Checking and Transformation of Names (Informational)(https://tools.ietf.org/html/rfc3696)
+* RFC 4025, A Method for Storing IPsec Keying Material in DNS(https://tools.ietf.org/html/rfc4025)
+* RFC 4034, Resource Records for the DNS Security Extensions(https://tools.ietf.org/html/rfc4034)
+* RFC 4255, Using DNS to Securely Publish Secure Shell (SSH Key Fingerprints)(https://tools.ietf.org/html/rfc4225)
+* RFC 4343, Domain Name System (DNS) Case Insensitivity Clarification(https://tools.ietf.org/html/rfc4343)
+* RFC 4398, Storing Certificates in the Domain Name System (DNS)(https://tools.ietf.org/html/rfc4398)
+* RFC 4408, Sender Policy Framework (SPF) for Authorizing Use of Domains in E-Mail, Version 1(https://tools.ietf.org/html/rfc4408)
+* RFC 4431, The DNSSEC Lookaside Validation (DLV) DNS Resource Record(https://tools.ietf.org/html/rfc4431)
+* RFC 4592, The Role of Wildcards in the Domain Name System(https://tools.ietf.org/html/rfc4592)
+* RFC 4635, HMAC SHA TSIG Algorithm Identifiers(https://tools.ietf.org/html/rfc4635)
+* RFC 4701, A DNS Resource Record (RR) for Encoding Dynamic Host Configuration Protocol (DHCP Information)(DHCID RR)(https://tools.ietf.org/html/rfc4701)
+* RFC 4892, Requirements for a Mechanism Identifying a Name Server Instance (Informational)(https://tools.ietf.org/html/rfc4892)
+* RFC 5001, DNS Name Server Identifier (NSID) Option(https://tools.ietf.org/html/rfc5001)
+* RFC 5155, DNS Security (DNSSEC) Hashed Authenticated Denial of Existence(https://tools.ietf.org/html/rfc5155)
+* RFC 5205, Host Identity Protocol (HIP Domain Name System (DNS Extension(https://tools.ietf.org/html/rfc5205)
+* RFC 5452, Measures for Making DNS More Resilient against Forged Answers(https://tools.ietf.org/html/rfc5452)
+* RFC 5625, DNS Proxy Implementation Guidelines (BCP 152)(https://tools.ietf.org/html/rfc5625)
+* RFC 5890, Internationalized Domain Names for Applications (IDNA):Definitions and Document Framework(https://tools.ietf.org/html/rfc5890)
+* RFC 5891, Internationalized Domain Names in Applications (IDNA): Protocol(https://tools.ietf.org/html/rfc5891)
+* RFC 5892, The Unicode Code Points and Internationalized Domain Names for Applications (IDNA)(https://tools.ietf.org/html/rfc5892)
+* RFC 5893, Right-to-Left Scripts for Internationalized Domain Names for Applications (IDNA)(https://tools.ietf.org/html/rfc5893)
+* RFC 5894, Internationalized Domain Names for Applications (IDNA):Background, Explanation, and Rationale (Informational)(https://tools.ietf.org/html/rfc594)
+* RFC 5895, Mapping Characters for Internationalized Domain Names in Applications (IDNA) 2008 (Informational)(https://tools.ietf.org/html/rfc5895)
+* RFC 5936, DNS Zone Transfer Protocol (AXFR)(https://tools.ietf.org/html/rfc5936)
+* RFC 5966, DNS Transport over TCP - Implementation Requirements(https://tools.ietf.org/html/rfc5966)
+* RFC 6195, Domain Name System (DNS) IANA Considerations (BCP 42)(https://tools.ietf.org/html/rfc6495)
+* RFC 6698, The DNS-Based Authentication of Named Entities (DANE) Transport Layer Security (TLS) Protocol: TLSA(https://tools.ietf.org/html/rfc6698)
+* RFC 6742, DNS Resource Records for the Identifier-Locator Network Protocol (ILNP)(https://tools.ietf.org/html/rfc6742)
+* RFC 6844, DNS Certification Authority Authorization (CAA) Resource Record(https://tools.ietf.org/html/rfc6844)
+* RFC 6975, Signaling Cryptographic Algorithm Understanding in DNS Security Extensions (DNSSEC)(https://tools.ietf.org/html/rfc6975)
+* RFC 7043, Resource Records for EUI-48 and EUI-64 Addresses in the DNS(https://tools.ietf.org/html/rfc7043)
+* RFC 7314, Extension Mechanisms for DNS (EDNS) EXPIRE Option(https://tools.ietf.org/html/rfc7314)
 */
 
-//About this list, see https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
+//About this list, see IANA Domain Name System (DNS) Parameters(https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml)
 //Port and Flags definitions
 #ifndef IPPORT_DNS
 	#define IPPORT_DNS                    53U        //Standard DNS(TCP and UDP) Port
@@ -1849,7 +1864,9 @@ typedef struct _dns_record_opt_
 	uint16_t              DataLength;
 }dns_record_opt, *pdns_record_opt, edns_header, *pedns_header;
 
-/* Extension Mechanisms for Domain Name System/DNS, Client subnet in EDNS requests(https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02)
+/* Extension Mechanisms for Domain Name System/DNS, Client subnet in EDNS requests
+* Client Subnet in DNS Requests draft-vandergaast-edns-client-subnet-02(https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02)
+
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -1901,10 +1918,10 @@ typedef struct _edns_client_subnet_
 
 */
 #define DNSSEC_DS_DIGEST_RESERVED              0
-#define DNSSEC_DS_DIGEST_SHA1                  1U       //Delegation Signer (DS) Resource Record (RR), see https://tools.ietf.org/html/rfc3658
-#define DNSSEC_DS_DIGEST_SHA256                2U       //Use of SHA-256 in DNSSEC Delegation Signer (DS) Resource Records (RRs), see https://tools.ietf.org/html/rfc4509
-#define DNSSEC_DS_DIGEST_GOST                  3U       //Use of GOST Signature Algorithms in DNSKEY and RRSIG Resource Records for DNSSEC, see https://tools.ietf.org/html/rfc5933
-#define DNSSEC_DS_DIGEST_SHA384                4U       //Elliptic Curve Digital Signature Algorithm (DSA) for DNSSEC, see https://tools.ietf.org/html/rfc6605
+#define DNSSEC_DS_DIGEST_SHA1                  1U       //RFC 3658, Delegation Signer (DS) Resource Record (RR)(https://tools.ietf.org/html/rfc3658)
+#define DNSSEC_DS_DIGEST_SHA256                2U       //RFC 4509, Use of SHA-256 in DNSSEC Delegation Signer (DS) Resource Records (RRs)(https://tools.ietf.org/html/rfc4509)
+#define DNSSEC_DS_DIGEST_GOST                  3U       //RFC 5933, Use of GOST Signature Algorithms in DNSKEY and RRSIG Resource Records for DNSSEC(https://tools.ietf.org/html/rfc5933)
+#define DNSSEC_DS_DIGEST_SHA384                4U       //RFC 6605, Elliptic Curve Digital Signature Algorithm (DSA) for DNSSEC(https://tools.ietf.org/html/rfc6605)
 
 //About this list, see https://www.iana.org/assignments/ds-rr-types/ds-rr-types.xhtml
 #define DNSSEC_DS_TYPE_RESERVED                0
@@ -1947,27 +1964,27 @@ typedef struct _dns_record_ds_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define DNSSEC_AlGORITHM_RESERVED_0            0        //Reserved(Resource Records for the DNS Security Extensions, see https://tools.ietf.org/html/rfc4034)
-#define DNSSEC_AlGORITHM_RSA_MD5               1U       //RSA-MD5(RSA/SHA-1 SIGs and RSA KEYs in the Domain Name System (DNS), see https://tools.ietf.org/html/rfc3110)
-#define DNSSEC_AlGORITHM_DH                    2U       //Diffie-Hellman(Storage of Diffie-Hellman Keys in the Domain Name System (DNS), see https://tools.ietf.org/html/rfc2539)
-#define DNSSEC_AlGORITHM_DSA                   3U       //DSA-SHA1(Legacy Resolver Compatibility for Delegation Signer (DS), see https://tools.ietf.org/html/rfc3755)
-#define DNSSEC_AlGORITHM_RESERVED_4            4U       //Reserved(DNS Security (DNSSEC) DNSKEY Algorithm IANA Registry Updates, see https://tools.ietf.org/html/rfc6725)
-#define DNSSEC_AlGORITHM_RSA_SHA1              5U       //RSA-SHA-1(Resource Records for the DNS Security Extensions, see https://tools.ietf.org/html/rfc4034)
-#define DNSSEC_AlGORITHM_DSA_NSEC3_SHA1        6U       //DSA-NSEC3-SHA-1(DNS Security (DNSSEC) Hashed Authenticated Denial of Existence, see https://tools.ietf.org/html/rfc5155)
-#define DNSSEC_AlGORITHM_RSA_SHA1_NSEC3_SHA1   7U       //RSA-SHA-1-NSEC3-SHA-1(DNS Security (DNSSEC) Hashed Authenticated Denial of Existence, see https://tools.ietf.org/html/rfc5155)
-#define DNSSEC_AlGORITHM_RSA_SHA256            8U       //RSA-SHA-256(Use of SHA-2 Algorithms with RSA in DNSKEY and RRSIG Resource Records for DNSSEC, see https://tools.ietf.org/html/rfc5702)
-#define DNSSEC_AlGORITHM_RESERVED_9            9U       //Reserved(DNS Security (DNSSEC) DNSKEY Algorithm IANA Registry Updates, see https://tools.ietf.org/html/rfc6725)
-#define DNSSEC_AlGORITHM_RSA_SHA512            10U      //RSA-SHA-512(Use of SHA-2 Algorithms with RSA in DNSKEY and RRSIG Resource Records for DNSSEC, see https://tools.ietf.org/html/rfc5702)
-#define DNSSEC_AlGORITHM_RESERVED_11           11U      //Reserved(DNS Security (DNSSEC) DNSKEY Algorithm IANA Registry Updates, see https://tools.ietf.org/html/rfc6725)
-#define DNSSEC_AlGORITHM_ECC_GOST              12U      //GOST R 34.10-2001(Use of GOST Signature Algorithms in DNSKEY and RRSIG Resource Records for DNSSEC, see https://tools.ietf.org/html/rfc5933)
-#define DNSSEC_AlGORITHM_ECDSA_P256_SHA256     13U      //ECDSA Curve P-256 with SHA-256(Elliptic Curve Digital Signature Algorithm (DSA) for DNSSEC, see https://tools.ietf.org/html/rfc6605)
-#define DNSSEC_AlGORITHM_ECDSA_P386_SHA386     14U      //ECDSA Curve P-384 with SHA-384(Elliptic Curve Digital Signature Algorithm (DSA) for DNSSEC, see https://tools.ietf.org/html/rfc6605)
-#define DNSSEC_AlGORITHM_RESERVED_123          123U     //Reserved area between 123 and 251(Resource Records for the DNS Security Extensions, see https://tools.ietf.org/html/rfc4034)
-#define DNSSEC_AlGORITHM_RESERVED_251          251U     //Reserved area between 123 and 251(Resource Records for the DNS Security Extensions, see https://tools.ietf.org/html/rfc4034)
-#define DNSSEC_AlGORITHM_INDIRECT              252U     //Reserved for Indirect Keys(Resource Records for the DNS Security Extensions, see https://tools.ietf.org/html/rfc4034)
-#define DNSSEC_AlGORITHM_PRIVATE_DNS           253U     //Private algorithm(Resource Records for the DNS Security Extensions, see https://tools.ietf.org/html/rfc4034)
-#define DNSSEC_AlGORITHM_PRIVATE_OID           254U     //Private algorithm(Resource Records for the DNS Security Extensions, see https://tools.ietf.org/html/rfc4034)
-#define DNSSEC_AlGORITHM_RESERVED_255          255U     //Reserved(Resource Records for the DNS Security Extensions, see https://tools.ietf.org/html/rfc4034)
+#define DNSSEC_AlGORITHM_RESERVED_0            0        //RFC 4034, Reserved(Resource Records for the DNS Security Extensions(https://tools.ietf.org/html/rfc4034)
+#define DNSSEC_AlGORITHM_RSA_MD5               1U       //RFC 3110, RSA-MD5(RSA/SHA-1 SIGs and RSA KEYs in the Domain Name System (DNS)(https://tools.ietf.org/html/rfc3110)
+#define DNSSEC_AlGORITHM_DH                    2U       //RFC 2539, Diffie-Hellman(Storage of Diffie-Hellman Keys in the Domain Name System (DNS)(https://tools.ietf.org/html/rfc2539)
+#define DNSSEC_AlGORITHM_DSA                   3U       //RFC 3755, DSA-SHA1(Legacy Resolver Compatibility for Delegation Signer (DS)(https://tools.ietf.org/html/rfc3755)
+#define DNSSEC_AlGORITHM_RESERVED_4            4U       //RFC 6725, Reserved(DNS Security (DNSSEC) DNSKEY Algorithm IANA Registry Updates(https://tools.ietf.org/html/rfc6725)
+#define DNSSEC_AlGORITHM_RSA_SHA1              5U       //RFC 4034, RSA-SHA-1(Resource Records for the DNS Security Extensions(https://tools.ietf.org/html/rfc4034)
+#define DNSSEC_AlGORITHM_DSA_NSEC3_SHA1        6U       //RFC 5155, DSA-NSEC3-SHA-1(DNS Security (DNSSEC) Hashed Authenticated Denial of Existence(https://tools.ietf.org/html/rfc5155)
+#define DNSSEC_AlGORITHM_RSA_SHA1_NSEC3_SHA1   7U       //RFC 5155, RSA-SHA-1-NSEC3-SHA-1(DNS Security (DNSSEC) Hashed Authenticated Denial of Existence(https://tools.ietf.org/html/rfc5155)
+#define DNSSEC_AlGORITHM_RSA_SHA256            8U       //RFC 5702, RSA-SHA-256(Use of SHA-2 Algorithms with RSA in DNSKEY and RRSIG Resource Records for DNSSEC(https://tools.ietf.org/html/rfc5702)
+#define DNSSEC_AlGORITHM_RESERVED_9            9U       //RFC 6725, Reserved(DNS Security (DNSSEC) DNSKEY Algorithm IANA Registry Updates(https://tools.ietf.org/html/rfc6725)
+#define DNSSEC_AlGORITHM_RSA_SHA512            10U      //RFC 5702, RSA-SHA-512(Use of SHA-2 Algorithms with RSA in DNSKEY and RRSIG Resource Records for DNSSEC(https://tools.ietf.org/html/rfc5702)
+#define DNSSEC_AlGORITHM_RESERVED_11           11U      //RFC 6725, Reserved(DNS Security (DNSSEC) DNSKEY Algorithm IANA Registry Updates(https://tools.ietf.org/html/rfc6725)
+#define DNSSEC_AlGORITHM_ECC_GOST              12U      //RFC 5933, GOST R 34.10-2001(Use of GOST Signature Algorithms in DNSKEY and RRSIG Resource Records for DNSSEC(https://tools.ietf.org/html/rfc5933)
+#define DNSSEC_AlGORITHM_ECDSA_P256_SHA256     13U      //RFC 6605, ECDSA Curve P-256 with SHA-256(Elliptic Curve Digital Signature Algorithm (DSA) for DNSSEC(https://tools.ietf.org/html/rfc6605)
+#define DNSSEC_AlGORITHM_ECDSA_P386_SHA386     14U      //RFC 6605, ECDSA Curve P-384 with SHA-384(Elliptic Curve Digital Signature Algorithm (DSA) for DNSSEC(https://tools.ietf.org/html/rfc6605)
+#define DNSSEC_AlGORITHM_RESERVED_123          123U     //RFC 4034, Reserved area between 123 and 251(Resource Records for the DNS Security Extensions(https://tools.ietf.org/html/rfc4034)
+#define DNSSEC_AlGORITHM_RESERVED_251          251U     //RFC 4034, Reserved area between 123 and 251(Resource Records for the DNS Security Extensions(https://tools.ietf.org/html/rfc4034)
+#define DNSSEC_AlGORITHM_INDIRECT              252U     //RFC 4034, Reserved for Indirect Keys(Resource Records for the DNS Security Extensions(https://tools.ietf.org/html/rfc4034)
+#define DNSSEC_AlGORITHM_PRIVATE_DNS           253U     //RFC 4034, Private algorithm(Resource Records for the DNS Security Extensions(https://tools.ietf.org/html/rfc4034)
+#define DNSSEC_AlGORITHM_PRIVATE_OID           254U     //RFC 4034, Private algorithm(Resource Records for the DNS Security Extensions(https://tools.ietf.org/html/rfc4034)
+#define DNSSEC_AlGORITHM_RESERVED_255          255U     //RFC 4034, Reserved(Resource Records for the DNS Security Extensions(https://tools.ietf.org/html/rfc4034)
 #define RSA_MIN_LENGTH                         64U
 #define DH_MIN_LENGTH                          96U
 #define DSA_MIN_LENGTH                         128U
@@ -2067,7 +2084,7 @@ typedef struct _dns_record_nsec_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-//About this list, see https://www.iana.org/assignments/dnssec-nsec3-parameters/dnssec-nsec3-parameters.xhtml
+//About this list, see IANA Domain Name System Security (DNSSEC) NextSECure3 (NSEC3) Parameters(https://www.iana.org/assignments/dnssec-nsec3-parameters/dnssec-nsec3-parameters.xhtml)
 #define DNSSEC_NSEC3_ALGORITHM_SHA1            1U
 typedef struct _dns_record_nsec3_
 {
@@ -2104,7 +2121,7 @@ typedef struct _dns_record_nsec3_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-//About this list, see https://www.iana.org/assignments/dnssec-nsec3-parameters/dnssec-nsec3-parameters.xhtml
+//About this list, see IANA Domain Name System Security (DNSSEC) NextSECure3 (NSEC3) Parameters(https://www.iana.org/assignments/dnssec-nsec3-parameters/dnssec-nsec3-parameters.xhtml)
 typedef struct _dns_record_nsec3param_
 {
 	uint8_t               Algorithm;
@@ -2160,16 +2177,19 @@ typedef struct _dns_record_caa_
 //	PUCHAR                Value;
 }dns_record_caa, *pdns_record_caa;
 
-//Domain Name System Curve/DNSCurve Part
+
+//Domain Name System Curve/DNSCurve part
 #if defined(ENABLE_LIBSODIUM)
-// About DNSCurve standards, see http://dnscurve.org. Also about DNSCrypt, see http://dnscrypt.org
+// About DNSCurve standards: 
+// DNSCurve: Usable security for DNS(http://dnscurve.org)
+// DNSCrypt, A protocol to improve DNS security(https://dnscrypt.org)
 #define DNSCURVE_MAGIC_QUERY_LEN       8U
 #define DNSCURVE_MAGIC_QUERY_HEX_LEN   16U
 #define DNSCRYPT_RECEIVE_MAGIC         ("r6fnvWj8")                   //Receive Magic Number
 #define DNSCRYPT_CERT_MAGIC            ("DNSC")                       //Signature Magic Number
 #define crypto_box_HALF_NONCEBYTES     (crypto_box_NONCEBYTES / 2U)
 #define DNSCRYPT_TXT_RECORDS_LEN       124U                           //Length of DNScrypt TXT Records
-// Function defines
+// Function definitions
 #define crypto_sign_open crypto_sign_ed25519_open
 #define crypto_box crypto_box_curve25519xsalsa20poly1305
 #define crypto_box_open crypto_box_curve25519xsalsa20poly1305_open
@@ -2232,3 +2252,176 @@ typedef struct _dnscurve_txt_signature_
 	uint32_t              CertTime_End;
 }dnscurve_txt_signature, *pdnscurve_txt_signature;
 #endif
+
+
+//SOCKS Protocol Version 5 part
+/* About RFC standards
+* RFC 1928, SOCKS Protocol Version 5(https://tools.ietf.org/html/rfc1928)
+* RFC 1929, Username/Password Authentication for SOCKS V5(https://tools.ietf.org/html/rfc1929)
+*/
+
+//Version, Method, Command and Reply definitions
+#define SOCKS_VERSION                              5U
+#define SOCKS5_METHOD_NO_AUTHENTICATION_REQUIRED   0
+#define SOCKS5_METHOD_GSSAPI                       1U
+#define SOCKS5_METHOD_USERNAME_PASSWORD            2U
+#define SOCKS5_METHOD_IANA_ASSIGNED_A              3U
+#define SOCKS5_METHOD_IANA_ASSIGNED_B              0x7F
+#define SOCKS5_METHOD_RESERVED_FOR_PRIVATE_A       0x80
+#define SOCKS5_METHOD_RESERVED_FOR_PRIVATE_B       0xFE
+#define SOCKS5_METHOD_NO_ACCEPTABLE_METHODS        0xFF
+#define SOCKS5_USERNAME_PASSWORD_VERSION           1U
+#define SOCKS5_USERNAME_PASSWORD_MAXNUM            255U
+#define SOCKS5_USERNAME_PASSWORD_SUCCESS           0
+#define SOCKS5_COMMAND_CONNECT                     1U
+#define SOCKS5_COMMAND_BIND                        2U
+#define SOCKS5_COMMAND_UDP_ASSOCIATE               3U
+#define SOCKS5_ADDRESS_IPV4                        1U
+#define SOCKS5_ADDRESS_DOMAIN                      3U
+#define SOCKS5_ADDRESS_IPV6                        4U
+#define SOCKS5_REPLY_SUCCESS                       0
+#define SOCKS5_REPLY_SERVER_FAILURE                1U
+#define SOCKS5_REPLY_NOT_ALLOWED                   2U
+#define SOCKS5_REPLY_NETWORK_UNREACHABLE           3U
+#define SOCKS5_REPLY_HOST_UNREACHABLE              4U
+#define SOCKS5_REPLY_REFUSED                       5U
+#define SOCKS5_REPLY_TTL_EXPORED                   6U
+#define SOCKS5_REPLY_COMMAND_NOT_SUPPORTED         7U
+#define SOCKS5_REPLY_ADDRESS_TYPE_NOT_SUPPORTED    8U
+#define SOCKS5_REPLY_UNASSIGNED_A                  9U
+#define SOCKS5_REPLY_UNASSIGNED_B                  0xFF
+
+//Socks5 client version identifier and method selection message
+/*
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Version    | Method Number |            Methods            /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _socks5_client_selection_message_
+{
+	uint8_t               Version;
+	uint8_t               Methods_Number;
+	uint8_t               Methods_A;               //Usually is 0(NO_AUTHENTICATION_REQUIRED)
+	uint8_t               Methods_B;               //Usually is 2(USERNAME/PASSWORD)
+}socks5_client_selection, *psocks5_client_selection;
+
+//Socks5 server method selection message
+/*
+                    1 1 1 1 1 1 1
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Version    |    Method     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _socks5_server_selection_message_
+{
+	uint8_t               Version;
+	uint8_t               Method;
+}socks5_server_selection, *psocks5_server_selection;
+
+//Socks5 client Username/Password authentication message
+/*
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Version    |UserName Length|           User Name           /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|Password Length|                   Password                    /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+typedef struct _socks5_client_user_authentication_
+{
+	uint8_t               Version;
+	uint8_t               UserName_Length;
+	PUCHAR                UserName;
+	uint8_t               Password_Length;
+	PUCHAR                Password;
+}socks5_client_user_authentication, *psocks5_client_user_authentication;
+*/
+
+//Socks5 server Username/Password authentication message
+/*
+                    1 1 1 1 1 1 1
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Version    |    Status     |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _socks5_server_user_authentication_
+{
+	uint8_t               Version;
+	uint8_t               Status;
+}socks5_server_user_authentication, *psocks5_server_user_authentication;
+
+//Socks5 client request message(IPv4)
+/*
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Version    |    Command    |   Reserved    | Address Type  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                            Address                            /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|             Port              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _socks5_client_request_ipv4_
+{
+	uint8_t               Version;
+	uint8_t               Command;
+	uint8_t               Reserved;
+	uint8_t               Address_Type;
+	in_addr               Address;
+	uint16_t              Port;
+}socks5_client_request_ipv4, *psocks5_client_request_ipv4;
+
+//Socks5 client request message(IPv6)
+typedef struct _socks5_client_request_ipv6_
+{
+	uint8_t               Version;
+	uint8_t               Command;
+	uint8_t               Reserved;
+	uint8_t               Address_Type;
+	in6_addr              Address;
+	uint16_t              Port;
+}socks5_client_request_ipv6, *psocks5_client_request_ipv6;
+
+//Socks5 server reply message(IPv4)
+/*
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Version    |     Reply     |   Reserved    | Address Type  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                         Bind Address                          /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|             Port              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _socks5_server_reply_ipv4_
+{
+	uint8_t               Version;
+	uint8_t               Reply;
+	uint8_t               Reserved;
+	uint8_t               Bind_Address_Type;
+	in_addr               Bind_Address;
+	uint16_t              Bind_Port;
+}socks5_server_reply_ipv4, *psocks5_server_reply_ipv4;
+
+//Socks5 server reply message(IPv6)
+typedef struct _socks5_server_reply_ipv6_
+{
+	uint8_t               Version;
+	uint8_t               Reply;
+	uint8_t               Reserved;
+	uint8_t               Bind_Address_Type;
+	in6_addr              Bind_Address;
+	uint16_t              Bind_Port;
+}socks5_server_reply_ipv6, *psocks5_server_reply_ipv6;

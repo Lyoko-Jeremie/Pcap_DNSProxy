@@ -55,9 +55,9 @@ bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr
 
 	//Convert to binary.
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		if (Parameter.FunctionPTR_InetPton != nullptr)
+		if (GlobalRunningStatus.FunctionPTR_InetPton != nullptr)
 		{
-			Result = (*Parameter.FunctionPTR_InetPton)(AF_INET6, sAddrString.c_str(), OriginalAddr);
+			Result = (*GlobalRunningStatus.FunctionPTR_InetPton)(AF_INET6, sAddrString.c_str(), OriginalAddr);
 			if (Result == SOCKET_ERROR || Result == 0)
 			{
 				ErrorCode = WSAGetLastError();
@@ -74,7 +74,7 @@ bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr
 
 			memcpy_s(OriginalAddr, sizeof(in6_addr), &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, sizeof(in6_addr));
 		}
-	#else 
+	#else
 		Result = inet_pton(AF_INET6, sAddrString.c_str(), OriginalAddr);
 		if (Result == SOCKET_ERROR || Result == 0)
 		{
@@ -130,9 +130,9 @@ bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr
 
 	//Convert to binary.
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		if (Parameter.FunctionPTR_InetPton != nullptr)
+		if (GlobalRunningStatus.FunctionPTR_InetPton != nullptr)
 		{
-			Result = (*Parameter.FunctionPTR_InetPton)(AF_INET, sAddrString.c_str(), OriginalAddr);
+			Result = (*GlobalRunningStatus.FunctionPTR_InetPton)(AF_INET, sAddrString.c_str(), OriginalAddr);
 			if (Result == SOCKET_ERROR || Result == 0)
 			{
 				ErrorCode = WSAGetLastError();
@@ -149,7 +149,7 @@ bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr
 
 			memcpy_s(OriginalAddr, sizeof(in_addr), &((PSOCKADDR_IN)SockAddr.get())->sin_addr, sizeof(in_addr));
 		}
-	#else 
+	#else
 		Result = inet_pton(AF_INET, sAddrString.c_str(), OriginalAddr);
 		if (Result == SOCKET_ERROR || Result == 0)
 		{
@@ -318,7 +318,7 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const b
 							{
 							//Get a ramdom one.
 								std::uniform_int_distribution<int> RamdomDistribution(0, (int)AddressHostsTableIter.Address_Target.size() - 1U);
-								*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*Parameter.RamdomEngine)))->sin6_addr;
+								*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)))->sin6_addr;
 							}
 							else {
 								*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.Address_Target.front())->sin6_addr;
@@ -486,7 +486,7 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const b
 							{
 							//Get a ramdom one.
 								std::uniform_int_distribution<int> RamdomDistribution(0, (int)AddressHostsTableIter.Address_Target.size() - 1U);
-								*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*Parameter.RamdomEngine)))->sin_addr;
+								*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)))->sin_addr;
 							}
 							else {
 								*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.Address_Target.front())->sin_addr;
@@ -873,7 +873,11 @@ size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t 
 }
 
 //Check DNS response results
-size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal, bool *IsMarkHopLimit)
+#if defined(ENABLE_PCAP)
+	size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal, bool *IsMarkHopLimit)
+#else
+	size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal)
+#endif
 {
 //Response check options
 	if (!Parameter.DNSDataCheck && !Parameter.BlacklistCheck)

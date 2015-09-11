@@ -47,6 +47,7 @@ set(MAIN_SRC_FILES
 		"Process.h"
 		"Protocol.h"
 		"Service.h"
+		"SOCKS.h"
 		"Base.cpp"
 		"Capture.cpp"
 		"Configuration.cpp"
@@ -62,7 +63,8 @@ set(MAIN_SRC_FILES
 		"ReadHosts.cpp"
 		"ReadIPFilter.cpp"
 		"ReadParameter.cpp"
-		"Service.cpp")
+		"Service.cpp"
+		"SOCKS.cpp")
 
 # Compiling and linking flags
 IF(PLATFORM_OPENWRT)

@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////
 // Operating system
 // 
-/* This code is from Qt source, which is in qglobal.h header file.
+/* This code is from Qt source, which in qglobal.h header file.
 // See https://www.qt.io/developers
 
 	The operating system, must be one of: (PLATFORM_x)
@@ -131,11 +131,11 @@
 #  define PLATFORM_UNIXWARE
 #  define PLATFORM_UNIXWARE7
 #elif defined(__MAKEDEPEND__)
-#else 
+#else
 #  error "Qt has not been ported to this OS - talk to qt-bugs@trolltech.com"
 #endif
 
-//System series defines
+//System series definitions
 #if defined(PLATFORM_WIN32) || defined(PLATFORM_WIN64)
 #  define PLATFORM_WIN
 #endif
@@ -147,7 +147,7 @@
 #elif !defined(PLATFORM_UNIX)
 #  define PLATFORM_UNIX
 #endif
-/* XCode support
+/* Apple Mac OS X XCode support
 #if defined(PLATFORM_MACX)
 #  ifdef MAC_OS_X_VERSION_MIN_REQUIRED
 #    undef MAC_OS_X_VERSION_MIN_REQUIRED
@@ -167,7 +167,7 @@
 */
 
 //////////////////////////////////////////////////
-// Base header
+// Base Header
 // 
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_MACX))
 	#define ENABLE_LIBSODIUM       //LibSodium is always enable on Windows and Mac OS X.
@@ -180,7 +180,7 @@
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		#include <cwchar>                  //Wide-Character Support
 	#endif
-#else 
+#else
 #include <cstring>                 //String support
 #include <memory>                  //Manage dynamic memory support
 
@@ -207,13 +207,13 @@
 
 
 //////////////////////////////////////////////////
-// Base defines
+// Base definitions
 // 
 #pragma pack(1)                        //Memory alignment: 1 bytes/8 bits
 #define KEYPAIR_MESSAGE_LEN    80U     //Keypair messages length
 #define KEYPAIR_INTERVAL       4U
 
-//ASCII values defines
+//ASCII values definitions
 #define ASCII_LF               10      //"␊"
 #define ASCII_DLE              16      //"␐"
 #define ASCII_COLON            58      //":"
@@ -227,7 +227,7 @@
 	#define fwprintf_s         fwprintf
 #endif
 
-// Function defines
+// Function definitions
 #define crypto_box_keypair crypto_box_curve25519xsalsa20poly1305_keypair
 
 //Functions

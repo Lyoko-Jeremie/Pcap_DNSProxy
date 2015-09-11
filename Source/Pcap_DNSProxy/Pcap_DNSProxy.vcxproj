@@ -239,6 +239,7 @@
     <ClInclude Include="Network.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Service.h" />
+    <ClInclude Include="SOCKS.h" />
     <ClInclude Include="Structures.h" />
     <ClInclude Include="WinPcap\bittypes.h" />
     <ClInclude Include="WinPcap\ip6_misc.h" />
@@ -282,6 +283,7 @@
     <ClCompile Include="ReadIPFilter.cpp" />
     <ClCompile Include="ReadParameter.cpp" />
     <ClCompile Include="Service.cpp" />
+    <ClCompile Include="SOCKS.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Pcap_DNSProxy.rc" />

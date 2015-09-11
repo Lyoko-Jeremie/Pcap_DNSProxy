@@ -223,7 +223,7 @@ void __fastcall MakeRamdomDomain(PSTR Buffer)
 	std::uniform_int_distribution<int> RamdomDistribution(1U, DOMAIN_LEVEL_DATA_MAXSIZE);
 
 //Make ramdom domain length.
-	size_t RamdomLength = RamdomDistribution(*Parameter.RamdomEngine), Index = 0;
+	size_t RamdomLength = RamdomDistribution(*GlobalRunningStatus.RamdomEngine), Index = 0;
 	if (RamdomLength < DOMAIN_RAMDOM_MINSIZE)
 		RamdomLength = DOMAIN_RAMDOM_MINSIZE;
 
@@ -232,52 +232,52 @@ void __fastcall MakeRamdomDomain(PSTR Buffer)
 	{
 		for (Index = 0;Index < RamdomLength - 3U;++Index)
 		{
-			Buffer[Index] = Parameter.DomainTable[RamdomDistribution(*Parameter.RamdomEngine)];
+			Buffer[Index] = GlobalRunningStatus.DomainTable[RamdomDistribution(*GlobalRunningStatus.RamdomEngine)];
 			Buffer[Index] = (char)tolower(Buffer[Index]);
 		}
 
 	//Make random domain like a normal Top-Level Domain/TLD.
 		Buffer[RamdomLength - 3U] = ASCII_PERIOD;
-		Index = RamdomDistribution(*Parameter.RamdomEngine);
+		Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 		if (Index < ASCII_FF)
 			Index += 52U;
 		else if (Index < ASCII_AMPERSAND)
 			Index += 26U;
-		Buffer[RamdomLength - 2U] = Parameter.DomainTable[Index];
-		Index = RamdomDistribution(*Parameter.RamdomEngine);
+		Buffer[RamdomLength - 2U] = GlobalRunningStatus.DomainTable[Index];
+		Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 		if (Index < ASCII_FF)
 			Index += 52U;
 		else if (Index < ASCII_AMPERSAND)
 			Index += 26U;
-		Buffer[RamdomLength - 1U] = Parameter.DomainTable[Index];
+		Buffer[RamdomLength - 1U] = GlobalRunningStatus.DomainTable[Index];
 	}
 	else {
 		for (Index = 0;Index < RamdomLength - 4U;++Index)
 		{
-			Buffer[Index] = Parameter.DomainTable[RamdomDistribution(*Parameter.RamdomEngine)];
+			Buffer[Index] = GlobalRunningStatus.DomainTable[RamdomDistribution(*GlobalRunningStatus.RamdomEngine)];
 			Buffer[Index] = (char)tolower(Buffer[Index]);
 		}
 
 	//Make random domain like a normal Top-level domain/TLD.
 		Buffer[RamdomLength - 4U] = ASCII_PERIOD;
-		Index = RamdomDistribution(*Parameter.RamdomEngine);
+		Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 		if (Index < ASCII_FF)
 			Index += 52U;
 		else if (Index < ASCII_AMPERSAND)
 			Index += 26U;
-		Buffer[RamdomLength - 3U] = Parameter.DomainTable[Index];
-		Index = RamdomDistribution(*Parameter.RamdomEngine);
+		Buffer[RamdomLength - 3U] = GlobalRunningStatus.DomainTable[Index];
+		Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 		if (Index < ASCII_FF)
 			Index += 52U;
 		else if (Index < ASCII_AMPERSAND)
 			Index += 26U;
-		Buffer[RamdomLength - 2U] = Parameter.DomainTable[Index];
-		Index = RamdomDistribution(*Parameter.RamdomEngine);
+		Buffer[RamdomLength - 2U] = GlobalRunningStatus.DomainTable[Index];
+		Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 		if (Index < ASCII_FF)
 			Index += 52U;
 		else if (Index < ASCII_AMPERSAND)
 			Index += 26U;
-		Buffer[RamdomLength - 1U] = Parameter.DomainTable[Index];
+		Buffer[RamdomLength - 1U] = GlobalRunningStatus.DomainTable[Index];
 	}
 
 	return;
@@ -290,7 +290,7 @@ void __fastcall MakeDomainCaseConversion(PSTR Buffer)
 	std::uniform_int_distribution<int> RamdomDistribution(0, 1U);
 
 //Make Case Conversion.
-	if (RamdomDistribution(*Parameter.RamdomEngine) % 2U == 0)
+	if (RamdomDistribution(*GlobalRunningStatus.RamdomEngine) % 2U == 0)
 	{
 		for (size_t Index = 0;Index < strnlen_s(Buffer, DOMAIN_MAXSIZE);++Index)
 		{
@@ -412,7 +412,7 @@ size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Lengt
 {
 //Ramdom number distribution initialization
 	std::uniform_int_distribution<int> RamdomDistribution(0, 2U);
-	size_t Index = RamdomDistribution(*Parameter.RamdomEngine);
+	size_t Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 
 //Check Compression Pointer Mutation options.
 	switch (Index)
@@ -461,11 +461,11 @@ size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Lengt
 
 	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-		if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
-			Index = (*Parameter.FunctionPTR_GetTickCount64)() % 4U;
+		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
+			Index = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)() % 4U;
 		else 
 			Index = GetTickCount() % 4U;
-	#else 
+	#else
 		Index = GetTickCount64() % 4U;
 	#endif
 		switch (Index)
@@ -520,10 +520,10 @@ size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Lengt
 				auto DNS_Record_AAAA = (pdns_record_aaaa)(Buffer + Length);
 				DNS_Record_AAAA->Type = htons(DNS_RECORD_AAAA);
 				DNS_Record_AAAA->Classes = htons(DNS_CLASS_IN);
-				DNS_Record_AAAA->TTL = htonl(RamdomDistribution_Additional(*Parameter.RamdomEngine));
+				DNS_Record_AAAA->TTL = htonl(RamdomDistribution_Additional(*GlobalRunningStatus.RamdomEngine));
 				DNS_Record_AAAA->Length = htons(sizeof(in6_addr));
 				for (Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);++Index)
-					DNS_Record_AAAA->Addr.s6_words[Index] = htons((uint16_t)RamdomDistribution_Additional(*Parameter.RamdomEngine));
+					DNS_Record_AAAA->Addr.s6_words[Index] = htons((uint16_t)RamdomDistribution_Additional(*GlobalRunningStatus.RamdomEngine));
 
 				return Length + sizeof(dns_record_aaaa);
 			}
@@ -531,9 +531,9 @@ size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Lengt
 				auto DNS_Record_A = (pdns_record_a)(Buffer + Length);
 				DNS_Record_A->Type = htons(DNS_RECORD_A);
 				DNS_Record_A->Classes = htons(DNS_CLASS_IN);
-				DNS_Record_A->TTL = htonl(RamdomDistribution_Additional(*Parameter.RamdomEngine));
+				DNS_Record_A->TTL = htonl(RamdomDistribution_Additional(*GlobalRunningStatus.RamdomEngine));
 				DNS_Record_A->Length = htons(sizeof(in_addr));
-				DNS_Record_A->Addr.s_addr = htonl(RamdomDistribution_Additional(*Parameter.RamdomEngine));
+				DNS_Record_A->Addr.s_addr = htonl(RamdomDistribution_Additional(*GlobalRunningStatus.RamdomEngine));
 
 				return Length + sizeof(dns_record_a);
 			}

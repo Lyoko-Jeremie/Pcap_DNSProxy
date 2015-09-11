@@ -49,9 +49,9 @@ bool __fastcall PrintError(const size_t ErrorType, const wchar_t *Message, const
 
 //Print to screen.
 #if defined(PLATFORM_WIN)
-	if (Parameter.Console)
+	if (GlobalRunningStatus.Console)
 #elif defined(PLATFORM_LINUX)
-	if (!Parameter.Daemon)
+	if (!GlobalRunningStatus.Daemon)
 #endif
 	{
 	//Print start time before print errors.
@@ -210,14 +210,14 @@ bool __fastcall PrintError(const size_t ErrorType, const wchar_t *Message, const
 #if defined(PLATFORM_WIN)
 	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
 	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
-	if (GetFileAttributesExW(Parameter.Path_ErrorLog->c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) != FALSE)
+	if (GetFileAttributesExW(GlobalRunningStatus.Path_ErrorLog->c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) != FALSE)
 	{
 		std::shared_ptr<LARGE_INTEGER> ErrorFileSize(new LARGE_INTEGER());
 		memset(ErrorFileSize.get(), 0, sizeof(LARGE_INTEGER));
 		ErrorFileSize->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
 		ErrorFileSize->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
 		if (ErrorFileSize->QuadPart > 0 && (size_t)ErrorFileSize->QuadPart >= Parameter.LogMaxSize && 
-			DeleteFileW(Parameter.Path_ErrorLog->c_str()) != 0)
+			DeleteFileW(GlobalRunningStatus.Path_ErrorLog->c_str()) != 0)
 				PrintError(LOG_ERROR_SYSTEM, L"Old Error Log file was deleted", 0, nullptr, 0);
 	}
 
@@ -225,8 +225,8 @@ bool __fastcall PrintError(const size_t ErrorType, const wchar_t *Message, const
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::shared_ptr<struct stat> FileStat(new struct stat());
 	memset(FileStat.get(), 0, sizeof(struct stat));
-	if (stat(Parameter.sPath_ErrorLog->c_str(), FileStat.get()) == EXIT_SUCCESS && FileStat->st_size >= (off_t)Parameter.LogMaxSize && 
-		remove(Parameter.sPath_ErrorLog->c_str()) == EXIT_SUCCESS)
+	if (stat(GlobalRunningStatus.sPath_ErrorLog->c_str(), FileStat.get()) == EXIT_SUCCESS && FileStat->st_size >= (off_t)Parameter.LogMaxSize && 
+		remove(GlobalRunningStatus.sPath_ErrorLog->c_str()) == EXIT_SUCCESS)
 			PrintError(LOG_ERROR_SYSTEM, L"Old Error Log file was deleted", 0, nullptr, 0);
 
 	FileStat.reset();
@@ -235,9 +235,9 @@ bool __fastcall PrintError(const size_t ErrorType, const wchar_t *Message, const
 //Main print
 #if defined(PLATFORM_WIN)
 	FILE *Output = nullptr;
-	if (_wfopen_s(&Output, Parameter.Path_ErrorLog->c_str(), L"a,ccs=UTF-8") == EXIT_SUCCESS && Output != nullptr)
+	if (_wfopen_s(&Output, GlobalRunningStatus.Path_ErrorLog->c_str(), L"a,ccs=UTF-8") == EXIT_SUCCESS && Output != nullptr)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	auto Output = fopen(Parameter.sPath_ErrorLog->c_str(), "a");
+	auto Output = fopen(GlobalRunningStatus.sPath_ErrorLog->c_str(), "a");
 	if (Output != nullptr)
 #endif
 	{

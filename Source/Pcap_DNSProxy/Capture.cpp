@@ -243,9 +243,9 @@ void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 			RepeatingItem = true;
 
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.FunctionPTR_InetNtop != nullptr)
+			if (GlobalRunningStatus.FunctionPTR_InetNtop != nullptr)
 			{
-				(*Parameter.FunctionPTR_InetNtop)(AF_INET6, &DNSServerDataIter->AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+				(*GlobalRunningStatus.FunctionPTR_InetNtop)(AF_INET6, &DNSServerDataIter->AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 			}
 			else {
 				BufferLength = ADDR_STRING_MAXSIZE;
@@ -253,7 +253,7 @@ void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 				((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = DNSServerDataIter->AddressData.IPv6.sin6_addr;
 				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6), nullptr, Addr.get(), &BufferLength);
 			}
-		#else 
+		#else
 			inet_ntop(AF_INET6, &DNSServerDataIter->AddressData.IPv6.sin6_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 		#endif
 
@@ -268,9 +268,9 @@ void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 			RepeatingItem = true;
 
 		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-			if (Parameter.FunctionPTR_InetNtop != nullptr)
+			if (GlobalRunningStatus.FunctionPTR_InetNtop != nullptr)
 			{
-				(*Parameter.FunctionPTR_InetNtop)(AF_INET, &DNSServerDataIter->AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
+				(*GlobalRunningStatus.FunctionPTR_InetNtop)(AF_INET, &DNSServerDataIter->AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 			}
 			else {
 				BufferLength = ADDR_STRING_MAXSIZE;
@@ -278,7 +278,7 @@ void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 				((PSOCKADDR_IN)SockAddr.get())->sin_addr = DNSServerDataIter->AddressData.IPv4.sin_addr;
 				WSAAddressToStringA((PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in), nullptr, Addr.get(), &BufferLength);
 			}
-		#else 
+		#else
 			inet_ntop(AF_INET, &DNSServerDataIter->AddressData.IPv4.sin_addr, Addr.get(), ADDR_STRING_MAXSIZE);
 		#endif
 
@@ -867,9 +867,9 @@ StopLoop:
 ClearOutputPacketListData:
 //Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	if (Parameter.FunctionPTR_GetTickCount64 != nullptr)
+	if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 	{
-		while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= (size_t)((*Parameter.FunctionPTR_GetTickCount64)()))
+		while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)()))
 		{
 		//Mark timeout.
 			if (OutputPacketList.front().ClearPortTime > 0)
@@ -918,7 +918,7 @@ ClearOutputPacketListData:
 			OutputPacketList.pop_front();
 		}
 	}
-#else 
+#else
 	while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= GetTickCount64())
 	{
 	//Mark timeout.
@@ -959,9 +959,9 @@ ClearOutputPacketListData:
 		return true;
 
 //Check global sockets.
-	if (Parameter.LocalSocket != nullptr && !Parameter.LocalSocket->empty())
+	if (GlobalRunningStatus.LocalSocket != nullptr && !GlobalRunningStatus.LocalSocket->empty())
 	{
-		for (auto SocketIter:*Parameter.LocalSocket)
+		for (auto SocketIter:*GlobalRunningStatus.LocalSocket)
 		{
 			if (SocketIter == SocketData_Input->Socket)
 				return true;

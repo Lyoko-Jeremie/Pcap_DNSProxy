@@ -24,7 +24,7 @@
 BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType)
 {
 //Print to screen.
-	if (Parameter.Console)
+	if (GlobalRunningStatus.Console)
 	{
 		switch (fdwCtrlType)
 		{
@@ -372,7 +372,7 @@ void __fastcall FlushAllDNSCache(void)
 #elif defined(PLATFORM_LINUX)
 	#if defined(PLATFORM_OPENWRT)
 		system("/etc/init.d/dnsmasq restart"); //Dnsmasq manage DNS cache on OpenWrt, restart it to flush cache.
-	#else 
+	#else
 		system("service nscd restart"); //Name Service Cache Daemon service
 		system("service dnsmasq restart"); //Dnsmasq service
 		system("rndc restart"); //Name server control utility or BIND DNS service

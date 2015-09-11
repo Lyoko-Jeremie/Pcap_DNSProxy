@@ -20,6 +20,7 @@
 #include "Base.h"
 
 extern CONFIGURATION_TABLE Parameter;
+extern GLOBAL_STATUS GlobalRunningStatus;
 
 //Check empty buffer
 bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length)
@@ -190,14 +191,14 @@ BOOL WINAPI GetFunctionPointer(const size_t FunctionType)
 //GetTickCount64() function
 	if (FunctionType == FUNCTION_GETTICKCOUNT64)
 	{
-		Parameter.FunctionLibrary_GetTickCount64 = LoadLibraryW(L"Kernel32.dll");
-		if (Parameter.FunctionLibrary_GetTickCount64 != nullptr)
+		GlobalRunningStatus.FunctionLibrary_GetTickCount64 = LoadLibraryW(L"Kernel32.dll");
+		if (GlobalRunningStatus.FunctionLibrary_GetTickCount64 != nullptr)
 		{
-			Parameter.FunctionPTR_GetTickCount64 = (FunctionType_GetTickCount64)GetProcAddress(Parameter.FunctionLibrary_GetTickCount64, "GetTickCount64");
-			if (Parameter.FunctionPTR_GetTickCount64 == nullptr)
+			GlobalRunningStatus.FunctionPTR_GetTickCount64 = (FunctionType_GetTickCount64)GetProcAddress(GlobalRunningStatus.FunctionLibrary_GetTickCount64, "GetTickCount64");
+			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 == nullptr)
 			{
-				FreeLibrary(Parameter.FunctionLibrary_GetTickCount64);
-				Parameter.FunctionLibrary_GetTickCount64 = nullptr;
+				FreeLibrary(GlobalRunningStatus.FunctionLibrary_GetTickCount64);
+				GlobalRunningStatus.FunctionLibrary_GetTickCount64 = nullptr;
 
 				return FALSE;
 			}
@@ -206,14 +207,14 @@ BOOL WINAPI GetFunctionPointer(const size_t FunctionType)
 //inet_ntop() function
 	else if (FunctionType == FUNCTION_INET_NTOP)
 	{
-		Parameter.FunctionLibrary_InetNtop = LoadLibraryW(L"ws2_32.dll");
-		if (Parameter.FunctionLibrary_InetNtop != nullptr)
+		GlobalRunningStatus.FunctionLibrary_InetNtop = LoadLibraryW(L"ws2_32.dll");
+		if (GlobalRunningStatus.FunctionLibrary_InetNtop != nullptr)
 		{
-			Parameter.FunctionPTR_InetNtop = (FunctionType_InetNtop)GetProcAddress(Parameter.FunctionLibrary_InetNtop, "inet_ntop");
-			if (Parameter.FunctionPTR_InetNtop == nullptr)
+			GlobalRunningStatus.FunctionPTR_InetNtop = (FunctionType_InetNtop)GetProcAddress(GlobalRunningStatus.FunctionLibrary_InetNtop, "inet_ntop");
+			if (GlobalRunningStatus.FunctionPTR_InetNtop == nullptr)
 			{
-				FreeLibrary(Parameter.FunctionLibrary_InetNtop);
-				Parameter.FunctionLibrary_InetNtop = nullptr;
+				FreeLibrary(GlobalRunningStatus.FunctionLibrary_InetNtop);
+				GlobalRunningStatus.FunctionLibrary_InetNtop = nullptr;
 
 				return FALSE;
 			}
@@ -222,14 +223,14 @@ BOOL WINAPI GetFunctionPointer(const size_t FunctionType)
 //inet_pton() function
 	else if (FunctionType == FUNCTION_INET_PTON)
 	{
-		Parameter.FunctionLibrary_InetPton = LoadLibraryW(L"ws2_32.dll");
-		if (Parameter.FunctionLibrary_InetPton != nullptr)
+		GlobalRunningStatus.FunctionLibrary_InetPton = LoadLibraryW(L"ws2_32.dll");
+		if (GlobalRunningStatus.FunctionLibrary_InetPton != nullptr)
 		{
-			Parameter.FunctionPTR_InetPton = (FunctionType_InetPton)GetProcAddress(Parameter.FunctionLibrary_InetPton, "inet_pton");
-			if (Parameter.FunctionPTR_InetPton == nullptr)
+			GlobalRunningStatus.FunctionPTR_InetPton = (FunctionType_InetPton)GetProcAddress(GlobalRunningStatus.FunctionLibrary_InetPton, "inet_pton");
+			if (GlobalRunningStatus.FunctionPTR_InetPton == nullptr)
 			{
-				FreeLibrary(Parameter.FunctionLibrary_InetPton);
-				Parameter.FunctionLibrary_InetPton = nullptr;
+				FreeLibrary(GlobalRunningStatus.FunctionLibrary_InetPton);
+				GlobalRunningStatus.FunctionLibrary_InetPton = nullptr;
 
 				return FALSE;
 			}

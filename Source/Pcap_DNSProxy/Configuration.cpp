@@ -194,7 +194,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 			#if __BYTE_ORDER == __LITTLE_ENDIAN
 				if (Encoding == CODEPAGE_UTF_16_BE)
 					*SingleText = ntoh16_Force(*SingleText);
-			#else 
+			#else
 				if (Encoding == CODEPAGE_UTF_16_LE)
 					*SingleText = ntoh16_Force(*SingleText);
 			#endif
@@ -202,7 +202,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 				if (*SingleText == ASCII_CR && Index + sizeof(uint16_t) < ReadLength && 
 				#if __BYTE_ORDER == __LITTLE_ENDIAN
 					(Encoding == CODEPAGE_UTF_16_BE && ntoh16_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_16_LE && *(SingleText + 1U) == ASCII_LF))
-				#else 
+				#else
 					(Encoding == CODEPAGE_UTF_16_LE && ntoh16_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_16_BE && *(SingleText + 1U) == ASCII_LF))
 				#endif
 						*SingleText = 0;
@@ -233,7 +233,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 			#if __BYTE_ORDER == __LITTLE_ENDIAN
 				if (Encoding == CODEPAGE_UTF_32_BE)
 					*SingleText = ntoh32_Force(*SingleText);
-			#else 
+			#else
 				if (Encoding == CODEPAGE_UTF_32_LE)
 					*SingleText = ntoh32_Force(*SingleText);
 			#endif
@@ -241,7 +241,7 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 				if (*SingleText == ASCII_CR && Index + sizeof(uint32_t) < ReadLength && 
 				#if __BYTE_ORDER == __LITTLE_ENDIAN
 					(Encoding == CODEPAGE_UTF_32_BE && ntoh32_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_32_LE && *(SingleText + 1U) == ASCII_LF))
-				#else 
+				#else
 					(Encoding == CODEPAGE_UTF_32_LE && ntoh32_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_32_BE && *(SingleText + 1U) == ASCII_LF))
 				#endif
 						*SingleText = 0;
@@ -423,7 +423,7 @@ bool __fastcall ReadParameter(const bool IsFirstRead)
 		for (FileIndex = 0; FileIndex < sizeof(ConfigFileNameList) / sizeof(PWSTR); ++FileIndex)
 		{
 			FILE_DATA ConfigFileTemp;
-			ConfigFileTemp.FileName = Parameter.Path_Global->front();
+			ConfigFileTemp.FileName = GlobalRunningStatus.Path_Global->front();
 			ConfigFileTemp.FileName.append(ConfigFileNameList[FileIndex]);
 			FileList_Config.push_back(ConfigFileTemp);
 		}
@@ -432,7 +432,7 @@ bool __fastcall ReadParameter(const bool IsFirstRead)
 		for (FileIndex = 0;FileIndex < sizeof(sConfigFileNameList) / sizeof(PSTR);++FileIndex)
 		{
 			FILE_DATA ConfigFileTemp;
-			ConfigFileTemp.sFileName = Parameter.sPath_Global->front();
+			ConfigFileTemp.sFileName = GlobalRunningStatus.sPath_Global->front();
 			ConfigFileTemp.sFileName.append(sConfigFileNameList[FileIndex]);
 			FileList_Config.push_back(ConfigFileTemp);
 		}
@@ -640,15 +640,19 @@ bool __fastcall ReadParameter(const bool IsFirstRead)
 									if (ParameterCheckAndSetting(false, FileIndex))
 									{
 										ParameterModificating.MonitorItemToUsing(&Parameter);
+									#if defined(ENABLE_LIBSODIUM)
 										if (Parameter.DNSCurve)
 											DNSCurveParameterModificating.MonitorItemToUsing(&DNSCurveParameter);
+									#endif
 									}
 								}
 
 							//Reset modificating list.
 								ParameterModificating.MonitorItemReset();
+							#if defined(ENABLE_LIBSODIUM)
 								if (Parameter.DNSCurve)
 									DNSCurveParameterModificating.MonitorItemReset();
+							#endif
 							}
 							else {
 								InnerIsFirstRead = false;
@@ -692,10 +696,10 @@ void __fastcall ReadIPFilter(void)
 	size_t FileIndex = 0;
 
 //Create file list.
-	for (size_t Index = 0;Index < Parameter.Path_Global->size();++Index)
+	for (size_t Index = 0;Index < GlobalRunningStatus.Path_Global->size();++Index)
 	{
 		FILE_DATA FileDataTemp;
-		for (FileIndex = 0;FileIndex < Parameter.FileList_IPFilter->size();++FileIndex)
+		for (FileIndex = 0;FileIndex < GlobalRunningStatus.FileList_IPFilter->size();++FileIndex)
 		{
 			FileDataTemp.FileName.clear();
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -704,11 +708,11 @@ void __fastcall ReadIPFilter(void)
 			FileDataTemp.ModificationTime = 0;
 
 		//Add to global list.
-			FileDataTemp.FileName.append(Parameter.Path_Global->at(Index));
-			FileDataTemp.FileName.append(Parameter.FileList_IPFilter->at(FileIndex));
+			FileDataTemp.FileName.append(GlobalRunningStatus.Path_Global->at(Index));
+			FileDataTemp.FileName.append(GlobalRunningStatus.FileList_IPFilter->at(FileIndex));
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			FileDataTemp.sFileName.append(Parameter.sPath_Global->at(Index));
-			FileDataTemp.sFileName.append(Parameter.sFileList_IPFilter->at(FileIndex));
+			FileDataTemp.sFileName.append(GlobalRunningStatus.sPath_Global->at(Index));
+			FileDataTemp.sFileName.append(GlobalRunningStatus.sFileList_IPFilter->at(FileIndex));
 		#endif
 			FileList_IPFilter.push_back(FileDataTemp);
 		}
@@ -927,10 +931,10 @@ void __fastcall ReadHosts(void)
 	size_t FileIndex = 0;
 
 //Create file list.
-	for (size_t Index = 0;Index < Parameter.Path_Global->size();++Index)
+	for (size_t Index = 0;Index < GlobalRunningStatus.Path_Global->size();++Index)
 	{
 		FILE_DATA FileDataTemp;
-		for (FileIndex = 0;FileIndex < Parameter.FileList_Hosts->size();++FileIndex)
+		for (FileIndex = 0;FileIndex < GlobalRunningStatus.FileList_Hosts->size();++FileIndex)
 		{
 			FileDataTemp.FileName.clear();
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -939,11 +943,11 @@ void __fastcall ReadHosts(void)
 			FileDataTemp.ModificationTime = 0;
 
 		//Add to global list.
-			FileDataTemp.FileName.append(Parameter.Path_Global->at(Index));
-			FileDataTemp.FileName.append(Parameter.FileList_Hosts->at(FileIndex));
+			FileDataTemp.FileName.append(GlobalRunningStatus.Path_Global->at(Index));
+			FileDataTemp.FileName.append(GlobalRunningStatus.FileList_Hosts->at(FileIndex));
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			FileDataTemp.sFileName.append(Parameter.sPath_Global->at(Index));
-			FileDataTemp.sFileName.append(Parameter.sFileList_Hosts->at(FileIndex));
+			FileDataTemp.sFileName.append(GlobalRunningStatus.sPath_Global->at(Index));
+			FileDataTemp.sFileName.append(GlobalRunningStatus.sFileList_Hosts->at(FileIndex));
 		#endif
 			FileList_Hosts.push_back(FileDataTemp);
 		}

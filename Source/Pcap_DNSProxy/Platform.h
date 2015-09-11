@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////
 // Operating system
 // 
-/* This code is from Qt source, which is in qglobal.h header file.
+/* This code is from Qt source, which in qglobal.h header file.
 // See https://www.qt.io/developers
 
 	The operating system, must be one of: (PLATFORM_x)
@@ -131,11 +131,11 @@
 #  define PLATFORM_UNIXWARE
 #  define PLATFORM_UNIXWARE7
 #elif defined(__MAcDEPEND__)
-#else 
+#else
 #  error "Qt has not been ported to this OS - talk to qt-bugs@trolltech.com"
 #endif
 
-//System series defines
+//System series definitions
 #if defined(PLATFORM_WIN32) || defined(PLATFORM_WIN64)
 #  define PLATFORM_WIN
 #endif
@@ -147,7 +147,7 @@
 #elif !defined(PLATFORM_UNIX)
 #  define PLATFORM_UNIX
 #endif
-/* XCode support
+/* Apple Mac OS X XCode support
 #if defined(PLATFORM_MACX)
 #  ifdef MAC_OS_X_VERSION_MIN_REQUIRED
 #    undef MAC_OS_X_VERSION_MIN_REQUIRED
@@ -242,10 +242,10 @@
 
 	#if defined(PLATFORM_WIN)
 		#define __LITTLE_ENDIAN            1U                        //Little Endian
-//		#define __BIG_ENDIAN               2U                        //Big Endian
+//		#define __BIG_ENDIAN               2U                        //Big Endian, Little Endian is always on Windows.
 		#define __BYTE_ORDER               __LITTLE_ENDIAN           //x86 and x86-64/x64 is Little Endian.
 
-	//Code defines
+	//Code definitions
 		#define WINSOCK_VERSION_LOW        2                         //Low byte of Winsock version(2.2)
 		#define WINSOCK_VERSION_HIGH       2                         //High byte of Winsock version(2.2)
 		#define SIO_UDP_CONNRESET          _WSAIOW(IOC_VENDOR, 12)   //Block connection reset error message from system.
@@ -404,7 +404,7 @@
 	typedef sockaddr_in6             *PSOCKADDR_IN6;
 	typedef addrinfo                 *PADDRINFOA;
 
-//Function defines(Part 1)
+//Function definitions(Part 1)
 	#define __fastcall
 	#define strnlen_s                                                    strnlen
 	#define strncpy_s(Dst, DstSize, Src, Size)                           strncpy(Dst, Src, Size)

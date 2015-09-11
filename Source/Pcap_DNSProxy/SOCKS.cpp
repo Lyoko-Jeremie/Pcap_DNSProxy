@@ -17,10 +17,6 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#include "Base.h"
+#include "SOCKS.h"
 
-//Global variables
-extern CONFIGURATION_TABLE Parameter;
-extern GLOBAL_STATUS GlobalRunningStatus;
-extern time_t StartTime;
-extern std::mutex ErrorLogLock;
+

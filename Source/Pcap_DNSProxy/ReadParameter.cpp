@@ -24,15 +24,21 @@ bool __fastcall ParameterCheckAndSetting(const bool IsFirstRead, const size_t Fi
 {
 //Initialization
 	CONFIGURATION_TABLE *ParameterPTR = nullptr;
+#if defined(ENABLE_LIBSODIUM)
 	DNSCURVE_CONFIGURATION_TABLE *DNSCurveParameterPTR = nullptr;
+#endif
 	if (IsFirstRead)
 	{
 		ParameterPTR = &Parameter;
+	#if defined(ENABLE_LIBSODIUM)
 		DNSCurveParameterPTR = &DNSCurveParameter;
+	#endif
 	}
 	else {
 		ParameterPTR = &ParameterModificating;
+	#if defined(ENABLE_LIBSODIUM)
 		DNSCurveParameterPTR = &DNSCurveParameterModificating;
+	#endif
 	}
 
 //Version check
@@ -80,21 +86,29 @@ bool __fastcall ParameterCheckAndSetting(const bool IsFirstRead, const size_t Fi
 		//Copy DNS Server Data when Main or Alternate data are empty.
 			if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)
 			{
+			#if defined(ENABLE_PCAP)
 				uint8_t HopLimitTemp = 0;
 				if (Parameter.DNSTarget.IPv6.HopLimitData.HopLimit > 0)
 					HopLimitTemp = Parameter.DNSTarget.IPv6.HopLimitData.HopLimit;
+			#endif
 				Parameter.DNSTarget.IPv6 = Parameter.DNSTarget.IPv6_Multi->front();
+			#if defined(ENABLE_PCAP)
 				Parameter.DNSTarget.IPv6.HopLimitData.HopLimit = HopLimitTemp;
+			#endif
 				Parameter.DNSTarget.IPv6_Multi->erase(Parameter.DNSTarget.IPv6_Multi->begin());
 			}
 
 			if (Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0 && !Parameter.DNSTarget.IPv6_Multi->empty())
 			{
+			#if defined(ENABLE_PCAP)
 				uint8_t HopLimitTemp = 0;
 				if (Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit > 0)
 					HopLimitTemp = Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit;
+			#endif
 				Parameter.DNSTarget.Alternate_IPv6 = Parameter.DNSTarget.IPv6_Multi->front();
+			#if defined(ENABLE_PCAP)
 				Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit = HopLimitTemp;
+			#endif
 				Parameter.DNSTarget.IPv6_Multi->erase(Parameter.DNSTarget.IPv6_Multi->begin());
 			}
 
@@ -124,21 +138,29 @@ bool __fastcall ParameterCheckAndSetting(const bool IsFirstRead, const size_t Fi
 		//Copy DNS Server Data when Main or Alternate data are empty.
 			if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)
 			{
+			#if defined(ENABLE_PCAP)
 				uint8_t TTLTemp = 0;
 				if (Parameter.DNSTarget.IPv4.HopLimitData.TTL > 0)
 					TTLTemp = Parameter.DNSTarget.IPv4.HopLimitData.TTL;
+			#endif
 				Parameter.DNSTarget.IPv4 = Parameter.DNSTarget.IPv4_Multi->front();
+			#if defined(ENABLE_PCAP)
 				Parameter.DNSTarget.IPv4.HopLimitData.TTL = TTLTemp;
+			#endif
 				Parameter.DNSTarget.IPv4_Multi->erase(Parameter.DNSTarget.IPv4_Multi->begin());
 			}
 
 			if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0 && !Parameter.DNSTarget.IPv4_Multi->empty())
 			{
+			#if defined(ENABLE_PCAP)
 				uint8_t TTLTemp = 0;
 				if (Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL > 0)
 					TTLTemp = Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL;
+			#endif
 				Parameter.DNSTarget.Alternate_IPv4 = Parameter.DNSTarget.IPv4_Multi->front();
+			#if defined(ENABLE_PCAP)
 				Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL = TTLTemp;
+			#endif
 				Parameter.DNSTarget.IPv4_Multi->erase(Parameter.DNSTarget.IPv4_Multi->begin());
 			}
 
@@ -227,17 +249,17 @@ bool __fastcall ParameterCheckAndSetting(const bool IsFirstRead, const size_t Fi
 #if defined(ENABLE_PCAP)
 	#if defined(ENABLE_LIBSODIUM)
 		if (!Parameter.PcapCapture && /* Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH && */ !Parameter.DNSCurve && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
-	#else 
+	#else
 		if (!Parameter.PcapCapture && /* Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH && */ Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
 	#endif
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"Pcap Capture error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
 	}
-#else 
+#else
 	#if defined(ENABLE_LIBSODIUM)
 		if ( /* Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH && */ !Parameter.DNSCurve && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
-	#else 
+	#else
 		if ( /* Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH && */ Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
 	#endif
 	{
@@ -1206,15 +1228,21 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 //Initialization
 	SSIZE_T Result = 0;
 	CONFIGURATION_TABLE *ParameterPTR = nullptr;
+#if defined(ENABLE_LIBSODIUM)
 	DNSCURVE_CONFIGURATION_TABLE *DNSCurveParameterPTR = nullptr;
+#endif
 	if (IsFirstRead)
 	{
 		ParameterPTR = &Parameter;
+	#if defined(ENABLE_LIBSODIUM)
 		DNSCurveParameterPTR = &DNSCurveParameter;
+	#endif
 	}
 	else {
 		ParameterPTR = &ParameterModificating;
+	#if defined(ENABLE_LIBSODIUM)
 		DNSCurveParameterPTR = &DNSCurveParameterModificating;
+	#endif
 	}
 
 //[Base] block
@@ -1404,27 +1432,27 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 	else if (IsFirstRead && Data.find("AdditionalPath=") == 0 && Data.length() > strlen("AdditionalPath="))
 	{
 	#if defined(PLATFORM_WIN)
-		if (!ReadPathAndFileName(Data, strlen("AdditionalPath="), true, Parameter.Path_Global, FileIndex, Line))
+		if (!ReadPathAndFileName(Data, strlen("AdditionalPath="), true, GlobalRunningStatus.Path_Global, FileIndex, Line))
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		if (!ReadPathAndFileName(Data, strlen("AdditionalPath="), true, Parameter.Path_Global, Parameter.sPath_Global, FileIndex, Line))
+		if (!ReadPathAndFileName(Data, strlen("AdditionalPath="), true, GlobalRunningStatus.Path_Global, GlobalRunningStatus.sPath_Global, FileIndex, Line))
 	#endif
 			return false;
 	}
 	else if (IsFirstRead && Data.find("HostsFileName=") == 0 && Data.length() > strlen("HostsFileName="))
 	{
 	#if defined(PLATFORM_WIN)
-		if (!ReadPathAndFileName(Data, strlen("HostsFileName="), false, Parameter.FileList_Hosts, FileIndex, Line))
+		if (!ReadPathAndFileName(Data, strlen("HostsFileName="), false, GlobalRunningStatus.FileList_Hosts, FileIndex, Line))
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		if (!ReadPathAndFileName(Data, strlen("HostsFileName="), false, Parameter.FileList_Hosts, Parameter.sFileList_Hosts, FileIndex, Line))
+		if (!ReadPathAndFileName(Data, strlen("HostsFileName="), false, GlobalRunningStatus.FileList_Hosts, GlobalRunningStatus.sFileList_Hosts, FileIndex, Line))
 	#endif
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPFilterFileName=") == 0 && Data.length() > strlen("IPFilterFileName="))
 	{
 	#if defined(PLATFORM_WIN)
-		if (!ReadPathAndFileName(Data, strlen("IPFilterFileName="), false, Parameter.FileList_IPFilter, FileIndex, Line))
+		if (!ReadPathAndFileName(Data, strlen("IPFilterFileName="), false, GlobalRunningStatus.FileList_IPFilter, FileIndex, Line))
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		if (!ReadPathAndFileName(Data, strlen("IPFilterFileName="), false, Parameter.FileList_IPFilter, Parameter.sFileList_IPFilter, FileIndex, Line))
+		if (!ReadPathAndFileName(Data, strlen("IPFilterFileName="), false, GlobalRunningStatus.FileList_IPFilter, GlobalRunningStatus.sFileList_IPFilter, FileIndex, Line))
 	#endif
 			return false;
 	}
@@ -2469,29 +2497,29 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 			}
 
 		//Add to global list.
-			for (auto InnerStringIter = Parameter.Path_Global->begin();InnerStringIter < Parameter.Path_Global->end();++InnerStringIter)
+			for (auto InnerStringIter = GlobalRunningStatus.Path_Global->begin();InnerStringIter < GlobalRunningStatus.Path_Global->end();++InnerStringIter)
 			{
 				if (*InnerStringIter == wNameString)
 				{
 					break;
 				}
-				else if (InnerStringIter + 1U == Parameter.Path_Global->end())
+				else if (InnerStringIter + 1U == GlobalRunningStatus.Path_Global->end())
 				{
-					Parameter.Path_Global->push_back(wNameString);
+					GlobalRunningStatus.Path_Global->push_back(wNameString);
 					break;
 				}
 			}
 
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			for (auto InnerStringIter = Parameter.sPath_Global->begin();InnerStringIter < Parameter.sPath_Global->end();++InnerStringIter)
+			for (auto InnerStringIter = GlobalRunningStatus.sPath_Global->begin();InnerStringIter < GlobalRunningStatus.sPath_Global->end();++InnerStringIter)
 			{
 				if (*InnerStringIter == StringIter)
 				{
 					break;
 				}
-				else if (InnerStringIter + 1U == Parameter.sPath_Global->end())
+				else if (InnerStringIter + 1U == GlobalRunningStatus.sPath_Global->end())
 				{
-					Parameter.sPath_Global->push_back(StringIter);
+					GlobalRunningStatus.sPath_Global->push_back(StringIter);
 					break;
 				}
 			}
@@ -2774,14 +2802,14 @@ bool __fastcall ReadDNSCurveProviderName(std::string Data, const size_t DataOffs
 	{
 		for (SSIZE_T Result = DataOffset;Result < (SSIZE_T)(Data.length() - DataOffset);++Result)
 		{
-			for (size_t Index = 0;Index < strnlen_s(Parameter.DomainTable, DOMAIN_MAXSIZE);++Index)
+			for (size_t Index = 0;Index < strnlen_s(GlobalRunningStatus.DomainTable, DOMAIN_MAXSIZE);++Index)
 			{
-				if (Index == strnlen_s(Parameter.DomainTable, DOMAIN_MAXSIZE) - 1U && Data.at(Result) != Parameter.DomainTable[Index])
+				if (Index == strnlen_s(GlobalRunningStatus.DomainTable, DOMAIN_MAXSIZE) - 1U && Data.at(Result) != GlobalRunningStatus.DomainTable[Index])
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"DNSCurve Provider Names error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
-				if (Data.at(Result) == Parameter.DomainTable[Index])
+				if (Data.at(Result) == GlobalRunningStatus.DomainTable[Index])
 					break;
 			}
 		}

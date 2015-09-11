@@ -25,8 +25,11 @@ ConfigurationTable::ConfigurationTable(void)
 	memset(this, 0, sizeof(CONFIGURATION_TABLE));
 	try {
 	//[Listen] block
+	#if defined(ENABLE_PCAP)
 		PcapDevicesBlacklist = new std::vector<std::string>();
+	#endif
 		ListenPort = new std::vector<uint16_t>();
+		AcceptTypeList = new std::vector<uint16_t>();
 
 	//[Addresses] block
 		ListenAddress_IPv6 = new std::vector<sockaddr_storage>();
@@ -36,46 +39,25 @@ ConfigurationTable::ConfigurationTable(void)
 		DNSTarget.IPv6_Multi = new std::vector<DNS_SERVER_DATA>();
 		DNSTarget.IPv4_Multi = new std::vector<DNS_SERVER_DATA>();
 
-	//[Data] block(A part)
+	//[Data] block
 	#if defined(ENABLE_PCAP)
 		ICMP_PaddingData = new char[ICMP_PADDING_MAXSIZE]();
 		DomainTest_Data = new char[DOMAIN_MAXSIZE]();
 	#endif
-
-	//[Data] block(B part)
 		LocalFQDN_Response = new char[DOMAIN_MAXSIZE]();
 		LocalFQDN_String = new std::string();
 	#if !defined(PLATFORM_MACX)
 		LocalServer_Response = new char[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt)]();
 	#endif
-		LocalAddress_Response[0] = new char[PACKET_MAXSIZE]();
-		LocalAddress_Response[1U] = new char[PACKET_MAXSIZE]();
-	#if !defined(PLATFORM_MACX)
-		LocalAddress_ResponsePTR[0] = new std::vector<std::string>();
-		LocalAddress_ResponsePTR[1U] = new std::vector<std::string>();
-	#endif
-
-	//Global block
-		LocalSocket = new std::vector<SYSTEM_SOCKET>();
-		RamdomEngine = new std::default_random_engine();
-		Path_Global = new std::vector<std::wstring>();
-		Path_ErrorLog = new std::wstring();
-		FileList_Hosts = new std::vector<std::wstring>();
-		FileList_IPFilter = new std::vector<std::wstring>();
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		sPath_Global = new std::vector<std::string>();
-		sPath_ErrorLog = new std::string();
-		sFileList_Hosts = new std::vector<std::string>();
-		sFileList_IPFilter = new std::vector<std::string>();
-	#endif
-		DomainTable = new char[strlen(RFC_DOMAIN_TABLE) + 1U]();
-		AcceptTypeList = new std::vector<uint16_t>();
 	}
 	catch (std::bad_alloc)
 	{
 	//[Listen] block
+	#if defined(ENABLE_PCAP)
 		delete PcapDevicesBlacklist;
+	#endif
 		delete ListenPort;
+		delete AcceptTypeList;
 
 	//[Addresses] block
 		delete ListenAddress_IPv6;
@@ -85,34 +67,16 @@ ConfigurationTable::ConfigurationTable(void)
 		delete DNSTarget.IPv6_Multi;
 		delete DNSTarget.IPv4_Multi;
 
-	//[Data] block(A part)
+	//[Data] block
 	#if defined(ENABLE_PCAP)
 		delete[] ICMP_PaddingData;
 		delete[] DomainTest_Data;
 	#endif
-
-	//[Data] block(B part)
 		delete[] LocalFQDN_Response;
 		delete LocalFQDN_String;
 	#if !defined(PLATFORM_MACX)
 		delete[] LocalServer_Response;
 	#endif
-		delete[] LocalAddress_Response[0];
-		delete[] LocalAddress_Response[1U];
-	#if !defined(PLATFORM_MACX)
-		delete LocalAddress_ResponsePTR[0];
-		delete LocalAddress_ResponsePTR[1U];
-	#endif
-
-	//Global block
-		delete LocalSocket;
-		delete RamdomEngine;
-		delete Path_Global;
-		delete Path_ErrorLog;
-		delete FileList_Hosts;
-		delete FileList_IPFilter;
-		delete[] DomainTable;
-		delete AcceptTypeList;
 
 		exit(EXIT_FAILURE);
 		return;
@@ -125,36 +89,24 @@ ConfigurationTable::ConfigurationTable(void)
 //ConfigurationTable class constructor settings
 void __fastcall ConfigurationTableSetting(ConfigurationTable *ConfigurationParameter)
 {
-//[Data] block(A part)
+//[Data] block
 #if defined(ENABLE_PCAP)
 	memset(ConfigurationParameter->ICMP_PaddingData, 0, ICMP_PADDING_MAXSIZE);
 	memset(ConfigurationParameter->DomainTest_Data, 0, DOMAIN_MAXSIZE);
 #endif
-
-//[Data] block(B part)
 	memset(ConfigurationParameter->LocalFQDN_Response, 0, DOMAIN_MAXSIZE);
 #if !defined(PLATFORM_MACX)
 	memset(ConfigurationParameter->LocalServer_Response, 0, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt));
 #endif
-	memset(ConfigurationParameter->LocalAddress_Response[0], 0, PACKET_MAXSIZE);
-	memset(ConfigurationParameter->LocalAddress_Response[1U], 0, PACKET_MAXSIZE);
-
-//Global block
-	memset(ConfigurationParameter->DomainTable, 0, strlen(RFC_DOMAIN_TABLE) + 1U);
-
-//Default settings
-	strncpy_s(ConfigurationParameter->DomainTable, strlen(RFC_DOMAIN_TABLE) + 1U, RFC_DOMAIN_TABLE, strlen(RFC_DOMAIN_TABLE));
-	std::random_device RamdomDevice;
-	ConfigurationParameter->RamdomEngine->seed(RamdomDevice());
 
 //Default values
 	ConfigurationParameter->FileRefreshTime = DEFAULT_FILEREFRESH_TIME * SECOND_TO_MILLISECOND;
 	ConfigurationParameter->LogMaxSize = DEFAULT_LOG_MAXSIZE;
+#if defined(ENABLE_PCAP)
+	ConfigurationParameter->PcapReadingTimeout = DEFAULT_PCAP_CAPTURE_TIMEOUT;
+#endif
 	ConfigurationParameter->HostsDefaultTTL = DEFAULT_HOSTS_TTL;
 	ConfigurationParameter->BufferQueueSize = DEFAULT_BUFFER_QUEUE;
-	ConfigurationParameter->AlternateTimes = DEFAULT_ALTERNATE_TIMES;
-	ConfigurationParameter->AlternateTimeRange = DEFAULT_ALTERNATE_RANGE * SECOND_TO_MILLISECOND;
-	ConfigurationParameter->AlternateResetTime = DEFAULT_ALTERNATE_RESET_TIME * SECOND_TO_MILLISECOND;
 #if defined(PLATFORM_WIN)
 	ConfigurationParameter->SocketTimeout_Reliable = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
 	ConfigurationParameter->SocketTimeout_Unreliable = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
@@ -162,21 +114,20 @@ void __fastcall ConfigurationTableSetting(ConfigurationTable *ConfigurationParam
 	ConfigurationParameter->SocketTimeout_Reliable.tv_sec = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
 	ConfigurationParameter->SocketTimeout_Unreliable.tv_sec = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
 #endif
-#if defined(PLATFORM_LINUX)
-	ConfigurationParameter->Daemon = true;
-#endif
+	ConfigurationParameter->AlternateTimes = DEFAULT_ALTERNATE_TIMES;
+	ConfigurationParameter->AlternateTimeRange = DEFAULT_ALTERNATE_RANGE * SECOND_TO_MILLISECOND;
+	ConfigurationParameter->AlternateResetTime = DEFAULT_ALTERNATE_RESET_TIME * SECOND_TO_MILLISECOND;
 #if defined(ENABLE_PCAP)
-	ConfigurationParameter->PcapReadingTimeout = DEFAULT_PCAP_CAPTURE_TIMEOUT;
 	#if defined(PLATFORM_MACX)
 		ConfigurationParameter->ICMP_ID = htons(*(uint16_t *)pthread_self());
-	#else 
+	#else
 		ConfigurationParameter->ICMP_ID = htons((uint16_t)GetCurrentProcessId()); //Default ICMP ID is current process ID.
 	#endif
 		ConfigurationParameter->ICMP_Sequence = htons(DEFAULT_SEQUENCE);
 		ConfigurationParameter->DomainTest_Speed = DEFAULT_DOMAINTEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
 	#if defined(PLATFORM_MACX)
 		ConfigurationParameter->DomainTest_ID = htons(*(uint16_t *)pthread_self());
-	#else 
+	#else
 		ConfigurationParameter->DomainTest_ID = htons((uint16_t)GetCurrentProcessId()); //Default DNS ID is current process ID.
 	#endif
 	#if defined(PLATFORM_WIN)
@@ -195,16 +146,6 @@ void __fastcall ConfigurationTableSetting(ConfigurationTable *ConfigurationParam
 	#endif
 #endif
 
-//Default status
-	ConfigurationParameter->GatewayAvailable_IPv4 = true;
-
-//Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	GetFunctionPointer(FUNCTION_GETTICKCOUNT64);
-	GetFunctionPointer(FUNCTION_INET_NTOP);
-	GetFunctionPointer(FUNCTION_INET_PTON);
-#endif
-
 	return;
 }
 
@@ -213,8 +154,11 @@ ConfigurationTable::~ConfigurationTable(void)
 {
 //Delete all pointers.
 //[Listen] block
+#if defined(ENABLE_PCAP)
 	delete PcapDevicesBlacklist;
+#endif
 	delete ListenPort;
+	delete AcceptTypeList;
 
 //[Addresses] block
 	delete ListenAddress_IPv6;
@@ -224,44 +168,15 @@ ConfigurationTable::~ConfigurationTable(void)
 	delete DNSTarget.IPv6_Multi;
 	delete DNSTarget.IPv4_Multi;
 
-//[Data] block(A part)
+//[Data] block
 #if defined(ENABLE_PCAP)
 	delete[] ICMP_PaddingData;
 	delete[] DomainTest_Data;
 #endif
-
-//[Data] block(B part)
 	delete[] LocalFQDN_Response;
 	delete LocalFQDN_String;
 #if !defined(PLATFORM_MACX)
 	delete[] LocalServer_Response;
-#endif
-	delete[] LocalAddress_Response[0];
-	delete[] LocalAddress_Response[1U];
-#if !defined(PLATFORM_MACX)
-	delete LocalAddress_ResponsePTR[0];
-	delete LocalAddress_ResponsePTR[1U];
-#endif
-
-//Global block
-	delete LocalSocket;
-	delete RamdomEngine;
-	delete Path_Global;
-	delete Path_ErrorLog;
-	delete FileList_Hosts;
-	delete FileList_IPFilter;
-	delete[] DomainTable;
-	delete AcceptTypeList;
-
-//Free libraries.
-//Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	if (FunctionLibrary_GetTickCount64 != nullptr)
-		FreeLibrary(FunctionLibrary_GetTickCount64);
-	if (FunctionLibrary_InetNtop != nullptr)
-		FreeLibrary(FunctionLibrary_InetNtop);
-	if (FunctionLibrary_InetPton != nullptr)
-		FreeLibrary(FunctionLibrary_InetPton);
 #endif
 
 	return;
@@ -271,7 +186,9 @@ ConfigurationTable::~ConfigurationTable(void)
 void ConfigurationTable::SetToMonitorItem(void)
 {
 //[Listen] block
+#if defined(ENABLE_PCAP)
 	delete PcapDevicesBlacklist;
+#endif
 	delete ListenPort;
 
 //[Addresses] block
@@ -282,48 +199,22 @@ void ConfigurationTable::SetToMonitorItem(void)
 	delete DNSTarget.IPv6_Multi;
 	delete DNSTarget.IPv4_Multi;
 
-//[Data] block(A part)
+//[Data] block
 #if defined(ENABLE_PCAP)
 	delete[] ICMP_PaddingData;
 	delete[] DomainTest_Data;
 #endif
-
-//[Data] block(B part)
 	delete[] LocalFQDN_Response;
 	delete LocalFQDN_String;
 #if !defined(PLATFORM_MACX)
 	delete[] LocalServer_Response;
 #endif
-	delete[] LocalAddress_Response[0];
-	delete[] LocalAddress_Response[1U];
-#if !defined(PLATFORM_MACX)
-	delete LocalAddress_ResponsePTR[0];
-	delete LocalAddress_ResponsePTR[1U];
-#endif
-
-//Global block
-	delete LocalSocket;
-	delete RamdomEngine;
-	delete Path_Global;
-	delete Path_ErrorLog;
-	delete FileList_Hosts;
-	delete FileList_IPFilter;
-	delete[] DomainTable;
-
-//Free libraries.
-//Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	if (FunctionLibrary_GetTickCount64 != nullptr)
-		FreeLibrary(FunctionLibrary_GetTickCount64);
-	if (FunctionLibrary_InetNtop != nullptr)
-		FreeLibrary(FunctionLibrary_InetNtop);
-	if (FunctionLibrary_InetPton != nullptr)
-		FreeLibrary(FunctionLibrary_InetPton);
-#endif
 
 //Reset pointers.
 //[Listen] block
+#if defined(ENABLE_PCAP)
 	PcapDevicesBlacklist = nullptr;
+#endif
 	ListenPort = nullptr;
 //[Addresses] block
 	ListenAddress_IPv6 = nullptr;
@@ -332,38 +223,15 @@ void ConfigurationTable::SetToMonitorItem(void)
 	LocalhostSubnet.IPv4 = nullptr;
 	DNSTarget.IPv6_Multi = nullptr;
 	DNSTarget.IPv4_Multi = nullptr;
-//[Data] block(A part)
+//[Data] block
 #if defined(ENABLE_PCAP)
 	ICMP_PaddingData = nullptr;
 	DomainTest_Data = nullptr;
 #endif
-//[Data] block(B part)
 	LocalFQDN_Response = nullptr;
 	LocalFQDN_String = nullptr;
 #if !defined(PLATFORM_MACX)
 	LocalServer_Response = nullptr;
-#endif
-	LocalAddress_Response[0] = nullptr;
-	LocalAddress_Response[1U] = nullptr;
-#if !defined(PLATFORM_MACX)
-	LocalAddress_ResponsePTR[0] = nullptr;
-	LocalAddress_ResponsePTR[1U] = nullptr;
-#endif
-//Global block
-	LocalSocket = nullptr;
-	RamdomEngine = nullptr;
-	Path_Global = nullptr;
-	Path_ErrorLog = nullptr;
-	FileList_Hosts = nullptr;
-	FileList_IPFilter = nullptr;
-	DomainTable = nullptr;
-
-//Delete library pointers.
-//Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	FunctionLibrary_GetTickCount64 = nullptr;
-	FunctionLibrary_InetNtop = nullptr;
-	FunctionLibrary_InetPton = nullptr;
 #endif
 
 	return;
@@ -395,21 +263,27 @@ void ConfigurationTable::MonitorItemToUsing(ConfigurationTable *ConfigurationPar
 	ConfigurationParameter->RequestMode_Local_Transport = RequestMode_Local_Transport;
 
 //[Values] block
+#if defined(ENABLE_PCAP)
 	ConfigurationParameter->DNSTarget.IPv4.HopLimitData.TTL = DNSTarget.IPv4.HopLimitData.TTL;
 	ConfigurationParameter->DNSTarget.IPv6.HopLimitData.HopLimit = DNSTarget.IPv6.HopLimitData.HopLimit;
 	ConfigurationParameter->DNSTarget.Alternate_IPv4.HopLimitData.TTL = DNSTarget.Alternate_IPv4.HopLimitData.TTL;
 	ConfigurationParameter->DNSTarget.Alternate_IPv6.HopLimitData.HopLimit = DNSTarget.Alternate_IPv6.HopLimitData.HopLimit;
+#endif
 	ConfigurationParameter->SocketTimeout_Reliable = SocketTimeout_Reliable;
 	ConfigurationParameter->SocketTimeout_Unreliable = SocketTimeout_Unreliable;
 	ConfigurationParameter->ReceiveWaiting = ReceiveWaiting;
+#if defined(ENABLE_PCAP)
 	ConfigurationParameter->ICMP_Speed = ICMP_Speed;
 	ConfigurationParameter->DomainTest_Speed = DomainTest_Speed;
+#endif
 	ConfigurationParameter->MultiRequestTimes = MultiRequestTimes;
 
 //[Switches] block
 	ConfigurationParameter->DomainCaseConversion = DomainCaseConversion;
+#if defined(ENABLE_PCAP)
 	ConfigurationParameter->HeaderCheck_IPv4 = HeaderCheck_IPv4;
 	ConfigurationParameter->HeaderCheck_TCP = HeaderCheck_TCP;
+#endif
 	ConfigurationParameter->DNSDataCheck = DNSDataCheck;
 
 	return;
@@ -442,10 +316,12 @@ void ConfigurationTable::MonitorItemReset(void)
 	RequestMode_Local_Transport = 0;
 
 //[Values] block
+#if defined(ENABLE_PCAP)
 	DNSTarget.IPv4.HopLimitData.TTL = 0;
 	DNSTarget.IPv6.HopLimitData.HopLimit = 0;
 	DNSTarget.Alternate_IPv4.HopLimitData.TTL = 0;
 	DNSTarget.Alternate_IPv6.HopLimitData.HopLimit = 0;
+#endif
 #if defined(PLATFORM_WIN)
 	SocketTimeout_Reliable = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
 	SocketTimeout_Unreliable = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
@@ -456,15 +332,135 @@ void ConfigurationTable::MonitorItemReset(void)
 	SocketTimeout_Unreliable.tv_usec = 0;
 #endif
 	ReceiveWaiting = 0;
+#if defined(ENABLE_PCAP)
 	ICMP_Speed = 0;
 	DomainTest_Speed = DEFAULT_DOMAINTEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
+#endif
 	MultiRequestTimes = 0;
 
 //[Switches] block
 	DomainCaseConversion = false;
+#if defined(ENABLE_PCAP)
 	HeaderCheck_IPv4 = false;
 	HeaderCheck_TCP = false;
+#endif
 	DNSDataCheck = false;
+
+	return;
+}
+
+//GlobalStatus class constructor
+GlobalStatus::GlobalStatus(void)
+{
+	memset(this, 0, sizeof(GLOBAL_STATUS));
+	try {
+		LocalSocket = new std::vector<SYSTEM_SOCKET>();
+		RamdomEngine = new std::default_random_engine();
+		DomainTable = new char[strlen(RFC_DOMAIN_TABLE) + 1U]();
+		Path_Global = new std::vector<std::wstring>();
+		Path_ErrorLog = new std::wstring();
+		FileList_Hosts = new std::vector<std::wstring>();
+		FileList_IPFilter = new std::vector<std::wstring>();
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		sPath_Global = new std::vector<std::string>();
+		sPath_ErrorLog = new std::string();
+		sFileList_Hosts = new std::vector<std::string>();
+		sFileList_IPFilter = new std::vector<std::string>();
+	#endif
+		LocalAddress_Response[0] = new char[PACKET_MAXSIZE]();
+		LocalAddress_Response[1U] = new char[PACKET_MAXSIZE]();
+	#if !defined(PLATFORM_MACX)
+		LocalAddress_ResponsePTR[0] = new std::vector<std::string>();
+		LocalAddress_ResponsePTR[1U] = new std::vector<std::string>();
+	#endif
+	}
+	catch (std::bad_alloc)
+	{
+		delete LocalSocket;
+		delete RamdomEngine;
+		delete[] DomainTable;
+		delete Path_Global;
+		delete Path_ErrorLog;
+		delete FileList_Hosts;
+		delete FileList_IPFilter;
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		delete sPath_Global;
+		delete sPath_ErrorLog;
+		delete sFileList_Hosts;
+		delete sFileList_IPFilter;
+	#endif
+		delete[] LocalAddress_Response[0];
+		delete[] LocalAddress_Response[1U];
+	#if !defined(PLATFORM_MACX)
+		delete LocalAddress_ResponsePTR[0];
+		delete LocalAddress_ResponsePTR[1U];
+	#endif
+
+		exit(EXIT_FAILURE);
+		return;
+	}
+
+	GlobalStatusSetting(this);
+	return;
+}
+
+//GlobalStatus class constructor settings
+void __fastcall GlobalStatusSetting(GlobalStatus *GlobalRunningStatusParameter)
+{
+#if defined(PLATFORM_LINUX)
+	GlobalRunningStatusParameter->Daemon = true;
+#endif
+	std::random_device RamdomDevice;
+	GlobalRunningStatusParameter->RamdomEngine->seed(RamdomDevice());
+	memset(GlobalRunningStatusParameter->DomainTable, 0, strlen(RFC_DOMAIN_TABLE) + 1U);
+	strncpy_s(GlobalRunningStatusParameter->DomainTable, strlen(RFC_DOMAIN_TABLE) + 1U, RFC_DOMAIN_TABLE, strlen(RFC_DOMAIN_TABLE));
+	GlobalRunningStatusParameter->GatewayAvailable_IPv4 = true;
+	memset(GlobalRunningStatusParameter->LocalAddress_Response[0], 0, PACKET_MAXSIZE);
+	memset(GlobalRunningStatusParameter->LocalAddress_Response[1U], 0, PACKET_MAXSIZE);
+
+//Windows XP with SP3 support
+#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+	GetFunctionPointer(FUNCTION_GETTICKCOUNT64);
+	GetFunctionPointer(FUNCTION_INET_NTOP);
+	GetFunctionPointer(FUNCTION_INET_PTON);
+#endif
+
+	return;
+}
+
+//GlobalStatus class destructor
+GlobalStatus::~GlobalStatus(void)
+{
+	delete LocalSocket;
+	delete RamdomEngine;
+	delete[] DomainTable;
+	delete Path_Global;
+	delete Path_ErrorLog;
+	delete FileList_Hosts;
+	delete FileList_IPFilter;
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	delete sPath_Global;
+	delete sPath_ErrorLog;
+	delete sFileList_Hosts;
+	delete sFileList_IPFilter;
+#endif
+	delete[] LocalAddress_Response[0];
+	delete[] LocalAddress_Response[1U];
+#if !defined(PLATFORM_MACX)
+	delete LocalAddress_ResponsePTR[0];
+	delete LocalAddress_ResponsePTR[1U];
+#endif
+
+//Free libraries.
+//Windows XP with SP3 support
+#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+	if (FunctionLibrary_GetTickCount64 != nullptr)
+		FreeLibrary(FunctionLibrary_GetTickCount64);
+	if (FunctionLibrary_InetNtop != nullptr)
+		FreeLibrary(FunctionLibrary_InetNtop);
+	if (FunctionLibrary_InetPton != nullptr)
+		FreeLibrary(FunctionLibrary_InetPton);
+#endif
 
 	return;
 }

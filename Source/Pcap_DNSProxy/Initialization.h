@@ -21,6 +21,7 @@
 
 //Global variables
 CONFIGURATION_TABLE Parameter, ParameterModificating;
+GLOBAL_STATUS GlobalRunningStatus;
 time_t StartTime;
 ALTERNATE_SWAP_TABLE AlternateSwapList;
 #if defined(ENABLE_LIBSODIUM)
@@ -40,3 +41,4 @@ std::mutex ErrorLogLock, CaptureLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], D
 
 //Functions
 void __fastcall ConfigurationTableSetting(ConfigurationTable *ConfigurationParameter);
+void __fastcall GlobalStatusSetting(GlobalStatus *GlobalRunningStatusParameter);

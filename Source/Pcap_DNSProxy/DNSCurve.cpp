@@ -115,7 +115,7 @@ size_t __fastcall DNSCurveSelectTargetSocket(SOCKET_DATA *SockData, PDNSCURVE_SE
 
 //IPv6
 	if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && 
-		(DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv6 || //Auto select
+		(DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6 || //Auto select
 		DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_IPV6 || //IPv6
 		DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 	{
@@ -173,7 +173,7 @@ size_t __fastcall DNSCurveSelectTargetSocket(SOCKET_DATA *SockData, PDNSCURVE_SE
 	}
 //IPv4
 	else if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && 
-		(DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv4 || //Auto select
+		(DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
 		DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_IPV4 || //IPv4
 		DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 	{
@@ -238,7 +238,7 @@ bool __fastcall DNSCurveSelectTargetSocketMulti(bool &IsIPv6, bool *&IsAlternate
 {
 //IPv6
 	if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && 
-		(DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv6 || //Auto select
+		(DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6 || //Auto select
 		DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_IPV6 || //IPv6
 		DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 	{
@@ -250,7 +250,7 @@ bool __fastcall DNSCurveSelectTargetSocketMulti(bool &IsIPv6, bool *&IsAlternate
 	}
 //IPv4
 	else if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && 
-		(DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_NETWORK_BOTH && Parameter.GatewayAvailable_IPv4 || //Auto select
+		(DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
 		DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_IPV4 || //IPv4
 		DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 	{
@@ -477,7 +477,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 	auto DNS_TCP_Header = (pdns_tcp_hdr)SendBuffer.get();
 #if defined(ENABLE_PCAP)
 	DNS_TCP_Header->ID = Parameter.DomainTest_ID;
-#else 
+#else
 	DNS_TCP_Header->ID = htons(U16_NUM_ONE);
 #endif
 	DNS_TCP_Header->Flags = htons(DNS_STANDARD);
@@ -686,7 +686,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(const uint16_t Protocol, const bool 
 		#endif
 			if (SelectResult > 0)
 			{
-			//Receive
+			//Receive.
 				if (FD_ISSET(TCPSocket, ReadFDS.get()))
 				{
 					RecvLen = recv(TCPSocket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, 0);
@@ -963,7 +963,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(const uint16_t Protocol, const bool 
 	auto DNS_Header = (pdns_hdr)SendBuffer.get();
 #if defined(ENABLE_PCAP)
 	DNS_Header->ID = Parameter.DomainTest_ID;
-#else 
+#else
 	DNS_Header->ID = htons(U16_NUM_ONE);
 #endif
 	DNS_Header->Flags = htons(DNS_STANDARD);
@@ -1519,7 +1519,7 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 	#endif
 		if (SelectResult > 0)
 		{
-		//Receive
+		//Receive.
 			if (FD_ISSET(TCPSockData->Socket, ReadFDS.get()))
 			{
 				RecvLen = recv(TCPSockData->Socket, OriginalRecv, (int)RecvSize, 0);
@@ -1607,7 +1607,11 @@ size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t Send
 							JumpFromPDU: 
 
 							//Responses question and answers check
+							#if defined(ENABLE_PCAP)
 								RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+							#else
+								RecvLen = CheckResponseData(OriginalRecv, RecvLen, false);
+							#endif
 								if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 									return EXIT_FAILURE;
 
@@ -2130,7 +2134,7 @@ StopLoop:
 	#endif
 		if (SelectResult > 0)
 		{
-		//Receive
+		//Receive.
 			for (size_t Index = 0;Index < TCPSocketDataList.size();++Index)
 			{
 				if (FD_ISSET(TCPSocketDataList.at(Index).Socket, ReadFDS.get()))
@@ -2281,7 +2285,11 @@ StopLoop:
 									}
 
 								//Direct Request Extended check
+								#if defined(ENABLE_PCAP)
 									RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+								#else
+									RecvLen = CheckResponseData(OriginalRecv, RecvLen, false);
+								#endif
 									if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 									{
 										memset(OriginalRecv, 0, RecvSize);
@@ -2573,7 +2581,11 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 		RecvLen = DNSCurvePaddingData(false, OriginalRecv, RecvLen);
 		if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
 		{
+		#if defined(ENABLE_PCAP)
 			RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+		#else
+			RecvLen = CheckResponseData(OriginalRecv, RecvLen, false);
+		#endif
 			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 				return EXIT_FAILURE;
 		}
@@ -2590,7 +2602,11 @@ size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t Send
 //Normal mode
 	else {
 	//Responses question and answers check
+	#if defined(ENABLE_PCAP)
 		RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+	#else
+		RecvLen = CheckResponseData(OriginalRecv, RecvLen, false);
+	#endif
 		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			return EXIT_FAILURE;
 
@@ -2987,7 +3003,7 @@ SkipAlternate:
 		{
 			auto InnerIsAlternate = false;
 
-		//Receive
+		//Receive.
 			for (Index = 0;Index < UDPSocketDataList.size();++Index)
 			{
 				if (FD_ISSET(UDPSocketDataList.at(Index).Socket, ReadFDS.get()))
@@ -3093,7 +3109,11 @@ SkipAlternate:
 						RecvLen = DNSCurvePaddingData(false, OriginalRecv, RecvLen);
 						if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
 						{
+						#if defined(ENABLE_PCAP)
 							RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+						#else
+							RecvLen = CheckResponseData(OriginalRecv, RecvLen, false);
+						#endif
 							if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 							{
 								memset(OriginalRecv, 0, RecvSize);
@@ -3141,7 +3161,11 @@ SkipAlternate:
 						}
 
 					//Direct Request Extended check
+					#if defined(ENABLE_PCAP)
 						RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+					#else
+						RecvLen = CheckResponseData(OriginalRecv, RecvLen, false);
+					#endif
 						if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 						{
 							memset(OriginalRecv, 0, RecvSize);

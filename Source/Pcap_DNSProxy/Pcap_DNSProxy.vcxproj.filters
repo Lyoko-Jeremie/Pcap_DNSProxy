@@ -282,6 +282,9 @@
     <ClInclude Include="Structures.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="SOCKS.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Library Include="WinPcap\Packet_x64.lib">
@@ -350,6 +353,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ReadParameter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SOCKS.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
