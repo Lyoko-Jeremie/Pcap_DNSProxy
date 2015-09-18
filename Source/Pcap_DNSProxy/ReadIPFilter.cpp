@@ -20,7 +20,12 @@
 #include "Configuration.h"
 
 //Read ipfilter data from files
-bool __fastcall ReadIPFilterData(std::string Data, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &IsLabelComments)
+bool __fastcall ReadIPFilterData(
+	std::string Data, 
+	const size_t FileIndex, 
+	const size_t Line, 
+	size_t &LabelType, 
+	bool &IsLabelComments)
 {
 //Convert horizontal tab/HT to space and delete spaces before or after data.
 	for (auto &StringIter:Data)
@@ -142,7 +147,10 @@ bool __fastcall ReadIPFilterData(std::string Data, const size_t FileIndex, const
 }
 
 //Read Blacklist items in IPFilter file from data
-bool __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, const size_t Line)
+bool __fastcall ReadBlacklistData(
+	std::string Data, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 //Mark separated location.
 	size_t Separated = 0;
@@ -370,7 +378,10 @@ bool __fastcall ReadBlacklistData(std::string Data, const size_t FileIndex, cons
 }
 
 //Read Local Routing items in IPFilter file from data
-bool __fastcall ReadLocalRoutingData(std::string Data, const size_t FileIndex, const size_t Line)
+bool __fastcall ReadLocalRoutingData(
+	std::string Data, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 //Check format of items.
 	if (Data.find("/") == std::string::npos || Data.rfind("/") < 3U || Data.rfind("/") == Data.length() - 1U)
@@ -457,7 +468,7 @@ bool __fastcall ReadLocalRoutingData(std::string Data, const size_t FileIndex, c
 					}
 				}
 
-			//Add new item to global list.
+			//Jump here to add new item to global list.
 			AddToGlobalList_IPv6: 
 				std::set<uint64_t> AddrBackSet;
 				if (AddressRoutingTableTemp.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
@@ -519,7 +530,7 @@ bool __fastcall ReadLocalRoutingData(std::string Data, const size_t FileIndex, c
 					}
 				}
 
-			//Add new item to global list.
+			//Jump here to add new item to global list.
 			AddToGlobalList_IPv4: 
 				AddressRoutingTableTemp.AddressRoutingList_IPv4.insert(htonl(BinaryAddr->s_addr));
 				IPFilterFileSetIter.LocalRoutingList_IPv4.push_back(AddressRoutingTableTemp);
@@ -531,7 +542,11 @@ bool __fastcall ReadLocalRoutingData(std::string Data, const size_t FileIndex, c
 }
 
 //Read Address Prefix Block data
-bool __fastcall ReadAddressPrefixBlock(std::string OriginalData, const size_t DataOffset, const size_t FileIndex, const size_t Line)
+bool __fastcall ReadAddressPrefixBlock(
+	std::string OriginalData, 
+	const size_t DataOffset, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 	std::string Data(OriginalData, DataOffset);
 
@@ -638,7 +653,10 @@ bool __fastcall ReadAddressPrefixBlock(std::string OriginalData, const size_t Da
 }
 
 //Read Main IPFilter items in IPFilter file from data
-bool __fastcall ReadMainIPFilterData(std::string Data, const size_t FileIndex, const size_t Line)
+bool __fastcall ReadMainIPFilterData(
+	std::string Data, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 //Initialization
 	ADDRESS_RANGE_TABLE AddressRangeTableTemp;

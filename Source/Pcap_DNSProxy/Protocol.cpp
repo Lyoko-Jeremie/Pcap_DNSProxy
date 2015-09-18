@@ -20,7 +20,11 @@
 #include "Protocol.h"
 
 //Convert address strings to binary.
-bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr, const uint16_t Protocol, SSIZE_T &ErrorCode)
+bool __fastcall AddressStringToBinary(
+	const char *AddrString, 
+	void *OriginalAddr, 
+	const uint16_t Protocol, 
+	SSIZE_T &ErrorCode)
 {
 	std::string sAddrString(AddrString);
 	SSIZE_T Result = 0;
@@ -163,7 +167,10 @@ bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr
 }
 
 //Compare two addresses
-size_t __fastcall AddressesComparing(const void *OriginalAddrBegin, const void *OriginalAddrEnd, const uint16_t Protocol)
+size_t __fastcall AddressesComparing(
+	const void *OriginalAddrBegin, 
+	const void *OriginalAddrEnd, 
+	const uint16_t Protocol)
 {
 	if (Protocol == AF_INET6) //IPv6
 	{
@@ -230,7 +237,11 @@ size_t __fastcall AddressesComparing(const void *OriginalAddrBegin, const void *
 }
 
 //Check IPv4/IPv6 special addresses
-bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const bool IsPrivateUse, char *Domain)
+bool __fastcall CheckSpecialAddress(
+	void *Addr, 
+	const uint16_t Protocol, 
+	const bool IsPrivateUse, 
+	char *Domain)
 {
 	if (Protocol == AF_INET6) //IPv6
 	{
@@ -243,7 +254,7 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const b
 			((in6_addr *)Addr)->s6_words[0] == htons(0x2001) && 
 			(IsPrivateUse && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0212) || //2001::212
 			((in6_addr *)Addr)->s6_words[1U] == htons(0x0DA8) && ((in6_addr *)Addr)->s6_words[2U] == htons(0x0112) && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x21AE)) || //2001:DA8:112::21AE
-			((in6_addr *)Addr)->s6_words[0] == htons(0x2003) && ((in6_addr *)Addr)->s6_words[1U] == htons(0x00FF) && ((in6_addr *)Addr)->s6_words[2U] == htons(0x0001) && ((in6_addr *)Addr)->s6_words[3U] == htons(0x0002) && ((in6_addr *)Addr)->s6_words[4U] == htons(0x0003) && ((in6_addr *)Addr)->s6_words[5U] == htons(0x0004) && ((in6_addr *)Addr)->s6_words[6U] == htons(0x5FFF) /* && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0006) */ || //2003:FF:1:2:3:4:5FFF:xxxx
+			((in6_addr *)Addr)->s6_words[0] == htons(0x2003) && ((in6_addr *)Addr)->s6_words[1U] == htons(0x00FF) && ((in6_addr *)Addr)->s6_words[2U] == htons(0x0001) && ((in6_addr *)Addr)->s6_words[3U] == htons(0x0002) && ((in6_addr *)Addr)->s6_words[4U] == htons(0x0003) && ((in6_addr *)Addr)->s6_words[5U] == htons(0x0004) && ((in6_addr *)Addr)->s6_words[6U] == htons(0x5FFF) || //2003:FF:1:2:3:4:5FFF:xxxx
 			((in6_addr *)Addr)->s6_words[0] == htons(0x2123) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x3E12) || //2123::3E12
 		//Special-use or reserved addresses, see https://en.wikipedia.org/wiki/IPv6_address#Presentation and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv6_addresses.
 			(((in6_addr *)Addr)->s6_words[0] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && 
@@ -500,13 +511,15 @@ bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const b
 		}
 	}
 
-//Stop loop.
+//Jump here to stop loop.
 	StopLoop: 
 	return false;
 }
 
 //Check routing of addresses
-bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol)
+bool __fastcall CheckAddressRouting(
+	const void *Addr, 
+	const uint16_t Protocol)
 {
 	std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 
@@ -548,7 +561,9 @@ bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol)
 }
 
 //Custom Mode address filter
-bool __fastcall CheckCustomModeFilter(const void *OriginalAddr, const uint16_t Protocol)
+bool __fastcall CheckCustomModeFilter(
+	const void *OriginalAddr, 
+	const uint16_t Protocol)
 {
 	std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 	if (Protocol == AF_INET6) //IPv6
@@ -729,7 +744,8 @@ bool __fastcall CheckCustomModeFilter(const void *OriginalAddr, const uint16_t P
 }
 
 //Count DNS Query Name length
-size_t __fastcall CheckQueryNameLength(const char *Buffer)
+size_t __fastcall CheckQueryNameLength(
+	const char *Buffer)
 {
 	size_t Index = 0;
 	for (Index = 0;Index < DOMAIN_MAXSIZE;++Index)
@@ -748,7 +764,13 @@ size_t __fastcall CheckQueryNameLength(const char *Buffer)
 }
 
 //Check DNS query data
-size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t Length, const SOCKET_DATA &LocalSocketData, const uint16_t Protocol, bool *IsLocal)
+size_t __fastcall CheckQueryData(
+	PSTR RecvBuffer, 
+	PSTR SendBuffer, 
+	const size_t Length, 
+	const SOCKET_DATA &LocalSocketData, 
+	const uint16_t Protocol, 
+	bool *IsLocal)
 {
 //Check address.
 	if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
@@ -833,7 +855,7 @@ size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t 
 					DataLength[0] = AddEDNSLabelToAdditionalRR(RecvBuffer, DataLength[0], PACKET_MAXSIZE, false);
 			}
 
-		//Send requesting.
+		//Send request.
 			SendToRequester(RecvBuffer, DataLength[0], Protocol, LocalSocketData);
 			return EXIT_FAILURE;
 		}
@@ -873,11 +895,11 @@ size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t 
 }
 
 //Check DNS response results
-#if defined(ENABLE_PCAP)
-	size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal, bool *IsMarkHopLimit)
-#else
-	size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal)
-#endif
+size_t __fastcall CheckResponseData(
+	const char *Buffer, 
+	const size_t Length, 
+	const bool IsLocal, 
+	bool *IsMarkHopLimit)
 {
 //Response check options
 	if (!Parameter.DNSDataCheck && !Parameter.BlacklistCheck)
@@ -1082,7 +1104,11 @@ size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t 
 }
 
 //Check DNSSEC Records
-bool __fastcall CheckDNSSECRecords(const char *Buffer, const size_t Length, const uint16_t Type, const uint16_t BeforeType)
+bool __fastcall CheckDNSSECRecords(
+	const char *Buffer, 
+	const size_t Length, 
+	const uint16_t Type, 
+	const uint16_t BeforeType)
 {
 //DS and CDS Records
 	if (Type == htons(DNS_RECORD_DS) || Type == htons(DNS_RECORD_CDS))

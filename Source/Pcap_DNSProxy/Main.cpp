@@ -21,10 +21,14 @@
 
 //The Main function of program
 #if defined(PLATFORM_WIN)
-int wmain(int argc, wchar_t* argv[])
+int wmain(
+	int argc, 
+	wchar_t* argv[])
 {
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-int main(int argc, char *argv[])
+int main(
+	int argc, 
+	char *argv[])
 {
 #endif
 
@@ -109,9 +113,13 @@ int main(int argc, char *argv[])
 
 //Read commands from main program
 #if defined(PLATFORM_WIN)
-	bool __fastcall ReadCommand(int argc, wchar_t* argv[])
+bool __fastcall ReadCommand(
+	int argc, 
+	wchar_t* argv[])
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	bool ReadCommand(int argc, char *argv[])
+bool ReadCommand(
+	int argc, 
+	char *argv[])
 #endif
 {
 //Path initialization
@@ -267,9 +275,11 @@ int main(int argc, char *argv[])
 
 //Get path of program from the main function parameter and Winsock initialization
 #if defined(PLATFORM_WIN)
-	bool __fastcall FileNameInit(const wchar_t *OriginalPath)
+bool __fastcall FileNameInit(
+	const wchar_t *OriginalPath)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	bool FileNameInit(const char *OriginalPath)
+bool FileNameInit(
+	const char *OriginalPath)
 #endif
 {
 //Path process
@@ -315,7 +325,8 @@ int main(int argc, char *argv[])
 
 #if defined(PLATFORM_WIN)
 //Windows Firewall Test
-bool __fastcall FirewallTest(const uint16_t Protocol)
+bool __fastcall FirewallTest(
+	const uint16_t Protocol)
 {
 //Initialization
 	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
@@ -334,7 +345,7 @@ bool __fastcall FirewallTest(const uint16_t Protocol)
 		FirewallSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 
 	//Bind local socket.
-		if (FirewallSocket == INVALID_SOCKET)
+		if (!SocketSetting(FirewallSocket, SOCKET_SETTING_INVALID_CHECK, nullptr))
 		{
 			return false;
 		}
@@ -366,7 +377,7 @@ bool __fastcall FirewallTest(const uint16_t Protocol)
 		FirewallSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 	//Bind local socket.
-		if (FirewallSocket == INVALID_SOCKET)
+		if (!SocketSetting(FirewallSocket, SOCKET_SETTING_INVALID_CHECK, nullptr))
 		{
 			return false;
 		}

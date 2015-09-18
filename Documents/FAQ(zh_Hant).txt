@@ -80,19 +80,21 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * FIFO write messages error - FIFO 寫入資訊失敗：建議重新開機服務或程式
   * Old Error Log file was deleted - 錯誤日誌檔已滿並被刪除
     * 日誌檔最大容量的配置參見 詳細說明文檔 中 設定檔詳細參數說明 中的 Log Maximum Size 參數
-  * Read Parameter module Monitor terminated - 設定檔讀取模組已經停止監視，建議重新開機服務或程式
-  * Read Hosts module Monitor terminated - Hosts 讀取模組已經停止監視，建議重新開機服務或程式
-  * Read IPFilter module Monitor terminated - IPFilter 讀取模組已經停止監視，建議重新開機服務或程式
-  * Alternate Server module Monitor terminated - 待命伺服器切換模組已經停止運行，建議重新開機服務或程式
-  * DNS Cache Timer module Monitor terminated - DNS 緩存模組已經停止運行，建議重新開機服務或程式
-  * Get Local Address Information module Monitor terminated - 本地位址監視模組已經停止監視，建議重新開機服務或程式
-  * Domain Test module Monitor terminated - 功能變數名稱測試模組已經停止運行，建議重新開機服務或程式
-  * ICMP Test module Monitor terminated - ICMP 請求模組已經停止請求，建議重新開機服務或程式
-  * ICMPv6 Test module Monitor terminated - ICMPv6 請求已經停止請求，建議重新開機服務或程式
-  * UDP listening module Monitor terminated - UDP 協定監聽模組已經停止監視，建議重新開機服務或程式
-  * TCP listening module Monitor terminated - TCP 協定監聽模組已經停止監視，建議重新開機服務或程式
-  * MailSlot module Monitor terminated - MailSlot 監視模組已經停止運行，建議重新開機服務或程式
-  * FIFO module Monitor terminated - FIFO 監視模組已經停止運行，建議重新開機服務或程式
+  * Read Parameter module Monitor terminated - 設定檔讀取模組已經停止監視：建議重新開機服務或程式
+  * Read Hosts module Monitor terminated - Hosts 讀取模組已經停止監視：建議重新開機服務或程式
+  * Read IPFilter module Monitor terminated - IPFilter 讀取模組已經停止監視：建議重新開機服務或程式
+  * Alternate Server module Monitor terminated - 待命伺服器切換模組已經停止運行：建議重新開機服務或程式
+  * DNS Cache Timer module Monitor terminated - DNS 緩存模組已經停止運行：建議重新開機服務或程式
+  * Get Local Address Information module Monitor terminated - 本地位址監視模組已經停止監視：建議重新開機服務或程式
+  * Domain Test module Monitor terminated - 功能變數名稱測試模組已經停止運行：建議重新開機服務或程式
+  * ICMP Test module Monitor terminated - ICMP 請求模組已經停止請求：建議重新開機服務或程式
+  * ICMPv6 Test module Monitor terminated - ICMPv6 請求已經停止請求：建議重新開機服務或程式
+  * UDP listening module Monitor terminated - UDP 協定監聽模組已經停止監視：建議重新開機服務或程式
+  * TCP listening module Monitor terminated - TCP 協定監聽模組已經停止監視：建議重新開機服務或程式
+  * MailSlot module Monitor terminated - MailSlot 監視模組已經停止運行：建議重新開機服務或程式
+  * FIFO module Monitor terminated - FIFO 監視模組已經停止運行：建議重新開機服務或程式
+  * DNSCurve TCP Signature Request module Monitor terminated - DNSCurve TCP 協定握手資訊獲取模組已經停止運行：建議重新開機服務或程式
+  * DNSCurve UDP Signature Request module Monitor terminated - DNSCurve UDP 協定握手資訊獲取模組已經停止運行：建議重新開機服務或程式
 
 2.Parameter Error - 讀取設定檔參數錯誤
   * Cannot open any configuration files - 未發現任何設定檔：請確認檔是否存在
@@ -125,7 +127,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * DNS Records type error - DNS 記錄參數錯誤：請檢查 Accept Type 的值是否符合要求
   * Hop Limit Fluctuations error - Hop Limit 或 TTL 可接受範圍錯誤：請檢查範圍的值
   * Alternate Multi requesting error - 主要備用或多個伺服器下同時請求參數錯誤：請確認所有伺服器的資訊
-  * Multi requesting times error - 接收到一個解析請求向同一個遠端伺服器發送多次解析請求參數錯誤 ：一個解析請求的多次解析請求次數不能超過8次，也就是設定檔不能填大於7的值
+  * Multi requesting times error - 接收到一個解析請求向同一個遠端伺服器發送多次解析請求參數錯誤 ：一個解析請求的多次解析請求次數不能超過8次，設定檔不能填大於7的值
   * DNSCurve target error - DNSCurve 協定使用的 DNS 目標伺服器位址錯誤：請檢查 DNSCurve 協定使用DNS伺服器的位址
   * DNSCurve encryption options error - DNSCurve 協定加密選項配置錯誤：開啟加密選項和只使用加密模式選項衝突
   * DNSCurve Encryption Only mode error - DNSCurve 協定只使用加密模式配置錯誤：只使用加密模式必須提供伺服器的魔數和指紋
@@ -161,36 +163,26 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
 5.Network Error - 網路錯誤
   * Winsock initialization error - Winsock 初始化失敗：請確認使用的作業系統平臺是否受支援
   * Windows Firewall Test error - Windows 防火牆測試失敗：請確認是否以管理員身份運行批次處理
+  * Socket treating wildcard bind setting error - 設置通訊端協定獨佔模式錯誤：具體原因可參見錯誤代碼
+  * Socket reusing disable setting error - 設置通訊端埠獨佔模式錯誤：具體原因可參見錯誤代碼
+  * Socket non-blocking mode setting error - 設置通訊端非阻塞模式錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * Socket timeout setting error - 設置通訊端超時時間錯誤：具體原因可參見錯誤代碼
+  * Socket TCP Fast Open setting error - 設置 TCP Fast Open 錯誤：請檢查系統是否支援此功能
+  * Socket UDP block RESET message setting error - 設置 UDP 協定通訊端遮罩 ICMP Port Unreachable 資訊錯誤：具體原因可參見錯誤代碼
   * UDP Monitor socket initialization error - UDP 協定本地通訊端初始化失敗：原因參見錯誤代碼
-  * Bind UDP Monitor socket error - UDP 協定本地通訊端綁定失敗：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體原因參見錯誤代碼
   * TCP Monitor socket initialization error - TCP 協定本地通訊端初始化失敗：原因參見錯誤代碼
+  * Bind UDP Monitor socket error - UDP 協定本地通訊端綁定失敗：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體原因參見錯誤代碼
   * Bind TCP Monitor socket error - TCP 協定本地通訊端綁定失敗：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體原因參見錯誤代碼
   * TCP Monitor socket listening initialization error - TCP 協定本地通訊端監聽失敗：原因參見錯誤代碼
   * Get localhost name error - 獲取本地電腦名稱稱失敗：原因參見錯誤代碼
   * Get localhost address error - 獲取本地電腦位址失敗：沒有任何生效的網路介面卡，可能是硬體或者驅動程式的問題
-  * UDP request initialization error - UDP 協定請求通訊端初始化失敗：原因參見錯誤代碼
-  * UDP request error - UDP 協定要求傳送失敗：可能為網路錯誤，具體原因可參見錯誤代碼
-  * TCP request initialization error - TCP 協定請求通訊端初始化失敗：原因參見錯誤代碼
-  * DNSCurve TCP sockets initialization error - DNSCurve 協定 TCP 協定通訊端初始化失敗：可能為網路錯誤，具體原因可參見錯誤代碼
-  * DNSCurve TCP request error - DNSCurve 協定 TCP 要求傳送失敗：可能為網路錯誤，具體原因可參見錯誤代碼
-  * DNSCurve UDP sockets initialization error - DNSCurve 協定 UDP 協定通訊端初始化失敗：可能為網路錯誤，具體原因可參見錯誤代碼
-  * DNSCurve UDP request error - DNSCurve 協定 UDP 協定要求傳送失敗：可能為網路錯誤，具體原因可參見錯誤代碼
-  * DNSCurve Local Signature request initialization error - DNSCurve 協定本地請求通訊端初始化失敗：可能為網路錯誤，具體原因可參見錯誤代碼
+  * UDP socket initialization error - UDP 協定請求通訊端初始化失敗：原因參見錯誤代碼
+  * TCP socket initialization error - TCP 協定請求通訊端初始化失敗：原因參見錯誤代碼
+  * Complete UDP socket initialization error - UDP 協定請求通訊端初始化失敗：原因參見錯誤代碼
+  * DNSCurve UDP socket initialization error - DNSCurve 協定 UDP 協定通訊端初始化失敗：可能為網路錯誤，具體原因可參見錯誤代碼
+  * DNSCurve TCP socket initialization error - DNSCurve 協定 TCP 協定通訊端初始化失敗：可能為網路錯誤，具體原因可參見錯誤代碼
+  * DNSCurve Local Signature socket initialization error - DNSCurve 協定本地請求通訊端初始化失敗：可能為網路錯誤，具體原因可參見錯誤代碼
   * DNSCurve Local Signature request error - DNSCurve 協定本地要求傳送失敗：可能為網路錯誤，具體原因可參見錯誤代碼
-  * Set TCP socket non-blocking mode error - 設置 TCP 協定通訊端非阻塞模式錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
-  * Set UDP socket non-blocking mode error - 設置 UDP 協定通訊端非阻塞模式錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
-  * Set UDP socket timeout error - 設置 UDP 協定通訊端超時時間錯誤：具體原因可參見錯誤代碼
-  * Set UDP socket SIO_UDP_CONNRESET error - 設置 UDP 協定通訊端遮罩 ICMP Port Unreachable 資訊錯誤：具體原因可參見錯誤代碼
-  * Set TCP socket timeout error - 設置 TCP 協定通訊端超時時間錯誤：具體原因可參見錯誤代碼
-  * Set TCP socket Fast Open error - 設置 TCP Fast Open 錯誤：請檢查系統是否支援此功能
-  * Set UDP socket disable reusing error - 設置 UDP 協定通訊端埠獨佔模式錯誤：具體原因可參見錯誤代碼
-  * Set TCP socket disable reusing error - 設置 TCP 協定通訊端埠獨佔模式錯誤：具體原因可參見錯誤代碼
-  * Set UDP socket treating wildcard bind error - 設置 UDP 協定通訊端協定獨佔模式錯誤：具體原因可參見錯誤代碼
-  * Set TCP socket treating wildcard bind error - 設置 TCP 協定通訊端協定獨佔模式錯誤：具體原因可參見錯誤代碼
-  * Set ICMP socket timeout error - 設置 ICMP 協定通訊端超時時間錯誤：具體原因可參見錯誤代碼
-  * ICMP Echo(Ping) request error - ICMP/Ping 協定請求錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
-  * Set ICMPv6 socket timeout error - 設置 ICMPv6 協定通訊端超時時間錯誤：具體原因可參見錯誤代碼
-  * ICMPv6 Echo(Ping) request error - ICMPv6/Ping 協定請求錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
   * Not any available gateways to public network - 沒有任何通往公共網路的可用閘道：可能為網路錯誤，請檢查網路是否通暢
   * Winsock 錯誤代碼具體含義可移步 https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 
@@ -201,10 +193,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
 
 7.DNSCurve Error - DNSCurve 協定錯誤
   * Libsodium initialization error - Libsodium 庫初始化錯誤：請與開發者聯繫
-  * Client keypair(public key and secret key) error - 自訂用戶端金鑰組錯誤：請檢查金鑰組的正確性
-  * TCP get signature data request error - TCP 協定自動獲取伺服器連接參數資訊錯誤：如果此錯誤持續並導致 DNSCurve 協定無法使用，請將伺服器的魔數和指紋直接寫入設定檔中
-  * UDP get signature data request error - UDP 協定自動獲取伺服器連接參數資訊錯誤：如果此錯誤持續並導致 DNSCurve 協定無法使用，請將伺服器的魔數和指紋直接寫入設定檔中
-  * Ramdom module close error - 亂數產生模組關閉錯誤：請與開發者聯繫
+  * Client keypair error - 自訂用戶端金鑰組錯誤：請檢查金鑰組的正確性
   * IPv6 Main Server TCP get signature data error - IPv6 TCP 協定主要伺服器加密握手失敗：請檢查該伺服器是否可用
   * IPv6 Alternate Server TCP get signature data error - IPv6 TCP 協定待命伺服器加密握手失敗：請檢查該伺服器是否可用
   * IPv4 Main Server TCP get signature data error - IPv4 TCP 協定主要伺服器加密握手失敗：請檢查該伺服器是否可用
@@ -226,14 +215,14 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * IPv4 Data Filter require IPv4 DNS server - 開啟 IPv4 資料包頭檢測時必須存在 IPv4 協定的 DNS 伺服器：程式將自動關閉此功能
   * IPv4 Data Filter require Pcap Cpature - 開啟 IPv4 資料包頭檢測時必須啟用 Pcap Cpature：程式將自動關閉此功能
   * EDNS Payload Size must longer than 512 bytes(Traditional DNS packet minimum supported size) - EDNS 載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包
-  * EDNS Payload Size may be too long - EDNS 載荷長度可能過長：此值建議不要超過乙太網的 MTU(1512 bytes)
+  * EDNS Payload Size is too long - EDNS 載荷長度可能過長：此值建議不要超過乙太網的 MTU(1500 bytes)
   * DNSSEC Request require EDNS Label - 開啟 DNSSEC 請求時必須開啟 EDNS 標籤請求功能
   * EDNS Client Subnet require EDNS Label - 開啟 EDNS Client Subnet 請求時必須開啟 EDNS 標籤請求功能
   * Turn OFF Compression Pointer Mutation when EDNS Label is available - 使用 Compression Pointer Mutation 時不能開啟 EDNS 標籤請求功能，兩者並不相容
   * DNSSEC Validation require EDNS Label and DNSSEC Request - 開啟 DNSSEC Validation 請求時必須開啟 EDNS 標籤請求和 DNSSEC 請求功能
   * DNSSEC Force Validation require EDNS Label, DNSSEC Request and DNSSEC Validation - 開啟 DNSSEC Force Validation 請求時必須開啟 EDNS 標籤請求、DNSSEC 請求和 DNSSEC Validation 驗證功能
   * DNSCurve Payload Size must longer than 512 bytes(Traditional DNS packet minimum supported size) - DNSCurve 協定載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包
-  * DNSCurve Payload Size may be too long - DNSCurve 協定載荷長度可能過長：此值建議不要超過乙太網的 MTU(1512 bytes)
+  * DNSCurve Payload Size is too long - DNSCurve 協定載荷長度可能過長：此值建議不要超過乙太網的 MTU(1500 bytes)
   * Address of IPv6 Main Local Server is not in Local Routing list - IPv6 境內主要伺服器不在境內路由表中，填入的位址可能不是境內的位址：此為提示，請檢查該位址的地理位置
   * Address of IPv6 Alternate Local Server is not in Local Routing list - IPv6 境內待命伺服器不在境內路由表中，填入的位址可能不是境內的位址：此為提示，請檢查該位址的地理位置
   * Address of IPv4 Main Local Server is not in Local Routing list - IPv4 境內主要伺服器不在境內路由表中，填入的位址可能不是境內的位址：此為提示，請檢查該位址的地理位置

@@ -124,7 +124,7 @@
 #  define PLATFORM_DYNIX
 #elif defined(_SCO_DS)                   /* SCO OpenServer 5 + GCC */
 #  define PLATFORM_SCO
-#elif defined(__USLC__)                  /* all SCO platforms + UDK or OUDK */
+#elif defined(__USLC__)                  /* All SCO platforms + UDK or OUDK */
 #  define PLATFORM_UNIXWARE
 #  define PLATFORM_UNIXWARE7
 #elif defined(__svr4__) && defined(i386) /* Open UNIX 8 + GCC */
@@ -355,9 +355,9 @@
 //Internet Protocol version 4/IPv4 Socket Address(From Microsoft Windows)
 	typedef struct _sockaddr_in_windows_
 	{
-		sa_family_t       sin_family;     /* address family: AF_INET */
-		in_port_t         sin_port;       /* port in network byte order */
-		in_addr_Windows   sin_addr;       /* internet address */
+		sa_family_t       sin_family;     /* Address family: AF_INET */
+		in_port_t         sin_port;       /* Port in network byte order */
+		in_addr_Windows   sin_addr;       /* Internet address */
 		uint8_t           sin_zero[8U];   /* Zero */
 	}sockaddr_in_Windows;
 
@@ -365,13 +365,14 @@
 	typedef struct _sockaddr_in6_windows_ 
 	{
 		sa_family_t        sin6_family;   /* AF_INET6 */
-		in_port_t          sin6_port;     /* port number */
+		in_port_t          sin6_port;     /* Port number */
 		uint32_t           sin6_flowinfo; /* IPv6 flow information */
 		in6_addr_Windows   sin6_addr;     /* IPv6 address */
 		uint32_t           sin6_scope_id; /* Scope ID (new in 2.4) */
 	}sockaddr_in6_Windows;
 
 //Linux and Mac OS X compatible(Part 2)
+	#define FALSE                    0
 	#define RETURN_ERROR             (-1)
 	#define SOCKET_ERROR             (-1)
 	#define INVALID_SOCKET           (-1)

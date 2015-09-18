@@ -575,7 +575,7 @@ typedef struct _ppp_hdr_
 
 */
 #define IPV4_STANDARD_IHL            0x05   //Standard IPv4 header length(0x05/20 bytes)
-#define IPv4_IHL_BYTES_TIMES         4U     //IHL is number of 32-bit words(4 bytes).
+#define IPV4_IHL_BYTES_TIMES         4U     //IHL is number of 32-bit words(4 bytes).
 typedef struct _ipv4_hdr_
 {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
@@ -801,9 +801,17 @@ typedef struct _icmpv6_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define TCP_STANDARDHL       5U      //Standard TCP header length
-#define TCP_SYN_ACK_STATUS   0x012   //SYN bit and ACK bit was set.
-#define TCP_RST_STATUS       0x004   //RST bit was set.
+#define TCP_STANDARD_IHL      5U       //Standard TCP header length
+#define TCP_IHL_BYTES_TIMES   4U       //IHL is number of 32-bit words(4 bytes).
+#define TCP_GET_BIT_IHL       0xF000   //Get Data Offset in TCP IHL
+#define TCP_GET_BIT_FLAG      0x0FFF   //Get TCP flag bits
+#define TCP_GET_BIT_CWR       0x0080   //Get Congestion Window Reduced bit in TCP flags
+#define TCP_GET_BIT_ECE       0x0040   //Get ECN-Echo indicates bit in TCP flags
+#define TCP_STATUS_RST        0x0004   //TCP status: RST
+#define TCP_STATUS_ACK        0x0010   //TCP status: ACK
+#define TCP_STATUS_FIN_ACK    0x0011   //TCP status: FIN, ACK
+#define TCP_STATUS_SYN_ACK    0x0012   //TCP status: SYN, ACK
+#define TCP_STATUS_PSH_ACK    0x0018   //TCP status: PSH, ACK
 
 //Port definitions(1 - 1024, well-known ports)
 //About this list, see IANA Service Name and Transport Protocol Port Number Registry(https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml)
@@ -1077,46 +1085,35 @@ typedef struct _tcp_hdr_
 	uint16_t               DstPort;
 	uint32_t               Sequence;
 	uint32_t               Acknowledge;
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-	uint8_t                Nonce_Bits:1;
-	uint8_t			       Reserved_Bits:3;
-	uint8_t                HeaderLength:4;
 	union {
+		uint16_t               HeaderLength_Flags;
 		struct {
-			uint8_t        Flags:6;
-			uint8_t        ECNEcho:1;
-			uint8_t        CWR:1;
-		}StatusFlags;
-		struct {
-			uint8_t        FIN:1;
-			uint8_t        SYN:1;
-			uint8_t        RST:1;
-			uint8_t        PSH:1;
-			uint8_t        ACK:1;
-			uint8_t        URG:1;
-			uint8_t        ECNEcho:1;
-			uint8_t        CWR:1;
-#else //BIG_ENDIAN
-	uint8_t                HeaderLength:4;
-	uint8_t			       Reserved_Bits:3;
-	uint8_t                Nonce_Bits:1;
-	union {
-		struct {
-			uint8_t        CWR:1;
-			uint8_t        ECNEcho:1;
-			uint8_t        Flags:6;
-		}StatusFlags;
-		struct {
-			uint8_t        CWR:1;
-			uint8_t        ECNEcho:1;
-			uint8_t        URG:1;
-			uint8_t        ACK:1;
-			uint8_t        PSH:1;
-			uint8_t        RST:1;
-			uint8_t        SYN:1;
-			uint8_t        FIN:1;
-#endif
-		}FlagsBits;
+		#if __BYTE_ORDER == __LITTLE_ENDIAN
+			uint8_t                Nonce:1;
+			uint8_t                Reserved:3;
+			uint8_t                HeaderLength:4;
+			uint8_t                FIN:1;
+			uint8_t                SYN:1;
+			uint8_t                RST:1;
+			uint8_t                PSH:1;
+			uint8_t                ACK:1;
+			uint8_t                URG:1;
+			uint8_t                ECE:1;
+			uint8_t                CWR:1;
+		#else //BIG_ENDIAN
+			uint8_t                HeaderLength:4;
+			uint8_t                Reserved:3;
+			uint8_t                Nonce:1;
+			uint8_t                CWR:1;
+			uint8_t                ECE:1;
+			uint8_t                URG:1;
+			uint8_t                ACK:1;
+			uint8_t                PSH:1;
+			uint8_t                RST:1;
+			uint8_t                SYN:1;
+			uint8_t                FIN:1;
+		#endif
+		}HeaderLength_FlagsBits;
 	};
 	uint16_t               Windows;
 	uint16_t               Checksum;
@@ -1867,7 +1864,6 @@ typedef struct _dns_record_opt_
 /* Extension Mechanisms for Domain Name System/DNS, Client subnet in EDNS requests
 * Client Subnet in DNS Requests draft-vandergaast-edns-client-subnet-02(https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02)
 
-
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -2183,12 +2179,11 @@ typedef struct _dns_record_caa_
 // About DNSCurve standards: 
 // DNSCurve: Usable security for DNS(http://dnscurve.org)
 // DNSCrypt, A protocol to improve DNS security(https://dnscrypt.org)
-#define DNSCURVE_MAGIC_QUERY_LEN       8U
-#define DNSCURVE_MAGIC_QUERY_HEX_LEN   16U
-#define DNSCRYPT_RECEIVE_MAGIC         ("r6fnvWj8")                   //Receive Magic Number
-#define DNSCRYPT_CERT_MAGIC            ("DNSC")                       //Signature Magic Number
-#define crypto_box_HALF_NONCEBYTES     (crypto_box_NONCEBYTES / 2U)
-#define DNSCRYPT_TXT_RECORDS_LEN       124U                           //Length of DNScrypt TXT Records
+#define DNSCURVE_MAGIC_QUERY_LEN          8U
+#define DNSCURVE_MAGIC_QUERY_HEX_LEN      16U
+#define DNSCRYPT_RECEIVE_MAGIC            ("r6fnvWj8")                   //Receive Magic Number
+#define DNSCRYPT_CERT_MAGIC               ("DNSC")                       //Signature Magic Number
+#define crypto_box_HALF_NONCEBYTES        (crypto_box_NONCEBYTES / 2U)
 // Function definitions
 #define crypto_sign_open crypto_sign_ed25519_open
 #define crypto_box crypto_box_curve25519xsalsa20poly1305

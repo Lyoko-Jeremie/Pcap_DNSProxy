@@ -30,4 +30,8 @@ extern std::vector<DIFFERNET_HOSTS_FILE_SET> *HostsFileSetUsing, *HostsFileSetMo
 extern std::mutex IPFilterFileLock, HostsFileLock;
 
 //Functions
-bool __fastcall CheckDNSSECRecords(const char *Buffer, const size_t Length, const uint16_t Type, const uint16_t BeforeType);
+bool __fastcall CheckDNSSECRecords(
+	const char *Buffer, 
+	const size_t Length, 
+	const uint16_t Type, 
+	const uint16_t BeforeType);

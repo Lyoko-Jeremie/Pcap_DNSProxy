@@ -469,7 +469,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Unreliable Socket Timeout - 不可靠協定埠超時時間，不可靠埠指 UDP/ICMP/ICMPv6 協定，單位為毫秒：預設為 2000
   * Receive Waiting - 資料包接收等待時間，啟用後程式會嘗試等待一段時間以嘗試接收所有資料包並返回最後到達的資料包：單位為毫秒，留空或填 0 表示關閉此功能，預設為 0
     * 本參數與 Pcap Reading Timeout 密切相關，由於抓包模組每隔一段讀取超時時間才會返回給程式一次，當資料包接收等待時間小於讀取超時時間時會導致本參數變得沒有意義，在一些情況下甚至會拖慢功能變數名稱解析的回應速度
-    * 一般情況下，越靠後所收到的資料包，其可靠性可能會更高
+    * 本參數啟用後雖然本身只決定抓包模組的接收等待時間，但同時會影響到非抓包模組的請求。 非抓包模組會自動切換為等待超時時間後發回最後收到的回復，預設為接受最先到達的正確的回復，而它們的超時時間由 Reliable Socket Timeout/Unreliable Socket Timeout 參數決定
+	* 一般情況下，越靠後所收到的資料包，其可靠性可能會更高
   * ICMP Test - ICMP/Ping 測試間隔時間：單位為秒，最短間隔時間為5秒，預設為 900秒/15分鐘
   * Domain Test - DNS 伺服器解析功能變數名稱測試間隔時間：單位為秒，最短間隔時間為5秒，預設為 900秒/15分鐘
   * Alternate Times - 待命伺服器失敗次數閾值，一定週期內如超出閾值會觸發伺服器切換：預設為 10
@@ -492,7 +493,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 開啟系統對本功能的支援：
       * 臨時支援：需要在擁有 ROOT 許可權的終端執行 echo 3 > /proc/sys/net/ipv4/tcp_fastopen
       * 長期支援：
-        * 在 /etc/rc.local 檔最下面添加 echo 3 > /proc/sys/net/ipv4/tcp_fastopen 保存，以後每次啟動都將自動設置此指
+        * 在 /etc/rc.local 檔最下面添加 echo 3 > /proc/sys/net/ipv4/tcp_fastopen 保存，以後每次啟動都將自動設置此值
         * 在 /etc/sysctl.conf 檔中添加 net.ipv4.tcp_fastopen = 3 保存
   * Domain Case Conversion - 隨機轉換功能變數名稱請求大小寫：開啟為1/關閉為0，預設為 1
   * Compression Pointer Mutation - 隨機添加壓縮指標：可填入 1 (+ 2 + 3)，關閉為0，預設為 0
@@ -525,7 +526,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * ICMP Sequence - ICMP/Ping 資料包頭部 Sequence/序號 的值：格式為 0x**** 的十六進位字元，如果留空則為 0x0001 預設為空
   * Domain Test Data - DNS 伺服器解析功能變數名稱測試：請輸入正確、確認不會被投毒污染的功能變數名稱並且不要超過 253 位元組 ASCII 資料，留空則會隨機生成一個功能變數名稱進行測試，預設為空
   * Domain Test ID - DNS 資料包頭部 ID 的值：格式為 0x**** 的十六進位字元，如果留空則為 0x0001 預設為空
-  * ICMP PaddingData - ICMP 附加資料，Ping 程式發送請求時為補足資料使其達到 Ethernet 類型網路最低的可發送長度時添加的資料：長度介乎于 18位元組 - 1512位元組 ASCII 資料之間，留空則使用 Microsoft Windows Ping 程式的 ICMP 附加資料，預設為空
+  * ICMP PaddingData - ICMP 附加資料，Ping 程式發送請求時為補足資料使其達到 Ethernet 類型網路最低的可發送長度時添加的資料：長度介乎于 18位元組 - 1500位元組 ASCII 資料之間，留空則使用 Microsoft Windows Ping 程式的 ICMP 附加資料，預設為空
   * Localhost Server Name - 本地DNS伺服器名稱：請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，留空則使用 pcap-dnsproxy.localhost.server 作為本機伺服器名稱，預設為空
 
 * DNSCurve - DNSCurve 協定基本參數區域

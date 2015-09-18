@@ -19,11 +19,14 @@
 
 #include "Base.h"
 
+//Global variables
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 
 //Check empty buffer
-bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length)
+bool __fastcall CheckEmptyBuffer(
+	const void *Buffer, 
+	const size_t Length)
 {
 //Null pointer
 	if (Buffer == nullptr)
@@ -40,7 +43,8 @@ bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length)
 }
 
 //Convert host values to network byte order with 16 bits(Force)
-uint16_t __fastcall hton16_Force(const uint16_t Value)
+uint16_t __fastcall hton16_Force(
+	const uint16_t Value)
 {
 	uint8_t *Result = (uint8_t *)&Value;
 	return (uint16_t)(Result[0] << 8U | Result[1U]);
@@ -48,7 +52,8 @@ uint16_t __fastcall hton16_Force(const uint16_t Value)
 
 /* Redirect to hton16_Force.
 //Convert network byte order to host values with 16 bits(Force)
-uint16_t __fastcall ntoh16_Force(const uint16_t Value)
+uint16_t __fastcall ntoh16_Force(
+	const uint16_t Value)
 {
 	uint8_t *Result = (uint8_t *)&Value;
 	return (uint16_t)(Result[0] << 8U | Result[1U]);
@@ -56,7 +61,8 @@ uint16_t __fastcall ntoh16_Force(const uint16_t Value)
 */
 
 //Convert host values to network byte order with 32 bits(Force)
-uint32_t __fastcall hton32_Force(const uint32_t Value)
+uint32_t __fastcall hton32_Force(
+	const uint32_t Value)
 {
 	uint8_t *Result = (uint8_t *)&Value;
 	return (uint32_t)(Result[0] << 24U | Result[1U] << 16U | Result[2U] << 8U | Result[3U]);
@@ -64,7 +70,8 @@ uint32_t __fastcall hton32_Force(const uint32_t Value)
 
 /* Redirect to hton32_Force.
 //Convert network byte order to host values with 32 bits(Force)
-uint32_t __fastcall ntoh32_Force(const uint32_t Value)
+uint32_t __fastcall ntoh32_Force(
+	const uint32_t Value)
 {
 	uint8_t *Result = (uint8_t *)&Value;
 	return (uint32_t)(Result[0] << 24U | Result[1U] << 16U | Result[2U] << 8U | Result[3U]);
@@ -72,7 +79,8 @@ uint32_t __fastcall ntoh32_Force(const uint32_t Value)
 */
 
 //Convert host values to network byte order with 64 bits
-uint64_t __fastcall hton64(const uint64_t Value)
+uint64_t __fastcall hton64(
+	const uint64_t Value)
 {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 	return (((uint64_t)htonl((int32_t)((Value << 32U) >> 32U))) << 32U) | (uint32_t)htonl((int32_t)(Value >> 32U));
@@ -94,7 +102,9 @@ uint64_t __fastcall ntoh64(const uint64_t Value)
 */
 
 //Convert multiple bytes to wide char string
-bool __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer)
+bool __fastcall MBSToWCSString(
+	std::wstring &Target, 
+	const char *Buffer)
 {
 //Check buffer.
 	if (Buffer == nullptr || CheckEmptyBuffer(Buffer, strnlen_s(Buffer, LARGE_PACKET_MAXSIZE)) || strnlen_s(Buffer, LARGE_PACKET_MAXSIZE) == 0)
@@ -116,7 +126,10 @@ bool __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer)
 }
 
 //Convert lowercase/uppercase words to uppercase/lowercase words(C-Style version)
-void __fastcall CaseConvert(const bool IsLowerToUpper, PSTR Buffer, const size_t Length)
+void __fastcall CaseConvert(
+	const bool IsLowerToUpper, 
+	PSTR Buffer, 
+	const size_t Length)
 {
 	for (size_t Index = 0;Index < Length;++Index)
 	{
@@ -132,7 +145,9 @@ void __fastcall CaseConvert(const bool IsLowerToUpper, PSTR Buffer, const size_t
 }
 
 //Convert lowercase/uppercase words to uppercase/lowercase words(C++ String version)
-void __fastcall CaseConvert(const bool IsLowerToUpper, std::string &Buffer)
+void __fastcall CaseConvert(
+	const bool IsLowerToUpper, 
+	std::string &Buffer)
 {
 	for (auto &StringIter:Buffer)
 	{
@@ -149,27 +164,28 @@ void __fastcall CaseConvert(const bool IsLowerToUpper, std::string &Buffer)
 
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Linux and Mac OS X compatible with GetTickCount64
-uint64_t GetCurrentSystemTime(void)
+uint64_t GetCurrentSystemTime(
+	void)
 {
 	std::shared_ptr<timeval> CurrentTime(new timeval());
 	memset(CurrentTime.get(), 0, sizeof(timeval));
 	if (gettimeofday(CurrentTime.get(), nullptr) == EXIT_SUCCESS)
 		return (uint64_t)CurrentTime->tv_sec * SECOND_TO_MILLISECOND + (uint64_t)CurrentTime->tv_usec / MICROSECOND_TO_MILLISECOND;
 
-	return 0;
+	return FALSE;
 }
 
 //Windows XP with SP3 support
 #elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 //Verify version of system(Greater than Windows Vista)
-BOOL WINAPI IsGreaterThanVista(void)
+BOOL WINAPI IsGreaterThanVista(
+	void)
 {
 	std::shared_ptr<OSVERSIONINFOEXW> OSVI(new OSVERSIONINFOEXW());
 	memset(OSVI.get(), 0, sizeof(OSVERSIONINFOEXW));
 	DWORDLONG dwlConditionMask = 0;
 
 //Initialization
-	ZeroMemory(OSVI.get(), sizeof(OSVERSIONINFOEXW));
 	OSVI->dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
 	OSVI->dwMajorVersion = 6U; //Greater than Windows Vista.
 	OSVI->dwMinorVersion = 0;
@@ -186,7 +202,8 @@ BOOL WINAPI IsGreaterThanVista(void)
 }
 
 //Try to load library to get pointers of functions
-BOOL WINAPI GetFunctionPointer(const size_t FunctionType)
+BOOL WINAPI GetFunctionPointer(
+	const size_t FunctionType)
 {
 //GetTickCount64() function
 	if (FunctionType == FUNCTION_GETTICKCOUNT64)
@@ -199,8 +216,9 @@ BOOL WINAPI GetFunctionPointer(const size_t FunctionType)
 			{
 				FreeLibrary(GlobalRunningStatus.FunctionLibrary_GetTickCount64);
 				GlobalRunningStatus.FunctionLibrary_GetTickCount64 = nullptr;
-
-				return FALSE;
+			}
+			else {
+				return TRUE;
 			}
 		}
 	}
@@ -215,8 +233,9 @@ BOOL WINAPI GetFunctionPointer(const size_t FunctionType)
 			{
 				FreeLibrary(GlobalRunningStatus.FunctionLibrary_InetNtop);
 				GlobalRunningStatus.FunctionLibrary_InetNtop = nullptr;
-
-				return FALSE;
+			}
+			else {
+				return TRUE;
 			}
 		}
 	}
@@ -231,12 +250,13 @@ BOOL WINAPI GetFunctionPointer(const size_t FunctionType)
 			{
 				FreeLibrary(GlobalRunningStatus.FunctionLibrary_InetPton);
 				GlobalRunningStatus.FunctionLibrary_InetPton = nullptr;
-
-				return FALSE;
+			}
+			else {
+				return TRUE;
 			}
 		}
 	}
 
-	return TRUE;
+	return FALSE;
 }
 #endif

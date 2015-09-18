@@ -30,13 +30,39 @@ extern std::deque<DNSCACHE_DATA> DNSCacheList;
 extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM], HostsFileLock, DNSCacheListLock;
 
 //Functions
-bool __fastcall LocalRequestProcess(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA &LocalSocketData);
-bool __fastcall DirectRequestProcess(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const bool DirectRequest, const SOCKET_DATA &LocalSocketData);
+bool __fastcall LocalRequestProcess(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	PSTR OriginalRecv, 
+	const uint16_t Protocol, 
+	const SOCKET_DATA &LocalSocketData);
+bool __fastcall DirectRequestProcess(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	PSTR OriginalRecv, 
+	const uint16_t Protocol, 
+	const bool DirectRequest, 
+	const SOCKET_DATA &LocalSocketData);
 #if defined(ENABLE_LIBSODIUM)
-	bool __fastcall DNSCurveRequestProcess(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA &LocalSocketData);
+bool __fastcall DNSCurveRequestProcess(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	PSTR OriginalRecv, 
+	const uint16_t Protocol, 
+	const SOCKET_DATA &LocalSocketData);
 #endif
-bool __fastcall TCPRequestProcess(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const uint16_t Protocol, const SOCKET_DATA &LocalSocketData);
+bool __fastcall TCPRequestProcess(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	PSTR OriginalRecv, 
+	const uint16_t Protocol, 
+	const SOCKET_DATA &LocalSocketData);
 #if defined(ENABLE_PCAP)
-	void __fastcall UDPRequestProcess(const char *OriginalSend, const size_t SendSize, const SOCKET_DATA &LocalSocketData, const uint16_t Protocol);
+void __fastcall UDPRequestProcess(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	const SOCKET_DATA &LocalSocketData, 
+	const uint16_t Protocol);
 #endif
-uint16_t __fastcall SelectNetworkProtocol(void);
+uint16_t __fastcall SelectNetworkProtocol(
+	void);

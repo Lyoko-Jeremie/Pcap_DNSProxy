@@ -20,7 +20,8 @@
 #include "Initialization.h"
 
 //ConfigurationTable class constructor
-ConfigurationTable::ConfigurationTable(void)
+ConfigurationTable::ConfigurationTable(
+	void)
 {
 	memset(this, 0, sizeof(CONFIGURATION_TABLE));
 	try {
@@ -87,7 +88,8 @@ ConfigurationTable::ConfigurationTable(void)
 }
 
 //ConfigurationTable class constructor settings
-void __fastcall ConfigurationTableSetting(ConfigurationTable *ConfigurationParameter)
+void __fastcall ConfigurationTableSetting(
+	ConfigurationTable *ConfigurationParameter)
 {
 //[Data] block
 #if defined(ENABLE_PCAP)
@@ -131,18 +133,18 @@ void __fastcall ConfigurationTableSetting(ConfigurationTable *ConfigurationParam
 		ConfigurationParameter->DomainTest_ID = htons((uint16_t)GetCurrentProcessId()); //Default DNS ID is current process ID.
 	#endif
 	#if defined(PLATFORM_WIN)
-		ConfigurationParameter->ICMP_PaddingLength = strlen(DEFAULT_PADDING_DATA) + 1U;
-		memcpy_s(ConfigurationParameter->ICMP_PaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_PADDING_DATA, ConfigurationParameter->ICMP_PaddingLength - 1U); //Load default padding data.
+		ConfigurationParameter->ICMP_PaddingLength = strlen(DEFAULT_PADDING_DATA);
+		memcpy_s(ConfigurationParameter->ICMP_PaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_PADDING_DATA, ConfigurationParameter->ICMP_PaddingLength); //Load default padding data.
 	#elif defined(PLATFORM_LINUX)
 		size_t CharData = ICMP_STRING_START_NUM_LINUX;
 		for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_LINUX;++Index, ++CharData)
 			ConfigurationParameter->ICMP_PaddingData[Index] = CharData;
-		ConfigurationParameter->ICMP_PaddingLength = strlen(ConfigurationParameter->ICMP_PaddingData) + 1U;
+		ConfigurationParameter->ICMP_PaddingLength = strlen(ConfigurationParameter->ICMP_PaddingData);
 	#elif defined(PLATFORM_MACX)
 		size_t CharData = ICMP_STRING_START_NUM_MAC;
 		for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_MAC;++Index, ++CharData)
 			ConfigurationParameter->ICMP_PaddingData[Index] = CharData;
-		ConfigurationParameter->ICMP_PaddingLength = strlen(ConfigurationParameter->ICMP_PaddingData) + 1U;
+		ConfigurationParameter->ICMP_PaddingLength = strlen(ConfigurationParameter->ICMP_PaddingData);
 	#endif
 #endif
 
@@ -150,7 +152,8 @@ void __fastcall ConfigurationTableSetting(ConfigurationTable *ConfigurationParam
 }
 
 //ConfigurationTable class destructor
-ConfigurationTable::~ConfigurationTable(void)
+ConfigurationTable::~ConfigurationTable(
+	void)
 {
 //Delete all pointers.
 //[Listen] block
@@ -183,7 +186,8 @@ ConfigurationTable::~ConfigurationTable(void)
 }
 
 //ConfigurationTable class SetToMonitorItem function
-void ConfigurationTable::SetToMonitorItem(void)
+void ConfigurationTable::SetToMonitorItem(
+	void)
 {
 //[Listen] block
 #if defined(ENABLE_PCAP)
@@ -238,7 +242,8 @@ void ConfigurationTable::SetToMonitorItem(void)
 }
 
 //ConfigurationTable class MonitorItemToUsing function
-void ConfigurationTable::MonitorItemToUsing(ConfigurationTable *ConfigurationParameter)
+void ConfigurationTable::MonitorItemToUsing(
+	ConfigurationTable *ConfigurationParameter)
 {
 //[Base] block
 	ConfigurationParameter->Version = Version;
@@ -290,7 +295,8 @@ void ConfigurationTable::MonitorItemToUsing(ConfigurationTable *ConfigurationPar
 }
 
 //ConfigurationTable class MonitorItemReset function
-void ConfigurationTable::MonitorItemReset(void)
+void ConfigurationTable::MonitorItemReset(
+	void)
 {
 //[Base] block
 	Version = 0;
@@ -350,11 +356,12 @@ void ConfigurationTable::MonitorItemReset(void)
 }
 
 //GlobalStatus class constructor
-GlobalStatus::GlobalStatus(void)
+GlobalStatus::GlobalStatus(
+	void)
 {
 	memset(this, 0, sizeof(GLOBAL_STATUS));
 	try {
-		LocalSocket = new std::vector<SYSTEM_SOCKET>();
+		LocalListeningSocket = new std::vector<SYSTEM_SOCKET>();
 		RamdomEngine = new std::default_random_engine();
 		DomainTable = new char[strlen(RFC_DOMAIN_TABLE) + 1U]();
 		Path_Global = new std::vector<std::wstring>();
@@ -376,7 +383,7 @@ GlobalStatus::GlobalStatus(void)
 	}
 	catch (std::bad_alloc)
 	{
-		delete LocalSocket;
+		delete LocalListeningSocket;
 		delete RamdomEngine;
 		delete[] DomainTable;
 		delete Path_Global;
@@ -405,7 +412,8 @@ GlobalStatus::GlobalStatus(void)
 }
 
 //GlobalStatus class constructor settings
-void __fastcall GlobalStatusSetting(GlobalStatus *GlobalRunningStatusParameter)
+void __fastcall GlobalStatusSetting(
+	GlobalStatus *GlobalRunningStatusParameter)
 {
 #if defined(PLATFORM_LINUX)
 	GlobalRunningStatusParameter->Daemon = true;
@@ -429,9 +437,29 @@ void __fastcall GlobalStatusSetting(GlobalStatus *GlobalRunningStatusParameter)
 }
 
 //GlobalStatus class destructor
-GlobalStatus::~GlobalStatus(void)
+GlobalStatus::~GlobalStatus(
+	void)
 {
-	delete LocalSocket;
+//Close all sockets.
+	if (LocalListeningSocket != nullptr)
+	{
+		for (auto SocketIter:*LocalListeningSocket)
+			closesocket(SocketIter);
+	}
+
+//Free libraries.
+//Windows XP with SP3 support
+#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+	if (FunctionLibrary_GetTickCount64 != nullptr)
+		FreeLibrary(FunctionLibrary_GetTickCount64);
+	if (FunctionLibrary_InetNtop != nullptr)
+		FreeLibrary(FunctionLibrary_InetNtop);
+	if (FunctionLibrary_InetPton != nullptr)
+		FreeLibrary(FunctionLibrary_InetPton);
+#endif
+
+//Free pointer.
+	delete LocalListeningSocket;
 	delete RamdomEngine;
 	delete[] DomainTable;
 	delete Path_Global;
@@ -451,29 +479,20 @@ GlobalStatus::~GlobalStatus(void)
 	delete LocalAddress_ResponsePTR[1U];
 #endif
 
-//Free libraries.
-//Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	if (FunctionLibrary_GetTickCount64 != nullptr)
-		FreeLibrary(FunctionLibrary_GetTickCount64);
-	if (FunctionLibrary_InetNtop != nullptr)
-		FreeLibrary(FunctionLibrary_InetNtop);
-	if (FunctionLibrary_InetPton != nullptr)
-		FreeLibrary(FunctionLibrary_InetPton);
-#endif
-
 	return;
 }
 
 //AddressRangeTable class constructor
-AddressRangeTable::AddressRangeTable(void)
+AddressRangeTable::AddressRangeTable(
+	void)
 {
 	memset(this, 0, sizeof(ADDRESS_RANGE_TABLE));
 	return;
 }
 
 //HostsTable class constructor
-HostsTable::HostsTable(void)
+HostsTable::HostsTable(
+	void)
 {
 	Type_Hosts = 0;
 	Length = 0;
@@ -483,21 +502,24 @@ HostsTable::HostsTable(void)
 }
 
 //AlternateSwapTable class constructor
-AlternateSwapTable::AlternateSwapTable(void)
+AlternateSwapTable::AlternateSwapTable(
+	void)
 {
 	memset(this, 0, sizeof(ALTERNATE_SWAP_TABLE));
 	return;
 }
 
 //AddressRoutingTable_IPv6 class constructor
-AddressRoutingTable_IPv6::AddressRoutingTable_IPv6(void)
+AddressRoutingTable_IPv6::AddressRoutingTable_IPv6(
+	void)
 {
 	Prefix = 0;
 	return;
 }
 
 //AddressRoutingTable_IPv4 class constructor
-AddressRoutingTable_IPv4::AddressRoutingTable_IPv4(void)
+AddressRoutingTable_IPv4::AddressRoutingTable_IPv4(
+	void)
 {
 	Prefix = 0;
 	return;
@@ -505,7 +527,8 @@ AddressRoutingTable_IPv4::AddressRoutingTable_IPv4(void)
 
 //InputPacketTable class constructor
 #if defined(ENABLE_PCAP)
-OutputPacketTable::OutputPacketTable(void)
+OutputPacketTable::OutputPacketTable(
+	void)
 {
 //Initialization
 	memset(&SocketData_Input, 0, sizeof(SOCKET_DATA));
@@ -519,14 +542,16 @@ OutputPacketTable::OutputPacketTable(void)
 #endif
 
 //DiffernetIPFilterFileSet class constructor
-DiffernetIPFilterFileSet::DiffernetIPFilterFileSet(void)
+DiffernetIPFilterFileSet::DiffernetIPFilterFileSet(
+	void)
 {
 	FileIndex = 0;
 	return;
 }
 
 //DiffernetHostsFileSet class constructor
-DiffernetHostsFileSet::DiffernetHostsFileSet(void)
+DiffernetHostsFileSet::DiffernetHostsFileSet(
+	void)
 {
 	FileIndex = 0;
 	return;
@@ -534,7 +559,8 @@ DiffernetHostsFileSet::DiffernetHostsFileSet(void)
 
 //DNSCurveConfigurationTable class constructor
 #if defined(ENABLE_LIBSODIUM)
-DNSCurveConfigurationTable::DNSCurveConfigurationTable(void)
+DNSCurveConfigurationTable::DNSCurveConfigurationTable(
+	void)
 {
 	memset(this, 0, sizeof(DNSCURVE_CONFIGURATION_TABLE));
 	try {
@@ -648,7 +674,8 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(void)
 }
 
 //DNSCurveConfigurationTable class destructor
-DNSCurveConfigurationTable::~DNSCurveConfigurationTable(void)
+DNSCurveConfigurationTable::~DNSCurveConfigurationTable(
+	void)
 {
 //DNSCurve Provider Names
 	delete[] DNSCurveTarget.IPv4.ProviderName;
@@ -686,7 +713,8 @@ DNSCurveConfigurationTable::~DNSCurveConfigurationTable(void)
 }
 
 //DNSCurveConfigurationTable class SetToMonitorItem function
-void DNSCurveConfigurationTable::SetToMonitorItem(void)
+void DNSCurveConfigurationTable::SetToMonitorItem(
+	void)
 {
 //Delete pointers.
 	delete[] DNSCurveTarget.IPv4.ProviderName;
@@ -704,7 +732,8 @@ void DNSCurveConfigurationTable::SetToMonitorItem(void)
 }
 
 //DNSCurveConfigurationTable class MonitorItemToUsing function
-void DNSCurveConfigurationTable::MonitorItemToUsing(DNSCurveConfigurationTable *DNSCurveConfigurationParameter)
+void DNSCurveConfigurationTable::MonitorItemToUsing(
+	DNSCurveConfigurationTable *DNSCurveConfigurationParameter)
 {
 //[DNSCurve] block
 	DNSCurveConfigurationParameter->KeyRecheckTime = KeyRecheckTime;
@@ -787,7 +816,8 @@ void DNSCurveConfigurationTable::MonitorItemToUsing(DNSCurveConfigurationTable *
 }
 
 //DNSCurveConfigurationTable class MonitorItemReset function
-void DNSCurveConfigurationTable::MonitorItemReset(void)
+void DNSCurveConfigurationTable::MonitorItemReset(
+	void)
 {
 //[DNSCurve] block
 	KeyRecheckTime = DEFAULT_DNSCURVE_RECHECK_TIME * SECOND_TO_MILLISECOND;

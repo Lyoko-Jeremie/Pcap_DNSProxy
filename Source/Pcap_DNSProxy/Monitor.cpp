@@ -20,14 +20,15 @@
 #include "Monitor.h"
 
 //Local DNS server initialization
-bool __fastcall MonitorInit(void)
+bool __fastcall MonitorInit(
+	void)
 {
 //Capture initialization
 #if defined(ENABLE_PCAP)
 	#if defined(ENABLE_LIBSODIUM)
-		if (Parameter.PcapCapture && /* Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH && */ !(Parameter.DNSCurve && DNSCurveParameter.IsEncryption && DNSCurveParameter.IsEncryptionOnly))
+		if (Parameter.PcapCapture && !(Parameter.DNSCurve && DNSCurveParameter.IsEncryption && DNSCurveParameter.IsEncryptionOnly))
 	#else
-		if (Parameter.PcapCapture /* && Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH */ )
+		if (Parameter.PcapCapture)
 	#endif
 	{
 	#if defined(ENABLE_PCAP)
@@ -103,7 +104,7 @@ bool __fastcall MonitorInit(void)
 					PrintError(LOG_ERROR_NETWORK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
-				GlobalRunningStatus.LocalSocket->push_back(LocalSocketData->Socket);
+				GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData->Socket);
 				LocalSocketData->SockAddr.ss_family = AF_INET6;
 				LocalSocketData->AddrLen = sizeof(sockaddr_in6);
 
@@ -115,13 +116,10 @@ bool __fastcall MonitorInit(void)
 						if (LocalSocketData->Socket == 0)
 						{
 							LocalSocketData->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-							if (LocalSocketData->Socket == INVALID_SOCKET)
-							{
-								PrintError(LOG_ERROR_NETWORK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+							if (!SocketSetting(LocalSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
 								break;
-							}
 
-							GlobalRunningStatus.LocalSocket->push_back(LocalSocketData->Socket);
+							GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData->Socket);
 						}
 
 						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr = ((PSOCKADDR_IN6)&ListenAddressIter)->sin6_addr;
@@ -150,13 +148,10 @@ bool __fastcall MonitorInit(void)
 							if (LocalSocketData->Socket == 0)
 							{
 								LocalSocketData->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-								if (LocalSocketData->Socket == INVALID_SOCKET)
-								{
-									PrintError(LOG_ERROR_NETWORK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								if (!SocketSetting(LocalSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
 									break;
-								}
 
-								GlobalRunningStatus.LocalSocket->push_back(LocalSocketData->Socket);
+								GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData->Socket);
 							}
 
 							((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_port = ListenPortIter;
@@ -184,7 +179,7 @@ bool __fastcall MonitorInit(void)
 					PrintError(LOG_ERROR_NETWORK, L"IPv6 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
-				GlobalRunningStatus.LocalSocket->push_back(LocalSocketData->Socket);
+				GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData->Socket);
 				LocalSocketData->SockAddr.ss_family = AF_INET6;
 				LocalSocketData->AddrLen = sizeof(sockaddr_in6);
 
@@ -196,13 +191,10 @@ bool __fastcall MonitorInit(void)
 						if (LocalSocketData->Socket == 0)
 						{
 							LocalSocketData->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-							if (LocalSocketData->Socket == INVALID_SOCKET)
-							{
-								PrintError(LOG_ERROR_NETWORK, L"IPv6 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+							if (!SocketSetting(LocalSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
 								break;
-							}
 
-							GlobalRunningStatus.LocalSocket->push_back(LocalSocketData->Socket);
+							GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData->Socket);
 						}
 
 						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr = ((PSOCKADDR_IN6)&ListenAddressIter)->sin6_addr;
@@ -231,13 +223,10 @@ bool __fastcall MonitorInit(void)
 							if (LocalSocketData->Socket == 0)
 							{
 								LocalSocketData->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-								if (LocalSocketData->Socket == INVALID_SOCKET)
-								{
-									PrintError(LOG_ERROR_NETWORK, L"IPv6 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								if (!SocketSetting(LocalSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
 									break;
-								}
 
-								GlobalRunningStatus.LocalSocket->push_back(LocalSocketData->Socket);
+								GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData->Socket);
 							}
 
 							((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_port = ListenPortIter;
@@ -262,12 +251,9 @@ bool __fastcall MonitorInit(void)
 		if (Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TRANSPORT_BOTH || Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_UDP)
 		{
 			LocalSocketData->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-			if (LocalSocketData->Socket == INVALID_SOCKET)
+			if (SocketSetting(LocalSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
 			{
-				PrintError(LOG_ERROR_NETWORK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
-			}
-			else {
-				GlobalRunningStatus.LocalSocket->push_back(LocalSocketData->Socket);
+				GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData->Socket);
 				LocalSocketData->SockAddr.ss_family = AF_INET;
 				LocalSocketData->AddrLen = sizeof(sockaddr_in);
 
@@ -279,13 +265,10 @@ bool __fastcall MonitorInit(void)
 						if (LocalSocketData->Socket == 0)
 						{
 							LocalSocketData->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-							if (LocalSocketData->Socket == INVALID_SOCKET)
-							{
-								PrintError(LOG_ERROR_NETWORK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+							if (!SocketSetting(LocalSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
 								break;
-							}
 
-							GlobalRunningStatus.LocalSocket->push_back(LocalSocketData->Socket);
+							GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData->Socket);
 						}
 
 						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr = ((PSOCKADDR_IN)&ListenAddressIter)->sin_addr;
@@ -314,13 +297,10 @@ bool __fastcall MonitorInit(void)
 							if (LocalSocketData->Socket == 0)
 							{
 								LocalSocketData->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-								if (LocalSocketData->Socket == INVALID_SOCKET)
-								{
-									PrintError(LOG_ERROR_NETWORK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								if (!SocketSetting(LocalSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
 									break;
-								}
 
-								GlobalRunningStatus.LocalSocket->push_back(LocalSocketData->Socket);
+								GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData->Socket);
 							}
 
 							((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_port = ListenPortIter;
@@ -342,12 +322,9 @@ bool __fastcall MonitorInit(void)
 		if (Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TRANSPORT_BOTH || Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TCP)
 		{
 			LocalSocketData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-			if (LocalSocketData->Socket == INVALID_SOCKET)
+			if (SocketSetting(LocalSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
 			{
-				PrintError(LOG_ERROR_NETWORK, L"IPv4 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
-			}
-			else {
-				GlobalRunningStatus.LocalSocket->push_back(LocalSocketData->Socket);
+				GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData->Socket);
 				LocalSocketData->SockAddr.ss_family = AF_INET;
 				LocalSocketData->AddrLen = sizeof(sockaddr_in);
 
@@ -359,13 +336,10 @@ bool __fastcall MonitorInit(void)
 						if (LocalSocketData->Socket == 0)
 						{
 							LocalSocketData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-							if (LocalSocketData->Socket == INVALID_SOCKET)
-							{
-								PrintError(LOG_ERROR_NETWORK, L"IPv4 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+							if (!SocketSetting(LocalSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
 								break;
-							}
 
-							GlobalRunningStatus.LocalSocket->push_back(LocalSocketData->Socket);
+							GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData->Socket);
 						}
 
 						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr = ((PSOCKADDR_IN)&ListenAddressIter)->sin_addr;
@@ -394,13 +368,10 @@ bool __fastcall MonitorInit(void)
 							if (LocalSocketData->Socket == 0)
 							{
 								LocalSocketData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-								if (LocalSocketData->Socket == INVALID_SOCKET)
-								{
-									PrintError(LOG_ERROR_NETWORK, L"IPv4 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+								if (!SocketSetting(LocalSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
 									break;
-								}
 
-								GlobalRunningStatus.LocalSocket->push_back(LocalSocketData->Socket);
+								GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData->Socket);
 							}
 
 							((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_port = ListenPortIter;
@@ -440,86 +411,19 @@ bool __fastcall MonitorInit(void)
 }
 
 //Local DNS server with UDP protocol
-bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
+bool __fastcall UDPMonitor(
+	const SOCKET_DATA LocalSocketData)
 {
-	SSIZE_T RecvLen = 0;
-
-#if defined(PLATFORM_WIN)
-//Block WSAECONNRESET error of UDP Monitor.
-	DWORD BytesReturned = 0;
-	BOOL NewBehavior = FALSE;
-	RecvLen = WSAIoctl(LocalSocketData.Socket, SIO_UDP_CONNRESET, &NewBehavior, sizeof(BOOL), nullptr, 0, &BytesReturned, nullptr, nullptr);
-	if (RecvLen == SOCKET_ERROR)
-	{
-		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket SIO_UDP_CONNRESET error", WSAGetLastError(), nullptr, 0);
-		closesocket(LocalSocketData.Socket);
-
-		return false;
-	}
-#endif
-
-//Set socket timeout.
-#if defined(PLATFORM_WIN)
-	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(int)) == SOCKET_ERROR || 
-		setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(int)) == SOCKET_ERROR)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(timeval)) == SOCKET_ERROR || 
-		setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.SocketTimeout_Unreliable, sizeof(timeval)) == SOCKET_ERROR)
-#endif
-	{
-		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket timeout error", WSAGetLastError(), nullptr, 0);
-		closesocket(LocalSocketData.Socket);
-
-		return false;
-	}
-
-//Preventing other sockets from being forcibly bound to the same address and port(Windows).
-//Set TIME_WAIT resuing(Linux/Mac).
-	int SetVal = 1;
-#if defined(PLATFORM_WIN)
-//Socket reuse setting
-	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
-	{
-		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket disable reusing error", WSAGetLastError(), nullptr, 0);
-		closesocket(LocalSocketData.Socket);
-
-		return false;
-	}
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-//Socket reuse setting
-/*	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
-		{
-		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket enable reusing error", errno, nullptr, 0);
-		close(LocalSocketData.Socket);
-
-		return false;
-		}
-*/
-//Set an IPv6 server socket that cannot accept IPv4 connections on Linux.
-	SetVal = 1;
-	if (LocalSocketData.SockAddr.ss_family == AF_INET6 /* && Parameter.OperationMode != LISTEN_MODE_PROXY */ && 
-		setsockopt(LocalSocketData.Socket, IPPROTO_IPV6, IPV6_V6ONLY, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
-	{
-		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket treating wildcard bind error", errno, nullptr, 0);
-		close(LocalSocketData.Socket);
-
-		return false;
-	}
-#endif
-
-//Set Non-blocking Mode.
-#if defined(PLATFORM_WIN)
-	ULONG SocketMode = 1U;
-	if (ioctlsocket(LocalSocketData.Socket, FIONBIO, &SocketMode) == SOCKET_ERROR)
-	{
-		PrintError(LOG_ERROR_NETWORK, L"Set UDP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
-		closesocket(LocalSocketData.Socket);
-
-		return EXIT_FAILURE;
-	}
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	fcntl(LocalSocketData.Socket, F_SETFL, fcntl(LocalSocketData.Socket, F_GETFL, 0) | O_NONBLOCK);
-#endif
+//Block UDP RESET message, socket timeout, reusing and non-blocking mode setting 
+	if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TIMEOUT, &Parameter.SocketTimeout_Unreliable)
+	#if defined(PLATFORM_WIN)
+		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_UDP_BLOCK_RESET, nullptr)
+		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, nullptr)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		|| LocalSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, nullptr)
+	#endif
+		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
+			return false;
 
 //Bind socket to port.
 	if (bind(LocalSocketData.Socket, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen) == SOCKET_ERROR)
@@ -563,6 +467,7 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 	#endif
 	}
 	size_t Index = 0;
+	SSIZE_T RecvLen = 0;
 	auto IsLocal = false;
 
 //Listening module
@@ -652,84 +557,21 @@ bool __fastcall UDPMonitor(const SOCKET_DATA LocalSocketData)
 }
 
 //Local DNS server with TCP protocol
-bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
+bool __fastcall TCPMonitor(
+	const SOCKET_DATA LocalSocketData)
 {
-//Set socket timeout.
-#if defined(PLATFORM_WIN)
-	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.SocketTimeout_Reliable, sizeof(int)) == SOCKET_ERROR || 
-		setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.SocketTimeout_Reliable, sizeof(int)) == SOCKET_ERROR)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&Parameter.SocketTimeout_Reliable, sizeof(timeval)) == SOCKET_ERROR || 
-		setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&Parameter.SocketTimeout_Reliable, sizeof(timeval)) == SOCKET_ERROR)
-#endif
-	{
-		PrintError(LOG_ERROR_NETWORK, L"Set TCP socket timeout error", WSAGetLastError(), nullptr, 0);
-		closesocket(LocalSocketData.Socket);
-
-		return false;
-	}
-
-//Preventing other sockets from being forcibly bound to the same address and port(Windows).
-//Set TIME_WAIT resuing(Linux/Mac).
-	int SetVal = 1;
-#if defined(PLATFORM_WIN)
-//Socket reuse setting
-	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
-	{
-		PrintError(LOG_ERROR_NETWORK, L"Set TCP socket disable reusing error", WSAGetLastError(), nullptr, 0);
-		closesocket(LocalSocketData.Socket);
-
-		return false;
-	}
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-//Socket reuse setting
-/*	if (setsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
-	{
-		PrintError(LOG_ERROR_NETWORK, L"Set TCP socket enable reusing error", errno, nullptr, 0);
-		close(LocalSocketData.Socket);
-
-		return false;
-	}
-*/
-//An IPv6 server socket that can also accept IPv4 connections on Linux by default.
-	SetVal = 1;
-	if (LocalSocketData.SockAddr.ss_family == AF_INET6 /* && Parameter.OperationMode != LISTEN_MODE_PROXY */ && 
-		setsockopt(LocalSocketData.Socket, IPPROTO_IPV6, IPV6_V6ONLY, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
-	{
-		PrintError(LOG_ERROR_NETWORK, L"Set TCP socket treating wildcard bind error", errno, nullptr, 0);
-		close(LocalSocketData.Socket);
-
-		return false;
-	}
-//TCP Fast Open setting
-	#if defined(PLATFORM_LINUX)
-		if (Parameter.TCP_FastOpen)
-		{
-			SetVal = TCP_FASTOPEN_HINT;
-			if (setsockopt(LocalSocketData.Socket, SOL_TCP, TCP_FASTOPEN, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
-			{
-				PrintError(LOG_ERROR_NETWORK, L"Set TCP socket Fast Open error", errno, nullptr, 0);
-				close(LocalSocketData.Socket);
-
-				return false;
-			}
-		}
-	#endif
-#endif
-
-//Set Non-blocking Mode.
-#if defined(PLATFORM_WIN)
-	ULONG SocketMode = 1U;
-	if (ioctlsocket(LocalSocketData.Socket, FIONBIO, &SocketMode) == SOCKET_ERROR)
-	{
-		PrintError(LOG_ERROR_NETWORK, L"Set TCP socket non-blocking mode error", WSAGetLastError(), nullptr, 0);
-		closesocket(LocalSocketData.Socket);
-
-		return EXIT_FAILURE;
-	}
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	fcntl(LocalSocketData.Socket, F_SETFL, fcntl(LocalSocketData.Socket, F_GETFL, 0)|O_NONBLOCK);
-#endif
+//Socket timeout, reusing, TCP Fast Open and non-blocking mode setting
+	if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TIMEOUT, &Parameter.SocketTimeout_Reliable)
+	#if defined(PLATFORM_WIN)
+		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, nullptr)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		|| LocalSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, nullptr)
+		#if defined(PLATFORM_LINUX)
+			|| Parameter.TCP_FastOpen && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, nullptr)
+		#endif
+	#endif	
+		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
+			return false;
 
 //Bind socket to port.
 	if (bind(LocalSocketData.Socket, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen) == SOCKET_ERROR)
@@ -828,7 +670,7 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 			ClientData->Socket = accept(LocalSocketData.Socket, (PSOCKADDR)&ClientData->SockAddr, &ClientData->AddrLen);
 			if (ClientData->Socket == INVALID_SOCKET)
 				continue;
-			if (CheckQueryData(nullptr, nullptr, 0, *ClientData.get(), 0, nullptr) != EXIT_SUCCESS)
+			if (CheckQueryData(nullptr, nullptr, 0, *ClientData, 0, nullptr) != EXIT_SUCCESS)
 			{
 				shutdown(ClientData->Socket, SD_BOTH);
 				closesocket(ClientData->Socket);
@@ -854,38 +696,38 @@ bool __fastcall TCPMonitor(const SOCKET_DATA LocalSocketData)
 }
 
 //TCP protocol receive process
-bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
+bool __fastcall TCPReceiveProcess(
+	const SOCKET_DATA LocalSocketData)
 {
 //Initialization(Part 1)
 	std::shared_ptr<char> RecvBuffer(new char[LARGE_PACKET_MAXSIZE]());
 	memset(RecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 	SSIZE_T RecvLen = 0;
+	size_t Length = 0;
 	auto IsLocal = false;
 
-//Receive.
+//Receive process
 	if (Parameter.EDNS_Label) //EDNS Label
 		RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0);
 	else 
 		RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, 0);
-	if (RecvLen == (SSIZE_T)sizeof(uint16_t)) //TCP segment of a reassembled PDU
-	{
-	//Receive without PDU.
-		uint16_t PDU_Len = ntohs(((uint16_t *)RecvBuffer.get())[0]);
-		if (PDU_Len > LARGE_PACKET_MAXSIZE)
-		{
-			shutdown(LocalSocketData.Socket, SD_BOTH);
-			closesocket(LocalSocketData.Socket);
-			return false;
-		}
-		memset(RecvBuffer.get(), 0, RecvLen);
 
-	//Initialization(Part 2)
+//Connection closed or SOCKET_ERROR
+	if (RecvLen <= 0)
+	{
+		shutdown(LocalSocketData.Socket, SD_BOTH);
+		closesocket(LocalSocketData.Socket);
+		return false;
+	}
+	else if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+	{
+		Length = RecvLen;
+
+	//Receive again.
 		std::shared_ptr<fd_set> ReadFDS(new fd_set());
 		std::shared_ptr<timeval> Timeout(new timeval());
 		memset(ReadFDS.get(), 0, sizeof(fd_set));
 		memset(Timeout.get(), 0, sizeof(timeval));
-		FD_ZERO(ReadFDS.get());
-		FD_SET(LocalSocketData.Socket, ReadFDS.get());
 	#if defined(PLATFORM_WIN)
 		Timeout->tv_sec = Parameter.SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
 		Timeout->tv_usec = Parameter.SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -893,20 +735,33 @@ bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 		Timeout->tv_sec = Parameter.SocketTimeout_Reliable.tv_sec;
 		Timeout->tv_usec = Parameter.SocketTimeout_Reliable.tv_usec;
 	#endif
-		SSIZE_T SelectResult = 0;
-
+		FD_ZERO(ReadFDS.get());
+		FD_SET(LocalSocketData.Socket, ReadFDS.get());
+		
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
-		SelectResult = select(0, ReadFDS.get(), nullptr, nullptr, Timeout.get());
+		RecvLen = select(0, ReadFDS.get(), nullptr, nullptr, Timeout.get());
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		SelectResult = select(LocalSocketData.Socket + 1U, ReadFDS.get(), nullptr, nullptr, Timeout.get());
+		RecvLen = select(LocalSocketData.Socket + 1U, ReadFDS.get(), nullptr, nullptr, Timeout.get());
 	#endif
-		if (SelectResult > 0 && FD_ISSET(LocalSocketData.Socket, ReadFDS.get()))
+		if (RecvLen > 0 && FD_ISSET(LocalSocketData.Socket, ReadFDS.get()))
 		{
 			if (Parameter.EDNS_Label) //EDNS Label
-				RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0);
+				RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get() + Length, (int)(LARGE_PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE - Length), 0);
 			else 
-				RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, 0);
+				RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get() + Length, (int)(LARGE_PACKET_MAXSIZE - Length), 0);
+
+		//Packet length check
+			if (RecvLen > 0)
+			{
+				RecvLen += Length;
+			}
+		//Connection closed or SOCKET_ERROR
+			else {
+				shutdown(LocalSocketData.Socket, SD_BOTH);
+				closesocket(LocalSocketData.Socket);
+				return false;
+			}
 		}
 	//Timeout or SOCKET_ERROR
 		else {
@@ -914,41 +769,16 @@ bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 			closesocket(LocalSocketData.Socket);
 			return false;
 		}
-
-	//Receive packet.
-		if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && RecvLen >= (SSIZE_T)PDU_Len)
-		{
-		//Check DNS query data.
-			std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
-			RecvLen = CheckQueryData(RecvBuffer.get(), SendBuffer.get(), PDU_Len, LocalSocketData, IPPROTO_TCP, &IsLocal);
-			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
-			{
-				shutdown(LocalSocketData.Socket, SD_BOTH);
-				closesocket(LocalSocketData.Socket);
-				return false;
-			}
-			SendBuffer.reset();
-
-		//Requesting process
-			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
-				EnterRequestProcess(RecvBuffer.get(), PDU_Len, LocalSocketData, IPPROTO_TCP, IsLocal);
-			else //IPv4
-				EnterRequestProcess(RecvBuffer.get(), PDU_Len, LocalSocketData, IPPROTO_TCP, IsLocal);
-		}
-		else {
-			shutdown(LocalSocketData.Socket, SD_BOTH);
-			closesocket(LocalSocketData.Socket);
-			return false;
-		}
 	}
-	else if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && RecvLen >= (SSIZE_T)htons(((uint16_t *)RecvBuffer.get())[0]) && htons(((uint16_t *)RecvBuffer.get())[0]) < LARGE_PACKET_MAXSIZE)
-	{
-		RecvLen = htons(((uint16_t *)RecvBuffer.get())[0]);
 
+//Packet length check
+	Length = ntohs(((uint16_t *)RecvBuffer.get())[0]);
+	if (RecvLen >= (SSIZE_T)Length && Length >= (SSIZE_T)DNS_PACKET_MINSIZE)
+	{
 	//Check DNS query data.
 		std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
-		RecvLen = CheckQueryData(RecvBuffer.get() + sizeof(uint16_t), SendBuffer.get(), RecvLen, LocalSocketData, IPPROTO_TCP, &IsLocal);
-		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+		Length = CheckQueryData(RecvBuffer.get() + sizeof(uint16_t), SendBuffer.get(), Length, LocalSocketData, IPPROTO_TCP, &IsLocal);
+		if (Length < (SSIZE_T)DNS_PACKET_MINSIZE)
 		{
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);
@@ -958,9 +788,9 @@ bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 
 	//Requesting process
 		if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
-			EnterRequestProcess(RecvBuffer.get() + sizeof(uint16_t), RecvLen, LocalSocketData, IPPROTO_TCP, IsLocal);
+			EnterRequestProcess(RecvBuffer.get() + sizeof(uint16_t), Length, LocalSocketData, IPPROTO_TCP, IsLocal);
 		else //IPv4
-			EnterRequestProcess(RecvBuffer.get() + sizeof(uint16_t), RecvLen, LocalSocketData, IPPROTO_TCP, IsLocal);
+			EnterRequestProcess(RecvBuffer.get() + sizeof(uint16_t), Length, LocalSocketData, IPPROTO_TCP, IsLocal);
 	}
 	else {
 		shutdown(LocalSocketData.Socket, SD_BOTH);
@@ -969,18 +799,21 @@ bool __fastcall TCPReceiveProcess(const SOCKET_DATA LocalSocketData)
 	}
 
 //Block Port Unreachable messages of system.
-	shutdown(LocalSocketData.Socket, SD_BOTH);
+	shutdown(LocalSocketData.Socket, SD_SEND);
 #if defined(PLATFORM_WIN)
 	Sleep(Parameter.SocketTimeout_Reliable);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	usleep(Parameter.SocketTimeout_Reliable.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.SocketTimeout_Reliable.tv_usec);
 #endif
+	shutdown(LocalSocketData.Socket, SD_BOTH);
 	closesocket(LocalSocketData.Socket);
+
 	return true;
 }
 
 //Alternate DNS servers switcher
-void __fastcall AlternateServerMonitor(void)
+void __fastcall AlternateServerMonitor(
+	void)
 {
 	size_t Index = 0, RangeTimer[ALTERNATE_SERVERNUM]{0}, SwapTimer[ALTERNATE_SERVERNUM]{0};
 
@@ -1050,7 +883,9 @@ void __fastcall AlternateServerMonitor(void)
 
 //Get local address list
 #if defined(PLATFORM_WIN)
-PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol, PSTR HostName)
+PADDRINFOA __fastcall GetLocalAddressList(
+	const uint16_t Protocol, 
+	PSTR HostName)
 {
 //Initialization
 	std::shared_ptr<addrinfo> Hints(new addrinfo());
@@ -1087,7 +922,9 @@ PADDRINFOA __fastcall GetLocalAddressList(const uint16_t Protocol, PSTR HostName
 
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Get address from best network interface
-bool GetBestInterfaceAddress(const uint16_t Protocol, const sockaddr_storage *OriginalSockAddr)
+bool GetBestInterfaceAddress(
+	const uint16_t Protocol, 
+	const sockaddr_storage *OriginalSockAddr)
 {
 //Initialization
 	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
@@ -1097,14 +934,13 @@ bool GetBestInterfaceAddress(const uint16_t Protocol, const sockaddr_storage *Or
 	socklen_t AddrLen = 0;
 
 //Check socket.
-	if (InterfaceSocket == INVALID_SOCKET)
+	if (!SocketSetting(InterfaceSocket, SOCKET_SETTING_INVALID_CHECK, nullptr))
 	{
-		if (Protocol == AF_INET6)
+		if (Protocol == AF_INET6) //IPv6
 			GlobalRunningStatus.GatewayAvailable_IPv6 = false;
 		else //IPv4
 			GlobalRunningStatus.GatewayAvailable_IPv4 = false;
 
-		PrintError(LOG_ERROR_NETWORK, L"UDP request initialization error", WSAGetLastError(), nullptr, 0);
 		return false;
 	}
 
@@ -1149,7 +985,8 @@ bool GetBestInterfaceAddress(const uint16_t Protocol, const sockaddr_storage *Or
 #endif
 
 //Get gateway information
-void __fastcall GetGatewayInformation(const uint16_t Protocol)
+void __fastcall GetGatewayInformation(
+	const uint16_t Protocol)
 {
 //IPv6
 	if (Protocol == AF_INET6)
@@ -1299,7 +1136,8 @@ void __fastcall GetGatewayInformation(const uint16_t Protocol)
 }
 
 //Local network information monitor
-void __fastcall NetworkInformationMonitor(void)
+void __fastcall NetworkInformationMonitor(
+	void)
 {
 //Initialization
 	std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
@@ -1338,7 +1176,7 @@ void __fastcall NetworkInformationMonitor(void)
 			if (LocalAddressList == nullptr)
 			{
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (getifaddrs(&InterfaceAddressList) != 0 || InterfaceAddressList == nullptr)
+			if (getifaddrs(&InterfaceAddressList) != EXIT_SUCCESS || InterfaceAddressList == nullptr)
 			{
 				if (InterfaceAddressList != nullptr)
 					freeifaddrs(InterfaceAddressList);

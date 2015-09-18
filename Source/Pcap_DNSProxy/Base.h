@@ -105,7 +105,7 @@
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4                                   //Current configuration version
-#define FULL_VERSION                 L"0.4.3.4"
+#define FULL_VERSION                 L"0.4.3.5"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2015 Chengr28"
 
 //Exit code definitions
@@ -139,19 +139,24 @@
 	#define ICMP_STRING_START_NUM_MAC      8U
 	#define ICMP_PADDING_LENGTH_MAC        48U
 #endif
-#define MULTI_REQUEST_TIMES_MAXNUM     8U                                                                              //Maximum times of multi requesting.
-#define NETWORK_LAYER_PARTNUM          2U                                                                              //Number of network layer protocols(IPv6 and IPv4)
-#define TRANSPORT_LAYER_PARTNUM        4U                                                                              //Number of transport layer protocols(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
-#define ALTERNATE_SERVERNUM            12U                                                                             //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
-#define DOMAIN_MAXSIZE                 256U                                                                            //Maximum size of whole level domain is 256 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_DATA_MAXSIZE            253U                                                                            //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_LEVEL_DATA_MAXSIZE      63U                                                                             //Domain length is between 3 and 63(Labels must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
-#define DOMAIN_MINSIZE                 2U                                                                              //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_RAMDOM_MINSIZE          6U                                                                              //Minimum size of ramdom domain requesting
-#define DNS_PACKET_MINSIZE             (sizeof(dns_hdr) + 4U + sizeof(dns_qry))                                        //Minimum DNS packet size(DNS Header + Minimum Domain + DNS Query)
-#define DNS_RR_MAXCOUNT_AAAA           43U                                                                             //Maximum Record Resources size of AAAA answers, 28 bytes * 43 = 1204 bytes
-#define DNS_RR_MAXCOUNT_A              75U                                                                             //Maximum Record Resources size of A answers, 16 bytes * 75 = 1200 bytes
-#define EDNS_ADDITIONAL_MAXSIZE        (sizeof(dns_record_opt) * 2U + sizeof(edns_client_subnet) + sizeof(in6_addr))   //Maximum of EDNS Additional Record Resources size
+#define MULTI_REQUEST_TIMES_MAXNUM        8U                                                                              //Maximum times of multi requesting.
+#define NETWORK_LAYER_PARTNUM             2U                                                                              //Number of network layer protocols(IPv6 and IPv4)
+#define TRANSPORT_LAYER_PARTNUM           4U                                                                              //Number of transport layer protocols(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
+#define ALTERNATE_SERVERNUM               12U                                                                             //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
+#define DOMAIN_MAXSIZE                    256U                                                                            //Maximum size of whole level domain is 256 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_DATA_MAXSIZE               253U                                                                            //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_LEVEL_DATA_MAXSIZE         63U                                                                             //Domain length is between 3 and 63(Labels must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
+#define DOMAIN_MINSIZE                    2U                                                                              //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_RAMDOM_MINSIZE             6U                                                                              //Minimum size of ramdom domain requesting
+#define DNS_PACKET_MINSIZE                (sizeof(dns_hdr) + 4U + sizeof(dns_qry))                                        //Minimum DNS packet size(DNS Header + Minimum Domain + DNS Query)
+#define DNS_RR_MAXCOUNT_AAAA              43U                                                                             //Maximum Record Resources size of AAAA answers, 28 bytes * 43 = 1204 bytes
+#define DNS_RR_MAXCOUNT_A                 75U                                                                             //Maximum Record Resources size of A answers, 16 bytes * 75 = 1200 bytes
+#define EDNS_ADDITIONAL_MAXSIZE           (sizeof(dns_record_opt) * 2U + sizeof(edns_client_subnet) + sizeof(in6_addr))   //Maximum of EDNS Additional Record Resources size
+#define DNSCRYPT_PACKET_MINSIZE           (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES + DNS_PACKET_MINSIZE)
+#define DNSCRYPT_RECORD_TXT_LEN           124U                                                                            //Length of DNScrypt TXT Records
+#define DNSCRYPT_BUFFER_RESERVE_LEN       (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES - crypto_box_BOXZEROBYTES)
+#define DNSCRYPT_BUFFER_RESERVE_TCP_LEN   (sizeof(uint16_t) + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES - crypto_box_BOXZEROBYTES)
+#define DNSCRYPT_RESERVE_HEADER_LEN       (sizeof(ipv6_hdr) + sizeof(udp_hdr) + DNSCRYPT_BUFFER_RESERVE_LEN)
 
 //Code definitions
 #if defined(PLATFORM_WIN)
@@ -185,7 +190,7 @@
 	#define PCAP_CAPTURE_MIN_TIMEOUT           10U       //Minimum Pcap Capture reading timeout, 10 ms
 	#define DEFAULT_PCAP_CAPTURE_TIMEOUT       200U      //Default Pcap Capture reading timeout, 200 ms
 #endif
-#define SOCKET_MIN_TIMEOUT                 500U      //The shortset socket timeout, 500 ms
+#define SOCKET_MIN_TIMEOUT                 500U      //The shortest socket timeout, 500 ms
 #if defined(PLATFORM_WIN)
 	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT     3000U     //Default timeout of reliable sockets(Such as TCP, 3 seconds/3000ms)
 	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT   2000U     //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds/2000ms)
@@ -282,31 +287,38 @@
 #endif
 
 //Codes and types definitions
-#define LISTEN_PROTOCOL_NETWORK_BOTH     0
-#define LISTEN_PROTOCOL_IPV6             1U
-#define LISTEN_PROTOCOL_IPV4             2U
-#define LISTEN_PROTOCOL_TRANSPORT_BOTH   0
-#define LISTEN_PROTOCOL_TCP              1U
-#define LISTEN_PROTOCOL_UDP              2U
-#define LISTEN_MODE_PROXY                0
-#define LISTEN_MODE_PRIVATE              1U 
-#define LISTEN_MODE_SERVER               2U
-#define LISTEN_MODE_CUSTOM               3U
-#define DIRECT_REQUEST_MODE_NONE         0
-#define DIRECT_REQUEST_MODE_BOTH         1U
-#define DIRECT_REQUEST_MODE_IPV6         2U
-#define DIRECT_REQUEST_MODE_IPV4         3U
-#define REQUEST_MODE_NETWORK_BOTH        0
-#define REQUEST_MODE_IPV6                1U
-#define REQUEST_MODE_IPV4                2U
-#define REQUEST_MODE_UDP                 0
-#define REQUEST_MODE_TCP                 1U
-#define HOSTS_TYPE_NORMAL                0
-#define HOSTS_TYPE_WHITE                 1U
-#define HOSTS_TYPE_LOCAL                 2U
-#define HOSTS_TYPE_BANNED                3U
-#define CACHE_TYPE_TIMER                 1U
-#define CACHE_TYPE_QUEUE                 2U
+#define LISTEN_PROTOCOL_NETWORK_BOTH          0
+#define LISTEN_PROTOCOL_IPV6                  1U
+#define LISTEN_PROTOCOL_IPV4                  2U
+#define LISTEN_PROTOCOL_TRANSPORT_BOTH        0
+#define LISTEN_PROTOCOL_TCP                   1U
+#define LISTEN_PROTOCOL_UDP                   2U
+#define LISTEN_MODE_PROXY                     0
+#define LISTEN_MODE_PRIVATE                   1U 
+#define LISTEN_MODE_SERVER                    2U
+#define LISTEN_MODE_CUSTOM                    3U
+#define DIRECT_REQUEST_MODE_NONE              0
+#define DIRECT_REQUEST_MODE_BOTH              1U
+#define DIRECT_REQUEST_MODE_IPV6              2U
+#define DIRECT_REQUEST_MODE_IPV4              3U
+#define REQUEST_MODE_NETWORK_BOTH             0
+#define REQUEST_MODE_IPV6                     1U
+#define REQUEST_MODE_IPV4                     2U
+#define REQUEST_MODE_UDP                      0
+#define REQUEST_MODE_TCP                      1U
+#define HOSTS_TYPE_NORMAL                     0
+#define HOSTS_TYPE_WHITE                      1U
+#define HOSTS_TYPE_LOCAL                      2U
+#define HOSTS_TYPE_BANNED                     3U
+#define CACHE_TYPE_TIMER                      1U
+#define CACHE_TYPE_QUEUE                      2U
+#define SOCKET_SETTING_INVALID_CHECK          0
+#define SOCKET_SETTING_TIMEOUT                1U
+#define SOCKET_SETTING_REUSE                  2U
+#define SOCKET_SETTING_TCP_FAST_OPEN          3U
+#define SOCKET_SETTING_NON_BLOCKING_MODE      4U
+//#define SOCKET_SETTING_TCP_KEEPALIVE          5U
+#define SOCKET_SETTING_UDP_BLOCK_RESET        6U
 
 //Server type definitions
 #if defined(ENABLE_LIBSODIUM)
@@ -383,6 +395,14 @@ typedef struct _dns_server_data_
 #endif
 }DNSServerData, DNS_SERVER_DATA, *PDNSServerData, *PDNS_SERVER_DATA;
 
+//Socket Selecting structure
+typedef struct _socket_selecting_data_
+{
+	std::shared_ptr<char>    RecvBuffer;
+	size_t                   Length;
+	bool                     PacketIsSend;
+}SocketSelectingData, SOCKET_SELECTING_DATA, *PSocketSelectingData, *PSOCKET_SELECTING_DATA;
+
 //DNS Cache structure
 typedef struct _dnscache_data_
 {
@@ -409,6 +429,19 @@ typedef struct _dnscurve_server_data_
 	PSTR                     ReceiveMagicNumber;     //Receive Magic Number(Same from server receive)
 	PSTR                     SendMagicNumber;        //Server Magic Number(Send to server)
 }DNSCurveServerData, DNSCURVE_SERVER_DATA, *PDNSCurveServerData, *PDNSCURVE_SERVER_DATA;
+
+//Socket Selecting structure
+typedef struct _dnscurve_socket_selecting_data_
+{
+	size_t                   ServerType;
+	PUINT8                   PrecomputationKey;
+	PSTR                     ReceiveMagicNumber;
+	PSTR                     SendBuffer;
+	size_t                   SendSize;
+	std::shared_ptr<char>    RecvBuffer;
+	size_t                   Length;
+	bool                     PacketIsSend;
+}DNSCurveSocketSelectingData, DNSCURVE_SOCKET_SELECTING_DATA, *PDNSCurveSocketSelectingData, *PDNSCURVE_SOCKET_SELECTING_DATA;
 #endif
 
 //Class definitions
@@ -490,7 +523,9 @@ public:
 	size_t                               AlternateResetTime;
 	size_t                               MultiRequestTimes;
 //[Switches] block
+#if defined(PLATFORM_LINUX)
 	bool                                 TCP_FastOpen;
+#endif
 	bool                                 DomainCaseConversion;
 	bool                                 CompressionPointerMutation;
 	bool                                 CPM_PointerToHeader;
@@ -547,7 +582,7 @@ public:
 #elif defined(PLATFORM_LINUX)
 	bool                                 Daemon;
 #endif
-	std::vector<SYSTEM_SOCKET>           *LocalSocket;
+	std::vector<SYSTEM_SOCKET>           *LocalListeningSocket;
 	std::default_random_engine           *RamdomEngine;
 	PSTR                                 DomainTable;
 
@@ -731,108 +766,280 @@ public:
 // Main functions
 // 
 //Base.cpp
-bool __fastcall CheckEmptyBuffer(const void *Buffer, const size_t Length);
-uint16_t __fastcall hton16_Force(const uint16_t Value);
-//uint16_t __fastcall ntoh16_Force(const uint16_t Value);
-uint32_t __fastcall hton32_Force(const uint32_t Value);
-//uint32_t __fastcall ntoh32_Force(const uint32_t Value);
-uint64_t __fastcall hton64(const uint64_t Value);
-//uint64_t __fastcall ntoh64(const uint64_t Value);
-bool __fastcall MBSToWCSString(std::wstring &Target, const char *Buffer);
-void __fastcall CaseConvert(const bool IsLowerToUpper, PSTR Buffer, const size_t Length);
-void __fastcall CaseConvert(const bool IsLowerToUpper, std::string &Buffer);
+bool __fastcall CheckEmptyBuffer(
+	const void *Buffer, 
+	const size_t Length);
+uint16_t __fastcall hton16_Force(
+	const uint16_t Value);
+//uint16_t __fastcall ntoh16_Force(
+//	const uint16_t Value);
+uint32_t __fastcall hton32_Force(
+	const uint32_t Value);
+//uint32_t __fastcall ntoh32_Force(
+//	const uint32_t Value);
+uint64_t __fastcall hton64(
+	const uint64_t Value);
+//uint64_t __fastcall ntoh64(
+//	const uint64_t Value);
+bool __fastcall MBSToWCSString(
+	std::wstring &Target, 
+	const char *Buffer);
+void __fastcall CaseConvert(
+	const bool IsLowerToUpper, 
+	PSTR Buffer, 
+	const size_t Length);
+void __fastcall CaseConvert(
+	const bool IsLowerToUpper, 
+	std::string &Buffer);
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	uint64_t GetCurrentSystemTime(void);
+uint64_t GetCurrentSystemTime(
+	void);
 #endif
 //Windows XP with SP3 support
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	BOOL WINAPI IsGreaterThanVista(void);
-	BOOL WINAPI GetFunctionPointer(const size_t FunctionType);
+BOOL WINAPI IsGreaterThanVista(
+	void);
+BOOL WINAPI GetFunctionPointer(
+	const size_t FunctionType);
 #endif
 
 //PrintLog.h
-bool __fastcall PrintError(const size_t ErrorType, const wchar_t *Message, const SSIZE_T ErrorCode, const wchar_t *FileName, const size_t Line);
+bool __fastcall PrintError(
+	const size_t ErrorType, 
+	const wchar_t *Message, 
+	const SSIZE_T ErrorCode, 
+	const wchar_t *FileName, 
+	const size_t Line);
 
 //PacketData.h
-//uint32_t __fastcall GetFCS(const unsigned char *Buffer, const size_t Length);
-uint16_t __fastcall GetChecksum(const uint16_t *Buffer, const size_t Length);
-uint16_t __fastcall GetChecksum_ICMPv6(const unsigned char *Buffer, const size_t Length, const in6_addr &Destination, const in6_addr &Source);
-uint16_t __fastcall GetChecksum_TCPUDP(const unsigned char *Buffer, const size_t Length, const uint16_t Protocol_Network, const uint16_t Protocol_Transport);
-size_t __fastcall AddLengthDataToHeader(PSTR Buffer, const size_t RecvLen, const size_t MaxLen);
-size_t __fastcall CharToDNSQuery(const char *FName, PSTR TName);
-size_t __fastcall DNSQueryToChar(const char *TName, PSTR FName);
-void __fastcall MakeRamdomDomain(PSTR Buffer);
-void __fastcall MakeDomainCaseConversion(PSTR Buffer);
-size_t __fastcall AddEDNSLabelToAdditionalRR(PSTR Buffer, const size_t Length, const size_t MaxLen, const bool NoHeader);
-size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Length);
+//uint32_t __fastcall GetFCS(
+//	const unsigned char *Buffer, 
+//	const size_t Length);
+uint16_t __fastcall GetChecksum(
+	const uint16_t *Buffer, 
+	const size_t Length);
+uint16_t __fastcall GetChecksum_ICMPv6(
+	const unsigned char *Buffer, 
+	const size_t Length, 
+	const in6_addr &Destination, 
+	const in6_addr &Source);
+uint16_t __fastcall GetChecksum_TCP_UDP(
+	const unsigned char *Buffer, 
+	const size_t Length, 
+	const uint16_t Protocol_Network, 
+	const uint16_t Protocol_Transport);
+size_t __fastcall AddLengthDataToHeader(
+	PSTR Buffer, 
+	const size_t RecvLen, 
+	const size_t MaxLen);
+size_t __fastcall CharToDNSQuery(
+	const char *FName, 
+	PSTR TName);
+size_t __fastcall DNSQueryToChar(
+	const char *TName, 
+	PSTR FName);
+void __fastcall MakeRamdomDomain(
+	PSTR Buffer);
+void __fastcall MakeDomainCaseConversion(
+	PSTR Buffer);
+size_t __fastcall AddEDNSLabelToAdditionalRR(
+	PSTR Buffer, 
+	const size_t Length, 
+	const size_t MaxLen, 
+	const bool NoHeader);
+size_t __fastcall MakeCompressionPointerMutation(
+	PSTR Buffer, 
+	const size_t Length);
 
 //Protocol.h
-bool __fastcall AddressStringToBinary(const char *AddrString, void *OriginalAddr, const uint16_t Protocol, SSIZE_T &ErrorCode);
-size_t __fastcall AddressesComparing(const void *OriginalAddrBegin, const void *OriginalAddrEnd, const uint16_t Protocol);
-bool __fastcall CheckSpecialAddress(void *Addr, const uint16_t Protocol, const bool IsPrivateUse, char *Domain);
-bool __fastcall CheckAddressRouting(const void *Addr, const uint16_t Protocol);
-bool __fastcall CheckCustomModeFilter(const void *OriginalAddr, const uint16_t Protocol);
-size_t __fastcall CheckQueryNameLength(const char *Buffer);
-size_t __fastcall CheckQueryData(PSTR RecvBuffer, PSTR SendBuffer, const size_t Length, const SOCKET_DATA &LocalSocketData, const uint16_t Protocol, bool *IsLocal);
-#if defined(ENABLE_PCAP)
-	size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal, bool *IsMarkHopLimit);
-#else
-	size_t __fastcall CheckResponseData(const char *Buffer, const size_t Length, const bool IsLocal);
-#endif
+bool __fastcall AddressStringToBinary(
+	const char *AddrString, 
+	void *OriginalAddr, 
+	const uint16_t Protocol, 
+	SSIZE_T &ErrorCode);
+size_t __fastcall AddressesComparing(
+	const void *OriginalAddrBegin, 
+	const void *OriginalAddrEnd, 
+	const uint16_t Protocol);
+bool __fastcall CheckSpecialAddress(
+	void *Addr, 
+	const uint16_t Protocol, 
+	const bool IsPrivateUse, 
+	char *Domain);
+bool __fastcall CheckAddressRouting(
+	const void *Addr, 
+	const uint16_t Protocol);
+bool __fastcall CheckCustomModeFilter(
+	const void *OriginalAddr, 
+	const uint16_t Protocol);
+size_t __fastcall CheckQueryNameLength(
+	const char *Buffer);
+size_t __fastcall CheckQueryData(
+	PSTR RecvBuffer, 
+	PSTR SendBuffer, 
+	const size_t Length, 
+	const SOCKET_DATA &LocalSocketData, 
+	const uint16_t Protocol, 
+	bool *IsLocal);
+size_t __fastcall CheckResponseData(
+	const char *Buffer, 
+	const size_t Length, 
+	const bool IsLocal, 
+	bool *IsMarkHopLimit);
 
 //Configuration.h
-bool __fastcall ReadParameter(const bool IsFirstRead);
-void __fastcall ReadIPFilter(void);
-void __fastcall ReadHosts(void);
-void __fastcall GetParameterListData(std::vector<std::string> &ListData, const std::string Data, const size_t DataOffset, const size_t Length);
+bool __fastcall ReadParameter(
+	const bool IsFirstRead);
+void __fastcall ReadIPFilter(
+	void);
+void __fastcall ReadHosts(
+	void);
+void __fastcall GetParameterListData(
+	std::vector<std::string> &ListData, 
+	const std::string Data, 
+	const size_t DataOffset, 
+	const size_t Length);
 
 //Monitor.h
-bool __fastcall MonitorInit(void);
-void __fastcall NetworkInformationMonitor(void);
+bool __fastcall MonitorInit(
+	void);
+void __fastcall NetworkInformationMonitor(
+	void);
 
 //DNSCurve.h
 #if defined(ENABLE_LIBSODIUM)
-	bool __fastcall DNSCurveVerifyKeypair(const unsigned char *PublicKey, const unsigned char *SecretKey);
-	void __fastcall DNSCurveInit(void);
-	size_t __fastcall DNSCurveTCPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
-	size_t __fastcall DNSCurveTCPRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
-	size_t __fastcall DNSCurveUDPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
-	size_t __fastcall DNSCurveUDPRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
+bool __fastcall DNSCurveVerifyKeypair(
+	const unsigned char *PublicKey, 
+	const unsigned char *SecretKey);
+void __fastcall DNSCurveInit(
+	void);
+size_t __fastcall DNSCurveTCPRequest(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	PSTR OriginalRecv, 
+	const size_t RecvSize);
+size_t __fastcall DNSCurveTCPRequestMulti(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	PSTR OriginalRecv, 
+	const size_t RecvSize);
+size_t __fastcall DNSCurveUDPRequest(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	PSTR OriginalRecv, 
+	const size_t RecvSize);
+size_t __fastcall DNSCurveUDPRequestMulti(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	PSTR OriginalRecv, 
+	const size_t RecvSize);
 #endif
 
 //Process.h
-bool __fastcall EnterRequestProcess(const char *OriginalSend, const size_t Length, const SOCKET_DATA LocalSocketData, const uint16_t Protocol, const bool IsLocal);
-size_t __fastcall CheckHostsProcess(PSTR OriginalRequest, const size_t Length, PSTR Result, const size_t ResultSize);
-bool __fastcall SendToRequester(PSTR RecvBuffer, const size_t RecvSize, const uint16_t Protocol, const SOCKET_DATA &LocalSocketData);
-bool __fastcall MarkDomainCache(const char *Buffer, const size_t Length);
+bool __fastcall EnterRequestProcess(
+	const char *OriginalSend, 
+	const size_t Length, 
+	const SOCKET_DATA LocalSocketData, 
+	const uint16_t Protocol, 
+	const bool IsLocal);
+size_t __fastcall CheckHostsProcess(
+	PSTR OriginalRequest, 
+	const size_t Length, 
+	PSTR Result, 
+	const size_t ResultSize);
+bool __fastcall SendToRequester(
+	PSTR RecvBuffer, 
+	const size_t RecvSize, 
+	const uint16_t Protocol, 
+	const SOCKET_DATA &LocalSocketData);
+bool __fastcall MarkDomainCache(
+	const char *Buffer, 
+	const size_t Length);
 
 //Captrue.h
 #if defined(ENABLE_PCAP)
-	void __fastcall CaptureInit(void);
+	void __fastcall CaptureInit(
+		void);
 #endif
 
 //Network.h
+bool __fastcall SocketSetting(
+	const SYSTEM_SOCKET Socket, 
+	const size_t SettingType, 
+	void *DataPointer);
+size_t __fastcall SocketConnecting(
+	const uint16_t Protocol, 
+	const SYSTEM_SOCKET Socket, 
+	const PSOCKADDR SockAddr, 
+	const socklen_t AddrLen, 
+	const char *OriginalSend, 
+	const size_t SendSize);
+SSIZE_T __fastcall SocketSelecting(
+	const uint16_t Protocol, 
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	const char *SendBuffer, 
+	const size_t SendSize, 
+	PSTR OriginalRecv, 
+	const size_t RecvSize, 
+	const bool IsLocal, 
+	const bool NoCheck);
 #if defined(ENABLE_PCAP)
-bool __fastcall DomainTestRequest(const uint16_t Protocol);
-bool __fastcall ICMPTestRequest(const uint16_t Protocol);
+bool __fastcall DomainTestRequest(
+	const uint16_t Protocol);
+bool __fastcall ICMPTestRequest(
+	const uint16_t Protocol);
 #endif
-size_t __fastcall TCPRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal);
-size_t __fastcall TCPRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
+size_t __fastcall TCPRequest(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	PSTR OriginalRecv, 
+	const size_t RecvSize, 
+	const bool IsLocal);
+size_t __fastcall TCPRequestMulti(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	PSTR OriginalRecv, 
+	const size_t RecvSize);
 #if defined(ENABLE_PCAP)
-	size_t __fastcall UDPRequest(const char *OriginalSend, const size_t Length, const SOCKET_DATA *LocalSocketData, const uint16_t Protocol);
-	size_t __fastcall UDPRequestMulti(const char *OriginalSend, const size_t Length, const SOCKET_DATA *LocalSocketData, const uint16_t Protocol);
+size_t __fastcall UDPRequest(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	const SOCKET_DATA *LocalSocketData, 
+	const uint16_t Protocol);
+size_t __fastcall UDPRequestMulti(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	const SOCKET_DATA *LocalSocketData, 
+	const uint16_t Protocol);
 #endif
-size_t __fastcall UDPCompleteRequest(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize, const bool IsLocal);
-size_t __fastcall UDPCompleteRequestMulti(const char *OriginalSend, const size_t SendSize, PSTR OriginalRecv, const size_t RecvSize);
+size_t __fastcall UDPCompleteRequest(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	PSTR OriginalRecv, 
+	const size_t RecvSize, 
+	const bool IsLocal);
+size_t __fastcall UDPCompleteRequestMulti(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	PSTR OriginalRecv, 
+	const size_t RecvSize);
 
 //Service.h
 #if defined(PLATFORM_WIN)
-	BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType);
-	size_t WINAPI ServiceMain(DWORD argc, LPTSTR *argv);
-	bool __fastcall FlushDNSMailSlotMonitor(void);
-	bool WINAPI FlushDNSMailSlotSender(void);
+BOOL WINAPI CtrlHandler(
+	const DWORD fdwCtrlType);
+size_t WINAPI ServiceMain(
+	DWORD argc, 
+	LPTSTR *argv);
+bool __fastcall FlushDNSMailSlotMonitor(
+	void);
+bool WINAPI FlushDNSMailSlotSender(
+	void);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	bool FlushDNSFIFOMonitor(void);
-	bool FlushDNSFIFOSender(void);
+bool FlushDNSFIFOMonitor(
+	void);
+bool FlushDNSFIFOSender(
+	void);
 #endif
-void __fastcall FlushAllDNSCache(void);
+void __fastcall FlushAllDNSCache(
+	void);

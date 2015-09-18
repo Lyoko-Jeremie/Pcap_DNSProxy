@@ -124,7 +124,7 @@
 #  define PLATFORM_DYNIX
 #elif defined(_SCO_DS)                   /* SCO OpenServer 5 + GCC */
 #  define PLATFORM_SCO
-#elif defined(__USLC__)                  /* all SCO platforms + UDK or OUDK */
+#elif defined(__USLC__)                  /* All SCO platforms + UDK or OUDK */
 #  define PLATFORM_UNIXWARE
 #  define PLATFORM_UNIXWARE7
 #elif defined(__svr4__) && defined(i386) /* Open UNIX 8 + GCC */

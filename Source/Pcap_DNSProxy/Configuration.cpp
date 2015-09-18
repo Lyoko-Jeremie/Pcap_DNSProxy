@@ -20,7 +20,10 @@
 #include "Configuration.h"
 
 //Read texts
-bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t FileIndex)
+bool __fastcall ReadText(
+	const FILE *Input, 
+	const size_t InputType, 
+	const size_t FileIndex)
 {
 //Initialization
 	std::shared_ptr<char> FileBuffer(new char[FILE_BUFFER_SIZE]()), TextBuffer(new char[FILE_BUFFER_SIZE]());
@@ -381,7 +384,9 @@ bool __fastcall ReadText(const FILE *Input, const size_t InputType, const size_t
 }
 
 //Check Multi-line comments
-bool __fastcall ReadMultiLineComments(std::string &Data, bool &IsLabelComments)
+bool __fastcall ReadMultiLineComments(
+	std::string &Data, 
+	bool &IsLabelComments)
 {
 	if (IsLabelComments)
 	{
@@ -412,7 +417,8 @@ bool __fastcall ReadMultiLineComments(std::string &Data, bool &IsLabelComments)
 }
 
 //Read parameter from file
-bool __fastcall ReadParameter(const bool IsFirstRead)
+bool __fastcall ReadParameter(
+	const bool IsFirstRead)
 {
 	size_t FileIndex = 0;
 
@@ -420,7 +426,7 @@ bool __fastcall ReadParameter(const bool IsFirstRead)
 	if (IsFirstRead)
 	{
 		const wchar_t *ConfigFileNameList[]{CONFIG_FILE_NAME_LIST};
-		for (FileIndex = 0; FileIndex < sizeof(ConfigFileNameList) / sizeof(PWSTR); ++FileIndex)
+		for (FileIndex = 0;FileIndex < sizeof(ConfigFileNameList) / sizeof(PWSTR);++FileIndex)
 		{
 			FILE_DATA ConfigFileTemp;
 			ConfigFileTemp.FileName = GlobalRunningStatus.Path_Global->front();
@@ -551,8 +557,8 @@ bool __fastcall ReadParameter(const bool IsFirstRead)
 			Sleep(Parameter.FileRefreshTime);
 		}
 
+	//Jump here to stop loop.
 	StopLoop:
-	//Initialization
 	#if defined(PLATFORM_WIN)
 		std::shared_ptr<LARGE_INTEGER> File_LARGE_INTEGER(new LARGE_INTEGER());
 		memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
@@ -570,7 +576,7 @@ bool __fastcall ReadParameter(const bool IsFirstRead)
 			{
 				memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (stat(FileList_Config.at(FileIndex).sFileName.c_str(), FileStat.get()) != 0)
+			if (stat(FileList_Config.at(FileIndex).sFileName.c_str(), FileStat.get()) != EXIT_SUCCESS)
 			{
 				memset(FileStat.get(), 0, sizeof(struct stat));
 		#endif
@@ -691,7 +697,8 @@ bool __fastcall ReadParameter(const bool IsFirstRead)
 }
 
 //Read IPFilter from file
-void __fastcall ReadIPFilter(void)
+void __fastcall ReadIPFilter(
+	void)
 {
 	size_t FileIndex = 0;
 
@@ -747,7 +754,7 @@ void __fastcall ReadIPFilter(void)
 			{
 				memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (stat(FileList_IPFilter.at(FileIndex).sFileName.c_str(), FileStat.get()) != 0)
+			if (stat(FileList_IPFilter.at(FileIndex).sFileName.c_str(), FileStat.get()) != EXIT_SUCCESS)
 			{
 				memset(FileStat.get(), 0, sizeof(struct stat));
 		#endif
@@ -926,7 +933,8 @@ void __fastcall ReadIPFilter(void)
 }
 
 //Read hosts from file
-void __fastcall ReadHosts(void)
+void __fastcall ReadHosts(
+	void)
 {
 	size_t FileIndex = 0;
 
@@ -982,7 +990,7 @@ void __fastcall ReadHosts(void)
 			{
 				memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (stat(FileList_Hosts.at(FileIndex).sFileName.c_str(), FileStat.get()) != 0)
+			if (stat(FileList_Hosts.at(FileIndex).sFileName.c_str(), FileStat.get()) != EXIT_SUCCESS)
 			{
 				memset(FileStat.get(), 0, sizeof(struct stat));
 		#endif
@@ -1115,7 +1123,9 @@ void __fastcall ReadHosts(void)
 }
 
 //Clear data in list
-void __fastcall ClearModificatingListData(const size_t ClearType, const size_t FileIndex)
+void __fastcall ClearModificatingListData(
+	const size_t ClearType, 
+	const size_t FileIndex)
 {
 //Clear Hosts set.
 	if (ClearType == READ_TEXT_HOSTS)
@@ -1147,7 +1157,11 @@ void __fastcall ClearModificatingListData(const size_t ClearType, const size_t F
 }
 
 //Get data list from file
-void __fastcall GetParameterListData(std::vector<std::string> &ListData, const std::string Data, const size_t DataOffset, const size_t Length)
+void __fastcall GetParameterListData(
+	std::vector<std::string> &ListData, 
+	const std::string Data, 
+	const size_t DataOffset, 
+	const size_t Length)
 {
 	std::string NameString;
 	for (size_t Index = DataOffset;Index < Length;++Index)

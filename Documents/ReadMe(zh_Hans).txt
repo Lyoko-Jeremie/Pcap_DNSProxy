@@ -467,6 +467,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Unreliable Socket Timeout - 不可靠协议端口超时时间，不可靠端口指 UDP/ICMP/ICMPv6 协议：单位为毫秒，默认为 2000
   * Receive Waiting - 数据包接收等待时间，启用后程序会尝试等待一段时间以尝试接收所有数据包并返回最后到达的数据包：单位为毫秒，留空或填 0 表示关闭此功能，默认为 0
     * 本参数与 Pcap Reading Timeout 密切相关，由于抓包模块每隔一段读取超时时间才会返回给程序一次，当数据包接收等待时间小于读取超时时间时会导致本参数变得没有意义，在一些情况下甚至会拖慢域名解析的响应速度
+    * 本参数启用后虽然本身只决定抓包模块的接收等待时间，但同时会影响到非抓包模块的请求。非抓包模块会自动切换为等待超时时间后发回最后收到的回复，默认为接受最先到达的正确的回复，而它们的超时时间由 Reliable Socket Timeout/Unreliable Socket Timeout 参数决定
     * 一般情况下，越靠后所收到的数据包，其可靠性可能会更高
   * ICMP Test - ICMP/Ping 测试间隔时间：单位为秒，最短间隔时间为5秒，默认为 900秒/15分钟
   * Domain Test - DNS 服务器解析域名测试间隔时间：单位为秒，最短间隔时间为5秒，默认为 900秒/15分钟
@@ -490,7 +491,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 开启系统对本功能的支持：
       * 临时支持：需要在拥有 ROOT 权限的终端执行 echo 3 > /proc/sys/net/ipv4/tcp_fastopen
       * 长期支持：
-        * 在 /etc/rc.local 文件最下面添加 echo 3 > /proc/sys/net/ipv4/tcp_fastopen 保存，以后每次启动都将自动设置此指
+        * 在 /etc/rc.local 文件最下面添加 echo 3 > /proc/sys/net/ipv4/tcp_fastopen 保存，以后每次启动都将自动设置此值
         * 在 /etc/sysctl.conf 文件中添加 net.ipv4.tcp_fastopen = 3 保存
   * Domain Case Conversion - 随机转换域名请求大小写：开启为1/关闭为0，默认为 1
   * Compression Pointer Mutation - 随机添加压缩指针：可填入 1 (+ 2 + 3)，关闭为0，默认为 0
@@ -523,7 +524,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * ICMP Sequence - ICMP/Ping 数据包头部 Sequence/序列号 的值：格式为 0x**** 的十六进制字符，如果留空则为 0x0001 默认为空
   * Domain Test Data - DNS 服务器解析域名测试：请输入正确、确认不会被投毒污染的域名并且不要超过 253 字节 ASCII 数据，留空则会随机生成一个域名进行测试，默认为空
   * Domain Test ID - DNS 数据包头部 ID 的值：格式为 0x**** 的十六进制字符，如果留空则为 0x0001 默认为空
-  * ICMP PaddingData - ICMP 附加数据，Ping 程序发送请求时为补足数据使其达到 Ethernet 类型网络最低的可发送长度时添加的数据：长度介乎于 18字节 - 1512字节 ASCII 数据之间，留空则使用 Microsoft Windows Ping 程序的 ICMP 附加数据，默认为空
+  * ICMP PaddingData - ICMP 附加数据，Ping 程序发送请求时为补足数据使其达到 Ethernet 类型网络最低的可发送长度时添加的数据：长度介乎于 18字节 - 1500字节 ASCII 数据之间，留空则使用 Microsoft Windows Ping 程序的 ICMP 附加数据，默认为空
   * Localhost Server Name - 本地 DNS 服务器名称：请输入正确的域名并且不要超过253字节 ASCII 数据，留空则使用 pcap-dnsproxy.localhost.server 作为本地服务器名称，默认为空
 
 * DNSCurve - DNSCurve 协议基本参数区域

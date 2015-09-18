@@ -29,5 +29,16 @@ extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 #endif
 
 //Functions
-bool __fastcall SelectTargetSocket(SOCKET_DATA *SockData, bool *&IsAlternate, size_t *&AlternateTimeoutTimes, const uint16_t Protocol, const bool IsLocal);
-bool __fastcall SelectTargetSocketMulti(std::vector<SOCKET_DATA> &SockDataList, const uint16_t Protocol);
+bool __fastcall SelectTargetSocket(
+	SOCKET_DATA *TargetSocketData, 
+	bool *&IsAlternate, 
+	size_t *&AlternateTimeoutTimes, 
+	const uint16_t Protocol, 
+	const bool IsLocal);
+bool __fastcall SelectTargetSocketMulti(
+	std::vector<SOCKET_DATA> &TargetSocketDataList, 
+	const uint16_t Protocol);
+void __fastcall MarkPortToList(
+	const uint16_t Protocol, 
+	const SOCKET_DATA *LocalSocketData, 
+	std::vector<SOCKET_DATA> &SocketDataList);

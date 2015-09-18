@@ -20,7 +20,9 @@
 #include "Configuration.h"
 
 //Check parameter list and set default values
-bool __fastcall ParameterCheckAndSetting(const bool IsFirstRead, const size_t FileIndex)
+bool __fastcall ParameterCheckAndSetting(
+	const bool IsFirstRead, 
+	const size_t FileIndex)
 {
 //Initialization
 	CONFIGURATION_TABLE *ParameterPTR = nullptr;
@@ -248,9 +250,9 @@ bool __fastcall ParameterCheckAndSetting(const bool IsFirstRead, const size_t Fi
 //Other errors which need to print to log.
 #if defined(ENABLE_PCAP)
 	#if defined(ENABLE_LIBSODIUM)
-		if (!Parameter.PcapCapture && /* Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH && */ !Parameter.DNSCurve && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
+		if (!Parameter.PcapCapture && !Parameter.DNSCurve && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
 	#else
-		if (!Parameter.PcapCapture && /* Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH && */ Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
+		if (!Parameter.PcapCapture && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
 	#endif
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"Pcap Capture error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
@@ -258,9 +260,9 @@ bool __fastcall ParameterCheckAndSetting(const bool IsFirstRead, const size_t Fi
 	}
 #else
 	#if defined(ENABLE_LIBSODIUM)
-		if ( /* Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH && */ !Parameter.DNSCurve && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
+		if (!Parameter.DNSCurve && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
 	#else
-		if ( /* Parameter.DirectRequest != DIRECT_REQUEST_MODE_BOTH && */ Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
+		if (Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
 	#endif
 	{
 		PrintError(LOG_ERROR_PARAMETER, L"Pcap Capture error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
@@ -289,7 +291,7 @@ bool __fastcall ParameterCheckAndSetting(const bool IsFirstRead, const size_t Fi
 		}
 		else if (Parameter.EDNSPayloadSize >= PACKET_MAXSIZE - sizeof(ipv6_hdr) - sizeof(udp_hdr))
 		{
-			PrintError(LOG_MESSAGE_NOTICE, L"EDNS Payload Size may be too long", 0, nullptr, 0);
+			PrintError(LOG_MESSAGE_NOTICE, L"EDNS Payload Size is too long", 0, nullptr, 0);
 			Parameter.EDNSPayloadSize = EDNS_PACKET_MINSIZE;
 		}
 		if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0 && 
@@ -346,7 +348,7 @@ bool __fastcall ParameterCheckAndSetting(const bool IsFirstRead, const size_t Fi
 			{
 				if (!DNSCurveVerifyKeypair(DNSCurveParameterPTR->Client_PublicKey, DNSCurveParameterPTR->Client_SecretKey))
 				{
-					PrintError(LOG_ERROR_DNSCURVE, L"Client keypair(public key and secret key) error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+					PrintError(LOG_ERROR_DNSCURVE, L"Client keypair error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 
 					memset(DNSCurveParameterPTR->Client_PublicKey, 0, crypto_box_PUBLICKEYBYTES);
 					memset(DNSCurveParameterPTR->Client_SecretKey, 0, crypto_box_SECRETKEYBYTES);
@@ -796,9 +798,9 @@ bool __fastcall ParameterCheckAndSetting(const bool IsFirstRead, const size_t Fi
 					PrintError(LOG_MESSAGE_NOTICE, L"DNSCurve Payload Size must longer than 512 bytes(Traditional DNS packet minimum supported size)", 0, nullptr, 0);
 				DNSCurveParameter.DNSCurvePayloadSize = DNS_PACKET_MAXSIZE_TRADITIONAL;
 			}
-			else if (DNSCurveParameter.DNSCurvePayloadSize >= PACKET_MAXSIZE - sizeof(ipv6_hdr) - sizeof(udp_hdr))
+			else if (DNSCurveParameter.DNSCurvePayloadSize + DNSCRYPT_RESERVE_HEADER_LEN >= PACKET_MAXSIZE)
 			{
-				PrintError(LOG_MESSAGE_NOTICE, L"DNSCurve Payload Size may be too long", 0, nullptr, 0);
+				PrintError(LOG_MESSAGE_NOTICE, L"DNSCurve Payload Size is too long", 0, nullptr, 0);
 				DNSCurveParameter.DNSCurvePayloadSize = EDNS_PACKET_MINSIZE;
 			}
 		}
@@ -836,7 +838,8 @@ bool __fastcall ParameterCheckAndSetting(const bool IsFirstRead, const size_t Fi
 }
 
 //Convert service name to port
-uint16_t __fastcall ServiceNameToHex(const char *OriginalBuffer)
+uint16_t __fastcall ServiceNameToHex(
+	const char *OriginalBuffer)
 {
 	std::string Buffer(OriginalBuffer);
 	CaseConvert(true, Buffer);
@@ -1022,11 +1025,12 @@ uint16_t __fastcall ServiceNameToHex(const char *OriginalBuffer)
 		return htons(IPPORT_TELNETS);
 
 //No match.
-	return 0;
+	return FALSE;
 }
 
 //Convert DNS type name to hex
-uint16_t __fastcall DNSTypeNameToHex(const char *OriginalBuffer)
+uint16_t __fastcall DNSTypeNameToHex(
+	const char *OriginalBuffer)
 {
 	std::string Buffer(OriginalBuffer);
 	CaseConvert(true, Buffer);
@@ -1200,11 +1204,16 @@ uint16_t __fastcall DNSTypeNameToHex(const char *OriginalBuffer)
 		return htons(DNS_RECORD_RESERVED);
 
 //No match.
-	return 0;
+	return FALSE;
 }
 
 //Read parameter data from files
-bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, const bool IsFirstRead, const size_t Line, bool &IsLabelComments)
+bool __fastcall ReadParameterData(
+	std::string Data, 
+	const size_t FileIndex, 
+	const bool IsFirstRead, 
+	const size_t Line, 
+	bool &IsLabelComments)
 {
 //Delete delete spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs) and check minimum length of ipfilter items.
 //Delete comments(Number Sign/NS and double slashs) and check minimum length of configuration items.
@@ -2184,7 +2193,7 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 	{
 		if (Data.length() > strlen("ICMPPaddingData=") + 17U && Data.length() < strlen("ICMPPaddingData=") + ICMP_PADDING_MAXSIZE - 1U)
 		{
-			Parameter.ICMP_PaddingLength = Data.length() - strlen("ICMPPaddingData=") - 1U;
+			Parameter.ICMP_PaddingLength = Data.length() - strlen("ICMPPaddingData=");
 			memcpy_s(Parameter.ICMP_PaddingData, ICMP_PADDING_MAXSIZE, Data.c_str() + strlen("ICMPPaddingData="), Data.length() - strlen("ICMPPaddingData="));
 		}
 		else {
@@ -2276,7 +2285,7 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 		if (Data.length() > strlen("DNSCurvePayloadSize=") + 2U)
 		{
 			Result = strtoul(Data.c_str() + strlen("DNSCurvePayloadSize="), nullptr, 0);
-			if (errno != ERANGE && Result > (SSIZE_T)(sizeof(eth_hdr) + sizeof(ipv4_hdr) + sizeof(udp_hdr) + sizeof(uint16_t) + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES))
+			if (errno != ERANGE && Result > 0)
 				DNSCurveParameter.DNSCurvePayloadSize = Result;
 		}
 		else {
@@ -2407,42 +2416,42 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 //[DNSCurve Magic Number] block
 	else if (Data.find("IPv4ReceiveMagicNumber=") == 0 && Data.length() > strlen("IPv4ReceiveMagicNumber="))
 	{
-		if (!ReadMagicNumber(Data, strlen("IPv4ReceiveMagicNumber="), DNSCurveParameterPTR->DNSCurveTarget.IPv4.ReceiveMagicNumber, FileIndex, Line))
+		if (!ReadDNSCurveMagicNumber(Data, strlen("IPv4ReceiveMagicNumber="), DNSCurveParameterPTR->DNSCurveTarget.IPv4.ReceiveMagicNumber, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("IPv4AlternateReceiveMagicNumber=") == 0 && Data.length() > strlen("IPv4AlternateReceiveMagicNumber="))
 	{
-		if (!ReadMagicNumber(Data, strlen("IPv4AlternateReceiveMagicNumber="), DNSCurveParameterPTR->DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, FileIndex, Line))
+		if (!ReadDNSCurveMagicNumber(Data, strlen("IPv4AlternateReceiveMagicNumber="), DNSCurveParameterPTR->DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("IPv6ReceiveMagicNumber=") == 0 && Data.length() > strlen("IPv6ReceiveMagicNumber="))
 	{
-		if (!ReadMagicNumber(Data, strlen("IPv6ReceiveMagicNumber="), DNSCurveParameterPTR->DNSCurveTarget.IPv6.ReceiveMagicNumber, FileIndex, Line))
+		if (!ReadDNSCurveMagicNumber(Data, strlen("IPv6ReceiveMagicNumber="), DNSCurveParameterPTR->DNSCurveTarget.IPv6.ReceiveMagicNumber, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("IPv6AlternateReceiveMagicNumber=") == 0 && Data.length() > strlen("IPv6AlternateReceiveMagicNumber="))
 	{
-		if (!ReadMagicNumber(Data, strlen("IPv6AlternateReceiveMagicNumber="), DNSCurveParameterPTR->DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, FileIndex, Line))
+		if (!ReadDNSCurveMagicNumber(Data, strlen("IPv6AlternateReceiveMagicNumber="), DNSCurveParameterPTR->DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("IPv4DNSMagicNumber=") == 0 && Data.length() > strlen("IPv4DNSMagicNumber="))
 	{
-		if (!ReadMagicNumber(Data, strlen("IPv4DNSMagicNumber="), DNSCurveParameterPTR->DNSCurveTarget.IPv4.SendMagicNumber, FileIndex, Line))
+		if (!ReadDNSCurveMagicNumber(Data, strlen("IPv4DNSMagicNumber="), DNSCurveParameterPTR->DNSCurveTarget.IPv4.SendMagicNumber, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("IPv4AlternateDNSMagicNumber=") == 0 && Data.length() > strlen("IPv4AlternateDNSMagicNumber="))
 	{
-		if (!ReadMagicNumber(Data, strlen("IPv4AlternateDNSMagicNumber="), DNSCurveParameterPTR->DNSCurveTarget.Alternate_IPv4.SendMagicNumber, FileIndex, Line))
+		if (!ReadDNSCurveMagicNumber(Data, strlen("IPv4AlternateDNSMagicNumber="), DNSCurveParameterPTR->DNSCurveTarget.Alternate_IPv4.SendMagicNumber, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("IPv6DNSMagicNumber=") == 0 && Data.length() > strlen("IPv6DNSMagicNumber="))
 	{
-		if (!ReadMagicNumber(Data, strlen("IPv6DNSMagicNumber="), DNSCurveParameterPTR->DNSCurveTarget.IPv6.SendMagicNumber, FileIndex, Line))
+		if (!ReadDNSCurveMagicNumber(Data, strlen("IPv6DNSMagicNumber="), DNSCurveParameterPTR->DNSCurveTarget.IPv6.SendMagicNumber, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("IPv6AlternateDNSMagicNumber=") == 0 && Data.length() > strlen("IPv6AlternateDNSMagicNumber="))
 	{
-		if (!ReadMagicNumber(Data, strlen("IPv6AlternateDNSMagicNumber="), DNSCurveParameterPTR->DNSCurveTarget.Alternate_IPv6.SendMagicNumber, FileIndex, Line))
+		if (!ReadDNSCurveMagicNumber(Data, strlen("IPv6AlternateDNSMagicNumber="), DNSCurveParameterPTR->DNSCurveTarget.Alternate_IPv6.SendMagicNumber, FileIndex, Line))
 			return false;
 	}
 #endif
@@ -2452,9 +2461,21 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 
 //Read file names from data
 #if defined(PLATFORM_WIN)
-	bool __fastcall ReadPathAndFileName(std::string Data, const size_t DataOffset, const bool Path, std::vector<std::wstring> *ListData, const size_t FileIndex, const size_t Line)
+bool __fastcall ReadPathAndFileName(
+	std::string Data, 
+	const size_t DataOffset, 
+	const bool Path, 
+	std::vector<std::wstring> *ListData, 
+	const size_t FileIndex, 
+	const size_t Line)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	bool ReadPathAndFileName(std::string Data, const size_t DataOffset, const bool Path, std::vector<std::wstring> *ListData, std::vector<std::string> *sListData, const size_t FileIndex, const size_t Line)
+bool ReadPathAndFileName(
+	std::string Data, 
+	const size_t DataOffset, 
+	const bool Path, 
+	std::vector<std::wstring> *ListData, 
+	std::vector<std::string> *sListData, 
+	const size_t FileIndex, const size_t Line)
 #endif
 {
 
@@ -2591,7 +2612,14 @@ bool __fastcall ReadParameterData(std::string Data, const size_t FileIndex, cons
 }
 
 //Read multiple addresses from data
-bool __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffset, sockaddr_storage &SockAddr, std::vector<sockaddr_storage> *ListenSockAddr, const uint16_t Protocol, const size_t FileIndex, const size_t Line)
+bool __fastcall ReadMultipleAddresses(
+	std::string Data, 
+	const size_t DataOffset, 
+	sockaddr_storage &SockAddr, 
+	std::vector<sockaddr_storage> *ListenSockAddr, 
+	const uint16_t Protocol, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 //Initialization
 	std::shared_ptr<DNS_SERVER_DATA> DNSServerDataTemp(new DNS_SERVER_DATA());
@@ -2730,7 +2758,13 @@ bool __fastcall ReadMultipleAddresses(std::string Data, const size_t DataOffset,
 
 //Read TTL or HopLimit from data
 #if defined(ENABLE_PCAP)
-bool __fastcall ReadHopLimitData(std::string Data, const size_t DataOffset, uint8_t &HopLimit, const uint16_t Protocol, const size_t FileIndex, const size_t Line)
+bool __fastcall ReadHopLimitData(
+	std::string Data, 
+	const size_t DataOffset, 
+	uint8_t &HopLimit, 
+	const uint16_t Protocol, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 	if (Data.length() > DataOffset && Data.length() < DataOffset + ADDR_STRING_MAXSIZE)
 	{
@@ -2796,7 +2830,12 @@ bool __fastcall ReadHopLimitData(std::string Data, const size_t DataOffset, uint
 
 //Read Provider Name of DNSCurve server
 #if defined(ENABLE_LIBSODIUM)
-bool __fastcall ReadDNSCurveProviderName(std::string Data, const size_t DataOffset, PSTR ProviderNameData, const size_t FileIndex, const size_t Line)
+bool __fastcall ReadDNSCurveProviderName(
+	std::string Data, 
+	const size_t DataOffset, 
+	PSTR ProviderNameData, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 	if (Data.length() > DataOffset + DOMAIN_MINSIZE && Data.length() < DataOffset + DOMAIN_DATA_MAXSIZE)
 	{
@@ -2825,7 +2864,12 @@ bool __fastcall ReadDNSCurveProviderName(std::string Data, const size_t DataOffs
 }
 
 //Read DNSCurve secret keys, public keys and fingerprints
-bool __fastcall ReadDNSCurveKey(std::string Data, const size_t DataOffset, PUINT8 KeyData, const size_t FileIndex, const size_t Line)
+bool __fastcall ReadDNSCurveKey(
+	std::string Data, 
+	const size_t DataOffset, 
+	PUINT8 KeyData, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 //Initialization
 	std::shared_ptr<char> Target(new char[ADDR_STRING_MAXSIZE]());
@@ -2855,7 +2899,12 @@ bool __fastcall ReadDNSCurveKey(std::string Data, const size_t DataOffset, PUINT
 }
 
 //Read DNSCurve magic number
-bool __fastcall ReadMagicNumber(std::string Data, const size_t DataOffset, PSTR MagicNumber, const size_t FileIndex, const size_t Line)
+bool __fastcall ReadDNSCurveMagicNumber(
+	std::string Data, 
+	const size_t DataOffset, 
+	PSTR MagicNumber, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 //Hex format
 	if (Data.find("0x") == DataOffset && Data.length() == DataOffset + DNSCURVE_MAGIC_QUERY_HEX_LEN + strlen("0x"))
@@ -2866,7 +2915,7 @@ bool __fastcall ReadMagicNumber(std::string Data, const size_t DataOffset, PSTR 
 
 	//Convert hex format to binary.
 		SSIZE_T Result = sodium_hex2bin((PUCHAR)MagicNumber, DNSCURVE_MAGIC_QUERY_LEN, Data.c_str() + DataOffset + strlen("0x"), DNSCURVE_MAGIC_QUERY_HEX_LEN, nullptr, &ResultLength, &ResultPointer);
-		if (Result != 0 || ResultLength != DNSCURVE_MAGIC_QUERY_LEN || ResultPointer == nullptr)
+		if (Result != EXIT_SUCCESS || ResultLength != DNSCURVE_MAGIC_QUERY_LEN || ResultPointer == nullptr)
 		{
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 			return false;

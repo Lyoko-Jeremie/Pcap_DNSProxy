@@ -20,7 +20,9 @@
 #include "PacketData.h"
 
 /* Get Ethernet Frame Check Sequence/FCS
-uint32_t __fastcall GetFCS(const unsigned char *Buffer, const size_t Length)
+uint32_t __fastcall GetFCS(
+	const unsigned char *Buffer, 
+	const size_t Length)
 {
 	uint32_t Table[FCS_TABLE_SIZE] = {0}, Gx = 0x04C11DB7, Temp = 0, CRCTable = 0, Value = 0, UI = 0;
 	char ReflectNum[] = {8, 32};
@@ -71,7 +73,9 @@ uint32_t __fastcall GetFCS(const unsigned char *Buffer, const size_t Length)
 */
 
 //Get Checksum
-uint16_t __fastcall GetChecksum(const uint16_t *Buffer, const size_t Length)
+uint16_t __fastcall GetChecksum(
+	const uint16_t *Buffer, 
+	const size_t Length)
 {
 	uint32_t Checksum = CHECKSUM_SUCCESS;
 	size_t InnerLength = Length;
@@ -92,7 +96,11 @@ uint16_t __fastcall GetChecksum(const uint16_t *Buffer, const size_t Length)
 }
 
 //Get ICMPv6 checksum
-uint16_t __fastcall GetChecksum_ICMPv6(const unsigned char *Buffer, const size_t Length, const in6_addr &Destination, const in6_addr &Source)
+uint16_t __fastcall GetChecksum_ICMPv6(
+	const unsigned char *Buffer, 
+	const size_t Length, 
+	const in6_addr &Destination, 
+	const in6_addr &Source)
 {
 	std::shared_ptr<char> Validation(new char[sizeof(ipv6_psd_hdr) + Length]());
 	memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length);
@@ -108,7 +116,11 @@ uint16_t __fastcall GetChecksum_ICMPv6(const unsigned char *Buffer, const size_t
 }
 
 //Get TCP or UDP checksum
-uint16_t __fastcall GetChecksum_TCPUDP(const unsigned char *Buffer, const size_t Length, const uint16_t Protocol_Network, const uint16_t Protocol_Transport)
+uint16_t __fastcall GetChecksum_TCP_UDP(
+	const unsigned char *Buffer, 
+	const size_t Length, 
+	const uint16_t Protocol_Network, 
+	const uint16_t Protocol_Transport)
 {
 //Get checksum.
 	uint16_t Result = EXIT_FAILURE;
@@ -135,7 +147,7 @@ uint16_t __fastcall GetChecksum_TCPUDP(const unsigned char *Buffer, const size_t
 		IPv4_Pseudo_Header->Length = htons((uint16_t)Length);
 		IPv4_Pseudo_Header->Protocol = (uint8_t)Protocol_Transport;
 
-		memcpy_s(Validation.get() + sizeof(ipv4_psd_hdr), Length, Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, Length);
+		memcpy_s(Validation.get() + sizeof(ipv4_psd_hdr), Length, Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES, Length);
 		Result = GetChecksum((PUINT16)Validation.get(), sizeof(ipv4_psd_hdr) + Length);
 	}
 
@@ -143,7 +155,10 @@ uint16_t __fastcall GetChecksum_TCPUDP(const unsigned char *Buffer, const size_t
 }
 
 //Add length data to TCP DNS transmission
-size_t __fastcall AddLengthDataToHeader(PSTR Buffer, const size_t RecvLen, const size_t MaxLen)
+size_t __fastcall AddLengthDataToHeader(
+	PSTR Buffer, 
+	const size_t RecvLen, 
+	const size_t MaxLen)
 {
 	if (MaxLen >= RecvLen + sizeof(uint16_t))
 	{
@@ -157,7 +172,9 @@ size_t __fastcall AddLengthDataToHeader(PSTR Buffer, const size_t RecvLen, const
 }
 
 //Convert data from chars to DNS query
-size_t __fastcall CharToDNSQuery(const char *FName, PSTR TName)
+size_t __fastcall CharToDNSQuery(
+	const char *FName, 
+	PSTR TName)
 {
 	int Index[]{(int)strnlen_s(FName, DOMAIN_MAXSIZE) - 1, 0, 0};
 	Index[2U] = Index[0] + 1;
@@ -181,7 +198,9 @@ size_t __fastcall CharToDNSQuery(const char *FName, PSTR TName)
 }
 
 //Convert data from DNS query to chars
-size_t __fastcall DNSQueryToChar(const char *TName, PSTR FName)
+size_t __fastcall DNSQueryToChar(
+	const char *TName, 
+	PSTR FName)
 {
 //Initialization
 	size_t uIndex = 0;
@@ -217,7 +236,8 @@ size_t __fastcall DNSQueryToChar(const char *TName, PSTR FName)
 }
 
 //Make ramdom domains
-void __fastcall MakeRamdomDomain(PSTR Buffer)
+void __fastcall MakeRamdomDomain(
+	PSTR Buffer)
 {
 //Ramdom number distribution initialization
 	std::uniform_int_distribution<int> RamdomDistribution(1U, DOMAIN_LEVEL_DATA_MAXSIZE);
@@ -284,7 +304,8 @@ void __fastcall MakeRamdomDomain(PSTR Buffer)
 }
 
 //Make Domain Case Conversion
-void __fastcall MakeDomainCaseConversion(PSTR Buffer)
+void __fastcall MakeDomainCaseConversion(
+	PSTR Buffer)
 {
 //Ramdom number distribution initialization
 	std::uniform_int_distribution<int> RamdomDistribution(0, 1U);
@@ -310,7 +331,11 @@ void __fastcall MakeDomainCaseConversion(PSTR Buffer)
 }
 
 //Add EDNS options to Additional Resource Records in DNS packet
-size_t __fastcall AddEDNSLabelToAdditionalRR(PSTR Buffer, const size_t Length, const size_t MaxLen, const bool NoHeader)
+size_t __fastcall AddEDNSLabelToAdditionalRR(
+	PSTR Buffer, 
+	const size_t Length, 
+	const size_t MaxLen, 
+	const bool NoHeader)
 {
 //Initialization
 	auto DNS_Header = (pdns_hdr)Buffer;
@@ -408,7 +433,9 @@ size_t __fastcall AddEDNSLabelToAdditionalRR(PSTR Buffer, const size_t Length, c
 }
 
 //Make Compression Pointer Mutation
-size_t __fastcall MakeCompressionPointerMutation(PSTR Buffer, const size_t Length)
+size_t __fastcall MakeCompressionPointerMutation(
+	PSTR Buffer, 
+	const size_t Length)
 {
 //Ramdom number distribution initialization
 	std::uniform_int_distribution<int> RamdomDistribution(0, 2U);

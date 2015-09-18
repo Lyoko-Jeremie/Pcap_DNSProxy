@@ -29,10 +29,17 @@ extern time_t StartTime;
 
 //Functions
 #if defined(PLATFORM_WIN)
-	bool __fastcall ReadCommand(int argc, wchar_t *argv[]);
-	bool __fastcall FileNameInit(const wchar_t *OriginalPath);
-	bool __fastcall FirewallTest(const uint16_t Protocol);
+bool __fastcall ReadCommand(
+	int argc, 
+	wchar_t *argv[]);
+bool __fastcall FileNameInit(
+	const wchar_t *OriginalPath);
+bool __fastcall FirewallTest(
+	const uint16_t Protocol);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	bool ReadCommand(int argc, char *argv[]);
-	bool FileNameInit(const char *OriginalPath);
+bool ReadCommand(
+	int argc, 
+	char *argv[]);
+bool FileNameInit(
+	const char *OriginalPath);
 #endif

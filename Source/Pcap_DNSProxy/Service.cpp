@@ -21,7 +21,8 @@
 
 #if defined(PLATFORM_WIN)
 //Catch Control-C exception from keyboard.
-BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType)
+BOOL WINAPI CtrlHandler(
+	const DWORD fdwCtrlType)
 {
 //Print to screen.
 	if (GlobalRunningStatus.Console)
@@ -47,7 +48,9 @@ BOOL WINAPI CtrlHandler(const DWORD fdwCtrlType)
 }
 
 //Service Main function
-size_t WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
+size_t WINAPI ServiceMain(
+	DWORD argc, 
+	LPTSTR *argv)
 {
 	ServiceStatusHandle = RegisterServiceCtrlHandlerW(SYSTEM_SERVICE_NAME, (LPHANDLER_FUNCTION)ServiceControl);
 	if (!ServiceStatusHandle || !UpdateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0, 1U, UPDATE_SERVICE_TIME * SECOND_TO_MILLISECOND))
@@ -67,7 +70,8 @@ size_t WINAPI ServiceMain(DWORD argc, LPTSTR *argv)
 }
 
 //Service controller
-size_t WINAPI ServiceControl(const DWORD dwControlCode)
+size_t WINAPI ServiceControl(
+	const DWORD dwControlCode)
 {
 	switch(dwControlCode)
 	{
@@ -98,7 +102,8 @@ size_t WINAPI ServiceControl(const DWORD dwControlCode)
 }
 
 //Start Main process
-BOOL WINAPI ExecuteService(void)
+BOOL WINAPI ExecuteService(
+	void)
 {
 	DWORD dwThreadID = 0;
 	HANDLE hServiceThread = CreateThread(0, 0, (PTHREAD_START_ROUTINE)ServiceProc, nullptr, 0, &dwThreadID);
@@ -112,7 +117,8 @@ BOOL WINAPI ExecuteService(void)
 }
 
 //Service Main process thread
-DWORD WINAPI ServiceProc(PVOID lpParameter)
+DWORD WINAPI ServiceProc(
+	PVOID lpParameter)
 {
 	if (!IsServiceRunning || !MonitorInit())
 	{
@@ -127,7 +133,12 @@ DWORD WINAPI ServiceProc(PVOID lpParameter)
 }
 
 //Change status of service
-BOOL WINAPI UpdateServiceStatus(const DWORD dwCurrentState, const DWORD dwWin32ExitCode, const DWORD dwServiceSpecificExitCode, const DWORD dwCheckPoint, const DWORD dwWaitHint)
+BOOL WINAPI UpdateServiceStatus(
+	const DWORD dwCurrentState, 
+	const DWORD dwWin32ExitCode, 
+	const DWORD dwServiceSpecificExitCode, 
+	const DWORD dwCheckPoint, 
+	const DWORD dwWaitHint)
 {
 	std::shared_ptr<SERVICE_STATUS> ServiceStatus(new SERVICE_STATUS());
 	memset(ServiceStatus.get(), 0, sizeof(SERVICE_STATUS));
@@ -159,7 +170,8 @@ BOOL WINAPI UpdateServiceStatus(const DWORD dwCurrentState, const DWORD dwWin32E
 }
 
 //Terminate service
-void WINAPI TerminateService(void)
+void WINAPI TerminateService(
+	void)
 {
 	IsServiceRunning = FALSE;
 	SetEvent(ServiceEvent);
@@ -169,7 +181,8 @@ void WINAPI TerminateService(void)
 }
 
 //MailSlot of flush DNS cache Monitor
-bool __fastcall FlushDNSMailSlotMonitor(void)
+bool __fastcall FlushDNSMailSlotMonitor(
+	void)
 {
 //System security setting
 	std::shared_ptr<SECURITY_ATTRIBUTES> SecurityAttributes(new SECURITY_ATTRIBUTES());
@@ -267,7 +280,8 @@ bool __fastcall FlushDNSMailSlotMonitor(void)
 }
 
 //MailSlot of flush DNS cache sender
-bool WINAPI FlushDNSMailSlotSender(void)
+bool WINAPI FlushDNSMailSlotSender(
+	void)
 {
 //Create mailslot.
 	HANDLE hFile = CreateFileW(MAILSLOT_NAME, GENERIC_WRITE, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -294,7 +308,8 @@ bool WINAPI FlushDNSMailSlotSender(void)
 
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Flush DNS cache FIFO Monitor
-bool FlushDNSFIFOMonitor(void)
+bool FlushDNSFIFOMonitor(
+	void)
 {
 //Initialization
 	unlink(FIFO_PATH_NAME);
@@ -340,7 +355,8 @@ bool FlushDNSFIFOMonitor(void)
 }
 
 //Flush DNS cache FIFO sender
-bool FlushDNSFIFOSender(void)
+bool FlushDNSFIFOSender(
+	void)
 {
 	int FIFO_FD = open(FIFO_PATH_NAME, O_WRONLY|O_TRUNC|O_NONBLOCK, 0);
 	if (FIFO_FD > EXIT_SUCCESS && write(FIFO_FD, FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS) + 1U) > 0)
@@ -358,7 +374,8 @@ bool FlushDNSFIFOSender(void)
 #endif
 
 //Flush DNS cache
-void __fastcall FlushAllDNSCache(void)
+void __fastcall FlushAllDNSCache(
+	void)
 {
 //Flush DNS cache in program.
 	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);

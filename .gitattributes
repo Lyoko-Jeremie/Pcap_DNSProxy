@@ -4,4 +4,4 @@ Source/ExampleConfig/Hosts.ini eol=crlf
 Source/ExampleConfig/IPFilter.ini eol=crlf
 Source/ExampleConfig/Routing.txt eol=crlf
 Source/ExampleConfig/ServiceControl.bat eol=crlf
-Source/ExampleConfig/White_List.txt eol=crlf
+Source/ExampleConfig/WhiteList.txt eol=crlf

@@ -40,11 +40,28 @@ std::string PcapFilterRules;
 std::vector<std::string> PcapRunningList;
 
 //Functions
-void __fastcall CaptureFilterRulesInit(std::string &FilterRules);
-bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList);
-void CaptureHandler(unsigned char *Param, const struct pcap_pkthdr *PacketHeader, const unsigned char *PacketData);
-bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, const uint16_t Protocol);
-bool __fastcall CaptureCheck_ICMP(const char *Buffer, const size_t Length, const uint16_t Protocol);
-bool __fastcall CaptureCheck_TCP(const char *Buffer);
-bool __fastcall MatchPortToSend(const char *Buffer, const size_t Length, const uint16_t Protocol, const uint16_t Port);
+void __fastcall CaptureFilterRulesInit(
+	std::string &FilterRules);
+bool __fastcall CaptureModule(
+	const pcap_if *pDrive, 
+	const bool IsCaptureList);
+void CaptureHandler(
+	unsigned char *Param, 
+	const struct pcap_pkthdr *PacketHeader, 
+	const unsigned char *PacketData);
+bool __fastcall CaptureNetworkLayer(
+	const char *Buffer, 
+	const size_t Length, 
+	const uint16_t Protocol);
+bool __fastcall CaptureCheck_ICMP(
+	const char *Buffer, 
+	const size_t Length, 
+	const uint16_t Protocol);
+bool __fastcall CaptureCheck_TCP(
+	const char *Buffer);
+bool __fastcall MatchPortToSend(
+	const char *Buffer, 
+	const size_t Length, 
+	const uint16_t Protocol, 
+	const uint16_t Port);
 #endif

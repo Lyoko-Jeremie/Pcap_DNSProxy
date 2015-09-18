@@ -20,7 +20,12 @@
 #include "Configuration.h"
 
 //Read hosts data from files
-bool __fastcall ReadHostsData(std::string Data, const size_t FileIndex, const size_t Line, size_t &LabelType, bool &IsLabelComments)
+bool __fastcall ReadHostsData(
+	std::string Data, 
+	const size_t FileIndex, 
+	const size_t Line, 
+	size_t &LabelType, 
+	bool &IsLabelComments)
 {
 //Convert horizontal tab/HT to space and delete spaces before or after data.
 	for (auto &StringIter:Data)
@@ -178,7 +183,11 @@ bool __fastcall ReadHostsData(std::string Data, const size_t FileIndex, const si
 }
 
 //Read Whitelist and Banned items in Hosts file from data
-bool __fastcall ReadWhitelistAndBannedData(std::string Data, const size_t FileIndex, const size_t Line, const size_t LabelType)
+bool __fastcall ReadWhitelistAndBannedData(
+	std::string Data, 
+	const size_t FileIndex, 
+	const size_t Line, 
+	const size_t LabelType)
 {
 //Mark separated location and check data format.
 	size_t Separated = 0;
@@ -279,7 +288,10 @@ bool __fastcall ReadWhitelistAndBannedData(std::string Data, const size_t FileIn
 }
 
 //Read Local Hosts items in Hosts file from data
-bool __fastcall ReadLocalHostsData(std::string Data, const size_t FileIndex, const size_t Line)
+bool __fastcall ReadLocalHostsData(
+	std::string Data, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 	HOSTS_TABLE HostsTableTemp;
 
@@ -310,7 +322,10 @@ bool __fastcall ReadLocalHostsData(std::string Data, const size_t FileIndex, con
 }
 
 //Read Address Hosts items in Hosts file from data
-bool __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex, const size_t Line)
+bool __fastcall ReadAddressHostsData(
+	std::string Data, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 //Mark separated location.
 	size_t Separated = 0;
@@ -529,7 +544,10 @@ bool __fastcall ReadAddressHostsData(std::string Data, const size_t FileIndex, c
 }
 
 //Read Main Hosts items in Hosts file from data
-bool __fastcall ReadMainHostsData(std::string Data, const size_t FileIndex, const size_t Line)
+bool __fastcall ReadMainHostsData(
+	std::string Data, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 //Mark separated location.
 	size_t Separated = 0;

@@ -21,7 +21,8 @@
 
 #if defined(ENABLE_PCAP)
 //Capture initialization
-void __fastcall CaptureInit(void)
+void __fastcall CaptureInit(
+	void)
 {
 //Initialization
 	std::shared_ptr<char> ErrBuffer(new char[PCAP_ERRBUF_SIZE]());
@@ -107,7 +108,8 @@ void __fastcall CaptureInit(void)
 	return;
 }
 
-void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
+void __fastcall CaptureFilterRulesInit(
+	std::string &FilterRules)
 {
 //Initialization(Part 1)
 	std::vector<PDNS_SERVER_DATA> AddrList;
@@ -297,7 +299,9 @@ void __fastcall CaptureFilterRulesInit(std::string &FilterRules)
 }
 
 //Capture process
-bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList)
+bool __fastcall CaptureModule(
+	const pcap_if *pDrive, 
+	const bool IsCaptureList)
 {
 	std::string CaptureDevice;
 
@@ -325,7 +329,7 @@ bool __fastcall CaptureModule(const pcap_if *pDrive, const bool IsCaptureList)
 			goto SkipDevices;
 	}
 
-//Skip this devices.
+//Jump here to skip this device.
 	goto DevicesNotSkip;
 
 SkipDevices:
@@ -337,6 +341,7 @@ SkipDevices:
 
 	return true;
 
+//Jump here to keep this device.
 DevicesNotSkip:
 //Initialization(Part 1)
 	pcap_t *DeviceHandle = nullptr;
@@ -461,7 +466,10 @@ DevicesNotSkip:
 }
 
 //Handler of WinPcap/LibPcap loop function
-void CaptureHandler(unsigned char *Param, const struct pcap_pkthdr *PacketHeader, const unsigned char *PacketData)
+void CaptureHandler(
+	unsigned char *Param, 
+	const struct pcap_pkthdr *PacketHeader, 
+	const unsigned char *PacketData)
 {
 //Initialization
 	auto ParamList = (PCAPTURE_HANDLER_PARAM)Param;
@@ -525,7 +533,10 @@ void CaptureHandler(unsigned char *Param, const struct pcap_pkthdr *PacketHeader
 }
 
 //Network Layer(Internet Protocol/IP) process
-bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, const uint16_t Protocol)
+bool __fastcall CaptureNetworkLayer(
+	const char *Buffer, 
+	const size_t Length, 
+	const uint16_t Protocol)
 {
 //Initialization
 	PDNS_SERVER_DATA PacketSource = nullptr;
@@ -585,7 +596,7 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 		if (Parameter.HeaderCheck_TCP && IPv6_Header->NextHeader == IPPROTO_TCP && ntohs(IPv6_Header->PayloadLength) >= sizeof(tcp_hdr))
 		{
 		//Validate TCP checksum.
-			if (GetChecksum_TCPUDP((PUINT8)Buffer, ntohs(IPv6_Header->PayloadLength), AF_INET6, IPPROTO_TCP) != CHECKSUM_SUCCESS)
+			if (GetChecksum_TCP_UDP((PUINT8)Buffer, ntohs(IPv6_Header->PayloadLength), AF_INET6, IPPROTO_TCP) != CHECKSUM_SUCCESS)
 				return false;
 
 		//TCP check
@@ -599,7 +610,7 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 		if (IPv6_Header->NextHeader == IPPROTO_UDP && ntohs(IPv6_Header->PayloadLength) >= sizeof(udp_hdr) + DNS_PACKET_MINSIZE)
 		{
 		//Validate UDP checksum.
-			if (GetChecksum_TCPUDP((PUINT8)Buffer, ntohs(IPv6_Header->PayloadLength), AF_INET6, IPPROTO_UDP) != CHECKSUM_SUCCESS)
+			if (GetChecksum_TCP_UDP((PUINT8)Buffer, ntohs(IPv6_Header->PayloadLength), AF_INET6, IPPROTO_UDP) != CHECKSUM_SUCCESS)
 				return false;
 
 		//Port check
@@ -608,8 +619,9 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 			{
 			//Domain Test and DNS Options check and get Hop Limit from Domain Test.
 				auto IsMarkHopLimit = false;
-				if (CheckResponseData(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), false, &IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
-					return false;
+				if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && 
+					CheckResponseData(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), false, &IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
+						return false;
 				if (IsMarkHopLimit)
 					PacketSource->HopLimitData.HopLimit = IPv6_Header->HopLimit;
 
@@ -640,7 +652,7 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 		auto IPv4_Header = (pipv4_hdr)Buffer;
 
 	//Validate IPv4 header.
-		if (ntohs(IPv4_Header->Length) <= IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES || ntohs(IPv4_Header->Length) > Length || 
+		if (ntohs(IPv4_Header->Length) <= IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES || ntohs(IPv4_Header->Length) > Length || 
 			GetChecksum((PUINT16)Buffer, sizeof(ipv4_hdr)) != CHECKSUM_SUCCESS) //Validate IPv4 header checksum.
 				return false;
 
@@ -685,47 +697,48 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 
 	//Get TTL from IPv4 DNS server.
 	//ICMP Protocol
-		if (Parameter.ICMP_Speed > 0 && IPv4_Header->Protocol == IPPROTO_ICMP && ntohs(IPv4_Header->Length) >= IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(icmp_hdr))
+		if (Parameter.ICMP_Speed > 0 && IPv4_Header->Protocol == IPPROTO_ICMP && ntohs(IPv4_Header->Length) >= IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(icmp_hdr))
 		{
 		//Validate ICMP checksum.
-			if (GetChecksum((PUINT16)(Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES) != CHECKSUM_SUCCESS)
+			if (GetChecksum((PUINT16)(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES) != CHECKSUM_SUCCESS)
 				return false;
 
 		//ICMP Check
-			if (CaptureCheck_ICMP(Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, AF_INET))
+			if (CaptureCheck_ICMP(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES, AF_INET))
 				PacketSource->HopLimitData.TTL = IPv4_Header->TTL;
 
 			return true;
 		}
 
 	//TCP Protocol
-		if (Parameter.HeaderCheck_TCP && IPv4_Header->Protocol == IPPROTO_TCP && ntohs(IPv4_Header->Length) >= IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(tcp_hdr))
+		if (Parameter.HeaderCheck_TCP && IPv4_Header->Protocol == IPPROTO_TCP && ntohs(IPv4_Header->Length) >= IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(tcp_hdr))
 		{
 		//Validate TCP checksum.
-			if (GetChecksum_TCPUDP((PUINT8)Buffer, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, AF_INET, IPPROTO_TCP) != CHECKSUM_SUCCESS)
+			if (GetChecksum_TCP_UDP((PUINT8)Buffer, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES, AF_INET, IPPROTO_TCP) != CHECKSUM_SUCCESS)
 				return false;
 
 		//TCP check
-			if (CaptureCheck_TCP(Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES))
+			if (CaptureCheck_TCP(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES))
 				PacketSource->HopLimitData.TTL = IPv4_Header->TTL;
 
 			return true;
 		}
 
 	//UDP Protocol
-		if (IPv4_Header->Protocol == IPPROTO_UDP && ntohs(IPv4_Header->Length) >= IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(udp_hdr) + DNS_PACKET_MINSIZE)
+		if (IPv4_Header->Protocol == IPPROTO_UDP && ntohs(IPv4_Header->Length) >= IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr) + DNS_PACKET_MINSIZE)
 		{
 		//Validate UDP checksum.
-			if (GetChecksum_TCPUDP((PUINT8)Buffer, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES, AF_INET, IPPROTO_UDP) != CHECKSUM_SUCCESS)
+			if (GetChecksum_TCP_UDP((PUINT8)Buffer, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES, AF_INET, IPPROTO_UDP) != CHECKSUM_SUCCESS)
 				return false;
 
 		//Port check
-			auto UDP_Header = (pudp_hdr)(Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES);
+			auto UDP_Header = (pudp_hdr)(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES);
 			if (UDP_Header->SrcPort == PacketSource->AddressData.IPv4.sin_port)
 			{
 			//Domain Test and DNS Options check and get TTL from Domain Test.
 				auto IsMarkHopLimit = false;
-				if (CheckResponseData(Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(udp_hdr), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES - sizeof(udp_hdr), false, &IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
+				if ((Parameter.DNSDataCheck || Parameter.BlacklistCheck) && 
+					CheckResponseData(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES - sizeof(udp_hdr), false, &IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
 					return false;
 				if (IsMarkHopLimit)
 					PacketSource->HopLimitData.TTL = IPv4_Header->TTL;
@@ -735,10 +748,10 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 				if (Parameter.DNSCurve && 
 				//Main(IPv4)
 					(DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.IPv4.ReceiveMagicNumber != nullptr &&  
-					memcmp(Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == EXIT_SUCCESS || 
+					memcmp(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == EXIT_SUCCESS || 
 				//Alternate(IPv4)
 					DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber != nullptr && 
-					memcmp(Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == EXIT_SUCCESS))
+					memcmp(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == EXIT_SUCCESS))
 						return false;
 			#endif
 
@@ -746,7 +759,7 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 				if ((size_t)IPv4_Header->TTL + (size_t)Parameter.HopLimitFluctuation > (size_t)PacketSource->HopLimitData.TTL && 
 					(size_t)IPv4_Header->TTL < (size_t)PacketSource->HopLimitData.TTL + (size_t)Parameter.HopLimitFluctuation)
 				{
-					MatchPortToSend(Buffer + IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES + sizeof(udp_hdr), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPv4_IHL_BYTES_TIMES - sizeof(udp_hdr), AF_INET, UDP_Header->DstPort);
+					MatchPortToSend(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES - sizeof(udp_hdr), AF_INET, UDP_Header->DstPort);
 					return true;
 				}
 			}
@@ -757,7 +770,10 @@ bool __fastcall CaptureNetworkLayer(const char *Buffer, const size_t Length, con
 }
 
 //ICMP header options check
-bool __fastcall CaptureCheck_ICMP(const char *Buffer, const size_t Length, const uint16_t Protocol)
+bool __fastcall CaptureCheck_ICMP(
+	const char *Buffer, 
+	const size_t Length, 
+	const uint16_t Protocol)
 {
 //ICMPv6
 	if (Protocol == AF_INET6)
@@ -773,8 +789,8 @@ bool __fastcall CaptureCheck_ICMP(const char *Buffer, const size_t Length, const
 		if (ICMP_Header->Type == ICMP_TYPE_ECHO && ICMP_Header->Code == ICMP_CODE_ECHO && //ICMP Echo reply
 		//Validate ICMP packet
 			ICMP_Header->ID == Parameter.ICMP_ID && 
-			Parameter.ICMP_PaddingData != nullptr && Length == sizeof(icmp_hdr) + Parameter.ICMP_PaddingLength - 1U && 
-			memcmp(Parameter.ICMP_PaddingData, (PSTR)ICMP_Header + sizeof(icmp_hdr), Parameter.ICMP_PaddingLength - 1U) == EXIT_SUCCESS) //Validate ICMP additional data.
+			Parameter.ICMP_PaddingData != nullptr && Length == sizeof(icmp_hdr) + Parameter.ICMP_PaddingLength && 
+			memcmp(Parameter.ICMP_PaddingData, (PSTR)ICMP_Header + sizeof(icmp_hdr), Parameter.ICMP_PaddingLength) == EXIT_SUCCESS) //Validate ICMP additional data.
 				return true;
 	}
 
@@ -782,18 +798,37 @@ bool __fastcall CaptureCheck_ICMP(const char *Buffer, const size_t Length, const
 }
 
 //TCP header options check
-bool __fastcall CaptureCheck_TCP(const char *Buffer)
+bool __fastcall CaptureCheck_TCP(
+	const char *Buffer)
 {
 	auto TCP_Header = (ptcp_hdr)Buffer;
-	if (TCP_Header->Acknowledge == 0 && TCP_Header->StatusFlags.Flags == TCP_RST_STATUS && TCP_Header->Windows == 0 || //RST bit is set, ACK bit shoule be set and Window size should be 0.
-		TCP_Header->HeaderLength > TCP_STANDARDHL && TCP_Header->StatusFlags.Flags == TCP_SYN_ACK_STATUS) //TCP option usually should not empty(MSS, SACK_PERM and WS) whose Flags are 0x012(SYN bit and ACK bit is set).
+	if (
+	//CWR bit is set.
+		(ntohs(TCP_Header->HeaderLength_Flags) & TCP_GET_BIT_CWR) > 0 || 
+	//ECE bit is set.
+		(ntohs(TCP_Header->HeaderLength_Flags) & TCP_GET_BIT_ECE) > 0 || 
+	//SYN and ACK bits are set, PSH bit is not set and header options are not empty.
+		(ntohs(TCP_Header->HeaderLength_Flags) & TCP_GET_BIT_IHL) >> 12U > TCP_STANDARD_IHL && (ntohs(TCP_Header->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_SYN_ACK || 
+		(ntohs(TCP_Header->HeaderLength_Flags) & TCP_GET_BIT_IHL) >> 12U == TCP_STANDARD_IHL && 
+	//ACK bit is set and header options are empty.
+		((ntohs(TCP_Header->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_ACK || 
+	//PSH and ACK bits are set, header options are empty.
+		(ntohs(TCP_Header->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_PSH_ACK || 
+	//FIN and ACK bits are set and header options are empty.
+		(ntohs(TCP_Header->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_FIN_ACK || 
+	//RST bit is set, PSH and ACK bits are not set, Window size is zero and header options are empty.
+		(ntohs(TCP_Header->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_RST && TCP_Header->Acknowledge == 0 && TCP_Header->Windows == 0))
 			return true;
 
 	return false;
 }
 
-//Match port of responses and send responses to system sockets process
-bool __fastcall MatchPortToSend(const char *Buffer, const size_t Length, const uint16_t Protocol, const uint16_t Port)
+//Match socket information of responses and send responses to system sockets process
+bool __fastcall MatchPortToSend(
+	const char *Buffer, 
+	const size_t Length, 
+	const uint16_t Protocol, 
+	const uint16_t Port)
 {
 //Initialization
 	std::shared_ptr<SOCKET_DATA> SocketData_Input(new SOCKET_DATA());
@@ -834,7 +869,7 @@ bool __fastcall MatchPortToSend(const char *Buffer, const size_t Length, const u
 
 	goto ClearOutputPacketListData;
 
-//Stop loop, wait receiving and match port again.
+//Jump here to stop loop, wait receiving and match port again.
 StopLoop: 
 	Sleep(Parameter.ReceiveWaiting);
 	OutputPacketListLock.lock();
@@ -863,7 +898,7 @@ StopLoop:
 		}
 	}
 
-//Stop loop and clear timeout data.
+//Jump here to stop loop and clear timeout data.
 ClearOutputPacketListData:
 //Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
@@ -959,9 +994,9 @@ ClearOutputPacketListData:
 		return true;
 
 //Check global sockets.
-	if (GlobalRunningStatus.LocalSocket != nullptr && !GlobalRunningStatus.LocalSocket->empty())
+	if (GlobalRunningStatus.LocalListeningSocket != nullptr && !GlobalRunningStatus.LocalListeningSocket->empty())
 	{
-		for (auto SocketIter:*GlobalRunningStatus.LocalSocket)
+		for (auto SocketIter:*GlobalRunningStatus.LocalListeningSocket)
 		{
 			if (SocketIter == SocketData_Input->Socket)
 				return true;

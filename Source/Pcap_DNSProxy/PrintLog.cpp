@@ -20,7 +20,12 @@
 #include "PrintLog.h"
 
 //Print errors to log file
-bool __fastcall PrintError(const size_t ErrorType, const wchar_t *Message, const SSIZE_T ErrorCode, const wchar_t *FileName, const size_t Line)
+bool __fastcall PrintError(
+	const size_t ErrorType, 
+	const wchar_t *Message, 
+	const SSIZE_T ErrorCode, 
+	const wchar_t *FileName, 
+	const size_t Line)
 {
 //Print Error: Enable/Disable.
 	if (!Parameter.PrintError || Message == nullptr || FileName == nullptr || 
