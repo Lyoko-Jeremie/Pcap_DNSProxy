@@ -50,6 +50,10 @@ ConfigurationTable::ConfigurationTable(
 	#if !defined(PLATFORM_MACX)
 		LocalServer_Response = new char[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt)]();
 	#endif
+
+	//[SOCKS] block
+		SOCKS_Username = new char[SOCKS5_USERNAME_PASSWORD_MAXNUM + 1U]();
+		SOCKS_Password = new char[SOCKS5_USERNAME_PASSWORD_MAXNUM + 1U]();
 	}
 	catch (std::bad_alloc)
 	{
@@ -79,6 +83,10 @@ ConfigurationTable::ConfigurationTable(
 		delete[] LocalServer_Response;
 	#endif
 
+	//[SOCKS] block
+		delete[] SOCKS_Username;
+		delete[] SOCKS_Password;
+
 		exit(EXIT_FAILURE);
 		return;
 	}
@@ -100,6 +108,8 @@ void __fastcall ConfigurationTableSetting(
 #if !defined(PLATFORM_MACX)
 	memset(ConfigurationParameter->LocalServer_Response, 0, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt));
 #endif
+	memset(ConfigurationParameter->SOCKS_Username, 0, SOCKS5_USERNAME_PASSWORD_MAXNUM + 1U);
+	memset(ConfigurationParameter->SOCKS_Password, 0, SOCKS5_USERNAME_PASSWORD_MAXNUM + 1U);
 
 //Default values
 	ConfigurationParameter->FileRefreshTime = DEFAULT_FILEREFRESH_TIME * SECOND_TO_MILLISECOND;
@@ -181,6 +191,10 @@ ConfigurationTable::~ConfigurationTable(
 #if !defined(PLATFORM_MACX)
 	delete[] LocalServer_Response;
 #endif
+
+//[SOCKS] block
+	delete[] SOCKS_Username;
+	delete[] SOCKS_Password;
 
 	return;
 }
@@ -264,8 +278,8 @@ void ConfigurationTable::MonitorItemToUsing(
 	ConfigurationParameter->HostsDefaultTTL = HostsDefaultTTL;
 
 //[Local DNS] block
-	ConfigurationParameter->RequestMode_Local_Network = RequestMode_Local_Network;
-	ConfigurationParameter->RequestMode_Local_Transport = RequestMode_Local_Transport;
+	ConfigurationParameter->LocalProtocol_Network = LocalProtocol_Network;
+	ConfigurationParameter->LocalProtocol_Transport = LocalProtocol_Transport;
 
 //[Values] block
 #if defined(ENABLE_PCAP)
@@ -289,7 +303,19 @@ void ConfigurationTable::MonitorItemToUsing(
 	ConfigurationParameter->HeaderCheck_IPv4 = HeaderCheck_IPv4;
 	ConfigurationParameter->HeaderCheck_TCP = HeaderCheck_TCP;
 #endif
-	ConfigurationParameter->DNSDataCheck = DNSDataCheck;
+	ConfigurationParameter->HeaderCheck_DNS = HeaderCheck_DNS;
+
+//[SOCKS] block
+	if (ConfigurationParameter->SOCKS_Username != nullptr)
+	{
+		memcpy(ConfigurationParameter->SOCKS_Username, SOCKS_Username, ConfigurationParameter->SOCKS_Username_Length);
+		ConfigurationParameter->SOCKS_Username_Length = SOCKS_Username_Length;
+	}
+	if (ConfigurationParameter->SOCKS_Password != nullptr)
+	{
+		memcpy(ConfigurationParameter->SOCKS_Password, SOCKS_Password, ConfigurationParameter->SOCKS_Password_Length);
+		ConfigurationParameter->SOCKS_Password_Length = SOCKS_Password_Length;
+	}
 
 	return;
 }
@@ -318,8 +344,8 @@ void ConfigurationTable::MonitorItemReset(
 	HostsDefaultTTL = DEFAULT_HOSTS_TTL;
 
 //[Local DNS] block
-	RequestMode_Local_Network = 0;
-	RequestMode_Local_Transport = 0;
+	LocalProtocol_Network = 0;
+	LocalProtocol_Transport = 0;
 
 //[Values] block
 #if defined(ENABLE_PCAP)
@@ -350,7 +376,13 @@ void ConfigurationTable::MonitorItemReset(
 	HeaderCheck_IPv4 = false;
 	HeaderCheck_TCP = false;
 #endif
-	DNSDataCheck = false;
+	HeaderCheck_DNS = false;
+
+//[SOCKS] block
+	memset(SOCKS_Username, 0, SOCKS5_USERNAME_PASSWORD_MAXNUM + 1U);
+	SOCKS_Username_Length = 0;
+	memset(SOCKS_Password, 0, SOCKS5_USERNAME_PASSWORD_MAXNUM + 1U);
+	SOCKS_Password_Length = 0;
 
 	return;
 }

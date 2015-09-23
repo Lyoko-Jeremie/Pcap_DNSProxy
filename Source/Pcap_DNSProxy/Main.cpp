@@ -83,7 +83,7 @@ int main(
 	ReadParameterThread.detach();
 	ReadHostsThread.detach();
 	
-	if (Parameter.OperationMode == LISTEN_MODE_CUSTOM || Parameter.BlacklistCheck || Parameter.LocalRouting)
+	if (Parameter.OperationMode == LISTEN_MODE_CUSTOM || Parameter.DataCheck_Blacklist || Parameter.LocalRouting)
 	{
 		std::thread ReadIPFilterThread(ReadIPFilter);
 		ReadIPFilterThread.detach();

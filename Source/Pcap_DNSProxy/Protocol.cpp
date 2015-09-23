@@ -805,8 +805,8 @@ size_t __fastcall CheckQueryData(
 		return EXIT_SUCCESS;
 
 	auto DNS_Header = (pdns_hdr)RecvBuffer;
-//Check requesting.
-	if (Parameter.DNSDataCheck && 
+//Check request packet data.
+	if (Parameter.HeaderCheck_DNS && 
 	//Must not set Response bit.
 		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RESPONSE) > 0 || 
 	//Must not set Truncated bit.
@@ -902,14 +902,14 @@ size_t __fastcall CheckResponseData(
 	bool *IsMarkHopLimit)
 {
 //Response check options
-	if (!Parameter.DNSDataCheck && !Parameter.BlacklistCheck)
+	if (!Parameter.HeaderCheck_DNS && !Parameter.DataCheck_Blacklist)
 		return Length;
 
 //Initialization(Part 1)
 	auto DNS_Header = (pdns_hdr)Buffer;
 
 //DNS Options part
-	if (Parameter.DNSDataCheck && 
+	if (Parameter.HeaderCheck_DNS && 
 	//Must not set Response bit.
 		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RESPONSE) == 0 || 
 	//Must not any Non-Question Resource Records when RCode is No Error and not Truncated
@@ -930,7 +930,7 @@ size_t __fastcall CheckResponseData(
 			return EXIT_FAILURE;
 
 //Responses question pointer check
-	if (Parameter.DNSDataCheck)
+	if (Parameter.HeaderCheck_DNS)
 	{
 		for (size_t Index = sizeof(dns_hdr);Index < DNS_PACKET_QUERY_LOCATE(Buffer);++Index)
 		{
@@ -978,13 +978,13 @@ size_t __fastcall CheckResponseData(
 	//Records Type in responses check
 		DataLength += CheckQueryNameLength(Buffer + DataLength) + 1U;
 		DNS_Record_Standard = (pdns_record_standard)(Buffer + DataLength);
-		if (Parameter.DNSDataCheck && (DNS_Record_Standard->TTL == 0 || DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && 
+		if (Parameter.HeaderCheck_DNS && (DNS_Record_Standard->TTL == 0 || DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && 
 			(DNS_Query->Type != htons(DNS_RECORD_A) && DNS_Record_Standard->Type == htons(DNS_RECORD_A) || 
 			DNS_Query->Type != htons(DNS_RECORD_AAAA) && DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA))))
 				return EXIT_FAILURE;
 
 	//Check addresses.
-		if (Parameter.BlacklistCheck)
+		if (Parameter.DataCheck_Blacklist)
 		{
 			DataLength += sizeof(dns_record_standard);
 			if (DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA) && DNS_Record_Standard->Length == htons(sizeof(in6_addr)))
@@ -1054,12 +1054,12 @@ size_t __fastcall CheckResponseData(
 				if (DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA) && DNS_Record_Standard->Length == htons(sizeof(in6_addr)))
 				{
 				//Records Type in responses check
-					if (Parameter.DNSDataCheck && DNS_Query->Type == htons(DNS_RECORD_A))
+					if (Parameter.HeaderCheck_DNS && DNS_Query->Type == htons(DNS_RECORD_A))
 						return EXIT_FAILURE;
 
 				//Check addresses.
 					Addr = (in6_addr *)(Buffer + DataLength);
-					if (Parameter.BlacklistCheck && CheckSpecialAddress(Addr, AF_INET6, false, Domain.get()) || 
+					if (Parameter.DataCheck_Blacklist && CheckSpecialAddress(Addr, AF_INET6, false, Domain.get()) || 
 						Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(Addr, AF_INET6))
 							return EXIT_FAILURE;
 				}
@@ -1067,12 +1067,12 @@ size_t __fastcall CheckResponseData(
 				else if (DNS_Record_Standard->Type == htons(DNS_RECORD_A) && DNS_Record_Standard->Length == htons(sizeof(in_addr)))
 				{
 				//Records Type in responses check
-					if (Parameter.DNSDataCheck && DNS_Query->Type == htons(DNS_RECORD_AAAA))
+					if (Parameter.HeaderCheck_DNS && DNS_Query->Type == htons(DNS_RECORD_AAAA))
 						return EXIT_FAILURE;
 
 				//Check addresses.
 					Addr = (in_addr *)(Buffer + DataLength);
-					if (Parameter.BlacklistCheck && CheckSpecialAddress(Addr, AF_INET, false, Domain.get()) || 
+					if (Parameter.DataCheck_Blacklist && CheckSpecialAddress(Addr, AF_INET, false, Domain.get()) || 
 						Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(Addr, AF_INET))
 							return EXIT_FAILURE;
 				}
@@ -1091,7 +1091,7 @@ size_t __fastcall CheckResponseData(
 
 #if defined(ENABLE_PCAP)
 //Mark Hop Limits or TTL.
-	if (IsMarkHopLimit != nullptr && Parameter.DNSDataCheck && 
+	if (IsMarkHopLimit != nullptr && Parameter.HeaderCheck_DNS && 
 		(DNS_Header->Answer != htons(U16_NUM_ONE) || DNS_Header->Authority > 0 || DNS_Header->Additional > 0 || //Less than or more than one Answer Records or Authority Records and/or Additional Records
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NXDOMAIN) || //No Such Name, not standard query response and no error check.
 	//Domain Test part

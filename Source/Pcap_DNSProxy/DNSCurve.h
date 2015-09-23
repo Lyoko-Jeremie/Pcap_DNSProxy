@@ -76,6 +76,12 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
 	PSTR OriginalRecv, 
 	const size_t RecvSize);
+SSIZE_T __fastcall DNSCurveSelectingResult(
+	uint16_t Protocol, 
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
+	PSTR OriginalRecv, 
+	const size_t RecvSize);
 bool __fastcall DNSCurveTCPSignatureRequest(
 	const uint16_t Protocol, 
 	const bool IsAlternate);

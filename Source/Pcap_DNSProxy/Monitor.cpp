@@ -701,18 +701,46 @@ bool __fastcall TCPReceiveProcess(
 {
 //Initialization(Part 1)
 	std::shared_ptr<char> RecvBuffer(new char[LARGE_PACKET_MAXSIZE]());
+	std::shared_ptr<fd_set> ReadFDS(new fd_set());
+	std::shared_ptr<timeval> Timeout(new timeval());
 	memset(RecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
+	memset(ReadFDS.get(), 0, sizeof(fd_set));
+	memset(Timeout.get(), 0, sizeof(timeval));
 	SSIZE_T RecvLen = 0;
-	size_t Length = 0;
 	auto IsLocal = false;
 
 //Receive process
-	if (Parameter.EDNS_Label) //EDNS Label
-		RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0);
-	else 
-		RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, 0);
+#if defined(PLATFORM_WIN)
+	Timeout->tv_sec = Parameter.SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
+	Timeout->tv_usec = Parameter.SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	Timeout->tv_sec = Parameter.SocketTimeout_Reliable.tv_sec;
+	Timeout->tv_usec = Parameter.SocketTimeout_Reliable.tv_usec;
+#endif
+	FD_ZERO(ReadFDS.get());
+	FD_SET(LocalSocketData.Socket, ReadFDS.get());
+
+#if defined(PLATFORM_WIN)
+	RecvLen = select(0, ReadFDS.get(), nullptr, nullptr, Timeout.get());
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	RecvLen = select(LocalSocketData.Socket + 1U, ReadFDS.get(), nullptr, nullptr, Timeout.get());
+#endif
+	if (RecvLen > 0 && FD_ISSET(LocalSocketData.Socket, ReadFDS.get()))
+	{
+		if (Parameter.EDNS_Label) //EDNS Label
+			RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0);
+		else 
+			RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, 0);
+	}
+//Timeout or SOCKET_ERROR
+	else {
+		shutdown(LocalSocketData.Socket, SD_BOTH);
+		closesocket(LocalSocketData.Socket);
+		return false;
+	}
 
 //Connection closed or SOCKET_ERROR
+	size_t Length = 0;
 	if (RecvLen <= 0)
 	{
 		shutdown(LocalSocketData.Socket, SD_BOTH);
@@ -723,9 +751,7 @@ bool __fastcall TCPReceiveProcess(
 	{
 		Length = RecvLen;
 
-	//Receive again.
-		std::shared_ptr<fd_set> ReadFDS(new fd_set());
-		std::shared_ptr<timeval> Timeout(new timeval());
+	//Socket selecting structure setting
 		memset(ReadFDS.get(), 0, sizeof(fd_set));
 		memset(Timeout.get(), 0, sizeof(timeval));
 	#if defined(PLATFORM_WIN)
@@ -737,7 +763,7 @@ bool __fastcall TCPReceiveProcess(
 	#endif
 		FD_ZERO(ReadFDS.get());
 		FD_SET(LocalSocketData.Socket, ReadFDS.get());
-		
+
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
 		RecvLen = select(0, ReadFDS.get(), nullptr, nullptr, Timeout.get());
@@ -773,7 +799,7 @@ bool __fastcall TCPReceiveProcess(
 
 //Packet length check
 	Length = ntohs(((uint16_t *)RecvBuffer.get())[0]);
-	if (RecvLen >= (SSIZE_T)Length && Length >= (SSIZE_T)DNS_PACKET_MINSIZE)
+	if (RecvLen >= (SSIZE_T)Length && Length >= DNS_PACKET_MINSIZE)
 	{
 	//Check DNS query data.
 		std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());

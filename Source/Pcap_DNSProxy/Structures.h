@@ -2256,7 +2256,9 @@ typedef struct _dnscurve_txt_signature_
 */
 
 //Version, Method, Command and Reply definitions
-#define SOCKS_VERSION                              5U
+#define SOCKS_VERSION_4                            4U
+#define SOCKS_VERSION_4A                           0x4A
+#define SOCKS_VERSION_5                            5U
 #define SOCKS5_METHOD_NO_AUTHENTICATION_REQUIRED   0
 #define SOCKS5_METHOD_GSSAPI                       1U
 #define SOCKS5_METHOD_USERNAME_PASSWORD            2U

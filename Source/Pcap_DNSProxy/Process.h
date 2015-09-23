@@ -36,6 +36,12 @@ bool __fastcall LocalRequestProcess(
 	PSTR OriginalRecv, 
 	const uint16_t Protocol, 
 	const SOCKET_DATA &LocalSocketData);
+bool __fastcall SOCKSRequestProcess(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	PSTR OriginalRecv, 
+	const uint16_t Protocol, 
+	const SOCKET_DATA &LocalSocketData);
 bool __fastcall DirectRequestProcess(
 	const char *OriginalSend, 
 	const size_t SendSize, 

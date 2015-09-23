@@ -38,6 +38,14 @@ bool __fastcall SelectTargetSocket(
 bool __fastcall SelectTargetSocketMulti(
 	std::vector<SOCKET_DATA> &TargetSocketDataList, 
 	const uint16_t Protocol);
+SSIZE_T __fastcall SelectingResult(
+	uint16_t Protocol, 
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingList, 
+	PSTR OriginalRecv, 
+	const size_t RecvSize, 
+	const bool IsLocal, 
+	const bool NoCheck);
 void __fastcall MarkPortToList(
 	const uint16_t Protocol, 
 	const SOCKET_DATA *LocalSocketData, 

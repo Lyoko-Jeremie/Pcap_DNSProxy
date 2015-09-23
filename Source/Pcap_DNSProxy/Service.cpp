@@ -385,20 +385,21 @@ void __fastcall FlushAllDNSCache(
 
 //Flush DNS cache in system.
 #if defined(PLATFORM_WIN)
-	system("ipconfig /flushdns");
+	system("ipconfig /flushdns 2>nul"); //All Windows version
 #elif defined(PLATFORM_LINUX)
 	#if defined(PLATFORM_OPENWRT)
-		system("/etc/init.d/dnsmasq restart"); //Dnsmasq manage DNS cache on OpenWrt, restart it to flush cache.
+		system("/etc/init.d/dnsmasq restart 2>/dev/null"); //Dnsmasq manage DNS cache on OpenWrt
 	#else
-		system("service nscd restart"); //Name Service Cache Daemon service
-		system("service dnsmasq restart"); //Dnsmasq service
-		system("rndc restart"); //Name server control utility or BIND DNS service
+		system("service nscd restart 2>/dev/null"); //Name Service Cache Daemon service
+		system("service dnsmasq restart 2>/dev/null"); //Dnsmasq service
+		system("rndc restart 2>/dev/null"); //Name server control utility of BIND(9.1.3 and older version)
+		system("rndc flush 2>/dev/null"); //Name server control utility of BIND(9.2.0 and newer version)
 	#endif
 #elif defined(PLATFORM_MACX)
-//	system("lookupd -flushcache"); //Less than Mac OS X Tiger(10.4)
-//	system("dscacheutil -flushcache"); //Mac OS X Leopard(10.5) and Snow Leopard(10.6)
-	system("killall -HUP mDNSResponder"); //Mac OS X Lion(10.7), Mountain Lion(10.8) and Mavericks(10.9)
-	system("discoveryutil mdnsflushcache"); //Mac OS X Yosemite(10.10) and other latest version
+//	system("lookupd -flushcache 2>/dev/null"); //Less than Mac OS X Tiger(10.4)
+//	system("dscacheutil -flushcache 2>/dev/null"); //Mac OS X Leopard(10.5) and Snow Leopard(10.6)
+	system("killall -HUP mDNSResponder 2>/dev/null"); //Mac OS X Lion(10.7), Mountain Lion(10.8) and Mavericks(10.9)
+	system("discoveryutil mdnsflushcache 2>/dev/null"); //Mac OS X Yosemite(10.10) and newer version
 #endif
 
 	return;

@@ -113,7 +113,7 @@ bool __fastcall ReadIPFilterData(
 	}
 
 //Blacklist items
-	if (Parameter.BlacklistCheck && LabelType == LABEL_IPFILTER_BLACKLIST)
+	if (Parameter.DataCheck_Blacklist && LabelType == LABEL_IPFILTER_BLACKLIST)
 	{
 	//Delete spaces before or after verticals.
 		while (Data.find(" |") != std::string::npos || Data.find("| ") != std::string::npos)
@@ -350,7 +350,7 @@ bool __fastcall ReadBlacklistData(
 		ResultBlacklistTableTemp.PatternString.clear();
 		ResultBlacklistTableTemp.PatternString.shrink_to_fit();
 	}
-//Other requesting
+//Other request
 	else {
 		try {
 			std::regex PatternTemp(ResultBlacklistTableTemp.PatternString);

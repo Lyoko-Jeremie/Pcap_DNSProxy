@@ -28,9 +28,9 @@ bool __fastcall PrintError(
 	const size_t Line)
 {
 //Print Error: Enable/Disable.
-	if (!Parameter.PrintError || Message == nullptr || FileName == nullptr || 
-		CheckEmptyBuffer(FileName, wcsnlen_s(FileName, ORIGINAL_PACKET_MAXSIZE)) * sizeof(wchar_t) || 
-		CheckEmptyBuffer(Message, wcsnlen_s(Message, ORIGINAL_PACKET_MAXSIZE)) * sizeof(wchar_t))
+	if (!Parameter.PrintError || //PrintError parameter check
+		Message == nullptr || CheckEmptyBuffer(Message, wcsnlen_s(Message, ORIGINAL_PACKET_MAXSIZE) * sizeof(wchar_t)) || //Message check
+		FileName != nullptr && CheckEmptyBuffer(FileName, wcsnlen_s(FileName, ORIGINAL_PACKET_MAXSIZE) * sizeof(wchar_t))) //FileName check
 			return false;
 
 //Get current date and time.

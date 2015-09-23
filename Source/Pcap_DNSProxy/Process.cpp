@@ -58,10 +58,10 @@ bool __fastcall EnterRequestProcess(
 
 //Initialization(Receive buffer part)
 #if defined(ENABLE_LIBSODIUM)
-	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Parameter.DNSCurve && DNSCurveParameter.RequestMode_DNSCurve_Transport == REQUEST_MODE_TCP || 
-		Parameter.RequestMode_Local_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
+	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Parameter.DNSCurve && DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TCP || 
+		Parameter.LocalProtocol_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
 #else
-	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Parameter.RequestMode_Local_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
+	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Parameter.LocalProtocol_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
 #endif
 	{
 		std::shared_ptr<char> TCPRecvBuffer(new char[LARGE_PACKET_MAXSIZE + sizeof(uint16_t)]());
@@ -97,6 +97,35 @@ bool __fastcall EnterRequestProcess(
 			DataLength = Length;
 	}
 
+/* Old version(2015-09-22)
+//SOCKS requesting
+	if (Parameter.SOCKS)
+	{
+		if ()
+			goto SkipSOCKS;
+
+	//SOCKS requesting
+		if (SOCKSRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), Protocol, LocalSocketData))
+			return true;
+
+	//SOCKS Proxy Only mode
+		if (Parameter.SOCKS_Only)
+		{
+		//Fin TCP request connection.
+			if (Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
+			{
+				shutdown(LocalSocketData.Socket, SD_BOTH);
+				closesocket(LocalSocketData.Socket);
+			}
+
+			return true;
+		}
+	}
+
+//Jump here to skip SOCKS process.
+SkipSOCKS: 
+*/
+
 //Direct Request requesting
 	if (Parameter.DirectRequest > DIRECT_REQUEST_MODE_NONE && DirectRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), Protocol, true, LocalSocketData))
 	{
@@ -117,10 +146,10 @@ bool __fastcall EnterRequestProcess(
 		if (DNSCurveParameter.IsEncryption && DataLength + DNSCRYPT_BUFFER_RESERVE_LEN > DNSCurveParameter.DNSCurvePayloadSize)
 /* Old version(2015-09-15)
 		//Receive Size check(TCP Mode)
-			(Parameter.RequestMode_Transport == REQUEST_MODE_TCP || DNSCurveParameter.RequestMode_DNSCurve_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP) && DNSCurveParameter.DNSCurvePayloadSize >= LARGE_PACKET_MAXSIZE && 
+			(Parameter.RequestMode_Transport == REQUEST_MODE_TCP || DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP) && DNSCurveParameter.DNSCurvePayloadSize >= LARGE_PACKET_MAXSIZE && 
 			crypto_box_ZEROBYTES + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES + DataLength >= LARGE_PACKET_MAXSIZE || 
 		//Receive Size check(UDP Mode)
-			Parameter.RequestMode_Transport != REQUEST_MODE_TCP && DNSCurveParameter.RequestMode_DNSCurve_Transport != REQUEST_MODE_TCP && Protocol != IPPROTO_TCP && DNSCurveParameter.DNSCurvePayloadSize >= PACKET_MAXSIZE && 
+			Parameter.RequestMode_Transport != REQUEST_MODE_TCP && DNSCurveParameter.DNSCurveProtocol_Transport != REQUEST_MODE_TCP && Protocol != IPPROTO_TCP && DNSCurveParameter.DNSCurvePayloadSize >= PACKET_MAXSIZE && 
 			crypto_box_ZEROBYTES + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES + DataLength >= PACKET_MAXSIZE))
 */
 			goto SkipDNSCurve;
@@ -593,7 +622,7 @@ bool __fastcall LocalRequestProcess(
 	size_t DataLength = 0;
 
 //TCP Mode
-	if (Parameter.RequestMode_Local_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
+	if (Parameter.LocalProtocol_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
 	{
 		DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE, true);
 
@@ -621,6 +650,17 @@ bool __fastcall LocalRequestProcess(
 		return true;
 	}
 
+	return false;
+}
+
+//Request Process(SOCKS part)
+bool __fastcall SOCKSRequestProcess(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	PSTR OriginalRecv, 
+	const uint16_t Protocol, 
+	const SOCKET_DATA &LocalSocketData)
+{
 	return false;
 }
 
@@ -694,7 +734,7 @@ bool __fastcall DNSCurveRequestProcess(
 	size_t DataLength = 0;
 
 //TCP requesting
-	if (DNSCurveParameter.RequestMode_DNSCurve_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
+	if (DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
 	{
 	//Multi requesting.
 		if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)

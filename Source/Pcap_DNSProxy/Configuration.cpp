@@ -426,23 +426,21 @@ bool __fastcall ReadParameter(
 	if (IsFirstRead)
 	{
 		const wchar_t *ConfigFileNameList[]{CONFIG_FILE_NAME_LIST};
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		const char *sConfigFileNameList[]{CONFIG_FILE_NAME_LIST_STRING};
+	#endif
 		for (FileIndex = 0;FileIndex < sizeof(ConfigFileNameList) / sizeof(PWSTR);++FileIndex)
 		{
 			FILE_DATA ConfigFileTemp;
 			ConfigFileTemp.FileName = GlobalRunningStatus.Path_Global->front();
 			ConfigFileTemp.FileName.append(ConfigFileNameList[FileIndex]);
-			FileList_Config.push_back(ConfigFileTemp);
-		}
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		const char *sConfigFileNameList[]{CONFIG_FILE_NAME_LIST_STRING};
-		for (FileIndex = 0;FileIndex < sizeof(sConfigFileNameList) / sizeof(PSTR);++FileIndex)
-		{
-			FILE_DATA ConfigFileTemp;
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			ConfigFileTemp.sFileName = GlobalRunningStatus.sPath_Global->front();
 			ConfigFileTemp.sFileName.append(sConfigFileNameList[FileIndex]);
+		#endif
+
 			FileList_Config.push_back(ConfigFileTemp);
 		}
-	#endif
 	}
 
 //Initialization
@@ -708,19 +706,16 @@ void __fastcall ReadIPFilter(
 		FILE_DATA FileDataTemp;
 		for (FileIndex = 0;FileIndex < GlobalRunningStatus.FileList_IPFilter->size();++FileIndex)
 		{
-			FileDataTemp.FileName.clear();
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			FileDataTemp.sFileName.clear();
-		#endif
 			FileDataTemp.ModificationTime = 0;
 
 		//Add to global list.
-			FileDataTemp.FileName.append(GlobalRunningStatus.Path_Global->at(Index));
+			FileDataTemp.FileName = GlobalRunningStatus.Path_Global->at(Index);
 			FileDataTemp.FileName.append(GlobalRunningStatus.FileList_IPFilter->at(FileIndex));
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			FileDataTemp.sFileName.append(GlobalRunningStatus.sPath_Global->at(Index));
+			FileDataTemp.sFileName = GlobalRunningStatus.sPath_Global->at(Index);
 			FileDataTemp.sFileName.append(GlobalRunningStatus.sFileList_IPFilter->at(FileIndex));
 		#endif
+
 			FileList_IPFilter.push_back(FileDataTemp);
 		}
 	}
@@ -944,19 +939,16 @@ void __fastcall ReadHosts(
 		FILE_DATA FileDataTemp;
 		for (FileIndex = 0;FileIndex < GlobalRunningStatus.FileList_Hosts->size();++FileIndex)
 		{
-			FileDataTemp.FileName.clear();
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			FileDataTemp.sFileName.clear();
-		#endif
 			FileDataTemp.ModificationTime = 0;
 
 		//Add to global list.
-			FileDataTemp.FileName.append(GlobalRunningStatus.Path_Global->at(Index));
+			FileDataTemp.FileName = GlobalRunningStatus.Path_Global->at(Index);
 			FileDataTemp.FileName.append(GlobalRunningStatus.FileList_Hosts->at(FileIndex));
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			FileDataTemp.sFileName.append(GlobalRunningStatus.sPath_Global->at(Index));
+			FileDataTemp.sFileName = GlobalRunningStatus.sPath_Global->at(Index);
 			FileDataTemp.sFileName.append(GlobalRunningStatus.sFileList_Hosts->at(FileIndex));
 		#endif
+
 			FileList_Hosts.push_back(FileDataTemp);
 		}
 	}

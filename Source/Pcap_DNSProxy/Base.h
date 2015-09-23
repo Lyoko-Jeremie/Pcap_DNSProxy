@@ -105,7 +105,7 @@
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4                                   //Current configuration version
-#define FULL_VERSION                 L"0.4.3.5"
+#define FULL_VERSION                 L"0.4.3.6"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2015 Chengr28"
 
 //Exit code definitions
@@ -477,8 +477,8 @@ public:
 	size_t                               CacheParameter;
 	uint32_t                             HostsDefaultTTL;
 //[Local DNS] block
-	size_t                               RequestMode_Local_Network;
-	size_t                               RequestMode_Local_Transport;
+	size_t                               LocalProtocol_Network;
+	size_t                               LocalProtocol_Transport;
 	bool                                 LocalMain;
 	bool                                 LocalHosts;
 	bool                                 LocalRouting;
@@ -541,8 +541,8 @@ public:
 	bool                                 HeaderCheck_IPv4;
 	bool                                 HeaderCheck_TCP;
 #endif
-	bool                                 DNSDataCheck;
-	bool                                 BlacklistCheck;
+	bool                                 HeaderCheck_DNS;
+	bool                                 DataCheck_Blacklist;
 //[Data] block
 #if defined(ENABLE_PCAP)
 	uint16_t                             ICMP_ID;
@@ -561,17 +561,35 @@ public:
 	PSTR                                 LocalServer_Response;
 	size_t                               LocalServer_Length;
 #endif
+//[SOCKS] block
+	bool                                 SOCKS;
+	size_t                               SOCKS_Version;
+	size_t                               SOCKS_Protocol_Network;
+	size_t                               SOCKS_Protocol_Transport;
+	size_t                               SOCKS_Protocol_Inner_Network;
+	bool                                 SOCKS_Only;
+	DNS_SERVER_DATA                      SOCKS_Address_IPv4;
+	DNS_SERVER_DATA                      SOCKS_Address_IPv6;
+	PSTR                                 SOCKS_Username;
+	size_t                               SOCKS_Username_Length;
+	PSTR                                 SOCKS_Password;
+	size_t                               SOCKS_Password_Length;
 //[DNSCurve/DNSCrypt] block
 #if defined(ENABLE_LIBSODIUM)
 	bool                                 DNSCurve;
 #endif
 
 //Member functions
-	ConfigurationTable(void);
-	~ConfigurationTable(void);
-	void SetToMonitorItem(void);
-	void MonitorItemToUsing(ConfigurationTable *ConfigurationParameter);
-	void MonitorItemReset(void);
+	ConfigurationTable(
+		void);
+	~ConfigurationTable(
+		void);
+	void SetToMonitorItem(
+		void);
+	void MonitorItemToUsing(
+		ConfigurationTable *ConfigurationParameter);
+	void MonitorItemReset(
+		void);
 }CONFIGURATION_TABLE;
 
 //Global status class
@@ -620,8 +638,10 @@ public:
 #endif
 
 //Member functions
-	GlobalStatus(void);
-	~GlobalStatus(void);
+	GlobalStatus(
+		void);
+	~GlobalStatus(
+		void);
 }GLOBAL_STATUS;
 
 //IPv4/IPv6 addresses ranges class
@@ -631,6 +651,7 @@ public:
 	sockaddr_storage         End;
 	size_t                   Level;
 
+//Member functions
 	AddressRangeTable(void);
 }ADDRESS_RANGE_TABLE;
 
@@ -645,7 +666,9 @@ public:
 	size_t                   Length;
 	bool                     Type_Operation;
 
-	HostsTable(void);
+//Member functions
+	HostsTable(
+		void);
 }HOSTS_TABLE;
 
 //Alternate swap table class
@@ -654,7 +677,9 @@ public:
 	bool                     IsSwap[ALTERNATE_SERVERNUM];
 	size_t                   TimeoutTimes[ALTERNATE_SERVERNUM];
 
-	AlternateSwapTable(void);
+//Member functions
+	AlternateSwapTable(
+		void);
 }ALTERNATE_SWAP_TABLE;
 
 //Blacklist of results class
@@ -678,7 +703,9 @@ public:
 	size_t                                   Prefix;
 	std::map<uint64_t, std::set<uint64_t>>   AddressRoutingList_IPv6;
 
-	AddressRoutingTable_IPv6(void);
+//Member functions
+	AddressRoutingTable_IPv6(
+		void);
 }ADDRESS_ROUTING_TABLE_IPV6;
 
 //Address routing table(IPv4) class
@@ -687,7 +714,9 @@ public:
 	size_t                   Prefix;
 	std::set<uint32_t>       AddressRoutingList_IPv4;
 
-	AddressRoutingTable_IPv4(void);
+//Member functions
+	AddressRoutingTable_IPv4(
+		void);
 }ADDRESS_ROUTING_TABLE_IPV4;
 
 //Port table class
@@ -701,7 +730,9 @@ public:
 	ULONGLONG                  ClearPortTime;
 	size_t                     ReceiveIndex;
 
-	OutputPacketTable(void);
+//Member functions
+	OutputPacketTable(
+		void);
 }OUTPUT_PACKET_TABLE;
 #endif
 
@@ -715,7 +746,9 @@ public:
 	std::vector<ADDRESS_ROUTING_TABLE_IPV4>   LocalRoutingList_IPv4;
 	size_t                                    FileIndex;
 
-	DiffernetIPFilterFileSet(void);
+//Member functions
+	DiffernetIPFilterFileSet(
+		void);
 }DIFFERNET_IPFILTER_FILE_SET;
 
 //Differnet Hosts file sets structure
@@ -726,7 +759,9 @@ public:
 	std::vector<ADDRESS_HOSTS_TABLE>   AddressHostsList;
 	size_t                             FileIndex;
 
-	DiffernetHostsFileSet(void);
+//Member functions
+	DiffernetHostsFileSet(
+		void);
 }DIFFERNET_HOSTS_FILE_SET;
 
 
@@ -735,16 +770,16 @@ public:
 typedef class DNSCurveConfigurationTable {
 public:
 //[DNSCurve] block
-	size_t                   DNSCurvePayloadSize;
-	size_t                   RequestMode_DNSCurve_Network;
-	size_t                   RequestMode_DNSCurve_Transport;
-	bool                     IsEncryption;
-	bool                     IsEncryptionOnly;
-	bool                     ClientEphemeralKey;
-	size_t                   KeyRecheckTime;
+	size_t                     DNSCurvePayloadSize;
+	size_t                     DNSCurveProtocol_Network;
+	size_t                     DNSCurveProtocol_Transport;
+	bool                       IsEncryption;
+	bool                       IsEncryptionOnly;
+	bool                       ClientEphemeralKey;
+	size_t                     KeyRecheckTime;
 //[DNSCurve Addresses] block
-	PUINT8                   Client_PublicKey;
-	PUINT8                   Client_SecretKey;
+	PUINT8                     Client_PublicKey;
+	PUINT8                     Client_SecretKey;
 	struct _dnscurve_target_ {
 		DNSCURVE_SERVER_DATA   IPv6;
 		DNSCURVE_SERVER_DATA   Alternate_IPv6;
@@ -753,11 +788,16 @@ public:
 	}DNSCurveTarget;
 
 //Member functions
-	DNSCurveConfigurationTable(void);
-	~DNSCurveConfigurationTable(void);
-	void SetToMonitorItem(void);
-	void MonitorItemToUsing(DNSCurveConfigurationTable *DNSCurveConfigurationParameter);
-	void MonitorItemReset(void);
+	DNSCurveConfigurationTable(
+		void);
+	~DNSCurveConfigurationTable(
+		void);
+	void SetToMonitorItem(
+		void);
+	void MonitorItemToUsing(
+		DNSCurveConfigurationTable *DNSCurveConfigurationParameter);
+	void MonitorItemReset(
+		void);
 }DNSCURVE_CONFIGURATION_TABLE;
 #endif
 

@@ -247,6 +247,28 @@ bool __fastcall ParameterCheckAndSetting(
 	}
 #endif
 
+//SOCKS target check
+	if (IsFirstRead)
+	{
+	//Only SOCKS version 5 has Authentication.
+		if (!Parameter.SOCKS || Parameter.SOCKS_Version != SOCKS_VERSION_5)
+		{
+			delete[] Parameter.SOCKS_Username;
+			delete[] Parameter.SOCKS_Password;
+
+			Parameter.SOCKS_Username = nullptr;
+			Parameter.SOCKS_Password = nullptr;
+			Parameter.SOCKS_Username_Length = 0;
+			Parameter.SOCKS_Password_Length = 0;
+		}
+
+	//
+		if (Parameter.SOCKS)
+		{
+
+		}
+	}
+
 //Other errors which need to print to log.
 #if defined(ENABLE_PCAP)
 	#if defined(ENABLE_LIBSODIUM)
@@ -433,8 +455,8 @@ bool __fastcall ParameterCheckAndSetting(
 			else if (!DNSCurveParameter.ClientEphemeralKey)
 			{
 				crypto_box_beforenm(
-					DNSCurveParameterPTR->DNSCurveTarget.IPv6.PrecomputationKey,
-					DNSCurveParameterPTR->DNSCurveTarget.IPv6.ServerFingerprint,
+					DNSCurveParameterPTR->DNSCurveTarget.IPv6.PrecomputationKey, 
+					DNSCurveParameterPTR->DNSCurveTarget.IPv6.ServerFingerprint, 
 					DNSCurveParameterPTR->Client_SecretKey);
 			}
 		}
@@ -484,8 +506,8 @@ bool __fastcall ParameterCheckAndSetting(
 			else if (!DNSCurveParameter.ClientEphemeralKey)
 			{
 				crypto_box_beforenm(
-					DNSCurveParameterPTR->DNSCurveTarget.IPv4.PrecomputationKey,
-					DNSCurveParameterPTR->DNSCurveTarget.IPv4.ServerFingerprint,
+					DNSCurveParameterPTR->DNSCurveTarget.IPv4.PrecomputationKey, 
+					DNSCurveParameterPTR->DNSCurveTarget.IPv4.ServerFingerprint, 
 					DNSCurveParameterPTR->Client_SecretKey);
 			}
 		}
@@ -535,8 +557,8 @@ bool __fastcall ParameterCheckAndSetting(
 			else if (!DNSCurveParameter.ClientEphemeralKey)
 			{
 				crypto_box_beforenm(
-					DNSCurveParameterPTR->DNSCurveTarget.Alternate_IPv6.PrecomputationKey,
-					DNSCurveParameterPTR->DNSCurveTarget.Alternate_IPv6.ServerFingerprint,
+					DNSCurveParameterPTR->DNSCurveTarget.Alternate_IPv6.PrecomputationKey, 
+					DNSCurveParameterPTR->DNSCurveTarget.Alternate_IPv6.ServerFingerprint, 
 					DNSCurveParameterPTR->Client_SecretKey);
 			}
 		}
@@ -586,8 +608,8 @@ bool __fastcall ParameterCheckAndSetting(
 			else if (!DNSCurveParameter.ClientEphemeralKey)
 			{
 				crypto_box_beforenm(
-					DNSCurveParameterPTR->DNSCurveTarget.Alternate_IPv4.PrecomputationKey,
-					DNSCurveParameterPTR->DNSCurveTarget.Alternate_IPv4.ServerFingerprint,
+					DNSCurveParameterPTR->DNSCurveTarget.Alternate_IPv4.PrecomputationKey, 
+					DNSCurveParameterPTR->DNSCurveTarget.Alternate_IPv4.ServerFingerprint, 
 					DNSCurveParameterPTR->Client_SecretKey);
 			}
 		}
@@ -666,20 +688,20 @@ bool __fastcall ParameterCheckAndSetting(
 	}
 
 	//Local Protocol(IPv6)
-	if (Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0 && ParameterPTR->RequestMode_Local_Network == REQUEST_MODE_IPV6)
+	if (Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0 && ParameterPTR->LocalProtocol_Network == REQUEST_MODE_IPV6)
 	{
 		PrintError(LOG_MESSAGE_NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, nullptr, 0);
-		ParameterPTR->RequestMode_Local_Network = REQUEST_MODE_NETWORK_BOTH;
+		ParameterPTR->LocalProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
 	}
 
 	if (IsFirstRead)
 	{
 	//DNSCurve Protocol(IPv6)
 	#if defined(ENABLE_LIBSODIUM)
-		if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_IPV6)
+		if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6)
 		{
 			PrintError(LOG_MESSAGE_NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, nullptr, 0);
-			DNSCurveParameter.RequestMode_DNSCurve_Network = REQUEST_MODE_NETWORK_BOTH;
+			DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
 		}
 	#endif
 
@@ -692,20 +714,20 @@ bool __fastcall ParameterCheckAndSetting(
 	}
 
 	//Local Protocol(IPv4)
-	if (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && ParameterPTR->RequestMode_Local_Network == REQUEST_MODE_IPV4)
+	if (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && ParameterPTR->LocalProtocol_Network == REQUEST_MODE_IPV4)
 	{
 		PrintError(LOG_MESSAGE_NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, nullptr, 0);
-		ParameterPTR->RequestMode_Local_Network = REQUEST_MODE_NETWORK_BOTH;
+		ParameterPTR->LocalProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
 	}
 
 	if (IsFirstRead)
 	{
 	//DNSCurve Protocol(IPv4)
 	#if defined(ENABLE_LIBSODIUM)
-		if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.RequestMode_DNSCurve_Network == REQUEST_MODE_IPV4)
+		if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4)
 		{
 			PrintError(LOG_MESSAGE_NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, nullptr, 0);
-			DNSCurveParameter.RequestMode_DNSCurve_Network = REQUEST_MODE_NETWORK_BOTH;
+			DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
 		}
 	#endif
 
@@ -1405,7 +1427,7 @@ bool __fastcall ReadParameterData(
 	#endif
 		else if (Data.find("DNSOptionsFilter=1") == 0)
 		{
-			Parameter.DNSDataCheck = true;
+			Parameter.HeaderCheck_DNS = true;
 		}
 
 	//[Data] block
@@ -1790,19 +1812,19 @@ bool __fastcall ReadParameterData(
 		if (Data.find("IPV6") != std::string::npos)
 		{
 			if (Data.find("IPV4") != std::string::npos)
-				ParameterPTR->RequestMode_Local_Network = REQUEST_MODE_NETWORK_BOTH;
+				ParameterPTR->LocalProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
 			else 
-				ParameterPTR->RequestMode_Local_Network = REQUEST_MODE_IPV6;
+				ParameterPTR->LocalProtocol_Network = REQUEST_MODE_IPV6;
 		}
 		else {
-			ParameterPTR->RequestMode_Local_Network = REQUEST_MODE_IPV4;
+			ParameterPTR->LocalProtocol_Network = REQUEST_MODE_IPV4;
 		}
 
 	//Transport layer
 		if (Data.find("TCP") != std::string::npos)
-			ParameterPTR->RequestMode_Local_Transport = REQUEST_MODE_TCP;
+			ParameterPTR->LocalProtocol_Transport = REQUEST_MODE_TCP;
 		else 
-			ParameterPTR->RequestMode_Local_Transport = REQUEST_MODE_UDP;
+			ParameterPTR->LocalProtocol_Transport = REQUEST_MODE_UDP;
 	}
 	else if (IsFirstRead && Data.find("LocalHosts=1") == 0)
 	{
@@ -2154,11 +2176,11 @@ bool __fastcall ReadParameterData(
 #endif
 	else if (Data.find("DNSDataFilter=1") == 0)
 	{
-		ParameterPTR->DNSDataCheck = true;
+		ParameterPTR->HeaderCheck_DNS = true;
 	}
 	else if (IsFirstRead && Data.find("BlacklistFilter=1") == 0)
 	{
-		Parameter.BlacklistCheck = true;
+		Parameter.DataCheck_Blacklist = true;
 	}
 
 //[Data] block
@@ -2252,6 +2274,85 @@ bool __fastcall ReadParameterData(
 		}
 	}
 
+//[SOCKS] block
+	else if (IsFirstRead && Data.find("SOCKSProxy=1") == 0)
+	{
+		Parameter.SOCKS = true;
+	}
+	else if (IsFirstRead && Data.find("SOCKSVersion=") == 0 && Data.length() > strlen("SOCKSVersion="))
+	{
+		CaseConvert(true, Data);
+
+		if (Data.find("4A") != std::string::npos)
+			Parameter.SOCKS_Version = SOCKS_VERSION_4A;
+		else if (Data.find("4") != std::string::npos)
+			Parameter.SOCKS_Version = SOCKS_VERSION_4;
+		else 
+			Parameter.SOCKS_Version = SOCKS_VERSION_5;
+	}
+	else if (IsFirstRead && Data.find("SOCKSProtocol=") == 0)
+	{
+		CaseConvert(true, Data);
+
+	//Network layer
+		if (Data.find("IPV6") != std::string::npos)
+		{
+			if (Data.find("IPV4") != std::string::npos)
+				Parameter.SOCKS_Protocol_Network = REQUEST_MODE_NETWORK_BOTH;
+			else 
+				Parameter.SOCKS_Protocol_Network = REQUEST_MODE_IPV6;
+		}
+		else {
+			Parameter.SOCKS_Protocol_Network = REQUEST_MODE_IPV4;
+		}
+
+	//Transport layer
+		if (Data.find("TCP") != std::string::npos)
+			Parameter.SOCKS_Protocol_Transport = REQUEST_MODE_TCP;
+		else 
+			Parameter.SOCKS_Protocol_Transport = REQUEST_MODE_UDP;
+	}
+	else if (IsFirstRead && Data.find("SOCKSTransportProtocol=") == 0)
+	{
+		CaseConvert(true, Data);
+
+	//Network layer
+		if (Data.find("IPV6") != std::string::npos)
+		{
+			if (Data.find("IPV4") != std::string::npos)
+				Parameter.SOCKS_Protocol_Inner_Network = REQUEST_MODE_NETWORK_BOTH;
+			else 
+				Parameter.SOCKS_Protocol_Inner_Network = REQUEST_MODE_IPV6;
+		}
+		else {
+			Parameter.SOCKS_Protocol_Inner_Network = REQUEST_MODE_IPV4;
+		}
+	}
+	else if (IsFirstRead && Data.find("SOCKSProxyOnly=1") == 0)
+	{
+		Parameter.SOCKS_Only = true;
+	}
+	else if (IsFirstRead && Data.find("SOCKSIPv4Address=") == 0 && Data.length() > strlen("SOCKSIPv4Address="))
+	{
+		if (!ReadMultipleAddresses(Data, strlen("SOCKSIPv4Address="), Parameter.SOCKS_Address_IPv4.AddressData.Storage, nullptr, AF_INET, FileIndex, Line))
+			return false;
+	}
+	else if (IsFirstRead && Data.find("SOCKSIPv6Address=") == 0 && Data.length() > strlen("SOCKSIPv6Address="))
+	{
+		if (!ReadMultipleAddresses(Data, strlen("SOCKSIPv6Address="), Parameter.SOCKS_Address_IPv6.AddressData.Storage, nullptr, AF_INET6, FileIndex, Line))
+			return false;
+	}
+	else if (Data.find("SOCKSUsername=") == 0 && Data.length() > strlen("SOCKSUsername="))
+	{
+		ParameterPTR->SOCKS_Username_Length = Data.length() - strlen("SOCKSUsername=");
+		memcpy(ParameterPTR->SOCKS_Username, Data.c_str() + strlen("SOCKSUsername="), ParameterPTR->SOCKS_Username_Length);
+	}
+	else if (Data.find("SOCKSPassword=") == 0 && Data.length() > strlen("SOCKSPassword="))
+	{
+		ParameterPTR->SOCKS_Password_Length = Data.length() - strlen("SOCKSPassword=");
+		memcpy(ParameterPTR->SOCKS_Password, Data.c_str() + strlen("SOCKSPassword="), ParameterPTR->SOCKS_Password_Length);
+	}
+
 //[DNSCurve] block
 #if defined(ENABLE_LIBSODIUM)
 	else if (IsFirstRead && Data.find("DNSCurve=1") == 0)
@@ -2266,19 +2367,19 @@ bool __fastcall ReadParameterData(
 		if (Data.find("IPV6") != std::string::npos)
 		{
 			if (Data.find("IPV4") != std::string::npos)
-				DNSCurveParameter.RequestMode_DNSCurve_Network = REQUEST_MODE_NETWORK_BOTH;
+				DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
 			else 
-				DNSCurveParameter.RequestMode_DNSCurve_Network = REQUEST_MODE_IPV6;
+				DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_IPV6;
 		}
 		else {
-			DNSCurveParameter.RequestMode_DNSCurve_Network = REQUEST_MODE_IPV4;
+			DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_IPV4;
 		}
 
 	//Transport layer
 		if (Data.find("TCP") != std::string::npos)
-			DNSCurveParameter.RequestMode_DNSCurve_Transport = REQUEST_MODE_TCP;
+			DNSCurveParameter.DNSCurveProtocol_Transport = REQUEST_MODE_TCP;
 		else 
-			DNSCurveParameter.RequestMode_DNSCurve_Transport = REQUEST_MODE_UDP;
+			DNSCurveParameter.DNSCurveProtocol_Transport = REQUEST_MODE_UDP;
 	}
 	else if (IsFirstRead && Data.find("DNSCurvePayloadSize=") == 0 && Data.length() > strlen("DNSCurvePayloadSize="))
 	{
