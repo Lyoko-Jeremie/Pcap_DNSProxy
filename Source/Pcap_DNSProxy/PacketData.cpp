@@ -25,8 +25,8 @@ uint32_t __fastcall GetFCS(
 	const size_t Length)
 {
 	uint32_t Table[FCS_TABLE_SIZE] = {0}, Gx = 0x04C11DB7, Temp = 0, CRCTable = 0, Value = 0, UI = 0;
-	char ReflectNum[] = {8, 32};
-	int Index[] = {0, 0, 0};
+	char ReflectNum[]{8, 32};
+	int Index[]{0, 0, 0};
 
 	for (Index[0] = 0;Index[0] <= UINT8_MAX;++Index[0])
 	{

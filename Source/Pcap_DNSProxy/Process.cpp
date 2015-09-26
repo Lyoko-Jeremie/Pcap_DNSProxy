@@ -97,7 +97,7 @@ bool __fastcall EnterRequestProcess(
 			DataLength = Length;
 	}
 
-/* Old version(2015-09-22)
+/*
 //SOCKS requesting
 	if (Parameter.SOCKS)
 	{
@@ -123,7 +123,7 @@ bool __fastcall EnterRequestProcess(
 	}
 
 //Jump here to skip SOCKS process.
-SkipSOCKS: 
+SkipSOCKS:
 */
 
 //Direct Request requesting
@@ -173,7 +173,7 @@ SkipSOCKS:
 	}
 	
 //Jump here to skip DNSCurve process.
-SkipDNSCurve: 
+SkipDNSCurve:
 #endif
 
 //TCP requesting
@@ -370,6 +370,20 @@ size_t __fastcall CheckHostsProcess(
 		}
 	}
 
+//Check DNS cache.
+	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
+	for (auto DNSCacheDataIter:DNSCacheList)
+	{
+		if (Domain == DNSCacheDataIter.Domain && DNS_Query->Type == DNSCacheDataIter.RecordType)
+		{
+			memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
+			memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), DNSCacheDataIter.Response.get(), DNSCacheDataIter.Length);
+
+			return DNSCacheDataIter.Length + sizeof(uint16_t);
+		}
+	}
+	DNSCacheListMutex.unlock();
+
 //Local Main check
 	auto IsLocal = false;
 	if (Parameter.LocalMain)
@@ -383,14 +397,8 @@ size_t __fastcall CheckHostsProcess(
 		{
 			if (std::regex_match(Domain, HostsTableIter.Pattern))
 			{
-			//Check local request.
-				if (HostsTableIter.Type_Hosts == HOSTS_TYPE_LOCAL)
-				{
-					IsLocal = true;
-					goto StopLoop;
-				}
 			//Check white list.
-				else if (HostsTableIter.Type_Hosts == HOSTS_TYPE_WHITE)
+				if (HostsTableIter.Type_Hosts == HOSTS_TYPE_WHITE)
 				{
 					IsLocal = false;
 					if (HostsTableIter.Type_Record.empty()) //Ignore all types.
@@ -460,8 +468,8 @@ size_t __fastcall CheckHostsProcess(
 						}
 					}
 				}
-			//Check Hosts.
-				else if (!HostsTableIter.Type_Record.empty())
+			//Check main Hosts.
+				else if (HostsTableIter.Type_Hosts == HOSTS_TYPE_NORMAL)
 				{
 				//IPv6
 					if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && HostsTableIter.Type_Record.front() == htons(DNS_RECORD_AAAA))
@@ -577,6 +585,12 @@ size_t __fastcall CheckHostsProcess(
 						return DataLength;
 					}
 				}
+			//Check local request.
+				else if (HostsTableIter.Type_Hosts == HOSTS_TYPE_LOCAL)
+				{
+					IsLocal = true;
+					goto StopLoop;
+				}
 			}
 		}
 	}
@@ -584,21 +598,6 @@ size_t __fastcall CheckHostsProcess(
 //Jump here to stop loop.
 StopLoop:
 	HostsFileMutex.unlock();
-
-//Check DNS cache.
-	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
-	for (auto DNSCacheDataIter:DNSCacheList)
-	{
-		if (Domain == DNSCacheDataIter.Domain && DNS_Query->Type == DNSCacheDataIter.RecordType)
-		{
-			memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
-			memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), DNSCacheDataIter.Response.get(), DNSCacheDataIter.Length);
-
-			return DNSCacheDataIter.Length + sizeof(uint16_t);
-		}
-	}
-
-	DNSCacheListMutex.unlock();
 
 //Domain Case Conversion
 	if (Parameter.DomainCaseConversion)
@@ -653,6 +652,7 @@ bool __fastcall LocalRequestProcess(
 	return false;
 }
 
+/*
 //Request Process(SOCKS part)
 bool __fastcall SOCKSRequestProcess(
 	const char *OriginalSend, 
@@ -663,6 +663,7 @@ bool __fastcall SOCKSRequestProcess(
 {
 	return false;
 }
+*/
 
 //Request Process(Direct connections part)
 bool __fastcall DirectRequestProcess(
@@ -1014,6 +1015,7 @@ bool __fastcall MarkDomainCache(
 			}
 		}
 
+	//Delete cache.
 		if (Parameter.CacheType == CACHE_TYPE_QUEUE)
 		{
 			while (DNSCacheList.size() > Parameter.CacheParameter)

@@ -469,7 +469,7 @@ bool __fastcall ReadLocalRoutingData(
 				}
 
 			//Jump here to add new item to global list.
-			AddToGlobalList_IPv6: 
+			AddToGlobalList_IPv6:
 				std::set<uint64_t> AddrBackSet;
 				if (AddressRoutingTableTemp.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 				{
@@ -531,7 +531,7 @@ bool __fastcall ReadLocalRoutingData(
 				}
 
 			//Jump here to add new item to global list.
-			AddToGlobalList_IPv4: 
+			AddToGlobalList_IPv4:
 				AddressRoutingTableTemp.AddressRoutingList_IPv4.insert(htonl(BinaryAddr->s_addr));
 				IPFilterFileSetIter.LocalRoutingList_IPv4.push_back(AddressRoutingTableTemp);
 			}

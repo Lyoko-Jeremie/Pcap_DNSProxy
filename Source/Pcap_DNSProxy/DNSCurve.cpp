@@ -500,7 +500,7 @@ void __fastcall DNSCurveSocketPrecomputation(
 	}
 	
 //Jump here to skip Main process
-SkipMain: 
+SkipMain:
 	memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
 //Set target.
 	if (IsIPv6) //IPv6
@@ -814,10 +814,10 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 	Timeout->tv_usec = Parameter.SocketTimeout_Reliable.tv_usec;
 #endif
 
-//Send request and receive result.
+//Selecting process
 	for (;;)
 	{
-		Sleep(LOOP_INTERVAL_TIME);
+		Sleep(LOOP_INTERVAL_TIME_NO_DELAY);
 
 	//Socket check(Part 2)
 		for (auto SocketDataIter = SocketDataList.begin();SocketDataIter != SocketDataList.end();++SocketDataIter)
@@ -919,8 +919,17 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 			//Send process
 				if (FD_ISSET(SocketDataList.at(Index).Socket, WriteFDS.get()) && !SocketSelectingList.at(Index).PacketIsSend)
 				{
-					send(SocketDataList.at(Index).Socket, SocketSelectingList.at(Index).SendBuffer, (int)SocketSelectingList.at(Index).SendSize, 0);
-					SocketSelectingList.at(Index).PacketIsSend = true;
+					if (send(SocketDataList.at(Index).Socket, SocketSelectingList.at(Index).SendBuffer, (int)SocketSelectingList.at(Index).SendSize, 0) <= EXIT_SUCCESS)
+					{
+						shutdown(SocketDataList.at(Index).Socket, SD_BOTH);
+						closesocket(SocketDataList.at(Index).Socket);
+						SocketDataList.at(Index).Socket = 0;
+						SocketSelectingList.at(Index).RecvBuffer.reset();
+						SocketSelectingList.at(Index).Length = 0;
+					}
+					else {
+						SocketSelectingList.at(Index).PacketIsSend = true;
+					}
 				}
 			}
 		}
@@ -1164,6 +1173,7 @@ void __fastcall DNSCurveInit(
 	return;
 }
 
+/* Signature request of DNSCurve protocol must send to target server.
 //DNSCurve Local Signature Request
 size_t __fastcall DNSCurveSignatureRequest(
 	const char *OriginalSend, 
@@ -1214,7 +1224,7 @@ size_t __fastcall DNSCurveSignatureRequest(
 			return EXIT_FAILURE;
 
 //Send request.
-	if (send(UDPSocket, OriginalSend, (int)SendSize, 0) == SOCKET_ERROR)
+	if (send(UDPSocket, OriginalSend, (int)SendSize, 0) <= EXIT_SUCCESS)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"DNSCurve Local Signature request error", WSAGetLastError(), nullptr, 0);
 		shutdown(UDPSocket, SD_BOTH);
@@ -1223,7 +1233,7 @@ size_t __fastcall DNSCurveSignatureRequest(
 		return EXIT_FAILURE;
 	}
 
-//Receive result.
+//Receive response.
 	SSIZE_T RecvLen = recv(UDPSocket, OriginalRecv, (int)RecvSize, 0);
 	shutdown(UDPSocket, SD_BOTH);
 	closesocket(UDPSocket);
@@ -1234,6 +1244,7 @@ size_t __fastcall DNSCurveSignatureRequest(
 
 	return EXIT_FAILURE;
 }
+*/
 
 //Send TCP request to get Signature Data of servers
 bool __fastcall DNSCurveTCPSignatureRequest(
@@ -1325,6 +1336,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(
 
 //Initialization(Part 2)
 	size_t SleepTime_SignatureRequest = 0, SpeedTime_SignatureRequest = DNSCurveParameter.KeyRecheckTime;
+	std::wstring Message;
 	SSIZE_T RecvLen = 0;
 
 //Send request.
@@ -1380,8 +1392,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(
 		continue;
 
 	//Jump here to restart.
-	JumpToRestart: 
-		std::wstring Message;
+	JumpToRestart:
 		DNSCurvePrintLog(ServerType, Message);
 		Message.append(L"TCP get signature data error");
 		PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
@@ -1396,7 +1407,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(
 				++AlternateSwapList.TimeoutTimes[9U];
 		}
 
-		Sleep(SENDING_INTERVAL_TIME * SECOND_TO_MILLISECOND);
+		Sleep(SENDING_INTERVAL_TIME);
 	}
 
 	PrintError(LOG_ERROR_SYSTEM, L"DNSCurve TCP Signature Request module Monitor terminated", 0, nullptr, 0);
@@ -1489,6 +1500,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(
 
 //Initialization(Part 2)
 	size_t SleepTime_SignatureRequest = 0, SpeedTime_SignatureRequest = DNSCurveParameter.KeyRecheckTime;
+	std::wstring Message;
 	SSIZE_T RecvLen = 0;
 
 //Send request.
@@ -1544,8 +1556,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(
 		continue;
 
 	//Jump here to restart.
-	JumpToRestart: 
-		std::wstring Message;
+	JumpToRestart:
 		DNSCurvePrintLog(ServerType, Message);
 		Message.append(L"UDP get signature data error");
 		PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
@@ -1560,7 +1571,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(
 				++AlternateSwapList.TimeoutTimes[11U];
 		}
 
-		Sleep(SENDING_INTERVAL_TIME * SECOND_TO_MILLISECOND);
+		Sleep(SENDING_INTERVAL_TIME);
 	}
 
 	PrintError(LOG_ERROR_SYSTEM, L"DNSCurve UDP Signature Request module Monitor terminated", 0, nullptr, 0);
@@ -1846,7 +1857,7 @@ size_t __fastcall DNSCurveUDPRequest(
 	}
 
 //Socket timeout setting and UDP connecting
-	if (!SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TIMEOUT, &Parameter.SocketTimeout_Unreliable) ||
+	if (!SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TIMEOUT, &Parameter.SocketTimeout_Unreliable) || 
 		SocketConnecting(IPPROTO_UDP, UDPSocketDataList.front().Socket, (PSOCKADDR)&UDPSocketDataList.front().SockAddr, UDPSocketDataList.front().AddrLen, nullptr, 0) == EXIT_FAILURE)
 			return EXIT_FAILURE;
 

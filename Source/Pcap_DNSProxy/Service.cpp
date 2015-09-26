@@ -53,7 +53,7 @@ size_t WINAPI ServiceMain(
 	LPTSTR *argv)
 {
 	ServiceStatusHandle = RegisterServiceCtrlHandlerW(SYSTEM_SERVICE_NAME, (LPHANDLER_FUNCTION)ServiceControl);
-	if (!ServiceStatusHandle || !UpdateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0, 1U, UPDATE_SERVICE_TIME * SECOND_TO_MILLISECOND))
+	if (!ServiceStatusHandle || !UpdateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0, 1U, UPDATE_SERVICE_TIME))
 		return FALSE;
 
 	ServiceEvent = CreateEventW(0, TRUE, FALSE, 0);
@@ -85,7 +85,7 @@ size_t WINAPI ServiceControl(
 		case SERVICE_CONTROL_STOP:
 		{
 			ServiceCurrentStatus = SERVICE_STOP_PENDING;
-			UpdateServiceStatus(SERVICE_STOP_PENDING, NO_ERROR, 0, 1U, UPDATE_SERVICE_TIME * SECOND_TO_MILLISECOND);
+			UpdateServiceStatus(SERVICE_STOP_PENDING, NO_ERROR, 0, 1U, UPDATE_SERVICE_TIME);
 			WSACleanup();
 			TerminateService();
 
@@ -215,20 +215,21 @@ bool __fastcall FlushDNSMailSlotMonitor(
 //Initialization
 	BOOL Result = FALSE;
 	bool FlushDNS = false;
-	DWORD cbMessage = 0, cMessage = 0, cAllMessages = 0, cbRead = 0;
+	DWORD cbMessage = 0, cMessage = 0, cbRead = 0;
 	std::shared_ptr<wchar_t> lpszBuffer(new wchar_t[PACKET_MAXSIZE]());
 	wmemset(lpszBuffer.get(), 0, PACKET_MAXSIZE);
 
 //MailSlot Monitor
 	for (;;)
 	{
-		FlushDNS = false;
+		cbMessage = 0;
+		cMessage = 0;
 
 	//Get mailslot messages.
 		Result = GetMailslotInfo(hSlot, nullptr, &cbMessage, &cMessage, nullptr);
 		if (Result == FALSE)
 		{
-			PrintError(LOG_ERROR_SYSTEM, L"Get mailslot error", GetLastError(), nullptr, 0);
+			PrintError(LOG_ERROR_SYSTEM, L"Mailslot Monitor initialization error", GetLastError(), nullptr, 0);
 			
 			CloseHandle(hSlot);
 			return false;
@@ -237,12 +238,12 @@ bool __fastcall FlushDNSMailSlotMonitor(
 	//Wait for messages.
 		if (cbMessage == MAILSLOT_NO_MESSAGE)
 		{
-			Sleep(MONITOR_LOOP_INTERVAL_TIME);
+			Sleep(LOOP_INTERVAL_TIME_MONITOR);
 			continue;
 		}
 
 	//Got messages.
-		cAllMessages = cMessage;
+		FlushDNS = false;
 		while (cMessage > 0)
 		{
 			Result = ReadFile(hSlot, lpszBuffer.get(), cbMessage, &cbRead, nullptr);
@@ -265,12 +266,14 @@ bool __fastcall FlushDNSMailSlotMonitor(
 			Result = GetMailslotInfo(hSlot, nullptr, &cbMessage, &cMessage, nullptr);
 			if (Result == FALSE)
 			{
-				PrintError(LOG_ERROR_SYSTEM, L"Get mailslot error", GetLastError(), nullptr, 0);
+				PrintError(LOG_ERROR_SYSTEM, L"Mailslot Monitor initialization error", GetLastError(), nullptr, 0);
 				
 				CloseHandle(hSlot);
 				return false;
 			}
 		}
+
+		Sleep(LOOP_INTERVAL_TIME_MONITOR);
 	}
 
 //Monitor terminated
@@ -339,12 +342,11 @@ bool FlushDNSFIFOMonitor(
 //FIFO Monitor
 	for (;;)
 	{
-		if (read(FIFO_FD, Buffer.get(), PACKET_MAXSIZE) > 0 && 
-			memcmp(Buffer.get(), FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) == EXIT_SUCCESS)
-				FlushAllDNSCache();
-
 		memset(Buffer.get(), 0, PACKET_MAXSIZE);
-		Sleep(MONITOR_LOOP_INTERVAL_TIME);
+		if (read(FIFO_FD, Buffer.get(), PACKET_MAXSIZE) > 0 && memcmp(Buffer.get(), FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) == EXIT_SUCCESS)
+			FlushAllDNSCache();
+
+		Sleep(LOOP_INTERVAL_TIME_MONITOR);
 	}
 
 //Monitor terminated

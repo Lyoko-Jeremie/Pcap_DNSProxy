@@ -1,8 +1,8 @@
 ﻿[Local Hosts]
 ## China mainland domains
 ## Get the latest database: https://github.com/xinhugo/Free-List/blob/master/WhiteList.txt
-## Report an issue: https://github.com/xinhugo/Free-List/issues
-## Last update: 2015-07-28
+## Last update: 2015-09-25
+## Report an Issue: https://github.com/xinhugo/Free-List/issues
 
 .*\.cn
 .*\b0056\.cc
@@ -888,6 +888,7 @@
 .*\bblued\.us
 .*\bblueidea\.com
 .*\bbluekai\.com
+.*\bbluereader\.org
 .*\bblueskystudy\.com
 .*\bblufans\.com
 .*\bblyun\.com
@@ -1346,7 +1347,6 @@
 .*\bdj97\.com
 .*\bdjtz\.net
 .*\bdkdiy\.net
-.*\bdl\.google\.com
 .*\bdlmdj\.com
 .*\bdm08\.com
 .*\bdm5\.com
@@ -1436,6 +1436,7 @@
 .*\bdzwww\.net
 .*\be0575\.com
 .*\be3ol\.com
+.*\beach\.fm
 .*\beacha\.com
 .*\beapoo\.com
 .*\beapoo\.net
@@ -2467,6 +2468,7 @@
 .*\blandtu\.com
 .*\blangxi\.org
 .*\blangyeweb\.com
+.*\blanke\.cc
 .*\blanou3g\.com
 .*\blanree\.com
 .*\blanrenzhijia\.com
@@ -4455,6 +4457,7 @@
 .*\bzhenren\.com
 .*\bzhezhixueyuan\.com
 .*\bzhi\.hu
+.*\bzhibimo\.com
 .*\bzhibo8\.cc
 .*\bzhihu\.com
 .*\bzhijinwang\.com

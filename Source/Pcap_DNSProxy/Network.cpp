@@ -314,10 +314,10 @@ SSIZE_T __fastcall SocketSelecting(
 	Timeout->tv_usec = Parameter.SocketTimeout_Reliable.tv_usec;
 #endif
 
-//Send request and receive result.
+//Selecting process
 	for (;;)
 	{
-		Sleep(LOOP_INTERVAL_TIME);
+		Sleep(LOOP_INTERVAL_TIME_NO_DELAY);
 
 	//Socket check(Part 2)
 		for (auto SocketDataIter = SocketDataList.begin();SocketDataIter != SocketDataList.end();++SocketDataIter)
@@ -369,7 +369,7 @@ SSIZE_T __fastcall SocketSelecting(
 			}
 		}
 
-	//Send process only
+	//Send request only
 		if (OriginalRecv == nullptr)
 		{
 			for (Index = 0;Index < SocketDataList.size();++Index)
@@ -392,7 +392,7 @@ SSIZE_T __fastcall SocketSelecting(
 			for (Index = 0;Index < SocketDataList.size();++Index)
 			{
 			//Receive process
-				if (OriginalRecv != nullptr && FD_ISSET(SocketDataList.at(Index).Socket, ReadFDS.get()))
+				if (FD_ISSET(SocketDataList.at(Index).Socket, ReadFDS.get()) && OriginalRecv != nullptr)
 				{
 				//Buffer initialization
 					if (!SocketSelectingList.at(Index).RecvBuffer)
@@ -432,8 +432,17 @@ SSIZE_T __fastcall SocketSelecting(
 			//Send process
 				if (FD_ISSET(SocketDataList.at(Index).Socket, WriteFDS.get()) && !SocketSelectingList.at(Index).PacketIsSend)
 				{
-					send(SocketDataList.at(Index).Socket, OriginalSend, (int)SendSize, 0);
-					SocketSelectingList.at(Index).PacketIsSend = true;
+					if (send(SocketDataList.at(Index).Socket, OriginalSend, (int)SendSize, 0) <= EXIT_SUCCESS)
+					{
+						shutdown(SocketDataList.at(Index).Socket, SD_BOTH);
+						closesocket(SocketDataList.at(Index).Socket);
+						SocketDataList.at(Index).Socket = 0;
+						SocketSelectingList.at(Index).RecvBuffer.reset();
+						SocketSelectingList.at(Index).Length = 0;
+					}
+					else {
+						SocketSelectingList.at(Index).PacketIsSend = true;
+					}
 				}
 			}
 		}
@@ -790,7 +799,7 @@ bool __fastcall DomainTestRequest(
 
 		//Jump here to start.
 		JumpToRetest:
-			Sleep(SENDING_INTERVAL_TIME * SECOND_TO_MILLISECOND);
+			Sleep(SENDING_INTERVAL_TIME);
 			continue;
 		}
 		else {
@@ -818,9 +827,9 @@ bool __fastcall DomainTestRequest(
 				}
 			}
 
-		//Send and repeat.
+		//Send process
 			UDPRequestMulti(Buffer.get(), (int)DataLength, nullptr, 0);
-			Sleep(SENDING_INTERVAL_TIME * SECOND_TO_MILLISECOND);
+			Sleep(SENDING_INTERVAL_TIME);
 			++Times;
 		}
 	}
@@ -1095,15 +1104,15 @@ bool __fastcall ICMPTestRequest(
 			continue;
 
 		//Jump here to start.
-		JumpToRetest: 
-			Sleep(SENDING_INTERVAL_TIME * SECOND_TO_MILLISECOND);
+		JumpToRetest:
+			Sleep(SENDING_INTERVAL_TIME);
 			continue;
 		}
 
-	//Send request.
+	//Send process
 		for (auto SocketDataIter:ICMPSocketData)
 		{
-			for (Index = 0; Index < Parameter.MultiRequestTimes; ++Index)
+			for (Index = 0;Index < Parameter.MultiRequestTimes;++Index)
 				sendto(SocketDataIter.Socket, Buffer.get(), (int)Length, 0, (PSOCKADDR)&SocketDataIter.SockAddr, SocketDataIter.AddrLen);
 
 		//Increase Sequence.
@@ -1145,7 +1154,7 @@ bool __fastcall ICMPTestRequest(
 		}
 
 	//Repeat.
-		Sleep(SENDING_INTERVAL_TIME * SECOND_TO_MILLISECOND);
+		Sleep(SENDING_INTERVAL_TIME);
 		++Times;
 	}
 

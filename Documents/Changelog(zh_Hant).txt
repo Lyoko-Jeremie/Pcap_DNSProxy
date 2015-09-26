@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy v0.4.3.1-0.4.3.6 更新日誌(2015-09-23)：
+﻿Pcap_DNSProxy v0.4.3.1-0.4.4 更新日誌(2015-09-26)：
 
 * 添加 Client Ephemeral Key 一次性用戶端金鑰組功能，增強 DNSCurve 協定傳輸資料的安全性 [DNSCrypt]
 * 添加對設定檔部分參數的自動刷新功能，具體受支援的參數參見說明文檔 [jedisct1/icylogic]
@@ -9,6 +9,8 @@
 * 添加對 BIND 9.2.0 之後版本清除 DNS 緩存的命令 (Linux) [hongyi-zhao]
 * 修正 Local Main 模式生效時對 Local Hosts 清單的讀取策略 [c1024/gaoyan1234]
 * 修正 Receive Waiting 參數的含義以及對請求行為的影響
+* 修正 Local Hosts 參數啟用時解析功能變數名稱的流程，提高已緩存解析結果的解析速度 [hongyi-zhao]
+* 修正對並行請求的數量限制
 * 修復部分參數讀取使用網路層服務名/DNS記錄名稱代替數位時的錯誤
 * 修復多執行緒模式下伺服器連接失敗時無法切換的問題
 * 修復 TCP 協定請求時可能造成的分片問題
@@ -18,6 +20,7 @@
 * 修復啟用 TCP 協定時 Local 請求造成程式崩潰的問題 (Linux/Mac)
 * 修復 Additional Path 參數讀取不完全的問題 (Linux/Mac)
 * 修復不啟用 TCP Fast Open 時發送請求可能會出現的問題 (Linux)
+* 修復重新讀取 IPFilter 和 Hosts 檔時的順序問題
 * 修復部分情況下不輸出 Error.log 檔的錯誤 (Linux/Mac) [hongyi-zhao]
 * 移除清除 DNS 緩存失敗時錯誤訊息的輸出，此消息對運行沒有影響 [Syrone Wong]
 

@@ -473,7 +473,7 @@ bool __fastcall UDPMonitor(
 //Listening module
 	for (;;)
 	{
-		Sleep(LOOP_INTERVAL_TIME);
+		Sleep(LOOP_INTERVAL_TIME_NO_DELAY);
 
 	//Interval time between receive
 		if (Parameter.QueueResetTime > 0 && Index + 1U == Parameter.BufferQueueSize)
@@ -513,38 +513,52 @@ bool __fastcall UDPMonitor(
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		SelectResult = select(ClientData->Socket + 1U, ReadFDS.get(), nullptr, nullptr, Timeout.get());
 	#endif
-		if (SelectResult > 0 && FD_ISSET(ClientData->Socket, ReadFDS.get()))
+		if (SelectResult > 0)
 		{
-		//Receive request and check DNS query data.
-			if (Parameter.EDNS_Label) //EDNS Label
-				RecvLen = recvfrom(ClientData->Socket, RecvBuffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0, (PSOCKADDR)&ClientData->SockAddr, (socklen_t *)&ClientData->AddrLen);
-			else 
-				RecvLen = recvfrom(ClientData->Socket, RecvBuffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE, 0, (PSOCKADDR)&ClientData->SockAddr, (socklen_t *)&ClientData->AddrLen);
-			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+			if (FD_ISSET(ClientData->Socket, ReadFDS.get()))
 			{
-				continue;
-			}
-			else {
-				RecvLen = CheckQueryData(RecvBuffer.get() + PACKET_MAXSIZE * Index, SendBuffer.get(), RecvLen, *ClientData, IPPROTO_UDP, &IsLocal);
+			//Receive response and check DNS query data.
+				if (Parameter.EDNS_Label) //EDNS Label
+					RecvLen = recvfrom(ClientData->Socket, RecvBuffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0, (PSOCKADDR)&ClientData->SockAddr, (socklen_t *)&ClientData->AddrLen);
+				else 
+					RecvLen = recvfrom(ClientData->Socket, RecvBuffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE, 0, (PSOCKADDR)&ClientData->SockAddr, (socklen_t *)&ClientData->AddrLen);
 				if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+				{
 					continue;
-			}
+				}
+				else {
+					RecvLen = CheckQueryData(RecvBuffer.get() + PACKET_MAXSIZE * Index, SendBuffer.get(), RecvLen, *ClientData, IPPROTO_UDP, &IsLocal);
+					if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+						continue;
+				}
 
-		//Request process
-			if (ClientData->AddrLen == sizeof(sockaddr_in6)) //IPv6
-			{
-				std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, *ClientData, IPPROTO_UDP, IsLocal);
-				RequestProcessThread.detach();
-			}
-			else { //IPv4
-				std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, *ClientData, IPPROTO_UDP, IsLocal);
-				RequestProcessThread.detach();
-			}
+			//Request process
+				if (ClientData->AddrLen == sizeof(sockaddr_in6)) //IPv6
+				{
+					std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, *ClientData, IPPROTO_UDP, IsLocal);
+					RequestProcessThread.detach();
+				}
+				else { //IPv4
+					std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, *ClientData, IPPROTO_UDP, IsLocal);
+					RequestProcessThread.detach();
+				}
 
-			Index = (Index + 1U) % Parameter.BufferQueueSize;
+				Index = (Index + 1U) % Parameter.BufferQueueSize;
+			}
 		}
-	//Timeout or SOCKET_ERROR
+	//Timeout
+		else if (SelectResult == 0)
+		{
+			continue;
+		}
+	//SOCKET_ERROR
 		else {
+			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
+				PrintError(LOG_ERROR_NETWORK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+			else //IPv4
+				PrintError(LOG_ERROR_NETWORK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+
+			Sleep(LOOP_INTERVAL_TIME_MONITOR);
 			continue;
 		}
 	}
@@ -624,7 +638,7 @@ bool __fastcall TCPMonitor(
 //Start Monitor.
 	for (;;)
 	{
-		Sleep(LOOP_INTERVAL_TIME);
+		Sleep(LOOP_INTERVAL_TIME_NO_DELAY);
 
 	//Interval time between receive
 		if (Parameter.QueueResetTime > 0 && Index + 1U == Parameter.BufferQueueSize)
@@ -664,26 +678,40 @@ bool __fastcall TCPMonitor(
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		SelectResult = select(LocalSocketData.Socket + 1U, ReadFDS.get(), nullptr, nullptr, Timeout.get());
 	#endif
-		if (SelectResult > 0 && FD_ISSET(LocalSocketData.Socket, ReadFDS.get()))
+		if (SelectResult > 0)
 		{
-		//Accept connection and check address.
-			ClientData->Socket = accept(LocalSocketData.Socket, (PSOCKADDR)&ClientData->SockAddr, &ClientData->AddrLen);
-			if (ClientData->Socket == INVALID_SOCKET)
-				continue;
-			if (CheckQueryData(nullptr, nullptr, 0, *ClientData, 0, nullptr) != EXIT_SUCCESS)
+			if (FD_ISSET(LocalSocketData.Socket, ReadFDS.get()))
 			{
-				shutdown(ClientData->Socket, SD_BOTH);
-				closesocket(ClientData->Socket);
-				continue;
-			}
+			//Accept connection and check address.
+				ClientData->Socket = accept(LocalSocketData.Socket, (PSOCKADDR)&ClientData->SockAddr, &ClientData->AddrLen);
+				if (ClientData->Socket == INVALID_SOCKET)
+					continue;
+				if (CheckQueryData(nullptr, nullptr, 0, *ClientData, 0, nullptr) != EXIT_SUCCESS)
+				{
+					shutdown(ClientData->Socket, SD_BOTH);
+					closesocket(ClientData->Socket);
+					continue;
+				}
 
-		//Accept process.
-			std::thread TCPReceiveThread(TCPReceiveProcess, *ClientData);
-			TCPReceiveThread.detach();
-			Index = (Index + 1U) % Parameter.BufferQueueSize;
+			//Accept process.
+				std::thread TCPReceiveThread(TCPReceiveProcess, *ClientData);
+				TCPReceiveThread.detach();
+				Index = (Index + 1U) % Parameter.BufferQueueSize;
+			}
 		}
-	//Timeout or SOCKET_ERROR
+	//Timeout
+		else if (SelectResult == 0)
+		{
+			continue;
+		}
+	//SOCKET_ERROR
 		else {
+			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
+				PrintError(LOG_ERROR_NETWORK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+			else //IPv4
+				PrintError(LOG_ERROR_NETWORK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+
+			Sleep(LOOP_INTERVAL_TIME_MONITOR);
 			continue;
 		}
 	}
@@ -695,7 +723,7 @@ bool __fastcall TCPMonitor(
 	return true;
 }
 
-//TCP protocol receive process
+//TCP Monitor receive process
 bool __fastcall TCPReceiveProcess(
 	const SOCKET_DATA LocalSocketData)
 {
@@ -899,7 +927,7 @@ void __fastcall AlternateServerMonitor(
 			}
 		}
 
-		Sleep(MONITOR_LOOP_INTERVAL_TIME);
+		Sleep(LOOP_INTERVAL_TIME_MONITOR);
 	}
 
 //Monitor terminated

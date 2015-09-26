@@ -537,10 +537,7 @@ bool __fastcall ReadParameter(
 				{
 				//Check all configuration files.
 					if (FileIndex + 1U == FileList_Config.size())
-					{
 						PrintError(LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
-						continue;
-					}
 
 					continue;
 				}
@@ -679,11 +676,9 @@ bool __fastcall ReadParameter(
 				}
 			}
 
-		//Copy to using list, flush DNS cache and Auto-refresh
+		//Flush DNS cache and Auto-refresh
 			if (IsFileModified)
-			{
 				FlushAllDNSCache();
-			}
 
 			Sleep(Parameter.FileRefreshTime);
 		}
@@ -722,7 +717,7 @@ void __fastcall ReadIPFilter(
 
 //Initialization
 	FILE *Input = nullptr;
-	auto IsFileModified = false, IsLocalServerPrint = false;
+	auto IsFileModified = false;
 #if defined(PLATFORM_WIN)
 	std::shared_ptr<LARGE_INTEGER> File_LARGE_INTEGER(new LARGE_INTEGER());
 	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
@@ -865,57 +860,12 @@ void __fastcall ReadIPFilter(
 		}
 
 	//Copy to using list.
+		std::sort(IPFilterFileSetModificating->begin(), IPFilterFileSetModificating->end(), SortCompare_IPFilter);
 		IPFilterFileMutex.lock();
 		*IPFilterFileSetUsing = *IPFilterFileSetModificating;
 		IPFilterFileSetUsing->shrink_to_fit();
 		IPFilterFileMutex.unlock();
 		IPFilterFileSetModificating->shrink_to_fit();
-
-	//Check local routing of local servers.
-		if (!IsLocalServerPrint)
-		{
-		//Check local routing list(IPv6).
-			for (auto IPFilterFileSetIter:*IPFilterFileSetModificating)
-			{
-				if (!IPFilterFileSetIter.LocalRoutingList_IPv6.empty())
-				{
-					IsLocalServerPrint = true;
-					break;
-				}
-			}
-
-		//Check local servers(IPv6).
-			if (IsLocalServerPrint)
-			{
-				if (Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && !CheckAddressRouting(&Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr, AF_INET6))
-					PrintError(LOG_MESSAGE_NOTICE, L"Address of IPv6 Main Local Server is not in Local Routing list", 0, nullptr, 0);
-				if (Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 && !CheckAddressRouting(&Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr, AF_INET6))
-					PrintError(LOG_MESSAGE_NOTICE, L"Address of IPv6 Alternate Local Server is not in Local Routing list", 0, nullptr, 0);
-			}
-
-			IsLocalServerPrint = false;
-
-		//Check local routing list(IPv4).
-			for (auto IPFilterFileSetIter:*IPFilterFileSetModificating)
-			{
-				if (!IPFilterFileSetIter.LocalRoutingList_IPv4.empty())
-				{
-					IsLocalServerPrint = true;
-					break;
-				}
-			}
-
-		//Check local servers(IPv4).
-			if (IsLocalServerPrint)
-			{
-				if (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 && !CheckAddressRouting(&Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr, AF_INET))
-					PrintError(LOG_MESSAGE_NOTICE, L"Address of IPv4 Main Local Server is not in Local Routing list", 0, nullptr, 0);
-				if (Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0 && !CheckAddressRouting(&Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr, AF_INET))
-					PrintError(LOG_MESSAGE_NOTICE, L"Address of IPv4 Alternate Local Server is not in Local Routing list", 0, nullptr, 0);
-			}
-
-			IsLocalServerPrint = true;
-		}
 
 	//Flush DNS cache and Auto-refresh
 		FlushAllDNSCache();
@@ -1098,6 +1048,7 @@ void __fastcall ReadHosts(
 		}
 
 	//Copy to using list.
+		std::sort(HostsFileSetModificating->begin(), HostsFileSetModificating->end(), SortCompare_Hosts);
 		HostsFileMutex.lock();
 		*HostsFileSetUsing = *HostsFileSetModificating;
 		HostsFileSetUsing->shrink_to_fit();

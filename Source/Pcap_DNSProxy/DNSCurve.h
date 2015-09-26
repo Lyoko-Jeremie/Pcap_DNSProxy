@@ -33,11 +33,13 @@ SSIZE_T __fastcall DNSCurvePaddingData(
 	const bool SetPadding, 
 	PSTR Buffer, 
 	const SSIZE_T Length);
+/* Signature request of DNSCurve protocol must send to target server.
 size_t __fastcall DNSCurveSignatureRequest(
 	const char *OriginalSend, 
 	const size_t SendSize, 
 	PSTR OriginalRecv, 
 	const size_t RecvSize);
+*/
 size_t __fastcall DNSCurveSelectTargetSocket(
 	SOCKET_DATA *TargetSocketData, 
 	PDNSCURVE_SERVER_DATA &PacketTarget, 

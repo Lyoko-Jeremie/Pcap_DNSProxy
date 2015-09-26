@@ -114,14 +114,6 @@ bool __fastcall ParameterCheckAndSetting(
 				Parameter.DNSTarget.IPv6_Multi->erase(Parameter.DNSTarget.IPv6_Multi->begin());
 			}
 
-		//Multi select mode check
-			if (Parameter.DNSTarget.IPv6_Multi->size() + 2U > FD_SETSIZE || //UDP requesting
-				Parameter.RequestMode_Transport == REQUEST_MODE_TCP && (Parameter.DNSTarget.IPv6_Multi->size() + 2U) * Parameter.MultiRequestTimes > FD_SETSIZE) //TCP requesting
-			{
-				PrintError(LOG_ERROR_PARAMETER, L"Too many multi addresses", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-				return false;
-			}
-
 		//Multi DNS Server check
 			if (Parameter.DNSTarget.IPv6_Multi->empty())
 			{
@@ -164,14 +156,6 @@ bool __fastcall ParameterCheckAndSetting(
 				Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL = TTLTemp;
 			#endif
 				Parameter.DNSTarget.IPv4_Multi->erase(Parameter.DNSTarget.IPv4_Multi->begin());
-			}
-
-		//Multi select mode check
-			if (Parameter.DNSTarget.IPv4_Multi->size() + 2U > FD_SETSIZE || //UDP requesting
-				Parameter.RequestMode_Transport == REQUEST_MODE_TCP && (Parameter.DNSTarget.IPv4_Multi->size() + 2U) * Parameter.MultiRequestTimes > FD_SETSIZE) //TCP requesting
-			{
-				PrintError(LOG_ERROR_PARAMETER, L"Too many multi addresses", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-				return false;
 			}
 
 		//Multi DNS Server check
@@ -323,18 +307,23 @@ bool __fastcall ParameterCheckAndSetting(
 		#endif
 			)
 		{
-			PrintError(LOG_ERROR_PARAMETER, L"Alternate Multi requesting error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+			PrintError(LOG_ERROR_PARAMETER, L"Alternate Multi request error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
 		}
 	}
-	if (ParameterPTR->MultiRequestTimes > MULTI_REQUEST_TIMES_MAXNUM)
+	if (ParameterPTR->MultiRequestTimes < 1U)
+		++ParameterPTR->MultiRequestTimes;
+	if (Parameter.DNSTarget.IPv4_Multi != nullptr && (Parameter.DNSTarget.IPv4_Multi->size() + 2U) * ParameterPTR->MultiRequestTimes > MULTI_REQUEST_MAXNUM || 
+		Parameter.DNSTarget.IPv4_Multi == nullptr && ParameterPTR->MultiRequestTimes * 2U > MULTI_REQUEST_MAXNUM)
 	{
-		PrintError(LOG_ERROR_PARAMETER, L"Multi requesting times error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+		PrintError(LOG_ERROR_PARAMETER, L"IPv4 total request number error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
 	}
-	else if (ParameterPTR->MultiRequestTimes < 1U)
+	if (Parameter.DNSTarget.IPv6_Multi != nullptr && (Parameter.DNSTarget.IPv6_Multi->size() + 2U) * ParameterPTR->MultiRequestTimes > MULTI_REQUEST_MAXNUM || 
+		Parameter.DNSTarget.IPv6_Multi == nullptr && ParameterPTR->MultiRequestTimes * 2U > MULTI_REQUEST_MAXNUM)
 	{
-		ParameterPTR->MultiRequestTimes = 1U;
+		PrintError(LOG_ERROR_PARAMETER, L"IPv6 total request number error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+		return false;
 	}
 
 //Set values before check
@@ -2110,7 +2099,7 @@ bool __fastcall ReadParameterData(
 		{
 			Result = strtoul(Data.c_str() + strlen("MultiRequestTimes="), nullptr, 0);
 			if (errno != ERANGE && Result > 0)
-				ParameterPTR->MultiRequestTimes = Result + 1U;
+				ParameterPTR->MultiRequestTimes = Result;
 		}
 		else {
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);

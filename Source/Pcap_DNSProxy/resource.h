@@ -32,7 +32,8 @@
 #endif
 #endif
 
+
 //Resource including and defining
-#define FULL_VERSION        L"0.4.3.6"
-#define DETACH_VERSION      0,4,3,6
+#define FULL_VERSION        L"0.4.4.0"
+#define DETACH_VERSION      0,4,4,0
 #define COPYRIGHT_MESSAGE   L"Copyright (C) 2012-2015 Chengr28"

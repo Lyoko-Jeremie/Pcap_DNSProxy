@@ -50,7 +50,7 @@ void __fastcall CaptureInit(
 			}
 
 			memset(ErrBuffer.get(), 0, PCAP_ERRBUF_SIZE);
-			Sleep(MONITOR_LOOP_INTERVAL_TIME);
+			Sleep(LOOP_INTERVAL_TIME_MONITOR);
 			continue;
 		}
 
@@ -62,7 +62,7 @@ void __fastcall CaptureInit(
 			else 
 				PrintError(LOG_ERROR_PCAP, L"Insufficient privileges or not any available network devices", 0, nullptr, 0);
 
-			Sleep(MONITOR_LOOP_INTERVAL_TIME);
+			Sleep(LOOP_INTERVAL_TIME_MONITOR);
 			continue;
 		}
 		else {
@@ -76,9 +76,10 @@ void __fastcall CaptureInit(
 				pDrive = pThedevs;
 
 			//Scan all devices.
+				CaptureMutex.lock();
 				while (pDrive != nullptr)
 				{
-					CaptureMutex.lock();
+					
 					for (CaptureIter = PcapRunningList.begin();CaptureIter != PcapRunningList.end();++CaptureIter)
 					{
 						if (*CaptureIter == pDrive->name)
@@ -93,13 +94,15 @@ void __fastcall CaptureInit(
 							break;
 						}
 					}
-					CaptureMutex.unlock();
+					
 					pDrive = pDrive->next;
 				}
+
+				CaptureMutex.unlock();
 			}
 		}
 
-		Sleep(MONITOR_LOOP_INTERVAL_TIME);
+		Sleep(LOOP_INTERVAL_TIME_MONITOR);
 		pcap_freealldevs(pThedevs);
 	}
 
@@ -453,7 +456,7 @@ DevicesNotSkip:
 			return false;
 		}
 		else {
-			Sleep(MONITOR_LOOP_INTERVAL_TIME);
+			Sleep(LOOP_INTERVAL_TIME_MONITOR);
 			continue;
 		}
 	}
@@ -870,7 +873,7 @@ bool __fastcall MatchPortToSend(
 	goto ClearOutputPacketListData;
 
 //Jump here to stop loop, wait receiving and match port again.
-StopLoop: 
+StopLoop:
 	Sleep(Parameter.ReceiveWaiting);
 	OutputPacketListLock.lock();
 	for (auto &PortTableIter:OutputPacketList)

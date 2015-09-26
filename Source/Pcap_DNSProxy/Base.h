@@ -104,8 +104,8 @@
 
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE   0.3
-#define CONFIG_VERSION               0.4                                   //Current configuration version
-#define FULL_VERSION                 L"0.4.3.6"
+#define CONFIG_VERSION               0.4                         //Current configuration version
+#define FULL_VERSION                 L"0.4.4.0"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2015 Chengr28"
 
 //Exit code definitions
@@ -139,7 +139,7 @@
 	#define ICMP_STRING_START_NUM_MAC      8U
 	#define ICMP_PADDING_LENGTH_MAC        48U
 #endif
-#define MULTI_REQUEST_TIMES_MAXNUM        8U                                                                              //Maximum times of multi requesting.
+#define MULTI_REQUEST_MAXNUM              64U                                                                             //Maximum number of multi request.
 #define NETWORK_LAYER_PARTNUM             2U                                                                              //Number of network layer protocols(IPv6 and IPv4)
 #define TRANSPORT_LAYER_PARTNUM           4U                                                                              //Number of transport layer protocols(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
 #define ALTERNATE_SERVERNUM               12U                                                                             //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
@@ -175,18 +175,17 @@
 #define CHECKSUM_SUCCESS                      0          //Result of getting correct checksum.
 #define DYNAMIC_MIN_PORT                      1024U      //Well-known port is from 1 to 1023.
 
-//Time definitions
-#define LOOP_MAX_TIMES                     8U        //Maximum of loop times, 8 times
-#define LOOP_INTERVAL_TIME                 10U       //Loop interval time, 10 ms
-#define STANDARD_TIMEOUT                   1000U     //Standard timeout, 1000 ms(1 second)
-#define MONITOR_LOOP_INTERVAL_TIME         10000U    //Monitor loop interval time, 10000 ms(10 seconds)
+//Time(s) definitions
 #define SECOND_TO_MILLISECOND              1000U     //1000 milliseconds(1 second)
 #define MICROSECOND_TO_MILLISECOND         1000U     //1000 microseconds(1 millisecond)
+#define STANDARD_TIMEOUT                   1000U     //Standard timeout, 1000 ms(1 second)
+#define LOOP_MAX_TIMES                     16U       //Maximum of loop times, 8 times
+#define LOOP_INTERVAL_TIME_NO_DELAY        10U       //Loop interval time(No delay), 10 ms
+#define LOOP_INTERVAL_TIME_MONITOR         10000U    //Loop interval time(Monitor mode), 10000 ms(10 seconds)
 #if defined(PLATFORM_WIN)
-	#define UPDATE_SERVICE_TIME                3U        //Update service timeout, 3 seconds
+	#define UPDATE_SERVICE_TIME                3000U     //Update service timeout, 3000 ms(3 seconds)
 #endif
 #if defined(ENABLE_PCAP)
-//	#define PCAP_DEVICES_RECHECK_TIME          10U       //Time between every WinPcap/LibPcap devices recheck, 10 seconds
 	#define PCAP_CAPTURE_MIN_TIMEOUT           10U       //Minimum Pcap Capture reading timeout, 10 ms
 	#define DEFAULT_PCAP_CAPTURE_TIMEOUT       200U      //Default Pcap Capture reading timeout, 200 ms
 #endif
@@ -198,7 +197,7 @@
 	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT     3U        //Default timeout of reliable sockets(Such as TCP, 3 seconds)
 	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT   2U        //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds)
 #endif
-#define DEFAULT_FILEREFRESH_TIME           10U       //Default time between files auto-refreshing, 10 seconds
+#define DEFAULT_FILEREFRESH_TIME           10000U    //Default time between files auto-refreshing, 10000 ms(10 seconds)
 #define DEFAULT_ICMPTEST_TIME              5U        //Default time between ICMP Test, 5 seconds
 #define DEFAULT_DOMAINTEST_INTERVAL_TIME   900U      //Default Domain Test time between every sending, 15 minutes(900 seconds)
 #define DEFAULT_ALTERNATE_TIMES            5U        //Default times of requesting timeout, 5 times
@@ -206,7 +205,7 @@
 #define DEFAULT_ALTERNATE_RESET_TIME       180U      //Default time to reset switching of alternate servers, 180 seconds
 #define DEFAULT_HOSTS_TTL                  900U      //Default Hosts DNS TTL, 15 minutes(900 seconds)
 #define SHORTEST_FILEREFRESH_TIME          5U        //The shortset time between files auto-refreshing, 5 seconds
-#define SENDING_INTERVAL_TIME              5U        //Time between every sending, 5 seconds
+#define SENDING_INTERVAL_TIME              5000U     //Time between every sending, 5000 ms(5 seconds)
 #define SENDING_ONCE_INTERVAL_TIMES        3U        //Repeat 3 times between every sending.
 #if defined(ENABLE_LIBSODIUM)
 	#define DEFAULT_DNSCURVE_RECHECK_TIME      1800U     //Default DNSCurve keys recheck time, 1800 seconds
@@ -229,7 +228,7 @@
 	#define MAILSLOT_NAME                         L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot"                                                                                                    //MailSlot name
 	#define MAILSLOT_MESSAGE_FLUSH_DNS            L"Flush DNS cache of Pcap_DNSProxy."                                                                                                          //The mailslot message to flush dns cache
 	#define SYSTEM_SERVICE_NAME                   L"PcapDNSProxyService"                                                                                                                        //System service name
-	#define DEFAULT_PADDING_DATA                  ("abcdefghijklmnopqrstuvwabcdefghi")                                                                                                          //ICMP padding data on Windows
+	#define DEFAULT_ICMP_PADDING_DATA             ("abcdefghijklmnopqrstuvwabcdefghi")                                                                                                          //ICMP padding data on Windows
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define CONFIG_FILE_NAME_LIST                 L"Config.conf", L"Config.ini", L"Config.cfg", L"Config"
 	#define CONFIG_FILE_NAME_LIST_STRING          "Config.conf", "Config.ini", "Config.cfg", "Config"
@@ -306,10 +305,10 @@
 #define REQUEST_MODE_IPV4                     2U
 #define REQUEST_MODE_UDP                      0
 #define REQUEST_MODE_TCP                      1U
-#define HOSTS_TYPE_NORMAL                     0
-#define HOSTS_TYPE_WHITE                      1U
-#define HOSTS_TYPE_LOCAL                      2U
-#define HOSTS_TYPE_BANNED                     3U
+#define HOSTS_TYPE_NORMAL                     1U
+#define HOSTS_TYPE_WHITE                      2U
+#define HOSTS_TYPE_LOCAL                      3U
+#define HOSTS_TYPE_BANNED                     4U
 #define CACHE_TYPE_TIMER                      1U
 #define CACHE_TYPE_QUEUE                      2U
 #define SOCKET_SETTING_INVALID_CHECK          0
@@ -842,6 +841,12 @@ BOOL WINAPI IsGreaterThanVista(
 BOOL WINAPI GetFunctionPointer(
 	const size_t FunctionType);
 #endif
+bool __fastcall SortCompare_IPFilter(
+	const DIFFERNET_IPFILTER_FILE_SET &Begin, 
+	const DIFFERNET_IPFILTER_FILE_SET &End);
+bool __fastcall SortCompare_Hosts(
+	const DIFFERNET_HOSTS_FILE_SET &Begin, 
+	const DIFFERNET_HOSTS_FILE_SET &End);
 
 //PrintLog.h
 bool __fastcall PrintError(

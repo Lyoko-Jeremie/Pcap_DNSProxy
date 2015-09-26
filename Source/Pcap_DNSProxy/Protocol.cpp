@@ -512,7 +512,7 @@ bool __fastcall CheckSpecialAddress(
 	}
 
 //Jump here to stop loop.
-	StopLoop: 
+StopLoop:
 	return false;
 }
 

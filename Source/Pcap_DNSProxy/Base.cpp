@@ -260,3 +260,19 @@ BOOL WINAPI GetFunctionPointer(
 	return FALSE;
 }
 #endif
+
+//Sort compare(IPFilter)
+bool __fastcall SortCompare_IPFilter(
+	const DIFFERNET_IPFILTER_FILE_SET &Begin, 
+	const DIFFERNET_IPFILTER_FILE_SET &End)
+{
+	return Begin.FileIndex < End.FileIndex;
+}
+
+//Sort compare(Hosts)
+bool __fastcall SortCompare_Hosts(
+	const DIFFERNET_HOSTS_FILE_SET &Begin, 
+	const DIFFERNET_HOSTS_FILE_SET &End)
+{
+	return Begin.FileIndex < End.FileIndex;
+}

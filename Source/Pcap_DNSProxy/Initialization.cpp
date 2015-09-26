@@ -112,7 +112,7 @@ void __fastcall ConfigurationTableSetting(
 	memset(ConfigurationParameter->SOCKS_Password, 0, SOCKS5_USERNAME_PASSWORD_MAXNUM + 1U);
 
 //Default values
-	ConfigurationParameter->FileRefreshTime = DEFAULT_FILEREFRESH_TIME * SECOND_TO_MILLISECOND;
+	ConfigurationParameter->FileRefreshTime = DEFAULT_FILEREFRESH_TIME;
 	ConfigurationParameter->LogMaxSize = DEFAULT_LOG_MAXSIZE;
 #if defined(ENABLE_PCAP)
 	ConfigurationParameter->PcapReadingTimeout = DEFAULT_PCAP_CAPTURE_TIMEOUT;
@@ -143,8 +143,8 @@ void __fastcall ConfigurationTableSetting(
 		ConfigurationParameter->DomainTest_ID = htons((uint16_t)GetCurrentProcessId()); //Default DNS ID is current process ID.
 	#endif
 	#if defined(PLATFORM_WIN)
-		ConfigurationParameter->ICMP_PaddingLength = strlen(DEFAULT_PADDING_DATA);
-		memcpy_s(ConfigurationParameter->ICMP_PaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_PADDING_DATA, ConfigurationParameter->ICMP_PaddingLength); //Load default padding data.
+		ConfigurationParameter->ICMP_PaddingLength = strlen(DEFAULT_ICMP_PADDING_DATA);
+		memcpy_s(ConfigurationParameter->ICMP_PaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_ICMP_PADDING_DATA, ConfigurationParameter->ICMP_PaddingLength); //Load default padding data.
 	#elif defined(PLATFORM_LINUX)
 		size_t CharData = ICMP_STRING_START_NUM_LINUX;
 		for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_LINUX;++Index, ++CharData)
@@ -326,7 +326,7 @@ void ConfigurationTable::MonitorItemReset(
 {
 //[Base] block
 	Version = 0;
-	FileRefreshTime = DEFAULT_FILEREFRESH_TIME * SECOND_TO_MILLISECOND;
+	FileRefreshTime = DEFAULT_FILEREFRESH_TIME;
 
 //[Log] block
 	PrintError = true;

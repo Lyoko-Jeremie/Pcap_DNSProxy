@@ -190,7 +190,7 @@
 #include <mutex>                   //Mutex lock support
 #include <random>                  //Random-number generator support
 //#include <functional>              //Function object support
-//#include <algorithm>               //Algorithm support
+#include <algorithm>               //Algorithm support
 
 #if defined(PLATFORM_WIN)
 //LibSodium header
