@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy v0.4.3.1-0.4.4 更新日志(2015-09-26)：
+﻿Pcap_DNSProxy v0.4.3.1-0.4.4 更新日志(2015-09-27)：
 
 * 添加 Client Ephemeral Key 一次性客户端密钥对功能，增强 DNSCurve 协议传输数据的安全性 [DNSCrypt]
 * 添加对配置文件部分参数的自动刷新功能，具体受支持的参数参见说明文档 [jedisct1/icylogic]
