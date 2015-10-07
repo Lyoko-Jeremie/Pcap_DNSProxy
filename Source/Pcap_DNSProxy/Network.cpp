@@ -387,7 +387,7 @@ SSIZE_T __fastcall SocketSelecting(
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		SelectResult = select(MaxSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, Timeout.get());
 	#endif
-		if (SelectResult > 0)
+		if (SelectResult > EXIT_SUCCESS)
 		{
 			for (Index = 0;Index < SocketDataList.size();++Index)
 			{
@@ -447,7 +447,7 @@ SSIZE_T __fastcall SocketSelecting(
 			}
 		}
 	//Timeout
-		else if (SelectResult == 0)
+		else if (SelectResult == EXIT_SUCCESS)
 		{
 			if (OriginalRecv != nullptr)
 			{
@@ -518,7 +518,7 @@ SSIZE_T __fastcall SelectingResult(
 		//TCP header length check
 			if (Protocol == IPPROTO_TCP)
 			{
-				RecvLen = ntohs(((uint16_t *)SocketSelectingList.at(Index).RecvBuffer.get())[0]);
+				RecvLen = ntohs(((PUINT16)SocketSelectingList.at(Index).RecvBuffer.get())[0]);
 				if (RecvLen >(SSIZE_T)SocketSelectingList.at(Index).Length)
 				{
 					shutdown(SocketDataList.at(Index).Socket, SD_BOTH);
@@ -656,7 +656,7 @@ void __fastcall MarkPortToList(
 		OutputPacketList.push_back(*OutputPacketListTemp);
 	}
 
-//Block Port Unreachable messages of system or close the TCP requesting connections.
+//Block Port Unreachable messages of system or close the TCP request connections.
 	for (auto &SocketDataIter:SocketDataList)
 	{
 		if (SocketDataIter.Socket > 0)
@@ -859,7 +859,7 @@ bool __fastcall ICMPTestRequest(
 //ICMPv6
 	if (Protocol == AF_INET6)
 	{
-	//Make a ICMPv6 requesting echo packet.
+	//Make a ICMPv6 request echo packet.
 		ICMPv6_Header->Type = ICMPV6_TYPE_REQUEST;
 		ICMPv6_Header->Code = ICMPV6_CODE_REQUEST;
 		ICMPv6_Header->ID = Parameter.ICMP_ID;
@@ -947,7 +947,7 @@ bool __fastcall ICMPTestRequest(
 	}
 //ICMP
 	else {
-	//Make a ICMP requesting echo packet.
+	//Make a ICMP request echo packet.
 		ICMP_Header->Type = ICMP_TYPE_REQUEST;
 		ICMP_Header->Code = ICMP_CODE_REQUEST;
 		ICMP_Header->ID = Parameter.ICMP_ID;
@@ -1185,14 +1185,14 @@ bool __fastcall SelectTargetSocket(
 	else //UDP
 		SocketType = SOCK_DGRAM;
 
-//Local requesting
+//Local request
 	if (IsLocal)
 	{
 	//IPv6
-		if (Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && 
+		if (Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0 && 
 			(Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6 || //Auto select
 			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV6 || //IPv6
-			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
+			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.Local_IPv4.Storage.ss_family == 0)) //Non-IPv4
 		{
 		//TCP
 			if (Protocol == IPPROTO_TCP)
@@ -1207,15 +1207,15 @@ bool __fastcall SelectTargetSocket(
 			}
 		
 		//Alternate
-			if (IsAlternate != nullptr && *IsAlternate && Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0)
+			if (IsAlternate != nullptr && *IsAlternate && Parameter.DNSTarget.Alternate_Local_IPv6.Storage.ss_family > 0)
 			{
-				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_addr = Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr;
-				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_port = Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_port;
+				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_addr = Parameter.DNSTarget.Alternate_Local_IPv6.IPv6.sin6_addr;
+				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_port = Parameter.DNSTarget.Alternate_Local_IPv6.IPv6.sin6_port;
 			}
 		//Main
 			else {
-				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_addr = Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr;
-				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_port = Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_port;
+				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_addr = Parameter.DNSTarget.Local_IPv6.IPv6.sin6_addr;
+				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_port = Parameter.DNSTarget.Local_IPv6.IPv6.sin6_port;
 			}
 
 			TargetSocketData->SockAddr.ss_family = AF_INET6;
@@ -1223,10 +1223,10 @@ bool __fastcall SelectTargetSocket(
 			TargetSocketData->AddrLen = sizeof(sockaddr_in6);
 		}
 	//IPv4
-		else if (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 && 
+		else if (Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 && 
 			(Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
 			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV4 || //IPv4
-			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
+			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.Local_IPv6.Storage.ss_family == 0)) //Non-IPv6
 		{
 		//TCP
 			if (Protocol == IPPROTO_TCP)
@@ -1241,15 +1241,15 @@ bool __fastcall SelectTargetSocket(
 			}
 
 		//Alternate
-			if (IsAlternate != nullptr && *IsAlternate && Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0)
+			if (IsAlternate != nullptr && *IsAlternate && Parameter.DNSTarget.Alternate_Local_IPv4.Storage.ss_family > 0)
 			{
-				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_addr = Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr;
-				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_port = Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_port;
+				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_addr = Parameter.DNSTarget.Alternate_Local_IPv4.IPv4.sin_addr;
+				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_port = Parameter.DNSTarget.Alternate_Local_IPv4.IPv4.sin_port;
 			}
 		//Main
 			else {
-				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_addr = Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr;
-				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_port = Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_port;
+				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_addr = Parameter.DNSTarget.Local_IPv4.IPv4.sin_addr;
+				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_port = Parameter.DNSTarget.Local_IPv4.IPv4.sin_port;
 			}
 
 			TargetSocketData->SockAddr.ss_family = AF_INET;
@@ -1260,7 +1260,7 @@ bool __fastcall SelectTargetSocket(
 			return false;
 		}
 	}
-//Main requesting
+//Main request
 	else {
 	//IPv6
 		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 

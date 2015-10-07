@@ -64,6 +64,7 @@
 #define ASCII_AT                64                   //"@"
 #define ASCII_UPPERCASE_A       65                   //"A"
 #define ASCII_UPPERCASE_F       70                   //"F"
+#define ASCII_UPPERCASE_Z       90                   //"Z"
 #define ASCII_BRACKETS_LEAD     91                   //"["
 #define ASCII_BACKSLASH         92                   //"\"
 #define ASCII_BRACKETS_TRAIL    93                   //"]"
@@ -71,6 +72,7 @@
 #define ASCII_LOWERCASE_A       97                   //"a"
 #define ASCII_LOWERCASE_F       102                  //"f"
 #define ASCII_LOWERCASE_X       120                  //"x"
+#define ASCII_LOWERCASE_Z       122                  //"z"
 #define ASCII_BRACES_LEAD       123                  //"{"
 #define ASCII_VERTICAL          124                  //"|"
 #define ASCII_TILDE             126                  //"~"
@@ -105,7 +107,7 @@
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4                         //Current configuration version
-#define FULL_VERSION                 L"0.4.4.0"
+#define FULL_VERSION                 L"0.4.4.1"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2015 Chengr28"
 
 //Exit code definitions
@@ -147,7 +149,7 @@
 #define DOMAIN_DATA_MAXSIZE               253U                                                                            //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
 #define DOMAIN_LEVEL_DATA_MAXSIZE         63U                                                                             //Domain length is between 3 and 63(Labels must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
 #define DOMAIN_MINSIZE                    2U                                                                              //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_RAMDOM_MINSIZE             6U                                                                              //Minimum size of ramdom domain requesting
+#define DOMAIN_RAMDOM_MINSIZE             6U                                                                              //Minimum size of ramdom domain request
 #define DNS_PACKET_MINSIZE                (sizeof(dns_hdr) + 4U + sizeof(dns_qry))                                        //Minimum DNS packet size(DNS Header + Minimum Domain + DNS Query)
 #define DNS_RR_MAXCOUNT_AAAA              43U                                                                             //Maximum Record Resources size of AAAA answers, 28 bytes * 43 = 1204 bytes
 #define DNS_RR_MAXCOUNT_A                 75U                                                                             //Maximum Record Resources size of A answers, 16 bytes * 75 = 1200 bytes
@@ -176,40 +178,48 @@
 #define DYNAMIC_MIN_PORT                      1024U      //Well-known port is from 1 to 1023.
 
 //Time(s) definitions
-#define SECOND_TO_MILLISECOND              1000U     //1000 milliseconds(1 second)
-#define MICROSECOND_TO_MILLISECOND         1000U     //1000 microseconds(1 millisecond)
-#define STANDARD_TIMEOUT                   1000U     //Standard timeout, 1000 ms(1 second)
-#define LOOP_MAX_TIMES                     16U       //Maximum of loop times, 8 times
-#define LOOP_INTERVAL_TIME_NO_DELAY        10U       //Loop interval time(No delay), 10 ms
-#define LOOP_INTERVAL_TIME_MONITOR         10000U    //Loop interval time(Monitor mode), 10000 ms(10 seconds)
+#define SECOND_TO_MILLISECOND                        1000U     //1000 milliseconds(1 second)
+#define MICROSECOND_TO_MILLISECOND                   1000U     //1000 microseconds(1 millisecond)
+#define STANDARD_TIMEOUT                             1000U     //Standard timeout, 1000 ms(1 second)
+#define LOOP_MAX_TIMES                               16U       //Maximum of loop times, 8 times
+#define LOOP_INTERVAL_TIME_NO_DELAY                  10U       //Loop interval time(No delay), 10 ms
+#define LOOP_INTERVAL_TIME_MONITOR                   10000U    //Loop interval time(Monitor mode), 10000 ms(10 seconds)
 #if defined(PLATFORM_WIN)
-	#define UPDATE_SERVICE_TIME                3000U     //Update service timeout, 3000 ms(3 seconds)
+	#define UPDATE_SERVICE_TIME                      3000U     //Update service timeout, 3000 ms(3 seconds)
 #endif
 #if defined(ENABLE_PCAP)
-	#define PCAP_CAPTURE_MIN_TIMEOUT           10U       //Minimum Pcap Capture reading timeout, 10 ms
-	#define DEFAULT_PCAP_CAPTURE_TIMEOUT       200U      //Default Pcap Capture reading timeout, 200 ms
+	#define PCAP_CAPTURE_MIN_TIMEOUT                     10U       //Minimum Pcap Capture reading timeout, 10 ms
+	#define DEFAULT_PCAP_CAPTURE_TIMEOUT                 200U      //Default Pcap Capture reading timeout, 200 ms
 #endif
-#define SOCKET_MIN_TIMEOUT                 500U      //The shortest socket timeout, 500 ms
+#define SOCKET_MIN_TIMEOUT                           500U      //The shortest socket timeout, 500 ms
 #if defined(PLATFORM_WIN)
-	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT     3000U     //Default timeout of reliable sockets(Such as TCP, 3 seconds/3000ms)
-	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT   2000U     //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds/2000ms)
+	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT              3000U     //Default timeout of reliable sockets(Such as TCP, 3 seconds/3000ms)
+	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT            2000U     //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds/2000ms)
+	#define DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT        6000U     //Default timeout of SOCKS reliable sockets(Such as TCP, 6 seconds/6000ms)
+	#define DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT      3000U     //Default timeout of SOCKS unreliable sockets(Such as UDP, 3 seconds/3000ms)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT     3U        //Default timeout of reliable sockets(Such as TCP, 3 seconds)
-	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT   2U        //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds)
+	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT              3U        //Default timeout of reliable sockets(Such as TCP, 3 seconds)
+	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT            2U        //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds)
+	#define DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT        6U        //Default timeout of SOCKS reliable sockets(Such as TCP, 6 seconds)
+	#define DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT      3U        //Default timeout of SOCKS unreliable sockets(Such as UDP, 3 seconds)
 #endif
-#define DEFAULT_FILEREFRESH_TIME           10000U    //Default time between files auto-refreshing, 10000 ms(10 seconds)
-#define DEFAULT_ICMPTEST_TIME              5U        //Default time between ICMP Test, 5 seconds
-#define DEFAULT_DOMAINTEST_INTERVAL_TIME   900U      //Default Domain Test time between every sending, 15 minutes(900 seconds)
-#define DEFAULT_ALTERNATE_TIMES            5U        //Default times of requesting timeout, 5 times
-#define DEFAULT_ALTERNATE_RANGE            10U       //Default time of checking timeout, 10 seconds
-#define DEFAULT_ALTERNATE_RESET_TIME       180U      //Default time to reset switching of alternate servers, 180 seconds
-#define DEFAULT_HOSTS_TTL                  900U      //Default Hosts DNS TTL, 15 minutes(900 seconds)
-#define SHORTEST_FILEREFRESH_TIME          5U        //The shortset time between files auto-refreshing, 5 seconds
-#define SENDING_INTERVAL_TIME              5000U     //Time between every sending, 5000 ms(5 seconds)
-#define SENDING_ONCE_INTERVAL_TIMES        3U        //Repeat 3 times between every sending.
 #if defined(ENABLE_LIBSODIUM)
-	#define DEFAULT_DNSCURVE_RECHECK_TIME      1800U     //Default DNSCurve keys recheck time, 1800 seconds
-	#define SHORTEST_DNSCURVE_RECHECK_TIME     10U       //The shortset DNSCurve keys recheck time, 10 seconds
+	#define DEFAULT_DNSCURVE_RELIABLE_SOCKET_TIMEOUT     DEFAULT_RELIABLE_SOCKET_TIMEOUT     //Same as default timeout of reliable sockets
+	#define DEFAULT_DNSCURVE_UNRELIABLE_SOCKET_TIMEOUT   DEFAULT_UNRELIABLE_SOCKET_TIMEOUT   //Same as default timeout of unreliable sockets
+#endif
+#define DEFAULT_FILEREFRESH_TIME                     10000U    //Default time between files auto-refreshing, 10000 ms(10 seconds)
+#define DEFAULT_ICMPTEST_TIME                        5U        //Default time between ICMP Test, 5 seconds
+#define DEFAULT_DOMAINTEST_INTERVAL_TIME             900U      //Default Domain Test time between every sending, 15 minutes(900 seconds)
+#define DEFAULT_ALTERNATE_TIMES                      5U        //Default times of request timeout, 5 times
+#define DEFAULT_ALTERNATE_RANGE                      10U       //Default time of checking timeout, 10 seconds
+#define DEFAULT_ALTERNATE_RESET_TIME                 180U      //Default time to reset switching of alternate servers, 180 seconds
+#define DEFAULT_HOSTS_TTL                            900U      //Default Hosts DNS TTL, 15 minutes(900 seconds)
+#define SHORTEST_FILEREFRESH_TIME                    5U        //The shortset time between files auto-refreshing, 5 seconds
+#define SENDING_INTERVAL_TIME                        5000U     //Time between every sending, 5000 ms(5 seconds)
+#define SENDING_ONCE_INTERVAL_TIMES                  3U        //Repeat 3 times between every sending.
+#if defined(ENABLE_LIBSODIUM)
+	#define DEFAULT_DNSCURVE_RECHECK_TIME                1800U     //Default DNSCurve keys recheck time, 1800 seconds
+	#define SHORTEST_DNSCURVE_RECHECK_TIME               10U       //The shortset DNSCurve keys recheck time, 10 seconds
 #endif
 
 //Data definitions
@@ -284,6 +294,7 @@
 #if defined(ENABLE_LIBSODIUM)
 	#define LOG_ERROR_DNSCURVE             8U            // 08: DNSCurve Error
 #endif
+#define LOG_ERROR_SOCKS                9U            // 09: SOCKS Error
 
 //Codes and types definitions
 #define LISTEN_PROTOCOL_NETWORK_BOTH          0
@@ -378,14 +389,18 @@ typedef struct _address_prefix_block_
 	size_t                   Prefix;
 }AddressPrefixBlock, ADDRESS_PREFIX_BLOCK, *PAddressPrefixBlock, *PADDRESS_PREFIX_BLOCK;
 
+//Address Union Data structure
+typedef union _address_union_data_
+{
+	sockaddr_storage     Storage;
+	sockaddr_in6         IPv6;
+	sockaddr_in          IPv4;
+}AddressUnionData, ADDRESS_UNION_DATA, *PAddressUnionData, *PADDRESS_UNION_DATA;
+
 //DNS Server Data structure
 typedef struct _dns_server_data_
 {
-	union _address_data_ {
-		sockaddr_storage     Storage;
-		sockaddr_in6         IPv6;
-		sockaddr_in          IPv4;
-	}AddressData;
+	AddressUnionData         AddressData;
 #if defined(ENABLE_PCAP)
 	union _hoplimit_data_ {
 		uint8_t              TTL;
@@ -416,11 +431,7 @@ typedef struct _dnscache_data_
 #if defined(ENABLE_LIBSODIUM)
 typedef struct _dnscurve_server_data_
 {
-	union _address_data_ {
-		sockaddr_storage     Storage;
-		sockaddr_in6         IPv6;
-		sockaddr_in          IPv4;
-	}AddressData;
+	ADDRESS_UNION_DATA       AddressData;
 	PSTR                     ProviderName;           //Server Provider Name
 	PUINT8                   PrecomputationKey;      //DNSCurve Precomputation Keys
 	PUINT8                   ServerPublicKey;        //Server Public Keys
@@ -495,10 +506,10 @@ public:
 		DNS_SERVER_DATA                  Alternate_IPv6;
 		DNS_SERVER_DATA                  IPv4;
 		DNS_SERVER_DATA                  Alternate_IPv4;
-		DNS_SERVER_DATA                  Local_IPv6;
-		DNS_SERVER_DATA                  Alternate_Local_IPv6;
-		DNS_SERVER_DATA                  Local_IPv4;
-		DNS_SERVER_DATA                  Alternate_Local_IPv4;
+		ADDRESS_UNION_DATA               Local_IPv6;
+		ADDRESS_UNION_DATA               Alternate_Local_IPv6;
+		ADDRESS_UNION_DATA               Local_IPv4;
+		ADDRESS_UNION_DATA               Alternate_Local_IPv4;
 		std::vector<DNS_SERVER_DATA>     *IPv6_Multi;
 		std::vector<DNS_SERVER_DATA>     *IPv4_Multi;
 	}DNSTarget;
@@ -560,15 +571,26 @@ public:
 	PSTR                                 LocalServer_Response;
 	size_t                               LocalServer_Length;
 #endif
-//[SOCKS] block
+//[Proxy] block
 	bool                                 SOCKS;
 	size_t                               SOCKS_Version;
 	size_t                               SOCKS_Protocol_Network;
 	size_t                               SOCKS_Protocol_Transport;
-	size_t                               SOCKS_Protocol_Inner_Network;
+#if defined(PLATFORM_WIN)
+	int                                  SOCKS_SocketTimeout_Reliable;
+	int                                  SOCKS_SocketTimeout_Unreliable;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	timeval                              SOCKS_SocketTimeout_Reliable;
+	timeval                              SOCKS_SocketTimeout_Unreliable;
+#endif
+	bool                                 SOCKS_UDP_NoHandshake;
 	bool                                 SOCKS_Only;
-	DNS_SERVER_DATA                      SOCKS_Address_IPv4;
-	DNS_SERVER_DATA                      SOCKS_Address_IPv6;
+	ADDRESS_UNION_DATA                   SOCKS_Address_IPv4;
+	ADDRESS_UNION_DATA                   SOCKS_Address_IPv6;
+	ADDRESS_UNION_DATA                   SOCKS_TargetServer;
+	PSTR                                 SOCKS_TargetDomain;
+	uint16_t                             SOCKS_TargetDomain_Port;
+	size_t                               SOCKS_TargetDomain_Length;
 	PSTR                                 SOCKS_Username;
 	size_t                               SOCKS_Username_Length;
 	PSTR                                 SOCKS_Password;
@@ -594,6 +616,7 @@ public:
 //Global status class
 typedef class GlobalStatus {
 public:
+	time_t                               StartupTime;
 #if defined(PLATFORM_WIN)
 	bool                                 Console;
 #elif defined(PLATFORM_LINUX)
@@ -772,6 +795,13 @@ public:
 	size_t                     DNSCurvePayloadSize;
 	size_t                     DNSCurveProtocol_Network;
 	size_t                     DNSCurveProtocol_Transport;
+#if defined(PLATFORM_WIN)
+	int                        DNSCurve_SocketTimeout_Reliable;
+	int                        DNSCurve_SocketTimeout_Unreliable;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	timeval                    DNSCurve_SocketTimeout_Reliable;
+	timeval                    DNSCurve_SocketTimeout_Unreliable;
+#endif
 	bool                       IsEncryption;
 	bool                       IsEncryptionOnly;
 	bool                       ClientEphemeralKey;
@@ -822,7 +852,8 @@ uint64_t __fastcall hton64(
 //	const uint64_t Value);
 bool __fastcall MBSToWCSString(
 	std::wstring &Target, 
-	const char *Buffer);
+	const char *Buffer, 
+	const size_t MaxLen);
 void __fastcall CaseConvert(
 	const bool IsLowerToUpper, 
 	PSTR Buffer, 
@@ -951,6 +982,18 @@ bool __fastcall MonitorInit(
 void __fastcall NetworkInformationMonitor(
 	void);
 
+//Proxy.h
+size_t __fastcall SOCKSTCPRequest(
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	PSTR OriginalRecv, 
+	const size_t RecvSize);
+size_t __fastcall SOCKSUDPRequest(
+	const char *OriginalSend,
+	const size_t SendSize,
+	PSTR OriginalRecv,
+	const size_t RecvSize);
+
 //DNSCurve.h
 #if defined(ENABLE_LIBSODIUM)
 bool __fastcall DNSCurveVerifyKeypair(
@@ -995,6 +1038,7 @@ size_t __fastcall CheckHostsProcess(
 bool __fastcall SendToRequester(
 	PSTR RecvBuffer, 
 	const size_t RecvSize, 
+	const size_t MaxLen, 
 	const uint16_t Protocol, 
 	const SOCKET_DATA &LocalSocketData);
 bool __fastcall MarkDomainCache(

@@ -300,7 +300,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Protocol - 发送请求所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求
     * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
-    * 同时填入 TCP 和 UDP 等于只填入 TCP，因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
+    * 同时填入 TCP 和 UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
   * Direct Request - 直连模式，启用后将使用系统的 API 直接请求远程服务器而启用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，关闭为 0
     * 建议当系统使用全局代理功能时启用，程序将除境内服务器外的所有请求直接交给系统而不作任何过滤等处理，系统会将请求自动发往远程服务器进行解析
     * 填入 IPv4 或 IPv6 时将会启用对应协议的 Direct Request 功能，填入 IPv4 + IPv6 将会启用所有协议的功能
@@ -312,7 +312,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Local Protocol - 发送境内请求所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向境内 DNS 服务器发出请求
     * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
-    * 同时填入 TCP 和 UDP 等于只填入 TCP，因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
+    * 同时填入 TCP 和 UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
   * Local Hosts - 白名单境内服务器请求功能：开启为 1 /关闭为 0
     * 开启后才能使用自带或自定义的 Local Hosts 白名单，且不能与 Local Hosts 和 Local Routing 同时启用
   * Local Main - 主要境内服务器请求功能：开启为 1 /关闭为 0
@@ -464,8 +464,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv6 Alternate Hop Limits - IPv6 备用 DNS 服务器接受请求的远程 DNS 服务器数据包的 Hop Limits 值：0 为自动获取，取值为 1-255 之间
     * 支持多个 Hop Limits 值，与 IPv6 Alternate DNS Address 相对应
   * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受范围，即 IPv4 TTL/IPv6 Hop Limits 的值 ± 数值的范围内的数据包均可被接受，用于避免网络环境短暂变化造成解析失败的问题：取值为 1-255 之间
-  * Reliable Socket Timeout - 可靠协议端口超时时间，可靠端口指 TCP 协议，单位为毫秒
-  * Unreliable Socket Timeout - 不可靠协议端口超时时间，不可靠端口指 UDP/ICMP/ICMPv6 协议：单位为毫秒
+  * Reliable Socket Timeout - 可靠协议端口超时时间，可靠端口指 TCP 协议：最小为 500，可留空，留空时为 3000，单位为毫秒
+  * Unreliable Socket Timeout - 不可靠协议端口超时时间，不可靠端口指 UDP/ICMP/ICMPv6 协议：最小为 500，可留空，留空时为 2000，单位为毫秒
   * Receive Waiting - 数据包接收等待时间，启用后程序会尝试等待一段时间以尝试接收所有数据包并返回最后到达的数据包：单位为毫秒，留空或填 0 表示关闭此功能
     * 本参数与 Pcap Reading Timeout 密切相关，由于抓包模块每隔一段读取超时时间才会返回给程序一次，当数据包接收等待时间小于读取超时时间时会导致本参数变得没有意义，在一些情况下甚至会拖慢域名解析的响应速度
     * 本参数启用后虽然本身只决定抓包模块的接收等待时间，但同时会影响到非抓包模块的请求。非抓包模块会自动切换为等待超时时间后发回最后收到的回复，默认为接受最先到达的正确的回复，而它们的超时时间由 Reliable Socket Timeout/Unreliable Socket Timeout 参数决定
@@ -529,13 +529,42 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * ICMP PaddingData - ICMP 附加数据，Ping 程序发送请求时为补足数据使其达到 Ethernet 类型网络最低的可发送长度时添加的数据：长度介乎于 18字节 - 1500字节 ASCII 数据之间，留空则使用 Microsoft Windows Ping 程序的 ICMP 附加数据
   * Localhost Server Name - 本地 DNS 服务器名称：请输入正确的域名并且不要超过253字节 ASCII 数据，留空则使用 pcap-dnsproxy.localhost.server 作为本地服务器名称
 
+* Proxy - 代理区域
+  * SOCKS Proxy - SOCKS 协议总开关，控制所有和 SOCKS 协议有关的选项：开启为 1 /关闭为 0
+  * SOCKS Version - SOCKS 协议所使用的版本：可填入 4 或 4A 或 5
+    * SOCKS 版本 4 不支持 IPv6 地址以及域名的目标服务器，以及不支持 UDP 转发功能
+    * SOCKS 版本 4a 不支持 IPv6 地址的目标服务器，以及不支持 UDP 转发功能
+  * SOCKS Protocol - 发送 SOCKS 协议请求所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
+    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向 SOCKS 服务器发出请求
+    * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
+    * 同时填入 TCP 和 UDP 等于只填入 UDP 因为 TCP 为 SOCKS 最先支持以及最普遍支持的标准网络层协议，所以即使填入 UDP 请求失败时也会使用 TCP 请求
+  * SOCKS Reliable Socket Timeout - 可靠 SOCKS 协议端口超时时间，可靠端口指 TCP 协议：最小为 500，可留空，留空时为 6000，单位为毫秒
+  * SOCKS Unreliable Socket Timeout - 不可靠 SOCKS 协议端口超时时间，不可靠端口指 UDP 协议：最小为 500，可留空，留空时为 3000，单位为毫秒
+  * SOCKS UDP No Handshake - SOCKS UDP 不握手模式，开启后将不进行 TCP 握手直接发送 UDP 转发请求：开启为 1 /关闭为 0
+    * SOCKS 协议的标准流程使用 UDP 转发功能前必须使用 TCP 连接交换握手信息，否则 SOCKS 服务器将直接丢弃转发请求
+    * 部分 SOCKS 本地代理可以直接进行 UDP 转发而不需要使用 TCP 连接交换握手信息，启用前请务必确认 SOCKS 服务器的支持情况
+  * SOCKS Proxy Only - 只使用 SOCKS 协议代理模式：开启为 1 /关闭为 0
+  * SOCKS IPv4 Address - SOCKS 协议 IPv4 主要 SOCKS 服务器地址：需要输入一个带端口格式的地址
+    * 不支持多个地址，只能填入单个地址
+    * 支持使用服务名称代替端口号
+  * SOCKS IPv6 Address - SOCKS 协议 IPv6 主要 SOCKS 服务器地址：需要输入一个带端口格式的地址
+    * 不支持多个地址，只能填入单个地址
+    * 支持使用服务名称代替端口号
+  * SOCKS Target Server - SOCKS 最终目标服务器：需要输入一个带端口格式的 IPv4/IPv6 地址或域名
+    * 不支持多个地址或域名，只能填入单个地址或域名
+    * 支持使用服务名称代替端口号
+  * SOCKS Username - 连接 SOCKS 服务器时所使用的用户名：最长可填入 255 个字符，留空为不启用
+  * SOCKS Password - 连接 SOCKS 服务器时所使用的密码：最长可填入 255 个字符，留空为不启用
+
 * DNSCurve - DNSCurve 协议基本参数区域
   * DNSCurve - DNSCurve 协议总开关，控制所有和 DNSCurve 协议有关的选项：开启为 1 /关闭为 0
   * DNSCurve Protocol - DNSCurve 发送请求所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求
     * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
-    * 同时填入 TCP 和 UDP 等于只填入 TCP，因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
+    * 同时填入 TCP 和 UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
   * DNSCurve Payload Size - DNSCurve EDNS 标签附带使用的最大载荷长度，同时亦为发送请求的总长度，并决定请求的填充长度：最小为 DNS 协议实现要求的 512(bytes)，留空则为 512(bytes)
+  * DNSCurve Reliable Socket Timeout - 可靠 SOCKS 协议端口超时时间，可靠端口指 TCP 协议：最小为 500，可留空，留空时为 3000，单位为毫秒
+  * DNSCurve Unreliable Socket Timeout - 不可靠 SOCKS 协议端口超时时间，不可靠端口指 UDP 协议：最小为 500，可留空，留空时为 2000，单位为毫秒
   * Encryption - 启用加密，DNSCurve 协议支持加密和非加密模式：开启为 1 /关闭为 0
   * Encryption Only - 只使用加密模式：开启为 1 /关闭为 0
     * 注意：使用 "只使用加密模式" 时必须提供服务器的魔数和指纹用于请求和接收
@@ -600,30 +629,37 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * 如非必要建议不要依赖程序的自动刷新功能，强烈建议修改配置文件后重新启动程序！
 
 * Version
-* FileRefreshTime
-* PrintError
-* LogMaximumSize
-* IPFilterType
-* IPFilterLevel
-* AcceptType
-* DirectRequest
-* DefaultTTL
-* LocalProtocol
-* IPv4TTL
-* IPv6HopLimits
-* IPv4AlternateTTL
-* IPv6AlternateHopLimits
-* HopLimitsFluctuation
-* ReliableSocketTimeout
-* UnreliableSocketTimeout
-* ReceiveWaiting
-* ICMPTest
-* DomainTest
-* MultiRequestTimes
-* DomainCaseConversion
-* IPv4DataFilter
-* TCPDataFilter
-* DNSDataFilter
+* File Refresh Time
+* Print Error
+* Log Maximum Size
+* IPFilter Type
+* IPFilter Level
+* Accept Type
+* Direct Request
+* Default TTL
+* Local Protocol
+* IPv4 TTL
+* IPv6 HopLimits
+* IPv4 AlternateTTL
+* IPv6 AlternateHopLimits
+* HopLimits Fluctuation
+* Reliable Socket Timeout
+* Unreliable Socket Timeout
+* Receive Waiting
+* ICMP Test
+* Domain Test
+* Multi Request Times
+* Domain Case Conversion
+* IPv4 Data Filter
+* TCP Data Filter
+* DNS Data Filter
+* SOCKS Reliable Socket Timeout
+* SOCKS Unreliable Socket Timeout
+* SOCKS Target Server
+* SOCKS Username
+* SOCKS Password
+* DNSCurve Reliable Socket Timeout
+* DNSCurve Unreliable Socket Timeout
 * Key Recheck Time
 * Client Public Key
 * Client Secret Key

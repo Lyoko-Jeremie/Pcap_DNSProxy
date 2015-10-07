@@ -45,11 +45,11 @@ bool __fastcall PrintError(
 		return false;
 
 //Print Start Time at first printing.
-	time_t InnerStartTime = 0;
-	if (StartTime > 0)
+	time_t LogStartupTime = 0;
+	if (GlobalRunningStatus.StartupTime > 0)
 	{
-		InnerStartTime = StartTime;
-		StartTime = 0;
+		LogStartupTime = GlobalRunningStatus.StartupTime;
+		GlobalRunningStatus.StartupTime = 0;
 	}
 
 //Print to screen.
@@ -60,14 +60,14 @@ bool __fastcall PrintError(
 #endif
 	{
 	//Print start time before print errors.
-		if (InnerStartTime > 0)
+		if (LogStartupTime > 0)
 		{
 			std::shared_ptr<tm> TimeStructureTemp(new tm());
 			memset(TimeStructureTemp.get(), 0, sizeof(tm));
 		#if defined(PLATFORM_WIN)
-			if (localtime_s(TimeStructureTemp.get(), &InnerStartTime) > 0)
+			if (localtime_s(TimeStructureTemp.get(), &LogStartupTime) > 0)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (localtime_r(&InnerStartTime, TimeStructureTemp.get()) == nullptr)
+			if (localtime_r(&LogStartupTime, TimeStructureTemp.get()) == nullptr)
 		#endif
 				return false;
 
@@ -198,15 +198,11 @@ bool __fastcall PrintError(
 					wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> DNSCurve Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 			}break;
 		#endif
-		//Notice
+		//Message Notice
 			case LOG_MESSAGE_NOTICE:
 			{
 				wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d -> Notice: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 			}break;
-			default:
-			{
-				return false;
-			}
 		}
 	}
 
@@ -247,15 +243,15 @@ bool __fastcall PrintError(
 #endif
 	{
 	//Print start time before print errors.
-		if (InnerStartTime > 0)
+		if (LogStartupTime > 0)
 		{
 			std::shared_ptr<tm> TimeStructureTemp(new tm());
 			memset(TimeStructureTemp.get(), 0, sizeof(tm));
 			
 		#if defined(PLATFORM_WIN)
-			if (localtime_s(TimeStructureTemp.get(), &InnerStartTime) > 0)
+			if (localtime_s(TimeStructureTemp.get(), &LogStartupTime) > 0)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (localtime_r(&InnerStartTime, TimeStructureTemp.get()) == nullptr)
+			if (localtime_r(&LogStartupTime, TimeStructureTemp.get()) == nullptr)
 		#endif
 			{
 				fclose(Output);
@@ -389,7 +385,7 @@ bool __fastcall PrintError(
 					fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> DNSCurve Error: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);
 			}break;
 		#endif
-		//Notice
+		//Message Notice
 			case LOG_MESSAGE_NOTICE:
 			{
 				fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Notice: %ls.\n", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec, Message);

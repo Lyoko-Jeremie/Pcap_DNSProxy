@@ -22,7 +22,6 @@
 //Global variables
 CONFIGURATION_TABLE Parameter, ParameterModificating;
 GLOBAL_STATUS GlobalRunningStatus;
-time_t StartTime;
 ALTERNATE_SWAP_TABLE AlternateSwapList;
 #if defined(ENABLE_LIBSODIUM)
 	DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;

@@ -51,7 +51,7 @@ bool __fastcall ReadIPFilterData(
 			return true;
 
 //[Local Routing] block(A part)
-	if (LabelType == 0 && (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0) && 
+	if (LabelType == 0 && (Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0) && 
 	#if defined(PLATFORM_WIN) //Case-insensitive on Windows
 		(FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") != std::wstring::npos && FileList_IPFilter.at(FileIndex).FileName.length() > wcslen(L"chnrouting.txt") && 
 		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") + wcslen(L"chnrouting.txt") == FileList_IPFilter.at(FileIndex).FileName.length() || 
@@ -343,7 +343,7 @@ bool __fastcall ReadBlacklistData(
 
 	Addr.reset();
 
-//Block these IP addresses from all requesting.
+//Block these IP addresses from all request.
 	ResultBlacklistTableTemp.PatternString.append(Data, Separated, Data.length() - Separated);
 	if (ResultBlacklistTableTemp.PatternString == ("ALL") || ResultBlacklistTableTemp.PatternString == ("All") || ResultBlacklistTableTemp.PatternString == ("all"))
 	{
@@ -432,7 +432,7 @@ bool __fastcall ReadLocalRoutingData(
 		}
 
 	//Add to global LocalRoutingList(IPv6).
-		uint64_t *AddrFront = (uint64_t *)BinaryAddr.get(), *AddrBack = (uint64_t *)((PUCHAR)BinaryAddr.get() + 8U);
+		auto AddrFront = (PUINT64)BinaryAddr.get(), AddrBack = (PUINT64)((PUCHAR)BinaryAddr.get() + 8U);
 		for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
 		{
 			if (IPFilterFileSetIter.FileIndex == FileIndex)
@@ -593,8 +593,8 @@ bool __fastcall ReadAddressPrefixBlock(
 		}
 		else {
 			Parameter.LocalhostSubnet.IPv6->Prefix = (size_t)Result;
-			uint64_t *AddrFront = (uint64_t *)&((PSOCKADDR_IN6)&Parameter.LocalhostSubnet.IPv6->Address)->sin6_addr;
-			uint64_t *AddrBack = (uint64_t *)((PUCHAR)&((PSOCKADDR_IN6)&Parameter.LocalhostSubnet.IPv6->Address)->sin6_addr + sizeof(in6_addr) / 2U);
+			auto AddrFront = (PUINT64)&((PSOCKADDR_IN6)&Parameter.LocalhostSubnet.IPv6->Address)->sin6_addr;
+			auto AddrBack = (PUINT64)((PUCHAR)&((PSOCKADDR_IN6)&Parameter.LocalhostSubnet.IPv6->Address)->sin6_addr + sizeof(in6_addr) / 2U);
 
 		//Mark prefix block.
 			if (Parameter.LocalhostSubnet.IPv6->Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)

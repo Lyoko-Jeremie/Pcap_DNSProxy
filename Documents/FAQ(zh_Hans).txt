@@ -119,6 +119,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * IPv6 special address error - IPv6 特殊地址检查错误：请检查 IPv6 地址是否为特殊地址
   * IPv4 special address error - IPv4 特殊地址检查错误：请检查 IPv4 地址是否为特殊地址
   * Pcap Capture error - 抓包模块参数错误：请检查相关参数的使用要求说明
+  * Direct Request error - 直连模式参数错误：请检查相关参数的使用要求说明
   * Localhost listening port error - 本地监听端口错误：请检查本地监听端口的值，可适用范围为 1 - 65535
   * IPFilter Level error - IPFilter 过滤级别错误：请检查过滤级别的值，可适用范围为 1 - 65535
   * DNS Cache error - DNS 缓存配置错误：请检查缓存的参数
@@ -180,11 +181,14 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Get localhost address error - 获取本地计算机地址失败：没有任何生效的网络适配器，可能是硬件或者驱动程序的问题
   * UDP socket initialization error - UDP 协议请求套接字初始化失败：原因参见错误代码
   * TCP socket initialization error - TCP 协议请求套接字初始化失败：原因参见错误代码
+  * SOCKS socket initialization error - SOCKS 协议请求套接字初始化失败：原因参见错误代码
   * Complete UDP socket initialization error - UDP 协议请求套接字初始化失败：原因参见错误代码
+  * SOCKS connecting error - SOCKS 协议连接错误：可能为网络错误，原因参见错误代码
+  * SOCKS request error - SOCKS 协议请求失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve UDP socket initialization error - DNSCurve 协议 UDP 协议套接字初始化失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve TCP socket initialization error - DNSCurve 协议 TCP 协议套接字初始化失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve Local Signature socket initialization error - DNSCurve 协议本地请求套接字初始化失败：可能为网络错误，具体原因可参见错误代码
-  * DNSCurve Local Signature request error - DNSCurve 协议本地请求发送失败：可能为网络错误，具体原因可参见错误代码
+  * DNSCurve Local Signature request error - DNSCurve 协议本地请求失败：可能为网络错误，具体原因可参见错误代码
   * Not any available gateways to public network - 没有任何通往公共网络的可用网关：可能为网络错误，请检查网络是否通畅
   * Winsock 错误代码具体含义可移步 https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 
@@ -209,7 +213,18 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * IPv4 Main Server Fingerprint signature validation error - IPv4 主要服务器证书验证错误：请检查该服务器是否可用
   * IPv4 Alternate Server Fingerprint signature validation error - IPv4 备用服务器证书验证错误：请检查该服务器是否可用
 
-8.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
+8.SOCKS Error - SOCKS 协议错误
+  * SOCKS version 4 and 4a are not support UDP relay - SOCKS 版本 4 和 4a 不支持 UDP 转发：请更换为版本 5
+  * SOCKS version 4 and 4a are not support IPv6 target server - SOCKS 版本 4 和 4a 不支持 IPv6 地址的目标服务器地址：请更换为版本 5
+  * SOCKS version 4 is not support domain target server - SOCKS 版本 4 不支持目标为域名的服务器地址：请更换为版本 4a 或版本 5
+  * SOCKS username and password error - SOCKS 协议的用户名和密码配置错误 - 请检查所输入的用户名和密码是否正确
+  * Server SOCKS protocol version error - 服务器 SOCKS 协议版本错误：请检查该服务器是否可用
+  * Authentication method not support - 不支持的认证方式：请检查服务器对客户端认证方式的支持
+  * Server require username and password authentication - 服务器要求使用用户名/密码认证：请检查 SOCKS 协议的用户名/密码
+  * Username or Password incorrect - SOCKS 协议用户名/密码不正确：请检查用户名/密码是否错误
+  * Client command request error - 客户端请求连接失败：请检查 SOCKS 协议目标地址否受支持或是否可用，原因参见错误代码
+
+9.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
   * Configuration file is not the latest version - 配置文件非最新版本：请确认配置文件是否需要更新
   * Listen Port is empty, set to standard DNS port(53) - 本地监听端口参数为空：程序将自动设置为标准 DNS 协议端口（53）
   * TCP Data Filter require TCP Request Mode - 开启 TCP 数据包头检测时必须将 Request Mode 设置为 TCP：程序将自动关闭此功能

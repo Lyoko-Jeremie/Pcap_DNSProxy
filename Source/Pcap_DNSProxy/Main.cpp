@@ -300,7 +300,7 @@ bool FileNameInit(
 	GlobalRunningStatus.sPath_Global->push_back(OriginalPath);
 	GlobalRunningStatus.sPath_Global->front().append("/");
 	std::wstring StringTemp;
-	if (!MBSToWCSString(StringTemp, OriginalPath))
+	if (!MBSToWCSString(StringTemp, OriginalPath, PATH_MAX + 1U))
 		return false;
 	StringTemp.append(L"/");
 	GlobalRunningStatus.Path_Global->clear();
@@ -318,7 +318,7 @@ bool FileNameInit(
 	GlobalRunningStatus.sPath_ErrorLog->append("Error.log");
 #endif
 	Parameter.PrintError = true;
-	StartTime = time(nullptr);
+	GlobalRunningStatus.StartupTime = time(nullptr);
 
 	return true;
 }

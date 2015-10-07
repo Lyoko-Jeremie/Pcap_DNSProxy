@@ -202,4 +202,9 @@
       <Filter>LibSodium</Filter>
     </Library>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt">
+      <Filter>源文件</Filter>
+    </Text>
+  </ItemGroup>
 </Project>

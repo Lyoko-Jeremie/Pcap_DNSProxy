@@ -347,12 +347,12 @@ bool __fastcall DNSCurvePrecomputationKeySetting(
 //Server fingerprint check
 	if (CheckEmptyBuffer(ServerFingerprint, crypto_box_PUBLICKEYBYTES))
 		return false;
-	memset(PrecomputationKey, 0, sizeof(uint8_t) * crypto_box_BEFORENMBYTES);
-	memset(Client_PublicKey, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
+	memset(PrecomputationKey, 0, crypto_box_BEFORENMBYTES);
+	memset(Client_PublicKey, 0, crypto_box_PUBLICKEYBYTES);
 
 //Make a client ephemeral key pair.
 	std::shared_ptr<uint8_t> Client_SecretKey(new uint8_t[crypto_box_SECRETKEYBYTES]());
-	memset(Client_SecretKey.get(), 0, sizeof(uint8_t) * crypto_box_SECRETKEYBYTES);
+	memset(Client_SecretKey.get(), 0, crypto_box_SECRETKEYBYTES);
 	if (crypto_box_keypair(Client_PublicKey, Client_SecretKey.get()) == LIBSODIUM_ERROR)
 		return false;
 
@@ -388,7 +388,7 @@ void __fastcall DNSCurveSocketPrecomputation(
 	std::vector<SOCKET_DATA> Alternate_SocketDataList;
 	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> Alternate_SocketSelectingList;
 	std::shared_ptr<uint8_t> Client_PublicKey_PTR(new uint8_t[crypto_box_PUBLICKEYBYTES]());
-	memset(Client_PublicKey_PTR.get(), 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
+	memset(Client_PublicKey_PTR.get(), 0, crypto_box_PUBLICKEYBYTES);
 	auto Client_PublicKey = Client_PublicKey_PTR.get();
 	memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
 	bool *IsAlternate = nullptr;
@@ -621,12 +621,12 @@ size_t __fastcall DNSCurvePacketEncryption(
 	if (DNSCurveParameter.IsEncryption)
 	{
 		std::shared_ptr<uint8_t> Nonce(new uint8_t[crypto_box_NONCEBYTES]());
-		memset(Nonce.get(), 0, sizeof(uint8_t) * crypto_box_NONCEBYTES);
+		memset(Nonce.get(), 0, crypto_box_NONCEBYTES);
 
 	//Make nonce.
-		*(uint32_t *)Nonce.get() = randombytes_random();
-		*(uint32_t *)(Nonce.get() + sizeof(uint32_t)) = randombytes_random();
-		*(uint32_t *)(Nonce.get() + sizeof(uint32_t) * 2U) = randombytes_random();
+		*(PUINT32)Nonce.get() = randombytes_random();
+		*(PUINT32)(Nonce.get() + sizeof(uint32_t)) = randombytes_random();
+		*(PUINT32)(Nonce.get() + sizeof(uint32_t) * 2U) = randombytes_random();
 		memset(Nonce.get() + crypto_box_HALF_NONCEBYTES, 0, crypto_box_HALF_NONCEBYTES);
 
 	//Make a crypto box.
@@ -676,7 +676,7 @@ size_t __fastcall DNSCurvePacketEncryption(
 			memcpy_s(SendBuffer + sizeof(uint16_t) + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES, SendSize - sizeof(uint16_t) - DNSCURVE_MAGIC_QUERY_LEN - crypto_box_PUBLICKEYBYTES, Nonce.get(), crypto_box_HALF_NONCEBYTES);
 
 		//Add length of request packet(It must be written in header when transpot with TCP protocol).
-			*(uint16_t *)SendBuffer = htons((uint16_t)(DNSCurveParameter.DNSCurvePayloadSize - sizeof(uint16_t))); 
+			*(PUINT16)SendBuffer = htons((uint16_t)(DNSCurveParameter.DNSCurvePayloadSize - sizeof(uint16_t)));
 		}
 		else { //UDP
 			memcpy_s(SendBuffer, SendSize, SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
@@ -719,7 +719,7 @@ SSIZE_T DNSCurvePacketDecryption(
 
 	//Nonce initialization
 		std::shared_ptr<uint8_t> WholeNonce(new uint8_t[crypto_box_NONCEBYTES]());
-		memset(WholeNonce.get(), 0, sizeof(uint8_t) * crypto_box_NONCEBYTES);
+		memset(WholeNonce.get(), 0, crypto_box_NONCEBYTES);
 
 	//Copy whole nonce.
 		memcpy_s(WholeNonce.get(), crypto_box_NONCEBYTES, OriginalRecv + DNSCURVE_MAGIC_QUERY_LEN, crypto_box_NONCEBYTES);
@@ -807,11 +807,11 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 
 //Socket timeout setting
 #if defined(PLATFORM_WIN)
-	Timeout->tv_sec = Parameter.SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
-	Timeout->tv_usec = Parameter.SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+	Timeout->tv_sec = DNSCurveParameter.DNSCurve_SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
+	Timeout->tv_usec = DNSCurveParameter.DNSCurve_SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	Timeout->tv_sec = Parameter.SocketTimeout_Reliable.tv_sec;
-	Timeout->tv_usec = Parameter.SocketTimeout_Reliable.tv_usec;
+	Timeout->tv_sec = DNSCurveParameter.DNSCurve_SocketTimeout_Reliable.tv_sec;
+	Timeout->tv_usec = DNSCurveParameter.DNSCurve_SocketTimeout_Reliable.tv_usec;
 #endif
 
 //Selecting process
@@ -874,7 +874,7 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		SelectResult = select(MaxSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, Timeout.get());
 	#endif
-		if (SelectResult > 0)
+		if (SelectResult > EXIT_SUCCESS)
 		{
 			for (Index = 0;Index < SocketDataList.size();++Index)
 			{
@@ -934,7 +934,7 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 			}
 		}
 	//Timeout
-		else if (SelectResult == 0)
+		else if (SelectResult == EXIT_SUCCESS)
 		{
 			PUINT8 PrecomputationKeyTemp = nullptr;
 			PSTR ReceiveMagicNumberTemp = nullptr;
@@ -1009,7 +1009,7 @@ SSIZE_T __fastcall DNSCurveSelectingResult(
 		//TCP header length check
 			if (Protocol == IPPROTO_TCP)
 			{
-				RecvLen = ntohs(((uint16_t *)SocketSelectingList.at(Index).RecvBuffer.get())[0]);
+				RecvLen = ntohs(((PUINT16)SocketSelectingList.at(Index).RecvBuffer.get())[0]);
 				if (RecvLen >(SSIZE_T)SocketSelectingList.at(Index).Length)
 				{
 					goto JumpToRestart;
@@ -1394,8 +1394,11 @@ bool __fastcall DNSCurveTCPSignatureRequest(
 	//Jump here to restart.
 	JumpToRestart:
 		DNSCurvePrintLog(ServerType, Message);
-		Message.append(L"TCP get signature data error");
-		PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
+		if (Message.length() > 0)
+		{
+			Message.append(L"TCP get signature data error");
+			PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
+		}
 
 	//Send request again.
 		memset(RecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
@@ -1558,8 +1561,11 @@ bool __fastcall DNSCurveUDPSignatureRequest(
 	//Jump here to restart.
 	JumpToRestart:
 		DNSCurvePrintLog(ServerType, Message);
-		Message.append(L"UDP get signature data error");
-		PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
+		if (Message.length() > 0)
+		{
+			Message.append(L"UDP get signature data error");
+			PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
+		}
 
 	//Send request again.
 		memset(RecvBuffer.get(), 0, PACKET_MAXSIZE);
@@ -1606,8 +1612,11 @@ bool __fastcall DNSCruveGetSignatureData(
 			{
 				std::wstring Message;
 				DNSCurvePrintLog(ServerType, Message);
-				Message.append(L"Fingerprint signature validation error");
-				PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
+				if (Message.length() > 0)
+				{
+					Message.append(L"Fingerprint signature validation error");
+					PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
+				}
 
 				return false;
 			}
@@ -1630,8 +1639,11 @@ bool __fastcall DNSCruveGetSignatureData(
 			else {
 				std::wstring Message;
 				DNSCurvePrintLog(ServerType, Message);
-				Message.append(L"Fingerprint signature validation error");
-				PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
+				if (Message.length() > 0)
+				{
+					Message.append(L"Fingerprint signature validation error");
+					PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
+				}
 			}
 		}
 	}
@@ -1857,7 +1869,7 @@ size_t __fastcall DNSCurveUDPRequest(
 	}
 
 //Socket timeout setting and UDP connecting
-	if (!SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TIMEOUT, &Parameter.SocketTimeout_Unreliable) || 
+	if (!SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TIMEOUT, &DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable) || 
 		SocketConnecting(IPPROTO_UDP, UDPSocketDataList.front().Socket, (PSOCKADDR)&UDPSocketDataList.front().SockAddr, UDPSocketDataList.front().AddrLen, nullptr, 0) == EXIT_FAILURE)
 			return EXIT_FAILURE;
 

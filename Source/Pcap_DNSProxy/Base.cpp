@@ -35,7 +35,7 @@ bool __fastcall CheckEmptyBuffer(
 //Scan all data.
 	for (size_t Index = 0;Index < Length;++Index)
 	{
-		if (((uint8_t *)Buffer)[Index] != 0)
+		if (((PUINT8)Buffer)[Index] != 0)
 			return false;
 	}
 
@@ -46,7 +46,7 @@ bool __fastcall CheckEmptyBuffer(
 uint16_t __fastcall hton16_Force(
 	const uint16_t Value)
 {
-	uint8_t *Result = (uint8_t *)&Value;
+	auto Result = (PUINT8)&Value;
 	return (uint16_t)(Result[0] << 8U | Result[1U]);
 }
 
@@ -55,7 +55,7 @@ uint16_t __fastcall hton16_Force(
 uint16_t __fastcall ntoh16_Force(
 	const uint16_t Value)
 {
-	uint8_t *Result = (uint8_t *)&Value;
+	auto Result = (PUINT8)&Value;
 	return (uint16_t)(Result[0] << 8U | Result[1U]);
 }
 */
@@ -64,7 +64,7 @@ uint16_t __fastcall ntoh16_Force(
 uint32_t __fastcall hton32_Force(
 	const uint32_t Value)
 {
-	uint8_t *Result = (uint8_t *)&Value;
+	auto Result = (PUINT8)&Value;
 	return (uint32_t)(Result[0] << 24U | Result[1U] << 16U | Result[2U] << 8U | Result[3U]);
 }
 
@@ -73,7 +73,7 @@ uint32_t __fastcall hton32_Force(
 uint32_t __fastcall ntoh32_Force(
 	const uint32_t Value)
 {
-	uint8_t *Result = (uint8_t *)&Value;
+	auto Result = (PUINT8)&Value;
 	return (uint32_t)(Result[0] << 24U | Result[1U] << 16U | Result[2U] << 8U | Result[3U]);
 }
 */
@@ -104,23 +104,32 @@ uint64_t __fastcall ntoh64(const uint64_t Value)
 //Convert multiple bytes to wide char string
 bool __fastcall MBSToWCSString(
 	std::wstring &Target, 
-	const char *Buffer)
+	const char *Buffer, 
+	const size_t MaxLen)
 {
 //Check buffer.
-	if (Buffer == nullptr || CheckEmptyBuffer(Buffer, strnlen_s(Buffer, LARGE_PACKET_MAXSIZE)) || strnlen_s(Buffer, LARGE_PACKET_MAXSIZE) == 0)
+	if (Buffer == nullptr || MaxLen == 0)
+		return false;
+	size_t Length = strnlen_s(Buffer, MaxLen);
+	if (Length == 0 || CheckEmptyBuffer(Buffer, Length))
 		return false;
 
 //Convert string.
-	std::shared_ptr<wchar_t> TargetPTR(new wchar_t[strnlen_s(Buffer, LARGE_PACKET_MAXSIZE) + 1U]());
-	wmemset(TargetPTR.get(), 0, strnlen_s(Buffer, LARGE_PACKET_MAXSIZE) + 1U);
+	std::shared_ptr<wchar_t> TargetPTR(new wchar_t[Length + 1U]());
+	wmemset(TargetPTR.get(), 0, Length + 1U);
 #if defined(PLATFORM_WIN)
-	if (MultiByteToWideChar(CP_ACP, 0, Buffer, MBSTOWCS_NULLTERMINATE, TargetPTR.get(), (int)(strnlen_s(Buffer, LARGE_PACKET_MAXSIZE) + 1U)) == 0)
+	if (MultiByteToWideChar(CP_ACP, 0, Buffer, MBSTOWCS_NULLTERMINATE, TargetPTR.get(), (int)(Length + 1U)) == 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	if (mbstowcs(TargetPTR.get(), Buffer, strnlen(Buffer, LARGE_PACKET_MAXSIZE) + 1U) == RETURN_ERROR)
+	if (mbstowcs(TargetPTR.get(), Buffer, Length + 1U) == RETURN_ERROR)
 #endif
+	{
 		return false;
-	else 
+	}
+	else {
 		Target = TargetPTR.get();
+		if (Target.length() == 0)
+			return false;
+	}
 
 	return true;
 }

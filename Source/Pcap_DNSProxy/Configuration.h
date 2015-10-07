@@ -106,8 +106,15 @@ bool __fastcall ReadMultipleAddresses(
 	std::string Data, 
 	const size_t DataOffset, 
 	sockaddr_storage &SockAddr, 
-	std::vector<sockaddr_storage> *ListenSockAddr, 
+	std::vector<sockaddr_storage> *SockAddrList,
 	const uint16_t Protocol, 
+	const bool IsMultiAddresses, 
+	const size_t FileIndex, 
+	const size_t Line);
+bool __fastcall ReadSOCKSAddressAndDomain(
+	std::string Data, 
+	const size_t DataOffset, 
+	CONFIGURATION_TABLE *ParameterPTR, 
 	const size_t FileIndex, 
 	const size_t Line);
 #if defined(ENABLE_PCAP)

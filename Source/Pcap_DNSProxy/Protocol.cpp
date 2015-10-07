@@ -526,7 +526,7 @@ bool __fastcall CheckAddressRouting(
 //Check address routing.
 	if (Protocol == AF_INET6) //IPv6
 	{
-		auto AddrFront = (uint64_t *)Addr, AddrBack = (uint64_t *)((PUCHAR)Addr + sizeof(in6_addr) / 2U);
+		auto AddrFront = (PUINT64)Addr, AddrBack = (PUINT64)((PUCHAR)Addr + sizeof(in6_addr) / 2U);
 		std::map<uint64_t, std::set<uint64_t>>::iterator AddrMapIter;
 		for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
 		{
@@ -834,8 +834,12 @@ size_t __fastcall CheckQueryData(
 	}
 	if (Index != DNS_PACKET_QUERY_LOCATE(RecvBuffer))
 	{
-		DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_FE);
-		SendToRequester(RecvBuffer, Length, Protocol, LocalSocketData);
+		if (Length >= DNS_PACKET_MINSIZE)
+		{
+			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_FE);
+			SendToRequester(RecvBuffer, Length, Length + sizeof(uint16_t), Protocol, LocalSocketData);
+		}
+
 		return EXIT_FAILURE;
 	}
 
@@ -856,7 +860,8 @@ size_t __fastcall CheckQueryData(
 			}
 
 		//Send request.
-			SendToRequester(RecvBuffer, DataLength[0], Protocol, LocalSocketData);
+			if (DataLength[0] >= DNS_PACKET_MINSIZE)
+				SendToRequester(RecvBuffer, DataLength[0], DataLength[0] + sizeof(uint16_t), Protocol, LocalSocketData);
 			return EXIT_FAILURE;
 		}
 	}
@@ -883,7 +888,7 @@ size_t __fastcall CheckQueryData(
 	}
 	if (DataLength[0] >= DNS_PACKET_MINSIZE)
 	{
-		SendToRequester(SendBuffer, DataLength[0], Protocol, LocalSocketData);
+		SendToRequester(SendBuffer, DataLength[0], DataLength[0] + sizeof(uint16_t), Protocol, LocalSocketData);
 		return EXIT_FAILURE;
 	}
 	else if (DataLength[0] == EXIT_CHECK_HOSTS_TYPE_LOCAL && IsLocal != nullptr)
@@ -919,7 +924,7 @@ size_t __fastcall CheckResponseData(
 //		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_AA) != 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 || 
 	//Do query recursively bit must be set when RCode is No Error and there are Answers Resource Records.
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RD) == 0 && (ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NOERROR && DNS_Header->Answer == 0 || 
-	//Local requesting failed or Truncated
+	//Local request failed or Truncated
 		IsLocal && ((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) > DNS_RCODE_NOERROR || (ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) > 0 && DNS_Header->Answer == 0) || 
 	//Must not set Reserved bit.
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_Z) > 0 || 
@@ -942,8 +947,8 @@ size_t __fastcall CheckResponseData(
 		if (DNS_Header->Answer == htons(U16_NUM_ONE) && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && 
 			CheckQueryNameLength(Buffer + sizeof(dns_hdr)) == CheckQueryNameLength(Buffer + DNS_PACKET_RR_LOCATE(Buffer)))
 		{
-			auto QuestionDomain = (uint8_t *)(Buffer + sizeof(dns_hdr));
-			auto AnswerDomain = (uint8_t *)(Buffer + DNS_PACKET_RR_LOCATE(Buffer));
+			auto QuestionDomain = (PUINT8)(Buffer + sizeof(dns_hdr));
+			auto AnswerDomain = (PUINT8)(Buffer + DNS_PACKET_RR_LOCATE(Buffer));
 			auto DNS_Record_Standard = (pdns_record_standard)(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckQueryNameLength((PSTR)QuestionDomain) + 1U);
 			if (DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && 
 				(DNS_Record_Standard->Type == htons(DNS_RECORD_A) || DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA)) && 
@@ -970,7 +975,7 @@ size_t __fastcall CheckResponseData(
 	//Pointer check
 		if (DataLength + sizeof(uint16_t) < Length && (UCHAR)Buffer[DataLength] >= DNS_POINTER_BITS)
 		{
-			DNS_Pointer = ntohs(*(uint16_t *)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
+			DNS_Pointer = ntohs(*(PUINT16)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
 			if (DNS_Pointer >= Length || DNS_Pointer < sizeof(dns_hdr) || DNS_Pointer == DataLength || DNS_Pointer == DataLength + 1U)
 				return EXIT_FAILURE;
 		}
@@ -1006,13 +1011,13 @@ size_t __fastcall CheckResponseData(
 //Scan all Resource Records.
 	else {
 		uint16_t BeforeType = 0;
-		auto IsEDNS_Label = false, IsDNSSEC_Records = false;	
+		auto IsEDNS_Label = false, IsDNSSEC_Records = false, IsLocalGotResult = false;	
 		for (size_t Index = 0;Index < (size_t)(ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional));++Index)
 		{
 		//Pointer check
 			if (DataLength + sizeof(uint16_t) < Length && (UCHAR)Buffer[DataLength] >= DNS_POINTER_BITS)
 			{
-				DNS_Pointer = ntohs(*(uint16_t *)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
+				DNS_Pointer = ntohs(*(PUINT16)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
 				if (DNS_Pointer >= Length || DNS_Pointer < sizeof(dns_hdr) || DNS_Pointer == DataLength || DNS_Pointer == DataLength + 1U)
 					return EXIT_FAILURE;
 			}
@@ -1062,6 +1067,10 @@ size_t __fastcall CheckResponseData(
 					if (Parameter.DataCheck_Blacklist && CheckSpecialAddress(Addr, AF_INET6, false, Domain.get()) || 
 						Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(Addr, AF_INET6))
 							return EXIT_FAILURE;
+
+				//Local request result check
+					if (IsLocal)
+						IsLocalGotResult = true;
 				}
 			//A Records
 				else if (DNS_Record_Standard->Type == htons(DNS_RECORD_A) && DNS_Record_Standard->Length == htons(sizeof(in_addr)))
@@ -1075,6 +1084,10 @@ size_t __fastcall CheckResponseData(
 					if (Parameter.DataCheck_Blacklist && CheckSpecialAddress(Addr, AF_INET, false, Domain.get()) || 
 						Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(Addr, AF_INET))
 							return EXIT_FAILURE;
+
+				//Local request result check
+					if (IsLocal)
+						IsLocalGotResult = true;
 				}
 			}
 
@@ -1084,9 +1097,10 @@ size_t __fastcall CheckResponseData(
 				BeforeType = DNS_Record_Standard->Type;
 		}
 
-	//Additional EDNS Label Resource Records and DNSSEC Validation check
-		if (Parameter.EDNS_Label && (!IsEDNS_Label || Parameter.DNSSEC_Request && Parameter.DNSSEC_ForceValidation && !IsDNSSEC_Records))
-			return EXIT_FAILURE;
+	//Additional EDNS Label Resource Records check, DNSSEC Validation check and Local request result check
+		if (Parameter.EDNS_Label && (!IsEDNS_Label || Parameter.DNSSEC_Request && Parameter.DNSSEC_ForceValidation && !IsDNSSEC_Records) || 
+			IsLocal && !IsLocalGotResult)
+				return EXIT_FAILURE;
 	}
 
 #if defined(ENABLE_PCAP)
@@ -1188,7 +1202,7 @@ bool __fastcall CheckDNSSECRecords(
 
 	//Hash Length check
 		if (sizeof(dns_record_nsec3param) + DNS_Record_NSEC3->SaltLength < Length && DNS_Record_NSEC3->Algorithm == DNSSEC_NSEC3_ALGORITHM_SHA1 && 
-			*(uint8_t *)(Buffer + sizeof(dns_record_nsec3param) + DNS_Record_NSEC3->SaltLength) != SHA1_LENGTH)
+			*(PUINT8)(Buffer + sizeof(dns_record_nsec3param) + DNS_Record_NSEC3->SaltLength) != SHA1_LENGTH)
 				return false;
 	}
 //NSEC3PARAM Records

@@ -43,7 +43,7 @@ void __fastcall CaptureInit(
 	//Open all devices.
 		if (pcap_findalldevs(&pThedevs, ErrBuffer.get()) == PCAP_ERROR)
 		{
-			if (MBSToWCSString(wErrBuffer, ErrBuffer.get()))
+			if (MBSToWCSString(wErrBuffer, ErrBuffer.get(), PCAP_ERRBUF_SIZE))
 			{
 				PrintError(LOG_ERROR_PCAP, wErrBuffer.c_str(), 0, nullptr, 0);
 				wErrBuffer.clear();
@@ -362,7 +362,7 @@ DevicesNotSkip:
 #endif
 	{
 		std::wstring ErrBuffer;
-		if (MBSToWCSString(ErrBuffer, Buffer.get()))
+		if (MBSToWCSString(ErrBuffer, Buffer.get(), PCAP_ERRBUF_SIZE))
 			PrintError(LOG_ERROR_PCAP, ErrBuffer.c_str(), 0, nullptr, 0);
 
 		return false;
@@ -390,7 +390,7 @@ DevicesNotSkip:
 #endif
 	{
 		std::wstring ErrBuffer;
-		if (MBSToWCSString(ErrBuffer, pcap_geterr(DeviceHandle)))
+		if (MBSToWCSString(ErrBuffer, pcap_geterr(DeviceHandle), PCAP_ERRBUF_SIZE))
 			PrintError(LOG_ERROR_PCAP, ErrBuffer.c_str(), 0, nullptr, 0);
 
 		pcap_close(DeviceHandle);
@@ -401,7 +401,7 @@ DevicesNotSkip:
 	if (pcap_setfilter(DeviceHandle, BPF_Code.get()) == PCAP_ERROR)
 	{
 		std::wstring ErrBuffer;
-		if (MBSToWCSString(ErrBuffer, pcap_geterr(DeviceHandle)))
+		if (MBSToWCSString(ErrBuffer, pcap_geterr(DeviceHandle), PCAP_ERRBUF_SIZE))
 			PrintError(LOG_ERROR_PCAP, ErrBuffer.c_str(), 0, nullptr, 0);
 
 		pcap_freecode(BPF_Code.get());
@@ -992,7 +992,7 @@ ClearOutputPacketListData:
 		MarkDomainCache(Buffer, Length);
 
 //Send to localhost.
-	SendToRequester((PSTR)Buffer, Length, SystemProtocol, *SocketData_Input);
+	SendToRequester((PSTR)Buffer, Length, Length + sizeof(uint16_t), SystemProtocol, *SocketData_Input);
 	if (SystemProtocol == IPPROTO_TCP)
 		return true;
 

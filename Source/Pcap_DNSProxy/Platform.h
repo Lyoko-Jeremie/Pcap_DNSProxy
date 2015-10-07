@@ -387,19 +387,20 @@
 	#define sockaddr_in6             sockaddr_in6_Windows
 	#define in6addr_loopback         *(in6_addr *)&in6addr_loopback
 	#define in6addr_any              *(in6_addr *)&in6addr_any
-	typedef unsigned char            UCHAR;
-	typedef unsigned char            *PUCHAR;
-	typedef int                      *PINT;
-	typedef unsigned int             UINT;
-	typedef unsigned short           *PUINT16;
+	typedef char                     *PSTR;
+	typedef signed char              INT8, *PINT8;
+	typedef signed short             INT16, *PINT16;
+	typedef signed int               INT32, *PINT, *PINT32;
+	typedef signed long long         INT64, *PINT64;
+	typedef unsigned char            UCHAR, UINT8, *PUINT8, *PUCHAR;
+	typedef unsigned short           UINT16, *PUINT16;
+	typedef unsigned int             UINT, UINT32, *PUINT32;
 	typedef unsigned long            ULONG, DWORD;
-	typedef unsigned long long       ULONGLONG;
+	typedef unsigned long long       ULONGLONG, UINT64, *PUINT64;
 	typedef ssize_t                  SSIZE_T;
 	typedef int                      SOCKET;
 	typedef addrinfo                 ADDRINFOA;
-	typedef char                     *PSTR;
 	typedef wchar_t                  *PWSTR;
-	typedef uint8_t                  *PUINT8;
 	typedef sockaddr                 *PSOCKADDR;
 	typedef sockaddr_in              *PSOCKADDR_IN;
 	typedef sockaddr_in6             *PSOCKADDR_IN6;

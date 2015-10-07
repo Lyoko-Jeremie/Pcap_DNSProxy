@@ -188,10 +188,10 @@ bool __fastcall ReadText(
 		}
 		else if (Encoding == CODEPAGE_UTF_16_LE || Encoding == CODEPAGE_UTF_16_BE)
 		{
-			uint16_t *SingleText = nullptr;
+			PUINT16 SingleText = nullptr;
 			for (Index = 0;Index < ReadLength;Index += sizeof(uint16_t))
 			{
-				SingleText = (uint16_t *)(FileBuffer.get() + Index);
+				SingleText = (PUINT16)(FileBuffer.get() + Index);
 
 			//Endian
 			#if __BYTE_ORDER == __LITTLE_ENDIAN
@@ -227,10 +227,10 @@ bool __fastcall ReadText(
 		}
 		else if (Encoding == CODEPAGE_UTF_32_LE || Encoding == CODEPAGE_UTF_32_BE)
 		{
-			uint32_t *SingleText = nullptr;
+			PUINT32 SingleText = nullptr;
 			for (Index = 0;Index < ReadLength;Index += sizeof(uint32_t))
 			{
-				SingleText = (uint32_t *)(FileBuffer.get() + Index);
+				SingleText = (PUINT32)(FileBuffer.get() + Index);
 
 			//Endian
 			#if __BYTE_ORDER == __LITTLE_ENDIAN

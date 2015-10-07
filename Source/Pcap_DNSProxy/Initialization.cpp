@@ -51,9 +51,10 @@ ConfigurationTable::ConfigurationTable(
 		LocalServer_Response = new char[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt)]();
 	#endif
 
-	//[SOCKS] block
-		SOCKS_Username = new char[SOCKS5_USERNAME_PASSWORD_MAXNUM + 1U]();
-		SOCKS_Password = new char[SOCKS5_USERNAME_PASSWORD_MAXNUM + 1U]();
+	//[Proxy] block
+		SOCKS_TargetDomain = new char[DOMAIN_MAXSIZE]();
+		SOCKS_Username = new char[SOCKS_USERNAME_PASSWORD_MAXNUM + 1U]();
+		SOCKS_Password = new char[SOCKS_USERNAME_PASSWORD_MAXNUM + 1U]();
 	}
 	catch (std::bad_alloc)
 	{
@@ -83,7 +84,8 @@ ConfigurationTable::ConfigurationTable(
 		delete[] LocalServer_Response;
 	#endif
 
-	//[SOCKS] block
+	//[Proxy] block
+		delete[] SOCKS_TargetDomain;
 		delete[] SOCKS_Username;
 		delete[] SOCKS_Password;
 
@@ -108,8 +110,9 @@ void __fastcall ConfigurationTableSetting(
 #if !defined(PLATFORM_MACX)
 	memset(ConfigurationParameter->LocalServer_Response, 0, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt));
 #endif
-	memset(ConfigurationParameter->SOCKS_Username, 0, SOCKS5_USERNAME_PASSWORD_MAXNUM + 1U);
-	memset(ConfigurationParameter->SOCKS_Password, 0, SOCKS5_USERNAME_PASSWORD_MAXNUM + 1U);
+	memset(ConfigurationParameter->SOCKS_TargetDomain, 0, DOMAIN_MAXSIZE);
+	memset(ConfigurationParameter->SOCKS_Username, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U);
+	memset(ConfigurationParameter->SOCKS_Password, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U);
 
 //Default values
 	ConfigurationParameter->FileRefreshTime = DEFAULT_FILEREFRESH_TIME;
@@ -122,23 +125,27 @@ void __fastcall ConfigurationTableSetting(
 #if defined(PLATFORM_WIN)
 	ConfigurationParameter->SocketTimeout_Reliable = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
 	ConfigurationParameter->SocketTimeout_Unreliable = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
+	ConfigurationParameter->SOCKS_SocketTimeout_Reliable = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
+	ConfigurationParameter->SOCKS_SocketTimeout_Unreliable = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	ConfigurationParameter->SocketTimeout_Reliable.tv_sec = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
 	ConfigurationParameter->SocketTimeout_Unreliable.tv_sec = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
+	ConfigurationParameter->SOCKS_SocketTimeout_Reliable.tv_sec = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
+	ConfigurationParameter->SOCKS_SocketTimeout_Unreliable.tv_sec = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
 #endif
 	ConfigurationParameter->AlternateTimes = DEFAULT_ALTERNATE_TIMES;
 	ConfigurationParameter->AlternateTimeRange = DEFAULT_ALTERNATE_RANGE * SECOND_TO_MILLISECOND;
 	ConfigurationParameter->AlternateResetTime = DEFAULT_ALTERNATE_RESET_TIME * SECOND_TO_MILLISECOND;
 #if defined(ENABLE_PCAP)
 	#if defined(PLATFORM_MACX)
-		ConfigurationParameter->ICMP_ID = htons(*(uint16_t *)pthread_self());
+		ConfigurationParameter->ICMP_ID = htons(*(PUINT16)pthread_self());
 	#else
 		ConfigurationParameter->ICMP_ID = htons((uint16_t)GetCurrentProcessId()); //Default ICMP ID is current process ID.
 	#endif
 		ConfigurationParameter->ICMP_Sequence = htons(DEFAULT_SEQUENCE);
 		ConfigurationParameter->DomainTest_Speed = DEFAULT_DOMAINTEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
 	#if defined(PLATFORM_MACX)
-		ConfigurationParameter->DomainTest_ID = htons(*(uint16_t *)pthread_self());
+		ConfigurationParameter->DomainTest_ID = htons(*(PUINT16)pthread_self());
 	#else
 		ConfigurationParameter->DomainTest_ID = htons((uint16_t)GetCurrentProcessId()); //Default DNS ID is current process ID.
 	#endif
@@ -157,6 +164,7 @@ void __fastcall ConfigurationTableSetting(
 		ConfigurationParameter->ICMP_PaddingLength = strlen(ConfigurationParameter->ICMP_PaddingData);
 	#endif
 #endif
+	ConfigurationParameter->SOCKS_Protocol_Transport = REQUEST_MODE_TCP;
 
 	return;
 }
@@ -192,7 +200,8 @@ ConfigurationTable::~ConfigurationTable(
 	delete[] LocalServer_Response;
 #endif
 
-//[SOCKS] block
+//[Proxy] block
+	delete[] SOCKS_TargetDomain;
 	delete[] SOCKS_Username;
 	delete[] SOCKS_Password;
 
@@ -290,6 +299,8 @@ void ConfigurationTable::MonitorItemToUsing(
 #endif
 	ConfigurationParameter->SocketTimeout_Reliable = SocketTimeout_Reliable;
 	ConfigurationParameter->SocketTimeout_Unreliable = SocketTimeout_Unreliable;
+	ConfigurationParameter->SOCKS_SocketTimeout_Reliable = SOCKS_SocketTimeout_Reliable;
+	ConfigurationParameter->SOCKS_SocketTimeout_Unreliable = SOCKS_SocketTimeout_Unreliable;
 	ConfigurationParameter->ReceiveWaiting = ReceiveWaiting;
 #if defined(ENABLE_PCAP)
 	ConfigurationParameter->ICMP_Speed = ICMP_Speed;
@@ -305,16 +316,51 @@ void ConfigurationTable::MonitorItemToUsing(
 #endif
 	ConfigurationParameter->HeaderCheck_DNS = HeaderCheck_DNS;
 
-//[SOCKS] block
+//[Proxy] block
+	if (ConfigurationParameter->SOCKS_TargetDomain != nullptr && SOCKS_TargetDomain_Length > 0 && SOCKS_TargetDomain_Port > 0)
+	{
+	//Reset old item.
+		memset(&ConfigurationParameter->SOCKS_TargetServer, 0, sizeof(ADDRESS_UNION_DATA));
+
+	//Copy new item.
+		memcpy_s(ConfigurationParameter->SOCKS_TargetDomain, DOMAIN_MAXSIZE, SOCKS_TargetDomain, SOCKS_TargetDomain_Length);
+		ConfigurationParameter->SOCKS_TargetDomain_Length = SOCKS_TargetDomain_Length;
+		ConfigurationParameter->SOCKS_TargetDomain_Port = SOCKS_TargetDomain_Port;
+	}
+	else if (SOCKS_TargetServer.Storage.ss_family > 0)
+	{
+	//Reset old item.
+		if (ConfigurationParameter->SOCKS_TargetDomain != nullptr)
+			memset(ConfigurationParameter->SOCKS_TargetDomain, 0, DOMAIN_MAXSIZE);
+		ConfigurationParameter->SOCKS_TargetDomain_Length = 0;
+		ConfigurationParameter->SOCKS_TargetDomain_Port = 0;
+
+	//Copy new item.
+		memcpy_s(&ConfigurationParameter->SOCKS_TargetServer, sizeof(ADDRESS_UNION_DATA), &SOCKS_TargetServer, sizeof(ADDRESS_UNION_DATA));
+	}
 	if (ConfigurationParameter->SOCKS_Username != nullptr)
 	{
-		memcpy(ConfigurationParameter->SOCKS_Username, SOCKS_Username, ConfigurationParameter->SOCKS_Username_Length);
-		ConfigurationParameter->SOCKS_Username_Length = SOCKS_Username_Length;
+		if (SOCKS_Username_Length > 0)
+		{
+			ConfigurationParameter->SOCKS_Username_Length = SOCKS_Username_Length;
+			memcpy_s(ConfigurationParameter->SOCKS_Username, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U, SOCKS_Username, ConfigurationParameter->SOCKS_Username_Length);
+		}
+		else {
+			ConfigurationParameter->SOCKS_Username_Length = 0;
+			memset(ConfigurationParameter->SOCKS_Username, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U);
+		}
 	}
 	if (ConfigurationParameter->SOCKS_Password != nullptr)
 	{
-		memcpy(ConfigurationParameter->SOCKS_Password, SOCKS_Password, ConfigurationParameter->SOCKS_Password_Length);
-		ConfigurationParameter->SOCKS_Password_Length = SOCKS_Password_Length;
+		if (SOCKS_Password_Length > 0)
+		{
+			ConfigurationParameter->SOCKS_Password_Length = SOCKS_Password_Length;
+			memcpy_s(ConfigurationParameter->SOCKS_Password, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U, SOCKS_Password, ConfigurationParameter->SOCKS_Password_Length);
+		}
+		else {
+			ConfigurationParameter->SOCKS_Password_Length = 0;
+			memset(ConfigurationParameter->SOCKS_Password, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U);
+		}
 	}
 
 	return;
@@ -357,11 +403,17 @@ void ConfigurationTable::MonitorItemReset(
 #if defined(PLATFORM_WIN)
 	SocketTimeout_Reliable = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
 	SocketTimeout_Unreliable = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
+	SOCKS_SocketTimeout_Reliable = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
+	SOCKS_SocketTimeout_Unreliable = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	SocketTimeout_Reliable.tv_sec = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
 	SocketTimeout_Reliable.tv_usec = 0;
 	SocketTimeout_Unreliable.tv_sec = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
 	SocketTimeout_Unreliable.tv_usec = 0;
+	SOCKS_SocketTimeout_Reliable.tv_sec = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
+	SOCKS_SocketTimeout_Reliable.tv_usec = 0;
+	SOCKS_SocketTimeout_Unreliable.tv_sec = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
+	SOCKS_SocketTimeout_Unreliable.tv_usec = 0;
 #endif
 	ReceiveWaiting = 0;
 #if defined(ENABLE_PCAP)
@@ -378,11 +430,22 @@ void ConfigurationTable::MonitorItemReset(
 #endif
 	HeaderCheck_DNS = false;
 
-//[SOCKS] block
-	memset(SOCKS_Username, 0, SOCKS5_USERNAME_PASSWORD_MAXNUM + 1U);
-	SOCKS_Username_Length = 0;
-	memset(SOCKS_Password, 0, SOCKS5_USERNAME_PASSWORD_MAXNUM + 1U);
-	SOCKS_Password_Length = 0;
+//[Proxy] block
+	memset(&SOCKS_TargetServer, 0, sizeof(ADDRESS_UNION_DATA));
+	if (SOCKS_TargetDomain != nullptr)
+		memset(SOCKS_TargetDomain, 0, DOMAIN_MAXSIZE);
+	SOCKS_TargetDomain_Length = 0;
+	SOCKS_TargetDomain_Port = 0;
+	if (SOCKS_Username != nullptr)
+	{
+		memset(SOCKS_Username, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U);
+		SOCKS_Username_Length = 0;
+	}
+	if (SOCKS_Password != nullptr)
+	{
+		memset(SOCKS_Password, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U);
+		SOCKS_Password_Length = 0;
+	}
 
 	return;
 }
@@ -476,7 +539,10 @@ GlobalStatus::~GlobalStatus(
 	if (LocalListeningSocket != nullptr)
 	{
 		for (auto SocketIter:*LocalListeningSocket)
+		{
+			shutdown(SocketIter, SD_BOTH);
 			closesocket(SocketIter);
+		}
 	}
 
 //Free libraries.
@@ -674,20 +740,20 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 	memset(DNSCurveTarget.Alternate_IPv6.ProviderName, 0, DOMAIN_MAXSIZE);
 
 //DNSCurve Keys
-	memset(Client_PublicKey, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(Client_SecretKey, 0, sizeof(uint8_t) * crypto_box_SECRETKEYBYTES);
-	memset(DNSCurveTarget.IPv4.PrecomputationKey, 0, sizeof(uint8_t) * crypto_box_BEFORENMBYTES);
-	memset(DNSCurveTarget.Alternate_IPv4.PrecomputationKey, 0, sizeof(uint8_t) * crypto_box_BEFORENMBYTES);
-	memset(DNSCurveTarget.IPv6.PrecomputationKey, 0, sizeof(uint8_t) * crypto_box_BEFORENMBYTES);
-	memset(DNSCurveTarget.Alternate_IPv6.PrecomputationKey, 0, sizeof(uint8_t) * crypto_box_BEFORENMBYTES);
-	memset(DNSCurveTarget.IPv4.ServerPublicKey, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.Alternate_IPv4.ServerPublicKey, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.IPv6.ServerPublicKey, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.Alternate_IPv6.ServerPublicKey, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.IPv4.ServerFingerprint, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.Alternate_IPv4.ServerFingerprint, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.IPv6.ServerFingerprint, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.Alternate_IPv6.ServerFingerprint, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
+	memset(Client_PublicKey, 0, crypto_box_PUBLICKEYBYTES);
+	memset(Client_SecretKey, 0, crypto_box_SECRETKEYBYTES);
+	memset(DNSCurveTarget.IPv4.PrecomputationKey, 0, crypto_box_BEFORENMBYTES);
+	memset(DNSCurveTarget.Alternate_IPv4.PrecomputationKey, 0, crypto_box_BEFORENMBYTES);
+	memset(DNSCurveTarget.IPv6.PrecomputationKey, 0, crypto_box_BEFORENMBYTES);
+	memset(DNSCurveTarget.Alternate_IPv6.PrecomputationKey, 0, crypto_box_BEFORENMBYTES);
+	memset(DNSCurveTarget.IPv4.ServerPublicKey, 0, crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveTarget.Alternate_IPv4.ServerPublicKey, 0, crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveTarget.IPv6.ServerPublicKey, 0, crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveTarget.Alternate_IPv6.ServerPublicKey, 0, crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveTarget.IPv4.ServerFingerprint, 0, crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveTarget.Alternate_IPv4.ServerFingerprint, 0, crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveTarget.IPv6.ServerFingerprint, 0, crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveTarget.Alternate_IPv6.ServerFingerprint, 0, crypto_box_PUBLICKEYBYTES);
 
 //DNSCurve Magic Numbers
 	memset(DNSCurveTarget.IPv4.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
@@ -700,6 +766,15 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 	memset(DNSCurveTarget.Alternate_IPv6.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
 
 //Default settings
+#if defined(PLATFORM_WIN)
+	DNSCurve_SocketTimeout_Reliable = DEFAULT_DNSCURVE_RELIABLE_SOCKET_TIMEOUT;
+	DNSCurve_SocketTimeout_Unreliable = DEFAULT_DNSCURVE_UNRELIABLE_SOCKET_TIMEOUT;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	DNSCurve_SocketTimeout_Reliable.tv_sec = DEFAULT_DNSCURVE_RELIABLE_SOCKET_TIMEOUT;
+	DNSCurve_SocketTimeout_Reliable.tv_usec = 0;
+	DNSCurve_SocketTimeout_Unreliable.tv_sec = DEFAULT_DNSCURVE_UNRELIABLE_SOCKET_TIMEOUT;
+	DNSCurve_SocketTimeout_Unreliable.tv_usec = 0;
+#endif
 	KeyRecheckTime = DEFAULT_DNSCURVE_RECHECK_TIME * SECOND_TO_MILLISECOND;
 
 	return;
@@ -768,6 +843,8 @@ void DNSCurveConfigurationTable::MonitorItemToUsing(
 	DNSCurveConfigurationTable *DNSCurveConfigurationParameter)
 {
 //[DNSCurve] block
+	DNSCurveConfigurationParameter->DNSCurve_SocketTimeout_Reliable = DNSCurve_SocketTimeout_Reliable;
+	DNSCurveConfigurationParameter->DNSCurve_SocketTimeout_Unreliable = DNSCurve_SocketTimeout_Unreliable;
 	DNSCurveConfigurationParameter->KeyRecheckTime = KeyRecheckTime;
 
 //DNSCurve Keys
@@ -852,33 +929,64 @@ void DNSCurveConfigurationTable::MonitorItemReset(
 	void)
 {
 //[DNSCurve] block
+#if defined(PLATFORM_WIN)
+	DNSCurve_SocketTimeout_Reliable = DEFAULT_DNSCURVE_RELIABLE_SOCKET_TIMEOUT;
+	DNSCurve_SocketTimeout_Unreliable = DEFAULT_DNSCURVE_UNRELIABLE_SOCKET_TIMEOUT;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	DNSCurve_SocketTimeout_Reliable.tv_sec = DEFAULT_DNSCURVE_RELIABLE_SOCKET_TIMEOUT;
+	DNSCurve_SocketTimeout_Reliable.tv_usec = 0;
+	DNSCurve_SocketTimeout_Unreliable.tv_sec = DEFAULT_DNSCURVE_UNRELIABLE_SOCKET_TIMEOUT;
+	DNSCurve_SocketTimeout_Unreliable.tv_usec = 0;
+#endif
 	KeyRecheckTime = DEFAULT_DNSCURVE_RECHECK_TIME * SECOND_TO_MILLISECOND;
 
 //DNSCurve Keys
-	memset(Client_PublicKey, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(Client_SecretKey, 0, sizeof(uint8_t) * crypto_box_SECRETKEYBYTES);
-	memset(DNSCurveTarget.IPv4.PrecomputationKey, 0, sizeof(uint8_t) * crypto_box_BEFORENMBYTES);
-	memset(DNSCurveTarget.Alternate_IPv4.PrecomputationKey, 0, sizeof(uint8_t) * crypto_box_BEFORENMBYTES);
-	memset(DNSCurveTarget.IPv6.PrecomputationKey, 0, sizeof(uint8_t) * crypto_box_BEFORENMBYTES);
-	memset(DNSCurveTarget.Alternate_IPv6.PrecomputationKey, 0, sizeof(uint8_t) * crypto_box_BEFORENMBYTES);
-	memset(DNSCurveTarget.IPv4.ServerPublicKey, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.Alternate_IPv4.ServerPublicKey, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.IPv6.ServerPublicKey, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.Alternate_IPv6.ServerPublicKey, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.IPv4.ServerFingerprint, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.Alternate_IPv4.ServerFingerprint, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.IPv6.ServerFingerprint, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.Alternate_IPv6.ServerFingerprint, 0, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
+	if (Client_PublicKey != nullptr)
+		memset(Client_PublicKey, 0, crypto_box_PUBLICKEYBYTES);
+	if (Client_SecretKey != nullptr)
+		memset(Client_SecretKey, 0, crypto_box_SECRETKEYBYTES);
+	if (DNSCurveTarget.IPv4.PrecomputationKey != nullptr)
+		memset(DNSCurveTarget.IPv4.PrecomputationKey, 0, crypto_box_BEFORENMBYTES);
+	if (DNSCurveTarget.Alternate_IPv4.PrecomputationKey != nullptr)
+		memset(DNSCurveTarget.Alternate_IPv4.PrecomputationKey, 0, crypto_box_BEFORENMBYTES);
+	if (DNSCurveTarget.IPv6.PrecomputationKey != nullptr)
+		memset(DNSCurveTarget.IPv6.PrecomputationKey, 0, crypto_box_BEFORENMBYTES);
+	if (DNSCurveTarget.Alternate_IPv6.PrecomputationKey != nullptr)
+		memset(DNSCurveTarget.Alternate_IPv6.PrecomputationKey, 0, crypto_box_BEFORENMBYTES);
+	if (DNSCurveTarget.IPv4.ServerPublicKey != nullptr)
+		memset(DNSCurveTarget.IPv4.ServerPublicKey, 0, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurveTarget.Alternate_IPv4.ServerPublicKey != nullptr)
+		memset(DNSCurveTarget.Alternate_IPv4.ServerPublicKey, 0, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurveTarget.IPv6.ServerPublicKey != nullptr)
+		memset(DNSCurveTarget.IPv6.ServerPublicKey, 0, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurveTarget.Alternate_IPv6.ServerPublicKey != nullptr)
+		memset(DNSCurveTarget.Alternate_IPv6.ServerPublicKey, 0, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurveTarget.IPv4.ServerFingerprint != nullptr)
+		memset(DNSCurveTarget.IPv4.ServerFingerprint, 0, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurveTarget.Alternate_IPv4.ServerFingerprint != nullptr)
+		memset(DNSCurveTarget.Alternate_IPv4.ServerFingerprint, 0, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurveTarget.IPv6.ServerFingerprint != nullptr)
+		memset(DNSCurveTarget.IPv6.ServerFingerprint, 0, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurveTarget.Alternate_IPv6.ServerFingerprint != nullptr)
+		memset(DNSCurveTarget.Alternate_IPv6.ServerFingerprint, 0, crypto_box_PUBLICKEYBYTES);
 
 //DNSCurve Magic Numbers
-	memset(DNSCurveTarget.IPv4.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
-	memset(DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
-	memset(DNSCurveTarget.IPv6.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
-	memset(DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
-	memset(DNSCurveTarget.IPv4.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
-	memset(DNSCurveTarget.Alternate_IPv4.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
-	memset(DNSCurveTarget.IPv6.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
-	memset(DNSCurveTarget.Alternate_IPv6.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurveTarget.IPv4.ReceiveMagicNumber != nullptr)
+		memset(DNSCurveTarget.IPv4.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber != nullptr)
+		memset(DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurveTarget.IPv6.ReceiveMagicNumber != nullptr)
+		memset(DNSCurveTarget.IPv6.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber != nullptr)
+		memset(DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurveTarget.IPv4.SendMagicNumber != nullptr)
+		memset(DNSCurveTarget.IPv4.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurveTarget.Alternate_IPv4.SendMagicNumber != nullptr)
+		memset(DNSCurveTarget.Alternate_IPv4.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurveTarget.IPv6.SendMagicNumber != nullptr)
+		memset(DNSCurveTarget.IPv6.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurveTarget.Alternate_IPv6.SendMagicNumber != nullptr)
+		memset(DNSCurveTarget.Alternate_IPv6.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
 
 	return;
 }

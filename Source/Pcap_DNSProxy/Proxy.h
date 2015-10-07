@@ -22,4 +22,41 @@
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
-extern std::mutex ErrorLogLock;
+
+//Functions
+SSIZE_T __fastcall SOCKSSocketSelecting(
+	SYSTEM_SOCKET Socket, 
+	fd_set *ReadFDS, 
+	fd_set *WriteFDS, 
+	timeval *Timeout, 
+	const char *SendBuffer, 
+	const size_t SendSize, 
+	PSTR OriginalRecv, 
+	const size_t RecvSize, 
+	const size_t MinLen);
+bool __fastcall SOCKSSelectionExchange(
+	SOCKET_DATA *SOCKSSocketData, 
+	fd_set *ReadFDS, 
+	fd_set *WriteFDS, 
+	timeval *Timeout, 
+	PSTR SendBuffer, 
+	PSTR OriginalRecv, 
+	const size_t RecvSize);
+bool __fastcall SOCKSAuthenticationUsernamePassword(
+	SYSTEM_SOCKET Socket, 
+	fd_set *ReadFDS, 
+	fd_set *WriteFDS, 
+	timeval *Timeout, 
+	PSTR SendBuffer, 
+	PSTR OriginalRecv, 
+	const size_t RecvSize);
+bool __fastcall SOCKSClientCommandRequest(
+	const uint16_t Protocol, 
+	SYSTEM_SOCKET Socket, 
+	fd_set *ReadFDS, 
+	fd_set *WriteFDS, 
+	timeval *Timeout, 
+	PSTR SendBuffer, 
+	PSTR OriginalRecv, 
+	const size_t RecvSize, 
+	PSOCKET_DATA UDP_ASSOCIATE_TCP_Connecting_Address);

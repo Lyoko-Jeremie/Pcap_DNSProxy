@@ -180,12 +180,12 @@ bool __fastcall ParameterCheckAndSetting(
 			Parameter.DNSTarget.IPv4 = Parameter.DNSTarget.Alternate_IPv4;
 			memset(&Parameter.DNSTarget.Alternate_IPv4, 0, sizeof(DNS_SERVER_DATA));
 		}
-		if (Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0)
+		if (Parameter.DNSTarget.Local_IPv6.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv6.Storage.ss_family > 0)
 		{
 			Parameter.DNSTarget.Local_IPv6 = Parameter.DNSTarget.Alternate_Local_IPv6;
 			memset(&Parameter.DNSTarget.Alternate_Local_IPv6, 0, sizeof(DNS_SERVER_DATA));
 		}
-		if (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0)
+		if (Parameter.DNSTarget.Local_IPv4.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv4.Storage.ss_family > 0)
 		{
 			Parameter.DNSTarget.Local_IPv4 = Parameter.DNSTarget.Alternate_Local_IPv4;
 			memset(&Parameter.DNSTarget.Alternate_Local_IPv4, 0, sizeof(DNS_SERVER_DATA));
@@ -194,12 +194,12 @@ bool __fastcall ParameterCheckAndSetting(
 		//Check repeating items.
 			Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
 			Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.s_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr && Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_port == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_port || 
-			Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family > 0 && 
-			Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr.s_addr == Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_addr.s_addr && Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_port == Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.IPv4.sin_port || 
+			Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_Local_IPv4.Storage.ss_family > 0 && 
+			Parameter.DNSTarget.Local_IPv4.IPv4.sin_addr.s_addr == Parameter.DNSTarget.Alternate_Local_IPv4.IPv4.sin_addr.s_addr && Parameter.DNSTarget.Local_IPv4.IPv4.sin_port == Parameter.DNSTarget.Alternate_Local_IPv4.IPv4.sin_port || 
 			Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
 			memcmp(&Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS && Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_port == Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_port || 
-			Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family > 0 && 
-			memcmp(&Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS && Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_port == Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.IPv6.sin6_port)
+			Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_Local_IPv6.Storage.ss_family > 0 && 
+			memcmp(&Parameter.DNSTarget.Local_IPv6.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_Local_IPv6.IPv6.sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS && Parameter.DNSTarget.Local_IPv6.IPv6.sin6_port == Parameter.DNSTarget.Alternate_Local_IPv6.IPv6.sin6_port)
 		{
 			PrintError(LOG_ERROR_PARAMETER, L"DNS target error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
@@ -231,54 +231,99 @@ bool __fastcall ParameterCheckAndSetting(
 	}
 #endif
 
-//SOCKS target check
-	if (IsFirstRead)
+//SOCKS check
+	if (Parameter.SOCKS)
 	{
-	//Only SOCKS version 5 has Authentication.
-		if (!Parameter.SOCKS || Parameter.SOCKS_Version != SOCKS_VERSION_5)
+		if (IsFirstRead)
 		{
-			delete[] Parameter.SOCKS_Username;
-			delete[] Parameter.SOCKS_Password;
+		//Only SOCKS version 5 support client authentication.
+			if (Parameter.SOCKS_Version != SOCKS_VERSION_5)
+			{
+				delete[] Parameter.SOCKS_Password;
+				Parameter.SOCKS_Password = nullptr;
+				Parameter.SOCKS_Password_Length = 0;
+			}
 
-			Parameter.SOCKS_Username = nullptr;
-			Parameter.SOCKS_Password = nullptr;
-			Parameter.SOCKS_Username_Length = 0;
-			Parameter.SOCKS_Password_Length = 0;
+		//SOCKS UDP support check
+			if (Parameter.SOCKS_Protocol_Transport == REQUEST_MODE_UDP && (Parameter.SOCKS_Version == SOCKS_VERSION_4 || Parameter.SOCKS_Version == SOCKS_VERSION_CONFIG_4A))
+			{
+				PrintError(LOG_ERROR_SOCKS, L"SOCKS version 4 and 4a are not support UDP relay", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+				return false;
+			}
+
+		//SOCKS UDP no handshake check
+			if (Parameter.SOCKS_Protocol_Transport != REQUEST_MODE_UDP)
+				Parameter.SOCKS_UDP_NoHandshake = false;
 		}
 
-	//
-		if (Parameter.SOCKS)
+	//SOCKS IPv6 support check
+		if (ParameterPTR->SOCKS_TargetServer.Storage.ss_family != AF_INET && 
+			(Parameter.SOCKS_Version == SOCKS_VERSION_4 || Parameter.SOCKS_Version == SOCKS_VERSION_CONFIG_4A && ParameterPTR->SOCKS_TargetDomain_Length == 0))
 		{
-
+			PrintError(LOG_ERROR_SOCKS, L"SOCKS version 4 and 4a are not support IPv6 target server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+			return false;
 		}
+
+	//SOCKS domain support check
+		if (ParameterPTR->SOCKS_TargetDomain_Length > 0 && Parameter.SOCKS_Version == SOCKS_VERSION_4)
+		{
+			PrintError(LOG_ERROR_SOCKS, L"SOCKS version 4 is not support domain target server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+			return false;
+		}
+
+	//SOCKS Username and password check
+		if (Parameter.SOCKS_Version == SOCKS_VERSION_5 && Parameter.SOCKS_Username_Length == 0 && Parameter.SOCKS_Password_Length > 0)
+		{
+			PrintError(LOG_ERROR_SOCKS, L"SOCKS username and password error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+			return false;
+		}
+	}
+	else {
+		delete[] Parameter.SOCKS_TargetDomain;
+		delete[] Parameter.SOCKS_Username;
+		delete[] Parameter.SOCKS_Password;
+
+		Parameter.SOCKS_TargetDomain = nullptr;
+		Parameter.SOCKS_Username = nullptr;
+		Parameter.SOCKS_Password = nullptr;
+		Parameter.SOCKS_TargetDomain_Length = 0;
+		Parameter.SOCKS_Username_Length = 0;
+		Parameter.SOCKS_Password_Length = 0;
+	}
+
+//Direct Request check
+	if (ParameterPTR->DirectRequest == DIRECT_REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0 || 
+		ParameterPTR->DirectRequest == DIRECT_REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)
+	{
+		PrintError(LOG_ERROR_PARAMETER, L"Direct Request error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+		return false;
+	}
+
+//Pcap Capture check
+	if (
+	#if defined(ENABLE_PCAP)
+		!Parameter.PcapCapture && 
+	#endif
+	//Direct Request mode
+		ParameterPTR->DirectRequest == DIRECT_REQUEST_MODE_NONE && 
+	//SOCKS request mode
+		!Parameter.SOCKS
+	//DNSCurve request mode
+	#if defined(ENABLE_LIBSODIUM)
+		&& !Parameter.DNSCurve
+	#endif
+	//TCP request mode
+		&& Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
+	{
+		PrintError(LOG_ERROR_PARAMETER, L"Pcap Capture error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+		return false;
 	}
 
 //Other errors which need to print to log.
-#if defined(ENABLE_PCAP)
-	#if defined(ENABLE_LIBSODIUM)
-		if (!Parameter.PcapCapture && !Parameter.DNSCurve && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
-	#else
-		if (!Parameter.PcapCapture && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
-	#endif
-	{
-		PrintError(LOG_ERROR_PARAMETER, L"Pcap Capture error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-		return false;
-	}
-#else
-	#if defined(ENABLE_LIBSODIUM)
-		if (!Parameter.DNSCurve && Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
-	#else
-		if (Parameter.RequestMode_Transport != REQUEST_MODE_TCP)
-	#endif
-	{
-		PrintError(LOG_ERROR_PARAMETER, L"Pcap Capture error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-		return false;
-	}
-#endif
 	if (IsFirstRead)
 	{
 		if ((Parameter.LocalMain || Parameter.LocalHosts || Parameter.LocalRouting) && 
-			Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family || 
+			Parameter.DNSTarget.Local_IPv4.Storage.ss_family == 0 && Parameter.DNSTarget.Local_IPv6.Storage.ss_family || 
 			Parameter.LocalHosts && (Parameter.LocalMain || Parameter.LocalRouting) || Parameter.LocalRouting && !Parameter.LocalMain)
 		{
 			PrintError(LOG_ERROR_PARAMETER, L"Local Main / Local Hosts / Local Routing error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
@@ -301,7 +346,7 @@ bool __fastcall ParameterCheckAndSetting(
 			Parameter.EDNSPayloadSize = EDNS_PACKET_MINSIZE;
 		}
 		if (Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0 && 
-			Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage.ss_family == 0
+			Parameter.DNSTarget.Alternate_Local_IPv4.Storage.ss_family == 0 && Parameter.DNSTarget.Alternate_Local_IPv6.Storage.ss_family == 0
 		#if defined(ENABLE_LIBSODIUM)
 			&& Parameter.DNSCurve && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family == 0
 		#endif
@@ -677,7 +722,7 @@ bool __fastcall ParameterCheckAndSetting(
 	}
 
 	//Local Protocol(IPv6)
-	if (Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0 && ParameterPTR->LocalProtocol_Network == REQUEST_MODE_IPV6)
+	if (Parameter.DNSTarget.Local_IPv6.Storage.ss_family == 0 && ParameterPTR->LocalProtocol_Network == REQUEST_MODE_IPV6)
 	{
 		PrintError(LOG_MESSAGE_NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, nullptr, 0);
 		ParameterPTR->LocalProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
@@ -703,7 +748,7 @@ bool __fastcall ParameterCheckAndSetting(
 	}
 
 	//Local Protocol(IPv4)
-	if (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && ParameterPTR->LocalProtocol_Network == REQUEST_MODE_IPV4)
+	if (Parameter.DNSTarget.Local_IPv4.Storage.ss_family == 0 && ParameterPTR->LocalProtocol_Network == REQUEST_MODE_IPV4)
 	{
 		PrintError(LOG_MESSAGE_NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, nullptr, 0);
 		ParameterPTR->LocalProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
@@ -1321,7 +1366,7 @@ bool __fastcall ReadParameterData(
 				return false;
 			}
 		}
-		else if (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family == 0 && Data.find("IPv4LocalDNSAddress=") == 0 && Data.length() > strlen("IPv4LocalDNSAddress="))
+		else if (Parameter.DNSTarget.Local_IPv4.Storage.ss_family == 0 && Data.find("IPv4LocalDNSAddress=") == 0 && Data.length() > strlen("IPv4LocalDNSAddress="))
 		{
 			if (Data.length() > strlen("IPv4LocalDNSAddress=") + 6U && Data.length() < strlen("IPv4LocalDNSAddress=") + 20U)
 			{
@@ -1329,14 +1374,14 @@ bool __fastcall ReadParameterData(
 				std::shared_ptr<char> Target(new char[ADDR_STRING_MAXSIZE]());
 				memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv4LocalDNSAddress="), Data.length() - strlen("IPv4LocalDNSAddress="));
-				if (!AddressStringToBinary(Target.get(), &Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_addr, AF_INET, Result))
+				if (!AddressStringToBinary(Target.get(), &Parameter.DNSTarget.Local_IPv4.IPv4.sin_addr, AF_INET, Result))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"IPv4 address format error", Result, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 
-				Parameter.DNSTarget.Local_IPv4.AddressData.IPv4.sin_port = htons(IPPORT_DNS);
-				Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family = AF_INET;
+				Parameter.DNSTarget.Local_IPv4.IPv4.sin_port = htons(IPPORT_DNS);
+				Parameter.DNSTarget.Local_IPv4.Storage.ss_family = AF_INET;
 			}
 			else {
 				PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
@@ -1365,7 +1410,7 @@ bool __fastcall ReadParameterData(
 				return false;
 			}
 		}
-		else if (Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family == 0 && Data.find("IPv6LocalDNSAddress=") == 0 && Data.length() > strlen("IPv6LocalDNSAddress="))
+		else if (Parameter.DNSTarget.Local_IPv6.Storage.ss_family == 0 && Data.find("IPv6LocalDNSAddress=") == 0 && Data.length() > strlen("IPv6LocalDNSAddress="))
 		{
 			if (Data.length() > strlen("IPv6LocalDNSAddress=") + 1U && Data.length() < strlen("IPv6LocalDNSAddress=") + 40U)
 			{
@@ -1373,14 +1418,14 @@ bool __fastcall ReadParameterData(
 				std::shared_ptr<char> Target(new char[ADDR_STRING_MAXSIZE]());
 				memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv6LocalDNSAddress="), Data.length() - strlen("IPv6LocalDNSAddress="));
-				if (!AddressStringToBinary(Target.get(), &Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_addr, AF_INET6, Result))
+				if (!AddressStringToBinary(Target.get(), &Parameter.DNSTarget.Local_IPv6.IPv6.sin6_addr, AF_INET6, Result))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"IPv6 address format error", Result, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 
-				Parameter.DNSTarget.Local_IPv6.AddressData.IPv6.sin6_port = htons(IPPORT_DNS);
-				Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family = AF_INET6;
+				Parameter.DNSTarget.Local_IPv6.IPv6.sin6_port = htons(IPPORT_DNS);
+				Parameter.DNSTarget.Local_IPv6.Storage.ss_family = AF_INET6;
 			}
 			else {
 				PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
@@ -1613,18 +1658,14 @@ bool __fastcall ReadParameterData(
 			if (Result == 0)
 			{
 				Result = strtoul(StringIter.c_str(), nullptr, 0);
-				if (errno != ERANGE && Result > 0 && Result <= UINT16_MAX)
+				if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
 				{
-					Parameter.ListenPort->push_back(htons((uint16_t)Result));
-				}
-				else {
 					PrintError(LOG_ERROR_PARAMETER, L"Localhost listening port error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 			}
-			else {
-				Parameter.ListenPort->push_back(htons((uint16_t)Result));
-			}
+
+			Parameter.ListenPort->push_back(htons((uint16_t)Result));
 		}
 	}
 	else if (IsFirstRead && Data.find("OperationMode=") == 0 && Data.length() > strlen("OperationMode="))
@@ -1685,18 +1726,14 @@ bool __fastcall ReadParameterData(
 				if (Result == 0)
 				{
 					Result = strtoul(StringIter.c_str(), nullptr, 0);
-					if (errno != ERANGE && Result > 0 && Result <= UINT16_MAX)
+					if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
 					{
-						ParameterPTR->AcceptTypeList->push_back(htons((uint16_t)Result));
-					}
-					else {
 						PrintError(LOG_ERROR_PARAMETER, L"DNS Records type error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 						return false;
 					}
 				}
-				else {
-					ParameterPTR->AcceptTypeList->push_back((uint16_t)Result);
-				}
+				
+				ParameterPTR->AcceptTypeList->push_back((uint16_t)Result);
 			}
 		}
 	}
@@ -1832,8 +1869,7 @@ bool __fastcall ReadParameterData(
 	else if (IsFirstRead && Data.find("IPv4ListenAddress=") == 0 && Data.length() > strlen("IPv4ListenAddress="))
 	{
 		std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
-		memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
-		if (!ReadMultipleAddresses(Data, strlen("IPv4ListenAddress="), *SockAddr, Parameter.ListenAddress_IPv4, AF_INET, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv4ListenAddress="), *SockAddr, Parameter.ListenAddress_IPv4, AF_INET, true, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv4EDNSClientSubnetAddress=") == 0 && Data.length() > strlen("IPv4EDNSClientSubnetAddress="))
@@ -1843,29 +1879,28 @@ bool __fastcall ReadParameterData(
 	}
 	else if (IsFirstRead && Data.find("IPv4DNSAddress=") == 0 && Data.length() > strlen("IPv4DNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("IPv4DNSAddress="), Parameter.DNSTarget.IPv4.AddressData.Storage, nullptr, AF_INET, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv4DNSAddress="), Parameter.DNSTarget.IPv4.AddressData.Storage, nullptr, AF_INET, true, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv4AlternateDNSAddress=") == 0 && Data.length() > strlen("IPv4AlternateDNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("IPv4AlternateDNSAddress="), Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage, nullptr, AF_INET, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv4AlternateDNSAddress="), Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage, nullptr, AF_INET, true, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv4LocalDNSAddress=") == 0 && Data.length() > strlen("IPv4LocalDNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("IPv4LocalDNSAddress="), Parameter.DNSTarget.Local_IPv4.AddressData.Storage, nullptr, AF_INET, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv4LocalDNSAddress="), Parameter.DNSTarget.Local_IPv4.Storage, nullptr, AF_INET, false, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv4LocalAlternateDNSAddress=") == 0 && Data.length() > strlen("IPv4LocalAlternateDNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("IPv4LocalAlternateDNSAddress="), Parameter.DNSTarget.Alternate_Local_IPv4.AddressData.Storage, nullptr, AF_INET, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv4LocalAlternateDNSAddress="), Parameter.DNSTarget.Alternate_Local_IPv4.Storage, nullptr, AF_INET, false, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv6ListenAddress=") == 0 && Data.length() > strlen("IPv6ListenAddress="))
 	{
 		std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
-		memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
-		if (!ReadMultipleAddresses(Data, strlen("IPv4ListenAddress="), *SockAddr, Parameter.ListenAddress_IPv6, AF_INET6, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv4ListenAddress="), *SockAddr, Parameter.ListenAddress_IPv6, AF_INET6, true, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv6EDNSClientSubnetAddress=") == 0 && Data.length() > strlen("IPv6EDNSClientSubnetAddress="))
@@ -1875,22 +1910,22 @@ bool __fastcall ReadParameterData(
 	}
 	else if (IsFirstRead && Data.find("IPv6DNSAddress=") == 0 && Data.length() > strlen("IPv6DNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("IPv6DNSAddress="), Parameter.DNSTarget.IPv6.AddressData.Storage, nullptr, AF_INET6, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv6DNSAddress="), Parameter.DNSTarget.IPv6.AddressData.Storage, nullptr, AF_INET6, true, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv6AlternateDNSAddress=") == 0 && Data.length() > strlen("IPv6AlternateDNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("IPv6AlternateDNSAddress="), Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage, nullptr, AF_INET6, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv6AlternateDNSAddress="), Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage, nullptr, AF_INET6, true, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv6LocalDNSAddress=") == 0 && Data.length() > strlen("IPv6LocalDNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("IPv6LocalDNSAddress="), Parameter.DNSTarget.Local_IPv6.AddressData.Storage, nullptr, AF_INET6, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv6LocalDNSAddress="), Parameter.DNSTarget.Local_IPv6.Storage, nullptr, AF_INET6, false, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv6LocalAlternateDNSAddress=") == 0 && Data.length() > strlen("IPv6LocalAlternateDNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("IPv6LocalAlternateDNSAddress="), Parameter.DNSTarget.Alternate_Local_IPv6.AddressData.Storage, nullptr, AF_INET6, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv6LocalAlternateDNSAddress="), Parameter.DNSTarget.Alternate_Local_IPv6.Storage, nullptr, AF_INET6, false, FileIndex, Line))
 			return false;
 	}
 
@@ -2263,7 +2298,7 @@ bool __fastcall ReadParameterData(
 		}
 	}
 
-//[SOCKS] block
+//[Proxy] block
 	else if (IsFirstRead && Data.find("SOCKSProxy=1") == 0)
 	{
 		Parameter.SOCKS = true;
@@ -2273,7 +2308,7 @@ bool __fastcall ReadParameterData(
 		CaseConvert(true, Data);
 
 		if (Data.find("4A") != std::string::npos)
-			Parameter.SOCKS_Version = SOCKS_VERSION_4A;
+			Parameter.SOCKS_Version = SOCKS_VERSION_CONFIG_4A;
 		else if (Data.find("4") != std::string::npos)
 			Parameter.SOCKS_Version = SOCKS_VERSION_4;
 		else 
@@ -2296,26 +2331,54 @@ bool __fastcall ReadParameterData(
 		}
 
 	//Transport layer
-		if (Data.find("TCP") != std::string::npos)
-			Parameter.SOCKS_Protocol_Transport = REQUEST_MODE_TCP;
-		else 
+		if (Data.find("UDP") != std::string::npos)
 			Parameter.SOCKS_Protocol_Transport = REQUEST_MODE_UDP;
+		else 
+			Parameter.SOCKS_Protocol_Transport = REQUEST_MODE_TCP;
 	}
-	else if (IsFirstRead && Data.find("SOCKSTransportProtocol=") == 0)
+	else if (Data.find("SOCKSReliableSocketTimeout=") == 0 && Data.length() > strlen("SOCKSReliableSocketTimeout="))
 	{
-		CaseConvert(true, Data);
-
-	//Network layer
-		if (Data.find("IPV6") != std::string::npos)
+		if (Data.length() < strlen("SOCKSReliableSocketTimeout=") + UINT32_MAX_STRING_LENGTH)
 		{
-			if (Data.find("IPV4") != std::string::npos)
-				Parameter.SOCKS_Protocol_Inner_Network = REQUEST_MODE_NETWORK_BOTH;
-			else 
-				Parameter.SOCKS_Protocol_Inner_Network = REQUEST_MODE_IPV6;
+			Result = strtoul(Data.c_str() + strlen("SOCKSReliableSocketTimeout="), nullptr, 0);
+			if (errno != ERANGE && Result > 0 && Result > SOCKET_MIN_TIMEOUT)
+			#if defined(PLATFORM_WIN)
+				ParameterPTR->SOCKS_SocketTimeout_Reliable = (int)Result;
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			{
+				ParameterPTR->SOCKS_SocketTimeout_Reliable.tv_sec = Result / SECOND_TO_MILLISECOND;
+				ParameterPTR->SOCKS_SocketTimeout_Reliable.tv_usec = Result % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+			}
+			#endif
 		}
 		else {
-			Parameter.SOCKS_Protocol_Inner_Network = REQUEST_MODE_IPV4;
+			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+			return false;
 		}
+	}
+	else if (Data.find("SOCKSUnreliableSocketTimeout=") == 0 && Data.length() > strlen("SOCKSUnreliableSocketTimeout="))
+	{
+		if (Data.length() < strlen("SOCKSUnreliableSocketTimeout=") + UINT32_MAX_STRING_LENGTH)
+		{
+			Result = strtoul(Data.c_str() + strlen("SOCKSUnreliableSocketTimeout="), nullptr, 0);
+			if (errno != ERANGE && Result > 0 && Result > SOCKET_MIN_TIMEOUT)
+			#if defined(PLATFORM_WIN)
+				ParameterPTR->SOCKS_SocketTimeout_Unreliable = (int)Result;
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			{
+				ParameterPTR->SOCKS_SocketTimeout_Unreliable.tv_sec = Result / SECOND_TO_MILLISECOND;
+				ParameterPTR->SOCKS_SocketTimeout_Unreliable.tv_usec = Result % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+			}
+			#endif
+		}
+		else {
+			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
+	}
+	else if (IsFirstRead && Data.find("SOCKSUDPNoHandshake=1") == 0)
+	{
+		ParameterPTR->SOCKS_UDP_NoHandshake = true;
 	}
 	else if (IsFirstRead && Data.find("SOCKSProxyOnly=1") == 0)
 	{
@@ -2323,23 +2386,28 @@ bool __fastcall ReadParameterData(
 	}
 	else if (IsFirstRead && Data.find("SOCKSIPv4Address=") == 0 && Data.length() > strlen("SOCKSIPv4Address="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("SOCKSIPv4Address="), Parameter.SOCKS_Address_IPv4.AddressData.Storage, nullptr, AF_INET, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("SOCKSIPv4Address="), Parameter.SOCKS_Address_IPv4.Storage, nullptr, AF_INET, false, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("SOCKSIPv6Address=") == 0 && Data.length() > strlen("SOCKSIPv6Address="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("SOCKSIPv6Address="), Parameter.SOCKS_Address_IPv6.AddressData.Storage, nullptr, AF_INET6, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("SOCKSIPv6Address="), Parameter.SOCKS_Address_IPv6.Storage, nullptr, AF_INET6, false, FileIndex, Line))
+			return false;
+	}
+	else if (Data.find("SOCKSTargetServer=") == 0 && Data.length() > strlen("SOCKSTargetServer="))
+	{
+		if (!ReadSOCKSAddressAndDomain(Data, strlen("SOCKSTargetServer="), ParameterPTR, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("SOCKSUsername=") == 0 && Data.length() > strlen("SOCKSUsername="))
 	{
 		ParameterPTR->SOCKS_Username_Length = Data.length() - strlen("SOCKSUsername=");
-		memcpy(ParameterPTR->SOCKS_Username, Data.c_str() + strlen("SOCKSUsername="), ParameterPTR->SOCKS_Username_Length);
+		memcpy_s(ParameterPTR->SOCKS_Username, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U, Data.c_str() + strlen("SOCKSUsername="), ParameterPTR->SOCKS_Username_Length);
 	}
 	else if (Data.find("SOCKSPassword=") == 0 && Data.length() > strlen("SOCKSPassword="))
 	{
 		ParameterPTR->SOCKS_Password_Length = Data.length() - strlen("SOCKSPassword=");
-		memcpy(ParameterPTR->SOCKS_Password, Data.c_str() + strlen("SOCKSPassword="), ParameterPTR->SOCKS_Password_Length);
+		memcpy_s(ParameterPTR->SOCKS_Password, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U, Data.c_str() + strlen("SOCKSPassword="), ParameterPTR->SOCKS_Password_Length);
 	}
 
 //[DNSCurve] block
@@ -2383,6 +2451,46 @@ bool __fastcall ReadParameterData(
 			return false;
 		}
 	}
+		else if (Data.find("DNSCurveReliableSocketTimeout=") == 0 && Data.length() > strlen("DNSCurveReliableSocketTimeout="))
+	{
+		if (Data.length() < strlen("DNSCurveReliableSocketTimeout=") + UINT32_MAX_STRING_LENGTH)
+		{
+			Result = strtoul(Data.c_str() + strlen("DNSCurveReliableSocketTimeout="), nullptr, 0);
+			if (errno != ERANGE && Result > 0 && Result > SOCKET_MIN_TIMEOUT)
+			#if defined(PLATFORM_WIN)
+				DNSCurveParameterPTR->DNSCurve_SocketTimeout_Reliable = (int)Result;
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			{
+				DNSCurveParameterPTR->DNSCurve_SocketTimeout_Reliable.tv_sec = Result / SECOND_TO_MILLISECOND;
+				DNSCurveParameterPTR->DNSCurve_SocketTimeout_Reliable.tv_usec = Result % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+			}
+			#endif
+		}
+		else {
+			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
+	}
+	else if (Data.find("DNSCurveUnreliableSocketTimeout=") == 0 && Data.length() > strlen("DNSCurveUnreliableSocketTimeout="))
+	{
+		if (Data.length() < strlen("DNSCurveUnreliableSocketTimeout=") + UINT32_MAX_STRING_LENGTH)
+		{
+			Result = strtoul(Data.c_str() + strlen("DNSCurveUnreliableSocketTimeout="), nullptr, 0);
+			if (errno != ERANGE && Result > 0 && Result > SOCKET_MIN_TIMEOUT)
+			#if defined(PLATFORM_WIN)
+				DNSCurveParameterPTR->DNSCurve_SocketTimeout_Unreliable = (int)Result;
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			{
+				DNSCurveParameterPTR->DNSCurve_SocketTimeout_Unreliable.tv_sec = Result / SECOND_TO_MILLISECOND;
+				DNSCurveParameterPTR->DNSCurve_SocketTimeout_Unreliable.tv_usec = Result % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+			}
+			#endif
+		}
+		else {
+			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
+	}
 	else if (IsFirstRead && Data.find("Encryption=1") == 0)
 	{
 		DNSCurveParameter.IsEncryption = true;
@@ -2412,22 +2520,22 @@ bool __fastcall ReadParameterData(
 //[DNSCurve Addresses] block
 	else if (IsFirstRead && Data.find("DNSCurveIPv4DNSAddress=") == 0 && Data.length() > strlen("DNSCurveIPv4DNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("DNSCurveIPv4DNSAddress="), DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage, nullptr, AF_INET, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("DNSCurveIPv4DNSAddress="), DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage, nullptr, AF_INET, false, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("DNSCurveIPv4AlternateDNSAddress=") == 0 && Data.length() > strlen("DNSCurveIPv4AlternateDNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("DNSCurveIPv4AlternateDNSAddress="), DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage, nullptr, AF_INET, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("DNSCurveIPv4AlternateDNSAddress="), DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage, nullptr, AF_INET, false, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("DNSCurveIPv6DNSAddress=") == 0 && Data.length() > strlen("DNSCurveIPv6DNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("DNSCurveIPv6DNSAddress="), DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage, nullptr, AF_INET6, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("DNSCurveIPv6DNSAddress="), DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage, nullptr, AF_INET6, false, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("DNSCurveIPv6AlternateDNSAddress=") == 0 && Data.length() > strlen("DNSCurveIPv6AlternateDNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("DNSCurveIPv6AlternateDNSAddress="), DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage, nullptr, AF_INET6, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("DNSCurveIPv6AlternateDNSAddress="), DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage, nullptr, AF_INET6, false, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("DNSCurveIPv4ProviderName=") == 0 && Data.length() > strlen("DNSCurveIPv4ProviderName="))
@@ -2591,7 +2699,7 @@ bool ReadPathAndFileName(
 
 		//Convert to wide string.
 			wNameString.clear();
-			if (!MBSToWCSString(wNameString, StringIter.c_str()))
+			if (!MBSToWCSString(wNameString, StringIter.c_str(), StringIter.length()))
 			{
 				PrintError(LOG_ERROR_PARAMETER, L"Read file path error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -2649,7 +2757,7 @@ bool ReadPathAndFileName(
 
 		//Convert to wide string.
 			wNameString.clear();
-			if (!MBSToWCSString(wNameString, StringIter.c_str()))
+			if (!MBSToWCSString(wNameString, StringIter.c_str(), StringIter.length()))
 			{
 				PrintError(LOG_ERROR_PARAMETER, L"Read file path error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -2706,8 +2814,9 @@ bool __fastcall ReadMultipleAddresses(
 	std::string Data, 
 	const size_t DataOffset, 
 	sockaddr_storage &SockAddr, 
-	std::vector<sockaddr_storage> *ListenSockAddr, 
+	std::vector<sockaddr_storage> *SockAddrList, 
 	const uint16_t Protocol, 
+	const bool IsMultiAddresses, 
 	const size_t FileIndex, 
 	const size_t Line)
 {
@@ -2757,24 +2866,25 @@ bool __fastcall ReadMultipleAddresses(
 					PrintError(LOG_ERROR_PARAMETER, L"IPv6 address port error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
-				else {
-					DNSServerDataTemp->AddressData.IPv6.sin6_port = htons((uint16_t)Result);
-				}
 			}
-			else {
-				DNSServerDataTemp->AddressData.IPv6.sin6_port = htons((uint16_t)Result);
-			}
+			DNSServerDataTemp->AddressData.IPv6.sin6_port = htons((uint16_t)Result);
 
 		//Add to global list.
 			DNSServerDataTemp->AddressData.Storage.ss_family = AF_INET6;
-			if (ListenSockAddr != nullptr)
+			if (SockAddrList != nullptr)
 			{
-				memcpy_s(&SockAddr, sizeof(sockaddr_storage), &DNSServerDataTemp->AddressData.Storage, sizeof(sockaddr_storage));
-				ListenSockAddr->push_back(SockAddr);
+				SockAddrList->push_back(DNSServerDataTemp->AddressData.Storage);
 			}
 			else if (SockAddr.ss_family > 0)
 			{
-				Parameter.DNSTarget.IPv6_Multi->push_back(*DNSServerDataTemp);
+				if (!IsMultiAddresses)
+				{
+					PrintError(LOG_ERROR_PARAMETER, L"IPv6 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+					return false;
+				}
+				else {
+					Parameter.DNSTarget.IPv6_Multi->push_back(*DNSServerDataTemp);
+				}
 			}
 			else {
 				memcpy_s(&SockAddr, sizeof(sockaddr_storage), &DNSServerDataTemp->AddressData.Storage, sizeof(sockaddr_storage));
@@ -2818,28 +2928,167 @@ bool __fastcall ReadMultipleAddresses(
 					PrintError(LOG_ERROR_PARAMETER, L"IPv4 address port error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
-				else {
-					DNSServerDataTemp->AddressData.IPv4.sin_port = htons((uint16_t)Result);
-				}
 			}
-			else {
-				DNSServerDataTemp->AddressData.IPv4.sin_port = htons((uint16_t)Result);
-			}
+			DNSServerDataTemp->AddressData.IPv4.sin_port = htons((uint16_t)Result);
 
 		//Add to global list.
 			DNSServerDataTemp->AddressData.Storage.ss_family = AF_INET;
-			if (ListenSockAddr != nullptr)
+			if (SockAddrList != nullptr)
 			{
-				memcpy_s(&SockAddr, sizeof(sockaddr_storage), &DNSServerDataTemp->AddressData.Storage, sizeof(sockaddr_storage));
-				ListenSockAddr->push_back(SockAddr);
+				SockAddrList->push_back(DNSServerDataTemp->AddressData.Storage);
 			}
 			else if (SockAddr.ss_family > 0)
 			{
-				Parameter.DNSTarget.IPv4_Multi->push_back(*DNSServerDataTemp);
+				if (!IsMultiAddresses)
+				{
+					PrintError(LOG_ERROR_PARAMETER, L"IPv4 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+					return false;
+				}
+				else {
+					Parameter.DNSTarget.IPv4_Multi->push_back(*DNSServerDataTemp);
+				}
 			}
 			else {
 				memcpy_s(&SockAddr, sizeof(sockaddr_storage), &DNSServerDataTemp->AddressData.Storage, sizeof(sockaddr_storage));
 			}
+		}
+	}
+
+	return true;
+}
+
+//Read address or domain of SOCKS
+bool __fastcall ReadSOCKSAddressAndDomain(
+	std::string Data, 
+	const size_t DataOffset, 
+	CONFIGURATION_TABLE *ParameterPTR, 
+	const size_t FileIndex, 
+	const size_t Line)
+{
+//Data check
+	if (Data.find(ASCII_COLON) == std::string::npos)
+	{
+		PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+		return false;
+	}
+
+//Initialization
+	std::shared_ptr<char> Target(new char[ADDR_STRING_MAXSIZE]());
+	memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
+	SSIZE_T Result = 0;
+
+//IPv6
+	if (Data.find(ASCII_BRACKETS_LEAD) != std::string::npos || Data.find(ASCII_BRACKETS_TRAIL) != std::string::npos)
+	{
+		if (Data.find("]:") == std::string::npos || Data.find(ASCII_BRACKETS_TRAIL) <= DataOffset + strlen("[") || 
+			Data.find(ASCII_BRACKETS_TRAIL) < DataOffset + IPV6_SHORTEST_ADDRSTRING || Data.length() <= Data.find("]:") + strlen("]:"))
+		{
+			PrintError(LOG_ERROR_PARAMETER, L"IPv6 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
+		else {
+		//Convert IPv6 address.
+			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + DataOffset + strlen("["), Data.find(ASCII_BRACKETS_TRAIL) - (DataOffset + strlen("[")));
+			if (!AddressStringToBinary(Target.get(), &ParameterPTR->SOCKS_TargetServer.IPv6.sin6_addr, AF_INET6, Result))
+			{
+				PrintError(LOG_ERROR_PARAMETER, L"IPv6 address format error", Result, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+				return false;
+			}
+
+		//Convert IPv6 port.
+			memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
+			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + Data.find("]:") + strlen("]:"), Data.length() - (Data.find("]:") + strlen("]:")));
+			Result = ServiceNameToHex(Target.get());
+			if (Result == 0)
+			{
+				Result = strtoul(Target.get(), nullptr, 0);
+				if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
+				{
+					PrintError(LOG_ERROR_PARAMETER, L"IPv6 address port error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+					return false;
+				}
+			}
+
+			ParameterPTR->SOCKS_TargetServer.IPv6.sin6_port = htons((uint16_t)Result);
+			ParameterPTR->SOCKS_TargetServer.Storage.ss_family = AF_INET6;
+		}
+	}
+	else {
+	//Format error
+		if (Data.find(ASCII_PERIOD) == std::string::npos)
+		{
+			PrintError(LOG_ERROR_PARAMETER, L"IPv6 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
+
+	//Scan data.
+		auto IsDomain = false;
+		for (Result = DataOffset;Result < (SSIZE_T)Data.length();++Result)
+		{
+			if (Data.at(Result) >= ASCII_UPPERCASE_A && Data.at(Result) <= ASCII_UPPERCASE_Z || 
+				Data.at(Result) >= ASCII_LOWERCASE_A && Data.at(Result) <= ASCII_LOWERCASE_Z)
+			{
+				IsDomain = true;
+				break;
+			}
+		}
+
+	//Domain
+		if (IsDomain)
+		{
+		//Convert domain.
+			memcpy_s(ParameterPTR->SOCKS_TargetDomain, DOMAIN_MAXSIZE, Data.c_str() + DataOffset, Data.find(ASCII_COLON) - DataOffset);
+			ParameterPTR->SOCKS_TargetDomain_Length = Data.find(ASCII_COLON) - DataOffset;
+
+		//Convert port.
+			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COLON) + strlen(":"), Data.length() - (Data.find(ASCII_COLON) + strlen(":")));
+			Result = ServiceNameToHex(Target.get());
+			if (Result == 0)
+			{
+				Result = strtoul(Target.get(), nullptr, 0);
+				if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
+				{
+					PrintError(LOG_ERROR_PARAMETER, L"IPv4 address port error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+					return false;
+				}
+			}
+
+			ParameterPTR->SOCKS_TargetDomain_Port = htons((uint16_t)Result);
+		}
+	//IPv4
+		else {
+		//IPv4 address and port check.
+			if (Data.find(ASCII_COLON) == std::string::npos || Data.find(ASCII_PERIOD) == std::string::npos || 
+				Data.find(ASCII_COLON) < DataOffset + IPV4_SHORTEST_ADDRSTRING || Data.length() <= Data.find(ASCII_COLON) + strlen(":"))
+			{
+				PrintError(LOG_ERROR_PARAMETER, L"IPv4 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+				return false;
+			}
+
+		//Convert IPv4 address.
+			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + DataOffset, Data.find(ASCII_COLON) - DataOffset);
+			if (!AddressStringToBinary(Target.get(), &ParameterPTR->SOCKS_TargetServer.IPv4.sin_addr, AF_INET, Result))
+			{
+				PrintError(LOG_ERROR_PARAMETER, L"IPv4 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+				return false;
+			}
+
+		//Convert IPv4 port.
+			memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
+			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COLON) + strlen(":"), Data.length() - (Data.find(ASCII_COLON) + strlen(":")));
+			Result = ServiceNameToHex(Target.get());
+			if (Result == 0)
+			{
+				Result = strtoul(Target.get(), nullptr, 0);
+				if (errno == ERANGE || Result <= 0 || Result > UINT16_MAX)
+				{
+					PrintError(LOG_ERROR_PARAMETER, L"IPv4 address port error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+					return false;
+				}
+			}
+
+			ParameterPTR->SOCKS_TargetServer.IPv4.sin_port = htons((uint16_t)Result);
+			ParameterPTR->SOCKS_TargetServer.Storage.ss_family = AF_INET;
 		}
 	}
 

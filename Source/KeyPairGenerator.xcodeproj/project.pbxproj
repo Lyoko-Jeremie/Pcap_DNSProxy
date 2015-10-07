@@ -24,6 +24,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		D9561C421BC56E270015C77A /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		D99E2E6D1AFCB43C00F36FCD /* KeyPairGenerator */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = KeyPairGenerator; sourceTree = BUILT_PRODUCTS_DIR; };
 		D9F760F71AFCB4CB007F351A /* KeyPairGenerator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = KeyPairGenerator.cpp; sourceTree = "<group>"; };
 		D9F760F81AFCB4CB007F351A /* KeyPairGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyPairGenerator.h; sourceTree = "<group>"; };
@@ -118,6 +119,7 @@
 			children = (
 				D9F760F71AFCB4CB007F351A /* KeyPairGenerator.cpp */,
 				D9F760F81AFCB4CB007F351A /* KeyPairGenerator.h */,
+				D9561C421BC56E270015C77A /* CMakeLists.txt */,
 			);
 			path = KeyPairGenerator;
 			sourceTree = "<group>";

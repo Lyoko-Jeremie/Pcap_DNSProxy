@@ -57,25 +57,29 @@ bool __fastcall EnterRequestProcess(
 	memcpy_s(SendBuffer.get(), Length, OriginalSend, Length);
 
 //Initialization(Receive buffer part)
-#if defined(ENABLE_LIBSODIUM)
-	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Parameter.DNSCurve && DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TCP || 
-		Parameter.LocalProtocol_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
-#else
-	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Parameter.LocalProtocol_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
-#endif
+	size_t RecvSize = 0;
+	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP || //TCP request
+		Parameter.LocalProtocol_Transport == REQUEST_MODE_TCP || //Local request
+		Parameter.SOCKS && Parameter.SOCKS_Protocol_Transport == REQUEST_MODE_TCP //SOCKS TCP request
+	#if defined(ENABLE_LIBSODIUM)
+		|| Parameter.DNSCurve && DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TCP //DNSCurve TCP request
+	#endif
+		)
 	{
 		std::shared_ptr<char> TCPRecvBuffer(new char[LARGE_PACKET_MAXSIZE + sizeof(uint16_t)]());
 		memset(TCPRecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE + sizeof(uint16_t));
 		RecvBuffer.swap(TCPRecvBuffer);
+		RecvSize = LARGE_PACKET_MAXSIZE;
 	}
 	else { //UDP
 		std::shared_ptr<char> UDPRecvBuffer(new char[PACKET_MAXSIZE + sizeof(uint16_t)]());
 		memset(UDPRecvBuffer.get(), 0, PACKET_MAXSIZE + sizeof(uint16_t));
 		RecvBuffer.swap(UDPRecvBuffer);
+		RecvSize = PACKET_MAXSIZE;
 	}
 
-//Local server requesting
-	if (IsLocal && LocalRequestProcess(SendBuffer.get(), Length, RecvBuffer.get(), Protocol, LocalSocketData))
+//Local request process
+	if (IsLocal && LocalRequestProcess(SendBuffer.get(), Length, RecvBuffer.get(), RecvSize, Protocol, LocalSocketData))
 	{
 	//Fin TCP request connection.
 		if (Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
@@ -97,15 +101,11 @@ bool __fastcall EnterRequestProcess(
 			DataLength = Length;
 	}
 
-/*
-//SOCKS requesting
+//SOCKS request process
 	if (Parameter.SOCKS)
 	{
-		if ()
-			goto SkipSOCKS;
-
-	//SOCKS requesting
-		if (SOCKSRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), Protocol, LocalSocketData))
+	//SOCKS request
+		if (SOCKSRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), RecvSize, Protocol, LocalSocketData))
 			return true;
 
 	//SOCKS Proxy Only mode
@@ -122,12 +122,8 @@ bool __fastcall EnterRequestProcess(
 		}
 	}
 
-//Jump here to skip SOCKS process.
-SkipSOCKS:
-*/
-
-//Direct Request requesting
-	if (Parameter.DirectRequest > DIRECT_REQUEST_MODE_NONE && DirectRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), Protocol, true, LocalSocketData))
+//Direct Request request process
+	if (Parameter.DirectRequest > DIRECT_REQUEST_MODE_NONE && DirectRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), RecvSize, Protocol, true, LocalSocketData))
 	{
 	//Fin TCP request connection.
 		if (Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
@@ -139,23 +135,16 @@ SkipSOCKS:
 		return true;
 	}
 
-//DNSCurve requesting
+//DNSCurve request process
 #if defined(ENABLE_LIBSODIUM)
 	if (Parameter.DNSCurve)
 	{
+	//DNSCurve check
 		if (DNSCurveParameter.IsEncryption && DataLength + DNSCRYPT_BUFFER_RESERVE_LEN > DNSCurveParameter.DNSCurvePayloadSize)
-/* Old version(2015-09-15)
-		//Receive Size check(TCP Mode)
-			(Parameter.RequestMode_Transport == REQUEST_MODE_TCP || DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP) && DNSCurveParameter.DNSCurvePayloadSize >= LARGE_PACKET_MAXSIZE && 
-			crypto_box_ZEROBYTES + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES + DataLength >= LARGE_PACKET_MAXSIZE || 
-		//Receive Size check(UDP Mode)
-			Parameter.RequestMode_Transport != REQUEST_MODE_TCP && DNSCurveParameter.DNSCurveProtocol_Transport != REQUEST_MODE_TCP && Protocol != IPPROTO_TCP && DNSCurveParameter.DNSCurvePayloadSize >= PACKET_MAXSIZE && 
-			crypto_box_ZEROBYTES + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES + DataLength >= PACKET_MAXSIZE))
-*/
 			goto SkipDNSCurve;
 
-	//DNSCurve requesting
-		if (DNSCurveRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), Protocol, LocalSocketData))
+	//DNSCurve request
+		if (DNSCurveRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), RecvSize, Protocol, LocalSocketData))
 			return true;
 
 	//DNSCurve Encryption Only mode
@@ -176,17 +165,17 @@ SkipSOCKS:
 SkipDNSCurve:
 #endif
 
-//TCP requesting
+//TCP request process
 	if ((Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP) && 
-		TCPRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), Protocol, LocalSocketData))
+		TCPRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), RecvSize, Protocol, LocalSocketData))
 			return true;
 
-//Direct requesting when Pcap Capture module is turn OFF.
+//Direct request when Pcap Capture module is turn OFF.
 #if defined(ENABLE_PCAP)
 	if (!Parameter.PcapCapture)
 	{
 #endif
-		DirectRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), Protocol, false, LocalSocketData);
+		DirectRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), RecvSize, Protocol, false, LocalSocketData);
 
 	//Fin TCP request connection.
 		if (Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
@@ -199,7 +188,7 @@ SkipDNSCurve:
 #if defined(ENABLE_PCAP)
 	}
 
-//UDP requesting
+//UDP request
 	RecvBuffer.reset();
 	UDPRequestProcess(SendBuffer.get(), DataLength, LocalSocketData, Protocol);
 
@@ -603,7 +592,7 @@ StopLoop:
 	if (Parameter.DomainCaseConversion)
 		MakeDomainCaseConversion(OriginalRequest + sizeof(dns_hdr));
 
-//Local requesting
+//Local request
 	if (IsLocal)
 		return EXIT_CHECK_HOSTS_TYPE_LOCAL;
 
@@ -615,61 +604,82 @@ bool __fastcall LocalRequestProcess(
 	const char *OriginalSend, 
 	const size_t SendSize, 
 	PSTR OriginalRecv, 
+	const size_t RecvSize, 
 	const uint16_t Protocol, 
 	const SOCKET_DATA &LocalSocketData)
 {
 	size_t DataLength = 0;
 
-//TCP Mode
+//TCP request
 	if (Parameter.LocalProtocol_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
 	{
-		DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE, true);
+		DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, RecvSize, true);
 
 	//Send response.
-		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < LARGE_PACKET_MAXSIZE)
+		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 		{
-			SendToRequester(OriginalRecv, DataLength, Protocol, LocalSocketData);
+			SendToRequester(OriginalRecv, DataLength, RecvSize, Protocol, LocalSocketData);
 			return true;
 		}
 	}
 
-//UDP Mode(REQUEST_MODE_UDP)
-	if (Protocol == IPPROTO_TCP) //TCP requesting
-		DataLength = LARGE_PACKET_MAXSIZE;
-//UDP requesting
-	else 
-		DataLength = PACKET_MAXSIZE;
-
-	DataLength = UDPCompleteRequest(OriginalSend, SendSize, OriginalRecv, DataLength, true);
+//UDP request
+	DataLength = UDPCompleteRequest(OriginalSend, SendSize, OriginalRecv, RecvSize, true);
 
 //Send response.
-	if (DataLength >= DNS_PACKET_MINSIZE && (DataLength < PACKET_MAXSIZE || Protocol == IPPROTO_TCP && DataLength < LARGE_PACKET_MAXSIZE))
+	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
-		SendToRequester(OriginalRecv, DataLength, Protocol, LocalSocketData);
+		SendToRequester(OriginalRecv, DataLength, RecvSize, Protocol, LocalSocketData);
 		return true;
 	}
 
 	return false;
 }
 
-/*
 //Request Process(SOCKS part)
 bool __fastcall SOCKSRequestProcess(
 	const char *OriginalSend, 
 	const size_t SendSize, 
 	PSTR OriginalRecv, 
+	const size_t RecvSize, 
 	const uint16_t Protocol, 
 	const SOCKET_DATA &LocalSocketData)
 {
+	size_t DataLength = 0;
+
+//UDP request
+	if (Parameter.SOCKS_Version == SOCKS_VERSION_5 && Parameter.SOCKS_Protocol_Transport == REQUEST_MODE_UDP)
+	{
+	//UDP request process
+		DataLength = SOCKSUDPRequest(OriginalSend, SendSize, OriginalRecv, RecvSize);
+		
+	//Send response.
+		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
+		{
+			SendToRequester(OriginalRecv, DataLength, RecvSize, Protocol, LocalSocketData);
+			return true;
+		}
+	}
+
+//TCP request
+	DataLength = SOCKSTCPRequest(OriginalSend, SendSize, OriginalRecv, RecvSize);
+
+//Send response.
+	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
+	{
+		SendToRequester(OriginalRecv, DataLength, RecvSize, Protocol, LocalSocketData);
+		return true;
+	}
+
 	return false;
 }
-*/
 
 //Request Process(Direct connections part)
 bool __fastcall DirectRequestProcess(
 	const char *OriginalSend, 
 	const size_t SendSize, 
 	PSTR OriginalRecv, 
+	const size_t RecvSize, 
 	const uint16_t Protocol, 
 	const bool DirectRequest, 
 	const SOCKET_DATA &LocalSocketData)
@@ -682,41 +692,37 @@ bool __fastcall DirectRequestProcess(
 		DataLength == AF_INET && Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV6)) //IPv4
 			return false;
 
-//TCP Mode
+//TCP request
 	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
 	{
-	//Multi requesting.
+	//Multi request process
 		if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
-			DataLength = TCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE);
-	//Normal requesting
+			DataLength = TCPRequestMulti(OriginalSend, SendSize, OriginalRecv, RecvSize);
+	//Normal request process
 		else 
-			DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE, false);
+			DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, RecvSize, false);
 
 	//Send response.
-		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < LARGE_PACKET_MAXSIZE)
+		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 		{
-			SendToRequester(OriginalRecv, DataLength, Protocol, LocalSocketData);
+			SendToRequester(OriginalRecv, DataLength, RecvSize, Protocol, LocalSocketData);
 			return true;
 		}
 	}
 
-//UDP Mode(REQUEST_MODE_UDP)
-	if (Protocol == IPPROTO_TCP) //TCP requesting
-		DataLength = LARGE_PACKET_MAXSIZE;
-	else //UDP requesting
-		DataLength = PACKET_MAXSIZE;
+//UDP request
 
-//Multi requesting.
+//Multi request process
 	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
-		DataLength = UDPCompleteRequestMulti(OriginalSend, SendSize, OriginalRecv, DataLength);
-//Normal requesting
+		DataLength = UDPCompleteRequestMulti(OriginalSend, SendSize, OriginalRecv, RecvSize);
+//Normal request process
 	else 
-		DataLength = UDPCompleteRequest(OriginalSend, SendSize, OriginalRecv, DataLength, false);
+		DataLength = UDPCompleteRequest(OriginalSend, SendSize, OriginalRecv, RecvSize, false);
 
 //Send response.
-	if (DataLength >= DNS_PACKET_MINSIZE && (DataLength < PACKET_MAXSIZE || Protocol == IPPROTO_TCP && DataLength < LARGE_PACKET_MAXSIZE))
+	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
-		SendToRequester(OriginalRecv, DataLength, Protocol, LocalSocketData);
+		SendToRequester(OriginalRecv, DataLength, RecvSize, Protocol, LocalSocketData);
 		return true;
 	}
 
@@ -729,46 +735,42 @@ bool __fastcall DNSCurveRequestProcess(
 	const char *OriginalSend, 
 	const size_t SendSize, 
 	PSTR OriginalRecv, 
+	const size_t RecvSize, 
 	const uint16_t Protocol, 
 	const SOCKET_DATA &LocalSocketData)
 {
 	size_t DataLength = 0;
 
-//TCP requesting
+//TCP request
 	if (DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
 	{
-	//Multi requesting.
+	//Multi request process
 		if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
-			DataLength = DNSCurveTCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE);
-	//Normal requesting
+			DataLength = DNSCurveTCPRequestMulti(OriginalSend, SendSize, OriginalRecv, RecvSize);
+	//Normal request process
 		else 
-			DataLength = DNSCurveTCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE);
+			DataLength = DNSCurveTCPRequest(OriginalSend, SendSize, OriginalRecv, RecvSize);
 
 	//Send response.
-		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < LARGE_PACKET_MAXSIZE)
+		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 		{
-			SendToRequester(OriginalRecv, DataLength, Protocol, LocalSocketData);
+			SendToRequester(OriginalRecv, DataLength, RecvSize, Protocol, LocalSocketData);
 			return true;
 		}
 	}
 
-//UDP Mode(REQUEST_MODE_UDP)
-	if (Protocol == IPPROTO_TCP) //TCP requesting
-		DataLength = LARGE_PACKET_MAXSIZE;
-	else //UDP requesting
-		DataLength = PACKET_MAXSIZE;
-
-//Multi requesting.
+//UDP request
+//Multi request process
 	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
-		DataLength = DNSCurveUDPRequestMulti(OriginalSend, SendSize, OriginalRecv, DataLength);
-	//Normal requesting
+		DataLength = DNSCurveUDPRequestMulti(OriginalSend, SendSize, OriginalRecv, RecvSize);
+	//Normal request process
 	else 
-		DataLength = DNSCurveUDPRequest(OriginalSend, SendSize, OriginalRecv, DataLength);
+		DataLength = DNSCurveUDPRequest(OriginalSend, SendSize, OriginalRecv, RecvSize);
 
 //Send response.
-	if (DataLength >= DNS_PACKET_MINSIZE && (DataLength < PACKET_MAXSIZE || Protocol == IPPROTO_TCP && DataLength < LARGE_PACKET_MAXSIZE))
+	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
-		SendToRequester(OriginalRecv, DataLength, Protocol, LocalSocketData);
+		SendToRequester(OriginalRecv, DataLength, RecvSize, Protocol, LocalSocketData);
 		return true;
 	}
 
@@ -781,22 +783,23 @@ bool __fastcall TCPRequestProcess(
 	const char *OriginalSend, 
 	const size_t SendSize, 
 	PSTR OriginalRecv, 
+	const size_t RecvSize, 
 	const uint16_t Protocol, 
 	const SOCKET_DATA &LocalSocketData)
 {
 	size_t DataLength = 0;
 
-//Multi requesting.
+//Multi request process
 	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
-		DataLength = TCPRequestMulti(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE);
-//Normal requesting
+		DataLength = TCPRequestMulti(OriginalSend, SendSize, OriginalRecv, RecvSize);
+//Normal request process
 	else 
-		DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, LARGE_PACKET_MAXSIZE, false);
+		DataLength = TCPRequest(OriginalSend, SendSize, OriginalRecv, RecvSize, false);
 
 //Send response.
-	if (DataLength >= sizeof(uint16_t) + DNS_PACKET_MINSIZE && DataLength < LARGE_PACKET_MAXSIZE)
+	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
-		SendToRequester(OriginalRecv, DataLength, Protocol, LocalSocketData);
+		SendToRequester(OriginalRecv, DataLength, RecvSize, Protocol, LocalSocketData);
 		return true;
 	}
 
@@ -831,10 +834,10 @@ void __fastcall UDPRequestProcess(
 	const SOCKET_DATA &LocalSocketData, 
 	const uint16_t Protocol)
 {
-//Multi requesting.
+//Multi request process
 	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
 		UDPRequestMulti(OriginalSend, SendSize, &LocalSocketData, Protocol);
-//Normal requesting
+//Normal request process
 	else 
 		UDPRequest(OriginalSend, SendSize, &LocalSocketData, Protocol);
 
@@ -853,13 +856,14 @@ void __fastcall UDPRequestProcess(
 bool __fastcall SendToRequester(
 	PSTR RecvBuffer, 
 	const size_t RecvSize, 
+	const size_t MaxLen, 
 	const uint16_t Protocol, 
 	const SOCKET_DATA &LocalSocketData)
 {
 //TCP
 	if (Protocol == IPPROTO_TCP)
 	{
-		if (AddLengthDataToHeader(RecvBuffer, RecvSize, LARGE_PACKET_MAXSIZE) == EXIT_FAILURE)
+		if (AddLengthDataToHeader(RecvBuffer, RecvSize, MaxLen) == EXIT_FAILURE)
 		{
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);
@@ -921,7 +925,7 @@ bool __fastcall MarkDomainCache(
 		//Pointer check
 			if (DataLength + sizeof(uint16_t) < Length && (UCHAR)Buffer[DataLength] >= DNS_POINTER_BITS)
 			{
-				DNS_Pointer = ntohs(*(uint16_t *)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
+				DNS_Pointer = ntohs(*(PUINT16)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
 				if (DNS_Pointer >= Length || DNS_Pointer < sizeof(dns_hdr) || DNS_Pointer == DataLength || DNS_Pointer == DataLength + 1U)
 					return false;
 			}

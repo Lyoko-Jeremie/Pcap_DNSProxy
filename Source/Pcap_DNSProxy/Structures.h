@@ -2249,33 +2249,43 @@ typedef struct _dnscurve_txt_signature_
 #endif
 
 
-//SOCKS Protocol Version 5 part
+//SOCKS Protocol part
 /* About RFC standards
 * RFC 1928, SOCKS Protocol Version 5(https://tools.ietf.org/html/rfc1928)
 * RFC 1929, Username/Password Authentication for SOCKS V5(https://tools.ietf.org/html/rfc1929)
+* SOCKS(version 4): A protocol for TCP proxy across firewalls(http://www.openssh.com/txt/socks4.protocol)
+* SOCKS 4A: A Simple Extension to SOCKS 4 Protocol(http://www.openssh.com/txt/socks4a.protocol)
 */
 
 //Version, Method, Command and Reply definitions
 #define SOCKS_VERSION_4                            4U
-#define SOCKS_VERSION_4A                           0x4A
+#define SOCKS_VERSION_4A                           4U
+#define SOCKS_VERSION_CONFIG_4A                    0x4A
 #define SOCKS_VERSION_5                            5U
-#define SOCKS5_METHOD_NO_AUTHENTICATION_REQUIRED   0
-#define SOCKS5_METHOD_GSSAPI                       1U
-#define SOCKS5_METHOD_USERNAME_PASSWORD            2U
-#define SOCKS5_METHOD_IANA_ASSIGNED_A              3U
-#define SOCKS5_METHOD_IANA_ASSIGNED_B              0x7F
-#define SOCKS5_METHOD_RESERVED_FOR_PRIVATE_A       0x80
-#define SOCKS5_METHOD_RESERVED_FOR_PRIVATE_B       0xFE
-#define SOCKS5_METHOD_NO_ACCEPTABLE_METHODS        0xFF
-#define SOCKS5_USERNAME_PASSWORD_VERSION           1U
-#define SOCKS5_USERNAME_PASSWORD_MAXNUM            255U
-#define SOCKS5_USERNAME_PASSWORD_SUCCESS           0
-#define SOCKS5_COMMAND_CONNECT                     1U
-#define SOCKS5_COMMAND_BIND                        2U
-#define SOCKS5_COMMAND_UDP_ASSOCIATE               3U
+#define SOCKS_METHOD_NO_AUTHENTICATION_NUM         1U
+#define SOCKS_METHOD_SUPPORT_NUM                   2U
+#define SOCKS_METHOD_NO_AUTHENTICATION_REQUIRED    0
+#define SOCKS_METHOD_GSSAPI                        1U
+#define SOCKS_METHOD_USERNAME_PASSWORD             2U
+#define SOCKS_METHOD_IANA_ASSIGNED_A               3U
+#define SOCKS_METHOD_IANA_ASSIGNED_B               0x7F
+#define SOCKS_METHOD_RESERVED_FOR_PRIVATE_A        0x80
+#define SOCKS_METHOD_RESERVED_FOR_PRIVATE_B        0xFE
+#define SOCKS_METHOD_NO_ACCEPTABLE_METHODS         0xFF
+#define SOCKS_USERNAME_PASSWORD_VERSION            1U
+#define SOCKS_USERNAME_PASSWORD_MAXNUM             255U
+#define SOCKS_USERNAME_PASSWORD_SUCCESS            0
+#define SOCKS_COMMAND_CONNECT                      1U
+#define SOCKS_COMMAND_BIND                         2U
+#define SOCKS_COMMAND_UDP_ASSOCIATE                3U
+#define SOCKS4_ADDRESS_DOMAIN_ADDRESS              0x00000001
 #define SOCKS5_ADDRESS_IPV4                        1U
 #define SOCKS5_ADDRESS_DOMAIN                      3U
 #define SOCKS5_ADDRESS_IPV6                        4U
+#define SOCKS4_REPLY_GRANTED                       0x5A   //Request granted
+#define SOCKS4_REPLY_REJECTED                      0x5B   //Request rejected or failed
+#define SOCKS4_REPLY_NOT_IDENTD                    0x5C   //Request failed because client is not running identd(or not reachable from the server).
+#define SOCKS4_REPLY_NOT_CONFIRM                   0x5D   //Request failed because client's identd could not confirm the user ID string in the request.
 #define SOCKS5_REPLY_SUCCESS                       0
 #define SOCKS5_REPLY_SERVER_FAILURE                1U
 #define SOCKS5_REPLY_NOT_ALLOWED                   2U
@@ -2288,7 +2298,7 @@ typedef struct _dnscurve_txt_signature_
 #define SOCKS5_REPLY_UNASSIGNED_A                  9U
 #define SOCKS5_REPLY_UNASSIGNED_B                  0xFF
 
-//Socks5 client version identifier and method selection message
+//SOCKS client version identifier and method selection message
 /*
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -2297,15 +2307,15 @@ typedef struct _dnscurve_txt_signature_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-typedef struct _socks5_client_selection_message_
+typedef struct _socks_client_selection_message_
 {
 	uint8_t               Version;
 	uint8_t               Methods_Number;
 	uint8_t               Methods_A;               //Usually is 0(NO_AUTHENTICATION_REQUIRED)
 	uint8_t               Methods_B;               //Usually is 2(USERNAME/PASSWORD)
-}socks5_client_selection, *psocks5_client_selection;
+}socks_client_selection, *psocks_client_selection;
 
-//Socks5 server method selection message
+//SOCKS server method selection message
 /*
                     1 1 1 1 1 1 1
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6
@@ -2314,13 +2324,13 @@ typedef struct _socks5_client_selection_message_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-typedef struct _socks5_server_selection_message_
+typedef struct _socks_server_selection_message_
 {
 	uint8_t               Version;
 	uint8_t               Method;
-}socks5_server_selection, *psocks5_server_selection;
+}socks_server_selection, *psocks_server_selection;
 
-//Socks5 client Username/Password authentication message
+//SOCKS client Username/Password authentication message
 /*
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -2330,17 +2340,17 @@ typedef struct _socks5_server_selection_message_
 |Password Length|                   Password                    /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-typedef struct _socks5_client_user_authentication_
+typedef struct _socks_client_user_authentication_
 {
 	uint8_t               Version;
 	uint8_t               UserName_Length;
 	PUCHAR                UserName;
 	uint8_t               Password_Length;
 	PUCHAR                Password;
-}socks5_client_user_authentication, *psocks5_client_user_authentication;
+}socks_client_user_authentication, *psocks_client_user_authentication;
 */
 
-//Socks5 server Username/Password authentication message
+//SOCKS server Username/Password authentication message
 /*
                     1 1 1 1 1 1 1
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6
@@ -2349,47 +2359,35 @@ typedef struct _socks5_client_user_authentication_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-typedef struct _socks5_server_user_authentication_
+typedef struct _socks_server_user_authentication_
 {
 	uint8_t               Version;
 	uint8_t               Status;
-}socks5_server_user_authentication, *psocks5_server_user_authentication;
+}socks_server_user_authentication, *psocks_server_user_authentication;
 
-//Socks5 client request message(IPv4)
+//SOCKS version 4 client request message
 /*
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|    Version    |    Command    |   Reserved    | Address Type  |
+|    Version    |    Command    |          Remote_Port          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-/                            Address                            /
+|                        Remote Address                         |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|             Port              |
+/           User ID             /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-typedef struct _socks5_client_request_ipv4_
+typedef struct _socks4_client_command_request_
 {
 	uint8_t               Version;
 	uint8_t               Command;
-	uint8_t               Reserved;
-	uint8_t               Address_Type;
-	in_addr               Address;
-	uint16_t              Port;
-}socks5_client_request_ipv4, *psocks5_client_request_ipv4;
+	uint16_t              Remote_Port;
+	in_addr               Remote_Address;
+	uint8_t               UserID;
+}socks4_client_command_request, *psocks4_client_command_request;
 
-//Socks5 client request message(IPv6)
-typedef struct _socks5_client_request_ipv6_
-{
-	uint8_t               Version;
-	uint8_t               Command;
-	uint8_t               Reserved;
-	uint8_t               Address_Type;
-	in6_addr              Address;
-	uint16_t              Port;
-}socks5_client_request_ipv6, *psocks5_client_request_ipv6;
-
-//Socks5 server reply message(IPv4)
+//SOCKS version 4 server reply message
 /*
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -2398,27 +2396,82 @@ typedef struct _socks5_client_request_ipv6_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /                         Bind Address                          /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|             Port              |
+|           Bind Port           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-typedef struct _socks5_server_reply_ipv4_
+typedef struct _socks4_server_command_reply_
 {
 	uint8_t               Version;
-	uint8_t               Reply;
-	uint8_t               Reserved;
-	uint8_t               Bind_Address_Type;
-	in_addr               Bind_Address;
-	uint16_t              Bind_Port;
-}socks5_server_reply_ipv4, *psocks5_server_reply_ipv4;
+	uint8_t               Command;
+	uint16_t              Remote_Port;
+	in_addr               Remote_Address;
+}socks4_server_command_reply, *psocks4_server_command_reply;
 
-//Socks5 server reply message(IPv6)
-typedef struct _socks5_server_reply_ipv6_
+//SOCKS version 5 client request message
+/*
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Version    |    Command    |   Reserved    | Address Type  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                        Remote Address                         /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|         Remote Port           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _socks5_client_command_request_
+{
+	uint8_t               Version;
+	uint8_t               Command;
+	uint8_t               Reserved;
+	uint8_t               Address_Type;
+//	PUCHAR                Remote_Address;
+//	uint16_t              Remote_Port;
+}socks5_client_command_request, *psocks5_client_command_request;
+
+//SOCKS version 5 server reply message
+/*
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Version    |     Reply     |   Reserved    | Address Type  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                         Bind Address                          /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           Bind Port           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _socks5_server_command_reply_
 {
 	uint8_t               Version;
 	uint8_t               Reply;
 	uint8_t               Reserved;
 	uint8_t               Bind_Address_Type;
-	in6_addr              Bind_Address;
-	uint16_t              Bind_Port;
-}socks5_server_reply_ipv6, *psocks5_server_reply_ipv6;
+//	PUCHAR                Bind_Address;
+//	uint16_t              Bind_Port;
+}socks5_server_command_reply, *psocks5_server_command_reply;
+
+//SOCKS UDP relay request
+/*
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           Reserved            |Fragment Number| Address Type  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                        Remote Address                         /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|         Remote Port           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _socks_udp_relay_request_
+{
+	uint16_t              Reserved;
+	uint8_t               FragmentNumber;
+	uint8_t               Address_Type;
+//	PUCHAR                Remote_Address;
+//	uint16_t              Remote_Port;
+}socks_udp_relay_request, *psocks_udp_relay_request;

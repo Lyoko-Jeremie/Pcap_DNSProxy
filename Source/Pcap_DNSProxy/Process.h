@@ -34,18 +34,21 @@ bool __fastcall LocalRequestProcess(
 	const char *OriginalSend, 
 	const size_t SendSize, 
 	PSTR OriginalRecv, 
+	const size_t RecvSize, 
 	const uint16_t Protocol, 
 	const SOCKET_DATA &LocalSocketData);
 bool __fastcall SOCKSRequestProcess(
 	const char *OriginalSend, 
 	const size_t SendSize, 
 	PSTR OriginalRecv, 
+	const size_t RecvSize, 
 	const uint16_t Protocol, 
 	const SOCKET_DATA &LocalSocketData);
 bool __fastcall DirectRequestProcess(
 	const char *OriginalSend, 
 	const size_t SendSize, 
 	PSTR OriginalRecv, 
+	const size_t RecvSize, 
 	const uint16_t Protocol, 
 	const bool DirectRequest, 
 	const SOCKET_DATA &LocalSocketData);
@@ -54,6 +57,7 @@ bool __fastcall DNSCurveRequestProcess(
 	const char *OriginalSend, 
 	const size_t SendSize, 
 	PSTR OriginalRecv, 
+	const size_t RecvSize, 
 	const uint16_t Protocol, 
 	const SOCKET_DATA &LocalSocketData);
 #endif
@@ -61,6 +65,7 @@ bool __fastcall TCPRequestProcess(
 	const char *OriginalSend, 
 	const size_t SendSize, 
 	PSTR OriginalRecv, 
+	const size_t RecvSize, 
 	const uint16_t Protocol, 
 	const SOCKET_DATA &LocalSocketData);
 #if defined(ENABLE_PCAP)

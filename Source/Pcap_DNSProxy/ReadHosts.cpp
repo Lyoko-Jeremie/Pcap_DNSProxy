@@ -57,7 +57,7 @@ bool __fastcall ReadHostsData(
 			return true;
 
 //[Local Hosts] block(A part)
-	if (LabelType == 0 && (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0) && 
+	if (LabelType == 0 && (Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0) && 
 	#if defined(PLATFORM_WIN) //Case-insensitive on Windows
 		(FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") != std::wstring::npos && FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"whitelist.txt") && 
 		FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") + wcslen(L"whitelist.txt") == FileList_Hosts.at(FileIndex).FileName.length() || 
@@ -146,7 +146,7 @@ bool __fastcall ReadHostsData(
 	{
 		if (Parameter.LocalMain)
 			return true;
-		else if (Parameter.LocalHosts && (Parameter.DNSTarget.Local_IPv4.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.AddressData.Storage.ss_family > 0))
+		else if (Parameter.LocalHosts && (Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0))
 			return ReadLocalHostsData(Data, FileIndex, Line);
 	}
 

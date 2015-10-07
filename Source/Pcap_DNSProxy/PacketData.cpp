@@ -356,7 +356,7 @@ size_t __fastcall AddEDNSLabelToAdditionalRR(
 	DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 	DataLength += sizeof(dns_record_opt);
 
-//DNSSEC requesting
+//DNSSEC request
 	if (Parameter.DNSSEC_Request)
 	{
 		if (!NoHeader)
