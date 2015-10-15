@@ -21,11 +21,11 @@
 
 //Print errors to log file
 bool __fastcall PrintError(
-	const size_t ErrorType, 
-	const wchar_t *Message, 
-	const SSIZE_T ErrorCode, 
-	const wchar_t *FileName, 
-	const size_t Line)
+	_In_ const size_t ErrorType, 
+	_In_ const wchar_t *Message, 
+	_In_opt_ const SSIZE_T ErrorCode, 
+	_In_opt_ const wchar_t *FileName, 
+	_In_opt_ const size_t Line)
 {
 //Print Error: Enable/Disable.
 	if (!Parameter.PrintError || //PrintError parameter check

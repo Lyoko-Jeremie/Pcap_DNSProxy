@@ -31,7 +31,7 @@ extern std::mutex IPFilterFileLock, HostsFileLock;
 
 //Functions
 bool __fastcall CheckDNSSECRecords(
-	const char *Buffer, 
-	const size_t Length, 
-	const uint16_t Type, 
-	const uint16_t BeforeType);
+	_In_ const char *Buffer, 
+	_In_ const size_t Length, 
+	_In_ const uint16_t Type, 
+	_In_ const uint16_t BeforeType);

@@ -21,11 +21,11 @@
 
 //Independent request process
 bool __fastcall EnterRequestProcess(
-	const char *OriginalSend, 
-	const size_t Length, 
-	const SOCKET_DATA LocalSocketData, 
-	const uint16_t Protocol, 
-	const bool IsLocal)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t Length, 
+	_In_ const SOCKET_DATA LocalSocketData, 
+	_In_ const uint16_t Protocol, 
+	_In_ const bool IsLocal)
 {
 //Initialization(Send buffer part)
 	std::shared_ptr<char> SendBuffer, RecvBuffer;
@@ -60,11 +60,11 @@ bool __fastcall EnterRequestProcess(
 	size_t RecvSize = 0;
 	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP || //TCP request
 		Parameter.LocalProtocol_Transport == REQUEST_MODE_TCP || //Local request
-		Parameter.SOCKS && Parameter.SOCKS_Protocol_Transport == REQUEST_MODE_TCP //SOCKS TCP request
+		Parameter.SOCKS_Proxy && Parameter.SOCKS_Protocol_Transport == REQUEST_MODE_TCP //SOCKS TCP request
 	#if defined(ENABLE_LIBSODIUM)
 		|| Parameter.DNSCurve && DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TCP //DNSCurve TCP request
 	#endif
-		)
+		) //TCP
 	{
 		std::shared_ptr<char> TCPRecvBuffer(new char[LARGE_PACKET_MAXSIZE + sizeof(uint16_t)]());
 		memset(TCPRecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE + sizeof(uint16_t));
@@ -101,8 +101,8 @@ bool __fastcall EnterRequestProcess(
 			DataLength = Length;
 	}
 
-//SOCKS request process
-	if (Parameter.SOCKS)
+//SOCKS proxy request process
+	if (Parameter.SOCKS_Proxy)
 	{
 	//SOCKS request
 		if (SOCKSRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), RecvSize, Protocol, LocalSocketData))
@@ -198,10 +198,10 @@ SkipDNSCurve:
 
 //Check hosts from list
 size_t __fastcall CheckHostsProcess(
-	PSTR OriginalRequest, 
-	const size_t Length, 
-	PSTR Result, 
-	const size_t ResultSize)
+	_Inout_ char *OriginalRequest, 
+	_In_ const size_t Length, 
+	_Inout_ char *Result, 
+	_In_ const size_t ResultSize)
 {
 //Initilization
 	std::string Domain;
@@ -324,7 +324,7 @@ size_t __fastcall CheckHostsProcess(
 			if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
 			{
 				DNS_Header->Additional = 0;
-				DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, false);
+				DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, nullptr);
 			}
 			
 			return DataLength;
@@ -512,7 +512,7 @@ size_t __fastcall CheckHostsProcess(
 						if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
 						{
 							DNS_Header->Additional = 0;
-							DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, false);
+							DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, nullptr);
 						}
 
 						return DataLength;
@@ -568,7 +568,7 @@ size_t __fastcall CheckHostsProcess(
 						if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
 						{
 							DNS_Header->Additional = 0;
-							DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, false);
+							DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, nullptr);
 						}
 
 						return DataLength;
@@ -601,14 +601,15 @@ StopLoop:
 
 //Request Process(Local part)
 bool __fastcall LocalRequestProcess(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize, 
-	const uint16_t Protocol, 
-	const SOCKET_DATA &LocalSocketData)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize, 
+	_In_ const uint16_t Protocol, 
+	_In_ const SOCKET_DATA &LocalSocketData)
 {
 	size_t DataLength = 0;
+	memset(OriginalRecv, 0, RecvSize);
 
 //TCP request
 	if (Parameter.LocalProtocol_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
@@ -638,14 +639,15 @@ bool __fastcall LocalRequestProcess(
 
 //Request Process(SOCKS part)
 bool __fastcall SOCKSRequestProcess(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize, 
-	const uint16_t Protocol, 
-	const SOCKET_DATA &LocalSocketData)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize, 
+	_In_ const uint16_t Protocol, 
+	_In_ const SOCKET_DATA &LocalSocketData)
 {
 	size_t DataLength = 0;
+	memset(OriginalRecv, 0, RecvSize);
 
 //UDP request
 	if (Parameter.SOCKS_Version == SOCKS_VERSION_5 && Parameter.SOCKS_Protocol_Transport == REQUEST_MODE_UDP)
@@ -676,15 +678,16 @@ bool __fastcall SOCKSRequestProcess(
 
 //Request Process(Direct connections part)
 bool __fastcall DirectRequestProcess(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize, 
-	const uint16_t Protocol, 
-	const bool DirectRequest, 
-	const SOCKET_DATA &LocalSocketData)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize, 
+	_In_ const uint16_t Protocol, 
+	_In_ const bool DirectRequest, 
+	_In_ const SOCKET_DATA &LocalSocketData)
 {
 	size_t DataLength = 0;
+	memset(OriginalRecv, 0, RecvSize);
 
 //Direct Request mode check
 	DataLength = SelectNetworkProtocol();
@@ -711,12 +714,9 @@ bool __fastcall DirectRequestProcess(
 	}
 
 //UDP request
-
-//Multi request process
-	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
+	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U) //Multi request process
 		DataLength = UDPCompleteRequestMulti(OriginalSend, SendSize, OriginalRecv, RecvSize);
-//Normal request process
-	else 
+	else //Normal request process
 		DataLength = UDPCompleteRequest(OriginalSend, SendSize, OriginalRecv, RecvSize, false);
 
 //Send response.
@@ -732,14 +732,15 @@ bool __fastcall DirectRequestProcess(
 //Request Process(DNSCurve part)
 #if defined(ENABLE_LIBSODIUM)
 bool __fastcall DNSCurveRequestProcess(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize, 
-	const uint16_t Protocol, 
-	const SOCKET_DATA &LocalSocketData)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize, 
+	_In_ const uint16_t Protocol, 
+	_In_ const SOCKET_DATA &LocalSocketData)
 {
 	size_t DataLength = 0;
+	memset(OriginalRecv, 0, RecvSize);
 
 //TCP request
 	if (DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP)
@@ -780,14 +781,15 @@ bool __fastcall DNSCurveRequestProcess(
 
 //Request Process(TCP part)
 bool __fastcall TCPRequestProcess(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize, 
-	const uint16_t Protocol, 
-	const SOCKET_DATA &LocalSocketData)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize, 
+	_In_ const uint16_t Protocol, 
+	_In_ const SOCKET_DATA &LocalSocketData)
 {
 	size_t DataLength = 0;
+	memset(OriginalRecv, 0, RecvSize);
 
 //Multi request process
 	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
@@ -829,10 +831,10 @@ uint16_t __fastcall SelectNetworkProtocol(
 //Request Process(UDP part)
 #if defined(ENABLE_PCAP)
 void __fastcall UDPRequestProcess(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	const SOCKET_DATA &LocalSocketData, 
-	const uint16_t Protocol)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_In_ const SOCKET_DATA &LocalSocketData, 
+	_In_ const uint16_t Protocol)
 {
 //Multi request process
 	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
@@ -854,11 +856,11 @@ void __fastcall UDPRequestProcess(
 
 //Send responses to requester
 bool __fastcall SendToRequester(
-	PSTR RecvBuffer, 
-	const size_t RecvSize, 
-	const size_t MaxLen, 
-	const uint16_t Protocol, 
-	const SOCKET_DATA &LocalSocketData)
+	_In_ char *RecvBuffer, 
+	_In_ const size_t RecvSize, 
+	_In_ const size_t MaxLen, 
+	_In_ const uint16_t Protocol, 
+	_In_ const SOCKET_DATA &LocalSocketData)
 {
 //TCP
 	if (Protocol == IPPROTO_TCP)
@@ -884,8 +886,8 @@ bool __fastcall SendToRequester(
 
 //Mark responses to domains Cache
 bool __fastcall MarkDomainCache(
-	const char *Buffer, 
-	const size_t Length)
+	_In_ const char *Buffer, 
+	_In_ const size_t Length)
 {
 //Check conditions.
 	auto DNS_Header = (pdns_hdr)Buffer;
@@ -923,9 +925,9 @@ bool __fastcall MarkDomainCache(
 		for (size_t Index = 0;Index < (size_t)ntohs(DNS_Header->Answer);++Index)
 		{
 		//Pointer check
-			if (DataLength + sizeof(uint16_t) < Length && (UCHAR)Buffer[DataLength] >= DNS_POINTER_BITS)
+			if (DataLength + sizeof(uint16_t) < Length && (unsigned char)Buffer[DataLength] >= DNS_POINTER_BITS)
 			{
-				DNS_Pointer = ntohs(*(PUINT16)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
+				DNS_Pointer = ntohs(*(uint16_t *)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
 				if (DNS_Pointer >= Length || DNS_Pointer < sizeof(dns_hdr) || DNS_Pointer == DataLength || DNS_Pointer == DataLength + 1U)
 					return false;
 			}

@@ -21,9 +21,9 @@
 
 //Read texts
 bool __fastcall ReadText(
-	const FILE *Input, 
-	const size_t InputType, 
-	const size_t FileIndex)
+	_In_ const FILE *Input, 
+	_In_ const size_t InputType, 
+	_In_ const size_t FileIndex)
 {
 //Initialization
 	std::shared_ptr<char> FileBuffer(new char[FILE_BUFFER_SIZE]()), TextBuffer(new char[FILE_BUFFER_SIZE]());
@@ -71,7 +71,7 @@ bool __fastcall ReadText(
 			}
 
 		//8-bit Unicode Transformation Format/UTF-8 with BOM
-			if ((UCHAR)FileBuffer.get()[0] == 0xEF && (UCHAR)FileBuffer.get()[1U] == 0xBB && (UCHAR)FileBuffer.get()[2U] == 0xBF) //0xEF, 0xBB, 0xBF
+			if ((unsigned char)FileBuffer.get()[0] == 0xEF && (unsigned char)FileBuffer.get()[1U] == 0xBB && (unsigned char)FileBuffer.get()[2U] == 0xBF) //0xEF, 0xBB, 0xBF
 			{
 				memmove_s(FileBuffer.get(), FILE_BUFFER_SIZE, FileBuffer.get() + BOM_UTF_8_LENGTH, FILE_BUFFER_SIZE - BOM_UTF_8_LENGTH);
 				memset(FileBuffer.get() + FILE_BUFFER_SIZE - BOM_UTF_8_LENGTH, 0, BOM_UTF_8_LENGTH);
@@ -79,7 +79,7 @@ bool __fastcall ReadText(
 				Encoding = CODEPAGE_UTF_8;
 			}
 		//32-bit Unicode Transformation Format/UTF-32 Little Endian/LE
-			else if ((UCHAR)FileBuffer.get()[0] == 0xFF && (UCHAR)FileBuffer.get()[1U] == 0xFE && FileBuffer.get()[2U] == 0 && FileBuffer.get()[3U] == 0) //0xFF, 0xFE, 0x00, 0x00
+			else if ((unsigned char)FileBuffer.get()[0] == 0xFF && (unsigned char)FileBuffer.get()[1U] == 0xFE && FileBuffer.get()[2U] == 0 && FileBuffer.get()[3U] == 0) //0xFF, 0xFE, 0x00, 0x00
 			{
 				memmove_s(FileBuffer.get(), FILE_BUFFER_SIZE, FileBuffer.get() + BOM_UTF_32_LENGTH, FILE_BUFFER_SIZE - BOM_UTF_32_LENGTH);
 				memset(FileBuffer.get() + FILE_BUFFER_SIZE - BOM_UTF_32_LENGTH, 0, BOM_UTF_32_LENGTH);
@@ -87,7 +87,7 @@ bool __fastcall ReadText(
 				Encoding = CODEPAGE_UTF_32_LE;
 			}
 		//32-bit Unicode Transformation Format/UTF-32 Big Endian/BE
-			else if (FileBuffer.get()[0] == 0 && FileBuffer.get()[1U] == 0 && (UCHAR)FileBuffer.get()[2U] == 0xFE && (UCHAR)FileBuffer.get()[3U] == 0xFF) //0x00, 0x00, 0xFE, 0xFF
+			else if (FileBuffer.get()[0] == 0 && FileBuffer.get()[1U] == 0 && (unsigned char)FileBuffer.get()[2U] == 0xFE && (unsigned char)FileBuffer.get()[3U] == 0xFF) //0x00, 0x00, 0xFE, 0xFF
 			{
 				memmove_s(FileBuffer.get(), FILE_BUFFER_SIZE, FileBuffer.get() + BOM_UTF_32_LENGTH, FILE_BUFFER_SIZE - BOM_UTF_32_LENGTH);
 				memset(FileBuffer.get() + FILE_BUFFER_SIZE - BOM_UTF_32_LENGTH, 0, BOM_UTF_32_LENGTH);
@@ -95,7 +95,7 @@ bool __fastcall ReadText(
 				Encoding = CODEPAGE_UTF_32_BE;
 			}
 		//16-bit Unicode Transformation Format/UTF-16 Little Endian/LE
-			else if ((UCHAR)FileBuffer.get()[0] == 0xFF && (UCHAR)FileBuffer.get()[1U] == 0xFE) //0xFF, 0xFE
+			else if ((unsigned char)FileBuffer.get()[0] == 0xFF && (unsigned char)FileBuffer.get()[1U] == 0xFE) //0xFF, 0xFE
 			{
 				memmove_s(FileBuffer.get(), FILE_BUFFER_SIZE, FileBuffer.get() + BOM_UTF_16_LENGTH, FILE_BUFFER_SIZE - BOM_UTF_16_LENGTH);
 				memset(FileBuffer.get() + FILE_BUFFER_SIZE - BOM_UTF_16_LENGTH, 0, BOM_UTF_16_LENGTH);
@@ -103,7 +103,7 @@ bool __fastcall ReadText(
 				Encoding = CODEPAGE_UTF_16_LE;
 			}
 		//16-bit Unicode Transformation Format/UTF-16 Big Endian/BE
-			else if ((UCHAR)FileBuffer.get()[0] == 0xFE && (UCHAR)FileBuffer.get()[1U] == 0xFF) //0xFE, 0xFF
+			else if ((unsigned char)FileBuffer.get()[0] == 0xFE && (unsigned char)FileBuffer.get()[1U] == 0xFF) //0xFE, 0xFF
 			{
 				memmove_s(FileBuffer.get(), FILE_BUFFER_SIZE, FileBuffer.get() + BOM_UTF_16_LENGTH, FILE_BUFFER_SIZE - BOM_UTF_16_LENGTH);
 				memset(FileBuffer.get() + FILE_BUFFER_SIZE - BOM_UTF_16_LENGTH, 0, BOM_UTF_16_LENGTH);
@@ -123,7 +123,7 @@ bool __fastcall ReadText(
 			for (Index = 0;Index < ReadLength;)
 			{
 			//About this process, see https://en.wikipedia.org/wiki/UTF-8.
-				if ((UCHAR)FileBuffer.get()[Index] > 0xE0 && Index >= 3U)
+				if ((unsigned char)FileBuffer.get()[Index] > 0xE0 && Index >= 3U)
 				{
 					SingleText = (((uint16_t)(FileBuffer.get()[Index] & 0x0F)) << 12U) + (((uint16_t)(FileBuffer.get()[Index + 1U] & 0x3F)) << 6U) + (uint16_t)(FileBuffer.get()[Index + 2U] & 0x3F);
 				
@@ -151,7 +151,7 @@ bool __fastcall ReadText(
 						continue;
 					}
 				}
-				else if ((UCHAR)FileBuffer.get()[Index] > 0xC0 && Index >= 2U)
+				else if ((unsigned char)FileBuffer.get()[Index] > 0xC0 && Index >= 2U)
 				{
 					SingleText = (((uint16_t)(FileBuffer.get()[Index] & 0x1F)) << 6U) + (uint16_t)(FileBuffer.get()[Index] & 0x3F);
 
@@ -174,7 +174,7 @@ bool __fastcall ReadText(
 				}
 				
 			//Delete all Non-ASCII.
-				if ((UCHAR)FileBuffer.get()[Index] > ASCII_MAX_NUM)
+				if ((unsigned char)FileBuffer.get()[Index] > ASCII_MAX_NUM)
 					FileBuffer.get()[Index] = 0;
 			//Next line format
 				if (FileBuffer.get()[Index] == ASCII_CR && Index + 1U < ReadLength && FileBuffer.get()[Index + 1U] == ASCII_LF)
@@ -188,10 +188,10 @@ bool __fastcall ReadText(
 		}
 		else if (Encoding == CODEPAGE_UTF_16_LE || Encoding == CODEPAGE_UTF_16_BE)
 		{
-			PUINT16 SingleText = nullptr;
+			uint16_t *SingleText = nullptr;
 			for (Index = 0;Index < ReadLength;Index += sizeof(uint16_t))
 			{
-				SingleText = (PUINT16)(FileBuffer.get() + Index);
+				SingleText = (uint16_t *)(FileBuffer.get() + Index);
 
 			//Endian
 			#if __BYTE_ORDER == __LITTLE_ENDIAN
@@ -227,10 +227,10 @@ bool __fastcall ReadText(
 		}
 		else if (Encoding == CODEPAGE_UTF_32_LE || Encoding == CODEPAGE_UTF_32_BE)
 		{
-			PUINT32 SingleText = nullptr;
+			uint32_t *SingleText = nullptr;
 			for (Index = 0;Index < ReadLength;Index += sizeof(uint32_t))
 			{
-				SingleText = (PUINT32)(FileBuffer.get() + Index);
+				SingleText = (uint32_t *)(FileBuffer.get() + Index);
 
 			//Endian
 			#if __BYTE_ORDER == __LITTLE_ENDIAN
@@ -291,7 +291,7 @@ bool __fastcall ReadText(
 	//Delete all null characters.
 		for (Index = 0;Index < ReadLength;++Index)
 		{
-			if ((UCHAR)FileBuffer.get()[Index] > 0)
+			if ((unsigned char)FileBuffer.get()[Index] > 0)
 			{
 				TextBuffer.get()[strnlen_s(TextBuffer.get(), FILE_BUFFER_SIZE)] = FileBuffer.get()[Index];
 
@@ -347,11 +347,11 @@ bool __fastcall ReadText(
 					{
 						case READ_TEXT_HOSTS: //ReadHosts
 						{
-							ReadHostsData(TextData, FileIndex, Line, LabelType, IsLabelComments);
+							ReadHostsData(TextData, FileIndex, LabelType, Line, IsLabelComments);
 						}break;
 						case READ_TEXT_IPFILTER: //ReadIPFilter
 						{
-							ReadIPFilterData(TextData, FileIndex, Line, LabelType, IsLabelComments);
+							ReadIPFilterData(TextData, FileIndex, LabelType, Line, IsLabelComments);
 						}break;
 						case READ_TEXT_PARAMETER: //ReadParameter
 						{
@@ -385,8 +385,8 @@ bool __fastcall ReadText(
 
 //Check Multi-line comments
 bool __fastcall ReadMultiLineComments(
-	std::string &Data, 
-	bool &IsLabelComments)
+	_Inout_ std::string &Data, 
+	_In_ bool &IsLabelComments)
 {
 	if (IsLabelComments)
 	{
@@ -418,7 +418,7 @@ bool __fastcall ReadMultiLineComments(
 
 //Read parameter from file
 bool __fastcall ReadParameter(
-	const bool IsFirstRead)
+	_In_ const bool IsFirstRead)
 {
 	size_t FileIndex = 0;
 
@@ -429,7 +429,7 @@ bool __fastcall ReadParameter(
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		const char *sConfigFileNameList[]{CONFIG_FILE_NAME_LIST_STRING};
 	#endif
-		for (FileIndex = 0;FileIndex < sizeof(ConfigFileNameList) / sizeof(PWSTR);++FileIndex)
+		for (FileIndex = 0;FileIndex < sizeof(ConfigFileNameList) / sizeof(wchar_t *);++FileIndex)
 		{
 			FILE_DATA ConfigFileTemp;
 			ConfigFileTemp.FileName = GlobalRunningStatus.Path_Global->front();
@@ -1067,8 +1067,8 @@ void __fastcall ReadHosts(
 
 //Clear data in list
 void __fastcall ClearModificatingListData(
-	const size_t ClearType, 
-	const size_t FileIndex)
+	_In_ const size_t ClearType, 
+	_In_ const size_t FileIndex)
 {
 //Clear Hosts set.
 	if (ClearType == READ_TEXT_HOSTS)
@@ -1101,12 +1101,16 @@ void __fastcall ClearModificatingListData(
 
 //Get data list from file
 void __fastcall GetParameterListData(
-	std::vector<std::string> &ListData, 
-	const std::string Data, 
-	const size_t DataOffset, 
-	const size_t Length)
+	_Out_ std::vector<std::string> &ListData, 
+	_In_ const std::string Data, 
+	_In_ const size_t DataOffset, 
+	_In_ const size_t Length)
 {
+//Initialization
 	std::string NameString;
+	ListData.clear();
+
+//Get all list data.
 	for (size_t Index = DataOffset;Index < Length;++Index)
 	{
 	//Last data

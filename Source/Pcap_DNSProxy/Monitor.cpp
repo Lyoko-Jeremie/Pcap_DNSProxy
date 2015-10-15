@@ -31,7 +31,7 @@ bool __fastcall MonitorInit(
 		Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && 
 		Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0) && 
 	//SOCKS request only mode
-		!(Parameter.SOCKS && Parameter.SOCKS_Only)
+		!(Parameter.SOCKS_Proxy && Parameter.SOCKS_Only)
 	//DNSCurve request only mode
 	#if defined(ENABLE_LIBSODIUM)
 		&& !(Parameter.DNSCurve && DNSCurveParameter.IsEncryptionOnly)
@@ -419,7 +419,7 @@ bool __fastcall MonitorInit(
 
 //Local DNS server with UDP protocol
 bool __fastcall UDPMonitor(
-	const SOCKET_DATA LocalSocketData)
+	_In_ const SOCKET_DATA LocalSocketData)
 {
 //Block UDP RESET message, socket timeout, reusing and non-blocking mode setting 
 	if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TIMEOUT, &Parameter.SocketTimeout_Unreliable)
@@ -460,7 +460,6 @@ bool __fastcall UDPMonitor(
 	OriginalTimeout->tv_sec = Parameter.SocketTimeout_Unreliable.tv_sec;
 	OriginalTimeout->tv_usec = Parameter.SocketTimeout_Unreliable.tv_usec;
 #endif
-	SSIZE_T SelectResult = 0;
 	uint64_t LastMarkTime = 0, NowTime = 0;
 	if (Parameter.QueueResetTime > 0)
 	{
@@ -473,8 +472,8 @@ bool __fastcall UDPMonitor(
 		LastMarkTime = GetTickCount64();
 	#endif
 	}
+	SSIZE_T SelectResult = 0, RecvLen = 0;
 	size_t Index = 0;
-	SSIZE_T RecvLen = 0;
 	auto IsLocal = false;
 
 //Listening module
@@ -579,7 +578,7 @@ bool __fastcall UDPMonitor(
 
 //Local DNS server with TCP protocol
 bool __fastcall TCPMonitor(
-	const SOCKET_DATA LocalSocketData)
+	_In_ const SOCKET_DATA LocalSocketData)
 {
 //Socket timeout, reusing, TCP Fast Open and non-blocking mode setting
 	if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TIMEOUT, &Parameter.SocketTimeout_Reliable)
@@ -627,7 +626,6 @@ bool __fastcall TCPMonitor(
 	OriginalTimeout->tv_sec = Parameter.SocketTimeout_Reliable.tv_sec;
 	OriginalTimeout->tv_usec = Parameter.SocketTimeout_Reliable.tv_usec;
 #endif
-	SSIZE_T SelectResult = 0;
 	uint64_t LastMarkTime = 0, NowTime = 0;
 	if (Parameter.QueueResetTime > 0)
 	{
@@ -640,6 +638,7 @@ bool __fastcall TCPMonitor(
 		LastMarkTime = GetTickCount64();
 	#endif
 	}
+	SSIZE_T SelectResult = 0;
 	size_t Index = 0;
 
 //Start Monitor.
@@ -732,7 +731,7 @@ bool __fastcall TCPMonitor(
 
 //TCP Monitor receive process
 bool __fastcall TCPReceiveProcess(
-	const SOCKET_DATA LocalSocketData)
+	_In_ const SOCKET_DATA LocalSocketData)
 {
 //Initialization(Part 1)
 	std::shared_ptr<char> RecvBuffer(new char[LARGE_PACKET_MAXSIZE]());
@@ -833,7 +832,7 @@ bool __fastcall TCPReceiveProcess(
 	}
 
 //Packet length check
-	Length = ntohs(((PUINT16)RecvBuffer.get())[0]);
+	Length = ntohs(((uint16_t *)RecvBuffer.get())[0]);
 	if (RecvLen >= (SSIZE_T)Length && Length >= DNS_PACKET_MINSIZE)
 	{
 	//Check DNS query data.
@@ -944,21 +943,21 @@ void __fastcall AlternateServerMonitor(
 
 //Get local address list
 #if defined(PLATFORM_WIN)
-PADDRINFOA __fastcall GetLocalAddressList(
-	const uint16_t Protocol, 
-	PSTR HostName)
+addrinfo * __fastcall GetLocalAddressList(
+	_In_ const uint16_t Protocol, 
+	_Out_ char *HostName)
 {
 //Initialization
 	std::shared_ptr<addrinfo> Hints(new addrinfo());
 	memset(Hints.get(), 0, sizeof(addrinfo));
-	PADDRINFOA Result = nullptr;
-
+	addrinfo *Result = nullptr;
 	if (Protocol == AF_INET6) //IPv6
 		Hints->ai_family = AF_INET6;
 	else //IPv4
 		Hints->ai_family = AF_INET;
 	Hints->ai_socktype = SOCK_DGRAM;
 	Hints->ai_protocol = IPPROTO_UDP;
+	memset(HostName, 0, DOMAIN_MAXSIZE);
 
 //Get localhost name.
 	if (gethostname(HostName, DOMAIN_MAXSIZE) == SOCKET_ERROR)
@@ -1047,7 +1046,7 @@ bool GetBestInterfaceAddress(
 
 //Get gateway information
 void __fastcall GetGatewayInformation(
-	const uint16_t Protocol)
+	_In_ const uint16_t Protocol)
 {
 //IPv6
 	if (Protocol == AF_INET6)
@@ -1210,7 +1209,7 @@ void __fastcall NetworkInformationMonitor(
 	SSIZE_T Index = 0;
 #endif
 #if defined(PLATFORM_WIN)
-	PADDRINFOA LocalAddressList = nullptr, LocalAddressTableIter = nullptr;
+	addrinfo *LocalAddressList = nullptr, *LocalAddressTableIter = nullptr;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	ifaddrs *InterfaceAddressList = nullptr, *InterfaceAddressIter = nullptr;
 	auto IsErrorFirstPrint = true;
@@ -1218,7 +1217,7 @@ void __fastcall NetworkInformationMonitor(
 	pdns_hdr DNS_Header = nullptr;
 	pdns_qry DNS_Query = nullptr;
 	void *DNS_Record = nullptr;
-	auto IsSubnetMark = false;
+//	auto IsSubnetMark = false;
 	std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0]), LocalAddressMutexIPv4(LocalAddressLock[1U]);
 	LocalAddressMutexIPv6.unlock();
 	LocalAddressMutexIPv4.unlock();
@@ -1226,7 +1225,7 @@ void __fastcall NetworkInformationMonitor(
 //Monitor
 	for (;;)
 	{
-		IsSubnetMark = false;
+//		IsSubnetMark = false;
 
 	//Get localhost addresses(IPv6)
 		if (Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_NETWORK_BOTH || Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV6)
@@ -1277,8 +1276,9 @@ void __fastcall NetworkInformationMonitor(
 					if (LocalAddressTableIter->ai_family == AF_INET6 && LocalAddressTableIter->ai_addrlen == sizeof(sockaddr_in6) && 
 						LocalAddressTableIter->ai_addr->sa_family == AF_INET6)
 					{
+/* Old version(2015-10-10)
 					//Mark localhost subnet(IPv6).
-						if (Parameter.EDNS_ClientSubnet && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv6 && 
+						if (Parameter.EDNS_ClientSubnet_Relay && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv6 && 
 							Parameter.LocalhostSubnet.IPv6 != nullptr && Parameter.LocalhostSubnet.IPv6->Address.ss_family == 0 && 
 							!CheckSpecialAddress(&((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr, AF_INET6, true, nullptr))
 						{
@@ -1288,6 +1288,7 @@ void __fastcall NetworkInformationMonitor(
 
 							IsSubnetMark = true;
 						}
+*/
 
 					//Mark local addresses(B part).
 						if (GlobalRunningStatus.LocalAddress_Length[0] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
@@ -1358,8 +1359,9 @@ void __fastcall NetworkInformationMonitor(
 				{
 					if (InterfaceAddressIter->ifa_addr != nullptr && InterfaceAddressIter->ifa_addr->sa_family == AF_INET6)
 					{
+/* Old version(2015-10-10)
 					//Mark localhost subnet(IPv6).
-						if (Parameter.EDNS_ClientSubnet && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv6 && 
+						if (Parameter.EDNS_ClientSubnet_Relay && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv6 && 
 							Parameter.LocalhostSubnet.IPv6 != nullptr && Parameter.LocalhostSubnet.IPv6->Address.ss_family == 0 && 
 							!CheckSpecialAddress(&((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr, AF_INET6, true, nullptr))
 						{
@@ -1369,7 +1371,7 @@ void __fastcall NetworkInformationMonitor(
 
 							IsSubnetMark = true;
 						}
-
+*/
 					//Mark local addresses(B part).
 						if (GlobalRunningStatus.LocalAddress_Length[0] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
 						{
@@ -1453,12 +1455,14 @@ void __fastcall NetworkInformationMonitor(
 				LocalAddressList = nullptr;
 			#endif
 
+/* Old version(2015-10-10)
 			//Reset localhost subnet settings if there no any addresses which can be marked.
-				if (Parameter.EDNS_ClientSubnet && Parameter.LocalhostSubnet.IPv6 != nullptr && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv6)
+				if (Parameter.EDNS_ClientSubnet_Relay && Parameter.LocalhostSubnet.IPv6 != nullptr && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv6)
 				{
 					Parameter.LocalhostSubnet.IPv6->Prefix = 0;
 					memset(&Parameter.LocalhostSubnet.IPv6->Address, 0, sizeof(sockaddr_storage));
 				}
+*/
 			}
 		}
 
@@ -1505,8 +1509,9 @@ void __fastcall NetworkInformationMonitor(
 					if (LocalAddressTableIter->ai_family == AF_INET && LocalAddressTableIter->ai_addrlen == sizeof(sockaddr_in) && 
 						LocalAddressTableIter->ai_addr->sa_family == AF_INET)
 					{
+/* Old version(2015-10-10)
 					//Mark localhost subnet(IPv4).
-						if (Parameter.EDNS_ClientSubnet && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4 && 
+						if (Parameter.EDNS_ClientSubnet_Relay && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4 && 
 							Parameter.LocalhostSubnet.IPv4 != nullptr && Parameter.LocalhostSubnet.IPv4->Address.ss_family == 0 && 
 							!CheckSpecialAddress(&((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr, AF_INET, true, nullptr))
 						{
@@ -1517,6 +1522,7 @@ void __fastcall NetworkInformationMonitor(
 
 							IsSubnetMark = true;
 						}
+*/
 
 					//Mark local addresses(B part).
 						if (GlobalRunningStatus.LocalAddress_Length[1U] <= PACKET_MAXSIZE - sizeof(dns_record_a))
@@ -1568,8 +1574,9 @@ void __fastcall NetworkInformationMonitor(
 				{
 					if (InterfaceAddressIter->ifa_addr != nullptr && InterfaceAddressIter->ifa_addr->sa_family == AF_INET)
 					{
+/* Old version(2015-10-10)
 					//Mark localhost subnet(IPv4).
-						if (Parameter.EDNS_ClientSubnet && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4 && 
+						if (Parameter.EDNS_ClientSubnet_Relay && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4 && 
 							Parameter.LocalhostSubnet.IPv4 != nullptr && Parameter.LocalhostSubnet.IPv4->Address.ss_family == 0 && 
 							!CheckSpecialAddress(&((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr, AF_INET, true, nullptr))
 						{
@@ -1580,7 +1587,7 @@ void __fastcall NetworkInformationMonitor(
 
 							IsSubnetMark = true;
 						}
-
+*/
 					//Mark local addresses(B part).
 						if (GlobalRunningStatus.LocalAddress_Length[1U] <= PACKET_MAXSIZE - sizeof(dns_record_a))
 						{
@@ -1645,12 +1652,14 @@ void __fastcall NetworkInformationMonitor(
 				LocalAddressList = nullptr;
 			#endif
 
+/* Old version(2015-10-10)
 			//Reset localhost subnet settings if there no any addresses which can be marked.
-				if (Parameter.EDNS_ClientSubnet && Parameter.LocalhostSubnet.IPv4 != nullptr && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4)
+				if (Parameter.EDNS_ClientSubnet_Relay && Parameter.LocalhostSubnet.IPv4 != nullptr && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4)
 				{
 					Parameter.LocalhostSubnet.IPv4->Prefix = 0;
 					memset(&Parameter.LocalhostSubnet.IPv4->Address, 0, sizeof(sockaddr_storage));
 				}
+*/
 			}
 		}
 

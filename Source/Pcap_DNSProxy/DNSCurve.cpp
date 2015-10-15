@@ -44,9 +44,10 @@ Using TCP protocol:
 #if defined(ENABLE_LIBSODIUM)
 //DNSCurve print error of servers
 void __fastcall DNSCurvePrintLog(
-	const size_t ServerType, 
-	std::wstring &Message)
+	_In_ const size_t ServerType, 
+	_Out_ std::wstring &Message)
 {
+	Message.clear();
 	switch (ServerType)
 	{
 		case DNSCURVE_MAIN_IPV6:
@@ -72,8 +73,9 @@ void __fastcall DNSCurvePrintLog(
 
 //DNSCurve check padding data length
 SSIZE_T __fastcall DNSCurvePaddingData(
-	const bool SetPadding, 
-	PSTR Buffer, const SSIZE_T Length)
+	_In_ const bool SetPadding, 
+	_Inout_ char *Buffer, 
+	_In_ const SSIZE_T Length)
 {
 //Set padding data sign.
 	if (SetPadding)
@@ -88,14 +90,14 @@ SSIZE_T __fastcall DNSCurvePaddingData(
 	//Check padding data sign(0x80).
 		for (Index = Length - 1U;Index > (SSIZE_T)DNS_PACKET_MINSIZE;--Index)
 		{
-			if ((UCHAR)Buffer[Index] == 0x80)
+			if ((unsigned char)Buffer[Index] == 0x80)
 				return Index;
 		}
 
 	//Check no null sign.
 		for (Index = Length - 1U;Index > (SSIZE_T)DNS_PACKET_MINSIZE;--Index)
 		{
-			if ((UCHAR)Buffer[Index] > 0)
+			if ((unsigned char)Buffer[Index] > 0)
 				return Index;
 		}
 	}
@@ -105,8 +107,8 @@ SSIZE_T __fastcall DNSCurvePaddingData(
 
 //DNSCurve verify keypair
 bool __fastcall DNSCurveVerifyKeypair(
-	const unsigned char *PublicKey, 
-	const unsigned char *SecretKey)
+	_In_ const unsigned char *PublicKey, 
+	_In_ const unsigned char *SecretKey)
 {
 //Initialization
 	std::shared_ptr<uint8_t> Test_PublicKey(new uint8_t[crypto_box_PUBLICKEYBYTES]()), 
@@ -137,11 +139,11 @@ bool __fastcall DNSCurveVerifyKeypair(
 
 //DNSCurve select socket data of DNS target
 size_t __fastcall DNSCurveSelectTargetSocket(
-	SOCKET_DATA *TargetSocketData, 
-	PDNSCURVE_SERVER_DATA &PacketTarget, 
-	bool *&IsAlternate, 
-	size_t *&AlternateTimeoutTimes, 
-	const uint16_t Protocol)
+	_Out_ SOCKET_DATA *TargetSocketData, 
+	_Outptr_ DNSCURVE_SERVER_DATA **PacketTarget, 
+	_Outptr_ bool **IsAlternate, 
+	_Outptr_ size_t **AlternateTimeoutTimes, 
+	_In_ const uint16_t Protocol)
 {
 //Socket initialization
 	size_t ServerType = 0;
@@ -150,6 +152,7 @@ size_t __fastcall DNSCurveSelectTargetSocket(
 		SocketType = SOCK_STREAM;
 	else //UDP
 		SocketType = SOCK_DGRAM;
+	memset(TargetSocketData, 0, sizeof(SOCKET_DATA));
 
 //IPv6
 	if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && 
@@ -160,13 +163,13 @@ size_t __fastcall DNSCurveSelectTargetSocket(
 	//TCP
 		if (Protocol == IPPROTO_TCP)
 		{
-			IsAlternate = &AlternateSwapList.IsSwap[8U];
-			AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[8U];
+			*IsAlternate = &AlternateSwapList.IsSwap[8U];
+			*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[8U];
 		}
 	//UDP
 		else {
-			IsAlternate = &AlternateSwapList.IsSwap[10U];
-			AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[10U];
+			*IsAlternate = &AlternateSwapList.IsSwap[10U];
+			*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[10U];
 		}
 
 	//Encryption mode check
@@ -175,19 +178,19 @@ size_t __fastcall DNSCurveSelectTargetSocket(
 			if (!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 				DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 				CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
-					*IsAlternate = true;
-			if (*IsAlternate && 
+					**IsAlternate = true;
+			if (**IsAlternate && 
 				(!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 				DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 				CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
-					*IsAlternate = false;
+					**IsAlternate = false;
 		}
 
-		if (*IsAlternate && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0)
+		if (**IsAlternate && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0)
 		{
 			((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_addr = DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr;
 			((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_port = DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6.sin6_port;
-			PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6;
+			*PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6;
 			ServerType = DNSCURVE_ALTERNATE_IPV6;
 		}
 		else { //Main
@@ -200,7 +203,7 @@ size_t __fastcall DNSCurveSelectTargetSocket(
 
 			((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_addr = DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6.sin6_addr;
 			((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_port = DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6.sin6_port;
-			PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv6;
+			*PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv6;
 			ServerType = DNSCURVE_MAIN_IPV6;
 		}
 
@@ -218,13 +221,13 @@ size_t __fastcall DNSCurveSelectTargetSocket(
 	//TCP
 		if (Protocol == IPPROTO_TCP)
 		{
-			IsAlternate = &AlternateSwapList.IsSwap[9U];
-			AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[9U];
+			*IsAlternate = &AlternateSwapList.IsSwap[9U];
+			*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[9U];
 		}
 	//UDP
 		else {
-			IsAlternate = &AlternateSwapList.IsSwap[11U];
-			AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[11U];
+			*IsAlternate = &AlternateSwapList.IsSwap[11U];
+			*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[11U];
 		}
 
 	//Encryption mode check
@@ -233,19 +236,19 @@ size_t __fastcall DNSCurveSelectTargetSocket(
 			if (!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 				DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 				CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
-					*IsAlternate = true;
-			if (*IsAlternate && 
+					**IsAlternate = true;
+			if (**IsAlternate && 
 				(!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) || 
 				DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 				CheckEmptyBuffer(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
-					*IsAlternate = false;
+					**IsAlternate = false;
 		}
 
-		if (*IsAlternate && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
+		if (**IsAlternate && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
 		{
 			((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_addr = DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4.sin_addr;
 			((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_port = DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4.sin_port;
-			PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4;
+			*PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4;
 			ServerType = DNSCURVE_ALTERNATE_IPV4;
 		}
 		else { //Main
@@ -258,7 +261,7 @@ size_t __fastcall DNSCurveSelectTargetSocket(
 
 			((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_addr = DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.IPv4.sin_addr;
 			((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_port = DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.IPv4.sin_port;
-			PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
+			*PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
 			ServerType = DNSCURVE_MAIN_IPV4;
 		}
 
@@ -273,10 +276,12 @@ size_t __fastcall DNSCurveSelectTargetSocket(
 
 //DNSCurve select socket data of DNS target(Multithreading)
 bool __fastcall DNSCurveSelectTargetSocketMulti(
-	bool &IsIPv6, 
-	bool *&IsAlternate, 
-	const uint16_t Protocol)
+	_Out_ bool &IsIPv6, 
+	_Outptr_ bool **IsAlternate, 
+	_In_ const uint16_t Protocol)
 {
+	IsIPv6 = false;
+
 //IPv6
 	if (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && 
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6 || //Auto select
@@ -285,9 +290,9 @@ bool __fastcall DNSCurveSelectTargetSocketMulti(
 	{
 		IsIPv6 = true;
 		if (Protocol == IPPROTO_TCP) //TCP
-			IsAlternate = &AlternateSwapList.IsSwap[8U];
+			*IsAlternate = &AlternateSwapList.IsSwap[8U];
 		else //UDP
-			IsAlternate = &AlternateSwapList.IsSwap[10U];
+			*IsAlternate = &AlternateSwapList.IsSwap[10U];
 	}
 //IPv4
 	else if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && 
@@ -297,9 +302,9 @@ bool __fastcall DNSCurveSelectTargetSocketMulti(
 	{
 		IsIPv6 = false;
 		if (Protocol == IPPROTO_TCP) //TCP
-			IsAlternate = &AlternateSwapList.IsSwap[9U];
+			*IsAlternate = &AlternateSwapList.IsSwap[9U];
 		else //UDP
-			IsAlternate = &AlternateSwapList.IsSwap[11U];
+			*IsAlternate = &AlternateSwapList.IsSwap[11U];
 	}
 	else {
 		return false;
@@ -309,25 +314,27 @@ bool __fastcall DNSCurveSelectTargetSocketMulti(
 }
 
 //DNSCurve set packet target
-bool __fastcall DNSCurvePacketTargetSetting(const size_t ServerType, PDNSCURVE_SERVER_DATA &PacketTarget)
+bool __fastcall DNSCurvePacketTargetSetting(
+	_In_ const size_t ServerType, 
+	_Outptr_ DNSCURVE_SERVER_DATA **PacketTarget)
 {
 	switch (ServerType)
 	{
 		case DNSCURVE_ALTERNATE_IPV6:
 		{
-			PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6;
+			*PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6;
 		}break;
 		case DNSCURVE_MAIN_IPV6:
 		{
-			PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv6;
+			*PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv6;
 		}break;
 		case DNSCURVE_ALTERNATE_IPV4:
 		{
-			PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4;
+			*PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4;
 		}break;
 		case DNSCURVE_MAIN_IPV4:
 		{
-			PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
+			*PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
 		}break;
 		default:
 		{
@@ -340,9 +347,9 @@ bool __fastcall DNSCurvePacketTargetSetting(const size_t ServerType, PDNSCURVE_S
 
 //DNSCurve set Precomputation Key between client and server
 bool __fastcall DNSCurvePrecomputationKeySetting(
-	PUINT8 PrecomputationKey, 
-	PUINT8 Client_PublicKey, 
-	const unsigned char *ServerFingerprint)
+	_Out_ uint8_t *PrecomputationKey, 
+	_Out_ uint8_t *Client_PublicKey, 
+	_In_ const unsigned char *ServerFingerprint)
 {
 //Server fingerprint check
 	if (CheckEmptyBuffer(ServerFingerprint, crypto_box_PUBLICKEYBYTES))
@@ -358,29 +365,29 @@ bool __fastcall DNSCurvePrecomputationKeySetting(
 
 //Make a precomputation key.
 	if (crypto_box_beforenm(
-		PrecomputationKey, 
-		ServerFingerprint, 
-		Client_SecretKey.get()) == LIBSODIUM_ERROR)
-			return false;
+			PrecomputationKey, 
+			ServerFingerprint, 
+			Client_SecretKey.get()) == LIBSODIUM_ERROR)
+				return false;
 
 	return true;
 }
 
 //DNSCurve packet precomputation
 void __fastcall DNSCurveSocketPrecomputation(
-	const uint16_t Protocol, 
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	const size_t RecvSize, 
-	PUINT8 &PrecomputationKey, 
-	PUINT8 &Alternate_PrecomputationKey, 
-	PDNSCURVE_SERVER_DATA &PacketTarget, 
-	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
-	std::shared_ptr<char> &SendBuffer, 
-	size_t &DataLength, 
-	std::shared_ptr<char> &Alternate_SendBuffer, 
-	size_t &Alternate_DataLength)
+	_In_ const uint16_t Protocol, 
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_In_ const size_t RecvSize, 
+	_Outptr_ uint8_t **PrecomputationKey, 
+	_Outptr_ uint8_t **Alternate_PrecomputationKey, 
+	_Outptr_ DNSCURVE_SERVER_DATA **PacketTarget, 
+	_Inout_ std::vector<SOCKET_DATA> &SocketDataList, 
+	_Inout_ std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
+	_Inout_ std::shared_ptr<char> &SendBuffer, 
+	_Out_ size_t &DataLength, 
+	_Inout_ std::shared_ptr<char> &Alternate_SendBuffer, 
+	_Out_ size_t &Alternate_DataLength)
 {
 //Initialization
 	std::shared_ptr<SOCKET_DATA> SocketDataTemp(new SOCKET_DATA());
@@ -393,7 +400,7 @@ void __fastcall DNSCurveSocketPrecomputation(
 	memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
 	bool *IsAlternate = nullptr;
 	auto IsIPv6 = false;
-	if (!DNSCurveSelectTargetSocketMulti(IsIPv6, IsAlternate, Protocol))
+	if (!DNSCurveSelectTargetSocketMulti(IsIPv6, &IsAlternate, Protocol))
 		return;
 	size_t Index = 0, LoopLimits = 0;
 	uint16_t InnerProtocol = 0;
@@ -407,15 +414,15 @@ void __fastcall DNSCurveSocketPrecomputation(
 	{
 	//Set target.
 		if (IsIPv6) //IPv6
-			PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv6;
+			*PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv6;
 		else //IPv4
-			PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
+			*PacketTarget = &DNSCurveParameter.DNSCurveTarget.IPv4;
 
 	//Encryption mode check
 		if (DNSCurveParameter.IsEncryption && 
-			(!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(PacketTarget->PrecomputationKey, crypto_box_BEFORENMBYTES) || 
-			DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
-			CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
+			(!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->PrecomputationKey, crypto_box_BEFORENMBYTES) || 
+			DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->ServerFingerprint, crypto_box_PUBLICKEYBYTES) ||
+			CheckEmptyBuffer((*PacketTarget)->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 				goto SkipMain;
 
 	//Socket initialization
@@ -425,7 +432,7 @@ void __fastcall DNSCurveSocketPrecomputation(
 			LoopLimits = 1U;
 		for (Index = 0;Index < LoopLimits;++Index)
 		{
-			SocketDataTemp->SockAddr = PacketTarget->AddressData.Storage;
+			SocketDataTemp->SockAddr = (*PacketTarget)->AddressData.Storage;
 			if (IsIPv6) //IPv6
 				SocketDataTemp->Socket = socket(AF_INET6, InnerProtocol, Protocol);
 			else //IPv4
@@ -463,7 +470,7 @@ void __fastcall DNSCurveSocketPrecomputation(
 	//Make Precomputation Key between client and server.
 		if (DNSCurveParameter.IsEncryption && DNSCurveParameter.ClientEphemeralKey)
 		{
-			if (!DNSCurvePrecomputationKeySetting(PrecomputationKey, Client_PublicKey, PacketTarget->ServerFingerprint))
+			if (!DNSCurvePrecomputationKeySetting(*PrecomputationKey, Client_PublicKey, (*PacketTarget)->ServerFingerprint))
 			{
 				for (auto &SocketDataIter:SocketDataList)
 					closesocket(SocketDataIter.Socket);
@@ -476,7 +483,7 @@ void __fastcall DNSCurveSocketPrecomputation(
 		else {
 			Client_PublicKey_PTR.reset();
 			Client_PublicKey = DNSCurveParameter.Client_PublicKey;
-			PrecomputationKey = PacketTarget->PrecomputationKey;
+			*PrecomputationKey = (*PacketTarget)->PrecomputationKey;
 		}
 
 	//Make encryption or normal packet of Main server.
@@ -485,7 +492,7 @@ void __fastcall DNSCurveSocketPrecomputation(
 			std::shared_ptr<char> SendBufferTemp(new char[RecvSize]());
 			memset(SendBufferTemp.get(), 0, RecvSize);
 			SendBuffer.swap(SendBufferTemp);
-			DataLength = DNSCurvePacketEncryption(Protocol, PacketTarget->SendMagicNumber, Client_PublicKey, PrecomputationKey, OriginalSend, SendSize, SendBuffer.get(), RecvSize);
+			DataLength = DNSCurvePacketEncryption(Protocol, (*PacketTarget)->SendMagicNumber, Client_PublicKey, *PrecomputationKey, OriginalSend, SendSize, SendBuffer.get(), RecvSize);
 			if (DataLength < DNS_PACKET_MINSIZE)
 			{
 				for (auto &SocketDataIter : SocketDataList)
@@ -504,18 +511,18 @@ SkipMain:
 	memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
 //Set target.
 	if (IsIPv6) //IPv6
-		PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6;
+		*PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6;
 	else //IPv4
-		PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4;
+		*PacketTarget = &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4;
 
 //Alternate
-	if (PacketTarget->AddressData.Storage.ss_family > 0 && (*IsAlternate || Parameter.AlternateMultiRequest))
+	if ((*PacketTarget)->AddressData.Storage.ss_family > 0 && (*IsAlternate || Parameter.AlternateMultiRequest))
 	{
 	//Encryption mode check
 		if (DNSCurveParameter.IsEncryption && 
-			(!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(PacketTarget->PrecomputationKey, crypto_box_BEFORENMBYTES) || 
-			DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
-			CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
+			(!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->PrecomputationKey, crypto_box_BEFORENMBYTES) ||
+			DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->ServerFingerprint, crypto_box_PUBLICKEYBYTES) ||
+			CheckEmptyBuffer((*PacketTarget)->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 				return;
 	
 	//Socket initialization
@@ -525,7 +532,7 @@ SkipMain:
 			LoopLimits = 1U;
 		for (Index = 0;Index < LoopLimits;++Index)
 		{
-			SocketDataTemp->SockAddr = PacketTarget->AddressData.Storage;
+			SocketDataTemp->SockAddr = (*PacketTarget)->AddressData.Storage;
 			if (IsIPv6) //IPv6
 				SocketDataTemp->Socket = socket(AF_INET6, InnerProtocol, Protocol);
 			else //IPv4
@@ -561,7 +568,7 @@ SkipMain:
 	//Make Precomputation Key between client and server.
 		if (DNSCurveParameter.IsEncryption && DNSCurveParameter.ClientEphemeralKey)
 		{
-			if (!DNSCurvePrecomputationKeySetting(Alternate_PrecomputationKey, Client_PublicKey, PacketTarget->ServerFingerprint))
+			if (!DNSCurvePrecomputationKeySetting(*Alternate_PrecomputationKey, Client_PublicKey, (*PacketTarget)->ServerFingerprint))
 			{
 				for (auto &SocketDataIter:Alternate_SocketDataList)
 					closesocket(SocketDataIter.Socket);
@@ -572,7 +579,7 @@ SkipMain:
 		else {
 			Client_PublicKey_PTR.reset();
 			Client_PublicKey = DNSCurveParameter.Client_PublicKey;
-			Alternate_PrecomputationKey = PacketTarget->PrecomputationKey;
+			*Alternate_PrecomputationKey = (*PacketTarget)->PrecomputationKey;
 		}
 
 	//Make encryption or normal packet of Alternate server.
@@ -582,7 +589,7 @@ SkipMain:
 			memset(SendBufferTemp.get(), 0, RecvSize);
 			Alternate_SendBuffer.swap(SendBufferTemp);
 			SendBufferTemp.reset();
-			Alternate_DataLength = DNSCurvePacketEncryption(Protocol, PacketTarget->SendMagicNumber, Client_PublicKey, Alternate_PrecomputationKey, OriginalSend, SendSize, Alternate_SendBuffer.get(), RecvSize);
+			Alternate_DataLength = DNSCurvePacketEncryption(Protocol, (*PacketTarget)->SendMagicNumber, Client_PublicKey, *Alternate_PrecomputationKey, OriginalSend, SendSize, Alternate_SendBuffer.get(), RecvSize);
 			if (Alternate_DataLength < DNS_PACKET_MINSIZE)
 			{
 				for (auto &SocketDataIter : Alternate_SocketDataList)
@@ -608,14 +615,14 @@ SkipMain:
 
 //DNSCurve packet encryption
 size_t __fastcall DNSCurvePacketEncryption(
-	const uint16_t Protocol, 
-	const char *SendMagicNumber, 
-	const unsigned char *Client_PublicKey, 
-	const unsigned char *PrecomputationKey, 
-	const char *OriginalSend, 
-	const size_t Length, 
-	PSTR SendBuffer, 
-	const size_t SendSize)
+	_In_ const uint16_t Protocol, 
+	_In_ const char *SendMagicNumber, 
+	_In_ const unsigned char *Client_PublicKey, 
+	_In_ const unsigned char *PrecomputationKey, 
+	_In_ const char *OriginalSend, 
+	_In_ const size_t Length, 
+	_Inout_ char *SendBuffer, 
+	_In_ const size_t SendSize)
 {
 //Encryption mode
 	if (DNSCurveParameter.IsEncryption)
@@ -624,9 +631,9 @@ size_t __fastcall DNSCurvePacketEncryption(
 		memset(Nonce.get(), 0, crypto_box_NONCEBYTES);
 
 	//Make nonce.
-		*(PUINT32)Nonce.get() = randombytes_random();
-		*(PUINT32)(Nonce.get() + sizeof(uint32_t)) = randombytes_random();
-		*(PUINT32)(Nonce.get() + sizeof(uint32_t) * 2U) = randombytes_random();
+		*(uint32_t *)Nonce.get() = randombytes_random();
+		*(uint32_t *)(Nonce.get() + sizeof(uint32_t)) = randombytes_random();
+		*(uint32_t *)(Nonce.get() + sizeof(uint32_t) * 2U) = randombytes_random();
 		memset(Nonce.get() + crypto_box_HALF_NONCEBYTES, 0, crypto_box_HALF_NONCEBYTES);
 
 	//Make a crypto box.
@@ -650,8 +657,8 @@ size_t __fastcall DNSCurvePacketEncryption(
 		if (Protocol == IPPROTO_TCP) //TCP
 		{
 			if (crypto_box_afternm(
-				(PUCHAR)SendBuffer + DNSCRYPT_BUFFER_RESERVE_TCP_LEN, 
-				(PUCHAR)Buffer.get(), 
+				(unsigned char *)SendBuffer + DNSCRYPT_BUFFER_RESERVE_TCP_LEN, 
+				(unsigned char *)Buffer.get(), 
 				DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_TCP_LEN, 
 				Nonce.get(), 
 				PrecomputationKey) != EXIT_SUCCESS)
@@ -659,8 +666,8 @@ size_t __fastcall DNSCurvePacketEncryption(
 		}
 		else { //UDP
 			if (crypto_box_afternm(
-				(PUCHAR)SendBuffer + DNSCRYPT_BUFFER_RESERVE_LEN, 
-				(PUCHAR)Buffer.get(), 
+				(unsigned char *)SendBuffer + DNSCRYPT_BUFFER_RESERVE_LEN, 
+				(unsigned char *)Buffer.get(), 
 				DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN, 
 				Nonce.get(), 
 				PrecomputationKey) != EXIT_SUCCESS)
@@ -676,7 +683,7 @@ size_t __fastcall DNSCurvePacketEncryption(
 			memcpy_s(SendBuffer + sizeof(uint16_t) + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES, SendSize - sizeof(uint16_t) - DNSCURVE_MAGIC_QUERY_LEN - crypto_box_PUBLICKEYBYTES, Nonce.get(), crypto_box_HALF_NONCEBYTES);
 
 		//Add length of request packet(It must be written in header when transpot with TCP protocol).
-			*(PUINT16)SendBuffer = htons((uint16_t)(DNSCurveParameter.DNSCurvePayloadSize - sizeof(uint16_t)));
+			*(uint16_t *)SendBuffer = htons((uint16_t)(DNSCurveParameter.DNSCurvePayloadSize - sizeof(uint16_t)));
 		}
 		else { //UDP
 			memcpy_s(SendBuffer, SendSize, SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
@@ -700,11 +707,11 @@ size_t __fastcall DNSCurvePacketEncryption(
 
 //DNSCurve packet decryption
 SSIZE_T DNSCurvePacketDecryption(
-	const char *ReceiveMagicNumber, 
-	const unsigned char *PrecomputationKey, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize, 
-	const SSIZE_T Length)
+	_In_ const char *ReceiveMagicNumber, 
+	_In_ const unsigned char *PrecomputationKey, 
+	_Inout_ char *OriginalRecv, 
+	_In_ const size_t RecvSize, 
+	_In_ const SSIZE_T Length)
 {
 //Initialization
 	SSIZE_T DataLength = Length;
@@ -728,8 +735,8 @@ SSIZE_T DNSCurvePacketDecryption(
 		memset(OriginalRecv, 0, DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES);
 		memmove_s(OriginalRecv + crypto_box_BOXZEROBYTES, RecvSize - crypto_box_BOXZEROBYTES, OriginalRecv + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES, Length - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES));
 		if (crypto_box_open_afternm(
-			(PUCHAR)OriginalRecv, 
-			(PUCHAR)OriginalRecv, 
+			(unsigned char *)OriginalRecv, 
+			(unsigned char *)OriginalRecv, 
 			Length + crypto_box_BOXZEROBYTES - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), 
 			WholeNonce.get(), 
 			PrecomputationKey) != EXIT_SUCCESS)
@@ -756,13 +763,12 @@ SSIZE_T DNSCurvePacketDecryption(
 
 //DNSCurve non-blocking mode selecting
 SSIZE_T __fastcall DNSCurveSocketSelecting(
-	const uint16_t Protocol, 
-	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize)
+	_In_ const uint16_t Protocol, 
+	_Inout_ std::vector<SOCKET_DATA> &SocketDataList, 
+	_Inout_ std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize)
 {
-//Initialization(Part 1)
 	size_t Index = 0;
 
 //TCP or UDP connecting
@@ -794,7 +800,7 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 			return EXIT_FAILURE;
 	}
 
-//Initialization(Part 2)
+//Initialization
 	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
 	std::shared_ptr<timeval> Timeout(new timeval());
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
@@ -864,7 +870,7 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 			}
 			else if (MaxSocket == 0 && Index + 1U == SocketDataList.size())
 			{
-				return EXIT_FAILURE;
+				return WSAETIMEDOUT;
 			}
 		}
 
@@ -936,8 +942,8 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 	//Timeout
 		else if (SelectResult == EXIT_SUCCESS)
 		{
-			PUINT8 PrecomputationKeyTemp = nullptr;
-			PSTR ReceiveMagicNumberTemp = nullptr;
+			uint8_t *PrecomputationKeyTemp = nullptr;
+			char *ReceiveMagicNumberTemp = nullptr;
 			Index = 0;
 
 		//Swap to last receive packet when Receive Waiting is ON.
@@ -993,11 +999,11 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 
 //DNSCurve Socket selecting result
 SSIZE_T __fastcall DNSCurveSelectingResult(
-	uint16_t Protocol, 
-	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize)
+	_In_ const uint16_t Protocol, 
+	_Inout_ std::vector<SOCKET_DATA> &SocketDataList, 
+	_Inout_ std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize)
 {
 	SSIZE_T RecvLen = 0;
 
@@ -1009,7 +1015,7 @@ SSIZE_T __fastcall DNSCurveSelectingResult(
 		//TCP header length check
 			if (Protocol == IPPROTO_TCP)
 			{
-				RecvLen = ntohs(((PUINT16)SocketSelectingList.at(Index).RecvBuffer.get())[0]);
+				RecvLen = ntohs(((uint16_t *)SocketSelectingList.at(Index).RecvBuffer.get())[0]);
 				if (RecvLen >(SSIZE_T)SocketSelectingList.at(Index).Length)
 				{
 					goto JumpToRestart;
@@ -1178,7 +1184,7 @@ void __fastcall DNSCurveInit(
 size_t __fastcall DNSCurveSignatureRequest(
 	const char *OriginalSend, 
 	const size_t SendSize, 
-	PSTR OriginalRecv, 
+	char *OriginalRecv, 
 	const size_t RecvSize)
 {
 //Initialization
@@ -1248,8 +1254,8 @@ size_t __fastcall DNSCurveSignatureRequest(
 
 //Send TCP request to get Signature Data of servers
 bool __fastcall DNSCurveTCPSignatureRequest(
-	const uint16_t Protocol, 
-	const bool IsAlternate)
+	_In_ const uint16_t Protocol, 
+	_In_ const bool IsAlternate)
 {
 //Initialization(Part 1)
 	std::shared_ptr<char> SendBuffer(new char[PACKET_MAXSIZE]()), RecvBuffer(new char[LARGE_PACKET_MAXSIZE]());
@@ -1287,7 +1293,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(
 	DataLength += sizeof(dns_qry);
 
 //EDNS Label
-	DataLength = AddEDNSLabelToAdditionalRR(SendBuffer.get() + sizeof(uint16_t), DataLength - sizeof(uint16_t), PACKET_MAXSIZE, false);
+	DataLength = AddEDNSLabelToAdditionalRR(SendBuffer.get() + sizeof(uint16_t), DataLength - sizeof(uint16_t), PACKET_MAXSIZE, nullptr);
 	DataLength += sizeof(uint16_t);
 
 //Add length of request packet(It must be written in header when transpot with TCP protocol).
@@ -1402,7 +1408,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(
 
 	//Send request again.
 		memset(RecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
-		if (Parameter.AlternateMultiRequest)
+		if (!Parameter.AlternateMultiRequest)
 		{
 			if (ServerType == DNSCURVE_MAIN_IPV6)
 				++AlternateSwapList.TimeoutTimes[8U];
@@ -1419,8 +1425,8 @@ bool __fastcall DNSCurveTCPSignatureRequest(
 
 //Send UDP request to get Signature Data of servers
 bool __fastcall DNSCurveUDPSignatureRequest(
-	const uint16_t Protocol, 
-	const bool IsAlternate)
+	_In_ const uint16_t Protocol, 
+	_In_ const bool IsAlternate)
 {
 //Initialization(Part 1)
 	std::shared_ptr<char> SendBuffer(new char[PACKET_MAXSIZE]()), RecvBuffer(new char[PACKET_MAXSIZE]());
@@ -1458,7 +1464,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(
 	DataLength += sizeof(dns_qry);
 
 //EDNS Label
-	DataLength = AddEDNSLabelToAdditionalRR(SendBuffer.get(), DataLength, PACKET_MAXSIZE, false);
+	DataLength = AddEDNSLabelToAdditionalRR(SendBuffer.get(), DataLength, PACKET_MAXSIZE, nullptr);
 
 //Socket initialization(Part 1)
 	size_t ServerType = 0;
@@ -1569,7 +1575,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(
 
 	//Send request again.
 		memset(RecvBuffer.get(), 0, PACKET_MAXSIZE);
-		if (Parameter.AlternateMultiRequest)
+		if (!Parameter.AlternateMultiRequest)
 		{
 			if (ServerType == DNSCURVE_MAIN_IPV6)
 				++AlternateSwapList.TimeoutTimes[10U];
@@ -1586,8 +1592,8 @@ bool __fastcall DNSCurveUDPSignatureRequest(
 
 //Get Signature Data of server from packets
 bool __fastcall DNSCruveGetSignatureData(
-	const char *Buffer, 
-	const size_t ServerType)
+	_In_ const char *Buffer, 
+	_In_ const size_t ServerType)
 {
 	auto DNS_Record_TXT = (pdns_record_txt)Buffer;
 	if (DNS_Record_TXT->Name == htons(DNS_POINTER_QUERY) && 
@@ -1597,18 +1603,22 @@ bool __fastcall DNSCruveGetSignatureData(
 		if (memcmp(&DNSCurve_TXT_Header->CertMagicNumber, DNSCRYPT_CERT_MAGIC, sizeof(uint16_t)) == EXIT_SUCCESS && 
 			DNSCurve_TXT_Header->MajorVersion == htons(DNSCURVE_VERSION_MAJOR) && DNSCurve_TXT_Header->MinorVersion == DNSCURVE_VERSION_MINOR)
 		{
-			ULONGLONG SignatureLength = 0;
+			unsigned long long SignatureLength = 0;
 
 		//Get Send Magic Number, Server Fingerprint and Precomputation Key.
 			PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
-			if (!DNSCurvePacketTargetSetting(ServerType, PacketTarget))
+			if (!DNSCurvePacketTargetSetting(ServerType, &PacketTarget))
 				return false;
 
 		//Check Signature.
 			std::shared_ptr<char> DeBuffer(new char[PACKET_MAXSIZE]());
 			memset(DeBuffer.get(), 0, PACKET_MAXSIZE);
 			if (PacketTarget == nullptr || 
-				crypto_sign_open((PUINT8)DeBuffer.get(), &SignatureLength, (PUINT8)(Buffer + sizeof(dns_record_txt) + sizeof(dnscurve_txt_hdr)), DNS_Record_TXT->TXT_Length - sizeof(dnscurve_txt_hdr), PacketTarget->ServerPublicKey) == LIBSODIUM_ERROR)
+				crypto_sign_open(
+					(uint8_t *)DeBuffer.get(), 
+					&SignatureLength, 
+					(uint8_t *)(Buffer + sizeof(dns_record_txt) + sizeof(dnscurve_txt_hdr)), DNS_Record_TXT->TXT_Length - sizeof(dnscurve_txt_hdr), 
+					PacketTarget->ServerPublicKey) == LIBSODIUM_ERROR)
 			{
 				std::wstring Message;
 				DNSCurvePrintLog(ServerType, Message);
@@ -1653,10 +1663,10 @@ bool __fastcall DNSCruveGetSignatureData(
 
 //Transmission of DNSCurve TCP protocol
 size_t __fastcall DNSCurveTCPRequest(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize)
 {
 //Initialization
 	std::vector<SOCKET_DATA> TCPSocketDataList(1U);
@@ -1669,7 +1679,7 @@ size_t __fastcall DNSCurveTCPRequest(
 	auto SendBuffer = OriginalRecv;
 
 //Socket initialization
-	TCPSocketSelectingData->ServerType = DNSCurveSelectTargetSocket(&TCPSocketDataList.front(), PacketTarget, IsAlternate, AlternateTimeoutTimes, IPPROTO_TCP);
+	TCPSocketSelectingData->ServerType = DNSCurveSelectTargetSocket(&TCPSocketDataList.front(), &PacketTarget, &IsAlternate, &AlternateTimeoutTimes, IPPROTO_TCP);
 	if (TCPSocketSelectingData->ServerType == 0 || TCPSocketDataList.front().Socket == INVALID_SOCKET)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"DNSCurve TCP socket initialization error", WSAGetLastError(), nullptr, 0);
@@ -1679,7 +1689,7 @@ size_t __fastcall DNSCurveTCPRequest(
 	}
 
 //Make Precomputation Key between client and server.
-	PUINT8 Client_PublicKey = nullptr, PrecomputationKey = nullptr;
+	uint8_t *Client_PublicKey = nullptr, *PrecomputationKey = nullptr;
 	std::shared_ptr<uint8_t> Client_PublicKey_PTR, PrecomputationKeyPTR;
 	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.ClientEphemeralKey)
 	{
@@ -1717,6 +1727,7 @@ size_t __fastcall DNSCurveTCPRequest(
 		TCPSocketSelectingData->PrecomputationKey = PrecomputationKey;
 		TCPSocketSelectingData->ReceiveMagicNumber = PacketTarget->ReceiveMagicNumber;
 	}
+
 	TCPSocketSelectingData->SendBuffer = SendBuffer;
 	TCPSocketSelectingData->SendSize = RecvLen;
 	TCPSocketSelectingData->Length = 0;
@@ -1739,13 +1750,13 @@ size_t __fastcall DNSCurveTCPRequest(
 
 //Transmission of DNSCurve TCP protocol(Multithreading)
 size_t __fastcall DNSCurveTCPRequestMulti(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize)
 {
 //Key initialization
-	PUINT8 PrecomputationKey = nullptr, Alternate_PrecomputationKey = nullptr;
+	uint8_t *PrecomputationKey = nullptr, *Alternate_PrecomputationKey = nullptr;
 	std::shared_ptr<uint8_t> PrecomputationKeyPTR, Alternate_PrecomputationKeyPTR;
 	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.ClientEphemeralKey)
 	{
@@ -1770,7 +1781,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(
 	memset(OriginalRecv, 0, RecvSize);
 
 //Socket precomputation
-	DNSCurveSocketPrecomputation(IPPROTO_TCP, OriginalSend, SendSize, RecvSize, PrecomputationKey, Alternate_PrecomputationKey, PacketTarget, 
+	DNSCurveSocketPrecomputation(IPPROTO_TCP, OriginalSend, SendSize, RecvSize, &PrecomputationKey, &Alternate_PrecomputationKey, &PacketTarget, 
 		TCPSocketDataList, TCPSocketSelectingList, SendBuffer, DataLength, Alternate_SendBuffer, Alternate_DataLength);
 	if (TCPSocketDataList.empty() || TCPSocketDataList.size() != TCPSocketSelectingList.size())
 		return EXIT_FAILURE;
@@ -1781,7 +1792,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(
 	//Encryption mode
 		if (DNSCurveParameter.IsEncryption)
 		{
-			DNSCurvePacketTargetSetting(TCPSocketSelectingList.at(Index).ServerType, PacketTarget);
+			DNSCurvePacketTargetSetting(TCPSocketSelectingList.at(Index).ServerType, &PacketTarget);
 			TCPSocketSelectingList.at(Index).ReceiveMagicNumber = PacketTarget->ReceiveMagicNumber;
 
 		//Alternate
@@ -1823,10 +1834,10 @@ size_t __fastcall DNSCurveTCPRequestMulti(
 
 //Transmission of DNSCurve UDP protocol
 size_t __fastcall DNSCurveUDPRequest(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize)
 {
 //Initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
@@ -1839,7 +1850,7 @@ size_t __fastcall DNSCurveUDPRequest(
 	auto SendBuffer = OriginalRecv;
 
 //Socket initialization
-	UDPSocketSelectingData->ServerType = DNSCurveSelectTargetSocket(&UDPSocketDataList.front(), PacketTarget, IsAlternate, AlternateTimeoutTimes, IPPROTO_UDP);
+	UDPSocketSelectingData->ServerType = DNSCurveSelectTargetSocket(&UDPSocketDataList.front(), &PacketTarget, &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP);
 	if (UDPSocketSelectingData->ServerType == 0 || UDPSocketDataList.front().Socket == INVALID_SOCKET)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"DNSCurve UDP socket initialization error", WSAGetLastError(), nullptr, 0);
@@ -1849,7 +1860,7 @@ size_t __fastcall DNSCurveUDPRequest(
 	}
 
 //Make Precomputation Key between client and server.
-	PUINT8 Client_PublicKey = nullptr, PrecomputationKey = nullptr;
+	uint8_t *Client_PublicKey = nullptr, *PrecomputationKey = nullptr;
 	std::shared_ptr<uint8_t> Client_PublicKey_PTR, PrecomputationKeyPTR;
 	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.ClientEphemeralKey)
 	{
@@ -1891,9 +1902,10 @@ size_t __fastcall DNSCurveUDPRequest(
 		UDPSocketSelectingData->SendSize = RecvLen;
 	}
 	else { //Normal
-		UDPSocketSelectingData->SendBuffer = (PSTR)OriginalSend;
+		UDPSocketSelectingData->SendBuffer = (char *)OriginalSend;
 		UDPSocketSelectingData->SendSize = SendSize;
 	}
+
 	UDPSocketSelectingData->Length = 0;
 	UDPSocketSelectingData->PacketIsSend = false;
 	UDPSocketSelectingList.push_back(*UDPSocketSelectingData);
@@ -1914,13 +1926,13 @@ size_t __fastcall DNSCurveUDPRequest(
 
 //Transmission of DNSCurve UDP protocol(Multithreading)
 size_t __fastcall DNSCurveUDPRequestMulti(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize)
 {
 //Key initialization
-	PUINT8 PrecomputationKey = nullptr, Alternate_PrecomputationKey = nullptr;
+	uint8_t *PrecomputationKey = nullptr, *Alternate_PrecomputationKey = nullptr;
 	std::shared_ptr<uint8_t> PrecomputationKeyPTR, Alternate_PrecomputationKeyPTR;
 	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.ClientEphemeralKey)
 	{
@@ -1945,7 +1957,8 @@ size_t __fastcall DNSCurveUDPRequestMulti(
 	memset(OriginalRecv, 0, RecvSize);
 
 //Socket precomputation
-	DNSCurveSocketPrecomputation(IPPROTO_UDP, OriginalSend, SendSize, RecvSize, PrecomputationKey, Alternate_PrecomputationKey, PacketTarget, UDPSocketDataList, UDPSocketSelectingList, SendBuffer, DataLength, Alternate_SendBuffer, Alternate_DataLength);
+	DNSCurveSocketPrecomputation(IPPROTO_UDP, OriginalSend, SendSize, RecvSize, &PrecomputationKey, &Alternate_PrecomputationKey, &PacketTarget, 
+		UDPSocketDataList, UDPSocketSelectingList, SendBuffer, DataLength, Alternate_SendBuffer, Alternate_DataLength);
 	if (UDPSocketDataList.empty() || UDPSocketDataList.size() != UDPSocketSelectingList.size())
 		return EXIT_FAILURE;
 
@@ -1955,7 +1968,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(
 	//Encryption mode
 		if (DNSCurveParameter.IsEncryption)
 		{
-			DNSCurvePacketTargetSetting(UDPSocketSelectingList.at(Index).ServerType, PacketTarget);
+			DNSCurvePacketTargetSetting(UDPSocketSelectingList.at(Index).ServerType, &PacketTarget);
 			UDPSocketSelectingList.at(Index).ReceiveMagicNumber = PacketTarget->ReceiveMagicNumber;
 
 		//Alternate
@@ -1974,7 +1987,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(
 		}
 	//Normal mode
 		else {
-			UDPSocketSelectingList.at(Index).SendBuffer = (PSTR)OriginalSend;
+			UDPSocketSelectingList.at(Index).SendBuffer = (char *)OriginalSend;
 			UDPSocketSelectingList.at(Index).SendSize = SendSize;
 		}
 

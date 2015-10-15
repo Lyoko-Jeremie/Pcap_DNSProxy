@@ -21,13 +21,18 @@
 
 //Convert address strings to binary.
 bool __fastcall AddressStringToBinary(
-	const char *AddrString, 
-	void *OriginalAddr, 
-	const uint16_t Protocol, 
-	SSIZE_T &ErrorCode)
+	_In_ const char *AddrString, 
+	_In_ const uint16_t Protocol, 
+	_Out_ void *OriginalAddr, 
+	_Out_ SSIZE_T &ErrorCode)
 {
 	std::string sAddrString(AddrString);
 	SSIZE_T Result = 0;
+	if (Protocol == AF_INET6)
+		memset(OriginalAddr, 0, sizeof(in6_addr));
+	else //IPv4
+		memset(OriginalAddr, 0, sizeof(in_addr));
+	ErrorCode = 0;
 
 //inet_ntop() and inet_pton() was only support in Windows Vista and newer system. [Roy Tam]
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
@@ -38,11 +43,13 @@ bool __fastcall AddressStringToBinary(
 
 	if (Protocol == AF_INET6) //IPv6
 	{
-	//Check IPv6 addresses
+	//Check IPv6 addresses.
+		if (sAddrString.find(ASCII_COLON) == std::string::npos || sAddrString.find(ASCII_PERIOD) != std::string::npos || sAddrString.find("::") != sAddrString.rfind("::"))
+			return false;
 		for (auto StringIter:sAddrString)
 		{
 			if (StringIter < ASCII_ZERO || StringIter > ASCII_COLON && StringIter < ASCII_UPPERCASE_A || StringIter > ASCII_UPPERCASE_F && StringIter < ASCII_LOWERCASE_A || StringIter > ASCII_LOWERCASE_F)
-				break;
+				return false;
 		}
 
 	//Check abbreviation format.
@@ -70,7 +77,7 @@ bool __fastcall AddressStringToBinary(
 		}
 		else {
 			SockLength = sizeof(sockaddr_in6);
-			if (WSAStringToAddressA((LPSTR)sAddrString.c_str(), AF_INET6, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
+			if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET6, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
 			{
 				ErrorCode = WSAGetLastError();
 				return false;
@@ -88,9 +95,10 @@ bool __fastcall AddressStringToBinary(
 	#endif
 	}
 	else { //IPv4
+	//Check IPv4 addresses.
+		if (sAddrString.find(ASCII_PERIOD) == std::string::npos || sAddrString.find(ASCII_COLON) != std::string::npos)
+			return false;
 		size_t CommaNum = 0;
-
-	//Check IPv4 addresses
 		for (auto StringIter:sAddrString)
 		{
 			if (StringIter != ASCII_PERIOD && StringIter < ASCII_ZERO || StringIter > ASCII_NINE)
@@ -145,7 +153,7 @@ bool __fastcall AddressStringToBinary(
 		}
 		else {
 			SockLength = sizeof(sockaddr_in);
-			if (WSAStringToAddressA((LPSTR)sAddrString.c_str(), AF_INET, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
+			if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
 			{
 				ErrorCode = WSAGetLastError();
 				return false;
@@ -168,20 +176,19 @@ bool __fastcall AddressStringToBinary(
 
 //Compare two addresses
 size_t __fastcall AddressesComparing(
-	const void *OriginalAddrBegin, 
-	const void *OriginalAddrEnd, 
-	const uint16_t Protocol)
+	_In_ const void *OriginalAddrBegin, 
+	_In_ const void *OriginalAddrEnd, 
+	_In_ const uint16_t Protocol)
 {
 	if (Protocol == AF_INET6) //IPv6
 	{
-		auto AddrBegin = (in6_addr *)OriginalAddrBegin, AddrEnd = (in6_addr *)OriginalAddrEnd;
 		for (size_t Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);++Index)
 		{
-			if (ntohs(AddrBegin->s6_words[Index]) > ntohs(AddrEnd->s6_words[Index]))
+			if (ntohs(((in6_addr *)OriginalAddrBegin)->s6_words[Index]) > ntohs(((in6_addr *)OriginalAddrEnd)->s6_words[Index]))
 			{
 				return ADDRESS_COMPARE_GREATER;
 			}
-			else if (AddrBegin->s6_words[Index] == AddrEnd->s6_words[Index])
+			else if (((in6_addr *)OriginalAddrBegin)->s6_words[Index] == ((in6_addr *)OriginalAddrEnd)->s6_words[Index])
 			{
 				if (Index == sizeof(in6_addr) / sizeof(uint16_t) - 1U)
 					return ADDRESS_COMPARE_EQUAL;
@@ -194,28 +201,27 @@ size_t __fastcall AddressesComparing(
 		}
 	}
 	else { //IPv4
-		auto AddrBegin = (in_addr *)OriginalAddrBegin, AddrEnd = (in_addr *)OriginalAddrEnd;
-		if (AddrBegin->s_net > AddrEnd->s_net)
+		if (((in_addr *)OriginalAddrBegin)->s_net > ((in_addr *)OriginalAddrEnd)->s_net)
 		{
 			return ADDRESS_COMPARE_GREATER;
 		}
-		else if (AddrBegin->s_net == AddrEnd->s_net)
+		else if (((in_addr *)OriginalAddrBegin)->s_net == ((in_addr *)OriginalAddrEnd)->s_net)
 		{
-			if (AddrBegin->s_host > AddrEnd->s_host)
+			if (((in_addr *)OriginalAddrBegin)->s_host > ((in_addr *)OriginalAddrEnd)->s_host)
 			{
 				return ADDRESS_COMPARE_GREATER;
 			}
-			else if (AddrBegin->s_host == AddrEnd->s_host)
+			else if (((in_addr *)OriginalAddrBegin)->s_host == ((in_addr *)OriginalAddrEnd)->s_host)
 			{
-				if (AddrBegin->s_lh > AddrEnd->s_lh)
+				if (((in_addr *)OriginalAddrBegin)->s_lh > ((in_addr *)OriginalAddrEnd)->s_lh)
 				{
 					return ADDRESS_COMPARE_GREATER;
 				}
-				else if (AddrBegin->s_lh == AddrEnd->s_lh)
+				else if (((in_addr *)OriginalAddrBegin)->s_lh == ((in_addr *)OriginalAddrEnd)->s_lh)
 				{
-					if (AddrBegin->s_impno > AddrEnd->s_impno)
+					if (((in_addr *)OriginalAddrBegin)->s_impno > ((in_addr *)OriginalAddrEnd)->s_impno)
 						return ADDRESS_COMPARE_GREATER;
-					else if (AddrBegin->s_impno == AddrEnd->s_impno)
+					else if (((in_addr *)OriginalAddrBegin)->s_impno == ((in_addr *)OriginalAddrEnd)->s_impno)
 						return ADDRESS_COMPARE_EQUAL;
 					else 
 						return ADDRESS_COMPARE_LESS;
@@ -238,10 +244,10 @@ size_t __fastcall AddressesComparing(
 
 //Check IPv4/IPv6 special addresses
 bool __fastcall CheckSpecialAddress(
-	void *Addr, 
-	const uint16_t Protocol, 
-	const bool IsPrivateUse, 
-	char *Domain)
+	_In_ void *Addr, 
+	_In_ const uint16_t Protocol, 
+	_In_ const bool IsPrivateUse, 
+	_In_opt_ char *Domain)
 {
 	if (Protocol == AF_INET6) //IPv6
 	{
@@ -259,27 +265,27 @@ bool __fastcall CheckSpecialAddress(
 		//Special-use or reserved addresses, see https://en.wikipedia.org/wiki/IPv6_address#Presentation and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv6_addresses.
 			(((in6_addr *)Addr)->s6_words[0] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && 
 			((((in6_addr *)Addr)->s6_words[5U] == 0 && 
-			((((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == 0 || //Unspecified Addresses(::, Section 2.5.2 in RFC 4291)
-			((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001)) || //Loopback Addresses(::1, Section 2.5.3 in RFC 4291)
-			((in6_addr *)Addr)->s6_words[5U] == 0)) || //IPv4-Compatible Contrast Addresses(::/96, Section 2.5.5.1 in RFC 4291)
-			((in6_addr *)Addr)->s6_words[5U] == htons(0xFFFF))) || //IPv4-mapped Addresses(::FFFF:0:0/96, Section 2.5.5 in RFC 4291)
-			IsPrivateUse && ((in6_addr *)Addr)->s6_words[0] == htons(0x0064) && ((in6_addr *)Addr)->s6_words[1U] == htons(0xFF9B) && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 || //Well Known Prefix Addresses(64:FF9B::/96, Section 2.1 in RFC 4773)
-			((in6_addr *)Addr)->s6_words[0] == htons(0x0100) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 || //Discard Prefix Addresses(100::/64, Section 4 RFC 6666)
+			((((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == 0 || //Unspecified addresses(::, Section 2.5.2 in RFC 4291)
+			((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001)) || //Loopback addresses(::1, Section 2.5.3 in RFC 4291)
+			((in6_addr *)Addr)->s6_words[5U] == 0)) || //IPv4-Compatible Contrast addresses(::/96, Section 2.5.5.1 in RFC 4291)
+			((in6_addr *)Addr)->s6_words[5U] == htons(0xFFFF))) || //IPv4-mapped addresses(::FFFF:0:0/96, Section 2.5.5 in RFC 4291)
+			IsPrivateUse && ((in6_addr *)Addr)->s6_words[0] == htons(0x0064) && ((in6_addr *)Addr)->s6_words[1U] == htons(0xFF9B) && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 || //Well Known Prefix addresses(64:FF9B::/96, Section 2.1 in RFC 4773)
+			((in6_addr *)Addr)->s6_words[0] == htons(0x0100) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 || //Discard Prefix addresses(100::/64, Section 4 RFC 6666)
 			((in6_addr *)Addr)->s6_words[0] == htons(0x2001) && 
-			(((in6_addr *)Addr)->s6_words[1U] == 0 || //Teredo relay/tunnel Addresses(2001::/32, RFC 4380)
-			((in6_addr *)Addr)->s6_bytes[2U] == 0 && ((in6_addr *)Addr)->s6_bytes[3U] <= 0x07 || //Sub-TLA IDs assigned to IANA Addresses(2001:0000::/29, Section 2 in RFC 4773)
-			((in6_addr *)Addr)->s6_bytes[2U] == 0 && ((in6_addr *)Addr)->s6_bytes[3U] == 0 && ((in6_addr *)Addr)->s6_bytes[4U] >= 0x10 && ((in6_addr *)Addr)->s6_bytes[4U] <= 0x1F || //Overlay Routable Cryptographic Hash IDentifiers/ORCHID Addresses(2001:10::/28 in RFC 4843)
-			((in6_addr *)Addr)->s6_bytes[2U] == 0x01 && ((in6_addr *)Addr)->s6_bytes[3U] >= 0xF8 || //Sub-TLA IDs assigned to IANA Addresses(2001:01F8::/29, Section 2 in RFC 4773)
-			((in6_addr *)Addr)->s6_words[1U] == htons(0x0DB8)) || //Contrast Address prefix reserved for documentation Addresses(2001:DB8::/32, RFC 3849)
-			IsPrivateUse && ((in6_addr *)Addr)->s6_words[0] == htons(0x2002) || //6to4 relay/tunnel Addresses(2002::/16, Section 2 in RFC 3056)
-			((in6_addr *)Addr)->s6_words[0] == htons(0x3FFE) && ((in6_addr *)Addr)->s6_words[1U] == 0 || //6bone Addresses(3FFE::/16, RFC 3701)
+			(((in6_addr *)Addr)->s6_words[1U] == 0 || //Teredo relay/tunnel addresses(2001::/32, RFC 4380)
+			((in6_addr *)Addr)->s6_bytes[2U] == 0 && ((in6_addr *)Addr)->s6_bytes[3U] <= 0x07 || //Sub-TLA IDs assigned to IANA addresses(2001:0000::/29, Section 2 in RFC 4773)
+			((in6_addr *)Addr)->s6_bytes[2U] == 0 && ((in6_addr *)Addr)->s6_bytes[3U] == 0 && ((in6_addr *)Addr)->s6_bytes[4U] >= 0x10 && ((in6_addr *)Addr)->s6_bytes[4U] <= 0x1F || //Overlay Routable Cryptographic Hash IDentifiers/ORCHID addresses(2001:10::/28 in RFC 4843)
+			((in6_addr *)Addr)->s6_bytes[2U] == 0x01 && ((in6_addr *)Addr)->s6_bytes[3U] >= 0xF8 || //Sub-TLA IDs assigned to IANA addresses(2001:01F8::/29, Section 2 in RFC 4773)
+			((in6_addr *)Addr)->s6_words[1U] == htons(0x0DB8)) || //Contrast Address prefix reserved for documentation addresses(2001:DB8::/32, RFC 3849)
+			IsPrivateUse && ((in6_addr *)Addr)->s6_words[0] == htons(0x2002) || //6to4 relay/tunnel addresses(2002::/16, Section 2 in RFC 3056)
+			((in6_addr *)Addr)->s6_words[0] == htons(0x3FFE) && ((in6_addr *)Addr)->s6_words[1U] == 0 || //6bone addresses(3FFE::/16, RFC 3701)
 			((in6_addr *)Addr)->s6_bytes[0] == 0x5F || //6bone(5F00::/8, RFC 3701)
-			IsPrivateUse && ((in6_addr *)Addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)Addr)->s6_bytes[0] <= 0xFD || //Unique Local Unicast Addresses/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
+			IsPrivateUse && ((in6_addr *)Addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)Addr)->s6_bytes[0] <= 0xFD || //Unique Local Unicast addresses/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
 			((in6_addr *)Addr)->s6_bytes[0] == 0xFE && 
-			IsPrivateUse && (((in6_addr *)Addr)->s6_bytes[1U] >= 0x80 && (((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF || //Link-Local Unicast Contrast Addresses/LUC(FE80::/10, Section 2.5.6 in RFC 4291)
-			IsPrivateUse && ((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == htons(0x5EFE)) || //ISATAP Interface Identifiers Addresses(Prefix:0:5EFE:0:0:0:0/64, which also in Link-Local Unicast Contrast Addresses/LUC, Section 6.1 in RFC 5214)
-			((in6_addr *)Addr)->s6_bytes[1U] >= 0xC0) || //Site-Local scoped Addresses(FEC0::/10, RFC 3879)
-			IsPrivateUse && ((in6_addr *)Addr)->s6_bytes[0] == 0xFF) //Multicast Addresses(FF00::/8, Section 2.7 in RFC 4291)
+			IsPrivateUse && (((in6_addr *)Addr)->s6_bytes[1U] >= 0x80 && (((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF || //Link-Local Unicast Contrast addresses/LUC(FE80::/10, Section 2.5.6 in RFC 4291)
+			IsPrivateUse && ((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == htons(0x5EFE)) || //ISATAP Interface Identifiers addresses(Prefix:0:5EFE:0:0:0:0/64, which also in Link-Local Unicast Contrast addresses/LUC, Section 6.1 in RFC 5214)
+			((in6_addr *)Addr)->s6_bytes[1U] >= 0xC0) || //Site-Local scoped addresses(FEC0::/10, RFC 3879)
+			IsPrivateUse && ((in6_addr *)Addr)->s6_bytes[0] == 0xFF) //Multicast addresses(FF00::/8, Section 2.7 in RFC 4291)
 				return true;
 
 	//Result Blacklist check
@@ -432,22 +438,22 @@ bool __fastcall CheckSpecialAddress(
 //			((in_addr *)Addr)->s_addr == htonl(0xF3B9BB03) || //243.185.187.3, including in reserved address ranges
 //			((in_addr *)Addr)->s_addr == htonl(0xF3B9BB1E) || //243.185.187.30, including in reserved address ranges
 		//Special-use or reserved addresses, see https://en.wikipedia.org/wiki/IPv4#Special-use_addresses and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv4_addresses.
-			((in_addr *)Addr)->s_net == 0 || //Current network whick only valid as source Addresses(0.0.0.0/8, Section 3.2.1.3 in RFC 1122)
-			IsPrivateUse && ((in_addr *)Addr)->s_net == 0x0A || //Private class A Addresses(10.0.0.0/8, Section 3 in RFC 1918)
+			((in_addr *)Addr)->s_net == 0 || //Current network whick only valid as source addresses(0.0.0.0/8, Section 3.2.1.3 in RFC 1122)
+			IsPrivateUse && ((in_addr *)Addr)->s_net == 0x0A || //Private class A addresses(10.0.0.0/8, Section 3 in RFC 1918)
 			((in_addr *)Addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
-			IsPrivateUse && ((in_addr *)Addr)->s_net == 0x64 && ((in_addr *)Addr)->s_host > 0x40 && ((in_addr *)Addr)->s_host < 0x7F || //Carrier-grade NAT Addresses(100.64.0.0/10, Section 7 in RFC 6598)
-			((in_addr *)Addr)->s_net == 0xA9 && ((in_addr *)Addr)->s_host >= 0xFE || //Link-local Addresses(169.254.0.0/16, Section 1.5 in RFC 3927)
-			IsPrivateUse && ((in_addr *)Addr)->s_net == 0xAC && ((in_addr *)Addr)->s_host >= 0x10 && ((in_addr *)Addr)->s_host <= 0x1F || //Private class B Addresses(172.16.0.0/16, Section 3 in RFC 1918)
-			((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0 && ((in_addr *)Addr)->s_lh == 0 && ((in_addr *)Addr)->s_impno >= 0 && ((in_addr *)Addr)->s_impno < 0x08 || //DS-Lite transition mechanism Addresses(192.0.0.0/29, Section 3 in RFC 6333)
-			((in_addr *)Addr)->s_net == 0xC0 && (((in_addr *)Addr)->s_host == 0 && (((in_addr *)Addr)->s_lh == 0 || //Reserved for IETF protocol assignments Addresses(192.0.0.0/24, Section 3 in RFC 5735)
-			((in_addr *)Addr)->s_lh == 0x02)) || //TEST-NET-1 Addresses(192.0.2.0/24, Section 3 in RFC 5735)
-			IsPrivateUse && ((in_addr *)Addr)->s_host == 0x58 && ((in_addr *)Addr)->s_lh == 0x63 || //6to4 relay/tunnel Addresses(192.88.99.0/24, Section 2.3 in RFC 3068)
-			IsPrivateUse && ((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0xA8 || //Private class C Addresses(192.168.0.0/24, Section 3 in RFC 1918)
-			((in_addr *)Addr)->s_net == 0xC6 && (((in_addr *)Addr)->s_host == 0x12 || //Benchmarking Methodology for Network Interconnect Devices Addresses(198.18.0.0/15, Section 11.4.1 in RFC 2544)
-			((in_addr *)Addr)->s_host == 0x33 && ((in_addr *)Addr)->s_lh == 0x64) || //TEST-NET-2 Addresses(198.51.100.0/24, Section 3 in RFC 5737)
-			((in_addr *)Addr)->s_net == 0xCB && ((in_addr *)Addr)->s_host == 0 && ((in_addr *)Addr)->s_lh == 0x71 || //TEST-NET-3 Addresses(203.0.113.0/24, Section 3 in RFC 5737)
-			IsPrivateUse && ((in_addr *)Addr)->s_net == 0xE0 || //Multicast Addresses(224.0.0.0/4, Section 2 in RFC 3171)
-			((in_addr *)Addr)->s_net >= 0xF0) //Reserved for future use address(240.0.0.0/4, Section 4 in RFC 1112) and Broadcast Addresses(255.255.255.255/32, Section 7 in RFC 919/RFC 922)
+			IsPrivateUse && ((in_addr *)Addr)->s_net == 0x64 && ((in_addr *)Addr)->s_host > 0x40 && ((in_addr *)Addr)->s_host < 0x7F || //Carrier-grade NAT addresses(100.64.0.0/10, Section 7 in RFC 6598)
+			((in_addr *)Addr)->s_net == 0xA9 && ((in_addr *)Addr)->s_host >= 0xFE || //Link-local addresses(169.254.0.0/16, Section 1.5 in RFC 3927)
+			IsPrivateUse && ((in_addr *)Addr)->s_net == 0xAC && ((in_addr *)Addr)->s_host >= 0x10 && ((in_addr *)Addr)->s_host <= 0x1F || //Private class B addresses(172.16.0.0/16, Section 3 in RFC 1918)
+			((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0 && ((in_addr *)Addr)->s_lh == 0 && ((in_addr *)Addr)->s_impno >= 0 && ((in_addr *)Addr)->s_impno < 0x08 || //DS-Lite transition mechanism addresses(192.0.0.0/29, Section 3 in RFC 6333)
+			((in_addr *)Addr)->s_net == 0xC0 && (((in_addr *)Addr)->s_host == 0 && (((in_addr *)Addr)->s_lh == 0 || //Reserved for IETF protocol assignments addresses(192.0.0.0/24, Section 3 in RFC 5735)
+			((in_addr *)Addr)->s_lh == 0x02)) || //TEST-NET-1 addresses(192.0.2.0/24, Section 3 in RFC 5735)
+			IsPrivateUse && ((in_addr *)Addr)->s_host == 0x58 && ((in_addr *)Addr)->s_lh == 0x63 || //6to4 relay/tunnel addresses(192.88.99.0/24, Section 2.3 in RFC 3068)
+			IsPrivateUse && ((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0xA8 || //Private class C addresses(192.168.0.0/24, Section 3 in RFC 1918)
+			((in_addr *)Addr)->s_net == 0xC6 && (((in_addr *)Addr)->s_host == 0x12 || //Benchmarking Methodology for Network Interconnect Devices addresses(198.18.0.0/15, Section 11.4.1 in RFC 2544)
+			((in_addr *)Addr)->s_host == 0x33 && ((in_addr *)Addr)->s_lh == 0x64) || //TEST-NET-2 addresses(198.51.100.0/24, Section 3 in RFC 5737)
+			((in_addr *)Addr)->s_net == 0xCB && ((in_addr *)Addr)->s_host == 0 && ((in_addr *)Addr)->s_lh == 0x71 || //TEST-NET-3 addresses(203.0.113.0/24, Section 3 in RFC 5737)
+			IsPrivateUse && ((in_addr *)Addr)->s_net == 0xE0 || //Multicast addresses(224.0.0.0/4, Section 2 in RFC 3171)
+			((in_addr *)Addr)->s_net >= 0xF0) //Reserved for future use address(240.0.0.0/4, Section 4 in RFC 1112) and Broadcast addresses(255.255.255.255/32, Section 7 in RFC 919/RFC 922)
 				return true;
 
 	//Result Blacklist check
@@ -518,15 +524,14 @@ StopLoop:
 
 //Check routing of addresses
 bool __fastcall CheckAddressRouting(
-	const void *Addr, 
-	const uint16_t Protocol)
+	_In_ const void *Addr, 
+	_In_ const uint16_t Protocol)
 {
 	std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 
 //Check address routing.
 	if (Protocol == AF_INET6) //IPv6
 	{
-		auto AddrFront = (PUINT64)Addr, AddrBack = (PUINT64)((PUCHAR)Addr + sizeof(in6_addr) / 2U);
 		std::map<uint64_t, std::set<uint64_t>>::iterator AddrMapIter;
 		for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
 		{
@@ -534,13 +539,13 @@ bool __fastcall CheckAddressRouting(
 			{
 				if (LocalRoutingTableIter.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 				{
-					if (LocalRoutingTableIter.AddressRoutingList_IPv6.count(ntoh64(*AddrFront) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - LocalRoutingTableIter.Prefix))))
+					if (LocalRoutingTableIter.AddressRoutingList_IPv6.count(ntoh64(*(PUINT64)Addr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - LocalRoutingTableIter.Prefix))))
 						return true;
 				}
 				else {
-					AddrMapIter = LocalRoutingTableIter.AddressRoutingList_IPv6.find(ntoh64(*AddrFront));
+					AddrMapIter = LocalRoutingTableIter.AddressRoutingList_IPv6.find(ntoh64(*(PUINT64)Addr));
 					if (AddrMapIter != LocalRoutingTableIter.AddressRoutingList_IPv6.end() && 
-						AddrMapIter->second.count(ntoh64(*AddrBack) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - LocalRoutingTableIter.Prefix))))
+						AddrMapIter->second.count(ntoh64(*(PUINT64)((uint8_t *)Addr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - LocalRoutingTableIter.Prefix))))
 							return true;
 				}
 			}
@@ -562,13 +567,12 @@ bool __fastcall CheckAddressRouting(
 
 //Custom Mode address filter
 bool __fastcall CheckCustomModeFilter(
-	const void *OriginalAddr, 
-	const uint16_t Protocol)
+	_In_ const void *OriginalAddr, 
+	_In_ const uint16_t Protocol)
 {
 	std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 	if (Protocol == AF_INET6) //IPv6
 	{
-		auto Addr = (in6_addr *)OriginalAddr;
 	//Permit
 		if (Parameter.IPFilterType)
 		{
@@ -583,11 +587,11 @@ bool __fastcall CheckCustomModeFilter(
 				//Check address.
 					for (size_t Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);++Index)
 					{
-						if (ntohs(Addr->s6_words[Index]) > ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index]) && ntohs(Addr->s6_words[Index]) < ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index]))
+						if (ntohs(((in6_addr *)OriginalAddr)->s6_words[Index]) > ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index]) && ntohs(((in6_addr *)OriginalAddr)->s6_words[Index]) < ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index]))
 						{
 							return true;
 						}
-						else if (Addr->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index] || Addr->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index])
+						else if (((in6_addr *)OriginalAddr)->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index] || ((in6_addr *)OriginalAddr)->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index])
 						{
 							if (Index == sizeof(in6_addr) / sizeof(uint16_t) - 1U)
 								return true;
@@ -614,11 +618,11 @@ bool __fastcall CheckCustomModeFilter(
 				//Check address.
 					for (size_t Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);++Index)
 					{
-						if (ntohs(Addr->s6_words[Index]) > ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index]) && ntohs(Addr->s6_words[Index]) < ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index]))
+						if (ntohs(((in6_addr *)OriginalAddr)->s6_words[Index]) > ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index]) && ntohs(((in6_addr *)OriginalAddr)->s6_words[Index]) < ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index]))
 						{
 							return false;
 						}
-						else if (Addr->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index] || Addr->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index])
+						else if (((in6_addr *)OriginalAddr)->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index] || ((in6_addr *)OriginalAddr)->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index])
 						{
 							if (Index == sizeof(in6_addr) / sizeof(uint16_t) - 1U)
 								return false;
@@ -634,7 +638,6 @@ bool __fastcall CheckCustomModeFilter(
 		}
 	}
 	else { //IPv4
-		auto Addr = (in_addr *)OriginalAddr;
 	//Permit
 		if (Parameter.IPFilterType)
 		{
@@ -647,25 +650,25 @@ bool __fastcall CheckCustomModeFilter(
 						continue;
 
 				//Check address.
-					if (Addr->s_net > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net && Addr->s_net < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
+					if (((in_addr *)OriginalAddr)->s_net > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net && ((in_addr *)OriginalAddr)->s_net < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
 					{
 						return true;
 					}
-					else if (Addr->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net || Addr->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
+					else if (((in_addr *)OriginalAddr)->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net || ((in_addr *)OriginalAddr)->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
 					{
-						if (Addr->s_host > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host && Addr->s_host < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
+						if (((in_addr *)OriginalAddr)->s_host > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host && ((in_addr *)OriginalAddr)->s_host < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
 						{
 							return true;
 						}
-						else if (Addr->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host || Addr->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
+						else if (((in_addr *)OriginalAddr)->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host || ((in_addr *)OriginalAddr)->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
 						{
-							if (Addr->s_lh > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh && Addr->s_lh < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
+							if (((in_addr *)OriginalAddr)->s_lh > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh && ((in_addr *)OriginalAddr)->s_lh < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
 							{
 								return true;
 							}
-							else if (Addr->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh || Addr->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
+							else if (((in_addr *)OriginalAddr)->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh || ((in_addr *)OriginalAddr)->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
 							{
-								if (Addr->s_impno >= ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_impno && Addr->s_impno <= ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_impno)
+								if (((in_addr *)OriginalAddr)->s_impno >= ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_impno && ((in_addr *)OriginalAddr)->s_impno <= ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_impno)
 								{
 									return true;
 								}
@@ -698,25 +701,25 @@ bool __fastcall CheckCustomModeFilter(
 						continue;
 
 				//Check address.
-					if (Addr->s_net > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net && Addr->s_net < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
+					if (((in_addr *)OriginalAddr)->s_net > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net && ((in_addr *)OriginalAddr)->s_net < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
 					{
 						return false;
 					}
-					else if (Addr->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net || Addr->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
+					else if (((in_addr *)OriginalAddr)->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net || ((in_addr *)OriginalAddr)->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
 					{
-						if (Addr->s_host > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host && Addr->s_host < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
+						if (((in_addr *)OriginalAddr)->s_host > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host && ((in_addr *)OriginalAddr)->s_host < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
 						{
 							return false;
 						}
-						else if (Addr->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host || Addr->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
+						else if (((in_addr *)OriginalAddr)->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host || ((in_addr *)OriginalAddr)->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
 						{
-							if (Addr->s_lh > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh && Addr->s_lh < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
+							if (((in_addr *)OriginalAddr)->s_lh > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh && ((in_addr *)OriginalAddr)->s_lh < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
 							{
 								return false;
 							}
-							else if (Addr->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh || Addr->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
+							else if (((in_addr *)OriginalAddr)->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh || ((in_addr *)OriginalAddr)->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
 							{
-								if (Addr->s_impno >= ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_impno && Addr->s_impno <= ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_impno)
+								if (((in_addr *)OriginalAddr)->s_impno >= ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_impno && ((in_addr *)OriginalAddr)->s_impno <= ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_impno)
 								{
 									return false;
 								}
@@ -745,7 +748,7 @@ bool __fastcall CheckCustomModeFilter(
 
 //Count DNS Query Name length
 size_t __fastcall CheckQueryNameLength(
-	const char *Buffer)
+	_In_ const char *Buffer)
 {
 	size_t Index = 0;
 	for (Index = 0;Index < DOMAIN_MAXSIZE;++Index)
@@ -754,7 +757,7 @@ size_t __fastcall CheckQueryNameLength(
 		{
 			break;
 		}
-		else if ((UCHAR)Buffer[Index] >= DNS_POINTER_BITS)
+		else if ((unsigned char)Buffer[Index] >= DNS_POINTER_BITS)
 		{
 			return Index + sizeof(uint16_t) - 1U;
 		}
@@ -765,38 +768,39 @@ size_t __fastcall CheckQueryNameLength(
 
 //Check DNS query data
 size_t __fastcall CheckQueryData(
-	PSTR RecvBuffer, 
-	PSTR SendBuffer, 
-	const size_t Length, 
-	const SOCKET_DATA &LocalSocketData, 
-	const uint16_t Protocol, 
-	bool *IsLocal)
+	_Inout_opt_ char *RecvBuffer, 
+	_Inout_opt_ char *SendBuffer, 
+	_In_ const size_t Length, 
+	_In_ const SOCKET_DATA &LocalSocketData, 
+	_In_ const uint16_t Protocol, 
+	_Out_opt_ bool *IsLocal)
 {
+	if (IsLocal != nullptr)
+		*IsLocal = false;
+
 //Check address.
 	if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 	{
-		auto Addr = &((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr;
-		if (CheckEmptyBuffer(Addr, sizeof(in6_addr)) || //Empty address
+		if (CheckEmptyBuffer(&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr, sizeof(in6_addr)) || //Empty address
 		//Check Private Mode(IPv6).
 			Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
-			!(((in6_addr *)Addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)Addr)->s6_bytes[0] <= 0xFD || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
-			((in6_addr *)Addr)->s6_bytes[0] == 0xFE && ((in6_addr *)Addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
-			((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001)) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
+			!(((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] <= 0xFD || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
+			((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] == 0xFE && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
+			((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_words[6U] == 0 && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_words[7U] == htons(0x0001)) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
 		//Check Custom Mode(IPv6).
-			Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(Addr, AF_INET6))
+			Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr, AF_INET6))
 				return EXIT_FAILURE;
 	}
 	else { //IPv4
-		auto Addr = &((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr;
-		if ((*(in_addr *)Addr).s_addr == 0 || //Empty address
+		if ((*(in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr).s_addr == 0 || //Empty address
 		//Check Private Mode(IPv4).
 			Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
-			!(((in_addr *)Addr)->s_net == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
-			((in_addr *)Addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
-			((in_addr *)Addr)->s_net == 0xAC && ((in_addr *)Addr)->s_host >= 0x10 && ((in_addr *)Addr)->s_host <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
-			((in_addr *)Addr)->s_net == 0xC0 && ((in_addr *)Addr)->s_host == 0xA8) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
+			!(((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
+			((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
+			((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0xAC && ((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_host >= 0x10 && ((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_host <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
+			((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0xC0 && ((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_host == 0xA8) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
 		//Check Custom Mode(IPv4).
-			Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(Addr, AF_INET))
+			Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr, AF_INET))
 				return EXIT_FAILURE;
 	}
 
@@ -854,9 +858,9 @@ size_t __fastcall CheckQueryData(
 			if (DNS_Header->Additional == 0)
 			{
 				if (Protocol == IPPROTO_TCP)
-					DataLength[0] = AddEDNSLabelToAdditionalRR(RecvBuffer, DataLength[0], LARGE_PACKET_MAXSIZE, false);
+					DataLength[0] = AddEDNSLabelToAdditionalRR(RecvBuffer, DataLength[0], LARGE_PACKET_MAXSIZE, nullptr);
 				else //UDP
-					DataLength[0] = AddEDNSLabelToAdditionalRR(RecvBuffer, DataLength[0], PACKET_MAXSIZE, false);
+					DataLength[0] = AddEDNSLabelToAdditionalRR(RecvBuffer, DataLength[0], PACKET_MAXSIZE, nullptr);
 			}
 
 		//Send request.
@@ -869,11 +873,19 @@ size_t __fastcall CheckQueryData(
 //EDNS Label
 	if (Parameter.EDNS_Label)
 	{
+	//Check special address.
+		PSOCKET_DATA EDNSSocketData = nullptr;
+		if (LocalSocketData.AddrLen == sizeof(sockaddr_in6) && !CheckSpecialAddress(&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr, AF_INET6, true, nullptr) || //IPv6
+			LocalSocketData.AddrLen == sizeof(sockaddr_in) && !CheckSpecialAddress(&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr, AF_INET, true, nullptr)) //IPv4
+				EDNSSocketData = (PSOCKET_DATA)&LocalSocketData;
+
+	//Add EDNS Label to query data.
 		if (Protocol == IPPROTO_TCP)
-			DataLength[0] = AddEDNSLabelToAdditionalRR(RecvBuffer, Length, LARGE_PACKET_MAXSIZE, false);
+			DataLength[0] = AddEDNSLabelToAdditionalRR(RecvBuffer, Length, LARGE_PACKET_MAXSIZE, EDNSSocketData);
 		else //UDP
-			DataLength[0] = AddEDNSLabelToAdditionalRR(RecvBuffer, Length, PACKET_MAXSIZE, false);
+			DataLength[0] = AddEDNSLabelToAdditionalRR(RecvBuffer, Length, PACKET_MAXSIZE, EDNSSocketData);
 	}
+
 	DataLength[1U] = DataLength[0];
 
 //Check Hosts.
@@ -901,11 +913,14 @@ size_t __fastcall CheckQueryData(
 
 //Check DNS response results
 size_t __fastcall CheckResponseData(
-	const char *Buffer, 
-	const size_t Length, 
-	const bool IsLocal, 
-	bool *IsMarkHopLimit)
+	_In_ const char *Buffer, 
+	_In_ const size_t Length, 
+	_In_ const bool IsLocal, 
+	_Out_opt_ bool *IsMarkHopLimit)
 {
+	if (IsMarkHopLimit != nullptr)
+		*IsMarkHopLimit = false;
+
 //Response check options
 	if (!Parameter.HeaderCheck_DNS && !Parameter.DataCheck_Blacklist)
 		return Length;
@@ -947,12 +962,12 @@ size_t __fastcall CheckResponseData(
 		if (DNS_Header->Answer == htons(U16_NUM_ONE) && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && 
 			CheckQueryNameLength(Buffer + sizeof(dns_hdr)) == CheckQueryNameLength(Buffer + DNS_PACKET_RR_LOCATE(Buffer)))
 		{
-			auto QuestionDomain = (PUINT8)(Buffer + sizeof(dns_hdr));
-			auto AnswerDomain = (PUINT8)(Buffer + DNS_PACKET_RR_LOCATE(Buffer));
-			auto DNS_Record_Standard = (pdns_record_standard)(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckQueryNameLength((PSTR)QuestionDomain) + 1U);
+			auto QuestionDomain = (uint8_t *)(Buffer + sizeof(dns_hdr));
+			auto AnswerDomain = (uint8_t *)(Buffer + DNS_PACKET_RR_LOCATE(Buffer));
+			auto DNS_Record_Standard = (pdns_record_standard)(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckQueryNameLength((char *)QuestionDomain) + 1U);
 			if (DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && 
 				(DNS_Record_Standard->Type == htons(DNS_RECORD_A) || DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA)) && 
-				memcmp(QuestionDomain, AnswerDomain, CheckQueryNameLength((PSTR)QuestionDomain) + 1U) == EXIT_SUCCESS)
+				memcmp(QuestionDomain, AnswerDomain, CheckQueryNameLength((char *)QuestionDomain) + 1U) == EXIT_SUCCESS)
 					return EXIT_FAILURE;
 		}
 	}
@@ -973,9 +988,9 @@ size_t __fastcall CheckResponseData(
 	if (DNS_Header->Answer == htons(U16_NUM_ONE) && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && DNS_Query->Classes == htons(DNS_CLASS_IN))
 	{
 	//Pointer check
-		if (DataLength + sizeof(uint16_t) < Length && (UCHAR)Buffer[DataLength] >= DNS_POINTER_BITS)
+		if (DataLength + sizeof(uint16_t) < Length && (unsigned char)Buffer[DataLength] >= DNS_POINTER_BITS)
 		{
-			DNS_Pointer = ntohs(*(PUINT16)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
+			DNS_Pointer = ntohs(*(uint16_t *)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
 			if (DNS_Pointer >= Length || DNS_Pointer < sizeof(dns_hdr) || DNS_Pointer == DataLength || DNS_Pointer == DataLength + 1U)
 				return EXIT_FAILURE;
 		}
@@ -1015,9 +1030,9 @@ size_t __fastcall CheckResponseData(
 		for (size_t Index = 0;Index < (size_t)(ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional));++Index)
 		{
 		//Pointer check
-			if (DataLength + sizeof(uint16_t) < Length && (UCHAR)Buffer[DataLength] >= DNS_POINTER_BITS)
+			if (DataLength + sizeof(uint16_t) < Length && (unsigned char)Buffer[DataLength] >= DNS_POINTER_BITS)
 			{
-				DNS_Pointer = ntohs(*(PUINT16)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
+				DNS_Pointer = ntohs(*(uint16_t *)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
 				if (DNS_Pointer >= Length || DNS_Pointer < sizeof(dns_hdr) || DNS_Pointer == DataLength || DNS_Pointer == DataLength + 1U)
 					return EXIT_FAILURE;
 			}
@@ -1119,10 +1134,10 @@ size_t __fastcall CheckResponseData(
 
 //Check DNSSEC Records
 bool __fastcall CheckDNSSECRecords(
-	const char *Buffer, 
-	const size_t Length, 
-	const uint16_t Type, 
-	const uint16_t BeforeType)
+	_In_ const char *Buffer, 
+	_In_ const size_t Length, 
+	_In_ const uint16_t Type, 
+	_In_ const uint16_t BeforeType)
 {
 //DS and CDS Records
 	if (Type == htons(DNS_RECORD_DS) || Type == htons(DNS_RECORD_CDS))
@@ -1202,7 +1217,7 @@ bool __fastcall CheckDNSSECRecords(
 
 	//Hash Length check
 		if (sizeof(dns_record_nsec3param) + DNS_Record_NSEC3->SaltLength < Length && DNS_Record_NSEC3->Algorithm == DNSSEC_NSEC3_ALGORITHM_SHA1 && 
-			*(PUINT8)(Buffer + sizeof(dns_record_nsec3param) + DNS_Record_NSEC3->SaltLength) != SHA1_LENGTH)
+			*(uint8_t *)(Buffer + sizeof(dns_record_nsec3param) + DNS_Record_NSEC3->SaltLength) != SHA1_LENGTH)
 				return false;
 	}
 //NSEC3PARAM Records

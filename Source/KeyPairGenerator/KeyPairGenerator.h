@@ -218,18 +218,31 @@
 #define ASCII_DLE              16      //"␐"
 #define ASCII_COLON            58      //":"
 
-//Linux and Mac OS X compatible
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+//Linux and Mac OS X compatible
 	typedef char               *PSTR;
 	#define __fastcall
 	#define strnlen_s          strnlen
 	#define wprintf_s          wprintf
 	#define fwprintf_s         fwprintf
+
+//Microsoft source-code annotation language/SAL compatible
+	#define _In_
+	#define _Inout_
+	#define _Out_
+	#define _Outptr_
+	#define _In_opt_
+	#define _Inout_opt_
+	#define _Out_opt_
+	#define _Outptr_opt_
 #endif
 
 // Function definitions
 #define crypto_box_keypair crypto_box_curve25519xsalsa20poly1305_keypair
 
 //Functions
-void __fastcall CaseConvert(const bool IsLowerToUpper, PSTR Buffer, const size_t Length);
+void __fastcall CaseConvert(
+	_In_ const bool IsLowerToUpper, 
+	_Inout_ char *Buffer, 
+	_In_ const size_t Length);
 #endif

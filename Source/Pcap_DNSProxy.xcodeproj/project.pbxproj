@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D9561C3A1BC56D8C0015C77A /* Proxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9561C391BC56D8C0015C77A /* Proxy.cpp */; };
+		D92DE6AA1BCFDC12009C77C7 /* Proxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D92DE6A81BCFDC12009C77C7 /* Proxy.cpp */; };
 		D9672DD31AFCB67300330EB8 /* LibSodium_Mac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D9672DD21AFCB67300330EB8 /* LibSodium_Mac.a */; };
 		D97C985C1B17413900674884 /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98581B17413900674884 /* Base.cpp */; };
 		D97C985D1B17413900674884 /* Capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C985A1B17413900674884 /* Capture.cpp */; };
@@ -51,10 +51,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		D9561C381BC56D850015C77A /* Proxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Proxy.h; sourceTree = "<group>"; };
-		D9561C391BC56D8C0015C77A /* Proxy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Proxy.cpp; sourceTree = "<group>"; };
-		D9561C3E1BC56DEB0015C77A /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
-		D9561C401BC56E180015C77A /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
+		D92DE6A81BCFDC12009C77C7 /* Proxy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Proxy.cpp; sourceTree = "<group>"; };
+		D92DE6A91BCFDC12009C77C7 /* Proxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Proxy.h; sourceTree = "<group>"; };
 		D95E420C1BA336A1006BD459 /* Structures.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Structures.h; sourceTree = "<group>"; };
 		D95E420F1BA336B0006BD459 /* Platform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Platform.h; sourceTree = "<group>"; };
 		D95E42101BA336DA006BD459 /* WhiteList.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WhiteList.txt; path = ExampleConfig/WhiteList.txt; sourceTree = SOURCE_ROOT; };
@@ -175,14 +173,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		D9561C3C1BC56DC40015C77A /* Project */ = {
-			isa = PBXGroup;
-			children = (
-				D9561C3E1BC56DEB0015C77A /* CMakeLists.txt */,
-			);
-			name = Project;
-			sourceTree = "<group>";
-		};
 		D99E2D361AFCAF2200F36FCD = {
 			isa = PBXGroup;
 			children = (
@@ -190,7 +180,6 @@
 				D99E2DEC1AFCB25300F36FCD /* Documents */,
 				D99E2D411AFCAF2200F36FCD /* Pcap_DNSProxy */,
 				D99E2D401AFCAF2200F36FCD /* Products */,
-				D9561C3C1BC56DC40015C77A /* Project */,
 			);
 			sourceTree = "<group>";
 		};
@@ -217,7 +206,7 @@
 				D97C98731B17415C00674884 /* PrintLog.cpp */,
 				D97C98751B17415C00674884 /* Process.cpp */,
 				D97C98771B17415C00674884 /* Protocol.cpp */,
-				D9561C391BC56D8C0015C77A /* Proxy.cpp */,
+				D92DE6A81BCFDC12009C77C7 /* Proxy.cpp */,
 				D97C98791B17415C00674884 /* ReadHosts.cpp */,
 				D97C987A1B17415C00674884 /* ReadIPFilter.cpp */,
 				D97C987B1B17415C00674884 /* ReadParameter.cpp */,
@@ -236,10 +225,9 @@
 				D97C98741B17415C00674884 /* PrintLog.h */,
 				D97C98761B17415C00674884 /* Process.h */,
 				D97C98781B17415C00674884 /* Protocol.h */,
-				D9561C381BC56D850015C77A /* Proxy.h */,
+				D92DE6A91BCFDC12009C77C7 /* Proxy.h */,
 				D97C98831B17417100674884 /* Service.h */,
 				D95E420C1BA336A1006BD459 /* Structures.h */,
-				D9561C401BC56E180015C77A /* CMakeLists.txt */,
 				D99E2DDB1AFCB1FC00F36FCD /* ExampleConfig */,
 				D99E2D981AFCB19400F36FCD /* LibSodium */,
 			);
@@ -426,7 +414,7 @@
 				D97C985D1B17413900674884 /* Capture.cpp in Sources */,
 				D97C987C1B17415C00674884 /* PrintLog.cpp in Sources */,
 				D97C986C1B17414A00674884 /* Configuration.cpp in Sources */,
-				D9561C3A1BC56D8C0015C77A /* Proxy.cpp in Sources */,
+				D92DE6AA1BCFDC12009C77C7 /* Proxy.cpp in Sources */,
 				D97C987E1B17415C00674884 /* Protocol.cpp in Sources */,
 				D97C987F1B17415C00674884 /* ReadHosts.cpp in Sources */,
 				D97C985C1B17413900674884 /* Base.cpp in Sources */,

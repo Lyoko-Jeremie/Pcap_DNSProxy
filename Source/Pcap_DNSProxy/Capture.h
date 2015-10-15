@@ -24,7 +24,7 @@
 typedef struct _capture_handler_param_
 {
 	uint16_t   DeviceType;
-	PSTR       Buffer;
+	char       *Buffer;
 }CaptureHandlerParam, CAPTURE_HANDLER_PARAM, *PCaptureHandlerParam, *PCAPTURE_HANDLER_PARAM;
 
 //Global variables
@@ -41,27 +41,27 @@ std::vector<std::string> PcapRunningList;
 
 //Functions
 void __fastcall CaptureFilterRulesInit(
-	std::string &FilterRules);
+	_Out_ std::string &FilterRules);
 bool __fastcall CaptureModule(
-	const pcap_if *pDrive, 
-	const bool IsCaptureList);
+	_In_ const pcap_if *pDrive, 
+	_In_ const bool IsCaptureList);
 void CaptureHandler(
-	unsigned char *Param, 
-	const struct pcap_pkthdr *PacketHeader, 
-	const unsigned char *PacketData);
+	_In_ unsigned char *Param, 
+	_In_ const struct pcap_pkthdr *PacketHeader, 
+	_In_ const unsigned char *PacketData);
 bool __fastcall CaptureNetworkLayer(
-	const char *Buffer, 
-	const size_t Length, 
-	const uint16_t Protocol);
+	_In_ const char *Buffer, 
+	_In_ const size_t Length, 
+	_In_ const uint16_t Protocol);
 bool __fastcall CaptureCheck_ICMP(
-	const char *Buffer, 
-	const size_t Length, 
-	const uint16_t Protocol);
+	_In_ const char *Buffer, 
+	_In_ const size_t Length, 
+	_In_ const uint16_t Protocol);
 bool __fastcall CaptureCheck_TCP(
-	const char *Buffer);
+	_In_ const char *Buffer);
 bool __fastcall MatchPortToSend(
-	const char *Buffer, 
-	const size_t Length, 
-	const uint16_t Protocol, 
-	const uint16_t Port);
+	_In_ const char *Buffer, 
+	_In_ const size_t Length, 
+	_In_ const uint16_t Protocol, 
+	_In_ const uint16_t Port);
 #endif

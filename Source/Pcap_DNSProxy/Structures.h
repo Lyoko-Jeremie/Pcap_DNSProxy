@@ -55,7 +55,7 @@ typedef struct _eth_hdr_
 	uint8_t                Dst[6U];
 	uint8_t                Src[6U];
 	uint16_t               Type;
-//	PUCHAR                 Payload;
+//	uint8_t                *Payload;
 //	uint32_t               FCS;
 }eth_hdr, *peth_hdr;
 
@@ -1563,7 +1563,7 @@ typedef struct _dns_tcp_hdr_
 */
 typedef struct _dns_qry_
 {
-//	PUCHAR                Name;
+//	uint8_t               *Name;
 	uint16_t              Type;
 	uint16_t              Classes;
 }dns_qry, *pdns_qry;
@@ -1589,12 +1589,12 @@ typedef struct _dns_qry_
 */
 typedef struct _dns_record_standard_
 {
-//	PUCHAR                Name;
+//	uint8_t               *Name;
 	uint16_t              Type;
 	uint16_t              Classes;
 	uint32_t              TTL;
 	uint16_t              Length;
-//	PUCHAR                Data;
+//	uint8_t               *Data;
 }dns_record_standard, *pdns_record_standard;
 
 /* Domain Name System/DNS A(IPv4) Records
@@ -1654,7 +1654,7 @@ typedef struct _dns_record_cname_
 	uint16_t              Classes;
 	uint32_t              TTL;
 	uint16_t              Length;
-//	PUCHAR                PrimaryName;
+//	uint8_t               *PrimaryName;
 }dns_record_cname, *pdns_record_cname;
 
 /* Domain Name System/DNS Start Of a zone of Authority/SOA Resource Records
@@ -1684,8 +1684,8 @@ typedef struct _dns_record_cname_
 */
 typedef struct _dns_record_soa_
 {
-//	PUCHAR                PrimaryName;
-//	PUCHAR                MailboxName;
+//	uint8_t               *PrimaryName;
+//	uint8_t               *MailboxName;
 	uint32_t              Serial;
 	uint32_t              RefreshInterval;
 	uint32_t              RetryInterval;
@@ -1717,7 +1717,7 @@ typedef struct _dns_record_ptr_
 	uint16_t              Classes;
 	uint32_t              TTL;
 	uint16_t              Length;
-//	PUCHAR                Name;
+//	uint8_t               *Name;
 }dns_record_ptr, *pdns_record_ptr;
 
 /* Domain Name System/DNS Mail eXchange/MX Resource Records
@@ -1736,7 +1736,7 @@ typedef struct _dns_record_ptr_
 typedef struct _dns_record_mx_
 {
 	uint16_t              Preference;
-//	PUCHAR                MailExchangeName;
+//	uint8_t                MailExchangeName;
 }dns_record_mx, *pdns_record_mx;
 
 /* Domain Name System/DNS Test Strings/TXT Records
@@ -1766,7 +1766,7 @@ typedef struct _dns_record_txt_
 	uint32_t              TTL;
 	uint16_t              Length;
 	uint8_t               TXT_Length;
-//	PUCHAR                TXT;
+//	uint8_t               *TXT;
 }dns_record_txt, *pdns_record_txt;
 
 /* Domain Name System/DNS AAAA(IPv6) Records
@@ -1816,7 +1816,7 @@ typedef struct _dns_record_srv_
 	uint16_t             Priority;
 	uint16_t             Weight;
 	uint16_t             Port;
-//	PUCHAR               Target;
+//	uint8_t              *Target;
 }dns_record_srv, *pdns_record_srv;
 
 /* Extension Mechanisms for Domain Name System/DNS, EDNS Label/OPT Resource Records
@@ -1897,7 +1897,7 @@ typedef struct _edns_client_subnet_
 	uint16_t              Family;
 	uint8_t               Netmask_Source;
 	uint8_t               Netmask_Scope;
-//	PUCHAR                Address;
+//	uint8_t               *Address;
 }edns_client_subnet, *pedns_client_subnet;
 
 /* Domain Name System/DNS Delegation Signer/DS Resource Records
@@ -1934,7 +1934,7 @@ typedef struct _dns_record_ds_
 	uint16_t              KeyTag;
 	uint8_t               Algorithm;
 	uint8_t               Type;
-//	PUCHAR                Digest;
+//	uint8_t               *Digest;
 }dns_record_ds, *pdns_record_ds;
 
 /* Domain Name System/DNS Resource Record Digital Signature/RRSIG Records
@@ -1994,8 +1994,8 @@ typedef struct _dns_record_rrsig_
 	uint32_t              Expiration;
 	uint32_t              Inception;
 	uint16_t              KeyTag;
-//	PUCHAR                SignerName;
-//	PUCHAR                Signature;
+//	uint8_t               *SignerName;
+//	uint8_t               *Signature;
 }dns_record_rrsig, *pdns_record_rrsig;
 
 /* Domain Name System/DNS DNS Key/DNSKEY Resource Records
@@ -2038,7 +2038,7 @@ typedef struct _dns_record_dnskey_
 	};
 	uint8_t               Protocol;
 	uint8_t               Algorithm;
-//	PUCHAR                PublicKey;
+//	uint8_t               *PublicKey;
 }dns_record_dnskey, *pdns_record_dnskey;
 
 /* Domain Name System/DNS Next-Secure/NSEC Resource Records
@@ -2057,8 +2057,8 @@ typedef struct _dns_record_dnskey_
 
 typedef struct _dns_record_nsec_
 {
-//	PUCHAR                NextDomainName;
-//	PUCHAR                TypeBitMap;
+//	uint8_t                NextDomainName;
+//	uint8_t                TypeBitMap;
 }dns_record_nsec, *pdns_record_nsec;
 */
 
@@ -2099,10 +2099,10 @@ typedef struct _dns_record_nsec3_
 	};
 	uint16_t              Iterations;
 	uint8_t               SaltLength;
-//	PUCHAR                Salt;
+//	uint8_t               *Salt;
 //	uint8_t               HashLength;
-//	PUCHAR                NextHashedOwnerName;
-//	PUCHAR                TypeBitMap;
+//	uint8_t               *NextHashedOwnerName;
+//	uint8_t               *TypeBitMap;
 }dns_record_nsec3, *pdns_record_nsec3;
 
 /* Domain Name System/DNS NSEC version 3 Parameters/NSEC3PARAM Resource Records
@@ -2135,7 +2135,7 @@ typedef struct _dns_record_nsec3param_
 	};
 	uint16_t              Iterations;
 	uint8_t               SaltLength;
-//	PUCHAR                Salt;
+//	uint8_t               *Salt;
 }dns_record_nsec3param, *pdns_record_nsec3param;
 
 /* Domain Name System/DNS Certification Authority Authorization/CAA Resource Records
@@ -2169,8 +2169,8 @@ typedef struct _dns_record_caa_
 		}FlagsBits;
 	};
 	uint8_t               Length;
-//	PUCHAR                Tag;
-//	PUCHAR                Value;
+//	uint8_t               *Tag;
+//	uint8_t               *Value;
 }dns_record_caa, *pdns_record_caa;
 
 
@@ -2344,9 +2344,9 @@ typedef struct _socks_client_user_authentication_
 {
 	uint8_t               Version;
 	uint8_t               UserName_Length;
-	PUCHAR                UserName;
+	uint8_t               *UserName;
 	uint8_t               Password_Length;
-	PUCHAR                Password;
+	uint8_t               *Password;
 }socks_client_user_authentication, *psocks_client_user_authentication;
 */
 
@@ -2427,7 +2427,7 @@ typedef struct _socks5_client_command_request_
 	uint8_t               Command;
 	uint8_t               Reserved;
 	uint8_t               Address_Type;
-//	PUCHAR                Remote_Address;
+//	uint8_t               *Remote_Address;
 //	uint16_t              Remote_Port;
 }socks5_client_command_request, *psocks5_client_command_request;
 
@@ -2450,7 +2450,7 @@ typedef struct _socks5_server_command_reply_
 	uint8_t               Reply;
 	uint8_t               Reserved;
 	uint8_t               Bind_Address_Type;
-//	PUCHAR                Bind_Address;
+//	uint8_t               *Bind_Address;
 //	uint16_t              Bind_Port;
 }socks5_server_command_reply, *psocks5_server_command_reply;
 
@@ -2472,6 +2472,6 @@ typedef struct _socks_udp_relay_request_
 	uint16_t              Reserved;
 	uint8_t               FragmentNumber;
 	uint8_t               Address_Type;
-//	PUCHAR                Remote_Address;
+//	uint8_t               *Remote_Address;
 //	uint16_t              Remote_Port;
 }socks_udp_relay_request, *psocks_udp_relay_request;

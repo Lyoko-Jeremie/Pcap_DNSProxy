@@ -25,38 +25,38 @@ extern GLOBAL_STATUS GlobalRunningStatus;
 
 //Functions
 SSIZE_T __fastcall SOCKSSocketSelecting(
-	SYSTEM_SOCKET Socket, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	const char *SendBuffer, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize, 
-	const size_t MinLen);
+	_In_ SYSTEM_SOCKET Socket, 
+	_In_ fd_set *ReadFDS, 
+	_In_ fd_set *WriteFDS, 
+	_In_ timeval *Timeout, 
+	_In_opt_ const char *SendBuffer, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize, 
+	_In_ const size_t MinLen);
 bool __fastcall SOCKSSelectionExchange(
-	SOCKET_DATA *SOCKSSocketData, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	PSTR SendBuffer, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize);
+	_In_ SOCKET_DATA *SOCKSSocketData, 
+	_In_ fd_set *ReadFDS, 
+	_In_ fd_set *WriteFDS, 
+	_In_ timeval *Timeout, 
+	_Inout_ char *SendBuffer, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize);
 bool __fastcall SOCKSAuthenticationUsernamePassword(
-	SYSTEM_SOCKET Socket, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	PSTR SendBuffer, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize);
+	_In_ SYSTEM_SOCKET Socket, 
+	_In_ fd_set *ReadFDS, 
+	_In_ fd_set *WriteFDS, 
+	_In_ timeval *Timeout, 
+	_Inout_ char *SendBuffer, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize);
 bool __fastcall SOCKSClientCommandRequest(
-	const uint16_t Protocol, 
-	SYSTEM_SOCKET Socket, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	PSTR SendBuffer, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize, 
-	PSOCKET_DATA UDP_ASSOCIATE_TCP_Connecting_Address);
+	_In_ const uint16_t Protocol, 
+	_In_ SYSTEM_SOCKET Socket, 
+	_In_ fd_set *ReadFDS, 
+	_In_ fd_set *WriteFDS, 
+	_In_ timeval *Timeout, 
+	_Inout_ char *SendBuffer, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize, 
+	_In_opt_ SOCKET_DATA *UDP_ASSOCIATE_TCP_Connecting_Address);

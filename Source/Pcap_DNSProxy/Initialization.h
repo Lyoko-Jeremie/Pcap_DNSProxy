@@ -40,6 +40,6 @@ std::mutex ErrorLogLock, CaptureLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], D
 
 //Functions
 void __fastcall ConfigurationTableSetting(
-	ConfigurationTable *ConfigurationParameter);
+	_Inout_ ConfigurationTable *ConfigurationParameter);
 void __fastcall GlobalStatusSetting(
-	GlobalStatus *GlobalRunningStatusParameter);
+	_Inout_ GlobalStatus *GlobalRunningStatusParameter);

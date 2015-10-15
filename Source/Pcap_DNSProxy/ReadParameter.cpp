@@ -21,8 +21,8 @@
 
 //Check parameter list and set default values
 bool __fastcall ParameterCheckAndSetting(
-	const bool IsFirstRead, 
-	const size_t FileIndex)
+	_In_ const bool IsFirstRead, 
+	_In_ const size_t FileIndex)
 {
 //Initialization
 	CONFIGURATION_TABLE *ParameterPTR = nullptr;
@@ -74,11 +74,14 @@ bool __fastcall ParameterCheckAndSetting(
 			delete Parameter.ListenAddress_IPv4;
 			Parameter.ListenAddress_IPv4 = nullptr;
 		}
-		if (!Parameter.EDNS_ClientSubnet)
+		if (Parameter.LocalhostSubnet.IPv6->Address.ss_family == 0)
 		{
 			delete Parameter.LocalhostSubnet.IPv6;
-			delete Parameter.LocalhostSubnet.IPv4;
 			Parameter.LocalhostSubnet.IPv6 = nullptr;
+		}
+		if (Parameter.LocalhostSubnet.IPv4->Address.ss_family == 0)
+		{
+			delete Parameter.LocalhostSubnet.IPv4;
 			Parameter.LocalhostSubnet.IPv4 = nullptr;
 		}
 		if (!Parameter.DNSTarget.IPv6_Multi->empty())
@@ -232,7 +235,7 @@ bool __fastcall ParameterCheckAndSetting(
 #endif
 
 //SOCKS check
-	if (Parameter.SOCKS)
+	if (Parameter.SOCKS_Proxy)
 	{
 		if (IsFirstRead)
 		{
@@ -307,7 +310,7 @@ bool __fastcall ParameterCheckAndSetting(
 	//Direct Request mode
 		ParameterPTR->DirectRequest == DIRECT_REQUEST_MODE_NONE && 
 	//SOCKS request mode
-		!Parameter.SOCKS
+		!Parameter.SOCKS_Proxy
 	//DNSCurve request mode
 	#if defined(ENABLE_LIBSODIUM)
 		&& !Parameter.DNSCurve
@@ -785,7 +788,7 @@ bool __fastcall ParameterCheckAndSetting(
 	//EDNS Client Subnet
 		if (!Parameter.EDNS_Label)
 		{
-			if (Parameter.EDNS_ClientSubnet)
+			if (Parameter.EDNS_ClientSubnet_Relay)
 			{
 				PrintError(LOG_MESSAGE_NOTICE, L"EDNS Client Subnet require EDNS Label", 0, nullptr, 0);
 				Parameter.EDNS_Label = true;
@@ -895,7 +898,7 @@ bool __fastcall ParameterCheckAndSetting(
 
 //Convert service name to port
 uint16_t __fastcall ServiceNameToHex(
-	const char *OriginalBuffer)
+	_In_ const char *OriginalBuffer)
 {
 	std::string Buffer(OriginalBuffer);
 	CaseConvert(true, Buffer);
@@ -1086,7 +1089,7 @@ uint16_t __fastcall ServiceNameToHex(
 
 //Convert DNS type name to hex
 uint16_t __fastcall DNSTypeNameToHex(
-	const char *OriginalBuffer)
+	_In_ const char *OriginalBuffer)
 {
 	std::string Buffer(OriginalBuffer);
 	CaseConvert(true, Buffer);
@@ -1265,11 +1268,11 @@ uint16_t __fastcall DNSTypeNameToHex(
 
 //Read parameter data from files
 bool __fastcall ReadParameterData(
-	std::string Data, 
-	const size_t FileIndex, 
-	const bool IsFirstRead, 
-	const size_t Line, 
-	bool &IsLabelComments)
+	_In_ std::string Data, 
+	_In_ const size_t FileIndex, 
+	_In_ const bool IsFirstRead, 
+	_In_ const size_t Line, 
+	_Out_opt_ bool &IsLabelComments)
 {
 //Delete delete spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs) and check minimum length of ipfilter items.
 //Delete comments(Number Sign/NS and double slashs) and check minimum length of configuration items.
@@ -1352,7 +1355,7 @@ bool __fastcall ReadParameterData(
 				std::shared_ptr<char> Target(new char[ADDR_STRING_MAXSIZE]());
 				memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv4DNSAddress="), Data.length() - strlen("IPv4DNSAddress="));
-				if (!AddressStringToBinary(Target.get(), &Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr, AF_INET, Result))
+				if (!AddressStringToBinary(Target.get(), AF_INET, &Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr, Result))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"IPv4 address format error", Result, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -1374,7 +1377,7 @@ bool __fastcall ReadParameterData(
 				std::shared_ptr<char> Target(new char[ADDR_STRING_MAXSIZE]());
 				memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv4LocalDNSAddress="), Data.length() - strlen("IPv4LocalDNSAddress="));
-				if (!AddressStringToBinary(Target.get(), &Parameter.DNSTarget.Local_IPv4.IPv4.sin_addr, AF_INET, Result))
+				if (!AddressStringToBinary(Target.get(), AF_INET, &Parameter.DNSTarget.Local_IPv4.IPv4.sin_addr, Result))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"IPv4 address format error", Result, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -1396,7 +1399,7 @@ bool __fastcall ReadParameterData(
 				std::shared_ptr<char> Target(new char[ADDR_STRING_MAXSIZE]());
 				memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv6DNSAddress="), Data.length() - strlen("IPv6DNSAddress="));
-				if (!AddressStringToBinary(Target.get(), &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, AF_INET6, Result))
+				if (!AddressStringToBinary(Target.get(), AF_INET6, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, Result))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"IPv6 address format error", Result, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -1418,7 +1421,7 @@ bool __fastcall ReadParameterData(
 				std::shared_ptr<char> Target(new char[ADDR_STRING_MAXSIZE]());
 				memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv6LocalDNSAddress="), Data.length() - strlen("IPv6LocalDNSAddress="));
-				if (!AddressStringToBinary(Target.get(), &Parameter.DNSTarget.Local_IPv6.IPv6.sin6_addr, AF_INET6, Result))
+				if (!AddressStringToBinary(Target.get(), AF_INET6, &Parameter.DNSTarget.Local_IPv6.IPv6.sin6_addr, Result))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"IPv6 address format error", Result, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -1869,63 +1872,63 @@ bool __fastcall ReadParameterData(
 	else if (IsFirstRead && Data.find("IPv4ListenAddress=") == 0 && Data.length() > strlen("IPv4ListenAddress="))
 	{
 		std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
-		if (!ReadMultipleAddresses(Data, strlen("IPv4ListenAddress="), *SockAddr, Parameter.ListenAddress_IPv4, AF_INET, true, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv4ListenAddress="), AF_INET, true, *SockAddr, Parameter.ListenAddress_IPv4, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv4EDNSClientSubnetAddress=") == 0 && Data.length() > strlen("IPv4EDNSClientSubnetAddress="))
 	{
-		if (!ReadAddressPrefixBlock(Data, strlen("IPv4EDNSClientSubnetAddress="), FileIndex, Line))
+		if (!ReadAddressPrefixBlock(Data, strlen("IPv4EDNSClientSubnetAddress="), AF_INET, Parameter.LocalhostSubnet.IPv4, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv4DNSAddress=") == 0 && Data.length() > strlen("IPv4DNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("IPv4DNSAddress="), Parameter.DNSTarget.IPv4.AddressData.Storage, nullptr, AF_INET, true, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv4DNSAddress="), AF_INET, true, Parameter.DNSTarget.IPv4.AddressData.Storage, nullptr, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv4AlternateDNSAddress=") == 0 && Data.length() > strlen("IPv4AlternateDNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("IPv4AlternateDNSAddress="), Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage, nullptr, AF_INET, true, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv4AlternateDNSAddress="), AF_INET, true, Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage, nullptr, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv4LocalDNSAddress=") == 0 && Data.length() > strlen("IPv4LocalDNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("IPv4LocalDNSAddress="), Parameter.DNSTarget.Local_IPv4.Storage, nullptr, AF_INET, false, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv4LocalDNSAddress="), AF_INET, false, Parameter.DNSTarget.Local_IPv4.Storage, nullptr, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv4LocalAlternateDNSAddress=") == 0 && Data.length() > strlen("IPv4LocalAlternateDNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("IPv4LocalAlternateDNSAddress="), Parameter.DNSTarget.Alternate_Local_IPv4.Storage, nullptr, AF_INET, false, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv4LocalAlternateDNSAddress="), AF_INET, false, Parameter.DNSTarget.Alternate_Local_IPv4.Storage, nullptr, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv6ListenAddress=") == 0 && Data.length() > strlen("IPv6ListenAddress="))
 	{
 		std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
-		if (!ReadMultipleAddresses(Data, strlen("IPv4ListenAddress="), *SockAddr, Parameter.ListenAddress_IPv6, AF_INET6, true, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv4ListenAddress="), AF_INET6, true, *SockAddr, Parameter.ListenAddress_IPv6, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv6EDNSClientSubnetAddress=") == 0 && Data.length() > strlen("IPv6EDNSClientSubnetAddress="))
 	{
-		if (!ReadAddressPrefixBlock(Data, strlen("IPv6EDNSClientSubnetAddress="), FileIndex, Line))
+		if (!ReadAddressPrefixBlock(Data, strlen("IPv6EDNSClientSubnetAddress="), AF_INET6, Parameter.LocalhostSubnet.IPv6, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv6DNSAddress=") == 0 && Data.length() > strlen("IPv6DNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("IPv6DNSAddress="), Parameter.DNSTarget.IPv6.AddressData.Storage, nullptr, AF_INET6, true, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv6DNSAddress="), AF_INET6, true, Parameter.DNSTarget.IPv6.AddressData.Storage, nullptr, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv6AlternateDNSAddress=") == 0 && Data.length() > strlen("IPv6AlternateDNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("IPv6AlternateDNSAddress="), Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage, nullptr, AF_INET6, true, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv6AlternateDNSAddress="), AF_INET6, true, Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage, nullptr, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv6LocalDNSAddress=") == 0 && Data.length() > strlen("IPv6LocalDNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("IPv6LocalDNSAddress="), Parameter.DNSTarget.Local_IPv6.Storage, nullptr, AF_INET6, false, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv6LocalDNSAddress="), AF_INET6, false, Parameter.DNSTarget.Local_IPv6.Storage, nullptr, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("IPv6LocalAlternateDNSAddress=") == 0 && Data.length() > strlen("IPv6LocalAlternateDNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("IPv6LocalAlternateDNSAddress="), Parameter.DNSTarget.Alternate_Local_IPv6.Storage, nullptr, AF_INET6, false, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("IPv6LocalAlternateDNSAddress="), AF_INET6, false, Parameter.DNSTarget.Alternate_Local_IPv6.Storage, nullptr, FileIndex, Line))
 			return false;
 	}
 
@@ -1972,22 +1975,22 @@ bool __fastcall ReadParameterData(
 #if defined(ENABLE_PCAP)
 	else if (Data.find("IPv4TTL=") == 0 && Data.length() > strlen("IPv4TTL="))
 	{
-		if (!ReadHopLimitData(Data, strlen("IPv4TTL="), ParameterPTR->DNSTarget.IPv4.HopLimitData.TTL, AF_INET, FileIndex, Line))
+		if (!ReadHopLimitData(Data, strlen("IPv4TTL="), AF_INET, ParameterPTR->DNSTarget.IPv4.HopLimitData.TTL, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("IPv6HopLimits=") == 0 && Data.length() > strlen("IPv6HopLimits="))
 	{
-		if (!ReadHopLimitData(Data, strlen("IPv6HopLimits="), ParameterPTR->DNSTarget.IPv6.HopLimitData.HopLimit, AF_INET6, FileIndex, Line))
+		if (!ReadHopLimitData(Data, strlen("IPv6HopLimits="), AF_INET6, ParameterPTR->DNSTarget.IPv6.HopLimitData.HopLimit, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("IPv4AlternateTTL=") == 0 && Data.length() > strlen("IPv4AlternateTTL="))
 	{
-		if (!ReadHopLimitData(Data, strlen("IPv4AlternateTTL="), ParameterPTR->DNSTarget.Alternate_IPv4.HopLimitData.TTL, AF_INET, FileIndex, Line))
+		if (!ReadHopLimitData(Data, strlen("IPv4AlternateTTL="), AF_INET, ParameterPTR->DNSTarget.Alternate_IPv4.HopLimitData.TTL, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("IPv6AlternateHopLimits=") == 0 && Data.length() > strlen("IPv6AlternateHopLimits="))
 	{
-		if (!ReadHopLimitData(Data, strlen("IPv6AlternateHopLimits="), ParameterPTR->DNSTarget.Alternate_IPv6.HopLimitData.HopLimit, AF_INET6, FileIndex, Line))
+		if (!ReadHopLimitData(Data, strlen("IPv6AlternateHopLimits="), AF_INET6, ParameterPTR->DNSTarget.Alternate_IPv6.HopLimitData.HopLimit, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("HopLimitsFluctuation=") == 0 && Data.length() > strlen("HopLimitsFluctuation="))
@@ -2168,9 +2171,9 @@ bool __fastcall ReadParameterData(
 	{
 		Parameter.EDNS_Label = true;
 	}
-	else if (IsFirstRead && Data.find("EDNSClientSubnet=1") == 0)
+	else if (IsFirstRead && Data.find("EDNSClientSubnetRelay=1") == 0 || Data.find("EDNSClientSubnet=1") == 0)
 	{
-		Parameter.EDNS_ClientSubnet = true;
+		Parameter.EDNS_ClientSubnet_Relay = true;
 	}
 	else if (IsFirstRead && Data.find("DNSSECRequest=1") == 0)
 	{
@@ -2301,7 +2304,7 @@ bool __fastcall ReadParameterData(
 //[Proxy] block
 	else if (IsFirstRead && Data.find("SOCKSProxy=1") == 0)
 	{
-		Parameter.SOCKS = true;
+		Parameter.SOCKS_Proxy = true;
 	}
 	else if (IsFirstRead && Data.find("SOCKSVersion=") == 0 && Data.length() > strlen("SOCKSVersion="))
 	{
@@ -2386,12 +2389,12 @@ bool __fastcall ReadParameterData(
 	}
 	else if (IsFirstRead && Data.find("SOCKSIPv4Address=") == 0 && Data.length() > strlen("SOCKSIPv4Address="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("SOCKSIPv4Address="), Parameter.SOCKS_Address_IPv4.Storage, nullptr, AF_INET, false, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("SOCKSIPv4Address="), AF_INET, false, Parameter.SOCKS_Address_IPv4.Storage, nullptr, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("SOCKSIPv6Address=") == 0 && Data.length() > strlen("SOCKSIPv6Address="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("SOCKSIPv6Address="), Parameter.SOCKS_Address_IPv6.Storage, nullptr, AF_INET6, false, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("SOCKSIPv6Address="), AF_INET6, false, Parameter.SOCKS_Address_IPv6.Storage, nullptr, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("SOCKSTargetServer=") == 0 && Data.length() > strlen("SOCKSTargetServer="))
@@ -2520,22 +2523,22 @@ bool __fastcall ReadParameterData(
 //[DNSCurve Addresses] block
 	else if (IsFirstRead && Data.find("DNSCurveIPv4DNSAddress=") == 0 && Data.length() > strlen("DNSCurveIPv4DNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("DNSCurveIPv4DNSAddress="), DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage, nullptr, AF_INET, false, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("DNSCurveIPv4DNSAddress="), AF_INET, false, DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage, nullptr, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("DNSCurveIPv4AlternateDNSAddress=") == 0 && Data.length() > strlen("DNSCurveIPv4AlternateDNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("DNSCurveIPv4AlternateDNSAddress="), DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage, nullptr, AF_INET, false, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("DNSCurveIPv4AlternateDNSAddress="), AF_INET, false, DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage, nullptr, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("DNSCurveIPv6DNSAddress=") == 0 && Data.length() > strlen("DNSCurveIPv6DNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("DNSCurveIPv6DNSAddress="), DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage, nullptr, AF_INET6, false, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("DNSCurveIPv6DNSAddress="), AF_INET6, false, DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage, nullptr, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("DNSCurveIPv6AlternateDNSAddress=") == 0 && Data.length() > strlen("DNSCurveIPv6AlternateDNSAddress="))
 	{
-		if (!ReadMultipleAddresses(Data, strlen("DNSCurveIPv6AlternateDNSAddress="), DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage, nullptr, AF_INET6, false, FileIndex, Line))
+		if (!ReadMultipleAddresses(Data, strlen("DNSCurveIPv6AlternateDNSAddress="), AF_INET6, false, DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage, nullptr, FileIndex, Line))
 			return false;
 	}
 	else if (IsFirstRead && Data.find("DNSCurveIPv4ProviderName=") == 0 && Data.length() > strlen("DNSCurveIPv4ProviderName="))
@@ -2660,12 +2663,12 @@ bool __fastcall ReadParameterData(
 //Read file names from data
 #if defined(PLATFORM_WIN)
 bool __fastcall ReadPathAndFileName(
-	std::string Data, 
-	const size_t DataOffset, 
-	const bool Path, 
-	std::vector<std::wstring> *ListData, 
-	const size_t FileIndex, 
-	const size_t Line)
+	_In_ std::string Data, 
+	_In_ const size_t DataOffset, 
+	_In_ const bool Path, 
+	_Out_ std::vector<std::wstring> *ListData, 
+	_In_ const size_t FileIndex, 
+	_In_ const size_t Line)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 bool ReadPathAndFileName(
 	std::string Data, 
@@ -2676,11 +2679,11 @@ bool ReadPathAndFileName(
 	const size_t FileIndex, const size_t Line)
 #endif
 {
-
 //Initialization
 	std::vector<std::string> InnerListData;
 	std::wstring wNameString;
 	GetParameterListData(InnerListData, Data, DataOffset, Data.length());
+	ListData->clear();
 
 //Read file path.
 	if (Path)
@@ -2698,8 +2701,7 @@ bool ReadPathAndFileName(
 				StringIter.append("\\");
 
 		//Convert to wide string.
-			wNameString.clear();
-			if (!MBSToWCSString(wNameString, StringIter.c_str(), StringIter.length()))
+			if (!MBSToWCSString(StringIter.c_str(), StringIter.length(), wNameString))
 			{
 				PrintError(LOG_ERROR_PARAMETER, L"Read file path error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -2756,8 +2758,7 @@ bool ReadPathAndFileName(
 		#endif
 
 		//Convert to wide string.
-			wNameString.clear();
-			if (!MBSToWCSString(wNameString, StringIter.c_str(), StringIter.length()))
+			if (!MBSToWCSString(StringIter.c_str(), StringIter.length(), wNameString))
 			{
 				PrintError(LOG_ERROR_PARAMETER, L"Read file path error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -2811,14 +2812,14 @@ bool ReadPathAndFileName(
 
 //Read multiple addresses from data
 bool __fastcall ReadMultipleAddresses(
-	std::string Data, 
-	const size_t DataOffset, 
-	sockaddr_storage &SockAddr, 
-	std::vector<sockaddr_storage> *SockAddrList, 
-	const uint16_t Protocol, 
-	const bool IsMultiAddresses, 
-	const size_t FileIndex, 
-	const size_t Line)
+	_In_ std::string Data, 
+	_In_ const size_t DataOffset, 
+	_In_ const uint16_t Protocol, 
+	_In_ const bool IsMultiAddresses, 
+	_Inout_ sockaddr_storage &SockAddr, 
+	_Inout_opt_ std::vector<sockaddr_storage> *SockAddrList, 
+	_In_ const size_t FileIndex, 
+	_In_ const size_t Line)
 {
 //Initialization
 	std::shared_ptr<DNS_SERVER_DATA> DNSServerDataTemp(new DNS_SERVER_DATA());
@@ -2848,7 +2849,7 @@ bool __fastcall ReadMultipleAddresses(
 		//Convert IPv6 address.
 			memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, StringIter.c_str() + strlen("["), StringIter.find(ASCII_BRACKETS_TRAIL) - strlen("["));
-			if (!AddressStringToBinary(Target.get(), &DNSServerDataTemp->AddressData.IPv6.sin6_addr, AF_INET6, Result))
+			if (!AddressStringToBinary(Target.get(), AF_INET6, &DNSServerDataTemp->AddressData.IPv6.sin6_addr, Result))
 			{
 				PrintError(LOG_ERROR_PARAMETER, L"IPv6 address format error", Result, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -2910,7 +2911,7 @@ bool __fastcall ReadMultipleAddresses(
 		//Convert IPv4 address.
 			memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_COLON));
-			if (!AddressStringToBinary(Target.get(), &DNSServerDataTemp->AddressData.IPv4.sin_addr, AF_INET, Result))
+			if (!AddressStringToBinary(Target.get(), AF_INET, &DNSServerDataTemp->AddressData.IPv4.sin_addr, Result))
 			{
 				PrintError(LOG_ERROR_PARAMETER, L"IPv4 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -2959,11 +2960,11 @@ bool __fastcall ReadMultipleAddresses(
 
 //Read address or domain of SOCKS
 bool __fastcall ReadSOCKSAddressAndDomain(
-	std::string Data, 
-	const size_t DataOffset, 
-	CONFIGURATION_TABLE *ParameterPTR, 
-	const size_t FileIndex, 
-	const size_t Line)
+	_In_ std::string Data, 
+	_In_ const size_t DataOffset, 
+	_Inout_ CONFIGURATION_TABLE *ParameterPTR, 
+	_In_ const size_t FileIndex, 
+	_In_ const size_t Line)
 {
 //Data check
 	if (Data.find(ASCII_COLON) == std::string::npos)
@@ -2989,7 +2990,7 @@ bool __fastcall ReadSOCKSAddressAndDomain(
 		else {
 		//Convert IPv6 address.
 			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + DataOffset + strlen("["), Data.find(ASCII_BRACKETS_TRAIL) - (DataOffset + strlen("[")));
-			if (!AddressStringToBinary(Target.get(), &ParameterPTR->SOCKS_TargetServer.IPv6.sin6_addr, AF_INET6, Result))
+			if (!AddressStringToBinary(Target.get(), AF_INET6, &ParameterPTR->SOCKS_TargetServer.IPv6.sin6_addr, Result))
 			{
 				PrintError(LOG_ERROR_PARAMETER, L"IPv6 address format error", Result, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -3067,7 +3068,7 @@ bool __fastcall ReadSOCKSAddressAndDomain(
 
 		//Convert IPv4 address.
 			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + DataOffset, Data.find(ASCII_COLON) - DataOffset);
-			if (!AddressStringToBinary(Target.get(), &ParameterPTR->SOCKS_TargetServer.IPv4.sin_addr, AF_INET, Result))
+			if (!AddressStringToBinary(Target.get(), AF_INET, &ParameterPTR->SOCKS_TargetServer.IPv4.sin_addr, Result))
 			{
 				PrintError(LOG_ERROR_PARAMETER, L"IPv4 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -3098,13 +3099,14 @@ bool __fastcall ReadSOCKSAddressAndDomain(
 //Read TTL or HopLimit from data
 #if defined(ENABLE_PCAP)
 bool __fastcall ReadHopLimitData(
-	std::string Data, 
-	const size_t DataOffset, 
-	uint8_t &HopLimit, 
-	const uint16_t Protocol, 
-	const size_t FileIndex, 
-	const size_t Line)
+	_In_ std::string Data, 
+	_In_ const size_t DataOffset, 
+	_In_ const uint16_t Protocol, 
+	_Out_ uint8_t &HopLimit, 
+	_In_ const size_t FileIndex, 
+	_In_ const size_t Line)
 {
+	HopLimit = 0;
 	if (Data.length() > DataOffset && Data.length() < DataOffset + ADDR_STRING_MAXSIZE)
 	{
 		std::vector<std::string> ListData;
@@ -3170,12 +3172,13 @@ bool __fastcall ReadHopLimitData(
 //Read Provider Name of DNSCurve server
 #if defined(ENABLE_LIBSODIUM)
 bool __fastcall ReadDNSCurveProviderName(
-	std::string Data, 
-	const size_t DataOffset, 
-	PSTR ProviderNameData, 
-	const size_t FileIndex, 
-	const size_t Line)
+	_In_ std::string Data, 
+	_In_ const size_t DataOffset, 
+	_Out_ char *ProviderNameData, 
+	_In_ const size_t FileIndex, 
+	_In_ const size_t Line)
 {
+	memset(ProviderNameData, 0, DOMAIN_MAXSIZE);
 	if (Data.length() > DataOffset + DOMAIN_MINSIZE && Data.length() < DataOffset + DOMAIN_DATA_MAXSIZE)
 	{
 		for (SSIZE_T Result = DataOffset;Result < (SSIZE_T)(Data.length() - DataOffset);++Result)
@@ -3204,12 +3207,14 @@ bool __fastcall ReadDNSCurveProviderName(
 
 //Read DNSCurve secret keys, public keys and fingerprints
 bool __fastcall ReadDNSCurveKey(
-	std::string Data, 
-	const size_t DataOffset, 
-	PUINT8 KeyData, 
-	const size_t FileIndex, 
-	const size_t Line)
+	_In_ std::string Data, 
+	_In_ const size_t DataOffset, 
+	_Out_ uint8_t *KeyData, 
+	_In_ const size_t FileIndex, 
+	_In_ const size_t Line)
 {
+	memset(KeyData, 0, crypto_box_SECRETKEYBYTES);
+
 //Initialization
 	std::shared_ptr<char> Target(new char[ADDR_STRING_MAXSIZE]());
 	memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
@@ -3219,7 +3224,7 @@ bool __fastcall ReadDNSCurveKey(
 //Convert hex format to binary.
 	if (Data.length() > DataOffset + crypto_box_PUBLICKEYBYTES * 2U && Data.length() < DataOffset + crypto_box_PUBLICKEYBYTES * 3U)
 	{
-		SSIZE_T Result = sodium_hex2bin((PUCHAR)Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + DataOffset, Data.length() - DataOffset, ": ", &ResultLength, &ResultPointer);
+		SSIZE_T Result = sodium_hex2bin((uint8_t *)Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + DataOffset, Data.length() - DataOffset, ": ", &ResultLength, &ResultPointer);
 		if (Result == 0 && ResultLength == crypto_box_PUBLICKEYBYTES && ResultPointer != nullptr)
 		{
 			memcpy_s(KeyData, crypto_box_SECRETKEYBYTES, Target.get(), crypto_box_PUBLICKEYBYTES);
@@ -3239,12 +3244,14 @@ bool __fastcall ReadDNSCurveKey(
 
 //Read DNSCurve magic number
 bool __fastcall ReadDNSCurveMagicNumber(
-	std::string Data, 
-	const size_t DataOffset, 
-	PSTR MagicNumber, 
-	const size_t FileIndex, 
-	const size_t Line)
+	_In_ std::string Data, 
+	_In_ const size_t DataOffset, 
+	_Out_ char *MagicNumber, 
+	_In_ const size_t FileIndex, 
+	_In_ const size_t Line)
 {
+	memset(MagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+
 //Hex format
 	if (Data.find("0x") == DataOffset && Data.length() == DataOffset + DNSCURVE_MAGIC_QUERY_HEX_LEN + strlen("0x"))
 	{
@@ -3253,7 +3260,7 @@ bool __fastcall ReadDNSCurveMagicNumber(
 		size_t ResultLength = 0;
 
 	//Convert hex format to binary.
-		SSIZE_T Result = sodium_hex2bin((PUCHAR)MagicNumber, DNSCURVE_MAGIC_QUERY_LEN, Data.c_str() + DataOffset + strlen("0x"), DNSCURVE_MAGIC_QUERY_HEX_LEN, nullptr, &ResultLength, &ResultPointer);
+		SSIZE_T Result = sodium_hex2bin((uint8_t *)MagicNumber, DNSCURVE_MAGIC_QUERY_LEN, Data.c_str() + DataOffset + strlen("0x"), DNSCURVE_MAGIC_QUERY_HEX_LEN, nullptr, &ResultLength, &ResultPointer);
 		if (Result != EXIT_SUCCESS || ResultLength != DNSCURVE_MAGIC_QUERY_LEN || ResultPointer == nullptr)
 		{
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);

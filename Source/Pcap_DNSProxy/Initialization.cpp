@@ -99,7 +99,7 @@ ConfigurationTable::ConfigurationTable(
 
 //ConfigurationTable class constructor settings
 void __fastcall ConfigurationTableSetting(
-	ConfigurationTable *ConfigurationParameter)
+	_Inout_ ConfigurationTable *ConfigurationParameter)
 {
 //[Data] block
 #if defined(ENABLE_PCAP)
@@ -138,14 +138,14 @@ void __fastcall ConfigurationTableSetting(
 	ConfigurationParameter->AlternateResetTime = DEFAULT_ALTERNATE_RESET_TIME * SECOND_TO_MILLISECOND;
 #if defined(ENABLE_PCAP)
 	#if defined(PLATFORM_MACX)
-		ConfigurationParameter->ICMP_ID = htons(*(PUINT16)pthread_self());
+		ConfigurationParameter->ICMP_ID = htons(*(uint16_t *)pthread_self());
 	#else
 		ConfigurationParameter->ICMP_ID = htons((uint16_t)GetCurrentProcessId()); //Default ICMP ID is current process ID.
 	#endif
 		ConfigurationParameter->ICMP_Sequence = htons(DEFAULT_SEQUENCE);
 		ConfigurationParameter->DomainTest_Speed = DEFAULT_DOMAINTEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
 	#if defined(PLATFORM_MACX)
-		ConfigurationParameter->DomainTest_ID = htons(*(PUINT16)pthread_self());
+		ConfigurationParameter->DomainTest_ID = htons(*(uint16_t *)pthread_self());
 	#else
 		ConfigurationParameter->DomainTest_ID = htons((uint16_t)GetCurrentProcessId()); //Default DNS ID is current process ID.
 	#endif
@@ -246,8 +246,6 @@ void ConfigurationTable::SetToMonitorItem(
 //[Addresses] block
 	ListenAddress_IPv6 = nullptr;
 	ListenAddress_IPv4 = nullptr;
-	LocalhostSubnet.IPv6 = nullptr;
-	LocalhostSubnet.IPv4 = nullptr;
 	DNSTarget.IPv6_Multi = nullptr;
 	DNSTarget.IPv4_Multi = nullptr;
 //[Data] block
@@ -266,7 +264,7 @@ void ConfigurationTable::SetToMonitorItem(
 
 //ConfigurationTable class MonitorItemToUsing function
 void ConfigurationTable::MonitorItemToUsing(
-	ConfigurationTable *ConfigurationParameter)
+	_Out_ ConfigurationTable *ConfigurationParameter)
 {
 //[Base] block
 	ConfigurationParameter->Version = Version;
@@ -508,7 +506,7 @@ GlobalStatus::GlobalStatus(
 
 //GlobalStatus class constructor settings
 void __fastcall GlobalStatusSetting(
-	GlobalStatus *GlobalRunningStatusParameter)
+	_Inout_ GlobalStatus *GlobalRunningStatusParameter)
 {
 #if defined(PLATFORM_LINUX)
 	GlobalRunningStatusParameter->Daemon = true;
@@ -840,7 +838,7 @@ void DNSCurveConfigurationTable::SetToMonitorItem(
 
 //DNSCurveConfigurationTable class MonitorItemToUsing function
 void DNSCurveConfigurationTable::MonitorItemToUsing(
-	DNSCurveConfigurationTable *DNSCurveConfigurationParameter)
+	_Out_ DNSCurveConfigurationTable *DNSCurveConfigurationParameter)
 {
 //[DNSCurve] block
 	DNSCurveConfigurationParameter->DNSCurve_SocketTimeout_Reliable = DNSCurve_SocketTimeout_Reliable;

@@ -30,21 +30,21 @@ extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM];
 
 //Functions
 bool __fastcall UDPMonitor(
-	const SOCKET_DATA LocalSocketData);
+	_In_ const SOCKET_DATA LocalSocketData);
 bool __fastcall TCPMonitor(
-	const SOCKET_DATA LocalSocketData);
+	_In_ const SOCKET_DATA LocalSocketData);
 bool __fastcall TCPReceiveProcess(
-	const SOCKET_DATA LocalSocketData);
+	_In_ const SOCKET_DATA LocalSocketData);
 void __fastcall AlternateServerMonitor(
 	void);
 #if defined(PLATFORM_WIN)
-PADDRINFOA __fastcall GetLocalAddressList(
-	const uint16_t Protocol, 
-	PSTR HostName);
+addrinfo * __fastcall GetLocalAddressList(
+	_In_ const uint16_t Protocol, 
+	_Out_ char *HostName);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 bool GetBestInterfaceAddress(
 	const uint16_t Protocol, 
 	const sockaddr_storage *OriginalSockAddr);
 #endif
 void __fastcall GetGatewayInformation(
-	const uint16_t Protocol);
+	_In_ const uint16_t Protocol);

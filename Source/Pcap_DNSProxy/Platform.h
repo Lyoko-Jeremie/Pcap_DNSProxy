@@ -377,6 +377,7 @@
 	#define SOCKET_ERROR             (-1)
 	#define INVALID_SOCKET           (-1)
 	#define MAX_PATH                 PATH_MAX
+	#define SD_RECV                  SHUT_RD
 	#define SD_SEND                  SHUT_WR
 	#define SD_BOTH                  SHUT_RDWR
 	#define WSAETIMEDOUT             ETIMEDOUT
@@ -391,6 +392,7 @@
 	typedef signed char              INT8, *PINT8;
 	typedef signed short             INT16, *PINT16;
 	typedef signed int               INT32, *PINT, *PINT32;
+	typedef signed long              LONG, WORD;
 	typedef signed long long         INT64, *PINT64;
 	typedef unsigned char            UCHAR, UINT8, *PUINT8, *PUCHAR;
 	typedef unsigned short           UINT16, *PUINT16;
@@ -399,12 +401,21 @@
 	typedef unsigned long long       ULONGLONG, UINT64, *PUINT64;
 	typedef ssize_t                  SSIZE_T;
 	typedef int                      SOCKET;
-	typedef addrinfo                 ADDRINFOA;
+	typedef addrinfo                 ADDRINFOA, *PADDRINFOA;
 	typedef wchar_t                  *PWSTR;
 	typedef sockaddr                 *PSOCKADDR;
 	typedef sockaddr_in              *PSOCKADDR_IN;
 	typedef sockaddr_in6             *PSOCKADDR_IN6;
-	typedef addrinfo                 *PADDRINFOA;
+
+//Microsoft source-code annotation language/SAL compatible
+	#define _In_
+	#define _Inout_
+	#define _Out_
+	#define _Outptr_
+	#define _In_opt_
+	#define _Inout_opt_
+	#define _Out_opt_
+	#define _Outptr_opt_
 
 //Function definitions(Part 1)
 	#define __fastcall

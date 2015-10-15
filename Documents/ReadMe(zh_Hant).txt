@@ -328,8 +328,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv4 Listen Address - IPv4 本地監聽位址：需要輸入一個帶埠格式的位址，留空為不啟用
     * 支援多個位址
     * 填入此值後 IPv4 協定的 Operation Mode 和 Listen Port 參數將被自動忽略
-  * IPv4 EDNS Client Subnet Address - IPv4 用戶端子網位址：需要輸入一個帶前置長度的本機公共網路位址，留空為不啟用
-    * 啟用本功能前需要啟用 EDNS Client Subnet 總開關，否則將直接忽略此參數
+  * IPv4 EDNS Client Subnet Address - IPv4 用戶端子網位址，輸入後將為所有請求添加此位址的 EDNS 子網資訊：需要輸入一個帶前置長度的本機公共網路位址，留空為不啟用
+    * 本功能要求啟用 EDNS Label 參數
+    * EDNS Client Subnet Relay 參數優先順序比此參數高，啟用後將優先添加 EDNS Client Subnet Relay 參數的 EDNS 子網位址
   * IPv4 DNS Address - IPv4 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用
     * 支援多個位址
     * 支援使用服務名稱代替埠號
@@ -345,8 +346,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv6 Listen Address - IPv6 本地監聽位址：需要輸入一個帶埠格式的位址，留空為不啟用
     * 支援多個位址
     * 填入此值後 IPv6 協定的 Operation Mode 和 Listen Port 參數將被自動忽略
-  * IPv6 EDNS Client Subnet Address - IPv6 用戶端子網位址：需要輸入一個帶前置長度的本機公共網路位址，留空為不啟用
-    * 啟用本功能前需要啟用 EDNS Client Subnet 總開關，否則將直接忽略此參數
+  * IPv6 EDNS Client Subnet Address - IPv6 用戶端子網位址，輸入後將為所有請求添加此位址的 EDNS 子網資訊：需要輸入一個帶前置長度的本機公共網路位址，留空為不啟用
+    * 本功能要求啟用 EDNS Label 參數
+    * EDNS Client Subnet Relay 參數優先順序比此參數高，啟用後將優先添加 EDNS Client Subnet Relay 參數的 EDNS 子網位址
   * IPv6 DNS Address - IPv6 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用
     * 支援多個位址
     * 支援使用服務名稱代替埠號
@@ -503,8 +505,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 可單獨使用其中一個，即只填一個數位，或填入多個，中間使用 + 號連接
     * 填入多個時，當實際需要使用隨機添加壓縮指標時將隨機使用其中的一種，每個請求都有可能不相同
   * EDNS Label - EDNS 標籤支援，開啟後將為所有請求添加 EDNS 標籤：開啟為 1 /關閉為 0
-  * EDNS Client Subnet - EDNS 用戶端子網支援，開啟後將為所有請求添加 EDNS 用戶端子網資訊：開啟為 1 /關閉為 0
+  * EDNS Client Subnet Relay - EDNS 用戶端子網轉發功能，開啟後將為來自非私有網路位址的所有請求添加其請求時所使用的位址的 EDNS 子網位址：開啟為 1 /關閉為 0
     * 本功能要求啟用 EDNS Label 參數
+    * 本參數優先順序比 IPv4/IPv6 EDNS Client Subnet Address 參數高，故需要添加 EDNS 子網位址時將優先添加本參數的位址
   * DNSSEC Request - DNSSEC 請求，開啟後將嘗試為所有請求添加 DNSSEC 請求：開啟為 1 /關閉為 0
     * 本功能要求啟用 EDNS Label 參數
     * 此功能不具備任何驗證 DNSSEC 記錄的能力，單獨開啟理論上並不能避免 DNS 投毒污染的問題

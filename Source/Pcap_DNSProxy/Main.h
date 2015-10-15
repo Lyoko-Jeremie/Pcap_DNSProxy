@@ -29,12 +29,12 @@ extern GLOBAL_STATUS GlobalRunningStatus;
 //Functions
 #if defined(PLATFORM_WIN)
 bool __fastcall ReadCommand(
-	int argc, 
-	wchar_t *argv[]);
+	_In_ int argc, 
+	_In_ wchar_t *argv[]);
 bool __fastcall FileNameInit(
-	const wchar_t *OriginalPath);
+	_In_ const wchar_t *OriginalPath);
 bool __fastcall FirewallTest(
-	const uint16_t Protocol);
+	_In_ const uint16_t Protocol);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 bool ReadCommand(
 	int argc, 

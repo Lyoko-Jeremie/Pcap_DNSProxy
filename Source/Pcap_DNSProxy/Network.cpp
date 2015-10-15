@@ -21,9 +21,9 @@
 
 //Socket option settings
 bool __fastcall SocketSetting(
-	const SYSTEM_SOCKET Socket, 
-	const size_t SettingType, 
-	void *DataPointer)
+	_In_ const SYSTEM_SOCKET Socket, 
+	_In_ const size_t SettingType, 
+	_In_opt_ void *DataPointer)
 {
 	switch (SettingType)
 	{
@@ -116,7 +116,7 @@ bool __fastcall SocketSetting(
 		case SOCKET_SETTING_NON_BLOCKING_MODE:
 		{
 		#if defined(PLATFORM_WIN)
-			ULONG SocketMode = 1U;
+			unsigned long SocketMode = 1U;
 			if (ioctlsocket(Socket, FIONBIO, &SocketMode) == SOCKET_ERROR)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			auto SocketMode = fcntl(Socket, F_GETFL, 0);
@@ -182,12 +182,12 @@ bool __fastcall SocketSetting(
 
 //Connect to server(TCP) or socket connecting(UDP)
 size_t __fastcall SocketConnecting(
-	const uint16_t Protocol, 
-	const SYSTEM_SOCKET Socket, 
-	const PSOCKADDR SockAddr, 
-	const socklen_t AddrLen, 
-	const char *OriginalSend, 
-	const size_t SendSize)
+	_In_ const uint16_t Protocol, 
+	_In_ const SYSTEM_SOCKET Socket, 
+	_In_ const PSOCKADDR SockAddr, 
+	_In_ const socklen_t AddrLen, 
+	_In_opt_ const char *OriginalSend, 
+	_In_ const size_t SendSize)
 {
 //TCP connecting
 	if (Protocol == IPPROTO_TCP)
@@ -247,14 +247,14 @@ size_t __fastcall SocketConnecting(
 
 //Non-blocking mode selecting
 SSIZE_T __fastcall SocketSelecting(
-	const uint16_t Protocol, 
-	std::vector<SOCKET_DATA> &SocketDataList, 
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize, 
-	const bool IsLocal, 
-	const bool NoCheck)
+	_In_ const uint16_t Protocol, 
+	_In_ std::vector<SOCKET_DATA> &SocketDataList, 
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_opt_ char *OriginalRecv, 
+	_In_ const size_t RecvSize, 
+	_In_ const bool IsLocal, 
+	_In_ const bool NoCheck)
 {
 //Initialization(Part 1)
 	std::vector<SOCKET_SELECTING_DATA> SocketSelectingList(SocketDataList.size());
@@ -365,7 +365,7 @@ SSIZE_T __fastcall SocketSelecting(
 			}
 			else if (MaxSocket == 0 && Index + 1U == SocketDataList.size())
 			{
-				return EXIT_FAILURE;
+				return WSAETIMEDOUT;
 			}
 		}
 
@@ -500,13 +500,13 @@ SSIZE_T __fastcall SocketSelecting(
 
 //Socket selecting result
 SSIZE_T __fastcall SelectingResult(
-	uint16_t Protocol, 
-	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingList, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize, 
-	const bool IsLocal, 
-	const bool NoCheck)
+	_In_ const uint16_t Protocol, 
+	_Inout_ std::vector<SOCKET_DATA> &SocketDataList, 
+	_Inout_ std::vector<SOCKET_SELECTING_DATA> &SocketSelectingList, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize, 
+	_In_ const bool IsLocal, 
+	_In_ const bool NoCheck)
 {
 	SSIZE_T RecvLen = 0;
 
@@ -518,7 +518,7 @@ SSIZE_T __fastcall SelectingResult(
 		//TCP header length check
 			if (Protocol == IPPROTO_TCP)
 			{
-				RecvLen = ntohs(((PUINT16)SocketSelectingList.at(Index).RecvBuffer.get())[0]);
+				RecvLen = ntohs(((uint16_t *)SocketSelectingList.at(Index).RecvBuffer.get())[0]);
 				if (RecvLen >(SSIZE_T)SocketSelectingList.at(Index).Length)
 				{
 					shutdown(SocketDataList.at(Index).Socket, SD_BOTH);
@@ -579,9 +579,9 @@ SSIZE_T __fastcall SelectingResult(
 #if defined(ENABLE_PCAP)
 //Mark socket information to global list
 void __fastcall MarkPortToList(
-	const uint16_t Protocol, 
-	const SOCKET_DATA *LocalSocketData, 
-	std::vector<SOCKET_DATA> &SocketDataList)
+	_In_ const uint16_t Protocol, 
+	_In_opt_ const SOCKET_DATA *LocalSocketData, 
+	_In_ std::vector<SOCKET_DATA> &SocketDataList)
 {
 	if (LocalSocketData != nullptr && Protocol > 0)
 	{
@@ -689,7 +689,7 @@ void __fastcall MarkPortToList(
 #if defined(ENABLE_PCAP)
 //Get TTL(IPv4)/Hop Limits(IPv6) with normal DNS request
 bool __fastcall DomainTestRequest(
-	const uint16_t Protocol)
+	_In_ const uint16_t Protocol)
 {
 //Initialization
 	std::shared_ptr<char> Buffer(new char[PACKET_MAXSIZE]()), DNSQuery(new char[PACKET_MAXSIZE]());
@@ -723,7 +723,7 @@ bool __fastcall DomainTestRequest(
 		//EDNS Label
 			if (Parameter.EDNS_Label)
 			{
-				DataLength = AddEDNSLabelToAdditionalRR(Buffer.get(), DataLength + sizeof(dns_hdr), PACKET_MAXSIZE, false);
+				DataLength = AddEDNSLabelToAdditionalRR(Buffer.get(), DataLength + sizeof(dns_hdr), PACKET_MAXSIZE, nullptr);
 				DataLength -= sizeof(dns_hdr);
 			}
 		}
@@ -823,7 +823,7 @@ bool __fastcall DomainTestRequest(
 				if (Parameter.EDNS_Label)
 				{
 					DNS_Header->Additional = 0;
-					DataLength = AddEDNSLabelToAdditionalRR(Buffer.get(), DataLength, PACKET_MAXSIZE, false);
+					DataLength = AddEDNSLabelToAdditionalRR(Buffer.get(), DataLength, PACKET_MAXSIZE, nullptr);
 				}
 			}
 
@@ -841,7 +841,7 @@ bool __fastcall DomainTestRequest(
 
 //Internet Control Message Protocol(version 6)/ICMP(v6) Echo(Ping) request
 bool __fastcall ICMPTestRequest(
-	const uint16_t Protocol)
+	_In_ const uint16_t Protocol)
 {
 //Initialization
 	size_t Length = 0;
@@ -959,7 +959,7 @@ bool __fastcall ICMPTestRequest(
 	#elif defined(PLATFORM_MACX)
 		ICMP_Header->Timestamp = (uint64_t)time(nullptr);
 	#endif
-		ICMP_Header->Checksum = GetChecksum((PUINT16)Buffer.get(), Length);
+		ICMP_Header->Checksum = GetChecksum((uint16_t *)Buffer.get(), Length);
 
 	//Socket initialization
 		std::shared_ptr<SOCKET_DATA> SocketDataTemp(new SOCKET_DATA());
@@ -1148,7 +1148,7 @@ bool __fastcall ICMPTestRequest(
 				#endif
 
 					ICMP_Header->Checksum = 0;
-					ICMP_Header->Checksum = GetChecksum((PUINT16)Buffer.get(), Length);
+					ICMP_Header->Checksum = GetChecksum((uint16_t *)Buffer.get(), Length);
 				}
 			}
 		}
@@ -1172,11 +1172,11 @@ bool __fastcall ICMPTestRequest(
 
 //Select socket data of DNS target(Independent)
 bool __fastcall SelectTargetSocket(
-	SOCKET_DATA *TargetSocketData, 
-	bool *&IsAlternate, 
-	size_t *&AlternateTimeoutTimes, 
-	const uint16_t Protocol, 
-	const bool IsLocal)
+	_Out_ SOCKET_DATA *TargetSocketData, 
+	_Outptr_ bool **IsAlternate, 
+	_Outptr_ size_t **AlternateTimeoutTimes, 
+	_In_ const uint16_t Protocol, 
+	_In_ const bool IsLocal)
 {
 //Socket initialization
 	uint16_t SocketType = 0;
@@ -1184,6 +1184,7 @@ bool __fastcall SelectTargetSocket(
 		SocketType = SOCK_STREAM;
 	else //UDP
 		SocketType = SOCK_DGRAM;
+	memset(TargetSocketData, 0, sizeof(SOCKET_DATA));
 
 //Local request
 	if (IsLocal)
@@ -1197,17 +1198,17 @@ bool __fastcall SelectTargetSocket(
 		//TCP
 			if (Protocol == IPPROTO_TCP)
 			{
-				IsAlternate = &AlternateSwapList.IsSwap[4U];
-				AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[4U];
+				*IsAlternate = &AlternateSwapList.IsSwap[4U];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[4U];
 			}
 		//UDP
 			else {
-				IsAlternate = &AlternateSwapList.IsSwap[6U];
-				AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[6U];
+				*IsAlternate = &AlternateSwapList.IsSwap[6U];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[6U];
 			}
 		
 		//Alternate
-			if (IsAlternate != nullptr && *IsAlternate && Parameter.DNSTarget.Alternate_Local_IPv6.Storage.ss_family > 0)
+			if (**IsAlternate && Parameter.DNSTarget.Alternate_Local_IPv6.Storage.ss_family > 0)
 			{
 				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_addr = Parameter.DNSTarget.Alternate_Local_IPv6.IPv6.sin6_addr;
 				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_port = Parameter.DNSTarget.Alternate_Local_IPv6.IPv6.sin6_port;
@@ -1231,17 +1232,17 @@ bool __fastcall SelectTargetSocket(
 		//TCP
 			if (Protocol == IPPROTO_TCP)
 			{
-				IsAlternate = &AlternateSwapList.IsSwap[5U];
-				AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[5U];
+				*IsAlternate = &AlternateSwapList.IsSwap[5U];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[5U];
 			}
 		//UDP
 			else {
-				IsAlternate = &AlternateSwapList.IsSwap[7U];
-				AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[7U];
+				*IsAlternate = &AlternateSwapList.IsSwap[7U];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[7U];
 			}
 
 		//Alternate
-			if (IsAlternate != nullptr && *IsAlternate && Parameter.DNSTarget.Alternate_Local_IPv4.Storage.ss_family > 0)
+			if (**IsAlternate && Parameter.DNSTarget.Alternate_Local_IPv4.Storage.ss_family > 0)
 			{
 				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_addr = Parameter.DNSTarget.Alternate_Local_IPv4.IPv4.sin_addr;
 				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_port = Parameter.DNSTarget.Alternate_Local_IPv4.IPv4.sin_port;
@@ -1271,17 +1272,17 @@ bool __fastcall SelectTargetSocket(
 		//TCP
 			if (Protocol == IPPROTO_TCP)
 			{
-				IsAlternate = &AlternateSwapList.IsSwap[0];
-				AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[0];
+				*IsAlternate = &AlternateSwapList.IsSwap[0];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[0];
 			}
 		//UDP
 			else {
-				IsAlternate = &AlternateSwapList.IsSwap[2U];
-				AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[2U];
+				*IsAlternate = &AlternateSwapList.IsSwap[2U];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[2U];
 			}
 		
 		//Alternate
-			if (*IsAlternate && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0)
+			if (**IsAlternate && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0)
 			{
 				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_addr = Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr;
 				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_port = Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_port;
@@ -1305,17 +1306,17 @@ bool __fastcall SelectTargetSocket(
 		//TCP
 			if (Protocol == IPPROTO_TCP)
 			{
-				IsAlternate = &AlternateSwapList.IsSwap[1U];
-				AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[1U];
+				*IsAlternate = &AlternateSwapList.IsSwap[1U];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[1U];
 			}
 		//UDP
 			else {
-				IsAlternate = &AlternateSwapList.IsSwap[3U];
-				AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[3U];
+				*IsAlternate = &AlternateSwapList.IsSwap[3U];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[3U];
 			}
 			
 		//Alternate
-			if (*IsAlternate && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
+			if (**IsAlternate && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0)
 			{
 				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_addr = Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr;
 				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_port = Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_port;
@@ -1340,8 +1341,8 @@ bool __fastcall SelectTargetSocket(
 
 //Select socket data of DNS target(Multithreading)
 bool __fastcall SelectTargetSocketMulti(
-	std::vector<SOCKET_DATA> &TargetSocketDataList, 
-	const uint16_t Protocol)
+	_Inout_ std::vector<SOCKET_DATA> &TargetSocketDataList, 
+	_In_ const uint16_t Protocol)
 {
 //Initialization
 	std::shared_ptr<SOCKET_DATA> TargetSocketData(new SOCKET_DATA());
@@ -1537,11 +1538,11 @@ bool __fastcall SelectTargetSocketMulti(
 
 //Transmission and reception of TCP protocol(Independent)
 size_t __fastcall TCPRequest(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize, 
-	const bool IsLocal)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize, 
+	_In_ const bool IsLocal)
 {
 //Initialization
 	std::vector<SOCKET_DATA> TCPSocketDataList(1U);
@@ -1553,7 +1554,7 @@ size_t __fastcall TCPRequest(
 //Socket initialization
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
-	if (!SelectTargetSocket(&TCPSocketDataList.front(), IsAlternate, AlternateTimeoutTimes, IPPROTO_TCP, IsLocal) || TCPSocketDataList.front().Socket == INVALID_SOCKET)
+	if (!SelectTargetSocket(&TCPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_TCP, IsLocal) || TCPSocketDataList.front().Socket == INVALID_SOCKET)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"TCP socket initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(TCPSocketDataList.front().Socket);
@@ -1572,18 +1573,19 @@ size_t __fastcall TCPRequest(
 
 //Socket selecting
 	SSIZE_T RecvLen = SocketSelecting(IPPROTO_TCP, TCPSocketDataList, SendBuffer, DataLength, OriginalRecv, RecvSize, IsLocal, false);
-	if (RecvLen == WSAETIMEDOUT && !Parameter.AlternateMultiRequest && IsAlternate != nullptr && !*IsAlternate) //Mark timeout.
-		++(*AlternateTimeoutTimes);
+	if (RecvLen == WSAETIMEDOUT && IsAlternate != nullptr && !*IsAlternate && //Mark timeout.
+		(!Parameter.AlternateMultiRequest || IsLocal))
+			++(*AlternateTimeoutTimes);
 	
 	return RecvLen;
 }
 
 //Transmission and reception of TCP protocol(Multithreading)
 size_t __fastcall TCPRequestMulti(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize)
 {
 //Initialization
 	memset(OriginalRecv, 0, RecvSize);
@@ -1616,10 +1618,10 @@ size_t __fastcall TCPRequestMulti(
 //Transmission of UDP protocol
 #if defined(ENABLE_PCAP)
 size_t __fastcall UDPRequest(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	const SOCKET_DATA *LocalSocketData, 
-	const uint16_t Protocol)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_In_ const SOCKET_DATA *LocalSocketData, 
+	_In_ const uint16_t Protocol)
 {
 //Initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
@@ -1628,7 +1630,7 @@ size_t __fastcall UDPRequest(
 	size_t *AlternateTimeoutTimes = nullptr;
 
 //Socket initialization
-	if (!SelectTargetSocket(&UDPSocketDataList.front(), IsAlternate, AlternateTimeoutTimes, IPPROTO_UDP, false) || UDPSocketDataList.front().Socket == INVALID_SOCKET)
+	if (!SelectTargetSocket(&UDPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP, false) || UDPSocketDataList.front().Socket == INVALID_SOCKET)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"UDP socket initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(UDPSocketDataList.front().Socket);
@@ -1660,10 +1662,10 @@ size_t __fastcall UDPRequest(
 
 //Transmission of UDP protocol(Multithreading)
 size_t __fastcall UDPRequestMulti(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	const SOCKET_DATA *LocalSocketData, 
-	const uint16_t Protocol)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_In_opt_ const SOCKET_DATA *LocalSocketData, 
+	_In_ const uint16_t Protocol)
 {
 //Socket initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList;
@@ -1691,11 +1693,11 @@ size_t __fastcall UDPRequestMulti(
 
 //Complete transmission of UDP protocol
 size_t __fastcall UDPCompleteRequest(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize, 
-	const bool IsLocal)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize, 
+	_In_ const bool IsLocal)
 {
 //Initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
@@ -1705,7 +1707,7 @@ size_t __fastcall UDPCompleteRequest(
 //Socket initialization
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
-	if (!SelectTargetSocket(&UDPSocketDataList.front(), IsAlternate, AlternateTimeoutTimes, IPPROTO_UDP, IsLocal) || UDPSocketDataList.front().Socket == INVALID_SOCKET)
+	if (!SelectTargetSocket(&UDPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP, IsLocal) || UDPSocketDataList.front().Socket == INVALID_SOCKET)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"Complete UDP socket initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(UDPSocketDataList.front().Socket);
@@ -1719,18 +1721,19 @@ size_t __fastcall UDPCompleteRequest(
 
 //Socket selecting
 	SSIZE_T RecvLen = SocketSelecting(IPPROTO_UDP, UDPSocketDataList, OriginalSend, SendSize, OriginalRecv, RecvSize, IsLocal, false);
-	if (RecvLen == WSAETIMEDOUT && !Parameter.AlternateMultiRequest && IsAlternate != nullptr && !*IsAlternate) //Mark timeout.
-		++(*AlternateTimeoutTimes);
+	if (RecvLen == WSAETIMEDOUT && IsAlternate != nullptr && !*IsAlternate && //Mark timeout.
+		(!Parameter.AlternateMultiRequest || IsLocal))
+			++(*AlternateTimeoutTimes);
 
 	return RecvLen;
 }
 
 //Complete transmission of UDP protocol(Multithreading)
 size_t __fastcall UDPCompleteRequestMulti(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize)
 {
 //Initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList;

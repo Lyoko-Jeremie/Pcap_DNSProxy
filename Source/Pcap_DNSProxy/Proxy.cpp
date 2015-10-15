@@ -123,15 +123,15 @@ UDP ASSOCIATE mode:
 
 //SOCKS non-blocking mode selecting
 SSIZE_T __fastcall SOCKSSocketSelecting(
-	SYSTEM_SOCKET Socket, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	const char *SendBuffer, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize, 
-	const size_t MinLen)
+	_In_ SYSTEM_SOCKET Socket, 
+	_In_ fd_set *ReadFDS, 
+	_In_ fd_set *WriteFDS, 
+	_In_ timeval *Timeout, 
+	_In_opt_ const char *SendBuffer, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize, 
+	_In_ const size_t MinLen)
 {
 //Initialization
 	SSIZE_T RecvLen = 0, SelectResult = 0;
@@ -202,13 +202,13 @@ SSIZE_T __fastcall SOCKSSocketSelecting(
 
 //SOCKS selection exchange process
 bool __fastcall SOCKSSelectionExchange(
-	SOCKET_DATA *SOCKSSocketData, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	PSTR SendBuffer, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize)
+	_In_ SOCKET_DATA *SOCKSSocketData, 
+	_In_ fd_set *ReadFDS, 
+	_In_ fd_set *WriteFDS, 
+	_In_ timeval *Timeout, 
+	_Inout_ char *SendBuffer, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize)
 {
 //Initialization
 	size_t Length = 0;
@@ -302,13 +302,13 @@ bool __fastcall SOCKSSelectionExchange(
 
 //SOCKS username/password authentication process
 bool __fastcall SOCKSAuthenticationUsernamePassword(
-	SYSTEM_SOCKET Socket, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	PSTR SendBuffer, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize)
+	_In_ SYSTEM_SOCKET Socket, 
+	_In_ fd_set *ReadFDS, 
+	_In_ fd_set *WriteFDS, 
+	_In_ timeval *Timeout, 
+	_Inout_ char *SendBuffer, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize)
 {
 //Initialization
 	size_t Length = sizeof(uint8_t) * 2U;
@@ -338,19 +338,19 @@ bool __fastcall SOCKSAuthenticationUsernamePassword(
 
 //SOCKS client command request process
 bool __fastcall SOCKSClientCommandRequest(
-	const uint16_t Protocol, 
-	SYSTEM_SOCKET Socket, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	PSTR SendBuffer, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize, 
-	PSOCKET_DATA UDP_ASSOCIATE_TCP_Connecting_Address)
+	_In_ const uint16_t Protocol, 
+	_In_ SYSTEM_SOCKET Socket, 
+	_In_ fd_set *ReadFDS, 
+	_In_ fd_set *WriteFDS, 
+	_In_ timeval *Timeout, 
+	_Inout_ char *SendBuffer, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize, 
+	_In_opt_ SOCKET_DATA *UDP_ASSOCIATE_TCP_Connecting_Address)
 {
 //Initialization
-	memset(OriginalRecv, 0, RecvSize);
 	size_t Length = 0;
+	memset(OriginalRecv, 0, RecvSize);
 
 //Client command request packet
 	void *SOCKS_Pointer = SendBuffer;
@@ -373,9 +373,9 @@ bool __fastcall SOCKSClientCommandRequest(
 			Length += sizeof(in6_addr);
 			SOCKS_Pointer = SendBuffer + Length;
 			if (Protocol == IPPROTO_TCP) //TCP CONNECT
-				*(PUINT16)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv6.sin6_port;
+				*(uint16_t *)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv6.sin6_port;
 			else if (UDP_ASSOCIATE_TCP_Connecting_Address != nullptr) //UDP ASSOCIATE
-				*(PUINT16)SOCKS_Pointer = ((PSOCKADDR_IN6)&UDP_ASSOCIATE_TCP_Connecting_Address->SockAddr)->sin6_port;
+				*(uint16_t *)SOCKS_Pointer = ((PSOCKADDR_IN6)&UDP_ASSOCIATE_TCP_Connecting_Address->SockAddr)->sin6_port;
 			Length += sizeof(uint16_t);
 		}
 		else if (Parameter.SOCKS_TargetServer.Storage.ss_family == AF_INET || //IPv4
@@ -388,21 +388,21 @@ bool __fastcall SOCKSClientCommandRequest(
 			Length += sizeof(in_addr);
 			SOCKS_Pointer = SendBuffer + Length;
 			if (Protocol == IPPROTO_TCP) //TCP CONNECT
-				*(PUINT16)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv4.sin_port;
+				*(uint16_t *)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv4.sin_port;
 			else if (UDP_ASSOCIATE_TCP_Connecting_Address != nullptr) //UDP ASSOCIATE
-				*(PUINT16)SOCKS_Pointer = ((PSOCKADDR_IN)&UDP_ASSOCIATE_TCP_Connecting_Address->SockAddr)->sin_port;
+				*(uint16_t *)SOCKS_Pointer = ((PSOCKADDR_IN)&UDP_ASSOCIATE_TCP_Connecting_Address->SockAddr)->sin_port;
 			Length += sizeof(uint16_t);
 		}
 		else if (Parameter.SOCKS_TargetDomain != nullptr && Parameter.SOCKS_TargetDomain_Length > 0) //Domain
 		{
 			((psocks5_client_command_request)SOCKS_Pointer)->Address_Type = SOCKS5_ADDRESS_DOMAIN;
 			SOCKS_Pointer = SendBuffer + Length;
-			*(PUINT8)SOCKS_Pointer = (uint8_t)Parameter.SOCKS_TargetDomain_Length;
+			*(uint8_t *)SOCKS_Pointer = (uint8_t)Parameter.SOCKS_TargetDomain_Length;
 			Length += sizeof(uint8_t);
 			memcpy_s(SendBuffer + Length, LARGE_PACKET_MAXSIZE - Length, Parameter.SOCKS_TargetDomain, Parameter.SOCKS_TargetDomain_Length);
 			Length += Parameter.SOCKS_TargetDomain_Length;
 			SOCKS_Pointer = SendBuffer + Length;
-			*(PUINT16)SOCKS_Pointer = Parameter.SOCKS_TargetDomain_Port;
+			*(uint16_t *)SOCKS_Pointer = Parameter.SOCKS_TargetDomain_Port;
 			Length += sizeof(uint16_t);
 		}
 		else {
@@ -540,16 +540,17 @@ bool __fastcall SOCKSClientCommandRequest(
 
 //Transmission and reception of SOCKS protocol(TCP)
 size_t __fastcall SOCKSTCPRequest(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize)
 {
 //Initialization
 	std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
 	std::shared_ptr<SOCKET_DATA> TCPSocketData(new SOCKET_DATA());
 	memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 	memset(TCPSocketData.get(), 0, sizeof(SOCKET_DATA));
+	memset(OriginalRecv, 0, RecvSize);
 
 //Socket initialization
 	if (Parameter.SOCKS_Address_IPv6.Storage.ss_family > 0 && //IPv6
@@ -655,16 +656,17 @@ size_t __fastcall SOCKSTCPRequest(
 
 //Transmission and reception of SOCKS protocol(UDP)
 size_t __fastcall SOCKSUDPRequest(
-	const char *OriginalSend, 
-	const size_t SendSize, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize)
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize)
 {
 //Initialization
 	std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
 	std::shared_ptr<SOCKET_DATA> TCPSocketData, UDPSocketData(new SOCKET_DATA()), LocalSocketData;
 	memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 	memset(UDPSocketData.get(), 0, sizeof(SOCKET_DATA));
+	memset(OriginalRecv, 0, RecvSize);
 	if (!Parameter.SOCKS_UDP_NoHandshake)
 	{
 		std::shared_ptr<SOCKET_DATA> TCPSocketDataTemp(new SOCKET_DATA()), LocalSocketDataTemp(new SOCKET_DATA());
@@ -839,7 +841,7 @@ size_t __fastcall SOCKSUDPRequest(
 		*(in6_addr *)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv6.sin6_addr;
 		SOCKS_Pointer = SendBuffer.get() + RecvLen;
 		RecvLen += (SSIZE_T)sizeof(uint16_t);
-		*(PUINT16)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv6.sin6_port;
+		*(uint16_t *)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv6.sin6_port;
 	}
 	else if (Parameter.SOCKS_TargetServer.Storage.ss_family == AF_INET) //IPv4
 	{
@@ -849,19 +851,19 @@ size_t __fastcall SOCKSUDPRequest(
 		*(in_addr *)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv4.sin_addr;
 		SOCKS_Pointer = SendBuffer.get() + RecvLen;
 		RecvLen += (SSIZE_T)sizeof(uint16_t);
-		*(PUINT16)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv4.sin_port;
+		*(uint16_t *)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv4.sin_port;
 	}
 	else if (Parameter.SOCKS_TargetDomain != nullptr && Parameter.SOCKS_TargetDomain_Length > 0) //Damain
 	{
 		((psocks_udp_relay_request)SOCKS_Pointer)->Address_Type = SOCKS5_ADDRESS_DOMAIN;
 		SOCKS_Pointer = SendBuffer.get() + RecvLen;
 		RecvLen += (SSIZE_T)sizeof(uint8_t);
-		*(PUINT8)SOCKS_Pointer = (uint8_t)Parameter.SOCKS_TargetDomain_Length;
+		*(uint8_t *)SOCKS_Pointer = (uint8_t)Parameter.SOCKS_TargetDomain_Length;
 		SOCKS_Pointer = SendBuffer.get() + RecvLen;
 		memcpy_s(SOCKS_Pointer, (SSIZE_T)LARGE_PACKET_MAXSIZE - ((SSIZE_T)sizeof(socks_udp_relay_request) + RecvLen), Parameter.SOCKS_TargetDomain, Parameter.SOCKS_TargetDomain_Length);
 		RecvLen += (SSIZE_T)Parameter.SOCKS_TargetDomain_Length;
 		SOCKS_Pointer = SendBuffer.get() + RecvLen;
-		*(PUINT16)SOCKS_Pointer = Parameter.SOCKS_TargetDomain_Port;
+		*(uint16_t *)SOCKS_Pointer = Parameter.SOCKS_TargetDomain_Port;
 		RecvLen += (SSIZE_T)sizeof(uint16_t);
 	}
 	else {

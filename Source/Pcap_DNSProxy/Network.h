@@ -30,23 +30,23 @@ extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 
 //Functions
 bool __fastcall SelectTargetSocket(
-	SOCKET_DATA *TargetSocketData, 
-	bool *&IsAlternate, 
-	size_t *&AlternateTimeoutTimes, 
-	const uint16_t Protocol, 
-	const bool IsLocal);
+	_Out_ SOCKET_DATA *TargetSocketData, 
+	_Outptr_ bool **IsAlternate, 
+	_Outptr_ size_t **AlternateTimeoutTimes, 
+	_In_ const uint16_t Protocol, 
+	_In_ const bool IsLocal);
 bool __fastcall SelectTargetSocketMulti(
-	std::vector<SOCKET_DATA> &TargetSocketDataList, 
-	const uint16_t Protocol);
+	_Inout_ std::vector<SOCKET_DATA> &TargetSocketDataList, 
+	_In_ const uint16_t Protocol);
 SSIZE_T __fastcall SelectingResult(
-	uint16_t Protocol, 
-	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingList, 
-	PSTR OriginalRecv, 
-	const size_t RecvSize, 
-	const bool IsLocal, 
-	const bool NoCheck);
+	_In_ const uint16_t Protocol, 
+	_Inout_ std::vector<SOCKET_DATA> &SocketDataList, 
+	_Inout_ std::vector<SOCKET_SELECTING_DATA> &SocketSelectingList, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize, 
+	_In_ const bool IsLocal, 
+	_In_ const bool NoCheck);
 void __fastcall MarkPortToList(
-	const uint16_t Protocol, 
-	const SOCKET_DATA *LocalSocketData, 
-	std::vector<SOCKET_DATA> &SocketDataList);
+	_In_ const uint16_t Protocol, 
+	_In_opt_ const SOCKET_DATA *LocalSocketData, 
+	_In_ std::vector<SOCKET_DATA> &SocketDataList);

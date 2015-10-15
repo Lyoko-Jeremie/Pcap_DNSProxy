@@ -21,7 +21,9 @@
 
 //Main function of program
 #if defined(PLATFORM_WIN)
-int wmain(int argc, wchar_t* argv[])
+int wmain(
+	_In_ int argc, 
+	_In_ wchar_t* argv[])
 {
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 int main(int argc, char *argv[])
@@ -118,7 +120,10 @@ int main(int argc, char *argv[])
 
 //Convert lowercase/uppercase words to uppercase/lowercase words(Character version)
 #if defined(ENABLE_LIBSODIUM)
-void __fastcall CaseConvert(const bool IsLowerToUpper, PSTR Buffer, const size_t Length)
+void __fastcall CaseConvert(
+	_In_ const bool IsLowerToUpper, 
+	_Inout_ char *Buffer, 
+	_In_ const size_t Length)
 {
 	for (size_t Index = 0;Index < Length;++Index)
 	{
