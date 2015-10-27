@@ -620,9 +620,8 @@ bool __fastcall CaptureNetworkLayer(
 			{
 			//Domain Test and DNS Options check and get Hop Limit from Domain Test.
 				auto IsMarkHopLimit = false;
-				if ((Parameter.HeaderCheck_DNS || Parameter.DataCheck_Blacklist) && 
-					CheckResponseData(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), false, &IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
-						return false;
+				if (CheckResponseData(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), false, &IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
+					return false;
 				if (IsMarkHopLimit)
 					PacketSource->HopLimitData.HopLimit = IPv6_Header->HopLimit;
 
@@ -738,8 +737,7 @@ bool __fastcall CaptureNetworkLayer(
 			{
 			//Domain Test and DNS Options check and get TTL from Domain Test.
 				auto IsMarkHopLimit = false;
-				if ((Parameter.HeaderCheck_DNS || Parameter.DataCheck_Blacklist) && 
-					CheckResponseData(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES - sizeof(udp_hdr), false, &IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
+				if (CheckResponseData(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES - sizeof(udp_hdr), false, &IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
 					return false;
 				if (IsMarkHopLimit)
 					PacketSource->HopLimitData.TTL = IPv4_Header->TTL;
@@ -985,7 +983,7 @@ ClearOutputPacketListData:
 	if (SocketData_Input->Socket == 0 || SocketData_Input->AddrLen == 0 || SocketData_Input->SockAddr.ss_family == 0 || SystemProtocol == 0)
 		return false;
 
-//Mark DNS Cache.
+//Mark DNS cache.
 	if (Parameter.CacheType > 0)
 		MarkDomainCache(Buffer, Length);
 
@@ -995,7 +993,7 @@ ClearOutputPacketListData:
 		return true;
 
 //Check global sockets.
-	if (GlobalRunningStatus.LocalListeningSocket != nullptr && !GlobalRunningStatus.LocalListeningSocket->empty())
+	if (!GlobalRunningStatus.LocalListeningSocket->empty())
 	{
 		for (auto SocketIter:*GlobalRunningStatus.LocalListeningSocket)
 		{

@@ -437,6 +437,8 @@ bool __fastcall CheckSpecialAddress(
 			((in_addr *)Addr)->s_addr == htonl(0xDD08451B) || //221.8.69.27
 //			((in_addr *)Addr)->s_addr == htonl(0xF3B9BB03) || //243.185.187.3, including in reserved address ranges
 //			((in_addr *)Addr)->s_addr == htonl(0xF3B9BB1E) || //243.185.187.30, including in reserved address ranges
+		//DNS Poisoning addresses from CERNET2, see https://code.google.com/p/goagent/issues/detail?id=17571.
+			((in_addr *)Addr)->s_addr == htonl(0x01020304) || //1.2.3.4
 		//Special-use or reserved addresses, see https://en.wikipedia.org/wiki/IPv4#Special-use_addresses and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv4_addresses.
 			((in_addr *)Addr)->s_net == 0 || //Current network whick only valid as source addresses(0.0.0.0/8, Section 3.2.1.3 in RFC 1122)
 			IsPrivateUse && ((in_addr *)Addr)->s_net == 0x0A || //Private class A addresses(10.0.0.0/8, Section 3 in RFC 1918)
@@ -775,9 +777,6 @@ size_t __fastcall CheckQueryData(
 	_In_ const uint16_t Protocol, 
 	_Out_opt_ bool *IsLocal)
 {
-	if (IsLocal != nullptr)
-		*IsLocal = false;
-
 //Check address.
 	if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 	{
@@ -810,7 +809,12 @@ size_t __fastcall CheckQueryData(
 
 	auto DNS_Header = (pdns_hdr)RecvBuffer;
 //Check request packet data.
-	if (Parameter.HeaderCheck_DNS && 
+	if (
+	//Base DNS header check
+		DNS_Header->ID == 0 || //ID must not be set 0.
+//		DNS_Header->Flags == 0 || //Flags must not be set 0.
+	//Extended DNS header check
+		Parameter.HeaderCheck_DNS && 
 	//Must not set Response bit.
 		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RESPONSE) > 0 || 
 	//Must not set Truncated bit.
@@ -903,7 +907,7 @@ size_t __fastcall CheckQueryData(
 		SendToRequester(SendBuffer, DataLength[0], DataLength[0] + sizeof(uint16_t), Protocol, LocalSocketData);
 		return EXIT_FAILURE;
 	}
-	else if (DataLength[0] == EXIT_CHECK_HOSTS_TYPE_LOCAL && IsLocal != nullptr)
+	else if (IsLocal != nullptr && DataLength[0] == EXIT_CHECK_HOSTS_TYPE_LOCAL)
 	{
 		*IsLocal = true;
 	}
@@ -918,18 +922,14 @@ size_t __fastcall CheckResponseData(
 	_In_ const bool IsLocal, 
 	_Out_opt_ bool *IsMarkHopLimit)
 {
-	if (IsMarkHopLimit != nullptr)
-		*IsMarkHopLimit = false;
-
-//Response check options
-	if (!Parameter.HeaderCheck_DNS && !Parameter.DataCheck_Blacklist)
-		return Length;
-
-//Initialization(Part 1)
-	auto DNS_Header = (pdns_hdr)Buffer;
-
 //DNS Options part
-	if (Parameter.HeaderCheck_DNS && 
+	auto DNS_Header = (pdns_hdr)Buffer;
+	if (
+	//Base DNS header check
+		DNS_Header->ID == 0 || //ID must not be set 0.
+		DNS_Header->Flags == 0 || //Flags must not be set 0.
+	//Extended DNS header check
+		Parameter.HeaderCheck_DNS && 
 	//Must not set Response bit.
 		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RESPONSE) == 0 || 
 	//Must not any Non-Question Resource Records when RCode is No Error and not Truncated
@@ -948,6 +948,10 @@ size_t __fastcall CheckResponseData(
 	//Additional EDNS Label Resource Records check
 		Parameter.EDNS_Label && DNS_Header->Additional == 0))
 			return EXIT_FAILURE;
+
+//Response check options
+	if (!Parameter.HeaderCheck_DNS && !Parameter.DataCheck_Blacklist)
+		return Length;
 
 //Responses question pointer check
 	if (Parameter.HeaderCheck_DNS)
@@ -977,7 +981,7 @@ size_t __fastcall CheckResponseData(
 	memset(Domain.get(), 0, DOMAIN_MAXSIZE);
 	DNSQueryToChar(Buffer + sizeof(dns_hdr), Domain.get());
 
-//Initialization(Part 2)
+//Initialization
 	auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
 	size_t DataLength = DNS_PACKET_RR_LOCATE(Buffer);
 	uint16_t DNS_Pointer = 0;

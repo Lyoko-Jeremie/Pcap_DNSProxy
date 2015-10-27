@@ -24,7 +24,7 @@ extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 
 //Functions
-SSIZE_T __fastcall SOCKSSocketSelecting(
+SSIZE_T __fastcall ProxySocketSelecting(
 	_In_ SYSTEM_SOCKET Socket, 
 	_In_ fd_set *ReadFDS, 
 	_In_ fd_set *WriteFDS, 
@@ -60,3 +60,10 @@ bool __fastcall SOCKSClientCommandRequest(
 	_Out_ char *OriginalRecv, 
 	_In_ const size_t RecvSize, 
 	_In_opt_ SOCKET_DATA *UDP_ASSOCIATE_TCP_Connecting_Address);
+bool __fastcall HTTP_CONNECTRequest(
+	_In_ SOCKET_DATA *HTTPSocketData, 
+	_In_ fd_set *ReadFDS, 
+	_In_ fd_set *WriteFDS, 
+	_In_ timeval *Timeout, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize);

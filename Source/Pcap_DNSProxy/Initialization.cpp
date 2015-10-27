@@ -19,6 +19,48 @@
 
 #include "Initialization.h"
 
+//RFC domain table
+static char DomainTable_Initialization[] = (".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"); //Preferred name syntax(Section 2.3.1 in RFC 1035)
+
+//Base64 encode table
+static char Base64_EncodeTable_Initialization[] = 
+{
+	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 
+	'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 
+	'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 
+	'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 
+	'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 
+	'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 
+	'w', 'x', 'y', 'z', '0', '1', '2', '3', 
+	'4', '5', '6', '7', '8', '9', '+', '/'
+};
+
+/* Base64 decode table
+static signed char Base64_DecodeTable_Initialization[] = //ASCII order for BASE 64 decode, -1 in unused character.
+{
+	/* '+', ',', '-', '.', '/', '0', '1', '2', 
+		62,  -1,  -1,  -1,  63,  52,  53,  54, 
+	/* '3', '4', '5', '6', '7', '8', '9', ':', 
+		55,  56,  57,  58,  59,  60,  61,  -1, 
+	/* ';', '<', '=', '>', '?', '@', 'A', 'B', 
+		-1,  -1,  -1,  -1,  -1,  -1,   0,  1, 
+	/* 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 
+		2,   3,   4,   5,   6,   7,   8,   9, 
+	/* 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 
+		10,  11,  12,  13,  14,  15,  16,  17, 
+	/* 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 
+		18,  19,  20,  21,  22,  23,  24,  25, 
+	/* '[', '\', ']', '^', '_', '`', 'a', 'b', 
+		-1,  -1,  -1,  -1,  -1,  -1,  26,  27, 
+	/* 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 
+		28,  29,  30,  31,  32,  33,  34,  35, 
+	/* 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 
+		36,  37,  38,  39,  40,  41,  42,  43, 
+	/* 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
+		44,  45,  46,  47,  48,  49,  50,  51
+};
+*/
+
 //ConfigurationTable class constructor
 ConfigurationTable::ConfigurationTable(
 	void)
@@ -52,9 +94,13 @@ ConfigurationTable::ConfigurationTable(
 	#endif
 
 	//[Proxy] block
-		SOCKS_TargetDomain = new char[DOMAIN_MAXSIZE]();
-		SOCKS_Username = new char[SOCKS_USERNAME_PASSWORD_MAXNUM + 1U]();
-		SOCKS_Password = new char[SOCKS_USERNAME_PASSWORD_MAXNUM + 1U]();
+		SOCKS_TargetDomain = new std::string();
+		SOCKS_Username = new std::string();
+		SOCKS_Password = new std::string();
+		HTTP_TargetDomain = new std::string();
+		HTTP_Version = new std::string();
+		HTTP_HeaderField = new std::string();
+		HTTP_ProxyAuthorization = new std::string();
 	}
 	catch (std::bad_alloc)
 	{
@@ -85,9 +131,13 @@ ConfigurationTable::ConfigurationTable(
 	#endif
 
 	//[Proxy] block
-		delete[] SOCKS_TargetDomain;
-		delete[] SOCKS_Username;
-		delete[] SOCKS_Password;
+		delete SOCKS_TargetDomain;
+		delete SOCKS_Username;
+		delete SOCKS_Password;
+		delete HTTP_TargetDomain;
+		delete HTTP_Version;
+		delete HTTP_HeaderField;
+		delete HTTP_ProxyAuthorization;
 
 		exit(EXIT_FAILURE);
 		return;
@@ -110,9 +160,6 @@ void __fastcall ConfigurationTableSetting(
 #if !defined(PLATFORM_MACX)
 	memset(ConfigurationParameter->LocalServer_Response, 0, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt));
 #endif
-	memset(ConfigurationParameter->SOCKS_TargetDomain, 0, DOMAIN_MAXSIZE);
-	memset(ConfigurationParameter->SOCKS_Username, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U);
-	memset(ConfigurationParameter->SOCKS_Password, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U);
 
 //Default values
 	ConfigurationParameter->FileRefreshTime = DEFAULT_FILEREFRESH_TIME;
@@ -125,13 +172,9 @@ void __fastcall ConfigurationTableSetting(
 #if defined(PLATFORM_WIN)
 	ConfigurationParameter->SocketTimeout_Reliable = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
 	ConfigurationParameter->SocketTimeout_Unreliable = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
-	ConfigurationParameter->SOCKS_SocketTimeout_Reliable = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
-	ConfigurationParameter->SOCKS_SocketTimeout_Unreliable = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	ConfigurationParameter->SocketTimeout_Reliable.tv_sec = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
 	ConfigurationParameter->SocketTimeout_Unreliable.tv_sec = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
-	ConfigurationParameter->SOCKS_SocketTimeout_Reliable.tv_sec = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
-	ConfigurationParameter->SOCKS_SocketTimeout_Unreliable.tv_sec = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
 #endif
 	ConfigurationParameter->AlternateTimes = DEFAULT_ALTERNATE_TIMES;
 	ConfigurationParameter->AlternateTimeRange = DEFAULT_ALTERNATE_RANGE * SECOND_TO_MILLISECOND;
@@ -165,6 +208,15 @@ void __fastcall ConfigurationTableSetting(
 	#endif
 #endif
 	ConfigurationParameter->SOCKS_Protocol_Transport = REQUEST_MODE_TCP;
+#if defined(PLATFORM_WIN)
+	ConfigurationParameter->SOCKS_SocketTimeout_Reliable = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
+	ConfigurationParameter->SOCKS_SocketTimeout_Unreliable = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
+	ConfigurationParameter->HTTP_SocketTimeout = DEFAULT_HTTP_SOCKET_TIMEOUT;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	ConfigurationParameter->SOCKS_SocketTimeout_Reliable.tv_sec = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
+	ConfigurationParameter->SOCKS_SocketTimeout_Unreliable.tv_sec = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
+	ConfigurationParameter->HTTP_SocketTimeout.tv_sec = DEFAULT_HTTP_SOCKET_TIMEOUT;
+#endif
 
 	return;
 }
@@ -201,9 +253,13 @@ ConfigurationTable::~ConfigurationTable(
 #endif
 
 //[Proxy] block
-	delete[] SOCKS_TargetDomain;
-	delete[] SOCKS_Username;
-	delete[] SOCKS_Password;
+	delete SOCKS_TargetDomain;
+	delete SOCKS_Username;
+	delete SOCKS_Password;
+	delete HTTP_TargetDomain;
+	delete HTTP_Version;
+	delete HTTP_HeaderField;
+	delete HTTP_ProxyAuthorization;
 
 	return;
 }
@@ -246,6 +302,8 @@ void ConfigurationTable::SetToMonitorItem(
 //[Addresses] block
 	ListenAddress_IPv6 = nullptr;
 	ListenAddress_IPv4 = nullptr;
+	LocalhostSubnet.IPv6 = nullptr;
+	LocalhostSubnet.IPv4 = nullptr;
 	DNSTarget.IPv6_Multi = nullptr;
 	DNSTarget.IPv4_Multi = nullptr;
 //[Data] block
@@ -297,8 +355,6 @@ void ConfigurationTable::MonitorItemToUsing(
 #endif
 	ConfigurationParameter->SocketTimeout_Reliable = SocketTimeout_Reliable;
 	ConfigurationParameter->SocketTimeout_Unreliable = SocketTimeout_Unreliable;
-	ConfigurationParameter->SOCKS_SocketTimeout_Reliable = SOCKS_SocketTimeout_Reliable;
-	ConfigurationParameter->SOCKS_SocketTimeout_Unreliable = SOCKS_SocketTimeout_Unreliable;
 	ConfigurationParameter->ReceiveWaiting = ReceiveWaiting;
 #if defined(ENABLE_PCAP)
 	ConfigurationParameter->ICMP_Speed = ICMP_Speed;
@@ -315,22 +371,22 @@ void ConfigurationTable::MonitorItemToUsing(
 	ConfigurationParameter->HeaderCheck_DNS = HeaderCheck_DNS;
 
 //[Proxy] block
-	if (ConfigurationParameter->SOCKS_TargetDomain != nullptr && SOCKS_TargetDomain_Length > 0 && SOCKS_TargetDomain_Port > 0)
+	ConfigurationParameter->SOCKS_SocketTimeout_Reliable = SOCKS_SocketTimeout_Reliable;
+	ConfigurationParameter->SOCKS_SocketTimeout_Unreliable = SOCKS_SocketTimeout_Unreliable;
+	if (ConfigurationParameter->SOCKS_TargetDomain != nullptr && !SOCKS_TargetDomain->empty() && SOCKS_TargetDomain_Port > 0)
 	{
 	//Reset old item.
 		memset(&ConfigurationParameter->SOCKS_TargetServer, 0, sizeof(ADDRESS_UNION_DATA));
-
+		
 	//Copy new item.
-		memcpy_s(ConfigurationParameter->SOCKS_TargetDomain, DOMAIN_MAXSIZE, SOCKS_TargetDomain, SOCKS_TargetDomain_Length);
-		ConfigurationParameter->SOCKS_TargetDomain_Length = SOCKS_TargetDomain_Length;
+		*ConfigurationParameter->SOCKS_TargetDomain = *SOCKS_TargetDomain;
 		ConfigurationParameter->SOCKS_TargetDomain_Port = SOCKS_TargetDomain_Port;
 	}
 	else if (SOCKS_TargetServer.Storage.ss_family > 0)
 	{
 	//Reset old item.
 		if (ConfigurationParameter->SOCKS_TargetDomain != nullptr)
-			memset(ConfigurationParameter->SOCKS_TargetDomain, 0, DOMAIN_MAXSIZE);
-		ConfigurationParameter->SOCKS_TargetDomain_Length = 0;
+			ConfigurationParameter->SOCKS_TargetDomain->clear();
 		ConfigurationParameter->SOCKS_TargetDomain_Port = 0;
 
 	//Copy new item.
@@ -338,27 +394,36 @@ void ConfigurationTable::MonitorItemToUsing(
 	}
 	if (ConfigurationParameter->SOCKS_Username != nullptr)
 	{
-		if (SOCKS_Username_Length > 0)
-		{
-			ConfigurationParameter->SOCKS_Username_Length = SOCKS_Username_Length;
-			memcpy_s(ConfigurationParameter->SOCKS_Username, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U, SOCKS_Username, ConfigurationParameter->SOCKS_Username_Length);
-		}
-		else {
-			ConfigurationParameter->SOCKS_Username_Length = 0;
-			memset(ConfigurationParameter->SOCKS_Username, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U);
-		}
+		if (!SOCKS_Username->empty())
+			*ConfigurationParameter->SOCKS_Username = *SOCKS_Username;
+		else 
+			ConfigurationParameter->SOCKS_Username->clear();
 	}
 	if (ConfigurationParameter->SOCKS_Password != nullptr)
 	{
-		if (SOCKS_Password_Length > 0)
-		{
-			ConfigurationParameter->SOCKS_Password_Length = SOCKS_Password_Length;
-			memcpy_s(ConfigurationParameter->SOCKS_Password, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U, SOCKS_Password, ConfigurationParameter->SOCKS_Password_Length);
-		}
-		else {
-			ConfigurationParameter->SOCKS_Password_Length = 0;
-			memset(ConfigurationParameter->SOCKS_Password, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U);
-		}
+		if (!SOCKS_Password->empty())
+			*ConfigurationParameter->SOCKS_Password = *SOCKS_Password;
+		else 
+			ConfigurationParameter->SOCKS_Password->clear();
+	}
+	ConfigurationParameter->HTTP_SocketTimeout = HTTP_SocketTimeout;
+	if (ConfigurationParameter->HTTP_TargetDomain != nullptr && !HTTP_TargetDomain->empty())
+		*ConfigurationParameter->HTTP_TargetDomain = *HTTP_TargetDomain;
+	if (ConfigurationParameter->HTTP_Version != nullptr && !HTTP_Version->empty())
+		*ConfigurationParameter->HTTP_Version = *HTTP_Version;
+	if (ConfigurationParameter->HTTP_HeaderField != nullptr)
+	{
+		if (!HTTP_HeaderField->empty())
+			*ConfigurationParameter->HTTP_HeaderField = *HTTP_HeaderField;
+		else 
+			ConfigurationParameter->HTTP_HeaderField->clear();
+	}
+	if (ConfigurationParameter->HTTP_ProxyAuthorization != nullptr)
+	{
+		if (!HTTP_ProxyAuthorization->empty())
+			*ConfigurationParameter->HTTP_ProxyAuthorization = *HTTP_ProxyAuthorization;
+		else 
+			ConfigurationParameter->HTTP_ProxyAuthorization->clear();
 	}
 
 	return;
@@ -401,17 +466,11 @@ void ConfigurationTable::MonitorItemReset(
 #if defined(PLATFORM_WIN)
 	SocketTimeout_Reliable = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
 	SocketTimeout_Unreliable = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
-	SOCKS_SocketTimeout_Reliable = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
-	SOCKS_SocketTimeout_Unreliable = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	SocketTimeout_Reliable.tv_sec = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
 	SocketTimeout_Reliable.tv_usec = 0;
 	SocketTimeout_Unreliable.tv_sec = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
 	SocketTimeout_Unreliable.tv_usec = 0;
-	SOCKS_SocketTimeout_Reliable.tv_sec = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
-	SOCKS_SocketTimeout_Reliable.tv_usec = 0;
-	SOCKS_SocketTimeout_Unreliable.tv_sec = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
-	SOCKS_SocketTimeout_Unreliable.tv_usec = 0;
 #endif
 	ReceiveWaiting = 0;
 #if defined(ENABLE_PCAP)
@@ -429,21 +488,33 @@ void ConfigurationTable::MonitorItemReset(
 	HeaderCheck_DNS = false;
 
 //[Proxy] block
+#if defined(PLATFORM_WIN)
+	SOCKS_SocketTimeout_Reliable = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
+	SOCKS_SocketTimeout_Unreliable = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	SOCKS_SocketTimeout_Reliable.tv_sec = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
+	SOCKS_SocketTimeout_Reliable.tv_usec = 0;
+	SOCKS_SocketTimeout_Unreliable.tv_sec = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
+	SOCKS_SocketTimeout_Unreliable.tv_usec = 0;
+#endif
 	memset(&SOCKS_TargetServer, 0, sizeof(ADDRESS_UNION_DATA));
 	if (SOCKS_TargetDomain != nullptr)
-		memset(SOCKS_TargetDomain, 0, DOMAIN_MAXSIZE);
-	SOCKS_TargetDomain_Length = 0;
+		SOCKS_TargetDomain->clear();
 	SOCKS_TargetDomain_Port = 0;
 	if (SOCKS_Username != nullptr)
-	{
-		memset(SOCKS_Username, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U);
-		SOCKS_Username_Length = 0;
-	}
+		SOCKS_Username->clear();
 	if (SOCKS_Password != nullptr)
-	{
-		memset(SOCKS_Password, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U);
-		SOCKS_Password_Length = 0;
-	}
+		SOCKS_Password->clear();
+#if defined(PLATFORM_WIN)
+	HTTP_SocketTimeout = DEFAULT_HTTP_SOCKET_TIMEOUT;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	HTTP_SocketTimeout.tv_sec = DEFAULT_HTTP_SOCKET_TIMEOUT;
+	HTTP_SocketTimeout.tv_usec = 0;
+#endif
+	HTTP_TargetDomain->clear();
+	HTTP_Version->clear();
+	HTTP_HeaderField->clear();
+	HTTP_ProxyAuthorization->clear();
 
 	return;
 }
@@ -456,7 +527,6 @@ GlobalStatus::GlobalStatus(
 	try {
 		LocalListeningSocket = new std::vector<SYSTEM_SOCKET>();
 		RamdomEngine = new std::default_random_engine();
-		DomainTable = new char[strlen(RFC_DOMAIN_TABLE) + 1U]();
 		Path_Global = new std::vector<std::wstring>();
 		Path_ErrorLog = new std::wstring();
 		FileList_Hosts = new std::vector<std::wstring>();
@@ -478,7 +548,6 @@ GlobalStatus::GlobalStatus(
 	{
 		delete LocalListeningSocket;
 		delete RamdomEngine;
-		delete[] DomainTable;
 		delete Path_Global;
 		delete Path_ErrorLog;
 		delete FileList_Hosts;
@@ -513,8 +582,9 @@ void __fastcall GlobalStatusSetting(
 #endif
 	std::random_device RamdomDevice;
 	GlobalRunningStatusParameter->RamdomEngine->seed(RamdomDevice());
-	memset(GlobalRunningStatusParameter->DomainTable, 0, strlen(RFC_DOMAIN_TABLE) + 1U);
-	strncpy_s(GlobalRunningStatusParameter->DomainTable, strlen(RFC_DOMAIN_TABLE) + 1U, RFC_DOMAIN_TABLE, strlen(RFC_DOMAIN_TABLE));
+	GlobalRunningStatusParameter->DomainTable = DomainTable_Initialization;
+	GlobalRunningStatusParameter->Base64_EncodeTable = Base64_EncodeTable_Initialization;
+//	GlobalRunningStatusParameter->Base64_DecodeTable = Base64_DecodeTable_Initialization;
 	GlobalRunningStatusParameter->GatewayAvailable_IPv4 = true;
 	memset(GlobalRunningStatusParameter->LocalAddress_Response[0], 0, PACKET_MAXSIZE);
 	memset(GlobalRunningStatusParameter->LocalAddress_Response[1U], 0, PACKET_MAXSIZE);
@@ -534,14 +604,17 @@ GlobalStatus::~GlobalStatus(
 	void)
 {
 //Close all sockets.
-	if (LocalListeningSocket != nullptr)
+	for (auto SocketIter:*LocalListeningSocket)
 	{
-		for (auto SocketIter:*LocalListeningSocket)
-		{
-			shutdown(SocketIter, SD_BOTH);
-			closesocket(SocketIter);
-		}
+		shutdown(SocketIter, SD_BOTH);
+		closesocket(SocketIter);
 	}
+
+//WinSock cleanup
+#if defined(PLATFORM_WIN)
+	if (Initialization_WinSock)
+		WSACleanup();
+#endif
 
 //Free libraries.
 //Windows XP with SP3 support
@@ -557,7 +630,6 @@ GlobalStatus::~GlobalStatus(
 //Free pointer.
 	delete LocalListeningSocket;
 	delete RamdomEngine;
-	delete[] DomainTable;
 	delete Path_Global;
 	delete Path_ErrorLog;
 	delete FileList_Hosts;
@@ -769,9 +841,7 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 	DNSCurve_SocketTimeout_Unreliable = DEFAULT_DNSCURVE_UNRELIABLE_SOCKET_TIMEOUT;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	DNSCurve_SocketTimeout_Reliable.tv_sec = DEFAULT_DNSCURVE_RELIABLE_SOCKET_TIMEOUT;
-	DNSCurve_SocketTimeout_Reliable.tv_usec = 0;
 	DNSCurve_SocketTimeout_Unreliable.tv_sec = DEFAULT_DNSCURVE_UNRELIABLE_SOCKET_TIMEOUT;
-	DNSCurve_SocketTimeout_Unreliable.tv_usec = 0;
 #endif
 	KeyRecheckTime = DEFAULT_DNSCURVE_RECHECK_TIME * SECOND_TO_MILLISECOND;
 

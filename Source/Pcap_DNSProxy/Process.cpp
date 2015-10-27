@@ -60,7 +60,8 @@ bool __fastcall EnterRequestProcess(
 	size_t RecvSize = 0;
 	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Protocol == IPPROTO_TCP || //TCP request
 		Parameter.LocalProtocol_Transport == REQUEST_MODE_TCP || //Local request
-		Parameter.SOCKS_Proxy && Parameter.SOCKS_Protocol_Transport == REQUEST_MODE_TCP //SOCKS TCP request
+		Parameter.SOCKS_Proxy && Parameter.SOCKS_Protocol_Transport == REQUEST_MODE_TCP || //SOCKS TCP request
+		Parameter.HTTP_Proxy //HTTP Proxy request
 	#if defined(ENABLE_LIBSODIUM)
 		|| Parameter.DNSCurve && DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TCP //DNSCurve TCP request
 	#endif
@@ -110,6 +111,27 @@ bool __fastcall EnterRequestProcess(
 
 	//SOCKS Proxy Only mode
 		if (Parameter.SOCKS_Only)
+		{
+		//Fin TCP request connection.
+			if (Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
+			{
+				shutdown(LocalSocketData.Socket, SD_BOTH);
+				closesocket(LocalSocketData.Socket);
+			}
+
+			return true;
+		}
+	}
+
+//HTTP proxy request process
+	if (Parameter.HTTP_Proxy)
+	{
+	//HTTP request
+		if (HTTPRequestProcess(SendBuffer.get(), DataLength, RecvBuffer.get(), RecvSize, Protocol, LocalSocketData))
+			return true;
+
+	//HTTP Proxy Only mode
+		if (Parameter.HTTP_Only)
 		{
 		//Fin TCP request connection.
 			if (Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
@@ -238,31 +260,36 @@ size_t __fastcall CheckHostsProcess(
 		return EXIT_FAILURE;
 
 //Check Accept Types list.
-	if (Parameter.AcceptType) //Permit
+	if (Parameter.AcceptTypeList != nullptr)
 	{
-		for (auto AcceptTypeTableIter = Parameter.AcceptTypeList->begin();AcceptTypeTableIter != Parameter.AcceptTypeList->end();++AcceptTypeTableIter)
+	//Permit
+		if (Parameter.AcceptType)
 		{
-			if (AcceptTypeTableIter + 1U == Parameter.AcceptTypeList->end())
+			for (auto AcceptTypeTableIter = Parameter.AcceptTypeList->begin();AcceptTypeTableIter != Parameter.AcceptTypeList->end();++AcceptTypeTableIter)
 			{
-				if (*AcceptTypeTableIter != DNS_Query->Type)
+				if (AcceptTypeTableIter + 1U == Parameter.AcceptTypeList->end())
+				{
+					if (*AcceptTypeTableIter != DNS_Query->Type)
+					{
+						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_SNH);
+						return Length;
+					}
+				}
+				else if (*AcceptTypeTableIter == DNS_Query->Type)
+				{
+					break;
+				}
+			}
+		}
+	//Deny
+		else {
+			for (auto AcceptTypeTableIter:*Parameter.AcceptTypeList)
+			{
+				if (DNS_Query->Type == AcceptTypeTableIter)
 				{
 					DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_SNH);
 					return Length;
 				}
-			}
-			else if (*AcceptTypeTableIter == DNS_Query->Type)
-			{
-				break;
-			}
-		}
-	}
-	else { //Deny
-		for (auto AcceptTypeTableIter:*Parameter.AcceptTypeList)
-		{
-			if (DNS_Query->Type == AcceptTypeTableIter)
-			{
-				DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_SNH);
-				return Length;
 			}
 		}
 	}
@@ -333,7 +360,7 @@ size_t __fastcall CheckHostsProcess(
 #endif
 
 //LocalFQDN check
-	if (Domain == *Parameter.LocalFQDN_String)
+	if (Parameter.LocalFQDN_String != nullptr && Domain == *Parameter.LocalFQDN_String)
 	{
 	//IPv6
 		if (DNS_Query->Type == htons(DNS_RECORD_AAAA))
@@ -676,6 +703,31 @@ bool __fastcall SOCKSRequestProcess(
 	return false;
 }
 
+//Request Process(HTTP part)
+bool __fastcall HTTPRequestProcess(
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize, 
+	_In_ const uint16_t Protocol, 
+	_In_ const SOCKET_DATA &LocalSocketData)
+{
+	size_t DataLength = 0;
+	memset(OriginalRecv, 0, RecvSize);
+
+//HTTP request
+	DataLength = HTTPRequest(OriginalSend, SendSize, OriginalRecv, RecvSize);
+
+//Send response.
+	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
+	{
+		SendToRequester(OriginalRecv, DataLength, RecvSize, Protocol, LocalSocketData);
+		return true;
+	}
+
+	return false;
+}
+
 //Request Process(Direct connections part)
 bool __fastcall DirectRequestProcess(
 	_In_ const char *OriginalSend, 
@@ -862,7 +914,12 @@ bool __fastcall SendToRequester(
 	_In_ const uint16_t Protocol, 
 	_In_ const SOCKET_DATA &LocalSocketData)
 {
-//TCP
+//Response check
+	if (RecvSize < DNS_PACKET_MINSIZE || CheckEmptyBuffer(RecvBuffer, RecvSize) || 
+		*((uint16_t *)RecvBuffer) == 0 || *(((uint16_t *)RecvBuffer) + 1U) == 0) //DNS header ID and flags must not be set 0.
+			return false;
+
+//TCP protocol
 	if (Protocol == IPPROTO_TCP)
 	{
 		if (AddLengthDataToHeader(RecvBuffer, RecvSize, MaxLen) == EXIT_FAILURE)
@@ -876,7 +933,7 @@ bool __fastcall SendToRequester(
 		shutdown(LocalSocketData.Socket, SD_BOTH);
 		closesocket(LocalSocketData.Socket);
 	}
-//UDP
+//UDP protocol
 	else {
 		sendto(LocalSocketData.Socket, RecvBuffer, (int)RecvSize, 0, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen);
 	}

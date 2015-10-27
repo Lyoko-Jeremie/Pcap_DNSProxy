@@ -77,16 +77,13 @@ size_t WINAPI ServiceControl(
 	{
 		case SERVICE_CONTROL_SHUTDOWN:
 		{
-			WSACleanup();
 			TerminateService();
-
 			return EXIT_SUCCESS;
 		}
 		case SERVICE_CONTROL_STOP:
 		{
 			ServiceCurrentStatus = SERVICE_STOP_PENDING;
 			UpdateServiceStatus(SERVICE_STOP_PENDING, NO_ERROR, 0, 1U, UPDATE_SERVICE_TIME);
-			WSACleanup();
 			TerminateService();
 
 			return EXIT_SUCCESS;
@@ -122,12 +119,10 @@ DWORD WINAPI ServiceProc(
 {
 	if (!IsServiceRunning || !MonitorInit())
 	{
-		WSACleanup();
 		TerminateService();
 		return FALSE;
 	}
 
-	WSACleanup();
 	TerminateService();
 	return EXIT_SUCCESS;
 }
@@ -161,7 +156,6 @@ BOOL WINAPI UpdateServiceStatus(
 
 	if (!SetServiceStatus(ServiceStatusHandle, ServiceStatus.get()))
 	{
-		WSACleanup();
 		TerminateService();
 		return FALSE;
 	}

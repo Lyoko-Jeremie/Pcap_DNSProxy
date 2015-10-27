@@ -31,7 +31,9 @@ bool __fastcall MonitorInit(
 		Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && 
 		Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0) && 
 	//SOCKS request only mode
-		!(Parameter.SOCKS_Proxy && Parameter.SOCKS_Only)
+		!(Parameter.SOCKS_Proxy && Parameter.SOCKS_Only) && 
+	//HTTP request only mode
+		!(Parameter.HTTP_Proxy && Parameter.HTTP_Only)
 	//DNSCurve request only mode
 	#if defined(ENABLE_LIBSODIUM)
 		&& !(Parameter.DNSCurve && DNSCurveParameter.IsEncryptionOnly)
@@ -108,7 +110,7 @@ bool __fastcall MonitorInit(
 			if (LocalSocketData->Socket == INVALID_SOCKET)
 			{
 				if (WSAGetLastError() != 0 && WSAGetLastError() != WSAEAFNOSUPPORT)
-					PrintError(LOG_ERROR_NETWORK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+					PrintError(LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
 				GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData->Socket);
@@ -560,9 +562,9 @@ bool __fastcall UDPMonitor(
 	//SOCKET_ERROR
 		else {
 			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
-				PrintError(LOG_ERROR_NETWORK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+				PrintError(LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			else //IPv4
-				PrintError(LOG_ERROR_NETWORK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+				PrintError(LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 
 			Sleep(LOOP_INTERVAL_TIME_MONITOR);
 			continue;
@@ -713,9 +715,9 @@ bool __fastcall TCPMonitor(
 	//SOCKET_ERROR
 		else {
 			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
-				PrintError(LOG_ERROR_NETWORK, L"IPv6 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+				PrintError(LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			else //IPv4
-				PrintError(LOG_ERROR_NETWORK, L"IPv4 UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+				PrintError(LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 
 			Sleep(LOOP_INTERVAL_TIME_MONITOR);
 			continue;
@@ -1217,7 +1219,6 @@ void __fastcall NetworkInformationMonitor(
 	pdns_hdr DNS_Header = nullptr;
 	pdns_qry DNS_Query = nullptr;
 	void *DNS_Record = nullptr;
-//	auto IsSubnetMark = false;
 	std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0]), LocalAddressMutexIPv4(LocalAddressLock[1U]);
 	LocalAddressMutexIPv6.unlock();
 	LocalAddressMutexIPv4.unlock();
@@ -1225,8 +1226,6 @@ void __fastcall NetworkInformationMonitor(
 //Monitor
 	for (;;)
 	{
-//		IsSubnetMark = false;
-
 	//Get localhost addresses(IPv6)
 		if (Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_NETWORK_BOTH || Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV6)
 		{

@@ -142,7 +142,7 @@ uint16_t __fastcall GetChecksum_TCP_UDP(
 		std::shared_ptr<char> Validation(new char[sizeof(ipv4_psd_hdr) + Length]());
 		memset(Validation.get(), 0, sizeof(ipv4_psd_hdr) + Length);
 		auto IPv4_Pseudo_Header = (pipv4_psd_hdr)Validation.get();
-		IPv4_Pseudo_Header->Destination= ((pipv4_hdr)Buffer)->Destination;
+		IPv4_Pseudo_Header->Destination = ((pipv4_hdr)Buffer)->Destination;
 		IPv4_Pseudo_Header->Source = ((pipv4_hdr)Buffer)->Source;
 		IPv4_Pseudo_Header->Length = htons((uint16_t)Length);
 		IPv4_Pseudo_Header->Protocol = (uint8_t)Protocol_Transport;
@@ -252,7 +252,7 @@ void __fastcall MakeRamdomDomain(
 	{
 		for (Index = 0;Index < RamdomLength - 3U;++Index)
 		{
-			*(Buffer + Index) = GlobalRunningStatus.DomainTable[RamdomDistribution(*GlobalRunningStatus.RamdomEngine)];
+			*(Buffer + Index) = *(GlobalRunningStatus.DomainTable + RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 			*(Buffer + Index) = (char)tolower(*(Buffer + Index));
 		}
 
@@ -263,18 +263,18 @@ void __fastcall MakeRamdomDomain(
 			Index += 52U;
 		else if (Index < ASCII_AMPERSAND)
 			Index += 26U;
-		*(Buffer + (RamdomLength - 2U)) = GlobalRunningStatus.DomainTable[Index];
+		*(Buffer + (RamdomLength - 2U)) = *(GlobalRunningStatus.DomainTable + Index);
 		Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 		if (Index < ASCII_FF)
 			Index += 52U;
 		else if (Index < ASCII_AMPERSAND)
 			Index += 26U;
-		*(Buffer + (RamdomLength - 1U)) = GlobalRunningStatus.DomainTable[Index];
+		*(Buffer + (RamdomLength - 1U)) = *(GlobalRunningStatus.DomainTable + Index);
 	}
 	else {
 		for (Index = 0;Index < RamdomLength - 4U;++Index)
 		{
-			*(Buffer + Index) = GlobalRunningStatus.DomainTable[RamdomDistribution(*GlobalRunningStatus.RamdomEngine)];
+			*(Buffer + Index) = *(GlobalRunningStatus.DomainTable + RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 			*(Buffer + Index) = (char)tolower(*(Buffer + Index));
 		}
 
@@ -285,19 +285,19 @@ void __fastcall MakeRamdomDomain(
 			Index += 52U;
 		else if (Index < ASCII_AMPERSAND)
 			Index += 26U;
-		*(Buffer + (RamdomLength - 3U)) = GlobalRunningStatus.DomainTable[Index];
+		*(Buffer + (RamdomLength - 3U)) = *(GlobalRunningStatus.DomainTable + Index);
 		Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 		if (Index < ASCII_FF)
 			Index += 52U;
 		else if (Index < ASCII_AMPERSAND)
 			Index += 26U;
-		*(Buffer + (RamdomLength - 2U)) = GlobalRunningStatus.DomainTable[Index];
+		*(Buffer + (RamdomLength - 2U)) = *(GlobalRunningStatus.DomainTable + Index);
 		Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 		if (Index < ASCII_FF)
 			Index += 52U;
 		else if (Index < ASCII_AMPERSAND)
 			Index += 26U;
-		*(Buffer + (RamdomLength - 1U)) = GlobalRunningStatus.DomainTable[Index];
+		*(Buffer + (RamdomLength - 1U)) = *(GlobalRunningStatus.DomainTable + Index);
 	}
 
 	return;

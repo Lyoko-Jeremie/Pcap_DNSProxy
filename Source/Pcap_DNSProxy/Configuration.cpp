@@ -269,19 +269,19 @@ bool __fastcall ReadText(
 			{
 				case READ_TEXT_HOSTS: //ReadHosts
 				{
-					PrintError(LOG_ERROR_HOSTS, L"Text encoding error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), 0);
 				}break;
 				case READ_TEXT_IPFILTER: //ReadIPFilter
 				{
-					PrintError(LOG_ERROR_IPFILTER, L"Text encoding error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), 0);
 				}break;
 				case READ_TEXT_PARAMETER: //ReadParameter
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				}break;
 				case READ_TEXT_PARAMETER_MONITOR: //ReadParameter(Monitor mode)
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				}break;
 			}
 			

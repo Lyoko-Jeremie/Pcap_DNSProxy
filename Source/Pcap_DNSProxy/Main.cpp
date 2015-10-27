@@ -44,10 +44,7 @@ int main(
 
 //Read configuration file.
 	if (!ReadParameter(true))
-	{
-		WSACleanup();
 		return EXIT_FAILURE;
-	}
 
 //DNSCurve initialization
 #if defined(ENABLE_LIBSODIUM)
@@ -59,18 +56,12 @@ int main(
 		if (sodium_init() != EXIT_SUCCESS)
 		{
 			PrintError(LOG_ERROR_DNSCURVE, L"Libsodium initialization error", 0, nullptr, 0);
-
-			WSACleanup();
 			return EXIT_FAILURE;
 		}
 
 	//Encryption mode initialization
 		if (DNSCurveParameter.IsEncryption)
-		{
-			randombytes_set_implementation(&randombytes_salsa20_implementation);
-			randombytes_stir();
 			DNSCurveInit();
-		}
 	}
 #endif
 
@@ -82,7 +73,6 @@ int main(
 	NetworkInformationMonitorThread.detach();
 	ReadParameterThread.detach();
 	ReadHostsThread.detach();
-	
 	if (Parameter.OperationMode == LISTEN_MODE_CUSTOM || Parameter.DataCheck_Blacklist || Parameter.LocalRouting)
 	{
 		std::thread ReadIPFilterThread(ReadIPFilter);
@@ -107,7 +97,6 @@ int main(
 	MonitorInit();
 #endif
 
-	WSACleanup();
 	return EXIT_SUCCESS;
 }
 
@@ -139,6 +128,7 @@ bool ReadCommand(
 	FileName.reset();
 #endif
 
+//Read commands.
 #if defined(PLATFORM_WIN)
 //Winsock initialization
 	std::shared_ptr<WSAData> WSAInitialization(new WSAData());
@@ -148,11 +138,12 @@ bool ReadCommand(
 		wprintf_s(L"Winsock initialization error, error code is %d.\n", WSAGetLastError());
 		PrintError(LOG_ERROR_NETWORK, L"Winsock initialization error", WSAGetLastError(), nullptr, 0);
 
-		WSACleanup();
 		return false;
 	}
+	else {
+		GlobalRunningStatus.Initialization_WinSock = true;
+	}
 
-//Read commands.
 	std::wstring Commands;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::string Commands;
@@ -170,7 +161,6 @@ bool ReadCommand(
 			FlushDNSFIFOSender();
 		#endif
 
-			WSACleanup();
 			return false;
 		}
 	//Windows Firewall Test in first start.
@@ -183,7 +173,6 @@ bool ReadCommand(
 				PrintError(LOG_ERROR_NETWORK, L"Windows Firewall Test error", WSAGetLastError(), nullptr, 0);
 			}
 
-			WSACleanup();
 			return false;
 		}
 	#endif
@@ -201,7 +190,29 @@ bool ReadCommand(
 			wprintf_s(FULL_VERSION);
 			wprintf_s(L"\n");
 
-			WSACleanup();
+			return false;
+		}
+	//Print library version.
+		else if (Commands == COMMAND_LIB_VERSION)
+		{
+		#if (defined(ENABLE_LIBSODIUM) || defined(ENABLE_PCAP))
+			std::wstring LibVersion;
+
+			//LibSodium version
+			#if defined(ENABLE_LIBSODIUM)
+				if (MBSToWCSString(SODIUM_VERSION_STRING, strlen(SODIUM_VERSION_STRING), LibVersion))
+					wprintf_s(L"LibSodium version %ls\n", LibVersion.c_str());
+			#endif
+
+			//WinPcap or LibPcap version
+			#if defined(ENABLE_PCAP)
+				if (MBSToWCSString(pcap_lib_version(), strlen(pcap_lib_version()), LibVersion))
+					wprintf_s(L"%ls\n", LibVersion.c_str());
+			#endif
+		#else
+			wprintf_s(L"No any available libraries.\n");
+		#endif
+
 			return false;
 		}
 	//Print help messages.
@@ -211,6 +222,8 @@ bool ReadCommand(
 			wprintf_s(FULL_VERSION);
 		#if defined(PLATFORM_WIN)
 			wprintf_s(L"(Windows)\n");
+		#elif defined(PLATFORM_OPENWRT)
+			wprintf(L"(OpenWrt)\n");
 		#elif defined(PLATFORM_LINUX)
 			wprintf(L"(Linux)\n");
 		#elif defined(PLATFORM_MACX)
@@ -219,13 +232,17 @@ bool ReadCommand(
 			wprintf_s(COPYRIGHT_MESSAGE);
 			wprintf_s(L"\nUsage: Please see ReadMe... files in Documents folder.\n");
 			wprintf_s(L"   -v/--version:          Print current version on screen.\n");
+			wprintf_s(L"   --lib-version:         Print current version of library on screen.\n");
 			wprintf_s(L"   -h/--help:             Print help messages on screen.\n");
 			wprintf_s(L"   --flush-dns:           Flush all DNS cache in program and system immediately.\n");
-			wprintf_s(L"   --first-setup:         Test local firewall(Windows).\n");
+		#if defined(PLATFORM_WIN)
+			wprintf_s(L"   --first-setup:         Test local firewall.\n");
+		#endif
 			wprintf_s(L"   -c/--config-file Path: Set path of configuration file.\n");
-			wprintf_s(L"   --disable-daemon:      Disable daemon mode(Linux).\n");
+		#if defined(PLATFORM_LINUX)
+			wprintf_s(L"   --disable-daemon:      Disable daemon mode.\n");
+		#endif
 
-			WSACleanup();
 			return false;
 		}
 	//Set working directory from commands.
@@ -237,7 +254,6 @@ bool ReadCommand(
 				wprintf_s(L"Commands error.\n");
 				PrintError(LOG_ERROR_SYSTEM, L"Commands error", 0, nullptr, 0);
 
-				WSACleanup();
 				return false;
 			}
 			else {
@@ -250,7 +266,6 @@ bool ReadCommand(
 					wprintf_s(L"Commands error.\n");
 					PrintError(LOG_ERROR_SYSTEM, L"Commands error", 0, nullptr, 0);
 
-					WSACleanup();
 					return false;
 				}
 				else {

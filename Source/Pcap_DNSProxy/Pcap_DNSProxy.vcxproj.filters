@@ -16,14 +16,11 @@
     <Filter Include="WinPcap">
       <UniqueIdentifier>{702cda2a-056e-4587-95a6-b19fa0846a4a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="LibSodium">
-      <UniqueIdentifier>{b84be7f8-c8b4-4217-b3c3-4bf2467f38b9}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ExampleConfig">
       <UniqueIdentifier>{24a2b186-b4ca-49f8-8e4a-b5dfa546e3bc}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Documents">
-      <UniqueIdentifier>{8841be11-7e9b-4669-bdc0-e8bea1656f2c}</UniqueIdentifier>
+    <Filter Include="LibSodium">
+      <UniqueIdentifier>{2273ae54-29d8-4833-affe-718f2188b47c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -111,7 +108,25 @@
     <ClInclude Include="Network.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Service.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketData.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Structures.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Proxy.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="..\LibSodium\core.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_aead_aes256gcm.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
     <ClInclude Include="..\LibSodium\crypto_aead_chacha20poly1305.h">
@@ -252,6 +267,9 @@
     <ClInclude Include="..\LibSodium\randombytes.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
+    <ClInclude Include="..\LibSodium\randombytes_nativeclient.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
     <ClInclude Include="..\LibSodium\randombytes_salsa20_random.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
@@ -269,21 +287,6 @@
     </ClInclude>
     <ClInclude Include="..\LibSodium\version.h">
       <Filter>LibSodium</Filter>
-    </ClInclude>
-    <ClInclude Include="Service.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="PacketData.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Platform.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Structures.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="Proxy.h">
-      <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -377,6 +380,9 @@
     <None Include="..\ExampleConfig\ServiceControl.bat">
       <Filter>ExampleConfig</Filter>
     </None>
+    <None Include="..\LibSodium\LibSodium_Mac.a">
+      <Filter>LibSodium</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\ExampleConfig\Routing.txt">
@@ -384,42 +390,6 @@
     </Text>
     <Text Include="..\ExampleConfig\White_List.txt">
       <Filter>ExampleConfig</Filter>
-    </Text>
-    <Text Include="..\Documents\Changelog(zh_Hans).txt">
-      <Filter>Documents</Filter>
-    </Text>
-    <Text Include="..\Documents\Changelog(zh_Hant).txt">
-      <Filter>Documents</Filter>
-    </Text>
-    <Text Include="..\Documents\FAQ(zh_Hans).txt">
-      <Filter>Documents</Filter>
-    </Text>
-    <Text Include="..\Documents\FAQ(zh_Hant).txt">
-      <Filter>Documents</Filter>
-    </Text>
-    <Text Include="..\Documents\FAQ_Linux_Mac(zh_Hans).txt">
-      <Filter>Documents</Filter>
-    </Text>
-    <Text Include="..\Documents\FAQ_Linux_Mac(zh_Hant).txt">
-      <Filter>Documents</Filter>
-    </Text>
-    <Text Include="..\Documents\ReadMe(zh_Hans).txt">
-      <Filter>Documents</Filter>
-    </Text>
-    <Text Include="..\Documents\ReadMe(zh_Hant).txt">
-      <Filter>Documents</Filter>
-    </Text>
-    <Text Include="..\Documents\ReadMe_Linux(zh_Hans).txt">
-      <Filter>Documents</Filter>
-    </Text>
-    <Text Include="..\Documents\ReadMe_Linux(zh_Hant).txt">
-      <Filter>Documents</Filter>
-    </Text>
-    <Text Include="..\Documents\ReadMe_Mac(zh_Hans).txt">
-      <Filter>Documents</Filter>
-    </Text>
-    <Text Include="..\Documents\ReadMe_Mac(zh_Hant).txt">
-      <Filter>Documents</Filter>
     </Text>
     <Text Include="CMakeLists.txt">
       <Filter>源文件</Filter>

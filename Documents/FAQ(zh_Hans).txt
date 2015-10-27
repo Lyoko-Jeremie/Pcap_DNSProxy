@@ -70,6 +70,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Commands error - 程序启动参数错误：请检查为程序传入的参数
   * Service start error - 服务启动失败：可能未在系统注册服务，或在系统内注册的服务路径不正确
     * Windows 的错误代码参见 https://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
+  * Set system daemon error - 守护进程设置错误：建议重新启动服务或程序
     * Linux/Mac 的错误代码参见 http://man7.org/linux/man-pages/man3/errno.3.html
   * Convert multiple byte string to wide char string error - 多/宽字节字符转换错误：建议重新启动服务或程序
   * Create mailslot error - MailSlot 创建失败：建议重新启动服务或程序
@@ -77,7 +78,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * MailSlot write messages error - MailSlot 写入信息失败：建议重新启动服务或程序
   * Create FIFO error - FIFO 创建失败：建议重新启动服务或程序
   * FIFO write messages error - FIFO 写入信息失败：建议重新启动服务或程序
-  * Old Error Log file was deleted - 错误日志文件已满并被删除
+  * Old error log file was deleted - 错误日志文件已满并被删除
     * 日志文件最大容量的配置参见 详细说明文档 中 配置文件详细参数说明 中的 Log Maximum Size 参数
   * Mailslot Monitor initialization error - MailSlot 监视模块初始化失败：建议重新启动服务或程序
   * Read Parameter module Monitor terminated - 配置文件读取模块已经停止监视：建议重新启动服务或程序
@@ -93,6 +94,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * TCP listening module Monitor terminated - TCP 协议监听模块已经停止监视：建议重新启动服务或程序
   * MailSlot module Monitor terminated - MailSlot 监视模块已经停止运行：建议重新启动服务或程序
   * FIFO module Monitor terminated - FIFO 监视模块已经停止运行：建议重新启动服务或程序
+  * Capture module Monitor terminated - 抓包模块已经停止运行：建议重新启动服务或程序
   * DNSCurve TCP Signature Request module Monitor terminated - DNSCurve TCP 协议握手信息获取模块已经停止运行：建议重新启动服务或程序
   * DNSCurve UDP Signature Request module Monitor terminated - DNSCurve UDP 协议握手信息获取模块已经停止运行：建议重新启动服务或程序
 
@@ -103,7 +105,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Hosts file size is too large - Hosts 文件容量过大：请确认Hosts文件的内容，整个文件的大小不要超过 4GB
   * Configuration file version error - 配置文件版本错误：请确认配置文件是否需要更新
   * Data length error - 配置文件参数一行数据超过 4096 字节/4KB，或该行数据长度不符合要求：请确认该行的内容是否符合要求
-  * Text encoding error - 配置文件编码错误：请确认配置文件的编码类型
+  * Text encoding error - 文件编码错误：请确认配置文件的编码类型
   * Data of a line is too short - 该参数过短：请确认配置文件的内容
   * Data of a line is too long - 该参数过长：一行数据切勿超过 4096 字节/4KB
   * Read file name error - 读取文件名参数错误：请确认该行的内容是否符合要求
@@ -130,14 +132,15 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Alternate Multi request error - 主要备用或多个服务器下同时请求参数错误：请确认所有服务器的信息
   * IPv4 total request number error - IPv4 请求总次数限制错误：填入主要/备用服务器的数量 * Multi Request Times = 总请求的数值，此数值不能超过 64
   * IPv6 total request number error - IPv6 请求总次数限制错误：填入主要/备用服务器的数量 * Multi Request Times = 总请求的数值，此数值不能超过 64
-  * DNSCurve target error - DNSCurve 协议使用的 DNS 目标服务器地址错误：请检查 DNSCurve 协议使用DNS服务器的地址
+  * DNSCurve target error - DNSCurve 协议使用的 DNS 目标服务器地址错误：请检查 DNSCurve 协议使用 DNS 服务器的地址
   * DNSCurve encryption options error - DNSCurve 协议加密选项配置错误：开启加密选项和只使用加密模式选项冲突
   * DNSCurve Encryption Only mode error - DNSCurve 协议只使用加密模式配置错误：只使用加密模式必须提供服务器的魔数和指纹
-  * DNSCurve empty Provider Name error - DNSCurve 协议服务器提供者错误：不存在魔数或指纹时必须提供服务器的提供者信息以自动获取连接参数
-  * DNSCurve empty Public Key error - DNSCurve 协议服务器提供者错误：不存在魔数或指纹时必须提供服务器的公钥以自动获取连接参数
+  * DNSCurve Provider Name error - DNSCurve 协议服务器提供者格式错误：请确认该条目的内容
+  * DNSCurve Key error - DNSCurve 协议密钥格式错误：请确认该条目的内容
+  * DNSCurve empty Provider Name error - DNSCurve 协议服务器提供者不存在错误：不存在魔数或指纹时必须提供服务器的提供者信息以自动获取连接参数
+  * DNSCurve empty Public Key error - DNSCurve 协议服务器公钥不存在错误：不存在魔数或指纹时必须提供服务器的公钥以自动获取连接参数
 
 3.IPFilter Error - 读取 IPFilter 文件错误
-  * Text encoding error - 文件编码错误：请确认文件的编码类型
   * Data of a line is too short - 该 IPFilter 条目过短：请确认该条目的内容
   * Data of a line is too long - 该 IPFilter 条目过长：一行数据切勿超过 4096 字节/4KB
   * Item format error - IPFilter 条目格式错误：请检查该条目的格式
@@ -152,7 +155,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Level error - IPFilter 过滤级别错误：过滤级别介乎与 0 - 0xFFFF(65535)
 
 4.Hosts Error - 读取 Hosts 文件错误
-  * Text encoding error - 文件编码错误：请确认文件的编码类型
   * Data of a line is too short - 该 Hosts 条目过短：请确认该条目的内容
   * Data of a line is too long - 该 Hosts 条目过长：一行数据切勿超过 4096 字节/4KB
   * Item format error - Hosts 条目格式错误：请检查该条目的格式
@@ -182,9 +184,12 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * UDP socket initialization error - UDP 协议请求套接字初始化失败：原因参见错误代码
   * TCP socket initialization error - TCP 协议请求套接字初始化失败：原因参见错误代码
   * SOCKS socket initialization error - SOCKS 协议请求套接字初始化失败：原因参见错误代码
+  * HTTP socket initialization error - HTTP 协议请求套接字初始化失败：原因参见错误代码
   * Complete UDP socket initialization error - UDP 协议请求套接字初始化失败：原因参见错误代码
   * SOCKS connecting error - SOCKS 协议连接错误：可能为网络错误，原因参见错误代码
+  * HTTP connecting error - HTTP 协议连接错误：可能为网络错误，原因参见错误代码
   * SOCKS request error - SOCKS 协议请求失败：可能为网络错误，具体原因可参见错误代码
+  * HTTP request error - HTTP 协议请求失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve UDP socket initialization error - DNSCurve 协议 UDP 协议套接字初始化失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve TCP socket initialization error - DNSCurve 协议 TCP 协议套接字初始化失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve Local Signature socket initialization error - DNSCurve 协议本地请求套接字初始化失败：可能为网络错误，具体原因可参见错误代码
@@ -193,7 +198,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Winsock 错误代码具体含义可移步 https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 
 6.Pcap Error - Pcap 错误
-  * Insufficient privileges or not any available network devices - 没有任何可用的网络适配器：请检查硬件设备和驱动程序是否安装正确，也可能是权限不足
+  * Insufficient privileges or not any available network devices - 没有任何可用的网络适配器：请检查硬件设备和驱动程序是否安装正确，也可能权限不足
   * 本类型错误会直接将 WinPcap 的错误信息直接打印至错误报告
   * WinPcap 错误信息的具体含义可移步 http://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
 
@@ -217,6 +222,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * SOCKS version 4 and 4a are not support UDP relay - SOCKS 版本 4 和 4a 不支持 UDP 转发：请更换为版本 5
   * SOCKS version 4 and 4a are not support IPv6 target server - SOCKS 版本 4 和 4a 不支持 IPv6 地址的目标服务器地址：请更换为版本 5
   * SOCKS version 4 is not support domain target server - SOCKS 版本 4 不支持目标为域名的服务器地址：请更换为版本 4a 或版本 5
+  * SOCKS address error - SOCKS 代理地址错误：请检查该服务器是否可用
+  * SOCKS target server error - SOCKS 代理目标地址错误：请检查该服务器是否可用
   * SOCKS username and password error - SOCKS 协议的用户名和密码配置错误 - 请检查所输入的用户名和密码是否正确
   * Server SOCKS protocol version error - 服务器 SOCKS 协议版本错误：请检查该服务器是否可用
   * Authentication method not support - 不支持的认证方式：请检查服务器对客户端认证方式的支持
@@ -224,19 +231,24 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Username or Password incorrect - SOCKS 协议用户名/密码不正确：请检查用户名/密码是否错误
   * Client command request error - 客户端请求连接失败：请检查 SOCKS 协议目标地址否受支持或是否可用，原因参见错误代码
 
-9.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
+9.HTTP Error - HTTP 协议错误
+  * HTTP address error - HTTP 代理地址错误：请检查该服务器是否可用
+  * HTTP target server error - HTTP 代理目标地址错误：请检查该服务器是否可用
+  * HTTP server response error - HTTP 代理服务器响应错误：请检查该服务器是否可用
+
+10.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
   * Configuration file is not the latest version - 配置文件非最新版本：请确认配置文件是否需要更新
   * Listen Port is empty, set to standard DNS port(53) - 本地监听端口参数为空：程序将自动设置为标准 DNS 协议端口（53）
   * TCP Data Filter require TCP Request Mode - 开启 TCP 数据包头检测时必须将 Request Mode 设置为 TCP：程序将自动关闭此功能
   * TCP Data Filter require Pcap Cpature - 开启 TCP 数据包头检测时必须启用 Pcap Cpature：程序将自动关闭此功能
   * IPv4 Data Filter require IPv4 DNS server - 开启 IPv4 数据包头检测时必须存在 IPv4 协议的 DNS 服务器：程序将自动关闭此功能
   * IPv4 Data Filter require Pcap Cpature - 开启 IPv4 数据包头检测时必须启用 Pcap Cpature：程序将自动关闭此功能
-  * EDNS Payload Size must longer than 512 bytes(Traditional DNS packet minimum supported size) - EDNS 载荷长度过短：实现 DNS 协议必须支持长度超过 512 bytes 的数据包
+  * EDNS Payload Size must longer than traditional DNS packet minimum supported size(512 bytes) - EDNS 载荷长度过短：实现 DNS 协议必须支持长度超过 512 bytes 的数据包
   * EDNS Payload Size is too long - EDNS 载荷长度可能过长：此值建议不要超过以太网的 MTU(1500 bytes)
   * DNSSEC Request require EDNS Label - 开启 DNSSEC 请求时必须开启 EDNS 标签请求功能
   * EDNS Client Subnet require EDNS Label - 开启 EDNS Client Subnet 请求时必须开启 EDNS 标签请求功能
   * Turn OFF Compression Pointer Mutation when EDNS Label is available - 使用 Compression Pointer Mutation 时不能开启 EDNS 标签请求功能，两者并不兼容
   * DNSSEC Validation require EDNS Label and DNSSEC Request - 开启 DNSSEC Validation 请求时必须开启 EDNS 标签请求和 DNSSEC 请求功能
   * DNSSEC Force Validation require EDNS Label, DNSSEC Request and DNSSEC Validation - 开启 DNSSEC Force Validation 请求时必须开启 EDNS 标签请求、DNSSEC 请求和 DNSSEC Validation 验证功能
-  * DNSCurve Payload Size must longer than 512 bytes(Traditional DNS packet minimum supported size) - DNSCurve 协议载荷长度过短：实现 DNS 协议必须支持长度超过 512 bytes 的数据包
+  * DNSCurve Payload Size must longer than traditional DNS packet minimum supported size(512 bytes) - DNSCurve 协议载荷长度过短：实现 DNS 协议必须支持长度超过 512 bytes 的数据包
   * DNSCurve Payload Size is too long - DNSCurve 协议载荷长度可能过长：此值建议不要超过以太网的 MTU(1500 bytes)

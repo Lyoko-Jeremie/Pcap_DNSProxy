@@ -193,56 +193,61 @@
 #include <algorithm>               //Algorithm support
 
 #if defined(PLATFORM_WIN)
+//Preprocessor definitions
+#define SODIUM_STATIC              //LibSodium
+#define WPCAP                      //WinPcap
+#define HAVE_REMOTE                //WinPcap
+
 //LibSodium header
-	#define ENABLE_LIBSODIUM       //LibSodium is always enable on Windows.
+	#define ENABLE_LIBSODIUM         //LibSodium is always enable in Windows.
 	#if defined(ENABLE_LIBSODIUM)
 		#include "..\\LibSodium\\sodium.h"
 	#endif
 
 //WinPcap header
-	#define ENABLE_PCAP           //WinPcap is always enable on Windows.
+	#define ENABLE_PCAP              //WinPcap is always enable in Windows.
 	#if defined(ENABLE_PCAP)
 		#include "WinPcap\\pcap.h"
 	#endif
 
 //Windows API headers
 //	#include <tchar.h>                 //Unicode(UTF-8/UTF-16)/Wide-Character Support
-	#include <winsock2.h>              //WinSock 2.0+(MUST be including before windows.h)
+	#include <winsock2.h>              //WinSock 2.0+ support(MUST be including before windows.h)
 //	#include <winsvc.h>                //Service Control Manager
 	#include <iphlpapi.h>              //IP Stack for MIB-II and related functionality
 	#include <ws2tcpip.h>              //WinSock 2.0+ Extension for TCP/IP protocols
 //	#include <mstcpip.h>               //Microsoft-specific extensions to the core Winsock definitions.
 //	#include <windns.h>                //Windows DNS definitions and DNS API
 	#include <sddl.h>                  //Support and conversions routines necessary for SDDL
-//	#include <windows.h>               //Master include file
+//	#include <windows.h>               //Master include file in Windows
 /* Minimum supported system of Windows Version Helpers is Windows Vista.
 	#if defined(PLATFORM_WIN64)
 		#include <VersionHelpers.h>        //Version Helper functions
 	#endif
 */
 //Static libraries
-	#pragma comment(lib, "ws2_32.lib")            //Winsock Library, WinSock 2.0+
-	#pragma comment(lib, "iphlpapi.lib")          //IP Helper Library, IP Stack for MIB-II and related functionality
+	#pragma comment(lib, "ws2_32.lib")            //Windows WinSock 2.0+ support
+	#pragma comment(lib, "iphlpapi.lib")          //Windows IP Helper, IP Stack for MIB-II and related functionality support
 	//WinPcap and LibSodium libraries
 	#if defined(PLATFORM_WIN64)
-		#if defined(ENABLE_PCAP)
-			#pragma comment(lib, "WinPcap\\WPCAP_x64.lib")
-		#endif
 		#if defined(ENABLE_LIBSODIUM)
 			#pragma comment(lib, "..\\LibSodium\\LibSodium_x64.lib")
 		#endif
-	#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		#if defined(ENABLE_PCAP)
-			#pragma comment(lib, "WinPcap\\WPCAP_x86.lib")
+			#pragma comment(lib, "WinPcap\\WPCAP_x64.lib")
 		#endif
+	#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		#if defined(ENABLE_LIBSODIUM)
 			#pragma comment(lib, "..\\LibSodium\\LibSodium_x86.lib")
+		#endif
+		#if defined(ENABLE_PCAP)
+			#pragma comment(lib, "WinPcap\\WPCAP_x86.lib")
 		#endif
 	#endif
 
 	#if defined(PLATFORM_WIN)
 		#define __LITTLE_ENDIAN            1U                        //Little Endian
-//		#define __BIG_ENDIAN               2U                        //Big Endian, Little Endian is always on Windows.
+//		#define __BIG_ENDIAN               2U                        //Big Endian, Little Endian is always in Windows.
 		#define __BYTE_ORDER               __LITTLE_ENDIAN           //x86 and x86-64/x64 is Little Endian.
 
 	//Code definitions
@@ -250,9 +255,6 @@
 		#define WINSOCK_VERSION_HIGH       2                         //High byte of Winsock version(2.2)
 		#define SIO_UDP_CONNRESET          _WSAIOW(IOC_VENDOR, 12)   //Block connection reset error message from system.
 	#endif
-
-//	#pragma comment(linker, "/subsystem:windows /entry:mainCRTStartup") //Hide console.
-//Add "WPCAP", "HAVE_REMOTE", "SODIUM_STATIC" and "SODIUM_EXPORT=" to preprocessor options.
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#include <climits>                 //Data limits
 	#include <cstring>                 //C-Style strings
@@ -272,19 +274,19 @@
 	#include <arpa/inet.h>             //Internet operations
 	#include <netinet/tcp.h>           //TCP protocol support
 
-//LibPcap and LibSodium header
+//LibSodium and LibPcap header
 	#if defined(PLATFORM_LINUX)
-		#if defined(ENABLE_PCAP)
-			#include <pcap/pcap.h>
-		#endif
 		#if defined(ENABLE_LIBSODIUM)
 			#include <sodium.h>
 		#endif
+		#if defined(ENABLE_PCAP)
+			#include <pcap/pcap.h>
+		#endif		
 	#elif defined(PLATFORM_MACX)
-		#define ENABLE_PCAP                //LibPcap is always enable on Mac OS X.
 		#define ENABLE_LIBSODIUM           //LibSodium is always enable on Mac OS X.
-		#include <pcap/pcap.h>
+		#define ENABLE_PCAP                //LibPcap is always enable on Mac OS X.
 		#include "../LibSodium/sodium.h"
+		#include <pcap/pcap.h>
 		#pragma comment(lib, "../LibSodium/LibSodium_Mac.a")
 	#endif
 
@@ -436,7 +438,6 @@
 	#define GetLastError()                                               errno
 	#define closesocket                                                  close
 	#define WSAGetLastError()                                            GetLastError()
-	#define WSACleanup()
 	#define GetCurrentProcessId()                                        pthread_self()
 #endif
 

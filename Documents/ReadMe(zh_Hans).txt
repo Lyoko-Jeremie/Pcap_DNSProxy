@@ -177,7 +177,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Base - 基本参数区域
   * Version - 配置文件的版本，用于正确识别配置文件：本参数与程序版本号不相关，切勿修改
   * File Refresh Time - 文件刷新间隔时间：单位为秒，最短间隔时间为 5 秒
-  * Additional Path - 附加的数据文件读取路径，附加在此处的目录路径下的 Hosts 文件和 IPFilter 文件会被依次读取
+  * Additional Path - 附加的数据文件读取路径，附加在此处的目录路径下的 Hosts 文件和 IPFilter 文件会被依次读取：请填入目录的绝对路径
   * Hosts File Name - Hosts 文件的文件名，附加在此处的 Hosts 文件名将被依次读取
   * IPFilter File Name - IPFilter 文件的文件名，附加在此处的 IPFilter 文件名将被依次读取
 
@@ -306,7 +306,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入 IPv4 或 IPv6 时将会启用对应协议的 Direct Request 功能，填入 IPv4 + IPv6 将会启用所有协议的功能
   * Cache Type - DNS 缓存的类型：分 Timer/计时型以及 Queue/队列型
   * Cache Parameter - DNS 缓存的参数：Timer/计时型 时为时间长度（单位为秒），Queue/队列型 时为队列长度
-  * Default TTL - Hosts 条目默认生存时间：单位为秒，留空则为 900秒/15分钟
+  * Default TTL - 已缓存 DNS 记录默认生存时间：单位为秒，留空则为 900秒/15分钟
   
 * Local DNS - 境内域名解析参数区域
   * Local Protocol - 发送境内请求所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
@@ -546,7 +546,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * SOCKS UDP No Handshake - SOCKS UDP 不握手模式，开启后将不进行 TCP 握手直接发送 UDP 转发请求：开启为 1 /关闭为 0
     * SOCKS 协议的标准流程使用 UDP 转发功能前必须使用 TCP 连接交换握手信息，否则 SOCKS 服务器将直接丢弃转发请求
     * 部分 SOCKS 本地代理可以直接进行 UDP 转发而不需要使用 TCP 连接交换握手信息，启用前请务必确认 SOCKS 服务器的支持情况
-  * SOCKS Proxy Only - 只使用 SOCKS 协议代理模式：开启为 1 /关闭为 0
+  * SOCKS Proxy Only - 只使用 SOCKS 协议代理模式，所有请求将只通过 SOCKS 协议进行：开启为 1 /关闭为 0
   * SOCKS IPv4 Address - SOCKS 协议 IPv4 主要 SOCKS 服务器地址：需要输入一个带端口格式的地址
     * 不支持多个地址，只能填入单个地址
     * 支持使用服务名称代替端口号
@@ -558,6 +558,26 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 支持使用服务名称代替端口号
   * SOCKS Username - 连接 SOCKS 服务器时所使用的用户名：最长可填入 255 个字符，留空为不启用
   * SOCKS Password - 连接 SOCKS 服务器时所使用的密码：最长可填入 255 个字符，留空为不启用
+  * HTTP Proxy - HTTP 协议总开关，控制所有和 HTTP 协议有关的选项：开启为 1 /关闭为 0
+  * HTTP Protocol - 发送 HTTP 协议请求所使用的协议：可填入 IPv4 和 IPv6
+    * 填入的协议可随意组合，只填 IPv4 或 IPv6 时，只使用指定协议向 HTTP 服务器发出请求
+    * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
+  * HTTP Socket Timeout - HTTP 协议端口超时时间：最小为 500，可留空，留空时为 3000，单位为毫秒
+  * HTTP Proxy Only - 只使用 HTTP 协议代理模式，所有请求将只通过 HTTP 协议进行：开启为 1 /关闭为 0
+  * HTTP IPv4 Address - HTTP 协议 IPv4 主要 HTTP 服务器地址：需要输入一个带端口格式的地址
+    * 不支持多个地址，只能填入单个地址
+    * 支持使用服务名称代替端口号
+  * HTTP IPv6 Address - HTTP 协议 IPv6 主要 HTTP 服务器地址：需要输入一个带端口格式的地址
+    * 不支持多个地址，只能填入单个地址
+    * 支持使用服务名称代替端口号
+  * HTTP Target Server - HTTP 最终目标服务器：需要输入一个带端口格式的 IPv4/IPv6 地址或域名
+    * 不支持多个地址或域名，只能填入单个地址或域名
+    * 支持使用服务名称代替端口号
+  * HTTP Version - 附带在 HTTP Header 的 HTTP 协议版本号
+  * HTTP Header Field - 附带在 HTTP Header 的信息：所输入的信息将被直接添加到 HTTP Header
+    * 本参数可重复多次出现，所有有内容的 HTTP Header 的信息都将被记录并在请求时按顺序添加到 HTTP Header 里
+  * HTTP Proxy Authorization - 连接 HTTP Proxy 服务器时所使用的认证信息：需要输入 "用户名:密码"（不含引号），留空为不启用
+    * 只支持 Base 方式的认证
 
 * DNSCurve - DNSCurve 协议基本参数区域
   * DNSCurve - DNSCurve 协议总开关，控制所有和 DNSCurve 协议有关的选项：开启为 1 /关闭为 0
@@ -569,7 +589,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSCurve Reliable Socket Timeout - 可靠 SOCKS 协议端口超时时间，可靠端口指 TCP 协议：最小为 500，可留空，留空时为 3000，单位为毫秒
   * DNSCurve Unreliable Socket Timeout - 不可靠 SOCKS 协议端口超时时间，不可靠端口指 UDP 协议：最小为 500，可留空，留空时为 2000，单位为毫秒
   * Encryption - 启用加密，DNSCurve 协议支持加密和非加密模式：开启为 1 /关闭为 0
-  * Encryption Only - 只使用加密模式：开启为 1 /关闭为 0
+  * Encryption Only - 只使用加密模式，所有请求将只通过 DNCurve 加密模式进行：开启为 1 /关闭为 0
     * 注意：使用 "只使用加密模式" 时必须提供服务器的魔数和指纹用于请求和接收
   * Client Ephemeral Key - 一次性客户端密钥对模式：每次请求解析均使用随机生成的一次性客户端密钥对：开启为 1 /关闭为 0
   * Key Recheck Time - DNSCurve 协议 DNS 服务器连接信息检查间隔：单位为秒，最短为 10 秒
@@ -661,6 +681,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * SOCKS Target Server
 * SOCKS Username
 * SOCKS Password
+* HTTP Target Server
+* HTTP Version
+* HTTP Header Field
+* HTTP Proxy Authorization
 * DNSCurve Reliable Socket Timeout
 * DNSCurve Unreliable Socket Timeout
 * Key Recheck Time
@@ -851,6 +875,8 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
 
 * -v 和 --version
   输出程序版本号信息到屏幕上
+* --lib-version
+  输出程序所用库的版本号信息到屏幕上
 * -h 和 --help
   输出程序帮助信息到屏幕上
 * --flush-dns

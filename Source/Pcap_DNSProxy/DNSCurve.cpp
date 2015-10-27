@@ -22,7 +22,7 @@
 /* DNSCurve/DNSCrypt Protocol version 2
 
 Client -> Server:
-*  8 bytes: Magic_query
+*  8 bytes: Magic query bytes
 * 32 bytes: The client's DNSCurve public key (crypto_box_PUBLICKEYBYTES)
 * 12 bytes: A client-selected nonce for this packet (crypto_box_NONCEBYTES / 2)
 * 16 bytes: Poly1305 MAC (crypto_box_ZEROBYTES - crypto_box_BOXZEROBYTES)
@@ -210,7 +210,10 @@ size_t __fastcall DNSCurveSelectTargetSocket(
 		TargetSocketData->AddrLen = sizeof(sockaddr_in6);
 		TargetSocketData->SockAddr.ss_family = AF_INET6;
 		TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
-		return ServerType;
+		if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+			return FALSE;
+		else 
+			return ServerType;
 	}
 //IPv4
 	else if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && 
@@ -268,7 +271,10 @@ size_t __fastcall DNSCurveSelectTargetSocket(
 		TargetSocketData->AddrLen = sizeof(sockaddr_in);
 		TargetSocketData->SockAddr.ss_family = AF_INET;
 		TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
-		return ServerType;
+		if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+			return FALSE;
+		else 
+			return ServerType;
 	}
 
 	return FALSE;
@@ -421,7 +427,7 @@ void __fastcall DNSCurveSocketPrecomputation(
 	//Encryption mode check
 		if (DNSCurveParameter.IsEncryption && 
 			(!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->PrecomputationKey, crypto_box_BEFORENMBYTES) || 
-			DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->ServerFingerprint, crypto_box_PUBLICKEYBYTES) ||
+			DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 			CheckEmptyBuffer((*PacketTarget)->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 				goto SkipMain;
 
@@ -520,8 +526,8 @@ SkipMain:
 	{
 	//Encryption mode check
 		if (DNSCurveParameter.IsEncryption && 
-			(!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->PrecomputationKey, crypto_box_BEFORENMBYTES) ||
-			DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->ServerFingerprint, crypto_box_PUBLICKEYBYTES) ||
+			(!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->PrecomputationKey, crypto_box_BEFORENMBYTES) || 
+			DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 			CheckEmptyBuffer((*PacketTarget)->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 				return;
 	
@@ -657,21 +663,21 @@ size_t __fastcall DNSCurvePacketEncryption(
 		if (Protocol == IPPROTO_TCP) //TCP
 		{
 			if (crypto_box_afternm(
-				(unsigned char *)SendBuffer + DNSCRYPT_BUFFER_RESERVE_TCP_LEN, 
-				(unsigned char *)Buffer.get(), 
-				DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_TCP_LEN, 
-				Nonce.get(), 
-				PrecomputationKey) != EXIT_SUCCESS)
-					return EXIT_FAILURE;
+					(unsigned char *)SendBuffer + DNSCRYPT_BUFFER_RESERVE_TCP_LEN, 
+					(unsigned char *)Buffer.get(), 
+					DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_TCP_LEN, 
+					Nonce.get(), 
+					PrecomputationKey) != EXIT_SUCCESS)
+						return EXIT_FAILURE;
 		}
 		else { //UDP
 			if (crypto_box_afternm(
-				(unsigned char *)SendBuffer + DNSCRYPT_BUFFER_RESERVE_LEN, 
-				(unsigned char *)Buffer.get(), 
-				DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN, 
-				Nonce.get(), 
-				PrecomputationKey) != EXIT_SUCCESS)
-					return EXIT_FAILURE;
+					(unsigned char *)SendBuffer + DNSCRYPT_BUFFER_RESERVE_LEN, 
+					(unsigned char *)Buffer.get(), 
+					DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN, 
+					Nonce.get(), 
+					PrecomputationKey) != EXIT_SUCCESS)
+						return EXIT_FAILURE;
 		}
 
 	//Make DNSCurve encryption packet.
@@ -751,12 +757,9 @@ SSIZE_T DNSCurvePacketDecryption(
 	}
 
 //Responses check
-	if (Parameter.HeaderCheck_DNS || Parameter.DataCheck_Blacklist)
-	{
-		DataLength = CheckResponseData(OriginalRecv, DataLength, false, nullptr);
-		if (DataLength < (SSIZE_T)DNS_PACKET_MINSIZE)
-			return EXIT_FAILURE;
-	}
+	DataLength = CheckResponseData(OriginalRecv, DataLength, false, nullptr);
+	if (DataLength < (SSIZE_T)DNS_PACKET_MINSIZE)
+		return EXIT_FAILURE;
 
 	return DataLength;
 }
@@ -870,7 +873,7 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 			}
 			else if (MaxSocket == 0 && Index + 1U == SocketDataList.size())
 			{
-				return WSAETIMEDOUT;
+				return EXIT_FAILURE;
 			}
 		}
 
@@ -1051,7 +1054,7 @@ SSIZE_T __fastcall DNSCurveSelectingResult(
 				}
 			}
 
-		//Mark DNS Cache.
+		//Mark DNS cache.
 			if (Parameter.CacheType > 0)
 				MarkDomainCache(OriginalRecv, RecvLen);
 
@@ -1075,6 +1078,10 @@ SSIZE_T __fastcall DNSCurveSelectingResult(
 void __fastcall DNSCurveInit(
 	void)
 {
+//Libsodium ramdom bytes initialization
+	randombytes_set_implementation(&randombytes_salsa20_implementation);
+	randombytes_stir();
+
 //DNSCurve signature request TCP Mode
 	if (DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TCP)
 	{
@@ -1400,7 +1407,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(
 	//Jump here to restart.
 	JumpToRestart:
 		DNSCurvePrintLog(ServerType, Message);
-		if (Message.length() > 0)
+		if (!Message.empty())
 		{
 			Message.append(L"TCP get signature data error");
 			PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
@@ -1567,7 +1574,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(
 	//Jump here to restart.
 	JumpToRestart:
 		DNSCurvePrintLog(ServerType, Message);
-		if (Message.length() > 0)
+		if (!Message.empty())
 		{
 			Message.append(L"UDP get signature data error");
 			PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
@@ -1622,7 +1629,7 @@ bool __fastcall DNSCruveGetSignatureData(
 			{
 				std::wstring Message;
 				DNSCurvePrintLog(ServerType, Message);
-				if (Message.length() > 0)
+				if (!Message.empty())
 				{
 					Message.append(L"Fingerprint signature validation error");
 					PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
@@ -1649,7 +1656,7 @@ bool __fastcall DNSCruveGetSignatureData(
 			else {
 				std::wstring Message;
 				DNSCurvePrintLog(ServerType, Message);
-				if (Message.length() > 0)
+				if (!Message.empty())
 				{
 					Message.append(L"Fingerprint signature validation error");
 					PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
@@ -1680,7 +1687,7 @@ size_t __fastcall DNSCurveTCPRequest(
 
 //Socket initialization
 	TCPSocketSelectingData->ServerType = DNSCurveSelectTargetSocket(&TCPSocketDataList.front(), &PacketTarget, &IsAlternate, &AlternateTimeoutTimes, IPPROTO_TCP);
-	if (TCPSocketSelectingData->ServerType == 0 || TCPSocketDataList.front().Socket == INVALID_SOCKET)
+	if (TCPSocketSelectingData->ServerType == FALSE)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"DNSCurve TCP socket initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(TCPSocketDataList.front().Socket);
@@ -1851,7 +1858,7 @@ size_t __fastcall DNSCurveUDPRequest(
 
 //Socket initialization
 	UDPSocketSelectingData->ServerType = DNSCurveSelectTargetSocket(&UDPSocketDataList.front(), &PacketTarget, &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP);
-	if (UDPSocketSelectingData->ServerType == 0 || UDPSocketDataList.front().Socket == INVALID_SOCKET)
+	if (UDPSocketSelectingData->ServerType == FALSE)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"DNSCurve UDP socket initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(UDPSocketDataList.front().Socket);

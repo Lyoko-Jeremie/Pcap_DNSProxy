@@ -719,7 +719,7 @@ typedef struct _icmp_hdr_
 	uint16_t               Checksum;
 	uint16_t               ID;
 	uint16_t               Sequence;
-//ICMP Timestamp option is defalut ON on Linux and Mac OS X.
+//ICMP Timestamp option is defalut ON in Linux and Mac OS X.
 #if defined(PLATFORM_LINUX)
 	uint64_t               Timestamp;
 	uint64_t               Nonce;
@@ -753,7 +753,7 @@ typedef struct _icmpv6_hdr_
 	uint16_t               Checksum;
 	uint16_t               ID;
 	uint16_t               Sequence;
-//ICMPv6 Timestamp option is defalut ON on Linux and Mac OS X.
+//ICMPv6 Timestamp option is defalut ON in Linux and Mac OS X.
 #if defined(PLATFORM_LINUX)
 	uint64_t               Timestamp;
 	uint64_t               Nonce;

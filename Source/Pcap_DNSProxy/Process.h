@@ -44,6 +44,13 @@ bool __fastcall SOCKSRequestProcess(
 	_In_ const size_t RecvSize, 
 	_In_ const uint16_t Protocol, 
 	_In_ const SOCKET_DATA &LocalSocketData);
+bool __fastcall HTTPRequestProcess(
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize, 
+	_In_ const uint16_t Protocol, 
+	_In_ const SOCKET_DATA &LocalSocketData);
 bool __fastcall DirectRequestProcess(
 	_In_ const char *OriginalSend, 
 	_In_ const size_t SendSize, 

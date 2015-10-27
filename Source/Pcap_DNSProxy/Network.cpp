@@ -85,7 +85,7 @@ bool __fastcall SocketSetting(
 				return false;
 			}
 */
-		//Set an IPv6 server socket that cannot accept IPv4 connections on Linux.
+		//Set an IPv6 server socket that cannot accept IPv4 connections in Linux.
 			SetVal = 1;
 			if (setsockopt(Socket, IPPROTO_IPV6, IPV6_V6ONLY, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
 			{
@@ -365,7 +365,7 @@ SSIZE_T __fastcall SocketSelecting(
 			}
 			else if (MaxSocket == 0 && Index + 1U == SocketDataList.size())
 			{
-				return WSAETIMEDOUT;
+				return EXIT_FAILURE;
 			}
 		}
 
@@ -519,7 +519,7 @@ SSIZE_T __fastcall SelectingResult(
 			if (Protocol == IPPROTO_TCP)
 			{
 				RecvLen = ntohs(((uint16_t *)SocketSelectingList.at(Index).RecvBuffer.get())[0]);
-				if (RecvLen >(SSIZE_T)SocketSelectingList.at(Index).Length)
+				if (RecvLen > (SSIZE_T)SocketSelectingList.at(Index).Length)
 				{
 					shutdown(SocketDataList.at(Index).Socket, SD_BOTH);
 					closesocket(SocketDataList.at(Index).Socket);
@@ -539,7 +539,7 @@ SSIZE_T __fastcall SelectingResult(
 			}
 
 		//Receive from buffer list.
-			if (!NoCheck && (Parameter.HeaderCheck_DNS || Parameter.DataCheck_Blacklist))
+			if (!NoCheck)
 				RecvLen = CheckResponseData(SocketSelectingList.at(Index).RecvBuffer.get(), RecvLen, IsLocal, nullptr);
 			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			{
@@ -565,7 +565,7 @@ SSIZE_T __fastcall SelectingResult(
 				}
 			}
 
-		//Mark DNS Cache.
+		//Mark DNS cache.
 			if (Parameter.CacheType > 0)
 				MarkDomainCache(OriginalRecv, RecvLen);
 
@@ -1220,8 +1220,10 @@ bool __fastcall SelectTargetSocket(
 			}
 
 			TargetSocketData->SockAddr.ss_family = AF_INET6;
-			TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
 			TargetSocketData->AddrLen = sizeof(sockaddr_in6);
+			TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
+			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+				return false;
 		}
 	//IPv4
 		else if (Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 && 
@@ -1254,8 +1256,10 @@ bool __fastcall SelectTargetSocket(
 			}
 
 			TargetSocketData->SockAddr.ss_family = AF_INET;
-			TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
 			TargetSocketData->AddrLen = sizeof(sockaddr_in);
+			TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
+			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+				return false;
 		}
 		else {
 			return false;
@@ -1294,8 +1298,10 @@ bool __fastcall SelectTargetSocket(
 			}
 
 			TargetSocketData->SockAddr.ss_family = AF_INET6;
-			TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
 			TargetSocketData->AddrLen = sizeof(sockaddr_in6);
+			TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
+			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+				return false;
 		}
 	//IPv4
 		else if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
@@ -1328,8 +1334,10 @@ bool __fastcall SelectTargetSocket(
 			}
 
 			TargetSocketData->SockAddr.ss_family = AF_INET;
-			TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
 			TargetSocketData->AddrLen = sizeof(sockaddr_in);
+			TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
+			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+				return false;
 		}
 		else {
 			return false;
@@ -1554,7 +1562,7 @@ size_t __fastcall TCPRequest(
 //Socket initialization
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
-	if (!SelectTargetSocket(&TCPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_TCP, IsLocal) || TCPSocketDataList.front().Socket == INVALID_SOCKET)
+	if (!SelectTargetSocket(&TCPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_TCP, IsLocal))
 	{
 		PrintError(LOG_ERROR_NETWORK, L"TCP socket initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(TCPSocketDataList.front().Socket);
@@ -1630,7 +1638,7 @@ size_t __fastcall UDPRequest(
 	size_t *AlternateTimeoutTimes = nullptr;
 
 //Socket initialization
-	if (!SelectTargetSocket(&UDPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP, false) || UDPSocketDataList.front().Socket == INVALID_SOCKET)
+	if (!SelectTargetSocket(&UDPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP, false))
 	{
 		PrintError(LOG_ERROR_NETWORK, L"UDP socket initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(UDPSocketDataList.front().Socket);
@@ -1707,7 +1715,7 @@ size_t __fastcall UDPCompleteRequest(
 //Socket initialization
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
-	if (!SelectTargetSocket(&UDPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP, IsLocal) || UDPSocketDataList.front().Socket == INVALID_SOCKET)
+	if (!SelectTargetSocket(&UDPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP, IsLocal))
 	{
 		PrintError(LOG_ERROR_NETWORK, L"Complete UDP socket initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(UDPSocketDataList.front().Socket);

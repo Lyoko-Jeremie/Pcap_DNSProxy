@@ -107,7 +107,7 @@
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4                         //Current configuration version
-#define FULL_VERSION                 L"0.4.4.2"
+#define FULL_VERSION                 L"0.4.4.3"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2015 Chengr28"
 
 //Exit code definitions
@@ -141,21 +141,24 @@
 	#define ICMP_STRING_START_NUM_MAC      8U
 	#define ICMP_PADDING_LENGTH_MAC        48U
 #endif
-#define MULTI_REQUEST_MAXNUM              64U                                                                             //Maximum number of multi request.
-#define NETWORK_LAYER_PARTNUM             2U                                                                              //Number of network layer protocols(IPv6 and IPv4)
-#define TRANSPORT_LAYER_PARTNUM           4U                                                                              //Number of transport layer protocols(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
-#define ALTERNATE_SERVERNUM               12U                                                                             //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
-#define DOMAIN_MAXSIZE                    256U                                                                            //Maximum size of whole level domain is 256 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_DATA_MAXSIZE               253U                                                                            //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_LEVEL_DATA_MAXSIZE         63U                                                                             //Domain length is between 3 and 63(Labels must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
-#define DOMAIN_MINSIZE                    2U                                                                              //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_RAMDOM_MINSIZE             6U                                                                              //Minimum size of ramdom domain request
-#define DNS_PACKET_MINSIZE                (sizeof(dns_hdr) + 4U + sizeof(dns_qry))                                        //Minimum DNS packet size(DNS Header + Minimum Domain + DNS Query)
-#define DNS_RR_MAXCOUNT_AAAA              43U                                                                             //Maximum Record Resources size of AAAA answers, 28 bytes * 43 = 1204 bytes
-#define DNS_RR_MAXCOUNT_A                 75U                                                                             //Maximum Record Resources size of A answers, 16 bytes * 75 = 1200 bytes
-#define EDNS_ADDITIONAL_MAXSIZE           (sizeof(dns_record_opt) * 2U + sizeof(edns_client_subnet) + sizeof(in6_addr))   //Maximum of EDNS Additional Record Resources size
+#define MULTI_REQUEST_MAXNUM              64U                                                                               //Maximum number of multi request.
+#define NETWORK_LAYER_PARTNUM             2U                                                                                //Number of network layer protocols(IPv6 and IPv4)
+#define TRANSPORT_LAYER_PARTNUM           4U                                                                                //Number of transport layer protocols(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
+#define ALTERNATE_SERVERNUM               12U                                                                               //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
+#define DOMAIN_MAXSIZE                    256U                                                                              //Maximum size of whole level domain is 256 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_DATA_MAXSIZE               253U                                                                              //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_LEVEL_DATA_MAXSIZE         63U                                                                               //Domain length is between 3 and 63(Labels must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
+#define DOMAIN_MINSIZE                    2U                                                                                //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_RAMDOM_MINSIZE             6U                                                                                //Minimum size of ramdom domain request
+#define DNS_PACKET_MINSIZE                (sizeof(dns_hdr) + 4U + sizeof(dns_qry))                                          //Minimum DNS packet size(DNS Header + Minimum Domain + DNS Query)
+#define DNS_RR_MAXCOUNT_AAAA              43U                                                                               //Maximum Record Resources size of AAAA answers, 28 bytes * 43 = 1204 bytes
+#define DNS_RR_MAXCOUNT_A                 75U                                                                               //Maximum Record Resources size of A answers, 16 bytes * 75 = 1200 bytes
+#define EDNS_ADDITIONAL_MAXSIZE           (sizeof(dns_record_opt) * 2U + sizeof(edns_client_subnet) + sizeof(in6_addr))     //Maximum of EDNS Additional Record Resources size
+#define HTTP_VERSION_LENGTH               2U
+#define HTTP_STATUS_CODE_LENGTH           3U
+#define HTTP_RESPONSE_MINSIZE             (strlen("HTTP/") + HTTP_VERSION_LENGTH + strlen(" ") + HTTP_STATUS_CODE_LENGTH)   //Minimum size of HTTP server response
 #define DNSCRYPT_PACKET_MINSIZE           (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES + DNS_PACKET_MINSIZE)
-#define DNSCRYPT_RECORD_TXT_LEN           124U                                                                            //Length of DNScrypt TXT Records
+#define DNSCRYPT_RECORD_TXT_LEN           124U                                                                              //Length of DNScrypt TXT Records
 #define DNSCRYPT_BUFFER_RESERVE_LEN       (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES - crypto_box_BOXZEROBYTES)
 #define DNSCRYPT_BUFFER_RESERVE_TCP_LEN   (sizeof(uint16_t) + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES - crypto_box_BOXZEROBYTES)
 #define DNSCRYPT_RESERVE_HEADER_LEN       (sizeof(ipv6_hdr) + sizeof(udp_hdr) + DNSCRYPT_BUFFER_RESERVE_LEN)
@@ -197,11 +200,13 @@
 	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT            2000U     //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds/2000ms)
 	#define DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT        6000U     //Default timeout of SOCKS reliable sockets(Such as TCP, 6 seconds/6000ms)
 	#define DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT      3000U     //Default timeout of SOCKS unreliable sockets(Such as UDP, 3 seconds/3000ms)
+	#define DEFAULT_HTTP_SOCKET_TIMEOUT                  3000U     //Default timeout of HTTP sockets(3 seconds/3000ms)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT              3U        //Default timeout of reliable sockets(Such as TCP, 3 seconds)
 	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT            2U        //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds)
 	#define DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT        6U        //Default timeout of SOCKS reliable sockets(Such as TCP, 6 seconds)
 	#define DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT      3U        //Default timeout of SOCKS unreliable sockets(Such as UDP, 3 seconds)
+	#define DEFAULT_HTTP_SOCKET_TIMEOUT                  3U        //Default timeout of HTTP sockets(3 seconds)
 #endif
 #if defined(ENABLE_LIBSODIUM)
 	#define DEFAULT_DNSCURVE_RELIABLE_SOCKET_TIMEOUT     DEFAULT_RELIABLE_SOCKET_TIMEOUT     //Same as default timeout of reliable sockets
@@ -228,6 +233,7 @@
 	#define CONFIG_FILE_NAME_LIST                 L"Config.ini", L"Config.conf", L"Config.cfg", L"Config"
 	#define COMMAND_LONG_PRINT_VERSION            L"--version"
 	#define COMMAND_SHORT_PRINT_VERSION           L"-v"
+	#define COMMAND_LIB_VERSION                   L"--lib-version"
 	#define COMMAND_LONG_HELP                     L"--help"
 	#define COMMAND_SHORT_HELP                    L"-h"
 	#define COMMAND_FIREWALL_TEST                 L"--first-setup"
@@ -238,12 +244,13 @@
 	#define MAILSLOT_NAME                         L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot"                                                                                                    //MailSlot name
 	#define MAILSLOT_MESSAGE_FLUSH_DNS            L"Flush DNS cache of Pcap_DNSProxy."                                                                                                          //The mailslot message to flush dns cache
 	#define SYSTEM_SERVICE_NAME                   L"PcapDNSProxyService"                                                                                                                        //System service name
-	#define DEFAULT_ICMP_PADDING_DATA             ("abcdefghijklmnopqrstuvwabcdefghi")                                                                                                          //ICMP padding data on Windows
+	#define DEFAULT_ICMP_PADDING_DATA             ("abcdefghijklmnopqrstuvwabcdefghi")                                                                                                          //ICMP padding data in Windows
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define CONFIG_FILE_NAME_LIST                 L"Config.conf", L"Config.ini", L"Config.cfg", L"Config"
 	#define CONFIG_FILE_NAME_LIST_STRING          "Config.conf", "Config.ini", "Config.cfg", "Config"
 	#define COMMAND_LONG_PRINT_VERSION            ("--version")
 	#define COMMAND_SHORT_PRINT_VERSION           ("-v")
+	#define COMMAND_LIB_VERSION                   ("--lib-version")
 	#define COMMAND_LONG_HELP                     ("--help")
 	#define COMMAND_SHORT_HELP                    ("-h")
 	#define COMMAND_FLUSH_DNS                     ("--flush-dns")
@@ -255,7 +262,7 @@
 	#define FIFO_PATH_NAME                        ("/tmp/pcap_dnsproxy_fifo")                                                                                                                   //FIFO pathname
 	#define FIFO_MESSAGE_FLUSH_DNS                ("Flush DNS cache of Pcap_DNSProxy.")                                                                                                         //The FIFO message to flush dns cache
 #endif
-#define RFC_DOMAIN_TABLE                      (".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz")                                                                          //Preferred name syntax(Section 2.3.1 in RFC 1035)
+#define DEFAULT_HTTP_VERSION                  "1.1"                                                                                                                                         //Default HTTP version
 #if defined(ENABLE_LIBSODIUM)
 	#define DNSCURVE_TEST_NONCE                   0, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23   //DNSCurve Test Nonce, 0x00 - 0x23(ASCII)
 #endif
@@ -270,10 +277,10 @@
 
 //Base64 definitions
 #define BASE64_PAD                        '='
-#define BASE64_DE_FIRST                   '+'
-#define BASE64_DE_LAST                    'z'
+//#define BASE64_DE_FIRST                   '+'
+//#define BASE64_DE_LAST                    'z'
 #define BASE64_ENCODE_OUT_SIZE(Message)   (((Message) + 2U) / 3U * 4U)
-#define BASE64_DECODE_OUT_SIZE(Message)   (((Message)) / 4U * 3U)
+//#define BASE64_DECODE_OUT_SIZE(Message)   (((Message)) / 4U * 3U)
 
 //Function Type definitions
 //Windows XP with SP3 support
@@ -302,6 +309,7 @@
 	#define LOG_ERROR_DNSCURVE             8U            // 08: DNSCurve Error
 #endif
 #define LOG_ERROR_SOCKS                9U            // 09: SOCKS Error
+#define LOG_ERROR_HTTP                 10U           // 10: HTTP Error
 
 //Codes and types definitions
 #define LISTEN_PROTOCOL_NETWORK_BOTH          0
@@ -593,13 +601,25 @@ public:
 	ADDRESS_UNION_DATA                   SOCKS_Address_IPv4;
 	ADDRESS_UNION_DATA                   SOCKS_Address_IPv6;
 	ADDRESS_UNION_DATA                   SOCKS_TargetServer;
-	char                                 *SOCKS_TargetDomain;
+	std::string                          *SOCKS_TargetDomain;
 	uint16_t                             SOCKS_TargetDomain_Port;
-	size_t                               SOCKS_TargetDomain_Length;
-	char                                 *SOCKS_Username;
-	size_t                               SOCKS_Username_Length;
-	char                                 *SOCKS_Password;
-	size_t                               SOCKS_Password_Length;
+	std::string                          *SOCKS_Username;
+	std::string                          *SOCKS_Password;
+	bool                                 HTTP_Proxy;
+	size_t                               HTTP_Protocol;
+#if defined(PLATFORM_WIN)
+	int                                  HTTP_SocketTimeout;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	timeval                              HTTP_SocketTimeout;
+#endif
+	bool                                 HTTP_Only;
+	ADDRESS_UNION_DATA                   HTTP_Address_IPv4;
+	ADDRESS_UNION_DATA                   HTTP_Address_IPv6;
+	std::string                          *HTTP_TargetDomain;
+	std::string                          *HTTP_Version;
+	std::string                          *HTTP_HeaderField;
+	std::string                          *HTTP_ProxyAuthorization;
+
 //[DNSCurve/DNSCrypt] block
 #if defined(ENABLE_LIBSODIUM)
 	bool                                 DNSCurve;
@@ -608,19 +628,25 @@ public:
 //Member functions
 	ConfigurationTable(
 		void);
-	~ConfigurationTable(
-		void);
 	void SetToMonitorItem(
 		void);
 	void MonitorItemToUsing(
 		_Out_ ConfigurationTable *ConfigurationParameter);
 	void MonitorItemReset(
 		void);
+	~ConfigurationTable(
+		void);
 }CONFIGURATION_TABLE;
 
 //Global status class
 typedef class GlobalStatus {
 public:
+//Libraries initialization status
+#if defined(PLATFORM_WIN)
+	bool                                 Initialization_WinSock;
+#endif
+
+//Running status
 	time_t                               StartupTime;
 #if defined(PLATFORM_WIN)
 	bool                                 Console;
@@ -630,6 +656,8 @@ public:
 	std::vector<SYSTEM_SOCKET>           *LocalListeningSocket;
 	std::default_random_engine           *RamdomEngine;
 	char                                 *DomainTable;
+	char                                 *Base64_EncodeTable;
+//	signed char                          *Base64_DecodeTable;
 
 //Path and file status
 	std::vector<std::wstring>            *Path_Global;
@@ -643,7 +671,7 @@ public:
 	std::vector<std::string>             *sFileList_IPFilter;
 #endif
 
-//Network layer status
+//Network status
 	bool                                 GatewayAvailable_IPv6;
 	bool                                 GatewayAvailable_IPv4;
 
@@ -825,13 +853,13 @@ public:
 //Member functions
 	DNSCurveConfigurationTable(
 		void);
-	~DNSCurveConfigurationTable(
-		void);
 	void SetToMonitorItem(
 		void);
 	void MonitorItemToUsing(
 		_Out_ DNSCurveConfigurationTable *DNSCurveConfigurationParameter);
 	void MonitorItemReset(
+		void);
+	~DNSCurveConfigurationTable(
 		void);
 }DNSCURVE_CONFIGURATION_TABLE;
 #endif
@@ -841,42 +869,6 @@ public:
 // Main functions
 // 
 //Base.cpp
-//Base64 encode table
-static char Base64_EncodeTable[] = {
-	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
-	'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
-	'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X',
-	'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f',
-	'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
-	'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
-	'w', 'x', 'y', 'z', '0', '1', '2', '3',
-	'4', '5', '6', '7', '8', '9', '+', '/',
-};
-
-//ASCII order for BASE 64 decode, -1 in unused character.
-static signed char Base64_DecodeTable[] = {
-	/* '+', ',', '-', '.', '/', '0', '1', '2', */ 
-	    62,  -1,  -1,  -1,  63,  52,  53,  54,
-	/* '3', '4', '5', '6', '7', '8', '9', ':', */
-	    55,  56,  57,  58,  59,  60,  61,  -1,
-	/* ';', '<', '=', '>', '?', '@', 'A', 'B', */
-	    -1,  -1,  -1,  -1,  -1,  -1,   0,   1, 
-	/* 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', */
-	     2,   3,   4,   5,   6,   7,   8,   9,
-	/* 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', */ 
-	    10,  11,  12,  13,  14,  15,  16,  17,
-	/* 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', */
-	    18,  19,  20,  21,  22,  23,  24,  25,
-	/* '[', '\', ']', '^', '_', '`', 'a', 'b', */ 
-	    -1,  -1,  -1,  -1,  -1,  -1,  26,  27,
-	/* 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', */ 
-	    28,  29,  30,  31,  32,  33,  34,  35,
-	/* 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', */
-	    36,  37,  38,  39,  40,  41,  42,  43,
-	/* 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', */
-	    44,  45,  46,  47,  48,  49,  50,  51,
-};
-
 bool __fastcall CheckEmptyBuffer(
 	_In_opt_ const void *Buffer, 
 	_In_ const size_t Length);
@@ -908,11 +900,13 @@ size_t __fastcall Base64_Encode(
 	_In_ const size_t Length, 
 	_Out_ char *Output, 
 	_In_ const size_t OutputSize);
+/*
 size_t __fastcall Base64_Decode(
 	_In_ char *Input, 
 	_In_ const size_t Length, 
 	_Out_ uint8_t *Output, 
 	_In_ const size_t OutputSize);
+*/
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 uint64_t GetCurrentSystemTime(
 	void);
@@ -931,6 +925,10 @@ bool __fastcall PrintError(
 	_In_ const wchar_t *Message, 
 	_In_opt_ const SSIZE_T ErrorCode, 
 	_In_opt_ const wchar_t *FileName, 
+	_In_opt_ const size_t Line);
+bool __fastcall PrintScreenAndWriteFile(
+	_In_ const std::wstring Message, 
+	_In_opt_ const SSIZE_T ErrorCode, 
 	_In_opt_ const size_t Line);
 
 //PacketData.h
@@ -1032,6 +1030,11 @@ size_t __fastcall SOCKSTCPRequest(
 	_Out_ char *OriginalRecv, 
 	_In_ const size_t RecvSize);
 size_t __fastcall SOCKSUDPRequest(
+	_In_ const char *OriginalSend, 
+	_In_ const size_t SendSize, 
+	_Out_ char *OriginalRecv, 
+	_In_ const size_t RecvSize);
+size_t __fastcall HTTPRequest(
 	_In_ const char *OriginalSend, 
 	_In_ const size_t SendSize, 
 	_Out_ char *OriginalRecv, 

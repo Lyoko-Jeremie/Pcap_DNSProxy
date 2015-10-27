@@ -116,7 +116,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;WPCAP;HAVE_REMOTE;SODIUM_STATIC;SODIUM_EXPORT=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -147,7 +147,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;WPCAP;HAVE_REMOTE;SODIUM_STATIC;SODIUM_EXPORT=;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
@@ -172,6 +172,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\LibSodium\core.h" />
+    <ClInclude Include="..\LibSodium\crypto_aead_aes256gcm.h" />
     <ClInclude Include="..\LibSodium\crypto_aead_chacha20poly1305.h" />
     <ClInclude Include="..\LibSodium\crypto_auth.h" />
     <ClInclude Include="..\LibSodium\crypto_auth_hmacsha256.h" />
@@ -218,6 +219,7 @@
     <ClInclude Include="..\LibSodium\crypto_verify_64.h" />
     <ClInclude Include="..\LibSodium\export.h" />
     <ClInclude Include="..\LibSodium\randombytes.h" />
+    <ClInclude Include="..\LibSodium\randombytes_nativeclient.h" />
     <ClInclude Include="..\LibSodium\randombytes_salsa20_random.h" />
     <ClInclude Include="..\LibSodium\randombytes_sysrandom.h" />
     <ClInclude Include="..\LibSodium\runtime.h" />
@@ -293,20 +295,9 @@
     <None Include="..\ExampleConfig\Hosts.ini" />
     <None Include="..\ExampleConfig\IPFilter.ini" />
     <None Include="..\ExampleConfig\ServiceControl.bat" />
+    <None Include="..\LibSodium\LibSodium_Mac.a" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="..\Documents\Changelog(zh_Hans).txt" />
-    <Text Include="..\Documents\Changelog(zh_Hant).txt" />
-    <Text Include="..\Documents\FAQ(zh_Hans).txt" />
-    <Text Include="..\Documents\FAQ(zh_Hant).txt" />
-    <Text Include="..\Documents\FAQ_Linux_Mac(zh_Hans).txt" />
-    <Text Include="..\Documents\FAQ_Linux_Mac(zh_Hant).txt" />
-    <Text Include="..\Documents\ReadMe(zh_Hans).txt" />
-    <Text Include="..\Documents\ReadMe(zh_Hant).txt" />
-    <Text Include="..\Documents\ReadMe_Linux(zh_Hans).txt" />
-    <Text Include="..\Documents\ReadMe_Linux(zh_Hant).txt" />
-    <Text Include="..\Documents\ReadMe_Mac(zh_Hans).txt" />
-    <Text Include="..\Documents\ReadMe_Mac(zh_Hant).txt" />
     <Text Include="..\ExampleConfig\Routing.txt" />
     <Text Include="..\ExampleConfig\White_List.txt" />
     <Text Include="CMakeLists.txt" />

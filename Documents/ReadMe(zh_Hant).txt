@@ -179,7 +179,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Base - 基本參數區域
   * Version - 設定檔的版本，用於正確識別設定檔：本參數與程式版本號不相關，切勿修改
   * File Refresh Time - 檔刷新間隔時間：單位為秒，最短間隔時間為 5 秒
-  * Additional Path - 附加的資料檔案讀取路徑，附加在此處的目錄路徑下的 Hosts 檔和 IPFilter 檔會被依次讀取
+  * Additional Path - 附加的資料檔案讀取路徑，附加在此處的目錄路徑下的 Hosts 檔和 IPFilter 檔會被依次讀取：請填入目錄的絕對路徑
   * Hosts File Name - Hosts 檔的檔案名，附加在此處的 Hosts 檔案名將被依次讀取
   * IPFilter File Name - IPFilter 檔的檔案名，附加在此處的 IPFilter 檔案名將被依次讀取
 
@@ -308,7 +308,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入 IPv4 或 IPv6 時將會啟用對應協定的 Direct Request 功能，填入 IPv4 + IPv6 將會啟用所有協定的功能
   * Cache Type - DNS 緩存的類型：分 Timer/計時型以及 Queue/佇列型：預設為 Queue
   * Cache Parameter - DNS 緩存的參數：Timer/計時型 時為時間長度（單位為秒），Queue/佇列型 時為佇列長度
-  * Default TTL - Hosts 條目預設存留時間：單位為秒，留空則為 900秒/15分鐘
+  * Default TTL - 已緩存 DNS 記錄預設存留時間：單位為秒，留空則為 900秒/15分鐘
   
 * Local DNS - 境內功能變數名稱解析參數區域
   * Local Protocol - 發送境內請求所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
@@ -548,7 +548,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * SOCKS UDP No Handshake - SOCKS UDP 不握手模式，開啟後將不進行 TCP 握手直接發送 UDP 轉發請求：開啟為 1 /關閉為 0
     * SOCKS 協定的標準流程使用 UDP 轉發功能前必須使用 TCP 連接交換握手資訊，否則 SOCKS 伺服器將直接丟棄轉發請求
     * 部分 SOCKS 本地代理可以直接進行 UDP 轉發而不需要使用 TCP 連接交換握手資訊，啟用前請務必確認 SOCKS 伺服器的支援情況
-  * SOCKS Proxy Only - 只使用 SOCKS 協定代理模式：開啟為 1 /關閉為 0
+  * SOCKS Proxy Only - 只使用 SOCKS 協定代理模式，所有請求將只通過 SOCKS 協定進行：開啟為 1 /關閉為 0
   * SOCKS IPv4 Address - SOCKS 協定 IPv4 主要 SOCKS 伺服器位址：需要輸入一個帶埠格式的位址
     * 不支援多個位址，只能填入單個位址
     * 支援使用服務名稱代替埠號
@@ -560,6 +560,26 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 支援使用服務名稱代替埠號
   * SOCKS Username - 連接 SOCKS 伺服器時所使用的使用者名：最長可填入 255 個字元，留空為不啟用
   * SOCKS Password - 連接 SOCKS 伺服器時所使用的密碼：最長可填入 255 個字元，留空為不啟用
+  * HTTP Proxy - HTTP 協定總開關，控制所有和 HTTP 協定有關的選項：開啟為 1 /關閉為 0
+  * HTTP Protocol - 發送 HTTP 協定請求所使用的協定：可填入 IPv4 和 IPv6
+    * 填入的協定可隨意組合，只填 IPv4 或 IPv6 時，只使用指定協定向 HTTP 伺服器發出請求
+    * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
+  * HTTP Socket Timeout - HTTP 協定埠超時時間：最小為 500，可留空，留空時為 3000，單位為毫秒
+  * HTTP Proxy Only - 只使用 HTTP 協定代理模式，所有請求將只通過 HTTP 協定進行：開啟為 1 /關閉為 0
+  * HTTP IPv4 Address - HTTP 協定 IPv4 主要 HTTP 伺服器位址：需要輸入一個帶埠格式的位址
+    * 不支援多個位址，只能填入單個位址
+    * 支援使用服務名稱代替埠號
+  * HTTP IPv6 Address - HTTP 協定 IPv6 主要 HTTP 伺服器位址：需要輸入一個帶埠格式的位址
+    * 不支援多個位址，只能填入單個位址
+    * 支援使用服務名稱代替埠號
+  * HTTP Target Server - HTTP 最終目標伺服器：需要輸入一個帶埠格式的 IPv4/IPv6 位址或功能變數名稱
+    * 不支援多個位址或功能變數名稱，只能填入單個位址或功能變數名稱
+    * 支援使用服務名稱代替埠號
+  * HTTP Version - 附帶在 HTTP Header 的 HTTP 協定版本號
+  * HTTP Header Field - 附帶在 HTTP Header 的資訊：所輸入的資訊將被直接添加到 HTTP Header
+    * 本參數可重複多次出現，所有有內容的 HTTP Header 的資訊都將被記錄並在請求時按順序添加到 HTTP Header 裡
+  * HTTP Proxy Authorization - 連接 HTTP Proxy 伺服器時所使用的認證資訊：需要輸入 "使用者名:密碼"（不含引號），留空為不啟用
+    * 只支援 Base 方式的認證
 
 * DNSCurve - DNSCurve 協定基本參數區域
   * DNSCurve - DNSCurve 協定總開關，控制所有和 DNSCurve 協定有關的選項：開啟為 1 /關閉為 0
@@ -571,7 +591,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSCurve Reliable Socket Timeout - 可靠 DNSCurve 協定埠超時時間，可靠埠指 TCP 協定：最小為 500，可留空，留空時為 3000，單位為毫秒
   * DNSCurve Unreliable Socket Timeout - 不可靠 DNSCurve 協定埠超時時間，不可靠埠指 UDP 協定：最小為 500，可留空，留空時為 2000，單位為毫秒
   * Encryption - 啟用加密，DNSCurve 協定支援加密和非加密模式：開啟為 1 /關閉為 0
-  * Encryption Only - 只使用加密模式：開啟為 1 /關閉為 0
+  * Encryption Only - 只使用加密模式，所有請求將只通過 DNCurve 加密模式進行：開啟為 1 /關閉為 0
     * 注意：使用 "只使用加密模式" 時必須提供伺服器的魔數和指紋用於請求和接收
   * Client Ephemeral Key - 一次性用戶端金鑰組模式：每次請求解析均使用隨機生成的一次性用戶端金鑰組：開啟為 1 /關閉為 0
   * Key Recheck Time - DNSCurve 協定DNS伺服器連接資訊檢查間隔：單位為秒，最短為10秒800 秒
@@ -663,6 +683,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * SOCKS Target Server
 * SOCKS Username
 * SOCKS Password
+* HTTP Target Server
+* HTTP Version
+* HTTP Header Field
+* HTTP Proxy Authorization
 * DNSCurve Reliable Socket Timeout
 * DNSCurve Unreliable Socket Timeout
 * Key Recheck Time
@@ -852,7 +876,9 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 所有外掛參數也可通過-h 和--help 參數查詢
 
 * -v 和 --version
-  輸出程序版本號信息到屏幕上
+  輸出程序版本號資訊到屏幕上
+* --lib-version
+  輸出程式所用庫的版本號資訊到螢幕上
 * -h 和 --help
   輸出程序幫助信息到屏幕上
 * --flush-dns

@@ -128,7 +128,7 @@ bool __fastcall MBSToWCSString(
 	}
 	else {
 		Target = TargetPTR.get();
-		if (Target.length() == 0)
+		if (Target.empty())
 			return false;
 	}
 
@@ -209,18 +209,18 @@ size_t __fastcall Base64_Encode(
 		{
 			case 0:
 			{
-				Output[Index[1U]++] = Base64_EncodeTable[(Input[Index[0]] >> 2U) & 0x3F];
+				Output[Index[1U]++] = GlobalRunningStatus.Base64_EncodeTable[(Input[Index[0]] >> 2U) & 0x3F];
 				continue;
 			}
 			case 1U:
 			{
-				Output[Index[1U]++] = Base64_EncodeTable[((Input[Index[0] - 1U] & 0x3) << 4U) + ((Input[Index[0]] >> 4U) & 0xF)];
+				Output[Index[1U]++] = GlobalRunningStatus.Base64_EncodeTable[((Input[Index[0] - 1U] & 0x3) << 4U) + ((Input[Index[0]] >> 4U) & 0xF)];
 				continue;
 			}
 			case 2U:
 			{
-				Output[Index[1U]++] = Base64_EncodeTable[((Input[Index[0] - 1U] & 0xF) << 2U) + ((Input[Index[0]] >> 6U) & 0x3)];
-				Output[Index[1U]++] = Base64_EncodeTable[Input[Index[0]] & 0x3F];
+				Output[Index[1U]++] = GlobalRunningStatus.Base64_EncodeTable[((Input[Index[0] - 1U] & 0xF) << 2U) + ((Input[Index[0]] >> 6U) & 0x3)];
+				Output[Index[1U]++] = GlobalRunningStatus.Base64_EncodeTable[Input[Index[0]] & 0x3F];
 			}
 		}
 	}
@@ -231,20 +231,20 @@ size_t __fastcall Base64_Encode(
 //Check the last and add padding.
 	if ((Index[0] % 3U) == 0)
 	{
-		Output[Index[1U]++] = Base64_EncodeTable[(Input[Index[0]] & 0x3) << 4U];
+		Output[Index[1U]++] = GlobalRunningStatus.Base64_EncodeTable[(Input[Index[0]] & 0x3) << 4U];
 		Output[Index[1U]++] = BASE64_PAD;
 		Output[Index[1U]++] = BASE64_PAD;
 	}
 	else if ((Index[0] % 3U) == 1U)
 	{
-		Output[Index[1U]++] = Base64_EncodeTable[(Input[Index[0]] & 0xF) << 2U];
+		Output[Index[1U]++] = GlobalRunningStatus.Base64_EncodeTable[(Input[Index[0]] & 0xF) << 2U];
 		Output[Index[1U]++] = BASE64_PAD;
 	}
 
 	return strnlen_s((char *)Output, OutputSize);
 }
 
-//Base64 decode
+/* Base64 decode
 size_t __fastcall Base64_Decode(
 	_In_ char *Input, 
 	_In_ const size_t Length, 
@@ -264,7 +264,7 @@ size_t __fastcall Base64_Decode(
 		Index[2U] = Index[0] % 4U;
 		if (Input[Index[0]] == '=')
 			return strnlen_s((char *)Output, OutputSize);
-		if (Input[Index[0]] < BASE64_DE_FIRST || Input[Index[0]] > BASE64_DE_LAST || (StringIter = Base64_DecodeTable[Input[Index[0]] - BASE64_DE_FIRST]) == -1)
+		if (Input[Index[0]] < BASE64_DE_FIRST || Input[Index[0]] > BASE64_DE_LAST || (StringIter = GlobalRunningStatus.Base64_DecodeTable[Input[Index[0]] - BASE64_DE_FIRST]) == -1)
 			return FALSE;
 		switch (Index[2U])
 		{
@@ -300,7 +300,7 @@ size_t __fastcall Base64_Decode(
 
 	return strnlen_s((char *)Output, OutputSize);
 }
-
+*/
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Linux and Mac OS X compatible with GetTickCount64
 uint64_t GetCurrentSystemTime(

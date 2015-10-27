@@ -234,24 +234,35 @@ bool __fastcall ParameterCheckAndSetting(
 	}
 #endif
 
-//SOCKS check
+//SOCKS Proxy check
 	if (Parameter.SOCKS_Proxy)
 	{
 		if (IsFirstRead)
 		{
+		//SOCKS IPv4/IPv6 address check
+			if (Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0 && Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0)
+			{
+				PrintError(LOG_ERROR_SOCKS, L"SOCKS address error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+				return false;
+			}
+			else if (Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0 && Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 || 
+				Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0 && Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4)
+			{
+				Parameter.SOCKS_Protocol_Network = REQUEST_MODE_NETWORK_BOTH;
+			}
+
 		//Only SOCKS version 5 support client authentication.
 			if (Parameter.SOCKS_Version != SOCKS_VERSION_5)
 			{
-				delete[] Parameter.SOCKS_Password;
+				delete Parameter.SOCKS_Password;
 				Parameter.SOCKS_Password = nullptr;
-				Parameter.SOCKS_Password_Length = 0;
 			}
 
 		//SOCKS UDP support check
 			if (Parameter.SOCKS_Protocol_Transport == REQUEST_MODE_UDP && (Parameter.SOCKS_Version == SOCKS_VERSION_4 || Parameter.SOCKS_Version == SOCKS_VERSION_CONFIG_4A))
 			{
 				PrintError(LOG_ERROR_SOCKS, L"SOCKS version 4 and 4a are not support UDP relay", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-				return false;
+				Parameter.SOCKS_Protocol_Transport = REQUEST_MODE_TCP;
 			}
 
 		//SOCKS UDP no handshake check
@@ -259,39 +270,84 @@ bool __fastcall ParameterCheckAndSetting(
 				Parameter.SOCKS_UDP_NoHandshake = false;
 		}
 
+	//SOCKS Target Server check
+		if (ParameterPTR->SOCKS_TargetServer.Storage.ss_family == 0 && ParameterPTR->SOCKS_TargetDomain->empty())
+		{
+			PrintError(LOG_ERROR_SOCKS, L"SOCKS target server error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+			return false;
+		}
+
 	//SOCKS IPv6 support check
 		if (ParameterPTR->SOCKS_TargetServer.Storage.ss_family != AF_INET && 
-			(Parameter.SOCKS_Version == SOCKS_VERSION_4 || Parameter.SOCKS_Version == SOCKS_VERSION_CONFIG_4A && ParameterPTR->SOCKS_TargetDomain_Length == 0))
+			(Parameter.SOCKS_Version == SOCKS_VERSION_4 || Parameter.SOCKS_Version == SOCKS_VERSION_CONFIG_4A && ParameterPTR->SOCKS_TargetDomain->empty()))
 		{
 			PrintError(LOG_ERROR_SOCKS, L"SOCKS version 4 and 4a are not support IPv6 target server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
 		}
 
 	//SOCKS domain support check
-		if (ParameterPTR->SOCKS_TargetDomain_Length > 0 && Parameter.SOCKS_Version == SOCKS_VERSION_4)
+		if (!ParameterPTR->SOCKS_TargetDomain->empty() && Parameter.SOCKS_Version == SOCKS_VERSION_4)
 		{
 			PrintError(LOG_ERROR_SOCKS, L"SOCKS version 4 is not support domain target server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
 		}
 
 	//SOCKS Username and password check
-		if (Parameter.SOCKS_Version == SOCKS_VERSION_5 && Parameter.SOCKS_Username_Length == 0 && Parameter.SOCKS_Password_Length > 0)
+		if (Parameter.SOCKS_Version == SOCKS_VERSION_5 && Parameter.SOCKS_Username->empty() && !Parameter.SOCKS_Password->empty())
 		{
 			PrintError(LOG_ERROR_SOCKS, L"SOCKS username and password error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
 		}
 	}
 	else {
-		delete[] Parameter.SOCKS_TargetDomain;
-		delete[] Parameter.SOCKS_Username;
-		delete[] Parameter.SOCKS_Password;
+		delete Parameter.SOCKS_TargetDomain;
+		delete Parameter.SOCKS_Username;
+		delete Parameter.SOCKS_Password;
 
 		Parameter.SOCKS_TargetDomain = nullptr;
 		Parameter.SOCKS_Username = nullptr;
 		Parameter.SOCKS_Password = nullptr;
-		Parameter.SOCKS_TargetDomain_Length = 0;
-		Parameter.SOCKS_Username_Length = 0;
-		Parameter.SOCKS_Password_Length = 0;
+	}
+
+//HTTP Proxy check
+	if (Parameter.HTTP_Proxy)
+	{
+		if (IsFirstRead)
+		{
+		//HTTP IPv4/IPv6 address check
+			if (Parameter.HTTP_Address_IPv6.Storage.ss_family == 0 && Parameter.HTTP_Address_IPv4.Storage.ss_family == 0)
+			{
+				PrintError(LOG_ERROR_HTTP, L"HTTP address error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+				return false;
+			}
+			else if (Parameter.HTTP_Address_IPv6.Storage.ss_family == 0 && Parameter.HTTP_Protocol == REQUEST_MODE_IPV6 || 
+				Parameter.HTTP_Address_IPv4.Storage.ss_family == 0 && Parameter.HTTP_Protocol == REQUEST_MODE_IPV4)
+			{
+				Parameter.HTTP_Protocol = REQUEST_MODE_NETWORK_BOTH;
+			}
+		}
+
+	//SOCKS Target Server check
+		if (ParameterPTR->HTTP_TargetDomain->empty())
+		{
+			PrintError(LOG_ERROR_HTTP, L"HTTP target server error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+			return false;
+		}
+
+	//HTTP version check
+		if (ParameterPTR->HTTP_Version->empty())
+			ParameterPTR->HTTP_Version->append(DEFAULT_HTTP_VERSION);
+	}
+	else {
+		delete Parameter.HTTP_TargetDomain;
+		delete Parameter.HTTP_Version;
+		delete Parameter.HTTP_HeaderField;
+		delete Parameter.HTTP_ProxyAuthorization;
+
+		Parameter.HTTP_TargetDomain = nullptr;
+		Parameter.HTTP_Version = nullptr;
+		Parameter.HTTP_HeaderField = nullptr;
+		Parameter.HTTP_ProxyAuthorization = nullptr;
 	}
 
 //Direct Request check
@@ -310,7 +366,9 @@ bool __fastcall ParameterCheckAndSetting(
 	//Direct Request mode
 		ParameterPTR->DirectRequest == DIRECT_REQUEST_MODE_NONE && 
 	//SOCKS request mode
-		!Parameter.SOCKS_Proxy
+		!Parameter.SOCKS_Proxy && 
+	//HTTP request mode
+		!Parameter.HTTP_Proxy
 	//DNSCurve request mode
 	#if defined(ENABLE_LIBSODIUM)
 		&& !Parameter.DNSCurve
@@ -340,7 +398,7 @@ bool __fastcall ParameterCheckAndSetting(
 		if (Parameter.EDNSPayloadSize < DNS_PACKET_MAXSIZE_TRADITIONAL)
 		{
 			if (Parameter.EDNSPayloadSize > 0)
-				PrintError(LOG_MESSAGE_NOTICE, L"EDNS Payload Size must longer than 512 bytes(Traditional DNS packet minimum supported size)", 0, nullptr, 0);
+				PrintError(LOG_MESSAGE_NOTICE, L"EDNS Payload Size must longer than traditional DNS packet minimum supported size(512 bytes)", 0, nullptr, 0);
 			Parameter.EDNSPayloadSize = EDNS_PACKET_MINSIZE;
 		}
 		else if (Parameter.EDNSPayloadSize >= PACKET_MAXSIZE - sizeof(ipv6_hdr) - sizeof(udp_hdr))
@@ -710,7 +768,7 @@ bool __fastcall ParameterCheckAndSetting(
 	if (IsFirstRead)
 	{
 	//Listen Port
-		if (Parameter.ListenPort != nullptr && Parameter.ListenPort->empty())
+		if (Parameter.ListenPort->empty())
 		{
 			PrintError(LOG_MESSAGE_NOTICE, L"Listen Port is empty, set to standard DNS port(53)", 0, nullptr, 0);
 			Parameter.ListenPort->push_back(htons(IPPORT_DNS));
@@ -854,7 +912,7 @@ bool __fastcall ParameterCheckAndSetting(
 			if (DNSCurveParameter.DNSCurvePayloadSize < DNS_PACKET_MAXSIZE_TRADITIONAL)
 			{
 				if (DNSCurveParameter.DNSCurvePayloadSize > 0)
-					PrintError(LOG_MESSAGE_NOTICE, L"DNSCurve Payload Size must longer than 512 bytes(Traditional DNS packet minimum supported size)", 0, nullptr, 0);
+					PrintError(LOG_MESSAGE_NOTICE, L"DNSCurve Payload Size must longer than traditional DNS packet minimum supported size(512 bytes)", 0, nullptr, 0);
 				DNSCurveParameter.DNSCurvePayloadSize = DNS_PACKET_MAXSIZE_TRADITIONAL;
 			}
 			else if (DNSCurveParameter.DNSCurvePayloadSize + DNSCRYPT_RESERVE_HEADER_LEN >= PACKET_MAXSIZE)
@@ -891,7 +949,8 @@ bool __fastcall ParameterCheckAndSetting(
 #endif
 
 //Sort AcceptTypeList.
-	std::sort(ParameterPTR->AcceptTypeList->begin(), ParameterPTR->AcceptTypeList->end());
+	if (!ParameterPTR->AcceptTypeList->empty())
+		std::sort(ParameterPTR->AcceptTypeList->begin(), ParameterPTR->AcceptTypeList->end());
 
 	return true;
 }
@@ -1278,10 +1337,13 @@ bool __fastcall ReadParameterData(
 //Delete comments(Number Sign/NS and double slashs) and check minimum length of configuration items.
 	if (Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
 		return true;
-	while (Data.find(ASCII_HT) != std::string::npos)
-		Data.erase(Data.find(ASCII_HT), 1U);
-	while (Data.find(ASCII_SPACE) != std::string::npos)
-		Data.erase(Data.find(ASCII_SPACE), 1U);
+	if (Data.find("HTTP Header Field = ") != 0)
+	{
+		while (Data.find(ASCII_HT) != std::string::npos)
+			Data.erase(Data.find(ASCII_HT), 1U);
+		while (Data.find(ASCII_SPACE) != std::string::npos)
+			Data.erase(Data.find(ASCII_SPACE), 1U);
+	}
 	if (Data.find(ASCII_HASHTAG) != std::string::npos)
 		Data.erase(Data.find(ASCII_HASHTAG), Data.length() - Data.find(ASCII_HASHTAG));
 	if (Data.find("//") != std::string::npos)
@@ -1290,7 +1352,7 @@ bool __fastcall ReadParameterData(
 		return true;
 
 //Multi-line comments check
-	if (!ReadMultiLineComments(Data, IsLabelComments))
+	if (Data.find("HTTP Header Field = ") != 0 && !ReadMultiLineComments(Data, IsLabelComments))
 		return true;
 
 //Initialization
@@ -1655,6 +1717,7 @@ bool __fastcall ReadParameterData(
 	{
 		std::vector<std::string> ListData;
 		GetParameterListData(ListData, Data, strlen("ListenPort="), Data.length());
+		Parameter.ListenPort->clear();
 		for (auto StringIter:ListData)
 		{
 			Result = ServiceNameToHex(StringIter.c_str());
@@ -1723,6 +1786,7 @@ bool __fastcall ReadParameterData(
 		//Mark all data in list.
 			std::vector<std::string> ListData;
 			GetParameterListData(ListData, Data, Data.find(ASCII_COLON) + 1U, Data.length());
+			ParameterPTR->AcceptTypeList->clear();
 			for (auto StringIter:ListData)
 			{
 				Result = DNSTypeNameToHex(StringIter.c_str());
@@ -1871,6 +1935,7 @@ bool __fastcall ReadParameterData(
 //[Addresses] block
 	else if (IsFirstRead && Data.find("IPv4ListenAddress=") == 0 && Data.length() > strlen("IPv4ListenAddress="))
 	{
+		Parameter.ListenAddress_IPv4->clear();
 		std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
 		if (!ReadMultipleAddresses(Data, strlen("IPv4ListenAddress="), AF_INET, true, *SockAddr, Parameter.ListenAddress_IPv4, FileIndex, Line))
 			return false;
@@ -1902,6 +1967,7 @@ bool __fastcall ReadParameterData(
 	}
 	else if (IsFirstRead && Data.find("IPv6ListenAddress=") == 0 && Data.length() > strlen("IPv6ListenAddress="))
 	{
+		Parameter.ListenAddress_IPv6->clear();
 		std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
 		if (!ReadMultipleAddresses(Data, strlen("IPv4ListenAddress="), AF_INET6, true, *SockAddr, Parameter.ListenAddress_IPv6, FileIndex, Line))
 			return false;
@@ -2284,6 +2350,7 @@ bool __fastcall ReadParameterData(
 			Parameter.LocalFQDN_Length = Data.length() - strlen("LocalhostServerName=");
 			memcpy_s(LocalFQDN.get(), DOMAIN_MAXSIZE, Data.c_str() + strlen("LocalhostServerName="), Parameter.LocalFQDN_Length);
 			*Parameter.LocalFQDN_String = LocalFQDN.get();
+			memset(Parameter.LocalFQDN_Response, 0, DOMAIN_MAXSIZE);
 			Result = CharToDNSQuery(LocalFQDN.get(), Parameter.LocalFQDN_Response);
 			if (Result > DOMAIN_MINSIZE)
 			{
@@ -2404,18 +2471,95 @@ bool __fastcall ReadParameterData(
 	}
 	else if (Data.find("SOCKSUsername=") == 0 && Data.length() > strlen("SOCKSUsername="))
 	{
-		ParameterPTR->SOCKS_Username_Length = Data.length() - strlen("SOCKSUsername=");
-		memcpy_s(ParameterPTR->SOCKS_Username, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U, Data.c_str() + strlen("SOCKSUsername="), ParameterPTR->SOCKS_Username_Length);
+		ParameterPTR->SOCKS_Username->clear();
+		ParameterPTR->SOCKS_Username->append(Data, strlen("SOCKSUsername="), Data.length() - strlen("SOCKSUsername="));
 	}
 	else if (Data.find("SOCKSPassword=") == 0 && Data.length() > strlen("SOCKSPassword="))
 	{
-		ParameterPTR->SOCKS_Password_Length = Data.length() - strlen("SOCKSPassword=");
-		memcpy_s(ParameterPTR->SOCKS_Password, SOCKS_USERNAME_PASSWORD_MAXNUM + 1U, Data.c_str() + strlen("SOCKSPassword="), ParameterPTR->SOCKS_Password_Length);
+		ParameterPTR->SOCKS_Password->clear();
+		ParameterPTR->SOCKS_Password->append(Data, strlen("SOCKSPassword="), Data.length() - strlen("SOCKSPassword="));
+	}
+	else if (IsFirstRead && Data.find("HTTPProxy=1") == 0)
+	{
+		Parameter.HTTP_Proxy = true;
+	}
+	else if (IsFirstRead && Data.find("HTTPProtocol=") == 0)
+	{
+		CaseConvert(true, Data);
+		if (Data.find("IPV6") != std::string::npos)
+		{
+			if (Data.find("IPV4") != std::string::npos)
+				Parameter.HTTP_Protocol = REQUEST_MODE_NETWORK_BOTH;
+			else 
+				Parameter.HTTP_Protocol = REQUEST_MODE_IPV6;
+		}
+		else {
+			Parameter.HTTP_Protocol = REQUEST_MODE_IPV4;
+		}
+	}
+	else if (Data.find("HTTPSocketTimeout=") == 0 && Data.length() > strlen("HTTPSocketTimeout="))
+	{
+		if (Data.length() < strlen("HTTPSocketTimeout=") + UINT32_MAX_STRING_LENGTH)
+		{
+			Result = strtoul(Data.c_str() + strlen("HTTPSocketTimeout="), nullptr, 0);
+			if (errno != ERANGE && Result > 0 && Result > SOCKET_MIN_TIMEOUT)
+			#if defined(PLATFORM_WIN)
+				ParameterPTR->HTTP_SocketTimeout = (int)Result;
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			{
+				ParameterPTR->HTTP_SocketTimeout.tv_sec = Result / SECOND_TO_MILLISECOND;
+				ParameterPTR->HTTP_SocketTimeout.tv_usec = Result % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+			}
+			#endif
+		}
+		else {
+			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
+	}
+	else if (IsFirstRead && Data.find("HTTPProxyOnly=1") == 0)
+	{
+		Parameter.HTTP_Only = true;
+	}
+	else if (IsFirstRead && Data.find("HTTPIPv4Address=") == 0 && Data.length() > strlen("HTTPIPv4Address="))
+	{
+		if (!ReadMultipleAddresses(Data, strlen("HTTPIPv4Address="), AF_INET, false, Parameter.HTTP_Address_IPv4.Storage, nullptr, FileIndex, Line))
+			return false;
+	}
+	else if (IsFirstRead && Data.find("HTTPIPv6Address=") == 0 && Data.length() > strlen("HTTPIPv6Address="))
+	{
+		if (!ReadMultipleAddresses(Data, strlen("HTTPIPv6Address="), AF_INET6, false, Parameter.HTTP_Address_IPv6.Storage, nullptr, FileIndex, Line))
+			return false;
+	}
+	else if (Data.find("HTTPTargetServer=") == 0 && Data.length() > strlen("HTTPTargetServer="))
+	{
+		ParameterPTR->HTTP_TargetDomain->clear();
+		ParameterPTR->HTTP_TargetDomain->append(Data, strlen("HTTPTargetServer="), Data.length() - strlen("HTTPTargetServer="));
+	}
+	else if (Data.find("HTTPVersion=") == 0 && Data.length() > strlen("HTTPVersion="))
+	{
+		ParameterPTR->HTTP_Version->clear();
+		ParameterPTR->HTTP_Version->append(Data, strlen("HTTPVersion="), Data.length() - strlen("HTTPVersion="));
+	}
+	else if (Data.find("HTTP Header Field = ") == 0 && Data.length() > strlen("HTTP Header Field = "))
+	{
+		ParameterPTR->HTTP_HeaderField->append(Data, strlen("HTTP Header Field = "), Data.length() - strlen("HTTP Header Field = "));
+		ParameterPTR->HTTP_HeaderField->append("\r\n");
+	}
+	else if (Data.find("HTTPProxyAuthorization=") == 0 && Data.length() > strlen("HTTPProxyAuthorization="))
+	{
+		std::shared_ptr<char> ProxyAuthorization(new char[BASE64_ENCODE_OUT_SIZE(Data.length() - strlen("HTTPProxyAuthorization=")) + 1U]);
+		memset(ProxyAuthorization.get(), 0, BASE64_ENCODE_OUT_SIZE(Data.length() - strlen("HTTPProxyAuthorization=")) + 1U);
+		Base64_Encode((uint8_t *)(Data.c_str() + strlen("HTTPProxyAuthorization=")), Data.length() - strlen("HTTPProxyAuthorization="), ProxyAuthorization.get(), BASE64_ENCODE_OUT_SIZE(Data.length() - strlen("HTTPProxyAuthorization=")));
+		ParameterPTR->HTTP_ProxyAuthorization->clear();
+		ParameterPTR->HTTP_ProxyAuthorization->append("Proxy-Authentication: Basic ");
+		ParameterPTR->HTTP_ProxyAuthorization->append(ProxyAuthorization.get());
+		ParameterPTR->HTTP_ProxyAuthorization->append("\r\n");
 	}
 
 //[DNSCurve] block
 #if defined(ENABLE_LIBSODIUM)
-	else if (IsFirstRead && Data.find("DNSCurve=1") == 0)
+	if (IsFirstRead && Data.find("DNSCurve=1") == 0)
 	{
 		Parameter.DNSCurve = true;
 	}
@@ -2691,7 +2835,7 @@ bool ReadPathAndFileName(
 	//Mark all data in list.
 		for (auto StringIter:InnerListData)
 		{
-		//Case-insensitive on Windows
+		//Case-insensitive in Windows
 		#if defined(PLATFORM_WIN)
 			CaseConvert(false, StringIter);
 		#endif
@@ -2752,7 +2896,7 @@ bool ReadPathAndFileName(
 	//Mark all data in list.
 		for (auto StringIter:InnerListData)
 		{
-		//Case-insensitive on Windows
+		//Case-insensitive in Windows
 		#if defined(PLATFORM_WIN)
 			CaseConvert(false, StringIter);
 		#endif
@@ -3038,8 +3182,8 @@ bool __fastcall ReadSOCKSAddressAndDomain(
 		if (IsDomain)
 		{
 		//Convert domain.
-			memcpy_s(ParameterPTR->SOCKS_TargetDomain, DOMAIN_MAXSIZE, Data.c_str() + DataOffset, Data.find(ASCII_COLON) - DataOffset);
-			ParameterPTR->SOCKS_TargetDomain_Length = Data.find(ASCII_COLON) - DataOffset;
+			ParameterPTR->SOCKS_TargetDomain->clear();
+			ParameterPTR->SOCKS_TargetDomain->append(Data, DataOffset, Data.find(ASCII_COLON) - DataOffset);
 
 		//Convert port.
 			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COLON) + strlen(":"), Data.length() - (Data.find(ASCII_COLON) + strlen(":")));
@@ -3185,12 +3329,12 @@ bool __fastcall ReadDNSCurveProviderName(
 		{
 			for (size_t Index = 0;Index < strnlen_s(GlobalRunningStatus.DomainTable, DOMAIN_MAXSIZE);++Index)
 			{
-				if (Index == strnlen_s(GlobalRunningStatus.DomainTable, DOMAIN_MAXSIZE) - 1U && Data.at(Result) != GlobalRunningStatus.DomainTable[Index])
+				if (Index == strnlen_s(GlobalRunningStatus.DomainTable, DOMAIN_MAXSIZE) - 1U && Data.at(Result) != *(GlobalRunningStatus.DomainTable + Index))
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"DNSCurve Provider Names error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_ERROR_PARAMETER, L"DNSCurve Provider Name error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
-				if (Data.at(Result) == GlobalRunningStatus.DomainTable[Index])
+				if (Data.at(Result) == *(GlobalRunningStatus.DomainTable + Index))
 					break;
 			}
 		}
@@ -3230,7 +3374,7 @@ bool __fastcall ReadDNSCurveKey(
 			memcpy_s(KeyData, crypto_box_SECRETKEYBYTES, Target.get(), crypto_box_PUBLICKEYBYTES);
 		}
 		else {
-			PrintError(LOG_ERROR_PARAMETER, L"DNSCurve Keys error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+			PrintError(LOG_ERROR_PARAMETER, L"DNSCurve Key error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 			return false;
 		}
 	}
