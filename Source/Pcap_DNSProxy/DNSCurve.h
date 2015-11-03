@@ -84,7 +84,8 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 	_Inout_ std::vector<SOCKET_DATA> &SocketDataList, 
 	_Inout_ std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
 	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize);
+	_In_ const size_t RecvSize, 
+	_Out_opt_ SSIZE_T *ErrorCode);
 SSIZE_T __fastcall DNSCurveSelectingResult(
 	_In_ const uint16_t Protocol, 
 	_Inout_ std::vector<SOCKET_DATA> &SocketDataList, 

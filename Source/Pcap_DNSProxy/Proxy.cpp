@@ -145,11 +145,14 @@ SSIZE_T __fastcall ProxySocketSelecting(
 	_In_ const size_t SendSize, 
 	_Out_ char *OriginalRecv, 
 	_In_ const size_t RecvSize, 
-	_In_ const size_t MinLen)
+	_In_ const size_t MinLen, 
+	_Out_opt_ SSIZE_T *ErrorCode)
 {
 //Initialization
 	SSIZE_T RecvLen = 0, SelectResult = 0;
 	memset(OriginalRecv, 0, RecvSize);
+	if (ErrorCode != nullptr)
+		*ErrorCode = 0;
 	FD_ZERO(ReadFDS);
 	FD_ZERO(WriteFDS);
 	if (SendBuffer != nullptr)
@@ -198,6 +201,8 @@ SSIZE_T __fastcall ProxySocketSelecting(
 			}
 		}
 		else { //Timeout or SOCKET_ERROR
+			if (ErrorCode != nullptr)
+				*ErrorCode = WSAGetLastError();
 			break;
 		}
 	}
@@ -252,10 +257,10 @@ bool __fastcall SOCKSSelectionExchange(
 //Client selection exchange
 	else if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
 	{
-		RecvLen = ProxySocketSelecting(SOCKSSocketData->Socket, ReadFDS, WriteFDS, Timeout, nullptr, 0, OriginalRecv, RecvSize, sizeof(socks_server_selection));
+		RecvLen = ProxySocketSelecting(SOCKSSocketData->Socket, ReadFDS, WriteFDS, Timeout, nullptr, 0, OriginalRecv, RecvSize, sizeof(socks_server_selection), nullptr);
 	}
 	else {
-		RecvLen = ProxySocketSelecting(SOCKSSocketData->Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, Length, OriginalRecv, RecvSize, sizeof(socks_server_selection));
+		RecvLen = ProxySocketSelecting(SOCKSSocketData->Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, Length, OriginalRecv, RecvSize, sizeof(socks_server_selection), nullptr);
 	}
 	if (RecvLen < (SSIZE_T)sizeof(socks_server_selection))
 	{
@@ -348,7 +353,7 @@ bool __fastcall SOCKSAuthenticationUsernamePassword(
 #endif
 
 //Username/password authentication exchange
-	if (ProxySocketSelecting(Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, Length, OriginalRecv, RecvSize, sizeof(socks_server_user_authentication)) < (SSIZE_T)sizeof(socks_server_user_authentication))
+	if (ProxySocketSelecting(Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, Length, OriginalRecv, RecvSize, sizeof(socks_server_user_authentication), nullptr) < (SSIZE_T)sizeof(socks_server_user_authentication))
 		return false;
 
 //Server reply check
@@ -437,7 +442,7 @@ bool __fastcall SOCKSClientCommandRequest(
 		((psocks4_client_command_request)SOCKS_Pointer)->Version = SOCKS_VERSION_4; //Same value in version byte(4/4a)
 		((psocks4_client_command_request)SOCKS_Pointer)->Command = SOCKS_COMMAND_CONNECT;
 		((psocks4_client_command_request)SOCKS_Pointer)->Remote_Port = Parameter.SOCKS_TargetServer.IPv4.sin_port;
-		((psocks4_client_command_request)SOCKS_Pointer)->Remote_Address.S_un.S_addr = Parameter.SOCKS_TargetServer.IPv4.sin_addr.S_un.S_addr;
+		((psocks4_client_command_request)SOCKS_Pointer)->Remote_Address.s_addr = Parameter.SOCKS_TargetServer.IPv4.sin_addr.s_addr;
 		Length = sizeof(socks4_client_command_request);
 
 	//Write UserID.
@@ -451,7 +456,7 @@ bool __fastcall SOCKSClientCommandRequest(
 		if (Parameter.SOCKS_Version == SOCKS_VERSION_CONFIG_4A && Parameter.SOCKS_TargetDomain != nullptr && !Parameter.SOCKS_TargetDomain->empty())
 		{
 			((psocks4_client_command_request)SOCKS_Pointer)->Remote_Port = Parameter.SOCKS_TargetDomain_Port;
-			((psocks4_client_command_request)SOCKS_Pointer)->Remote_Address.S_un.S_addr = htonl(SOCKS4_ADDRESS_DOMAIN_ADDRESS);
+			((psocks4_client_command_request)SOCKS_Pointer)->Remote_Address.s_addr = htonl(SOCKS4_ADDRESS_DOMAIN_ADDRESS);
 			memcpy_s(SendBuffer + Length, LARGE_PACKET_MAXSIZE - Length, Parameter.SOCKS_TargetDomain->c_str(), Parameter.SOCKS_TargetDomain->length());
 			Length += Parameter.SOCKS_TargetDomain->length() + sizeof(uint8_t);
 		}
@@ -470,7 +475,7 @@ bool __fastcall SOCKSClientCommandRequest(
 	SSIZE_T RecvLen = 0;
 	if (Parameter.SOCKS_Version == SOCKS_VERSION_5) //SOCKS version 5
 	{
-		RecvLen = ProxySocketSelecting(Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, Length, OriginalRecv, RecvSize, sizeof(socks5_server_command_reply));
+		RecvLen = ProxySocketSelecting(Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, Length, OriginalRecv, RecvSize, sizeof(socks5_server_command_reply), nullptr);
 		if (RecvLen < (SSIZE_T)sizeof(socks5_server_command_reply))
 		{
 			PrintError(LOG_ERROR_NETWORK, L"SOCKS request error", 0, nullptr, 0);
@@ -490,10 +495,10 @@ bool __fastcall SOCKSClientCommandRequest(
 	//Client command request process
 		else if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
 		{
-			RecvLen = ProxySocketSelecting(Socket, ReadFDS, WriteFDS, Timeout, nullptr, 0, OriginalRecv, RecvSize, sizeof(socks4_server_command_reply));
+			RecvLen = ProxySocketSelecting(Socket, ReadFDS, WriteFDS, Timeout, nullptr, 0, OriginalRecv, RecvSize, sizeof(socks4_server_command_reply), nullptr);
 		}
 		else {
-			RecvLen = ProxySocketSelecting(Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, Length, OriginalRecv, RecvSize, sizeof(socks4_server_command_reply));
+			RecvLen = ProxySocketSelecting(Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, Length, OriginalRecv, RecvSize, sizeof(socks4_server_command_reply), nullptr);
 		}
 		if (RecvLen < (SSIZE_T)sizeof(socks4_server_command_reply))
 		{
@@ -683,7 +688,7 @@ size_t __fastcall SOCKSTCPRequest(
 #endif
 
 //Data exchange
-	RecvLen = ProxySocketSelecting(TCPSocketData->Socket, ReadFDS.get(), WriteFDS.get(), Timeout.get(), SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, DNS_PACKET_MINSIZE);
+	RecvLen = ProxySocketSelecting(TCPSocketData->Socket, ReadFDS.get(), WriteFDS.get(), Timeout.get(), SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, DNS_PACKET_MINSIZE, nullptr);
 	shutdown(TCPSocketData->Socket, SD_BOTH);
 	closesocket(TCPSocketData->Socket);
 
@@ -946,7 +951,7 @@ size_t __fastcall SOCKSUDPRequest(
 #endif
 
 //Data exchange
-	RecvLen = ProxySocketSelecting(UDPSocketData->Socket, ReadFDS.get(), WriteFDS.get(), Timeout.get(), SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, sizeof(socks_udp_relay_request) + DNS_PACKET_MINSIZE);
+	RecvLen = ProxySocketSelecting(UDPSocketData->Socket, ReadFDS.get(), WriteFDS.get(), Timeout.get(), SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, sizeof(socks_udp_relay_request) + DNS_PACKET_MINSIZE, nullptr);
 	shutdown(UDPSocketData->Socket, SD_BOTH);
 	closesocket(UDPSocketData->Socket);
 	if (!Parameter.SOCKS_UDP_NoHandshake)
@@ -972,7 +977,7 @@ size_t __fastcall SOCKSUDPRequest(
 		else if (Parameter.SOCKS_TargetServer.Storage.ss_family == AF_INET && //IPv4
 			((psocks_udp_relay_request)SOCKS_Pointer)->Address_Type == SOCKS5_ADDRESS_IPV4 && 
 			RecvLen >= (SSIZE_T)(sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t) + DNS_PACKET_MINSIZE) && 
-			(*(in_addr *)(OriginalRecv + sizeof(socks_udp_relay_request))).S_un.S_addr == Parameter.SOCKS_TargetServer.IPv4.sin_addr.S_un.S_addr && 
+			(*(in_addr *)(OriginalRecv + sizeof(socks_udp_relay_request))).s_addr == Parameter.SOCKS_TargetServer.IPv4.sin_addr.s_addr && 
 			*(uint16_t *)(OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(in_addr)) == Parameter.SOCKS_TargetServer.IPv4.sin_port)
 		{
 			memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t), RecvLen - (SSIZE_T)(sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t)));
@@ -1121,7 +1126,7 @@ size_t __fastcall HTTPRequest(
 #endif
 
 //Data exchange
-	RecvLen = ProxySocketSelecting(HTTPSocketData->Socket, ReadFDS.get(), WriteFDS.get(), Timeout.get(), SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, DNS_PACKET_MINSIZE);
+	RecvLen = ProxySocketSelecting(HTTPSocketData->Socket, ReadFDS.get(), WriteFDS.get(), Timeout.get(), SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, DNS_PACKET_MINSIZE, nullptr);
 	shutdown(HTTPSocketData->Socket, SD_BOTH);
 	closesocket(HTTPSocketData->Socket);
 
@@ -1191,10 +1196,10 @@ bool __fastcall HTTP_CONNECTRequest(
 //HTTP CONNECT request exchange
 	else if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
 	{
-		RecvLen = ProxySocketSelecting(HTTPSocketData->Socket, ReadFDS, WriteFDS, Timeout, nullptr, 0, OriginalRecv, RecvSize, HTTP_RESPONSE_MINSIZE);
+		RecvLen = ProxySocketSelecting(HTTPSocketData->Socket, ReadFDS, WriteFDS, Timeout, nullptr, 0, OriginalRecv, RecvSize, HTTP_RESPONSE_MINSIZE, nullptr);
 	}
 	else {
-		RecvLen = ProxySocketSelecting(HTTPSocketData->Socket, ReadFDS, WriteFDS, Timeout, HTTPString.c_str(), HTTPString.length(), OriginalRecv, RecvSize, HTTP_RESPONSE_MINSIZE);
+		RecvLen = ProxySocketSelecting(HTTPSocketData->Socket, ReadFDS, WriteFDS, Timeout, HTTPString.c_str(), HTTPString.length(), OriginalRecv, RecvSize, HTTP_RESPONSE_MINSIZE, nullptr);
 	}
 	if (RecvLen < (SSIZE_T)HTTP_RESPONSE_MINSIZE)
 	{

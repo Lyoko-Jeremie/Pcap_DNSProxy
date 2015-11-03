@@ -92,8 +92,10 @@ bool __fastcall EnterRequestProcess(
 		return true;
 	}
 	
+//Initialization
 	auto DNS_Header = (pdns_hdr)SendBuffer.get();
 	size_t DataLength = Length;
+
 //Compression Pointer Mutation
 	if (Parameter.CompressionPointerMutation && DNS_Header->Additional == 0)
 	{
@@ -223,7 +225,8 @@ size_t __fastcall CheckHostsProcess(
 	_Inout_ char *OriginalRequest, 
 	_In_ const size_t Length, 
 	_Inout_ char *Result, 
-	_In_ const size_t ResultSize)
+	_In_ const size_t ResultSize, 
+	_Out_opt_ bool *IsLocal)
 {
 //Initilization
 	std::string Domain;
@@ -401,9 +404,8 @@ size_t __fastcall CheckHostsProcess(
 	DNSCacheListMutex.unlock();
 
 //Local Main check
-	auto IsLocal = false;
-	if (Parameter.LocalMain)
-		IsLocal = true;
+	if (IsLocal != nullptr && Parameter.LocalMain)
+		*IsLocal = true;
 
 //Main check
 	std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock);
@@ -416,8 +418,12 @@ size_t __fastcall CheckHostsProcess(
 			//Check white list.
 				if (HostsTableIter.Type_Hosts == HOSTS_TYPE_WHITE)
 				{
-					IsLocal = false;
-					if (HostsTableIter.Type_Record.empty()) //Ignore all types.
+				//Reset IsLocal flag.
+					if (IsLocal != nullptr)
+						*IsLocal = false;
+
+				//Ignore all types.
+					if (HostsTableIter.Type_Record.empty()) 
 					{
 						goto StopLoop;
 					}
@@ -434,8 +440,8 @@ size_t __fastcall CheckHostsProcess(
 									goto StopLoop;
 							}
 						}
+					//Ignore some types.
 						else {
-						//Ignore some types.
 							for (auto RecordTypeIter:HostsTableIter.Type_Record)
 							{
 								if (DNS_Query->Type == RecordTypeIter)
@@ -447,8 +453,12 @@ size_t __fastcall CheckHostsProcess(
 			//Check banned list.
 				else if (HostsTableIter.Type_Hosts == HOSTS_TYPE_BANNED)
 				{
-					IsLocal = false;
-					if (HostsTableIter.Type_Record.empty()) //Block all types.
+				//Reset IsLocal flag.
+					if (IsLocal != nullptr)
+						*IsLocal = false;
+
+				//Block all types.
+					if (HostsTableIter.Type_Record.empty())
 					{
 						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_SNH);
 						return Length;
@@ -471,8 +481,8 @@ size_t __fastcall CheckHostsProcess(
 								}
 							}
 						}
+					//Block some types.
 						else {
-						//Block some types.
 							for (auto RecordTypeIter:HostsTableIter.Type_Record)
 							{
 								if (DNS_Query->Type == RecordTypeIter)
@@ -604,7 +614,8 @@ size_t __fastcall CheckHostsProcess(
 			//Check local request.
 				else if (HostsTableIter.Type_Hosts == HOSTS_TYPE_LOCAL)
 				{
-					IsLocal = true;
+					if (IsLocal != nullptr)
+						*IsLocal = true;
 					goto StopLoop;
 				}
 			}
@@ -618,10 +629,6 @@ StopLoop:
 //Domain Case Conversion
 	if (Parameter.DomainCaseConversion)
 		MakeDomainCaseConversion(OriginalRequest + sizeof(dns_hdr));
-
-//Local request
-	if (IsLocal)
-		return EXIT_CHECK_HOSTS_TYPE_LOCAL;
 
 	return EXIT_SUCCESS;
 }

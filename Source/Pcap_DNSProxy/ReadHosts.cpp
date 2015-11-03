@@ -390,7 +390,7 @@ bool __fastcall ReadAddressHostsData(
 		{
 		//Convert to binary address.
 			memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
-			if (!AddressStringToBinary(StringIter.c_str(), AF_INET6, &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, Result))
+			if (!AddressStringToBinary(StringIter.c_str(), AF_INET6, &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, &Result))
 			{
 				PrintError(LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -404,7 +404,7 @@ bool __fastcall ReadAddressHostsData(
 		else {
 		//Convert to binary address.
 			memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
-			if (!AddressStringToBinary(StringIter.c_str(), AF_INET, &((PSOCKADDR_IN)SockAddr.get())->sin_addr, Result))
+			if (!AddressStringToBinary(StringIter.c_str(), AF_INET, &((PSOCKADDR_IN)SockAddr.get())->sin_addr, &Result))
 			{
 				PrintError(LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -436,7 +436,7 @@ bool __fastcall ReadAddressHostsData(
 			//Convert address(Begin).
 				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
-				if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, Result))
+				if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
 				{
 					PrintError(LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -446,7 +446,7 @@ bool __fastcall ReadAddressHostsData(
 			//Convert address(End).
 				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
-				if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, Result))
+				if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, &Result))
 				{
 					PrintError(LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -463,7 +463,7 @@ bool __fastcall ReadAddressHostsData(
 		//Normal format
 			else {
 			//Convert to binary address.
-				if (!AddressStringToBinary(StringIter.c_str(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, Result))
+				if (!AddressStringToBinary(StringIter.c_str(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
 				{
 					PrintError(LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -486,7 +486,7 @@ bool __fastcall ReadAddressHostsData(
 			//Convert address(Begin).
 				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
-				if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, Result))
+				if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &Result))
 				{
 					PrintError(LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -496,7 +496,7 @@ bool __fastcall ReadAddressHostsData(
 			//Convert address(End).
 				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
-				if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, Result))
+				if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, &Result))
 				{
 					PrintError(LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -513,7 +513,7 @@ bool __fastcall ReadAddressHostsData(
 		//Normal format
 			else {
 			//Convert to binary address.
-				if (!AddressStringToBinary(StringIter.c_str(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, Result))
+				if (!AddressStringToBinary(StringIter.c_str(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &Result))
 				{
 					PrintError(LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -638,7 +638,7 @@ bool __fastcall ReadMainHostsData(
 		//Convert addresses.
 			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 			memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.length());
-			if (!AddressStringToBinary(Addr.get(), AF_INET6, &((pdns_record_aaaa)DNS_Record)->Addr, Result))
+			if (!AddressStringToBinary(Addr.get(), AF_INET6, &((pdns_record_aaaa)DNS_Record)->Addr, &Result))
 			{
 				PrintError(LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -661,7 +661,7 @@ bool __fastcall ReadMainHostsData(
 		//Convert addresses.
 			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 			memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.length());
-			if (!AddressStringToBinary(Addr.get(), AF_INET, &((pdns_record_a)DNS_Record)->Addr, Result))
+			if (!AddressStringToBinary(Addr.get(), AF_INET, &((pdns_record_a)DNS_Record)->Addr, &Result))
 			{
 				PrintError(LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				return false;

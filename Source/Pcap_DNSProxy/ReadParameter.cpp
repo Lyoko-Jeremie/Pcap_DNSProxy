@@ -1417,7 +1417,7 @@ bool __fastcall ReadParameterData(
 				std::shared_ptr<char> Target(new char[ADDR_STRING_MAXSIZE]());
 				memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv4DNSAddress="), Data.length() - strlen("IPv4DNSAddress="));
-				if (!AddressStringToBinary(Target.get(), AF_INET, &Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr, Result))
+				if (!AddressStringToBinary(Target.get(), AF_INET, &Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr, &Result))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"IPv4 address format error", Result, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -1439,7 +1439,7 @@ bool __fastcall ReadParameterData(
 				std::shared_ptr<char> Target(new char[ADDR_STRING_MAXSIZE]());
 				memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv4LocalDNSAddress="), Data.length() - strlen("IPv4LocalDNSAddress="));
-				if (!AddressStringToBinary(Target.get(), AF_INET, &Parameter.DNSTarget.Local_IPv4.IPv4.sin_addr, Result))
+				if (!AddressStringToBinary(Target.get(), AF_INET, &Parameter.DNSTarget.Local_IPv4.IPv4.sin_addr, &Result))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"IPv4 address format error", Result, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -1461,7 +1461,7 @@ bool __fastcall ReadParameterData(
 				std::shared_ptr<char> Target(new char[ADDR_STRING_MAXSIZE]());
 				memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv6DNSAddress="), Data.length() - strlen("IPv6DNSAddress="));
-				if (!AddressStringToBinary(Target.get(), AF_INET6, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, Result))
+				if (!AddressStringToBinary(Target.get(), AF_INET6, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, &Result))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"IPv6 address format error", Result, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -1483,7 +1483,7 @@ bool __fastcall ReadParameterData(
 				std::shared_ptr<char> Target(new char[ADDR_STRING_MAXSIZE]());
 				memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv6LocalDNSAddress="), Data.length() - strlen("IPv6LocalDNSAddress="));
-				if (!AddressStringToBinary(Target.get(), AF_INET6, &Parameter.DNSTarget.Local_IPv6.IPv6.sin6_addr, Result))
+				if (!AddressStringToBinary(Target.get(), AF_INET6, &Parameter.DNSTarget.Local_IPv6.IPv6.sin6_addr, &Result))
 				{
 					PrintError(LOG_ERROR_PARAMETER, L"IPv6 address format error", Result, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -2993,7 +2993,7 @@ bool __fastcall ReadMultipleAddresses(
 		//Convert IPv6 address.
 			memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, StringIter.c_str() + strlen("["), StringIter.find(ASCII_BRACKETS_TRAIL) - strlen("["));
-			if (!AddressStringToBinary(Target.get(), AF_INET6, &DNSServerDataTemp->AddressData.IPv6.sin6_addr, Result))
+			if (!AddressStringToBinary(Target.get(), AF_INET6, &DNSServerDataTemp->AddressData.IPv6.sin6_addr, &Result))
 			{
 				PrintError(LOG_ERROR_PARAMETER, L"IPv6 address format error", Result, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -3055,7 +3055,7 @@ bool __fastcall ReadMultipleAddresses(
 		//Convert IPv4 address.
 			memset(Target.get(), 0, ADDR_STRING_MAXSIZE);
 			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_COLON));
-			if (!AddressStringToBinary(Target.get(), AF_INET, &DNSServerDataTemp->AddressData.IPv4.sin_addr, Result))
+			if (!AddressStringToBinary(Target.get(), AF_INET, &DNSServerDataTemp->AddressData.IPv4.sin_addr, &Result))
 			{
 				PrintError(LOG_ERROR_PARAMETER, L"IPv4 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -3134,7 +3134,7 @@ bool __fastcall ReadSOCKSAddressAndDomain(
 		else {
 		//Convert IPv6 address.
 			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + DataOffset + strlen("["), Data.find(ASCII_BRACKETS_TRAIL) - (DataOffset + strlen("[")));
-			if (!AddressStringToBinary(Target.get(), AF_INET6, &ParameterPTR->SOCKS_TargetServer.IPv6.sin6_addr, Result))
+			if (!AddressStringToBinary(Target.get(), AF_INET6, &ParameterPTR->SOCKS_TargetServer.IPv6.sin6_addr, &Result))
 			{
 				PrintError(LOG_ERROR_PARAMETER, L"IPv6 address format error", Result, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -3212,7 +3212,7 @@ bool __fastcall ReadSOCKSAddressAndDomain(
 
 		//Convert IPv4 address.
 			memcpy_s(Target.get(), ADDR_STRING_MAXSIZE, Data.c_str() + DataOffset, Data.find(ASCII_COLON) - DataOffset);
-			if (!AddressStringToBinary(Target.get(), AF_INET, &ParameterPTR->SOCKS_TargetServer.IPv4.sin_addr, Result))
+			if (!AddressStringToBinary(Target.get(), AF_INET, &ParameterPTR->SOCKS_TargetServer.IPv4.sin_addr, &Result))
 			{
 				PrintError(LOG_ERROR_PARAMETER, L"IPv4 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;

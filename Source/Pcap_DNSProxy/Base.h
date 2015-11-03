@@ -107,11 +107,8 @@
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4                         //Current configuration version
-#define FULL_VERSION                 L"0.4.4.3"
+#define FULL_VERSION                 L"0.4.4.4"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2015 Chengr28"
-
-//Exit code definitions
-#define EXIT_CHECK_HOSTS_TYPE_LOCAL                2U           //Type is Local in CheckHostsProcess function.
 
 //Size and length definitions
 #define BOM_UTF_8_LENGTH               3U                                         //UTF-8 BOM length
@@ -973,7 +970,7 @@ bool __fastcall AddressStringToBinary(
 	_In_ const char *AddrString, 
 	_In_ const uint16_t Protocol, 
 	_Out_ void *OriginalAddr, 
-	_Out_ SSIZE_T &ErrorCode);
+	_Out_opt_ SSIZE_T *ErrorCode);
 size_t __fastcall AddressesComparing(
 	_In_ const void *OriginalAddrBegin, 
 	_In_ const void *OriginalAddrEnd, 
@@ -1080,7 +1077,8 @@ size_t __fastcall CheckHostsProcess(
 	_Inout_ char *OriginalRequest, 
 	_In_ const size_t Length, 
 	_Inout_ char *Result, 
-	_In_ const size_t ResultSize);
+	_In_ const size_t ResultSize, 
+	_Out_opt_ bool *IsLocal);
 bool __fastcall SendToRequester(
 	_In_ char *RecvBuffer, 
 	_In_ const size_t RecvSize, 
@@ -1117,7 +1115,8 @@ SSIZE_T __fastcall SocketSelecting(
 	_Out_opt_ char *OriginalRecv, 
 	_In_ const size_t RecvSize, 
 	_In_ const bool IsLocal, 
-	_In_ const bool NoCheck);
+	_In_ const bool NoCheck, 
+	_Out_opt_ SSIZE_T *ErrorCode);
 #if defined(ENABLE_PCAP)
 bool __fastcall DomainTestRequest(
 	_In_ const uint16_t Protocol);

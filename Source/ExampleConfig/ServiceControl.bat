@@ -1,8 +1,15 @@
 :: Pcap_DNSProxy service control batch
 :: A local DNS server based on WinPcap and LibPcap
+:: Author: Hugo Chan, wongsyrone, Chengr28
 
 
 @echo off
+
+
+:: Check processor architecture.
+set Arch=
+if %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (set Arch=_x86)
+set Prog=Pcap_DNSProxy%Arch%.exe
 
 
 :: Choice
@@ -21,119 +28,85 @@ cd /D "%~dp0"
 cls
 goto %UserChoice%
 
-:: Service Install part
-:: Author: Hugo Chan, Chengr28
+
+:: Service install part
 :CASE_1
 	sc stop PcapDNSProxyService
 	sc delete PcapDNSProxyService
 	ping 127.0.0.1 -n 3 >nul
-	if %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (goto X86) else (goto X64)
 
-	:X86
-	sc create PcapDNSProxyService binPath= "%~dp0Pcap_DNSProxy_x86.exe" DisplayName= "PcapDNSProxy Service" start= auto
-	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v Application /d "%~dp0Pcap_DNSProxy_x86.exe" /f
+	sc create PcapDNSProxyService binPath= "%~dp0%Prog%" DisplayName= "PcapDNSProxy Service" start= auto
+	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v Application /d "%~dp0%Prog%" /f
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v AppDirectory /d "%~dp0" /f
-	Pcap_DNSProxy_x86.exe --first-setup
-	goto Exit
+	%Prog% --first-setup
 
-	:X64
-	sc create PcapDNSProxyService binPath= "%~dp0Pcap_DNSProxy.exe" DisplayName= "PcapDNSProxy Service" start= auto
-	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v Application /d "%~dp0Pcap_DNSProxy.exe" /f
-	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v AppDirectory /d "%~dp0" /f
-	Pcap_DNSProxy.exe --first-setup
-
-	:Exit
 	sc description PcapDNSProxyService "A local DNS server based on WinPcap and LibPcap"
 	sc failure PcapDNSProxyService reset= 0 actions= restart/5000/restart/10000//
 	sc start PcapDNSProxyService
 	ipconfig /flushdns
-	ping 127.0.0.1 -n 3 >nul
-	if %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (
-		Tasklist |findstr /I "Pcap_DNSProxy_x86.exe" > NUL
-	) else (
-		Tasklist |findstr /I "Pcap_DNSProxy.exe" > NUL
-	)
-	if ERRORLEVEL 1 (
-		echo.
-		echo Service start failed, please check the configurations.
-	)
-	echo.
+	call :CHECK_PROG
 	pause
 	exit
 
 
-:: Service Uninstall part
-:: Author: Chengr28
+:: Service uninstall part
 :CASE_2
 	sc stop PcapDNSProxyService
 	sc delete PcapDNSProxyService
+	ping 127.0.0.1 -n 3 >nul
 	ipconfig /flushdns
 	echo.
 	pause
 	exit
 
 
-:: Service Start part
-:: Author: Hugo Chan, Chengr28
+:: Service start part
 :CASE_3
 	sc start PcapDNSProxyService
+	ping 127.0.0.1 -n 3 >nul
 	ipconfig /flushdns
 	ping 127.0.0.1 -n 3 >nul
-	if %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (
-		Tasklist |findstr /I "Pcap_DNSProxy_x86.exe" > NUL
-	) else (
-		Tasklist |findstr /I "Pcap_DNSProxy.exe" > NUL
-	)
-	if ERRORLEVEL 1 (
-		echo.
-		echo Service start failed, please check the configurations.
-	)
-	echo.
+	call :CHECK_PROG
 	pause
 	exit
 
 
-:: Service Stop part
-:: Author: Chengr28
+:: Service stop part
 :CASE_4
 	sc stop PcapDNSProxyService
+	ping 127.0.0.1 -n 3 >nul
 	ipconfig /flushdns
 	echo.
 	pause
 	exit
 
 
-:: Service Restart part
-:: Author: Chengr28
+:: Service restart part
 :CASE_5
 	sc stop PcapDNSProxyService
 	ping 127.0.0.1 -n 3 >nul
 	sc start PcapDNSProxyService
-	ipconfig /flushdns
 	ping 127.0.0.1 -n 3 >nul
-	if %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (
-		Tasklist |findstr /I "Pcap_DNSProxy_x86.exe" > NUL
-	) else (
-		Tasklist |findstr /I "Pcap_DNSProxy.exe" > NUL
-	)
-	if ERRORLEVEL 1 (
-		echo.
-		echo Service start failed, please check the configurations.
-	)
-	echo.
+	ipconfig /flushdns
+	call :CHECK_PROG
 	pause
 	exit
 
 
 :: Flush DNS cache part
-:: Author: Chengr28
 :CASE_6
 	echo.
-	if %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (
-		Pcap_DNSProxy_x86.exe --flush-dns
-	) else (
-		Pcap_DNSProxy.exe --flush-dns
-	)
+	%Prog% --flush-dns
 	echo.
 	pause
 	exit
+
+
+:: Process check
+:CHECK_PROG
+	Tasklist |findstr /I "%Prog%" > NUL
+	if ERRORLEVEL 1 (
+		echo.
+		echo Service start failed, please check the configurations.
+	)
+	echo.

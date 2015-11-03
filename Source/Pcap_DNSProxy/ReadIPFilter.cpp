@@ -224,7 +224,7 @@ bool __fastcall ReadBlacklistData(
 			//Convert address(Begin).
 				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
-				if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, Result))
+				if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
 				{
 					PrintError(LOG_ERROR_IPFILTER, L"IPv6 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -234,7 +234,7 @@ bool __fastcall ReadBlacklistData(
 			//Convert address(End).
 				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
-				if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, Result))
+				if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, &Result))
 				{
 					PrintError(LOG_ERROR_IPFILTER, L"IPv6 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -253,7 +253,7 @@ bool __fastcall ReadBlacklistData(
 			//Convert address.
 				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.length());
-				if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, Result))
+				if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
 				{
 					PrintError(LOG_ERROR_IPFILTER, L"IPv6 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -289,7 +289,7 @@ bool __fastcall ReadBlacklistData(
 			//Convert address(Begin).
 				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
-				if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, Result))
+				if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &Result))
 				{
 					PrintError(LOG_ERROR_IPFILTER, L"IPv4 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -299,7 +299,7 @@ bool __fastcall ReadBlacklistData(
 			//Convert address(End).
 				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
-				if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, Result))
+				if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, &Result))
 				{
 					PrintError(LOG_ERROR_IPFILTER, L"IPv4 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -318,7 +318,7 @@ bool __fastcall ReadBlacklistData(
 			//Convert address.
 				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.length());
-				if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, Result))
+				if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &Result))
 				{
 					PrintError(LOG_ERROR_IPFILTER, L"IPv4 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -414,7 +414,7 @@ bool __fastcall ReadLocalRoutingData(
 		Data.erase(0, Data.find("/") + 1U);
 
 	//Convert address.
-		if (!AddressStringToBinary(Addr.get(), AF_INET6, BinaryAddr.get(), Result))
+		if (!AddressStringToBinary(Addr.get(), AF_INET6, BinaryAddr.get(), &Result))
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv6 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -492,7 +492,7 @@ bool __fastcall ReadLocalRoutingData(
 		Data.erase(0, Data.find("/") + 1U);
 
 	//Convert address.
-		if (!AddressStringToBinary(Addr.get(), AF_INET, BinaryAddr.get(), Result))
+		if (!AddressStringToBinary(Addr.get(), AF_INET, BinaryAddr.get(), &Result))
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv4 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -522,8 +522,8 @@ bool __fastcall ReadLocalRoutingData(
 				{
 					if (LocalRoutingTableIter->Prefix == AddressRoutingTableTemp.Prefix)
 					{
-						if (!LocalRoutingTableIter->AddressRoutingList_IPv4.count(htonl(BinaryAddr->s_addr)))
-							LocalRoutingTableIter->AddressRoutingList_IPv4.insert(htonl(BinaryAddr->s_addr));
+						if (!LocalRoutingTableIter->AddressRoutingList_IPv4.count(htonl(BinaryAddr->s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix))))
+							LocalRoutingTableIter->AddressRoutingList_IPv4.insert(htonl(BinaryAddr->s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
 
 						return true;
 					}
@@ -531,7 +531,7 @@ bool __fastcall ReadLocalRoutingData(
 
 			//Jump here to add new item to global list.
 			AddToGlobalList_IPv4:
-				AddressRoutingTableTemp.AddressRoutingList_IPv4.insert(htonl(BinaryAddr->s_addr));
+				AddressRoutingTableTemp.AddressRoutingList_IPv4.insert(htonl(BinaryAddr->s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
 				IPFilterFileSetIter.LocalRoutingList_IPv4.push_back(AddressRoutingTableTemp);
 			}
 		}
@@ -578,7 +578,7 @@ bool __fastcall ReadAddressPrefixBlock(
 	if (Protocol == AF_INET6)
 	{
 	//Convert address.
-		if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressPrefix->Address)->sin6_addr, Result))
+		if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressPrefix->Address)->sin6_addr, &Result))
 		{
 			PrintError(LOG_ERROR_PARAMETER, L"IPv6 address format error", Result, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -614,7 +614,7 @@ bool __fastcall ReadAddressPrefixBlock(
 //IPv4
 	else {
 	//Convert address.
-		if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressPrefix->Address)->sin_addr, Result))
+		if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressPrefix->Address)->sin_addr, &Result))
 		{
 			PrintError(LOG_ERROR_PARAMETER, L"IPv4 address format error", Result, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -802,7 +802,7 @@ bool __fastcall ReadMainIPFilterData(
 	//Begin address
 		AddressRangeTableTemp.Begin.ss_family = AF_INET6;
 		memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_MINUS));
-		if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, Result))
+		if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv6 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -812,7 +812,7 @@ bool __fastcall ReadMainIPFilterData(
 		memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 		AddressRangeTableTemp.End.ss_family = AF_INET6;
 		memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_MINUS) + 1U, Data.length() - Data.find(ASCII_MINUS));
-		if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, Result))
+		if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, &Result))
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv6 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -831,7 +831,7 @@ bool __fastcall ReadMainIPFilterData(
 	//Begin address
 		AddressRangeTableTemp.Begin.ss_family = AF_INET;
 		memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_MINUS));
-		if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, Result))
+		if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &Result))
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv4 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -841,7 +841,7 @@ bool __fastcall ReadMainIPFilterData(
 		memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 		AddressRangeTableTemp.End.ss_family = AF_INET;
 		memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_MINUS) + 1U, Data.length() - Data.find(ASCII_MINUS));
-		if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, Result))
+		if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, &Result))
 		{
 			PrintError(LOG_ERROR_IPFILTER, L"IPv4 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;

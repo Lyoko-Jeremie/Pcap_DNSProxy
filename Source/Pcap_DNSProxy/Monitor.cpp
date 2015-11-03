@@ -541,16 +541,8 @@ bool __fastcall UDPMonitor(
 				}
 
 			//Request process
-				if (ClientData->AddrLen == sizeof(sockaddr_in6)) //IPv6
-				{
-					std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, *ClientData, IPPROTO_UDP, IsLocal);
-					RequestProcessThread.detach();
-				}
-				else { //IPv4
-					std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, *ClientData, IPPROTO_UDP, IsLocal);
-					RequestProcessThread.detach();
-				}
-
+				std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, *ClientData, IPPROTO_UDP, IsLocal);
+				RequestProcessThread.detach();
 				Index = (Index + 1U) % Parameter.BufferQueueSize;
 			}
 		}
@@ -694,7 +686,7 @@ bool __fastcall TCPMonitor(
 				ClientData->Socket = accept(LocalSocketData.Socket, (PSOCKADDR)&ClientData->SockAddr, &ClientData->AddrLen);
 				if (ClientData->Socket == INVALID_SOCKET)
 					continue;
-				if (CheckQueryData(nullptr, nullptr, 0, *ClientData, 0, nullptr) != EXIT_SUCCESS)
+				if (CheckQueryData(nullptr, nullptr, 0, *ClientData, IPPROTO_TCP, nullptr) != EXIT_SUCCESS)
 				{
 					shutdown(ClientData->Socket, SD_BOTH);
 					closesocket(ClientData->Socket);
@@ -840,19 +832,18 @@ bool __fastcall TCPReceiveProcess(
 	//Check DNS query data.
 		std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
 		Length = CheckQueryData(RecvBuffer.get() + sizeof(uint16_t), SendBuffer.get(), Length, LocalSocketData, IPPROTO_TCP, &IsLocal);
-		if (Length < (SSIZE_T)DNS_PACKET_MINSIZE)
+		if (Length < DNS_PACKET_MINSIZE)
 		{
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);
 			return false;
 		}
-		SendBuffer.reset();
-
+		else {
+			SendBuffer.reset();
+		}
+		
 	//Main request process
-		if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
-			EnterRequestProcess(RecvBuffer.get() + sizeof(uint16_t), Length, LocalSocketData, IPPROTO_TCP, IsLocal);
-		else //IPv4
-			EnterRequestProcess(RecvBuffer.get() + sizeof(uint16_t), Length, LocalSocketData, IPPROTO_TCP, IsLocal);
+		EnterRequestProcess(RecvBuffer.get() + sizeof(uint16_t), Length, LocalSocketData, IPPROTO_TCP, IsLocal);
 	}
 	else {
 		shutdown(LocalSocketData.Socket, SD_BOTH);

@@ -39,6 +39,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 注意：建议将 "本地连接" 和 "无线连接" 以及 "宽带连接" 全部修改！
 
 6.特别注意：
+  * Windows XP 如出现 10022 错误，需要先启用系统的 IPv6 支持，再重新启动服务：
+    * 以管理员身份运行 cmd
+	* 输入 ipv6 install 并回车
   * 如需使用境内 DNS 服务器解析境内域名加速访问 CDN 速度功能，请选择其中一种方案，配置完成后重启服务：
     * Local Main = 1 同时 Local Routing = 1 开启境内地址路由表识别功能
     * Local Hosts = 1 开启境内域名白名单功能

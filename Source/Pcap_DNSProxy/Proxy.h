@@ -33,7 +33,8 @@ SSIZE_T __fastcall ProxySocketSelecting(
 	_In_ const size_t SendSize, 
 	_Out_ char *OriginalRecv, 
 	_In_ const size_t RecvSize, 
-	_In_ const size_t MinLen);
+	_In_ const size_t MinLen, 
+	_Out_opt_ SSIZE_T *ErrorCode);
 bool __fastcall SOCKSSelectionExchange(
 	_In_ SOCKET_DATA *SOCKSSocketData, 
 	_In_ fd_set *ReadFDS, 

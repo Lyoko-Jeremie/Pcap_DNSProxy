@@ -770,9 +770,12 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 	_Inout_ std::vector<SOCKET_DATA> &SocketDataList, 
 	_Inout_ std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
 	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize)
+	_In_ const size_t RecvSize, 
+	_Out_opt_ SSIZE_T *ErrorCode)
 {
 	size_t Index = 0;
+	if (ErrorCode != nullptr)
+		*ErrorCode = 0;
 
 //TCP or UDP connecting
 	SSIZE_T RecvLen = 0;
@@ -969,20 +972,14 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 			if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
 				return RecvLen;
 
-		//Close all sockets.
-			for (auto &SocketDataIter:SocketDataList)
-			{
-				if (SocketDataIter.Socket > 0)
-				{
-					shutdown(SocketDataIter.Socket, SD_BOTH);
-					closesocket(SocketDataIter.Socket);
-				}
-			}
-
-			return WSAETIMEDOUT;
+			if (ErrorCode != nullptr)
+				*ErrorCode = WSAETIMEDOUT;
+			break;
 		}
 	//SOCKET_ERROR
 		else {
+			if (ErrorCode != nullptr)
+				*ErrorCode = WSAGetLastError();
 			break;
 		}
 	}
@@ -1386,7 +1383,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(
 			goto JumpToRestart;
 
 	//Socket selecting
-		RecvLen = SocketSelecting(IPPROTO_TCP, TCPSocketDataList, SendBuffer.get(), DataLength, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, false, true);
+		RecvLen = SocketSelecting(IPPROTO_TCP, TCPSocketDataList, SendBuffer.get(), DataLength, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, false, true, nullptr);
 		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 		{
 			goto JumpToRestart;
@@ -1553,7 +1550,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(
 			goto JumpToRestart;
 
 	//Socket selecting
-		RecvLen = SocketSelecting(IPPROTO_UDP, UDPSocketDataList, SendBuffer.get(), DataLength, RecvBuffer.get(), PACKET_MAXSIZE, false, true);
+		RecvLen = SocketSelecting(IPPROTO_UDP, UDPSocketDataList, SendBuffer.get(), DataLength, RecvBuffer.get(), PACKET_MAXSIZE, false, true, nullptr);
 		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 		{
 			goto JumpToRestart;
@@ -1743,8 +1740,9 @@ size_t __fastcall DNSCurveTCPRequest(
 	TCPSocketSelectingData.reset();
 
 //Socket selecting
-	RecvLen = DNSCurveSocketSelecting(IPPROTO_TCP, TCPSocketDataList, TCPSocketSelectingList, OriginalRecv, RecvSize);
-	if (RecvLen == WSAETIMEDOUT && !Parameter.AlternateMultiRequest) //Mark timeout.
+	SSIZE_T ErrorCode = 0;
+	RecvLen = DNSCurveSocketSelecting(IPPROTO_TCP, TCPSocketDataList, TCPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
+	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultiRequest) //Mark timeout.
 	{
 		if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6
 			++AlternateSwapList.TimeoutTimes[9U];
@@ -1827,8 +1825,8 @@ size_t __fastcall DNSCurveTCPRequestMulti(
 	}
 
 //Socket selecting
-	SSIZE_T RecvLen = DNSCurveSocketSelecting(IPPROTO_TCP, TCPSocketDataList, TCPSocketSelectingList, OriginalRecv, RecvSize);
-	if (RecvLen == WSAETIMEDOUT && !Parameter.AlternateMultiRequest) //Mark timeout.
+	SSIZE_T ErrorCode = 0, RecvLen = DNSCurveSocketSelecting(IPPROTO_TCP, TCPSocketDataList, TCPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
+	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultiRequest) //Mark timeout.
 	{
 		if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6
 			++AlternateSwapList.TimeoutTimes[10U];
@@ -1919,8 +1917,9 @@ size_t __fastcall DNSCurveUDPRequest(
 	UDPSocketSelectingData.reset();
 
 //Socket selecting
-	RecvLen = DNSCurveSocketSelecting(IPPROTO_UDP, UDPSocketDataList, UDPSocketSelectingList, OriginalRecv, RecvSize);
-	if (RecvLen == WSAETIMEDOUT && !Parameter.AlternateMultiRequest) //Mark timeout.
+	SSIZE_T ErrorCode = 0;
+	RecvLen = DNSCurveSocketSelecting(IPPROTO_UDP, UDPSocketDataList, UDPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
+	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultiRequest) //Mark timeout.
 	{
 		if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6
 			++AlternateSwapList.TimeoutTimes[10U];
@@ -2003,8 +2002,8 @@ size_t __fastcall DNSCurveUDPRequestMulti(
 	}
 
 //Socket selecting
-	SSIZE_T RecvLen = DNSCurveSocketSelecting(IPPROTO_UDP, UDPSocketDataList, UDPSocketSelectingList, OriginalRecv, RecvSize);
-	if (RecvLen == WSAETIMEDOUT && !Parameter.AlternateMultiRequest) //Mark timeout.
+	SSIZE_T ErrorCode = 0, RecvLen = DNSCurveSocketSelecting(IPPROTO_UDP, UDPSocketDataList, UDPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
+	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultiRequest) //Mark timeout.
 	{
 		if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6
 			++AlternateSwapList.TimeoutTimes[10U];

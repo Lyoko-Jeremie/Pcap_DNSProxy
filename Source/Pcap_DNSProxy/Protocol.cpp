@@ -24,7 +24,7 @@ bool __fastcall AddressStringToBinary(
 	_In_ const char *AddrString, 
 	_In_ const uint16_t Protocol, 
 	_Out_ void *OriginalAddr, 
-	_Out_ SSIZE_T &ErrorCode)
+	_Out_opt_ SSIZE_T *ErrorCode)
 {
 	std::string sAddrString(AddrString);
 	SSIZE_T Result = 0;
@@ -32,7 +32,8 @@ bool __fastcall AddressStringToBinary(
 		memset(OriginalAddr, 0, sizeof(in6_addr));
 	else //IPv4
 		memset(OriginalAddr, 0, sizeof(in_addr));
-	ErrorCode = 0;
+	if (ErrorCode != nullptr)
+		*ErrorCode = 0;
 
 //inet_ntop() and inet_pton() was only support in Windows Vista and newer system. [Roy Tam]
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
@@ -71,7 +72,9 @@ bool __fastcall AddressStringToBinary(
 			Result = (*GlobalRunningStatus.FunctionPTR_InetPton)(AF_INET6, sAddrString.c_str(), OriginalAddr);
 			if (Result == SOCKET_ERROR || Result == 0)
 			{
-				ErrorCode = WSAGetLastError();
+				if (ErrorCode != nullptr)
+					*ErrorCode = WSAGetLastError();
+
 				return false;
 			}
 		}
@@ -79,7 +82,9 @@ bool __fastcall AddressStringToBinary(
 			SockLength = sizeof(sockaddr_in6);
 			if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET6, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
 			{
-				ErrorCode = WSAGetLastError();
+				if (ErrorCode != nullptr)
+					*ErrorCode = WSAGetLastError();
+
 				return false;
 			}
 
@@ -89,7 +94,8 @@ bool __fastcall AddressStringToBinary(
 		Result = inet_pton(AF_INET6, sAddrString.c_str(), OriginalAddr);
 		if (Result == SOCKET_ERROR || Result == 0)
 		{
-			ErrorCode = WSAGetLastError();
+			if (ErrorCode != nullptr)
+				*ErrorCode = WSAGetLastError();
 			return false;
 		}
 	#endif
@@ -147,7 +153,8 @@ bool __fastcall AddressStringToBinary(
 			Result = (*GlobalRunningStatus.FunctionPTR_InetPton)(AF_INET, sAddrString.c_str(), OriginalAddr);
 			if (Result == SOCKET_ERROR || Result == 0)
 			{
-				ErrorCode = WSAGetLastError();
+				if (ErrorCode != nullptr)
+					*ErrorCode = WSAGetLastError();
 				return false;
 			}
 		}
@@ -155,7 +162,8 @@ bool __fastcall AddressStringToBinary(
 			SockLength = sizeof(sockaddr_in);
 			if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
 			{
-				ErrorCode = WSAGetLastError();
+				if (ErrorCode != nullptr)
+					*ErrorCode = WSAGetLastError();
 				return false;
 			}
 
@@ -165,7 +173,8 @@ bool __fastcall AddressStringToBinary(
 		Result = inet_pton(AF_INET, sAddrString.c_str(), OriginalAddr);
 		if (Result == SOCKET_ERROR || Result == 0)
 		{
-			ErrorCode = WSAGetLastError();
+			if (ErrorCode != nullptr)
+				*ErrorCode = WSAGetLastError();
 			return false;
 		}
 	#endif
@@ -778,37 +787,40 @@ size_t __fastcall CheckQueryData(
 	_Out_opt_ bool *IsLocal)
 {
 //Check address.
-	if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
+	if (!(Protocol == IPPROTO_TCP && RecvBuffer != nullptr && SendBuffer != nullptr && Length >= DNS_PACKET_MINSIZE))
 	{
-		if (CheckEmptyBuffer(&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr, sizeof(in6_addr)) || //Empty address
-		//Check Private Mode(IPv6).
-			Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
-			!(((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] <= 0xFD || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
-			((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] == 0xFE && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
-			((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_words[6U] == 0 && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_words[7U] == htons(0x0001)) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
-		//Check Custom Mode(IPv6).
-			Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr, AF_INET6))
-				return EXIT_FAILURE;
-	}
-	else { //IPv4
-		if ((*(in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr).s_addr == 0 || //Empty address
-		//Check Private Mode(IPv4).
-			Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
-			!(((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
-			((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
-			((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0xAC && ((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_host >= 0x10 && ((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_host <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
-			((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0xC0 && ((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_host == 0xA8) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
-		//Check Custom Mode(IPv4).
-			Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr, AF_INET))
-				return EXIT_FAILURE;
+		if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
+		{
+			if (CheckEmptyBuffer(&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr, sizeof(in6_addr)) || //Empty address
+			//Check Private Mode(IPv6).
+				Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
+				!(((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] <= 0xFD || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
+				((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] == 0xFE && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[1U] <= 0xBF || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
+				((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_words[6U] == 0 && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_words[7U] == htons(0x0001)) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
+			//Check Custom Mode(IPv6).
+				Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr, AF_INET6))
+					return EXIT_FAILURE;
+		}
+		else { //IPv4
+			if ((*(in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr).s_addr == 0 || //Empty address
+			//Check Private Mode(IPv4).
+				Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
+				!(((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
+				((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
+				((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0xAC && ((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_host >= 0x10 && ((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_host <= 0x1F || //Private class B address(172.16.0.0/16, Section 3 in RFC 1918)
+				((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0xC0 && ((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_host == 0xA8) || //Private class C address(192.168.0.0/24, Section 3 in RFC 1918)
+			//Check Custom Mode(IPv4).
+				Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr, AF_INET))
+					return EXIT_FAILURE;
+		}
 	}
 
 //Check address only.
-	if (RecvBuffer == nullptr || SendBuffer == nullptr || Length == 0 || Protocol == 0)
+	if (RecvBuffer == nullptr || SendBuffer == nullptr || Length < DNS_PACKET_MINSIZE || Protocol == 0)
 		return EXIT_SUCCESS;
 
-	auto DNS_Header = (pdns_hdr)RecvBuffer;
 //Check request packet data.
+	auto DNS_Header = (pdns_hdr)RecvBuffer;
 	if (
 	//Base DNS header check
 		DNS_Header->ID == 0 || //ID must not be set 0.
@@ -851,8 +863,8 @@ size_t __fastcall CheckQueryData(
 		return EXIT_FAILURE;
 	}
 
-	size_t DataLength[]{Length, Length};
 //UDP Truncated check
+	size_t DataLength[]{Length, Length};
 	if (Protocol == IPPROTO_UDP)
 	{
 		if (Length + EDNS_ADDITIONAL_MAXSIZE > Parameter.EDNSPayloadSize && (Parameter.EDNS_Label || Length > Parameter.EDNSPayloadSize))
@@ -890,26 +902,21 @@ size_t __fastcall CheckQueryData(
 			DataLength[0] = AddEDNSLabelToAdditionalRR(RecvBuffer, Length, PACKET_MAXSIZE, EDNSSocketData);
 	}
 
-	DataLength[1U] = DataLength[0];
-
 //Check Hosts.
+	DataLength[1U] = DataLength[0];
 	if (Protocol == IPPROTO_TCP)
 	{
 		memset(SendBuffer, 0, LARGE_PACKET_MAXSIZE);
-		DataLength[0] = CheckHostsProcess(RecvBuffer, DataLength[0], SendBuffer, LARGE_PACKET_MAXSIZE);
+		DataLength[0] = CheckHostsProcess(RecvBuffer, DataLength[0], SendBuffer, LARGE_PACKET_MAXSIZE, IsLocal);
 	}
 	else { //UDP
 		memset(SendBuffer, 0, PACKET_MAXSIZE);
-		DataLength[0] = CheckHostsProcess(RecvBuffer, DataLength[0], SendBuffer, PACKET_MAXSIZE);
+		DataLength[0] = CheckHostsProcess(RecvBuffer, DataLength[0], SendBuffer, PACKET_MAXSIZE, IsLocal);
 	}
 	if (DataLength[0] >= DNS_PACKET_MINSIZE)
 	{
 		SendToRequester(SendBuffer, DataLength[0], DataLength[0] + sizeof(uint16_t), Protocol, LocalSocketData);
 		return EXIT_FAILURE;
-	}
-	else if (IsLocal != nullptr && DataLength[0] == EXIT_CHECK_HOSTS_TYPE_LOCAL)
-	{
-		*IsLocal = true;
 	}
 
 	return DataLength[1U];
