@@ -185,7 +185,7 @@ bool __fastcall MonitorInit(
 			if (LocalSocketData->Socket == INVALID_SOCKET)
 			{
 				if (WSAGetLastError() != 0 && WSAGetLastError() != WSAEAFNOSUPPORT)
-					PrintError(LOG_ERROR_NETWORK, L"IPv6 TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+					PrintError(LOG_ERROR_NETWORK, L"TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
 				GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData->Socket);
@@ -521,7 +521,7 @@ bool __fastcall UDPMonitor(
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		SelectResult = select(ClientData->Socket + 1U, ReadFDS.get(), nullptr, nullptr, Timeout.get());
 	#endif
-		if (SelectResult > EXIT_SUCCESS)
+		if (SelectResult > 0)
 		{
 			if (FD_ISSET(ClientData->Socket, ReadFDS.get()))
 			{
@@ -546,21 +546,20 @@ bool __fastcall UDPMonitor(
 				Index = (Index + 1U) % Parameter.BufferQueueSize;
 			}
 		}
+/* Old verson(2015-11-07)
 	//Timeout
-		else if (SelectResult == EXIT_SUCCESS)
+		else if (SelectResult == 0)
 		{
 			continue;
 		}
 	//SOCKET_ERROR
 		else {
-			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
-				PrintError(LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
-			else //IPv4
-				PrintError(LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
-
+			PrintError(LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			Sleep(LOOP_INTERVAL_TIME_MONITOR);
+
 			continue;
 		}
+*/
 	}
 
 //Monitor terminated
@@ -678,7 +677,7 @@ bool __fastcall TCPMonitor(
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		SelectResult = select(LocalSocketData.Socket + 1U, ReadFDS.get(), nullptr, nullptr, Timeout.get());
 	#endif
-		if (SelectResult > EXIT_SUCCESS)
+		if (SelectResult > 0)
 		{
 			if (FD_ISSET(LocalSocketData.Socket, ReadFDS.get()))
 			{
@@ -699,21 +698,20 @@ bool __fastcall TCPMonitor(
 				Index = (Index + 1U) % Parameter.BufferQueueSize;
 			}
 		}
+/* Old verson(2015-11-07)
 	//Timeout
-		else if (SelectResult == EXIT_SUCCESS)
+		else if (SelectResult == 0)
 		{
 			continue;
 		}
 	//SOCKET_ERROR
 		else {
-			if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
-				PrintError(LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
-			else //IPv4
-				PrintError(LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
-
+			PrintError(LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			Sleep(LOOP_INTERVAL_TIME_MONITOR);
+
 			continue;
 		}
+*/
 	}
 
 //Monitor terminated
@@ -961,7 +959,7 @@ addrinfo * __fastcall GetLocalAddressList(
 
 //Get localhost data.
 	int ResultGetaddrinfo = getaddrinfo(HostName, nullptr, Hints.get(), &Result);
-	if (ResultGetaddrinfo != EXIT_SUCCESS)
+	if (ResultGetaddrinfo != 0)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"Get localhost address error", ResultGetaddrinfo, nullptr, 0);
 
@@ -1010,8 +1008,9 @@ bool GetBestInterfaceAddress(
 			AddrLen != sizeof(sockaddr_in6) || CheckEmptyBuffer(&((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, sizeof(in6_addr)))
 		{
 			GlobalRunningStatus.GatewayAvailable_IPv6 = false;
-
+			shutdown(InterfaceSocket, SHUT_RDWR);
 			close(InterfaceSocket);
+
 			return false;
 		}
 	}
@@ -1026,12 +1025,14 @@ bool GetBestInterfaceAddress(
 			AddrLen != sizeof(sockaddr_in) || CheckEmptyBuffer(&((PSOCKADDR_IN)SockAddr.get())->sin_addr, sizeof(in_addr)))
 		{
 			GlobalRunningStatus.GatewayAvailable_IPv4 = false;
-
+			shutdown(InterfaceSocket, SHUT_RDWR);
 			close(InterfaceSocket);
+
 			return false;
 		}
 	}
 
+	shutdown(InterfaceSocket, SHUT_RDWR);
 	close(InterfaceSocket);
 	return true;
 }
@@ -1226,7 +1227,7 @@ void __fastcall NetworkInformationMonitor(
 			if (LocalAddressList == nullptr)
 			{
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (getifaddrs(&InterfaceAddressList) != EXIT_SUCCESS || InterfaceAddressList == nullptr)
+			if (getifaddrs(&InterfaceAddressList) != 0 || InterfaceAddressList == nullptr)
 			{
 				if (InterfaceAddressList != nullptr)
 					freeifaddrs(InterfaceAddressList);
@@ -1266,20 +1267,6 @@ void __fastcall NetworkInformationMonitor(
 					if (LocalAddressTableIter->ai_family == AF_INET6 && LocalAddressTableIter->ai_addrlen == sizeof(sockaddr_in6) && 
 						LocalAddressTableIter->ai_addr->sa_family == AF_INET6)
 					{
-/* Old version(2015-10-10)
-					//Mark localhost subnet(IPv6).
-						if (Parameter.EDNS_ClientSubnet_Relay && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv6 && 
-							Parameter.LocalhostSubnet.IPv6 != nullptr && Parameter.LocalhostSubnet.IPv6->Address.ss_family == 0 && 
-							!CheckSpecialAddress(&((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr, AF_INET6, true, nullptr))
-						{
-							Parameter.LocalhostSubnet.IPv6->Address.ss_family = AF_INET6;
-							((PSOCKADDR_IN6)&Parameter.LocalhostSubnet.IPv6->Address)->sin6_addr = ((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr;
-							Parameter.LocalhostSubnet.IPv6->Prefix = sizeof(in6_addr) * BYTES_TO_BITS; //No recommendation is provided for IPv6 at this time so keep all bits, see https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02.
-
-							IsSubnetMark = true;
-						}
-*/
-
 					//Mark local addresses(B part).
 						if (GlobalRunningStatus.LocalAddress_Length[0] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
 						{
@@ -1349,19 +1336,6 @@ void __fastcall NetworkInformationMonitor(
 				{
 					if (InterfaceAddressIter->ifa_addr != nullptr && InterfaceAddressIter->ifa_addr->sa_family == AF_INET6)
 					{
-/* Old version(2015-10-10)
-					//Mark localhost subnet(IPv6).
-						if (Parameter.EDNS_ClientSubnet_Relay && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv6 && 
-							Parameter.LocalhostSubnet.IPv6 != nullptr && Parameter.LocalhostSubnet.IPv6->Address.ss_family == 0 && 
-							!CheckSpecialAddress(&((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr, AF_INET6, true, nullptr))
-						{
-							Parameter.LocalhostSubnet.IPv6->Address.ss_family = AF_INET6;
-							((PSOCKADDR_IN6)&Parameter.LocalhostSubnet.IPv6->Address)->sin6_addr = ((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr;
-							Parameter.LocalhostSubnet.IPv6->Prefix = sizeof(in6_addr) * BYTES_TO_BITS; //No recommendation is provided for IPv6 at this time so keep all bits, see https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02.
-
-							IsSubnetMark = true;
-						}
-*/
 					//Mark local addresses(B part).
 						if (GlobalRunningStatus.LocalAddress_Length[0] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
 						{
@@ -1444,15 +1418,6 @@ void __fastcall NetworkInformationMonitor(
 				freeaddrinfo(LocalAddressList);
 				LocalAddressList = nullptr;
 			#endif
-
-/* Old version(2015-10-10)
-			//Reset localhost subnet settings if there no any addresses which can be marked.
-				if (Parameter.EDNS_ClientSubnet_Relay && Parameter.LocalhostSubnet.IPv6 != nullptr && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv6)
-				{
-					Parameter.LocalhostSubnet.IPv6->Prefix = 0;
-					memset(&Parameter.LocalhostSubnet.IPv6->Address, 0, sizeof(sockaddr_storage));
-				}
-*/
 			}
 		}
 
@@ -1499,21 +1464,6 @@ void __fastcall NetworkInformationMonitor(
 					if (LocalAddressTableIter->ai_family == AF_INET && LocalAddressTableIter->ai_addrlen == sizeof(sockaddr_in) && 
 						LocalAddressTableIter->ai_addr->sa_family == AF_INET)
 					{
-/* Old version(2015-10-10)
-					//Mark localhost subnet(IPv4).
-						if (Parameter.EDNS_ClientSubnet_Relay && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4 && 
-							Parameter.LocalhostSubnet.IPv4 != nullptr && Parameter.LocalhostSubnet.IPv4->Address.ss_family == 0 && 
-							!CheckSpecialAddress(&((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr, AF_INET, true, nullptr))
-						{
-							Parameter.LocalhostSubnet.IPv4->Address.ss_family = AF_INET;
-							((PSOCKADDR_IN)&Parameter.LocalhostSubnet.IPv4->Address)->sin_addr = ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr;
-							((PSOCKADDR_IN)&Parameter.LocalhostSubnet.IPv4->Address)->sin_addr.s_impno = 0;
-							Parameter.LocalhostSubnet.IPv4->Prefix = (sizeof(in_addr) - 1U) * BYTES_TO_BITS; //Keep 24 bits of IPv4 address, see https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02.
-
-							IsSubnetMark = true;
-						}
-*/
-
 					//Mark local addresses(B part).
 						if (GlobalRunningStatus.LocalAddress_Length[1U] <= PACKET_MAXSIZE - sizeof(dns_record_a))
 						{
@@ -1564,20 +1514,6 @@ void __fastcall NetworkInformationMonitor(
 				{
 					if (InterfaceAddressIter->ifa_addr != nullptr && InterfaceAddressIter->ifa_addr->sa_family == AF_INET)
 					{
-/* Old version(2015-10-10)
-					//Mark localhost subnet(IPv4).
-						if (Parameter.EDNS_ClientSubnet_Relay && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4 && 
-							Parameter.LocalhostSubnet.IPv4 != nullptr && Parameter.LocalhostSubnet.IPv4->Address.ss_family == 0 && 
-							!CheckSpecialAddress(&((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr, AF_INET, true, nullptr))
-						{
-							Parameter.LocalhostSubnet.IPv4->Address.ss_family = AF_INET;
-							((PSOCKADDR_IN)&Parameter.LocalhostSubnet.IPv4->Address)->sin_addr = ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr;
-							((PSOCKADDR_IN)&Parameter.LocalhostSubnet.IPv4->Address)->sin_addr.s_impno = 0;
-							Parameter.LocalhostSubnet.IPv4->Prefix = (sizeof(in_addr) - 1U) * BYTES_TO_BITS; //Keep 24 bits of IPv4 address, see https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02.
-
-							IsSubnetMark = true;
-						}
-*/
 					//Mark local addresses(B part).
 						if (GlobalRunningStatus.LocalAddress_Length[1U] <= PACKET_MAXSIZE - sizeof(dns_record_a))
 						{
@@ -1641,15 +1577,6 @@ void __fastcall NetworkInformationMonitor(
 				freeaddrinfo(LocalAddressList);
 				LocalAddressList = nullptr;
 			#endif
-
-/* Old version(2015-10-10)
-			//Reset localhost subnet settings if there no any addresses which can be marked.
-				if (Parameter.EDNS_ClientSubnet_Relay && Parameter.LocalhostSubnet.IPv4 != nullptr && !IsSubnetMark && !Parameter.LocalhostSubnet.Setting_IPv4)
-				{
-					Parameter.LocalhostSubnet.IPv4->Prefix = 0;
-					memset(&Parameter.LocalhostSubnet.IPv4->Address, 0, sizeof(sockaddr_storage));
-				}
-*/
 			}
 		}
 

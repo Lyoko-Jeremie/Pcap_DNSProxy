@@ -169,7 +169,7 @@ SSIZE_T __fastcall ProxySocketSelecting(
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		SelectResult = select(Socket + 1U, ReadFDS, WriteFDS, nullptr, Timeout);
 	#endif
-		if (SelectResult > EXIT_SUCCESS)
+		if (SelectResult > 0)
 		{
 		//Receive process
 			if (FD_ISSET(Socket, ReadFDS))
@@ -187,7 +187,7 @@ SSIZE_T __fastcall ProxySocketSelecting(
 		//Send process
 			if (SendBuffer != nullptr && FD_ISSET(Socket, WriteFDS))
 			{
-				if (send(Socket, SendBuffer, (int)SendSize, 0) <= EXIT_SUCCESS)
+				if (send(Socket, SendBuffer, (int)SendSize, 0) < 0)
 				{
 					break;
 				}
@@ -357,9 +357,9 @@ bool __fastcall SOCKSAuthenticationUsernamePassword(
 		return false;
 
 //Server reply check
-	auto ServerUserAuthentication = (psocks_server_user_authentication)OriginalRecv;
-	if (ServerUserAuthentication->Version != SOCKS_USERNAME_PASSWORD_VERSION || ServerUserAuthentication->Status != SOCKS_USERNAME_PASSWORD_SUCCESS)
-		return false;
+	if (((psocks_server_user_authentication)OriginalRecv)->Version != SOCKS_USERNAME_PASSWORD_VERSION || 
+		((psocks_server_user_authentication)OriginalRecv)->Status != SOCKS_USERNAME_PASSWORD_SUCCESS)
+			return false;
 
 	return true;
 }
@@ -968,7 +968,7 @@ size_t __fastcall SOCKSUDPRequest(
 		if (Parameter.SOCKS_TargetServer.Storage.ss_family == AF_INET6 && //IPv6
 			((psocks_udp_relay_request)SOCKS_Pointer)->Address_Type == SOCKS5_ADDRESS_IPV6 && 
 			RecvLen >= (SSIZE_T)(sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t) + DNS_PACKET_MINSIZE) && 
-			memcmp((in6_addr *)(OriginalRecv + sizeof(socks_udp_relay_request)), &Parameter.SOCKS_TargetServer.IPv6.sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS && 
+			memcmp((in6_addr *)(OriginalRecv + sizeof(socks_udp_relay_request)), &Parameter.SOCKS_TargetServer.IPv6.sin6_addr, sizeof(in6_addr)) == 0 && 
 			*(uint16_t *)(OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(in6_addr)) == Parameter.SOCKS_TargetServer.IPv6.sin6_port)
 		{
 			memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t), RecvLen - (SSIZE_T)(sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t)));
@@ -988,7 +988,7 @@ size_t __fastcall SOCKSUDPRequest(
 			((psocks_udp_relay_request)SOCKS_Pointer)->Address_Type == SOCKS5_ADDRESS_DOMAIN && 
 			RecvLen >= (SSIZE_T)(sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length() + sizeof(uint16_t) + DNS_PACKET_MINSIZE) && 
 			*(uint8_t *)(OriginalRecv + sizeof(socks_udp_relay_request)) == Parameter.SOCKS_TargetDomain->length() && 
-			memcmp(OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(uint8_t), Parameter.SOCKS_TargetDomain->c_str(), Parameter.SOCKS_TargetDomain->length()) == EXIT_SUCCESS && 
+			memcmp(OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(uint8_t), Parameter.SOCKS_TargetDomain->c_str(), Parameter.SOCKS_TargetDomain->length()) == 0 && 
 			*(uint16_t *)(OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length()) == Parameter.SOCKS_TargetDomain_Port)
 */
 		{
@@ -1007,8 +1007,10 @@ size_t __fastcall SOCKSUDPRequest(
 				RecvLen -= sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t);
 			}
 
-//			memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length() + sizeof(uint16_t), RecvLen - (SSIZE_T)(sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length() + sizeof(uint16_t)));
-//			return RecvLen - (SSIZE_T)(sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length() + sizeof(uint16_t));
+/* SOCKS server will reply IPv4/IPv6 address of domain.
+			memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length() + sizeof(uint16_t), RecvLen - (SSIZE_T)(sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length() + sizeof(uint16_t)));
+			return RecvLen - (SSIZE_T)(sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length() + sizeof(uint16_t));
+*/
 		}
 
 	//Server response check

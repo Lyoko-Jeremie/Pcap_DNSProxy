@@ -390,7 +390,7 @@ SSIZE_T __fastcall SocketSelecting(
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		SelectResult = select(MaxSocket + 1U, ReadFDS.get(), WriteFDS.get(), nullptr, Timeout.get());
 	#endif
-		if (SelectResult > EXIT_SUCCESS)
+		if (SelectResult > 0)
 		{
 			for (Index = 0;Index < SocketDataList.size();++Index)
 			{
@@ -435,7 +435,7 @@ SSIZE_T __fastcall SocketSelecting(
 			//Send process
 				if (FD_ISSET(SocketDataList.at(Index).Socket, WriteFDS.get()) && !SocketSelectingList.at(Index).PacketIsSend)
 				{
-					if (send(SocketDataList.at(Index).Socket, OriginalSend, (int)SendSize, 0) <= EXIT_SUCCESS)
+					if (send(SocketDataList.at(Index).Socket, OriginalSend, (int)SendSize, 0) < 0)
 					{
 						shutdown(SocketDataList.at(Index).Socket, SD_BOTH);
 						closesocket(SocketDataList.at(Index).Socket);
@@ -450,7 +450,7 @@ SSIZE_T __fastcall SocketSelecting(
 			}
 		}
 	//Timeout
-		else if (SelectResult == EXIT_SUCCESS)
+		else if (SelectResult == 0)
 		{
 			if (OriginalRecv != nullptr)
 			{
@@ -597,7 +597,7 @@ void __fastcall MarkPortToList(
 			memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
 
 		//Get socket information.
-			if (getsockname(SocketDataIter.Socket, (PSOCKADDR)&SocketDataIter.SockAddr, &SocketDataIter.AddrLen) != EXIT_SUCCESS)
+			if (getsockname(SocketDataIter.Socket, (PSOCKADDR)&SocketDataIter.SockAddr, &SocketDataIter.AddrLen) != 0)
 			{
 				shutdown(SocketDataIter.Socket, SD_BOTH);
 				closesocket(SocketDataIter.Socket);
@@ -1052,8 +1052,8 @@ bool __fastcall ICMPTestRequest(
 			else if (SleepTime_ICMP < SpeedTime_ICMP)
 			{
 				SleepTime_ICMP += Parameter.FileRefreshTime;
-
 				Sleep(Parameter.FileRefreshTime);
+
 				continue;
 			}
 
@@ -1170,8 +1170,8 @@ bool __fastcall ICMPTestRequest(
 //Select socket data of DNS target(Independent)
 bool __fastcall SelectTargetSocket(
 	_Out_ SOCKET_DATA *TargetSocketData, 
-	_Outptr_ bool **IsAlternate, 
-	_Outptr_ size_t **AlternateTimeoutTimes, 
+	_Outptr_opt_ bool **IsAlternate, 
+	_Outptr_opt_ size_t **AlternateTimeoutTimes, 
 	_In_ const uint16_t Protocol, 
 	_In_ const bool IsLocal)
 {

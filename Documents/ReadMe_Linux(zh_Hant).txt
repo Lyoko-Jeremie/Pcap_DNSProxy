@@ -38,7 +38,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
         * autoheader
         * automake 可訪問 https://www.gnu.org/software/automake 獲取
         * libtool 可訪問 https://www.gnu.org/software/libtool 獲取
-      * 獲得 root 許可權後進入目錄，運行 ./autogen.sh -> make -> make install 即可
+      * 獲得 root 許可權後進入目錄，運行 ./autogen.sh -> ./configure -> make -> make install 即可
       * 部分 Linux 發行版本可能還需要 Libsodium-Dev 工具的支援
       * 部分 Linux 發行版本可能還需要運行 ldconfig 刷新系統的庫緩存
 

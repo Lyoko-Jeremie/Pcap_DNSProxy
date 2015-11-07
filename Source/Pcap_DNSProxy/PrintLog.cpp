@@ -312,8 +312,8 @@ bool __fastcall PrintScreenAndWriteFile(
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::shared_ptr<struct stat> FileStat(new struct stat());
 	memset(FileStat.get(), 0, sizeof(struct stat));
-	if (stat(GlobalRunningStatus.sPath_ErrorLog->c_str(), FileStat.get()) == EXIT_SUCCESS && FileStat->st_size >= (off_t)Parameter.LogMaxSize && 
-		remove(GlobalRunningStatus.sPath_ErrorLog->c_str()) == EXIT_SUCCESS)
+	if (stat(GlobalRunningStatus.sPath_ErrorLog->c_str(), FileStat.get()) == 0 && FileStat->st_size >= (off_t)Parameter.LogMaxSize && 
+		remove(GlobalRunningStatus.sPath_ErrorLog->c_str()) == 0)
 			PrintError(LOG_ERROR_SYSTEM, L"Old error log file was deleted", 0, nullptr, 0);
 
 	FileStat.reset();
@@ -322,7 +322,7 @@ bool __fastcall PrintScreenAndWriteFile(
 //Write to file.
 #if defined(PLATFORM_WIN)
 	FILE *Output = nullptr;
-	if (_wfopen_s(&Output, GlobalRunningStatus.Path_ErrorLog->c_str(), L"a,ccs=UTF-8") == EXIT_SUCCESS && Output != nullptr)
+	if (_wfopen_s(&Output, GlobalRunningStatus.Path_ErrorLog->c_str(), L"a,ccs=UTF-8") == 0 && Output != nullptr)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	auto Output = fopen(GlobalRunningStatus.sPath_ErrorLog->c_str(), "a");
 	if (Output != nullptr)

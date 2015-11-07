@@ -46,8 +46,7 @@ bool __fastcall CheckEmptyBuffer(
 uint16_t __fastcall hton16_Force(
 	_In_ const uint16_t Value)
 {
-	auto Result = (uint8_t *)&Value;
-	return (uint16_t)(Result[0] << 8U | Result[1U]);
+	return (uint16_t)(((uint8_t *)&Value)[0] << 8U | ((uint8_t *)&Value)[1U]);
 }
 
 /* Redirect to hton16_Force.
@@ -55,8 +54,7 @@ uint16_t __fastcall hton16_Force(
 uint16_t __fastcall ntoh16_Force(
 	const uint16_t Value)
 {
-	auto Result = (uint8_t *)&Value;
-	return (uint16_t)(Result[0] << 8U | Result[1U]);
+	return (uint16_t)(((uint8_t *)&Value)[0] << 8U | ((uint8_t *)&Value)[1U]);
 }
 */
 
@@ -64,8 +62,7 @@ uint16_t __fastcall ntoh16_Force(
 uint32_t __fastcall hton32_Force(
 	_In_ const uint32_t Value)
 {
-	auto Result = (uint8_t *)&Value;
-	return (uint32_t)(Result[0] << 24U | Result[1U] << 16U | Result[2U] << 8U | Result[3U]);
+	return (uint32_t)(((uint8_t *)&Value)[0] << 24U | ((uint8_t *)&Value)[1U] << 16U | ((uint8_t *)&Value)[2U] << 8U | ((uint8_t *)&Value)[3U]);
 }
 
 /* Redirect to hton32_Force.
@@ -73,8 +70,7 @@ uint32_t __fastcall hton32_Force(
 uint32_t __fastcall ntoh32_Force(
 	const uint32_t Value)
 {
-	auto Result = (uint8_t *)&Value;
-	return (uint32_t)(Result[0] << 24U | Result[1U] << 16U | Result[2U] << 8U | Result[3U]);
+	return (uint32_t)(((uint8_t *)&Value)[0] << 24U | ((uint8_t *)&Value)[1U] << 16U | ((uint8_t *)&Value)[2U] << 8U | ((uint8_t *)&Value)[3U]);
 }
 */
 
@@ -265,7 +261,7 @@ size_t __fastcall Base64_Decode(
 		if (Input[Index[0]] == '=')
 			return strnlen_s((char *)Output, OutputSize);
 		if (Input[Index[0]] < BASE64_DE_FIRST || Input[Index[0]] > BASE64_DE_LAST || (StringIter = GlobalRunningStatus.Base64_DecodeTable[Input[Index[0]] - BASE64_DE_FIRST]) == -1)
-			return FALSE;
+			return 0;
 		switch (Index[2U])
 		{
 			case 0:
@@ -308,10 +304,10 @@ uint64_t GetCurrentSystemTime(
 {
 	std::shared_ptr<timeval> CurrentTime(new timeval());
 	memset(CurrentTime.get(), 0, sizeof(timeval));
-	if (gettimeofday(CurrentTime.get(), nullptr) == EXIT_SUCCESS)
+	if (gettimeofday(CurrentTime.get(), nullptr) == 0)
 		return (uint64_t)CurrentTime->tv_sec * SECOND_TO_MILLISECOND + (uint64_t)CurrentTime->tv_usec / MICROSECOND_TO_MILLISECOND;
 
-	return FALSE;
+	return 0;
 }
 
 //Windows XP with SP3 support

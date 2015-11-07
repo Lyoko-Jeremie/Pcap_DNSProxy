@@ -170,10 +170,9 @@
 // Base Header
 // 
 //Preprocessor definitions
-#define SODIUM_STATIC              //LibSodium
-
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_MACX))
 	#define ENABLE_LIBSODIUM       //LibSodium is always enable in Windows and Mac OS X.
+	#define SODIUM_STATIC          //LibSodium static linking always enable in Windows and Mac OS X
 #endif
 
 //C Standard Library and C++ Standard Template Library/STL headers
@@ -217,6 +216,10 @@
 #define ASCII_LF               10      //"␊"
 #define ASCII_DLE              16      //"␐"
 #define ASCII_COLON            58      //":"
+
+#if defined(ENABLE_LIBSODIUM)
+	#define LIBSODIUM_ERROR          (-1)
+#endif
 
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Linux and Mac OS X compatible

@@ -43,3 +43,5 @@ void __fastcall ConfigurationTableSetting(
 	_Inout_ ConfigurationTable *ConfigurationParameter);
 void __fastcall GlobalStatusSetting(
 	_Inout_ GlobalStatus *GlobalRunningStatusParameter);
+void __fastcall DNSCurveConfigurationTableSetting(
+	_Inout_ DNSCurveConfigurationTable *DNSCurveConfigurationParameter);

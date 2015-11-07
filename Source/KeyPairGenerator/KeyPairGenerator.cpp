@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 
 #if defined(ENABLE_LIBSODIUM)
 //Libsodium initialization
-	if (sodium_init() != EXIT_SUCCESS)
+	if (sodium_init() == LIBSODIUM_ERROR)
 	{
 		wprintf_s(L"Libsodium initialization error\n");
 #if defined(PLATFORM_WIN)

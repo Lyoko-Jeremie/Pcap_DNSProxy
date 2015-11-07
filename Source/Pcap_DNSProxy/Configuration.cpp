@@ -460,7 +460,7 @@ bool __fastcall ReadParameter(
 		for (FileIndex = 0;FileIndex < FileList_Config.size();++FileIndex)
 		{
 		#if defined(PLATFORM_WIN)
-			if (_wfopen_s(&Input, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") != EXIT_SUCCESS || Input == nullptr)
+			if (_wfopen_s(&Input, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") != 0 || Input == nullptr)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			Input = fopen(FileList_Config.at(FileIndex).sFileName.c_str(), "rb");
 			if (Input == nullptr)
@@ -495,7 +495,7 @@ bool __fastcall ReadParameter(
 			}
 		}
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		if (stat(FileList_Config.at(FileIndex).sFileName.c_str(), FileStat.get()) == EXIT_SUCCESS && FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+		if (stat(FileList_Config.at(FileIndex).sFileName.c_str(), FileStat.get()) == 0 && FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 		{
 			PrintError(LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
@@ -529,7 +529,7 @@ bool __fastcall ReadParameter(
 			for (FileIndex = 0;FileIndex < FileList_Config.size();++FileIndex)
 			{
 			#if defined(PLATFORM_WIN)
-				if (_wfopen_s(&Input, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") != EXIT_SUCCESS || Input == nullptr)
+				if (_wfopen_s(&Input, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") != 0 || Input == nullptr)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 				Input = fopen(FileList_Config.at(FileIndex).sFileName.c_str(), "rb");
 				if (Input == nullptr)
@@ -571,7 +571,7 @@ bool __fastcall ReadParameter(
 			{
 				memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (stat(FileList_Config.at(FileIndex).sFileName.c_str(), FileStat.get()) != EXIT_SUCCESS)
+			if (stat(FileList_Config.at(FileIndex).sFileName.c_str(), FileStat.get()) != 0)
 			{
 				memset(FileStat.get(), 0, sizeof(struct stat));
 		#endif
@@ -621,7 +621,7 @@ bool __fastcall ReadParameter(
 
 				//Read file.
 				#if defined(PLATFORM_WIN)
-					if (_wfopen_s(&Input, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") == EXIT_SUCCESS)
+					if (_wfopen_s(&Input, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") == 0)
 					{
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 					Input = fopen(FileList_Config.at(FileIndex).sFileName.c_str(), "rb");
@@ -744,7 +744,7 @@ void __fastcall ReadIPFilter(
 			{
 				memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (stat(FileList_IPFilter.at(FileIndex).sFileName.c_str(), FileStat.get()) != EXIT_SUCCESS)
+			if (stat(FileList_IPFilter.at(FileIndex).sFileName.c_str(), FileStat.get()) != 0)
 			{
 				memset(FileStat.get(), 0, sizeof(struct stat));
 		#endif
@@ -801,7 +801,7 @@ void __fastcall ReadIPFilter(
 
 				//Read file.
 				#if defined(PLATFORM_WIN)
-					if (_wfopen_s(&Input, FileList_IPFilter.at(FileIndex).FileName.c_str(), L"rb") == EXIT_SUCCESS)
+					if (_wfopen_s(&Input, FileList_IPFilter.at(FileIndex).FileName.c_str(), L"rb") == 0)
 					{
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 					Input = fopen(FileList_IPFilter.at(FileIndex).sFileName.c_str(), "rb");
@@ -932,7 +932,7 @@ void __fastcall ReadHosts(
 			{
 				memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (stat(FileList_Hosts.at(FileIndex).sFileName.c_str(), FileStat.get()) != EXIT_SUCCESS)
+			if (stat(FileList_Hosts.at(FileIndex).sFileName.c_str(), FileStat.get()) != 0)
 			{
 				memset(FileStat.get(), 0, sizeof(struct stat));
 		#endif
@@ -989,7 +989,7 @@ void __fastcall ReadHosts(
 
 				//Read file.
 				#if defined(PLATFORM_WIN)
-					if (_wfopen_s(&Input, FileList_Hosts.at(FileIndex).FileName.c_str(), L"rb") == EXIT_SUCCESS)
+					if (_wfopen_s(&Input, FileList_Hosts.at(FileIndex).FileName.c_str(), L"rb") == 0)
 					{
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 					Input = fopen(FileList_Hosts.at(FileIndex).sFileName.c_str(), "rb");

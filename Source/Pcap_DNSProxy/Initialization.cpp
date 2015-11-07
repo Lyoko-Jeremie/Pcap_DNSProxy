@@ -36,7 +36,8 @@ static char Base64_EncodeTable_Initialization[] =
 };
 
 /* Base64 decode table
-static signed char Base64_DecodeTable_Initialization[] = //ASCII order for BASE 64 decode, -1 in unused character.
+//ASCII order for BASE 64 decode, -1 in unused character.
+static signed char Base64_DecodeTable_Initialization[] = 
 {
 	/* '+', ',', '-', '.', '/', '0', '1', '2', 
 		62,  -1,  -1,  -1,  63,  52,  53,  54, 
@@ -802,48 +803,55 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 		return;
 	}
 
-//Initialization
+	DNSCurveConfigurationTableSetting(this);
+	return;
+}
+
+//DNSCurveConfigurationTable class constructor settings
+void __fastcall DNSCurveConfigurationTableSetting(
+	_Inout_ DNSCurveConfigurationTable *DNSCurveConfigurationParameter)
+{
 //DNSCurve Provider Names
-	memset(DNSCurveTarget.IPv4.ProviderName, 0, DOMAIN_MAXSIZE);
-	memset(DNSCurveTarget.Alternate_IPv4.ProviderName, 0, DOMAIN_MAXSIZE);
-	memset(DNSCurveTarget.IPv6.ProviderName, 0, DOMAIN_MAXSIZE);
-	memset(DNSCurveTarget.Alternate_IPv6.ProviderName, 0, DOMAIN_MAXSIZE);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ProviderName, 0, DOMAIN_MAXSIZE);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ProviderName, 0, DOMAIN_MAXSIZE);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ProviderName, 0, DOMAIN_MAXSIZE);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ProviderName, 0, DOMAIN_MAXSIZE);
 
 //DNSCurve Keys
-	memset(Client_PublicKey, 0, crypto_box_PUBLICKEYBYTES);
-	memset(Client_SecretKey, 0, crypto_box_SECRETKEYBYTES);
-	memset(DNSCurveTarget.IPv4.PrecomputationKey, 0, crypto_box_BEFORENMBYTES);
-	memset(DNSCurveTarget.Alternate_IPv4.PrecomputationKey, 0, crypto_box_BEFORENMBYTES);
-	memset(DNSCurveTarget.IPv6.PrecomputationKey, 0, crypto_box_BEFORENMBYTES);
-	memset(DNSCurveTarget.Alternate_IPv6.PrecomputationKey, 0, crypto_box_BEFORENMBYTES);
-	memset(DNSCurveTarget.IPv4.ServerPublicKey, 0, crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.Alternate_IPv4.ServerPublicKey, 0, crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.IPv6.ServerPublicKey, 0, crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.Alternate_IPv6.ServerPublicKey, 0, crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.IPv4.ServerFingerprint, 0, crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.Alternate_IPv4.ServerFingerprint, 0, crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.IPv6.ServerFingerprint, 0, crypto_box_PUBLICKEYBYTES);
-	memset(DNSCurveTarget.Alternate_IPv6.ServerFingerprint, 0, crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveConfigurationParameter->Client_PublicKey, 0, crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveConfigurationParameter->Client_SecretKey, 0, crypto_box_SECRETKEYBYTES);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.PrecomputationKey, 0, crypto_box_BEFORENMBYTES);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.PrecomputationKey, 0, crypto_box_BEFORENMBYTES);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.PrecomputationKey, 0, crypto_box_BEFORENMBYTES);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.PrecomputationKey, 0, crypto_box_BEFORENMBYTES);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ServerPublicKey, 0, crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ServerPublicKey, 0, crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ServerPublicKey, 0, crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ServerPublicKey, 0, crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ServerFingerprint, 0, crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ServerFingerprint, 0, crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ServerFingerprint, 0, crypto_box_PUBLICKEYBYTES);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ServerFingerprint, 0, crypto_box_PUBLICKEYBYTES);
 
 //DNSCurve Magic Numbers
-	memset(DNSCurveTarget.IPv4.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
-	memset(DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
-	memset(DNSCurveTarget.IPv6.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
-	memset(DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
-	memset(DNSCurveTarget.IPv4.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
-	memset(DNSCurveTarget.Alternate_IPv4.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
-	memset(DNSCurveTarget.IPv6.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
-	memset(DNSCurveTarget.Alternate_IPv6.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
+	memset(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.SendMagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
 
 //Default settings
 #if defined(PLATFORM_WIN)
-	DNSCurve_SocketTimeout_Reliable = DEFAULT_DNSCURVE_RELIABLE_SOCKET_TIMEOUT;
-	DNSCurve_SocketTimeout_Unreliable = DEFAULT_DNSCURVE_UNRELIABLE_SOCKET_TIMEOUT;
+	DNSCurveConfigurationParameter->DNSCurve_SocketTimeout_Reliable = DEFAULT_DNSCURVE_RELIABLE_SOCKET_TIMEOUT;
+	DNSCurveConfigurationParameter->DNSCurve_SocketTimeout_Unreliable = DEFAULT_DNSCURVE_UNRELIABLE_SOCKET_TIMEOUT;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	DNSCurve_SocketTimeout_Reliable.tv_sec = DEFAULT_DNSCURVE_RELIABLE_SOCKET_TIMEOUT;
-	DNSCurve_SocketTimeout_Unreliable.tv_sec = DEFAULT_DNSCURVE_UNRELIABLE_SOCKET_TIMEOUT;
+	DNSCurveConfigurationParameter->DNSCurve_SocketTimeout_Reliable.tv_sec = DEFAULT_DNSCURVE_RELIABLE_SOCKET_TIMEOUT;
+	DNSCurveConfigurationParameter->DNSCurve_SocketTimeout_Unreliable.tv_sec = DEFAULT_DNSCURVE_UNRELIABLE_SOCKET_TIMEOUT;
 #endif
-	KeyRecheckTime = DEFAULT_DNSCURVE_RECHECK_TIME * SECOND_TO_MILLISECOND;
+	DNSCurveConfigurationParameter->KeyRecheckTime = DEFAULT_DNSCURVE_RECHECK_TIME * SECOND_TO_MILLISECOND;
 
 	return;
 }
@@ -917,10 +925,10 @@ void DNSCurveConfigurationTable::MonitorItemToUsing(
 
 //DNSCurve Keys
 	if (DNSCurveConfigurationParameter->Client_PublicKey != nullptr && !CheckEmptyBuffer(Client_PublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) && 
-		memcmp(DNSCurveConfigurationParameter->Client_PublicKey, Client_PublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) != EXIT_SUCCESS)
+		memcmp(DNSCurveConfigurationParameter->Client_PublicKey, Client_PublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) != 0)
 			memcpy_s(DNSCurveConfigurationParameter->Client_PublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES, Client_PublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
 	if (DNSCurveConfigurationParameter->Client_SecretKey != nullptr && !CheckEmptyBuffer(Client_SecretKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) && 
-		memcmp(DNSCurveConfigurationParameter->Client_SecretKey, Client_SecretKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) != EXIT_SUCCESS)
+		memcmp(DNSCurveConfigurationParameter->Client_SecretKey, Client_SecretKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) != 0)
 			memcpy_s(DNSCurveConfigurationParameter->Client_SecretKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES, Client_SecretKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
 	if (DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.PrecomputationKey != nullptr && 
 		!CheckEmptyBuffer(DNSCurveTarget.IPv4.PrecomputationKey, sizeof(uint8_t) * crypto_box_BEFORENMBYTES))
@@ -936,19 +944,19 @@ void DNSCurveConfigurationTable::MonitorItemToUsing(
 			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.PrecomputationKey, sizeof(uint8_t) * crypto_box_BEFORENMBYTES, DNSCurveTarget.Alternate_IPv6.PrecomputationKey, sizeof(uint8_t) * crypto_box_BEFORENMBYTES);
 	if (DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ServerPublicKey != nullptr && 
 		!CheckEmptyBuffer(DNSCurveTarget.IPv4.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) && 
-		memcmp(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ServerPublicKey, DNSCurveTarget.IPv4.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) != EXIT_SUCCESS)
+		memcmp(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ServerPublicKey, DNSCurveTarget.IPv4.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) != 0)
 			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES, DNSCurveTarget.IPv4.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
 	if (DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ServerPublicKey != nullptr && 
 		!CheckEmptyBuffer(DNSCurveTarget.Alternate_IPv4.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) && 
-		memcmp(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ServerPublicKey, DNSCurveTarget.Alternate_IPv4.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) != EXIT_SUCCESS)
+		memcmp(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ServerPublicKey, DNSCurveTarget.Alternate_IPv4.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) != 0)
 			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES, DNSCurveTarget.Alternate_IPv4.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
 	if (DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ServerPublicKey != nullptr && 
 		!CheckEmptyBuffer(DNSCurveTarget.IPv6.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) && 
-		memcmp(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ServerPublicKey, DNSCurveTarget.IPv6.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) != EXIT_SUCCESS)
+		memcmp(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ServerPublicKey, DNSCurveTarget.IPv6.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) != 0)
 			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES, DNSCurveTarget.IPv6.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
 	if (DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ServerPublicKey != nullptr && 
 		!CheckEmptyBuffer(DNSCurveTarget.Alternate_IPv6.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) && 
-		memcmp(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ServerPublicKey, DNSCurveTarget.Alternate_IPv6.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) != EXIT_SUCCESS)
+		memcmp(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ServerPublicKey, DNSCurveTarget.Alternate_IPv6.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES) != 0)
 			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES, DNSCurveTarget.Alternate_IPv6.ServerPublicKey, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES);
 	if (DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ServerFingerprint != nullptr && 
 		!CheckEmptyBuffer(DNSCurveTarget.IPv4.ServerFingerprint, sizeof(uint8_t) * crypto_box_PUBLICKEYBYTES))

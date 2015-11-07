@@ -317,7 +317,7 @@ bool __fastcall CheckSpecialAddress(
 							if (AddressRangeTableIter.End.ss_family == AF_INET6 && 
 								AddressesComparing(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL && 
 								AddressesComparing(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr, AF_INET6) <= ADDRESS_COMPARE_EQUAL || 
-								memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS)
+								memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == 0)
 									return true;
 						}
 					}
@@ -338,7 +338,7 @@ bool __fastcall CheckSpecialAddress(
 						if (AddressRangeTableIter.Begin.ss_family == AF_INET6 && AddressRangeTableIter.End.ss_family == AF_INET6 && 
 							AddressesComparing(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL && 
 							AddressesComparing(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr, AF_INET6) <= ADDRESS_COMPARE_EQUAL || 
-							memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS)
+							memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == 0)
 						{
 							if (AddressHostsTableIter.Address_Target.size() > 1U)
 							{
@@ -973,12 +973,9 @@ size_t __fastcall CheckResponseData(
 		if (DNS_Header->Answer == htons(U16_NUM_ONE) && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && 
 			CheckQueryNameLength(Buffer + sizeof(dns_hdr)) == CheckQueryNameLength(Buffer + DNS_PACKET_RR_LOCATE(Buffer)))
 		{
-			auto QuestionDomain = (uint8_t *)(Buffer + sizeof(dns_hdr));
-			auto AnswerDomain = (uint8_t *)(Buffer + DNS_PACKET_RR_LOCATE(Buffer));
-			auto DNS_Record_Standard = (pdns_record_standard)(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckQueryNameLength((char *)QuestionDomain) + 1U);
-			if (DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && 
-				(DNS_Record_Standard->Type == htons(DNS_RECORD_A) || DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA)) && 
-				memcmp(QuestionDomain, AnswerDomain, CheckQueryNameLength((char *)QuestionDomain) + 1U) == EXIT_SUCCESS)
+			if (((pdns_record_standard)(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckQueryNameLength((char *)(Buffer + sizeof(dns_hdr))) + 1U))->Classes == htons(DNS_CLASS_IN) && 
+				(((pdns_record_standard)(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckQueryNameLength((char *)(Buffer + sizeof(dns_hdr))) + 1U))->Type == htons(DNS_RECORD_A) || ((pdns_record_standard)(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckQueryNameLength((char *)(Buffer + sizeof(dns_hdr))) + 1U))->Type == htons(DNS_RECORD_AAAA)) && 
+				memcmp(Buffer + sizeof(dns_hdr), Buffer + DNS_PACKET_RR_LOCATE(Buffer), CheckQueryNameLength((char *)(Buffer + sizeof(dns_hdr))) + 1U) == 0)
 					return EXIT_FAILURE;
 		}
 	}
@@ -1037,7 +1034,7 @@ size_t __fastcall CheckResponseData(
 //Scan all Resource Records.
 	else {
 		uint16_t BeforeType = 0;
-		auto IsEDNS_Label = false, IsDNSSEC_Records = false, IsLocalGotResult = false;	
+		auto IsEDNS_Label = false, IsDNSSEC_Records = false, IsGotAddressResult = false;	
 		for (size_t Index = 0;Index < (size_t)(ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional));++Index)
 		{
 		//Pointer check
@@ -1094,9 +1091,7 @@ size_t __fastcall CheckResponseData(
 						Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(Addr, AF_INET6))
 							return EXIT_FAILURE;
 
-				//Local request result check
-					if (IsLocal)
-						IsLocalGotResult = true;
+					IsGotAddressResult = true;
 				}
 			//A Records
 				else if (DNS_Record_Standard->Type == htons(DNS_RECORD_A) && DNS_Record_Standard->Length == htons(sizeof(in_addr)))
@@ -1111,9 +1106,7 @@ size_t __fastcall CheckResponseData(
 						Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(Addr, AF_INET))
 							return EXIT_FAILURE;
 
-				//Local request result check
-					if (IsLocal)
-						IsLocalGotResult = true;
+					IsGotAddressResult = true;
 				}
 			}
 
@@ -1125,7 +1118,7 @@ size_t __fastcall CheckResponseData(
 
 	//Additional EDNS Label Resource Records check, DNSSEC Validation check and Local request result check
 		if (Parameter.EDNS_Label && (!IsEDNS_Label || Parameter.DNSSEC_Request && Parameter.DNSSEC_ForceValidation && !IsDNSSEC_Records) || 
-			IsLocal && !IsLocalGotResult)
+			IsLocal && !IsGotAddressResult)
 				return EXIT_FAILURE;
 	}
 
@@ -1136,7 +1129,7 @@ size_t __fastcall CheckResponseData(
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NXDOMAIN) || //No Such Name, not standard query response and no error check.
 	//Domain Test part
 		Parameter.DomainTest_Data != nullptr && strnlen_s(Domain.get(), DOMAIN_MAXSIZE) == strnlen_s(Parameter.DomainTest_Data, DOMAIN_MAXSIZE) && 
-		memcmp(Domain.get(), Parameter.DomainTest_Data, strnlen_s(Parameter.DomainTest_Data, DOMAIN_MAXSIZE)) == EXIT_SUCCESS && DNS_Header->ID == Parameter.DomainTest_ID)
+		memcmp(Domain.get(), Parameter.DomainTest_Data, strnlen_s(Parameter.DomainTest_Data, DOMAIN_MAXSIZE)) == 0 && DNS_Header->ID == Parameter.DomainTest_ID)
 			*IsMarkHopLimit = true;
 #endif
 

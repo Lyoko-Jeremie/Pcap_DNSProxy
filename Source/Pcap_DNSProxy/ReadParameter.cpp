@@ -200,9 +200,9 @@ bool __fastcall ParameterCheckAndSetting(
 			Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_Local_IPv4.Storage.ss_family > 0 && 
 			Parameter.DNSTarget.Local_IPv4.IPv4.sin_addr.s_addr == Parameter.DNSTarget.Alternate_Local_IPv4.IPv4.sin_addr.s_addr && Parameter.DNSTarget.Local_IPv4.IPv4.sin_port == Parameter.DNSTarget.Alternate_Local_IPv4.IPv4.sin_port || 
 			Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
-			memcmp(&Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS && Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_port == Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_port || 
+			memcmp(&Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 && Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_port == Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_port || 
 			Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_Local_IPv6.Storage.ss_family > 0 && 
-			memcmp(&Parameter.DNSTarget.Local_IPv6.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_Local_IPv6.IPv6.sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS && Parameter.DNSTarget.Local_IPv6.IPv6.sin6_port == Parameter.DNSTarget.Alternate_Local_IPv6.IPv6.sin6_port)
+			memcmp(&Parameter.DNSTarget.Local_IPv6.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_Local_IPv6.IPv6.sin6_addr, sizeof(in6_addr)) == 0 && Parameter.DNSTarget.Local_IPv6.IPv6.sin6_port == Parameter.DNSTarget.Alternate_Local_IPv6.IPv6.sin6_port)
 		{
 			PrintError(LOG_ERROR_PARAMETER, L"DNS target error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
@@ -505,7 +505,7 @@ bool __fastcall ParameterCheckAndSetting(
 				DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
 				DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.IPv4.sin_addr.s_addr == DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr || 
 				DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
-				memcmp(&DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6.sin6_addr, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == EXIT_SUCCESS)
+				memcmp(&DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6.sin6_addr, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0)
 			{
 				PrintError(LOG_ERROR_PARAMETER, L"DNSCurve target error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				return false;
@@ -887,12 +887,11 @@ bool __fastcall ParameterCheckAndSetting(
 		if (Parameter.LocalServer_Length == 0)
 		{
 		//Make PTR response packet.
-			auto DNS_Record_PTR = (pdns_record_ptr)Parameter.LocalServer_Response;
-			DNS_Record_PTR->PTR = htons(DNS_POINTER_QUERY);
-			DNS_Record_PTR->Classes = htons(DNS_CLASS_IN);
-			DNS_Record_PTR->TTL = htonl(Parameter.HostsDefaultTTL);
-			DNS_Record_PTR->Type = htons(DNS_RECORD_PTR);
-			DNS_Record_PTR->Length = htons((uint16_t)Parameter.LocalFQDN_Length);
+			((pdns_record_ptr)Parameter.LocalServer_Response)->PTR = htons(DNS_POINTER_QUERY);
+			((pdns_record_ptr)Parameter.LocalServer_Response)->Classes = htons(DNS_CLASS_IN);
+			((pdns_record_ptr)Parameter.LocalServer_Response)->TTL = htonl(Parameter.HostsDefaultTTL);
+			((pdns_record_ptr)Parameter.LocalServer_Response)->Type = htons(DNS_RECORD_PTR);
+			((pdns_record_ptr)Parameter.LocalServer_Response)->Length = htons((uint16_t)Parameter.LocalFQDN_Length);
 			Parameter.LocalServer_Length += sizeof(dns_record_ptr);
 
 		//Copy to global buffer.
@@ -1143,7 +1142,7 @@ uint16_t __fastcall ServiceNameToHex(
 		return htons(IPPORT_TELNETS);
 
 //No match.
-	return FALSE;
+	return 0;
 }
 
 //Convert DNS type name to hex
@@ -1322,7 +1321,7 @@ uint16_t __fastcall DNSTypeNameToHex(
 		return htons(DNS_RECORD_RESERVED);
 
 //No match.
-	return FALSE;
+	return 0;
 }
 
 //Read parameter data from files
@@ -1588,7 +1587,7 @@ bool __fastcall ReadParameterData(
 	}
 
 //[Log] block
-	else if (Data.find("PrintError=0") == 0)
+	if (Data.find("PrintError=0") == 0)
 	{
 		ParameterPTR->PrintError = false;
 	}
@@ -1666,7 +1665,7 @@ bool __fastcall ReadParameterData(
 
 //[Listen] block
 #if defined(ENABLE_PCAP)
-	else if (IsFirstRead && Data.find("PcapCapture=1") == 0)
+	if (IsFirstRead && Data.find("PcapCapture=1") == 0)
 	{
 		Parameter.PcapCapture = true;
 	}
@@ -1806,7 +1805,7 @@ bool __fastcall ReadParameterData(
 	}
 
 //[DNS] block
-	else if (IsFirstRead && Data.find("Protocol=") == 0 && Data.length() > strlen("Protocol="))
+	if (IsFirstRead && Data.find("Protocol=") == 0 && Data.length() > strlen("Protocol="))
 	{
 		CaseConvert(true, Data);
 
@@ -1897,7 +1896,7 @@ bool __fastcall ReadParameterData(
 	}
 
 //[Local DNS] block
-	else if (Data.find("LocalProtocol=") == 0)
+	if (Data.find("LocalProtocol=") == 0)
 	{
 		CaseConvert(true, Data);
 
@@ -1933,7 +1932,7 @@ bool __fastcall ReadParameterData(
 	}
 
 //[Addresses] block
-	else if (IsFirstRead && Data.find("IPv4ListenAddress=") == 0 && Data.length() > strlen("IPv4ListenAddress="))
+	if (IsFirstRead && Data.find("IPv4ListenAddress=") == 0 && Data.length() > strlen("IPv4ListenAddress="))
 	{
 		Parameter.ListenAddress_IPv4->clear();
 		std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
@@ -1999,7 +1998,7 @@ bool __fastcall ReadParameterData(
 	}
 
 //[Values] block
-	else if (IsFirstRead && Data.find("BufferQueueLimits=") == 0 && Data.length() > strlen("BufferQueueLimits="))
+	if (IsFirstRead && Data.find("BufferQueueLimits=") == 0 && Data.length() > strlen("BufferQueueLimits="))
 	{
 		if (Data.length() < strlen("BufferQueueLimits=") + UINT32_MAX_STRING_LENGTH - 1U)
 		{
@@ -2213,12 +2212,13 @@ bool __fastcall ReadParameterData(
 
 //[Switches] block
 #if defined(PLATFORM_LINUX)
-	else if (IsFirstRead && Data.find("TCPFastOpen=1") == 0)
+	if (IsFirstRead && Data.find("TCPFastOpen=1") == 0)
 	{
 		Parameter.TCP_FastOpen = true;
 	}
+	else 
 #endif
-	else if (Data.find("DomainCaseConversion=1") == 0)
+	if (Data.find("DomainCaseConversion=1") == 0)
 	{
 		ParameterPTR->DomainCaseConversion = true;
 	}
@@ -2278,7 +2278,7 @@ bool __fastcall ReadParameterData(
 
 //[Data] block
 #if defined(ENABLE_PCAP)
-	else if (IsFirstRead && Data.find("ICMPID=") == 0 && Data.length() > strlen("ICMPID="))
+	if (IsFirstRead && Data.find("ICMPID=") == 0 && Data.length() > strlen("ICMPID="))
 	{
 		if (Data.length() < strlen("ICMPID=") + 7U)
 		{
@@ -2369,7 +2369,7 @@ bool __fastcall ReadParameterData(
 	}
 
 //[Proxy] block
-	else if (IsFirstRead && Data.find("SOCKSProxy=1") == 0)
+	if (IsFirstRead && Data.find("SOCKSProxy=1") == 0)
 	{
 		Parameter.SOCKS_Proxy = true;
 	}
@@ -2665,7 +2665,7 @@ bool __fastcall ReadParameterData(
 	}
 
 //[DNSCurve Addresses] block
-	else if (IsFirstRead && Data.find("DNSCurveIPv4DNSAddress=") == 0 && Data.length() > strlen("DNSCurveIPv4DNSAddress="))
+	if (IsFirstRead && Data.find("DNSCurveIPv4DNSAddress=") == 0 && Data.length() > strlen("DNSCurveIPv4DNSAddress="))
 	{
 		if (!ReadMultipleAddresses(Data, strlen("DNSCurveIPv4DNSAddress="), AF_INET, false, DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage, nullptr, FileIndex, Line))
 			return false;
@@ -2707,7 +2707,7 @@ bool __fastcall ReadParameterData(
 	}
 
 //[DNSCurve Keys] block
-	else if (Data.find("ClientPublicKey=") == 0 && Data.length() > strlen("ClientPublicKey="))
+	if (Data.find("ClientPublicKey=") == 0 && Data.length() > strlen("ClientPublicKey="))
 	{
 		if (!ReadDNSCurveKey(Data, strlen("ClientPublicKey="), DNSCurveParameterPTR->Client_PublicKey, FileIndex, Line))
 			return false;
@@ -2759,7 +2759,7 @@ bool __fastcall ReadParameterData(
 	}
 
 //[DNSCurve Magic Number] block
-	else if (Data.find("IPv4ReceiveMagicNumber=") == 0 && Data.length() > strlen("IPv4ReceiveMagicNumber="))
+	if (Data.find("IPv4ReceiveMagicNumber=") == 0 && Data.length() > strlen("IPv4ReceiveMagicNumber="))
 	{
 		if (!ReadDNSCurveMagicNumber(Data, strlen("IPv4ReceiveMagicNumber="), DNSCurveParameterPTR->DNSCurveTarget.IPv4.ReceiveMagicNumber, FileIndex, Line))
 			return false;
@@ -3405,7 +3405,7 @@ bool __fastcall ReadDNSCurveMagicNumber(
 
 	//Convert hex format to binary.
 		SSIZE_T Result = sodium_hex2bin((uint8_t *)MagicNumber, DNSCURVE_MAGIC_QUERY_LEN, Data.c_str() + DataOffset + strlen("0x"), DNSCURVE_MAGIC_QUERY_HEX_LEN, nullptr, &ResultLength, &ResultPointer);
-		if (Result != EXIT_SUCCESS || ResultLength != DNSCURVE_MAGIC_QUERY_LEN || ResultPointer == nullptr)
+		if (Result != 0 || ResultLength != DNSCURVE_MAGIC_QUERY_LEN || ResultPointer == nullptr)
 		{
 			PrintError(LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 			return false;

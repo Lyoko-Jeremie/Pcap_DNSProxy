@@ -29,13 +29,14 @@
 #define LABEL_IPFILTER                        2U
 #define LABEL_IPFILTER_BLACKLIST              3U
 #define LABEL_IPFILTER_LOCAL_ROUTING          4U
-#define LABEL_HOSTS                           5U
-#define LABEL_HOSTS_TYPE_LOCAL                6U
-#define LABEL_HOSTS_TYPE_WHITELIST            7U
-#define LABEL_HOSTS_TYPE_BANNED               8U
-#define LABEL_HOSTS_TYPE_WHITELIST_EXTENDED   9U
-#define LABEL_HOSTS_TYPE_BANNED_EXTENDED      10U
-#define LABEL_HOSTS_ADDRESS                   11U
+#define LABEL_HOSTS_TYPE_NORMAL               5U
+#define LABEL_HOSTS_TYPE_CNAME                6U
+#define LABEL_HOSTS_TYPE_LOCAL                7U
+#define LABEL_HOSTS_TYPE_WHITELIST            8U
+#define LABEL_HOSTS_TYPE_BANNED               9U
+#define LABEL_HOSTS_TYPE_WHITELIST_EXTENDED   10U
+#define LABEL_HOSTS_TYPE_BANNED_EXTENDED      11U
+#define LABEL_HOSTS_TYPE_ADDRESS              12U
 
 //Length definitions
 #define READ_DATA_MINSIZE                     4U
@@ -181,7 +182,7 @@ bool __fastcall ReadHostsData(
 	_Inout_ size_t &LabelType, 
 	_In_ const size_t Line, 
 	_Inout_ bool &IsLabelComments);
-bool __fastcall ReadWhitelistAndBannedData(
+bool __fastcall ReadOtherHostsData(
 	_In_ std::string Data, 
 	_In_ const size_t FileIndex, 
 	_In_ const size_t Line, 
@@ -196,5 +197,6 @@ bool __fastcall ReadAddressHostsData(
 	_In_ const size_t Line);
 bool __fastcall ReadMainHostsData(
 	_In_ std::string Data, 
+	_In_ const size_t HostsType, 
 	_In_ const size_t FileIndex, 
 	_In_ const size_t Line);

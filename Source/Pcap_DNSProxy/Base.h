@@ -329,9 +329,10 @@
 #define REQUEST_MODE_UDP                      0
 #define REQUEST_MODE_TCP                      1U
 #define HOSTS_TYPE_NORMAL                     1U
-#define HOSTS_TYPE_WHITE                      2U
-#define HOSTS_TYPE_LOCAL                      3U
-#define HOSTS_TYPE_BANNED                     4U
+#define HOSTS_TYPE_CNAME                      2U
+#define HOSTS_TYPE_WHITE                      3U
+#define HOSTS_TYPE_LOCAL                      4U
+#define HOSTS_TYPE_BANNED                     5U
 #define CACHE_TYPE_TIMER                      1U
 #define CACHE_TYPE_QUEUE                      2U
 #define SOCKET_SETTING_INVALID_CHECK          0

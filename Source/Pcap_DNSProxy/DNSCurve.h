@@ -35,17 +35,17 @@ SSIZE_T __fastcall DNSCurvePaddingData(
 	_In_ const SSIZE_T Length);
 size_t __fastcall DNSCurveSelectTargetSocket(
 	_Out_ SOCKET_DATA *TargetSocketData, 
-	_Outptr_ DNSCURVE_SERVER_DATA **PacketTarget, 
-	_Outptr_ bool **IsAlternate, 
-	_Outptr_ size_t **AlternateTimeoutTimes, 
+	_Outptr_opt_ DNSCURVE_SERVER_DATA **PacketTarget, 
+	_Outptr_opt_ bool **IsAlternate, 
+	_Outptr_opt_ size_t **AlternateTimeoutTimes, 
 	_In_ const uint16_t Protocol);
 bool __fastcall DNSCurveSelectTargetSocketMulti(
 	_Out_ bool &IsIPv6, 
-	_Outptr_ bool **IsAlternate, 
+	_Outptr_opt_ bool **IsAlternate, 
 	_In_ const uint16_t Protocol);
 bool __fastcall DNSCurvePacketTargetSetting(
 	_In_ const size_t ServerType, 
-	_Outptr_ DNSCURVE_SERVER_DATA **PacketTarget);
+	_Outptr_opt_ DNSCURVE_SERVER_DATA **PacketTarget);
 bool __fastcall DNSCurvePrecomputationKeySetting(
 	_Out_ uint8_t *PrecomputationKey, 
 	_Out_ uint8_t *Client_PublicKey, 
@@ -55,9 +55,9 @@ void __fastcall DNSCurveSocketPrecomputation(
 	_In_ const char *OriginalSend, 
 	_In_ const size_t SendSize, 
 	_In_ const size_t RecvSize, 
-	_Outptr_ uint8_t **PrecomputationKey, 
-	_Outptr_ uint8_t **Alternate_PrecomputationKey, 
-	_Outptr_ DNSCURVE_SERVER_DATA **PacketTarget, 
+	_Outptr_opt_ uint8_t **PrecomputationKey, 
+	_Outptr_opt_ uint8_t **Alternate_PrecomputationKey, 
+	_Outptr_opt_ DNSCURVE_SERVER_DATA **PacketTarget, 
 	_Inout_ std::vector<SOCKET_DATA> &SocketDataList, 
 	_Inout_ std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
 	_Inout_ std::shared_ptr<char> &SendBuffer, 

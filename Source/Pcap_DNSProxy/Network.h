@@ -31,8 +31,8 @@ extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 //Functions
 bool __fastcall SelectTargetSocket(
 	_Out_ SOCKET_DATA *TargetSocketData, 
-	_Outptr_ bool **IsAlternate, 
-	_Outptr_ size_t **AlternateTimeoutTimes, 
+	_Outptr_opt_ bool **IsAlternate, 
+	_Outptr_opt_ size_t **AlternateTimeoutTimes, 
 	_In_ const uint16_t Protocol, 
 	_In_ const bool IsLocal);
 bool __fastcall SelectTargetSocketMulti(

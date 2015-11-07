@@ -249,7 +249,7 @@ bool __fastcall FlushDNSMailSlotMonitor(
 				return false;
 			}
 
-			if (!FlushDNS && memcmp(lpszBuffer.get(), MAILSLOT_MESSAGE_FLUSH_DNS, wcslen(MAILSLOT_MESSAGE_FLUSH_DNS)) == EXIT_SUCCESS)
+			if (!FlushDNS && memcmp(lpszBuffer.get(), MAILSLOT_MESSAGE_FLUSH_DNS, wcslen(MAILSLOT_MESSAGE_FLUSH_DNS)) == 0)
 			{
 				FlushDNS = true;
 				FlushAllDNSCache();
@@ -315,7 +315,7 @@ bool FlushDNSFIFOMonitor(
 	int FIFO_FD = 0;
 
 //Create FIFO.
-	if (mkfifo(FIFO_PATH_NAME, O_CREAT) < EXIT_SUCCESS || chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) < EXIT_SUCCESS)
+	if (mkfifo(FIFO_PATH_NAME, O_CREAT) < 0 || chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) < 0)
 	{
 		PrintError(LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
 
@@ -325,7 +325,7 @@ bool FlushDNSFIFOMonitor(
 
 //Open FIFO.
 	FIFO_FD = open(FIFO_PATH_NAME, O_RDONLY, 0);
-	if (FIFO_FD < EXIT_SUCCESS)
+	if (FIFO_FD < 0)
 	{
 		PrintError(LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
 
@@ -337,7 +337,7 @@ bool FlushDNSFIFOMonitor(
 	for (;;)
 	{
 		memset(Buffer.get(), 0, PACKET_MAXSIZE);
-		if (read(FIFO_FD, Buffer.get(), PACKET_MAXSIZE) > 0 && memcmp(Buffer.get(), FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) == EXIT_SUCCESS)
+		if (read(FIFO_FD, Buffer.get(), PACKET_MAXSIZE) > 0 && memcmp(Buffer.get(), FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) == 0)
 			FlushAllDNSCache();
 
 		Sleep(LOOP_INTERVAL_TIME_MONITOR);
@@ -355,7 +355,7 @@ bool FlushDNSFIFOSender(
 	void)
 {
 	int FIFO_FD = open(FIFO_PATH_NAME, O_WRONLY|O_TRUNC|O_NONBLOCK, 0);
-	if (FIFO_FD > EXIT_SUCCESS && write(FIFO_FD, FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS) + 1U) > 0)
+	if (FIFO_FD > 0 && write(FIFO_FD, FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS) + 1U) > 0)
 	{
 		wprintf(L"Flush DNS cache message was sent successfully.\n");
 		close(FIFO_FD);

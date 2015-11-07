@@ -82,7 +82,7 @@ bool __fastcall ReadHostsData(
 //[Hosts] block
 	if (Data.find("[Hosts]") == 0 || Data.find("[hosts]") == 0)
 	{
-		LabelType = LABEL_HOSTS;
+		LabelType = LABEL_HOSTS_TYPE_NORMAL;
 		return true;
 	}
 
@@ -96,7 +96,16 @@ bool __fastcall ReadHostsData(
 //[Address Hosts] block
 	else if (Data.find("[Address Hosts]") == 0 || Data.find("[Address hosts]") == 0 || Data.find("[address Hosts]") == 0 || Data.find("[address hosts]") == 0)
 	{
-		LabelType = LABEL_HOSTS_ADDRESS;
+		LabelType = LABEL_HOSTS_TYPE_ADDRESS;
+		return true;
+	}
+
+//[CNAME Hosts] block
+	else if (Data.find("[CNAME Hosts]") == 0 || Data.find("[CNAME hosts]") == 0 || 
+		Data.find("[Cname Hosts]") == 0 || Data.find("[Cname hosts]") == 0 || 
+		Data.find("[cname Hosts]") == 0 || Data.find("[cname hosts]") == 0)
+	{
+		LabelType = LABEL_HOSTS_TYPE_CNAME;
 		return true;
 	}
 
@@ -114,7 +123,7 @@ bool __fastcall ReadHostsData(
 		Data.find("Null ") == 0 || Data.find("Null,") == 0 || 
 		Data.find("null ") == 0 || Data.find("null,") == 0)
 	{
-		return ReadWhitelistAndBannedData(Data, FileIndex, Line, LABEL_HOSTS_TYPE_WHITELIST);
+		return ReadOtherHostsData(Data, FileIndex, Line, LABEL_HOSTS_TYPE_WHITELIST);
 	}
 
 //Banned items
@@ -125,20 +134,20 @@ bool __fastcall ReadHostsData(
 		Data.find("ban ") == 0 || Data.find("ban,") == 0 || 
 		Data.find("banned ") == 0 || Data.find("banned,") == 0)
 	{
-		return ReadWhitelistAndBannedData(Data, FileIndex, Line, LABEL_HOSTS_TYPE_BANNED);
+		return ReadOtherHostsData(Data, FileIndex, Line, LABEL_HOSTS_TYPE_BANNED);
 	}
 
 //Whitelist Extended items
 	else if (Data.find("NULL") == 0 || Data.find("Null") == 0 || Data.find("null") == 0)
 	{
-		return ReadWhitelistAndBannedData(Data, FileIndex, Line, LABEL_HOSTS_TYPE_WHITELIST_EXTENDED);
+		return ReadOtherHostsData(Data, FileIndex, Line, LABEL_HOSTS_TYPE_WHITELIST_EXTENDED);
 	}
 
 //Banned Extended items
 	else if (Data.find("BAN") == 0 || Data.find("BANNED") == 0 || Data.find("Ban") == 0 || 
 		Data.find("Banned") == 0 || Data.find("ban") == 0 || Data.find("banned") == 0)
 	{
-		return ReadWhitelistAndBannedData(Data, FileIndex, Line, LABEL_HOSTS_TYPE_BANNED_EXTENDED);
+		return ReadOtherHostsData(Data, FileIndex, Line, LABEL_HOSTS_TYPE_BANNED_EXTENDED);
 	}
 
 //[Local Hosts] block
@@ -151,7 +160,7 @@ bool __fastcall ReadHostsData(
 	}
 
 //[Address Hosts] block
-	else if (LabelType == LABEL_HOSTS_ADDRESS)
+	else if (LabelType == LABEL_HOSTS_TYPE_ADDRESS)
 	{
 	//Delete spaces before or after verticals.
 		while (Data.find(" |") != std::string::npos || Data.find("| ") != std::string::npos)
@@ -165,7 +174,7 @@ bool __fastcall ReadHostsData(
 		return ReadAddressHostsData(Data, FileIndex, Line);
 	}
 
-//[Hosts] block
+//Main Hosts block
 	else {
 	//Delete spaces before or after verticals.
 		while (Data.find(" |") != std::string::npos || Data.find("| ") != std::string::npos)
@@ -176,14 +185,19 @@ bool __fastcall ReadHostsData(
 				Data.erase(Data.find("| ") + 1U, strlen("|"));
 		}
 
-		return ReadMainHostsData(Data, FileIndex, Line);
+	//[CNAME Hosts] block
+		if (LabelType == LABEL_HOSTS_TYPE_CNAME)
+			return ReadMainHostsData(Data, HOSTS_TYPE_CNAME, FileIndex, Line);
+	//[Hosts] block
+		else 
+			return ReadMainHostsData(Data, HOSTS_TYPE_NORMAL, FileIndex, Line);
 	}
 
 	return true;
 }
 
-//Read Whitelist and Banned items in Hosts file from data
-bool __fastcall ReadWhitelistAndBannedData(
+//Read other type items in Hosts file from data
+bool __fastcall ReadOtherHostsData(
 	_In_ std::string Data, 
 	_In_ const size_t FileIndex, 
 	_In_ const size_t Line, 
@@ -546,6 +560,7 @@ bool __fastcall ReadAddressHostsData(
 //Read Main Hosts items in Hosts file from data
 bool __fastcall ReadMainHostsData(
 	_In_ std::string Data, 
+	_In_ const size_t HostsType, 
 	_In_ const size_t FileIndex, 
 	_In_ const size_t Line)
 {
@@ -696,11 +711,11 @@ bool __fastcall ReadMainHostsData(
 //Add to global HostsTable.
 	if (HostsTableTemp.Length >= sizeof(dns_qry) + sizeof(in_addr)) //Shortest reply is a A Records with Question part.
 	{
-		HostsTableTemp.Type_Hosts = HOSTS_TYPE_NORMAL;
 		for (auto &HostsFileSetIter:*HostsFileSetModificating)
 		{
 			if (HostsFileSetIter.FileIndex == FileIndex)
 			{
+				HostsTableTemp.Type_Hosts = HostsType;
 				HostsFileSetIter.HostsList.push_back(HostsTableTemp);
 				break;
 			}

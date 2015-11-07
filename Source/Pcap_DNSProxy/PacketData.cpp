@@ -106,11 +106,10 @@ uint16_t __fastcall GetChecksum_ICMPv6(
 	memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length);
 
 //Get checksum
-	auto IPv6_Pseudo_Header = (pipv6_psd_hdr)Validation.get();
-	IPv6_Pseudo_Header->Destination= Destination;
-	IPv6_Pseudo_Header->Source = Source;
-	IPv6_Pseudo_Header->Length = htonl((uint32_t)Length);
-	IPv6_Pseudo_Header->NextHeader = IPPROTO_ICMPV6;
+	((pipv6_psd_hdr)Validation.get())->Destination = Destination;
+	((pipv6_psd_hdr)Validation.get())->Source = Source;
+	((pipv6_psd_hdr)Validation.get())->Length = htonl((uint32_t)Length);
+	((pipv6_psd_hdr)Validation.get())->NextHeader = IPPROTO_ICMPV6;
 	memcpy_s(Validation.get() + sizeof(ipv6_psd_hdr), Length, Buffer + sizeof(ipv6_hdr), Length);
 	return GetChecksum((uint16_t *)Validation.get(), sizeof(ipv6_psd_hdr) + Length);
 }
@@ -128,26 +127,23 @@ uint16_t __fastcall GetChecksum_TCP_UDP(
 	{
 		std::shared_ptr<char> Validation(new char[sizeof(ipv6_psd_hdr) + Length]());
 		memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length);
-		auto IPv6_Pseudo_Header = (pipv6_psd_hdr)Validation.get();
-		IPv6_Pseudo_Header->Destination= ((pipv6_hdr)Buffer)->Destination;
-		IPv6_Pseudo_Header->Source = ((pipv6_hdr)Buffer)->Source;
-		IPv6_Pseudo_Header->Length = htonl((uint32_t)Length);
-		IPv6_Pseudo_Header->NextHeader = (uint8_t)Protocol_Transport;
+		((pipv6_psd_hdr)Validation.get())->Destination = ((pipv6_hdr)Buffer)->Destination;
+		((pipv6_psd_hdr)Validation.get())->Source = ((pipv6_hdr)Buffer)->Source;
+		((pipv6_psd_hdr)Validation.get())->Length = htonl((uint32_t)Length);
+		((pipv6_psd_hdr)Validation.get())->NextHeader = (uint8_t)Protocol_Transport;
 
 		memcpy_s(Validation.get() + sizeof(ipv6_psd_hdr), Length, Buffer + sizeof(ipv6_hdr), Length);
 		Result = GetChecksum((uint16_t *)Validation.get(), sizeof(ipv6_psd_hdr) + Length);
 	}
 	else { //IPv4
-		auto IPv4_Header = (pipv4_hdr)Buffer;
 		std::shared_ptr<char> Validation(new char[sizeof(ipv4_psd_hdr) + Length]());
 		memset(Validation.get(), 0, sizeof(ipv4_psd_hdr) + Length);
-		auto IPv4_Pseudo_Header = (pipv4_psd_hdr)Validation.get();
-		IPv4_Pseudo_Header->Destination = ((pipv4_hdr)Buffer)->Destination;
-		IPv4_Pseudo_Header->Source = ((pipv4_hdr)Buffer)->Source;
-		IPv4_Pseudo_Header->Length = htons((uint16_t)Length);
-		IPv4_Pseudo_Header->Protocol = (uint8_t)Protocol_Transport;
+		((pipv4_psd_hdr)Validation.get())->Destination = ((pipv4_hdr)Buffer)->Destination;
+		((pipv4_psd_hdr)Validation.get())->Source = ((pipv4_hdr)Buffer)->Source;
+		((pipv4_psd_hdr)Validation.get())->Length = htons((uint16_t)Length);
+		((pipv4_psd_hdr)Validation.get())->Protocol = (uint8_t)Protocol_Transport;
 
-		memcpy_s(Validation.get() + sizeof(ipv4_psd_hdr), Length, Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES, Length);
+		memcpy_s(Validation.get() + sizeof(ipv4_psd_hdr), Length, Buffer + ((pipv4_hdr)Buffer)->IHL * IPV4_IHL_BYTES_TIMES, Length);
 		Result = GetChecksum((uint16_t *)Validation.get(), sizeof(ipv4_psd_hdr) + Length);
 	}
 
@@ -163,8 +159,7 @@ size_t __fastcall AddLengthDataToHeader(
 	if (MaxLen >= RecvLen + sizeof(uint16_t))
 	{
 		memmove_s(Buffer + sizeof(uint16_t), MaxLen - sizeof(uint16_t), Buffer, RecvLen);
-		auto DNS_TCP_Header = (pdns_tcp_hdr)Buffer;
-		DNS_TCP_Header->Length = htons((uint16_t)RecvLen);
+		((pdns_tcp_hdr)Buffer)->Length = htons((uint16_t)RecvLen);
 		return RecvLen + sizeof(uint16_t);
 	}
 
@@ -178,10 +173,10 @@ size_t __fastcall CharToDNSQuery(
 {
 //Initialization
 	int Index[]{(int)strnlen_s(FName, DOMAIN_MAXSIZE) - 1, 0, 0};
-
-//Convert domain.
 	Index[2U] = Index[0] + 1;
 	*(TName + Index[0] + 2) = 0;
+
+//Convert domain.
 	for (;Index[0] >= 0;--Index[0], --Index[2U])
 	{
 		if (FName[Index[0]] == ASCII_PERIOD)
@@ -309,18 +304,19 @@ void __fastcall MakeDomainCaseConversion(
 {
 //Ramdom number distribution initialization
 	std::uniform_int_distribution<int> RamdomDistribution(0, 1U);
+	size_t Index = 0;
 
 //Make Case Conversion.
 	if (RamdomDistribution(*GlobalRunningStatus.RamdomEngine) % 2U == 0)
 	{
-		for (size_t Index = 0;Index < strnlen_s(Buffer, DOMAIN_MAXSIZE);++Index)
+		for (Index = 0;Index < strnlen_s(Buffer, DOMAIN_MAXSIZE);++Index)
 		{
 			if (Index % 2U == 0)
 				*(Buffer + Index) = (char)toupper(*(Buffer + Index));
 		}
 	}
 	else {
-		for (size_t Index = 0;Index < strnlen_s(Buffer, DOMAIN_MAXSIZE);++Index)
+		for (Index = 0;Index < strnlen_s(Buffer, DOMAIN_MAXSIZE);++Index)
 		{
 			if (Index % 2U > 0)
 				*(Buffer + Index) = (char)toupper(*(Buffer + Index));
@@ -421,7 +417,7 @@ size_t __fastcall AddEDNSLabelToAdditionalRR(
 		//Copy subnet address.
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)
 				*(in_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr;
-			else
+			else 
 				*(in_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN)&Parameter.LocalhostSubnet.IPv4->Address)->sin_addr;
 			EDNS_Subnet_Header->Length = htons((uint16_t)(sizeof(uint16_t) + sizeof(uint8_t) * 2U + sizeof(in_addr)));
 			DNS_Record_OPT->DataLength = htons(sizeof(edns_client_subnet) + sizeof(in_addr));

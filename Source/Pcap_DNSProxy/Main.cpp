@@ -53,7 +53,7 @@ int main(
 		DNSCurveParameterModificating.SetToMonitorItem();
 
 	//Libsodium initialization
-		if (sodium_init() != EXIT_SUCCESS)
+		if (sodium_init() == LIBSODIUM_ERROR)
 		{
 			PrintError(LOG_ERROR_DNSCURVE, L"Libsodium initialization error", 0, nullptr, 0);
 			return EXIT_FAILURE;
@@ -128,11 +128,10 @@ bool ReadCommand(
 	FileName.reset();
 #endif
 
-//Read commands.
-#if defined(PLATFORM_WIN)
 //Winsock initialization
+#if defined(PLATFORM_WIN)
 	std::shared_ptr<WSAData> WSAInitialization(new WSAData());
-	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), WSAInitialization.get()) != EXIT_SUCCESS || 
+	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), WSAInitialization.get()) != 0 || 
 		LOBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_HIGH)
 	{
 		wprintf_s(L"Winsock initialization error, error code is %d.\n", WSAGetLastError());
@@ -144,6 +143,7 @@ bool ReadCommand(
 		GlobalRunningStatus.Initialization_WinSock = true;
 	}
 
+//Read commands.
 	std::wstring Commands;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::string Commands;
@@ -378,7 +378,9 @@ bool __fastcall FirewallTest(
 					continue;
 				}
 				else {
+					shutdown(FirewallSocket, SD_BOTH);
 					closesocket(FirewallSocket);
+
 					return false;
 				}
 			}
@@ -410,13 +412,17 @@ bool __fastcall FirewallTest(
 					continue;
 				}
 				else {
+					shutdown(FirewallSocket, SD_BOTH);
 					closesocket(FirewallSocket);
+
 					return false;
 				}
 			}
 		}
 	}
 
+//Close socket.
+	shutdown(FirewallSocket, SD_BOTH);
 	closesocket(FirewallSocket);
 	return true;
 }

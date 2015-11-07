@@ -601,14 +601,6 @@ bool __fastcall ReadAddressPrefixBlock(
 				*(PUINT64)((uint8_t *)&((PSOCKADDR_IN6)&AddressPrefix->Address)->sin6_addr + sizeof(in6_addr) / 2U) = hton64(ntoh64(*(PUINT64)((uint8_t *)&((PSOCKADDR_IN6)&AddressPrefix->Address)->sin6_addr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressPrefix->Prefix)));
 		}
 
-/* Old version(2015-10-11)
-	//Special addresses check
-		if (CheckSpecialAddress(&((PSOCKADDR_IN6)&AddressPrefix->Address)->sin6_addr, AF_INET6, true, nullptr))
-		{
-			PrintError(LOG_ERROR_PARAMETER, L"IPv6 special address error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
-		}
-*/
 		AddressPrefix->Address.ss_family = AF_INET6;
 	}
 //IPv4
@@ -634,14 +626,6 @@ bool __fastcall ReadAddressPrefixBlock(
 			((PSOCKADDR_IN)&AddressPrefix->Address)->sin_addr.s_addr = htonl(ntohl(((PSOCKADDR_IN)&AddressPrefix->Address)->sin_addr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressPrefix->Prefix)));
 		}
 
-/* Old version(2015-10-11)
-	//Special addresses check
-		if (CheckSpecialAddress(&((PSOCKADDR_IN)&AddressPrefix->Address)->sin_addr, AF_INET, true, nullptr))
-		{
-			PrintError(LOG_ERROR_PARAMETER, L"IPv4 special address error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
-		}
-*/
 		AddressPrefix->Address.ss_family = AF_INET;
 	}
 
