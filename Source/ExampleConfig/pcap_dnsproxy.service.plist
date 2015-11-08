@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "https://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>Label</key>
+		<string>pcap_dnsproxy.service</string>
+		<key>ProgramArguments</key>
+		<array>
+			<string>/usr/local/opt/pcap_dnsproxy/bin/Pcap_DNSProxy</string>
+			<string>-c</string>
+			<string>/usr/local/etc/pcap_dnsproxy/</string>
+		</array>
+		<key>RunAtLoad</key>
+		<true/>
+		<key>KeepAlive</key>
+		<dict>
+			<key>SuccessfulExit</key>
+			<false/>
+		</dict>
+	</dict>
+</plist>

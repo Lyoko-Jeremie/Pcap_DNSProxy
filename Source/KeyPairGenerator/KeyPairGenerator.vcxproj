@@ -1,0 +1,242 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{84C5CF30-0365-46D0-A07C-18FE3F2DD32B}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>KeyPairGenerator</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120_xp</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <Version>0.1</Version>
+      <LargeAddressAware>true</LargeAddressAware>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level4</WarningLevel>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <OmitFramePointers>true</OmitFramePointers>
+      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
+      <FloatingPointExceptions>true</FloatingPointExceptions>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <Version>0.1</Version>
+      <LargeAddressAware>true</LargeAddressAware>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\LibSodium\core.h" />
+    <ClInclude Include="..\LibSodium\crypto_aead_chacha20poly1305.h" />
+    <ClInclude Include="..\LibSodium\crypto_auth.h" />
+    <ClInclude Include="..\LibSodium\crypto_auth_hmacsha256.h" />
+    <ClInclude Include="..\LibSodium\crypto_auth_hmacsha512.h" />
+    <ClInclude Include="..\LibSodium\crypto_auth_hmacsha512256.h" />
+    <ClInclude Include="..\LibSodium\crypto_box.h" />
+    <ClInclude Include="..\LibSodium\crypto_box_curve25519xsalsa20poly1305.h" />
+    <ClInclude Include="..\LibSodium\crypto_core_hsalsa20.h" />
+    <ClInclude Include="..\LibSodium\crypto_core_salsa20.h" />
+    <ClInclude Include="..\LibSodium\crypto_core_salsa2012.h" />
+    <ClInclude Include="..\LibSodium\crypto_core_salsa208.h" />
+    <ClInclude Include="..\LibSodium\crypto_generichash.h" />
+    <ClInclude Include="..\LibSodium\crypto_generichash_blake2b.h" />
+    <ClInclude Include="..\LibSodium\crypto_hash.h" />
+    <ClInclude Include="..\LibSodium\crypto_hash_sha256.h" />
+    <ClInclude Include="..\LibSodium\crypto_hash_sha512.h" />
+    <ClInclude Include="..\LibSodium\crypto_int32.h" />
+    <ClInclude Include="..\LibSodium\crypto_int64.h" />
+    <ClInclude Include="..\LibSodium\crypto_onetimeauth.h" />
+    <ClInclude Include="..\LibSodium\crypto_onetimeauth_poly1305.h" />
+    <ClInclude Include="..\LibSodium\crypto_pwhash_scryptsalsa208sha256.h" />
+    <ClInclude Include="..\LibSodium\crypto_scalarmult.h" />
+    <ClInclude Include="..\LibSodium\crypto_scalarmult_curve25519.h" />
+    <ClInclude Include="..\LibSodium\crypto_secretbox.h" />
+    <ClInclude Include="..\LibSodium\crypto_secretbox_xsalsa20poly1305.h" />
+    <ClInclude Include="..\LibSodium\crypto_shorthash.h" />
+    <ClInclude Include="..\LibSodium\crypto_shorthash_siphash24.h" />
+    <ClInclude Include="..\LibSodium\crypto_sign.h" />
+    <ClInclude Include="..\LibSodium\crypto_sign_ed25519.h" />
+    <ClInclude Include="..\LibSodium\crypto_sign_edwards25519sha512batch.h" />
+    <ClInclude Include="..\LibSodium\crypto_stream.h" />
+    <ClInclude Include="..\LibSodium\crypto_stream_aes128ctr.h" />
+    <ClInclude Include="..\LibSodium\crypto_stream_chacha20.h" />
+    <ClInclude Include="..\LibSodium\crypto_stream_salsa20.h" />
+    <ClInclude Include="..\LibSodium\crypto_stream_salsa2012.h" />
+    <ClInclude Include="..\LibSodium\crypto_stream_salsa208.h" />
+    <ClInclude Include="..\LibSodium\crypto_stream_xsalsa20.h" />
+    <ClInclude Include="..\LibSodium\crypto_uint16.h" />
+    <ClInclude Include="..\LibSodium\crypto_uint32.h" />
+    <ClInclude Include="..\LibSodium\crypto_uint64.h" />
+    <ClInclude Include="..\LibSodium\crypto_uint8.h" />
+    <ClInclude Include="..\LibSodium\crypto_verify_16.h" />
+    <ClInclude Include="..\LibSodium\crypto_verify_32.h" />
+    <ClInclude Include="..\LibSodium\crypto_verify_64.h" />
+    <ClInclude Include="..\LibSodium\export.h" />
+    <ClInclude Include="..\LibSodium\randombytes.h" />
+    <ClInclude Include="..\LibSodium\randombytes_salsa20_random.h" />
+    <ClInclude Include="..\LibSodium\randombytes_sysrandom.h" />
+    <ClInclude Include="..\LibSodium\runtime.h" />
+    <ClInclude Include="..\LibSodium\sodium.h" />
+    <ClInclude Include="..\LibSodium\utils.h" />
+    <ClInclude Include="..\LibSodium\version.h" />
+    <ClInclude Include="KeyPairGenerator.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="KeyPairGenerator.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="KeyPairGenerator.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\LibSodium\LibSodium_x64.lib" />
+    <Library Include="..\LibSodium\LibSodium_x86.lib" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="CMakeLists.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

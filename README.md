@@ -1,60 +1,40 @@
 ﻿Pcap_DNSProxy
 =====
-A local DNS server base on WinPcap.
+A local DNS server based on WinPcap and LibPcap
 
-### 关于分支
-本分支 master 为 Pcap_DNSProxy 项目的主分支，用于存放源代码和说明文档。**编译版本请移步：**
-* [Release_x86 分支](https://github.com/chengr28/pcap_dnsproxy/tree/Release_x86)<br />
-* [Release_x64 分支](https://github.com/chengr28/pcap_dnsproxy/tree/Release_x64)<br />
+### Usage
+**本分支 master 为 Pcap_DNSProxy 项目用于存放源代码的分支，可执行编译版本请移步 [Release 分支](https://github.com/chengr28/Pcap_DNSProxy/tree/Release)，说明文档参见项目 [Documents 文件夹](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的内容**
 
-### 使用方法
-* Windows 版参见 [Wiki](https://github.com/chengr28/pcap_dnsproxy/wiki) 中 [ReadMe](https://github.com/chengr28/pcap_dnsproxy/wiki/ReadMe) 之内容
-* Linux 版参见 [Wiki](https://github.com/chengr28/pcap_dnsproxy/wiki) 中 [ReadMe_Linux](https://github.com/chengr28/pcap_dnsproxy/wiki/ReadMe_Linux) 之内容
-* Mac 版参见 [Wiki](https://github.com/chengr28/pcap_dnsproxy/wiki) 中 [ReadMe_Mac](https://github.com/chengr28/pcap_dnsproxy/wiki/ReadMe_Mac) 之内容
+### Updated
+**0.4.4.4** for Windows/Linux/Mac
 
-### 简介
-* **Pcap_DNSProxy 是一个基于 LibPcap/WinPcap 制作的用于忽略DNS投毒污染的小工具，后期也加入了对包含正则表达式的Hosts的支持**<br />
-* 很多使用TCP协议进行解析的工具，可以用于忽略DNS投毒污染。但事实上已经出现有使用TCP协议请求域名解析时被连接重置的情况，而使用UDP协议则又会被DNS投毒污染，导致其始终无法获得正确的域名解析。本工具主要工作在UDP协议上，可以将伪造的数据包完全过滤，同时UDP协议比起TCP协议更具有占用资源低和发送转发接收速度快等特点。本工具同时也支持使用TCP协议进行请求，而且在被连接重置时会自动切换到UDP协议，可以使请求者获得正确的域名解析**<br />
-* **完全支持正则表达式 Hosts 条目，可以为使用者提供更加便捷的途径设定域名所对应的地址，避免修改系统文件的麻烦**<br />
-* 本工具使用 C/C++ 编写而成，使用 Visual Studio 2012(Update 3)/VC++ 11.0(Windows)、GCC 4.7.2/g++(Linux) 和 Xcode 5.0.1/Apple LLVM 5.0(Mac) 进行编译，完全支持 Unicode<br />
+### Summary
+Pcap_DNSProxy 是一个基于 WinPcap/LibPcap 用于过滤 DNS 投毒污染的工具，提供支持正则表达式的 Hosts 提供更便捷和强大的修改 Hosts 的方法，以及对 DNSCurve/DNSCrypt 协议、并行和 TCP 协议请求的支持。多服务器并行请求功能，更可提高在恶劣网络环境下域名解析的可靠性。
+* 原生 64 位编译
+* IPv4/IPv6 协议双栈支持，并可自定义多端口多地址监听和远程请求协议
+* 服务器模式为其它设备提供解析服务，可限制请求的范围
+* Pcap 在系统底层驱动抓取数据包，多种方法过滤收到的伪造数据包
+* 支持 Local Hosts 境内 DNS 服务器解析，可提高对境内域名解析速度和服务器访问速度
+* 主要/备用双服务器模式，境外服务器支持多服务器并行多次请求，提高 DNS 解析可靠性
+* 独立 DNS 缓存、EDNS 标签、DNSSEC 请求功能以及完整的 DNSCurve/DNSCrypt 协议支持
+* 原生 SOCKS 版本 4/4a/5 和 HTTP CONNECT Tunnel 协议支持
+* 丰富的配置参数和选项，以及错误报告功能
+* 完全支持 ASCII、UTF-8(/BOM)、UTF-16(LE/BE) 和 UTF-32(LE/BE) 编码以及 Unicode 标准要求实现的所有空格/换行格式
 
-### 最新版本
-* **Windows 版本：v0.4 Beta(2014-06-23)**
-* **Linux 版本：v0.2(2014-03-02)**
-* **Mac 版本：v0.1(2014-03-02)**
+### Platform
+* 本工具**抓包模块**所支持的网络类型
+  * 网络设备类型为 Ethernet 和 Apple IEEE 1394/FireWire 的网络
+  * 原生 IPv4/PPPoE 网络和原生 IPv6/PPPoEv6 网络
+* Windows
+  * **64位/x64版本：Windows Vista/2008 以及更新的版本**
+  * **32位/x86版本：Windows XP SP3/2003 SP2 以及更新的版本**
+* Linux
+  * 支持 [编译所需依赖包](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的 Linux 发行版
+* Mac
+  * **支持 64 位平台 Mac OS X 10.7 Lion 以及更新的版本**
+  * Mac OS X 平台可通过 Homebrew 进行安装
+* OpenWrt
+  * 参见 [openwrt-Pcap_DNSProxy 项目](https://github.com/wongsyrone/openwrt-Pcap_DNSProxy)
 
-### 特点
-* 同时支持IPv4/IPv6协议，也可单独开启
-* 普通DNS请求模式同时支持TCP/UDP协议
-* 原生64位/x64目标平台编译版本
-* Native Code 原生码编译，不含任何托管代码
-* 作为服务工作于系统底层
-* 多线程模型
-* 主要和备用双服务器模式，提高DNS解析的可靠性
-* Hosts Only 模式可只适用本工具支持正则表达式的 Hosts 的功能 
-* 使用 LibPcap/WinPcap 利用系统底层驱动抓取数据包，多种过滤方式忽略接收到的伪造数据包
-* 支持服务器模式，相当于一个小型的DNS服务器，能为其它设备提供解析服务，并可限制可请求的范围
-* 支持境内DNS服务器解析，可提高境内服务器的访问速度
-* DNS缓存的功能
-* 支持 EDNS0 标签
-* 丰富的配置选项，读取文件支持 ANSI、UTF-8(/BOM)、UTF-16(LE/BE) 和 UTF-32(LE/BE) 编码以及 Windows/Unix/Macintosh 换行格式
-* 错误报告功能
-
-### 使用的库
-* 正则表达式支持由 C++ STL(Windows)/系统自带的正则库(Linux/Mac) 提供
-* 文件 Hash 使用的算法由 [SHA-3/Keccak](http://keccak.noekeon.org) 提供
-* 由 C++ STL 自带的梅森旋转算法引擎产生离散型均匀分布随机数，用于随机域名探测
-* DNSCurve 协议使用的 Curve25519/Salsa20/Poly1305 算法由 [LibSodium](https://github.com/jedisct1/libsodium) 提供
-* DNSCurve 协议加密模式使用的一次性 Nonce 亦由 [LibSodium](https://github.com/jedisct1/libsodium) 附带的随机数产生器提供
-
-### 支持平台
-* 本工具只支持原生IPv4/IPv6网络，**非原生IPv6切勿开启IPv6功能**
-* 网络设备类型为 Ethernet 或直接使用 PPPoE 协议均可
-* Windows 平台
-    * **所有 Windows NT(4) 以及更新内核的版本（32位/x86版本）** 和 **Windows Vista 以及更新的版本（64位/x64版本）**
-    * 支持最新版本 [WinPcap](http://www.winpcap.org/install/default.htm)
-* Linux 平台
-    * 支持 [编译所需依赖包](https://github.com/chengr28/pcap_dnsproxy/wiki/ReadMe_Linux) 的Linux发行版
-    * 支持最新版本 [Libpcap](http://www.tcpdump.org)
-* Mac 平台
-    * **采用Intel平台处理器的 Mac OS X 10.5 Leopard 以及更新的版本**
+### License
+GNU General Public License/GNU GPL v2

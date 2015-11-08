@@ -1,0 +1,398 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="WinPcap">
+      <UniqueIdentifier>{702cda2a-056e-4587-95a6-b19fa0846a4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ExampleConfig">
+      <UniqueIdentifier>{24a2b186-b4ca-49f8-8e4a-b5dfa546e3bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LibSodium">
+      <UniqueIdentifier>{2273ae54-29d8-4833-affe-718f2188b47c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="WinPcap\bittypes.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\ip6_misc.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\Packet32.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap-bpf.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap-namedb.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap-stdinc.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\remote-ext.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\Win32-Extensions.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\bluetooth.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\bpf.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\namedb.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\pcap.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\sll.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\usb.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="WinPcap\pcap\vlan.h">
+      <Filter>WinPcap</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Base.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Main.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Configuration.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Capture.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PrintLog.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocol.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Monitor.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DNSCurve.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Process.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Initialization.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Network.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Service.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PacketData.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Platform.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Structures.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Proxy.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\core.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_aead_aes256gcm.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_aead_chacha20poly1305.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_auth.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_auth_hmacsha256.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_auth_hmacsha512.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_auth_hmacsha512256.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_box.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_box_curve25519xsalsa20poly1305.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_core_hsalsa20.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_core_salsa20.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_core_salsa208.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_core_salsa2012.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_generichash.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_generichash_blake2b.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_hash.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_hash_sha256.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_hash_sha512.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_int32.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_int64.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_onetimeauth.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_onetimeauth_poly1305.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_pwhash_scryptsalsa208sha256.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_scalarmult.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_scalarmult_curve25519.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_secretbox.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_secretbox_xsalsa20poly1305.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_shorthash.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_shorthash_siphash24.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_sign.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_sign_ed25519.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_sign_edwards25519sha512batch.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_stream.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_stream_aes128ctr.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_stream_chacha20.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_stream_salsa20.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_stream_salsa208.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_stream_salsa2012.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_stream_xsalsa20.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_uint8.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_uint16.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_uint32.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_uint64.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_verify_16.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_verify_32.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_verify_64.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\export.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\randombytes.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\randombytes_nativeclient.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\randombytes_salsa20_random.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\randombytes_sysrandom.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\runtime.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\sodium.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\utils.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\version.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="WinPcap\Packet_x64.lib">
+      <Filter>WinPcap</Filter>
+    </Library>
+    <Library Include="WinPcap\Packet_x86.lib">
+      <Filter>WinPcap</Filter>
+    </Library>
+    <Library Include="WinPcap\WPCAP_x64.lib">
+      <Filter>WinPcap</Filter>
+    </Library>
+    <Library Include="WinPcap\WPCAP_x86.lib">
+      <Filter>WinPcap</Filter>
+    </Library>
+    <Library Include="..\LibSodium\LibSodium_x64.lib">
+      <Filter>LibSodium</Filter>
+    </Library>
+    <Library Include="..\LibSodium\LibSodium_x86.lib">
+      <Filter>LibSodium</Filter>
+    </Library>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Capture.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Configuration.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DNSCurve.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Monitor.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PrintLog.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Process.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Protocol.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Initialization.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Base.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Network.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Service.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PacketData.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ReadHosts.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ReadIPFilter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ReadParameter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Proxy.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Pcap_DNSProxy.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\ExampleConfig\Config.ini">
+      <Filter>ExampleConfig</Filter>
+    </None>
+    <None Include="..\ExampleConfig\Hosts.ini">
+      <Filter>ExampleConfig</Filter>
+    </None>
+    <None Include="..\ExampleConfig\IPFilter.ini">
+      <Filter>ExampleConfig</Filter>
+    </None>
+    <None Include="..\ExampleConfig\ServiceControl.bat">
+      <Filter>ExampleConfig</Filter>
+    </None>
+    <None Include="..\LibSodium\LibSodium_Mac.a">
+      <Filter>LibSodium</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\ExampleConfig\Routing.txt">
+      <Filter>ExampleConfig</Filter>
+    </Text>
+    <Text Include="..\ExampleConfig\White_List.txt">
+      <Filter>ExampleConfig</Filter>
+    </Text>
+    <Text Include="CMakeLists.txt">
+      <Filter>源文件</Filter>
+    </Text>
+  </ItemGroup>
+</Project>

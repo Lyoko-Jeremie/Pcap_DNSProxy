@@ -1,0 +1,555 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		D92DE6AA1BCFDC12009C77C7 /* Proxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D92DE6A81BCFDC12009C77C7 /* Proxy.cpp */; };
+		D9672DD31AFCB67300330EB8 /* LibSodium_Mac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D9672DD21AFCB67300330EB8 /* LibSodium_Mac.a */; };
+		D97C985C1B17413900674884 /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98581B17413900674884 /* Base.cpp */; };
+		D97C985D1B17413900674884 /* Capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C985A1B17413900674884 /* Capture.cpp */; };
+		D97C986C1B17414A00674884 /* Configuration.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C985E1B17414A00674884 /* Configuration.cpp */; };
+		D97C986D1B17414A00674884 /* DNSCurve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98601B17414A00674884 /* DNSCurve.cpp */; };
+		D97C986E1B17414A00674884 /* Initialization.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98621B17414A00674884 /* Initialization.cpp */; };
+		D97C986F1B17414A00674884 /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98641B17414A00674884 /* Main.cpp */; };
+		D97C98701B17414A00674884 /* Monitor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98661B17414A00674884 /* Monitor.cpp */; };
+		D97C98711B17414A00674884 /* Network.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98681B17414A00674884 /* Network.cpp */; };
+		D97C98721B17414A00674884 /* PacketData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C986A1B17414A00674884 /* PacketData.cpp */; };
+		D97C987C1B17415C00674884 /* PrintLog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98731B17415C00674884 /* PrintLog.cpp */; };
+		D97C987D1B17415C00674884 /* Process.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98751B17415C00674884 /* Process.cpp */; };
+		D97C987E1B17415C00674884 /* Protocol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98771B17415C00674884 /* Protocol.cpp */; };
+		D97C987F1B17415C00674884 /* ReadHosts.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98791B17415C00674884 /* ReadHosts.cpp */; };
+		D97C98801B17415C00674884 /* ReadIPFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C987A1B17415C00674884 /* ReadIPFilter.cpp */; };
+		D97C98811B17415C00674884 /* ReadParameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C987B1B17415C00674884 /* ReadParameter.cpp */; };
+		D97C98841B17417100674884 /* Service.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98821B17417100674884 /* Service.cpp */; };
+		D99B47461AFCE4BB004BDEAE /* libpcap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D99B47451AFCE4BB004BDEAE /* libpcap.dylib */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D9F760F41AFCB498007F351A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D9F760F01AFCB498007F351A /* KeyPairGenerator.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D99E2E6D1AFCB43C00F36FCD;
+			remoteInfo = KeyPairGenerator;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D99E2D3D1AFCAF2200F36FCD /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		D92DE6A81BCFDC12009C77C7 /* Proxy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Proxy.cpp; sourceTree = "<group>"; };
+		D92DE6A91BCFDC12009C77C7 /* Proxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Proxy.h; sourceTree = "<group>"; };
+		D95E420C1BA336A1006BD459 /* Structures.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Structures.h; sourceTree = "<group>"; };
+		D95E420F1BA336B0006BD459 /* Platform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Platform.h; sourceTree = "<group>"; };
+		D95E42101BA336DA006BD459 /* WhiteList.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WhiteList.txt; path = ExampleConfig/WhiteList.txt; sourceTree = SOURCE_ROOT; };
+		D9672DD21AFCB67300330EB8 /* LibSodium_Mac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibSodium_Mac.a; path = ../LibSodium/LibSodium_Mac.a; sourceTree = "<group>"; };
+		D97C98581B17413900674884 /* Base.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Base.cpp; sourceTree = "<group>"; };
+		D97C98591B17413900674884 /* Base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Base.h; sourceTree = "<group>"; };
+		D97C985A1B17413900674884 /* Capture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Capture.cpp; sourceTree = "<group>"; };
+		D97C985B1B17413900674884 /* Capture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Capture.h; sourceTree = "<group>"; };
+		D97C985E1B17414A00674884 /* Configuration.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Configuration.cpp; sourceTree = "<group>"; };
+		D97C985F1B17414A00674884 /* Configuration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Configuration.h; sourceTree = "<group>"; };
+		D97C98601B17414A00674884 /* DNSCurve.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DNSCurve.cpp; sourceTree = "<group>"; };
+		D97C98611B17414A00674884 /* DNSCurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DNSCurve.h; sourceTree = "<group>"; };
+		D97C98621B17414A00674884 /* Initialization.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Initialization.cpp; sourceTree = "<group>"; };
+		D97C98631B17414A00674884 /* Initialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Initialization.h; sourceTree = "<group>"; };
+		D97C98641B17414A00674884 /* Main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Main.cpp; sourceTree = "<group>"; };
+		D97C98651B17414A00674884 /* Main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Main.h; sourceTree = "<group>"; };
+		D97C98661B17414A00674884 /* Monitor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Monitor.cpp; sourceTree = "<group>"; };
+		D97C98671B17414A00674884 /* Monitor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Monitor.h; sourceTree = "<group>"; };
+		D97C98681B17414A00674884 /* Network.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Network.cpp; sourceTree = "<group>"; };
+		D97C98691B17414A00674884 /* Network.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Network.h; sourceTree = "<group>"; };
+		D97C986A1B17414A00674884 /* PacketData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PacketData.cpp; sourceTree = "<group>"; };
+		D97C986B1B17414A00674884 /* PacketData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PacketData.h; sourceTree = "<group>"; };
+		D97C98731B17415C00674884 /* PrintLog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = PrintLog.cpp; sourceTree = "<group>"; };
+		D97C98741B17415C00674884 /* PrintLog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PrintLog.h; sourceTree = "<group>"; };
+		D97C98751B17415C00674884 /* Process.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Process.cpp; sourceTree = "<group>"; };
+		D97C98761B17415C00674884 /* Process.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Process.h; sourceTree = "<group>"; };
+		D97C98771B17415C00674884 /* Protocol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Protocol.cpp; sourceTree = "<group>"; };
+		D97C98781B17415C00674884 /* Protocol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Protocol.h; sourceTree = "<group>"; };
+		D97C98791B17415C00674884 /* ReadHosts.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ReadHosts.cpp; sourceTree = "<group>"; };
+		D97C987A1B17415C00674884 /* ReadIPFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ReadIPFilter.cpp; sourceTree = "<group>"; };
+		D97C987B1B17415C00674884 /* ReadParameter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ReadParameter.cpp; sourceTree = "<group>"; };
+		D97C98821B17417100674884 /* Service.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Service.cpp; sourceTree = "<group>"; };
+		D97C98831B17417100674884 /* Service.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Service.h; sourceTree = "<group>"; };
+		D98EE5011B11DF9C00C7C217 /* Changelog(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "Changelog(zh_Hans).txt"; path = "Documents/Changelog(zh_Hans).txt"; sourceTree = "<group>"; };
+		D98EE5021B11DF9C00C7C217 /* Changelog(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "Changelog(zh_Hant).txt"; path = "Documents/Changelog(zh_Hant).txt"; sourceTree = "<group>"; };
+		D98EE5031B11DF9C00C7C217 /* FAQ_Linux_Mac(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ_Linux_Mac(zh_Hans).txt"; path = "Documents/FAQ_Linux_Mac(zh_Hans).txt"; sourceTree = "<group>"; };
+		D98EE5041B11DF9C00C7C217 /* FAQ_Linux_Mac(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ_Linux_Mac(zh_Hant).txt"; path = "Documents/FAQ_Linux_Mac(zh_Hant).txt"; sourceTree = "<group>"; };
+		D98EE5051B11DF9C00C7C217 /* FAQ(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ(zh_Hans).txt"; path = "Documents/FAQ(zh_Hans).txt"; sourceTree = "<group>"; };
+		D98EE5061B11DF9C00C7C217 /* FAQ(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ(zh_Hant).txt"; path = "Documents/FAQ(zh_Hant).txt"; sourceTree = "<group>"; };
+		D98EE5071B11DF9C00C7C217 /* ReadMe_Linux(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe_Linux(zh_Hans).txt"; path = "Documents/ReadMe_Linux(zh_Hans).txt"; sourceTree = "<group>"; };
+		D98EE5081B11DF9C00C7C217 /* ReadMe_Linux(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe_Linux(zh_Hant).txt"; path = "Documents/ReadMe_Linux(zh_Hant).txt"; sourceTree = "<group>"; };
+		D98EE5091B11DF9C00C7C217 /* ReadMe_Mac(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe_Mac(zh_Hans).txt"; path = "Documents/ReadMe_Mac(zh_Hans).txt"; sourceTree = "<group>"; };
+		D98EE50A1B11DF9C00C7C217 /* ReadMe_Mac(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe_Mac(zh_Hant).txt"; path = "Documents/ReadMe_Mac(zh_Hant).txt"; sourceTree = "<group>"; };
+		D98EE50B1B11DF9C00C7C217 /* ReadMe(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe(zh_Hans).txt"; path = "Documents/ReadMe(zh_Hans).txt"; sourceTree = "<group>"; };
+		D98EE50C1B11DF9C00C7C217 /* ReadMe(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe(zh_Hant).txt"; path = "Documents/ReadMe(zh_Hant).txt"; sourceTree = "<group>"; };
+		D99B47451AFCE4BB004BDEAE /* libpcap.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpcap.dylib; path = usr/lib/libpcap.dylib; sourceTree = SDKROOT; };
+		D99E2D3F1AFCAF2200F36FCD /* Pcap_DNSProxy */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Pcap_DNSProxy; sourceTree = BUILT_PRODUCTS_DIR; };
+		D99E2D991AFCB1AD00F36FCD /* core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = core.h; path = LibSodium/core.h; sourceTree = SOURCE_ROOT; };
+		D99E2D9A1AFCB1AD00F36FCD /* crypto_aead_chacha20poly1305.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_aead_chacha20poly1305.h; path = LibSodium/crypto_aead_chacha20poly1305.h; sourceTree = SOURCE_ROOT; };
+		D99E2D9B1AFCB1AD00F36FCD /* crypto_auth_hmacsha256.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_auth_hmacsha256.h; path = LibSodium/crypto_auth_hmacsha256.h; sourceTree = SOURCE_ROOT; };
+		D99E2D9C1AFCB1AD00F36FCD /* crypto_auth_hmacsha512.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_auth_hmacsha512.h; path = LibSodium/crypto_auth_hmacsha512.h; sourceTree = SOURCE_ROOT; };
+		D99E2D9D1AFCB1AD00F36FCD /* crypto_auth_hmacsha512256.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_auth_hmacsha512256.h; path = LibSodium/crypto_auth_hmacsha512256.h; sourceTree = SOURCE_ROOT; };
+		D99E2D9E1AFCB1AD00F36FCD /* crypto_auth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_auth.h; path = LibSodium/crypto_auth.h; sourceTree = SOURCE_ROOT; };
+		D99E2D9F1AFCB1AD00F36FCD /* crypto_box_curve25519xsalsa20poly1305.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_box_curve25519xsalsa20poly1305.h; path = LibSodium/crypto_box_curve25519xsalsa20poly1305.h; sourceTree = SOURCE_ROOT; };
+		D99E2DA01AFCB1AD00F36FCD /* crypto_box.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_box.h; path = LibSodium/crypto_box.h; sourceTree = SOURCE_ROOT; };
+		D99E2DA11AFCB1AD00F36FCD /* crypto_core_hsalsa20.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_core_hsalsa20.h; path = LibSodium/crypto_core_hsalsa20.h; sourceTree = SOURCE_ROOT; };
+		D99E2DA21AFCB1AD00F36FCD /* crypto_core_salsa20.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_core_salsa20.h; path = LibSodium/crypto_core_salsa20.h; sourceTree = SOURCE_ROOT; };
+		D99E2DA31AFCB1AD00F36FCD /* crypto_core_salsa208.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_core_salsa208.h; path = LibSodium/crypto_core_salsa208.h; sourceTree = SOURCE_ROOT; };
+		D99E2DA41AFCB1AD00F36FCD /* crypto_core_salsa2012.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_core_salsa2012.h; path = LibSodium/crypto_core_salsa2012.h; sourceTree = SOURCE_ROOT; };
+		D99E2DA51AFCB1AD00F36FCD /* crypto_generichash_blake2b.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_generichash_blake2b.h; path = LibSodium/crypto_generichash_blake2b.h; sourceTree = SOURCE_ROOT; };
+		D99E2DA61AFCB1AD00F36FCD /* crypto_generichash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_generichash.h; path = LibSodium/crypto_generichash.h; sourceTree = SOURCE_ROOT; };
+		D99E2DA71AFCB1AD00F36FCD /* crypto_hash_sha256.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_hash_sha256.h; path = LibSodium/crypto_hash_sha256.h; sourceTree = SOURCE_ROOT; };
+		D99E2DA81AFCB1AD00F36FCD /* crypto_hash_sha512.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_hash_sha512.h; path = LibSodium/crypto_hash_sha512.h; sourceTree = SOURCE_ROOT; };
+		D99E2DA91AFCB1AD00F36FCD /* crypto_hash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_hash.h; path = LibSodium/crypto_hash.h; sourceTree = SOURCE_ROOT; };
+		D99E2DAA1AFCB1AD00F36FCD /* crypto_int32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_int32.h; path = LibSodium/crypto_int32.h; sourceTree = SOURCE_ROOT; };
+		D99E2DAB1AFCB1AD00F36FCD /* crypto_int64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_int64.h; path = LibSodium/crypto_int64.h; sourceTree = SOURCE_ROOT; };
+		D99E2DAC1AFCB1AD00F36FCD /* crypto_onetimeauth_poly1305.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_onetimeauth_poly1305.h; path = LibSodium/crypto_onetimeauth_poly1305.h; sourceTree = SOURCE_ROOT; };
+		D99E2DAD1AFCB1AD00F36FCD /* crypto_onetimeauth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_onetimeauth.h; path = LibSodium/crypto_onetimeauth.h; sourceTree = SOURCE_ROOT; };
+		D99E2DAE1AFCB1AD00F36FCD /* crypto_pwhash_scryptsalsa208sha256.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_pwhash_scryptsalsa208sha256.h; path = LibSodium/crypto_pwhash_scryptsalsa208sha256.h; sourceTree = SOURCE_ROOT; };
+		D99E2DAF1AFCB1AD00F36FCD /* crypto_scalarmult_curve25519.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_scalarmult_curve25519.h; path = LibSodium/crypto_scalarmult_curve25519.h; sourceTree = SOURCE_ROOT; };
+		D99E2DB01AFCB1AD00F36FCD /* crypto_scalarmult.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_scalarmult.h; path = LibSodium/crypto_scalarmult.h; sourceTree = SOURCE_ROOT; };
+		D99E2DB11AFCB1AD00F36FCD /* crypto_secretbox_xsalsa20poly1305.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_secretbox_xsalsa20poly1305.h; path = LibSodium/crypto_secretbox_xsalsa20poly1305.h; sourceTree = SOURCE_ROOT; };
+		D99E2DB21AFCB1AD00F36FCD /* crypto_secretbox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_secretbox.h; path = LibSodium/crypto_secretbox.h; sourceTree = SOURCE_ROOT; };
+		D99E2DB31AFCB1AD00F36FCD /* crypto_shorthash_siphash24.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_shorthash_siphash24.h; path = LibSodium/crypto_shorthash_siphash24.h; sourceTree = SOURCE_ROOT; };
+		D99E2DB41AFCB1AD00F36FCD /* crypto_shorthash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_shorthash.h; path = LibSodium/crypto_shorthash.h; sourceTree = SOURCE_ROOT; };
+		D99E2DB51AFCB1AD00F36FCD /* crypto_sign_ed25519.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_sign_ed25519.h; path = LibSodium/crypto_sign_ed25519.h; sourceTree = SOURCE_ROOT; };
+		D99E2DB61AFCB1AD00F36FCD /* crypto_sign_edwards25519sha512batch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_sign_edwards25519sha512batch.h; path = LibSodium/crypto_sign_edwards25519sha512batch.h; sourceTree = SOURCE_ROOT; };
+		D99E2DB71AFCB1AD00F36FCD /* crypto_sign.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_sign.h; path = LibSodium/crypto_sign.h; sourceTree = SOURCE_ROOT; };
+		D99E2DB81AFCB1AD00F36FCD /* crypto_stream_aes128ctr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_stream_aes128ctr.h; path = LibSodium/crypto_stream_aes128ctr.h; sourceTree = SOURCE_ROOT; };
+		D99E2DB91AFCB1AD00F36FCD /* crypto_stream_chacha20.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_stream_chacha20.h; path = LibSodium/crypto_stream_chacha20.h; sourceTree = SOURCE_ROOT; };
+		D99E2DBA1AFCB1AD00F36FCD /* crypto_stream_salsa20.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_stream_salsa20.h; path = LibSodium/crypto_stream_salsa20.h; sourceTree = SOURCE_ROOT; };
+		D99E2DBB1AFCB1AD00F36FCD /* crypto_stream_salsa208.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_stream_salsa208.h; path = LibSodium/crypto_stream_salsa208.h; sourceTree = SOURCE_ROOT; };
+		D99E2DBC1AFCB1AD00F36FCD /* crypto_stream_salsa2012.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_stream_salsa2012.h; path = LibSodium/crypto_stream_salsa2012.h; sourceTree = SOURCE_ROOT; };
+		D99E2DBD1AFCB1AD00F36FCD /* crypto_stream_xsalsa20.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_stream_xsalsa20.h; path = LibSodium/crypto_stream_xsalsa20.h; sourceTree = SOURCE_ROOT; };
+		D99E2DBE1AFCB1AD00F36FCD /* crypto_stream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_stream.h; path = LibSodium/crypto_stream.h; sourceTree = SOURCE_ROOT; };
+		D99E2DBF1AFCB1AD00F36FCD /* crypto_uint8.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_uint8.h; path = LibSodium/crypto_uint8.h; sourceTree = SOURCE_ROOT; };
+		D99E2DC01AFCB1AD00F36FCD /* crypto_uint16.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_uint16.h; path = LibSodium/crypto_uint16.h; sourceTree = SOURCE_ROOT; };
+		D99E2DC11AFCB1AD00F36FCD /* crypto_uint32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_uint32.h; path = LibSodium/crypto_uint32.h; sourceTree = SOURCE_ROOT; };
+		D99E2DC21AFCB1AD00F36FCD /* crypto_uint64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_uint64.h; path = LibSodium/crypto_uint64.h; sourceTree = SOURCE_ROOT; };
+		D99E2DC31AFCB1AD00F36FCD /* crypto_verify_16.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_verify_16.h; path = LibSodium/crypto_verify_16.h; sourceTree = SOURCE_ROOT; };
+		D99E2DC41AFCB1AD00F36FCD /* crypto_verify_32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_verify_32.h; path = LibSodium/crypto_verify_32.h; sourceTree = SOURCE_ROOT; };
+		D99E2DC51AFCB1AD00F36FCD /* crypto_verify_64.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_verify_64.h; path = LibSodium/crypto_verify_64.h; sourceTree = SOURCE_ROOT; };
+		D99E2DC61AFCB1AD00F36FCD /* export.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = export.h; path = LibSodium/export.h; sourceTree = SOURCE_ROOT; };
+		D99E2DC71AFCB1BF00F36FCD /* randombytes_salsa20_random.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = randombytes_salsa20_random.h; path = LibSodium/randombytes_salsa20_random.h; sourceTree = SOURCE_ROOT; };
+		D99E2DC81AFCB1BF00F36FCD /* randombytes_sysrandom.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = randombytes_sysrandom.h; path = LibSodium/randombytes_sysrandom.h; sourceTree = SOURCE_ROOT; };
+		D99E2DC91AFCB1BF00F36FCD /* randombytes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = randombytes.h; path = LibSodium/randombytes.h; sourceTree = SOURCE_ROOT; };
+		D99E2DCA1AFCB1BF00F36FCD /* runtime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = runtime.h; path = LibSodium/runtime.h; sourceTree = SOURCE_ROOT; };
+		D99E2DCB1AFCB1BF00F36FCD /* sodium.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sodium.h; path = LibSodium/sodium.h; sourceTree = SOURCE_ROOT; };
+		D99E2DCC1AFCB1BF00F36FCD /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utils.h; path = LibSodium/utils.h; sourceTree = SOURCE_ROOT; };
+		D99E2DCD1AFCB1BF00F36FCD /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = version.h; path = LibSodium/version.h; sourceTree = SOURCE_ROOT; };
+		D99E2DDC1AFCB21100F36FCD /* Config.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Config.ini; path = ExampleConfig/Config.ini; sourceTree = SOURCE_ROOT; };
+		D99E2DDD1AFCB21100F36FCD /* Hosts.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Hosts.ini; path = ExampleConfig/Hosts.ini; sourceTree = SOURCE_ROOT; };
+		D99E2DDE1AFCB21100F36FCD /* IPFilter.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = IPFilter.ini; path = ExampleConfig/IPFilter.ini; sourceTree = SOURCE_ROOT; };
+		D99E2DDF1AFCB22200F36FCD /* Routing.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Routing.txt; path = ExampleConfig/Routing.txt; sourceTree = SOURCE_ROOT; };
+		D9F760F01AFCB498007F351A /* KeyPairGenerator.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = KeyPairGenerator.xcodeproj; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D99E2D3C1AFCAF2200F36FCD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D99B47461AFCE4BB004BDEAE /* libpcap.dylib in Frameworks */,
+				D9672DD31AFCB67300330EB8 /* LibSodium_Mac.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		D99E2D361AFCAF2200F36FCD = {
+			isa = PBXGroup;
+			children = (
+				D9F760F01AFCB498007F351A /* KeyPairGenerator.xcodeproj */,
+				D99E2DEC1AFCB25300F36FCD /* Documents */,
+				D99E2D411AFCAF2200F36FCD /* Pcap_DNSProxy */,
+				D99E2D401AFCAF2200F36FCD /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D99E2D401AFCAF2200F36FCD /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D99E2D3F1AFCAF2200F36FCD /* Pcap_DNSProxy */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D99E2D411AFCAF2200F36FCD /* Pcap_DNSProxy */ = {
+			isa = PBXGroup;
+			children = (
+				D97C98581B17413900674884 /* Base.cpp */,
+				D97C985A1B17413900674884 /* Capture.cpp */,
+				D97C985E1B17414A00674884 /* Configuration.cpp */,
+				D97C98601B17414A00674884 /* DNSCurve.cpp */,
+				D97C98621B17414A00674884 /* Initialization.cpp */,
+				D97C98641B17414A00674884 /* Main.cpp */,
+				D97C98661B17414A00674884 /* Monitor.cpp */,
+				D97C98681B17414A00674884 /* Network.cpp */,
+				D97C986A1B17414A00674884 /* PacketData.cpp */,
+				D97C98731B17415C00674884 /* PrintLog.cpp */,
+				D97C98751B17415C00674884 /* Process.cpp */,
+				D97C98771B17415C00674884 /* Protocol.cpp */,
+				D92DE6A81BCFDC12009C77C7 /* Proxy.cpp */,
+				D97C98791B17415C00674884 /* ReadHosts.cpp */,
+				D97C987A1B17415C00674884 /* ReadIPFilter.cpp */,
+				D97C987B1B17415C00674884 /* ReadParameter.cpp */,
+				D97C98821B17417100674884 /* Service.cpp */,
+				D99B47451AFCE4BB004BDEAE /* libpcap.dylib */,
+				D97C98591B17413900674884 /* Base.h */,
+				D97C985B1B17413900674884 /* Capture.h */,
+				D97C985F1B17414A00674884 /* Configuration.h */,
+				D97C98611B17414A00674884 /* DNSCurve.h */,
+				D97C98631B17414A00674884 /* Initialization.h */,
+				D97C98651B17414A00674884 /* Main.h */,
+				D97C98671B17414A00674884 /* Monitor.h */,
+				D97C98691B17414A00674884 /* Network.h */,
+				D97C986B1B17414A00674884 /* PacketData.h */,
+				D95E420F1BA336B0006BD459 /* Platform.h */,
+				D97C98741B17415C00674884 /* PrintLog.h */,
+				D97C98761B17415C00674884 /* Process.h */,
+				D97C98781B17415C00674884 /* Protocol.h */,
+				D92DE6A91BCFDC12009C77C7 /* Proxy.h */,
+				D97C98831B17417100674884 /* Service.h */,
+				D95E420C1BA336A1006BD459 /* Structures.h */,
+				D99E2DDB1AFCB1FC00F36FCD /* ExampleConfig */,
+				D99E2D981AFCB19400F36FCD /* LibSodium */,
+			);
+			path = Pcap_DNSProxy;
+			sourceTree = "<group>";
+		};
+		D99E2D981AFCB19400F36FCD /* LibSodium */ = {
+			isa = PBXGroup;
+			children = (
+				D9672DD21AFCB67300330EB8 /* LibSodium_Mac.a */,
+				D99E2DC71AFCB1BF00F36FCD /* randombytes_salsa20_random.h */,
+				D99E2DC81AFCB1BF00F36FCD /* randombytes_sysrandom.h */,
+				D99E2DC91AFCB1BF00F36FCD /* randombytes.h */,
+				D99E2DCA1AFCB1BF00F36FCD /* runtime.h */,
+				D99E2DCB1AFCB1BF00F36FCD /* sodium.h */,
+				D99E2DCC1AFCB1BF00F36FCD /* utils.h */,
+				D99E2DCD1AFCB1BF00F36FCD /* version.h */,
+				D99E2D991AFCB1AD00F36FCD /* core.h */,
+				D99E2D9A1AFCB1AD00F36FCD /* crypto_aead_chacha20poly1305.h */,
+				D99E2D9B1AFCB1AD00F36FCD /* crypto_auth_hmacsha256.h */,
+				D99E2D9C1AFCB1AD00F36FCD /* crypto_auth_hmacsha512.h */,
+				D99E2D9D1AFCB1AD00F36FCD /* crypto_auth_hmacsha512256.h */,
+				D99E2D9E1AFCB1AD00F36FCD /* crypto_auth.h */,
+				D99E2D9F1AFCB1AD00F36FCD /* crypto_box_curve25519xsalsa20poly1305.h */,
+				D99E2DA01AFCB1AD00F36FCD /* crypto_box.h */,
+				D99E2DA11AFCB1AD00F36FCD /* crypto_core_hsalsa20.h */,
+				D99E2DA21AFCB1AD00F36FCD /* crypto_core_salsa20.h */,
+				D99E2DA31AFCB1AD00F36FCD /* crypto_core_salsa208.h */,
+				D99E2DA41AFCB1AD00F36FCD /* crypto_core_salsa2012.h */,
+				D99E2DA51AFCB1AD00F36FCD /* crypto_generichash_blake2b.h */,
+				D99E2DA61AFCB1AD00F36FCD /* crypto_generichash.h */,
+				D99E2DA71AFCB1AD00F36FCD /* crypto_hash_sha256.h */,
+				D99E2DA81AFCB1AD00F36FCD /* crypto_hash_sha512.h */,
+				D99E2DA91AFCB1AD00F36FCD /* crypto_hash.h */,
+				D99E2DAA1AFCB1AD00F36FCD /* crypto_int32.h */,
+				D99E2DAB1AFCB1AD00F36FCD /* crypto_int64.h */,
+				D99E2DAC1AFCB1AD00F36FCD /* crypto_onetimeauth_poly1305.h */,
+				D99E2DAD1AFCB1AD00F36FCD /* crypto_onetimeauth.h */,
+				D99E2DAE1AFCB1AD00F36FCD /* crypto_pwhash_scryptsalsa208sha256.h */,
+				D99E2DAF1AFCB1AD00F36FCD /* crypto_scalarmult_curve25519.h */,
+				D99E2DB01AFCB1AD00F36FCD /* crypto_scalarmult.h */,
+				D99E2DB11AFCB1AD00F36FCD /* crypto_secretbox_xsalsa20poly1305.h */,
+				D99E2DB21AFCB1AD00F36FCD /* crypto_secretbox.h */,
+				D99E2DB31AFCB1AD00F36FCD /* crypto_shorthash_siphash24.h */,
+				D99E2DB41AFCB1AD00F36FCD /* crypto_shorthash.h */,
+				D99E2DB51AFCB1AD00F36FCD /* crypto_sign_ed25519.h */,
+				D99E2DB61AFCB1AD00F36FCD /* crypto_sign_edwards25519sha512batch.h */,
+				D99E2DB71AFCB1AD00F36FCD /* crypto_sign.h */,
+				D99E2DB81AFCB1AD00F36FCD /* crypto_stream_aes128ctr.h */,
+				D99E2DB91AFCB1AD00F36FCD /* crypto_stream_chacha20.h */,
+				D99E2DBA1AFCB1AD00F36FCD /* crypto_stream_salsa20.h */,
+				D99E2DBB1AFCB1AD00F36FCD /* crypto_stream_salsa208.h */,
+				D99E2DBC1AFCB1AD00F36FCD /* crypto_stream_salsa2012.h */,
+				D99E2DBD1AFCB1AD00F36FCD /* crypto_stream_xsalsa20.h */,
+				D99E2DBE1AFCB1AD00F36FCD /* crypto_stream.h */,
+				D99E2DBF1AFCB1AD00F36FCD /* crypto_uint8.h */,
+				D99E2DC01AFCB1AD00F36FCD /* crypto_uint16.h */,
+				D99E2DC11AFCB1AD00F36FCD /* crypto_uint32.h */,
+				D99E2DC21AFCB1AD00F36FCD /* crypto_uint64.h */,
+				D99E2DC31AFCB1AD00F36FCD /* crypto_verify_16.h */,
+				D99E2DC41AFCB1AD00F36FCD /* crypto_verify_32.h */,
+				D99E2DC51AFCB1AD00F36FCD /* crypto_verify_64.h */,
+				D99E2DC61AFCB1AD00F36FCD /* export.h */,
+			);
+			name = LibSodium;
+			sourceTree = "<group>";
+		};
+		D99E2DDB1AFCB1FC00F36FCD /* ExampleConfig */ = {
+			isa = PBXGroup;
+			children = (
+				D99E2DDC1AFCB21100F36FCD /* Config.ini */,
+				D99E2DDD1AFCB21100F36FCD /* Hosts.ini */,
+				D99E2DDE1AFCB21100F36FCD /* IPFilter.ini */,
+				D99E2DDF1AFCB22200F36FCD /* Routing.txt */,
+				D95E42101BA336DA006BD459 /* WhiteList.txt */,
+			);
+			name = ExampleConfig;
+			sourceTree = "<group>";
+		};
+		D99E2DEC1AFCB25300F36FCD /* Documents */ = {
+			isa = PBXGroup;
+			children = (
+				D98EE5011B11DF9C00C7C217 /* Changelog(zh_Hans).txt */,
+				D98EE5021B11DF9C00C7C217 /* Changelog(zh_Hant).txt */,
+				D98EE5031B11DF9C00C7C217 /* FAQ_Linux_Mac(zh_Hans).txt */,
+				D98EE5041B11DF9C00C7C217 /* FAQ_Linux_Mac(zh_Hant).txt */,
+				D98EE5051B11DF9C00C7C217 /* FAQ(zh_Hans).txt */,
+				D98EE5061B11DF9C00C7C217 /* FAQ(zh_Hant).txt */,
+				D98EE5071B11DF9C00C7C217 /* ReadMe_Linux(zh_Hans).txt */,
+				D98EE5081B11DF9C00C7C217 /* ReadMe_Linux(zh_Hant).txt */,
+				D98EE5091B11DF9C00C7C217 /* ReadMe_Mac(zh_Hans).txt */,
+				D98EE50A1B11DF9C00C7C217 /* ReadMe_Mac(zh_Hant).txt */,
+				D98EE50B1B11DF9C00C7C217 /* ReadMe(zh_Hans).txt */,
+				D98EE50C1B11DF9C00C7C217 /* ReadMe(zh_Hant).txt */,
+			);
+			name = Documents;
+			sourceTree = "<group>";
+		};
+		D9F760F11AFCB498007F351A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D9F760F51AFCB498007F351A /* KeyPairGenerator */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		D99E2D3E1AFCAF2200F36FCD /* Pcap_DNSProxy */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D99E2D461AFCAF2200F36FCD /* Build configuration list for PBXNativeTarget "Pcap_DNSProxy" */;
+			buildPhases = (
+				D99E2D3B1AFCAF2200F36FCD /* Sources */,
+				D99E2D3C1AFCAF2200F36FCD /* Frameworks */,
+				D99E2D3D1AFCAF2200F36FCD /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Pcap_DNSProxy;
+			productName = Pcap_DNSProxy;
+			productReference = D99E2D3F1AFCAF2200F36FCD /* Pcap_DNSProxy */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		D99E2D371AFCAF2200F36FCD /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0630;
+				ORGANIZATIONNAME = "Xeporing Chen";
+				TargetAttributes = {
+					D99E2D3E1AFCAF2200F36FCD = {
+						CreatedOnToolsVersion = 6.3.1;
+					};
+				};
+			};
+			buildConfigurationList = D99E2D3A1AFCAF2200F36FCD /* Build configuration list for PBXProject "Pcap_DNSProxy" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = D99E2D361AFCAF2200F36FCD;
+			productRefGroup = D99E2D401AFCAF2200F36FCD /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = D9F760F11AFCB498007F351A /* Products */;
+					ProjectRef = D9F760F01AFCB498007F351A /* KeyPairGenerator.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				D99E2D3E1AFCAF2200F36FCD /* Pcap_DNSProxy */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		D9F760F51AFCB498007F351A /* KeyPairGenerator */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = KeyPairGenerator;
+			remoteRef = D9F760F41AFCB498007F351A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXSourcesBuildPhase section */
+		D99E2D3B1AFCAF2200F36FCD /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D97C987D1B17415C00674884 /* Process.cpp in Sources */,
+				D97C986F1B17414A00674884 /* Main.cpp in Sources */,
+				D97C98701B17414A00674884 /* Monitor.cpp in Sources */,
+				D97C98811B17415C00674884 /* ReadParameter.cpp in Sources */,
+				D97C98721B17414A00674884 /* PacketData.cpp in Sources */,
+				D97C985D1B17413900674884 /* Capture.cpp in Sources */,
+				D97C987C1B17415C00674884 /* PrintLog.cpp in Sources */,
+				D97C986C1B17414A00674884 /* Configuration.cpp in Sources */,
+				D92DE6AA1BCFDC12009C77C7 /* Proxy.cpp in Sources */,
+				D97C987E1B17415C00674884 /* Protocol.cpp in Sources */,
+				D97C987F1B17415C00674884 /* ReadHosts.cpp in Sources */,
+				D97C985C1B17413900674884 /* Base.cpp in Sources */,
+				D97C98801B17415C00674884 /* ReadIPFilter.cpp in Sources */,
+				D97C986D1B17414A00674884 /* DNSCurve.cpp in Sources */,
+				D97C98841B17417100674884 /* Service.cpp in Sources */,
+				D97C98711B17414A00674884 /* Network.cpp in Sources */,
+				D97C986E1B17414A00674884 /* Initialization.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		D99E2D441AFCAF2200F36FCD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = c11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		D99E2D451AFCAF2200F36FCD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = c11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		D99E2D471AFCAF2200F36FCD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/LibSodium",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		D99E2D481AFCAF2200F36FCD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/LibSodium",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		D99E2D3A1AFCAF2200F36FCD /* Build configuration list for PBXProject "Pcap_DNSProxy" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D99E2D441AFCAF2200F36FCD /* Debug */,
+				D99E2D451AFCAF2200F36FCD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		D99E2D461AFCAF2200F36FCD /* Build configuration list for PBXNativeTarget "Pcap_DNSProxy" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D99E2D471AFCAF2200F36FCD /* Debug */,
+				D99E2D481AFCAF2200F36FCD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = D99E2D371AFCAF2200F36FCD /* Project object */;
+}

@@ -1,0 +1,301 @@
+﻿Pcap_DNSProxy v0.4.4.1-0.4.4.4 更新日誌(2015-11-07)：
+
+* 添加對 SOCKS 版本 4/4a/5 請求的原生支援
+* 添加對 HTTP CONNECT Tunnel 請求的原生支援
+* 添加 DNSCurve Reliable/Unreliable Socket Timeout 參數，增強對不同協定超時設定的精細化控制
+* 添加 --lib-version 參數，可輸出程式現正使用的庫的版本號資訊
+* EDNS Client Subnet 參數現在更名為 EDNS Client Subnet Relay 並修改了此參數的含義 [XIAOSpider97]
+* LibSodium 更新到 1.0.6
+* 修正 EDNS Client Subnet 功能的轉發策略 [XIAOSpider97]
+* 修正抓包模組的工作條件 [軒轅無雙]
+* 修復讀取 IPv4 路由表 CIDR 時的錯誤 [hocoo]
+* 修復 DNS ID mismatch 的錯誤 (Linux/Mac) [hongyi-zhao/cielpy]
+* 修復監視模組可能出現的休眠錯誤 [shuangzhijinghua]
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.4.3.1-0.4.4 更新日誌(2015-09-27)：
+
+* 添加 Client Ephemeral Key 一次性用戶端金鑰組功能，增強 DNSCurve 協定傳輸資料的安全性 [DNSCrypt]
+* 添加對設定檔部分參數的自動刷新功能，具體受支援的參數參見說明文檔 [jedisct1/icylogic]
+* 添加 Local Protocol 參數用於指定請求境內伺服器時所使用的協定組合 [muink]
+* 添加對十六進位 DNSCurve/DNSCrypt 協定 Magic Number 參數的支援 [BiliBbb]
+* 增強 DNSCurve Protocol 參數對協定組合的支援
+* 增強 NULL 擴展 Hosts 白名單功能的支援，現在可以指定只對部分 DNS 類型生效
+* 添加對 BIND 9.2.0 之後版本清除 DNS 緩存的命令 (Linux) [hongyi-zhao]
+* 修正 Local Main 模式生效時對 Local Hosts 清單的讀取策略 [c1024/gaoyan1234]
+* 修正 Receive Waiting 參數的含義以及對請求行為的影響
+* 修正 Local Hosts 參數啟用時解析功能變數名稱的流程，提高已緩存解析結果的解析速度 [hongyi-zhao]
+* 修正對並行請求的數量限制
+* 修復部分參數讀取使用網路層服務名/DNS記錄名稱代替數位時的錯誤
+* 修復多執行緒模式下伺服器連接失敗時無法切換的問題
+* 修復 TCP 協定請求時可能造成的分片問題
+* 修復 ICMP/ICMPv6 附加資料長度的計算問題
+* 修復 32 位系統對 IPv4/IPv6 位址轉換的錯誤 (Windows Vista+) [Nine Forty/fabe004]
+* 修復 ICMP/ICMPv6 通訊端參數在預設情況下造成 Ping 功能不正常的問題 (Linux/Mac)
+* 修復啟用 TCP 協定時 Local 請求造成程式崩潰的問題 (Linux/Mac)
+* 修復 Additional Path 參數讀取不完全的問題 (Linux/Mac)
+* 修復不啟用 TCP Fast Open 時發送請求可能會出現的問題 (Linux)
+* 修復重新讀取 IPFilter 和 Hosts 檔時的順序問題
+* 修復部分情況下不輸出 Error.log 檔的錯誤 (Linux/Mac) [hongyi-zhao]
+* 移除清除 DNS 緩存失敗時錯誤訊息的輸出，此消息對運行沒有影響 [Syrone Wong]
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.4.2.1-v0.4.3 更新日誌(2015-07-28)：
+
+* Hosts Only 參數現在更名為 Direct Request 並支援指定 IPv4 或 IPv6 功能
+* 添加不同協定的 Direct Request 功能 [AVC A]
+* 添加 Pcap Devices Blacklist 參數，可指定不對含有此名稱的網路介面卡進行抓包
+* 添加限制請求數量的功能
+* 添加 DNS 壓縮指標檢查功能，避免接受格式錯誤的資料包
+* 添加遺漏的 DNS 投毒污染黑名單位址
+* 添加對 Unicode 標準包含的所有換行以及空格類別格式的支援
+* 添加對 TCP Fast Open 的支援(Linux)
+* 添加 --disable-daemon 參數，可控制程式是否以 Daemon 守護進程的方式運行(Linux)
+* 添加完整的 ASCII/UTF-8/UTF-16(LE/BE)/UTF-32(LE/BE) 編碼支援
+* 調整抓包模組為回檔模式降低資源的佔用
+* 調整抓包模組工作模式，避免 WinPcap 與 cFosSpeed 之間的衝突 [軒轅無雙]
+* 優化優先指定網路層協定功能
+* 優化對大小寫敏感字元的讀取
+* 優化對 Hosts 和 Local Hosts 的讀取和檢測 [yuyangzxw/gaoyan1234]
+* 修復抓包模組非 Ethernet 和 Apple IEEE 1394/FireWire 設備的錯誤識別
+* 修復資料包過濾模組的演算法錯誤 [AVC A]
+* 修復檔讀取模組對於前後留空的錯誤 [wen kangcheng]
+* 修復檔讀取模組對於多重空格處理的問題 [yuyangzxw]
+* 修復 KeyPairGenerator 生成用戶端金鑰組的錯誤 [wongsyrone]
+* 修復 Accept List 參數讀取 DNS 類型名稱的錯誤 [wongsyrone]
+* 修復 Address Hosts 功能溢出錯誤 [jzp820927]
+* 修復當請求的資料中帶有 EDNS Label 時的錯誤 [wongsyrone]
+* 修復收到截斷數據包時無法重新按照標準適用 TCP 協議重新解析的錯誤 [shuangzhijinghua]
+* 修復睡眠或休眠前可能產生的錯誤報表輸出(Windows)
+  * 啟動第一次遇到 Insufficient privileges or not any available network devices 錯誤資訊時將暫時不輸出到錯誤報表檔
+  * 移除 An error occurred in XXX 錯誤資訊
+* 終端視窗也將輸出錯誤資訊
+  * 運行在非 Daemon 守護進程模式下的終端視窗時(Linux)
+  * 任何時候(Mac)
+* 移除服務管理批次處理的強制管理員許可權請求(Windows) [5sq]
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.4.2(Windows/Linux/Mac) 更新日誌(2015-06-04)：
+
+* 為 Protocol 參數添加優先指定網路層協定功能
+* 添加不終止程式運行的錯誤提示類型
+* 設定檔新增 cfg 副檔名的支援
+* 添加可用於卸載服務的 Shell 腳本(Linux/Mac)
+* 修改讀寫執行許可權的設置，以增加安全性 [BlackGear]
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.4.1.1-v0.4.1.2(Windows/Linux/Mac) 更新日誌(2015-05-26)：
+
+* 添加對 EDNS Client Subnet 的支援
+* 增強對 DNSSEC 的請求能力以及添加不完整的認證功能
+* 添加對 Local 境內 DNS 伺服器的路由表檢查，但只會進行提示而不會中斷程式的運行
+* 添加 DNSSEC Force Validation 參數，可強制攜帶 DNSSEC 記錄的功能變數名稱解析才能被接受
+* 添加 -c/--config-file 参数，可在启动时指定配置文件的目录 [BlackGear]
+* 添加 -v/--version 参数，可输出程序的版本号 [BlackGear]
+* 添加對 homebrew 的支援(Mac) [BlackGear]
+* EDNS0 Label 參數改名為 EDNS Label
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.4.1(Windows/Linux/Mac) 更新日誌(2015-05-21)：
+
+* 添加 Pcap Reading Timeout 參數自訂抓包模組讀取超時/間隔時間
+* 添加 Receive Waiting 參數自訂資料包接收等待時間，丟棄過早達到可能為偽造的資料包
+* 添加剝離 LibPcap 庫的選項(Linux)
+* 视窗模式运行提示将不会写入错误报告中(Windows)
+* 移除覆蓋系統 Hostname 的行為(Mac) [messiahluo]
+* 移除之前尚未完成的列印詳細運行日誌的功能
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.4.0.1-0.4.0.4(Windows/Linux/Mac) 更新日誌(2015-05-18)：
+
+* 調整抓包模組的超時時間保證回復及時被抓取 [France is Bacon]
+* 調整資料包過濾的參數避免誤傷部分權威 DNS 伺服器 [France is Bacon]
+* 調整 DNS 緩存的機制只緩存有結果的資料包 [shuangzhijinghua]
+* 修復 Hosts 條目過長導致資料包溢出的問題 [yfdyh000]
+* 修復 Local Hosts 無法讀取的問題 [France is Bacon]
+* 修復 Hosts 添加 EDNS 標籤的問題
+* 修復隨機功能變數名稱生成模組產生非標準功能變數名稱查詢的錯誤
+* 調整在關閉抓包模組時請求功能變數名稱解析的策略
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.4(Windows/Linux/Mac) 更新日誌(2015-05-12)：
+
+* 添加對 Apple IEEE 1394/FireWire 的支援
+* 添加對 Streamlined/精簡 格式 DNSCurve/DNSCrypt 協定的支援
+  * 提供隨機 Curve25519/Salsa20/Poly1305(DNSCurve) 金鑰組生成程式 KeyPairGenerator
+* 添加緩存 DNS 回復包的功能
+* 添加切換待命伺服器，提供主要伺服器和待命伺服器自動切換的功能
+  * 可自訂切換的條件（請求失敗次數、失敗次數計數週期、重置切換的時間長度）
+* 添加 Local Main 主要境內伺服器請求功能
+  * 即平時使用 Local 伺服器進行解析，遇到遭投毒污染的解析結果時自動再向境外伺服器請求
+  * 解析的結果是否會被投毒污染與使用的偽包篩檢程式有關，詳細情況參見說明文檔
+* 添加接收到一個解析請求向同一個遠端伺服器發送多次解析請求的功能，可提高遠端伺服器丟包時功能變數名稱解析的可靠性
+* 添加自訂請求伺服器埠的功能
+* 添加自訂本地監聽位址和埠的功能
+* 添加本地多監聽位址/多監聽埠的功能
+* 添加以 DNS 請求的類型為條件的遮罩功能
+* 添加 IPv6 6to4/ISATAP/Teredo 隧道的支援
+* 為本機伺服器監聽 IPv4/IPv6 增加控制選項（請求時相同協定優先，不同協定 IPv6 優先）
+* 添加 Domain Case Conversion/隨機轉換功能變數名稱請求大小寫 的功能，預設為開啟
+* 添加 Compression Pointer Mutation/隨機添加壓縮指標 的功能，預設為關閉
+* 為抓包模組添加總開關 Pcap Capture
+* 為抓包模組添加 IPv4 擴展頭部的支援
+* 為 TCP Data Filter/TCP資料包篩檢程式 添加檢查 Checksum/校驗和 的功能
+* 為 IPv4/IPv6 黑名單位址過濾功能添加新的投毒污染位址
+* 黑名單位址過濾功能應用到所有解析過程以避免權威伺服器被污染的情況下所有結果被投毒污染的結果
+* 黑名單位址過濾功能現在將過濾所有解析結果的位址
+* 為 Operation Mode 增加 Private 和 Custom 模式 [陳斐]
+  * Private 模式只允許私有網路請求解析
+  * Custom 模式禁止或只允許清單中的位址請求解析，使用單獨的位址過濾庫（支援 IPFilter.dat 和 Guarding.P2P 格式）進行控制
+* 為 IPFilter 位址過濾庫添加黑名單解析結果過濾功能
+* 添加對超過 UDP 協定最大不分片長度的截斷資料包使用 TCP 協定重試的功能
+* 添加對 EDNS 標籤和 DNSSEC(AD/CD/DO) 請求功能的支援（開啟 DNSSEC 請求後必須強制添加 EDNS 標籤）
+* 添加 Hosts Only 直連模式只使用本工具具有正則運算式的 Hosts 功能
+* 添加 Local Routing 本地路由表功能
+* 添加自訂 Hosts 存留時間的功能
+* 程式設定檔和 Hosts 檔版本升級到 v0.4
+  * 支援的一行最大長度增到 4KB/4096 bytes
+  * 添加新的單行和多行注釋格式支援
+  * 為 Hosts 檔添加 CSV/逗號分隔值 格式的支援
+  * 為 Hosts 檔添加 "BANNED 正則運算式"（不含引號）語法直接返回功能變數名稱查找失敗資訊，用於快速遮罩功能變數名稱
+  * 為 Hosts 檔添加 "BANNED:xxx 正則運算式"（不含引號）語法遮罩特定類型記錄的功能變數名稱查詢
+  * 為 IPFilter 資料庫添加 "IP位址 ALL"（不含引號）語法直接遮罩所有含此IP位址/位址範圍的解析結果
+  * URI 標準化 IPv6 位址格式，IPv4/IPv6 位址格式更改為帶埠格式
+  * 支援部分非標準的縮略 IPv4/IPv6 位址格式
+  * 支援檢查檔案大小的功能
+  * 支援自訂檔最大佔用空間的設定
+  * 支援自訂 Hosts 和 IPFilter 資料庫檔案名稱的功能
+  * 為資料庫添加排序的功能，避免因為錯誤的順序造成問題
+  * 在開啟散列演算法特徵檢測檔改變以及開啟 DNS 緩存的情況下，自動更新 Hosts 清單和 IPFilter 資料庫時將自動清空程式的 DNS 緩存
+  * 在開啟散列演算法特徵檢測檔改變的情況下，自動更新 Hosts 清單時將自動清空系統 DNS 緩存
+  * 重寫文字檔編碼讀取模組，支援混合換行格式編碼（但不建議使用）
+  * 可相容 v0.3 以前的檔版本，但強烈建議升級為當前版本 v0.4
+* 添加視窗模式以支援在安全模式下的運行(Windows)
+* 錯誤報表在視窗模式下現在會即時顯示(Windows)
+* 添加剥离 Libsodium 库的选项(Linux)
+* 請求本機伺服器的完整網功能變數名稱稱現在會返回本機伺服器的所有 IPv4/IPv6 位址
+* 調整請求本地 DNS 伺服器由抓包模式到直連模式，加快回應速度降低資源佔用
+* 調整 IPv4 Data Filter/IPv4資料包篩檢程式，預設為關閉
+* 調整 ICMP 和隨機功能變數名稱請求模組的編號和序號建置規則
+* 調整 ICMP 附加資料限制長度最長到 1484 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header)
+* 調整隨機功能變數名稱生成模組，使用 C++ STL 提供的梅森旋轉演算法引擎產生離散型均勻分佈的隨機功能變數名稱
+* 調整內置預設本機伺服器完整網功能變數名稱稱為 "pcap-dnsproxy.localhost.server"（不含引號）以遵循網域名稱系統的標準
+* 調整記憶體分配策略（標準乙太網 MTU 長度、資料包緩衝區長度和 STL 標準庫調用）減少資源佔用
+* 調整錯誤報表為帶 BOM 的 UTF-8 編碼，避免可能產生的亂碼問題 [Hugo Chan]
+* 調整正則運算式為完全符合模式，提供更準確的匹配效果 [Hugo Chan]
+* 合併 x86 和 x64 版本可執行檔(Windows) [Hugo Chan]
+* 改進初次開機時進行的防火牆測試模組(Windows)
+* 改進無法找到或禁用重啟網路介面卡後自動重試的功能
+* 改進抓包模組的回復機制，降低資源佔用
+* 使用 CMake 套裝編譯(Linux)
+* 為 Debian 系 Linux 發行版本提供服務控制腳本自動安裝腳本
+* 移除建置錯誤報告
+  * 找不到 Hosts 檔時
+  * Windows XP 系統下不支援 IPv6 時
+* 修復超過額定長度（本次更新前為2KB）的檔讀取能會造成的錯誤
+* 修復 UDP 協定下過早關閉埠造成系統發送 ICMP(v6) Port Unreachable 埠不可到達資訊的錯誤
+* 修復 TCP 協定下因為遠端伺服器無回應而造成的過長時間不回應請求的錯誤
+* 修復存在橋接器配接器時可能造成的崩潰 [JonyOang]
+* 修復多執行緒模型下競爭讀寫全域物件可能造成的錯誤
+* 修復本地監聽埠可能被盜用的安全問題(Windows)
+* 修復因為系統預設 IPv6/IPv4 通訊端配置造成的衝突問題(Linux)
+* 修復自身伺服器名稱讀取和 IPv6 環境下回複自身伺服器名稱的錯誤
+* 修復反向解析功能變數名稱時回復自身伺服器名稱到所有私有網路位址對應功能變數名稱的錯誤
+* 修復在 IPv6 環境下抓包回復時的匹配錯誤
+* 修復網路介面卡被禁用重啟後 WinPcap/Libpcap 無法抓取資料包的錯誤
+* 修復特殊 IPv4/IPv6 位址檢測模組的錯誤
+* 修復隨機功能變數名稱生成模組可能生產空功能變數名稱(ROOT)的錯誤
+* 修復超長 Hosts 條目可能導致的溢出錯誤以及最短長度限制的問題
+* 修復部分情況下無法讀取檔最後一行的錯誤 [Hugo Chan]
+* 服務現在將設定為在第一次和第二次遇到錯誤時自動重新開機(Windows) [yfdyh000]
+* 程式啟動時將不再刪除錯誤和運行日誌檔 [yfdyh000]
+* 合併批次處理(Windows) [yfdyh000]
+* 修復批次處理在開啟 UAC 的情況下無法使用的錯誤(Windows) [Haruyuki Arita/Hugo Chan/Ryans233/streamgo/watchingyoufall]
+* 在非管理員許可權下運行批次處理無法修改系統服務資訊的錯誤現在將有提醒(Windows) [Haruyuki Arita/Hugo Chan/Ryans233/watchingyoufall]
+* 原始程式碼現在開始將使用 UTF-8 編碼
+* 專案升級到 Visual Studio 2013(Windows)
+* 修復在 IPv6 環境下抓取來自境內功能變數名稱解析伺服器回復包的錯誤，但此功能在新版已被移除，特此公告 [David Webb/eqielb]
+* 修復 Makefile 的錯誤，但此功能在新版已被移除，特此公告(Linux) [otakuchiyan]
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.3.2(Windows)/v0.2(Linux)/v0.1(Mac) 更新日誌：
+* Pcap_DNSProxy v0.1 Mac Release 正式發佈！
+* 提供可用於 x86 和 x64 環境的可執行檔(Linux)
+* 啟用對 Ethernet 設備的識別(Linux)
+* 修復在錯誤使用低許可權運行程式可能造成的 Bug
+* 修復在部分情況下錯誤建置錯誤報告的 Bug(Linux)
+* 修正說明文檔的錯誤操作(Linux)
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.3.1(Windows)/v0.1(Linux) 更新日誌：
+* Pcap_DNSProxy v0.1 Linux Release 正式發佈！
+* 剝離並更新 IPv4/IPv6 保留地址清單過濾模組(Windows)
+   * 升級解析結果黑名單位址過濾功能
+   * 修復本地 IPv6 位址獲取功能的 Bug
+   * 修復自動刷新本地位址的 Bug
+* 修復本地可郵寄地址識別錯誤的 Bug(Windows)
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.3 更新日誌：
+* 32位/x86版本使用 WSAAddressToString() 和 WSAStringToAddress() 替代 inet_ntop() 和 inet_pton() 以支援 Windows XP 以及更舊的系統 [Roy Tam]
+* 添加對固定清單功能變數名稱請求境內功能變數名稱解析伺服器的功能 [陈斐]
+* 為 Windows 防火牆測試添加 IPv6 版本支援
+* INI 版本和 Hosts 版本更新至 0.3
+  * 為設定檔添加版本檢測功能
+  * 為 Hosts 添加白名單功能
+* 更新設定檔讀取模組
+  * 修復部分編碼/換行格式下錯誤輸出行數至錯誤報表的 Bug
+  * 修復 Hosts 檔一定情況下錯誤識別注釋的 Bug
+  * 增強對不同換行格式的識別
+* 修復 ICMP(v6)/Ping 測試模組的 Bug
+* 修復白名單功能變數名稱請求測試在TCP模式下被禁用的 Bug
+* 修復 WinPcap 抓取資料包執行緒退出後可能導致的記憶體洩漏問題
+* 注釋 Console 和部分 Ethernet 的調試代碼
+* 原始程式碼全部轉為 USC-2(Little-Endian) 編碼和 Dos\Windows 檔案格式
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.2 更新日誌：
+* 重寫編碼讀取模組，新增支援 ·Macintosh· 換行格式
+* 修復無法在 PPPoE 環境下使用的 Bug
+* 使用C語言標準庫傳回值
+* 巨集定義錯誤報表類型
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.1 更新日誌：
+* v0.1 Release 正式發佈！
