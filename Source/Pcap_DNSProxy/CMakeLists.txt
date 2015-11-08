@@ -81,6 +81,11 @@ IF(ENABLE_LIBSODIUM)
 ENDIF(ENABLE_LIBSODIUM)
 
 # Executable file name
+# Link to static libraries if needed
+IF(STATIC_LIB)
+    SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+    SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -pthread -Wl,--whole-archive -lpthread -Wl,--no-whole-archive")
+ENDIF(STATIC_LIB)
 add_executable(Pcap_DNSProxy ${MAIN_SRC_FILES})
 IF(PLATFORM_OPENWRT)
 	INSTALL(TARGETS Pcap_DNSProxy RUNTIME DESTINATION sbin)
