@@ -47,6 +47,9 @@ fi
 if !(echo "$*" | grep -iq -e "--disable-libpcap"); then
 	CMakeShell="${CMakeShell}-DENABLE_PCAP=ON "
 fi
+if (echo "$*" | grep -iq -e "--enable-static"); then
+	CMakeShell="${CMakeShell}-DSTATIC_LIB=ON "
+fi
 CMakeShell="${CMakeShell}../Pcap_DNSProxy"
 ${CMakeShell}
 make
