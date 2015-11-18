@@ -168,6 +168,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\LibSodium\core.h" />
+    <ClInclude Include="..\LibSodium\crypto_aead_aes256gcm.h" />
     <ClInclude Include="..\LibSodium\crypto_aead_chacha20poly1305.h" />
     <ClInclude Include="..\LibSodium\crypto_auth.h" />
     <ClInclude Include="..\LibSodium\crypto_auth_hmacsha256.h" />
@@ -214,6 +215,7 @@
     <ClInclude Include="..\LibSodium\crypto_verify_64.h" />
     <ClInclude Include="..\LibSodium\export.h" />
     <ClInclude Include="..\LibSodium\randombytes.h" />
+    <ClInclude Include="..\LibSodium\randombytes_nativeclient.h" />
     <ClInclude Include="..\LibSodium\randombytes_salsa20_random.h" />
     <ClInclude Include="..\LibSodium\randombytes_sysrandom.h" />
     <ClInclude Include="..\LibSodium\runtime.h" />

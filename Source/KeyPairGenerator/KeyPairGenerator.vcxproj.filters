@@ -183,6 +183,12 @@
     <ClInclude Include="..\LibSodium\version.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_aead_aes256gcm.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
+    <ClInclude Include="..\LibSodium\randombytes_nativeclient.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="KeyPairGenerator.cpp">

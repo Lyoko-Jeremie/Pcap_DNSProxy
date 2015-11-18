@@ -200,7 +200,7 @@ size_t __fastcall SocketConnecting(
 			SSIZE_T RecvLen = sendto(Socket, OriginalSend, (int)SendSize, MSG_FASTOPEN, SockAddr, AddrLen);
 			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			{
-				ErrorCode = WSAGetLastError();
+				ErrorCode = errno;
 				if (ErrorCode != EAGAIN && ErrorCode != EINPROGRESS)
 					return EXIT_FAILURE;
 				else 
@@ -435,13 +435,28 @@ SSIZE_T __fastcall SocketSelecting(
 			//Send process
 				if (FD_ISSET(SocketDataList.at(Index).Socket, WriteFDS.get()) && !SocketSelectingList.at(Index).PacketIsSend)
 				{
-					if (send(SocketDataList.at(Index).Socket, OriginalSend, (int)SendSize, 0) < 0)
+					if (send(SocketDataList.at(Index).Socket, OriginalSend, (int)SendSize, 0) == SOCKET_ERROR)
 					{
-						shutdown(SocketDataList.at(Index).Socket, SD_BOTH);
-						closesocket(SocketDataList.at(Index).Socket);
-						SocketDataList.at(Index).Socket = 0;
-						SocketSelectingList.at(Index).RecvBuffer.reset();
-						SocketSelectingList.at(Index).Length = 0;
+						*ErrorCode = WSAGetLastError();
+
+					#if defined(PLATFORM_WIN)
+						if (*ErrorCode != WSAEWOULDBLOCK)
+					#elif defined(PLATFORM_LINUX)
+						if (*ErrorCode != EAGAIN && *ErrorCode != EINPROGRESS)
+					#elif defined(PLATFORM_MACX)
+						if (*ErrorCode != EWOULDBLOCK && *ErrorCode != EAGAIN && *ErrorCode != EINPROGRESS)
+					#endif
+						{
+							shutdown(SocketDataList.at(Index).Socket, SD_BOTH);
+							closesocket(SocketDataList.at(Index).Socket);
+						}
+						else {
+							SocketDataList.at(Index).Socket = 0;
+							SocketSelectingList.at(Index).RecvBuffer.reset();
+							SocketSelectingList.at(Index).Length = 0;
+						}
+
+						*ErrorCode = 0;
 					}
 					else {
 						SocketSelectingList.at(Index).PacketIsSend = true;
@@ -537,7 +552,7 @@ SSIZE_T __fastcall SelectingResult(
 
 		//Receive from buffer list.
 			if (!NoCheck)
-				RecvLen = CheckResponseData(SocketSelectingList.at(Index).RecvBuffer.get(), RecvLen, IsLocal, nullptr);
+				RecvLen = CheckResponseData(SocketSelectingList.at(Index).RecvBuffer.get(), RecvLen, RecvSize, IsLocal, nullptr);
 			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			{
 				shutdown(SocketDataList.at(Index).Socket, SD_BOTH);
@@ -633,7 +648,7 @@ void __fastcall MarkPortToList(
 		#elif defined(PLATFORM_WIN)
 			OutputPacketListTemp->ClearPortTime = GetTickCount64() + Parameter.SocketTimeout_Reliable;
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			OutputPacketListTemp->ClearPortTime = GetTickCount64() + Parameter.SocketTimeout_Reliable.tv_sec * SECOND_TO_MILLISECOND + Parameter.SocketTimeout_Reliable.tv_usec / MICROSECOND_TO_MILLISECOND;
+			OutputPacketListTemp->ClearPortTime = GetCurrentSystemTime() + Parameter.SocketTimeout_Reliable.tv_sec * SECOND_TO_MILLISECOND + Parameter.SocketTimeout_Reliable.tv_usec / MICROSECOND_TO_MILLISECOND;
 		#endif
 		}
 		else { //UDP
@@ -645,11 +660,91 @@ void __fastcall MarkPortToList(
 		#elif defined(PLATFORM_WIN)
 			OutputPacketListTemp->ClearPortTime = GetTickCount64() + Parameter.SocketTimeout_Unreliable;
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			OutputPacketListTemp->ClearPortTime = GetTickCount64() + Parameter.SocketTimeout_Unreliable.tv_sec * SECOND_TO_MILLISECOND + Parameter.SocketTimeout_Unreliable.tv_usec / MICROSECOND_TO_MILLISECOND;
+			OutputPacketListTemp->ClearPortTime = GetCurrentSystemTime() + Parameter.SocketTimeout_Unreliable.tv_sec * SECOND_TO_MILLISECOND + Parameter.SocketTimeout_Unreliable.tv_usec / MICROSECOND_TO_MILLISECOND;
 		#endif
 		}
 
+	//Clear timeout data.
 		std::unique_lock<std::mutex> OutputPacketListMutex(OutputPacketListLock);
+	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
+	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
+		{
+			while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)()))
+			{
+			//Mark timeout.
+				if (OutputPacketList.front().ClearPortTime > 0)
+				{
+					if (OutputPacketList.front().Protocol_Network == AF_INET6) //IPv6
+					{
+						if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
+							++AlternateSwapList.TimeoutTimes[0];
+						else //UDP
+							++AlternateSwapList.TimeoutTimes[2U];
+					}
+					else if (OutputPacketList.front().Protocol_Network == AF_INET) //IPv4
+					{
+						if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
+							++AlternateSwapList.TimeoutTimes[1U];
+						else //UDP
+							++AlternateSwapList.TimeoutTimes[3U];
+					}
+				}
+
+				OutputPacketList.pop_front();
+			}
+		}
+		else {
+			while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= GetTickCount())
+			{
+			//Mark timeout.
+				if (OutputPacketList.front().ClearPortTime > 0)
+				{
+					if (OutputPacketList.front().Protocol_Network == AF_INET6) //IPv6
+					{
+						if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
+							++AlternateSwapList.TimeoutTimes[0];
+						else //UDP
+							++AlternateSwapList.TimeoutTimes[2U];
+					}
+					else if (OutputPacketList.front().Protocol_Network == AF_INET) //IPv4
+					{
+						if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
+							++AlternateSwapList.TimeoutTimes[1U];
+						else //UDP
+							++AlternateSwapList.TimeoutTimes[3U];
+					}
+				}
+
+				OutputPacketList.pop_front();
+			}
+		}
+	#else
+		while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= GetTickCount64())
+		{
+		//Mark timeout.
+			if (OutputPacketList.front().ClearPortTime > 0)
+			{
+				if (OutputPacketList.front().Protocol_Network == AF_INET6) //IPv6
+				{
+					if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
+						++AlternateSwapList.TimeoutTimes[0];
+					else //UDP
+						++AlternateSwapList.TimeoutTimes[2U];
+				}
+				else if (OutputPacketList.front().Protocol_Network == AF_INET) //IPv4
+				{
+					if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
+						++AlternateSwapList.TimeoutTimes[1U];
+					else //UDP
+						++AlternateSwapList.TimeoutTimes[3U];
+				}
+			}
+
+			OutputPacketList.pop_front();
+		}
+	#endif
+
 		OutputPacketList.push_back(*OutputPacketListTemp);
 	}
 

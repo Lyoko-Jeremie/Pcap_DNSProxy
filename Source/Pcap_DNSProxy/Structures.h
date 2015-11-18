@@ -1308,8 +1308,9 @@ typedef struct _ipv6_psd_hdr_
 #define DNS_SER_RA                    0x8580     //Set Response bit and Authoritative bit.
 #define DNS_SET_R_FE                  0x8001     //Set Response bit and Format Error RCode.
 #define DNS_SET_R_SNH                 0x8003     //Set Response bit and No Such Name RCode.
-#define DNS_POINTER_BITS              0xC0       //DNS compression pointer(1100000000000000)
-#define DNS_POINTER_BITS_STRING       ('\xC0')   //DNS compression pointer string
+#define DNS_POINTER_8_BITS            0xC0       //DNS compression pointer(11000000)
+#define DNS_POINTER_16_BITS           0xC000     //DNS compression pointer(1100000000000000)
+#define DNS_POINTER_8_BITS_STRING     ('\xC0')   //DNS compression pointer string
 #define DNS_POINTER_BITS_GET_LOCATE   0x3FFF     //Get location of DNS compression pointer(00111111111111111)
 #define DNS_POINTER_QUERY             0xC00C     //Pointer of first query
 

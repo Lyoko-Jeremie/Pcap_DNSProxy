@@ -181,14 +181,18 @@ void __fastcall ConfigurationTableSetting(
 	ConfigurationParameter->AlternateTimeRange = DEFAULT_ALTERNATE_RANGE * SECOND_TO_MILLISECOND;
 	ConfigurationParameter->AlternateResetTime = DEFAULT_ALTERNATE_RESET_TIME * SECOND_TO_MILLISECOND;
 #if defined(ENABLE_PCAP)
-	#if defined(PLATFORM_MACX)
+	#if defined(PLATFORM_LINUX)
+		ConfigurationParameter->DomainTest_ID = htons((uint16_t)pthread_self());
+	#elif defined(PLATFORM_MACX)
 		ConfigurationParameter->ICMP_ID = htons(*(uint16_t *)pthread_self());
 	#else
 		ConfigurationParameter->ICMP_ID = htons((uint16_t)GetCurrentProcessId()); //Default ICMP ID is current process ID.
 	#endif
 		ConfigurationParameter->ICMP_Sequence = htons(DEFAULT_SEQUENCE);
 		ConfigurationParameter->DomainTest_Speed = DEFAULT_DOMAINTEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
-	#if defined(PLATFORM_MACX)
+	#if defined(PLATFORM_LINUX)
+		ConfigurationParameter->DomainTest_ID = htons((uint16_t)pthread_self());
+	#elif defined(PLATFORM_MACX)
 		ConfigurationParameter->DomainTest_ID = htons(*(uint16_t *)pthread_self());
 	#else
 		ConfigurationParameter->DomainTest_ID = htons((uint16_t)GetCurrentProcessId()); //Default DNS ID is current process ID.
@@ -663,9 +667,9 @@ AddressRangeTable::AddressRangeTable(
 HostsTable::HostsTable(
 	void)
 {
-	Type_Hosts = 0;
-	Length = 0;
-	Type_Operation = false;
+//	Length = 0;
+	PermissionType = 0;
+	PermissionOperation = false;
 
 	return;
 }
@@ -678,6 +682,15 @@ AlternateSwapTable::AlternateSwapTable(
 	return;
 }
 
+//AddressRoutingTable class constructor
+AddressRoutingTable::AddressRoutingTable(
+	void)
+{
+	Prefix = 0;
+	return;
+}
+
+/* Old version(2015-11-15)
 //AddressRoutingTable_IPv6 class constructor
 AddressRoutingTable_IPv6::AddressRoutingTable_IPv6(
 	void)
@@ -693,6 +706,7 @@ AddressRoutingTable_IPv4::AddressRoutingTable_IPv4(
 	Prefix = 0;
 	return;
 }
+*/
 
 //InputPacketTable class constructor
 #if defined(ENABLE_PCAP)
@@ -710,16 +724,16 @@ OutputPacketTable::OutputPacketTable(
 }
 #endif
 
-//DiffernetIPFilterFileSet class constructor
-DiffernetIPFilterFileSet::DiffernetIPFilterFileSet(
+//DiffernetFileSetIPFilter class constructor
+DiffernetFileSetIPFilter::DiffernetFileSetIPFilter(
 	void)
 {
 	FileIndex = 0;
 	return;
 }
 
-//DiffernetHostsFileSet class constructor
-DiffernetHostsFileSet::DiffernetHostsFileSet(
+//DiffernetFileSetHosts class constructor
+DiffernetFileSetHosts::DiffernetFileSetHosts(
 	void)
 {
 	FileIndex = 0;

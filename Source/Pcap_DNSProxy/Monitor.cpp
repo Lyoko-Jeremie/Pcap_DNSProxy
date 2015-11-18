@@ -546,7 +546,6 @@ bool __fastcall UDPMonitor(
 				Index = (Index + 1U) % Parameter.BufferQueueSize;
 			}
 		}
-/* Old verson(2015-11-07)
 	//Timeout
 		else if (SelectResult == 0)
 		{
@@ -559,7 +558,6 @@ bool __fastcall UDPMonitor(
 
 			continue;
 		}
-*/
 	}
 
 //Monitor terminated
@@ -698,7 +696,6 @@ bool __fastcall TCPMonitor(
 				Index = (Index + 1U) % Parameter.BufferQueueSize;
 			}
 		}
-/* Old verson(2015-11-07)
 	//Timeout
 		else if (SelectResult == 0)
 		{
@@ -711,7 +708,6 @@ bool __fastcall TCPMonitor(
 
 			continue;
 		}
-*/
 	}
 
 //Monitor terminated

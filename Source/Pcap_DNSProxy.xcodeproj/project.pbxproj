@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 47;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -25,7 +25,7 @@
 		D97C98801B17415C00674884 /* ReadIPFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C987A1B17415C00674884 /* ReadIPFilter.cpp */; };
 		D97C98811B17415C00674884 /* ReadParameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C987B1B17415C00674884 /* ReadParameter.cpp */; };
 		D97C98841B17417100674884 /* Service.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D97C98821B17417100674884 /* Service.cpp */; };
-		D99B47461AFCE4BB004BDEAE /* libpcap.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = D99B47451AFCE4BB004BDEAE /* libpcap.dylib */; };
+		D9A18E041BFB843400A398E2 /* libpcap.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D9A18E031BFB843400A398E2 /* libpcap.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -98,7 +98,6 @@
 		D98EE50A1B11DF9C00C7C217 /* ReadMe_Mac(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe_Mac(zh_Hant).txt"; path = "Documents/ReadMe_Mac(zh_Hant).txt"; sourceTree = "<group>"; };
 		D98EE50B1B11DF9C00C7C217 /* ReadMe(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe(zh_Hans).txt"; path = "Documents/ReadMe(zh_Hans).txt"; sourceTree = "<group>"; };
 		D98EE50C1B11DF9C00C7C217 /* ReadMe(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe(zh_Hant).txt"; path = "Documents/ReadMe(zh_Hant).txt"; sourceTree = "<group>"; };
-		D99B47451AFCE4BB004BDEAE /* libpcap.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libpcap.dylib; path = usr/lib/libpcap.dylib; sourceTree = SDKROOT; };
 		D99E2D3F1AFCAF2200F36FCD /* Pcap_DNSProxy */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Pcap_DNSProxy; sourceTree = BUILT_PRODUCTS_DIR; };
 		D99E2D991AFCB1AD00F36FCD /* core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = core.h; path = LibSodium/core.h; sourceTree = SOURCE_ROOT; };
 		D99E2D9A1AFCB1AD00F36FCD /* crypto_aead_chacha20poly1305.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_aead_chacha20poly1305.h; path = LibSodium/crypto_aead_chacha20poly1305.h; sourceTree = SOURCE_ROOT; };
@@ -157,6 +156,9 @@
 		D99E2DDD1AFCB21100F36FCD /* Hosts.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Hosts.ini; path = ExampleConfig/Hosts.ini; sourceTree = SOURCE_ROOT; };
 		D99E2DDE1AFCB21100F36FCD /* IPFilter.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = IPFilter.ini; path = ExampleConfig/IPFilter.ini; sourceTree = SOURCE_ROOT; };
 		D99E2DDF1AFCB22200F36FCD /* Routing.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Routing.txt; path = ExampleConfig/Routing.txt; sourceTree = SOURCE_ROOT; };
+		D9A18E011BFB7CF000A398E2 /* crypto_aead_aes256gcm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_aead_aes256gcm.h; path = LibSodium/crypto_aead_aes256gcm.h; sourceTree = SOURCE_ROOT; };
+		D9A18E021BFB7CFC00A398E2 /* randombytes_nativeclient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = randombytes_nativeclient.h; path = LibSodium/randombytes_nativeclient.h; sourceTree = SOURCE_ROOT; };
+		D9A18E031BFB843400A398E2 /* libpcap.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libpcap.tbd; path = usr/lib/libpcap.tbd; sourceTree = SDKROOT; };
 		D9F760F01AFCB498007F351A /* KeyPairGenerator.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = KeyPairGenerator.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -165,7 +167,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D99B47461AFCE4BB004BDEAE /* libpcap.dylib in Frameworks */,
+				D9A18E041BFB843400A398E2 /* libpcap.tbd in Frameworks */,
 				D9672DD31AFCB67300330EB8 /* LibSodium_Mac.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -211,7 +213,6 @@
 				D97C987A1B17415C00674884 /* ReadIPFilter.cpp */,
 				D97C987B1B17415C00674884 /* ReadParameter.cpp */,
 				D97C98821B17417100674884 /* Service.cpp */,
-				D99B47451AFCE4BB004BDEAE /* libpcap.dylib */,
 				D97C98591B17413900674884 /* Base.h */,
 				D97C985B1B17413900674884 /* Capture.h */,
 				D97C985F1B17414A00674884 /* Configuration.h */,
@@ -228,6 +229,7 @@
 				D92DE6A91BCFDC12009C77C7 /* Proxy.h */,
 				D97C98831B17417100674884 /* Service.h */,
 				D95E420C1BA336A1006BD459 /* Structures.h */,
+				D9A18E031BFB843400A398E2 /* libpcap.tbd */,
 				D99E2DDB1AFCB1FC00F36FCD /* ExampleConfig */,
 				D99E2D981AFCB19400F36FCD /* LibSodium */,
 			);
@@ -238,14 +240,8 @@
 			isa = PBXGroup;
 			children = (
 				D9672DD21AFCB67300330EB8 /* LibSodium_Mac.a */,
-				D99E2DC71AFCB1BF00F36FCD /* randombytes_salsa20_random.h */,
-				D99E2DC81AFCB1BF00F36FCD /* randombytes_sysrandom.h */,
-				D99E2DC91AFCB1BF00F36FCD /* randombytes.h */,
-				D99E2DCA1AFCB1BF00F36FCD /* runtime.h */,
-				D99E2DCB1AFCB1BF00F36FCD /* sodium.h */,
-				D99E2DCC1AFCB1BF00F36FCD /* utils.h */,
-				D99E2DCD1AFCB1BF00F36FCD /* version.h */,
 				D99E2D991AFCB1AD00F36FCD /* core.h */,
+				D9A18E011BFB7CF000A398E2 /* crypto_aead_aes256gcm.h */,
 				D99E2D9A1AFCB1AD00F36FCD /* crypto_aead_chacha20poly1305.h */,
 				D99E2D9B1AFCB1AD00F36FCD /* crypto_auth_hmacsha256.h */,
 				D99E2D9C1AFCB1AD00F36FCD /* crypto_auth_hmacsha512.h */,
@@ -291,6 +287,14 @@
 				D99E2DC41AFCB1AD00F36FCD /* crypto_verify_32.h */,
 				D99E2DC51AFCB1AD00F36FCD /* crypto_verify_64.h */,
 				D99E2DC61AFCB1AD00F36FCD /* export.h */,
+				D9A18E021BFB7CFC00A398E2 /* randombytes_nativeclient.h */,
+				D99E2DC71AFCB1BF00F36FCD /* randombytes_salsa20_random.h */,
+				D99E2DC81AFCB1BF00F36FCD /* randombytes_sysrandom.h */,
+				D99E2DC91AFCB1BF00F36FCD /* randombytes.h */,
+				D99E2DCA1AFCB1BF00F36FCD /* runtime.h */,
+				D99E2DCB1AFCB1BF00F36FCD /* sodium.h */,
+				D99E2DCC1AFCB1BF00F36FCD /* utils.h */,
+				D99E2DCD1AFCB1BF00F36FCD /* version.h */,
 			);
 			name = LibSodium;
 			sourceTree = "<group>";
@@ -360,8 +364,8 @@
 		D99E2D371AFCAF2200F36FCD /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0630;
-				ORGANIZATIONNAME = "Xeporing Chen";
+				LastUpgradeCheck = 0710;
+				ORGANIZATIONNAME = Chengr28;
 				TargetAttributes = {
 					D99E2D3E1AFCAF2200F36FCD = {
 						CreatedOnToolsVersion = 6.3.1;
@@ -369,7 +373,7 @@
 				};
 			};
 			buildConfigurationList = D99E2D3A1AFCAF2200F36FCD /* Build configuration list for PBXProject "Pcap_DNSProxy" */;
-			compatibilityVersion = "Xcode 3.2";
+			compatibilityVersion = "Xcode 6.3";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -449,6 +453,7 @@
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -464,7 +469,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
@@ -500,7 +505,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
 			};

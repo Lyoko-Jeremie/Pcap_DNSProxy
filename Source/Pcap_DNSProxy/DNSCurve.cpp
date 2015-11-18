@@ -90,14 +90,14 @@ SSIZE_T __fastcall DNSCurvePaddingData(
 	//Check padding data sign(0x80).
 		for (Index = Length - 1U;Index > (SSIZE_T)DNS_PACKET_MINSIZE;--Index)
 		{
-			if ((unsigned char)Buffer[Index] == 0x80)
+			if ((uint8_t)Buffer[Index] == 0x80)
 				return Index;
 		}
 
 	//Check no null sign.
 		for (Index = Length - 1U;Index > (SSIZE_T)DNS_PACKET_MINSIZE;--Index)
 		{
-			if ((unsigned char)Buffer[Index] > 0)
+			if ((uint8_t)Buffer[Index] > 0)
 				return Index;
 		}
 	}
@@ -757,7 +757,7 @@ SSIZE_T DNSCurvePacketDecryption(
 	}
 
 //Responses check
-	DataLength = CheckResponseData(OriginalRecv, DataLength, false, nullptr);
+	DataLength = CheckResponseData(OriginalRecv, DataLength, RecvSize, false, nullptr);
 	if (DataLength < (SSIZE_T)DNS_PACKET_MINSIZE)
 		return EXIT_FAILURE;
 
@@ -931,13 +931,28 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 			//Send process
 				if (FD_ISSET(SocketDataList.at(Index).Socket, WriteFDS.get()) && !SocketSelectingList.at(Index).PacketIsSend)
 				{
-					if (send(SocketDataList.at(Index).Socket, SocketSelectingList.at(Index).SendBuffer, (int)SocketSelectingList.at(Index).SendSize, 0) < 0)
+					if (send(SocketDataList.at(Index).Socket, SocketSelectingList.at(Index).SendBuffer, (int)SocketSelectingList.at(Index).SendSize, 0) == SOCKET_ERROR)
 					{
-						shutdown(SocketDataList.at(Index).Socket, SD_BOTH);
-						closesocket(SocketDataList.at(Index).Socket);
-						SocketDataList.at(Index).Socket = 0;
-						SocketSelectingList.at(Index).RecvBuffer.reset();
-						SocketSelectingList.at(Index).Length = 0;
+						*ErrorCode = WSAGetLastError();
+
+					#if defined(PLATFORM_WIN)
+						if (*ErrorCode != WSAEWOULDBLOCK)
+					#elif defined(PLATFORM_LINUX)
+						if (*ErrorCode != EAGAIN && *ErrorCode != EINPROGRESS)
+					#elif defined(PLATFORM_MACX)
+						if (*ErrorCode != EWOULDBLOCK && *ErrorCode != EAGAIN && *ErrorCode != EINPROGRESS)
+					#endif
+						{
+							shutdown(SocketDataList.at(Index).Socket, SD_BOTH);
+							closesocket(SocketDataList.at(Index).Socket);
+						}
+						else {
+							SocketDataList.at(Index).Socket = 0;
+							SocketSelectingList.at(Index).RecvBuffer.reset();
+							SocketSelectingList.at(Index).Length = 0;
+						}
+
+						*ErrorCode = 0;
 					}
 					else {
 						SocketSelectingList.at(Index).PacketIsSend = true;
@@ -1234,7 +1249,7 @@ size_t __fastcall DNSCurveSignatureRequest(
 			return EXIT_FAILURE;
 
 //Send request.
-	if (send(UDPSocket, OriginalSend, (int)SendSize, 0) < 0)
+	if (send(UDPSocket, OriginalSend, (int)SendSize, 0) == SOCKET_ERROR)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"DNSCurve Local Signature request error", WSAGetLastError(), nullptr, 0);
 		shutdown(UDPSocket, SD_BOTH);

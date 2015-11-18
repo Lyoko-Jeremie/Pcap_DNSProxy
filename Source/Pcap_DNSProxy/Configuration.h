@@ -29,13 +29,13 @@
 #define LABEL_IPFILTER                        2U
 #define LABEL_IPFILTER_BLACKLIST              3U
 #define LABEL_IPFILTER_LOCAL_ROUTING          4U
-#define LABEL_HOSTS_TYPE_NORMAL               5U
-#define LABEL_HOSTS_TYPE_CNAME                6U
-#define LABEL_HOSTS_TYPE_LOCAL                7U
-#define LABEL_HOSTS_TYPE_WHITELIST            8U
-#define LABEL_HOSTS_TYPE_BANNED               9U
-#define LABEL_HOSTS_TYPE_WHITELIST_EXTENDED   10U
-#define LABEL_HOSTS_TYPE_BANNED_EXTENDED      11U
+#define LABEL_HOSTS_TYPE_WHITE                5U
+#define LABEL_HOSTS_TYPE_BANNED               6U
+#define LABEL_HOSTS_TYPE_WHITE_EXTENDED       7U
+#define LABEL_HOSTS_TYPE_BANNED_EXTENDED      8U
+#define LABEL_HOSTS_TYPE_NORMAL               9U
+#define LABEL_HOSTS_TYPE_CNAME                10U
+#define LABEL_HOSTS_TYPE_LOCAL                11U
 #define LABEL_HOSTS_TYPE_ADDRESS              12U
 
 //Length definitions
@@ -55,8 +55,8 @@ extern GLOBAL_STATUS GlobalRunningStatus;
 	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
 #endif
 extern std::vector<FILE_DATA> FileList_Config, FileList_IPFilter, FileList_Hosts;
-extern std::vector<DIFFERNET_IPFILTER_FILE_SET> *IPFilterFileSetUsing, *IPFilterFileSetModificating;
-extern std::vector<DIFFERNET_HOSTS_FILE_SET> *HostsFileSetUsing, *HostsFileSetModificating;
+extern std::vector<DIFFERNET_FILE_SET_IPFILTER> *IPFilterFileSetUsing, *IPFilterFileSetModificating;
+extern std::vector<DIFFERNET_FILE_SET_HOSTS> *HostsFileSetUsing, *HostsFileSetModificating;
 extern std::mutex IPFilterFileLock, HostsFileLock;
 
 //Functions in Configuration.cpp
@@ -186,7 +186,8 @@ bool __fastcall ReadOtherHostsData(
 	_In_ std::string Data, 
 	_In_ const size_t FileIndex, 
 	_In_ const size_t Line, 
-	_In_ const size_t LabelType);
+	_In_ const size_t LabelType, 
+	_In_ const size_t ItemType);
 bool __fastcall ReadLocalHostsData(
 	_In_ std::string Data, 
 	_In_ const size_t FileIndex, 
