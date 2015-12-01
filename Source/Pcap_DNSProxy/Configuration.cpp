@@ -812,7 +812,7 @@ void __fastcall ReadIPFilter(
 						}
 						else {
 						//Scan global list.
-							DIFFERNET_IPFILTER_FILE_SET IPFilterFileSetTemp;
+							DIFFERNET_FILE_SET_IPFILTER IPFilterFileSetTemp;
 							for (auto IPFilterFileSetIter = IPFilterFileSetModificating->begin();IPFilterFileSetIter != IPFilterFileSetModificating->end();++IPFilterFileSetIter)
 							{
 								if (IPFilterFileSetIter->FileIndex == FileIndex)
@@ -1000,7 +1000,7 @@ void __fastcall ReadHosts(
 						}
 						else {
 						//Scan global list.
-							DIFFERNET_HOSTS_FILE_SET HostsFileSetTemp;
+							DIFFERNET_FILE_SET_HOSTS HostsFileSetTemp;
 							for (auto HostsFileSetIter = HostsFileSetModificating->begin();HostsFileSetIter != HostsFileSetModificating->end();++HostsFileSetIter)
 							{
 								if (HostsFileSetIter->FileIndex == FileIndex)

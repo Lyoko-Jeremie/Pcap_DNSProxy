@@ -107,7 +107,7 @@
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4                         //Current configuration version
-#define FULL_VERSION                 L"0.4.4.4"
+#define FULL_VERSION                 L"0.4.4.5"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2015 Chengr28"
 
 //Size and length definitions
@@ -328,11 +328,11 @@
 #define REQUEST_MODE_IPV4                     2U
 #define REQUEST_MODE_UDP                      0
 #define REQUEST_MODE_TCP                      1U
-#define HOSTS_TYPE_NORMAL                     1U
-#define HOSTS_TYPE_CNAME                      2U
-#define HOSTS_TYPE_WHITE                      3U
+#define HOSTS_TYPE_WHITE                      1U
+#define HOSTS_TYPE_BANNED                     2U
+#define HOSTS_TYPE_NORMAL                     3U
 #define HOSTS_TYPE_LOCAL                      4U
-#define HOSTS_TYPE_BANNED                     5U
+#define HOSTS_TYPE_CNAME                      5U
 #define CACHE_TYPE_TIMER                      1U
 #define CACHE_TYPE_QUEUE                      2U
 #define SOCKET_SETTING_INVALID_CHECK          0
@@ -712,13 +712,14 @@ public:
 //Hosts lists class
 typedef class HostsTable {
 public:
-	std::shared_ptr<char>    Response;
-	std::regex               Pattern;
-	std::string              PatternString;
-	std::vector<uint16_t>    Type_Record;
-	size_t                   Type_Hosts;
-	size_t                   Length;
-	bool                     Type_Operation;
+//	std::shared_ptr<char>             Response;
+	std::vector<ADDRESS_UNION_DATA>   AddrList;
+	std::regex                        Pattern;
+	std::string                       PatternString;
+	std::vector<uint16_t>             RecordTypeList;
+//	size_t                            Length;
+	size_t                            PermissionType;
+	bool                              PermissionOperation;
 
 //Member functions
 	HostsTable(
@@ -751,6 +752,7 @@ public:
 	std::vector<AddressRangeTable>   Address_Source;
 }ADDRESS_HOSTS_TABLE;
 
+/* Old version(2015-11-15)
 //Address routing table(IPv6) class
 typedef class AddressRoutingTable_IPv6 {
 public:
@@ -772,6 +774,19 @@ public:
 	AddressRoutingTable_IPv4(
 		void);
 }ADDRESS_ROUTING_TABLE_IPV4;
+*/
+
+//Address routing table class
+typedef class AddressRoutingTable {
+public:
+	size_t                                   Prefix;
+	std::map<uint64_t, std::set<uint64_t>>   AddressRoutingList_IPv6;
+	std::set<uint32_t>                       AddressRoutingList_IPv4;
+
+//Member functions
+	AddressRoutingTable(
+		void);
+}ADDRESS_ROUTING_TABLE;
 
 //Port table class
 #if defined(ENABLE_PCAP)
@@ -791,32 +806,40 @@ public:
 #endif
 
 //Differnet IPFilter file sets structure
-typedef class DiffernetIPFilterFileSet
+typedef class DiffernetFileSetIPFilter
 {
 public:
 	std::vector<ADDRESS_RANGE_TABLE>          AddressRange;
 	std::vector<RESULT_BLACKLIST_TABLE>       ResultBlacklist;
+/* Old version(2015-11-15)
 	std::vector<ADDRESS_ROUTING_TABLE_IPV6>   LocalRoutingList_IPv6;
 	std::vector<ADDRESS_ROUTING_TABLE_IPV4>   LocalRoutingList_IPv4;
+*/
+	std::vector<ADDRESS_ROUTING_TABLE>        LocalRoutingList;
 	size_t                                    FileIndex;
 
 //Member functions
-	DiffernetIPFilterFileSet(
+	DiffernetFileSetIPFilter(
 		void);
-}DIFFERNET_IPFILTER_FILE_SET;
+}DIFFERNET_FILE_SET_IPFILTER;
 
 //Differnet Hosts file sets structure
-typedef class DiffernetHostsFileSet
+typedef class DiffernetFileSetHosts
 {
 public:
+/* Old version(2015-11-16)
 	std::vector<HOSTS_TABLE>           HostsList;
+*/
+	std::vector<HOSTS_TABLE>           HostsList_Normal;
+	std::vector<HOSTS_TABLE>           HostsList_Local;
+	std::vector<HOSTS_TABLE>           HostsList_CNAME;
 	std::vector<ADDRESS_HOSTS_TABLE>   AddressHostsList;
 	size_t                             FileIndex;
 
 //Member functions
-	DiffernetHostsFileSet(
+	DiffernetFileSetHosts(
 		void);
-}DIFFERNET_HOSTS_FILE_SET;
+}DIFFERNET_FILE_SET_HOSTS;
 
 
 //DNSCurve Configuration class
@@ -888,11 +911,11 @@ void __fastcall CaseConvert(
 	_In_ const bool IsLowerToUpper, 
 	_Inout_opt_ std::string &Buffer);
 bool __fastcall SortCompare_IPFilter(
-	_In_ const DIFFERNET_IPFILTER_FILE_SET &Begin, 
-	_In_ const DIFFERNET_IPFILTER_FILE_SET &End);
+	_In_ const DIFFERNET_FILE_SET_IPFILTER &Begin, 
+	_In_ const DIFFERNET_FILE_SET_IPFILTER &End);
 bool __fastcall SortCompare_Hosts(
-	_In_ const DIFFERNET_HOSTS_FILE_SET &Begin, 
-	_In_ const DIFFERNET_HOSTS_FILE_SET &End);
+	_In_ const DIFFERNET_FILE_SET_HOSTS &Begin, 
+	_In_ const DIFFERNET_FILE_SET_HOSTS &End);
 size_t __fastcall Base64_Encode(
 	_In_ uint8_t *Input, 
 	_In_ const size_t Length, 
@@ -950,9 +973,20 @@ size_t __fastcall AddLengthDataToHeader(
 size_t __fastcall CharToDNSQuery(
 	_In_ const char *FName, 
 	_Out_ char *TName);
+/* Old version(2015-11-16)
 size_t __fastcall DNSQueryToChar(
 	_In_ const char *TName, 
 	_Out_ char *FName);
+*/
+size_t __fastcall DNSQueryToChar(
+	_In_ const char *TName,
+	_Out_ std::string &FName);
+size_t __fastcall MarkWholeDNSQuery(
+	_In_ const char *Packet,
+	_In_ const size_t Length,
+	_In_ const char *TName,
+	_In_ const size_t TNameIndex,
+	_Inout_ std::string &FName);
 void __fastcall MakeRamdomDomain(
 	_Out_ char *Buffer);
 void __fastcall MakeDomainCaseConversion(
@@ -980,7 +1014,7 @@ bool __fastcall CheckSpecialAddress(
 	_In_ void *Addr, 
 	_In_ const uint16_t Protocol, 
 	_In_ const bool IsPrivateUse, 
-	_In_opt_ char *Domain);
+	_In_opt_ const char *Domain);
 bool __fastcall CheckAddressRouting(
 	_In_ const void *Addr, 
 	_In_ const uint16_t Protocol);
@@ -989,6 +1023,13 @@ bool __fastcall CheckCustomModeFilter(
 	_In_ const uint16_t Protocol);
 size_t __fastcall CheckQueryNameLength(
 	_In_ const char *Buffer);
+size_t __fastcall CheckResponseCNAME(
+	_Inout_ char *Buffer, 
+	_In_ const size_t Length, 
+	_In_ const size_t CNAME_Index, 
+	_In_ const size_t CNAME_Length, 
+	_In_ const size_t BufferSize, 
+	_Out_ size_t &RecordNum);
 size_t __fastcall CheckQueryData(
 	_Inout_opt_ char *RecvBuffer, 
 	_Inout_opt_ char *SendBuffer, 
@@ -997,8 +1038,9 @@ size_t __fastcall CheckQueryData(
 	_In_ const uint16_t Protocol, 
 	_Out_opt_ bool *IsLocal);
 size_t __fastcall CheckResponseData(
-	_In_ const char *Buffer, 
+	_Inout_ char *Buffer, 
 	_In_ const size_t Length, 
+	_In_ const size_t BufferSize, 
 	_In_ const bool IsLocal, 
 	_Out_opt_ bool *IsMarkHopLimit);
 
@@ -1074,6 +1116,12 @@ bool __fastcall EnterRequestProcess(
 	_In_ const SOCKET_DATA LocalSocketData, 
 	_In_ const uint16_t Protocol, 
 	_In_ const bool IsLocal);
+size_t __fastcall CheckWhiteBannedHostsProcess(
+	_In_ const size_t Length, 
+	_In_ const HostsTable &HostsTableIter, 
+	_Inout_ dns_hdr *DNS_Header, 
+	_Inout_ dns_qry *DNS_Query, 
+	_Out_opt_ bool *IsLocal);
 size_t __fastcall CheckHostsProcess(
 	_Inout_ char *OriginalRequest, 
 	_In_ const size_t Length, 

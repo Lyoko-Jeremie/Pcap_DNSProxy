@@ -25,8 +25,8 @@ extern GLOBAL_STATUS GlobalRunningStatus;
 #if defined(ENABLE_LIBSODIUM)
 	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 #endif
-	extern std::vector<DIFFERNET_IPFILTER_FILE_SET> *IPFilterFileSetUsing, *IPFilterFileSetModificating;
-extern std::vector<DIFFERNET_HOSTS_FILE_SET> *HostsFileSetUsing, *HostsFileSetModificating;
+	extern std::vector<DIFFERNET_FILE_SET_IPFILTER> *IPFilterFileSetUsing, *IPFilterFileSetModificating;
+extern std::vector<DIFFERNET_FILE_SET_HOSTS> *HostsFileSetUsing, *HostsFileSetModificating;
 extern std::mutex IPFilterFileLock, HostsFileLock;
 
 //Functions

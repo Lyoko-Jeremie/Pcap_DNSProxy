@@ -622,7 +622,7 @@ bool __fastcall CaptureNetworkLayer(
 			{
 			//Domain Test and DNS Options check and get Hop Limit from Domain Test.
 				auto IsMarkHopLimit = false;
-				if (CheckResponseData(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), false, &IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
+				if (CheckResponseData((char *)Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), Length, false, &IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
 					return false;
 				if (IsMarkHopLimit)
 					PacketSource->HopLimitData.HopLimit = IPv6_Header->HopLimit;
@@ -739,7 +739,7 @@ bool __fastcall CaptureNetworkLayer(
 			{
 			//Domain Test and DNS Options check and get TTL from Domain Test.
 				auto IsMarkHopLimit = false;
-				if (CheckResponseData(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES - sizeof(udp_hdr), false, &IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
+				if (CheckResponseData((char *)Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES - sizeof(udp_hdr), Length, false, &IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
 					return false;
 				if (IsMarkHopLimit)
 					PacketSource->HopLimitData.TTL = IPv4_Header->TTL;
@@ -859,6 +859,8 @@ bool __fastcall MatchPortToSend(
 					SystemProtocol = PortTableIter.Protocol_Network;
 					PortTableIter.ClearPortTime = 0;
 
+				//Clear item in global list.
+					memset(&PortTableIter.SocketData_Input, 0, sizeof(SOCKET_DATA));
 					goto ClearOutputPacketListData;
 				}
 			}
@@ -886,12 +888,14 @@ StopLoop:
 					*SocketData_Input = PortTableIter.SocketData_Input;
 					SystemProtocol = PortTableIter.Protocol_Network;
 					PortTableIter.ClearPortTime = 0;
+
+				//Clear item in global list.
+					memset(&PortTableIter.SocketData_Input, 0, sizeof(SOCKET_DATA));
+					goto ClearOutputPacketListData;
 				}
 				else {
 					return false;
 				}
-
-				goto ClearOutputPacketListData;
 			}
 		}
 	}

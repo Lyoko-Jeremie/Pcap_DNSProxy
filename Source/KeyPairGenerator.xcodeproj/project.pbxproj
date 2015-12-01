@@ -25,6 +25,8 @@
 
 /* Begin PBXFileReference section */
 		D99E2E6D1AFCB43C00F36FCD /* KeyPairGenerator */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = KeyPairGenerator; sourceTree = BUILT_PRODUCTS_DIR; };
+		D9A18DFE1BFB7CAD00A398E2 /* randombytes_nativeclient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = randombytes_nativeclient.h; path = LibSodium/randombytes_nativeclient.h; sourceTree = "<group>"; };
+		D9A18DFF1BFB7CBB00A398E2 /* crypto_aead_aes256gcm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_aead_aes256gcm.h; path = LibSodium/crypto_aead_aes256gcm.h; sourceTree = "<group>"; };
 		D9F760F71AFCB4CB007F351A /* KeyPairGenerator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = KeyPairGenerator.cpp; sourceTree = "<group>"; };
 		D9F760F81AFCB4CB007F351A /* KeyPairGenerator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeyPairGenerator.h; sourceTree = "<group>"; };
 		D9F760FD1AFCB57B007F351A /* core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = core.h; path = LibSodium/core.h; sourceTree = "<group>"; };
@@ -80,7 +82,6 @@
 		D9F7612F1AFCB591007F351A /* sodium.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sodium.h; path = LibSodium/sodium.h; sourceTree = "<group>"; };
 		D9F761301AFCB591007F351A /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utils.h; path = LibSodium/utils.h; sourceTree = "<group>"; };
 		D9F761311AFCB591007F351A /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = version.h; path = LibSodium/version.h; sourceTree = "<group>"; };
-		D9F761321AFCB591007F351A /* version.h.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = version.h.in; path = LibSodium/version.h.in; sourceTree = "<group>"; };
 		D9F761331AFCB5A7007F351A /* LibSodium_Mac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibSodium_Mac.a; path = LibSodium/LibSodium_Mac.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -127,6 +128,7 @@
 			children = (
 				D9F761331AFCB5A7007F351A /* LibSodium_Mac.a */,
 				D9F760FD1AFCB57B007F351A /* core.h */,
+				D9A18DFF1BFB7CBB00A398E2 /* crypto_aead_aes256gcm.h */,
 				D9F760FE1AFCB57B007F351A /* crypto_aead_chacha20poly1305.h */,
 				D9F760FF1AFCB57B007F351A /* crypto_auth_hmacsha256.h */,
 				D9F761001AFCB57B007F351A /* crypto_auth_hmacsha512.h */,
@@ -172,6 +174,7 @@
 				D9F761281AFCB57B007F351A /* crypto_verify_32.h */,
 				D9F761291AFCB57B007F351A /* crypto_verify_64.h */,
 				D9F7612A1AFCB57B007F351A /* export.h */,
+				D9A18DFE1BFB7CAD00A398E2 /* randombytes_nativeclient.h */,
 				D9F7612B1AFCB591007F351A /* randombytes_salsa20_random.h */,
 				D9F7612C1AFCB591007F351A /* randombytes_sysrandom.h */,
 				D9F7612D1AFCB591007F351A /* randombytes.h */,
@@ -179,7 +182,6 @@
 				D9F7612F1AFCB591007F351A /* sodium.h */,
 				D9F761301AFCB591007F351A /* utils.h */,
 				D9F761311AFCB591007F351A /* version.h */,
-				D9F761321AFCB591007F351A /* version.h.in */,
 			);
 			name = LibSodium;
 			sourceTree = "<group>";
@@ -283,7 +285,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
@@ -321,7 +323,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				SDKROOT = macosx;

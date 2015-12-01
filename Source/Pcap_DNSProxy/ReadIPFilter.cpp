@@ -403,12 +403,12 @@ bool __fastcall ReadLocalRoutingData(
 	std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
 	memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
 	memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, Data.c_str(), Data.find("/"));
+	AddressRoutingTable AddressRoutingTableTemp;
 	SSIZE_T Result = 0;
 
 //IPv6
 	if (Data.find(":") != std::string::npos) 
 	{
-		AddressRoutingTable_IPv6 AddressRoutingTableTemp;
 		std::shared_ptr<in6_addr> BinaryAddr(new in6_addr());
 		memset(BinaryAddr.get(), 0, sizeof(in6_addr));
 		Data.erase(0, Data.find("/") + 1U);
@@ -432,26 +432,29 @@ bool __fastcall ReadLocalRoutingData(
 		}
 
 	//Add to global LocalRoutingList(IPv6).
+		std::map<uint64_t, std::set<uint64_t>>::iterator AddressRoutingListIter;
+		std::set<uint64_t> AddrBackSet;
 		for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
 		{
 			if (IPFilterFileSetIter.FileIndex == FileIndex)
 			{
-				if (IPFilterFileSetIter.LocalRoutingList_IPv6.empty())
-				{
+			//Local routing list is empty.
+				if (IPFilterFileSetIter.LocalRoutingList.empty())
 					goto AddToGlobalList_IPv6;
-				}
-				for (auto LocalRoutingTableIter = IPFilterFileSetIter.LocalRoutingList_IPv6.begin();LocalRoutingTableIter != IPFilterFileSetIter.LocalRoutingList_IPv6.end();++LocalRoutingTableIter)
+
+			//Scan all local routing items to add or insert.
+				for (auto LocalRoutingTableIter = IPFilterFileSetIter.LocalRoutingList.begin();LocalRoutingTableIter != IPFilterFileSetIter.LocalRoutingList.end();++LocalRoutingTableIter)
 				{
 					if (LocalRoutingTableIter->Prefix == AddressRoutingTableTemp.Prefix)
 					{
-						auto AddressRoutingListIter = LocalRoutingTableIter->AddressRoutingList_IPv6.find(hton64(*(PUINT64)BinaryAddr.get()) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)));
+						AddressRoutingListIter = LocalRoutingTableIter->AddressRoutingList_IPv6.find(hton64(*(PUINT64)BinaryAddr.get()) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)));
 						if (AddressRoutingListIter != LocalRoutingTableIter->AddressRoutingList_IPv6.end())
 						{
-							if (!AddressRoutingListIter->second.count(hton64(*(PUINT64)((uint8_t *)BinaryAddr.get() + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix))))
+							if (AddressRoutingListIter->second.count(hton64(*(PUINT64)((uint8_t *)BinaryAddr.get() + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix))) == 0)
 								AddressRoutingListIter->second.insert(hton64(*(PUINT64)((uint8_t *)BinaryAddr.get() + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
 						}
 						else {
-							std::set<uint64_t> AddrBackSet;
+							AddrBackSet.clear();
 							if (AddressRoutingTableTemp.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 							{
 								AddrBackSet.insert(0);
@@ -469,7 +472,7 @@ bool __fastcall ReadLocalRoutingData(
 
 			//Jump here to add new item to global list.
 			AddToGlobalList_IPv6:
-				std::set<uint64_t> AddrBackSet;
+				AddrBackSet.clear();
 				if (AddressRoutingTableTemp.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 				{
 					AddrBackSet.insert(0);
@@ -479,14 +482,13 @@ bool __fastcall ReadLocalRoutingData(
 					AddrBackSet.insert(hton64(*(PUINT64)((uint8_t *)BinaryAddr.get() + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
 					AddressRoutingTableTemp.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*(PUINT64)BinaryAddr.get()), AddrBackSet));
 				}
-
-				IPFilterFileSetIter.LocalRoutingList_IPv6.push_back(AddressRoutingTableTemp);
+				IPFilterFileSetIter.LocalRoutingList.push_back(AddressRoutingTableTemp);
+				break;
 			}
 		}
 	}
 //IPv4
 	else {
-		AddressRoutingTable_IPv4 AddressRoutingTableTemp;
 		std::shared_ptr<in_addr> BinaryAddr(new in_addr());
 		memset(BinaryAddr.get(), 0, sizeof(in_addr));
 		Data.erase(0, Data.find("/") + 1U);
@@ -514,15 +516,16 @@ bool __fastcall ReadLocalRoutingData(
 		{
 			if (IPFilterFileSetIter.FileIndex == FileIndex)
 			{
-				if (IPFilterFileSetIter.LocalRoutingList_IPv4.empty())
-				{
+			//Local routing list is empty.
+				if (IPFilterFileSetIter.LocalRoutingList.empty())
 					goto AddToGlobalList_IPv4;
-				}
-				for (auto LocalRoutingTableIter = IPFilterFileSetIter.LocalRoutingList_IPv4.begin();LocalRoutingTableIter != IPFilterFileSetIter.LocalRoutingList_IPv4.end();++LocalRoutingTableIter)
+
+			//Scan all local routing items to add or insert.
+				for (auto LocalRoutingTableIter = IPFilterFileSetIter.LocalRoutingList.begin();LocalRoutingTableIter != IPFilterFileSetIter.LocalRoutingList.end();++LocalRoutingTableIter)
 				{
 					if (LocalRoutingTableIter->Prefix == AddressRoutingTableTemp.Prefix)
 					{
-						if (!LocalRoutingTableIter->AddressRoutingList_IPv4.count(htonl(BinaryAddr->s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix))))
+						if (LocalRoutingTableIter->AddressRoutingList_IPv4.count(htonl(BinaryAddr->s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix))) == 0)
 							LocalRoutingTableIter->AddressRoutingList_IPv4.insert(htonl(BinaryAddr->s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
 
 						return true;
@@ -532,7 +535,8 @@ bool __fastcall ReadLocalRoutingData(
 			//Jump here to add new item to global list.
 			AddToGlobalList_IPv4:
 				AddressRoutingTableTemp.AddressRoutingList_IPv4.insert(htonl(BinaryAddr->s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
-				IPFilterFileSetIter.LocalRoutingList_IPv4.push_back(AddressRoutingTableTemp);
+				IPFilterFileSetIter.LocalRoutingList.push_back(AddressRoutingTableTemp);
+				break;
 			}
 		}
 	}

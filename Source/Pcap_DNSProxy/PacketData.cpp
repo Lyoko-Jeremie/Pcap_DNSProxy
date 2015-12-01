@@ -66,7 +66,7 @@ uint32_t __fastcall GetFCS(
 
 	uint32_t CRC = UINT32_MAX;
 	for (Index[0] = 0;Index[0] < (int)Length;+Index[0])
-		CRC = Table[(CRC ^ (*(Buffer + Index[0]))) & UINT8_MAX]^(CRC >> 8U);
+		CRC = Table[(CRC ^ (*(Buffer + Index[0]))) & UINT8_MAX]^(CRC >> (sizeof(uint8_t) * BYTES_TO_BITS));
 
 	return ~CRC;
 }
@@ -89,8 +89,8 @@ uint16_t __fastcall GetChecksum(
 	if (InnerLength)
 		Checksum += *(uint8_t *)Buffer;
 
-	Checksum = (Checksum >> 16U) + (Checksum & UINT16_MAX);
-	Checksum += (Checksum >> 16U);
+	Checksum = (Checksum >> (sizeof(uint16_t) * BYTES_TO_BITS)) + (Checksum & UINT16_MAX);
+	Checksum += (Checksum >> (sizeof(uint16_t) * BYTES_TO_BITS));
 
 	return (uint16_t)(~Checksum);
 }
@@ -194,6 +194,7 @@ size_t __fastcall CharToDNSQuery(
 	return strnlen_s(TName, DOMAIN_MAXSIZE - 1U) + 1U;
 }
 
+/* Old version(2015-11-16)
 //Convert data from DNS query to chars
 size_t __fastcall DNSQueryToChar(
 	_In_ const char *TName, 
@@ -207,7 +208,7 @@ size_t __fastcall DNSQueryToChar(
 	for (uIndex = 0;uIndex < DOMAIN_MAXSIZE;++uIndex)
 	{
 	//Pointer
-		if ((unsigned char)TName[uIndex] >= DNS_POINTER_BITS)
+		if ((uint8_t)TName[uIndex] >= DNS_POINTER_8_BITS)
 		{
 			return uIndex + sizeof(uint16_t);
 		}
@@ -226,6 +227,104 @@ size_t __fastcall DNSQueryToChar(
 		}
 		else {
 			*(FName + (uIndex - 1U)) = TName[uIndex];
+		}
+	}
+
+	return uIndex;
+}
+*/
+//Convert data from DNS query to string
+size_t __fastcall DNSQueryToChar(
+	_In_ const char *TName, 
+	_Out_ std::string &FName)
+{
+//Initialization
+	size_t uIndex = 0;
+	char CharIter[]{0, 0};
+	int Index[]{0, 0};
+	FName.clear();
+
+//Convert domain.
+	for (uIndex = 0;uIndex < DOMAIN_MAXSIZE;++uIndex)
+	{
+	//Pointer check
+		if ((uint8_t)TName[uIndex] >= DNS_POINTER_8_BITS)
+		{
+			return uIndex + sizeof(uint16_t);
+		}
+		else if (uIndex == 0)
+		{
+			Index[0] = TName[uIndex];
+		}
+		else if (uIndex == Index[0] + Index[1U] + 1U)
+		{
+			Index[0] = TName[uIndex];
+			if (Index[0] == 0)
+				break;
+			Index[1U] = (int)uIndex;
+
+			FName.append(".");
+		}
+		else {
+			CharIter[0] = TName[uIndex];
+			FName.append(CharIter);
+		}
+	}
+
+	return uIndex;
+}
+
+//Convert data from compression DNS query to whole DNS query
+size_t __fastcall MarkWholeDNSQuery(
+	_In_ const char *Packet, 
+	_In_ const size_t Length, 
+	_In_ const char *TName, 
+	_In_ const size_t TNameIndex, 
+	_Inout_ std::string &FName)
+{
+//Length and pointer index check
+	if (FName.length() >= DOMAIN_MAXSIZE || TNameIndex < sizeof(dns_hdr) || TNameIndex >= Length)
+		return 0;
+
+//Initialization
+	size_t uIndex = 0, PointerIndex = 0;
+	char CharIter[]{0, 0};
+	int Index[]{0, 0};
+
+//Convert domain.
+	for (uIndex = 0;uIndex < Length - TNameIndex;++uIndex)
+	{
+	//Pointer check
+		if ((uint8_t)TName[uIndex] >= DNS_POINTER_8_BITS)
+		{
+			PointerIndex = ntohs(*(uint16_t *)(TName + uIndex)) & DNS_POINTER_BITS_GET_LOCATE;
+			if (PointerIndex < TNameIndex)
+			{
+				if (!FName.empty())
+					FName.append(".");
+
+				return MarkWholeDNSQuery(Packet, Length, Packet + PointerIndex, PointerIndex, FName);
+			}
+			else {
+				return uIndex;
+			}
+		}
+		else if (uIndex == 0)
+		{
+			Index[0] = TName[uIndex];
+		}
+		else if (uIndex == Index[0] + Index[1U] + 1U)
+		{
+			Index[0] = TName[uIndex];
+			if (Index[0] == 0)
+				break;
+			Index[1U] = (int)uIndex;
+
+			FName.append(".");
+		}
+		else {
+			CharIter[0] = TName[uIndex];
+			FName.append(CharIter);
 		}
 	}
 
@@ -480,7 +579,7 @@ size_t __fastcall MakeCompressionPointerMutation(
 	if (Index == 0) //Pointer to header, like "[DNS Header][Domain][Pointer][Query]" and the pointer is point to [DNS Header].
 	{
 		memmove_s(Buffer + Length - sizeof(dns_qry) + 1U, sizeof(dns_qry), Buffer + Length - sizeof(dns_qry), sizeof(dns_qry));
-		*(Buffer + Length - sizeof(dns_qry) - 1U) = DNS_POINTER_BITS_STRING;
+		*(Buffer + Length - sizeof(dns_qry) - 1U) = DNS_POINTER_8_BITS_STRING;
 
 	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
 	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
@@ -523,7 +622,7 @@ size_t __fastcall MakeCompressionPointerMutation(
 		memcpy_s(DNS_Query.get(), sizeof(dns_qry), Buffer + DNS_PACKET_QUERY_LOCATE(Buffer), sizeof(dns_qry));
 		memmove_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t) + sizeof(dns_qry), Length, Buffer + sizeof(dns_hdr), strnlen_s(Buffer + sizeof(dns_hdr), Length - sizeof(dns_hdr)) + 1U);
 		memcpy_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t), Length - sizeof(dns_hdr) - sizeof(uint16_t), DNS_Query.get(), sizeof(dns_qry));
-		*(Buffer + sizeof(dns_hdr)) = DNS_POINTER_BITS_STRING;
+		*(Buffer + sizeof(dns_hdr)) = DNS_POINTER_8_BITS_STRING;
 		*(Buffer + sizeof(dns_hdr) + 1U) = '\x12';
 
 		if (Index == 1U) //Pointer to RR, like "[DNS Header][Pointer][Query][Domain]" and the pointer is point to [Domain].

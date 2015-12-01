@@ -1,14 +1,18 @@
-﻿Pcap_DNSProxy v0.4.4.1-0.4.4.4 更新日志(2015-11-07)：
+﻿Pcap_DNSProxy v0.4.4.1-0.4.4.5 更新日志(2015-11-18)：
 
 * 添加对 SOCKS 版本 4/4a/5 请求的原生支持
 * 添加对 HTTP CONNECT Tunnel 请求的原生支持
+* 添加对 CNAME Hosts 的支持
 * 添加 DNSCurve Reliable/Unreliable Socket Timeout 参数，增强对不同协议超时设定的精细化控制
 * 添加 --lib-version 参数，可输出程序现正使用的库的版本号信息
 * EDNS Client Subnet 参数现在更名为 EDNS Client Subnet Relay 并修改了此参数的含义 [XIAOSpider97]
-* LibSodium 更新到 1.0.6
+* LibSodium 库更新到 1.0.6
+* 升级项目文件到 Xcode 7.1 (Mac)
+* 调整二进制版本最低系统要求为 10.8/Mountain Lion (Mac)
 * 修正 EDNS Client Subnet 功能的转发策略 [XIAOSpider97]
 * 修正抓包模块的工作条件 [軒轅無雙]
 * 修复读取 IPv4 路由表 CIDR 时的错误 [hocoo]
+* 修复 DNS flag AD/Authentic Data 错误设置的问题 (Linux/Mac)
 * 修复 DNS ID mismatch 的错误 (Linux/Mac) [hongyi-zhao/cielpy]
 * 修复监视模块可能出现的休眠错误 [shuangzhijinghua]
 

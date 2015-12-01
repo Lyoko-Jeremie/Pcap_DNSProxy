@@ -187,7 +187,7 @@ SSIZE_T __fastcall ProxySocketSelecting(
 		//Send process
 			if (SendBuffer != nullptr && FD_ISSET(Socket, WriteFDS))
 			{
-				if (send(Socket, SendBuffer, (int)SendSize, 0) < 0)
+				if (send(Socket, SendBuffer, (int)SendSize, 0) == SOCKET_ERROR)
 				{
 					break;
 				}
@@ -700,7 +700,7 @@ size_t __fastcall SOCKSTCPRequest(
 		memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(uint16_t), RecvLen);
 
 	//Responses check
-		RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+		RecvLen = CheckResponseData(OriginalRecv, RecvLen, RecvSize, false, nullptr);
 		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			return EXIT_FAILURE;
 
@@ -1017,7 +1017,7 @@ size_t __fastcall SOCKSUDPRequest(
 		if (OriginalRecvLen != RecvLen)
 		{
 		//Responses check
-			RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+			RecvLen = CheckResponseData(OriginalRecv, RecvLen, RecvSize, false, nullptr);
 			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 				return EXIT_FAILURE;
 
@@ -1140,7 +1140,7 @@ size_t __fastcall HTTPRequest(
 		memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(uint16_t), RecvLen);
 
 	//Responses check
-		RecvLen = CheckResponseData(OriginalRecv, RecvLen, false, nullptr);
+		RecvLen = CheckResponseData(OriginalRecv, RecvLen, RecvSize, false, nullptr);
 		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			return EXIT_FAILURE;
 

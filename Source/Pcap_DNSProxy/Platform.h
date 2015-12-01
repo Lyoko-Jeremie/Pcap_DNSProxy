@@ -245,16 +245,15 @@
 		#endif
 	#endif
 
-	#if defined(PLATFORM_WIN)
-		#define __LITTLE_ENDIAN            1U                        //Little Endian
-//		#define __BIG_ENDIAN               2U                        //Big Endian, Little Endian is always in Windows.
-		#define __BYTE_ORDER               __LITTLE_ENDIAN           //x86 and x86-64/x64 is Little Endian.
+//Endian setting
+	#define __LITTLE_ENDIAN            1U                        //Little Endian
+//	#define __BIG_ENDIAN               2U                        //Big Endian, Little Endian is always in Windows.
+	#define __BYTE_ORDER               __LITTLE_ENDIAN           //x86 and x86-64/x64 is Little Endian.
 
-	//Code definitions
-		#define WINSOCK_VERSION_LOW        2                         //Low byte of Winsock version(2.2)
-		#define WINSOCK_VERSION_HIGH       2                         //High byte of Winsock version(2.2)
-		#define SIO_UDP_CONNRESET          _WSAIOW(IOC_VENDOR, 12)   //Block connection reset error message from system.
-	#endif
+//Code definitions
+	#define WINSOCK_VERSION_LOW        2                         //Low byte of Winsock version(2.2)
+	#define WINSOCK_VERSION_HIGH       2                         //High byte of Winsock version(2.2)
+	#define SIO_UDP_CONNRESET          _WSAIOW(IOC_VENDOR, 12)   //Block connection reset error message from system.
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#include <climits>                 //Data limits
 	#include <cstring>                 //C-Style strings
@@ -357,20 +356,20 @@
 //Internet Protocol version 4/IPv4 Socket Address(From Microsoft Windows)
 	typedef struct _sockaddr_in_windows_
 	{
-		sa_family_t       sin_family;     /* Address family: AF_INET */
-		in_port_t         sin_port;       /* Port in network byte order */
-		in_addr_Windows   sin_addr;       /* Internet address */
-		uint8_t           sin_zero[8U];   /* Zero */
+		sa_family_t       sin_family;     //Address family: AF_INET
+		in_port_t         sin_port;       //Port in network byte order
+		in_addr_Windows   sin_addr;       //Internet address
+		uint8_t           sin_zero[8U];   //Zero
 	}sockaddr_in_Windows;
 
 //Internet Protocol version 6/IPv6 Socket Address(From Microsoft Windows)
 	typedef struct _sockaddr_in6_windows_ 
 	{
-		sa_family_t        sin6_family;   /* AF_INET6 */
-		in_port_t          sin6_port;     /* Port number */
-		uint32_t           sin6_flowinfo; /* IPv6 flow information */
-		in6_addr_Windows   sin6_addr;     /* IPv6 address */
-		uint32_t           sin6_scope_id; /* Scope ID (new in 2.4) */
+		sa_family_t        sin6_family;   //AF_INET6
+		in_port_t          sin6_port;     //Port number
+		uint32_t           sin6_flowinfo; //IPv6 flow information
+		in6_addr_Windows   sin6_addr;     //IPv6 address
+		uint32_t           sin6_scope_id; //Scope ID (new in 2.4)
 	}sockaddr_in6_Windows;
 
 //Linux and Mac OS X compatible(Part 2)
@@ -435,10 +434,10 @@
 		#define send(Socket, Buffer, Length, Signal)                         send(Socket, Buffer, Length, Signal|MSG_NOSIGNAL)
 		#define sendto(Socket, Buffer, Length, Signal, SockAddr, AddrLen)    sendto(Socket, Buffer, Length, Signal|MSG_NOSIGNAL, SockAddr, AddrLen)
 	#endif
-	#define GetLastError()                                               errno
 	#define closesocket                                                  close
-	#define WSAGetLastError()                                            GetLastError()
-	#define GetCurrentProcessId()                                        pthread_self()
+//	#define GetLastError()                                               errno
+	#define WSAGetLastError()                                            errno
+//	#define GetCurrentProcessId()                                        pthread_self()
 #endif
 
 //Memory alignment: 1 bytes/8 bits

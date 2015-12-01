@@ -217,6 +217,100 @@ SkipDNSCurve:
 #endif
 }
 
+//Check white and banned hosts list
+size_t __fastcall CheckWhiteBannedHostsProcess(
+	_In_ const size_t Length, 
+	_In_ const HostsTable &HostsTableIter, 
+	_Inout_ dns_hdr *DNS_Header, 
+	_Inout_ dns_qry *DNS_Query, 
+	_Out_opt_ bool *IsLocal)
+{
+//Whitelist Hosts
+	if (HostsTableIter.PermissionType == HOSTS_TYPE_WHITE)
+	{
+	//Reset IsLocal flag.
+		if (IsLocal != nullptr)
+			*IsLocal = false;
+
+	//Ignore all types.
+		if (HostsTableIter.RecordTypeList.empty())
+		{
+			return EXIT_SUCCESS;
+		}
+		else {
+		//Permit or Deny check
+			if (HostsTableIter.PermissionOperation)
+			{
+			//Only ignore some types.
+				for (auto RecordTypeIter = HostsTableIter.RecordTypeList.begin(); RecordTypeIter != HostsTableIter.RecordTypeList.end(); ++RecordTypeIter)
+				{
+					if (DNS_Query->Type == *RecordTypeIter)
+						break;
+					else if (RecordTypeIter + 1U == HostsTableIter.RecordTypeList.end())
+						return EXIT_SUCCESS;
+				}
+			}
+		//Ignore some types.
+			else {
+				for (auto RecordTypeIter : HostsTableIter.RecordTypeList)
+				{
+					if (DNS_Query->Type == RecordTypeIter)
+						return EXIT_SUCCESS;
+				}
+			}
+		}
+	}
+//Banned Hosts
+	else if (HostsTableIter.PermissionType == HOSTS_TYPE_BANNED)
+	{
+	//Reset IsLocal flag.
+		if (IsLocal != nullptr)
+			*IsLocal = false;
+
+	//Block all types.
+		if (HostsTableIter.RecordTypeList.empty())
+		{
+//			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_SNH);
+			DNS_Header->Flags = htons(DNS_SET_R_SNH);
+			return Length;
+		}
+		else {
+		//Permit or Deny check
+			if (HostsTableIter.PermissionOperation)
+			{
+			//Only some types are allowed.
+				for (auto RecordTypeIter = HostsTableIter.RecordTypeList.begin(); RecordTypeIter != HostsTableIter.RecordTypeList.end(); ++RecordTypeIter)
+				{
+					if (DNS_Query->Type == *RecordTypeIter)
+					{
+						break;
+					}
+					else if (RecordTypeIter + 1U == HostsTableIter.RecordTypeList.end())
+					{
+//						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
+						DNS_Header->Flags = htons(DNS_SQR_NE);
+						return Length;
+					}
+				}
+			}
+		//Block some types.
+			else {
+				for (auto RecordTypeIter : HostsTableIter.RecordTypeList)
+				{
+					if (DNS_Query->Type == RecordTypeIter)
+					{
+//						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
+						DNS_Header->Flags = htons(DNS_SQR_NE);
+						return Length;
+					}
+				}
+			}
+		}
+	}
+
+	return EXIT_SUCCESS;
+}
+
 //Check hosts from list
 size_t __fastcall CheckHostsProcess(
 	_Inout_ char *OriginalRequest, 
@@ -229,29 +323,21 @@ size_t __fastcall CheckHostsProcess(
 	std::string Domain;
 	size_t DataLength = 0;
 	auto DNS_Header = (pdns_hdr)OriginalRequest;
-	memset(Result, 0, ResultSize);
 
 //Request check
 	if (DNS_Header->Questions == htons(U16_NUM_ONE) && CheckQueryNameLength(OriginalRequest + sizeof(dns_hdr)) + 1U < DOMAIN_MAXSIZE)
 	{
-		if (DNSQueryToChar(OriginalRequest + sizeof(dns_hdr), Result) > DOMAIN_MINSIZE)
-		{
-		//Domain Case Conversion
-			CaseConvert(false, Result, strnlen_s(Result, ResultSize));
-
-		//Copy domain string.
-			Domain = Result;
-			memset(Result, 0, ResultSize);
-		}
-		else {
-			return EXIT_FAILURE;
-		}
+		if (DNSQueryToChar(OriginalRequest + sizeof(dns_hdr), Domain) <= DOMAIN_MINSIZE)
+			return EXIT_SUCCESS;
+		else 
+			CaseConvert(false, Domain);
 	}
 	else {
 		return EXIT_FAILURE;
 	}
 
-//Response
+//Response setting
+	memset(Result, 0, ResultSize);
 	memcpy_s(Result, ResultSize, OriginalRequest, Length);
 	DNS_Header = (pdns_hdr)Result;
 	auto DNS_Query = (pdns_qry)(Result + DNS_PACKET_QUERY_LOCATE(Result));
@@ -272,7 +358,8 @@ size_t __fastcall CheckHostsProcess(
 				{
 					if (*AcceptTypeTableIter != DNS_Query->Type)
 					{
-						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_SNH);
+//						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_SNH);
+						DNS_Header->Flags = htons(DNS_SET_R_SNH);
 						return Length;
 					}
 				}
@@ -288,7 +375,8 @@ size_t __fastcall CheckHostsProcess(
 			{
 				if (DNS_Query->Type == AcceptTypeTableIter)
 				{
-					DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_SNH);
+//					DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_SNH);
+					DNS_Header->Flags = htons(DNS_SET_R_SNH);
 					return Length;
 				}
 			}
@@ -408,218 +496,11 @@ size_t __fastcall CheckHostsProcess(
 	std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock);
 	for (auto HostsFileSetIter:*HostsFileSetUsing)
 	{
+/* Old version(2015-11-16)
 		for (auto HostsTableIter:HostsFileSetIter.HostsList)
 		{
 			if (std::regex_match(Domain, HostsTableIter.Pattern))
 			{
-/* Old version(2015-11-07)
-			//Check white list.
-				if (HostsTableIter.Type_Hosts == HOSTS_TYPE_WHITE)
-				{
-				//Reset IsLocal flag.
-					if (IsLocal != nullptr)
-						*IsLocal = false;
-
-				//Ignore all types.
-					if (HostsTableIter.Type_Record.empty()) 
-					{
-						goto StopLoop;
-					}
-					else {
-					//Permit or Deny check
-						if (HostsTableIter.Type_Operation)
-						{
-						//Only ignore some types.
-							for (auto RecordTypeIter = HostsTableIter.Type_Record.begin();RecordTypeIter != HostsTableIter.Type_Record.end();++RecordTypeIter)
-							{
-								if (DNS_Query->Type == *RecordTypeIter)
-									break;
-								else if (RecordTypeIter + 1U == HostsTableIter.Type_Record.end())
-									goto StopLoop;
-							}
-						}
-					//Ignore some types.
-						else {
-							for (auto RecordTypeIter:HostsTableIter.Type_Record)
-							{
-								if (DNS_Query->Type == RecordTypeIter)
-									goto StopLoop;
-							}
-						}
-					}
-				}
-			//Check banned list.
-				else if (HostsTableIter.Type_Hosts == HOSTS_TYPE_BANNED)
-				{
-				//Reset IsLocal flag.
-					if (IsLocal != nullptr)
-						*IsLocal = false;
-
-				//Block all types.
-					if (HostsTableIter.Type_Record.empty())
-					{
-						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_SNH);
-						return Length;
-					}
-					else {
-					//Permit or Deny check
-						if (HostsTableIter.Type_Operation)
-						{
-						//Only allow some types.
-							for (auto RecordTypeIter = HostsTableIter.Type_Record.begin();RecordTypeIter != HostsTableIter.Type_Record.end();++RecordTypeIter)
-							{
-								if (DNS_Query->Type == *RecordTypeIter)
-								{
-									break;
-								}
-								else if (RecordTypeIter + 1U == HostsTableIter.Type_Record.end())
-								{
-									DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
-									return Length;
-								}
-							}
-						}
-					//Block some types.
-						else {
-							for (auto RecordTypeIter:HostsTableIter.Type_Record)
-							{
-								if (DNS_Query->Type == RecordTypeIter)
-								{
-									DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
-									return Length;
-								}
-							}
-						}
-					}
-				}
-			//Check main Hosts.
-				else if (HostsTableIter.Type_Hosts == HOSTS_TYPE_NORMAL)
-				{
-					if (HostsTableIter.Type_Record.empty())
-						break;
-
-				//IPv6
-					if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && HostsTableIter.Type_Record.front() == htons(DNS_RECORD_AAAA))
-					{
-					//Set header flags.
-						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
-						DNS_Header->Answer = htons((uint16_t)(HostsTableIter.Length / sizeof(dns_record_aaaa)));
-						
-					//Hosts item length check
-						DataLength = DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + HostsTableIter.Length;
-						if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
-						{
-							while (DataLength > PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE)
-							{
-								DataLength -= sizeof(dns_record_aaaa);
-								DNS_Header->Answer = htons(ntohs(DNS_Header->Answer) - 1U);
-							}
-						}
-						else {
-							while (DataLength > PACKET_MAXSIZE)
-							{
-								DataLength -= sizeof(dns_record_aaaa);
-								DNS_Header->Answer = htons(ntohs(DNS_Header->Answer) - 1U);
-							}
-						}
-
-					//Copy response to buffer.
-						memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), 0, ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)));
-						memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)), HostsTableIter.Response.get(), DataLength - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)));
-
-					//Hosts load balancing
-						if (ntohs(DNS_Header->Answer) > U16_NUM_ONE)
-						{
-							std::shared_ptr<dns_record_aaaa> DNS_AAAA_Temp(new dns_record_aaaa());
-							memset(DNS_AAAA_Temp.get(), 0, sizeof(dns_record_aaaa));
-
-						//Select a ramdom preferred result.
-							std::uniform_int_distribution<int> RamdomDistribution(0, ntohs(DNS_Header->Answer) - 1U);
-							size_t RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
-							if (RamdomIndex > 0)
-							{
-								memcpy_s(DNS_AAAA_Temp.get(), sizeof(dns_record_aaaa), Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), sizeof(dns_record_aaaa));
-								memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), 0, sizeof(dns_record_aaaa));
-								memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)), Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_aaaa) * RamdomIndex, sizeof(dns_record_aaaa));
-								memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_aaaa) * RamdomIndex, 0, sizeof(dns_record_aaaa));
-								memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_aaaa) * RamdomIndex, sizeof(dns_record_aaaa), DNS_AAAA_Temp.get(), sizeof(dns_record_aaaa));
-							}
-						}
-
-					//EDNS Label
-						if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
-						{
-							DNS_Header->Additional = 0;
-							DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, nullptr);
-						}
-
-						return DataLength;
-					}
-					else if (DNS_Query->Type == htons(DNS_RECORD_A) && HostsTableIter.Type_Record.front() == htons(DNS_RECORD_A))
-					{
-					//Set header flags.
-						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
-						DNS_Header->Answer = htons((uint16_t)(HostsTableIter.Length / sizeof(dns_record_a)));
-						
-					//Hosts item length check
-						DataLength = DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + HostsTableIter.Length;
-						if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
-						{
-							while (DataLength > PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE)
-							{
-								DataLength -= sizeof(dns_record_a);
-								DNS_Header->Answer = htons(ntohs(DNS_Header->Answer) - 1U);
-							}
-						}
-						else {
-							while (DataLength > PACKET_MAXSIZE)
-							{
-								DataLength -= sizeof(dns_record_a);
-								DNS_Header->Answer = htons(ntohs(DNS_Header->Answer) - 1U);
-							}
-						}
-
-					//Copy response to buffer.
-						memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), 0, ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)));
-						memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)), HostsTableIter.Response.get(), DataLength - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)));
-
-					//Hosts load balancing
-						if (ntohs(DNS_Header->Answer) > U16_NUM_ONE)
-						{
-							std::shared_ptr<dns_record_a> DNS_A_Temp(new dns_record_a());
-							memset(DNS_A_Temp.get(), 0, sizeof(dns_record_a));
-
-						//Select a ramdom preferred result.
-							std::uniform_int_distribution<int> RamdomDistribution(0, ntohs(DNS_Header->Answer) - 1U);
-							size_t RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
-							if (RamdomIndex > 0)
-							{
-								memcpy_s(DNS_A_Temp.get(), sizeof(dns_record_a), Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), sizeof(dns_record_a));
-								memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), 0, sizeof(dns_record_a));
-								memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)), Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_a) * RamdomIndex, sizeof(dns_record_a));
-								memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_a) * RamdomIndex, 0, sizeof(dns_record_a));
-								memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_a) * RamdomIndex, sizeof(dns_record_a), DNS_A_Temp.get(), sizeof(dns_record_a));
-							}
-						}
-
-					//EDNS Label
-						if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
-						{
-							DNS_Header->Additional = 0;
-							DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, nullptr);
-						}
-
-						return DataLength;
-					}
-				}
-			//Check local request.
-				else if (HostsTableIter.Type_Hosts == HOSTS_TYPE_LOCAL)
-				{
-					if (IsLocal != nullptr)
-						*IsLocal = true;
-					goto StopLoop;
-				}
-*/
 				switch (HostsTableIter.Type_Hosts)
 				{
 				//Hosts White
@@ -630,26 +511,26 @@ size_t __fastcall CheckHostsProcess(
 							*IsLocal = false;
 
 					//Ignore all types.
-						if (HostsTableIter.Type_Record.empty()) 
+						if (HostsTableIter.RecordTypeList.empty()) 
 						{
 							goto StopLoop;
 						}
 						else {
 						//Permit or Deny check
-							if (HostsTableIter.Type_Operation)
+							if (HostsTableIter.PermissionOperation)
 							{
 							//Only ignore some types.
-								for (auto RecordTypeIter = HostsTableIter.Type_Record.begin();RecordTypeIter != HostsTableIter.Type_Record.end();++RecordTypeIter)
+								for (auto RecordTypeIter = HostsTableIter.RecordTypeList.begin();RecordTypeIter != HostsTableIter.RecordTypeList.end();++RecordTypeIter)
 								{
 									if (DNS_Query->Type == *RecordTypeIter)
 										break;
-									else if (RecordTypeIter + 1U == HostsTableIter.Type_Record.end())
+									else if (RecordTypeIter + 1U == HostsTableIter.RecordTypeList.end())
 										goto StopLoop;
 								}
 							}
 						//Ignore some types.
 							else {
-								for (auto RecordTypeIter:HostsTableIter.Type_Record)
+								for (auto RecordTypeIter:HostsTableIter.RecordTypeList)
 								{
 									if (DNS_Query->Type == RecordTypeIter)
 										goto StopLoop;
@@ -665,23 +546,23 @@ size_t __fastcall CheckHostsProcess(
 							*IsLocal = false;
 
 					//Block all types.
-						if (HostsTableIter.Type_Record.empty())
+						if (HostsTableIter.RecordTypeList.empty())
 						{
 							DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_SNH);
 							return Length;
 						}
 						else {
 						//Permit or Deny check
-							if (HostsTableIter.Type_Operation)
+							if (HostsTableIter.PermissionOperation)
 							{
 							//Only allow some types.
-								for (auto RecordTypeIter = HostsTableIter.Type_Record.begin();RecordTypeIter != HostsTableIter.Type_Record.end();++RecordTypeIter)
+								for (auto RecordTypeIter = HostsTableIter.RecordTypeList.begin();RecordTypeIter != HostsTableIter.RecordTypeList.end();++RecordTypeIter)
 								{
 									if (DNS_Query->Type == *RecordTypeIter)
 									{
 										break;
 									}
-									else if (RecordTypeIter + 1U == HostsTableIter.Type_Record.end())
+									else if (RecordTypeIter + 1U == HostsTableIter.RecordTypeList.end())
 									{
 										DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
 										return Length;
@@ -690,7 +571,7 @@ size_t __fastcall CheckHostsProcess(
 							}
 						//Block some types.
 							else {
-								for (auto RecordTypeIter:HostsTableIter.Type_Record)
+								for (auto RecordTypeIter:HostsTableIter.RecordTypeList)
 								{
 									if (DNS_Query->Type == RecordTypeIter)
 									{
@@ -705,11 +586,11 @@ size_t __fastcall CheckHostsProcess(
 					case HOSTS_TYPE_NORMAL:
 					{
 					//Empty records
-						if (HostsTableIter.Type_Record.empty())
+						if (HostsTableIter.RecordTypeList.empty())
 							break;
 
 					//IPv6(AAAA records)
-						if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && HostsTableIter.Type_Record.front() == htons(DNS_RECORD_AAAA))
+						if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && HostsTableIter.RecordTypeList.front() == htons(DNS_RECORD_AAAA))
 						{
 						//Set header flags.
 							DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
@@ -766,7 +647,7 @@ size_t __fastcall CheckHostsProcess(
 							return DataLength;
 						}
 					//IPv4(A records)
-						else if (DNS_Query->Type == htons(DNS_RECORD_A) && HostsTableIter.Type_Record.front() == htons(DNS_RECORD_A))
+						else if (DNS_Query->Type == htons(DNS_RECORD_A) && HostsTableIter.RecordTypeList.front() == htons(DNS_RECORD_A))
 						{
 						//Set header flags.
 							DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
@@ -831,6 +712,244 @@ size_t __fastcall CheckHostsProcess(
 
 						goto StopLoop;
 					}break;
+				}
+			}
+		}
+*/
+	//Normal Hosts
+		for (auto HostsTableIter:HostsFileSetIter.HostsList_Normal)
+		{
+			if (std::regex_match(Domain, HostsTableIter.Pattern))
+			{
+			//Check white and banned hosts list, empty record type list check
+				DataLength = CheckWhiteBannedHostsProcess(Length, HostsTableIter, DNS_Header, DNS_Query, IsLocal);
+				if (DataLength >= DNS_PACKET_MINSIZE)
+					return DataLength;
+				else if (HostsTableIter.RecordTypeList.empty())
+					continue;
+
+			//Initialization
+				void *DNS_Record = nullptr;
+				size_t RamdomIndex = 0, Index = 0;
+
+			//IPv6(AAAA records)
+				if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && HostsTableIter.RecordTypeList.front() == htons(DNS_RECORD_AAAA))
+				{
+/* Old version(2015-11-17)
+				//Set header flags.
+					DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
+					DNS_Header->Answer = htons((uint16_t)(HostsTableIter.Length / sizeof(dns_record_aaaa)));
+
+				//Hosts item length check
+					DataLength = DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + HostsTableIter.Length;
+					if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
+					{
+						while (DataLength > PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE)
+						{
+							DataLength -= sizeof(dns_record_aaaa);
+							DNS_Header->Answer = htons(ntohs(DNS_Header->Answer) - 1U);
+						}
+					}
+					else {
+						while (DataLength > PACKET_MAXSIZE)
+						{
+							DataLength -= sizeof(dns_record_aaaa);
+							DNS_Header->Answer = htons(ntohs(DNS_Header->Answer) - 1U);
+						}
+					}
+
+				//Copy response to buffer.
+					memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), 0, ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)));
+					memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)), HostsTableIter.Response.get(), DataLength - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)));
+
+				//Hosts load balancing
+					if (ntohs(DNS_Header->Answer) > U16_NUM_ONE)
+					{
+						std::shared_ptr<dns_record_aaaa> DNS_AAAA_Temp(new dns_record_aaaa());
+						memset(DNS_AAAA_Temp.get(), 0, sizeof(dns_record_aaaa));
+
+					//Select a ramdom preferred result.
+						std::uniform_int_distribution<int> RamdomDistribution(0, ntohs(DNS_Header->Answer) - 1U);
+						size_t RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+						if (RamdomIndex > 0)
+						{
+							memcpy_s(DNS_AAAA_Temp.get(), sizeof(dns_record_aaaa), Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), sizeof(dns_record_aaaa));
+							memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), 0, sizeof(dns_record_aaaa));
+							memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)), Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_aaaa) * RamdomIndex, sizeof(dns_record_aaaa));
+							memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_aaaa) * RamdomIndex, 0, sizeof(dns_record_aaaa));
+							memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_aaaa) * RamdomIndex, sizeof(dns_record_aaaa), DNS_AAAA_Temp.get(), sizeof(dns_record_aaaa));
+						}
+					}
+*/
+				//Set header flags and convert DNS query to DNS response packet.
+//					DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
+					DNS_Header->Flags = htons(DNS_SQR_NE);
+					DataLength = DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry);
+					memset(Result + DataLength, 0, ResultSize - DataLength);
+
+				//Hosts load balancing
+					if (HostsTableIter.AddrList.size() > 1U)
+					{
+						std::uniform_int_distribution<int> RamdomDistribution(0, (int)(HostsTableIter.AddrList.size() - 1U));
+						RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+					}
+
+				//Make response.
+					for (Index = 0;Index < HostsTableIter.AddrList.size();++Index)
+					{
+					//Make resource records.
+						DNS_Record = (pdns_record_aaaa)(Result + DataLength);
+						DataLength += sizeof(dns_record_aaaa);
+						((pdns_record_aaaa)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
+						((pdns_record_aaaa)DNS_Record)->Classes = htons(DNS_CLASS_IN);
+						((pdns_record_aaaa)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
+						((pdns_record_aaaa)DNS_Record)->Type = htons(DNS_RECORD_AAAA);
+						((pdns_record_aaaa)DNS_Record)->Length = htons(sizeof(in6_addr));
+						if (Index == 0)
+							((pdns_record_aaaa)DNS_Record)->Addr = HostsTableIter.AddrList.at(RamdomIndex).IPv6.sin6_addr;
+						else if (Index == RamdomIndex)
+							((pdns_record_aaaa)DNS_Record)->Addr = HostsTableIter.AddrList.at(0).IPv6.sin6_addr;
+						else 
+							((pdns_record_aaaa)DNS_Record)->Addr = HostsTableIter.AddrList.at(Index).IPv6.sin6_addr;
+
+					//Hosts items length check
+						if ((Parameter.EDNS_Label || DNS_Header->Additional > 0) && DataLength + sizeof(dns_record_aaaa) + EDNS_ADDITIONAL_MAXSIZE >= ResultSize || //EDNS Label
+							DataLength + sizeof(dns_record_aaaa) >= ResultSize) //Normal query
+						{
+							++Index;
+							break;
+						}
+					}
+
+				//Set DNS counts and EDNS Label
+					DNS_Header->Answer = htons((uint16_t)Index);
+					DNS_Header->Authority = 0;
+					if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
+					{
+						DNS_Header->Additional = 0;
+						DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, nullptr);
+					}
+
+					return DataLength;
+				}
+			//IPv4(A records)
+				else if (DNS_Query->Type == htons(DNS_RECORD_A) && HostsTableIter.RecordTypeList.front() == htons(DNS_RECORD_A))
+				{
+/* Old version(2015-11-17)
+				//Set header flags.
+					DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
+					DNS_Header->Answer = htons((uint16_t)(HostsTableIter.Length / sizeof(dns_record_a)));
+
+				//Hosts item length check
+					DataLength = DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + HostsTableIter.Length;
+					if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
+					{
+						while (DataLength > PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE)
+						{
+							DataLength -= sizeof(dns_record_a);
+							DNS_Header->Answer = htons(ntohs(DNS_Header->Answer) - 1U);
+						}
+					}
+					else {
+						while (DataLength > PACKET_MAXSIZE)
+						{
+							DataLength -= sizeof(dns_record_a);
+							DNS_Header->Answer = htons(ntohs(DNS_Header->Answer) - 1U);
+						}
+					}
+
+				//Copy response to buffer.
+					memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), 0, ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)));
+					memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)), HostsTableIter.Response.get(), DataLength - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)));
+
+				//Hosts load balancing
+					if (ntohs(DNS_Header->Answer) > U16_NUM_ONE)
+					{
+						std::shared_ptr<dns_record_a> DNS_A_Temp(new dns_record_a());
+						memset(DNS_A_Temp.get(), 0, sizeof(dns_record_a));
+
+					//Select a ramdom preferred result.
+						std::uniform_int_distribution<int> RamdomDistribution(0, ntohs(DNS_Header->Answer) - 1U);
+						size_t RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+						if (RamdomIndex > 0)
+						{
+							memcpy_s(DNS_A_Temp.get(), sizeof(dns_record_a), Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), sizeof(dns_record_a));
+							memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), 0, sizeof(dns_record_a));
+							memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)), Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_a) * RamdomIndex, sizeof(dns_record_a));
+							memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_a) * RamdomIndex, 0, sizeof(dns_record_a));
+							memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + sizeof(dns_record_a) * RamdomIndex, sizeof(dns_record_a), DNS_A_Temp.get(), sizeof(dns_record_a));
+						}
+					}
+*/
+				//Set header flags and convert DNS query to DNS response packet.
+//					DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
+					DNS_Header->Flags = htons(DNS_SQR_NE);
+					DataLength = DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry);
+					memset(Result + DataLength, 0, ResultSize - DataLength);
+
+				//Hosts load balancing
+					if (HostsTableIter.AddrList.size() > 1U)
+					{
+						std::uniform_int_distribution<int> RamdomDistribution(0, (int)(HostsTableIter.AddrList.size() - 1U));
+						RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+					}
+
+				//Make response.
+					for (Index = 0;Index < HostsTableIter.AddrList.size();++Index)
+					{
+					//Make resource records.
+						DNS_Record = (pdns_record_a)(Result + DataLength);
+						DataLength += sizeof(dns_record_a);
+						((pdns_record_a)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
+						((pdns_record_a)DNS_Record)->Classes = htons(DNS_CLASS_IN);
+						((pdns_record_a)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
+						((pdns_record_a)DNS_Record)->Type = htons(DNS_RECORD_A);
+						((pdns_record_a)DNS_Record)->Length = htons(sizeof(in_addr));
+						if (Index == 0)
+							((pdns_record_a)DNS_Record)->Addr = HostsTableIter.AddrList.at(RamdomIndex).IPv4.sin_addr;
+						else if (Index == RamdomIndex)
+							((pdns_record_a)DNS_Record)->Addr = HostsTableIter.AddrList.at(0).IPv4.sin_addr;
+						else 
+							((pdns_record_a)DNS_Record)->Addr = HostsTableIter.AddrList.at(Index).IPv4.sin_addr;
+
+					//Hosts items length check
+						if ((Parameter.EDNS_Label || DNS_Header->Additional > 0) && DataLength + sizeof(dns_record_a) + EDNS_ADDITIONAL_MAXSIZE >= ResultSize || //EDNS Label
+							DataLength + sizeof(dns_record_a) >= ResultSize) //Normal query
+						{
+							++Index;
+							break;
+						}
+					}
+
+				//Set DNS counts and EDNS Label
+					DNS_Header->Answer = htons((uint16_t)Index);
+					DNS_Header->Authority = 0;
+					if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
+					{
+						DNS_Header->Additional = 0;
+						DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, nullptr);
+					}
+
+					return DataLength;
+				}
+			}
+		}
+
+	//Local Hosts
+		if (IsLocal != nullptr)
+		{
+			for (auto HostsTableIter:HostsFileSetIter.HostsList_Local)
+			{
+				if (std::regex_match(Domain, HostsTableIter.Pattern))
+				{
+				//Check white and banned hosts list.
+					DataLength = CheckWhiteBannedHostsProcess(Length, HostsTableIter, DNS_Header, DNS_Query, IsLocal);
+					if (DataLength >= DNS_PACKET_MINSIZE)
+						return DataLength;
+
+				//IsLocal flag setting
+					*IsLocal = true;
+					goto StopLoop;
 				}
 			}
 		}
@@ -1203,7 +1322,7 @@ bool __fastcall MarkDomainCache(
 		for (size_t Index = 0;Index < (size_t)ntohs(DNS_Header->Answer);++Index)
 		{
 		//Pointer check
-			if (DataLength + sizeof(uint16_t) < Length && (unsigned char)Buffer[DataLength] >= DNS_POINTER_BITS)
+			if (DataLength + sizeof(uint16_t) < Length && (uint8_t)Buffer[DataLength] >= DNS_POINTER_8_BITS)
 			{
 				DNS_Pointer = ntohs(*(uint16_t *)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
 				if (DNS_Pointer >= Length || DNS_Pointer < sizeof(dns_hdr) || DNS_Pointer == DataLength || DNS_Pointer == DataLength + 1U)
@@ -1269,12 +1388,10 @@ bool __fastcall MarkDomainCache(
 	}
 
 //Mark to global list.
-	if (DNSQueryToChar(Buffer + sizeof(dns_hdr), DNSCacheDataTemp.Response.get()) > DOMAIN_MINSIZE)
+	if (DNSQueryToChar(Buffer + sizeof(dns_hdr), DNSCacheDataTemp.Domain) > DOMAIN_MINSIZE)
 	{
 	//Domain Case Conversion
-		CaseConvert(false, DNSCacheDataTemp.Response.get(), strnlen_s(DNSCacheDataTemp.Response.get(), DOMAIN_MAXSIZE));
-		DNSCacheDataTemp.Domain = DNSCacheDataTemp.Response.get();
-		memset(DNSCacheDataTemp.Response.get(), 0, DOMAIN_MAXSIZE);
+		CaseConvert(false, DNSCacheDataTemp.Domain);
 		memcpy_s(DNSCacheDataTemp.Response.get(), PACKET_MAXSIZE, Buffer + sizeof(uint16_t), Length - sizeof(uint16_t));
 		DNSCacheDataTemp.Length = Length - sizeof(uint16_t);
 

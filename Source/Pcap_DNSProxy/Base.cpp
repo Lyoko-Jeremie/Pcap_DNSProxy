@@ -79,7 +79,7 @@ uint64_t __fastcall hton64(
 	_In_ const uint64_t Value)
 {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-	return (((uint64_t)htonl((int32_t)((Value << 32U) >> 32U))) << 32U) | (uint32_t)htonl((int32_t)(Value >> 32U));
+	return (((uint64_t)htonl((int32_t)((Value << (sizeof(uint32_t) * BYTES_TO_BITS)) >> (sizeof(uint32_t) * BYTES_TO_BITS)))) << (sizeof(uint32_t) * BYTES_TO_BITS)) | (uint32_t)htonl((int32_t)(Value >> (sizeof(uint32_t) * BYTES_TO_BITS)));
 #else //BIG_ENDIAN
 	return Value;
 #endif
@@ -90,7 +90,7 @@ uint64_t __fastcall hton64(
 uint64_t __fastcall ntoh64(const uint64_t Value)
 {
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-	return (((uint64_t)ntohl((int32_t)((Value << 32U) >> 32U))) << 32U) | (uint32_t)ntohl((int32_t)(Value >> 32U));
+	return (((uint64_t)ntohl((int32_t)((Value << (sizeof(uint32_t) * BYTES_TO_BITS)) >> (sizeof(uint32_t) * BYTES_TO_BITS)))) << (sizeof(uint32_t) * BYTES_TO_BITS)) | (uint32_t)ntohl((int32_t)(Value >> (sizeof(uint32_t) * BYTES_TO_BITS)));
 #else //BIG_ENDIAN
 	return Value;
 #endif
@@ -170,16 +170,16 @@ void __fastcall CaseConvert(
 
 //Sort compare(IPFilter)
 bool __fastcall SortCompare_IPFilter(
-	_In_ const DIFFERNET_IPFILTER_FILE_SET &Begin, 
-	_In_ const DIFFERNET_IPFILTER_FILE_SET &End)
+	_In_ const DIFFERNET_FILE_SET_IPFILTER &Begin, 
+	_In_ const DIFFERNET_FILE_SET_IPFILTER &End)
 {
 	return Begin.FileIndex < End.FileIndex;
 }
 
 //Sort compare(Hosts)
 bool __fastcall SortCompare_Hosts(
-	_In_ const DIFFERNET_HOSTS_FILE_SET &Begin, 
-	_In_ const DIFFERNET_HOSTS_FILE_SET &End)
+	_In_ const DIFFERNET_FILE_SET_HOSTS &Begin, 
+	_In_ const DIFFERNET_FILE_SET_HOSTS &End)
 {
 	return Begin.FileIndex < End.FileIndex;
 }
@@ -237,7 +237,7 @@ size_t __fastcall Base64_Encode(
 		Output[Index[1U]++] = BASE64_PAD;
 	}
 
-	return strnlen_s((char *)Output, OutputSize);
+	return strnlen_s(Output, OutputSize);
 }
 
 /* Base64 decode
@@ -259,7 +259,7 @@ size_t __fastcall Base64_Decode(
 		StringIter = 0;
 		Index[2U] = Index[0] % 4U;
 		if (Input[Index[0]] == '=')
-			return strnlen_s((char *)Output, OutputSize);
+			return strnlen_s(Output, OutputSize);
 		if (Input[Index[0]] < BASE64_DE_FIRST || Input[Index[0]] > BASE64_DE_LAST || (StringIter = GlobalRunningStatus.Base64_DecodeTable[Input[Index[0]] - BASE64_DE_FIRST]) == -1)
 			return 0;
 		switch (Index[2U])
@@ -294,7 +294,7 @@ size_t __fastcall Base64_Decode(
 		}
 	}
 
-	return strnlen_s((char *)Output, OutputSize);
+	return strnlen_s(Output, OutputSize);
 }
 */
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))

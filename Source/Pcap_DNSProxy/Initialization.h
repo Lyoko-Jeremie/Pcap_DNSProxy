@@ -27,8 +27,8 @@ ALTERNATE_SWAP_TABLE AlternateSwapList;
 	DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
 #endif
 std::vector<FILE_DATA> FileList_Config, FileList_IPFilter, FileList_Hosts;
-std::vector<DIFFERNET_IPFILTER_FILE_SET> IPFilterFileSet[2U], *IPFilterFileSetUsing = &IPFilterFileSet[0], *IPFilterFileSetModificating = &IPFilterFileSet[1U];
-std::vector<DIFFERNET_HOSTS_FILE_SET> HostsFileSet[2U], *HostsFileSetUsing = &HostsFileSet[0], *HostsFileSetModificating = &HostsFileSet[1U];
+std::vector<DIFFERNET_FILE_SET_IPFILTER> IPFilterFileSet[2U], *IPFilterFileSetUsing = &IPFilterFileSet[0], *IPFilterFileSetModificating = &IPFilterFileSet[1U];
+std::vector<DIFFERNET_FILE_SET_HOSTS> HostsFileSet[2U], *HostsFileSetUsing = &HostsFileSet[0], *HostsFileSetModificating = &HostsFileSet[1U];
 #if defined(ENABLE_PCAP)
 	std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
 #endif

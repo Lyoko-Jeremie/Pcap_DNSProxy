@@ -172,7 +172,6 @@
 //Preprocessor definitions
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_MACX))
 	#define ENABLE_LIBSODIUM       //LibSodium is always enable in Windows and Mac OS X.
-	#define SODIUM_STATIC          //LibSodium static linking always enable in Windows and Mac OS X
 #endif
 
 //C Standard Library and C++ Standard Template Library/STL headers
@@ -190,6 +189,7 @@
 	#include <windows.h>               //Master include file in Windows
 
 //LibSodium header and static libraries
+	#define SODIUM_STATIC              //LibSodium static linking always enable in Windows and Mac OS X
 	#include "..\\LibSodium\\sodium.h"
 	#if defined(PLATFORM_WIN64)
 		#pragma comment(lib, "..\\LibSodium\\LibSodium_x64.lib")
