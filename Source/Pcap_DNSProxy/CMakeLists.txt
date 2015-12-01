@@ -83,7 +83,7 @@ ENDIF(ENABLE_LIBSODIUM)
 # Link to static libraries if needed
 IF(STATIC_LIB)
 	SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -pthread -Wl,--whole-archive -lpthread -Wl,--no-whole-archive")
+	SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -static-libgcc -static-libstdc++  -ldl -pthread -Wl,--whole-archive -lpthread -Wl,--no-whole-archive")
 ENDIF(STATIC_LIB)
 
 # Executable file name
