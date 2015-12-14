@@ -52,13 +52,6 @@ int main(
 	{
 		DNSCurveParameterModificating.SetToMonitorItem();
 
-	//Libsodium initialization
-		if (sodium_init() == LIBSODIUM_ERROR)
-		{
-			PrintError(LOG_ERROR_DNSCURVE, L"Libsodium initialization error", 0, nullptr, 0);
-			return EXIT_FAILURE;
-		}
-
 	//Encryption mode initialization
 		if (DNSCurveParameter.IsEncryption)
 			DNSCurveInit();
@@ -67,15 +60,15 @@ int main(
 
 //Mark Local DNS address to PTR Records, read Parameter(Monitor mode), IPFilter and Hosts.
 	ParameterModificating.SetToMonitorItem();
-	std::thread NetworkInformationMonitorThread(NetworkInformationMonitor);
-	std::thread ReadParameterThread(ReadParameter, false);
-	std::thread ReadHostsThread(ReadHosts);
+	std::thread NetworkInformationMonitorThread(std::bind(NetworkInformationMonitor));
+	std::thread ReadParameterThread(std::bind(ReadParameter, false));
+	std::thread ReadHostsThread(std::bind(ReadHosts));
 	NetworkInformationMonitorThread.detach();
 	ReadParameterThread.detach();
 	ReadHostsThread.detach();
 	if (Parameter.OperationMode == LISTEN_MODE_CUSTOM || Parameter.DataCheck_Blacklist || Parameter.LocalRouting)
 	{
-		std::thread ReadIPFilterThread(ReadIPFilter);
+		std::thread ReadIPFilterThread(std::bind(ReadIPFilter));
 		ReadIPFilterThread.detach();
 	}
 
@@ -130,7 +123,7 @@ bool ReadCommand(
 
 //Winsock initialization
 #if defined(PLATFORM_WIN)
-	std::shared_ptr<WSAData> WSAInitialization(new WSAData());
+	auto WSAInitialization = std::make_shared<WSAData>();
 	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), WSAInitialization.get()) != 0 || 
 		LOBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_HIGH)
 	{
@@ -344,7 +337,7 @@ bool __fastcall FirewallTest(
 	_In_ const uint16_t Protocol)
 {
 //Initialization
-	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
+	auto SockAddr = std::make_shared<sockaddr_storage>();
 	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
 	SYSTEM_SOCKET FirewallSocket = 0;
 

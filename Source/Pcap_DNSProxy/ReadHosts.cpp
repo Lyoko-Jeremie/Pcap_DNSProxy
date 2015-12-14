@@ -389,7 +389,7 @@ bool __fastcall ReadAddressHostsData(
 
 //Initialization
 	ADDRESS_HOSTS_TABLE AddressHostsTableTemp;
-	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
+	auto SockAddr = std::make_shared<sockaddr_storage>();
 	std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
 	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
 	memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
@@ -639,70 +639,11 @@ bool __fastcall ReadMainHostsData(
 	}
 
 //Response initialization
-/* Old version(2015-11-17)
-	std::shared_ptr<char> BufferHostsTableTemp(new char[PACKET_MAXSIZE]());
-	memset(BufferHostsTableTemp.get(), 0, PACKET_MAXSIZE);
-	HostsTableTemp.Response.swap(BufferHostsTableTemp);
-	BufferHostsTableTemp.reset();
-	void *DNS_Record = nullptr;
-*/
-	std::shared_ptr<ADDRESS_UNION_DATA> AddressUnionDataTemp(new ADDRESS_UNION_DATA());
+	auto AddressUnionDataTemp = std::make_shared<ADDRESS_UNION_DATA>();
 	std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
 	SSIZE_T Result = 0;
 
 //Mark all data in list.
-/* Old version(2015-11-17)
-	for (auto StringIter:ListData)
-	{
-	//AAAA records(IPv6)
-		if (StringIter.find(ASCII_COLON) != std::string::npos)
-		{
-			DNS_Record = (pdns_record_aaaa)(HostsTableTemp.Response.get() + HostsTableTemp.Length);
-
-		//Convert addresses.
-			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-			memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.length());
-			if (!AddressStringToBinary(Addr.get(), AF_INET6, &((pdns_record_aaaa)DNS_Record)->Addr, &Result))
-			{
-				PrintError(LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
-				return false;
-			}
-
-		//Make responses.
-			((pdns_record_aaaa)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
-			((pdns_record_aaaa)DNS_Record)->Classes = htons(DNS_CLASS_IN);
-			((pdns_record_aaaa)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
-			((pdns_record_aaaa)DNS_Record)->Type = htons(DNS_RECORD_AAAA);
-			((pdns_record_aaaa)DNS_Record)->Length = htons(sizeof(in6_addr));
-
-		//Add to global list.
-			HostsTableTemp.Length += sizeof(dns_record_aaaa);
-		}
-	//A records(IPv4)
-		else {
-			DNS_Record = (pdns_record_a)(HostsTableTemp.Response.get() + HostsTableTemp.Length);
-
-		//Convert addresses.
-			memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-			memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.length());
-			if (!AddressStringToBinary(Addr.get(), AF_INET, &((pdns_record_a)DNS_Record)->Addr, &Result))
-			{
-				PrintError(LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
-				return false;
-			}
-
-		//Make responses.
-			((pdns_record_a)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
-			((pdns_record_a)DNS_Record)->Classes = htons(DNS_CLASS_IN);
-			((pdns_record_a)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
-			((pdns_record_a)DNS_Record)->Type = htons(DNS_RECORD_A);
-			((pdns_record_a)DNS_Record)->Length = htons(sizeof(in_addr));
-
-		//Add to global list.
-			HostsTableTemp.Length += sizeof(dns_record_a);
-		}
-	}
-*/
 	for (auto StringIter:ListData)
 	{
 		memset(AddressUnionDataTemp.get(), 0, sizeof(ADDRESS_UNION_DATA));

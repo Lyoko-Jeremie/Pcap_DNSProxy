@@ -127,7 +127,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 3: Start service - 启动工具的服务
   * 4: Stop service - 停止工具的服务
   * 5: Restart service - 重启工具的服务
-  * 6: Flush DNS cache in Pcap_DNSProxy - 刷新程序的内部 DNS 缓存
+  * 6: Flush DNS cache in Pcap_DNSProxy - 刷新程序的内部和系统 DNS 的缓存
+  * 7: Flush DNS cache in system only - 刷新系统的 DNS 缓存
+  * 8: Exit - 退出
 * 配置文件支持的文件名（只会读取优先级较高者，优先级较低者将被直接忽略）：
   * Windows: Config.ini > Config.conf > Config.cfg > Config
   * Linux/Mac: Config.conf > Config.ini > Config.cfg > Config
@@ -145,7 +147,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 
 特别使用技巧：
-这里罗列出部分作者建议的介绍和使用技巧，供大家参考和使用。关于调整配置，参见下文 配置文件详细参数说明 一节
+这里罗列出部分项目组建议的介绍和使用技巧，供大家参考和使用。关于调整配置，参见下文 配置文件详细参数说明 一节
 
 * DNS 缓存类型
   * Timer/计时型：可以自定义缓存的时间长度，队列长度不限
@@ -718,7 +720,6 @@ Hosts 文件格式说明：
 
 Hosts 配置文件分为多个提供不同功能的区域
 * 区域通过标签识别，修改时切勿将其删除
-* 优先级：Local Hosts/境内DNS解析域名列表 > Hosts/主要Hosts列表，Whitelist/白名单条目 和 Banned/黑名单条目 的优先级由位置决定，参见下文详细说明
 * 一条条目的总长度切勿超过 4096字节/4KB
 * 需要注释请在条目开头添加 #/井号
 * 优先级别自上而下递减，条目越前优先级越高

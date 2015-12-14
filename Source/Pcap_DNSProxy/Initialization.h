@@ -32,7 +32,7 @@ std::vector<DIFFERNET_FILE_SET_HOSTS> HostsFileSet[2U], *HostsFileSetUsing = &Ho
 #if defined(ENABLE_PCAP)
 	std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
 #endif
-std::deque<DNSCACHE_DATA> DNSCacheList;
+std::deque<DNS_CACHE_DATA> DNSCacheList;
 std::mutex ErrorLogLock, CaptureLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], DNSCacheListLock, IPFilterFileLock, HostsFileLock;
 #if defined(ENABLE_PCAP)
 	std::mutex OutputPacketListLock;
@@ -43,5 +43,7 @@ void __fastcall ConfigurationTableSetting(
 	_Inout_ ConfigurationTable *ConfigurationParameter);
 void __fastcall GlobalStatusSetting(
 	_Inout_ GlobalStatus *GlobalRunningStatusParameter);
+#if defined(ENABLE_LIBSODIUM)
 void __fastcall DNSCurveConfigurationTableSetting(
 	_Inout_ DNSCurveConfigurationTable *DNSCurveConfigurationParameter);
+#endif

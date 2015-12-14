@@ -41,7 +41,7 @@ bool __fastcall MonitorInit(
 		)
 	{
 	#if defined(ENABLE_PCAP)
-		std::thread CaptureInitializationThread(CaptureInit);
+		std::thread CaptureInitializationThread(std::bind(CaptureInit));
 		CaptureInitializationThread.detach();
 	#endif
 
@@ -50,7 +50,7 @@ bool __fastcall MonitorInit(
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 		{
-			std::thread IPv6TestDoaminThread(DomainTestRequest, AF_INET6);
+			std::thread IPv6TestDoaminThread(std::bind(DomainTestRequest, AF_INET6));
 			IPv6TestDoaminThread.detach();
 		}
 
@@ -58,7 +58,7 @@ bool __fastcall MonitorInit(
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 		{
-			std::thread IPv4TestDoaminThread(DomainTestRequest, AF_INET);
+			std::thread IPv4TestDoaminThread(std::bind(DomainTestRequest, AF_INET));
 			IPv4TestDoaminThread.detach();
 		}
 
@@ -68,7 +68,7 @@ bool __fastcall MonitorInit(
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 		{
-			std::thread ICMPv6Thread(ICMPTestRequest, AF_INET6);
+			std::thread ICMPv6Thread(std::bind(ICMPTestRequest, AF_INET6));
 			ICMPv6Thread.detach();
 		}
 
@@ -77,7 +77,7 @@ bool __fastcall MonitorInit(
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 		{
-			std::thread ICMPThread(ICMPTestRequest, AF_INET);
+			std::thread ICMPThread(std::bind(ICMPTestRequest, AF_INET));
 			ICMPThread.detach();
 		}
 	}
@@ -91,12 +91,12 @@ bool __fastcall MonitorInit(
 	#endif
 		) || Parameter.DNSTarget.Alternate_Local_IPv6.Storage.ss_family > 0 || Parameter.DNSTarget.Alternate_Local_IPv4.Storage.ss_family > 0)
 	{
-		std::thread AlternateServerMonitorThread(AlternateServerMonitor);
+		std::thread AlternateServerMonitorThread(std::bind(AlternateServerMonitor));
 		AlternateServerMonitorThread.detach();
 	}
 
 //Initialization
-	std::shared_ptr<SOCKET_DATA> LocalSocketData(new SOCKET_DATA());
+	auto LocalSocketData = std::make_shared<SOCKET_DATA>();
 	memset(LocalSocketData.get(), 0, sizeof(SOCKET_DATA));
 	std::vector<std::thread> MonitorThread((Parameter.ListenPort->size() + 1U) * TRANSPORT_LAYER_PARTNUM);
 	size_t MonitorThreadIndex = 0;
@@ -135,7 +135,7 @@ bool __fastcall MonitorInit(
 						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_port = ((PSOCKADDR_IN6)&ListenAddressIter)->sin6_port;
 
 					//Add to global thread list.
-						std::thread MonitorThreadTemp(UDPMonitor, *LocalSocketData);
+						std::thread MonitorThreadTemp(std::bind(UDPMonitor, *LocalSocketData));
 						MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 						++MonitorThreadIndex;
 						LocalSocketData->Socket = 0;
@@ -166,7 +166,7 @@ bool __fastcall MonitorInit(
 							((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_port = ListenPortIter;
 
 						//Add to global thread list.
-							std::thread MonitorThreadTemp(UDPMonitor, *LocalSocketData);
+							std::thread MonitorThreadTemp(std::bind(UDPMonitor, *LocalSocketData));
 							MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 							++MonitorThreadIndex;
 							LocalSocketData->Socket = 0;
@@ -210,7 +210,7 @@ bool __fastcall MonitorInit(
 						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_port = ((PSOCKADDR_IN6)&ListenAddressIter)->sin6_port;
 
 					//Add to global thread list.
-						std::thread MonitorThreadTemp(TCPMonitor, *LocalSocketData);
+						std::thread MonitorThreadTemp(std::bind(TCPMonitor, *LocalSocketData));
 						MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 						++MonitorThreadIndex;
 						LocalSocketData->Socket = 0;
@@ -241,7 +241,7 @@ bool __fastcall MonitorInit(
 							((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_port = ListenPortIter;
 
 						//Add to global thread list.
-							std::thread MonitorThreadTemp(TCPMonitor, *LocalSocketData);
+							std::thread MonitorThreadTemp(std::bind(TCPMonitor, *LocalSocketData));
 							MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 							++MonitorThreadIndex;
 							LocalSocketData->Socket = 0;
@@ -284,7 +284,7 @@ bool __fastcall MonitorInit(
 						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_port = ((PSOCKADDR_IN)&ListenAddressIter)->sin_port;
 
 					//Add to global thread list.
-						std::thread MonitorThreadTemp(UDPMonitor, *LocalSocketData);
+						std::thread MonitorThreadTemp(std::bind(UDPMonitor, *LocalSocketData));
 						MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 						++MonitorThreadIndex;
 						LocalSocketData->Socket = 0;
@@ -315,7 +315,7 @@ bool __fastcall MonitorInit(
 							((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_port = ListenPortIter;
 
 						//Add to global thread list.
-							std::thread MonitorThreadTemp(UDPMonitor, *LocalSocketData);
+							std::thread MonitorThreadTemp(std::bind(UDPMonitor, *LocalSocketData));
 							MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 							++MonitorThreadIndex;
 							LocalSocketData->Socket = 0;
@@ -355,7 +355,7 @@ bool __fastcall MonitorInit(
 						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_port = ((PSOCKADDR_IN)&ListenAddressIter)->sin_port;
 
 					//Add to global thread list.
-						std::thread MonitorThreadTemp(TCPMonitor, *LocalSocketData);
+						std::thread MonitorThreadTemp(std::bind(TCPMonitor, *LocalSocketData));
 						MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 						++MonitorThreadIndex;
 						LocalSocketData->Socket = 0;
@@ -386,7 +386,7 @@ bool __fastcall MonitorInit(
 							((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_port = ListenPortIter;
 
 						//Add to global thread list.
-							std::thread InnerMonitorThreadTemp(TCPMonitor, *LocalSocketData);
+							std::thread InnerMonitorThreadTemp(std::bind(TCPMonitor, *LocalSocketData));
 							MonitorThread.at(MonitorThreadIndex).swap(InnerMonitorThreadTemp);
 							++MonitorThreadIndex;
 							LocalSocketData->Socket = 0;
@@ -401,11 +401,11 @@ bool __fastcall MonitorInit(
 
 #if defined(PLATFORM_WIN)
 //Set MailSlot Monitor.
-	std::thread FlushDNSMailSlotMonitorThread(FlushDNSMailSlotMonitor);
+	std::thread FlushDNSMailSlotMonitorThread(std::bind(FlushDNSMailSlotMonitor));
 	FlushDNSMailSlotMonitorThread.detach();
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Set FIFO Monitor.
-	std::thread FlushDNSFIFOMonitorThread(FlushDNSFIFOMonitor);
+	std::thread FlushDNSFIFOMonitorThread(std::bind(FlushDNSFIFOMonitor));
 	FlushDNSFIFOMonitorThread.detach();
 #endif
 
@@ -444,17 +444,21 @@ bool __fastcall UDPMonitor(
 	}
 
 //Initialization
-	std::shared_ptr<SOCKET_DATA> ClientData(new SOCKET_DATA());
+	auto ClientData = std::make_shared<SOCKET_DATA>();
+	auto Packet = std::make_shared<DNS_PACKET_DATA>();
 	std::shared_ptr<char> RecvBuffer(new char[PACKET_MAXSIZE * Parameter.BufferQueueSize]());
 	std::shared_ptr<char> SendBuffer(new char[PACKET_MAXSIZE]());
-	std::shared_ptr<fd_set> ReadFDS(new fd_set());
-	std::shared_ptr<timeval> OriginalTimeout(new timeval()), Timeout(new timeval());
+	auto ReadFDS = std::make_shared<fd_set>();
+	auto OriginalTimeout = std::make_shared<timeval>(), Timeout = std::make_shared<timeval>();
 	memset(ClientData.get(), 0, sizeof(SOCKET_DATA));
+	memset(Packet.get(), 0, sizeof(DNS_PACKET_DATA));
 	memset(RecvBuffer.get(), 0, PACKET_MAXSIZE * Parameter.BufferQueueSize);
 	memset(SendBuffer.get(), 0, PACKET_MAXSIZE);
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(OriginalTimeout.get(), 0, sizeof(timeval));
 	memset(Timeout.get(), 0, sizeof(timeval));
+	Packet->BufferSize = PACKET_MAXSIZE;
+	Packet->Protocol = IPPROTO_UDP;
 #if defined(PLATFORM_WIN)
 	OriginalTimeout->tv_sec = Parameter.SocketTimeout_Unreliable / SECOND_TO_MILLISECOND;
 	OriginalTimeout->tv_usec = Parameter.SocketTimeout_Unreliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -476,7 +480,6 @@ bool __fastcall UDPMonitor(
 	}
 	SSIZE_T SelectResult = 0, RecvLen = 0;
 	size_t Index = 0;
-	auto IsLocal = false;
 
 //Listening module
 	for (;;)
@@ -513,7 +516,6 @@ bool __fastcall UDPMonitor(
 		memcpy_s(ClientData.get(), sizeof(SOCKET_DATA), &LocalSocketData, sizeof(SOCKET_DATA));
 		FD_ZERO(ReadFDS.get());
 		FD_SET(ClientData->Socket, ReadFDS.get());
-		IsLocal = false;
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
@@ -535,13 +537,17 @@ bool __fastcall UDPMonitor(
 					continue;
 				}
 				else {
-					RecvLen = CheckQueryData(RecvBuffer.get() + PACKET_MAXSIZE * Index, SendBuffer.get(), RecvLen, *ClientData, IPPROTO_UDP, &IsLocal);
-					if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+					Packet->Buffer = RecvBuffer.get() + PACKET_MAXSIZE * Index;
+					Packet->Length = RecvLen;
+					Packet->IsLocal = false;
+
+				//Check DNS query data.
+					if (!CheckQueryData(Packet.get(), SendBuffer.get(), PACKET_MAXSIZE, *ClientData))
 						continue;
 				}
 
 			//Request process
-				std::thread RequestProcessThread(EnterRequestProcess, RecvBuffer.get() + PACKET_MAXSIZE * Index, RecvLen, *ClientData, IPPROTO_UDP, IsLocal);
+				std::thread RequestProcessThread(std::bind(EnterRequestProcess, *Packet, *ClientData));
 				RequestProcessThread.detach();
 				Index = (Index + 1U) % Parameter.BufferQueueSize;
 			}
@@ -603,9 +609,9 @@ bool __fastcall TCPMonitor(
 	}
 
 //Initialization
-	std::shared_ptr<SOCKET_DATA> ClientData(new SOCKET_DATA());
-	std::shared_ptr<fd_set> ReadFDS(new fd_set());
-	std::shared_ptr<timeval> OriginalTimeout(new timeval()), Timeout(new timeval());
+	auto ClientData = std::make_shared<SOCKET_DATA>();
+	auto ReadFDS = std::make_shared<fd_set>();
+	auto OriginalTimeout = std::make_shared<timeval>(), Timeout = std::make_shared<timeval>();
 	memset(ClientData.get(), 0, sizeof(SOCKET_DATA));
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(OriginalTimeout.get(), 0, sizeof(timeval));
@@ -679,11 +685,13 @@ bool __fastcall TCPMonitor(
 		{
 			if (FD_ISSET(LocalSocketData.Socket, ReadFDS.get()))
 			{
-			//Accept connection and check address.
+			//Accept connection
 				ClientData->Socket = accept(LocalSocketData.Socket, (PSOCKADDR)&ClientData->SockAddr, &ClientData->AddrLen);
 				if (ClientData->Socket == INVALID_SOCKET)
 					continue;
-				if (CheckQueryData(nullptr, nullptr, 0, *ClientData, IPPROTO_TCP, nullptr) != EXIT_SUCCESS)
+
+			//Check request address.
+				if (!CheckQueryData(nullptr, nullptr, 0, *ClientData))
 				{
 					shutdown(ClientData->Socket, SD_BOTH);
 					closesocket(ClientData->Socket);
@@ -691,7 +699,7 @@ bool __fastcall TCPMonitor(
 				}
 
 			//Accept process.
-				std::thread TCPReceiveThread(TCPReceiveProcess, *ClientData);
+				std::thread TCPReceiveThread(std::bind(TCPReceiveProcess, *ClientData));
 				TCPReceiveThread.detach();
 				Index = (Index + 1U) % Parameter.BufferQueueSize;
 			}
@@ -723,13 +731,12 @@ bool __fastcall TCPReceiveProcess(
 {
 //Initialization(Part 1)
 	std::shared_ptr<char> RecvBuffer(new char[LARGE_PACKET_MAXSIZE]());
-	std::shared_ptr<fd_set> ReadFDS(new fd_set());
-	std::shared_ptr<timeval> Timeout(new timeval());
+	auto ReadFDS = std::make_shared<fd_set>();
+	auto Timeout = std::make_shared<timeval>();
 	memset(RecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(Timeout.get(), 0, sizeof(timeval));
 	SSIZE_T RecvLen = 0;
-	auto IsLocal = false;
 
 //Receive process
 #if defined(PLATFORM_WIN)
@@ -799,7 +806,7 @@ bool __fastcall TCPReceiveProcess(
 			else 
 				RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get() + Length, (int)(LARGE_PACKET_MAXSIZE - Length), 0);
 
-		//Packet length check
+		//Receive length check
 			if (RecvLen > 0)
 			{
 				RecvLen += Length;
@@ -819,14 +826,20 @@ bool __fastcall TCPReceiveProcess(
 		}
 	}
 
-//Packet length check
+//Length check
 	Length = ntohs(((uint16_t *)RecvBuffer.get())[0]);
 	if (RecvLen >= (SSIZE_T)Length && Length >= DNS_PACKET_MINSIZE)
 	{
+		auto Packet = std::make_shared<DNS_PACKET_DATA>();
+		memset(Packet.get(), 0, sizeof(DNS_PACKET_DATA));
+		Packet->Buffer = RecvBuffer.get() + sizeof(uint16_t);
+		Packet->BufferSize = LARGE_PACKET_MAXSIZE;
+		Packet->Length = Length;
+		Packet->Protocol = IPPROTO_TCP;
+
 	//Check DNS query data.
 		std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
-		Length = CheckQueryData(RecvBuffer.get() + sizeof(uint16_t), SendBuffer.get(), Length, LocalSocketData, IPPROTO_TCP, &IsLocal);
-		if (Length < DNS_PACKET_MINSIZE)
+		if (!CheckQueryData(Packet.get(), SendBuffer.get(), LARGE_PACKET_MAXSIZE, LocalSocketData))
 		{
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);
@@ -837,7 +850,7 @@ bool __fastcall TCPReceiveProcess(
 		}
 		
 	//Main request process
-		EnterRequestProcess(RecvBuffer.get() + sizeof(uint16_t), Length, LocalSocketData, IPPROTO_TCP, IsLocal);
+		EnterRequestProcess(*Packet, LocalSocketData);
 	}
 	else {
 		shutdown(LocalSocketData.Socket, SD_BOTH);
@@ -935,7 +948,7 @@ addrinfo * __fastcall GetLocalAddressList(
 	_Out_ char *HostName)
 {
 //Initialization
-	std::shared_ptr<addrinfo> Hints(new addrinfo());
+	auto Hints = std::make_shared<addrinfo>();
 	memset(Hints.get(), 0, sizeof(addrinfo));
 	addrinfo *Result = nullptr;
 	if (Protocol == AF_INET6) //IPv6
@@ -974,7 +987,7 @@ bool GetBestInterfaceAddress(
 	const sockaddr_storage *OriginalSockAddr)
 {
 //Initialization
-	std::shared_ptr<sockaddr_storage> SockAddr(new sockaddr_storage());
+	auto SockAddr = std::make_shared<sockaddr_storage>();
 	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
 	SockAddr->ss_family = Protocol;
 	SOCKET InterfaceSocket = socket(Protocol, SOCK_DGRAM, IPPROTO_UDP);
@@ -1247,7 +1260,7 @@ void __fastcall NetworkInformationMonitor(
 			//Mark local addresses(A part).
 				DNS_Header = (pdns_hdr)GlobalRunningStatus.LocalAddress_Response[0];
 				DNS_Header->Flags = htons(DNS_SQR_NEA);
-				DNS_Header->Questions = htons(U16_NUM_ONE);
+				DNS_Header->Question = htons(U16_NUM_ONE);
 				GlobalRunningStatus.LocalAddress_Length[0] += sizeof(dns_hdr);
 				memcpy_s(GlobalRunningStatus.LocalAddress_Response[0] + GlobalRunningStatus.LocalAddress_Length[0], PACKET_MAXSIZE - GlobalRunningStatus.LocalAddress_Length[0], Parameter.LocalFQDN_Response, Parameter.LocalFQDN_Length);
 				GlobalRunningStatus.LocalAddress_Length[0] += Parameter.LocalFQDN_Length;
@@ -1444,7 +1457,7 @@ void __fastcall NetworkInformationMonitor(
 			//Mark local addresses(A part).
 				DNS_Header = (pdns_hdr)GlobalRunningStatus.LocalAddress_Response[1U];
 				DNS_Header->Flags = htons(DNS_SQR_NEA);
-				DNS_Header->Questions = htons(U16_NUM_ONE);
+				DNS_Header->Question = htons(U16_NUM_ONE);
 				GlobalRunningStatus.LocalAddress_Length[1U] += sizeof(dns_hdr);
 				memcpy_s(GlobalRunningStatus.LocalAddress_Response[1U] + GlobalRunningStatus.LocalAddress_Length[1U], PACKET_MAXSIZE - GlobalRunningStatus.LocalAddress_Length[1U], Parameter.LocalFQDN_Response, Parameter.LocalFQDN_Length);
 				GlobalRunningStatus.LocalAddress_Length[1U] += Parameter.LocalFQDN_Length;

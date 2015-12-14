@@ -30,6 +30,13 @@ extern std::vector<DIFFERNET_FILE_SET_HOSTS> *HostsFileSetUsing, *HostsFileSetMo
 extern std::mutex IPFilterFileLock, HostsFileLock;
 
 //Functions
+size_t __fastcall CheckResponseCNAME(
+	_Inout_ char *Buffer, 
+	_In_ const size_t Length, 
+	_In_ const size_t CNAME_Index, 
+	_In_ const size_t CNAME_Length, 
+	_In_ const size_t BufferSize, 
+	_Out_ size_t &RecordNum);
 bool __fastcall CheckDNSSECRecords(
 	_In_ const char *Buffer, 
 	_In_ const size_t Length, 

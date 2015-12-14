@@ -19,9 +19,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
 1.準備程式編譯環境：編譯前需要使用包管理工具安裝，或者需要自行編譯和安裝依賴庫
   * 依賴工具/庫清單：
     * GCC/g++ 可訪問 https://gcc.gnu.org 獲取
-      * GCC 最低版本要求為 4.7 從此版本開始 GCC 正式支援 C++ 11 標準
-      * GCC 建議最低版本為 4.9.2 從此版本開始 GCC 完整支援 C++ 11 標準，4.9 之前的版本對 C++ 11 標準的實現有問題
-      * GCC 當前版本可使用 gcc --version 查看
+      * GCC 建議最低版本為 4.9 從此版本開始 GCC 完整支援 C++ 11 標準，4.9 之前的版本對 C++ 11 標準的實現有問題
+      * GCC 當前版本可使用 gcc --version 查看，使用舊版本 GCC 強行編譯可能會出現無法預料的問題！
     * Bison 可訪問 https://www.gnu.org/software/bison 獲取
     * M4 可訪問 https://www.gnu.org/software/m4 獲取
     * Flex 可訪問 http://flex.sourceforge.net 獲取

@@ -584,7 +584,7 @@ size_t __fastcall SOCKSTCPRequest(
 {
 //Initialization
 	std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
-	std::shared_ptr<SOCKET_DATA> TCPSocketData(new SOCKET_DATA());
+	auto TCPSocketData = std::make_shared<SOCKET_DATA>();
 	memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 	memset(TCPSocketData.get(), 0, sizeof(SOCKET_DATA));
 	memset(OriginalRecv, 0, RecvSize);
@@ -634,8 +634,8 @@ size_t __fastcall SOCKSTCPRequest(
 	}
 
 //Selecting structure setting
-	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
-	std::shared_ptr<timeval> Timeout(new timeval());
+	auto ReadFDS = std::make_shared<fd_set>(), WriteFDS = std::make_shared<fd_set>();
+	auto Timeout = std::make_shared<timeval>();
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
 	memset(Timeout.get(), 0, sizeof(timeval));
@@ -700,7 +700,7 @@ size_t __fastcall SOCKSTCPRequest(
 		memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(uint16_t), RecvLen);
 
 	//Responses check
-		RecvLen = CheckResponseData(OriginalRecv, RecvLen, RecvSize, false, nullptr);
+		RecvLen = CheckResponseData(OriginalRecv, RecvLen, RecvSize, false, false, nullptr);
 		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			return EXIT_FAILURE;
 
@@ -723,13 +723,14 @@ size_t __fastcall SOCKSUDPRequest(
 {
 //Initialization
 	std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
-	std::shared_ptr<SOCKET_DATA> TCPSocketData, UDPSocketData(new SOCKET_DATA()), LocalSocketData;
+	std::shared_ptr<SOCKET_DATA> TCPSocketData, LocalSocketData;
+	auto UDPSocketData = std::make_shared<SOCKET_DATA>();
 	memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 	memset(UDPSocketData.get(), 0, sizeof(SOCKET_DATA));
 	memset(OriginalRecv, 0, RecvSize);
 	if (!Parameter.SOCKS_UDP_NoHandshake)
 	{
-		std::shared_ptr<SOCKET_DATA> TCPSocketDataTemp(new SOCKET_DATA()), LocalSocketDataTemp(new SOCKET_DATA());
+		auto TCPSocketDataTemp = std::make_shared<SOCKET_DATA>(), LocalSocketDataTemp = std::make_shared<SOCKET_DATA>();
 		TCPSocketDataTemp.swap(TCPSocketData);
 		LocalSocketDataTemp.swap(LocalSocketData);
 		memset(TCPSocketData.get(), 0, sizeof(SOCKET_DATA));
@@ -820,8 +821,8 @@ size_t __fastcall SOCKSUDPRequest(
 	}
 
 //Selecting structure setting
-	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
-	std::shared_ptr<timeval> Timeout(new timeval());
+	auto ReadFDS = std::make_shared<fd_set>(), WriteFDS = std::make_shared<fd_set>();
+	auto Timeout = std::make_shared<timeval>();
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
 	memset(Timeout.get(), 0, sizeof(timeval));
@@ -1017,7 +1018,7 @@ size_t __fastcall SOCKSUDPRequest(
 		if (OriginalRecvLen != RecvLen)
 		{
 		//Responses check
-			RecvLen = CheckResponseData(OriginalRecv, RecvLen, RecvSize, false, nullptr);
+			RecvLen = CheckResponseData(OriginalRecv, RecvLen, RecvSize, false, false, nullptr);
 			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 				return EXIT_FAILURE;
 
@@ -1040,7 +1041,7 @@ size_t __fastcall HTTPRequest(
 	_In_ const size_t RecvSize)
 {
 //Initialization
-	std::shared_ptr<SOCKET_DATA> HTTPSocketData(new SOCKET_DATA());
+	auto HTTPSocketData = std::make_shared<SOCKET_DATA>();
 	memset(HTTPSocketData.get(), 0, sizeof(SOCKET_DATA));
 	memset(OriginalRecv, 0, RecvSize);
 
@@ -1089,8 +1090,8 @@ size_t __fastcall HTTPRequest(
 	}
 
 //Selecting structure setting
-	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
-	std::shared_ptr<timeval> Timeout(new timeval());
+	auto ReadFDS = std::make_shared<fd_set>(), WriteFDS = std::make_shared<fd_set>();
+	auto Timeout = std::make_shared<timeval>();
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
 	memset(Timeout.get(), 0, sizeof(timeval));
@@ -1140,7 +1141,7 @@ size_t __fastcall HTTPRequest(
 		memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(uint16_t), RecvLen);
 
 	//Responses check
-		RecvLen = CheckResponseData(OriginalRecv, RecvLen, RecvSize, false, nullptr);
+		RecvLen = CheckResponseData(OriginalRecv, RecvLen, RecvSize, false, false, nullptr);
 		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			return EXIT_FAILURE;
 

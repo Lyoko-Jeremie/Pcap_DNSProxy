@@ -243,9 +243,110 @@
 // Function definitions
 #define crypto_box_keypair crypto_box_curve25519xsalsa20poly1305_keypair
 
-//Functions
+//DNSCurveHeapBufferTable template class
+template<typename Ty> class DNSCurveHeapBufferTable {
+public:
+	Ty                         *Buffer;
+	size_t                     BufferSize;
+
+//Member functions
+	DNSCurveHeapBufferTable(
+		void);
+	DNSCurveHeapBufferTable(
+		const size_t Size);
+	DNSCurveHeapBufferTable(
+		const size_t Count, 
+		const size_t Size);
+	void Swap(
+		DNSCurveHeapBufferTable &Other);
+	~DNSCurveHeapBufferTable(
+		void);
+};
+template<typename Ty> using DNSCURVE_HEAP_BUFFER_TABLE = DNSCurveHeapBufferTable<Ty>;
+
+
+//////////////////////////////////////////////////
+// Main functions
+// 
 void __fastcall CaseConvert(
 	_In_ const bool IsLowerToUpper, 
 	_Inout_ char *Buffer, 
 	_In_ const size_t Length);
+
+
+//////////////////////////////////////////////////
+// Template functions
+// 
+//DNSCurveHeapBufferTable template class constructor
+//DNSCurveHeapBufferTable template class constructor
+template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
+	void)
+{
+	Buffer = nullptr;
+	BufferSize = 0;
+
+	return;
+}
+
+//DNSCurveHeapBufferTable template class constructor
+template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
+	const size_t Size)
+{
+	Buffer = (Ty *)sodium_malloc(Size);
+	if (Buffer == nullptr)
+	{
+		exit(EXIT_FAILURE);
+		return;
+	}
+	else {
+		sodium_memzero(Buffer, Size);
+		BufferSize = Size;
+	}
+
+	return;
+}
+
+//DNSCurveHeapBufferTable template class constructor
+template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
+	const size_t Count, 
+	const size_t Size)
+{
+	Buffer = (Ty *)sodium_allocarray(Count, Size);
+	if (Buffer == nullptr)
+	{
+		exit(EXIT_FAILURE);
+		return;
+	}
+	else {
+		sodium_memzero(Buffer, Count * Size);
+		BufferSize = Count * Size;
+	}
+
+	return;
+}
+
+//DNSCurveHeapBufferTable template class Swap function
+template<typename Ty> void DNSCurveHeapBufferTable<Ty>::Swap(
+	DNSCurveHeapBufferTable &Other)
+{
+	auto BufferTemp = this->Buffer;
+	this->Buffer = Other->Buffer;
+	Other->Buffer = BufferTemp;
+	auto BufferSizeTemp = this->BufferSize;
+	this->BufferSize = Other->BufferSize;
+	Other->BufferSize = BufferSizeTemp;
+
+	return;
+}
+
+//DNSCurveHeapBufferTable template class destructor
+template<typename Ty> DNSCurveHeapBufferTable<Ty>::~DNSCurveHeapBufferTable(
+	void)
+{
+	sodium_free(Buffer);
+	Buffer = nullptr;
+	BufferSize = 0;
+
+	return;
+}
 #endif

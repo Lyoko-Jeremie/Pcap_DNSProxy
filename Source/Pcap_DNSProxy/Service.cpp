@@ -135,7 +135,7 @@ BOOL WINAPI UpdateServiceStatus(
 	_In_ const DWORD dwCheckPoint, 
 	_In_ const DWORD dwWaitHint)
 {
-	std::shared_ptr<SERVICE_STATUS> ServiceStatus(new SERVICE_STATUS());
+	auto ServiceStatus = std::make_shared<SERVICE_STATUS>();
 	memset(ServiceStatus.get(), 0, sizeof(SERVICE_STATUS));
 	ServiceStatus->dwServiceType = SERVICE_WIN32;
 	ServiceStatus->dwCurrentState = dwCurrentState;
@@ -179,8 +179,8 @@ bool __fastcall FlushDNSMailSlotMonitor(
 	void)
 {
 //System security setting
-	std::shared_ptr<SECURITY_ATTRIBUTES> SecurityAttributes(new SECURITY_ATTRIBUTES());
-	std::shared_ptr<SECURITY_DESCRIPTOR> SecurityDescriptor(new SECURITY_DESCRIPTOR());
+	auto SecurityAttributes = std::make_shared<SECURITY_ATTRIBUTES>();
+	auto SecurityDescriptor = std::make_shared<SECURITY_DESCRIPTOR>();
 	std::shared_ptr<char> ACL_Buffer(new char[PACKET_MAXSIZE]());
 	memset(ACL_Buffer.get(), 0, PACKET_MAXSIZE);
 	PSID SID_Value = nullptr;
@@ -386,10 +386,10 @@ void __fastcall FlushAllDNSCache(
 	#if defined(PLATFORM_OPENWRT)
 		system("/etc/init.d/dnsmasq restart 2>/dev/null"); //Dnsmasq manage DNS cache on OpenWrt
 	#else
-		system("service nscd restart 2>/dev/null"); //Name Service Cache Daemon service
-		system("service dnsmasq restart 2>/dev/null"); //Dnsmasq service
-		system("rndc restart 2>/dev/null"); //Name server control utility of BIND(9.1.3 and older version)
-		system("rndc flush 2>/dev/null"); //Name server control utility of BIND(9.2.0 and newer version)
+		auto Result = system("service nscd restart 2>/dev/null"); //Name Service Cache Daemon service
+		Result = system("service dnsmasq restart 2>/dev/null"); //Dnsmasq service
+		Result = system("rndc restart 2>/dev/null"); //Name server control utility of BIND(9.1.3 and older version)
+		Result = system("rndc flush 2>/dev/null"); //Name server control utility of BIND(9.2.0 and newer version)
 	#endif
 #elif defined(PLATFORM_MACX)
 //	system("lookupd -flushcache 2>/dev/null"); //Less than Mac OS X Tiger(10.4)

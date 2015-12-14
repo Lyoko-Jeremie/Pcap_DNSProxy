@@ -176,21 +176,21 @@
 #endif
 
 //C Standard Library and C++ Standard Template Library/STL headers
-//#include <cstdlib>                 //C Standard Library
+#include <algorithm>               //Algorithm support
 //#include <cstdio>                  //File Input/Output support
+//#include <cstdlib>                 //C Standard Library
 //#include <ctime>                   //Date and Time support
-//#include <string>                  //String support
-//#include <vector>                  //Vector support
 #include <deque>                   //Double-ended queue support
-#include <set>                     //Set support
+//#include <functional>              //Function object support
 #include <map>                     //Map support
 #include <memory>                  //Manage dynamic memory support
-#include <regex>                   //Regular expression support
-#include <thread>                  //Thread support
 #include <mutex>                   //Mutex lock support
 #include <random>                  //Random-number generator support
-//#include <functional>              //Function object support
-#include <algorithm>               //Algorithm support
+#include <regex>                   //Regular expression support
+#include <set>                     //Set support
+//#include <string>                  //String support
+#include <thread>                  //Thread support
+//#include <vector>                  //Vector support
 
 #if defined(PLATFORM_WIN)
 //Preprocessor definitions
@@ -245,33 +245,47 @@
 		#endif
 	#endif
 
-//Endian setting
-	#define __LITTLE_ENDIAN            1U                        //Little Endian
-//	#define __BIG_ENDIAN               2U                        //Big Endian, Little Endian is always in Windows.
-	#define __BYTE_ORDER               __LITTLE_ENDIAN           //x86 and x86-64/x64 is Little Endian.
+//Endian definitions
+	#define __LITTLE_ENDIAN            1234                      //Little Endian
+	#define __BIG_ENDIAN               4321                      //Big Endian
+	#define __BYTE_ORDER               __LITTLE_ENDIAN           //x86 and x86-64/x64 is Little Endian in Windows.
+	#define LITTLE_ENDIAN              __LITTLE_ENDIAN
+	#define BIG_ENDIAN                 __BIG_ENDIAN
+	#define BYTE_ORDER                 __BYTE_ORDER
 
 //Code definitions
 	#define WINSOCK_VERSION_LOW        2                         //Low byte of Winsock version(2.2)
 	#define WINSOCK_VERSION_HIGH       2                         //High byte of Winsock version(2.2)
 	#define SIO_UDP_CONNRESET          _WSAIOW(IOC_VENDOR, 12)   //Block connection reset error message from system.
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	#include <cerrno>                  //Error report
 	#include <climits>                 //Data limits
+	#include <csignal>                 //Signals
 	#include <cstring>                 //C-Style strings
 	#include <cwchar>                  //Wide characters
-	#include <cerrno>                  //Error report
-	#include <csignal>                 //Signals
 
 //Portable Operating System Interface/POSIX and Unix system header
+	#if defined(PLATFORM_LINUX)
+		#include <endian.h>                //Endian
+	#elif defined(PLATFORM_MACX)
+	//Endian definitions
+		#define __LITTLE_ENDIAN            1234                      //Little Endian
+		#define __BIG_ENDIAN               4321                      //Big Endian
+		#define __BYTE_ORDER               __LITTLE_ENDIAN           //x86 and x86-64/x64 is Little Endian in OS X.
+		#define LITTLE_ENDIAN              __LITTLE_ENDIAN
+		#define BIG_ENDIAN                 __BIG_ENDIAN
+		#define BYTE_ORDER                 __BYTE_ORDER
+	#endif
+	#include <fcntl.h>                 //Manipulate file descriptor
+	#include <ifaddrs.h>               //Getting network interface addresses
+	#include <netdb.h>                 //Network database operations
 	#include <pthread.h>               //Threads
 	#include <unistd.h>                //Standard library API
-	#include <netdb.h>                 //Network database operations
-	#include <ifaddrs.h>               //Getting network interface addresses
-	#include <fcntl.h>                 //Manipulate file descriptor
-	#include <sys/stat.h>              //Getting information about files attributes
-	#include <sys/socket.h>            //Socket
-	#include <sys/time.h>              //Date and time
 	#include <arpa/inet.h>             //Internet operations
-	#include <netinet/tcp.h>           //TCP protocol support
+	#include <netinet/tcp.h>           //TCP protocol
+	#include <sys/socket.h>            //Socket
+	#include <sys/stat.h>              //Getting information about files attributes
+	#include <sys/time.h>              //Date and time
 
 //LibSodium and LibPcap header
 	#if defined(PLATFORM_LINUX)
@@ -435,9 +449,7 @@
 		#define sendto(Socket, Buffer, Length, Signal, SockAddr, AddrLen)    sendto(Socket, Buffer, Length, Signal|MSG_NOSIGNAL, SockAddr, AddrLen)
 	#endif
 	#define closesocket                                                  close
-//	#define GetLastError()                                               errno
 	#define WSAGetLastError()                                            errno
-//	#define GetCurrentProcessId()                                        pthread_self()
 #endif
 
 //Memory alignment: 1 bytes/8 bits

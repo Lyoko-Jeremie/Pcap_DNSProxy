@@ -25,6 +25,7 @@ typedef struct _capture_handler_param_
 {
 	uint16_t   DeviceType;
 	char       *Buffer;
+	size_t     BufferSize;
 }CaptureHandlerParam, CAPTURE_HANDLER_PARAM, *PCaptureHandlerParam, *PCAPTURE_HANDLER_PARAM;
 
 //Global variables
@@ -52,6 +53,7 @@ void CaptureHandler(
 bool __fastcall CaptureNetworkLayer(
 	_In_ const char *Buffer, 
 	_In_ const size_t Length, 
+	_In_ const size_t BufferSize, 
 	_In_ const uint16_t Protocol);
 bool __fastcall CaptureCheck_ICMP(
 	_In_ const char *Buffer, 
@@ -62,6 +64,7 @@ bool __fastcall CaptureCheck_TCP(
 bool __fastcall MatchPortToSend(
 	_In_ const char *Buffer, 
 	_In_ const size_t Length, 
+	_In_ const size_t BufferSize, 
 	_In_ const uint16_t Protocol, 
 	_In_ const uint16_t Port);
 #endif

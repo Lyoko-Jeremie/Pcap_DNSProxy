@@ -409,7 +409,7 @@ bool __fastcall ReadLocalRoutingData(
 //IPv6
 	if (Data.find(":") != std::string::npos) 
 	{
-		std::shared_ptr<in6_addr> BinaryAddr(new in6_addr());
+		auto BinaryAddr = std::make_shared<in6_addr>();
 		memset(BinaryAddr.get(), 0, sizeof(in6_addr));
 		Data.erase(0, Data.find("/") + 1U);
 
@@ -489,7 +489,7 @@ bool __fastcall ReadLocalRoutingData(
 	}
 //IPv4
 	else {
-		std::shared_ptr<in_addr> BinaryAddr(new in_addr());
+		auto BinaryAddr = std::make_shared<in_addr>();
 		memset(BinaryAddr.get(), 0, sizeof(in_addr));
 		Data.erase(0, Data.find("/") + 1U);
 

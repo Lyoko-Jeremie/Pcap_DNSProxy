@@ -54,14 +54,14 @@ int main(int argc, char *argv[])
 	//Initialization and make keypair.
 		size_t Index = 0;
 		std::shared_ptr<char> Buffer(new char[KEYPAIR_MESSAGE_LEN]());
-		std::shared_ptr<uint8_t> PublicKey(new uint8_t[crypto_box_PUBLICKEYBYTES]()), SecretKey(new uint8_t[crypto_box_SECRETKEYBYTES]());
-		memset(Buffer.get(), 0, KEYPAIR_MESSAGE_LEN);
-		memset(PublicKey.get(), 0, crypto_box_PUBLICKEYBYTES);
-		memset(SecretKey.get(), 0, crypto_box_SECRETKEYBYTES);
-		crypto_box_keypair(PublicKey.get(), SecretKey.get());
+		std::shared_ptr<uint8_t> PublicKey(new uint8_t[crypto_box_PUBLICKEYBYTES]());
+		DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> SecretKey(crypto_box_SECRETKEYBYTES);
+		sodium_memzero(Buffer.get(), KEYPAIR_MESSAGE_LEN);
+		sodium_memzero(PublicKey.get(), crypto_box_PUBLICKEYBYTES);
+		crypto_box_keypair(PublicKey.get(), SecretKey.Buffer);
 
 	//Write public key.
-		memset(Buffer.get(), 0, KEYPAIR_MESSAGE_LEN);
+		sodium_memzero(Buffer.get(), KEYPAIR_MESSAGE_LEN);
 		if (sodium_bin2hex(Buffer.get(), KEYPAIR_MESSAGE_LEN, PublicKey.get(), crypto_box_PUBLICKEYBYTES) == nullptr)
 			wprintf_s(L"Create ramdom key pair failed, please try again.\n");
 		CaseConvert(true, Buffer.get(), KEYPAIR_MESSAGE_LEN);
@@ -73,11 +73,11 @@ int main(int argc, char *argv[])
 
 			fwprintf_s(Output, L"%c", Buffer.get()[Index]);
 		}
-		memset(Buffer.get(), 0, KEYPAIR_MESSAGE_LEN);
+		sodium_memzero(Buffer.get(), KEYPAIR_MESSAGE_LEN);
 		fwprintf_s(Output, L"\n");
 
 	//Write secret key.
-		if (sodium_bin2hex(Buffer.get(), KEYPAIR_MESSAGE_LEN, SecretKey.get(), crypto_box_SECRETKEYBYTES) == nullptr)
+		if (sodium_bin2hex(Buffer.get(), KEYPAIR_MESSAGE_LEN, SecretKey.Buffer, crypto_box_SECRETKEYBYTES) == nullptr)
 			wprintf_s(L"Create ramdom key pair failed, please try again.\n");
 		CaseConvert(true, Buffer.get(), KEYPAIR_MESSAGE_LEN);
 		fwprintf_s(Output, L"Client Secret Key = ");

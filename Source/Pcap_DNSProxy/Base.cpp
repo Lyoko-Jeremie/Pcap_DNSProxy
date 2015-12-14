@@ -78,7 +78,7 @@ uint32_t __fastcall ntoh32_Force(
 uint64_t __fastcall hton64(
 	_In_ const uint64_t Value)
 {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#if BYTE_ORDER == LITTLE_ENDIAN
 	return (((uint64_t)htonl((int32_t)((Value << (sizeof(uint32_t) * BYTES_TO_BITS)) >> (sizeof(uint32_t) * BYTES_TO_BITS)))) << (sizeof(uint32_t) * BYTES_TO_BITS)) | (uint32_t)htonl((int32_t)(Value >> (sizeof(uint32_t) * BYTES_TO_BITS)));
 #else //BIG_ENDIAN
 	return Value;
@@ -89,7 +89,7 @@ uint64_t __fastcall hton64(
 //Convert network byte order to host values with 64 bits
 uint64_t __fastcall ntoh64(const uint64_t Value)
 {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#if BYTE_ORDER == LITTLE_ENDIAN
 	return (((uint64_t)ntohl((int32_t)((Value << (sizeof(uint32_t) * BYTES_TO_BITS)) >> (sizeof(uint32_t) * BYTES_TO_BITS)))) << (sizeof(uint32_t) * BYTES_TO_BITS)) | (uint32_t)ntohl((int32_t)(Value >> (sizeof(uint32_t) * BYTES_TO_BITS)));
 #else //BIG_ENDIAN
 	return Value;
@@ -117,7 +117,7 @@ bool __fastcall MBSToWCSString(
 #if defined(PLATFORM_WIN)
 	if (MultiByteToWideChar(CP_ACP, 0, Buffer, MBSTOWCS_NULLTERMINATE, TargetPTR.get(), (int)(Length + 1U)) == 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	if (mbstowcs(TargetPTR.get(), Buffer, Length + 1U) == RETURN_ERROR)
+	if (mbstowcs(TargetPTR.get(), Buffer, Length + 1U) == (size_t)RETURN_ERROR)
 #endif
 	{
 		return false;
@@ -302,7 +302,7 @@ size_t __fastcall Base64_Decode(
 uint64_t GetCurrentSystemTime(
 	void)
 {
-	std::shared_ptr<timeval> CurrentTime(new timeval());
+	auto CurrentTime = std::make_shared<timeval>();
 	memset(CurrentTime.get(), 0, sizeof(timeval));
 	if (gettimeofday(CurrentTime.get(), nullptr) == 0)
 		return (uint64_t)CurrentTime->tv_sec * SECOND_TO_MILLISECOND + (uint64_t)CurrentTime->tv_usec / MICROSECOND_TO_MILLISECOND;
@@ -316,7 +316,7 @@ uint64_t GetCurrentSystemTime(
 BOOL WINAPI IsGreaterThanVista(
 	void)
 {
-	std::shared_ptr<OSVERSIONINFOEXW> OSVI(new OSVERSIONINFOEXW());
+	auto OSVI = std::make_shared<OSVERSIONINFOEXW>();
 	memset(OSVI.get(), 0, sizeof(OSVERSIONINFOEXW));
 	DWORDLONG dwlConditionMask = 0;
 

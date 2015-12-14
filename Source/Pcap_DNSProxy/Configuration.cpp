@@ -30,14 +30,14 @@ bool __fastcall ReadText(
 	memset(FileBuffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(TextBuffer.get(), 0, FILE_BUFFER_SIZE);
 	std::string TextData;
-	size_t ReadLength = 0, Encoding = 0, Index = 0, Line = 0, LabelType = 0;
+	size_t Encoding = 0, Index = 0, Line = 0, LabelType = 0;
 	auto IsEraseBOM = true, NewLine_Point = false, IsLabelComments = false;
 
 //Read data.
 	while (!feof((FILE *)Input))
 	{
 	//Read file and Mark last read.
-		ReadLength = fread_s(FileBuffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, (FILE *)Input);
+		auto ReadLength = fread_s(FileBuffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, (FILE *)Input);
 
 	//Erase BOM of Unicode Transformation Format/UTF at first.
 		if (IsEraseBOM)
@@ -194,7 +194,7 @@ bool __fastcall ReadText(
 				SingleText = (uint16_t *)(FileBuffer.get() + Index);
 
 			//Endian
-			#if __BYTE_ORDER == __LITTLE_ENDIAN
+			#if BYTE_ORDER == LITTLE_ENDIAN
 				if (Encoding == CODEPAGE_UTF_16_BE)
 					*SingleText = ntoh16_Force(*SingleText);
 			#else
@@ -203,7 +203,7 @@ bool __fastcall ReadText(
 			#endif
 			//Next line format
 				if (*SingleText == ASCII_CR && Index + sizeof(uint16_t) < ReadLength && 
-				#if __BYTE_ORDER == __LITTLE_ENDIAN
+				#if BYTE_ORDER == LITTLE_ENDIAN
 					(Encoding == CODEPAGE_UTF_16_BE && ntoh16_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_16_LE && *(SingleText + 1U) == ASCII_LF))
 				#else
 					(Encoding == CODEPAGE_UTF_16_LE && ntoh16_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_16_BE && *(SingleText + 1U) == ASCII_LF))
@@ -233,7 +233,7 @@ bool __fastcall ReadText(
 				SingleText = (uint32_t *)(FileBuffer.get() + Index);
 
 			//Endian
-			#if __BYTE_ORDER == __LITTLE_ENDIAN
+			#if BYTE_ORDER == LITTLE_ENDIAN
 				if (Encoding == CODEPAGE_UTF_32_BE)
 					*SingleText = ntoh32_Force(*SingleText);
 			#else
@@ -242,7 +242,7 @@ bool __fastcall ReadText(
 			#endif
 			//Next line format
 				if (*SingleText == ASCII_CR && Index + sizeof(uint32_t) < ReadLength && 
-				#if __BYTE_ORDER == __LITTLE_ENDIAN
+				#if BYTE_ORDER == LITTLE_ENDIAN
 					(Encoding == CODEPAGE_UTF_32_BE && ntoh32_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_32_LE && *(SingleText + 1U) == ASCII_LF))
 				#else
 					(Encoding == CODEPAGE_UTF_32_LE && ntoh32_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_32_BE && *(SingleText + 1U) == ASCII_LF))
@@ -429,6 +429,7 @@ bool __fastcall ReadParameter(
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		const char *sConfigFileNameList[]{CONFIG_FILE_NAME_LIST_STRING};
 	#endif
+
 		for (FileIndex = 0;FileIndex < sizeof(ConfigFileNameList) / sizeof(wchar_t *);++FileIndex)
 		{
 			FILE_DATA ConfigFileTemp;
@@ -446,10 +447,10 @@ bool __fastcall ReadParameter(
 //Initialization
 	FILE *Input = nullptr;
 #if defined(PLATFORM_WIN)
-	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
+	auto File_WIN32_FILE_ATTRIBUTE_DATA = std::make_shared<WIN32_FILE_ATTRIBUTE_DATA>();
 	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::shared_ptr<struct stat> FileStat(new struct stat());
+	auto FileStat = std::make_shared<struct stat>();
 	memset(FileStat.get(), 0, sizeof(struct stat));
 #endif
 
@@ -484,7 +485,7 @@ bool __fastcall ReadParameter(
 	#if defined(PLATFORM_WIN)
 		if (GetFileAttributesExW(FileList_Config.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) != FALSE)
 		{
-			std::shared_ptr<LARGE_INTEGER> ConfigFileSize(new LARGE_INTEGER());
+			auto ConfigFileSize = std::make_shared<LARGE_INTEGER>();
 			memset(ConfigFileSize.get(), 0, sizeof(LARGE_INTEGER));
 			ConfigFileSize->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
 			ConfigFileSize->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
@@ -555,7 +556,7 @@ bool __fastcall ReadParameter(
 	//Jump here to stop loop.
 	StopLoop:
 	#if defined(PLATFORM_WIN)
-		std::shared_ptr<LARGE_INTEGER> File_LARGE_INTEGER(new LARGE_INTEGER());
+		auto File_LARGE_INTEGER = std::make_shared<LARGE_INTEGER>();
 		memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
 	#endif
 		auto InnerIsFirstRead = true, IsFileModified = false;
@@ -719,12 +720,12 @@ void __fastcall ReadIPFilter(
 	FILE *Input = nullptr;
 	auto IsFileModified = false;
 #if defined(PLATFORM_WIN)
-	std::shared_ptr<LARGE_INTEGER> File_LARGE_INTEGER(new LARGE_INTEGER());
-	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
+	auto File_LARGE_INTEGER = std::make_shared<LARGE_INTEGER>();
+	auto File_WIN32_FILE_ATTRIBUTE_DATA = std::make_shared<WIN32_FILE_ATTRIBUTE_DATA>();
 	memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
 	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::shared_ptr<struct stat> FileStat(new struct stat());
+	auto FileStat = std::make_shared<struct stat>();
 	memset(FileStat.get(), 0, sizeof(struct stat));
 #endif
 	std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock);
@@ -907,12 +908,12 @@ void __fastcall ReadHosts(
 	FILE *Input = nullptr;
 	auto IsFileModified = false;
 #if defined(PLATFORM_WIN)
-	std::shared_ptr<LARGE_INTEGER> File_LARGE_INTEGER(new LARGE_INTEGER());
-	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
+	auto File_LARGE_INTEGER = std::make_shared<LARGE_INTEGER>();
+	auto File_WIN32_FILE_ATTRIBUTE_DATA = std::make_shared<WIN32_FILE_ATTRIBUTE_DATA>();
 	memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
 	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::shared_ptr<struct stat> FileStat(new struct stat());
+	auto FileStat = std::make_shared<struct stat>();
 	memset(FileStat.get(), 0, sizeof(struct stat));
 #endif
 	std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock);

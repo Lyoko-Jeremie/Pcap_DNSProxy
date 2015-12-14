@@ -232,11 +232,14 @@
     <ResourceCompile Include="KeyPairGenerator.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\LibSodium\LibSodium_x64.lib" />
-    <Library Include="..\LibSodium\LibSodium_x86.lib" />
+    <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="CMakeLists.txt" />
+    <None Include="..\LibSodium\LibSodium_Mac.a" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\LibSodium\LibSodium_x64.lib" />
+    <Library Include="..\LibSodium\LibSodium_x86.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

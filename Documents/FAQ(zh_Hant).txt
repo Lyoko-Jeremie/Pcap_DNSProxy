@@ -204,6 +204,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
 7.DNSCurve Error - DNSCurve 協定錯誤
   * Libsodium initialization error - Libsodium 庫初始化錯誤：請與開發者聯繫
   * Client keypair error - 自訂用戶端金鑰組錯誤：請檢查金鑰組的正確性
+  * Key calculating error -> 金鑰計算錯誤：請與專案組聯繫
   * IPv6 Main Server TCP get signature data error - IPv6 TCP 協定主要伺服器加密握手失敗：請檢查該伺服器是否可用
   * IPv6 Alternate Server TCP get signature data error - IPv6 TCP 協定待命伺服器加密握手失敗：請檢查該伺服器是否可用
   * IPv4 Main Server TCP get signature data error - IPv4 TCP 協定主要伺服器加密握手失敗：請檢查該伺服器是否可用
@@ -246,7 +247,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * EDNS Payload Size is too long - EDNS 載荷長度可能過長：此值建議不要超過乙太網的 MTU(1500 bytes)
   * DNSSEC Request require EDNS Label - 開啟 DNSSEC 請求時必須開啟 EDNS 標籤請求功能
   * EDNS Client Subnet require EDNS Label - 開啟 EDNS Client Subnet 請求時必須開啟 EDNS 標籤請求功能
-  * Turn OFF Compression Pointer Mutation when EDNS Label is available - 使用 Compression Pointer Mutation 時不能開啟 EDNS 標籤請求功能，兩者並不相容
+  * Compression Pointer Mutation require EDNS Label is OFF - 使用 Compression Pointer Mutation 時不能開啟 EDNS 標籤請求功能，兩者並不相容
   * DNSSEC Validation require EDNS Label and DNSSEC Request - 開啟 DNSSEC Validation 請求時必須開啟 EDNS 標籤請求和 DNSSEC 請求功能
   * DNSSEC Force Validation require EDNS Label, DNSSEC Request and DNSSEC Validation - 開啟 DNSSEC Force Validation 請求時必須開啟 EDNS 標籤請求、DNSSEC 請求和 DNSSEC Validation 驗證功能
   * DNSCurve Payload Size must longer than traditional DNS packet minimum supported size(512 bytes) - DNSCurve 協定載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包

@@ -246,7 +246,7 @@ bool __fastcall PrintScreenAndWriteFile(
 	_In_opt_ const size_t Line)
 {
 //Get current date and time.
-	std::shared_ptr<tm> TimeStructure(new tm());
+	auto TimeStructure = std::make_shared<tm>();
 	memset(TimeStructure.get(), 0, sizeof(tm));
 	auto TimeValues = time(nullptr);
 #if defined(PLATFORM_WIN)
@@ -295,11 +295,11 @@ bool __fastcall PrintScreenAndWriteFile(
 
 //Check whole file size.
 #if defined(PLATFORM_WIN)
-	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
+	auto File_WIN32_FILE_ATTRIBUTE_DATA = std::make_shared<WIN32_FILE_ATTRIBUTE_DATA>();
 	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 	if (GetFileAttributesExW(GlobalRunningStatus.Path_ErrorLog->c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) != FALSE)
 	{
-		std::shared_ptr<LARGE_INTEGER> ErrorFileSize(new LARGE_INTEGER());
+		auto ErrorFileSize = std::make_shared<LARGE_INTEGER>();
 		memset(ErrorFileSize.get(), 0, sizeof(LARGE_INTEGER));
 		ErrorFileSize->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
 		ErrorFileSize->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
@@ -310,7 +310,7 @@ bool __fastcall PrintScreenAndWriteFile(
 
 	File_WIN32_FILE_ATTRIBUTE_DATA.reset();
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::shared_ptr<struct stat> FileStat(new struct stat());
+	auto FileStat = std::make_shared<struct stat>();
 	memset(FileStat.get(), 0, sizeof(struct stat));
 	if (stat(GlobalRunningStatus.sPath_ErrorLog->c_str(), FileStat.get()) == 0 && FileStat->st_size >= (off_t)Parameter.LogMaxSize && 
 		remove(GlobalRunningStatus.sPath_ErrorLog->c_str()) == 0)

@@ -27,6 +27,9 @@
     <ClInclude Include="..\LibSodium\core.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
+    <ClInclude Include="..\LibSodium\crypto_aead_aes256gcm.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
     <ClInclude Include="..\LibSodium\crypto_aead_chacha20poly1305.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
@@ -165,6 +168,9 @@
     <ClInclude Include="..\LibSodium\randombytes.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
+    <ClInclude Include="..\LibSodium\randombytes_nativeclient.h">
+      <Filter>LibSodium</Filter>
+    </ClInclude>
     <ClInclude Include="..\LibSodium\randombytes_salsa20_random.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
@@ -183,12 +189,6 @@
     <ClInclude Include="..\LibSodium\version.h">
       <Filter>LibSodium</Filter>
     </ClInclude>
-    <ClInclude Include="..\LibSodium\crypto_aead_aes256gcm.h">
-      <Filter>LibSodium</Filter>
-    </ClInclude>
-    <ClInclude Include="..\LibSodium\randombytes_nativeclient.h">
-      <Filter>LibSodium</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="KeyPairGenerator.cpp">
@@ -201,16 +201,21 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <Text Include="CMakeLists.txt">
+      <Filter>源文件</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\LibSodium\LibSodium_Mac.a">
+      <Filter>LibSodium</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
     <Library Include="..\LibSodium\LibSodium_x64.lib">
       <Filter>LibSodium</Filter>
     </Library>
     <Library Include="..\LibSodium\LibSodium_x86.lib">
       <Filter>LibSodium</Filter>
     </Library>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="CMakeLists.txt">
-      <Filter>源文件</Filter>
-    </Text>
   </ItemGroup>
 </Project>

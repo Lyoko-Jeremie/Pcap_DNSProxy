@@ -298,8 +298,8 @@ SSIZE_T __fastcall SocketSelecting(
 	}
 
 //Initialization(Part 2)
-	std::shared_ptr<fd_set> ReadFDS(new fd_set()), WriteFDS(new fd_set());
-	std::shared_ptr<timeval> Timeout(new timeval());
+	auto ReadFDS = std::make_shared<fd_set>(), WriteFDS = std::make_shared<fd_set>();
+	auto Timeout = std::make_shared<timeval>();
 	memset(ReadFDS.get(), 0, sizeof(fd_set));
 	memset(WriteFDS.get(), 0, sizeof(fd_set));
 	memset(Timeout.get(), 0, sizeof(timeval));
@@ -551,8 +551,7 @@ SSIZE_T __fastcall SelectingResult(
 			}
 
 		//Receive from buffer list.
-			if (!NoCheck)
-				RecvLen = CheckResponseData(SocketSelectingList.at(Index).RecvBuffer.get(), RecvLen, RecvSize, IsLocal, nullptr);
+			RecvLen = CheckResponseData(SocketSelectingList.at(Index).RecvBuffer.get(), RecvLen, RecvSize, IsLocal, NoCheck, nullptr);
 			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			{
 				shutdown(SocketDataList.at(Index).Socket, SD_BOTH);
@@ -597,8 +596,8 @@ void __fastcall MarkPortToList(
 {
 	if (LocalSocketData != nullptr && Protocol > 0)
 	{
-		std::shared_ptr<SOCKET_DATA> SocketDataTemp(new SOCKET_DATA());
-		std::shared_ptr<OUTPUT_PACKET_TABLE> OutputPacketListTemp(new OUTPUT_PACKET_TABLE());
+		auto SocketDataTemp = std::make_shared<SOCKET_DATA>();
+		auto OutputPacketListTemp = std::make_shared<OUTPUT_PACKET_TABLE>();
 		memset(OutputPacketListTemp.get(), 0, sizeof(OUTPUT_PACKET_TABLE));
 
 	//Mark system connection data.
@@ -792,7 +791,7 @@ bool __fastcall DomainTestRequest(
 	auto DNS_Header = (pdns_hdr)Buffer.get();
 	DNS_Header->ID = Parameter.DomainTest_ID;
 	DNS_Header->Flags = htons(DNS_STANDARD);
-	DNS_Header->Questions = htons(U16_NUM_ONE);
+	DNS_Header->Question = htons(U16_NUM_ONE);
 	size_t DataLength = 0;
 
 //Convert domain.
@@ -965,7 +964,7 @@ bool __fastcall ICMPTestRequest(
 	#endif
 
 	//Socket initialization
-		std::shared_ptr<SOCKET_DATA> SocketDataTemp(new SOCKET_DATA());
+		auto SocketDataTemp = std::make_shared<SOCKET_DATA>();
 		memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
 		
 	//Main
@@ -1054,7 +1053,7 @@ bool __fastcall ICMPTestRequest(
 		ICMP_Header->Checksum = GetChecksum((uint16_t *)Buffer.get(), Length);
 
 	//Socket initialization
-		std::shared_ptr<SOCKET_DATA> SocketDataTemp(new SOCKET_DATA());
+		auto SocketDataTemp = std::make_shared<SOCKET_DATA>();
 		memset(SocketDataTemp.get(), 0, sizeof(SOCKET_DATA));
 
 	//Main
@@ -1217,7 +1216,7 @@ bool __fastcall ICMPTestRequest(
 					else 
 						ICMPv6_Header->Sequence = htons(ntohs(ICMPv6_Header->Sequence) + 1U);
 
-					//Get UTC time.
+				//Get UTC time.
 				#if defined(PLATFORM_LINUX)
 					ICMPv6_Header->Timestamp = (uint64_t)time(nullptr);
 					ICMPv6_Header->Nonce = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
@@ -1231,7 +1230,7 @@ bool __fastcall ICMPTestRequest(
 					else 
 						ICMP_Header->Sequence = htons(ntohs(ICMP_Header->Sequence) + 1U);
 
-					//Get UTC time.
+				//Get UTC time.
 				#if defined(PLATFORM_LINUX)
 					ICMP_Header->Timestamp = (uint64_t)time(nullptr);
 					ICMP_Header->Nonce = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
@@ -1445,7 +1444,7 @@ bool __fastcall SelectTargetSocketMulti(
 	_In_ const uint16_t Protocol)
 {
 //Initialization
-	std::shared_ptr<SOCKET_DATA> TargetSocketData(new SOCKET_DATA());
+	auto TargetSocketData = std::make_shared<SOCKET_DATA>();
 	memset(TargetSocketData.get(), 0, sizeof(SOCKET_DATA));
 	uint16_t SocketType = 0;
 	size_t Index = 0;

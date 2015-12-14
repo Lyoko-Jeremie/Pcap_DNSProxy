@@ -107,7 +107,7 @@
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4                         //Current configuration version
-#define FULL_VERSION                 L"0.4.4.5"
+#define FULL_VERSION                 L"0.4.4.6"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2015 Chengr28"
 
 //Size and length definitions
@@ -225,7 +225,7 @@
 #endif
 
 //Data definitions
-#define DEFAULT_LOCAL_SERVERNAME              ("pcap-dnsproxy.localhost.server")                                                                                                            //Default Local DNS server name
+#define DEFAULT_LOCAL_SERVERNAME              ("pcap-dnsproxy.localhost.server")                                                                //Default Local DNS server name
 #if defined(PLATFORM_WIN)
 	#define CONFIG_FILE_NAME_LIST                 L"Config.ini", L"Config.conf", L"Config.cfg", L"Config"
 	#define COMMAND_LONG_PRINT_VERSION            L"--version"
@@ -237,11 +237,11 @@
 	#define COMMAND_FLUSH_DNS                     L"--flush-dns"
 	#define COMMAND_LONG_SET_PATH                 L"--config-file"
 	#define COMMAND_SHORT_SET_PATH                L"-c"
-	#define SID_ADMINISTRATORS_GROUP              L"S-1-5-32-544"                                                                                                                               //Windows SID of Administrators group
-	#define MAILSLOT_NAME                         L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot"                                                                                                    //MailSlot name
-	#define MAILSLOT_MESSAGE_FLUSH_DNS            L"Flush DNS cache of Pcap_DNSProxy."                                                                                                          //The mailslot message to flush dns cache
-	#define SYSTEM_SERVICE_NAME                   L"PcapDNSProxyService"                                                                                                                        //System service name
-	#define DEFAULT_ICMP_PADDING_DATA             ("abcdefghijklmnopqrstuvwabcdefghi")                                                                                                          //ICMP padding data in Windows
+	#define SID_ADMINISTRATORS_GROUP              L"S-1-5-32-544"                                                                               //Windows SID of Administrators group
+	#define MAILSLOT_NAME                         L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot"                                                    //MailSlot name
+	#define MAILSLOT_MESSAGE_FLUSH_DNS            L"Flush DNS cache of Pcap_DNSProxy."                                                          //The mailslot message to flush dns cache
+	#define SYSTEM_SERVICE_NAME                   L"PcapDNSProxyService"                                                                        //System service name
+	#define DEFAULT_ICMP_PADDING_DATA             ("abcdefghijklmnopqrstuvwabcdefghi")                                                          //ICMP padding data in Windows
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define CONFIG_FILE_NAME_LIST                 L"Config.conf", L"Config.ini", L"Config.cfg", L"Config"
 	#define CONFIG_FILE_NAME_LIST_STRING          "Config.conf", "Config.ini", "Config.cfg", "Config"
@@ -256,21 +256,18 @@
 	#if defined(PLATFORM_LINUX)
 		#define COMMAND_DISABLE_DAEMON                ("--disable-daemon")
 	#endif
-	#define FIFO_PATH_NAME                        ("/tmp/pcap_dnsproxy_fifo")                                                                                                                   //FIFO pathname
-	#define FIFO_MESSAGE_FLUSH_DNS                ("Flush DNS cache of Pcap_DNSProxy.")                                                                                                         //The FIFO message to flush dns cache
+	#define FIFO_PATH_NAME                        ("/tmp/pcap_dnsproxy_fifo")                                                                   //FIFO pathname
+	#define FIFO_MESSAGE_FLUSH_DNS                ("Flush DNS cache of Pcap_DNSProxy.")                                                         //The FIFO message to flush dns cache
 #endif
-#define DEFAULT_HTTP_VERSION                  "1.1"                                                                                                                                         //Default HTTP version
-#if defined(ENABLE_LIBSODIUM)
-	#define DNSCURVE_TEST_NONCE                   0, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x20, 0x21, 0x22, 0x23   //DNSCurve Test Nonce, 0x00 - 0x23(ASCII)
-#endif
+#define DEFAULT_HTTP_VERSION                  "1.1"                                                                                             //Default HTTP version
 #if defined(PLATFORM_MACX)
 	#define DEFAULT_SEQUENCE                      0
 #else
-	#define DEFAULT_SEQUENCE                      0x0001                                                                                                                                        //Default sequence of protocol
+	#define DEFAULT_SEQUENCE                      0x0001                                                                                      //Default sequence of protocol
 #endif
-#define DNS_PACKET_QUERY_LOCATE(Buffer)       (sizeof(dns_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U)                                                                    //Location the beginning of DNS Query
+#define DNS_PACKET_QUERY_LOCATE(Buffer)       (sizeof(dns_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U)                     //Location the beginning of DNS Query
 #define DNS_TCP_PACKET_QUERY_LOCATE(Buffer)   (sizeof(dns_tcp_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_tcp_hdr)) + 1U)
-#define DNS_PACKET_RR_LOCATE(Buffer)          (sizeof(dns_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U + sizeof(dns_qry))                                                  //Location the beginning of DNS Resource Records
+#define DNS_PACKET_RR_LOCATE(Buffer)          (sizeof(dns_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U + sizeof(dns_qry))   //Location the beginning of DNS Resource Records
 
 //Base64 definitions
 #define BASE64_PAD                        '='
@@ -422,7 +419,7 @@ typedef struct _dns_server_data_
 #endif
 }DNSServerData, DNS_SERVER_DATA, *PDNSServerData, *PDNS_SERVER_DATA;
 
-//Socket Selecting structure
+//Socket Selecting Data structure
 typedef struct _socket_selecting_data_
 {
 	std::shared_ptr<char>    RecvBuffer;
@@ -430,15 +427,32 @@ typedef struct _socket_selecting_data_
 	bool                     PacketIsSend;
 }SocketSelectingData, SOCKET_SELECTING_DATA, *PSocketSelectingData, *PSOCKET_SELECTING_DATA;
 
-//DNS Cache structure
-typedef struct _dnscache_data_
+//DNS Packet Data structure
+typedef struct _dns_packet_data_
+{
+//Packet structure block
+	char                                 *Buffer;
+	size_t                               Question;
+	size_t                               Answer;
+	size_t                               Authority;
+	size_t                               Additional;
+	size_t                               EDNS_Record;
+//Packet attributes block
+	size_t                               BufferSize;
+	size_t                               Length;
+	uint16_t                             Protocol;
+	bool                                 IsLocal;
+}DNSPacketData, DNS_PACKET_DATA, *PDNSPacketData, *PDNS_PACKET_DATA;
+
+//DNS Cache Data structure
+typedef struct _dns_cache_data_
 {
 	std::string              Domain;
 	std::shared_ptr<char>    Response;
 	size_t                   Length;
 	uint16_t                 RecordType;
 	uint64_t                 ClearCacheTime;
-}DNSCacheData, DNSCACHE_DATA, *PDNSCacheData, *PDNSCACHE_DATA;
+}DNSCacheData, DNS_CACHE_DATA, *PDNSCacheData, *PDNS_CACHE_DATA;
 
 //DNSCurve Server Data structure
 #if defined(ENABLE_LIBSODIUM)
@@ -453,7 +467,7 @@ typedef struct _dnscurve_server_data_
 	char                     *SendMagicNumber;       //Server Magic Number(Send to server)
 }DNSCurveServerData, DNSCURVE_SERVER_DATA, *PDNSCurveServerData, *PDNSCURVE_SERVER_DATA;
 
-//Socket Selecting structure
+//DNSCurve Socket Selecting Data structure
 typedef struct _dnscurve_socket_selecting_data_
 {
 	size_t                   ServerType;
@@ -469,7 +483,8 @@ typedef struct _dnscurve_socket_selecting_data_
 
 //Class definitions
 //Configuration class
-typedef class ConfigurationTable {
+typedef class ConfigurationTable
+{
 public:
 // Parameters from configure files
 //[Base] block
@@ -637,7 +652,8 @@ public:
 }CONFIGURATION_TABLE;
 
 //Global status class
-typedef class GlobalStatus {
+typedef class GlobalStatus
+{
 public:
 //Libraries initialization status
 #if defined(PLATFORM_WIN)
@@ -698,7 +714,8 @@ public:
 }GLOBAL_STATUS;
 
 //IPv4/IPv6 addresses ranges class
-typedef class AddressRangeTable {
+typedef class AddressRangeTable
+{
 public:
 	sockaddr_storage         Begin;
 	sockaddr_storage         End;
@@ -710,7 +727,8 @@ public:
 }ADDRESS_RANGE_TABLE;
 
 //Hosts lists class
-typedef class HostsTable {
+typedef class HostsTable
+{
 public:
 //	std::shared_ptr<char>             Response;
 	std::vector<ADDRESS_UNION_DATA>   AddrList;
@@ -727,7 +745,8 @@ public:
 }HOSTS_TABLE;
 
 //Alternate swap table class
-typedef class AlternateSwapTable {
+typedef class AlternateSwapTable
+{
 public:
 	bool                     IsSwap[ALTERNATE_SERVERNUM];
 	size_t                   TimeoutTimes[ALTERNATE_SERVERNUM];
@@ -738,7 +757,8 @@ public:
 }ALTERNATE_SWAP_TABLE;
 
 //Blacklist of results class
-typedef class ResultBlacklistTable {
+typedef class ResultBlacklistTable
+{
 public:
 	std::vector<AddressRangeTable>   Addresses;
 	std::regex                       Pattern;
@@ -746,38 +766,16 @@ public:
 }RESULT_BLACKLIST_TABLE;
 
 //Address Hosts class
-typedef class AddressHostsTable {
+typedef class AddressHostsTable
+{
 public:
 	std::vector<sockaddr_storage>    Address_Target;
 	std::vector<AddressRangeTable>   Address_Source;
 }ADDRESS_HOSTS_TABLE;
 
-/* Old version(2015-11-15)
-//Address routing table(IPv6) class
-typedef class AddressRoutingTable_IPv6 {
-public:
-	size_t                                   Prefix;
-	std::map<uint64_t, std::set<uint64_t>>   AddressRoutingList_IPv6;
-
-//Member functions
-	AddressRoutingTable_IPv6(
-		void);
-}ADDRESS_ROUTING_TABLE_IPV6;
-
-//Address routing table(IPv4) class
-typedef class AddressRoutingTable_IPv4 {
-public:
-	size_t                   Prefix;
-	std::set<uint32_t>       AddressRoutingList_IPv4;
-
-//Member functions
-	AddressRoutingTable_IPv4(
-		void);
-}ADDRESS_ROUTING_TABLE_IPV4;
-*/
-
 //Address routing table class
-typedef class AddressRoutingTable {
+typedef class AddressRoutingTable
+{
 public:
 	size_t                                   Prefix;
 	std::map<uint64_t, std::set<uint64_t>>   AddressRoutingList_IPv6;
@@ -790,7 +788,8 @@ public:
 
 //Port table class
 #if defined(ENABLE_PCAP)
-typedef class OutputPacketTable {
+typedef class OutputPacketTable
+{
 public:
 	std::vector<SOCKET_DATA>   SocketData_Output;
 	SOCKET_DATA                SocketData_Input;
@@ -805,16 +804,12 @@ public:
 }OUTPUT_PACKET_TABLE;
 #endif
 
-//Differnet IPFilter file sets structure
+//Differnet IPFilter file sets class
 typedef class DiffernetFileSetIPFilter
 {
 public:
 	std::vector<ADDRESS_RANGE_TABLE>          AddressRange;
 	std::vector<RESULT_BLACKLIST_TABLE>       ResultBlacklist;
-/* Old version(2015-11-15)
-	std::vector<ADDRESS_ROUTING_TABLE_IPV6>   LocalRoutingList_IPv6;
-	std::vector<ADDRESS_ROUTING_TABLE_IPV4>   LocalRoutingList_IPv4;
-*/
 	std::vector<ADDRESS_ROUTING_TABLE>        LocalRoutingList;
 	size_t                                    FileIndex;
 
@@ -823,13 +818,10 @@ public:
 		void);
 }DIFFERNET_FILE_SET_IPFILTER;
 
-//Differnet Hosts file sets structure
+//Differnet Hosts file sets class
 typedef class DiffernetFileSetHosts
 {
 public:
-/* Old version(2015-11-16)
-	std::vector<HOSTS_TABLE>           HostsList;
-*/
 	std::vector<HOSTS_TABLE>           HostsList_Normal;
 	std::vector<HOSTS_TABLE>           HostsList_Local;
 	std::vector<HOSTS_TABLE>           HostsList_CNAME;
@@ -842,9 +834,32 @@ public:
 }DIFFERNET_FILE_SET_HOSTS;
 
 
-//DNSCurve Configuration class
 #if defined(ENABLE_LIBSODIUM)
-typedef class DNSCurveConfigurationTable {
+//DNSCurveHeapBufferTable template class
+template<typename Ty> class DNSCurveHeapBufferTable
+{
+public:
+	Ty                         *Buffer;
+	size_t                     BufferSize;
+
+//Member functions
+	DNSCurveHeapBufferTable(
+		void);
+	DNSCurveHeapBufferTable(
+		const size_t Size);
+	DNSCurveHeapBufferTable(
+		const size_t Count, 
+		const size_t Size);
+	void Swap(
+		DNSCurveHeapBufferTable &Other);
+	~DNSCurveHeapBufferTable(
+		void);
+};
+template<typename Ty> using DNSCURVE_HEAP_BUFFER_TABLE = DNSCurveHeapBufferTable<Ty>;
+
+//DNSCurve Configuration class
+typedef class DNSCurveConfigurationTable
+{
 public:
 //[DNSCurve] block
 	size_t                     DNSCurvePayloadSize;
@@ -973,11 +988,6 @@ size_t __fastcall AddLengthDataToHeader(
 size_t __fastcall CharToDNSQuery(
 	_In_ const char *FName, 
 	_Out_ char *TName);
-/* Old version(2015-11-16)
-size_t __fastcall DNSQueryToChar(
-	_In_ const char *TName, 
-	_Out_ char *FName);
-*/
 size_t __fastcall DNSQueryToChar(
 	_In_ const char *TName,
 	_Out_ std::string &FName);
@@ -995,6 +1005,9 @@ size_t __fastcall AddEDNSLabelToAdditionalRR(
 	_Inout_ char *Buffer, 
 	_In_ const size_t Length, 
 	_In_ const size_t MaxLen, 
+	_In_opt_ const SOCKET_DATA *LocalSocketData);
+bool __fastcall AddEDNSLabelToAdditionalRR(
+	_Inout_ DNS_PACKET_DATA *Packet, 
 	_In_opt_ const SOCKET_DATA *LocalSocketData);
 size_t __fastcall MakeCompressionPointerMutation(
 	_Inout_ char *Buffer, 
@@ -1023,25 +1036,17 @@ bool __fastcall CheckCustomModeFilter(
 	_In_ const uint16_t Protocol);
 size_t __fastcall CheckQueryNameLength(
 	_In_ const char *Buffer);
-size_t __fastcall CheckResponseCNAME(
-	_Inout_ char *Buffer, 
-	_In_ const size_t Length, 
-	_In_ const size_t CNAME_Index, 
-	_In_ const size_t CNAME_Length, 
-	_In_ const size_t BufferSize, 
-	_Out_ size_t &RecordNum);
-size_t __fastcall CheckQueryData(
-	_Inout_opt_ char *RecvBuffer, 
+bool __fastcall CheckQueryData(
+	_Inout_opt_ DNS_PACKET_DATA *Packet, 
 	_Inout_opt_ char *SendBuffer, 
-	_In_ const size_t Length, 
-	_In_ const SOCKET_DATA &LocalSocketData, 
-	_In_ const uint16_t Protocol, 
-	_Out_opt_ bool *IsLocal);
+	_In_ const size_t SendSize, 
+	_In_ const SOCKET_DATA &LocalSocketData);
 size_t __fastcall CheckResponseData(
 	_Inout_ char *Buffer, 
 	_In_ const size_t Length, 
 	_In_ const size_t BufferSize, 
 	_In_ const bool IsLocal, 
+	_In_ const bool NoCheck, 
 	_Out_opt_ bool *IsMarkHopLimit);
 
 //Configuration.h
@@ -1111,11 +1116,8 @@ size_t __fastcall DNSCurveUDPRequestMulti(
 
 //Process.h
 bool __fastcall EnterRequestProcess(
-	_In_ const char *OriginalSend, 
-	_In_ const size_t Length, 
-	_In_ const SOCKET_DATA LocalSocketData, 
-	_In_ const uint16_t Protocol, 
-	_In_ const bool IsLocal);
+	_In_ DNS_PACKET_DATA Packet, 
+	_In_ const SOCKET_DATA LocalSocketData);
 size_t __fastcall CheckWhiteBannedHostsProcess(
 	_In_ const size_t Length, 
 	_In_ const HostsTable &HostsTableIter, 
@@ -1123,11 +1125,9 @@ size_t __fastcall CheckWhiteBannedHostsProcess(
 	_Inout_ dns_qry *DNS_Query, 
 	_Out_opt_ bool *IsLocal);
 size_t __fastcall CheckHostsProcess(
-	_Inout_ char *OriginalRequest, 
-	_In_ const size_t Length, 
+	_Inout_ DNS_PACKET_DATA *Packet, 
 	_Inout_ char *Result, 
-	_In_ const size_t ResultSize, 
-	_Out_opt_ bool *IsLocal);
+	_In_ const size_t ResultSize);
 bool __fastcall SendToRequester(
 	_In_ char *RecvBuffer, 
 	_In_ const size_t RecvSize, 
@@ -1226,3 +1226,81 @@ bool FlushDNSFIFOSender(
 #endif
 void __fastcall FlushAllDNSCache(
 	void);
+
+
+//////////////////////////////////////////////////
+// Template functions
+// 
+#if defined(ENABLE_LIBSODIUM)
+//DNSCurveHeapBufferTable template class constructor
+template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
+	void)
+{
+	Buffer = nullptr;
+	BufferSize = 0;
+
+	return;
+}
+
+//DNSCurveHeapBufferTable template class constructor
+template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
+	const size_t Size)
+{
+	Buffer = (Ty *)sodium_malloc(Size);
+	if (Buffer == nullptr)
+	{
+		exit(EXIT_FAILURE);
+		return;
+	}
+	else {
+		sodium_memzero(Buffer, Size);
+		BufferSize = Size;
+	}
+
+	return;
+}
+
+//DNSCurveHeapBufferTable template class constructor
+template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
+	const size_t Count, 
+	const size_t Size)
+{
+	Buffer = (Ty *)sodium_allocarray(Count, Size);
+	if (Buffer == nullptr)
+	{
+		exit(EXIT_FAILURE);
+		return;
+	}
+	else {
+		sodium_memzero(Buffer, Count * Size);
+		BufferSize = Count * Size;
+	}
+
+	return;
+}
+
+//DNSCurveHeapBufferTable template class Swap function
+template<typename Ty> void DNSCurveHeapBufferTable<Ty>::Swap(
+	DNSCurveHeapBufferTable &Other)
+{
+	auto BufferTemp = this->Buffer;
+	this->Buffer = Other.Buffer;
+	Other.Buffer = BufferTemp;
+	auto BufferSizeTemp = this->BufferSize;
+	this->BufferSize = Other.BufferSize;
+	Other.BufferSize = BufferSizeTemp;
+
+	return;
+}
+
+//DNSCurveHeapBufferTable template class destructor
+template<typename Ty> DNSCurveHeapBufferTable<Ty>::~DNSCurveHeapBufferTable(
+	void)
+{
+	sodium_free(Buffer);
+	Buffer = nullptr;
+	BufferSize = 0;
+
+	return;
+}
+#endif

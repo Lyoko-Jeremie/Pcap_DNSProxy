@@ -578,7 +578,7 @@ typedef struct _ppp_hdr_
 #define IPV4_IHL_BYTES_TIMES         4U     //IHL is number of 32-bit words(4 bytes).
 typedef struct _ipv4_hdr_
 {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#if BYTE_ORDER == LITTLE_ENDIAN
 	uint8_t                IHL:4;
 	uint8_t                Version:4;
 #else //BIG_ENDIAN
@@ -588,7 +588,7 @@ typedef struct _ipv4_hdr_
 	union {
 		uint8_t            TOS;           //Type of service, but RFC 2474 redefine it to DSCP/DiffServ and ECN/Explicit Congestion Notification.
 		struct {
-		#if __BYTE_ORDER == __LITTLE_ENDIAN
+		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t        ECN:2;
 			uint8_t        DSCP:6;
 		#else //BIG_ENDIAN
@@ -602,7 +602,7 @@ typedef struct _ipv4_hdr_
 	union {
 		uint16_t           Flags;
 		struct {
-		#if __BYTE_ORDER == __LITTLE_ENDIAN
+		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t        FO_First:5;
 			uint8_t        MF:1;
 			uint8_t        DF:1;
@@ -653,7 +653,7 @@ typedef struct _ipv6_hdr_
 	union {
 		uint32_t               VerTcFlow;
 		struct {
-		#if __BYTE_ORDER == __LITTLE_ENDIAN
+		#if BYTE_ORDER == LITTLE_ENDIAN
 			union {
 				uint8_t        TrafficClass_First:4;
 				uint8_t        DSF_First:4;
@@ -1088,7 +1088,7 @@ typedef struct _tcp_hdr_
 	union {
 		uint16_t               HeaderLength_Flags;
 		struct {
-		#if __BYTE_ORDER == __LITTLE_ENDIAN
+		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t                Nonce:1;
 			uint8_t                Reserved:3;
 			uint8_t                HeaderLength:4;
@@ -1461,7 +1461,7 @@ typedef struct _dns_hdr_
 	union {
 		uint16_t          Flags;
 		struct {
-		#if __BYTE_ORDER == __LITTLE_ENDIAN
+		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t       RD:1;
 			uint8_t       TC:1;
 			uint8_t       AA:1;
@@ -1487,7 +1487,7 @@ typedef struct _dns_hdr_
 		#endif
 		}FlagsBits;
 	};
-	uint16_t              Questions;
+	uint16_t              Question;
 	uint16_t              Answer;
 	uint16_t              Authority;
 	uint16_t              Additional;
@@ -1517,7 +1517,7 @@ typedef struct _dns_tcp_hdr_
 	union {
 		uint16_t          Flags;
 		struct {
-		#if __BYTE_ORDER == __LITTLE_ENDIAN
+		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t       RD:1;
 			uint8_t       TC:1;
 			uint8_t       AA:1;
@@ -1543,7 +1543,7 @@ typedef struct _dns_tcp_hdr_
 		#endif
 		}FlagsBits;
 	};
-	uint16_t              Questions;
+	uint16_t              Question;
 	uint16_t              Answer;
 	uint16_t              Authority;
 	uint16_t              Additional;
@@ -1849,7 +1849,7 @@ typedef struct _dns_record_opt_
 	union {
 		uint16_t          Z_Field;
 		struct {
-		#if __BYTE_ORDER == __LITTLE_ENDIAN
+		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t       Reserved_First:7;
 			uint8_t       DO:1;              //DO bit
 		#else //BIG_ENDIAN
@@ -2022,7 +2022,7 @@ typedef struct _dns_record_dnskey_
 	union {
 		uint16_t          Flags;
 		struct {
-		#if __BYTE_ORDER == __LITTLE_ENDIAN
+		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t       ZoneKey:1;         //Zone Key bit
 			uint8_t       Zero_A:7;
 			uint8_t       KeySigningKey:1;   //Key Signing Key bit
@@ -2089,7 +2089,7 @@ typedef struct _dns_record_nsec3_
 	union {
 		uint8_t           Flags;
 		struct {
-		#if __BYTE_ORDER == __LITTLE_ENDIAN
+		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t       OptOut:1;
 			uint8_t       Zero:7;
 		#else //BIG_ENDIAN
@@ -2125,7 +2125,7 @@ typedef struct _dns_record_nsec3param_
 	union {
 		uint8_t           Flags;
 		struct {
-		#if __BYTE_ORDER == __LITTLE_ENDIAN
+		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t       Reserved:1;
 			uint8_t       Zero:7;
 		#else //BIG_ENDIAN
@@ -2160,7 +2160,7 @@ typedef struct _dns_record_caa_
 	union {
 		uint8_t           Flags;
 		struct {
-		#if __BYTE_ORDER == __LITTLE_ENDIAN
+		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t       Zero:7;
 			uint8_t       IssuerCritical:1;
 		#else //BIG_ENDIAN
