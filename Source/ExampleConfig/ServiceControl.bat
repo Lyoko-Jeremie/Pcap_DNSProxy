@@ -5,8 +5,17 @@
 
 @echo off
 
+:: Check administrative permission and processor architecture.
+net session >NUL 2>NUL
+if ERRORLEVEL 1 (
+	color 4F
+	echo Please run as Administrator.
+	echo.
+	pause & break
+	echo.
+	exit
+)
 
-:: Check processor architecture.
 set Arch=
 if %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (set Arch=_x86)
 set Prog=Pcap_DNSProxy%Arch%.exe
@@ -36,7 +45,7 @@ goto %UserChoice%
 :CASE_1
 	sc stop PcapDNSProxyService
 	sc delete PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 5 >nul
 
 	sc create PcapDNSProxyService binPath= "%~dp0%Prog%" DisplayName= "PcapDNSProxy Service" start= auto
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v Application /d "%~dp0%Prog%" /f
@@ -57,7 +66,7 @@ goto %UserChoice%
 :CASE_2
 	sc stop PcapDNSProxyService
 	sc delete PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 5 >nul
 	ipconfig /flushdns
 	echo.
 	pause
@@ -68,9 +77,9 @@ goto %UserChoice%
 :: Service start
 :CASE_3
 	sc start PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 5 >nul
 	ipconfig /flushdns
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 5 >nul
 	call :CHECK_PROG
 	pause
 	cls
@@ -80,7 +89,7 @@ goto %UserChoice%
 :: Service stop
 :CASE_4
 	sc stop PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 5 >nul
 	ipconfig /flushdns
 	echo.
 	pause
@@ -91,9 +100,9 @@ goto %UserChoice%
 :: Service restart
 :CASE_5
 	sc stop PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 5 >nul
 	sc start PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 5 >nul
 	ipconfig /flushdns
 	call :CHECK_PROG
 	pause
@@ -127,11 +136,14 @@ goto %UserChoice%
 
 :: Process check
 :CHECK_PROG
-	Tasklist |findstr /I "%Prog%" > NUL
+	tasklist |findstr /I "%Prog%" > NUL
 	if ERRORLEVEL 1 (
+		color 4F
 		echo.
 		echo The program is not running, please check the configurations and error log.
+		echo.
 		pause
+		color 07
 		cls
 		goto :CHOICE
 	)

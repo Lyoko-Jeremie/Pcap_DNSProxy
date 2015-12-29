@@ -27,19 +27,20 @@ BOOL WINAPI CtrlHandler(
 //Print to screen.
 	if (GlobalRunningStatus.Console)
 	{
+		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
 		switch (fdwCtrlType)
 		{
 			case CTRL_C_EVENT: //Handle the CTRL-C signal.
 			{
-				wprintf_s(L"Get Control-C.\n");
+				fwprintf_s(stderr, L"Get Control-C.\n");
 			}break;
 			case CTRL_BREAK_EVENT: //Handle the CTRL-Break signal.
 			{
-				wprintf_s(L"Get Control-Break.\n");
+				fwprintf_s(stderr, L"Get Control-Break.\n");
 			}break;
 			default: //Handle other signals.
 			{
-				wprintf_s(L"Get closing signal.\n");
+				fwprintf_s(stderr, L"Get closing signal.\n");
 			}break;
 		}
 	}
@@ -284,7 +285,9 @@ bool WINAPI FlushDNSMailSlotSender(
 	HANDLE hFile = CreateFileW(MAILSLOT_NAME, GENERIC_WRITE, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
-		wprintf_s(L"Create mailslot error, error code is %lu.\n", GetLastError());
+		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+		fwprintf_s(stderr, L"Create mailslot error, error code is %lu.\n", GetLastError());
+
 		return false;
 	}
 
@@ -292,14 +295,16 @@ bool WINAPI FlushDNSMailSlotSender(
 	DWORD cbWritten = 0;
 	if (!WriteFile(hFile, MAILSLOT_MESSAGE_FLUSH_DNS, (DWORD)(lstrlenW(MAILSLOT_MESSAGE_FLUSH_DNS) + 1U) * sizeof(wchar_t), &cbWritten, nullptr))
 	{
-		wprintf_s(L"MailSlot write messages error, error code is %lu.\n", GetLastError());
+		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+		fwprintf_s(stderr, L"MailSlot write messages error, error code is %lu.\n", GetLastError());
 
 		CloseHandle(hFile);
 		return false;
 	}
 
 	CloseHandle(hFile);
-	wprintf_s(L"Flush DNS cache message was sent successfully.\n");
+	std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+	fwprintf_s(stderr, L"Flush DNS cache message was sent successfully.\n");
 	return true;
 }
 
@@ -357,11 +362,14 @@ bool FlushDNSFIFOSender(
 	int FIFO_FD = open(FIFO_PATH_NAME, O_WRONLY|O_TRUNC|O_NONBLOCK, 0);
 	if (FIFO_FD > 0 && write(FIFO_FD, FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS) + 1U) > 0)
 	{
-		wprintf(L"Flush DNS cache message was sent successfully.\n");
+		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+		fwprintf(stderr, L"Flush DNS cache message was sent successfully.\n");
 		close(FIFO_FD);
 	}
 	else {
-		wprintf(L"FIFO write messages error, error code is %d.\n", errno);
+		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+		fwprintf(stderr, L"FIFO write messages error, error code is %d.\n", errno);
+
 		return false;
 	}
 
@@ -380,8 +388,11 @@ void __fastcall FlushAllDNSCache(
 	DNSCacheListMutex.unlock();
 
 //Flush DNS cache in system.
+	std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+
 #if defined(PLATFORM_WIN)
 	system("ipconfig /flushdns 2>nul"); //All Windows version
+	fwprintf_s(stderr, L"\n");
 #elif defined(PLATFORM_LINUX)
 	#if defined(PLATFORM_OPENWRT)
 		system("/etc/init.d/dnsmasq restart 2>/dev/null"); //Dnsmasq manage DNS cache on OpenWrt

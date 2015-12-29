@@ -150,7 +150,7 @@ void __fastcall CaseConvert(
 	return;
 }
 
-//Convert lowercase/uppercase words to uppercase/lowercase words(C++ String version)
+//Convert lowercase/uppercase words to uppercase/lowercase words(C++ string version)
 void __fastcall CaseConvert(
 	_In_ const bool IsLowerToUpper, 
 	_Inout_opt_ std::string &Buffer)

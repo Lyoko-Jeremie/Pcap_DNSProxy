@@ -1015,29 +1015,10 @@ bool __fastcall CheckQueryData(
 		{
 //			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_FE);
 			DNS_Header->Flags = htons(DNS_SET_R_FE);
-			SendToRequester(Packet->Buffer, Packet->Length, Packet->Length + sizeof(uint16_t), Packet->Protocol, LocalSocketData);
+			SendToRequester(Packet->Buffer, Packet->Length, Packet->BufferSize, Packet->Protocol, LocalSocketData);
 		}
 
 		return false;
-	}
-
-//UDP Truncated check
-	if (Packet->Protocol == IPPROTO_UDP)
-	{
-		if (Packet->Length + EDNS_ADDITIONAL_MAXSIZE > Parameter.EDNSPayloadSize && (Parameter.EDNS_Label || Packet->Length > Parameter.EDNSPayloadSize))
-		{
-		//Make packets with EDNS Label.
-//			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_RTC);
-			DNS_Header->Flags = htons(DNS_SET_RTC);
-			if (DNS_Header->Additional == 0)
-				AddEDNSLabelToAdditionalRR(Packet, nullptr);
-
-		//Send request.
-			if (Packet->Length >= DNS_PACKET_MINSIZE)
-				SendToRequester(Packet->Buffer, Packet->Length, Packet->BufferSize, Packet->Protocol, LocalSocketData);
-
-			return false;
-		}
 	}
 
 //Scan all Resource Records.
@@ -1073,7 +1054,7 @@ bool __fastcall CheckQueryData(
 		if (Index >= (size_t)(ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority))) //Additional counts
 		{
 		//EDNS Label check
-			if (Index == (size_t)(ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional) - 1U) &&
+			if (Index == (size_t)(ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional) - 1U) && 
 				DNS_Record_Standard->Type == htons(DNS_RECORD_OPT))
 			{
 				Packet->EDNS_Record += RecordLength;
@@ -1089,6 +1070,24 @@ bool __fastcall CheckQueryData(
 		}
 		else { //Answer counts
 			Packet->Answer += RecordLength;
+		}
+	}
+
+//UDP Truncated check
+	if (Packet->Protocol == IPPROTO_UDP)
+	{
+		if (Packet->Length + EDNS_ADDITIONAL_MAXSIZE > Parameter.EDNSPayloadSize && (Parameter.EDNS_Label || Packet->Length > Parameter.EDNSPayloadSize))
+		{
+		//Make packets with EDNS Label.
+//			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_RTC);
+			DNS_Header->Flags = htons(DNS_SET_RTC);
+			AddEDNSLabelToAdditionalRR(Packet, nullptr);
+
+		//Send request.
+			if (Packet->Length >= DNS_PACKET_MINSIZE)
+				SendToRequester(Packet->Buffer, Packet->Length, Packet->BufferSize, Packet->Protocol, LocalSocketData);
+
+			return false;
 		}
 	}
 
@@ -1135,7 +1134,7 @@ size_t __fastcall CheckResponseData(
 	//NoCheck flag
 		!NoCheck && 
 	//Extended DNS header check
-		Parameter.HeaderCheck_DNS &&
+		Parameter.HeaderCheck_DNS && 
 	//Must not set Response bit.
 		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RESPONSE) == 0 || 
 	//Must not any Non-Question Resource Records when RCode is No Error and not Truncated

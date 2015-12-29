@@ -61,10 +61,10 @@ int main(
 //Mark Local DNS address to PTR Records, read Parameter(Monitor mode), IPFilter and Hosts.
 	ParameterModificating.SetToMonitorItem();
 	std::thread NetworkInformationMonitorThread(std::bind(NetworkInformationMonitor));
-	std::thread ReadParameterThread(std::bind(ReadParameter, false));
-	std::thread ReadHostsThread(std::bind(ReadHosts));
 	NetworkInformationMonitorThread.detach();
+	std::thread ReadParameterThread(std::bind(ReadParameter, false));
 	ReadParameterThread.detach();
+	std::thread ReadHostsThread(std::bind(ReadHosts));
 	ReadHostsThread.detach();
 	if (Parameter.OperationMode == LISTEN_MODE_CUSTOM || Parameter.DataCheck_Blacklist || Parameter.LocalRouting)
 	{
@@ -78,9 +78,14 @@ int main(
 	if (!StartServiceCtrlDispatcherW(ServiceTable))
 	{
 		GlobalRunningStatus.Console = true;
-		wprintf_s(L"System Error: Service start error, error code is %lu.\n", GetLastError());
-		wprintf_s(L"System Error: Program will continue to run in console mode.\n");
-		wprintf_s(L"Please ignore these error messages if you want to run in console mode.\n");
+		auto ErrorCode = GetLastError();
+		
+	//Print to screen.
+		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+		fwprintf_s(stderr, L"System Error: Service start error, error code is %lu.\n", ErrorCode);
+		fwprintf_s(stderr, L"System Error: Program will continue to run in console mode.\n");
+		fwprintf_s(stderr, L"Please ignore these error messages if you want to run in console mode.\n\n");
+		ScreenMutex.unlock();
 
 	//Handle the system signal and start all monitors.
 		SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, TRUE);
@@ -90,6 +95,8 @@ int main(
 	MonitorInit();
 #endif
 
+//Wait a moment to close all thread handles.
+	Sleep(SHORTEST_FILEREFRESH_TIME * SECOND_TO_MILLISECOND);
 	return EXIT_SUCCESS;
 }
 
@@ -113,7 +120,9 @@ bool ReadCommand(
 	memset(FileName.get(), 0, PATH_MAX + 1U);
 	if (getcwd(FileName.get(), PATH_MAX) == nullptr)
 	{
-		wprintf(L"Path initialization error.\n");
+		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+		fwprintf(stderr, L"Path initialization error.\n");
+
 		return false;
 	}
 	if (!FileNameInit(FileName.get()))
@@ -121,13 +130,26 @@ bool ReadCommand(
 	FileName.reset();
 #endif
 
+//Screen output buffer setting
+	if (setvbuf(stderr, NULL, _IONBF, 0) != 0)
+	{
+		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+		fwprintf_s(stderr, L"Screen output buffer setting error, error code is %d.\n", errno);
+		ScreenLock.unlock();
+		PrintError(LOG_ERROR_NETWORK, L"Screen output buffer setting error", errno, nullptr, 0);
+
+		return false;
+	}
+
 //Winsock initialization
 #if defined(PLATFORM_WIN)
 	auto WSAInitialization = std::make_shared<WSAData>();
 	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), WSAInitialization.get()) != 0 || 
 		LOBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_HIGH)
 	{
-		wprintf_s(L"Winsock initialization error, error code is %d.\n", WSAGetLastError());
+		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+		fwprintf_s(stderr, L"Winsock initialization error, error code is %d.\n", WSAGetLastError());
+		ScreenLock.unlock();
 		PrintError(LOG_ERROR_NETWORK, L"Winsock initialization error", WSAGetLastError(), nullptr, 0);
 
 		return false;
@@ -162,7 +184,9 @@ bool ReadCommand(
 		{
 			if (!FirewallTest(AF_INET6) && !FirewallTest(AF_INET))
 			{
-				wprintf_s(L"Windows Firewall Test error, error code is %d.\n", WSAGetLastError());
+				std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+				fwprintf_s(stderr, L"Windows Firewall Test error, error code is %d.\n", WSAGetLastError());
+				ScreenMutex.unlock();
 				PrintError(LOG_ERROR_NETWORK, L"Windows Firewall Test error", WSAGetLastError(), nullptr, 0);
 			}
 
@@ -179,31 +203,34 @@ bool ReadCommand(
 	//Print current version.
 		else if (Commands == COMMAND_LONG_PRINT_VERSION || Commands == COMMAND_SHORT_PRINT_VERSION)
 		{
-			wprintf_s(L"Pcap_DNSProxy ");
-			wprintf_s(FULL_VERSION);
-			wprintf_s(L"\n");
+			std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+			fwprintf_s(stderr, L"Pcap_DNSProxy ");
+			fwprintf_s(stderr, FULL_VERSION);
+			fwprintf_s(stderr, L"\n");
 
 			return false;
 		}
 	//Print library version.
 		else if (Commands == COMMAND_LIB_VERSION)
 		{
+			std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+
 		#if (defined(ENABLE_LIBSODIUM) || defined(ENABLE_PCAP))
 			std::wstring LibVersion;
 
 			//LibSodium version
 			#if defined(ENABLE_LIBSODIUM)
 				if (MBSToWCSString(SODIUM_VERSION_STRING, strlen(SODIUM_VERSION_STRING), LibVersion))
-					wprintf_s(L"LibSodium version %ls\n", LibVersion.c_str());
+					fwprintf_s(stderr, L"LibSodium version %ls\n", LibVersion.c_str());
 			#endif
 
 			//WinPcap or LibPcap version
 			#if defined(ENABLE_PCAP)
 				if (MBSToWCSString(pcap_lib_version(), strlen(pcap_lib_version()), LibVersion))
-					wprintf_s(L"%ls\n", LibVersion.c_str());
+					fwprintf_s(stderr, L"%ls\n", LibVersion.c_str());
 			#endif
 		#else
-			wprintf_s(L"No any available libraries.\n");
+			fwprintf(stderr, L"No any available libraries.\n");
 		#endif
 
 			return false;
@@ -211,29 +238,31 @@ bool ReadCommand(
 	//Print help messages.
 		else if (Commands == COMMAND_LONG_HELP || Commands == COMMAND_SHORT_HELP)
 		{
-			wprintf_s(L"Pcap_DNSProxy ");
-			wprintf_s(FULL_VERSION);
+			std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+
+			fwprintf_s(stderr, L"Pcap_DNSProxy ");
+			fwprintf_s(stderr, FULL_VERSION);
 		#if defined(PLATFORM_WIN)
-			wprintf_s(L"(Windows)\n");
+			fwprintf_s(stderr, L"(Windows)\n");
 		#elif defined(PLATFORM_OPENWRT)
-			wprintf(L"(OpenWrt)\n");
+			fwprintf(stderr, L"(OpenWrt)\n");
 		#elif defined(PLATFORM_LINUX)
-			wprintf(L"(Linux)\n");
+			fwprintf(stderr, L"(Linux)\n");
 		#elif defined(PLATFORM_MACX)
-			wprintf(L"(Mac)\n");
+			fwprintf(stderr, L"(Mac)\n");
 		#endif
-			wprintf_s(COPYRIGHT_MESSAGE);
-			wprintf_s(L"\nUsage: Please see ReadMe... files in Documents folder.\n");
-			wprintf_s(L"   -v/--version:          Print current version on screen.\n");
-			wprintf_s(L"   --lib-version:         Print current version of library on screen.\n");
-			wprintf_s(L"   -h/--help:             Print help messages on screen.\n");
-			wprintf_s(L"   --flush-dns:           Flush all DNS cache in program and system immediately.\n");
+			fwprintf_s(stderr, COPYRIGHT_MESSAGE);
+			fwprintf_s(stderr, L"\nUsage: Please see ReadMe... files in Documents folder.\n");
+			fwprintf_s(stderr, L"   -v/--version:          Print current version on screen.\n");
+			fwprintf_s(stderr, L"   --lib-version:         Print current version of library on screen.\n");
+			fwprintf_s(stderr, L"   -h/--help:             Print help messages on screen.\n");
+			fwprintf_s(stderr, L"   --flush-dns:           Flush all DNS cache in program and system immediately.\n");
 		#if defined(PLATFORM_WIN)
-			wprintf_s(L"   --first-setup:         Test local firewall.\n");
+			fwprintf_s(stderr, L"   --first-setup:         Test local firewall.\n");
 		#endif
-			wprintf_s(L"   -c/--config-file Path: Set path of configuration file.\n");
+			fwprintf_s(stderr, L"   -c/--config-file Path: Set path of configuration file.\n");
 		#if defined(PLATFORM_LINUX)
-			wprintf_s(L"   --disable-daemon:      Disable daemon mode.\n");
+			fwprintf(stderr, L"   --disable-daemon:      Disable daemon mode.\n");
 		#endif
 
 			return false;
@@ -244,7 +273,9 @@ bool ReadCommand(
 		//Commands check
 			if ((SSIZE_T)Index + 1 >= argc)
 			{
-				wprintf_s(L"Commands error.\n");
+				std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+				fwprintf(stderr, L"Commands error.\n");
+				ScreenMutex.unlock();
 				PrintError(LOG_ERROR_SYSTEM, L"Commands error", 0, nullptr, 0);
 
 				return false;
@@ -256,7 +287,9 @@ bool ReadCommand(
 			//Path check.
 				if (Commands.length() > MAX_PATH)
 				{
-					wprintf_s(L"Commands error.\n");
+					std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+					fwprintf_s(stderr, L"Commands error.\n");
+					ScreenLock.unlock();
 					PrintError(LOG_ERROR_SYSTEM, L"Commands error", 0, nullptr, 0);
 
 					return false;

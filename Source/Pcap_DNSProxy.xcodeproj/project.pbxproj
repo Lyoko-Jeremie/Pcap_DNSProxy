@@ -29,6 +29,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		D99DD4DB1C32C8D1004C0F2C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D99DD4D71C32C8D1004C0F2C /* FileHash.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = D99DD4701C32C597004C0F2C;
+			remoteInfo = FileHash;
+		};
 		D9F760F41AFCB498007F351A /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = D9F760F01AFCB498007F351A /* KeyPairGenerator.xcodeproj */;
@@ -154,6 +161,7 @@
 		D98EE50A1B11DF9C00C7C217 /* ReadMe_Mac(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe_Mac(zh_Hant).txt"; path = "Documents/ReadMe_Mac(zh_Hant).txt"; sourceTree = "<group>"; };
 		D98EE50B1B11DF9C00C7C217 /* ReadMe(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe(zh_Hans).txt"; path = "Documents/ReadMe(zh_Hans).txt"; sourceTree = "<group>"; };
 		D98EE50C1B11DF9C00C7C217 /* ReadMe(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe(zh_Hant).txt"; path = "Documents/ReadMe(zh_Hant).txt"; sourceTree = "<group>"; };
+		D99DD4D71C32C8D1004C0F2C /* FileHash.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = FileHash.xcodeproj; sourceTree = "<group>"; };
 		D99E2D3F1AFCAF2200F36FCD /* Pcap_DNSProxy */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Pcap_DNSProxy; sourceTree = BUILT_PRODUCTS_DIR; };
 		D99E2DDC1AFCB21100F36FCD /* Config.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Config.ini; path = ExampleConfig/Config.ini; sourceTree = SOURCE_ROOT; };
 		D99E2DDD1AFCB21100F36FCD /* Hosts.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Hosts.ini; path = ExampleConfig/Hosts.ini; sourceTree = SOURCE_ROOT; };
@@ -175,9 +183,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		D99DD4D81C32C8D1004C0F2C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D99DD4DC1C32C8D1004C0F2C /* FileHash */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		D99E2D361AFCAF2200F36FCD = {
 			isa = PBXGroup;
 			children = (
+				D99DD4D71C32C8D1004C0F2C /* FileHash.xcodeproj */,
 				D9F760F01AFCB498007F351A /* KeyPairGenerator.xcodeproj */,
 				D99E2DEC1AFCB25300F36FCD /* Documents */,
 				D99E2D411AFCAF2200F36FCD /* Pcap_DNSProxy */,
@@ -384,6 +401,10 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+					ProductGroup = D99DD4D81C32C8D1004C0F2C /* Products */;
+					ProjectRef = D99DD4D71C32C8D1004C0F2C /* FileHash.xcodeproj */;
+				},
+				{
 					ProductGroup = D9F760F11AFCB498007F351A /* Products */;
 					ProjectRef = D9F760F01AFCB498007F351A /* KeyPairGenerator.xcodeproj */;
 				},
@@ -396,6 +417,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		D99DD4DC1C32C8D1004C0F2C /* FileHash */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.executable";
+			path = FileHash;
+			remoteRef = D99DD4DB1C32C8D1004C0F2C /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		D9F760F51AFCB498007F351A /* KeyPairGenerator */ = {
 			isa = PBXReferenceProxy;
 			fileType = "compiled.mach-o.executable";

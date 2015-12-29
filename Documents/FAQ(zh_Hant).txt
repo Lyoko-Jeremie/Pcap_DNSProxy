@@ -67,6 +67,7 @@
 Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
 
 1.System Error - 系統錯誤
+  * Screen output buffer setting error - 螢幕輸出緩衝區配置錯誤：建議重新開機服務或程式
   * Commands error - 程式啟動參數錯誤：請檢查為程式傳入的參數
   * Service start error - 服務啟動失敗：可能未在系統註冊服務，或在系統內註冊的服務路徑不正確
     * 錯誤代碼參見 https://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx

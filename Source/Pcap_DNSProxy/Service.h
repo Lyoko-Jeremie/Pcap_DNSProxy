@@ -25,7 +25,7 @@
 	extern GLOBAL_STATUS GlobalRunningStatus;
 #endif
 extern std::deque<DNS_CACHE_DATA> DNSCacheList;
-extern std::mutex DNSCacheListLock;
+extern std::mutex ScreenLock, DNSCacheListLock;
 
 #if defined(PLATFORM_WIN)
 //Local variables

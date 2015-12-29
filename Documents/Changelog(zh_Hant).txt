@@ -1,4 +1,26 @@
-﻿Pcap_DNSProxy v0.4.4.1-0.4.4.6 更新日誌(2015-12-14)：
+﻿Pcap_DNSProxy v0.4.5.0 更新日誌(2015-12-29)：
+
+* 添加 FileHash 工具，提供對檔的校驗功能
+  * 支援 SHA-1
+  * 支援 SHA-3(224/256/384/512/SHAKE_128/SHAKE_256)
+* LibSodium 庫更新到 1.0.8
+* 修復多次啟動程式時可能造成的崩潰問題 (Windows)
+* 修復主控台輸出內容混疊的問題 (Windows)
+* 檔校驗碼
+  * SHA-1:
+    * Windows/Pcap_DNSProxy.exe -> AC94CDFD0F69A336DE9BFC4A877E3468BFCFAD0C
+    * Windows/Pcap_DNSProxy_x86.exe -> 938FD04259497D2DD8204F91E51F0B99B108BE57
+    * Mac/Pcap_DNSProxy -> A9765A1BE67999036C80061CFC66C7EE0191CF90
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe -> 4CFC917AFD6DE227710CBBA5B6C8A6A4F0BDF8216E9FBE8B26E1F195F2E8AD12
+    * Windows/Pcap_DNSProxy_x86.exe -> CF36584F70E1EE30F0AB1FB445A4D0971067540F7F7BA3C45C0F0B08984A9066
+    * Mac/Pcap_DNSProxy -> C653A3DA815BDF5C8995803F105DB666ADB31EC57C942411297469D69C4CA7F9
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.4.4.1-0.4.4.6 更新日誌(2015-12-14)：
 
 * 添加對 SOCKS 版本 4/4a/5 請求的原生支援
 * 添加對 HTTP CONNECT Tunnel 請求的原生支援

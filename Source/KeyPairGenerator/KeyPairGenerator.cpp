@@ -34,10 +34,10 @@ int main(int argc, char *argv[])
 //Libsodium initialization
 	if (sodium_init() == LIBSODIUM_ERROR)
 	{
-		wprintf_s(L"Libsodium initialization error\n");
-#if defined(PLATFORM_WIN)
-		system("Pause");
-#endif
+		fwprintf_s(stderr, L"Libsodium initialization error.\n\n");
+	#if defined(PLATFORM_WIN)
+		system("PAUSE");
+	#endif
 
 		return EXIT_FAILURE;
 	}
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 	//Write public key.
 		sodium_memzero(Buffer.get(), KEYPAIR_MESSAGE_LEN);
 		if (sodium_bin2hex(Buffer.get(), KEYPAIR_MESSAGE_LEN, PublicKey.get(), crypto_box_PUBLICKEYBYTES) == nullptr)
-			wprintf_s(L"Create ramdom key pair failed, please try again.\n");
+			fwprintf_s(stderr, L"Create ramdom key pair failed, please try again.\n");
 		CaseConvert(true, Buffer.get(), KEYPAIR_MESSAGE_LEN);
 		fwprintf_s(Output, L"Client Public Key = ");
 		for (Index = 0;Index < strnlen_s(Buffer.get(), KEYPAIR_MESSAGE_LEN);++Index)
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 
 	//Write secret key.
 		if (sodium_bin2hex(Buffer.get(), KEYPAIR_MESSAGE_LEN, SecretKey.Buffer, crypto_box_SECRETKEYBYTES) == nullptr)
-			wprintf_s(L"Create ramdom key pair failed, please try again.\n");
+			fwprintf_s(stderr, L"Create ramdom key pair failed, please try again.\n");
 		CaseConvert(true, Buffer.get(), KEYPAIR_MESSAGE_LEN);
 		fwprintf_s(Output, L"Client Secret Key = ");
 		for (Index = 0;Index < strnlen_s(Buffer.get(), KEYPAIR_MESSAGE_LEN);++Index)
@@ -94,32 +94,32 @@ int main(int argc, char *argv[])
 		fclose(Output);
 	}
 	else {
-		wprintf_s(L"Cannot create target file(KeyPair.txt)\n");
+		fwprintf_s(stderr, L"Cannot create target file(KeyPair.txt)\n\n");
 	#if defined(PLATFORM_WIN)
-		system("Pause");
+		system("PAUSE");
 	#endif
 
 		return EXIT_FAILURE;
 	}
 
-	wprintf_s(L"Create ramdom key pair success, please check KeyPair.txt.\n\n");
+	fwprintf_s(stderr, L"Create ramdom key pair success, please check KeyPair.txt.\n\n");
 #if defined(PLATFORM_WIN)
-	system("Pause");
+	system("PAUSE");
 #endif
 #else
 	#if defined(PLATFORM_WIN)
-		wprintf_s(L"LibSodium is disable.\n\n");
-		system("Pause");
+		fwprintf(stderr, L"LibSodium is disable.\n\n");
+		system("PAUSE");
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		wprintf(L"LibSodium is disable.\n\n");
+		fwprintf(stderr, L"LibSodium is disable.\n\n");
 	#endif
 #endif
 
 	return EXIT_SUCCESS;
 }
 
-//Convert lowercase/uppercase words to uppercase/lowercase words(Character version)
 #if defined(ENABLE_LIBSODIUM)
+//Convert lowercase/uppercase words to uppercase/lowercase words(Character version)
 void __fastcall CaseConvert(
 	_In_ const bool IsLowerToUpper, 
 	_Inout_ char *Buffer, 

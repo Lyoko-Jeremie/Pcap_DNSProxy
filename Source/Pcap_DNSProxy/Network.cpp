@@ -30,7 +30,11 @@ bool __fastcall SocketSetting(
 	//Socket check
 		case SOCKET_SETTING_INVALID_CHECK:
 		{
+		#if defined(PLATFORM_WIN)
+			if (Socket == INVALID_SOCKET || Socket == SOCKET_ERROR)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			if (Socket == INVALID_SOCKET)
+		#endif
 			{
 				PrintError(LOG_ERROR_NETWORK, L"Socket initialization error", WSAGetLastError(), nullptr, 0);
 				return false;
@@ -1115,7 +1119,7 @@ bool __fastcall ICMPTestRequest(
 	}
 
 //Socket timeout setting
-	for (auto SocketDataIter:ICMPSocketData)
+	for (auto &SocketDataIter:ICMPSocketData)
 	{
 		if (!SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TIMEOUT, &Parameter.SocketTimeout_Unreliable))
 		{

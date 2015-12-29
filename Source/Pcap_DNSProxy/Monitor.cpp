@@ -107,7 +107,11 @@ bool __fastcall MonitorInit(
 		if (Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TRANSPORT_BOTH || Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_UDP)
 		{
 			LocalSocketData->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+		#if defined(PLATFORM_WIN)
+			if (LocalSocketData->Socket == INVALID_SOCKET || LocalSocketData->Socket == SOCKET_ERROR)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			if (LocalSocketData->Socket == INVALID_SOCKET)
+		#endif
 			{
 				if (WSAGetLastError() != 0 && WSAGetLastError() != WSAEAFNOSUPPORT)
 					PrintError(LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
@@ -182,7 +186,11 @@ bool __fastcall MonitorInit(
 		if (Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TRANSPORT_BOTH || Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TCP)
 		{
 			LocalSocketData->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+		#if defined(PLATFORM_WIN)
+			if (LocalSocketData->Socket == INVALID_SOCKET || LocalSocketData->Socket == SOCKET_ERROR)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			if (LocalSocketData->Socket == INVALID_SOCKET)
+		#endif
 			{
 				if (WSAGetLastError() != 0 && WSAGetLastError() != WSAEAFNOSUPPORT)
 					PrintError(LOG_ERROR_NETWORK, L"TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
@@ -528,10 +536,7 @@ bool __fastcall UDPMonitor(
 			if (FD_ISSET(ClientData->Socket, ReadFDS.get()))
 			{
 			//Receive response and check DNS query data.
-				if (Parameter.EDNS_Label) //EDNS Label
-					RecvLen = recvfrom(ClientData->Socket, RecvBuffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0, (PSOCKADDR)&ClientData->SockAddr, (socklen_t *)&ClientData->AddrLen);
-				else 
-					RecvLen = recvfrom(ClientData->Socket, RecvBuffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE, 0, (PSOCKADDR)&ClientData->SockAddr, (socklen_t *)&ClientData->AddrLen);
+				RecvLen = recvfrom(ClientData->Socket, RecvBuffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE, 0, (PSOCKADDR)&ClientData->SockAddr, (socklen_t *)&ClientData->AddrLen);
 				if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 				{
 					continue;
@@ -687,7 +692,11 @@ bool __fastcall TCPMonitor(
 			{
 			//Accept connection
 				ClientData->Socket = accept(LocalSocketData.Socket, (PSOCKADDR)&ClientData->SockAddr, &ClientData->AddrLen);
-				if (ClientData->Socket == INVALID_SOCKET)
+				#if defined(PLATFORM_WIN)
+					if (ClientData->Socket == INVALID_SOCKET || ClientData->Socket == SOCKET_ERROR)
+				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+					if (ClientData->Socket == INVALID_SOCKET)
+				#endif
 					continue;
 
 			//Check request address.
@@ -756,10 +765,7 @@ bool __fastcall TCPReceiveProcess(
 #endif
 	if (RecvLen > 0 && FD_ISSET(LocalSocketData.Socket, ReadFDS.get()))
 	{
-		if (Parameter.EDNS_Label) //EDNS Label
-			RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE, 0);
-		else 
-			RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, 0);
+		RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, 0);
 	}
 //Timeout or SOCKET_ERROR
 	else {
@@ -801,10 +807,7 @@ bool __fastcall TCPReceiveProcess(
 	#endif
 		if (RecvLen > 0 && FD_ISSET(LocalSocketData.Socket, ReadFDS.get()))
 		{
-			if (Parameter.EDNS_Label) //EDNS Label
-				RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get() + Length, (int)(LARGE_PACKET_MAXSIZE - EDNS_ADDITIONAL_MAXSIZE - Length), 0);
-			else 
-				RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get() + Length, (int)(LARGE_PACKET_MAXSIZE - Length), 0);
+			RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get() + Length, (int)(LARGE_PACKET_MAXSIZE - Length), 0);
 
 		//Receive length check
 			if (RecvLen > 0)

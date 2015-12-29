@@ -90,7 +90,11 @@ bool __fastcall EnterRequestProcess(
 	if (Packet.IsLocal && LocalRequestProcess(Packet, RecvBuffer.get(), RecvSize, LocalSocketData))
 	{
 	//Fin TCP request connection.
+	#if defined(PLATFORM_WIN)
+		if (Packet.Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET && LocalSocketData.Socket != SOCKET_ERROR)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (Packet.Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
+	#endif
 		{
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);
@@ -118,7 +122,11 @@ bool __fastcall EnterRequestProcess(
 		if (Parameter.SOCKS_Only)
 		{
 		//Fin TCP request connection.
+		#if defined(PLATFORM_WIN)
+			if (Packet.Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET && LocalSocketData.Socket != SOCKET_ERROR)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			if (Packet.Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
+		#endif
 			{
 				shutdown(LocalSocketData.Socket, SD_BOTH);
 				closesocket(LocalSocketData.Socket);
@@ -139,7 +147,11 @@ bool __fastcall EnterRequestProcess(
 		if (Parameter.HTTP_Only)
 		{
 		//Fin TCP request connection.
+		#if defined(PLATFORM_WIN)
+			if (Packet.Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET && LocalSocketData.Socket != SOCKET_ERROR)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			if (Packet.Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
+		#endif
 			{
 				shutdown(LocalSocketData.Socket, SD_BOTH);
 				closesocket(LocalSocketData.Socket);
@@ -153,7 +165,11 @@ bool __fastcall EnterRequestProcess(
 	if (Parameter.DirectRequest > DIRECT_REQUEST_MODE_NONE && DirectRequestProcess(Packet, RecvBuffer.get(), RecvSize, true, LocalSocketData))
 	{
 	//Fin TCP request connection.
+	#if defined(PLATFORM_WIN)
+		if (Packet.Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET && LocalSocketData.Socket != SOCKET_ERROR)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (Packet.Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
+	#endif
 		{
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);
@@ -178,7 +194,11 @@ bool __fastcall EnterRequestProcess(
 		if (DNSCurveParameter.IsEncryptionOnly)
 		{
 		//Fin TCP request connection.
+		#if defined(PLATFORM_WIN)
+			if (Packet.Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET && LocalSocketData.Socket != SOCKET_ERROR)
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			if (Packet.Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
+		#endif
 			{
 				shutdown(LocalSocketData.Socket, SD_BOTH);
 				closesocket(LocalSocketData.Socket);
@@ -193,7 +213,7 @@ SkipDNSCurve:
 #endif
 
 //TCP request process
-	if ((Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Packet.Protocol == IPPROTO_TCP) &&
+	if ((Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Packet.Protocol == IPPROTO_TCP) && 
 		TCPRequestProcess(Packet, RecvBuffer.get(), RecvSize, LocalSocketData))
 			return true;
 
@@ -205,7 +225,11 @@ SkipDNSCurve:
 		DirectRequestProcess(Packet, RecvBuffer.get(), RecvSize, false, LocalSocketData);
 
 	//Fin TCP request connection.
+	#if defined(PLATFORM_WIN)
+		if (Packet.Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET && LocalSocketData.Socket != SOCKET_ERROR)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (Packet.Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
+	#endif
 		{
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);
@@ -678,10 +702,8 @@ bool __fastcall LocalRequestProcess(
 		}
 	}
 
-//UDP request
+//UDP request and Send response.
 	DataLength = UDPCompleteRequest(Packet.Buffer, Packet.Length, OriginalRecv, RecvSize, true);
-
-//Send response.
 	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
 		SendToRequester(OriginalRecv, DataLength, RecvSize, Packet.Protocol, LocalSocketData);
@@ -911,7 +933,11 @@ void __fastcall UDPRequestProcess(
 		UDPRequest(Packet.Buffer, Packet.Length, &LocalSocketData, Packet.Protocol);
 
 //Fin TCP request connection.
+#if defined(PLATFORM_WIN)
+	if (Packet.Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET && LocalSocketData.Socket != SOCKET_ERROR)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (Packet.Protocol == IPPROTO_TCP && LocalSocketData.Socket != INVALID_SOCKET)
+#endif
 	{
 		shutdown(LocalSocketData.Socket, SD_BOTH);
 		closesocket(LocalSocketData.Socket);

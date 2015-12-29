@@ -67,6 +67,7 @@
 Error.log 详细错误报告，错误报告一共有7大类型：
 
 1.System Error - 系统错误
+  * Screen output buffer setting error - 屏幕输出缓冲区配置错误：建议重新启动服务或程序
   * Commands error - 程序启动参数错误：请检查为程序传入的参数
   * Service start error - 服务启动失败：可能未在系统注册服务，或在系统内注册的服务路径不正确
     * Windows 的错误代码参见 https://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx

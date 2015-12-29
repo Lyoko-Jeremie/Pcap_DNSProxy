@@ -107,7 +107,7 @@
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE   0.3
 #define CONFIG_VERSION               0.4                         //Current configuration version
-#define FULL_VERSION                 L"0.4.4.6"
+#define FULL_VERSION                 L"0.4.5.0"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2015 Chengr28"
 
 //Size and length definitions
@@ -989,13 +989,13 @@ size_t __fastcall CharToDNSQuery(
 	_In_ const char *FName, 
 	_Out_ char *TName);
 size_t __fastcall DNSQueryToChar(
-	_In_ const char *TName,
+	_In_ const char *TName, 
 	_Out_ std::string &FName);
 size_t __fastcall MarkWholeDNSQuery(
-	_In_ const char *Packet,
-	_In_ const size_t Length,
-	_In_ const char *TName,
-	_In_ const size_t TNameIndex,
+	_In_ const char *Packet, 
+	_In_ const size_t Length, 
+	_In_ const char *TName, 
+	_In_ const size_t TNameIndex, 
 	_Inout_ std::string &FName);
 void __fastcall MakeRamdomDomain(
 	_Out_ char *Buffer);
@@ -1283,11 +1283,11 @@ template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
 template<typename Ty> void DNSCurveHeapBufferTable<Ty>::Swap(
 	DNSCurveHeapBufferTable &Other)
 {
-	auto BufferTemp = this->Buffer;
-	this->Buffer = Other.Buffer;
+	auto BufferTemp = Buffer;
+	Buffer = Other.Buffer;
 	Other.Buffer = BufferTemp;
-	auto BufferSizeTemp = this->BufferSize;
-	this->BufferSize = Other.BufferSize;
+	auto BufferSizeTemp = BufferSize;
+	BufferSize = Other.BufferSize;
 	Other.BufferSize = BufferSizeTemp;
 
 	return;

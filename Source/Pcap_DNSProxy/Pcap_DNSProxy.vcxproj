@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{66D97542-B962-4523-8B6E-DD7F92348F36}</ProjectGuid>
+    <ProjectGuid>{8D356960-E7A7-4CEC-84A2-1C809C88EA21}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>Pcap_DNSProxy</RootNamespace>
   </PropertyGroup>
@@ -39,9 +39,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120_xp</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v120_xp</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -118,6 +118,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <CompileAsManaged>false</CompileAsManaged>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
@@ -125,19 +127,24 @@
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <FloatingPointExceptions>true</FloatingPointExceptions>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OpenMPSupport>true</OpenMPSupport>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+      <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <Version>0.4</Version>
-      <LargeAddressAware>true</LargeAddressAware>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
-      <Profile>true</Profile>
+      <LargeAddressAware>true</LargeAddressAware>
+      <Version>
+      </Version>
     </Link>
+    <ResourceCompile>
+      <NullTerminateStrings>true</NullTerminateStrings>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -149,6 +156,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
+      <CompileAsManaged>false</CompileAsManaged>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
@@ -156,150 +165,67 @@
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
-      <FloatingPointExceptions>true</FloatingPointExceptions>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OpenMPSupport>true</OpenMPSupport>
+      <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <Version>0.4</Version>
-      <LargeAddressAware>true</LargeAddressAware>
       <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
-      <Profile>true</Profile>
+      <LargeAddressAware>true</LargeAddressAware>
+      <Version>
+      </Version>
     </Link>
+    <ResourceCompile>
+      <NullTerminateStrings>true</NullTerminateStrings>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\LibSodium\core.h" />
-    <ClInclude Include="..\LibSodium\crypto_aead_aes256gcm.h" />
-    <ClInclude Include="..\LibSodium\crypto_aead_chacha20poly1305.h" />
-    <ClInclude Include="..\LibSodium\crypto_auth.h" />
-    <ClInclude Include="..\LibSodium\crypto_auth_hmacsha256.h" />
-    <ClInclude Include="..\LibSodium\crypto_auth_hmacsha512.h" />
-    <ClInclude Include="..\LibSodium\crypto_auth_hmacsha512256.h" />
-    <ClInclude Include="..\LibSodium\crypto_box.h" />
-    <ClInclude Include="..\LibSodium\crypto_box_curve25519xsalsa20poly1305.h" />
-    <ClInclude Include="..\LibSodium\crypto_core_hsalsa20.h" />
-    <ClInclude Include="..\LibSodium\crypto_core_salsa20.h" />
-    <ClInclude Include="..\LibSodium\crypto_core_salsa2012.h" />
-    <ClInclude Include="..\LibSodium\crypto_core_salsa208.h" />
-    <ClInclude Include="..\LibSodium\crypto_generichash.h" />
-    <ClInclude Include="..\LibSodium\crypto_generichash_blake2b.h" />
-    <ClInclude Include="..\LibSodium\crypto_hash.h" />
-    <ClInclude Include="..\LibSodium\crypto_hash_sha256.h" />
-    <ClInclude Include="..\LibSodium\crypto_hash_sha512.h" />
-    <ClInclude Include="..\LibSodium\crypto_int32.h" />
-    <ClInclude Include="..\LibSodium\crypto_int64.h" />
-    <ClInclude Include="..\LibSodium\crypto_onetimeauth.h" />
-    <ClInclude Include="..\LibSodium\crypto_onetimeauth_poly1305.h" />
-    <ClInclude Include="..\LibSodium\crypto_pwhash_scryptsalsa208sha256.h" />
-    <ClInclude Include="..\LibSodium\crypto_scalarmult.h" />
-    <ClInclude Include="..\LibSodium\crypto_scalarmult_curve25519.h" />
-    <ClInclude Include="..\LibSodium\crypto_secretbox.h" />
-    <ClInclude Include="..\LibSodium\crypto_secretbox_xsalsa20poly1305.h" />
-    <ClInclude Include="..\LibSodium\crypto_shorthash.h" />
-    <ClInclude Include="..\LibSodium\crypto_shorthash_siphash24.h" />
-    <ClInclude Include="..\LibSodium\crypto_sign.h" />
-    <ClInclude Include="..\LibSodium\crypto_sign_ed25519.h" />
-    <ClInclude Include="..\LibSodium\crypto_sign_edwards25519sha512batch.h" />
-    <ClInclude Include="..\LibSodium\crypto_stream.h" />
-    <ClInclude Include="..\LibSodium\crypto_stream_aes128ctr.h" />
-    <ClInclude Include="..\LibSodium\crypto_stream_chacha20.h" />
-    <ClInclude Include="..\LibSodium\crypto_stream_salsa20.h" />
-    <ClInclude Include="..\LibSodium\crypto_stream_salsa2012.h" />
-    <ClInclude Include="..\LibSodium\crypto_stream_salsa208.h" />
-    <ClInclude Include="..\LibSodium\crypto_stream_xsalsa20.h" />
-    <ClInclude Include="..\LibSodium\crypto_uint16.h" />
-    <ClInclude Include="..\LibSodium\crypto_uint32.h" />
-    <ClInclude Include="..\LibSodium\crypto_uint64.h" />
-    <ClInclude Include="..\LibSodium\crypto_uint8.h" />
-    <ClInclude Include="..\LibSodium\crypto_verify_16.h" />
-    <ClInclude Include="..\LibSodium\crypto_verify_32.h" />
-    <ClInclude Include="..\LibSodium\crypto_verify_64.h" />
-    <ClInclude Include="..\LibSodium\export.h" />
-    <ClInclude Include="..\LibSodium\randombytes.h" />
-    <ClInclude Include="..\LibSodium\randombytes_nativeclient.h" />
-    <ClInclude Include="..\LibSodium\randombytes_salsa20_random.h" />
-    <ClInclude Include="..\LibSodium\randombytes_sysrandom.h" />
-    <ClInclude Include="..\LibSodium\runtime.h" />
-    <ClInclude Include="..\LibSodium\sodium.h" />
-    <ClInclude Include="..\LibSodium\utils.h" />
-    <ClInclude Include="..\LibSodium\version.h" />
+    <ClInclude Include="Base.h" />
     <ClInclude Include="Capture.h" />
     <ClInclude Include="Configuration.h" />
     <ClInclude Include="DNSCurve.h" />
     <ClInclude Include="Initialization.h" />
     <ClInclude Include="Main.h" />
-    <ClInclude Include="Base.h" />
     <ClInclude Include="Monitor.h" />
+    <ClInclude Include="Network.h" />
     <ClInclude Include="PacketData.h" />
     <ClInclude Include="Platform.h" />
     <ClInclude Include="PrintLog.h" />
     <ClInclude Include="Process.h" />
     <ClInclude Include="Protocol.h" />
-    <ClInclude Include="Network.h" />
+    <ClInclude Include="Proxy.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Service.h" />
-    <ClInclude Include="Proxy.h" />
     <ClInclude Include="Structures.h" />
-    <ClInclude Include="WinPcap\bittypes.h" />
-    <ClInclude Include="WinPcap\ip6_misc.h" />
-    <ClInclude Include="WinPcap\Packet32.h" />
-    <ClInclude Include="WinPcap\pcap-bpf.h" />
-    <ClInclude Include="WinPcap\pcap-namedb.h" />
-    <ClInclude Include="WinPcap\pcap-stdinc.h" />
-    <ClInclude Include="WinPcap\pcap.h" />
-    <ClInclude Include="WinPcap\pcap\bluetooth.h" />
-    <ClInclude Include="WinPcap\pcap\bpf.h" />
-    <ClInclude Include="WinPcap\pcap\namedb.h" />
-    <ClInclude Include="WinPcap\pcap\pcap.h" />
-    <ClInclude Include="WinPcap\pcap\sll.h" />
-    <ClInclude Include="WinPcap\pcap\usb.h" />
-    <ClInclude Include="WinPcap\pcap\vlan.h" />
-    <ClInclude Include="WinPcap\remote-ext.h" />
-    <ClInclude Include="WinPcap\Win32-Extensions.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\LibSodium\LibSodium_x64.lib" />
-    <Library Include="..\LibSodium\LibSodium_x86.lib" />
-    <Library Include="WinPcap\Packet_x64.lib" />
-    <Library Include="WinPcap\Packet_x86.lib" />
-    <Library Include="WinPcap\WPCAP_x64.lib" />
-    <Library Include="WinPcap\WPCAP_x86.lib" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Base.cpp" />
     <ClCompile Include="Capture.cpp" />
-    <ClCompile Include="Initialization.cpp" />
     <ClCompile Include="Configuration.cpp" />
     <ClCompile Include="DNSCurve.cpp" />
+    <ClCompile Include="Initialization.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Monitor.cpp" />
+    <ClCompile Include="Network.cpp" />
     <ClCompile Include="PacketData.cpp" />
     <ClCompile Include="PrintLog.cpp" />
     <ClCompile Include="Process.cpp" />
     <ClCompile Include="Protocol.cpp" />
-    <ClCompile Include="Network.cpp" />
+    <ClCompile Include="Proxy.cpp" />
     <ClCompile Include="ReadHosts.cpp" />
     <ClCompile Include="ReadIPFilter.cpp" />
     <ClCompile Include="ReadParameter.cpp" />
     <ClCompile Include="Service.cpp" />
-    <ClCompile Include="Proxy.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Pcap_DNSProxy.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\ExampleConfig\Config.ini" />
-    <None Include="..\ExampleConfig\Hosts.ini" />
-    <None Include="..\ExampleConfig\IPFilter.ini" />
-    <None Include="..\ExampleConfig\ServiceControl.bat" />
-    <None Include="..\LibSodium\LibSodium_Mac.a" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="..\ExampleConfig\Routing.txt" />
-    <Text Include="..\ExampleConfig\White_List.txt" />
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

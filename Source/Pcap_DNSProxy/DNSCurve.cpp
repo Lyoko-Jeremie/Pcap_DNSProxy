@@ -1634,7 +1634,7 @@ bool __fastcall DNSCruveGetSignatureData(
 				crypto_sign_open(
 					(uint8_t *)DeBuffer.get(), 
 					&SignatureLength, 
-					(uint8_t *)(Buffer + sizeof(dns_record_txt) + sizeof(dnscurve_txt_hdr)), ((pdns_record_txt)Buffer)->TXT_Length - sizeof(dnscurve_txt_hdr),
+					(uint8_t *)(Buffer + sizeof(dns_record_txt) + sizeof(dnscurve_txt_hdr)), ((pdns_record_txt)Buffer)->TXT_Length - sizeof(dnscurve_txt_hdr), 
 					PacketTarget->ServerPublicKey) == LIBSODIUM_ERROR)
 			{
 				std::wstring Message;

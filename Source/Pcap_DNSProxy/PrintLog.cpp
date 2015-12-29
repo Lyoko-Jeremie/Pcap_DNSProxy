@@ -34,7 +34,7 @@ bool __fastcall PrintError(
 			return false;
 
 //Convert file name.
-	std::wstring FileNameString, ErrorMessage(L" -> ");
+	std::wstring FileNameString, ErrorMessage;
 	if (FileName != nullptr)
 	{
 		FileNameString.append(L" in ");
@@ -264,9 +264,6 @@ bool __fastcall PrintScreenAndWriteFile(
 		GlobalRunningStatus.StartupTime = 0;
 	}
 
-//Error log lock
-	std::unique_lock<std::mutex> ErrLogMutex(ErrorLogLock);
-
 //Print to screen.
 #if defined(PLATFORM_WIN)
 	if (GlobalRunningStatus.Console)
@@ -274,26 +271,41 @@ bool __fastcall PrintScreenAndWriteFile(
 	if (!GlobalRunningStatus.Daemon)
 #endif
 	{
+		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+
 	//Print startup time.
 		if (LogStartupTime > 0)
 		{
-			wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-			wprintf_s(L" -> Log opened at this moment.\n");
+			fwprintf_s(stderr, L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", 
+				TimeStructure->tm_year + 1900, 
+				TimeStructure->tm_mon + 1, 
+				TimeStructure->tm_mday, 
+				TimeStructure->tm_hour, 
+				TimeStructure->tm_min, 
+				TimeStructure->tm_sec);
 		}
 
 	//Print message.
-		wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+		fwprintf_s(stderr, L"%d-%02d-%02d %02d:%02d:%02d -> ", 
+			TimeStructure->tm_year + 1900, 
+			TimeStructure->tm_mon + 1, 
+			TimeStructure->tm_mday, 
+			TimeStructure->tm_hour, 
+			TimeStructure->tm_min, 
+			TimeStructure->tm_sec);
 		if (Line > 0 && ErrorCode > 0)
-			wprintf_s(Message.c_str(), Line, ErrorCode);
+			fwprintf_s(stderr, Message.c_str(), Line, ErrorCode);
 		else if (Line > 0)
-			wprintf_s(Message.c_str(), Line);
+			fwprintf_s(stderr, Message.c_str(), Line);
 		else if (ErrorCode > 0)
-			wprintf_s(Message.c_str(), ErrorCode);
+			fwprintf_s(stderr, Message.c_str(), ErrorCode);
 		else 
-			wprintf_s(Message.c_str());
+			fwprintf_s(stderr, Message.c_str());
 	}
 
 //Check whole file size.
+	std::unique_lock<std::mutex> ErrorLogMutex(ErrorLogLock);
+
 #if defined(PLATFORM_WIN)
 	auto File_WIN32_FILE_ATTRIBUTE_DATA = std::make_shared<WIN32_FILE_ATTRIBUTE_DATA>();
 	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
@@ -303,18 +315,36 @@ bool __fastcall PrintScreenAndWriteFile(
 		memset(ErrorFileSize.get(), 0, sizeof(LARGE_INTEGER));
 		ErrorFileSize->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
 		ErrorFileSize->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
-		if (ErrorFileSize->QuadPart > 0 && (size_t)ErrorFileSize->QuadPart >= Parameter.LogMaxSize && 
-			DeleteFileW(GlobalRunningStatus.Path_ErrorLog->c_str()) != FALSE)
+		if (ErrorFileSize->QuadPart > 0 && (size_t)ErrorFileSize->QuadPart >= Parameter.LogMaxSize)
+		{
+			if (DeleteFileW(GlobalRunningStatus.Path_ErrorLog->c_str()) != FALSE)
+			{
+				ErrorLogMutex.unlock();
 				PrintError(LOG_ERROR_SYSTEM, L"Old error log file was deleted", 0, nullptr, 0);
+				ErrorLogMutex.lock();
+			}
+			else {
+				return false;
+			}
+		}
 	}
 
 	File_WIN32_FILE_ATTRIBUTE_DATA.reset();
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	auto FileStat = std::make_shared<struct stat>();
 	memset(FileStat.get(), 0, sizeof(struct stat));
-	if (stat(GlobalRunningStatus.sPath_ErrorLog->c_str(), FileStat.get()) == 0 && FileStat->st_size >= (off_t)Parameter.LogMaxSize && 
-		remove(GlobalRunningStatus.sPath_ErrorLog->c_str()) == 0)
+	if (stat(GlobalRunningStatus.sPath_ErrorLog->c_str(), FileStat.get()) == 0 && FileStat->st_size >= (off_t)Parameter.LogMaxSize)
+	{
+		if (remove(GlobalRunningStatus.sPath_ErrorLog->c_str()) == 0)
+		{
+			ErrorLogMutex.unlock();
 			PrintError(LOG_ERROR_SYSTEM, L"Old error log file was deleted", 0, nullptr, 0);
+			ErrorLogMutex.lock();
+		}
+		else {
+			return false;
+		}
+	}
 
 	FileStat.reset();
 #endif
@@ -331,12 +361,23 @@ bool __fastcall PrintScreenAndWriteFile(
 	//Print startup time.
 		if (LogStartupTime > 0)
 		{
-			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-			fwprintf_s(Output, L" -> Log opened at this moment.\n");
+			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", 
+				TimeStructure->tm_year + 1900, 
+				TimeStructure->tm_mon + 1, 
+				TimeStructure->tm_mday, 
+				TimeStructure->tm_hour, 
+				TimeStructure->tm_min, 
+				TimeStructure->tm_sec);
 		}
 
 	//Print message.
-		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", 
+			TimeStructure->tm_year + 1900, 
+			TimeStructure->tm_mon + 1, 
+			TimeStructure->tm_mday, 
+			TimeStructure->tm_hour, 
+			TimeStructure->tm_min, 
+			TimeStructure->tm_sec);
 		if (Line > 0 && ErrorCode > 0)
 			fwprintf_s(Output, Message.c_str(), Line, ErrorCode);
 		else if (Line > 0)

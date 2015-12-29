@@ -76,18 +76,21 @@ void __fastcall CaptureInit(
 				CaptureMutex.lock();
 				while (pDrive != nullptr)
 				{
-					for (CaptureIter = PcapRunningList.begin();CaptureIter != PcapRunningList.end();++CaptureIter)
+					if (pDrive->name != nullptr)
 					{
-						if (*CaptureIter == pDrive->name)
+						for (CaptureIter = PcapRunningList.begin();CaptureIter != PcapRunningList.end();++CaptureIter)
 						{
-							break;
-						}
-						else if (CaptureIter + 1U == PcapRunningList.end())
-						{
-							std::thread CaptureThread(std::bind(CaptureModule, pDrive, false));
-							CaptureThread.detach();
+							if (*CaptureIter == pDrive->name)
+							{
+								break;
+							}
+							else if (CaptureIter + 1U == PcapRunningList.end())
+							{
+								std::thread CaptureThread(std::bind(CaptureModule, pDrive, false));
+								CaptureThread.detach();
 
-							break;
+								break;
+							}
 						}
 					}
 					
@@ -305,8 +308,14 @@ bool __fastcall CaptureModule(
 {
 	std::string CaptureDevice;
 
-//Devices name, address and type check
-	if (pDrive->name == nullptr || pDrive->addresses == nullptr || pDrive->flags == PCAP_IF_LOOPBACK)
+//Devices name, addresses and type check
+	if (pDrive == nullptr)
+		return false;
+#if defined(PLATFORM_WIN)
+	else if (pDrive->name == nullptr || pDrive->addresses == nullptr || pDrive->addresses->netmask == nullptr || pDrive->flags == PCAP_IF_LOOPBACK)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	else if (pDrive->name == nullptr || pDrive->addresses == nullptr || pDrive->flags == PCAP_IF_LOOPBACK)
+#endif
 		goto SkipDevices;
 
 //Pcap devices blacklist check

@@ -25,6 +25,7 @@ extern GLOBAL_STATUS GlobalRunningStatus;
 #if defined(ENABLE_LIBSODIUM)
 	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
 #endif
+extern std::mutex ScreenLock;
 
 //Functions
 #if defined(PLATFORM_WIN)
