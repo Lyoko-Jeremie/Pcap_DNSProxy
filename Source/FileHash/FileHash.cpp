@@ -78,12 +78,15 @@ int main(int argc, char *argv[])
 		{
 			HashFamilyID = HASH_ID_SHA1;
 		}
-	//SHA-3 family
-		else if (Command == COMMAND_SHA)
+	//SHA-2 family
+		else if (Command == COMMAND_SHA2_384 || Command.find(COMMAND_SHA2_512) == 0 || Command.find(COMMAND_SHA2) == 0)
 		{
-			HashFamilyID = HASH_ID_SHA;
+			HashFamilyID = HASH_ID_SHA2;
+			if (!ReadCommand_SHA2(Command))
+				return EXIT_FAILURE;
 		}
-		else if (Command.find(COMMAND_SHA3) == 0)
+	//SHA-3 family
+		else if (Command == COMMAND_SHA || Command.find(COMMAND_SHA3) == 0)
 		{
 			HashFamilyID = HASH_ID_SHA3;
 			if (!ReadCommand_SHA3(Command))
@@ -114,6 +117,7 @@ int main(int argc, char *argv[])
 	}
 	else {
 		if (HashFamilyID == HASH_ID_SHA1 && !SHA1_Hash(Input) || //SHA-1 family
+			HashFamilyID == HASH_ID_SHA2 && !SHA2_Hash(Input) || //SHA-2 family
 			HashFamilyID == HASH_ID_SHA3 && !SHA3_Hash(Input)) //SHA-3 family
 		{
 			fclose(Input);

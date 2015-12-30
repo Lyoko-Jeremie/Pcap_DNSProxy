@@ -214,10 +214,10 @@ bool __fastcall SHA1_Hash(
 	}
 
 //Initialization
-	std::shared_ptr<char> Buffer(new char[FILE_BUFFER_SIZE * 100]()), StringBuffer(new char[FILE_BUFFER_SIZE]());
+	std::shared_ptr<char> Buffer(new char[FILE_BUFFER_SIZE]()), StringBuffer(new char[FILE_BUFFER_SIZE]());
 	auto HashInstance = std::make_shared<SHA1_State>();
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
-	memset(StringBuffer.get(), 0, SHA1_SIZE_DIGEST);
+	memset(StringBuffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(HashInstance.get(), 0, sizeof(SHA1_State));
 	size_t ReadLength = 0;
 

@@ -39,6 +39,9 @@
     <ClCompile Include="SHA3\SnP-FBWL-default.cpp">
       <Filter>SHA3</Filter>
     </ClCompile>
+    <ClCompile Include="SHA-2.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FileHash.h">
@@ -51,6 +54,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SHA-2.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

@@ -193,19 +193,17 @@
 //#include <vector>                  //Vector support
 
 #if defined(PLATFORM_WIN)
-//Preprocessor definitions
-#define SODIUM_STATIC              //LibSodium
-#define WPCAP                      //WinPcap
-#define HAVE_REMOTE                //WinPcap
-
 //LibSodium header
 	#define ENABLE_LIBSODIUM         //LibSodium is always enable in Windows.
+	#define SODIUM_STATIC              //LibSodium preprocessor definitions
 	#if defined(ENABLE_LIBSODIUM)
 		#include "..\\LibSodium\\sodium.h"
 	#endif
 
 //WinPcap header
 	#define ENABLE_PCAP              //WinPcap is always enable in Windows.
+	#define WPCAP                    //WinPcap preprocessor definitions
+	#define HAVE_REMOTE              //WinPcap preprocessor definitions
 	#if defined(ENABLE_PCAP)
 		#include "WinPcap\\pcap.h"
 	#endif

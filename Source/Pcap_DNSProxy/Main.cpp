@@ -96,7 +96,10 @@ int main(
 #endif
 
 //Wait a moment to close all thread handles.
+#if defined(PLATFORM_WIN)
 	Sleep(SHORTEST_FILEREFRESH_TIME * SECOND_TO_MILLISECOND);
+#endif
+
 	return EXIT_SUCCESS;
 }
 

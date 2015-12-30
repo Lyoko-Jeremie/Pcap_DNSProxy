@@ -176,18 +176,15 @@
 #endif
 
 //C Standard Library and C++ Standard Template Library/STL headers
+#include <cerrno>                  //Error report
 #include <cstdio>                  //File Input/Output
-#include <cstdlib>                 //Several general purpose functions.
-
-#if !defined(ENABLE_LIBSODIUM)
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		#include <cwchar>                  //Wide-Character Support
-	#endif
-#else
+#include <cstdlib>                 //Several general purpose functions
 #include <cstring>                 //String support(C-style)
+#include <cwchar>                  //Wide-Character Support
 #include <memory>                  //Manage dynamic memory support
 #include <string>                  //String support(C++)
 
+#if defined(ENABLE_LIBSODIUM)
 #if defined(PLATFORM_WIN)
 	#include <windows.h>               //Master include file in Windows
 
@@ -229,15 +226,22 @@
 
 //SHA-3 definitions
 #define HASH_ID_SHA1             1U
+#define HASH_ID_SHA2             2U
 #define HASH_ID_SHA3             3U
 #define HASH_ID_SHA              HASH_ID_SHA3
 #if defined(PLATFORM_WIN)
 	#define COMMAND_SHA              L"-SHA"
 	#define COMMAND_SHA1             L"-SHA1"
+	#define COMMAND_SHA2             L"-SHA2"
+	#define COMMAND_SHA2_384         L"-SHA384"
+	#define COMMAND_SHA2_512         L"-SHA512"
 	#define COMMAND_SHA3             L"-SHA3"
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define COMMAND_SHA				 ("-SHA")
 	#define COMMAND_SHA1             ("-SHA1")
+	#define COMMAND_SHA2             ("-SHA2")
+	#define COMMAND_SHA2_384         ("-SHA384")
+	#define COMMAND_SHA2_512         ("-SHA512")
 	#define COMMAND_SHA3             ("-SHA3")
 #endif
 
@@ -267,7 +271,7 @@
 //FileHash.cpp
 #if defined(PLATFORM_WIN)
 void __fastcall CaseConvert(
-	_In_ const bool IsLowerToUpper,
+	_In_ const bool IsLowerToUpper, 
 	_Inout_opt_ std::wstring &Buffer);
 #endif
 void __fastcall CaseConvert(
@@ -277,6 +281,16 @@ void __fastcall CaseConvert(
 //SHA-1.cpp
 bool __fastcall SHA1_Hash(
 	_In_ FILE *Input);
+
+//SHA-2.cpp
+bool __fastcall SHA2_Hash(
+	_In_ FILE *Input);
+bool __fastcall ReadCommand_SHA2(
+#if defined(PLATFORM_WIN)
+	_In_ std::wstring &Command);
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	_In_ std::string &Command);
+#endif
 
 //SHA-3.cpp
 bool __fastcall SHA3_Hash(

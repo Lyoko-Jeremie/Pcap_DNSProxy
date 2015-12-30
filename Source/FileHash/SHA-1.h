@@ -20,7 +20,7 @@
 #include "FileHash.h"
 
 #if defined(ENABLE_LIBSODIUM)
-//The SHA1 block size, message digest sizes in bytes and some useful types.
+//The SHA-1 block size, message digest sizes in bytes and some useful types.
 #define SHA1_SIZE_BLOCK    64U
 #define SHA1_SIZE_DIGEST   20U
 typedef int32_t            SHA1_INT32;
@@ -39,20 +39,20 @@ typedef struct _sha1_state_
 #define ROLc(x, y) ((((unsigned long)(x) << (unsigned long)((y) & 31)) | (((unsigned long)(x) & 0xFFFFFFFFUL) >> (unsigned long)(32 - ((y) & 31)))) & 0xFFFFFFFFUL)
 
 //Endian Neutral macros that work on all platforms
-#define STORE32H(x, y)																			\
-	{(y)[0] = (unsigned char)(((x) >> 24U) & 255); (y)[1U] = (unsigned char)(((x) >> 16U) & 255);	\
+#define STORE32H(x, y)                                                                              \
+	{(y)[0] = (unsigned char)(((x) >> 24U) & 255); (y)[1U] = (unsigned char)(((x) >> 16U) & 255);   \
 		(y)[2U] = (unsigned char)(((x) >> 8U) & 255); (y)[3U] = (unsigned char)((x) & 255);}
 
-#define LOAD32H(x, y)										\
-	{x = ((unsigned long)((y)[0] & 255) << 24U) |			\
-		((unsigned long)((y)[1U] & 255) << 16U) |			\
-		((unsigned long)((y)[2U] & 255) << 8U)  |			\
+#define LOAD32H(x, y)                               \
+	{x = ((unsigned long)((y)[0] & 255) << 24U) |   \
+		((unsigned long)((y)[1U] & 255) << 16U) |   \
+		((unsigned long)((y)[2U] & 255) << 8U)  |   \
 		((unsigned long)((y)[3U] & 255));}
 
-#define STORE64H(x, y)																						\
-	{(y)[0] = (unsigned char)(((x) >> 56U) & 255); (y)[1U] = (unsigned char)(((x) >> 48U) & 255);			\
-		(y)[2U] = (unsigned char)(((x) >> 40U) & 255); (y)[3U] = (unsigned char)(((x) >> 32U) & 255);		\
-		(y)[4U] = (unsigned char)(((x) >> 24U) & 255); (y)[5U] = (unsigned char)(((x) >> 16U) & 255);		\
+#define STORE64H(x, y)                                                                                  \
+	{(y)[0] = (unsigned char)(((x) >> 56U) & 255); (y)[1U] = (unsigned char)(((x) >> 48U) & 255);       \
+		(y)[2U] = (unsigned char)(((x) >> 40U) & 255); (y)[3U] = (unsigned char)(((x) >> 32U) & 255);   \
+		(y)[4U] = (unsigned char)(((x) >> 24U) & 255); (y)[5U] = (unsigned char)(((x) >> 16U) & 255);   \
 		(y)[6U] = (unsigned char)(((x) >> 8U) & 255); (y)[7U] = (unsigned char)((x) & 255);}
 
 #ifndef MIN
@@ -75,10 +75,10 @@ static void __fastcall SHA1_Compress(
 void __fastcall SHA1_Init(
 	_Inout_ SHA1_State *sha1);
 void __fastcall SHA1_Process(
-	_Inout_ SHA1_State *sha1,
-	_In_ const unsigned char *in,
+	_Inout_ SHA1_State *sha1, 
+	_In_ const unsigned char *in, 
 	_In_ unsigned long inlen);
 void __fastcall SHA1_Done(
-	_Inout_ SHA1_State *sha1,
+	_Inout_ SHA1_State *sha1, 
 	_Out_ unsigned char *out);
 #endif

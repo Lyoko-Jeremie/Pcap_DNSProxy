@@ -20,8 +20,8 @@
 
 
 chmod 755 Mac_Uninstall.sh
-chmod 755 KeyPairGenerator
 chmod 755 Pcap_DNSProxy
+chmod -R 755 Tools
 cp pcap_dnsproxy.service.plist /Library/LaunchDaemons/pcap_dnsproxy.service.plist
 cd /Library/LaunchDaemons
 chmod 644 pcap_dnsproxy.service.plist

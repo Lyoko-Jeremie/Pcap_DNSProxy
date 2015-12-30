@@ -171,6 +171,7 @@
   <ItemGroup>
     <ClCompile Include="FileHash.cpp" />
     <ClCompile Include="SHA-1.cpp" />
+    <ClCompile Include="SHA-2.cpp" />
     <ClCompile Include="SHA-3.cpp" />
     <ClCompile Include="SHA3\KeccakF-1600-compact64.cpp" />
     <ClCompile Include="SHA3\KeccakHash.cpp" />
@@ -181,6 +182,7 @@
     <ClInclude Include="FileHash.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SHA-1.h" />
+    <ClInclude Include="SHA-2.h" />
     <ClInclude Include="SHA-3.h" />
   </ItemGroup>
   <ItemGroup>

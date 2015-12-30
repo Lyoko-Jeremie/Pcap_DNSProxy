@@ -29,7 +29,11 @@ bool __fastcall ReadCommand_SHA3(
 #endif
 {
 //Hash function check
-	if (Command == COMMAND_SHA3_224) //SHA-3 224 bits
+	if (Command == COMMAND_SHA) //Default SHA command is SHA-3 256 bits
+	{
+		return true;
+	}
+	else if (Command == COMMAND_SHA3_224) //SHA-3 224 bits
 	{
 		SHA3_HashFunctionID = HASH_ID_SHA3_224;
 	}

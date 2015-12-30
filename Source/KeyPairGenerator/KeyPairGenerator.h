@@ -177,15 +177,13 @@
 
 //C Standard Library and C++ Standard Template Library/STL headers
 #include <cstdio>                  //File Input/Output
-#include <cstdlib>                 //Several general purpose functions.
-#if !defined(ENABLE_LIBSODIUM)
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		#include <cwchar>                  //Wide-Character Support
-	#endif
-#else
-#include <cstring>                 //String support
+#include <cstdlib>                 //Several general purpose functions
+#include <cstring>                 //String support(C-style)
+#include <cwchar>                  //Wide-Character Support
 #include <memory>                  //Manage dynamic memory support
+#include <string>                  //String support(C++)
 
+#if defined(ENABLE_LIBSODIUM)
 #if defined(PLATFORM_WIN)
 	#include <windows.h>               //Master include file in Windows
 

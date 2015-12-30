@@ -37,9 +37,11 @@ add_subdirectory(SHA3)
 set(GENERATOR_SRC_DIR
 		"FileHash.h"
 		"SHA-1.h"
+		"SHA-2.h"
 		"SHA-3.h"
 		"FileHash.cpp"
 		"SHA-1.cpp"
+		"SHA-2.cpp"
 		"SHA-3.cpp")
 
 # Compiling and linking flags
