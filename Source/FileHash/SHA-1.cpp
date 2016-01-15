@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -23,7 +23,7 @@
 //SHA-1 compress process
 static void __fastcall SHA1_Compress(
 	_Inout_ SHA1_State *sha1, 
-	_Inout_ unsigned char *buf)
+	_Inout_ uint8_t *buf)
 {
 	SHA1_INT32 a = 0, b = 0, c = 0, d = 0, e = 0, W[80U] = {0};
 	size_t Index = 0;
@@ -129,7 +129,7 @@ void __fastcall SHA1_Init(
 */
 void __fastcall SHA1_Process(
 	_Inout_ SHA1_State *sha1, 
-	_In_ const unsigned char *in, 
+	_In_ const uint8_t *in, 
 	_In_ unsigned long inlen)
 {
 	unsigned long n = 0;
@@ -137,7 +137,7 @@ void __fastcall SHA1_Process(
 	{
 		if (sha1->Curlen == 0 && inlen >= SHA1_SIZE_BLOCK)
 		{
-			SHA1_Compress(sha1, (unsigned char *)in);
+			SHA1_Compress(sha1, (uint8_t *)in);
 			sha1->Length += SHA1_SIZE_BLOCK * 8;
 			in += SHA1_SIZE_BLOCK;
 			inlen -= SHA1_SIZE_BLOCK;
@@ -167,7 +167,7 @@ void __fastcall SHA1_Process(
 */
 void __fastcall SHA1_Done(
 	_Inout_ SHA1_State *sha1, 
-	_Out_ unsigned char *out)
+	_Out_ uint8_t *out)
 {
 //Increase the length of the message.
 	sha1->Length += sha1->Curlen * 8;
@@ -209,7 +209,7 @@ bool __fastcall SHA1_Hash(
 //Parameters check
 	if (HashFamilyID != HASH_ID_SHA1 || Input == nullptr)
 	{
-		fwprintf_s(stderr, L"SHA-1 parameters error.\n");
+		fwprintf_s(stderr, L"Parameters error.\n");
 		return false;
 	}
 
@@ -227,20 +227,21 @@ bool __fastcall SHA1_Hash(
 //Hash process
 	while (!feof(Input))
 	{
+		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 		ReadLength = fread_s(Buffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, Input);
 		if (ReadLength == 0 && errno == EINVAL)
 		{
-			fwprintf_s(stderr, L"SHA-1 hash process error.\n");
+			fwprintf_s(stderr, L"Hash process error.\n");
 			return false;
 		}
 		else {
-			SHA1_Process(HashInstance.get(), (unsigned char *)Buffer.get(), (unsigned long)ReadLength);
+			SHA1_Process(HashInstance.get(), (uint8_t *)Buffer.get(), (unsigned long)ReadLength);
 		}
 	}
 
 //Binary to hex
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
-	SHA1_Done(HashInstance.get(), (unsigned char *)Buffer.get());
+	SHA1_Done(HashInstance.get(), (uint8_t *)Buffer.get());
 	if (sodium_bin2hex(StringBuffer.get(), FILE_BUFFER_SIZE, (const unsigned char *)Buffer.get(), SHA1_SIZE_DIGEST) == nullptr)
 	{
 		fwprintf_s(stderr, L"Convert binary to hex error.\n");

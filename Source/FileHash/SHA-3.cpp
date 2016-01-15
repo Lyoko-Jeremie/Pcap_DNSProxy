@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@ bool __fastcall ReadCommand_SHA3(
 #endif
 {
 //Hash function check
-	if (Command == COMMAND_SHA) //Default SHA command is SHA-3 256 bits
+	if (Command == HASH_COMMAND_SHA) //Default SHA command is SHA-3 256 bits
 	{
 		return true;
 	}
@@ -37,7 +37,7 @@ bool __fastcall ReadCommand_SHA3(
 	{
 		SHA3_HashFunctionID = HASH_ID_SHA3_224;
 	}
-	else if (Command == COMMAND_SHA3 || Command == COMMAND_SHA3_256) //SHA-3 256 bits
+	else if (Command == HASH_COMMAND_SHA3 || Command == COMMAND_SHA3_256) //SHA-3 256 bits
 	{
 		SHA3_HashFunctionID = HASH_ID_SHA3_256;
 	}
@@ -132,7 +132,7 @@ bool __fastcall SHA3_Hash(
 //Parameters check
 	if (HashFamilyID != HASH_ID_SHA3 || Input == nullptr)
 	{
-		fwprintf_s(stderr, L"SHA-3 parameters error.\n");
+		fwprintf_s(stderr, L"Parameters error.\n");
 		return false;
 	}
 
@@ -177,10 +177,11 @@ bool __fastcall SHA3_Hash(
 //Hash process
 	while (!feof(Input))
 	{
+		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 		ReadLength = fread_s(Buffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, Input);
 		if (ReadLength == 0 && errno == EINVAL || Keccak_HashUpdate(HashInstance.get(), (BitSequence *)Buffer.get(), ReadLength * BYTES_TO_BITS) != SUCCESS)
 		{
-			fwprintf_s(stderr, L"SHA-3 hash update error.\n");
+			fwprintf_s(stderr, L"Hash process error.\n");
 			return false;
 		}
 	}
@@ -238,7 +239,7 @@ bool __fastcall SHA3_Hash(
 				}
 			}
 			else {
-				fwprintf_s(stderr, L"SHA-3 hash squeeze error.\n");
+				fwprintf_s(stderr, L"Hash squeeze error.\n");
 				return false;
 			}
 		}
@@ -255,7 +256,7 @@ bool __fastcall SHA3_Hash(
 		fwprintf_s(stderr, L"\n");
 	}
 	else {
-		fwprintf_s(stderr, L"SHA-3 hash final error.\n");
+		fwprintf_s(stderr, L"Hash final error.\n");
 		return false;
 	}
 

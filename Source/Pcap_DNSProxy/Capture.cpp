@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -632,8 +632,13 @@ bool __fastcall CaptureNetworkLayer(
 			{
 			//Domain Test and DNS Options check and get Hop Limit from Domain Test.
 				auto IsMarkHopLimit = false;
-				if (CheckResponseData((char *)Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), BufferSize, false, false, &IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
-					return false;
+				if (CheckResponseData(
+					REQUEST_PROCESS_UDP, 
+					(char *)Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), 
+					ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), 
+					BufferSize, 
+					&IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
+						return false;
 				if (IsMarkHopLimit)
 					PacketSource->HopLimitData.HopLimit = IPv6_Header->HopLimit;
 
@@ -749,8 +754,13 @@ bool __fastcall CaptureNetworkLayer(
 			{
 			//Domain Test and DNS Options check and get TTL from Domain Test.
 				auto IsMarkHopLimit = false;
-				if (CheckResponseData((char *)Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES - sizeof(udp_hdr), BufferSize, false, false, &IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
-					return false;
+				if (CheckResponseData(
+					REQUEST_PROCESS_UDP, 
+					(char *)Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), 
+					ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES - sizeof(udp_hdr), 
+					BufferSize, 
+					&IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
+						return false;
 				if (IsMarkHopLimit)
 					PacketSource->HopLimitData.TTL = IPv4_Header->TTL;
 

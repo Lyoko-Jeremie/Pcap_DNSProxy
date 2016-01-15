@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -20,332 +20,344 @@
 #include "Structures.h"
 
 //////////////////////////////////////////////////
-// Main Header
+// Main header
 // 
 //Base definitions
-#define KILOBYTE_TIMES         1024U         //1KB = 1024 bytes
-#define MEGABYTE_TIMES         1048576U      //1MB = 1048576 bytes
-#define GIGABYTE_TIMES         1073741824U   //1GB = 1073741824 bytes
-#define CODEPAGE_ASCII         1U            //Microsoft Windows Codepage of ANSI
-#define CODEPAGE_UTF_8         65001U        //Microsoft Windows Codepage of UTF-8
-#define CODEPAGE_UTF_16_LE     1200U         //Microsoft Windows Codepage of UTF-16 Little Endian/LE
-#define CODEPAGE_UTF_16_BE     1201U         //Microsoft Windows Codepage of UTF-16 Big Endian/BE
-#define CODEPAGE_UTF_32_LE     12000U        //Microsoft Windows Codepage of UTF-32 Little Endian/LE
-#define CODEPAGE_UTF_32_BE     12001U        //Microsoft Windows Codepage of UTF-32 Big Endian/BE
+#define KILOBYTE_TIMES                               1024U                        //1KB = 1024 bytes
+#define MEGABYTE_TIMES                               1048576U                     //1MB = 1048576 bytes
+#define GIGABYTE_TIMES                               1073741824U                  //1GB = 1073741824 bytes
+#define CODEPAGE_ASCII                               1U                           //Microsoft Windows Codepage of ANSI
+#define CODEPAGE_UTF_8                               65001U                       //Microsoft Windows Codepage of UTF-8
+#define CODEPAGE_UTF_16_LE                           1200U                        //Microsoft Windows Codepage of UTF-16 Little Endian/LE
+#define CODEPAGE_UTF_16_BE                           1201U                        //Microsoft Windows Codepage of UTF-16 Big Endian/BE
+#define CODEPAGE_UTF_32_LE                           12000U                       //Microsoft Windows Codepage of UTF-32 Little Endian/LE
+#define CODEPAGE_UTF_32_BE                           12001U                       //Microsoft Windows Codepage of UTF-32 Big Endian/BE
 
 #if defined(PLATFORM_WIN)
-	#define MBSTOWCS_NULLTERMINATE   (-1)            //MultiByteToWideChar() find null-terminate.
+	#define MBSTOWCS_NULLTERMINATE                         (-1)                       //MultiByteToWideChar() find null-terminate.
 #endif
 #if defined(ENABLE_LIBSODIUM)
-	#define LIBSODIUM_ERROR          (-1)
+	#define LIBSODIUM_ERROR                                (-1)
 #endif
-#define BYTES_TO_BITS           8U
-#define U16_NUM_ONE             0x0001
+#define BYTES_TO_BITS                                 8U
+#define U16_NUM_ONE                                   0x0001
 
 //ASCII value definitions
-#define ASCII_HT                9                    //"␉"
-#define ASCII_LF                0x0A                 //10, Line Feed
-#define ASCII_VT                0x0B                 //11, Vertical Tab
-#define ASCII_FF                0x0C                 //12, Form Feed
-#define ASCII_CR                0x0D                 //13, Carriage Return
-#define ASCII_SPACE             32                   //" "
-#define ASCII_HASHTAG           35                   //"#"
-#define ASCII_AMPERSAND         38                   //"&"
-#define ASCII_COMMA             44                   //","
-#define ASCII_MINUS             45                   //"-"
-#define ASCII_PERIOD            46                   //"."
-#define ASCII_SLASH             47                   //"/"
-#define ASCII_ZERO              48                   //"0"
-#define ASCII_ONE               49                   //"1"
-#define ASCII_TWO               50                   //"2"
-#define ASCII_THREE             51                   //"3"
-#define ASCII_NINE              57                   //"9"
-#define ASCII_COLON             58                   //":"
-#define ASCII_AT                64                   //"@"
-#define ASCII_UPPERCASE_A       65                   //"A"
-#define ASCII_UPPERCASE_F       70                   //"F"
-#define ASCII_UPPERCASE_Z       90                   //"Z"
-#define ASCII_BRACKETS_LEAD     91                   //"["
-#define ASCII_BACKSLASH         92                   //"\"
-#define ASCII_BRACKETS_TRAIL    93                   //"]"
-#define ASCII_ACCENT            96                   //"`"
-#define ASCII_LOWERCASE_A       97                   //"a"
-#define ASCII_LOWERCASE_F       102                  //"f"
-#define ASCII_LOWERCASE_X       120                  //"x"
-#define ASCII_LOWERCASE_Z       122                  //"z"
-#define ASCII_BRACES_LEAD       123                  //"{"
-#define ASCII_VERTICAL          124                  //"|"
-#define ASCII_TILDE             126                  //"~"
-#define ASCII_MAX_NUM           0x7F
-//#define ASCII_UPPER_TO_LOWER    32U                  //Uppercase to lowercase
-//#define ASCII_LOWER_TO_UPPER    32U                  //Lowercase to uppercase
+#define ASCII_HT                                      9                           //"␉"
+#define ASCII_LF                                      0x0A                        //10, Line Feed
+#define ASCII_VT                                      0x0B                        //11, Vertical Tab
+#define ASCII_FF                                      0x0C                        //12, Form Feed
+#define ASCII_CR                                      0x0D                        //13, Carriage Return
+#define ASCII_SPACE                                   32                          //" "
+#define ASCII_HASHTAG                                 35                          //"#"
+#define ASCII_AMPERSAND                               38                          //"&"
+#define ASCII_COMMA                                   44                          //","
+#define ASCII_MINUS                                   45                          //"-"
+#define ASCII_PERIOD                                  46                          //"."
+#define ASCII_SLASH                                   47                          //"/"
+#define ASCII_ZERO                                    48                          //"0"
+#define ASCII_ONE                                     49                          //"1"
+#define ASCII_TWO                                     50                          //"2"
+#define ASCII_THREE                                   51                          //"3"
+#define ASCII_NINE                                    57                          //"9"
+#define ASCII_COLON                                   58                          //":"
+#define ASCII_AT                                      64                          //"@"
+#define ASCII_UPPERCASE_A                             65                          //"A"
+#define ASCII_UPPERCASE_F                             70                          //"F"
+#define ASCII_UPPERCASE_Z                             90                          //"Z"
+#define ASCII_BRACKETS_LEAD                           91                          //"["
+#define ASCII_BACKSLASH                               92                          //"\"
+#define ASCII_BRACKETS_TRAIL                          93                          //"]"
+#define ASCII_ACCENT                                  96                          //"`"
+#define ASCII_LOWERCASE_A                             97                          //"a"
+#define ASCII_LOWERCASE_F                             102                         //"f"
+#define ASCII_LOWERCASE_X                             120                         //"x"
+#define ASCII_LOWERCASE_Z                             122                         //"z"
+#define ASCII_BRACES_LEAD                             123                         //"{"
+#define ASCII_VERTICAL                                124                         //"|"
+#define ASCII_TILDE                                   126                         //"~"
+#define ASCII_MAX_NUM                                 0x7F
+//#define ASCII_UPPER_TO_LOWER                          32U                         //Uppercase to lowercase
+//#define ASCII_LOWER_TO_UPPER                          32U                         //Lowercase to uppercase
 
 //Unicode value definitions
-#define UNICODE_NEXT_LINE                   0x0085               //Next Line
-#define UNICODE_NO_BREAK_SPACE              0x00A0               //No-Break Space
-#define UNICODE_OGHAM_SPACE_MARK            0x1680               //Ogham Space Mark
-#define UNICODE_MONGOLIAN_VOWEL_SEPARATOR   0x180E               //Mongolian Vowel Separator
-#define UNICODE_LINE_SEPARATOR              0x2028               //Line Separator
-#define UNICODE_PARAGRAPH_SEPARATOR         0x2029               //Paragraph Separator
-#define UNICODE_EN_SPACE                    0x2002               //En Space or Nut
-#define UNICODE_EM_SPACE                    0x2003               //Em Space or Mutton
-#define UNICODE_THICK_SPACE                 0x2004               //Three-Per-Em Space/TPES or Thick Space
-#define UNICODE_MID_SPACE                   0x2005               //Four-Per-Em Space/FPES or Mid Space
-#define UNICODE_SIX_PER_EM_SPACE            0x2006               //Six-Per-Em Space
-#define UNICODE_FIGURE_SPACE                0x2007               //Figure Space
-#define UNICODE_PUNCTUATION_SPACE           0x2008               //Punctuation Space
-#define UNICODE_THIN_SPACE                  0x2009               //Thin Space
-#define UNICODE_HAIR_SPACE                  0x200A               //Hair Space
-#define UNICODE_ZERO_WIDTH_SPACE            0x200B               //Zero Width Space
-#define UNICODE_ZERO_WIDTH_NON_JOINER       0x200C               //Zero Width Non Joiner
-#define UNICODE_ZERO_WIDTH_JOINER           0x200D               //Zero Width Joiner
-#define UNICODE_NARROW_NO_BREAK_SPACE       0x202F               //Narrow No-Break Space
-#define UNICODE_MEDIUM_MATHEMATICAL_SPACE   0x205F               //Medium Mathematical Space
-#define UNICODE_WORD_JOINER                 0x2060               //Word Joiner
-#define UNICODE_IDEOGRAPHIC_SPACE           0x3000               //Ideographic Space in CJK
+#define UNICODE_NEXT_LINE                             0x0085                      //Next Line
+#define UNICODE_NO_BREAK_SPACE                        0x00A0                      //No-Break Space
+#define UNICODE_OGHAM_SPACE_MARK                      0x1680                      //Ogham Space Mark
+#define UNICODE_MONGOLIAN_VOWEL_SEPARATOR             0x180E                      //Mongolian Vowel Separator
+#define UNICODE_LINE_SEPARATOR                        0x2028                      //Line Separator
+#define UNICODE_PARAGRAPH_SEPARATOR                   0x2029                      //Paragraph Separator
+#define UNICODE_EN_SPACE                              0x2002                      //En Space or Nut
+#define UNICODE_EM_SPACE                              0x2003                      //Em Space or Mutton
+#define UNICODE_THICK_SPACE                           0x2004                      //Three-Per-Em Space/TPES or Thick Space
+#define UNICODE_MID_SPACE                             0x2005                      //Four-Per-Em Space/FPES or Mid Space
+#define UNICODE_SIX_PER_EM_SPACE                      0x2006                      //Six-Per-Em Space
+#define UNICODE_FIGURE_SPACE                          0x2007                      //Figure Space
+#define UNICODE_PUNCTUATION_SPACE                     0x2008                      //Punctuation Space
+#define UNICODE_THIN_SPACE                            0x2009                      //Thin Space
+#define UNICODE_HAIR_SPACE                            0x200A                      //Hair Space
+#define UNICODE_ZERO_WIDTH_SPACE                      0x200B                      //Zero Width Space
+#define UNICODE_ZERO_WIDTH_NON_JOINER                 0x200C                      //Zero Width Non Joiner
+#define UNICODE_ZERO_WIDTH_JOINER                     0x200D                      //Zero Width Joiner
+#define UNICODE_NARROW_NO_BREAK_SPACE                 0x202F                      //Narrow No-Break Space
+#define UNICODE_MEDIUM_MATHEMATICAL_SPACE             0x205F                      //Medium Mathematical Space
+#define UNICODE_WORD_JOINER                           0x2060                      //Word Joiner
+#define UNICODE_IDEOGRAPHIC_SPACE                     0x3000                      //Ideographic Space in CJK
 
 //Version definitions
-#define CONFIG_VERSION_POINT_THREE   0.3
-#define CONFIG_VERSION               0.4                         //Current configuration version
-#define FULL_VERSION                 L"0.4.5.0"
-#define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2015 Chengr28"
+#define CONFIG_VERSION_POINT_THREE                    0.3
+#define CONFIG_VERSION                                0.4                         //Current configuration version
+#define FULL_VERSION                                  L"0.4.5.1"
+#define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
 
 //Size and length definitions
-#define BOM_UTF_8_LENGTH               3U                                         //UTF-8 BOM length
-#define BOM_UTF_16_LENGTH              2U                                         //UTF-16 BOM length
-#define BOM_UTF_32_LENGTH              4U                                         //UTF-32 BOM length
-#define COMMAND_BUFFER_MAXSIZE         4096U                                      //Maximum size of commands buffer(4096 bytes)
-#define FILE_BUFFER_SIZE               4096U                                      //Maximum size of file buffer(4KB/4096 bytes)
-#define DEFAULT_FILE_MAXSIZE           1073741824U                                //Maximum size of whole reading file(1GB/1073741824 bytes).
-#define DEFAULT_LOG_MAXSIZE            8388608U                                   //Maximum size of whole log file(8MB/8388608 bytes).
-#define DEFAULT_LOG_MINSIZE            4096U                                      //Minimum size of whole log file(4KB/4096 bytes).
-#define PACKET_MAXSIZE                 1500U                                      //Maximum size of packets, Standard MTU of Ethernet II network
-#define ORIGINAL_PACKET_MAXSIZE        1512U                                      //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header + 4 bytes FCS)
-#define LARGE_PACKET_MAXSIZE           4096U                                      //Maximum size of packets(4KB/4096 bytes) of TCP protocol
-#define BUFFER_QUEUE_MAXNUM            1488095U                                   //Number of maximum packet buffer queues, 1488095 pps or 1.488Mpps in Gigabit Ethernet
-#define BUFFER_QUEUE_MINNUM            8U                                         //Number of minimum packet buffer queues
-#define DEFAULT_BUFFER_QUEUE           64U                                        //Default number of packet buffer queues
-#define UINT16_MAX_STRING_LENGTH       6U                                         //Maximum number of 16 bits is 65535, its length is 6.
-#define UINT32_MAX_STRING_LENGTH       10U                                        //Maximum number of 32 bits is 4294967295, its length is 10.
-#define ADDR_STRING_MAXSIZE            64U                                        //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
-#define IPV4_SHORTEST_ADDRSTRING       6U                                         //The shortest IPv4 address strings(*.*.*.*).
-#define IPV6_SHORTEST_ADDRSTRING       3U                                         //The shortest IPv6 address strings(::).
-#define ICMP_PADDING_MAXSIZE           1484U                                      //Length of ICMP padding data must between 18 bytes and 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
+#define BOM_UTF_8_LENGTH                              3U                          //UTF-8 BOM length
+#define BOM_UTF_16_LENGTH                             2U                          //UTF-16 BOM length
+#define BOM_UTF_32_LENGTH                             4U                          //UTF-32 BOM length
+#define COMMAND_BUFFER_MAXSIZE                        4096U                       //Maximum size of commands buffer(4096 bytes)
+#define FILE_BUFFER_SIZE                              4096U                       //Maximum size of file buffer(4KB/4096 bytes)
+#define DEFAULT_FILE_MAXSIZE                          1073741824U                 //Maximum size of whole reading file(1GB/1073741824 bytes).
+#define DEFAULT_LOG_MAXSIZE                           8388608U                    //Maximum size of whole log file(8MB/8388608 bytes).
+#define DEFAULT_LOG_MINSIZE                           4096U                       //Minimum size of whole log file(4KB/4096 bytes).
+#define PACKET_MAXSIZE                                1500U                       //Maximum size of packets, Standard MTU of Ethernet II network
+#define ORIGINAL_PACKET_MAXSIZE                       1512U                       //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header + 4 bytes FCS)
+#define LARGE_PACKET_MAXSIZE                          4096U                       //Maximum size of packets(4KB/4096 bytes) of TCP protocol
+#define BUFFER_QUEUE_MAXNUM                           1488095U                    //Number of maximum packet buffer queues, 1488095 pps or 1.488Mpps in Gigabit Ethernet
+#define BUFFER_QUEUE_MINNUM                           8U                          //Number of minimum packet buffer queues
+#define DEFAULT_BUFFER_QUEUE                          64U                         //Default number of packet buffer queues
+#define UINT16_MAX_STRING_LENGTH                      6U                          //Maximum number of 16 bits is 65535, its length is 6.
+#define UINT32_MAX_STRING_LENGTH                      10U                         //Maximum number of 32 bits is 4294967295, its length is 10.
+#define ADDR_STRING_MAXSIZE                           64U                         //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
+#define IPV4_SHORTEST_ADDRSTRING                      6U                          //The shortest IPv4 address strings(*.*.*.*).
+#define IPV6_SHORTEST_ADDRSTRING                      3U                          //The shortest IPv6 address strings(::).
+#define ICMP_PADDING_MAXSIZE                          1484U                       //Length of ICMP padding data must between 18 bytes and 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
 #if defined(PLATFORM_LINUX)
-	#define ICMP_STRING_START_NUM_LINUX    16U
-	#define ICMP_PADDING_LENGTH_LINUX      40U
+	#define ICMP_STRING_START_NUM_LINUX                   16U
+	#define ICMP_PADDING_LENGTH_LINUX                     40U
 #elif defined(PLATFORM_MACX)
-	#define ICMP_STRING_START_NUM_MAC      8U
-	#define ICMP_PADDING_LENGTH_MAC        48U
+	#define ICMP_STRING_START_NUM_MAC                     8U
+	#define ICMP_PADDING_LENGTH_MAC                       48U
 #endif
-#define MULTI_REQUEST_MAXNUM              64U                                                                               //Maximum number of multi request.
-#define NETWORK_LAYER_PARTNUM             2U                                                                                //Number of network layer protocols(IPv6 and IPv4)
-#define TRANSPORT_LAYER_PARTNUM           4U                                                                                //Number of transport layer protocols(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
-#define ALTERNATE_SERVERNUM               12U                                                                               //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
-#define DOMAIN_MAXSIZE                    256U                                                                              //Maximum size of whole level domain is 256 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_DATA_MAXSIZE               253U                                                                              //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_LEVEL_DATA_MAXSIZE         63U                                                                               //Domain length is between 3 and 63(Labels must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
-#define DOMAIN_MINSIZE                    2U                                                                                //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_RAMDOM_MINSIZE             6U                                                                                //Minimum size of ramdom domain request
-#define DNS_PACKET_MINSIZE                (sizeof(dns_hdr) + 4U + sizeof(dns_qry))                                          //Minimum DNS packet size(DNS Header + Minimum Domain + DNS Query)
-#define DNS_RR_MAXCOUNT_AAAA              43U                                                                               //Maximum Record Resources size of AAAA answers, 28 bytes * 43 = 1204 bytes
-#define DNS_RR_MAXCOUNT_A                 75U                                                                               //Maximum Record Resources size of A answers, 16 bytes * 75 = 1200 bytes
-#define EDNS_ADDITIONAL_MAXSIZE           (sizeof(dns_record_opt) * 2U + sizeof(edns_client_subnet) + sizeof(in6_addr))     //Maximum of EDNS Additional Record Resources size
-#define HTTP_VERSION_LENGTH               2U
-#define HTTP_STATUS_CODE_LENGTH           3U
-#define HTTP_RESPONSE_MINSIZE             (strlen("HTTP/") + HTTP_VERSION_LENGTH + strlen(" ") + HTTP_STATUS_CODE_LENGTH)   //Minimum size of HTTP server response
-#define DNSCRYPT_PACKET_MINSIZE           (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES + DNS_PACKET_MINSIZE)
-#define DNSCRYPT_RECORD_TXT_LEN           124U                                                                              //Length of DNScrypt TXT Records
-#define DNSCRYPT_BUFFER_RESERVE_LEN       (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES - crypto_box_BOXZEROBYTES)
-#define DNSCRYPT_BUFFER_RESERVE_TCP_LEN   (sizeof(uint16_t) + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES - crypto_box_BOXZEROBYTES)
-#define DNSCRYPT_RESERVE_HEADER_LEN       (sizeof(ipv6_hdr) + sizeof(udp_hdr) + DNSCRYPT_BUFFER_RESERVE_LEN)
+#define MULTI_REQUEST_MAXNUM                          64U                         //Maximum number of multi request.
+#define NETWORK_LAYER_PARTNUM                         2U                          //Number of network layer protocols(IPv6 and IPv4)
+#define TRANSPORT_LAYER_PARTNUM                       4U                          //Number of transport layer protocols(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
+#define ALTERNATE_SERVERNUM                           12U                         //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
+#define DOMAIN_MAXSIZE                                256U                        //Maximum size of whole level domain is 256 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_DATA_MAXSIZE                           253U                        //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_LEVEL_DATA_MAXSIZE                     63U                         //Domain length is between 3 and 63(Labels must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
+#define DOMAIN_MINSIZE                                2U                          //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_RAMDOM_MINSIZE                         6U                          //Minimum size of ramdom domain request
+#define DNS_PACKET_MINSIZE                            (sizeof(dns_hdr) + 4U + sizeof(dns_qry))                                          //Minimum DNS packet size(DNS Header + Minimum Domain + DNS Query)
+#define DNS_RR_MAXCOUNT_AAAA                          43U                         //Maximum Record Resources size of AAAA answers, 28 bytes * 43 = 1204 bytes
+#define DNS_RR_MAXCOUNT_A                             75U                         //Maximum Record Resources size of A answers, 16 bytes * 75 = 1200 bytes
+#define EDNS_ADDITIONAL_MAXSIZE                       (sizeof(dns_record_opt) * 2U + sizeof(edns_client_subnet) + sizeof(in6_addr))     //Maximum of EDNS Additional Record Resources size
+#define HTTP_VERSION_LENGTH                           2U
+#define HTTP_STATUS_CODE_LENGTH                       3U
+#define HTTP_RESPONSE_MINSIZE                         (strlen("HTTP/") + HTTP_VERSION_LENGTH + strlen(" ") + HTTP_STATUS_CODE_LENGTH)   //Minimum size of HTTP server response
+#define DNSCRYPT_PACKET_MINSIZE                       (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES + DNS_PACKET_MINSIZE)
+#define DNSCRYPT_RECORD_TXT_LEN                       124U                        //Length of DNScrypt TXT Records
+#define DNSCRYPT_BUFFER_RESERVE_LEN                   (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES - crypto_box_BOXZEROBYTES)
+#define DNSCRYPT_BUFFER_RESERVE_TCP_LEN               (sizeof(uint16_t) + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES - crypto_box_BOXZEROBYTES)
+#define DNSCRYPT_RESERVE_HEADER_LEN                   (sizeof(ipv6_hdr) + sizeof(udp_hdr) + DNSCRYPT_BUFFER_RESERVE_LEN)
 
 //Code definitions
 #if defined(PLATFORM_WIN)
-	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE   8192U      //Buffer maximum size of QueryServiceConfig() function(8KB/8192 Bytes)
-	#define SYSTEM_SOCKET                         UINT_PTR   //System Socket defined(WinSock2.h), which is not the same in x86(unsigned int) and x64(unsigned __int64) platform and defined in WinSock2.h file.
+	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE           8192U                        //Buffer maximum size of QueryServiceConfig() function(8KB/8192 Bytes)
+	#define SYSTEM_SOCKET                                 UINT_PTR                     //System Socket defined(WinSock2.h), which is not the same in x86(unsigned int) and x64(unsigned __int64) platform and defined in WinSock2.h file.
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	#define SYSTEM_SOCKET                         int
+	#define SYSTEM_SOCKET                                 int
 #endif
 #if defined(ENABLE_PCAP)
-//	#define PCAP_READ_TIMEOUT                     0          //Pcap read timeout with pcap_open_live() has elapsed. In this case pkt_header and pkt_data don't point to a valid packet.
-//	#define PCAP_READ_SUCCESS                     1          //Pcap packets has been read without problems.
-	#define PCAP_LOOP_INFINITY                    (-1)       //Pcap packets are processed until another ending condition occurs.
-	#define PCAP_COMPILE_OPTIMIZE                 1          //Pcap optimization on the resulting code is performed.
+//	#define PCAP_READ_TIMEOUT                             0                            //Pcap read timeout with pcap_open_live() has elapsed. In this case pkt_header and pkt_data don't point to a valid packet.
+//	#define PCAP_READ_SUCCESS                             1                            //Pcap packets has been read without problems.
+	#define PCAP_LOOP_INFINITY                            (-1)                         //Pcap packets are processed until another ending condition occurs.
+	#define PCAP_COMPILE_OPTIMIZE                         1                            //Pcap optimization on the resulting code is performed.
 #endif
-//#define SHA3_512_SIZE                         64U        //SHA3-512 instance as specified in the FIPS 202(http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf), 512 bits/64 bytes.
-#define CHECKSUM_SUCCESS                      0          //Result of getting correct checksum.
-#define DYNAMIC_MIN_PORT                      1024U      //Well-known port is from 1 to 1023.
+//#define SHA3_512_SIZE                               64U                         //SHA3-512 instance as specified in the FIPS 202(http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf), 512 bits/64 bytes.
+#define CHECKSUM_SUCCESS                              0                           //Result of getting correct checksum.
+#define DYNAMIC_MIN_PORT                              1024U                       //Well-known port is from 1 to 1023.
 
 //Time(s) definitions
-#define SECOND_TO_MILLISECOND                        1000U     //1000 milliseconds(1 second)
-#define MICROSECOND_TO_MILLISECOND                   1000U     //1000 microseconds(1 millisecond)
-#define STANDARD_TIMEOUT                             1000U     //Standard timeout, 1000 ms(1 second)
-#define LOOP_MAX_TIMES                               16U       //Maximum of loop times, 8 times
-#define LOOP_INTERVAL_TIME_NO_DELAY                  10U       //Loop interval time(No delay), 10 ms
-#define LOOP_INTERVAL_TIME_MONITOR                   10000U    //Loop interval time(Monitor mode), 10000 ms(10 seconds)
+#define SECOND_TO_MILLISECOND                         1000U                       //1000 milliseconds(1 second)
+#define MICROSECOND_TO_MILLISECOND                    1000U                       //1000 microseconds(1 millisecond)
+#define STANDARD_TIMEOUT                              1000U                       //Standard timeout, 1000 ms(1 second)
+#define LOOP_MAX_TIMES                                16U                         //Maximum of loop times, 8 times
+#define LOOP_INTERVAL_TIME_NO_DELAY                   10U                         //Loop interval time(No delay), 10 ms
+#define LOOP_INTERVAL_TIME_MONITOR                    10000U                      //Loop interval time(Monitor mode), 10000 ms(10 seconds)
 #if defined(PLATFORM_WIN)
-	#define UPDATE_SERVICE_TIME                      3000U     //Update service timeout, 3000 ms(3 seconds)
+	#define UPDATE_SERVICE_TIME                           3000U                       //Update service timeout, 3000 ms(3 seconds)
 #endif
 #if defined(ENABLE_PCAP)
-	#define PCAP_CAPTURE_MIN_TIMEOUT                     10U       //Minimum Pcap Capture reading timeout, 10 ms
-	#define DEFAULT_PCAP_CAPTURE_TIMEOUT                 200U      //Default Pcap Capture reading timeout, 200 ms
+	#define PCAP_CAPTURE_MIN_TIMEOUT                      10U                         //Minimum Pcap Capture reading timeout, 10 ms
+	#define DEFAULT_PCAP_CAPTURE_TIMEOUT                  200U                        //Default Pcap Capture reading timeout, 200 ms
 #endif
-#define SOCKET_MIN_TIMEOUT                           500U      //The shortest socket timeout, 500 ms
+#define SOCKET_MIN_TIMEOUT                            500U                        //The shortest socket timeout, 500 ms
 #if defined(PLATFORM_WIN)
-	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT              3000U     //Default timeout of reliable sockets(Such as TCP, 3 seconds/3000ms)
-	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT            2000U     //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds/2000ms)
-	#define DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT        6000U     //Default timeout of SOCKS reliable sockets(Such as TCP, 6 seconds/6000ms)
-	#define DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT      3000U     //Default timeout of SOCKS unreliable sockets(Such as UDP, 3 seconds/3000ms)
-	#define DEFAULT_HTTP_SOCKET_TIMEOUT                  3000U     //Default timeout of HTTP sockets(3 seconds/3000ms)
+	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT               3000U                   //Default timeout of reliable sockets(Such as TCP, 3 seconds/3000ms)
+	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT             2000U                   //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds/2000ms)
+	#define DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT         6000U                   //Default timeout of SOCKS reliable sockets(Such as TCP, 6 seconds/6000ms)
+	#define DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT       3000U                   //Default timeout of SOCKS unreliable sockets(Such as UDP, 3 seconds/3000ms)
+	#define DEFAULT_HTTP_SOCKET_TIMEOUT                   3000U                   //Default timeout of HTTP sockets(3 seconds/3000ms)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT              3U        //Default timeout of reliable sockets(Such as TCP, 3 seconds)
-	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT            2U        //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds)
-	#define DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT        6U        //Default timeout of SOCKS reliable sockets(Such as TCP, 6 seconds)
-	#define DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT      3U        //Default timeout of SOCKS unreliable sockets(Such as UDP, 3 seconds)
-	#define DEFAULT_HTTP_SOCKET_TIMEOUT                  3U        //Default timeout of HTTP sockets(3 seconds)
+	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT               3U                      //Default timeout of reliable sockets(Such as TCP, 3 seconds)
+	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT             2U                      //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds)
+	#define DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT         6U                      //Default timeout of SOCKS reliable sockets(Such as TCP, 6 seconds)
+	#define DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT       3U                      //Default timeout of SOCKS unreliable sockets(Such as UDP, 3 seconds)
+	#define DEFAULT_HTTP_SOCKET_TIMEOUT                   3U                      //Default timeout of HTTP sockets(3 seconds)
 #endif
 #if defined(ENABLE_LIBSODIUM)
-	#define DEFAULT_DNSCURVE_RELIABLE_SOCKET_TIMEOUT     DEFAULT_RELIABLE_SOCKET_TIMEOUT     //Same as default timeout of reliable sockets
-	#define DEFAULT_DNSCURVE_UNRELIABLE_SOCKET_TIMEOUT   DEFAULT_UNRELIABLE_SOCKET_TIMEOUT   //Same as default timeout of unreliable sockets
+	#define DEFAULT_DNSCURVE_RELIABLE_SOCKET_TIMEOUT          DEFAULT_RELIABLE_SOCKET_TIMEOUT     //Same as default timeout of reliable sockets
+	#define DEFAULT_DNSCURVE_UNRELIABLE_SOCKET_TIMEOUT        DEFAULT_UNRELIABLE_SOCKET_TIMEOUT   //Same as default timeout of unreliable sockets
 #endif
-#define DEFAULT_FILEREFRESH_TIME                     10000U    //Default time between files auto-refreshing, 10000 ms(10 seconds)
-#define DEFAULT_ICMPTEST_TIME                        5U        //Default time between ICMP Test, 5 seconds
-#define DEFAULT_DOMAINTEST_INTERVAL_TIME             900U      //Default Domain Test time between every sending, 15 minutes(900 seconds)
-#define DEFAULT_ALTERNATE_TIMES                      5U        //Default times of request timeout, 5 times
-#define DEFAULT_ALTERNATE_RANGE                      10U       //Default time of checking timeout, 10 seconds
-#define DEFAULT_ALTERNATE_RESET_TIME                 180U      //Default time to reset switching of alternate servers, 180 seconds
-#define DEFAULT_HOSTS_TTL                            900U      //Default Hosts DNS TTL, 15 minutes(900 seconds)
-#define SHORTEST_FILEREFRESH_TIME                    5U        //The shortset time between files auto-refreshing, 5 seconds
-#define SENDING_INTERVAL_TIME                        5000U     //Time between every sending, 5000 ms(5 seconds)
-#define SENDING_ONCE_INTERVAL_TIMES                  3U        //Repeat 3 times between every sending.
+#define DEFAULT_FILEREFRESH_TIME                      10000U                      //Default time between files auto-refreshing, 10000 ms(10 seconds)
+#define DEFAULT_ICMPTEST_TIME                         5U                          //Default time between ICMP Test, 5 seconds
+#define DEFAULT_DOMAINTEST_INTERVAL_TIME              900U                        //Default Domain Test time between every sending, 15 minutes(900 seconds)
+#define DEFAULT_ALTERNATE_TIMES                       5U                          //Default times of request timeout, 5 times
+#define DEFAULT_ALTERNATE_RANGE                       10U                         //Default time of checking timeout, 10 seconds
+#define DEFAULT_ALTERNATE_RESET_TIME                  180U                        //Default time to reset switching of alternate servers, 180 seconds
+#define DEFAULT_HOSTS_TTL                             900U                        //Default Hosts DNS TTL, 15 minutes(900 seconds)
+#define SHORTEST_FILEREFRESH_TIME                     5U                          //The shortset time between files auto-refreshing, 5 seconds
+#define SENDING_INTERVAL_TIME                         5000U                       //Time between every sending, 5000 ms(5 seconds)
+#define SENDING_ONCE_INTERVAL_TIMES                   3U                          //Repeat 3 times between every sending.
 #if defined(ENABLE_LIBSODIUM)
-	#define DEFAULT_DNSCURVE_RECHECK_TIME                1800U     //Default DNSCurve keys recheck time, 1800 seconds
-	#define SHORTEST_DNSCURVE_RECHECK_TIME               10U       //The shortset DNSCurve keys recheck time, 10 seconds
+#define DEFAULT_DNSCURVE_RECHECK_TIME                 1800U                       //Default DNSCurve keys recheck time, 1800 seconds
+#define SHORTEST_DNSCURVE_RECHECK_TIME                10U                         //The shortset DNSCurve keys recheck time, 10 seconds
 #endif
 
 //Data definitions
-#define DEFAULT_LOCAL_SERVERNAME              ("pcap-dnsproxy.localhost.server")                                                                //Default Local DNS server name
+#define DEFAULT_LOCAL_SERVERNAME                  ("pcap-dnsproxy.localhost.server")   //Default Local DNS server name
 #if defined(PLATFORM_WIN)
-	#define CONFIG_FILE_NAME_LIST                 L"Config.ini", L"Config.conf", L"Config.cfg", L"Config"
-	#define COMMAND_LONG_PRINT_VERSION            L"--version"
-	#define COMMAND_SHORT_PRINT_VERSION           L"-v"
-	#define COMMAND_LIB_VERSION                   L"--lib-version"
-	#define COMMAND_LONG_HELP                     L"--help"
-	#define COMMAND_SHORT_HELP                    L"-h"
-	#define COMMAND_FIREWALL_TEST                 L"--first-setup"
-	#define COMMAND_FLUSH_DNS                     L"--flush-dns"
-	#define COMMAND_LONG_SET_PATH                 L"--config-file"
-	#define COMMAND_SHORT_SET_PATH                L"-c"
-	#define SID_ADMINISTRATORS_GROUP              L"S-1-5-32-544"                                                                               //Windows SID of Administrators group
-	#define MAILSLOT_NAME                         L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot"                                                    //MailSlot name
-	#define MAILSLOT_MESSAGE_FLUSH_DNS            L"Flush DNS cache of Pcap_DNSProxy."                                                          //The mailslot message to flush dns cache
-	#define SYSTEM_SERVICE_NAME                   L"PcapDNSProxyService"                                                                        //System service name
-	#define DEFAULT_ICMP_PADDING_DATA             ("abcdefghijklmnopqrstuvwabcdefghi")                                                          //ICMP padding data in Windows
+	#define CONFIG_FILE_NAME_LIST                         L"Config.ini", L"Config.conf", L"Config.cfg", L"Config"
+	#define COMMAND_LONG_PRINT_VERSION                    L"--version"
+	#define COMMAND_SHORT_PRINT_VERSION                   L"-v"
+	#define COMMAND_LIB_VERSION                           L"--lib-version"
+	#define COMMAND_LONG_HELP                             L"--help"
+	#define COMMAND_SHORT_HELP                            L"-h"
+	#define COMMAND_FIREWALL_TEST                         L"--first-setup"
+	#define COMMAND_FLUSH_DNS                             L"--flush-dns"
+	#define COMMAND_LONG_SET_PATH                         L"--config-file"
+	#define COMMAND_SHORT_SET_PATH                        L"-c"
+	#define SID_ADMINISTRATORS_GROUP                      L"S-1-5-32-544"                              //Windows SID of Administrators group
+	#define MAILSLOT_NAME                                 L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot"   //MailSlot name
+	#define MAILSLOT_MESSAGE_FLUSH_DNS                    L"Flush DNS cache of Pcap_DNSProxy."         //The mailslot message to flush dns cache
+	#define SYSTEM_SERVICE_NAME                           L"PcapDNSProxyService"                       //System service name
+	#define DEFAULT_ICMP_PADDING_DATA                     ("abcdefghijklmnopqrstuvwabcdefghi")         //ICMP padding data in Windows
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	#define CONFIG_FILE_NAME_LIST                 L"Config.conf", L"Config.ini", L"Config.cfg", L"Config"
-	#define CONFIG_FILE_NAME_LIST_STRING          "Config.conf", "Config.ini", "Config.cfg", "Config"
-	#define COMMAND_LONG_PRINT_VERSION            ("--version")
-	#define COMMAND_SHORT_PRINT_VERSION           ("-v")
-	#define COMMAND_LIB_VERSION                   ("--lib-version")
-	#define COMMAND_LONG_HELP                     ("--help")
-	#define COMMAND_SHORT_HELP                    ("-h")
-	#define COMMAND_FLUSH_DNS                     ("--flush-dns")
-	#define COMMAND_LONG_SET_PATH                 ("--config-file")
-	#define COMMAND_SHORT_SET_PATH                ("-c")
+	#define CONFIG_FILE_NAME_LIST                         L"Config.conf", L"Config.ini", L"Config.cfg", L"Config"
+	#define CONFIG_FILE_NAME_LIST_STRING                  "Config.conf", "Config.ini", "Config.cfg", "Config"
+	#define COMMAND_LONG_PRINT_VERSION                    ("--version")
+	#define COMMAND_SHORT_PRINT_VERSION                   ("-v")
+	#define COMMAND_LIB_VERSION                           ("--lib-version")
+	#define COMMAND_LONG_HELP                             ("--help")
+	#define COMMAND_SHORT_HELP                            ("-h")
+	#define COMMAND_FLUSH_DNS                             ("--flush-dns")
+	#define COMMAND_LONG_SET_PATH                         ("--config-file")
+	#define COMMAND_SHORT_SET_PATH                        ("-c")
 	#if defined(PLATFORM_LINUX)
-		#define COMMAND_DISABLE_DAEMON                ("--disable-daemon")
+		#define COMMAND_DISABLE_DAEMON                        ("--disable-daemon")
 	#endif
-	#define FIFO_PATH_NAME                        ("/tmp/pcap_dnsproxy_fifo")                                                                   //FIFO pathname
-	#define FIFO_MESSAGE_FLUSH_DNS                ("Flush DNS cache of Pcap_DNSProxy.")                                                         //The FIFO message to flush dns cache
+	#define FIFO_PATH_NAME                                ("/tmp/pcap_dnsproxy_fifo")                   //FIFO pathname
+	#define FIFO_MESSAGE_FLUSH_DNS                        ("Flush DNS cache of Pcap_DNSProxy.")         //The FIFO message to flush dns cache
 #endif
-#define DEFAULT_HTTP_VERSION                  "1.1"                                                                                             //Default HTTP version
+#define DEFAULT_HTTP_VERSION                          "1.1"                       //Default HTTP version
 #if defined(PLATFORM_MACX)
-	#define DEFAULT_SEQUENCE                      0
+	#define DEFAULT_SEQUENCE                               0
 #else
-	#define DEFAULT_SEQUENCE                      0x0001                                                                                      //Default sequence of protocol
+	#define DEFAULT_SEQUENCE                               0x0001                     //Default sequence of protocol
 #endif
-#define DNS_PACKET_QUERY_LOCATE(Buffer)       (sizeof(dns_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U)                     //Location the beginning of DNS Query
-#define DNS_TCP_PACKET_QUERY_LOCATE(Buffer)   (sizeof(dns_tcp_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_tcp_hdr)) + 1U)
-#define DNS_PACKET_RR_LOCATE(Buffer)          (sizeof(dns_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U + sizeof(dns_qry))   //Location the beginning of DNS Resource Records
+#define DNS_PACKET_QUERY_LOCATE(Buffer)                    (sizeof(dns_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U)                     //Location the beginning of DNS Query
+#define DNS_TCP_PACKET_QUERY_LOCATE(Buffer)                (sizeof(dns_tcp_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_tcp_hdr)) + 1U)
+#define DNS_PACKET_RR_LOCATE(Buffer)                       (sizeof(dns_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U + sizeof(dns_qry))   //Location the beginning of DNS Resource Records
 
 //Base64 definitions
-#define BASE64_PAD                        '='
-//#define BASE64_DE_FIRST                   '+'
-//#define BASE64_DE_LAST                    'z'
-#define BASE64_ENCODE_OUT_SIZE(Message)   (((Message) + 2U) / 3U * 4U)
-//#define BASE64_DECODE_OUT_SIZE(Message)   (((Message)) / 4U * 3U)
+
+#define BASE64_PAD                                    '='
+//#define BASE64_DE_FIRST                               '+'
+//#define BASE64_DE_LAST                                'z'
+#define BASE64_ENCODE_OUT_SIZE(Message)               (((Message) + 2U) / 3U * 4U)
+//#define BASE64_DECODE_OUT_SIZE(Message)               (((Message)) / 4U * 3U)
 
 //Function Type definitions
 //Windows XP with SP3 support
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	#define FUNCTION_GETTICKCOUNT64        1U
-	#define FUNCTION_INET_NTOP             2U
-	#define FUNCTION_INET_PTON             3U
+
+	#define FUNCTION_GETTICKCOUNT64                       1U
+	#define FUNCTION_INET_NTOP                            2U
+	#define FUNCTION_INET_PTON                            3U
 #endif
 
 //Compare addresses own definitions
-#define ADDRESS_COMPARE_LESS           1U
-#define ADDRESS_COMPARE_EQUAL          2U
-#define ADDRESS_COMPARE_GREATER        3U
+#define ADDRESS_COMPARE_LESS                          1U
+#define ADDRESS_COMPARE_EQUAL                         2U
+#define ADDRESS_COMPARE_GREATER                       3U
 
 //Error type definitions
-#define LOG_MESSAGE_NOTICE             1U            // 01: Notice Message
-#define LOG_ERROR_SYSTEM               2U            // 02: System Error
-#define LOG_ERROR_PARAMETER            3U            // 03: Parameter Error
-#define LOG_ERROR_IPFILTER             4U            // 04: IPFilter Error
-#define LOG_ERROR_HOSTS                5U            // 05: Hosts Error
-#define LOG_ERROR_NETWORK              6U            // 06: Network Error
+#define LOG_MESSAGE_NOTICE                            1U                          // 01: Notice Message
+#define LOG_ERROR_SYSTEM                              2U                          // 02: System Error
+#define LOG_ERROR_PARAMETER                           3U                          // 03: Parameter Error
+#define LOG_ERROR_IPFILTER                            4U                          // 04: IPFilter Error
+#define LOG_ERROR_HOSTS                               5U                          // 05: Hosts Error
+#define LOG_ERROR_NETWORK                             6U                          // 06: Network Error
 #if defined(ENABLE_PCAP)
-	#define LOG_ERROR_PCAP                 7U            // 07: Pcap Error
+	#define LOG_ERROR_PCAP                                7U                          // 07: Pcap Error
 #endif
 #if defined(ENABLE_LIBSODIUM)
-	#define LOG_ERROR_DNSCURVE             8U            // 08: DNSCurve Error
+	#define LOG_ERROR_DNSCURVE                            8U                          // 08: DNSCurve Error
 #endif
-#define LOG_ERROR_SOCKS                9U            // 09: SOCKS Error
-#define LOG_ERROR_HTTP                 10U           // 10: HTTP Error
+#define LOG_ERROR_SOCKS                               9U                          // 09: SOCKS Error
+#define LOG_ERROR_HTTP                                10U                         // 10: HTTP Error
 
 //Codes and types definitions
-#define LISTEN_PROTOCOL_NETWORK_BOTH          0
-#define LISTEN_PROTOCOL_IPV6                  1U
-#define LISTEN_PROTOCOL_IPV4                  2U
-#define LISTEN_PROTOCOL_TRANSPORT_BOTH        0
-#define LISTEN_PROTOCOL_TCP                   1U
-#define LISTEN_PROTOCOL_UDP                   2U
-#define LISTEN_MODE_PROXY                     0
-#define LISTEN_MODE_PRIVATE                   1U 
-#define LISTEN_MODE_SERVER                    2U
-#define LISTEN_MODE_CUSTOM                    3U
-#define DIRECT_REQUEST_MODE_NONE              0
-#define DIRECT_REQUEST_MODE_BOTH              1U
-#define DIRECT_REQUEST_MODE_IPV6              2U
-#define DIRECT_REQUEST_MODE_IPV4              3U
-#define REQUEST_MODE_NETWORK_BOTH             0
-#define REQUEST_MODE_IPV6                     1U
-#define REQUEST_MODE_IPV4                     2U
-#define REQUEST_MODE_UDP                      0
-#define REQUEST_MODE_TCP                      1U
-#define HOSTS_TYPE_WHITE                      1U
-#define HOSTS_TYPE_BANNED                     2U
-#define HOSTS_TYPE_NORMAL                     3U
-#define HOSTS_TYPE_LOCAL                      4U
-#define HOSTS_TYPE_CNAME                      5U
-#define CACHE_TYPE_TIMER                      1U
-#define CACHE_TYPE_QUEUE                      2U
-#define SOCKET_SETTING_INVALID_CHECK          0
-#define SOCKET_SETTING_TIMEOUT                1U
-#define SOCKET_SETTING_REUSE                  2U
-#define SOCKET_SETTING_TCP_FAST_OPEN          3U
-#define SOCKET_SETTING_NON_BLOCKING_MODE      4U
-//#define SOCKET_SETTING_TCP_KEEPALIVE          5U
-#define SOCKET_SETTING_UDP_BLOCK_RESET        6U
+#define LISTEN_PROTOCOL_NETWORK_BOTH                  0
+#define LISTEN_PROTOCOL_IPV6                          1U
+#define LISTEN_PROTOCOL_IPV4                          2U
+#define LISTEN_PROTOCOL_TRANSPORT_BOTH                0
+#define LISTEN_PROTOCOL_TCP                           1U
+#define LISTEN_PROTOCOL_UDP                           2U
+#define LISTEN_MODE_PROXY                             0
+#define LISTEN_MODE_PRIVATE                           1U 
+#define LISTEN_MODE_SERVER                            2U
+#define LISTEN_MODE_CUSTOM                            3U
+#define DIRECT_REQUEST_MODE_NONE                      0
+#define DIRECT_REQUEST_MODE_BOTH                      1U
+#define DIRECT_REQUEST_MODE_IPV6                      2U
+#define DIRECT_REQUEST_MODE_IPV4                      3U
+#define REQUEST_MODE_NETWORK_BOTH                     0
+#define REQUEST_MODE_IPV6                             1U
+#define REQUEST_MODE_IPV4                             2U
+#define REQUEST_MODE_UDP                              0
+#define REQUEST_MODE_TCP                              1U
+#define HOSTS_TYPE_WHITE                              1U
+#define HOSTS_TYPE_BANNED                             2U
+#define HOSTS_TYPE_NORMAL                             3U
+#define HOSTS_TYPE_LOCAL                              4U
+#define HOSTS_TYPE_CNAME                              5U
+#define CACHE_TYPE_TIMER                              1U
+#define CACHE_TYPE_QUEUE                              2U
+#define SOCKET_SETTING_INVALID_CHECK                  0
+#define SOCKET_SETTING_TIMEOUT                        1U
+#define SOCKET_SETTING_REUSE                          2U
+#define SOCKET_SETTING_TCP_FAST_OPEN                  3U
+#define SOCKET_SETTING_NON_BLOCKING_MODE              4U
+//#define SOCKET_SETTING_TCP_KEEPALIVE                  5U
+#define SOCKET_SETTING_UDP_BLOCK_RESET                6U
 
-//Server type definitions
+//Request process type definitions
+#define REQUEST_PROCESS_LOCAL                         1U
+#define REQUEST_PROCESS_SOCKS                         2U
+#define REQUEST_PROCESS_HTTP                          3U
+#define REQUEST_PROCESS_DIRECT                        4U
+#define REQUEST_PROCESS_DNSCURVE                      5U
+#define REQUEST_PROCESS_DNSCURVE_SIGN                 6U
+#define REQUEST_PROCESS_TCP                           7U
+#define REQUEST_PROCESS_UDP                           8U
+
+//DNSCurve server type definitions
 #if defined(ENABLE_LIBSODIUM)
-	#define DNSCURVE_MAIN_IPV6             1U           //DNSCurve Main(IPv6)
-	#define DNSCURVE_MAIN_IPV4             2U           //DNSCurve Main(IPv4)
-	#define DNSCURVE_ALTERNATE_IPV6        3U           //DNSCurve Alternate(IPv6)
-	#define DNSCURVE_ALTERNATE_IPV4        4U           //DNSCurve Alternate(IPv4)
+	#define DNSCURVE_MAIN_IPV6                        1U                          //DNSCurve Main(IPv6)
+	#define DNSCURVE_MAIN_IPV4                        2U                          //DNSCurve Main(IPv4)
+	#define DNSCURVE_ALTERNATE_IPV6                   3U                          //DNSCurve Alternate(IPv6)
+	#define DNSCURVE_ALTERNATE_IPV4                   4U                          //DNSCurve Alternate(IPv4)
 #endif
 
 //Function Pointer definitions
@@ -568,6 +580,15 @@ public:
 	bool                                 CPM_PointerToRR;
 	bool                                 CPM_PointerToAdditional;
 	bool                                 EDNS_Label;
+	struct _edns_switch_ {
+		bool                             EDNS_Local;
+		bool                             EDNS_SOCKS;
+		bool                             EDNS_HTTP;
+		bool                             EDNS_Direct;
+		bool                             EDNS_DNSCurve;
+		bool                             EDNS_TCP;
+		bool                             EDNS_UDP;
+	}EDNS_Switch;
 	bool                                 EDNS_ClientSubnet_Relay;
 	bool                                 DNSSEC_Request;
 	bool                                 DNSSEC_Validation;
@@ -1042,11 +1063,10 @@ bool __fastcall CheckQueryData(
 	_In_ const size_t SendSize, 
 	_In_ const SOCKET_DATA &LocalSocketData);
 size_t __fastcall CheckResponseData(
+	_In_ const size_t ResponseType, 
 	_Inout_ char *Buffer, 
 	_In_ const size_t Length, 
 	_In_ const size_t BufferSize, 
-	_In_ const bool IsLocal, 
-	_In_ const bool NoCheck, 
 	_Out_opt_ bool *IsMarkHopLimit);
 
 //Configuration.h
@@ -1157,14 +1177,13 @@ size_t __fastcall SocketConnecting(
 	_In_opt_ const char *OriginalSend, 
 	_In_ const size_t SendSize);
 SSIZE_T __fastcall SocketSelecting(
+	_In_ const size_t RequestType, 
 	_In_ const uint16_t Protocol, 
 	_In_ std::vector<SOCKET_DATA> &SocketDataList, 
 	_In_ const char *OriginalSend, 
 	_In_ const size_t SendSize, 
 	_Out_opt_ char *OriginalRecv, 
 	_In_ const size_t RecvSize, 
-	_In_ const bool IsLocal, 
-	_In_ const bool NoCheck, 
 	_Out_opt_ SSIZE_T *ErrorCode);
 #if defined(ENABLE_PCAP)
 bool __fastcall DomainTestRequest(
@@ -1173,12 +1192,13 @@ bool __fastcall ICMPTestRequest(
 	_In_ const uint16_t Protocol);
 #endif
 size_t __fastcall TCPRequest(
+	_In_ const size_t RequestType, 
 	_In_ const char *OriginalSend, 
 	_In_ const size_t SendSize, 
 	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize, 
-	_In_ const bool IsLocal);
+	_In_ const size_t RecvSize);
 size_t __fastcall TCPRequestMulti(
+	_In_ const size_t RequestType, 
 	_In_ const char *OriginalSend, 
 	_In_ const size_t SendSize, 
 	_Out_ char *OriginalRecv, 
@@ -1196,12 +1216,13 @@ size_t __fastcall UDPRequestMulti(
 	_In_ const uint16_t Protocol);
 #endif
 size_t __fastcall UDPCompleteRequest(
+	_In_ const size_t RequestType, 
 	_In_ const char *OriginalSend, 
 	_In_ const size_t SendSize, 
 	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize, 
-	_In_ const bool IsLocal);
+	_In_ const size_t RecvSize);
 size_t __fastcall UDPCompleteRequestMulti(
+	_In_ const size_t RequestType, 
 	_In_ const char *OriginalSend, 
 	_In_ const size_t SendSize, 
 	_Out_ char *OriginalRecv, 

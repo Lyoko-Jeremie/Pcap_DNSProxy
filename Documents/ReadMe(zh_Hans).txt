@@ -507,7 +507,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 随机添加压缩指针有3种不同的类型，对应 1 和 2 和 3
     * 可单独使用其中一个，即只填一个数字，或填入多个，中间使用 + 号连接
     * 填入多个时，当实际需要使用随机添加压缩指针时将随机使用其中的一种，每个请求都有可能不相同
-  * EDNS Label - EDNS 标签支持，开启后将为所有请求添加 EDNS 标签：开启为 1 /关闭为 0
+  * EDNS Label - EDNS 标签支持，开启后将为请求添加 EDNS 标签：全部开启为 1 /关闭为 0
+    * 本参数可只指定部分的请求过程使用 EDNS 标签，以下可用的参数可随意删减以实现此功能
+	* 可用的参数：Local + SOCKS Proxy + HTTP Proxy + Direct Request + DNSCurve + TCP + UDP
   * EDNS Client Subnet Relay - EDNS 客户端子网转发功能，开启后将为来自非私有网络地址的所有请求添加其请求时所使用的地址的 EDNS 子网地址：开启为 1 /关闭为 0
     * 本功能要求启用 EDNS Label 参数
     * 本参数优先级比 IPv4/IPv6 EDNS Client Subnet Address 参数高，故需要添加 EDNS 子网地址时将优先添加本参数的地址

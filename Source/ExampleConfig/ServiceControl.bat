@@ -45,7 +45,7 @@ goto %UserChoice%
 :CASE_1
 	sc stop PcapDNSProxyService
 	sc delete PcapDNSProxyService
-	ping 127.0.0.1 -n 5 >nul
+	ping 127.0.0.1 -n 6 >nul
 
 	sc create PcapDNSProxyService binPath= "%~dp0%Prog%" DisplayName= "PcapDNSProxy Service" start= auto
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v Application /d "%~dp0%Prog%" /f
@@ -66,7 +66,7 @@ goto %UserChoice%
 :CASE_2
 	sc stop PcapDNSProxyService
 	sc delete PcapDNSProxyService
-	ping 127.0.0.1 -n 5 >nul
+	ping 127.0.0.1 -n 6 >nul
 	ipconfig /flushdns
 	echo.
 	pause
@@ -77,9 +77,9 @@ goto %UserChoice%
 :: Service start
 :CASE_3
 	sc start PcapDNSProxyService
-	ping 127.0.0.1 -n 5 >nul
+	ping 127.0.0.1 -n 6 >nul
 	ipconfig /flushdns
-	ping 127.0.0.1 -n 5 >nul
+	ping 127.0.0.1 -n 6 >nul
 	call :CHECK_PROG
 	pause
 	cls
@@ -89,7 +89,7 @@ goto %UserChoice%
 :: Service stop
 :CASE_4
 	sc stop PcapDNSProxyService
-	ping 127.0.0.1 -n 5 >nul
+	ping 127.0.0.1 -n 6 >nul
 	ipconfig /flushdns
 	echo.
 	pause
@@ -100,9 +100,9 @@ goto %UserChoice%
 :: Service restart
 :CASE_5
 	sc stop PcapDNSProxyService
-	ping 127.0.0.1 -n 5 >nul
+	ping 127.0.0.1 -n 6 >nul
 	sc start PcapDNSProxyService
-	ping 127.0.0.1 -n 5 >nul
+	ping 127.0.0.1 -n 6 >nul
 	ipconfig /flushdns
 	call :CHECK_PROG
 	pause

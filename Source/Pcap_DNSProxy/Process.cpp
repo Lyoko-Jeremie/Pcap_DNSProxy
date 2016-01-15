@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -459,16 +459,20 @@ size_t __fastcall CheckHostsProcess(
 		//Set header flags and copy response to buffer.
 			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SER_RA);
 			DNS_Header->Answer = htons(U16_NUM_ONE);
+			DNS_Header->Authority = 0;
+			DNS_Header->Additional = 0;
+/* Old version(2016-01-15)
 			memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), 0, ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)));
 			memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)), Parameter.LocalServer_Response, Parameter.LocalServer_Length);
 			DataLength = DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + Parameter.LocalServer_Length;
+*/
+			memset(Result + sizeof(dns_hdr) + Packet->Question, 0, Packet->Length - (sizeof(dns_hdr) + Packet->Question));
+			memcpy_s(Result + sizeof(dns_hdr) + Packet->Question, ResultSize - (sizeof(dns_hdr) + Packet->Question), Parameter.LocalServer_Response, Parameter.LocalServer_Length);
+			DataLength = sizeof(dns_hdr) + Packet->Question + Parameter.LocalServer_Length;
 
 		//EDNS Label
-			if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
-			{
-				DNS_Header->Additional = 0;
+			if (Parameter.EDNS_Label || Packet->EDNS_Record > 0)
 				DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, nullptr);
-			}
 			
 			return DataLength;
 		}
@@ -546,7 +550,7 @@ size_t __fastcall CheckHostsProcess(
 				//Set header flags and convert DNS query to DNS response packet.
 //					DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
 					DNS_Header->Flags = htons(DNS_SQR_NE);
-					DataLength = DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry);
+					DataLength = sizeof(dns_hdr) + Packet->Question;
 					memset(Result + DataLength, 0, ResultSize - DataLength);
 
 				//Hosts load balancing
@@ -575,7 +579,7 @@ size_t __fastcall CheckHostsProcess(
 							((pdns_record_aaaa)DNS_Record)->Addr = HostsTableIter.AddrList.at(Index).IPv6.sin6_addr;
 
 					//Hosts items length check
-						if ((Parameter.EDNS_Label || DNS_Header->Additional > 0) && DataLength + sizeof(dns_record_aaaa) + EDNS_ADDITIONAL_MAXSIZE >= ResultSize || //EDNS Label
+						if ((Parameter.EDNS_Label || Packet->EDNS_Record > 0) && DataLength + sizeof(dns_record_aaaa) + EDNS_ADDITIONAL_MAXSIZE >= ResultSize || //EDNS Label
 							DataLength + sizeof(dns_record_aaaa) >= ResultSize) //Normal query
 						{
 							++Index;
@@ -586,11 +590,9 @@ size_t __fastcall CheckHostsProcess(
 				//Set DNS counts and EDNS Label
 					DNS_Header->Answer = htons((uint16_t)Index);
 					DNS_Header->Authority = 0;
-					if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
-					{
-						DNS_Header->Additional = 0;
+					DNS_Header->Additional = 0;
+					if (Parameter.EDNS_Label || Packet->EDNS_Record > 0)
 						DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, nullptr);
-					}
 
 					return DataLength;
 				}
@@ -600,7 +602,7 @@ size_t __fastcall CheckHostsProcess(
 				//Set header flags and convert DNS query to DNS response packet.
 //					DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
 					DNS_Header->Flags = htons(DNS_SQR_NE);
-					DataLength = DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry);
+					DataLength = sizeof(dns_hdr) + Packet->Question;
 					memset(Result + DataLength, 0, ResultSize - DataLength);
 
 				//Hosts load balancing
@@ -629,7 +631,7 @@ size_t __fastcall CheckHostsProcess(
 							((pdns_record_a)DNS_Record)->Addr = HostsTableIter.AddrList.at(Index).IPv4.sin_addr;
 
 					//Hosts items length check
-						if ((Parameter.EDNS_Label || DNS_Header->Additional > 0) && DataLength + sizeof(dns_record_a) + EDNS_ADDITIONAL_MAXSIZE >= ResultSize || //EDNS Label
+						if ((Parameter.EDNS_Label || Packet->EDNS_Record > 0) && DataLength + sizeof(dns_record_a) + EDNS_ADDITIONAL_MAXSIZE >= ResultSize || //EDNS Label
 							DataLength + sizeof(dns_record_a) >= ResultSize) //Normal query
 						{
 							++Index;
@@ -640,11 +642,9 @@ size_t __fastcall CheckHostsProcess(
 				//Set DNS counts and EDNS Label
 					DNS_Header->Answer = htons((uint16_t)Index);
 					DNS_Header->Authority = 0;
-					if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
-					{
-						DNS_Header->Additional = 0;
+					DNS_Header->Additional = 0;
+					if (Parameter.EDNS_Label || Packet->EDNS_Record > 0)
 						DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, nullptr);
-					}
 
 					return DataLength;
 				}
@@ -689,10 +689,23 @@ bool __fastcall LocalRequestProcess(
 	size_t DataLength = 0;
 	memset(OriginalRecv, 0, RecvSize);
 
+//EDNS switching(Part 1)
+	size_t EDNS_SwitchLength = Packet.Length;
+	uint16_t EDNS_Packet_Flags = ((dns_hdr *)(Packet.Buffer))->Flags;
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch.EDNS_Local)
+	{
+	//Reset EDNS flags, resource record counts and packet length.
+		((dns_hdr *)(Packet.Buffer))->Flags = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Flags) & (~DNS_GET_BIT_AD));
+		((dns_hdr *)(Packet.Buffer))->Flags = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Flags) & (~DNS_GET_BIT_CD));
+		if (((dns_hdr *)(Packet.Buffer))->Additional > 0)
+			((dns_hdr *)(Packet.Buffer))->Additional = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Additional) - 1U);
+		EDNS_SwitchLength -= Packet.EDNS_Record;
+	}
+
 //TCP request
 	if (Parameter.LocalProtocol_Transport == REQUEST_MODE_TCP || Packet.Protocol == IPPROTO_TCP)
 	{
-		DataLength = TCPRequest(Packet.Buffer, Packet.Length, OriginalRecv, RecvSize, true);
+		DataLength = TCPRequest(REQUEST_PROCESS_LOCAL, Packet.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 
 	//Send response.
 		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
@@ -703,11 +716,18 @@ bool __fastcall LocalRequestProcess(
 	}
 
 //UDP request and Send response.
-	DataLength = UDPCompleteRequest(Packet.Buffer, Packet.Length, OriginalRecv, RecvSize, true);
+	DataLength = UDPCompleteRequest(REQUEST_PROCESS_LOCAL, Packet.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
 		SendToRequester(OriginalRecv, DataLength, RecvSize, Packet.Protocol, LocalSocketData);
 		return true;
+	}
+
+//EDNS switching(Part 2)
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch.EDNS_Local)
+	{
+		((dns_hdr *)(Packet.Buffer))->Flags = EDNS_Packet_Flags;
+		((dns_hdr *)(Packet.Buffer))->Additional = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Additional) + 1U);
 	}
 
 	return false;
@@ -723,11 +743,24 @@ bool __fastcall SOCKSRequestProcess(
 	size_t DataLength = 0;
 	memset(OriginalRecv, 0, RecvSize);
 
+//EDNS switching(Part 1)
+	size_t EDNS_SwitchLength = Packet.Length;
+	uint16_t EDNS_Packet_Flags = ((dns_hdr *)(Packet.Buffer))->Flags;
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch.EDNS_SOCKS)
+	{
+	//Reset EDNS flags, resource record counts and packet length.
+		((dns_hdr *)(Packet.Buffer))->Flags = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Flags) & (~DNS_GET_BIT_AD));
+		((dns_hdr *)(Packet.Buffer))->Flags = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Flags) & (~DNS_GET_BIT_CD));
+		if (((dns_hdr *)(Packet.Buffer))->Additional > 0)
+			((dns_hdr *)(Packet.Buffer))->Additional = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Additional) - 1U);
+		EDNS_SwitchLength -= Packet.EDNS_Record;
+	}
+
 //UDP request
 	if (Parameter.SOCKS_Version == SOCKS_VERSION_5 && Parameter.SOCKS_Protocol_Transport == REQUEST_MODE_UDP)
 	{
 	//UDP request process
-		DataLength = SOCKSUDPRequest(Packet.Buffer, Packet.Length, OriginalRecv, RecvSize);
+		DataLength = SOCKSUDPRequest(Packet.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 		
 	//Send response.
 		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
@@ -738,13 +771,20 @@ bool __fastcall SOCKSRequestProcess(
 	}
 
 //TCP request
-	DataLength = SOCKSTCPRequest(Packet.Buffer, Packet.Length, OriginalRecv, RecvSize);
+	DataLength = SOCKSTCPRequest(Packet.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 
 //Send response.
 	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
 		SendToRequester(OriginalRecv, DataLength, RecvSize, Packet.Protocol, LocalSocketData);
 		return true;
+	}
+
+//EDNS switching(Part 2)
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch.EDNS_SOCKS)
+	{
+		((dns_hdr *)(Packet.Buffer))->Flags = EDNS_Packet_Flags;
+		((dns_hdr *)(Packet.Buffer))->Additional = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Additional) + 1U);
 	}
 
 	return false;
@@ -760,14 +800,34 @@ bool __fastcall HTTPRequestProcess(
 	size_t DataLength = 0;
 	memset(OriginalRecv, 0, RecvSize);
 
+//EDNS switching(Part 1)
+	size_t EDNS_SwitchLength = Packet.Length;
+	uint16_t EDNS_Packet_Flags = ((dns_hdr *)(Packet.Buffer))->Flags;
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch.EDNS_HTTP)
+	{
+	//Reset EDNS flags, resource record counts and packet length.
+		((dns_hdr *)(Packet.Buffer))->Flags = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Flags) & (~DNS_GET_BIT_AD));
+		((dns_hdr *)(Packet.Buffer))->Flags = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Flags) & (~DNS_GET_BIT_CD));
+		if (((dns_hdr *)(Packet.Buffer))->Additional > 0)
+			((dns_hdr *)(Packet.Buffer))->Additional = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Additional) - 1U);
+		EDNS_SwitchLength -= Packet.EDNS_Record;
+	}
+
 //HTTP request
-	DataLength = HTTPRequest(Packet.Buffer, Packet.Length, OriginalRecv, RecvSize);
+	DataLength = HTTPRequest(Packet.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 
 //Send response.
 	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
 		SendToRequester(OriginalRecv, DataLength, RecvSize, Packet.Protocol, LocalSocketData);
 		return true;
+	}
+
+//EDNS switching(Part 2)
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch.EDNS_HTTP)
+	{
+		((dns_hdr *)(Packet.Buffer))->Flags = EDNS_Packet_Flags;
+		((dns_hdr *)(Packet.Buffer))->Additional = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Additional) + 1U);
 	}
 
 	return false;
@@ -790,15 +850,28 @@ bool __fastcall DirectRequestProcess(
 		DataLength == AF_INET && Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV6)) //IPv4
 			return false;
 
+//EDNS switching(Part 1)
+	size_t EDNS_SwitchLength = Packet.Length;
+	uint16_t EDNS_Packet_Flags = ((dns_hdr *)(Packet.Buffer))->Flags;
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch.EDNS_Direct)
+	{
+	//Reset EDNS flags, resource record counts and packet length.
+		((dns_hdr *)(Packet.Buffer))->Flags = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Flags) & (~DNS_GET_BIT_AD));
+		((dns_hdr *)(Packet.Buffer))->Flags = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Flags) & (~DNS_GET_BIT_CD));
+		if (((dns_hdr *)(Packet.Buffer))->Additional > 0)
+			((dns_hdr *)(Packet.Buffer))->Additional = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Additional) - 1U);
+		EDNS_SwitchLength -= Packet.EDNS_Record;
+	}
+
 //TCP request
 	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || Packet.Protocol == IPPROTO_TCP)
 	{
 	//Multi request process
 		if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
-			DataLength = TCPRequestMulti(Packet.Buffer, Packet.Length, OriginalRecv, RecvSize);
+			DataLength = TCPRequestMulti(REQUEST_PROCESS_DIRECT, Packet.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 	//Normal request process
 		else 
-			DataLength = TCPRequest(Packet.Buffer, Packet.Length, OriginalRecv, RecvSize, false);
+			DataLength = TCPRequest(REQUEST_PROCESS_DIRECT, Packet.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 
 	//Send response.
 		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
@@ -810,15 +883,22 @@ bool __fastcall DirectRequestProcess(
 
 //UDP request
 	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U) //Multi request process
-		DataLength = UDPCompleteRequestMulti(Packet.Buffer, Packet.Length, OriginalRecv, RecvSize);
+		DataLength = UDPCompleteRequestMulti(REQUEST_PROCESS_DIRECT, Packet.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 	else //Normal request process
-		DataLength = UDPCompleteRequest(Packet.Buffer, Packet.Length, OriginalRecv, RecvSize, false);
+		DataLength = UDPCompleteRequest(REQUEST_PROCESS_DIRECT, Packet.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 
 //Send response.
 	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
 		SendToRequester(OriginalRecv, DataLength, RecvSize, Packet.Protocol, LocalSocketData);
 		return true;
+	}
+
+//EDNS switching(Part 2)
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch.EDNS_Direct)
+	{
+		((dns_hdr *)(Packet.Buffer))->Flags = EDNS_Packet_Flags;
+		((dns_hdr *)(Packet.Buffer))->Additional = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Additional) + 1U);
 	}
 
 	return false;
@@ -835,15 +915,28 @@ bool __fastcall DNSCurveRequestProcess(
 	size_t DataLength = 0;
 	memset(OriginalRecv, 0, RecvSize);
 
+//EDNS switching(Part 1)
+	size_t EDNS_SwitchLength = Packet.Length;
+	uint16_t EDNS_Packet_Flags = ((dns_hdr *)(Packet.Buffer))->Flags;
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch.EDNS_DNSCurve)
+	{
+	//Reset EDNS flags, resource record counts and packet length.
+		((dns_hdr *)(Packet.Buffer))->Flags = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Flags) & (~DNS_GET_BIT_AD));
+		((dns_hdr *)(Packet.Buffer))->Flags = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Flags) & (~DNS_GET_BIT_CD));
+		if (((dns_hdr *)(Packet.Buffer))->Additional > 0)
+			((dns_hdr *)(Packet.Buffer))->Additional = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Additional) - 1U);
+		EDNS_SwitchLength -= Packet.EDNS_Record;
+	}
+
 //TCP request
 	if (DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TCP || Packet.Protocol == IPPROTO_TCP)
 	{
 	//Multi request process
 		if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
-			DataLength = DNSCurveTCPRequestMulti(Packet.Buffer, Packet.Length, OriginalRecv, RecvSize);
+			DataLength = DNSCurveTCPRequestMulti(Packet.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 	//Normal request process
 		else 
-			DataLength = DNSCurveTCPRequest(Packet.Buffer, Packet.Length, OriginalRecv, RecvSize);
+			DataLength = DNSCurveTCPRequest(Packet.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 
 	//Send response.
 		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
@@ -854,18 +947,23 @@ bool __fastcall DNSCurveRequestProcess(
 	}
 
 //UDP request
-	//Multi request process
-	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
-		DataLength = DNSCurveUDPRequestMulti(Packet.Buffer, Packet.Length, OriginalRecv, RecvSize);
-	//Normal request process
-	else 
-		DataLength = DNSCurveUDPRequest(Packet.Buffer, Packet.Length, OriginalRecv, RecvSize);
+	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U) //Multi request process
+		DataLength = DNSCurveUDPRequestMulti(Packet.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
+	else //Normal request process
+		DataLength = DNSCurveUDPRequest(Packet.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 
 //Send response.
 	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
 		SendToRequester(OriginalRecv, DataLength, RecvSize, Packet.Protocol, LocalSocketData);
 		return true;
+	}
+
+//EDNS switching(Part 2)
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch.EDNS_DNSCurve)
+	{
+		((dns_hdr *)(Packet.Buffer))->Flags = EDNS_Packet_Flags;
+		((dns_hdr *)(Packet.Buffer))->Additional = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Additional) + 1U);
 	}
 
 	return false;
@@ -882,18 +980,38 @@ bool __fastcall TCPRequestProcess(
 	size_t DataLength = 0;
 	memset(OriginalRecv, 0, RecvSize);
 
+//EDNS switching(Part 1)
+	size_t EDNS_SwitchLength = Packet.Length;
+	uint16_t EDNS_Packet_Flags = ((dns_hdr *)(Packet.Buffer))->Flags;
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch.EDNS_TCP)
+	{
+	//Reset EDNS flags, resource record counts and packet length.
+		((dns_hdr *)(Packet.Buffer))->Flags = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Flags) & (~DNS_GET_BIT_AD));
+		((dns_hdr *)(Packet.Buffer))->Flags = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Flags) & (~DNS_GET_BIT_CD));
+		if (((dns_hdr *)(Packet.Buffer))->Additional > 0)
+			((dns_hdr *)(Packet.Buffer))->Additional = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Additional) - 1U);
+		EDNS_SwitchLength -= Packet.EDNS_Record;
+	}
+
 //Multi request process
 	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
-		DataLength = TCPRequestMulti(Packet.Buffer, Packet.Length, OriginalRecv, RecvSize);
+		DataLength = TCPRequestMulti(REQUEST_PROCESS_TCP, Packet.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 //Normal request process
 	else 
-		DataLength = TCPRequest(Packet.Buffer, Packet.Length, OriginalRecv, RecvSize, false);
+		DataLength = TCPRequest(REQUEST_PROCESS_TCP, Packet.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 
 //Send response.
 	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
 		SendToRequester(OriginalRecv, DataLength, RecvSize, Packet.Protocol, LocalSocketData);
 		return true;
+	}
+
+//EDNS switching(Part 2)
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch.EDNS_TCP)
+	{
+		((dns_hdr *)(Packet.Buffer))->Flags = EDNS_Packet_Flags;
+		((dns_hdr *)(Packet.Buffer))->Additional = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Additional) + 1U);
 	}
 
 	return false;
@@ -925,12 +1043,25 @@ void __fastcall UDPRequestProcess(
 	_In_ const DNS_PACKET_DATA &Packet, 
 	_In_ const SOCKET_DATA &LocalSocketData)
 {
+//EDNS switching(Part 1)
+	size_t EDNS_SwitchLength = Packet.Length;
+	uint16_t EDNS_Packet_Flags = ((dns_hdr *)(Packet.Buffer))->Flags;
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch.EDNS_UDP)
+	{
+	//Reset EDNS flags, resource record counts and packet length.
+		((dns_hdr *)(Packet.Buffer))->Flags = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Flags) & (~DNS_GET_BIT_AD));
+		((dns_hdr *)(Packet.Buffer))->Flags = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Flags) & (~DNS_GET_BIT_CD));
+		if (((dns_hdr *)(Packet.Buffer))->Additional > 0)
+			((dns_hdr *)(Packet.Buffer))->Additional = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Additional) - 1U);
+		EDNS_SwitchLength -= Packet.EDNS_Record;
+	}
+
 //Multi request process
 	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
-		UDPRequestMulti(Packet.Buffer, Packet.Length, &LocalSocketData, Packet.Protocol);
+		UDPRequestMulti(Packet.Buffer, EDNS_SwitchLength, &LocalSocketData, Packet.Protocol);
 //Normal request process
 	else 
-		UDPRequest(Packet.Buffer, Packet.Length, &LocalSocketData, Packet.Protocol);
+		UDPRequest(Packet.Buffer, EDNS_SwitchLength, &LocalSocketData, Packet.Protocol);
 
 //Fin TCP request connection.
 #if defined(PLATFORM_WIN)
@@ -941,6 +1072,13 @@ void __fastcall UDPRequestProcess(
 	{
 		shutdown(LocalSocketData.Socket, SD_BOTH);
 		closesocket(LocalSocketData.Socket);
+	}
+
+//EDNS switching(Part 2)
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch.EDNS_UDP)
+	{
+		((dns_hdr *)(Packet.Buffer))->Flags = EDNS_Packet_Flags;
+		((dns_hdr *)(Packet.Buffer))->Additional = htons(ntohs(((dns_hdr *)(Packet.Buffer))->Additional) + 1U);
 	}
 
 	return;

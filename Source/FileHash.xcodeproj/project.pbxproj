@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D98CCFE21C49177B00489915 /* Checksum.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D98CCFE11C49177B00489915 /* Checksum.cpp */; };
+		D98CCFE51C49178700489915 /* CRC.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D98CCFE31C49178700489915 /* CRC.cpp */; };
 		D99DD4BE1C32C6A5004C0F2C /* LibSodium_Mac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D99DD4B31C32C6A5004C0F2C /* LibSodium_Mac.a */; };
 		D99DD4D11C32C6C6004C0F2C /* FileHash.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99DD4C31C32C6C6004C0F2C /* FileHash.cpp */; };
 		D99DD4D21C32C6C6004C0F2C /* SHA-1.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99DD4CB1C32C6C6004C0F2C /* SHA-1.cpp */; };
@@ -16,6 +18,10 @@
 		D99DD4EE1C32CA33004C0F2C /* KeccakSponge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99DD4E51C32CA33004C0F2C /* KeccakSponge.cpp */; };
 		D99DD4EF1C32CA33004C0F2C /* SnP-FBWL-default.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D99DD4E71C32CA33004C0F2C /* SnP-FBWL-default.cpp */; };
 		D9B2B0121C33B4A20024914E /* SHA-2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9B2B0101C33B4A20024914E /* SHA-2.cpp */; };
+		D9E0AFA01C457C2700325A88 /* MD2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9E0AF9A1C457C2700325A88 /* MD2.cpp */; };
+		D9E0AFA11C457C2700325A88 /* MD4.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9E0AF9C1C457C2700325A88 /* MD4.cpp */; };
+		D9E0AFA21C457C2700325A88 /* MD5.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9E0AF9E1C457C2700325A88 /* MD5.cpp */; };
+		D9E0AFA41C457C3900325A88 /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9E0AFA31C457C3900325A88 /* Base.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -31,6 +37,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		D98CCFE11C49177B00489915 /* Checksum.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Checksum.cpp; sourceTree = "<group>"; };
+		D98CCFE31C49178700489915 /* CRC.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = CRC.cpp; sourceTree = "<group>"; };
+		D98CCFE41C49178700489915 /* CRC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CRC.h; sourceTree = "<group>"; };
 		D99DD4701C32C597004C0F2C /* FileHash */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FileHash; sourceTree = BUILT_PRODUCTS_DIR; };
 		D99DD4841C32C6A5004C0F2C /* core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = core.h; path = LibSodium/core.h; sourceTree = "<group>"; };
 		D99DD4851C32C6A5004C0F2C /* crypto_aead_aes256gcm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_aead_aes256gcm.h; path = LibSodium/crypto_aead_aes256gcm.h; sourceTree = "<group>"; };
@@ -108,6 +117,13 @@
 		D99DD4EB1C32CA33004C0F2C /* SnP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SnP.h; path = FileHash/SHA3/SnP.h; sourceTree = "<group>"; };
 		D9B2B0101C33B4A20024914E /* SHA-2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = "SHA-2.cpp"; sourceTree = "<group>"; };
 		D9B2B0111C33B4A20024914E /* SHA-2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "SHA-2.h"; sourceTree = "<group>"; };
+		D9E0AF9A1C457C2700325A88 /* MD2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MD2.cpp; sourceTree = "<group>"; };
+		D9E0AF9B1C457C2700325A88 /* MD2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MD2.h; sourceTree = "<group>"; };
+		D9E0AF9C1C457C2700325A88 /* MD4.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MD4.cpp; sourceTree = "<group>"; };
+		D9E0AF9D1C457C2700325A88 /* MD4.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MD4.h; sourceTree = "<group>"; };
+		D9E0AF9E1C457C2700325A88 /* MD5.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MD5.cpp; sourceTree = "<group>"; };
+		D9E0AF9F1C457C2700325A88 /* MD5.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MD5.h; sourceTree = "<group>"; };
+		D9E0AFA31C457C3900325A88 /* Base.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Base.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -143,11 +159,21 @@
 		D99DD4721C32C597004C0F2C /* FileHash */ = {
 			isa = PBXGroup;
 			children = (
+				D9E0AFA31C457C3900325A88 /* Base.cpp */,
+				D98CCFE11C49177B00489915 /* Checksum.cpp */,
+				D98CCFE31C49178700489915 /* CRC.cpp */,
 				D99DD4C31C32C6C6004C0F2C /* FileHash.cpp */,
+				D9E0AF9A1C457C2700325A88 /* MD2.cpp */,
+				D9E0AF9C1C457C2700325A88 /* MD4.cpp */,
+				D9E0AF9E1C457C2700325A88 /* MD5.cpp */,
 				D99DD4CB1C32C6C6004C0F2C /* SHA-1.cpp */,
 				D9B2B0101C33B4A20024914E /* SHA-2.cpp */,
 				D99DD4CD1C32C6C6004C0F2C /* SHA-3.cpp */,
+				D98CCFE41C49178700489915 /* CRC.h */,
 				D99DD4C41C32C6C6004C0F2C /* FileHash.h */,
+				D9E0AF9B1C457C2700325A88 /* MD2.h */,
+				D9E0AF9D1C457C2700325A88 /* MD4.h */,
+				D9E0AF9F1C457C2700325A88 /* MD5.h */,
 				D99DD4CC1C32C6C6004C0F2C /* SHA-1.h */,
 				D9B2B0111C33B4A20024914E /* SHA-2.h */,
 				D99DD4CE1C32C6C6004C0F2C /* SHA-3.h */,
@@ -293,14 +319,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9E0AFA41C457C3900325A88 /* Base.cpp in Sources */,
 				D99DD4EF1C32CA33004C0F2C /* SnP-FBWL-default.cpp in Sources */,
 				D99DD4D31C32C6C6004C0F2C /* SHA-3.cpp in Sources */,
 				D99DD4EC1C32CA33004C0F2C /* KeccakF-1600-compact64.cpp in Sources */,
+				D98CCFE51C49178700489915 /* CRC.cpp in Sources */,
+				D9E0AFA01C457C2700325A88 /* MD2.cpp in Sources */,
 				D99DD4D21C32C6C6004C0F2C /* SHA-1.cpp in Sources */,
+				D98CCFE21C49177B00489915 /* Checksum.cpp in Sources */,
 				D99DD4EE1C32CA33004C0F2C /* KeccakSponge.cpp in Sources */,
 				D9B2B0121C33B4A20024914E /* SHA-2.cpp in Sources */,
+				D9E0AFA21C457C2700325A88 /* MD5.cpp in Sources */,
 				D99DD4ED1C32CA33004C0F2C /* KeccakHash.cpp in Sources */,
 				D99DD4D11C32C6C6004C0F2C /* FileHash.cpp in Sources */,
+				D9E0AFA11C457C2700325A88 /* MD4.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

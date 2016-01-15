@@ -509,7 +509,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 隨機添加壓縮指標有3種不同的類型，對應 1 和 2 和 3
     * 可單獨使用其中一個，即只填一個數位，或填入多個，中間使用 + 號連接
     * 填入多個時，當實際需要使用隨機添加壓縮指標時將隨機使用其中的一種，每個請求都有可能不相同
-  * EDNS Label - EDNS 標籤支援，開啟後將為所有請求添加 EDNS 標籤：開啟為 1 /關閉為 0
+  * EDNS Label - EDNS 標籤支援，開啟後將為請求添加 EDNS 標籤：全部開啟為 1 /關閉為 0
+    * 本參數可只指定部分的請求過程使用 EDNS 標籤，以下可用的參數可隨意刪減以實現此功能
+    * 可用的參數：Local + SOCKS Proxy + HTTP Proxy + Direct Request + DNSCurve + TCP + UDP
   * EDNS Client Subnet Relay - EDNS 用戶端子網轉發功能，開啟後將為來自非私有網路位址的所有請求添加其請求時所使用的位址的 EDNS 子網位址：開啟為 1 /關閉為 0
     * 本功能要求啟用 EDNS Label 參數
     * 本參數優先順序比 IPv4/IPv6 EDNS Client Subnet Address 參數高，故需要添加 EDNS 子網位址時將優先添加本參數的位址

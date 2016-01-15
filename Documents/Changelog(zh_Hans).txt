@@ -1,4 +1,32 @@
-﻿Pcap_DNSProxy v0.4.5.0 更新日志(2015-12-30)：
+﻿Pcap_DNSProxy v0.4.5.1 更新日志(2016-01-15)：
+
+* 为 FileHash 工具添加 Hash 算法支持
+  * CRC family: CRC-8 family + CRC-16 family + CRC-24 family + CRC-32 family + CRC-40 + CRC-64 family
+    * CRC-8 family: Normal + ITU + ATM + CCITT + Maxim + Icode + J1850 + WCDMA + Rohc + Darc
+    * CRC-16 family: Normal + Buypass + DDS 110 + EN 13757 + Teledisk + Modbus + Maxim + USB + T10 DIF + DECT(X) + DECT(R) + Sick + DNP + CCITT Xmodem + CCITT FFFF + CCITT 1D0F + Genibus + Kermit + X25 + MCRF4XX + Riello + Fletcher
+    * CRC-24 family: Flexray A + Flexray B + R64(Normal)
+    * CRC-32 family: Normal + JamCRC + C + D + BZIP2 + MPEG2 + POSIX + K + Q
+    * CRC-64 family: Normal + 1B + WE + Jones
+  * Checksum: Internet Protocol Checksum
+  * SHA family: SHA-2(384) + SHA-2(512) SHA-2(512/224) + SHA-2(512/256)
+  * MD family: MD2 + MD4 + eD2k Hash + MD5
+* 增强对 EDNS Label 的精细化控制
+* 修复重启服务间隔时间过短可能导致的崩溃问题 (Windows)
+* 文件校验码
+  * SHA-1:
+    * Windows/Pcap_DNSProxy.exe -> 7482170C95D92E297767924449A1A68999E8457B
+    * Windows/Pcap_DNSProxy_x86.exe -> CEA4522734D428BA0A80146FDA0062344DF824E6
+    * Mac/Pcap_DNSProxy -> EBD50F764FBBB2B72D1F4F1EA4E64A56077A7EA9
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe -> 0B03060E148239F15D1091CF701987826FF6C7E8F80883C7D1EB71A7606F501C
+    * Windows/Pcap_DNSProxy_x86.exe -> C0E5A533DEDF51400D807BD0CC0B13352E66602C84C5332CC77FD22AD094CA89
+    * Mac/Pcap_DNSProxy -> EE2CBBF99C4A0B7BD106ADB7E29397617F9D709953B2EE963BCC2D4E33BF3150
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.4.5.0 更新日志(2015-12-30)：
 
 * 添加 FileHash 工具，提供对文件的校验功能
   * 支持 SHA-1

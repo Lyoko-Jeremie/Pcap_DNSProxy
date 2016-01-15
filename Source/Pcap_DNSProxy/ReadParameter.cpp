@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -2286,9 +2286,63 @@ bool __fastcall ReadParameterData(
 		if (Parameter.CPM_PointerToHeader || Parameter.CPM_PointerToRR || Parameter.CPM_PointerToAdditional)
 			Parameter.CompressionPointerMutation = true;
 	}
-	else if (IsFirstRead && Data.find("EDNSLabel=1") == 0 || Data.find("EDNS0Label=1") == 0)
+	else if (IsFirstRead && Data.find("EDNSLabel=") == 0 || Data.find("EDNS0Label=") == 0)
 	{
-		Parameter.EDNS_Label = true;
+		if (Data.find("EDNSLabel=1") == 0 || Data.find("EDNS0Label=1") == 0)
+		{
+			Parameter.EDNS_Label = true;
+
+			Parameter.EDNS_Switch.EDNS_Local = true;
+			Parameter.EDNS_Switch.EDNS_SOCKS = true;
+			Parameter.EDNS_Switch.EDNS_HTTP = true;
+			Parameter.EDNS_Switch.EDNS_Direct = true;
+			Parameter.EDNS_Switch.EDNS_DNSCurve = true;
+			Parameter.EDNS_Switch.EDNS_TCP = true;
+			Parameter.EDNS_Switch.EDNS_UDP = true;
+		}
+		else {
+			if (Data.find("Local") != std::string::npos)
+			{
+				Parameter.EDNS_Label = true;
+				Parameter.EDNS_Switch.EDNS_Local = true;
+			}
+			
+			if (Data.find("SOCKS Proxy") != std::string::npos)
+			{
+				Parameter.EDNS_Label = true;
+				Parameter.EDNS_Switch.EDNS_SOCKS = true;
+			}
+			
+			if (Data.find("HTTP Proxy") != std::string::npos)
+			{
+				Parameter.EDNS_Label = true;
+				Parameter.EDNS_Switch.EDNS_HTTP = true;
+			}
+			
+			if (Data.find("Direct") != std::string::npos)
+			{
+				Parameter.EDNS_Label = true;
+				Parameter.EDNS_Switch.EDNS_Direct = true;
+			}
+			
+			if (Data.find("DNSCurve") != std::string::npos || Data.find("DNSCrypt") != std::string::npos)
+			{
+				Parameter.EDNS_Label = true;
+				Parameter.EDNS_Switch.EDNS_DNSCurve = true;
+			}
+
+			if (Data.find("TCP") != std::string::npos)
+			{
+				Parameter.EDNS_Label = true;
+				Parameter.EDNS_Switch.EDNS_TCP = true;
+			}
+
+			if (Data.find("UDP") != std::string::npos)
+			{
+				Parameter.EDNS_Label = true;
+				Parameter.EDNS_Switch.EDNS_UDP = true;
+			}
+		}
 	}
 	else if (IsFirstRead && Data.find("EDNSClientSubnetRelay=1") == 0 || Data.find("EDNSClientSubnet=1") == 0)
 	{

@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -20,9 +20,9 @@
 #include "FileHash.h"
 
 #if defined(ENABLE_LIBSODIUM)
-//The SHA-1 block size, message digest sizes in bytes and some useful types.
-#define SHA1_SIZE_BLOCK    64U
-#define SHA1_SIZE_DIGEST   20U
+//The SHA-1 block size, message digest size in bytes and some useful types.
+#define SHA1_SIZE_BLOCK         64U
+#define SHA1_SIZE_DIGEST        20U
 typedef int32_t            SHA1_INT32;
 typedef int64_t            SHA1_INT64;
 
@@ -71,14 +71,14 @@ extern size_t HashFamilyID;
 //Functions
 static void __fastcall SHA1_Compress(
 	_Inout_ SHA1_State *sha1, 
-	_Inout_ unsigned char *buf);
+	_Inout_ uint8_t *buf);
 void __fastcall SHA1_Init(
 	_Inout_ SHA1_State *sha1);
 void __fastcall SHA1_Process(
 	_Inout_ SHA1_State *sha1, 
-	_In_ const unsigned char *in, 
+	_In_ const uint8_t *in, 
 	_In_ unsigned long inlen);
 void __fastcall SHA1_Done(
 	_Inout_ SHA1_State *sha1, 
-	_Out_ unsigned char *out);
+	_Out_ uint8_t *out);
 #endif

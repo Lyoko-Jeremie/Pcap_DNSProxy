@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -168,7 +168,7 @@
 
 
 //////////////////////////////////////////////////
-// Base Header
+// Base header
 // 
 //Preprocessor definitions
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_MACX))
@@ -224,7 +224,6 @@
 
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Linux and Mac OS X compatible
-	typedef char               *PSTR;
 	#define __fastcall
 	#define strnlen_s          strnlen
 	#define fwprintf_s         fwprintf

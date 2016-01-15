@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -700,7 +700,12 @@ size_t __fastcall SOCKSTCPRequest(
 		memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(uint16_t), RecvLen);
 
 	//Responses check
-		RecvLen = CheckResponseData(OriginalRecv, RecvLen, RecvSize, false, false, nullptr);
+		RecvLen = CheckResponseData(
+			REQUEST_PROCESS_SOCKS, 
+			OriginalRecv, 
+			RecvLen, 
+			RecvSize, 
+			nullptr);
 		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			return EXIT_FAILURE;
 
@@ -1018,7 +1023,12 @@ size_t __fastcall SOCKSUDPRequest(
 		if (OriginalRecvLen != RecvLen)
 		{
 		//Responses check
-			RecvLen = CheckResponseData(OriginalRecv, RecvLen, RecvSize, false, false, nullptr);
+			RecvLen = CheckResponseData(
+				REQUEST_PROCESS_SOCKS,
+				OriginalRecv, 
+				RecvLen, 
+				RecvSize, 
+				nullptr);
 			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 				return EXIT_FAILURE;
 
@@ -1141,7 +1151,12 @@ size_t __fastcall HTTPRequest(
 		memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(uint16_t), RecvLen);
 
 	//Responses check
-		RecvLen = CheckResponseData(OriginalRecv, RecvLen, RecvSize, false, false, nullptr);
+		RecvLen = CheckResponseData(
+			REQUEST_PROCESS_HTTP,
+			OriginalRecv, 
+			RecvLen, 
+			RecvSize, 
+			nullptr);
 		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 			return EXIT_FAILURE;
 

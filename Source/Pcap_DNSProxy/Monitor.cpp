@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -100,6 +100,7 @@ bool __fastcall MonitorInit(
 	memset(LocalSocketData.get(), 0, sizeof(SOCKET_DATA));
 	std::vector<std::thread> MonitorThread((Parameter.ListenPort->size() + 1U) * TRANSPORT_LAYER_PARTNUM);
 	size_t MonitorThreadIndex = 0;
+	auto ReturnValue = true, *Result = &ReturnValue;
 
 //Set localhost Monitor sockets(IPv6/UDP).
 	if (Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_NETWORK_BOTH || Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV6)
@@ -139,7 +140,7 @@ bool __fastcall MonitorInit(
 						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_port = ((PSOCKADDR_IN6)&ListenAddressIter)->sin6_port;
 
 					//Add to global thread list.
-						std::thread MonitorThreadTemp(std::bind(UDPMonitor, *LocalSocketData));
+						std::thread MonitorThreadTemp(std::bind(UDPMonitor, *LocalSocketData, Result));
 						MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 						++MonitorThreadIndex;
 						LocalSocketData->Socket = 0;
@@ -170,7 +171,7 @@ bool __fastcall MonitorInit(
 							((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_port = ListenPortIter;
 
 						//Add to global thread list.
-							std::thread MonitorThreadTemp(std::bind(UDPMonitor, *LocalSocketData));
+							std::thread MonitorThreadTemp(std::bind(UDPMonitor, *LocalSocketData, Result));
 							MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 							++MonitorThreadIndex;
 							LocalSocketData->Socket = 0;
@@ -218,7 +219,7 @@ bool __fastcall MonitorInit(
 						((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_port = ((PSOCKADDR_IN6)&ListenAddressIter)->sin6_port;
 
 					//Add to global thread list.
-						std::thread MonitorThreadTemp(std::bind(TCPMonitor, *LocalSocketData));
+						std::thread MonitorThreadTemp(std::bind(TCPMonitor, *LocalSocketData, Result));
 						MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 						++MonitorThreadIndex;
 						LocalSocketData->Socket = 0;
@@ -249,7 +250,7 @@ bool __fastcall MonitorInit(
 							((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_port = ListenPortIter;
 
 						//Add to global thread list.
-							std::thread MonitorThreadTemp(std::bind(TCPMonitor, *LocalSocketData));
+							std::thread MonitorThreadTemp(std::bind(TCPMonitor, *LocalSocketData, Result));
 							MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 							++MonitorThreadIndex;
 							LocalSocketData->Socket = 0;
@@ -292,7 +293,7 @@ bool __fastcall MonitorInit(
 						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_port = ((PSOCKADDR_IN)&ListenAddressIter)->sin_port;
 
 					//Add to global thread list.
-						std::thread MonitorThreadTemp(std::bind(UDPMonitor, *LocalSocketData));
+						std::thread MonitorThreadTemp(std::bind(UDPMonitor, *LocalSocketData, Result));
 						MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 						++MonitorThreadIndex;
 						LocalSocketData->Socket = 0;
@@ -323,7 +324,7 @@ bool __fastcall MonitorInit(
 							((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_port = ListenPortIter;
 
 						//Add to global thread list.
-							std::thread MonitorThreadTemp(std::bind(UDPMonitor, *LocalSocketData));
+							std::thread MonitorThreadTemp(std::bind(UDPMonitor, *LocalSocketData, Result));
 							MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 							++MonitorThreadIndex;
 							LocalSocketData->Socket = 0;
@@ -363,7 +364,7 @@ bool __fastcall MonitorInit(
 						((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_port = ((PSOCKADDR_IN)&ListenAddressIter)->sin_port;
 
 					//Add to global thread list.
-						std::thread MonitorThreadTemp(std::bind(TCPMonitor, *LocalSocketData));
+						std::thread MonitorThreadTemp(std::bind(TCPMonitor, *LocalSocketData, Result));
 						MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 						++MonitorThreadIndex;
 						LocalSocketData->Socket = 0;
@@ -394,7 +395,7 @@ bool __fastcall MonitorInit(
 							((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_port = ListenPortIter;
 
 						//Add to global thread list.
-							std::thread InnerMonitorThreadTemp(std::bind(TCPMonitor, *LocalSocketData));
+							std::thread InnerMonitorThreadTemp(std::bind(TCPMonitor, *LocalSocketData, Result));
 							MonitorThread.at(MonitorThreadIndex).swap(InnerMonitorThreadTemp);
 							++MonitorThreadIndex;
 							LocalSocketData->Socket = 0;
@@ -424,12 +425,19 @@ bool __fastcall MonitorInit(
 			ThreadIter.join();
 	}
 
+//Wait a moment to close all thread handles.
+#if defined(PLATFORM_WIN)
+	if (!*Result)
+		Sleep(SHORTEST_FILEREFRESH_TIME * SECOND_TO_MILLISECOND);
+#endif
+
 	return true;
 }
 
 //Local DNS server with UDP protocol
 bool __fastcall UDPMonitor(
-	_In_ const SOCKET_DATA LocalSocketData)
+	_In_ const SOCKET_DATA LocalSocketData, 
+	_Out_ bool *Result)
 {
 //Block UDP RESET message, socket timeout, reusing and non-blocking mode setting 
 	if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TIMEOUT, &Parameter.SocketTimeout_Unreliable)
@@ -440,13 +448,17 @@ bool __fastcall UDPMonitor(
 		|| LocalSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, nullptr)
 	#endif
 		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
-			return false;
+	{
+		*Result = false;
+		return false;
+	}
 
 //Bind socket to port.
 	if (bind(LocalSocketData.Socket, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen) == SOCKET_ERROR)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"Bind UDP Monitor socket error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
+		*Result = false;
 
 		return false;
 	}
@@ -580,7 +592,8 @@ bool __fastcall UDPMonitor(
 
 //Local DNS server with TCP protocol
 bool __fastcall TCPMonitor(
-	_In_ const SOCKET_DATA LocalSocketData)
+	_In_ const SOCKET_DATA LocalSocketData, 
+	_Out_ bool *Result)
 {
 //Socket timeout, reusing, TCP Fast Open and non-blocking mode setting
 	if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TIMEOUT, &Parameter.SocketTimeout_Reliable)
@@ -593,13 +606,17 @@ bool __fastcall TCPMonitor(
 		#endif
 	#endif	
 		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
-			return false;
+	{
+		*Result = false;
+		return false;
+	}
 
 //Bind socket to port.
 	if (bind(LocalSocketData.Socket, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen) == SOCKET_ERROR)
 	{
 		PrintError(LOG_ERROR_NETWORK, L"Bind TCP Monitor socket error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
+		*Result = false;
 
 		return false;
 	}
@@ -609,6 +626,7 @@ bool __fastcall TCPMonitor(
 	{
 		PrintError(LOG_ERROR_NETWORK, L"TCP Monitor socket listening initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
+		*Result = false;
 
 		return false;
 	}

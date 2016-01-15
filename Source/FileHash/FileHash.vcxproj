@@ -169,7 +169,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Base.cpp" />
+    <ClCompile Include="Checksum.cpp" />
+    <ClCompile Include="CRC.cpp" />
     <ClCompile Include="FileHash.cpp" />
+    <ClCompile Include="MD2.cpp" />
+    <ClCompile Include="MD4.cpp" />
+    <ClCompile Include="MD5.cpp" />
     <ClCompile Include="SHA-1.cpp" />
     <ClCompile Include="SHA-2.cpp" />
     <ClCompile Include="SHA-3.cpp" />
@@ -179,7 +185,11 @@
     <ClCompile Include="SHA3\SnP-FBWL-default.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CRC.h" />
     <ClInclude Include="FileHash.h" />
+    <ClInclude Include="MD2.h" />
+    <ClInclude Include="MD4.h" />
+    <ClInclude Include="MD5.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SHA-1.h" />
     <ClInclude Include="SHA-2.h" />

@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -68,12 +68,27 @@
 #define PCT_LITTLE_ENDIAN      1
 #define PCT_BIG_ENDIAN         0
 
-//The SHA-2(256) block size, message digest sizes in bytes and some useful types.
-#define SHA2_256_SIZE_BLOCK    64U
-#define SHA2_224_SIZE_DIGEST   28U
-#define SHA2_256_SIZE_DIGEST   32U
+//Some useful types
+#ifndef Py_LL
+	#define Py_LL(x) x ## LL
+#endif
+#ifndef Py_ULL
+	#define Py_ULL(x) Py_LL(x ## U)
+#endif
+
+//The SHA-2(256) block size, message digest size in bytes and some useful types.
+#define SHA2_256_SIZE_BLOCK        64U
+#define SHA2_224_SIZE_DIGEST       28U
+#define SHA2_256_SIZE_DIGEST       32U
+#define SHA2_512_SIZE_BLOCK        128U
+#define SHA2_384_SIZE_DIGEST       48U
+#define SHA2_512_SIZE_DIGEST       64U
+#define SHA2_512_256_SIZE_DIGEST   SHA2_256_SIZE_DIGEST
+#define SHA2_512_224_SIZE_DIGEST   SHA2_224_SIZE_DIGEST
 typedef uint8_t                SHA2_256_BYTE;
+typedef uint8_t                SHA2_512_BYTE;
 typedef uint32_t               SHA_INT32;
+typedef uint64_t               SHA_INT64;
 
 //The structure for storing SHA info
 typedef struct _sha2_256_object_
@@ -85,6 +100,17 @@ typedef struct _sha2_256_object_
 	int             Local;                       //Unprocessed amount in data
 	int             DigestSize;
 }SHA2_256_Object;
+
+//The structure for storing SHA info
+typedef struct _sha2_512_object_
+{
+	SHA_INT64       Digest[8U];                  //Message digest
+	SHA_INT32       CountLow, CountHigh;         //64-bit bit count
+	SHA2_512_BYTE   Data[SHA2_512_SIZE_BLOCK];   //SHA data buffer
+	int             Endianness;
+	int             Local;                       //Unprocessed amount in data
+	int             DigestSize;
+}SHA2_512_Object;
 
 //Global variables
 extern size_t HashFamilyID;
@@ -111,6 +137,32 @@ static void __fastcall SHA2_256_Update(
 	_Inout_ SHA2_256_BYTE *buffer, 
 	_In_ int count);
 static void __fastcall SHA2_256_Final(
-	_Out_ unsigned char digest[SHA2_256_SIZE_DIGEST], 
+	_Out_ uint8_t digest[SHA2_256_SIZE_DIGEST], 
 	_Inout_ SHA2_256_Object *sha_info);
+static void __fastcall SHA2_512_LongReverse(
+	_Inout_ SHA_INT64 *buffer, 
+	_In_ int byteCount, 
+	_In_ int Endianness);
+/*
+static void __fastcall SHA2_512_Copy(
+	_In_ SHA2_512_Object *src, 
+	_Out_ SHA2_512_Object *dest);
+*/
+static void __fastcall SHA2_512_Transform(
+	_Inout_ SHA2_512_Object *sha_info);
+static void __fastcall SHA2_512_Init(
+	_Inout_ SHA2_512_Object *sha_info);
+static void __fastcall SHA2_384_Init(
+	_Inout_ SHA2_512_Object *sha_info);
+static void __fastcall SHA2_512_256_Init(
+	_Inout_ SHA2_512_Object *sha_info);
+static void __fastcall SHA2_512_224_Init(
+	_Inout_ SHA2_512_Object *sha_info);
+static void __fastcall SHA2_512_Update(
+	_Inout_ SHA2_512_Object *sha_info, 
+	_Inout_ SHA2_512_BYTE *buffer, 
+	_In_ int count);
+static void __fastcall SHA2_512_Final(
+	_Out_ uint8_t digest[SHA2_512_SIZE_DIGEST], 
+	_Inout_ SHA2_512_Object *sha_info);
 #endif

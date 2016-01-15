@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -1118,11 +1118,10 @@ bool __fastcall CheckQueryData(
 
 //Check DNS response results
 size_t __fastcall CheckResponseData(
+	_In_ const size_t ResponseType, 
 	_Inout_ char *Buffer, 
 	_In_ const size_t Length, 
 	_In_ const size_t BufferSize, 
-	_In_ const bool IsLocal, 
-	_In_ const bool NoCheck, 
 	_Out_opt_ bool *IsMarkHopLimit)
 {
 //DNS Options part
@@ -1132,7 +1131,7 @@ size_t __fastcall CheckResponseData(
 		DNS_Header->ID == 0 || //ID must not be set 0.
 		DNS_Header->Flags == 0 || //Flags must not be set 0.
 	//NoCheck flag
-		!NoCheck && 
+		ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && 
 	//Extended DNS header check
 		Parameter.HeaderCheck_DNS && 
 	//Must not set Response bit.
@@ -1145,17 +1144,26 @@ size_t __fastcall CheckResponseData(
 	//Do query recursively bit must be set when RCode is No Error and there are Answers Resource Records.
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RD) == 0 && (ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NOERROR && DNS_Header->Answer == 0 || 
 	//Local request failed or Truncated
-		IsLocal && ((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) > DNS_RCODE_NOERROR || (ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) > 0 && DNS_Header->Answer == 0) || 
+		ResponseType == REQUEST_PROCESS_LOCAL && 
+		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) > DNS_RCODE_NOERROR || (ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) > 0 && DNS_Header->Answer == 0) || 
 	//Must not set Reserved bit.
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_Z) > 0 || 
 	//Question Resource Records Counts must be set 1.
 		DNS_Header->Question != htons(U16_NUM_ONE) || 
 	//Additional EDNS Label Resource Records check
-		Parameter.EDNS_Label && DNS_Header->Additional == 0))
+		Parameter.EDNS_Label && DNS_Header->Additional == 0 && 
+		(ResponseType == 0 || //Normal
+		ResponseType == REQUEST_PROCESS_LOCAL && Parameter.EDNS_Switch.EDNS_Local || //Local
+		ResponseType == REQUEST_PROCESS_SOCKS && Parameter.EDNS_Switch.EDNS_SOCKS || //SOCKS Proxy
+		ResponseType == REQUEST_PROCESS_HTTP && Parameter.EDNS_Switch.EDNS_HTTP || //HTTP Proxy
+		ResponseType == REQUEST_PROCESS_DIRECT && Parameter.EDNS_Switch.EDNS_Direct || //Direct Request
+		ResponseType == REQUEST_PROCESS_DNSCURVE && Parameter.EDNS_Switch.EDNS_DNSCurve || //DNSCurve
+		ResponseType == REQUEST_PROCESS_TCP && Parameter.EDNS_Switch.EDNS_TCP || //TCP
+		ResponseType == REQUEST_PROCESS_UDP && Parameter.EDNS_Switch.EDNS_UDP))) //UDP
 			return EXIT_FAILURE;
 
 //Responses question pointer check
-	if (!NoCheck && Parameter.HeaderCheck_DNS)
+	if (ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && Parameter.HeaderCheck_DNS)
 	{
 		for (size_t Index = sizeof(dns_hdr);Index < DNS_PACKET_QUERY_LOCATE(Buffer);++Index)
 		{
@@ -1225,7 +1233,7 @@ size_t __fastcall CheckResponseData(
 		}
 
 	//EDNS Label(OPT Records) and DNSSEC Records(RRSIG/DNSKEY/DS/NSEC/NSEC3/NSEC3PARAM) check
-		if (!NoCheck && Parameter.EDNS_Label)
+		if (ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && Parameter.EDNS_Label)
 		{
 			if (DNS_Record_Standard->Type == htons(DNS_RECORD_OPT))
 				IsEDNS_Label = true;
@@ -1244,7 +1252,7 @@ size_t __fastcall CheckResponseData(
 		}
 
 	//Read Resource Records data
-		if (!NoCheck && DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && DNS_Record_Standard->TTL > 0)
+		if (ResponseType != REQUEST_PROCESS_DNSCURVE && DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && DNS_Record_Standard->TTL > 0)
 		{
 		//AAAA Records
 			if (DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA) && DNS_Record_Standard->Length == htons(sizeof(in6_addr)))
@@ -1256,7 +1264,7 @@ size_t __fastcall CheckResponseData(
 			//Check addresses.
 				Addr = (in6_addr *)(Buffer + DataLength);
 				if (Parameter.DataCheck_Blacklist && CheckSpecialAddress(Addr, AF_INET6, false, DomainString) || 
-					Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(Addr, AF_INET6))
+					Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && ResponseType == REQUEST_PROCESS_LOCAL && !CheckAddressRouting(Addr, AF_INET6))
 						return EXIT_FAILURE;
 
 				IsGotAddressResult = true;
@@ -1271,7 +1279,7 @@ size_t __fastcall CheckResponseData(
 			//Check addresses.
 				Addr = (in_addr *)(Buffer + DataLength);
 				if (Parameter.DataCheck_Blacklist && CheckSpecialAddress(Addr, AF_INET, false, DomainString) || 
-					Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && IsLocal && !CheckAddressRouting(Addr, AF_INET))
+					Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && ResponseType == REQUEST_PROCESS_LOCAL && !CheckAddressRouting(Addr, AF_INET))
 						return EXIT_FAILURE;
 
 				IsGotAddressResult = true;
@@ -1279,20 +1287,29 @@ size_t __fastcall CheckResponseData(
 		}
 
 	//Mark Resource Records type.
-		if (!NoCheck && Parameter.EDNS_Label && Parameter.DNSSEC_Request && Parameter.DNSSEC_Validation)
+		if (ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && Parameter.EDNS_Label && Parameter.DNSSEC_Request && Parameter.DNSSEC_Validation)
 			BeforeType = DNS_Record_Standard->Type;
 
 		DataLength += ntohs(DNS_Record_Standard->Length);
 	}
 
 //Additional EDNS Label Resource Records check, DNSSEC Validation check and Local request result check
-	if (!NoCheck && (Parameter.EDNS_Label && (!IsEDNS_Label || Parameter.DNSSEC_Request && Parameter.DNSSEC_ForceValidation && !IsDNSSEC_Records) || 
-		IsLocal && !IsGotAddressResult))
+	if (ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && (Parameter.EDNS_Label && 
+		(ResponseType == 0 || //Normal
+		ResponseType == REQUEST_PROCESS_LOCAL && Parameter.EDNS_Switch.EDNS_Local || //Local
+		ResponseType == REQUEST_PROCESS_SOCKS && Parameter.EDNS_Switch.EDNS_SOCKS || //SOCKS Proxy
+		ResponseType == REQUEST_PROCESS_HTTP && Parameter.EDNS_Switch.EDNS_HTTP || //HTTP Proxy
+		ResponseType == REQUEST_PROCESS_DIRECT && Parameter.EDNS_Switch.EDNS_Direct || //Direct Request
+		ResponseType == REQUEST_PROCESS_DNSCURVE && Parameter.EDNS_Switch.EDNS_DNSCurve || //DNSCurve
+		ResponseType == REQUEST_PROCESS_TCP && Parameter.EDNS_Switch.EDNS_TCP || //TCP
+		ResponseType == REQUEST_PROCESS_UDP && Parameter.EDNS_Switch.EDNS_UDP) && //UDP
+		(!IsEDNS_Label || Parameter.DNSSEC_Request && Parameter.DNSSEC_ForceValidation && !IsDNSSEC_Records) || 
+		ResponseType == REQUEST_PROCESS_LOCAL && !IsGotAddressResult))
 			return EXIT_FAILURE;
 
 #if defined(ENABLE_PCAP)
 //Mark Hop Limits or TTL.
-	if (!NoCheck && (IsMarkHopLimit != nullptr && Parameter.HeaderCheck_DNS && 
+	if (ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && (IsMarkHopLimit != nullptr && Parameter.HeaderCheck_DNS && 
 		(DNS_Header->Answer != htons(U16_NUM_ONE) || DNS_Header->Authority > 0 || DNS_Header->Additional > 0 || //Less than or more than one Answer Records or Authority Records and/or Additional Records
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NXDOMAIN) || //No Such Name, not standard query response and no error check.
 	//Domain Test part

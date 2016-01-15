@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -93,11 +93,6 @@ int main(
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	MonitorInit();
-#endif
-
-//Wait a moment to close all thread handles.
-#if defined(PLATFORM_WIN)
-	Sleep(SHORTEST_FILEREFRESH_TIME * SECOND_TO_MILLISECOND);
 #endif
 
 	return EXIT_SUCCESS;
@@ -257,7 +252,7 @@ bool ReadCommand(
 			fwprintf_s(stderr, COPYRIGHT_MESSAGE);
 			fwprintf_s(stderr, L"\nUsage: Please see ReadMe... files in Documents folder.\n");
 			fwprintf_s(stderr, L"   -v/--version:          Print current version on screen.\n");
-			fwprintf_s(stderr, L"   --lib-version:         Print current version of library on screen.\n");
+			fwprintf_s(stderr, L"   --lib-version:         Print current version of libraries on screen.\n");
 			fwprintf_s(stderr, L"   -h/--help:             Print help messages on screen.\n");
 			fwprintf_s(stderr, L"   --flush-dns:           Flush all DNS cache in program and system immediately.\n");
 		#if defined(PLATFORM_WIN)

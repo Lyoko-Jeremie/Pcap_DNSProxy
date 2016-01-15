@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -168,7 +168,7 @@
 
 
 //////////////////////////////////////////////////
-// Base Header
+// Base header
 // 
 //Preprocessor definitions
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_MACX))
@@ -192,19 +192,31 @@
 	#include "SHA3\\KeccakHash.h"
 
 //LibSodium header and static libraries
-	#define SODIUM_STATIC              //LibSodium static linking always enable in Windows and Mac OS X
+	#pragma comment(lib, "ws2_32.lib")            //Windows WinSock 2.0+ support
+	#define SODIUM_STATIC                         //LibSodium static linking always enable in Windows and Mac OS X
 	#include "..\\LibSodium\\sodium.h"
 	#if defined(PLATFORM_WIN64)
 		#pragma comment(lib, "..\\LibSodium\\LibSodium_x64.lib")
 	#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		#pragma comment(lib, "..\\LibSodium\\LibSodium_x86.lib")
 	#endif
+
+//Endian definitions
+	#define __LITTLE_ENDIAN            1234                      //Little Endian
+	#define __BIG_ENDIAN               4321                      //Big Endian
+	#define __BYTE_ORDER               __LITTLE_ENDIAN           //x86 and x86-64/x64 is Little Endian in Windows.
+	#define LITTLE_ENDIAN              __LITTLE_ENDIAN
+	#define BIG_ENDIAN                 __BIG_ENDIAN
+	#define BYTE_ORDER                 __BYTE_ORDER
 #elif defined(PLATFORM_LINUX)
+	#include <endian.h>                //Endian
+	#include <arpa/inet.h>             //Internet operations
+
 //SHA-3 header
 	#include "SHA3/KeccakHash.h"
 
 //LibSodium header
-	#include <sodium.h>            
+	#include <sodium.h>   
 #elif defined(PLATFORM_MACX)
 //SHA-3 header
 	#include "SHA3/KeccakHash.h"
@@ -213,6 +225,16 @@
 	#define SODIUM_STATIC              //LibSodium static linking always enable in Windows and Mac OS X
 	#include "../LibSodium/sodium.h"
 	#pragma comment(lib, "../LibSodium/LibSodium_Mac.a")
+
+//Endian definitions
+	#define __LITTLE_ENDIAN            1234                      //Little Endian
+	#define __BIG_ENDIAN               4321                      //Big Endian
+	#define __BYTE_ORDER               __LITTLE_ENDIAN           //x86 and x86-64/x64 is Little Endian in OS X.
+/* Already define in OS X.
+	#define LITTLE_ENDIAN              __LITTLE_ENDIAN
+	#define BIG_ENDIAN                 __BIG_ENDIAN
+	#define BYTE_ORDER                 __BYTE_ORDER
+*/
 #endif
 
 
@@ -222,35 +244,81 @@
 #pragma pack(1)                                 //Memory alignment: 1 bytes/8 bits
 #define BYTES_TO_BITS            8U
 #define FILE_BUFFER_SIZE         4096U
-#define DEFAULT_HASH_ID          HASH_ID_SHA3
-
-//SHA-3 definitions
-#define HASH_ID_SHA1             1U
-#define HASH_ID_SHA2             2U
-#define HASH_ID_SHA3             3U
-#define HASH_ID_SHA              HASH_ID_SHA3
 #if defined(PLATFORM_WIN)
-	#define COMMAND_SHA              L"-SHA"
-	#define COMMAND_SHA1             L"-SHA1"
-	#define COMMAND_SHA2             L"-SHA2"
-	#define COMMAND_SHA2_384         L"-SHA384"
-	#define COMMAND_SHA2_512         L"-SHA512"
-	#define COMMAND_SHA3             L"-SHA3"
+	#define MBSTOWCS_NULLTERMINATE   (-1)            //MultiByteToWideChar() find null-terminate.
+#endif
+
+//Version definitions
+#define FULL_VERSION                 L"0.4.5.1"
+#define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2016 Chengr28"
+
+//Command definitions
+#if defined(PLATFORM_WIN)
+	#define COMMAND_LONG_PRINT_VERSION              L"--VERSION"
+	#define COMMAND_SHORT_PRINT_VERSION             L"-V"
+	#define COMMAND_LONG_HELP                       L"--HELP"
+	#define COMMAND_SHORT_HELP                      L"-H"
+	#define COMMAND_SIGN_HELP                       L"-?"
+	#define COMMAND_LIB_VERSION                     L"--LIB-VERSION"
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	#define COMMAND_SHA				 ("-SHA")
-	#define COMMAND_SHA1             ("-SHA1")
-	#define COMMAND_SHA2             ("-SHA2")
-	#define COMMAND_SHA2_384         ("-SHA384")
-	#define COMMAND_SHA2_512         ("-SHA512")
-	#define COMMAND_SHA3             ("-SHA3")
+	#define COMMAND_LONG_PRINT_VERSION              ("--VERSION")
+	#define COMMAND_SHORT_PRINT_VERSION             ("-V")
+	#define COMMAND_LONG_HELP                       ("--HELP")
+	#define COMMAND_SHORT_HELP                      ("-H")
+	#define COMMAND_SIGN_HELP                       ("-?")
+	#define COMMAND_LIB_VERSION                     ("--LIB-VERSION")
+#endif
+
+//Hash definitions
+#define HASH_ID_CRC              1U
+#define HASH_ID_CHECKSUM         2U
+#define HASH_ID_MD2              3U
+#define HASH_ID_MD4              4U
+#define HASH_ID_ED2K             5U
+#define HASH_ID_MD5              6U
+#define HASH_ID_MD               HASH_ID_MD5
+#define HASH_ID_SHA1             7U
+#define HASH_ID_SHA2             8U
+#define HASH_ID_SHA3             9U
+#define HASH_ID_SHA              HASH_ID_SHA3
+#define DEFAULT_HASH_ID          HASH_ID_SHA3
+#if defined(PLATFORM_WIN)
+	#define HASH_COMMAND_CRC                        L"-CRC"
+	#define HASH_COMMAND_CHECKSUM                   L"-CHECKSUM"
+	#define HASH_COMMAND_MD                         L"-MD"
+	#define HASH_COMMAND_MD2                        L"-MD2"
+	#define HASH_COMMAND_MD4                        L"-MD4"
+	#define HASH_COMMAND_ED2K                       L"-ED2K"
+	#define HASH_COMMAND_MD5                        L"-MD5"
+	#define HASH_COMMAND_SHA                        L"-SHA"
+	#define HASH_COMMAND_SHA1                       L"-SHA1"
+	#define HASH_COMMAND_SHA2                       L"-SHA2"
+	#define HASH_COMMAND_SHA2_384                   L"-SHA384"
+	#define HASH_COMMAND_SHA2_512                   L"-SHA512"
+	#define HASH_COMMAND_SHA3                       L"-SHA3"
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	#define HASH_COMMAND_CRC                        ("-CRC")
+	#define HASH_COMMAND_CHECKSUM                   ("-CHECKSUM")
+	#define HASH_COMMAND_MD                         ("-MD")
+	#define HASH_COMMAND_MD2                        ("-MD2")
+	#define HASH_COMMAND_MD4                        ("-MD4")
+	#define HASH_COMMAND_ED2K                       ("-ED2K")
+	#define HASH_COMMAND_MD5                        ("-MD5")
+	#define HASH_COMMAND_SHA                        ("-SHA")
+	#define HASH_COMMAND_SHA1                       ("-SHA1")
+	#define HASH_COMMAND_SHA2                       ("-SHA2")
+	#define HASH_COMMAND_SHA2_384                   ("-SHA384")
+	#define HASH_COMMAND_SHA2_512                   ("-SHA512")
+	#define HASH_COMMAND_SHA3                       ("-SHA3")
 #endif
 
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Linux and Mac OS X compatible
-	typedef char               *PSTR;
+	#define RETURN_ERROR                                                 (-1)
 	#define __fastcall
-	#define strnlen_s          strnlen
-	#define fwprintf_s         fwprintf
+	#define strnlen_s                                                    strnlen
+	#define fwprintf_s                                                   fwprintf
+	#define memcpy_s(Dst, DstSize, Src, Size)                            memcpy(Dst, Src, Size)
 	#define fread_s(Dst, DstSize, ElementSize, Count, File)              fread(Dst, ElementSize, Count, File)
 
 //Microsoft source-code annotation language/SAL compatible
@@ -264,11 +332,27 @@
 	#define _Outptr_opt_
 #endif
 
+//Function definitions
+#define ntoh64                hton64
+
 
 //////////////////////////////////////////////////
 // Main functions
 // 
 //FileHash.cpp
+void __fastcall PrintDescription(
+	void);
+
+//Base.cpp
+bool __fastcall CheckEmptyBuffer(
+	_In_opt_ const void *Buffer, 
+	_In_ const size_t Length);
+uint64_t __fastcall hton64(
+	_In_ const uint64_t Value);
+bool __fastcall MBSToWCSString(
+	_In_opt_ const char *Buffer, 
+	_In_ const size_t MaxLen, 
+	_Out_ std::wstring &Target);
 #if defined(PLATFORM_WIN)
 void __fastcall CaseConvert(
 	_In_ const bool IsLowerToUpper, 
@@ -277,6 +361,32 @@ void __fastcall CaseConvert(
 void __fastcall CaseConvert(
 	_In_ const bool IsLowerToUpper, 
 	_Inout_opt_ std::string &Buffer);
+
+//Checksum.cpp
+bool __fastcall Checksum_Hash(
+	_In_ FILE *Input);
+
+//CRC.cpp
+bool __fastcall ReadCommand_CRC(
+#if defined(PLATFORM_WIN)
+	_In_ std::wstring &Command);
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	_In_ std::string &Command);
+#endif
+bool __fastcall CRC_Hash(
+	_In_ FILE *Input);
+
+//MD2.cpp
+bool __fastcall MD2_Hash(
+	_In_ FILE *Input);
+
+//MD4.cpp
+bool __fastcall MD4_Hash(
+	_In_ FILE *Input);
+
+//MD5.cpp
+bool __fastcall MD5_Hash(
+	_In_ FILE *Input);
 
 //SHA-1.cpp
 bool __fastcall SHA1_Hash(

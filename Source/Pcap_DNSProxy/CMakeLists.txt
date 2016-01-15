@@ -1,6 +1,6 @@
 # This code is part of Pcap_DNSProxy
 # A local DNS server based on WinPcap and LibPcap
-# Copyright (C) 2012-2015 Chengr28
+# Copyright (C) 2012-2016 Chengr28
 # 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -24,10 +24,8 @@ ELSE(PLATFORM_OPENWRT)
 	cmake_minimum_required(VERSION 3.0.2)
 ENDIF(PLATFORM_OPENWRT)
 
-# Project name
+# Project name and build type
 project(Pcap_DNSProxy)
-
-# Release version
 set(CMAKE_BUILD_TYPE "Release")
 
 # All source files
@@ -67,12 +65,19 @@ set(MAIN_SRC_FILES
 		"Service.cpp")
 
 # Compiling and linking flags
-IF(PLATFORM_OPENWRT)
+## C++ 11 standard definitions
+IF (CMAKE_VERSION VERSION_LESS "3.1")
 	add_definitions(-std=c++11)
+ELSE(CMAKE_VERSION VERSION_LESS "3.1")
+	set(CMAKE_CXX_STANDARD 11)
+ENDIF(CMAKE_VERSION VERSION_LESS "3.1")
+## Platform definitions
+IF(PLATFORM_OPENWRT)
 	add_definitions(-DPLATFORM_OPENWRT)
 ELSE(PLATFORM_OPENWRT)
-	add_definitions(-std=c++11 -fpic)
+	add_definitions(-fpic)
 ENDIF(PLATFORM_OPENWRT)
+## Library definitions
 IF(ENABLE_PCAP)
 	add_definitions(-DENABLE_PCAP)
 ENDIF(ENABLE_PCAP)

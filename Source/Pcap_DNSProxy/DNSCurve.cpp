@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -759,7 +759,12 @@ SSIZE_T DNSCurvePacketDecryption(
 	}
 
 //Responses check
-	DataLength = CheckResponseData(OriginalRecv, DataLength, RecvSize, false, false, nullptr);
+	DataLength = CheckResponseData(
+		REQUEST_PROCESS_DNSCURVE,
+		OriginalRecv, 
+		DataLength, 
+		RecvSize, 
+		nullptr);
 	if (DataLength < (SSIZE_T)DNS_PACKET_MINSIZE)
 		return EXIT_FAILURE;
 
@@ -1399,7 +1404,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(
 			goto JumpToRestart;
 
 	//Socket selecting
-		RecvLen = SocketSelecting(IPPROTO_TCP, TCPSocketDataList, SendBuffer.get(), DataLength, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, false, true, nullptr);
+		RecvLen = SocketSelecting(REQUEST_PROCESS_DNSCURVE, IPPROTO_TCP, TCPSocketDataList, SendBuffer.get(), DataLength, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, nullptr);
 		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 		{
 			goto JumpToRestart;
@@ -1565,7 +1570,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(
 			goto JumpToRestart;
 
 	//Socket selecting
-		RecvLen = SocketSelecting(IPPROTO_UDP, UDPSocketDataList, SendBuffer.get(), DataLength, RecvBuffer.get(), PACKET_MAXSIZE, false, true, nullptr);
+		RecvLen = SocketSelecting(REQUEST_PROCESS_DNSCURVE, IPPROTO_UDP, UDPSocketDataList, SendBuffer.get(), DataLength, RecvBuffer.get(), PACKET_MAXSIZE, nullptr);
 		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 		{
 			goto JumpToRestart;

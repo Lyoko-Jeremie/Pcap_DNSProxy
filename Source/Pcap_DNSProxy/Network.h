@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -30,22 +30,21 @@ extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 
 //Functions
 bool __fastcall SelectTargetSocket(
+	_In_ const size_t RequestType, 
 	_Out_ SOCKET_DATA *TargetSocketData, 
 	_Outptr_opt_ bool **IsAlternate, 
 	_Outptr_opt_ size_t **AlternateTimeoutTimes, 
-	_In_ const uint16_t Protocol, 
-	_In_ const bool IsLocal);
+	_In_ const uint16_t Protocol);
 bool __fastcall SelectTargetSocketMulti(
 	_Inout_ std::vector<SOCKET_DATA> &TargetSocketDataList, 
 	_In_ const uint16_t Protocol);
 SSIZE_T __fastcall SelectingResult(
+	_In_ const size_t RequestType, 
 	_In_ const uint16_t Protocol, 
 	_Inout_ std::vector<SOCKET_DATA> &SocketDataList, 
 	_Inout_ std::vector<SOCKET_SELECTING_DATA> &SocketSelectingList, 
 	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize, 
-	_In_ const bool IsLocal, 
-	_In_ const bool NoCheck);
+	_In_ const size_t RecvSize);
 void __fastcall MarkPortToList(
 	_In_ const uint16_t Protocol, 
 	_In_opt_ const SOCKET_DATA *LocalSocketData, 

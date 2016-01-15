@@ -42,6 +42,24 @@
     <ClCompile Include="SHA-2.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="MD5.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MD4.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MD2.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Base.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="CRC.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Checksum.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FileHash.h">
@@ -57,6 +75,18 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="SHA-2.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MD5.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MD4.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MD2.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="CRC.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

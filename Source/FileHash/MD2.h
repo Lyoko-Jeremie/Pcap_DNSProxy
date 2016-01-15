@@ -17,28 +17,42 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#include "Base.h"
+#include "FileHash.h"
+
+#if defined(ENABLE_LIBSODIUM)
+//The MD2 block size and message digest size
+enum {
+	MD2 = 6,                //Hash type unique
+	MD2_BLOCK_SIZE = 16, 
+	MD2_DIGEST_SIZE = 16, 
+	MD2_PAD_SIZE = 16, 
+	MD2_X_SIZE = 48
+};
+
+//Code definitions
+#define XMEMSET(b, c, l)    memset((b), (c), (l))
+#define XMEMCPY(d, s, l)    memcpy_s((d), (l), (s), (l))
+
+//The structure for storing MD2 info
+typedef struct _md2_info_
+{
+	uint32_t   Count;       //Bytes % PAD_SIZE
+	uint8_t    X[MD2_X_SIZE];
+	uint8_t    C[MD2_BLOCK_SIZE];
+	uint8_t    Buffer[MD2_BLOCK_SIZE];
+}MD2_CTX;
 
 //Global variables
-extern CONFIGURATION_TABLE Parameter;
-extern GLOBAL_STATUS GlobalRunningStatus;
-#if defined(ENABLE_LIBSODIUM)
-	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
-#endif
-	extern std::vector<DIFFERNET_FILE_SET_IPFILTER> *IPFilterFileSetUsing, *IPFilterFileSetModificating;
-extern std::vector<DIFFERNET_FILE_SET_HOSTS> *HostsFileSetUsing, *HostsFileSetModificating;
-extern std::mutex IPFilterFileLock, HostsFileLock;
+extern size_t HashFamilyID;
 
 //Functions
-size_t __fastcall CheckResponseCNAME(
-	_Inout_ char *Buffer, 
-	_In_ const size_t Length, 
-	_In_ const size_t CNAME_Index, 
-	_In_ const size_t CNAME_Length, 
-	_In_ const size_t BufferSize, 
-	_Out_ size_t &RecordNum);
-bool __fastcall CheckDNSSECRecords(
-	_In_ const char *Buffer, 
-	_In_ const size_t Length, 
-	_In_ const uint16_t Type, 
-	_In_ const uint16_t BeforeType);
+void __fastcall MD2_Init(
+	_Inout_ MD2_CTX *md2);
+void __fastcall MD2_Update(
+	_Inout_ MD2_CTX *md2, 
+	_In_ const uint8_t *data, 
+	_In_ uint32_t len);
+void __fastcall MD2_Final(
+	_Inout_ MD2_CTX *md2, 
+	_Out_ uint8_t *hash);
+#endif
