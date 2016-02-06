@@ -224,8 +224,8 @@
 	#endif
 */
 //Static libraries
-	#pragma comment(lib, "ws2_32.lib")            //Windows WinSock 2.0+ support
-	#pragma comment(lib, "iphlpapi.lib")          //Windows IP Helper, IP Stack for MIB-II and related functionality support
+	#pragma comment(lib, "ws2_32.lib")     //Windows WinSock 2.0+ support
+	#pragma comment(lib, "iphlpapi.lib")   //Windows IP Helper, IP Stack for MIB-II and related functionality support
 	//WinPcap and LibSodium libraries
 	#if defined(PLATFORM_WIN64)
 		#if defined(ENABLE_LIBSODIUM)
@@ -233,6 +233,7 @@
 		#endif
 		#if defined(ENABLE_PCAP)
 			#pragma comment(lib, "WinPcap\\WPCAP_x64.lib")
+			#pragma comment(lib, "WinPcap\\Packet_x64.lib")
 		#endif
 	#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
 		#if defined(ENABLE_LIBSODIUM)
@@ -240,13 +241,14 @@
 		#endif
 		#if defined(ENABLE_PCAP)
 			#pragma comment(lib, "WinPcap\\WPCAP_x86.lib")
+			#pragma comment(lib, "WinPcap\\Packet_x86.lib")
 		#endif
 	#endif
 
 //Endian definitions
-	#define __LITTLE_ENDIAN            1234                      //Little Endian
-	#define __BIG_ENDIAN               4321                      //Big Endian
-	#define __BYTE_ORDER               __LITTLE_ENDIAN           //x86 and x86-64/x64 is Little Endian in Windows.
+	#define __LITTLE_ENDIAN            1234                         //Little Endian
+	#define __BIG_ENDIAN               4321                         //Big Endian
+	#define __BYTE_ORDER               __LITTLE_ENDIAN              //x86 and x86-64/x64 is Little Endian in Windows.
 	#define LITTLE_ENDIAN              __LITTLE_ENDIAN
 	#define BIG_ENDIAN                 __BIG_ENDIAN
 	#define BYTE_ORDER                 __BYTE_ORDER
@@ -256,36 +258,36 @@
 	#define WINSOCK_VERSION_HIGH              2                         //High byte of Winsock version(2.2)
 	#define SIO_UDP_CONNRESET                 _WSAIOW(IOC_VENDOR, 12)   //Block connection reset error message from system.
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	#include <cerrno>                  //Error report
-	#include <climits>                 //Data limits
-	#include <csignal>                 //Signals
-	#include <cstring>                 //C-Style strings
-	#include <cwchar>                  //Wide characters
+	#include <cerrno>                      //Error report
+	#include <climits>                     //Data limits
+	#include <csignal>                     //Signals
+	#include <cstring>                     //Strings
+	#include <cwchar>                      //Wide characters
 
 //Portable Operating System Interface/POSIX and Unix system header
 	#if defined(PLATFORM_LINUX)
-		#include <endian.h>                //Endian
+		#include <endian.h>                    //Endian
 	#elif defined(PLATFORM_MACX)
 	//Endian definitions
-		#define __LITTLE_ENDIAN            1234                      //Little Endian
-		#define __BIG_ENDIAN               4321                      //Big Endian
-		#define __BYTE_ORDER               __LITTLE_ENDIAN           //x86 and x86-64/x64 is Little Endian in OS X.
+		#define __LITTLE_ENDIAN            1234                         //Little Endian
+		#define __BIG_ENDIAN               4321                         //Big Endian
+		#define __BYTE_ORDER               __LITTLE_ENDIAN              //x86 and x86-64/x64 is Little Endian in OS X.
 /* Already define in OS X.
 		#define LITTLE_ENDIAN              __LITTLE_ENDIAN
 		#define BIG_ENDIAN                 __BIG_ENDIAN
 		#define BYTE_ORDER                 __BYTE_ORDER
 */
 	#endif
-	#include <fcntl.h>                 //Manipulate file descriptor
-	#include <ifaddrs.h>               //Getting network interface addresses
-	#include <netdb.h>                 //Network database operations
-	#include <pthread.h>               //Threads
-	#include <unistd.h>                //Standard library API
-	#include <arpa/inet.h>             //Internet operations
-	#include <netinet/tcp.h>           //TCP protocol
-	#include <sys/socket.h>            //Socket
-	#include <sys/stat.h>              //Getting information about files attributes
-	#include <sys/time.h>              //Date and time
+	#include <fcntl.h>                     //Manipulate file descriptor
+	#include <ifaddrs.h>                   //Getting network interface addresses
+	#include <netdb.h>                     //Network database operations
+	#include <pthread.h>                   //Threads
+	#include <unistd.h>                    //Standard library API
+	#include <arpa/inet.h>                 //Internet operations
+	#include <netinet/tcp.h>               //TCP protocol
+	#include <sys/socket.h>                //Socket
+	#include <sys/stat.h>                  //Getting information about files attributes
+	#include <sys/time.h>                  //Date and time
 
 //LibSodium and LibPcap header
 	#if defined(PLATFORM_LINUX)
@@ -296,9 +298,9 @@
 			#include <pcap/pcap.h>
 		#endif		
 	#elif defined(PLATFORM_MACX)
-		#define ENABLE_LIBSODIUM           //LibSodium is always enable on Mac OS X.
-		#define ENABLE_PCAP                //LibPcap is always enable on Mac OS X.
-		#define SODIUM_STATIC              //LibSodium static linking always enable in Windows and Mac OS X
+		#define ENABLE_LIBSODIUM                   //LibSodium is always enable on Mac OS X.
+		#define ENABLE_PCAP                        //LibPcap is always enable on Mac OS X.
+		#define SODIUM_STATIC                      //LibSodium static linking always enable in Windows and Mac OS X
 		#include "../LibSodium/sodium.h"
 		#include <pcap/pcap.h>
 		#pragma comment(lib, "../LibSodium/LibSodium_Mac.a")
@@ -371,20 +373,20 @@
 //Internet Protocol version 4/IPv4 Socket Address(From Microsoft Windows)
 	typedef struct _sockaddr_in_windows_
 	{
-		sa_family_t       sin_family;     //Address family: AF_INET
-		in_port_t         sin_port;       //Port in network byte order
-		in_addr_Windows   sin_addr;       //Internet address
-		uint8_t           sin_zero[8U];   //Zero
+		sa_family_t       sin_family;          //Address family: AF_INET
+		in_port_t         sin_port;            //Port in network byte order
+		in_addr_Windows   sin_addr;            //Internet address
+		uint8_t           sin_zero[8U];        //Zero
 	}sockaddr_in_Windows;
 
 //Internet Protocol version 6/IPv6 Socket Address(From Microsoft Windows)
 	typedef struct _sockaddr_in6_windows_ 
 	{
-		sa_family_t        sin6_family;   //AF_INET6
-		in_port_t          sin6_port;     //Port number
-		uint32_t           sin6_flowinfo; //IPv6 flow information
-		in6_addr_Windows   sin6_addr;     //IPv6 address
-		uint32_t           sin6_scope_id; //Scope ID (new in 2.4)
+		sa_family_t        sin6_family;        //AF_INET6
+		in_port_t          sin6_port;          //Port number
+		uint32_t           sin6_flowinfo;      //IPv6 flow information
+		in6_addr_Windows   sin6_addr;          //IPv6 address
+		uint32_t           sin6_scope_id;      //Scope ID (new in 2.4)
 	}sockaddr_in6_Windows;
 
 //Linux and Mac OS X compatible(Part 2)

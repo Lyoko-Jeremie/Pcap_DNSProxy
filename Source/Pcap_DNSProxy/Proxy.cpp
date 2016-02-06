@@ -1024,7 +1024,7 @@ size_t __fastcall SOCKSUDPRequest(
 		{
 		//Responses check
 			RecvLen = CheckResponseData(
-				REQUEST_PROCESS_SOCKS,
+				REQUEST_PROCESS_SOCKS, 
 				OriginalRecv, 
 				RecvLen, 
 				RecvSize, 
@@ -1152,7 +1152,7 @@ size_t __fastcall HTTPRequest(
 
 	//Responses check
 		RecvLen = CheckResponseData(
-			REQUEST_PROCESS_HTTP,
+			REQUEST_PROCESS_HTTP, 
 			OriginalRecv, 
 			RecvLen, 
 			RecvSize, 

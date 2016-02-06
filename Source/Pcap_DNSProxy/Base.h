@@ -107,7 +107,7 @@
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE                    0.3
 #define CONFIG_VERSION                                0.4                         //Current configuration version
-#define FULL_VERSION                                  L"0.4.5.1"
+#define FULL_VERSION                                  L"0.4.5.2"
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
 
 //Size and length definitions
@@ -751,12 +751,10 @@ public:
 typedef class HostsTable
 {
 public:
-//	std::shared_ptr<char>             Response;
 	std::vector<ADDRESS_UNION_DATA>   AddrList;
 	std::regex                        Pattern;
 	std::string                       PatternString;
 	std::vector<uint16_t>             RecordTypeList;
-//	size_t                            Length;
 	size_t                            PermissionType;
 	bool                              PermissionOperation;
 

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # 
 # This code is part of Pcap_DNSProxy
 # A local DNS server based on WinPcap and LibPcap

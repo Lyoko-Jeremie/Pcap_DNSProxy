@@ -178,10 +178,10 @@
 //C Standard Library and C++ Standard Template Library/STL headers
 #include <cstdio>                  //File Input/Output
 #include <cstdlib>                 //Several general purpose functions
-#include <cstring>                 //String support(C-style)
+#include <cstring>                 //String support
 #include <cwchar>                  //Wide-Character Support
 #include <memory>                  //Manage dynamic memory support
-#include <string>                  //String support(C++)
+#include <string>                  //String support(STL)
 
 #if defined(ENABLE_LIBSODIUM)
 #if defined(PLATFORM_WIN)

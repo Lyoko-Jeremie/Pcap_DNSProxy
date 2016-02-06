@@ -98,7 +98,8 @@ IF(PLATFORM_OPENWRT)
 ENDIF(PLATFORM_OPENWRT)
 
 # Libraries linking
-target_link_libraries(Pcap_DNSProxy pthread)
+find_package(Threads REQUIRED)
+target_link_libraries(Pcap_DNSProxy ${CMAKE_THREAD_LIBS_INIT})
 IF(ENABLE_PCAP)
 	target_link_libraries(Pcap_DNSProxy pcap)
 ENDIF(ENABLE_PCAP)

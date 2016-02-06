@@ -19,6 +19,24 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-cd /Library/LaunchDaemons
-launchctl unload pcap_dnsproxy.service.plist
-rm -rf pcap_dnsproxy.service.plist
+# Download latest address data from APNIC and write header.
+echo
+curl -O https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest
+CurrentDate=`date +%Y-%m-%d`
+echo -e "[Local Routing]\n## China mainland routing blocks\n## Sources: https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest" > Routing.txt
+echo -n "## Last update: " >> Routing.txt
+echo $CurrentDate >> Routing.txt
+echo -e "\n" >> Routing.txt
+
+# IPv4
+echo "## IPv4" >> Routing.txt
+cat delegated-apnic-latest | grep ipv4 | grep CN | awk -F\| '{printf("%s/%d\n", $4, 32-log($5)/log(2))}' >> Routing.txt
+echo "\n" >> Routing.txt
+
+# IPv6
+echo "## IPv6" >> Routing.txt
+cat delegated-apnic-latest | grep ipv6 | grep CN | awk -F\| '{printf("%s/%d\n", $4, $5)}' >> Routing.txt
+
+# Cleanup
+rm -rf delegated-apnic-latest
+echo

@@ -172,11 +172,14 @@ bool __fastcall PrintError(
 			if (!FileNameString.empty())
 				ErrorMessage.append(FileNameString);
 
+/* There are no any error codes to be reported in LOG_ERROR_PCAP.
 		//Add error code.
 			if (ErrorCode == 0)
 				ErrorMessage.append(L".\n");
 			else 
 				ErrorMessage.append(L", error code is %d.\n");
+*/
+			ErrorMessage.append(L"\n");
 		}break;
 	#endif
 	//DNSCurve Error

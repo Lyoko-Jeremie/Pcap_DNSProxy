@@ -182,12 +182,12 @@ bool __fastcall FlushDNSMailSlotMonitor(
 //System security setting
 	auto SecurityAttributes = std::make_shared<SECURITY_ATTRIBUTES>();
 	auto SecurityDescriptor = std::make_shared<SECURITY_DESCRIPTOR>();
-	std::shared_ptr<char> ACL_Buffer(new char[PACKET_MAXSIZE]());
-	memset(ACL_Buffer.get(), 0, PACKET_MAXSIZE);
+	std::shared_ptr<char> ACL_Buffer(new char[FILE_BUFFER_SIZE]());
+	memset(ACL_Buffer.get(), 0, FILE_BUFFER_SIZE);
 	PSID SID_Value = nullptr;
 
 	InitializeSecurityDescriptor(SecurityDescriptor.get(), SECURITY_DESCRIPTOR_REVISION);
-	InitializeAcl((PACL)ACL_Buffer.get(), PACKET_MAXSIZE, ACL_REVISION);
+	InitializeAcl((PACL)ACL_Buffer.get(), FILE_BUFFER_SIZE, ACL_REVISION);
 	ConvertStringSidToSidW(SID_ADMINISTRATORS_GROUP, &SID_Value);
 	AddAccessAllowedAce((PACL)ACL_Buffer.get(), ACL_REVISION, GENERIC_ALL, SID_Value);
 	SetSecurityDescriptorDacl(SecurityDescriptor.get(), true, (PACL)ACL_Buffer.get(), false);
@@ -195,7 +195,7 @@ bool __fastcall FlushDNSMailSlotMonitor(
 	SecurityAttributes->bInheritHandle = true;
 
 //Create mailslot.
-	HANDLE hSlot = CreateMailslotW(MAILSLOT_NAME, PACKET_MAXSIZE - 1U, MAILSLOT_WAIT_FOREVER, SecurityAttributes.get());
+	HANDLE hSlot = CreateMailslotW(MAILSLOT_NAME, FILE_BUFFER_SIZE - 1U, MAILSLOT_WAIT_FOREVER, SecurityAttributes.get());
 	if (hSlot == INVALID_HANDLE_VALUE)
 	{
 		LocalFree(SID_Value);
@@ -208,13 +208,17 @@ bool __fastcall FlushDNSMailSlotMonitor(
 	LocalFree(SID_Value);
 
 //Initialization
-	BOOL Result = FALSE;
+/* Old version(2016-01-17)
 	bool FlushDNS = false;
 	DWORD cbMessage = 0, cMessage = 0, cbRead = 0;
-	std::shared_ptr<wchar_t> lpszBuffer(new wchar_t[PACKET_MAXSIZE]());
-	wmemset(lpszBuffer.get(), 0, PACKET_MAXSIZE);
+*/
+	std::shared_ptr<wchar_t> lpszBuffer(new wchar_t[FILE_BUFFER_SIZE]());
+	wmemset(lpszBuffer.get(), 0, FILE_BUFFER_SIZE);
+	DWORD cbMessage = 0;
+	BOOL Result = 0;
 
-//MailSlot Monitor
+//MailSlot monitor
+/* Old version(2016-01-17)
 	for (;;)
 	{
 		cbMessage = 0;
@@ -255,7 +259,7 @@ bool __fastcall FlushDNSMailSlotMonitor(
 				FlushDNS = true;
 				FlushAllDNSCache();
 			}
-			memset(lpszBuffer.get(), 0, PACKET_MAXSIZE);
+			memset(lpszBuffer.get(), 0, FILE_BUFFER_SIZE);
 
 		//Get other mailslot messages.
 			Result = GetMailslotInfo(hSlot, nullptr, &cbMessage, &cMessage, nullptr);
@@ -269,6 +273,32 @@ bool __fastcall FlushDNSMailSlotMonitor(
 		}
 
 		Sleep(LOOP_INTERVAL_TIME_MONITOR);
+	}
+*/
+	for (;;)
+	{
+		Sleep(LOOP_INTERVAL_TIME_NO_DELAY);
+
+	//Reset parameters.
+		wmemset(lpszBuffer.get(), 0, FILE_BUFFER_SIZE);
+		cbMessage = 0;
+
+	//Read message from mailslot.
+		Result = ReadFile(hSlot, lpszBuffer.get(), FILE_BUFFER_SIZE, &cbMessage, nullptr);
+		if (Result == FALSE)
+		{
+			PrintError(LOG_ERROR_SYSTEM, L"MailSlot read messages error", GetLastError(), nullptr, 0);
+
+			CloseHandle(hSlot);
+			return false;
+		}
+		else if (memcmp(lpszBuffer.get(), MAILSLOT_MESSAGE_FLUSH_DNS, wcslen(MAILSLOT_MESSAGE_FLUSH_DNS) * sizeof(wchar_t)) == 0)
+		{
+			FlushAllDNSCache();
+		}
+		else {
+			Sleep(LOOP_INTERVAL_TIME_MONITOR);
+		}
 	}
 
 //Monitor terminated
@@ -315,22 +345,12 @@ bool FlushDNSFIFOMonitor(
 {
 //Initialization
 	unlink(FIFO_PATH_NAME);
-	std::shared_ptr<char> Buffer(new char[PACKET_MAXSIZE]());
-	memset(Buffer.get(), 0, PACKET_MAXSIZE);
-	int FIFO_FD = 0;
+	std::shared_ptr<char> Buffer(new char[FILE_BUFFER_SIZE]());
+	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
+	int FileFIFO = 0;
 
-//Create FIFO.
+//Create FIFO and create its notify monitor.
 	if (mkfifo(FIFO_PATH_NAME, O_CREAT) < 0 || chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) < 0)
-	{
-		PrintError(LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
-
-		unlink(FIFO_PATH_NAME);
-		return false;
-	}
-
-//Open FIFO.
-	FIFO_FD = open(FIFO_PATH_NAME, O_RDONLY, 0);
-	if (FIFO_FD < 0)
 	{
 		PrintError(LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
 
@@ -341,15 +361,31 @@ bool FlushDNSFIFOMonitor(
 //FIFO Monitor
 	for (;;)
 	{
-		memset(Buffer.get(), 0, PACKET_MAXSIZE);
-		if (read(FIFO_FD, Buffer.get(), PACKET_MAXSIZE) > 0 && memcmp(Buffer.get(), FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) == 0)
-			FlushAllDNSCache();
+		Sleep(LOOP_INTERVAL_TIME_NO_DELAY);
 
-		Sleep(LOOP_INTERVAL_TIME_MONITOR);
+	//Open FIFO.
+		FileFIFO = open(FIFO_PATH_NAME, O_RDONLY, 0);
+		if (FileFIFO < 0)
+		{
+			PrintError(LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
+
+			unlink(FIFO_PATH_NAME);
+			return false;
+		}
+
+	//Read file data.
+		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
+		if (read(FileFIFO, Buffer.get(), FILE_BUFFER_SIZE) >= strlen(FIFO_MESSAGE_FLUSH_DNS) && 
+			memcmp(Buffer.get(), FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) == 0)
+				FlushAllDNSCache();
+
+	//Close FIFO.
+		close(FileFIFO);
+		FileFIFO = 0;
 	}
 
 //Monitor terminated
-	close(FIFO_FD);
+	close(FileFIFO);
 	unlink(FIFO_PATH_NAME);
 	PrintError(LOG_ERROR_SYSTEM, L"FIFO module Monitor terminated", 0, nullptr, 0);
 	return true;
@@ -359,12 +395,12 @@ bool FlushDNSFIFOMonitor(
 bool FlushDNSFIFOSender(
 	void)
 {
-	int FIFO_FD = open(FIFO_PATH_NAME, O_WRONLY|O_TRUNC|O_NONBLOCK, 0);
-	if (FIFO_FD > 0 && write(FIFO_FD, FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS) + 1U) > 0)
+	int FileFIFO = open(FIFO_PATH_NAME, O_WRONLY|O_TRUNC|O_NONBLOCK, 0);
+	if (FileFIFO > 0 && write(FileFIFO, FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS) + 1U) > 0)
 	{
 		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
 		fwprintf(stderr, L"Flush DNS cache message was sent successfully.\n");
-		close(FIFO_FD);
+		close(FileFIFO);
 	}
 	else {
 		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);

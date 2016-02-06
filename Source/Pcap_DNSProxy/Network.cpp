@@ -101,8 +101,8 @@ bool __fastcall SocketSetting(
 			}
 		#endif
 		}break;
-	#if defined(PLATFORM_LINUX)
 	//Socket TCP Fast Open setting
+	#if defined(PLATFORM_LINUX)
 		case SOCKET_SETTING_TCP_FAST_OPEN:
 		{
 			int SetVal = TCP_FASTOPEN_HINT;

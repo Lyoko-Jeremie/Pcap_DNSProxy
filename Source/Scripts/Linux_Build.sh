@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # 
 # This code is part of Pcap_DNSProxy
 # A local DNS server based on WinPcap and LibPcap
@@ -80,6 +80,8 @@ chmod 755 Scripts/Linux_Install.Systemd.sh
 chmod 755 Scripts/Linux_Install.SysV.sh
 chmod 755 Scripts/Linux_Uninstall.Systemd.sh
 chmod 755 Scripts/Linux_Uninstall.SysV.sh
+chmod 755 Scripts/Update_Routing.sh
+chmod 755 Scripts/Update_WhiteList.sh
 cp ExampleConfig/PcapDNSProxyService Release/PcapDNSProxyService
 cp ExampleConfig/Pcap_DNSProxy.service Release/Pcap_DNSProxy.service
 cp ExampleConfig/Config.ini Release/Config.conf

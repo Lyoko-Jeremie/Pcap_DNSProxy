@@ -1,4 +1,28 @@
-﻿Pcap_DNSProxy v0.4.5.1 更新日志(2016-01-15)：
+﻿Pcap_DNSProxy v0.4.5.2 更新日志(2016-02-06)：
+
+* 添加抓包模块对 Virtual Bridged LAN/IEEE 802.1Q 标签的支持
+* 添加 Update_WhiteList 工具，可自动更新白名单域名列表 [dgeibi]
+* 添加 Update_Routing 工具的自动更新脚本 (Linux/Mac)
+* 通过外部命令清除程序内部 DNS 缓存的过程，现在将能无延迟地立即完成
+* Visual Studio 更新到 2015 (Windows)
+* 修复使用 Win10Pcap 时抓包模块不能工作的问题 (Windows) [smounives]
+* 修复程序内部 DNS 缓存被错误自动清除的问题 (Linux/Mac)
+* 修复 Update_Routing 工具在 ICMP/ICMPv6 协议被屏蔽的网络下不能工作的问题 (Windows) [w48325832/wongsyrone]
+* 文件校验码
+  * SHA-1:
+    * Windows/Pcap_DNSProxy.exe -> 45814D1E4C43695E543DDB43F32BC7826F966B3E
+    * Windows/Pcap_DNSProxy_x86.exe -> 8BBC64A5C59C305910DA05E9AA49CC6175D18225
+    * Mac/Pcap_DNSProxy -> 2120D739A56F400C196E08D941C6D31B04D17737
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe -> 096469F331F873A88905CD06AAC26895986177688DCD9AEED2B8BD2A2E1D2B1E
+    * Windows/Pcap_DNSProxy_x86.exe -> FFAA1E403D1C2275B6108F1B641FAA4E8195FF6EB8F8DE8A04C029B69B76AB5A
+    * Mac/Pcap_DNSProxy -> 3DBA9AC155D8A9B9E3F9863AC0B632C1B96A8534125CB7927AE9E09FCD85AAE7
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy v0.4.5.1 更新日志(2016-01-15)：
 
 * 为 FileHash 工具添加 Hash 算法支持
   * CRC family: CRC-8 family + CRC-16 family + CRC-24 family + CRC-32 family + CRC-40 + CRC-64 family
@@ -32,7 +56,7 @@ Pcap_DNSProxy v0.4.5.0 更新日志(2015-12-30)：
   * 支持 SHA-1
   * 支持 SHA-2(224/256)
   * 支持 SHA-3(224/256/384/512/SHAKE_128/SHAKE_256)
-* LibSodium 库更新到 1.0.8
+* LibSodium 库更新到 1.0.8 (Windows/Mac)
 * 修复多次启动程序时可能造成的崩溃问题 (Windows)
 * 修复控制台输出内容混叠的问题 (Windows)
 * 文件校验码
@@ -58,7 +82,7 @@ Pcap_DNSProxy v0.4.4.1-0.4.4.6 更新日志(2015-12-14)：
 * 添加 --lib-version 参数，可输出程序现正使用的库的版本号信息
 * EDNS Client Subnet 参数现在更名为 EDNS Client Subnet Relay 并修改了此参数的含义 [XIAOSpider97]
 * 增进 DNSCurve 部分的安全性
-* LibSodium 库更新到 1.0.7
+* LibSodium 库更新到 1.0.7 (Windows/Mac)
 * 升级项目文件到 Xcode 7.1 (Mac)
 * 调整 GCC 最低版本要求为 4.9 (Linux)
 * 调整二进制版本最低系统要求为 10.8/Mountain Lion (Mac)

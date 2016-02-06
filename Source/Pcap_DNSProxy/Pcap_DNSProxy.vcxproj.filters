@@ -60,10 +60,10 @@
     <ClInclude Include="Proxy.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
+    <ClInclude Include="Service.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Service.h">
+    <ClInclude Include="resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

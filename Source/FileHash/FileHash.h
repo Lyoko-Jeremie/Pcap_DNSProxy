@@ -179,10 +179,10 @@
 #include <cerrno>                  //Error report
 #include <cstdio>                  //File Input/Output
 #include <cstdlib>                 //Several general purpose functions
-#include <cstring>                 //String support(C-style)
+#include <cstring>                 //String support
 #include <cwchar>                  //Wide-Character Support
 #include <memory>                  //Manage dynamic memory support
-#include <string>                  //String support(C++)
+#include <string>                  //String support(STL)
 
 #if defined(ENABLE_LIBSODIUM)
 #if defined(PLATFORM_WIN)
@@ -249,7 +249,7 @@
 #endif
 
 //Version definitions
-#define FULL_VERSION                 L"0.4.5.1"
+#define FULL_VERSION                 L"0.4.5.2"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2016 Chengr28"
 
 //Command definitions

@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pcap_DNSProxy", "Pcap_DNSProxy\Pcap_DNSProxy.vcxproj", "{8D356960-E7A7-4CEC-84A2-1C809C88EA21}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pcap_DNSProxy", "Pcap_DNSProxy\Pcap_DNSProxy.vcxproj", "{F6AC471A-EEF2-421E-AD39-8D986DE25828}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{97AD0D36-4528-4ABD-B21E-06E0DCDA92C5}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{0F3135F9-937B-4EAF-ADAE-02E6EABEA29F}"
 	ProjectSection(SolutionItems) = preProject
 		Documents\Changelog(zh_Hans).txt = Documents\Changelog(zh_Hans).txt
 		Documents\Changelog(zh_Hant).txt = Documents\Changelog(zh_Hant).txt
@@ -21,14 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{
 		Documents\ReadMe_Mac(zh_Hant).txt = Documents\ReadMe_Mac(zh_Hant).txt
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KeyPairGenerator", "KeyPairGenerator\KeyPairGenerator.vcxproj", "{5BD752F7-F135-4867-8B77-E1681C93DE81}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Project", "Project", "{7B74D909-1D8B-4D70-BD0E-10D576F5F693}"
-	ProjectSection(SolutionItems) = preProject
-		CMakeLists.txt = CMakeLists.txt
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleConfig", "ExampleConfig", "{4CCC745B-54F4-4925-BE0A-448D06B8B9DF}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleConfig", "ExampleConfig", "{7F8E5388-EBE2-4A4D-8048-D70D2D2FB041}"
 	ProjectSection(SolutionItems) = preProject
 		ExampleConfig\Config.ini = ExampleConfig\Config.ini
 		ExampleConfig\Hosts.ini = ExampleConfig\Hosts.ini
@@ -41,7 +34,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleConfig", "ExampleCon
 		ExampleConfig\WhiteList.txt = ExampleConfig\WhiteList.txt
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{AA4DFF19-3110-4D12-9F7E-875685C5A53F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{C15CA632-B0E8-4BBD-9C04-77EB5C12DEB4}"
 	ProjectSection(SolutionItems) = preProject
 		Scripts\Linux_Build.sh = Scripts\Linux_Build.sh
 		Scripts\Linux_Install.Systemd.sh = Scripts\Linux_Install.Systemd.sh
@@ -50,11 +43,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{AA4D
 		Scripts\Linux_Uninstall.SysV.sh = Scripts\Linux_Uninstall.SysV.sh
 		Scripts\Mac_Install.sh = Scripts\Mac_Install.sh
 		Scripts\Mac_Uninstall.sh = Scripts\Mac_Uninstall.sh
+		Scripts\Update_Routing.sh = Scripts\Update_Routing.sh
+		Scripts\Update_WhiteList.sh = Scripts\Update_WhiteList.sh
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependency", "Dependency", "{C3D7207E-6A2E-4A14-BC19-6DB3129E9DFB}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependency", "Dependency", "{254408D8-24CB-482F-B2AE-4758A3EA2371}"
+	ProjectSection(SolutionItems) = preProject
+		CMakeLists.txt = CMakeLists.txt
+	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WinPcap", "WinPcap", "{AC5C8C8A-D2E1-4272-A004-2A01197E1813}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WinPcap", "WinPcap", "{06A83F93-6D11-4B90-87F7-E177FAC61DA2}"
 	ProjectSection(SolutionItems) = preProject
 		Pcap_DNSProxy\WinPcap\bittypes.h = Pcap_DNSProxy\WinPcap\bittypes.h
 		Pcap_DNSProxy\WinPcap\ip6_misc.h = Pcap_DNSProxy\WinPcap\ip6_misc.h
@@ -73,7 +71,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WinPcap", "WinPcap", "{AC5C
 		Pcap_DNSProxy\WinPcap\WPCAP_x86.lib = Pcap_DNSProxy\WinPcap\WPCAP_x86.lib
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pcap", "pcap", "{C2AEF9B8-C38E-4A3B-88EA-FE6BE31A4725}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pcap", "pcap", "{8D200A0A-3183-448D-99E2-AA60240DF8F2}"
 	ProjectSection(SolutionItems) = preProject
 		Pcap_DNSProxy\WinPcap\pcap\bluetooth.h = Pcap_DNSProxy\WinPcap\pcap\bluetooth.h
 		Pcap_DNSProxy\WinPcap\pcap\bpf.h = Pcap_DNSProxy\WinPcap\pcap\bpf.h
@@ -84,7 +82,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pcap", "pcap", "{C2AEF9B8-C
 		Pcap_DNSProxy\WinPcap\pcap\vlan.h = Pcap_DNSProxy\WinPcap\pcap\vlan.h
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibSodium", "LibSodium", "{E6551F81-C510-48D5-916B-7B0397F944BA}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibSodium", "LibSodium", "{27F93781-349C-4F8B-A747-F4CDBD25A2E1}"
 	ProjectSection(SolutionItems) = preProject
 		LibSodium\core.h = LibSodium\core.h
 		LibSodium\crypto_aead_aes256gcm.h = LibSodium\crypto_aead_aes256gcm.h
@@ -133,6 +131,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibSodium", "LibSodium", "{
 		LibSodium\crypto_verify_32.h = LibSodium\crypto_verify_32.h
 		LibSodium\crypto_verify_64.h = LibSodium\crypto_verify_64.h
 		LibSodium\export.h = LibSodium\export.h
+		LibSodium\LibSodium_Mac.a = LibSodium\LibSodium_Mac.a
 		LibSodium\LibSodium_x64.lib = LibSodium\LibSodium_x64.lib
 		LibSodium\LibSodium_x86.lib = LibSodium\LibSodium_x86.lib
 		LibSodium\randombytes.h = LibSodium\randombytes.h
@@ -145,63 +144,75 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibSodium", "LibSodium", "{
 		LibSodium\version.h = LibSodium\version.h
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FileHash", "FileHash\FileHash.vcxproj", "{F0517FC0-0AB8-4B99-B06F-8AD4B5819918}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KeyPairGenerator", "KeyPairGenerator\KeyPairGenerator.vcxproj", "{22B8A8BC-F680-43AE-9F28-220AB074FC81}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SHA3", "SHA3", "{B74DEE84-086C-49BC-AC7C-A20EF644CF27}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FileHash", "FileHash\FileHash.vcxproj", "{B90896D8-7474-4BD8-8DDE-CD5BAC8E8300}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{CDAF609A-380B-4249-8908-E3793C946269}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Support", "Support", "{E974E3BA-A363-4EC3-8D17-067624A8D965}"
 	ProjectSection(SolutionItems) = preProject
-		FileHash\SHA3\brg_endian.h = FileHash\SHA3\brg_endian.h
-		FileHash\SHA3\KeccakF-1600-interface.h = FileHash\SHA3\KeccakF-1600-interface.h
-		FileHash\SHA3\KeccakHash.h = FileHash\SHA3\KeccakHash.h
-		FileHash\SHA3\KeccakSponge.h = FileHash\SHA3\KeccakSponge.h
-		FileHash\SHA3\SnP-FBWL-default.h = FileHash\SHA3\SnP-FBWL-default.h
-		FileHash\SHA3\SnP-interface.h = FileHash\SHA3\SnP-interface.h
-		FileHash\SHA3\SnP-Relaned.h = FileHash\SHA3\SnP-Relaned.h
-		FileHash\SHA3\SnP.h = FileHash\SHA3\SnP.h
+		Tools\Support\CCase.exe = Tools\Support\CCase.exe
+		Tools\Support\curl.exe = Tools\Support\curl.exe
+		Tools\Support\md5.exe = Tools\Support\md5.exe
+		Tools\Support\sed.exe = Tools\Support\sed.exe
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_Routing", "Update_Routing", "{68FAFA9D-B0B7-4A46-BEC7-B20F9C9DE65E}"
+	ProjectSection(SolutionItems) = preProject
+		Tools\Update_Routing\Log_Lib = Tools\Update_Routing\Log_Lib
+		Tools\Update_Routing\Update.bat = Tools\Update_Routing\Update.bat
+		Tools\Update_Routing\Update_Big5.bat = Tools\Update_Routing\Update_Big5.bat
+		Tools\Update_Routing\Update_GB2312.bat = Tools\Update_Routing\Update_GB2312.bat
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_WhiteList", "Update_WhiteList", "{91DE296F-6766-4648-8B75-EFF51995DA4F}"
+	ProjectSection(SolutionItems) = preProject
+		Tools\Update_WhiteList\Update_WhiteList.bat = Tools\Update_WhiteList\Update_WhiteList.bat
 	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Win32 = Debug|Win32
 		Debug|x64 = Debug|x64
-		Release|Win32 = Release|Win32
+		Debug|x86 = Debug|x86
 		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8D356960-E7A7-4CEC-84A2-1C809C88EA21}.Debug|Win32.ActiveCfg = Debug|Win32
-		{8D356960-E7A7-4CEC-84A2-1C809C88EA21}.Debug|Win32.Build.0 = Debug|Win32
-		{8D356960-E7A7-4CEC-84A2-1C809C88EA21}.Debug|x64.ActiveCfg = Debug|x64
-		{8D356960-E7A7-4CEC-84A2-1C809C88EA21}.Debug|x64.Build.0 = Debug|x64
-		{8D356960-E7A7-4CEC-84A2-1C809C88EA21}.Release|Win32.ActiveCfg = Release|Win32
-		{8D356960-E7A7-4CEC-84A2-1C809C88EA21}.Release|Win32.Build.0 = Release|Win32
-		{8D356960-E7A7-4CEC-84A2-1C809C88EA21}.Release|x64.ActiveCfg = Release|x64
-		{8D356960-E7A7-4CEC-84A2-1C809C88EA21}.Release|x64.Build.0 = Release|x64
-		{5BD752F7-F135-4867-8B77-E1681C93DE81}.Debug|Win32.ActiveCfg = Debug|Win32
-		{5BD752F7-F135-4867-8B77-E1681C93DE81}.Debug|Win32.Build.0 = Debug|Win32
-		{5BD752F7-F135-4867-8B77-E1681C93DE81}.Debug|x64.ActiveCfg = Debug|x64
-		{5BD752F7-F135-4867-8B77-E1681C93DE81}.Debug|x64.Build.0 = Debug|x64
-		{5BD752F7-F135-4867-8B77-E1681C93DE81}.Release|Win32.ActiveCfg = Release|Win32
-		{5BD752F7-F135-4867-8B77-E1681C93DE81}.Release|Win32.Build.0 = Release|Win32
-		{5BD752F7-F135-4867-8B77-E1681C93DE81}.Release|x64.ActiveCfg = Release|x64
-		{5BD752F7-F135-4867-8B77-E1681C93DE81}.Release|x64.Build.0 = Release|x64
-		{F0517FC0-0AB8-4B99-B06F-8AD4B5819918}.Debug|Win32.ActiveCfg = Debug|Win32
-		{F0517FC0-0AB8-4B99-B06F-8AD4B5819918}.Debug|Win32.Build.0 = Debug|Win32
-		{F0517FC0-0AB8-4B99-B06F-8AD4B5819918}.Debug|x64.ActiveCfg = Debug|x64
-		{F0517FC0-0AB8-4B99-B06F-8AD4B5819918}.Debug|x64.Build.0 = Debug|x64
-		{F0517FC0-0AB8-4B99-B06F-8AD4B5819918}.Release|Win32.ActiveCfg = Release|Win32
-		{F0517FC0-0AB8-4B99-B06F-8AD4B5819918}.Release|Win32.Build.0 = Release|Win32
-		{F0517FC0-0AB8-4B99-B06F-8AD4B5819918}.Release|x64.ActiveCfg = Release|x64
-		{F0517FC0-0AB8-4B99-B06F-8AD4B5819918}.Release|x64.Build.0 = Release|x64
+		{F6AC471A-EEF2-421E-AD39-8D986DE25828}.Debug|x64.ActiveCfg = Debug|x64
+		{F6AC471A-EEF2-421E-AD39-8D986DE25828}.Debug|x64.Build.0 = Debug|x64
+		{F6AC471A-EEF2-421E-AD39-8D986DE25828}.Debug|x86.ActiveCfg = Debug|Win32
+		{F6AC471A-EEF2-421E-AD39-8D986DE25828}.Debug|x86.Build.0 = Debug|Win32
+		{F6AC471A-EEF2-421E-AD39-8D986DE25828}.Release|x64.ActiveCfg = Release|x64
+		{F6AC471A-EEF2-421E-AD39-8D986DE25828}.Release|x64.Build.0 = Release|x64
+		{F6AC471A-EEF2-421E-AD39-8D986DE25828}.Release|x86.ActiveCfg = Release|Win32
+		{F6AC471A-EEF2-421E-AD39-8D986DE25828}.Release|x86.Build.0 = Release|Win32
+		{22B8A8BC-F680-43AE-9F28-220AB074FC81}.Debug|x64.ActiveCfg = Debug|x64
+		{22B8A8BC-F680-43AE-9F28-220AB074FC81}.Debug|x64.Build.0 = Debug|x64
+		{22B8A8BC-F680-43AE-9F28-220AB074FC81}.Debug|x86.ActiveCfg = Debug|Win32
+		{22B8A8BC-F680-43AE-9F28-220AB074FC81}.Debug|x86.Build.0 = Debug|Win32
+		{22B8A8BC-F680-43AE-9F28-220AB074FC81}.Release|x64.ActiveCfg = Release|x64
+		{22B8A8BC-F680-43AE-9F28-220AB074FC81}.Release|x64.Build.0 = Release|x64
+		{22B8A8BC-F680-43AE-9F28-220AB074FC81}.Release|x86.ActiveCfg = Release|Win32
+		{22B8A8BC-F680-43AE-9F28-220AB074FC81}.Release|x86.Build.0 = Release|Win32
+		{B90896D8-7474-4BD8-8DDE-CD5BAC8E8300}.Debug|x64.ActiveCfg = Debug|x64
+		{B90896D8-7474-4BD8-8DDE-CD5BAC8E8300}.Debug|x64.Build.0 = Debug|x64
+		{B90896D8-7474-4BD8-8DDE-CD5BAC8E8300}.Debug|x86.ActiveCfg = Debug|Win32
+		{B90896D8-7474-4BD8-8DDE-CD5BAC8E8300}.Debug|x86.Build.0 = Debug|Win32
+		{B90896D8-7474-4BD8-8DDE-CD5BAC8E8300}.Release|x64.ActiveCfg = Release|x64
+		{B90896D8-7474-4BD8-8DDE-CD5BAC8E8300}.Release|x64.Build.0 = Release|x64
+		{B90896D8-7474-4BD8-8DDE-CD5BAC8E8300}.Release|x86.ActiveCfg = Release|Win32
+		{B90896D8-7474-4BD8-8DDE-CD5BAC8E8300}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{97AD0D36-4528-4ABD-B21E-06E0DCDA92C5} = {7B74D909-1D8B-4D70-BD0E-10D576F5F693}
-		{4CCC745B-54F4-4925-BE0A-448D06B8B9DF} = {7B74D909-1D8B-4D70-BD0E-10D576F5F693}
-		{AA4DFF19-3110-4D12-9F7E-875685C5A53F} = {7B74D909-1D8B-4D70-BD0E-10D576F5F693}
-		{AC5C8C8A-D2E1-4272-A004-2A01197E1813} = {C3D7207E-6A2E-4A14-BC19-6DB3129E9DFB}
-		{C2AEF9B8-C38E-4A3B-88EA-FE6BE31A4725} = {AC5C8C8A-D2E1-4272-A004-2A01197E1813}
-		{E6551F81-C510-48D5-916B-7B0397F944BA} = {C3D7207E-6A2E-4A14-BC19-6DB3129E9DFB}
-		{B74DEE84-086C-49BC-AC7C-A20EF644CF27} = {C3D7207E-6A2E-4A14-BC19-6DB3129E9DFB}
+		{06A83F93-6D11-4B90-87F7-E177FAC61DA2} = {254408D8-24CB-482F-B2AE-4758A3EA2371}
+		{8D200A0A-3183-448D-99E2-AA60240DF8F2} = {06A83F93-6D11-4B90-87F7-E177FAC61DA2}
+		{27F93781-349C-4F8B-A747-F4CDBD25A2E1} = {254408D8-24CB-482F-B2AE-4758A3EA2371}
+		{E974E3BA-A363-4EC3-8D17-067624A8D965} = {CDAF609A-380B-4249-8908-E3793C946269}
+		{68FAFA9D-B0B7-4A46-BEC7-B20F9C9DE65E} = {CDAF609A-380B-4249-8908-E3793C946269}
+		{91DE296F-6766-4648-8B75-EFF51995DA4F} = {CDAF609A-380B-4249-8908-E3793C946269}
 	EndGlobalSection
 EndGlobal

@@ -5,3 +5,4 @@ Source/ExampleConfig/IPFilter.ini eol=crlf
 Source/ExampleConfig/Routing.txt eol=crlf
 Source/ExampleConfig/ServiceControl.bat eol=crlf
 Source/ExampleConfig/WhiteList.txt eol=crlf
+Source/Tools/* eol=crlf

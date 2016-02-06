@@ -56,8 +56,8 @@ void __fastcall CaptureInit(
 		{
 			if (IsErrorFirstPrint)
 				IsErrorFirstPrint = false;
-			else 
-				PrintError(LOG_ERROR_PCAP, L"Insufficient privileges or not any available network devices", 0, nullptr, 0);
+			else //There are no any error codes to be reported in LOG_ERROR_PCAP.
+				PrintError(LOG_ERROR_PCAP, L"Insufficient privileges or not any available network devices.", 0, nullptr, 0);
 
 			Sleep(LOOP_INTERVAL_TIME_MONITOR);
 			continue;
@@ -362,7 +362,8 @@ DevicesNotSkip:
 
 //Open device
 #if defined(PLATFORM_WIN)
-	if ((DeviceHandle = pcap_open(pDrive->name, LARGE_PACKET_MAXSIZE, PCAP_OPENFLAG_NOCAPTURE_LOCAL, (int)Parameter.PcapReadingTimeout, nullptr, Buffer.get())) == nullptr)
+//	if ((DeviceHandle = pcap_open(pDrive->name, LARGE_PACKET_MAXSIZE, PCAP_OPENFLAG_NOCAPTURE_LOCAL, (int)Parameter.PcapReadingTimeout, nullptr, Buffer.get())) == nullptr)
+	if ((DeviceHandle = pcap_open(pDrive->name, LARGE_PACKET_MAXSIZE, 0, (int)Parameter.PcapReadingTimeout, nullptr, Buffer.get())) == nullptr)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if ((DeviceHandle = pcap_open_live(pDrive->name, LARGE_PACKET_MAXSIZE, 0, (int)Parameter.PcapReadingTimeout, Buffer.get())) == nullptr)
 #endif
@@ -486,14 +487,16 @@ void CaptureHandler(
 {
 //Initialization
 	auto ParamList = (PCAPTURE_HANDLER_PARAM)Param;
+	size_t Length = PacketHeader->caplen;
+	uint16_t Protocol = 0;
 	memset(ParamList->Buffer, 0, LARGE_PACKET_MAXSIZE + sizeof(uint16_t));
 
+/* Old version(2016-01-30)
 //PPP(Such as ADSL, a part of organization networks)
 	if (ParamList->DeviceType == DLT_EN10MB && ((peth_hdr)PacketData)->Type == htons(OSI_L2_PPPS) && PacketHeader->caplen > sizeof(eth_hdr) + sizeof(ppp_hdr) || //PPP over Ethernet II
 		ParamList->DeviceType == DLT_APPLE_IP_OVER_IEEE1394 && ((pieee_1394_hdr)PacketData)->Type == htons(OSI_L2_PPPS) && PacketHeader->caplen > sizeof(ieee_1394_hdr) + sizeof(ppp_hdr)) //PPP over Apple IEEE 1394
 	{
 	//Check header length.
-		size_t HeaderLength = 0;
 		if (ParamList->DeviceType == DLT_EN10MB)
 			HeaderLength += sizeof(eth_hdr);
 		else if (ParamList->DeviceType == DLT_APPLE_IP_OVER_IEEE1394)
@@ -540,6 +543,63 @@ void CaptureHandler(
 			CaptureNetworkLayer(ParamList->Buffer, PacketHeader->caplen - sizeof(ieee_1394_hdr), ParamList->BufferSize, ntohs(((pieee_1394_hdr)PacketData)->Type));
 		}
 	}
+*/
+
+//OSI Layer 2
+	if (ParamList->DeviceType == DLT_EN10MB) //Ethernet II
+	{
+	//Length check and copy data to buffer.
+		if (Length <= sizeof(eth_hdr))
+			return;
+		memcpy_s(ParamList->Buffer, LARGE_PACKET_MAXSIZE, PacketData + sizeof(eth_hdr), Length - sizeof(eth_hdr));
+		Protocol = ((peth_hdr)PacketData)->Type;
+		Length -= sizeof(eth_hdr);
+	}
+	else if (ParamList->DeviceType == DLT_APPLE_IP_OVER_IEEE1394) //Apple IEEE 1394
+	{
+	//Length check and copy data to buffer.
+		if (Length <= sizeof(ieee_1394_hdr))
+			return;
+		memcpy_s(ParamList->Buffer, LARGE_PACKET_MAXSIZE, PacketData + sizeof(ieee_1394_hdr), Length - sizeof(ieee_1394_hdr));
+		Protocol = ((pieee_1394_hdr)PacketData)->Type;
+		Length -= sizeof(ieee_1394_hdr);
+	}
+	else {
+		return;
+	}
+
+//Virtual Bridged LAN(VLAN, IEEE 802.1Q)
+	if (Protocol == htons(OSI_L2_VLAN))
+	{
+		if (Length > sizeof(ieee_8021q_hdr))
+		{
+			Protocol = ((pieee_8021q_hdr)ParamList->Buffer)->Type;
+			memmove_s(ParamList->Buffer, LARGE_PACKET_MAXSIZE, ParamList->Buffer + sizeof(ieee_8021q_hdr), Length - sizeof(ieee_8021q_hdr));
+			Length -= sizeof(ieee_8021q_hdr);
+		}
+		else {
+			return;
+		}
+	}
+
+//PPP(Such as ADSL, a part of organization networks)
+	if (Protocol == htons(OSI_L2_PPPS))
+	{
+		if (Length > sizeof(ppp_hdr))
+		{
+			Protocol = ((pppp_hdr)ParamList->Buffer)->Protocol;
+			memmove_s(ParamList->Buffer, LARGE_PACKET_MAXSIZE, ParamList->Buffer + sizeof(ppp_hdr), Length - sizeof(ppp_hdr));
+			Length -= sizeof(ppp_hdr);
+		}
+		else {
+			return;
+		}
+	}
+
+//LAN, WLAN and IEEE 802.1X, some Mobile Communications Standard/MCS drives which disguise as a LAN
+	if ((Protocol == htons(OSI_L2_IPV6) || Protocol == htons(PPP_IPV6)) && Length > sizeof(ipv6_hdr) || //IPv6
+		(Protocol == htons(OSI_L2_IPV4) || Protocol == htons(PPP_IPV4)) && Length > sizeof(ipv4_hdr)) //IPv4
+			CaptureNetworkLayer(ParamList->Buffer, Length, ParamList->BufferSize, Protocol);
 
 	return;
 }
@@ -707,8 +767,8 @@ bool __fastcall CaptureNetworkLayer(
 			if (IPv4_Header->IHL > IPV4_STANDARD_IHL || IPv4_Header->ID == 0)
 				PacketSource->HopLimitData.TTL = IPv4_Header->TTL;
 
-		//TOS and Flags should not be set.
-			if (IPv4_Header->TOS > 0 || IPv4_Header->Flags > 0)
+		//ECN and DCSP(TOS bits) and Flags should not be set.
+			if (IPv4_Header->ECN_DSCP > 0 || IPv4_Header->Flags > 0)
 				return false;
 		}
 

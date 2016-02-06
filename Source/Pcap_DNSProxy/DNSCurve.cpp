@@ -760,7 +760,7 @@ SSIZE_T DNSCurvePacketDecryption(
 
 //Responses check
 	DataLength = CheckResponseData(
-		REQUEST_PROCESS_DNSCURVE,
+		REQUEST_PROCESS_DNSCURVE, 
 		OriginalRecv, 
 		DataLength, 
 		RecvSize, 
