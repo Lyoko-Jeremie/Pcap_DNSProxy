@@ -25,8 +25,8 @@ extern GLOBAL_STATUS GlobalRunningStatus;
 
 //Check empty buffer
 bool __fastcall CheckEmptyBuffer(
-	_In_opt_ const void *Buffer, 
-	_In_ const size_t Length)
+	const void *Buffer, 
+	const size_t Length)
 {
 //Null pointer
 	if (Buffer == nullptr)
@@ -44,7 +44,7 @@ bool __fastcall CheckEmptyBuffer(
 
 //Convert host values to network byte order with 16 bits(Force)
 uint16_t __fastcall hton16_Force(
-	_In_ const uint16_t Value)
+	const uint16_t Value)
 {
 	return (uint16_t)(((uint8_t *)&Value)[0] << 8U | ((uint8_t *)&Value)[1U]);
 }
@@ -60,7 +60,7 @@ uint16_t __fastcall ntoh16_Force(
 
 //Convert host values to network byte order with 32 bits(Force)
 uint32_t __fastcall hton32_Force(
-	_In_ const uint32_t Value)
+	const uint32_t Value)
 {
 	return (uint32_t)(((uint8_t *)&Value)[0] << 24U | ((uint8_t *)&Value)[1U] << 16U | ((uint8_t *)&Value)[2U] << 8U | ((uint8_t *)&Value)[3U]);
 }
@@ -76,7 +76,7 @@ uint32_t __fastcall ntoh32_Force(
 
 //Convert host values to network byte order with 64 bits
 uint64_t __fastcall hton64(
-	_In_ const uint64_t Value)
+	const uint64_t Value)
 {
 #if BYTE_ORDER == LITTLE_ENDIAN
 	return (((uint64_t)htonl((int32_t)((Value << (sizeof(uint32_t) * BYTES_TO_BITS)) >> (sizeof(uint32_t) * BYTES_TO_BITS)))) << (sizeof(uint32_t) * BYTES_TO_BITS)) | (uint32_t)htonl((int32_t)(Value >> (sizeof(uint32_t) * BYTES_TO_BITS)));
@@ -99,9 +99,9 @@ uint64_t __fastcall ntoh64(const uint64_t Value)
 
 //Convert multiple bytes to wide char string
 bool __fastcall MBSToWCSString(
-	_In_opt_ const char *Buffer, 
-	_In_ const size_t MaxLen, 
-	_Out_ std::wstring &Target)
+	const char *Buffer, 
+	const size_t MaxLen, 
+	std::wstring &Target)
 {
 //Check buffer.
 	Target.clear();
@@ -133,9 +133,9 @@ bool __fastcall MBSToWCSString(
 
 //Convert lowercase/uppercase words to uppercase/lowercase words(C-Style version)
 void __fastcall CaseConvert(
-	_In_ const bool IsLowerToUpper, 
-	_Inout_ char *Buffer, 
-	_In_ const size_t Length)
+	const bool IsLowerToUpper, 
+	char *Buffer, 
+	const size_t Length)
 {
 	for (size_t Index = 0;Index < Length;++Index)
 	{
@@ -152,8 +152,8 @@ void __fastcall CaseConvert(
 
 //Convert lowercase/uppercase words to uppercase/lowercase words(C++ string version)
 void __fastcall CaseConvert(
-	_In_ const bool IsLowerToUpper, 
-	_Inout_opt_ std::string &Buffer)
+	const bool IsLowerToUpper, 
+	std::string &Buffer)
 {
 	for (auto &StringIter:Buffer)
 	{
@@ -170,16 +170,16 @@ void __fastcall CaseConvert(
 
 //Sort compare(IPFilter)
 bool __fastcall SortCompare_IPFilter(
-	_In_ const DIFFERNET_FILE_SET_IPFILTER &Begin, 
-	_In_ const DIFFERNET_FILE_SET_IPFILTER &End)
+	const DIFFERNET_FILE_SET_IPFILTER &Begin, 
+	const DIFFERNET_FILE_SET_IPFILTER &End)
 {
 	return Begin.FileIndex < End.FileIndex;
 }
 
 //Sort compare(Hosts)
 bool __fastcall SortCompare_Hosts(
-	_In_ const DIFFERNET_FILE_SET_HOSTS &Begin, 
-	_In_ const DIFFERNET_FILE_SET_HOSTS &End)
+	const DIFFERNET_FILE_SET_HOSTS &Begin, 
+	const DIFFERNET_FILE_SET_HOSTS &End)
 {
 	return Begin.FileIndex < End.FileIndex;
 }
@@ -187,10 +187,10 @@ bool __fastcall SortCompare_Hosts(
 //Base64 encode or decode is from https://github.com/zhicheng/base64.
 //Base64 encode
 size_t __fastcall Base64_Encode(
-	_In_ uint8_t *Input, 
-	_In_ const size_t Length, 
-	_Out_ char *Output, 
-	_In_ const size_t OutputSize)
+	uint8_t *Input, 
+	const size_t Length, 
+	char *Output, 
+	const size_t OutputSize)
 {
 //Initialization
 	memset(Output, 0, OutputSize);
@@ -242,10 +242,10 @@ size_t __fastcall Base64_Encode(
 
 /* Base64 decode
 size_t __fastcall Base64_Decode(
-	_In_ char *Input, 
-	_In_ const size_t Length, 
-	_Out_ uint8_t *Output, 
-	_In_ const size_t OutputSize)
+	char *Input, 
+	const size_t Length, 
+	uint8_t *Output, 
+	const size_t OutputSize)
 {
 //Initialization
 	memset(Output, 0, OutputSize);
@@ -338,7 +338,7 @@ BOOL WINAPI IsGreaterThanVista(
 
 //Try to load library to get pointers of functions
 BOOL WINAPI GetFunctionPointer(
-	_In_ const size_t FunctionType)
+	const size_t FunctionType)
 {
 //GetTickCount64() function
 	if (FunctionType == FUNCTION_GETTICKCOUNT64)

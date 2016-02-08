@@ -137,16 +137,16 @@ UDP ASSOCIATE mode:
 
 //Proxy non-blocking mode selecting
 SSIZE_T __fastcall ProxySocketSelecting(
-	_In_ SYSTEM_SOCKET Socket, 
-	_In_ fd_set *ReadFDS, 
-	_In_ fd_set *WriteFDS, 
-	_In_ timeval *Timeout, 
-	_In_opt_ const char *SendBuffer, 
-	_In_ const size_t SendSize, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize, 
-	_In_ const size_t MinLen, 
-	_Out_opt_ SSIZE_T *ErrorCode)
+	SYSTEM_SOCKET Socket, 
+	fd_set *ReadFDS, 
+	fd_set *WriteFDS, 
+	timeval *Timeout, 
+	const char *SendBuffer, 
+	const size_t SendSize, 
+	char *OriginalRecv, 
+	const size_t RecvSize, 
+	const size_t MinLen, 
+	SSIZE_T *ErrorCode)
 {
 //Initialization
 	SSIZE_T RecvLen = 0, SelectResult = 0;
@@ -212,13 +212,13 @@ SSIZE_T __fastcall ProxySocketSelecting(
 
 //SOCKS selection exchange process
 bool __fastcall SOCKSSelectionExchange(
-	_In_ SOCKET_DATA *SOCKSSocketData, 
-	_In_ fd_set *ReadFDS, 
-	_In_ fd_set *WriteFDS, 
-	_In_ timeval *Timeout, 
-	_Inout_ char *SendBuffer, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize)
+	SOCKET_DATA *SOCKSSocketData, 
+	fd_set *ReadFDS, 
+	fd_set *WriteFDS, 
+	timeval *Timeout, 
+	char *SendBuffer, 
+	char *OriginalRecv, 
+	const size_t RecvSize)
 {
 //Initialization
 	size_t Length = 0;
@@ -321,13 +321,13 @@ bool __fastcall SOCKSSelectionExchange(
 
 //SOCKS username/password authentication process
 bool __fastcall SOCKSAuthenticationUsernamePassword(
-	_In_ SYSTEM_SOCKET Socket, 
-	_In_ fd_set *ReadFDS, 
-	_In_ fd_set *WriteFDS, 
-	_In_ timeval *Timeout, 
-	_Inout_ char *SendBuffer, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize)
+	SYSTEM_SOCKET Socket, 
+	fd_set *ReadFDS, 
+	fd_set *WriteFDS, 
+	timeval *Timeout, 
+	char *SendBuffer, 
+	char *OriginalRecv, 
+	const size_t RecvSize)
 {
 //Initialization
 	size_t Length = sizeof(uint8_t) * 2U;
@@ -366,15 +366,15 @@ bool __fastcall SOCKSAuthenticationUsernamePassword(
 
 //SOCKS client command request process
 bool __fastcall SOCKSClientCommandRequest(
-	_In_ const uint16_t Protocol, 
-	_In_ SYSTEM_SOCKET Socket, 
-	_In_ fd_set *ReadFDS, 
-	_In_ fd_set *WriteFDS, 
-	_In_ timeval *Timeout, 
-	_Inout_ char *SendBuffer, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize, 
-	_In_opt_ SOCKET_DATA *UDP_ASSOCIATE_TCP_Connecting_Address)
+	const uint16_t Protocol, 
+	SYSTEM_SOCKET Socket, 
+	fd_set *ReadFDS, 
+	fd_set *WriteFDS, 
+	timeval *Timeout, 
+	char *SendBuffer, 
+	char *OriginalRecv, 
+	const size_t RecvSize, 
+	SOCKET_DATA *UDP_ASSOCIATE_TCP_Connecting_Address)
 {
 //Initialization
 	size_t Length = 0;
@@ -577,10 +577,10 @@ bool __fastcall SOCKSClientCommandRequest(
 
 //Transmission and reception of SOCKS protocol(TCP)
 size_t __fastcall SOCKSTCPRequest(
-	_In_ const char *OriginalSend, 
-	_In_ const size_t SendSize, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize)
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	char *OriginalRecv, 
+	const size_t RecvSize)
 {
 //Initialization
 	std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
@@ -721,10 +721,10 @@ size_t __fastcall SOCKSTCPRequest(
 
 //Transmission and reception of SOCKS protocol(UDP)
 size_t __fastcall SOCKSUDPRequest(
-	_In_ const char *OriginalSend, 
-	_In_ const size_t SendSize, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize)
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	char *OriginalRecv, 
+	const size_t RecvSize)
 {
 //Initialization
 	std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
@@ -1045,10 +1045,10 @@ size_t __fastcall SOCKSUDPRequest(
 
 //Transmission and reception of HTTP protocol
 size_t __fastcall HTTPRequest(
-	_In_ const char *OriginalSend, 
-	_In_ const size_t SendSize, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize)
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	char *OriginalRecv, 
+	const size_t RecvSize)
 {
 //Initialization
 	auto HTTPSocketData = std::make_shared<SOCKET_DATA>();
@@ -1172,12 +1172,12 @@ size_t __fastcall HTTPRequest(
 
 //HTTP CONNECT request exchange process
 bool __fastcall HTTP_CONNECTRequest(
-	_In_ SOCKET_DATA *HTTPSocketData, 
-	_In_ fd_set *ReadFDS, 
-	_In_ fd_set *WriteFDS, 
-	_In_ timeval *Timeout, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize)
+	SOCKET_DATA *HTTPSocketData, 
+	fd_set *ReadFDS, 
+	fd_set *WriteFDS, 
+	timeval *Timeout, 
+	char *OriginalRecv, 
+	const size_t RecvSize)
 {
 //Initialization
 	memset(OriginalRecv, 0, RecvSize);

@@ -23,9 +23,9 @@
 //Read commands(SHA-3)
 bool __fastcall ReadCommand_SHA3(
 #if defined(PLATFORM_WIN)
-	_In_ std::wstring &Command)
+	std::wstring &Command)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	_In_ std::string &Command)
+	std::string &Command)
 #endif
 {
 //Hash function check
@@ -127,7 +127,7 @@ bool __fastcall ReadCommand_SHA3(
 
 //SHA-3 hash function
 bool __fastcall SHA3_Hash(
-	_In_ FILE *Input)
+	FILE *Input)
 {
 //Parameters check
 	if (HashFamilyID != HASH_ID_SHA3 || Input == nullptr)

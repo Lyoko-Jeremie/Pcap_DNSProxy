@@ -68,23 +68,23 @@ extern size_t HashFamilyID;
 
 //Functions
 void __fastcall MD5_Init(
-	_Inout_ MD5_CTX *context);
+	MD5_CTX *context);
 void __fastcall MD5_Update(
-	_Inout_ MD5_CTX *context, 
-	_In_ uint8_t *input, 
-	_In_ unsigned int inputlen);
+	MD5_CTX *context, 
+	uint8_t *input, 
+	unsigned int inputlen);
 void __fastcall MD5_Final(
-	_Inout_ MD5_CTX *context, 
-	_Inout_ uint8_t digest[MD5_SIZE_DIGEST]);
+	MD5_CTX *context, 
+	uint8_t digest[MD5_SIZE_DIGEST]);
 void __fastcall MD5_Transform(
-	_Inout_ unsigned int state[4U], 
-	_Inout_ uint8_t block[MD5_SIZE_BLOCK]);
+	unsigned int state[4U], 
+	uint8_t block[MD5_SIZE_BLOCK]);
 void __fastcall MD5_Encode(
-	_Out_ uint8_t *output, 
-	_In_ unsigned int *input, 
-	_In_ unsigned int len);
+	uint8_t *output, 
+	unsigned int *input, 
+	unsigned int len);
 void __fastcall MD5_Decode(
-	_Out_ unsigned int *output, 
-	_In_ uint8_t *input, 
-	_In_ unsigned int len);
+	unsigned int *output, 
+	uint8_t *input, 
+	unsigned int len);
 #endif

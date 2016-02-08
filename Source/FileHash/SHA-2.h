@@ -118,51 +118,51 @@ size_t SHA2_HashFunctionID = DEFAULT_HASH_FUNCTION_ID;
 
 //Functions
 static void __fastcall SHA2_256_LongReverse(
-	_Inout_ SHA_INT32 *buffer, 
-	_In_ int byteCount, 
-	_In_ int Endianness);
+	SHA_INT32 *buffer, 
+	int byteCount, 
+	int Endianness);
 /*
 static void __fastcall SHA2_256_Copy(
-	_In_ SHA2_256_Object *src, 
-	_Out_ SHA2_256_Object *dest);
+	SHA2_256_Object *src, 
+	SHA2_256_Object *dest);
 */
 static void __fastcall SHA2_256_Transform(
-	_Inout_ SHA2_256_Object *sha_info);
+	SHA2_256_Object *sha_info);
 static void __fastcall SHA2_256_Init(
-	_Inout_ SHA2_256_Object *sha_info);
+	SHA2_256_Object *sha_info);
 static void __fastcall SHA2_224_Init(
-	_Inout_ SHA2_256_Object *sha_info);
+	SHA2_256_Object *sha_info);
 static void __fastcall SHA2_256_Update(
-	_Inout_ SHA2_256_Object *sha_info, 
-	_Inout_ SHA2_256_BYTE *buffer, 
-	_In_ int count);
+	SHA2_256_Object *sha_info, 
+	SHA2_256_BYTE *buffer, 
+	int count);
 static void __fastcall SHA2_256_Final(
-	_Out_ uint8_t digest[SHA2_256_SIZE_DIGEST], 
-	_Inout_ SHA2_256_Object *sha_info);
+	uint8_t digest[SHA2_256_SIZE_DIGEST], 
+	SHA2_256_Object *sha_info);
 static void __fastcall SHA2_512_LongReverse(
-	_Inout_ SHA_INT64 *buffer, 
-	_In_ int byteCount, 
-	_In_ int Endianness);
+	SHA_INT64 *buffer, 
+	int byteCount, 
+	int Endianness);
 /*
 static void __fastcall SHA2_512_Copy(
-	_In_ SHA2_512_Object *src, 
-	_Out_ SHA2_512_Object *dest);
+	SHA2_512_Object *src, 
+	SHA2_512_Object *dest);
 */
 static void __fastcall SHA2_512_Transform(
-	_Inout_ SHA2_512_Object *sha_info);
+	SHA2_512_Object *sha_info);
 static void __fastcall SHA2_512_Init(
-	_Inout_ SHA2_512_Object *sha_info);
+	SHA2_512_Object *sha_info);
 static void __fastcall SHA2_384_Init(
-	_Inout_ SHA2_512_Object *sha_info);
+	SHA2_512_Object *sha_info);
 static void __fastcall SHA2_512_256_Init(
-	_Inout_ SHA2_512_Object *sha_info);
+	SHA2_512_Object *sha_info);
 static void __fastcall SHA2_512_224_Init(
-	_Inout_ SHA2_512_Object *sha_info);
+	SHA2_512_Object *sha_info);
 static void __fastcall SHA2_512_Update(
-	_Inout_ SHA2_512_Object *sha_info, 
-	_Inout_ SHA2_512_BYTE *buffer, 
-	_In_ int count);
+	SHA2_512_Object *sha_info, 
+	SHA2_512_BYTE *buffer, 
+	int count);
 static void __fastcall SHA2_512_Final(
-	_Out_ uint8_t digest[SHA2_512_SIZE_DIGEST], 
-	_Inout_ SHA2_512_Object *sha_info);
+	uint8_t digest[SHA2_512_SIZE_DIGEST], 
+	SHA2_512_Object *sha_info);
 #endif

@@ -70,15 +70,15 @@ extern size_t HashFamilyID;
 
 //Functions
 static void __fastcall SHA1_Compress(
-	_Inout_ SHA1_State *sha1, 
-	_Inout_ uint8_t *buf);
+	SHA1_State *sha1, 
+	uint8_t *buf);
 void __fastcall SHA1_Init(
-	_Inout_ SHA1_State *sha1);
+	SHA1_State *sha1);
 void __fastcall SHA1_Process(
-	_Inout_ SHA1_State *sha1, 
-	_In_ const uint8_t *in, 
-	_In_ unsigned long inlen);
+	SHA1_State *sha1, 
+	const uint8_t *in, 
+	unsigned long inlen);
 void __fastcall SHA1_Done(
-	_Inout_ SHA1_State *sha1, 
-	_Out_ uint8_t *out);
+	SHA1_State *sha1, 
+	uint8_t *out);
 #endif

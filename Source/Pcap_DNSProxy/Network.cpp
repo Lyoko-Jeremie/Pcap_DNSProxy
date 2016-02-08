@@ -21,9 +21,9 @@
 
 //Socket option settings
 bool __fastcall SocketSetting(
-	_In_ const SYSTEM_SOCKET Socket, 
-	_In_ const size_t SettingType, 
-	_In_opt_ void *DataPointer)
+	const SYSTEM_SOCKET Socket, 
+	const size_t SettingType, 
+	void *DataPointer)
 {
 	switch (SettingType)
 	{
@@ -186,12 +186,12 @@ bool __fastcall SocketSetting(
 
 //Connect to server(TCP) or socket connecting(UDP)
 size_t __fastcall SocketConnecting(
-	_In_ const uint16_t Protocol, 
-	_In_ const SYSTEM_SOCKET Socket, 
-	_In_ const PSOCKADDR SockAddr, 
-	_In_ const socklen_t AddrLen, 
-	_In_opt_ const char *OriginalSend, 
-	_In_ const size_t SendSize)
+	const uint16_t Protocol, 
+	const SYSTEM_SOCKET Socket, 
+	const PSOCKADDR SockAddr, 
+	const socklen_t AddrLen, 
+	const char *OriginalSend, 
+	const size_t SendSize)
 {
 //TCP connecting
 	if (Protocol == IPPROTO_TCP)
@@ -251,14 +251,14 @@ size_t __fastcall SocketConnecting(
 
 //Non-blocking mode selecting
 SSIZE_T __fastcall SocketSelecting(
-	_In_ const size_t RequestType, 
-	_In_ const uint16_t Protocol, 
-	_In_ std::vector<SOCKET_DATA> &SocketDataList, 
-	_In_ const char *OriginalSend, 
-	_In_ const size_t SendSize, 
-	_Out_opt_ char *OriginalRecv, 
-	_In_ const size_t RecvSize, 
-	_Out_opt_ SSIZE_T *ErrorCode)
+	const size_t RequestType, 
+	const uint16_t Protocol, 
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	char *OriginalRecv, 
+	const size_t RecvSize, 
+	SSIZE_T *ErrorCode)
 {
 //Initialization(Part 1)
 	std::vector<SOCKET_SELECTING_DATA> SocketSelectingList(SocketDataList.size());
@@ -440,14 +440,14 @@ SSIZE_T __fastcall SocketSelecting(
 				{
 					if (send(SocketDataList.at(Index).Socket, OriginalSend, (int)SendSize, 0) == SOCKET_ERROR)
 					{
-						*ErrorCode = WSAGetLastError();
+						SSIZE_T InnerErrorCode = WSAGetLastError();
 
 					#if defined(PLATFORM_WIN)
-						if (*ErrorCode != WSAEWOULDBLOCK)
+						if (InnerErrorCode != WSAEWOULDBLOCK)
 					#elif defined(PLATFORM_LINUX)
-						if (*ErrorCode != EAGAIN && *ErrorCode != EINPROGRESS)
+						if (InnerErrorCode != EAGAIN && InnerErrorCode != EINPROGRESS)
 					#elif defined(PLATFORM_MACX)
-						if (*ErrorCode != EWOULDBLOCK && *ErrorCode != EAGAIN && *ErrorCode != EINPROGRESS)
+						if (InnerErrorCode != EWOULDBLOCK && InnerErrorCode != EAGAIN && InnerErrorCode != EINPROGRESS)
 					#endif
 						{
 							shutdown(SocketDataList.at(Index).Socket, SD_BOTH);
@@ -458,8 +458,6 @@ SSIZE_T __fastcall SocketSelecting(
 							SocketSelectingList.at(Index).RecvBuffer.reset();
 							SocketSelectingList.at(Index).Length = 0;
 						}
-
-						*ErrorCode = 0;
 					}
 					else {
 						SocketSelectingList.at(Index).PacketIsSend = true;
@@ -515,12 +513,12 @@ SSIZE_T __fastcall SocketSelecting(
 
 //Socket selecting result
 SSIZE_T __fastcall SelectingResult(
-	_In_ const size_t RequestType, 
-	_In_ const uint16_t Protocol, 
-	_Inout_ std::vector<SOCKET_DATA> &SocketDataList, 
-	_Inout_ std::vector<SOCKET_SELECTING_DATA> &SocketSelectingList, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize)
+	const size_t RequestType, 
+	const uint16_t Protocol, 
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingList, 
+	char *OriginalRecv, 
+	const size_t RecvSize)
 {
 	SSIZE_T RecvLen = 0;
 
@@ -597,9 +595,9 @@ SSIZE_T __fastcall SelectingResult(
 #if defined(ENABLE_PCAP)
 //Mark socket information to global list
 void __fastcall MarkPortToList(
-	_In_ const uint16_t Protocol, 
-	_In_opt_ const SOCKET_DATA *LocalSocketData, 
-	_In_ std::vector<SOCKET_DATA> &SocketDataList)
+	const uint16_t Protocol, 
+	const SOCKET_DATA *LocalSocketData, 
+	std::vector<SOCKET_DATA> &SocketDataList)
 {
 	if (LocalSocketData != nullptr && Protocol > 0)
 	{
@@ -787,7 +785,7 @@ void __fastcall MarkPortToList(
 #if defined(ENABLE_PCAP)
 //Get TTL(IPv4)/Hop Limits(IPv6) with normal DNS request
 bool __fastcall DomainTestRequest(
-	_In_ const uint16_t Protocol)
+	const uint16_t Protocol)
 {
 //Initialization
 	std::shared_ptr<char> Buffer(new char[PACKET_MAXSIZE]()), DNSQuery(new char[PACKET_MAXSIZE]());
@@ -939,7 +937,7 @@ bool __fastcall DomainTestRequest(
 
 //Internet Control Message Protocol(version 6)/ICMP(v6) Echo(Ping) request
 bool __fastcall ICMPTestRequest(
-	_In_ const uint16_t Protocol)
+	const uint16_t Protocol)
 {
 //Initialization
 	size_t Length = 0;
@@ -1270,11 +1268,11 @@ bool __fastcall ICMPTestRequest(
 
 //Select socket data of DNS target(Independent)
 bool __fastcall SelectTargetSocket(
-	_In_ const size_t RequestType, 
-	_Out_ SOCKET_DATA *TargetSocketData, 
-	_Outptr_opt_ bool **IsAlternate, 
-	_Outptr_opt_ size_t **AlternateTimeoutTimes, 
-	_In_ const uint16_t Protocol)
+	const size_t RequestType, 
+	SOCKET_DATA *TargetSocketData, 
+	bool **IsAlternate, 
+	size_t **AlternateTimeoutTimes, 
+	const uint16_t Protocol)
 {
 //Socket initialization
 	uint16_t SocketType = 0;
@@ -1447,8 +1445,8 @@ bool __fastcall SelectTargetSocket(
 
 //Select socket data of DNS target(Multithreading)
 bool __fastcall SelectTargetSocketMulti(
-	_Inout_ std::vector<SOCKET_DATA> &TargetSocketDataList, 
-	_In_ const uint16_t Protocol)
+	std::vector<SOCKET_DATA> &TargetSocketDataList, 
+	const uint16_t Protocol)
 {
 //Initialization
 	auto TargetSocketData = std::make_shared<SOCKET_DATA>();
@@ -1644,11 +1642,11 @@ bool __fastcall SelectTargetSocketMulti(
 
 //Transmission and reception of TCP protocol(Independent)
 size_t __fastcall TCPRequest(
-	_In_ const size_t RequestType, 
-	_In_ const char *OriginalSend, 
-	_In_ const size_t SendSize, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize)
+	const size_t RequestType, 
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	char *OriginalRecv, 
+	const size_t RecvSize)
 {
 //Initialization
 	std::vector<SOCKET_DATA> TCPSocketDataList(1U);
@@ -1688,11 +1686,11 @@ size_t __fastcall TCPRequest(
 
 //Transmission and reception of TCP protocol(Multithreading)
 size_t __fastcall TCPRequestMulti(
-	_In_ const size_t RequestType, 
-	_In_ const char *OriginalSend, 
-	_In_ const size_t SendSize, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize)
+	const size_t RequestType, 
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	char *OriginalRecv, 
+	const size_t RecvSize)
 {
 //Initialization
 	memset(OriginalRecv, 0, RecvSize);
@@ -1725,10 +1723,10 @@ size_t __fastcall TCPRequestMulti(
 //Transmission of UDP protocol
 #if defined(ENABLE_PCAP)
 size_t __fastcall UDPRequest(
-	_In_ const char *OriginalSend, 
-	_In_ const size_t SendSize, 
-	_In_ const SOCKET_DATA *LocalSocketData, 
-	_In_ const uint16_t Protocol)
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	const SOCKET_DATA *LocalSocketData, 
+	const uint16_t Protocol)
 {
 //Initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
@@ -1769,10 +1767,10 @@ size_t __fastcall UDPRequest(
 
 //Transmission of UDP protocol(Multithreading)
 size_t __fastcall UDPRequestMulti(
-	_In_ const char *OriginalSend, 
-	_In_ const size_t SendSize, 
-	_In_opt_ const SOCKET_DATA *LocalSocketData, 
-	_In_ const uint16_t Protocol)
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	const SOCKET_DATA *LocalSocketData, 
+	const uint16_t Protocol)
 {
 //Socket initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList;
@@ -1800,11 +1798,11 @@ size_t __fastcall UDPRequestMulti(
 
 //Complete transmission of UDP protocol
 size_t __fastcall UDPCompleteRequest(
-	_In_ const size_t RequestType, 
-	_In_ const char *OriginalSend, 
-	_In_ const size_t SendSize, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize)
+	const size_t RequestType, 
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	char *OriginalRecv, 
+	const size_t RecvSize)
 {
 //Initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
@@ -1837,11 +1835,11 @@ size_t __fastcall UDPCompleteRequest(
 
 //Complete transmission of UDP protocol(Multithreading)
 size_t __fastcall UDPCompleteRequestMulti(
-	_In_ const size_t RequestType, 
-	_In_ const char *OriginalSend, 
-	_In_ const size_t SendSize, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize)
+	const size_t RequestType, 
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	char *OriginalRecv, 
+	const size_t RecvSize)
 {
 //Initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList;

@@ -22,8 +22,8 @@
 #if defined(ENABLE_LIBSODIUM)
 //Check empty buffer
 bool __fastcall CheckEmptyBuffer(
-	_In_opt_ const void *Buffer, 
-	_In_ const size_t Length)
+	const void *Buffer, 
+	const size_t Length)
 {
 //Null pointer
 	if (Buffer == nullptr)
@@ -41,7 +41,7 @@ bool __fastcall CheckEmptyBuffer(
 
 //Convert host values to network byte order with 64 bits
 uint64_t __fastcall hton64(
-	_In_ const uint64_t Value)
+	const uint64_t Value)
 {
 #if BYTE_ORDER == LITTLE_ENDIAN
 	return (((uint64_t)htonl((int32_t)((Value << (sizeof(uint32_t) * BYTES_TO_BITS)) >> (sizeof(uint32_t) * BYTES_TO_BITS)))) << (sizeof(uint32_t) * BYTES_TO_BITS)) | (uint32_t)htonl((int32_t)(Value >> (sizeof(uint32_t) * BYTES_TO_BITS)));
@@ -64,9 +64,9 @@ uint64_t __fastcall ntoh64(const uint64_t Value)
 
 //Convert multiple bytes to wide char string
 bool __fastcall MBSToWCSString(
-	_In_opt_ const char *Buffer, 
-	_In_ const size_t MaxLen, 
-	_Out_ std::wstring &Target)
+	const char *Buffer, 
+	const size_t MaxLen, 
+	std::wstring &Target)
 {
 //Check buffer.
 	Target.clear();
@@ -99,8 +99,8 @@ bool __fastcall MBSToWCSString(
 #if defined(PLATFORM_WIN)
 //Convert lowercase/uppercase words to uppercase/lowercase words(C++ wide string version)
 void __fastcall CaseConvert(
-	_In_ const bool IsLowerToUpper, 
-	_Inout_opt_ std::wstring &Buffer)
+	const bool IsLowerToUpper, 
+	std::wstring &Buffer)
 {
 	for (auto &StringIter:Buffer)
 	{
@@ -118,8 +118,8 @@ void __fastcall CaseConvert(
 
 //Convert lowercase/uppercase words to uppercase/lowercase words(C++ string version)
 void __fastcall CaseConvert(
-	_In_ const bool IsLowerToUpper, 
-	_Inout_opt_ std::string &Buffer)
+	const bool IsLowerToUpper, 
+	std::string &Buffer)
 {
 	for (auto &StringIter:Buffer)
 	{

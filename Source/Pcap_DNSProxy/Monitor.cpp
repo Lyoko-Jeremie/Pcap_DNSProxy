@@ -436,8 +436,8 @@ bool __fastcall MonitorInit(
 
 //Local DNS server with UDP protocol
 bool __fastcall UDPMonitor(
-	_In_ const SOCKET_DATA LocalSocketData, 
-	_Out_ bool *Result)
+	const SOCKET_DATA LocalSocketData, 
+	bool *Result)
 {
 //Block UDP RESET message, socket timeout, reusing and non-blocking mode setting 
 	if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TIMEOUT, &Parameter.SocketTimeout_Unreliable)
@@ -592,8 +592,8 @@ bool __fastcall UDPMonitor(
 
 //Local DNS server with TCP protocol
 bool __fastcall TCPMonitor(
-	_In_ const SOCKET_DATA LocalSocketData, 
-	_Out_ bool *Result)
+	const SOCKET_DATA LocalSocketData, 
+	bool *Result)
 {
 //Socket timeout, reusing, TCP Fast Open and non-blocking mode setting
 	if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TIMEOUT, &Parameter.SocketTimeout_Reliable)
@@ -754,7 +754,7 @@ bool __fastcall TCPMonitor(
 
 //TCP Monitor receive process
 bool __fastcall TCPReceiveProcess(
-	_In_ const SOCKET_DATA LocalSocketData)
+	const SOCKET_DATA LocalSocketData)
 {
 //Initialization(Part 1)
 	std::shared_ptr<char> RecvBuffer(new char[LARGE_PACKET_MAXSIZE]());
@@ -965,8 +965,8 @@ void __fastcall AlternateServerMonitor(
 //Get local address list
 #if defined(PLATFORM_WIN)
 addrinfo * __fastcall GetLocalAddressList(
-	_In_ const uint16_t Protocol, 
-	_Out_ char *HostName)
+	const uint16_t Protocol, 
+	char *HostName)
 {
 //Initialization
 	auto Hints = std::make_shared<addrinfo>();
@@ -1070,7 +1070,7 @@ bool GetBestInterfaceAddress(
 
 //Get gateway information
 void __fastcall GetGatewayInformation(
-	_In_ const uint16_t Protocol)
+	const uint16_t Protocol)
 {
 //IPv6
 	if (Protocol == AF_INET6)

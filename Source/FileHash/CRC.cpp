@@ -187,9 +187,9 @@ const uint8_t CRC8_Table_Darc[] =
 
 //CRC-8 update process
 uint8_t __fastcall CRC8_Update(
-	_In_ const size_t TableType, 
-	_In_ const uint8_t CRC, 
-	_In_ const uint8_t Buffer)
+	const size_t TableType, 
+	const uint8_t CRC, 
+	const uint8_t Buffer)
 {
 	uint8_t *TablePointer = nullptr;
 	switch (TableType)
@@ -234,6 +234,10 @@ uint8_t __fastcall CRC8_Update(
 		{
 			TablePointer = (uint8_t *)CRC8_Table_Darc;
 		}break;
+		default:
+		{
+			return 0;
+		}
 	};
 
 	return *(TablePointer + (CRC ^ Buffer));
@@ -241,7 +245,7 @@ uint8_t __fastcall CRC8_Update(
 
 //CRC-8 initialization process
 uint8_t __fastcall CRC8_Init(
-	_In_ const size_t TableType)
+	const size_t TableType)
 {
 	switch (TableType)
 	{
@@ -264,10 +268,10 @@ uint8_t __fastcall CRC8_Init(
 
 //CRC-8 calculate process
 uint8_t __fastcall CRC8_Calculate(
-	_Inout_ uint8_t CRC, 
-	_In_ const size_t TableType, 
-	_In_ uint8_t *Buffer, 
-	_In_ const size_t Length)
+	uint8_t CRC, 
+	const size_t TableType, 
+	uint8_t *Buffer, 
+	const size_t Length)
 {
 	for (size_t Index = 0;Index < Length;++Index)
 		CRC = CRC8_Update(TableType, CRC, *Buffer++);
@@ -277,8 +281,8 @@ uint8_t __fastcall CRC8_Calculate(
 
 //Finish CRC-8 process
 uint8_t __fastcall CRC8_Final(
-	_In_ const uint8_t CRC, 
-	_In_ const size_t TableType)
+	const uint8_t CRC, 
+	const size_t TableType)
 {
 	switch (TableType)
 	{
@@ -635,9 +639,9 @@ const uint16_t CRC16_Table_Teledisk[] =
 
 //CRC-16 common routines for calculations
 uint16_t __fastcall CRC16_Update_Normal(
-	_In_ const uint16_t *Table, 
-	_In_ uint16_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint16_t *Table, 
+	uint16_t CRC, 
+	const uint8_t Buffer)
 {
 	uint16_t short_c = 0;
 	short_c = 0x00ff & (uint16_t)Buffer;
@@ -647,9 +651,9 @@ uint16_t __fastcall CRC16_Update_Normal(
 }
 
 uint16_t __fastcall CRC16_Update_Reflected(
-	_In_ const uint16_t *Table, 
-	_In_ uint16_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint16_t *Table, 
+	uint16_t CRC, 
+	const uint8_t Buffer)
 {
 	uint16_t short_c = 0;
 	short_c = 0x00FF & (uint16_t)Buffer;
@@ -660,72 +664,72 @@ uint16_t __fastcall CRC16_Update_Reflected(
 
 //CRC-16 update process
 uint16_t __fastcall CRC16_Update_8005(
-	_In_ const uint16_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint16_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC16_Update_Normal(CRC16_Table_8005_Normal, CRC, Buffer);
 }
 
 uint16_t __fastcall CRC16_Update_A001(
-	_In_ const uint16_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint16_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC16_Update_Reflected(CRC16_Table_8005_Reflected, CRC, Buffer);
 }
 
 uint16_t __fastcall CRC16_Update_1021(
-	_In_ const uint16_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint16_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC16_Update_Normal(CRC16_Table_1021_Normal, CRC, Buffer);
 }
 
 uint16_t __fastcall CRC16_Update_8408(
-	_In_ const uint16_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint16_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC16_Update_Reflected(CRC16_Table_1021_Reflected, CRC, Buffer);
 }
 
 uint16_t __fastcall CRC16_Update_3D65(
-	_In_ const uint16_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint16_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC16_Update_Normal(CRC16_Table_3D65_Normal, CRC, Buffer);
 }
 
 uint16_t __fastcall CRC16_Update_DNP(
-	_In_ const uint16_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint16_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC16_Update_Reflected(CRC16_Table_3D65_Reflected, CRC, Buffer);
 }
 
 uint16_t __fastcall CRC16_Update_T10_DIF(
-	_In_ const uint16_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint16_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC16_Update_Normal(CRC16_Table_T10_DIF, CRC, Buffer);
 }
 
 uint16_t __fastcall CRC16_Update_0589(
-	_In_ const uint16_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint16_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC16_Update_Normal(CRC16_Table_DECT, CRC, Buffer);
 }
 
 uint16_t __fastcall CRC16_Update_Teledisk(
-	_In_ const uint16_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint16_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC16_Update_Normal(CRC16_Table_Teledisk, CRC, Buffer);
 }
 
 uint16_t __fastcall CRC16_Update_Sick(
-	_In_ uint16_t CRC, 
-	_In_ const uint8_t Buffer, 
-	_In_ const uint8_t PrevByte)
+	uint16_t CRC, 
+	const uint8_t Buffer, 
+	const uint8_t PrevByte)
 {
 	uint16_t short_c = 0x00FF & (uint16_t)Buffer, short_p = (0x00FF & (uint16_t)PrevByte) << 8U;
 	if (CRC & 0x8000)
@@ -740,7 +744,7 @@ uint16_t __fastcall CRC16_Update_Sick(
 
 //CRC-16 initialization process
 uint16_t __fastcall CRC16_Init(
-	_In_ const size_t TableType)
+	const size_t TableType)
 {
 	switch (TableType)
 	{
@@ -787,12 +791,12 @@ uint16_t __fastcall CRC16_Init(
 
 //CRC-16 calculate process
 uint16_t __fastcall CRC16_Calculate(
-	_Inout_ uint16_t CRC, 
-	_Inout_ uint8_t *ParameterA, 
-	_Inout_ uint8_t *ParameterB, 
-	_In_ const size_t TableType, 
-	_In_ uint8_t *Buffer, 
-	_In_ const size_t Length)
+	uint16_t CRC, 
+	uint8_t *ParameterA, 
+	uint8_t *ParameterB, 
+	const size_t TableType, 
+	uint8_t *Buffer, 
+	const size_t Length)
 {
 	for (size_t Index = 0;Index < Length;++Index)
 	{
@@ -852,10 +856,10 @@ uint16_t __fastcall CRC16_Calculate(
 
 //Finish CRC-16 process
 uint16_t __fastcall CRC16_Final(
-	_In_ const uint16_t CRC, 
-	_In_ uint8_t *ParameterA, 
-	_In_ uint8_t *ParameterB, 
-	_In_ const size_t TableType)
+	const uint16_t CRC, 
+	uint8_t *ParameterA, 
+	uint8_t *ParameterB, 
+	const size_t TableType)
 {
 	switch (TableType)
 	{
@@ -985,9 +989,9 @@ const uint32_t CRC24_Table_R64[] =
 
 //CRC-24 update process
 uint32_t __fastcall CRC24_Update(
-	_In_ const size_t TableType, 
-	_In_ const uint32_t CRC, 
-	_In_ const char c)
+	const size_t TableType, 
+	const uint32_t CRC, 
+	const char c)
 {
 	uint32_t long_c = 0x000000FFL & (uint32_t)c;
 	if (TableType == HASH_ID_CRC_24_FLEXRAY_A || TableType == HASH_ID_CRC_24_FLEXRAY_B)
@@ -1000,7 +1004,7 @@ uint32_t __fastcall CRC24_Update(
 
 //CRC-24 initialization process
 uint32_t __fastcall CRC24_Init(
-	_In_ const size_t TableType)
+	const size_t TableType)
 {
 	switch (TableType)
 	{
@@ -1023,10 +1027,10 @@ uint32_t __fastcall CRC24_Init(
 
 //CRC-24 calculate process
 uint32_t __fastcall CRC24_Calculate(
-	_Inout_ uint32_t CRC, 
-	_In_ const size_t TableType, 
-	_In_ uint8_t *Buffer, 
-	_In_ const size_t Length)
+	uint32_t CRC, 
+	const size_t TableType, 
+	uint8_t *Buffer, 
+	const size_t Length)
 {
 	for (size_t Index = 0; Index < Length; ++Index)
 		CRC = CRC24_Update(TableType, CRC, *Buffer++);
@@ -1302,75 +1306,75 @@ const uint32_t CRC32_Table_Q[] =
 
 //CRC-32 common routines for calculations
 uint32_t __fastcall CRC32_Update_Normal(
-	_In_ const uint32_t *Table, 
-	_In_ const uint32_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint32_t *Table, 
+	const uint32_t CRC, 
+	const uint8_t Buffer)
 {
 	uint32_t long_c = 0x000000FFL & (uint32_t)Buffer;
 	return (CRC << 8U) ^ Table[((CRC >> 24U) ^ long_c) & 0xFF];
 }
 
 uint32_t __fastcall CRC32_Update_Reflected(
-	_In_ const uint32_t *Table, 
-	_In_ const uint32_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint32_t *Table, 
+	const uint32_t CRC, 
+	const uint8_t Buffer)
 {
 	uint32_t long_c = 0x000000FFL & (uint32_t)Buffer;
 	return (CRC >> 8U) ^ Table[(CRC ^ long_c) & 0xFF];
 }
 
 uint32_t CRC32_Update_Refl(
-	_In_ const uint32_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint32_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC32_Update_Reflected(CRC32_Table_Reflected, CRC, Buffer);
 }
 
 uint32_t CRC32_Update_Norm(
-	_In_ const uint32_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint32_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC32_Update_Normal(CRC32_Table_Normal, CRC, Buffer);
 }
 
 uint32_t CRC32_Update_Xfer(
-	_In_ const uint32_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint32_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC32_Update_Normal(CRC32_Table_Xfer_Normal, CRC, Buffer);
 }
 
 uint32_t CRC32_Update_C(
-	_In_ const uint32_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint32_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC32_Update_Reflected(CRC32_Table_C, CRC, Buffer);
 }
 
 uint32_t CRC32_Update_D(
-	_In_ const uint32_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint32_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC32_Update_Reflected(CRC32_Table_D, CRC, Buffer);
 }
 
 uint32_t CRC32_Update_K(
-	_In_ const uint32_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint32_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC32_Update_Normal(CRC32_Table_K, CRC, Buffer);
 }
 
 uint32_t CRC32_Update_Q(
-	_In_ const uint32_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint32_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC32_Update_Normal(CRC32_Table_Q, CRC, Buffer);
 }
 
 //CRC-32 initialization process
 uint32_t __fastcall CRC32_Init(
-	_In_ const size_t TableType)
+	const size_t TableType)
 {
 	switch (TableType)
 	{
@@ -1405,10 +1409,10 @@ uint32_t __fastcall CRC32_Init(
 
 //CRC-32 calculate process
 uint32_t __fastcall CRC32_Calculate(
-	_In_ uint32_t CRC, 
-	_In_ const size_t TableType, 
-	_In_ uint8_t *Buffer, 
-	_In_ const size_t Length)
+	uint32_t CRC, 
+	const size_t TableType, 
+	uint8_t *Buffer, 
+	const size_t Length)
 {
 	for (size_t Index = 0;Index < Length;++Index)
 	{
@@ -1447,8 +1451,8 @@ uint32_t __fastcall CRC32_Calculate(
 
 //Finish CRC-32 process
 uint32_t __fastcall CRC32_Final(
-	_In_ const uint32_t CRC, 
-	_In_ const size_t TableType)
+	const uint32_t CRC, 
+	const size_t TableType)
 {
 	switch (TableType)
 	{
@@ -1554,9 +1558,9 @@ const uint64_t CRC40_Table_Normal[] =
 
 //CRC-40 calculate process
 uint64_t __fastcall CRC40_Calculate(
-	_In_ uint64_t CRC, 
-	_In_ uint8_t *Buffer, 
-	_In_ const size_t Length)
+	uint64_t CRC, 
+	uint8_t *Buffer, 
+	const size_t Length)
 {
 	uint32_t long64_c = 0;
 	for (size_t Index = 0; Index < Length; ++Index)
@@ -1787,47 +1791,47 @@ const uint64_t CRC64_Table_Jones_Reflected[] =
 
 //CRC-64 common routines for calculations
 uint64_t __fastcall CRC64_Update_Normal(
-	_In_ const uint64_t *Table, 
-	_In_ const uint64_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint64_t *Table, 
+	const uint64_t CRC, 
+	const uint8_t Buffer)
 {
 	uint64_t long64_c = 0x00000000000000FFULL & (uint64_t)Buffer;
 	return (CRC << 8U) ^ Table[((CRC >> 56U) ^ long64_c) & 0xFF];
 }
 
 uint64_t __fastcall CRC64_Update_Reflected(
-	_In_ const uint64_t *Table, 
-	_In_ const uint64_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint64_t *Table, 
+	const uint64_t CRC, 
+	const uint8_t Buffer)
 {
 	uint64_t long64_c = 0x00000000000000FFULL & (uint64_t)Buffer;
 	return (CRC >> 8U) ^ Table[(CRC ^ long64_c) & 0xFF];
 }
 
 uint64_t __fastcall CRC64_Update(
-	_In_ const uint64_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint64_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC64_Update_Normal(CRC64_Table_Normal, CRC, Buffer);
 }
 
 uint64_t __fastcall CRC64_Update_1B(
-	_In_ const uint64_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint64_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC64_Update_Reflected(CRC64_Table_1B_Reflected, CRC, Buffer);
 }
 
 uint64_t __fastcall CRC64_Update_Jones(
-	_In_ const uint64_t CRC, 
-	_In_ const uint8_t Buffer)
+	const uint64_t CRC, 
+	const uint8_t Buffer)
 {
 	return CRC64_Update_Reflected(CRC64_Table_Jones_Reflected, CRC, Buffer);
 }
 
 //CRC-64 initialization process
 uint64_t __fastcall CRC64_Init(
-	_In_ const size_t TableType)
+	const size_t TableType)
 {
 	switch (TableType)
 	{
@@ -1846,10 +1850,10 @@ uint64_t __fastcall CRC64_Init(
 
 //CRC-64 calculate process
 uint64_t __fastcall CRC64_Calculate(
-	_In_ uint64_t CRC, 
-	_In_ const size_t TableType, 
-	_In_ uint8_t *Buffer, 
-	_In_ const size_t Length)
+	uint64_t CRC, 
+	const size_t TableType, 
+	uint8_t *Buffer, 
+	const size_t Length)
 {
 	for (size_t Index = 0;Index < Length;++Index)
 	{
@@ -1872,8 +1876,8 @@ uint64_t __fastcall CRC64_Calculate(
 
 //Finish CRC-64 process
 uint64_t __fastcall CRC64_Final(
-	_In_ const uint64_t CRC, 
-	_In_ const size_t TableType)
+	const uint64_t CRC, 
+	const size_t TableType)
 {
 	switch (TableType)
 	{
@@ -1893,9 +1897,9 @@ uint64_t __fastcall CRC64_Final(
 //Read commands(CRC)
 bool __fastcall ReadCommand_CRC(
 #if defined(PLATFORM_WIN)
-	_In_ std::wstring &Command)
+	std::wstring &Command)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	_In_ std::string &Command)
+	std::string &Command)
 #endif
 {
 //Hash function check
@@ -2113,7 +2117,7 @@ bool __fastcall ReadCommand_CRC(
 
 //CRC hash process 
 bool __fastcall CRC_Hash(
-	_In_ FILE *Input)
+	FILE *Input)
 {
 //Parameters check
 	if (HashFamilyID != HASH_ID_CRC || Input == nullptr)

@@ -25,9 +25,9 @@ extern size_t HashFamilyID;
 
 //Checksum update process
 uint32_t __fastcall Checksum_Update(
-	_In_ uint32_t Checksum, 
-	_In_ const uint16_t *Buffer, 
-	_In_ const size_t Length)
+	uint32_t Checksum, 
+	const uint16_t *Buffer, 
+	const size_t Length)
 {
 	size_t InnerLength = Length;
 	while (InnerLength > 1U)
@@ -41,9 +41,9 @@ uint32_t __fastcall Checksum_Update(
 
 //Finish checksum hash process
 uint16_t __fastcall Checksum_Final(
-	_In_ uint32_t Checksum, 
-	_In_ const uint16_t *Buffer, 
-	_In_ const size_t Length)
+	uint32_t Checksum, 
+	const uint16_t *Buffer, 
+	const size_t Length)
 {
 	if (Length)
 		Checksum += *(uint8_t *)Buffer;
@@ -55,7 +55,7 @@ uint16_t __fastcall Checksum_Final(
 
 //Internet protocol checksum hash function
 bool __fastcall Checksum_Hash(
-	_In_ FILE *Input)
+	FILE *Input)
 {
 //Parameters check
 	if (HashFamilyID != HASH_ID_CHECKSUM || Input == nullptr)

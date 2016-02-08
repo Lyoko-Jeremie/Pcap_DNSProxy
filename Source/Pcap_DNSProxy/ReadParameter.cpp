@@ -21,8 +21,8 @@
 
 //Check parameter list and set default values
 bool __fastcall ParameterCheckAndSetting(
-	_In_ const bool IsFirstRead, 
-	_In_ const size_t FileIndex)
+	const bool IsFirstRead, 
+	const size_t FileIndex)
 {
 //Initialization
 	CONFIGURATION_TABLE *ParameterPTR = nullptr;
@@ -1009,7 +1009,7 @@ bool __fastcall ParameterCheckAndSetting(
 
 //Convert service name to port
 uint16_t __fastcall ServiceNameToHex(
-	_In_ const char *OriginalBuffer)
+	const char *OriginalBuffer)
 {
 	std::string Buffer(OriginalBuffer);
 	CaseConvert(true, Buffer);
@@ -1200,7 +1200,7 @@ uint16_t __fastcall ServiceNameToHex(
 
 //Convert DNS type name to hex
 uint16_t __fastcall DNSTypeNameToHex(
-	_In_ const char *OriginalBuffer)
+	const char *OriginalBuffer)
 {
 	std::string Buffer(OriginalBuffer);
 	CaseConvert(true, Buffer);
@@ -1379,11 +1379,11 @@ uint16_t __fastcall DNSTypeNameToHex(
 
 //Read parameter data from files
 bool __fastcall ReadParameterData(
-	_In_ std::string Data, 
-	_In_ const size_t FileIndex, 
-	_In_ const bool IsFirstRead, 
-	_In_ const size_t Line, 
-	_Out_opt_ bool &IsLabelComments)
+	std::string Data, 
+	const size_t FileIndex, 
+	const bool IsFirstRead, 
+	const size_t Line, 
+	bool &IsLabelComments)
 {
 //Delete delete spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs) and check minimum length of ipfilter items.
 //Delete comments(Number Sign/NS and double slashs) and check minimum length of configuration items.
@@ -2914,12 +2914,12 @@ bool __fastcall ReadParameterData(
 //Read file names from data
 #if defined(PLATFORM_WIN)
 bool __fastcall ReadPathAndFileName(
-	_In_ std::string Data, 
-	_In_ const size_t DataOffset, 
-	_In_ const bool Path, 
-	_Out_ std::vector<std::wstring> *ListData, 
-	_In_ const size_t FileIndex, 
-	_In_ const size_t Line)
+	std::string Data, 
+	const size_t DataOffset, 
+	const bool Path, 
+	std::vector<std::wstring> *ListData, 
+	const size_t FileIndex, 
+	const size_t Line)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 bool ReadPathAndFileName(
 	std::string Data, 
@@ -3063,14 +3063,14 @@ bool ReadPathAndFileName(
 
 //Read multiple addresses from data
 bool __fastcall ReadMultipleAddresses(
-	_In_ std::string Data, 
-	_In_ const size_t DataOffset, 
-	_In_ const uint16_t Protocol, 
-	_In_ const bool IsMultiAddresses, 
-	_Inout_ sockaddr_storage &SockAddr, 
-	_Inout_opt_ std::vector<sockaddr_storage> *SockAddrList, 
-	_In_ const size_t FileIndex, 
-	_In_ const size_t Line)
+	std::string Data, 
+	const size_t DataOffset, 
+	const uint16_t Protocol, 
+	const bool IsMultiAddresses, 
+	sockaddr_storage &SockAddr, 
+	std::vector<sockaddr_storage> *SockAddrList, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 //Initialization
 	auto DNSServerDataTemp = std::make_shared<DNS_SERVER_DATA>();
@@ -3211,11 +3211,11 @@ bool __fastcall ReadMultipleAddresses(
 
 //Read address or domain of SOCKS
 bool __fastcall ReadSOCKSAddressAndDomain(
-	_In_ std::string Data, 
-	_In_ const size_t DataOffset, 
-	_Inout_ CONFIGURATION_TABLE *ParameterPTR, 
-	_In_ const size_t FileIndex, 
-	_In_ const size_t Line)
+	std::string Data, 
+	const size_t DataOffset, 
+	CONFIGURATION_TABLE *ParameterPTR, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 //Data check
 	if (Data.find(ASCII_COLON) == std::string::npos)
@@ -3350,12 +3350,12 @@ bool __fastcall ReadSOCKSAddressAndDomain(
 //Read TTL or HopLimit from data
 #if defined(ENABLE_PCAP)
 bool __fastcall ReadHopLimitData(
-	_In_ std::string Data, 
-	_In_ const size_t DataOffset, 
-	_In_ const uint16_t Protocol, 
-	_Out_ uint8_t &HopLimit, 
-	_In_ const size_t FileIndex, 
-	_In_ const size_t Line)
+	std::string Data, 
+	const size_t DataOffset, 
+	const uint16_t Protocol, 
+	uint8_t &HopLimit, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 	HopLimit = 0;
 	if (Data.length() > DataOffset && Data.length() < DataOffset + ADDR_STRING_MAXSIZE)
@@ -3423,11 +3423,11 @@ bool __fastcall ReadHopLimitData(
 //Read Provider Name of DNSCurve server
 #if defined(ENABLE_LIBSODIUM)
 bool __fastcall ReadDNSCurveProviderName(
-	_In_ std::string Data, 
-	_In_ const size_t DataOffset, 
-	_Out_ char *ProviderNameData, 
-	_In_ const size_t FileIndex, 
-	_In_ const size_t Line)
+	std::string Data, 
+	const size_t DataOffset, 
+	char *ProviderNameData, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 	sodium_memzero(ProviderNameData, DOMAIN_MAXSIZE);
 	if (Data.length() > DataOffset + DOMAIN_MINSIZE && Data.length() < DataOffset + DOMAIN_DATA_MAXSIZE)
@@ -3458,11 +3458,11 @@ bool __fastcall ReadDNSCurveProviderName(
 
 //Read DNSCurve secret keys, public keys and fingerprints
 bool __fastcall ReadDNSCurveKey(
-	_In_ std::string Data, 
-	_In_ const size_t DataOffset, 
-	_Out_ uint8_t *KeyData, 
-	_In_ const size_t FileIndex, 
-	_In_ const size_t Line)
+	std::string Data, 
+	const size_t DataOffset, 
+	uint8_t *KeyData, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 	memset(KeyData, 0, crypto_box_SECRETKEYBYTES);
 
@@ -3495,11 +3495,11 @@ bool __fastcall ReadDNSCurveKey(
 
 //Read DNSCurve magic number
 bool __fastcall ReadDNSCurveMagicNumber(
-	_In_ std::string Data, 
-	_In_ const size_t DataOffset, 
-	_Out_ char *MagicNumber, 
-	_In_ const size_t FileIndex, 
-	_In_ const size_t Line)
+	std::string Data, 
+	const size_t DataOffset, 
+	char *MagicNumber, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 	memset(MagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
 

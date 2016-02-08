@@ -112,7 +112,7 @@ void __fastcall CaptureInit(
 
 //Make filter rules of captures
 void __fastcall CaptureFilterRulesInit(
-	_Out_ std::string &FilterRules)
+	std::string &FilterRules)
 {
 //Initialization(Part 1)
 	std::vector<PDNS_SERVER_DATA> AddrList;
@@ -303,8 +303,8 @@ void __fastcall CaptureFilterRulesInit(
 
 //Capture process
 bool __fastcall CaptureModule(
-	_In_ const pcap_if *pDrive, 
-	_In_ const bool IsCaptureList)
+	const pcap_if *pDrive, 
+	const bool IsCaptureList)
 {
 	std::string CaptureDevice;
 
@@ -481,9 +481,9 @@ DevicesNotSkip:
 
 //Handler of WinPcap/LibPcap loop function
 void CaptureHandler(
-	_In_ unsigned char *Param, 
-	_In_ const struct pcap_pkthdr *PacketHeader, 
-	_In_ const unsigned char *PacketData)
+	unsigned char *Param, 
+	const struct pcap_pkthdr *PacketHeader, 
+	const unsigned char *PacketData)
 {
 //Initialization
 	auto ParamList = (PCAPTURE_HANDLER_PARAM)Param;
@@ -606,10 +606,10 @@ void CaptureHandler(
 
 //Network Layer(Internet Protocol/IP) process
 bool __fastcall CaptureNetworkLayer(
-	_In_ const char *Buffer, 
-	_In_ const size_t Length, 
-	_In_ const size_t BufferSize, 
-	_In_ const uint16_t Protocol)
+	const char *Buffer, 
+	const size_t Length, 
+	const size_t BufferSize, 
+	const uint16_t Protocol)
 {
 //Initialization
 	PDNS_SERVER_DATA PacketSource = nullptr;
@@ -852,9 +852,9 @@ bool __fastcall CaptureNetworkLayer(
 
 //ICMP header options check
 bool __fastcall CaptureCheck_ICMP(
-	_In_ const char *Buffer, 
-	_In_ const size_t Length, 
-	_In_ const uint16_t Protocol)
+	const char *Buffer, 
+	const size_t Length, 
+	const uint16_t Protocol)
 {
 //ICMPv6
 	if (Protocol == AF_INET6)
@@ -878,7 +878,7 @@ bool __fastcall CaptureCheck_ICMP(
 
 //TCP header options check
 bool __fastcall CaptureCheck_TCP(
-	_In_ const char *Buffer)
+	const char *Buffer)
 {
 	if (
 	//CWR bit is set.
@@ -903,11 +903,11 @@ bool __fastcall CaptureCheck_TCP(
 
 //Match socket information of responses and send responses to system sockets process
 bool __fastcall MatchPortToSend(
-	_In_ const char *Buffer, 
-	_In_ const size_t Length, 
-	_In_ const size_t BufferSize, 
-	_In_ const uint16_t Protocol, 
-	_In_ const uint16_t Port)
+	const char *Buffer, 
+	const size_t Length, 
+	const size_t BufferSize, 
+	const uint16_t Protocol, 
+	const uint16_t Port)
 {
 //Initialization
 	auto SocketData_Input = std::make_shared<SOCKET_DATA>();

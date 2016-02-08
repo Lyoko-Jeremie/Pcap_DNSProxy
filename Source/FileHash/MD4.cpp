@@ -22,7 +22,7 @@
 #if defined(ENABLE_LIBSODIUM)
 //Initialize the hash state
 void __fastcall MD4_Init(
-	_Inout_ MD4_CTX *c)
+	MD4_CTX *c)
 {
 	memset(c, 0, sizeof(MD4_CTX));
 	c->A = INIT_DATA_A;
@@ -35,9 +35,9 @@ void __fastcall MD4_Init(
 
 //MD4 Block data order setting
 void __fastcall MD4_BlockDataOrder(
-	_Inout_ MD4_CTX *c, 
-	_In_ const void *data_, 
-	_In_ size_t num)
+	MD4_CTX *c, 
+	const void *data_, 
+	size_t num)
 {
 	const unsigned char *data = (const unsigned char *)data_;
 	register uint32_t A = 0, B = 0, C = 0, D = 0, l = 0;
@@ -117,9 +117,9 @@ void __fastcall MD4_BlockDataOrder(
 
 //Update MD4 status
 void __fastcall MD4_Update(
-	_Inout_ MD4_CTX *c, 
-	_In_ const void *data_, 
-	_In_ size_t len)
+	MD4_CTX *c, 
+	const void *data_, 
+	size_t len)
 {
 	const unsigned char *data = (const unsigned char *)data_;
 	unsigned char *p = nullptr;
@@ -173,8 +173,8 @@ void __fastcall MD4_Update(
 
 //Finish MD4 process
 void __fastcall MD4_Final(
-	_Out_ uint8_t *md, 
-	_Inout_ MD4_CTX *c)
+	uint8_t *md, 
+	MD4_CTX *c)
 {
 	unsigned char *p = (unsigned char *)c->Data;
 	size_t n = c->Num;
@@ -207,7 +207,7 @@ void __fastcall MD4_Final(
 
 //MD4 hash function
 bool __fastcall MD4_Hash(
-	_In_ FILE *Input)
+	FILE *Input)
 {
 //Parameters check
 	if ((HashFamilyID != HASH_ID_MD4 && HashFamilyID != HASH_ID_ED2K) || Input == nullptr)

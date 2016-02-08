@@ -22,7 +22,7 @@
 #if defined(ENABLE_LIBSODIUM)
 //Initialize the hash state
 void __fastcall MD2_Init(
-	_Inout_ MD2_CTX *md2)
+	MD2_CTX *md2)
 {
 	XMEMSET(md2->X, 0, MD2_X_SIZE);
 	XMEMSET(md2->C, 0, MD2_BLOCK_SIZE);
@@ -34,9 +34,9 @@ void __fastcall MD2_Init(
 
 //Update MD2 status
 void __fastcall MD2_Update(
-	_Inout_ MD2_CTX *md2, 
-	_In_ const uint8_t *data, 
-	_In_ uint32_t len)
+	MD2_CTX *md2, 
+	const uint8_t *data, 
+	uint32_t len)
 {
 	static const uint8_t S[256U] =
 	{
@@ -106,8 +106,8 @@ void __fastcall MD2_Update(
 
 //Finish hash process
 void __fastcall MD2_Final(
-	_Inout_ MD2_CTX *md2, 
-	_Out_ uint8_t *hash)
+	MD2_CTX *md2, 
+	uint8_t *hash)
 {
 	uint8_t padding[MD2_BLOCK_SIZE] = {0};
 	uint32_t padLen = MD2_PAD_SIZE - md2->Count, i = 0;
@@ -125,7 +125,7 @@ void __fastcall MD2_Final(
 
 //MD2 hash function
 bool __fastcall MD2_Hash(
-	_In_ FILE *Input)
+	FILE *Input)
 {
 //Parameters check
 	if (HashFamilyID != HASH_ID_MD2 || Input == nullptr)

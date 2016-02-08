@@ -27,8 +27,8 @@ size_t HashFamilyID = DEFAULT_HASH_ID;
 //Main function of program
 #if defined(PLATFORM_WIN)
 int wmain(
-	_In_ int argc, 
-	_In_ wchar_t* argv[])
+	int argc, 
+	wchar_t* argv[])
 {
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 int main(int argc, char *argv[])

@@ -40,10 +40,10 @@ std::mutex ScreenLock, ErrorLogLock, CaptureLock, LocalAddressLock[NETWORK_LAYER
 
 //Functions
 void __fastcall ConfigurationTableSetting(
-	_Inout_ ConfigurationTable *ConfigurationParameter);
+	ConfigurationTable *ConfigurationParameter);
 void __fastcall GlobalStatusSetting(
-	_Inout_ GlobalStatus *GlobalRunningStatusParameter);
+	GlobalStatus *GlobalRunningStatusParameter);
 #if defined(ENABLE_LIBSODIUM)
 void __fastcall DNSCurveConfigurationTableSetting(
-	_Inout_ DNSCurveConfigurationTable *DNSCurveConfigurationParameter);
+	DNSCurveConfigurationTable *DNSCurveConfigurationParameter);
 #endif

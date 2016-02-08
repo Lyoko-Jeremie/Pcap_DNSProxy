@@ -1,7 +1,7 @@
 [Local Hosts]
 ## China mainland domains
 ## Source: https://github.com/felixonmars/dnsmasq-china-list
-## Last update: 2016-02-06
+## Last update: 2016-02-07
 
 
 .*\b0-6\.com
@@ -13090,3 +13090,18 @@
 .*\bzzyjedu\.com
 .*\bzzyjs\.com
 .*\bzzyzphoto\.com
+.*\b265\.com
+.*\b2mdn\.net
+.*\bcsi\.gstatic\.com
+.*\bdl\.google\.com
+.*\bdoubleclick\.net
+.*\bfonts\.googleapis\.com
+.*\bfonts\.gstatic\.com
+.*\bgoogle-analytics\.com
+.*\bgoogleadservices\.com
+.*\bgoogleanalytics\.com
+.*\bgooglesyndication\.com
+.*\bgoogletagmanager\.com
+.*\bgoogletagservices\.com
+.*\bmediavisor\.doubleclick\.com
+.*\bredirector\.gvt1\.com

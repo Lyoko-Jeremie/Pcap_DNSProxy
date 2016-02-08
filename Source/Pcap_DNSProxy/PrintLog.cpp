@@ -21,11 +21,11 @@
 
 //Print errors to log file
 bool __fastcall PrintError(
-	_In_ const size_t ErrorType, 
-	_In_ const wchar_t *Message, 
-	_In_opt_ const SSIZE_T ErrorCode, 
-	_In_opt_ const wchar_t *FileName, 
-	_In_opt_ const size_t Line)
+	const size_t ErrorType, 
+	const wchar_t *Message, 
+	const SSIZE_T ErrorCode, 
+	const wchar_t *FileName, 
+	const size_t Line)
 {
 //Print Error: Enable/Disable, parameter check, message check and file name check
 	if (!Parameter.PrintError || //PrintError 
@@ -244,9 +244,9 @@ bool __fastcall PrintError(
 
 //Print to screen and write to file
 bool __fastcall PrintScreenAndWriteFile(
-	_In_ const std::wstring Message, 
-	_In_opt_ const SSIZE_T ErrorCode, 
-	_In_opt_ const size_t Line)
+	const std::wstring Message, 
+	const SSIZE_T ErrorCode, 
+	const size_t Line)
 {
 //Get current date and time.
 	auto TimeStructure = std::make_shared<tm>();

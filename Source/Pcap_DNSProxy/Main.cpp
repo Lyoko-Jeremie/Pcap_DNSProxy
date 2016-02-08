@@ -101,8 +101,8 @@ int main(
 //Read commands from main program
 #if defined(PLATFORM_WIN)
 bool __fastcall ReadCommand(
-	_In_ int argc, 
-	_In_ wchar_t *argv[])
+	int argc, 
+	wchar_t *argv[])
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 bool ReadCommand(
 	int argc, 
@@ -315,7 +315,7 @@ bool ReadCommand(
 //Get path of program from the main function parameter and Winsock initialization
 #if defined(PLATFORM_WIN)
 bool __fastcall FileNameInit(
-	_In_ const wchar_t *OriginalPath)
+	const wchar_t *OriginalPath)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 bool FileNameInit(
 	const char *OriginalPath)
@@ -365,7 +365,7 @@ bool FileNameInit(
 #if defined(PLATFORM_WIN)
 //Windows Firewall Test
 bool __fastcall FirewallTest(
-	_In_ const uint16_t Protocol)
+	const uint16_t Protocol)
 {
 //Initialization
 	auto SockAddr = std::make_shared<sockaddr_storage>();

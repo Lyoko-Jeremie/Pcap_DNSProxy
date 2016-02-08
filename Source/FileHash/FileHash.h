@@ -320,16 +320,6 @@
 	#define fwprintf_s                                                   fwprintf
 	#define memcpy_s(Dst, DstSize, Src, Size)                            memcpy(Dst, Src, Size)
 	#define fread_s(Dst, DstSize, ElementSize, Count, File)              fread(Dst, ElementSize, Count, File)
-
-//Microsoft source-code annotation language/SAL compatible
-	#define _In_
-	#define _Inout_
-	#define _Out_
-	#define _Outptr_
-	#define _In_opt_
-	#define _Inout_opt_
-	#define _Out_opt_
-	#define _Outptr_opt_
 #endif
 
 //Function definitions
@@ -345,70 +335,70 @@ void __fastcall PrintDescription(
 
 //Base.cpp
 bool __fastcall CheckEmptyBuffer(
-	_In_opt_ const void *Buffer, 
-	_In_ const size_t Length);
+	const void *Buffer, 
+	const size_t Length);
 uint64_t __fastcall hton64(
-	_In_ const uint64_t Value);
+	const uint64_t Value);
 bool __fastcall MBSToWCSString(
-	_In_opt_ const char *Buffer, 
-	_In_ const size_t MaxLen, 
-	_Out_ std::wstring &Target);
+	const char *Buffer, 
+	const size_t MaxLen, 
+	std::wstring &Target);
 #if defined(PLATFORM_WIN)
 void __fastcall CaseConvert(
-	_In_ const bool IsLowerToUpper, 
-	_Inout_opt_ std::wstring &Buffer);
+	const bool IsLowerToUpper, 
+	std::wstring &Buffer);
 #endif
 void __fastcall CaseConvert(
-	_In_ const bool IsLowerToUpper, 
-	_Inout_opt_ std::string &Buffer);
+	const bool IsLowerToUpper, 
+	std::string &Buffer);
 
 //Checksum.cpp
 bool __fastcall Checksum_Hash(
-	_In_ FILE *Input);
+	FILE *Input);
 
 //CRC.cpp
 bool __fastcall ReadCommand_CRC(
 #if defined(PLATFORM_WIN)
-	_In_ std::wstring &Command);
+	std::wstring &Command);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	_In_ std::string &Command);
+	std::string &Command);
 #endif
 bool __fastcall CRC_Hash(
-	_In_ FILE *Input);
+	FILE *Input);
 
 //MD2.cpp
 bool __fastcall MD2_Hash(
-	_In_ FILE *Input);
+	FILE *Input);
 
 //MD4.cpp
 bool __fastcall MD4_Hash(
-	_In_ FILE *Input);
+	FILE *Input);
 
 //MD5.cpp
 bool __fastcall MD5_Hash(
-	_In_ FILE *Input);
+	FILE *Input);
 
 //SHA-1.cpp
 bool __fastcall SHA1_Hash(
-	_In_ FILE *Input);
+	FILE *Input);
 
 //SHA-2.cpp
 bool __fastcall SHA2_Hash(
-	_In_ FILE *Input);
+	FILE *Input);
 bool __fastcall ReadCommand_SHA2(
 #if defined(PLATFORM_WIN)
-	_In_ std::wstring &Command);
+	std::wstring &Command);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	_In_ std::string &Command);
+	std::string &Command);
 #endif
 
 //SHA-3.cpp
 bool __fastcall SHA3_Hash(
-	_In_ FILE *Input);
+	FILE *Input);
 bool __fastcall ReadCommand_SHA3(
 #if defined(PLATFORM_WIN)
-	_In_ std::wstring &Command);
+	std::wstring &Command);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	_In_ std::string &Command);
+	std::string &Command);
 #endif
 #endif

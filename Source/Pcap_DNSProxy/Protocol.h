@@ -31,14 +31,14 @@ extern std::mutex IPFilterFileLock, HostsFileLock;
 
 //Functions
 size_t __fastcall CheckResponseCNAME(
-	_Inout_ char *Buffer, 
-	_In_ const size_t Length, 
-	_In_ const size_t CNAME_Index, 
-	_In_ const size_t CNAME_Length, 
-	_In_ const size_t BufferSize, 
-	_Out_ size_t &RecordNum);
+	char *Buffer, 
+	const size_t Length, 
+	const size_t CNAME_Index, 
+	const size_t CNAME_Length, 
+	const size_t BufferSize, 
+	size_t &RecordNum);
 bool __fastcall CheckDNSSECRecords(
-	_In_ const char *Buffer, 
-	_In_ const size_t Length, 
-	_In_ const uint16_t Type, 
-	_In_ const uint16_t BeforeType);
+	const char *Buffer, 
+	const size_t Length, 
+	const uint16_t Type, 
+	const uint16_t BeforeType);

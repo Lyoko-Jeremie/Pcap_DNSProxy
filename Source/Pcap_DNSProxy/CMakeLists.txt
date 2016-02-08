@@ -17,12 +17,13 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-# CMake minimum version
+# CMake minimum version and packages check
 IF(PLATFORM_OPENWRT)
 	cmake_minimum_required(VERSION 2.8.12.2)
 ELSE(PLATFORM_OPENWRT)
 	cmake_minimum_required(VERSION 3.0.2)
 ENDIF(PLATFORM_OPENWRT)
+find_package(Threads REQUIRED)
 
 # Project name and build type
 project(Pcap_DNSProxy)
@@ -98,7 +99,6 @@ IF(PLATFORM_OPENWRT)
 ENDIF(PLATFORM_OPENWRT)
 
 # Libraries linking
-find_package(Threads REQUIRED)
 target_link_libraries(Pcap_DNSProxy ${CMAKE_THREAD_LIBS_INIT})
 IF(ENABLE_PCAP)
 	target_link_libraries(Pcap_DNSProxy pcap)

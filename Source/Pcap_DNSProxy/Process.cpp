@@ -21,8 +21,8 @@
 
 //Independent request process
 bool __fastcall EnterRequestProcess(
-	_In_ DNS_PACKET_DATA Packet, 
-	_In_ const SOCKET_DATA LocalSocketData)
+	DNS_PACKET_DATA Packet, 
+	const SOCKET_DATA LocalSocketData)
 {
 //Initialization(Send buffer part)
 	std::shared_ptr<char> SendBuffer;
@@ -249,11 +249,11 @@ SkipDNSCurve:
 
 //Check white and banned hosts list
 size_t __fastcall CheckWhiteBannedHostsProcess(
-	_In_ const size_t Length, 
-	_In_ const HostsTable &HostsTableIter, 
-	_Inout_ dns_hdr *DNS_Header, 
-	_Inout_ dns_qry *DNS_Query, 
-	_Out_opt_ bool *IsLocal)
+	const size_t Length, 
+	const HostsTable &HostsTableIter, 
+	dns_hdr *DNS_Header, 
+	dns_qry *DNS_Query, 
+	bool *IsLocal)
 {
 //Whitelist Hosts
 	if (HostsTableIter.PermissionType == HOSTS_TYPE_WHITE)
@@ -343,9 +343,9 @@ size_t __fastcall CheckWhiteBannedHostsProcess(
 
 //Check hosts from global list
 size_t __fastcall CheckHostsProcess(
-	_Inout_ DNS_PACKET_DATA *Packet, 
-	_Inout_ char *Result, 
-	_In_ const size_t ResultSize)
+	DNS_PACKET_DATA *Packet, 
+	char *Result, 
+	const size_t ResultSize)
 {
 //Initilization
 	std::string Domain;
@@ -681,10 +681,10 @@ StopLoop:
 
 //Request Process(Local part)
 bool __fastcall LocalRequestProcess(
-	_In_ const DNS_PACKET_DATA &Packet, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize, 
-	_In_ const SOCKET_DATA &LocalSocketData)
+	const DNS_PACKET_DATA &Packet, 
+	char *OriginalRecv, 
+	const size_t RecvSize, 
+	const SOCKET_DATA &LocalSocketData)
 {
 	size_t DataLength = 0;
 	memset(OriginalRecv, 0, RecvSize);
@@ -735,10 +735,10 @@ bool __fastcall LocalRequestProcess(
 
 //Request Process(SOCKS part)
 bool __fastcall SOCKSRequestProcess(
-	_In_ const DNS_PACKET_DATA &Packet, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize, 
-	_In_ const SOCKET_DATA &LocalSocketData)
+	const DNS_PACKET_DATA &Packet, 
+	char *OriginalRecv, 
+	const size_t RecvSize, 
+	const SOCKET_DATA &LocalSocketData)
 {
 	size_t DataLength = 0;
 	memset(OriginalRecv, 0, RecvSize);
@@ -792,10 +792,10 @@ bool __fastcall SOCKSRequestProcess(
 
 //Request Process(HTTP part)
 bool __fastcall HTTPRequestProcess(
-	_In_ const DNS_PACKET_DATA &Packet, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize, 
-	_In_ const SOCKET_DATA &LocalSocketData)
+	const DNS_PACKET_DATA &Packet, 
+	char *OriginalRecv, 
+	const size_t RecvSize, 
+	const SOCKET_DATA &LocalSocketData)
 {
 	size_t DataLength = 0;
 	memset(OriginalRecv, 0, RecvSize);
@@ -835,11 +835,11 @@ bool __fastcall HTTPRequestProcess(
 
 //Request Process(Direct connections part)
 bool __fastcall DirectRequestProcess(
-	_In_ const DNS_PACKET_DATA &Packet, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize, 
-	_In_ const bool DirectRequest, 
-	_In_ const SOCKET_DATA &LocalSocketData)
+	const DNS_PACKET_DATA &Packet, 
+	char *OriginalRecv, 
+	const size_t RecvSize, 
+	const bool DirectRequest, 
+	const SOCKET_DATA &LocalSocketData)
 {
 	size_t DataLength = 0;
 	memset(OriginalRecv, 0, RecvSize);
@@ -907,10 +907,10 @@ bool __fastcall DirectRequestProcess(
 //Request Process(DNSCurve part)
 #if defined(ENABLE_LIBSODIUM)
 bool __fastcall DNSCurveRequestProcess(
-	_In_ const DNS_PACKET_DATA &Packet, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize, 
-	_In_ const SOCKET_DATA &LocalSocketData)
+	const DNS_PACKET_DATA &Packet, 
+	char *OriginalRecv, 
+	const size_t RecvSize, 
+	const SOCKET_DATA &LocalSocketData)
 {
 	size_t DataLength = 0;
 	memset(OriginalRecv, 0, RecvSize);
@@ -972,10 +972,10 @@ bool __fastcall DNSCurveRequestProcess(
 
 //Request Process(TCP part)
 bool __fastcall TCPRequestProcess(
-	_In_ const DNS_PACKET_DATA &Packet, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize, 
-	_In_ const SOCKET_DATA &LocalSocketData)
+	const DNS_PACKET_DATA &Packet, 
+	char *OriginalRecv, 
+	const size_t RecvSize, 
+	const SOCKET_DATA &LocalSocketData)
 {
 	size_t DataLength = 0;
 	memset(OriginalRecv, 0, RecvSize);
@@ -1040,8 +1040,8 @@ uint16_t __fastcall SelectNetworkProtocol(
 //Request Process(UDP part)
 #if defined(ENABLE_PCAP)
 void __fastcall UDPRequestProcess(
-	_In_ const DNS_PACKET_DATA &Packet, 
-	_In_ const SOCKET_DATA &LocalSocketData)
+	const DNS_PACKET_DATA &Packet, 
+	const SOCKET_DATA &LocalSocketData)
 {
 //EDNS switching(Part 1)
 	size_t EDNS_SwitchLength = Packet.Length;
@@ -1087,11 +1087,11 @@ void __fastcall UDPRequestProcess(
 
 //Send responses to requester
 bool __fastcall SendToRequester(
-	_In_ char *RecvBuffer, 
-	_In_ const size_t RecvSize, 
-	_In_ const size_t MaxLen, 
-	_In_ const uint16_t Protocol, 
-	_In_ const SOCKET_DATA &LocalSocketData)
+	char *RecvBuffer, 
+	const size_t RecvSize, 
+	const size_t MaxLen, 
+	const uint16_t Protocol, 
+	const SOCKET_DATA &LocalSocketData)
 {
 //Response check
 	if (RecvSize < DNS_PACKET_MINSIZE || CheckEmptyBuffer(RecvBuffer, RecvSize) || 
@@ -1123,8 +1123,8 @@ bool __fastcall SendToRequester(
 
 //Mark responses to domains Cache
 bool __fastcall MarkDomainCache(
-	_In_ const char *Buffer, 
-	_In_ const size_t Length)
+	const char *Buffer, 
+	const size_t Length)
 {
 //Check conditions.
 	auto DNS_Header = (pdns_hdr)Buffer;

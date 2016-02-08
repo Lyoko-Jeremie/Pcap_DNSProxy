@@ -15,7 +15,7 @@
 	echo.
 ) > "WhiteList.txt"
 ..\Support\curl -O https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf
-..\Support\sed -e "s@/114.114.114.114$@@" -e "s@\.@\\\.@g" -e "s@server=/@\.*\\b@" -e "s@bcn$@\.cn\$@" accelerated-domains.china.conf >> WhiteList.txt
+..\Support\sed -e "s@/114.114.114.114$@@" -e "s@\.@\\\.@g" -e "s@server=/@\.*\\\b@" -e "s@bcn$@\.cn\$@" accelerated-domains.china.conf >> WhiteList.txt
 del /F /Q accelerated-domains.china.conf
 
 :: Choice
@@ -28,8 +28,9 @@ goto Continue
 
 :: Database with Google
 :Google
+echo.
 ..\Support\curl -O https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/google.china.conf
-..\Support\sed -e "s@/114.114.114.114$@@" -e "s@\.@\\\.@g" -e "s@server=/@\.*\\b@" google.china.conf >> WhiteList.txt
+..\Support\sed -e "s@/114.114.114.114$@@" -e "s@\.@\\\.@g" -e "s@server=/@\.*\\\b@" google.china.conf >> WhiteList.txt
 del /F /Q google.china.conf
 
 :: Default database

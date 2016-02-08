@@ -23,9 +23,9 @@
 //When run on a little-endian CPU we need to perform byte reversal on an array of longwords.
 //SHA-2(256) long reverse process
 static void __fastcall SHA2_256_LongReverse(
-	_Inout_ SHA_INT32 *buffer, 
-	_In_ int byteCount, 
-	_In_ int Endianness)
+	SHA_INT32 *buffer, 
+	int byteCount, 
+	int Endianness)
 {
 	SHA_INT32 value = 0;
 	if (Endianness == PCT_BIG_ENDIAN)
@@ -46,8 +46,8 @@ static void __fastcall SHA2_256_LongReverse(
 /*
 //SHA-2(256) copy process
 static void __fastcall SHA2_256_Copy(
-	_In_ SHA2_256_Object *src, 
-	_Out_ SHA2_256_Object *dest)
+	SHA2_256_Object *src, 
+	SHA2_256_Object *dest)
 {
 	dest->Endianness = src->Endianness;
 	dest->Local = src->Local;
@@ -76,7 +76,7 @@ static void __fastcall SHA2_256_Copy(
 
 //SHA-2(256) transform process
 static void __fastcall SHA2_256_Transform(
-	_Inout_ SHA2_256_Object *sha_info)
+	SHA2_256_Object *sha_info)
 {
 	size_t Index = 0;
 	SHA_INT32 S[8U] = {0}, W[64U] = {0}, t0 = 0, t1 = 0;
@@ -182,7 +182,7 @@ static void __fastcall SHA2_256_Transform(
 
 //Initialize the SHA-2(256) digest
 static void __fastcall SHA2_256_Init(
-	_Inout_ SHA2_256_Object *sha_info)
+	SHA2_256_Object *sha_info)
 {
 	TestEndianness(sha_info->Endianness)
 	sha_info->Digest[0] = 0x6A09E667L;
@@ -203,7 +203,7 @@ static void __fastcall SHA2_256_Init(
 
 //Initialize the SHA-2(224) digest
 static void __fastcall SHA2_224_Init(
-	_Inout_ SHA2_256_Object *sha_info)
+	SHA2_256_Object *sha_info)
 {
 	TestEndianness(sha_info->Endianness)
 	sha_info->Digest[0] = 0xC1059ED8L;
@@ -224,9 +224,9 @@ static void __fastcall SHA2_224_Init(
 
 //Update the SHA-2(256) digest
 static void __fastcall SHA2_256_Update(
-	_Inout_ SHA2_256_Object *sha_info, 
-	_Inout_ SHA2_256_BYTE *buffer, 
-	_In_ int count)
+	SHA2_256_Object *sha_info, 
+	SHA2_256_BYTE *buffer, 
+	int count)
 {
 	int i = 0;
 	SHA_INT32 clo = 0;
@@ -265,8 +265,8 @@ static void __fastcall SHA2_256_Update(
 
 //Finish computing the SHA-2(256) digest
 static void __fastcall SHA2_256_Final(
-	_Out_ uint8_t digest[SHA2_256_SIZE_DIGEST], 
-	_Inout_ SHA2_256_Object *sha_info)
+	uint8_t digest[SHA2_256_SIZE_DIGEST], 
+	SHA2_256_Object *sha_info)
 {
 	int count = 0;
 	SHA_INT32 lo_bit_count = 0, hi_bit_count = 0;
@@ -333,9 +333,9 @@ static void __fastcall SHA2_256_Final(
 
 //SHA-2(512) long reverse process
 static void __fastcall SHA2_512_LongReverse(
-	_Inout_ SHA_INT64 *buffer, 
-	_In_ int byteCount, 
-	_In_ int Endianness)
+	SHA_INT64 *buffer, 
+	int byteCount, 
+	int Endianness)
 {
 	SHA_INT64 value = 0;
 	if (Endianness == PCT_BIG_ENDIAN)
@@ -363,8 +363,8 @@ static void __fastcall SHA2_512_LongReverse(
 /*
 //SHA-2(512) copy process
 static void __fastcall SHA2_512_Copy(
-	_In_ SHA2_512_Object *src, 
-	_Out_ SHA2_512_Object *dest)
+	SHA2_512_Object *src, 
+	SHA2_512_Object *dest)
 {
 	dest->Endianness = src->Endianness;
 	dest->Local = src->Local;
@@ -393,7 +393,7 @@ static void __fastcall SHA2_512_Copy(
 
 //SHA-2(512) transform process
 static void __fastcall SHA2_512_Transform(
-	_Inout_ SHA2_512_Object *sha_info)
+	SHA2_512_Object *sha_info)
 {
 	size_t Index = 0;
 	SHA_INT64 S[8] = {0}, W[80] = {0}, t0 = 0, t1 = 0;
@@ -515,7 +515,7 @@ static void __fastcall SHA2_512_Transform(
 
 //Initialize the SHA-2(512) digest
 static void __fastcall SHA2_512_Init(
-	_Inout_ SHA2_512_Object *sha_info)
+	SHA2_512_Object *sha_info)
 {
 	TestEndianness(sha_info->Endianness)
 		sha_info->Digest[0] = Py_ULL(0x6A09E667F3BCC908);
@@ -536,7 +536,7 @@ static void __fastcall SHA2_512_Init(
 
 //Initialize the SHA-2(384) digest
 static void __fastcall SHA2_384_Init(
-	_Inout_ SHA2_512_Object *sha_info)
+	SHA2_512_Object *sha_info)
 {
 	TestEndianness(sha_info->Endianness)
 		sha_info->Digest[0] = Py_ULL(0xCBBB9D5DC1059ED8);
@@ -557,7 +557,7 @@ static void __fastcall SHA2_384_Init(
 
 //Initialize the SHA-2(512/256) digest
 static void __fastcall SHA2_512_256_Init(
-	_Inout_ SHA2_512_Object *sha_info)
+	SHA2_512_Object *sha_info)
 {
 	TestEndianness(sha_info->Endianness)
 		sha_info->Digest[0] = Py_ULL(0x22312194FC2BF72C);
@@ -578,7 +578,7 @@ static void __fastcall SHA2_512_256_Init(
 
 //Initialize the SHA-2(512/224) digest
 static void __fastcall SHA2_512_224_Init(
-	_Inout_ SHA2_512_Object *sha_info)
+	SHA2_512_Object *sha_info)
 {
 	TestEndianness(sha_info->Endianness)
 		sha_info->Digest[0] = Py_ULL(0x8C3D37C819544DA2);
@@ -599,9 +599,9 @@ static void __fastcall SHA2_512_224_Init(
 
 //Update the SHA-2(512) digest
 static void __fastcall SHA2_512_Update(
-	_Inout_ SHA2_512_Object *sha_info, 
-	_Inout_ SHA2_512_BYTE *buffer, 
-	_In_ int count)
+	SHA2_512_Object *sha_info, 
+	SHA2_512_BYTE *buffer, 
+	int count)
 {
 	int i = 0;
 	SHA_INT32 clo = 0;
@@ -640,8 +640,8 @@ static void __fastcall SHA2_512_Update(
 
 //Finish computing the SHA-2(512) digest
 static void __fastcall SHA2_512_Final(
-	_Out_ uint8_t digest[SHA2_512_SIZE_DIGEST], 
-	_Inout_ SHA2_512_Object *sha_info)
+	uint8_t digest[SHA2_512_SIZE_DIGEST], 
+	SHA2_512_Object *sha_info)
 {
 	int count = 0;
 	SHA_INT32 lo_bit_count = 0, hi_bit_count = 0;
@@ -749,9 +749,9 @@ static void __fastcall SHA2_512_Final(
 //Read commands(SHA-2)
 bool __fastcall ReadCommand_SHA2(
 #if defined(PLATFORM_WIN)
-	_In_ std::wstring &Command)
+	std::wstring &Command)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	_In_ std::string &Command)
+	std::string &Command)
 #endif
 {
 //Hash function check
@@ -789,7 +789,7 @@ bool __fastcall ReadCommand_SHA2(
 
 //SHA-2 hash function
 bool __fastcall SHA2_Hash(
-	_In_ FILE *Input)
+	FILE *Input)
 {
 //Parameters check
 	if (HashFamilyID != HASH_ID_SHA2 || Input == nullptr)

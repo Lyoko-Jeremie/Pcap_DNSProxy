@@ -22,7 +22,7 @@
 #if defined(PLATFORM_WIN)
 //Catch Control-C exception from keyboard.
 BOOL WINAPI CtrlHandler(
-	_In_ const DWORD fdwCtrlType)
+	const DWORD fdwCtrlType)
 {
 //Print to screen.
 	if (GlobalRunningStatus.Console)
@@ -50,8 +50,8 @@ BOOL WINAPI CtrlHandler(
 
 //Service Main function
 size_t WINAPI ServiceMain(
-	_In_ DWORD argc, 
-	_In_ LPTSTR *argv)
+	DWORD argc, 
+	LPTSTR *argv)
 {
 	ServiceStatusHandle = RegisterServiceCtrlHandlerW(SYSTEM_SERVICE_NAME, (LPHANDLER_FUNCTION)ServiceControl);
 	if (!ServiceStatusHandle || !UpdateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0, 1U, UPDATE_SERVICE_TIME))
@@ -72,7 +72,7 @@ size_t WINAPI ServiceMain(
 
 //Service controller
 size_t WINAPI ServiceControl(
-	_In_ const DWORD dwControlCode)
+	const DWORD dwControlCode)
 {
 	switch(dwControlCode)
 	{
@@ -116,7 +116,7 @@ BOOL WINAPI ExecuteService(
 
 //Service Main process thread
 DWORD WINAPI ServiceProc(
-	_In_ PVOID lpParameter)
+	PVOID lpParameter)
 {
 	if (!IsServiceRunning || !MonitorInit())
 	{
@@ -130,11 +130,11 @@ DWORD WINAPI ServiceProc(
 
 //Change status of service
 BOOL WINAPI UpdateServiceStatus(
-	_In_ const DWORD dwCurrentState, 
-	_In_ const DWORD dwWin32ExitCode, 
-	_In_ const DWORD dwServiceSpecificExitCode, 
-	_In_ const DWORD dwCheckPoint, 
-	_In_ const DWORD dwWaitHint)
+	const DWORD dwCurrentState, 
+	const DWORD dwWin32ExitCode, 
+	const DWORD dwServiceSpecificExitCode, 
+	const DWORD dwCheckPoint, 
+	const DWORD dwWaitHint)
 {
 	auto ServiceStatus = std::make_shared<SERVICE_STATUS>();
 	memset(ServiceStatus.get(), 0, sizeof(SERVICE_STATUS));

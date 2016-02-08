@@ -171,7 +171,7 @@ ConfigurationTable::ConfigurationTable(
 
 //ConfigurationTable class constructor settings
 void __fastcall ConfigurationTableSetting(
-	_Inout_ ConfigurationTable *ConfigurationParameter)
+	ConfigurationTable *ConfigurationParameter)
 {
 //[Data] block
 #if defined(ENABLE_PCAP)
@@ -381,7 +381,7 @@ void ConfigurationTable::SetToMonitorItem(
 
 //ConfigurationTable class MonitorItemToUsing function
 void ConfigurationTable::MonitorItemToUsing(
-	_Out_ ConfigurationTable *ConfigurationParameter)
+	ConfigurationTable *ConfigurationParameter)
 {
 //[Base] block
 	ConfigurationParameter->Version = Version;
@@ -648,7 +648,7 @@ GlobalStatus::GlobalStatus(
 
 //GlobalStatus class constructor settings
 void __fastcall GlobalStatusSetting(
-	_Inout_ GlobalStatus *GlobalRunningStatusParameter)
+	GlobalStatus *GlobalRunningStatusParameter)
 {
 #if defined(PLATFORM_LINUX)
 	GlobalRunningStatusParameter->Daemon = true;
@@ -930,7 +930,7 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 
 //DNSCurveConfigurationTable class constructor settings
 void __fastcall DNSCurveConfigurationTableSetting(
-	_Inout_ DNSCurveConfigurationTable *DNSCurveConfigurationParameter)
+	DNSCurveConfigurationTable *DNSCurveConfigurationParameter)
 {
 //DNSCurve Provider Names
 	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ProviderName, DOMAIN_MAXSIZE);
@@ -1063,7 +1063,7 @@ void DNSCurveConfigurationTable::SetToMonitorItem(
 
 //DNSCurveConfigurationTable class MonitorItemToUsing function
 void DNSCurveConfigurationTable::MonitorItemToUsing(
-	_Out_ DNSCurveConfigurationTable *DNSCurveConfigurationParameter)
+	DNSCurveConfigurationTable *DNSCurveConfigurationParameter)
 {
 //[DNSCurve] block
 	DNSCurveConfigurationParameter->DNSCurve_SocketTimeout_Reliable = DNSCurve_SocketTimeout_Reliable;

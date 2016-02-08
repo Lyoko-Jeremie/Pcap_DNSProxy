@@ -425,16 +425,6 @@
 	typedef sockaddr_in              *PSOCKADDR_IN;
 	typedef sockaddr_in6             *PSOCKADDR_IN6;
 
-//Microsoft source-code annotation language/SAL compatible
-	#define _In_
-	#define _Inout_
-	#define _Out_
-	#define _Outptr_
-	#define _In_opt_
-	#define _Inout_opt_
-	#define _Out_opt_
-	#define _Outptr_opt_
-
 //Function definitions(Part 1)
 	#define __fastcall
 	#define strnlen_s                                                    strnlen

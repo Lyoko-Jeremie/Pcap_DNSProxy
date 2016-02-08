@@ -31,7 +31,7 @@ uint8_t PADDING[] =
 
 //Initialize the hash state
 void __fastcall MD5_Init(
-	_Inout_ MD5_CTX *context)
+	MD5_CTX *context)
 {
 	context->State[0] = 0x67452301;
 	context->State[1U] = 0xEFCDAB89;
@@ -43,9 +43,9 @@ void __fastcall MD5_Init(
 
 //Update MD5 status
 void __fastcall MD5_Update(
-	_Inout_ MD5_CTX *context, 
-	_In_ uint8_t *input, 
-	_In_ unsigned int inputlen)
+	MD5_CTX *context, 
+	uint8_t *input, 
+	unsigned int inputlen)
 {
 	unsigned int i = 0, index = 0, partlen = 0;
 	index = (context->Count[0] >> 3U) & 0x3F;
@@ -72,8 +72,8 @@ void __fastcall MD5_Update(
 
 //Finish MD5 process
 void __fastcall MD5_Final(
-	_Inout_ MD5_CTX *context, 
-	_Inout_ uint8_t digest[MD5_SIZE_DIGEST])
+	MD5_CTX *context, 
+	uint8_t digest[MD5_SIZE_DIGEST])
 {
 	unsigned int index = 0, padlen = 0;
 	uint8_t bits[8U] = {0};
@@ -89,9 +89,9 @@ void __fastcall MD5_Final(
 
 //MD5 encode process
 void __fastcall MD5_Encode(
-	_Out_ uint8_t *output, 
-	_In_ unsigned int *input, 
-	_In_ unsigned int len)
+	uint8_t *output, 
+	unsigned int *input, 
+	unsigned int len)
 {
 	unsigned int i = 0, j = 0;
 	while (j < len)
@@ -109,9 +109,9 @@ void __fastcall MD5_Encode(
 
 //MD5 encode process
 void __fastcall MD5_Decode(
-	_Out_ unsigned int *output, 
-	_In_ uint8_t *input, 
-	_In_ unsigned int len)
+	unsigned int *output, 
+	uint8_t *input, 
+	unsigned int len)
 {
 	unsigned int i = 0, j = 0;
 	while (j < len)
@@ -129,8 +129,8 @@ void __fastcall MD5_Decode(
 
 //MD5 transform process
 void __fastcall MD5_Transform(
-	_Inout_ unsigned int state[4U], 
-	_Inout_ uint8_t block[MD5_SIZE_BLOCK])
+	unsigned int state[4U], 
+	uint8_t block[MD5_SIZE_BLOCK])
 {
 	unsigned int a = state[0];
 	unsigned int b = state[1U];
@@ -212,7 +212,7 @@ void __fastcall MD5_Transform(
 
 //MD5 hash function
 bool __fastcall MD5_Hash(
-	_In_ FILE *Input)
+	FILE *Input)
 {
 //Parameters check
 	if (HashFamilyID != HASH_ID_MD5 || Input == nullptr)

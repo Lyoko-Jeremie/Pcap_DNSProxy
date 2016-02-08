@@ -27,7 +27,7 @@ echo -e "[Local Hosts]\n## China mainland domains\n## Source: https://github.com
 echo -n "## Last update: " >> WhiteList.txt
 echo $CurrentDate >> WhiteList.txt
 echo -e "\n" >> WhiteList.txt
-sed -e "s|/114.114.114.114$||" -e "s|\.|\\\.|g" -e "s|server=/|\.*\\b|" -e "s|bcn$|\.cn\$|" accelerated-domains.china.conf >> WhiteList.txt
+sed -e "s|/114.114.114.114$||" -e "s|\.|\\\.|g" -e "s|server=/|\.*\\\b|" -e "s|bcn$|\.cn\$|" accelerated-domains.china.conf >> WhiteList.txt
 
 # Download domain data of Google in China part.
 echo
@@ -35,7 +35,7 @@ read -p "Use google.china.conf in dnsmasq-china-list? [Y/N]:" yn
 if [ "${yn}" == "Y" ] || [ "${yn}" == "y" ]; then
 	echo
 	curl -O https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/google.china.conf
-	sed -e "s|/114.114.114.114$||" -e "s|\.|\\\.|g" -e "s|server=/|\.*\\b|" google.china.conf >> WhiteList.txt
+	sed -e "s|/114.114.114.114$||" -e "s|\.|\\\.|g" -e "s|server=/|\.*\\\b|" google.china.conf >> WhiteList.txt
 	rm -rf google.china.conf
 fi
 

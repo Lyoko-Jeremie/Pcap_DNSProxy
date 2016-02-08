@@ -22,8 +22,8 @@
 #if defined(ENABLE_LIBSODIUM)
 //SHA-1 compress process
 static void __fastcall SHA1_Compress(
-	_Inout_ SHA1_State *sha1, 
-	_Inout_ uint8_t *buf)
+	SHA1_State *sha1, 
+	uint8_t *buf)
 {
 	SHA1_INT32 a = 0, b = 0, c = 0, d = 0, e = 0, W[80U] = {0};
 	size_t Index = 0;
@@ -108,7 +108,7 @@ static void __fastcall SHA1_Compress(
 	@param sha1   The hash state you wish to initialize
 */
 void __fastcall SHA1_Init(
-	_Inout_ SHA1_State *sha1)
+	SHA1_State *sha1)
 {
 	sha1->State[0] = 0x67452301UL;
 	sha1->State[1U] = 0xEFCDAB89UL;
@@ -128,9 +128,9 @@ void __fastcall SHA1_Init(
 	@param inlen  The length of the data (octets)
 */
 void __fastcall SHA1_Process(
-	_Inout_ SHA1_State *sha1, 
-	_In_ const uint8_t *in, 
-	_In_ unsigned long inlen)
+	SHA1_State *sha1, 
+	const uint8_t *in, 
+	unsigned long inlen)
 {
 	unsigned long n = 0;
 	while (inlen > 0) 
@@ -166,8 +166,8 @@ void __fastcall SHA1_Process(
 	@param out [out] The destination of the hash (20 bytes)
 */
 void __fastcall SHA1_Done(
-	_Inout_ SHA1_State *sha1, 
-	_Out_ uint8_t *out)
+	SHA1_State *sha1, 
+	uint8_t *out)
 {
 //Increase the length of the message.
 	sha1->Length += sha1->Curlen * 8;
@@ -204,7 +204,7 @@ void __fastcall SHA1_Done(
 
 //SHA-1 hash function
 bool __fastcall SHA1_Hash(
-	_In_ FILE *Input)
+	FILE *Input)
 {
 //Parameters check
 	if (HashFamilyID != HASH_ID_SHA1 || Input == nullptr)

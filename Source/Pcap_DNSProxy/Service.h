@@ -36,17 +36,17 @@ HANDLE ServiceEvent = nullptr;
 
 //Functions
 size_t WINAPI ServiceControl(
-	_In_ const DWORD dwControlCode);
+	const DWORD dwControlCode);
 BOOL WINAPI ExecuteService(
 	void);
 void WINAPI TerminateService(
 	void);
 DWORD WINAPI ServiceProc(
-	_In_ PVOID lpParameter);
+	PVOID lpParameter);
 BOOL WINAPI UpdateServiceStatus(
-	_In_ const DWORD dwCurrentState, 
-	_In_ const DWORD dwWin32ExitCode, 
-	_In_ const DWORD dwServiceSpecificExitCode, 
-	_In_ const DWORD dwCheckPoint, 
-	_In_ const DWORD dwWaitHint);
+	const DWORD dwCurrentState, 
+	const DWORD dwWin32ExitCode, 
+	const DWORD dwServiceSpecificExitCode, 
+	const DWORD dwCheckPoint, 
+	const DWORD dwWaitHint);
 #endif

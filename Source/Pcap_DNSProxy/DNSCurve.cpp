@@ -44,8 +44,8 @@ Using TCP protocol:
 #if defined(ENABLE_LIBSODIUM)
 //DNSCurve print error of servers
 void __fastcall DNSCurvePrintLog(
-	_In_ const size_t ServerType, 
-	_Out_ std::wstring &Message)
+	const size_t ServerType, 
+	std::wstring &Message)
 {
 	Message.clear();
 	switch (ServerType)
@@ -73,9 +73,9 @@ void __fastcall DNSCurvePrintLog(
 
 //DNSCurve check padding data length
 SSIZE_T __fastcall DNSCurvePaddingData(
-	_In_ const bool SetPadding, 
-	_Inout_ char *Buffer, 
-	_In_ const SSIZE_T Length)
+	const bool SetPadding, 
+	char *Buffer, 
+	const SSIZE_T Length)
 {
 //Set padding data sign.
 	if (SetPadding)
@@ -107,8 +107,8 @@ SSIZE_T __fastcall DNSCurvePaddingData(
 
 //DNSCurve verify keypair
 bool __fastcall DNSCurveVerifyKeypair(
-	_In_ const unsigned char *PublicKey, 
-	_In_ const unsigned char *SecretKey)
+	const unsigned char *PublicKey, 
+	const unsigned char *SecretKey)
 {
 //Initialization
 	std::shared_ptr<uint8_t> Test_PublicKey(new uint8_t[crypto_box_PUBLICKEYBYTES]()), 
@@ -146,11 +146,11 @@ bool __fastcall DNSCurveVerifyKeypair(
 
 //DNSCurve select socket data of DNS target
 size_t __fastcall DNSCurveSelectTargetSocket(
-	_Out_ SOCKET_DATA *TargetSocketData, 
-	_Outptr_opt_ DNSCURVE_SERVER_DATA **PacketTarget, 
-	_Outptr_opt_ bool **IsAlternate, 
-	_Outptr_opt_ size_t **AlternateTimeoutTimes, 
-	_In_ const uint16_t Protocol)
+	SOCKET_DATA *TargetSocketData, 
+	DNSCURVE_SERVER_DATA **PacketTarget, 
+	bool **IsAlternate, 
+	size_t **AlternateTimeoutTimes, 
+	const uint16_t Protocol)
 {
 //Socket initialization
 	size_t ServerType = 0;
@@ -289,9 +289,9 @@ size_t __fastcall DNSCurveSelectTargetSocket(
 
 //DNSCurve select socket data of DNS target(Multithreading)
 bool __fastcall DNSCurveSelectTargetSocketMulti(
-	_Out_ bool &IsIPv6, 
-	_Outptr_opt_ bool **IsAlternate, 
-	_In_ const uint16_t Protocol)
+	bool &IsIPv6, 
+	bool **IsAlternate, 
+	const uint16_t Protocol)
 {
 	IsIPv6 = false;
 
@@ -328,8 +328,8 @@ bool __fastcall DNSCurveSelectTargetSocketMulti(
 
 //DNSCurve set packet target
 bool __fastcall DNSCurvePacketTargetSetting(
-	_In_ const size_t ServerType, 
-	_Outptr_opt_ DNSCURVE_SERVER_DATA **PacketTarget)
+	const size_t ServerType, 
+	DNSCURVE_SERVER_DATA **PacketTarget)
 {
 	switch (ServerType)
 	{
@@ -360,9 +360,9 @@ bool __fastcall DNSCurvePacketTargetSetting(
 
 //DNSCurve set Precomputation Key between client and server
 bool __fastcall DNSCurvePrecomputationKeySetting(
-	_Out_ uint8_t *PrecomputationKey, 
-	_Out_ uint8_t *Client_PublicKey, 
-	_In_ const unsigned char *ServerFingerprint)
+	uint8_t *PrecomputationKey, 
+	uint8_t *Client_PublicKey, 
+	const unsigned char *ServerFingerprint)
 {
 //Server fingerprint check
 	if (CheckEmptyBuffer(ServerFingerprint, crypto_box_PUBLICKEYBYTES))
@@ -387,19 +387,19 @@ bool __fastcall DNSCurvePrecomputationKeySetting(
 
 //DNSCurve packet precomputation
 void __fastcall DNSCurveSocketPrecomputation(
-	_In_ const uint16_t Protocol, 
-	_In_ const char *OriginalSend, 
-	_In_ const size_t SendSize, 
-	_In_ const size_t RecvSize, 
-	_Outptr_opt_ uint8_t **PrecomputationKey, 
-	_Outptr_opt_ uint8_t **Alternate_PrecomputationKey, 
-	_Outptr_opt_ DNSCURVE_SERVER_DATA **PacketTarget, 
-	_Inout_ std::vector<SOCKET_DATA> &SocketDataList, 
-	_Inout_ std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
-	_Inout_ std::shared_ptr<char> &SendBuffer, 
-	_Out_ size_t &DataLength, 
-	_Inout_ std::shared_ptr<char> &Alternate_SendBuffer, 
-	_Out_ size_t &Alternate_DataLength)
+	const uint16_t Protocol, 
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	const size_t RecvSize, 
+	uint8_t **PrecomputationKey, 
+	uint8_t **Alternate_PrecomputationKey, 
+	DNSCURVE_SERVER_DATA **PacketTarget, 
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
+	std::shared_ptr<char> &SendBuffer, 
+	size_t &DataLength, 
+	std::shared_ptr<char> &Alternate_SendBuffer, 
+	size_t &Alternate_DataLength)
 {
 //Initialization
 	auto SocketDataTemp = std::make_shared<SOCKET_DATA>();
@@ -627,14 +627,14 @@ SkipMain:
 
 //DNSCurve packet encryption
 size_t __fastcall DNSCurvePacketEncryption(
-	_In_ const uint16_t Protocol, 
-	_In_ const char *SendMagicNumber, 
-	_In_ const unsigned char *Client_PublicKey, 
-	_In_ const unsigned char *PrecomputationKey, 
-	_In_ const char *OriginalSend, 
-	_In_ const size_t Length, 
-	_Inout_ char *SendBuffer, 
-	_In_ const size_t SendSize)
+	const uint16_t Protocol, 
+	const char *SendMagicNumber, 
+	const unsigned char *Client_PublicKey, 
+	const unsigned char *PrecomputationKey, 
+	const char *OriginalSend, 
+	const size_t Length, 
+	char *SendBuffer, 
+	const size_t SendSize)
 {
 //Encryption mode
 	if (DNSCurveParameter.IsEncryption)
@@ -718,11 +718,11 @@ size_t __fastcall DNSCurvePacketEncryption(
 
 //DNSCurve packet decryption
 SSIZE_T DNSCurvePacketDecryption(
-	_In_ const char *ReceiveMagicNumber, 
-	_In_ const unsigned char *PrecomputationKey, 
-	_Inout_ char *OriginalRecv, 
-	_In_ const size_t RecvSize, 
-	_In_ const SSIZE_T Length)
+	const char *ReceiveMagicNumber, 
+	const unsigned char *PrecomputationKey, 
+	char *OriginalRecv, 
+	const size_t RecvSize, 
+	const SSIZE_T Length)
 {
 //Initialization
 	SSIZE_T DataLength = Length;
@@ -773,12 +773,12 @@ SSIZE_T DNSCurvePacketDecryption(
 
 //DNSCurve non-blocking mode selecting
 SSIZE_T __fastcall DNSCurveSocketSelecting(
-	_In_ const uint16_t Protocol, 
-	_Inout_ std::vector<SOCKET_DATA> &SocketDataList, 
-	_Inout_ std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize, 
-	_Out_opt_ SSIZE_T *ErrorCode)
+	const uint16_t Protocol, 
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
+	char *OriginalRecv, 
+	const size_t RecvSize, 
+	SSIZE_T *ErrorCode)
 {
 	size_t Index = 0;
 	if (ErrorCode != nullptr)
@@ -940,14 +940,14 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 				{
 					if (send(SocketDataList.at(Index).Socket, SocketSelectingList.at(Index).SendBuffer, (int)SocketSelectingList.at(Index).SendSize, 0) == SOCKET_ERROR)
 					{
-						*ErrorCode = WSAGetLastError();
+						SSIZE_T InnerErrorCode = WSAGetLastError();
 
 					#if defined(PLATFORM_WIN)
-						if (*ErrorCode != WSAEWOULDBLOCK)
+						if (InnerErrorCode != WSAEWOULDBLOCK)
 					#elif defined(PLATFORM_LINUX)
-						if (*ErrorCode != EAGAIN && *ErrorCode != EINPROGRESS)
+						if (InnerErrorCode != EAGAIN && InnerErrorCode != EINPROGRESS)
 					#elif defined(PLATFORM_MACX)
-						if (*ErrorCode != EWOULDBLOCK && *ErrorCode != EAGAIN && *ErrorCode != EINPROGRESS)
+						if (InnerErrorCode != EWOULDBLOCK && InnerErrorCode != EAGAIN && *ErrorCode != EINPROGRESS)
 					#endif
 						{
 							shutdown(SocketDataList.at(Index).Socket, SD_BOTH);
@@ -958,8 +958,6 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 							SocketSelectingList.at(Index).RecvBuffer.reset();
 							SocketSelectingList.at(Index).Length = 0;
 						}
-
-						*ErrorCode = 0;
 					}
 					else {
 						SocketSelectingList.at(Index).PacketIsSend = true;
@@ -1021,11 +1019,11 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 
 //DNSCurve Socket selecting result
 SSIZE_T __fastcall DNSCurveSelectingResult(
-	_In_ const uint16_t Protocol, 
-	_Inout_ std::vector<SOCKET_DATA> &SocketDataList, 
-	_Inout_ std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize)
+	const uint16_t Protocol, 
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
+	char *OriginalRecv, 
+	const size_t RecvSize)
 {
 	SSIZE_T RecvLen = 0;
 
@@ -1280,8 +1278,8 @@ size_t __fastcall DNSCurveSignatureRequest(
 
 //Send TCP request to get Signature Data of servers
 bool __fastcall DNSCurveTCPSignatureRequest(
-	_In_ const uint16_t Protocol, 
-	_In_ const bool IsAlternate)
+	const uint16_t Protocol, 
+	const bool IsAlternate)
 {
 //Initialization(Part 1)
 	std::shared_ptr<char> SendBuffer(new char[PACKET_MAXSIZE]()), RecvBuffer(new char[LARGE_PACKET_MAXSIZE]());
@@ -1450,8 +1448,8 @@ bool __fastcall DNSCurveTCPSignatureRequest(
 
 //Send UDP request to get Signature Data of servers
 bool __fastcall DNSCurveUDPSignatureRequest(
-	_In_ const uint16_t Protocol, 
-	_In_ const bool IsAlternate)
+	const uint16_t Protocol, 
+	const bool IsAlternate)
 {
 //Initialization(Part 1)
 	std::shared_ptr<char> SendBuffer(new char[PACKET_MAXSIZE]()), RecvBuffer(new char[PACKET_MAXSIZE]());
@@ -1616,8 +1614,8 @@ bool __fastcall DNSCurveUDPSignatureRequest(
 
 //Get Signature Data of server from packets
 bool __fastcall DNSCruveGetSignatureData(
-	_In_ const char *Buffer, 
-	_In_ const size_t ServerType)
+	const char *Buffer, 
+	const size_t ServerType)
 {
 	if (((pdns_record_txt)Buffer)->Name == htons(DNS_POINTER_QUERY) && 
 		((pdns_record_txt)Buffer)->Length == htons(((pdns_record_txt)Buffer)->TXT_Length + 1U) && ((pdns_record_txt)Buffer)->TXT_Length == DNSCRYPT_RECORD_TXT_LEN)
@@ -1697,10 +1695,10 @@ bool __fastcall DNSCruveGetSignatureData(
 
 //Transmission of DNSCurve TCP protocol
 size_t __fastcall DNSCurveTCPRequest(
-	_In_ const char *OriginalSend, 
-	_In_ const size_t SendSize, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize)
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	char *OriginalRecv, 
+	const size_t RecvSize)
 {
 //Initialization
 	std::vector<SOCKET_DATA> TCPSocketDataList(1U);
@@ -1788,10 +1786,10 @@ size_t __fastcall DNSCurveTCPRequest(
 
 //Transmission of DNSCurve TCP protocol(Multithreading)
 size_t __fastcall DNSCurveTCPRequestMulti(
-	_In_ const char *OriginalSend, 
-	_In_ const size_t SendSize, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize)
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	char *OriginalRecv, 
+	const size_t RecvSize)
 {
 //Key initialization
 	uint8_t *PrecomputationKey = nullptr, *Alternate_PrecomputationKey = nullptr;
@@ -1871,10 +1869,10 @@ size_t __fastcall DNSCurveTCPRequestMulti(
 
 //Transmission of DNSCurve UDP protocol
 size_t __fastcall DNSCurveUDPRequest(
-	_In_ const char *OriginalSend, 
-	_In_ const size_t SendSize, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize)
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	char *OriginalRecv, 
+	const size_t RecvSize)
 {
 //Initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
@@ -1964,10 +1962,10 @@ size_t __fastcall DNSCurveUDPRequest(
 
 //Transmission of DNSCurve UDP protocol(Multithreading)
 size_t __fastcall DNSCurveUDPRequestMulti(
-	_In_ const char *OriginalSend, 
-	_In_ const size_t SendSize, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize)
+	const char *OriginalSend, 
+	const size_t SendSize, 
+	char *OriginalRecv, 
+	const size_t RecvSize)
 {
 //Key initialization
 	uint8_t *PrecomputationKey = nullptr, *Alternate_PrecomputationKey = nullptr;

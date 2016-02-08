@@ -21,9 +21,9 @@
 
 //Read texts
 bool __fastcall ReadText(
-	_In_ const FILE *Input, 
-	_In_ const size_t InputType, 
-	_In_ const size_t FileIndex)
+	const FILE *Input, 
+	const size_t InputType, 
+	const size_t FileIndex)
 {
 //Initialization
 	std::shared_ptr<char> FileBuffer(new char[FILE_BUFFER_SIZE]()), TextBuffer(new char[FILE_BUFFER_SIZE]());
@@ -385,8 +385,8 @@ bool __fastcall ReadText(
 
 //Check Multi-line comments
 bool __fastcall ReadMultiLineComments(
-	_Inout_ std::string &Data, 
-	_In_ bool &IsLabelComments)
+	std::string &Data, 
+	bool &IsLabelComments)
 {
 	if (IsLabelComments)
 	{
@@ -418,7 +418,7 @@ bool __fastcall ReadMultiLineComments(
 
 //Read parameter from file
 bool __fastcall ReadParameter(
-	_In_ const bool IsFirstRead)
+	const bool IsFirstRead)
 {
 	size_t FileIndex = 0;
 
@@ -1068,8 +1068,8 @@ void __fastcall ReadHosts(
 
 //Clear data in list
 void __fastcall ClearModificatingListData(
-	_In_ const size_t ClearType, 
-	_In_ const size_t FileIndex)
+	const size_t ClearType, 
+	const size_t FileIndex)
 {
 //Clear Hosts set.
 	if (ClearType == READ_TEXT_HOSTS)
@@ -1102,10 +1102,10 @@ void __fastcall ClearModificatingListData(
 
 //Get data list from file
 void __fastcall GetParameterListData(
-	_Out_ std::vector<std::string> &ListData, 
-	_In_ const std::string Data, 
-	_In_ const size_t DataOffset, 
-	_In_ const size_t Length)
+	std::vector<std::string> &ListData, 
+	const std::string Data, 
+	const size_t DataOffset, 
+	const size_t Length)
 {
 //Initialization
 	std::string NameString;

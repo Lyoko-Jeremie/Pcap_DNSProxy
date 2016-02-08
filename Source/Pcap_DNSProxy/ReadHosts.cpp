@@ -21,11 +21,11 @@
 
 //Read hosts data from files
 bool __fastcall ReadHostsData(
-	_In_ std::string Data, 
-	_In_ const size_t FileIndex, 
-	_Inout_ size_t &LabelType, 
-	_In_ const size_t Line, 
-	_Inout_ bool &IsLabelComments)
+	std::string Data, 
+	const size_t FileIndex, 
+	size_t &LabelType, 
+	const size_t Line, 
+	bool &IsLabelComments)
 {
 //Convert horizontal tab/HT to space and delete spaces before or after data.
 	for (auto &StringIter:Data)
@@ -198,11 +198,11 @@ bool __fastcall ReadHostsData(
 
 //Read other type items in Hosts file from data
 bool __fastcall ReadOtherHostsData(
-	_In_ std::string Data, 
-	_In_ const size_t FileIndex, 
-	_In_ const size_t Line, 
-	_In_ const size_t LabelType, 
-	_In_ const size_t ItemType)
+	std::string Data, 
+	const size_t FileIndex, 
+	const size_t Line, 
+	const size_t LabelType, 
+	const size_t ItemType)
 {
 //Mark separated location and check data format.
 	size_t Separated = 0;
@@ -308,9 +308,9 @@ bool __fastcall ReadOtherHostsData(
 
 //Read Local Hosts items in Hosts file from data
 bool __fastcall ReadLocalHostsData(
-	_In_ std::string Data, 
-	_In_ const size_t FileIndex, 
-	_In_ const size_t Line)
+	std::string Data, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 	HOSTS_TABLE HostsTableTemp;
 
@@ -341,9 +341,9 @@ bool __fastcall ReadLocalHostsData(
 
 //Read Address Hosts items in Hosts file from data
 bool __fastcall ReadAddressHostsData(
-	_In_ std::string Data, 
-	_In_ const size_t FileIndex, 
-	_In_ const size_t Line)
+	std::string Data, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 //Mark separated location.
 	size_t Separated = 0;
@@ -563,10 +563,10 @@ bool __fastcall ReadAddressHostsData(
 
 //Read Main Hosts items in Hosts file from data
 bool __fastcall ReadMainHostsData(
-	_In_ std::string Data, 
-	_In_ const size_t HostsType, 
-	_In_ const size_t FileIndex, 
-	_In_ const size_t Line)
+	std::string Data, 
+	const size_t HostsType, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 //Mark separated location.
 	size_t Separated = 0;

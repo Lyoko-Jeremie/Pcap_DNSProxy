@@ -21,11 +21,11 @@
 
 //Read ipfilter data from files
 bool __fastcall ReadIPFilterData(
-	_In_ std::string Data, 
-	_In_ const size_t FileIndex, 
-	_Inout_ size_t &LabelType, 
-	_In_ const size_t Line, 
-	_Inout_ bool &IsLabelComments)
+	std::string Data, 
+	const size_t FileIndex, 
+	size_t &LabelType, 
+	const size_t Line, 
+	bool &IsLabelComments)
 {
 //Convert horizontal tab/HT to space and delete spaces before or after data.
 	for (auto &StringIter:Data)
@@ -148,9 +148,9 @@ bool __fastcall ReadIPFilterData(
 
 //Read Blacklist items in IPFilter file from data
 bool __fastcall ReadBlacklistData(
-	_In_ std::string Data, 
-	_In_ const size_t FileIndex, 
-	_In_ const size_t Line)
+	std::string Data, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 //Mark separated location.
 	size_t Separated = 0;
@@ -379,9 +379,9 @@ bool __fastcall ReadBlacklistData(
 
 //Read Local Routing items in IPFilter file from data
 bool __fastcall ReadLocalRoutingData(
-	_In_ std::string Data, 
-	_In_ const size_t FileIndex, 
-	_In_ const size_t Line)
+	std::string Data, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 //Check format of items.
 	if (Data.find("/") == std::string::npos || Data.rfind("/") < 3U || Data.rfind("/") == Data.length() - 1U)
@@ -546,12 +546,12 @@ bool __fastcall ReadLocalRoutingData(
 
 //Read Address Prefix Block data
 bool __fastcall ReadAddressPrefixBlock(
-	_In_ std::string OriginalData, 
-	_In_ const size_t DataOffset, 
-	_In_ const uint16_t Protocol, 
-	_Out_ ADDRESS_PREFIX_BLOCK *AddressPrefix, 
-	_In_ const size_t FileIndex, 
-	_In_ const size_t Line)
+	std::string OriginalData, 
+	const size_t DataOffset, 
+	const uint16_t Protocol, 
+	ADDRESS_PREFIX_BLOCK *AddressPrefix, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 	std::string Data(OriginalData, DataOffset);
 
@@ -638,9 +638,9 @@ bool __fastcall ReadAddressPrefixBlock(
 
 //Read Main IPFilter items in IPFilter file from data
 bool __fastcall ReadMainIPFilterData(
-	_In_ std::string Data, 
-	_In_ const size_t FileIndex, 
-	_In_ const size_t Line)
+	std::string Data, 
+	const size_t FileIndex, 
+	const size_t Line)
 {
 //Initialization
 	ADDRESS_RANGE_TABLE AddressRangeTableTemp;

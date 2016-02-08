@@ -47,12 +47,12 @@ extern size_t HashFamilyID;
 
 //Functions
 void __fastcall MD2_Init(
-	_Inout_ MD2_CTX *md2);
+	MD2_CTX *md2);
 void __fastcall MD2_Update(
-	_Inout_ MD2_CTX *md2, 
-	_In_ const uint8_t *data, 
-	_In_ uint32_t len);
+	MD2_CTX *md2, 
+	const uint8_t *data, 
+	uint32_t len);
 void __fastcall MD2_Final(
-	_Inout_ MD2_CTX *md2, 
-	_Out_ uint8_t *hash);
+	MD2_CTX *md2, 
+	uint8_t *hash);
 #endif

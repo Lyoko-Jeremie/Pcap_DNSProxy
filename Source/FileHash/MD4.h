@@ -76,16 +76,16 @@ extern size_t HashFamilyID;
 
 //Functions
 void __fastcall MD4_Init(
-	_Inout_ MD4_CTX *c);
+	MD4_CTX *c);
 void __fastcall MD4_BlockDataOrder(
-	_Inout_ MD4_CTX *c, 
-	_In_ const void *data_, 
-	_In_ size_t num);
+	MD4_CTX *c, 
+	const void *data_, 
+	size_t num);
 void __fastcall MD4_Update(
-	_Inout_ MD4_CTX *c, 
-	_In_ const void *data_, 
-	_In_ size_t len);
+	MD4_CTX *c, 
+	const void *data_, 
+	size_t len);
 void __fastcall MD4_Final(
-	_Out_ uint8_t *md, 
-	_Inout_ MD4_CTX *c);
+	uint8_t *md, 
+	MD4_CTX *c);
 #endif
