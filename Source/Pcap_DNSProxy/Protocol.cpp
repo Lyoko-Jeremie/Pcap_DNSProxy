@@ -37,8 +37,7 @@ bool __fastcall AddressStringToBinary(
 
 //inet_ntop() and inet_pton() was only support in Windows Vista and newer system. [Roy Tam]
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	auto SockAddr = std::make_shared<sockaddr_storage>();
-	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
+	sockaddr_storage SockAddr = {0};
 	int SockLength = 0;
 #endif
 
@@ -80,7 +79,7 @@ bool __fastcall AddressStringToBinary(
 		}
 		else {
 			SockLength = sizeof(sockaddr_in6);
-			if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET6, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
+			if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET6, nullptr, (PSOCKADDR)&SockAddr, &SockLength) == SOCKET_ERROR)
 			{
 				if (ErrorCode != nullptr)
 					*ErrorCode = WSAGetLastError();
@@ -88,7 +87,7 @@ bool __fastcall AddressStringToBinary(
 				return false;
 			}
 
-			memcpy_s(OriginalAddr, sizeof(in6_addr), &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, sizeof(in6_addr));
+			memcpy_s(OriginalAddr, sizeof(in6_addr), &((PSOCKADDR_IN6)&SockAddr)->sin6_addr, sizeof(in6_addr));
 		}
 	#else
 		Result = inet_pton(AF_INET6, sAddrString.c_str(), OriginalAddr);
@@ -160,14 +159,14 @@ bool __fastcall AddressStringToBinary(
 		}
 		else {
 			SockLength = sizeof(sockaddr_in);
-			if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET, nullptr, (PSOCKADDR)SockAddr.get(), &SockLength) == SOCKET_ERROR)
+			if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET, nullptr, (PSOCKADDR)&SockAddr, &SockLength) == SOCKET_ERROR)
 			{
 				if (ErrorCode != nullptr)
 					*ErrorCode = WSAGetLastError();
 				return false;
 			}
 
-			memcpy_s(OriginalAddr, sizeof(in_addr), &((PSOCKADDR_IN)SockAddr.get())->sin_addr, sizeof(in_addr));
+			memcpy_s(OriginalAddr, sizeof(in_addr), &((PSOCKADDR_IN)&SockAddr)->sin_addr, sizeof(in_addr));
 		}
 	#else
 		Result = inet_pton(AF_INET, sAddrString.c_str(), OriginalAddr);

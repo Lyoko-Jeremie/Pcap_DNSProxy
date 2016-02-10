@@ -584,9 +584,8 @@ size_t __fastcall SOCKSTCPRequest(
 {
 //Initialization
 	std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
-	auto TCPSocketData = std::make_shared<SOCKET_DATA>();
 	memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
-	memset(TCPSocketData.get(), 0, sizeof(SOCKET_DATA));
+	SOCKET_DATA TCPSocketData = {0};
 	memset(OriginalRecv, 0, RecvSize);
 
 //Socket initialization
@@ -595,58 +594,55 @@ size_t __fastcall SOCKSTCPRequest(
 		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 || //IPv6
 		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 && Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0)) //Non-IPv4
 	{
-		TCPSocketData->SockAddr.ss_family = AF_INET6;
-		((PSOCKADDR_IN6)&TCPSocketData->SockAddr)->sin6_addr = Parameter.SOCKS_Address_IPv6.IPv6.sin6_addr;
-		((PSOCKADDR_IN6)&TCPSocketData->SockAddr)->sin6_port = Parameter.SOCKS_Address_IPv6.IPv6.sin6_port;
-		TCPSocketData->AddrLen = sizeof(sockaddr_in6);
-		TCPSocketData->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+		TCPSocketData.SockAddr.ss_family = AF_INET6;
+		((PSOCKADDR_IN6)&TCPSocketData.SockAddr)->sin6_addr = Parameter.SOCKS_Address_IPv6.IPv6.sin6_addr;
+		((PSOCKADDR_IN6)&TCPSocketData.SockAddr)->sin6_port = Parameter.SOCKS_Address_IPv6.IPv6.sin6_port;
+		TCPSocketData.AddrLen = sizeof(sockaddr_in6);
+		TCPSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 	}
 	else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family > 0 && //IPv4
 		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
 		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 || //IPv4
 		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 && Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0)) //Non-IPv6
 	{
-		TCPSocketData->SockAddr.ss_family = AF_INET;
-		((PSOCKADDR_IN)&TCPSocketData->SockAddr)->sin_addr = Parameter.SOCKS_Address_IPv4.IPv4.sin_addr;
-		((PSOCKADDR_IN)&TCPSocketData->SockAddr)->sin_port = Parameter.SOCKS_Address_IPv4.IPv4.sin_port;
-		TCPSocketData->AddrLen = sizeof(sockaddr_in);
-		TCPSocketData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+		TCPSocketData.SockAddr.ss_family = AF_INET;
+		((PSOCKADDR_IN)&TCPSocketData.SockAddr)->sin_addr = Parameter.SOCKS_Address_IPv4.IPv4.sin_addr;
+		((PSOCKADDR_IN)&TCPSocketData.SockAddr)->sin_port = Parameter.SOCKS_Address_IPv4.IPv4.sin_port;
+		TCPSocketData.AddrLen = sizeof(sockaddr_in);
+		TCPSocketData.Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	}
 	else {
 		return EXIT_FAILURE;
 	}
 
 //Socket check 
-	if (!SocketSetting(TCPSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+	if (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
 	{
 		PrintError(LOG_ERROR_NETWORK, L"SOCKS socket initialization error", 0, nullptr, 0);
 		return EXIT_FAILURE;
 	}
 
 //Non-blocking mode setting
-	if (!SocketSetting(TCPSocketData->Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
+	if (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
 	{
-		shutdown(TCPSocketData->Socket, SD_BOTH);
-		closesocket(TCPSocketData->Socket);
+		shutdown(TCPSocketData.Socket, SD_BOTH);
+		closesocket(TCPSocketData.Socket);
 		PrintError(LOG_ERROR_NETWORK, L"Socket non-blocking mode setting error", 0, nullptr, 0);
 
 		return EXIT_FAILURE;
 	}
 
 //Selecting structure setting
-	auto ReadFDS = std::make_shared<fd_set>(), WriteFDS = std::make_shared<fd_set>();
-	auto Timeout = std::make_shared<timeval>();
-	memset(ReadFDS.get(), 0, sizeof(fd_set));
-	memset(WriteFDS.get(), 0, sizeof(fd_set));
-	memset(Timeout.get(), 0, sizeof(timeval));
+	fd_set ReadFDS = {0}, WriteFDS = {0};
+	timeval Timeout = {0};
 
 //Selection exchange process
 	if (Parameter.SOCKS_Version == SOCKS_VERSION_5)
 	{
-		if (!SOCKSSelectionExchange(TCPSocketData.get(), ReadFDS.get(), WriteFDS.get(), Timeout.get(), SendBuffer.get(), OriginalRecv, RecvSize))
+		if (!SOCKSSelectionExchange(&TCPSocketData, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), OriginalRecv, RecvSize))
 		{
-			shutdown(TCPSocketData->Socket, SD_BOTH);
-			closesocket(TCPSocketData->Socket);
+			shutdown(TCPSocketData.Socket, SD_BOTH);
+			closesocket(TCPSocketData.Socket);
 
 			return EXIT_FAILURE;
 		}
@@ -656,10 +652,10 @@ size_t __fastcall SOCKSTCPRequest(
 	}
 
 //Client command request process
-	if (!SOCKSClientCommandRequest(IPPROTO_TCP, TCPSocketData->Socket, ReadFDS.get(), WriteFDS.get(), Timeout.get(), SendBuffer.get(), OriginalRecv, RecvSize, TCPSocketData.get()))
+	if (!SOCKSClientCommandRequest(IPPROTO_TCP, TCPSocketData.Socket, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), OriginalRecv, RecvSize, &TCPSocketData))
 	{
-		shutdown(TCPSocketData->Socket, SD_BOTH);
-		closesocket(TCPSocketData->Socket);
+		shutdown(TCPSocketData.Socket, SD_BOTH);
+		closesocket(TCPSocketData.Socket);
 
 		return EXIT_FAILURE;
 	}
@@ -672,25 +668,25 @@ size_t __fastcall SOCKSTCPRequest(
 	SSIZE_T RecvLen = AddLengthDataToHeader(SendBuffer.get(), SendSize, RecvSize);
 	if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 	{
-		shutdown(TCPSocketData->Socket, SD_BOTH);
-		closesocket(TCPSocketData->Socket);
+		shutdown(TCPSocketData.Socket, SD_BOTH);
+		closesocket(TCPSocketData.Socket);
 
 		return EXIT_FAILURE;
 	}
 
 //Socket timeout setting
 #if defined(PLATFORM_WIN)
-	Timeout->tv_sec = Parameter.SOCKS_SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
-	Timeout->tv_usec = Parameter.SOCKS_SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+	Timeout.tv_sec = Parameter.SOCKS_SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
+	Timeout.tv_usec = Parameter.SOCKS_SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	Timeout->tv_sec = Parameter.SOCKS_SocketTimeout_Reliable.tv_sec;
-	Timeout->tv_usec = Parameter.SOCKS_SocketTimeout_Reliable.tv_usec;
+	Timeout.tv_sec = Parameter.SOCKS_SocketTimeout_Reliable.tv_sec;
+	Timeout.tv_usec = Parameter.SOCKS_SocketTimeout_Reliable.tv_usec;
 #endif
 
 //Data exchange
-	RecvLen = ProxySocketSelecting(TCPSocketData->Socket, ReadFDS.get(), WriteFDS.get(), Timeout.get(), SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, DNS_PACKET_MINSIZE, nullptr);
-	shutdown(TCPSocketData->Socket, SD_BOTH);
-	closesocket(TCPSocketData->Socket);
+	RecvLen = ProxySocketSelecting(TCPSocketData.Socket, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, DNS_PACKET_MINSIZE, nullptr);
+	shutdown(TCPSocketData.Socket, SD_BOTH);
+	closesocket(TCPSocketData.Socket);
 
 //Server response check
 	if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && ntohs(((uint16_t *)OriginalRecv)[0]) >= DNS_PACKET_MINSIZE && 
@@ -728,19 +724,9 @@ size_t __fastcall SOCKSUDPRequest(
 {
 //Initialization
 	std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
-	std::shared_ptr<SOCKET_DATA> TCPSocketData, LocalSocketData;
-	auto UDPSocketData = std::make_shared<SOCKET_DATA>();
 	memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
-	memset(UDPSocketData.get(), 0, sizeof(SOCKET_DATA));
+	SOCKET_DATA TCPSocketData = {0}, LocalSocketData = {0}, UDPSocketData = {0};
 	memset(OriginalRecv, 0, RecvSize);
-	if (!Parameter.SOCKS_UDP_NoHandshake)
-	{
-		auto TCPSocketDataTemp = std::make_shared<SOCKET_DATA>(), LocalSocketDataTemp = std::make_shared<SOCKET_DATA>();
-		TCPSocketDataTemp.swap(TCPSocketData);
-		LocalSocketDataTemp.swap(LocalSocketData);
-		memset(TCPSocketData.get(), 0, sizeof(SOCKET_DATA));
-		memset(LocalSocketData.get(), 0, sizeof(SOCKET_DATA));
-	}
 
 //Socket initialization
 	if (Parameter.SOCKS_Address_IPv6.Storage.ss_family > 0 && //IPv6
@@ -751,24 +737,24 @@ size_t __fastcall SOCKSUDPRequest(
 		if (!Parameter.SOCKS_UDP_NoHandshake)
 		{
 		//TCP process
-			TCPSocketData->SockAddr.ss_family = AF_INET6;
-			((PSOCKADDR_IN6)&TCPSocketData->SockAddr)->sin6_addr = Parameter.SOCKS_Address_IPv6.IPv6.sin6_addr;
-			((PSOCKADDR_IN6)&TCPSocketData->SockAddr)->sin6_port = Parameter.SOCKS_Address_IPv6.IPv6.sin6_port;
-			TCPSocketData->AddrLen = sizeof(sockaddr_in6);
-			TCPSocketData->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+			TCPSocketData.SockAddr.ss_family = AF_INET6;
+			((PSOCKADDR_IN6)&TCPSocketData.SockAddr)->sin6_addr = Parameter.SOCKS_Address_IPv6.IPv6.sin6_addr;
+			((PSOCKADDR_IN6)&TCPSocketData.SockAddr)->sin6_port = Parameter.SOCKS_Address_IPv6.IPv6.sin6_port;
+			TCPSocketData.AddrLen = sizeof(sockaddr_in6);
+			TCPSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 
 		//Local process
-			LocalSocketData->SockAddr.ss_family = AF_INET6;
-			LocalSocketData->AddrLen = sizeof(sockaddr_in6);
+			LocalSocketData.SockAddr.ss_family = AF_INET6;
+			LocalSocketData.AddrLen = sizeof(sockaddr_in6);
 		}
 
 	//UDP process
-		UDPSocketData->SockAddr.ss_family = AF_INET6;
-		((PSOCKADDR_IN6)&UDPSocketData->SockAddr)->sin6_addr = Parameter.SOCKS_Address_IPv6.IPv6.sin6_addr;
+		UDPSocketData.SockAddr.ss_family = AF_INET6;
+		((PSOCKADDR_IN6)&UDPSocketData.SockAddr)->sin6_addr = Parameter.SOCKS_Address_IPv6.IPv6.sin6_addr;
 		if (Parameter.SOCKS_UDP_NoHandshake)
-			((PSOCKADDR_IN6)&UDPSocketData->SockAddr)->sin6_port = Parameter.SOCKS_Address_IPv6.IPv6.sin6_port;
-		UDPSocketData->AddrLen = sizeof(sockaddr_in6);
-		UDPSocketData->Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+			((PSOCKADDR_IN6)&UDPSocketData.SockAddr)->sin6_port = Parameter.SOCKS_Address_IPv6.IPv6.sin6_port;
+		UDPSocketData.AddrLen = sizeof(sockaddr_in6);
+		UDPSocketData.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	}
 	else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family > 0 && //IPv4
 		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
@@ -778,70 +764,67 @@ size_t __fastcall SOCKSUDPRequest(
 		if (!Parameter.SOCKS_UDP_NoHandshake)
 		{
 		//TCP process
-			TCPSocketData->SockAddr.ss_family = AF_INET;
-			((PSOCKADDR_IN)&TCPSocketData->SockAddr)->sin_addr = Parameter.SOCKS_Address_IPv4.IPv4.sin_addr;
-			((PSOCKADDR_IN)&TCPSocketData->SockAddr)->sin_port = Parameter.SOCKS_Address_IPv4.IPv4.sin_port;
-			TCPSocketData->AddrLen = sizeof(sockaddr_in);
-			TCPSocketData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+			TCPSocketData.SockAddr.ss_family = AF_INET;
+			((PSOCKADDR_IN)&TCPSocketData.SockAddr)->sin_addr = Parameter.SOCKS_Address_IPv4.IPv4.sin_addr;
+			((PSOCKADDR_IN)&TCPSocketData.SockAddr)->sin_port = Parameter.SOCKS_Address_IPv4.IPv4.sin_port;
+			TCPSocketData.AddrLen = sizeof(sockaddr_in);
+			TCPSocketData.Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 		//Local process
-			LocalSocketData->SockAddr.ss_family = AF_INET;
-			LocalSocketData->AddrLen = sizeof(sockaddr_in);
+			LocalSocketData.SockAddr.ss_family = AF_INET;
+			LocalSocketData.AddrLen = sizeof(sockaddr_in);
 		}
 
 	//UDP process
-		UDPSocketData->SockAddr.ss_family = AF_INET;
-		((PSOCKADDR_IN)&UDPSocketData->SockAddr)->sin_addr = Parameter.SOCKS_Address_IPv4.IPv4.sin_addr;
+		UDPSocketData.SockAddr.ss_family = AF_INET;
+		((PSOCKADDR_IN)&UDPSocketData.SockAddr)->sin_addr = Parameter.SOCKS_Address_IPv4.IPv4.sin_addr;
 		if (Parameter.SOCKS_UDP_NoHandshake)
-			((PSOCKADDR_IN)&UDPSocketData->SockAddr)->sin_port = Parameter.SOCKS_Address_IPv4.IPv4.sin_port;
-		UDPSocketData->AddrLen = sizeof(sockaddr_in);
-		UDPSocketData->Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+			((PSOCKADDR_IN)&UDPSocketData.SockAddr)->sin_port = Parameter.SOCKS_Address_IPv4.IPv4.sin_port;
+		UDPSocketData.AddrLen = sizeof(sockaddr_in);
+		UDPSocketData.Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	}
 	else {
 		return EXIT_FAILURE;
 	}
 
 //Socket check 
-	if (!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr) || 
-		!SocketSetting(UDPSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+	if (!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr) || 
+		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
 	{
-		closesocket(UDPSocketData->Socket);
+		closesocket(UDPSocketData.Socket);
 		if (!Parameter.SOCKS_UDP_NoHandshake)
-			closesocket(TCPSocketData->Socket);
+			closesocket(TCPSocketData.Socket);
 		PrintError(LOG_ERROR_NETWORK, L"SOCKS socket initialization error", 0, nullptr, 0);
 
 		return EXIT_FAILURE;
 	}
 
 //Non-blocking mode setting
-	if (!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData->Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr) || 
-		!SocketSetting(UDPSocketData->Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
+	if (!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr) || 
+		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
 	{
-		closesocket(UDPSocketData->Socket);
+		closesocket(UDPSocketData.Socket);
 		if (!Parameter.SOCKS_UDP_NoHandshake)
-			closesocket(TCPSocketData->Socket);
+			closesocket(TCPSocketData.Socket);
 		PrintError(LOG_ERROR_NETWORK, L"Socket non-blocking mode setting error", 0, nullptr, 0);
 
 		return EXIT_FAILURE;
 	}
 
 //Selecting structure setting
-	auto ReadFDS = std::make_shared<fd_set>(), WriteFDS = std::make_shared<fd_set>();
-	auto Timeout = std::make_shared<timeval>();
-	memset(ReadFDS.get(), 0, sizeof(fd_set));
-	memset(WriteFDS.get(), 0, sizeof(fd_set));
-	memset(Timeout.get(), 0, sizeof(timeval));
+	fd_set ReadFDS = {0}, WriteFDS = {0};
+	timeval Timeout = {0};
 
 //UDP transmission of standard SOCKS protocol must connect with TCP to server first.
 	if (!Parameter.SOCKS_UDP_NoHandshake)
 	{
 	//Selection exchange process
-		if (!SOCKSSelectionExchange(TCPSocketData.get(), ReadFDS.get(), WriteFDS.get(), Timeout.get(), SendBuffer.get(), OriginalRecv, RecvSize))
+		if (!SOCKSSelectionExchange(&TCPSocketData, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), OriginalRecv, RecvSize))
 		{
-			shutdown(UDPSocketData->Socket, SD_BOTH);
-			shutdown(TCPSocketData->Socket, SD_BOTH);
-			closesocket(UDPSocketData->Socket);
-			closesocket(TCPSocketData->Socket);
+			shutdown(UDPSocketData.Socket, SD_BOTH);
+			shutdown(TCPSocketData.Socket, SD_BOTH);
+			closesocket(UDPSocketData.Socket);
+			closesocket(TCPSocketData.Socket);
 
 			return EXIT_FAILURE;
 		}
@@ -850,25 +833,25 @@ size_t __fastcall SOCKSUDPRequest(
 		}
 
 	//UDP connecting and get UDP socket infomation.
-		if (SocketConnecting(IPPROTO_UDP, UDPSocketData->Socket, (PSOCKADDR)&UDPSocketData->SockAddr, UDPSocketData->AddrLen, nullptr, 0) == EXIT_FAILURE || 
-			getsockname(UDPSocketData->Socket, (PSOCKADDR)&LocalSocketData->SockAddr, &LocalSocketData->AddrLen) == SOCKET_ERROR)
+		if (SocketConnecting(IPPROTO_UDP, UDPSocketData.Socket, (PSOCKADDR)&UDPSocketData.SockAddr, UDPSocketData.AddrLen, nullptr, 0) == EXIT_FAILURE || 
+			getsockname(UDPSocketData.Socket, (PSOCKADDR)&LocalSocketData.SockAddr, &LocalSocketData.AddrLen) == SOCKET_ERROR)
 		{
-			shutdown(UDPSocketData->Socket, SD_BOTH);
-			shutdown(TCPSocketData->Socket, SD_BOTH);
-			closesocket(UDPSocketData->Socket);
-			closesocket(TCPSocketData->Socket);
+			shutdown(UDPSocketData.Socket, SD_BOTH);
+			shutdown(TCPSocketData.Socket, SD_BOTH);
+			closesocket(UDPSocketData.Socket);
+			closesocket(TCPSocketData.Socket);
 			PrintError(LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
 
 			return EXIT_FAILURE;
 		}
 
 	//Client command request process
-		if (!SOCKSClientCommandRequest(IPPROTO_UDP, TCPSocketData->Socket, ReadFDS.get(), WriteFDS.get(), Timeout.get(), SendBuffer.get(), OriginalRecv, RecvSize, LocalSocketData.get()))
+		if (!SOCKSClientCommandRequest(IPPROTO_UDP, TCPSocketData.Socket, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), OriginalRecv, RecvSize, &LocalSocketData))
 		{
-			shutdown(UDPSocketData->Socket, SD_BOTH);
-			shutdown(TCPSocketData->Socket, SD_BOTH);
-			closesocket(UDPSocketData->Socket);
-			closesocket(TCPSocketData->Socket);
+			shutdown(UDPSocketData.Socket, SD_BOTH);
+			shutdown(TCPSocketData.Socket, SD_BOTH);
+			closesocket(UDPSocketData.Socket);
+			closesocket(TCPSocketData.Socket);
 
 			return EXIT_FAILURE;
 		}
@@ -876,20 +859,20 @@ size_t __fastcall SOCKSUDPRequest(
 			memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 
 		//Copy network infomation from server message.
-			if (UDPSocketData->SockAddr.ss_family == AF_INET6)
-				((PSOCKADDR_IN6)&UDPSocketData->SockAddr)->sin6_port = ((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_port;
+			if (UDPSocketData.SockAddr.ss_family == AF_INET6)
+				((PSOCKADDR_IN6)&UDPSocketData.SockAddr)->sin6_port = ((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_port;
 			else 
-				((PSOCKADDR_IN)&UDPSocketData->SockAddr)->sin_port = ((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_port;
+				((PSOCKADDR_IN)&UDPSocketData.SockAddr)->sin_port = ((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_port;
 		}
 	}
 
 //UDP connecting again
-	if (SocketConnecting(IPPROTO_UDP, UDPSocketData->Socket, (PSOCKADDR)&UDPSocketData->SockAddr, UDPSocketData->AddrLen, nullptr, 0) == EXIT_FAILURE)
+	if (SocketConnecting(IPPROTO_UDP, UDPSocketData.Socket, (PSOCKADDR)&UDPSocketData.SockAddr, UDPSocketData.AddrLen, nullptr, 0) == EXIT_FAILURE)
 	{
 		if (!Parameter.SOCKS_UDP_NoHandshake)
 		{
-			shutdown(TCPSocketData->Socket, SD_BOTH);
-			closesocket(TCPSocketData->Socket);
+			shutdown(TCPSocketData.Socket, SD_BOTH);
+			closesocket(TCPSocketData.Socket);
 		}
 
 		PrintError(LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
@@ -933,12 +916,12 @@ size_t __fastcall SOCKSUDPRequest(
 		RecvLen += (SSIZE_T)sizeof(uint16_t);
 	}
 	else {
-		shutdown(UDPSocketData->Socket, SD_BOTH);
-		closesocket(UDPSocketData->Socket);
+		shutdown(UDPSocketData.Socket, SD_BOTH);
+		closesocket(UDPSocketData.Socket);
 		if (!Parameter.SOCKS_UDP_NoHandshake)
 		{
-			shutdown(TCPSocketData->Socket, SD_BOTH);
-			closesocket(TCPSocketData->Socket);
+			shutdown(TCPSocketData.Socket, SD_BOTH);
+			closesocket(TCPSocketData.Socket);
 		}
 
 		return EXIT_FAILURE;
@@ -949,21 +932,21 @@ size_t __fastcall SOCKSUDPRequest(
 
 //Socket timeout setting
 #if defined(PLATFORM_WIN)
-	Timeout->tv_sec = Parameter.SOCKS_SocketTimeout_Unreliable / SECOND_TO_MILLISECOND;
-	Timeout->tv_usec = Parameter.SOCKS_SocketTimeout_Unreliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+	Timeout.tv_sec = Parameter.SOCKS_SocketTimeout_Unreliable / SECOND_TO_MILLISECOND;
+	Timeout.tv_usec = Parameter.SOCKS_SocketTimeout_Unreliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	Timeout->tv_sec = Parameter.SOCKS_SocketTimeout_Reliable.tv_sec;
-	Timeout->tv_usec = Parameter.SOCKS_SocketTimeout_Reliable.tv_usec;
+	Timeout.tv_sec = Parameter.SOCKS_SocketTimeout_Reliable.tv_sec;
+	Timeout.tv_usec = Parameter.SOCKS_SocketTimeout_Reliable.tv_usec;
 #endif
 
 //Data exchange
-	RecvLen = ProxySocketSelecting(UDPSocketData->Socket, ReadFDS.get(), WriteFDS.get(), Timeout.get(), SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, sizeof(socks_udp_relay_request) + DNS_PACKET_MINSIZE, nullptr);
-	shutdown(UDPSocketData->Socket, SD_BOTH);
-	closesocket(UDPSocketData->Socket);
+	RecvLen = ProxySocketSelecting(UDPSocketData.Socket, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, sizeof(socks_udp_relay_request) + DNS_PACKET_MINSIZE, nullptr);
+	shutdown(UDPSocketData.Socket, SD_BOTH);
+	closesocket(UDPSocketData.Socket);
 	if (!Parameter.SOCKS_UDP_NoHandshake)
 	{
-		shutdown(TCPSocketData->Socket, SD_BOTH);
-		closesocket(TCPSocketData->Socket);
+		shutdown(TCPSocketData.Socket, SD_BOTH);
+		closesocket(TCPSocketData.Socket);
 	}
 	if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
 	{
@@ -1051,8 +1034,7 @@ size_t __fastcall HTTPRequest(
 	const size_t RecvSize)
 {
 //Initialization
-	auto HTTPSocketData = std::make_shared<SOCKET_DATA>();
-	memset(HTTPSocketData.get(), 0, sizeof(SOCKET_DATA));
+	SOCKET_DATA HTTPSocketData = {0};
 	memset(OriginalRecv, 0, RecvSize);
 
 //Socket initialization
@@ -1061,57 +1043,54 @@ size_t __fastcall HTTPRequest(
 		Parameter.HTTP_Protocol == REQUEST_MODE_IPV6 || //IPv6
 		Parameter.HTTP_Protocol == REQUEST_MODE_IPV4 && Parameter.HTTP_Address_IPv4.Storage.ss_family == 0)) //Non-IPv4
 	{
-		HTTPSocketData->SockAddr.ss_family = AF_INET6;
-		((PSOCKADDR_IN6)&HTTPSocketData->SockAddr)->sin6_addr = Parameter.HTTP_Address_IPv6.IPv6.sin6_addr;
-		((PSOCKADDR_IN6)&HTTPSocketData->SockAddr)->sin6_port = Parameter.HTTP_Address_IPv6.IPv6.sin6_port;
-		HTTPSocketData->AddrLen = sizeof(sockaddr_in6);
-		HTTPSocketData->Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+		HTTPSocketData.SockAddr.ss_family = AF_INET6;
+		((PSOCKADDR_IN6)&HTTPSocketData.SockAddr)->sin6_addr = Parameter.HTTP_Address_IPv6.IPv6.sin6_addr;
+		((PSOCKADDR_IN6)&HTTPSocketData.SockAddr)->sin6_port = Parameter.HTTP_Address_IPv6.IPv6.sin6_port;
+		HTTPSocketData.AddrLen = sizeof(sockaddr_in6);
+		HTTPSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 	}
 	else if (Parameter.HTTP_Address_IPv4.Storage.ss_family > 0 && //IPv4
 		(Parameter.HTTP_Protocol == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
 		Parameter.HTTP_Protocol == REQUEST_MODE_IPV4 || //IPv4
 		Parameter.HTTP_Protocol == REQUEST_MODE_IPV6 && Parameter.HTTP_Address_IPv6.Storage.ss_family == 0)) //Non-IPv6
 	{
-		HTTPSocketData->SockAddr.ss_family = AF_INET;
-		((PSOCKADDR_IN)&HTTPSocketData->SockAddr)->sin_addr = Parameter.HTTP_Address_IPv4.IPv4.sin_addr;
-		((PSOCKADDR_IN)&HTTPSocketData->SockAddr)->sin_port = Parameter.HTTP_Address_IPv4.IPv4.sin_port;
-		HTTPSocketData->AddrLen = sizeof(sockaddr_in);
-		HTTPSocketData->Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+		HTTPSocketData.SockAddr.ss_family = AF_INET;
+		((PSOCKADDR_IN)&HTTPSocketData.SockAddr)->sin_addr = Parameter.HTTP_Address_IPv4.IPv4.sin_addr;
+		((PSOCKADDR_IN)&HTTPSocketData.SockAddr)->sin_port = Parameter.HTTP_Address_IPv4.IPv4.sin_port;
+		HTTPSocketData.AddrLen = sizeof(sockaddr_in);
+		HTTPSocketData.Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	}
 	else {
 		return EXIT_FAILURE;
 	}
 
 //Socket check 
-	if (!SocketSetting(HTTPSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+	if (!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
 	{
 		PrintError(LOG_ERROR_NETWORK, L"HTTP socket initialization error", 0, nullptr, 0);
 		return EXIT_FAILURE;
 	}
 
 //Non-blocking mode setting
-	if (!SocketSetting(HTTPSocketData->Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
+	if (!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
 	{
-		shutdown(HTTPSocketData->Socket, SD_BOTH);
-		closesocket(HTTPSocketData->Socket);
+		shutdown(HTTPSocketData.Socket, SD_BOTH);
+		closesocket(HTTPSocketData.Socket);
 		PrintError(LOG_ERROR_NETWORK, L"Socket non-blocking mode setting error", 0, nullptr, 0);
 
 		return EXIT_FAILURE;
 	}
 
 //Selecting structure setting
-	auto ReadFDS = std::make_shared<fd_set>(), WriteFDS = std::make_shared<fd_set>();
-	auto Timeout = std::make_shared<timeval>();
-	memset(ReadFDS.get(), 0, sizeof(fd_set));
-	memset(WriteFDS.get(), 0, sizeof(fd_set));
-	memset(Timeout.get(), 0, sizeof(timeval));
+	fd_set ReadFDS = {0}, WriteFDS = {0};
+	timeval Timeout = {0};
 
 //HTTP CONNECT request
 	if (Parameter.HTTP_TargetDomain == nullptr || Parameter.HTTP_Version == nullptr || 
-		!HTTP_CONNECTRequest(HTTPSocketData.get(), ReadFDS.get(), WriteFDS.get(), Timeout.get(), OriginalRecv, RecvSize))
+		!HTTP_CONNECTRequest(&HTTPSocketData, &ReadFDS, &WriteFDS, &Timeout, OriginalRecv, RecvSize))
 	{
-		shutdown(HTTPSocketData->Socket, SD_BOTH);
-		closesocket(HTTPSocketData->Socket);
+		shutdown(HTTPSocketData.Socket, SD_BOTH);
+		closesocket(HTTPSocketData.Socket);
 
 		return EXIT_FAILURE;
 	}
@@ -1123,25 +1102,25 @@ size_t __fastcall HTTPRequest(
 	SSIZE_T RecvLen = AddLengthDataToHeader(SendBuffer.get(), SendSize, RecvSize);
 	if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
 	{
-		shutdown(HTTPSocketData->Socket, SD_BOTH);
-		closesocket(HTTPSocketData->Socket);
+		shutdown(HTTPSocketData.Socket, SD_BOTH);
+		closesocket(HTTPSocketData.Socket);
 
 		return EXIT_FAILURE;
 	}
 
 //Socket timeout setting
 #if defined(PLATFORM_WIN)
-	Timeout->tv_sec = Parameter.HTTP_SocketTimeout / SECOND_TO_MILLISECOND;
-	Timeout->tv_usec = Parameter.HTTP_SocketTimeout % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+	Timeout.tv_sec = Parameter.HTTP_SocketTimeout / SECOND_TO_MILLISECOND;
+	Timeout.tv_usec = Parameter.HTTP_SocketTimeout % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	Timeout->tv_sec = Parameter.HTTP_SocketTimeout.tv_sec;
-	Timeout->tv_usec = Parameter.HTTP_SocketTimeout.tv_usec;
+	Timeout.tv_sec = Parameter.HTTP_SocketTimeout.tv_sec;
+	Timeout.tv_usec = Parameter.HTTP_SocketTimeout.tv_usec;
 #endif
 
 //Data exchange
-	RecvLen = ProxySocketSelecting(HTTPSocketData->Socket, ReadFDS.get(), WriteFDS.get(), Timeout.get(), SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, DNS_PACKET_MINSIZE, nullptr);
-	shutdown(HTTPSocketData->Socket, SD_BOTH);
-	closesocket(HTTPSocketData->Socket);
+	RecvLen = ProxySocketSelecting(HTTPSocketData.Socket, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, DNS_PACKET_MINSIZE, nullptr);
+	shutdown(HTTPSocketData.Socket, SD_BOTH);
+	closesocket(HTTPSocketData.Socket);
 
 //Server response check
 	if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE && ntohs(((uint16_t *)OriginalRecv)[0]) >= DNS_PACKET_MINSIZE && 

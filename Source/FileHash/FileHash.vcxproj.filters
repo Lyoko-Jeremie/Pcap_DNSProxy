@@ -14,7 +14,7 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="SHA-3">
-      <UniqueIdentifier>{ec102a95-aaaf-44fc-b094-127a0e64fb1c}</UniqueIdentifier>
+      <UniqueIdentifier>{cdd85133-712b-4cfc-9387-2b86d945e8c9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -36,13 +36,13 @@
     <ClInclude Include="MD5.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="SHA-1.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="SHA-2.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="SHA3\brg_endian.h">
@@ -71,6 +71,26 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <Text Include="SHA3\CMakeLists.txt">
+      <Filter>SHA-3</Filter>
+    </Text>
+    <Text Include="CMakeLists.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="SHA3\KeccakF-1600-compact64.cpp">
+      <Filter>SHA-3</Filter>
+    </ClCompile>
+    <ClCompile Include="SHA3\KeccakHash.cpp">
+      <Filter>SHA-3</Filter>
+    </ClCompile>
+    <ClCompile Include="SHA3\KeccakSponge.cpp">
+      <Filter>SHA-3</Filter>
+    </ClCompile>
+    <ClCompile Include="SHA3\SnP-FBWL-default.cpp">
+      <Filter>SHA-3</Filter>
+    </ClCompile>
     <ClCompile Include="SHA-3.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -101,26 +121,6 @@
     <ClCompile Include="SHA-2.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="SHA3\KeccakF-1600-compact64.cpp">
-      <Filter>SHA-3</Filter>
-    </ClCompile>
-    <ClCompile Include="SHA3\KeccakHash.cpp">
-      <Filter>SHA-3</Filter>
-    </ClCompile>
-    <ClCompile Include="SHA3\KeccakSponge.cpp">
-      <Filter>SHA-3</Filter>
-    </ClCompile>
-    <ClCompile Include="SHA3\SnP-FBWL-default.cpp">
-      <Filter>SHA-3</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="CMakeLists.txt">
-      <Filter>资源文件</Filter>
-    </Text>
-    <Text Include="SHA3\CMakeLists.txt">
-      <Filter>SHA-3</Filter>
-    </Text>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="FileHash.rc">

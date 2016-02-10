@@ -138,36 +138,35 @@ bool __fastcall SHA3_Hash(
 
 //Initialization
 	std::shared_ptr<char> Buffer(new char[FILE_BUFFER_SIZE]()), StringBuffer(new char[FILE_BUFFER_SIZE]());
-	auto HashInstance = std::make_shared<Keccak_HashInstance>();
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(StringBuffer.get(), 0, FILE_BUFFER_SIZE);
-	memset(HashInstance.get(), 0, sizeof(Keccak_HashInstance));
+	Keccak_HashInstance HashInstance = {0};
 	size_t ReadLength = 0;
 
 //SHA-3 initialization
 	if (SHA3_HashFunctionID == HASH_ID_SHA3_224)
 	{
-		Keccak_HashInitialize_SHA3_224(HashInstance.get());
+		Keccak_HashInitialize_SHA3_224(&HashInstance);
 	}
 	else if (SHA3_HashFunctionID == HASH_ID_SHA3_256)
 	{
-		Keccak_HashInitialize_SHA3_256(HashInstance.get());
+		Keccak_HashInitialize_SHA3_256(&HashInstance);
 	}
 	else if (SHA3_HashFunctionID == HASH_ID_SHA3_384)
 	{
-		Keccak_HashInitialize_SHA3_384(HashInstance.get());
+		Keccak_HashInitialize_SHA3_384(&HashInstance);
 	}
 	else if (SHA3_HashFunctionID == HASH_ID_SHA3_512)
 	{
-		Keccak_HashInitialize_SHA3_512(HashInstance.get());
+		Keccak_HashInitialize_SHA3_512(&HashInstance);
 	}
 	else if (SHA3_HashFunctionID == HASH_ID_SHA3_SHAKE_128)
 	{
-		Keccak_HashInitialize_SHAKE128(HashInstance.get());
+		Keccak_HashInitialize_SHAKE128(&HashInstance);
 	}
 	else if (SHA3_HashFunctionID == HASH_ID_SHA3_SHAKE_256)
 	{
-		Keccak_HashInitialize_SHAKE256(HashInstance.get());
+		Keccak_HashInitialize_SHAKE256(&HashInstance);
 	}
 	else {
 		fwprintf_s(stderr, L"SHA-3 function ID error.\n");
@@ -179,7 +178,7 @@ bool __fastcall SHA3_Hash(
 	{
 		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 		ReadLength = fread_s(Buffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, Input);
-		if (ReadLength == 0 && errno == EINVAL || Keccak_HashUpdate(HashInstance.get(), (BitSequence *)Buffer.get(), ReadLength * BYTES_TO_BITS) != SUCCESS)
+		if (ReadLength == 0 && errno == EINVAL || Keccak_HashUpdate(&HashInstance, (BitSequence *)Buffer.get(), ReadLength * BYTES_TO_BITS) != SUCCESS)
 		{
 			fwprintf_s(stderr, L"Hash process error.\n");
 			return false;
@@ -188,7 +187,7 @@ bool __fastcall SHA3_Hash(
 
 //Binary to hex
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
-	if (Keccak_HashFinal(HashInstance.get(), (BitSequence *)Buffer.get()) == SUCCESS)
+	if (Keccak_HashFinal(&HashInstance, (BitSequence *)Buffer.get()) == SUCCESS)
 	{
 	//SHA-3 224 bits
 		if (SHA3_HashFunctionID == HASH_ID_SHA3_224)
@@ -230,7 +229,7 @@ bool __fastcall SHA3_Hash(
 		else if (SHA3_HashFunctionID == HASH_ID_SHA3_SHAKE_128 || SHA3_HashFunctionID == HASH_ID_SHA3_SHAKE_256)
 		{
 		//SHA-3 squeeze.
-			if (Keccak_HashSqueeze(HashInstance.get(), (BitSequence *)Buffer.get(), SHA3_SHAKE_Length) == SUCCESS)
+			if (Keccak_HashSqueeze(&HashInstance, (BitSequence *)Buffer.get(), SHA3_SHAKE_Length) == SUCCESS)
 			{
 				if (sodium_bin2hex(StringBuffer.get(), FILE_BUFFER_SIZE, (const unsigned char *)Buffer.get(), SHA3_SHAKE_Length / BYTES_TO_BITS) == nullptr)
 				{

@@ -249,13 +249,12 @@ bool __fastcall PrintScreenAndWriteFile(
 	const size_t Line)
 {
 //Get current date and time.
-	auto TimeStructure = std::make_shared<tm>();
-	memset(TimeStructure.get(), 0, sizeof(tm));
+	tm TimeStructure = {0};
 	auto TimeValues = time(nullptr);
 #if defined(PLATFORM_WIN)
-	if (localtime_s(TimeStructure.get(), &TimeValues) > 0)
+	if (localtime_s(&TimeStructure, &TimeValues) > 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	if (localtime_r(&TimeValues, TimeStructure.get()) == nullptr)
+	if (localtime_r(&TimeValues, &TimeStructure) == nullptr)
 #endif
 		return false;
 
@@ -280,22 +279,22 @@ bool __fastcall PrintScreenAndWriteFile(
 		if (LogStartupTime > 0)
 		{
 			fwprintf_s(stderr, L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", 
-				TimeStructure->tm_year + 1900, 
-				TimeStructure->tm_mon + 1, 
-				TimeStructure->tm_mday, 
-				TimeStructure->tm_hour, 
-				TimeStructure->tm_min, 
-				TimeStructure->tm_sec);
+				TimeStructure.tm_year + 1900, 
+				TimeStructure.tm_mon + 1, 
+				TimeStructure.tm_mday, 
+				TimeStructure.tm_hour, 
+				TimeStructure.tm_min, 
+				TimeStructure.tm_sec);
 		}
 
 	//Print message.
 		fwprintf_s(stderr, L"%d-%02d-%02d %02d:%02d:%02d -> ", 
-			TimeStructure->tm_year + 1900, 
-			TimeStructure->tm_mon + 1, 
-			TimeStructure->tm_mday, 
-			TimeStructure->tm_hour, 
-			TimeStructure->tm_min, 
-			TimeStructure->tm_sec);
+			TimeStructure.tm_year + 1900, 
+			TimeStructure.tm_mon + 1, 
+			TimeStructure.tm_mday, 
+			TimeStructure.tm_hour, 
+			TimeStructure.tm_min, 
+			TimeStructure.tm_sec);
 		if (Line > 0 && ErrorCode > 0)
 			fwprintf_s(stderr, Message.c_str(), Line, ErrorCode);
 		else if (Line > 0)
@@ -310,15 +309,13 @@ bool __fastcall PrintScreenAndWriteFile(
 	std::unique_lock<std::mutex> ErrorLogMutex(ErrorLogLock);
 
 #if defined(PLATFORM_WIN)
-	auto File_WIN32_FILE_ATTRIBUTE_DATA = std::make_shared<WIN32_FILE_ATTRIBUTE_DATA>();
-	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
-	if (GetFileAttributesExW(GlobalRunningStatus.Path_ErrorLog->c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) != FALSE)
+	WIN32_FILE_ATTRIBUTE_DATA File_WIN32_FILE_ATTRIBUTE_DATA = {0};
+	if (GetFileAttributesExW(GlobalRunningStatus.Path_ErrorLog->c_str(), GetFileExInfoStandard, &File_WIN32_FILE_ATTRIBUTE_DATA) != FALSE)
 	{
-		auto ErrorFileSize = std::make_shared<LARGE_INTEGER>();
-		memset(ErrorFileSize.get(), 0, sizeof(LARGE_INTEGER));
-		ErrorFileSize->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
-		ErrorFileSize->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
-		if (ErrorFileSize->QuadPart > 0 && (size_t)ErrorFileSize->QuadPart >= Parameter.LogMaxSize)
+		LARGE_INTEGER ErrorFileSize = {0};
+		ErrorFileSize.HighPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeHigh;
+		ErrorFileSize.LowPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeLow;
+		if (ErrorFileSize.QuadPart > 0 && (size_t)ErrorFileSize.QuadPart >= Parameter.LogMaxSize)
 		{
 			if (DeleteFileW(GlobalRunningStatus.Path_ErrorLog->c_str()) != FALSE)
 			{
@@ -331,12 +328,9 @@ bool __fastcall PrintScreenAndWriteFile(
 			}
 		}
 	}
-
-	File_WIN32_FILE_ATTRIBUTE_DATA.reset();
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	auto FileStat = std::make_shared<struct stat>();
-	memset(FileStat.get(), 0, sizeof(struct stat));
-	if (stat(GlobalRunningStatus.sPath_ErrorLog->c_str(), FileStat.get()) == 0 && FileStat->st_size >= (off_t)Parameter.LogMaxSize)
+	struct stat FileStat = {0};
+	if (stat(GlobalRunningStatus.sPath_ErrorLog->c_str(), &FileStat) == 0 && FileStat.st_size >= (off_t)Parameter.LogMaxSize)
 	{
 		if (remove(GlobalRunningStatus.sPath_ErrorLog->c_str()) == 0)
 		{
@@ -348,8 +342,6 @@ bool __fastcall PrintScreenAndWriteFile(
 			return false;
 		}
 	}
-
-	FileStat.reset();
 #endif
 
 //Write to file.
@@ -365,22 +357,22 @@ bool __fastcall PrintScreenAndWriteFile(
 		if (LogStartupTime > 0)
 		{
 			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", 
-				TimeStructure->tm_year + 1900, 
-				TimeStructure->tm_mon + 1, 
-				TimeStructure->tm_mday, 
-				TimeStructure->tm_hour, 
-				TimeStructure->tm_min, 
-				TimeStructure->tm_sec);
+				TimeStructure.tm_year + 1900, 
+				TimeStructure.tm_mon + 1, 
+				TimeStructure.tm_mday, 
+				TimeStructure.tm_hour, 
+				TimeStructure.tm_min, 
+				TimeStructure.tm_sec);
 		}
 
 	//Print message.
 		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", 
-			TimeStructure->tm_year + 1900, 
-			TimeStructure->tm_mon + 1, 
-			TimeStructure->tm_mday, 
-			TimeStructure->tm_hour, 
-			TimeStructure->tm_min, 
-			TimeStructure->tm_sec);
+			TimeStructure.tm_year + 1900, 
+			TimeStructure.tm_mon + 1, 
+			TimeStructure.tm_mday, 
+			TimeStructure.tm_hour, 
+			TimeStructure.tm_min, 
+			TimeStructure.tm_sec);
 		if (Line > 0 && ErrorCode > 0)
 			fwprintf_s(Output, Message.c_str(), Line, ErrorCode);
 		else if (Line > 0)

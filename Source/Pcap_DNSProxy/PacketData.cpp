@@ -690,11 +690,10 @@ size_t __fastcall MakeCompressionPointerMutation(
 		return Length + 1U;
 	}
 	else {
-		auto DNS_Query = std::make_shared<dns_qry>();
-		memset(DNS_Query.get(), 0, sizeof(dns_qry));
-		memcpy_s(DNS_Query.get(), sizeof(dns_qry), Buffer + DNS_PACKET_QUERY_LOCATE(Buffer), sizeof(dns_qry));
+		dns_qry DNS_Query = {0};
+		memcpy_s((char *)&DNS_Query, sizeof(dns_qry), Buffer + DNS_PACKET_QUERY_LOCATE(Buffer), sizeof(dns_qry));
 		memmove_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t) + sizeof(dns_qry), Length, Buffer + sizeof(dns_hdr), strnlen_s(Buffer + sizeof(dns_hdr), Length - sizeof(dns_hdr)) + 1U);
-		memcpy_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t), Length - sizeof(dns_hdr) - sizeof(uint16_t), DNS_Query.get(), sizeof(dns_qry));
+		memcpy_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t), Length - sizeof(dns_hdr) - sizeof(uint16_t), (char *)&DNS_Query, sizeof(dns_qry));
 		*(Buffer + sizeof(dns_hdr)) = DNS_POINTER_8_BITS_STRING;
 		*(Buffer + sizeof(dns_hdr) + 1U) = '\x12';
 
@@ -710,7 +709,7 @@ size_t __fastcall MakeCompressionPointerMutation(
 			std::uniform_int_distribution<int> RamdomDistribution_Additional(0, UINT32_MAX);
 
 		//Make records.
-			if (DNS_Query->Type == htons(DNS_RECORD_AAAA))
+			if (DNS_Query.Type == htons(DNS_RECORD_AAAA))
 			{
 				auto DNS_Record_AAAA = (pdns_record_aaaa)(Buffer + Length);
 				DNS_Record_AAAA->Type = htons(DNS_RECORD_AAAA);

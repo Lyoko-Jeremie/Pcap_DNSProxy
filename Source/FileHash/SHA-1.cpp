@@ -215,14 +215,13 @@ bool __fastcall SHA1_Hash(
 
 //Initialization
 	std::shared_ptr<char> Buffer(new char[FILE_BUFFER_SIZE]()), StringBuffer(new char[FILE_BUFFER_SIZE]());
-	auto HashInstance = std::make_shared<SHA1_State>();
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(StringBuffer.get(), 0, FILE_BUFFER_SIZE);
-	memset(HashInstance.get(), 0, sizeof(SHA1_State));
+	SHA1_State HashInstance = {0};
 	size_t ReadLength = 0;
 
 //SHA-1 initialization
-	SHA1_Init(HashInstance.get());
+	SHA1_Init(&HashInstance);
 
 //Hash process
 	while (!feof(Input))
@@ -235,13 +234,13 @@ bool __fastcall SHA1_Hash(
 			return false;
 		}
 		else {
-			SHA1_Process(HashInstance.get(), (uint8_t *)Buffer.get(), (unsigned long)ReadLength);
+			SHA1_Process(&HashInstance, (uint8_t *)Buffer.get(), (unsigned long)ReadLength);
 		}
 	}
 
 //Binary to hex
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
-	SHA1_Done(HashInstance.get(), (uint8_t *)Buffer.get());
+	SHA1_Done(&HashInstance, (uint8_t *)Buffer.get());
 	if (sodium_bin2hex(StringBuffer.get(), FILE_BUFFER_SIZE, (const unsigned char *)Buffer.get(), SHA1_SIZE_DIGEST) == nullptr)
 	{
 		fwprintf_s(stderr, L"Convert binary to hex error.\n");

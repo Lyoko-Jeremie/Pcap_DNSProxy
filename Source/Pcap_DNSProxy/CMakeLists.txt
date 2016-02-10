@@ -17,13 +17,12 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-# CMake minimum version and packages check
+# CMake minimum version
 IF(PLATFORM_OPENWRT)
 	cmake_minimum_required(VERSION 2.8.12.2)
 ELSE(PLATFORM_OPENWRT)
 	cmake_minimum_required(VERSION 3.0.2)
 ENDIF(PLATFORM_OPENWRT)
-find_package(Threads REQUIRED)
 
 # Project name and build type
 project(Pcap_DNSProxy)
@@ -65,6 +64,9 @@ set(MAIN_SRC_FILES
 		"ReadParameter.cpp"
 		"Service.cpp")
 
+# Libraries linking(Part 1)
+find_package(Threads REQUIRED)
+
 # Compiling and linking flags
 ## C++ 11 standard definitions
 IF (CMAKE_VERSION VERSION_LESS "3.1")
@@ -98,7 +100,7 @@ IF(PLATFORM_OPENWRT)
 	INSTALL(TARGETS Pcap_DNSProxy RUNTIME DESTINATION sbin)
 ENDIF(PLATFORM_OPENWRT)
 
-# Libraries linking
+# Libraries linking(Part 2)
 target_link_libraries(Pcap_DNSProxy ${CMAKE_THREAD_LIBS_INIT})
 IF(ENABLE_PCAP)
 	target_link_libraries(Pcap_DNSProxy pcap)

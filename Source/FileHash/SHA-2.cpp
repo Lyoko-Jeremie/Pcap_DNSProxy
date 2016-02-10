@@ -800,43 +800,41 @@ bool __fastcall SHA2_Hash(
 
 //Initialization
 	std::shared_ptr<char> Buffer(new char[FILE_BUFFER_SIZE]()), StringBuffer(new char[FILE_BUFFER_SIZE]());
-	auto HashInstance256 = std::make_shared<SHA2_256_Object>();
-	auto HashInstance512 = std::make_shared<SHA2_512_Object>();
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(StringBuffer.get(), 0, FILE_BUFFER_SIZE);
-	memset(HashInstance256.get(), 0, sizeof(SHA2_256_Object));
-	memset(HashInstance512.get(), 0, sizeof(SHA2_512_Object));
+	SHA2_256_Object HashInstance256 = {0};
+	SHA2_512_Object HashInstance512 = {0};
 	size_t ReadLength = 0, DigestSize = 0;
 
 //SHA-2 initialization
 	if (SHA2_HashFunctionID == HASH_ID_SHA2_224) //SHA-2 224 bits
 	{
-		SHA2_224_Init(HashInstance256.get());
+		SHA2_224_Init(&HashInstance256);
 		DigestSize = SHA2_224_SIZE_DIGEST;
 	}
 	else if (SHA2_HashFunctionID == HASH_ID_SHA2_256) //SHA-2 256 bits
 	{
-		SHA2_256_Init(HashInstance256.get());
+		SHA2_256_Init(&HashInstance256);
 		DigestSize = SHA2_256_SIZE_DIGEST;
 	}
 	else if (SHA2_HashFunctionID == HASH_ID_SHA2_384) //SHA-2 384 bits
 	{
-		SHA2_384_Init(HashInstance512.get());
+		SHA2_384_Init(&HashInstance512);
 		DigestSize = SHA2_384_SIZE_DIGEST;
 	}
 	else if (SHA2_HashFunctionID == HASH_ID_SHA2_512) //SHA-2 512 bits
 	{
-		SHA2_512_Init(HashInstance512.get());
+		SHA2_512_Init(&HashInstance512);
 		DigestSize = SHA2_512_SIZE_DIGEST;
 	}
 	else if (SHA2_HashFunctionID == HASH_ID_SHA2_512_224) //SHA-2 512/224 bits
 	{
-		SHA2_512_224_Init(HashInstance512.get());
+		SHA2_512_224_Init(&HashInstance512);
 		DigestSize = SHA2_512_224_SIZE_DIGEST;
 	}
 	else if (SHA2_HashFunctionID == HASH_ID_SHA2_512_256) //SHA-2 512/256 bits
 	{
-		SHA2_512_256_Init(HashInstance512.get());
+		SHA2_512_256_Init(&HashInstance512);
 		DigestSize = SHA2_512_256_SIZE_DIGEST;
 	}
 	else {
@@ -855,10 +853,10 @@ bool __fastcall SHA2_Hash(
 		}
 		else {
 			if (SHA2_HashFunctionID == HASH_ID_SHA2_224 || SHA2_HashFunctionID == HASH_ID_SHA2_256)
-				SHA2_256_Update(HashInstance256.get(), (uint8_t *)Buffer.get(), (int)ReadLength);
+				SHA2_256_Update(&HashInstance256, (uint8_t *)Buffer.get(), (int)ReadLength);
 			else if (SHA2_HashFunctionID == HASH_ID_SHA2_384 || SHA2_HashFunctionID == HASH_ID_SHA2_512 || 
 				SHA2_HashFunctionID == HASH_ID_SHA2_512_224 || SHA2_HashFunctionID == HASH_ID_SHA2_512_256)
-					SHA2_512_Update(HashInstance512.get(), (uint8_t *)Buffer.get(), (int)ReadLength);
+					SHA2_512_Update(&HashInstance512, (uint8_t *)Buffer.get(), (int)ReadLength);
 			else 
 				return false;
 		}
@@ -867,10 +865,10 @@ bool __fastcall SHA2_Hash(
 //Binary to hex
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 	if (SHA2_HashFunctionID == HASH_ID_SHA2_224 || SHA2_HashFunctionID == HASH_ID_SHA2_256)
-		SHA2_256_Final((uint8_t *)Buffer.get(), HashInstance256.get());
+		SHA2_256_Final((uint8_t *)Buffer.get(), &HashInstance256);
 	else if (SHA2_HashFunctionID == HASH_ID_SHA2_384 || SHA2_HashFunctionID == HASH_ID_SHA2_512 || 
 		SHA2_HashFunctionID == HASH_ID_SHA2_512_224 || SHA2_HashFunctionID == HASH_ID_SHA2_512_256)
-			SHA2_512_Final((uint8_t *)Buffer.get(), HashInstance512.get());
+			SHA2_512_Final((uint8_t *)Buffer.get(), &HashInstance512);
 	else 
 		return false;
 	if (sodium_bin2hex(StringBuffer.get(), FILE_BUFFER_SIZE, (const unsigned char *)Buffer.get(), DigestSize) == nullptr)

@@ -389,10 +389,8 @@ bool __fastcall ReadAddressHostsData(
 
 //Initialization
 	ADDRESS_HOSTS_TABLE AddressHostsTableTemp;
-	auto SockAddr = std::make_shared<sockaddr_storage>();
-	std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
-	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
-	memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+	sockaddr_storage SockAddr = {0};
+	char Addr[ADDR_STRING_MAXSIZE] = {0};
 
 //Get target data.
 	std::vector<std::string> TargetListData, SourceListData;
@@ -407,38 +405,36 @@ bool __fastcall ReadAddressHostsData(
 		if (StringIter.find(ASCII_COLON) != std::string::npos)
 		{
 		//Convert to binary address.
-			memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
-			if (!AddressStringToBinary(StringIter.c_str(), AF_INET6, &((PSOCKADDR_IN6)SockAddr.get())->sin6_addr, &Result))
+			memset(&SockAddr, 0, sizeof(sockaddr_storage));
+			if (!AddressStringToBinary(StringIter.c_str(), AF_INET6, &((PSOCKADDR_IN6)&SockAddr)->sin6_addr, &Result))
 			{
 				PrintError(LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				return false;
 			}
 
 		//Add to list.
-			SockAddr->ss_family = AF_INET6;
-			AddressHostsTableTemp.Address_Target.push_back(*SockAddr);
+			SockAddr.ss_family = AF_INET6;
+			AddressHostsTableTemp.Address_Target.push_back(SockAddr);
 		}
 	//A records(IPv4)
 		else {
 		//Convert to binary address.
-			memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
-			if (!AddressStringToBinary(StringIter.c_str(), AF_INET, &((PSOCKADDR_IN)SockAddr.get())->sin_addr, &Result))
+			memset(&SockAddr, 0, sizeof(sockaddr_storage));
+			if (!AddressStringToBinary(StringIter.c_str(), AF_INET, &((PSOCKADDR_IN)&SockAddr)->sin_addr, &Result))
 			{
 				PrintError(LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				return false;
 			}
 
 		//Add to list.
-			SockAddr->ss_family = AF_INET;
-			AddressHostsTableTemp.Address_Target.push_back(*SockAddr);
+			SockAddr.ss_family = AF_INET;
+			AddressHostsTableTemp.Address_Target.push_back(SockAddr);
 		}
 	}
 
-	SockAddr.reset();
-
 //Get source data.
 	ADDRESS_RANGE_TABLE AddressRangeTableTemp;
-	memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
+	memset(Addr, 0, ADDR_STRING_MAXSIZE);
 
 //Mark all data in list.
 	for (auto StringIter:SourceListData)
@@ -452,9 +448,9 @@ bool __fastcall ReadAddressHostsData(
 			if (StringIter.find(ASCII_MINUS) != std::string::npos)
 			{
 			//Convert address(Begin).
-				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
-				if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
+				memset(Addr, 0, ADDR_STRING_MAXSIZE);
+				memcpy_s(Addr, ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
+				if (!AddressStringToBinary(Addr, AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
 				{
 					PrintError(LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -462,9 +458,9 @@ bool __fastcall ReadAddressHostsData(
 				AddressRangeTableTemp.Begin.ss_family = AF_INET6;
 
 			//Convert address(End).
-				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
-				if (!AddressStringToBinary(Addr.get(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, &Result))
+				memset(Addr, 0, ADDR_STRING_MAXSIZE);
+				memcpy_s(Addr, ADDR_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
+				if (!AddressStringToBinary(Addr, AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, &Result))
 				{
 					PrintError(LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -502,9 +498,9 @@ bool __fastcall ReadAddressHostsData(
 			if (StringIter.find(ASCII_MINUS) != std::string::npos)
 			{
 			//Convert address(Begin).
-				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
-				if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &Result))
+				memset(Addr, 0, ADDR_STRING_MAXSIZE);
+				memcpy_s(Addr, ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
+				if (!AddressStringToBinary(Addr, AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &Result))
 				{
 					PrintError(LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -512,9 +508,9 @@ bool __fastcall ReadAddressHostsData(
 				AddressRangeTableTemp.Begin.ss_family = AF_INET;
 
 			//Convert address(End).
-				memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-				memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
-				if (!AddressStringToBinary(Addr.get(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, &Result))
+				memset(Addr, 0, ADDR_STRING_MAXSIZE);
+				memcpy_s(Addr, ADDR_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
+				if (!AddressStringToBinary(Addr, AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, &Result))
 				{
 					PrintError(LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -545,8 +541,6 @@ bool __fastcall ReadAddressHostsData(
 			AddressHostsTableTemp.Address_Source.push_back(AddressRangeTableTemp);
 		}
 	}
-
-	Addr.reset();
 
 //Add to global AddressHostsTable.
 	for (auto &HostsFileSetIter:*HostsFileSetModificating)
@@ -639,21 +633,21 @@ bool __fastcall ReadMainHostsData(
 	}
 
 //Response initialization
-	auto AddressUnionDataTemp = std::make_shared<ADDRESS_UNION_DATA>();
-	std::shared_ptr<char> Addr(new char[ADDR_STRING_MAXSIZE]());
+	ADDRESS_UNION_DATA AddressUnionDataTemp = {0};
+	char Addr[ADDR_STRING_MAXSIZE] = {0};
 	SSIZE_T Result = 0;
 
 //Mark all data in list.
 	for (auto StringIter:ListData)
 	{
-		memset(AddressUnionDataTemp.get(), 0, sizeof(ADDRESS_UNION_DATA));
-		memset(Addr.get(), 0, ADDR_STRING_MAXSIZE);
-		memcpy_s(Addr.get(), ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.length());
+		memset(&AddressUnionDataTemp, 0, sizeof(ADDRESS_UNION_DATA));
+		memset(Addr, 0, ADDR_STRING_MAXSIZE);
+		memcpy_s(Addr, ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.length());
 
 	//AAAA records(IPv6)
 		if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_AAAA))
 		{
-			if (!AddressStringToBinary(Addr.get(), AF_INET6, &AddressUnionDataTemp->IPv6.sin6_addr, &Result))
+			if (!AddressStringToBinary(Addr, AF_INET6, &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
 			{
 				PrintError(LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -661,7 +655,7 @@ bool __fastcall ReadMainHostsData(
 		}
 	//A records(IPv4)
 		else {
-			if (!AddressStringToBinary(Addr.get(), AF_INET, &AddressUnionDataTemp->IPv4.sin_addr, &Result))
+			if (!AddressStringToBinary(Addr, AF_INET, &AddressUnionDataTemp.IPv4.sin_addr, &Result))
 			{
 				PrintError(LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -669,7 +663,7 @@ bool __fastcall ReadMainHostsData(
 		}
 
 	//Add to global list.
-		HostsTableTemp.AddrList.push_back(*AddressUnionDataTemp);
+		HostsTableTemp.AddrList.push_back(AddressUnionDataTemp);
 	}
 
 //Address list check
@@ -677,9 +671,6 @@ bool __fastcall ReadMainHostsData(
 	{
 		PrintError(LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 		return false;
-	}
-	else {
-		Addr.reset();
 	}
 
 //Mark patterns.

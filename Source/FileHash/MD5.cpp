@@ -225,12 +225,11 @@ bool __fastcall MD5_Hash(
 	std::shared_ptr<char> Buffer(new char[FILE_BUFFER_SIZE]()), StringBuffer(new char[FILE_BUFFER_SIZE]());
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(StringBuffer.get(), 0, FILE_BUFFER_SIZE);
+	MD5_CTX HashInstance = {0};
 	size_t ReadLength = 0;
-	auto HashInstance = std::make_shared<MD5_CTX>();
-	memset(HashInstance.get(), 0, sizeof(MD5_CTX));
 
 //MD5 initialization
-	MD5_Init(HashInstance.get());
+	MD5_Init(&HashInstance);
 
 //Hash process
 //n * 512 + 448 + 64 = (n + 1) * 512 bits
@@ -244,13 +243,13 @@ bool __fastcall MD5_Hash(
 			return false;
 		}
 		else {
-			MD5_Update(HashInstance.get(), (uint8_t *)Buffer.get(), (unsigned int)ReadLength);
+			MD5_Update(&HashInstance, (uint8_t *)Buffer.get(), (unsigned int)ReadLength);
 		}
 	}
 
 //Binary to hex
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
-	MD5_Final(HashInstance.get(), (uint8_t *)Buffer.get());
+	MD5_Final(&HashInstance, (uint8_t *)Buffer.get());
 	if (sodium_bin2hex(StringBuffer.get(), FILE_BUFFER_SIZE, (const unsigned char *)Buffer.get(), MD5_SIZE_DIGEST) == nullptr)
 	{
 		fwprintf_s(stderr, L"Convert binary to hex error.\n");

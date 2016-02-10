@@ -1,28 +1,4 @@
-﻿Pcap_DNSProxy v0.4.5.2 更新日志(2016-02-06)：
-
-* 添加抓包模块对 Virtual Bridged LAN/IEEE 802.1Q 标签的支持
-* 添加 Update_WhiteList 工具，可自动更新白名单域名列表 [dgeibi]
-* 添加 Update_Routing 工具的自动更新脚本 (Linux/Mac)
-* 通过外部命令清除程序内部 DNS 缓存的过程，现在将能无延迟地立即完成
-* Visual Studio 更新到 2015 (Windows)
-* 修复使用 Win10Pcap 时抓包模块不能工作的问题 (Windows) [smounives]
-* 修复程序内部 DNS 缓存被错误自动清除的问题 (Linux/Mac)
-* 修复 Update_Routing 工具在 ICMP/ICMPv6 协议被屏蔽的网络下不能工作的问题 (Windows) [w48325832/wongsyrone]
-* 文件校验码
-  * SHA-1:
-    * Windows/Pcap_DNSProxy.exe -> 45814D1E4C43695E543DDB43F32BC7826F966B3E
-    * Windows/Pcap_DNSProxy_x86.exe -> 8BBC64A5C59C305910DA05E9AA49CC6175D18225
-    * Mac/Pcap_DNSProxy -> 2120D739A56F400C196E08D941C6D31B04D17737
-  * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe -> 096469F331F873A88905CD06AAC26895986177688DCD9AEED2B8BD2A2E1D2B1E
-    * Windows/Pcap_DNSProxy_x86.exe -> FFAA1E403D1C2275B6108F1B641FAA4E8195FF6EB8F8DE8A04C029B69B76AB5A
-    * Mac/Pcap_DNSProxy -> 3DBA9AC155D8A9B9E3F9863AC0B632C1B96A8534125CB7927AE9E09FCD85AAE7
-
-
--------------------------------------------------------------------------------
-
-
-Pcap_DNSProxy v0.4.5.1 更新日志(2016-01-15)：
+﻿Pcap_DNSProxy 0.4.5.1-0.4.5.3 更新日志(2016-02-10)：
 
 * 为 FileHash 工具添加 Hash 算法支持
   * CRC family: CRC-8 family + CRC-16 family + CRC-24 family + CRC-32 family + CRC-40 + CRC-64 family
@@ -34,32 +10,57 @@ Pcap_DNSProxy v0.4.5.1 更新日志(2016-01-15)：
   * Checksum: Internet Protocol Checksum
   * SHA family: SHA-2(384) + SHA-2(512) SHA-2(512/224) + SHA-2(512/256)
   * MD family: MD2 + MD4 + eD2k Hash + MD5
+* 添加抓包模块对 Virtual Bridged LAN/IEEE 802.1Q 标签的支持
+* 添加 Update_WhiteList 工具，可自动更新白名单域名列表 [dgeibi]
+* 添加 Update_Routing 工具的自动更新脚本 (Linux/Mac)
+* 通过外部命令清除程序内部 DNS 缓存的过程，现在将能无延迟地立即完成
 * 增强对 EDNS Label 的精细化控制
+* Visual Studio 更新到 2015 (Windows)
+* 修复一个特定情况下可能导致程序崩溃的问题
+* 修复使用 Win10Pcap 时抓包模块不能工作的问题 (Windows) [smounives]
+* 修复程序内部 DNS 缓存被错误自动清除的问题 (Linux/Mac)
+* 修复 Update_Routing 工具在 ICMP/ICMPv6 协议被屏蔽的网络下不能工作的问题 (Windows) [w48325832/wongsyrone]
 * 修复重启服务间隔时间过短可能导致的崩溃问题 (Windows)
-* 文件校验码
+* 文件校验码(0.4.5.3)
   * SHA-1:
-    * Windows/Pcap_DNSProxy.exe -> 7482170C95D92E297767924449A1A68999E8457B
-    * Windows/Pcap_DNSProxy_x86.exe -> CEA4522734D428BA0A80146FDA0062344DF824E6
-    * Mac/Pcap_DNSProxy -> EBD50F764FBBB2B72D1F4F1EA4E64A56077A7EA9
+    * Windows/Pcap_DNSProxy.exe -> B58D155F0B6C364C1404D2DF5BB124A3F7D99E71
+    * Windows/Pcap_DNSProxy_x86.exe -> B3F174C865037EBB7997D7317FC7FD1E59D1FF06
+    * Mac/Pcap_DNSProxy -> 4DA3E66561E014219BF27DC334CAC087F89BC255
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe -> 0B03060E148239F15D1091CF701987826FF6C7E8F80883C7D1EB71A7606F501C
-    * Windows/Pcap_DNSProxy_x86.exe -> C0E5A533DEDF51400D807BD0CC0B13352E66602C84C5332CC77FD22AD094CA89
-    * Mac/Pcap_DNSProxy -> EE2CBBF99C4A0B7BD106ADB7E29397617F9D709953B2EE963BCC2D4E33BF3150
+    * Windows/Pcap_DNSProxy.exe -> 44AC1832850CC5AED5626497ADC576E6DD9C613EF3B7BC586760D13A841088B0
+    * Windows/Pcap_DNSProxy_x86.exe -> 39A5EDE6837F7AA660D987366379C74B9A30D47675937D3CAF6011D2A444D351
+    * Mac/Pcap_DNSProxy -> EE1FE270A7B1FFA059CAD774009FD39A6B11BA286BA0CD90FAD7D0EBA8748583
 
 
 -------------------------------------------------------------------------------
 
 
-Pcap_DNSProxy v0.4.5.0 更新日志(2015-12-30)：
+Pcap_DNSProxy 0.4.4.1-0.4.5.0 更新日志(2015-12-30)：
 
 * 添加 FileHash 工具，提供对文件的校验功能
   * 支持 SHA-1
   * 支持 SHA-2(224/256)
   * 支持 SHA-3(224/256/384/512/SHAKE_128/SHAKE_256)
+* 添加对 SOCKS 版本 4/4a/5 请求的原生支持
+* 添加对 HTTP CONNECT Tunnel 请求的原生支持
+* 添加对 CNAME Hosts 的支持 [Hugo Chan/shuangzhijinghua/debugzxcv]
+* 添加 DNSCurve Reliable/Unreliable Socket Timeout 参数，增强对不同协议超时设定的精细化控制
+* 添加 --lib-version 参数，可输出程序现正使用的库的版本号信息
+* EDNS Client Subnet 参数现在更名为 EDNS Client Subnet Relay 并修改了此参数的含义 [XIAOSpider97]
+* 增进 DNSCurve 部分的安全性
 * LibSodium 库更新到 1.0.8 (Windows/Mac)
+* 升级项目文件到 Xcode 7.1 (Mac)
+* 调整 GCC 最低版本要求为 4.9 (Linux)
+* 调整二进制版本最低系统要求为 10.8/Mountain Lion (Mac)
+* 修正 EDNS Client Subnet 功能的转发策略 [XIAOSpider97]
+* 修正抓包模块的工作条件 [軒轅無雙]
+* 修复读取 IPv4 路由表 CIDR 时的错误 [hocoo]
+* 修复 DNS flag AD/Authentic Data 错误设置的问题 (Linux/Mac)
+* 修复 DNS ID mismatch 的错误 (Linux/Mac) [hongyi-zhao/cielpy]
+* 修复监视模块可能出现的休眠错误 [shuangzhijinghua]
 * 修复多次启动程序时可能造成的崩溃问题 (Windows)
 * 修复控制台输出内容混叠的问题 (Windows)
-* 文件校验码
+* 文件校验码(0.4.5.0)
   * SHA-1:
     * Windows/Pcap_DNSProxy.exe -> AC94CDFD0F69A336DE9BFC4A877E3468BFCFAD0C
     * Windows/Pcap_DNSProxy_x86.exe -> 938FD04259497D2DD8204F91E51F0B99B108BE57
@@ -73,31 +74,7 @@ Pcap_DNSProxy v0.4.5.0 更新日志(2015-12-30)：
 -------------------------------------------------------------------------------
 
 
-Pcap_DNSProxy v0.4.4.1-0.4.4.6 更新日志(2015-12-14)：
-
-* 添加对 SOCKS 版本 4/4a/5 请求的原生支持
-* 添加对 HTTP CONNECT Tunnel 请求的原生支持
-* 添加对 CNAME Hosts 的支持 [Hugo Chan/shuangzhijinghua/debugzxcv]
-* 添加 DNSCurve Reliable/Unreliable Socket Timeout 参数，增强对不同协议超时设定的精细化控制
-* 添加 --lib-version 参数，可输出程序现正使用的库的版本号信息
-* EDNS Client Subnet 参数现在更名为 EDNS Client Subnet Relay 并修改了此参数的含义 [XIAOSpider97]
-* 增进 DNSCurve 部分的安全性
-* LibSodium 库更新到 1.0.7 (Windows/Mac)
-* 升级项目文件到 Xcode 7.1 (Mac)
-* 调整 GCC 最低版本要求为 4.9 (Linux)
-* 调整二进制版本最低系统要求为 10.8/Mountain Lion (Mac)
-* 修正 EDNS Client Subnet 功能的转发策略 [XIAOSpider97]
-* 修正抓包模块的工作条件 [軒轅無雙]
-* 修复读取 IPv4 路由表 CIDR 时的错误 [hocoo]
-* 修复 DNS flag AD/Authentic Data 错误设置的问题 (Linux/Mac)
-* 修复 DNS ID mismatch 的错误 (Linux/Mac) [hongyi-zhao/cielpy]
-* 修复监视模块可能出现的休眠错误 [shuangzhijinghua]
-
-
--------------------------------------------------------------------------------
-
-
-Pcap_DNSProxy v0.4.3.1-0.4.4 更新日志(2015-09-27)：
+Pcap_DNSProxy 0.4.3.1-0.4.4 更新日志(2015-09-27)：
 
 * 添加 Client Ephemeral Key 一次性客户端密钥对功能，增强 DNSCurve 协议传输数据的安全性 [DNSCrypt]
 * 添加对配置文件部分参数的自动刷新功能，具体受支持的参数参见说明文档 [jedisct1/icylogic]
@@ -127,7 +104,7 @@ Pcap_DNSProxy v0.4.3.1-0.4.4 更新日志(2015-09-27)：
 -------------------------------------------------------------------------------
 
 
-Pcap_DNSProxy v0.4.2.1-v0.4.3 更新日志(2015-07-28)：
+Pcap_DNSProxy 0.4.2.1-0.4.3 更新日志(2015-07-28)：
 
 * Hosts Only 参数现在更名为 Direct Request 并支持指定 IPv4 或 IPv6 功能
 * 添加不同协议的 Direct Request 功能 [AVC A]
@@ -136,8 +113,8 @@ Pcap_DNSProxy v0.4.2.1-v0.4.3 更新日志(2015-07-28)：
 * 添加 DNS 压缩指针检查功能，避免接受格式错误的数据包
 * 添加遗漏的 DNS 投毒污染黑名单地址
 * 添加对 Unicode 标准包含的所有换行以及空格类别格式的支持
-* 添加对 TCP Fast Open 的支持(Linux)
-* 添加 --disable-daemon 参数，可控制程序是否以 Daemon 守护进程的方式运行(Linux)
+* 添加对 TCP Fast Open 的支持 (Linux)
+* 添加 --disable-daemon 参数，可控制程序是否以 Daemon 守护进程的方式运行 (Linux)
 * 添加完整的 ASCII/UTF-8/UTF-16(LE/BE)/UTF-32(LE/BE) 编码支持
 * 调整抓包模块为回调模式降低资源的占用
 * 调整抓包模块工作模式，避免 WinPcap 与 cFosSpeed 之间的冲突 [軒轅無雙]
@@ -153,31 +130,19 @@ Pcap_DNSProxy v0.4.2.1-v0.4.3 更新日志(2015-07-28)：
 * 修复 Address Hosts 功能溢出错误 [jzp820927]
 * 修复当请求的数据中带有 EDNS Label 时的错误 [wongsyrone]
 * 修复收到截断数据包时无法重新按照标准适用 TCP 协议重新解析的错误 [shuangzhijinghua]
-* 修复睡眠或休眠前可能产生的错误报告输出(Windows)
+* 修复睡眠或休眠前可能产生的错误报告输出 (Windows)
   * 启动第一次遇到 Insufficient privileges or not any available network devices 错误信息时将暂时不输出到错误报告文件
   * 移除 An error occurred in XXX 错误信息
 * 终端窗口也将输出错误信息
-  * 运行在非 Daemon 守护进程模式下的终端窗口时(Linux)
-  * 任何时候(Mac)
-* 移除服务管理批处理的强制管理员权限请求(Windows) [5sq]
+  * 运行在非 Daemon 守护进程模式下的终端窗口时 (Linux)
+  * 任何时候 (Mac)
+* 移除服务管理批处理的强制管理员权限请求 (Windows) [5sq]
 
 
 -------------------------------------------------------------------------------
 
 
-Pcap_DNSProxy v0.4.2(Windows/Linux/Mac) 更新日志(2015-06-04)：
-
-* 为 Protocol 参数添加优先指定网络层协议功能
-* 添加不终止程序运行的错误提示类型
-* 配置文件新增 cfg 扩展名的支持
-* 添加可用于卸载服务的 Shell 脚本(Linux/Mac)
-* 修改读写执行权限的设置，以增加安全性 [BlackGear]
-
-
--------------------------------------------------------------------------------
-
-
-Pcap_DNSProxy v0.4.1.1-v0.4.1.2(Windows/Linux/Mac) 更新日志(2015-05-26)：
+Pcap_DNSProxy 0.4.1.1-0.4.2 更新日志(2015-06-04)：
 
 * 添加对 EDNS Client Subnet 的支持
 * 增强对 DNSSEC 的请求能力以及添加不完整的认证功能
@@ -186,35 +151,33 @@ Pcap_DNSProxy v0.4.1.1-v0.4.1.2(Windows/Linux/Mac) 更新日志(2015-05-26)：
 * 添加 -c/--config-file 参数，可在启动时指定配置文件的目录 [BlackGear]
 * 添加 -v/--version 参数，可输出程序的版本号 [BlackGear]
 * 添加对 homebrew 的支持(Mac) [BlackGear]
+* 添加可用于卸载服务的 Shell 脚本(Linux/Mac)
+* 添加不终止程序运行的错误提示类型
+* 为 Protocol 参数添加优先指定网络层协议功能
+* 配置文件新增 cfg 扩展名的支持
+* 修改读写执行权限的设置，以增加安全性 [BlackGear]
 * EDNS0 Label 参数改名为 EDNS Label
 
 
 -------------------------------------------------------------------------------
 
 
-Pcap_DNSProxy v0.4.1(Windows/Linux/Mac) 更新日志(2015-05-21)：
+Pcap_DNSProxy 0.4.0.1-0.4.1 更新日志(2015-05-21)：
 
 * 添加 Pcap Reading Timeout 参数自定义抓包模块读取超时/间隔时间
 * 添加 Receive Waiting 参数自定义数据包接收等待时间，丢弃过早达到可能为伪造的数据包
-* 添加剥离 LibPcap 库的选项(Linux)
-* 視窗模式運行提示將不會寫入錯誤報表中(Windows)
-* 移除覆盖系统 Hostname 的行为(Mac) [messiahluo]
-* 移除之前尚未完成的打印详细运行日志的功能
-
-
--------------------------------------------------------------------------------
-
-
-Pcap_DNSProxy v0.4.0.1-0.4.0.4(Windows/Linux/Mac) 更新日志(2015-05-18)：
-
+* 添加剥离 LibPcap 库的选项 (Linux)
 * 调整抓包模块的超时时间保证回复及时被抓取 [France is Bacon]
 * 调整数据包过滤的参数避免误伤部分权威 DNS 服务器 [France is Bacon]
 * 调整 DNS 缓存的机制只缓存有结果的数据包 [shuangzhijinghua]
+* 視窗模式運行提示將不會寫入錯誤報表中 (Windows)
 * 修复 Hosts 条目过长导致数据包溢出的问题 [yfdyh000]
 * 修复 Local Hosts 无法读取的问题 [France is Bacon]
 * 修复 Hosts 添加 EDNS 标签的问题
 * 修复随机域名生成模块产生非标准域名查询的错误
 * 调整在关闭抓包模块时请求域名解析的策略
+* 移除覆盖系统 Hostname 的行为 (Mac) [messiahluo]
+* 移除之前尚未完成的打印详细运行日志的功能
 
 
 -------------------------------------------------------------------------------

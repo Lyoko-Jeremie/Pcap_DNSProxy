@@ -461,11 +461,6 @@ size_t __fastcall CheckHostsProcess(
 			DNS_Header->Answer = htons(U16_NUM_ONE);
 			DNS_Header->Authority = 0;
 			DNS_Header->Additional = 0;
-/* Old version(2016-01-15)
-			memset(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), 0, ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)));
-			memcpy_s(Result + DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry), ResultSize - (DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry)), Parameter.LocalServer_Response, Parameter.LocalServer_Length);
-			DataLength = DNS_PACKET_QUERY_LOCATE(Result) + sizeof(dns_qry) + Parameter.LocalServer_Length;
-*/
 			memset(Result + sizeof(dns_hdr) + Packet->Question, 0, Packet->Length - (sizeof(dns_hdr) + Packet->Question));
 			memcpy_s(Result + sizeof(dns_hdr) + Packet->Question, ResultSize - (sizeof(dns_hdr) + Packet->Question), Parameter.LocalServer_Response, Parameter.LocalServer_Length);
 			DataLength = sizeof(dns_hdr) + Packet->Question + Parameter.LocalServer_Length;

@@ -42,8 +42,8 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	FILE *Output = nullptr;
 //Output.
+	FILE *Output = nullptr;
 #if defined(PLATFORM_WIN)
 	_wfopen_s(&Output, L"KeyPair.txt", L"w+,ccs=UTF-8");
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -52,17 +52,16 @@ int main(int argc, char *argv[])
 	if (Output != nullptr)
 	{
 	//Initialization and make keypair.
-		size_t Index = 0;
 		std::shared_ptr<char> Buffer(new char[KEYPAIR_MESSAGE_LEN]());
-		std::shared_ptr<uint8_t> PublicKey(new uint8_t[crypto_box_PUBLICKEYBYTES]());
-		DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> SecretKey(crypto_box_SECRETKEYBYTES);
 		sodium_memzero(Buffer.get(), KEYPAIR_MESSAGE_LEN);
-		sodium_memzero(PublicKey.get(), crypto_box_PUBLICKEYBYTES);
-		crypto_box_keypair(PublicKey.get(), SecretKey.Buffer);
+		DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> SecretKey(crypto_box_SECRETKEYBYTES);
+		uint8_t PublicKey[crypto_box_PUBLICKEYBYTES] = {0};
+		size_t Index = 0;
+		crypto_box_keypair(PublicKey, SecretKey.Buffer);
 
 	//Write public key.
 		sodium_memzero(Buffer.get(), KEYPAIR_MESSAGE_LEN);
-		if (sodium_bin2hex(Buffer.get(), KEYPAIR_MESSAGE_LEN, PublicKey.get(), crypto_box_PUBLICKEYBYTES) == nullptr)
+		if (sodium_bin2hex(Buffer.get(), KEYPAIR_MESSAGE_LEN, PublicKey, crypto_box_PUBLICKEYBYTES) == nullptr)
 			fwprintf_s(stderr, L"Create ramdom key pair failed, please try again.\n");
 		CaseConvert(true, Buffer.get(), KEYPAIR_MESSAGE_LEN);
 		fwprintf_s(Output, L"Client Public Key = ");

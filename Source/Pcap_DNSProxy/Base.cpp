@@ -193,8 +193,8 @@ size_t __fastcall Base64_Encode(
 	const size_t OutputSize)
 {
 //Initialization
-	memset(Output, 0, OutputSize);
 	size_t Index[]{0, 0, 0};
+	memset(Output, 0, OutputSize);
 
 //Convert from binary to Base64.
 	for (Index[0] = Index[1U] = 0;Index[0] < Length;++Index[0])
@@ -302,10 +302,9 @@ size_t __fastcall Base64_Decode(
 uint64_t GetCurrentSystemTime(
 	void)
 {
-	auto CurrentTime = std::make_shared<timeval>();
-	memset(CurrentTime.get(), 0, sizeof(timeval));
-	if (gettimeofday(CurrentTime.get(), nullptr) == 0)
-		return (uint64_t)CurrentTime->tv_sec * SECOND_TO_MILLISECOND + (uint64_t)CurrentTime->tv_usec / MICROSECOND_TO_MILLISECOND;
+	timeval CurrentTime = {0};
+	if (gettimeofday(&CurrentTime, nullptr) == 0)
+		return (uint64_t)CurrentTime.tv_sec * SECOND_TO_MILLISECOND + (uint64_t)CurrentTime.tv_usec / MICROSECOND_TO_MILLISECOND;
 
 	return 0;
 }
@@ -316,24 +315,23 @@ uint64_t GetCurrentSystemTime(
 BOOL WINAPI IsGreaterThanVista(
 	void)
 {
-	auto OSVI = std::make_shared<OSVERSIONINFOEXW>();
-	memset(OSVI.get(), 0, sizeof(OSVERSIONINFOEXW));
+	OSVERSIONINFOEXW OSVI = {0};
 	DWORDLONG dwlConditionMask = 0;
 
 //Initialization
-	OSVI->dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
-	OSVI->dwMajorVersion = 6U; //Greater than Windows Vista.
-	OSVI->dwMinorVersion = 0;
+	OSVI.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
+	OSVI.dwMajorVersion = 6U; //Greater than Windows Vista.
+	OSVI.dwMinorVersion = 0;
 
 //System Major version > dwMajorVersion
 	VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_GREATER);
-	if (VerifyVersionInfoW(OSVI.get(), VER_MAJORVERSION, dwlConditionMask))
+	if (VerifyVersionInfoW(&OSVI, VER_MAJORVERSION, dwlConditionMask))
 		return TRUE;
 
 //Sytem Major version = dwMajorVersion and Minor version > dwMinorVersion
 	VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_EQUAL);
 	VER_SET_CONDITION(dwlConditionMask, VER_MINORVERSION, VER_GREATER);
-	return VerifyVersionInfoW(OSVI.get(), VER_MAJORVERSION|VER_MINORVERSION, dwlConditionMask);
+	return VerifyVersionInfoW(&OSVI, VER_MAJORVERSION|VER_MINORVERSION, dwlConditionMask);
 }
 
 //Try to load library to get pointers of functions

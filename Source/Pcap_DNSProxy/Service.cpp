@@ -136,26 +136,25 @@ BOOL WINAPI UpdateServiceStatus(
 	const DWORD dwCheckPoint, 
 	const DWORD dwWaitHint)
 {
-	auto ServiceStatus = std::make_shared<SERVICE_STATUS>();
-	memset(ServiceStatus.get(), 0, sizeof(SERVICE_STATUS));
-	ServiceStatus->dwServiceType = SERVICE_WIN32;
-	ServiceStatus->dwCurrentState = dwCurrentState;
+	SERVICE_STATUS ServiceStatus = {0};
+	ServiceStatus.dwServiceType = SERVICE_WIN32;
+	ServiceStatus.dwCurrentState = dwCurrentState;
 
 	if (dwCurrentState == SERVICE_START_PENDING)
-		ServiceStatus->dwControlsAccepted = 0;
+		ServiceStatus.dwControlsAccepted = 0;
 	else 
-		ServiceStatus->dwControlsAccepted = (SERVICE_ACCEPT_STOP|SERVICE_ACCEPT_SHUTDOWN);
+		ServiceStatus.dwControlsAccepted = (SERVICE_ACCEPT_STOP|SERVICE_ACCEPT_SHUTDOWN);
 
 	if (dwServiceSpecificExitCode == 0)
-		ServiceStatus->dwWin32ExitCode = dwWin32ExitCode;
+		ServiceStatus.dwWin32ExitCode = dwWin32ExitCode;
 	else 
-		ServiceStatus->dwWin32ExitCode = ERROR_SERVICE_SPECIFIC_ERROR;
+		ServiceStatus.dwWin32ExitCode = ERROR_SERVICE_SPECIFIC_ERROR;
 
-	ServiceStatus->dwServiceSpecificExitCode = dwServiceSpecificExitCode;
-	ServiceStatus->dwCheckPoint = dwCheckPoint;
-	ServiceStatus->dwWaitHint = dwWaitHint;
+	ServiceStatus.dwServiceSpecificExitCode = dwServiceSpecificExitCode;
+	ServiceStatus.dwCheckPoint = dwCheckPoint;
+	ServiceStatus.dwWaitHint = dwWaitHint;
 
-	if (!SetServiceStatus(ServiceStatusHandle, ServiceStatus.get()))
+	if (!SetServiceStatus(ServiceStatusHandle, &ServiceStatus))
 	{
 		TerminateService();
 		return FALSE;
@@ -180,22 +179,22 @@ bool __fastcall FlushDNSMailSlotMonitor(
 	void)
 {
 //System security setting
-	auto SecurityAttributes = std::make_shared<SECURITY_ATTRIBUTES>();
-	auto SecurityDescriptor = std::make_shared<SECURITY_DESCRIPTOR>();
 	std::shared_ptr<char> ACL_Buffer(new char[FILE_BUFFER_SIZE]());
 	memset(ACL_Buffer.get(), 0, FILE_BUFFER_SIZE);
+	SECURITY_ATTRIBUTES SecurityAttributes = {0};
+	SECURITY_DESCRIPTOR SecurityDescriptor = {0};
 	PSID SID_Value = nullptr;
 
-	InitializeSecurityDescriptor(SecurityDescriptor.get(), SECURITY_DESCRIPTOR_REVISION);
+	InitializeSecurityDescriptor(&SecurityDescriptor, SECURITY_DESCRIPTOR_REVISION);
 	InitializeAcl((PACL)ACL_Buffer.get(), FILE_BUFFER_SIZE, ACL_REVISION);
 	ConvertStringSidToSidW(SID_ADMINISTRATORS_GROUP, &SID_Value);
 	AddAccessAllowedAce((PACL)ACL_Buffer.get(), ACL_REVISION, GENERIC_ALL, SID_Value);
-	SetSecurityDescriptorDacl(SecurityDescriptor.get(), true, (PACL)ACL_Buffer.get(), false);
-	SecurityAttributes->lpSecurityDescriptor = SecurityDescriptor.get();
-	SecurityAttributes->bInheritHandle = true;
+	SetSecurityDescriptorDacl(&SecurityDescriptor, true, (PACL)ACL_Buffer.get(), false);
+	SecurityAttributes.lpSecurityDescriptor = &SecurityDescriptor;
+	SecurityAttributes.bInheritHandle = true;
 
 //Create mailslot.
-	HANDLE hSlot = CreateMailslotW(MAILSLOT_NAME, FILE_BUFFER_SIZE - 1U, MAILSLOT_WAIT_FOREVER, SecurityAttributes.get());
+	HANDLE hSlot = CreateMailslotW(MAILSLOT_NAME, FILE_BUFFER_SIZE - 1U, MAILSLOT_WAIT_FOREVER, &SecurityAttributes);
 	if (hSlot == INVALID_HANDLE_VALUE)
 	{
 		LocalFree(SID_Value);
@@ -208,73 +207,12 @@ bool __fastcall FlushDNSMailSlotMonitor(
 	LocalFree(SID_Value);
 
 //Initialization
-/* Old version(2016-01-17)
-	bool FlushDNS = false;
-	DWORD cbMessage = 0, cMessage = 0, cbRead = 0;
-*/
 	std::shared_ptr<wchar_t> lpszBuffer(new wchar_t[FILE_BUFFER_SIZE]());
 	wmemset(lpszBuffer.get(), 0, FILE_BUFFER_SIZE);
 	DWORD cbMessage = 0;
 	BOOL Result = 0;
 
 //MailSlot monitor
-/* Old version(2016-01-17)
-	for (;;)
-	{
-		cbMessage = 0;
-		cMessage = 0;
-
-	//Get mailslot messages.
-		Result = GetMailslotInfo(hSlot, nullptr, &cbMessage, &cMessage, nullptr);
-		if (Result == FALSE)
-		{
-			PrintError(LOG_ERROR_SYSTEM, L"Mailslot Monitor initialization error", GetLastError(), nullptr, 0);
-			
-			CloseHandle(hSlot);
-			return false;
-		}
-
-	//Wait for messages.
-		if (cbMessage == MAILSLOT_NO_MESSAGE)
-		{
-			Sleep(LOOP_INTERVAL_TIME_MONITOR);
-			continue;
-		}
-
-	//Got messages.
-		FlushDNS = false;
-		while (cMessage > 0)
-		{
-			Result = ReadFile(hSlot, lpszBuffer.get(), cbMessage, &cbRead, nullptr);
-			if (Result == FALSE)
-			{
-				PrintError(LOG_ERROR_SYSTEM, L"MailSlot read messages error", GetLastError(), nullptr, 0);
-				
-				CloseHandle(hSlot);
-				return false;
-			}
-
-			if (!FlushDNS && memcmp(lpszBuffer.get(), MAILSLOT_MESSAGE_FLUSH_DNS, wcslen(MAILSLOT_MESSAGE_FLUSH_DNS)) == 0)
-			{
-				FlushDNS = true;
-				FlushAllDNSCache();
-			}
-			memset(lpszBuffer.get(), 0, FILE_BUFFER_SIZE);
-
-		//Get other mailslot messages.
-			Result = GetMailslotInfo(hSlot, nullptr, &cbMessage, &cMessage, nullptr);
-			if (Result == FALSE)
-			{
-				PrintError(LOG_ERROR_SYSTEM, L"Mailslot Monitor initialization error", GetLastError(), nullptr, 0);
-				
-				CloseHandle(hSlot);
-				return false;
-			}
-		}
-
-		Sleep(LOOP_INTERVAL_TIME_MONITOR);
-	}
-*/
 	for (;;)
 	{
 		Sleep(LOOP_INTERVAL_TIME_NO_DELAY);

@@ -1,7 +1,7 @@
 [Local Hosts]
 ## China mainland domains
 ## Source: https://github.com/felixonmars/dnsmasq-china-list
-## Last update: 2016-02-07
+## Last update: 2016-02-11
 
 
 .*\b0-6\.com
@@ -893,6 +893,7 @@
 #.*\b265\.com
 .*\b26595\.com
 .*\b265g\.com
+.*\b266wan\.com
 .*\b2686\.com
 .*\b2688\.com
 .*\b268v\.com
@@ -1592,6 +1593,7 @@
 .*\b52waha\.com
 .*\b52wmb\.com
 .*\b52xie\.com
+.*\b52xinmiao\.com
 .*\b52xiyou\.com
 .*\b52yawa\.com
 .*\b52ykjob\.com
@@ -1813,6 +1815,7 @@
 .*\b6164\.com
 .*\b61658\.com
 .*\b6168511\.com
+.*\b616wan\.com
 .*\b6188\.com
 .*\b618hr\.com
 .*\b61baobao\.com
@@ -1990,6 +1993,8 @@
 .*\b7654\.com
 .*\b766\.com
 .*\b76611\.com
+.*\b766z\.com
+.*\b7676\.com
 .*\b769car\.com
 .*\b76jie\.com
 .*\b76ju\.com
@@ -2184,6 +2189,7 @@
 .*\b88077777\.com
 .*\b880job\.com
 .*\b88152\.com
+.*\b883wan\.com
 .*\b8844\.com
 .*\b8844dns\.com
 .*\b886520\.cc
@@ -2384,6 +2390,7 @@
 .*\b9724\.com
 .*\b973\.com
 .*\b9766\.com
+.*\b977pk\.com
 .*\b9787\.com
 .*\b9791\.org
 .*\b97971\.com
@@ -2537,6 +2544,7 @@
 .*\bacg\.tv
 .*\bacg6\.com
 .*\bacgdoge\.com
+.*\bacgdoge\.net
 .*\bacgmall\.com
 .*\bacgmiku\.com
 .*\bacgslcc\.com
@@ -6577,6 +6585,7 @@
 .*\bhejun\.com
 .*\bhelijia\.com
 .*\bhelloklick\.com
+.*\bhemayx\.com
 .*\bhenan100\.com
 .*\bhengancaifu\.com
 .*\bhengdaozixun\.com
@@ -7854,7 +7863,6 @@
 .*\bkekejp\.com
 .*\bkekenet\.com
 .*\bkenapple\.com
-.*\bkenengba\.com
 .*\bkenfor\.com
 .*\bkengwan\.com
 .*\bkerunwh-edu\.com
@@ -8130,6 +8138,7 @@
 .*\blegu168\.com
 .*\bleha\.com
 .*\blehecai\.com
+.*\blehihi\.com
 .*\bleho\.com
 .*\bleidian\.com
 .*\bleikeji\.com
@@ -9205,6 +9214,7 @@
 .*\boverapi\.com
 .*\bownlinux\.org
 .*\boxbridgedu\.org
+.*\boyasj\.com
 .*\boyinyue\.com
 .*\boyoozo\.com
 .*\bp1\.com
@@ -10305,6 +10315,7 @@
 .*\bsongshuhui\.net
 .*\bsongtaste\.com
 .*\bsonhoo\.com
+.*\bsonkwo\.com
 .*\bsonyue\.com
 .*\bsoocang\.com
 .*\bsoojs\.com
@@ -10576,6 +10587,7 @@
 .*\btaihell\.com
 .*\btaijicoder\.com
 .*\btaijiquan\.hk
+.*\btaijs\.com
 .*\btaikang\.com
 .*\btairan\.com
 .*\btaisha\.org
@@ -11829,6 +11841,7 @@
 .*\bxdnice\.com
 .*\bxdowns\.com
 .*\bxdrig\.com
+.*\bxdwan\.com
 .*\bxdyqw\.com
 .*\bxenvpser\.com
 .*\bxesdns\.com
@@ -11973,6 +11986,7 @@
 .*\bxinhushang\.org
 .*\bxinji\.org
 .*\bxinjunshi\.com
+.*\bxinkuaituan\.com
 .*\bxinli001\.com
 .*\bxinnet\.com
 .*\bxinnong\.com

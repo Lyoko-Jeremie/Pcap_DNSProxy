@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Structures.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Base.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -60,10 +57,13 @@
     <ClInclude Include="Proxy.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="Service.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="resource.h">
+    <ClInclude Include="Structures.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -121,13 +121,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Pcap_DNSProxy.rc">
-      <Filter>资源文件</Filter>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
     <Text Include="CMakeLists.txt">
       <Filter>资源文件</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Pcap_DNSProxy.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

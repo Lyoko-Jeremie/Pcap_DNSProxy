@@ -114,18 +114,16 @@ bool ReadCommand(
 	if (!FileNameInit(argv[0]))
 		return false;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::shared_ptr<char> FileName(new char[PATH_MAX + 1U]());
-	memset(FileName.get(), 0, PATH_MAX + 1U);
-	if (getcwd(FileName.get(), PATH_MAX) == nullptr)
+	char FileName[PATH_MAX + 1U] = {0};
+	if (getcwd(FileName, PATH_MAX) == nullptr)
 	{
 		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
 		fwprintf(stderr, L"Path initialization error.\n");
 
 		return false;
 	}
-	if (!FileNameInit(FileName.get()))
+	if (!FileNameInit(FileName))
 		return false;
-	FileName.reset();
 #endif
 
 //Screen output buffer setting
@@ -141,9 +139,9 @@ bool ReadCommand(
 
 //Winsock initialization
 #if defined(PLATFORM_WIN)
-	auto WSAInitialization = std::make_shared<WSAData>();
-	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), WSAInitialization.get()) != 0 || 
-		LOBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization->wVersion) != WINSOCK_VERSION_HIGH)
+	WSAData WSAInitialization = {0};
+	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), &WSAInitialization) != 0 || 
+		LOBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_HIGH)
 	{
 		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
 		fwprintf_s(stderr, L"Winsock initialization error, error code is %d.\n", WSAGetLastError());
@@ -367,20 +365,17 @@ bool FileNameInit(
 bool __fastcall FirewallTest(
 	const uint16_t Protocol)
 {
-//Initialization
-	auto SockAddr = std::make_shared<sockaddr_storage>();
-	memset(SockAddr.get(), 0, sizeof(sockaddr_storage));
-	SYSTEM_SOCKET FirewallSocket = 0;
-
 //Ramdom number distribution initialization
 	std::uniform_int_distribution<int> RamdomDistribution(DYNAMIC_MIN_PORT, UINT16_MAX - 1U);
+	sockaddr_storage SockAddr = {0};
+	SYSTEM_SOCKET FirewallSocket = 0;
 
 //IPv6
 	if (Protocol == AF_INET6)
 	{
-		((PSOCKADDR_IN6)SockAddr.get())->sin6_addr = in6addr_any;
-		((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
-		SockAddr->ss_family = AF_INET6;
+		((PSOCKADDR_IN6)&SockAddr)->sin6_addr = in6addr_any;
+		((PSOCKADDR_IN6)&SockAddr)->sin6_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+		SockAddr.ss_family = AF_INET6;
 		FirewallSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 
 	//Bind local socket.
@@ -388,15 +383,15 @@ bool __fastcall FirewallTest(
 		{
 			return false;
 		}
-		else if (bind(FirewallSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6)) == SOCKET_ERROR)
+		else if (bind(FirewallSocket, (PSOCKADDR)&SockAddr, sizeof(sockaddr_in6)) == SOCKET_ERROR)
 		{
-			((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+			((PSOCKADDR_IN6)&SockAddr)->sin6_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 			size_t Index = 0;
-			while (bind(FirewallSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in6)) == SOCKET_ERROR)
+			while (bind(FirewallSocket, (PSOCKADDR)&SockAddr, sizeof(sockaddr_in6)) == SOCKET_ERROR)
 			{
 				if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)
 				{
-					((PSOCKADDR_IN6)SockAddr.get())->sin6_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+					((PSOCKADDR_IN6)&SockAddr)->sin6_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 
 					++Index;
 					continue;
@@ -412,9 +407,9 @@ bool __fastcall FirewallTest(
 	}
 //IPv4
 	else {
-		((PSOCKADDR_IN)SockAddr.get())->sin_addr.s_addr = INADDR_ANY;
-		((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
-		SockAddr->ss_family = AF_INET;
+		((PSOCKADDR_IN)&SockAddr)->sin_addr.s_addr = INADDR_ANY;
+		((PSOCKADDR_IN)&SockAddr)->sin_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+		SockAddr.ss_family = AF_INET;
 		FirewallSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 	//Bind local socket.
@@ -422,15 +417,15 @@ bool __fastcall FirewallTest(
 		{
 			return false;
 		}
-		else if (bind(FirewallSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in)) == SOCKET_ERROR)
+		else if (bind(FirewallSocket, (PSOCKADDR)&SockAddr, sizeof(sockaddr_in)) == SOCKET_ERROR)
 		{
-			((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+			((PSOCKADDR_IN)&SockAddr)->sin_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 			size_t Index = 0;
-			while (bind(FirewallSocket, (PSOCKADDR)SockAddr.get(), sizeof(sockaddr_in)) == SOCKET_ERROR)
+			while (bind(FirewallSocket, (PSOCKADDR)&SockAddr, sizeof(sockaddr_in)) == SOCKET_ERROR)
 			{
 				if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)
 				{
-					((PSOCKADDR_IN)SockAddr.get())->sin_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+					((PSOCKADDR_IN)&SockAddr)->sin_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 
 					++Index;
 					continue;

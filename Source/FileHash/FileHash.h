@@ -249,7 +249,7 @@
 #endif
 
 //Version definitions
-#define FULL_VERSION                 L"0.4.5.2"
+#define FULL_VERSION                 L"0.4.5.3"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2016 Chengr28"
 
 //Command definitions
