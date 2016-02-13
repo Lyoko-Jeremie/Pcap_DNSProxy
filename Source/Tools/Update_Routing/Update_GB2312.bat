@@ -213,6 +213,7 @@ goto :eof
 (echo.
 echo.
 echo.## IPv%1
+)>"%temp%\IPv%1ListHead"
 goto :eof
 
 
