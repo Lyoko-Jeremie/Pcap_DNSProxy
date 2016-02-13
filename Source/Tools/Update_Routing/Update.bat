@@ -94,9 +94,9 @@ if not "%ST%" == "LOCAL" (
 	cd /D "%~dp0"
 	copy /b/y "%temp%\delegated-apnic-latest" .\delegated-apnic-latest >nul
 ) else (
-	curl "file://delegated-apnic-latest" -o "delegated-apnic-latest" 2>nul||echo.No such file.&&ping /n 2 127.0.0.1>nul
+	curl "file://%~dp0delegated-apnic-latest" -o "delegated-apnic-latest" 2>nul||del /F /Q curl.exe&&echo.No such file.&&ping /n 2 127.0.0.1>nul&&goto END
 	del /F /Q curl.exe
-	goto END
+	cd /D "%~dp0"
 )
 goto :eof
 
@@ -206,7 +206,6 @@ if %value_mi% gtr 1 (
 for /f %%s in ("%index_out%") do endlocal&set /a count=32-%%s
 echo.%value_mi%/%count%>>Log_Lib
 goto :eof
-:: Exit.
 
 :[WriteIPHead]
 :: Write IP header.
