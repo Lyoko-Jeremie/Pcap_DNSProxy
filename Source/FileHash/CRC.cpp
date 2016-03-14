@@ -1032,7 +1032,7 @@ uint32_t __fastcall CRC24_Calculate(
 	uint8_t *Buffer, 
 	const size_t Length)
 {
-	for (size_t Index = 0; Index < Length; ++Index)
+	for (size_t Index = 0;Index < Length;++Index)
 		CRC = CRC24_Update(TableType, CRC, *Buffer++);
 
 	return CRC;
@@ -1563,7 +1563,7 @@ uint64_t __fastcall CRC40_Calculate(
 	const size_t Length)
 {
 	uint32_t long64_c = 0;
-	for (size_t Index = 0; Index < Length; ++Index)
+	for (size_t Index = 0;Index < Length;++Index)
 	{
 		long64_c = 0x00000000000000FFULL & (uint64_t)Buffer[Index];
 		CRC = (CRC << 8U) ^ CRC40_Table_Normal[((CRC >> 32U) ^ long64_c) & 0xFF];

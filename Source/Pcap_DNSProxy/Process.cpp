@@ -265,27 +265,27 @@ size_t __fastcall CheckWhiteBannedHostsProcess(
 	//Ignore all types.
 		if (HostsTableIter.RecordTypeList.empty())
 		{
-			return EXIT_SUCCESS;
+			return EXIT_FAILURE;
 		}
 		else {
 		//Permit or Deny check
 			if (HostsTableIter.PermissionOperation)
 			{
 			//Only ignore some types.
-				for (auto RecordTypeIter = HostsTableIter.RecordTypeList.begin(); RecordTypeIter != HostsTableIter.RecordTypeList.end(); ++RecordTypeIter)
+				for (auto RecordTypeIter = HostsTableIter.RecordTypeList.begin();RecordTypeIter != HostsTableIter.RecordTypeList.end();++RecordTypeIter)
 				{
 					if (DNS_Query->Type == *RecordTypeIter)
 						break;
 					else if (RecordTypeIter + 1U == HostsTableIter.RecordTypeList.end())
-						return EXIT_SUCCESS;
+						return EXIT_FAILURE;
 				}
 			}
 		//Ignore some types.
 			else {
-				for (auto RecordTypeIter : HostsTableIter.RecordTypeList)
+				for (auto RecordTypeIter:HostsTableIter.RecordTypeList)
 				{
 					if (DNS_Query->Type == RecordTypeIter)
-						return EXIT_SUCCESS;
+						return EXIT_FAILURE;
 				}
 			}
 		}
@@ -309,7 +309,7 @@ size_t __fastcall CheckWhiteBannedHostsProcess(
 			if (HostsTableIter.PermissionOperation)
 			{
 			//Only some types are allowed.
-				for (auto RecordTypeIter = HostsTableIter.RecordTypeList.begin(); RecordTypeIter != HostsTableIter.RecordTypeList.end(); ++RecordTypeIter)
+				for (auto RecordTypeIter = HostsTableIter.RecordTypeList.begin();RecordTypeIter != HostsTableIter.RecordTypeList.end();++RecordTypeIter)
 				{
 					if (DNS_Query->Type == *RecordTypeIter)
 					{
@@ -325,7 +325,7 @@ size_t __fastcall CheckWhiteBannedHostsProcess(
 			}
 		//Block some types.
 			else {
-				for (auto RecordTypeIter : HostsTableIter.RecordTypeList)
+				for (auto RecordTypeIter:HostsTableIter.RecordTypeList)
 				{
 					if (DNS_Query->Type == RecordTypeIter)
 					{
@@ -532,8 +532,8 @@ size_t __fastcall CheckHostsProcess(
 				DataLength = CheckWhiteBannedHostsProcess(Packet->Length, HostsTableIter, DNS_Header, DNS_Query, &Packet->IsLocal);
 				if (DataLength >= DNS_PACKET_MINSIZE)
 					return DataLength;
-				else if (HostsTableIter.RecordTypeList.empty())
-					continue;
+				else if (DataLength == EXIT_FAILURE)
+					goto StopLoop;
 
 			//Initialization
 				void *DNS_Record = nullptr;
@@ -655,9 +655,11 @@ size_t __fastcall CheckHostsProcess(
 				DataLength = CheckWhiteBannedHostsProcess(Packet->Length, HostsTableIter, DNS_Header, DNS_Query, &Packet->IsLocal);
 				if (DataLength >= DNS_PACKET_MINSIZE)
 					return DataLength;
+				else if (DataLength == EXIT_FAILURE)
+					Packet->IsLocal = false;
+				else //IsLocal flag setting
+					Packet->IsLocal = true;
 
-			//IsLocal flag setting
-				Packet->IsLocal = true;
 				goto StopLoop;
 			}
 		}

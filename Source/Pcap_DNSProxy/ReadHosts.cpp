@@ -294,10 +294,10 @@ bool __fastcall ReadOtherHostsData(
 	{
 		if (HostsFileSetIter.FileIndex == FileIndex)
 		{
-			if (LabelType == LABEL_HOSTS_TYPE_NORMAL)
-				HostsFileSetIter.HostsList_Normal.push_back(HostsTableTemp);
-			else if (LabelType == LABEL_HOSTS_TYPE_LOCAL)
+			if (LabelType == LABEL_HOSTS_TYPE_LOCAL)
 				HostsFileSetIter.HostsList_Local.push_back(HostsTableTemp);
+			else //Normal
+				HostsFileSetIter.HostsList_Normal.push_back(HostsTableTemp);
 
 			break;
 		}
@@ -690,10 +690,10 @@ bool __fastcall ReadMainHostsData(
 	{
 		if (HostsFileSetIter.FileIndex == FileIndex)
 		{
-			if (HostsType == HOSTS_TYPE_NORMAL)
-				HostsFileSetIter.HostsList_Normal.push_back(HostsTableTemp);
-			else if (HostsType == HOSTS_TYPE_CNAME)
+			if (HostsType == HOSTS_TYPE_CNAME)
 				HostsFileSetIter.HostsList_CNAME.push_back(HostsTableTemp);
+			else //Normal
+				HostsFileSetIter.HostsList_Normal.push_back(HostsTableTemp);
 
 			break;
 		}

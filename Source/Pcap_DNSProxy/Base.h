@@ -65,15 +65,15 @@
 #define ASCII_UPPERCASE_A                             65                          //"A"
 #define ASCII_UPPERCASE_F                             70                          //"F"
 #define ASCII_UPPERCASE_Z                             90                          //"Z"
-#define ASCII_BRACKETS_LEAD                           91                          //"["
+#define ASCII_BRACKETS_LEFT                           91                          //"["
 #define ASCII_BACKSLASH                               92                          //"\"
-#define ASCII_BRACKETS_TRAIL                          93                          //"]"
+#define ASCII_BRACKETS_RIGHT                          93                          //"]"
 #define ASCII_ACCENT                                  96                          //"`"
 #define ASCII_LOWERCASE_A                             97                          //"a"
 #define ASCII_LOWERCASE_F                             102                         //"f"
 #define ASCII_LOWERCASE_X                             120                         //"x"
 #define ASCII_LOWERCASE_Z                             122                         //"z"
-#define ASCII_BRACES_LEAD                             123                         //"{"
+#define ASCII_BRACES_LEFT                             123                         //"{"
 #define ASCII_VERTICAL                                124                         //"|"
 #define ASCII_TILDE                                   126                         //"~"
 #define ASCII_MAX_NUM                                 0x7F
@@ -107,7 +107,7 @@
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE                    0.3
 #define CONFIG_VERSION                                0.4                         //Current configuration version
-#define FULL_VERSION                                  L"0.4.5.3"
+#define FULL_VERSION                                  L"0.4.5.4"
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
 
 //Size and length definitions
@@ -363,9 +363,9 @@
 //Function Pointer definitions
 //Windows XP with SP3 support
 #if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	typedef ULONGLONG(CALLBACK *FunctionType_GetTickCount64)(void);
-	typedef PCSTR(CALLBACK *FunctionType_InetNtop)(INT, PVOID, PSTR, size_t);
 	typedef INT(CALLBACK *FunctionType_InetPton)(INT, PCSTR, PVOID);
+	typedef PCSTR(CALLBACK *FunctionType_InetNtop)(INT, PVOID, PSTR, size_t);
+	typedef ULONGLONG(CALLBACK *FunctionType_GetTickCount64)(void);
 #endif
 
 
@@ -377,9 +377,9 @@
 #if defined(PLATFORM_WIN)
 	#define Sleep(Millisecond)    Sleep((DWORD)(Millisecond))
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	#define GetTickCount64        GetCurrentSystemTime
 	#define Sleep(Millisecond)    usleep((useconds_t)((Millisecond) * MICROSECOND_TO_MILLISECOND))
 	#define usleep(Millisecond)   usleep((useconds_t)(Millisecond))
-	#define GetTickCount64        GetCurrentSystemTime
 #endif
 
 

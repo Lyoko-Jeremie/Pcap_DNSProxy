@@ -390,16 +390,16 @@
 	}sockaddr_in6_Windows;
 
 //Linux and Mac OS X compatible(Part 2)
-	#define FALSE                    0
-	#define RETURN_ERROR             (-1)
-	#define SOCKET_ERROR             (-1)
+	#define FALSE                    0	
 	#define INVALID_SOCKET           (-1)
+	#define SOCKET_ERROR             (-1)
+	#define RETURN_ERROR             (-1)
 	#define MAX_PATH                 PATH_MAX
+	#define SD_BOTH                  SHUT_RDWR
 	#define SD_RECV                  SHUT_RD
 	#define SD_SEND                  SHUT_WR
-	#define SD_BOTH                  SHUT_RDWR
-	#define WSAETIMEDOUT             ETIMEDOUT
 	#define WSAEAFNOSUPPORT          EAFNOSUPPORT
+	#define WSAETIMEDOUT             ETIMEDOUT	
 	#define in_addr                  in_addr_Windows
 	#define in6_addr                 in6_addr_Windows
 	#define sockaddr_in              sockaddr_in_Windows
@@ -407,6 +407,7 @@
 	#define in6addr_loopback         *(in6_addr *)&in6addr_loopback
 	#define in6addr_any              *(in6_addr *)&in6addr_any
 	typedef char                     *PSTR;
+	typedef int                      SOCKET;
 	typedef signed char              INT8, *PINT8;
 	typedef signed short             INT16, *PINT16;
 	typedef signed int               INT32, *PINT, *PINT32;
@@ -417,31 +418,30 @@
 	typedef unsigned int             UINT, UINT32, *PUINT32;
 	typedef unsigned long            ULONG, DWORD;
 	typedef unsigned long long       ULONGLONG, UINT64, *PUINT64;
-	typedef ssize_t                  SSIZE_T;
-	typedef int                      SOCKET;
-	typedef addrinfo                 ADDRINFOA, *PADDRINFOA;
 	typedef wchar_t                  *PWSTR;
+	typedef ssize_t                  SSIZE_T;
+	typedef addrinfo                 ADDRINFOA, *PADDRINFOA;
 	typedef sockaddr                 *PSOCKADDR;
 	typedef sockaddr_in              *PSOCKADDR_IN;
 	typedef sockaddr_in6             *PSOCKADDR_IN6;
 
 //Function definitions(Part 1)
 	#define __fastcall
+	#define closesocket                                                  close
+	#define fwprintf_s                                                   fwprintf
+	#define sprintf_s                                                    snprintf
 	#define strnlen_s                                                    strnlen
-	#define strncpy_s(Dst, DstSize, Src, Size)                           strncpy(Dst, Src, Size)
+	#define wcsnlen_s                                                    wcsnlen
+	#define WSAGetLastError()                                            errno
+	#define fread_s(Dst, DstSize, ElementSize, Count, File)              fread(Dst, ElementSize, Count, File)
 	#define memcpy_s(Dst, DstSize, Src, Size)                            memcpy(Dst, Src, Size)
 	#define memmove_s(Dst, DstSize, Src, Size)                           memmove(Dst, Src, Size)
-	#define sprintf_s                                                    snprintf
-	#define wcsnlen_s                                                    wcsnlen
+	#define strncpy_s(Dst, DstSize, Src, Size)                           strncpy(Dst, Src, Size)
 	#define wcsncpy_s(Dst, DstSize, Src, Size)                           wcsncpy(Dst, Src, Size)
-	#define fread_s(Dst, DstSize, ElementSize, Count, File)              fread(Dst, ElementSize, Count, File)
-	#define fwprintf_s                                                   fwprintf
 	#if defined(PLATFORM_LINUX)
 		#define send(Socket, Buffer, Length, Signal)                         send(Socket, Buffer, Length, Signal|MSG_NOSIGNAL)
 		#define sendto(Socket, Buffer, Length, Signal, SockAddr, AddrLen)    sendto(Socket, Buffer, Length, Signal|MSG_NOSIGNAL, SockAddr, AddrLen)
 	#endif
-	#define closesocket                                                  close
-	#define WSAGetLastError()                                            errno
 #endif
 
 //Memory alignment: 1 bytes/8 bits

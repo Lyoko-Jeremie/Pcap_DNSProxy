@@ -69,7 +69,7 @@ find_package(Threads REQUIRED)
 
 # Compiling and linking flags
 ## C++ 11 standard definitions
-IF (CMAKE_VERSION VERSION_LESS "3.1")
+IF(CMAKE_VERSION VERSION_LESS "3.1")
 	add_definitions(-std=c++11)
 ELSE(CMAKE_VERSION VERSION_LESS "3.1")
 	set(CMAKE_CXX_STANDARD 11)

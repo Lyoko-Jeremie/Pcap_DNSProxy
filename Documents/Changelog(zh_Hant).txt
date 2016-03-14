@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy 0.4.5.1-0.4.5.3 更新日誌(2016-02-10)：
+﻿Pcap_DNSProxy 0.4.5.1-0.4.5.4 更新日誌(2016-03-14)：
 
 * 為 FileHash 工具添加 Hash 演算法支援
   * CRC family: CRC-8 family + CRC-16 family + CRC-24 family + CRC-32 family + CRC-40 + CRC-64 family
@@ -16,6 +16,9 @@
 * 通過外部命令清除程式內部 DNS 緩存的過程，現在將能無延遲地立即完成
 * 增強對 EDNS Label 的精細化控制
 * Visual Studio 更新到 2015 (Windows)
+* Xcode 更新到 7.2 (Mac)
+* 修復白名單清單不工作的問題 [lonsx]
+* 修復白名單/黑名單清單在 CNAME Hosts 區域內不生效的問題 [shuangzhijinghua]
 * 修復一個特定情況下可能導致程式崩潰的問題
 * 修復使用 Win10Pcap 時抓包模組不能工作的問題 (Windows) [smounives]
 * 修復程式內部 DNS 緩存被錯誤自動清除的問題 (Linux/Mac)

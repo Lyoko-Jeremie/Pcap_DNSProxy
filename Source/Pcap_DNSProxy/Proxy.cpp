@@ -40,7 +40,7 @@
   *  1 bytes: SOCKS version
   *  1 bytes: Command code
   *  2 bytes: Remote port
-  *  4 bytes: Remote IPv4 address(Must set to 0.0.0.x and x != 0)
+  *  4 bytes: Remote IPv4 address(Must set to 0.0.0.x and x is not 0)
   * Variable: UserID
   * Variable: Remote domain
 * Server -> Client(1): Server command response
@@ -815,7 +815,7 @@ size_t __fastcall SOCKSUDPRequest(
 	fd_set ReadFDS = {0}, WriteFDS = {0};
 	timeval Timeout = {0};
 
-//UDP transmission of standard SOCKS protocol must connect with TCP to server first.
+//UDP transmission of standard SOCKS protocol must connect with TCP to server at first.
 	if (!Parameter.SOCKS_UDP_NoHandshake)
 	{
 	//Selection exchange process

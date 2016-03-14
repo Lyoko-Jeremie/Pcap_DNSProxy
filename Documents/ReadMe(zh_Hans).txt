@@ -891,6 +891,6 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
 * --first-setup
   进行本地防火墙测试(Windows)
 * -c Path 和 --config-file Path
-  启动时指定配置文件所在的以及程序的工作目录
+  启动时指定配置文件所在的工作目录
 * --disable-daemon
   关闭守护进程模式(Linux)

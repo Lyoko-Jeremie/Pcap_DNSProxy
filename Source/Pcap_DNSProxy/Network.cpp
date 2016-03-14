@@ -549,7 +549,7 @@ SSIZE_T __fastcall SelectingResult(
 
 		//Receive from buffer list.
 			RecvLen = CheckResponseData(
-				RequestType,
+				RequestType, 
 				SocketSelectingList.at(Index).RecvBuffer.get(), 
 				RecvLen, 
 				RecvSize, 

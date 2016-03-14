@@ -504,7 +504,7 @@ void __fastcall DNSCurveSocketPrecomputation(
 			DataLength = DNSCurvePacketEncryption(Protocol, (*PacketTarget)->SendMagicNumber, Client_PublicKey, *PrecomputationKey, OriginalSend, SendSize, SendBuffer.get(), RecvSize);
 			if (DataLength < DNS_PACKET_MINSIZE)
 			{
-				for (auto &SocketDataIter : SocketDataList)
+				for (auto &SocketDataIter:SocketDataList)
 					closesocket(SocketDataIter.Socket);
 				SocketDataList.clear();
 				SocketSelectingList.clear();
@@ -600,7 +600,7 @@ SkipMain:
 			Alternate_DataLength = DNSCurvePacketEncryption(Protocol, (*PacketTarget)->SendMagicNumber, Client_PublicKey, *Alternate_PrecomputationKey, OriginalSend, SendSize, Alternate_SendBuffer.get(), RecvSize);
 			if (Alternate_DataLength < DNS_PACKET_MINSIZE)
 			{
-				for (auto &SocketDataIter : Alternate_SocketDataList)
+				for (auto &SocketDataIter:Alternate_SocketDataList)
 					closesocket(SocketDataIter.Socket);
 				Alternate_DataLength = 0;
 

@@ -225,8 +225,8 @@
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Linux and Mac OS X compatible
 	#define __fastcall
-	#define strnlen_s          strnlen
 	#define fwprintf_s         fwprintf
+	#define strnlen_s          strnlen	
 #endif
 
 //Function definitions

@@ -249,7 +249,7 @@
 #endif
 
 //Version definitions
-#define FULL_VERSION                 L"0.4.5.3"
+#define FULL_VERSION                 L"0.4.5.4"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2016 Chengr28"
 
 //Command definitions
@@ -314,12 +314,12 @@
 
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Linux and Mac OS X compatible
-	#define RETURN_ERROR                                                 (-1)
 	#define __fastcall
-	#define strnlen_s                                                    strnlen
+	#define RETURN_ERROR                                                 (-1)
 	#define fwprintf_s                                                   fwprintf
-	#define memcpy_s(Dst, DstSize, Src, Size)                            memcpy(Dst, Src, Size)
+	#define strnlen_s                                                    strnlen
 	#define fread_s(Dst, DstSize, ElementSize, Count, File)              fread(Dst, ElementSize, Count, File)
+	#define memcpy_s(Dst, DstSize, Src, Size)                            memcpy(Dst, Src, Size)
 #endif
 
 //Function definitions
