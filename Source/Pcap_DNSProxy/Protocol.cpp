@@ -343,7 +343,7 @@ bool __fastcall CheckSpecialAddress(
 							if (AddressHostsTableIter.Address_Target.size() > 1U)
 							{
 							//Get a ramdom one.
-								std::uniform_int_distribution<int> RamdomDistribution(0, (int)AddressHostsTableIter.Address_Target.size() - 1U);
+								std::uniform_int_distribution<size_t> RamdomDistribution(0, (int)AddressHostsTableIter.Address_Target.size() - 1U);
 								*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)))->sin6_addr;
 							}
 							else {
@@ -514,7 +514,7 @@ bool __fastcall CheckSpecialAddress(
 							if (AddressHostsTableIter.Address_Target.size() > 1U)
 							{
 							//Get a ramdom one.
-								std::uniform_int_distribution<int> RamdomDistribution(0, (int)AddressHostsTableIter.Address_Target.size() - 1U);
+								std::uniform_int_distribution<size_t> RamdomDistribution(0, (int)AddressHostsTableIter.Address_Target.size() - 1U);
 								*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)))->sin_addr;
 							}
 							else {
@@ -831,7 +831,7 @@ size_t __fastcall CheckResponseCNAME(
 				//Hosts load balancing
 					if (HostsTableIter.AddrList.size() > 1U)
 					{
-						std::uniform_int_distribution<int> RamdomDistribution(0, (int)(HostsTableIter.AddrList.size() - 1U));
+						std::uniform_int_distribution<size_t> RamdomDistribution(0, (int)(HostsTableIter.AddrList.size() - 1U));
 						RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 					}
 
@@ -885,7 +885,7 @@ size_t __fastcall CheckResponseCNAME(
 				//Hosts load balancing
 					if (HostsTableIter.AddrList.size() > 1U)
 					{
-						std::uniform_int_distribution<int> RamdomDistribution(0, (int)(HostsTableIter.AddrList.size() - 1U));
+						std::uniform_int_distribution<size_t> RamdomDistribution(0, (int)(HostsTableIter.AddrList.size() - 1U));
 						RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 					}
 

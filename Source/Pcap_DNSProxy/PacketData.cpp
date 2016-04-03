@@ -297,7 +297,7 @@ void __fastcall MakeRamdomDomain(
 	char *Buffer)
 {
 //Ramdom number distribution initialization and make ramdom domain length.
-	std::uniform_int_distribution<int> RamdomDistribution(DOMAIN_RAMDOM_MINSIZE, DOMAIN_LEVEL_DATA_MAXSIZE);
+	std::uniform_int_distribution<size_t> RamdomDistribution(DOMAIN_RAMDOM_MINSIZE, DOMAIN_LEVEL_DATA_MAXSIZE);
 	size_t RamdomLength = RamdomDistribution(*GlobalRunningStatus.RamdomEngine), Index = 0;
 	if (RamdomLength < DOMAIN_RAMDOM_MINSIZE)
 		RamdomLength = DOMAIN_RAMDOM_MINSIZE;
@@ -363,7 +363,7 @@ void __fastcall MakeDomainCaseConversion(
 	char *Buffer)
 {
 //Ramdom number distribution initialization
-	std::uniform_int_distribution<int> RamdomDistribution(0, 1U);
+	std::uniform_int_distribution<size_t> RamdomDistribution(0, 1U);
 	size_t Index = 0;
 
 //Make Case Conversion.
@@ -606,7 +606,7 @@ size_t __fastcall MakeCompressionPointerMutation(
 	const size_t Length)
 {
 //Ramdom number distribution initialization
-	std::uniform_int_distribution<int> RamdomDistribution(0, 2U);
+	std::uniform_int_distribution<size_t> RamdomDistribution(0, 2U);
 	size_t Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 
 //Check Compression Pointer Mutation options.
@@ -706,7 +706,7 @@ size_t __fastcall MakeCompressionPointerMutation(
 			DNS_Header->Additional = htons(U16_NUM_ONE);
 
 		//Ramdom number distribution initialization
-			std::uniform_int_distribution<int> RamdomDistribution_Additional(0, UINT32_MAX);
+			std::uniform_int_distribution<uint32_t> RamdomDistribution_Additional(0, UINT32_MAX);
 
 		//Make records.
 			if (DNS_Query.Type == htons(DNS_RECORD_AAAA))

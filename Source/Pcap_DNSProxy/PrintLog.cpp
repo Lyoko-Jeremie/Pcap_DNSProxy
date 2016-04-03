@@ -21,14 +21,15 @@
 
 //Print errors to log file
 bool __fastcall PrintError(
+	const size_t ErrorLevel, 
 	const size_t ErrorType, 
 	const wchar_t *Message, 
 	const SSIZE_T ErrorCode, 
 	const wchar_t *FileName, 
 	const size_t Line)
 {
-//Print Error: Enable/Disable, parameter check, message check and file name check
-	if (!Parameter.PrintError || //PrintError 
+//Print log level check, parameter check, message check and file name check
+	if (Parameter.PrintLogLevel == LOG_LEVEL_0 || ErrorLevel > Parameter.PrintLogLevel || 
 		Message == nullptr || CheckEmptyBuffer(Message, wcsnlen_s(Message, ORIGINAL_PACKET_MAXSIZE) * sizeof(wchar_t)) || 
 		FileName != nullptr && CheckEmptyBuffer(FileName, wcsnlen_s(FileName, ORIGINAL_PACKET_MAXSIZE) * sizeof(wchar_t)))
 			return false;
@@ -320,7 +321,7 @@ bool __fastcall PrintScreenAndWriteFile(
 			if (DeleteFileW(GlobalRunningStatus.Path_ErrorLog->c_str()) != FALSE)
 			{
 				ErrorLogMutex.unlock();
-				PrintError(LOG_ERROR_SYSTEM, L"Old error log file was deleted", 0, nullptr, 0);
+				PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"Old log files were deleted", 0, nullptr, 0);
 				ErrorLogMutex.lock();
 			}
 			else {
@@ -335,7 +336,7 @@ bool __fastcall PrintScreenAndWriteFile(
 		if (remove(GlobalRunningStatus.sPath_ErrorLog->c_str()) == 0)
 		{
 			ErrorLogMutex.unlock();
-			PrintError(LOG_ERROR_SYSTEM, L"Old error log file was deleted", 0, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"Old log files were deleted", 0, nullptr, 0);
 			ErrorLogMutex.lock();
 		}
 		else {

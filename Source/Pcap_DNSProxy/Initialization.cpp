@@ -388,7 +388,7 @@ void ConfigurationTable::MonitorItemToUsing(
 	ConfigurationParameter->FileRefreshTime = FileRefreshTime;
 
 //[Log] block
-	ConfigurationParameter->PrintError = PrintError;
+	ConfigurationParameter->PrintLogLevel = PrintLogLevel;
 	ConfigurationParameter->LogMaxSize = LogMaxSize;
 
 //[Listen] block
@@ -497,7 +497,7 @@ void ConfigurationTable::MonitorItemReset(
 	FileRefreshTime = DEFAULT_FILEREFRESH_TIME;
 
 //[Log] block
-	PrintError = true;
+	PrintLogLevel = DEFAULT_LOG_LEVEL;
 	LogMaxSize = DEFAULT_LOG_MAXSIZE;
 
 //[Listen] block

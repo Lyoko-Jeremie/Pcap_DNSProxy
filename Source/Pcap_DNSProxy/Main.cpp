@@ -132,7 +132,7 @@ bool ReadCommand(
 		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
 		fwprintf_s(stderr, L"Screen output buffer setting error, error code is %d.\n", errno);
 		ScreenLock.unlock();
-		PrintError(LOG_ERROR_NETWORK, L"Screen output buffer setting error", errno, nullptr, 0);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Screen output buffer setting error", errno, nullptr, 0);
 
 		return false;
 	}
@@ -146,7 +146,7 @@ bool ReadCommand(
 		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
 		fwprintf_s(stderr, L"Winsock initialization error, error code is %d.\n", WSAGetLastError());
 		ScreenLock.unlock();
-		PrintError(LOG_ERROR_NETWORK, L"Winsock initialization error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"Winsock initialization error", WSAGetLastError(), nullptr, 0);
 
 		return false;
 	}
@@ -183,7 +183,7 @@ bool ReadCommand(
 				std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
 				fwprintf_s(stderr, L"Windows Firewall Test error, error code is %d.\n", WSAGetLastError());
 				ScreenMutex.unlock();
-				PrintError(LOG_ERROR_NETWORK, L"Windows Firewall Test error", WSAGetLastError(), nullptr, 0);
+				PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Windows Firewall Test error", WSAGetLastError(), nullptr, 0);
 			}
 
 			return false;
@@ -248,7 +248,7 @@ bool ReadCommand(
 			fwprintf(stderr, L"(Mac)\n");
 		#endif
 			fwprintf_s(stderr, COPYRIGHT_MESSAGE);
-			fwprintf_s(stderr, L"\nUsage: Please see ReadMe... files in Documents folder.\n");
+			fwprintf_s(stderr, L"\nUsage: Please visit ReadMe... files in Documents folder.\n");
 			fwprintf_s(stderr, L"   -v/--version:          Print current version on screen.\n");
 			fwprintf_s(stderr, L"   --lib-version:         Print current version of libraries on screen.\n");
 			fwprintf_s(stderr, L"   -h/--help:             Print help messages on screen.\n");
@@ -272,7 +272,7 @@ bool ReadCommand(
 				std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
 				fwprintf(stderr, L"Commands error.\n");
 				ScreenMutex.unlock();
-				PrintError(LOG_ERROR_SYSTEM, L"Commands error", 0, nullptr, 0);
+				PrintError(LOG_LEVEL_1, LOG_ERROR_SYSTEM, L"Commands error", 0, nullptr, 0);
 
 				return false;
 			}
@@ -286,7 +286,7 @@ bool ReadCommand(
 					std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
 					fwprintf_s(stderr, L"Commands error.\n");
 					ScreenLock.unlock();
-					PrintError(LOG_ERROR_SYSTEM, L"Commands error", 0, nullptr, 0);
+					PrintError(LOG_LEVEL_1, LOG_ERROR_SYSTEM, L"Commands error", 0, nullptr, 0);
 
 					return false;
 				}
@@ -302,7 +302,7 @@ bool ReadCommand(
 #if defined(PLATFORM_LINUX)
 	if (GlobalRunningStatus.Daemon && daemon(0, 0) == RETURN_ERROR)
 	{
-		PrintError(LOG_ERROR_SYSTEM, L"Set system daemon error", 0, nullptr, 0);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Set system daemon error", 0, nullptr, 0);
 		return false;
 	}
 #endif
@@ -354,7 +354,7 @@ bool FileNameInit(
 	*GlobalRunningStatus.sPath_ErrorLog = GlobalRunningStatus.sPath_Global->front();
 	GlobalRunningStatus.sPath_ErrorLog->append("Error.log");
 #endif
-	Parameter.PrintError = true;
+	Parameter.PrintLogLevel = DEFAULT_LOG_LEVEL;
 	GlobalRunningStatus.StartupTime = time(nullptr);
 
 	return true;
@@ -366,7 +366,7 @@ bool __fastcall FirewallTest(
 	const uint16_t Protocol)
 {
 //Ramdom number distribution initialization
-	std::uniform_int_distribution<int> RamdomDistribution(DYNAMIC_MIN_PORT, UINT16_MAX - 1U);
+	std::uniform_int_distribution<uint16_t> RamdomDistribution(DYNAMIC_MIN_PORT, UINT16_MAX - 1U);
 	sockaddr_storage SockAddr = {0};
 	SYSTEM_SOCKET FirewallSocket = 0;
 
@@ -374,24 +374,24 @@ bool __fastcall FirewallTest(
 	if (Protocol == AF_INET6)
 	{
 		((PSOCKADDR_IN6)&SockAddr)->sin6_addr = in6addr_any;
-		((PSOCKADDR_IN6)&SockAddr)->sin6_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+		((PSOCKADDR_IN6)&SockAddr)->sin6_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 		SockAddr.ss_family = AF_INET6;
 		FirewallSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 
 	//Bind local socket.
-		if (!SocketSetting(FirewallSocket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+		if (!SocketSetting(FirewallSocket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 		{
 			return false;
 		}
 		else if (bind(FirewallSocket, (PSOCKADDR)&SockAddr, sizeof(sockaddr_in6)) == SOCKET_ERROR)
 		{
-			((PSOCKADDR_IN6)&SockAddr)->sin6_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+			((PSOCKADDR_IN6)&SockAddr)->sin6_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 			size_t Index = 0;
 			while (bind(FirewallSocket, (PSOCKADDR)&SockAddr, sizeof(sockaddr_in6)) == SOCKET_ERROR)
 			{
 				if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)
 				{
-					((PSOCKADDR_IN6)&SockAddr)->sin6_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+					((PSOCKADDR_IN6)&SockAddr)->sin6_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 
 					++Index;
 					continue;
@@ -408,24 +408,24 @@ bool __fastcall FirewallTest(
 //IPv4
 	else {
 		((PSOCKADDR_IN)&SockAddr)->sin_addr.s_addr = INADDR_ANY;
-		((PSOCKADDR_IN)&SockAddr)->sin_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+		((PSOCKADDR_IN)&SockAddr)->sin_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 		SockAddr.ss_family = AF_INET;
 		FirewallSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 	//Bind local socket.
-		if (!SocketSetting(FirewallSocket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+		if (!SocketSetting(FirewallSocket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 		{
 			return false;
 		}
 		else if (bind(FirewallSocket, (PSOCKADDR)&SockAddr, sizeof(sockaddr_in)) == SOCKET_ERROR)
 		{
-			((PSOCKADDR_IN)&SockAddr)->sin_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+			((PSOCKADDR_IN)&SockAddr)->sin_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 			size_t Index = 0;
 			while (bind(FirewallSocket, (PSOCKADDR)&SockAddr, sizeof(sockaddr_in)) == SOCKET_ERROR)
 			{
 				if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)
 				{
-					((PSOCKADDR_IN)&SockAddr)->sin_port = htons((uint16_t)RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+					((PSOCKADDR_IN)&SockAddr)->sin_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 
 					++Index;
 					continue;

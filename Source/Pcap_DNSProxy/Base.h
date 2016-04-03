@@ -107,7 +107,7 @@
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE                    0.3
 #define CONFIG_VERSION                                0.4                         //Current configuration version
-#define FULL_VERSION                                  L"0.4.5.4"
+#define FULL_VERSION                                  L"0.4.5.5"
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
 
 //Size and length definitions
@@ -125,8 +125,9 @@
 #define BUFFER_QUEUE_MAXNUM                           1488095U                    //Number of maximum packet buffer queues, 1488095 pps or 1.488Mpps in Gigabit Ethernet
 #define BUFFER_QUEUE_MINNUM                           8U                          //Number of minimum packet buffer queues
 #define DEFAULT_BUFFER_QUEUE                          64U                         //Default number of packet buffer queues
-#define UINT16_MAX_STRING_LENGTH                      6U                          //Maximum number of 16 bits is 65535, its length is 6.
-#define UINT32_MAX_STRING_LENGTH                      10U                         //Maximum number of 32 bits is 4294967295, its length is 10.
+#define UINT8_MAX_STRING_LENGTH                       4U                          //Maximum number of 8 bits is 255, its length is 3.
+#define UINT16_MAX_STRING_LENGTH                      6U                          //Maximum number of 16 bits is 65535, its length is 5.
+#define UINT32_MAX_STRING_LENGTH                      11U                         //Maximum number of 32 bits is 4294967295, its length is 10.
 #define ADDR_STRING_MAXSIZE                           64U                         //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
 #define IPV4_SHORTEST_ADDRSTRING                      6U                          //The shortest IPv4 address strings(*.*.*.*).
 #define IPV6_SHORTEST_ADDRSTRING                      3U                          //The shortest IPv6 address strings(::).
@@ -291,7 +292,15 @@
 #define ADDRESS_COMPARE_EQUAL                         2U
 #define ADDRESS_COMPARE_GREATER                       3U
 
-//Error type definitions
+//Log level and error type definitions
+#define LOG_LEVEL_0                                   0                           //Disable log printing
+#define LOG_LEVEL_1                                   1U                          //Failed messages
+#define LOG_LEVEL_2                                   2U                          //Base error messages
+#define LOG_LEVEL_3                                   3U                          //All error messages
+#define LOG_LEVEL_4                                   4U                          //Reserved
+#define LOG_LEVEL_5                                   5U                          //Reserved
+#define DEFAULT_LOG_LEVEL                             LOG_LEVEL_3
+#define LOG_LEVEL_MAXNUM                              LOG_LEVEL_4
 #define LOG_MESSAGE_NOTICE                            1U                          // 01: Notice Message
 #define LOG_ERROR_SYSTEM                              2U                          // 02: System Error
 #define LOG_ERROR_PARAMETER                           3U                          // 03: Parameter Error
@@ -341,6 +350,11 @@
 #define SOCKET_SETTING_NON_BLOCKING_MODE              4U
 //#define SOCKET_SETTING_TCP_KEEPALIVE                  5U
 #define SOCKET_SETTING_UDP_BLOCK_RESET                6U
+#define SOCKET_SETTING_HOP_LIMITS_IPV4                7U
+#define SOCKET_SETTING_HOP_LIMITS_IPV6                8U
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+	#define SOCKET_SETTING_DO_NOT_FRAGMENT                9U
+#endif
 
 //Request process type definitions
 #define REQUEST_PROCESS_LOCAL                         1U
@@ -503,7 +517,7 @@ public:
 	double                               Version;
 	size_t                               FileRefreshTime;
 //[Log] block
-	bool                                 PrintError;
+	size_t                               PrintLogLevel;
 	size_t                               LogMaxSize;
 //[Listen] block
 #if defined(ENABLE_PCAP)
@@ -555,6 +569,10 @@ public:
 	size_t                               BufferQueueSize;
 	size_t                               QueueResetTime;
 	size_t                               EDNSPayloadSize;
+	int                                  PacketHopLimits_IPv4_Begin;
+	int                                  PacketHopLimits_IPv4_End;
+	int                                  PacketHopLimits_IPv6_Begin;
+	int                                  PacketHopLimits_IPv6_End;
 #if defined(ENABLE_PCAP)
 	uint8_t                              HopLimitFluctuation;
 #endif
@@ -594,6 +612,7 @@ public:
 	bool                                 DNSSEC_Validation;
 	bool                                 DNSSEC_ForceValidation;
 	bool                                 AlternateMultiRequest;
+	bool                                 DoNotFragment;
 #if defined(ENABLE_PCAP)
 	bool                                 HeaderCheck_IPv4;
 	bool                                 HeaderCheck_TCP;
@@ -976,6 +995,7 @@ BOOL WINAPI GetFunctionPointer(
 
 //PrintLog.h
 bool __fastcall PrintError(
+	const size_t ErrorLevel, 
 	const size_t ErrorType, 
 	const wchar_t *Message, 
 	const SSIZE_T ErrorCode, 
@@ -1166,6 +1186,7 @@ bool __fastcall MarkDomainCache(
 bool __fastcall SocketSetting(
 	const SYSTEM_SOCKET Socket, 
 	const size_t SettingType, 
+	const bool IsPrintError, 
 	void *DataPointer);
 size_t __fastcall SocketConnecting(
 	const uint16_t Protocol, 

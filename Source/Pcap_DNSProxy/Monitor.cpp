@@ -108,14 +108,10 @@ bool __fastcall MonitorInit(
 		{
 			memset(&LocalSocketData, 0, sizeof(SOCKET_DATA));
 			LocalSocketData.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-		#if defined(PLATFORM_WIN)
-			if (LocalSocketData.Socket == INVALID_SOCKET || LocalSocketData.Socket == SOCKET_ERROR)
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (LocalSocketData.Socket == INVALID_SOCKET)
-		#endif
+			if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 			{
 				if (WSAGetLastError() != 0 && WSAGetLastError() != WSAEAFNOSUPPORT)
-					PrintError(LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+					PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
 				GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
@@ -130,7 +126,7 @@ bool __fastcall MonitorInit(
 						if (LocalSocketData.Socket == 0)
 						{
 							LocalSocketData.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 								break;
 
 							GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
@@ -162,7 +158,7 @@ bool __fastcall MonitorInit(
 							if (LocalSocketData.Socket == 0)
 							{
 								LocalSocketData.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 									break;
 
 								GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
@@ -186,14 +182,10 @@ bool __fastcall MonitorInit(
 		{
 			memset(&LocalSocketData, 0, sizeof(SOCKET_DATA));
 			LocalSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-		#if defined(PLATFORM_WIN)
-			if (LocalSocketData.Socket == INVALID_SOCKET || LocalSocketData.Socket == SOCKET_ERROR)
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (LocalSocketData.Socket == INVALID_SOCKET)
-		#endif
+			if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 			{
 				if (WSAGetLastError() != 0 && WSAGetLastError() != WSAEAFNOSUPPORT)
-					PrintError(LOG_ERROR_NETWORK, L"TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+					PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
 				GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
@@ -208,7 +200,7 @@ bool __fastcall MonitorInit(
 						if (LocalSocketData.Socket == 0)
 						{
 							LocalSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 								break;
 
 							GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
@@ -240,7 +232,7 @@ bool __fastcall MonitorInit(
 							if (LocalSocketData.Socket == 0)
 							{
 								LocalSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 									break;
 
 								GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
@@ -267,7 +259,7 @@ bool __fastcall MonitorInit(
 		{
 			memset(&LocalSocketData, 0, sizeof(SOCKET_DATA));
 			LocalSocketData.Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-			if (SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+			if (SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 			{
 				GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
 				LocalSocketData.SockAddr.ss_family = AF_INET;
@@ -281,7 +273,7 @@ bool __fastcall MonitorInit(
 						if (LocalSocketData.Socket == 0)
 						{
 							LocalSocketData.Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 								break;
 
 							GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
@@ -313,7 +305,7 @@ bool __fastcall MonitorInit(
 							if (LocalSocketData.Socket == 0)
 							{
 								LocalSocketData.Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 									break;
 
 								GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
@@ -337,7 +329,7 @@ bool __fastcall MonitorInit(
 		{
 			memset(&LocalSocketData, 0, sizeof(SOCKET_DATA));
 			LocalSocketData.Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-			if (SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+			if (SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 			{
 				GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
 				LocalSocketData.SockAddr.ss_family = AF_INET;
@@ -351,7 +343,7 @@ bool __fastcall MonitorInit(
 						if (LocalSocketData.Socket == 0)
 						{
 							LocalSocketData.Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 								break;
 
 							GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
@@ -383,7 +375,7 @@ bool __fastcall MonitorInit(
 							if (LocalSocketData.Socket == 0)
 							{
 								LocalSocketData.Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 									break;
 
 								GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
@@ -437,14 +429,14 @@ bool __fastcall UDPMonitor(
 	bool *Result)
 {
 //Block UDP RESET message, socket timeout, reusing and non-blocking mode setting 
-	if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TIMEOUT, &Parameter.SocketTimeout_Unreliable)
+	if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TIMEOUT, true, &Parameter.SocketTimeout_Unreliable)
 	#if defined(PLATFORM_WIN)
-		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_UDP_BLOCK_RESET, nullptr)
-		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, nullptr)
+		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_UDP_BLOCK_RESET, true, nullptr)
+		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, true, nullptr)
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		|| LocalSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, nullptr)
+		|| LocalSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, true, nullptr)
 	#endif
-		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
+		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
 	{
 		*Result = false;
 		return false;
@@ -453,7 +445,7 @@ bool __fastcall UDPMonitor(
 //Bind socket to port.
 	if (bind(LocalSocketData.Socket, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen) == SOCKET_ERROR)
 	{
-		PrintError(LOG_ERROR_NETWORK, L"Bind UDP Monitor socket error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"Bind UDP Monitor socket error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
 		*Result = false;
 
@@ -568,7 +560,7 @@ bool __fastcall UDPMonitor(
 		}
 	//SOCKET_ERROR
 		else {
-			PrintError(LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+			PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			Sleep(LOOP_INTERVAL_TIME_MONITOR);
 
 			continue;
@@ -578,7 +570,7 @@ bool __fastcall UDPMonitor(
 //Monitor terminated
 	shutdown(LocalSocketData.Socket, SD_BOTH);
 	closesocket(LocalSocketData.Socket);
-	PrintError(LOG_ERROR_SYSTEM, L"UDP listening module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"UDP listening module Monitor terminated", 0, nullptr, 0);
 	return true;
 }
 
@@ -588,16 +580,16 @@ bool __fastcall TCPMonitor(
 	bool *Result)
 {
 //Socket timeout, reusing, TCP Fast Open and non-blocking mode setting
-	if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TIMEOUT, &Parameter.SocketTimeout_Reliable)
+	if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TIMEOUT, true, &Parameter.SocketTimeout_Reliable)
 	#if defined(PLATFORM_WIN)
-		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, nullptr)
+		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, true, nullptr)
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		|| LocalSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, nullptr)
+		|| LocalSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, true, nullptr)
 		#if defined(PLATFORM_LINUX)
-			|| Parameter.TCP_FastOpen && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, nullptr)
+			|| Parameter.TCP_FastOpen && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)
 		#endif
 	#endif	
-		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
+		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
 	{
 		*Result = false;
 		return false;
@@ -606,7 +598,7 @@ bool __fastcall TCPMonitor(
 //Bind socket to port.
 	if (bind(LocalSocketData.Socket, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen) == SOCKET_ERROR)
 	{
-		PrintError(LOG_ERROR_NETWORK, L"Bind TCP Monitor socket error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"Bind TCP Monitor socket error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
 		*Result = false;
 
@@ -616,7 +608,7 @@ bool __fastcall TCPMonitor(
 //Listen request from socket.
 	if (listen(LocalSocketData.Socket, SOMAXCONN) == SOCKET_ERROR)
 	{
-		PrintError(LOG_ERROR_NETWORK, L"TCP Monitor socket listening initialization error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"TCP Monitor socket listening initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(LocalSocketData.Socket);
 		*Result = false;
 
@@ -698,11 +690,7 @@ bool __fastcall TCPMonitor(
 			{
 			//Accept connection
 				ClientData.Socket = accept(LocalSocketData.Socket, (PSOCKADDR)&ClientData.SockAddr, &ClientData.AddrLen);
-				#if defined(PLATFORM_WIN)
-					if (ClientData.Socket == INVALID_SOCKET || ClientData.Socket == SOCKET_ERROR)
-				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-					if (ClientData.Socket == INVALID_SOCKET)
-				#endif
+				if (!SocketSetting(ClientData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 					continue;
 
 			//Check request address.
@@ -726,7 +714,7 @@ bool __fastcall TCPMonitor(
 		}
 	//SOCKET_ERROR
 		else {
-			PrintError(LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
+			PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			Sleep(LOOP_INTERVAL_TIME_MONITOR);
 
 			continue;
@@ -736,7 +724,7 @@ bool __fastcall TCPMonitor(
 //Monitor terminated
 	shutdown(LocalSocketData.Socket, SD_BOTH);
 	closesocket(LocalSocketData.Socket);
-	PrintError(LOG_ERROR_SYSTEM, L"TCP listening module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"TCP listening module Monitor terminated", 0, nullptr, 0);
 	return true;
 }
 
@@ -944,7 +932,7 @@ void __fastcall AlternateServerMonitor(
 	}
 
 //Monitor terminated
-	PrintError(LOG_ERROR_SYSTEM, L"Alternate Server module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Alternate Server module Monitor terminated", 0, nullptr, 0);
 	return;
 }
 
@@ -968,7 +956,7 @@ addrinfo * __fastcall GetLocalAddressList(
 //Get localhost name.
 	if (gethostname(HostName, DOMAIN_MAXSIZE) == SOCKET_ERROR)
 	{
-		PrintError(LOG_ERROR_NETWORK, L"Get localhost name error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get localhost name error", WSAGetLastError(), nullptr, 0);
 		return nullptr;
 	}
 
@@ -976,7 +964,7 @@ addrinfo * __fastcall GetLocalAddressList(
 	int ResultGetaddrinfo = getaddrinfo(HostName, nullptr, &Hints, &Result);
 	if (ResultGetaddrinfo != 0)
 	{
-		PrintError(LOG_ERROR_NETWORK, L"Get localhost address error", ResultGetaddrinfo, nullptr, 0);
+		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get localhost address error", ResultGetaddrinfo, nullptr, 0);
 
 		freeaddrinfo(Result);
 		return nullptr;
@@ -998,8 +986,8 @@ bool GetBestInterfaceAddress(
 	SOCKET InterfaceSocket = socket(Protocol, SOCK_DGRAM, IPPROTO_UDP);
 	socklen_t AddrLen = 0;
 
-//Check socket.
-	if (!SocketSetting(InterfaceSocket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+//Socket check
+	if (!SocketSetting(InterfaceSocket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 	{
 		if (Protocol == AF_INET6) //IPv6
 			GlobalRunningStatus.GatewayAvailable_IPv6 = false;
@@ -1246,7 +1234,7 @@ void __fastcall NetworkInformationMonitor(
 				if (InterfaceAddressList != nullptr)
 					freeifaddrs(InterfaceAddressList);
 				InterfaceAddressList = nullptr;
-				PrintError(LOG_ERROR_NETWORK, L"Get localhost address error", errno, nullptr, 0);
+				PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get localhost address error", errno, nullptr, 0);
 		#endif
 
 				Sleep(Parameter.FileRefreshTime);
@@ -1611,7 +1599,7 @@ void __fastcall NetworkInformationMonitor(
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			if (!IsErrorFirstPrint && !GlobalRunningStatus.GatewayAvailable_IPv6)
 		#endif
-				PrintError(LOG_ERROR_NETWORK, L"Not any available gateways to public network", 0, nullptr, 0);
+				PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Not any available gateways to public network", 0, nullptr, 0);
 
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			IsErrorFirstPrint = false;
@@ -1623,6 +1611,6 @@ void __fastcall NetworkInformationMonitor(
 	}
 
 //Monitor terminated
-	PrintError(LOG_ERROR_SYSTEM, L"Get Local Address Information module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Get Local Address Information module Monitor terminated", 0, nullptr, 0);
 	return;
 }

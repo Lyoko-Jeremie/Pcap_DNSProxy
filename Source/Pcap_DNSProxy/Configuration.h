@@ -75,9 +75,9 @@ void __fastcall ClearModificatingListData(
 bool __fastcall ParameterCheckAndSetting(
 	const bool IsFirstRead, 
 	const size_t FileIndex);
-uint16_t __fastcall ServiceNameToHex(
+uint16_t __fastcall ServiceNameToBinary(
 	const char *OriginalBuffer);
-uint16_t __fastcall DNSTypeNameToHex(
+uint16_t __fastcall DNSTypeNameToBinary(
 	const char *OriginalBuffer);
 bool __fastcall ReadParameterData(
 	std::string Data, 

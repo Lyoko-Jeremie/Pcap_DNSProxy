@@ -199,7 +199,7 @@ bool __fastcall FlushDNSMailSlotMonitor(
 	{
 		LocalFree(SID_Value);
 
-		PrintError(LOG_ERROR_SYSTEM, L"Create mailslot error", GetLastError(), nullptr, 0);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create mailslot error", GetLastError(), nullptr, 0);
 		return false;
 	}
 
@@ -225,7 +225,7 @@ bool __fastcall FlushDNSMailSlotMonitor(
 		Result = ReadFile(hSlot, lpszBuffer.get(), FILE_BUFFER_SIZE, &cbMessage, nullptr);
 		if (Result == FALSE)
 		{
-			PrintError(LOG_ERROR_SYSTEM, L"MailSlot read messages error", GetLastError(), nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_SYSTEM, L"MailSlot read messages error", GetLastError(), nullptr, 0);
 
 			CloseHandle(hSlot);
 			return false;
@@ -241,7 +241,7 @@ bool __fastcall FlushDNSMailSlotMonitor(
 
 //Monitor terminated
 	CloseHandle(hSlot);
-	PrintError(LOG_ERROR_SYSTEM, L"MailSlot module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"MailSlot module Monitor terminated", 0, nullptr, 0);
 	return false;
 }
 
@@ -290,7 +290,7 @@ bool FlushDNSFIFOMonitor(
 //Create FIFO and create its notify monitor.
 	if (mkfifo(FIFO_PATH_NAME, O_CREAT) < 0 || chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) < 0)
 	{
-		PrintError(LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
 
 		unlink(FIFO_PATH_NAME);
 		return false;
@@ -305,7 +305,7 @@ bool FlushDNSFIFOMonitor(
 		FileFIFO = open(FIFO_PATH_NAME, O_RDONLY, 0);
 		if (FileFIFO < 0)
 		{
-			PrintError(LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
+			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
 
 			unlink(FIFO_PATH_NAME);
 			return false;
@@ -325,7 +325,7 @@ bool FlushDNSFIFOMonitor(
 //Monitor terminated
 	close(FileFIFO);
 	unlink(FIFO_PATH_NAME);
-	PrintError(LOG_ERROR_SYSTEM, L"FIFO module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"FIFO module Monitor terminated", 0, nullptr, 0);
 	return true;
 }
 

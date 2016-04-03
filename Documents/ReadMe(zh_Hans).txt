@@ -187,7 +187,11 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPFilter File Name - IPFilter 文件的文件名，附加在此处的 IPFilter 文件名将被依次读取
 
 * Log - 日志参数区域
-  * Print Error - 输出错误报告功能：开启为 1 /关闭为 0
+  * Print Log Level - 指定日志输出级别：默认为 3，如果留空则为 3
+    * 0 为关闭日志输出功能
+    * 1 为输出重大错误
+    * 2 为输出一般错误
+    * 3 为输出所有错误
   * Log Maximum Size - 日志文件最大容量：直接填数字时单位为字节，可加上单位，支持的单位有 KB/MB/GB，可接受范围为 4KB - 1GB，如果留空则为 8MB
     * 注意：日志文件到达最大容量后将被直接删除，然后重新生成新的日志文件，原来的日志将无法找回！
 
@@ -462,6 +466,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 不启用 Queue Limits Reset Time 参数时为用于接收数据的缓冲区的数量，由于内存数据的复制比网络 I/O 快超过一个数量级，故此情况下不需要设置太多缓冲区
   * Queue Limits Reset Time - 数据缓冲区队列数量限制重置时间：单位为秒，设置为 0 时关闭此功能
   * EDNS Payload Size - EDNS 标签附带使用的最大载荷长度：最小为 DNS 协议实现要求的 512(bytes)，留空则使用 EDNS 标签要求最短的 1220(bytes)
+  * IPv4 Packet TTL - 发出 IPv4 数据包头部 TTL 值：0 为由操作系统自动决定，取值为 1-255 之间，默认为 32 - 255
+    * 本参数支持指定取值范围，每次发出数据包时实际使用的值会在此范围内随机指定，指定的范围均为闭区间
+  * IPv6 Packet Hop Limits - 发出 IPv6 数据包头部 HopLimits 值：：0 为由操作系统自动决定，取值为 1-255 之间，默认为 32 - 255
+    * 本参数支持指定取值范围，每次发出数据包时实际使用的值会在此范围内随机指定，指定的范围均为闭区间
   * IPv4 TTL - IPv4 主要 DNS 服务器接受请求的远程 DNS 服务器数据包的 TTL 值：0 为自动获取，取值为 1-255 之间
     * 支持多个 TTL 值，与 IPv4 DNS Address 相对应
   * IPv4 Alternate TTL - IPv4 备用 DNS 服务器接受请求的远程 DNS 服务器数据包的 TTL 值：0 为自动获取，取值为 1-255 之间
@@ -526,6 +534,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 警告：由于现时已经部署 DNSSEC 的域名数量极少，未部署 DNSSEC 的域名解析没有 DNSSEC 记录，这将导致所有未部署 DNSSEC 的域名解析失败，现阶段切勿开启本功能！
   * Alternate Multi Request - 备用服务器同时请求参数，开启后将同时请求主要服务器和备用服务器并采用最快回应的服务器的结果：开启为 1 /关闭为 0
     * 同时请求多服务器启用后本参数将强制启用，将同时请求所有存在于列表中的服务器，并采用最快回应的服务器的结果
+  * IPv4 Do Not Fragment - IPv4 数据包头部 Do Not Fragment 标志：开启为 1 /关闭为 0
+    * 目前本功能不支持 Mac OS X 平台，此平台将直接忽略此参数
   * IPv4 Data Filter - IPv4 数据包头检测：开启为 1 /关闭为 0
   * TCP Data Filter - TCP 数据包头检测：开启为 1 /关闭为 0
   * DNS Data Filter - DNS 数据包头检测：开启为 1 /关闭为 0

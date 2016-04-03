@@ -167,6 +167,9 @@
 		D99E2DDD1AFCB21100F36FCD /* Hosts.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Hosts.ini; path = ExampleConfig/Hosts.ini; sourceTree = SOURCE_ROOT; };
 		D99E2DDE1AFCB21100F36FCD /* IPFilter.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = IPFilter.ini; path = ExampleConfig/IPFilter.ini; sourceTree = SOURCE_ROOT; };
 		D99E2DDF1AFCB22200F36FCD /* Routing.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Routing.txt; path = ExampleConfig/Routing.txt; sourceTree = SOURCE_ROOT; };
+		D9AC772B1CB156CF005849B5 /* crypto_core_hchacha20.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_core_hchacha20.h; path = LibSodium/crypto_core_hchacha20.h; sourceTree = SOURCE_ROOT; };
+		D9AC772C1CB156CF005849B5 /* crypto_pwhash_argon2i.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_pwhash_argon2i.h; path = LibSodium/crypto_pwhash_argon2i.h; sourceTree = SOURCE_ROOT; };
+		D9AC772D1CB156CF005849B5 /* crypto_pwhash.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = crypto_pwhash.h; path = LibSodium/crypto_pwhash.h; sourceTree = SOURCE_ROOT; };
 		D9F760F01AFCB498007F351A /* KeyPairGenerator.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = KeyPairGenerator.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -266,6 +269,7 @@
 				D98E51781C1EDDDE00397E03 /* crypto_auth.h */,
 				D98E51791C1EDDDE00397E03 /* crypto_box_curve25519xsalsa20poly1305.h */,
 				D98E517A1C1EDDDE00397E03 /* crypto_box.h */,
+				D9AC772B1CB156CF005849B5 /* crypto_core_hchacha20.h */,
 				D98E517B1C1EDDDE00397E03 /* crypto_core_hsalsa20.h */,
 				D98E517C1C1EDDDE00397E03 /* crypto_core_salsa20.h */,
 				D98E517D1C1EDDDE00397E03 /* crypto_core_salsa208.h */,
@@ -279,7 +283,9 @@
 				D98E51851C1EDDDF00397E03 /* crypto_int64.h */,
 				D98E51861C1EDDDF00397E03 /* crypto_onetimeauth_poly1305.h */,
 				D98E51871C1EDDDF00397E03 /* crypto_onetimeauth.h */,
+				D9AC772C1CB156CF005849B5 /* crypto_pwhash_argon2i.h */,
 				D98E51881C1EDDDF00397E03 /* crypto_pwhash_scryptsalsa208sha256.h */,
+				D9AC772D1CB156CF005849B5 /* crypto_pwhash.h */,
 				D98E51891C1EDDDF00397E03 /* crypto_scalarmult_curve25519.h */,
 				D98E518A1C1EDDDF00397E03 /* crypto_scalarmult.h */,
 				D98E518B1C1EDDDF00397E03 /* crypto_secretbox_xsalsa20poly1305.h */,

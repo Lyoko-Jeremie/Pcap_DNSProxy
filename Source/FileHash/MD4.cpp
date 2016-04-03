@@ -237,7 +237,7 @@ bool __fastcall MD4_Hash(
 	{
 		memset(Buffer.get(), 0, ReadBlockSize);
 		ReadLength = fread_s(Buffer.get(), ReadBlockSize, sizeof(char), ReadBlockSize, Input);
-		if (ReadLength == 0 && errno == EINVAL)
+		if (ReadLength == 0 && errno > 0)
 		{
 			fwprintf_s(stderr, L"Hash process error.\n");
 			return false;

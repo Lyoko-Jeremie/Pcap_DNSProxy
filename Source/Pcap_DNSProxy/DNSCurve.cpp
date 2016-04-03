@@ -217,10 +217,14 @@ size_t __fastcall DNSCurveSelectTargetSocket(
 		TargetSocketData->AddrLen = sizeof(sockaddr_in6);
 		TargetSocketData->SockAddr.ss_family = AF_INET6;
 		TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
-		if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+		if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
+			!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr))
+		{
 			return 0;
-		else 
+		}
+		else {
 			return ServerType;
+		}
 	}
 //IPv4
 	else if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && 
@@ -278,10 +282,15 @@ size_t __fastcall DNSCurveSelectTargetSocket(
 		TargetSocketData->AddrLen = sizeof(sockaddr_in);
 		TargetSocketData->SockAddr.ss_family = AF_INET;
 		TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
-		if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+		if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
+			!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
+			!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
+		{
 			return 0;
-		else 
+		}
+		else {
 			return ServerType;
+		}
 	}
 
 	return 0;
@@ -448,9 +457,12 @@ void __fastcall DNSCurveSocketPrecomputation(
 			else //IPv4
 				SocketDataTemp.Socket = socket(AF_INET, InnerProtocol, Protocol);
 
-		//Socket check and non-blocking mode setting
-			if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr) || 
-				!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
+		//Socket check, non-blocking mode setting, Hop Limits setting and Do Not Fragment setting
+			if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
+				!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
+				IsIPv6 && !SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr) || 
+				!IsIPv6 && (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
+				!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr)))
 			{
 				for (auto &SocketDataIter:SocketDataList)
 					closesocket(SocketDataIter.Socket);
@@ -547,9 +559,12 @@ SkipMain:
 			else //IPv4
 				SocketDataTemp.Socket = socket(AF_INET, InnerProtocol, Protocol);
 
-		//Socket check and non-blocking mode setting
-			if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr) || 
-				!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
+		//Socket check, non-blocking mode setting, Hop Limits setting and Do Not Fragment setting
+			if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
+				!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
+				IsIPv6 && !SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr) || 
+				!IsIPv6 && (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
+				!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr)))
 			{
 				for (auto &SocketDataIter:Alternate_SocketDataList)
 					closesocket(SocketDataIter.Socket);
@@ -1314,12 +1329,12 @@ bool __fastcall DNSCurveTCPSignatureRequest(
 			TCPSocketDataList.front().Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 		else //IPv4
 			TCPSocketDataList.front().Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-		if (!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
-			goto JumpToRestart;
-
-	//Socket non-blocking mode setting
-		if (!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
-			goto JumpToRestart;
+		if (!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
+			!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
+			Protocol == AF_INET6 && !SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr) || 
+			Protocol == AF_INET && (!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
+			!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr)))
+				goto JumpToRestart;
 
 	//Socket selecting
 		RecvLen = SocketSelecting(REQUEST_PROCESS_DNSCURVE, IPPROTO_TCP, TCPSocketDataList, SendBuffer.get(), DataLength, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, nullptr);
@@ -1346,7 +1361,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(
 		if (!Message.empty())
 		{
 			Message.append(L"TCP get signature data error");
-			PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
 		}
 
 	//Send request again.
@@ -1362,7 +1377,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(
 		Sleep(SENDING_INTERVAL_TIME);
 	}
 
-	PrintError(LOG_ERROR_SYSTEM, L"DNSCurve TCP Signature Request module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"DNSCurve TCP Signature Request module Monitor terminated", 0, nullptr, 0);
 	return true;
 }
 
@@ -1480,12 +1495,12 @@ bool __fastcall DNSCurveUDPSignatureRequest(
 			UDPSocketDataList.front().Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 		else //IPv4
 			UDPSocketDataList.front().Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-		if (!SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
-			goto JumpToRestart;
-
-	//Socket non-blocking mode setting
-		if (!SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
-			goto JumpToRestart;
+		if (!SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
+			!SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
+			Protocol == AF_INET6 && !SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr) || 
+			Protocol == AF_INET && (!SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
+			!SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr)))
+				goto JumpToRestart;
 
 	//Socket selecting
 		RecvLen = SocketSelecting(REQUEST_PROCESS_DNSCURVE, IPPROTO_UDP, UDPSocketDataList, SendBuffer.get(), DataLength, RecvBuffer.get(), PACKET_MAXSIZE, nullptr);
@@ -1512,7 +1527,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(
 		if (!Message.empty())
 		{
 			Message.append(L"UDP get signature data error");
-			PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
 		}
 
 	//Send request again.
@@ -1528,7 +1543,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(
 		Sleep(SENDING_INTERVAL_TIME);
 	}
 
-	PrintError(LOG_ERROR_SYSTEM, L"DNSCurve UDP Signature Request module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"DNSCurve UDP Signature Request module Monitor terminated", 0, nullptr, 0);
 	return true;
 }
 
@@ -1565,7 +1580,7 @@ bool __fastcall DNSCruveGetSignatureData(
 				if (!Message.empty())
 				{
 					Message.append(L"Fingerprint signature validation error");
-					PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
+					PrintError(LOG_LEVEL_3, LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
 				}
 
 				return false;
@@ -1589,7 +1604,7 @@ bool __fastcall DNSCruveGetSignatureData(
 						if (!Message.empty())
 						{
 							Message.append(L"Key calculating error");
-							PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
+							PrintError(LOG_LEVEL_3, LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
 						}
 
 						return false;
@@ -1604,7 +1619,7 @@ bool __fastcall DNSCruveGetSignatureData(
 				if (!Message.empty())
 				{
 					Message.append(L"Fingerprint signature validation error");
-					PrintError(LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
+					PrintError(LOG_LEVEL_3, LOG_ERROR_DNSCURVE, Message.c_str(), 0, nullptr, 0);
 				}
 			}
 		}
@@ -1634,7 +1649,7 @@ size_t __fastcall DNSCurveTCPRequest(
 	TCPSocketSelectingData.ServerType = DNSCurveSelectTargetSocket(&TCPSocketDataList.front(), &PacketTarget, &IsAlternate, &AlternateTimeoutTimes, IPPROTO_TCP);
 	if (TCPSocketSelectingData.ServerType == 0)
 	{
-		PrintError(LOG_ERROR_NETWORK, L"DNSCurve TCP socket initialization error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"DNSCurve TCP socket initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(TCPSocketDataList.front().Socket);
 
 		return EXIT_FAILURE;
@@ -1664,7 +1679,7 @@ size_t __fastcall DNSCurveTCPRequest(
 	}
 
 //Socket non-blocking mode setting
-	if (!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
+	if (!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
 		return EXIT_FAILURE;
 
 //Make encryption or normal packet.
@@ -1807,7 +1822,7 @@ size_t __fastcall DNSCurveUDPRequest(
 	UDPSocketSelectingData.ServerType = DNSCurveSelectTargetSocket(&UDPSocketDataList.front(), &PacketTarget, &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP);
 	if (UDPSocketSelectingData.ServerType == 0)
 	{
-		PrintError(LOG_ERROR_NETWORK, L"DNSCurve UDP socket initialization error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"DNSCurve UDP socket initialization error", WSAGetLastError(), nullptr, 0);
 		closesocket(UDPSocketDataList.front().Socket);
 
 		return EXIT_FAILURE;
@@ -1834,7 +1849,7 @@ size_t __fastcall DNSCurveUDPRequest(
 	}
 
 //Socket timeout setting and UDP connecting
-	if (!SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TIMEOUT, &DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable) || 
+	if (!SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TIMEOUT, true, &DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable) || 
 		SocketConnecting(IPPROTO_UDP, UDPSocketDataList.front().Socket, (PSOCKADDR)&UDPSocketDataList.front().SockAddr, UDPSocketDataList.front().AddrLen, nullptr, 0) == EXIT_FAILURE)
 			return EXIT_FAILURE;
 

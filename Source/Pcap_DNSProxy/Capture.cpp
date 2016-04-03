@@ -41,7 +41,7 @@ void __fastcall CaptureInit(
 		if (pcap_findalldevs(&pThedevs, ErrBuffer) == PCAP_ERROR)
 		{
 			if (MBSToWCSString(ErrBuffer, PCAP_ERRBUF_SIZE, wErrBuffer))
-				PrintError(LOG_ERROR_PCAP, wErrBuffer.c_str(), 0, nullptr, 0);
+				PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, wErrBuffer.c_str(), 0, nullptr, 0);
 
 			memset(ErrBuffer, 0, PCAP_ERRBUF_SIZE);
 			Sleep(LOOP_INTERVAL_TIME_MONITOR);
@@ -54,7 +54,7 @@ void __fastcall CaptureInit(
 			if (IsErrorFirstPrint)
 				IsErrorFirstPrint = false;
 			else //There are no any error codes to be reported in LOG_ERROR_PCAP.
-				PrintError(LOG_ERROR_PCAP, L"Insufficient privileges or not any available network devices.", 0, nullptr, 0);
+				PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, L"Insufficient privileges or not any available network devices.", 0, nullptr, 0);
 
 			Sleep(LOOP_INTERVAL_TIME_MONITOR);
 			continue;
@@ -103,7 +103,7 @@ void __fastcall CaptureInit(
 	}
 
 //Monitor terminated
-	PrintError(LOG_ERROR_SYSTEM, L"Capture module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Capture module Monitor terminated", 0, nullptr, 0);
 	return;
 }
 
@@ -365,7 +365,7 @@ DevicesNotSkip:
 	{
 		std::wstring ErrBuffer;
 		if (MBSToWCSString(Buffer.get(), PCAP_ERRBUF_SIZE, ErrBuffer))
-			PrintError(LOG_ERROR_PCAP, ErrBuffer.c_str(), 0, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, ErrBuffer.c_str(), 0, nullptr, 0);
 
 		return false;
 	}
@@ -395,7 +395,7 @@ DevicesNotSkip:
 	{
 		std::wstring ErrBuffer;
 		if (MBSToWCSString(pcap_geterr(DeviceHandle), PCAP_ERRBUF_SIZE, ErrBuffer))
-			PrintError(LOG_ERROR_PCAP, ErrBuffer.c_str(), 0, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, ErrBuffer.c_str(), 0, nullptr, 0);
 
 		pcap_close(DeviceHandle);
 		return false;
@@ -406,7 +406,7 @@ DevicesNotSkip:
 	{
 		std::wstring ErrBuffer;
 		if (MBSToWCSString(pcap_geterr(DeviceHandle), PCAP_ERRBUF_SIZE, ErrBuffer))
-			PrintError(LOG_ERROR_PCAP, ErrBuffer.c_str(), 0, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, ErrBuffer.c_str(), 0, nullptr, 0);
 
 		pcap_freecode(&BPF_Code);
 		pcap_close(DeviceHandle);
@@ -468,7 +468,7 @@ DevicesNotSkip:
 //Monitor terminated
 	pcap_freecode(&BPF_Code);
 	pcap_close(DeviceHandle);
-	PrintError(LOG_ERROR_SYSTEM, L"Capture module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Capture module Monitor terminated", 0, nullptr, 0);
 	return true;
 }
 

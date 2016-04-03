@@ -48,19 +48,19 @@ bool __fastcall ReadText(
 				{
 					case READ_TEXT_HOSTS: //ReadHosts
 					{
-						PrintError(LOG_ERROR_HOSTS, L"Data of a line is too short", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+						PrintError(LOG_LEVEL_2, LOG_ERROR_HOSTS, L"Data of a line is too short", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					}break;
 					case READ_TEXT_IPFILTER: //ReadIPFilter
 					{
-						PrintError(LOG_ERROR_IPFILTER, L"Data of a line is too short", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+						PrintError(LOG_LEVEL_2, LOG_ERROR_IPFILTER, L"Data of a line is too short", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					}break;
 					case READ_TEXT_PARAMETER: //ReadParameter
 					{
-						PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+						PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					}break;
 					case READ_TEXT_PARAMETER_MONITOR: //ReadParameter(Monitor mode)
 					{
-						PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+						PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					}break;
 				}
 
@@ -269,19 +269,19 @@ bool __fastcall ReadText(
 			{
 				case READ_TEXT_HOSTS: //ReadHosts
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), 0);
+					PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), 0);
 				}break;
 				case READ_TEXT_IPFILTER: //ReadIPFilter
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), 0);
+					PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), 0);
 				}break;
 				case READ_TEXT_PARAMETER: //ReadParameter
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+					PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				}break;
 				case READ_TEXT_PARAMETER_MONITOR: //ReadParameter(Monitor mode)
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+					PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				}break;
 			}
 			
@@ -310,19 +310,19 @@ bool __fastcall ReadText(
 			{
 				case READ_TEXT_HOSTS: //ReadHosts
 				{
-					PrintError(LOG_ERROR_HOSTS, L"Data of a line is too long", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_2, LOG_ERROR_HOSTS, L"Data of a line is too long", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				}break;
 				case READ_TEXT_IPFILTER: //ReadIPFilter
 				{
-					PrintError(LOG_ERROR_IPFILTER, L"Data of a line is too long", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_2, LOG_ERROR_IPFILTER, L"Data of a line is too long", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 				}break;
 				case READ_TEXT_PARAMETER: //ReadParameter
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too long", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Data of a line is too long", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				}break;
 				case READ_TEXT_PARAMETER_MONITOR: //ReadParameter(Monitor mode)
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too long", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Data of a line is too long", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				}break;
 			}
 
@@ -468,7 +468,7 @@ bool __fastcall ReadParameter(
 			//Check all configuration files.
 				if (FileIndex + 1U == FileList_Config.size())
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
+					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
 					return false;
 				}
 
@@ -488,14 +488,14 @@ bool __fastcall ReadParameter(
 			ConfigFileSize.LowPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeLow;
 			if (ConfigFileSize.QuadPart >= DEFAULT_FILE_MAXSIZE)
 			{
-				PrintError(LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+				PrintError(LOG_LEVEL_3, LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				return false;
 			}
 		}
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		if (stat(FileList_Config.at(FileIndex).sFileName.c_str(), &FileStat) == 0 && FileStat.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 		{
-			PrintError(LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
 		}
 	#endif
@@ -512,7 +512,7 @@ bool __fastcall ReadParameter(
 			fclose(Input);
 		}
 		else {
-			PrintError(LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
+			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
 			return false;
 		}
 
@@ -535,7 +535,7 @@ bool __fastcall ReadParameter(
 				{
 				//Check all configuration files.
 					if (FileIndex + 1U == FileList_Config.size())
-						PrintError(LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
+						PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
 
 					continue;
 				}
@@ -584,7 +584,7 @@ bool __fastcall ReadParameter(
 				if (FileStat.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 			#endif
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Configuration file size is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+					PrintError(LOG_LEVEL_3, LOG_ERROR_PARAMETER, L"Configuration file size is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 
 				#if defined(PLATFORM_WIN)
 					memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
@@ -682,7 +682,7 @@ bool __fastcall ReadParameter(
 	}
 
 //Monitor terminated
-	PrintError(LOG_ERROR_SYSTEM, L"Read Parameter module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Read Parameter module Monitor terminated", 0, nullptr, 0);
 	return false;
 }
 
@@ -758,7 +758,7 @@ void __fastcall ReadIPFilter(
 				if (FileStat.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 			#endif
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"IPFilter file size is too large", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), 0);
+					PrintError(LOG_LEVEL_3, LOG_ERROR_PARAMETER, L"IPFilter file size is too large", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), 0);
 
 				#if defined(PLATFORM_WIN)
 					memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
@@ -867,7 +867,7 @@ void __fastcall ReadIPFilter(
 	}
 
 //Monitor terminated
-	PrintError(LOG_ERROR_SYSTEM, L"Read IPFilter module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Read IPFilter module Monitor terminated", 0, nullptr, 0);
 	return;
 }
 
@@ -943,7 +943,7 @@ void __fastcall ReadHosts(
 				if (FileStat.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 			#endif
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Hosts file size is too large", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), 0);
+					PrintError(LOG_LEVEL_3, LOG_ERROR_PARAMETER, L"Hosts file size is too large", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), 0);
 
 				#if defined(PLATFORM_WIN)
 					memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
@@ -1052,7 +1052,7 @@ void __fastcall ReadHosts(
 	}
 
 //Monitor terminated
-	PrintError(LOG_ERROR_SYSTEM, L"Read Hosts module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Read Hosts module Monitor terminated", 0, nullptr, 0);
 	return;
 }
 

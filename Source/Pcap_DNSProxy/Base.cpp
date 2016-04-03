@@ -137,6 +137,11 @@ void __fastcall CaseConvert(
 	char *Buffer, 
 	const size_t Length)
 {
+//Null pointer
+	if (Buffer == nullptr)
+		return;
+
+//Convert words.
 	for (size_t Index = 0;Index < Length;++Index)
 	{
 	//Lowercase to uppercase
@@ -311,7 +316,7 @@ uint64_t GetCurrentSystemTime(
 
 //Windows XP with SP3 support
 #elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-//Verify version of system(Greater than Windows Vista)
+//Verify version of system
 BOOL WINAPI IsGreaterThanVista(
 	void)
 {

@@ -79,8 +79,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * MailSlot write messages error - MailSlot 写入信息失败：建议重新启动服务或程序
   * Create FIFO error - FIFO 创建失败：建议重新启动服务或程序
   * FIFO write messages error - FIFO 写入信息失败：建议重新启动服务或程序
-  * Old error log file was deleted - 错误日志文件已满并被删除
-    * 日志文件最大容量的配置参见 详细说明文档 中 配置文件详细参数说明 中的 Log Maximum Size 参数
   * Mailslot Monitor initialization error - MailSlot 监视模块初始化失败：建议重新启动服务或程序
   * Read Parameter module Monitor terminated - 配置文件读取模块已经停止监视：建议重新启动服务或程序
   * Read Hosts module Monitor terminated - Hosts 读取模块已经停止监视：建议重新启动服务或程序
@@ -133,6 +131,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Alternate Multi request error - 主要备用或多个服务器下同时请求参数错误：请确认所有服务器的信息
   * IPv4 total request number error - IPv4 请求总次数限制错误：填入主要/备用服务器的数量 * Multi Request Times = 总请求的数值，此数值不能超过 64
   * IPv6 total request number error - IPv6 请求总次数限制错误：填入主要/备用服务器的数量 * Multi Request Times = 总请求的数值，此数值不能超过 64
+  * IPv4 packet TTL range error - IPv4 数据包 TTL 值范围错误：请确认该条目的内容
+  * IPv6 packet Hop Limits range error - IPv6 数据包 Hop Limits 值范围错误：请确认该条目的内容
   * DNSCurve target error - DNSCurve 协议使用的 DNS 目标服务器地址错误：请检查 DNSCurve 协议使用 DNS 服务器的地址
   * DNSCurve encryption options error - DNSCurve 协议加密选项配置错误：开启加密选项和只使用加密模式选项冲突
   * DNSCurve Encryption Only mode error - DNSCurve 协议只使用加密模式配置错误：只使用加密模式必须提供服务器的魔数和指纹
@@ -175,6 +175,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Socket timeout setting error - 设置套接字超时时间错误：具体原因可参见错误代码
   * Socket TCP Fast Open setting error - 设置 TCP Fast Open 错误：请检查系统是否支持此功能
   * Socket UDP block RESET message setting error - 设置 UDP 协议套接字屏蔽 ICMP Port Unreachable 信息错误：具体原因可参见错误代码
+  * Socket Hop Limits setting error - 设置 Hop Limits/TTL 错误：具体原因可参见错误代码
+  * Socket Do Not Fragment flag setting error - 设置 IPv4 Do Not Fragment 标志错误：具体原因可参见错误代码
   * UDP Monitor socket initialization error - UDP 协议本地套接字初始化失败：原因参见错误代码
   * TCP Monitor socket initialization error - TCP 协议本地套接字初始化失败：原因参见错误代码
   * Bind UDP Monitor socket error - UDP 协议本地套接字绑定失败：本地可能已经存在 DNS 服务器或者多重运行了本工具，具体原因参见错误代码
@@ -239,6 +241,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * HTTP server response error - HTTP 代理服务器响应错误：请检查该服务器是否可用
 
 10.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
+  * Old log files were deleted - 错误日志文件已满并被删除
+    * 日志文件最大容量的配置参见 详细说明文档 中 配置文件详细参数说明 中的 Log Maximum Size 参数
   * Configuration file is not the latest version - 配置文件非最新版本：请确认配置文件是否需要更新
   * Listen Port is empty, set to standard DNS port(53) - 本地监听端口参数为空：程序将自动设置为标准 DNS 协议端口（53）
   * TCP Data Filter require TCP Request Mode - 开启 TCP 数据包头检测时必须将 Request Mode 设置为 TCP：程序将自动关闭此功能

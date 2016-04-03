@@ -251,7 +251,7 @@ bool __fastcall SOCKSSelectionExchange(
 	SSIZE_T RecvLen = SocketConnecting(IPPROTO_TCP, SOCKSSocketData->Socket, (PSOCKADDR)&SOCKSSocketData->SockAddr, SOCKSSocketData->AddrLen, SendBuffer, Length);
 	if (RecvLen == EXIT_FAILURE)
 	{
-		PrintError(LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
+		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
 		return false;
 	}
 //Client selection exchange
@@ -264,7 +264,7 @@ bool __fastcall SOCKSSelectionExchange(
 	}
 	if (RecvLen < (SSIZE_T)sizeof(socks_server_selection))
 	{
-		PrintError(LOG_ERROR_NETWORK, L"SOCKS request error", 0, nullptr, 0);
+		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS request error", 0, nullptr, 0);
 		return false;
 	}
 	else {
@@ -276,7 +276,7 @@ bool __fastcall SOCKSSelectionExchange(
 	SOCKS_Pointer = OriginalRecv;
 	if (((psocks_server_selection)SOCKS_Pointer)->Version != SOCKS_VERSION_5)
 	{
-		PrintError(LOG_ERROR_SOCKS, L"Server SOCKS protocol version error", 0, nullptr, 0);
+		PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Server SOCKS protocol version error", 0, nullptr, 0);
 		return false;
 	}
 
@@ -296,7 +296,7 @@ bool __fastcall SOCKSSelectionExchange(
 			{
 				if (!SOCKSAuthenticationUsernamePassword(SOCKSSocketData->Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, OriginalRecv, RecvSize))
 				{
-					PrintError(LOG_ERROR_SOCKS, L"Username or Password incorrect", 0, nullptr, 0);
+					PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Username or Password incorrect", 0, nullptr, 0);
 					return false;
 				}
 				else {
@@ -304,14 +304,14 @@ bool __fastcall SOCKSSelectionExchange(
 				}
 			}
 			else {
-				PrintError(LOG_ERROR_SOCKS, L"Server require username and password authentication", 0, nullptr, 0);
+				PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Server require username and password authentication", 0, nullptr, 0);
 				return false;
 			}
 		}break;
 	//Not support or error
 		default:
 		{
-			PrintError(LOG_ERROR_SOCKS, L"Authentication method not support", 0, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Authentication method not support", 0, nullptr, 0);
 			return false;
 		}
 	}
@@ -478,7 +478,7 @@ bool __fastcall SOCKSClientCommandRequest(
 		RecvLen = ProxySocketSelecting(Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, Length, OriginalRecv, RecvSize, sizeof(socks5_server_command_reply), nullptr);
 		if (RecvLen < (SSIZE_T)sizeof(socks5_server_command_reply))
 		{
-			PrintError(LOG_ERROR_NETWORK, L"SOCKS request error", 0, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS request error", 0, nullptr, 0);
 			return false;
 		}
 	}
@@ -489,7 +489,7 @@ bool __fastcall SOCKSClientCommandRequest(
 		RecvLen = SocketConnecting(IPPROTO_TCP, Socket, (PSOCKADDR)&UDP_ASSOCIATE_TCP_Connecting_Address->SockAddr, UDP_ASSOCIATE_TCP_Connecting_Address->AddrLen, SendBuffer, Length);
 		if (RecvLen == EXIT_FAILURE)
 		{
-			PrintError(LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
 			return false;
 		}
 	//Client command request process
@@ -502,7 +502,7 @@ bool __fastcall SOCKSClientCommandRequest(
 		}
 		if (RecvLen < (SSIZE_T)sizeof(socks4_server_command_reply))
 		{
-			PrintError(LOG_ERROR_NETWORK, L"SOCKS request error", 0, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS request error", 0, nullptr, 0);
 			return false;
 		}
 	}
@@ -516,12 +516,12 @@ bool __fastcall SOCKSClientCommandRequest(
 	{
 		if (((psocks5_server_command_reply)SOCKS_Pointer)->Version != SOCKS_VERSION_5 || ((psocks5_server_command_reply)SOCKS_Pointer)->Reserved != 0)
 		{
-			PrintError(LOG_ERROR_SOCKS, L"Server SOCKS protocol version error", 0, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Server SOCKS protocol version error", 0, nullptr, 0);
 			return false;
 		}
 		else if (((psocks5_server_command_reply)SOCKS_Pointer)->Reply != SOCKS5_REPLY_SUCCESS)
 		{
-			PrintError(LOG_ERROR_SOCKS, L"Client command request error", ((psocks5_server_command_reply)SOCKS_Pointer)->Reply, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Client command request error", ((psocks5_server_command_reply)SOCKS_Pointer)->Reply, nullptr, 0);
 			return false;
 		}
 		else if (Protocol == IPPROTO_UDP && UDP_ASSOCIATE_TCP_Connecting_Address != nullptr) //UDP ASSOCIATE
@@ -553,7 +553,7 @@ bool __fastcall SOCKSClientCommandRequest(
 				((PSOCKADDR_IN)&UDP_ASSOCIATE_TCP_Connecting_Address->SockAddr)->sin_port = *(uint16_t *)SOCKS_Pointer;
 			}
 			else {
-				PrintError(LOG_ERROR_SOCKS, L"Client command request error", 0, nullptr, 0);
+				PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Client command request error", 0, nullptr, 0);
 				return false;
 			}
 		}
@@ -562,12 +562,12 @@ bool __fastcall SOCKSClientCommandRequest(
 	{
 		if (((psocks4_server_command_reply)SOCKS_Pointer)->Version != SOCKS_VERSION_4)
 		{
-			PrintError(LOG_ERROR_SOCKS, L"Server SOCKS protocol version error", 0, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Server SOCKS protocol version error", 0, nullptr, 0);
 			return false;
 		}
 		else if (((psocks4_server_command_reply)SOCKS_Pointer)->Command != SOCKS4_REPLY_GRANTED)
 		{
-			PrintError(LOG_ERROR_SOCKS, L"Client command request error", ((psocks4_server_command_reply)SOCKS_Pointer)->Command, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Client command request error", ((psocks4_server_command_reply)SOCKS_Pointer)->Command, nullptr, 0);
 			return false;
 		}
 	}
@@ -616,18 +616,20 @@ size_t __fastcall SOCKSTCPRequest(
 	}
 
 //Socket check 
-	if (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+	if (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 	{
-		PrintError(LOG_ERROR_NETWORK, L"SOCKS socket initialization error", 0, nullptr, 0);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"SOCKS socket initialization error", 0, nullptr, 0);
 		return EXIT_FAILURE;
 	}
 
-//Non-blocking mode setting
-	if (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
+//Non-blocking mode setting and Hop Limits setting
+	if (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
+		TCPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr) || 
+		TCPSocketData.SockAddr.ss_family == AF_INET && (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
+		!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr)))
 	{
 		shutdown(TCPSocketData.Socket, SD_BOTH);
 		closesocket(TCPSocketData.Socket);
-		PrintError(LOG_ERROR_NETWORK, L"Socket non-blocking mode setting error", 0, nullptr, 0);
 
 		return EXIT_FAILURE;
 	}
@@ -787,26 +789,31 @@ size_t __fastcall SOCKSUDPRequest(
 		return EXIT_FAILURE;
 	}
 
-//Socket check 
-	if (!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr) || 
-		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+//Socket check and Hop Limits setting
+	if (!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
+		TCPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr) || 
+		TCPSocketData.SockAddr.ss_family == AF_INET && (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr) || 
+		!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr)) ||
+		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
+		UDPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr) || 
+		UDPSocketData.SockAddr.ss_family == AF_INET && (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr) || 
+		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr)))
 	{
 		closesocket(UDPSocketData.Socket);
 		if (!Parameter.SOCKS_UDP_NoHandshake)
 			closesocket(TCPSocketData.Socket);
-		PrintError(LOG_ERROR_NETWORK, L"SOCKS socket initialization error", 0, nullptr, 0);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"SOCKS socket initialization error", 0, nullptr, 0);
 
 		return EXIT_FAILURE;
 	}
 
 //Non-blocking mode setting
-	if (!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr) || 
-		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
+	if (!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
+		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
 	{
 		closesocket(UDPSocketData.Socket);
 		if (!Parameter.SOCKS_UDP_NoHandshake)
 			closesocket(TCPSocketData.Socket);
-		PrintError(LOG_ERROR_NETWORK, L"Socket non-blocking mode setting error", 0, nullptr, 0);
 
 		return EXIT_FAILURE;
 	}
@@ -840,7 +847,7 @@ size_t __fastcall SOCKSUDPRequest(
 			shutdown(TCPSocketData.Socket, SD_BOTH);
 			closesocket(UDPSocketData.Socket);
 			closesocket(TCPSocketData.Socket);
-			PrintError(LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
 
 			return EXIT_FAILURE;
 		}
@@ -875,7 +882,7 @@ size_t __fastcall SOCKSUDPRequest(
 			closesocket(TCPSocketData.Socket);
 		}
 
-		PrintError(LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
+		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
 		return EXIT_FAILURE;
 	}
 
@@ -1064,19 +1071,21 @@ size_t __fastcall HTTPRequest(
 		return EXIT_FAILURE;
 	}
 
-//Socket check 
-	if (!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, nullptr))
+//Socket check and Hop Limits setting
+	if (!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
+		HTTPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr) ||
+		HTTPSocketData.SockAddr.ss_family == AF_INET && (!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr) || 
+		!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr)))
 	{
-		PrintError(LOG_ERROR_NETWORK, L"HTTP socket initialization error", 0, nullptr, 0);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"HTTP socket initialization error", 0, nullptr, 0);
 		return EXIT_FAILURE;
 	}
 
 //Non-blocking mode setting
-	if (!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, nullptr))
+	if (!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
 	{
 		shutdown(HTTPSocketData.Socket, SD_BOTH);
 		closesocket(HTTPSocketData.Socket);
-		PrintError(LOG_ERROR_NETWORK, L"Socket non-blocking mode setting error", 0, nullptr, 0);
 
 		return EXIT_FAILURE;
 	}
@@ -1187,7 +1196,7 @@ bool __fastcall HTTP_CONNECTRequest(
 	SSIZE_T RecvLen = SocketConnecting(IPPROTO_TCP, HTTPSocketData->Socket, (PSOCKADDR)&HTTPSocketData->SockAddr, HTTPSocketData->AddrLen, HTTPString.c_str(), HTTPString.length());
 	if (RecvLen == EXIT_FAILURE)
 	{
-		PrintError(LOG_ERROR_NETWORK, L"HTTP connecting error", 0, nullptr, 0);
+		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"HTTP connecting error", 0, nullptr, 0);
 		return false;
 	}
 //HTTP CONNECT request exchange
@@ -1200,7 +1209,7 @@ bool __fastcall HTTP_CONNECTRequest(
 	}
 	if (RecvLen < (SSIZE_T)HTTP_RESPONSE_MINSIZE)
 	{
-		PrintError(LOG_ERROR_NETWORK, L"HTTP request error", 0, nullptr, 0);
+		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"HTTP request error", 0, nullptr, 0);
 		return false;
 	}
 	else {
@@ -1212,7 +1221,7 @@ bool __fastcall HTTP_CONNECTRequest(
 //HTTP CONNECT response check
 	if (HTTPString.find("\r\n") == std::string::npos || HTTPString.find("HTTP/") == std::string::npos)
 	{
-		PrintError(LOG_ERROR_HTTP, L"HTTP server response error", 0, nullptr, 0);
+		PrintError(LOG_LEVEL_3, LOG_ERROR_HTTP, L"HTTP server response error", 0, nullptr, 0);
 		return false;
 	}
 	else if (HTTPString.find(" 200 ") == std::string::npos || HTTPString.find(" 200 ") >= HTTPString.find("\r\n")) //Not HTTP status code 200: OK
@@ -1220,7 +1229,7 @@ bool __fastcall HTTP_CONNECTRequest(
 		std::wstring wErrBuffer;
 		HTTPString.erase(HTTPString.find("\r\n"), HTTPString.length() - HTTPString.find("\r\n"));
 		MBSToWCSString(HTTPString.c_str(), HTTPString.length(), wErrBuffer);
-		PrintError(LOG_ERROR_HTTP, wErrBuffer.c_str(), 0, nullptr, 0);
+		PrintError(LOG_LEVEL_3, LOG_ERROR_HTTP, wErrBuffer.c_str(), 0, nullptr, 0);
 
 		return false;
 	}
