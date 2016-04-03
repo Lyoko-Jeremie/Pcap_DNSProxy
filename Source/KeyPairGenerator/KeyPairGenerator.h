@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -166,25 +166,24 @@
 #endif
 */
 
+
 //////////////////////////////////////////////////
-// Base Header
+// Base header
 // 
 //Preprocessor definitions
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_MACX))
-	#define ENABLE_LIBSODIUM       //LibSodium is always enable in Windows and Mac OS X.
+	#define ENABLE_LIBSODIUM           //LibSodium is always enable in Windows and Mac OS X.
 #endif
 
 //C Standard Library and C++ Standard Template Library/STL headers
 #include <cstdio>                  //File Input/Output
-#include <cstdlib>                 //Several general purpose functions.
-#if !defined(ENABLE_LIBSODIUM)
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		#include <cwchar>                  //Wide-Character Support
-	#endif
-#else
+#include <cstdlib>                 //Several general purpose functions
 #include <cstring>                 //String support
+#include <cwchar>                  //Wide-Character Support
 #include <memory>                  //Manage dynamic memory support
+#include <string>                  //String support(STL)
 
+#if defined(ENABLE_LIBSODIUM)
 #if defined(PLATFORM_WIN)
 	#include <windows.h>               //Master include file in Windows
 
@@ -199,6 +198,8 @@
 #elif defined(PLATFORM_LINUX)
 	#include <sodium.h>            //LibSodium header
 #elif defined(PLATFORM_MACX)
+	#define SODIUM_STATIC              //LibSodium static linking always enable in Windows and Mac OS X
+
 //LibSodium header and static libraries
 	#include "../LibSodium/sodium.h"
 	#pragma comment(lib, "../LibSodium/LibSodium_Mac.a")
@@ -223,29 +224,118 @@
 
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 //Linux and Mac OS X compatible
-	typedef char               *PSTR;
 	#define __fastcall
-	#define strnlen_s          strnlen
-	#define wprintf_s          wprintf
 	#define fwprintf_s         fwprintf
-
-//Microsoft source-code annotation language/SAL compatible
-	#define _In_
-	#define _Inout_
-	#define _Out_
-	#define _Outptr_
-	#define _In_opt_
-	#define _Inout_opt_
-	#define _Out_opt_
-	#define _Outptr_opt_
+	#define strnlen_s          strnlen	
 #endif
 
-// Function definitions
+//Function definitions
 #define crypto_box_keypair crypto_box_curve25519xsalsa20poly1305_keypair
 
-//Functions
+//DNSCurveHeapBufferTable template class
+template<typename Ty> class DNSCurveHeapBufferTable {
+public:
+	Ty                         *Buffer;
+	size_t                     BufferSize;
+
+//Member functions
+	DNSCurveHeapBufferTable(
+		void);
+	DNSCurveHeapBufferTable(
+		const size_t Size);
+	DNSCurveHeapBufferTable(
+		const size_t Count, 
+		const size_t Size);
+	void Swap(
+		DNSCurveHeapBufferTable &Other);
+	~DNSCurveHeapBufferTable(
+		void);
+};
+template<typename Ty> using DNSCURVE_HEAP_BUFFER_TABLE = DNSCurveHeapBufferTable<Ty>;
+
+
+//////////////////////////////////////////////////
+// Main functions
+// 
 void __fastcall CaseConvert(
-	_In_ const bool IsLowerToUpper, 
-	_Inout_ char *Buffer, 
-	_In_ const size_t Length);
+	const bool IsLowerToUpper, 
+	char *Buffer, 
+	const size_t Length);
+
+
+//////////////////////////////////////////////////
+// Template functions
+// 
+//DNSCurveHeapBufferTable template class constructor
+//DNSCurveHeapBufferTable template class constructor
+template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
+	void)
+{
+	Buffer = nullptr;
+	BufferSize = 0;
+
+	return;
+}
+
+//DNSCurveHeapBufferTable template class constructor
+template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
+	const size_t Size)
+{
+	Buffer = (Ty *)sodium_malloc(Size);
+	if (Buffer == nullptr)
+	{
+		exit(EXIT_FAILURE);
+		return;
+	}
+	else {
+		sodium_memzero(Buffer, Size);
+		BufferSize = Size;
+	}
+
+	return;
+}
+
+//DNSCurveHeapBufferTable template class constructor
+template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
+	const size_t Count, 
+	const size_t Size)
+{
+	Buffer = (Ty *)sodium_allocarray(Count, Size);
+	if (Buffer == nullptr)
+	{
+		exit(EXIT_FAILURE);
+		return;
+	}
+	else {
+		sodium_memzero(Buffer, Count * Size);
+		BufferSize = Count * Size;
+	}
+
+	return;
+}
+
+//DNSCurveHeapBufferTable template class Swap function
+template<typename Ty> void DNSCurveHeapBufferTable<Ty>::Swap(
+	DNSCurveHeapBufferTable &Other)
+{
+	auto BufferTemp = this->Buffer;
+	this->Buffer = Other->Buffer;
+	Other->Buffer = BufferTemp;
+	auto BufferSizeTemp = this->BufferSize;
+	this->BufferSize = Other->BufferSize;
+	Other->BufferSize = BufferSizeTemp;
+
+	return;
+}
+
+//DNSCurveHeapBufferTable template class destructor
+template<typename Ty> DNSCurveHeapBufferTable<Ty>::~DNSCurveHeapBufferTable(
+	void)
+{
+	sodium_free(Buffer);
+	Buffer = nullptr;
+	BufferSize = 0;
+
+	return;
+}
 #endif

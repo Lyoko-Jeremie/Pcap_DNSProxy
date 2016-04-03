@@ -1,18 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pcap_DNSProxy", "Pcap_DNSProxy\Pcap_DNSProxy.vcxproj", "{66D97542-B962-4523-8B6E-DD7F92348F36}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pcap_DNSProxy", "Pcap_DNSProxy\Pcap_DNSProxy.vcxproj", "{9221C40D-99FA-447B-BB53-767F9C6945EB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KeyPairGenerator", "KeyPairGenerator\KeyPairGenerator.vcxproj", "{84C5CF30-0365-46D0-A07C-18FE3F2DD32B}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Project", "Project", "{3AD59E4E-FD62-49FA-B0B7-7F4F2B1F05FD}"
-	ProjectSection(SolutionItems) = preProject
-		CMakeLists.txt = CMakeLists.txt
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{2ADD9737-991A-4A9F-B8C7-8FBD4788C9AE}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{66A0A7DD-23F9-4C76-95AC-E507433C2531}"
 	ProjectSection(SolutionItems) = preProject
 		Documents\Changelog(zh_Hans).txt = Documents\Changelog(zh_Hans).txt
 		Documents\Changelog(zh_Hant).txt = Documents\Changelog(zh_Hant).txt
@@ -28,7 +21,20 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{
 		Documents\ReadMe_Mac(zh_Hant).txt = Documents\ReadMe_Mac(zh_Hant).txt
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{23B6BBEC-AD00-4CB4-A39E-F8A09ACCB007}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleConfig", "ExampleConfig", "{CF90D142-5E6E-4ED2-B886-78FD7B10ED50}"
+	ProjectSection(SolutionItems) = preProject
+		ExampleConfig\Config.ini = ExampleConfig\Config.ini
+		ExampleConfig\Hosts.ini = ExampleConfig\Hosts.ini
+		ExampleConfig\IPFilter.ini = ExampleConfig\IPFilter.ini
+		ExampleConfig\Pcap_DNSProxy.service = ExampleConfig\Pcap_DNSProxy.service
+		ExampleConfig\pcap_dnsproxy.service.plist = ExampleConfig\pcap_dnsproxy.service.plist
+		ExampleConfig\PcapDNSProxyService = ExampleConfig\PcapDNSProxyService
+		ExampleConfig\Routing.txt = ExampleConfig\Routing.txt
+		ExampleConfig\ServiceControl.bat = ExampleConfig\ServiceControl.bat
+		ExampleConfig\WhiteList.txt = ExampleConfig\WhiteList.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{075F715C-B15F-40E4-907E-8DE5ECB2ED73}"
 	ProjectSection(SolutionItems) = preProject
 		Scripts\Linux_Build.sh = Scripts\Linux_Build.sh
 		Scripts\Linux_Install.Systemd.sh = Scripts\Linux_Install.Systemd.sh
@@ -37,38 +43,178 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{23B6
 		Scripts\Linux_Uninstall.SysV.sh = Scripts\Linux_Uninstall.SysV.sh
 		Scripts\Mac_Install.sh = Scripts\Mac_Install.sh
 		Scripts\Mac_Uninstall.sh = Scripts\Mac_Uninstall.sh
+		Scripts\Update_Routing.sh = Scripts\Update_Routing.sh
+		Scripts\Update_WhiteList.sh = Scripts\Update_WhiteList.sh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependency", "Dependency", "{777BC78B-14C3-4CEE-AF7A-05DCC515DB21}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibSodium", "LibSodium", "{874D6810-2479-4A52-8C16-3AFAB5640254}"
+	ProjectSection(SolutionItems) = preProject
+		LibSodium\core.h = LibSodium\core.h
+		LibSodium\crypto_aead_aes256gcm.h = LibSodium\crypto_aead_aes256gcm.h
+		LibSodium\crypto_aead_chacha20poly1305.h = LibSodium\crypto_aead_chacha20poly1305.h
+		LibSodium\crypto_auth.h = LibSodium\crypto_auth.h
+		LibSodium\crypto_auth_hmacsha256.h = LibSodium\crypto_auth_hmacsha256.h
+		LibSodium\crypto_auth_hmacsha512.h = LibSodium\crypto_auth_hmacsha512.h
+		LibSodium\crypto_auth_hmacsha512256.h = LibSodium\crypto_auth_hmacsha512256.h
+		LibSodium\crypto_box.h = LibSodium\crypto_box.h
+		LibSodium\crypto_box_curve25519xsalsa20poly1305.h = LibSodium\crypto_box_curve25519xsalsa20poly1305.h
+		LibSodium\crypto_core_hchacha20.h = LibSodium\crypto_core_hchacha20.h
+		LibSodium\crypto_core_hsalsa20.h = LibSodium\crypto_core_hsalsa20.h
+		LibSodium\crypto_core_salsa20.h = LibSodium\crypto_core_salsa20.h
+		LibSodium\crypto_core_salsa2012.h = LibSodium\crypto_core_salsa2012.h
+		LibSodium\crypto_core_salsa208.h = LibSodium\crypto_core_salsa208.h
+		LibSodium\crypto_generichash.h = LibSodium\crypto_generichash.h
+		LibSodium\crypto_generichash_blake2b.h = LibSodium\crypto_generichash_blake2b.h
+		LibSodium\crypto_hash.h = LibSodium\crypto_hash.h
+		LibSodium\crypto_hash_sha256.h = LibSodium\crypto_hash_sha256.h
+		LibSodium\crypto_hash_sha512.h = LibSodium\crypto_hash_sha512.h
+		LibSodium\crypto_int32.h = LibSodium\crypto_int32.h
+		LibSodium\crypto_int64.h = LibSodium\crypto_int64.h
+		LibSodium\crypto_onetimeauth.h = LibSodium\crypto_onetimeauth.h
+		LibSodium\crypto_onetimeauth_poly1305.h = LibSodium\crypto_onetimeauth_poly1305.h
+		LibSodium\crypto_pwhash.h = LibSodium\crypto_pwhash.h
+		LibSodium\crypto_pwhash_argon2i.h = LibSodium\crypto_pwhash_argon2i.h
+		LibSodium\crypto_pwhash_scryptsalsa208sha256.h = LibSodium\crypto_pwhash_scryptsalsa208sha256.h
+		LibSodium\crypto_scalarmult.h = LibSodium\crypto_scalarmult.h
+		LibSodium\crypto_scalarmult_curve25519.h = LibSodium\crypto_scalarmult_curve25519.h
+		LibSodium\crypto_secretbox.h = LibSodium\crypto_secretbox.h
+		LibSodium\crypto_secretbox_xsalsa20poly1305.h = LibSodium\crypto_secretbox_xsalsa20poly1305.h
+		LibSodium\crypto_shorthash.h = LibSodium\crypto_shorthash.h
+		LibSodium\crypto_shorthash_siphash24.h = LibSodium\crypto_shorthash_siphash24.h
+		LibSodium\crypto_sign.h = LibSodium\crypto_sign.h
+		LibSodium\crypto_sign_ed25519.h = LibSodium\crypto_sign_ed25519.h
+		LibSodium\crypto_sign_edwards25519sha512batch.h = LibSodium\crypto_sign_edwards25519sha512batch.h
+		LibSodium\crypto_stream.h = LibSodium\crypto_stream.h
+		LibSodium\crypto_stream_aes128ctr.h = LibSodium\crypto_stream_aes128ctr.h
+		LibSodium\crypto_stream_chacha20.h = LibSodium\crypto_stream_chacha20.h
+		LibSodium\crypto_stream_salsa20.h = LibSodium\crypto_stream_salsa20.h
+		LibSodium\crypto_stream_salsa2012.h = LibSodium\crypto_stream_salsa2012.h
+		LibSodium\crypto_stream_salsa208.h = LibSodium\crypto_stream_salsa208.h
+		LibSodium\crypto_stream_xsalsa20.h = LibSodium\crypto_stream_xsalsa20.h
+		LibSodium\crypto_uint16.h = LibSodium\crypto_uint16.h
+		LibSodium\crypto_uint32.h = LibSodium\crypto_uint32.h
+		LibSodium\crypto_uint64.h = LibSodium\crypto_uint64.h
+		LibSodium\crypto_uint8.h = LibSodium\crypto_uint8.h
+		LibSodium\crypto_verify_16.h = LibSodium\crypto_verify_16.h
+		LibSodium\crypto_verify_32.h = LibSodium\crypto_verify_32.h
+		LibSodium\crypto_verify_64.h = LibSodium\crypto_verify_64.h
+		LibSodium\export.h = LibSodium\export.h
+		LibSodium\LibSodium_Mac.a = LibSodium\LibSodium_Mac.a
+		LibSodium\LibSodium_x64.lib = LibSodium\LibSodium_x64.lib
+		LibSodium\LibSodium_x86.lib = LibSodium\LibSodium_x86.lib
+		LibSodium\randombytes.h = LibSodium\randombytes.h
+		LibSodium\randombytes_nativeclient.h = LibSodium\randombytes_nativeclient.h
+		LibSodium\randombytes_salsa20_random.h = LibSodium\randombytes_salsa20_random.h
+		LibSodium\randombytes_sysrandom.h = LibSodium\randombytes_sysrandom.h
+		LibSodium\runtime.h = LibSodium\runtime.h
+		LibSodium\sodium.h = LibSodium\sodium.h
+		LibSodium\utils.h = LibSodium\utils.h
+		LibSodium\version.h = LibSodium\version.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{64D86D92-3AA0-400E-91E4-EB93EF26EEE6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_Routing", "Update_Routing", "{A1267D16-9EC5-4FE4-9000-D9B168A8F6E4}"
+	ProjectSection(SolutionItems) = preProject
+		Tools\Update_Routing\Log_Lib = Tools\Update_Routing\Log_Lib
+		Tools\Update_Routing\ReadMe_Hans.md = Tools\Update_Routing\ReadMe_Hans.md
+		Tools\Update_Routing\ReadMe_Hant.md = Tools\Update_Routing\ReadMe_Hant.md
+		Tools\Update_Routing\Update.bat = Tools\Update_Routing\Update.bat
+		Tools\Update_Routing\Update_Big5.bat = Tools\Update_Routing\Update_Big5.bat
+		Tools\Update_Routing\Update_GB2312.bat = Tools\Update_Routing\Update_GB2312.bat
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_WhiteList", "Update_WhiteList", "{635FE3E1-B560-447C-880A-1689F162AE05}"
+	ProjectSection(SolutionItems) = preProject
+		Tools\Update_WhiteList\Update_WhiteList.bat = Tools\Update_WhiteList\Update_WhiteList.bat
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Support", "Support", "{722796B9-8775-49FE-9071-636DE5332F9A}"
+	ProjectSection(SolutionItems) = preProject
+		Tools\Support\CCase.exe = Tools\Support\CCase.exe
+		Tools\Support\curl.exe = Tools\Support\curl.exe
+		Tools\Support\md5.exe = Tools\Support\md5.exe
+		Tools\Support\sed.exe = Tools\Support\sed.exe
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FileHash", "FileHash\FileHash.vcxproj", "{E65C4C70-40DF-48E8-9FE1-52DD7D003558}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KeyPairGenerator", "KeyPairGenerator\KeyPairGenerator.vcxproj", "{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WinPcap", "WinPcap", "{D099D655-939B-4399-A0CB-07D88BFD3BA0}"
+	ProjectSection(SolutionItems) = preProject
+		Pcap_DNSProxy\WinPcap\bittypes.h = Pcap_DNSProxy\WinPcap\bittypes.h
+		Pcap_DNSProxy\WinPcap\ip6_misc.h = Pcap_DNSProxy\WinPcap\ip6_misc.h
+		Pcap_DNSProxy\WinPcap\LibPacket.a = Pcap_DNSProxy\WinPcap\LibPacket.a
+		Pcap_DNSProxy\WinPcap\LibWPCAP.a = Pcap_DNSProxy\WinPcap\LibWPCAP.a
+		Pcap_DNSProxy\WinPcap\Packet32.h = Pcap_DNSProxy\WinPcap\Packet32.h
+		Pcap_DNSProxy\WinPcap\Packet_x64.lib = Pcap_DNSProxy\WinPcap\Packet_x64.lib
+		Pcap_DNSProxy\WinPcap\Packet_x86.lib = Pcap_DNSProxy\WinPcap\Packet_x86.lib
+		Pcap_DNSProxy\WinPcap\pcap-bpf.h = Pcap_DNSProxy\WinPcap\pcap-bpf.h
+		Pcap_DNSProxy\WinPcap\pcap-namedb.h = Pcap_DNSProxy\WinPcap\pcap-namedb.h
+		Pcap_DNSProxy\WinPcap\pcap-stdinc.h = Pcap_DNSProxy\WinPcap\pcap-stdinc.h
+		Pcap_DNSProxy\WinPcap\pcap.h = Pcap_DNSProxy\WinPcap\pcap.h
+		Pcap_DNSProxy\WinPcap\remote-ext.h = Pcap_DNSProxy\WinPcap\remote-ext.h
+		Pcap_DNSProxy\WinPcap\Win32-Extensions.h = Pcap_DNSProxy\WinPcap\Win32-Extensions.h
+		Pcap_DNSProxy\WinPcap\WPCAP_x64.lib = Pcap_DNSProxy\WinPcap\WPCAP_x64.lib
+		Pcap_DNSProxy\WinPcap\WPCAP_x86.lib = Pcap_DNSProxy\WinPcap\WPCAP_x86.lib
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pcap", "pcap", "{B47BEE44-34A2-4E23-B146-82D3DD81A2E0}"
+	ProjectSection(SolutionItems) = preProject
+		Pcap_DNSProxy\WinPcap\pcap\bluetooth.h = Pcap_DNSProxy\WinPcap\pcap\bluetooth.h
+		Pcap_DNSProxy\WinPcap\pcap\bpf.h = Pcap_DNSProxy\WinPcap\pcap\bpf.h
+		Pcap_DNSProxy\WinPcap\pcap\namedb.h = Pcap_DNSProxy\WinPcap\pcap\namedb.h
+		Pcap_DNSProxy\WinPcap\pcap\pcap.h = Pcap_DNSProxy\WinPcap\pcap\pcap.h
+		Pcap_DNSProxy\WinPcap\pcap\sll.h = Pcap_DNSProxy\WinPcap\pcap\sll.h
+		Pcap_DNSProxy\WinPcap\pcap\usb.h = Pcap_DNSProxy\WinPcap\pcap\usb.h
+		Pcap_DNSProxy\WinPcap\pcap\vlan.h = Pcap_DNSProxy\WinPcap\pcap\vlan.h
 	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Win32 = Debug|Win32
 		Debug|x64 = Debug|x64
-		Release|Win32 = Release|Win32
+		Debug|x86 = Debug|x86
 		Release|x64 = Release|x64
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{66D97542-B962-4523-8B6E-DD7F92348F36}.Debug|Win32.ActiveCfg = Debug|Win32
-		{66D97542-B962-4523-8B6E-DD7F92348F36}.Debug|Win32.Build.0 = Debug|Win32
-		{66D97542-B962-4523-8B6E-DD7F92348F36}.Debug|x64.ActiveCfg = Debug|x64
-		{66D97542-B962-4523-8B6E-DD7F92348F36}.Debug|x64.Build.0 = Debug|x64
-		{66D97542-B962-4523-8B6E-DD7F92348F36}.Release|Win32.ActiveCfg = Release|Win32
-		{66D97542-B962-4523-8B6E-DD7F92348F36}.Release|Win32.Build.0 = Release|Win32
-		{66D97542-B962-4523-8B6E-DD7F92348F36}.Release|x64.ActiveCfg = Release|x64
-		{66D97542-B962-4523-8B6E-DD7F92348F36}.Release|x64.Build.0 = Release|x64
-		{84C5CF30-0365-46D0-A07C-18FE3F2DD32B}.Debug|Win32.ActiveCfg = Debug|Win32
-		{84C5CF30-0365-46D0-A07C-18FE3F2DD32B}.Debug|Win32.Build.0 = Debug|Win32
-		{84C5CF30-0365-46D0-A07C-18FE3F2DD32B}.Debug|x64.ActiveCfg = Debug|x64
-		{84C5CF30-0365-46D0-A07C-18FE3F2DD32B}.Debug|x64.Build.0 = Debug|x64
-		{84C5CF30-0365-46D0-A07C-18FE3F2DD32B}.Release|Win32.ActiveCfg = Release|Win32
-		{84C5CF30-0365-46D0-A07C-18FE3F2DD32B}.Release|Win32.Build.0 = Release|Win32
-		{84C5CF30-0365-46D0-A07C-18FE3F2DD32B}.Release|x64.ActiveCfg = Release|x64
-		{84C5CF30-0365-46D0-A07C-18FE3F2DD32B}.Release|x64.Build.0 = Release|x64
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Debug|x64.ActiveCfg = Debug|x64
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Debug|x64.Build.0 = Debug|x64
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Debug|x86.ActiveCfg = Debug|Win32
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Debug|x86.Build.0 = Debug|Win32
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x64.ActiveCfg = Release|x64
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x64.Build.0 = Release|x64
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x86.ActiveCfg = Release|Win32
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x86.Build.0 = Release|Win32
+		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Debug|x64.ActiveCfg = Debug|x64
+		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Debug|x64.Build.0 = Debug|x64
+		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Debug|x86.ActiveCfg = Debug|Win32
+		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Debug|x86.Build.0 = Debug|Win32
+		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Release|x64.ActiveCfg = Release|x64
+		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Release|x64.Build.0 = Release|x64
+		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Release|x86.ActiveCfg = Release|Win32
+		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Release|x86.Build.0 = Release|Win32
+		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Debug|x64.ActiveCfg = Debug|x64
+		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Debug|x64.Build.0 = Debug|x64
+		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Debug|x86.ActiveCfg = Debug|Win32
+		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Debug|x86.Build.0 = Debug|Win32
+		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Release|x64.ActiveCfg = Release|x64
+		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Release|x64.Build.0 = Release|x64
+		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Release|x86.ActiveCfg = Release|Win32
+		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{2ADD9737-991A-4A9F-B8C7-8FBD4788C9AE} = {3AD59E4E-FD62-49FA-B0B7-7F4F2B1F05FD}
-		{23B6BBEC-AD00-4CB4-A39E-F8A09ACCB007} = {3AD59E4E-FD62-49FA-B0B7-7F4F2B1F05FD}
+		{874D6810-2479-4A52-8C16-3AFAB5640254} = {777BC78B-14C3-4CEE-AF7A-05DCC515DB21}
+		{A1267D16-9EC5-4FE4-9000-D9B168A8F6E4} = {64D86D92-3AA0-400E-91E4-EB93EF26EEE6}
+		{635FE3E1-B560-447C-880A-1689F162AE05} = {64D86D92-3AA0-400E-91E4-EB93EF26EEE6}
+		{722796B9-8775-49FE-9071-636DE5332F9A} = {64D86D92-3AA0-400E-91E4-EB93EF26EEE6}
+		{D099D655-939B-4399-A0CB-07D88BFD3BA0} = {777BC78B-14C3-4CEE-AF7A-05DCC515DB21}
+		{B47BEE44-34A2-4E23-B146-82D3DD81A2E0} = {D099D655-939B-4399-A0CB-07D88BFD3BA0}
 	EndGlobalSection
 EndGlobal

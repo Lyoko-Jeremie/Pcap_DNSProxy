@@ -24,6 +24,12 @@ SODIUM_EXPORT
 int sodium_runtime_has_sse41(void);
 
 SODIUM_EXPORT
+int sodium_runtime_has_avx(void);
+
+SODIUM_EXPORT
+int sodium_runtime_has_avx2(void);
+
+SODIUM_EXPORT
 int sodium_runtime_has_pclmul(void);
 
 SODIUM_EXPORT

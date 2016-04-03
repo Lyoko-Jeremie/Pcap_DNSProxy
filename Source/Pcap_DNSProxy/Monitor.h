@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -30,21 +30,23 @@ extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM];
 
 //Functions
 bool __fastcall UDPMonitor(
-	_In_ const SOCKET_DATA LocalSocketData);
+	const SOCKET_DATA LocalSocketData, 
+	bool *Result);
 bool __fastcall TCPMonitor(
-	_In_ const SOCKET_DATA LocalSocketData);
+	const SOCKET_DATA LocalSocketData, 
+	bool *Result);
 bool __fastcall TCPReceiveProcess(
-	_In_ const SOCKET_DATA LocalSocketData);
+	const SOCKET_DATA LocalSocketData);
 void __fastcall AlternateServerMonitor(
 	void);
 #if defined(PLATFORM_WIN)
 addrinfo * __fastcall GetLocalAddressList(
-	_In_ const uint16_t Protocol, 
-	_Out_ char *HostName);
+	const uint16_t Protocol, 
+	char *HostName);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 bool GetBestInterfaceAddress(
 	const uint16_t Protocol, 
 	const sockaddr_storage *OriginalSockAddr);
 #endif
 void __fastcall GetGatewayInformation(
-	_In_ const uint16_t Protocol);
+	const uint16_t Protocol);

@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,8 +25,8 @@ extern GLOBAL_STATUS GlobalRunningStatus;
 
 //Check empty buffer
 bool __fastcall CheckEmptyBuffer(
-	_In_opt_ const void *Buffer, 
-	_In_ const size_t Length)
+	const void *Buffer, 
+	const size_t Length)
 {
 //Null pointer
 	if (Buffer == nullptr)
@@ -44,7 +44,7 @@ bool __fastcall CheckEmptyBuffer(
 
 //Convert host values to network byte order with 16 bits(Force)
 uint16_t __fastcall hton16_Force(
-	_In_ const uint16_t Value)
+	const uint16_t Value)
 {
 	return (uint16_t)(((uint8_t *)&Value)[0] << 8U | ((uint8_t *)&Value)[1U]);
 }
@@ -60,7 +60,7 @@ uint16_t __fastcall ntoh16_Force(
 
 //Convert host values to network byte order with 32 bits(Force)
 uint32_t __fastcall hton32_Force(
-	_In_ const uint32_t Value)
+	const uint32_t Value)
 {
 	return (uint32_t)(((uint8_t *)&Value)[0] << 24U | ((uint8_t *)&Value)[1U] << 16U | ((uint8_t *)&Value)[2U] << 8U | ((uint8_t *)&Value)[3U]);
 }
@@ -76,9 +76,9 @@ uint32_t __fastcall ntoh32_Force(
 
 //Convert host values to network byte order with 64 bits
 uint64_t __fastcall hton64(
-	_In_ const uint64_t Value)
+	const uint64_t Value)
 {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#if BYTE_ORDER == LITTLE_ENDIAN
 	return (((uint64_t)htonl((int32_t)((Value << (sizeof(uint32_t) * BYTES_TO_BITS)) >> (sizeof(uint32_t) * BYTES_TO_BITS)))) << (sizeof(uint32_t) * BYTES_TO_BITS)) | (uint32_t)htonl((int32_t)(Value >> (sizeof(uint32_t) * BYTES_TO_BITS)));
 #else //BIG_ENDIAN
 	return Value;
@@ -89,7 +89,7 @@ uint64_t __fastcall hton64(
 //Convert network byte order to host values with 64 bits
 uint64_t __fastcall ntoh64(const uint64_t Value)
 {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
+#if BYTE_ORDER == LITTLE_ENDIAN
 	return (((uint64_t)ntohl((int32_t)((Value << (sizeof(uint32_t) * BYTES_TO_BITS)) >> (sizeof(uint32_t) * BYTES_TO_BITS)))) << (sizeof(uint32_t) * BYTES_TO_BITS)) | (uint32_t)ntohl((int32_t)(Value >> (sizeof(uint32_t) * BYTES_TO_BITS)));
 #else //BIG_ENDIAN
 	return Value;
@@ -99,9 +99,9 @@ uint64_t __fastcall ntoh64(const uint64_t Value)
 
 //Convert multiple bytes to wide char string
 bool __fastcall MBSToWCSString(
-	_In_opt_ const char *Buffer, 
-	_In_ const size_t MaxLen, 
-	_Out_ std::wstring &Target)
+	const char *Buffer, 
+	const size_t MaxLen, 
+	std::wstring &Target)
 {
 //Check buffer.
 	Target.clear();
@@ -117,7 +117,7 @@ bool __fastcall MBSToWCSString(
 #if defined(PLATFORM_WIN)
 	if (MultiByteToWideChar(CP_ACP, 0, Buffer, MBSTOWCS_NULLTERMINATE, TargetPTR.get(), (int)(Length + 1U)) == 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	if (mbstowcs(TargetPTR.get(), Buffer, Length + 1U) == RETURN_ERROR)
+	if (mbstowcs(TargetPTR.get(), Buffer, Length + 1U) == (size_t)RETURN_ERROR)
 #endif
 	{
 		return false;
@@ -133,10 +133,15 @@ bool __fastcall MBSToWCSString(
 
 //Convert lowercase/uppercase words to uppercase/lowercase words(C-Style version)
 void __fastcall CaseConvert(
-	_In_ const bool IsLowerToUpper, 
-	_Inout_ char *Buffer, 
-	_In_ const size_t Length)
+	const bool IsLowerToUpper, 
+	char *Buffer, 
+	const size_t Length)
 {
+//Null pointer
+	if (Buffer == nullptr)
+		return;
+
+//Convert words.
 	for (size_t Index = 0;Index < Length;++Index)
 	{
 	//Lowercase to uppercase
@@ -150,10 +155,10 @@ void __fastcall CaseConvert(
 	return;
 }
 
-//Convert lowercase/uppercase words to uppercase/lowercase words(C++ String version)
+//Convert lowercase/uppercase words to uppercase/lowercase words(C++ string version)
 void __fastcall CaseConvert(
-	_In_ const bool IsLowerToUpper, 
-	_Inout_opt_ std::string &Buffer)
+	const bool IsLowerToUpper, 
+	std::string &Buffer)
 {
 	for (auto &StringIter:Buffer)
 	{
@@ -170,16 +175,16 @@ void __fastcall CaseConvert(
 
 //Sort compare(IPFilter)
 bool __fastcall SortCompare_IPFilter(
-	_In_ const DIFFERNET_FILE_SET_IPFILTER &Begin, 
-	_In_ const DIFFERNET_FILE_SET_IPFILTER &End)
+	const DIFFERNET_FILE_SET_IPFILTER &Begin, 
+	const DIFFERNET_FILE_SET_IPFILTER &End)
 {
 	return Begin.FileIndex < End.FileIndex;
 }
 
 //Sort compare(Hosts)
 bool __fastcall SortCompare_Hosts(
-	_In_ const DIFFERNET_FILE_SET_HOSTS &Begin, 
-	_In_ const DIFFERNET_FILE_SET_HOSTS &End)
+	const DIFFERNET_FILE_SET_HOSTS &Begin, 
+	const DIFFERNET_FILE_SET_HOSTS &End)
 {
 	return Begin.FileIndex < End.FileIndex;
 }
@@ -187,14 +192,14 @@ bool __fastcall SortCompare_Hosts(
 //Base64 encode or decode is from https://github.com/zhicheng/base64.
 //Base64 encode
 size_t __fastcall Base64_Encode(
-	_In_ uint8_t *Input, 
-	_In_ const size_t Length, 
-	_Out_ char *Output, 
-	_In_ const size_t OutputSize)
+	uint8_t *Input, 
+	const size_t Length, 
+	char *Output, 
+	const size_t OutputSize)
 {
 //Initialization
-	memset(Output, 0, OutputSize);
 	size_t Index[]{0, 0, 0};
+	memset(Output, 0, OutputSize);
 
 //Convert from binary to Base64.
 	for (Index[0] = Index[1U] = 0;Index[0] < Length;++Index[0])
@@ -242,10 +247,10 @@ size_t __fastcall Base64_Encode(
 
 /* Base64 decode
 size_t __fastcall Base64_Decode(
-	_In_ char *Input, 
-	_In_ const size_t Length, 
-	_Out_ uint8_t *Output, 
-	_In_ const size_t OutputSize)
+	char *Input, 
+	const size_t Length, 
+	uint8_t *Output, 
+	const size_t OutputSize)
 {
 //Initialization
 	memset(Output, 0, OutputSize);
@@ -302,43 +307,41 @@ size_t __fastcall Base64_Decode(
 uint64_t GetCurrentSystemTime(
 	void)
 {
-	std::shared_ptr<timeval> CurrentTime(new timeval());
-	memset(CurrentTime.get(), 0, sizeof(timeval));
-	if (gettimeofday(CurrentTime.get(), nullptr) == 0)
-		return (uint64_t)CurrentTime->tv_sec * SECOND_TO_MILLISECOND + (uint64_t)CurrentTime->tv_usec / MICROSECOND_TO_MILLISECOND;
+	timeval CurrentTime = {0};
+	if (gettimeofday(&CurrentTime, nullptr) == 0)
+		return (uint64_t)CurrentTime.tv_sec * SECOND_TO_MILLISECOND + (uint64_t)CurrentTime.tv_usec / MICROSECOND_TO_MILLISECOND;
 
 	return 0;
 }
 
 //Windows XP with SP3 support
 #elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-//Verify version of system(Greater than Windows Vista)
+//Verify version of system
 BOOL WINAPI IsGreaterThanVista(
 	void)
 {
-	std::shared_ptr<OSVERSIONINFOEXW> OSVI(new OSVERSIONINFOEXW());
-	memset(OSVI.get(), 0, sizeof(OSVERSIONINFOEXW));
+	OSVERSIONINFOEXW OSVI = {0};
 	DWORDLONG dwlConditionMask = 0;
 
 //Initialization
-	OSVI->dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
-	OSVI->dwMajorVersion = 6U; //Greater than Windows Vista.
-	OSVI->dwMinorVersion = 0;
+	OSVI.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
+	OSVI.dwMajorVersion = 6U; //Greater than Windows Vista.
+	OSVI.dwMinorVersion = 0;
 
 //System Major version > dwMajorVersion
 	VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_GREATER);
-	if (VerifyVersionInfoW(OSVI.get(), VER_MAJORVERSION, dwlConditionMask))
+	if (VerifyVersionInfoW(&OSVI, VER_MAJORVERSION, dwlConditionMask))
 		return TRUE;
 
 //Sytem Major version = dwMajorVersion and Minor version > dwMinorVersion
 	VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_EQUAL);
 	VER_SET_CONDITION(dwlConditionMask, VER_MINORVERSION, VER_GREATER);
-	return VerifyVersionInfoW(OSVI.get(), VER_MAJORVERSION|VER_MINORVERSION, dwlConditionMask);
+	return VerifyVersionInfoW(&OSVI, VER_MAJORVERSION|VER_MINORVERSION, dwlConditionMask);
 }
 
 //Try to load library to get pointers of functions
 BOOL WINAPI GetFunctionPointer(
-	_In_ const size_t FunctionType)
+	const size_t FunctionType)
 {
 //GetTickCount64() function
 	if (FunctionType == FUNCTION_GETTICKCOUNT64)

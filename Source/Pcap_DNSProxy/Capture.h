@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,6 +25,7 @@ typedef struct _capture_handler_param_
 {
 	uint16_t   DeviceType;
 	char       *Buffer;
+	size_t     BufferSize;
 }CaptureHandlerParam, CAPTURE_HANDLER_PARAM, *PCaptureHandlerParam, *PCAPTURE_HANDLER_PARAM;
 
 //Global variables
@@ -41,27 +42,29 @@ std::vector<std::string> PcapRunningList;
 
 //Functions
 void __fastcall CaptureFilterRulesInit(
-	_Out_ std::string &FilterRules);
+	std::string &FilterRules);
 bool __fastcall CaptureModule(
-	_In_ const pcap_if *pDrive, 
-	_In_ const bool IsCaptureList);
+	const pcap_if *pDrive, 
+	const bool IsCaptureList);
 void CaptureHandler(
-	_In_ unsigned char *Param, 
-	_In_ const struct pcap_pkthdr *PacketHeader, 
-	_In_ const unsigned char *PacketData);
+	unsigned char *Param, 
+	const struct pcap_pkthdr *PacketHeader, 
+	const unsigned char *PacketData);
 bool __fastcall CaptureNetworkLayer(
-	_In_ const char *Buffer, 
-	_In_ const size_t Length, 
-	_In_ const uint16_t Protocol);
+	const char *Buffer, 
+	const size_t Length, 
+	const size_t BufferSize, 
+	const uint16_t Protocol);
 bool __fastcall CaptureCheck_ICMP(
-	_In_ const char *Buffer, 
-	_In_ const size_t Length, 
-	_In_ const uint16_t Protocol);
+	const char *Buffer, 
+	const size_t Length, 
+	const uint16_t Protocol);
 bool __fastcall CaptureCheck_TCP(
-	_In_ const char *Buffer);
+	const char *Buffer);
 bool __fastcall MatchPortToSend(
-	_In_ const char *Buffer, 
-	_In_ const size_t Length, 
-	_In_ const uint16_t Protocol, 
-	_In_ const uint16_t Port);
+	const char *Buffer, 
+	const size_t Length, 
+	const size_t BufferSize, 
+	const uint16_t Protocol, 
+	const uint16_t Port);
 #endif

@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 # 
 # This code is part of Pcap_DNSProxy
 # A local DNS server based on WinPcap and LibPcap
-# Copyright (C) 2012-2015 Chengr28
+# Copyright (C) 2012-2016 Chengr28
 # 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -20,8 +20,8 @@
 
 
 chmod 755 Mac_Uninstall.sh
-chmod 755 KeyPairGenerator
 chmod 755 Pcap_DNSProxy
+chmod -R 755 Tools
 cp pcap_dnsproxy.service.plist /Library/LaunchDaemons/pcap_dnsproxy.service.plist
 cd /Library/LaunchDaemons
 chmod 644 pcap_dnsproxy.service.plist

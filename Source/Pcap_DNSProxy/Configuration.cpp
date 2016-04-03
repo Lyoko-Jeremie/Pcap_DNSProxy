@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,23 +21,23 @@
 
 //Read texts
 bool __fastcall ReadText(
-	_In_ const FILE *Input, 
-	_In_ const size_t InputType, 
-	_In_ const size_t FileIndex)
+	const FILE *Input, 
+	const size_t InputType, 
+	const size_t FileIndex)
 {
 //Initialization
 	std::shared_ptr<char> FileBuffer(new char[FILE_BUFFER_SIZE]()), TextBuffer(new char[FILE_BUFFER_SIZE]());
 	memset(FileBuffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(TextBuffer.get(), 0, FILE_BUFFER_SIZE);
 	std::string TextData;
-	size_t ReadLength = 0, Encoding = 0, Index = 0, Line = 0, LabelType = 0;
+	size_t Encoding = 0, Index = 0, Line = 0, LabelType = 0;
 	auto IsEraseBOM = true, NewLine_Point = false, IsLabelComments = false;
 
 //Read data.
 	while (!feof((FILE *)Input))
 	{
 	//Read file and Mark last read.
-		ReadLength = fread_s(FileBuffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, (FILE *)Input);
+		auto ReadLength = fread_s(FileBuffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, (FILE *)Input);
 
 	//Erase BOM of Unicode Transformation Format/UTF at first.
 		if (IsEraseBOM)
@@ -48,19 +48,19 @@ bool __fastcall ReadText(
 				{
 					case READ_TEXT_HOSTS: //ReadHosts
 					{
-						PrintError(LOG_ERROR_HOSTS, L"Data of a line is too short", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+						PrintError(LOG_LEVEL_2, LOG_ERROR_HOSTS, L"Data of a line is too short", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					}break;
 					case READ_TEXT_IPFILTER: //ReadIPFilter
 					{
-						PrintError(LOG_ERROR_IPFILTER, L"Data of a line is too short", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+						PrintError(LOG_LEVEL_2, LOG_ERROR_IPFILTER, L"Data of a line is too short", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					}break;
 					case READ_TEXT_PARAMETER: //ReadParameter
 					{
-						PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+						PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					}break;
 					case READ_TEXT_PARAMETER_MONITOR: //ReadParameter(Monitor mode)
 					{
-						PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+						PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					}break;
 				}
 
@@ -194,7 +194,7 @@ bool __fastcall ReadText(
 				SingleText = (uint16_t *)(FileBuffer.get() + Index);
 
 			//Endian
-			#if __BYTE_ORDER == __LITTLE_ENDIAN
+			#if BYTE_ORDER == LITTLE_ENDIAN
 				if (Encoding == CODEPAGE_UTF_16_BE)
 					*SingleText = ntoh16_Force(*SingleText);
 			#else
@@ -203,7 +203,7 @@ bool __fastcall ReadText(
 			#endif
 			//Next line format
 				if (*SingleText == ASCII_CR && Index + sizeof(uint16_t) < ReadLength && 
-				#if __BYTE_ORDER == __LITTLE_ENDIAN
+				#if BYTE_ORDER == LITTLE_ENDIAN
 					(Encoding == CODEPAGE_UTF_16_BE && ntoh16_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_16_LE && *(SingleText + 1U) == ASCII_LF))
 				#else
 					(Encoding == CODEPAGE_UTF_16_LE && ntoh16_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_16_BE && *(SingleText + 1U) == ASCII_LF))
@@ -233,7 +233,7 @@ bool __fastcall ReadText(
 				SingleText = (uint32_t *)(FileBuffer.get() + Index);
 
 			//Endian
-			#if __BYTE_ORDER == __LITTLE_ENDIAN
+			#if BYTE_ORDER == LITTLE_ENDIAN
 				if (Encoding == CODEPAGE_UTF_32_BE)
 					*SingleText = ntoh32_Force(*SingleText);
 			#else
@@ -242,7 +242,7 @@ bool __fastcall ReadText(
 			#endif
 			//Next line format
 				if (*SingleText == ASCII_CR && Index + sizeof(uint32_t) < ReadLength && 
-				#if __BYTE_ORDER == __LITTLE_ENDIAN
+				#if BYTE_ORDER == LITTLE_ENDIAN
 					(Encoding == CODEPAGE_UTF_32_BE && ntoh32_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_32_LE && *(SingleText + 1U) == ASCII_LF))
 				#else
 					(Encoding == CODEPAGE_UTF_32_LE && ntoh32_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_32_BE && *(SingleText + 1U) == ASCII_LF))
@@ -269,19 +269,19 @@ bool __fastcall ReadText(
 			{
 				case READ_TEXT_HOSTS: //ReadHosts
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), 0);
+					PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), 0);
 				}break;
 				case READ_TEXT_IPFILTER: //ReadIPFilter
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), 0);
+					PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), 0);
 				}break;
 				case READ_TEXT_PARAMETER: //ReadParameter
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+					PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				}break;
 				case READ_TEXT_PARAMETER_MONITOR: //ReadParameter(Monitor mode)
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+					PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				}break;
 			}
 			
@@ -310,19 +310,19 @@ bool __fastcall ReadText(
 			{
 				case READ_TEXT_HOSTS: //ReadHosts
 				{
-					PrintError(LOG_ERROR_HOSTS, L"Data of a line is too long", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_2, LOG_ERROR_HOSTS, L"Data of a line is too long", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				}break;
 				case READ_TEXT_IPFILTER: //ReadIPFilter
 				{
-					PrintError(LOG_ERROR_IPFILTER, L"Data of a line is too long", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_2, LOG_ERROR_IPFILTER, L"Data of a line is too long", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 				}break;
 				case READ_TEXT_PARAMETER: //ReadParameter
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too long", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Data of a line is too long", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				}break;
 				case READ_TEXT_PARAMETER_MONITOR: //ReadParameter(Monitor mode)
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Data of a line is too long", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Data of a line is too long", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				}break;
 			}
 
@@ -385,8 +385,8 @@ bool __fastcall ReadText(
 
 //Check Multi-line comments
 bool __fastcall ReadMultiLineComments(
-	_Inout_ std::string &Data, 
-	_In_ bool &IsLabelComments)
+	std::string &Data, 
+	bool &IsLabelComments)
 {
 	if (IsLabelComments)
 	{
@@ -418,7 +418,7 @@ bool __fastcall ReadMultiLineComments(
 
 //Read parameter from file
 bool __fastcall ReadParameter(
-	_In_ const bool IsFirstRead)
+	const bool IsFirstRead)
 {
 	size_t FileIndex = 0;
 
@@ -429,6 +429,7 @@ bool __fastcall ReadParameter(
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		const char *sConfigFileNameList[]{CONFIG_FILE_NAME_LIST_STRING};
 	#endif
+
 		for (FileIndex = 0;FileIndex < sizeof(ConfigFileNameList) / sizeof(wchar_t *);++FileIndex)
 		{
 			FILE_DATA ConfigFileTemp;
@@ -446,11 +447,9 @@ bool __fastcall ReadParameter(
 //Initialization
 	FILE *Input = nullptr;
 #if defined(PLATFORM_WIN)
-	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
-	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+	WIN32_FILE_ATTRIBUTE_DATA File_WIN32_FILE_ATTRIBUTE_DATA = {0};
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::shared_ptr<struct stat> FileStat(new struct stat());
-	memset(FileStat.get(), 0, sizeof(struct stat));
+	struct stat FileStat = {0};
 #endif
 
 //Read parameters at first.
@@ -469,7 +468,7 @@ bool __fastcall ReadParameter(
 			//Check all configuration files.
 				if (FileIndex + 1U == FileList_Config.size())
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
+					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
 					return false;
 				}
 
@@ -482,22 +481,21 @@ bool __fastcall ReadParameter(
 
 	//Check whole file size.
 	#if defined(PLATFORM_WIN)
-		if (GetFileAttributesExW(FileList_Config.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) != FALSE)
+		if (GetFileAttributesExW(FileList_Config.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, &File_WIN32_FILE_ATTRIBUTE_DATA) != FALSE)
 		{
-			std::shared_ptr<LARGE_INTEGER> ConfigFileSize(new LARGE_INTEGER());
-			memset(ConfigFileSize.get(), 0, sizeof(LARGE_INTEGER));
-			ConfigFileSize->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
-			ConfigFileSize->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
-			if (ConfigFileSize->QuadPart >= DEFAULT_FILE_MAXSIZE)
+			LARGE_INTEGER ConfigFileSize = {0};
+			ConfigFileSize.HighPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeHigh;
+			ConfigFileSize.LowPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeLow;
+			if (ConfigFileSize.QuadPart >= DEFAULT_FILE_MAXSIZE)
 			{
-				PrintError(LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+				PrintError(LOG_LEVEL_3, LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				return false;
 			}
 		}
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		if (stat(FileList_Config.at(FileIndex).sFileName.c_str(), FileStat.get()) == 0 && FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+		if (stat(FileList_Config.at(FileIndex).sFileName.c_str(), &FileStat) == 0 && FileStat.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 		{
-			PrintError(LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
 		}
 	#endif
@@ -514,7 +512,7 @@ bool __fastcall ReadParameter(
 			fclose(Input);
 		}
 		else {
-			PrintError(LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
+			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
 			return false;
 		}
 
@@ -537,7 +535,7 @@ bool __fastcall ReadParameter(
 				{
 				//Check all configuration files.
 					if (FileIndex + 1U == FileList_Config.size())
-						PrintError(LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
+						PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
 
 					continue;
 				}
@@ -555,8 +553,7 @@ bool __fastcall ReadParameter(
 	//Jump here to stop loop.
 	StopLoop:
 	#if defined(PLATFORM_WIN)
-		std::shared_ptr<LARGE_INTEGER> File_LARGE_INTEGER(new LARGE_INTEGER());
-		memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+		LARGE_INTEGER File_LARGE_INTEGER = {0};
 	#endif
 		auto InnerIsFirstRead = true, IsFileModified = false;
 
@@ -567,33 +564,33 @@ bool __fastcall ReadParameter(
 
 		//Get attributes of file.
 		#if defined(PLATFORM_WIN)
-			if (GetFileAttributesExW(FileList_Config.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) == FALSE)
+			if (GetFileAttributesExW(FileList_Config.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, &File_WIN32_FILE_ATTRIBUTE_DATA) == FALSE)
 			{
-				memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+				memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (stat(FileList_Config.at(FileIndex).sFileName.c_str(), FileStat.get()) != 0)
+			if (stat(FileList_Config.at(FileIndex).sFileName.c_str(), &FileStat) != 0)
 			{
-				memset(FileStat.get(), 0, sizeof(struct stat));
+				memset(&FileStat, 0, sizeof(struct stat));
 		#endif
 				FileList_Config.at(FileIndex).ModificationTime = 0;
 			}
 			else {
 			//Check whole file size.
 			#if defined(PLATFORM_WIN)
-				File_LARGE_INTEGER->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
-				File_LARGE_INTEGER->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
-				if (File_LARGE_INTEGER->QuadPart >= DEFAULT_FILE_MAXSIZE)
+				File_LARGE_INTEGER.HighPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeHigh;
+				File_LARGE_INTEGER.LowPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeLow;
+				if (File_LARGE_INTEGER.QuadPart >= DEFAULT_FILE_MAXSIZE)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				if (FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+				if (FileStat.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 			#endif
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Configuration file size is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+					PrintError(LOG_LEVEL_3, LOG_ERROR_PARAMETER, L"Configuration file size is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 
 				#if defined(PLATFORM_WIN)
-					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
-					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+					memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(&File_LARGE_INTEGER, 0, sizeof(LARGE_INTEGER));
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-					memset(FileStat.get(), 0, sizeof(struct stat));
+					memset(&FileStat, 0, sizeof(struct stat));
 				#endif
 					FileList_Config.at(FileIndex).ModificationTime = 0;
 
@@ -603,19 +600,19 @@ bool __fastcall ReadParameter(
 
 			//Check modification time of file.
 			#if defined(PLATFORM_WIN)
-				memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
-				File_LARGE_INTEGER->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwHighDateTime;
-				File_LARGE_INTEGER->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwLowDateTime;
-				if (FileList_Config.at(FileIndex).ModificationTime == 0 || File_LARGE_INTEGER->QuadPart != FileList_Config.at(FileIndex).ModificationTime)
+				memset(&File_LARGE_INTEGER, 0, sizeof(LARGE_INTEGER));
+				File_LARGE_INTEGER.HighPart = File_WIN32_FILE_ATTRIBUTE_DATA.ftLastWriteTime.dwHighDateTime;
+				File_LARGE_INTEGER.LowPart = File_WIN32_FILE_ATTRIBUTE_DATA.ftLastWriteTime.dwLowDateTime;
+				if (FileList_Config.at(FileIndex).ModificationTime == 0 || File_LARGE_INTEGER.QuadPart != FileList_Config.at(FileIndex).ModificationTime)
 				{
-					FileList_Config.at(FileIndex).ModificationTime = File_LARGE_INTEGER->QuadPart;
-					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
-					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+					FileList_Config.at(FileIndex).ModificationTime = File_LARGE_INTEGER.QuadPart;
+					memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(&File_LARGE_INTEGER, 0, sizeof(LARGE_INTEGER));
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				if (FileList_Config.at(FileIndex).ModificationTime == 0 || FileStat->st_mtime != FileList_Config.at(FileIndex).ModificationTime)
+				if (FileList_Config.at(FileIndex).ModificationTime == 0 || FileStat.st_mtime != FileList_Config.at(FileIndex).ModificationTime)
 				{
-					FileList_Config.at(FileIndex).ModificationTime = FileStat->st_mtime;
-					memset(FileStat.get(), 0, sizeof(struct stat));
+					FileList_Config.at(FileIndex).ModificationTime = FileStat.st_mtime;
+					memset(&FileStat, 0, sizeof(struct stat));
 			#endif
 					IsFileModified = true;
 
@@ -668,10 +665,10 @@ bool __fastcall ReadParameter(
 				}
 				else {
 			#if defined(PLATFORM_WIN)
-					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
-					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+					memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(&File_LARGE_INTEGER, 0, sizeof(LARGE_INTEGER));
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-					memset(FileStat.get(), 0, sizeof(struct stat));
+					memset(&FileStat, 0, sizeof(struct stat));
 			#endif
 				}
 			}
@@ -685,7 +682,7 @@ bool __fastcall ReadParameter(
 	}
 
 //Monitor terminated
-	PrintError(LOG_ERROR_SYSTEM, L"Read Parameter module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Read Parameter module Monitor terminated", 0, nullptr, 0);
 	return false;
 }
 
@@ -719,13 +716,10 @@ void __fastcall ReadIPFilter(
 	FILE *Input = nullptr;
 	auto IsFileModified = false;
 #if defined(PLATFORM_WIN)
-	std::shared_ptr<LARGE_INTEGER> File_LARGE_INTEGER(new LARGE_INTEGER());
-	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
-	memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
-	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+	WIN32_FILE_ATTRIBUTE_DATA File_WIN32_FILE_ATTRIBUTE_DATA = {0};
+	LARGE_INTEGER File_LARGE_INTEGER = {0};
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::shared_ptr<struct stat> FileStat(new struct stat());
-	memset(FileStat.get(), 0, sizeof(struct stat));
+	struct stat FileStat = {0};
 #endif
 	std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 	IPFilterFileMutex.unlock();
@@ -740,13 +734,13 @@ void __fastcall ReadIPFilter(
 		{
 		//Get attributes of file.
 		#if defined(PLATFORM_WIN)
-			if (GetFileAttributesExW(FileList_IPFilter.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) == FALSE)
+			if (GetFileAttributesExW(FileList_IPFilter.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, &File_WIN32_FILE_ATTRIBUTE_DATA) == FALSE)
 			{
-				memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+				memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (stat(FileList_IPFilter.at(FileIndex).sFileName.c_str(), FileStat.get()) != 0)
+			if (stat(FileList_IPFilter.at(FileIndex).sFileName.c_str(), &FileStat) != 0)
 			{
-				memset(FileStat.get(), 0, sizeof(struct stat));
+				memset(&FileStat, 0, sizeof(struct stat));
 		#endif
 				if (FileList_IPFilter.at(FileIndex).ModificationTime > 0)
 					IsFileModified = true;
@@ -757,20 +751,20 @@ void __fastcall ReadIPFilter(
 			else {
 			//Check whole file size.
 			#if defined(PLATFORM_WIN)
-				File_LARGE_INTEGER->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
-				File_LARGE_INTEGER->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
-				if (File_LARGE_INTEGER->QuadPart >= DEFAULT_FILE_MAXSIZE)
+				File_LARGE_INTEGER.HighPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeHigh;
+				File_LARGE_INTEGER.LowPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeLow;
+				if (File_LARGE_INTEGER.QuadPart >= DEFAULT_FILE_MAXSIZE)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				if (FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+				if (FileStat.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 			#endif
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"IPFilter file size is too large", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), 0);
+					PrintError(LOG_LEVEL_3, LOG_ERROR_PARAMETER, L"IPFilter file size is too large", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), 0);
 
 				#if defined(PLATFORM_WIN)
-					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
-					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+					memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(&File_LARGE_INTEGER, 0, sizeof(LARGE_INTEGER));
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-					memset(FileStat.get(), 0, sizeof(struct stat));
+					memset(&FileStat, 0, sizeof(struct stat));
 				#endif
 					if (FileList_IPFilter.at(FileIndex).ModificationTime > 0)
 						IsFileModified = true;
@@ -782,19 +776,19 @@ void __fastcall ReadIPFilter(
 
 			//Check modification time of file.
 			#if defined(PLATFORM_WIN)
-				memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
-				File_LARGE_INTEGER->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwHighDateTime;
-				File_LARGE_INTEGER->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwLowDateTime;
-				if (FileList_IPFilter.at(FileIndex).ModificationTime == 0 || File_LARGE_INTEGER->QuadPart != FileList_IPFilter.at(FileIndex).ModificationTime)
+				memset(&File_LARGE_INTEGER, 0, sizeof(LARGE_INTEGER));
+				File_LARGE_INTEGER.HighPart = File_WIN32_FILE_ATTRIBUTE_DATA.ftLastWriteTime.dwHighDateTime;
+				File_LARGE_INTEGER.LowPart = File_WIN32_FILE_ATTRIBUTE_DATA.ftLastWriteTime.dwLowDateTime;
+				if (FileList_IPFilter.at(FileIndex).ModificationTime == 0 || File_LARGE_INTEGER.QuadPart != FileList_IPFilter.at(FileIndex).ModificationTime)
 				{
-					FileList_IPFilter.at(FileIndex).ModificationTime = File_LARGE_INTEGER->QuadPart;
-					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
-					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+					FileList_IPFilter.at(FileIndex).ModificationTime = File_LARGE_INTEGER.QuadPart;
+					memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(&File_LARGE_INTEGER, 0, sizeof(LARGE_INTEGER));
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				if (FileList_IPFilter.at(FileIndex).ModificationTime == 0 || FileStat->st_mtime != FileList_IPFilter.at(FileIndex).ModificationTime)
+				if (FileList_IPFilter.at(FileIndex).ModificationTime == 0 || FileStat.st_mtime != FileList_IPFilter.at(FileIndex).ModificationTime)
 				{
-					FileList_IPFilter.at(FileIndex).ModificationTime = FileStat->st_mtime;
-					memset(FileStat.get(), 0, sizeof(struct stat));
+					FileList_IPFilter.at(FileIndex).ModificationTime = FileStat.st_mtime;
+					memset(&FileStat, 0, sizeof(struct stat));
 			#endif
 					ClearModificatingListData(READ_TEXT_IPFILTER, FileIndex);
 					IsFileModified = true;
@@ -843,10 +837,10 @@ void __fastcall ReadIPFilter(
 				}
 				else {
 				#if defined(PLATFORM_WIN)
-					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
-					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+					memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(&File_LARGE_INTEGER, 0, sizeof(LARGE_INTEGER));
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-					memset(FileStat.get(), 0, sizeof(struct stat));
+					memset(&FileStat, 0, sizeof(struct stat));
 				#endif
 				}
 			}
@@ -873,7 +867,7 @@ void __fastcall ReadIPFilter(
 	}
 
 //Monitor terminated
-	PrintError(LOG_ERROR_SYSTEM, L"Read IPFilter module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Read IPFilter module Monitor terminated", 0, nullptr, 0);
 	return;
 }
 
@@ -907,13 +901,10 @@ void __fastcall ReadHosts(
 	FILE *Input = nullptr;
 	auto IsFileModified = false;
 #if defined(PLATFORM_WIN)
-	std::shared_ptr<LARGE_INTEGER> File_LARGE_INTEGER(new LARGE_INTEGER());
-	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
-	memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
-	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+	WIN32_FILE_ATTRIBUTE_DATA File_WIN32_FILE_ATTRIBUTE_DATA = {0};
+	LARGE_INTEGER File_LARGE_INTEGER = {0};
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::shared_ptr<struct stat> FileStat(new struct stat());
-	memset(FileStat.get(), 0, sizeof(struct stat));
+	struct stat FileStat = {0};
 #endif
 	std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock);
 	HostsFileMutex.unlock();
@@ -928,13 +919,13 @@ void __fastcall ReadHosts(
 		{
 		//Get attributes of file.
 		#if defined(PLATFORM_WIN)
-			if (GetFileAttributesExW(FileList_Hosts.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) == FALSE)
+			if (GetFileAttributesExW(FileList_Hosts.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, &File_WIN32_FILE_ATTRIBUTE_DATA) == FALSE)
 			{
-				memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+				memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			if (stat(FileList_Hosts.at(FileIndex).sFileName.c_str(), FileStat.get()) != 0)
+			if (stat(FileList_Hosts.at(FileIndex).sFileName.c_str(), &FileStat) != 0)
 			{
-				memset(FileStat.get(), 0, sizeof(struct stat));
+				memset(&FileStat, 0, sizeof(struct stat));
 		#endif
 				if (FileList_Hosts.at(FileIndex).ModificationTime > 0)
 					IsFileModified = true;
@@ -945,20 +936,20 @@ void __fastcall ReadHosts(
 			else {
 			//Check whole file size.
 			#if defined(PLATFORM_WIN)
-				File_LARGE_INTEGER->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
-				File_LARGE_INTEGER->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
-				if (File_LARGE_INTEGER->QuadPart >= DEFAULT_FILE_MAXSIZE)
+				File_LARGE_INTEGER.HighPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeHigh;
+				File_LARGE_INTEGER.LowPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeLow;
+				if (File_LARGE_INTEGER.QuadPart >= DEFAULT_FILE_MAXSIZE)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				if (FileStat->st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+				if (FileStat.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 			#endif
 				{
-					PrintError(LOG_ERROR_PARAMETER, L"Hosts file size is too large", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), 0);
+					PrintError(LOG_LEVEL_3, LOG_ERROR_PARAMETER, L"Hosts file size is too large", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), 0);
 
 				#if defined(PLATFORM_WIN)
-					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
-					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+					memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(&File_LARGE_INTEGER, 0, sizeof(LARGE_INTEGER));
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-					memset(FileStat.get(), 0, sizeof(struct stat));
+					memset(&FileStat, 0, sizeof(struct stat));
 				#endif
 					if (FileList_Hosts.at(FileIndex).ModificationTime > 0)
 						IsFileModified = true;
@@ -970,19 +961,19 @@ void __fastcall ReadHosts(
 
 			//Check modification time of file.
 			#if defined(PLATFORM_WIN)
-				memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
-				File_LARGE_INTEGER->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwHighDateTime;
-				File_LARGE_INTEGER->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->ftLastWriteTime.dwLowDateTime;
-				if (FileList_Hosts.at(FileIndex).ModificationTime == 0 || File_LARGE_INTEGER->QuadPart != FileList_Hosts.at(FileIndex).ModificationTime)
+				memset(&File_LARGE_INTEGER, 0, sizeof(LARGE_INTEGER));
+				File_LARGE_INTEGER.HighPart = File_WIN32_FILE_ATTRIBUTE_DATA.ftLastWriteTime.dwHighDateTime;
+				File_LARGE_INTEGER.LowPart = File_WIN32_FILE_ATTRIBUTE_DATA.ftLastWriteTime.dwLowDateTime;
+				if (FileList_Hosts.at(FileIndex).ModificationTime == 0 || File_LARGE_INTEGER.QuadPart != FileList_Hosts.at(FileIndex).ModificationTime)
 				{
-					FileList_Hosts.at(FileIndex).ModificationTime = File_LARGE_INTEGER->QuadPart;
-					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
-					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+					FileList_Hosts.at(FileIndex).ModificationTime = File_LARGE_INTEGER.QuadPart;
+					memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(&File_LARGE_INTEGER, 0, sizeof(LARGE_INTEGER));
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				if (FileList_Hosts.at(FileIndex).ModificationTime == 0 || FileStat->st_mtime != FileList_Hosts.at(FileIndex).ModificationTime)
+				if (FileList_Hosts.at(FileIndex).ModificationTime == 0 || FileStat.st_mtime != FileList_Hosts.at(FileIndex).ModificationTime)
 				{
-					FileList_Hosts.at(FileIndex).ModificationTime = FileStat->st_mtime;
-					memset(FileStat.get(), 0, sizeof(struct stat));
+					FileList_Hosts.at(FileIndex).ModificationTime = FileStat.st_mtime;
+					memset(&FileStat, 0, sizeof(struct stat));
 			#endif
 					ClearModificatingListData(READ_TEXT_HOSTS, FileIndex);
 					IsFileModified = true;
@@ -1031,10 +1022,10 @@ void __fastcall ReadHosts(
 				}
 				else {
 				#if defined(PLATFORM_WIN)
-					memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
-					memset(File_LARGE_INTEGER.get(), 0, sizeof(LARGE_INTEGER));
+					memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+					memset(&File_LARGE_INTEGER, 0, sizeof(LARGE_INTEGER));
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-					memset(FileStat.get(), 0, sizeof(struct stat));
+					memset(&FileStat, 0, sizeof(struct stat));
 				#endif
 				}
 			}
@@ -1061,14 +1052,14 @@ void __fastcall ReadHosts(
 	}
 
 //Monitor terminated
-	PrintError(LOG_ERROR_SYSTEM, L"Read Hosts module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Read Hosts module Monitor terminated", 0, nullptr, 0);
 	return;
 }
 
 //Clear data in list
 void __fastcall ClearModificatingListData(
-	_In_ const size_t ClearType, 
-	_In_ const size_t FileIndex)
+	const size_t ClearType, 
+	const size_t FileIndex)
 {
 //Clear Hosts set.
 	if (ClearType == READ_TEXT_HOSTS)
@@ -1101,10 +1092,10 @@ void __fastcall ClearModificatingListData(
 
 //Get data list from file
 void __fastcall GetParameterListData(
-	_Out_ std::vector<std::string> &ListData, 
-	_In_ const std::string Data, 
-	_In_ const size_t DataOffset, 
-	_In_ const size_t Length)
+	std::vector<std::string> &ListData, 
+	const std::string Data, 
+	const size_t DataOffset, 
+	const size_t Length)
 {
 //Initialization
 	std::string NameString;

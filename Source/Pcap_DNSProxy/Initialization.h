@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,16 +32,18 @@ std::vector<DIFFERNET_FILE_SET_HOSTS> HostsFileSet[2U], *HostsFileSetUsing = &Ho
 #if defined(ENABLE_PCAP)
 	std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
 #endif
-std::deque<DNSCACHE_DATA> DNSCacheList;
-std::mutex ErrorLogLock, CaptureLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], DNSCacheListLock, IPFilterFileLock, HostsFileLock;
+std::deque<DNS_CACHE_DATA> DNSCacheList;
+std::mutex ScreenLock, ErrorLogLock, CaptureLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], DNSCacheListLock, IPFilterFileLock, HostsFileLock;
 #if defined(ENABLE_PCAP)
 	std::mutex OutputPacketListLock;
 #endif
 
 //Functions
 void __fastcall ConfigurationTableSetting(
-	_Inout_ ConfigurationTable *ConfigurationParameter);
+	ConfigurationTable *ConfigurationParameter);
 void __fastcall GlobalStatusSetting(
-	_Inout_ GlobalStatus *GlobalRunningStatusParameter);
+	GlobalStatus *GlobalRunningStatusParameter);
+#if defined(ENABLE_LIBSODIUM)
 void __fastcall DNSCurveConfigurationTableSetting(
-	_Inout_ DNSCurveConfigurationTable *DNSCurveConfigurationParameter);
+	DNSCurveConfigurationTable *DNSCurveConfigurationParameter);
+#endif

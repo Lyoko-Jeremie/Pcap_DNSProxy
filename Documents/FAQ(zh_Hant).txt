@@ -67,6 +67,7 @@
 Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
 
 1.System Error - 系統錯誤
+  * Screen output buffer setting error - 螢幕輸出緩衝區配置錯誤：建議重新開機服務或程式
   * Commands error - 程式啟動參數錯誤：請檢查為程式傳入的參數
   * Service start error - 服務啟動失敗：可能未在系統註冊服務，或在系統內註冊的服務路徑不正確
     * 錯誤代碼參見 https://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
@@ -78,8 +79,6 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * MailSlot write messages error - MailSlot 寫入資訊失敗：建議重新開機服務或程式
   * Create FIFO error - FIFO 創建失敗：建議重新開機服務或程式
   * FIFO write messages error - FIFO 寫入資訊失敗：建議重新開機服務或程式
-  * Old error log file was deleted - 錯誤日誌檔已滿並被刪除
-    * 日誌檔最大容量的配置參見 詳細說明文檔 中 設定檔詳細參數說明 中的 Log Maximum Size 參數
   * Mailslot Monitor initialization error - MailSlot 監視模組初始化失敗：建議重新開機服務或程式
   * Read Parameter module Monitor terminated - 設定檔讀取模組已經停止監視：建議重新開機服務或程式
   * Read Hosts module Monitor terminated - Hosts 讀取模組已經停止監視：建議重新開機服務或程式
@@ -132,6 +131,8 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Alternate Multi request error - 主要備用或多個伺服器下同時請求參數錯誤：請確認所有伺服器的資訊
   * IPv4 total request number error - IPv4 請求總次數限制錯誤：填入主要/待命伺服器的數量 * Multi Request Times = 總請求的數值，此數值不能超過 64
   * IPv6 total request number error - IPv6 請求總次數限制錯誤：填入主要/待命伺服器的數量 * Multi Request Times = 總請求的數值，此數值不能超過 64
+  * IPv4 packet TTL range error - IPv4 資料包 TTL 值範圍錯誤：請確認該條目的內容
+  * IPv6 packet Hop Limits range error - IPv6 資料包 Hop Limits 值範圍錯誤：請確認該條目的內容
   * DNSCurve target error - DNSCurve 協定使用的 DNS 目標伺服器位址錯誤：請檢查 DNSCurve 協定使用 DNS 伺服器的位址
   * DNSCurve encryption options error - DNSCurve 協定加密選項配置錯誤：開啟加密選項和只使用加密模式選項衝突
   * DNSCurve Encryption Only mode error - DNSCurve 協定只使用加密模式配置錯誤：只使用加密模式必須提供伺服器的魔數和指紋
@@ -173,6 +174,8 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Socket timeout setting error - 設置通訊端超時時間錯誤：具體原因可參見錯誤代碼
   * Socket TCP Fast Open setting error - 設置 TCP Fast Open 錯誤：請檢查系統是否支援此功能
   * Socket UDP block RESET message setting error - 設置 UDP 協定通訊端遮罩 ICMP Port Unreachable 資訊錯誤：具體原因可參見錯誤代碼
+  * Socket Hop Limits setting error - 設置 Hop Limits/TTL 錯誤：具體原因可參見錯誤代碼
+  * Socket Do Not Fragment flag setting error - 設置 IPv4 Do Not Fragment 標誌錯誤：具體原因可參見錯誤代碼
   * UDP Monitor socket initialization error - UDP 協定本地通訊端初始化失敗：原因參見錯誤代碼
   * TCP Monitor socket initialization error - TCP 協定本地通訊端初始化失敗：原因參見錯誤代碼
   * Bind UDP Monitor socket error - UDP 協定本地通訊端綁定失敗：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體原因參見錯誤代碼
@@ -204,6 +207,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
 7.DNSCurve Error - DNSCurve 協定錯誤
   * Libsodium initialization error - Libsodium 庫初始化錯誤：請與開發者聯繫
   * Client keypair error - 自訂用戶端金鑰組錯誤：請檢查金鑰組的正確性
+  * Key calculating error -> 金鑰計算錯誤：請與專案組聯繫
   * IPv6 Main Server TCP get signature data error - IPv6 TCP 協定主要伺服器加密握手失敗：請檢查該伺服器是否可用
   * IPv6 Alternate Server TCP get signature data error - IPv6 TCP 協定待命伺服器加密握手失敗：請檢查該伺服器是否可用
   * IPv4 Main Server TCP get signature data error - IPv4 TCP 協定主要伺服器加密握手失敗：請檢查該伺服器是否可用
@@ -236,6 +240,8 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
  * HTTP server response error - HTTP 代理伺服器回應錯誤：請檢查該伺服器是否可用
 
 10.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
+  * Old log files were deleted - 錯誤日誌檔已滿並被刪除
+    * 日誌檔最大容量的配置參見 詳細說明文檔 中 設定檔詳細參數說明 中的 Log Maximum Size 參數
   * Configuration file is not the latest version - 設定檔非最新版本：請確認設定檔是否需要更新
   * Listen Port is empty, set to standard DNS port(53) - 本地監聽埠參數為空：程式將自動設置為標準 DNS 協定埠（53）
   * TCP Data Filter require TCP Request Mode - 開啟 TCP 資料包頭檢測時必須將 Request Mode 設置為 TCP：程式將自動關閉此功能
@@ -246,7 +252,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * EDNS Payload Size is too long - EDNS 載荷長度可能過長：此值建議不要超過乙太網的 MTU(1500 bytes)
   * DNSSEC Request require EDNS Label - 開啟 DNSSEC 請求時必須開啟 EDNS 標籤請求功能
   * EDNS Client Subnet require EDNS Label - 開啟 EDNS Client Subnet 請求時必須開啟 EDNS 標籤請求功能
-  * Turn OFF Compression Pointer Mutation when EDNS Label is available - 使用 Compression Pointer Mutation 時不能開啟 EDNS 標籤請求功能，兩者並不相容
+  * Compression Pointer Mutation require EDNS Label is OFF - 使用 Compression Pointer Mutation 時不能開啟 EDNS 標籤請求功能，兩者並不相容
   * DNSSEC Validation require EDNS Label and DNSSEC Request - 開啟 DNSSEC Validation 請求時必須開啟 EDNS 標籤請求和 DNSSEC 請求功能
   * DNSSEC Force Validation require EDNS Label, DNSSEC Request and DNSSEC Validation - 開啟 DNSSEC Force Validation 請求時必須開啟 EDNS 標籤請求、DNSSEC 請求和 DNSSEC Validation 驗證功能
   * DNSCurve Payload Size must longer than traditional DNS packet minimum supported size(512 bytes) - DNSCurve 協定載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包

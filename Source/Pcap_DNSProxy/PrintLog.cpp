@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -21,20 +21,21 @@
 
 //Print errors to log file
 bool __fastcall PrintError(
-	_In_ const size_t ErrorType, 
-	_In_ const wchar_t *Message, 
-	_In_opt_ const SSIZE_T ErrorCode, 
-	_In_opt_ const wchar_t *FileName, 
-	_In_opt_ const size_t Line)
+	const size_t ErrorLevel, 
+	const size_t ErrorType, 
+	const wchar_t *Message, 
+	const SSIZE_T ErrorCode, 
+	const wchar_t *FileName, 
+	const size_t Line)
 {
-//Print Error: Enable/Disable, parameter check, message check and file name check
-	if (!Parameter.PrintError || //PrintError 
+//Print log level check, parameter check, message check and file name check
+	if (Parameter.PrintLogLevel == LOG_LEVEL_0 || ErrorLevel > Parameter.PrintLogLevel || 
 		Message == nullptr || CheckEmptyBuffer(Message, wcsnlen_s(Message, ORIGINAL_PACKET_MAXSIZE) * sizeof(wchar_t)) || 
 		FileName != nullptr && CheckEmptyBuffer(FileName, wcsnlen_s(FileName, ORIGINAL_PACKET_MAXSIZE) * sizeof(wchar_t)))
 			return false;
 
 //Convert file name.
-	std::wstring FileNameString, ErrorMessage(L" -> ");
+	std::wstring FileNameString, ErrorMessage;
 	if (FileName != nullptr)
 	{
 		FileNameString.append(L" in ");
@@ -172,11 +173,14 @@ bool __fastcall PrintError(
 			if (!FileNameString.empty())
 				ErrorMessage.append(FileNameString);
 
+/* There are no any error codes to be reported in LOG_ERROR_PCAP.
 		//Add error code.
 			if (ErrorCode == 0)
 				ErrorMessage.append(L".\n");
 			else 
 				ErrorMessage.append(L", error code is %d.\n");
+*/
+			ErrorMessage.append(L"\n");
 		}break;
 	#endif
 	//DNSCurve Error
@@ -241,18 +245,17 @@ bool __fastcall PrintError(
 
 //Print to screen and write to file
 bool __fastcall PrintScreenAndWriteFile(
-	_In_ const std::wstring Message, 
-	_In_opt_ const SSIZE_T ErrorCode, 
-	_In_opt_ const size_t Line)
+	const std::wstring Message, 
+	const SSIZE_T ErrorCode, 
+	const size_t Line)
 {
 //Get current date and time.
-	std::shared_ptr<tm> TimeStructure(new tm());
-	memset(TimeStructure.get(), 0, sizeof(tm));
+	tm TimeStructure = {0};
 	auto TimeValues = time(nullptr);
 #if defined(PLATFORM_WIN)
-	if (localtime_s(TimeStructure.get(), &TimeValues) > 0)
+	if (localtime_s(&TimeStructure, &TimeValues) > 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	if (localtime_r(&TimeValues, TimeStructure.get()) == nullptr)
+	if (localtime_r(&TimeValues, &TimeStructure) == nullptr)
 #endif
 		return false;
 
@@ -264,9 +267,6 @@ bool __fastcall PrintScreenAndWriteFile(
 		GlobalRunningStatus.StartupTime = 0;
 	}
 
-//Error log lock
-	std::unique_lock<std::mutex> ErrLogMutex(ErrorLogLock);
-
 //Print to screen.
 #if defined(PLATFORM_WIN)
 	if (GlobalRunningStatus.Console)
@@ -274,49 +274,75 @@ bool __fastcall PrintScreenAndWriteFile(
 	if (!GlobalRunningStatus.Daemon)
 #endif
 	{
+		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+
 	//Print startup time.
 		if (LogStartupTime > 0)
 		{
-			wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-			wprintf_s(L" -> Log opened at this moment.\n");
+			fwprintf_s(stderr, L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", 
+				TimeStructure.tm_year + 1900, 
+				TimeStructure.tm_mon + 1, 
+				TimeStructure.tm_mday, 
+				TimeStructure.tm_hour, 
+				TimeStructure.tm_min, 
+				TimeStructure.tm_sec);
 		}
 
 	//Print message.
-		wprintf_s(L"%d-%02d-%02d %02d:%02d:%02d", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+		fwprintf_s(stderr, L"%d-%02d-%02d %02d:%02d:%02d -> ", 
+			TimeStructure.tm_year + 1900, 
+			TimeStructure.tm_mon + 1, 
+			TimeStructure.tm_mday, 
+			TimeStructure.tm_hour, 
+			TimeStructure.tm_min, 
+			TimeStructure.tm_sec);
 		if (Line > 0 && ErrorCode > 0)
-			wprintf_s(Message.c_str(), Line, ErrorCode);
+			fwprintf_s(stderr, Message.c_str(), Line, ErrorCode);
 		else if (Line > 0)
-			wprintf_s(Message.c_str(), Line);
+			fwprintf_s(stderr, Message.c_str(), Line);
 		else if (ErrorCode > 0)
-			wprintf_s(Message.c_str(), ErrorCode);
+			fwprintf_s(stderr, Message.c_str(), ErrorCode);
 		else 
-			wprintf_s(Message.c_str());
+			fwprintf_s(stderr, Message.c_str());
 	}
 
 //Check whole file size.
+	std::unique_lock<std::mutex> ErrorLogMutex(ErrorLogLock);
+
 #if defined(PLATFORM_WIN)
-	std::shared_ptr<WIN32_FILE_ATTRIBUTE_DATA> File_WIN32_FILE_ATTRIBUTE_DATA(new WIN32_FILE_ATTRIBUTE_DATA());
-	memset(File_WIN32_FILE_ATTRIBUTE_DATA.get(), 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
-	if (GetFileAttributesExW(GlobalRunningStatus.Path_ErrorLog->c_str(), GetFileExInfoStandard, File_WIN32_FILE_ATTRIBUTE_DATA.get()) != FALSE)
+	WIN32_FILE_ATTRIBUTE_DATA File_WIN32_FILE_ATTRIBUTE_DATA = {0};
+	if (GetFileAttributesExW(GlobalRunningStatus.Path_ErrorLog->c_str(), GetFileExInfoStandard, &File_WIN32_FILE_ATTRIBUTE_DATA) != FALSE)
 	{
-		std::shared_ptr<LARGE_INTEGER> ErrorFileSize(new LARGE_INTEGER());
-		memset(ErrorFileSize.get(), 0, sizeof(LARGE_INTEGER));
-		ErrorFileSize->HighPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeHigh;
-		ErrorFileSize->LowPart = File_WIN32_FILE_ATTRIBUTE_DATA->nFileSizeLow;
-		if (ErrorFileSize->QuadPart > 0 && (size_t)ErrorFileSize->QuadPart >= Parameter.LogMaxSize && 
-			DeleteFileW(GlobalRunningStatus.Path_ErrorLog->c_str()) != FALSE)
-				PrintError(LOG_ERROR_SYSTEM, L"Old error log file was deleted", 0, nullptr, 0);
+		LARGE_INTEGER ErrorFileSize = {0};
+		ErrorFileSize.HighPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeHigh;
+		ErrorFileSize.LowPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeLow;
+		if (ErrorFileSize.QuadPart > 0 && (size_t)ErrorFileSize.QuadPart >= Parameter.LogMaxSize)
+		{
+			if (DeleteFileW(GlobalRunningStatus.Path_ErrorLog->c_str()) != FALSE)
+			{
+				ErrorLogMutex.unlock();
+				PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"Old log files were deleted", 0, nullptr, 0);
+				ErrorLogMutex.lock();
+			}
+			else {
+				return false;
+			}
+		}
 	}
-
-	File_WIN32_FILE_ATTRIBUTE_DATA.reset();
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::shared_ptr<struct stat> FileStat(new struct stat());
-	memset(FileStat.get(), 0, sizeof(struct stat));
-	if (stat(GlobalRunningStatus.sPath_ErrorLog->c_str(), FileStat.get()) == 0 && FileStat->st_size >= (off_t)Parameter.LogMaxSize && 
-		remove(GlobalRunningStatus.sPath_ErrorLog->c_str()) == 0)
-			PrintError(LOG_ERROR_SYSTEM, L"Old error log file was deleted", 0, nullptr, 0);
-
-	FileStat.reset();
+	struct stat FileStat = {0};
+	if (stat(GlobalRunningStatus.sPath_ErrorLog->c_str(), &FileStat) == 0 && FileStat.st_size >= (off_t)Parameter.LogMaxSize)
+	{
+		if (remove(GlobalRunningStatus.sPath_ErrorLog->c_str()) == 0)
+		{
+			ErrorLogMutex.unlock();
+			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"Old log files were deleted", 0, nullptr, 0);
+			ErrorLogMutex.lock();
+		}
+		else {
+			return false;
+		}
+	}
 #endif
 
 //Write to file.
@@ -331,12 +357,23 @@ bool __fastcall PrintScreenAndWriteFile(
 	//Print startup time.
 		if (LogStartupTime > 0)
 		{
-			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
-			fwprintf_s(Output, L" -> Log opened at this moment.\n");
+			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", 
+				TimeStructure.tm_year + 1900, 
+				TimeStructure.tm_mon + 1, 
+				TimeStructure.tm_mday, 
+				TimeStructure.tm_hour, 
+				TimeStructure.tm_min, 
+				TimeStructure.tm_sec);
 		}
 
 	//Print message.
-		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d", TimeStructure->tm_year + 1900, TimeStructure->tm_mon + 1, TimeStructure->tm_mday, TimeStructure->tm_hour, TimeStructure->tm_min, TimeStructure->tm_sec);
+		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", 
+			TimeStructure.tm_year + 1900, 
+			TimeStructure.tm_mon + 1, 
+			TimeStructure.tm_mday, 
+			TimeStructure.tm_hour, 
+			TimeStructure.tm_min, 
+			TimeStructure.tm_sec);
 		if (Line > 0 && ErrorCode > 0)
 			fwprintf_s(Output, Message.c_str(), Line, ErrorCode);
 		else if (Line > 0)

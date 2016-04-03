@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -24,8 +24,8 @@
 	extern CONFIGURATION_TABLE Parameter;
 	extern GLOBAL_STATUS GlobalRunningStatus;
 #endif
-extern std::deque<DNSCACHE_DATA> DNSCacheList;
-extern std::mutex DNSCacheListLock;
+extern std::deque<DNS_CACHE_DATA> DNSCacheList;
+extern std::mutex ScreenLock, DNSCacheListLock;
 
 #if defined(PLATFORM_WIN)
 //Local variables
@@ -36,17 +36,17 @@ HANDLE ServiceEvent = nullptr;
 
 //Functions
 size_t WINAPI ServiceControl(
-	_In_ const DWORD dwControlCode);
+	const DWORD dwControlCode);
 BOOL WINAPI ExecuteService(
 	void);
 void WINAPI TerminateService(
 	void);
 DWORD WINAPI ServiceProc(
-	_In_ PVOID lpParameter);
+	PVOID lpParameter);
 BOOL WINAPI UpdateServiceStatus(
-	_In_ const DWORD dwCurrentState, 
-	_In_ const DWORD dwWin32ExitCode, 
-	_In_ const DWORD dwServiceSpecificExitCode, 
-	_In_ const DWORD dwCheckPoint, 
-	_In_ const DWORD dwWaitHint);
+	const DWORD dwCurrentState, 
+	const DWORD dwWin32ExitCode, 
+	const DWORD dwServiceSpecificExitCode, 
+	const DWORD dwCheckPoint, 
+	const DWORD dwWaitHint);
 #endif

@@ -5,14 +5,24 @@
 
 @echo off
 
+:: Check administrative permission and processor architecture.
+net session >NUL 2>NUL
+if ERRORLEVEL 1 (
+	color 4F
+	echo Please run as Administrator.
+	echo.
+	pause & break
+	echo.
+	exit
+)
 
-:: Check processor architecture.
 set Arch=
 if %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (set Arch=_x86)
 set Prog=Pcap_DNSProxy%Arch%.exe
 
 
 :: Choice
+:CHOICE
 echo Pcap_DNSProxy service control batch
 echo.
 echo 1: Install service
@@ -21,6 +31,8 @@ echo 3: Start service
 echo 4: Stop service
 echo 5: Restart service
 echo 6: Flush DNS cache in Pcap_DNSProxy
+echo 7: Flush DNS cache in system only
+echo 8: Exit
 echo.
 set /P UserChoice="Choose: "
 set UserChoice=CASE_%UserChoice%
@@ -29,11 +41,11 @@ cls
 goto %UserChoice%
 
 
-:: Service install part
+:: Service install
 :CASE_1
 	sc stop PcapDNSProxyService
 	sc delete PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 6 >nul
 
 	sc create PcapDNSProxyService binPath= "%~dp0%Prog%" DisplayName= "PcapDNSProxy Service" start= auto
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v Application /d "%~dp0%Prog%" /f
@@ -46,67 +58,93 @@ goto %UserChoice%
 	ipconfig /flushdns
 	call :CHECK_PROG
 	pause
-	exit
+	cls
+	goto :CHOICE
 
 
-:: Service uninstall part
+:: Service uninstall
 :CASE_2
 	sc stop PcapDNSProxyService
 	sc delete PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 6 >nul
 	ipconfig /flushdns
 	echo.
 	pause
-	exit
+	cls
+	goto :CHOICE
 
 
-:: Service start part
+:: Service start
 :CASE_3
 	sc start PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 6 >nul
 	ipconfig /flushdns
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 6 >nul
 	call :CHECK_PROG
 	pause
-	exit
+	cls
+	goto :CHOICE
 
 
-:: Service stop part
+:: Service stop
 :CASE_4
 	sc stop PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 6 >nul
 	ipconfig /flushdns
 	echo.
 	pause
-	exit
+	cls
+	goto :CHOICE
 
 
-:: Service restart part
+:: Service restart
 :CASE_5
 	sc stop PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 6 >nul
 	sc start PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 6 >nul
 	ipconfig /flushdns
 	call :CHECK_PROG
 	pause
-	exit
+	cls
+	goto :CHOICE
 
 
-:: Flush DNS cache part
+:: Flush DNS cache(Pcap_DNSProxy)
 :CASE_6
-	echo.
+	call :CHECK_PROG
 	%Prog% --flush-dns
 	echo.
 	pause
+	cls
+	goto :CHOICE
+
+
+:: Flush DNS cache(System)
+:CASE_7
+	ipconfig /flushdns
+	echo.
+	pause
+	cls
+	goto :CHOICE
+
+
+:: Exit
+:CASE_8
 	exit
 
 
 :: Process check
 :CHECK_PROG
-	Tasklist |findstr /I "%Prog%" > NUL
+	tasklist |findstr /I "%Prog%" > NUL
 	if ERRORLEVEL 1 (
+		color 4F
 		echo.
-		echo Service start failed, please check the configurations.
+		echo The program is not running, please check the configurations and error log.
+		echo.
+		pause
+		color 07
+		cls
+		goto :CHOICE
 	)
 	echo.

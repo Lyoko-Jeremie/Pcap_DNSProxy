@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 # 
 # This code is part of Pcap_DNSProxy
 # A local DNS server based on WinPcap and LibPcap
-# Copyright (C) 2012-2015 Chengr28
+# Copyright (C) 2012-2016 Chengr28
 # 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -19,21 +19,36 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-# Back to Pcap_DNSProxy main directory
+# Back to Pcap_DNSProxy main directory and make a Release directory.
 cd ..
+rm -Rrf Object
+mkdir Release
+
+# Build FileHash.
+mkdir Object
+cd Object
+CMakeShell="cmake "
+if !(echo "$*" | grep -iq -e "--disable-libsodium"); then
+	CMakeShell="${CMakeShell}-DENABLE_LIBSODIUM=ON "
+fi
+CMakeShell="${CMakeShell}../FileHash"
+${CMakeShell}
+make
+cd ..
+mv -f Object/FileHash Release
+rm -Rrf Object
 
 # Build KeyPairGenerator.
 mkdir Object
 cd Object
 CMakeShell="cmake "
 if !(echo "$*" | grep -iq -e "--disable-libsodium"); then
-	CMakeShell="${CMakeShell}\-DENABLE_LIBSODIUM=ON "
+	CMakeShell="${CMakeShell}-DENABLE_LIBSODIUM=ON "
 fi
 CMakeShell="${CMakeShell}../KeyPairGenerator"
 ${CMakeShell}
 make
 cd ..
-mkdir Release
 mv -f Object/KeyPairGenerator Release
 rm -Rrf Object
 
@@ -58,12 +73,15 @@ mv -f Object/Pcap_DNSProxy Release
 rm -Rrf Object
 
 # Set program.
+chmod 755 Release/FileHash
 chmod 755 Release/KeyPairGenerator
 chmod 755 Release/Pcap_DNSProxy
 chmod 755 Scripts/Linux_Install.Systemd.sh
 chmod 755 Scripts/Linux_Install.SysV.sh
 chmod 755 Scripts/Linux_Uninstall.Systemd.sh
 chmod 755 Scripts/Linux_Uninstall.SysV.sh
+chmod 755 Scripts/Update_Routing.sh
+chmod 755 Scripts/Update_WhiteList.sh
 cp ExampleConfig/PcapDNSProxyService Release/PcapDNSProxyService
 cp ExampleConfig/Pcap_DNSProxy.service Release/Pcap_DNSProxy.service
 cp ExampleConfig/Config.ini Release/Config.conf

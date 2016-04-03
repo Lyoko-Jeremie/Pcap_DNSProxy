@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2015 Chengr28
+// Copyright (C) 2012-2016 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -25,46 +25,46 @@ extern GLOBAL_STATUS GlobalRunningStatus;
 
 //Functions
 SSIZE_T __fastcall ProxySocketSelecting(
-	_In_ SYSTEM_SOCKET Socket, 
-	_In_ fd_set *ReadFDS, 
-	_In_ fd_set *WriteFDS, 
-	_In_ timeval *Timeout, 
-	_In_opt_ const char *SendBuffer, 
-	_In_ const size_t SendSize, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize, 
-	_In_ const size_t MinLen, 
-	_Out_opt_ SSIZE_T *ErrorCode);
+	SYSTEM_SOCKET Socket, 
+	fd_set *ReadFDS, 
+	fd_set *WriteFDS, 
+	timeval *Timeout, 
+	const char *SendBuffer, 
+	const size_t SendSize, 
+	char *OriginalRecv, 
+	const size_t RecvSize, 
+	const size_t MinLen, 
+	SSIZE_T *ErrorCode);
 bool __fastcall SOCKSSelectionExchange(
-	_In_ SOCKET_DATA *SOCKSSocketData, 
-	_In_ fd_set *ReadFDS, 
-	_In_ fd_set *WriteFDS, 
-	_In_ timeval *Timeout, 
-	_Inout_ char *SendBuffer, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize);
+	SOCKET_DATA *SOCKSSocketData, 
+	fd_set *ReadFDS, 
+	fd_set *WriteFDS, 
+	timeval *Timeout, 
+	char *SendBuffer, 
+	char *OriginalRecv, 
+	const size_t RecvSize);
 bool __fastcall SOCKSAuthenticationUsernamePassword(
-	_In_ SYSTEM_SOCKET Socket, 
-	_In_ fd_set *ReadFDS, 
-	_In_ fd_set *WriteFDS, 
-	_In_ timeval *Timeout, 
-	_Inout_ char *SendBuffer, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize);
+	SYSTEM_SOCKET Socket, 
+	fd_set *ReadFDS, 
+	fd_set *WriteFDS, 
+	timeval *Timeout, 
+	char *SendBuffer, 
+	char *OriginalRecv, 
+	const size_t RecvSize);
 bool __fastcall SOCKSClientCommandRequest(
-	_In_ const uint16_t Protocol, 
-	_In_ SYSTEM_SOCKET Socket, 
-	_In_ fd_set *ReadFDS, 
-	_In_ fd_set *WriteFDS, 
-	_In_ timeval *Timeout, 
-	_Inout_ char *SendBuffer, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize, 
-	_In_opt_ SOCKET_DATA *UDP_ASSOCIATE_TCP_Connecting_Address);
+	const uint16_t Protocol, 
+	SYSTEM_SOCKET Socket, 
+	fd_set *ReadFDS, 
+	fd_set *WriteFDS, 
+	timeval *Timeout, 
+	char *SendBuffer, 
+	char *OriginalRecv, 
+	const size_t RecvSize, 
+	SOCKET_DATA *UDP_ASSOCIATE_TCP_Connecting_Address);
 bool __fastcall HTTP_CONNECTRequest(
-	_In_ SOCKET_DATA *HTTPSocketData, 
-	_In_ fd_set *ReadFDS, 
-	_In_ fd_set *WriteFDS, 
-	_In_ timeval *Timeout, 
-	_Out_ char *OriginalRecv, 
-	_In_ const size_t RecvSize);
+	SOCKET_DATA *HTTPSocketData, 
+	fd_set *ReadFDS, 
+	fd_set *WriteFDS, 
+	timeval *Timeout, 
+	char *OriginalRecv, 
+	const size_t RecvSize);

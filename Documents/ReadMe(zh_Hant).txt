@@ -129,7 +129,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 3: Start service - 啟動工具的服務
   * 4: Stop service - 停止工具的服務
   * 5: Restart service - 重啟工具的服務
-  * 6: Flush DNS cache in Pcap_DNSProxy - 刷新程序的内部 DNS 缓存
+  * 6: Flush DNS cache in Pcap_DNSProxy - 刷新程序的内部和系統的 DNS 緩存
+  * 7: Flush DNS cache in system only - 刷新系統的 DNS 緩存
+  * 8: Exit - 退出
 * 設定檔支援的檔案名（只會讀取優先順序較高者，優先順序較低者將被直接忽略）：
   * Windows: Config.ini > Config.conf > Config.cfg > Config
   * Linux/Mac: Config.conf > Config.ini > Config.cfg > Config
@@ -147,7 +149,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 
 特別使用技巧：
-這裡羅列出部分作者建議的介紹和使用技巧，供大家參考和使用。關於調整配置，參見下文 設定檔詳細參數說明 一節
+這裡羅列出部分項目組建議的介紹和使用技巧，供大家參考和使用。關於調整配置，參見下文 設定檔詳細參數說明 一節
 
 * DNS 緩存類型
   * Timer/計時型：可以自訂緩存的時間長度，佇列長度不限
@@ -187,7 +189,11 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPFilter File Name - IPFilter 檔的檔案名，附加在此處的 IPFilter 檔案名將被依次讀取
 
 * Log - 日誌參數區域
-  * Print Error - 輸出錯誤報表功能：開啟為 1 /關閉為 0
+  * Print Log Level - 指定日誌輸出級別：預設為 3，如果留空則為 3
+    * 0 為關閉日誌輸出功能
+    * 1 為輸出重大錯誤
+    * 2 為輸出一般錯誤
+    * 3 為輸出所有錯誤
   * Log Maximum Size - 日誌檔最大容量：直接填數位時單位為位元組，可加上單位，支援的單位有 KB/MB/GB，可接受範圍為 4KB - 1GB，如果留空則為 8MB，預設為 8MB
     * 注意：日誌檔到達最大容量後將被直接刪除，然後重新生成新的日誌檔，原來的日誌將無法找回！
 
@@ -462,6 +468,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 不啟用 Queue Limits Reset Time 參數時為用於接收資料的緩衝區的數量，由於記憶體資料的複製比網路 I/O 快超過一個數量級，故此情況下不需要設置太多緩衝區
   * Queue Limits Reset Time - 資料緩衝區佇列數量限制重置時間：單位為秒，設置為 0 時關閉此功能
   * EDNS Payload Size - EDNS 標籤附帶使用的最大載荷長度：最小為 DNS 協定實現要求的 512(bytes)，留空則使用 EDNS 標籤要求最短的 1220(bytes)
+  * IPv4 Packet TTL - 發出 IPv4 資料包頭部 TTL 值：0 為由作業系統自動決定，取值為 1-255 之間，預設為 32 - 255
+    * 本參數支援指定取值範圍，每次發出資料包時實際使用的值會在此範圍內隨機指定，指定的範圍均為閉區間
+  * IPv6 Packet Hop Limits - 發出 IPv6 資料包頭部 HopLimits 值：：0 為由作業系統自動決定，取值為 1-255 之間，預設為 32 - 255
+    * 本參數支援指定取值範圍，每次發出資料包時實際使用的值會在此範圍內隨機指定，指定的範圍均為閉區間
   * IPv4 TTL - IPv4 主要 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 TTL 值：0 為自動獲取，取值為 1-255 之間
     * 支援多個 TTL 值，與 IPv4 DNS Address 相對應
   * IPv4 Alternate TTL - IPv4 備用 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 TTL 值：0 為自動獲取，取值為 1-255 之間
@@ -507,7 +517,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 隨機添加壓縮指標有3種不同的類型，對應 1 和 2 和 3
     * 可單獨使用其中一個，即只填一個數位，或填入多個，中間使用 + 號連接
     * 填入多個時，當實際需要使用隨機添加壓縮指標時將隨機使用其中的一種，每個請求都有可能不相同
-  * EDNS Label - EDNS 標籤支援，開啟後將為所有請求添加 EDNS 標籤：開啟為 1 /關閉為 0
+  * EDNS Label - EDNS 標籤支援，開啟後將為請求添加 EDNS 標籤：全部開啟為 1 /關閉為 0
+    * 本參數可只指定部分的請求過程使用 EDNS 標籤，以下可用的參數可隨意刪減以實現此功能
+    * 可用的參數：Local + SOCKS Proxy + HTTP Proxy + Direct Request + DNSCurve + TCP + UDP
   * EDNS Client Subnet Relay - EDNS 用戶端子網轉發功能，開啟後將為來自非私有網路位址的所有請求添加其請求時所使用的位址的 EDNS 子網位址：開啟為 1 /關閉為 0
     * 本功能要求啟用 EDNS Label 參數
     * 本參數優先順序比 IPv4/IPv6 EDNS Client Subnet Address 參數高，故需要添加 EDNS 子網位址時將優先添加本參數的位址
@@ -524,6 +536,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 警告：由於現時已經部署 DNSSEC 的功能變數名稱數量極少，未部署 DNSSEC 的功能變數名稱解析沒有 DNSSEC 記錄，這將導致所有未部署 DNSSEC 的功能變數名稱解析失敗，現階段切勿開啟本功能！
   * Alternate Multi Request - 待命伺服器同時請求參數，開啟後將同時請求主要伺服器和待命伺服器並採用最快回應的伺服器的結果：開啟為 1 /關閉為 0
     * 同時請求多伺服器啟用後本參數將強制啟用，將同時請求所有存在於清單中的伺服器，並採用最快回應的伺服器的結果
+  * IPv4 Do Not Fragment - IPv4 資料包頭部 Do Not Fragment 標誌：開啟為 1 /關閉為 0
+    * 目前本功能不支援 Mac OS X 平臺，此平臺將直接忽略此參數
   * IPv4 Data Filter - IPv4 資料包頭檢測：開啟為 1 /關閉為 0
   * TCP Data Filter - TCP 資料包頭檢測：開啟為 1 /關閉為 0
   * DNS Data Filter - DNS 資料包頭檢測：開啟為 1 /關閉為 0
@@ -720,7 +734,6 @@ Hosts 檔案格式說明：
 
 Hosts 設定檔分為多個提供不同功能的區域
 * 區域通過標籤識別，修改時切勿將其刪除
-* 優先順序：Local Hosts/境內DNS解析功能變數名稱清單 > Hosts/主要Hosts清單，Whitelist/白名單條目 和 Banned/黑名單條目 的優先順序由位置決定，參見下文詳細說明
 * 一條條目的總長度切勿超過 4096位元組/4KB
 * 需要注釋請在條目開頭添加 #/井號
 * 優先順序別自上而下遞減，條目越前優先順序越高
@@ -890,6 +903,6 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 * --first-setup
   進行本地防火牆測試(Windows)
 * -c Path 和 --config-file Path
-  啟動時指定配置文件所在的以及程序的工作目錄
+  啟動時指定配置文件所在的工作目錄
 * --disable-daemon
   關閉守護進程模式(Linux)

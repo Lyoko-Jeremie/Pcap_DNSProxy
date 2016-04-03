@@ -10,10 +10,12 @@
 extern "C" {
 #endif
 
-#if defined(__cplusplus) || !defined(__STDC_VERSION__) || __STDC_VERSION__ < 199901L
-# define SODIUM_C99(X)
-#else
-# define SODIUM_C99(X) X
+#ifndef SODIUM_C99
+# if defined(__cplusplus) || !defined(__STDC_VERSION__) || __STDC_VERSION__ < 199901L
+#  define SODIUM_C99(X)
+# else
+#  define SODIUM_C99(X) X
+# endif
 #endif
 
 SODIUM_EXPORT
@@ -41,7 +43,13 @@ int sodium_compare(const unsigned char *b1_, const unsigned char *b2_,
             __attribute__ ((warn_unused_result));
 
 SODIUM_EXPORT
+int sodium_is_zero(const unsigned char *n, const size_t nlen);
+
+SODIUM_EXPORT
 void sodium_increment(unsigned char *n, const size_t nlen);
+
+SODIUM_EXPORT
+void sodium_add(unsigned char *a, const unsigned char *b, const size_t len);
 
 SODIUM_EXPORT
 char *sodium_bin2hex(char * const hex, const size_t hex_maxlen,
