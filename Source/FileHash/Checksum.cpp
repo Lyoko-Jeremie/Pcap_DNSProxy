@@ -75,10 +75,16 @@ bool __fastcall Checksum_Hash(
 	while (!feof(Input))
 	{
 		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
+		_set_errno(0);
 		ReadLength = fread_s(Buffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, Input);
-		if (ReadLength == 0 && errno > 0)
+		if (ReadLength == 0)
 		{
-			fwprintf_s(stderr, L"Hash process error.\n");
+			fwprintf_s(stderr, L"Hash process error");
+			if (errno > 0)
+				fwprintf_s(stderr, L", error code is %d.\n", errno);
+			else 
+				fwprintf_s(stderr, L".\n");
+
 			return false;
 		}
 		else {

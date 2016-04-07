@@ -288,7 +288,7 @@ bool FlushDNSFIFOMonitor(
 	int FileFIFO = 0;
 
 //Create FIFO and create its notify monitor.
-	if (mkfifo(FIFO_PATH_NAME, O_CREAT) < 0 || chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) < 0)
+	if (mkfifo(FIFO_PATH_NAME, O_CREAT) == RETURN_ERROR || chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) == RETURN_ERROR)
 	{
 		PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
 
@@ -303,7 +303,7 @@ bool FlushDNSFIFOMonitor(
 
 	//Open FIFO.
 		FileFIFO = open(FIFO_PATH_NAME, O_RDONLY, 0);
-		if (FileFIFO < 0)
+		if (FileFIFO == RETURN_ERROR)
 		{
 			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
 
@@ -313,7 +313,7 @@ bool FlushDNSFIFOMonitor(
 
 	//Read file data.
 		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
-		if (read(FileFIFO, Buffer.get(), FILE_BUFFER_SIZE) >= strlen(FIFO_MESSAGE_FLUSH_DNS) && 
+		if (read(FileFIFO, Buffer.get(), FILE_BUFFER_SIZE) >= (SSIZE_T)strlen(FIFO_MESSAGE_FLUSH_DNS) && 
 			memcmp(Buffer.get(), FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) == 0)
 				FlushAllDNSCache();
 
@@ -333,6 +333,7 @@ bool FlushDNSFIFOMonitor(
 bool FlushDNSFIFOSender(
 	void)
 {
+	errno = 0;
 	int FileFIFO = open(FIFO_PATH_NAME, O_WRONLY|O_TRUNC|O_NONBLOCK, 0);
 	if (FileFIFO > 0 && write(FileFIFO, FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS) + 1U) > 0)
 	{
@@ -341,8 +342,11 @@ bool FlushDNSFIFOSender(
 		close(FileFIFO);
 	}
 	else {
-		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
-		fwprintf(stderr, L"FIFO write messages error, error code is %d.\n", errno);
+		if (errno > 0)
+		{
+			std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+			fwprintf(stderr, L"FIFO write messages error, error code is %d.\n", errno);
+		}
 
 		return false;
 	}

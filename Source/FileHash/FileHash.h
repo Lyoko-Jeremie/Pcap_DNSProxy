@@ -249,7 +249,7 @@
 #endif
 
 //Version definitions
-#define FULL_VERSION                 L"0.4.5.5"
+#define FULL_VERSION                 L"0.4.5.6"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2016 Chengr28"
 
 //Command definitions
@@ -318,6 +318,7 @@
 	#define RETURN_ERROR                                                 (-1)
 	#define fwprintf_s                                                   fwprintf
 	#define strnlen_s                                                    strnlen
+	#define _set_errno(Value)                                            errno = Value
 	#define fread_s(Dst, DstSize, ElementSize, Count, File)              fread(Dst, ElementSize, Count, File)
 	#define memcpy_s(Dst, DstSize, Src, Size)                            memcpy(Dst, Src, Size)
 #endif

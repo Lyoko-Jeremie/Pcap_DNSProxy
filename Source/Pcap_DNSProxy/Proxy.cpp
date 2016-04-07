@@ -201,8 +201,9 @@ SSIZE_T __fastcall ProxySocketSelecting(
 			}
 		}
 		else { //Timeout or SOCKET_ERROR
-			if (ErrorCode != nullptr)
+			if (SelectResult == SOCKET_ERROR && ErrorCode != nullptr)
 				*ErrorCode = WSAGetLastError();
+
 			break;
 		}
 	}

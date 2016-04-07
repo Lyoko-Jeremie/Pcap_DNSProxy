@@ -321,17 +321,12 @@ size_t __fastcall SocketConnecting(
 		if (Parameter.TCP_FastOpen && OriginalSend != nullptr && SendSize >= DNS_PACKET_MINSIZE)
 		{
 			SSIZE_T RecvLen = sendto(Socket, OriginalSend, (int)SendSize, MSG_FASTOPEN, SockAddr, AddrLen);
-			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
-			{
-				ErrorCode = errno;
-				if (ErrorCode != EAGAIN && ErrorCode != EINPROGRESS)
-					return EXIT_FAILURE;
-				else 
-					return EXIT_SUCCESS;
-			}
-			else {
+			if (RecvLen == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+				return EXIT_FAILURE;
+			else if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+				return EXIT_SUCCESS;
+			else 
 				return RecvLen;
-			}
 		}
 		else {
 	#endif
@@ -1798,7 +1793,7 @@ size_t __fastcall TCPRequest(
 	size_t *AlternateTimeoutTimes = nullptr;
 	if (!SelectTargetSocket(RequestType, &TCPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_TCP))
 	{
-		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"TCP socket initialization error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"TCP socket initialization error", 0, nullptr, 0);
 		closesocket(TCPSocketDataList.front().Socket);
 
 		return EXIT_FAILURE;
@@ -1875,7 +1870,7 @@ size_t __fastcall UDPRequest(
 //Socket initialization
 	if (!SelectTargetSocket(REQUEST_PROCESS_UDP, &UDPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP))
 	{
-		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"UDP socket initialization error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"UDP socket initialization error", 0, nullptr, 0);
 		closesocket(UDPSocketDataList.front().Socket);
 
 		return EXIT_FAILURE;
@@ -1952,7 +1947,7 @@ size_t __fastcall UDPCompleteRequest(
 	size_t *AlternateTimeoutTimes = nullptr;
 	if (!SelectTargetSocket(RequestType, &UDPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP))
 	{
-		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Complete UDP socket initialization error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Complete UDP socket initialization error", 0, nullptr, 0);
 		closesocket(UDPSocketDataList.front().Socket);
 
 		return EXIT_FAILURE;

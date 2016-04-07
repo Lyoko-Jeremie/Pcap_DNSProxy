@@ -103,7 +103,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * IPFilter file size is too large - IPFilter 文件容量过大：请确认 IPFilter 文件的内容，整个文件的大小不要超过 4GB
   * Hosts file size is too large - Hosts 文件容量过大：请确认Hosts文件的内容，整个文件的大小不要超过 4GB
   * Configuration file version error - 配置文件版本错误：请确认配置文件是否需要更新
-  * Data length error - 配置文件参数一行数据超过 4096 字节/4KB，或该行数据长度不符合要求：请确认该行的内容是否符合要求
+  * Data format error - 配置文件参数一行数据超过 4096 字节/4KB，或该行数据长度不符合要求，或者数据格式错误：请确认该行的内容是否符合要求
   * Text encoding error - 文件编码错误：请确认配置文件的编码类型
   * Data of a line is too short - 该参数过短：请确认配置文件的内容
   * Data of a line is too long - 该参数过长：一行数据切勿超过 4096 字节/4KB

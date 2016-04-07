@@ -71,7 +71,7 @@ bool __fastcall AddressStringToBinary(
 			Result = (*GlobalRunningStatus.FunctionPTR_InetPton)(AF_INET6, sAddrString.c_str(), OriginalAddr);
 			if (Result == SOCKET_ERROR || Result == 0)
 			{
-				if (ErrorCode != nullptr)
+				if (Result != 0 && ErrorCode != nullptr)
 					*ErrorCode = WSAGetLastError();
 
 				return false;
@@ -93,8 +93,9 @@ bool __fastcall AddressStringToBinary(
 		Result = inet_pton(AF_INET6, sAddrString.c_str(), OriginalAddr);
 		if (Result == SOCKET_ERROR || Result == 0)
 		{
-			if (ErrorCode != nullptr)
+			if (Result != 0 && ErrorCode != nullptr)
 				*ErrorCode = WSAGetLastError();
+
 			return false;
 		}
 	#endif
@@ -152,8 +153,9 @@ bool __fastcall AddressStringToBinary(
 			Result = (*GlobalRunningStatus.FunctionPTR_InetPton)(AF_INET, sAddrString.c_str(), OriginalAddr);
 			if (Result == SOCKET_ERROR || Result == 0)
 			{
-				if (ErrorCode != nullptr)
+				if (Result != 0 && ErrorCode != nullptr)
 					*ErrorCode = WSAGetLastError();
+
 				return false;
 			}
 		}
@@ -163,6 +165,7 @@ bool __fastcall AddressStringToBinary(
 			{
 				if (ErrorCode != nullptr)
 					*ErrorCode = WSAGetLastError();
+
 				return false;
 			}
 
@@ -172,8 +175,9 @@ bool __fastcall AddressStringToBinary(
 		Result = inet_pton(AF_INET, sAddrString.c_str(), OriginalAddr);
 		if (Result == SOCKET_ERROR || Result == 0)
 		{
-			if (ErrorCode != nullptr)
+			if (Result != 0 && ErrorCode != nullptr)
 				*ErrorCode = WSAGetLastError();
+
 			return false;
 		}
 	#endif

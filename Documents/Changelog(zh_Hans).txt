@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy 0.4.5.1-0.4.5.5 更新日志(2016-04-03)：
+﻿Pcap_DNSProxy 0.4.5.1-0.4.5.6 更新日志(2016-04-07)：
 
 * 为 FileHash 工具添加 Hash 算法支持
   * CRC family: CRC-8 family + CRC-16 family + CRC-24 family + CRC-32 family + CRC-40 + CRC-64 family
@@ -28,21 +28,22 @@
 * 修复白名单列表不工作的问题 [lonsx]
 * 修复白名单/黑名单列表在 CNAME Hosts 区域内不生效的问题 [shuangzhijinghua]
 * 修复一个特定情况下可能导致程序崩溃的问题
+* 修复因 errno 造成的错误代码延续问题 [Syrone Wong]
 * 修复 Additional Path 失效的问题 [jzp820927]
 * 修复 Additional Path/Hosts File Name/IPFilter File Name 参数大小写和空格兼容问题
 * 修复使用 Win10Pcap 时抓包模块不能工作的问题 (Windows) [smounives]
 * 修复程序内部 DNS 缓存被错误自动清除的问题 (Linux/Mac)
 * 修复 Update_Routing 工具在 ICMP/ICMPv6 协议被屏蔽的网络下不能工作的问题 (Windows) [w48325832/wongsyrone]
 * 修复重启服务间隔时间过短可能导致的崩溃问题 (Windows)
-* 文件校验码(0.4.5.5)
+* 文件校验码(0.4.5.6)
   * SHA-1:
-    * Windows/Pcap_DNSProxy.exe -> 10C6F54101068C3312CBC4E2C9C3B0F57D11D5AC
-    * Windows/Pcap_DNSProxy_x86.exe -> 5B3B065801E2BD58B11D80A74300314BCCADC41C
-    * Mac/Pcap_DNSProxy -> 33781AA39C249D85FCA815ADA3A6B0EEE7D1CCFC
+    * Windows/Pcap_DNSProxy.exe -> E817F13324E298F566BBBFEAEABFC59D79650069
+    * Windows/Pcap_DNSProxy_x86.exe -> 90FB5DF6521508504585495B977F2C76BAFC8EE7
+    * Mac/Pcap_DNSProxy -> 81844492F334C3F26E0ECD566ACEDCB69E7564B0
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe -> BB32A9EB77D2780F155DB6F73543936427893F568D49214DFAEEA30037D9B8EB
-    * Windows/Pcap_DNSProxy_x86.exe -> 88E0DA56D5B4EC3FDCE56EB57F23D66DAB61B135618E04E91BFEFD6110CF4554
-    * Mac/Pcap_DNSProxy -> B8134CFF65C86F5D5F341FB7264D5F9BA137FC2E6FD5B3C187FCFCBBA53B267E
+    * Windows/Pcap_DNSProxy.exe -> AF0B9F06A30A6E3CB0178D969651F3E1B5AF3BDFC4DF67C7A0B54C5824B60EFF
+    * Windows/Pcap_DNSProxy_x86.exe -> BCBC1991C1873AC635A987A585362514FFF3F870230284CE3FCA9BFD64C02D68
+    * Mac/Pcap_DNSProxy -> 6D8E8C5B90E871FDB16480C9708801EF1A2CA81F59BE1BFA592DEC9EA9E68E9A
 
 
 -------------------------------------------------------------------------------

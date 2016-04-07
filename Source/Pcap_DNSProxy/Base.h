@@ -107,7 +107,7 @@
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE                    0.3
 #define CONFIG_VERSION                                0.4                         //Current configuration version
-#define FULL_VERSION                                  L"0.4.5.5"
+#define FULL_VERSION                                  L"0.4.5.6"
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
 
 //Size and length definitions
@@ -300,7 +300,7 @@
 #define LOG_LEVEL_4                                   4U                          //Reserved
 #define LOG_LEVEL_5                                   5U                          //Reserved
 #define DEFAULT_LOG_LEVEL                             LOG_LEVEL_3
-#define LOG_LEVEL_MAXNUM                              LOG_LEVEL_4
+#define LOG_LEVEL_MAXNUM                              LOG_LEVEL_3
 #define LOG_MESSAGE_NOTICE                            1U                          // 01: Notice Message
 #define LOG_ERROR_SYSTEM                              2U                          // 02: System Error
 #define LOG_ERROR_PARAMETER                           3U                          // 03: Parameter Error
@@ -352,9 +352,7 @@
 #define SOCKET_SETTING_UDP_BLOCK_RESET                6U
 #define SOCKET_SETTING_HOP_LIMITS_IPV4                7U
 #define SOCKET_SETTING_HOP_LIMITS_IPV6                8U
-#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-	#define SOCKET_SETTING_DO_NOT_FRAGMENT                9U
-#endif
+#define SOCKET_SETTING_DO_NOT_FRAGMENT                9U
 
 //Request process type definitions
 #define REQUEST_PROCESS_LOCAL                         1U

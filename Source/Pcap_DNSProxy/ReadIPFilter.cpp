@@ -247,7 +247,7 @@ bool __fastcall ReadBlacklistData(
 			//Check address range.
 				if (AddressesComparing(&((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, AF_INET6) > ADDRESS_COMPARE_EQUAL)
 				{
-					PrintError(LOG_LEVEL_1, LOG_ERROR_IPFILTER, L"IPv6 address range error", WSAGetLastError(), FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_1, LOG_ERROR_IPFILTER, L"IPv6 address range error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 			}
@@ -312,7 +312,7 @@ bool __fastcall ReadBlacklistData(
 			//Check address range.
 				if (AddressesComparing(&((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, AF_INET) > ADDRESS_COMPARE_EQUAL)
 				{
-					PrintError(LOG_LEVEL_1, LOG_ERROR_IPFILTER, L"IPv4 address range error", WSAGetLastError(), FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_1, LOG_ERROR_IPFILTER, L"IPv4 address range error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 			}
@@ -500,7 +500,7 @@ bool __fastcall ReadLocalRoutingData(
 
 	//Mark network prefix.
 		Result = strtoul(Data.c_str(), nullptr, 0);
-		if (errno > 0 || Result <= 0 || Result > (SSIZE_T)(sizeof(in_addr) * BYTES_TO_BITS))
+		if (Result <= 0 || Result > (SSIZE_T)(sizeof(in_addr) * BYTES_TO_BITS))
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_IPFILTER, L"IPv4 prefix error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -615,7 +615,7 @@ bool __fastcall ReadAddressPrefixBlock(
 
 	//Mark network prefix.
 		Result = strtoul(Data.c_str(), nullptr, 0);
-		if (errno > 0 || Result <= 0 || Result > (SSIZE_T)(sizeof(in_addr) * BYTES_TO_BITS))
+		if (Result <= 0 || Result > (SSIZE_T)(sizeof(in_addr) * BYTES_TO_BITS))
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 prefix error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -691,8 +691,9 @@ bool __fastcall ReadMainIPFilterData(
 	//Mark ipfilter level.
 		char Level[ADDR_STRING_MAXSIZE] = {0};
 		memcpy_s(Level, ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COMMA) + 1U, Data.find(ASCII_COMMA, Data.find(ASCII_COMMA) + 1U) - Data.find(ASCII_COMMA) - 1U);
+		_set_errno(0);
 		Result = strtoul(Level, nullptr, 0);
-		if (errno == 0 && Result >= 0 && Result <= UINT16_MAX)
+		if (Result == 0 && errno == 0 || Result > 0 && Result < UINT16_MAX)
 		{
 			AddressRangeTableTemp.Level = (size_t)Result;
 		}
@@ -804,7 +805,7 @@ bool __fastcall ReadMainIPFilterData(
 	//Check address range.
 		if (AddressesComparing(&((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, AF_INET6) > ADDRESS_COMPARE_EQUAL)
 		{
-			PrintError(LOG_LEVEL_1, LOG_ERROR_IPFILTER, L"IPv6 address range error", WSAGetLastError(), FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+			PrintError(LOG_LEVEL_1, LOG_ERROR_IPFILTER, L"IPv6 address range error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
 		}
 	}

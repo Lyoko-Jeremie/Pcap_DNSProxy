@@ -470,13 +470,13 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 本参数支持指定取值范围，每次发出数据包时实际使用的值会在此范围内随机指定，指定的范围均为闭区间
   * IPv6 Packet Hop Limits - 发出 IPv6 数据包头部 HopLimits 值：：0 为由操作系统自动决定，取值为 1-255 之间，默认为 32 - 255
     * 本参数支持指定取值范围，每次发出数据包时实际使用的值会在此范围内随机指定，指定的范围均为闭区间
-  * IPv4 TTL - IPv4 主要 DNS 服务器接受请求的远程 DNS 服务器数据包的 TTL 值：0 为自动获取，取值为 1-255 之间
+  * IPv4 DNS TTL - IPv4 主要 DNS 服务器接受请求的远程 DNS 服务器数据包的 TTL 值：0 为自动获取，取值为 1-255 之间
     * 支持多个 TTL 值，与 IPv4 DNS Address 相对应
-  * IPv4 Alternate TTL - IPv4 备用 DNS 服务器接受请求的远程 DNS 服务器数据包的 TTL 值：0 为自动获取，取值为 1-255 之间
+  * IPv4 Alternate DNS TTL - IPv4 备用 DNS 服务器接受请求的远程 DNS 服务器数据包的 TTL 值：0 为自动获取，取值为 1-255 之间
     * 支持多个 TTL 值，与 IPv4 Alternate DNS Address 相对应
-  * IPv6 Hop Limits - IPv6 主要 DNS 服务器接受请求的远程 DNS 服务器数据包的 Hop Limits 值：0 为自动获取，取值为 1-255 之间
+  * IPv6 DNS Hop Limits - IPv6 主要 DNS 服务器接受请求的远程 DNS 服务器数据包的 Hop Limits 值：0 为自动获取，取值为 1-255 之间
     * 支持多个 Hop Limits 值，与 IPv6 DNS Address 相对应
-  * IPv6 Alternate Hop Limits - IPv6 备用 DNS 服务器接受请求的远程 DNS 服务器数据包的 Hop Limits 值：0 为自动获取，取值为 1-255 之间
+  * IPv6 Alternate DNS Hop Limits - IPv6 备用 DNS 服务器接受请求的远程 DNS 服务器数据包的 Hop Limits 值：0 为自动获取，取值为 1-255 之间
     * 支持多个 Hop Limits 值，与 IPv6 Alternate DNS Address 相对应
   * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受范围，即 IPv4 TTL/IPv6 Hop Limits 的值 ± 数值的范围内的数据包均可被接受，用于避免网络环境短暂变化造成解析失败的问题：取值为 1-255 之间
   * Reliable Socket Timeout - 可靠协议端口超时时间，可靠端口指 TCP 协议：最小为 500，可留空，留空时为 3000，单位为毫秒

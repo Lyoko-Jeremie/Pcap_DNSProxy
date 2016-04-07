@@ -108,12 +108,16 @@ bool __fastcall MonitorInit(
 		{
 			memset(&LocalSocketData, 0, sizeof(SOCKET_DATA));
 			LocalSocketData.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+/* Old version(2016-04-06)
 			if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 			{
 				if (WSAGetLastError() != 0 && WSAGetLastError() != WSAEAFNOSUPPORT)
 					PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
+*/
+			if (SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
+			{
 				GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
 				LocalSocketData.SockAddr.ss_family = AF_INET6;
 				LocalSocketData.AddrLen = sizeof(sockaddr_in6);
@@ -182,12 +186,16 @@ bool __fastcall MonitorInit(
 		{
 			memset(&LocalSocketData, 0, sizeof(SOCKET_DATA));
 			LocalSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+/* Old version(2016-04-06)
 			if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 			{
 				if (WSAGetLastError() != 0 && WSAGetLastError() != WSAEAFNOSUPPORT)
 					PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 			}
 			else {
+*/
+			if (SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
+			{
 				GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
 				LocalSocketData.SockAddr.ss_family = AF_INET6;
 				LocalSocketData.AddrLen = sizeof(sockaddr_in6);
@@ -1231,10 +1239,11 @@ void __fastcall NetworkInformationMonitor(
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			if (getifaddrs(&InterfaceAddressList) != 0 || InterfaceAddressList == nullptr)
 			{
+				auto ErrorCode = errno;
 				if (InterfaceAddressList != nullptr)
 					freeifaddrs(InterfaceAddressList);
 				InterfaceAddressList = nullptr;
-				PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get localhost address error", errno, nullptr, 0);
+				PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get localhost address error", ErrorCode, nullptr, 0);
 		#endif
 
 				Sleep(Parameter.FileRefreshTime);

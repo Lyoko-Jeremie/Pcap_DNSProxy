@@ -1432,13 +1432,9 @@ bool __fastcall ReadParameterData(
 	if (Data.find("Version=") == 0)
 	{
 		if (Data.length() > strlen("Version=") && Data.length() < strlen("Version=") + 8U)
-		{
 			ParameterPTR->Version = strtod(Data.c_str() + strlen("Version="), nullptr);
-		}
-		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
-		}
+		else
+			goto PrintDataFormatError;
 	}
 
 //Parameter version less than 0.4 compatible support
@@ -1454,12 +1450,11 @@ bool __fastcall ReadParameterData(
 			if (Data.length() < strlen("Hosts=") + UINT16_MAX_STRING_LENGTH)
 			{
 				Result = strtoul(Data.c_str() + strlen("Hosts="), nullptr, 0);
-				if (errno == 0 && Result > 0 && Result >= SHORTEST_FILEREFRESH_TIME)
+				if (Result >= (SSIZE_T)SHORTEST_FILEREFRESH_TIME && Result < ULONG_MAX)
 					Parameter.FileRefreshTime = Result * SECOND_TO_MILLISECOND;
 			}
 			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
+				goto PrintDataFormatError;
 			}
 		}
 		else if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && Data.find("IPv4DNSAddress=") == 0 && Data.length() > strlen("IPv4DNSAddress="))
@@ -1479,8 +1474,7 @@ bool __fastcall ReadParameterData(
 				Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family = AF_INET;
 			}
 			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
+				goto PrintDataFormatError;
 			}
 		}
 		else if (Parameter.DNSTarget.Local_IPv4.Storage.ss_family == 0 && Data.find("IPv4LocalDNSAddress=") == 0 && Data.length() > strlen("IPv4LocalDNSAddress="))
@@ -1500,8 +1494,7 @@ bool __fastcall ReadParameterData(
 				Parameter.DNSTarget.Local_IPv4.Storage.ss_family = AF_INET;
 			}
 			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
+				goto PrintDataFormatError;
 			}
 		}
 		else if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0 && Data.find("IPv6DNSAddress=") == 0 && Data.length() > strlen("IPv6DNSAddress="))
@@ -1521,8 +1514,7 @@ bool __fastcall ReadParameterData(
 				Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family = AF_INET6;
 			}
 			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
+				goto PrintDataFormatError;
 			}
 		}
 		else if (Parameter.DNSTarget.Local_IPv6.Storage.ss_family == 0 && Data.find("IPv6LocalDNSAddress=") == 0 && Data.length() > strlen("IPv6LocalDNSAddress="))
@@ -1542,8 +1534,7 @@ bool __fastcall ReadParameterData(
 				Parameter.DNSTarget.Local_IPv6.Storage.ss_family = AF_INET6;
 			}
 			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
+				goto PrintDataFormatError;
 			}
 		}
 	#if defined(ENABLE_PCAP)
@@ -1552,12 +1543,11 @@ bool __fastcall ReadParameterData(
 			if (Data.length() < strlen("HopLimits/TTLFluctuation=") + UINT8_MAX_STRING_LENGTH)
 			{
 				Result = strtoul(Data.c_str() + strlen("HopLimits/TTLFluctuation="), nullptr, 0);
-				if (errno == 0 && Result > 0 && Result < UINT8_MAX)
+				if (Result > 0 && Result < UINT8_MAX)
 					Parameter.HopLimitFluctuation = (uint8_t)Result;
 			}
 			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
+				goto PrintDataFormatError;
 			}
 		}
 	#endif
@@ -1585,12 +1575,11 @@ bool __fastcall ReadParameterData(
 			if (Data.length() < strlen("DomainTestSpeed=") + UINT16_MAX_STRING_LENGTH)
 			{
 				Result = strtoul(Data.c_str() + strlen("DomainTestSpeed="), nullptr, 0);
-				if (errno == 0 && Result > 0)
+				if (Result > 0 && Result < ULONG_MAX)
 					Parameter.DomainTest_Speed = Result * SECOND_TO_MILLISECOND;
 			}
 			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
+				goto PrintDataFormatError;
 			}
 		}
 	#endif
@@ -1600,12 +1589,11 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("FileRefreshTime=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("FileRefreshTime="), nullptr, 0);
-			if (errno == 0 && Result > 0 && Result >= SHORTEST_FILEREFRESH_TIME)
+			if (Result >= (SSIZE_T)SHORTEST_FILEREFRESH_TIME && Result < ULONG_MAX)
 				ParameterPTR->FileRefreshTime = Result * SECOND_TO_MILLISECOND;
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (IsFirstRead && Data.find("Additional Path = ") == 0 && Data.length() > strlen("Additional Path = "))
@@ -1643,21 +1631,20 @@ bool __fastcall ReadParameterData(
 	}
 	else if (Data.find("PrintLogLevel=") == 0)
 	{
-		if (Data.length() < strlen("PrintLogLevel=") + 2U)
+		if (Data.length() == strlen("PrintLogLevel=") + 1U)
 		{
+			_set_errno(0);
 			Result = strtoul(Data.c_str() + strlen("PrintLogLevel="), nullptr, 0);
-			if (errno == 0 && Result >= LOG_LEVEL_0 && Result <= LOG_LEVEL_MAXNUM)
+			if (Result == 0 && errno == 0 || Result > LOG_LEVEL_0 && Result <= LOG_LEVEL_MAXNUM)
 			{
 				ParameterPTR->PrintLogLevel = (size_t)Result;
 			}
 			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
+				goto PrintDataFormatError;
 			}
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (Data.find("LogMaximumSize=") == 0 && Data.length() > strlen("LogMaximumSize="))
@@ -1668,67 +1655,52 @@ bool __fastcall ReadParameterData(
 			Data.erase(Data.length() - 2U, 2U);
 
 		//Mark bytes.
+			_set_errno(0);
 			Result = strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
-			if (errno == 0 && Result >= 0)
-			{
+			if (Result == 0 && errno == 0 || Result > 0 && Result < ULONG_MAX)
 				ParameterPTR->LogMaxSize = Result * KILOBYTE_TIMES;
-			}
-			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
-			}
+			else 
+				goto PrintDataFormatError;
 		}
 		else if (Data.find("MB") != std::string::npos)
 		{
 			Data.erase(Data.length() - 2U, 2U);
 
 		//Mark bytes.
+			_set_errno(0);
 			Result = strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
-			if (errno == 0 && Result >= 0)
-			{
+			if (Result == 0 && errno == 0 || Result > 0 && Result < ULONG_MAX)
 				ParameterPTR->LogMaxSize = Result * MEGABYTE_TIMES;
-			}
-			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
-			}
+			else 
+				goto PrintDataFormatError;
 		}
 		else if (Data.find("GB") != std::string::npos)
 		{
 			Data.erase(Data.length() - 2U, 2U);
 
 		//Mark bytes.
+			_set_errno(0);
 			Result = strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
-			if (errno == 0 && Result >= 0)
-			{
+			if (Result == 0 && errno == 0 || Result > 0 && Result < ULONG_MAX)
 				ParameterPTR->LogMaxSize = Result * GIGABYTE_TIMES;
-			}
-			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
-			}
+			else 
+				goto PrintDataFormatError;
 		}
 		else {
 		//Check number.
 			for (auto StringIter = Data.begin() + strlen("LogMaximumSize=");StringIter != Data.end();++StringIter)
 			{
 				if (*StringIter < ASCII_ZERO || *StringIter > ASCII_NINE)
-				{
-					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-					return false;
-				}
+					goto PrintDataFormatError;
 			}
 
 		//Mark bytes.
+			_set_errno(0);
 			Result = strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
-			if (errno == 0 && Result >= 0)
-			{
+			if (Result == 0 && errno == 0 || Result > 0 && Result < ULONG_MAX)
 				ParameterPTR->LogMaxSize = Result;
-			}
-			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
-			}
+			else 
+				goto PrintDataFormatError;
 		}
 	}
 
@@ -1747,12 +1719,11 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("PcapReadingTimeout=") + UINT32_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("PcapReadingTimeout="), nullptr, 0);
-			if (errno == 0 && Result > 0 && Result > PCAP_CAPTURE_MIN_TIMEOUT)
+			if (Result > (SSIZE_T)PCAP_CAPTURE_MIN_TIMEOUT && Result < ULONG_MAX)
 				Parameter.PcapReadingTimeout = (size_t)Result;
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 #endif
@@ -1792,7 +1763,7 @@ bool __fastcall ReadParameterData(
 			if (Result == 0)
 			{
 				Result = strtoul(StringIter.c_str(), nullptr, 0);
-				if (errno > 0 || Result <= 0 || Result > UINT16_MAX)
+				if (Result <= 0 || Result > UINT16_MAX)
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Localhost listening port error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -1823,7 +1794,7 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("IPFilterLevel<") + UINT8_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("IPFilterLevel<"), nullptr, 0);
-			if (errno == 0 && Result > 0 && Result <= UINT16_MAX)
+			if (Result > 0 && Result <= UINT16_MAX)
 			{
 				ParameterPTR->IPFilterLevel = (size_t)Result;
 			}
@@ -1833,16 +1804,14 @@ bool __fastcall ReadParameterData(
 			}
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (Data.find("AcceptType=") == 0 && Data.length() > strlen("AcceptType="))
 	{
 		if (Data.find(ASCII_COLON) == std::string::npos)
 		{
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 		else {
 		//Permit or Deny
@@ -1861,7 +1830,7 @@ bool __fastcall ReadParameterData(
 				if (Result == 0)
 				{
 					Result = strtoul(StringIter.c_str(), nullptr, 0);
-					if (errno > 0 || Result <= 0 || Result > UINT16_MAX)
+					if (Result <= 0 || Result > UINT16_MAX)
 					{
 						PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNS Records type error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 						return false;
@@ -1932,7 +1901,7 @@ bool __fastcall ReadParameterData(
 	else if (IsFirstRead && Parameter.CacheType > 0 && Data.find("CacheParameter=") == 0 && Data.length() > strlen("CacheParameter="))
 	{
 		Result = strtoul(Data.c_str() + strlen("CacheParameter="), nullptr, 0);
-		if (errno == 0 && Result > 0)
+		if (Result > 0 && Result < ULONG_MAX)
 		{
 			if (Parameter.CacheType == CACHE_TYPE_TIMER)
 				Parameter.CacheParameter = Result * SECOND_TO_MILLISECOND;
@@ -1940,8 +1909,7 @@ bool __fastcall ReadParameterData(
 				Parameter.CacheParameter = Result;
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (Data.find("DefaultTTL=") == 0 && Data.length() > strlen("DefaultTTL="))
@@ -1949,7 +1917,7 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("DefaultTTL=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("DefaultTTL="), nullptr, 0);
-			if (errno == 0 && Result > 0 && Result <= UINT16_MAX)
+			if (Result > 0 && Result <= UINT16_MAX)
 			{
 				ParameterPTR->HostsDefaultTTL = (uint32_t)Result;
 			}
@@ -1959,8 +1927,7 @@ bool __fastcall ReadParameterData(
 			}
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 
@@ -2072,12 +2039,11 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("BufferQueueLimits=") + UINT32_MAX_STRING_LENGTH - 1U)
 		{
 			Result = strtoul(Data.c_str() + strlen("BufferQueueLimits="), nullptr, 0);
-			if (errno == 0 && Result > 0 && Result >= BUFFER_QUEUE_MINNUM && Result <= BUFFER_QUEUE_MAXNUM)
+			if (Result >= (SSIZE_T)BUFFER_QUEUE_MINNUM && Result <= (SSIZE_T)BUFFER_QUEUE_MAXNUM)
 				Parameter.BufferQueueSize = Result;
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (IsFirstRead && Data.find("QueueLimitsResetTime=") == 0 && Data.length() > strlen("QueueLimitsResetTime="))
@@ -2085,25 +2051,24 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("QueueLimitsResetTime=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("QueueLimitsResetTime="), nullptr, 0);
-			if (errno == 0 && Result > 0)
+			if (Result > 0 && Result < ULONG_MAX)
 				Parameter.QueueResetTime = Result * SECOND_TO_MILLISECOND;
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (IsFirstRead && Data.find("EDNSPayloadSize=") == 0 && Data.length() > strlen("EDNSPayloadSize="))
 	{
 		if (Data.length() < strlen("EDNSPayloadSize=") + UINT16_MAX_STRING_LENGTH)
 		{
+			_set_errno(0);
 			Result = strtoul(Data.c_str() + strlen("EDNSPayloadSize="), nullptr, 0);
-			if (errno == 0 && Result >= 0)
+			if (Result == 0 && errno == 0 || Result > 0 && Result < ULONG_MAX)
 				Parameter.EDNSPayloadSize = Result;
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (Data.find("IPv4PacketTTL=") == 0 && Data.length() > strlen("IPv4PacketTTL="))
@@ -2114,28 +2079,22 @@ bool __fastcall ReadParameterData(
 		//Mark begining value.
 			std::string ValueString;
 			ValueString.append(Data, strlen("IPv4PacketTTL="), Data.find(ASCII_MINUS) - strlen("IPv4PacketTTL="));
+			_set_errno(0);
 			Result = strtoul(ValueString.c_str(), nullptr, 0);
-			if (errno == 0 && Result >= 0 && Result <= UINT8_MAX)
-			{
+			if (Result == 0 && errno == 0 || Result > 0 && Result <= UINT8_MAX)
 				ParameterPTR->PacketHopLimits_IPv4_Begin = (int)Result;
-			}
-			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
-			}
+			else 
+				goto PrintDataFormatError;
 
 		//Mark end value.
 			ValueString.clear();
 			ValueString.append(Data, Data.find(ASCII_MINUS) + 1U, Data.length() - Data.find(ASCII_MINUS));
+			_set_errno(0);
 			Result = strtoul(ValueString.c_str(), nullptr, 0);
-			if (errno == 0 && Result >= 0 && Result <= UINT8_MAX)
-			{
+			if (Result == 0 && errno == 0 || Result > 0 && Result <= UINT8_MAX)
 				ParameterPTR->PacketHopLimits_IPv4_End = (int)Result;
-			}
-			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
-			}
+			else 
+				goto PrintDataFormatError;
 
 		//Range check
 			if (ParameterPTR->PacketHopLimits_IPv4_Begin == 0 && ParameterPTR->PacketHopLimits_IPv4_End == 0 || 
@@ -2149,19 +2108,15 @@ bool __fastcall ReadParameterData(
 		else {
 			if (Data.length() < strlen("IPv4PacketTTL=") + UINT8_MAX_STRING_LENGTH)
 			{
+				_set_errno(0);
 				Result = strtoul(Data.c_str() + strlen("IPv4PacketTTL="), nullptr, 0);
-				if (errno == 0 && Result >= 0 && Result <= UINT8_MAX)
-				{
+				if (Result == 0 && errno == 0 || Result > 0 && Result <= UINT8_MAX)
 					ParameterPTR->PacketHopLimits_IPv4_Begin = (int)Result;
-				}
-				else {
-					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-					return false;
-				}
+				else 
+					goto PrintDataFormatError;
 			}
 			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
+				goto PrintDataFormatError;
 			}
 		}
 	}
@@ -2173,28 +2128,22 @@ bool __fastcall ReadParameterData(
 		//Mark begining value.
 			std::string ValueString;
 			ValueString.append(Data, strlen("IPv6PacketHopLimits="), Data.find(ASCII_MINUS) - strlen("IPv6PacketHopLimits="));
+			_set_errno(0);
 			Result = strtoul(ValueString.c_str(), nullptr, 0);
-			if (errno == 0 && Result >= 0 && Result <= UINT8_MAX)
-			{
+			if (Result == 0 && errno == 0 || Result > 0 && Result <= UINT8_MAX)
 				ParameterPTR->PacketHopLimits_IPv6_Begin = (int)Result;
-			}
-			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
-			}
+			else 
+				goto PrintDataFormatError;
 
 		//Mark end value.
 			ValueString.clear();
 			ValueString.append(Data, Data.find(ASCII_MINUS) + 1U, Data.length() - Data.find(ASCII_MINUS));
+			_set_errno(0);
 			Result = strtoul(ValueString.c_str(), nullptr, 0);
-			if (errno == 0 && Result >= 0 && Result <= UINT8_MAX)
-			{
+			if (Result == 0 && errno == 0 || Result > 0 && Result <= UINT8_MAX)
 				ParameterPTR->PacketHopLimits_IPv6_End = (int)Result;
-			}
-			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
-			}
+			else 
+				goto PrintDataFormatError;
 
 		//Range check
 			if (ParameterPTR->PacketHopLimits_IPv6_Begin == 0 && ParameterPTR->PacketHopLimits_IPv6_End == 0 || 
@@ -2208,19 +2157,15 @@ bool __fastcall ReadParameterData(
 		else {
 			if (Data.length() < strlen("IPv6PacketHopLimits=") + UINT8_MAX_STRING_LENGTH)
 			{
+				_set_errno(0);
 				Result = strtoul(Data.c_str() + strlen("IPv6PacketHopLimits="), nullptr, 0);
-				if (errno == 0 && Result >= 0 && Result <= UINT8_MAX)
-				{
+				if (Result == 0 && errno == 0 || Result > 0 && Result <= UINT8_MAX)
 					ParameterPTR->PacketHopLimits_IPv6_Begin = (int)Result;
-				}
-				else {
-					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-					return false;
-				}
+				else 
+					goto PrintDataFormatError;
 			}
 			else {
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				return false;
+				goto PrintDataFormatError;
 			}
 		}
 	}
@@ -2270,12 +2215,11 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("HopLimitsFluctuation=") + UINT8_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("HopLimitsFluctuation="), nullptr, 0);
-			if (errno == 0 && Result > 0 && Result < UINT8_MAX)
+			if (Result > 0 && Result < UINT8_MAX)
 				ParameterPTR->HopLimitFluctuation = (uint8_t)Result;
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 #endif
@@ -2284,7 +2228,7 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("ReliableSocketTimeout=") + UINT32_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("ReliableSocketTimeout="), nullptr, 0);
-			if (errno == 0 && Result > 0 && Result > SOCKET_MIN_TIMEOUT)
+			if (Result > (SSIZE_T)SOCKET_MIN_TIMEOUT && Result < ULONG_MAX)
 			#if defined(PLATFORM_WIN)
 				ParameterPTR->SocketTimeout_Reliable = (int)Result;
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -2295,8 +2239,7 @@ bool __fastcall ReadParameterData(
 			#endif
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (Data.find("UnreliableSocketTimeout=") == 0 && Data.length() > strlen("UnreliableSocketTimeout="))
@@ -2304,7 +2247,7 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("UnreliableSocketTimeout=") + UINT32_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("UnreliableSocketTimeout="), nullptr, 0);
-			if (errno == 0 && Result > 0 && Result > SOCKET_MIN_TIMEOUT)
+			if (Result > (SSIZE_T)SOCKET_MIN_TIMEOUT && Result < ULONG_MAX)
 			#if defined(PLATFORM_WIN)
 				ParameterPTR->SocketTimeout_Unreliable = (int)Result;
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -2315,8 +2258,7 @@ bool __fastcall ReadParameterData(
 			#endif
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (Data.find("ReceiveWaiting=") == 0 && Data.length() > strlen("ReceiveWaiting="))
@@ -2324,12 +2266,11 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("ReceiveWaiting=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("ReceiveWaiting="), nullptr, 0);
-			if (errno == 0 && Result > 0)
+			if (Result > 0 && Result < ULONG_MAX)
 				ParameterPTR->ReceiveWaiting = (size_t)Result;
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 #if defined(ENABLE_PCAP)
@@ -2338,16 +2279,15 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("ICMPTest=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("ICMPTest="), nullptr, 0);
-			if (errno == 0 && Result >= DEFAULT_ICMPTEST_TIME)
+			if (Result >= (SSIZE_T)DEFAULT_ICMPTEST_TIME && Result < ULONG_MAX)
 				ParameterPTR->ICMP_Speed = Result * SECOND_TO_MILLISECOND;
-			else if (Result > 0 && Result < DEFAULT_ICMPTEST_TIME)
+			else if (Result > 0 && Result < (SSIZE_T)DEFAULT_ICMPTEST_TIME)
 				ParameterPTR->ICMP_Speed = DEFAULT_ICMPTEST_TIME * SECOND_TO_MILLISECOND;
 			else 
 				ParameterPTR->ICMP_Speed = 0; //ICMP Test Disable
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (Data.find("DomainTest=") == 0 && Data.length() > strlen("DomainTest="))
@@ -2355,12 +2295,11 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("DomainTest=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("DomainTest="), nullptr, 0);
-			if (errno == 0 && Result > 0)
+			if (Result > 0 && Result < ULONG_MAX)
 				ParameterPTR->DomainTest_Speed = Result * SECOND_TO_MILLISECOND;
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 #endif
@@ -2369,12 +2308,11 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("AlternateTimes=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("AlternateTimes="), nullptr, 0);
-			if (errno == 0 && Result > 0)
+			if (Result > 0 && Result < ULONG_MAX)
 				Parameter.AlternateTimes = Result;
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (IsFirstRead && Data.find("AlternateTimeRange=") == 0 && Data.length() > strlen("AlternateTimeRange="))
@@ -2382,12 +2320,11 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("AlternateTimeRange=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("AlternateTimeRange="), nullptr, 0);
-			if (errno == 0 && Result > 0 && Result >= DEFAULT_ALTERNATE_RANGE)
+			if (Result >= (SSIZE_T)DEFAULT_ALTERNATE_RANGE && Result < ULONG_MAX)
 				Parameter.AlternateTimeRange = Result * SECOND_TO_MILLISECOND;
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (IsFirstRead && Data.find("AlternateResetTime=") == 0 && Data.length() > strlen("AlternateResetTime="))
@@ -2395,12 +2332,11 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("AlternateResetTime=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("AlternateResetTime="), nullptr, 0);
-			if (errno == 0 && Result > 0 && Result >= DEFAULT_ALTERNATE_RESET_TIME)
+			if (Result >= (SSIZE_T)DEFAULT_ALTERNATE_RESET_TIME && Result < ULONG_MAX)
 				Parameter.AlternateResetTime = Result * SECOND_TO_MILLISECOND;
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (Data.find("MultiRequestTimes=") == 0 && Data.length() > strlen("MultiRequestTimes="))
@@ -2408,12 +2344,11 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("MultiRequestTimes=") + UINT16_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("MultiRequestTimes="), nullptr, 0);
-			if (errno == 0 && Result > 0)
+			if (Result > 0 && Result < ULONG_MAX)
 				ParameterPTR->MultiRequestTimes = Result;
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 
@@ -2548,12 +2483,11 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("ICMPID=") + 7U)
 		{
 			Result = strtoul(Data.c_str() + strlen("ICMPID="), nullptr, 0);
-			if (errno == 0 && Result > 0)
+			if (Result > 0 && Result < ULONG_MAX)
 				Parameter.ICMP_ID = htons((uint16_t)Result);
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (IsFirstRead && Data.find("ICMPSequence=") == 0 && Data.length() > strlen("ICMPSequence="))
@@ -2561,12 +2495,11 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("ICMPSequence=") + 7U)
 		{
 			Result = strtoul(Data.c_str() + strlen("ICMPSequence="), nullptr, 0);
-			if (errno == 0 && Result > 0)
+			if (Result > 0 && Result < ULONG_MAX)
 				Parameter.ICMP_Sequence = htons((uint16_t)Result);
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (IsFirstRead && Data.find("ICMPPaddingData=") == 0 && Data.length() > strlen("ICMPPaddingData="))
@@ -2577,8 +2510,7 @@ bool __fastcall ReadParameterData(
 			memcpy_s(Parameter.ICMP_PaddingData, ICMP_PADDING_MAXSIZE, Data.c_str() + strlen("ICMPPaddingData="), Data.length() - strlen("ICMPPaddingData="));
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (IsFirstRead && Data.find("DomainTestID=") == 0 && Data.length() > strlen("DomainTestID="))
@@ -2586,24 +2518,19 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("DomainTestID=") + 7U)
 		{
 			Result = strtoul(Data.c_str() + strlen("DomainTestID="), nullptr, 0);
-			if (errno == 0 && Result > 0)
+			if (Result > 0 && Result < ULONG_MAX)
 				Parameter.DomainTest_ID = htons((uint16_t)Result);
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (IsFirstRead && Data.find("DomainTestData=") == 0 && Data.length() > strlen("DomainTestData="))
 	{
 		if (Data.length() > strlen("DomainTestData=") + DOMAIN_MINSIZE && Data.length() < strlen("DomainTestData=") + DOMAIN_DATA_MAXSIZE)
-		{
 			memcpy_s(Parameter.DomainTest_Data, DOMAIN_MAXSIZE, Data.c_str() + strlen("DomainTestData="), Data.length() - strlen("DomainTestData="));
-		}
-		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
-		}
+		else 
+			goto PrintDataFormatError;
 	}
 #endif
 	else if (IsFirstRead && Data.find("LocalhostServerName=") == 0 && Data.length() > strlen("LocalhostServerName="))
@@ -2627,8 +2554,7 @@ bool __fastcall ReadParameterData(
 			}
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 
@@ -2675,7 +2601,7 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("SOCKSReliableSocketTimeout=") + UINT32_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("SOCKSReliableSocketTimeout="), nullptr, 0);
-			if (errno == 0 && Result > 0 && Result > SOCKET_MIN_TIMEOUT)
+			if (Result > SOCKET_MIN_TIMEOUT && Result < ULONG_MAX)
 			#if defined(PLATFORM_WIN)
 				ParameterPTR->SOCKS_SocketTimeout_Reliable = (int)Result;
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -2686,8 +2612,7 @@ bool __fastcall ReadParameterData(
 			#endif
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (Data.find("SOCKSUnreliableSocketTimeout=") == 0 && Data.length() > strlen("SOCKSUnreliableSocketTimeout="))
@@ -2695,7 +2620,7 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("SOCKSUnreliableSocketTimeout=") + UINT32_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("SOCKSUnreliableSocketTimeout="), nullptr, 0);
-			if (errno == 0 && Result > 0 && Result > SOCKET_MIN_TIMEOUT)
+			if (Result > (SSIZE_T)SOCKET_MIN_TIMEOUT && Result < ULONG_MAX)
 			#if defined(PLATFORM_WIN)
 				ParameterPTR->SOCKS_SocketTimeout_Unreliable = (int)Result;
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -2706,8 +2631,7 @@ bool __fastcall ReadParameterData(
 			#endif
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (IsFirstRead && Data.find("SOCKSUDPNoHandshake=1") == 0)
@@ -2741,8 +2665,7 @@ bool __fastcall ReadParameterData(
 			ParameterPTR->SOCKS_Username->append(Data, strlen("SOCKSUsername="), Data.length() - strlen("SOCKSUsername="));
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (Data.find("SOCKSPassword=") == 0 && Data.length() > strlen("SOCKSPassword="))
@@ -2753,8 +2676,7 @@ bool __fastcall ReadParameterData(
 			ParameterPTR->SOCKS_Password->append(Data, strlen("SOCKSPassword="), Data.length() - strlen("SOCKSPassword="));
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (IsFirstRead && Data.find("HTTPProxy=1") == 0)
@@ -2780,7 +2702,7 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("HTTPSocketTimeout=") + UINT32_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("HTTPSocketTimeout="), nullptr, 0);
-			if (errno == 0 && Result > 0 && Result > SOCKET_MIN_TIMEOUT)
+			if (Result > (SSIZE_T)SOCKET_MIN_TIMEOUT && Result < ULONG_MAX)
 			#if defined(PLATFORM_WIN)
 				ParameterPTR->HTTP_SocketTimeout = (int)Result;
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -2791,8 +2713,7 @@ bool __fastcall ReadParameterData(
 			#endif
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (IsFirstRead && Data.find("HTTPProxyOnly=1") == 0)
@@ -2868,12 +2789,11 @@ bool __fastcall ReadParameterData(
 		if (Data.length() > strlen("DNSCurvePayloadSize=") + 2U)
 		{
 			Result = strtoul(Data.c_str() + strlen("DNSCurvePayloadSize="), nullptr, 0);
-			if (errno == 0 && Result > 0)
+			if (Result > 0 && Result < ULONG_MAX)
 				DNSCurveParameter.DNSCurvePayloadSize = Result;
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 		else if (Data.find("DNSCurveReliableSocketTimeout=") == 0 && Data.length() > strlen("DNSCurveReliableSocketTimeout="))
@@ -2881,7 +2801,7 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("DNSCurveReliableSocketTimeout=") + UINT32_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("DNSCurveReliableSocketTimeout="), nullptr, 0);
-			if (errno == 0 && Result > 0 && Result > SOCKET_MIN_TIMEOUT)
+			if (Result > (SSIZE_T)SOCKET_MIN_TIMEOUT && Result < ULONG_MAX)
 			#if defined(PLATFORM_WIN)
 				DNSCurveParameterPTR->DNSCurve_SocketTimeout_Reliable = (int)Result;
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -2892,8 +2812,7 @@ bool __fastcall ReadParameterData(
 			#endif
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (Data.find("DNSCurveUnreliableSocketTimeout=") == 0 && Data.length() > strlen("DNSCurveUnreliableSocketTimeout="))
@@ -2901,7 +2820,7 @@ bool __fastcall ReadParameterData(
 		if (Data.length() < strlen("DNSCurveUnreliableSocketTimeout=") + UINT32_MAX_STRING_LENGTH)
 		{
 			Result = strtoul(Data.c_str() + strlen("DNSCurveUnreliableSocketTimeout="), nullptr, 0);
-			if (errno == 0 && Result > 0 && Result > SOCKET_MIN_TIMEOUT)
+			if (Result > (SSIZE_T)SOCKET_MIN_TIMEOUT && Result < ULONG_MAX)
 			#if defined(PLATFORM_WIN)
 				DNSCurveParameterPTR->DNSCurve_SocketTimeout_Unreliable = (int)Result;
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -2912,8 +2831,7 @@ bool __fastcall ReadParameterData(
 			#endif
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 	else if (IsFirstRead && Data.find("Encryption=1") == 0)
@@ -2937,8 +2855,7 @@ bool __fastcall ReadParameterData(
 				DNSCurveParameterPTR->KeyRecheckTime = Result * SECOND_TO_MILLISECOND;
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			return false;
+			goto PrintDataFormatError;
 		}
 	}
 
@@ -3080,6 +2997,11 @@ bool __fastcall ReadParameterData(
 #endif
 
 	return true;
+
+//Label of printing data format error
+PrintDataFormatError:
+	PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+	return false;
 }
 
 //Read file names from data
@@ -3282,7 +3204,7 @@ bool __fastcall ReadMultipleAddresses(
 			if (Result == 0)
 			{
 				Result = strtoul(Target, nullptr, 0);
-				if (errno > 0 || Result <= 0 || Result > UINT16_MAX)
+				if (Result <= 0 || Result >= UINT16_MAX)
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 address port error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -3343,7 +3265,7 @@ bool __fastcall ReadMultipleAddresses(
 			if (Result == 0)
 			{
 				Result = strtoul(Target, nullptr, 0);
-				if (errno > 0 || Result <= 0 || Result > UINT16_MAX)
+				if (Result <= 0 || Result >= UINT16_MAX)
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 address port error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -3421,7 +3343,7 @@ bool __fastcall ReadSOCKSAddressAndDomain(
 			if (Result == 0)
 			{
 				Result = strtoul(Target, nullptr, 0);
-				if (errno > 0 || Result <= 0 || Result > UINT16_MAX)
+				if (Result <= 0 || Result >= UINT16_MAX)
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 address port error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -3465,7 +3387,7 @@ bool __fastcall ReadSOCKSAddressAndDomain(
 			if (Result == 0)
 			{
 				Result = strtoul(Target, nullptr, 0);
-				if (errno > 0 || Result <= 0 || Result > UINT16_MAX)
+				if (Result <= 0 || Result >= UINT16_MAX)
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 address port error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -3499,7 +3421,7 @@ bool __fastcall ReadSOCKSAddressAndDomain(
 			if (Result == 0)
 			{
 				Result = strtoul(Target, nullptr, 0);
-				if (errno > 0 || Result <= 0 || Result > UINT16_MAX)
+				if (Result <= 0 || Result >= UINT16_MAX)
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 address port error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -3538,7 +3460,7 @@ bool __fastcall ReadHopLimitData(
 			Result = strtoul(StringIter.c_str(), nullptr, 0);
 			if (Index == 0)
 			{
-				if (errno == 0 && Result > 0 && Result < UINT8_MAX)
+				if (Result > 0 && Result < UINT8_MAX)
 					HopLimit = (uint8_t)Result;
 			}
 			else {
@@ -3555,7 +3477,7 @@ bool __fastcall ReadHopLimitData(
 					}
 
 				//Convert Hop Limit value.
-					if (errno == 0 && Result > 0 && Result < UINT8_MAX && Parameter.DNSTarget.IPv6_Multi->size() + 1U > Index)
+					if (Result > 0 && Result < UINT8_MAX && Parameter.DNSTarget.IPv6_Multi->size() + 1U > Index)
 						Parameter.DNSTarget.IPv6_Multi->at(Index - 1U).HopLimitData.HopLimit = (uint8_t)Result;
 				}
 				else { //IPv4
@@ -3570,7 +3492,7 @@ bool __fastcall ReadHopLimitData(
 					}
 
 				//Convert Hop Limit value.
-					if (errno == 0 && Result > 0 && Result < UINT8_MAX && Parameter.DNSTarget.IPv4_Multi->size() + 1U > Index)
+					if (Result > 0 && Result < UINT8_MAX && Parameter.DNSTarget.IPv4_Multi->size() + 1U > Index)
 						Parameter.DNSTarget.IPv4_Multi->at(Index - 1U).HopLimitData.TTL = (uint8_t)Result;
 				}
 			}

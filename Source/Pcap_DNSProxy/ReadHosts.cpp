@@ -263,7 +263,7 @@ bool __fastcall ReadOtherHostsData(
 			if (RecordType <= 0)
 			{
 				Result = strtoul(StringIter.c_str(), nullptr, 0);
-				if (errno == 0 && Result > 0 && Result <= UINT16_MAX)
+				if (Result > 0 && Result <= UINT16_MAX)
 				{
 					HostsTableTemp.RecordTypeList.push_back(htons((uint16_t)Result));
 				}
@@ -478,7 +478,7 @@ bool __fastcall ReadAddressHostsData(
 			//Check address range.
 				if (AddressesComparing(&((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, AF_INET6) > ADDRESS_COMPARE_EQUAL)
 				{
-					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv6 address range error", WSAGetLastError(), FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv6 address range error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 			}
@@ -528,7 +528,7 @@ bool __fastcall ReadAddressHostsData(
 			//Check address range.
 				if (AddressesComparing(&((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, AF_INET) > ADDRESS_COMPARE_EQUAL)
 				{
-					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv4 address range error", WSAGetLastError(), FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv4 address range error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 			}

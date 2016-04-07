@@ -1649,7 +1649,7 @@ size_t __fastcall DNSCurveTCPRequest(
 	TCPSocketSelectingData.ServerType = DNSCurveSelectTargetSocket(&TCPSocketDataList.front(), &PacketTarget, &IsAlternate, &AlternateTimeoutTimes, IPPROTO_TCP);
 	if (TCPSocketSelectingData.ServerType == 0)
 	{
-		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"DNSCurve TCP socket initialization error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"DNSCurve TCP socket initialization error", 0, nullptr, 0);
 		closesocket(TCPSocketDataList.front().Socket);
 
 		return EXIT_FAILURE;
@@ -1822,7 +1822,7 @@ size_t __fastcall DNSCurveUDPRequest(
 	UDPSocketSelectingData.ServerType = DNSCurveSelectTargetSocket(&UDPSocketDataList.front(), &PacketTarget, &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP);
 	if (UDPSocketSelectingData.ServerType == 0)
 	{
-		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"DNSCurve UDP socket initialization error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"DNSCurve UDP socket initialization error", 0, nullptr, 0);
 		closesocket(UDPSocketDataList.front().Socket);
 
 		return EXIT_FAILURE;

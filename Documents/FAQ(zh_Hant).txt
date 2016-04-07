@@ -103,7 +103,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * IPFilter file size is too large - IPFilter 檔容量過大：請確認 IPFilter 檔的內容，整個檔的大小不要超過 4GB
   * Hosts file size is too large - Hosts 檔容量過大：請確認 Hosts 檔的內容，整個檔的大小不要超過 4GB
   * Configuration file version error - 設定檔版本錯誤：請確認設定檔是否需要更新
-  * Data length error - 設定檔參數一行資料超過 4096 位元組/4KB，或該行資料長度不符合要求：請確認該行的內容是否符合要求
+  * Data format error - 設定檔參數一行資料超過 4096 位元組/4KB，或該行資料長度不符合要求，或者資料格式錯誤：請確認該行的內容是否符合要求
   * Text encoding error - 檔案編碼錯誤：請確認設定檔的編碼類型
   * Data of a line is too short - 該參數過短：請確認設定檔的內容
   * Data of a line is too long - 該參數過長：一行資料切勿超過 4096 位元組/4KB

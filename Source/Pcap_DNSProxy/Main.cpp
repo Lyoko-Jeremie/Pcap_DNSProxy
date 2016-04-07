@@ -129,10 +129,11 @@ bool ReadCommand(
 //Screen output buffer setting
 	if (setvbuf(stderr, NULL, _IONBF, 0) != 0)
 	{
+		auto ErrorCode = errno;
 		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
-		fwprintf_s(stderr, L"Screen output buffer setting error, error code is %d.\n", errno);
+		fwprintf_s(stderr, L"Screen output buffer setting error, error code is %d.\n", ErrorCode);
 		ScreenLock.unlock();
-		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Screen output buffer setting error", errno, nullptr, 0);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Screen output buffer setting error", ErrorCode, nullptr, 0);
 
 		return false;
 	}
@@ -143,10 +144,11 @@ bool ReadCommand(
 	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), &WSAInitialization) != 0 || 
 		LOBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_HIGH)
 	{
+		auto ErrorCode = WSAGetLastError();
 		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
-		fwprintf_s(stderr, L"Winsock initialization error, error code is %d.\n", WSAGetLastError());
+		fwprintf_s(stderr, L"Winsock initialization error, error code is %d.\n", ErrorCode);
 		ScreenLock.unlock();
-		PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"Winsock initialization error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"Winsock initialization error", ErrorCode, nullptr, 0);
 
 		return false;
 	}
@@ -180,10 +182,11 @@ bool ReadCommand(
 		{
 			if (!FirewallTest(AF_INET6) && !FirewallTest(AF_INET))
 			{
+				auto ErrorCode = WSAGetLastError();
 				std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
-				fwprintf_s(stderr, L"Windows Firewall Test error, error code is %d.\n", WSAGetLastError());
+				fwprintf_s(stderr, L"Windows Firewall Test error, error code is %d.\n", ErrorCode);
 				ScreenMutex.unlock();
-				PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Windows Firewall Test error", WSAGetLastError(), nullptr, 0);
+				PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Windows Firewall Test error", ErrorCode, nullptr, 0);
 			}
 
 			return false;
@@ -392,9 +395,7 @@ bool __fastcall FirewallTest(
 				if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)
 				{
 					((PSOCKADDR_IN6)&SockAddr)->sin6_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
-
 					++Index;
-					continue;
 				}
 				else {
 					shutdown(FirewallSocket, SD_BOTH);
@@ -426,9 +427,7 @@ bool __fastcall FirewallTest(
 				if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)
 				{
 					((PSOCKADDR_IN)&SockAddr)->sin_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
-
 					++Index;
-					continue;
 				}
 				else {
 					shutdown(FirewallSocket, SD_BOTH);

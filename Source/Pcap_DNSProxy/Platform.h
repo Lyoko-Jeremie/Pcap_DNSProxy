@@ -261,6 +261,8 @@
 	#include <cerrno>                      //Error report
 	#include <climits>                     //Data limits
 	#include <csignal>                     //Signals
+	#include <cstddef>                     //Definitions
+	#include <cstdint>                     //Integer types
 	#include <cstring>                     //Strings
 	#include <cwchar>                      //Wide characters
 
@@ -288,6 +290,7 @@
 	#include <sys/socket.h>                //Socket
 	#include <sys/stat.h>                  //Getting information about files attributes
 	#include <sys/time.h>                  //Date and time
+	#include <sys/types.h>                 //Types
 
 //LibSodium and LibPcap header
 	#if defined(PLATFORM_LINUX)
@@ -433,6 +436,7 @@
 	#define strnlen_s                                                    strnlen
 	#define wcsnlen_s                                                    wcsnlen
 	#define WSAGetLastError()                                            errno
+	#define _set_errno(Value)                                            errno = Value
 	#define fread_s(Dst, DstSize, ElementSize, Count, File)              fread(Dst, ElementSize, Count, File)
 	#define memcpy_s(Dst, DstSize, Src, Size)                            memcpy(Dst, Src, Size)
 	#define memmove_s(Dst, DstSize, Src, Size)                           memmove(Dst, Src, Size)

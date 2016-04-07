@@ -250,7 +250,7 @@ static void __fastcall SHA2_256_Update(
 		else 
 			return;
 	}
-	while (count >= SHA2_256_SIZE_BLOCK)
+	while (count >= (int)SHA2_256_SIZE_BLOCK)
 	{
 		memcpy(sha_info->Data, buffer, SHA2_256_SIZE_BLOCK);
 		buffer += SHA2_256_SIZE_BLOCK;
@@ -275,7 +275,7 @@ static void __fastcall SHA2_256_Final(
 	hi_bit_count = sha_info->CountHigh;
 	count = (int)((lo_bit_count >> 3U) & 0x3F);
 	((SHA2_256_BYTE *)sha_info->Data)[count++] = 0x80;
-	if (count > SHA2_256_SIZE_BLOCK - 8)
+	if (count > (int)SHA2_256_SIZE_BLOCK - 8)
 	{
 		memset(((SHA2_256_BYTE *)sha_info->Data) + count, 0, SHA2_256_SIZE_BLOCK - count);
 		SHA2_256_Transform(sha_info);
@@ -625,7 +625,7 @@ static void __fastcall SHA2_512_Update(
 		else 
 			return;
 	}
-	while (count >= SHA2_512_SIZE_BLOCK)
+	while (count >= (int)SHA2_512_SIZE_BLOCK)
 	{
 		memcpy(sha_info->Data, buffer, SHA2_512_SIZE_BLOCK);
 		buffer += SHA2_512_SIZE_BLOCK;
@@ -650,7 +650,7 @@ static void __fastcall SHA2_512_Final(
 	hi_bit_count = sha_info->CountHigh;
 	count = (int)((lo_bit_count >> 3U) & 0x7F);
 	((SHA2_512_BYTE *)sha_info->Data)[count++] = 0x80;
-	if (count > SHA2_512_SIZE_BLOCK - 16)
+	if (count > (int)SHA2_512_SIZE_BLOCK - 16)
 	{
 		memset(((SHA2_512_BYTE *)sha_info->Data) + count, 0, SHA2_512_SIZE_BLOCK - count);
 		SHA2_512_Transform(sha_info);
@@ -845,10 +845,16 @@ bool __fastcall SHA2_Hash(
 	while (!feof(Input))
 	{
 		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
+		_set_errno(0);
 		ReadLength = fread_s(Buffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, Input);
-		if (ReadLength == 0 && errno > 0)
+		if (ReadLength == 0)
 		{
-			fwprintf_s(stderr, L"Hash process error.\n");
+			fwprintf_s(stderr, L"Hash process error");
+			if (errno > 0)
+				fwprintf_s(stderr, L", error code is %d.\n", errno);
+			else
+				fwprintf_s(stderr, L".\n");
+
 			return false;
 		}
 		else {

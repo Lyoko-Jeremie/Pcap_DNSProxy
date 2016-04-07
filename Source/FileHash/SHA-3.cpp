@@ -82,7 +82,7 @@ bool __fastcall ReadCommand_SHA3(
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			auto Result = strtoul(Command.c_str() + Offset, nullptr, 0);
 		#endif
-			if (errno == 0 && Result > 0 && Result >= FILE_BUFFER_SIZE)
+			if (Result >= FILE_BUFFER_SIZE)
 			{
 				fwprintf_s(stderr, L"Commands error.\n");
 				return false;
@@ -102,7 +102,7 @@ bool __fastcall ReadCommand_SHA3(
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			auto Result = strtoul(Command.c_str() + strlen(COMMAND_SHA3_SHAKE_256), nullptr, 0);
 		#endif
-			if (errno == 0 && Result > 0 && Result >= FILE_BUFFER_SIZE)
+			if (Result >= FILE_BUFFER_SIZE)
 			{
 				fwprintf_s(stderr, L"Commands error.\n");
 				return false;
@@ -177,6 +177,7 @@ bool __fastcall SHA3_Hash(
 	while (!feof(Input))
 	{
 		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
+		_set_errno(0);
 		ReadLength = fread_s(Buffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, Input);
 		if (ReadLength == 0 && errno > 0 || Keccak_HashUpdate(&HashInstance, (BitSequence *)Buffer.get(), ReadLength * BYTES_TO_BITS) != SUCCESS)
 		{

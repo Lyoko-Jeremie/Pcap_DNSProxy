@@ -236,10 +236,16 @@ bool __fastcall MD4_Hash(
 	while (!feof(Input))
 	{
 		memset(Buffer.get(), 0, ReadBlockSize);
+		_set_errno(0);
 		ReadLength = fread_s(Buffer.get(), ReadBlockSize, sizeof(char), ReadBlockSize, Input);
-		if (ReadLength == 0 && errno > 0)
+		if (ReadLength == 0)
 		{
-			fwprintf_s(stderr, L"Hash process error.\n");
+			fwprintf_s(stderr, L"Hash process error");
+			if (errno > 0)
+				fwprintf_s(stderr, L", error code is %d.\n", errno);
+			else
+				fwprintf_s(stderr, L".\n");
+
 			return false;
 		}
 		else {
