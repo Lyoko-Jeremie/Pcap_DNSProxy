@@ -155,8 +155,10 @@ bool __fastcall SocketSetting(
 				return false;
 			}
 
-			tcp_keepalive Alive_IN = {0};
-			tcp_keepalive Alive_OUT = {0};
+			tcp_keepalive Alive_IN;
+			tcp_keepalive Alive_OUT;
+			memset(&Alive_IN, 0, sizeof(tcp_keepalive));
+			memset(&Alive_OUT, 0, sizeof(tcp_keepalive));
 			Alive_IN.keepalivetime = STANDARD_TIMEOUT;
 			Alive_IN.keepaliveinterval = Parameter.SocketTimeout_Reliable;
 			Alive_IN.onoff = TRUE;
@@ -415,8 +417,11 @@ SSIZE_T __fastcall SocketSelecting(
 	}
 
 //Initialization(Part 2)
-	fd_set ReadFDS = {0}, WriteFDS = {0};
-	timeval Timeout = {0};
+	fd_set ReadFDS, WriteFDS;
+	timeval Timeout;
+	memset(&Timeout, 0, sizeof(timeval));
+	memset(&ReadFDS, 0, sizeof(fd_set));
+	memset(&WriteFDS, 0, sizeof(fd_set));
 	SSIZE_T SelectResult = 0;
 	size_t LastReceiveIndex = 0;
 	SYSTEM_SOCKET MaxSocket = 0;
@@ -653,7 +658,7 @@ SSIZE_T __fastcall SelectingResult(
 				}
 				else {
 					memmove_s(SocketSelectingList.at(Index).RecvBuffer.get(), RecvSize, SocketSelectingList.at(Index).RecvBuffer.get() + sizeof(uint16_t), RecvLen);
-					memset(SocketSelectingList.at(Index).RecvBuffer.get() + RecvLen, 0, (size_t)((RecvSize - RecvLen)));
+					memset(SocketSelectingList.at(Index).RecvBuffer.get() + RecvLen, 0, (size_t)(RecvSize - RecvLen));
 				}
 			}
 		//UDP length
@@ -712,7 +717,8 @@ void __fastcall MarkPortToList(
 {
 	if (LocalSocketData != nullptr && Protocol > 0)
 	{
-		SOCKET_DATA SocketDataTemp = {0};
+		SOCKET_DATA SocketDataTemp;
+		memset(&SocketDataTemp, 0, sizeof(SOCKET_DATA));
 		OUTPUT_PACKET_TABLE OutputPacketListTemp;
 		memset(&OutputPacketListTemp, 0, sizeof(OUTPUT_PACKET_TABLE));
 
@@ -749,11 +755,11 @@ void __fastcall MarkPortToList(
 		}
 
 	//Mark send time.
-	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
+	//Minimum supported system of GetTickCount64 function is Windows Vista(Windows XP with SP3 support).
 		OutputPacketListTemp.Protocol_Network = Protocol;
 		if (Protocol == IPPROTO_TCP) //TCP
 		{
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 				OutputPacketListTemp.ClearPortTime = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Reliable);
 			else 
@@ -765,7 +771,7 @@ void __fastcall MarkPortToList(
 		#endif
 		}
 		else { //UDP
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 				OutputPacketListTemp.ClearPortTime = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Unreliable);
 			else 
@@ -778,9 +784,9 @@ void __fastcall MarkPortToList(
 		}
 
 	//Clear timeout data.
-		std::unique_lock<std::mutex> OutputPacketListMutex(OutputPacketListLock);
-	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+		std::lock_guard<std::mutex> OutputPacketListMutex(OutputPacketListLock);
+	//Minimum supported system of GetTickCount64 function is Windows Vista(Windows XP with SP3 support).
+	#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 		{
 			while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)()))
@@ -1080,7 +1086,8 @@ bool __fastcall ICMPTestRequest(
 	#endif
 
 	//Socket initialization
-		SOCKET_DATA SocketDataTemp = {0};
+		SOCKET_DATA SocketDataTemp;
+		memset(&SocketDataTemp, 0, sizeof(SOCKET_DATA));
 		
 	//Main
 	#if defined(PLATFORM_WIN)
@@ -1171,7 +1178,8 @@ bool __fastcall ICMPTestRequest(
 		ICMP_Header->Checksum = GetChecksum((uint16_t *)Buffer.get(), Length);
 
 	//Socket initialization
-		SOCKET_DATA SocketDataTemp = {0};
+		SOCKET_DATA SocketDataTemp;
+		memset(&SocketDataTemp, 0, sizeof(SOCKET_DATA));
 
 	//Main
 		SocketDataTemp.Socket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
@@ -1574,7 +1582,8 @@ bool __fastcall SelectTargetSocketMulti(
 	const uint16_t Protocol)
 {
 //Initialization
-	SOCKET_DATA TargetSocketData = {0};
+	SOCKET_DATA TargetSocketData;
+	memset(&TargetSocketData, 0, sizeof(SOCKET_DATA));
 	uint16_t SocketType = 0;
 	size_t Index = 0;
 	bool *IsAlternate = nullptr;

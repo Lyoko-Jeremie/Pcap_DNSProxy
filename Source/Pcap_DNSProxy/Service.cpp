@@ -27,7 +27,7 @@ BOOL WINAPI CtrlHandler(
 //Print to screen.
 	if (GlobalRunningStatus.Console)
 	{
-		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+		std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 		switch (fdwCtrlType)
 		{
 			case CTRL_C_EVENT: //Handle the CTRL-C signal.
@@ -136,7 +136,8 @@ BOOL WINAPI UpdateServiceStatus(
 	const DWORD dwCheckPoint, 
 	const DWORD dwWaitHint)
 {
-	SERVICE_STATUS ServiceStatus = {0};
+	SERVICE_STATUS ServiceStatus;
+	memset(&ServiceStatus, 0, sizeof(SERVICE_STATUS));
 	ServiceStatus.dwServiceType = SERVICE_WIN32;
 	ServiceStatus.dwCurrentState = dwCurrentState;
 
@@ -181,8 +182,10 @@ bool __fastcall FlushDNSMailSlotMonitor(
 //System security setting
 	std::shared_ptr<char> ACL_Buffer(new char[FILE_BUFFER_SIZE]());
 	memset(ACL_Buffer.get(), 0, FILE_BUFFER_SIZE);
-	SECURITY_ATTRIBUTES SecurityAttributes = {0};
-	SECURITY_DESCRIPTOR SecurityDescriptor = {0};
+	SECURITY_ATTRIBUTES SecurityAttributes;
+	SECURITY_DESCRIPTOR SecurityDescriptor;
+	memset(&SecurityAttributes, 0, sizeof(SECURITY_ATTRIBUTES));
+	memset(&SecurityDescriptor, 0, sizeof(SECURITY_DESCRIPTOR));
 	PSID SID_Value = nullptr;
 
 	InitializeSecurityDescriptor(&SecurityDescriptor, SECURITY_DESCRIPTOR_REVISION);
@@ -230,7 +233,7 @@ bool __fastcall FlushDNSMailSlotMonitor(
 			CloseHandle(hSlot);
 			return false;
 		}
-		else if (memcmp(lpszBuffer.get(), MAILSLOT_MESSAGE_FLUSH_DNS, wcslen(MAILSLOT_MESSAGE_FLUSH_DNS) * sizeof(wchar_t)) == 0)
+		else if (memcmp(lpszBuffer.get(), MAILSLOT_MESSAGE_FLUSH_DNS, sizeof(wchar_t) * wcslen(MAILSLOT_MESSAGE_FLUSH_DNS)) == 0)
 		{
 			FlushAllDNSCache();
 		}
@@ -253,7 +256,7 @@ bool WINAPI FlushDNSMailSlotSender(
 	HANDLE hFile = CreateFileW(MAILSLOT_NAME, GENERIC_WRITE, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
-		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+		std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 		fwprintf_s(stderr, L"Create mailslot error, error code is %lu.\n", GetLastError());
 
 		return false;
@@ -261,9 +264,9 @@ bool WINAPI FlushDNSMailSlotSender(
 
 //Write into mailslot.
 	DWORD cbWritten = 0;
-	if (!WriteFile(hFile, MAILSLOT_MESSAGE_FLUSH_DNS, (DWORD)(lstrlenW(MAILSLOT_MESSAGE_FLUSH_DNS) + 1U) * sizeof(wchar_t), &cbWritten, nullptr))
+	if (!WriteFile(hFile, MAILSLOT_MESSAGE_FLUSH_DNS, (DWORD)(sizeof(wchar_t) * lstrlenW(MAILSLOT_MESSAGE_FLUSH_DNS) + 1U), &cbWritten, nullptr))
 	{
-		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+		std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 		fwprintf_s(stderr, L"MailSlot write messages error, error code is %lu.\n", GetLastError());
 
 		CloseHandle(hFile);
@@ -271,7 +274,7 @@ bool WINAPI FlushDNSMailSlotSender(
 	}
 
 	CloseHandle(hFile);
-	std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+	std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 	fwprintf_s(stderr, L"Flush DNS cache message was sent successfully.\n");
 	return true;
 }
@@ -337,14 +340,14 @@ bool FlushDNSFIFOSender(
 	int FileFIFO = open(FIFO_PATH_NAME, O_WRONLY|O_TRUNC|O_NONBLOCK, 0);
 	if (FileFIFO > 0 && write(FileFIFO, FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS) + 1U) > 0)
 	{
-		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+		std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 		fwprintf(stderr, L"Flush DNS cache message was sent successfully.\n");
 		close(FileFIFO);
 	}
 	else {
 		if (errno > 0)
 		{
-			std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+			std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 			fwprintf(stderr, L"FIFO write messages error, error code is %d.\n", errno);
 		}
 
@@ -366,7 +369,7 @@ void __fastcall FlushAllDNSCache(
 	DNSCacheListMutex.unlock();
 
 //Flush DNS cache in system.
-	std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+	std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 
 #if defined(PLATFORM_WIN)
 	system("ipconfig /flushdns 2>nul"); //All Windows version

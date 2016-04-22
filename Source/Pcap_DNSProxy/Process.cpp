@@ -388,7 +388,8 @@ size_t __fastcall CheckHostsProcess(
 	}
 
 //PTR Records
-#if !defined(PLATFORM_MACX)
+//LLMNR protocol of Mac OS X powered by mDNS with PTR records
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	if (DNS_Query->Type == htons(DNS_RECORD_PTR) && Parameter.LocalServer_Length + Packet->Length <= ResultSize)
 	{
 		auto IsSendPTR = false;
@@ -417,7 +418,7 @@ size_t __fastcall CheckHostsProcess(
 		//IPv4 check
 			if (!IsSendPTR)
 			{
-				std::unique_lock<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[1U]);
+				std::lock_guard<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[1U]);
 				for (auto StringIter:*GlobalRunningStatus.LocalAddress_ResponsePTR[1U])
 				{
 					if (Domain == StringIter)
@@ -456,7 +457,7 @@ size_t __fastcall CheckHostsProcess(
 	//IPv6
 		if (DNS_Query->Type == htons(DNS_RECORD_AAAA))
 		{
-			std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0]);
+			std::lock_guard<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0]);
 			if (GlobalRunningStatus.LocalAddress_Length[0] >= DNS_PACKET_MINSIZE)
 			{
 				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
@@ -467,7 +468,7 @@ size_t __fastcall CheckHostsProcess(
 	//IPv4
 		else if (DNS_Query->Type == htons(DNS_RECORD_A))
 		{
-			std::unique_lock<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[1U]);
+			std::lock_guard<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[1U]);
 			if (GlobalRunningStatus.LocalAddress_Length[1U] >= DNS_PACKET_MINSIZE)
 			{
 				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
@@ -527,7 +528,7 @@ size_t __fastcall CheckHostsProcess(
 				//Hosts load balancing
 					if (HostsTableIter.AddrList.size() > 1U)
 					{
-						std::uniform_int_distribution<size_t> RamdomDistribution(0, (int)(HostsTableIter.AddrList.size() - 1U));
+						std::uniform_int_distribution<size_t> RamdomDistribution(0, HostsTableIter.AddrList.size() - 1U);
 						RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 					}
 
@@ -579,7 +580,7 @@ size_t __fastcall CheckHostsProcess(
 				//Hosts load balancing
 					if (HostsTableIter.AddrList.size() > 1U)
 					{
-						std::uniform_int_distribution<size_t> RamdomDistribution(0, (int)(HostsTableIter.AddrList.size() - 1U));
+						std::uniform_int_distribution<size_t> RamdomDistribution(0, HostsTableIter.AddrList.size() - 1U);
 						RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 					}
 
@@ -1203,8 +1204,8 @@ bool __fastcall MarkDomainCache(
 		memcpy_s(DNSCacheDataTemp.Response.get(), PACKET_MAXSIZE, Buffer + sizeof(uint16_t), Length - sizeof(uint16_t));
 		DNSCacheDataTemp.Length = Length - sizeof(uint16_t);
 
-	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+	//Minimum supported system of GetTickCount64 function is Windows Vista(Windows XP with SP3 support).
+	#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 			DNSCacheDataTemp.ClearCacheTime = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + ResponseTTL * SECOND_TO_MILLISECOND);
 		else 
@@ -1213,7 +1214,7 @@ bool __fastcall MarkDomainCache(
 		DNSCacheDataTemp.ClearCacheTime = GetTickCount64() + ResponseTTL * SECOND_TO_MILLISECOND;
 	#endif
 
-		std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
+		std::lock_guard<std::mutex> DNSCacheListMutex(DNSCacheListLock);
 	//Check repeating items, delete duque rear and add new item to deque front.
 		for (auto DNSCacheDataIter = DNSCacheList.begin();DNSCacheDataIter != DNSCacheList.end();++DNSCacheDataIter)
 		{
@@ -1231,8 +1232,8 @@ bool __fastcall MarkDomainCache(
 				DNSCacheList.pop_front();
 		}
 		else { //CACHE_TYPE_TIMER
-		//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+		//Minimum supported system of GetTickCount64 function is Windows Vista(Windows XP with SP3 support).
+		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 			while (!DNSCacheList.empty() && (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr && (*GlobalRunningStatus.FunctionPTR_GetTickCount64)() >= DNSCacheList.front().ClearCacheTime || 
 				GetTickCount() >= DNSCacheList.front().ClearCacheTime))
 		#else

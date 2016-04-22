@@ -586,7 +586,8 @@ size_t __fastcall SOCKSTCPRequest(
 //Initialization
 	std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
 	memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
-	SOCKET_DATA TCPSocketData = {0};
+	SOCKET_DATA TCPSocketData;
+	memset(&TCPSocketData, 0, sizeof(SOCKET_DATA));
 	memset(OriginalRecv, 0, RecvSize);
 
 //Socket initialization
@@ -636,8 +637,11 @@ size_t __fastcall SOCKSTCPRequest(
 	}
 
 //Selecting structure setting
-	fd_set ReadFDS = {0}, WriteFDS = {0};
-	timeval Timeout = {0};
+	fd_set ReadFDS, WriteFDS;
+	timeval Timeout;
+	memset(&Timeout, 0, sizeof(timeval));
+	memset(&ReadFDS, 0, sizeof(fd_set));
+	memset(&WriteFDS, 0, sizeof(fd_set));
 
 //Selection exchange process
 	if (Parameter.SOCKS_Version == SOCKS_VERSION_5)
@@ -728,7 +732,10 @@ size_t __fastcall SOCKSUDPRequest(
 //Initialization
 	std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
 	memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
-	SOCKET_DATA TCPSocketData = {0}, LocalSocketData = {0}, UDPSocketData = {0};
+	SOCKET_DATA TCPSocketData, LocalSocketData, UDPSocketData;
+	memset(&TCPSocketData, 0, sizeof(SOCKET_DATA));
+	memset(&LocalSocketData, 0, sizeof(SOCKET_DATA));
+	memset(&UDPSocketData, 0, sizeof(SOCKET_DATA));
 	memset(OriginalRecv, 0, RecvSize);
 
 //Socket initialization
@@ -794,7 +801,7 @@ size_t __fastcall SOCKSUDPRequest(
 	if (!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
 		TCPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr) || 
 		TCPSocketData.SockAddr.ss_family == AF_INET && (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr) || 
-		!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr)) ||
+		!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr)) || 
 		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
 		UDPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr) || 
 		UDPSocketData.SockAddr.ss_family == AF_INET && (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr) || 
@@ -820,8 +827,11 @@ size_t __fastcall SOCKSUDPRequest(
 	}
 
 //Selecting structure setting
-	fd_set ReadFDS = {0}, WriteFDS = {0};
-	timeval Timeout = {0};
+	fd_set ReadFDS, WriteFDS;
+	timeval Timeout;
+	memset(&Timeout, 0, sizeof(timeval));
+	memset(&ReadFDS, 0, sizeof(fd_set));
+	memset(&WriteFDS, 0, sizeof(fd_set));
 
 //UDP transmission of standard SOCKS protocol must connect with TCP to server at first.
 	if (!Parameter.SOCKS_UDP_NoHandshake)
@@ -1042,7 +1052,8 @@ size_t __fastcall HTTPRequest(
 	const size_t RecvSize)
 {
 //Initialization
-	SOCKET_DATA HTTPSocketData = {0};
+	SOCKET_DATA HTTPSocketData;
+	memset(&HTTPSocketData, 0, sizeof(SOCKET_DATA));
 	memset(OriginalRecv, 0, RecvSize);
 
 //Socket initialization
@@ -1074,7 +1085,7 @@ size_t __fastcall HTTPRequest(
 
 //Socket check and Hop Limits setting
 	if (!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
-		HTTPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr) ||
+		HTTPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr) || 
 		HTTPSocketData.SockAddr.ss_family == AF_INET && (!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr) || 
 		!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr)))
 	{
@@ -1092,8 +1103,11 @@ size_t __fastcall HTTPRequest(
 	}
 
 //Selecting structure setting
-	fd_set ReadFDS = {0}, WriteFDS = {0};
-	timeval Timeout = {0};
+	fd_set ReadFDS, WriteFDS;
+	timeval Timeout;
+	memset(&Timeout, 0, sizeof(timeval));
+	memset(&ReadFDS, 0, sizeof(fd_set));
+	memset(&WriteFDS, 0, sizeof(fd_set));
 
 //HTTP CONNECT request
 	if (Parameter.HTTP_TargetDomain == nullptr || Parameter.HTTP_Version == nullptr || 

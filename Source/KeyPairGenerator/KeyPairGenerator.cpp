@@ -55,7 +55,8 @@ int main(int argc, char *argv[])
 		std::shared_ptr<char> Buffer(new char[KEYPAIR_MESSAGE_LEN]());
 		sodium_memzero(Buffer.get(), KEYPAIR_MESSAGE_LEN);
 		DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> SecretKey(crypto_box_SECRETKEYBYTES);
-		uint8_t PublicKey[crypto_box_PUBLICKEYBYTES] = {0};
+		uint8_t PublicKey[crypto_box_PUBLICKEYBYTES];
+		memset(PublicKey, 0, crypto_box_PUBLICKEYBYTES);
 		size_t Index = 0;
 		crypto_box_keypair(PublicKey, SecretKey.Buffer);
 

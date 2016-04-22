@@ -109,7 +109,8 @@ void __fastcall MD2_Final(
 	MD2_CTX *md2, 
 	uint8_t *hash)
 {
-	uint8_t padding[MD2_BLOCK_SIZE] = {0};
+	uint8_t padding[MD2_BLOCK_SIZE];
+	memset(padding, 0, MD2_BLOCK_SIZE);
 	uint32_t padLen = MD2_PAD_SIZE - md2->Count, i = 0;
 
 	for (i = 0;i < padLen;++i)
@@ -138,7 +139,8 @@ bool __fastcall MD2_Hash(
 	std::shared_ptr<char> Buffer(new char[FILE_BUFFER_SIZE]()), StringBuffer(new char[FILE_BUFFER_SIZE]());
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(StringBuffer.get(), 0, FILE_BUFFER_SIZE);
-	MD2_CTX HashInstance = {0};
+	MD2_CTX HashInstance;
+	memset(&HashInstance, 0, sizeof(MD2_CTX));
 	size_t ReadLength = 0;
 
 //MD2 initialization

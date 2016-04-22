@@ -35,9 +35,10 @@ bool __fastcall AddressStringToBinary(
 	if (ErrorCode != nullptr)
 		*ErrorCode = 0;
 
-//inet_ntop() and inet_pton() was only support in Windows Vista and newer system. [Roy Tam]
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	sockaddr_storage SockAddr = {0};
+//inet_ntop function and inet_pton function was only support in Windows Vista and newer system(Windows XP SP3 support). [Roy Tam]
+#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+	sockaddr_storage SockAddr;
+	memset(&SockAddr, 0, sizeof(sockaddr_storage));
 	int SockLength = 0;
 #endif
 
@@ -65,7 +66,7 @@ bool __fastcall AddressStringToBinary(
 		}
 
 	//Convert to binary.
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+	#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 		if (GlobalRunningStatus.FunctionPTR_InetPton != nullptr)
 		{
 			Result = (*GlobalRunningStatus.FunctionPTR_InetPton)(AF_INET6, sAddrString.c_str(), OriginalAddr);
@@ -147,7 +148,7 @@ bool __fastcall AddressStringToBinary(
 			sAddrString.append("0");
 
 	//Convert to binary.
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+	#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 		if (GlobalRunningStatus.FunctionPTR_InetPton != nullptr)
 		{
 			Result = (*GlobalRunningStatus.FunctionPTR_InetPton)(AF_INET, sAddrString.c_str(), OriginalAddr);
@@ -308,7 +309,7 @@ bool __fastcall CheckSpecialAddress(
 			CaseConvert(false, InnerDomain);
 
 		//Main check
-			std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock);
+			std::lock_guard<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 			for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
 			{
 				for (auto ResultBlacklistTableIter:IPFilterFileSetIter.ResultBlacklist)
@@ -330,7 +331,7 @@ bool __fastcall CheckSpecialAddress(
 		}
 
 	//Address Hosts check
-		std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock);
+		std::lock_guard<std::mutex> HostsFileMutex(HostsFileLock);
 		for (auto HostsFileSetIter:*HostsFileSetUsing)
 		{
 			for (auto AddressHostsTableIter:HostsFileSetIter.AddressHostsList)
@@ -347,7 +348,7 @@ bool __fastcall CheckSpecialAddress(
 							if (AddressHostsTableIter.Address_Target.size() > 1U)
 							{
 							//Get a ramdom one.
-								std::uniform_int_distribution<size_t> RamdomDistribution(0, (int)AddressHostsTableIter.Address_Target.size() - 1U);
+								std::uniform_int_distribution<size_t> RamdomDistribution(0, AddressHostsTableIter.Address_Target.size() - 1U);
 								*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)))->sin6_addr;
 							}
 							else {
@@ -479,7 +480,7 @@ bool __fastcall CheckSpecialAddress(
 			CaseConvert(false, InnerDomain);
 
 		//Main check
-			std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock);
+			std::lock_guard<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 			for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
 			{
 				for (auto ResultBlacklistTableIter:IPFilterFileSetIter.ResultBlacklist)
@@ -501,7 +502,7 @@ bool __fastcall CheckSpecialAddress(
 		}
 
 	//Address Hosts check
-		std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock);
+		std::lock_guard<std::mutex> HostsFileMutex(HostsFileLock);
 		for (auto HostsFileSetIter:*HostsFileSetUsing)
 		{
 			for (auto AddressHostsTableIter:HostsFileSetIter.AddressHostsList)
@@ -518,7 +519,7 @@ bool __fastcall CheckSpecialAddress(
 							if (AddressHostsTableIter.Address_Target.size() > 1U)
 							{
 							//Get a ramdom one.
-								std::uniform_int_distribution<size_t> RamdomDistribution(0, (int)AddressHostsTableIter.Address_Target.size() - 1U);
+								std::uniform_int_distribution<size_t> RamdomDistribution(0, AddressHostsTableIter.Address_Target.size() - 1U);
 								*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)))->sin_addr;
 							}
 							else {
@@ -543,7 +544,7 @@ bool __fastcall CheckAddressRouting(
 	const void *Addr, 
 	const uint16_t Protocol)
 {
-	std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock);
+	std::lock_guard<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 
 //Check address routing.
 	if (Protocol == AF_INET6) //IPv6
@@ -589,7 +590,7 @@ bool __fastcall CheckCustomModeFilter(
 	const void *OriginalAddr, 
 	const uint16_t Protocol)
 {
-	std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock);
+	std::lock_guard<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 	if (Protocol == AF_INET6) //IPv6
 	{
 	//Permit
@@ -805,7 +806,7 @@ size_t __fastcall CheckResponseCNAME(
 	CaseConvert(false, Domain);
 
 //CNAME Hosts
-	std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock);
+	std::lock_guard<std::mutex> HostsFileMutex(HostsFileLock);
 	for (auto HostsFileSetIter:*HostsFileSetUsing)
 	{
 		for (auto HostsTableIter:HostsFileSetIter.HostsList_CNAME)
@@ -835,7 +836,7 @@ size_t __fastcall CheckResponseCNAME(
 				//Hosts load balancing
 					if (HostsTableIter.AddrList.size() > 1U)
 					{
-						std::uniform_int_distribution<size_t> RamdomDistribution(0, (int)(HostsTableIter.AddrList.size() - 1U));
+						std::uniform_int_distribution<size_t> RamdomDistribution(0, HostsTableIter.AddrList.size() - 1U);
 						RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 					}
 
@@ -889,7 +890,7 @@ size_t __fastcall CheckResponseCNAME(
 				//Hosts load balancing
 					if (HostsTableIter.AddrList.size() > 1U)
 					{
-						std::uniform_int_distribution<size_t> RamdomDistribution(0, (int)(HostsTableIter.AddrList.size() - 1U));
+						std::uniform_int_distribution<size_t> RamdomDistribution(0, HostsTableIter.AddrList.size() - 1U);
 						RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 					}
 
@@ -1224,7 +1225,8 @@ size_t __fastcall CheckResponseData(
 
 	//CNAME Hosts
 		if (Index < ntohs(DNS_Header->Answer) && DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && DNS_Record_Standard->TTL > 0 && 
-			DNS_Record_Standard->Type == htons(DNS_RECORD_CNAME) && DataLength + ntohs(DNS_Record_Standard->Length) < Length)
+			DNS_Record_Standard->Type == htons(DNS_RECORD_CNAME) && DNS_Record_Standard->Length >= DOMAIN_MINSIZE && 
+			DataLength + ntohs(DNS_Record_Standard->Length) < Length)
 		{
 			size_t RecordNum = 0;
 			auto CNAME_DataLength = CheckResponseCNAME(Buffer, Length, DataLength, ntohs(DNS_Record_Standard->Length), BufferSize, RecordNum);

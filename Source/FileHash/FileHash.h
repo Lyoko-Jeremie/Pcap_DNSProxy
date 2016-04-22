@@ -245,11 +245,11 @@
 #define BYTES_TO_BITS            8U
 #define FILE_BUFFER_SIZE         4096U
 #if defined(PLATFORM_WIN)
-	#define MBSTOWCS_NULLTERMINATE   (-1)            //MultiByteToWideChar() find null-terminate.
+	#define MBSTOWCS_NULLTERMINATE   (-1)            //MultiByteToWideChar function find null-terminate.
 #endif
 
 //Version definitions
-#define FULL_VERSION                 L"0.4.5.6"
+#define FULL_VERSION                 L"0.4.6.0"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2016 Chengr28"
 
 //Command definitions

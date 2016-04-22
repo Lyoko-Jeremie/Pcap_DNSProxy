@@ -224,8 +224,9 @@ bool __fastcall MD4_Hash(
 	memset(Buffer.get(), 0, ReadBlockSize);
 	memset(StringBuffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(BufferED2K.get(), 0, MD4_SIZE_DIGEST);
-	MD4_CTX HashInstance = {0}, HashInstanceED2K = {0};
-
+	MD4_CTX HashInstance, HashInstanceED2K;
+	memset(&HashInstance, 0, sizeof(MD4_CTX));
+	memset(&HashInstanceED2K, 0, sizeof(MD4_CTX));
 
 //MD4 initialization
 	MD4_Init(&HashInstance);

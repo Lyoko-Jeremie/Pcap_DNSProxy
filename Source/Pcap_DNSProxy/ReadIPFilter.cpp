@@ -203,7 +203,8 @@ bool __fastcall ReadBlacklistData(
 //Initialization
 	RESULT_BLACKLIST_TABLE ResultBlacklistTableTemp;
 	ADDRESS_RANGE_TABLE AddressRangeTableTemp;
-	char Addr[ADDR_STRING_MAXSIZE] = {0};
+	char Addr[ADDR_STRING_MAXSIZE];
+	memset(Addr, 0, ADDR_STRING_MAXSIZE);
 	std::vector<std::string> ListData;
 	GetParameterListData(ListData, Data, 0, Separated);
 	SSIZE_T Result = 0;
@@ -402,14 +403,16 @@ bool __fastcall ReadLocalRoutingData(
 
 //Initialization
 	AddressRoutingTable AddressRoutingTableTemp;
-	char Addr[ADDR_STRING_MAXSIZE] = {0};
+	char Addr[ADDR_STRING_MAXSIZE];
+	memset(Addr, 0, ADDR_STRING_MAXSIZE);
 	memcpy_s(Addr, ADDR_STRING_MAXSIZE, Data.c_str(), Data.find("/"));
 	SSIZE_T Result = 0;
 
 //IPv6
 	if (Data.find(":") != std::string::npos) 
 	{
-		in6_addr BinaryAddr = {0};
+		in6_addr BinaryAddr;
+		memset(&BinaryAddr, 0, sizeof(in6_addr));
 		Data.erase(0, Data.find("/") + 1U);
 
 	//Convert address.
@@ -488,7 +491,8 @@ bool __fastcall ReadLocalRoutingData(
 	}
 //IPv4
 	else {
-		in_addr BinaryAddr = {0};
+		in_addr BinaryAddr;
+		memset(&BinaryAddr, 0, sizeof(in_addr));
 		Data.erase(0, Data.find("/") + 1U);
 
 	//Convert address.
@@ -570,7 +574,8 @@ bool __fastcall ReadAddressPrefixBlock(
 	}
 
 //Initialization
-	char Addr[ADDR_STRING_MAXSIZE] = {0};
+	char Addr[ADDR_STRING_MAXSIZE];
+	memset(Addr, 0, ADDR_STRING_MAXSIZE);
 	memcpy_s(Addr, ADDR_STRING_MAXSIZE, Data.c_str(), Data.find("/"));
 	Data.erase(0, Data.find("/") + 1U);
 	SSIZE_T Result = 0;
@@ -689,7 +694,8 @@ bool __fastcall ReadMainIPFilterData(
 			Data.replace(Data.find(",0"), strlen(",0"), (","));
 
 	//Mark ipfilter level.
-		char Level[ADDR_STRING_MAXSIZE] = {0};
+		char Level[ADDR_STRING_MAXSIZE];
+		memset(Level, 0, ADDR_STRING_MAXSIZE);
 		memcpy_s(Level, ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COMMA) + 1U, Data.find(ASCII_COMMA, Data.find(ASCII_COMMA) + 1U) - Data.find(ASCII_COMMA) - 1U);
 		_set_errno(0);
 		Result = strtoul(Level, nullptr, 0);
@@ -780,7 +786,8 @@ bool __fastcall ReadMainIPFilterData(
 	}
 
 //Read data.
-	char Addr[ADDR_STRING_MAXSIZE] = {0};
+	char Addr[ADDR_STRING_MAXSIZE];
+	memset(Addr, 0, ADDR_STRING_MAXSIZE);
 	if (Data.find(ASCII_COLON) != std::string::npos) //IPv6
 	{
 	//Begin address

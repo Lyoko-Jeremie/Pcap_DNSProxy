@@ -76,7 +76,8 @@ void __fastcall MD5_Final(
 	uint8_t digest[MD5_SIZE_DIGEST])
 {
 	unsigned int index = 0, padlen = 0;
-	uint8_t bits[8U] = {0};
+	uint8_t bits[8U];
+	memset(bits, 0, 8U);
 	index = (context->Count[0] >> 3U) & 0x3F;
 	padlen = (index < 56U) ? (56U - index) : (120U - index);
 	MD5_Encode(bits, context->Count, 8U);
@@ -136,7 +137,8 @@ void __fastcall MD5_Transform(
 	unsigned int b = state[1U];
 	unsigned int c = state[2U];
 	unsigned int d = state[3U];
-	unsigned int x[64U] = {0};
+	unsigned int x[64U];
+	memset(x, 0, sizeof(unsigned int) * 64U);
 	MD5_Decode(x, block, 64U);
 	FF(a, b, c, d, x[0], 7, 0xD76AA478);
 	FF(d, a, b, c, x[1U], 12, 0xE8C7B756);
@@ -225,7 +227,8 @@ bool __fastcall MD5_Hash(
 	std::shared_ptr<char> Buffer(new char[FILE_BUFFER_SIZE]()), StringBuffer(new char[FILE_BUFFER_SIZE]());
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(StringBuffer.get(), 0, FILE_BUFFER_SIZE);
-	MD5_CTX HashInstance = {0};
+	MD5_CTX HashInstance;
+	memset(&HashInstance, 0, sizeof(MD5_CTX));
 	size_t ReadLength = 0;
 
 //MD5 initialization

@@ -25,7 +25,8 @@ static void __fastcall SHA1_Compress(
 	SHA1_State *sha1, 
 	uint8_t *buf)
 {
-	SHA1_INT32 a = 0, b = 0, c = 0, d = 0, e = 0, W[80U] = {0};
+	SHA1_INT32 a = 0, b = 0, c = 0, d = 0, e = 0, W[80U];
+	memset(W, 0, sizeof(SHA1_INT32) * 80U);
 	size_t Index = 0;
 
  //Copy the state into 512-bits into W[0..15].
@@ -217,7 +218,8 @@ bool __fastcall SHA1_Hash(
 	std::shared_ptr<char> Buffer(new char[FILE_BUFFER_SIZE]()), StringBuffer(new char[FILE_BUFFER_SIZE]());
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(StringBuffer.get(), 0, FILE_BUFFER_SIZE);
-	SHA1_State HashInstance = {0};
+	SHA1_State HashInstance;
+	memset(&HashInstance, 0, sizeof(SHA1_State));
 	size_t ReadLength = 0;
 
 //SHA-1 initialization

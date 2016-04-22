@@ -935,7 +935,8 @@ bool __fastcall ParameterCheckAndSetting(
 		}
 
 	//Set Local DNS server PTR response.
-	#if !defined(PLATFORM_MACX)
+	//LLMNR protocol of Mac OS X powered by mDNS with PTR records
+	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		if (Parameter.LocalServer_Length == 0)
 		{
 		//Make PTR response packet.
@@ -1462,7 +1463,8 @@ bool __fastcall ReadParameterData(
 			if (Data.length() > strlen("IPv4DNSAddress=") + 6U && Data.length() < strlen("IPv4DNSAddress=") + 20U)
 			{
 			//Convert IPv4 address and port.
-				char Target[ADDR_STRING_MAXSIZE] = {0};
+				char Target[ADDR_STRING_MAXSIZE];
+				memset(Target, 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target, ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv4DNSAddress="), Data.length() - strlen("IPv4DNSAddress="));
 				if (!AddressStringToBinary(Target, AF_INET, &Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr, &Result))
 				{
@@ -1482,7 +1484,8 @@ bool __fastcall ReadParameterData(
 			if (Data.length() > strlen("IPv4LocalDNSAddress=") + 6U && Data.length() < strlen("IPv4LocalDNSAddress=") + 20U)
 			{
 			//Convert IPv4 address and port.
-				char Target[ADDR_STRING_MAXSIZE] = {0};
+				char Target[ADDR_STRING_MAXSIZE];
+				memset(Target, 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target, ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv4LocalDNSAddress="), Data.length() - strlen("IPv4LocalDNSAddress="));
 				if (!AddressStringToBinary(Target, AF_INET, &Parameter.DNSTarget.Local_IPv4.IPv4.sin_addr, &Result))
 				{
@@ -1502,7 +1505,8 @@ bool __fastcall ReadParameterData(
 			if (Data.length() > strlen("IPv6DNSAddress=") + 1U && Data.length() < strlen("IPv6DNSAddress=") + 40U)
 			{
 			//Convert IPv6 address and port.
-				char Target[ADDR_STRING_MAXSIZE] = {0};
+				char Target[ADDR_STRING_MAXSIZE];
+				memset(Target, 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target, ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv6DNSAddress="), Data.length() - strlen("IPv6DNSAddress="));
 				if (!AddressStringToBinary(Target, AF_INET6, &Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, &Result))
 				{
@@ -1522,7 +1526,8 @@ bool __fastcall ReadParameterData(
 			if (Data.length() > strlen("IPv6LocalDNSAddress=") + 1U && Data.length() < strlen("IPv6LocalDNSAddress=") + 40U)
 			{
 			//Convert IPv6 address and port.
-				char Target[ADDR_STRING_MAXSIZE] = {0};
+				char Target[ADDR_STRING_MAXSIZE];
+				memset(Target, 0, ADDR_STRING_MAXSIZE);
 				memcpy_s(Target, ADDR_STRING_MAXSIZE, Data.c_str() + strlen("IPv6LocalDNSAddress="), Data.length() - strlen("IPv6LocalDNSAddress="));
 				if (!AddressStringToBinary(Target, AF_INET6, &Parameter.DNSTarget.Local_IPv6.IPv6.sin6_addr, &Result))
 				{
@@ -1971,7 +1976,8 @@ bool __fastcall ReadParameterData(
 	if (IsFirstRead && Data.find("IPv4ListenAddress=") == 0 && Data.length() > strlen("IPv4ListenAddress="))
 	{
 		Parameter.ListenAddress_IPv4->clear();
-		sockaddr_storage SockAddr = {0};
+		sockaddr_storage SockAddr;
+		memset(&SockAddr, 0, sizeof(sockaddr_storage));
 		if (!ReadMultipleAddresses(Data, strlen("IPv4ListenAddress="), AF_INET, true, SockAddr, Parameter.ListenAddress_IPv4, FileIndex, Line))
 			return false;
 	}
@@ -2003,7 +2009,8 @@ bool __fastcall ReadParameterData(
 	else if (IsFirstRead && Data.find("IPv6ListenAddress=") == 0 && Data.length() > strlen("IPv6ListenAddress="))
 	{
 		Parameter.ListenAddress_IPv6->clear();
-		sockaddr_storage SockAddr = {0};
+		sockaddr_storage SockAddr;
+		memset(&SockAddr, 0, sizeof(sockaddr_storage));
 		if (!ReadMultipleAddresses(Data, strlen("IPv4ListenAddress="), AF_INET6, true, SockAddr, Parameter.ListenAddress_IPv6, FileIndex, Line))
 			return false;
 	}
@@ -2537,7 +2544,8 @@ bool __fastcall ReadParameterData(
 	{
 		if (Data.length() > strlen("LocalhostServerName=") + DOMAIN_MINSIZE && Data.length() < strlen("LocalhostServerName=") + DOMAIN_DATA_MAXSIZE)
 		{
-			char LocalFQDN[DOMAIN_MAXSIZE] = {0};
+			char LocalFQDN[DOMAIN_MAXSIZE];
+			memset(LocalFQDN, 0, DOMAIN_MAXSIZE);
 			Parameter.LocalFQDN_Length = Data.length() - strlen("LocalhostServerName=");
 			memcpy_s(LocalFQDN, DOMAIN_MAXSIZE, Data.c_str() + strlen("LocalhostServerName="), Parameter.LocalFQDN_Length);
 			*Parameter.LocalFQDN_String = LocalFQDN;
@@ -3040,9 +3048,14 @@ bool ReadPathAndFileName(
 			CaseConvert(false, StringIter);
 		#endif
 */
-		//Add backslash.
+		//Add backslash or slash.
+		#if defined(PLATFORM_WIN)
 			if (StringIter.back() != ASCII_BACKSLASH)
 				StringIter.append("\\");
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			if (StringIter.back() != ASCII_SLASH)
+				StringIter.append("/");
+		#endif
 
 		//Convert to wide string.
 			if (!MBSToWCSString(StringIter.c_str(), StringIter.length(), wNameString))
@@ -3052,6 +3065,7 @@ bool ReadPathAndFileName(
 			}
 
 		//Double backslash
+		#if defined(PLATFORM_WIN)
 			for (size_t Index = 0;Index < wNameString.length();++Index)
 			{
 				if (wNameString.at(Index) == L'\\')
@@ -3060,6 +3074,7 @@ bool ReadPathAndFileName(
 					++Index;
 				}
 			}
+		#endif
 
 		//Add to global list.
 			for (auto InnerStringIter = GlobalRunningStatus.Path_Global->begin();InnerStringIter < GlobalRunningStatus.Path_Global->end();++InnerStringIter)
@@ -3167,8 +3182,10 @@ bool __fastcall ReadMultipleAddresses(
 	const size_t Line)
 {
 //Initialization
-	DNS_SERVER_DATA DNSServerDataTemp = {0};
-	char Target[ADDR_STRING_MAXSIZE] = {0};
+	DNS_SERVER_DATA DNSServerDataTemp;
+	memset(&DNSServerDataTemp, 0, sizeof(DNS_SERVER_DATA));
+	char Target[ADDR_STRING_MAXSIZE];
+	memset(Target, 0, ADDR_STRING_MAXSIZE);
 	std::vector<std::string> ListData;
 	SSIZE_T Result = 0;
 	GetParameterListData(ListData, Data, DataOffset, Data.length());
@@ -3315,7 +3332,8 @@ bool __fastcall ReadSOCKSAddressAndDomain(
 	}
 
 //Initialization
-	char Target[ADDR_STRING_MAXSIZE] = {0};
+	char Target[ADDR_STRING_MAXSIZE];
+	memset(Target, 0, ADDR_STRING_MAXSIZE);
 	SSIZE_T Result = 0;
 
 //IPv6
@@ -3556,7 +3574,8 @@ bool __fastcall ReadDNSCurveKey(
 	memset(KeyData, 0, crypto_box_SECRETKEYBYTES);
 
 //Initialization
-	char Target[ADDR_STRING_MAXSIZE] = {0};
+	char Target[ADDR_STRING_MAXSIZE];
+	memset(Target, 0, ADDR_STRING_MAXSIZE);
 	const char *ResultPointer = nullptr;
 	size_t ResultLength = 0;
 

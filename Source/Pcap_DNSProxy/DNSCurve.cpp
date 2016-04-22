@@ -111,8 +111,7 @@ bool __fastcall DNSCurveVerifyKeypair(
 	const unsigned char *SecretKey)
 {
 //Initialization
-	uint8_t Test_PublicKey[crypto_box_PUBLICKEYBYTES] = {0},
-		Validation[crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES + crypto_box_ZEROBYTES] = {0};
+	uint8_t Test_PublicKey[crypto_box_PUBLICKEYBYTES], Validation[crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES + crypto_box_ZEROBYTES];
 	sodium_memzero(Test_PublicKey, crypto_box_PUBLICKEYBYTES);
 	sodium_memzero(Validation, crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES + crypto_box_ZEROBYTES);
 	DNSCURVE_HEAP_BUFFER_TABLE<unsigned char> Test_SecretKey(crypto_box_PUBLICKEYBYTES);
@@ -120,7 +119,8 @@ bool __fastcall DNSCurveVerifyKeypair(
 //Keypair, Nonce and validation data
 	crypto_box_keypair(Test_PublicKey, Test_SecretKey.Buffer);
 	memcpy_s(Validation + crypto_box_ZEROBYTES, crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES, PublicKey, crypto_box_PUBLICKEYBYTES);
-	uint8_t Nonce[crypto_box_NONCEBYTES] = {0};
+	uint8_t Nonce[crypto_box_NONCEBYTES];
+	memset(Nonce, 0, crypto_box_NONCEBYTES);
 	for (size_t Index = 0;Index < crypto_box_NONCEBYTES;++Index) //DNSCurve Test Nonce, 0x00 - 0x23(ASCII)
 		*(Nonce + Index) = (uint8_t)Index;
 
@@ -411,11 +411,14 @@ void __fastcall DNSCurveSocketPrecomputation(
 	size_t &Alternate_DataLength)
 {
 //Initialization
-	SOCKET_DATA SocketDataTemp = {0};
-	DNSCURVE_SOCKET_SELECTING_DATA SocketSelectingDataTemp = {0};
+	SOCKET_DATA SocketDataTemp;
+	memset(&SocketDataTemp, 0, sizeof(SOCKET_DATA));
+	DNSCURVE_SOCKET_SELECTING_DATA SocketSelectingDataTemp;
+	memset(&SocketSelectingDataTemp, 0, sizeof(DNSCURVE_SOCKET_SELECTING_DATA));
 	std::vector<SOCKET_DATA> Alternate_SocketDataList;
 	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> Alternate_SocketSelectingList;
-	uint8_t Client_PublicKey_PTR[crypto_box_PUBLICKEYBYTES] = {0};
+	uint8_t Client_PublicKey_PTR[crypto_box_PUBLICKEYBYTES];
+	memset(Client_PublicKey_PTR, 0, crypto_box_PUBLICKEYBYTES);
 	auto Client_PublicKey = Client_PublicKey_PTR;
 	bool *IsAlternate = nullptr;
 	auto IsIPv6 = false;
@@ -650,7 +653,8 @@ size_t __fastcall DNSCurvePacketEncryption(
 //Encryption mode
 	if (DNSCurveParameter.IsEncryption)
 	{
-		uint8_t Nonce[crypto_box_NONCEBYTES] = {0};
+		uint8_t Nonce[crypto_box_NONCEBYTES];
+		memset(Nonce, 0, crypto_box_NONCEBYTES);
 
 	//Make nonce.
 		*(uint32_t *)Nonce = randombytes_random();
@@ -747,7 +751,8 @@ SSIZE_T DNSCurvePacketDecryption(
 			return EXIT_FAILURE;
 
 	//Nonce initialization
-		uint8_t WholeNonce[crypto_box_NONCEBYTES] = {0};
+		uint8_t WholeNonce[crypto_box_NONCEBYTES];
+		memset(WholeNonce, 0, crypto_box_NONCEBYTES);
 		memcpy_s(WholeNonce, crypto_box_NONCEBYTES, OriginalRecv + DNSCURVE_MAGIC_QUERY_LEN, crypto_box_NONCEBYTES);
 
 	//Open crypto box.
@@ -825,8 +830,11 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 	}
 
 //Initialization
-	fd_set ReadFDS = {0}, WriteFDS = {0};
-	timeval Timeout = {0};
+	fd_set ReadFDS, WriteFDS;
+	timeval Timeout;
+	memset(&Timeout, 0, sizeof(timeval));
+	memset(&ReadFDS, 0, sizeof(fd_set));
+	memset(&WriteFDS, 0, sizeof(fd_set));
 	SSIZE_T SelectResult = 0;
 	size_t LastReceiveIndex = 0;
 	SYSTEM_SOCKET MaxSocket = 0;
@@ -1638,7 +1646,8 @@ size_t __fastcall DNSCurveTCPRequest(
 //Initialization
 	std::vector<SOCKET_DATA> TCPSocketDataList(1U);
 	sodium_memzero(&TCPSocketDataList.front(), sizeof(SOCKET_DATA));
-	DNSCURVE_SOCKET_SELECTING_DATA TCPSocketSelectingData = {0};
+	DNSCURVE_SOCKET_SELECTING_DATA TCPSocketSelectingData;
+	memset(&TCPSocketSelectingData, 0, sizeof(DNSCURVE_SOCKET_SELECTING_DATA));
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
@@ -1811,7 +1820,8 @@ size_t __fastcall DNSCurveUDPRequest(
 //Initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
 	sodium_memzero(&UDPSocketDataList.front(), sizeof(SOCKET_DATA));
-	DNSCURVE_SOCKET_SELECTING_DATA UDPSocketSelectingData = {0};
+	DNSCURVE_SOCKET_SELECTING_DATA UDPSocketSelectingData;
+	memset(&UDPSocketSelectingData, 0, sizeof(DNSCURVE_SOCKET_SELECTING_DATA));
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;

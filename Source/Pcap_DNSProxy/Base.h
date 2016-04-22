@@ -34,7 +34,7 @@
 #define CODEPAGE_UTF_32_BE                           12001U                       //Microsoft Windows Codepage of UTF-32 Big Endian/BE
 
 #if defined(PLATFORM_WIN)
-	#define MBSTOWCS_NULLTERMINATE                         (-1)                       //MultiByteToWideChar() find null-terminate.
+	#define MBSTOWCS_NULLTERMINATE                         (-1)                       //MultiByteToWideChar function find null-terminate.
 #endif
 #if defined(ENABLE_LIBSODIUM)
 	#define LIBSODIUM_ERROR                                (-1)
@@ -107,7 +107,7 @@
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE                    0.3
 #define CONFIG_VERSION                                0.4                         //Current configuration version
-#define FULL_VERSION                                  L"0.4.5.6"
+#define FULL_VERSION                                  L"0.4.6.0"
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
 
 //Size and length definitions
@@ -163,13 +163,13 @@
 
 //Code definitions
 #if defined(PLATFORM_WIN)
-	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE           8192U                        //Buffer maximum size of QueryServiceConfig() function(8KB/8192 Bytes)
+	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE           8192U                        //Buffer maximum size of QueryServiceConfig function(8KB/8192 Bytes)
 	#define SYSTEM_SOCKET                                 UINT_PTR                     //System Socket defined(WinSock2.h), which is not the same in x86(unsigned int) and x64(unsigned __int64) platform and defined in WinSock2.h file.
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define SYSTEM_SOCKET                                 int
 #endif
 #if defined(ENABLE_PCAP)
-//	#define PCAP_READ_TIMEOUT                             0                            //Pcap read timeout with pcap_open_live() has elapsed. In this case pkt_header and pkt_data don't point to a valid packet.
+//	#define PCAP_READ_TIMEOUT                             0                            //Pcap read timeout with pcap_open_live function has elapsed. In this case pkt_header and pkt_data don't point to a valid packet.
 //	#define PCAP_READ_SUCCESS                             1                            //Pcap packets has been read without problems.
 	#define PCAP_LOOP_INFINITY                            (-1)                         //Pcap packets are processed until another ending condition occurs.
 	#define PCAP_COMPILE_OPTIMIZE                         1                            //Pcap optimization on the resulting code is performed.
@@ -280,7 +280,7 @@
 
 //Function Type definitions
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 
 	#define FUNCTION_GETTICKCOUNT64                       1U
 	#define FUNCTION_INET_NTOP                            2U
@@ -374,7 +374,7 @@
 
 //Function Pointer definitions
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 	typedef INT(CALLBACK *FunctionType_InetPton)(INT, PCSTR, PVOID);
 	typedef PCSTR(CALLBACK *FunctionType_InetNtop)(INT, PVOID, PSTR, size_t);
 	typedef ULONGLONG(CALLBACK *FunctionType_GetTickCount64)(void);
@@ -631,7 +631,7 @@ public:
 	std::string                          *LocalFQDN_String;
 	char                                 *LocalFQDN_Response;
 	size_t                               LocalFQDN_Length;
-#if !defined(PLATFORM_MACX)
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	char                                 *LocalServer_Response;
 	size_t                               LocalServer_Length;
 #endif
@@ -730,12 +730,12 @@ public:
 //Local address status
 	char                                 *LocalAddress_Response[NETWORK_LAYER_PARTNUM];
 	size_t                               LocalAddress_Length[NETWORK_LAYER_PARTNUM];
-#if !defined(PLATFORM_MACX)
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	std::vector<std::string>             *LocalAddress_ResponsePTR[NETWORK_LAYER_PARTNUM];
 #endif
 
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 	HINSTANCE                            FunctionLibrary_GetTickCount64;
 	HINSTANCE                            FunctionLibrary_InetNtop;
 	HINSTANCE                            FunctionLibrary_InetPton;
@@ -984,7 +984,7 @@ uint64_t GetCurrentSystemTime(
 	void);
 #endif
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 BOOL WINAPI IsGreaterThanVista(
 	void);
 BOOL WINAPI GetFunctionPointer(

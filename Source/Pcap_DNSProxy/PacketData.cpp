@@ -24,7 +24,8 @@ uint32_t __fastcall GetFCS(
 	const unsigned char *Buffer, 
 	const size_t Length)
 {
-	uint32_t Table[FCS_TABLE_SIZE] = {0}, Gx = 0x04C11DB7, Temp = 0, CRCTable = 0, Value = 0, UI = 0;
+	uint32_t Table[FCS_TABLE_SIZE], Gx = 0x04C11DB7, Temp = 0, CRCTable = 0, Value = 0, UI = 0;
+	memset(Table, 0, sizeof(uint32_t) * FCS_TABLE_SIZE);
 	char ReflectNum[]{8, 32};
 	int Index[]{0, 0, 0};
 
@@ -654,8 +655,8 @@ size_t __fastcall MakeCompressionPointerMutation(
 		memmove_s(Buffer + Length - sizeof(dns_qry) + 1U, sizeof(dns_qry), Buffer + Length - sizeof(dns_qry), sizeof(dns_qry));
 		*(Buffer + Length - sizeof(dns_qry) - 1U) = DNS_POINTER_8_BITS_STRING;
 
-	//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
-	#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+	//Minimum supported system of GetTickCount64 function is Windows Vista(Windows XP with SP3 support).
+	#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 			Index = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)() % 4U;
 		else 
@@ -690,7 +691,8 @@ size_t __fastcall MakeCompressionPointerMutation(
 		return Length + 1U;
 	}
 	else {
-		dns_qry DNS_Query = {0};
+		dns_qry DNS_Query;
+		memset(&DNS_Query, 0, sizeof(dns_qry));
 		memcpy_s((char *)&DNS_Query, sizeof(dns_qry), Buffer + DNS_PACKET_QUERY_LOCATE(Buffer), sizeof(dns_qry));
 		memmove_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t) + sizeof(dns_qry), Length, Buffer + sizeof(dns_hdr), strnlen_s(Buffer + sizeof(dns_hdr), Length - sizeof(dns_hdr)) + 1U);
 		memcpy_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t), Length - sizeof(dns_hdr) - sizeof(uint16_t), (char *)&DNS_Query, sizeof(dns_qry));

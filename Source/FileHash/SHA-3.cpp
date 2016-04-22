@@ -140,7 +140,8 @@ bool __fastcall SHA3_Hash(
 	std::shared_ptr<char> Buffer(new char[FILE_BUFFER_SIZE]()), StringBuffer(new char[FILE_BUFFER_SIZE]());
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(StringBuffer.get(), 0, FILE_BUFFER_SIZE);
-	Keccak_HashInstance HashInstance = {0};
+	Keccak_HashInstance HashInstance;
+	memset(&HashInstance, 0, sizeof(Keccak_HashInstance));
 	size_t ReadLength = 0;
 
 //SHA-3 initialization

@@ -114,10 +114,11 @@ bool ReadCommand(
 	if (!FileNameInit(argv[0]))
 		return false;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	char FileName[PATH_MAX + 1U] = {0};
+	char FileName[PATH_MAX + 1U];
+	memset(FileName, 0, PATH_MAX + 1U);
 	if (getcwd(FileName, PATH_MAX) == nullptr)
 	{
-		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+		std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 		fwprintf(stderr, L"Path initialization error.\n");
 
 		return false;
@@ -132,7 +133,7 @@ bool ReadCommand(
 		auto ErrorCode = errno;
 		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
 		fwprintf_s(stderr, L"Screen output buffer setting error, error code is %d.\n", ErrorCode);
-		ScreenLock.unlock();
+		ScreenMutex.unlock();
 		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Screen output buffer setting error", ErrorCode, nullptr, 0);
 
 		return false;
@@ -140,14 +141,15 @@ bool ReadCommand(
 
 //Winsock initialization
 #if defined(PLATFORM_WIN)
-	WSAData WSAInitialization = {0};
+	WSAData WSAInitialization;
+	memset(&WSAInitialization, 0, sizeof(WSAData));
 	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), &WSAInitialization) != 0 || 
 		LOBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_HIGH)
 	{
 		auto ErrorCode = WSAGetLastError();
 		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
 		fwprintf_s(stderr, L"Winsock initialization error, error code is %d.\n", ErrorCode);
-		ScreenLock.unlock();
+		ScreenMutex.unlock();
 		PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"Winsock initialization error", ErrorCode, nullptr, 0);
 
 		return false;
@@ -202,7 +204,7 @@ bool ReadCommand(
 	//Print current version.
 		else if (Commands == COMMAND_LONG_PRINT_VERSION || Commands == COMMAND_SHORT_PRINT_VERSION)
 		{
-			std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+			std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 			fwprintf_s(stderr, L"Pcap_DNSProxy ");
 			fwprintf_s(stderr, FULL_VERSION);
 			fwprintf_s(stderr, L"\n");
@@ -212,7 +214,7 @@ bool ReadCommand(
 	//Print library version.
 		else if (Commands == COMMAND_LIB_VERSION)
 		{
-			std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+			std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 
 		#if (defined(ENABLE_LIBSODIUM) || defined(ENABLE_PCAP))
 			std::wstring LibVersion;
@@ -237,7 +239,7 @@ bool ReadCommand(
 	//Print help messages.
 		else if (Commands == COMMAND_LONG_HELP || Commands == COMMAND_SHORT_HELP)
 		{
-			std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+			std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 
 			fwprintf_s(stderr, L"Pcap_DNSProxy ");
 			fwprintf_s(stderr, FULL_VERSION);
@@ -288,7 +290,7 @@ bool ReadCommand(
 				{
 					std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
 					fwprintf_s(stderr, L"Commands error.\n");
-					ScreenLock.unlock();
+					ScreenMutex.unlock();
 					PrintError(LOG_LEVEL_1, LOG_ERROR_SYSTEM, L"Commands error", 0, nullptr, 0);
 
 					return false;
@@ -370,7 +372,8 @@ bool __fastcall FirewallTest(
 {
 //Ramdom number distribution initialization
 	std::uniform_int_distribution<uint16_t> RamdomDistribution(DYNAMIC_MIN_PORT, UINT16_MAX - 1U);
-	sockaddr_storage SockAddr = {0};
+	sockaddr_storage SockAddr;
+	memset(&SockAddr, 0, sizeof(sockaddr_storage));
 	SYSTEM_SOCKET FirewallSocket = 0;
 
 //IPv6

@@ -25,14 +25,14 @@ void __fastcall CaptureInit(
 	void)
 {
 //Initialization and capture filter initialization
-	char ErrBuffer[PCAP_ERRBUF_SIZE] = {0};
+	char ErrBuffer[PCAP_ERRBUF_SIZE];
 	std::wstring wErrBuffer;
 	std::vector<std::string>::iterator CaptureIter;
 	pcap_if *pThedevs = nullptr, *pDrive = nullptr;
 	auto IsErrorFirstPrint = true;
+	memset(ErrBuffer, 0, PCAP_ERRBUF_SIZE);
 	CaptureFilterRulesInit(PcapFilterRules);
-	std::unique_lock<std::mutex> CaptureMutex(CaptureLock);
-	CaptureMutex.unlock();
+	std::unique_lock<std::mutex> CaptureMutex(CaptureLock, std::defer_lock);
 
 //Capture Monitor
 	for (;;)
@@ -220,14 +220,16 @@ void __fastcall CaptureFilterRulesInit(
 	}
 
 //Initialization(Part 2)
-	char Addr[ADDR_STRING_MAXSIZE] = {0};
+	char Addr[ADDR_STRING_MAXSIZE];
+	memset(Addr, 0, ADDR_STRING_MAXSIZE);
 	std::string AddrString;
 	FilterRules.clear();
 	FilterRules.append("(src host ");
 	
-//Minimum supported system of inet_ntop() and inet_pton() is Windows Vista(Windows XP with SP3 support). [Roy Tam]
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-	sockaddr_storage SockAddr = {0};
+//Minimum supported system of inet_ntop function and inet_pton function is Windows Vista(Windows XP with SP3 support). [Roy Tam]
+#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+	sockaddr_storage SockAddr;
+	memset(&SockAddr, 0, sizeof(sockaddr_storage));
 	DWORD BufferLength = ADDR_STRING_MAXSIZE;
 #endif
 
@@ -242,7 +244,7 @@ void __fastcall CaptureFilterRulesInit(
 				AddrString.append(" or ");
 			RepeatingItem = true;
 
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 			if (GlobalRunningStatus.FunctionPTR_InetNtop != nullptr)
 			{
 				(*GlobalRunningStatus.FunctionPTR_InetNtop)(AF_INET6, &DNSServerDataIter->AddressData.IPv6.sin6_addr, Addr, ADDR_STRING_MAXSIZE);
@@ -267,7 +269,7 @@ void __fastcall CaptureFilterRulesInit(
 				AddrString.append(" or ");
 			RepeatingItem = true;
 
-		#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 			if (GlobalRunningStatus.FunctionPTR_InetNtop != nullptr)
 			{
 				(*GlobalRunningStatus.FunctionPTR_InetNtop)(AF_INET, &DNSServerDataIter->AddressData.IPv4.sin_addr, Addr, ADDR_STRING_MAXSIZE);
@@ -386,11 +388,12 @@ DevicesNotSkip:
 	}
 
 //Compile the string into a filter program.
-	bpf_program BPF_Code = {0};
+	bpf_program BPF_Code;
+	memset(&BPF_Code, 0, sizeof(bpf_program));
 #if defined(PLATFORM_WIN)
-	if (pcap_compile(DeviceHandle, &BPF_Code, PcapFilterRules.c_str(), PCAP_COMPILE_OPTIMIZE, (bpf_u_int32)pDrive->addresses->netmask) == PCAP_ERROR)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (pcap_compile(DeviceHandle, &BPF_Code, PcapFilterRules.c_str(), PCAP_COMPILE_OPTIMIZE, 0) == PCAP_ERROR)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	if (pcap_compile(DeviceHandle, &BPF_Code, PcapFilterRules.c_str(), PCAP_COMPILE_OPTIMIZE, PCAP_NETMASK_UNKNOWN) == PCAP_ERROR)
 #endif
 	{
 		std::wstring ErrBuffer;
@@ -422,13 +425,13 @@ DevicesNotSkip:
 	}
 
 //Initialization(Part 2)
-	CAPTURE_HANDLER_PARAM ParamList = {0};
+	CAPTURE_HANDLER_PARAM ParamList;
+	memset(&ParamList, 0, sizeof(CAPTURE_HANDLER_PARAM));
 	ParamList.DeviceType = DeviceType;
 	ParamList.Buffer = Buffer.get();
 	ParamList.BufferSize = LARGE_PACKET_MAXSIZE + sizeof(uint16_t);
 	SSIZE_T Result = 0;
-	std::unique_lock<std::mutex> CaptureMutex(CaptureLock);
-	CaptureMutex.unlock();
+	std::unique_lock<std::mutex> CaptureMutex(CaptureLock, std::defer_lock);
 
 //Start monitor.
 	for (;;)
@@ -631,13 +634,14 @@ bool __fastcall CaptureNetworkLayer(
 			{
 			//Domain Test and DNS Options check and get Hop Limit from Domain Test.
 				auto IsMarkHopLimit = false;
-				if (CheckResponseData(
+				auto DataLength = CheckResponseData(
 					REQUEST_PROCESS_UDP, 
 					(char *)Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), 
 					ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), 
 					BufferSize, 
-					&IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
-						return false;
+					&IsMarkHopLimit);
+				if (DataLength < DNS_PACKET_MINSIZE)
+					return false;
 				if (IsMarkHopLimit)
 					PacketSource->HopLimitData.HopLimit = IPv6_Header->HopLimit;
 
@@ -657,7 +661,7 @@ bool __fastcall CaptureNetworkLayer(
 				if ((size_t)IPv6_Header->HopLimit + (size_t)Parameter.HopLimitFluctuation > (size_t)PacketSource->HopLimitData.HopLimit && 
 					(size_t)IPv6_Header->HopLimit < (size_t)PacketSource->HopLimitData.HopLimit + (size_t)Parameter.HopLimitFluctuation)
 				{
-					MatchPortToSend(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), BufferSize, AF_INET6, UDP_Header->DstPort);
+					MatchPortToSend(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), DataLength, BufferSize, AF_INET6, UDP_Header->DstPort);
 					return true;
 				}
 			}
@@ -753,13 +757,14 @@ bool __fastcall CaptureNetworkLayer(
 			{
 			//Domain Test and DNS Options check and get TTL from Domain Test.
 				auto IsMarkHopLimit = false;
-				if (CheckResponseData(
+				auto DataLength = CheckResponseData(
 					REQUEST_PROCESS_UDP, 
 					(char *)Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), 
 					ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES - sizeof(udp_hdr), 
 					BufferSize, 
-					&IsMarkHopLimit) < (SSIZE_T)DNS_PACKET_MINSIZE)
-						return false;
+					&IsMarkHopLimit);
+				if (DataLength < DNS_PACKET_MINSIZE)
+					return false;
 				if (IsMarkHopLimit)
 					PacketSource->HopLimitData.TTL = IPv4_Header->TTL;
 
@@ -779,7 +784,7 @@ bool __fastcall CaptureNetworkLayer(
 				if ((size_t)IPv4_Header->TTL + (size_t)Parameter.HopLimitFluctuation > (size_t)PacketSource->HopLimitData.TTL && 
 					(size_t)IPv4_Header->TTL < (size_t)PacketSource->HopLimitData.TTL + (size_t)Parameter.HopLimitFluctuation)
 				{
-					MatchPortToSend(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES - sizeof(udp_hdr), BufferSize, AF_INET, UDP_Header->DstPort);
+					MatchPortToSend(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DataLength, BufferSize, AF_INET, UDP_Header->DstPort);
 					return true;
 				}
 			}
@@ -849,7 +854,8 @@ bool __fastcall MatchPortToSend(
 	const uint16_t Port)
 {
 //Initialization
-	SOCKET_DATA SocketData_Input = {0};
+	SOCKET_DATA SocketData_Input;
+	memset(&SocketData_Input, 0, sizeof(SOCKET_DATA));
 	uint16_t SystemProtocol = 0;
 	size_t ReceiveIndex = 0;
 
@@ -870,7 +876,7 @@ bool __fastcall MatchPortToSend(
 					++PortTableIter.ReceiveIndex;
 					ReceiveIndex = PortTableIter.ReceiveIndex;
 
-					OutputPacketListLock.unlock();
+					OutputPacketListMutex.unlock();
 					goto StopLoop;
 				}
 				else {
@@ -891,7 +897,7 @@ bool __fastcall MatchPortToSend(
 //Jump here to stop loop, wait receiving and match port again.
 StopLoop:
 	Sleep(Parameter.ReceiveWaiting);
-	OutputPacketListLock.lock();
+	OutputPacketListMutex.lock();
 	for (auto &PortTableIter:OutputPacketList)
 	{
 		for (auto &SocketDataIter:PortTableIter.SocketData_Output)
@@ -921,8 +927,8 @@ StopLoop:
 
 //Jump here to stop loop and clear timeout data.
 ClearOutputPacketListData:
-//Minimum supported system of GetTickCount64() is Windows Vista(Windows XP with SP3 support).
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+//Minimum supported system of GetTickCount64 function is Windows Vista(Windows XP with SP3 support).
+#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 	if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 	{
 		while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)()))

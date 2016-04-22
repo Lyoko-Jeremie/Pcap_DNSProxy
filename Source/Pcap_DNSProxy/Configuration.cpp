@@ -447,9 +447,11 @@ bool __fastcall ReadParameter(
 //Initialization
 	FILE *Input = nullptr;
 #if defined(PLATFORM_WIN)
-	WIN32_FILE_ATTRIBUTE_DATA File_WIN32_FILE_ATTRIBUTE_DATA = {0};
+	WIN32_FILE_ATTRIBUTE_DATA File_WIN32_FILE_ATTRIBUTE_DATA;
+	memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	struct stat FileStat = {0};
+	struct stat FileStat;
+	memset(&FileStat, 0, sizeof(struct stat));
 #endif
 
 //Read parameters at first.
@@ -483,7 +485,8 @@ bool __fastcall ReadParameter(
 	#if defined(PLATFORM_WIN)
 		if (GetFileAttributesExW(FileList_Config.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, &File_WIN32_FILE_ATTRIBUTE_DATA) != FALSE)
 		{
-			LARGE_INTEGER ConfigFileSize = {0};
+			LARGE_INTEGER ConfigFileSize;
+			memset(&ConfigFileSize, 0, sizeof(LARGE_INTEGER));
 			ConfigFileSize.HighPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeHigh;
 			ConfigFileSize.LowPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeLow;
 			if (ConfigFileSize.QuadPart >= DEFAULT_FILE_MAXSIZE)
@@ -553,7 +556,8 @@ bool __fastcall ReadParameter(
 	//Jump here to stop loop.
 	StopLoop:
 	#if defined(PLATFORM_WIN)
-		LARGE_INTEGER File_LARGE_INTEGER = {0};
+		LARGE_INTEGER File_LARGE_INTEGER;
+		memset(&File_LARGE_INTEGER, 0, sizeof(LARGE_INTEGER));
 	#endif
 		auto InnerIsFirstRead = true, IsFileModified = false;
 
@@ -716,13 +720,15 @@ void __fastcall ReadIPFilter(
 	FILE *Input = nullptr;
 	auto IsFileModified = false;
 #if defined(PLATFORM_WIN)
-	WIN32_FILE_ATTRIBUTE_DATA File_WIN32_FILE_ATTRIBUTE_DATA = {0};
-	LARGE_INTEGER File_LARGE_INTEGER = {0};
+	WIN32_FILE_ATTRIBUTE_DATA File_WIN32_FILE_ATTRIBUTE_DATA;
+	LARGE_INTEGER File_LARGE_INTEGER;
+	memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+	memset(&File_LARGE_INTEGER, 0, sizeof(LARGE_INTEGER));
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	struct stat FileStat = {0};
+	struct stat FileStat;
+	memset(&FileStat, 0, sizeof(struct stat));
 #endif
-	std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock);
-	IPFilterFileMutex.unlock();
+	std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock, std::defer_lock);
 	
 //File Monitor
 	for (;;)
@@ -901,13 +907,15 @@ void __fastcall ReadHosts(
 	FILE *Input = nullptr;
 	auto IsFileModified = false;
 #if defined(PLATFORM_WIN)
-	WIN32_FILE_ATTRIBUTE_DATA File_WIN32_FILE_ATTRIBUTE_DATA = {0};
-	LARGE_INTEGER File_LARGE_INTEGER = {0};
+	WIN32_FILE_ATTRIBUTE_DATA File_WIN32_FILE_ATTRIBUTE_DATA;
+	LARGE_INTEGER File_LARGE_INTEGER;
+	memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
+	memset(&File_LARGE_INTEGER, 0, sizeof(LARGE_INTEGER));
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	struct stat FileStat = {0};
+	struct stat FileStat;
+	memset(&FileStat, 0, sizeof(struct stat));
 #endif
-	std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock);
-	HostsFileMutex.unlock();
+	std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock, std::defer_lock);
 
 //File Monitor
 	for (;;)

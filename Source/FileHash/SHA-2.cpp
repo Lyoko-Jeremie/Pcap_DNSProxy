@@ -79,7 +79,9 @@ static void __fastcall SHA2_256_Transform(
 	SHA2_256_Object *sha_info)
 {
 	size_t Index = 0;
-	SHA_INT32 S[8U] = {0}, W[64U] = {0}, t0 = 0, t1 = 0;
+	SHA_INT32 S[8U], W[64U], t0 = 0, t1 = 0;
+	memset(S, 0, sizeof(SHA_INT32) * 8U);
+	memset(W, 0, sizeof(SHA_INT32) * 64U);
 
 	memcpy(W, sha_info->Data, sizeof(sha_info->Data));
 	SHA2_256_LongReverse(W, (int)sizeof(sha_info->Data), sha_info->Endianness);
@@ -396,7 +398,9 @@ static void __fastcall SHA2_512_Transform(
 	SHA2_512_Object *sha_info)
 {
 	size_t Index = 0;
-	SHA_INT64 S[8] = {0}, W[80] = {0}, t0 = 0, t1 = 0;
+	SHA_INT64 S[8U], W[80U], t0 = 0, t1 = 0;
+	memset(S, 0, sizeof(SHA_INT64) * 8U);
+	memset(W, 0, sizeof(SHA_INT64) * 80U);
 
 	memcpy(W, sha_info->Data, sizeof(sha_info->Data));
 	SHA2_512_LongReverse(W, (int)sizeof(sha_info->Data), sha_info->Endianness);
@@ -802,8 +806,10 @@ bool __fastcall SHA2_Hash(
 	std::shared_ptr<char> Buffer(new char[FILE_BUFFER_SIZE]()), StringBuffer(new char[FILE_BUFFER_SIZE]());
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(StringBuffer.get(), 0, FILE_BUFFER_SIZE);
-	SHA2_256_Object HashInstance256 = {0};
-	SHA2_512_Object HashInstance512 = {0};
+	SHA2_256_Object HashInstance256;
+	SHA2_512_Object HashInstance512;
+	memset(&HashInstance256, 0, sizeof(SHA2_256_Object));
+	memset(&HashInstance512, 0, sizeof(SHA2_512_Object));
 	size_t ReadLength = 0, DigestSize = 0;
 
 //SHA-2 initialization

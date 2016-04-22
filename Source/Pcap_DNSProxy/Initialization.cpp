@@ -90,7 +90,7 @@ ConfigurationTable::ConfigurationTable(
 	#endif
 		LocalFQDN_Response = new char[DOMAIN_MAXSIZE]();
 		LocalFQDN_String = new std::string();
-	#if !defined(PLATFORM_MACX)
+	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		LocalServer_Response = new char[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt)]();
 	#endif
 
@@ -140,7 +140,7 @@ ConfigurationTable::ConfigurationTable(
 		delete LocalFQDN_String;
 		LocalFQDN_Response = nullptr;
 		LocalFQDN_String = nullptr;
-	#if !defined(PLATFORM_MACX)
+	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		delete[] LocalServer_Response;
 		LocalServer_Response = nullptr;
 	#endif
@@ -179,7 +179,7 @@ void __fastcall ConfigurationTableSetting(
 	memset(ConfigurationParameter->DomainTest_Data, 0, DOMAIN_MAXSIZE);
 #endif
 	memset(ConfigurationParameter->LocalFQDN_Response, 0, DOMAIN_MAXSIZE);
-#if !defined(PLATFORM_MACX)
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	memset(ConfigurationParameter->LocalServer_Response, 0, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt));
 #endif
 
@@ -286,7 +286,7 @@ ConfigurationTable::~ConfigurationTable(
 	delete LocalFQDN_String;
 	LocalFQDN_Response = nullptr;
 	LocalFQDN_String = nullptr;
-#if !defined(PLATFORM_MACX)
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	delete[] LocalServer_Response;
 	LocalServer_Response = nullptr;
 #endif
@@ -347,7 +347,7 @@ void ConfigurationTable::SetToMonitorItem(
 	delete LocalFQDN_String;
 	LocalFQDN_Response = nullptr;
 	LocalFQDN_String = nullptr;
-#if !defined(PLATFORM_MACX)
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	delete[] LocalServer_Response;
 	LocalServer_Response = nullptr;
 #endif
@@ -372,7 +372,7 @@ void ConfigurationTable::SetToMonitorItem(
 #endif
 	LocalFQDN_Response = nullptr;
 	LocalFQDN_String = nullptr;
-#if !defined(PLATFORM_MACX)
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	LocalServer_Response = nullptr;
 #endif
 
@@ -598,7 +598,7 @@ GlobalStatus::GlobalStatus(
 	#endif
 		LocalAddress_Response[0] = new char[PACKET_MAXSIZE]();
 		LocalAddress_Response[1U] = new char[PACKET_MAXSIZE]();
-	#if !defined(PLATFORM_MACX)
+	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		LocalAddress_ResponsePTR[0] = new std::vector<std::string>();
 		LocalAddress_ResponsePTR[1U] = new std::vector<std::string>();
 	#endif
@@ -631,7 +631,7 @@ GlobalStatus::GlobalStatus(
 		delete[] LocalAddress_Response[1U];
 		LocalAddress_Response[0] = nullptr;
 		LocalAddress_Response[1U] = nullptr;
-	#if !defined(PLATFORM_MACX)
+	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		delete LocalAddress_ResponsePTR[0];
 		delete LocalAddress_ResponsePTR[1U];
 		LocalAddress_ResponsePTR[0] = nullptr;
@@ -663,7 +663,7 @@ void __fastcall GlobalStatusSetting(
 	memset(GlobalRunningStatusParameter->LocalAddress_Response[1U], 0, PACKET_MAXSIZE);
 
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 	GetFunctionPointer(FUNCTION_GETTICKCOUNT64);
 	GetFunctionPointer(FUNCTION_INET_NTOP);
 	GetFunctionPointer(FUNCTION_INET_PTON);
@@ -691,7 +691,7 @@ GlobalStatus::~GlobalStatus(
 
 //Free libraries.
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
 	if (FunctionLibrary_GetTickCount64 != nullptr)
 	{
 		FreeLibrary(FunctionLibrary_GetTickCount64);
@@ -736,7 +736,7 @@ GlobalStatus::~GlobalStatus(
 	delete[] LocalAddress_Response[1U];
 	LocalAddress_Response[0] = nullptr;
 	LocalAddress_Response[1U] = nullptr;
-#if !defined(PLATFORM_MACX)
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	delete LocalAddress_ResponsePTR[0];
 	delete LocalAddress_ResponsePTR[1U];
 	LocalAddress_ResponsePTR[0] = nullptr;

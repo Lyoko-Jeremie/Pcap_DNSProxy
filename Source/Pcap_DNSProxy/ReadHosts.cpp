@@ -397,8 +397,10 @@ bool __fastcall ReadAddressHostsData(
 
 //Initialization
 	ADDRESS_HOSTS_TABLE AddressHostsTableTemp;
-	sockaddr_storage SockAddr = {0};
-	char Addr[ADDR_STRING_MAXSIZE] = {0};
+	sockaddr_storage SockAddr;
+	memset(&SockAddr, 0, sizeof(sockaddr_storage));
+	char Addr[ADDR_STRING_MAXSIZE];
+	memset(Addr, 0, ADDR_STRING_MAXSIZE);
 
 //Get target data.
 	std::vector<std::string> TargetListData, SourceListData;
@@ -641,8 +643,10 @@ bool __fastcall ReadMainHostsData(
 	}
 
 //Response initialization
-	ADDRESS_UNION_DATA AddressUnionDataTemp = {0};
-	char Addr[ADDR_STRING_MAXSIZE] = {0};
+	ADDRESS_UNION_DATA AddressUnionDataTemp;
+	memset(&AddressUnionDataTemp, 0, sizeof(ADDRESS_UNION_DATA));
+	char Addr[ADDR_STRING_MAXSIZE];
+	memset(Addr, 0, ADDR_STRING_MAXSIZE);
 	SSIZE_T Result = 0;
 
 //Mark all data in list.

@@ -307,7 +307,8 @@ size_t __fastcall Base64_Decode(
 uint64_t GetCurrentSystemTime(
 	void)
 {
-	timeval CurrentTime = {0};
+	timeval CurrentTime;
+	memset(&CurrentTime, 0, sizeof(timeval));
 	if (gettimeofday(&CurrentTime, nullptr) == 0)
 		return (uint64_t)CurrentTime.tv_sec * SECOND_TO_MILLISECOND + (uint64_t)CurrentTime.tv_usec / MICROSECOND_TO_MILLISECOND;
 
@@ -320,8 +321,9 @@ uint64_t GetCurrentSystemTime(
 BOOL WINAPI IsGreaterThanVista(
 	void)
 {
-	OSVERSIONINFOEXW OSVI = {0};
+	OSVERSIONINFOEXW OSVI;
 	DWORDLONG dwlConditionMask = 0;
+	memset(&OSVI, 0, sizeof(OSVERSIONINFOEXW));
 
 //Initialization
 	OSVI.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
@@ -343,7 +345,7 @@ BOOL WINAPI IsGreaterThanVista(
 BOOL WINAPI GetFunctionPointer(
 	const size_t FunctionType)
 {
-//GetTickCount64() function
+//GetTickCount64 function
 	if (FunctionType == FUNCTION_GETTICKCOUNT64)
 	{
 		GlobalRunningStatus.FunctionLibrary_GetTickCount64 = LoadLibraryW(L"Kernel32.dll");
@@ -360,7 +362,7 @@ BOOL WINAPI GetFunctionPointer(
 			}
 		}
 	}
-//inet_ntop() function
+//inet_ntop function
 	else if (FunctionType == FUNCTION_INET_NTOP)
 	{
 		GlobalRunningStatus.FunctionLibrary_InetNtop = LoadLibraryW(L"ws2_32.dll");
@@ -377,7 +379,7 @@ BOOL WINAPI GetFunctionPointer(
 			}
 		}
 	}
-//inet_pton() function
+//inet_pton function
 	else if (FunctionType == FUNCTION_INET_PTON)
 	{
 		GlobalRunningStatus.FunctionLibrary_InetPton = LoadLibraryW(L"ws2_32.dll");

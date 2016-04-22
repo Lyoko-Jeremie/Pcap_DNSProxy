@@ -30,8 +30,8 @@ bool __fastcall PrintError(
 {
 //Print log level check, parameter check, message check and file name check
 	if (Parameter.PrintLogLevel == LOG_LEVEL_0 || ErrorLevel > Parameter.PrintLogLevel || 
-		Message == nullptr || CheckEmptyBuffer(Message, wcsnlen_s(Message, ORIGINAL_PACKET_MAXSIZE) * sizeof(wchar_t)) || 
-		FileName != nullptr && CheckEmptyBuffer(FileName, wcsnlen_s(FileName, ORIGINAL_PACKET_MAXSIZE) * sizeof(wchar_t)))
+		Message == nullptr || CheckEmptyBuffer(Message, sizeof(wchar_t) * wcsnlen_s(Message, ORIGINAL_PACKET_MAXSIZE)) || 
+		FileName != nullptr && CheckEmptyBuffer(FileName, sizeof(wchar_t) * wcsnlen_s(FileName, ORIGINAL_PACKET_MAXSIZE)))
 			return false;
 
 //Convert file name.
@@ -46,8 +46,10 @@ bool __fastcall PrintError(
 
 	//Delete double backslash.
 		FileNameString.append(FileName);
+	#if defined(PLATFORM_WIN)
 		while (FileNameString.find(L"\\\\") != std::wstring::npos)
 			FileNameString.erase(FileNameString.find(L"\\\\"), wcslen(L"\\"));
+	#endif
 	}
 
 //Add log error type.
@@ -250,7 +252,8 @@ bool __fastcall PrintScreenAndWriteFile(
 	const size_t Line)
 {
 //Get current date and time.
-	tm TimeStructure = {0};
+	tm TimeStructure;
+	memset(&TimeStructure, 0, sizeof(tm));
 	auto TimeValues = time(nullptr);
 #if defined(PLATFORM_WIN)
 	if (localtime_s(&TimeStructure, &TimeValues) > 0)
@@ -274,7 +277,7 @@ bool __fastcall PrintScreenAndWriteFile(
 	if (!GlobalRunningStatus.Daemon)
 #endif
 	{
-		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+		std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 
 	//Print startup time.
 		if (LogStartupTime > 0)
@@ -308,12 +311,13 @@ bool __fastcall PrintScreenAndWriteFile(
 
 //Check whole file size.
 	std::unique_lock<std::mutex> ErrorLogMutex(ErrorLogLock);
-
 #if defined(PLATFORM_WIN)
-	WIN32_FILE_ATTRIBUTE_DATA File_WIN32_FILE_ATTRIBUTE_DATA = {0};
+	WIN32_FILE_ATTRIBUTE_DATA File_WIN32_FILE_ATTRIBUTE_DATA;
+	memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
 	if (GetFileAttributesExW(GlobalRunningStatus.Path_ErrorLog->c_str(), GetFileExInfoStandard, &File_WIN32_FILE_ATTRIBUTE_DATA) != FALSE)
 	{
-		LARGE_INTEGER ErrorFileSize = {0};
+		LARGE_INTEGER ErrorFileSize;
+		memset(&ErrorFileSize, 0, sizeof(LARGE_INTEGER));
 		ErrorFileSize.HighPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeHigh;
 		ErrorFileSize.LowPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeLow;
 		if (ErrorFileSize.QuadPart > 0 && (size_t)ErrorFileSize.QuadPart >= Parameter.LogMaxSize)
@@ -330,7 +334,8 @@ bool __fastcall PrintScreenAndWriteFile(
 		}
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	struct stat FileStat = {0};
+	struct stat FileStat;
+	memset(&FileStat, 0, sizeof(struct stat));
 	if (stat(GlobalRunningStatus.sPath_ErrorLog->c_str(), &FileStat) == 0 && FileStat.st_size >= (off_t)Parameter.LogMaxSize)
 	{
 		if (remove(GlobalRunningStatus.sPath_ErrorLog->c_str()) == 0)
