@@ -106,8 +106,8 @@
 
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE                    0.3
-#define CONFIG_VERSION                                0.4                         //Current configuration version
-#define FULL_VERSION                                  L"0.4.6.0"
+#define CONFIG_VERSION                                0.4                         //Current configuration file version
+#define FULL_VERSION                                  L"0.4.6.1"
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
 
 //Size and length definitions
@@ -174,7 +174,6 @@
 	#define PCAP_LOOP_INFINITY                            (-1)                         //Pcap packets are processed until another ending condition occurs.
 	#define PCAP_COMPILE_OPTIMIZE                         1                            //Pcap optimization on the resulting code is performed.
 #endif
-//#define SHA3_512_SIZE                               64U                         //SHA3-512 instance as specified in the FIPS 202(http://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf), 512 bits/64 bytes.
 #define CHECKSUM_SUCCESS                              0                           //Result of getting correct checksum.
 #define DYNAMIC_MIN_PORT                              1024U                       //Well-known port is from 1 to 1023.
 
@@ -183,7 +182,7 @@
 #define MICROSECOND_TO_MILLISECOND                    1000U                       //1000 microseconds(1 millisecond)
 #define STANDARD_TIMEOUT                              1000U                       //Standard timeout, 1000 ms(1 second)
 #define LOOP_MAX_TIMES                                16U                         //Maximum of loop times, 8 times
-#define LOOP_INTERVAL_TIME_NO_DELAY                   10U                         //Loop interval time(No delay), 10 ms
+#define LOOP_INTERVAL_TIME_NO_DELAY                   10U                         //Loop interval time(No delay mode), 10 ms
 #define LOOP_INTERVAL_TIME_MONITOR                    10000U                      //Loop interval time(Monitor mode), 10000 ms(10 seconds)
 #if defined(PLATFORM_WIN)
 	#define UPDATE_SERVICE_TIME                           3000U                       //Update service timeout, 3000 ms(3 seconds)
@@ -401,44 +400,44 @@
 //File Data structure
 typedef struct _file_data_
 {
-	std::wstring             FileName;
+	std::wstring                         FileName;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	std::string              sFileName;
+	std::string                          sFileName;
 #endif
-	time_t                   ModificationTime;
+	time_t                               ModificationTime;
 }FileData, FILE_DATA, *PFileData, *PFILE_DATA;
 
 //Socket Data structure
 typedef struct _socket_data_
 {
-	SYSTEM_SOCKET            Socket;
-	sockaddr_storage         SockAddr;
-	socklen_t                AddrLen;
+	SYSTEM_SOCKET                        Socket;
+	sockaddr_storage                     SockAddr;
+	socklen_t                            AddrLen;
 }SocketData, SOCKET_DATA, *PSocketData, *PSOCKET_DATA;
 
 //Address Prefix Block structure
 typedef struct _address_prefix_block_
 {
-	sockaddr_storage         Address;
-	size_t                   Prefix;
+	sockaddr_storage                     Address;
+	size_t                               Prefix;
 }AddressPrefixBlock, ADDRESS_PREFIX_BLOCK, *PAddressPrefixBlock, *PADDRESS_PREFIX_BLOCK;
 
 //Address Union Data structure
 typedef union _address_union_data_
 {
-	sockaddr_storage     Storage;
-	sockaddr_in6         IPv6;
-	sockaddr_in          IPv4;
+	sockaddr_storage                     Storage;
+	sockaddr_in6                         IPv6;
+	sockaddr_in                          IPv4;
 }AddressUnionData, ADDRESS_UNION_DATA, *PAddressUnionData, *PADDRESS_UNION_DATA;
 
 //DNS Server Data structure
 typedef struct _dns_server_data_
 {
-	AddressUnionData         AddressData;
+	AddressUnionData                     AddressData;
 #if defined(ENABLE_PCAP)
 	union _hoplimit_data_ {
-		uint8_t              TTL;
-		uint8_t              HopLimit;
+		uint8_t                          TTL;
+		uint8_t                          HopLimit;
 	}HopLimitData;
 #endif
 }DNSServerData, DNS_SERVER_DATA, *PDNSServerData, *PDNS_SERVER_DATA;
@@ -446,9 +445,9 @@ typedef struct _dns_server_data_
 //Socket Selecting Data structure
 typedef struct _socket_selecting_data_
 {
-	std::shared_ptr<char>    RecvBuffer;
-	size_t                   Length;
-	bool                     PacketIsSend;
+	std::shared_ptr<char>                RecvBuffer;
+	size_t                               Length;
+	bool                                 PacketIsSend;
 }SocketSelectingData, SOCKET_SELECTING_DATA, *PSocketSelectingData, *PSOCKET_SELECTING_DATA;
 
 //DNS Packet Data structure
@@ -471,37 +470,37 @@ typedef struct _dns_packet_data_
 //DNS Cache Data structure
 typedef struct _dns_cache_data_
 {
-	std::string              Domain;
-	std::shared_ptr<char>    Response;
-	size_t                   Length;
-	uint16_t                 RecordType;
-	uint64_t                 ClearCacheTime;
+	std::string                          Domain;
+	std::shared_ptr<char>                Response;
+	size_t                               Length;
+	uint16_t                             RecordType;
+	uint64_t                             ClearCacheTime;
 }DNSCacheData, DNS_CACHE_DATA, *PDNSCacheData, *PDNS_CACHE_DATA;
 
 //DNSCurve Server Data structure
 #if defined(ENABLE_LIBSODIUM)
 typedef struct _dnscurve_server_data_
 {
-	ADDRESS_UNION_DATA       AddressData;
-	char                     *ProviderName;          //Server Provider Name
-	uint8_t                  *PrecomputationKey;     //DNSCurve Precomputation Keys
-	uint8_t                  *ServerPublicKey;       //Server Public Keys
-	uint8_t                  *ServerFingerprint;     //Server Fingerprints
-	char                     *ReceiveMagicNumber;    //Receive Magic Number(Same from server receive)
-	char                     *SendMagicNumber;       //Server Magic Number(Send to server)
+	ADDRESS_UNION_DATA                   AddressData;
+	char                                 *ProviderName;          //Server Provider Name
+	uint8_t                              *PrecomputationKey;     //DNSCurve Precomputation Keys
+	uint8_t                              *ServerPublicKey;       //Server Public Keys
+	uint8_t                              *ServerFingerprint;     //Server Fingerprints
+	char                                 *ReceiveMagicNumber;    //Receive Magic Number(Same from server receive)
+	char                                 *SendMagicNumber;       //Server Magic Number(Send to server)
 }DNSCurveServerData, DNSCURVE_SERVER_DATA, *PDNSCurveServerData, *PDNSCURVE_SERVER_DATA;
 
 //DNSCurve Socket Selecting Data structure
 typedef struct _dnscurve_socket_selecting_data_
 {
-	size_t                   ServerType;
-	uint8_t                  *PrecomputationKey;
-	char                     *ReceiveMagicNumber;
-	char                     *SendBuffer;
-	size_t                   SendSize;
-	std::shared_ptr<char>    RecvBuffer;
-	size_t                   Length;
-	bool                     PacketIsSend;
+	size_t                               ServerType;
+	uint8_t                              *PrecomputationKey;
+	char                                 *ReceiveMagicNumber;
+	char                                 *SendBuffer;
+	size_t                               SendSize;
+	std::shared_ptr<char>                RecvBuffer;
+	size_t                               Length;
+	bool                                 PacketIsSend;
 }DNSCurveSocketSelectingData, DNSCURVE_SOCKET_SELECTING_DATA, *PDNSCurveSocketSelectingData, *PDNSCURVE_SOCKET_SELECTING_DATA;
 #endif
 
@@ -755,9 +754,9 @@ public:
 typedef class AddressRangeTable
 {
 public:
-	sockaddr_storage         Begin;
-	sockaddr_storage         End;
-	size_t                   Level;
+	sockaddr_storage                     Begin;
+	sockaddr_storage                     End;
+	size_t                               Level;
 
 //Member functions
 	AddressRangeTable(
@@ -768,12 +767,12 @@ public:
 typedef class HostsTable
 {
 public:
-	std::vector<ADDRESS_UNION_DATA>   AddrList;
-	std::regex                        Pattern;
-	std::string                       PatternString;
-	std::vector<uint16_t>             RecordTypeList;
-	size_t                            PermissionType;
-	bool                              PermissionOperation;
+	std::vector<ADDRESS_UNION_DATA>      AddrList;
+	std::regex                           Pattern;
+	std::string                          PatternString;
+	std::vector<uint16_t>                RecordTypeList;
+	size_t                               PermissionType;
+	bool                                 PermissionOperation;
 
 //Member functions
 	HostsTable(
@@ -784,8 +783,8 @@ public:
 typedef class AlternateSwapTable
 {
 public:
-	bool                     IsSwap[ALTERNATE_SERVERNUM];
-	size_t                   TimeoutTimes[ALTERNATE_SERVERNUM];
+	bool                                 IsSwap[ALTERNATE_SERVERNUM];
+	size_t                               TimeoutTimes[ALTERNATE_SERVERNUM];
 
 //Member functions
 	AlternateSwapTable(
@@ -796,17 +795,17 @@ public:
 typedef class ResultBlacklistTable
 {
 public:
-	std::vector<AddressRangeTable>   Addresses;
-	std::regex                       Pattern;
-	std::string                      PatternString;
+	std::vector<AddressRangeTable>       Addresses;
+	std::regex                           Pattern;
+	std::string                          PatternString;
 }RESULT_BLACKLIST_TABLE;
 
 //Address Hosts class
 typedef class AddressHostsTable
 {
 public:
-	std::vector<sockaddr_storage>    Address_Target;
-	std::vector<AddressRangeTable>   Address_Source;
+	std::vector<sockaddr_storage>        Address_Target;
+	std::vector<AddressRangeTable>       Address_Source;
 }ADDRESS_HOSTS_TABLE;
 
 //Address routing table class
@@ -827,12 +826,12 @@ public:
 typedef class OutputPacketTable
 {
 public:
-	std::vector<SOCKET_DATA>   SocketData_Output;
-	SOCKET_DATA                SocketData_Input;
-	uint16_t                   Protocol_Network;
-	uint16_t                   Protocol_Transport;
-	unsigned long long         ClearPortTime;
-	size_t                     ReceiveIndex;
+	std::vector<SOCKET_DATA>             SocketData_Output;
+	SOCKET_DATA                          SocketData_Input;
+	uint16_t                             Protocol_Network;
+	uint16_t                             Protocol_Transport;
+	unsigned long long                   ClearPortTime;
+	size_t                               ReceiveIndex;
 
 //Member functions
 	OutputPacketTable(
@@ -844,10 +843,10 @@ public:
 typedef class DiffernetFileSetIPFilter
 {
 public:
-	std::vector<ADDRESS_RANGE_TABLE>          AddressRange;
-	std::vector<RESULT_BLACKLIST_TABLE>       ResultBlacklist;
-	std::vector<ADDRESS_ROUTING_TABLE>        LocalRoutingList;
-	size_t                                    FileIndex;
+	std::vector<ADDRESS_RANGE_TABLE>      AddressRange;
+	std::vector<RESULT_BLACKLIST_TABLE>   ResultBlacklist;
+	std::vector<ADDRESS_ROUTING_TABLE>    LocalRoutingList;
+	size_t                                FileIndex;
 
 //Member functions
 	DiffernetFileSetIPFilter(
@@ -858,11 +857,11 @@ public:
 typedef class DiffernetFileSetHosts
 {
 public:
-	std::vector<HOSTS_TABLE>           HostsList_Normal;
-	std::vector<HOSTS_TABLE>           HostsList_Local;
-	std::vector<HOSTS_TABLE>           HostsList_CNAME;
-	std::vector<ADDRESS_HOSTS_TABLE>   AddressHostsList;
-	size_t                             FileIndex;
+	std::vector<HOSTS_TABLE>             HostsList_Normal;
+	std::vector<HOSTS_TABLE>             HostsList_Local;
+	std::vector<HOSTS_TABLE>             HostsList_CNAME;
+	std::vector<ADDRESS_HOSTS_TABLE>     AddressHostsList;
+	size_t                               FileIndex;
 
 //Member functions
 	DiffernetFileSetHosts(
@@ -875,8 +874,8 @@ public:
 template<typename Ty> class DNSCurveHeapBufferTable
 {
 public:
-	Ty                         *Buffer;
-	size_t                     BufferSize;
+	Ty                                   *Buffer;
+	size_t                               BufferSize;
 
 //Member functions
 	DNSCurveHeapBufferTable(
@@ -898,28 +897,28 @@ typedef class DNSCurveConfigurationTable
 {
 public:
 //[DNSCurve] block
-	size_t                     DNSCurvePayloadSize;
-	size_t                     DNSCurveProtocol_Network;
-	size_t                     DNSCurveProtocol_Transport;
+	size_t                               DNSCurvePayloadSize;
+	size_t                               DNSCurveProtocol_Network;
+	size_t                               DNSCurveProtocol_Transport;
 #if defined(PLATFORM_WIN)
-	int                        DNSCurve_SocketTimeout_Reliable;
-	int                        DNSCurve_SocketTimeout_Unreliable;
+	int                                  DNSCurve_SocketTimeout_Reliable;
+	int                                  DNSCurve_SocketTimeout_Unreliable;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	timeval                    DNSCurve_SocketTimeout_Reliable;
-	timeval                    DNSCurve_SocketTimeout_Unreliable;
+	timeval                              DNSCurve_SocketTimeout_Reliable;
+	timeval                              DNSCurve_SocketTimeout_Unreliable;
 #endif
-	bool                       IsEncryption;
-	bool                       IsEncryptionOnly;
-	bool                       ClientEphemeralKey;
-	size_t                     KeyRecheckTime;
+	bool                                 IsEncryption;
+	bool                                 IsEncryptionOnly;
+	bool                                 ClientEphemeralKey;
+	size_t                               KeyRecheckTime;
 //[DNSCurve Addresses] block
-	uint8_t                    *Client_PublicKey;
-	uint8_t                    *Client_SecretKey;
+	uint8_t                              *Client_PublicKey;
+	uint8_t                              *Client_SecretKey;
 	struct _dnscurve_target_ {
-		DNSCURVE_SERVER_DATA   IPv6;
-		DNSCURVE_SERVER_DATA   Alternate_IPv6;
-		DNSCURVE_SERVER_DATA   IPv4;
-		DNSCURVE_SERVER_DATA   Alternate_IPv4;
+		DNSCURVE_SERVER_DATA             IPv6;
+		DNSCURVE_SERVER_DATA             Alternate_IPv6;
+		DNSCURVE_SERVER_DATA             IPv4;
+		DNSCURVE_SERVER_DATA             Alternate_IPv4;
 	}DNSCurveTarget;
 
 //Member functions

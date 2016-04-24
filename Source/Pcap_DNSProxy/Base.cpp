@@ -30,13 +30,16 @@ bool __fastcall CheckEmptyBuffer(
 {
 //Null pointer
 	if (Buffer == nullptr)
-		return false;
-
-//Scan all data.
-	for (size_t Index = 0;Index < Length;++Index)
 	{
-		if (((uint8_t *)Buffer)[Index] != 0)
-			return false;
+		return false;
+	}
+	else {
+	//Scan all data.
+		for (size_t Index = 0;Index < Length;++Index)
+		{
+			if (((uint8_t *)Buffer)[Index] != 0)
+				return false;
+		}
 	}
 
 	return true;
@@ -123,9 +126,10 @@ bool __fastcall MBSToWCSString(
 		return false;
 	}
 	else {
-		Target = TargetPTR.get();
-		if (Target.empty())
+		if (wcsnlen(TargetPTR.get(), Length + 1U) == 0)
 			return false;
+		else 
+			Target = TargetPTR.get();
 	}
 
 	return true;
@@ -139,17 +143,20 @@ void __fastcall CaseConvert(
 {
 //Null pointer
 	if (Buffer == nullptr)
-		return;
-
-//Convert words.
-	for (size_t Index = 0;Index < Length;++Index)
 	{
-	//Lowercase to uppercase
-		if (IsLowerToUpper)
-			Buffer[Index] = (char)toupper(Buffer[Index]);
-	//Uppercase to lowercase
-		else 
-			Buffer[Index] = (char)tolower(Buffer[Index]);
+		return;
+	}
+	else {
+	//Convert words.
+		for (size_t Index = 0;Index < Length;++Index)
+		{
+		//Lowercase to uppercase
+			if (IsLowerToUpper)
+				Buffer[Index] = (char)toupper(Buffer[Index]);
+		//Uppercase to lowercase
+			else
+				Buffer[Index] = (char)tolower(Buffer[Index]);
+		}
 	}
 
 	return;

@@ -1315,7 +1315,9 @@ size_t __fastcall CheckResponseData(
 #if defined(ENABLE_PCAP)
 //Mark Hop Limits or TTL.
 	if (ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && (IsMarkHopLimit != nullptr && Parameter.HeaderCheck_DNS && 
-		(DNS_Header->Answer != htons(U16_NUM_ONE) || DNS_Header->Authority > 0 || DNS_Header->Additional > 0 || //Less than or more than one Answer Records or Authority Records and/or Additional Records
+//		DNS_Header->Answer != htons(U16_NUM_ONE) || //Some ISP will return fake responses with more than one Answer records.
+		(DNS_Header->Answer == 0 || //No any Answer records
+		DNS_Header->Authority > 0 || DNS_Header->Additional > 0 || //More than one Authority records and/or Additional records
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NXDOMAIN) || //No Such Name, not standard query response and no error check.
 	//Domain Test part
 		Parameter.DomainTest_Data != nullptr && Domain == Parameter.DomainTest_Data && DNS_Header->ID == Parameter.DomainTest_ID))

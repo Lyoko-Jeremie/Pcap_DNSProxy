@@ -1,4 +1,23 @@
-﻿Pcap_DNSProxy 0.4.5.1-0.4.6.0 更新日志(2016-04-23)：
+﻿Pcap_DNSProxy 0.4.6.1 更新日志(2016-04-24)：
+
+* 添加遗漏的 DNS 投毒污染黑名单地址
+* 修复抓包模块错误判断正确数据包的问题
+* 修复抓包模块对 IPv6 数据包识别错误的问题
+* 文件校验码(0.4.6.1)
+  * SHA-1:
+    * Windows/Pcap_DNSProxy.exe -> 6F32AA2DCC4FF2BB75F853D4F6F8B3D581EAAB34
+    * Windows/Pcap_DNSProxy_x86.exe -> 2AC8BD79DE3DC79BA2F8664ADB7E9DB9B216C7CA
+    * Mac/Pcap_DNSProxy -> C91F78AE6B4E0BB088AA13738502779468669547
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe -> 67AF76852EA6FE4D90D4EFAE455FBD176F5D8DC1DC5C914BC7D73706D35538BB
+    * Windows/Pcap_DNSProxy_x86.exe -> 3D7658791B5AE5395CC1B5F42AFC5E4500A0E518C29AED5E6558705FB6E5960C
+    * Mac/Pcap_DNSProxy -> 40B9543FE70569A2EA00535B1CFD3D5C5BBA0FD4940B72C3BABB42E411C546A8
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy 0.4.5.1-0.4.6.0 更新日志(2016-04-23)：
 
 * 为 FileHash 工具添加 Hash 算法支持
   * CRC family: CRC-8 family + CRC-16 family + CRC-24 family + CRC-32 family + CRC-40 + CRC-64 family
@@ -8,10 +27,10 @@
     * CRC-32 family: Normal + JamCRC + C + D + BZIP2 + MPEG2 + POSIX + K + Q
     * CRC-64 family: Normal + 1B + WE + Jones
   * Checksum: Internet Protocol Checksum
-  * SHA family: SHA-2(384) + SHA-2(512) SHA-2(512/224) + SHA-2(512/256)
+  * SHA family: SHA-2(384) + SHA-2(512) + SHA-2(512/224) + SHA-2(512/256)
   * MD family: MD2 + MD4 + eD2k Hash + MD5
 * 添加抓包模块对 Virtual Bridged LAN/IEEE 802.1Q 标签的支持
-* 添加 IPv4 Packet TTL 和 IPv6 Hop Limits 参数，支持指定和随机化的 TTL/Hop Limits 值
+* 添加 IPv4 Packet TTL 和 IPv6 Packet Hop Limits 参数，支持指定和随机化的 TTL/Hop Limits 值
 * 添加 Update_WhiteList 工具，可自动更新白名单域名列表 [dgeibi]
 * 添加错误日志输出分级功能，并将 Print Error 参数更名为 Print Log Level [smounives]
 * 添加 IPv4 Do Not Fragment 参数，支持指定 Do Not Fragment 标志 (Windows/Linux)

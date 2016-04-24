@@ -41,7 +41,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 6.特别注意：
   * Windows XP 如出现 10022 错误，需要先启用系统的 IPv6 支持，再重新启动服务：
     * 以管理员身份运行 cmd
-	* 输入 ipv6 install 并回车
+    * 输入 ipv6 install 并回车
   * 如需使用境内 DNS 服务器解析境内域名加速访问 CDN 速度功能，请选择其中一种方案，配置完成后重启服务：
     * Local Main = 1 同时 Local Routing = 1 开启境内地址路由表识别功能
     * Local Hosts = 1 开启境内域名白名单功能
@@ -369,10 +369,17 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 不支持多个地址，只能填入单个地址
     * 支持使用服务名称代替端口号
   * 注意：
-    * 单个 IPv4 地址格式为 "IPv4 地址:端口"，单个 IPv6 地址格式为"[IPv6 地址]:端口"，带前缀长度地址格式为 "IP 地址/网络前缀长度"（均不含引号）
-    * 多个 IPv4 地址格式为 "地址A:端口|地址B:端口|地址C:端口"，多个 IPv6 地址格式为 "[地址A]:端口|[地址B]:端口|[地址C]:端口"（均不含引号），启用同时请求多服务器后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果，同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
-    * 可填入的服务器数量为：填入主要/备用服务器的数量 * Multi Request Times = 总请求的数值，此数值不能超过 64
-	* 指定端口时可使用服务名称代替：
+    * 带端口地址的格式：
+      * 单个 IPv4 为 "IPv4 地址:端口"（均不含引号）
+	  * 单个 IPv6 为 "[IPv6 地址]:端口"（均不含引号）
+      * 多个 IPv4 为 "地址A:端口|地址B:端口|地址C:端口"（均不含引号）
+	  * 多个 IPv6 为 "[地址A]:端口|[地址B]:端口|[地址C]:端口"（均不含引号）
+      * 启用同时请求多服务器后将同时向列表中的服务器请求解析域名，并采用最快回应的服务器的结果，同时请求多服务器启用后将自动启用 Alternate Multi Request 参数（参见下文）
+      * 可填入的服务器数量为：填入主要/备用服务器的数量 * Multi Request Times = 总请求的数值，此数值不能超过 64
+    * 带前缀长度地址的格式：
+      * IPv4 为 "IPv4 地址/掩码长度"（均不含引号）
+      * IPv6 为 "IPv6 地址/前缀长度"（均不含引号）
+    * 指定端口时可使用服务名称代替：
       * TCPMUX/1
       * ECHO/7
       * DISCARD/9
@@ -517,7 +524,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入多个时，当实际需要使用随机添加压缩指针时将随机使用其中的一种，每个请求都有可能不相同
   * EDNS Label - EDNS 标签支持，开启后将为请求添加 EDNS 标签：全部开启为 1 /关闭为 0
     * 本参数可只指定部分的请求过程使用 EDNS 标签，以下可用的参数可随意删减以实现此功能
-	* 可用的参数：Local + SOCKS Proxy + HTTP Proxy + Direct Request + DNSCurve + TCP + UDP
+    * 可用的参数：Local + SOCKS Proxy + HTTP Proxy + Direct Request + DNSCurve + TCP + UDP
   * EDNS Client Subnet Relay - EDNS 客户端子网转发功能，开启后将为来自非私有网络地址的所有请求添加其请求时所使用的地址的 EDNS 子网地址：开启为 1 /关闭为 0
     * 本功能要求启用 EDNS Label 参数
     * 本参数优先级比 IPv4/IPv6 EDNS Client Subnet Address 参数高，故需要添加 EDNS 子网地址时将优先添加本参数的地址
@@ -678,6 +685,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Direct Request
 * Default TTL
 * Local Protocol
+* IPv4 Packet TTL
+* IPv6 Packet Hop Limits
 * IPv4 TTL
 * IPv6 HopLimits
 * IPv4 AlternateTTL
@@ -690,6 +699,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Domain Test
 * Multi Request Times
 * Domain Case Conversion
+* IPv4 Do Not Fragment
 * IPv4 Data Filter
 * TCP Data Filter
 * DNS Data Filter

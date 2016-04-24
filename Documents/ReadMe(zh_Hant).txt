@@ -371,10 +371,17 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 不支援多個位址，只能填入單個位址
     * 支援使用服務名稱代替埠號
   * 注意：
-    * 單個 IPv4 位址格式為 "IPv4 位址:埠"，單個 IPv6 位址格式為"[IPv6 位址]:埠"，帶前置長度位址格式為 "IP 位址/網路前置長度"（均不含引號）
-    * 多個 IPv4 位址格式為 "位址A:埠|位址B:埠|位址C:埠"，多個 IPv6 位址格式為 "[位址A]:埠| [位址B]:埠| [位址C]:埠"（均不含引號），啟用同時請求多伺服器後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果，同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
-    * 可填入的伺服器數量為：填入主要/待命伺服器的數量 * Multi Request Times = 總請求的數值，此數值不能超過 64
-	* 指定埠時可使用服務名稱代替：
+    * 帶埠位址的格式：
+      * 單個 IPv4 為 "IPv4 位址:埠"（均不含引號）
+      * 單個 IPv6 為 "[IPv6 位址]:埠"（均不含引號）
+      * 多個 IPv4 為 "位址A:埠|位址B:埠|位址C:埠"（均不含引號）
+      * 多個 IPv6 為 "[位址A]:埠| [位址B]:埠| [位址C]:埠"（均不含引號）
+      * 啟用同時請求多伺服器後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果，同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
+      * 可填入的伺服器數量為：填入主要/待命伺服器的數量 * Multi Request Times = 總請求的數值，此數值不能超過 64
+    * 帶前置長度位址的格式：
+       * IPv4 為 "IPv4 位址/遮罩長度"（均不含引號）
+       * IPv6 為 "IPv6 位址/前置長度"（均不含引號）
+    * 指定埠時可使用服務名稱代替：
       * TCPMUX/1
       * ECHO/7
       * DISCARD/9
@@ -486,7 +493,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Receive Waiting - 資料包接收等待時間，啟用後程式會嘗試等待一段時間以嘗試接收所有資料包並返回最後到達的資料包：單位為毫秒，留空或填 0 表示關閉此功能
     * 本參數與 Pcap Reading Timeout 密切相關，由於抓包模組每隔一段讀取超時時間才會返回給程式一次，當資料包接收等待時間小於讀取超時時間時會導致本參數變得沒有意義，在一些情況下甚至會拖慢功能變數名稱解析的回應速度
     * 本參數啟用後雖然本身只決定抓包模組的接收等待時間，但同時會影響到非抓包模組的請求。 非抓包模組會自動切換為等待超時時間後發回最後收到的回復，預設為接受最先到達的正確的回復，而它們的超時時間由 Reliable Socket Timeout/Unreliable Socket Timeout 參數決定
-	* 一般情況下，越靠後所收到的資料包，其可靠性可能會更高
+    * 一般情況下，越靠後所收到的資料包，其可靠性可能會更高
   * ICMP Test - ICMP/Ping 測試間隔時間：單位為秒，最短間隔時間為5秒
   * Domain Test - DNS 伺服器解析功能變數名稱測試間隔時間：單位為秒，最短間隔時間為 5 秒
   * Alternate Times - 待命伺服器失敗次數閾值，一定週期內如超出閾值會觸發伺服器切換
@@ -680,6 +687,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Direct Request
 * Default TTL
 * Local Protocol
+* IPv4 Packet TTL
+* IPv6 Packet Hop Limits
 * IPv4 TTL
 * IPv6 HopLimits
 * IPv4 AlternateTTL
@@ -692,6 +701,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Domain Test
 * Multi Request Times
 * Domain Case Conversion
+* IPv4 Do Not Fragment
 * IPv4 Data Filter
 * TCP Data Filter
 * DNS Data Filter

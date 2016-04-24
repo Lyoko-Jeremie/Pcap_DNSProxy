@@ -204,9 +204,9 @@ bool __fastcall ReadText(
 			//Next line format
 				if (*SingleText == ASCII_CR && Index + sizeof(uint16_t) < ReadLength && 
 				#if BYTE_ORDER == LITTLE_ENDIAN
-					(Encoding == CODEPAGE_UTF_16_BE && ntoh16_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_16_LE && *(SingleText + 1U) == ASCII_LF))
+					((Encoding == CODEPAGE_UTF_16_BE && ntoh16_Force(*(SingleText + 1U)) == ASCII_LF) || (Encoding == CODEPAGE_UTF_16_LE && *(SingleText + 1U) == ASCII_LF)))
 				#else
-					(Encoding == CODEPAGE_UTF_16_LE && ntoh16_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_16_BE && *(SingleText + 1U) == ASCII_LF))
+					((Encoding == CODEPAGE_UTF_16_LE && ntoh16_Force(*(SingleText + 1U)) == ASCII_LF) || (Encoding == CODEPAGE_UTF_16_BE && *(SingleText + 1U) == ASCII_LF)))
 				#endif
 						*SingleText = 0;
 				else if (*SingleText == ASCII_CR || *SingleText == ASCII_VT || *SingleText == ASCII_FF || *SingleText == UNICODE_NEXT_LINE || 
@@ -243,9 +243,9 @@ bool __fastcall ReadText(
 			//Next line format
 				if (*SingleText == ASCII_CR && Index + sizeof(uint32_t) < ReadLength && 
 				#if BYTE_ORDER == LITTLE_ENDIAN
-					(Encoding == CODEPAGE_UTF_32_BE && ntoh32_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_32_LE && *(SingleText + 1U) == ASCII_LF))
+					((Encoding == CODEPAGE_UTF_32_BE && ntoh32_Force(*(SingleText + 1U)) == ASCII_LF) || (Encoding == CODEPAGE_UTF_32_LE && *(SingleText + 1U) == ASCII_LF)))
 				#else
-					(Encoding == CODEPAGE_UTF_32_LE && ntoh32_Force(*(SingleText + 1U)) == ASCII_LF || Encoding == CODEPAGE_UTF_32_BE && *(SingleText + 1U) == ASCII_LF))
+					((Encoding == CODEPAGE_UTF_32_LE && ntoh32_Force(*(SingleText + 1U)) == ASCII_LF) || (Encoding == CODEPAGE_UTF_32_BE && *(SingleText + 1U) == ASCII_LF)))
 				#endif
 						*SingleText = 0;
 				else if (*SingleText == ASCII_CR || *SingleText == ASCII_VT || *SingleText == ASCII_FF || *SingleText == UNICODE_NEXT_LINE || 
@@ -336,7 +336,7 @@ bool __fastcall ReadText(
 		for (Index = 0;Index < strnlen_s(TextBuffer.get(), FILE_BUFFER_SIZE);++Index)
 		{
 		//New line
-			if (TextBuffer.get()[Index] == ASCII_LF || Index + 1U == strnlen_s(TextBuffer.get(), FILE_BUFFER_SIZE) && feof((FILE *)Input))
+			if (TextBuffer.get()[Index] == ASCII_LF || (Index + 1U == strnlen_s(TextBuffer.get(), FILE_BUFFER_SIZE) && feof((FILE *)Input)))
 			{
 				++Line;
 
@@ -388,6 +388,7 @@ bool __fastcall ReadMultiLineComments(
 	std::string &Data, 
 	bool &IsLabelComments)
 {
+//Label check
 	if (IsLabelComments)
 	{
 		if (Data.find("*/") != std::string::npos && Data.find("*/") + strlen("*/") < Data.length())
@@ -400,6 +401,8 @@ bool __fastcall ReadMultiLineComments(
 			return false;
 		}
 	}
+
+//Begin and end signs check
 	while (Data.find("/*") != std::string::npos)
 	{
 		if (Data.find("*/") == std::string::npos)
@@ -430,15 +433,16 @@ bool __fastcall ReadParameter(
 		const char *sConfigFileNameList[]{CONFIG_FILE_NAME_LIST_STRING};
 	#endif
 
+		FILE_DATA ConfigFileTemp;
 		for (FileIndex = 0;FileIndex < sizeof(ConfigFileNameList) / sizeof(wchar_t *);++FileIndex)
 		{
-			FILE_DATA ConfigFileTemp;
 			ConfigFileTemp.FileName = GlobalRunningStatus.Path_Global->front();
 			ConfigFileTemp.FileName.append(ConfigFileNameList[FileIndex]);
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			ConfigFileTemp.sFileName = GlobalRunningStatus.sPath_Global->front();
 			ConfigFileTemp.sFileName.append(sConfigFileNameList[FileIndex]);
 		#endif
+			ConfigFileTemp.ModificationTime = 0;
 
 			FileList_Config.push_back(ConfigFileTemp);
 		}
@@ -711,6 +715,7 @@ void __fastcall ReadIPFilter(
 			FileDataTemp.sFileName = GlobalRunningStatus.sPath_Global->at(Index);
 			FileDataTemp.sFileName.append(GlobalRunningStatus.sFileList_IPFilter->at(FileIndex));
 		#endif
+			FileDataTemp.ModificationTime = 0;
 
 			FileList_IPFilter.push_back(FileDataTemp);
 		}
@@ -898,6 +903,7 @@ void __fastcall ReadHosts(
 			FileDataTemp.sFileName = GlobalRunningStatus.sPath_Global->at(Index);
 			FileDataTemp.sFileName.append(GlobalRunningStatus.sFileList_Hosts->at(FileIndex));
 		#endif
+			FileDataTemp.ModificationTime = 0;
 
 			FileList_Hosts.push_back(FileDataTemp);
 		}
