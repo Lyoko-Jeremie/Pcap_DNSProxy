@@ -171,14 +171,14 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 	else {
-		if (HashFamilyID == HASH_ID_CRC && !CRC_Hash(Input) ||                                     //CRC family
-			HashFamilyID == HASH_ID_CHECKSUM && !Checksum_Hash(Input) ||                           //Internet Protocol Checksum
-			HashFamilyID == HASH_ID_MD2 && !MD2_Hash(Input) ||                                     //MD2
-			(HashFamilyID == HASH_ID_MD4 || HashFamilyID == HASH_ID_ED2K) && !MD4_Hash(Input) ||   //MD4 family
-			HashFamilyID == HASH_ID_MD5 && !MD5_Hash(Input) ||                                     //MD5
-			HashFamilyID == HASH_ID_SHA1 && !SHA1_Hash(Input) ||                                   //SHA-1
-			HashFamilyID == HASH_ID_SHA2 && !SHA2_Hash(Input) ||                                   //SHA-2 family
-			HashFamilyID == HASH_ID_SHA3 && !SHA3_Hash(Input))                                     //SHA-3 family
+		if ((HashFamilyID == HASH_ID_CRC && !CRC_Hash(Input)) ||                                     //CRC family
+			(HashFamilyID == HASH_ID_CHECKSUM && !Checksum_Hash(Input)) ||                           //Internet Protocol Checksum
+			(HashFamilyID == HASH_ID_MD2 && !MD2_Hash(Input)) ||                                     //MD2
+			((HashFamilyID == HASH_ID_MD4 || HashFamilyID == HASH_ID_ED2K) && !MD4_Hash(Input)) ||   //MD4 family
+			(HashFamilyID == HASH_ID_MD5 && !MD5_Hash(Input)) ||                                     //MD5
+			(HashFamilyID == HASH_ID_SHA1 && !SHA1_Hash(Input)) ||                                   //SHA-1
+			(HashFamilyID == HASH_ID_SHA2 && !SHA2_Hash(Input)) ||                                   //SHA-2 family
+			(HashFamilyID == HASH_ID_SHA3 && !SHA3_Hash(Input)))                                     //SHA-3 family
 		{
 			fclose(Input);
 			return EXIT_FAILURE;

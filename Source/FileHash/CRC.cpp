@@ -998,7 +998,7 @@ uint32_t __fastcall CRC24_Update(
 		return (CRC << 8U) ^ CRC24_Table[((CRC >> 16U) ^ long_c) & 0xFF];
 	else if (TableType == HASH_ID_CRC_24_R64)
 		return (CRC << 8U) ^ CRC24_Table_R64[((CRC >> 16U) ^ long_c) & 0xFF];
-	else
+	else 
 		return CRC;
 }
 
@@ -2172,7 +2172,7 @@ bool __fastcall CRC_Hash(
 			fwprintf_s(stderr, L"Hash process error");
 			if (errno > 0)
 				fwprintf_s(stderr, L", error code is %d.\n", errno);
-			else
+			else 
 				fwprintf_s(stderr, L".\n");
 
 			return false;

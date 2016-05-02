@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0710"
+   LastUpgradeVersion = "0720"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D99DD46F1C32C597004C0F2C"
-               BuildableName = "FileHash"
-               BlueprintName = "FileHash"
-               ReferencedContainer = "container:FileHash.xcodeproj">
+               BlueprintIdentifier = "D93C46FD1CD7582600CD334A"
+               BuildableName = "Pcap_DNSProxy"
+               BlueprintName = "Pcap_DNSProxy"
+               ReferencedContainer = "container:Pcap_DNSProxy.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -32,10 +32,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D99DD46F1C32C597004C0F2C"
-            BuildableName = "FileHash"
-            BlueprintName = "FileHash"
-            ReferencedContainer = "container:FileHash.xcodeproj">
+            BlueprintIdentifier = "D93C46FD1CD7582600CD334A"
+            BuildableName = "Pcap_DNSProxy"
+            BlueprintName = "Pcap_DNSProxy"
+            ReferencedContainer = "container:Pcap_DNSProxy.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -55,10 +55,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D99DD46F1C32C597004C0F2C"
-            BuildableName = "FileHash"
-            BlueprintName = "FileHash"
-            ReferencedContainer = "container:FileHash.xcodeproj">
+            BlueprintIdentifier = "D93C46FD1CD7582600CD334A"
+            BuildableName = "Pcap_DNSProxy"
+            BlueprintName = "Pcap_DNSProxy"
+            ReferencedContainer = "container:Pcap_DNSProxy.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -74,10 +74,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D99DD46F1C32C597004C0F2C"
-            BuildableName = "FileHash"
-            BlueprintName = "FileHash"
-            ReferencedContainer = "container:FileHash.xcodeproj">
+            BlueprintIdentifier = "D93C46FD1CD7582600CD334A"
+            BuildableName = "Pcap_DNSProxy"
+            BlueprintName = "Pcap_DNSProxy"
+            ReferencedContainer = "container:Pcap_DNSProxy.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

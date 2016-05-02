@@ -21,117 +21,117 @@
 
 /* SOCKS Protocol version 4
 
-* Client -> Server: TCP CONNECT command request
+** Client -> Server: TCP CONNECT command request
   *  1 bytes: SOCKS version
   *  1 bytes: Command code
   *  2 bytes: Remote port
   *  4 bytes: Remote IPv4 address
   * Variable: UserID
-* Server -> Client: Server command response
+** Server -> Client: Server command response
   *  1 bytes: SOCKS version
   *  1 bytes: Status code
   *  2 bytes: Remote port(Ignored)
   *  4 bytes: Remote IPv4 address(Ignored)
-* Client <-> Server: Data stream...
+** Client <-> Server: Data stream...
 
-/* SOCKS Protocol version 4a
+* SOCKS Protocol version 4a
 
-* Client -> Server(1): TCP CONNECT command request
+** Client -> Server(1): TCP CONNECT command request
   *  1 bytes: SOCKS version
   *  1 bytes: Command code
   *  2 bytes: Remote port
   *  4 bytes: Remote IPv4 address(Must set to 0.0.0.x and x is not 0)
   * Variable: UserID
   * Variable: Remote domain
-* Server -> Client(1): Server command response
+** Server -> Client(1): Server command response
   *  1 bytes: SOCKS version
   *  1 bytes: Status code
   *  2 bytes: Remote port(Ignored)
   *  4 bytes: Remote IPv4 address(Ignored)
-* Client <-> Server: Data stream...
+** Client <-> Server: Data stream...
 
-/* SOCKS Protocol version 5
+* SOCKS Protocol version 5
 
-Client authentication:
-* Client -> Server(1): Client authentication request
+** Client authentication
+*** Client -> Server(1): Client authentication request
   *  1 bytes: SOCKS version
   *  1 bytes: Number of authentication methods supported
   * Variable: Authentication methods
-* Server -> Client(1): Server authentication choice
+*** Server -> Client(1): Server authentication choice
   *  1 bytes: SOCKS version
   *  1 bytes: Chosen authentication method
-* Client -> Server(2): Username/password authentication request
+*** Client -> Server(2): Username/password authentication request
   *  1 bytes: SOCKS Username/password authentication version
   *  1 bytes: Username length
   * Variable: Username
   *  1 bytes: Password length
   * Variable: Password
-* Server -> Client(2): Server authentication response
+*** Server -> Client(2): Server authentication response
   *  1 bytes: SOCKS Username/password authentication version
   *  1 bytes: Status code
 
-TCP CONNECT mode:
-* Client -> Server(1): TCP CONNECT command request
+** TCP CONNECT mode
+*** Client -> Server(1): TCP CONNECT command request
   *  1 bytes: SOCKS version
   *  1 bytes: Command code
   *  1 bytes: Reserved
   *  1 bytes: Address type
   * Variable: Remote address
   *  2 bytes: Remote port
-* Server -> Client(1): Server command response
+*** Server -> Client(1): Server command response
   *  1 bytes: SOCKS version
   *  1 bytes: Status code
   *  1 bytes: Reserved
   *  1 bytes: Address type
   * Variable: Remote address(Not necessary)
   *  2 bytes: Remote port(Not necessary)
-* Client <-> Server: Data stream...
+*** Client <-> Server: Data stream...
 
-UDP ASSOCIATE mode:
-* Client -> Server(1): UDP ASSOCIATE command request, with TCP
+** UDP ASSOCIATE mode
+*** Client -> Server(1): UDP ASSOCIATE command request, with TCP
   *  1 bytes: SOCKS version
   *  1 bytes: Command code
   *  1 bytes: Reserved
   *  1 bytes: Address type
   * Variable: Local listening address(Not necessary)
   *  2 bytes: Local UDP listening port
-* Server -> Client(1): Server command response, with TCP
+*** Server -> Client(1): Server command response, with TCP
   *  1 bytes: SOCKS version
   *  1 bytes: Status code
   *  1 bytes: Reserved
   *  1 bytes: Address type
   * Variable: Server listening address
   *  2 bytes: Server listening port
-* Client -> Server(2): UDP datagram, with UDP
+*** Client -> Server(2): UDP datagram, with UDP
   *  2 bytes: Reserved
   *  1 bytes: Fragment number
   *  1 bytes: Address type
   * Variable: Remote address
   *  2 bytes: Remote port
   * Variable: UDP datagram...
-* Server -> Client(2): UDP datagram, with UDP
+*** Server -> Client(2): UDP datagram, with UDP
   *  2 bytes: Reserved
   *  1 bytes: Fragment number
   *  1 bytes: Address type
   * Variable: Remote address
   *  2 bytes: Remote port
   * Variable: UDP datagram...
-* Client <-> Server: UDP datagram...
-* TCP connection between client and server must be kept alive until UDP transmission is finished.
+*** Client <-> Server: UDP datagram...
+*** TCP connection between client and server must be kept alive until UDP transmission is finished.
 
-/* HTTP CONNECT tunnel
+* HTTP CONNECT tunnel
 
-* Client -> Server: HTTP CONNECT method request
+** Client -> Server: HTTP CONNECT method request
   * CONNECT TargetDomain:Port HTTP/version\r\n
   * Host: TargetDomain:Port\r\n
   * Other HTTP headers...\r\n
   * Proxy-Authentication: Basic "Base64 of Username:Password"\r\n
   * \r\n
-* Server -> Client: Server HTTP CONNECT response
+** Server -> Client: Server HTTP CONNECT response
   * HTTP/version 200 ...\r\n
   * Other HTTP headers...\r\n
   * \r\n
-* Client <-> Server: Data stream...
+** Client <-> Server: Data stream...
 
 */
 
@@ -592,9 +592,9 @@ size_t __fastcall SOCKSTCPRequest(
 
 //Socket initialization
 	if (Parameter.SOCKS_Address_IPv6.Storage.ss_family > 0 && //IPv6
-		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6 || //Auto select
+		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 || //IPv6
-		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 && Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0)) //Non-IPv4
+		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 && Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
 	{
 		TCPSocketData.SockAddr.ss_family = AF_INET6;
 		((PSOCKADDR_IN6)&TCPSocketData.SockAddr)->sin6_addr = Parameter.SOCKS_Address_IPv6.IPv6.sin6_addr;
@@ -603,9 +603,9 @@ size_t __fastcall SOCKSTCPRequest(
 		TCPSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 	}
 	else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family > 0 && //IPv4
-		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
+		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 || //IPv4
-		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 && Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0)) //Non-IPv6
+		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 && Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6
 	{
 		TCPSocketData.SockAddr.ss_family = AF_INET;
 		((PSOCKADDR_IN)&TCPSocketData.SockAddr)->sin_addr = Parameter.SOCKS_Address_IPv4.IPv4.sin_addr;
@@ -626,9 +626,9 @@ size_t __fastcall SOCKSTCPRequest(
 
 //Non-blocking mode setting and Hop Limits setting
 	if (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
-		TCPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr) || 
-		TCPSocketData.SockAddr.ss_family == AF_INET && (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
-		!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr)))
+		(TCPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr)) || 
+		(TCPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr)) || 
+		!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
 	{
 		shutdown(TCPSocketData.Socket, SD_BOTH);
 		closesocket(TCPSocketData.Socket);
@@ -740,9 +740,9 @@ size_t __fastcall SOCKSUDPRequest(
 
 //Socket initialization
 	if (Parameter.SOCKS_Address_IPv6.Storage.ss_family > 0 && //IPv6
-		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6 || //Auto select
+		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 || //IPv6
-		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 && Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0)) //Non-IPv4
+		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 && Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
 	{
 		if (!Parameter.SOCKS_UDP_NoHandshake)
 		{
@@ -767,9 +767,9 @@ size_t __fastcall SOCKSUDPRequest(
 		UDPSocketData.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	}
 	else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family > 0 && //IPv4
-		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
+		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 || //IPv4
-		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 && Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0)) //Non-IPv6
+		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 && Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6
 	{
 		if (!Parameter.SOCKS_UDP_NoHandshake)
 		{
@@ -798,14 +798,14 @@ size_t __fastcall SOCKSUDPRequest(
 	}
 
 //Socket check and Hop Limits setting
-	if (!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
-		TCPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr) || 
-		TCPSocketData.SockAddr.ss_family == AF_INET && (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr) || 
-		!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr)) || 
+	if ((!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr)) || 
+		(TCPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr)) || 
+		(TCPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr)) || 
+		!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr) || 
 		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
-		UDPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr) || 
-		UDPSocketData.SockAddr.ss_family == AF_INET && (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr) || 
-		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr)))
+		(UDPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr)) || 
+		(UDPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr)) || 
+		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
 	{
 		closesocket(UDPSocketData.Socket);
 		if (!Parameter.SOCKS_UDP_NoHandshake)
@@ -816,7 +816,7 @@ size_t __fastcall SOCKSUDPRequest(
 	}
 
 //Non-blocking mode setting
-	if (!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
+	if ((!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr)) || 
 		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
 	{
 		closesocket(UDPSocketData.Socket);
@@ -1058,9 +1058,9 @@ size_t __fastcall HTTPRequest(
 
 //Socket initialization
 	if (Parameter.HTTP_Address_IPv6.Storage.ss_family > 0 && //IPv6
-		(Parameter.HTTP_Protocol == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6 || //Auto select
+		((Parameter.HTTP_Protocol == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		Parameter.HTTP_Protocol == REQUEST_MODE_IPV6 || //IPv6
-		Parameter.HTTP_Protocol == REQUEST_MODE_IPV4 && Parameter.HTTP_Address_IPv4.Storage.ss_family == 0)) //Non-IPv4
+		(Parameter.HTTP_Protocol == REQUEST_MODE_IPV4 && Parameter.HTTP_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
 	{
 		HTTPSocketData.SockAddr.ss_family = AF_INET6;
 		((PSOCKADDR_IN6)&HTTPSocketData.SockAddr)->sin6_addr = Parameter.HTTP_Address_IPv6.IPv6.sin6_addr;
@@ -1069,9 +1069,9 @@ size_t __fastcall HTTPRequest(
 		HTTPSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 	}
 	else if (Parameter.HTTP_Address_IPv4.Storage.ss_family > 0 && //IPv4
-		(Parameter.HTTP_Protocol == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
+		((Parameter.HTTP_Protocol == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		Parameter.HTTP_Protocol == REQUEST_MODE_IPV4 || //IPv4
-		Parameter.HTTP_Protocol == REQUEST_MODE_IPV6 && Parameter.HTTP_Address_IPv6.Storage.ss_family == 0)) //Non-IPv6
+		(Parameter.HTTP_Protocol == REQUEST_MODE_IPV6 && Parameter.HTTP_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6
 	{
 		HTTPSocketData.SockAddr.ss_family = AF_INET;
 		((PSOCKADDR_IN)&HTTPSocketData.SockAddr)->sin_addr = Parameter.HTTP_Address_IPv4.IPv4.sin_addr;
@@ -1085,9 +1085,9 @@ size_t __fastcall HTTPRequest(
 
 //Socket check and Hop Limits setting
 	if (!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
-		HTTPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr) || 
-		HTTPSocketData.SockAddr.ss_family == AF_INET && (!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr) || 
-		!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr)))
+		(HTTPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr)) || 
+		(HTTPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr)) || 
+		!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
 	{
 		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"HTTP socket initialization error", 0, nullptr, 0);
 		return EXIT_FAILURE;

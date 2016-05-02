@@ -975,7 +975,7 @@ bool __fastcall DomainTestRequest(
 			if (Protocol == AF_INET6) //IPv6
 			{
 				if (Parameter.DNSTarget.IPv6.HopLimitData.HopLimit == 0 || //Main
-					Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit == 0) //Alternate
+					(Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit == 0)) //Alternate
 						goto JumpToRetest;
 
 			//Other(Multi)
@@ -990,7 +990,7 @@ bool __fastcall DomainTestRequest(
 			}
 			else { //IPv4
 				if (Parameter.DNSTarget.IPv4.HopLimitData.TTL == 0 || //Main
-					Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL == 0) //Alternate
+					(Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL == 0)) //Alternate
 						goto JumpToRetest;
 
 			//Other(Multi)
@@ -1295,7 +1295,7 @@ bool __fastcall ICMPTestRequest(
 			if (Protocol == AF_INET6) //IPv6
 			{
 				if (Parameter.DNSTarget.IPv6.HopLimitData.HopLimit == 0 || //Main
-					Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit == 0) //Alternate
+					(Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.HopLimitData.HopLimit == 0)) //Alternate
 						goto JumpToRetest;
 
 				if (Parameter.DNSTarget.IPv6_Multi != nullptr) //Other(Multi)
@@ -1309,7 +1309,7 @@ bool __fastcall ICMPTestRequest(
 			}
 			else { //IPv4
 				if (Parameter.DNSTarget.IPv4.HopLimitData.TTL == 0 || //Main
-					Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL == 0) //Alternate
+					(Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv4.HopLimitData.TTL == 0)) //Alternate
 						goto JumpToRetest;
 
 				if (Parameter.DNSTarget.IPv4_Multi != nullptr) //Other(Multi)
@@ -1414,9 +1414,9 @@ bool __fastcall SelectTargetSocket(
 	{
 	//IPv6
 		if (Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0 && 
-			(Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6 || //Auto select
+			((Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV6 || //IPv6
-			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.Local_IPv4.Storage.ss_family == 0)) //Non-IPv4
+			(Parameter.LocalProtocol_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.Local_IPv4.Storage.ss_family == 0))) //Non-IPv4
 		{
 		//TCP
 			if (Protocol == IPPROTO_TCP)
@@ -1451,9 +1451,9 @@ bool __fastcall SelectTargetSocket(
 		}
 	//IPv4
 		else if (Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 && 
-			(Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
+			((Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV4 || //IPv4
-			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.Local_IPv6.Storage.ss_family == 0)) //Non-IPv6
+			(Parameter.LocalProtocol_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.Local_IPv6.Storage.ss_family == 0))) //Non-IPv6
 		{
 		//TCP
 			if (Protocol == IPPROTO_TCP)
@@ -1495,9 +1495,9 @@ bool __fastcall SelectTargetSocket(
 	else {
 	//IPv6
 		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6 || //Auto select
+			((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
+			(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 		{
 		//TCP
 			if (Protocol == IPPROTO_TCP)
@@ -1532,9 +1532,9 @@ bool __fastcall SelectTargetSocket(
 		}
 	//IPv4
 		else if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
+			((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
+			(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 		{
 		//TCP
 			if (Protocol == IPPROTO_TCP)
@@ -1594,9 +1594,9 @@ bool __fastcall SelectTargetSocketMulti(
 
 //IPv6
 	if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6 || //Auto select
+		((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
+		(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 	{
 	//Set Alternate swap list.
 		if (Protocol == IPPROTO_TCP) //TCP
@@ -1684,9 +1684,9 @@ bool __fastcall SelectTargetSocketMulti(
 	}
 //IPv4
 	else if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4 || //Auto select
+		((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
+		(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 	{
 	//Set Alternate swap list.
 		if (Protocol == IPPROTO_TCP) //TCP

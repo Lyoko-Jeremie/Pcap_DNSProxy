@@ -31,7 +31,7 @@ bool __fastcall PrintError(
 //Print log level check, parameter check, message check and file name check
 	if (Parameter.PrintLogLevel == LOG_LEVEL_0 || ErrorLevel > Parameter.PrintLogLevel || 
 		Message == nullptr || CheckEmptyBuffer(Message, sizeof(wchar_t) * wcsnlen_s(Message, ORIGINAL_PACKET_MAXSIZE)) || 
-		FileName != nullptr && CheckEmptyBuffer(FileName, sizeof(wchar_t) * wcsnlen_s(FileName, ORIGINAL_PACKET_MAXSIZE)))
+		(FileName != nullptr && CheckEmptyBuffer(FileName, sizeof(wchar_t) * wcsnlen_s(FileName, ORIGINAL_PACKET_MAXSIZE))))
 			return false;
 
 //Convert file name.

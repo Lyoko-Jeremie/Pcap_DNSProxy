@@ -97,9 +97,10 @@ bool __fastcall ParameterCheckAndSetting(
 
 	//[Local DNS] block
 	//Local options check
-		if ((Parameter.LocalMain || Parameter.LocalHosts || Parameter.LocalRouting) && 
-			Parameter.DNSTarget.Local_IPv4.Storage.ss_family == 0 && Parameter.DNSTarget.Local_IPv6.Storage.ss_family || 
-			Parameter.LocalHosts && (Parameter.LocalMain || Parameter.LocalRouting) || Parameter.LocalRouting && !Parameter.LocalMain)
+		if (((Parameter.LocalMain || Parameter.LocalHosts || Parameter.LocalRouting) && 
+			Parameter.DNSTarget.Local_IPv4.Storage.ss_family == 0 && Parameter.DNSTarget.Local_IPv6.Storage.ss_family) || 
+			(Parameter.LocalHosts && (Parameter.LocalMain || Parameter.LocalRouting)) || 
+			(Parameter.LocalRouting && !Parameter.LocalMain))
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Local Main / Local Hosts / Local Routing error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
@@ -245,15 +246,19 @@ bool __fastcall ParameterCheckAndSetting(
 			memset(&Parameter.DNSTarget.Alternate_Local_IPv4, 0, sizeof(DNS_SERVER_DATA));
 		}
 	//Check repeating items.
-		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0 || 
-			Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
-			Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.s_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr && Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_port == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_port || 
-			Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_Local_IPv4.Storage.ss_family > 0 && 
-			Parameter.DNSTarget.Local_IPv4.IPv4.sin_addr.s_addr == Parameter.DNSTarget.Alternate_Local_IPv4.IPv4.sin_addr.s_addr && Parameter.DNSTarget.Local_IPv4.IPv4.sin_port == Parameter.DNSTarget.Alternate_Local_IPv4.IPv4.sin_port || 
-			Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
-			memcmp(&Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 && Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_port == Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_port || 
-			Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_Local_IPv6.Storage.ss_family > 0 && 
-			memcmp(&Parameter.DNSTarget.Local_IPv6.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_Local_IPv6.IPv6.sin6_addr, sizeof(in6_addr)) == 0 && Parameter.DNSTarget.Local_IPv6.IPv6.sin6_port == Parameter.DNSTarget.Alternate_Local_IPv6.IPv6.sin6_port)
+		if ((Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0) || 
+			(Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
+			Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_addr.s_addr == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr && 
+			Parameter.DNSTarget.IPv4.AddressData.IPv4.sin_port == Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4.sin_port) || 
+			(Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_Local_IPv4.Storage.ss_family > 0 && 
+			Parameter.DNSTarget.Local_IPv4.IPv4.sin_addr.s_addr == Parameter.DNSTarget.Alternate_Local_IPv4.IPv4.sin_addr.s_addr && 
+			Parameter.DNSTarget.Local_IPv4.IPv4.sin_port == Parameter.DNSTarget.Alternate_Local_IPv4.IPv4.sin_port) || 
+			(Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
+			memcmp(&Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 && 
+			Parameter.DNSTarget.IPv6.AddressData.IPv6.sin6_port == Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6.sin6_port) || 
+			(Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0 && Parameter.DNSTarget.Alternate_Local_IPv6.Storage.ss_family > 0 && 
+			memcmp(&Parameter.DNSTarget.Local_IPv6.IPv6.sin6_addr, &Parameter.DNSTarget.Alternate_Local_IPv6.IPv6.sin6_addr, sizeof(in6_addr)) == 0 && 
+			Parameter.DNSTarget.Local_IPv6.IPv6.sin6_port == Parameter.DNSTarget.Alternate_Local_IPv6.IPv6.sin6_port))
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNS target error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
@@ -264,20 +269,21 @@ bool __fastcall ParameterCheckAndSetting(
 #if defined(ENABLE_PCAP)
 	if (ParameterPTR->HopLimitFluctuation > 0)
 	{
+		if (
 		//IPv6
-		if (ParameterPTR->DNSTarget.IPv6.HopLimitData.HopLimit > 0 && 
+			(ParameterPTR->DNSTarget.IPv6.HopLimitData.HopLimit > 0 && 
 			((size_t)ParameterPTR->DNSTarget.IPv6.HopLimitData.HopLimit + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
-			(SSIZE_T)ParameterPTR->DNSTarget.IPv6.HopLimitData.HopLimit < (SSIZE_T)ParameterPTR->HopLimitFluctuation + 1) || 
-			ParameterPTR->DNSTarget.Alternate_IPv6.HopLimitData.HopLimit > 0 && 
+			(SSIZE_T)ParameterPTR->DNSTarget.IPv6.HopLimitData.HopLimit < (SSIZE_T)ParameterPTR->HopLimitFluctuation + 1)) || 
+			(ParameterPTR->DNSTarget.Alternate_IPv6.HopLimitData.HopLimit > 0 && 
 			((size_t)ParameterPTR->DNSTarget.Alternate_IPv6.HopLimitData.HopLimit + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
-			(SSIZE_T)ParameterPTR->DNSTarget.Alternate_IPv6.HopLimitData.HopLimit < (SSIZE_T)ParameterPTR->HopLimitFluctuation + 1) || 
+			(SSIZE_T)ParameterPTR->DNSTarget.Alternate_IPv6.HopLimitData.HopLimit < (SSIZE_T)ParameterPTR->HopLimitFluctuation + 1)) || 
 		//IPv4
-			ParameterPTR->DNSTarget.IPv4.HopLimitData.TTL > 0 && 
+			(ParameterPTR->DNSTarget.IPv4.HopLimitData.TTL > 0 && 
 			((size_t)ParameterPTR->DNSTarget.IPv4.HopLimitData.TTL + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
-			(SSIZE_T)ParameterPTR->DNSTarget.IPv4.HopLimitData.TTL < (SSIZE_T)ParameterPTR->HopLimitFluctuation + 1) || 
-			ParameterPTR->DNSTarget.Alternate_IPv4.HopLimitData.TTL > 0 && 
+			(SSIZE_T)ParameterPTR->DNSTarget.IPv4.HopLimitData.TTL < (SSIZE_T)ParameterPTR->HopLimitFluctuation + 1)) || 
+			(ParameterPTR->DNSTarget.Alternate_IPv4.HopLimitData.TTL > 0 && 
 			((size_t)ParameterPTR->DNSTarget.Alternate_IPv4.HopLimitData.TTL + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
-			(SSIZE_T)ParameterPTR->DNSTarget.Alternate_IPv4.HopLimitData.TTL < (SSIZE_T)ParameterPTR->HopLimitFluctuation + 1))
+			(SSIZE_T)ParameterPTR->DNSTarget.Alternate_IPv4.HopLimitData.TTL < (SSIZE_T)ParameterPTR->HopLimitFluctuation + 1)))
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Hop Limit Fluctuations error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0); //Hop Limit and TTL must between 1 and 255.
 			return false;
@@ -287,8 +293,8 @@ bool __fastcall ParameterCheckAndSetting(
 
 //[DNS] block part 2
 //Direct Request check
-	if (ParameterPTR->DirectRequest == DIRECT_REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0 || 
-		ParameterPTR->DirectRequest == DIRECT_REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)
+	if ((ParameterPTR->DirectRequest == DIRECT_REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0) || 
+		(ParameterPTR->DirectRequest == DIRECT_REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0))
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Direct Request error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
@@ -314,14 +320,14 @@ bool __fastcall ParameterCheckAndSetting(
 	//Multi Request Times check
 	if (ParameterPTR->MultiRequestTimes < 1U)
 		++ParameterPTR->MultiRequestTimes;
-	if (Parameter.DNSTarget.IPv4_Multi != nullptr && (Parameter.DNSTarget.IPv4_Multi->size() + 2U) * ParameterPTR->MultiRequestTimes > MULTI_REQUEST_MAXNUM || 
-		Parameter.DNSTarget.IPv4_Multi == nullptr && ParameterPTR->MultiRequestTimes * 2U > MULTI_REQUEST_MAXNUM)
+	if ((Parameter.DNSTarget.IPv4_Multi != nullptr && (Parameter.DNSTarget.IPv4_Multi->size() + 2U) * ParameterPTR->MultiRequestTimes > MULTI_REQUEST_MAXNUM) || 
+		(Parameter.DNSTarget.IPv4_Multi == nullptr && ParameterPTR->MultiRequestTimes * 2U > MULTI_REQUEST_MAXNUM))
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 total request number error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
 	}
-	if (Parameter.DNSTarget.IPv6_Multi != nullptr && (Parameter.DNSTarget.IPv6_Multi->size() + 2U) * ParameterPTR->MultiRequestTimes > MULTI_REQUEST_MAXNUM || 
-		Parameter.DNSTarget.IPv6_Multi == nullptr && ParameterPTR->MultiRequestTimes * 2U > MULTI_REQUEST_MAXNUM)
+	if ((Parameter.DNSTarget.IPv6_Multi != nullptr && (Parameter.DNSTarget.IPv6_Multi->size() + 2U) * ParameterPTR->MultiRequestTimes > MULTI_REQUEST_MAXNUM) || 
+		(Parameter.DNSTarget.IPv6_Multi == nullptr && ParameterPTR->MultiRequestTimes * 2U > MULTI_REQUEST_MAXNUM))
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 total request number error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
@@ -376,8 +382,8 @@ bool __fastcall ParameterCheckAndSetting(
 				PrintError(LOG_LEVEL_1, LOG_ERROR_SOCKS, L"SOCKS address error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				return false;
 			}
-			else if (Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0 && Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 || 
-				Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0 && Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4)
+			else if ((Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0 && Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6) || 
+				(Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0 && Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4))
 			{
 				Parameter.SOCKS_Protocol_Network = REQUEST_MODE_NETWORK_BOTH;
 			}
@@ -410,7 +416,7 @@ bool __fastcall ParameterCheckAndSetting(
 
 	//SOCKS IPv6 support check
 		if (ParameterPTR->SOCKS_TargetServer.Storage.ss_family != AF_INET && 
-			(Parameter.SOCKS_Version == SOCKS_VERSION_4 || Parameter.SOCKS_Version == SOCKS_VERSION_CONFIG_4A && ParameterPTR->SOCKS_TargetDomain->empty()))
+			(Parameter.SOCKS_Version == SOCKS_VERSION_4 || (Parameter.SOCKS_Version == SOCKS_VERSION_CONFIG_4A && ParameterPTR->SOCKS_TargetDomain->empty())))
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_SOCKS, L"SOCKS version 4 and 4a are not support IPv6 target server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
@@ -451,8 +457,8 @@ bool __fastcall ParameterCheckAndSetting(
 				PrintError(LOG_LEVEL_1, LOG_ERROR_HTTP, L"HTTP address error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				return false;
 			}
-			else if (Parameter.HTTP_Address_IPv6.Storage.ss_family == 0 && Parameter.HTTP_Protocol == REQUEST_MODE_IPV6 || 
-				Parameter.HTTP_Address_IPv4.Storage.ss_family == 0 && Parameter.HTTP_Protocol == REQUEST_MODE_IPV4)
+			else if ((Parameter.HTTP_Address_IPv6.Storage.ss_family == 0 && Parameter.HTTP_Protocol == REQUEST_MODE_IPV6) || 
+				(Parameter.HTTP_Address_IPv4.Storage.ss_family == 0 && Parameter.HTTP_Protocol == REQUEST_MODE_IPV4))
 			{
 				Parameter.HTTP_Protocol = REQUEST_MODE_NETWORK_BOTH;
 			}
@@ -529,12 +535,15 @@ bool __fastcall ParameterCheckAndSetting(
 				sodium_memzero(&DNSCurveParameter.DNSCurveTarget.Alternate_IPv4, sizeof(DNSCURVE_SERVER_DATA));
 			}
 
-			if (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0 || 
+			if ((DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family == 0 && 
+				DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family == 0) || 
 			//Check repeating items.
-				DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
-				DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.IPv4.sin_addr.s_addr == DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr || 
-				DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
-				memcmp(&DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6.sin6_addr, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0)
+				(DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && 
+				DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
+				DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.IPv4.sin_addr.s_addr == DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr) || 
+				(DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && 
+				DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
+				memcmp(&DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6.sin6_addr, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0))
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNSCurve target error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				return false;
@@ -1434,7 +1443,7 @@ bool __fastcall ReadParameterData(
 	{
 		if (Data.length() > strlen("Version=") && Data.length() < strlen("Version=") + 8U)
 			ParameterPTR->Version = strtod(Data.c_str() + strlen("Version="), nullptr);
-		else
+		else 
 			goto PrintDataFormatError;
 	}
 
@@ -1640,7 +1649,7 @@ bool __fastcall ReadParameterData(
 		{
 			_set_errno(0);
 			Result = strtoul(Data.c_str() + strlen("PrintLogLevel="), nullptr, 0);
-			if (Result == 0 && errno == 0 || Result > LOG_LEVEL_0 && Result <= LOG_LEVEL_MAXNUM)
+			if ((Result == 0 && errno == 0) || (Result > LOG_LEVEL_0 && Result <= LOG_LEVEL_MAXNUM))
 			{
 				ParameterPTR->PrintLogLevel = (size_t)Result;
 			}
@@ -1662,7 +1671,7 @@ bool __fastcall ReadParameterData(
 		//Mark bytes.
 			_set_errno(0);
 			Result = strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
-			if (Result == 0 && errno == 0 || Result > 0 && Result < ULONG_MAX)
+			if ((Result == 0 && errno == 0) || (Result > 0 && Result < ULONG_MAX))
 				ParameterPTR->LogMaxSize = Result * KILOBYTE_TIMES;
 			else 
 				goto PrintDataFormatError;
@@ -1674,7 +1683,7 @@ bool __fastcall ReadParameterData(
 		//Mark bytes.
 			_set_errno(0);
 			Result = strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
-			if (Result == 0 && errno == 0 || Result > 0 && Result < ULONG_MAX)
+			if ((Result == 0 && errno == 0) || (Result > 0 && Result < ULONG_MAX))
 				ParameterPTR->LogMaxSize = Result * MEGABYTE_TIMES;
 			else 
 				goto PrintDataFormatError;
@@ -1686,7 +1695,7 @@ bool __fastcall ReadParameterData(
 		//Mark bytes.
 			_set_errno(0);
 			Result = strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
-			if (Result == 0 && errno == 0 || Result > 0 && Result < ULONG_MAX)
+			if ((Result == 0 && errno == 0) || (Result > 0 && Result < ULONG_MAX))
 				ParameterPTR->LogMaxSize = Result * GIGABYTE_TIMES;
 			else 
 				goto PrintDataFormatError;
@@ -1702,7 +1711,7 @@ bool __fastcall ReadParameterData(
 		//Mark bytes.
 			_set_errno(0);
 			Result = strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
-			if (Result == 0 && errno == 0 || Result > 0 && Result < ULONG_MAX)
+			if ((Result == 0 && errno == 0) || (Result > 0 && Result < ULONG_MAX))
 				ParameterPTR->LogMaxSize = Result;
 			else 
 				goto PrintDataFormatError;
@@ -1870,8 +1879,8 @@ bool __fastcall ReadParameterData(
 		else 
 			Parameter.RequestMode_Transport = REQUEST_MODE_UDP;
 	}
-	else if (Data.find("DirectRequest=") == 0 && Data.length() > strlen("DirectRequest=") || 
-		Data.find("HostsOnly=") == 0 && Data.length() > strlen("HostsOnly="))
+	else if ((Data.find("DirectRequest=") == 0 && Data.length() > strlen("DirectRequest=")) || 
+		(Data.find("HostsOnly=") == 0 && Data.length() > strlen("HostsOnly=")))
 	{
 		if (Data.find("DirectRequest=1") == 0 || Data.find("HostsOnly=1") == 0)
 		{
@@ -1958,6 +1967,10 @@ bool __fastcall ReadParameterData(
 			ParameterPTR->LocalProtocol_Transport = REQUEST_MODE_TCP;
 		else 
 			ParameterPTR->LocalProtocol_Transport = REQUEST_MODE_UDP;
+	}
+	else if (Data.find("LocalForceRequest=1") == 0)
+	{
+		ParameterPTR->LocalForce = true;
 	}
 	else if (IsFirstRead && Data.find("LocalHosts=1") == 0)
 	{
@@ -2071,7 +2084,7 @@ bool __fastcall ReadParameterData(
 		{
 			_set_errno(0);
 			Result = strtoul(Data.c_str() + strlen("EDNSPayloadSize="), nullptr, 0);
-			if (Result == 0 && errno == 0 || Result > 0 && Result < ULONG_MAX)
+			if ((Result == 0 && errno == 0) || (Result > 0 && Result < ULONG_MAX))
 				Parameter.EDNSPayloadSize = Result;
 		}
 		else {
@@ -2088,7 +2101,7 @@ bool __fastcall ReadParameterData(
 			ValueString.append(Data, strlen("IPv4PacketTTL="), Data.find(ASCII_MINUS) - strlen("IPv4PacketTTL="));
 			_set_errno(0);
 			Result = strtoul(ValueString.c_str(), nullptr, 0);
-			if (Result == 0 && errno == 0 || Result > 0 && Result <= UINT8_MAX)
+			if ((Result == 0 && errno == 0) || (Result > 0 && Result <= UINT8_MAX))
 				ParameterPTR->PacketHopLimits_IPv4_Begin = (int)Result;
 			else 
 				goto PrintDataFormatError;
@@ -2098,13 +2111,13 @@ bool __fastcall ReadParameterData(
 			ValueString.append(Data, Data.find(ASCII_MINUS) + 1U, Data.length() - Data.find(ASCII_MINUS));
 			_set_errno(0);
 			Result = strtoul(ValueString.c_str(), nullptr, 0);
-			if (Result == 0 && errno == 0 || Result > 0 && Result <= UINT8_MAX)
+			if ((Result == 0 && errno == 0) || (Result > 0 && Result <= UINT8_MAX))
 				ParameterPTR->PacketHopLimits_IPv4_End = (int)Result;
 			else 
 				goto PrintDataFormatError;
 
 		//Range check
-			if (ParameterPTR->PacketHopLimits_IPv4_Begin == 0 && ParameterPTR->PacketHopLimits_IPv4_End == 0 || 
+			if ((ParameterPTR->PacketHopLimits_IPv4_Begin == 0 && ParameterPTR->PacketHopLimits_IPv4_End == 0) || 
 				ParameterPTR->PacketHopLimits_IPv4_Begin >= ParameterPTR->PacketHopLimits_IPv4_End)
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 packet TTL range error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
@@ -2117,7 +2130,7 @@ bool __fastcall ReadParameterData(
 			{
 				_set_errno(0);
 				Result = strtoul(Data.c_str() + strlen("IPv4PacketTTL="), nullptr, 0);
-				if (Result == 0 && errno == 0 || Result > 0 && Result <= UINT8_MAX)
+				if ((Result == 0 && errno == 0) || (Result > 0 && Result <= UINT8_MAX))
 					ParameterPTR->PacketHopLimits_IPv4_Begin = (int)Result;
 				else 
 					goto PrintDataFormatError;
@@ -2137,7 +2150,7 @@ bool __fastcall ReadParameterData(
 			ValueString.append(Data, strlen("IPv6PacketHopLimits="), Data.find(ASCII_MINUS) - strlen("IPv6PacketHopLimits="));
 			_set_errno(0);
 			Result = strtoul(ValueString.c_str(), nullptr, 0);
-			if (Result == 0 && errno == 0 || Result > 0 && Result <= UINT8_MAX)
+			if ((Result == 0 && errno == 0) || (Result > 0 && Result <= UINT8_MAX))
 				ParameterPTR->PacketHopLimits_IPv6_Begin = (int)Result;
 			else 
 				goto PrintDataFormatError;
@@ -2147,13 +2160,13 @@ bool __fastcall ReadParameterData(
 			ValueString.append(Data, Data.find(ASCII_MINUS) + 1U, Data.length() - Data.find(ASCII_MINUS));
 			_set_errno(0);
 			Result = strtoul(ValueString.c_str(), nullptr, 0);
-			if (Result == 0 && errno == 0 || Result > 0 && Result <= UINT8_MAX)
+			if ((Result == 0 && errno == 0) || (Result > 0 && Result <= UINT8_MAX))
 				ParameterPTR->PacketHopLimits_IPv6_End = (int)Result;
 			else 
 				goto PrintDataFormatError;
 
 		//Range check
-			if (ParameterPTR->PacketHopLimits_IPv6_Begin == 0 && ParameterPTR->PacketHopLimits_IPv6_End == 0 || 
+			if ((ParameterPTR->PacketHopLimits_IPv6_Begin == 0 && ParameterPTR->PacketHopLimits_IPv6_End == 0) || 
 				ParameterPTR->PacketHopLimits_IPv6_Begin >= ParameterPTR->PacketHopLimits_IPv6_End)
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 packet Hop Limits range error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
@@ -2166,7 +2179,7 @@ bool __fastcall ReadParameterData(
 			{
 				_set_errno(0);
 				Result = strtoul(Data.c_str() + strlen("IPv6PacketHopLimits="), nullptr, 0);
-				if (Result == 0 && errno == 0 || Result > 0 && Result <= UINT8_MAX)
+				if ((Result == 0 && errno == 0) || (Result > 0 && Result <= UINT8_MAX))
 					ParameterPTR->PacketHopLimits_IPv6_Begin = (int)Result;
 				else 
 					goto PrintDataFormatError;
@@ -2382,7 +2395,7 @@ bool __fastcall ReadParameterData(
 		if (Parameter.CPM_PointerToHeader || Parameter.CPM_PointerToRR || Parameter.CPM_PointerToAdditional)
 			Parameter.CompressionPointerMutation = true;
 	}
-	else if (IsFirstRead && Data.find("EDNSLabel=") == 0 || Data.find("EDNS0Label=") == 0)
+	else if ((IsFirstRead && Data.find("EDNSLabel=") == 0) || Data.find("EDNS0Label=") == 0)
 	{
 		if (Data.find("EDNSLabel=1") == 0 || Data.find("EDNS0Label=1") == 0)
 		{
@@ -2440,7 +2453,7 @@ bool __fastcall ReadParameterData(
 			}
 		}
 	}
-	else if (IsFirstRead && Data.find("EDNSClientSubnetRelay=1") == 0 || Data.find("EDNSClientSubnet=1") == 0)
+	else if ((IsFirstRead && Data.find("EDNSClientSubnetRelay=1") == 0) || Data.find("EDNSClientSubnet=1") == 0)
 	{
 		Parameter.EDNS_ClientSubnet_Relay = true;
 	}
@@ -3042,12 +3055,6 @@ bool ReadPathAndFileName(
 	//Mark all data in list.
 		for (auto StringIter:InnerListData)
 		{
-/* Old version(2016-04-03)
-	//Case-insensitive in Windows
-		#if defined(PLATFORM_WIN)
-			CaseConvert(false, StringIter);
-		#endif
-*/
 		//Add backslash or slash.
 		#if defined(PLATFORM_WIN)
 			if (StringIter.back() != ASCII_BACKSLASH)
@@ -3111,12 +3118,6 @@ bool ReadPathAndFileName(
 	//Mark all data in list.
 		for (auto StringIter:InnerListData)
 		{
-/* Old version(2016-04-03)
-	//Case-insensitive in Windows
-		#if defined(PLATFORM_WIN)
-			CaseConvert(false, StringIter);
-		#endif
-*/
 		//Convert to wide string.
 			if (!MBSToWCSString(StringIter.c_str(), StringIter.length(), wNameString))
 			{
@@ -3384,8 +3385,8 @@ bool __fastcall ReadSOCKSAddressAndDomain(
 		auto IsDomain = false;
 		for (Result = DataOffset;Result < (SSIZE_T)Data.length();++Result)
 		{
-			if (Data.at(Result) >= ASCII_UPPERCASE_A && Data.at(Result) <= ASCII_UPPERCASE_Z || 
-				Data.at(Result) >= ASCII_LOWERCASE_A && Data.at(Result) <= ASCII_LOWERCASE_Z)
+			if ((Data.at(Result) >= ASCII_UPPERCASE_A && Data.at(Result) <= ASCII_UPPERCASE_Z) || 
+				(Data.at(Result) >= ASCII_LOWERCASE_A && Data.at(Result) <= ASCII_LOWERCASE_Z))
 			{
 				IsDomain = true;
 				break;

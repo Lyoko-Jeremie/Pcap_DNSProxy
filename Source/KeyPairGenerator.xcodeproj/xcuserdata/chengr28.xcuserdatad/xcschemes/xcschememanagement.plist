@@ -4,15 +4,15 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>KeyPairGenerator.xcscheme_^#shared#^_</key>
+		<key>KeyPairGenerator.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>1</integer>
+			<integer>2</integer>
 		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>D99E2E6C1AFCB43C00F36FCD</key>
+		<key>D91130011CD7660A00540550</key>
 		<dict>
 			<key>primary</key>
 			<true/>

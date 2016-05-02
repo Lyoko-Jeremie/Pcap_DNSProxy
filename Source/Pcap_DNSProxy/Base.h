@@ -107,7 +107,7 @@
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE                    0.3
 #define CONFIG_VERSION                                0.4                         //Current configuration file version
-#define FULL_VERSION                                  L"0.4.6.1"
+#define FULL_VERSION                                  L"0.4.6.2"
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
 
 //Size and length definitions
@@ -340,6 +340,7 @@
 #define HOSTS_TYPE_NORMAL                             3U
 #define HOSTS_TYPE_LOCAL                              4U
 #define HOSTS_TYPE_CNAME                              5U
+#define HOSTS_TYPE_SOURCE                             6U
 #define CACHE_TYPE_TIMER                              1U
 #define CACHE_TYPE_QUEUE                              2U
 #define SOCKET_SETTING_INVALID_CHECK                  0
@@ -540,6 +541,7 @@ public:
 //[Local DNS] block
 	size_t                               LocalProtocol_Network;
 	size_t                               LocalProtocol_Transport;
+	bool                                 LocalForce;
 	bool                                 LocalMain;
 	bool                                 LocalHosts;
 	bool                                 LocalRouting;
@@ -767,6 +769,7 @@ public:
 typedef class HostsTable
 {
 public:
+	std::vector<ADDRESS_PREFIX_BLOCK>    SourceList;
 	std::vector<ADDRESS_UNION_DATA>      AddrList;
 	std::regex                           Pattern;
 	std::string                          PatternString;
@@ -860,6 +863,7 @@ public:
 	std::vector<HOSTS_TABLE>             HostsList_Normal;
 	std::vector<HOSTS_TABLE>             HostsList_Local;
 	std::vector<HOSTS_TABLE>             HostsList_CNAME;
+	std::vector<HOSTS_TABLE>             HostsList_Source;
 	std::vector<ADDRESS_HOSTS_TABLE>     AddressHostsList;
 	size_t                               FileIndex;
 
@@ -1162,7 +1166,8 @@ size_t __fastcall CheckWhiteBannedHostsProcess(
 size_t __fastcall CheckHostsProcess(
 	DNS_PACKET_DATA *Packet, 
 	char *Result, 
-	const size_t ResultSize);
+	const size_t ResultSize, 
+	const SOCKET_DATA &LocalSocketData);
 bool __fastcall SendToRequester(
 	char *RecvBuffer, 
 	const size_t RecvSize, 

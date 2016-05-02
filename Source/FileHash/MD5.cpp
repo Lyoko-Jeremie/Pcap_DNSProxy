@@ -246,7 +246,7 @@ bool __fastcall MD5_Hash(
 			fwprintf_s(stderr, L"Hash process error");
 			if (errno > 0)
 				fwprintf_s(stderr, L", error code is %d.\n", errno);
-			else
+			else 
 				fwprintf_s(stderr, L".\n");
 
 			return false;

@@ -28,8 +28,8 @@ bool __fastcall MonitorInit(
 	if (Parameter.PcapCapture && 
 	//Direct Request mode
 		!(Parameter.DirectRequest == DIRECT_REQUEST_MODE_BOTH || 
-		Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && 
-		Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0) && 
+		(Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0 && 
+		Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) && 
 	//SOCKS request only mode
 		!(Parameter.SOCKS_Proxy && Parameter.SOCKS_Only) && 
 	//HTTP request only mode
@@ -48,7 +48,7 @@ bool __fastcall MonitorInit(
 	//Get Hop Limits/TTL with normal DNS request.
 		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
+			(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 		{
 			std::thread IPv6TestDoaminThread(std::bind(DomainTestRequest, AF_INET6));
 			IPv6TestDoaminThread.detach();
@@ -56,7 +56,7 @@ bool __fastcall MonitorInit(
 
 		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
+			(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 		{
 			std::thread IPv4TestDoaminThread(std::bind(DomainTestRequest, AF_INET));
 			IPv4TestDoaminThread.detach();
@@ -66,7 +66,7 @@ bool __fastcall MonitorInit(
 	//ICMPv6
 		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
+			(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 		{
 			std::thread ICMPv6Thread(std::bind(ICMPTestRequest, AF_INET6));
 			ICMPv6Thread.detach();
@@ -75,7 +75,7 @@ bool __fastcall MonitorInit(
 	//ICMP
 		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
+			(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 		{
 			std::thread ICMPThread(std::bind(ICMPTestRequest, AF_INET));
 			ICMPThread.detach();
@@ -84,12 +84,12 @@ bool __fastcall MonitorInit(
 #endif
 
 //Set Preferred DNS servers switcher.
-	if (!Parameter.AlternateMultiRequest && 
+	if ((!Parameter.AlternateMultiRequest && 
 		(Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 || Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0
 	#if defined(ENABLE_LIBSODIUM)
 		|| DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 || DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0
 	#endif
-		) || Parameter.DNSTarget.Alternate_Local_IPv6.Storage.ss_family > 0 || Parameter.DNSTarget.Alternate_Local_IPv4.Storage.ss_family > 0)
+		)) || Parameter.DNSTarget.Alternate_Local_IPv6.Storage.ss_family > 0 || Parameter.DNSTarget.Alternate_Local_IPv4.Storage.ss_family > 0)
 	{
 		std::thread AlternateServerMonitorThread(std::bind(AlternateServerMonitor));
 		AlternateServerMonitorThread.detach();
@@ -109,14 +109,6 @@ bool __fastcall MonitorInit(
 		{
 			memset(&LocalSocketData, 0, sizeof(SOCKET_DATA));
 			LocalSocketData.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-/* Old version(2016-04-06)
-			if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
-			{
-				if (WSAGetLastError() != 0 && WSAGetLastError() != WSAEAFNOSUPPORT)
-					PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
-			}
-			else {
-*/
 			if (SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 			{
 				GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
@@ -187,14 +179,6 @@ bool __fastcall MonitorInit(
 		{
 			memset(&LocalSocketData, 0, sizeof(SOCKET_DATA));
 			LocalSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-/* Old version(2016-04-06)
-			if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
-			{
-				if (WSAGetLastError() != 0 && WSAGetLastError() != WSAEAFNOSUPPORT)
-					PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
-			}
-			else {
-*/
 			if (SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 			{
 				GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
@@ -443,7 +427,7 @@ bool __fastcall UDPMonitor(
 		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_UDP_BLOCK_RESET, true, nullptr)
 		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, true, nullptr)
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		|| LocalSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, true, nullptr)
+		|| (LocalSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, true, nullptr))
 	#endif
 		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
 	{
@@ -598,9 +582,9 @@ bool __fastcall TCPMonitor(
 	#if defined(PLATFORM_WIN)
 		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, true, nullptr)
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		|| LocalSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, true, nullptr)
+		|| (LocalSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, true, nullptr))
 		#if defined(PLATFORM_LINUX)
-			|| Parameter.TCP_FastOpen && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)
+			|| (Parameter.TCP_FastOpen && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr))
 		#endif
 	#endif	
 		|| !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
@@ -904,7 +888,8 @@ void __fastcall AlternateServerMonitor(
 		{
 		//Reset TimeoutTimes out of alternate time range.
 		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
-			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr && (*GlobalRunningStatus.FunctionPTR_GetTickCount64)() >= RangeTimer[Index] || GetTickCount() >= RangeTimer[Index])
+			if ((GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr && (*GlobalRunningStatus.FunctionPTR_GetTickCount64)() >= RangeTimer[Index]) || 
+				GetTickCount() >= RangeTimer[Index])
 			{
 				if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 					RangeTimer[Index] = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + Parameter.AlternateTimeRange);
@@ -923,7 +908,8 @@ void __fastcall AlternateServerMonitor(
 			if (AlternateSwapList.IsSwap[Index])
 			{
 			#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
-				if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr && (*GlobalRunningStatus.FunctionPTR_GetTickCount64)() >= SwapTimer[Index] || GetTickCount() >= SwapTimer[Index])
+				if ((GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr && (*GlobalRunningStatus.FunctionPTR_GetTickCount64)() >= SwapTimer[Index]) || 
+					GetTickCount() >= SwapTimer[Index])
 			#else
 				if (GetTickCount64() >= SwapTimer[Index])
 			#endif
@@ -1084,13 +1070,19 @@ void __fastcall GetGatewayInformation(
 		}
 	#if defined(PLATFORM_WIN)
 		DWORD AdaptersIndex = 0;
-		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
-			Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
-			Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Local_IPv6.IPv6, &AdaptersIndex) != NO_ERROR || 
-			Parameter.DNSTarget.Alternate_Local_IPv6.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_Local_IPv6.IPv6, &AdaptersIndex) != NO_ERROR
+		if ((Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
+			GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR) || 
+			(Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
+			GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR) || 
+			(Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0 && 
+			GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Local_IPv6.IPv6, &AdaptersIndex) != NO_ERROR) || 
+			(Parameter.DNSTarget.Alternate_Local_IPv6.Storage.ss_family > 0 && 
+			GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_Local_IPv6.IPv6, &AdaptersIndex) != NO_ERROR)
 		#if defined(ENABLE_LIBSODIUM)
-			|| DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR || 
-			DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR
+			|| (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && 
+			GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR) || 
+			(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
+			GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR)
 		#endif
 			)
 		{
@@ -1111,13 +1103,19 @@ void __fastcall GetGatewayInformation(
 			}
 		}
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		if (Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.IPv6.AddressData.Storage) || 
-			Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage) || 
-			Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Local_IPv6.Storage) || 
-			Parameter.DNSTarget.Alternate_Local_IPv6.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Alternate_Local_IPv6.Storage)
+		if ((Parameter.DNSTarget.IPv6.AddressData.Storage.ss_family > 0 && 
+			!GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.IPv6.AddressData.Storage)) || 
+			(Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
+			!GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Alternate_IPv6.AddressData.Storage)) || 
+			(Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0 && 
+			!GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Local_IPv6.Storage)) || 
+			(Parameter.DNSTarget.Alternate_Local_IPv6.Storage.ss_family > 0 && 
+			!GetBestInterfaceAddress(AF_INET6, &Parameter.DNSTarget.Alternate_Local_IPv6.Storage))
 		#if defined(ENABLE_LIBSODIUM)
-			|| DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET6, &DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage) || 
-			DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET6, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage)
+			|| (DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage.ss_family > 0 && 
+			!GetBestInterfaceAddress(AF_INET6, &DNSCurveParameter.DNSCurveTarget.IPv6.AddressData.Storage)) || 
+			(DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
+			!GetBestInterfaceAddress(AF_INET6, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv6.AddressData.Storage))
 		#endif
 			)
 		{
@@ -1155,13 +1153,19 @@ void __fastcall GetGatewayInformation(
 		}
 	#if defined(PLATFORM_WIN)
 		DWORD AdaptersIndex = 0;
-		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
-			Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
-			Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Local_IPv4.IPv4, &AdaptersIndex) != NO_ERROR || 
-			Parameter.DNSTarget.Alternate_Local_IPv4.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_Local_IPv4.IPv4, &AdaptersIndex) != NO_ERROR
+		if ((Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
+			GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR) || 
+			(Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
+			GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR) || 
+			(Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 && 
+			GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Local_IPv4.IPv4, &AdaptersIndex) != NO_ERROR) || 
+			(Parameter.DNSTarget.Alternate_Local_IPv4.Storage.ss_family > 0 && 
+			GetBestInterfaceEx((PSOCKADDR)&Parameter.DNSTarget.Alternate_Local_IPv4.IPv4, &AdaptersIndex) != NO_ERROR)
 		#if defined(ENABLE_LIBSODIUM)
-			|| DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR || 
-			DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR
+			|| DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && 
+			(GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR) || 
+			DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
+			(GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR)
 		#endif
 			)
 		{
@@ -1182,13 +1186,19 @@ void __fastcall GetGatewayInformation(
 			}
 		}
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		if (Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.IPv4.AddressData.Storage) || 
-			Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage) || 
-			Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Local_IPv4.Storage) || 
-			Parameter.DNSTarget.Alternate_Local_IPv4.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Alternate_Local_IPv4.Storage)
+		if ((Parameter.DNSTarget.IPv4.AddressData.Storage.ss_family > 0 && 
+			!GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.IPv4.AddressData.Storage)) || 
+			(Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
+			!GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Alternate_IPv4.AddressData.Storage)) || 
+			(Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 && 
+			!GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Local_IPv4.Storage)) || 
+			(Parameter.DNSTarget.Alternate_Local_IPv4.Storage.ss_family > 0 && 
+			!GetBestInterfaceAddress(AF_INET, &Parameter.DNSTarget.Alternate_Local_IPv4.Storage))
 		#if defined(ENABLE_LIBSODIUM)
-			|| DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET, &DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage) || 
-			DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && !GetBestInterfaceAddress(AF_INET, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage)
+			|| (DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage.ss_family > 0 && 
+			!GetBestInterfaceAddress(AF_INET, &DNSCurveParameter.DNSCurveTarget.IPv4.AddressData.Storage)) || 
+			(DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
+			!GetBestInterfaceAddress(AF_INET, &DNSCurveParameter.DNSCurveTarget.Alternate_IPv4.AddressData.Storage))
 		#endif
 			)
 		{

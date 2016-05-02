@@ -154,7 +154,7 @@ void __fastcall CaseConvert(
 			if (IsLowerToUpper)
 				Buffer[Index] = (char)toupper(Buffer[Index]);
 		//Uppercase to lowercase
-			else
+			else 
 				Buffer[Index] = (char)tolower(Buffer[Index]);
 		}
 	}

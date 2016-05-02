@@ -180,7 +180,7 @@ bool __fastcall SHA3_Hash(
 		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 		_set_errno(0);
 		ReadLength = fread_s(Buffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, Input);
-		if (ReadLength == 0 && errno > 0 || Keccak_HashUpdate(&HashInstance, (BitSequence *)Buffer.get(), ReadLength * BYTES_TO_BITS) != SUCCESS)
+		if ((ReadLength == 0 && errno > 0) || Keccak_HashUpdate(&HashInstance, (BitSequence *)Buffer.get(), ReadLength * BYTES_TO_BITS) != SUCCESS)
 		{
 			fwprintf_s(stderr, L"Hash process error.\n");
 			return false;

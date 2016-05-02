@@ -291,7 +291,8 @@ bool FlushDNSFIFOMonitor(
 	int FileFIFO = 0;
 
 //Create FIFO and create its notify monitor.
-	if (mkfifo(FIFO_PATH_NAME, O_CREAT) == RETURN_ERROR || chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) == RETURN_ERROR)
+	if (mkfifo(FIFO_PATH_NAME, O_CREAT) == RETURN_ERROR || 
+		chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) == RETURN_ERROR)
 	{
 		PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
 

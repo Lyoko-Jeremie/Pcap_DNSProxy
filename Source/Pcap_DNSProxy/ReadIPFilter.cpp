@@ -53,19 +53,19 @@ bool __fastcall ReadIPFilterData(
 //[Local Routing] block(A part)
 	if (LabelType == 0 && (Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0) && 
 	#if defined(PLATFORM_WIN) //Case-insensitive in Windows
-		(FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") != std::wstring::npos && 
+		((FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") != std::wstring::npos && 
 		FileList_IPFilter.at(FileIndex).FileName.length() > wcslen(L"chnrouting.txt") && 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") + wcslen(L"chnrouting.txt") == FileList_IPFilter.at(FileIndex).FileName.length() || 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") != std::wstring::npos && 
+		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") + wcslen(L"chnrouting.txt") == FileList_IPFilter.at(FileIndex).FileName.length()) || 
+		(FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") != std::wstring::npos && 
 		FileList_IPFilter.at(FileIndex).FileName.length() > wcslen(L"chnroute.txt") && 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") + wcslen(L"chnroute.txt") == FileList_IPFilter.at(FileIndex).FileName.length()))
+		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") + wcslen(L"chnroute.txt") == FileList_IPFilter.at(FileIndex).FileName.length())))
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		(FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") != std::wstring::npos && 
+		((FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") != std::wstring::npos && 
 		FileList_IPFilter.at(FileIndex).FileName.length() > wcslen(L"chnrouting.txt") && 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") + wcslen(L"chnrouting.txt") == FileList_IPFilter.at(FileIndex).FileName.length() || 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") != std::wstring::npos && 
+		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") + wcslen(L"chnrouting.txt") == FileList_IPFilter.at(FileIndex).FileName.length()) || 
+		(FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") != std::wstring::npos && 
 		FileList_IPFilter.at(FileIndex).FileName.length() > wcslen(L"chnroute.txt") && 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") + wcslen(L"chnroute.txt") == FileList_IPFilter.at(FileIndex).FileName.length()))
+		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") + wcslen(L"chnroute.txt") == FileList_IPFilter.at(FileIndex).FileName.length())))
 	#endif
 			LabelType = LABEL_IPFILTER_LOCAL_ROUTING;
 
@@ -193,8 +193,8 @@ bool __fastcall ReadBlacklistData(
 
 //String length check.
 	if (Data.length() < READ_IPFILTER_BLACKLIST_MINSIZE || 
-		Data.find(ASCII_MINUS) != std::string::npos && Data.find(ASCII_VERTICAL) != std::string::npos && 
-		Data.find(ASCII_MINUS) < Separated && Data.find(ASCII_VERTICAL) < Separated && Data.find(ASCII_MINUS) < Data.find(ASCII_VERTICAL))
+		(Data.find(ASCII_MINUS) != std::string::npos && Data.find(ASCII_VERTICAL) != std::string::npos && 
+		Data.find(ASCII_MINUS) < Separated && Data.find(ASCII_VERTICAL) < Separated && Data.find(ASCII_MINUS) < Data.find(ASCII_VERTICAL)))
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_IPFILTER, L"Data format error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 		return false;
@@ -393,8 +393,10 @@ bool __fastcall ReadLocalRoutingData(
 	}
 	for (auto StringIter:Data)
 	{
-		if (StringIter < ASCII_PERIOD || StringIter > ASCII_COLON && 
-			StringIter < ASCII_UPPERCASE_A || StringIter > ASCII_UPPERCASE_F && StringIter < ASCII_LOWERCASE_A || StringIter > ASCII_LOWERCASE_F)
+		if (StringIter < ASCII_PERIOD || 
+			(StringIter > ASCII_COLON && StringIter < ASCII_UPPERCASE_A) || 
+			(StringIter > ASCII_UPPERCASE_F && StringIter < ASCII_LOWERCASE_A) || 
+			StringIter > ASCII_LOWERCASE_F)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Address Prefix Block format error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -565,8 +567,10 @@ bool __fastcall ReadAddressPrefixBlock(
 	}
 	for (auto StringIter:Data)
 	{
-		if (StringIter < ASCII_PERIOD || StringIter > ASCII_COLON && 
-			StringIter < ASCII_UPPERCASE_A || StringIter > ASCII_UPPERCASE_F && StringIter < ASCII_LOWERCASE_A || StringIter > ASCII_LOWERCASE_F)
+		if (StringIter < ASCII_PERIOD || 
+			(StringIter > ASCII_COLON && StringIter < ASCII_UPPERCASE_A) || 
+			(StringIter > ASCII_UPPERCASE_F && StringIter < ASCII_LOWERCASE_A) || 
+			StringIter > ASCII_LOWERCASE_F)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Address Prefix Block format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -699,7 +703,7 @@ bool __fastcall ReadMainIPFilterData(
 		memcpy_s(Level, ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COMMA) + 1U, Data.find(ASCII_COMMA, Data.find(ASCII_COMMA) + 1U) - Data.find(ASCII_COMMA) - 1U);
 		_set_errno(0);
 		Result = strtoul(Level, nullptr, 0);
-		if (Result == 0 && errno == 0 || Result > 0 && Result < UINT16_MAX)
+		if ((Result == 0 && errno == 0) || (Result > 0 && Result < UINT16_MAX))
 		{
 			AddressRangeTableTemp.Level = (size_t)Result;
 		}

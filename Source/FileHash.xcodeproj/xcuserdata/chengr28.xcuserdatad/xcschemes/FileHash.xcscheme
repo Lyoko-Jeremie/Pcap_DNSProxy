@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0710"
+   LastUpgradeVersion = "0720"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,28 +14,28 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "D99E2D3E1AFCAF2200F36FCD"
-               BuildableName = "Pcap_DNSProxy"
-               BlueprintName = "Pcap_DNSProxy"
-               ReferencedContainer = "container:Pcap_DNSProxy.xcodeproj">
+               BlueprintIdentifier = "D9112FAF1CD7647C00540550"
+               BuildableName = "FileHash"
+               BlueprintName = "FileHash"
+               ReferencedContainer = "container:FileHash.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction
-      buildConfiguration = "Debug"
-      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
-      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      buildConfiguration = "Release"
+      selectedDebuggerIdentifier = ""
+      selectedLauncherIdentifier = "Xcode.IDEFoundation.Launcher.PosixSpawn"
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D99E2D3E1AFCAF2200F36FCD"
-            BuildableName = "Pcap_DNSProxy"
-            BlueprintName = "Pcap_DNSProxy"
-            ReferencedContainer = "container:Pcap_DNSProxy.xcodeproj">
+            BlueprintIdentifier = "D9112FAF1CD7647C00540550"
+            BuildableName = "FileHash"
+            BlueprintName = "FileHash"
+            ReferencedContainer = "container:FileHash.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <AdditionalOptions>
@@ -43,8 +43,8 @@
    </TestAction>
    <LaunchAction
       buildConfiguration = "Release"
-      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
-      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      selectedDebuggerIdentifier = ""
+      selectedLauncherIdentifier = "Xcode.IDEFoundation.Launcher.PosixSpawn"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
@@ -55,10 +55,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D99E2D3E1AFCAF2200F36FCD"
-            BuildableName = "Pcap_DNSProxy"
-            BlueprintName = "Pcap_DNSProxy"
-            ReferencedContainer = "container:Pcap_DNSProxy.xcodeproj">
+            BlueprintIdentifier = "D9112FAF1CD7647C00540550"
+            BuildableName = "FileHash"
+            BlueprintName = "FileHash"
+            ReferencedContainer = "container:FileHash.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -74,15 +74,15 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "D99E2D3E1AFCAF2200F36FCD"
-            BuildableName = "Pcap_DNSProxy"
-            BlueprintName = "Pcap_DNSProxy"
-            ReferencedContainer = "container:Pcap_DNSProxy.xcodeproj">
+            BlueprintIdentifier = "D9112FAF1CD7647C00540550"
+            BuildableName = "FileHash"
+            BlueprintName = "FileHash"
+            ReferencedContainer = "container:FileHash.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
-      buildConfiguration = "Debug">
+      buildConfiguration = "Release">
    </AnalyzeAction>
    <ArchiveAction
       buildConfiguration = "Release"

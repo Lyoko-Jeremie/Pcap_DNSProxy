@@ -37,6 +37,7 @@
 #define LABEL_HOSTS_TYPE_CNAME                10U
 #define LABEL_HOSTS_TYPE_LOCAL                11U
 #define LABEL_HOSTS_TYPE_ADDRESS              12U
+#define LABEL_HOSTS_TYPE_SOURCE               13U
 
 //Length definitions
 #define READ_DATA_MINSIZE                     4U

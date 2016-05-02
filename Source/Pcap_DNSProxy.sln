@@ -115,6 +115,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibSodium", "LibSodium", "{
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{64D86D92-3AA0-400E-91E4-EB93EF26EEE6}"
+	ProjectSection(SolutionItems) = preProject
+		Tools\WinPcap_4.1.3.exe = Tools\WinPcap_4.1.3.exe
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_Routing", "Update_Routing", "{A1267D16-9EC5-4FE4-9000-D9B168A8F6E4}"
 	ProjectSection(SolutionItems) = preProject

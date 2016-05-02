@@ -419,20 +419,20 @@ size_t __fastcall AddEDNSLabelToAdditionalRR(
 	}
 
 //EDNS client subnet
-	if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr || 
+	if ((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr) || 
 		Parameter.LocalhostSubnet.IPv6 != nullptr || Parameter.LocalhostSubnet.IPv4 != nullptr)
 	{
 		auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
 
 	//Length, DNS Class and DNS record check
 		if (DataLength + sizeof(edns_client_subnet) > MaxLen || DNS_Query->Classes != htons(DNS_CLASS_IN) || 
-			DNS_Query->Type != htons(DNS_RECORD_AAAA) && DNS_Query->Type != htons(DNS_RECORD_A))
+			(DNS_Query->Type != htons(DNS_RECORD_AAAA) && DNS_Query->Type != htons(DNS_RECORD_A)))
 				return DataLength;
 		auto EDNS_Subnet_Header = (pedns_client_subnet)(Buffer + DataLength);
 
 	//IPv6
 		if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && 
-			(Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6 || 
+			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6) || 
 			Parameter.LocalhostSubnet.IPv6 != nullptr))
 		{
 		//Make EDNS Subnet header.
@@ -459,7 +459,7 @@ size_t __fastcall AddEDNSLabelToAdditionalRR(
 		}
 	//IPv4
 		else if (DNS_Query->Type == htons(DNS_RECORD_A) && 
-			(Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET || 
+			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET) || 
 			Parameter.LocalhostSubnet.IPv4 != nullptr))
 		{
 		//Make EDNS Subnet header.
@@ -527,20 +527,20 @@ bool __fastcall AddEDNSLabelToAdditionalRR(
 //EDNS client subnet
 	if (!(ntohs(DNS_Record_OPT->DataLength) >= sizeof(edns_client_subnet) && 
 		((pedns_client_subnet)(Packet->Buffer + Packet->Length - Packet->EDNS_Record + sizeof(dns_record_opt)))->Code == htons(EDNS_CODE_CSUBNET)) && 
-		(Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr || 
+		((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr) || 
 		Parameter.LocalhostSubnet.IPv6 != nullptr || Parameter.LocalhostSubnet.IPv4 != nullptr))
 	{
 		auto DNS_Query = (pdns_qry)(Packet->Buffer + DNS_PACKET_QUERY_LOCATE(Packet->Buffer));
 
 	//Length, DNS Class and DNS record check
 		if (Packet->Length + sizeof(edns_client_subnet) > Packet->BufferSize || DNS_Query->Classes != htons(DNS_CLASS_IN) || 
-			DNS_Query->Type != htons(DNS_RECORD_AAAA) && DNS_Query->Type != htons(DNS_RECORD_A))
+			(DNS_Query->Type != htons(DNS_RECORD_AAAA) && DNS_Query->Type != htons(DNS_RECORD_A)))
 				return true;
 		auto EDNS_Subnet_Header = (pedns_client_subnet)(Packet->Buffer + Packet->Length);
 
 	//IPv6
 		if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && 
-			(Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6 || 
+			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6) || 
 			Parameter.LocalhostSubnet.IPv6 != nullptr))
 		{
 		//Make EDNS Subnet header.
@@ -569,7 +569,7 @@ bool __fastcall AddEDNSLabelToAdditionalRR(
 		}
 	//IPv4
 		else if (DNS_Query->Type == htons(DNS_RECORD_A) && 
-			(Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET || 
+			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET) || 
 			Parameter.LocalhostSubnet.IPv4 != nullptr))
 		{
 		//Make EDNS Subnet header.

@@ -59,36 +59,43 @@ bool __fastcall ReadHostsData(
 //[Local Hosts] block(A part)
 	if (LabelType == 0 && (Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0) && 
 	#if defined(PLATFORM_WIN) //Case-insensitive in Windows
+		((FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") != std::wstring::npos && 
+		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"whitelist.txt") && 
+		FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") + wcslen(L"whitelist.txt") == FileList_Hosts.at(FileIndex).FileName.length()) || 
+		(FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") != std::wstring::npos && 
+		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"white_list.txt") && 
+		FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") + wcslen(L"white_list.txt") == FileList_Hosts.at(FileIndex).FileName.length())))
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		((FileList_Hosts.at(FileIndex).FileName.rfind(L"WhiteList.txt") != std::wstring::npos && 
+		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"WhiteList.txt") && 
+		FileList_Hosts.at(FileIndex).FileName.rfind(L"WhiteList.txt") + wcslen(L"WhiteList.txt") == FileList_Hosts.at(FileIndex).FileName.length()) || 
+		(FileList_Hosts.at(FileIndex).FileName.rfind(L"Whitelist.txt") != std::wstring::npos && 
+		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"Whitelist.txt") && 
+		FileList_Hosts.at(FileIndex).FileName.rfind(L"Whitelist.txt") + wcslen(L"Whitelist.txt") == FileList_Hosts.at(FileIndex).FileName.length()) || 
 		(FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") != std::wstring::npos && 
 		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"whitelist.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") + wcslen(L"whitelist.txt") == FileList_Hosts.at(FileIndex).FileName.length() || 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") != std::wstring::npos && 
-		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"white_list.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") + wcslen(L"white_list.txt") == FileList_Hosts.at(FileIndex).FileName.length()))
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		(FileList_Hosts.at(FileIndex).FileName.rfind(L"WhiteList.txt") != std::wstring::npos && 
-		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"WhiteList.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"WhiteList.txt") + wcslen(L"WhiteList.txt") == FileList_Hosts.at(FileIndex).FileName.length() || 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"Whitelist.txt") != std::wstring::npos && 
-		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"Whitelist.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"Whitelist.txt") + wcslen(L"Whitelist.txt") == FileList_Hosts.at(FileIndex).FileName.length() || 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") != std::wstring::npos && 
-		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"whitelist.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") + wcslen(L"whitelist.txt") == FileList_Hosts.at(FileIndex).FileName.length() || 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"White_List.txt") != std::wstring::npos && 
+		FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") + wcslen(L"whitelist.txt") == FileList_Hosts.at(FileIndex).FileName.length()) || 
+		(FileList_Hosts.at(FileIndex).FileName.rfind(L"White_List.txt") != std::wstring::npos && 
 		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"White_List.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"White_List.txt") + wcslen(L"White_List.txt") == FileList_Hosts.at(FileIndex).FileName.length() || 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"White_list.txt") != std::wstring::npos && 
+		FileList_Hosts.at(FileIndex).FileName.rfind(L"White_List.txt") + wcslen(L"White_List.txt") == FileList_Hosts.at(FileIndex).FileName.length()) || 
+		(FileList_Hosts.at(FileIndex).FileName.rfind(L"White_list.txt") != std::wstring::npos && 
 		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"White_list.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"White_list.txt") + wcslen(L"White_list.txt") == FileList_Hosts.at(FileIndex).FileName.length() || 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") != std::wstring::npos && 
+		FileList_Hosts.at(FileIndex).FileName.rfind(L"White_list.txt") + wcslen(L"White_list.txt") == FileList_Hosts.at(FileIndex).FileName.length()) || 
+		(FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") != std::wstring::npos && 
 		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"white_list.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") + wcslen(L"white_list.txt") == FileList_Hosts.at(FileIndex).FileName.length()))
+		FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") + wcslen(L"white_list.txt") == FileList_Hosts.at(FileIndex).FileName.length())))
 	#endif
 			LabelType = LABEL_HOSTS_TYPE_LOCAL;
 
+//[Address Hosts] block
+	if (Data.find("[Source Hosts]") == 0 || Data.find("[Source hosts]") == 0 || Data.find("[source Hosts]") == 0 || Data.find("[source hosts]") == 0)
+	{
+		LabelType = LABEL_HOSTS_TYPE_SOURCE;
+		return true;
+	}
+
 //[Hosts] block
-	if (Data.find("[Hosts]") == 0 || Data.find("[hosts]") == 0)
+	else if (Data.find("[Hosts]") == 0 || Data.find("[hosts]") == 0)
 	{
 		LabelType = LABEL_HOSTS_TYPE_NORMAL;
 		return true;
@@ -101,19 +108,19 @@ bool __fastcall ReadHostsData(
 		return true;
 	}
 
-//[Address Hosts] block
-	else if (Data.find("[Address Hosts]") == 0 || Data.find("[Address hosts]") == 0 || Data.find("[address Hosts]") == 0 || Data.find("[address hosts]") == 0)
-	{
-		LabelType = LABEL_HOSTS_TYPE_ADDRESS;
-		return true;
-	}
-
 //[CNAME Hosts] block
 	else if (Data.find("[CNAME Hosts]") == 0 || Data.find("[CNAME hosts]") == 0 || 
 		Data.find("[Cname Hosts]") == 0 || Data.find("[Cname hosts]") == 0 || 
 		Data.find("[cname Hosts]") == 0 || Data.find("[cname hosts]") == 0)
 	{
 		LabelType = LABEL_HOSTS_TYPE_CNAME;
+		return true;
+	}
+
+//[Address Hosts] block
+	else if (Data.find("[Address Hosts]") == 0 || Data.find("[Address hosts]") == 0 || Data.find("[address Hosts]") == 0 || Data.find("[address hosts]") == 0)
+	{
+		LabelType = LABEL_HOSTS_TYPE_ADDRESS;
 		return true;
 	}
 
@@ -131,7 +138,14 @@ bool __fastcall ReadHostsData(
 		Data.find("Null ") == 0 || Data.find("Null,") == 0 || 
 		Data.find("null ") == 0 || Data.find("null,") == 0)
 	{
-		return ReadOtherHostsData(Data, FileIndex, Line, LabelType, LABEL_HOSTS_TYPE_WHITE);
+		if (LabelType == LABEL_HOSTS_TYPE_NORMAL || LabelType == LABEL_HOSTS_TYPE_LOCAL)
+		{
+			return ReadOtherHostsData(Data, FileIndex, Line, LabelType, LABEL_HOSTS_TYPE_WHITE);
+		}
+		else {
+			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
 	}
 
 //Banned items
@@ -142,20 +156,41 @@ bool __fastcall ReadHostsData(
 		Data.find("ban ") == 0 || Data.find("ban,") == 0 || 
 		Data.find("banned ") == 0 || Data.find("banned,") == 0)
 	{
-		return ReadOtherHostsData(Data, FileIndex, Line, LabelType, LABEL_HOSTS_TYPE_BANNED);
+		if (LabelType == LABEL_HOSTS_TYPE_NORMAL || LabelType == LABEL_HOSTS_TYPE_LOCAL)
+		{
+			return ReadOtherHostsData(Data, FileIndex, Line, LabelType, LABEL_HOSTS_TYPE_BANNED);
+		}
+		else {
+			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
 	}
 
 //Whitelist Extended items
 	else if (Data.find("NULL") == 0 || Data.find("Null") == 0 || Data.find("null") == 0)
 	{
-		return ReadOtherHostsData(Data, FileIndex, Line, LabelType, LABEL_HOSTS_TYPE_WHITE_EXTENDED);
+		if (LabelType == LABEL_HOSTS_TYPE_NORMAL || LabelType == LABEL_HOSTS_TYPE_LOCAL)
+		{
+			return ReadOtherHostsData(Data, FileIndex, Line, LabelType, LABEL_HOSTS_TYPE_WHITE_EXTENDED);
+		}
+		else {
+			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
 	}
 
 //Banned Extended items
 	else if (Data.find("BAN") == 0 || Data.find("BANNED") == 0 || Data.find("Ban") == 0 || 
 		Data.find("Banned") == 0 || Data.find("ban") == 0 || Data.find("banned") == 0)
 	{
-		return ReadOtherHostsData(Data, FileIndex, Line, LabelType, LABEL_HOSTS_TYPE_BANNED_EXTENDED);
+		if (LabelType == LABEL_HOSTS_TYPE_NORMAL || LabelType == LABEL_HOSTS_TYPE_LOCAL)
+		{
+			return ReadOtherHostsData(Data, FileIndex, Line, LabelType, LABEL_HOSTS_TYPE_BANNED_EXTENDED);
+		}
+		else {
+			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
 	}
 
 //[Local Hosts] block
@@ -196,6 +231,9 @@ bool __fastcall ReadHostsData(
 	//[CNAME Hosts] block
 		if (LabelType == LABEL_HOSTS_TYPE_CNAME)
 			return ReadMainHostsData(Data, HOSTS_TYPE_CNAME, FileIndex, Line);
+	//[Source Hosts] block
+		else if (LabelType == LABEL_HOSTS_TYPE_SOURCE)
+			return ReadMainHostsData(Data, HOSTS_TYPE_SOURCE, FileIndex, Line);
 	//[Hosts] block
 		else 
 			return ReadMainHostsData(Data, HOSTS_TYPE_NORMAL, FileIndex, Line);
@@ -222,7 +260,8 @@ bool __fastcall ReadOtherHostsData(
 	{
 		Separated = Data.find(ASCII_COMMA);
 	}
-	if (Separated == 0 || ((ItemType == LABEL_HOSTS_TYPE_WHITE_EXTENDED || ItemType == LABEL_HOSTS_TYPE_BANNED_EXTENDED) && 
+	if (Separated == 0 || 
+		((ItemType == LABEL_HOSTS_TYPE_WHITE_EXTENDED || ItemType == LABEL_HOSTS_TYPE_BANNED_EXTENDED) && 
 		(Data.find(ASCII_COLON) == std::string::npos || Separated <= Data.find(ASCII_COLON) + 1U)))
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
@@ -238,14 +277,14 @@ bool __fastcall ReadOtherHostsData(
 	if (ItemType == LABEL_HOSTS_TYPE_WHITE_EXTENDED || ItemType == LABEL_HOSTS_TYPE_BANNED_EXTENDED)
 	{
 	//Permit or Deny
-		if (ItemType == LABEL_HOSTS_TYPE_WHITE_EXTENDED && 
-			(Data.find("DENY") != std::string::npos && Data.find("DENY") <= Separated || 
-			Data.find("Deny") != std::string::npos && Data.find("Deny") <= Separated || 
-			Data.find("deny") != std::string::npos && Data.find("deny") <= Separated) || 
-			ItemType == LABEL_HOSTS_TYPE_BANNED_EXTENDED && 
-			(Data.find("PERMIT") != std::string::npos && Data.find("PERMIT") <= Separated || 
-			Data.find("Permit") != std::string::npos && Data.find("Permit") <= Separated || 
-			Data.find("permit") != std::string::npos && Data.find("permit") <= Separated))
+		if ((ItemType == LABEL_HOSTS_TYPE_WHITE_EXTENDED && 
+			((Data.find("DENY") != std::string::npos && Data.find("DENY") <= Separated) || 
+			(Data.find("Deny") != std::string::npos && Data.find("Deny") <= Separated) || 
+			(Data.find("deny") != std::string::npos && Data.find("deny") <= Separated))) || 
+			(ItemType == LABEL_HOSTS_TYPE_BANNED_EXTENDED && 
+			((Data.find("PERMIT") != std::string::npos && Data.find("PERMIT") <= Separated) || 
+			(Data.find("Permit") != std::string::npos && Data.find("Permit") <= Separated) || 
+			(Data.find("permit") != std::string::npos && Data.find("permit") <= Separated))))
 				HostsTableTemp.PermissionOperation = true;
 
 	//Mark types.
@@ -603,6 +642,13 @@ bool __fastcall ReadMainHostsData(
 		return false;
 	}
 
+//Source Hosts format check
+	if (HostsType == HOSTS_TYPE_SOURCE && (Data.find("->") == std::string::npos || Data.find("->") >= Separated))
+	{
+		PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+		return false;
+	}
+
 //Delete all spaces and string length check.
 	while (Data.find(ASCII_SPACE) != std::string::npos)
 		Data.erase(Data.find(ASCII_SPACE), 1U);
@@ -611,18 +657,53 @@ bool __fastcall ReadMainHostsData(
 
 //Initialization
 	HOSTS_TABLE HostsTableTemp;
-	std::vector<std::string> ListData;
-	GetParameterListData(ListData, Data, 0, Separated);
+	std::vector<std::string> HostsListData;
+
+//Mark source address.
+	if (HostsType == HOSTS_TYPE_SOURCE)
+	{
+		std::vector<std::string> SourceListData;
+		GetParameterListData(SourceListData, Data, 0, Data.find("->"));
+		if (SourceListData.empty())
+		{
+			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
+		else {
+		//Protocol setting
+			ADDRESS_PREFIX_BLOCK AddressPrefix;
+			uint16_t Protocol = 0;
+			if (SourceListData.front().find(ASCII_COLON) != std::string::npos)
+				Protocol = AF_INET6;
+			else 
+				Protocol = AF_INET;
+
+		//Mark all data in list.
+			for (auto StringIter:SourceListData)
+			{
+				memset(&AddressPrefix, 0, sizeof(ADDRESS_PREFIX_BLOCK));
+				if (!ReadAddressPrefixBlock(StringIter, 0, Protocol, &AddressPrefix, FileIndex, Line))
+					return false;
+				else 
+					HostsTableTemp.SourceList.push_back(AddressPrefix);
+			}
+		}
+
+		GetParameterListData(HostsListData, Data, Data.find("->") + strlen("->"), Separated);
+	}
+	else {
+		GetParameterListData(HostsListData, Data, 0, Separated);
+	}
 
 //Address counts check
-	if (ListData.empty())
+	if (HostsListData.empty())
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 		return false;
 	}
-	else if (ListData.front().find(ASCII_COLON) != std::string::npos) //AAAA records(IPv6)
+	else if (HostsListData.front().find(ASCII_COLON) != std::string::npos) //AAAA records(IPv6)
 	{
-		if (ListData.size() > DNS_RR_MAXCOUNT_AAAA)
+		if (HostsListData.size() > DNS_RR_MAXCOUNT_AAAA)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Too many Hosts IPv6 addresses", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -632,7 +713,7 @@ bool __fastcall ReadMainHostsData(
 		}
 	}
 	else { //A records(IPv4)
-		if (ListData.size() > DNS_RR_MAXCOUNT_A)
+		if (HostsListData.size() > DNS_RR_MAXCOUNT_A)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Too many Hosts IPv4 addresses", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -650,7 +731,7 @@ bool __fastcall ReadMainHostsData(
 	SSIZE_T Result = 0;
 
 //Mark all data in list.
-	for (auto StringIter:ListData)
+	for (auto StringIter:HostsListData)
 	{
 		memset(&AddressUnionDataTemp, 0, sizeof(ADDRESS_UNION_DATA));
 		memset(Addr, 0, ADDR_STRING_MAXSIZE);

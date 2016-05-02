@@ -4,15 +4,15 @@
 <dict>
 	<key>SchemeUserState</key>
 	<dict>
-		<key>FileHash.xcscheme_^#shared#^_</key>
+		<key>FileHash.xcscheme</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>0</integer>
+			<integer>1</integer>
 		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
-		<key>D99DD46F1C32C597004C0F2C</key>
+		<key>D9112FAF1CD7647C00540550</key>
 		<dict>
 			<key>primary</key>
 			<true/>
