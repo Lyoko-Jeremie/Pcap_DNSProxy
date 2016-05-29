@@ -182,6 +182,7 @@
 //#include <ctime>                   //Date and Time support
 #include <deque>                   //Double-ended queue support
 //#include <functional>              //Function object support
+#include <list>                    //List support
 #include <map>                     //Map support
 #include <memory>                  //Manage dynamic memory support
 #include <mutex>                   //Mutex lock support
@@ -218,11 +219,8 @@
 //	#include <windns.h>                //Windows DNS definitions and DNS API
 	#include <sddl.h>                  //Support and conversions routines necessary for SDDL
 //	#include <windows.h>               //Master include file in Windows
-/* Minimum supported system of Windows Version Helpers is Windows Vista.
-	#if defined(PLATFORM_WIN64)
-		#include <VersionHelpers.h>        //Version Helper functions
-	#endif
-*/
+//	#include <VersionHelpers.h>        //Version Helper functions, minimum supported system is Windows Vista.
+
 //Static libraries
 	#pragma comment(lib, "ws2_32.lib")     //Windows WinSock 2.0+ support
 	#pragma comment(lib, "iphlpapi.lib")   //Windows IP Helper, IP Stack for MIB-II and related functionality support

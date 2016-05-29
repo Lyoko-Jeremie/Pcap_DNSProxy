@@ -24,7 +24,7 @@
 	extern CONFIGURATION_TABLE Parameter;
 	extern GLOBAL_STATUS GlobalRunningStatus;
 #endif
-extern std::deque<DNS_CACHE_DATA> DNSCacheList;
+extern std::list<DNS_CACHE_DATA> DNSCacheList;
 extern std::mutex ScreenLock, DNSCacheListLock;
 
 #if defined(PLATFORM_WIN)

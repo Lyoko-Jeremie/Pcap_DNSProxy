@@ -664,12 +664,13 @@ void __fastcall GlobalStatusSetting(
 	memset(GlobalRunningStatusParameter->LocalAddress_Response[0], 0, PACKET_MAXSIZE);
 	memset(GlobalRunningStatusParameter->LocalAddress_Response[1U], 0, PACKET_MAXSIZE);
 
-//Windows XP with SP3 support
-#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+/* Old version(2016-05-29)
+#if defined(PLATFORM_WIN_XP)
 	GetFunctionPointer(FUNCTION_GETTICKCOUNT64);
 	GetFunctionPointer(FUNCTION_INET_NTOP);
 	GetFunctionPointer(FUNCTION_INET_PTON);
 #endif
+*/
 
 	return;
 }
@@ -691,9 +692,9 @@ GlobalStatus::~GlobalStatus(
 		WSACleanup();
 #endif
 
+/* Old version(2016-05-29)
 //Free libraries.
-//Windows XP with SP3 support
-#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+#if defined(PLATFORM_WIN_XP)
 	if (FunctionLibrary_GetTickCount64 != nullptr)
 	{
 		FreeLibrary(FunctionLibrary_GetTickCount64);
@@ -710,6 +711,7 @@ GlobalStatus::~GlobalStatus(
 		FunctionLibrary_InetPton = nullptr;
 	}
 #endif
+*/
 
 //Free pointer.
 	delete LocalListeningSocket;

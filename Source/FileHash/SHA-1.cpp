@@ -205,10 +205,10 @@ void __fastcall SHA1_Done(
 
 //SHA-1 hash function
 bool __fastcall SHA1_Hash(
-	FILE *Input)
+	FILE *FileHandle)
 {
 //Parameters check
-	if (HashFamilyID != HASH_ID_SHA1 || Input == nullptr)
+	if (HashFamilyID != HASH_ID_SHA1 || FileHandle == nullptr)
 	{
 		fwprintf_s(stderr, L"Parameters error.\n");
 		return false;
@@ -226,11 +226,11 @@ bool __fastcall SHA1_Hash(
 	SHA1_Init(&HashInstance);
 
 //Hash process
-	while (!feof(Input))
+	while (!feof(FileHandle))
 	{
 		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 		_set_errno(0);
-		ReadLength = fread_s(Buffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, Input);
+		ReadLength = fread_s(Buffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, FileHandle);
 		if (ReadLength == 0)
 		{
 			fwprintf_s(stderr, L"Hash process error");

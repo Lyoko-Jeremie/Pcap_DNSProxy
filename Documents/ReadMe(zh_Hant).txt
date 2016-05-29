@@ -194,7 +194,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 1 為輸出重大錯誤
     * 2 為輸出一般錯誤
     * 3 為輸出所有錯誤
-  * Log Maximum Size - 日誌檔最大容量：直接填數位時單位為位元組，可加上單位，支援的單位有 KB/MB/GB，可接受範圍為 4KB - 1GB，如果留空則為 8MB，預設為 8MB
+  * Log Maximum Size - 日誌檔最大容量：直接填數位時單位為位元組，可加上單位，支援的單位有 KB/MB/GB，可接受範圍為 4KB - 1GB，如果留空則為 8MB
     * 注意：日誌檔到達最大容量後將被直接刪除，然後重新生成新的日誌檔，原來的日誌將無法找回！
 
 * Listen - 監聽參數區域
@@ -315,7 +315,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Direct Request - 直連模式，啟用後將使用系統的 API 直接請求遠端伺服器而啟用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，關閉為 0
     * 建議當系統使用全域代理功能時啟用，程式將除境內服務器外的所有請求直接交給系統而不作任何過濾等處理，系統會將請求自動發往遠端伺服器進行解析
     * 填入 IPv4 或 IPv6 時將會啟用對應協定的 Direct Request 功能，填入 IPv4 + IPv6 將會啟用所有協定的功能
-  * Cache Type - DNS 緩存的類型：分 Timer/計時型以及 Queue/佇列型：預設為 Queue
+  * Cache Type - DNS 緩存的類型：分 Timer/計時型以及 Queue/佇列型，填入 0 為關閉此功能
   * Cache Parameter - DNS 緩存的參數：Timer/計時型 時為時間長度（單位為秒），Queue/佇列型 時為佇列長度
   * Default TTL - 已緩存 DNS 記錄預設存留時間：單位為秒，留空則為 900秒/15分鐘
   
@@ -327,7 +327,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Local Force Request - 強制使用境內伺服器進行解析：開啟為 1 /關閉為 0
     * 本功能只對已經確定使用境內伺服器的功能變數名稱請求有效
   * Local Hosts - 白名單境內伺服器請求功能：開啟為 1 /關閉為 0
-    * 開啟後才能使用自帶或自訂的 Local Hosts 白名單，且不能與 Local Hosts 和 Local Routing 同時啟用
+    * 開啟後才能使用自帶或自訂的 Local Hosts 白名單，且不能與 Local Main 和 Local Routing 同時啟用
   * Local Main - 主要境內伺服器請求功能：開啟為 1 /關閉為 0
     * 開啟後所有請求先使用 Local 的伺服器進行解析，遇到遭投毒污染的解析結果時自動再向境外伺服器請求
     * 本功能不能與 Local Hosts 同時啟用
@@ -477,9 +477,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 不啟用 Queue Limits Reset Time 參數時為用於接收資料的緩衝區的數量，由於記憶體資料的複製比網路 I/O 快超過一個數量級，故此情況下不需要設置太多緩衝區
   * Queue Limits Reset Time - 資料緩衝區佇列數量限制重置時間：單位為秒，設置為 0 時關閉此功能
   * EDNS Payload Size - EDNS 標籤附帶使用的最大載荷長度：最小為 DNS 協定實現要求的 512(bytes)，留空則使用 EDNS 標籤要求最短的 1220(bytes)
-  * IPv4 Packet TTL - 發出 IPv4 資料包頭部 TTL 值：0 為由作業系統自動決定，取值為 1-255 之間，預設為 32 - 255
+  * IPv4 Packet TTL - 發出 IPv4 資料包頭部 TTL 值：0 為由作業系統自動決定，取值為 1-255 之間
     * 本參數支援指定取值範圍，每次發出資料包時實際使用的值會在此範圍內隨機指定，指定的範圍均為閉區間
-  * IPv6 Packet Hop Limits - 發出 IPv6 資料包頭部 HopLimits 值：：0 為由作業系統自動決定，取值為 1-255 之間，預設為 32 - 255
+  * IPv6 Packet Hop Limits - 發出 IPv6 資料包頭部 HopLimits 值：：0 為由作業系統自動決定，取值為 1-255 之間
     * 本參數支援指定取值範圍，每次發出資料包時實際使用的值會在此範圍內隨機指定，指定的範圍均為閉區間
   * IPv4 DNS TTL - IPv4 主要 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 TTL 值：0 為自動獲取，取值為 1-255 之間
     * 支援多個 TTL 值，與 IPv4 DNS Address 相對應
@@ -499,7 +499,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * ICMP Test - ICMP/Ping 測試間隔時間：單位為秒，最短間隔時間為5秒
   * Domain Test - DNS 伺服器解析功能變數名稱測試間隔時間：單位為秒，最短間隔時間為 5 秒
   * Alternate Times - 待命伺服器失敗次數閾值，一定週期內如超出閾值會觸發伺服器切換
-  * Alternate Time Range - 待命伺服器失敗次數閾值計算週期：單位為秒，預設為 60秒/1分鐘
+  * Alternate Time Range - 待命伺服器失敗次數閾值計算週期：單位為秒
   * Alternate Reset Time - 待命伺服器重置切換時間，切換產生後經過此事件會切換回主要伺服器：單位為秒
   * Multi Request Times - 一次向同一個遠端伺服器發送並行功能變數名稱解析請求：0 和 1 時為收到一個請求時請求 1 次，2 時為收到一個請求時請求 2 次，3 時為收到一個請求時請求 3 次...... 以此類推
     * 此值將應用到 Local Hosts 外對所有遠端伺服器所有協定的請求，因此可能會對系統以及遠端伺服器造成壓力，請謹慎考慮開啟的風險！

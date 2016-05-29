@@ -321,9 +321,11 @@ uint64_t GetCurrentSystemTime(
 
 	return 0;
 }
+#endif
 
+/* Old version(2016-05-29)
 //Windows XP with SP3 support
-#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+#if defined(PLATFORM_WIN_XP)
 //Verify version of system
 BOOL WINAPI IsGreaterThanVista(
 	void)
@@ -407,3 +409,4 @@ BOOL WINAPI GetFunctionPointer(
 	return FALSE;
 }
 #endif
+*/

@@ -483,15 +483,14 @@ size_t __fastcall CheckHostsProcess(
 		}
 	}
 
-//Local Main check
+//Local Main parameter check
 	if (Parameter.LocalMain)
 		Packet->IsLocal = true;
 
-//Main check
+//Normal Hosts check
 	std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock);
 	for (auto HostsFileSetIter:*HostsFileSetUsing)
 	{
-	//Normal Hosts
 		for (auto HostsTableIter:HostsFileSetIter.HostsList_Normal)
 		{
 			if (std::regex_match(Domain, HostsTableIter.Pattern))
@@ -534,7 +533,7 @@ size_t __fastcall CheckHostsProcess(
 				if (DataLength >= DNS_PACKET_MINSIZE)
 					return DataLength;
 				else if (DataLength == EXIT_FAILURE)
-					goto StopLoop;
+					goto StopLoop_NormalHosts;
 
 			//Initialization
 				void *DNS_Record = nullptr;
@@ -646,33 +645,29 @@ size_t __fastcall CheckHostsProcess(
 				}
 			}
 		}
-
-	//Local Hosts
-		for (auto HostsTableIter:HostsFileSetIter.HostsList_Local)
-		{
-			if (std::regex_match(Domain, HostsTableIter.Pattern))
-			{
-			//Check white and banned hosts list.
-				DataLength = CheckWhiteBannedHostsProcess(Packet->Length, HostsTableIter, DNS_Header, DNS_Query, &Packet->IsLocal);
-				if (DataLength >= DNS_PACKET_MINSIZE)
-					return DataLength;
-				else if (DataLength == EXIT_FAILURE)
-					Packet->IsLocal = false;
-				else //IsLocal flag setting
-					Packet->IsLocal = true;
-
-				goto StopLoop;
-			}
-		}
 	}
 
 //Jump here to stop loop.
-StopLoop:
+StopLoop_NormalHosts:
 	HostsFileMutex.unlock();
 
 //Check DNS cache.
 	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
-	for (auto DNSCacheDataIter:DNSCacheList)
+	if (Parameter.CacheType == CACHE_TYPE_TIMER) //Delete DNS cache.
+	{
+	#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
+		while ((!DNSCacheList.empty() && (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr && 
+			(*GlobalRunningStatus.FunctionPTR_GetTickCount64)() >= DNSCacheList.back().ClearCacheTime) ||
+			GetTickCount() >= DNSCacheList.back().ClearCacheTime))
+*/
+		while (!DNSCacheList.empty() && GetTickCount() >= DNSCacheList.back().ClearCacheTime)
+	#else
+		while (!DNSCacheList.empty() && GetTickCount64() >= DNSCacheList.back().ClearCacheTime)
+	#endif
+			DNSCacheList.pop_back();
+	}
+	for (auto DNSCacheDataIter:DNSCacheList) //Scan all DNS cache.
 	{
 		if (Domain == DNSCacheDataIter.Domain && DNS_Query->Type == DNSCacheDataIter.RecordType)
 		{
@@ -683,6 +678,31 @@ StopLoop:
 		}
 	}
 	DNSCacheListMutex.unlock();
+
+//Local Hosts check
+	HostsFileMutex.lock();
+	for (auto HostsFileSetIter:*HostsFileSetUsing)
+	{
+		for (auto HostsTableIter:HostsFileSetIter.HostsList_Local)
+		{
+			if (std::regex_match(Domain, HostsTableIter.Pattern))
+			{
+				DataLength = CheckWhiteBannedHostsProcess(Packet->Length, HostsTableIter, DNS_Header, DNS_Query, &Packet->IsLocal); //Check white and banned hosts list.
+				if (DataLength >= DNS_PACKET_MINSIZE)
+					return DataLength;
+				else if (DataLength == EXIT_FAILURE)
+					Packet->IsLocal = false;
+				else //IsLocal flag setting
+					Packet->IsLocal = true;
+
+				goto StopLoop_LocalHosts;
+			}
+		}
+	}
+
+//Jump here to stop loop.
+StopLoop_LocalHosts:
+	HostsFileMutex.unlock();
 
 //Domain Case Conversion
 	if (Parameter.DomainCaseConversion)
@@ -1242,17 +1262,18 @@ bool __fastcall MarkDomainCache(
 		memcpy_s(DNSCacheDataTemp.Response.get(), PACKET_MAXSIZE, Buffer + sizeof(uint16_t), Length - sizeof(uint16_t));
 		DNSCacheDataTemp.Length = Length - sizeof(uint16_t);
 
-	//Minimum supported system of GetTickCount64 function is Windows Vista(Windows XP with SP3 support).
-	#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+	#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
 		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 			DNSCacheDataTemp.ClearCacheTime = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + ResponseTTL * SECOND_TO_MILLISECOND);
 		else 
-			DNSCacheDataTemp.ClearCacheTime = GetTickCount() + ResponseTTL * SECOND_TO_MILLISECOND;
+*/
+		DNSCacheDataTemp.ClearCacheTime = GetTickCount() + ResponseTTL * SECOND_TO_MILLISECOND;
 	#else
 		DNSCacheDataTemp.ClearCacheTime = GetTickCount64() + ResponseTTL * SECOND_TO_MILLISECOND;
 	#endif
 
-		std::lock_guard<std::mutex> DNSCacheListMutex(DNSCacheListLock);
+/* Old version(2016-05-19)
 	//Check repeating items, delete duque rear and add new item to deque front.
 		for (auto DNSCacheDataIter = DNSCacheList.begin();DNSCacheDataIter != DNSCacheList.end();++DNSCacheDataIter)
 		{
@@ -1262,27 +1283,29 @@ bool __fastcall MarkDomainCache(
 				break;
 			}
 		}
-
-	//Delete cache.
+*/
+	//Delete old cache.
+		std::lock_guard<std::mutex> DNSCacheListMutex(DNSCacheListLock);
 		if (Parameter.CacheType == CACHE_TYPE_QUEUE)
 		{
 			while (DNSCacheList.size() > Parameter.CacheParameter)
-				DNSCacheList.pop_front();
+				DNSCacheList.pop_back();
 		}
 		else { //CACHE_TYPE_TIMER
-		//Minimum supported system of GetTickCount64 function is Windows Vista(Windows XP with SP3 support).
-		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+		#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
 			while ((!DNSCacheList.empty() && (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr && 
-				(*GlobalRunningStatus.FunctionPTR_GetTickCount64)() >= DNSCacheList.front().ClearCacheTime) || 
-				GetTickCount() >= DNSCacheList.front().ClearCacheTime))
+				(*GlobalRunningStatus.FunctionPTR_GetTickCount64)() >= DNSCacheList.back().ClearCacheTime) ||
+				GetTickCount() >= DNSCacheList.back().ClearCacheTime))
+*/
+			while (!DNSCacheList.empty() && GetTickCount() >= DNSCacheList.back().ClearCacheTime)
 		#else
-			while (!DNSCacheList.empty() && GetTickCount64() >= DNSCacheList.front().ClearCacheTime)
+			while (!DNSCacheList.empty() && GetTickCount64() >= DNSCacheList.back().ClearCacheTime)
 		#endif
-				DNSCacheList.pop_front();
+				DNSCacheList.pop_back();
 		}
 
-		DNSCacheList.push_back(DNSCacheDataTemp);
-		DNSCacheList.shrink_to_fit();
+		DNSCacheList.push_front(DNSCacheDataTemp);
 		return true;
 	}
 

@@ -214,10 +214,10 @@ void __fastcall MD5_Transform(
 
 //MD5 hash function
 bool __fastcall MD5_Hash(
-	FILE *Input)
+	FILE *FileHandle)
 {
 //Parameters check
-	if (HashFamilyID != HASH_ID_MD5 || Input == nullptr)
+	if (HashFamilyID != HASH_ID_MD5 || FileHandle == nullptr)
 	{
 		fwprintf_s(stderr, L"Parameters error.\n");
 		return false;
@@ -236,11 +236,11 @@ bool __fastcall MD5_Hash(
 
 //Hash process
 //n * 512 + 448 + 64 = (n + 1) * 512 bits
-	while (!feof(Input))
+	while (!feof(FileHandle))
 	{
 		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 		_set_errno(0);
-		ReadLength = fread_s(Buffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, Input);
+		ReadLength = fread_s(Buffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, FileHandle);
 		if (ReadLength == 0)
 		{
 			fwprintf_s(stderr, L"Hash process error");

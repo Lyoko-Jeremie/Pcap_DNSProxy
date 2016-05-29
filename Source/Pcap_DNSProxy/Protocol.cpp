@@ -27,7 +27,6 @@ bool __fastcall AddressStringToBinary(
 	SSIZE_T *ErrorCode)
 {
 	std::string sAddrString(AddrString);
-	SSIZE_T Result = 0;
 	if (Protocol == AF_INET6)
 		memset(OriginalAddr, 0, sizeof(in6_addr));
 	else //IPv4
@@ -35,11 +34,13 @@ bool __fastcall AddressStringToBinary(
 	if (ErrorCode != nullptr)
 		*ErrorCode = 0;
 
-//inet_ntop function and inet_pton function was only support in Windows Vista and newer system(Windows XP SP3 support). [Roy Tam]
-#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+//inet_ntop function and inet_pton function was only support in Windows Vista and newer system. [Roy Tam]
+#if defined(PLATFORM_WIN_XP)
 	sockaddr_storage SockAddr;
 	memset(&SockAddr, 0, sizeof(sockaddr_storage));
 	int SockLength = 0;
+#else
+	SSIZE_T Result = 0;
 #endif
 
 	if (Protocol == AF_INET6) //IPv6
@@ -70,7 +71,8 @@ bool __fastcall AddressStringToBinary(
 		}
 
 	//Convert to binary.
-	#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+	#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
 		if (GlobalRunningStatus.FunctionPTR_InetPton != nullptr)
 		{
 			Result = (*GlobalRunningStatus.FunctionPTR_InetPton)(AF_INET6, sAddrString.c_str(), OriginalAddr);
@@ -83,17 +85,17 @@ bool __fastcall AddressStringToBinary(
 			}
 		}
 		else {
-			SockLength = sizeof(sockaddr_in6);
-			if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET6, nullptr, (PSOCKADDR)&SockAddr, &SockLength) == SOCKET_ERROR)
-			{
-				if (ErrorCode != nullptr)
-					*ErrorCode = WSAGetLastError();
+*/
+		SockLength = sizeof(sockaddr_in6);
+		if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET6, nullptr, (PSOCKADDR)&SockAddr, &SockLength) == SOCKET_ERROR)
+		{
+			if (ErrorCode != nullptr)
+				*ErrorCode = WSAGetLastError();
 
-				return false;
-			}
-
-			memcpy_s(OriginalAddr, sizeof(in6_addr), &((PSOCKADDR_IN6)&SockAddr)->sin6_addr, sizeof(in6_addr));
+			return false;
 		}
+
+		memcpy_s(OriginalAddr, sizeof(in6_addr), &((PSOCKADDR_IN6)&SockAddr)->sin6_addr, sizeof(in6_addr));
 	#else
 		Result = inet_pton(AF_INET6, sAddrString.c_str(), OriginalAddr);
 		if (Result == SOCKET_ERROR || Result == 0)
@@ -152,7 +154,8 @@ bool __fastcall AddressStringToBinary(
 			sAddrString.append("0");
 
 	//Convert to binary.
-	#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+	#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
 		if (GlobalRunningStatus.FunctionPTR_InetPton != nullptr)
 		{
 			Result = (*GlobalRunningStatus.FunctionPTR_InetPton)(AF_INET, sAddrString.c_str(), OriginalAddr);
@@ -165,17 +168,17 @@ bool __fastcall AddressStringToBinary(
 			}
 		}
 		else {
-			SockLength = sizeof(sockaddr_in);
-			if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET, nullptr, (PSOCKADDR)&SockAddr, &SockLength) == SOCKET_ERROR)
-			{
-				if (ErrorCode != nullptr)
-					*ErrorCode = WSAGetLastError();
+*/
+		SockLength = sizeof(sockaddr_in);
+		if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET, nullptr, (PSOCKADDR)&SockAddr, &SockLength) == SOCKET_ERROR)
+		{
+			if (ErrorCode != nullptr)
+				*ErrorCode = WSAGetLastError();
 
-				return false;
-			}
-
-			memcpy_s(OriginalAddr, sizeof(in_addr), &((PSOCKADDR_IN)&SockAddr)->sin_addr, sizeof(in_addr));
+			return false;
 		}
+
+		memcpy_s(OriginalAddr, sizeof(in_addr), &((PSOCKADDR_IN)&SockAddr)->sin_addr, sizeof(in_addr));
 	#else
 		Result = inet_pton(AF_INET, sAddrString.c_str(), OriginalAddr);
 		if (Result == SOCKET_ERROR || Result == 0)

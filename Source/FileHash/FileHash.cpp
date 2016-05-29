@@ -159,33 +159,33 @@ int main(int argc, char *argv[])
 	Command.shrink_to_fit();
 
 //Open file.
-	FILE *Input = nullptr;
+	FILE *FileHandle = nullptr;
 #if defined(PLATFORM_WIN)
-	if (_wfopen_s(&Input, FileName.c_str(), L"rb") != 0 || Input == nullptr)
+	if (_wfopen_s(&FileHandle, FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	Input = fopen(FileName.c_str(), "rb");
-	if (Input == nullptr)
+	FileHandle = fopen(FileName.c_str(), "rb");
+	if (FileHandle == nullptr)
 #endif
 	{
 		fwprintf_s(stderr, L"Open file error.\n");
 		return EXIT_FAILURE;
 	}
 	else {
-		if ((HashFamilyID == HASH_ID_CRC && !CRC_Hash(Input)) ||                                     //CRC family
-			(HashFamilyID == HASH_ID_CHECKSUM && !Checksum_Hash(Input)) ||                           //Internet Protocol Checksum
-			(HashFamilyID == HASH_ID_MD2 && !MD2_Hash(Input)) ||                                     //MD2
-			((HashFamilyID == HASH_ID_MD4 || HashFamilyID == HASH_ID_ED2K) && !MD4_Hash(Input)) ||   //MD4 family
-			(HashFamilyID == HASH_ID_MD5 && !MD5_Hash(Input)) ||                                     //MD5
-			(HashFamilyID == HASH_ID_SHA1 && !SHA1_Hash(Input)) ||                                   //SHA-1
-			(HashFamilyID == HASH_ID_SHA2 && !SHA2_Hash(Input)) ||                                   //SHA-2 family
-			(HashFamilyID == HASH_ID_SHA3 && !SHA3_Hash(Input)))                                     //SHA-3 family
+		if ((HashFamilyID == HASH_ID_CRC && !CRC_Hash(FileHandle)) ||                                     //CRC family
+			(HashFamilyID == HASH_ID_CHECKSUM && !Checksum_Hash(FileHandle)) ||                           //Internet Protocol Checksum
+			(HashFamilyID == HASH_ID_MD2 && !MD2_Hash(FileHandle)) ||                                     //MD2
+			((HashFamilyID == HASH_ID_MD4 || HashFamilyID == HASH_ID_ED2K) && !MD4_Hash(FileHandle)) ||   //MD4 family
+			(HashFamilyID == HASH_ID_MD5 && !MD5_Hash(FileHandle)) ||                                     //MD5
+			(HashFamilyID == HASH_ID_SHA1 && !SHA1_Hash(FileHandle)) ||                                   //SHA-1
+			(HashFamilyID == HASH_ID_SHA2 && !SHA2_Hash(FileHandle)) ||                                   //SHA-2 family
+			(HashFamilyID == HASH_ID_SHA3 && !SHA3_Hash(FileHandle)))                                     //SHA-3 family
 		{
-			fclose(Input);
+			fclose(FileHandle);
 			return EXIT_FAILURE;
 		}
 	}
 
-	fclose(Input);
+	fclose(FileHandle);
 #else
 	#if defined(PLATFORM_WIN)
 		fwprintf_s(stderr, L"LibSodium is disable.\n\n");

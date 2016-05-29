@@ -207,10 +207,10 @@ void __fastcall MD4_Final(
 
 //MD4 hash function
 bool __fastcall MD4_Hash(
-	FILE *Input)
+	FILE *FileHandle)
 {
 //Parameters check
-	if ((HashFamilyID != HASH_ID_MD4 && HashFamilyID != HASH_ID_ED2K) || Input == nullptr)
+	if ((HashFamilyID != HASH_ID_MD4 && HashFamilyID != HASH_ID_ED2K) || FileHandle == nullptr)
 	{
 		fwprintf_s(stderr, L"Parameters error.\n");
 		return false;
@@ -234,11 +234,11 @@ bool __fastcall MD4_Hash(
 		MD4_Init(&HashInstanceED2K);
 
 //Hash process
-	while (!feof(Input))
+	while (!feof(FileHandle))
 	{
 		memset(Buffer.get(), 0, ReadBlockSize);
 		_set_errno(0);
-		ReadLength = fread_s(Buffer.get(), ReadBlockSize, sizeof(char), ReadBlockSize, Input);
+		ReadLength = fread_s(Buffer.get(), ReadBlockSize, sizeof(char), ReadBlockSize, FileHandle);
 		if (ReadLength == 0)
 		{
 			fwprintf_s(stderr, L"Hash process error");

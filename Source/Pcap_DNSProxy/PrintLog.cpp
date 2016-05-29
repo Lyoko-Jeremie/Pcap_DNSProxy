@@ -352,17 +352,17 @@ bool __fastcall PrintScreenAndWriteFile(
 
 //Write to file.
 #if defined(PLATFORM_WIN)
-	FILE *Output = nullptr;
-	if (_wfopen_s(&Output, GlobalRunningStatus.Path_ErrorLog->c_str(), L"a,ccs=UTF-8") == 0 && Output != nullptr)
+	FILE *FileHandle = nullptr;
+	if (_wfopen_s(&FileHandle, GlobalRunningStatus.Path_ErrorLog->c_str(), L"a,ccs=UTF-8") == 0 && FileHandle != nullptr)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	auto Output = fopen(GlobalRunningStatus.sPath_ErrorLog->c_str(), "a");
-	if (Output != nullptr)
+	auto FileHandle = fopen(GlobalRunningStatus.sPath_ErrorLog->c_str(), "a");
+	if (FileHandle != nullptr)
 #endif
 	{
 	//Print startup time.
 		if (LogStartupTime > 0)
 		{
-			fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", 
+			fwprintf_s(FileHandle, L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", 
 				TimeStructure.tm_year + 1900, 
 				TimeStructure.tm_mon + 1, 
 				TimeStructure.tm_mday, 
@@ -372,7 +372,7 @@ bool __fastcall PrintScreenAndWriteFile(
 		}
 
 	//Print message.
-		fwprintf_s(Output, L"%d-%02d-%02d %02d:%02d:%02d -> ", 
+		fwprintf_s(FileHandle, L"%d-%02d-%02d %02d:%02d:%02d -> ", 
 			TimeStructure.tm_year + 1900, 
 			TimeStructure.tm_mon + 1, 
 			TimeStructure.tm_mday, 
@@ -380,15 +380,15 @@ bool __fastcall PrintScreenAndWriteFile(
 			TimeStructure.tm_min, 
 			TimeStructure.tm_sec);
 		if (Line > 0 && ErrorCode > 0)
-			fwprintf_s(Output, Message.c_str(), Line, ErrorCode);
+			fwprintf_s(FileHandle, Message.c_str(), Line, ErrorCode);
 		else if (Line > 0)
-			fwprintf_s(Output, Message.c_str(), Line);
+			fwprintf_s(FileHandle, Message.c_str(), Line);
 		else if (ErrorCode > 0)
-			fwprintf_s(Output, Message.c_str(), ErrorCode);
+			fwprintf_s(FileHandle, Message.c_str(), ErrorCode);
 		else 
-			fwprintf_s(Output, Message.c_str());
+			fwprintf_s(FileHandle, Message.c_str());
 
-		fclose(Output);
+		fclose(FileHandle);
 	}
 	else {
 		return false;

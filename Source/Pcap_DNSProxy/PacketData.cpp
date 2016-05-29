@@ -607,8 +607,8 @@ size_t __fastcall MakeCompressionPointerMutation(
 	const size_t Length)
 {
 //Ramdom number distribution initialization
-	std::uniform_int_distribution<size_t> RamdomDistribution(0, 2U);
-	size_t Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+	std::uniform_int_distribution<uint64_t> RamdomDistribution(0, 2U);
+	uint64_t Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 
 //Check Compression Pointer Mutation options.
 	switch (Index)
@@ -655,12 +655,13 @@ size_t __fastcall MakeCompressionPointerMutation(
 		memmove_s(Buffer + Length - sizeof(dns_qry) + 1U, sizeof(dns_qry), Buffer + Length - sizeof(dns_qry), sizeof(dns_qry));
 		*(Buffer + Length - sizeof(dns_qry) - 1U) = DNS_POINTER_8_BITS_STRING;
 
-	//Minimum supported system of GetTickCount64 function is Windows Vista(Windows XP with SP3 support).
-	#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+	#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
 		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 			Index = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)() % 4U;
 		else 
-			Index = GetTickCount() % 4U;
+*/
+		Index = GetTickCount() % 4U;
 	#else
 		Index = GetTickCount64() % 4U;
 	#endif

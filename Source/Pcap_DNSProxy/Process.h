@@ -26,7 +26,7 @@ extern GLOBAL_STATUS GlobalRunningStatus;
 	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 #endif
 extern std::vector<DIFFERNET_FILE_SET_HOSTS> *HostsFileSetUsing, *HostsFileSetModificating;
-extern std::deque<DNS_CACHE_DATA> DNSCacheList;
+extern std::list<DNS_CACHE_DATA> DNSCacheList;
 extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM], HostsFileLock, DNSCacheListLock;
 
 //Functions

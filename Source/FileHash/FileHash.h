@@ -249,7 +249,7 @@
 #endif
 
 //Version definitions
-#define FULL_VERSION                 L"0.4.6.2"
+#define FULL_VERSION                 L"0.4.6.3"
 #define COPYRIGHT_MESSAGE            L"Copyright (C) 2012-2016 Chengr28"
 
 //Command definitions
@@ -355,7 +355,7 @@ void __fastcall CaseConvert(
 
 //Checksum.cpp
 bool __fastcall Checksum_Hash(
-	FILE *Input);
+	FILE *FileHandle);
 
 //CRC.cpp
 bool __fastcall ReadCommand_CRC(
@@ -365,27 +365,27 @@ bool __fastcall ReadCommand_CRC(
 	std::string &Command);
 #endif
 bool __fastcall CRC_Hash(
-	FILE *Input);
+	FILE *FileHandle);
 
 //MD2.cpp
 bool __fastcall MD2_Hash(
-	FILE *Input);
+	FILE *FileHandle);
 
 //MD4.cpp
 bool __fastcall MD4_Hash(
-	FILE *Input);
+	FILE *FileHandle);
 
 //MD5.cpp
 bool __fastcall MD5_Hash(
-	FILE *Input);
+	FILE *FileHandle);
 
 //SHA-1.cpp
 bool __fastcall SHA1_Hash(
-	FILE *Input);
+	FILE *FileHandle);
 
 //SHA-2.cpp
 bool __fastcall SHA2_Hash(
-	FILE *Input);
+	FILE *FileHandle);
 bool __fastcall ReadCommand_SHA2(
 #if defined(PLATFORM_WIN)
 	std::wstring &Command);
@@ -395,7 +395,7 @@ bool __fastcall ReadCommand_SHA2(
 
 //SHA-3.cpp
 bool __fastcall SHA3_Hash(
-	FILE *Input);
+	FILE *FileHandle);
 bool __fastcall ReadCommand_SHA3(
 #if defined(PLATFORM_WIN)
 	std::wstring &Command);

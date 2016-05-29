@@ -471,11 +471,13 @@ bool __fastcall UDPMonitor(
 	uint64_t LastMarkTime = 0, NowTime = 0;
 	if (Parameter.QueueResetTime > 0)
 	{
-	#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+	#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
 		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 			LastMarkTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
 		else 
-			LastMarkTime = GetTickCount();
+*/
+		LastMarkTime = GetTickCount();
 	#else
 		LastMarkTime = GetTickCount64();
 	#endif
@@ -491,22 +493,26 @@ bool __fastcall UDPMonitor(
 	//Interval time between receive
 		if (Parameter.QueueResetTime > 0 && Index + 1U == Parameter.BufferQueueSize)
 		{
-		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+		#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
 			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 				NowTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
 			else 
-				NowTime = GetTickCount();
+*/
+			NowTime = GetTickCount();
 		#else
 			NowTime = GetTickCount64();
 		#endif
 			if (LastMarkTime + Parameter.QueueResetTime > NowTime)
 				Sleep(LastMarkTime + Parameter.QueueResetTime - NowTime);
 
-		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+		#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
 			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 				LastMarkTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
 			else 
-				LastMarkTime = GetTickCount();
+*/
+			LastMarkTime = GetTickCount();
 		#else
 			LastMarkTime = GetTickCount64();
 		#endif
@@ -631,11 +637,13 @@ bool __fastcall TCPMonitor(
 	uint64_t LastMarkTime = 0, NowTime = 0;
 	if (Parameter.QueueResetTime > 0)
 	{
-	#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+	#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
 		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 			LastMarkTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
 		else 
-			LastMarkTime = GetTickCount();
+*/
+		LastMarkTime = GetTickCount();
 	#else
 		LastMarkTime = GetTickCount64();
 	#endif
@@ -651,22 +659,26 @@ bool __fastcall TCPMonitor(
 	//Interval time between receive
 		if (Parameter.QueueResetTime > 0 && Index + 1U == Parameter.BufferQueueSize)
 		{
-		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+		#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
 			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 				NowTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
 			else 
-				NowTime = GetTickCount();
+*/
+			NowTime = GetTickCount();
 		#else
 			NowTime = GetTickCount64();
 		#endif
 			if (LastMarkTime + Parameter.QueueResetTime > NowTime)
 				Sleep(LastMarkTime + Parameter.QueueResetTime - NowTime);
 
-		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+		#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
 			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 				LastMarkTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
 			else 
-				LastMarkTime = GetTickCount();
+*/
+			LastMarkTime = GetTickCount();
 		#else
 			LastMarkTime = GetTickCount64();
 		#endif
@@ -875,26 +887,30 @@ bool __fastcall TCPReceiveProcess(
 void __fastcall AlternateServerMonitor(
 	void)
 {
-	size_t Index = 0, RangeTimer[ALTERNATE_SERVERNUM], SwapTimer[ALTERNATE_SERVERNUM];
-	memset(RangeTimer, 0, sizeof(size_t) * ALTERNATE_SERVERNUM);
-	memset(SwapTimer, 0, sizeof(size_t) * ALTERNATE_SERVERNUM);
+	size_t Index = 0;
+	uint64_t RangeTimer[ALTERNATE_SERVERNUM], SwapTimer[ALTERNATE_SERVERNUM];
+	memset(RangeTimer, 0, sizeof(uint64_t) * ALTERNATE_SERVERNUM);
+	memset(SwapTimer, 0, sizeof(uint64_t) * ALTERNATE_SERVERNUM);
 
 //Switcher
-//Minimum supported system of GetTickCount64 function is Windows Vista(Windows XP with SP3 support).
 	for (;;)
 	{
 	//Complete request process check
 		for (Index = 0;Index < ALTERNATE_SERVERNUM;++Index)
 		{
 		//Reset TimeoutTimes out of alternate time range.
-		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+		#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
 			if ((GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr && (*GlobalRunningStatus.FunctionPTR_GetTickCount64)() >= RangeTimer[Index]) || 
-				GetTickCount() >= RangeTimer[Index])
+*/
+			if (GetTickCount() >= RangeTimer[Index])
 			{
+/* Old version(2016-05-29)
 				if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 					RangeTimer[Index] = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + Parameter.AlternateTimeRange);
 				else 
-					RangeTimer[Index] = GetTickCount() + Parameter.AlternateTimeRange;
+*/
+				RangeTimer[Index] = GetTickCount() + Parameter.AlternateTimeRange;
 		#else
 			if (GetTickCount64() >= RangeTimer[Index])
 			{
@@ -907,9 +923,11 @@ void __fastcall AlternateServerMonitor(
 		//Reset alternate switching.
 			if (AlternateSwapList.IsSwap[Index])
 			{
-			#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+			#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
 				if ((GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr && (*GlobalRunningStatus.FunctionPTR_GetTickCount64)() >= SwapTimer[Index]) || 
-					GetTickCount() >= SwapTimer[Index])
+*/
+				if (GetTickCount() >= SwapTimer[Index])
 			#else
 				if (GetTickCount64() >= SwapTimer[Index])
 			#endif
@@ -925,11 +943,13 @@ void __fastcall AlternateServerMonitor(
 				{
 					AlternateSwapList.IsSwap[Index] = true;
 					AlternateSwapList.TimeoutTimes[Index] = 0;
-				#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+				#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
 					if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 						SwapTimer[Index] = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + Parameter.AlternateResetTime);
 					else 
-						SwapTimer[Index] = GetTickCount() + Parameter.AlternateResetTime;
+*/
+					SwapTimer[Index] = GetTickCount() + Parameter.AlternateResetTime;
 				#else
 					SwapTimer[Index] = GetTickCount64() + Parameter.AlternateResetTime;
 				#endif

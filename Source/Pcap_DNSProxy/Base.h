@@ -107,7 +107,7 @@
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE                    0.3
 #define CONFIG_VERSION                                0.4                         //Current configuration file version
-#define FULL_VERSION                                  L"0.4.6.2"
+#define FULL_VERSION                                  L"0.4.6.3"
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
 
 //Size and length definitions
@@ -277,15 +277,14 @@
 #define BASE64_ENCODE_OUT_SIZE(Message)               (((Message) + 2U) / 3U * 4U)
 //#define BASE64_DECODE_OUT_SIZE(Message)               (((Message)) / 4U * 3U)
 
+/* Old version(2016-05-29)
 //Function Type definitions
-//Windows XP with SP3 support
-#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
-
+#if defined(PLATFORM_WIN_XP)
 	#define FUNCTION_GETTICKCOUNT64                       1U
 	#define FUNCTION_INET_NTOP                            2U
 	#define FUNCTION_INET_PTON                            3U
 #endif
-
+*/
 //Compare addresses own definitions
 #define ADDRESS_COMPARE_LESS                          1U
 #define ADDRESS_COMPARE_EQUAL                         2U
@@ -372,13 +371,14 @@
 	#define DNSCURVE_ALTERNATE_IPV4                   4U                          //DNSCurve Alternate(IPv4)
 #endif
 
+/* Old version(2016-05-29)
 //Function Pointer definitions
-//Windows XP with SP3 support
-#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+#if defined(PLATFORM_WIN_XP)
 	typedef INT(CALLBACK *FunctionType_InetPton)(INT, PCSTR, PVOID);
 	typedef PCSTR(CALLBACK *FunctionType_InetNtop)(INT, PVOID, PSTR, size_t);
 	typedef ULONGLONG(CALLBACK *FunctionType_GetTickCount64)(void);
 #endif
+*/
 
 
 //////////////////////////////////////////////////
@@ -735,8 +735,9 @@ public:
 	std::vector<std::string>             *LocalAddress_ResponsePTR[NETWORK_LAYER_PARTNUM];
 #endif
 
+/* Old version(2016-05-29)
 //Windows XP with SP3 support
-#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+#if defined(PLATFORM_WIN_XP)
 	HINSTANCE                            FunctionLibrary_GetTickCount64;
 	HINSTANCE                            FunctionLibrary_InetNtop;
 	HINSTANCE                            FunctionLibrary_InetPton;
@@ -744,6 +745,7 @@ public:
 	FunctionType_InetNtop                FunctionPTR_InetNtop;
 	FunctionType_InetPton                FunctionPTR_InetPton;
 #endif
+*/
 
 //Member functions
 	GlobalStatus(
@@ -833,7 +835,7 @@ public:
 	SOCKET_DATA                          SocketData_Input;
 	uint16_t                             Protocol_Network;
 	uint16_t                             Protocol_Transport;
-	unsigned long long                   ClearPortTime;
+	uint64_t                             ClearPortTime;
 	size_t                               ReceiveIndex;
 
 //Member functions
@@ -863,7 +865,6 @@ public:
 	std::vector<HOSTS_TABLE>             HostsList_Normal;
 	std::vector<HOSTS_TABLE>             HostsList_Local;
 	std::vector<HOSTS_TABLE>             HostsList_CNAME;
-	std::vector<HOSTS_TABLE>             HostsList_Source;
 	std::vector<ADDRESS_HOSTS_TABLE>     AddressHostsList;
 	size_t                               FileIndex;
 
@@ -986,13 +987,14 @@ size_t __fastcall Base64_Decode(
 uint64_t GetCurrentSystemTime(
 	void);
 #endif
-//Windows XP with SP3 support
-#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+/* Old version(2016-05-29)
+#if defined(PLATFORM_WIN_XP)
 BOOL WINAPI IsGreaterThanVista(
 	void);
 BOOL WINAPI GetFunctionPointer(
 	const size_t FunctionType);
 #endif
+*/
 
 //PrintLog.h
 bool __fastcall PrintError(

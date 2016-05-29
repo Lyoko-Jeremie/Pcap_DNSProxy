@@ -313,7 +313,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Direct Request - 直连模式，启用后将使用系统的 API 直接请求远程服务器而启用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，关闭为 0
     * 建议当系统使用全局代理功能时启用，程序将除境内服务器外的所有请求直接交给系统而不作任何过滤等处理，系统会将请求自动发往远程服务器进行解析
     * 填入 IPv4 或 IPv6 时将会启用对应协议的 Direct Request 功能，填入 IPv4 + IPv6 将会启用所有协议的功能
-  * Cache Type - DNS 缓存的类型：分 Timer/计时型以及 Queue/队列型
+  * Cache Type - DNS 缓存的类型：分 Timer/计时型以及 Queue/队列型，填入 0 为关闭此功能
   * Cache Parameter - DNS 缓存的参数：Timer/计时型 时为时间长度（单位为秒），Queue/队列型 时为队列长度
   * Default TTL - 已缓存 DNS 记录默认生存时间：单位为秒，留空则为 900秒/15分钟
   
@@ -325,7 +325,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Local Force Request - 强制使用境内服务器进行解析：开启为 1 /关闭为 0
     * 本功能只对已经确定使用境内服务器的域名请求有效
   * Local Hosts - 白名单境内服务器请求功能：开启为 1 /关闭为 0
-    * 开启后才能使用自带或自定义的 Local Hosts 白名单，且不能与 Local Hosts 和 Local Routing 同时启用
+    * 开启后才能使用自带或自定义的 Local Hosts 白名单，且不能与 Local Main 和 Local Routing 同时启用
   * Local Main - 主要境内服务器请求功能：开启为 1 /关闭为 0
     * 开启后所有请求先使用 Local 的服务器进行解析，遇到遭投毒污染的解析结果时自动再向境外服务器请求
     * 本功能不能与 Local Hosts 同时启用

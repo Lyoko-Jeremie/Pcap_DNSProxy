@@ -127,10 +127,10 @@ bool __fastcall ReadCommand_SHA3(
 
 //SHA-3 hash function
 bool __fastcall SHA3_Hash(
-	FILE *Input)
+	FILE *FileHandle)
 {
 //Parameters check
-	if (HashFamilyID != HASH_ID_SHA3 || Input == nullptr)
+	if (HashFamilyID != HASH_ID_SHA3 || FileHandle == nullptr)
 	{
 		fwprintf_s(stderr, L"Parameters error.\n");
 		return false;
@@ -175,11 +175,11 @@ bool __fastcall SHA3_Hash(
 	}
 
 //Hash process
-	while (!feof(Input))
+	while (!feof(FileHandle))
 	{
 		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 		_set_errno(0);
-		ReadLength = fread_s(Buffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, Input);
+		ReadLength = fread_s(Buffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, FileHandle);
 		if ((ReadLength == 0 && errno > 0) || Keccak_HashUpdate(&HashInstance, (BitSequence *)Buffer.get(), ReadLength * BYTES_TO_BITS) != SUCCESS)
 		{
 			fwprintf_s(stderr, L"Hash process error.\n");

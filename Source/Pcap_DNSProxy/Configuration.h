@@ -62,7 +62,7 @@ extern std::mutex IPFilterFileLock, HostsFileLock;
 
 //Functions in Configuration.cpp
 bool __fastcall ReadText(
-	const FILE *Input, 
+	const FILE *FileHandle, 
 	const size_t InputType, 
 	const size_t FileIndex);
 bool __fastcall ReadMultiLineComments(

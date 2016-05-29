@@ -30,8 +30,6 @@ set(CMAKE_BUILD_TYPE "Release")
 
 # All source files
 set(MAIN_SRC_FILES
-		"Platform.h"
-		"Structures.h"
 		"Base.h"
 		"Capture.h"
 		"Configuration.h"
@@ -41,11 +39,13 @@ set(MAIN_SRC_FILES
 		"Monitor.h"
 		"Network.h"
 		"PacketData.h"
+		"Platform.h"
 		"PrintLog.h"
 		"Process.h"
 		"Protocol.h"
-		"Service.h"
 		"Proxy.h"
+		"Service.h"
+		"Structures.h"
 		"Base.cpp"
 		"Capture.cpp"
 		"Configuration.cpp"

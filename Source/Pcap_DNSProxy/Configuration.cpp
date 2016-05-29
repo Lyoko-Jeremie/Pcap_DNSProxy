@@ -21,7 +21,7 @@
 
 //Read texts
 bool __fastcall ReadText(
-	const FILE *Input, 
+	const FILE *FileHandle, 
 	const size_t InputType, 
 	const size_t FileIndex)
 {
@@ -34,10 +34,10 @@ bool __fastcall ReadText(
 	auto IsEraseBOM = true, NewLine_Point = false, IsLabelComments = false;
 
 //Read data.
-	while (!feof((FILE *)Input))
+	while (!feof((FILE *)FileHandle))
 	{
 	//Read file and Mark last read.
-		auto ReadLength = fread_s(FileBuffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, (FILE *)Input);
+		auto ReadLength = fread_s(FileBuffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, (FILE *)FileHandle);
 
 	//Erase BOM of Unicode Transformation Format/UTF at first.
 		if (IsEraseBOM)
@@ -336,7 +336,7 @@ bool __fastcall ReadText(
 		for (Index = 0;Index < strnlen_s(TextBuffer.get(), FILE_BUFFER_SIZE);++Index)
 		{
 		//New line
-			if (TextBuffer.get()[Index] == ASCII_LF || (Index + 1U == strnlen_s(TextBuffer.get(), FILE_BUFFER_SIZE) && feof((FILE *)Input)))
+			if (TextBuffer.get()[Index] == ASCII_LF || (Index + 1U == strnlen_s(TextBuffer.get(), FILE_BUFFER_SIZE) && feof((FILE *)FileHandle)))
 			{
 				++Line;
 
@@ -367,7 +367,7 @@ bool __fastcall ReadText(
 				}
 
 			//Next step
-				if (Index + 1U == strnlen_s(TextBuffer.get(), FILE_BUFFER_SIZE) && feof((FILE *)Input))
+				if (Index + 1U == strnlen_s(TextBuffer.get(), FILE_BUFFER_SIZE) && feof((FILE *)FileHandle))
 					return true;
 				else 
 					TextData.clear();
@@ -449,7 +449,7 @@ bool __fastcall ReadParameter(
 	}
 
 //Initialization
-	FILE *Input = nullptr;
+	FILE *FileHandle = nullptr;
 #if defined(PLATFORM_WIN)
 	WIN32_FILE_ATTRIBUTE_DATA File_WIN32_FILE_ATTRIBUTE_DATA;
 	memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
@@ -465,10 +465,10 @@ bool __fastcall ReadParameter(
 		for (FileIndex = 0;FileIndex < FileList_Config.size();++FileIndex)
 		{
 		#if defined(PLATFORM_WIN)
-			if (_wfopen_s(&Input, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") != 0 || Input == nullptr)
+			if (_wfopen_s(&FileHandle, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			Input = fopen(FileList_Config.at(FileIndex).sFileName.c_str(), "rb");
-			if (Input == nullptr)
+			FileHandle = fopen(FileList_Config.at(FileIndex).sFileName.c_str(), "rb");
+			if (FileHandle == nullptr)
 		#endif
 			{
 			//Check all configuration files.
@@ -508,15 +508,15 @@ bool __fastcall ReadParameter(
 	#endif
 
 	//Read data.
-		if (Input != nullptr)
+		if (FileHandle != nullptr)
 		{
-			if (!ReadText(Input, READ_TEXT_PARAMETER, FileIndex))
+			if (!ReadText(FileHandle, READ_TEXT_PARAMETER, FileIndex))
 			{
-				fclose(Input);
+				fclose(FileHandle);
 				return false;
 			}
 
-			fclose(Input);
+			fclose(FileHandle);
 		}
 		else {
 			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Cannot open any configuration files", 0, nullptr, 0);
@@ -534,10 +534,10 @@ bool __fastcall ReadParameter(
 			for (FileIndex = 0;FileIndex < FileList_Config.size();++FileIndex)
 			{
 			#if defined(PLATFORM_WIN)
-				if (_wfopen_s(&Input, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") != 0 || Input == nullptr)
+				if (_wfopen_s(&FileHandle, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				Input = fopen(FileList_Config.at(FileIndex).sFileName.c_str(), "rb");
-				if (Input == nullptr)
+				FileHandle = fopen(FileList_Config.at(FileIndex).sFileName.c_str(), "rb");
+				if (FileHandle == nullptr)
 			#endif
 				{
 				//Check all configuration files.
@@ -547,8 +547,8 @@ bool __fastcall ReadParameter(
 					continue;
 				}
 				else {
-					fclose(Input);
-					Input = nullptr;
+					fclose(FileHandle);
+					FileHandle = nullptr;
 
 					goto StopLoop;
 				}
@@ -626,12 +626,12 @@ bool __fastcall ReadParameter(
 
 				//Read file.
 				#if defined(PLATFORM_WIN)
-					if (_wfopen_s(&Input, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") == 0)
+					if (_wfopen_s(&FileHandle, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") == 0)
 					{
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-					Input = fopen(FileList_Config.at(FileIndex).sFileName.c_str(), "rb");
+					FileHandle = fopen(FileList_Config.at(FileIndex).sFileName.c_str(), "rb");
 				#endif
-						if (Input == nullptr)
+						if (FileHandle == nullptr)
 						{
 							Sleep(Parameter.FileRefreshTime);
 							continue;
@@ -640,7 +640,7 @@ bool __fastcall ReadParameter(
 							if (!InnerIsFirstRead)
 							{
 							//Read data.
-								if (ReadText(Input, READ_TEXT_PARAMETER_MONITOR, FileIndex))
+								if (ReadText(FileHandle, READ_TEXT_PARAMETER_MONITOR, FileIndex))
 								{
 								//Copy to global list.
 									if (ParameterCheckAndSetting(false, FileIndex))
@@ -664,8 +664,8 @@ bool __fastcall ReadParameter(
 								InnerIsFirstRead = false;
 							}
 
-							fclose(Input);
-							Input = nullptr;
+							fclose(FileHandle);
+							FileHandle = nullptr;
 						}
 				#if defined(PLATFORM_WIN)
 					}
@@ -722,7 +722,7 @@ void __fastcall ReadIPFilter(
 	}
 
 //Initialization
-	FILE *Input = nullptr;
+	FILE *FileHandle = nullptr;
 	auto IsFileModified = false;
 #if defined(PLATFORM_WIN)
 	WIN32_FILE_ATTRIBUTE_DATA File_WIN32_FILE_ATTRIBUTE_DATA;
@@ -806,12 +806,12 @@ void __fastcall ReadIPFilter(
 
 				//Read file.
 				#if defined(PLATFORM_WIN)
-					if (_wfopen_s(&Input, FileList_IPFilter.at(FileIndex).FileName.c_str(), L"rb") == 0)
+					if (_wfopen_s(&FileHandle, FileList_IPFilter.at(FileIndex).FileName.c_str(), L"rb") == 0)
 					{
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-					Input = fopen(FileList_IPFilter.at(FileIndex).sFileName.c_str(), "rb");
+					FileHandle = fopen(FileList_IPFilter.at(FileIndex).sFileName.c_str(), "rb");
 				#endif
-						if (Input == nullptr)
+						if (FileHandle == nullptr)
 						{
 							continue;
 						}
@@ -838,9 +838,9 @@ void __fastcall ReadIPFilter(
 							}
 
 						//Read data.
-							ReadText(Input, READ_TEXT_IPFILTER, FileIndex);
-							fclose(Input);
-							Input = nullptr;
+							ReadText(FileHandle, READ_TEXT_IPFILTER, FileIndex);
+							fclose(FileHandle);
+							FileHandle = nullptr;
 						}
 				#if defined(PLATFORM_WIN)
 					}
@@ -910,7 +910,7 @@ void __fastcall ReadHosts(
 	}
 
 //Initialization
-	FILE *Input = nullptr;
+	FILE *FileHandle = nullptr;
 	auto IsFileModified = false;
 #if defined(PLATFORM_WIN)
 	WIN32_FILE_ATTRIBUTE_DATA File_WIN32_FILE_ATTRIBUTE_DATA;
@@ -994,12 +994,12 @@ void __fastcall ReadHosts(
 
 				//Read file.
 				#if defined(PLATFORM_WIN)
-					if (_wfopen_s(&Input, FileList_Hosts.at(FileIndex).FileName.c_str(), L"rb") == 0)
+					if (_wfopen_s(&FileHandle, FileList_Hosts.at(FileIndex).FileName.c_str(), L"rb") == 0)
 					{
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-					Input = fopen(FileList_Hosts.at(FileIndex).sFileName.c_str(), "rb");
+					FileHandle = fopen(FileList_Hosts.at(FileIndex).sFileName.c_str(), "rb");
 				#endif
-						if (Input == nullptr)
+						if (FileHandle == nullptr)
 						{
 							continue;
 						}
@@ -1026,9 +1026,9 @@ void __fastcall ReadHosts(
 							}
 
 						//Read data.
-							ReadText(Input, READ_TEXT_HOSTS, FileIndex);
-							fclose(Input);
-							Input = nullptr;
+							ReadText(FileHandle, READ_TEXT_HOSTS, FileIndex);
+							fclose(FileHandle);
+							FileHandle = nullptr;
 						}
 				#if defined(PLATFORM_WIN)
 					}

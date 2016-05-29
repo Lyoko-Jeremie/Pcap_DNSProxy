@@ -31,8 +31,8 @@ set(CMAKE_BUILD_TYPE "Release")
 # All source files and sub directories
 add_subdirectory(SHA3)
 set(GENERATOR_SRC_DIR
-		"FileHash.h"
 		"CRC.h"
+		"FileHash.h"
 		"MD2.h"
 		"MD4.h"
 		"MD5.h"
@@ -40,9 +40,9 @@ set(GENERATOR_SRC_DIR
 		"SHA-2.h"
 		"SHA-3.h"
 		"Base.cpp"
-		"FileHash.cpp"
 		"Checksum.cpp"
 		"CRC.cpp"
+		"FileHash.cpp"
 		"MD2.cpp"
 		"MD4.cpp"
 		"MD5.cpp"

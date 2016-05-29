@@ -42,14 +42,14 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-//Output.
-	FILE *Output = nullptr;
+//FileHandle.
+	FILE *FileHandle = nullptr;
 #if defined(PLATFORM_WIN)
-	_wfopen_s(&Output, L"KeyPair.txt", L"w+,ccs=UTF-8");
+	_wfopen_s(&FileHandle, L"KeyPair.txt", L"w+,ccs=UTF-8");
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	Output = fopen("KeyPair.txt", "w+");
+	FileHandle = fopen("KeyPair.txt", "w+");
 #endif
-	if (Output != nullptr)
+	if (FileHandle != nullptr)
 	{
 	//Initialization and make keypair.
 		std::shared_ptr<char> Buffer(new char[KEYPAIR_MESSAGE_LEN]());
@@ -65,33 +65,33 @@ int main(int argc, char *argv[])
 		if (sodium_bin2hex(Buffer.get(), KEYPAIR_MESSAGE_LEN, PublicKey, crypto_box_PUBLICKEYBYTES) == nullptr)
 			fwprintf_s(stderr, L"Create ramdom key pair failed, please try again.\n");
 		CaseConvert(true, Buffer.get(), KEYPAIR_MESSAGE_LEN);
-		fwprintf_s(Output, L"Client Public Key = ");
+		fwprintf_s(FileHandle, L"Client Public Key = ");
 		for (Index = 0;Index < strnlen_s(Buffer.get(), KEYPAIR_MESSAGE_LEN);++Index)
 		{
 			if (Index > 0 && Index % KEYPAIR_INTERVAL == 0 && Index + 1U < strnlen_s(Buffer.get(), KEYPAIR_MESSAGE_LEN))
-				fwprintf_s(Output, L":");
+				fwprintf_s(FileHandle, L":");
 
-			fwprintf_s(Output, L"%c", Buffer.get()[Index]);
+			fwprintf_s(FileHandle, L"%c", Buffer.get()[Index]);
 		}
 		sodium_memzero(Buffer.get(), KEYPAIR_MESSAGE_LEN);
-		fwprintf_s(Output, L"\n");
+		fwprintf_s(FileHandle, L"\n");
 
 	//Write secret key.
 		if (sodium_bin2hex(Buffer.get(), KEYPAIR_MESSAGE_LEN, SecretKey.Buffer, crypto_box_SECRETKEYBYTES) == nullptr)
 			fwprintf_s(stderr, L"Create ramdom key pair failed, please try again.\n");
 		CaseConvert(true, Buffer.get(), KEYPAIR_MESSAGE_LEN);
-		fwprintf_s(Output, L"Client Secret Key = ");
+		fwprintf_s(FileHandle, L"Client Secret Key = ");
 		for (Index = 0;Index < strnlen_s(Buffer.get(), KEYPAIR_MESSAGE_LEN);++Index)
 		{
 			if (Index > 0 && Index % KEYPAIR_INTERVAL == 0 && Index + 1U < strnlen_s(Buffer.get(), KEYPAIR_MESSAGE_LEN))
-				fwprintf_s(Output, L":");
+				fwprintf_s(FileHandle, L":");
 
-			fwprintf_s(Output, L"%c", Buffer.get()[Index]);
+			fwprintf_s(FileHandle, L"%c", Buffer.get()[Index]);
 		}
-		fwprintf_s(Output, L"\n");
+		fwprintf_s(FileHandle, L"\n");
 
 	//Close file.
-		fclose(Output);
+		fclose(FileHandle);
 	}
 	else {
 		fwprintf_s(stderr, L"Cannot create target file(KeyPair.txt)\n\n");

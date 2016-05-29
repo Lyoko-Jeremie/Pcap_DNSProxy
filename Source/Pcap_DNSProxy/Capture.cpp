@@ -28,9 +28,8 @@ void __fastcall CaptureInit(
 	char ErrBuffer[PCAP_ERRBUF_SIZE];
 	memset(ErrBuffer, 0, PCAP_ERRBUF_SIZE);
 	std::wstring wErrBuffer;
-	std::vector<std::string>::iterator CaptureIter;
 	pcap_if *pThedevs = nullptr, *pDrive = nullptr;
-	auto IsErrorFirstPrint = true;
+	auto IsErrorFirstPrint = true, IsFound = false;
 	CaptureFilterRulesInit(PcapFilterRules);
 	std::unique_lock<std::mutex> CaptureMutex(CaptureLock, std::defer_lock);
 
@@ -75,6 +74,7 @@ void __fastcall CaptureInit(
 				{
 					if (pDrive->name != nullptr)
 					{
+/* Old version(2016-05-19)
 						for (CaptureIter = PcapRunningList.begin();CaptureIter != PcapRunningList.end();++CaptureIter)
 						{
 							if (*CaptureIter == pDrive->name)
@@ -87,7 +87,24 @@ void __fastcall CaptureInit(
 								CaptureThread.detach();
 
 								break;
+							}				
+						}
+*/
+						IsFound = true;
+						for (auto CaptureIter:PcapRunningList)
+						{
+							if (CaptureIter == pDrive->name)
+							{
+								IsFound = false;
+								break;
 							}
+						}
+						
+					//Start a new capture monitor.
+						if (IsFound)
+						{
+							std::thread CaptureThread(std::bind(CaptureModule, pDrive, false));
+							CaptureThread.detach();
 						}
 					}
 					
@@ -226,8 +243,8 @@ void __fastcall CaptureFilterRulesInit(
 	FilterRules.clear();
 	FilterRules.append("(src host ");
 	
-//Minimum supported system of inet_ntop function and inet_pton function is Windows Vista(Windows XP with SP3 support). [Roy Tam]
-#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+//Minimum supported system of inet_ntop function and inet_pton function is Windows Vista. [Roy Tam]
+#if defined(PLATFORM_WIN_XP)
 	sockaddr_storage SockAddr;
 	memset(&SockAddr, 0, sizeof(sockaddr_storage));
 	DWORD BufferLength = ADDR_STRING_MAXSIZE;
@@ -244,17 +261,16 @@ void __fastcall CaptureFilterRulesInit(
 				AddrString.append(" or ");
 			RepeatingItem = true;
 
-		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+		#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
 			if (GlobalRunningStatus.FunctionPTR_InetNtop != nullptr)
-			{
 				(*GlobalRunningStatus.FunctionPTR_InetNtop)(AF_INET6, &DNSServerDataIter->AddressData.IPv6.sin6_addr, Addr, ADDR_STRING_MAXSIZE);
-			}
-			else {
-				BufferLength = ADDR_STRING_MAXSIZE;
-				SockAddr.ss_family = AF_INET6;
-				((PSOCKADDR_IN6)&SockAddr)->sin6_addr = DNSServerDataIter->AddressData.IPv6.sin6_addr;
-				WSAAddressToStringA((PSOCKADDR)&SockAddr, sizeof(sockaddr_in6), nullptr, Addr, &BufferLength);
-			}
+			else 
+*/
+			BufferLength = ADDR_STRING_MAXSIZE;
+			SockAddr.ss_family = AF_INET6;
+			((PSOCKADDR_IN6)&SockAddr)->sin6_addr = DNSServerDataIter->AddressData.IPv6.sin6_addr;
+			WSAAddressToStringA((PSOCKADDR)&SockAddr, sizeof(sockaddr_in6), nullptr, Addr, &BufferLength);
 		#else
 			inet_ntop(AF_INET6, &DNSServerDataIter->AddressData.IPv6.sin6_addr, Addr, ADDR_STRING_MAXSIZE);
 		#endif
@@ -269,17 +285,16 @@ void __fastcall CaptureFilterRulesInit(
 				AddrString.append(" or ");
 			RepeatingItem = true;
 
-		#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+		#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
 			if (GlobalRunningStatus.FunctionPTR_InetNtop != nullptr)
-			{
 				(*GlobalRunningStatus.FunctionPTR_InetNtop)(AF_INET, &DNSServerDataIter->AddressData.IPv4.sin_addr, Addr, ADDR_STRING_MAXSIZE);
-			}
-			else {
-				BufferLength = ADDR_STRING_MAXSIZE;
-				SockAddr.ss_family = AF_INET;
-				((PSOCKADDR_IN)&SockAddr)->sin_addr = DNSServerDataIter->AddressData.IPv4.sin_addr;
-				WSAAddressToStringA((PSOCKADDR)&SockAddr, sizeof(sockaddr_in), nullptr, Addr, &BufferLength);
-			}
+			else 
+*/
+			BufferLength = ADDR_STRING_MAXSIZE;
+			SockAddr.ss_family = AF_INET;
+			((PSOCKADDR_IN)&SockAddr)->sin_addr = DNSServerDataIter->AddressData.IPv4.sin_addr;
+			WSAAddressToStringA((PSOCKADDR)&SockAddr, sizeof(sockaddr_in), nullptr, Addr, &BufferLength);
 		#else
 			inet_ntop(AF_INET, &DNSServerDataIter->AddressData.IPv4.sin_addr, Addr, ADDR_STRING_MAXSIZE);
 		#endif
@@ -454,7 +469,6 @@ DevicesNotSkip:
 					++CaptureIter;
 				}
 			}
-			PcapRunningList.shrink_to_fit();
 			CaptureMutex.unlock();
 
 		//Exit this capture thread.
@@ -935,8 +949,9 @@ StopLoop:
 
 //Jump here to stop loop and clear timeout data.
 ClearOutputPacketListData:
-//Minimum supported system of GetTickCount64 function is Windows Vista(Windows XP with SP3 support).
-#if (defined(PLATFORM_WIN) && !defined(PLATFORM_WIN64))
+//Minimum supported system of GetTickCount64 function is Windows Vista.
+#if defined(PLATFORM_WIN_XP)
+/* Old version(2016-05-29)
 	if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
 	{
 		while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)()))
@@ -964,29 +979,29 @@ ClearOutputPacketListData:
 		}
 	}
 	else {
-		while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= GetTickCount())
+*/
+	while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= GetTickCount())
+	{
+	//Mark timeout.
+		if (OutputPacketList.front().ClearPortTime > 0)
 		{
-		//Mark timeout.
-			if (OutputPacketList.front().ClearPortTime > 0)
+			if (OutputPacketList.front().Protocol_Network == AF_INET6) //IPv6
 			{
-				if (OutputPacketList.front().Protocol_Network == AF_INET6) //IPv6
-				{
-					if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
-						++AlternateSwapList.TimeoutTimes[0];
-					else //UDP
-						++AlternateSwapList.TimeoutTimes[2U];
-				}
-				else if (OutputPacketList.front().Protocol_Network == AF_INET) //IPv4
-				{
-					if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
-						++AlternateSwapList.TimeoutTimes[1U];
-					else //UDP
-						++AlternateSwapList.TimeoutTimes[3U];
-				}
+				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
+					++AlternateSwapList.TimeoutTimes[0];
+				else //UDP
+					++AlternateSwapList.TimeoutTimes[2U];
 			}
-
-			OutputPacketList.pop_front();
+			else if (OutputPacketList.front().Protocol_Network == AF_INET) //IPv4
+			{
+				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
+					++AlternateSwapList.TimeoutTimes[1U];
+				else //UDP
+					++AlternateSwapList.TimeoutTimes[3U];
+			}
 		}
+
+		OutputPacketList.pop_front();
 	}
 #else
 	while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= GetTickCount64())

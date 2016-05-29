@@ -366,7 +366,6 @@ void __fastcall FlushAllDNSCache(
 //Flush DNS cache in program.
 	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
 	DNSCacheList.clear();
-	DNSCacheList.shrink_to_fit();
 	DNSCacheListMutex.unlock();
 
 //Flush DNS cache in system.

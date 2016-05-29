@@ -38,7 +38,7 @@ extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 extern std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
 extern std::mutex CaptureLock, OutputPacketListLock;
 std::string PcapFilterRules;
-std::vector<std::string> PcapRunningList;
+std::list<std::string> PcapRunningList;
 
 //Functions
 void __fastcall CaptureFilterRulesInit(
