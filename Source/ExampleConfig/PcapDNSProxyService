@@ -11,7 +11,7 @@
 ### END INIT INFO
 # 
 # This code is part of Pcap_DNSProxy
-# A local DNS server base on WinPcap and LibPcap.
+# A local DNS server base on WinPcap and LibPcap
 # Copyright (C) 2012-2016 Chengr28
 # 
 # This program is free software; you can redistribute it and/or
@@ -29,14 +29,14 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-# Setting
+# Global settings
 NAME=Pcap_DNSProxy
 PATH=
 PROGRAM=/sbin/start-stop-daemon
 START_FLAGS="--start --background --chuid root --exec"
 STOP_FLAGS="--stop --chuid root --exec"
 
-# Set controller
+# Controller settings
 case "$1" in
 start)
 	echo "Start Pcap_DNSProxy service"

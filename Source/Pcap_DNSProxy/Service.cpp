@@ -30,15 +30,18 @@ BOOL WINAPI CtrlHandler(
 		std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 		switch (fdwCtrlType)
 		{
-			case CTRL_C_EVENT: //Handle the CTRL-C signal.
+		//Handle the CTRL-C signal.
+			case CTRL_C_EVENT:
 			{
 				fwprintf_s(stderr, L"Get Control-C.\n");
 			}break;
-			case CTRL_BREAK_EVENT: //Handle the CTRL-Break signal.
+		//Handle the CTRL-Break signal.
+			case CTRL_BREAK_EVENT:
 			{
 				fwprintf_s(stderr, L"Get Control-Break.\n");
 			}break;
-			default: //Handle other signals.
+		//Handle other signals.
+			default:
 			{
 				fwprintf_s(stderr, L"Get closing signal.\n");
 			}break;
@@ -76,11 +79,13 @@ size_t WINAPI ServiceControl(
 {
 	switch(dwControlCode)
 	{
+	//Handle the shutdown signal.
 		case SERVICE_CONTROL_SHUTDOWN:
 		{
 			TerminateService();
 			return EXIT_SUCCESS;
 		}
+	//Handle the stop signal.
 		case SERVICE_CONTROL_STOP:
 		{
 			ServiceCurrentStatus = SERVICE_STOP_PENDING;
@@ -89,6 +94,7 @@ size_t WINAPI ServiceControl(
 
 			return EXIT_SUCCESS;
 		}
+	//Handle other signals.
 		default:
 		{
 			break;

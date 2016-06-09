@@ -19,38 +19,10 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-# Back to Pcap_DNSProxy main directory and make a Release directory.
+# Back to main directory and make a Release directory.
 cd ..
 rm -Rrf Object
 mkdir Release
-
-# Build FileHash.
-mkdir Object
-cd Object
-CMakeShell="cmake "
-if !(echo "$*" | grep -iq -e "--disable-libsodium"); then
-	CMakeShell="${CMakeShell}-DENABLE_LIBSODIUM=ON "
-fi
-CMakeShell="${CMakeShell}../FileHash"
-${CMakeShell}
-make
-cd ..
-mv -f Object/FileHash Release
-rm -Rrf Object
-
-# Build KeyPairGenerator.
-mkdir Object
-cd Object
-CMakeShell="cmake "
-if !(echo "$*" | grep -iq -e "--disable-libsodium"); then
-	CMakeShell="${CMakeShell}-DENABLE_LIBSODIUM=ON "
-fi
-CMakeShell="${CMakeShell}../KeyPairGenerator"
-${CMakeShell}
-make
-cd ..
-mv -f Object/KeyPairGenerator Release
-rm -Rrf Object
 
 # Build Pcap_DNSProxy.
 mkdir Object
@@ -72,9 +44,7 @@ cd ..
 mv -f Object/Pcap_DNSProxy Release
 rm -Rrf Object
 
-# Set program.
-chmod 755 Release/FileHash
-chmod 755 Release/KeyPairGenerator
+# Program settings
 chmod 755 Release/Pcap_DNSProxy
 chmod 755 Scripts/Linux_Install.Systemd.sh
 chmod 755 Scripts/Linux_Install.SysV.sh

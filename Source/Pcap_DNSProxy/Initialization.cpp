@@ -19,10 +19,8 @@
 
 #include "Initialization.h"
 
-//RFC domain table
+//RFC domain and Base64 encoding/decoding table
 static char DomainTable_Initialization[] = (".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"); //Preferred name syntax(Section 2.3.1 in RFC 1035)
-
-//Base64 encode table
 static char Base64_EncodeTable_Initialization[] = 
 {
 	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 
@@ -34,10 +32,8 @@ static char Base64_EncodeTable_Initialization[] =
 	'w', 'x', 'y', 'z', '0', '1', '2', '3', 
 	'4', '5', '6', '7', '8', '9', '+', '/'
 };
-
-/* Base64 decode table
-//ASCII order for BASE 64 decode, -1 in unused character.
-static signed char Base64_DecodeTable_Initialization[] = 
+/* Not necessary
+static signed char Base64_DecodeTable_Initialization[] = //ASCII order for BASE 64 decode, -1 in unused character.
 {
 	'+', ',', '-', '.', '/', '0', '1', '2', 
 	62,  -1,  -1,  -1,  63,  52,  53,  54, 
@@ -664,14 +660,6 @@ void __fastcall GlobalStatusSetting(
 	memset(GlobalRunningStatusParameter->LocalAddress_Response[0], 0, PACKET_MAXSIZE);
 	memset(GlobalRunningStatusParameter->LocalAddress_Response[1U], 0, PACKET_MAXSIZE);
 
-/* Old version(2016-05-29)
-#if defined(PLATFORM_WIN_XP)
-	GetFunctionPointer(FUNCTION_GETTICKCOUNT64);
-	GetFunctionPointer(FUNCTION_INET_NTOP);
-	GetFunctionPointer(FUNCTION_INET_PTON);
-#endif
-*/
-
 	return;
 }
 
@@ -686,32 +674,16 @@ GlobalStatus::~GlobalStatus(
 		closesocket(SocketIter);
 	}
 
-//WinSock cleanup
-#if defined(PLATFORM_WIN)
-	if (Initialization_WinSock)
-		WSACleanup();
-#endif
+//Close all file handles
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+	_fcloseall();
 
-/* Old version(2016-05-29)
-//Free libraries.
-#if defined(PLATFORM_WIN_XP)
-	if (FunctionLibrary_GetTickCount64 != nullptr)
-	{
-		FreeLibrary(FunctionLibrary_GetTickCount64);
-		FunctionLibrary_GetTickCount64 = nullptr;
-	}
-	if (FunctionLibrary_InetNtop != nullptr)
-	{
-		FreeLibrary(FunctionLibrary_InetNtop);
-		FunctionLibrary_InetNtop = nullptr;
-	}
-	if (FunctionLibrary_InetPton != nullptr)
-	{
-		FreeLibrary(FunctionLibrary_InetPton);
-		FunctionLibrary_InetPton = nullptr;
-	}
+//WinSock cleanup
+	#if defined(PLATFORM_WIN)
+		if (Initialization_WinSock)
+			WSACleanup();
+	#endif
 #endif
-*/
 
 //Free pointer.
 	delete LocalListeningSocket;
@@ -762,7 +734,6 @@ AddressRangeTable::AddressRangeTable(
 HostsTable::HostsTable(
 	void)
 {
-//	Length = 0;
 	PermissionType = 0;
 	PermissionOperation = false;
 

@@ -6,7 +6,7 @@ A local DNS server based on WinPcap and LibPcap
 **本分支 master 为 Pcap_DNSProxy 项目用于存放源代码的分支，可执行编译版本请移步 [Release 分支](https://github.com/chengr28/Pcap_DNSProxy/tree/Release)，说明文档参见项目 [Documents 文件夹](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的内容**
 
 ### Updated
-**0.4.6.3**
+**0.4.6.4**
 
 ### Summary
 Pcap_DNSProxy 是一个基于 WinPcap/LibPcap 用于过滤 DNS 投毒污染的工具，提供支持正则表达式的 Hosts 提供更便捷和强大的修改 Hosts 的方法，以及对 DNSCurve/DNSCrypt 协议、并行和 TCP 协议请求的支持。多服务器并行请求功能，更可提高在恶劣网络环境下域名解析的可靠性：
@@ -21,9 +21,6 @@ Pcap_DNSProxy 是一个基于 WinPcap/LibPcap 用于过滤 DNS 投毒污染的�
 * 支持 ASCII、UTF-8(/BOM)、UTF-16(LE/BE) 和 UTF-32(LE/BE) 编码以及 Unicode 标准要求实现的所有空格/换行格式
 
 ### Platform
-* 本工具**抓包模块**所支持的网络类型
-  * 网络设备类型为 Ethernet 和 Apple IEEE 1394/FireWire 的网络
-  * 原生 IPv4/PPPoE 网络和原生 IPv6/PPPoEv6 网络
 * Windows
   * **64位/x64版本：Windows Vista/2008 以及更新的版本**
   * **32位/x86版本：Windows XP SP3/2003 SP2 以及更新的版本**
@@ -32,8 +29,11 @@ Pcap_DNSProxy 是一个基于 WinPcap/LibPcap 用于过滤 DNS 投毒污染的�
 * Mac
   * **支持 64 位平台 Mac OS X 10.8(Mountain Lion) 以及更新的版本**
   * Mac OS X 平台可通过 Homebrew 安装正式版本
-* OpenWrt
+* OpenWrt/LEDE
   * **参见 [openwrt-Pcap_DNSProxy 项目](https://github.com/wongsyrone/openwrt-Pcap_DNSProxy)**
+* 本工具**抓包模块**所支持的网络类型
+  * 网络设备类型为 Ethernet 和 Apple IEEE 1394/FireWire 的网络
+  * 原生 IPv4/PPPoE 网络和原生 IPv6/PPPoEv6 网络
 
 ### License
 GNU General Public License/GNU GPL v2

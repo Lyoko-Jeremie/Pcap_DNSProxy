@@ -196,7 +196,7 @@ bool __fastcall SortCompare_Hosts(
 	return Begin.FileIndex < End.FileIndex;
 }
 
-//Base64 encode or decode is from https://github.com/zhicheng/base64.
+//Base64 encoding or decoding is from https://github.com/zhicheng/base64.
 //Base64 encode
 size_t __fastcall Base64_Encode(
 	uint8_t *Input, 
@@ -322,91 +322,3 @@ uint64_t GetCurrentSystemTime(
 	return 0;
 }
 #endif
-
-/* Old version(2016-05-29)
-//Windows XP with SP3 support
-#if defined(PLATFORM_WIN_XP)
-//Verify version of system
-BOOL WINAPI IsGreaterThanVista(
-	void)
-{
-	OSVERSIONINFOEXW OSVI;
-	DWORDLONG dwlConditionMask = 0;
-	memset(&OSVI, 0, sizeof(OSVERSIONINFOEXW));
-
-//Initialization
-	OSVI.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
-	OSVI.dwMajorVersion = 6U; //Greater than Windows Vista.
-	OSVI.dwMinorVersion = 0;
-
-//System Major version > dwMajorVersion
-	VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_GREATER);
-	if (VerifyVersionInfoW(&OSVI, VER_MAJORVERSION, dwlConditionMask))
-		return TRUE;
-
-//Sytem Major version = dwMajorVersion and Minor version > dwMinorVersion
-	VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_EQUAL);
-	VER_SET_CONDITION(dwlConditionMask, VER_MINORVERSION, VER_GREATER);
-	return VerifyVersionInfoW(&OSVI, VER_MAJORVERSION|VER_MINORVERSION, dwlConditionMask);
-}
-
-//Try to load library to get pointers of functions
-BOOL WINAPI GetFunctionPointer(
-	const size_t FunctionType)
-{
-//GetTickCount64 function
-	if (FunctionType == FUNCTION_GETTICKCOUNT64)
-	{
-		GlobalRunningStatus.FunctionLibrary_GetTickCount64 = LoadLibraryW(L"Kernel32.dll");
-		if (GlobalRunningStatus.FunctionLibrary_GetTickCount64 != nullptr)
-		{
-			GlobalRunningStatus.FunctionPTR_GetTickCount64 = (FunctionType_GetTickCount64)GetProcAddress(GlobalRunningStatus.FunctionLibrary_GetTickCount64, "GetTickCount64");
-			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 == nullptr)
-			{
-				FreeLibrary(GlobalRunningStatus.FunctionLibrary_GetTickCount64);
-				GlobalRunningStatus.FunctionLibrary_GetTickCount64 = nullptr;
-			}
-			else {
-				return TRUE;
-			}
-		}
-	}
-//inet_ntop function
-	else if (FunctionType == FUNCTION_INET_NTOP)
-	{
-		GlobalRunningStatus.FunctionLibrary_InetNtop = LoadLibraryW(L"ws2_32.dll");
-		if (GlobalRunningStatus.FunctionLibrary_InetNtop != nullptr)
-		{
-			GlobalRunningStatus.FunctionPTR_InetNtop = (FunctionType_InetNtop)GetProcAddress(GlobalRunningStatus.FunctionLibrary_InetNtop, "inet_ntop");
-			if (GlobalRunningStatus.FunctionPTR_InetNtop == nullptr)
-			{
-				FreeLibrary(GlobalRunningStatus.FunctionLibrary_InetNtop);
-				GlobalRunningStatus.FunctionLibrary_InetNtop = nullptr;
-			}
-			else {
-				return TRUE;
-			}
-		}
-	}
-//inet_pton function
-	else if (FunctionType == FUNCTION_INET_PTON)
-	{
-		GlobalRunningStatus.FunctionLibrary_InetPton = LoadLibraryW(L"ws2_32.dll");
-		if (GlobalRunningStatus.FunctionLibrary_InetPton != nullptr)
-		{
-			GlobalRunningStatus.FunctionPTR_InetPton = (FunctionType_InetPton)GetProcAddress(GlobalRunningStatus.FunctionLibrary_InetPton, "inet_pton");
-			if (GlobalRunningStatus.FunctionPTR_InetPton == nullptr)
-			{
-				FreeLibrary(GlobalRunningStatus.FunctionLibrary_InetPton);
-				GlobalRunningStatus.FunctionLibrary_InetPton = nullptr;
-			}
-			else {
-				return TRUE;
-			}
-		}
-	}
-
-	return FALSE;
-}
-#endif
-*/

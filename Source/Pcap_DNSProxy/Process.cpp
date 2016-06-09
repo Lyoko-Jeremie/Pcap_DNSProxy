@@ -656,11 +656,6 @@ StopLoop_NormalHosts:
 	if (Parameter.CacheType == CACHE_TYPE_TIMER) //Delete DNS cache.
 	{
 	#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-		while ((!DNSCacheList.empty() && (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr && 
-			(*GlobalRunningStatus.FunctionPTR_GetTickCount64)() >= DNSCacheList.back().ClearCacheTime) ||
-			GetTickCount() >= DNSCacheList.back().ClearCacheTime))
-*/
 		while (!DNSCacheList.empty() && GetTickCount() >= DNSCacheList.back().ClearCacheTime)
 	#else
 		while (!DNSCacheList.empty() && GetTickCount64() >= DNSCacheList.back().ClearCacheTime)
@@ -1263,27 +1258,11 @@ bool __fastcall MarkDomainCache(
 		DNSCacheDataTemp.Length = Length - sizeof(uint16_t);
 
 	#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-			DNSCacheDataTemp.ClearCacheTime = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + ResponseTTL * SECOND_TO_MILLISECOND);
-		else 
-*/
 		DNSCacheDataTemp.ClearCacheTime = GetTickCount() + ResponseTTL * SECOND_TO_MILLISECOND;
 	#else
 		DNSCacheDataTemp.ClearCacheTime = GetTickCount64() + ResponseTTL * SECOND_TO_MILLISECOND;
 	#endif
 
-/* Old version(2016-05-19)
-	//Check repeating items, delete duque rear and add new item to deque front.
-		for (auto DNSCacheDataIter = DNSCacheList.begin();DNSCacheDataIter != DNSCacheList.end();++DNSCacheDataIter)
-		{
-			if (DNSCacheDataTemp.Domain == DNSCacheDataIter->Domain && DNSCacheDataTemp.RecordType == DNSCacheDataIter->RecordType)
-			{
-				DNSCacheList.erase(DNSCacheDataIter);
-				break;
-			}
-		}
-*/
 	//Delete old cache.
 		std::lock_guard<std::mutex> DNSCacheListMutex(DNSCacheListLock);
 		if (Parameter.CacheType == CACHE_TYPE_QUEUE)
@@ -1293,11 +1272,6 @@ bool __fastcall MarkDomainCache(
 		}
 		else { //CACHE_TYPE_TIMER
 		#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-			while ((!DNSCacheList.empty() && (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr && 
-				(*GlobalRunningStatus.FunctionPTR_GetTickCount64)() >= DNSCacheList.back().ClearCacheTime) ||
-				GetTickCount() >= DNSCacheList.back().ClearCacheTime))
-*/
 			while (!DNSCacheList.empty() && GetTickCount() >= DNSCacheList.back().ClearCacheTime)
 		#else
 			while (!DNSCacheList.empty() && GetTickCount64() >= DNSCacheList.back().ClearCacheTime)

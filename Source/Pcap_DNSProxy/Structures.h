@@ -2219,13 +2219,13 @@ typedef struct _dns_record_caa_
 #define DNSCRYPT_CERT_MAGIC               ("DNSC")                       //Signature Magic Number
 #define crypto_box_HALF_NONCEBYTES        (crypto_box_NONCEBYTES / 2U)
 // Function definitions
-#define crypto_sign_open crypto_sign_ed25519_open
-#define crypto_box crypto_box_curve25519xsalsa20poly1305
-#define crypto_box_open crypto_box_curve25519xsalsa20poly1305_open
-#define crypto_box_keypair crypto_box_curve25519xsalsa20poly1305_keypair
-#define crypto_box_beforenm crypto_box_curve25519xsalsa20poly1305_beforenm
-#define crypto_box_afternm crypto_box_curve25519xsalsa20poly1305_afternm
-#define crypto_box_open_afternm crypto_box_curve25519xsalsa20poly1305_open_afternm
+#define crypto_sign_open                  crypto_sign_ed25519_open
+#define crypto_box                        crypto_box_curve25519xsalsa20poly1305
+#define crypto_box_open                   crypto_box_curve25519xsalsa20poly1305_open
+#define crypto_box_keypair                crypto_box_curve25519xsalsa20poly1305_keypair
+#define crypto_box_beforenm               crypto_box_curve25519xsalsa20poly1305_beforenm
+#define crypto_box_afternm                crypto_box_curve25519xsalsa20poly1305_afternm
+#define crypto_box_open_afternm           crypto_box_curve25519xsalsa20poly1305_open_afternm
 
 /* Domain Name System Curve/DNSCurve Test Strings/TXT Data header
 

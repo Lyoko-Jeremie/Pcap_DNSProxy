@@ -35,7 +35,7 @@ int main(
 //Get commands.
 	if (argc > 0)
 	{
-		if (!ReadCommand(argc, argv))
+		if (!ReadCommands(argc, argv))
 			return EXIT_SUCCESS;
 	}
 	else {
@@ -100,11 +100,11 @@ int main(
 
 //Read commands from main program
 #if defined(PLATFORM_WIN)
-bool __fastcall ReadCommand(
+bool __fastcall ReadCommands(
 	int argc, 
 	wchar_t *argv[])
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-bool ReadCommand(
+bool ReadCommands(
 	int argc, 
 	char *argv[])
 #endif
@@ -190,6 +190,10 @@ bool ReadCommand(
 				ScreenMutex.unlock();
 				PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Windows Firewall Test error", ErrorCode, nullptr, 0);
 			}
+			else {
+				std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
+				fwprintf_s(stderr, L"Windows Firewall was tested successfully.\n");
+			}
 
 			return false;
 		}
@@ -262,6 +266,7 @@ bool ReadCommand(
 			fwprintf_s(stderr, L"   --first-setup:         Test local firewall.\n");
 		#endif
 			fwprintf_s(stderr, L"   -c/--config-file Path: Set path of configuration file.\n");
+			fwprintf_s(stderr, L"   --keypair-generator:   Generate a DNSCurve/DNSCrypt keypair.\n");
 		#if defined(PLATFORM_LINUX)
 			fwprintf(stderr, L"   --disable-daemon:      Disable daemon mode.\n");
 		#endif
@@ -300,6 +305,88 @@ bool ReadCommand(
 						return false;
 				}
 			}
+		}
+	//DNSCurve/DNSCrypt KeyPairGenerator
+		else if (Commands == COMMAND_KEYPAIR_GENERATOR)
+		{
+		//File handle initialization
+		#if defined(ENABLE_LIBSODIUM)
+			FILE *FileHandle = nullptr;
+			#if defined(PLATFORM_WIN)
+				_wfopen_s(&FileHandle, L"KeyPair.txt", L"w+,ccs=UTF-8");
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				FileHandle = fopen("KeyPair.txt", "w+");
+			#endif
+			
+		//Print keypair to file.
+			if (FileHandle != nullptr)
+			{
+			//Initialization and make keypair.
+				std::shared_ptr<char> Buffer(new char[DNSCRYPT_KEYPAIR_MESSAGE_LEN]());
+				sodium_memzero(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);
+				DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> SecretKey(crypto_box_SECRETKEYBYTES);
+				uint8_t PublicKey[crypto_box_PUBLICKEYBYTES];
+				memset(PublicKey, 0, crypto_box_PUBLICKEYBYTES);
+				size_t InnerIndex = 0;
+				crypto_box_keypair(PublicKey, SecretKey.Buffer);
+
+			//Write public key.
+				sodium_memzero(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);
+				if (sodium_bin2hex(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, PublicKey, crypto_box_PUBLICKEYBYTES) == nullptr)
+				{
+					fclose(FileHandle);
+
+					std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
+					fwprintf_s(stderr, L"Create ramdom key pair failed, please try again.\n");
+					return false;
+				}
+				CaseConvert(true, Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);
+				fwprintf_s(FileHandle, L"Client Public Key = ");
+				for (InnerIndex = 0;InnerIndex < strnlen_s(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
+				{
+					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && InnerIndex + 1U < strnlen_s(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
+						fwprintf_s(FileHandle, L":");
+
+					fwprintf_s(FileHandle, L"%c", Buffer.get()[InnerIndex]);
+				}
+				sodium_memzero(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);
+				fwprintf_s(FileHandle, L"\n");
+
+			//Write secret key.
+				if (sodium_bin2hex(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, SecretKey.Buffer, crypto_box_SECRETKEYBYTES) == nullptr)
+				{
+					fclose(FileHandle);
+
+					std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
+					fwprintf_s(stderr, L"Create ramdom key pair failed, please try again.\n");
+					return false;
+				}
+				CaseConvert(true, Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);
+				fwprintf_s(FileHandle, L"Client Secret Key = ");
+				for (InnerIndex = 0;InnerIndex < strnlen_s(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
+				{
+					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && InnerIndex + 1U < strnlen_s(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
+						fwprintf_s(FileHandle, L":");
+
+					fwprintf_s(FileHandle, L"%c", Buffer.get()[InnerIndex]);
+				}
+				fwprintf_s(FileHandle, L"\n");
+
+			//Close file.
+				fclose(FileHandle);
+				std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
+				fwprintf_s(stderr, L"DNSCurve/DNSCrypt keypair was generated successfully.\n");
+			}
+			else {
+				std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
+				fwprintf_s(stderr, L"Cannot create target file(KeyPair.txt).\n");
+			}
+		#else
+			std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
+			fwprintf(stderr, L"LibSodium is disable.\n");
+		#endif
+
+			return false;
 		}
 	}
 
@@ -375,6 +462,7 @@ bool __fastcall FirewallTest(
 	sockaddr_storage SockAddr;
 	memset(&SockAddr, 0, sizeof(sockaddr_storage));
 	SYSTEM_SOCKET FirewallSocket = 0;
+	size_t Index = 0;
 
 //IPv6
 	if (Protocol == AF_INET6)
@@ -392,7 +480,6 @@ bool __fastcall FirewallTest(
 		else if (bind(FirewallSocket, (PSOCKADDR)&SockAddr, sizeof(sockaddr_in6)) == SOCKET_ERROR)
 		{
 			((PSOCKADDR_IN6)&SockAddr)->sin6_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
-			size_t Index = 0;
 			while (bind(FirewallSocket, (PSOCKADDR)&SockAddr, sizeof(sockaddr_in6)) == SOCKET_ERROR)
 			{
 				if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)
@@ -424,7 +511,6 @@ bool __fastcall FirewallTest(
 		else if (bind(FirewallSocket, (PSOCKADDR)&SockAddr, sizeof(sockaddr_in)) == SOCKET_ERROR)
 		{
 			((PSOCKADDR_IN)&SockAddr)->sin_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
-			size_t Index = 0;
 			while (bind(FirewallSocket, (PSOCKADDR)&SockAddr, sizeof(sockaddr_in)) == SOCKET_ERROR)
 			{
 				if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)

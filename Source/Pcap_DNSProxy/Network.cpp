@@ -759,11 +759,6 @@ void __fastcall MarkPortToList(
 		if (Protocol == IPPROTO_TCP) //TCP
 		{
 		#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-				OutputPacketListTemp.ClearPortTime = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Reliable);
-			else 
-*/
 			OutputPacketListTemp.ClearPortTime = GetTickCount() + Parameter.SocketTimeout_Reliable;
 		#elif defined(PLATFORM_WIN)
 			OutputPacketListTemp.ClearPortTime = GetTickCount64() + Parameter.SocketTimeout_Reliable;
@@ -773,11 +768,6 @@ void __fastcall MarkPortToList(
 		}
 		else { //UDP
 		#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-				OutputPacketListTemp.ClearPortTime = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + Parameter.SocketTimeout_Unreliable);
-			else 
-*/
 			OutputPacketListTemp.ClearPortTime = GetTickCount() + Parameter.SocketTimeout_Unreliable;
 		#elif defined(PLATFORM_WIN)
 			OutputPacketListTemp.ClearPortTime = GetTickCount64() + Parameter.SocketTimeout_Unreliable;
@@ -789,35 +779,6 @@ void __fastcall MarkPortToList(
 	//Clear timeout data.
 		std::lock_guard<std::mutex> OutputPacketListMutex(OutputPacketListLock);
 	#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-		{
-			while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)()))
-			{
-			//Mark timeout.
-				if (OutputPacketList.front().ClearPortTime > 0)
-				{
-					if (OutputPacketList.front().Protocol_Network == AF_INET6) //IPv6
-					{
-						if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
-							++AlternateSwapList.TimeoutTimes[0];
-						else //UDP
-							++AlternateSwapList.TimeoutTimes[2U];
-					}
-					else if (OutputPacketList.front().Protocol_Network == AF_INET) //IPv4
-					{
-						if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
-							++AlternateSwapList.TimeoutTimes[1U];
-						else //UDP
-							++AlternateSwapList.TimeoutTimes[3U];
-					}
-				}
-
-				OutputPacketList.pop_front();
-			}
-		}
-		else {
-*/
 		while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= GetTickCount())
 		{
 		//Mark timeout.

@@ -929,5 +929,7 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
   進行本地防火牆測試(Windows)
 * -c Path 和 --config-file Path
   啟動時指定配置文件所在的工作目錄
+* --keypair-generator
+  生成 DNSCurve/DNSCrypt 協定所需使用的金鑰組到 KeyPair.txt
 * --disable-daemon
   關閉守護進程模式(Linux)

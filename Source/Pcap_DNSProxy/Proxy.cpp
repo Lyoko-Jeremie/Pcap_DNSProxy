@@ -20,7 +20,6 @@
 #include "Proxy.h"
 
 /* SOCKS Protocol version 4
-
 ** Client -> Server: TCP CONNECT command request
   *  1 bytes: SOCKS version
   *  1 bytes: Command code
@@ -35,7 +34,6 @@
 ** Client <-> Server: Data stream...
 
 * SOCKS Protocol version 4a
-
 ** Client -> Server(1): TCP CONNECT command request
   *  1 bytes: SOCKS version
   *  1 bytes: Command code
@@ -51,7 +49,6 @@
 ** Client <-> Server: Data stream...
 
 * SOCKS Protocol version 5
-
 ** Client authentication
 *** Client -> Server(1): Client authentication request
   *  1 bytes: SOCKS version
@@ -120,7 +117,6 @@
 *** TCP connection between client and server must be kept alive until UDP transmission is finished.
 
 * HTTP CONNECT tunnel
-
 ** Client -> Server: HTTP CONNECT method request
   * CONNECT TargetDomain:Port HTTP/version\r\n
   * Host: TargetDomain:Port\r\n

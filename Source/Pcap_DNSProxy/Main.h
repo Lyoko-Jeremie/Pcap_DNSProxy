@@ -29,7 +29,7 @@ extern std::mutex ScreenLock;
 
 //Functions
 #if defined(PLATFORM_WIN)
-bool __fastcall ReadCommand(
+bool __fastcall ReadCommands(
 	int argc, 
 	wchar_t *argv[]);
 bool __fastcall FileNameInit(
@@ -37,7 +37,7 @@ bool __fastcall FileNameInit(
 bool __fastcall FirewallTest(
 	const uint16_t Protocol);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-bool ReadCommand(
+bool ReadCommands(
 	int argc, 
 	char *argv[]);
 bool FileNameInit(

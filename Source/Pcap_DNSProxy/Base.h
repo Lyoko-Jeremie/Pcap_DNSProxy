@@ -107,7 +107,7 @@
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE                    0.3
 #define CONFIG_VERSION                                0.4                         //Current configuration file version
-#define FULL_VERSION                                  L"0.4.6.3"
+#define FULL_VERSION                                  L"0.4.6.4"
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
 
 //Size and length definitions
@@ -155,8 +155,10 @@
 #define HTTP_VERSION_LENGTH                           2U
 #define HTTP_STATUS_CODE_LENGTH                       3U
 #define HTTP_RESPONSE_MINSIZE                         (strlen("HTTP/") + HTTP_VERSION_LENGTH + strlen(" ") + HTTP_STATUS_CODE_LENGTH)   //Minimum size of HTTP server response
+#define DNSCRYPT_KEYPAIR_MESSAGE_LEN                  80U                                                                               //Keypair messages length
+#define DNSCRYPT_KEYPAIR_INTERVAL                     4U
 #define DNSCRYPT_PACKET_MINSIZE                       (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES + DNS_PACKET_MINSIZE)
-#define DNSCRYPT_RECORD_TXT_LEN                       124U                        //Length of DNScrypt TXT Records
+#define DNSCRYPT_RECORD_TXT_LEN                       124U                                                                              //Length of DNScrypt TXT Records
 #define DNSCRYPT_BUFFER_RESERVE_LEN                   (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES - crypto_box_BOXZEROBYTES)
 #define DNSCRYPT_BUFFER_RESERVE_TCP_LEN               (sizeof(uint16_t) + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES - crypto_box_BOXZEROBYTES)
 #define DNSCRYPT_RESERVE_HEADER_LEN                   (sizeof(ipv6_hdr) + sizeof(udp_hdr) + DNSCRYPT_BUFFER_RESERVE_LEN)
@@ -228,36 +230,39 @@
 #define DEFAULT_LOCAL_SERVERNAME                  ("pcap-dnsproxy.localhost.server")   //Default Local DNS server name
 #if defined(PLATFORM_WIN)
 	#define CONFIG_FILE_NAME_LIST                         L"Config.ini", L"Config.conf", L"Config.cfg", L"Config"
-	#define COMMAND_LONG_PRINT_VERSION                    L"--version"
+
 	#define COMMAND_SHORT_PRINT_VERSION                   L"-v"
+	#define COMMAND_LONG_PRINT_VERSION                    L"--version"
 	#define COMMAND_LIB_VERSION                           L"--lib-version"
-	#define COMMAND_LONG_HELP                             L"--help"
 	#define COMMAND_SHORT_HELP                            L"-h"
+	#define COMMAND_LONG_HELP                             L"--help"
 	#define COMMAND_FIREWALL_TEST                         L"--first-setup"
 	#define COMMAND_FLUSH_DNS                             L"--flush-dns"
-	#define COMMAND_LONG_SET_PATH                         L"--config-file"
 	#define COMMAND_SHORT_SET_PATH                        L"-c"
+	#define COMMAND_LONG_SET_PATH                         L"--config-file"
+	#define COMMAND_KEYPAIR_GENERATOR                     L"--keypair-generator"
 	#define SID_ADMINISTRATORS_GROUP                      L"S-1-5-32-544"                              //Windows SID of Administrators group
 	#define MAILSLOT_NAME                                 L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot"   //MailSlot name
-	#define MAILSLOT_MESSAGE_FLUSH_DNS                    L"Flush DNS cache of Pcap_DNSProxy."         //The mailslot message to flush dns cache
+	#define MAILSLOT_MESSAGE_FLUSH_DNS                    L"Flush DNS cache of Pcap_DNSProxy"          //The mailslot message to flush dns cache
 	#define SYSTEM_SERVICE_NAME                           L"PcapDNSProxyService"                       //System service name
 	#define DEFAULT_ICMP_PADDING_DATA                     ("abcdefghijklmnopqrstuvwabcdefghi")         //ICMP padding data in Windows
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define CONFIG_FILE_NAME_LIST                         L"Config.conf", L"Config.ini", L"Config.cfg", L"Config"
 	#define CONFIG_FILE_NAME_LIST_STRING                  "Config.conf", "Config.ini", "Config.cfg", "Config"
-	#define COMMAND_LONG_PRINT_VERSION                    ("--version")
 	#define COMMAND_SHORT_PRINT_VERSION                   ("-v")
+	#define COMMAND_LONG_PRINT_VERSION                    ("--version")	
 	#define COMMAND_LIB_VERSION                           ("--lib-version")
-	#define COMMAND_LONG_HELP                             ("--help")
 	#define COMMAND_SHORT_HELP                            ("-h")
+	#define COMMAND_LONG_HELP                             ("--help")	
 	#define COMMAND_FLUSH_DNS                             ("--flush-dns")
-	#define COMMAND_LONG_SET_PATH                         ("--config-file")
 	#define COMMAND_SHORT_SET_PATH                        ("-c")
+	#define COMMAND_LONG_SET_PATH                         ("--config-file")
+	#define COMMAND_KEYPAIR_GENERATOR                     ("--keypair-generator")
 	#if defined(PLATFORM_LINUX)
 		#define COMMAND_DISABLE_DAEMON                        ("--disable-daemon")
 	#endif
 	#define FIFO_PATH_NAME                                ("/tmp/pcap_dnsproxy_fifo")                   //FIFO pathname
-	#define FIFO_MESSAGE_FLUSH_DNS                        ("Flush DNS cache of Pcap_DNSProxy.")         //The FIFO message to flush dns cache
+	#define FIFO_MESSAGE_FLUSH_DNS                        ("Flush DNS cache of Pcap_DNSProxy")          //The FIFO message to flush dns cache
 #endif
 #define DEFAULT_HTTP_VERSION                          "1.1"                       //Default HTTP version
 #if defined(PLATFORM_MACX)
@@ -270,21 +275,12 @@
 #define DNS_PACKET_RR_LOCATE(Buffer)                       (sizeof(dns_hdr) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U + sizeof(dns_qry))   //Location the beginning of DNS Resource Records
 
 //Base64 definitions
-
 #define BASE64_PAD                                    '='
 //#define BASE64_DE_FIRST                               '+'
 //#define BASE64_DE_LAST                                'z'
 #define BASE64_ENCODE_OUT_SIZE(Message)               (((Message) + 2U) / 3U * 4U)
 //#define BASE64_DECODE_OUT_SIZE(Message)               (((Message)) / 4U * 3U)
 
-/* Old version(2016-05-29)
-//Function Type definitions
-#if defined(PLATFORM_WIN_XP)
-	#define FUNCTION_GETTICKCOUNT64                       1U
-	#define FUNCTION_INET_NTOP                            2U
-	#define FUNCTION_INET_PTON                            3U
-#endif
-*/
 //Compare addresses own definitions
 #define ADDRESS_COMPARE_LESS                          1U
 #define ADDRESS_COMPARE_EQUAL                         2U
@@ -370,15 +366,6 @@
 	#define DNSCURVE_ALTERNATE_IPV6                   3U                          //DNSCurve Alternate(IPv6)
 	#define DNSCURVE_ALTERNATE_IPV4                   4U                          //DNSCurve Alternate(IPv4)
 #endif
-
-/* Old version(2016-05-29)
-//Function Pointer definitions
-#if defined(PLATFORM_WIN_XP)
-	typedef INT(CALLBACK *FunctionType_InetPton)(INT, PCSTR, PVOID);
-	typedef PCSTR(CALLBACK *FunctionType_InetNtop)(INT, PVOID, PSTR, size_t);
-	typedef ULONGLONG(CALLBACK *FunctionType_GetTickCount64)(void);
-#endif
-*/
 
 
 //////////////////////////////////////////////////
@@ -735,18 +722,6 @@ public:
 	std::vector<std::string>             *LocalAddress_ResponsePTR[NETWORK_LAYER_PARTNUM];
 #endif
 
-/* Old version(2016-05-29)
-//Windows XP with SP3 support
-#if defined(PLATFORM_WIN_XP)
-	HINSTANCE                            FunctionLibrary_GetTickCount64;
-	HINSTANCE                            FunctionLibrary_InetNtop;
-	HINSTANCE                            FunctionLibrary_InetPton;
-	FunctionType_GetTickCount64          FunctionPTR_GetTickCount64;
-	FunctionType_InetNtop                FunctionPTR_InetNtop;
-	FunctionType_InetPton                FunctionPTR_InetPton;
-#endif
-*/
-
 //Member functions
 	GlobalStatus(
 		void);
@@ -976,7 +951,7 @@ size_t __fastcall Base64_Encode(
 	const size_t Length, 
 	char *Output, 
 	const size_t OutputSize);
-/*
+/* Not necessary
 size_t __fastcall Base64_Decode(
 	char *Input, 
 	const size_t Length, 
@@ -987,14 +962,6 @@ size_t __fastcall Base64_Decode(
 uint64_t GetCurrentSystemTime(
 	void);
 #endif
-/* Old version(2016-05-29)
-#if defined(PLATFORM_WIN_XP)
-BOOL WINAPI IsGreaterThanVista(
-	void);
-BOOL WINAPI GetFunctionPointer(
-	const size_t FunctionType);
-#endif
-*/
 
 //PrintLog.h
 bool __fastcall PrintError(

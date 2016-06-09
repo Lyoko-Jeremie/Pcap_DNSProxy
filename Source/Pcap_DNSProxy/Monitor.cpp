@@ -472,11 +472,6 @@ bool __fastcall UDPMonitor(
 	if (Parameter.QueueResetTime > 0)
 	{
 	#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-			LastMarkTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
-		else 
-*/
 		LastMarkTime = GetTickCount();
 	#else
 		LastMarkTime = GetTickCount64();
@@ -494,11 +489,6 @@ bool __fastcall UDPMonitor(
 		if (Parameter.QueueResetTime > 0 && Index + 1U == Parameter.BufferQueueSize)
 		{
 		#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-				NowTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
-			else 
-*/
 			NowTime = GetTickCount();
 		#else
 			NowTime = GetTickCount64();
@@ -507,11 +497,6 @@ bool __fastcall UDPMonitor(
 				Sleep(LastMarkTime + Parameter.QueueResetTime - NowTime);
 
 		#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-				LastMarkTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
-			else 
-*/
 			LastMarkTime = GetTickCount();
 		#else
 			LastMarkTime = GetTickCount64();
@@ -638,11 +623,6 @@ bool __fastcall TCPMonitor(
 	if (Parameter.QueueResetTime > 0)
 	{
 	#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-			LastMarkTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
-		else 
-*/
 		LastMarkTime = GetTickCount();
 	#else
 		LastMarkTime = GetTickCount64();
@@ -660,11 +640,6 @@ bool __fastcall TCPMonitor(
 		if (Parameter.QueueResetTime > 0 && Index + 1U == Parameter.BufferQueueSize)
 		{
 		#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-				NowTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
-			else 
-*/
 			NowTime = GetTickCount();
 		#else
 			NowTime = GetTickCount64();
@@ -673,11 +648,6 @@ bool __fastcall TCPMonitor(
 				Sleep(LastMarkTime + Parameter.QueueResetTime - NowTime);
 
 		#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-				LastMarkTime = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)();
-			else 
-*/
 			LastMarkTime = GetTickCount();
 		#else
 			LastMarkTime = GetTickCount64();
@@ -900,16 +870,8 @@ void __fastcall AlternateServerMonitor(
 		{
 		//Reset TimeoutTimes out of alternate time range.
 		#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-			if ((GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr && (*GlobalRunningStatus.FunctionPTR_GetTickCount64)() >= RangeTimer[Index]) || 
-*/
 			if (GetTickCount() >= RangeTimer[Index])
 			{
-/* Old version(2016-05-29)
-				if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-					RangeTimer[Index] = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + Parameter.AlternateTimeRange);
-				else 
-*/
 				RangeTimer[Index] = GetTickCount() + Parameter.AlternateTimeRange;
 		#else
 			if (GetTickCount64() >= RangeTimer[Index])
@@ -924,9 +886,6 @@ void __fastcall AlternateServerMonitor(
 			if (AlternateSwapList.IsSwap[Index])
 			{
 			#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-				if ((GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr && (*GlobalRunningStatus.FunctionPTR_GetTickCount64)() >= SwapTimer[Index]) || 
-*/
 				if (GetTickCount() >= SwapTimer[Index])
 			#else
 				if (GetTickCount64() >= SwapTimer[Index])
@@ -944,11 +903,6 @@ void __fastcall AlternateServerMonitor(
 					AlternateSwapList.IsSwap[Index] = true;
 					AlternateSwapList.TimeoutTimes[Index] = 0;
 				#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-					if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-						SwapTimer[Index] = (size_t)((*GlobalRunningStatus.FunctionPTR_GetTickCount64)() + Parameter.AlternateResetTime);
-					else 
-*/
 					SwapTimer[Index] = GetTickCount() + Parameter.AlternateResetTime;
 				#else
 					SwapTimer[Index] = GetTickCount64() + Parameter.AlternateResetTime;

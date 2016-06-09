@@ -656,11 +656,6 @@ size_t __fastcall MakeCompressionPointerMutation(
 		*(Buffer + Length - sizeof(dns_qry) - 1U) = DNS_POINTER_8_BITS_STRING;
 
 	#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-		if (GlobalRunningStatus.FunctionPTR_GetTickCount64 != nullptr)
-			Index = (*GlobalRunningStatus.FunctionPTR_GetTickCount64)() % 4U;
-		else 
-*/
 		Index = GetTickCount() % 4U;
 	#else
 		Index = GetTickCount64() % 4U;

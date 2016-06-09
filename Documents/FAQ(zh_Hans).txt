@@ -25,7 +25,7 @@
 
    >nslookup www.google.com
     服务器:  UnKnown
-    Address:  127.0.0.1（视所在网络环境而定，本地监听协议为 IPv6 时为 ::1）
+    Address: ::1（视所在网络环境而定，本地监听协议为 IPv4 时为 127.0.0.1）
 
     *** UnKnown 找不到 www.google.com: No response from server
     
@@ -36,7 +36,7 @@
 
    >nslookup www.google.com
     服务器:  pcap-dnsproxy.localhost.server（视配置文件设置的值而定，参见 ReadMe 文档中 配置文件详细参数说明）
-    Address:  127.0.0.1（视所在网络环境而定，本地监听协议为 IPv6 时为 ::1）
+    Address: ::1（视所在网络环境而定，本地监听协议为 IPv4 时为 127.0.0.1）
 
     DNS request timed out.
         timeout was 2 seconds.
@@ -50,7 +50,7 @@
     
    >nslookup -vc www.google.com
     服务器:  pcap-dnsproxy.localhost.server（视配置文件设置的值而定，参见 ReadMe 文档中 配置文件详细参数说明）
-    Address:  127.0.0.1（视所在网络环境而定，本地监听协议为 IPv6 时为 ::1）
+    Address: ::1（视所在网络环境而定，本地监听协议为 IPv4 时为 127.0.0.1）
 
     *** 没有 www.google.com 可以使用的 internal type for both IPv4 and IPv6 Addresses (A+AAAA)记录
 

@@ -25,27 +25,8 @@
 		D93C47421CD7598500CD334A /* ReadIPFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C473B1CD7598500CD334A /* ReadIPFilter.cpp */; };
 		D93C47431CD7598500CD334A /* ReadParameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C473C1CD7598500CD334A /* ReadParameter.cpp */; };
 		D93C47481CD7599300CD334A /* Service.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C47451CD7599300CD334A /* Service.cpp */; };
-		D93C478B1CD75AF500CD334A /* ReadMe_Hans.md in Sources */ = {isa = PBXBuildFile; fileRef = D93C47861CD75AF500CD334A /* ReadMe_Hans.md */; };
-		D93C478C1CD75AF500CD334A /* ReadMe_Hant.md in Sources */ = {isa = PBXBuildFile; fileRef = D93C47871CD75AF500CD334A /* ReadMe_Hant.md */; };
 		D93C47CF1CD75FF700CD334A /* LibSodium_Mac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D93C47CC1CD75FF700CD334A /* LibSodium_Mac.a */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		D9112FC51CD764D500540550 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D9112FC11CD764D500540550 /* FileHash.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = D9112FB01CD7647C00540550;
-			remoteInfo = FileHash;
-		};
-		D91130191CD7668800540550 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D91130151CD7668800540550 /* KeyPairGenerator.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = D91130021CD7660A00540550;
-			remoteInfo = KeyPairGenerator;
-		};
-/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		D93C46FC1CD7582600CD334A /* CopyFiles */ = {
@@ -61,8 +42,6 @@
 
 /* Begin PBXFileReference section */
 		D9112FA51CD7637100540550 /* libpcap.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libpcap.tbd; path = usr/lib/libpcap.tbd; sourceTree = SDKROOT; };
-		D9112FC11CD764D500540550 /* FileHash.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = FileHash.xcodeproj; sourceTree = "<group>"; };
-		D91130151CD7668800540550 /* KeyPairGenerator.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = KeyPairGenerator.xcodeproj; sourceTree = "<group>"; };
 		D911301F1CD766E300540550 /* resource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = resource.h; sourceTree = "<group>"; };
 		D93C46FE1CD7582600CD334A /* Pcap_DNSProxy */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Pcap_DNSProxy; sourceTree = BUILT_PRODUCTS_DIR; };
 		D93C47091CD7594E00CD334A /* Changelog(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "Changelog(zh_Hans).txt"; path = "Documents/Changelog(zh_Hans).txt"; sourceTree = "<group>"; };
@@ -151,18 +130,6 @@
 		D93C47781CD75A6B00CD334A /* Mac_Uninstall.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = Mac_Uninstall.sh; path = Scripts/Mac_Uninstall.sh; sourceTree = "<group>"; };
 		D93C47791CD75A6B00CD334A /* Update_Routing.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = Update_Routing.sh; path = Scripts/Update_Routing.sh; sourceTree = "<group>"; };
 		D93C477A1CD75A6B00CD334A /* Update_WhiteList.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = Update_WhiteList.sh; path = Scripts/Update_WhiteList.sh; sourceTree = "<group>"; };
-		D93C477C1CD75AB900CD334A /* WinPcap_4.1.3.exe */ = {isa = PBXFileReference; lastKnownFileType = file; name = WinPcap_4.1.3.exe; path = Tools/WinPcap_4.1.3.exe; sourceTree = "<group>"; };
-		D93C47801CD75ADE00CD334A /* CCase.exe */ = {isa = PBXFileReference; lastKnownFileType = file; name = CCase.exe; path = Tools/Support/CCase.exe; sourceTree = "<group>"; };
-		D93C47811CD75ADE00CD334A /* curl.exe */ = {isa = PBXFileReference; lastKnownFileType = file; name = curl.exe; path = Tools/Support/curl.exe; sourceTree = "<group>"; };
-		D93C47821CD75ADE00CD334A /* md5.exe */ = {isa = PBXFileReference; lastKnownFileType = file; name = md5.exe; path = Tools/Support/md5.exe; sourceTree = "<group>"; };
-		D93C47831CD75ADE00CD334A /* sed.exe */ = {isa = PBXFileReference; lastKnownFileType = file; name = sed.exe; path = Tools/Support/sed.exe; sourceTree = "<group>"; };
-		D93C47841CD75AE900CD334A /* Update_WhiteList.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Update_WhiteList.bat; path = Tools/Update_WhiteList/Update_WhiteList.bat; sourceTree = "<group>"; };
-		D93C47851CD75AF500CD334A /* Log_Lib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Log_Lib; path = Tools/Update_Routing/Log_Lib; sourceTree = "<group>"; };
-		D93C47861CD75AF500CD334A /* ReadMe_Hans.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = ReadMe_Hans.md; path = Tools/Update_Routing/ReadMe_Hans.md; sourceTree = "<group>"; };
-		D93C47871CD75AF500CD334A /* ReadMe_Hant.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; name = ReadMe_Hant.md; path = Tools/Update_Routing/ReadMe_Hant.md; sourceTree = "<group>"; };
-		D93C47881CD75AF500CD334A /* Update_Big5.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Update_Big5.bat; path = Tools/Update_Routing/Update_Big5.bat; sourceTree = "<group>"; };
-		D93C47891CD75AF500CD334A /* Update_GB2312.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Update_GB2312.bat; path = Tools/Update_Routing/Update_GB2312.bat; sourceTree = "<group>"; };
-		D93C478A1CD75AF500CD334A /* Update.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Update.bat; path = Tools/Update_Routing/Update.bat; sourceTree = "<group>"; };
 		D93C47901CD75B3800CD334A /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = common.h; path = LibSodium/private/common.h; sourceTree = "<group>"; };
 		D93C47911CD75B3800CD334A /* curve25519_ref10.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = curve25519_ref10.h; path = LibSodium/private/curve25519_ref10.h; sourceTree = "<group>"; };
 		D93C47921CD75B4200CD334A /* core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = core.h; path = LibSodium/core.h; sourceTree = "<group>"; };
@@ -241,34 +208,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		D9112FC21CD764D500540550 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				D9112FC61CD764D500540550 /* FileHash */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		D91130161CD7668800540550 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				D911301A1CD7668800540550 /* KeyPairGenerator */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		D93C46F51CD7582600CD334A = {
 			isa = PBXGroup;
 			children = (
-				D9112FC11CD764D500540550 /* FileHash.xcodeproj */,
-				D91130151CD7668800540550 /* KeyPairGenerator.xcodeproj */,
 				D93C478D1CD75B0700CD334A /* Dependency */,
 				D93C47081CD7593F00CD334A /* Documents */,
 				D93C47671CD75A4600CD334A /* ExampleConfig */,
 				D93C47001CD7582600CD334A /* Pcap_DNSProxy */,
 				D93C46FF1CD7582600CD334A /* Products */,
 				D93C47711CD75A6000CD334A /* Scripts */,
-				D93C477B1CD75AAE00CD334A /* Tools */,
 			);
 			sourceTree = "<group>";
 		};
@@ -411,49 +359,6 @@
 			name = Scripts;
 			sourceTree = "<group>";
 		};
-		D93C477B1CD75AAE00CD334A /* Tools */ = {
-			isa = PBXGroup;
-			children = (
-				D93C477F1CD75AD100CD334A /* Update_Routing */,
-				D93C477E1CD75AC400CD334A /* Update_WhiteList */,
-				D93C477D1CD75ABF00CD334A /* Support */,
-				D93C477C1CD75AB900CD334A /* WinPcap_4.1.3.exe */,
-			);
-			name = Tools;
-			sourceTree = "<group>";
-		};
-		D93C477D1CD75ABF00CD334A /* Support */ = {
-			isa = PBXGroup;
-			children = (
-				D93C47801CD75ADE00CD334A /* CCase.exe */,
-				D93C47811CD75ADE00CD334A /* curl.exe */,
-				D93C47821CD75ADE00CD334A /* md5.exe */,
-				D93C47831CD75ADE00CD334A /* sed.exe */,
-			);
-			name = Support;
-			sourceTree = "<group>";
-		};
-		D93C477E1CD75AC400CD334A /* Update_WhiteList */ = {
-			isa = PBXGroup;
-			children = (
-				D93C47841CD75AE900CD334A /* Update_WhiteList.bat */,
-			);
-			name = Update_WhiteList;
-			sourceTree = "<group>";
-		};
-		D93C477F1CD75AD100CD334A /* Update_Routing */ = {
-			isa = PBXGroup;
-			children = (
-				D93C47851CD75AF500CD334A /* Log_Lib */,
-				D93C47881CD75AF500CD334A /* Update_Big5.bat */,
-				D93C47891CD75AF500CD334A /* Update_GB2312.bat */,
-				D93C478A1CD75AF500CD334A /* Update.bat */,
-				D93C47861CD75AF500CD334A /* ReadMe_Hans.md */,
-				D93C47871CD75AF500CD334A /* ReadMe_Hant.md */,
-			);
-			name = Update_Routing;
-			sourceTree = "<group>";
-		};
 		D93C478D1CD75B0700CD334A /* Dependency */ = {
 			isa = PBXGroup;
 			children = (
@@ -586,39 +491,12 @@
 			mainGroup = D93C46F51CD7582600CD334A;
 			productRefGroup = D93C46FF1CD7582600CD334A /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = D9112FC21CD764D500540550 /* Products */;
-					ProjectRef = D9112FC11CD764D500540550 /* FileHash.xcodeproj */;
-				},
-				{
-					ProductGroup = D91130161CD7668800540550 /* Products */;
-					ProjectRef = D91130151CD7668800540550 /* KeyPairGenerator.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				D93C46FD1CD7582600CD334A /* Pcap_DNSProxy */,
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		D9112FC61CD764D500540550 /* FileHash */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = FileHash;
-			remoteRef = D9112FC51CD764D500540550 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		D911301A1CD7668800540550 /* KeyPairGenerator */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = KeyPairGenerator;
-			remoteRef = D91130191CD7668800540550 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXSourcesBuildPhase section */
 		D93C46FA1CD7582600CD334A /* Sources */ = {
@@ -631,8 +509,6 @@
 				D93C47481CD7599300CD334A /* Service.cpp in Sources */,
 				D93C47301CD7597600CD334A /* PacketData.cpp in Sources */,
 				D93C47251CD7596A00CD334A /* Capture.cpp in Sources */,
-				D93C478C1CD75AF500CD334A /* ReadMe_Hant.md in Sources */,
-				D93C478B1CD75AF500CD334A /* ReadMe_Hans.md in Sources */,
 				D93C473D1CD7598500CD334A /* PrintLog.cpp in Sources */,
 				D93C47261CD7596A00CD334A /* Configuration.cpp in Sources */,
 				D93C47421CD7598500CD334A /* ReadIPFilter.cpp in Sources */,

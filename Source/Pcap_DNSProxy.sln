@@ -142,10 +142,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Support", "Support", "{7227
 		Tools\Support\sed.exe = Tools\Support\sed.exe
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FileHash", "FileHash\FileHash.vcxproj", "{E65C4C70-40DF-48E8-9FE1-52DD7D003558}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KeyPairGenerator", "KeyPairGenerator\KeyPairGenerator.vcxproj", "{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WinPcap", "WinPcap", "{D099D655-939B-4399-A0CB-07D88BFD3BA0}"
 	ProjectSection(SolutionItems) = preProject
 		Pcap_DNSProxy\WinPcap\bittypes.h = Pcap_DNSProxy\WinPcap\bittypes.h
@@ -204,30 +200,6 @@ Global
 		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x64.Build.0 = Release|x64
 		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x86.ActiveCfg = Release|Win32
 		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x86.Build.0 = Release|Win32
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Debug|x64.ActiveCfg = Debug|x64
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Debug|x64.Build.0 = Debug|x64
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Debug|x86.ActiveCfg = Debug|Win32
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Debug|x86.Build.0 = Debug|Win32
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Release_XP|x64.ActiveCfg = Release_XP|x64
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Release_XP|x64.Build.0 = Release_XP|x64
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Release_XP|x86.ActiveCfg = Release_XP|Win32
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Release_XP|x86.Build.0 = Release_XP|Win32
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Release|x64.ActiveCfg = Release|x64
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Release|x64.Build.0 = Release|x64
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Release|x86.ActiveCfg = Release|Win32
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Release|x86.Build.0 = Release|Win32
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Debug|x64.ActiveCfg = Debug|x64
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Debug|x64.Build.0 = Debug|x64
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Debug|x86.ActiveCfg = Debug|Win32
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Debug|x86.Build.0 = Debug|Win32
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Release_XP|x64.ActiveCfg = Release_XP|x64
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Release_XP|x64.Build.0 = Release_XP|x64
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Release_XP|x86.ActiveCfg = Release_XP|Win32
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Release_XP|x86.Build.0 = Release_XP|Win32
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Release|x64.ActiveCfg = Release|x64
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Release|x64.Build.0 = Release|x64
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Release|x86.ActiveCfg = Release|Win32
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -72,20 +72,6 @@ bool __fastcall AddressStringToBinary(
 
 	//Convert to binary.
 	#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-		if (GlobalRunningStatus.FunctionPTR_InetPton != nullptr)
-		{
-			Result = (*GlobalRunningStatus.FunctionPTR_InetPton)(AF_INET6, sAddrString.c_str(), OriginalAddr);
-			if (Result == SOCKET_ERROR || Result == 0)
-			{
-				if (Result != 0 && ErrorCode != nullptr)
-					*ErrorCode = WSAGetLastError();
-
-				return false;
-			}
-		}
-		else {
-*/
 		SockLength = sizeof(sockaddr_in6);
 		if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET6, nullptr, (PSOCKADDR)&SockAddr, &SockLength) == SOCKET_ERROR)
 		{
@@ -155,20 +141,6 @@ bool __fastcall AddressStringToBinary(
 
 	//Convert to binary.
 	#if defined(PLATFORM_WIN_XP)
-/* Old version(2016-05-29)
-		if (GlobalRunningStatus.FunctionPTR_InetPton != nullptr)
-		{
-			Result = (*GlobalRunningStatus.FunctionPTR_InetPton)(AF_INET, sAddrString.c_str(), OriginalAddr);
-			if (Result == SOCKET_ERROR || Result == 0)
-			{
-				if (Result != 0 && ErrorCode != nullptr)
-					*ErrorCode = WSAGetLastError();
-
-				return false;
-			}
-		}
-		else {
-*/
 		SockLength = sizeof(sockaddr_in);
 		if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET, nullptr, (PSOCKADDR)&SockAddr, &SockLength) == SOCKET_ERROR)
 		{
@@ -1336,7 +1308,7 @@ size_t __fastcall CheckResponseData(
 		(ResponseType == REQUEST_PROCESS_TCP && Parameter.EDNS_Switch.EDNS_TCP) || //TCP
 		(ResponseType == REQUEST_PROCESS_UDP && Parameter.EDNS_Switch.EDNS_UDP)) && //UDP
 		(!IsEDNS_Label || (Parameter.DNSSEC_Request && Parameter.DNSSEC_ForceValidation && !IsDNSSEC_Records))) || 
-		(ResponseType == REQUEST_PROCESS_LOCAL && !IsGotAddressResult)))
+		(ResponseType == REQUEST_PROCESS_LOCAL && !Parameter.LocalForce && !IsGotAddressResult)))
 			return EXIT_FAILURE;
 
 #if defined(ENABLE_PCAP)
