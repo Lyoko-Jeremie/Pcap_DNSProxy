@@ -218,6 +218,8 @@ bool __fastcall FlushDNSMailSlotMonitor(
 //Initialization
 	std::shared_ptr<wchar_t> lpszBuffer(new wchar_t[FILE_BUFFER_SIZE]());
 	wmemset(lpszBuffer.get(), 0, FILE_BUFFER_SIZE);
+	std::wstring Message;
+	std::string Domain; 
 	DWORD cbMessage = 0;
 	BOOL Result = 0;
 
@@ -239,12 +241,37 @@ bool __fastcall FlushDNSMailSlotMonitor(
 			CloseHandle(hSlot);
 			return false;
 		}
+/* Old version(2016-06-12)
 		else if (memcmp(lpszBuffer.get(), MAILSLOT_MESSAGE_FLUSH_DNS, sizeof(wchar_t) * wcslen(MAILSLOT_MESSAGE_FLUSH_DNS)) == 0)
 		{
-			FlushAllDNSCache();
+			FlushDNSCache();
 		}
 		else {
 			Sleep(LOOP_INTERVAL_TIME_MONITOR);
+		}
+*/
+		else {
+			Message = lpszBuffer.get();
+			Domain.clear();
+
+		//Read message.
+			if (Message == MAILSLOT_MESSAGE_FLUSH_DNS) //Flush all DNS cache.
+			{
+				FlushDNSCache(nullptr);
+			}
+			else if (Message.find(MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN) == 0 && //Flush single domain cache.
+				Message.length() > wcslen(MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN) + DOMAIN_MINSIZE && //Domain length check
+				Message.length() < wcslen(MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN) + DOMAIN_MAXSIZE)
+			{
+				if (WCSToMBSString(Message.c_str() + wcslen(MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN), DOMAIN_MAXSIZE, Domain) && 
+					Domain.length() > DOMAIN_MINSIZE && Domain.length() < DOMAIN_MAXSIZE)
+						FlushDNSCache(Domain.c_str());
+				else 
+					PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
+			}
+			else {
+				Sleep(LOOP_INTERVAL_TIME_MONITOR);
+			}
 		}
 	}
 
@@ -256,9 +283,9 @@ bool __fastcall FlushDNSMailSlotMonitor(
 
 //MailSlot of flush DNS cache sender
 bool WINAPI FlushDNSMailSlotSender(
-	void)
+	const wchar_t *Domain)
 {
-//Create mailslot.
+//Mailslot initialization
 	HANDLE hFile = CreateFileW(MAILSLOT_NAME, GENERIC_WRITE, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
@@ -268,9 +295,17 @@ bool WINAPI FlushDNSMailSlotSender(
 		return false;
 	}
 
+//Message initialization
+	std::wstring Message(MAILSLOT_MESSAGE_FLUSH_DNS);
+	if (Domain != nullptr)
+	{
+		Message.append(L": ");
+		Message.append(Domain);
+	}
+
 //Write into mailslot.
 	DWORD cbWritten = 0;
-	if (!WriteFile(hFile, MAILSLOT_MESSAGE_FLUSH_DNS, (DWORD)(sizeof(wchar_t) * lstrlenW(MAILSLOT_MESSAGE_FLUSH_DNS) + 1U), &cbWritten, nullptr))
+	if (!WriteFile(hFile, Message.c_str(), (DWORD)(sizeof(wchar_t) * Message.length() + 1U), &cbWritten, nullptr))
 	{
 		std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 		fwprintf_s(stderr, L"MailSlot write messages error, error code is %lu.\n", GetLastError());
@@ -278,10 +313,12 @@ bool WINAPI FlushDNSMailSlotSender(
 		CloseHandle(hFile);
 		return false;
 	}
+	else {
+		CloseHandle(hFile);
+		std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
+		fwprintf_s(stderr, L"Flush DNS cache message was sent successfully.\n");
+	}
 
-	CloseHandle(hFile);
-	std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
-	fwprintf_s(stderr, L"Flush DNS cache message was sent successfully.\n");
 	return true;
 }
 
@@ -290,13 +327,8 @@ bool WINAPI FlushDNSMailSlotSender(
 bool FlushDNSFIFOMonitor(
 	void)
 {
-//Initialization
-	unlink(FIFO_PATH_NAME);
-	std::shared_ptr<char> Buffer(new char[FILE_BUFFER_SIZE]());
-	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
-	int FileFIFO = 0;
-
 //Create FIFO and create its notify monitor.
+	unlink(FIFO_PATH_NAME);
 	if (mkfifo(FIFO_PATH_NAME, O_CREAT) == RETURN_ERROR || 
 		chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) == RETURN_ERROR)
 	{
@@ -307,13 +339,19 @@ bool FlushDNSFIFOMonitor(
 	}
 
 //FIFO Monitor
+	std::shared_ptr<char> Buffer(new char[FILE_BUFFER_SIZE]());
+	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
+	std::string Message;
+	int FIFO_Handle = 0;
+	SSIZE_T Length = 0;
 	for (;;)
 	{
 		Sleep(LOOP_INTERVAL_TIME_NO_DELAY);
+		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 
 	//Open FIFO.
-		FileFIFO = open(FIFO_PATH_NAME, O_RDONLY, 0);
-		if (FileFIFO == RETURN_ERROR)
+		FIFO_Handle = open(FIFO_PATH_NAME, O_RDONLY, 0);
+		if (FIFO_Handle == RETURN_ERROR)
 		{
 			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
 
@@ -322,18 +360,37 @@ bool FlushDNSFIFOMonitor(
 		}
 
 	//Read file data.
-		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
-		if (read(FileFIFO, Buffer.get(), FILE_BUFFER_SIZE) >= (SSIZE_T)strlen(FIFO_MESSAGE_FLUSH_DNS) && 
+/* Old version(2016-06-12)
+		if (read(FIFO_Handle, Buffer.get(), FILE_BUFFER_SIZE) >= (SSIZE_T)strlen(FIFO_MESSAGE_FLUSH_DNS) && 
 			memcmp(Buffer.get(), FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS)) == 0)
-				FlushAllDNSCache();
+				FlushDNSCache(nullptr);
+*/
+		Length = read(FIFO_Handle, Buffer.get(), FILE_BUFFER_SIZE);
+		if (Length == RETURN_ERROR || Length < (SSIZE_T)DOMAIN_MINSIZE || Length > (SSIZE_T)DOMAIN_MAXSIZE)
+		{
+			PrintError(LOG_LEVEL_3, LOG_ERROR_SYSTEM, L"FIFO read messages error", errno, nullptr, 0);
+		}
+		else {
+			Message = Buffer.get();
+
+		//Read message.
+			if (Message == FIFO_MESSAGE_FLUSH_DNS) //Flush all DNS cache.
+				FlushDNSCache(nullptr);
+			else if (Message.find(FIFO_MESSAGE_FLUSH_DNS_DOMAIN) == 0 && //Flush single domain cache.
+				Message.length() > strlen(FIFO_MESSAGE_FLUSH_DNS_DOMAIN) + DOMAIN_MINSIZE && //Domain length check
+				Message.length() < strlen(FIFO_MESSAGE_FLUSH_DNS_DOMAIN) + DOMAIN_MAXSIZE)
+					FlushDNSCache(Message.c_str() + strlen(FIFO_MESSAGE_FLUSH_DNS_DOMAIN));
+			else 
+				Sleep(LOOP_INTERVAL_TIME_MONITOR);
+		}
 
 	//Close FIFO.
-		close(FileFIFO);
-		FileFIFO = 0;
+		close(FIFO_Handle);
+		FIFO_Handle = 0;
 	}
 
 //Monitor terminated
-	close(FileFIFO);
+	close(FIFO_Handle);
 	unlink(FIFO_PATH_NAME);
 	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"FIFO module Monitor terminated", 0, nullptr, 0);
 	return true;
@@ -341,42 +398,68 @@ bool FlushDNSFIFOMonitor(
 
 //Flush DNS cache FIFO sender
 bool FlushDNSFIFOSender(
-	void)
+	const char *Domain)
 {
-	errno = 0;
-	int FileFIFO = open(FIFO_PATH_NAME, O_WRONLY|O_TRUNC|O_NONBLOCK, 0);
-	if (FileFIFO > 0 && write(FileFIFO, FIFO_MESSAGE_FLUSH_DNS, strlen(FIFO_MESSAGE_FLUSH_DNS) + 1U) > 0)
+//Message initialization
+	std::string Message(FIFO_MESSAGE_FLUSH_DNS);
+	if (Domain != nullptr)
 	{
-		std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
-		fwprintf(stderr, L"Flush DNS cache message was sent successfully.\n");
-		close(FileFIFO);
+		Message.append(": ");
+		Message.append(Domain);
 	}
-	else {
-		if (errno > 0)
+
+//Write into FIFO file.
+	errno = 0;
+	int FIFO_Handle = open(FIFO_PATH_NAME, O_WRONLY|O_TRUNC|O_NONBLOCK, 0);
+	if (FIFO_Handle > 0)
+	{
+		if (write(FIFO_Handle, Message.c_str(), Message.length() + 1U) > 0)
 		{
+			close(FIFO_Handle);
 			std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
-			fwprintf(stderr, L"FIFO write messages error, error code is %d.\n", errno);
+			fwprintf(stderr, L"Flush DNS cache message was sent successfully.\n");
+			return true;
 		}
-
-		return false;
+		else {
+			close(FIFO_Handle);
+		}
 	}
 
-	return true;
+//Print error log.
+	std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
+	fwprintf(stderr, L"FIFO write messages error");
+	if (errno > 0)
+		fwprintf(stderr, L", error code is %d.\n", errno);
+	else 
+		fwprintf(stderr, L".\n");
+
+	return false;
 }
 #endif
 
 //Flush DNS cache
-void __fastcall FlushAllDNSCache(
-	void)
+void __fastcall FlushDNSCache(
+	const char *Domain)
 {
 //Flush DNS cache in program.
 	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
-	DNSCacheList.clear();
+	if (Domain == nullptr) //Flush all DNS cache.
+	{
+		DNSCacheList.clear();
+	}
+	else { //Flush single domain cache.
+		for (auto DNSCacheDataIter = DNSCacheList.begin();DNSCacheDataIter != DNSCacheList.end();)
+		{
+			if (DNSCacheDataIter->Domain == Domain)
+				DNSCacheDataIter = DNSCacheList.erase(DNSCacheDataIter);
+			else 
+				++DNSCacheDataIter;
+		}
+	}
 	DNSCacheListMutex.unlock();
 
 //Flush DNS cache in system.
 	std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
-
 #if defined(PLATFORM_WIN)
 	system("ipconfig /flushdns 2>nul"); //All Windows version
 	fwprintf_s(stderr, L"\n");

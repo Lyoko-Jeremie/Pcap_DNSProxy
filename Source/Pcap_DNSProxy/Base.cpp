@@ -126,7 +126,42 @@ bool __fastcall MBSToWCSString(
 		return false;
 	}
 	else {
-		if (wcsnlen(TargetPTR.get(), Length + 1U) == 0)
+		if (wcsnlen_s(TargetPTR.get(), Length + 1U) == 0)
+			return false;
+		else 
+			Target = TargetPTR.get();
+	}
+
+	return true;
+}
+
+//Convert wide char to multiple byte string
+bool __fastcall WCSToMBSString(
+	const wchar_t *Buffer, 
+	const size_t MaxLen, 
+	std::string &Target)
+{
+//Check buffer.
+	Target.clear();
+	if (Buffer == nullptr || MaxLen == 0)
+		return false;
+	size_t Length = wcsnlen_s(Buffer, MaxLen);
+	if (Length == 0 || CheckEmptyBuffer(Buffer, sizeof(wchar_t) * Length))
+		return false;
+
+//Convert string.
+	std::shared_ptr<char> TargetPTR(new char[Length + 1U]());
+	memset(TargetPTR.get(), 0, Length + 1U);
+#if defined(PLATFORM_WIN)
+	if (WideCharToMultiByte(CP_ACP, 0, Buffer, MBSTOWCS_NULLTERMINATE, TargetPTR.get(), (int)(Length + 1U), nullptr, nullptr) == 0)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	if (wcstombs(TargetPTR.get(), Buffer, Length + 1U) == (size_t)RETURN_ERROR)
+#endif
+	{
+		return false;
+	}
+	else {
+		if (strnlen_s(TargetPTR.get(), Length + 1U) == 0)
 			return false;
 		else 
 			Target = TargetPTR.get();

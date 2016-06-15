@@ -446,8 +446,7 @@ bool __fastcall UDPMonitor(
 	}
 
 //Initialization
-	std::shared_ptr<char> RecvBuffer(new char[PACKET_MAXSIZE * Parameter.BufferQueueSize]());
-	std::shared_ptr<char> SendBuffer(new char[PACKET_MAXSIZE]());
+	std::shared_ptr<char> RecvBuffer(new char[PACKET_MAXSIZE * Parameter.BufferQueueSize]()), SendBuffer(new char[PACKET_MAXSIZE]());
 	memset(RecvBuffer.get(), 0, PACKET_MAXSIZE * Parameter.BufferQueueSize);
 	memset(SendBuffer.get(), 0, PACKET_MAXSIZE);
 	SOCKET_DATA ClientData;
@@ -505,6 +504,7 @@ bool __fastcall UDPMonitor(
 
 	//Reset parameters.
 		memset(RecvBuffer.get() + PACKET_MAXSIZE * Index, 0, PACKET_MAXSIZE);
+		memset(SendBuffer.get(), 0, PACKET_MAXSIZE);
 		memcpy_s(&Timeout, sizeof(timeval), &OriginalTimeout, sizeof(timeval));
 		memcpy_s(&ClientData, sizeof(SOCKET_DATA), &LocalSocketData, sizeof(SOCKET_DATA));
 		FD_ZERO(&ReadFDS);
@@ -819,16 +819,13 @@ bool __fastcall TCPReceiveProcess(
 		Packet.Protocol = IPPROTO_TCP;
 
 	//Check DNS query data.
-		std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE]());
-		memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
-		if (!CheckQueryData(&Packet, SendBuffer.get(), LARGE_PACKET_MAXSIZE, LocalSocketData))
+		char SendBuffer[LARGE_PACKET_MAXSIZE];
+		memset(SendBuffer, 0, LARGE_PACKET_MAXSIZE);
+		if (!CheckQueryData(&Packet, SendBuffer, LARGE_PACKET_MAXSIZE, LocalSocketData))
 		{
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);
 			return false;
-		}
-		else {
-			SendBuffer.reset();
 		}
 		
 	//Main request process

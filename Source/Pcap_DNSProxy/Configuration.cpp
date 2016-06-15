@@ -683,7 +683,7 @@ bool __fastcall ReadParameter(
 
 		//Flush DNS cache and Auto-refresh
 			if (IsFileModified)
-				FlushAllDNSCache();
+				FlushDNSCache(nullptr);
 
 			Sleep(Parameter.FileRefreshTime);
 		}
@@ -873,7 +873,7 @@ void __fastcall ReadIPFilter(
 		IPFilterFileSetModificating->shrink_to_fit();
 
 	//Flush DNS cache and Auto-refresh
-		FlushAllDNSCache();
+		FlushDNSCache(nullptr);
 		Sleep(Parameter.FileRefreshTime);
 	}
 
@@ -1061,7 +1061,7 @@ void __fastcall ReadHosts(
 		HostsFileSetModificating->shrink_to_fit();
 
 	//Flush DNS cache and Auto-refresh
-		FlushAllDNSCache();
+		FlushDNSCache(nullptr);
 		Sleep(Parameter.FileRefreshTime);
 	}
 

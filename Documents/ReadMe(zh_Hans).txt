@@ -922,7 +922,9 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
 * -h 和 --help
   输出程序帮助信息到屏幕上
 * --flush-dns
-  立即清空所有程序内以及系统的 DNS 缓存
+  立即清空所有程序内以及系统内的 DNS 缓存
+* --flush-dns Domain
+  立即清空域名为 Domain 以及所有系统内的 DNS 缓存
 * --first-setup
   进行本地防火墙测试(Windows)
 * -c Path 和 --config-file Path

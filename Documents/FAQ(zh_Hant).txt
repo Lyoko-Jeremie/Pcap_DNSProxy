@@ -73,11 +73,12 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
     * 錯誤代碼參見 https://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
   * Set system daemon error - 守护程式配置錯誤：建議重新開機服務或程式
     * Linux/Mac 的錯誤代碼參見 http://man7.org/linux/man-pages/man3/errno.3.html
-  * Convert multiple byte string to wide char string error - 多/寬位元組字元轉換錯誤：建議重新開機服務或程式
+  * Convert multiple byte or wide char string error - 多/寬位元組字元轉換錯誤：建議重新開機服務或程式
   * Create mailslot error - MailSlot 創建失敗：建議重新開機服務或程式
   * MailSlot read messages error - MailSlot 讀取資訊失敗：建議重新開機服務或程式
   * MailSlot write messages error - MailSlot 寫入資訊失敗：建議重新開機服務或程式
   * Create FIFO error - FIFO 創建失敗：建議重新開機服務或程式
+  * FIFO read messages error - FIFO 讀取資訊失敗：建議重新開機服務或程式
   * FIFO write messages error - FIFO 寫入資訊失敗：建議重新開機服務或程式
   * Mailslot Monitor initialization error - MailSlot 監視模組初始化失敗：建議重新開機服務或程式
   * Read Parameter module Monitor terminated - 設定檔讀取模組已經停止監視：建議重新開機服務或程式
@@ -137,7 +138,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * DNSCurve encryption options error - DNSCurve 協定加密選項配置錯誤：開啟加密選項和只使用加密模式選項衝突
   * DNSCurve Encryption Only mode error - DNSCurve 協定只使用加密模式配置錯誤：只使用加密模式必須提供伺服器的魔數和指紋
   * DNSCurve Provider Name error - DNSCurve 協定伺服器提供者格式錯誤：請確認該條目的內容
-  * DNSCurve Key error - DNSCurve 協定金鑰格式錯誤：請確認該條目的內容
+  * DNSCurve Key format error - DNSCurve 協定金鑰格式錯誤：請確認該條目的內容
   * DNSCurve empty Provider Name error - DNSCurve 協定伺服器提供者不存在錯誤：不存在魔數或指紋時必須提供伺服器的提供者資訊以自動獲取連接參數
   * DNSCurve empty Public Key error - DNSCurve 協定伺服器公開金鑰不存在錯誤：不存在魔數或指紋時必須提供伺服器的公開金鑰以自動獲取連接參數
 

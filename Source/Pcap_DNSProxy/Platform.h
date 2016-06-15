@@ -433,7 +433,7 @@
 		#define _fcloseall                                                   fcloseall
 	#endif
 	#define fwprintf_s                                                   fwprintf
-	#define sprintf_s                                                    snprintf
+//	#define sprintf_s                                                    snprintf
 	#define strnlen_s                                                    strnlen
 	#define wcsnlen_s                                                    wcsnlen
 	#define WSAGetLastError()                                            errno

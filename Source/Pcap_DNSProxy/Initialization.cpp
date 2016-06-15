@@ -431,21 +431,21 @@ void ConfigurationTable::MonitorItemToUsing(
 	ConfigurationParameter->SOCKS_SocketTimeout_Unreliable = SOCKS_SocketTimeout_Unreliable;
 	if (ConfigurationParameter->SOCKS_TargetDomain != nullptr && !SOCKS_TargetDomain->empty() && SOCKS_TargetDomain_Port > 0)
 	{
-	//Reset old item.
+	//Reset old items.
 		memset(&ConfigurationParameter->SOCKS_TargetServer, 0, sizeof(ADDRESS_UNION_DATA));
 		
-	//Copy new item.
+	//Copy new items.
 		*ConfigurationParameter->SOCKS_TargetDomain = *SOCKS_TargetDomain;
 		ConfigurationParameter->SOCKS_TargetDomain_Port = SOCKS_TargetDomain_Port;
 	}
 	else if (SOCKS_TargetServer.Storage.ss_family > 0)
 	{
-	//Reset old item.
+	//Reset old items.
 		if (ConfigurationParameter->SOCKS_TargetDomain != nullptr)
 			ConfigurationParameter->SOCKS_TargetDomain->clear();
 		ConfigurationParameter->SOCKS_TargetDomain_Port = 0;
 
-	//Copy new item.
+	//Copy new items.
 		memcpy_s(&ConfigurationParameter->SOCKS_TargetServer, sizeof(ADDRESS_UNION_DATA), &SOCKS_TargetServer, sizeof(ADDRESS_UNION_DATA));
 	}
 	if (ConfigurationParameter->SOCKS_Username != nullptr)

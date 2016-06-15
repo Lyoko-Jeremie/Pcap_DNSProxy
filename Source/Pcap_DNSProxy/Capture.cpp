@@ -41,6 +41,8 @@ void __fastcall CaptureInit(
 		{
 			if (MBSToWCSString(ErrBuffer, PCAP_ERRBUF_SIZE, wErrBuffer))
 				PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, wErrBuffer.c_str(), 0, nullptr, 0);
+			else 
+				PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 
 			memset(ErrBuffer, 0, PCAP_ERRBUF_SIZE);
 			Sleep(LOOP_INTERVAL_TIME_MONITOR);
@@ -84,7 +86,7 @@ void __fastcall CaptureInit(
 							}
 						}
 						
-					//Start a new capture monitor.
+					//Start a capture monitor.
 						if (IsFound)
 						{
 							std::thread CaptureThread(std::bind(CaptureModule, pDrive, false));
@@ -357,6 +359,8 @@ DevicesNotSkip:
 		std::wstring ErrBuffer;
 		if (MBSToWCSString(Buffer.get(), PCAP_ERRBUF_SIZE, ErrBuffer))
 			PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, ErrBuffer.c_str(), 0, nullptr, 0);
+		else 
+			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 
 		return false;
 	}
@@ -388,6 +392,8 @@ DevicesNotSkip:
 		std::wstring ErrBuffer;
 		if (MBSToWCSString(pcap_geterr(DeviceHandle), PCAP_ERRBUF_SIZE, ErrBuffer))
 			PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, ErrBuffer.c_str(), 0, nullptr, 0);
+		else 
+			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 
 		pcap_close(DeviceHandle);
 		return false;
@@ -399,6 +405,8 @@ DevicesNotSkip:
 		std::wstring ErrBuffer;
 		if (MBSToWCSString(pcap_geterr(DeviceHandle), PCAP_ERRBUF_SIZE, ErrBuffer))
 			PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, ErrBuffer.c_str(), 0, nullptr, 0);
+		else 
+			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 
 		pcap_freecode(&BPF_Code);
 		pcap_close(DeviceHandle);
@@ -434,14 +442,9 @@ DevicesNotSkip:
 			for (auto CaptureIter = PcapRunningList.begin();CaptureIter != PcapRunningList.end();)
 			{
 				if (*CaptureIter == CaptureDevice)
-				{
 					CaptureIter = PcapRunningList.erase(CaptureIter);
-					if (CaptureIter == PcapRunningList.end())
-						break;
-				}
-				else {
+				else 
 					++CaptureIter;
-				}
 			}
 			CaptureMutex.unlock();
 

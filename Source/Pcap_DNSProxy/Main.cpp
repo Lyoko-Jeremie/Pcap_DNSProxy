@@ -170,11 +170,34 @@ bool ReadCommands(
 	//Flush DNS Cache from user.
 		if (Commands == COMMAND_FLUSH_DNS)
 		{
-		#if defined(PLATFORM_WIN)
-			FlushDNSMailSlotSender();
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			FlushDNSFIFOSender();
-		#endif
+		//Remove single domain cache.
+			if (argc > 2)
+			{
+			#if defined(PLATFORM_WIN)
+				if (wcsnlen_s(argv[2U], FILE_BUFFER_SIZE) <= DOMAIN_MINSIZE && wcsnlen_s(argv[2U], FILE_BUFFER_SIZE) >= DOMAIN_MAXSIZE)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				if (strnlen(argv[2U], FILE_BUFFER_SIZE) <= DOMAIN_MINSIZE && strnlen(argv[2U], FILE_BUFFER_SIZE) >= DOMAIN_MAXSIZE)
+			#endif
+				{
+					std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
+					fwprintf_s(stderr, L"Domain name parameter is too long.\n");
+				}
+				else {
+				#if defined(PLATFORM_WIN)
+					FlushDNSMailSlotSender(argv[2U]);
+				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+					FlushDNSFIFOSender(argv[2U]);
+				#endif
+				}
+			}
+		//Flush all DNS cache.
+			else {
+			#if defined(PLATFORM_WIN)
+				FlushDNSMailSlotSender(nullptr);
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				FlushDNSFIFOSender(nullptr);
+			#endif
+			}
 
 			return false;
 		}
@@ -227,12 +250,16 @@ bool ReadCommands(
 			#if defined(ENABLE_LIBSODIUM)
 				if (MBSToWCSString(SODIUM_VERSION_STRING, strlen(SODIUM_VERSION_STRING), LibVersion))
 					fwprintf_s(stderr, L"LibSodium version %ls\n", LibVersion.c_str());
+				else 
+					fwprintf_s(stderr, L"Convert multiple byte or wide char string error.\n");
 			#endif
 
 			//WinPcap or LibPcap version
 			#if defined(ENABLE_PCAP)
 				if (MBSToWCSString(pcap_lib_version(), strlen(pcap_lib_version()), LibVersion))
 					fwprintf_s(stderr, L"%ls\n", LibVersion.c_str());
+				else 
+					fwprintf_s(stderr, L"Convert multiple byte or wide char string error.\n");
 			#endif
 		#else
 			fwprintf(stderr, L"No any available libraries.\n");
@@ -262,6 +289,7 @@ bool ReadCommands(
 			fwprintf_s(stderr, L"   --lib-version:         Print current version of libraries on screen.\n");
 			fwprintf_s(stderr, L"   -h/--help:             Print help messages on screen.\n");
 			fwprintf_s(stderr, L"   --flush-dns:           Flush all DNS cache in program and system immediately.\n");
+			fwprintf_s(stderr, L"   --flush-dns Domain:    Flush cache of Domain in program and all in system immediately.\n");
 		#if defined(PLATFORM_WIN)
 			fwprintf_s(stderr, L"   --first-setup:         Test local firewall.\n");
 		#endif
@@ -331,7 +359,6 @@ bool ReadCommands(
 				crypto_box_keypair(PublicKey, SecretKey.Buffer);
 
 			//Write public key.
-				sodium_memzero(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);
 				if (sodium_bin2hex(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, PublicKey, crypto_box_PUBLICKEYBYTES) == nullptr)
 				{
 					fclose(FileHandle);

@@ -107,7 +107,7 @@
 //Version definitions
 #define CONFIG_VERSION_POINT_THREE                    0.3
 #define CONFIG_VERSION                                0.4                         //Current configuration file version
-#define FULL_VERSION                                  L"0.4.6.4"
+#define FULL_VERSION                                  L"0.4.6.5"
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
 
 //Size and length definitions
@@ -244,6 +244,7 @@
 	#define SID_ADMINISTRATORS_GROUP                      L"S-1-5-32-544"                              //Windows SID of Administrators group
 	#define MAILSLOT_NAME                                 L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot"   //MailSlot name
 	#define MAILSLOT_MESSAGE_FLUSH_DNS                    L"Flush DNS cache of Pcap_DNSProxy"          //The mailslot message to flush dns cache
+	#define MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN             L"Flush DNS cache of Pcap_DNSProxy: "        //The mailslot message to flush dns cache(Single domain)
 	#define SYSTEM_SERVICE_NAME                           L"PcapDNSProxyService"                       //System service name
 	#define DEFAULT_ICMP_PADDING_DATA                     ("abcdefghijklmnopqrstuvwabcdefghi")         //ICMP padding data in Windows
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -263,6 +264,7 @@
 	#endif
 	#define FIFO_PATH_NAME                                ("/tmp/pcap_dnsproxy_fifo")                   //FIFO pathname
 	#define FIFO_MESSAGE_FLUSH_DNS                        ("Flush DNS cache of Pcap_DNSProxy")          //The FIFO message to flush dns cache
+	#define FIFO_MESSAGE_FLUSH_DNS_DOMAIN                 ("Flush DNS cache of Pcap_DNSProxy: ")        //The FIFO message to flush dns cache(Single domain)
 #endif
 #define DEFAULT_HTTP_VERSION                          "1.1"                       //Default HTTP version
 #if defined(PLATFORM_MACX)
@@ -933,6 +935,10 @@ bool __fastcall MBSToWCSString(
 	const char *Buffer, 
 	const size_t MaxLen, 
 	std::wstring &Target);
+bool __fastcall WCSToMBSString(
+	const wchar_t *Buffer, 
+	const size_t MaxLen, 
+	std::string &Target);
 void __fastcall CaseConvert(
 	const bool IsLowerToUpper, 
 	char *Buffer, 
@@ -1228,15 +1234,15 @@ size_t WINAPI ServiceMain(
 bool __fastcall FlushDNSMailSlotMonitor(
 	void);
 bool WINAPI FlushDNSMailSlotSender(
-	void);
+	const wchar_t *Domain);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 bool FlushDNSFIFOMonitor(
 	void);
 bool FlushDNSFIFOSender(
-	void);
+	const char *Domain);
 #endif
-void __fastcall FlushAllDNSCache(
-	void);
+void __fastcall FlushDNSCache(
+	const char *Domain);
 
 
 //////////////////////////////////////////////////

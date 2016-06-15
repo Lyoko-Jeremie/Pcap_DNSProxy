@@ -1574,11 +1574,11 @@ bool __fastcall DNSCruveGetSignatureData(
 				return false;
 
 		//Check Signature.
-			std::shared_ptr<char> DeBuffer(new char[PACKET_MAXSIZE]());
-			sodium_memzero(DeBuffer.get(), PACKET_MAXSIZE);
+			char DeBuffer[PACKET_MAXSIZE];
+			sodium_memzero(DeBuffer, PACKET_MAXSIZE);
 			if (PacketTarget == nullptr || 
 				crypto_sign_open(
-					(uint8_t *)DeBuffer.get(), 
+					(uint8_t *)DeBuffer, 
 					&SignatureLength, 
 					(uint8_t *)(Buffer + sizeof(dns_record_txt) + sizeof(dnscurve_txt_hdr)), ((pdns_record_txt)Buffer)->TXT_Length - sizeof(dnscurve_txt_hdr), 
 					PacketTarget->ServerPublicKey) == LIBSODIUM_ERROR)
@@ -1596,10 +1596,10 @@ bool __fastcall DNSCruveGetSignatureData(
 
 		//Signature available time check
 			if (PacketTarget->ServerFingerprint != nullptr && 
-				time(nullptr) >= (time_t)ntohl(((pdnscurve_txt_signature)DeBuffer.get())->CertTime_Begin) && time(nullptr) <= (time_t)ntohl(((pdnscurve_txt_signature)DeBuffer.get())->CertTime_End))
+				time(nullptr) >= (time_t)ntohl(((pdnscurve_txt_signature)DeBuffer)->CertTime_Begin) && time(nullptr) <= (time_t)ntohl(((pdnscurve_txt_signature)DeBuffer)->CertTime_End))
 			{
-				memcpy_s(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, ((pdnscurve_txt_signature)DeBuffer.get())->MagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-				memcpy_s(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES, ((pdnscurve_txt_signature)DeBuffer.get())->PublicKey, crypto_box_PUBLICKEYBYTES);
+				memcpy_s(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, ((pdnscurve_txt_signature)DeBuffer)->MagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+				memcpy_s(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES, ((pdnscurve_txt_signature)DeBuffer)->PublicKey, crypto_box_PUBLICKEYBYTES);
 				if (!DNSCurveParameter.ClientEphemeralKey)
 				{
 					if (crypto_box_beforenm(

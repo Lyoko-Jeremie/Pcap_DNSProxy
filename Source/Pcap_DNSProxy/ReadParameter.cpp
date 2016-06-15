@@ -3589,7 +3589,7 @@ bool __fastcall ReadDNSCurveKey(
 			memcpy_s(KeyData, crypto_box_SECRETKEYBYTES, Target, crypto_box_PUBLICKEYBYTES);
 		}
 		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNSCurve Key error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNSCurve Key format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 			return false;
 		}
 	}
