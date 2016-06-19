@@ -674,15 +674,13 @@ GlobalStatus::~GlobalStatus(
 		closesocket(SocketIter);
 	}
 
-//Close all file handles
-#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+//Close all file handles and WinSock cleanup.
+#if defined(PLATFORM_WIN)
 	_fcloseall();
-
-//WinSock cleanup
-	#if defined(PLATFORM_WIN)
-		if (Initialization_WinSock)
-			WSACleanup();
-	#endif
+	if (Initialization_WinSock)
+		WSACleanup();
+#elif (defined(PLATFORM_LINUX) && !defined(PLATFORM_OPENWRT))
+	fcloseall();
 #endif
 
 //Free pointer.

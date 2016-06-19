@@ -13,7 +13,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 -------------------------------------------------------------------------------
 
 
-安装方法：
+安装方法（使用已编译好的二进制可执行文件）：
 
 1.访问 https://github.com/chengr28/Pcap_DNSProxy/tree/Release 使用 GitHub 的 Download ZIP 功能将所有文件下载到本地
 2.打开下载回来的 ZIP 文件，将 Mac 目录解压到磁盘的任意位置
@@ -34,6 +34,35 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 输入 127.0.0.1(IPv4)/::1(IPv6)
     * 请务必确保只填入这两个地址，填入其它地址可能会导致系统选择其它 DNS 服务器绕过程序的代理
   * 按 "好" 再按 "应用" 即可
+
+
+-------------------------------------------------------------------------------
+
+
+安装方法（编译二进制可执行文件）：
+
+1.准备程序编译环境
+  * Homebrew 可访问 http://brew.sh 获取
+  * CMake 可访问 https://cmake.org 获取
+  * Libsodium 可访问 https://github.com/jedisct1/libsodium 获取
+    * 编译时如果剥离 Libsodium 的依赖则可跳过编译和安装下表的依赖库和工具，具体参见下文的介绍，不建议使用
+    * 获得 root 权限后进入目录，运行 ./autogen.sh -> ./configure -> make -> make install 即可
+
+2.编译 Pcap_DNSProxy 程序并配置程序属性
+  * 切勿更改脚本的换行格式 (UNIX/LF)
+  * 使用终端进入 Source/Scripts 目录，使用 chmod 755 CMake_Build.sh 使脚本获得执行权限
+  * 使用 ./CMake_Build.sh 执行编译程序
+    * 添加参数 --enable-static 即 ./CMake_Build.sh --enable-static 可启用静态编译
+    * 脚本所进行的操作：
+      * CMake 将编译并在 Release 目录生成 Pcap_DNSProxy 程序
+      * 设置 Pcap_DNSProxy 程序以及 pcap_dnsproxy.service.plist 服务控制脚本的基本读写可执行权限
+      * 设置 Mac_(Un)Install.sh 服务控制安装脚本的基本读写可执行权
+      * 从 ExampleConfig 复制默认配置文件到 Release 目录
+    * 执行时使用 ./CMake_Build.sh --disable-libsodium 可剥离 Libsodium 的依赖，不建议使用
+      * 剥离后编译时将不需要 Libsodium 库的支持
+      * 剥离后程序将完全失去支持 DNSCurve/DNSCrypt 协议的功能，且运行时将不会产生任何错误提示，慎用！
+
+3.按照安装方法（使用已编译好的二进制可执行文件）中第3步的操作继续进行即可
 
 
 -------------------------------------------------------------------------------

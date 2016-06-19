@@ -19,7 +19,7 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-# Back to main directory and make a Release directory.
+# Create a release directory.
 cd ..
 rm -Rrf Object
 mkdir Release
@@ -45,17 +45,13 @@ mv -f Object/Pcap_DNSProxy Release
 rm -Rrf Object
 
 # Program settings
-chmod 755 Release/Pcap_DNSProxy
-chmod 755 Scripts/Linux_Install.Systemd.sh
-chmod 755 Scripts/Linux_Install.SysV.sh
-chmod 755 Scripts/Linux_Uninstall.Systemd.sh
-chmod 755 Scripts/Linux_Uninstall.SysV.sh
-chmod 755 Scripts/Update_Routing.sh
-chmod 755 Scripts/Update_WhiteList.sh
 cp ExampleConfig/PcapDNSProxyService Release/PcapDNSProxyService
 cp ExampleConfig/Pcap_DNSProxy.service Release/Pcap_DNSProxy.service
+cp ExampleConfig/pcap_dnsproxy.service.plist Release/pcap_dnsproxy.service.plist
 cp ExampleConfig/Config.ini Release/Config.conf
 cp ExampleConfig/Hosts.ini Release/Hosts.conf
 cp ExampleConfig/IPFilter.ini Release/IPFilter.conf
 cp ExampleConfig/Routing.txt Release/Routing.txt
 cp ExampleConfig/WhiteList.txt Release/WhiteList.txt
+chmod -R 755 Release
+chmod -R 755 Scripts

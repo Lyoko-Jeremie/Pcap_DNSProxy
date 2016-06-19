@@ -24,7 +24,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * Bison 可訪問 https://www.gnu.org/software/bison 獲取
     * M4 可訪問 https://www.gnu.org/software/m4 獲取
     * Flex 可訪問 http://flex.sourceforge.net 獲取
-    * CMake 可訪問 http://www.cmake.org 獲取
+    * CMake 可訪問 https://cmake.org 獲取
     * LibPcap 可訪問 http://www.tcpdump.org/#latest-release 獲取
       * 獲得 root 許可權後使用 ./configure -> make -> make install 即可
       * 部分 Linux 發行版本可能還需要 LibPcap-Dev 工具的支援
@@ -43,15 +43,15 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 2.編譯 Pcap_DNSProxy 程式並配置程式屬性
   * 切勿更改腳本的換行格式 (UNIX/LF)
-  * 使用終端進入 Source/Scripts 目錄，使用 chmod 755 Linux_Build.sh 使腳本獲得執行許可權
-  * 使用 ./Linux_Build.sh 執行編譯器
-    * 添加參數 --enable-static 即 ./Linux_Build.sh --enable-static 可啟用靜態編譯
+  * 使用終端進入 Source/Scripts 目錄，使用 chmod 755 CMake_Build.sh 使腳本獲得執行許可權
+  * 使用 ./CMake_Build.sh 執行編譯器
+    * 添加參數 --enable-static 即 ./CMake_Build.sh --enable-static 可啟用靜態編譯
     * 腳本所進行的操作：
-      * CMake 將編譯並在 Release 目錄生成 Pcap_DNSProxy 和 KeyPairGenerator 程式
-      * 設置 Pcap_DNSProxy 和 KeyPairGenerator 程式以及 PcapDNSProxyService 和 Pcap_DNSProxy.service 服務控制腳本的基本讀寫可執行許可權
+      * CMake 將編譯並在 Release 目錄生成 Pcap_DNSProxy 程式
+      * 設置 Pcap_DNSProxy 程式以及 PcapDNSProxyService 和 Pcap_DNSProxy.service 服務控制腳本的基本讀寫可執行許可權
       * 設置 Linux_(Un)Install.Systemd.sh 以及 Linux_(Un)Install.SysV.sh 服務控制安裝腳本的基本讀寫可執行許可權
       * 從 ExampleConfig 複製預設設定檔到 Release 目錄
-    * 執行時使用 ./Linux_Build.sh --disable-libsodium 可剝離 Libsodium 的依賴，不建議使用
+    * 執行時使用 ./CMake_Build.sh --disable-libsodium 可剝離 Libsodium 的依賴，不建議使用
       * 剝離後編譯時將不需要 Libsodium 庫的支援
       * 剝離後程式將完全失去支援 DNSCurve/DNSCrypt 協定的功能，且運行時將不會產生任何錯誤提示，慎用！
 

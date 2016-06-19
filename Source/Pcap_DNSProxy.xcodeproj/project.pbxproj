@@ -42,25 +42,11 @@
 
 /* Begin PBXFileReference section */
 		D9112FA51CD7637100540550 /* libpcap.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libpcap.tbd; path = usr/lib/libpcap.tbd; sourceTree = SDKROOT; };
-		D911301F1CD766E300540550 /* resource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = resource.h; sourceTree = "<group>"; };
 		D93C46FE1CD7582600CD334A /* Pcap_DNSProxy */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Pcap_DNSProxy; sourceTree = BUILT_PRODUCTS_DIR; };
-		D93C47091CD7594E00CD334A /* Changelog(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "Changelog(zh_Hans).txt"; path = "Documents/Changelog(zh_Hans).txt"; sourceTree = "<group>"; };
-		D93C470A1CD7594E00CD334A /* Changelog(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "Changelog(zh_Hant).txt"; path = "Documents/Changelog(zh_Hant).txt"; sourceTree = "<group>"; };
-		D93C470B1CD7594E00CD334A /* FAQ_Linux_Mac(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ_Linux_Mac(zh_Hans).txt"; path = "Documents/FAQ_Linux_Mac(zh_Hans).txt"; sourceTree = "<group>"; };
-		D93C470C1CD7594E00CD334A /* FAQ_Linux_Mac(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ_Linux_Mac(zh_Hant).txt"; path = "Documents/FAQ_Linux_Mac(zh_Hant).txt"; sourceTree = "<group>"; };
-		D93C470D1CD7594E00CD334A /* FAQ(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ(zh_Hans).txt"; path = "Documents/FAQ(zh_Hans).txt"; sourceTree = "<group>"; };
-		D93C470E1CD7594E00CD334A /* FAQ(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "FAQ(zh_Hant).txt"; path = "Documents/FAQ(zh_Hant).txt"; sourceTree = "<group>"; };
-		D93C470F1CD7594E00CD334A /* ReadMe_Linux(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe_Linux(zh_Hans).txt"; path = "Documents/ReadMe_Linux(zh_Hans).txt"; sourceTree = "<group>"; };
-		D93C47101CD7594E00CD334A /* ReadMe_Linux(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe_Linux(zh_Hant).txt"; path = "Documents/ReadMe_Linux(zh_Hant).txt"; sourceTree = "<group>"; };
-		D93C47111CD7594E00CD334A /* ReadMe_Mac(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe_Mac(zh_Hans).txt"; path = "Documents/ReadMe_Mac(zh_Hans).txt"; sourceTree = "<group>"; };
-		D93C47121CD7594E00CD334A /* ReadMe_Mac(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe_Mac(zh_Hant).txt"; path = "Documents/ReadMe_Mac(zh_Hant).txt"; sourceTree = "<group>"; };
-		D93C47131CD7594E00CD334A /* ReadMe(zh_Hans).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe(zh_Hans).txt"; path = "Documents/ReadMe(zh_Hans).txt"; sourceTree = "<group>"; };
-		D93C47141CD7594E00CD334A /* ReadMe(zh_Hant).txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "ReadMe(zh_Hant).txt"; path = "Documents/ReadMe(zh_Hant).txt"; sourceTree = "<group>"; };
 		D93C47151CD7596A00CD334A /* Base.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Base.cpp; sourceTree = "<group>"; };
 		D93C47161CD7596A00CD334A /* Base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Base.h; sourceTree = "<group>"; };
 		D93C47171CD7596A00CD334A /* Capture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Capture.cpp; sourceTree = "<group>"; };
 		D93C47181CD7596A00CD334A /* Capture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Capture.h; sourceTree = "<group>"; };
-		D93C47191CD7596A00CD334A /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		D93C471A1CD7596A00CD334A /* Configuration.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Configuration.cpp; sourceTree = "<group>"; };
 		D93C471B1CD7596A00CD334A /* Configuration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Configuration.h; sourceTree = "<group>"; };
 		D93C471C1CD7596A00CD334A /* DNSCurve.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DNSCurve.cpp; sourceTree = "<group>"; };
@@ -90,46 +76,6 @@
 		D93C47451CD7599300CD334A /* Service.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Service.cpp; sourceTree = "<group>"; };
 		D93C47461CD7599300CD334A /* Service.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Service.h; sourceTree = "<group>"; };
 		D93C47471CD7599300CD334A /* Structures.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Structures.h; sourceTree = "<group>"; };
-		D93C474A1CD759BB00CD334A /* bittypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bittypes.h; path = WinPcap/bittypes.h; sourceTree = "<group>"; };
-		D93C474B1CD759BB00CD334A /* ip6_misc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ip6_misc.h; path = WinPcap/ip6_misc.h; sourceTree = "<group>"; };
-		D93C474C1CD759BB00CD334A /* LibPacket.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibPacket.a; path = WinPcap/LibPacket.a; sourceTree = "<group>"; };
-		D93C474D1CD759BB00CD334A /* LibWPCAP.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibWPCAP.a; path = WinPcap/LibWPCAP.a; sourceTree = "<group>"; };
-		D93C474E1CD759BB00CD334A /* Packet_x64.lib */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = Packet_x64.lib; path = WinPcap/Packet_x64.lib; sourceTree = "<group>"; };
-		D93C474F1CD759BB00CD334A /* Packet_x86.lib */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = Packet_x86.lib; path = WinPcap/Packet_x86.lib; sourceTree = "<group>"; };
-		D93C47501CD759BB00CD334A /* Packet32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Packet32.h; path = WinPcap/Packet32.h; sourceTree = "<group>"; };
-		D93C47551CD759C700CD334A /* pcap-bpf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "pcap-bpf.h"; path = "WinPcap/pcap-bpf.h"; sourceTree = "<group>"; };
-		D93C47561CD759C700CD334A /* pcap-namedb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "pcap-namedb.h"; path = "WinPcap/pcap-namedb.h"; sourceTree = "<group>"; };
-		D93C47571CD759C700CD334A /* pcap-stdinc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "pcap-stdinc.h"; path = "WinPcap/pcap-stdinc.h"; sourceTree = "<group>"; };
-		D93C47581CD759C700CD334A /* pcap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pcap.h; path = WinPcap/pcap.h; sourceTree = "<group>"; };
-		D93C47591CD759C700CD334A /* remote-ext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "remote-ext.h"; path = "WinPcap/remote-ext.h"; sourceTree = "<group>"; };
-		D93C475A1CD759C700CD334A /* Win32-Extensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "Win32-Extensions.h"; path = "WinPcap/Win32-Extensions.h"; sourceTree = "<group>"; };
-		D93C475B1CD759C700CD334A /* WPCAP_x64.lib */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = WPCAP_x64.lib; path = WinPcap/WPCAP_x64.lib; sourceTree = "<group>"; };
-		D93C475C1CD759C700CD334A /* WPCAP_x86.lib */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = WPCAP_x86.lib; path = WinPcap/WPCAP_x86.lib; sourceTree = "<group>"; };
-		D93C47601CD759DB00CD334A /* bluetooth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bluetooth.h; path = WinPcap/pcap/bluetooth.h; sourceTree = "<group>"; };
-		D93C47611CD759DB00CD334A /* bpf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = bpf.h; path = WinPcap/pcap/bpf.h; sourceTree = "<group>"; };
-		D93C47621CD759DB00CD334A /* namedb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = namedb.h; path = WinPcap/pcap/namedb.h; sourceTree = "<group>"; };
-		D93C47631CD759DB00CD334A /* pcap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pcap.h; path = WinPcap/pcap/pcap.h; sourceTree = "<group>"; };
-		D93C47641CD759DB00CD334A /* sll.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sll.h; path = WinPcap/pcap/sll.h; sourceTree = "<group>"; };
-		D93C47651CD759DB00CD334A /* usb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = usb.h; path = WinPcap/pcap/usb.h; sourceTree = "<group>"; };
-		D93C47661CD759DB00CD334A /* vlan.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vlan.h; path = WinPcap/pcap/vlan.h; sourceTree = "<group>"; };
-		D93C47681CD75A5500CD334A /* Config.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Config.ini; path = ExampleConfig/Config.ini; sourceTree = "<group>"; };
-		D93C47691CD75A5500CD334A /* Hosts.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Hosts.ini; path = ExampleConfig/Hosts.ini; sourceTree = "<group>"; };
-		D93C476A1CD75A5500CD334A /* IPFilter.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = IPFilter.ini; path = ExampleConfig/IPFilter.ini; sourceTree = "<group>"; };
-		D93C476B1CD75A5500CD334A /* Pcap_DNSProxy.service */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Pcap_DNSProxy.service; path = ExampleConfig/Pcap_DNSProxy.service; sourceTree = "<group>"; };
-		D93C476C1CD75A5500CD334A /* pcap_dnsproxy.service.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = pcap_dnsproxy.service.plist; path = ExampleConfig/pcap_dnsproxy.service.plist; sourceTree = "<group>"; };
-		D93C476D1CD75A5500CD334A /* PcapDNSProxyService */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = PcapDNSProxyService; path = ExampleConfig/PcapDNSProxyService; sourceTree = "<group>"; };
-		D93C476E1CD75A5500CD334A /* Routing.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = Routing.txt; path = ExampleConfig/Routing.txt; sourceTree = "<group>"; };
-		D93C476F1CD75A5500CD334A /* ServiceControl.bat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = ServiceControl.bat; path = ExampleConfig/ServiceControl.bat; sourceTree = "<group>"; };
-		D93C47701CD75A5500CD334A /* WhiteList.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WhiteList.txt; path = ExampleConfig/WhiteList.txt; sourceTree = "<group>"; };
-		D93C47721CD75A6B00CD334A /* Linux_Build.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = Linux_Build.sh; path = Scripts/Linux_Build.sh; sourceTree = "<group>"; };
-		D93C47731CD75A6B00CD334A /* Linux_Install.Systemd.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = Linux_Install.Systemd.sh; path = Scripts/Linux_Install.Systemd.sh; sourceTree = "<group>"; };
-		D93C47741CD75A6B00CD334A /* Linux_Install.SysV.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = Linux_Install.SysV.sh; path = Scripts/Linux_Install.SysV.sh; sourceTree = "<group>"; };
-		D93C47751CD75A6B00CD334A /* Linux_Uninstall.Systemd.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = Linux_Uninstall.Systemd.sh; path = Scripts/Linux_Uninstall.Systemd.sh; sourceTree = "<group>"; };
-		D93C47761CD75A6B00CD334A /* Linux_Uninstall.SysV.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = Linux_Uninstall.SysV.sh; path = Scripts/Linux_Uninstall.SysV.sh; sourceTree = "<group>"; };
-		D93C47771CD75A6B00CD334A /* Mac_Install.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = Mac_Install.sh; path = Scripts/Mac_Install.sh; sourceTree = "<group>"; };
-		D93C47781CD75A6B00CD334A /* Mac_Uninstall.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = Mac_Uninstall.sh; path = Scripts/Mac_Uninstall.sh; sourceTree = "<group>"; };
-		D93C47791CD75A6B00CD334A /* Update_Routing.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = Update_Routing.sh; path = Scripts/Update_Routing.sh; sourceTree = "<group>"; };
-		D93C477A1CD75A6B00CD334A /* Update_WhiteList.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; name = Update_WhiteList.sh; path = Scripts/Update_WhiteList.sh; sourceTree = "<group>"; };
 		D93C47901CD75B3800CD334A /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = common.h; path = LibSodium/private/common.h; sourceTree = "<group>"; };
 		D93C47911CD75B3800CD334A /* curve25519_ref10.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = curve25519_ref10.h; path = LibSodium/private/curve25519_ref10.h; sourceTree = "<group>"; };
 		D93C47921CD75B4200CD334A /* core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = core.h; path = LibSodium/core.h; sourceTree = "<group>"; };
@@ -191,8 +137,6 @@
 		D93C47CA1CD75B4E00CD334A /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utils.h; path = LibSodium/utils.h; sourceTree = "<group>"; };
 		D93C47CB1CD75E9200CD334A /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = version.h; path = LibSodium/version.h; sourceTree = "<group>"; };
 		D93C47CC1CD75FF700CD334A /* LibSodium_Mac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibSodium_Mac.a; path = LibSodium/LibSodium_Mac.a; sourceTree = "<group>"; };
-		D93C47CD1CD75FF700CD334A /* LibSodium_x64.lib */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibSodium_x64.lib; path = LibSodium/LibSodium_x64.lib; sourceTree = "<group>"; };
-		D93C47CE1CD75FF700CD334A /* LibSodium_x86.lib */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibSodium_x86.lib; path = LibSodium/LibSodium_x86.lib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -212,11 +156,8 @@
 			isa = PBXGroup;
 			children = (
 				D93C478D1CD75B0700CD334A /* Dependency */,
-				D93C47081CD7593F00CD334A /* Documents */,
-				D93C47671CD75A4600CD334A /* ExampleConfig */,
 				D93C47001CD7582600CD334A /* Pcap_DNSProxy */,
 				D93C46FF1CD7582600CD334A /* Products */,
-				D93C47711CD75A6000CD334A /* Scripts */,
 			);
 			sourceTree = "<group>";
 		};
@@ -262,101 +203,10 @@
 				D93C47351CD7598500CD334A /* Process.h */,
 				D93C47371CD7598500CD334A /* Protocol.h */,
 				D93C47391CD7598500CD334A /* Proxy.h */,
-				D911301F1CD766E300540550 /* resource.h */,
 				D93C47461CD7599300CD334A /* Service.h */,
 				D93C47471CD7599300CD334A /* Structures.h */,
-				D93C47191CD7596A00CD334A /* CMakeLists.txt */,
 			);
 			path = Pcap_DNSProxy;
-			sourceTree = "<group>";
-		};
-		D93C47081CD7593F00CD334A /* Documents */ = {
-			isa = PBXGroup;
-			children = (
-				D93C47091CD7594E00CD334A /* Changelog(zh_Hans).txt */,
-				D93C470A1CD7594E00CD334A /* Changelog(zh_Hant).txt */,
-				D93C470B1CD7594E00CD334A /* FAQ_Linux_Mac(zh_Hans).txt */,
-				D93C470C1CD7594E00CD334A /* FAQ_Linux_Mac(zh_Hant).txt */,
-				D93C470D1CD7594E00CD334A /* FAQ(zh_Hans).txt */,
-				D93C470E1CD7594E00CD334A /* FAQ(zh_Hant).txt */,
-				D93C470F1CD7594E00CD334A /* ReadMe_Linux(zh_Hans).txt */,
-				D93C47101CD7594E00CD334A /* ReadMe_Linux(zh_Hant).txt */,
-				D93C47111CD7594E00CD334A /* ReadMe_Mac(zh_Hans).txt */,
-				D93C47121CD7594E00CD334A /* ReadMe_Mac(zh_Hant).txt */,
-				D93C47131CD7594E00CD334A /* ReadMe(zh_Hans).txt */,
-				D93C47141CD7594E00CD334A /* ReadMe(zh_Hant).txt */,
-			);
-			name = Documents;
-			sourceTree = "<group>";
-		};
-		D93C47491CD7599F00CD334A /* WinPcap */ = {
-			isa = PBXGroup;
-			children = (
-				D93C474C1CD759BB00CD334A /* LibPacket.a */,
-				D93C474D1CD759BB00CD334A /* LibWPCAP.a */,
-				D93C474A1CD759BB00CD334A /* bittypes.h */,
-				D93C474B1CD759BB00CD334A /* ip6_misc.h */,
-				D93C47501CD759BB00CD334A /* Packet32.h */,
-				D93C47551CD759C700CD334A /* pcap-bpf.h */,
-				D93C47561CD759C700CD334A /* pcap-namedb.h */,
-				D93C47571CD759C700CD334A /* pcap-stdinc.h */,
-				D93C47581CD759C700CD334A /* pcap.h */,
-				D93C47591CD759C700CD334A /* remote-ext.h */,
-				D93C475A1CD759C700CD334A /* Win32-Extensions.h */,
-				D93C474E1CD759BB00CD334A /* Packet_x64.lib */,
-				D93C474F1CD759BB00CD334A /* Packet_x86.lib */,
-				D93C475B1CD759C700CD334A /* WPCAP_x64.lib */,
-				D93C475C1CD759C700CD334A /* WPCAP_x86.lib */,
-				D93C475F1CD759CE00CD334A /* pcap */,
-			);
-			name = WinPcap;
-			path = Pcap_DNSProxy;
-			sourceTree = "<group>";
-		};
-		D93C475F1CD759CE00CD334A /* pcap */ = {
-			isa = PBXGroup;
-			children = (
-				D93C47601CD759DB00CD334A /* bluetooth.h */,
-				D93C47611CD759DB00CD334A /* bpf.h */,
-				D93C47621CD759DB00CD334A /* namedb.h */,
-				D93C47631CD759DB00CD334A /* pcap.h */,
-				D93C47641CD759DB00CD334A /* sll.h */,
-				D93C47651CD759DB00CD334A /* usb.h */,
-				D93C47661CD759DB00CD334A /* vlan.h */,
-			);
-			name = pcap;
-			sourceTree = "<group>";
-		};
-		D93C47671CD75A4600CD334A /* ExampleConfig */ = {
-			isa = PBXGroup;
-			children = (
-				D93C476D1CD75A5500CD334A /* PcapDNSProxyService */,
-				D93C476F1CD75A5500CD334A /* ServiceControl.bat */,
-				D93C47681CD75A5500CD334A /* Config.ini */,
-				D93C47691CD75A5500CD334A /* Hosts.ini */,
-				D93C476A1CD75A5500CD334A /* IPFilter.ini */,
-				D93C476C1CD75A5500CD334A /* pcap_dnsproxy.service.plist */,
-				D93C476B1CD75A5500CD334A /* Pcap_DNSProxy.service */,
-				D93C476E1CD75A5500CD334A /* Routing.txt */,
-				D93C47701CD75A5500CD334A /* WhiteList.txt */,
-			);
-			name = ExampleConfig;
-			sourceTree = "<group>";
-		};
-		D93C47711CD75A6000CD334A /* Scripts */ = {
-			isa = PBXGroup;
-			children = (
-				D93C47721CD75A6B00CD334A /* Linux_Build.sh */,
-				D93C47731CD75A6B00CD334A /* Linux_Install.Systemd.sh */,
-				D93C47741CD75A6B00CD334A /* Linux_Install.SysV.sh */,
-				D93C47751CD75A6B00CD334A /* Linux_Uninstall.Systemd.sh */,
-				D93C47761CD75A6B00CD334A /* Linux_Uninstall.SysV.sh */,
-				D93C47771CD75A6B00CD334A /* Mac_Install.sh */,
-				D93C47781CD75A6B00CD334A /* Mac_Uninstall.sh */,
-				D93C47791CD75A6B00CD334A /* Update_Routing.sh */,
-				D93C477A1CD75A6B00CD334A /* Update_WhiteList.sh */,
-			);
-			name = Scripts;
 			sourceTree = "<group>";
 		};
 		D93C478D1CD75B0700CD334A /* Dependency */ = {
@@ -364,7 +214,6 @@
 			children = (
 				D9112FA51CD7637100540550 /* libpcap.tbd */,
 				D93C478E1CD75B2200CD334A /* LibSodium */,
-				D93C47491CD7599F00CD334A /* WinPcap */,
 			);
 			name = Dependency;
 			sourceTree = "<group>";
@@ -431,8 +280,6 @@
 				D93C47C91CD75B4E00CD334A /* sodium.h */,
 				D93C47CA1CD75B4E00CD334A /* utils.h */,
 				D93C47CB1CD75E9200CD334A /* version.h */,
-				D93C47CD1CD75FF700CD334A /* LibSodium_x64.lib */,
-				D93C47CE1CD75FF700CD334A /* LibSodium_x86.lib */,
 				D93C478F1CD75B2A00CD334A /* private */,
 			);
 			name = LibSodium;

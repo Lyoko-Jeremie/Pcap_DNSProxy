@@ -12,7 +12,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 安裝方法（需要以管理員身份進行）：
 
-1.訪問 http://www.winpcap.org/install/default.htm 下載並以管理員許可權安裝 WinPcap
+1.訪問 https://www.winpcap.org/install/default.htm 下載並以管理員許可權安裝 WinPcap
   * WinPcap 只需要安裝一次，以前安裝過最新版本或以後更新本工具時請從第2步開始操作
   * 如果 WinPcap 提示已安裝舊版本無法繼續時，參見 FAQ 中 運行結果分析 一節
   * 安裝時自啟動選項對工具的運行沒有影響，因為本工具直接調用 WinPcap API，不需要經過伺服器程式
