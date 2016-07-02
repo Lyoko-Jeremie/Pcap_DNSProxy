@@ -57,7 +57,7 @@ bool __fastcall ReadHostsData(
 			return true;
 
 //[Local Hosts] block(A part)
-	if (LabelType == 0 && (Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0) && 
+	if (LabelType == 0 && (Parameter.Target_Server_Local_IPv4.Storage.ss_family > 0 || Parameter.Target_Server_Local_IPv6.Storage.ss_family > 0) && 
 	#if defined(PLATFORM_WIN) //Case-insensitive in Windows
 		((FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") != std::wstring::npos && 
 		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"whitelist.txt") && 
@@ -198,7 +198,7 @@ bool __fastcall ReadHostsData(
 	{
 		if (Parameter.LocalMain)
 			return true;
-		else if (Parameter.LocalHosts && (Parameter.DNSTarget.Local_IPv4.Storage.ss_family > 0 || Parameter.DNSTarget.Local_IPv6.Storage.ss_family > 0))
+		else if (Parameter.LocalHosts && (Parameter.Target_Server_Local_IPv4.Storage.ss_family > 0 || Parameter.Target_Server_Local_IPv6.Storage.ss_family > 0))
 			return ReadLocalHostsData(Data, FileIndex, Line);
 	}
 
@@ -276,7 +276,7 @@ bool __fastcall ReadOtherHostsData(
 	HOSTS_TABLE HostsTableTemp;
 	if (ItemType == LABEL_HOSTS_TYPE_WHITE_EXTENDED || ItemType == LABEL_HOSTS_TYPE_BANNED_EXTENDED)
 	{
-	//Permit or Deny
+	//Permit or Deny mode check
 		if ((ItemType == LABEL_HOSTS_TYPE_WHITE_EXTENDED && 
 			((Data.find("DENY") != std::string::npos && Data.find("DENY") <= Separated) || 
 			(Data.find("Deny") != std::string::npos && Data.find("Deny") <= Separated) || 
@@ -294,20 +294,21 @@ bool __fastcall ReadOtherHostsData(
 
 	//Mark all data in list.
 		GetParameterListData(ListData, Data, Data.find(ASCII_COLON) + 1U, Separated);
-		for (auto StringIter:ListData)
+		for (const auto &StringIter:ListData)
 		{
 			RecordType = DNSTypeNameToBinary(StringIter.c_str());
 
 		//Number types
 			if (RecordType <= 0)
 			{
+				_set_errno(0);
 				Result = strtoul(StringIter.c_str(), nullptr, 0);
 				if (Result > 0 && Result <= UINT16_MAX)
 				{
 					HostsTableTemp.RecordTypeList.push_back(htons((uint16_t)Result));
 				}
 				else {
-					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNS Records type error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNS Records type error", errno, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 			}
@@ -448,7 +449,7 @@ bool __fastcall ReadAddressHostsData(
 	SSIZE_T Result = 0;
 
 //Mark all data in list.
-	for (auto StringIter:TargetListData)
+	for (const auto &StringIter:TargetListData)
 	{
 	//AAAA records(IPv6)
 		if (StringIter.find(ASCII_COLON) != std::string::npos)
@@ -486,7 +487,7 @@ bool __fastcall ReadAddressHostsData(
 	memset(Addr, 0, ADDR_STRING_MAXSIZE);
 
 //Mark all data in list.
-	for (auto StringIter:SourceListData)
+	for (const auto &StringIter:SourceListData)
 	{
 	//AAAA records(IPv6)
 		if (StringIter.find(ASCII_COLON) != std::string::npos)
@@ -670,7 +671,7 @@ bool __fastcall ReadMainHostsData(
 			return false;
 		}
 		else {
-		//Protocol setting
+		//Protocol settings
 			ADDRESS_PREFIX_BLOCK AddressPrefix;
 			uint16_t Protocol = 0;
 			if (SourceListData.front().find(ASCII_COLON) != std::string::npos)
@@ -679,9 +680,8 @@ bool __fastcall ReadMainHostsData(
 				Protocol = AF_INET;
 
 		//Mark all data in list.
-			for (auto StringIter:SourceListData)
+			for (const auto &StringIter:SourceListData)
 			{
-				memset(&AddressPrefix, 0, sizeof(ADDRESS_PREFIX_BLOCK));
 				if (!ReadAddressPrefixBlock(StringIter, 0, Protocol, &AddressPrefix, FileIndex, Line))
 					return false;
 				else 
@@ -731,7 +731,7 @@ bool __fastcall ReadMainHostsData(
 	SSIZE_T Result = 0;
 
 //Mark all data in list.
-	for (auto StringIter:HostsListData)
+	for (const auto &StringIter:HostsListData)
 	{
 		memset(&AddressUnionDataTemp, 0, sizeof(ADDRESS_UNION_DATA));
 		memset(Addr, 0, ADDR_STRING_MAXSIZE);

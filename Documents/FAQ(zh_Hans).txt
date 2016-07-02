@@ -134,6 +134,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * IPv6 total request number error - IPv6 请求总次数限制错误：填入主要/备用服务器的数量 * Multi Request Times = 总请求的数值，此数值不能超过 64
   * IPv4 packet TTL range error - IPv4 数据包 TTL 值范围错误：请确认该条目的内容
   * IPv6 packet Hop Limits range error - IPv6 数据包 Hop Limits 值范围错误：请确认该条目的内容
+  * Thread Pool number error - 线程池参数错误：请确认与 Thread Pool 相关参数的内容
   * DNSCurve target error - DNSCurve 协议使用的 DNS 目标服务器地址错误：请检查 DNSCurve 协议使用 DNS 服务器的地址
   * DNSCurve encryption options error - DNSCurve 协议加密选项配置错误：开启加密选项和只使用加密模式选项冲突
   * DNSCurve Encryption Only mode error - DNSCurve 协议只使用加密模式配置错误：只使用加密模式必须提供服务器的魔数和指纹
@@ -204,7 +205,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
 6.Pcap Error - Pcap 错误
   * Insufficient privileges or not any available network devices - 没有任何可用的网络适配器：请检查硬件设备和驱动程序是否安装正确，也可能权限不足
   * 本类型错误会直接将 WinPcap 的错误信息直接打印至错误报告
-  * WinPcap 错误信息的具体含义可移步 http://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
+  * WinPcap 错误信息的具体含义可移步 https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
 
 7.DNSCurve Error - DNSCurve 协议错误
   * Libsodium initialization error - Libsodium 库初始化错误：请与开发者联系

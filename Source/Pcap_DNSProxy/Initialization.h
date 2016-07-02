@@ -23,20 +23,19 @@
 CONFIGURATION_TABLE Parameter, ParameterModificating;
 GLOBAL_STATUS GlobalRunningStatus;
 ALTERNATE_SWAP_TABLE AlternateSwapList;
+BLOCKING_QUEUE<MONITOR_QUEUE_DATA> MonitorBlockingQueue;
 #if defined(ENABLE_LIBSODIUM)
-	DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
+DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
 #endif
 std::vector<FILE_DATA> FileList_Config, FileList_IPFilter, FileList_Hosts;
 std::vector<DIFFERNET_FILE_SET_IPFILTER> IPFilterFileSet[2U], *IPFilterFileSetUsing = &IPFilterFileSet[0], *IPFilterFileSetModificating = &IPFilterFileSet[1U];
 std::vector<DIFFERNET_FILE_SET_HOSTS> HostsFileSet[2U], *HostsFileSetUsing = &HostsFileSet[0], *HostsFileSetModificating = &HostsFileSet[1U];
 #if defined(ENABLE_PCAP)
-	std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
+std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
+std::mutex OutputPacketListLock;
 #endif
 std::list<DNS_CACHE_DATA> DNSCacheList;
 std::mutex ScreenLock, ErrorLogLock, CaptureLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], DNSCacheListLock, IPFilterFileLock, HostsFileLock;
-#if defined(ENABLE_PCAP)
-	std::mutex OutputPacketListLock;
-#endif
 
 //Functions
 void __fastcall ConfigurationTableSetting(

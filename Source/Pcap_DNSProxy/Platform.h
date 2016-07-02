@@ -179,6 +179,7 @@
 #include <algorithm>               //Algorithm support
 //#include <cstdio>                  //File Input/Output support
 //#include <cstdlib>                 //C Standard Library
+#include <condition_variable>      //Condition variable support
 //#include <ctime>                   //Date and Time support
 #include <deque>                   //Double-ended queue support
 //#include <functional>              //Function object support
@@ -186,6 +187,7 @@
 #include <map>                     //Map support
 #include <memory>                  //Manage dynamic memory support
 #include <mutex>                   //Mutex lock support
+#include <queue>                   //Queue support
 #include <random>                  //Random-number generator support
 #include <regex>                   //Regular expression support
 #include <set>                     //Set support
@@ -195,8 +197,8 @@
 
 #if defined(PLATFORM_WIN)
 //LibSodium header
-	#define ENABLE_LIBSODIUM         //LibSodium is always enable in Windows.
-	#define SODIUM_STATIC              //LibSodium preprocessor definitions
+	#define ENABLE_LIBSODIUM               //LibSodium is always enable in Windows.
+	#define SODIUM_STATIC                  //LibSodium preprocessor definitions
 	#if defined(ENABLE_LIBSODIUM)
 		#include "..\\LibSodium\\sodium.h"
 	#endif
@@ -210,21 +212,25 @@
 	#endif
 
 //Windows API headers
+//Part 1 including files
+//	#include <mstcpip.h>               //Microsoft-specific extensions to the core Winsock definitions.
 //	#include <tchar.h>                 //Unicode(UTF-8/UTF-16)/Wide-Character Support
+//	#include <VersionHelpers.h>        //Version Helper functions, minimum supported system is Windows Vista.
 	#include <winsock2.h>              //WinSock 2.0+ support(MUST be including before windows.h)
 //	#include <winsvc.h>                //Service Control Manager
-	#include <iphlpapi.h>              //IP Stack for MIB-II and related functionality
 	#include <ws2tcpip.h>              //WinSock 2.0+ Extension for TCP/IP protocols
-//	#include <mstcpip.h>               //Microsoft-specific extensions to the core Winsock definitions.
 //	#include <windns.h>                //Windows DNS definitions and DNS API
+
+//Part 2 including files(MUST be including after Part 1)
+	#include <windows.h>               //Master include file in Windows
+
+//Part 3 including files(MUST be including after Part 2)
+	#include <iphlpapi.h>              //IP Stack for MIB-II and related functionality
 	#include <sddl.h>                  //Support and conversions routines necessary for SDDL
-//	#include <windows.h>               //Master include file in Windows
-//	#include <VersionHelpers.h>        //Version Helper functions, minimum supported system is Windows Vista.
 
 //Static libraries
-	#pragma comment(lib, "ws2_32.lib")     //Windows WinSock 2.0+ support
 	#pragma comment(lib, "iphlpapi.lib")   //Windows IP Helper, IP Stack for MIB-II and related functionality support
-	//WinPcap and LibSodium libraries
+	#pragma comment(lib, "ws2_32.lib")     //Windows WinSock 2.0+ support
 	#if defined(PLATFORM_WIN64)
 		#if defined(ENABLE_LIBSODIUM)
 			#pragma comment(lib, "..\\LibSodium\\LibSodium_x64.lib")
@@ -256,17 +262,18 @@
 	#define WINSOCK_VERSION_HIGH              2                         //High byte of Winsock version(2.2)
 	#define SIO_UDP_CONNRESET                 _WSAIOW(IOC_VENDOR, 12)   //Block connection reset error message from system.
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	#include <cerrno>                      //Error report
-	#include <climits>                     //Data limits
-	#include <csignal>                     //Signals
-	#include <cstddef>                     //Definitions
-	#include <cstdint>                     //Integer types
-	#include <cstring>                     //Strings
-	#include <cwchar>                      //Wide characters
+	#include <cerrno>                      //Error report support
+	#include <climits>                     //Data limits support
+	#include <csignal>                     //Signals support
+	#include <cstdarg>                     //Variable arguments handling support
+	#include <cstddef>                     //Definitions support
+	#include <cstdint>                     //Integer types support
+	#include <cstring>                     //Strings support
+	#include <cwchar>                      //Wide characters support
 
 //Portable Operating System Interface/POSIX and Unix system header
 	#if defined(PLATFORM_LINUX)
-		#include <endian.h>                    //Endian
+		#include <endian.h>                    //Endian support
 	#elif defined(PLATFORM_MACX)
 	//Endian definitions
 		#define __LITTLE_ENDIAN            1234                         //Little Endian
@@ -278,17 +285,17 @@
 		#define BYTE_ORDER                 __BYTE_ORDER
 */
 	#endif
-	#include <fcntl.h>                     //Manipulate file descriptor
-	#include <ifaddrs.h>                   //Getting network interface addresses
-	#include <netdb.h>                     //Network database operations
-	#include <pthread.h>                   //Threads
-	#include <unistd.h>                    //Standard library API
-	#include <arpa/inet.h>                 //Internet operations
-	#include <netinet/tcp.h>               //TCP protocol
-	#include <sys/socket.h>                //Socket
-	#include <sys/stat.h>                  //Getting information about files attributes
-	#include <sys/time.h>                  //Date and time
-	#include <sys/types.h>                 //Types
+	#include <fcntl.h>                     //Manipulate file descriptor support
+	#include <ifaddrs.h>                   //Getting network interface addresses support
+	#include <netdb.h>                     //Network database operations support
+	#include <pthread.h>                   //Threads support
+	#include <unistd.h>                    //Standard library API support
+	#include <arpa/inet.h>                 //Internet operations support
+	#include <netinet/tcp.h>               //TCP protocol support
+	#include <sys/socket.h>                //Socket support
+	#include <sys/stat.h>                  //Getting information about files attributes support
+	#include <sys/time.h>                  //Date and time support
+	#include <sys/types.h>                 //Types support
 
 //LibSodium and LibPcap header
 	#if defined(PLATFORM_LINUX)
@@ -435,6 +442,7 @@
 	#define fwprintf_s                                                   fwprintf
 //	#define sprintf_s                                                    snprintf
 	#define strnlen_s                                                    strnlen
+	#define vfwprintf_s                                                  vfwprintf
 	#define wcsnlen_s                                                    wcsnlen
 	#define WSAGetLastError()                                            errno
 	#define _set_errno(Value)                                            errno = Value

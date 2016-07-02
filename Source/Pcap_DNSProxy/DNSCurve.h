@@ -18,6 +18,7 @@
 
 
 #include "Base.h"
+
 #if defined(ENABLE_LIBSODIUM)
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
@@ -26,9 +27,6 @@ extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 
 //Functions
-void __fastcall DNSCurvePrintLog(
-	const size_t ServerType, 
-	std::wstring &Message);
 SSIZE_T __fastcall DNSCurvePaddingData(
 	const bool SetPadding, 
 	char *Buffer, 

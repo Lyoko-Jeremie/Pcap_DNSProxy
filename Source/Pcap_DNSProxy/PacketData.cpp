@@ -82,7 +82,7 @@ uint16_t __fastcall GetChecksum(
 	size_t InnerLength = Length;
 
 	while (InnerLength > 1U)
-	{ 
+	{
 		Checksum += *Buffer++;
 		InnerLength -= sizeof(uint16_t);
 	}
@@ -223,8 +223,8 @@ size_t __fastcall DNSQueryToChar(
 			Index[0] = TName[uIndex];
 			if (Index[0] == 0)
 				break;
-			Index[1U] = (int)uIndex;
 
+			Index[1U] = (int)uIndex;
 			FName.append(".");
 		}
 		else {
@@ -420,7 +420,7 @@ size_t __fastcall AddEDNSLabelToAdditionalRR(
 
 //EDNS client subnet
 	if ((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr) || 
-		Parameter.LocalhostSubnet.IPv6 != nullptr || Parameter.LocalhostSubnet.IPv4 != nullptr)
+		Parameter.LocalhostSubnet_IPv6 != nullptr || Parameter.LocalhostSubnet_IPv4 != nullptr)
 	{
 		auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
 
@@ -433,15 +433,17 @@ size_t __fastcall AddEDNSLabelToAdditionalRR(
 	//IPv6
 		if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6) || 
-			Parameter.LocalhostSubnet.IPv6 != nullptr))
+			Parameter.LocalhostSubnet_IPv6 != nullptr))
 		{
 		//Make EDNS Subnet header.
 			EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
 			EDNS_Subnet_Header->Family = htons(ADDRESS_FAMILY_IPV6);
+			
+		//No recommendation is provided for IPv6 at this time so keep all bits, see https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
-				EDNS_Subnet_Header->Netmask_Source = sizeof(in6_addr) * BYTES_TO_BITS; //No recommendation is provided for IPv6 at this time so keep all bits, see https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02.
-			else 
-				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet.IPv6->Prefix;
+				EDNS_Subnet_Header->Netmask_Source = sizeof(in6_addr) * BYTES_TO_BITS;
+			else
+				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet_IPv6->second;
 			DataLength += sizeof(edns_client_subnet);
 			
 		//Length check
@@ -452,7 +454,7 @@ size_t __fastcall AddEDNSLabelToAdditionalRR(
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
 				*(in6_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr;
 			else 
-				*(in6_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN6)&Parameter.LocalhostSubnet.IPv6->Address)->sin6_addr;
+				*(in6_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN6)&Parameter.LocalhostSubnet_IPv6->first)->sin6_addr;
 			EDNS_Subnet_Header->Length = htons((uint16_t)(sizeof(uint16_t) + sizeof(uint8_t) * 2U + sizeof(in6_addr)));
 			DNS_Record_OPT->DataLength = htons(sizeof(edns_client_subnet) + sizeof(in6_addr));
 			DataLength += sizeof(in6_addr);
@@ -460,15 +462,17 @@ size_t __fastcall AddEDNSLabelToAdditionalRR(
 	//IPv4
 		else if (DNS_Query->Type == htons(DNS_RECORD_A) && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET) || 
-			Parameter.LocalhostSubnet.IPv4 != nullptr))
+			Parameter.LocalhostSubnet_IPv4 != nullptr))
 		{
 		//Make EDNS Subnet header.
 			EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
 			EDNS_Subnet_Header->Family = htons(ADDRESS_FAMILY_IPV4);
+
+		//Keep 24 bits of IPv4 address, see https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)
-				EDNS_Subnet_Header->Netmask_Source = (sizeof(in_addr) - 1U) * BYTES_TO_BITS; //Keep 24 bits of IPv4 address, see https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02.
+				EDNS_Subnet_Header->Netmask_Source = (sizeof(in_addr) - 1U) * BYTES_TO_BITS;
 			else 
-				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet.IPv4->Prefix;
+				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet_IPv4->second;
 			DataLength += sizeof(edns_client_subnet);
 			
 		//Length check
@@ -479,7 +483,7 @@ size_t __fastcall AddEDNSLabelToAdditionalRR(
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)
 				*(in_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr;
 			else 
-				*(in_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN)&Parameter.LocalhostSubnet.IPv4->Address)->sin_addr;
+				*(in_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN)&Parameter.LocalhostSubnet_IPv4->first)->sin_addr;
 			EDNS_Subnet_Header->Length = htons((uint16_t)(sizeof(uint16_t) + sizeof(uint8_t) * 2U + sizeof(in_addr)));
 			DNS_Record_OPT->DataLength = htons(sizeof(edns_client_subnet) + sizeof(in_addr));
 			DataLength += sizeof(in_addr);
@@ -528,7 +532,7 @@ bool __fastcall AddEDNSLabelToAdditionalRR(
 	if (!(ntohs(DNS_Record_OPT->DataLength) >= sizeof(edns_client_subnet) && 
 		((pedns_client_subnet)(Packet->Buffer + Packet->Length - Packet->EDNS_Record + sizeof(dns_record_opt)))->Code == htons(EDNS_CODE_CSUBNET)) && 
 		((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr) || 
-		Parameter.LocalhostSubnet.IPv6 != nullptr || Parameter.LocalhostSubnet.IPv4 != nullptr))
+		Parameter.LocalhostSubnet_IPv6 != nullptr || Parameter.LocalhostSubnet_IPv4 != nullptr))
 	{
 		auto DNS_Query = (pdns_qry)(Packet->Buffer + DNS_PACKET_QUERY_LOCATE(Packet->Buffer));
 
@@ -541,15 +545,17 @@ bool __fastcall AddEDNSLabelToAdditionalRR(
 	//IPv6
 		if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6) || 
-			Parameter.LocalhostSubnet.IPv6 != nullptr))
+			Parameter.LocalhostSubnet_IPv6 != nullptr))
 		{
 		//Make EDNS Subnet header.
 			EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
 			EDNS_Subnet_Header->Family = htons(ADDRESS_FAMILY_IPV6);
+
+		//No recommendation is provided for IPv6 at this time so keep all bits, see https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
-				EDNS_Subnet_Header->Netmask_Source = sizeof(in6_addr) * BYTES_TO_BITS; //No recommendation is provided for IPv6 at this time so keep all bits, see https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02.
+				EDNS_Subnet_Header->Netmask_Source = sizeof(in6_addr) * BYTES_TO_BITS;
 			else 
-				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet.IPv6->Prefix;
+				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet_IPv6->second;
 			Packet->Length += sizeof(edns_client_subnet);
 			Packet->EDNS_Record += sizeof(edns_client_subnet);
 			
@@ -561,7 +567,7 @@ bool __fastcall AddEDNSLabelToAdditionalRR(
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
 				*(in6_addr *)(Packet->Buffer + Packet->Length) = ((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr;
 			else 
-				*(in6_addr *)(Packet->Buffer + Packet->Length) = ((PSOCKADDR_IN6)&Parameter.LocalhostSubnet.IPv6->Address)->sin6_addr;
+				*(in6_addr *)(Packet->Buffer + Packet->Length) = ((PSOCKADDR_IN6)&Parameter.LocalhostSubnet_IPv6->first)->sin6_addr;
 			EDNS_Subnet_Header->Length = htons((uint16_t)(sizeof(uint16_t) + sizeof(uint8_t) * 2U + sizeof(in6_addr)));
 			DNS_Record_OPT->DataLength = htons(sizeof(edns_client_subnet) + sizeof(in6_addr));
 			Packet->Length += sizeof(in6_addr);
@@ -570,15 +576,17 @@ bool __fastcall AddEDNSLabelToAdditionalRR(
 	//IPv4
 		else if (DNS_Query->Type == htons(DNS_RECORD_A) && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET) || 
-			Parameter.LocalhostSubnet.IPv4 != nullptr))
+			Parameter.LocalhostSubnet_IPv4 != nullptr))
 		{
 		//Make EDNS Subnet header.
 			EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
 			EDNS_Subnet_Header->Family = htons(ADDRESS_FAMILY_IPV4);
+
+		//Keep 24 bits of IPv4 address, see https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)
-				EDNS_Subnet_Header->Netmask_Source = (sizeof(in_addr) - 1U) * BYTES_TO_BITS; //Keep 24 bits of IPv4 address, see https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02.
+				EDNS_Subnet_Header->Netmask_Source = (sizeof(in_addr) - 1U) * BYTES_TO_BITS;
 			else 
-				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet.IPv4->Prefix;
+				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet_IPv4->second;
 			Packet->Length += sizeof(edns_client_subnet);
 			Packet->EDNS_Record += sizeof(edns_client_subnet);
 			
@@ -590,7 +598,7 @@ bool __fastcall AddEDNSLabelToAdditionalRR(
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)
 				*(in_addr *)(Packet->Buffer + Packet->Length) = ((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr;
 			else 
-				*(in_addr *)(Packet->Buffer + Packet->Length) = ((PSOCKADDR_IN)&Parameter.LocalhostSubnet.IPv4->Address)->sin_addr;
+				*(in_addr *)(Packet->Buffer + Packet->Length) = ((PSOCKADDR_IN)&Parameter.LocalhostSubnet_IPv4->first)->sin_addr;
 			EDNS_Subnet_Header->Length = htons((uint16_t)(sizeof(uint16_t) + sizeof(uint8_t) * 2U + sizeof(in_addr)));
 			DNS_Record_OPT->DataLength = htons(sizeof(edns_client_subnet) + sizeof(in_addr));
 			Packet->Length += sizeof(in_addr);
@@ -613,27 +621,27 @@ size_t __fastcall MakeCompressionPointerMutation(
 //Check Compression Pointer Mutation options.
 	switch (Index)
 	{
-		case 0:
+		case CPM_POINTER_TO_HEADER:
 		{
 			if (!Parameter.CPM_PointerToHeader)
 			{
 				if (Parameter.CPM_PointerToRR)
 					++Index;
 				else //Pointer to Additional(2)
-					Index += 2U;
+					Index += CPM_POINTER_TO_ADDITIONAL;
 			}
 		}break;
-		case 1U:
+		case CPM_POINTER_TO_RR:
 		{
 			if (!Parameter.CPM_PointerToRR)
 			{
 				if (Parameter.CPM_PointerToHeader)
 					--Index;
-				else //Pointer to Additional(1)
+				else //Pointer to Additional(2)
 					Index += 1U;
 			}
 		}break;
-		case 2U:
+		case CPM_POINTER_TO_ADDITIONAL:
 		{
 			if (!Parameter.CPM_PointerToAdditional)
 			{
@@ -650,7 +658,7 @@ size_t __fastcall MakeCompressionPointerMutation(
 	}
 
 //Make Compression Pointer Mutation.
-	if (Index == 0) //Pointer to header, like "[DNS Header][Domain][Pointer][Query]" and the pointer is point to [DNS Header].
+	if (Index == CPM_POINTER_TO_HEADER) //Pointer to header, like "[DNS Header][Domain][Pointer][Query]" and the pointer is point to [DNS Header].
 	{
 		memmove_s(Buffer + Length - sizeof(dns_qry) + 1U, sizeof(dns_qry), Buffer + Length - sizeof(dns_qry), sizeof(dns_qry));
 		*(Buffer + Length - sizeof(dns_qry) - 1U) = DNS_POINTER_8_BITS_STRING;
@@ -695,7 +703,7 @@ size_t __fastcall MakeCompressionPointerMutation(
 		*(Buffer + sizeof(dns_hdr)) = DNS_POINTER_8_BITS_STRING;
 		*(Buffer + sizeof(dns_hdr) + 1U) = '\x12';
 
-		if (Index == 1U) //Pointer to RR, like "[DNS Header][Pointer][Query][Domain]" and the pointer is point to [Domain].
+		if (Index == CPM_POINTER_TO_RR) //Pointer to RR, like "[DNS Header][Pointer][Query][Domain]" and the pointer is point to [Domain].
 		{
 			return Length + 2U;
 		}

@@ -74,10 +74,10 @@ ConfigurationTable::ConfigurationTable(
 	//[Addresses] block
 		ListenAddress_IPv6 = new std::vector<sockaddr_storage>();
 		ListenAddress_IPv4 = new std::vector<sockaddr_storage>();
-		LocalhostSubnet.IPv6 = new ADDRESS_PREFIX_BLOCK();
-		LocalhostSubnet.IPv4 = new ADDRESS_PREFIX_BLOCK();
-		DNSTarget.IPv6_Multi = new std::vector<DNS_SERVER_DATA>();
-		DNSTarget.IPv4_Multi = new std::vector<DNS_SERVER_DATA>();
+		LocalhostSubnet_IPv6 = new ADDRESS_PREFIX_BLOCK();
+		LocalhostSubnet_IPv4 = new ADDRESS_PREFIX_BLOCK();
+		Target_Server_IPv6_Multi = new std::vector<DNS_SERVER_DATA>();
+		Target_Server_IPv4_Multi = new std::vector<DNS_SERVER_DATA>();
 
 	//[Data] block
 	#if defined(ENABLE_PCAP)
@@ -114,16 +114,16 @@ ConfigurationTable::ConfigurationTable(
 	//[Addresses] block
 		delete ListenAddress_IPv6;
 		delete ListenAddress_IPv4;
-		delete LocalhostSubnet.IPv6;
-		delete LocalhostSubnet.IPv4;
-		delete DNSTarget.IPv6_Multi;
-		delete DNSTarget.IPv4_Multi;
+		delete LocalhostSubnet_IPv6;
+		delete LocalhostSubnet_IPv4;
+		delete Target_Server_IPv6_Multi;
+		delete Target_Server_IPv4_Multi;
 		ListenAddress_IPv6 = nullptr;
 		ListenAddress_IPv4 = nullptr;
-		LocalhostSubnet.IPv6 = nullptr;
-		LocalhostSubnet.IPv4 = nullptr;
-		DNSTarget.IPv6_Multi = nullptr;
-		DNSTarget.IPv4_Multi = nullptr;
+		LocalhostSubnet_IPv6 = nullptr;
+		LocalhostSubnet_IPv4 = nullptr;
+		Target_Server_IPv6_Multi = nullptr;
+		Target_Server_IPv4_Multi = nullptr;
 
 	//[Data] block
 	#if defined(ENABLE_PCAP)
@@ -186,7 +186,9 @@ void __fastcall ConfigurationTableSetting(
 	ConfigurationParameter->PcapReadingTimeout = DEFAULT_PCAP_CAPTURE_TIMEOUT;
 #endif
 	ConfigurationParameter->HostsDefaultTTL = DEFAULT_HOSTS_TTL;
-	ConfigurationParameter->BufferQueueSize = DEFAULT_BUFFER_QUEUE;
+	ConfigurationParameter->ThreadPoolBaseNum = DEFAULT_THREAD_POOL_BASENUM;
+	ConfigurationParameter->ThreadPoolMaxNum = DEFAULT_THREAD_POOL_MAXNUM;
+	ConfigurationParameter->ThreadPoolResetTime = DEFAULT_THREAD_POOL_RESET_TIME;
 #if defined(PLATFORM_WIN)
 	ConfigurationParameter->SocketTimeout_Reliable = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
 	ConfigurationParameter->SocketTimeout_Unreliable = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
@@ -195,7 +197,7 @@ void __fastcall ConfigurationTableSetting(
 	ConfigurationParameter->SocketTimeout_Unreliable.tv_sec = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
 #endif
 	ConfigurationParameter->AlternateTimes = DEFAULT_ALTERNATE_TIMES;
-	ConfigurationParameter->AlternateTimeRange = DEFAULT_ALTERNATE_RANGE * SECOND_TO_MILLISECOND;
+	ConfigurationParameter->AlternateTimeRange = DEFAULT_ALTERNATE_RANGE_TIME * SECOND_TO_MILLISECOND;
 	ConfigurationParameter->AlternateResetTime = DEFAULT_ALTERNATE_RESET_TIME * SECOND_TO_MILLISECOND;
 #if defined(ENABLE_PCAP)
 	#if defined(PLATFORM_LINUX)
@@ -206,7 +208,7 @@ void __fastcall ConfigurationTableSetting(
 		ConfigurationParameter->ICMP_ID = htons((uint16_t)GetCurrentProcessId()); //Default ICMP ID is current process ID.
 	#endif
 		ConfigurationParameter->ICMP_Sequence = htons(DEFAULT_SEQUENCE);
-		ConfigurationParameter->DomainTest_Speed = DEFAULT_DOMAINTEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
+		ConfigurationParameter->DomainTest_Speed = DEFAULT_DOMAIN_TEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
 	#if defined(PLATFORM_LINUX)
 		ConfigurationParameter->DomainTest_ID = htons((uint16_t)pthread_self());
 	#elif defined(PLATFORM_MACX)
@@ -260,16 +262,16 @@ ConfigurationTable::~ConfigurationTable(
 //[Addresses] block
 	delete ListenAddress_IPv6;
 	delete ListenAddress_IPv4;
-	delete LocalhostSubnet.IPv6;
-	delete LocalhostSubnet.IPv4;
-	delete DNSTarget.IPv6_Multi;
-	delete DNSTarget.IPv4_Multi;
+	delete LocalhostSubnet_IPv6;
+	delete LocalhostSubnet_IPv4;
+	delete Target_Server_IPv6_Multi;
+	delete Target_Server_IPv4_Multi;
 	ListenAddress_IPv6 = nullptr;
 	ListenAddress_IPv4 = nullptr;
-	LocalhostSubnet.IPv6 = nullptr;
-	LocalhostSubnet.IPv4 = nullptr;
-	DNSTarget.IPv6_Multi = nullptr;
-	DNSTarget.IPv4_Multi = nullptr;
+	LocalhostSubnet_IPv6 = nullptr;
+	LocalhostSubnet_IPv4 = nullptr;
+	Target_Server_IPv6_Multi = nullptr;
+	Target_Server_IPv4_Multi = nullptr;
 
 //[Data] block
 #if defined(ENABLE_PCAP)
@@ -321,16 +323,16 @@ void ConfigurationTable::SetToMonitorItem(
 //[Addresses] block
 	delete ListenAddress_IPv6;
 	delete ListenAddress_IPv4;
-	delete LocalhostSubnet.IPv6;
-	delete LocalhostSubnet.IPv4;
-	delete DNSTarget.IPv6_Multi;
-	delete DNSTarget.IPv4_Multi;
+	delete LocalhostSubnet_IPv6;
+	delete LocalhostSubnet_IPv4;
+	delete Target_Server_IPv6_Multi;
+	delete Target_Server_IPv4_Multi;
 	ListenAddress_IPv6 = nullptr;
 	ListenAddress_IPv4 = nullptr;
-	LocalhostSubnet.IPv6 = nullptr;
-	LocalhostSubnet.IPv4 = nullptr;
-	DNSTarget.IPv6_Multi = nullptr;
-	DNSTarget.IPv4_Multi = nullptr;
+	LocalhostSubnet_IPv6 = nullptr;
+	LocalhostSubnet_IPv4 = nullptr;
+	Target_Server_IPv6_Multi = nullptr;
+	Target_Server_IPv4_Multi = nullptr;
 
 //[Data] block
 #if defined(ENABLE_PCAP)
@@ -357,10 +359,10 @@ void ConfigurationTable::SetToMonitorItem(
 //[Addresses] block
 	ListenAddress_IPv6 = nullptr;
 	ListenAddress_IPv4 = nullptr;
-	LocalhostSubnet.IPv6 = nullptr;
-	LocalhostSubnet.IPv4 = nullptr;
-	DNSTarget.IPv6_Multi = nullptr;
-	DNSTarget.IPv4_Multi = nullptr;
+	LocalhostSubnet_IPv6 = nullptr;
+	LocalhostSubnet_IPv4 = nullptr;
+	Target_Server_IPv6_Multi = nullptr;
+	Target_Server_IPv4_Multi = nullptr;
 //[Data] block
 #if defined(ENABLE_PCAP)
 	ICMP_PaddingData = nullptr;
@@ -404,10 +406,10 @@ void ConfigurationTable::MonitorItemToUsing(
 
 //[Values] block
 #if defined(ENABLE_PCAP)
-	ConfigurationParameter->DNSTarget.IPv4.HopLimitData.TTL = DNSTarget.IPv4.HopLimitData.TTL;
-	ConfigurationParameter->DNSTarget.IPv6.HopLimitData.HopLimit = DNSTarget.IPv6.HopLimitData.HopLimit;
-	ConfigurationParameter->DNSTarget.Alternate_IPv4.HopLimitData.TTL = DNSTarget.Alternate_IPv4.HopLimitData.TTL;
-	ConfigurationParameter->DNSTarget.Alternate_IPv6.HopLimitData.HopLimit = DNSTarget.Alternate_IPv6.HopLimitData.HopLimit;
+	ConfigurationParameter->Target_Server_IPv4.HopLimitData.TTL = Target_Server_IPv4.HopLimitData.TTL;
+	ConfigurationParameter->Target_Server_IPv6.HopLimitData.HopLimit = Target_Server_IPv6.HopLimitData.HopLimit;
+	ConfigurationParameter->Target_Server_Alternate_IPv4.HopLimitData.TTL = Target_Server_Alternate_IPv4.HopLimitData.TTL;
+	ConfigurationParameter->Target_Server_Alternate_IPv6.HopLimitData.HopLimit = Target_Server_Alternate_IPv6.HopLimitData.HopLimit;
 #endif
 	ConfigurationParameter->SocketTimeout_Reliable = SocketTimeout_Reliable;
 	ConfigurationParameter->SocketTimeout_Unreliable = SocketTimeout_Unreliable;
@@ -515,10 +517,10 @@ void ConfigurationTable::MonitorItemReset(
 
 //[Values] block
 #if defined(ENABLE_PCAP)
-	DNSTarget.IPv4.HopLimitData.TTL = 0;
-	DNSTarget.IPv6.HopLimitData.HopLimit = 0;
-	DNSTarget.Alternate_IPv4.HopLimitData.TTL = 0;
-	DNSTarget.Alternate_IPv6.HopLimitData.HopLimit = 0;
+	Target_Server_IPv4.HopLimitData.TTL = 0;
+	Target_Server_IPv6.HopLimitData.HopLimit = 0;
+	Target_Server_Alternate_IPv4.HopLimitData.TTL = 0;
+	Target_Server_Alternate_IPv6.HopLimitData.HopLimit = 0;
 #endif
 #if defined(PLATFORM_WIN)
 	SocketTimeout_Reliable = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
@@ -532,7 +534,7 @@ void ConfigurationTable::MonitorItemReset(
 	ReceiveWaiting = 0;
 #if defined(ENABLE_PCAP)
 	ICMP_Speed = 0;
-	DomainTest_Speed = DEFAULT_DOMAINTEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
+	DomainTest_Speed = DEFAULT_DOMAIN_TEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
 #endif
 	MultiRequestTimes = 0;
 
@@ -668,7 +670,7 @@ GlobalStatus::~GlobalStatus(
 	void)
 {
 //Close all sockets.
-	for (auto SocketIter:*LocalListeningSocket)
+	for (const auto &SocketIter:*LocalListeningSocket)
 	{
 		shutdown(SocketIter, SD_BOTH);
 		closesocket(SocketIter);
@@ -802,96 +804,96 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 	memset(this, 0, sizeof(DNSCURVE_CONFIGURATION_TABLE));
 	try {
 	//DNSCurve Provider Names
-		DNSCurveTarget.IPv4.ProviderName = new char[DOMAIN_MAXSIZE]();
-		DNSCurveTarget.Alternate_IPv4.ProviderName = new char[DOMAIN_MAXSIZE]();
-		DNSCurveTarget.IPv6.ProviderName = new char[DOMAIN_MAXSIZE]();
-		DNSCurveTarget.Alternate_IPv6.ProviderName = new char[DOMAIN_MAXSIZE]();
+		DNSCurve_Target_Server_IPv4.ProviderName = new char[DOMAIN_MAXSIZE]();
+		DNSCurve_Target_Server_Alternate_IPv4.ProviderName = new char[DOMAIN_MAXSIZE]();
+		DNSCurve_Target_Server_IPv6.ProviderName = new char[DOMAIN_MAXSIZE]();
+		DNSCurve_Target_Server_Alternate_IPv6.ProviderName = new char[DOMAIN_MAXSIZE]();
 
 	//DNSCurve Keys
 		Client_PublicKey = new uint8_t[crypto_box_PUBLICKEYBYTES]();
 		Client_SecretKey = (uint8_t *)sodium_malloc(crypto_box_SECRETKEYBYTES);
-		DNSCurveTarget.IPv4.PrecomputationKey = (uint8_t *)sodium_malloc(crypto_box_BEFORENMBYTES);
-		DNSCurveTarget.Alternate_IPv4.PrecomputationKey = (uint8_t *)sodium_malloc(crypto_box_BEFORENMBYTES);
-		DNSCurveTarget.IPv6.PrecomputationKey = (uint8_t *)sodium_malloc(crypto_box_BEFORENMBYTES);
-		DNSCurveTarget.Alternate_IPv6.PrecomputationKey = (uint8_t *)sodium_malloc(crypto_box_BEFORENMBYTES);
-		DNSCurveTarget.IPv4.ServerPublicKey = new uint8_t[crypto_box_PUBLICKEYBYTES]();
-		DNSCurveTarget.Alternate_IPv4.ServerPublicKey = new uint8_t[crypto_box_PUBLICKEYBYTES]();
-		DNSCurveTarget.IPv6.ServerPublicKey = new uint8_t[crypto_box_PUBLICKEYBYTES]();
-		DNSCurveTarget.Alternate_IPv6.ServerPublicKey = new uint8_t[crypto_box_PUBLICKEYBYTES]();
-		DNSCurveTarget.IPv4.ServerFingerprint = new uint8_t[crypto_box_PUBLICKEYBYTES]();
-		DNSCurveTarget.Alternate_IPv4.ServerFingerprint = new uint8_t[crypto_box_PUBLICKEYBYTES]();
-		DNSCurveTarget.IPv6.ServerFingerprint = new uint8_t[crypto_box_PUBLICKEYBYTES]();
-		DNSCurveTarget.Alternate_IPv6.ServerFingerprint = new uint8_t[crypto_box_PUBLICKEYBYTES]();
+		DNSCurve_Target_Server_IPv4.PrecomputationKey = (uint8_t *)sodium_malloc(crypto_box_BEFORENMBYTES);
+		DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey = (uint8_t *)sodium_malloc(crypto_box_BEFORENMBYTES);
+		DNSCurve_Target_Server_IPv6.PrecomputationKey = (uint8_t *)sodium_malloc(crypto_box_BEFORENMBYTES);
+		DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey = (uint8_t *)sodium_malloc(crypto_box_BEFORENMBYTES);
+		DNSCurve_Target_Server_IPv4.ServerPublicKey = new uint8_t[crypto_box_PUBLICKEYBYTES]();
+		DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey = new uint8_t[crypto_box_PUBLICKEYBYTES]();
+		DNSCurve_Target_Server_IPv6.ServerPublicKey = new uint8_t[crypto_box_PUBLICKEYBYTES]();
+		DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey = new uint8_t[crypto_box_PUBLICKEYBYTES]();
+		DNSCurve_Target_Server_IPv4.ServerFingerprint = new uint8_t[crypto_box_PUBLICKEYBYTES]();
+		DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint = new uint8_t[crypto_box_PUBLICKEYBYTES]();
+		DNSCurve_Target_Server_IPv6.ServerFingerprint = new uint8_t[crypto_box_PUBLICKEYBYTES]();
+		DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint = new uint8_t[crypto_box_PUBLICKEYBYTES]();
 
 	//DNSCurve Magic Numbers
-		DNSCurveTarget.IPv4.ReceiveMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
-		DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
-		DNSCurveTarget.IPv6.ReceiveMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
-		DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
-		DNSCurveTarget.IPv4.SendMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
-		DNSCurveTarget.Alternate_IPv4.SendMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
-		DNSCurveTarget.IPv6.SendMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
-		DNSCurveTarget.Alternate_IPv6.SendMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_IPv4.ReceiveMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_IPv6.ReceiveMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_IPv4.SendMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_IPv6.SendMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
 	}
 	catch (std::bad_alloc)
 	{
 	//DNSCurve Provider Names
-		delete[] DNSCurveTarget.IPv4.ProviderName;
-		delete[] DNSCurveTarget.Alternate_IPv4.ProviderName;
-		delete[] DNSCurveTarget.IPv6.ProviderName;
-		delete[] DNSCurveTarget.Alternate_IPv6.ProviderName;
-		DNSCurveTarget.IPv4.ProviderName = nullptr;
-		DNSCurveTarget.Alternate_IPv4.ProviderName = nullptr;
-		DNSCurveTarget.IPv6.ProviderName = nullptr;
-		DNSCurveTarget.Alternate_IPv6.ProviderName = nullptr;
+		delete[] DNSCurve_Target_Server_IPv4.ProviderName;
+		delete[] DNSCurve_Target_Server_Alternate_IPv4.ProviderName;
+		delete[] DNSCurve_Target_Server_IPv6.ProviderName;
+		delete[] DNSCurve_Target_Server_Alternate_IPv6.ProviderName;
+		DNSCurve_Target_Server_IPv4.ProviderName = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv4.ProviderName = nullptr;
+		DNSCurve_Target_Server_IPv6.ProviderName = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv6.ProviderName = nullptr;
 
 	//DNSCurve Keys
 		delete[] Client_PublicKey;
 		sodium_free(Client_SecretKey);
-		sodium_free(DNSCurveTarget.IPv4.PrecomputationKey);
-		sodium_free(DNSCurveTarget.Alternate_IPv4.PrecomputationKey);
-		sodium_free(DNSCurveTarget.IPv6.PrecomputationKey);
-		sodium_free(DNSCurveTarget.Alternate_IPv6.PrecomputationKey);
-		delete[] DNSCurveTarget.IPv4.ServerPublicKey;
-		delete[] DNSCurveTarget.Alternate_IPv4.ServerPublicKey;
-		delete[] DNSCurveTarget.IPv6.ServerPublicKey;
-		delete[] DNSCurveTarget.Alternate_IPv6.ServerPublicKey;
-		delete[] DNSCurveTarget.IPv4.ServerFingerprint;
-		delete[] DNSCurveTarget.Alternate_IPv4.ServerFingerprint;
-		delete[] DNSCurveTarget.IPv6.ServerFingerprint;
-		delete[] DNSCurveTarget.Alternate_IPv6.ServerFingerprint;
+		sodium_free(DNSCurve_Target_Server_IPv4.PrecomputationKey);
+		sodium_free(DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey);
+		sodium_free(DNSCurve_Target_Server_IPv6.PrecomputationKey);
+		sodium_free(DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey);
+		delete[] DNSCurve_Target_Server_IPv4.ServerPublicKey;
+		delete[] DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey;
+		delete[] DNSCurve_Target_Server_IPv6.ServerPublicKey;
+		delete[] DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey;
+		delete[] DNSCurve_Target_Server_IPv4.ServerFingerprint;
+		delete[] DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint;
+		delete[] DNSCurve_Target_Server_IPv6.ServerFingerprint;
+		delete[] DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint;
 		Client_PublicKey = nullptr;
 		Client_SecretKey = nullptr;
-		DNSCurveTarget.IPv4.PrecomputationKey = nullptr;
-		DNSCurveTarget.Alternate_IPv4.PrecomputationKey = nullptr;
-		DNSCurveTarget.IPv6.PrecomputationKey = nullptr;
-		DNSCurveTarget.Alternate_IPv6.PrecomputationKey = nullptr;
-		DNSCurveTarget.IPv4.ServerPublicKey = nullptr;
-		DNSCurveTarget.Alternate_IPv4.ServerPublicKey = nullptr;
-		DNSCurveTarget.IPv6.ServerPublicKey = nullptr;
-		DNSCurveTarget.Alternate_IPv6.ServerPublicKey = nullptr;
-		DNSCurveTarget.IPv4.ServerFingerprint = nullptr;
-		DNSCurveTarget.Alternate_IPv4.ServerFingerprint = nullptr;
-		DNSCurveTarget.IPv6.ServerFingerprint = nullptr;
-		DNSCurveTarget.Alternate_IPv6.ServerFingerprint = nullptr;
+		DNSCurve_Target_Server_IPv4.PrecomputationKey = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey = nullptr;
+		DNSCurve_Target_Server_IPv6.PrecomputationKey = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey = nullptr;
+		DNSCurve_Target_Server_IPv4.ServerPublicKey = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey = nullptr;
+		DNSCurve_Target_Server_IPv6.ServerPublicKey = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey = nullptr;
+		DNSCurve_Target_Server_IPv4.ServerFingerprint = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint = nullptr;
+		DNSCurve_Target_Server_IPv6.ServerFingerprint = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint = nullptr;
 
 	//DNSCurve Magic Numbers
-		delete[] DNSCurveTarget.IPv4.ReceiveMagicNumber;
-		delete[] DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber;
-		delete[] DNSCurveTarget.IPv6.ReceiveMagicNumber;
-		delete[] DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber;
-		delete[] DNSCurveTarget.IPv4.SendMagicNumber;
-		delete[] DNSCurveTarget.Alternate_IPv4.SendMagicNumber;
-		delete[] DNSCurveTarget.IPv6.SendMagicNumber;
-		delete[] DNSCurveTarget.Alternate_IPv6.SendMagicNumber;
-		DNSCurveTarget.IPv4.ReceiveMagicNumber = nullptr;
-		DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber = nullptr;
-		DNSCurveTarget.IPv6.ReceiveMagicNumber = nullptr;
-		DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber = nullptr;
-		DNSCurveTarget.IPv4.SendMagicNumber = nullptr;
-		DNSCurveTarget.Alternate_IPv4.SendMagicNumber = nullptr;
-		DNSCurveTarget.IPv6.SendMagicNumber = nullptr;
-		DNSCurveTarget.Alternate_IPv6.SendMagicNumber = nullptr;
+		delete[] DNSCurve_Target_Server_IPv4.ReceiveMagicNumber;
+		delete[] DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber;
+		delete[] DNSCurve_Target_Server_IPv6.ReceiveMagicNumber;
+		delete[] DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber;
+		delete[] DNSCurve_Target_Server_IPv4.SendMagicNumber;
+		delete[] DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber;
+		delete[] DNSCurve_Target_Server_IPv6.SendMagicNumber;
+		delete[] DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber;
+		DNSCurve_Target_Server_IPv4.ReceiveMagicNumber = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber = nullptr;
+		DNSCurve_Target_Server_IPv6.ReceiveMagicNumber = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber = nullptr;
+		DNSCurve_Target_Server_IPv4.SendMagicNumber = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber = nullptr;
+		DNSCurve_Target_Server_IPv6.SendMagicNumber = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber = nullptr;
 
 		exit(EXIT_FAILURE);
 		return;
@@ -906,36 +908,36 @@ void __fastcall DNSCurveConfigurationTableSetting(
 	DNSCurveConfigurationTable *DNSCurveConfigurationParameter)
 {
 //DNSCurve Provider Names
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ProviderName, DOMAIN_MAXSIZE);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ProviderName, DOMAIN_MAXSIZE);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ProviderName, DOMAIN_MAXSIZE);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ProviderName, DOMAIN_MAXSIZE);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.ProviderName, DOMAIN_MAXSIZE);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.ProviderName, DOMAIN_MAXSIZE);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv6.ProviderName, DOMAIN_MAXSIZE);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.ProviderName, DOMAIN_MAXSIZE);
 
 //DNSCurve Keys
 	sodium_memzero(DNSCurveConfigurationParameter->Client_PublicKey, crypto_box_PUBLICKEYBYTES);
 	sodium_memzero(DNSCurveConfigurationParameter->Client_SecretKey, crypto_box_SECRETKEYBYTES);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
 
 //DNSCurve Magic Numbers
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	sodium_memzero(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
 
 //Default settings
 #if defined(PLATFORM_WIN)
@@ -955,62 +957,62 @@ DNSCurveConfigurationTable::~DNSCurveConfigurationTable(
 	void)
 {
 //DNSCurve Provider Names
-	delete[] DNSCurveTarget.IPv4.ProviderName;
-	delete[] DNSCurveTarget.Alternate_IPv4.ProviderName;
-	delete[] DNSCurveTarget.IPv6.ProviderName;
-	delete[] DNSCurveTarget.Alternate_IPv6.ProviderName;
-	DNSCurveTarget.IPv4.ProviderName = nullptr;
-	DNSCurveTarget.Alternate_IPv4.ProviderName = nullptr;
-	DNSCurveTarget.IPv6.ProviderName = nullptr;
-	DNSCurveTarget.Alternate_IPv6.ProviderName = nullptr;
+	delete[] DNSCurve_Target_Server_IPv4.ProviderName;
+	delete[] DNSCurve_Target_Server_Alternate_IPv4.ProviderName;
+	delete[] DNSCurve_Target_Server_IPv6.ProviderName;
+	delete[] DNSCurve_Target_Server_Alternate_IPv6.ProviderName;
+	DNSCurve_Target_Server_IPv4.ProviderName = nullptr;
+	DNSCurve_Target_Server_Alternate_IPv4.ProviderName = nullptr;
+	DNSCurve_Target_Server_IPv6.ProviderName = nullptr;
+	DNSCurve_Target_Server_Alternate_IPv6.ProviderName = nullptr;
 
 //DNSCurve Keys
 	delete[] Client_PublicKey;
 	sodium_free(Client_SecretKey);
-	sodium_free(DNSCurveTarget.IPv4.PrecomputationKey);
-	sodium_free(DNSCurveTarget.Alternate_IPv4.PrecomputationKey);
-	sodium_free(DNSCurveTarget.IPv6.PrecomputationKey);
-	sodium_free(DNSCurveTarget.Alternate_IPv6.PrecomputationKey);
-	delete[] DNSCurveTarget.IPv4.ServerPublicKey;
-	delete[] DNSCurveTarget.Alternate_IPv4.ServerPublicKey;
-	delete[] DNSCurveTarget.IPv6.ServerPublicKey;
-	delete[] DNSCurveTarget.Alternate_IPv6.ServerPublicKey;
-	delete[] DNSCurveTarget.IPv4.ServerFingerprint;
-	delete[] DNSCurveTarget.Alternate_IPv4.ServerFingerprint;
-	delete[] DNSCurveTarget.IPv6.ServerFingerprint;
-	delete[] DNSCurveTarget.Alternate_IPv6.ServerFingerprint;
+	sodium_free(DNSCurve_Target_Server_IPv4.PrecomputationKey);
+	sodium_free(DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey);
+	sodium_free(DNSCurve_Target_Server_IPv6.PrecomputationKey);
+	sodium_free(DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey);
+	delete[] DNSCurve_Target_Server_IPv4.ServerPublicKey;
+	delete[] DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey;
+	delete[] DNSCurve_Target_Server_IPv6.ServerPublicKey;
+	delete[] DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey;
+	delete[] DNSCurve_Target_Server_IPv4.ServerFingerprint;
+	delete[] DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint;
+	delete[] DNSCurve_Target_Server_IPv6.ServerFingerprint;
+	delete[] DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint;
 	Client_PublicKey = nullptr;
 	Client_SecretKey = nullptr;
-	DNSCurveTarget.IPv4.PrecomputationKey = nullptr;
-	DNSCurveTarget.Alternate_IPv4.PrecomputationKey = nullptr;
-	DNSCurveTarget.IPv6.PrecomputationKey = nullptr;
-	DNSCurveTarget.Alternate_IPv6.PrecomputationKey = nullptr;
-	DNSCurveTarget.IPv4.ServerPublicKey = nullptr;
-	DNSCurveTarget.Alternate_IPv4.ServerPublicKey = nullptr;
-	DNSCurveTarget.IPv6.ServerPublicKey = nullptr;
-	DNSCurveTarget.Alternate_IPv6.ServerPublicKey = nullptr;
-	DNSCurveTarget.IPv4.ServerFingerprint = nullptr;
-	DNSCurveTarget.Alternate_IPv4.ServerFingerprint = nullptr;
-	DNSCurveTarget.IPv6.ServerFingerprint = nullptr;
-	DNSCurveTarget.Alternate_IPv6.ServerFingerprint = nullptr;
+	DNSCurve_Target_Server_IPv4.PrecomputationKey = nullptr;
+	DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey = nullptr;
+	DNSCurve_Target_Server_IPv6.PrecomputationKey = nullptr;
+	DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey = nullptr;
+	DNSCurve_Target_Server_IPv4.ServerPublicKey = nullptr;
+	DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey = nullptr;
+	DNSCurve_Target_Server_IPv6.ServerPublicKey = nullptr;
+	DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey = nullptr;
+	DNSCurve_Target_Server_IPv4.ServerFingerprint = nullptr;
+	DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint = nullptr;
+	DNSCurve_Target_Server_IPv6.ServerFingerprint = nullptr;
+	DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint = nullptr;
 
 //DNSCurve Magic Numbers
-	delete[] DNSCurveTarget.IPv4.ReceiveMagicNumber;
-	delete[] DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber;
-	delete[] DNSCurveTarget.IPv6.ReceiveMagicNumber;
-	delete[] DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber;
-	delete[] DNSCurveTarget.IPv4.SendMagicNumber;
-	delete[] DNSCurveTarget.Alternate_IPv4.SendMagicNumber;
-	delete[] DNSCurveTarget.IPv6.SendMagicNumber;
-	delete[] DNSCurveTarget.Alternate_IPv6.SendMagicNumber;
-	DNSCurveTarget.IPv4.ReceiveMagicNumber = nullptr;
-	DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber = nullptr;
-	DNSCurveTarget.IPv6.ReceiveMagicNumber = nullptr;
-	DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber = nullptr;
-	DNSCurveTarget.IPv4.SendMagicNumber = nullptr;
-	DNSCurveTarget.Alternate_IPv4.SendMagicNumber = nullptr;
-	DNSCurveTarget.IPv6.SendMagicNumber = nullptr;
-	DNSCurveTarget.Alternate_IPv6.SendMagicNumber = nullptr;
+	delete[] DNSCurve_Target_Server_IPv4.ReceiveMagicNumber;
+	delete[] DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber;
+	delete[] DNSCurve_Target_Server_IPv6.ReceiveMagicNumber;
+	delete[] DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber;
+	delete[] DNSCurve_Target_Server_IPv4.SendMagicNumber;
+	delete[] DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber;
+	delete[] DNSCurve_Target_Server_IPv6.SendMagicNumber;
+	delete[] DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber;
+	DNSCurve_Target_Server_IPv4.ReceiveMagicNumber = nullptr;
+	DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber = nullptr;
+	DNSCurve_Target_Server_IPv6.ReceiveMagicNumber = nullptr;
+	DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber = nullptr;
+	DNSCurve_Target_Server_IPv4.SendMagicNumber = nullptr;
+	DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber = nullptr;
+	DNSCurve_Target_Server_IPv6.SendMagicNumber = nullptr;
+	DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber = nullptr;
 
 	return;
 }
@@ -1020,16 +1022,16 @@ void DNSCurveConfigurationTable::SetToMonitorItem(
 	void)
 {
 //Delete pointers.
-	delete[] DNSCurveTarget.IPv4.ProviderName;
-	delete[] DNSCurveTarget.Alternate_IPv4.ProviderName;
-	delete[] DNSCurveTarget.IPv6.ProviderName;
-	delete[] DNSCurveTarget.Alternate_IPv6.ProviderName;
+	delete[] DNSCurve_Target_Server_IPv4.ProviderName;
+	delete[] DNSCurve_Target_Server_Alternate_IPv4.ProviderName;
+	delete[] DNSCurve_Target_Server_IPv6.ProviderName;
+	delete[] DNSCurve_Target_Server_Alternate_IPv6.ProviderName;
 
 //Reset pointers.
-	DNSCurveTarget.IPv4.ProviderName = nullptr;
-	DNSCurveTarget.Alternate_IPv4.ProviderName = nullptr;
-	DNSCurveTarget.IPv6.ProviderName = nullptr;
-	DNSCurveTarget.Alternate_IPv6.ProviderName = nullptr;
+	DNSCurve_Target_Server_IPv4.ProviderName = nullptr;
+	DNSCurve_Target_Server_Alternate_IPv4.ProviderName = nullptr;
+	DNSCurve_Target_Server_IPv6.ProviderName = nullptr;
+	DNSCurve_Target_Server_Alternate_IPv6.ProviderName = nullptr;
 
 	return;
 }
@@ -1050,72 +1052,72 @@ void DNSCurveConfigurationTable::MonitorItemToUsing(
 	if (DNSCurveConfigurationParameter->Client_SecretKey != nullptr && !CheckEmptyBuffer(Client_SecretKey, crypto_box_PUBLICKEYBYTES) && 
 		sodium_memcmp(DNSCurveConfigurationParameter->Client_SecretKey, Client_SecretKey, crypto_box_PUBLICKEYBYTES) != 0)
 			memcpy_s(DNSCurveConfigurationParameter->Client_SecretKey, crypto_box_PUBLICKEYBYTES, Client_SecretKey, crypto_box_PUBLICKEYBYTES);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.PrecomputationKey != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES))
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES, DNSCurveTarget.IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.PrecomputationKey != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES))
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES, DNSCurveTarget.Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.PrecomputationKey != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES))
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES, DNSCurveTarget.IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.PrecomputationKey != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES))
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES, DNSCurveTarget.Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ServerPublicKey != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES) && 
-		memcmp(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ServerPublicKey, DNSCurveTarget.IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES) != 0)
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES, DNSCurveTarget.IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ServerPublicKey != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.Alternate_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES) && 
-		memcmp(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ServerPublicKey, DNSCurveTarget.Alternate_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES) != 0)
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES, DNSCurveTarget.Alternate_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ServerPublicKey != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES) && 
-		memcmp(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ServerPublicKey, DNSCurveTarget.IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES) != 0)
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES, DNSCurveTarget.IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ServerPublicKey != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.Alternate_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES) && 
-		memcmp(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ServerPublicKey, DNSCurveTarget.Alternate_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES) != 0)
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES, DNSCurveTarget.Alternate_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ServerFingerprint != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES))
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES, DNSCurveTarget.IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ServerFingerprint != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES))
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES, DNSCurveTarget.Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ServerFingerprint != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES))
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES, DNSCurveTarget.IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ServerFingerprint != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES))
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES, DNSCurveTarget.Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.PrecomputationKey != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES))
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES, DNSCurve_Target_Server_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES))
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES, DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv6.PrecomputationKey != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES))
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES, DNSCurve_Target_Server_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES))
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES, DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.ServerPublicKey != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES) && 
+		memcmp(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.ServerPublicKey, DNSCurve_Target_Server_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES) != 0)
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES, DNSCurve_Target_Server_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES) && 
+		memcmp(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey, DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES) != 0)
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES, DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv6.ServerPublicKey != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES) && 
+		memcmp(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv6.ServerPublicKey, DNSCurve_Target_Server_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES) != 0)
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES, DNSCurve_Target_Server_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES) && 
+		memcmp(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey, DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES) != 0)
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES, DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.ServerFingerprint != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES))
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES, DNSCurve_Target_Server_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES))
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES, DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv6.ServerFingerprint != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES))
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES, DNSCurve_Target_Server_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES))
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES, DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
 
 //DNSCurve Magic Numbers
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ReceiveMagicNumber != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCurveTarget.IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ReceiveMagicNumber != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCurveTarget.IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.SendMagicNumber != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCurveTarget.IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.SendMagicNumber != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCurveTarget.Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.SendMagicNumber != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCurveTarget.IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	if (DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.SendMagicNumber != nullptr && 
-		!CheckEmptyBuffer(DNSCurveTarget.Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
-			memcpy_s(DNSCurveConfigurationParameter->DNSCurveTarget.Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCurveTarget.Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.ReceiveMagicNumber != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCurve_Target_Server_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv6.ReceiveMagicNumber != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCurve_Target_Server_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.SendMagicNumber != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCurve_Target_Server_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv6.SendMagicNumber != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCurve_Target_Server_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber != nullptr && 
+		!CheckEmptyBuffer(DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
+			memcpy_s(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
 
 	return;
 }
@@ -1141,48 +1143,48 @@ void DNSCurveConfigurationTable::MonitorItemReset(
 		sodium_memzero(Client_PublicKey, crypto_box_PUBLICKEYBYTES);
 	if (Client_SecretKey != nullptr)
 		sodium_memzero(Client_SecretKey, crypto_box_SECRETKEYBYTES);
-	if (DNSCurveTarget.IPv4.PrecomputationKey != nullptr)
-		sodium_memzero(DNSCurveTarget.IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES);
-	if (DNSCurveTarget.Alternate_IPv4.PrecomputationKey != nullptr)
-		sodium_memzero(DNSCurveTarget.Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES);
-	if (DNSCurveTarget.IPv6.PrecomputationKey != nullptr)
-		sodium_memzero(DNSCurveTarget.IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES);
-	if (DNSCurveTarget.Alternate_IPv6.PrecomputationKey != nullptr)
-		sodium_memzero(DNSCurveTarget.Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES);
-	if (DNSCurveTarget.IPv4.ServerPublicKey != nullptr)
-		sodium_memzero(DNSCurveTarget.IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
-	if (DNSCurveTarget.Alternate_IPv4.ServerPublicKey != nullptr)
-		sodium_memzero(DNSCurveTarget.Alternate_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
-	if (DNSCurveTarget.IPv6.ServerPublicKey != nullptr)
-		sodium_memzero(DNSCurveTarget.IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
-	if (DNSCurveTarget.Alternate_IPv6.ServerPublicKey != nullptr)
-		sodium_memzero(DNSCurveTarget.Alternate_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
-	if (DNSCurveTarget.IPv4.ServerFingerprint != nullptr)
-		sodium_memzero(DNSCurveTarget.IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
-	if (DNSCurveTarget.Alternate_IPv4.ServerFingerprint != nullptr)
-		sodium_memzero(DNSCurveTarget.Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
-	if (DNSCurveTarget.IPv6.ServerFingerprint != nullptr)
-		sodium_memzero(DNSCurveTarget.IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
-	if (DNSCurveTarget.Alternate_IPv6.ServerFingerprint != nullptr)
-		sodium_memzero(DNSCurveTarget.Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurve_Target_Server_IPv4.PrecomputationKey != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES);
+	if (DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES);
+	if (DNSCurve_Target_Server_IPv6.PrecomputationKey != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES);
+	if (DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES);
+	if (DNSCurve_Target_Server_IPv4.ServerPublicKey != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurve_Target_Server_IPv6.ServerPublicKey != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurve_Target_Server_IPv4.ServerFingerprint != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurve_Target_Server_IPv6.ServerFingerprint != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
+	if (DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
 
 //DNSCurve Magic Numbers
-	if (DNSCurveTarget.IPv4.ReceiveMagicNumber != nullptr)
-		sodium_memzero(DNSCurveTarget.IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	if (DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber != nullptr)
-		sodium_memzero(DNSCurveTarget.Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	if (DNSCurveTarget.IPv6.ReceiveMagicNumber != nullptr)
-		sodium_memzero(DNSCurveTarget.IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	if (DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber != nullptr)
-		sodium_memzero(DNSCurveTarget.Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	if (DNSCurveTarget.IPv4.SendMagicNumber != nullptr)
-		sodium_memzero(DNSCurveTarget.IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	if (DNSCurveTarget.Alternate_IPv4.SendMagicNumber != nullptr)
-		sodium_memzero(DNSCurveTarget.Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	if (DNSCurveTarget.IPv6.SendMagicNumber != nullptr)
-		sodium_memzero(DNSCurveTarget.IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	if (DNSCurveTarget.Alternate_IPv6.SendMagicNumber != nullptr)
-		sodium_memzero(DNSCurveTarget.Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurve_Target_Server_IPv4.ReceiveMagicNumber != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurve_Target_Server_IPv6.ReceiveMagicNumber != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurve_Target_Server_IPv4.SendMagicNumber != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurve_Target_Server_IPv6.SendMagicNumber != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	if (DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber != nullptr)
+		sodium_memzero(DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
 
 	return;
 }

@@ -49,7 +49,7 @@ bool __fastcall AddressStringToBinary(
 		if (sAddrString.find(ASCII_COLON) == std::string::npos || 
 			sAddrString.find(ASCII_PERIOD) != std::string::npos || sAddrString.find("::") != sAddrString.rfind("::"))
 				return false;
-		for (auto StringIter:sAddrString)
+		for (const auto &StringIter:sAddrString)
 		{
 			if (StringIter < ASCII_ZERO || 
 				(StringIter > ASCII_COLON && StringIter < ASCII_UPPERCASE_A) || 
@@ -98,7 +98,7 @@ bool __fastcall AddressStringToBinary(
 		if (sAddrString.find(ASCII_PERIOD) == std::string::npos || sAddrString.find(ASCII_COLON) != std::string::npos)
 			return false;
 		size_t CommaNum = 0;
-		for (auto StringIter:sAddrString)
+		for (const auto &StringIter:sAddrString)
 		{
 			if ((StringIter != ASCII_PERIOD && StringIter < ASCII_ZERO) || StringIter > ASCII_NINE)
 				return false;
@@ -261,7 +261,7 @@ bool __fastcall CheckSpecialAddress(
 //			((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001) || //Loopback addresses(::1, Section 2.5.3 in RFC 4291)
 			((in6_addr *)Addr)->s6_words[5U] == htons(0xFFFF))) || //IPv4-mapped addresses(::FFFF:0:0/96, Section 2.5.5 in RFC 4291)
 			(IsPrivateUse && ((in6_addr *)Addr)->s6_words[0] == htons(0x0064) && ((in6_addr *)Addr)->s6_words[1U] == htons(0xFF9B) && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0) || //Well Known Prefix addresses(64:FF9B::/96, Section 2.1 in RFC 4773)
-			(((in6_addr *)Addr)->s6_words[0] == htons(0x0100) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0) || //Discard Prefix addresses(100::/64, Section 4 RFC 6666)
+			(((in6_addr *)Addr)->s6_words[0] == htons(0x0100) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0) || //Discard Prefix addresses(100::/64, Section 4 RFC 6666)
 			(((in6_addr *)Addr)->s6_words[0] == htons(0x2001) && 
 			(((in6_addr *)Addr)->s6_words[1U] == 0 || //Teredo relay/tunnel addresses(2001::/32, RFC 4380)
 			(((in6_addr *)Addr)->s6_bytes[2U] == 0 && ((in6_addr *)Addr)->s6_bytes[3U] <= 0x07) || //Sub-TLA IDs assigned to IANA addresses(2001:0000::/29, Section 2 in RFC 4773)
@@ -288,14 +288,14 @@ bool __fastcall CheckSpecialAddress(
 
 		//Main check
 			std::lock_guard<std::mutex> IPFilterFileMutex(IPFilterFileLock);
-			for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
+			for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
 			{
-				for (auto ResultBlacklistTableIter:IPFilterFileSetIter.ResultBlacklist)
+				for (const auto &ResultBlacklistTableIter:IPFilterFileSetIter.ResultBlacklist)
 				{
 					if (ResultBlacklistTableIter.Addresses.front().Begin.ss_family == AF_INET6 && 
 						(ResultBlacklistTableIter.PatternString.empty() || std::regex_match(InnerDomain, ResultBlacklistTableIter.Pattern)))
 					{
-						for (auto AddressRangeTableIter:ResultBlacklistTableIter.Addresses)
+						for (const auto &AddressRangeTableIter:ResultBlacklistTableIter.Addresses)
 						{
 							if ((AddressRangeTableIter.End.ss_family == AF_INET6 && 
 								AddressesComparing(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL && 
@@ -310,13 +310,13 @@ bool __fastcall CheckSpecialAddress(
 
 	//Address Hosts check
 		std::lock_guard<std::mutex> HostsFileMutex(HostsFileLock);
-		for (auto HostsFileSetIter:*HostsFileSetUsing)
+		for (const auto &HostsFileSetIter:*HostsFileSetUsing)
 		{
-			for (auto AddressHostsTableIter:HostsFileSetIter.AddressHostsList)
+			for (const auto &AddressHostsTableIter:HostsFileSetIter.AddressHostsList)
 			{
 				if (AddressHostsTableIter.Address_Target.front().ss_family == AF_INET6)
 				{
-					for (auto AddressRangeTableIter:AddressHostsTableIter.Address_Source)
+					for (const auto &AddressRangeTableIter:AddressHostsTableIter.Address_Source)
 					{
 						if ((AddressRangeTableIter.Begin.ss_family == AF_INET6 && AddressRangeTableIter.End.ss_family == AF_INET6 && 
 							AddressesComparing(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL && 
@@ -434,7 +434,8 @@ bool __fastcall CheckSpecialAddress(
 		//Special-use or reserved addresses, see https://en.wikipedia.org/wiki/IPv4#Special-use_addresses and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv4_addresses.
 			((in_addr *)Addr)->s_net == 0 || //Current network whick only valid as source addresses(0.0.0.0/8, Section 3.2.1.3 in RFC 1122)
 			(IsPrivateUse && ((in_addr *)Addr)->s_net == 0x0A) || //Private class A addresses(10.0.0.0/8, Section 3 in RFC 1918)
-			((in_addr *)Addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
+			(((in_addr *)Addr)->s_net == 0x7F && //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
+			!(((in_addr *)Addr)->s_host == 0 && ((in_addr *)Addr)->s_lh == 0 && ((in_addr *)Addr)->s_impno == 0x01)) || //The first of Loopback block address(127.0.0.1)
 			( /* IsPrivateUse && */ ((in_addr *)Addr)->s_net == 0x64 && ((in_addr *)Addr)->s_host > 0x40 && ((in_addr *)Addr)->s_host < 0x7F) || //Carrier-grade NAT addresses(100.64.0.0/10, Section 7 in RFC 6598)
 			(IsPrivateUse && ((in_addr *)Addr)->s_net == 0xA9 && ((in_addr *)Addr)->s_host >= 0xFE) || //Link-local addresses(169.254.0.0/16, Section 1.5 in RFC 3927)
 			(IsPrivateUse && ((in_addr *)Addr)->s_net == 0xAC && ((in_addr *)Addr)->s_host >= 0x10 && ((in_addr *)Addr)->s_host <= 0x1F) || //Private class B addresses(172.16.0.0/12, Section 3 in RFC 1918)	
@@ -459,14 +460,14 @@ bool __fastcall CheckSpecialAddress(
 
 		//Main check
 			std::lock_guard<std::mutex> IPFilterFileMutex(IPFilterFileLock);
-			for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
+			for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
 			{
-				for (auto ResultBlacklistTableIter:IPFilterFileSetIter.ResultBlacklist)
+				for (const auto &ResultBlacklistTableIter:IPFilterFileSetIter.ResultBlacklist)
 				{
 					if (ResultBlacklistTableIter.Addresses.front().Begin.ss_family == AF_INET && 
 						(ResultBlacklistTableIter.PatternString.empty() || std::regex_match(InnerDomain, ResultBlacklistTableIter.Pattern)))
 					{
-						for (auto AddressRangeTableIter:ResultBlacklistTableIter.Addresses)
+						for (const auto &AddressRangeTableIter:ResultBlacklistTableIter.Addresses)
 						{
 							if ((AddressRangeTableIter.End.ss_family == AF_INET && 
 								AddressesComparing(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr, AF_INET) >= ADDRESS_COMPARE_EQUAL && 
@@ -481,13 +482,13 @@ bool __fastcall CheckSpecialAddress(
 
 	//Address Hosts check
 		std::lock_guard<std::mutex> HostsFileMutex(HostsFileLock);
-		for (auto HostsFileSetIter:*HostsFileSetUsing)
+		for (const auto &HostsFileSetIter:*HostsFileSetUsing)
 		{
-			for (auto AddressHostsTableIter:HostsFileSetIter.AddressHostsList)
+			for (const auto &AddressHostsTableIter:HostsFileSetIter.AddressHostsList)
 			{
 				if (AddressHostsTableIter.Address_Target.front().ss_family == AF_INET)
 				{
-					for (auto AddressRangeTableIter:AddressHostsTableIter.Address_Source)
+					for (const auto &AddressRangeTableIter:AddressHostsTableIter.Address_Source)
 					{
 						if ((AddressRangeTableIter.Begin.ss_family == AF_INET && AddressRangeTableIter.End.ss_family == AF_INET && 
 							AddressesComparing(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr, AF_INET) >= ADDRESS_COMPARE_EQUAL && 
@@ -527,10 +528,9 @@ bool __fastcall CheckAddressRouting(
 //Check address routing.
 	if (Protocol == AF_INET6) //IPv6
 	{
-		std::map<uint64_t, std::set<uint64_t>>::iterator AddrMapIter;
-		for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
+		for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
 		{
-			for (auto LocalRoutingTableIter:IPFilterFileSetIter.LocalRoutingList)
+			for (const auto &LocalRoutingTableIter:IPFilterFileSetIter.LocalRoutingList)
 			{
 				if (!LocalRoutingTableIter.AddressRoutingList_IPv6.empty())
 				{
@@ -540,7 +540,7 @@ bool __fastcall CheckAddressRouting(
 							return true;
 					}
 					else {
-						AddrMapIter = LocalRoutingTableIter.AddressRoutingList_IPv6.find(ntoh64(*(PUINT64)Addr));
+						auto AddrMapIter = LocalRoutingTableIter.AddressRoutingList_IPv6.find(ntoh64(*(PUINT64)Addr));
 						if (AddrMapIter != LocalRoutingTableIter.AddressRoutingList_IPv6.end() && 
 							AddrMapIter->second.count(ntoh64(*(PUINT64)((uint8_t *)Addr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - LocalRoutingTableIter.Prefix))) > 0)
 								return true;
@@ -550,9 +550,9 @@ bool __fastcall CheckAddressRouting(
 		}
 	}
 	else { //IPv4
-		for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
+		for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
 		{
-			for (auto LocalRoutingTableIter:IPFilterFileSetIter.LocalRoutingList)
+			for (const auto &LocalRoutingTableIter:IPFilterFileSetIter.LocalRoutingList)
 			{
 				if (LocalRoutingTableIter.AddressRoutingList_IPv4.count(ntohl(((in_addr *)Addr)->s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - LocalRoutingTableIter.Prefix))) > 0)
 					return true;
@@ -571,12 +571,12 @@ bool __fastcall CheckCustomModeFilter(
 	std::lock_guard<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 	if (Protocol == AF_INET6) //IPv6
 	{
-	//Permit
+	//Permit mode
 		if (Parameter.IPFilterType)
 		{
-			for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
+			for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
 			{
-				for (auto AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
+				for (const auto &AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
 				{
 				//Check Protocol and Level.
 					if (AddressRangeTableIter.Begin.ss_family != AF_INET6 || (Parameter.IPFilterLevel > 0 && AddressRangeTableIter.Level < Parameter.IPFilterLevel))
@@ -605,11 +605,11 @@ bool __fastcall CheckCustomModeFilter(
 				}
 			}
 		}
-	//Deny
+	//Deny mode
 		else {
-			for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
+			for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
 			{
-				for (auto AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
+				for (const auto &AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
 				{
 				//Check Protocol and Level.
 					if (AddressRangeTableIter.Begin.ss_family != AF_INET6 || (Parameter.IPFilterLevel > 0 && AddressRangeTableIter.Level < Parameter.IPFilterLevel))
@@ -640,12 +640,12 @@ bool __fastcall CheckCustomModeFilter(
 		}
 	}
 	else { //IPv4
-	//Permit
+	//Permit mode
 		if (Parameter.IPFilterType)
 		{
-			for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
+			for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
 			{
-				for (auto AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
+				for (const auto &AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
 				{
 				//Check Protocol and Level.
 					if (AddressRangeTableIter.Begin.ss_family != AF_INET || (Parameter.IPFilterLevel > 0 && AddressRangeTableIter.Level < Parameter.IPFilterLevel))
@@ -699,11 +699,11 @@ bool __fastcall CheckCustomModeFilter(
 				}
 			}
 		}
-	//Deny
+	//Deny mode
 		else {
-			for (auto IPFilterFileSetIter:*IPFilterFileSetUsing)
+			for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
 			{
-				for (auto AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
+				for (const auto &AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
 				{
 				//Check Protocol and Level.
 					if (AddressRangeTableIter.Begin.ss_family != AF_INET || (Parameter.IPFilterLevel > 0 && AddressRangeTableIter.Level < Parameter.IPFilterLevel))
@@ -768,13 +768,9 @@ size_t __fastcall CheckQueryNameLength(
 	for (Index = 0;Index < DOMAIN_MAXSIZE;++Index)
 	{
 		if (Buffer[Index] == 0)
-		{
 			break;
-		}
 		else if ((uint8_t)Buffer[Index] >= DNS_POINTER_8_BITS)
-		{
 			return Index + sizeof(uint16_t) - 1U;
-		}
 	}
 
 	return Index;
@@ -801,9 +797,9 @@ size_t __fastcall CheckResponseCNAME(
 
 //CNAME Hosts
 	std::lock_guard<std::mutex> HostsFileMutex(HostsFileLock);
-	for (auto HostsFileSetIter:*HostsFileSetUsing)
+	for (const auto &HostsFileSetIter:*HostsFileSetUsing)
 	{
-		for (auto HostsTableIter:HostsFileSetIter.HostsList_CNAME)
+		for (const auto &HostsTableIter:HostsFileSetIter.HostsList_CNAME)
 		{
 			if (std::regex_match(Domain, HostsTableIter.Pattern))
 			{
@@ -1052,7 +1048,7 @@ bool __fastcall CheckQueryData(
 		if (Index >= (size_t)(ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority))) //Additional counts
 		{
 		//EDNS Label check
-			if (Index == (size_t)(ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional) - 1U) && 
+			if (Index == ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional) - 1U && 
 				DNS_Record_Standard->Type == htons(DNS_RECORD_OPT))
 			{
 				Packet->EDNS_Record += RecordLength;
@@ -1062,7 +1058,7 @@ bool __fastcall CheckQueryData(
 				Packet->Additional += RecordLength;
 			}
 		}
-		else if (Index >= (size_t)(ntohs(DNS_Header->Answer))) //Authority counts
+		else if (Index >= ntohs(DNS_Header->Answer)) //Authority counts
 		{
 			Packet->Authority += RecordLength;
 		}
@@ -1151,13 +1147,13 @@ size_t __fastcall CheckResponseData(
 	//Additional EDNS Label Resource Records check
 		(Parameter.EDNS_Label && DNS_Header->Additional == 0 && 
 		(ResponseType == 0 || //Normal
-		(ResponseType == REQUEST_PROCESS_LOCAL && Parameter.EDNS_Switch.EDNS_Local) || //Local
-		(ResponseType == REQUEST_PROCESS_SOCKS && Parameter.EDNS_Switch.EDNS_SOCKS) || //SOCKS Proxy
-		(ResponseType == REQUEST_PROCESS_HTTP && Parameter.EDNS_Switch.EDNS_HTTP) || //HTTP Proxy
-		(ResponseType == REQUEST_PROCESS_DIRECT && Parameter.EDNS_Switch.EDNS_Direct) || //Direct Request
-		(ResponseType == REQUEST_PROCESS_DNSCURVE && Parameter.EDNS_Switch.EDNS_DNSCurve) || //DNSCurve
-		(ResponseType == REQUEST_PROCESS_TCP && Parameter.EDNS_Switch.EDNS_TCP) || //TCP
-		(ResponseType == REQUEST_PROCESS_UDP && Parameter.EDNS_Switch.EDNS_UDP)))))) //UDP
+		(ResponseType == REQUEST_PROCESS_LOCAL && Parameter.EDNS_Switch_Local) || //Local
+		(ResponseType == REQUEST_PROCESS_SOCKS && Parameter.EDNS_Switch_SOCKS) || //SOCKS Proxy
+		(ResponseType == REQUEST_PROCESS_HTTP && Parameter.EDNS_Switch_HTTP) || //HTTP Proxy
+		(ResponseType == REQUEST_PROCESS_DIRECT && Parameter.EDNS_Switch_Direct) || //Direct Request
+		(ResponseType == REQUEST_PROCESS_DNSCURVE && Parameter.EDNS_Switch_DNSCurve) || //DNSCurve
+		(ResponseType == REQUEST_PROCESS_TCP && Parameter.EDNS_Switch_TCP) || //TCP
+		(ResponseType == REQUEST_PROCESS_UDP && Parameter.EDNS_Switch_UDP)))))) //UDP
 			return EXIT_FAILURE;
 
 //Responses question pointer check
@@ -1300,13 +1296,13 @@ size_t __fastcall CheckResponseData(
 	if (ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && 
 		((Parameter.EDNS_Label && 
 		(ResponseType == 0 || //Normal
-		(ResponseType == REQUEST_PROCESS_LOCAL && Parameter.EDNS_Switch.EDNS_Local) || //Local
-		(ResponseType == REQUEST_PROCESS_SOCKS && Parameter.EDNS_Switch.EDNS_SOCKS) || //SOCKS Proxy
-		(ResponseType == REQUEST_PROCESS_HTTP && Parameter.EDNS_Switch.EDNS_HTTP) || //HTTP Proxy
-		(ResponseType == REQUEST_PROCESS_DIRECT && Parameter.EDNS_Switch.EDNS_Direct) || //Direct Request
-		(ResponseType == REQUEST_PROCESS_DNSCURVE && Parameter.EDNS_Switch.EDNS_DNSCurve) || //DNSCurve
-		(ResponseType == REQUEST_PROCESS_TCP && Parameter.EDNS_Switch.EDNS_TCP) || //TCP
-		(ResponseType == REQUEST_PROCESS_UDP && Parameter.EDNS_Switch.EDNS_UDP)) && //UDP
+		(ResponseType == REQUEST_PROCESS_LOCAL && Parameter.EDNS_Switch_Local) || //Local
+		(ResponseType == REQUEST_PROCESS_SOCKS && Parameter.EDNS_Switch_SOCKS) || //SOCKS Proxy
+		(ResponseType == REQUEST_PROCESS_HTTP && Parameter.EDNS_Switch_HTTP) || //HTTP Proxy
+		(ResponseType == REQUEST_PROCESS_DIRECT && Parameter.EDNS_Switch_Direct) || //Direct Request
+		(ResponseType == REQUEST_PROCESS_DNSCURVE && Parameter.EDNS_Switch_DNSCurve) || //DNSCurve
+		(ResponseType == REQUEST_PROCESS_TCP && Parameter.EDNS_Switch_TCP) || //TCP
+		(ResponseType == REQUEST_PROCESS_UDP && Parameter.EDNS_Switch_UDP)) && //UDP
 		(!IsEDNS_Label || (Parameter.DNSSEC_Request && Parameter.DNSSEC_ForceValidation && !IsDNSSEC_Records))) || 
 		(ResponseType == REQUEST_PROCESS_LOCAL && !Parameter.LocalForce && !IsGotAddressResult)))
 			return EXIT_FAILURE;

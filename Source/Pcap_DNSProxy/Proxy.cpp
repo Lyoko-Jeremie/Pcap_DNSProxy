@@ -157,7 +157,7 @@ SSIZE_T __fastcall ProxySocketSelecting(
 //Selecting process
 	for (;;)
 	{
-		Sleep(LOOP_INTERVAL_TIME_NO_DELAY);
+//		Sleep(LOOP_INTERVAL_TIME_NO_DELAY);
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
@@ -803,9 +803,13 @@ size_t __fastcall SOCKSUDPRequest(
 		(UDPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr)) || 
 		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
 	{
+		shutdown(UDPSocketData.Socket, SD_BOTH);
 		closesocket(UDPSocketData.Socket);
 		if (!Parameter.SOCKS_UDP_NoHandshake)
+		{
+			shutdown(TCPSocketData.Socket, SD_BOTH);
 			closesocket(TCPSocketData.Socket);
+		}
 		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"SOCKS socket initialization error", 0, nullptr, 0);
 
 		return EXIT_FAILURE;
@@ -815,9 +819,13 @@ size_t __fastcall SOCKSUDPRequest(
 	if ((!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr)) || 
 		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
 	{
+		shutdown(UDPSocketData.Socket, SD_BOTH);
 		closesocket(UDPSocketData.Socket);
 		if (!Parameter.SOCKS_UDP_NoHandshake)
+		{
+			shutdown(TCPSocketData.Socket, SD_BOTH);
 			closesocket(TCPSocketData.Socket);
+		}
 
 		return EXIT_FAILURE;
 	}
@@ -1089,7 +1097,10 @@ size_t __fastcall HTTPRequest(
 		(HTTPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr)) || 
 		!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
 	{
+		shutdown(HTTPSocketData.Socket, SD_BOTH);
+		closesocket(HTTPSocketData.Socket);
 		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"HTTP socket initialization error", 0, nullptr, 0);
+
 		return EXIT_FAILURE;
 	}
 

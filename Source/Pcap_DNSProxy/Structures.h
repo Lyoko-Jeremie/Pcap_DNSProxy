@@ -1896,7 +1896,7 @@ typedef struct _dns_record_opt_
 }dns_record_opt, *pdns_record_opt, edns_header, *pedns_header;
 
 /* Extension Mechanisms for Domain Name System/DNS, Client subnet in EDNS requests
-* Client Subnet in DNS Requests draft-vandergaast-edns-client-subnet-02(https://tools.ietf.org/html/draft-vandergaast-edns-client-subnet-02)
+* Client Subnet in DNS Requests draft-vandergaast-edns-client-subnet-02(https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08)
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -2211,7 +2211,7 @@ typedef struct _dns_record_caa_
 //Domain Name System Curve/DNSCurve part
 #if defined(ENABLE_LIBSODIUM)
 // About DNSCurve standards: 
-// DNSCurve: Usable security for DNS(http://dnscurve.org)
+// DNSCurve: Usable security for DNS(https://dnscurve.org)
 // DNSCrypt, A protocol to improve DNS security(https://dnscrypt.org)
 #define DNSCURVE_MAGIC_QUERY_LEN          8U
 #define DNSCURVE_MAGIC_QUERY_HEX_LEN      16U
@@ -2313,13 +2313,13 @@ typedef struct _dnscurve_txt_signature_
 #define SOCKS_COMMAND_BIND                         2U
 #define SOCKS_COMMAND_UDP_ASSOCIATE                3U
 #define SOCKS4_ADDRESS_DOMAIN_ADDRESS              0x00000001
-#define SOCKS5_ADDRESS_IPV4                        1U
-#define SOCKS5_ADDRESS_DOMAIN                      3U
-#define SOCKS5_ADDRESS_IPV6                        4U
 #define SOCKS4_REPLY_GRANTED                       0x5A         //Request granted
 #define SOCKS4_REPLY_REJECTED                      0x5B         //Request rejected or failed
 #define SOCKS4_REPLY_NOT_IDENTD                    0x5C         //Request failed because client is not running identd(or not reachable from the server).
 #define SOCKS4_REPLY_NOT_CONFIRM                   0x5D         //Request failed because client's identd could not confirm the user ID string in the request.
+#define SOCKS5_ADDRESS_IPV4                        1U
+#define SOCKS5_ADDRESS_DOMAIN                      3U
+#define SOCKS5_ADDRESS_IPV6                        4U
 #define SOCKS5_REPLY_SUCCESS                       0
 #define SOCKS5_REPLY_SERVER_FAILURE                1U
 #define SOCKS5_REPLY_NOT_ALLOWED                   2U

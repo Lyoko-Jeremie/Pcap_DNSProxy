@@ -33,7 +33,7 @@ extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 #if defined(ENABLE_LIBSODIUM)
-	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
+extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 #endif
 extern std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
 extern std::mutex CaptureLock, OutputPacketListLock;
@@ -48,7 +48,7 @@ bool __fastcall CaptureModule(
 	const bool IsCaptureList);
 void CaptureHandler(
 	unsigned char *Param, 
-	const struct pcap_pkthdr *PacketHeader, 
+	const pcap_pkthdr *PacketHeader, 
 	const unsigned char *PacketData);
 bool __fastcall CaptureNetworkLayer(
 	const char *Buffer, 

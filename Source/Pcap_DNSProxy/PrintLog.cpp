@@ -38,9 +38,8 @@ bool __fastcall PrintError(
 	std::wstring FileNameString, ErrorMessage;
 	if (FileName != nullptr)
 	{
+	//Add file name and line number.
 		FileNameString.append(L" in ");
-
-	//Add line number.
 		if (Line > 0)
 			FileNameString.append(L"line %d of ");
 
@@ -72,7 +71,7 @@ bool __fastcall PrintError(
 				ErrorMessage.append(L", error code is %d.\n");
 		}break;
 	//System Error
-	//About System Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx.
+	//About System Error Codes, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx.
 		case LOG_ERROR_SYSTEM:
 		{
 			ErrorMessage.append(L"System Error: ");
@@ -109,7 +108,7 @@ bool __fastcall PrintError(
 				ErrorMessage.append(L", error code is %d.\n");
 		}break;
 	//IPFilter Error
-	//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
+	//About Windows Sockets Error Codes, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
 		case LOG_ERROR_IPFILTER:
 		{
 			ErrorMessage.append(L"IPFilter Error: ");
@@ -126,7 +125,7 @@ bool __fastcall PrintError(
 				ErrorMessage.append(L", error code is %d.\n");
 		}break;
 	//Hosts Error
-	//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
+	//About Windows Sockets Error Codes, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
 		case LOG_ERROR_HOSTS:
 		{
 			ErrorMessage.append(L"Hosts Error: ");
@@ -143,7 +142,7 @@ bool __fastcall PrintError(
 				ErrorMessage.append(L", error code is %d.\n");
 		}break;
 	//Network Error
-	//About Windows Sockets Error Codes, see http://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
+	//About Windows Sockets Error Codes, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
 		case LOG_ERROR_NETWORK:
 		{
 			ErrorMessage.append(L"Network Error: ");
@@ -277,12 +276,10 @@ bool __fastcall PrintScreenAndWriteFile(
 	if (!GlobalRunningStatus.Daemon)
 #endif
 	{
-		std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
-
 	//Print startup time.
 		if (LogStartupTime > 0)
 		{
-			fwprintf_s(stderr, L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", 
+			PrintToScreen(L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", 
 				TimeStructure.tm_year + 1900, 
 				TimeStructure.tm_mon + 1, 
 				TimeStructure.tm_mday, 
@@ -292,7 +289,7 @@ bool __fastcall PrintScreenAndWriteFile(
 		}
 
 	//Print message.
-		fwprintf_s(stderr, L"%d-%02d-%02d %02d:%02d:%02d -> ", 
+		PrintToScreen(L"%d-%02d-%02d %02d:%02d:%02d -> ", 
 			TimeStructure.tm_year + 1900, 
 			TimeStructure.tm_mon + 1, 
 			TimeStructure.tm_mday, 
@@ -300,13 +297,13 @@ bool __fastcall PrintScreenAndWriteFile(
 			TimeStructure.tm_min, 
 			TimeStructure.tm_sec);
 		if (Line > 0 && ErrorCode > 0)
-			fwprintf_s(stderr, Message.c_str(), Line, ErrorCode);
+			PrintToScreen(Message.c_str(), Line, ErrorCode);
 		else if (Line > 0)
-			fwprintf_s(stderr, Message.c_str(), Line);
+			PrintToScreen(Message.c_str(), Line);
 		else if (ErrorCode > 0)
-			fwprintf_s(stderr, Message.c_str(), ErrorCode);
+			PrintToScreen(Message.c_str(), ErrorCode);
 		else 
-			fwprintf_s(stderr, Message.c_str());
+			PrintToScreen(Message.c_str());
 	}
 
 //Check whole file size.
@@ -396,3 +393,84 @@ bool __fastcall PrintScreenAndWriteFile(
 
 	return true;
 }
+
+//Print words to screen.
+void PrintToScreen(
+	const wchar_t *Format, 
+	...
+)
+{
+//Initialization
+	va_list ArgList;
+	memset(&ArgList, 0, sizeof(va_list));
+	va_start(ArgList, Format);
+
+//Print data to screen.
+	std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+	vfwprintf_s(stderr, Format, ArgList);
+	ScreenMutex.unlock();
+
+//Cleanup
+	va_end(ArgList);
+	return;
+}
+
+//Print error of reading text
+void __fastcall ReadTextPrintLog(
+	const size_t InputType, 
+	const size_t FileIndex, 
+	const size_t Line)
+{
+	switch (InputType)
+	{
+		case READ_TEXT_HOSTS: //ReadHosts
+		{
+			PrintError(LOG_LEVEL_2, LOG_ERROR_HOSTS, L"Data of a line is too short", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+		}break;
+		case READ_TEXT_IPFILTER: //ReadIPFilter
+		{
+			PrintError(LOG_LEVEL_2, LOG_ERROR_IPFILTER, L"Data of a line is too short", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+		}break;
+		case READ_TEXT_PARAMETER: //ReadParameter
+		{
+			PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+		}break;
+		case READ_TEXT_PARAMETER_MONITOR: //ReadParameter(Monitor mode)
+		{
+			PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+		}break;
+	}
+
+	return;
+}
+
+#if defined(ENABLE_LIBSODIUM)
+//DNSCurve print error of servers
+void __fastcall DNSCurvePrintLog(
+	const size_t ServerType, 
+	std::wstring &Message)
+{
+	Message.clear();
+	switch (ServerType)
+	{
+		case DNSCURVE_MAIN_IPV6:
+		{
+			Message = L"IPv6 Main Server ";
+		}break;
+		case DNSCURVE_MAIN_IPV4:
+		{
+			Message = L"IPv4 Main Server ";
+		}break;
+		case DNSCURVE_ALTERNATE_IPV6:
+		{
+			Message = L"IPv6 Alternate Server ";
+		}break;
+		case DNSCURVE_ALTERNATE_IPV4:
+		{
+			Message = L"IPv4 Alternate Server ";
+		}break;
+	}
+
+	return;
+}
+#endif

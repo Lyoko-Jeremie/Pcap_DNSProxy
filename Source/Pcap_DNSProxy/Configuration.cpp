@@ -37,33 +37,26 @@ bool __fastcall ReadText(
 	while (!feof((FILE *)FileHandle))
 	{
 	//Read file and Mark last read.
+		_set_errno(0);
 		auto ReadLength = fread_s(FileBuffer.get(), FILE_BUFFER_SIZE, sizeof(char), FILE_BUFFER_SIZE, (FILE *)FileHandle);
+		if (ReadLength == 0)
+		{
+			if (errno > 0)
+			{
+				ReadTextPrintLog(InputType, FileIndex, Line);
+				return false;
+			}
+			else {
+				continue;
+			}
+		}
 
 	//Erase BOM of Unicode Transformation Format/UTF at first.
 		if (IsEraseBOM)
 		{
 			if (ReadLength <= READ_DATA_MINSIZE)
 			{
-				switch (InputType)
-				{
-					case READ_TEXT_HOSTS: //ReadHosts
-					{
-						PrintError(LOG_LEVEL_2, LOG_ERROR_HOSTS, L"Data of a line is too short", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
-					}break;
-					case READ_TEXT_IPFILTER: //ReadIPFilter
-					{
-						PrintError(LOG_LEVEL_2, LOG_ERROR_IPFILTER, L"Data of a line is too short", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
-					}break;
-					case READ_TEXT_PARAMETER: //ReadParameter
-					{
-						PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-					}break;
-					case READ_TEXT_PARAMETER_MONITOR: //ReadParameter(Monitor mode)
-					{
-						PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-					}break;
-				}
-
+				ReadTextPrintLog(InputType, FileIndex, Line);
 				return false;
 			}
 			else {
@@ -71,7 +64,8 @@ bool __fastcall ReadText(
 			}
 
 		//8-bit Unicode Transformation Format/UTF-8 with BOM
-			if ((unsigned char)FileBuffer.get()[0] == 0xEF && (unsigned char)FileBuffer.get()[1U] == 0xBB && (unsigned char)FileBuffer.get()[2U] == 0xBF) //0xEF, 0xBB, 0xBF
+			if ((unsigned char)FileBuffer.get()[0] == 0xEF && (unsigned char)FileBuffer.get()[1U] == 0xBB && 
+				(unsigned char)FileBuffer.get()[2U] == 0xBF) //0xEF, 0xBB, 0xBF
 			{
 				memmove_s(FileBuffer.get(), FILE_BUFFER_SIZE, FileBuffer.get() + BOM_UTF_8_LENGTH, FILE_BUFFER_SIZE - BOM_UTF_8_LENGTH);
 				memset(FileBuffer.get() + FILE_BUFFER_SIZE - BOM_UTF_8_LENGTH, 0, BOM_UTF_8_LENGTH);
@@ -79,7 +73,8 @@ bool __fastcall ReadText(
 				Encoding = CODEPAGE_UTF_8;
 			}
 		//32-bit Unicode Transformation Format/UTF-32 Little Endian/LE
-			else if ((unsigned char)FileBuffer.get()[0] == 0xFF && (unsigned char)FileBuffer.get()[1U] == 0xFE && FileBuffer.get()[2U] == 0 && FileBuffer.get()[3U] == 0) //0xFF, 0xFE, 0x00, 0x00
+			else if ((unsigned char)FileBuffer.get()[0] == 0xFF && (unsigned char)FileBuffer.get()[1U] == 0xFE && 
+				FileBuffer.get()[2U] == 0 && FileBuffer.get()[3U] == 0) //0xFF, 0xFE, 0x00, 0x00
 			{
 				memmove_s(FileBuffer.get(), FILE_BUFFER_SIZE, FileBuffer.get() + BOM_UTF_32_LENGTH, FILE_BUFFER_SIZE - BOM_UTF_32_LENGTH);
 				memset(FileBuffer.get() + FILE_BUFFER_SIZE - BOM_UTF_32_LENGTH, 0, BOM_UTF_32_LENGTH);
@@ -87,7 +82,8 @@ bool __fastcall ReadText(
 				Encoding = CODEPAGE_UTF_32_LE;
 			}
 		//32-bit Unicode Transformation Format/UTF-32 Big Endian/BE
-			else if (FileBuffer.get()[0] == 0 && FileBuffer.get()[1U] == 0 && (unsigned char)FileBuffer.get()[2U] == 0xFE && (unsigned char)FileBuffer.get()[3U] == 0xFF) //0x00, 0x00, 0xFE, 0xFF
+			else if (FileBuffer.get()[0] == 0 && FileBuffer.get()[1U] == 0 && (unsigned char)FileBuffer.get()[2U] == 0xFE && 
+				(unsigned char)FileBuffer.get()[3U] == 0xFF) //0x00, 0x00, 0xFE, 0xFF
 			{
 				memmove_s(FileBuffer.get(), FILE_BUFFER_SIZE, FileBuffer.get() + BOM_UTF_32_LENGTH, FILE_BUFFER_SIZE - BOM_UTF_32_LENGTH);
 				memset(FileBuffer.get() + FILE_BUFFER_SIZE - BOM_UTF_32_LENGTH, 0, BOM_UTF_32_LENGTH);
@@ -303,7 +299,7 @@ bool __fastcall ReadText(
 
 		memset(FileBuffer.get(), 0, FILE_BUFFER_SIZE);
 
-	//Lines length check
+	//Line length check
 		if (!NewLine_Point && ReadLength == FILE_BUFFER_SIZE)
 		{
 			switch (InputType)
@@ -1075,7 +1071,7 @@ void __fastcall ClearModificatingListData(
 	const size_t ClearType, 
 	const size_t FileIndex)
 {
-//Clear Hosts set.
+//Clear Hosts file set.
 	if (ClearType == READ_TEXT_HOSTS)
 	{
 		for (auto HostsFileSetIter = HostsFileSetModificating->begin();HostsFileSetIter != HostsFileSetModificating->end();++HostsFileSetIter)
@@ -1088,7 +1084,7 @@ void __fastcall ClearModificatingListData(
 		}
 	}
 
-//Clear IPFilter set.
+//Clear IPFilter file set.
 	else if (ClearType == READ_TEXT_IPFILTER)
 	{
 		for (auto IPFilterFileSetIter = IPFilterFileSetModificating->begin();IPFilterFileSetIter != IPFilterFileSetModificating->end();++IPFilterFileSetIter)

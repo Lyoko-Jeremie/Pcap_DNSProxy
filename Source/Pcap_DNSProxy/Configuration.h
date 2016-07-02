@@ -20,11 +20,7 @@
 #include "Base.h"
 
 //Base definitions
-//Read Texts input and Label types definitions
-#define READ_TEXT_PARAMETER                   0
-#define READ_TEXT_PARAMETER_MONITOR           1U
-#define READ_TEXT_HOSTS                       2U
-#define READ_TEXT_IPFILTER                    3U
+//Label types definitions
 #define LABEL_STOP                            1U
 #define LABEL_IPFILTER                        2U
 #define LABEL_IPFILTER_BLACKLIST              3U
@@ -53,7 +49,7 @@
 extern CONFIGURATION_TABLE Parameter, ParameterModificating;
 extern GLOBAL_STATUS GlobalRunningStatus;
 #if defined(ENABLE_LIBSODIUM)
-	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
+extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
 #endif
 extern std::vector<FILE_DATA> FileList_Config, FileList_IPFilter, FileList_Hosts;
 extern std::vector<DIFFERNET_FILE_SET_IPFILTER> *IPFilterFileSetUsing, *IPFilterFileSetModificating;

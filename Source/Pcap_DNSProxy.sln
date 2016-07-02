@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pcap_DNSProxy", "Pcap_DNSProxy\Pcap_DNSProxy.vcxproj", "{9221C40D-99FA-447B-BB53-767F9C6945EB}"
 EndProject
@@ -36,7 +36,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleConfig", "ExampleCon
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{075F715C-B15F-40E4-907E-8DE5ECB2ED73}"
 	ProjectSection(SolutionItems) = preProject
-		Scripts\Linux_Build.sh = Scripts\Linux_Build.sh
+		Scripts\CMake_Build.sh = Scripts\CMake_Build.sh
 		Scripts\Linux_Install.Systemd.sh = Scripts\Linux_Install.Systemd.sh
 		Scripts\Linux_Install.SysV.sh = Scripts\Linux_Install.SysV.sh
 		Scripts\Linux_Uninstall.Systemd.sh = Scripts\Linux_Uninstall.Systemd.sh

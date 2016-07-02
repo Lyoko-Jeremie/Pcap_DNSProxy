@@ -24,8 +24,8 @@ extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 #if defined(ENABLE_PCAP)
-	extern std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
-	extern std::mutex OutputPacketListLock;
+extern std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
+extern std::mutex OutputPacketListLock;
 #endif
 
 //Functions

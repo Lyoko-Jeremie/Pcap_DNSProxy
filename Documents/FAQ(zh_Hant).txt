@@ -134,6 +134,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * IPv6 total request number error - IPv6 請求總次數限制錯誤：填入主要/待命伺服器的數量 * Multi Request Times = 總請求的數值，此數值不能超過 64
   * IPv4 packet TTL range error - IPv4 資料包 TTL 值範圍錯誤：請確認該條目的內容
   * IPv6 packet Hop Limits range error - IPv6 資料包 Hop Limits 值範圍錯誤：請確認該條目的內容
+  * Thread Pool number error - 執行緒池參數錯誤：請確認與 Thread Pool 相關參數的內容
   * DNSCurve target error - DNSCurve 協定使用的 DNS 目標伺服器位址錯誤：請檢查 DNSCurve 協定使用 DNS 伺服器的位址
   * DNSCurve encryption options error - DNSCurve 協定加密選項配置錯誤：開啟加密選項和只使用加密模式選項衝突
   * DNSCurve Encryption Only mode error - DNSCurve 協定只使用加密模式配置錯誤：只使用加密模式必須提供伺服器的魔數和指紋
@@ -203,7 +204,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
 6.Pcap Error - Pcap 錯誤
   * Insufficient privileges or not any available network devices - 沒有任何可用的網路介面卡：請檢查硬體設備和驅動程式是否安裝正確，也可能許可權不足
   * 本類型錯誤會直接將 WinPcap 的錯誤資訊直接列印至錯誤報表
-  * WinPcap 錯誤資訊的具體含義可移步 http://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
+  * WinPcap 錯誤資訊的具體含義可移步 https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
 
 7.DNSCurve Error - DNSCurve 協定錯誤
   * Libsodium initialization error - Libsodium 庫初始化錯誤：請與開發者聯繫
