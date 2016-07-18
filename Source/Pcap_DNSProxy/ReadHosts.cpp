@@ -20,7 +20,7 @@
 #include "Configuration.h"
 
 //Read hosts data from files
-bool __fastcall ReadHostsData(
+bool ReadHostsData(
 	std::string Data, 
 	const size_t FileIndex, 
 	size_t &LabelType, 
@@ -243,7 +243,7 @@ bool __fastcall ReadHostsData(
 }
 
 //Read other type items in Hosts file from data
-bool __fastcall ReadOtherHostsData(
+bool ReadOtherHostsData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line, 
@@ -290,13 +290,13 @@ bool __fastcall ReadOtherHostsData(
 	//Mark types.
 		std::vector<std::string> ListData;
 		uint16_t RecordType = 0;
-		SSIZE_T Result = 0;
+		ssize_t Result = 0;
 
 	//Mark all data in list.
 		GetParameterListData(ListData, Data, Data.find(ASCII_COLON) + 1U, Separated);
 		for (const auto &StringIter:ListData)
 		{
-			RecordType = DNSTypeNameToBinary(StringIter.c_str());
+			RecordType = DNSTypeNameToBinary((const uint8_t *)StringIter.c_str());
 
 		//Number types
 			if (RecordType <= 0)
@@ -355,7 +355,7 @@ bool __fastcall ReadOtherHostsData(
 }
 
 //Read Local Hosts items in Hosts file from data
-bool __fastcall ReadLocalHostsData(
+bool ReadLocalHostsData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line)
@@ -388,7 +388,7 @@ bool __fastcall ReadLocalHostsData(
 }
 
 //Read Address Hosts items in Hosts file from data
-bool __fastcall ReadAddressHostsData(
+bool ReadAddressHostsData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line)
@@ -438,15 +438,14 @@ bool __fastcall ReadAddressHostsData(
 //Initialization
 	ADDRESS_HOSTS_TABLE AddressHostsTableTemp;
 	sockaddr_storage SockAddr;
-	memset(&SockAddr, 0, sizeof(sockaddr_storage));
-	char Addr[ADDR_STRING_MAXSIZE];
-	memset(Addr, 0, ADDR_STRING_MAXSIZE);
+	memset(&SockAddr, 0, sizeof(SockAddr));
+	uint8_t Addr[ADDR_STRING_MAXSIZE] = {0};
 
 //Get target data.
 	std::vector<std::string> TargetListData, SourceListData;
 	GetParameterListData(TargetListData, Data, 0, Separated);
 	GetParameterListData(SourceListData, Data, Separated, Data.length());
-	SSIZE_T Result = 0;
+	ssize_t Result = 0;
 
 //Mark all data in list.
 	for (const auto &StringIter:TargetListData)
@@ -455,8 +454,8 @@ bool __fastcall ReadAddressHostsData(
 		if (StringIter.find(ASCII_COLON) != std::string::npos)
 		{
 		//Convert to binary address.
-			memset(&SockAddr, 0, sizeof(sockaddr_storage));
-			if (!AddressStringToBinary(StringIter.c_str(), AF_INET6, &((PSOCKADDR_IN6)&SockAddr)->sin6_addr, &Result))
+			memset(&SockAddr, 0, sizeof(SockAddr));
+			if (!AddressStringToBinary((const uint8_t *)StringIter.c_str(), AF_INET6, &((PSOCKADDR_IN6)&SockAddr)->sin6_addr, &Result))
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -469,8 +468,8 @@ bool __fastcall ReadAddressHostsData(
 	//A records(IPv4)
 		else {
 		//Convert to binary address.
-			memset(&SockAddr, 0, sizeof(sockaddr_storage));
-			if (!AddressStringToBinary(StringIter.c_str(), AF_INET, &((PSOCKADDR_IN)&SockAddr)->sin_addr, &Result))
+			memset(&SockAddr, 0, sizeof(SockAddr));
+			if (!AddressStringToBinary((const uint8_t *)StringIter.c_str(), AF_INET, &((PSOCKADDR_IN)&SockAddr)->sin_addr, &Result))
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -492,7 +491,7 @@ bool __fastcall ReadAddressHostsData(
 	//AAAA records(IPv6)
 		if (StringIter.find(ASCII_COLON) != std::string::npos)
 		{
-			memset(&AddressRangeTableTemp, 0, sizeof(ADDRESS_RANGE_TABLE));
+			memset(&AddressRangeTableTemp, 0, sizeof(AddressRangeTableTemp));
 
 		//Address range format
 			if (StringIter.find(ASCII_MINUS) != std::string::npos)
@@ -527,7 +526,7 @@ bool __fastcall ReadAddressHostsData(
 		//Normal format
 			else {
 			//Convert to binary address.
-				if (!AddressStringToBinary(StringIter.c_str(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
+				if (!AddressStringToBinary((const uint8_t *)StringIter.c_str(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -542,7 +541,7 @@ bool __fastcall ReadAddressHostsData(
 		}
 	//A records(IPv4)
 		else {
-			memset(&AddressRangeTableTemp, 0, sizeof(ADDRESS_RANGE_TABLE));
+			memset(&AddressRangeTableTemp, 0, sizeof(AddressRangeTableTemp));
 
 		//Address range format
 			if (StringIter.find(ASCII_MINUS) != std::string::npos)
@@ -577,7 +576,7 @@ bool __fastcall ReadAddressHostsData(
 		//Normal format
 			else {
 			//Convert to binary address.
-				if (!AddressStringToBinary(StringIter.c_str(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &Result))
+				if (!AddressStringToBinary((const uint8_t *)StringIter.c_str(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -606,7 +605,7 @@ bool __fastcall ReadAddressHostsData(
 }
 
 //Read Main Hosts items in Hosts file from data
-bool __fastcall ReadMainHostsData(
+bool ReadMainHostsData(
 	std::string Data, 
 	const size_t HostsType, 
 	const size_t FileIndex, 
@@ -725,15 +724,14 @@ bool __fastcall ReadMainHostsData(
 
 //Response initialization
 	ADDRESS_UNION_DATA AddressUnionDataTemp;
-	memset(&AddressUnionDataTemp, 0, sizeof(ADDRESS_UNION_DATA));
-	char Addr[ADDR_STRING_MAXSIZE];
-	memset(Addr, 0, ADDR_STRING_MAXSIZE);
-	SSIZE_T Result = 0;
+	memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
+	uint8_t Addr[ADDR_STRING_MAXSIZE] = {0};
+	ssize_t Result = 0;
 
 //Mark all data in list.
 	for (const auto &StringIter:HostsListData)
 	{
-		memset(&AddressUnionDataTemp, 0, sizeof(ADDRESS_UNION_DATA));
+		memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
 		memset(Addr, 0, ADDR_STRING_MAXSIZE);
 		memcpy_s(Addr, ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.length());
 

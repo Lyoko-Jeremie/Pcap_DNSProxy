@@ -1,10 +1,11 @@
-﻿Pcap_DNSProxy 0.4.6.1-0.4.6.6 更新日誌(2016-07-02)：
+﻿Pcap_DNSProxy 0.4.6.1-0.4.6.6 更新日誌(2016-07-18)：
 
 * 添加 Source Hosts 根據功能變數名稱請求的來源位址進行 Hosts 的功能
 * 添加 Local Force Request 參數，可強制已確定使用境內伺服器的功能變數名稱請求不使用其它伺服器進行解析
 * 添加 --flush-dns 參數指定功能變數名稱功能，可清除特定功能變數名稱的緩存
 * 添加遺漏的 DNS 投毒污染黑名單位址
 * 添加實驗性的執行緒池支援，並將 Buffer Queue Limits 參數更名為 Thread Pool Maximum Number
+* 添加 CMake 的 Clang 編譯器支援 (Mac)
 * 合併 KeyPairGenerator 工具到主程式，作為支援參數使用
 * 分離 32 位版本對 Windows XP/2003 的支援 (Windows)
 * 修復抓包模組錯誤判斷正確資料包的問題

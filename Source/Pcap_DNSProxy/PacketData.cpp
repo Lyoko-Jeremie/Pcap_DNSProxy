@@ -20,13 +20,12 @@
 #include "PacketData.h"
 
 /* Get Ethernet Frame Check Sequence/FCS
-uint32_t __fastcall GetFCS(
-	const unsigned char *Buffer, 
+uint32_t GetFCS(
+	const uint8_t *Buffer, 
 	const size_t Length)
 {
-	uint32_t Table[FCS_TABLE_SIZE], Gx = 0x04C11DB7, Temp = 0, CRCTable = 0, Value = 0, UI = 0;
-	memset(Table, 0, sizeof(uint32_t) * FCS_TABLE_SIZE);
-	char ReflectNum[]{8, 32};
+	uint32_t Table[FCS_TABLE_SIZE] = {0}, Gx = 0x04C11DB7, Temp = 0, CRCTable = 0, Value = 0, UI = 0;
+	uint8_t ReflectNum[]{8, 32};
 	int Index[]{0, 0, 0};
 
 	for (Index[0] = 0;Index[0] <= UINT8_MAX;++Index[0])
@@ -74,7 +73,7 @@ uint32_t __fastcall GetFCS(
 */
 
 //Get Checksum
-uint16_t __fastcall GetChecksum(
+uint16_t GetChecksum(
 	const uint16_t *Buffer, 
 	const size_t Length)
 {
@@ -97,13 +96,13 @@ uint16_t __fastcall GetChecksum(
 }
 
 //Get ICMPv6 checksum
-uint16_t __fastcall GetChecksum_ICMPv6(
-	const unsigned char *Buffer, 
+uint16_t GetChecksum_ICMPv6(
+	const uint8_t *Buffer, 
 	const size_t Length, 
 	const in6_addr &Destination, 
 	const in6_addr &Source)
 {
-	std::shared_ptr<char> Validation(new char[sizeof(ipv6_psd_hdr) + Length]());
+	std::shared_ptr<uint8_t> Validation(new uint8_t[sizeof(ipv6_psd_hdr) + Length]());
 	memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length);
 
 //Get checksum
@@ -116,8 +115,8 @@ uint16_t __fastcall GetChecksum_ICMPv6(
 }
 
 //Get TCP or UDP checksum
-uint16_t __fastcall GetChecksum_TCP_UDP(
-	const unsigned char *Buffer, 
+uint16_t GetChecksum_TCP_UDP(
+	const uint8_t *Buffer, 
 	const size_t Length, 
 	const uint16_t Protocol_Network, 
 	const uint16_t Protocol_Transport)
@@ -126,7 +125,7 @@ uint16_t __fastcall GetChecksum_TCP_UDP(
 	uint16_t Result = EXIT_FAILURE;
 	if (Protocol_Network == AF_INET6) //IPv6
 	{
-		std::shared_ptr<char> Validation(new char[sizeof(ipv6_psd_hdr) + Length]());
+		std::shared_ptr<uint8_t> Validation(new uint8_t[sizeof(ipv6_psd_hdr) + Length]());
 		memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length);
 		((pipv6_psd_hdr)Validation.get())->Destination = ((pipv6_hdr)Buffer)->Destination;
 		((pipv6_psd_hdr)Validation.get())->Source = ((pipv6_hdr)Buffer)->Source;
@@ -137,7 +136,7 @@ uint16_t __fastcall GetChecksum_TCP_UDP(
 		Result = GetChecksum((uint16_t *)Validation.get(), sizeof(ipv6_psd_hdr) + Length);
 	}
 	else { //IPv4
-		std::shared_ptr<char> Validation(new char[sizeof(ipv4_psd_hdr) + Length]());
+		std::shared_ptr<uint8_t> Validation(new uint8_t[sizeof(ipv4_psd_hdr) + Length]());
 		memset(Validation.get(), 0, sizeof(ipv4_psd_hdr) + Length);
 		((pipv4_psd_hdr)Validation.get())->Destination = ((pipv4_hdr)Buffer)->Destination;
 		((pipv4_psd_hdr)Validation.get())->Source = ((pipv4_hdr)Buffer)->Source;
@@ -152,8 +151,8 @@ uint16_t __fastcall GetChecksum_TCP_UDP(
 }
 
 //Add length data to TCP DNS transmission
-size_t __fastcall AddLengthDataToHeader(
-	char *Buffer, 
+size_t AddLengthDataToHeader(
+	uint8_t *Buffer, 
 	const size_t RecvLen, 
 	const size_t MaxLen)
 {
@@ -167,13 +166,13 @@ size_t __fastcall AddLengthDataToHeader(
 	return EXIT_FAILURE;
 }
 
-//Convert data from chars to DNS query
-size_t __fastcall CharToDNSQuery(
-	const char *FName, 
-	char *TName)
+//Convert data from string to DNS query
+size_t CharToDNSQuery(
+	const uint8_t *FName, 
+	uint8_t *TName)
 {
 //Initialization
-	int Index[]{(int)strnlen_s(FName, DOMAIN_MAXSIZE) - 1, 0, 0};
+	int Index[]{(int)strnlen_s((const char *)FName, DOMAIN_MAXSIZE) - 1, 0, 0};
 	Index[2U] = Index[0] + 1;
 	*(TName + Index[0] + 2) = 0;
 
@@ -182,7 +181,7 @@ size_t __fastcall CharToDNSQuery(
 	{
 		if (FName[Index[0]] == ASCII_PERIOD)
 		{
-			*(TName + Index[2U]) = (char)Index[1U];
+			*(TName + Index[2U]) = (uint8_t)Index[1U];
 			Index[1U] = 0;
 		}
 		else {
@@ -191,18 +190,18 @@ size_t __fastcall CharToDNSQuery(
 		}
 	}
 
-	*(TName + Index[2U]) = (char)Index[1U];
-	return strnlen_s(TName, DOMAIN_MAXSIZE - 1U) + 1U;
+	*(TName + Index[2U]) = (uint8_t)Index[1U];
+	return strnlen_s((const char *)TName, DOMAIN_MAXSIZE - 1U) + 1U;
 }
 
 //Convert data from DNS query to string
-size_t __fastcall DNSQueryToChar(
-	const char *TName, 
+size_t DNSQueryToChar(
+	const uint8_t *TName, 
 	std::string &FName)
 {
 //Initialization
 	size_t uIndex = 0;
-	char CharIter[]{0, 0};
+	uint8_t CharIter[]{0, 0};
 	int Index[]{0, 0};
 	FName.clear();
 
@@ -210,7 +209,7 @@ size_t __fastcall DNSQueryToChar(
 	for (uIndex = 0;uIndex < DOMAIN_MAXSIZE;++uIndex)
 	{
 	//Pointer check
-		if ((uint8_t)TName[uIndex] >= DNS_POINTER_8_BITS)
+		if (TName[uIndex] >= DNS_POINTER_8_BITS)
 		{
 			return uIndex + sizeof(uint16_t);
 		}
@@ -229,7 +228,7 @@ size_t __fastcall DNSQueryToChar(
 		}
 		else {
 			CharIter[0] = TName[uIndex];
-			FName.append(CharIter);
+			FName.append((const char *)CharIter);
 		}
 	}
 
@@ -237,10 +236,10 @@ size_t __fastcall DNSQueryToChar(
 }
 
 //Convert data from compression DNS query to whole DNS query
-size_t __fastcall MarkWholeDNSQuery(
-	const char *Packet, 
+size_t MarkWholeDNSQuery(
+	const uint8_t *Packet, 
 	const size_t Length, 
-	const char *TName, 
+	const uint8_t *TName, 
 	const size_t TNameIndex, 
 	std::string &FName)
 {
@@ -250,14 +249,14 @@ size_t __fastcall MarkWholeDNSQuery(
 
 //Initialization
 	size_t uIndex = 0, PointerIndex = 0;
-	char CharIter[]{0, 0};
+	uint8_t CharIter[]{0, 0};
 	int Index[]{0, 0};
 
 //Convert domain.
 	for (uIndex = 0;uIndex < Length - TNameIndex;++uIndex)
 	{
 	//Pointer check
-		if ((uint8_t)TName[uIndex] >= DNS_POINTER_8_BITS)
+		if (TName[uIndex] >= DNS_POINTER_8_BITS)
 		{
 			PointerIndex = ntohs(*(uint16_t *)(TName + uIndex)) & DNS_POINTER_BITS_GET_LOCATE;
 			if (PointerIndex < TNameIndex)
@@ -286,7 +285,7 @@ size_t __fastcall MarkWholeDNSQuery(
 		}
 		else {
 			CharIter[0] = TName[uIndex];
-			FName.append(CharIter);
+			FName.append((const char *)CharIter);
 		}
 	}
 
@@ -294,8 +293,8 @@ size_t __fastcall MarkWholeDNSQuery(
 }
 
 //Make ramdom domains
-void __fastcall MakeRamdomDomain(
-	char *Buffer)
+void MakeRamdomDomain(
+	uint8_t *Buffer)
 {
 //Ramdom number distribution initialization and make ramdom domain length.
 	std::uniform_int_distribution<size_t> RamdomDistribution(DOMAIN_RAMDOM_MINSIZE, DOMAIN_LEVEL_DATA_MAXSIZE);
@@ -309,7 +308,7 @@ void __fastcall MakeRamdomDomain(
 		for (Index = 0;Index < RamdomLength - 3U;++Index)
 		{
 			*(Buffer + Index) = *(GlobalRunningStatus.DomainTable + RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
-			*(Buffer + Index) = (char)tolower(*(Buffer + Index));
+			*(Buffer + Index) = (uint8_t)tolower(*(Buffer + Index));
 		}
 
 	//Make random domain like a normal Top-Level Domain/TLD.
@@ -331,7 +330,7 @@ void __fastcall MakeRamdomDomain(
 		for (Index = 0;Index < RamdomLength - 4U;++Index)
 		{
 			*(Buffer + Index) = *(GlobalRunningStatus.DomainTable + RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
-			*(Buffer + Index) = (char)tolower(*(Buffer + Index));
+			*(Buffer + Index) = (uint8_t)tolower(*(Buffer + Index));
 		}
 
 	//Make random domain like a normal Top-level domain/TLD.
@@ -360,8 +359,8 @@ void __fastcall MakeRamdomDomain(
 }
 
 //Make Domain Case Conversion
-void __fastcall MakeDomainCaseConversion(
-	char *Buffer)
+void MakeDomainCaseConversion(
+	uint8_t *Buffer)
 {
 //Ramdom number distribution initialization
 	std::uniform_int_distribution<size_t> RamdomDistribution(0, 1U);
@@ -370,17 +369,17 @@ void __fastcall MakeDomainCaseConversion(
 //Make Case Conversion.
 	if (RamdomDistribution(*GlobalRunningStatus.RamdomEngine) % 2U == 0)
 	{
-		for (Index = 0;Index < strnlen_s(Buffer, DOMAIN_MAXSIZE);++Index)
+		for (Index = 0;Index < strnlen_s((const char *)Buffer, DOMAIN_MAXSIZE);++Index)
 		{
 			if (Index % 2U == 0)
-				*(Buffer + Index) = (char)toupper(*(Buffer + Index));
+				*(Buffer + Index) = (uint8_t)toupper(*(Buffer + Index));
 		}
 	}
 	else {
-		for (Index = 0;Index < strnlen_s(Buffer, DOMAIN_MAXSIZE);++Index)
+		for (Index = 0;Index < strnlen_s((const char *)Buffer, DOMAIN_MAXSIZE);++Index)
 		{
 			if (Index % 2U > 0)
-				*(Buffer + Index) = (char)toupper(*(Buffer + Index));
+				*(Buffer + Index) = (uint8_t)toupper(*(Buffer + Index));
 		}
 	}
 
@@ -388,8 +387,8 @@ void __fastcall MakeDomainCaseConversion(
 }
 
 //Add EDNS options to Additional Resource Records in DNS packet(C-Style string)
-size_t __fastcall AddEDNSLabelToAdditionalRR(
-	char *Buffer, 
+size_t AddEDNSLabelToAdditionalRR(
+	uint8_t *Buffer, 
 	const size_t Length, 
 	const size_t MaxLen, 
 	const SOCKET_DATA *LocalSocketData)
@@ -494,7 +493,7 @@ size_t __fastcall AddEDNSLabelToAdditionalRR(
 }
 
 //Add EDNS options to Additional Resource Records in DNS packet(DNS packet structure)
-bool __fastcall AddEDNSLabelToAdditionalRR(
+bool AddEDNSLabelToAdditionalRR(
 	DNS_PACKET_DATA *Packet, 
 	const SOCKET_DATA *LocalSocketData)
 {
@@ -610,8 +609,8 @@ bool __fastcall AddEDNSLabelToAdditionalRR(
 }
 
 //Make Compression Pointer Mutation
-size_t __fastcall MakeCompressionPointerMutation(
-	char *Buffer, 
+size_t MakeCompressionPointerMutation(
+	uint8_t *Buffer, 
 	const size_t Length)
 {
 //Ramdom number distribution initialization
@@ -661,7 +660,7 @@ size_t __fastcall MakeCompressionPointerMutation(
 	if (Index == CPM_POINTER_TO_HEADER) //Pointer to header, like "[DNS Header][Domain][Pointer][Query]" and the pointer is point to [DNS Header].
 	{
 		memmove_s(Buffer + Length - sizeof(dns_qry) + 1U, sizeof(dns_qry), Buffer + Length - sizeof(dns_qry), sizeof(dns_qry));
-		*(Buffer + Length - sizeof(dns_qry) - 1U) = DNS_POINTER_8_BITS_STRING;
+		*(Buffer + Length - sizeof(dns_qry) - 1U) = (uint8_t)DNS_POINTER_8_BITS_STRING;
 
 	#if defined(PLATFORM_WIN_XP)
 		Index = GetTickCount() % 4U;
@@ -672,19 +671,19 @@ size_t __fastcall MakeCompressionPointerMutation(
 		{
 			case 0:
 			{
-				*(Buffer + Length - sizeof(dns_qry)) = '\x04';
+				*(Buffer + Length - sizeof(dns_qry)) = ('\x04');
 			}break;
 			case 1U:
 			{
-				*(Buffer + Length - sizeof(dns_qry)) = '\x06';
+				*(Buffer + Length - sizeof(dns_qry)) = ('\x06');
 			}break;
 			case 2U:
 			{
-				*(Buffer + Length - sizeof(dns_qry)) = '\x08';
+				*(Buffer + Length - sizeof(dns_qry)) = ('\x08');
 			}break;
 			case 3U:
 			{
-				*(Buffer + Length - sizeof(dns_qry)) = '\x0A';
+				*(Buffer + Length - sizeof(dns_qry)) = ('\x0A');
 			}break;
 			default:
 			{
@@ -697,11 +696,11 @@ size_t __fastcall MakeCompressionPointerMutation(
 	else {
 		dns_qry DNS_Query;
 		memset(&DNS_Query, 0, sizeof(dns_qry));
-		memcpy_s((char *)&DNS_Query, sizeof(dns_qry), Buffer + DNS_PACKET_QUERY_LOCATE(Buffer), sizeof(dns_qry));
-		memmove_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t) + sizeof(dns_qry), Length, Buffer + sizeof(dns_hdr), strnlen_s(Buffer + sizeof(dns_hdr), Length - sizeof(dns_hdr)) + 1U);
-		memcpy_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t), Length - sizeof(dns_hdr) - sizeof(uint16_t), (char *)&DNS_Query, sizeof(dns_qry));
-		*(Buffer + sizeof(dns_hdr)) = DNS_POINTER_8_BITS_STRING;
-		*(Buffer + sizeof(dns_hdr) + 1U) = '\x12';
+		memcpy_s(&DNS_Query, sizeof(dns_qry), Buffer + DNS_PACKET_QUERY_LOCATE(Buffer), sizeof(DNS_Query));
+		memmove_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t) + sizeof(dns_qry), Length, Buffer + sizeof(dns_hdr), strnlen_s((const char *)Buffer + sizeof(dns_hdr), Length - sizeof(dns_hdr)) + 1U);
+		memcpy_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t), Length - sizeof(dns_hdr) - sizeof(uint16_t), &DNS_Query, sizeof(DNS_Query));
+		*(Buffer + sizeof(dns_hdr)) = (uint8_t)DNS_POINTER_8_BITS_STRING;
+		*(Buffer + sizeof(dns_hdr) + 1U) = ('\x12');
 
 		if (Index == CPM_POINTER_TO_RR) //Pointer to RR, like "[DNS Header][Pointer][Query][Domain]" and the pointer is point to [Domain].
 		{

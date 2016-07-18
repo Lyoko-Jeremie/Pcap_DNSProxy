@@ -20,8 +20,8 @@
 #include "Initialization.h"
 
 //RFC domain and Base64 encoding/decoding table
-static char DomainTable_Initialization[] = (".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"); //Preferred name syntax(Section 2.3.1 in RFC 1035)
-static char Base64_EncodeTable_Initialization[] = 
+static uint8_t DomainTable_Initialization[] = (".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"); //Preferred name syntax(Section 2.3.1 in RFC 1035)
+static uint8_t Base64_EncodeTable_Initialization[] = 
 {
 	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 
 	'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 
@@ -33,7 +33,7 @@ static char Base64_EncodeTable_Initialization[] =
 	'4', '5', '6', '7', '8', '9', '+', '/'
 };
 /* Not necessary
-static signed char Base64_DecodeTable_Initialization[] = //ASCII order for BASE 64 decode, -1 in unused character.
+static int8_t Base64_DecodeTable_Initialization[] = //ASCII order for BASE 64 decode, -1 in unused character.
 {
 	'+', ',', '-', '.', '/', '0', '1', '2', 
 	62,  -1,  -1,  -1,  63,  52,  53,  54, 
@@ -81,13 +81,13 @@ ConfigurationTable::ConfigurationTable(
 
 	//[Data] block
 	#if defined(ENABLE_PCAP)
-		ICMP_PaddingData = new char[ICMP_PADDING_MAXSIZE]();
-		DomainTest_Data = new char[DOMAIN_MAXSIZE]();
+		ICMP_PaddingData = new uint8_t[ICMP_PADDING_MAXSIZE]();
+		DomainTest_Data = new uint8_t[DOMAIN_MAXSIZE]();
 	#endif
-		LocalFQDN_Response = new char[DOMAIN_MAXSIZE]();
+		LocalFQDN_Response = new uint8_t[DOMAIN_MAXSIZE]();
 		LocalFQDN_String = new std::string();
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-		LocalServer_Response = new char[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt)]();
+		LocalServer_Response = new uint8_t[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt)]();
 	#endif
 
 	//[Proxy] block
@@ -166,8 +166,8 @@ ConfigurationTable::ConfigurationTable(
 }
 
 //ConfigurationTable class constructor settings
-void __fastcall ConfigurationTableSetting(
-	ConfigurationTable *ConfigurationParameter)
+void ConfigurationTableSetting(
+	CONFIGURATION_TABLE *ConfigurationParameter)
 {
 //[Data] block
 #if defined(ENABLE_PCAP)
@@ -223,12 +223,12 @@ void __fastcall ConfigurationTableSetting(
 		size_t CharData = ICMP_STRING_START_NUM_LINUX;
 		for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_LINUX;++Index, ++CharData)
 			ConfigurationParameter->ICMP_PaddingData[Index] = CharData;
-		ConfigurationParameter->ICMP_PaddingLength = strlen(ConfigurationParameter->ICMP_PaddingData);
+		ConfigurationParameter->ICMP_PaddingLength = strlen((const char *)ConfigurationParameter->ICMP_PaddingData);
 	#elif defined(PLATFORM_MACX)
 		size_t CharData = ICMP_STRING_START_NUM_MAC;
 		for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_MAC;++Index, ++CharData)
 			ConfigurationParameter->ICMP_PaddingData[Index] = CharData;
-		ConfigurationParameter->ICMP_PaddingLength = strlen(ConfigurationParameter->ICMP_PaddingData);
+		ConfigurationParameter->ICMP_PaddingLength = strlen((const char *)ConfigurationParameter->ICMP_PaddingData);
 	#endif
 #endif
 	ConfigurationParameter->SOCKS_Protocol_Transport = REQUEST_MODE_TCP;
@@ -434,7 +434,7 @@ void ConfigurationTable::MonitorItemToUsing(
 	if (ConfigurationParameter->SOCKS_TargetDomain != nullptr && !SOCKS_TargetDomain->empty() && SOCKS_TargetDomain_Port > 0)
 	{
 	//Reset old items.
-		memset(&ConfigurationParameter->SOCKS_TargetServer, 0, sizeof(ADDRESS_UNION_DATA));
+		memset(&ConfigurationParameter->SOCKS_TargetServer, 0, sizeof(ConfigurationParameter->SOCKS_TargetServer));
 		
 	//Copy new items.
 		*ConfigurationParameter->SOCKS_TargetDomain = *SOCKS_TargetDomain;
@@ -448,7 +448,7 @@ void ConfigurationTable::MonitorItemToUsing(
 		ConfigurationParameter->SOCKS_TargetDomain_Port = 0;
 
 	//Copy new items.
-		memcpy_s(&ConfigurationParameter->SOCKS_TargetServer, sizeof(ADDRESS_UNION_DATA), &SOCKS_TargetServer, sizeof(ADDRESS_UNION_DATA));
+		memcpy_s(&ConfigurationParameter->SOCKS_TargetServer, sizeof(ConfigurationParameter->SOCKS_TargetServer), &SOCKS_TargetServer, sizeof(ConfigurationParameter->SOCKS_TargetServer));
 	}
 	if (ConfigurationParameter->SOCKS_Username != nullptr)
 	{
@@ -556,7 +556,7 @@ void ConfigurationTable::MonitorItemReset(
 	SOCKS_SocketTimeout_Unreliable.tv_sec = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
 	SOCKS_SocketTimeout_Unreliable.tv_usec = 0;
 #endif
-	memset(&SOCKS_TargetServer, 0, sizeof(ADDRESS_UNION_DATA));
+	memset(&SOCKS_TargetServer, 0, sizeof(SOCKS_TargetServer));
 	if (SOCKS_TargetDomain != nullptr)
 		SOCKS_TargetDomain->clear();
 	SOCKS_TargetDomain_Port = 0;
@@ -586,6 +586,7 @@ GlobalStatus::GlobalStatus(
 	try {
 		LocalListeningSocket = new std::vector<SYSTEM_SOCKET>();
 		RamdomEngine = new std::default_random_engine();
+		ThreadRunningNum = new std::atomic<size_t>();
 		Path_Global = new std::vector<std::wstring>();
 		Path_ErrorLog = new std::wstring();
 		FileList_Hosts = new std::vector<std::wstring>();
@@ -596,8 +597,8 @@ GlobalStatus::GlobalStatus(
 		sFileList_Hosts = new std::vector<std::string>();
 		sFileList_IPFilter = new std::vector<std::string>();
 	#endif
-		LocalAddress_Response[0] = new char[PACKET_MAXSIZE]();
-		LocalAddress_Response[1U] = new char[PACKET_MAXSIZE]();
+		LocalAddress_Response[0] = new uint8_t[PACKET_MAXSIZE]();
+		LocalAddress_Response[1U] = new uint8_t[PACKET_MAXSIZE]();
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		LocalAddress_ResponsePTR[0] = new std::vector<std::string>();
 		LocalAddress_ResponsePTR[1U] = new std::vector<std::string>();
@@ -607,6 +608,7 @@ GlobalStatus::GlobalStatus(
 	{
 		delete LocalListeningSocket;
 		delete RamdomEngine;
+		delete ThreadRunningNum;
 		delete Path_Global;
 		delete Path_ErrorLog;
 		delete FileList_Hosts;
@@ -647,8 +649,8 @@ GlobalStatus::GlobalStatus(
 }
 
 //GlobalStatus class constructor settings
-void __fastcall GlobalStatusSetting(
-	GlobalStatus *GlobalRunningStatusParameter)
+void GlobalStatusSetting(
+	GLOBAL_STATUS *GlobalRunningStatusParameter)
 {
 #if defined(PLATFORM_LINUX)
 	GlobalRunningStatusParameter->Daemon = true;
@@ -762,7 +764,7 @@ OutputPacketTable::OutputPacketTable(
 	void)
 {
 //Initialization
-	memset(&SocketData_Input, 0, sizeof(SOCKET_DATA));
+	memset(&SocketData_Input, 0, sizeof(SocketData_Input));
 	Protocol_Network = 0;
 	Protocol_Transport = 0;
 	ClearPortTime = 0;
@@ -804,10 +806,10 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 	memset(this, 0, sizeof(DNSCURVE_CONFIGURATION_TABLE));
 	try {
 	//DNSCurve Provider Names
-		DNSCurve_Target_Server_IPv4.ProviderName = new char[DOMAIN_MAXSIZE]();
-		DNSCurve_Target_Server_Alternate_IPv4.ProviderName = new char[DOMAIN_MAXSIZE]();
-		DNSCurve_Target_Server_IPv6.ProviderName = new char[DOMAIN_MAXSIZE]();
-		DNSCurve_Target_Server_Alternate_IPv6.ProviderName = new char[DOMAIN_MAXSIZE]();
+		DNSCurve_Target_Server_IPv4.ProviderName = new uint8_t[DOMAIN_MAXSIZE]();
+		DNSCurve_Target_Server_Alternate_IPv4.ProviderName = new uint8_t[DOMAIN_MAXSIZE]();
+		DNSCurve_Target_Server_IPv6.ProviderName = new uint8_t[DOMAIN_MAXSIZE]();
+		DNSCurve_Target_Server_Alternate_IPv6.ProviderName = new uint8_t[DOMAIN_MAXSIZE]();
 
 	//DNSCurve Keys
 		Client_PublicKey = new uint8_t[crypto_box_PUBLICKEYBYTES]();
@@ -826,14 +828,14 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 		DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint = new uint8_t[crypto_box_PUBLICKEYBYTES]();
 
 	//DNSCurve Magic Numbers
-		DNSCurve_Target_Server_IPv4.ReceiveMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
-		DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
-		DNSCurve_Target_Server_IPv6.ReceiveMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
-		DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
-		DNSCurve_Target_Server_IPv4.SendMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
-		DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
-		DNSCurve_Target_Server_IPv6.SendMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
-		DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber = new char[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_IPv4.ReceiveMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_IPv6.ReceiveMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_IPv4.SendMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_IPv6.SendMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
 	}
 	catch (std::bad_alloc)
 	{
@@ -904,8 +906,8 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 }
 
 //DNSCurveConfigurationTable class constructor settings
-void __fastcall DNSCurveConfigurationTableSetting(
-	DNSCurveConfigurationTable *DNSCurveConfigurationParameter)
+void DNSCurveConfigurationTableSetting(
+	DNSCURVE_CONFIGURATION_TABLE *DNSCurveConfigurationParameter)
 {
 //DNSCurve Provider Names
 	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.ProviderName, DOMAIN_MAXSIZE);

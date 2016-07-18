@@ -20,7 +20,7 @@
 #include "Monitor.h"
 
 //Local DNS server initialization
-bool __fastcall MonitorInit(
+bool MonitorInit(
 	void)
 {
 //Capture initialization
@@ -98,7 +98,7 @@ bool __fastcall MonitorInit(
 //Initialization
 	std::vector<std::thread> MonitorThread((Parameter.ListenPort->size() + 1U) * TRANSPORT_LAYER_PARTNUM);
 	SOCKET_DATA LocalSocketData;
-	memset(&LocalSocketData, 0, sizeof(SOCKET_DATA));
+	memset(&LocalSocketData, 0, sizeof(LocalSocketData));
 	size_t MonitorThreadIndex = 0;
 	auto ReturnValue = true, *Result = &ReturnValue;
 
@@ -107,7 +107,7 @@ bool __fastcall MonitorInit(
 	{
 		if (Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TRANSPORT_BOTH || Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_UDP)
 		{
-			memset(&LocalSocketData, 0, sizeof(SOCKET_DATA));
+			memset(&LocalSocketData, 0, sizeof(LocalSocketData));
 			LocalSocketData.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 			if (SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 			{
@@ -177,7 +177,7 @@ bool __fastcall MonitorInit(
 	//Set localhost socket(IPv6/TCP).
 		if (Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TRANSPORT_BOTH || Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TCP)
 		{
-			memset(&LocalSocketData, 0, sizeof(SOCKET_DATA));
+			memset(&LocalSocketData, 0, sizeof(LocalSocketData));
 			LocalSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 			if (SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 			{
@@ -250,7 +250,7 @@ bool __fastcall MonitorInit(
 	{
 		if (Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TRANSPORT_BOTH || Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_UDP)
 		{
-			memset(&LocalSocketData, 0, sizeof(SOCKET_DATA));
+			memset(&LocalSocketData, 0, sizeof(LocalSocketData));
 			LocalSocketData.Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 			if (SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 			{
@@ -320,7 +320,7 @@ bool __fastcall MonitorInit(
 	//Set localhost socket(IPv4/TCP).
 		if (Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TRANSPORT_BOTH || Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TCP)
 		{
-			memset(&LocalSocketData, 0, sizeof(SOCKET_DATA));
+			memset(&LocalSocketData, 0, sizeof(LocalSocketData));
 			LocalSocketData.Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 			if (SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 			{
@@ -388,7 +388,7 @@ bool __fastcall MonitorInit(
 		}
 	}
 
-	memset(&LocalSocketData, 0, sizeof(SOCKET_DATA));
+	memset(&LocalSocketData, 0, sizeof(LocalSocketData));
 
 #if defined(PLATFORM_WIN)
 //Set MailSlot Monitor.
@@ -426,15 +426,12 @@ bool __fastcall MonitorInit(
 }
 
 //Local DNS server with UDP protocol
-bool __fastcall UDPMonitor(
+bool UDPMonitor(
 	const SOCKET_DATA LocalSocketData, 
 	bool *Result)
 {
 //Block UDP RESET message, socket timeout, reusing and non-blocking mode setting 
 	if (
-/* Old version(2016-07-01)
-		!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TIMEOUT, true, &Parameter.SocketTimeout_Unreliable)
-*/
 	#if defined(PLATFORM_WIN)
 		!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_UDP_BLOCK_RESET, true, nullptr) || 
 		!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, true, nullptr) || 
@@ -459,29 +456,15 @@ bool __fastcall UDPMonitor(
 	}
 
 //Initialization
-	std::shared_ptr<char> RecvBuffer(new char[PACKET_MAXSIZE * Parameter.ThreadPoolMaxNum]()), SendBuffer(new char[PACKET_MAXSIZE]());
+	std::shared_ptr<uint8_t> RecvBuffer(new uint8_t[PACKET_MAXSIZE * Parameter.ThreadPoolMaxNum]()), SendBuffer(new uint8_t[PACKET_MAXSIZE]());
 	memset(RecvBuffer.get(), 0, PACKET_MAXSIZE * Parameter.ThreadPoolMaxNum);
 	memset(SendBuffer.get(), 0, PACKET_MAXSIZE);
 	MONITOR_QUEUE_DATA MonitorQueryData;
 	SOCKET_DATA *SocketDataPTR = nullptr;
 	fd_set ReadFDS;
-/* Old version(2016-07-01)
-	timeval OriginalTimeout, Timeout;
-	memset(&OriginalTimeout, 0, sizeof(timeval));
-	memset(&Timeout, 0, sizeof(timeval));
-*/
-	memset(&ReadFDS, 0, sizeof(fd_set));
+	memset(&ReadFDS, 0, sizeof(ReadFDS));
 	MonitorQueryData.first.BufferSize = PACKET_MAXSIZE;
 	MonitorQueryData.first.Protocol = IPPROTO_UDP;
-/* Old version(2016-07-01)
-#if defined(PLATFORM_WIN)
-	OriginalTimeout.tv_sec = Parameter.SocketTimeout_Unreliable / SECOND_TO_MILLISECOND;
-	OriginalTimeout.tv_usec = Parameter.SocketTimeout_Unreliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	OriginalTimeout.tv_sec = Parameter.SocketTimeout_Unreliable.tv_sec;
-	OriginalTimeout.tv_usec = Parameter.SocketTimeout_Unreliable.tv_usec;
-#endif
-*/
 	uint64_t LastMarkTime = 0, NowTime = 0;
 	if (Parameter.QueueResetTime > 0)
 	{
@@ -491,14 +474,12 @@ bool __fastcall UDPMonitor(
 		LastMarkTime = GetTickCount64();
 	#endif
 	}
-	SSIZE_T SelectResult = 0, RecvLen = 0;
+	ssize_t SelectResult = 0, RecvLen = 0;
 	size_t Index = 0;
 
 //Listening module
 	for (;;)
 	{
-//		Sleep(LOOP_INTERVAL_TIME_NO_DELAY);
-
 	//Interval time between receive
 		if (Parameter.QueueResetTime > 0 && Index + 1U == Parameter.ThreadPoolMaxNum)
 		{
@@ -520,19 +501,14 @@ bool __fastcall UDPMonitor(
 	//Reset parameters.
 		memset(RecvBuffer.get() + PACKET_MAXSIZE * Index, 0, PACKET_MAXSIZE);
 		memset(SendBuffer.get(), 0, PACKET_MAXSIZE);
-/* Old version(2016-07-01)
-		memcpy_s(&Timeout, sizeof(timeval), &OriginalTimeout, sizeof(timeval));
-*/
 		MonitorQueryData.second = LocalSocketData;
 		FD_ZERO(&ReadFDS);
 		FD_SET(MonitorQueryData.second.Socket, &ReadFDS);
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
-//		SelectResult = select(0, &ReadFDS, nullptr, nullptr, &Timeout);
 		SelectResult = select(0, &ReadFDS, nullptr, nullptr, nullptr);
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-//		SelectResult = select(MonitorQueryData.second.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
 		SelectResult = select(MonitorQueryData.second.Socket + 1U, &ReadFDS, nullptr, nullptr, nullptr);
 	#endif
 		if (SelectResult > 0)
@@ -541,8 +517,8 @@ bool __fastcall UDPMonitor(
 			{
 			//Receive response and check DNS query data.
 				SocketDataPTR = &MonitorQueryData.second;
-				RecvLen = recvfrom(MonitorQueryData.second.Socket, RecvBuffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE, 0, (PSOCKADDR)&SocketDataPTR->SockAddr, (socklen_t *)&SocketDataPTR->AddrLen);
-				if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+				RecvLen = recvfrom(MonitorQueryData.second.Socket, (char *)RecvBuffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE, 0, (PSOCKADDR)&SocketDataPTR->SockAddr, (socklen_t *)&SocketDataPTR->AddrLen);
+				if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
 				{
 					continue;
 				}
@@ -577,7 +553,6 @@ bool __fastcall UDPMonitor(
 	//SOCKET_ERROR
 		else {
 			PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
-//			Sleep(LOOP_INTERVAL_TIME_MONITOR);
 			Sleep(Parameter.FileRefreshTime);
 
 			continue;
@@ -592,15 +567,12 @@ bool __fastcall UDPMonitor(
 }
 
 //Local DNS server with TCP protocol
-bool __fastcall TCPMonitor(
+bool TCPMonitor(
 	const SOCKET_DATA LocalSocketData, 
 	bool *Result)
 {
 //Socket timeout, reusing, TCP Fast Open and non-blocking mode setting
 	if (
-/* Old version(2016-07-01)
-		!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TIMEOUT, true, &Parameter.SocketTimeout_Reliable)
-*/
 	#if defined(PLATFORM_WIN)
 		!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, true, nullptr) || 
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -640,22 +612,8 @@ bool __fastcall TCPMonitor(
 //Initialization
 	SOCKET_DATA ClientData;
 	fd_set ReadFDS;
-/* Old version(2016-07-01)
-	timeval OriginalTimeout, Timeout;
-	memset(&OriginalTimeout, 0, sizeof(timeval));
-	memset(&Timeout, 0, sizeof(timeval));
-*/
-	memset(&ClientData, 0, sizeof(SOCKET_DATA));
-	memset(&ReadFDS, 0, sizeof(fd_set));
-/* Old version(2016-07-01)
-#if defined(PLATFORM_WIN)
-	OriginalTimeout.tv_sec = Parameter.SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
-	OriginalTimeout.tv_usec = Parameter.SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	OriginalTimeout.tv_sec = Parameter.SocketTimeout_Reliable.tv_sec;
-	OriginalTimeout.tv_usec = Parameter.SocketTimeout_Reliable.tv_usec;
-#endif
-*/
+	memset(&ClientData, 0, sizeof(ClientData));
+	memset(&ReadFDS, 0, sizeof(ReadFDS));
 	uint64_t LastMarkTime = 0, NowTime = 0;
 	if (Parameter.QueueResetTime > 0)
 	{
@@ -665,14 +623,12 @@ bool __fastcall TCPMonitor(
 		LastMarkTime = GetTickCount64();
 	#endif
 	}
-	SSIZE_T SelectResult = 0;
+	ssize_t SelectResult = 0;
 	size_t Index = 0;
 
 //Start Monitor.
 	for (;;)
 	{
-//		Sleep(LOOP_INTERVAL_TIME_NO_DELAY);
-
 	//Interval time between receive
 		if (Parameter.QueueResetTime > 0 && Index + 1U == Parameter.ThreadPoolMaxNum)
 		{
@@ -692,21 +648,16 @@ bool __fastcall TCPMonitor(
 		}
 
 	//Reset parameters.
-		memset(&ClientData.SockAddr, 0, sizeof(sockaddr_storage));
+		memset(&ClientData.SockAddr, 0, sizeof(ClientData.SockAddr));
 		ClientData.AddrLen = LocalSocketData.AddrLen;
 		ClientData.SockAddr.ss_family = LocalSocketData.SockAddr.ss_family;
-/* Old version(2016-07-01)
-		memcpy_s(&Timeout, sizeof(timeval), &OriginalTimeout, sizeof(timeval));
-*/
 		FD_ZERO(&ReadFDS);
 		FD_SET(LocalSocketData.Socket, &ReadFDS);
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
-//		SelectResult = select(0, &ReadFDS, nullptr, nullptr, &Timeout);
 		SelectResult = select(0, &ReadFDS, nullptr, nullptr, nullptr);
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-//		SelectResult = select(LocalSocketData.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
 		SelectResult = select(LocalSocketData.Socket + 1U, &ReadFDS, nullptr, nullptr, nullptr);
 	#endif
 		if (SelectResult > 0)
@@ -740,7 +691,6 @@ bool __fastcall TCPMonitor(
 	//SOCKET_ERROR
 		else {
 			PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
-//			Sleep(LOOP_INTERVAL_TIME_MONITOR);
 			Sleep(Parameter.FileRefreshTime);
 
 			continue;
@@ -755,17 +705,17 @@ bool __fastcall TCPMonitor(
 }
 
 //TCP Monitor receive process
-bool __fastcall TCPReceiveProcess(
+bool TCPReceiveProcess(
 	const SOCKET_DATA LocalSocketData)
 {
 //Initialization(Part 1)
-	std::shared_ptr<char> RecvBuffer(new char[LARGE_PACKET_MAXSIZE]());
+	std::shared_ptr<uint8_t> RecvBuffer(new uint8_t[LARGE_PACKET_MAXSIZE]());
 	memset(RecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 	fd_set ReadFDS;
 	timeval Timeout;
-	memset(&Timeout, 0, sizeof(timeval));
-	memset(&ReadFDS, 0, sizeof(fd_set));
-	SSIZE_T RecvLen = 0;
+	memset(&ReadFDS, 0, sizeof(ReadFDS));
+	memset(&Timeout, 0, sizeof(Timeout));
+	ssize_t RecvLen = 0;
 
 //Receive process
 #if defined(PLATFORM_WIN)
@@ -785,7 +735,7 @@ bool __fastcall TCPReceiveProcess(
 #endif
 	if (RecvLen > 0 && FD_ISSET(LocalSocketData.Socket, &ReadFDS))
 	{
-		RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, 0);
+		RecvLen = recv(LocalSocketData.Socket, (char *)RecvBuffer.get(), LARGE_PACKET_MAXSIZE, 0);
 	}
 //Timeout or SOCKET_ERROR
 	else {
@@ -802,13 +752,13 @@ bool __fastcall TCPReceiveProcess(
 		closesocket(LocalSocketData.Socket);
 		return false;
 	}
-	else if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+	else if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
 	{
 		Length = RecvLen;
 
 	//Socket selecting structure setting
-		memset(&ReadFDS, 0, sizeof(fd_set));
-		memset(&Timeout, 0, sizeof(timeval));
+		memset(&ReadFDS, 0, sizeof(ReadFDS));
+		memset(&Timeout, 0, sizeof(Timeout));
 	#if defined(PLATFORM_WIN)
 		Timeout.tv_sec = Parameter.SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
 		Timeout.tv_usec = Parameter.SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -827,7 +777,7 @@ bool __fastcall TCPReceiveProcess(
 	#endif
 		if (RecvLen > 0 && FD_ISSET(LocalSocketData.Socket, &ReadFDS))
 		{
-			RecvLen = recv(LocalSocketData.Socket, RecvBuffer.get() + Length, (int)(LARGE_PACKET_MAXSIZE - Length), 0);
+			RecvLen = recv(LocalSocketData.Socket, (char *)RecvBuffer.get() + Length, (int)(LARGE_PACKET_MAXSIZE - Length), 0);
 
 		//Receive length check
 			if (RecvLen > 0)
@@ -851,7 +801,7 @@ bool __fastcall TCPReceiveProcess(
 
 //Length check
 	Length = ntohs(((uint16_t *)RecvBuffer.get())[0]);
-	if (RecvLen >= (SSIZE_T)Length && Length >= DNS_PACKET_MINSIZE)
+	if (RecvLen >= (ssize_t)Length && Length >= DNS_PACKET_MINSIZE)
 	{
 		MONITOR_QUEUE_DATA MonitorQueryData;
 		MonitorQueryData.first.Buffer = RecvBuffer.get() + sizeof(uint16_t);
@@ -861,9 +811,9 @@ bool __fastcall TCPReceiveProcess(
 		MonitorQueryData.second = LocalSocketData;
 
 	//Check DNS query data.
-		char SendBuffer[LARGE_PACKET_MAXSIZE];
-		memset(SendBuffer, 0, LARGE_PACKET_MAXSIZE);
-		if (!CheckQueryData(&MonitorQueryData.first, SendBuffer, LARGE_PACKET_MAXSIZE, MonitorQueryData.second))
+		std::shared_ptr<uint8_t> SendBuffer(new uint8_t[LARGE_PACKET_MAXSIZE]());
+		memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
+		if (!CheckQueryData(&MonitorQueryData.first, SendBuffer.get(), LARGE_PACKET_MAXSIZE, MonitorQueryData.second))
 		{
 			shutdown(MonitorQueryData.second.Socket, SD_BOTH);
 			closesocket(MonitorQueryData.second.Socket);
@@ -893,14 +843,12 @@ bool __fastcall TCPReceiveProcess(
 }
 
 //Alternate DNS servers switcher
-void __fastcall AlternateServerMonitor(
+void AlternateServerMonitor(
 	void)
 {
 //Initialization
 	size_t Index = 0;
-	uint64_t RangeTimer[ALTERNATE_SERVERNUM], SwapTimer[ALTERNATE_SERVERNUM];
-	memset(RangeTimer, 0, sizeof(uint64_t) * ALTERNATE_SERVERNUM);
-	memset(SwapTimer, 0, sizeof(uint64_t) * ALTERNATE_SERVERNUM);
+	uint64_t RangeTimer[ALTERNATE_SERVERNUM] = {0}, SwapTimer[ALTERNATE_SERVERNUM] = {0};
 
 //Switcher
 	for (;;)
@@ -951,7 +899,6 @@ void __fastcall AlternateServerMonitor(
 			}
 		}
 
-//		Sleep(LOOP_INTERVAL_TIME_MONITOR);
 		Sleep(Parameter.FileRefreshTime);
 	}
 
@@ -962,13 +909,13 @@ void __fastcall AlternateServerMonitor(
 
 //Get local address list
 #if defined(PLATFORM_WIN)
-addrinfo * __fastcall GetLocalAddressList(
+addrinfo * GetLocalAddressList(
 	const uint16_t Protocol, 
-	char *HostName)
+	uint8_t *HostName)
 {
 //Initialization
 	addrinfo Hints;
-	memset(&Hints, 0, sizeof(addrinfo));
+	memset(&Hints, 0, sizeof(Hints));
 	addrinfo *Result = nullptr;
 	if (Protocol == AF_INET6) //IPv6
 		Hints.ai_family = AF_INET6;
@@ -979,14 +926,14 @@ addrinfo * __fastcall GetLocalAddressList(
 	memset(HostName, 0, DOMAIN_MAXSIZE);
 
 //Get localhost name.
-	if (gethostname(HostName, DOMAIN_MAXSIZE) == SOCKET_ERROR)
+	if (gethostname((char *)HostName, DOMAIN_MAXSIZE) == SOCKET_ERROR)
 	{
 		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get localhost name error", WSAGetLastError(), nullptr, 0);
 		return nullptr;
 	}
 
 //Get localhost data.
-	int ResultGetaddrinfo = getaddrinfo(HostName, nullptr, &Hints, &Result);
+	int ResultGetaddrinfo = getaddrinfo((char *)HostName, nullptr, &Hints, &Result);
 	if (ResultGetaddrinfo != 0)
 	{
 		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get localhost address error", ResultGetaddrinfo, nullptr, 0);
@@ -1007,9 +954,9 @@ bool GetBestInterfaceAddress(
 {
 //Initialization
 	sockaddr_storage SockAddr;
-	memset(&SockAddr, 0, sizeof(sockaddr_storage));
+	memset(&SockAddr, 0, sizeof(SockAddr));
 	SockAddr.ss_family = Protocol;
-	SOCKET InterfaceSocket = socket(Protocol, SOCK_DGRAM, IPPROTO_UDP);
+	SYSTEM_SOCKET InterfaceSocket = socket(Protocol, SOCK_DGRAM, IPPROTO_UDP);
 	socklen_t AddrLen = 0;
 
 //Socket check
@@ -1067,7 +1014,7 @@ bool GetBestInterfaceAddress(
 #endif
 
 //Get gateway information
-void __fastcall GetGatewayInformation(
+void GetGatewayInformation(
 	const uint16_t Protocol)
 {
 //IPv6
@@ -1242,19 +1189,17 @@ void __fastcall GetGatewayInformation(
 }
 
 //Local network information monitor
-void __fastcall NetworkInformationMonitor(
+void NetworkInformationMonitor(
 	void)
 {
 //Initialization
 #if defined(PLATFORM_WIN)
-	char HostName[DOMAIN_MAXSIZE];
-	memset(HostName, 0, DOMAIN_MAXSIZE);
+	uint8_t HostName[DOMAIN_MAXSIZE] = {0};
 #endif
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-	char Addr[ADDR_STRING_MAXSIZE];
-	memset(Addr, 0, ADDR_STRING_MAXSIZE);
+	uint8_t Addr[ADDR_STRING_MAXSIZE] = {0};
 	std::string Result;
-	SSIZE_T Index = 0;
+	ssize_t Index = 0;
 #endif
 #if defined(PLATFORM_WIN)
 	addrinfo *LocalAddressList = nullptr, *LocalAddressTableIter = nullptr;
@@ -1340,22 +1285,22 @@ void __fastcall NetworkInformationMonitor(
 
 					//Convert from in6_addr to string.
 						size_t AddrStringLen = 0;
-						for (Index = 0;Index < (SSIZE_T)(sizeof(in6_addr) / sizeof(uint16_t));++Index)
+						for (Index = 0;Index < (ssize_t)(sizeof(in6_addr) / sizeof(uint16_t));++Index)
 						{
-							sprintf_s(Addr, ADDR_STRING_MAXSIZE, "%x", ntohs(((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr.s6_words[Index]));
+							sprintf_s((char *)Addr, ADDR_STRING_MAXSIZE, "%x", ntohs(((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr.s6_words[Index]));
 
 						//Add zeros to beginning of string.
-							if (strnlen_s(Addr, ADDR_STRING_MAXSIZE) < 4U)
+							if (strnlen_s((const char *)Addr, ADDR_STRING_MAXSIZE) < 4U)
 							{
-								AddrStringLen = strnlen_s(Addr, ADDR_STRING_MAXSIZE);
-								memmove_s(Addr + 4U - strnlen_s(Addr, ADDR_STRING_MAXSIZE), ADDR_STRING_MAXSIZE, Addr, strnlen_s(Addr, ADDR_STRING_MAXSIZE));
+								AddrStringLen = strnlen_s((const char *)Addr, ADDR_STRING_MAXSIZE);
+								memmove_s(Addr + 4U - strnlen_s((const char *)Addr, ADDR_STRING_MAXSIZE), ADDR_STRING_MAXSIZE, Addr, strnlen_s((const char *)Addr, ADDR_STRING_MAXSIZE));
 								memset(Addr, ASCII_ZERO, 4U - AddrStringLen);
 							}
-							DNSPTRString.append(Addr);
+							DNSPTRString.append((const char *)Addr);
 							memset(Addr, 0, ADDR_STRING_MAXSIZE);
 
 						//Last data
-							if (Index < (SSIZE_T)(sizeof(in6_addr) / sizeof(uint16_t) - 1U))
+							if (Index < (ssize_t)(sizeof(in6_addr) / sizeof(uint16_t) - 1U))
 								DNSPTRString.append(":");
 						}
 
@@ -1408,22 +1353,22 @@ void __fastcall NetworkInformationMonitor(
 
 					//Convert from in6_addr to string.
 						size_t AddrStringLen = 0;
-						for (Index = 0;Index < (SSIZE_T)(sizeof(in6_addr) / sizeof(uint16_t));++Index)
+						for (Index = 0;Index < (ssize_t)(sizeof(in6_addr) / sizeof(uint16_t));++Index)
 						{
-							snprintf(Addr, ADDR_STRING_MAXSIZE, "%x", ntohs(((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr.s6_words[Index]));
+							snprintf((char *)Addr, ADDR_STRING_MAXSIZE, "%x", ntohs(((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr.s6_words[Index]));
 
 						//Add zeros to beginning of string.
-							if (strnlen(Addr, ADDR_STRING_MAXSIZE) < 4U)
+							if (strnlen((const char *)Addr, ADDR_STRING_MAXSIZE) < 4U)
 							{
-								AddrStringLen = strnlen(Addr, ADDR_STRING_MAXSIZE);
-								memmove_s(Addr + 4U - strnlen(Addr, ADDR_STRING_MAXSIZE), ADDR_STRING_MAXSIZE, Addr, strnlen(Addr, ADDR_STRING_MAXSIZE));
+								AddrStringLen = strnlen((const char *)Addr, ADDR_STRING_MAXSIZE);
+								memmove_s(Addr + 4U - strnlen((const char *)Addr, ADDR_STRING_MAXSIZE), ADDR_STRING_MAXSIZE, Addr, strnlen((const char *)Addr, ADDR_STRING_MAXSIZE));
 								memset(Addr, ASCII_ZERO, 4U - AddrStringLen);
 							}
-							DNSPTRString.append(Addr);
+							DNSPTRString.append((const char *)Addr);
 							memset(Addr, 0, ADDR_STRING_MAXSIZE);
 
 						//Last data
-							if (Index < (SSIZE_T)(sizeof(in6_addr) / sizeof(uint16_t) - 1U))
+							if (Index < (ssize_t)(sizeof(in6_addr) / sizeof(uint16_t) - 1U))
 								DNSPTRString.append(":");
 						}
 
@@ -1534,20 +1479,20 @@ void __fastcall NetworkInformationMonitor(
 						memset(Addr, 0, ADDR_STRING_MAXSIZE);
 
 					//Convert from in_addr to DNS PTR.
-						sprintf_s(Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_impno);
-						Result.append(Addr);
+						sprintf_s((char *)Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_impno);
+						Result.append((const char *)Addr);
 						memset(Addr, 0, ADDR_STRING_MAXSIZE);
 						Result.append(".");
-						sprintf_s(Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_lh);
-						Result.append(Addr);
+						sprintf_s((char *)Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_lh);
+						Result.append((const char *)Addr);
 						memset(Addr, 0, ADDR_STRING_MAXSIZE);
 						Result.append(".");
-						sprintf_s(Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_host);
-						Result.append(Addr);
+						sprintf_s((char *)Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_host);
+						Result.append((const char *)Addr);
 						memset(Addr, 0, ADDR_STRING_MAXSIZE);
 						Result.append(".");
-						sprintf_s(Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_net);
-						Result.append(Addr);
+						sprintf_s((char *)Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_net);
+						Result.append((const char *)Addr);
 						memset(Addr, 0, ADDR_STRING_MAXSIZE);
 						Result.append(".");
 						Result.append("in-addr.arpa");
@@ -1583,20 +1528,20 @@ void __fastcall NetworkInformationMonitor(
 						memset(Addr, 0, ADDR_STRING_MAXSIZE);
 
 					//Convert from in_addr to DNS PTR.
-						snprintf(Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_impno);
-						Result.append(Addr);
+						snprintf((char *)Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_impno);
+						Result.append((const char *)Addr);
 						memset(Addr, 0, ADDR_STRING_MAXSIZE);
 						Result.append(".");
-						snprintf(Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_lh);
-						Result.append(Addr);
+						snprintf((char *)Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_lh);
+						Result.append((const char *)Addr);
 						memset(Addr, 0, ADDR_STRING_MAXSIZE);
 						Result.append(".");
-						snprintf(Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_host);
-						Result.append(Addr);
+						snprintf((char *)Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_host);
+						Result.append((const char *)Addr);
 						memset(Addr, 0, ADDR_STRING_MAXSIZE);
 						Result.append(".");
-						snprintf(Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_net);
-						Result.append(Addr);
+						snprintf((char *)Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_net);
+						Result.append((const char *)Addr);
 						memset(Addr, 0, ADDR_STRING_MAXSIZE);
 						Result.append(".");
 						Result.append("in-addr.arpa");

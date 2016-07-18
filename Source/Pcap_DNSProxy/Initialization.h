@@ -38,11 +38,11 @@ std::list<DNS_CACHE_DATA> DNSCacheList;
 std::mutex ScreenLock, ErrorLogLock, CaptureLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], DNSCacheListLock, IPFilterFileLock, HostsFileLock;
 
 //Functions
-void __fastcall ConfigurationTableSetting(
-	ConfigurationTable *ConfigurationParameter);
-void __fastcall GlobalStatusSetting(
-	GlobalStatus *GlobalRunningStatusParameter);
+void ConfigurationTableSetting(
+	CONFIGURATION_TABLE *ConfigurationParameter);
+void GlobalStatusSetting(
+	GLOBAL_STATUS *GlobalRunningStatusParameter);
 #if defined(ENABLE_LIBSODIUM)
-void __fastcall DNSCurveConfigurationTableSetting(
-	DNSCurveConfigurationTable *DNSCurveConfigurationParameter);
+void DNSCurveConfigurationTableSetting(
+	DNSCURVE_CONFIGURATION_TABLE *DNSCurveConfigurationParameter);
 #endif

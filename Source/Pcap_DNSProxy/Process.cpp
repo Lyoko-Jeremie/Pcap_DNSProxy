@@ -20,7 +20,7 @@
 #include "Process.h"
 
 //Montior request provider
-void __fastcall MonitorRequestProvider(
+void MonitorRequestProvider(
 	const MONITOR_QUEUE_DATA &MonitorQueryData)
 {
 //Add to blocking queue.
@@ -29,20 +29,19 @@ void __fastcall MonitorRequestProvider(
 }
 
 //Monitor request consumer
-void __fastcall MonitorRequestConsumer(
+void MonitorRequestConsumer(
 	void)
 {
 //Initialization
 	MONITOR_QUEUE_DATA MonitorQueryData;
-	std::shared_ptr<char> SendBuffer(new char[LARGE_PACKET_MAXSIZE + sizeof(uint16_t)]()), RecvBuffer(new char[LARGE_PACKET_MAXSIZE + sizeof(uint16_t)]());
+	std::shared_ptr<uint8_t> SendBuffer(new uint8_t[LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]()), RecvBuffer(new uint8_t[LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
 
 //Monitor consumer
 	for (;;)
 	{
 	//Reset parameters.
-//		Sleep(LOOP_INTERVAL_TIME_NO_DELAY);
-		memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE + sizeof(uint16_t));
-		memset(RecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE + sizeof(uint16_t));
+		memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+		memset(RecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 		
 	//Pop from blocking queue.
 		MonitorBlockingQueue.pop(MonitorQueryData);
@@ -56,13 +55,13 @@ void __fastcall MonitorRequestConsumer(
 }
 
 //Independent request process
-bool __fastcall EnterRequestProcess(
+bool EnterRequestProcess(
 	MONITOR_QUEUE_DATA MonitorQueryData, 
-	char *RecvBuffer, 
+	uint8_t *RecvBuffer, 
 	size_t RecvSize)
 {
 //Initialization(Send buffer part)
-	std::shared_ptr<char> SendBuffer;
+	std::shared_ptr<uint8_t> SendBuffer;
 	if ((RecvBuffer == nullptr || RecvSize == 0) && //Thread pool mode
 		MonitorQueryData.first.Protocol == IPPROTO_UDP)
 	{
@@ -70,27 +69,27 @@ bool __fastcall EnterRequestProcess(
 		{
 			if (Parameter.CPM_PointerToAdditional)
 			{
-				std::shared_ptr<char> SendBufferTemp(new char[MonitorQueryData.first.Length + 2U + sizeof(dns_record_aaaa) + sizeof(uint16_t)]());
+				std::shared_ptr<uint8_t> SendBufferTemp(new uint8_t[MonitorQueryData.first.Length + 2U + sizeof(dns_record_aaaa) + sizeof(uint16_t)]());
 				memset(SendBufferTemp.get(), 0, MonitorQueryData.first.Length + 2U + sizeof(dns_record_aaaa) + sizeof(uint16_t));
 				SendBufferTemp.swap(SendBuffer);
 				MonitorQueryData.first.BufferSize = MonitorQueryData.first.Length + 2U + sizeof(dns_record_aaaa) + sizeof(uint16_t);
 			}
 			else if (Parameter.CPM_PointerToRR)
 			{
-				std::shared_ptr<char> SendBufferTemp(new char[MonitorQueryData.first.Length + 2U + sizeof(uint16_t)]());
+				std::shared_ptr<uint8_t> SendBufferTemp(new uint8_t[MonitorQueryData.first.Length + 2U + sizeof(uint16_t)]());
 				memset(SendBufferTemp.get(), 0, MonitorQueryData.first.Length + 2U + sizeof(uint16_t));
 				SendBufferTemp.swap(SendBuffer);
 				MonitorQueryData.first.BufferSize = MonitorQueryData.first.Length + 2U + sizeof(uint16_t);
 			}
 			else { //Pointer to header
-				std::shared_ptr<char> SendBufferTemp(new char[MonitorQueryData.first.Length + 1U + sizeof(uint16_t)]());
+				std::shared_ptr<uint8_t> SendBufferTemp(new uint8_t[MonitorQueryData.first.Length + 1U + sizeof(uint16_t)]());
 				memset(SendBufferTemp.get(), 0, MonitorQueryData.first.Length + 1U + sizeof(uint16_t));
 				SendBufferTemp.swap(SendBuffer);
 				MonitorQueryData.first.BufferSize = MonitorQueryData.first.Length + 1U + sizeof(uint16_t);
 			}
 		}
 		else {
-			std::shared_ptr<char> SendBufferTemp(new char[MonitorQueryData.first.Length + sizeof(uint16_t)]()); //Reserved 2 bytes for TCP header length.
+			std::shared_ptr<uint8_t> SendBufferTemp(new uint8_t[MonitorQueryData.first.Length + sizeof(uint16_t)]()); //Reserved 2 bytes for TCP header length.
 			memset(SendBufferTemp.get(), 0, MonitorQueryData.first.Length + sizeof(uint16_t));
 			SendBufferTemp.swap(SendBuffer);
 			MonitorQueryData.first.BufferSize = MonitorQueryData.first.Length + sizeof(uint16_t);
@@ -101,7 +100,7 @@ bool __fastcall EnterRequestProcess(
 	}
 
 //Initialization(Receive buffer part)
-	std::shared_ptr<char> RecvBufferPTR;
+	std::shared_ptr<uint8_t> RecvBufferPTR;
 	if (RecvBuffer == nullptr || RecvSize == 0) //Thread pool mode
 	{
 		if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || MonitorQueryData.first.Protocol == IPPROTO_TCP || //TCP request
@@ -113,14 +112,14 @@ bool __fastcall EnterRequestProcess(
 		#endif
 			) //TCP
 		{
-			std::shared_ptr<char> TCPRecvBuffer(new char[LARGE_PACKET_MAXSIZE + sizeof(uint16_t)]());
-			memset(TCPRecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE + sizeof(uint16_t));
+			std::shared_ptr<uint8_t> TCPRecvBuffer(new uint8_t[LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
+			memset(TCPRecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 			RecvBufferPTR.swap(TCPRecvBuffer);
 			RecvSize = LARGE_PACKET_MAXSIZE;
 		}
 		else { //UDP
-			std::shared_ptr<char> UDPRecvBuffer(new char[PACKET_MAXSIZE + sizeof(uint16_t)]());
-			memset(UDPRecvBuffer.get(), 0, PACKET_MAXSIZE + sizeof(uint16_t));
+			std::shared_ptr<uint8_t> UDPRecvBuffer(new uint8_t[PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
+			memset(UDPRecvBuffer.get(), 0, PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 			RecvBufferPTR.swap(UDPRecvBuffer);
 			RecvSize = PACKET_MAXSIZE;
 		}
@@ -272,7 +271,7 @@ SkipDNSCurve:
 }
 
 //Check white and banned hosts list
-size_t __fastcall CheckWhiteBannedHostsProcess(
+size_t CheckWhiteBannedHostsProcess(
 	const size_t Length, 
 	const HostsTable &HostsTableIter, 
 	dns_hdr *DNS_Header, 
@@ -366,9 +365,9 @@ size_t __fastcall CheckWhiteBannedHostsProcess(
 }
 
 //Check hosts from global list
-size_t __fastcall CheckHostsProcess(
+size_t CheckHostsProcess(
 	DNS_PACKET_DATA *Packet, 
-	char *Result, 
+	uint8_t *Result, 
 	const size_t ResultSize, 
 	const SOCKET_DATA &LocalSocketData)
 {
@@ -548,13 +547,13 @@ size_t __fastcall CheckHostsProcess(
 						{
 							if (SourceListIter.second < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 							{
-								auto AddressPart = hton64(ntoh64(*(PUINT64)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - SourceListIter.second)));
-								if (memcmp(&AddressPart, &((sockaddr_in6 *)&SourceListIter.first)->sin6_addr, sizeof(uint64_t)) == 0)
+								auto AddressPart = hton64(ntoh64(*(uint64_t *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - SourceListIter.second)));
+								if (memcmp(&AddressPart, &((sockaddr_in6 *)&SourceListIter.first)->sin6_addr, sizeof(AddressPart)) == 0)
 									goto JumpToContinue;
 							}
 							else {
-								auto AddressPart = hton64(ntoh64(*(PUINT64)((uint8_t *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - SourceListIter.second)));
-								if (memcmp(&AddressPart, (uint8_t *)&((sockaddr_in6 *)&SourceListIter.first)->sin6_addr + sizeof(in6_addr) / 2U, sizeof(uint64_t)) == 0)
+								auto AddressPart = hton64(ntoh64(*(uint64_t *)((uint8_t *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - SourceListIter.second)));
+								if (memcmp(&AddressPart, (uint8_t *)&((sockaddr_in6 *)&SourceListIter.first)->sin6_addr + sizeof(in6_addr) / 2U, sizeof(AddressPart)) == 0)
 									goto JumpToContinue;
 							}
 						}
@@ -752,9 +751,9 @@ StopLoop_LocalHosts:
 }
 
 //Request Process(Local part)
-bool __fastcall LocalRequestProcess(
+bool LocalRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize)
 {
 	size_t DataLength = 0;
@@ -805,9 +804,9 @@ bool __fastcall LocalRequestProcess(
 }
 
 //Request Process(SOCKS part)
-bool __fastcall SOCKSRequestProcess(
+bool SOCKSRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize)
 {
 	size_t DataLength = 0;
@@ -861,9 +860,9 @@ bool __fastcall SOCKSRequestProcess(
 }
 
 //Request Process(HTTP part)
-bool __fastcall HTTPRequestProcess(
+bool HTTPRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize)
 {
 	size_t DataLength = 0;
@@ -903,9 +902,9 @@ bool __fastcall HTTPRequestProcess(
 }
 
 //Request Process(Direct connections part)
-bool __fastcall DirectRequestProcess(
+bool DirectRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize, 
 	const bool DirectRequest)
 {
@@ -974,9 +973,9 @@ bool __fastcall DirectRequestProcess(
 
 //Request Process(DNSCurve part)
 #if defined(ENABLE_LIBSODIUM)
-bool __fastcall DNSCurveRequestProcess(
+bool DNSCurveRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize)
 {
 	size_t DataLength = 0;
@@ -1038,9 +1037,9 @@ bool __fastcall DNSCurveRequestProcess(
 #endif
 
 //Request Process(TCP part)
-bool __fastcall TCPRequestProcess(
+bool TCPRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize)
 {
 	size_t DataLength = 0;
@@ -1084,7 +1083,7 @@ bool __fastcall TCPRequestProcess(
 }
 
 //Select network layer protocol of packets sending
-uint16_t __fastcall SelectNetworkProtocol(
+uint16_t SelectNetworkProtocol(
 	void)
 {
 //IPv6
@@ -1105,7 +1104,7 @@ uint16_t __fastcall SelectNetworkProtocol(
 
 //Request Process(UDP part)
 #if defined(ENABLE_PCAP)
-void __fastcall UDPRequestProcess(
+void UDPRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData)
 {
 //EDNS switching(Part 1)
@@ -1147,8 +1146,8 @@ void __fastcall UDPRequestProcess(
 #endif
 
 //Send responses to requester
-bool __fastcall SendToRequester(
-	char *RecvBuffer, 
+bool SendToRequester(
+	uint8_t *RecvBuffer, 
 	const size_t RecvSize, 
 	const size_t MaxLen, 
 	const uint16_t Protocol, 
@@ -1169,22 +1168,22 @@ bool __fastcall SendToRequester(
 			return false;
 		}
 		else {
-			send(LocalSocketData.Socket, RecvBuffer, (int)(RecvSize + sizeof(uint16_t)), 0);
+			send(LocalSocketData.Socket, (const char *)RecvBuffer, (int)(RecvSize + sizeof(uint16_t)), 0);
 			shutdown(LocalSocketData.Socket, SD_BOTH);
 			closesocket(LocalSocketData.Socket);
 		}
 	}
 //UDP protocol
 	else {
-		sendto(LocalSocketData.Socket, RecvBuffer, (int)RecvSize, 0, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen);
+		sendto(LocalSocketData.Socket, (const char *)RecvBuffer, (int)RecvSize, 0, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen);
 	}
 
 	return true;
 }
 
 //Mark responses to domains Cache
-bool __fastcall MarkDomainCache(
-	const char *Buffer, 
+bool MarkDomainCache(
+	const uint8_t *Buffer, 
 	const size_t Length)
 {
 //Check conditions.
@@ -1201,7 +1200,8 @@ bool __fastcall MarkDomainCache(
 	//Truncated bit must not be set.
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) != 0 || 
 	//RCode must be set No Error or Non-Existent Domain.
-		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) != DNS_RCODE_NOERROR && (ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) != DNS_RCODE_NXDOMAIN))
+		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) != DNS_RCODE_NOERROR && 
+		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) != DNS_RCODE_NXDOMAIN))
 			return false;
 
 //Initialization(A part)
@@ -1222,7 +1222,7 @@ bool __fastcall MarkDomainCache(
 		for (size_t Index = 0;Index < ntohs(DNS_Header->Answer);++Index)
 		{
 		//Pointer check
-			if (DataLength + sizeof(uint16_t) < Length && (uint8_t)Buffer[DataLength] >= DNS_POINTER_8_BITS)
+			if (DataLength + sizeof(uint16_t) < Length && Buffer[DataLength] >= DNS_POINTER_8_BITS)
 			{
 				DNS_Pointer = ntohs(*(uint16_t *)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
 				if (DNS_Pointer >= Length || DNS_Pointer < sizeof(dns_hdr) || DNS_Pointer == DataLength || DNS_Pointer == DataLength + 1U)
@@ -1277,12 +1277,12 @@ bool __fastcall MarkDomainCache(
 //Initialization(B part)
 	if (Length <= DOMAIN_MAXSIZE)
 	{
-		std::shared_ptr<char> DNSCacheDataBufferTemp(new char[DOMAIN_MAXSIZE]());
+		std::shared_ptr<uint8_t> DNSCacheDataBufferTemp(new uint8_t[DOMAIN_MAXSIZE]());
 		memset(DNSCacheDataBufferTemp.get(), 0, DOMAIN_MAXSIZE);
 		DNSCacheDataTemp.Response.swap(DNSCacheDataBufferTemp);
 	}
 	else {
-		std::shared_ptr<char> DNSCacheDataBufferTemp(new char[Length]());
+		std::shared_ptr<uint8_t> DNSCacheDataBufferTemp(new uint8_t[Length]());
 		memset(DNSCacheDataBufferTemp.get(), 0, Length);
 		DNSCacheDataTemp.Response.swap(DNSCacheDataBufferTemp);
 	}

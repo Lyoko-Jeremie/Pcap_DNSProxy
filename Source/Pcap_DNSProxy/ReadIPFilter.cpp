@@ -20,7 +20,7 @@
 #include "Configuration.h"
 
 //Read ipfilter data from files
-bool __fastcall ReadIPFilterData(
+bool ReadIPFilterData(
 	std::string Data, 
 	const size_t FileIndex, 
 	size_t &LabelType, 
@@ -151,7 +151,7 @@ bool __fastcall ReadIPFilterData(
 }
 
 //Read Blacklist items in IPFilter file from data
-bool __fastcall ReadBlacklistData(
+bool ReadBlacklistData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line)
@@ -203,11 +203,10 @@ bool __fastcall ReadBlacklistData(
 //Initialization
 	RESULT_BLACKLIST_TABLE ResultBlacklistTableTemp;
 	ADDRESS_RANGE_TABLE AddressRangeTableTemp;
-	char Addr[ADDR_STRING_MAXSIZE];
-	memset(Addr, 0, ADDR_STRING_MAXSIZE);
+	uint8_t Addr[ADDR_STRING_MAXSIZE] = {0};
 	std::vector<std::string> ListData;
 	GetParameterListData(ListData, Data, 0, Separated);
-	SSIZE_T Result = 0;
+	ssize_t Result = 0;
 
 //Mark all data in list.
 	for (const auto &StringIter:ListData)
@@ -276,7 +275,7 @@ bool __fastcall ReadBlacklistData(
 			}
 
 			ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTableTemp);
-			memset(&AddressRangeTableTemp, 0, sizeof(ADDRESS_RANGE_TABLE));
+			memset(&AddressRangeTableTemp, 0, sizeof(AddressRangeTableTemp));
 		}
 	//A records(IPv4)
 		else {
@@ -341,7 +340,7 @@ bool __fastcall ReadBlacklistData(
 			}
 
 			ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTableTemp);
-			memset(&AddressRangeTableTemp, 0, sizeof(ADDRESS_RANGE_TABLE));
+			memset(&AddressRangeTableTemp, 0, sizeof(AddressRangeTableTemp));
 		}
 	}
 
@@ -380,7 +379,7 @@ bool __fastcall ReadBlacklistData(
 }
 
 //Read Local Routing items in IPFilter file from data
-bool __fastcall ReadLocalRoutingData(
+bool ReadLocalRoutingData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line)
@@ -405,17 +404,16 @@ bool __fastcall ReadLocalRoutingData(
 
 //Initialization
 	AddressRoutingTable AddressRoutingTableTemp;
-	char Addr[ADDR_STRING_MAXSIZE];
-	memset(Addr, 0, ADDR_STRING_MAXSIZE);
+	uint8_t Addr[ADDR_STRING_MAXSIZE] = {0};
 	memcpy_s(Addr, ADDR_STRING_MAXSIZE, Data.c_str(), Data.find("/"));
-	SSIZE_T SignedResult = 0;
+	ssize_t SignedResult = 0;
 	size_t UnsignedResult = 0;
 
 //IPv6
 	if (Data.find(":") != std::string::npos)
 	{
 		in6_addr BinaryAddr;
-		memset(&BinaryAddr, 0, sizeof(in6_addr));
+		memset(&BinaryAddr, 0, sizeof(BinaryAddr));
 		Data.erase(0, Data.find("/") + 1U);
 
 	//Convert address.
@@ -452,22 +450,22 @@ bool __fastcall ReadLocalRoutingData(
 				{
 					if (LocalRoutingTableIter.Prefix == AddressRoutingTableTemp.Prefix)
 					{
-						auto AddressRoutingListIter = LocalRoutingTableIter.AddressRoutingList_IPv6.find(hton64(*(PUINT64)&BinaryAddr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)));
+						auto AddressRoutingListIter = LocalRoutingTableIter.AddressRoutingList_IPv6.find(hton64(*(uint64_t *)&BinaryAddr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)));
 						if (AddressRoutingListIter != LocalRoutingTableIter.AddressRoutingList_IPv6.end())
 						{
-							if (AddressRoutingListIter->second.count(hton64(*(PUINT64)((uint8_t *)&BinaryAddr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix))) == 0)
-								AddressRoutingListIter->second.insert(hton64(*(PUINT64)((uint8_t *)&BinaryAddr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
+							if (AddressRoutingListIter->second.count(hton64(*(uint64_t *)((uint8_t *)&BinaryAddr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix))) == 0)
+								AddressRoutingListIter->second.insert(hton64(*(uint64_t *)((uint8_t *)&BinaryAddr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
 						}
 						else {
 							AddrBackSet.clear();
 							if (AddressRoutingTableTemp.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 							{
 								AddrBackSet.insert(0);
-								LocalRoutingTableIter.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*(PUINT64)&BinaryAddr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)), AddrBackSet));
+								LocalRoutingTableIter.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*(uint64_t *)&BinaryAddr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)), AddrBackSet));
 							}
 							else {
-								AddrBackSet.insert(hton64(*(PUINT64)((uint8_t *)&BinaryAddr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
-								LocalRoutingTableIter.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*(PUINT64)&BinaryAddr), AddrBackSet));
+								AddrBackSet.insert(hton64(*(uint64_t *)((uint8_t *)&BinaryAddr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
+								LocalRoutingTableIter.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*(uint64_t *)&BinaryAddr), AddrBackSet));
 							}
 						}
 
@@ -481,11 +479,11 @@ bool __fastcall ReadLocalRoutingData(
 				if (AddressRoutingTableTemp.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 				{
 					AddrBackSet.insert(0);
-					AddressRoutingTableTemp.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*(PUINT64)&BinaryAddr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)), AddrBackSet));
+					AddressRoutingTableTemp.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*(uint64_t *)&BinaryAddr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)), AddrBackSet));
 				}
 				else {
-					AddrBackSet.insert(hton64(*(PUINT64)((uint8_t *)&BinaryAddr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
-					AddressRoutingTableTemp.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*(PUINT64)&BinaryAddr), AddrBackSet));
+					AddrBackSet.insert(hton64(*(uint64_t *)((uint8_t *)&BinaryAddr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
+					AddressRoutingTableTemp.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*(uint64_t *)&BinaryAddr), AddrBackSet));
 				}
 				IPFilterFileSetIter.LocalRoutingList.push_back(AddressRoutingTableTemp);
 				break;
@@ -495,7 +493,7 @@ bool __fastcall ReadLocalRoutingData(
 //IPv4
 	else {
 		in_addr BinaryAddr;
-		memset(&BinaryAddr, 0, sizeof(in_addr));
+		memset(&BinaryAddr, 0, sizeof(BinaryAddr));
 		Data.erase(0, Data.find("/") + 1U);
 
 	//Convert address.
@@ -551,7 +549,7 @@ bool __fastcall ReadLocalRoutingData(
 }
 
 //Read Address Prefix Block data
-bool __fastcall ReadAddressPrefixBlock(
+bool ReadAddressPrefixBlock(
 	std::string OriginalData, 
 	const size_t DataOffset, 
 	const uint16_t Protocol, 
@@ -580,11 +578,10 @@ bool __fastcall ReadAddressPrefixBlock(
 	}
 
 //Initialization
-	char Addr[ADDR_STRING_MAXSIZE];
-	memset(Addr, 0, ADDR_STRING_MAXSIZE);
+	uint8_t Addr[ADDR_STRING_MAXSIZE] = {0};
 	memcpy_s(Addr, ADDR_STRING_MAXSIZE, Data.c_str(), Data.find("/"));
 	Data.erase(0, Data.find("/") + 1U);
-	SSIZE_T SignedResult = 0;
+	ssize_t SignedResult = 0;
 	size_t UnsignedResult = 0;
 
 //IPv6
@@ -610,9 +607,9 @@ bool __fastcall ReadAddressPrefixBlock(
 
 		//Mark prefix block.
 			if (AddressPrefix->second < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
-				*(PUINT64)&((PSOCKADDR_IN6)&AddressPrefix->first)->sin6_addr = hton64(ntoh64(*(PUINT64)&((PSOCKADDR_IN6)&AddressPrefix->first)->sin6_addr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressPrefix->second)));
+				*(uint64_t *)&((PSOCKADDR_IN6)&AddressPrefix->first)->sin6_addr = hton64(ntoh64(*(uint64_t *)&((PSOCKADDR_IN6)&AddressPrefix->first)->sin6_addr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressPrefix->second)));
 			else 
-				*(PUINT64)((uint8_t *)&((PSOCKADDR_IN6)&AddressPrefix->first)->sin6_addr + sizeof(in6_addr) / 2U) = hton64(ntoh64(*(PUINT64)((uint8_t *)&((PSOCKADDR_IN6)&AddressPrefix->first)->sin6_addr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressPrefix->second)));
+				*(uint64_t *)((uint8_t *)&((PSOCKADDR_IN6)&AddressPrefix->first)->sin6_addr + sizeof(in6_addr) / 2U) = hton64(ntoh64(*(uint64_t *)((uint8_t *)&((PSOCKADDR_IN6)&AddressPrefix->first)->sin6_addr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressPrefix->second)));
 		}
 
 		AddressPrefix->first.ss_family = AF_INET6;
@@ -648,14 +645,14 @@ bool __fastcall ReadAddressPrefixBlock(
 }
 
 //Read Main IPFilter items in IPFilter file from data
-bool __fastcall ReadMainIPFilterData(
+bool ReadMainIPFilterData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line)
 {
 //Initialization
 	ADDRESS_RANGE_TABLE AddressRangeTableTemp;
-	SSIZE_T SignedResult = 0;
+	ssize_t SignedResult = 0;
 	size_t Index = 0, UnsignedResult = 0;
 
 //Check format of items.
@@ -703,11 +700,10 @@ bool __fastcall ReadMainIPFilterData(
 			Data.replace(Data.find(",0"), strlen(",0"), (","));
 
 	//Mark ipfilter level.
-		char Level[ADDR_STRING_MAXSIZE];
-		memset(Level, 0, ADDR_STRING_MAXSIZE);
+		uint8_t Level[ADDR_STRING_MAXSIZE] = {0};
 		memcpy_s(Level, ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COMMA) + 1U, Data.find(ASCII_COMMA, Data.find(ASCII_COMMA) + 1U) - Data.find(ASCII_COMMA) - 1U);
 		_set_errno(0);
-		UnsignedResult = strtoul(Level, nullptr, 0);
+		UnsignedResult = strtoul((const char *)Level, nullptr, 0);
 		if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult < ULONG_MAX))
 		{
 			AddressRangeTableTemp.Level = UnsignedResult;
@@ -795,8 +791,7 @@ bool __fastcall ReadMainIPFilterData(
 	}
 
 //Read data.
-	char Addr[ADDR_STRING_MAXSIZE];
-	memset(Addr, 0, ADDR_STRING_MAXSIZE);
+	uint8_t Addr[ADDR_STRING_MAXSIZE] = {0};
 	if (Data.find(ASCII_COLON) != std::string::npos) //IPv6
 	{
 	//Begin address

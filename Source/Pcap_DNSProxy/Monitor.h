@@ -29,24 +29,24 @@ extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM];
 
 //Functions
-bool __fastcall UDPMonitor(
+bool UDPMonitor(
 	const SOCKET_DATA LocalSocketData, 
 	bool *Result);
-bool __fastcall TCPMonitor(
+bool TCPMonitor(
 	const SOCKET_DATA LocalSocketData, 
 	bool *Result);
-bool __fastcall TCPReceiveProcess(
+bool TCPReceiveProcess(
 	const SOCKET_DATA LocalSocketData);
-void __fastcall AlternateServerMonitor(
+void AlternateServerMonitor(
 	void);
 #if defined(PLATFORM_WIN)
-addrinfo * __fastcall GetLocalAddressList(
+addrinfo * GetLocalAddressList(
 	const uint16_t Protocol, 
-	char *HostName);
+	uint8_t *HostName);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 bool GetBestInterfaceAddress(
 	const uint16_t Protocol, 
 	const sockaddr_storage *OriginalSockAddr);
 #endif
-void __fastcall GetGatewayInformation(
+void GetGatewayInformation(
 	const uint16_t Protocol);

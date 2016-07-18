@@ -24,47 +24,47 @@ extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 
 //Functions
-SSIZE_T __fastcall ProxySocketSelecting(
+ssize_t ProxySocketSelecting(
 	SYSTEM_SOCKET Socket, 
 	fd_set *ReadFDS, 
 	fd_set *WriteFDS, 
 	timeval *Timeout, 
-	const char *SendBuffer, 
+	const uint8_t *SendBuffer, 
 	const size_t SendSize, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize, 
 	const size_t MinLen, 
-	SSIZE_T *ErrorCode);
-bool __fastcall SOCKSSelectionExchange(
+	ssize_t *ErrorCode);
+bool SOCKSSelectionExchange(
 	SOCKET_DATA *SOCKSSocketData, 
 	fd_set *ReadFDS, 
 	fd_set *WriteFDS, 
 	timeval *Timeout, 
-	char *SendBuffer, 
-	char *OriginalRecv, 
+	uint8_t *SendBuffer, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize);
-bool __fastcall SOCKSAuthenticationUsernamePassword(
+bool SOCKSAuthenticationUsernamePassword(
 	SYSTEM_SOCKET Socket, 
 	fd_set *ReadFDS, 
 	fd_set *WriteFDS, 
 	timeval *Timeout, 
-	char *SendBuffer, 
-	char *OriginalRecv, 
+	uint8_t *SendBuffer, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize);
-bool __fastcall SOCKSClientCommandRequest(
+bool SOCKSClientCommandRequest(
 	const uint16_t Protocol, 
 	SYSTEM_SOCKET Socket, 
 	fd_set *ReadFDS, 
 	fd_set *WriteFDS, 
 	timeval *Timeout, 
-	char *SendBuffer, 
-	char *OriginalRecv, 
+	uint8_t *SendBuffer, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize, 
 	SOCKET_DATA *UDP_ASSOCIATE_TCP_Connecting_Address);
-bool __fastcall HTTP_CONNECTRequest(
+bool HTTP_CONNECTRequest(
 	SOCKET_DATA *HTTPSocketData, 
 	fd_set *ReadFDS, 
 	fd_set *WriteFDS, 
 	timeval *Timeout, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize);

@@ -147,7 +147,7 @@
 #elif !defined(PLATFORM_UNIX)
 #  define PLATFORM_UNIX
 #endif
-/* Apple Mac OS X XCode support
+/* Apple Mac OS X Xcode support
 #if defined(PLATFORM_MACX)
 #  ifdef MAC_OS_X_VERSION_MIN_REQUIRED
 #    undef MAC_OS_X_VERSION_MIN_REQUIRED
@@ -170,13 +170,14 @@
 //////////////////////////////////////////////////
 // Base header
 // 
-//Linux and Mac OS X compatible(Part 1)
+//Linux and Mac OS X compatible definitions(Part 1)
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define _FILE_OFFSET_BITS   64     //File offset data type size(64 bits).
 #endif
 
 //C Standard Library and C++ Standard Template Library/STL headers
 #include <algorithm>               //Algorithm support
+#include <atomic>                  //Atomic support
 //#include <cstdio>                  //File Input/Output support
 //#include <cstdlib>                 //C Standard Library
 #include <condition_variable>      //Condition variable support
@@ -239,7 +240,7 @@
 			#pragma comment(lib, "WinPcap\\WPCAP_x64.lib")
 			#pragma comment(lib, "WinPcap\\Packet_x64.lib")
 		#endif
-	#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
+	#elif defined(PLATFORM_WIN32)
 		#if defined(ENABLE_LIBSODIUM)
 			#pragma comment(lib, "..\\LibSodium\\LibSodium_x86.lib")
 		#endif
@@ -258,9 +259,12 @@
 	#define BYTE_ORDER                 __BYTE_ORDER
 
 //Code definitions
-	#define WINSOCK_VERSION_LOW               2                         //Low byte of Winsock version(2.2)
-	#define WINSOCK_VERSION_HIGH              2                         //High byte of Winsock version(2.2)
-	#define SIO_UDP_CONNRESET                 _WSAIOW(IOC_VENDOR, 12)   //Block connection reset error message from system.
+	#define WINSOCK_VERSION_LOW        2                            //Low byte of Winsock version(2.2)
+	#define WINSOCK_VERSION_HIGH       2                            //High byte of Winsock version(2.2)
+	#define SIO_UDP_CONNRESET          _WSAIOW(IOC_VENDOR, 12)      //Block connection reset error message from system.
+
+//Windows compatible definitions
+	typedef SSIZE_T                    ssize_t;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#include <cerrno>                      //Error report support
 	#include <climits>                     //Data limits support
@@ -275,15 +279,9 @@
 	#if defined(PLATFORM_LINUX)
 		#include <endian.h>                    //Endian support
 	#elif defined(PLATFORM_MACX)
-	//Endian definitions
 		#define __LITTLE_ENDIAN            1234                         //Little Endian
 		#define __BIG_ENDIAN               4321                         //Big Endian
 		#define __BYTE_ORDER               __LITTLE_ENDIAN              //x86 and x86-64/x64 is Little Endian in OS X.
-/* Already define in OS X.
-		#define LITTLE_ENDIAN              __LITTLE_ENDIAN
-		#define BIG_ENDIAN                 __BIG_ENDIAN
-		#define BYTE_ORDER                 __BYTE_ORDER
-*/
 	#endif
 	#include <fcntl.h>                     //Manipulate file descriptor support
 	#include <ifaddrs.h>                   //Getting network interface addresses support
@@ -314,7 +312,7 @@
 		#pragma comment(lib, "../LibSodium/LibSodium_Mac.a")
 	#endif
 
-//TCP Fast Open
+//TCP Fast Open support
 	#if defined(PLATFORM_LINUX)
 		#ifndef _KERNEL_FASTOPEN
 			#define _KERNEL_FASTOPEN
@@ -334,7 +332,7 @@
 		#define TCP_FASTOPEN_HINT      5
 	#endif
 
-//Internet Protocol version 4/IPv4 Address(From Microsoft Windows)
+//Internet Protocol version 4/IPv4 Address
 	typedef struct _in_addr_windows_
 	{
 		union {
@@ -357,7 +355,7 @@
 	#define s_impno            S_un.S_un_b.s_b4
 	#define s_lh               S_un.S_un_b.s_b3
 
-//Internet Protocol version 6/IPv6 Address(From Microsoft Windows)
+//Internet Protocol version 6/IPv6 Address
 	typedef struct _in6_addr_windows_
 	{
 		union {
@@ -378,7 +376,7 @@
 	#define s6_bytes           u.Byte
 	#define s6_words           u.Word
 
-//Internet Protocol version 4/IPv4 Socket Address(From Microsoft Windows)
+//Internet Protocol version 4/IPv4 Socket Address
 	typedef struct _sockaddr_in_windows_
 	{
 		sa_family_t       sin_family;          //Address family: AF_INET
@@ -387,7 +385,7 @@
 		uint8_t           sin_zero[8U];        //Zero
 	}sockaddr_in_Windows;
 
-//Internet Protocol version 6/IPv6 Socket Address(From Microsoft Windows)
+//Internet Protocol version 6/IPv6 Socket Address
 	typedef struct _sockaddr_in6_windows_ 
 	{
 		sa_family_t        sin6_family;        //AF_INET6
@@ -397,7 +395,7 @@
 		uint32_t           sin6_scope_id;      //Scope ID (new in 2.4)
 	}sockaddr_in6_Windows;
 
-//Linux and Mac OS X compatible(Part 2)
+//Linux and Mac OS X compatible definitions(Part 2)
 	#define FALSE                    0	
 	#define INVALID_SOCKET           (-1)
 	#define SOCKET_ERROR             (-1)
@@ -414,33 +412,16 @@
 	#define sockaddr_in6             sockaddr_in6_Windows
 	#define in6addr_loopback         *(in6_addr *)&in6addr_loopback
 	#define in6addr_any              *(in6_addr *)&in6addr_any
-	typedef char                     *PSTR;
-	typedef int                      SOCKET;
-	typedef signed char              INT8, *PINT8;
-	typedef signed short             INT16, *PINT16;
-	typedef signed int               INT32, *PINT, *PINT32;
-	typedef signed long              LONG, WORD;
-	typedef signed long long         INT64, *PINT64;
-	typedef unsigned char            UCHAR, UINT8, *PUINT8, *PUCHAR;
-	typedef unsigned short           UINT16, *PUINT16;
-	typedef unsigned int             UINT, UINT32, *PUINT32;
-	typedef unsigned long            ULONG, DWORD;
-	typedef unsigned long long       ULONGLONG, UINT64, *PUINT64;
-	typedef wchar_t                  *PWSTR;
-	typedef ssize_t                  SSIZE_T;
-	typedef addrinfo                 ADDRINFOA, *PADDRINFOA;
 	typedef sockaddr                 *PSOCKADDR;
 	typedef sockaddr_in              *PSOCKADDR_IN;
 	typedef sockaddr_in6             *PSOCKADDR_IN6;
 
 //Function definitions(Part 1)
-	#define __fastcall
 	#define closesocket                                                  close
 	#if defined(PLATFORM_LINUX)
 		#define _fcloseall                                                   fcloseall
 	#endif
 	#define fwprintf_s                                                   fwprintf
-//	#define sprintf_s                                                    snprintf
 	#define strnlen_s                                                    strnlen
 	#define vfwprintf_s                                                  vfwprintf
 	#define wcsnlen_s                                                    wcsnlen
@@ -457,5 +438,5 @@
 	#endif
 #endif
 
-//Memory alignment: 1 bytes/8 bits
+//Memory alignment: 1 bytes = 8 bits
 #pragma pack(1)

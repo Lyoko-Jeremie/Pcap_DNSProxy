@@ -457,11 +457,8 @@
 		D93C47061CD7582600CD334A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Pcap_DNSProxy/WinPcap",
-					"$(PROJECT_DIR)/LibSodium",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				"LIBRARY_SEARCH_PATHS[arch=*]" = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -469,11 +466,7 @@
 		D93C47071CD7582600CD334A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/Pcap_DNSProxy/WinPcap",
-					"$(PROJECT_DIR)/LibSodium",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

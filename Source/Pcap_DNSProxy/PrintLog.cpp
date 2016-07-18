@@ -20,11 +20,11 @@
 #include "PrintLog.h"
 
 //Print errors to log file
-bool __fastcall PrintError(
+bool PrintError(
 	const size_t ErrorLevel, 
 	const size_t ErrorType, 
 	const wchar_t *Message, 
-	const SSIZE_T ErrorCode, 
+	const ssize_t ErrorCode, 
 	const wchar_t *FileName, 
 	const size_t Line)
 {
@@ -245,14 +245,14 @@ bool __fastcall PrintError(
 }
 
 //Print to screen and write to file
-bool __fastcall PrintScreenAndWriteFile(
+bool PrintScreenAndWriteFile(
 	const std::wstring Message, 
-	const SSIZE_T ErrorCode, 
+	const ssize_t ErrorCode, 
 	const size_t Line)
 {
 //Get current date and time.
 	tm TimeStructure;
-	memset(&TimeStructure, 0, sizeof(tm));
+	memset(&TimeStructure, 0, sizeof(TimeStructure));
 	auto TimeValues = time(nullptr);
 #if defined(PLATFORM_WIN)
 	if (localtime_s(&TimeStructure, &TimeValues) > 0)
@@ -279,7 +279,7 @@ bool __fastcall PrintScreenAndWriteFile(
 	//Print startup time.
 		if (LogStartupTime > 0)
 		{
-			PrintToScreen(L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", 
+			PrintToScreen(true, L"%d-%02d-%02d %02d:%02d:%02d -> Log opened at this moment.\n", 
 				TimeStructure.tm_year + 1900, 
 				TimeStructure.tm_mon + 1, 
 				TimeStructure.tm_mday, 
@@ -289,7 +289,8 @@ bool __fastcall PrintScreenAndWriteFile(
 		}
 
 	//Print message.
-		PrintToScreen(L"%d-%02d-%02d %02d:%02d:%02d -> ", 
+		std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
+		PrintToScreen(false, L"%d-%02d-%02d %02d:%02d:%02d -> ", 
 			TimeStructure.tm_year + 1900, 
 			TimeStructure.tm_mon + 1, 
 			TimeStructure.tm_mday, 
@@ -297,26 +298,26 @@ bool __fastcall PrintScreenAndWriteFile(
 			TimeStructure.tm_min, 
 			TimeStructure.tm_sec);
 		if (Line > 0 && ErrorCode > 0)
-			PrintToScreen(Message.c_str(), Line, ErrorCode);
+			PrintToScreen(false, Message.c_str(), Line, ErrorCode);
 		else if (Line > 0)
-			PrintToScreen(Message.c_str(), Line);
+			PrintToScreen(false, Message.c_str(), Line);
 		else if (ErrorCode > 0)
-			PrintToScreen(Message.c_str(), ErrorCode);
+			PrintToScreen(false, Message.c_str(), ErrorCode);
 		else 
-			PrintToScreen(Message.c_str());
+			PrintToScreen(false, Message.c_str());
 	}
 
 //Check whole file size.
 	std::unique_lock<std::mutex> ErrorLogMutex(ErrorLogLock);
 #if defined(PLATFORM_WIN)
-	WIN32_FILE_ATTRIBUTE_DATA File_WIN32_FILE_ATTRIBUTE_DATA;
-	memset(&File_WIN32_FILE_ATTRIBUTE_DATA, 0, sizeof(WIN32_FILE_ATTRIBUTE_DATA));
-	if (GetFileAttributesExW(GlobalRunningStatus.Path_ErrorLog->c_str(), GetFileExInfoStandard, &File_WIN32_FILE_ATTRIBUTE_DATA) != FALSE)
+	WIN32_FILE_ATTRIBUTE_DATA FileAttributeData;
+	memset(&FileAttributeData, 0, sizeof(FileAttributeData));
+	if (GetFileAttributesExW(GlobalRunningStatus.Path_ErrorLog->c_str(), GetFileExInfoStandard, &FileAttributeData) != FALSE)
 	{
 		LARGE_INTEGER ErrorFileSize;
-		memset(&ErrorFileSize, 0, sizeof(LARGE_INTEGER));
-		ErrorFileSize.HighPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeHigh;
-		ErrorFileSize.LowPart = File_WIN32_FILE_ATTRIBUTE_DATA.nFileSizeLow;
+		memset(&ErrorFileSize, 0, sizeof(ErrorFileSize));
+		ErrorFileSize.HighPart = FileAttributeData.nFileSizeHigh;
+		ErrorFileSize.LowPart = FileAttributeData.nFileSizeLow;
 		if (ErrorFileSize.QuadPart > 0 && (size_t)ErrorFileSize.QuadPart >= Parameter.LogMaxSize)
 		{
 			if (DeleteFileW(GlobalRunningStatus.Path_ErrorLog->c_str()) != FALSE)
@@ -331,9 +332,9 @@ bool __fastcall PrintScreenAndWriteFile(
 		}
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	struct stat FileStat;
-	memset(&FileStat, 0, sizeof(struct stat));
-	if (stat(GlobalRunningStatus.sPath_ErrorLog->c_str(), &FileStat) == 0 && FileStat.st_size >= (off_t)Parameter.LogMaxSize)
+	struct stat FileStatData;
+	memset(&FileStatData, 0, sizeof(FileStatData));
+	if (stat(GlobalRunningStatus.sPath_ErrorLog->c_str(), &FileStatData) == 0 && FileStatData.st_size >= (off_t)Parameter.LogMaxSize)
 	{
 		if (remove(GlobalRunningStatus.sPath_ErrorLog->c_str()) == 0)
 		{
@@ -396,19 +397,25 @@ bool __fastcall PrintScreenAndWriteFile(
 
 //Print words to screen.
 void PrintToScreen(
+	const bool IsInnerLock, 
 	const wchar_t *Format, 
 	...
 )
 {
 //Initialization
 	va_list ArgList;
-	memset(&ArgList, 0, sizeof(va_list));
+	memset(&ArgList, 0, sizeof(ArgList));
 	va_start(ArgList, Format);
 
 //Print data to screen.
-	std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
-	vfwprintf_s(stderr, Format, ArgList);
-	ScreenMutex.unlock();
+	if (IsInnerLock)
+	{
+		std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
+		vfwprintf_s(stderr, Format, ArgList);
+	}
+	else {
+		vfwprintf_s(stderr, Format, ArgList);
+	}
 
 //Cleanup
 	va_end(ArgList);
@@ -416,7 +423,7 @@ void PrintToScreen(
 }
 
 //Print error of reading text
-void __fastcall ReadTextPrintLog(
+void ReadTextPrintLog(
 	const size_t InputType, 
 	const size_t FileIndex, 
 	const size_t Line)
@@ -446,7 +453,7 @@ void __fastcall ReadTextPrintLog(
 
 #if defined(ENABLE_LIBSODIUM)
 //DNSCurve print error of servers
-void __fastcall DNSCurvePrintLog(
+void DNSCurvePrintLog(
 	const size_t ServerType, 
 	std::wstring &Message)
 {

@@ -43,32 +43,32 @@ Using TCP protocol:
 
 #if defined(ENABLE_LIBSODIUM)
 //DNSCurve check padding data length
-SSIZE_T __fastcall DNSCurvePaddingData(
+ssize_t DNSCurvePaddingData(
 	const bool SetPadding, 
-	char *Buffer, 
-	const SSIZE_T Length)
+	uint8_t *Buffer, 
+	const ssize_t Length)
 {
 //Set padding data sign.
 	if (SetPadding)
 	{
-		Buffer[Length] = '\x80';
+		Buffer[Length] = (uint8_t)DNSCRYPT_PADDING_SIGN;
 	}
 //Check padding data sign.
-	else if (Length > (SSIZE_T)DNS_PACKET_MINSIZE)
+	else if (Length > (ssize_t)DNS_PACKET_MINSIZE)
 	{
-		SSIZE_T Index = 0;
+		ssize_t Index = 0;
 
 	//Check padding data sign(0x80).
-		for (Index = Length - 1U;Index > (SSIZE_T)DNS_PACKET_MINSIZE;--Index)
+		for (Index = Length - 1U;Index > (ssize_t)DNS_PACKET_MINSIZE;--Index)
 		{
-			if ((uint8_t)Buffer[Index] == 0x80)
+			if (Buffer[Index] == 0x80)
 				return Index;
 		}
 
 	//Check no null sign.
-		for (Index = Length - 1U;Index > (SSIZE_T)DNS_PACKET_MINSIZE;--Index)
+		for (Index = Length - 1U;Index > (ssize_t)DNS_PACKET_MINSIZE;--Index)
 		{
-			if ((uint8_t)Buffer[Index] > 0)
+			if (Buffer[Index] > 0)
 				return Index;
 		}
 	}
@@ -77,21 +77,18 @@ SSIZE_T __fastcall DNSCurvePaddingData(
 }
 
 //DNSCurve verify keypair
-bool __fastcall DNSCurveVerifyKeypair(
-	const unsigned char *PublicKey, 
-	const unsigned char *SecretKey)
+bool DNSCurveVerifyKeypair(
+	const uint8_t *PublicKey, 
+	const uint8_t *SecretKey)
 {
 //Initialization
-	uint8_t Test_PublicKey[crypto_box_PUBLICKEYBYTES], Validation[crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES + crypto_box_ZEROBYTES];
-	sodium_memzero(Test_PublicKey, crypto_box_PUBLICKEYBYTES);
-	sodium_memzero(Validation, crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES + crypto_box_ZEROBYTES);
-	DNSCURVE_HEAP_BUFFER_TABLE<unsigned char> Test_SecretKey(crypto_box_PUBLICKEYBYTES);
+	uint8_t Test_PublicKey[crypto_box_PUBLICKEYBYTES] = {0}, Validation[crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES + crypto_box_ZEROBYTES] = {0};
+	DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> Test_SecretKey(crypto_box_PUBLICKEYBYTES);
 
 //Keypair, Nonce and validation data
 	crypto_box_keypair(Test_PublicKey, Test_SecretKey.Buffer);
 	memcpy_s(Validation + crypto_box_ZEROBYTES, crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES, PublicKey, crypto_box_PUBLICKEYBYTES);
-	uint8_t Nonce[crypto_box_NONCEBYTES];
-	memset(Nonce, 0, crypto_box_NONCEBYTES);
+	uint8_t Nonce[crypto_box_NONCEBYTES] = {0};
 	for (size_t Index = 0;Index < crypto_box_NONCEBYTES;++Index) //DNSCurve Test Nonce, 0x00 - 0x23(ASCII)
 		*(Nonce + Index) = (uint8_t)Index;
 
@@ -116,7 +113,7 @@ bool __fastcall DNSCurveVerifyKeypair(
 }
 
 //DNSCurve select socket data of DNS target
-size_t __fastcall DNSCurveSelectTargetSocket(
+size_t DNSCurveSelectTargetSocket(
 	SOCKET_DATA *TargetSocketData, 
 	DNSCURVE_SERVER_DATA **PacketTarget, 
 	bool **IsAlternate, 
@@ -274,7 +271,7 @@ size_t __fastcall DNSCurveSelectTargetSocket(
 }
 
 //DNSCurve select socket data of DNS target(Multithreading)
-bool __fastcall DNSCurveSelectTargetSocketMulti(
+bool DNSCurveSelectTargetSocketMulti(
 	bool &IsIPv6, 
 	bool **IsAlternate, 
 	const uint16_t Protocol)
@@ -313,7 +310,7 @@ bool __fastcall DNSCurveSelectTargetSocketMulti(
 }
 
 //DNSCurve set packet target
-bool __fastcall DNSCurvePacketTargetSetting(
+bool DNSCurvePacketTargetSetting(
 	const size_t ServerType, 
 	DNSCURVE_SERVER_DATA **PacketTarget)
 {
@@ -345,10 +342,10 @@ bool __fastcall DNSCurvePacketTargetSetting(
 }
 
 //DNSCurve set Precomputation Key between client and server
-bool __fastcall DNSCurvePrecomputationKeySetting(
+bool DNSCurvePrecomputationKeySetting(
 	uint8_t *PrecomputationKey, 
 	uint8_t *Client_PublicKey, 
-	const unsigned char *ServerFingerprint)
+	const uint8_t *ServerFingerprint)
 {
 //Server fingerprint check
 	if (CheckEmptyBuffer(ServerFingerprint, crypto_box_PUBLICKEYBYTES))
@@ -372,9 +369,9 @@ bool __fastcall DNSCurvePrecomputationKeySetting(
 }
 
 //DNSCurve packet precomputation
-void __fastcall DNSCurveSocketPrecomputation(
+void DNSCurveSocketPrecomputation(
 	const uint16_t Protocol, 
-	const char *OriginalSend, 
+	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
 	const size_t RecvSize, 
 	uint8_t **PrecomputationKey, 
@@ -382,9 +379,9 @@ void __fastcall DNSCurveSocketPrecomputation(
 	DNSCURVE_SERVER_DATA **PacketTarget, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
-	std::shared_ptr<char> &SendBuffer, 
+	std::shared_ptr<uint8_t> &SendBuffer, 
 	size_t &DataLength, 
-	std::shared_ptr<char> &Alternate_SendBuffer, 
+	std::shared_ptr<uint8_t> &Alternate_SendBuffer, 
 	size_t &Alternate_DataLength)
 {
 //Selecting check
@@ -395,13 +392,12 @@ void __fastcall DNSCurveSocketPrecomputation(
 
 //Initialization
 	SOCKET_DATA SocketDataTemp;
-	memset(&SocketDataTemp, 0, sizeof(SOCKET_DATA));
 	DNSCURVE_SOCKET_SELECTING_DATA SocketSelectingDataTemp;
-	memset(&SocketSelectingDataTemp, 0, sizeof(DNSCURVE_SOCKET_SELECTING_DATA));
+	memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
+	memset(&SocketSelectingDataTemp, 0, sizeof(SocketSelectingDataTemp));
 	std::vector<SOCKET_DATA> Alternate_SocketDataList;
 	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> Alternate_SocketSelectingList;
-	uint8_t Client_PublicKey_PTR[crypto_box_PUBLICKEYBYTES];
-	memset(Client_PublicKey_PTR, 0, crypto_box_PUBLICKEYBYTES);
+	uint8_t Client_PublicKey_PTR[crypto_box_PUBLICKEYBYTES] = {0};
 	auto Client_PublicKey = Client_PublicKey_PTR;
 	size_t Index = 0, LoopLimits = 0;
 	uint16_t InnerProtocol = 0;
@@ -471,7 +467,7 @@ void __fastcall DNSCurveSocketPrecomputation(
 
 			SocketDataList.push_back(SocketDataTemp);
 			SocketSelectingList.push_back(SocketSelectingDataTemp);
-			sodium_memzero(&SocketDataTemp, sizeof(SOCKET_DATA));
+			sodium_memzero(&SocketDataTemp, sizeof(SocketDataTemp));
 		}
 
 	//Make Precomputation Key between client and server.
@@ -498,7 +494,7 @@ void __fastcall DNSCurveSocketPrecomputation(
 	//Make encryption or normal packet of Main server.
 		if (DNSCurveParameter.IsEncryption || Protocol == IPPROTO_TCP)
 		{
-			std::shared_ptr<char> SendBufferTemp(new char[RecvSize]());
+			std::shared_ptr<uint8_t> SendBufferTemp(new uint8_t[RecvSize]());
 			sodium_memzero(SendBufferTemp.get(), RecvSize);
 			SendBuffer.swap(SendBufferTemp);
 			DataLength = DNSCurvePacketEncryption(Protocol, (*PacketTarget)->SendMagicNumber, Client_PublicKey, *PrecomputationKey, OriginalSend, SendSize, SendBuffer.get(), RecvSize);
@@ -520,7 +516,8 @@ void __fastcall DNSCurveSocketPrecomputation(
 	
 //Jump here to skip Main process
 SkipMain:
-	sodium_memzero(&SocketDataTemp, sizeof(SOCKET_DATA));
+	sodium_memzero(&SocketDataTemp, sizeof(SocketDataTemp));
+
 //Set target.
 	if (IsIPv6) //IPv6
 		*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6;
@@ -580,7 +577,7 @@ SkipMain:
 
 			Alternate_SocketDataList.push_back(SocketDataTemp);
 			Alternate_SocketSelectingList.push_back(SocketSelectingDataTemp);
-			sodium_memzero(&SocketDataTemp, sizeof(SOCKET_DATA));
+			sodium_memzero(&SocketDataTemp, sizeof(SocketDataTemp));
 		}
 
 	//Make Precomputation Key between client and server.
@@ -605,7 +602,7 @@ SkipMain:
 	//Make encryption or normal packet of Alternate server.
 		if (DNSCurveParameter.IsEncryption)
 		{
-			std::shared_ptr<char> SendBufferTemp(new char[RecvSize]());
+			std::shared_ptr<uint8_t> SendBufferTemp(new uint8_t[RecvSize]());
 			sodium_memzero(SendBufferTemp.get(), RecvSize);
 			Alternate_SendBuffer.swap(SendBufferTemp);
 			SendBufferTemp.reset();
@@ -637,21 +634,20 @@ SkipMain:
 }
 
 //DNSCurve packet encryption
-size_t __fastcall DNSCurvePacketEncryption(
+size_t DNSCurvePacketEncryption(
 	const uint16_t Protocol, 
-	const char *SendMagicNumber, 
-	const unsigned char *Client_PublicKey, 
-	const unsigned char *PrecomputationKey, 
-	const char *OriginalSend, 
+	const uint8_t *SendMagicNumber, 
+	const uint8_t *Client_PublicKey, 
+	const uint8_t *PrecomputationKey, 
+	const uint8_t *OriginalSend, 
 	const size_t Length, 
-	char *SendBuffer, 
+	uint8_t *SendBuffer, 
 	const size_t SendSize)
 {
 //Encryption mode
 	if (DNSCurveParameter.IsEncryption)
 	{
-		uint8_t Nonce[crypto_box_NONCEBYTES];
-		memset(Nonce, 0, crypto_box_NONCEBYTES);
+		uint8_t Nonce[crypto_box_NONCEBYTES] = {0};
 
 	//Make nonce.
 		*(uint32_t *)Nonce = randombytes_random();
@@ -660,15 +656,15 @@ size_t __fastcall DNSCurvePacketEncryption(
 		sodium_memzero(Nonce + crypto_box_HALF_NONCEBYTES, crypto_box_HALF_NONCEBYTES);
 
 	//Make a crypto box.
-		std::shared_ptr<char> Buffer;
+		std::shared_ptr<uint8_t> Buffer;
 		if (Protocol == IPPROTO_TCP) //TCP
 		{
-			std::shared_ptr<char> BufferTemp(new char[DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN]());
+			std::shared_ptr<uint8_t> BufferTemp(new uint8_t[DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN]());
 			sodium_memzero(BufferTemp.get(), DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN);
 			BufferTemp.swap(Buffer);
 		}
 		else { //UDP
-			std::shared_ptr<char> BufferTemp(new char[DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN]());
+			std::shared_ptr<uint8_t> BufferTemp(new uint8_t[DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN]());
 			sodium_memzero(BufferTemp.get(), DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN);
 			BufferTemp.swap(Buffer);
 		}
@@ -680,8 +676,8 @@ size_t __fastcall DNSCurvePacketEncryption(
 		if (Protocol == IPPROTO_TCP) //TCP
 		{
 			if (crypto_box_afternm(
-					(unsigned char *)(SendBuffer + DNSCRYPT_BUFFER_RESERVE_TCP_LEN), 
-					(unsigned char *)Buffer.get(), 
+					SendBuffer + DNSCRYPT_BUFFER_RESERVE_TCP_LEN, 
+					Buffer.get(), 
 					DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_TCP_LEN, 
 					Nonce, 
 					PrecomputationKey) != 0)
@@ -689,8 +685,8 @@ size_t __fastcall DNSCurvePacketEncryption(
 		}
 		else { //UDP
 			if (crypto_box_afternm(
-					(unsigned char *)(SendBuffer + DNSCRYPT_BUFFER_RESERVE_LEN), 
-					(unsigned char *)Buffer.get(), 
+					SendBuffer + DNSCRYPT_BUFFER_RESERVE_LEN, 
+					Buffer.get(), 
 					DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN, 
 					Nonce, 
 					PrecomputationKey) != 0)
@@ -729,15 +725,15 @@ size_t __fastcall DNSCurvePacketEncryption(
 }
 
 //DNSCurve packet decryption
-SSIZE_T DNSCurvePacketDecryption(
-	const char *ReceiveMagicNumber, 
-	const unsigned char *PrecomputationKey, 
-	char *OriginalRecv, 
+ssize_t DNSCurvePacketDecryption(
+	const uint8_t *ReceiveMagicNumber, 
+	const uint8_t *PrecomputationKey, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize, 
-	const SSIZE_T Length)
+	const ssize_t Length)
 {
 //Initialization
-	SSIZE_T DataLength = Length;
+	ssize_t DataLength = Length;
 
 //Encryption mode
 	if (DNSCurveParameter.IsEncryption)
@@ -748,8 +744,7 @@ SSIZE_T DNSCurvePacketDecryption(
 			return EXIT_FAILURE;
 
 	//Nonce initialization
-		uint8_t WholeNonce[crypto_box_NONCEBYTES];
-		memset(WholeNonce, 0, crypto_box_NONCEBYTES);
+		uint8_t WholeNonce[crypto_box_NONCEBYTES] = {0};
 		memcpy_s(WholeNonce, crypto_box_NONCEBYTES, OriginalRecv + DNSCURVE_MAGIC_QUERY_LEN, crypto_box_NONCEBYTES);
 
 	//Open crypto box.
@@ -767,7 +762,7 @@ SSIZE_T DNSCurvePacketDecryption(
 
 	//Check padding data and responses check.
 		DataLength = DNSCurvePaddingData(false, OriginalRecv, Length);
-		if (DataLength < (SSIZE_T)DNS_PACKET_MINSIZE)
+		if (DataLength < (ssize_t)DNS_PACKET_MINSIZE)
 			return EXIT_FAILURE;
 	}
 
@@ -778,27 +773,27 @@ SSIZE_T DNSCurvePacketDecryption(
 		DataLength, 
 		RecvSize, 
 		nullptr);
-	if (DataLength < (SSIZE_T)DNS_PACKET_MINSIZE)
+	if (DataLength < (ssize_t)DNS_PACKET_MINSIZE)
 		return EXIT_FAILURE;
 
 	return DataLength;
 }
 
 //DNSCurve non-blocking mode selecting
-SSIZE_T __fastcall DNSCurveSocketSelecting(
+ssize_t DNSCurveSocketSelecting(
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize, 
-	SSIZE_T *ErrorCode)
+	ssize_t *ErrorCode)
 {
 	size_t Index = 0;
 	if (ErrorCode != nullptr)
 		*ErrorCode = 0;
 
 //TCP or UDP connecting
-	SSIZE_T RecvLen = 0;
+	ssize_t RecvLen = 0;
 	for (Index = 0;Index < SocketDataList.size();++Index)
 	{
 		RecvLen = SocketConnecting(Protocol, SocketDataList.at(Index).Socket, (PSOCKADDR)&SocketDataList.at(Index).SockAddr, SocketDataList.at(Index).AddrLen, SocketSelectingList.at(Index).SendBuffer, SocketSelectingList.at(Index).SendSize);
@@ -809,7 +804,7 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 			SocketDataList.at(Index).Socket = 0;
 		}
 	#if defined(PLATFORM_LINUX)
-		else if (Protocol == IPPROTO_TCP && Parameter.TCP_FastOpen && RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
+		else if (Protocol == IPPROTO_TCP && Parameter.TCP_FastOpen && RecvLen >= (ssize_t)DNS_PACKET_MINSIZE)
 		{
 			SocketSelectingList.at(Index).PacketIsSend = true;
 			++Index;
@@ -829,10 +824,10 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 //Initialization
 	fd_set ReadFDS, WriteFDS;
 	timeval Timeout;
-	memset(&Timeout, 0, sizeof(timeval));
-	memset(&ReadFDS, 0, sizeof(fd_set));
-	memset(&WriteFDS, 0, sizeof(fd_set));
-	SSIZE_T SelectResult = 0;
+	memset(&Timeout, 0, sizeof(Timeout));
+	memset(&ReadFDS, 0, sizeof(ReadFDS));
+	memset(&WriteFDS, 0, sizeof(WriteFDS));
+	ssize_t SelectResult = 0;
 	size_t LastReceiveIndex = 0;
 	SYSTEM_SOCKET MaxSocket = 0;
 	auto IsAllSocketClosed = false;
@@ -849,8 +844,6 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 //Selecting process
 	for (;;)
 	{
-//		Sleep(LOOP_INTERVAL_TIME_NO_DELAY);
-
 	//Socket check(Part 2)
 		for (auto SocketDataIter = SocketDataList.begin();SocketDataIter != SocketDataList.end();++SocketDataIter)
 		{
@@ -865,7 +858,7 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 		{
 		//Scan all result.
 			RecvLen = DNSCurveSelectingResult(Protocol, SocketDataList, SocketSelectingList, OriginalRecv, RecvSize);
-			if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
+			if (RecvLen >= (ssize_t)DNS_PACKET_MINSIZE)
 				return RecvLen;
 		//All socket cloesed. 
 			else if (IsAllSocketClosed)
@@ -916,13 +909,13 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 				//Buffer initialization
 					if (!SocketSelectingList.at(Index).RecvBuffer)
 					{
-						std::shared_ptr<char> RecvBufferTemp(new char[RecvSize]());
+						std::shared_ptr<uint8_t> RecvBufferTemp(new uint8_t[RecvSize]());
 						sodium_memzero(RecvBufferTemp.get(), RecvSize);
 						SocketSelectingList.at(Index).RecvBuffer.swap(RecvBufferTemp);
 					}
 
 				//Receive from selecting.
-					RecvLen = recv(SocketDataList.at(Index).Socket, SocketSelectingList.at(Index).RecvBuffer.get() + SocketSelectingList.at(Index).Length, (int)(RecvSize - SocketSelectingList.at(Index).Length), 0);
+					RecvLen = recv(SocketDataList.at(Index).Socket, (char *)SocketSelectingList.at(Index).RecvBuffer.get() + SocketSelectingList.at(Index).Length, (int)(RecvSize - SocketSelectingList.at(Index).Length), 0);
 
 				//Connection closed or SOCKET_ERROR
 					if (RecvLen <= 0)
@@ -934,7 +927,7 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 						SocketSelectingList.at(Index).Length = 0;
 						continue;
 					}
-					else if (Protocol == IPPROTO_UDP && RecvLen > (SSIZE_T)DNS_PACKET_MINSIZE && SocketSelectingList.at(Index).Length > 0)
+					else if (Protocol == IPPROTO_UDP && RecvLen > (ssize_t)DNS_PACKET_MINSIZE && SocketSelectingList.at(Index).Length > 0)
 					{
 						sodium_memzero(SocketSelectingList.at(Index).RecvBuffer.get(), SocketSelectingList.at(Index).Length);
 						memmove_s(SocketSelectingList.at(Index).RecvBuffer.get(), RecvSize, SocketSelectingList.at(Index).RecvBuffer.get() + SocketSelectingList.at(Index).Length, RecvLen);
@@ -951,9 +944,9 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 			//Send process
 				if (FD_ISSET(SocketDataList.at(Index).Socket, &WriteFDS) && !SocketSelectingList.at(Index).PacketIsSend)
 				{
-					if (send(SocketDataList.at(Index).Socket, SocketSelectingList.at(Index).SendBuffer, (int)SocketSelectingList.at(Index).SendSize, 0) == SOCKET_ERROR)
+					if (send(SocketDataList.at(Index).Socket, (const char *)SocketSelectingList.at(Index).SendBuffer, (int)SocketSelectingList.at(Index).SendSize, 0) == SOCKET_ERROR)
 					{
-						SSIZE_T InnerErrorCode = WSAGetLastError();
+						ssize_t InnerErrorCode = WSAGetLastError();
 
 					#if defined(PLATFORM_WIN)
 						if (InnerErrorCode != WSAEWOULDBLOCK)
@@ -981,8 +974,7 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 	//Timeout
 		else if (SelectResult == 0)
 		{
-			uint8_t *PrecomputationKeyTemp = nullptr;
-			char *ReceiveMagicNumberTemp = nullptr;
+			uint8_t *PrecomputationKeyTemp = nullptr, *ReceiveMagicNumberTemp = nullptr;
 			Index = 0;
 
 		//Swap to last receive packet when Receive Waiting is ON.
@@ -1002,7 +994,7 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 
 		//Buffer list check(Part 2)
 			RecvLen = DNSCurveSelectingResult(Protocol, SocketDataList, SocketSelectingList, OriginalRecv, RecvSize);
-			if (RecvLen >= (SSIZE_T)DNS_PACKET_MINSIZE)
+			if (RecvLen >= (ssize_t)DNS_PACKET_MINSIZE)
 				return RecvLen;
 
 			if (ErrorCode != nullptr)
@@ -1031,14 +1023,14 @@ SSIZE_T __fastcall DNSCurveSocketSelecting(
 }
 
 //DNSCurve Socket selecting result
-SSIZE_T __fastcall DNSCurveSelectingResult(
+ssize_t DNSCurveSelectingResult(
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize)
 {
-	SSIZE_T RecvLen = 0;
+	ssize_t RecvLen = 0;
 
 //Scan all result.
 	for (size_t Index = 0;Index < SocketDataList.size();++Index)
@@ -1049,13 +1041,13 @@ SSIZE_T __fastcall DNSCurveSelectingResult(
 			if (Protocol == IPPROTO_TCP)
 			{
 				RecvLen = ntohs(((uint16_t *)SocketSelectingList.at(Index).RecvBuffer.get())[0]);
-				if (RecvLen > (SSIZE_T)SocketSelectingList.at(Index).Length)
+				if (RecvLen > (ssize_t)SocketSelectingList.at(Index).Length)
 				{
 					goto JumpToRestart;
 				}
 				else {
 					memmove_s(SocketSelectingList.at(Index).RecvBuffer.get(), RecvSize, SocketSelectingList.at(Index).RecvBuffer.get() + sizeof(uint16_t), RecvLen);
-					sodium_memzero(SocketSelectingList.at(Index).RecvBuffer.get() + RecvLen, (SSIZE_T)RecvSize - RecvLen);
+					sodium_memzero(SocketSelectingList.at(Index).RecvBuffer.get() + RecvLen, (ssize_t)RecvSize - RecvLen);
 				}
 			}
 		//UDP length
@@ -1065,7 +1057,7 @@ SSIZE_T __fastcall DNSCurveSelectingResult(
 
 		//Receive from buffer list and decrypt or get packet data.
 			RecvLen = DNSCurvePacketDecryption(SocketSelectingList.at(Index).ReceiveMagicNumber, SocketSelectingList.at(Index).PrecomputationKey, SocketSelectingList.at(Index).RecvBuffer.get(), RecvSize, RecvLen);
-			if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+			if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
 			{
 				goto JumpToRestart;
 			}
@@ -1105,7 +1097,7 @@ SSIZE_T __fastcall DNSCurveSelectingResult(
 }
 
 //DNSCurve initialization
-void __fastcall DNSCurveInit(
+void DNSCurveInit(
 	void)
 {
 //Libsodium ramdom bytes initialization
@@ -1217,16 +1209,16 @@ void __fastcall DNSCurveInit(
 }
 
 //Send TCP request to get Signature Data of servers
-bool __fastcall DNSCurveTCPSignatureRequest(
+bool DNSCurveTCPSignatureRequest(
 	const uint16_t Protocol, 
 	const bool IsAlternate)
 {
 //Initialization(Part 1)
-	std::shared_ptr<char> SendBuffer(new char[PACKET_MAXSIZE]()), RecvBuffer(new char[LARGE_PACKET_MAXSIZE]());
+	std::shared_ptr<uint8_t> SendBuffer(new uint8_t[PACKET_MAXSIZE]()), RecvBuffer(new uint8_t[LARGE_PACKET_MAXSIZE]());
 	sodium_memzero(SendBuffer.get(), PACKET_MAXSIZE);
 	sodium_memzero(RecvBuffer.get(), LARGE_PACKET_MAXSIZE);
 	std::vector<SOCKET_DATA> TCPSocketDataList(1U);
-	sodium_memzero(&TCPSocketDataList.front(), sizeof(SOCKET_DATA));
+	sodium_memzero(&TCPSocketDataList.front(), sizeof(TCPSocketDataList.front()));
 
 //Make packet data(Part 1).
 	size_t DataLength = sizeof(dns_tcp_hdr);
@@ -1306,7 +1298,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(
 //Initialization(Part 2)
 	size_t SleepTime_SignatureRequest = 0, SpeedTime_SignatureRequest = DNSCurveParameter.KeyRecheckTime;
 	std::wstring Message;
-	SSIZE_T RecvLen = 0;
+	ssize_t RecvLen = 0;
 
 //Send request.
 	for (;;)
@@ -1343,7 +1335,7 @@ bool __fastcall DNSCurveTCPSignatureRequest(
 
 	//Socket selecting
 		RecvLen = SocketSelecting(REQUEST_PROCESS_DNSCURVE, IPPROTO_TCP, TCPSocketDataList, SendBuffer.get(), DataLength, RecvBuffer.get(), LARGE_PACKET_MAXSIZE, nullptr);
-		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+		if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
 		{
 			goto JumpToRestart;
 		}
@@ -1391,16 +1383,16 @@ bool __fastcall DNSCurveTCPSignatureRequest(
 }
 
 //Send UDP request to get Signature Data of servers
-bool __fastcall DNSCurveUDPSignatureRequest(
+bool DNSCurveUDPSignatureRequest(
 	const uint16_t Protocol, 
 	const bool IsAlternate)
 {
 //Initialization(Part 1)
-	std::shared_ptr<char> SendBuffer(new char[PACKET_MAXSIZE]()), RecvBuffer(new char[PACKET_MAXSIZE]());
+	std::shared_ptr<uint8_t> SendBuffer(new uint8_t[PACKET_MAXSIZE]()), RecvBuffer(new uint8_t[PACKET_MAXSIZE]());
 	sodium_memzero(SendBuffer.get(), PACKET_MAXSIZE);
 	sodium_memzero(RecvBuffer.get(), PACKET_MAXSIZE);
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
-	sodium_memzero(&UDPSocketDataList.front(), sizeof(SOCKET_DATA));
+	sodium_memzero(&UDPSocketDataList.front(), sizeof(UDPSocketDataList.front()));
 
 //Make packet data(Part 1).
 	size_t DataLength = sizeof(dns_hdr);
@@ -1476,7 +1468,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(
 //Initialization(Part 2)
 	size_t SleepTime_SignatureRequest = 0, SpeedTime_SignatureRequest = DNSCurveParameter.KeyRecheckTime;
 	std::wstring Message;
-	SSIZE_T RecvLen = 0;
+	ssize_t RecvLen = 0;
 
 //Send request.
 	for (;;)
@@ -1513,7 +1505,7 @@ bool __fastcall DNSCurveUDPSignatureRequest(
 
 	//Socket selecting
 		RecvLen = SocketSelecting(REQUEST_PROCESS_DNSCURVE, IPPROTO_UDP, UDPSocketDataList, SendBuffer.get(), DataLength, RecvBuffer.get(), PACKET_MAXSIZE, nullptr);
-		if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+		if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
 		{
 			goto JumpToRestart;
 		}
@@ -1561,15 +1553,16 @@ bool __fastcall DNSCurveUDPSignatureRequest(
 }
 
 //Get Signature Data of server from packets
-bool __fastcall DNSCruveGetSignatureData(
-	const char *Buffer, 
+bool DNSCruveGetSignatureData(
+	const uint8_t *Buffer, 
 	const size_t ServerType)
 {
 	if (((pdns_record_txt)Buffer)->Name == htons(DNS_POINTER_QUERY) && 
 		((pdns_record_txt)Buffer)->Length == htons(((pdns_record_txt)Buffer)->TXT_Length + 1U) && ((pdns_record_txt)Buffer)->TXT_Length == DNSCRYPT_RECORD_TXT_LEN)
 	{
 		if (sodium_memcmp(&((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->CertMagicNumber, DNSCRYPT_CERT_MAGIC, sizeof(uint16_t)) == 0 && 
-			((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->MajorVersion == htons(DNSCURVE_VERSION_MAJOR) && ((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->MinorVersion == DNSCURVE_VERSION_MINOR)
+			((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->MajorVersion == htons(DNSCURVE_VERSION_MAJOR) && 
+			((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->MinorVersion == DNSCURVE_VERSION_MINOR)
 		{
 			unsigned long long SignatureLength = 0;
 
@@ -1579,13 +1572,13 @@ bool __fastcall DNSCruveGetSignatureData(
 				return false;
 
 		//Check Signature.
-			char DeBuffer[PACKET_MAXSIZE];
-			sodium_memzero(DeBuffer, PACKET_MAXSIZE);
+			std::shared_ptr<uint8_t> DeBuffer(new uint8_t[PACKET_MAXSIZE]());
+			memset(DeBuffer.get(), 0, PACKET_MAXSIZE);
 			if (PacketTarget == nullptr || 
 				crypto_sign_open(
-					(uint8_t *)DeBuffer, 
+					(unsigned char *)DeBuffer.get(), 
 					&SignatureLength, 
-					(uint8_t *)(Buffer + sizeof(dns_record_txt) + sizeof(dnscurve_txt_hdr)), ((pdns_record_txt)Buffer)->TXT_Length - sizeof(dnscurve_txt_hdr), 
+					(unsigned char *)(Buffer + sizeof(dns_record_txt) + sizeof(dnscurve_txt_hdr)), ((pdns_record_txt)Buffer)->TXT_Length - sizeof(dnscurve_txt_hdr), 
 					PacketTarget->ServerPublicKey) == LIBSODIUM_ERROR)
 			{
 				std::wstring Message;
@@ -1601,10 +1594,10 @@ bool __fastcall DNSCruveGetSignatureData(
 
 		//Signature available time check
 			if (PacketTarget->ServerFingerprint != nullptr && 
-				time(nullptr) >= (time_t)ntohl(((pdnscurve_txt_signature)DeBuffer)->CertTime_Begin) && time(nullptr) <= (time_t)ntohl(((pdnscurve_txt_signature)DeBuffer)->CertTime_End))
+				time(nullptr) >= (time_t)ntohl(((pdnscurve_txt_signature)DeBuffer.get())->CertTime_Begin) && time(nullptr) <= (time_t)ntohl(((pdnscurve_txt_signature)DeBuffer.get())->CertTime_End))
 			{
-				memcpy_s(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, ((pdnscurve_txt_signature)DeBuffer)->MagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-				memcpy_s(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES, ((pdnscurve_txt_signature)DeBuffer)->PublicKey, crypto_box_PUBLICKEYBYTES);
+				memcpy_s(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, ((pdnscurve_txt_signature)DeBuffer.get())->MagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+				memcpy_s(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES, ((pdnscurve_txt_signature)DeBuffer.get())->PublicKey, crypto_box_PUBLICKEYBYTES);
 				if (!DNSCurveParameter.ClientEphemeralKey)
 				{
 					if (crypto_box_beforenm(
@@ -1642,17 +1635,17 @@ bool __fastcall DNSCruveGetSignatureData(
 }
 
 //Transmission of DNSCurve TCP protocol
-size_t __fastcall DNSCurveTCPRequest(
-	const char *OriginalSend, 
+size_t DNSCurveTCPRequest(
+	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize)
 {
 //Initialization
 	std::vector<SOCKET_DATA> TCPSocketDataList(1U);
-	sodium_memzero(&TCPSocketDataList.front(), sizeof(SOCKET_DATA));
+	sodium_memzero(&TCPSocketDataList.front(), sizeof(TCPSocketDataList.front()));
 	DNSCURVE_SOCKET_SELECTING_DATA TCPSocketSelectingData;
-	memset(&TCPSocketSelectingData, 0, sizeof(DNSCURVE_SOCKET_SELECTING_DATA));
+	memset(&TCPSocketSelectingData, 0, sizeof(TCPSocketSelectingData));
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
@@ -1700,8 +1693,8 @@ size_t __fastcall DNSCurveTCPRequest(
 		return EXIT_FAILURE;
 
 //Make encryption or normal packet.
-	SSIZE_T RecvLen = DNSCurvePacketEncryption(IPPROTO_TCP, PacketTarget->SendMagicNumber, Client_PublicKey, PrecomputationKey, OriginalSend, SendSize, SendBuffer, RecvSize);
-	if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+	ssize_t RecvLen = DNSCurvePacketEncryption(IPPROTO_TCP, PacketTarget->SendMagicNumber, Client_PublicKey, PrecomputationKey, OriginalSend, SendSize, SendBuffer, RecvSize);
+	if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
 	{
 		shutdown(TCPSocketDataList.front().Socket, SD_BOTH);
 		closesocket(TCPSocketDataList.front().Socket);
@@ -1724,7 +1717,7 @@ size_t __fastcall DNSCurveTCPRequest(
 	TCPSocketSelectingList.push_back(TCPSocketSelectingData);
 
 //Socket selecting
-	SSIZE_T ErrorCode = 0;
+	ssize_t ErrorCode = 0;
 	RecvLen = DNSCurveSocketSelecting(IPPROTO_TCP, TCPSocketDataList, TCPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultiRequest) //Mark timeout.
 	{
@@ -1738,10 +1731,10 @@ size_t __fastcall DNSCurveTCPRequest(
 }
 
 //Transmission of DNSCurve TCP protocol(Multithreading)
-size_t __fastcall DNSCurveTCPRequestMulti(
-	const char *OriginalSend, 
+size_t DNSCurveTCPRequestMulti(
+	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize)
 {
 //Key initialization
@@ -1763,7 +1756,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(
 //Initialization(Part 1)
 	std::vector<SOCKET_DATA> TCPSocketDataList;
 	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> TCPSocketSelectingList;
-	std::shared_ptr<char> SendBuffer, Alternate_SendBuffer;
+	std::shared_ptr<uint8_t> SendBuffer, Alternate_SendBuffer;
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
 	size_t DataLength = 0, Alternate_DataLength = 0;
 	sodium_memzero(OriginalRecv, RecvSize);
@@ -1808,7 +1801,7 @@ size_t __fastcall DNSCurveTCPRequestMulti(
 	}
 
 //Socket selecting
-	SSIZE_T ErrorCode = 0, RecvLen = DNSCurveSocketSelecting(IPPROTO_TCP, TCPSocketDataList, TCPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
+	ssize_t ErrorCode = 0, RecvLen = DNSCurveSocketSelecting(IPPROTO_TCP, TCPSocketDataList, TCPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultiRequest) //Mark timeout.
 	{
 		if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6
@@ -1821,17 +1814,17 @@ size_t __fastcall DNSCurveTCPRequestMulti(
 }
 
 //Transmission of DNSCurve UDP protocol
-size_t __fastcall DNSCurveUDPRequest(
-	const char *OriginalSend, 
+size_t DNSCurveUDPRequest(
+	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize)
 {
 //Initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
-	sodium_memzero(&UDPSocketDataList.front(), sizeof(SOCKET_DATA));
+	sodium_memzero(&UDPSocketDataList.front(), sizeof(UDPSocketDataList.front()));
 	DNSCURVE_SOCKET_SELECTING_DATA UDPSocketSelectingData;
-	memset(&UDPSocketSelectingData, 0, sizeof(DNSCURVE_SOCKET_SELECTING_DATA));
+	memset(&UDPSocketSelectingData, 0, sizeof(UDPSocketSelectingData));
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
@@ -1877,8 +1870,8 @@ size_t __fastcall DNSCurveUDPRequest(
 			return EXIT_FAILURE;
 
 //Make encryption or normal packet.
-	SSIZE_T RecvLen = DNSCurvePacketEncryption(IPPROTO_UDP, PacketTarget->SendMagicNumber, Client_PublicKey, PrecomputationKey, OriginalSend, SendSize, SendBuffer, RecvSize);
-	if (RecvLen < (SSIZE_T)DNS_PACKET_MINSIZE)
+	ssize_t RecvLen = DNSCurvePacketEncryption(IPPROTO_UDP, PacketTarget->SendMagicNumber, Client_PublicKey, PrecomputationKey, OriginalSend, SendSize, SendBuffer, RecvSize);
+	if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
 	{
 		shutdown(UDPSocketDataList.front().Socket, SD_BOTH);
 		closesocket(UDPSocketDataList.front().Socket);
@@ -1896,7 +1889,7 @@ size_t __fastcall DNSCurveUDPRequest(
 		UDPSocketSelectingData.SendSize = RecvLen;
 	}
 	else { //Normal mode
-		UDPSocketSelectingData.SendBuffer = (char *)OriginalSend;
+		UDPSocketSelectingData.SendBuffer = (uint8_t *)OriginalSend;
 		UDPSocketSelectingData.SendSize = SendSize;
 	}
 
@@ -1905,7 +1898,7 @@ size_t __fastcall DNSCurveUDPRequest(
 	UDPSocketSelectingList.push_back(UDPSocketSelectingData);
 
 //Socket selecting
-	SSIZE_T ErrorCode = 0;
+	ssize_t ErrorCode = 0;
 	RecvLen = DNSCurveSocketSelecting(IPPROTO_UDP, UDPSocketDataList, UDPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultiRequest) //Mark timeout.
 	{
@@ -1919,10 +1912,10 @@ size_t __fastcall DNSCurveUDPRequest(
 }
 
 //Transmission of DNSCurve UDP protocol(Multithreading)
-size_t __fastcall DNSCurveUDPRequestMulti(
-	const char *OriginalSend, 
+size_t DNSCurveUDPRequestMulti(
+	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize)
 {
 //Key initialization
@@ -1944,7 +1937,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(
 //Initialization(Part 1)
 	std::vector<SOCKET_DATA> UDPSocketDataList;
 	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> UDPSocketSelectingList;
-	std::shared_ptr<char> SendBuffer, Alternate_SendBuffer;
+	std::shared_ptr<uint8_t> SendBuffer, Alternate_SendBuffer;
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
 	size_t DataLength = 0, Alternate_DataLength = 0;
 	sodium_memzero(OriginalRecv, RecvSize);
@@ -1980,7 +1973,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(
 		}
 	//Normal mode
 		else {
-			UDPSocketSelectingList.at(Index).SendBuffer = (char *)OriginalSend;
+			UDPSocketSelectingList.at(Index).SendBuffer = (uint8_t *)OriginalSend;
 			UDPSocketSelectingList.at(Index).SendSize = SendSize;
 		}
 
@@ -1989,7 +1982,7 @@ size_t __fastcall DNSCurveUDPRequestMulti(
 	}
 
 //Socket selecting
-	SSIZE_T ErrorCode = 0, RecvLen = DNSCurveSocketSelecting(IPPROTO_UDP, UDPSocketDataList, UDPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
+	ssize_t ErrorCode = 0, RecvLen = DNSCurveSocketSelecting(IPPROTO_UDP, UDPSocketDataList, UDPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultiRequest) //Mark timeout.
 	{
 		if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6

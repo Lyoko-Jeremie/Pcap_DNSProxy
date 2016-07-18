@@ -20,13 +20,13 @@
 #include "Protocol.h"
 
 //Convert address strings to binary.
-bool __fastcall AddressStringToBinary(
-	const char *AddrString, 
+bool AddressStringToBinary(
+	const uint8_t *AddrString, 
 	const uint16_t Protocol, 
 	void *OriginalAddr, 
-	SSIZE_T *ErrorCode)
+	ssize_t *ErrorCode)
 {
-	std::string sAddrString(AddrString);
+	std::string sAddrString((const char *)AddrString);
 	if (Protocol == AF_INET6)
 		memset(OriginalAddr, 0, sizeof(in6_addr));
 	else //IPv4
@@ -37,10 +37,10 @@ bool __fastcall AddressStringToBinary(
 //inet_ntop function and inet_pton function was only support in Windows Vista and newer system. [Roy Tam]
 #if defined(PLATFORM_WIN_XP)
 	sockaddr_storage SockAddr;
-	memset(&SockAddr, 0, sizeof(sockaddr_storage));
+	memset(&SockAddr, 0, sizeof(SockAddr));
 	int SockLength = 0;
 #else
-	SSIZE_T Result = 0;
+	ssize_t Result = 0;
 #endif
 
 	if (Protocol == AF_INET6) //IPv6
@@ -63,7 +63,7 @@ bool __fastcall AddressStringToBinary(
 		{
 			sAddrString.clear();
 			sAddrString.append("::");
-			sAddrString.append(AddrString);
+			sAddrString.append((const char *)AddrString);
 		}
 		else if (sAddrString.find(ASCII_COLON) == sAddrString.rfind(ASCII_COLON))
 		{
@@ -81,7 +81,7 @@ bool __fastcall AddressStringToBinary(
 			return false;
 		}
 
-		memcpy_s(OriginalAddr, sizeof(in6_addr), &((PSOCKADDR_IN6)&SockAddr)->sin6_addr, sizeof(in6_addr));
+		memcpy_s(OriginalAddr, sizeof(((PSOCKADDR_IN6)&SockAddr)->sin6_addr), &((PSOCKADDR_IN6)&SockAddr)->sin6_addr, sizeof(((PSOCKADDR_IN6)&SockAddr)->sin6_addr));
 	#else
 		Result = inet_pton(AF_INET6, sAddrString.c_str(), OriginalAddr);
 		if (Result == SOCKET_ERROR || Result == 0)
@@ -117,7 +117,7 @@ bool __fastcall AddressStringToBinary(
 			{
 				sAddrString.clear();
 				sAddrString.append("0.0.0.");
-				sAddrString.append(AddrString);
+				sAddrString.append((const char *)AddrString);
 			}break;
 			case 1U:
 			{
@@ -150,7 +150,7 @@ bool __fastcall AddressStringToBinary(
 			return false;
 		}
 
-		memcpy_s(OriginalAddr, sizeof(in_addr), &((PSOCKADDR_IN)&SockAddr)->sin_addr, sizeof(in_addr));
+		memcpy_s(OriginalAddr, sizeof(((PSOCKADDR_IN)&SockAddr)->sin_addr), &((PSOCKADDR_IN)&SockAddr)->sin_addr, sizeof(((PSOCKADDR_IN)&SockAddr)->sin_addr));
 	#else
 		Result = inet_pton(AF_INET, sAddrString.c_str(), OriginalAddr);
 		if (Result == SOCKET_ERROR || Result == 0)
@@ -167,7 +167,7 @@ bool __fastcall AddressStringToBinary(
 }
 
 //Compare two addresses
-size_t __fastcall AddressesComparing(
+size_t AddressesComparing(
 	const void *OriginalAddrBegin, 
 	const void *OriginalAddrEnd, 
 	const uint16_t Protocol)
@@ -235,11 +235,11 @@ size_t __fastcall AddressesComparing(
 }
 
 //Check IPv4/IPv6 special addresses
-bool __fastcall CheckSpecialAddress(
+bool CheckSpecialAddress(
 	void *Addr, 
 	const uint16_t Protocol, 
 	const bool IsPrivateUse, 
-	const char *Domain)
+	const uint8_t *Domain)
 {
 	if (Protocol == AF_INET6) //IPv6
 	{
@@ -283,7 +283,7 @@ bool __fastcall CheckSpecialAddress(
 		if (Domain != nullptr)
 		{
 		//Domain Case Conversion
-			std::string InnerDomain(Domain);
+			std::string InnerDomain((const char *)Domain);
 			CaseConvert(false, InnerDomain);
 
 		//Main check
@@ -455,7 +455,7 @@ bool __fastcall CheckSpecialAddress(
 		if (Domain != nullptr)
 		{
 		//Domain Case Conversion
-			std::string InnerDomain(Domain);
+			std::string InnerDomain((const char *)Domain);
 			CaseConvert(false, InnerDomain);
 
 		//Main check
@@ -519,7 +519,7 @@ StopLoop:
 }
 
 //Check routing of addresses
-bool __fastcall CheckAddressRouting(
+bool CheckAddressRouting(
 	const void *Addr, 
 	const uint16_t Protocol)
 {
@@ -536,13 +536,13 @@ bool __fastcall CheckAddressRouting(
 				{
 					if (LocalRoutingTableIter.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 					{
-						if (LocalRoutingTableIter.AddressRoutingList_IPv6.count(ntoh64(*(PUINT64)Addr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - LocalRoutingTableIter.Prefix))) > 0)
+						if (LocalRoutingTableIter.AddressRoutingList_IPv6.count(ntoh64(*(uint64_t *)Addr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - LocalRoutingTableIter.Prefix))) > 0)
 							return true;
 					}
 					else {
-						auto AddrMapIter = LocalRoutingTableIter.AddressRoutingList_IPv6.find(ntoh64(*(PUINT64)Addr));
+						auto AddrMapIter = LocalRoutingTableIter.AddressRoutingList_IPv6.find(ntoh64(*(uint64_t *)Addr));
 						if (AddrMapIter != LocalRoutingTableIter.AddressRoutingList_IPv6.end() && 
-							AddrMapIter->second.count(ntoh64(*(PUINT64)((uint8_t *)Addr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - LocalRoutingTableIter.Prefix))) > 0)
+							AddrMapIter->second.count(ntoh64(*(uint64_t *)((uint8_t *)Addr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - LocalRoutingTableIter.Prefix))) > 0)
 								return true;
 					}
 				}
@@ -564,7 +564,7 @@ bool __fastcall CheckAddressRouting(
 }
 
 //Custom Mode address filter
-bool __fastcall CheckCustomModeFilter(
+bool CheckCustomModeFilter(
 	const void *OriginalAddr, 
 	const uint16_t Protocol)
 {
@@ -761,15 +761,15 @@ bool __fastcall CheckCustomModeFilter(
 }
 
 //Count DNS Query Name length
-size_t __fastcall CheckQueryNameLength(
-	const char *Buffer)
+size_t CheckQueryNameLength(
+	const uint8_t *Buffer)
 {
 	size_t Index = 0;
 	for (Index = 0;Index < DOMAIN_MAXSIZE;++Index)
 	{
 		if (Buffer[Index] == 0)
 			break;
-		else if ((uint8_t)Buffer[Index] >= DNS_POINTER_8_BITS)
+		else if (Buffer[Index] >= DNS_POINTER_8_BITS)
 			return Index + sizeof(uint16_t) - 1U;
 	}
 
@@ -777,8 +777,8 @@ size_t __fastcall CheckQueryNameLength(
 }
 
 //Check response CNAME resource records
-size_t __fastcall CheckResponseCNAME(
-	char *Buffer, 
+size_t CheckResponseCNAME(
+	uint8_t *Buffer, 
 	const size_t Length, 
 	const size_t CNAME_Index, 
 	const size_t CNAME_Length, 
@@ -930,9 +930,9 @@ size_t __fastcall CheckResponseCNAME(
 }
 
 //Check DNS query data
-bool __fastcall CheckQueryData(
+bool CheckQueryData(
 	DNS_PACKET_DATA *Packet, 
-	char *SendBuffer, 
+	uint8_t *SendBuffer, 
 	const size_t SendSize, 
 	const SOCKET_DATA &LocalSocketData)
 {
@@ -1000,7 +1000,7 @@ bool __fastcall CheckQueryData(
 	size_t Index = 0;
 	for (Index = sizeof(dns_hdr);Index < DNS_PACKET_QUERY_LOCATE(Packet->Buffer);++Index)
 	{
-		if (*(Packet->Buffer + Index) == DNS_POINTER_8_BITS_STRING)
+		if (*(Packet->Buffer + Index) == (uint8_t)DNS_POINTER_8_BITS_STRING)
 			continue;
 	}
 	if (Index != DNS_PACKET_QUERY_LOCATE(Packet->Buffer))
@@ -1024,7 +1024,7 @@ bool __fastcall CheckQueryData(
 	for (Index = 0;Index < (size_t)(ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional));++Index)
 	{
 	//Pointer check
-		if (PacketIndex + sizeof(uint16_t) < Packet->Length && (uint8_t)Packet->Buffer[PacketIndex] >= DNS_POINTER_8_BITS)
+		if (PacketIndex + sizeof(uint16_t) < Packet->Length && Packet->Buffer[PacketIndex] >= DNS_POINTER_8_BITS)
 		{
 			DNS_Pointer = ntohs(*(uint16_t *)(Packet->Buffer + PacketIndex)) & DNS_POINTER_BITS_GET_LOCATE;
 			if (DNS_Pointer >= Packet->Length || DNS_Pointer < sizeof(dns_hdr) || DNS_Pointer == PacketIndex || DNS_Pointer == PacketIndex + 1U)
@@ -1111,9 +1111,9 @@ bool __fastcall CheckQueryData(
 }
 
 //Check DNS response results
-size_t __fastcall CheckResponseData(
+size_t CheckResponseData(
 	const size_t ResponseType, 
-	char *Buffer, 
+	uint8_t *Buffer, 
 	const size_t Length, 
 	const size_t BufferSize, 
 	bool *IsMarkHopLimit)
@@ -1179,10 +1179,10 @@ size_t __fastcall CheckResponseData(
 
 //Mark domain.
 	std::string Domain;
-	const char *DomainString = nullptr;
+	const uint8_t *DomainString = nullptr;
 	DNSQueryToChar(Buffer + sizeof(dns_hdr), Domain);
 	if (!Domain.empty())
-		DomainString = Domain.c_str();
+		DomainString = (const uint8_t *)Domain.c_str();
 
 //Initialization
 	auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
@@ -1196,7 +1196,7 @@ size_t __fastcall CheckResponseData(
 	for (size_t Index = 0;Index < (size_t)(ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional));++Index)
 	{
 	//Pointer check
-		if (DataLength + sizeof(uint16_t) < Length && (uint8_t)Buffer[DataLength] >= DNS_POINTER_8_BITS)
+		if (DataLength + sizeof(uint16_t) < Length && Buffer[DataLength] >= DNS_POINTER_8_BITS)
 		{
 			DNS_Pointer = ntohs(*(uint16_t *)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
 			if (DNS_Pointer >= Length || DNS_Pointer < sizeof(dns_hdr) || DNS_Pointer == DataLength || DNS_Pointer == DataLength + 1U)
@@ -1316,7 +1316,7 @@ size_t __fastcall CheckResponseData(
 		DNS_Header->Authority > 0 || DNS_Header->Additional > 0 || //More than one Authority records and/or Additional records
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NXDOMAIN)) || //No Such Name, not standard query response and no error check.
 	//Domain Test part
-		(Parameter.DomainTest_Data != nullptr && Domain == Parameter.DomainTest_Data && DNS_Header->ID == Parameter.DomainTest_ID)))
+		(Parameter.DomainTest_Data != nullptr && Domain == (const char *)Parameter.DomainTest_Data && DNS_Header->ID == Parameter.DomainTest_ID)))
 			*IsMarkHopLimit = true;
 #endif
 
@@ -1324,8 +1324,8 @@ size_t __fastcall CheckResponseData(
 }
 
 //Check DNSSEC Records
-bool __fastcall CheckDNSSECRecords(
-	const char *Buffer, 
+bool CheckDNSSECRecords(
+	const uint8_t *Buffer, 
 	const size_t Length, 
 	const uint16_t Type, 
 	const uint16_t BeforeType)
@@ -1413,7 +1413,7 @@ bool __fastcall CheckDNSSECRecords(
 
 	//Hash Length check
 		if (sizeof(dns_record_nsec3param) + DNS_Record_NSEC3->SaltLength < Length && DNS_Record_NSEC3->Algorithm == DNSSEC_NSEC3_ALGORITHM_SHA1 && 
-			*(uint8_t *)(Buffer + sizeof(dns_record_nsec3param) + DNS_Record_NSEC3->SaltLength) != SHA1_LENGTH)
+			*(Buffer + sizeof(dns_record_nsec3param) + DNS_Record_NSEC3->SaltLength) != SHA1_LENGTH)
 				return false;
 	}
 //NSEC3PARAM Records

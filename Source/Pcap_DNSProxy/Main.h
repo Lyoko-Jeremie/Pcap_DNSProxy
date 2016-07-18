@@ -25,15 +25,16 @@ extern GLOBAL_STATUS GlobalRunningStatus;
 #if defined(ENABLE_LIBSODIUM)
 extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
 #endif
+extern std::mutex ScreenLock;
 
 //Functions
 #if defined(PLATFORM_WIN)
-bool __fastcall ReadCommands(
+bool ReadCommands(
 	int argc, 
 	wchar_t *argv[]);
-bool __fastcall FileNameInit(
+bool FileNameInit(
 	const wchar_t *OriginalPath);
-bool __fastcall FirewallTest(
+bool FirewallTest(
 	const uint16_t Protocol);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 bool ReadCommands(

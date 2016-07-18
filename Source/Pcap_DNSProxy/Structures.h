@@ -619,7 +619,7 @@ typedef struct _ipv4_hdr_
 	uint8_t                IHL:4;
 #endif
 	union {
-		uint8_t            ECN_DSCP;                //Type of service, but RFC 2474 redefine it to DSCP/DiffServ and ECN/Explicit Congestion Notification.
+		uint8_t            ECN_DSCP;
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t        ECN:2;
@@ -752,7 +752,7 @@ typedef struct _icmp_hdr_
 	uint16_t               Checksum;
 	uint16_t               ID;
 	uint16_t               Sequence;
-//ICMP Timestamp option is defalut ON in Linux and Mac OS X.
+//ICMP Timestamp option is defalut set ON in Linux and Mac OS X.
 #if defined(PLATFORM_LINUX)
 	uint64_t               Timestamp;
 	uint64_t               Nonce;
@@ -786,7 +786,7 @@ typedef struct _icmpv6_hdr_
 	uint16_t               Checksum;
 	uint16_t               ID;
 	uint16_t               Sequence;
-//ICMPv6 Timestamp option is defalut ON in Linux and Mac OS X.
+//ICMPv6 Timestamp option is defalut set ON in Linux and Mac OS X.
 #if defined(PLATFORM_LINUX)
 	uint64_t               Timestamp;
 	uint64_t               Nonce;
@@ -1487,7 +1487,7 @@ typedef struct _ipv6_psd_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define DNS_PACKET_MAXSIZE_TRADITIONAL 512U   //Traditional DNS packet maximum size(512 bytes)
+#define DNS_PACKET_MAXSIZE_TRADITIONAL   512U   //Traditional DNS packet maximum size(512 bytes)
 typedef struct _dns_hdr_
 {
 	uint16_t              ID;
@@ -1770,7 +1770,7 @@ typedef struct _dns_record_ptr_
 typedef struct _dns_record_mx_
 {
 	uint16_t              Preference;
-//	uint8_t                MailExchangeName;
+//	uint8_t               MailExchangeName;
 }dns_record_mx, *pdns_record_mx;
 
 /* Domain Name System/DNS Test Strings/TXT Records
@@ -1875,18 +1875,18 @@ typedef struct _dns_record_srv_
 typedef struct _dns_record_opt_
 {
 	uint8_t               Name;
-	uint16_t              Type;                  //Additional RRs Type
+	uint16_t              Type;
 	uint16_t              UDPPayloadSize;
 	uint8_t               Extended_RCode;
-	uint8_t               Version;               //EDNS Version
+	uint8_t               Version;
 	union {
 		uint16_t          Z_Field;
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t       Reserved_First:7;
-			uint8_t       DO:1;                      //DO bit
+			uint8_t       DO:1;
 		#else //BIG_ENDIAN
-			uint8_t       DO:1;                      //DO bit
+			uint8_t       DO:1;
 			uint8_t       Reserved_First:7;
 		#endif
 			uint8_t       Reserved_Second;
@@ -2056,17 +2056,17 @@ typedef struct _dns_record_dnskey_
 		uint16_t          Flags;
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
-			uint8_t       ZoneKey:1;         //Zone Key bit
+			uint8_t       ZoneKey:1;
 			uint8_t       Zero_A:7;
-			uint8_t       KeySigningKey:1;   //Key Signing Key bit
+			uint8_t       KeySigningKey:1;
 			uint8_t       Zero_B:6;
-			uint8_t       KeyRevoked:1;      //Key Revoked bit
+			uint8_t       KeyRevoked:1;
 		#else //BIG_ENDIAN
 			uint8_t       Zero_A:7;
-			uint8_t       ZoneKey:1;         //Zone Key bit
-			uint8_t       KeyRevoked:1;      //Key Revoked bit
+			uint8_t       ZoneKey:1;
+			uint8_t       KeyRevoked:1;
 			uint8_t       Zero_B:6;
-			uint8_t       KeySigningKey:1;   //Key Signing Key bit
+			uint8_t       KeySigningKey:1;
 		#endif
 		}FlagsBits;
 	};
@@ -2217,6 +2217,7 @@ typedef struct _dns_record_caa_
 #define DNSCURVE_MAGIC_QUERY_HEX_LEN      16U
 #define DNSCRYPT_RECEIVE_MAGIC            ("r6fnvWj8")                   //Receive Magic Number
 #define DNSCRYPT_CERT_MAGIC               ("DNSC")                       //Signature Magic Number
+#define DNSCRYPT_PADDING_SIGN             ('\x80')
 #define crypto_box_HALF_NONCEBYTES        (crypto_box_NONCEBYTES / 2U)
 // Function definitions
 #define crypto_sign_open                  crypto_sign_ed25519_open
@@ -2345,8 +2346,8 @@ typedef struct _socks_client_selection_message_
 {
 	uint8_t               Version;
 	uint8_t               Methods_Number;
-	uint8_t               Methods_A;               //Usually is 0(NO_AUTHENTICATION_REQUIRED)
-	uint8_t               Methods_B;               //Usually is 2(USERNAME/PASSWORD)
+	uint8_t               Methods_A;
+	uint8_t               Methods_B;
 }socks_client_selection, *psocks_client_selection;
 
 //SOCKS server method selection message

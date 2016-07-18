@@ -31,36 +31,36 @@ extern std::list<DNS_CACHE_DATA> DNSCacheList;
 extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM], HostsFileLock, DNSCacheListLock;
 
 //Functions
-bool __fastcall LocalRequestProcess(
+bool LocalRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize);
-bool __fastcall SOCKSRequestProcess(
+bool SOCKSRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize);
-bool __fastcall HTTPRequestProcess(
+bool HTTPRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize);
-bool __fastcall DirectRequestProcess(
+bool DirectRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize, 
 	const bool DirectRequest);
 #if defined(ENABLE_LIBSODIUM)
-bool __fastcall DNSCurveRequestProcess(
+bool DNSCurveRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize);
 #endif
-bool __fastcall TCPRequestProcess(
+bool TCPRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	char *OriginalRecv, 
+	uint8_t *OriginalRecv, 
 	const size_t RecvSize);
 #if defined(ENABLE_PCAP)
-void __fastcall UDPRequestProcess(
+void UDPRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData);
 #endif
-uint16_t __fastcall SelectNetworkProtocol(
+uint16_t SelectNetworkProtocol(
 	void);

@@ -80,9 +80,11 @@ int main(
 		auto ErrorCode = GetLastError();
 		
 	//Print to screen.
-		PrintToScreen(L"System Error: Service start error, error code is %lu.\n", ErrorCode);
-		PrintToScreen(L"System Error: Program will continue to run in console mode.\n");
-		PrintToScreen(L"Please ignore these error messages if you want to run in console mode.\n\n");
+		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
+		PrintToScreen(false, L"System Error: Service start error, error code is %lu.\n", ErrorCode);
+		PrintToScreen(false, L"System Error: Program will continue to run in console mode.\n");
+		PrintToScreen(false, L"Please ignore these error messages if you want to run in console mode.\n\n");
+		ScreenMutex.unlock();
 
 	//Handle the system signal and start all monitors.
 		SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, TRUE);
@@ -97,7 +99,7 @@ int main(
 
 //Read commands from main program
 #if defined(PLATFORM_WIN)
-bool __fastcall ReadCommands(
+bool ReadCommands(
 	int argc, 
 	wchar_t *argv[])
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -111,11 +113,10 @@ bool ReadCommands(
 	if (!FileNameInit(argv[0]))
 		return false;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	char FileName[PATH_MAX + 1U];
-	memset(FileName, 0, PATH_MAX + 1U);
+	char FileName[PATH_MAX + 1U] = {0};
 	if (getcwd(FileName, PATH_MAX) == nullptr)
 	{
-		PrintToScreen(L"Path initialization error.\n");
+		PrintToScreen(true, L"Path initialization error.\n");
 		return false;
 	}
 	if (!FileNameInit(FileName))
@@ -127,7 +128,7 @@ bool ReadCommands(
 	if (setvbuf(stderr, NULL, _IONBF, 0) != 0)
 	{
 		auto ErrorCode = errno;
-		PrintToScreen(L"Screen output buffer setting error, error code is %d.\n", ErrorCode);
+		PrintToScreen(true, L"Screen output buffer setting error, error code is %d.\n", ErrorCode);
 		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Screen output buffer setting error", ErrorCode, nullptr, 0);
 
 		return false;
@@ -136,12 +137,12 @@ bool ReadCommands(
 //Winsock initialization
 #if defined(PLATFORM_WIN)
 	WSAData WSAInitialization;
-	memset(&WSAInitialization, 0, sizeof(WSAData));
+	memset(&WSAInitialization, 0, sizeof(WSAInitialization));
 	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), &WSAInitialization) != 0 || //WinSock 2.2
 		LOBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_HIGH)
 	{
 		auto ErrorCode = WSAGetLastError();
-		PrintToScreen(L"Winsock initialization error, error code is %d.\n", ErrorCode);
+		PrintToScreen(true, L"Winsock initialization error, error code is %d.\n", ErrorCode);
 		PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"Winsock initialization error", ErrorCode, nullptr, 0);
 
 		return false;
@@ -171,13 +172,13 @@ bool ReadCommands(
 				if (strnlen(argv[2U], FILE_BUFFER_SIZE) <= DOMAIN_MINSIZE && strnlen(argv[2U], FILE_BUFFER_SIZE) >= DOMAIN_MAXSIZE)
 			#endif
 				{
-					PrintToScreen(L"Domain name parameter is too long.\n");
+					PrintToScreen(true, L"Domain name parameter is too long.\n");
 				}
 				else {
 				#if defined(PLATFORM_WIN)
 					FlushDNSMailSlotSender(argv[2U]);
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-					FlushDNSFIFOSender(argv[2U]);
+					FlushDNSFIFOSender((const uint8_t *)argv[2U]);
 				#endif
 				}
 			}
@@ -199,11 +200,11 @@ bool ReadCommands(
 			if (!FirewallTest(AF_INET6) && !FirewallTest(AF_INET))
 			{
 				auto ErrorCode = WSAGetLastError();
-				PrintToScreen(L"Windows Firewall Test error, error code is %d.\n", ErrorCode);
+				PrintToScreen(true, L"Windows Firewall Test error, error code is %d.\n", ErrorCode);
 				PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Windows Firewall Test error", ErrorCode, nullptr, 0);
 			}
 			else {
-				PrintToScreen(L"Windows Firewall was tested successfully.\n");
+				PrintToScreen(true, L"Windows Firewall was tested successfully.\n");
 			}
 
 			return false;
@@ -219,9 +220,10 @@ bool ReadCommands(
 	//Print current version.
 		else if (Commands == COMMAND_LONG_PRINT_VERSION || Commands == COMMAND_SHORT_PRINT_VERSION)
 		{
-			PrintToScreen(L"Pcap_DNSProxy ");
-			PrintToScreen(FULL_VERSION);
-			PrintToScreen(L"\n");
+			std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
+			PrintToScreen(false, L"Pcap_DNSProxy ");
+			PrintToScreen(false, FULL_VERSION);
+			PrintToScreen(false, L"\n");
 
 			return false;
 		}
@@ -233,21 +235,21 @@ bool ReadCommands(
 
 			//LibSodium version
 			#if defined(ENABLE_LIBSODIUM)
-				if (MBSToWCSString(SODIUM_VERSION_STRING, strlen(SODIUM_VERSION_STRING), LibVersion))
-					PrintToScreen(L"LibSodium version %ls\n", LibVersion.c_str());
+				if (MBSToWCSString((const uint8_t *)SODIUM_VERSION_STRING, strlen(SODIUM_VERSION_STRING), LibVersion))
+					PrintToScreen(true, L"LibSodium version %ls\n", LibVersion.c_str());
 				else 
-					PrintToScreen(L"Convert multiple byte or wide char string error.\n");
+					PrintToScreen(true, L"Convert multiple byte or wide char string error.\n");
 			#endif
 
 			//WinPcap or LibPcap version
 			#if defined(ENABLE_PCAP)
-				if (MBSToWCSString(pcap_lib_version(), strlen(pcap_lib_version()), LibVersion))
-					PrintToScreen(L"%ls\n", LibVersion.c_str());
+				if (MBSToWCSString((const uint8_t *)pcap_lib_version(), strlen(pcap_lib_version()), LibVersion))
+					PrintToScreen(true, L"%ls\n", LibVersion.c_str());
 				else 
-					PrintToScreen(L"Convert multiple byte or wide char string error.\n");
+					PrintToScreen(true, L"Convert multiple byte or wide char string error.\n");
 			#endif
 		#else
-			PrintToScreen(L"No any available libraries.\n");
+			PrintToScreen(true, L"No any available libraries.\n");
 		#endif
 
 			return false;
@@ -255,31 +257,32 @@ bool ReadCommands(
 	//Print help messages.
 		else if (Commands == COMMAND_LONG_HELP || Commands == COMMAND_SHORT_HELP)
 		{
-			PrintToScreen(L"Pcap_DNSProxy ");
-			PrintToScreen(FULL_VERSION);
+			std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
+			PrintToScreen(false, L"Pcap_DNSProxy ");
+			PrintToScreen(false, FULL_VERSION);
 		#if defined(PLATFORM_WIN)
-			PrintToScreen(L"(Windows)\n");
+			PrintToScreen(false, L"(Windows)\n");
 		#elif defined(PLATFORM_OPENWRT)
-			PrintToScreen(L"(OpenWrt)\n");
+			PrintToScreen(false, L"(OpenWrt)\n");
 		#elif defined(PLATFORM_LINUX)
-			PrintToScreen(L"(Linux)\n");
+			PrintToScreen(false, L"(Linux)\n");
 		#elif defined(PLATFORM_MACX)
-			PrintToScreen(L"(Mac)\n");
+			PrintToScreen(false, L"(Mac)\n");
 		#endif
-			PrintToScreen(COPYRIGHT_MESSAGE);
-			PrintToScreen(L"\nUsage: Please visit ReadMe... files in Documents folder.\n");
-			PrintToScreen(L"   -v/--version:          Print current version on screen.\n");
-			PrintToScreen(L"   --lib-version:         Print current version of libraries on screen.\n");
-			PrintToScreen(L"   -h/--help:             Print help messages on screen.\n");
-			PrintToScreen(L"   --flush-dns:           Flush all DNS cache in program and system immediately.\n");
-			PrintToScreen(L"   --flush-dns Domain:    Flush cache of Domain in program and all in system immediately.\n");
+			PrintToScreen(false, COPYRIGHT_MESSAGE);
+			PrintToScreen(false, L"\nUsage: Please visit ReadMe... files in Documents folder.\n");
+			PrintToScreen(false, L"   -v/--version:          Print current version on screen.\n");
+			PrintToScreen(false, L"   --lib-version:         Print current version of libraries on screen.\n");
+			PrintToScreen(false, L"   -h/--help:             Print help messages on screen.\n");
+			PrintToScreen(false, L"   --flush-dns:           Flush all DNS cache in program and system immediately.\n");
+			PrintToScreen(false, L"   --flush-dns Domain:    Flush cache of Domain in program and all in system immediately.\n");
 		#if defined(PLATFORM_WIN)
-			PrintToScreen(L"   --first-setup:         Test local firewall.\n");
+			PrintToScreen(false, L"   --first-setup:         Test local firewall.\n");
 		#endif
-			PrintToScreen(L"   -c/--config-file Path: Set path of configuration file.\n");
-			PrintToScreen(L"   --keypair-generator:   Generate a DNSCurve/DNSCrypt keypair.\n");
+			PrintToScreen(false, L"   -c/--config-file Path: Set path of configuration file.\n");
+			PrintToScreen(false, L"   --keypair-generator:   Generate a DNSCurve/DNSCrypt keypair.\n");
 		#if defined(PLATFORM_LINUX)
-			PrintToScreen(L"   --disable-daemon:      Disable daemon mode.\n");
+			PrintToScreen(false, L"   --disable-daemon:      Disable daemon mode.\n");
 		#endif
 
 			return false;
@@ -290,7 +293,7 @@ bool ReadCommands(
 		//Commands check
 			if ((int)Index + 1 >= argc)
 			{
-				PrintToScreen(L"Commands error.\n");
+				PrintToScreen(true, L"Commands error.\n");
 				PrintError(LOG_LEVEL_1, LOG_ERROR_SYSTEM, L"Commands error", 0, nullptr, 0);
 
 				return false;
@@ -302,7 +305,7 @@ bool ReadCommands(
 			//Path check.
 				if (Commands.length() > MAX_PATH)
 				{
-					PrintToScreen(L"Commands error.\n");
+					PrintToScreen(true, L"Commands error.\n");
 					PrintError(LOG_LEVEL_1, LOG_ERROR_SYSTEM, L"Commands error", 0, nullptr, 0);
 
 					return false;
@@ -329,27 +332,26 @@ bool ReadCommands(
 			if (FileHandle != nullptr)
 			{
 			//Initialization and make keypair.
-				std::shared_ptr<char> Buffer(new char[DNSCRYPT_KEYPAIR_MESSAGE_LEN]());
+				std::shared_ptr<uint8_t> Buffer(new uint8_t[DNSCRYPT_KEYPAIR_MESSAGE_LEN]());
 				sodium_memzero(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);
 				DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> SecretKey(crypto_box_SECRETKEYBYTES);
-				uint8_t PublicKey[crypto_box_PUBLICKEYBYTES];
-				memset(PublicKey, 0, crypto_box_PUBLICKEYBYTES);
+				uint8_t PublicKey[crypto_box_PUBLICKEYBYTES] = {0};
 				size_t InnerIndex = 0;
 				crypto_box_keypair(PublicKey, SecretKey.Buffer);
 
 			//Write public key.
-				if (sodium_bin2hex(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, PublicKey, crypto_box_PUBLICKEYBYTES) == nullptr)
+				if (sodium_bin2hex((char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, PublicKey, crypto_box_PUBLICKEYBYTES) == nullptr)
 				{
 					fclose(FileHandle);
-					PrintToScreen(L"Create ramdom key pair failed, please try again.\n");
+					PrintToScreen(true, L"Create ramdom key pair failed, please try again.\n");
 
 					return false;
 				}
 				CaseConvert(true, Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);
 				fwprintf_s(FileHandle, L"Client Public Key = ");
-				for (InnerIndex = 0;InnerIndex < strnlen_s(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
+				for (InnerIndex = 0;InnerIndex < strnlen_s((const char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
 				{
-					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && InnerIndex + 1U < strnlen_s(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
+					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && InnerIndex + 1U < strnlen_s((const char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
 						fwprintf_s(FileHandle, L":");
 
 					fwprintf_s(FileHandle, L"%c", Buffer.get()[InnerIndex]);
@@ -358,18 +360,18 @@ bool ReadCommands(
 				fwprintf_s(FileHandle, L"\n");
 
 			//Write secret key.
-				if (sodium_bin2hex(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, SecretKey.Buffer, crypto_box_SECRETKEYBYTES) == nullptr)
+				if (sodium_bin2hex((char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, SecretKey.Buffer, crypto_box_SECRETKEYBYTES) == nullptr)
 				{
 					fclose(FileHandle);
-					PrintToScreen(L"Create ramdom key pair failed, please try again.\n");
+					PrintToScreen(true, L"Create ramdom key pair failed, please try again.\n");
 
 					return false;
 				}
 				CaseConvert(true, Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);
 				fwprintf_s(FileHandle, L"Client Secret Key = ");
-				for (InnerIndex = 0;InnerIndex < strnlen_s(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
+				for (InnerIndex = 0;InnerIndex < strnlen_s((const char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
 				{
-					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && InnerIndex + 1U < strnlen_s(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
+					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && InnerIndex + 1U < strnlen_s((const char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
 						fwprintf_s(FileHandle, L":");
 
 					fwprintf_s(FileHandle, L"%c", Buffer.get()[InnerIndex]);
@@ -378,13 +380,13 @@ bool ReadCommands(
 
 			//Close file.
 				fclose(FileHandle);
-				PrintToScreen(L"DNSCurve/DNSCrypt keypair was generated successfully.\n");
+				PrintToScreen(true, L"DNSCurve/DNSCrypt keypair was generated successfully.\n");
 			}
 			else {
-				PrintToScreen(L"Cannot create target file(KeyPair.txt).\n");
+				PrintToScreen(true, L"Cannot create target file(KeyPair.txt).\n");
 			}
 		#else
-			PrintToScreen(L"LibSodium is disable.\n");
+			PrintToScreen(true, L"LibSodium is disable.\n");
 		#endif
 
 			return false;
@@ -405,7 +407,7 @@ bool ReadCommands(
 
 //Get path of program from the main function parameter and Winsock initialization
 #if defined(PLATFORM_WIN)
-bool __fastcall FileNameInit(
+bool FileNameInit(
 	const wchar_t *OriginalPath)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 bool FileNameInit(
@@ -430,7 +432,7 @@ bool FileNameInit(
 	GlobalRunningStatus.sPath_Global->push_back(OriginalPath);
 	GlobalRunningStatus.sPath_Global->front().append("/");
 	std::wstring StringTemp;
-	if (!MBSToWCSString(OriginalPath, PATH_MAX + 1U, StringTemp))
+	if (!MBSToWCSString((const uint8_t *)OriginalPath, PATH_MAX + 1U, StringTemp))
 		return false;
 	StringTemp.append(L"/");
 	GlobalRunningStatus.Path_Global->clear();
@@ -441,11 +443,11 @@ bool FileNameInit(
 //Get path of error/running status log file and mark start time.
 	GlobalRunningStatus.Path_ErrorLog->clear();
 	*GlobalRunningStatus.Path_ErrorLog = GlobalRunningStatus.Path_Global->front();
-	GlobalRunningStatus.Path_ErrorLog->append(L"Error.log");
+	GlobalRunningStatus.Path_ErrorLog->append(ERROR_LOG_FILE_NAME);
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	GlobalRunningStatus.sPath_ErrorLog->clear();
 	*GlobalRunningStatus.sPath_ErrorLog = GlobalRunningStatus.sPath_Global->front();
-	GlobalRunningStatus.sPath_ErrorLog->append("Error.log");
+	GlobalRunningStatus.sPath_ErrorLog->append(ERROR_LOG_FILE_NAME_STRING);
 #endif
 	Parameter.PrintLogLevel = DEFAULT_LOG_LEVEL;
 	GlobalRunningStatus.StartupTime = time(nullptr);
@@ -455,13 +457,13 @@ bool FileNameInit(
 
 #if defined(PLATFORM_WIN)
 //Windows Firewall Test
-bool __fastcall FirewallTest(
+bool FirewallTest(
 	const uint16_t Protocol)
 {
 //Ramdom number distribution initialization
 	std::uniform_int_distribution<uint16_t> RamdomDistribution(DYNAMIC_MIN_PORT, UINT16_MAX - 1U);
 	sockaddr_storage SockAddr;
-	memset(&SockAddr, 0, sizeof(sockaddr_storage));
+	memset(&SockAddr, 0, sizeof(SockAddr));
 	SYSTEM_SOCKET FirewallSocket = 0;
 	size_t Index = 0;
 
