@@ -76,7 +76,6 @@ int main(
 	SERVICE_TABLE_ENTRYW ServiceTable[]{{SYSTEM_SERVICE_NAME, (LPSERVICE_MAIN_FUNCTIONW)ServiceMain}, {nullptr, nullptr}};
 	if (!StartServiceCtrlDispatcherW(ServiceTable))
 	{
-		GlobalRunningStatus.Console = true;
 		auto ErrorCode = GetLastError();
 		
 	//Print to screen.
@@ -444,7 +443,9 @@ bool FileNameInit(
 	GlobalRunningStatus.Path_ErrorLog->clear();
 	*GlobalRunningStatus.Path_ErrorLog = GlobalRunningStatus.Path_Global->front();
 	GlobalRunningStatus.Path_ErrorLog->append(ERROR_LOG_FILE_NAME);
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#if defined(PLATFORM_WIN)
+	GlobalRunningStatus.Console = true;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	GlobalRunningStatus.sPath_ErrorLog->clear();
 	*GlobalRunningStatus.sPath_ErrorLog = GlobalRunningStatus.sPath_Global->front();
 	GlobalRunningStatus.sPath_ErrorLog->append(ERROR_LOG_FILE_NAME_STRING);

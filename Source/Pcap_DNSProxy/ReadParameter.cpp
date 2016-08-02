@@ -98,7 +98,7 @@ bool ParameterCheckAndSetting(
 	//[Local DNS] block
 	//Local options check
 		if (((Parameter.LocalMain || Parameter.LocalHosts || Parameter.LocalRouting) && 
-			Parameter.Target_Server_Local_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Local_IPv6.Storage.ss_family) || 
+			Parameter.Target_Server_Local_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Local_IPv6.Storage.ss_family == 0) || 
 			(Parameter.LocalHosts && (Parameter.LocalMain || Parameter.LocalRouting)) || 
 			(Parameter.LocalRouting && !Parameter.LocalMain))
 		{
@@ -134,7 +134,7 @@ bool ParameterCheckAndSetting(
 		{
 			Parameter.AlternateMultiRequest = true;
 
-		//Copy DNS Server Data when Main or Alternate data are empty.
+		//Copy DNS Server Data when Main server data are empty.
 			if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0)
 			{
 			#if defined(ENABLE_PCAP)
@@ -149,6 +149,7 @@ bool ParameterCheckAndSetting(
 				Parameter.Target_Server_IPv6_Multi->erase(Parameter.Target_Server_IPv6_Multi->begin());
 			}
 
+		//Copy DNS Server Data when Alternate server data are empty.
 			if (Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family == 0 && !Parameter.Target_Server_IPv6_Multi->empty())
 			{
 			#if defined(ENABLE_PCAP)
@@ -180,7 +181,7 @@ bool ParameterCheckAndSetting(
 		{
 			Parameter.AlternateMultiRequest = true;
 
-		//Copy DNS Server Data when Main or Alternate data are empty.
+		//Copy DNS Server Data when Main server data are empty.
 			if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0)
 			{
 			#if defined(ENABLE_PCAP)
@@ -195,6 +196,7 @@ bool ParameterCheckAndSetting(
 				Parameter.Target_Server_IPv4_Multi->erase(Parameter.Target_Server_IPv4_Multi->begin());
 			}
 
+		//Copy DNS Server Data when Alternate server data are empty.
 			if (Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family == 0 && !Parameter.Target_Server_IPv4_Multi->empty())
 			{
 			#if defined(ENABLE_PCAP)
@@ -846,21 +848,19 @@ bool ParameterCheckAndSetting(
 			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, nullptr, 0);
 			Parameter.RequestMode_Network = REQUEST_MODE_NETWORK_BOTH;
 		}
-	}
 
 	//Local Protocol(IPv6)
-	if (Parameter.Target_Server_Local_IPv6.Storage.ss_family == 0 && ParameterPTR->LocalProtocol_Network == REQUEST_MODE_IPV6)
-	{
-		PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, nullptr, 0);
-		ParameterPTR->LocalProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
-	}
+		if (Parameter.Target_Server_Local_IPv6.Storage.ss_family == 0 && ParameterPTR->LocalProtocol_Network == REQUEST_MODE_IPV6)
+		{
+			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, nullptr, 0);
+			ParameterPTR->LocalProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
+		}
 
-	if (IsFirstRead)
-	{
 	//[DNSCurve] block
 	//DNSCurve Protocol(IPv6)
 	#if defined(ENABLE_LIBSODIUM)
-		if (DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6)
+		if (Parameter.DNSCurve && DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0 && 
+			DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6)
 		{
 			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, nullptr, 0);
 			DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
@@ -868,27 +868,25 @@ bool ParameterCheckAndSetting(
 	#endif
 
 	//[DNS] block part 2
-	//Protocol(IPv6)
+	//Protocol(IPv4)
 		if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0 && Parameter.RequestMode_Network == REQUEST_MODE_IPV4)
 		{
 			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, nullptr, 0);
 			Parameter.RequestMode_Network = REQUEST_MODE_NETWORK_BOTH;
 		}
-	}
 
 	//Local Protocol(IPv4)
-	if (Parameter.Target_Server_Local_IPv4.Storage.ss_family == 0 && ParameterPTR->LocalProtocol_Network == REQUEST_MODE_IPV4)
-	{
-		PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, nullptr, 0);
-		ParameterPTR->LocalProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
-	}
+		if (Parameter.Target_Server_Local_IPv4.Storage.ss_family == 0 && ParameterPTR->LocalProtocol_Network == REQUEST_MODE_IPV4)
+		{
+			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, nullptr, 0);
+			ParameterPTR->LocalProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
+		}
 
-	if (IsFirstRead)
-	{
 	//[DNSCurve] block
 	//DNSCurve Protocol(IPv4)
 	#if defined(ENABLE_LIBSODIUM)
-		if (DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4)
+		if (Parameter.DNSCurve && DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0 && 
+			DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4)
 		{
 			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, nullptr, 0);
 			DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK_BOTH;

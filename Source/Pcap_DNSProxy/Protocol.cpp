@@ -245,33 +245,59 @@ bool CheckSpecialAddress(
 	{
 		if (
 		//DNS Poisoning addresses from CERNET2, see https://code.google.com/p/goagent/issues/detail?id=17571.
-			(((in6_addr *)Addr)->s6_words[0] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_bytes[8U] == 0x90 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == 0) || //::90xx:xxxx:0:0
-			(((in6_addr *)Addr)->s6_words[0] == htons(0x0010) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x2222)) || //10::2222
-			(((in6_addr *)Addr)->s6_words[0] == htons(0x0021) && ((in6_addr *)Addr)->s6_words[1U] == htons(0x0002) && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0002)) || //21:2::2
-			(((in6_addr *)Addr)->s6_words[0] == htons(0x0101) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x1234)) || //101::1234
+//			(((in6_addr *)Addr)->s6_words[0] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_bytes[8U] == 0x90 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == 0) || //::90xx:xxxx:0:0, including in reserved address ranges
+//			(((in6_addr *)Addr)->s6_words[0] == htons(0x0010) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x2222)) || //10::2222, including in reserved address ranges
+//			(((in6_addr *)Addr)->s6_words[0] == htons(0x0021) && ((in6_addr *)Addr)->s6_words[1U] == htons(0x0002) && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0002)) || //21:2::2, including in reserved address ranges
+//			(((in6_addr *)Addr)->s6_words[0] == htons(0x0101) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x1234)) || //101::1234, including in reserved address ranges
 			(((in6_addr *)Addr)->s6_words[0] == htons(0x2001) && 
 			((IsPrivateUse && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0212)) || //2001::212
 			(((in6_addr *)Addr)->s6_words[1U] == htons(0x0DA8) && ((in6_addr *)Addr)->s6_words[2U] == htons(0x0112) && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x21AE)))) || //2001:DA8:112::21AE
 			(((in6_addr *)Addr)->s6_words[0] == htons(0x2003) && ((in6_addr *)Addr)->s6_words[1U] == htons(0x00FF) && ((in6_addr *)Addr)->s6_words[2U] == htons(0x0001) && ((in6_addr *)Addr)->s6_words[3U] == htons(0x0002) && ((in6_addr *)Addr)->s6_words[4U] == htons(0x0003) && ((in6_addr *)Addr)->s6_words[5U] == htons(0x0004) && ((in6_addr *)Addr)->s6_words[6U] == htons(0x5FFF)) || //2003:FF:1:2:3:4:5FFF:xxxx
-			(((in6_addr *)Addr)->s6_words[0] == htons(0x2123) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x3E12)) || //2123::3E12
+			(((in6_addr *)Addr)->s6_words[0] == htons(0x2123) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x3E12)) || //2123::3E12																																																																																	 
+		//New DNS Poisoning addresses which had been added in August 2016
+//			(((in6_addr *)Addr)->s6_words[0] == htons(0x0200) && ((in6_addr *)Addr)->s6_words[1U] == htons(0x0002)) || //200:2:xxxx:xxxx::, including in reserved address ranges
 		//Special-use or reserved addresses, see https://en.wikipedia.org/wiki/IPv6_address#Presentation and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv6_addresses.
-			(((in6_addr *)Addr)->s6_words[0] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && 
-			(((in6_addr *)Addr)->s6_words[5U] == 0 || //IPv4-Compatible Contrast addresses(::/96, Section 2.5.5.1 in RFC 4291)
-//			((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == 0 || //Unspecified addresses(::, Section 2.5.2 in RFC 4291)
-//			((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001) || //Loopback addresses(::1, Section 2.5.3 in RFC 4291)
-			((in6_addr *)Addr)->s6_words[5U] == htons(0xFFFF))) || //IPv4-mapped addresses(::FFFF:0:0/96, Section 2.5.5 in RFC 4291)
-			(IsPrivateUse && ((in6_addr *)Addr)->s6_words[0] == htons(0x0064) && ((in6_addr *)Addr)->s6_words[1U] == htons(0xFF9B) && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0) || //Well Known Prefix addresses(64:FF9B::/96, Section 2.1 in RFC 4773)
-			(((in6_addr *)Addr)->s6_words[0] == htons(0x0100) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0) || //Discard Prefix addresses(100::/64, Section 4 RFC 6666)
+		//Also https://www.iana.org/assignments/ipv6-address-space/ipv6-address-space.xhtml and https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry.xhtml
+			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0 && ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x00FF && //Reserved by IETF(::/8)
+			!(((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && 
+//			(((in6_addr *)Addr)->s6_words[5U] == 0 || //IPv4-Compatible Contrast addresses(::/96, Section 2.5.5.1 in RFC 4291), including in reserved address ranges
+//			((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == 0 || //Unspecified addresses(::, Section 2.5.2 in RFC 4291), including in reserved address ranges
+			((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001))) || //Loopback addresses(::1, Section 2.5.3 in RFC 4291)
+//			((in6_addr *)Addr)->s6_words[5U] == htons(0xFFFF))) || //IPv4-mapped addresses(::FFFF:0:0/96, Section 2.5.5 in RFC 4291), including in reserved address ranges
+//			(IsPrivateUse && ((in6_addr *)Addr)->s6_words[0] == htons(0x0064) && ((in6_addr *)Addr)->s6_words[1U] == htons(0xFF9B) && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0) || //Well Known Prefix addresses(64:FF9B::/96, Section 2.1 in RFC 4773), including in reserved address ranges
+			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0x0100 && ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x01FF) || //Reserved by IETF(0100::/8)
+//			(((in6_addr *)Addr)->s6_words[0] == htons(0x0100) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0) || //Discard Prefix addresses(100::/64, Section 4 RFC 6666), including in reserved address ranges
+			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0x0200 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x03FF)) || //Reserved by IETF(0200::/7), deprecated as of RFC 4048 and formerly an OSI NSAP-mapped prefix set in RFC 4548
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0x0400 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x07FF)) || //Reserved by IETF(0400::/6)
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0x0800 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x0FFF)) || //Reserved by IETF(0800::/5)
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0x1000 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x1FFF)) || //Reserved by IETF(1000::/4)
 			(((in6_addr *)Addr)->s6_words[0] == htons(0x2001) && 
-			(((in6_addr *)Addr)->s6_words[1U] == 0 || //Teredo relay/tunnel addresses(2001::/32, RFC 4380)
-			(((in6_addr *)Addr)->s6_bytes[2U] == 0 && ((in6_addr *)Addr)->s6_bytes[3U] <= 0x07) || //Sub-TLA IDs assigned to IANA addresses(2001:0000::/29, Section 2 in RFC 4773)
-			(((in6_addr *)Addr)->s6_bytes[2U] == 0 && ((in6_addr *)Addr)->s6_bytes[3U] == 0 && ((in6_addr *)Addr)->s6_bytes[4U] >= 0x10 && ((in6_addr *)Addr)->s6_bytes[4U] <= 0x1F) || //Overlay Routable Cryptographic Hash IDentifiers/ORCHID addresses(2001:10::/28 in RFC 4843)
+			((ntohs(((in6_addr *)Addr)->s6_words[1U]) >= 0 && ntohs(((in6_addr *)Addr)->s6_words[1U]) <= 0x01FF) || //IETF Protocol Assignments(2001::/23, RFC 2928)
+//			((in6_addr *)Addr)->s6_words[1U] == 0 || //Teredo relay/tunnel addresses(2001::/32, RFC 4380), including in reserved address ranges
+//			((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_bytes[2U] == 0 && ((in6_addr *)Addr)->s6_bytes[3U] <= 0x07) || //Sub-TLA IDs assigned to IANA addresses(2001::/29, Section 2 in RFC 4773)
+//			(((in6_addr *)Addr)->s6_words[1U] == htons(0x0001) && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001)) || //Port Control Protocol Anycast(2001:1::1/128, RFC 7723)
+			(((in6_addr *)Addr)->s6_words[1U] == htons(0x0002) && ((in6_addr *)Addr)->s6_words[2U] == 0) || //Benchmarking(2001:2::/48, RFC 5180)
+//			((in6_addr *)Addr)->s6_words[1U] == htons(0x0003) || //AMT(2001:3::/32, RFC 7450)
+//			(((in6_addr *)Addr)->s6_words[1U] == htons(0x0004) && ((in6_addr *)Addr)->s6_words[1U] == htons(0x0112)) || //AS112-v6(2001:4:112::/48, RFC 7535)
+//			((in6_addr *)Addr)->s6_words[1U] == htons(0x0005) || //EID Space for LISP, Managed by RIPE NCC(2001:5::/32, RFC-ietf-lisp-eid-block-13)
+			(ntohs(((in6_addr *)Addr)->s6_words[1U]) >= 0x0010 && ntohs(((in6_addr *)Addr)->s6_words[1U]) <= 0x001F) || //Deprecated, previously ORCHID(2001:10::/28, RFC 4843)
+//			(ntohs(((in6_addr *)Addr)->s6_words[1U]) >= 0x0020 && ntohs(((in6_addr *)Addr)->s6_words[1U]) <= 0x002F) || //ORCHIDv2(2001:20::/28, RFC 7343)
 			(((in6_addr *)Addr)->s6_bytes[2U] == 0x01 && ((in6_addr *)Addr)->s6_bytes[3U] >= 0xF8) || //Sub-TLA IDs assigned to IANA addresses(2001:01F8::/29, Section 2 in RFC 4773)
 			((in6_addr *)Addr)->s6_words[1U] == htons(0x0DB8))) || //Contrast Address prefix reserved for documentation addresses(2001:DB8::/32, RFC 3849)
 			(IsPrivateUse && ((in6_addr *)Addr)->s6_words[0] == htons(0x2002)) || //6to4 relay/tunnel addresses(2002::/16, Section 2 in RFC 3056)
-			(((in6_addr *)Addr)->s6_words[0] == htons(0x3FFE) && ((in6_addr *)Addr)->s6_words[1U] == 0) || //6bone addresses(3FFE::/16, RFC 3701)
+//			(((in6_addr *)Addr)->s6_words[0] == htons(0x2620) && ((in6_addr *)Addr)->s6_words[1U] == htons(0x004F) && ((in6_addr *)Addr)->s6_words[2U] == htons(0x8000)) || //Direct Delegation AS112 Service(2620:4F:8000::/48, RFC 7534)
+			((in6_addr *)Addr)->s6_words[0] == htons(0x3FFE) || //6bone addresses(3FFE::/16, RFC 3701)
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0x4000 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x5FFF)) || //Reserved by IETF(4000::/3)
 			((in6_addr *)Addr)->s6_bytes[0] == 0x5F || //6bone(5F00::/8, RFC 3701)
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0x6000 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x7FFF)) || //Reserved by IETF(6000::/3)
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0x8000 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x9FFF)) || //Reserved by IETF(8000::/3)
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0xA000 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0xBFFF)) || //Reserved by IETF(A000::/3)
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0xC000 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0xDFFF)) || //Reserved by IETF(C000::/3)
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0xE000 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0xEFFF)) || //Reserved by IETF(E000::/4)
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0xF000 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0xF7FF)) || //Reserved by IETF(F000::/5)
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0xF800 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0xFBFF)) || //Reserved by IETF(F800::/6)
 			(IsPrivateUse && ((in6_addr *)Addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)Addr)->s6_bytes[0] <= 0xFD) || //Unique Local Unicast addresses/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0xFE00 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0xFE7F)) || //Reserved by IETF(FE00::/9)
 			(((in6_addr *)Addr)->s6_bytes[0] == 0xFE && IsPrivateUse && 
 			((((in6_addr *)Addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF) || //Link-Local Unicast Contrast addresses/LUC(FE80::/10, Section 2.5.6 in RFC 4291)
 //			((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == htons(0x5EFE)) || //ISATAP Interface Identifiers addresses(Prefix:0:5EFE:0:0:0:0/64, which also in Link-Local Unicast Contrast addresses/LUC, Section 6.1 in RFC 5214)
@@ -342,6 +368,8 @@ bool CheckSpecialAddress(
 	}
 	else { //IPv4
 		if (
+		//DNS Poisoning addresses from CERNET2, see https://code.google.com/p/goagent/issues/detail?id=17571.
+			((in_addr *)Addr)->s_addr == htonl(0x01020304) || //1.2.3.4
 		//Traditional DNS Poisoning addresses, see https://zh.wikipedia.org/wiki/%E5%9F%9F%E5%90%8D%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%BC%93%E5%AD%98%E6%B1%A1%E6%9F%93#.E8.99.9A.E5.81.87IP.E5.9C.B0.E5.9D.80.
 			((in_addr *)Addr)->s_addr == htonl(0x042442B2) || //4.36.66.178
 			((in_addr *)Addr)->s_addr == htonl(0x0807C62D) || //8.7.198.45
@@ -429,9 +457,8 @@ bool CheckSpecialAddress(
 			((in_addr *)Addr)->s_addr == htonl(0xDD08451B) || //221.8.69.27
 //			((in_addr *)Addr)->s_addr == htonl(0xF3B9BB03) || //243.185.187.3, including in reserved address ranges
 //			((in_addr *)Addr)->s_addr == htonl(0xF3B9BB1E) || //243.185.187.30, including in reserved address ranges
-		//DNS Poisoning addresses from CERNET2, see https://code.google.com/p/goagent/issues/detail?id=17571.
-			((in_addr *)Addr)->s_addr == htonl(0x01020304) || //1.2.3.4
 		//Special-use or reserved addresses, see https://en.wikipedia.org/wiki/IPv4#Special-use_addresses and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv4_addresses.
+		//Also https://www.iana.org/assignments/ipv4-address-space/ipv4-address-space.xhtml
 			((in_addr *)Addr)->s_net == 0 || //Current network whick only valid as source addresses(0.0.0.0/8, Section 3.2.1.3 in RFC 1122)
 			(IsPrivateUse && ((in_addr *)Addr)->s_net == 0x0A) || //Private class A addresses(10.0.0.0/8, Section 3 in RFC 1918)
 			(((in_addr *)Addr)->s_net == 0x7F && //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
@@ -1128,11 +1155,11 @@ size_t CheckResponseData(
 		(ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && 
 	//Extended DNS header check
 		Parameter.HeaderCheck_DNS && 
-	//Must not set Response bit.
+	//Must be set Response bit.
 		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RESPONSE) == 0 || 
 	//Must not any Non-Question Resource Records when RCode is No Error and not Truncated
-		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) == 0 && (ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NOERROR && DNS_Header->Answer == 0 && 
-		DNS_Header->Authority == 0 && DNS_Header->Additional == 0) || 
+		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) == 0 && (ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NOERROR && 
+		DNS_Header->Answer == 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0) || 
 	//Responses are not authoritative when there are no Authoritative Nameservers Records and Additional Resource Records.
 //		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_AA) != 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0) || 
 	//Do query recursively bit must be set when RCode is No Error and there are Answers Resource Records.
@@ -1161,7 +1188,7 @@ size_t CheckResponseData(
 	{
 		for (size_t Index = sizeof(dns_hdr);Index < DNS_PACKET_QUERY_LOCATE(Buffer);++Index)
 		{
-			if (*(Buffer + Index) == DNS_POINTER_8_BITS_STRING)
+			if (*(Buffer + Index) == (uint8_t)DNS_POINTER_8_BITS_STRING)
 				return EXIT_FAILURE;
 		}
 
@@ -1255,7 +1282,7 @@ size_t CheckResponseData(
 			if (DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA) && DNS_Record_Standard->Length == htons(sizeof(in6_addr)))
 			{
 			//Records Type in responses check
-				if (Parameter.HeaderCheck_DNS && DNS_Query->Type == htons(DNS_RECORD_A))
+				if (Index < ntohs(DNS_Header->Answer) && Parameter.HeaderCheck_DNS && DNS_Query->Type == htons(DNS_RECORD_A))
 					return EXIT_FAILURE;
 
 			//Check addresses.
@@ -1271,7 +1298,7 @@ size_t CheckResponseData(
 			else if (DNS_Record_Standard->Type == htons(DNS_RECORD_A) && DNS_Record_Standard->Length == htons(sizeof(in_addr)))
 			{
 			//Records Type in responses check
-				if (Parameter.HeaderCheck_DNS && DNS_Query->Type == htons(DNS_RECORD_AAAA))
+				if (Index < ntohs(DNS_Header->Answer) && Parameter.HeaderCheck_DNS && DNS_Query->Type == htons(DNS_RECORD_AAAA))
 					return EXIT_FAILURE;
 
 			//Check addresses.
@@ -1291,6 +1318,8 @@ size_t CheckResponseData(
 
 		DataLength += ntohs(DNS_Record_Standard->Length);
 	}
+
+	return Length;
 
 //Additional EDNS Label Resource Records check, DNSSEC Validation check and Local request result check
 	if (ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && 

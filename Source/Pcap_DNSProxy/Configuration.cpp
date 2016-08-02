@@ -865,8 +865,9 @@ void ReadIPFilter(
 	//Copy to using list.
 		std::sort(IPFilterFileSetModificating->begin(), IPFilterFileSetModificating->end(), SortCompare_IPFilter);
 		IPFilterFileMutex.lock();
-		*IPFilterFileSetUsing = *IPFilterFileSetModificating;
+		IPFilterFileSetUsing->clear();
 		IPFilterFileSetUsing->shrink_to_fit();
+		*IPFilterFileSetUsing = *IPFilterFileSetModificating;
 		IPFilterFileMutex.unlock();
 		IPFilterFileSetModificating->shrink_to_fit();
 
@@ -1043,7 +1044,7 @@ void ReadHosts(
 			}
 		}
 
-	//Update global list.
+	//Update global lists.
 		if (!IsFileModified)
 		{
 			Sleep(Parameter.FileRefreshTime);
@@ -1053,8 +1054,9 @@ void ReadHosts(
 	//Copy to using list.
 		std::sort(HostsFileSetModificating->begin(), HostsFileSetModificating->end(), SortCompare_Hosts);
 		HostsFileMutex.lock();
-		*HostsFileSetUsing = *HostsFileSetModificating;
+		HostsFileSetUsing->clear();
 		HostsFileSetUsing->shrink_to_fit();
+		*HostsFileSetUsing = *HostsFileSetModificating;
 		HostsFileMutex.unlock();
 		HostsFileSetModificating->shrink_to_fit();
 

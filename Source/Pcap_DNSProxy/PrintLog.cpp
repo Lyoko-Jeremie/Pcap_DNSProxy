@@ -308,7 +308,8 @@ bool PrintScreenAndWriteFile(
 	}
 
 //Check whole file size.
-	std::unique_lock<std::mutex> ErrorLogMutex(ErrorLogLock);
+	auto IsFileDeleted = false;
+	std::lock_guard<std::mutex> ErrorLogMutex(ErrorLogLock);
 #if defined(PLATFORM_WIN)
 	WIN32_FILE_ATTRIBUTE_DATA FileAttributeData;
 	memset(&FileAttributeData, 0, sizeof(FileAttributeData));
@@ -321,14 +322,9 @@ bool PrintScreenAndWriteFile(
 		if (ErrorFileSize.QuadPart > 0 && (size_t)ErrorFileSize.QuadPart >= Parameter.LogMaxSize)
 		{
 			if (DeleteFileW(GlobalRunningStatus.Path_ErrorLog->c_str()) != FALSE)
-			{
-				ErrorLogMutex.unlock();
-				PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"Old log files were deleted", 0, nullptr, 0);
-				ErrorLogMutex.lock();
-			}
-			else {
+				IsFileDeleted = true;
+			else 
 				return false;
-			}
 		}
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -337,14 +333,9 @@ bool PrintScreenAndWriteFile(
 	if (stat(GlobalRunningStatus.sPath_ErrorLog->c_str(), &FileStatData) == 0 && FileStatData.st_size >= (off_t)Parameter.LogMaxSize)
 	{
 		if (remove(GlobalRunningStatus.sPath_ErrorLog->c_str()) == 0)
-		{
-			ErrorLogMutex.unlock();
-			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"Old log files were deleted", 0, nullptr, 0);
-			ErrorLogMutex.lock();
-		}
-		else {
+			IsFileDeleted = true;
+		else 
 			return false;
-		}
 	}
 #endif
 
@@ -369,7 +360,19 @@ bool PrintScreenAndWriteFile(
 				TimeStructure.tm_sec);
 		}
 
-	//Print message.
+	//Print old file deleted message.
+		if (IsFileDeleted)
+		{
+			fwprintf_s(FileHandle, L"%d-%02d-%02d %02d:%02d:%02d -> Notice: Old log file was deleted.\n", 
+				TimeStructure.tm_year + 1900, 
+				TimeStructure.tm_mon + 1, 
+				TimeStructure.tm_mday, 
+				TimeStructure.tm_hour, 
+				TimeStructure.tm_min, 
+				TimeStructure.tm_sec);
+		}
+
+	//Print main message.
 		fwprintf_s(FileHandle, L"%d-%02d-%02d %02d:%02d:%02d -> ", 
 			TimeStructure.tm_year + 1900, 
 			TimeStructure.tm_mon + 1, 

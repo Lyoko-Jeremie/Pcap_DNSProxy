@@ -109,7 +109,7 @@
 #define CONFIG_VERSION_POINT_THREE                    0.3
 #define CONFIG_VERSION                                0.4                                   //Current configuration file version
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
-#define FULL_VERSION                                  L"0.4.6.6"
+#define FULL_VERSION                                  L"0.4.6.7"
 
 //Size and length definitions(Number)
 #define ADDR_STRING_MAXSIZE                           64U                         //Maximum size of addresses(IPv4/IPv6) words(64 bytes)

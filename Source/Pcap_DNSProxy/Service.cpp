@@ -55,6 +55,10 @@ size_t WINAPI ServiceMain(
 	DWORD argc, 
 	LPTSTR *argv)
 {
+//Disable console mode printing.
+	GlobalRunningStatus.Console = false;
+
+//Service initialization
 	ServiceStatusHandle = RegisterServiceCtrlHandlerW(SYSTEM_SERVICE_NAME, (LPHANDLER_FUNCTION)ServiceControl);
 	if (!ServiceStatusHandle || !UpdateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0, 1U, UPDATE_SERVICE_TIME))
 		return FALSE;

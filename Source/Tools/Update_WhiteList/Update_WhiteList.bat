@@ -6,6 +6,7 @@
 @echo off
 
 :: Write header and download latest data.
+..\Support\curl -O https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf
 (
 	echo.[Local Hosts]
 	echo.## China mainland domains
@@ -14,7 +15,6 @@
 	echo.
 	echo.
 ) > "WhiteList.txt"
-..\Support\curl -O https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf
 ..\Support\sed -e "s@/114.114.114.114$@@" -e "s@\.@\\\.@g" -e "s@server=/@\.*\\\b@" -e "s@bcn$@\.cn\$@" accelerated-domains.china.conf >> WhiteList.txt
 del /F /Q accelerated-domains.china.conf
 

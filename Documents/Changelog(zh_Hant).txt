@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy 0.4.6.1-0.4.6.6 更新日誌(2016-07-18)：
+﻿Pcap_DNSProxy 0.4.6.1-0.4.6.7 更新日誌(2016-08-02)：
 
 * 添加 Source Hosts 根據功能變數名稱請求的來源位址進行 Hosts 的功能
 * 添加 Local Force Request 參數，可強制已確定使用境內伺服器的功能變數名稱請求不使用其它伺服器進行解析
@@ -8,20 +8,22 @@
 * 添加 CMake 的 Clang 編譯器支援 (Mac)
 * 合併 KeyPairGenerator 工具到主程式，作為支援參數使用
 * 分離 32 位版本對 Windows XP/2003 的支援 (Windows)
+* 修復資料包過濾模組過於嚴格導致無法使用部分正常 DNS 伺服器的問題 [muink]
+* 修復批次處理在 Windows 2003 下無法正常工作的問題 [wuxiao2522]
 * 修復抓包模組錯誤判斷正確資料包的問題
 * 修復抓包模組對 IPv6 資料包識別錯誤的問題
 * 移除附帶的 FileHash 工具，其將分離至 https://github.com/chengr28/Toolkit 專案繼續開發
-* 檔校驗碼(0.4.6.6)
+* 檔校驗碼(0.4.6.7)
   * SHA-1:
-    * Windows/Pcap_DNSProxy.exe -> 25CF2E1C17650504260B4D4BFDC580B125ADD099
-    * Windows/Pcap_DNSProxy_x86.exe -> 1553FF22B8F1E2623FC2AE23E53981EE8C3959A4
-    * Windows/Pcap_DNSProxy_XP.exe -> 2AA8B657380B7ED1BF74B0AC356AF334E6C99FD9
-    * Mac/Pcap_DNSProxy -> 62B21570531847983428F7449B1F6E69E60082E8
+    * Windows/Pcap_DNSProxy.exe -> 54AE593D7916ADBBC68BFF56113E746C068C3743
+    * Windows/Pcap_DNSProxy_x86.exe -> F3E1B6FB3491AD8334FB58034C4B7D40CCAB150F
+    * Windows/Pcap_DNSProxy_XP.exe -> 8FFBE9ADA43DE5D256885071FBA4919FC65F0FC9
+    * Mac/Pcap_DNSProxy -> 26CA74EAD80BC8320CE485CF537E6141794FFB41
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe -> 7CA260D55BDC3DC3CAF4913826A74DA6DE1461BC32E48B7C192D608BAEE98B03
-    * Windows/Pcap_DNSProxy_x86.exe -> 2F8725F6F2BABA5D36DC19DBBE517C253FC753DDA4EC8184B1CEF31A13E61874
-    * Windows/Pcap_DNSProxy_XP.exe -> 818AF3D47B0E3E790EED22BF835C83D04AB3C2721CCEAF1B25E85DACE5DD5E2C
-    * Mac/Pcap_DNSProxy -> 6B2112CF2F5E9496A78AE9EAF6639631EBFCDDE2FB72C8A7D9263789C149FB5F
+    * Windows/Pcap_DNSProxy.exe -> A75BA1CE9F686AC214637A8D5E53B18DF7261CAA9F4E2F757C62ECC0334B6DEE
+    * Windows/Pcap_DNSProxy_x86.exe -> FE66665DFBDC64576534A5C7FB6376544D55E7E6CD7CE78A81440827107030F0
+    * Windows/Pcap_DNSProxy_XP.exe -> 28D6E0F9B094C567FBC31CF543A40CE064F52F60E770ACD814DAEA4805B3D061
+    * Mac/Pcap_DNSProxy -> 1850BAFAC493F2B1AFDD2019A7D807DCA946BAF31894C63BEE8BE1B28511CCED
 
 
 -------------------------------------------------------------------------------

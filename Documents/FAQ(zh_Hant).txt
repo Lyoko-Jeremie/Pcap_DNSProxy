@@ -242,7 +242,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
  * HTTP server response error - HTTP 代理伺服器回應錯誤：請檢查該伺服器是否可用
 
 10.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
-  * Old log files were deleted - 錯誤日誌檔已滿並被刪除
+  * Old log file was deleted - 錯誤日誌檔已滿並被刪除
     * 日誌檔最大容量的配置參見 詳細說明文檔 中 設定檔詳細參數說明 中的 Log Maximum Size 參數
   * Configuration file is not the latest version - 設定檔非最新版本：請確認設定檔是否需要更新
   * Listen Port is empty, set to standard DNS port(53) - 本地監聽埠參數為空：程式將自動設置為標準 DNS 協定埠（53）

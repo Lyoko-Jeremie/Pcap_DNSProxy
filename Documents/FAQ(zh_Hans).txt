@@ -243,7 +243,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * HTTP server response error - HTTP 代理服务器响应错误：请检查该服务器是否可用
 
 10.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
-  * Old log files were deleted - 错误日志文件已满并被删除
+  * Old log file was deleted - 错误日志文件已满并被删除
     * 日志文件最大容量的配置参见 详细说明文档 中 配置文件详细参数说明 中的 Log Maximum Size 参数
   * Configuration file is not the latest version - 配置文件非最新版本：请确认配置文件是否需要更新
   * Listen Port is empty, set to standard DNS port(53) - 本地监听端口参数为空：程序将自动设置为标准 DNS 协议端口（53）

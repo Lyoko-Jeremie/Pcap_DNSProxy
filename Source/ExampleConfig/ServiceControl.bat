@@ -22,7 +22,7 @@ set Arch=
 if %PROCESSOR_ARCHITECTURE%%PROCESSOR_ARCHITEW6432% == x86 (
 	set Arch=_x86
 )
-ver | findstr /I " 5.1" > NUL
+ver | findstr /L /I " 5." >NUL
 if not ERRORLEVEL 1 (
 	set Arch=_XP
 )
@@ -53,7 +53,7 @@ goto %UserChoice%
 :CASE_1
 	sc stop PcapDNSProxyService
 	sc delete PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 3 >NUL
 
 	sc create PcapDNSProxyService binPath= "%~dp0%Prog%" DisplayName= "PcapDNSProxy Service" start= auto
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v Application /d "%~dp0%Prog%" /f
@@ -74,7 +74,7 @@ goto %UserChoice%
 :CASE_2
 	sc stop PcapDNSProxyService
 	sc delete PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 3 >NUL
 	ipconfig /flushdns
 	echo.
 	pause
@@ -85,9 +85,9 @@ goto %UserChoice%
 :: Service start
 :CASE_3
 	sc start PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 3 >NUL
 	ipconfig /flushdns
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 3 >NUL
 	call :CHECK_PROG
 	pause
 	cls
@@ -97,7 +97,7 @@ goto %UserChoice%
 :: Service stop
 :CASE_4
 	sc stop PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 3 >NUL
 	ipconfig /flushdns
 	echo.
 	pause
@@ -108,9 +108,9 @@ goto %UserChoice%
 :: Service restart
 :CASE_5
 	sc stop PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 3 >NUL
 	sc start PcapDNSProxyService
-	ping 127.0.0.1 -n 3 >nul
+	ping 127.0.0.1 -n 3 >NUL
 	ipconfig /flushdns
 	call :CHECK_PROG
 	pause
@@ -144,7 +144,7 @@ goto %UserChoice%
 
 :: Process check
 :CHECK_PROG
-	tasklist | findstr /I "%Prog%" > NUL
+	tasklist | findstr /L /I "%Prog%" >NUL
 	if ERRORLEVEL 1 (
 		color 4F
 		echo.
