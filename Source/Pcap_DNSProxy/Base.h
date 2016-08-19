@@ -189,14 +189,15 @@
 #define DEFAULT_ALTERNATE_RESET_TIME                  180U                        //Default time to reset switching of alternate servers, 180 seconds
 #define DEFAULT_ALTERNATE_TIMES                       5U                          //Default times of request timeout, 5 times
 #define DEFAULT_DOMAIN_TEST_INTERVAL_TIME             900U                        //Default Domain Test time between every sending, 15 minutes(900 seconds)
-#define DEFAULT_FILEREFRESH_TIME                      10000U                      //Default time between files auto-refreshing, 10000 ms(10 seconds)
+#define DEFAULT_FILEREFRESH_TIME                      15000U                      //Default time between files auto-refreshing, 15000 ms(15 seconds)
 #define DEFAULT_HOSTS_TTL                             900U                        //Default Hosts DNS TTL, 15 minutes(900 seconds)
-#define DEFAULT_ICMP_TEST_TIME                        5U                          //Default time between ICMP Test, 5 seconds
+#define DEFAULT_ICMP_TEST_TIME                        900U                        //Default time between ICMP Test, 15 minutes(900 seconds)
 #if defined(ENABLE_PCAP)
-	#define DEFAULT_PCAP_CAPTURE_TIMEOUT                  200U                        //Default Pcap Capture reading timeout, 200 ms
+	#define DEFAULT_PCAP_CAPTURE_TIMEOUT                  250U                        //Default Pcap Capture reading timeout, 250 ms
 	#define PCAP_CAPTURE_MIN_TIMEOUT                      10U                         //Minimum Pcap Capture reading timeout, 10 ms
 #endif
 #define DEFAULT_THREAD_POOL_RESET_TIME                60U                         //Default time to reset thread pool number, 60 seconds
+#define FLUSH_DNS_CACHE_INTERVAL_TIME                 5U                          //Time between every flushing, 5000 ms(5 seconds)
 #if defined(PLATFORM_WIN)
 	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT               3000U                   //Default timeout of reliable sockets(Such as TCP, 3 seconds/3000ms)
 	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT             2000U                   //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds/2000ms)
@@ -228,7 +229,7 @@
 #define SHORTEST_ALTERNATE_RESET_TIME                 5U                          //The shortest time to reset switching of alternate servers, 5 seconds
 #define SHORTEST_DOMAIN_TEST_INTERVAL_TIME            5U                          //The shortest Domain Test time between every sending, 5 seconds
 #define SHORTEST_FILEREFRESH_TIME                     5U                          //The shortset time between files auto-refreshing, 5 seconds
-#define SHORTEST_ICMP_TEST_TIME                       DEFAULT_ICMP_TEST_TIME      //The shortest time between ICMP Test, 5 seconds
+#define SHORTEST_ICMP_TEST_TIME                       5U                          //The shortest time between ICMP Test, 5 seconds
 #define SHORTEST_THREAD_POOL_RESET_TIME               5U                          //The shortset time to reset thread pool number, 5 seconds
 #define SOCKET_MIN_TIMEOUT                            500U                        //The shortest socket timeout, 500 ms
 #define STANDARD_TIMEOUT                              1000U                       //Standard timeout, 1000 ms(1 second)
@@ -340,6 +341,7 @@
 	#define ALTERNATE_TYPE_DNSCURVE_UDP_IPV6              10U
 	#define ALTERNATE_TYPE_DNSCURVE_UDP_IPV4              11U
 #endif
+#define CACHE_TYPE_NONE                               0
 #define CACHE_TYPE_TIMER                              1U
 #define CACHE_TYPE_QUEUE                              2U
 #define CPM_POINTER_TO_HEADER                         0
@@ -365,21 +367,24 @@
 #define LISTEN_PROTOCOL_TRANSPORT_BOTH                0
 #define LISTEN_PROTOCOL_TCP                           1U
 #define LISTEN_PROTOCOL_UDP                           2U
+#define NETWORK_LAYER_IPV6                            0
+#define NETWORK_LAYER_IPV4                            1U
 #define REQUEST_MODE_NETWORK_BOTH                     0
 #define REQUEST_MODE_IPV6                             1U
 #define REQUEST_MODE_IPV4                             2U
 #define REQUEST_MODE_UDP                              0
 #define REQUEST_MODE_TCP                              1U
 #define SOCKET_SETTING_INVALID_CHECK                  0
-#define SOCKET_SETTING_TIMEOUT                        1U
-#define SOCKET_SETTING_REUSE                          2U
-#define SOCKET_SETTING_TCP_FAST_OPEN                  3U
-#define SOCKET_SETTING_NON_BLOCKING_MODE              4U
-//#define SOCKET_SETTING_TCP_KEEPALIVE                  5U
-#define SOCKET_SETTING_UDP_BLOCK_RESET                6U
-#define SOCKET_SETTING_HOP_LIMITS_IPV4                7U
-#define SOCKET_SETTING_HOP_LIMITS_IPV6                8U
-#define SOCKET_SETTING_DO_NOT_FRAGMENT                9U
+#define SOCKET_SETTING_CLOSE                          1U
+#define SOCKET_SETTING_TIMEOUT                        2U
+#define SOCKET_SETTING_REUSE                          3U
+#define SOCKET_SETTING_TCP_FAST_OPEN                  4U
+#define SOCKET_SETTING_NON_BLOCKING_MODE              5U
+//#define SOCKET_SETTING_TCP_KEEPALIVE                  6U
+#define SOCKET_SETTING_UDP_BLOCK_RESET                7U
+#define SOCKET_SETTING_HOP_LIMITS_IPV4                8U
+#define SOCKET_SETTING_HOP_LIMITS_IPV6                9U
+#define SOCKET_SETTING_DO_NOT_FRAGMENT                10U
 
 //Request process type definitions
 #define REQUEST_PROCESS_LOCAL                         1U
@@ -463,7 +468,7 @@ typedef struct _socket_selecting_data_
 {
 	std::shared_ptr<uint8_t>             RecvBuffer;
 	size_t                               Length;
-	bool                                 PacketIsSend;
+	bool                                 IsPacketSend;
 }SocketSelectingData, SOCKET_SELECTING_DATA, *PSocketSelectingData, *PSOCKET_SELECTING_DATA;
 
 //DNS Packet Data structure
@@ -519,7 +524,7 @@ typedef struct _dnscurve_socket_selecting_data_
 	size_t                               SendSize;
 	std::shared_ptr<uint8_t>             RecvBuffer;
 	size_t                               Length;
-	bool                                 PacketIsSend;
+	bool                                 IsPacketSend;
 }DNSCurveSocketSelectingData, DNSCURVE_SOCKET_SELECTING_DATA, *PDNSCurveSocketSelectingData, *PDNSCURVE_SOCKET_SELECTING_DATA;
 #endif
 
@@ -537,7 +542,7 @@ public:
 	size_t                               LogMaxSize;
 //[Listen] block
 #if defined(ENABLE_PCAP)
-	bool                                 PcapCapture;
+	bool                                 IsPcapCapture;
 	std::vector<std::string>             *PcapDevicesBlacklist;
 	size_t                               PcapReadingTimeout;
 #endif
@@ -688,7 +693,7 @@ public:
 
 //[DNSCurve/DNSCrypt] block
 #if defined(ENABLE_LIBSODIUM)
-	bool                                 DNSCurve;
+	bool                                 IsDNSCurve;
 #endif
 
 //Member functions
@@ -716,9 +721,9 @@ public:
 //Running status
 	time_t                               StartupTime;
 #if defined(PLATFORM_WIN)
-	bool                                 Console;
+	bool                                 IsConsole;
 #elif defined(PLATFORM_LINUX)
-	bool                                 Daemon;
+	bool                                 IsDaemon;
 #endif
 	std::vector<SYSTEM_SOCKET>           *LocalListeningSocket;
 	std::default_random_engine           *RamdomEngine;
@@ -781,6 +786,7 @@ public:
 	std::vector<uint16_t>                RecordTypeList;
 	size_t                               PermissionType;
 	bool                                 PermissionOperation;
+	bool                                 IsRegex;
 
 //Member functions
 	HostsTable(
@@ -806,6 +812,7 @@ public:
 	std::vector<AddressRangeTable>       Addresses;
 	std::regex                           Pattern;
 	std::string                          PatternString;
+	bool                                 IsRegex;
 }RESULT_BLACKLIST_TABLE;
 
 //Address Hosts class
@@ -1091,7 +1098,8 @@ void GetParameterListData(
 	std::vector<std::string> &ListData, 
 	const std::string Data, 
 	const size_t DataOffset, 
-	const size_t Length);
+	const size_t Length, 
+	const bool IsCaseConvert);
 
 //DNSCurve.h
 #if defined(ENABLE_LIBSODIUM)
@@ -1137,7 +1145,7 @@ bool SocketSetting(
 size_t SocketConnecting(
 	const uint16_t Protocol, 
 	const SYSTEM_SOCKET Socket, 
-	const PSOCKADDR SockAddr, 
+	const sockaddr *SockAddr, 
 	const socklen_t AddrLen, 
 	const uint8_t *OriginalSend, 
 	const size_t SendSize);

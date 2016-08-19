@@ -27,10 +27,12 @@ bool AddressStringToBinary(
 	ssize_t *ErrorCode)
 {
 	std::string sAddrString((const char *)AddrString);
-	if (Protocol == AF_INET6)
+	if (Protocol == AF_INET6) //IPv6
 		memset(OriginalAddr, 0, sizeof(in6_addr));
-	else //IPv4
+	else if (Protocol == AF_INET) //IPv4
 		memset(OriginalAddr, 0, sizeof(in_addr));
+	else 
+		return false;
 	if (ErrorCode != nullptr)
 		*ErrorCode = 0;
 
@@ -46,8 +48,8 @@ bool AddressStringToBinary(
 	if (Protocol == AF_INET6) //IPv6
 	{
 	//Check IPv6 addresses.
-		if (sAddrString.find(ASCII_COLON) == std::string::npos || 
-			sAddrString.find(ASCII_PERIOD) != std::string::npos || sAddrString.find("::") != sAddrString.rfind("::"))
+		if (sAddrString.find(ASCII_COLON) == std::string::npos || sAddrString.find(ASCII_PERIOD) != std::string::npos || 
+			sAddrString.find("::") != sAddrString.rfind("::"))
 				return false;
 		for (const auto &StringIter:sAddrString)
 		{
@@ -93,7 +95,8 @@ bool AddressStringToBinary(
 		}
 	#endif
 	}
-	else { //IPv4
+	else if (Protocol == AF_INET) //IPv4
+	{
 	//Check IPv4 addresses.
 		if (sAddrString.find(ASCII_PERIOD) == std::string::npos || sAddrString.find(ASCII_COLON) != std::string::npos)
 			return false;
@@ -162,6 +165,9 @@ bool AddressStringToBinary(
 		}
 	#endif
 	}
+	else {
+		return false;
+	}
 
 	return true;
 }
@@ -192,7 +198,8 @@ size_t AddressesComparing(
 			}
 		}
 	}
-	else { //IPv4
+	else if(Protocol == AF_INET) //IPv4
+	{
 		if (((in_addr *)OriginalAddrBegin)->s_net > ((in_addr *)OriginalAddrEnd)->s_net)
 		{
 			return ADDRESS_COMPARE_GREATER;
@@ -366,7 +373,8 @@ bool CheckSpecialAddress(
 			}
 		}
 	}
-	else { //IPv4
+	else if (Protocol == AF_INET) //IPv4
+	{
 		if (
 		//DNS Poisoning addresses from CERNET2, see https://code.google.com/p/goagent/issues/detail?id=17571.
 			((in_addr *)Addr)->s_addr == htonl(0x01020304) || //1.2.3.4
@@ -576,7 +584,8 @@ bool CheckAddressRouting(
 			}
 		}
 	}
-	else { //IPv4
+	else if (Protocol == AF_INET) //IPv4
+	{
 		for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
 		{
 			for (const auto &LocalRoutingTableIter:IPFilterFileSetIter.LocalRoutingList)
@@ -666,7 +675,8 @@ bool CheckCustomModeFilter(
 			}
 		}
 	}
-	else { //IPv4
+	else if (Protocol == AF_INET) //IPv4
+	{
 	//Permit mode
 		if (Parameter.IPFilterType)
 		{
@@ -705,12 +715,9 @@ bool CheckCustomModeFilter(
 							{
 								if (((in_addr *)OriginalAddr)->s_impno >= ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_impno && 
 									((in_addr *)OriginalAddr)->s_impno <= ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_impno)
-								{
-									return true;
-								}
-								else {
+										return true;
+								else 
 									return false;
-								}
 							}
 							else {
 								return false;
@@ -760,13 +767,11 @@ bool CheckCustomModeFilter(
 							else if (((in_addr *)OriginalAddr)->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh || 
 								((in_addr *)OriginalAddr)->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
 							{
-								if (((in_addr *)OriginalAddr)->s_impno >= ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_impno && ((in_addr *)OriginalAddr)->s_impno <= ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_impno)
-								{
-									return false;
-								}
-								else {
+								if (((in_addr *)OriginalAddr)->s_impno >= ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_impno && 
+									((in_addr *)OriginalAddr)->s_impno <= ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_impno)
+										return false;
+								else 
 									return true;
-								}
 							}
 							else {
 								return true;
@@ -782,6 +787,9 @@ bool CheckCustomModeFilter(
 				}
 			}
 		}
+	}
+	else {
+		return false;
 	}
 
 	return true;
@@ -978,7 +986,8 @@ bool CheckQueryData(
 				(Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr, AF_INET6)))
 					return false;
 		}
-		else { //IPv4
+		else if (LocalSocketData.AddrLen == sizeof(sockaddr_in)) //IPv4
+		{
 			if ((*(in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr).s_addr == 0 || //Empty address
 			//Check Private Mode(IPv4).
 				(Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
@@ -990,6 +999,9 @@ bool CheckQueryData(
 			//Check Custom Mode(IPv4).
 				(Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr, AF_INET)))
 					return false;
+		}
+		else {
+			return false;
 		}
 	}
 
@@ -1100,8 +1112,8 @@ bool CheckQueryData(
 		if (Packet->Length + EDNS_ADDITIONAL_MAXSIZE > Parameter.EDNSPayloadSize && (Parameter.EDNS_Label || Packet->Length > Parameter.EDNSPayloadSize))
 		{
 		//Make packets with EDNS Label.
-//			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_RTC);
-			DNS_Header->Flags = htons(DNS_SET_RTC);
+//			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_TC);
+			DNS_Header->Flags = htons(DNS_SET_R_TC);
 			AddEDNSLabelToAdditionalRR(Packet, nullptr);
 
 		//Send request.
@@ -1383,6 +1395,7 @@ bool CheckDNSSECRecords(
 	else if (Type == htons(DNS_RECORD_SIG) || Type == htons(DNS_RECORD_RRSIG))
 	{
 		auto DNS_Record_RRSIG = (pdns_record_rrsig)Buffer;
+		auto TimeValues = time(nullptr);
 
 	//RRSIG header check
 		if (
@@ -1396,7 +1409,7 @@ bool CheckDNSSECRecords(
 		//Labels, Original TTL and Key Tag check
 			DNS_Record_RRSIG->Labels == 0 || DNS_Record_RRSIG->TTL == 0 || DNS_Record_RRSIG->KeyTag == 0 || 
 		//Signature available time check
-			time(nullptr) < (time_t)ntohl(DNS_Record_RRSIG->Inception) || time(nullptr) > (time_t)ntohl(DNS_Record_RRSIG->Expiration))
+			TimeValues < (time_t)ntohl(DNS_Record_RRSIG->Inception) || TimeValues > (time_t)ntohl(DNS_Record_RRSIG->Expiration))
 				return false;
 
 	//Algorithm length check

@@ -39,6 +39,8 @@ bool ReadIPFilterData(
 		Data.pop_back();
 	while (!Data.empty() && Data.find("  ") != std::string::npos)
 		Data.erase(Data.find("  "), 1U);
+	if (Data.empty())
+		return true;
 
 //Multi-line comments check, delete spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs) and check minimum length of ipfilter items.
 	if (!ReadMultiLineComments(Data, IsLabelComments) || Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
@@ -205,7 +207,7 @@ bool ReadBlacklistData(
 	ADDRESS_RANGE_TABLE AddressRangeTableTemp;
 	uint8_t Addr[ADDR_STRING_MAXSIZE] = {0};
 	std::vector<std::string> ListData;
-	GetParameterListData(ListData, Data, 0, Separated);
+	GetParameterListData(ListData, Data, 0, Separated, false);
 	ssize_t Result = 0;
 
 //Mark all data in list.
@@ -392,10 +394,8 @@ bool ReadLocalRoutingData(
 	}
 	for (const auto &StringIter:Data)
 	{
-		if (StringIter < ASCII_PERIOD || 
-			(StringIter > ASCII_COLON && StringIter < ASCII_UPPERCASE_A) || 
-			(StringIter > ASCII_UPPERCASE_F && StringIter < ASCII_LOWERCASE_A) || 
-			StringIter > ASCII_LOWERCASE_F)
+		if (StringIter < ASCII_PERIOD || (StringIter > ASCII_COLON && StringIter < ASCII_UPPERCASE_A) || 
+			(StringIter > ASCII_UPPERCASE_F && StringIter < ASCII_LOWERCASE_A) || StringIter > ASCII_LOWERCASE_F)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Address Prefix Block format error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -567,10 +567,8 @@ bool ReadAddressPrefixBlock(
 	}
 	for (const auto &StringIter:Data)
 	{
-		if (StringIter < ASCII_PERIOD || 
-			(StringIter > ASCII_COLON && StringIter < ASCII_UPPERCASE_A) || 
-			(StringIter > ASCII_UPPERCASE_F && StringIter < ASCII_LOWERCASE_A) || 
-			StringIter > ASCII_LOWERCASE_F)
+		if (StringIter < ASCII_PERIOD || (StringIter > ASCII_COLON && StringIter < ASCII_UPPERCASE_A) || 
+			(StringIter > ASCII_UPPERCASE_F && StringIter < ASCII_LOWERCASE_A) || StringIter > ASCII_LOWERCASE_F)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Address Prefix Block format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -615,7 +613,8 @@ bool ReadAddressPrefixBlock(
 		AddressPrefix->first.ss_family = AF_INET6;
 	}
 //IPv4
-	else {
+	else if (Protocol == AF_INET)
+	{
 	//Convert address.
 		if (!AddressStringToBinary(Addr, AF_INET, &((PSOCKADDR_IN)&AddressPrefix->first)->sin_addr, &SignedResult))
 		{
@@ -639,6 +638,10 @@ bool ReadAddressPrefixBlock(
 		}
 
 		AddressPrefix->first.ss_family = AF_INET;
+	}
+	else {
+		PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+		return false;
 	}
 
 	return true;

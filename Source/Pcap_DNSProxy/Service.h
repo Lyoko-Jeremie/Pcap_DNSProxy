@@ -31,8 +31,11 @@ static DWORD ServiceCurrentStatus = 0;
 static BOOL IsServiceRunning = FALSE;
 SERVICE_STATUS_HANDLE ServiceStatusHandle = nullptr;
 HANDLE ServiceEvent = nullptr;
+#endif
+uint64_t LastFlushDNSTime = 0;
 
 //Functions
+#if defined(PLATFORM_WIN)
 size_t WINAPI ServiceControl(
 	const DWORD dwControlCode);
 BOOL WINAPI ExecuteService(

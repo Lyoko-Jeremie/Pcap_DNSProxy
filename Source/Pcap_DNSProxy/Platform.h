@@ -405,6 +405,9 @@
 	#define SD_RECV                  SHUT_RD
 	#define SD_SEND                  SHUT_WR
 	#define WSAEAFNOSUPPORT          EAFNOSUPPORT
+	#define WSAEHOSTUNREACH          EHOSTUNREACH
+	#define WSAENETUNREACH           ENETUNREACH
+	#define WSAENOTSOCK              ENOTSOCK
 	#define WSAETIMEDOUT             ETIMEDOUT	
 	#define in_addr                  in_addr_Windows
 	#define in6_addr                 in6_addr_Windows

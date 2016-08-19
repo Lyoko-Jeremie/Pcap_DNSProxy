@@ -40,7 +40,7 @@ bool TCPReceiveProcess(
 void AlternateServerMonitor(
 	void);
 #if defined(PLATFORM_WIN)
-addrinfo * GetLocalAddressList(
+addrinfo *GetLocalAddressList(
 	const uint16_t Protocol, 
 	uint8_t *HostName);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))

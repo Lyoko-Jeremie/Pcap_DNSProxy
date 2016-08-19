@@ -30,8 +30,10 @@ bool PrintError(
 {
 //Print log level check, parameter check, message check and file name check
 	if (Parameter.PrintLogLevel == LOG_LEVEL_0 || ErrorLevel > Parameter.PrintLogLevel || 
-		Message == nullptr || CheckEmptyBuffer(Message, sizeof(wchar_t) * wcsnlen_s(Message, ORIGINAL_PACKET_MAXSIZE)) || 
-		(FileName != nullptr && CheckEmptyBuffer(FileName, sizeof(wchar_t) * wcsnlen_s(FileName, ORIGINAL_PACKET_MAXSIZE))))
+		Message == nullptr || wcsnlen_s(Message, ORIGINAL_PACKET_MAXSIZE) == 0 || 
+		CheckEmptyBuffer(Message, sizeof(wchar_t) * wcsnlen_s(Message, ORIGINAL_PACKET_MAXSIZE)) || 
+		(FileName != nullptr && (wcsnlen_s(FileName, ORIGINAL_PACKET_MAXSIZE) == 0 || 
+		CheckEmptyBuffer(FileName, sizeof(wchar_t) * wcsnlen_s(FileName, ORIGINAL_PACKET_MAXSIZE)))))
 			return false;
 
 //Convert file name.
@@ -155,11 +157,8 @@ bool PrintError(
 		//Add error code.
 			if (ErrorCode == 0)
 				ErrorMessage.append(L".\n");
-		#if defined(PLATFORM_WIN)
-			else if (ErrorCode == WSAENETUNREACH || //Block error messages when getting Network Unreachable error.
-				ErrorCode == WSAEHOSTUNREACH) //Block error messages when getting Host Unreachable error.
-					return true;
-		#endif
+			else if (Parameter.PrintLogLevel < LOG_LEVEL_3 && (ErrorCode == WSAENETUNREACH || ErrorCode == WSAEHOSTUNREACH)) //Block error messages when getting Network Unreachable and Host Unreachable error.
+				return true;
 			else 
 				ErrorMessage.append(L", error code is %d.\n");
 		}break;
@@ -271,9 +270,9 @@ bool PrintScreenAndWriteFile(
 
 //Print to screen.
 #if defined(PLATFORM_WIN)
-	if (GlobalRunningStatus.Console)
+	if (GlobalRunningStatus.IsConsole)
 #elif defined(PLATFORM_LINUX)
-	if (!GlobalRunningStatus.Daemon)
+	if (!GlobalRunningStatus.IsDaemon)
 #endif
 	{
 	//Print startup time.

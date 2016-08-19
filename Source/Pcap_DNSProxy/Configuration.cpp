@@ -19,6 +19,9 @@
 
 #include "Configuration.h"
 
+//Global variables
+size_t HopLimitIndex[]{0, 0};
+
 //Read texts
 bool ReadText(
 	const FILE *FileHandle, 
@@ -32,6 +35,13 @@ bool ReadText(
 	std::string TextData;
 	size_t Encoding = 0, Index = 0, Line = 0, LabelType = 0;
 	auto IsEraseBOM = true, NewLine_Point = false, IsLabelComments = false;
+
+//Reset global variables.
+	if (InputType == READ_TEXT_PARAMETER || InputType == READ_TEXT_PARAMETER_MONITOR)
+	{
+		HopLimitIndex[NETWORK_LAYER_IPV6] = 0;
+		HopLimitIndex[NETWORK_LAYER_IPV4] = 0;
+	}
 
 //Read data.
 	while (!feof((FILE *)FileHandle))
@@ -645,7 +655,7 @@ bool ReadParameter(
 									{
 										ParameterModificating.MonitorItemToUsing(&Parameter);
 									#if defined(ENABLE_LIBSODIUM)
-										if (Parameter.DNSCurve)
+										if (Parameter.IsDNSCurve)
 											DNSCurveParameterModificating.MonitorItemToUsing(&DNSCurveParameter);
 									#endif
 									}
@@ -654,7 +664,7 @@ bool ReadParameter(
 							//Reset modificating list.
 								ParameterModificating.MonitorItemReset();
 							#if defined(ENABLE_LIBSODIUM)
-								if (Parameter.DNSCurve)
+								if (Parameter.IsDNSCurve)
 									DNSCurveParameterModificating.MonitorItemReset();
 							#endif
 							}
@@ -1109,7 +1119,8 @@ void GetParameterListData(
 	std::vector<std::string> &ListData, 
 	const std::string Data, 
 	const size_t DataOffset, 
-	const size_t Length)
+	const size_t Length, 
+	const bool IsCaseConvert)
 {
 //Initialization
 	std::string NameString;
@@ -1122,13 +1133,16 @@ void GetParameterListData(
 		if (Index + 1U == Length)
 		{
 			NameString.append(Data, Index, 1U);
+			if (IsCaseConvert)
+				CaseConvert(false, NameString);
 			ListData.push_back(NameString);
-
 			break;
 		}
 	//Separated
 		else if (Data.at(Index) == ASCII_VERTICAL)
 		{
+			if (IsCaseConvert)
+				CaseConvert(false, NameString);
 			ListData.push_back(NameString);
 			NameString.clear();
 		}

@@ -257,6 +257,7 @@ bool SOCKSSelectionExchange(
 	else {
 		RecvLen = ProxySocketSelecting(SOCKSSocketData->Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, Length, OriginalRecv, RecvSize, sizeof(socks_server_selection), nullptr);
 	}
+//SOCKS server selection check(Part 1)
 	if (RecvLen < (ssize_t)sizeof(socks_server_selection))
 	{
 		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS request error", 0, nullptr, 0);
@@ -267,7 +268,7 @@ bool SOCKSSelectionExchange(
 		Length = 0;
 	}
 
-//Server selection check
+//Server server selection check(Part 2)
 	SOCKS_Pointer = OriginalRecv;
 	if (((psocks_server_selection)SOCKS_Pointer)->Version != SOCKS_VERSION_5)
 	{
@@ -347,12 +348,9 @@ bool SOCKSAuthenticationUsernamePassword(
 	Timeout->tv_usec = Parameter.SOCKS_SocketTimeout_Reliable.tv_usec;
 #endif
 
-//Username/password authentication exchange
-	if (ProxySocketSelecting(Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, Length, OriginalRecv, RecvSize, sizeof(socks_server_user_authentication), nullptr) < (ssize_t)sizeof(socks_server_user_authentication))
-		return false;
-
-//Server reply check
-	if (((psocks_server_user_authentication)OriginalRecv)->Version != SOCKS_USERNAME_PASSWORD_VERSION || 
+//Username/password authentication exchange and server reply check
+	if (ProxySocketSelecting(Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, Length, OriginalRecv, RecvSize, sizeof(socks_server_user_authentication), nullptr) < (ssize_t)sizeof(socks_server_user_authentication) || 
+		((psocks_server_user_authentication)OriginalRecv)->Version != SOCKS_USERNAME_PASSWORD_VERSION || 
 		((psocks_server_user_authentication)OriginalRecv)->Status != SOCKS_USERNAME_PASSWORD_SUCCESS)
 			return false;
 
@@ -382,8 +380,10 @@ bool SOCKSClientCommandRequest(
 		((psocks5_client_command_request)SOCKS_Pointer)->Version = SOCKS_VERSION_5;
 		if (Protocol == IPPROTO_TCP) //TCP CONNECT
 			((psocks5_client_command_request)SOCKS_Pointer)->Command = SOCKS_COMMAND_CONNECT;
-		else //UDP ASSOCIATE
+		else if (Protocol == IPPROTO_UDP) //UDP ASSOCIATE
 			((psocks5_client_command_request)SOCKS_Pointer)->Command = SOCKS_COMMAND_UDP_ASSOCIATE;
+		else 
+			return false;
 		Length = sizeof(socks5_client_command_request);
 
 	//Write address.
@@ -622,9 +622,7 @@ size_t SOCKSTCPRequest(
 		(TCPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr)) || 
 		!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
 	{
-		shutdown(TCPSocketData.Socket, SD_BOTH);
-		closesocket(TCPSocketData.Socket);
-
+		SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return EXIT_FAILURE;
 	}
 
@@ -644,9 +642,7 @@ size_t SOCKSTCPRequest(
 	{
 		if (!SOCKSSelectionExchange(&TCPSocketData, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), OriginalRecv, RecvSize))
 		{
-			shutdown(TCPSocketData.Socket, SD_BOTH);
-			closesocket(TCPSocketData.Socket);
-
+			SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 			return EXIT_FAILURE;
 		}
 		else {
@@ -657,23 +653,19 @@ size_t SOCKSTCPRequest(
 //Client command request process
 	if (!SOCKSClientCommandRequest(IPPROTO_TCP, TCPSocketData.Socket, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), OriginalRecv, RecvSize, &TCPSocketData))
 	{
-		shutdown(TCPSocketData.Socket, SD_BOTH);
-		closesocket(TCPSocketData.Socket);
-
+		SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return EXIT_FAILURE;
 	}
 	else {
 		memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 	}
 
-//Add length of request packet(It must be written in header when transpot with TCP protocol).
+//Add length of request packet(It must be written in header when transport with TCP protocol).
 	memcpy_s(SendBuffer.get(), RecvSize, OriginalSend, SendSize);
 	ssize_t RecvLen = AddLengthDataToHeader(SendBuffer.get(), SendSize, RecvSize);
 	if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
 	{
-		shutdown(TCPSocketData.Socket, SD_BOTH);
-		closesocket(TCPSocketData.Socket);
-
+		SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return EXIT_FAILURE;
 	}
 
@@ -688,8 +680,7 @@ size_t SOCKSTCPRequest(
 
 //Data exchange
 	RecvLen = ProxySocketSelecting(TCPSocketData.Socket, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, DNS_PACKET_MINSIZE, nullptr);
-	shutdown(TCPSocketData.Socket, SD_BOTH);
-	closesocket(TCPSocketData.Socket);
+	SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 
 //Server response check
 	if (RecvLen >= (ssize_t)DNS_PACKET_MINSIZE && ntohs(((uint16_t *)OriginalRecv)[0]) >= DNS_PACKET_MINSIZE && 
@@ -801,13 +792,9 @@ size_t SOCKSUDPRequest(
 		(UDPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr)) || 
 		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
 	{
-		shutdown(UDPSocketData.Socket, SD_BOTH);
-		closesocket(UDPSocketData.Socket);
+		SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		if (!Parameter.SOCKS_UDP_NoHandshake)
-		{
-			shutdown(TCPSocketData.Socket, SD_BOTH);
-			closesocket(TCPSocketData.Socket);
-		}
+			SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"SOCKS socket initialization error", 0, nullptr, 0);
 
 		return EXIT_FAILURE;
@@ -817,13 +804,9 @@ size_t SOCKSUDPRequest(
 	if ((!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr)) || 
 		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
 	{
-		shutdown(UDPSocketData.Socket, SD_BOTH);
-		closesocket(UDPSocketData.Socket);
+		SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		if (!Parameter.SOCKS_UDP_NoHandshake)
-		{
-			shutdown(TCPSocketData.Socket, SD_BOTH);
-			closesocket(TCPSocketData.Socket);
-		}
+			SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 
 		return EXIT_FAILURE;
 	}
@@ -845,10 +828,8 @@ size_t SOCKSUDPRequest(
 	//Selection exchange process
 		if (!SOCKSSelectionExchange(&TCPSocketData, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), OriginalRecv, RecvSize))
 		{
-			shutdown(UDPSocketData.Socket, SD_BOTH);
-			shutdown(TCPSocketData.Socket, SD_BOTH);
-			closesocket(UDPSocketData.Socket);
-			closesocket(TCPSocketData.Socket);
+			SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+			SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 
 			return EXIT_FAILURE;
 		}
@@ -860,10 +841,8 @@ size_t SOCKSUDPRequest(
 		if (SocketConnecting(IPPROTO_UDP, UDPSocketData.Socket, (PSOCKADDR)&UDPSocketData.SockAddr, UDPSocketData.AddrLen, nullptr, 0) == EXIT_FAILURE || 
 			getsockname(UDPSocketData.Socket, (PSOCKADDR)&LocalSocketData.SockAddr, &LocalSocketData.AddrLen) == SOCKET_ERROR)
 		{
-			shutdown(UDPSocketData.Socket, SD_BOTH);
-			shutdown(TCPSocketData.Socket, SD_BOTH);
-			closesocket(UDPSocketData.Socket);
-			closesocket(TCPSocketData.Socket);
+			SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+			SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 			PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
 
 			return EXIT_FAILURE;
@@ -872,10 +851,8 @@ size_t SOCKSUDPRequest(
 	//Client command request process
 		if (!SOCKSClientCommandRequest(IPPROTO_UDP, TCPSocketData.Socket, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), OriginalRecv, RecvSize, &LocalSocketData))
 		{
-			shutdown(UDPSocketData.Socket, SD_BOTH);
-			shutdown(TCPSocketData.Socket, SD_BOTH);
-			closesocket(UDPSocketData.Socket);
-			closesocket(TCPSocketData.Socket);
+			SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+			SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 
 			return EXIT_FAILURE;
 		}
@@ -883,9 +860,9 @@ size_t SOCKSUDPRequest(
 			memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 
 		//Copy network infomation from server message.
-			if (UDPSocketData.SockAddr.ss_family == AF_INET6)
+			if (UDPSocketData.SockAddr.ss_family == AF_INET6) //IPv6
 				((PSOCKADDR_IN6)&UDPSocketData.SockAddr)->sin6_port = ((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_port;
-			else 
+			else if (UDPSocketData.SockAddr.ss_family == AF_INET) //IPv4
 				((PSOCKADDR_IN)&UDPSocketData.SockAddr)->sin_port = ((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_port;
 		}
 	}
@@ -893,11 +870,9 @@ size_t SOCKSUDPRequest(
 //UDP connecting again
 	if (SocketConnecting(IPPROTO_UDP, UDPSocketData.Socket, (PSOCKADDR)&UDPSocketData.SockAddr, UDPSocketData.AddrLen, nullptr, 0) == EXIT_FAILURE)
 	{
+		SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		if (!Parameter.SOCKS_UDP_NoHandshake)
-		{
-			shutdown(TCPSocketData.Socket, SD_BOTH);
-			closesocket(TCPSocketData.Socket);
-		}
+			SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 
 		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
 		return EXIT_FAILURE;
@@ -940,13 +915,9 @@ size_t SOCKSUDPRequest(
 		RecvLen += (ssize_t)sizeof(uint16_t);
 	}
 	else {
-		shutdown(UDPSocketData.Socket, SD_BOTH);
-		closesocket(UDPSocketData.Socket);
+		SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		if (!Parameter.SOCKS_UDP_NoHandshake)
-		{
-			shutdown(TCPSocketData.Socket, SD_BOTH);
-			closesocket(TCPSocketData.Socket);
-		}
+			SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 
 		return EXIT_FAILURE;
 	}
@@ -965,13 +936,9 @@ size_t SOCKSUDPRequest(
 
 //Data exchange
 	RecvLen = ProxySocketSelecting(UDPSocketData.Socket, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, sizeof(socks_udp_relay_request) + DNS_PACKET_MINSIZE, nullptr);
-	shutdown(UDPSocketData.Socket, SD_BOTH);
-	closesocket(UDPSocketData.Socket);
+	SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 	if (!Parameter.SOCKS_UDP_NoHandshake)
-	{
-		shutdown(TCPSocketData.Socket, SD_BOTH);
-		closesocket(TCPSocketData.Socket);
-	}
+		SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 	if (RecvLen >= (ssize_t)DNS_PACKET_MINSIZE)
 	{
 		ssize_t OriginalRecvLen = RecvLen;
@@ -1095,8 +1062,7 @@ size_t HTTPRequest(
 		(HTTPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr)) || 
 		!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
 	{
-		shutdown(HTTPSocketData.Socket, SD_BOTH);
-		closesocket(HTTPSocketData.Socket);
+		SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"HTTP socket initialization error", 0, nullptr, 0);
 
 		return EXIT_FAILURE;
@@ -1105,9 +1071,7 @@ size_t HTTPRequest(
 //Non-blocking mode setting
 	if (!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
 	{
-		shutdown(HTTPSocketData.Socket, SD_BOTH);
-		closesocket(HTTPSocketData.Socket);
-
+		SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return EXIT_FAILURE;
 	}
 
@@ -1122,22 +1086,18 @@ size_t HTTPRequest(
 	if (Parameter.HTTP_TargetDomain == nullptr || Parameter.HTTP_Version == nullptr || 
 		!HTTP_CONNECTRequest(&HTTPSocketData, &ReadFDS, &WriteFDS, &Timeout, OriginalRecv, RecvSize))
 	{
-		shutdown(HTTPSocketData.Socket, SD_BOTH);
-		closesocket(HTTPSocketData.Socket);
-
+		SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return EXIT_FAILURE;
 	}
 
-//Add length of request packet(It must be written in header when transpot with TCP protocol).
+//Add length of request packet(It must be written in header when transport with TCP protocol).
 	std::shared_ptr<uint8_t> SendBuffer(new uint8_t[LARGE_PACKET_MAXSIZE]());
 	memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 	memcpy_s(SendBuffer.get(), RecvSize, OriginalSend, SendSize);
 	ssize_t RecvLen = AddLengthDataToHeader(SendBuffer.get(), SendSize, RecvSize);
 	if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
 	{
-		shutdown(HTTPSocketData.Socket, SD_BOTH);
-		closesocket(HTTPSocketData.Socket);
-
+		SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return EXIT_FAILURE;
 	}
 
@@ -1152,8 +1112,7 @@ size_t HTTPRequest(
 
 //Data exchange
 	RecvLen = ProxySocketSelecting(HTTPSocketData.Socket, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, DNS_PACKET_MINSIZE, nullptr);
-	shutdown(HTTPSocketData.Socket, SD_BOTH);
-	closesocket(HTTPSocketData.Socket);
+	SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 
 //Server response check
 	if (RecvLen >= (ssize_t)DNS_PACKET_MINSIZE && ntohs(((uint16_t *)OriginalRecv)[0]) >= DNS_PACKET_MINSIZE && 

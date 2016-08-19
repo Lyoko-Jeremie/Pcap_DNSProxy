@@ -103,9 +103,7 @@ bool ReadMultipleAddresses(
 	std::string Data, 
 	const size_t DataOffset, 
 	const uint16_t Protocol, 
-	const bool IsMultiAddresses, 
-	sockaddr_storage &SockAddr, 
-	std::vector<sockaddr_storage> *SockAddrList, 
+	std::vector<DNS_SERVER_DATA> *DNSServerDataList, 
 	const size_t FileIndex, 
 	const size_t Line);
 bool ReadSOCKSAddressAndDomain(
@@ -119,7 +117,8 @@ bool ReadHopLimitData(
 	std::string Data, 
 	const size_t DataOffset, 
 	const uint16_t Protocol, 
-	uint8_t &HopLimit, 
+	DNS_SERVER_DATA *DNSServerData, 
+	std::vector<DNS_SERVER_DATA> *DNSServerDataList, 
 	const size_t FileIndex, 
 	const size_t Line);
 #endif

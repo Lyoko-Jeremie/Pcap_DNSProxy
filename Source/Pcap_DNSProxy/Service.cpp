@@ -25,7 +25,7 @@ BOOL WINAPI CtrlHandler(
 	const DWORD fdwCtrlType)
 {
 //Print to screen.
-	if (GlobalRunningStatus.Console)
+	if (GlobalRunningStatus.IsConsole)
 	{
 		switch (fdwCtrlType)
 		{
@@ -55,8 +55,12 @@ size_t WINAPI ServiceMain(
 	DWORD argc, 
 	LPTSTR *argv)
 {
+//Disable warning message.
+	argc;
+	argv;
+
 //Disable console mode printing.
-	GlobalRunningStatus.Console = false;
+	GlobalRunningStatus.IsConsole = false;
 
 //Service initialization
 	ServiceStatusHandle = RegisterServiceCtrlHandlerW(SYSTEM_SERVICE_NAME, (LPHANDLER_FUNCTION)ServiceControl);
@@ -127,6 +131,10 @@ BOOL WINAPI ExecuteService(
 DWORD WINAPI ServiceProc(
 	PVOID lpParameter)
 {
+//Disable warning message.
+	lpParameter;
+
+//Start main process.
 	if (!IsServiceRunning || !MonitorInit())
 	{
 		TerminateService();
@@ -188,7 +196,7 @@ void WINAPI TerminateService(
 bool FlushDNSMailSlotMonitor(
 	void)
 {
-//System security setting
+//System security initialization
 	std::shared_ptr<uint8_t> ACL_Buffer(new uint8_t[FILE_BUFFER_SIZE]());
 	memset(ACL_Buffer.get(), 0, FILE_BUFFER_SIZE);
 	SECURITY_ATTRIBUTES SecurityAttributes;
@@ -197,6 +205,7 @@ bool FlushDNSMailSlotMonitor(
 	memset(&SecurityDescriptor, 0, sizeof(SecurityDescriptor));
 	PSID SID_Value = nullptr;
 
+//System security setting
 	InitializeSecurityDescriptor(&SecurityDescriptor, SECURITY_DESCRIPTOR_REVISION);
 	InitializeAcl((PACL)ACL_Buffer.get(), FILE_BUFFER_SIZE, ACL_REVISION);
 	ConvertStringSidToSidW(SID_ADMINISTRATORS_GROUP, &SID_Value);
@@ -317,6 +326,7 @@ bool FlushDNSFIFOMonitor(
 {
 //Create FIFO and create its notify monitor.
 	unlink(FIFO_PATH_NAME);
+	errno = 0;
 	if (mkfifo(FIFO_PATH_NAME, O_CREAT) == RETURN_ERROR || 
 		chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) == RETURN_ERROR)
 	{
@@ -337,6 +347,7 @@ bool FlushDNSFIFOMonitor(
 		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 
 	//Open FIFO.
+		errno = 0;
 		FIFO_Handle = open(FIFO_PATH_NAME, O_RDONLY, 0);
 		if (FIFO_Handle == RETURN_ERROR)
 		{
@@ -347,6 +358,7 @@ bool FlushDNSFIFOMonitor(
 		}
 
 	//Read file data.
+		errno = 0;
 		Length = read(FIFO_Handle, Buffer.get(), FILE_BUFFER_SIZE);
 		if (Length == RETURN_ERROR || Length < (ssize_t)DOMAIN_MINSIZE || Length > (ssize_t)DOMAIN_MAXSIZE)
 		{
@@ -440,6 +452,23 @@ void FlushDNSCache(
 		}
 	}
 	DNSCacheListMutex.unlock();
+
+//Flush system DNS interval time check
+#if defined(PLATFORM_WIN_XP)
+	if (LastFlushDNSTime > 0 && LastFlushDNSTime < GetTickCount() + FLUSH_DNS_CACHE_INTERVAL_TIME * SECOND_TO_MILLISECOND)
+#else
+	if (LastFlushDNSTime > 0 && LastFlushDNSTime < GetTickCount64() + FLUSH_DNS_CACHE_INTERVAL_TIME * SECOND_TO_MILLISECOND)
+#endif
+	{
+		return;
+	}
+	else {
+	#if defined(PLATFORM_WIN_XP)
+		LastFlushDNSTime = GetTickCount();
+	#else
+		LastFlushDNSTime = GetTickCount64();
+	#endif
+	}
 
 //Flush DNS cache in system.
 	std::lock_guard<std::mutex> ScreenMutex(ScreenLock);

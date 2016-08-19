@@ -47,7 +47,7 @@ int main(
 
 //DNSCurve initialization
 #if defined(ENABLE_LIBSODIUM)
-	if (Parameter.DNSCurve)
+	if (Parameter.IsDNSCurve)
 	{
 		DNSCurveParameterModificating.SetToMonitorItem();
 
@@ -61,10 +61,16 @@ int main(
 	ParameterModificating.SetToMonitorItem();
 	std::thread NetworkInformationMonitorThread(std::bind(NetworkInformationMonitor));
 	NetworkInformationMonitorThread.detach();
-	std::thread ReadParameterThread(std::bind(ReadParameter, false));
-	ReadParameterThread.detach();
-	std::thread ReadHostsThread(std::bind(ReadHosts));
-	ReadHostsThread.detach();
+	if (!GlobalRunningStatus.FileList_IPFilter->empty())
+	{
+		std::thread ReadParameterThread(std::bind(ReadParameter, false));
+		ReadParameterThread.detach();
+	}
+	if (!GlobalRunningStatus.FileList_Hosts->empty())
+	{
+		std::thread ReadHostsThread(std::bind(ReadHosts));
+		ReadHostsThread.detach();
+	}
 	if (Parameter.OperationMode == LISTEN_MODE_CUSTOM || Parameter.DataCheck_Blacklist || Parameter.LocalRouting)
 	{
 		std::thread ReadIPFilterThread(std::bind(ReadIPFilter));
@@ -87,10 +93,12 @@ int main(
 
 	//Handle the system signal and start all monitors.
 		SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, TRUE);
-		MonitorInit();
+		if (!MonitorInit())
+			return EXIT_FAILURE;
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	MonitorInit();
+	if (!MonitorInit())
+		return EXIT_FAILURE;
 #endif
 
 	return EXIT_SUCCESS;
@@ -213,7 +221,7 @@ bool ReadCommands(
 	#if defined(PLATFORM_LINUX)
 		else if (Commands == COMMAND_DISABLE_DAEMON)
 		{
-			GlobalRunningStatus.Daemon = false;
+			GlobalRunningStatus.IsDaemon = false;
 		}
 	#endif
 	//Print current version.
@@ -336,10 +344,10 @@ bool ReadCommands(
 				DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> SecretKey(crypto_box_SECRETKEYBYTES);
 				uint8_t PublicKey[crypto_box_PUBLICKEYBYTES] = {0};
 				size_t InnerIndex = 0;
-				crypto_box_keypair(PublicKey, SecretKey.Buffer);
 
-			//Write public key.
-				if (sodium_bin2hex((char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, PublicKey, crypto_box_PUBLICKEYBYTES) == nullptr)
+			//Generator a ramdon keypair and write public key.
+				if (crypto_box_keypair(PublicKey, SecretKey.Buffer) != 0 || 
+					sodium_bin2hex((char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, PublicKey, crypto_box_PUBLICKEYBYTES) == nullptr)
 				{
 					fclose(FileHandle);
 					PrintToScreen(true, L"Create ramdom key pair failed, please try again.\n");
@@ -350,8 +358,9 @@ bool ReadCommands(
 				fwprintf_s(FileHandle, L"Client Public Key = ");
 				for (InnerIndex = 0;InnerIndex < strnlen_s((const char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
 				{
-					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && InnerIndex + 1U < strnlen_s((const char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
-						fwprintf_s(FileHandle, L":");
+					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && 
+						InnerIndex + 1U < strnlen_s((const char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
+							fwprintf_s(FileHandle, L":");
 
 					fwprintf_s(FileHandle, L"%c", Buffer.get()[InnerIndex]);
 				}
@@ -370,8 +379,9 @@ bool ReadCommands(
 				fwprintf_s(FileHandle, L"Client Secret Key = ");
 				for (InnerIndex = 0;InnerIndex < strnlen_s((const char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
 				{
-					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && InnerIndex + 1U < strnlen_s((const char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
-						fwprintf_s(FileHandle, L":");
+					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && 
+						InnerIndex + 1U < strnlen_s((const char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
+							fwprintf_s(FileHandle, L":");
 
 					fwprintf_s(FileHandle, L"%c", Buffer.get()[InnerIndex]);
 				}
@@ -394,7 +404,7 @@ bool ReadCommands(
 
 //Set system daemon.
 #if defined(PLATFORM_LINUX)
-	if (GlobalRunningStatus.Daemon && daemon(0, 0) == RETURN_ERROR)
+	if (GlobalRunningStatus.IsDaemon && daemon(0, 0) == RETURN_ERROR)
 	{
 		PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Set system daemon error", 0, nullptr, 0);
 		return false;
@@ -444,13 +454,12 @@ bool FileNameInit(
 	*GlobalRunningStatus.Path_ErrorLog = GlobalRunningStatus.Path_Global->front();
 	GlobalRunningStatus.Path_ErrorLog->append(ERROR_LOG_FILE_NAME);
 #if defined(PLATFORM_WIN)
-	GlobalRunningStatus.Console = true;
+	GlobalRunningStatus.IsConsole = true;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	GlobalRunningStatus.sPath_ErrorLog->clear();
 	*GlobalRunningStatus.sPath_ErrorLog = GlobalRunningStatus.sPath_Global->front();
 	GlobalRunningStatus.sPath_ErrorLog->append(ERROR_LOG_FILE_NAME_STRING);
 #endif
-	Parameter.PrintLogLevel = DEFAULT_LOG_LEVEL;
 	GlobalRunningStatus.StartupTime = time(nullptr);
 
 	return true;
@@ -492,16 +501,15 @@ bool FirewallTest(
 					++Index;
 				}
 				else {
-					shutdown(FirewallSocket, SD_BOTH);
-					closesocket(FirewallSocket);
-
+					SocketSetting(FirewallSocket, SOCKET_SETTING_CLOSE, false, nullptr);
 					return false;
 				}
 			}
 		}
 	}
 //IPv4
-	else {
+	else if (Protocol == AF_INET)
+	{
 		((PSOCKADDR_IN)&SockAddr)->sin_addr.s_addr = INADDR_ANY;
 		((PSOCKADDR_IN)&SockAddr)->sin_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 		SockAddr.ss_family = AF_INET;
@@ -523,18 +531,18 @@ bool FirewallTest(
 					++Index;
 				}
 				else {
-					shutdown(FirewallSocket, SD_BOTH);
-					closesocket(FirewallSocket);
-
+					SocketSetting(FirewallSocket, SOCKET_SETTING_CLOSE, false, nullptr);
 					return false;
 				}
 			}
 		}
 	}
+	else {
+		return false;
+	}
 
 //Close socket.
-	shutdown(FirewallSocket, SD_BOTH);
-	closesocket(FirewallSocket);
+	SocketSetting(FirewallSocket, SOCKET_SETTING_CLOSE, false, nullptr);
 	return true;
 }
 #endif

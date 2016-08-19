@@ -39,12 +39,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 注意：建议将 "本地连接" 和 "无线连接" 以及 "宽带连接" 全部修改！
 
 6.特别注意：
-  * Windows XP 如出现 10022 错误，需要先启用系统的 IPv6 支持，再重新启动服务：
+  * Windows XP 如出现 10022/WSAEINVAL 错误，需要先启用系统的 IPv6 支持，再重新启动服务：
     * 以管理员身份运行 cmd
     * 输入 ipv6 install 并回车
-  * 如需使用境内 DNS 服务器解析境内域名加速访问 CDN 速度功能，请选择其中一种方案，配置完成后重启服务：
-    * Local Main = 1 同时 Local Routing = 1 开启境内地址路由表识别功能
-    * Local Hosts = 1 开启境内域名白名单功能
   * 如需让程序的流量通过系统路由级别的代理（例如 VPN 等）进行域名解析，请选择其中一种方案，配置完成后重启服务：
     * Direct Request = IPv4
     * Direct Request = IPv6
@@ -152,7 +149,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * DNS 缓存类型
   * Timer/计时型：可以自定义缓存的时间长度，队列长度不限
-  * Queue/队列型：默认缓存时间 15 分钟，可通过 Default TTL 值自定义，同时可自定义缓存队列长度（亦即限制队列长度的 Timer/计时型）
+  * Queue/队列型：可通过 Default TTL 值自定义，同时可自定义缓存队列长度（亦即限制队列长度的 Timer/计时型）
   * 强烈建议打开 DNS 缓存功能！
 * 本工具配置选项丰富，配置不同的组合会有不同的效果，介绍几个比较常用的组合：
   * 默认配置：UDP 请求 + 抓包模式
@@ -498,8 +495,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 本参数与 Pcap Reading Timeout 密切相关，由于抓包模块每隔一段读取超时时间才会返回给程序一次，当数据包接收等待时间小于读取超时时间时会导致本参数变得没有意义，在一些情况下甚至会拖慢域名解析的响应速度
     * 本参数启用后虽然本身只决定抓包模块的接收等待时间，但同时会影响到非抓包模块的请求。非抓包模块会自动切换为等待超时时间后发回最后收到的回复，默认为接受最先到达的正确的回复，而它们的超时时间由 Reliable Socket Timeout/Unreliable Socket Timeout 参数决定
     * 一般情况下，越靠后所收到的数据包，其可靠性可能会更高
-  * ICMP Test - ICMP/Ping 测试间隔时间：单位为秒，最小为 5
-  * Domain Test - DNS 服务器解析域名测试间隔时间：单位为秒，最小为 5
+  * ICMP Test - ICMP/Ping 测试间隔时间：单位为秒，最小为 5 填 0 表示关闭此功能
+  * Domain Test - DNS 服务器解析域名测试间隔时间：单位为秒，最小为 5 填 0 表示关闭此功能
   * Alternate Times - 备用服务器失败次数阈值，一定周期内如超出阈值会触发服务器切换：单位为次
   * Alternate Time Range - 备用服务器失败次数阈值计算周期：单位为秒，最小为 5
   * Alternate Reset Time - 备用服务器重置切换时间，切换产生后经过此事件会切换回主要服务器：单位为秒，最小为 5
@@ -692,6 +689,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Default TTL
 * Local Protocol
 * Local Force Request
+* Thread Pool Reset Time
 * IPv4 Packet TTL
 * IPv6 Packet Hop Limits
 * IPv4 TTL

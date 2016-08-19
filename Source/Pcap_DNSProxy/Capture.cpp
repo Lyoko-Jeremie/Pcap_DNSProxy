@@ -142,6 +142,7 @@ void CaptureFilterRulesInit(
 		//Add to address list.
 			if (!RepeatingItem)
 				AddrList.push_back(&Parameter.Target_Server_Alternate_IPv6);
+
 			RepeatingItem = false;
 		}
 
@@ -311,7 +312,7 @@ bool CaptureModule(
 		CaseConvert(false, CaptureDevice);
 		for (const auto &CaptureIter:*Parameter.PcapDevicesBlacklist)
 		{
-			if (CaptureIter.find(CaptureDevice) != std::string::npos)
+			if (CaptureDevice.find(CaptureIter) != std::string::npos)
 				goto SkipDevices;
 		}
 	}
@@ -322,7 +323,7 @@ bool CaptureModule(
 	CaseConvert(false, CaptureDevice);
 	for (const auto &CaptureIter:*Parameter.PcapDevicesBlacklist)
 	{
-		if (CaptureIter.find(CaptureDevice) != std::string::npos)
+		if (CaptureDevice.find(CaptureIter) != std::string::npos)
 			goto SkipDevices;
 	}
 
@@ -639,7 +640,7 @@ bool CaptureNetworkLayer(
 
 			//DNSCurve encryption packet check
 			#if defined(ENABLE_LIBSODIUM)
-				if (Parameter.DNSCurve && 
+				if (Parameter.IsDNSCurve && 
 				//Main(IPv6)
 					((DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
 					DNSCurveParameter.DNSCurve_Target_Server_IPv6.ReceiveMagicNumber != nullptr && 
@@ -765,7 +766,7 @@ bool CaptureNetworkLayer(
 
 			//DNSCurve encryption packet check
 			#if defined(ENABLE_LIBSODIUM)
-				if (Parameter.DNSCurve && 
+				if (Parameter.IsDNSCurve && 
 				//Main(IPv4)
 					((DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
 					DNSCurveParameter.DNSCurve_Target_Server_IPv4.ReceiveMagicNumber != nullptr &&  
@@ -803,13 +804,14 @@ bool CaptureCheck_ICMP(
 //ICMPv6
 	if (Protocol == AF_INET6)
 	{
-		if (((picmpv6_hdr)Buffer)->Type == ICMPV6_TYPE_REPLY && ((picmpv6_hdr)Buffer)->Code == ICMPV6_CODE_REPLY && //ICMPv6 Echo reply
+		if (((picmpv6_hdr)Buffer)->Type == ICMPV6_TYPE_REPLY && ((picmpv6_hdr)Buffer)->Code == ICMPV6_CODE_REPLY && //ICMPv6 echo reply
 			((picmpv6_hdr)Buffer)->ID == Parameter.ICMP_ID) //Validate ICMP packet.
 				return true;
 	}
 //ICMP
-	else {
-		if (((picmp_hdr)Buffer)->Type == ICMP_TYPE_ECHO && ((picmp_hdr)Buffer)->Code == ICMP_CODE_ECHO && //ICMP Echo reply
+	else if (Protocol == AF_INET)
+	{
+		if (((picmp_hdr)Buffer)->Type == ICMP_TYPE_ECHO && ((picmp_hdr)Buffer)->Code == ICMP_CODE_ECHO && //ICMP echo reply
 		//Validate ICMP packet
 			((picmp_hdr)Buffer)->ID == Parameter.ICMP_ID && 
 			Parameter.ICMP_PaddingData != nullptr && Length == sizeof(icmp_hdr) + Parameter.ICMP_PaddingLength && 
@@ -942,14 +944,14 @@ ClearOutputPacketListData:
 			{
 				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
 					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV6];
-				else //UDP
+				else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP) //UDP
 					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV6];
 			}
 			else if (OutputPacketList.front().Protocol_Network == AF_INET) //IPv4
 			{
 				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
 					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV4];
-				else //UDP
+				else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP) //UDP
 					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV4];
 			}
 		}
@@ -966,14 +968,14 @@ ClearOutputPacketListData:
 			{
 				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
 					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV6];
-				else //UDP
+				else if(OutputPacketList.front().Protocol_Transport == IPPROTO_UDP) //UDP
 					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV6];
 			}
 			else if (OutputPacketList.front().Protocol_Network == AF_INET) //IPv4
 			{
 				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
 					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV4];
-				else //UDP
+				else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP) //UDP
 					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV4];
 			}
 		}
@@ -984,8 +986,9 @@ ClearOutputPacketListData:
 	OutputPacketListMutex.unlock();
 
 //Drop resopnses which not in OutputPacketList.
-	if (SocketData_Input.Socket == 0 || SocketData_Input.AddrLen == 0 || SocketData_Input.SockAddr.ss_family == 0 || SystemProtocol == 0)
-		return false;
+	if (!SocketSetting(SocketData_Input.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
+		SocketData_Input.AddrLen == 0 || SocketData_Input.SockAddr.ss_family == 0 || SystemProtocol == 0)
+			return false;
 
 //Mark DNS cache.
 	if (Parameter.CacheType > 0)
@@ -1006,8 +1009,7 @@ ClearOutputPacketListData:
 		}
 	}
 
-	shutdown(SocketData_Input.Socket, SD_BOTH);
-	closesocket(SocketData_Input.Socket);
+	SocketSetting(SocketData_Input.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 	return true;
 }
 #endif

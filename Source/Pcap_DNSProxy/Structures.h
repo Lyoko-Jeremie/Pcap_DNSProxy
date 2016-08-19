@@ -1337,8 +1337,8 @@ typedef struct _ipv6_psd_hdr_
 #define DNS_GET_BIT_CD                0x0010     //Get Checking Disabled bit in DNS flags.
 #define DNS_GET_BIT_RCODE             0x000F     //Get RCode in DNS flags.
 #define DNS_SET_R                     0x8000     //Set Response bit.
-#define DNS_SET_RTC                   0x8200     //Set Response bit and Truncated bit.
-#define DNS_SER_RA                    0x8580     //Set Response bit and Authoritative bit.
+#define DNS_SET_R_TC                  0x8200     //Set Response bit and Truncated bit.
+#define DNS_SER_R_A                   0x8580     //Set Response bit and Authoritative bit.
 #define DNS_SET_R_FE                  0x8001     //Set Response bit and Format Error RCode.
 #define DNS_SET_R_SNH                 0x8003     //Set Response bit and No Such Name RCode.
 #define DNS_POINTER_8_BITS            0xC0       //DNS compression pointer(11000000)
@@ -1915,11 +1915,11 @@ typedef struct _dns_record_opt_
 #define EDNS_CODE_UL                  0x0002   //Update lease
 #define EDNS_CODE_NSID                0x0003   //Name Server Identifier (RFC 5001)
 #define EDNS_CODE_OWNER               0x0004   //Owner, reserved
-#define EDNS_CODE_DAU                 0x0005   //DNSSEC Algorithm Understood (RFC6975)
-#define EDNS_CODE_DHU                 0x0006   //DS Hash Understood (RFC6975)
-#define EDNS_CODE_N3U                 0x0007   //DSEC3 Hash Understood (RFC6975)
+#define EDNS_CODE_DAU                 0x0005   //DNSSEC Algorithm Understood (RFC 6975)
+#define EDNS_CODE_DHU                 0x0006   //DS Hash Understood (RFC 6975)
+#define EDNS_CODE_N3U                 0x0007   //DSEC3 Hash Understood (RFC 6975)
 #define EDNS_CODE_CSUBNET             0x0008   //Client subnet as assigned by IANA
-#define EDNS_CODE_EDNS_EXPIRE         0x0009   //EDNS Expire (RFC7314)
+#define EDNS_CODE_EDNS_EXPIRE         0x0009   //EDNS Expire (RFC 7314)
 
 //About Address Family Numbers, see https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml.
 #define ADDRESS_FAMILY_IPV4           0x0001
@@ -2217,7 +2217,8 @@ typedef struct _dns_record_caa_
 #define DNSCURVE_MAGIC_QUERY_HEX_LEN      16U
 #define DNSCRYPT_RECEIVE_MAGIC            ("r6fnvWj8")                   //Receive Magic Number
 #define DNSCRYPT_CERT_MAGIC               ("DNSC")                       //Signature Magic Number
-#define DNSCRYPT_PADDING_SIGN             ('\x80')
+#define DNSCRYPT_PADDING_SIGN             0x80
+#define DNSCRYPT_PADDING_SIGN_STRING      ('\x80')
 #define crypto_box_HALF_NONCEBYTES        (crypto_box_NONCEBYTES / 2U)
 // Function definitions
 #define crypto_sign_open                  crypto_sign_ed25519_open

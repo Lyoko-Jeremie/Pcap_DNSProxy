@@ -39,6 +39,8 @@ bool ReadHostsData(
 		Data.pop_back();
 	while (!Data.empty() && Data.find("  ") != std::string::npos)
 		Data.erase(Data.find("  "), 1U);
+	if (Data.empty())
+		return true;
 
 //Multi-line comments check, delete comments(Number Sign/NS and double slashs) and check minimum length of hosts items.
 	if (!ReadMultiLineComments(Data, IsLabelComments) || Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
@@ -293,7 +295,7 @@ bool ReadOtherHostsData(
 		ssize_t Result = 0;
 
 	//Mark all data in list.
-		GetParameterListData(ListData, Data, Data.find(ASCII_COLON) + 1U, Separated);
+		GetParameterListData(ListData, Data, Data.find(ASCII_COLON) + 1U, Separated, false);
 		for (const auto &StringIter:ListData)
 		{
 			RecordType = DNSTypeNameToBinary((const uint8_t *)StringIter.c_str());
@@ -443,8 +445,8 @@ bool ReadAddressHostsData(
 
 //Get target data.
 	std::vector<std::string> TargetListData, SourceListData;
-	GetParameterListData(TargetListData, Data, 0, Separated);
-	GetParameterListData(SourceListData, Data, Separated, Data.length());
+	GetParameterListData(TargetListData, Data, 0, Separated, false);
+	GetParameterListData(SourceListData, Data, Separated, Data.length(), false);
 	ssize_t Result = 0;
 
 //Mark all data in list.
@@ -663,7 +665,7 @@ bool ReadMainHostsData(
 	if (HostsType == HOSTS_TYPE_SOURCE)
 	{
 		std::vector<std::string> SourceListData;
-		GetParameterListData(SourceListData, Data, 0, Data.find("->"));
+		GetParameterListData(SourceListData, Data, 0, Data.find("->"), false);
 		if (SourceListData.empty())
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
@@ -688,10 +690,10 @@ bool ReadMainHostsData(
 			}
 		}
 
-		GetParameterListData(HostsListData, Data, Data.find("->") + strlen("->"), Separated);
+		GetParameterListData(HostsListData, Data, Data.find("->") + strlen("->"), Separated, false);
 	}
 	else {
-		GetParameterListData(HostsListData, Data, 0, Separated);
+		GetParameterListData(HostsListData, Data, 0, Separated, false);
 	}
 
 //Address counts check

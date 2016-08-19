@@ -25,7 +25,7 @@ bool MonitorInit(
 {
 //Capture initialization
 #if defined(ENABLE_PCAP)
-	if (Parameter.PcapCapture && 
+	if (Parameter.IsPcapCapture && 
 	//Direct Request mode
 		!(Parameter.DirectRequest == DIRECT_REQUEST_MODE_BOTH || 
 		(Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV6 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0 && 
@@ -36,7 +36,7 @@ bool MonitorInit(
 		!(Parameter.HTTP_Proxy && Parameter.HTTP_Only)
 	//DNSCurve request only mode
 	#if defined(ENABLE_LIBSODIUM)
-		&& !(Parameter.DNSCurve && DNSCurveParameter.IsEncryptionOnly)
+		&& !(Parameter.IsDNSCurve && DNSCurveParameter.IsEncryptionOnly)
 	#endif
 		)
 	{
@@ -62,7 +62,7 @@ bool MonitorInit(
 			IPv4TestDoaminThread.detach();
 		}
 
-	//Get Hop Limits/TTL with ICMP Echo.
+	//Get Hop Limits/TTL with ICMP echo.
 	//ICMPv6
 		if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
@@ -120,7 +120,7 @@ bool MonitorInit(
 				{
 					for (const auto &ListenAddressIter:*Parameter.ListenAddress_IPv6)
 					{
-						if (LocalSocketData.Socket == 0)
+						if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 						{
 							LocalSocketData.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
@@ -152,7 +152,7 @@ bool MonitorInit(
 					{
 						for (const auto &ListenPortIter:*Parameter.ListenPort)
 						{
-							if (LocalSocketData.Socket == 0)
+							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 							{
 								LocalSocketData.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
@@ -190,7 +190,7 @@ bool MonitorInit(
 				{
 					for (const auto &ListenAddressIter:*Parameter.ListenAddress_IPv6)
 					{
-						if (LocalSocketData.Socket == 0)
+						if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 						{
 							LocalSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
@@ -222,7 +222,7 @@ bool MonitorInit(
 					{
 						for (const auto &ListenPortIter:*Parameter.ListenPort)
 						{
-							if (LocalSocketData.Socket == 0)
+							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 							{
 								LocalSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
@@ -263,7 +263,7 @@ bool MonitorInit(
 				{
 					for (const auto &ListenAddressIter:*Parameter.ListenAddress_IPv4)
 					{
-						if (LocalSocketData.Socket == 0)
+						if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 						{
 							LocalSocketData.Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
@@ -295,7 +295,7 @@ bool MonitorInit(
 					{
 						for (const auto &ListenPortIter:*Parameter.ListenPort)
 						{
-							if (LocalSocketData.Socket == 0)
+							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 							{
 								LocalSocketData.Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
@@ -333,7 +333,7 @@ bool MonitorInit(
 				{
 					for (const auto &ListenAddressIter:*Parameter.ListenAddress_IPv4)
 					{
-						if (LocalSocketData.Socket == 0)
+						if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 						{
 							LocalSocketData.Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
@@ -365,7 +365,7 @@ bool MonitorInit(
 					{
 						for (const auto &ListenPortIter:*Parameter.ListenPort)
 						{
-							if (LocalSocketData.Socket == 0)
+							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 							{
 								LocalSocketData.Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
@@ -401,12 +401,16 @@ bool MonitorInit(
 #endif
 
 //Start monitor request consumer threads.
-	GlobalRunningStatus.ThreadRunningNum += Parameter.ThreadPoolBaseNum;
-	for (size_t Index = 0;Index < Parameter.ThreadPoolBaseNum;++Index)
+	if (Parameter.ThreadPoolBaseNum > 0)
 	{
-	//Start monitor consumer thread.
-		std::thread MonitorConsumerThread(std::bind(MonitorRequestConsumer));
-		MonitorConsumerThread.detach();
+		for (size_t Index = 0;Index < Parameter.ThreadPoolBaseNum;++Index)
+		{
+		//Start monitor consumer thread.
+			std::thread MonitorConsumerThread(std::bind(MonitorRequestConsumer));
+			MonitorConsumerThread.detach();
+		}
+
+		GlobalRunningStatus.ThreadRunningNum += Parameter.ThreadPoolBaseNum;
 	}
 
 //Join threads.
@@ -448,8 +452,7 @@ bool UDPMonitor(
 	if (bind(LocalSocketData.Socket, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen) == SOCKET_ERROR)
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"Bind UDP Monitor socket error", WSAGetLastError(), nullptr, 0);
-		shutdown(LocalSocketData.Socket, SD_BOTH);
-		closesocket(LocalSocketData.Socket);
+		SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		*Result = false;
 
 		return false;
@@ -552,16 +555,16 @@ bool UDPMonitor(
 		}
 	//SOCKET_ERROR
 		else {
-			PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
-			Sleep(Parameter.FileRefreshTime);
+			if (WSAGetLastError() != WSAENOTSOCK) //Block error messages when monitor is terminated.
+				PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 
+			Sleep(Parameter.FileRefreshTime);
 			continue;
 		}
 	}
 
 //Monitor terminated
-	shutdown(LocalSocketData.Socket, SD_BOTH);
-	closesocket(LocalSocketData.Socket);
+	SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"UDP listening module Monitor terminated", 0, nullptr, 0);
 	return true;
 }
@@ -591,8 +594,7 @@ bool TCPMonitor(
 	if (bind(LocalSocketData.Socket, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen) == SOCKET_ERROR)
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"Bind TCP Monitor socket error", WSAGetLastError(), nullptr, 0);
-		shutdown(LocalSocketData.Socket, SD_BOTH);
-		closesocket(LocalSocketData.Socket);
+		SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		*Result = false;
 
 		return false;
@@ -602,8 +604,7 @@ bool TCPMonitor(
 	if (listen(LocalSocketData.Socket, SOMAXCONN) == SOCKET_ERROR)
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"TCP Monitor socket listening initialization error", WSAGetLastError(), nullptr, 0);
-		shutdown(LocalSocketData.Socket, SD_BOTH);
-		closesocket(LocalSocketData.Socket);
+		SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		*Result = false;
 
 		return false;
@@ -672,8 +673,9 @@ bool TCPMonitor(
 			//Check request address.
 				if (!CheckQueryData(nullptr, nullptr, 0, ClientData))
 				{
-					shutdown(ClientData.Socket, SD_BOTH);
-					closesocket(ClientData.Socket);
+					SocketSetting(ClientData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+					ClientData.Socket = 0;
+
 					continue;
 				}
 
@@ -690,16 +692,16 @@ bool TCPMonitor(
 		}
 	//SOCKET_ERROR
 		else {
-			PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"UDP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
-			Sleep(Parameter.FileRefreshTime);
+			if (WSAGetLastError() != WSAENOTSOCK) //Block error messages when monitor is terminated.
+				PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"TCP Monitor socket initialization error", WSAGetLastError(), nullptr, 0);
 
+			Sleep(Parameter.FileRefreshTime);
 			continue;
 		}
 	}
 
 //Monitor terminated
-	shutdown(LocalSocketData.Socket, SD_BOTH);
-	closesocket(LocalSocketData.Socket);
+	SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"TCP listening module Monitor terminated", 0, nullptr, 0);
 	return true;
 }
@@ -739,8 +741,7 @@ bool TCPReceiveProcess(
 	}
 //Timeout or SOCKET_ERROR
 	else {
-		shutdown(LocalSocketData.Socket, SD_BOTH);
-		closesocket(LocalSocketData.Socket);
+		SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return false;
 	}
 
@@ -748,8 +749,7 @@ bool TCPReceiveProcess(
 	size_t Length = 0;
 	if (RecvLen <= 0)
 	{
-		shutdown(LocalSocketData.Socket, SD_BOTH);
-		closesocket(LocalSocketData.Socket);
+		SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return false;
 	}
 	else if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
@@ -786,15 +786,13 @@ bool TCPReceiveProcess(
 			}
 		//Connection closed or SOCKET_ERROR
 			else {
-				shutdown(LocalSocketData.Socket, SD_BOTH);
-				closesocket(LocalSocketData.Socket);
+				SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 				return false;
 			}
 		}
 	//Timeout or SOCKET_ERROR
 		else {
-			shutdown(LocalSocketData.Socket, SD_BOTH);
-			closesocket(LocalSocketData.Socket);
+			SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 			return false;
 		}
 	}
@@ -815,8 +813,7 @@ bool TCPReceiveProcess(
 		memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
 		if (!CheckQueryData(&MonitorQueryData.first, SendBuffer.get(), LARGE_PACKET_MAXSIZE, MonitorQueryData.second))
 		{
-			shutdown(MonitorQueryData.second.Socket, SD_BOTH);
-			closesocket(MonitorQueryData.second.Socket);
+			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 			return false;
 		}
 		
@@ -824,8 +821,7 @@ bool TCPReceiveProcess(
 		EnterRequestProcess(MonitorQueryData, nullptr, 0);
 	}
 	else {
-		shutdown(LocalSocketData.Socket, SD_BOTH);
-		closesocket(LocalSocketData.Socket);
+		SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return false;
 	}
 
@@ -836,8 +832,7 @@ bool TCPReceiveProcess(
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	usleep(Parameter.SocketTimeout_Reliable.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.SocketTimeout_Reliable.tv_usec);
 #endif
-	shutdown(LocalSocketData.Socket, SD_BOTH);
-	closesocket(LocalSocketData.Socket);
+	SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 
 	return true;
 }
@@ -909,7 +904,7 @@ void AlternateServerMonitor(
 
 //Get local address list
 #if defined(PLATFORM_WIN)
-addrinfo * GetLocalAddressList(
+addrinfo *GetLocalAddressList(
 	const uint16_t Protocol, 
 	uint8_t *HostName)
 {
@@ -919,8 +914,10 @@ addrinfo * GetLocalAddressList(
 	addrinfo *Result = nullptr;
 	if (Protocol == AF_INET6) //IPv6
 		Hints.ai_family = AF_INET6;
-	else //IPv4
+	else if (Protocol == AF_INET) //IPv4
 		Hints.ai_family = AF_INET;
+	else 
+		return nullptr;
 	Hints.ai_socktype = SOCK_DGRAM;
 	Hints.ai_protocol = IPPROTO_UDP;
 	memset(HostName, 0, DOMAIN_MAXSIZE);
@@ -964,14 +961,14 @@ bool GetBestInterfaceAddress(
 	{
 		if (Protocol == AF_INET6) //IPv6
 			GlobalRunningStatus.GatewayAvailable_IPv6 = false;
-		else //IPv4
+		else if (Protocol == AF_INET) //IPv4
 			GlobalRunningStatus.GatewayAvailable_IPv4 = false;
 
 		return false;
 	}
 
 //Check parameter.
-	if (Protocol == AF_INET6)
+	if (Protocol == AF_INET6) //IPv6
 	{
 		((PSOCKADDR_IN6)&SockAddr)->sin6_addr = ((PSOCKADDR_IN6)OriginalSockAddr)->sin6_addr;
 		((PSOCKADDR_IN6)&SockAddr)->sin6_port = ((PSOCKADDR_IN6)OriginalSockAddr)->sin6_port;
@@ -983,13 +980,13 @@ bool GetBestInterfaceAddress(
 			AddrLen != sizeof(sockaddr_in6) || CheckEmptyBuffer(&((PSOCKADDR_IN6)&SockAddr)->sin6_addr, sizeof(in6_addr)))
 		{
 			GlobalRunningStatus.GatewayAvailable_IPv6 = false;
-			shutdown(InterfaceSocket, SHUT_RDWR);
-			close(InterfaceSocket);
+			SocketSetting(InterfaceSocket, SOCKET_SETTING_CLOSE, false, nullptr);
 
 			return false;
 		}
 	}
-	else { //IPv4
+	else if (Protocol == AF_INET) //IPv4
+	{
 		((PSOCKADDR_IN)&SockAddr)->sin_addr = ((PSOCKADDR_IN)OriginalSockAddr)->sin_addr;
 		((PSOCKADDR_IN)&SockAddr)->sin_port = ((PSOCKADDR_IN)OriginalSockAddr)->sin_port;
 		AddrLen = sizeof(sockaddr_in);
@@ -1000,15 +997,17 @@ bool GetBestInterfaceAddress(
 			AddrLen != sizeof(sockaddr_in) || CheckEmptyBuffer(&((PSOCKADDR_IN)&SockAddr)->sin_addr, sizeof(in_addr)))
 		{
 			GlobalRunningStatus.GatewayAvailable_IPv4 = false;
-			shutdown(InterfaceSocket, SHUT_RDWR);
-			close(InterfaceSocket);
+			SocketSetting(InterfaceSocket, SOCKET_SETTING_CLOSE, false, nullptr);
 
 			return false;
 		}
 	}
+	else {
+		SocketSetting(InterfaceSocket, SOCKET_SETTING_CLOSE, false, nullptr);
+		return false;
+	}
 
-	shutdown(InterfaceSocket, SHUT_RDWR);
-	close(InterfaceSocket);
+	SocketSetting(InterfaceSocket, SOCKET_SETTING_CLOSE, false, nullptr);
 	return true;
 }
 #endif
@@ -1102,7 +1101,8 @@ void GetGatewayInformation(
 		GlobalRunningStatus.GatewayAvailable_IPv6 = true;
 	}
 //IPv4
-	else {
+	else if (Protocol == AF_INET) //IPv4
+	{
 		if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0 && Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family == 0 && 
 			Parameter.Target_Server_Local_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Alternate_Local_IPv4.Storage.ss_family == 0
 		#if defined(ENABLE_LIBSODIUM)
@@ -1224,6 +1224,7 @@ void NetworkInformationMonitor(
 			if (LocalAddressList == nullptr)
 			{
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			errno = 0;
 			if (getifaddrs(&InterfaceAddressList) != 0 || InterfaceAddressList == nullptr)
 			{
 				auto ErrorCode = errno;

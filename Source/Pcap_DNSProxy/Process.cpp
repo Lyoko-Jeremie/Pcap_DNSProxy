@@ -108,7 +108,7 @@ bool EnterRequestProcess(
 			(Parameter.SOCKS_Proxy && Parameter.SOCKS_Protocol_Transport == REQUEST_MODE_TCP) || //SOCKS TCP request
 			Parameter.HTTP_Proxy //HTTP Proxy request
 		#if defined(ENABLE_LIBSODIUM)
-			|| (Parameter.DNSCurve && DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TCP) //DNSCurve TCP request
+			|| (Parameter.IsDNSCurve && DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TCP) //DNSCurve TCP request
 		#endif
 			) //TCP
 		{
@@ -136,8 +136,8 @@ bool EnterRequestProcess(
 		//Fin TCP request connection.
 			if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 			{
-				shutdown(MonitorQueryData.second.Socket, SD_BOTH);
-				closesocket(MonitorQueryData.second.Socket);
+				SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				MonitorQueryData.second.Socket = 0;
 			}
 
 			return Result;
@@ -165,8 +165,8 @@ bool EnterRequestProcess(
 		//Fin TCP request connection.
 			if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 			{
-				shutdown(MonitorQueryData.second.Socket, SD_BOTH);
-				closesocket(MonitorQueryData.second.Socket);
+				SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				MonitorQueryData.second.Socket = 0;
 			}
 
 			return true;
@@ -186,8 +186,8 @@ bool EnterRequestProcess(
 		//Fin TCP request connection.
 			if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 			{
-				shutdown(MonitorQueryData.second.Socket, SD_BOTH);
-				closesocket(MonitorQueryData.second.Socket);
+				SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				MonitorQueryData.second.Socket = 0;
 			}
 
 			return true;
@@ -200,8 +200,8 @@ bool EnterRequestProcess(
 	//Fin TCP request connection.
 		if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 		{
-			shutdown(MonitorQueryData.second.Socket, SD_BOTH);
-			closesocket(MonitorQueryData.second.Socket);
+			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+			MonitorQueryData.second.Socket = 0;
 		}
 
 		return true;
@@ -209,7 +209,7 @@ bool EnterRequestProcess(
 
 //DNSCurve request process
 #if defined(ENABLE_LIBSODIUM)
-	if (Parameter.DNSCurve)
+	if (Parameter.IsDNSCurve)
 	{
 	//DNSCurve check
 		if (DNSCurveParameter.IsEncryption && MonitorQueryData.first.Length + DNSCRYPT_BUFFER_RESERVE_LEN > DNSCurveParameter.DNSCurvePayloadSize)
@@ -225,8 +225,8 @@ bool EnterRequestProcess(
 		//Fin TCP request connection.
 			if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 			{
-				shutdown(MonitorQueryData.second.Socket, SD_BOTH);
-				closesocket(MonitorQueryData.second.Socket);
+				SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				MonitorQueryData.second.Socket = 0;
 			}
 
 			return true;
@@ -244,7 +244,7 @@ SkipDNSCurve:
 
 //Direct request when Pcap Capture module is not available.
 #if defined(ENABLE_PCAP)
-	if (!Parameter.PcapCapture)
+	if (!Parameter.IsPcapCapture)
 	{
 #endif
 		DirectRequestProcess(MonitorQueryData, RecvBuffer, RecvSize, false);
@@ -252,8 +252,8 @@ SkipDNSCurve:
 	//Fin TCP request connection.
 		if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 		{
-			shutdown(MonitorQueryData.second.Socket, SD_BOTH);
-			closesocket(MonitorQueryData.second.Socket);
+			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+			MonitorQueryData.second.Socket = 0;
 		}
 
 		return true;
@@ -440,7 +440,7 @@ size_t CheckHostsProcess(
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	if (DNS_Query->Type == htons(DNS_RECORD_PTR) && Parameter.LocalServer_Length + Packet->Length <= ResultSize)
 	{
-		auto IsSendPTR = false;
+		auto IsPTRSend = false;
 
 	//IPv6 check
 		if (Domain == ("1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa") || //Loopback address(::1, Section 2.5.3 in RFC 4291)
@@ -448,7 +448,7 @@ size_t CheckHostsProcess(
 			Domain.find(".127.in-addr.arpa") != std::string::npos || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
 			Domain.find(".254.169.in-addr.arpa") != std::string::npos) //Link-local address(169.254.0.0/16, RFC 3927)
 		{
-			IsSendPTR = true;
+			IsPTRSend = true;
 		}
 		else {
 		//IPv6 check
@@ -457,21 +457,21 @@ size_t CheckHostsProcess(
 			{
 				if (Domain == StringIter)
 				{
-					IsSendPTR = true;
+					IsPTRSend = true;
 					break;
 				}
 			}
 			LocalAddressMutexIPv6.unlock();
 
 		//IPv4 check
-			if (!IsSendPTR)
+			if (!IsPTRSend)
 			{
 				std::lock_guard<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[1U]);
 				for (const auto &StringIter:*GlobalRunningStatus.LocalAddress_ResponsePTR[1U])
 				{
 					if (Domain == StringIter)
 					{
-						IsSendPTR = true;
+						IsPTRSend = true;
 						break;
 					}
 				}
@@ -479,10 +479,10 @@ size_t CheckHostsProcess(
 		}
 
 	//Send Localhost PTR.
-		if (IsSendPTR)
+		if (IsPTRSend)
 		{
 		//Set header flags and copy response to buffer.
-			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SER_RA);
+			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SER_R_A);
 			DNS_Header->Answer = htons(U16_NUM_ONE);
 			DNS_Header->Authority = 0;
 			DNS_Header->Additional = 0;
@@ -1129,10 +1129,7 @@ void UDPRequestProcess(
 
 //Fin TCP request connection.
 	if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
-	{
-		shutdown(MonitorQueryData.second.Socket, SD_BOTH);
-		closesocket(MonitorQueryData.second.Socket);
-	}
+		SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 
 //EDNS switching(Part 2)
 	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_UDP)
@@ -1163,19 +1160,21 @@ bool SendToRequester(
 	{
 		if (AddLengthDataToHeader(RecvBuffer, RecvSize, MaxLen) == EXIT_FAILURE)
 		{
-			shutdown(LocalSocketData.Socket, SD_BOTH);
-			closesocket(LocalSocketData.Socket);
+			SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 			return false;
 		}
 		else {
 			send(LocalSocketData.Socket, (const char *)RecvBuffer, (int)(RecvSize + sizeof(uint16_t)), 0);
-			shutdown(LocalSocketData.Socket, SD_BOTH);
-			closesocket(LocalSocketData.Socket);
+			SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		}
 	}
 //UDP protocol
-	else {
+	else if (Protocol == IPPROTO_UDP)
+	{
 		sendto(LocalSocketData.Socket, (const char *)RecvBuffer, (int)RecvSize, 0, (PSOCKADDR)&LocalSocketData.SockAddr, LocalSocketData.AddrLen);
+	}
+	else {
+		return false;
 	}
 
 	return true;

@@ -79,7 +79,6 @@ uint16_t GetChecksum(
 {
 	uint32_t Checksum = CHECKSUM_SUCCESS;
 	size_t InnerLength = Length;
-
 	while (InnerLength > 1U)
 	{
 		Checksum += *Buffer++;
@@ -91,7 +90,6 @@ uint16_t GetChecksum(
 
 	Checksum = (Checksum >> (sizeof(uint16_t) * BYTES_TO_BITS)) + (Checksum & UINT16_MAX);
 	Checksum += (Checksum >> (sizeof(uint16_t) * BYTES_TO_BITS));
-
 	return (uint16_t)(~Checksum);
 }
 
@@ -121,7 +119,6 @@ uint16_t GetChecksum_TCP_UDP(
 	const uint16_t Protocol_Network, 
 	const uint16_t Protocol_Transport)
 {
-//Get checksum.
 	uint16_t Result = EXIT_FAILURE;
 	if (Protocol_Network == AF_INET6) //IPv6
 	{
@@ -135,7 +132,8 @@ uint16_t GetChecksum_TCP_UDP(
 		memcpy_s(Validation.get() + sizeof(ipv6_psd_hdr), Length, Buffer + sizeof(ipv6_hdr), Length);
 		Result = GetChecksum((uint16_t *)Validation.get(), sizeof(ipv6_psd_hdr) + Length);
 	}
-	else { //IPv4
+	else if (Protocol_Network == AF_INET) //IPv4
+	{
 		std::shared_ptr<uint8_t> Validation(new uint8_t[sizeof(ipv4_psd_hdr) + Length]());
 		memset(Validation.get(), 0, sizeof(ipv4_psd_hdr) + Length);
 		((pipv4_psd_hdr)Validation.get())->Destination = ((pipv4_hdr)Buffer)->Destination;
@@ -279,7 +277,8 @@ size_t MarkWholeDNSQuery(
 			Index[0] = TName[uIndex];
 			if (Index[0] == 0)
 				break;
-			Index[1U] = (int)uIndex;
+			else 
+				Index[1U] = (int)uIndex;
 
 			FName.append(".");
 		}
@@ -441,7 +440,7 @@ size_t AddEDNSLabelToAdditionalRR(
 		//No recommendation is provided for IPv6 at this time so keep all bits, see https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
 				EDNS_Subnet_Header->Netmask_Source = sizeof(in6_addr) * BYTES_TO_BITS;
-			else
+			else 
 				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet_IPv6->second;
 			DataLength += sizeof(edns_client_subnet);
 			
@@ -702,11 +701,13 @@ size_t MakeCompressionPointerMutation(
 		*(Buffer + sizeof(dns_hdr)) = (uint8_t)DNS_POINTER_8_BITS_STRING;
 		*(Buffer + sizeof(dns_hdr) + 1U) = ('\x12');
 
-		if (Index == CPM_POINTER_TO_RR) //Pointer to RR, like "[DNS Header][Pointer][Query][Domain]" and the pointer is point to [Domain].
+	//Pointer to RR, like "[DNS Header][Pointer][Query][Domain]" and the pointer is point to [Domain].
+		if (Index == CPM_POINTER_TO_RR)
 		{
 			return Length + 2U;
 		}
-		else { //Pointer to Additional, like "[DNS Header][Pointer][Query][Additional]" and the pointer is point to domain in [Additional].
+	//Pointer to Additional, like "[DNS Header][Pointer][Query][Additional]" and the pointer is point to domain in [Additional].
+		else {
 			auto DNS_Header = (pdns_hdr)Buffer;
 			DNS_Header->Additional = htons(U16_NUM_ONE);
 

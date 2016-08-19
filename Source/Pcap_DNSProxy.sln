@@ -102,8 +102,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibSodium", "LibSodium", "{
 		LibSodium\crypto_verify_64.h = LibSodium\crypto_verify_64.h
 		LibSodium\export.h = LibSodium\export.h
 		LibSodium\LibSodium_Mac.a = LibSodium\LibSodium_Mac.a
-		LibSodium\LibSodum_x64.lib = LibSodium\LibSodum_x64.lib
-		LibSodium\LibSodum_x86.lib = LibSodium\LibSodum_x86.lib
+		LibSodium\LibSodium_x64.lib = LibSodium\LibSodium_x64.lib
+		LibSodium\LibSodium_x86.lib = LibSodium\LibSodium_x86.lib
 		LibSodium\randombytes.h = LibSodium\randombytes.h
 		LibSodium\randombytes_nativeclient.h = LibSodium\randombytes_nativeclient.h
 		LibSodium\randombytes_salsa20_random.h = LibSodium\randombytes_salsa20_random.h
@@ -176,6 +176,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "private", "private", "{5057
 	ProjectSection(SolutionItems) = preProject
 		LibSodium\private\common.h = LibSodium\private\common.h
 		LibSodium\private\curve25519_ref10.h = LibSodium\private\curve25519_ref10.h
+		LibSodium\private\mutex.h = LibSodium\private\mutex.h
 	EndProjectSection
 EndProject
 Global
