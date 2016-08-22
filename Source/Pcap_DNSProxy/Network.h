@@ -23,10 +23,12 @@
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
+extern std::queue<SOCKET_MARKING_DATA> SocketMarkingList;
 #if defined(ENABLE_PCAP)
 extern std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
 extern std::mutex OutputPacketListLock;
 #endif
+extern std::mutex SocketMarkingLock;
 
 //Functions
 bool SelectTargetSocket(
@@ -35,7 +37,7 @@ bool SelectTargetSocket(
 	bool **IsAlternate, 
 	size_t **AlternateTimeoutTimes, 
 	const uint16_t Protocol);
-bool SelectTargetSocketMulti(
+bool SelectTargetSocketMultiple(
 	std::vector<SOCKET_DATA> &TargetSocketDataList, 
 	const uint16_t Protocol);
 ssize_t SelectingResult(

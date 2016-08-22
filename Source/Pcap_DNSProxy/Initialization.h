@@ -30,12 +30,13 @@ DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
 std::vector<FILE_DATA> FileList_Config, FileList_IPFilter, FileList_Hosts;
 std::vector<DIFFERNET_FILE_SET_IPFILTER> IPFilterFileSet[2U], *IPFilterFileSetUsing = &IPFilterFileSet[0], *IPFilterFileSetModificating = &IPFilterFileSet[1U];
 std::vector<DIFFERNET_FILE_SET_HOSTS> HostsFileSet[2U], *HostsFileSetUsing = &HostsFileSet[0], *HostsFileSetModificating = &HostsFileSet[1U];
+std::queue<SOCKET_MARKING_DATA> SocketMarkingList;
 #if defined(ENABLE_PCAP)
 std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
 std::mutex CaptureLock, OutputPacketListLock;
 #endif
 std::list<DNS_CACHE_DATA> DNSCacheList;
-std::mutex ScreenLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], DNSCacheListLock, IPFilterFileLock, HostsFileLock;
+std::mutex ScreenLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], SocketMarkingLock, DNSCacheListLock, IPFilterFileLock, HostsFileLock;
 
 //Functions
 void ConfigurationTableSetting(

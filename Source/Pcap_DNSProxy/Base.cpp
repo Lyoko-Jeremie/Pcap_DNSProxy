@@ -350,13 +350,22 @@ size_t Base64_Decode(
 }
 */
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+//Increase time with milliseconds
+uint64_t IncreaseMillisecondTime(
+	const uint64_t CurrentTime, 
+	const timeval IncreaseTime)
+{
+	return CurrentTime + IncreaseTime.tv_sec * SECOND_TO_MILLISECOND + IncreaseTime.tv_usec / MICROSECOND_TO_MILLISECOND;
+}
+
+//Get current system time
 uint64_t GetCurrentSystemTime(
 	void)
 {
 	timeval CurrentTime;
 	memset(&CurrentTime, 0, sizeof(CurrentTime));
 	if (gettimeofday(&CurrentTime, nullptr) == 0)
-		return (uint64_t)CurrentTime.tv_sec * SECOND_TO_MILLISECOND + (uint64_t)CurrentTime.tv_usec / MICROSECOND_TO_MILLISECOND;
+		return IncreaseMillisecondTime(0, CurrentTime);
 
 	return 0;
 }

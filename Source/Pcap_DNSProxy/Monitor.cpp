@@ -84,7 +84,7 @@ bool MonitorInit(
 #endif
 
 //Set Preferred DNS servers switcher.
-	if ((!Parameter.AlternateMultiRequest && 
+	if ((!Parameter.AlternateMultipleRequest && 
 		(Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 || Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0
 	#if defined(ENABLE_LIBSODIUM)
 		|| DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 || DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0
@@ -132,7 +132,7 @@ bool MonitorInit(
 						((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr = ((PSOCKADDR_IN6)&ListenAddressIter)->sin6_addr;
 						((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_port = ((PSOCKADDR_IN6)&ListenAddressIter)->sin6_port;
 
-					//Add to global thread list.
+					//Add to global list.
 						std::thread MonitorThreadTemp(std::bind(UDPMonitor, LocalSocketData, Result));
 						MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 						++MonitorThreadIndex;
@@ -163,7 +163,7 @@ bool MonitorInit(
 
 							((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_port = ListenPortIter;
 
-						//Add to global thread list.
+						//Add to global list.
 							std::thread MonitorThreadTemp(std::bind(UDPMonitor, LocalSocketData, Result));
 							MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 							++MonitorThreadIndex;
@@ -202,7 +202,7 @@ bool MonitorInit(
 						((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr = ((PSOCKADDR_IN6)&ListenAddressIter)->sin6_addr;
 						((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_port = ((PSOCKADDR_IN6)&ListenAddressIter)->sin6_port;
 
-					//Add to global thread list.
+					//Add to global list.
 						std::thread MonitorThreadTemp(std::bind(TCPMonitor, LocalSocketData, Result));
 						MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 						++MonitorThreadIndex;
@@ -233,7 +233,7 @@ bool MonitorInit(
 
 							((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_port = ListenPortIter;
 
-						//Add to global thread list.
+						//Add to global list.
 							std::thread MonitorThreadTemp(std::bind(TCPMonitor, LocalSocketData, Result));
 							MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 							++MonitorThreadIndex;
@@ -275,7 +275,7 @@ bool MonitorInit(
 						((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr = ((PSOCKADDR_IN)&ListenAddressIter)->sin_addr;
 						((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_port = ((PSOCKADDR_IN)&ListenAddressIter)->sin_port;
 
-					//Add to global thread list.
+					//Add to global list.
 						std::thread MonitorThreadTemp(std::bind(UDPMonitor, LocalSocketData, Result));
 						MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 						++MonitorThreadIndex;
@@ -306,7 +306,7 @@ bool MonitorInit(
 
 							((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_port = ListenPortIter;
 
-						//Add to global thread list.
+						//Add to global list.
 							std::thread MonitorThreadTemp(std::bind(UDPMonitor, LocalSocketData, Result));
 							MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 							++MonitorThreadIndex;
@@ -345,7 +345,7 @@ bool MonitorInit(
 						((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr = ((PSOCKADDR_IN)&ListenAddressIter)->sin_addr;
 						((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_port = ((PSOCKADDR_IN)&ListenAddressIter)->sin_port;
 
-					//Add to global thread list.
+					//Add to global list.
 						std::thread MonitorThreadTemp(std::bind(TCPMonitor, LocalSocketData, Result));
 						MonitorThread.at(MonitorThreadIndex).swap(MonitorThreadTemp);
 						++MonitorThreadIndex;
@@ -376,7 +376,7 @@ bool MonitorInit(
 
 							((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_port = ListenPortIter;
 
-						//Add to global thread list.
+						//Add to global list.
 							std::thread InnerMonitorThreadTemp(std::bind(TCPMonitor, LocalSocketData, Result));
 							MonitorThread.at(MonitorThreadIndex).swap(InnerMonitorThreadTemp);
 							++MonitorThreadIndex;
@@ -434,7 +434,7 @@ bool UDPMonitor(
 	const SOCKET_DATA LocalSocketData, 
 	bool *Result)
 {
-//Block UDP RESET message, socket timeout, reusing and non-blocking mode setting 
+//Block UDP RESET message, socket timeout, reusing and non-blocking mode setting
 	if (
 	#if defined(PLATFORM_WIN)
 		!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_UDP_BLOCK_RESET, true, nullptr) || 
@@ -1051,10 +1051,10 @@ void GetGatewayInformation(
 			return;
 		}
 
-	//IPv6 Multi
-		if (Parameter.Target_Server_IPv6_Multi != nullptr)
+	//Multiple list(IPv6)
+		if (Parameter.Target_Server_IPv6_Multiple != nullptr)
 		{
-			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv6_Multi)
+			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv6_Multiple)
 			{
 				if (GetBestInterfaceEx((PSOCKADDR)&DNSServerDataIter.AddressData.IPv6, &AdaptersIndex) != NO_ERROR)
 				{
@@ -1084,10 +1084,10 @@ void GetGatewayInformation(
 			return;
 		}
 
-	//IPv6 Multi
-		if (Parameter.Target_Server_IPv6_Multi != nullptr)
+	//Multiple list(IPv6)
+		if (Parameter.Target_Server_IPv6_Multiple != nullptr)
 		{
-			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv6_Multi)
+			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv6_Multiple)
 			{
 				if (!GetBestInterfaceAddress(AF_INET6, &DNSServerDataIter.AddressData.Storage))
 				{
@@ -1135,10 +1135,10 @@ void GetGatewayInformation(
 			return;
 		}
 
-	//IPv4 Multi
-		if (Parameter.Target_Server_IPv4_Multi != nullptr)
+	//Multiple list(IPv4)
+		if (Parameter.Target_Server_IPv4_Multiple != nullptr)
 		{
-			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv4_Multi)
+			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv4_Multiple)
 			{
 				if (GetBestInterfaceEx((PSOCKADDR)&DNSServerDataIter.AddressData.IPv4, &AdaptersIndex) != NO_ERROR)
 				{
@@ -1168,10 +1168,10 @@ void GetGatewayInformation(
 			return;
 		}
 
-	//IPv4 Multi
-		if (Parameter.Target_Server_IPv4_Multi != nullptr)
+	//Multiple list(IPv4)
+		if (Parameter.Target_Server_IPv4_Multiple != nullptr)
 		{
-			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv4_Multi)
+			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv4_Multiple)
 			{
 				if (!GetBestInterfaceAddress(AF_INET, &DNSServerDataIter.AddressData.Storage))
 				{
@@ -1210,7 +1210,7 @@ void NetworkInformationMonitor(
 	pdns_hdr DNS_Header = nullptr;
 	pdns_qry DNS_Query = nullptr;
 	void *DNS_Record = nullptr;
-	std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0], std::defer_lock), LocalAddressMutexIPv4(LocalAddressLock[1U], std::defer_lock);
+	std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0], std::defer_lock), LocalAddressMutexIPv4(LocalAddressLock[1U], std::defer_lock), SocketMarkingMutex(SocketMarkingLock, std::defer_lock);
 
 //Monitor
 	for (;;)
@@ -1234,8 +1234,7 @@ void NetworkInformationMonitor(
 				PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get localhost address error", ErrorCode, nullptr, 0);
 		#endif
 
-				Sleep(Parameter.FileRefreshTime);
-				continue;
+				goto JumpToRestart;
 			}
 			else {
 				LocalAddressMutexIPv6.lock();
@@ -1426,8 +1425,7 @@ void NetworkInformationMonitor(
 			LocalAddressList = GetLocalAddressList(AF_INET, HostName);
 			if (LocalAddressList == nullptr)
 			{
-				Sleep(Parameter.FileRefreshTime);
-				continue;
+				goto JumpToRestart;
 			}
 			else {
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -1599,7 +1597,23 @@ void NetworkInformationMonitor(
 		#endif
 		}
 
-	//Auto-refresh
+	//Jump here to restart.
+	JumpToRestart:
+
+	//Close all marking sockets.
+		SocketMarkingMutex.lock();
+	#if defined(PLATFORM_WIN_XP)
+		while (!SocketMarkingList.empty() && SocketMarkingList.back().second <= GetTickCount())
+	#else
+		while (!SocketMarkingList.empty() && SocketMarkingList.back().second <= GetTickCount64())
+	#endif
+		{
+			SocketSetting(SocketMarkingList.back().first, SOCKET_SETTING_CLOSE, false, nullptr);
+			SocketMarkingList.pop();
+		}
+		SocketMarkingMutex.unlock();
+
+	//Wait for interval time.
 		Sleep(Parameter.FileRefreshTime);
 	}
 

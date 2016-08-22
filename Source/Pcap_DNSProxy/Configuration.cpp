@@ -391,8 +391,8 @@ bool ReadText(
 	return true;
 }
 
-//Check Multi-line comments
-bool ReadMultiLineComments(
+//Check Multiple line comments
+bool ReadMultipleLineComments(
 	std::string &Data, 
 	bool &IsLabelComments)
 {

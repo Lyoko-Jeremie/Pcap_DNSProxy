@@ -27,6 +27,8 @@ extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 #endif
 extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM];
+extern std::queue<SOCKET_MARKING_DATA> SocketMarkingList;
+extern std::mutex SocketMarkingLock;
 
 //Functions
 bool UDPMonitor(

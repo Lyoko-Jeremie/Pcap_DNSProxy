@@ -42,8 +42,8 @@ bool ReadHostsData(
 	if (Data.empty())
 		return true;
 
-//Multi-line comments check, delete comments(Number Sign/NS and double slashs) and check minimum length of hosts items.
-	if (!ReadMultiLineComments(Data, IsLabelComments) || Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
+//Multiple line comments check, delete comments(Number Sign/NS and double slashs) and check minimum length of hosts items.
+	if (!ReadMultipleLineComments(Data, IsLabelComments) || Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
 		return true;
 	if (Data.rfind(" //") != std::string::npos)
 		Data.erase(Data.rfind(" //"), Data.length() - Data.rfind(" //"));
@@ -339,7 +339,7 @@ bool ReadOtherHostsData(
 	else 
 		HostsTableTemp.PermissionType = HOSTS_TYPE_WHITE;
 
-//Add to global HostsList.
+//Add to global list.
 	for (auto &HostsFileSetIter:*HostsFileSetModificating)
 	{
 		if (HostsFileSetIter.FileIndex == FileIndex)
@@ -376,7 +376,7 @@ bool ReadLocalHostsData(
 		return false;
 	}
 
-//Add to global HostsTable.
+//Add to global list.
 	for (auto &HostsFileSetIter:*HostsFileSetModificating)
 	{
 		if (HostsFileSetIter.FileIndex == FileIndex)
@@ -593,7 +593,7 @@ bool ReadAddressHostsData(
 		}
 	}
 
-//Add to global AddressHostsTable.
+//Add to global list.
 	for (auto &HostsFileSetIter:*HostsFileSetModificating)
 	{
 		if (HostsFileSetIter.FileIndex == FileIndex)
@@ -778,7 +778,7 @@ bool ReadMainHostsData(
 		return false;
 	}
 
-//Add to global HostsTable.
+//Add to global list.
 	for (auto &HostsFileSetIter:*HostsFileSetModificating)
 	{
 		if (HostsFileSetIter.FileIndex == FileIndex)

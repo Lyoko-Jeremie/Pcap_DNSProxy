@@ -933,9 +933,9 @@ bool DirectRequestProcess(
 //TCP request
 	if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || MonitorQueryData.first.Protocol == IPPROTO_TCP)
 	{
-	//Multi request process
-		if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
-			DataLength = TCPRequestMulti(REQUEST_PROCESS_DIRECT, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
+	//Multiple request process
+		if (Parameter.AlternateMultipleRequest || Parameter.MultipleRequestTimes > 1U)
+			DataLength = TCPRequestMultiple(REQUEST_PROCESS_DIRECT, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 	//Normal request process
 		else 
 			DataLength = TCPRequest(REQUEST_PROCESS_DIRECT, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
@@ -949,8 +949,8 @@ bool DirectRequestProcess(
 	}
 
 //UDP request
-	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U) //Multi request process
-		DataLength = UDPCompleteRequestMulti(REQUEST_PROCESS_DIRECT, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
+	if (Parameter.AlternateMultipleRequest || Parameter.MultipleRequestTimes > 1U) //Multiple request process
+		DataLength = UDPCompleteRequestMultiple(REQUEST_PROCESS_DIRECT, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 	else //Normal request process
 		DataLength = UDPCompleteRequest(REQUEST_PROCESS_DIRECT, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 
@@ -997,9 +997,9 @@ bool DNSCurveRequestProcess(
 //TCP request
 	if (DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TCP || MonitorQueryData.first.Protocol == IPPROTO_TCP)
 	{
-	//Multi request process
-		if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
-			DataLength = DNSCurveTCPRequestMulti(MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
+	//Multiple request process
+		if (Parameter.AlternateMultipleRequest || Parameter.MultipleRequestTimes > 1U)
+			DataLength = DNSCurveTCPRequestMultiple(MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 	//Normal request process
 		else 
 			DataLength = DNSCurveTCPRequest(MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
@@ -1013,8 +1013,8 @@ bool DNSCurveRequestProcess(
 	}
 
 //UDP request
-	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U) //Multi request process
-		DataLength = DNSCurveUDPRequestMulti(MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
+	if (Parameter.AlternateMultipleRequest || Parameter.MultipleRequestTimes > 1U) //Multiple request process
+		DataLength = DNSCurveUDPRequestMultiple(MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 	else //Normal request process
 		DataLength = DNSCurveUDPRequest(MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 
@@ -1058,9 +1058,9 @@ bool TCPRequestProcess(
 		EDNS_SwitchLength -= MonitorQueryData.first.EDNS_Record;
 	}
 
-//Multi request process
-	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
-		DataLength = TCPRequestMulti(REQUEST_PROCESS_TCP, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
+//Multiple request process
+	if (Parameter.AlternateMultipleRequest || Parameter.MultipleRequestTimes > 1U)
+		DataLength = TCPRequestMultiple(REQUEST_PROCESS_TCP, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 //Normal request process
 	else 
 		DataLength = TCPRequest(REQUEST_PROCESS_TCP, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
@@ -1120,12 +1120,12 @@ void UDPRequestProcess(
 		EDNS_SwitchLength -= MonitorQueryData.first.EDNS_Record;
 	}
 
-//Multi request process
-	if (Parameter.AlternateMultiRequest || Parameter.MultiRequestTimes > 1U)
-		UDPRequestMulti(MonitorQueryData.first.Buffer, EDNS_SwitchLength, &MonitorQueryData.second, MonitorQueryData.first.Protocol);
+//Multiple request process
+	if (Parameter.AlternateMultipleRequest || Parameter.MultipleRequestTimes > 1U)
+		UDPRequestMultiple(REQUEST_PROCESS_UDP_NORMAL, MonitorQueryData.first.Buffer, EDNS_SwitchLength, &MonitorQueryData.second, MonitorQueryData.first.Protocol);
 //Normal request process
 	else 
-		UDPRequest(MonitorQueryData.first.Buffer, EDNS_SwitchLength, &MonitorQueryData.second, MonitorQueryData.first.Protocol);
+		UDPRequest(REQUEST_PROCESS_UDP_NORMAL, MonitorQueryData.first.Buffer, EDNS_SwitchLength, &MonitorQueryData.second, MonitorQueryData.first.Protocol);
 
 //Fin TCP request connection.
 	if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))

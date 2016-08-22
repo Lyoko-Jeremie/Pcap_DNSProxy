@@ -609,7 +609,7 @@ size_t SOCKSTCPRequest(
 		return EXIT_FAILURE;
 	}
 
-//Socket check 
+//Socket check
 	if (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 	{
 		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"SOCKS socket initialization error", 0, nullptr, 0);

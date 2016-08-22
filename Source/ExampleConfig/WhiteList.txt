@@ -1,7 +1,7 @@
 ﻿[Local Hosts]
 ## China mainland domains
 ## Source: https://github.com/felixonmars/dnsmasq-china-list
-## Last update: 2016-08-19
+## Last update: 2016-08-22
 
 
 .*\b0-6\.com
@@ -1716,6 +1716,7 @@
 .*\b253\.com
 .*\b253u\.com
 .*\b255616\.com
+.*\b255star\.com
 .*\b256\.cc
 .*\b256cha\.com
 .*\b256game\.com
@@ -2489,6 +2490,7 @@
 .*\b4001890001\.com
 .*\b4001961200\.com
 .*\b400516\.com
+.*\b4006008080\.com
 .*\b4006024680\.com
 .*\b4006055885\.com
 .*\b4006287387\.com
@@ -3564,6 +3566,7 @@
 .*\b5ding\.com
 .*\b5djbb\.com
 .*\b5djianli\.com
+.*\b5djiaren\.com
 .*\b5dmail\.net
 .*\b5dmgame\.com
 .*\b5dplay\.net
@@ -8094,9 +8097,11 @@
 .*\bcali-light\.com
 .*\bcallmewhy\.com
 .*\bcalonye\.com
+.*\bcamcap\.us
 .*\bcame-online\.org
 .*\bcamelluotuo\.com
 .*\bcamelsee\.com
+.*\bcamera360\.com
 .*\bcampusroom\.com
 .*\bcan\.tv
 .*\bcanbo\.com
@@ -13663,6 +13668,7 @@
 .*\bfjm\.name
 .*\bfjndwb\.com
 .*\bfjnet\.com
+.*\bfjpqcz\.com
 .*\bfjsdfz\.org
 .*\bfjsen\.com
 .*\bfjsogou\.net
@@ -15953,12 +15959,14 @@
 .*\bhixianchang\.com
 .*\bhixiansen\.com
 .*\bhiyd\.com
+.*\bhiyongche\.com
 .*\bhiyouib\.com
 .*\bhiyouqu\.com
 .*\bhiyuezhi\.com
 .*\bhiyunchou\.com
 .*\bhjapi\.com
 .*\bhjav\.in
+.*\bhjchee\.com
 .*\bhjclass\.com
 .*\bhjdns\.net
 .*\bhjenglish\.com
@@ -17279,6 +17287,8 @@
 .*\bim9\.com
 .*\bimage\.xboxlive\.com
 .*\bimage123\.msn\.com
+.*\bimages-cn-4\.ssl-images-amazon\.com
+.*\bimages-cn-8\.ssl-images-amazon\.com
 .*\bimages-cn\.ssl-images-amazon\.com
 .*\bimages\.benchmarkemail\.com
 .*\bimages\.nvidia\.com
@@ -18388,6 +18398,7 @@
 .*\bjinhuo5\.com
 .*\bjinhusns\.com
 .*\bjinjia\.la
+.*\bjinjiang\.com
 .*\bjinjianginns\.com
 .*\bjinkan\.org
 .*\bjinke3d\.com
@@ -21636,6 +21647,7 @@
 .*\bmeidaojia\.com
 .*\bmeidebi\.com
 .*\bmeifang8\.com
+.*\bmeigmama\.com
 .*\bmeigong8\.com
 .*\bmeiguoshenpo\.com
 .*\bmeiguozhuji\.com
@@ -21665,12 +21677,14 @@
 .*\bmeile\.com
 .*\bmeilele\.com
 .*\bmeili37\.com
+.*\bmeilibay\.com
 .*\bmeilijia\.com
 .*\bmeilijinrongs\.com
 .*\bmeilijinrongwang\.com
 .*\bmeilishikong\.com
 .*\bmeilishuo\.com
 .*\bmeilishuo\.net
+.*\bmeiliwan\.com
 .*\bmeiliworks\.com
 .*\bmeimei90\.com
 .*\bmeimeidu\.com

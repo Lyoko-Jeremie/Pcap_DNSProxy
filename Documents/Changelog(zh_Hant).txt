@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy 0.4.6.1-0.4.6.7 更新日誌(2016-08-19)：
+﻿Pcap_DNSProxy 0.4.6.1-0.4.7.0 更新日誌(2016-08-22)：
 
 * 添加 Source Hosts 根據功能變數名稱請求的來源位址進行 Hosts 的功能
 * 添加 Local Force Request 參數，可強制已確定使用境內伺服器的功能變數名稱請求不使用其它伺服器進行解析
@@ -8,6 +8,8 @@
 * 添加對刷新系統緩存的時間間隔限制 [Syrone Wong]
 * 添加 CMake 的 Clang 編譯器支援 (Mac)
 * LibSodium 庫更新到 1.0.11 (Windows/Mac)
+* Multi Request Times 參數更名為 Multiple Request Times
+* Alternate Multi Request 參數更名為 Alternate Multiple Request
 * 合併 KeyPairGenerator 工具到主程式，作為支援參數使用
 * 分離 32 位版本對 Windows XP/2003 的支援 (Windows)
 * 修復資料包過濾模組過於嚴格導致無法使用部分正常 DNS 伺服器的問題 [muink]
@@ -16,19 +18,21 @@
 * 修復抓包模組對 IPv6 資料包識別錯誤的問題
 * 修復 Pcap Devices Blacklist 參數工作不正常的問題
 * 修復 Hop Limits/TTL 參數讀取不正常的問題
+* 修復 Hop Limits/TTL 參數指定的值被覆蓋的問題
+* 修復由於部分通訊端被過早清理造成系統協定棧返回 ICMP/ICMPv6 埠不可達資訊的問題
 * 移除附帶的 FileHash 工具，其將分離至 https://github.com/chengr28/Toolkit 專案繼續開發
 * 移除對舊版設定檔的相容
-* 檔校驗碼(0.4.6.7)
+* 檔校驗碼(0.4.7.0)
   * SHA-1:
-    * Windows/Pcap_DNSProxy.exe -> 54AE593D7916ADBBC68BFF56113E746C068C3743
-    * Windows/Pcap_DNSProxy_x86.exe -> F3E1B6FB3491AD8334FB58034C4B7D40CCAB150F
-    * Windows/Pcap_DNSProxy_XP.exe -> 8FFBE9ADA43DE5D256885071FBA4919FC65F0FC9
-    * Mac/Pcap_DNSProxy -> 26CA74EAD80BC8320CE485CF537E6141794FFB41
+    * Windows/Pcap_DNSProxy.exe -> DA363FB8F5E3906A1FB65464A0E1343C747DA72C
+    * Windows/Pcap_DNSProxy_x86.exe -> 96F508BBDB48DD16B0B13D7B58D42F333042F198
+    * Windows/Pcap_DNSProxy_XP.exe -> 07DB9B0D32E5314E8D46A13F02014D712CD1761D
+    * Mac/Pcap_DNSProxy -> 9B5EF5662DF6697E0FA5DC66B000EA56996FE30C
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe -> A75BA1CE9F686AC214637A8D5E53B18DF7261CAA9F4E2F757C62ECC0334B6DEE
-    * Windows/Pcap_DNSProxy_x86.exe -> FE66665DFBDC64576534A5C7FB6376544D55E7E6CD7CE78A81440827107030F0
-    * Windows/Pcap_DNSProxy_XP.exe -> 28D6E0F9B094C567FBC31CF543A40CE064F52F60E770ACD814DAEA4805B3D061
-    * Mac/Pcap_DNSProxy -> 1850BAFAC493F2B1AFDD2019A7D807DCA946BAF31894C63BEE8BE1B28511CCED
+    * Windows/Pcap_DNSProxy.exe -> E51761D6A7F5EDC505CC6281CF880D70EC2828904BC34A133C89875A31499B47
+    * Windows/Pcap_DNSProxy_x86.exe -> D50D4218D14C8C62F67F3BE845B4D668994D807A8A85C2D8D432C50BEB7E1709
+    * Windows/Pcap_DNSProxy_XP.exe -> D7342D887B52C4FA87402FF9C4273E7C6F6461CA01FDCADC92253D06FD8E8072
+    * Mac/Pcap_DNSProxy -> DBF31E10FD8BBA080D16256F2DB062B106A157831C3B9DE2824C61890A63A429
 
 
 -------------------------------------------------------------------------------

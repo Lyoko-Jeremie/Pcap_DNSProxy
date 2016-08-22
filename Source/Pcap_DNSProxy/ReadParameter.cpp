@@ -123,40 +123,56 @@ bool ParameterCheckAndSetting(
 	if (IsFirstRead)
 	{
 	//Local Main, Local Hosts and Local Routing check
-		if (((Parameter.LocalMain || Parameter.LocalHosts || Parameter.LocalRouting) && 
+		if (((Parameter.LocalMain || Parameter.LocalHosts || Parameter.LocalRouting || Parameter.LocalForce) && 
 			Parameter.Target_Server_Local_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Local_IPv6.Storage.ss_family == 0) || 
 			(Parameter.LocalHosts && (Parameter.LocalMain || Parameter.LocalRouting)) || 
 			(Parameter.LocalRouting && !Parameter.LocalMain))
 		{
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Local Main, Local Hosts or Local Routing error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Local request options error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
 		}
 
 //[Addresses] block
-	//DNS Main and Alternate targets check
+	//Listen Address list check(IPv6)
 		if (Parameter.ListenAddress_IPv6->empty())
 		{
 			delete Parameter.ListenAddress_IPv6;
 			Parameter.ListenAddress_IPv6 = nullptr;
 		}
+
+	//Listen Address list check(IPv4)
 		if (Parameter.ListenAddress_IPv4->empty())
 		{
 			delete Parameter.ListenAddress_IPv4;
 			Parameter.ListenAddress_IPv4 = nullptr;
 		}
+
+	//EDNS Client Subnet Address check(IPv6)
 		if (Parameter.LocalhostSubnet_IPv6->first.ss_family == 0)
 		{
 			delete Parameter.LocalhostSubnet_IPv6;
 			Parameter.LocalhostSubnet_IPv6 = nullptr;
 		}
+		else if (!Parameter.EDNS_Label)
+		{
+			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"EDNS Client Subnet require EDNS Label", 0, nullptr, 0);
+			Parameter.EDNS_Label = true;
+		}
+
+	//EDNS Client Subnet Address check(IPv4)
 		if (Parameter.LocalhostSubnet_IPv4->first.ss_family == 0)
 		{
 			delete Parameter.LocalhostSubnet_IPv4;
 			Parameter.LocalhostSubnet_IPv4 = nullptr;
 		}
+		else if (!Parameter.EDNS_Label)
+		{
+			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"EDNS Client Subnet require EDNS Label", 0, nullptr, 0);
+			Parameter.EDNS_Label = true;
+		}
 
 	//IPv6 multiple list exchange
-		if (!Parameter.Target_Server_IPv6_Multi->empty())
+		if (!Parameter.Target_Server_IPv6_Multiple->empty())
 		{
 		//Copy DNS Server Data when Main server data is empty.
 			if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0)
@@ -169,12 +185,12 @@ bool ParameterCheckAndSetting(
 				Parameter.Target_Server_IPv6.HopLimitData.HopLimit = HopLimitTemp;
 			#endif
 */
-				Parameter.Target_Server_IPv6 = Parameter.Target_Server_IPv6_Multi->front();
-				Parameter.Target_Server_IPv6_Multi->erase(Parameter.Target_Server_IPv6_Multi->begin());
+				Parameter.Target_Server_IPv6 = Parameter.Target_Server_IPv6_Multiple->front();
+				Parameter.Target_Server_IPv6_Multiple->erase(Parameter.Target_Server_IPv6_Multiple->begin());
 			}
 
 		//Copy DNS Server Data when Alternate server data is empty.
-			if (!Parameter.Target_Server_IPv6_Multi->empty() && Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family == 0)
+			if (!Parameter.Target_Server_IPv6_Multiple->empty() && Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family == 0)
 			{
 /* Old version(2016-08-19)
 			#if defined(ENABLE_PCAP)
@@ -184,27 +200,27 @@ bool ParameterCheckAndSetting(
 				Parameter.Target_Server_Alternate_IPv6.HopLimitData.HopLimit = HopLimitTemp;
 			#endif
 */
-				Parameter.Target_Server_Alternate_IPv6 = Parameter.Target_Server_IPv6_Multi->front();
-				Parameter.Target_Server_IPv6_Multi->erase(Parameter.Target_Server_IPv6_Multi->begin());
+				Parameter.Target_Server_Alternate_IPv6 = Parameter.Target_Server_IPv6_Multiple->front();
+				Parameter.Target_Server_IPv6_Multiple->erase(Parameter.Target_Server_IPv6_Multiple->begin());
 			}
 
-		//Multi DNS Server check
-			if (Parameter.Target_Server_IPv6_Multi->empty())
+		//Multiple DNS Server check
+			if (Parameter.Target_Server_IPv6_Multiple->empty())
 			{
-				delete Parameter.Target_Server_IPv6_Multi;
-				Parameter.Target_Server_IPv6_Multi = nullptr;
+				delete Parameter.Target_Server_IPv6_Multiple;
+				Parameter.Target_Server_IPv6_Multiple = nullptr;
 			}
 			else {
-				Parameter.AlternateMultiRequest = true;
+				Parameter.AlternateMultipleRequest = true;
 			}
 		}
 		else {
-			delete Parameter.Target_Server_IPv6_Multi;
-			Parameter.Target_Server_IPv6_Multi = nullptr;
+			delete Parameter.Target_Server_IPv6_Multiple;
+			Parameter.Target_Server_IPv6_Multiple = nullptr;
 		}
 
 	//IPv4 multiple list exchange
-		if (!Parameter.Target_Server_IPv4_Multi->empty())
+		if (!Parameter.Target_Server_IPv4_Multiple->empty())
 		{
 		//Copy DNS Server Data when Main server data is empty.
 			if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0)
@@ -217,12 +233,12 @@ bool ParameterCheckAndSetting(
 				Parameter.Target_Server_IPv4.HopLimitData.TTL = TTLTemp;
 			#endif
 */
-				Parameter.Target_Server_IPv4 = Parameter.Target_Server_IPv4_Multi->front();
-				Parameter.Target_Server_IPv4_Multi->erase(Parameter.Target_Server_IPv4_Multi->begin());
+				Parameter.Target_Server_IPv4 = Parameter.Target_Server_IPv4_Multiple->front();
+				Parameter.Target_Server_IPv4_Multiple->erase(Parameter.Target_Server_IPv4_Multiple->begin());
 			}
 
 		//Copy DNS Server Data when Alternate server data is empty.
-			if (!Parameter.Target_Server_IPv4_Multi->empty() && Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family == 0)
+			if (!Parameter.Target_Server_IPv4_Multiple->empty() && Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family == 0)
 			{
 /* Old version(2016-08-19)
 			#if defined(ENABLE_PCAP)
@@ -232,23 +248,23 @@ bool ParameterCheckAndSetting(
 				Parameter.Target_Server_Alternate_IPv4.HopLimitData.TTL = TTLTemp;
 			#endif
 */
-				Parameter.Target_Server_Alternate_IPv4 = Parameter.Target_Server_IPv4_Multi->front();
-				Parameter.Target_Server_IPv4_Multi->erase(Parameter.Target_Server_IPv4_Multi->begin());
+				Parameter.Target_Server_Alternate_IPv4 = Parameter.Target_Server_IPv4_Multiple->front();
+				Parameter.Target_Server_IPv4_Multiple->erase(Parameter.Target_Server_IPv4_Multiple->begin());
 			}
 
-		//Multi DNS Server check
-			if (Parameter.Target_Server_IPv4_Multi->empty())
+		//Multiple DNS Server check
+			if (Parameter.Target_Server_IPv4_Multiple->empty())
 			{
-				delete Parameter.Target_Server_IPv4_Multi;
-				Parameter.Target_Server_IPv4_Multi = nullptr;
+				delete Parameter.Target_Server_IPv4_Multiple;
+				Parameter.Target_Server_IPv4_Multiple = nullptr;
 			}
 			else {
-				Parameter.AlternateMultiRequest = true;
+				Parameter.AlternateMultipleRequest = true;
 			}
 		}
 		else {
-			delete Parameter.Target_Server_IPv4_Multi;
-			Parameter.Target_Server_IPv4_Multi = nullptr;
+			delete Parameter.Target_Server_IPv4_Multiple;
+			Parameter.Target_Server_IPv4_Multiple = nullptr;
 		}
 
 /* Old version(2016-08-19)
@@ -335,7 +351,7 @@ bool ParameterCheckAndSetting(
 		}
 
 	//EDNS Payload Size check
-		if (Parameter.EDNSPayloadSize >= 0 && Parameter.EDNSPayloadSize < DNS_PACKET_MAXSIZE_TRADITIONAL)
+		if (Parameter.EDNSPayloadSize < DNS_PACKET_MAXSIZE_TRADITIONAL)
 		{
 			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"EDNS Payload Size must longer than traditional DNS packet minimum supported size(512 bytes)", 0, nullptr, 0);
 			return false;
@@ -354,32 +370,32 @@ bool ParameterCheckAndSetting(
 	//Hop Limit and TTL must between 1 and 255.
 		if (
 		//IPv6
-			(ParameterPTR->Target_Server_IPv6.HopLimitData.HopLimit > 0 && 
-			((size_t)ParameterPTR->Target_Server_IPv6.HopLimitData.HopLimit + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
-			(ssize_t)ParameterPTR->Target_Server_IPv6.HopLimitData.HopLimit < (ssize_t)ParameterPTR->HopLimitFluctuation + 1)) || 
-			(ParameterPTR->Target_Server_Alternate_IPv6.HopLimitData.HopLimit > 0 && 
-			((size_t)ParameterPTR->Target_Server_Alternate_IPv6.HopLimitData.HopLimit + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
-			(ssize_t)ParameterPTR->Target_Server_Alternate_IPv6.HopLimitData.HopLimit < (ssize_t)ParameterPTR->HopLimitFluctuation + 1)) || 
+			(ParameterPTR->Target_Server_IPv6.HopLimitData_Assign.HopLimit > 0 && 
+			((size_t)ParameterPTR->Target_Server_IPv6.HopLimitData_Assign.HopLimit + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
+			(ssize_t)ParameterPTR->Target_Server_IPv6.HopLimitData_Assign.HopLimit < (ssize_t)ParameterPTR->HopLimitFluctuation + 1)) || 
+			(ParameterPTR->Target_Server_Alternate_IPv6.HopLimitData_Assign.HopLimit > 0 && 
+			((size_t)ParameterPTR->Target_Server_Alternate_IPv6.HopLimitData_Assign.HopLimit + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
+			(ssize_t)ParameterPTR->Target_Server_Alternate_IPv6.HopLimitData_Assign.HopLimit < (ssize_t)ParameterPTR->HopLimitFluctuation + 1)) || 
 		//IPv4
-			(ParameterPTR->Target_Server_IPv4.HopLimitData.TTL > 0 && 
-			((size_t)ParameterPTR->Target_Server_IPv4.HopLimitData.TTL + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
-			(ssize_t)ParameterPTR->Target_Server_IPv4.HopLimitData.TTL < (ssize_t)ParameterPTR->HopLimitFluctuation + 1)) || 
-			(ParameterPTR->Target_Server_Alternate_IPv4.HopLimitData.TTL > 0 && 
-			((size_t)ParameterPTR->Target_Server_Alternate_IPv4.HopLimitData.TTL + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
-			(ssize_t)ParameterPTR->Target_Server_Alternate_IPv4.HopLimitData.TTL < (ssize_t)ParameterPTR->HopLimitFluctuation + 1)))
+			(ParameterPTR->Target_Server_IPv4.HopLimitData_Assign.TTL > 0 && 
+			((size_t)ParameterPTR->Target_Server_IPv4.HopLimitData_Assign.TTL + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
+			(ssize_t)ParameterPTR->Target_Server_IPv4.HopLimitData_Assign.TTL < (ssize_t)ParameterPTR->HopLimitFluctuation + 1)) || 
+			(ParameterPTR->Target_Server_Alternate_IPv4.HopLimitData_Assign.TTL > 0 && 
+			((size_t)ParameterPTR->Target_Server_Alternate_IPv4.HopLimitData_Assign.TTL + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
+			(ssize_t)ParameterPTR->Target_Server_Alternate_IPv4.HopLimitData_Assign.TTL < (ssize_t)ParameterPTR->HopLimitFluctuation + 1)))
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Hop Limit Fluctuations error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
 		}
 
 	//Hop Limit and TTL check in multiple list(IPv6)
-		if (Parameter.Target_Server_IPv6_Multi != nullptr)
+		if (Parameter.Target_Server_IPv6_Multiple != nullptr)
 		{
-			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv6_Multi)
+			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv6_Multiple)
 			{
-				if (DNSServerDataIter.HopLimitData.HopLimit > 0 && 
-					((size_t)DNSServerDataIter.HopLimitData.HopLimit + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
-					(ssize_t)DNSServerDataIter.HopLimitData.HopLimit < (ssize_t)ParameterPTR->HopLimitFluctuation + 1))
+				if (DNSServerDataIter.HopLimitData_Assign.HopLimit > 0 && 
+					((size_t)DNSServerDataIter.HopLimitData_Assign.HopLimit + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
+					(ssize_t)DNSServerDataIter.HopLimitData_Assign.HopLimit < (ssize_t)ParameterPTR->HopLimitFluctuation + 1))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Hop Limit Fluctuations error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					return false;
@@ -388,13 +404,13 @@ bool ParameterCheckAndSetting(
 		}
 
 	//Hop Limit and TTL check in multiple list(IPv4)
-		if (Parameter.Target_Server_IPv4_Multi != nullptr)
+		if (Parameter.Target_Server_IPv4_Multiple != nullptr)
 		{
-			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv4_Multi)
+			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv4_Multiple)
 			{
-				if (DNSServerDataIter.HopLimitData.TTL > 0 && 
-					((size_t)DNSServerDataIter.HopLimitData.TTL + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
-					(ssize_t)DNSServerDataIter.HopLimitData.TTL < (ssize_t)ParameterPTR->HopLimitFluctuation + 1))
+				if (DNSServerDataIter.HopLimitData_Assign.TTL > 0 && 
+					((size_t)DNSServerDataIter.HopLimitData_Assign.TTL + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
+					(ssize_t)DNSServerDataIter.HopLimitData_Assign.TTL < (ssize_t)ParameterPTR->HopLimitFluctuation + 1))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Hop Limit Fluctuations error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					return false;
@@ -404,17 +420,17 @@ bool ParameterCheckAndSetting(
 	}
 #endif
 
-	//Multi Request Times check
-	if (ParameterPTR->MultiRequestTimes < 1U)
-		++ParameterPTR->MultiRequestTimes;
-	if ((Parameter.Target_Server_IPv4_Multi != nullptr && (Parameter.Target_Server_IPv4_Multi->size() + 2U) * ParameterPTR->MultiRequestTimes > MULTI_REQUEST_MAXNUM) || 
-		(Parameter.Target_Server_IPv4_Multi == nullptr && ParameterPTR->MultiRequestTimes * 2U > MULTI_REQUEST_MAXNUM))
+	//Multiple Request Times check
+	if (ParameterPTR->MultipleRequestTimes < 1U)
+		++ParameterPTR->MultipleRequestTimes;
+	if ((Parameter.Target_Server_IPv4_Multiple != nullptr && (Parameter.Target_Server_IPv4_Multiple->size() + 2U) * ParameterPTR->MultipleRequestTimes > MULTI_REQUEST_MAXNUM) || 
+		(Parameter.Target_Server_IPv4_Multiple == nullptr && ParameterPTR->MultipleRequestTimes * 2U > MULTI_REQUEST_MAXNUM))
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 total request number error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
 	}
-	if ((Parameter.Target_Server_IPv6_Multi != nullptr && (Parameter.Target_Server_IPv6_Multi->size() + 2U) * ParameterPTR->MultiRequestTimes > MULTI_REQUEST_MAXNUM) || 
-		(Parameter.Target_Server_IPv6_Multi == nullptr && ParameterPTR->MultiRequestTimes * 2U > MULTI_REQUEST_MAXNUM))
+	if ((Parameter.Target_Server_IPv6_Multiple != nullptr && (Parameter.Target_Server_IPv6_Multiple->size() + 2U) * ParameterPTR->MultipleRequestTimes > MULTI_REQUEST_MAXNUM) || 
+		(Parameter.Target_Server_IPv6_Multiple == nullptr && ParameterPTR->MultipleRequestTimes * 2U > MULTI_REQUEST_MAXNUM))
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 total request number error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
@@ -422,8 +438,8 @@ bool ParameterCheckAndSetting(
 
 	if (IsFirstRead)
 	{
-	//Alternate Multi request check
-		if (Parameter.AlternateMultiRequest && 
+	//Alternate Multiple request check
+		if (Parameter.AlternateMultipleRequest && 
 			Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family == 0 && Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family == 0
 		#if defined(ENABLE_LIBSODIUM)
 			&& Parameter.IsDNSCurve && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family == 0
@@ -431,7 +447,7 @@ bool ParameterCheckAndSetting(
 		#endif
 			)
 		{
-			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Alternate Multi request error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Alternate Multiple request error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
 		}
 
@@ -453,14 +469,17 @@ bool ParameterCheckAndSetting(
 			Parameter.DNSSEC_Request = true;
 		}
 
-	//EDNS Client Subnet check
+	//EDNS Label check
 		if (!Parameter.EDNS_Label)
 		{
+		//EDNS Client Subnet Relay check
 			if (Parameter.EDNS_ClientSubnet_Relay)
 			{
 				PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"EDNS Client Subnet require EDNS Label", 0, nullptr, 0);
 				Parameter.EDNS_Label = true;
 			}
+
+		//DNSSEC check
 			if (Parameter.DNSSEC_Request)
 			{
 				PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"DNSSEC Request require EDNS Label", 0, nullptr, 0);
@@ -978,7 +997,7 @@ bool ParameterCheckAndSetting(
 			if (IsFirstRead)
 			{
 			//DNSCurve PayloadSize check
-				if (DNSCurveParameter.DNSCurvePayloadSize >= 0 && DNSCurveParameter.DNSCurvePayloadSize < DNS_PACKET_MAXSIZE_TRADITIONAL)
+				if (DNSCurveParameter.DNSCurvePayloadSize < DNS_PACKET_MAXSIZE_TRADITIONAL)
 				{
 					PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"DNSCurve Payload Size must longer than traditional DNS packet minimum supported size(512 bytes)", 0, nullptr, 0);
 					return false;
@@ -1458,8 +1477,8 @@ bool ReadParameterData(
 	if (Data.length() < READ_PARAMETER_MINSIZE)
 		return true;
 
-//Multi-line comments check
-	if (Data.find("HTTP Header Field = ") != 0 && !ReadMultiLineComments(Data, IsLabelComments))
+//Multiple line comments check
+	if (Data.find("HTTP Header Field = ") != 0 && !ReadMultipleLineComments(Data, IsLabelComments))
 		return true;
 
 //Initialization
@@ -1881,7 +1900,7 @@ bool ReadParameterData(
 		{
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("IPFilterLevel<"), nullptr, 0);
-			if (UnsignedResult > 0 && UnsignedResult <= UINT16_MAX)
+			if (UnsignedResult <= UINT16_MAX)
 			{
 				ParameterPTR->IPFilterLevel = UnsignedResult;
 			}
@@ -1954,7 +1973,7 @@ bool ReadParameterData(
 			Parameter.RequestMode_Transport = REQUEST_MODE_UDP;
 	}
 	else if ((Data.find("DirectRequest=") == 0 && Data.length() > strlen("DirectRequest=")) || 
-		(Data.find("HostsOnly=") == 0 && Data.length() > strlen("HostsOnly=")))
+		(Data.find("HostsOnly=") == 0 && Data.length() > strlen("HostsOnly="))) //Old version compatible support
 	{
 		if (Data.find("DirectRequest=1") == 0 || Data.find("HostsOnly=1") == 0)
 		{
@@ -2086,12 +2105,12 @@ bool ReadParameterData(
 		}
 		else if (Data.find("IPv4DNSAddress=") == 0 && Data.length() > strlen("IPv4DNSAddress="))
 		{
-			if (!ReadMultipleAddresses(Data, strlen("IPv4DNSAddress="), AF_INET, Parameter.Target_Server_IPv4_Multi, FileIndex, Line))
+			if (!ReadMultipleAddresses(Data, strlen("IPv4DNSAddress="), AF_INET, Parameter.Target_Server_IPv4_Multiple, FileIndex, Line))
 				return false;
 		}
 		else if (Data.find("IPv4AlternateDNSAddress=") == 0 && Data.length() > strlen("IPv4AlternateDNSAddress="))
 		{
-			if (!ReadMultipleAddresses(Data, strlen("IPv4AlternateDNSAddress="), AF_INET, Parameter.Target_Server_IPv4_Multi, FileIndex, Line))
+			if (!ReadMultipleAddresses(Data, strlen("IPv4AlternateDNSAddress="), AF_INET, Parameter.Target_Server_IPv4_Multiple, FileIndex, Line))
 				return false;
 		}
 		else if (Data.find("IPv4LocalDNSAddress=") == 0 && Data.length() > strlen("IPv4LocalDNSAddress="))
@@ -2129,12 +2148,12 @@ bool ReadParameterData(
 		}
 		else if (Data.find("IPv6DNSAddress=") == 0 && Data.length() > strlen("IPv6DNSAddress="))
 		{
-			if (!ReadMultipleAddresses(Data, strlen("IPv6DNSAddress="), AF_INET6, Parameter.Target_Server_IPv6_Multi, FileIndex, Line))
+			if (!ReadMultipleAddresses(Data, strlen("IPv6DNSAddress="), AF_INET6, Parameter.Target_Server_IPv6_Multiple, FileIndex, Line))
 				return false;
 		}
 		else if (Data.find("IPv6AlternateDNSAddress=") == 0 && Data.length() > strlen("IPv6AlternateDNSAddress="))
 		{
-			if (!ReadMultipleAddresses(Data, strlen("IPv6AlternateDNSAddress="), AF_INET6, Parameter.Target_Server_IPv6_Multi, FileIndex, Line))
+			if (!ReadMultipleAddresses(Data, strlen("IPv6AlternateDNSAddress="), AF_INET6, Parameter.Target_Server_IPv6_Multiple, FileIndex, Line))
 				return false;
 		}
 		else if (Data.find("IPv6LocalDNSAddress=") == 0 && Data.length() > strlen("IPv6LocalDNSAddress="))
@@ -2171,7 +2190,7 @@ bool ReadParameterData(
 				goto PrintDataFormatError;
 			}
 		}
-		else if ((Data.find("BufferQueueLimits=") == 0 && Data.length() > strlen("BufferQueueLimits=")) || 
+		else if ((Data.find("BufferQueueLimits=") == 0 && Data.length() > strlen("BufferQueueLimits=")) || //Old version compatible support
 			(Data.find("ThreadPoolMaximumNumber=") == 0 && Data.length() > strlen("ThreadPoolMaximumNumber=")))
 		{
 			size_t Offset = 0;
@@ -2363,22 +2382,22 @@ bool ReadParameterData(
 */
 	else if (Data.find("IPv4DNSTTL=") == 0 && Data.length() > strlen("IPv4DNSTTL="))
 	{
-		if (!ReadHopLimitData(Data, strlen("IPv4DNSTTL="), AF_INET, &ParameterPTR->Target_Server_IPv4, ParameterPTR->Target_Server_IPv4_Multi, FileIndex, Line))
+		if (!ReadHopLimitData(Data, strlen("IPv4DNSTTL="), AF_INET, &ParameterPTR->Target_Server_IPv4, ParameterPTR->Target_Server_IPv4_Multiple, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("IPv6DNSHopLimits=") == 0 && Data.length() > strlen("IPv6DNSHopLimits="))
 	{
-		if (!ReadHopLimitData(Data, strlen("IPv6DNSHopLimits="), AF_INET6, &ParameterPTR->Target_Server_IPv6, ParameterPTR->Target_Server_IPv6_Multi, FileIndex, Line))
+		if (!ReadHopLimitData(Data, strlen("IPv6DNSHopLimits="), AF_INET6, &ParameterPTR->Target_Server_IPv6, ParameterPTR->Target_Server_IPv6_Multiple, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("IPv4AlternateDNSTTL=") == 0 && Data.length() > strlen("IPv4AlternateDNSTTL="))
 	{
-		if (!ReadHopLimitData(Data, strlen("IPv4AlternateDNSTTL="), AF_INET, &ParameterPTR->Target_Server_Alternate_IPv4, ParameterPTR->Target_Server_IPv4_Multi, FileIndex, Line))
+		if (!ReadHopLimitData(Data, strlen("IPv4AlternateDNSTTL="), AF_INET, &ParameterPTR->Target_Server_Alternate_IPv4, ParameterPTR->Target_Server_IPv4_Multiple, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("IPv6AlternateDNSHopLimits=") == 0 && Data.length() > strlen("IPv6AlternateDNSHopLimits="))
 	{
-		if (!ReadHopLimitData(Data, strlen("IPv6AlternateDNSHopLimits="), AF_INET6, &ParameterPTR->Target_Server_Alternate_IPv6, ParameterPTR->Target_Server_IPv6_Multi, FileIndex, Line))
+		if (!ReadHopLimitData(Data, strlen("IPv6AlternateDNSHopLimits="), AF_INET6, &ParameterPTR->Target_Server_Alternate_IPv6, ParameterPTR->Target_Server_IPv6_Multiple, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("HopLimitsFluctuation=") == 0 && Data.length() > strlen("HopLimitsFluctuation="))
@@ -2525,14 +2544,27 @@ bool ReadParameterData(
 		}
 	}
 	
-	if (Data.find("MultiRequestTimes=") == 0 && Data.length() > strlen("MultiRequestTimes="))
+	if (Data.find("MultipleRequestTimes=") == 0 && Data.length() > strlen("MultipleRequestTimes="))
+	{
+		if (Data.length() < strlen("MultipleRequestTimes=") + UINT16_MAX_STRING_LENGTH)
+		{
+			_set_errno(0);
+			UnsignedResult = strtoul(Data.c_str() + strlen("MultipleRequestTimes="), nullptr, 0);
+			if (UnsignedResult > 0 && UnsignedResult < ULONG_MAX)
+				ParameterPTR->MultipleRequestTimes = UnsignedResult;
+		}
+		else {
+			goto PrintDataFormatError;
+		}
+	}
+	else if (Data.find("MultiRequestTimes=") == 0 && Data.length() > strlen("MultiRequestTimes=")) //Old version compatible support
 	{
 		if (Data.length() < strlen("MultiRequestTimes=") + UINT16_MAX_STRING_LENGTH)
 		{
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("MultiRequestTimes="), nullptr, 0);
-			if (UnsignedResult > 0 && UnsignedResult < ULONG_MAX)
-				ParameterPTR->MultiRequestTimes = UnsignedResult;
+			if (ParameterPTR->MultipleRequestTimes == 0 && UnsignedResult > 0 && UnsignedResult < ULONG_MAX)
+				ParameterPTR->MultipleRequestTimes = UnsignedResult;
 		}
 		else {
 			goto PrintDataFormatError;
@@ -2638,9 +2670,10 @@ bool ReadParameterData(
 		{
 			Parameter.DNSSEC_ForceValidation = true;
 		}
-		else if (Data.find("AlternateMultiRequest=1") == 0)
+		else if (Data.find("AlternateMultipleRequest=1") == 0 || 
+			Data.find("AlternateMultiRequest=1") == 0) //Old version compatible support
 		{
-			Parameter.AlternateMultiRequest = true;
+			Parameter.AlternateMultipleRequest = true;
 		}
 	}
 
@@ -3505,7 +3538,7 @@ bool ReadMultipleAddresses(
 					return false;
 				}
 				else {
-					Parameter.Target_Server_IPv6_Multi->push_back(DNSServerDataTemp);
+					Parameter.Target_Server_IPv6_Multiple->push_back(DNSServerDataTemp);
 				}
 			}
 			else {
@@ -3589,7 +3622,7 @@ bool ReadMultipleAddresses(
 					return false;
 				}
 				else {
-					Parameter.Target_Server_IPv4_Multi->push_back(DNSServerDataTemp);
+					Parameter.Target_Server_IPv4_Multiple->push_back(DNSServerDataTemp);
 				}
 			}
 			else {
@@ -3778,9 +3811,9 @@ bool ReadHopLimitData(
 			if (Protocol == AF_INET6) //IPv6
 			{
 			//Check queue.
-				for (size_t InnerIndex = 0;InnerIndex < Parameter.Target_Server_IPv6_Multi->size();++InnerIndex)
+				for (size_t InnerIndex = 0;InnerIndex < Parameter.Target_Server_IPv6_Multiple->size();++InnerIndex)
 				{
-					if (Parameter.Target_Server_IPv6_Multi->at(InnerIndex).HopLimitData.HopLimit == 0)
+					if (Parameter.Target_Server_IPv6_Multiple->at(InnerIndex).HopLimitData.HopLimit == 0)
 					{
 						Index = InnerIndex;
 						break;
@@ -3788,15 +3821,15 @@ bool ReadHopLimitData(
 				}
 
 			//Convert Hop Limit value.
-				if (UnsignedResult > 0 && UnsignedResult < UINT8_MAX && Parameter.Target_Server_IPv6_Multi->size() + 1U > Index)
-					Parameter.Target_Server_IPv6_Multi->at(Index - 1U).HopLimitData.HopLimit = (uint8_t)UnsignedResult;
+				if (UnsignedResult > 0 && UnsignedResult < UINT8_MAX && Parameter.Target_Server_IPv6_Multiple->size() + 1U > Index)
+					Parameter.Target_Server_IPv6_Multiple->at(Index - 1U).HopLimitData.HopLimit = (uint8_t)UnsignedResult;
 			}
 			else if (Protocol == AF_INET) //IPv4
 			{
 			//Check queue.
-				for (size_t InnerIndex = 0;InnerIndex < Parameter.Target_Server_IPv4_Multi->size();++InnerIndex)
+				for (size_t InnerIndex = 0;InnerIndex < Parameter.Target_Server_IPv4_Multiple->size();++InnerIndex)
 				{
-					if (Parameter.Target_Server_IPv4_Multi->at(InnerIndex).HopLimitData.TTL == 0)
+					if (Parameter.Target_Server_IPv4_Multiple->at(InnerIndex).HopLimitData.TTL == 0)
 					{
 						Index = InnerIndex;
 						break;
@@ -3804,8 +3837,8 @@ bool ReadHopLimitData(
 				}
 
 			//Convert Hop Limit value.
-				if (UnsignedResult > 0 && UnsignedResult < UINT8_MAX && Parameter.Target_Server_IPv4_Multi->size() + 1U > Index)
-					Parameter.Target_Server_IPv4_Multi->at(Index - 1U).HopLimitData.TTL = (uint8_t)UnsignedResult;
+				if (UnsignedResult > 0 && UnsignedResult < UINT8_MAX && Parameter.Target_Server_IPv4_Multiple->size() + 1U > Index)
+					Parameter.Target_Server_IPv4_Multiple->at(Index - 1U).HopLimitData.TTL = (uint8_t)UnsignedResult;
 			}
 			else {
 				return false;
@@ -3814,7 +3847,7 @@ bool ReadHopLimitData(
 
 		++Index;
 */
-		if (UnsignedResult >= 0 && UnsignedResult < UINT8_MAX)
+		if (UnsignedResult < UINT8_MAX)
 		{
 			if (DNSServerData != nullptr)
 			{
@@ -3822,9 +3855,9 @@ bool ReadHopLimitData(
 				if (DNSServerData->AddressData.Storage.ss_family > 0)
 				{
 					if (Protocol == AF_INET6)
-						DNSServerData->HopLimitData.HopLimit = (uint8_t)UnsignedResult;
+						DNSServerData->HopLimitData_Assign.HopLimit = (uint8_t)UnsignedResult;
 					else if (Protocol == AF_INET)
-						DNSServerData->HopLimitData.TTL = (uint8_t)UnsignedResult;
+						DNSServerData->HopLimitData_Assign.TTL = (uint8_t)UnsignedResult;
 					else 
 						goto PrintDataFormatError;
 				}
@@ -3835,7 +3868,7 @@ bool ReadHopLimitData(
 					{
 						if (HopLimitIndex[NETWORK_LAYER_IPV6] < DNSServerDataList->size())
 						{
-							DNSServerDataList->at(HopLimitIndex[NETWORK_LAYER_IPV6]).HopLimitData.HopLimit = (uint8_t)UnsignedResult;
+							DNSServerDataList->at(HopLimitIndex[NETWORK_LAYER_IPV6]).HopLimitData_Assign.HopLimit = (uint8_t)UnsignedResult;
 							++HopLimitIndex[NETWORK_LAYER_IPV6];
 						}
 						else {
@@ -3846,7 +3879,7 @@ bool ReadHopLimitData(
 					{
 						if (HopLimitIndex[NETWORK_LAYER_IPV4] < DNSServerDataList->size())
 						{
-							DNSServerDataList->at(HopLimitIndex[NETWORK_LAYER_IPV4]).HopLimitData.TTL = (uint8_t)UnsignedResult;
+							DNSServerDataList->at(HopLimitIndex[NETWORK_LAYER_IPV4]).HopLimitData_Assign.TTL = (uint8_t)UnsignedResult;
 							++HopLimitIndex[NETWORK_LAYER_IPV4];
 						}
 						else {

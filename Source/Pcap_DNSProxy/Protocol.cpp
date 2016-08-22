@@ -1192,7 +1192,7 @@ size_t CheckResponseData(
 		(ResponseType == REQUEST_PROCESS_DIRECT && Parameter.EDNS_Switch_Direct) || //Direct Request
 		(ResponseType == REQUEST_PROCESS_DNSCURVE && Parameter.EDNS_Switch_DNSCurve) || //DNSCurve
 		(ResponseType == REQUEST_PROCESS_TCP && Parameter.EDNS_Switch_TCP) || //TCP
-		(ResponseType == REQUEST_PROCESS_UDP && Parameter.EDNS_Switch_UDP)))))) //UDP
+		((ResponseType == REQUEST_PROCESS_UDP_NORMAL || ResponseType == REQUEST_PROCESS_UDP_NO_MARKING) && Parameter.EDNS_Switch_UDP)))))) //UDP
 			return EXIT_FAILURE;
 
 //Responses question pointer check
@@ -1343,7 +1343,7 @@ size_t CheckResponseData(
 		(ResponseType == REQUEST_PROCESS_DIRECT && Parameter.EDNS_Switch_Direct) || //Direct Request
 		(ResponseType == REQUEST_PROCESS_DNSCURVE && Parameter.EDNS_Switch_DNSCurve) || //DNSCurve
 		(ResponseType == REQUEST_PROCESS_TCP && Parameter.EDNS_Switch_TCP) || //TCP
-		(ResponseType == REQUEST_PROCESS_UDP && Parameter.EDNS_Switch_UDP)) && //UDP
+		((ResponseType == REQUEST_PROCESS_UDP_NORMAL || ResponseType == REQUEST_PROCESS_UDP_NO_MARKING) && Parameter.EDNS_Switch_UDP)) && //UDP
 		(!IsEDNS_Label || (Parameter.DNSSEC_Request && Parameter.DNSSEC_ForceValidation && !IsDNSSEC_Records))) || 
 		(ResponseType == REQUEST_PROCESS_LOCAL && !Parameter.LocalForce && !IsGotAddressResult)))
 			return EXIT_FAILURE;

@@ -76,8 +76,8 @@ ConfigurationTable::ConfigurationTable(
 		ListenAddress_IPv4 = new std::vector<sockaddr_storage>();
 		LocalhostSubnet_IPv6 = new ADDRESS_PREFIX_BLOCK();
 		LocalhostSubnet_IPv4 = new ADDRESS_PREFIX_BLOCK();
-		Target_Server_IPv6_Multi = new std::vector<DNS_SERVER_DATA>();
-		Target_Server_IPv4_Multi = new std::vector<DNS_SERVER_DATA>();
+		Target_Server_IPv6_Multiple = new std::vector<DNS_SERVER_DATA>();
+		Target_Server_IPv4_Multiple = new std::vector<DNS_SERVER_DATA>();
 
 	//[Data] block
 	#if defined(ENABLE_PCAP)
@@ -116,14 +116,14 @@ ConfigurationTable::ConfigurationTable(
 		delete ListenAddress_IPv4;
 		delete LocalhostSubnet_IPv6;
 		delete LocalhostSubnet_IPv4;
-		delete Target_Server_IPv6_Multi;
-		delete Target_Server_IPv4_Multi;
+		delete Target_Server_IPv6_Multiple;
+		delete Target_Server_IPv4_Multiple;
 		ListenAddress_IPv6 = nullptr;
 		ListenAddress_IPv4 = nullptr;
 		LocalhostSubnet_IPv6 = nullptr;
 		LocalhostSubnet_IPv4 = nullptr;
-		Target_Server_IPv6_Multi = nullptr;
-		Target_Server_IPv4_Multi = nullptr;
+		Target_Server_IPv6_Multiple = nullptr;
+		Target_Server_IPv4_Multiple = nullptr;
 
 	//[Data] block
 	#if defined(ENABLE_PCAP)
@@ -299,14 +299,14 @@ ConfigurationTable::~ConfigurationTable(
 	delete ListenAddress_IPv4;
 	delete LocalhostSubnet_IPv6;
 	delete LocalhostSubnet_IPv4;
-	delete Target_Server_IPv6_Multi;
-	delete Target_Server_IPv4_Multi;
+	delete Target_Server_IPv6_Multiple;
+	delete Target_Server_IPv4_Multiple;
 	ListenAddress_IPv6 = nullptr;
 	ListenAddress_IPv4 = nullptr;
 	LocalhostSubnet_IPv6 = nullptr;
 	LocalhostSubnet_IPv4 = nullptr;
-	Target_Server_IPv6_Multi = nullptr;
-	Target_Server_IPv4_Multi = nullptr;
+	Target_Server_IPv6_Multiple = nullptr;
+	Target_Server_IPv4_Multiple = nullptr;
 
 //[Data] block
 #if defined(ENABLE_PCAP)
@@ -360,14 +360,14 @@ void ConfigurationTable::SetToMonitorItem(
 	delete ListenAddress_IPv4;
 	delete LocalhostSubnet_IPv6;
 	delete LocalhostSubnet_IPv4;
-	delete Target_Server_IPv6_Multi;
-	delete Target_Server_IPv4_Multi;
+	delete Target_Server_IPv6_Multiple;
+	delete Target_Server_IPv4_Multiple;
 	ListenAddress_IPv6 = nullptr;
 	ListenAddress_IPv4 = nullptr;
 	LocalhostSubnet_IPv6 = nullptr;
 	LocalhostSubnet_IPv4 = nullptr;
-	Target_Server_IPv6_Multi = nullptr;
-	Target_Server_IPv4_Multi = nullptr;
+	Target_Server_IPv6_Multiple = nullptr;
+	Target_Server_IPv4_Multiple = nullptr;
 
 //[Data] block
 #if defined(ENABLE_PCAP)
@@ -396,8 +396,8 @@ void ConfigurationTable::SetToMonitorItem(
 	ListenAddress_IPv4 = nullptr;
 	LocalhostSubnet_IPv6 = nullptr;
 	LocalhostSubnet_IPv4 = nullptr;
-	Target_Server_IPv6_Multi = nullptr;
-	Target_Server_IPv4_Multi = nullptr;
+	Target_Server_IPv6_Multiple = nullptr;
+	Target_Server_IPv4_Multiple = nullptr;
 //[Data] block
 #if defined(ENABLE_PCAP)
 	ICMP_PaddingData = nullptr;
@@ -442,10 +442,14 @@ void ConfigurationTable::MonitorItemToUsing(
 //[Values] block
 	ConfigurationParameter->ThreadPoolResetTime = ThreadPoolResetTime;
 #if defined(ENABLE_PCAP)
-	ConfigurationParameter->Target_Server_IPv4.HopLimitData.TTL = Target_Server_IPv4.HopLimitData.TTL;
-	ConfigurationParameter->Target_Server_IPv6.HopLimitData.HopLimit = Target_Server_IPv6.HopLimitData.HopLimit;
-	ConfigurationParameter->Target_Server_Alternate_IPv4.HopLimitData.TTL = Target_Server_Alternate_IPv4.HopLimitData.TTL;
-	ConfigurationParameter->Target_Server_Alternate_IPv6.HopLimitData.HopLimit = Target_Server_Alternate_IPv6.HopLimitData.HopLimit;
+	ConfigurationParameter->Target_Server_IPv4.HopLimitData_Assign.TTL = Target_Server_IPv4.HopLimitData_Assign.TTL;
+	ConfigurationParameter->Target_Server_IPv6.HopLimitData_Assign.HopLimit = Target_Server_IPv6.HopLimitData_Assign.HopLimit;
+	ConfigurationParameter->Target_Server_IPv4.HopLimitData_Mark.TTL = Target_Server_IPv4.HopLimitData_Mark.TTL;
+	ConfigurationParameter->Target_Server_IPv6.HopLimitData_Mark.HopLimit = Target_Server_IPv6.HopLimitData_Mark.HopLimit;
+	ConfigurationParameter->Target_Server_Alternate_IPv4.HopLimitData_Assign.TTL = Target_Server_Alternate_IPv4.HopLimitData_Assign.TTL;
+	ConfigurationParameter->Target_Server_Alternate_IPv6.HopLimitData_Assign.HopLimit = Target_Server_Alternate_IPv6.HopLimitData_Assign.HopLimit;
+	ConfigurationParameter->Target_Server_Alternate_IPv4.HopLimitData_Mark.TTL = Target_Server_Alternate_IPv4.HopLimitData_Mark.TTL;
+	ConfigurationParameter->Target_Server_Alternate_IPv6.HopLimitData_Mark.HopLimit = Target_Server_Alternate_IPv6.HopLimitData_Mark.HopLimit;
 #endif
 	ConfigurationParameter->SocketTimeout_Reliable = SocketTimeout_Reliable;
 	ConfigurationParameter->SocketTimeout_Unreliable = SocketTimeout_Unreliable;
@@ -454,7 +458,7 @@ void ConfigurationTable::MonitorItemToUsing(
 	ConfigurationParameter->ICMP_Speed = ICMP_Speed;
 	ConfigurationParameter->DomainTest_Speed = DomainTest_Speed;
 #endif
-	ConfigurationParameter->MultiRequestTimes = MultiRequestTimes;
+	ConfigurationParameter->MultipleRequestTimes = MultipleRequestTimes;
 
 //[Switches] block
 	ConfigurationParameter->DomainCaseConversion = DomainCaseConversion;
@@ -554,10 +558,14 @@ void ConfigurationTable::MonitorItemReset(
 //[Values] block
 	ThreadPoolResetTime = DEFAULT_THREAD_POOL_RESET_TIME;
 #if defined(ENABLE_PCAP)
-	Target_Server_IPv4.HopLimitData.TTL = 0;
-	Target_Server_IPv6.HopLimitData.HopLimit = 0;
-	Target_Server_Alternate_IPv4.HopLimitData.TTL = 0;
-	Target_Server_Alternate_IPv6.HopLimitData.HopLimit = 0;
+	Target_Server_IPv4.HopLimitData_Assign.TTL = 0;
+	Target_Server_IPv6.HopLimitData_Assign.HopLimit = 0;
+	Target_Server_IPv4.HopLimitData_Mark.TTL = 0;
+	Target_Server_IPv6.HopLimitData_Mark.HopLimit = 0;
+	Target_Server_Alternate_IPv4.HopLimitData_Assign.TTL = 0;
+	Target_Server_Alternate_IPv6.HopLimitData_Assign.HopLimit = 0;
+	Target_Server_Alternate_IPv4.HopLimitData_Mark.TTL = 0;
+	Target_Server_Alternate_IPv6.HopLimitData_Mark.HopLimit = 0;
 #endif
 #if defined(PLATFORM_WIN)
 	SocketTimeout_Reliable = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
@@ -573,7 +581,7 @@ void ConfigurationTable::MonitorItemReset(
 	ICMP_Speed = DEFAULT_ICMP_TEST_TIME * SECOND_TO_MILLISECOND;
 	DomainTest_Speed = DEFAULT_DOMAIN_TEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
 #endif
-	MultiRequestTimes = 0;
+	MultipleRequestTimes = 0;
 
 //[Switches] block
 	DomainCaseConversion = false;

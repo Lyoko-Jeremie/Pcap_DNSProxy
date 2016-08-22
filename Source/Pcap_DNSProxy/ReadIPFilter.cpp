@@ -42,8 +42,8 @@ bool ReadIPFilterData(
 	if (Data.empty())
 		return true;
 
-//Multi-line comments check, delete spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs) and check minimum length of ipfilter items.
-	if (!ReadMultiLineComments(Data, IsLabelComments) || Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
+//Multiple line comments check, delete spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs) and check minimum length of ipfilter items.
+	if (!ReadMultipleLineComments(Data, IsLabelComments) || Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
 		return true;
 
 //[Base] block
@@ -108,7 +108,7 @@ bool ReadIPFilterData(
 		return false;
 	}
 
-//Multi-line comments check, delete comments(Number Sign/NS and double slashs) and check minimum length.
+//Multiple line comments check, delete comments(Number Sign/NS and double slashs) and check minimum length.
 	else if (Data.rfind(" //") != std::string::npos)
 	{
 		Data.erase(Data.rfind(" //"), Data.length() - Data.rfind(" //"));
@@ -366,7 +366,7 @@ bool ReadBlacklistData(
 		}
 	}
 
-//Add to global ResultBlacklistTable.
+//Add to global list.
 	for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
 	{
 		if (IPFilterFileSetIter.FileIndex == FileIndex)
@@ -435,7 +435,7 @@ bool ReadLocalRoutingData(
 			AddressRoutingTableTemp.Prefix = UnsignedResult;
 		}
 
-	//Add to global LocalRoutingList(IPv6).
+	//Add to global list(IPv6).
 		std::set<uint64_t> AddrBackSet;
 		for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
 		{
@@ -515,7 +515,7 @@ bool ReadLocalRoutingData(
 			AddressRoutingTableTemp.Prefix = UnsignedResult;
 		}
 
-	//Add to global LocalRoutingTable(IPv4).
+	//Add to global list(IPv4).
 		for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
 		{
 			if (IPFilterFileSetIter.FileIndex == FileIndex)
@@ -852,7 +852,7 @@ bool ReadMainIPFilterData(
 		}
 	}
 
-//Add to global AddressRangeTable.
+//Add to global list.
 	for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
 	{
 		if (IPFilterFileSetIter.FileIndex == FileIndex)

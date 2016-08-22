@@ -2210,7 +2210,7 @@ typedef struct _dns_record_caa_
 
 //Domain Name System Curve/DNSCurve part
 #if defined(ENABLE_LIBSODIUM)
-// About DNSCurve standards: 
+// About DNSCurve standards:
 // DNSCurve: Usable security for DNS(https://dnscurve.org)
 // DNSCrypt, A protocol to improve DNS security(https://dnscrypt.org)
 #define DNSCURVE_MAGIC_QUERY_LEN          8U

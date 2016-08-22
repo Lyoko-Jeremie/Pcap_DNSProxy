@@ -282,8 +282,8 @@ size_t DNSCurveSelectTargetSocket(
 	return 0;
 }
 
-//DNSCurve select socket data of DNS target(Multithreading)
-bool DNSCurveSelectTargetSocketMulti(
+//DNSCurve select socket data of DNS target(Multiple threading)
+bool DNSCurveSelectTargetSocketMultiple(
 	bool &IsIPv6, 
 	bool **IsAlternate, 
 	const uint16_t Protocol)
@@ -407,7 +407,7 @@ void DNSCurveSocketPrecomputation(
 //Selecting check
 	bool *IsAlternate = nullptr;
 	auto IsIPv6 = false;
-	if (!DNSCurveSelectTargetSocketMulti(IsIPv6, &IsAlternate, Protocol))
+	if (!DNSCurveSelectTargetSocketMultiple(IsIPv6, &IsAlternate, Protocol))
 		return;
 
 //Initialization
@@ -446,7 +446,7 @@ void DNSCurveSocketPrecomputation(
 
 	//Socket initialization
 		if (Protocol == IPPROTO_TCP) //TCP
-			LoopLimits = Parameter.MultiRequestTimes;
+			LoopLimits = Parameter.MultipleRequestTimes;
 		else if (Protocol == IPPROTO_UDP) //UDP
 			LoopLimits = 1U;
 		else 
@@ -540,7 +540,7 @@ SkipMain:
 		*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4;
 
 //Alternate
-	if ((*PacketTarget)->AddressData.Storage.ss_family > 0 && (*IsAlternate || Parameter.AlternateMultiRequest))
+	if ((*PacketTarget)->AddressData.Storage.ss_family > 0 && (*IsAlternate || Parameter.AlternateMultipleRequest))
 	{
 	//Encryption mode check
 		if (DNSCurveParameter.IsEncryption && 
@@ -560,7 +560,7 @@ SkipMain:
 	//Socket initialization
 		if (Protocol == IPPROTO_TCP) //TCP
 		{
-			LoopLimits = Parameter.MultiRequestTimes;
+			LoopLimits = Parameter.MultipleRequestTimes;
 		}
 		else if (Protocol == IPPROTO_UDP) //UDP
 		{
@@ -919,7 +919,7 @@ ssize_t DNSCurveSocketSelecting(
 			RecvLen = DNSCurveSelectingResult(Protocol, SocketDataList, SocketSelectingList, OriginalRecv, RecvSize);
 			if (RecvLen >= (ssize_t)DNS_PACKET_MINSIZE)
 				return RecvLen;
-		//All socket cloesed. 
+		//All socket cloesed.
 			else if (IsAllSocketClosed)
 				return EXIT_FAILURE;
 		}
@@ -939,10 +939,8 @@ ssize_t DNSCurveSocketSelecting(
 				if (SocketDataList.at(Index).Socket > MaxSocket)
 					MaxSocket = SocketDataList.at(Index).Socket;
 
-			//Receive process
+			//Receive and send process
 				FD_SET(SocketDataList.at(Index).Socket, &ReadFDS);
-
-			//Send process
 				if (!SocketSelectingList.at(Index).IsPacketSend)
 					FD_SET(SocketDataList.at(Index).Socket, &WriteFDS);
 			}
@@ -1093,7 +1091,11 @@ ssize_t DNSCurveSelectingResult(
 				RecvLen = ntohs(((uint16_t *)SocketSelectingList.at(Index).RecvBuffer.get())[0]);
 				if (RecvLen > (ssize_t)SocketSelectingList.at(Index).Length)
 				{
-					goto JumpToRestart;
+					SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+					SocketDataList.at(Index).Socket = 0;
+					SocketSelectingList.at(Index).RecvBuffer.reset();
+					SocketSelectingList.at(Index).Length = 0;
+					continue;
 				}
 				else {
 					memmove_s(SocketSelectingList.at(Index).RecvBuffer.get(), RecvSize, SocketSelectingList.at(Index).RecvBuffer.get() + sizeof(uint16_t), RecvLen);
@@ -1106,40 +1108,79 @@ ssize_t DNSCurveSelectingResult(
 				RecvLen = SocketSelectingList.at(Index).Length;
 			}
 			else {
-				goto JumpToRestart;
+				SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				SocketDataList.at(Index).Socket = 0;
+				SocketSelectingList.at(Index).RecvBuffer.reset();
+				SocketSelectingList.at(Index).Length = 0;
+				continue;
 			}
 
 		//Receive from buffer list and decrypt or get packet data.
 			RecvLen = DNSCurvePacketDecryption(SocketSelectingList.at(Index).ReceiveMagicNumber, SocketSelectingList.at(Index).PrecomputationKey, SocketSelectingList.at(Index).RecvBuffer.get(), RecvSize, RecvLen);
 			if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
 			{
-				goto JumpToRestart;
+				SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				SocketDataList.at(Index).Socket = 0;
+				SocketSelectingList.at(Index).RecvBuffer.reset();
+				SocketSelectingList.at(Index).Length = 0;
+				continue;
 			}
 			else {
 				sodium_memzero(OriginalRecv, RecvSize);
 				memcpy_s(OriginalRecv, RecvSize, SocketSelectingList.at(Index).RecvBuffer.get(), RecvLen);
 			}
 
+/* Old version(2016-08-21)
 		//Close all sockets.
 			for (auto &SocketDataIter:SocketDataList)
 			{
 				SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 				SocketDataIter.Socket = 0;
 			}
+*/
+		//Mark sockets to global list.
+			std::unique_lock<std::mutex> SocketMarkingMutex(SocketMarkingLock);
+			for (auto &SocketDataIter:SocketDataList)
+			{
+				if (SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
+				{
+					SOCKET_MARKING_DATA SocketMarkingDataTemp;
+					SocketMarkingDataTemp.first = SocketDataIter.Socket;
+					if (Protocol == IPPROTO_TCP)
+					{
+					#if defined(PLATFORM_WIN_XP)
+						SocketMarkingDataTemp.second = GetTickCount() + DNSCurveParameter.DNSCurve_SocketTimeout_Reliable;
+					#elif defined(PLATFORM_WIN)
+						SocketMarkingDataTemp.second = GetTickCount64() + DNSCurveParameter.DNSCurve_SocketTimeout_Reliable;
+					#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+						SocketMarkingDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), DNSCurveParameter.DNSCurve_SocketTimeout_Reliable);
+					#endif
+					}
+					else if (Protocol == IPPROTO_UDP)
+					{
+					#if defined(PLATFORM_WIN_XP)
+						SocketMarkingDataTemp.second = GetTickCount() + DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable;
+					#elif defined(PLATFORM_WIN)
+						SocketMarkingDataTemp.second = GetTickCount64() + DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable;
+					#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+						SocketMarkingDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable);
+					#endif
+					}
+					else {
+						continue;
+					}
+
+					SocketMarkingList.push(SocketMarkingDataTemp);
+					SocketDataIter.Socket = 0;
+				}
+			}
+			SocketMarkingMutex.unlock();
 
 		//Mark DNS cache.
 			if (Parameter.CacheType > 0)
 				MarkDomainCache(OriginalRecv, RecvLen);
 
 			return RecvLen;
-
-		//Jump here to restart.
-		JumpToRestart:
-			SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-			SocketDataList.at(Index).Socket = 0;
-			SocketSelectingList.at(Index).RecvBuffer.reset();
-			SocketSelectingList.at(Index).Length = 0;
-			continue;
 		}
 	}
 
@@ -1427,7 +1468,7 @@ bool DNSCurveTCPSignatureRequest(
 
 	//Send request again.
 		sodium_memzero(RecvBuffer.get(), LARGE_PACKET_MAXSIZE);
-		if (!Parameter.AlternateMultiRequest)
+		if (!Parameter.AlternateMultipleRequest)
 		{
 			if (ServerType == DNSCURVE_MAIN_IPV6)
 				++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_TCP_IPV6];
@@ -1608,7 +1649,7 @@ bool DNSCurveUDPSignatureRequest(
 
 	//Send request again.
 		sodium_memzero(RecvBuffer.get(), PACKET_MAXSIZE);
-		if (!Parameter.AlternateMultiRequest)
+		if (!Parameter.AlternateMultipleRequest)
 		{
 			if (ServerType == DNSCURVE_MAIN_IPV6)
 				++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_UDP_IPV6];
@@ -1791,7 +1832,7 @@ size_t DNSCurveTCPRequest(
 //Socket selecting
 	ssize_t ErrorCode = 0;
 	RecvLen = DNSCurveSocketSelecting(IPPROTO_TCP, TCPSocketDataList, TCPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
-	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultiRequest) //Mark timeout.
+	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_TCP_IPV6];
@@ -1802,8 +1843,8 @@ size_t DNSCurveTCPRequest(
 	return RecvLen;
 }
 
-//Transmission of DNSCurve TCP protocol(Multithreading)
-size_t DNSCurveTCPRequestMulti(
+//Transmission of DNSCurve TCP protocol(Multiple threading)
+size_t DNSCurveTCPRequestMultiple(
 	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
 	uint8_t *OriginalRecv, 
@@ -1874,7 +1915,7 @@ size_t DNSCurveTCPRequestMulti(
 
 //Socket selecting
 	ssize_t ErrorCode = 0, RecvLen = DNSCurveSocketSelecting(IPPROTO_TCP, TCPSocketDataList, TCPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
-	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultiRequest) //Mark timeout.
+	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_UDP_IPV6];
@@ -1970,7 +2011,7 @@ size_t DNSCurveUDPRequest(
 //Socket selecting
 	ssize_t ErrorCode = 0;
 	RecvLen = DNSCurveSocketSelecting(IPPROTO_UDP, UDPSocketDataList, UDPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
-	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultiRequest) //Mark timeout.
+	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_UDP_IPV6];
@@ -1981,8 +2022,8 @@ size_t DNSCurveUDPRequest(
 	return RecvLen;
 }
 
-//Transmission of DNSCurve UDP protocol(Multithreading)
-size_t DNSCurveUDPRequestMulti(
+//Transmission of DNSCurve UDP protocol(Multiple threading)
+size_t DNSCurveUDPRequestMultiple(
 	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
 	uint8_t *OriginalRecv, 
@@ -2053,7 +2094,7 @@ size_t DNSCurveUDPRequestMulti(
 
 //Socket selecting
 	ssize_t ErrorCode = 0, RecvLen = DNSCurveSocketSelecting(IPPROTO_UDP, UDPSocketDataList, UDPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
-	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultiRequest) //Mark timeout.
+	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_UDP_IPV6];

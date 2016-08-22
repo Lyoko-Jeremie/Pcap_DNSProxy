@@ -106,10 +106,12 @@
 #define UNICODE_IDEOGRAPHIC_SPACE                     0x3000                      //Ideographic Space in CJK
 
 //Version definitions
+/* Old version(2016-08-21)
 #define CONFIG_VERSION_POINT_THREE                    0.3
+*/
 #define CONFIG_VERSION                                0.4                                   //Current configuration file version
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
-#define FULL_VERSION                                  L"0.4.6.7"
+#define FULL_VERSION                                  L"0.4.7.0"
 
 //Size and length definitions(Number)
 #define ADDR_STRING_MAXSIZE                           64U                         //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -135,7 +137,7 @@
 #define DOMAIN_RAMDOM_MINSIZE                         6U                          //Minimum size of ramdom domain request
 #define FILE_BUFFER_SIZE                              4096U                       //Maximum size of file buffer(4KB/4096 bytes)
 #define HTTP_VERSION_LENGTH                           2U                          //HTTP version size
-#define HTTP_STATUS_CODE_LENGTH                       3U                          //HTTP status code length 
+#define HTTP_STATUS_CODE_LENGTH                       3U                          //HTTP status code length
 #define ICMP_PADDING_MAXSIZE                          1484U                       //Length of ICMP padding data must between 18 bytes and 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
 #if defined(PLATFORM_LINUX)
 	#define ICMP_PADDING_LENGTH_LINUX                     40U
@@ -147,7 +149,7 @@
 #define IPV4_SHORTEST_ADDRSTRING                      6U                          //The shortest IPv4 address strings(*.*.*.*).
 #define IPV6_SHORTEST_ADDRSTRING                      3U                          //The shortest IPv6 address strings(::).
 #define LARGE_PACKET_MAXSIZE                          4096U                       //Maximum size of packets(4KB/4096 bytes) of TCP protocol
-#define MULTI_REQUEST_MAXNUM                          64U                         //Maximum number of multi request.
+#define MULTI_REQUEST_MAXNUM                          64U                         //Maximum number of multiple request.
 #define NETWORK_LAYER_PARTNUM                         2U                          //Number of network layer protocols(IPv6 and IPv4)
 #define ORIGINAL_PACKET_MAXSIZE                       1512U                       //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header + 4 bytes FCS)
 #define PACKET_MAXSIZE                                1500U                       //Maximum size of packets, Standard MTU of Ethernet II network
@@ -394,7 +396,8 @@
 #define REQUEST_PROCESS_DNSCURVE                      5U
 #define REQUEST_PROCESS_DNSCURVE_SIGN                 6U
 #define REQUEST_PROCESS_TCP                           7U
-#define REQUEST_PROCESS_UDP                           8U
+#define REQUEST_PROCESS_UDP_NORMAL                    8U
+#define REQUEST_PROCESS_UDP_NO_MARKING                9U
 
 //DNSCurve server type definitions
 #if defined(ENABLE_LIBSODIUM)
@@ -440,6 +443,9 @@ typedef struct _socket_data_
 	socklen_t                            AddrLen;
 }SocketData, SOCKET_DATA, *PSocketData, *PSOCKET_DATA;
 
+//Socket Marking Data structure
+typedef std::pair<SYSTEM_SOCKET, uint64_t> SocketMarkingData, SOCKET_MARKING_DATA, *PSocketMarkingData, *PSOCKET_MARKING_DATA;
+
 //Address Prefix Block structure
 typedef std::pair<sockaddr_storage, size_t> AddressPrefixBlock, ADDRESS_PREFIX_BLOCK, *PAddressPrefixBlock, *PADDRESS_PREFIX_BLOCK;
 
@@ -451,15 +457,20 @@ typedef union _address_union_data_
 	sockaddr_in                          IPv4;
 }AddressUnionData, ADDRESS_UNION_DATA, *PAddressUnionData, *PADDRESS_UNION_DATA;
 
+//Hop Limit and TTL Data structure
+typedef union _hoplimit_data_
+{
+	uint8_t                              TTL;
+	uint8_t                              HopLimit;
+}HopLimitUnionData, HOP_LIMIT_UNION_DATA, *PHopLimitUnionData, *PHOP_LIMIT_UNION_DATA;
+
 //DNS Server Data structure
 typedef struct _dns_server_data_
 {
-	AddressUnionData                     AddressData;
+	ADDRESS_UNION_DATA                   AddressData;
 #if defined(ENABLE_PCAP)
-	union _hoplimit_data_ {
-		uint8_t                          TTL;
-		uint8_t                          HopLimit;
-	}HopLimitData;
+	HOP_LIMIT_UNION_DATA                 HopLimitData_Assign;
+	HOP_LIMIT_UNION_DATA                 HopLimitData_Mark;
 #endif
 }DNSServerData, DNS_SERVER_DATA, *PDNSServerData, *PDNS_SERVER_DATA;
 
@@ -581,8 +592,8 @@ public:
 	ADDRESS_UNION_DATA                   Target_Server_Alternate_Local_IPv6;
 	ADDRESS_UNION_DATA                   Target_Server_Local_IPv4;
 	ADDRESS_UNION_DATA                   Target_Server_Alternate_Local_IPv4;
-	std::vector<DNS_SERVER_DATA>         *Target_Server_IPv6_Multi;
-	std::vector<DNS_SERVER_DATA>         *Target_Server_IPv4_Multi;
+	std::vector<DNS_SERVER_DATA>         *Target_Server_IPv6_Multiple;
+	std::vector<DNS_SERVER_DATA>         *Target_Server_IPv4_Multiple;
 //[Values] block
 	size_t                               ThreadPoolBaseNum;
 	size_t                               ThreadPoolMaxNum;
@@ -607,7 +618,7 @@ public:
 	size_t                               AlternateTimes;
 	size_t                               AlternateTimeRange;
 	size_t                               AlternateResetTime;
-	size_t                               MultiRequestTimes;
+	size_t                               MultipleRequestTimes;
 //[Switches] block
 #if defined(PLATFORM_LINUX)
 	bool                                 TCP_FastOpen;
@@ -629,7 +640,7 @@ public:
 	bool                                 DNSSEC_Request;
 	bool                                 DNSSEC_Validation;
 	bool                                 DNSSEC_ForceValidation;
-	bool                                 AlternateMultiRequest;
+	bool                                 AlternateMultipleRequest;
 	bool                                 DoNotFragment;
 #if defined(ENABLE_PCAP)
 	bool                                 HeaderCheck_IPv4;
@@ -1077,6 +1088,9 @@ size_t Base64_Encode(
 	uint8_t *Output, 
 	const size_t OutputSize);
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+uint64_t IncreaseMillisecondTime(
+	const uint64_t CurrentTime, 
+	const timeval IncreaseTime);
 uint64_t GetCurrentSystemTime(
 	void);
 #endif
@@ -1113,7 +1127,7 @@ size_t DNSCurveTCPRequest(
 	const size_t SendSize, 
 	uint8_t *OriginalRecv, 
 	const size_t RecvSize);
-size_t DNSCurveTCPRequestMulti(
+size_t DNSCurveTCPRequestMultiple(
 	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
 	uint8_t *OriginalRecv, 
@@ -1123,7 +1137,7 @@ size_t DNSCurveUDPRequest(
 	const size_t SendSize, 
 	uint8_t *OriginalRecv, 
 	const size_t RecvSize);
-size_t DNSCurveUDPRequestMulti(
+size_t DNSCurveUDPRequestMultiple(
 	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
 	uint8_t *OriginalRecv, 
@@ -1170,7 +1184,7 @@ size_t TCPRequest(
 	const size_t SendSize, 
 	uint8_t *OriginalRecv, 
 	const size_t RecvSize);
-size_t TCPRequestMulti(
+size_t TCPRequestMultiple(
 	const size_t RequestType, 
 	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
@@ -1178,11 +1192,13 @@ size_t TCPRequestMulti(
 	const size_t RecvSize);
 #if defined(ENABLE_PCAP)
 size_t UDPRequest(
+	const size_t RequestType, 
 	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
 	const SOCKET_DATA *LocalSocketData, 
 	const uint16_t Protocol);
-size_t UDPRequestMulti(
+size_t UDPRequestMultiple(
+	const size_t RequestType, 
 	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
 	const SOCKET_DATA *LocalSocketData, 
@@ -1194,7 +1210,7 @@ size_t UDPCompleteRequest(
 	const size_t SendSize, 
 	uint8_t *OriginalRecv, 
 	const size_t RecvSize);
-size_t UDPCompleteRequestMulti(
+size_t UDPCompleteRequestMultiple(
 	const size_t RequestType, 
 	const uint8_t *OriginalSend, 
 	const size_t SendSize, 

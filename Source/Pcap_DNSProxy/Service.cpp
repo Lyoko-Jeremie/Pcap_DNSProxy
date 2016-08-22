@@ -55,10 +55,6 @@ size_t WINAPI ServiceMain(
 	DWORD argc, 
 	LPTSTR *argv)
 {
-//Disable warning message.
-	argc;
-	argv;
-
 //Disable console mode printing.
 	GlobalRunningStatus.IsConsole = false;
 
@@ -131,9 +127,6 @@ BOOL WINAPI ExecuteService(
 DWORD WINAPI ServiceProc(
 	PVOID lpParameter)
 {
-//Disable warning message.
-	lpParameter;
-
 //Start main process.
 	if (!IsServiceRunning || !MonitorInit())
 	{

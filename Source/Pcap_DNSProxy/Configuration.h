@@ -61,7 +61,7 @@ bool ReadText(
 	const FILE *FileHandle, 
 	const size_t InputType, 
 	const size_t FileIndex);
-bool ReadMultiLineComments(
+bool ReadMultipleLineComments(
 	std::string &Data, 
 	bool &IsLabelComments);
 void ClearModificatingListData(

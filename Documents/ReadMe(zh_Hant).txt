@@ -161,7 +161,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 此功能開啟後將有利於對偽造資料包的過濾能力，此組合的過濾效果比較可靠
   * 將目標伺服器的請求埠改為非標準 DNS 埠：例如 OpenDNS 支援 53 標準埠和 5353 非標準埠的請求
     * 非標準 DNS 埠現階段尚未被干擾，此組合的過濾效果比較可靠
-  * Multi Request Times = xx 時：應用到所有除請求境內伺服器外的所有請求，一個請求多次發送功能
+  * Multiple Request Times = xx 時：應用到所有除請求境內伺服器外的所有請求，一個請求多次發送功能
     * 此功能用於對抗網路丟包比較嚴重的情況，對系統和網路資源的佔用都比較高，但在網路環境惡劣的情況下能提高獲得解析結果的可靠性
   * DNSCurve = 1 同時 Encryption = 0：使用 DNSCurve/DNSCrypt 非加密模式請求功能變數名稱解析
     * 此組合等於使用非標準 DNS 埠請求，功能變數名稱解析可靠性比較高，詳細情況參見上文
@@ -376,8 +376,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * 單個 IPv6 為 "[IPv6 位址]:埠"（均不含引號）
       * 多個 IPv4 為 "位址A:埠|位址B:埠|位址C:埠"（均不含引號）
       * 多個 IPv6 為 "[位址A]:埠| [位址B]:埠| [位址C]:埠"（均不含引號）
-      * 啟用同時請求多伺服器後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果，同時請求多伺服器啟用後將自動啟用 Alternate Multi Request 參數（參見下文）
-      * 可填入的伺服器數量為：填入主要/待命伺服器的數量 * Multi Request Times = 總請求的數值，此數值不能超過 64
+      * 啟用同時請求多伺服器後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果，同時請求多伺服器啟用後將自動啟用 Alternate Multiple Request 參數（參見下文）
+      * 可填入的伺服器數量為：填入主要/待命伺服器的數量
+	  * Multiple Request Times = 總請求的數值，此數值不能超過 64
     * 帶前置長度位址的格式：
        * IPv4 為 "IPv4 位址/遮罩長度"（均不含引號）
        * IPv6 為 "IPv6 位址/前置長度"（均不含引號）
@@ -502,9 +503,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Alternate Times - 待命伺服器失敗次數閾值，一定週期內如超出閾值會觸發伺服器切換：單位為次
   * Alternate Time Range - 待命伺服器失敗次數閾值計算週期：單位為秒，最小為 5
   * Alternate Reset Time - 待命伺服器重置切換時間，切換產生後經過此事件會切換回主要伺服器：單位為秒，最小為 5
-  * Multi Request Times - 一次向同一個遠端伺服器發送並行功能變數名稱解析請求：0 和 1 時為收到一個請求時請求 1 次，2 時為收到一個請求時請求 2 次，3 時為收到一個請求時請求 3 次...... 以此類推
+  * Multiple Request Times - 一次向同一個遠端伺服器發送並行功能變數名稱解析請求：0 和 1 時為收到一個請求時請求 1 次，2 時為收到一個請求時請求 2 次，3 時為收到一個請求時請求 3 次...... 以此類推
     * 此值將應用到 Local Hosts 外對所有遠端伺服器所有協定的請求，因此可能會對系統以及遠端伺服器造成壓力，請謹慎考慮開啟的風險！
-    * 可填入的最大數值為：填入主要/待命伺服器的數量 * Multi Request Times = 總請求的數值，此數值不能超過 64
+    * 可填入的最大數值為：填入主要/待命伺服器的數量
+  * Multiple Request Times = 總請求的數值，此數值不能超過 64
     * 一般除非丟包非常嚴重干擾正常使用否則不建議開啟，開啟也不建議將值設得太大。 實際使用可以每次+1後重啟服務測試效果，找到最合適的值
   * 注意：
     * IPv4 協定使用多 TTL 值的格式為 "TTL(A)|TTL(B)|TTL(C)"（不含引號），也可直接預設（即只填一個 0 不使用此格式）則所有 TTL 都將由程式自動獲取
@@ -544,7 +546,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 本功能要求啟用 EDNS Label、DNSSEC Request 和 DNSSEC Validation 參數
     * 此功能不具備完整的 DNSSEC 記錄檢驗的能力，單獨開啟理論上不能避免 DNS 投毒污染的問題
     * 警告：由於現時已經部署 DNSSEC 的功能變數名稱數量極少，未部署 DNSSEC 的功能變數名稱解析沒有 DNSSEC 記錄，這將導致所有未部署 DNSSEC 的功能變數名稱解析失敗，現階段切勿開啟本功能！
-  * Alternate Multi Request - 待命伺服器同時請求參數，開啟後將同時請求主要伺服器和待命伺服器並採用最快回應的伺服器的結果：開啟為 1 /關閉為 0
+  * Alternate Multiple Request - 待命伺服器同時請求參數，開啟後將同時請求主要伺服器和待命伺服器並採用最快回應的伺服器的結果：開啟為 1 /關閉為 0
     * 同時請求多伺服器啟用後本參數將強制啟用，將同時請求所有存在於清單中的伺服器，並採用最快回應的伺服器的結果
   * IPv4 Do Not Fragment - IPv4 資料包頭部 Do Not Fragment 標誌：開啟為 1 /關閉為 0
     * 目前本功能不支援 Mac OS X 平臺，此平臺將直接忽略此參數
@@ -704,7 +706,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Receive Waiting
 * ICMP Test
 * Domain Test
-* Multi Request Times
+* Multiple Request Times
 * Domain Case Conversion
 * IPv4 Do Not Fragment
 * IPv4 Data Filter
