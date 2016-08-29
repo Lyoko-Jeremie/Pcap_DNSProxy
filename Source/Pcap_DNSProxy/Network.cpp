@@ -84,7 +84,7 @@ bool SocketSetting(
 		case SOCKET_SETTING_REUSE:
 		{
 			int SetVal = 1;
-			
+
 		#if defined(PLATFORM_WIN)
 		//Preventing other sockets from being forcibly bound to the same address and port(Windows).
 			if (setsockopt(Socket, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const char *)&SetVal, sizeof(int)) == SOCKET_ERROR)
@@ -168,7 +168,7 @@ bool SocketSetting(
 			{
 				shutdown(Socket, SD_BOTH);
 				closesocket(Socket);
-				
+
 				return false;
 			}
 
@@ -436,6 +436,7 @@ ssize_t SocketSelecting(
 	}
 
 //Initialization(Part 2)
+	std::shared_ptr<uint8_t> RecvBufferTemp;
 	fd_set ReadFDS, WriteFDS;
 	timeval Timeout;
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
@@ -445,6 +446,12 @@ ssize_t SocketSelecting(
 	size_t LastReceiveIndex = 0;
 	SYSTEM_SOCKET MaxSocket = 0;
 	auto IsAllSocketClosed = false;
+	if (OriginalRecv == nullptr)
+	{
+		std::shared_ptr<uint8_t> RecvBufferSwap(new uint8_t[PACKET_MAXSIZE]());
+		memset(RecvBufferSwap.get(), 0, PACKET_MAXSIZE);
+		RecvBufferTemp.swap(RecvBufferSwap);
+	}
 
 //Socket timeout setting
 #if defined(PLATFORM_WIN)
@@ -542,9 +549,9 @@ ssize_t SocketSelecting(
 					//Buffer initialization
 						if (!SocketSelectingList.at(Index).RecvBuffer)
 						{
-							std::shared_ptr<uint8_t> RecvBufferTemp(new uint8_t[RecvSize]());
-							memset(RecvBufferTemp.get(), 0, RecvSize);
-							SocketSelectingList.at(Index).RecvBuffer.swap(RecvBufferTemp);
+							std::shared_ptr<uint8_t> RecvBufferSwap(new uint8_t[RecvSize]());
+							memset(RecvBufferSwap.get(), 0, RecvSize);
+							SocketSelectingList.at(Index).RecvBuffer.swap(RecvBufferSwap);
 						}
 
 					//Receive from selecting.
@@ -572,9 +579,8 @@ ssize_t SocketSelecting(
 					}
 					else {
 					//Receive, drop all data and close sockets.
-						std::shared_ptr<uint8_t> RecvBuffer(new uint8_t[PACKET_MAXSIZE]());
-						memset(RecvBuffer.get(), 0, PACKET_MAXSIZE);
-						RecvLen = recv(SocketDataList.at(Index).Socket, (char *)RecvBuffer.get(), PACKET_MAXSIZE, 0);
+						RecvLen = recv(SocketDataList.at(Index).Socket, (char *)RecvBufferTemp.get(), PACKET_MAXSIZE, 0);
+						memset(RecvBufferTemp.get(), 0, PACKET_MAXSIZE);
 						RecvLen = 0;
 						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 						SocketDataList.at(Index).Socket = 0;
@@ -819,7 +825,7 @@ void MarkPortToList(
 
 				continue;
 			}
-			
+
 			SocketDataTemp.AddrLen = SocketDataIter.AddrLen;
 			if (SocketDataIter.AddrLen == sizeof(sockaddr_in6)) //IPv6
 			{
@@ -997,7 +1003,7 @@ bool DomainTestRequest(
 		}
 	}
 	DataLength += sizeof(dns_hdr);
-	
+
 //Send request.
 	size_t SleepTime_DomainTest = 0, SpeedTime_DomainTest = Parameter.DomainTest_Speed, Times = 0;
 	for (;;)
@@ -1158,7 +1164,7 @@ bool ICMPTestRequest(
 	//Socket initialization
 		SOCKET_DATA SocketDataTemp;
 		memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
-		
+
 	//Main
 	#if defined(PLATFORM_WIN)
 		SocketDataTemp.Socket = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
@@ -1481,7 +1487,8 @@ bool SelectTargetSocket(
 	SOCKET_DATA *TargetSocketData, 
 	bool **IsAlternate, 
 	size_t **AlternateTimeoutTimes, 
-	const uint16_t Protocol)
+	const uint16_t Protocol, 
+	const ADDRESS_UNION_DATA *SpecifieTargetData)
 {
 //Socket initialization
 	uint16_t SocketType = 0;
@@ -1493,8 +1500,47 @@ bool SelectTargetSocket(
 	else 
 		return false;
 
+//Specifie target request
+	if (SpecifieTargetData != nullptr && SpecifieTargetData->Storage.ss_family > 0)
+	{
+	//IPv6
+		if (SpecifieTargetData->Storage.ss_family == AF_INET6)
+		{
+			((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_addr = SpecifieTargetData->IPv6.sin6_addr;
+			((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_port = SpecifieTargetData->IPv6.sin6_port;
+			TargetSocketData->SockAddr.ss_family = AF_INET6;
+			TargetSocketData->AddrLen = sizeof(sockaddr_in6);
+			TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
+			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
+			{
+				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				TargetSocketData->Socket = 0;
+
+				return false;
+			}
+		}
+	//IPv4
+		else if (SpecifieTargetData->Storage.ss_family == AF_INET)
+		{
+			((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_addr = SpecifieTargetData->IPv4.sin_addr;
+			((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_port = SpecifieTargetData->IPv4.sin_port;
+			TargetSocketData->SockAddr.ss_family = AF_INET;
+			TargetSocketData->AddrLen = sizeof(sockaddr_in);
+			TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
+			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
+			{
+				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				TargetSocketData->Socket = 0;
+
+				return false;
+			}
+		}
+		else {
+			return false;
+		}
+	}
 //Local request
-	if (RequestType == REQUEST_PROCESS_LOCAL)
+	else if (RequestType == REQUEST_PROCESS_LOCAL)
 	{
 	//IPv6
 		if (Parameter.Target_Server_Local_IPv6.Storage.ss_family > 0 && 
@@ -1517,7 +1563,7 @@ bool SelectTargetSocket(
 			else {
 				return false;
 			}
-		
+
 		//Alternate
 			if (**IsAlternate && Parameter.Target_Server_Alternate_Local_IPv6.Storage.ss_family > 0)
 			{
@@ -1615,7 +1661,7 @@ bool SelectTargetSocket(
 			else {
 				return false;
 			}
-		
+
 		//Alternate
 			if (**IsAlternate && Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0)
 			{
@@ -1661,7 +1707,7 @@ bool SelectTargetSocket(
 			else {
 				return false;
 			}
-			
+
 		//Alternate
 			if (**IsAlternate && Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0)
 			{
@@ -1931,7 +1977,8 @@ size_t TCPRequest(
 	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
 	uint8_t *OriginalRecv, 
-	const size_t RecvSize)
+	const size_t RecvSize, 
+	const ADDRESS_UNION_DATA *SpecifieTargetData)
 {
 //Initialization
 	std::vector<SOCKET_DATA> TCPSocketDataList(1U);
@@ -1943,7 +1990,7 @@ size_t TCPRequest(
 //Socket initialization
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
-	if (!SelectTargetSocket(RequestType, &TCPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_TCP))
+	if (!SelectTargetSocket(RequestType, &TCPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_TCP, SpecifieTargetData))
 	{
 		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"TCP socket initialization error", 0, nullptr, 0);
 		SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
@@ -1971,7 +2018,7 @@ size_t TCPRequest(
 	if (ErrorCode == WSAETIMEDOUT && IsAlternate != nullptr && !*IsAlternate && //Mark timeout.
 		(!Parameter.AlternateMultipleRequest || RequestType == REQUEST_PROCESS_LOCAL))
 			++(*AlternateTimeoutTimes);
-	
+
 	return RecvLen;
 }
 
@@ -2027,7 +2074,7 @@ size_t UDPRequest(
 	size_t *AlternateTimeoutTimes = nullptr;
 
 //Socket initialization
-	if (!SelectTargetSocket(RequestType, &UDPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP))
+	if (!SelectTargetSocket(RequestType, &UDPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP, nullptr))
 	{
 		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"UDP socket initialization error", 0, nullptr, 0);
 		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
@@ -2092,7 +2139,8 @@ size_t UDPCompleteRequest(
 	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
 	uint8_t *OriginalRecv, 
-	const size_t RecvSize)
+	const size_t RecvSize, 
+	const ADDRESS_UNION_DATA *SpecifieTargetData)
 {
 //Initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
@@ -2102,7 +2150,7 @@ size_t UDPCompleteRequest(
 //Socket initialization
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
-	if (!SelectTargetSocket(RequestType, &UDPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP))
+	if (!SelectTargetSocket(RequestType, &UDPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP, SpecifieTargetData))
 	{
 		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Complete UDP socket initialization error", 0, nullptr, 0);
 		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);

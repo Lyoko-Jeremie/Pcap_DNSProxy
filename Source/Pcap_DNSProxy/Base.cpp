@@ -219,6 +219,42 @@ void CaseConvert(
 	return;
 }
 
+//Make string reversed
+void MakeStringReversed(
+	std::string &String)
+{
+//String check
+	if (String.size() <= 1U)
+		return;
+
+//Make string reversed
+	uint8_t StringIter = 0;
+	for (size_t Index = 0;Index < String.length() / 2U;++Index)
+	{
+		StringIter = String.at(String.length() - 1U - Index);
+		String.at(String.length() - 1U - Index) = String.at(Index);
+		String.at(Index) = StringIter;
+	}
+
+	return;
+}
+
+//Reversed string comparing
+bool StringReverseCompare(
+	const std::string &DomainString, 
+	std::string ReverseDomain)
+{
+//Length check
+	if (DomainString.empty() || ReverseDomain.empty() || ReverseDomain.length() < DomainString.length())
+		return false;
+
+//Compare each other.
+	else if (memcmp(DomainString.c_str(), ReverseDomain.c_str(), DomainString.length()) == 0)
+		return true;
+
+	return false;
+}
+
 //Sort compare(IPFilter)
 bool SortCompare_IPFilter(
 	const DIFFERNET_FILE_SET_IPFILTER &Begin, 

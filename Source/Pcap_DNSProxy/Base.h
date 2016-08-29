@@ -111,7 +111,7 @@
 */
 #define CONFIG_VERSION                                0.4                                   //Current configuration file version
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
-#define FULL_VERSION                                  L"0.4.7.0"
+#define FULL_VERSION                                  L"0.4.7.1"
 
 //Size and length definitions(Number)
 #define ADDR_STRING_MAXSIZE                           64U                         //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -497,6 +497,7 @@ typedef struct _dns_packet_data_
 	size_t                               Length;
 	uint16_t                             Protocol;
 	bool                                 IsLocal;
+	ADDRESS_UNION_DATA                   LocalTarget;
 }DNSPacketData, DNS_PACKET_DATA, *PDNSPacketData, *PDNS_PACKET_DATA;
 
 //DNS Cache Data structure
@@ -791,13 +792,13 @@ typedef class HostsTable
 {
 public:
 	std::vector<ADDRESS_PREFIX_BLOCK>    SourceList;
-	std::vector<ADDRESS_UNION_DATA>      AddrList;
+	std::vector<ADDRESS_UNION_DATA>      AddrOrTargetList;
 	std::regex                           Pattern;
-	std::string                          PatternString;
+	std::string                          PatternOrDomainString;
 	std::vector<uint16_t>                RecordTypeList;
 	size_t                               PermissionType;
 	bool                                 PermissionOperation;
-	bool                                 IsRegex;
+	bool                                 IsStringMatching;
 
 //Member functions
 	HostsTable(
@@ -823,7 +824,6 @@ public:
 	std::vector<AddressRangeTable>       Addresses;
 	std::regex                           Pattern;
 	std::string                          PatternString;
-	bool                                 IsRegex;
 }RESULT_BLACKLIST_TABLE;
 
 //Address Hosts class
@@ -1076,6 +1076,11 @@ void CaseConvert(
 void CaseConvert(
 	const bool IsLowerToUpper, 
 	std::string &Buffer);
+void MakeStringReversed(
+	std::string &String);
+bool StringReverseCompare(
+	const std::string &DomainString, 
+	std::string ReverseDomain);
 bool SortCompare_IPFilter(
 	const DIFFERNET_FILE_SET_IPFILTER &Begin, 
 	const DIFFERNET_FILE_SET_IPFILTER &End);
@@ -1113,7 +1118,9 @@ void GetParameterListData(
 	const std::string Data, 
 	const size_t DataOffset, 
 	const size_t Length, 
-	const bool IsCaseConvert);
+	const uint8_t SeparatedSign, 
+	const bool IsCaseConvert, 
+	const bool KeepEmptyItem);
 
 //DNSCurve.h
 #if defined(ENABLE_LIBSODIUM)
@@ -1183,7 +1190,8 @@ size_t TCPRequest(
 	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
 	uint8_t *OriginalRecv, 
-	const size_t RecvSize);
+	const size_t RecvSize, 
+	const ADDRESS_UNION_DATA *SpecifieTargetData);
 size_t TCPRequestMultiple(
 	const size_t RequestType, 
 	const uint8_t *OriginalSend, 
@@ -1209,7 +1217,8 @@ size_t UDPCompleteRequest(
 	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
 	uint8_t *OriginalRecv, 
-	const size_t RecvSize);
+	const size_t RecvSize, 
+	const ADDRESS_UNION_DATA *SpecifieTargetData);
 size_t UDPCompleteRequestMultiple(
 	const size_t RequestType, 
 	const uint8_t *OriginalSend, 

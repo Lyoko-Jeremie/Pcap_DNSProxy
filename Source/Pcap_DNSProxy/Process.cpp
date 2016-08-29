@@ -42,7 +42,7 @@ void MonitorRequestConsumer(
 	//Reset parameters.
 		memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 		memset(RecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
-		
+
 	//Pop from blocking queue.
 		MonitorBlockingQueue.pop(MonitorQueryData);
 		memcpy_s(SendBuffer.get(), LARGE_PACKET_MAXSIZE, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length);
@@ -71,27 +71,27 @@ bool EnterRequestProcess(
 			{
 				std::shared_ptr<uint8_t> SendBufferTemp(new uint8_t[MonitorQueryData.first.Length + 2U + sizeof(dns_record_aaaa) + sizeof(uint16_t)]());
 				memset(SendBufferTemp.get(), 0, MonitorQueryData.first.Length + 2U + sizeof(dns_record_aaaa) + sizeof(uint16_t));
-				SendBufferTemp.swap(SendBuffer);
+				SendBuffer.swap(SendBufferTemp);
 				MonitorQueryData.first.BufferSize = MonitorQueryData.first.Length + 2U + sizeof(dns_record_aaaa) + sizeof(uint16_t);
 			}
 			else if (Parameter.CPM_PointerToRR)
 			{
 				std::shared_ptr<uint8_t> SendBufferTemp(new uint8_t[MonitorQueryData.first.Length + 2U + sizeof(uint16_t)]());
 				memset(SendBufferTemp.get(), 0, MonitorQueryData.first.Length + 2U + sizeof(uint16_t));
-				SendBufferTemp.swap(SendBuffer);
+				SendBuffer.swap(SendBufferTemp);
 				MonitorQueryData.first.BufferSize = MonitorQueryData.first.Length + 2U + sizeof(uint16_t);
 			}
 			else { //Pointer to header
 				std::shared_ptr<uint8_t> SendBufferTemp(new uint8_t[MonitorQueryData.first.Length + 1U + sizeof(uint16_t)]());
 				memset(SendBufferTemp.get(), 0, MonitorQueryData.first.Length + 1U + sizeof(uint16_t));
-				SendBufferTemp.swap(SendBuffer);
+				SendBuffer.swap(SendBufferTemp);
 				MonitorQueryData.first.BufferSize = MonitorQueryData.first.Length + 1U + sizeof(uint16_t);
 			}
 		}
 		else {
 			std::shared_ptr<uint8_t> SendBufferTemp(new uint8_t[MonitorQueryData.first.Length + sizeof(uint16_t)]()); //Reserved 2 bytes for TCP header length.
 			memset(SendBufferTemp.get(), 0, MonitorQueryData.first.Length + sizeof(uint16_t));
-			SendBufferTemp.swap(SendBuffer);
+			SendBuffer.swap(SendBufferTemp);
 			MonitorQueryData.first.BufferSize = MonitorQueryData.first.Length + sizeof(uint16_t);
 		}
 
@@ -232,7 +232,7 @@ bool EnterRequestProcess(
 			return true;
 		}
 	}
-	
+
 //Jump here to skip DNSCurve process.
 SkipDNSCurve:
 #endif
@@ -493,7 +493,7 @@ size_t CheckHostsProcess(
 		//EDNS Label
 			if (Parameter.EDNS_Label || Packet->EDNS_Record > 0)
 				DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, nullptr);
-			
+
 			return DataLength;
 		}
 	}
@@ -530,13 +530,34 @@ size_t CheckHostsProcess(
 	if (Parameter.LocalMain)
 		Packet->IsLocal = true;
 
+//Make domain reversed.
+	std::string ReverseDomain(Domain);
+	MakeStringReversed(ReverseDomain);
+	auto IsMatch = false;
+
 //Normal Hosts check
 	std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock);
 	for (const auto &HostsFileSetIter:*HostsFileSetUsing)
 	{
 		for (const auto &HostsTableIter:HostsFileSetIter.HostsList_Normal)
 		{
-			if (std::regex_match(Domain, HostsTableIter.Pattern))
+			IsMatch = false;
+
+		//Dnsmasq normal mode(http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html)
+			if (HostsTableIter.IsStringMatching)
+			{
+				if (HostsTableIter.PatternOrDomainString == "#" || //Dnsmasq "#" matches any domain.
+					StringReverseCompare(HostsTableIter.PatternOrDomainString, ReverseDomain))
+						IsMatch = true;
+			}
+		//Regex mode
+			else if (std::regex_match(Domain, HostsTableIter.Pattern))
+			{
+				IsMatch = true;
+			}
+
+		//Match hosts.
+			if (IsMatch)
 			{
 			//Source Hosts check
 				if (!HostsTableIter.SourceList.empty())
@@ -592,14 +613,14 @@ size_t CheckHostsProcess(
 					memset(Result + DataLength, 0, ResultSize - DataLength);
 
 				//Hosts load balancing
-					if (HostsTableIter.AddrList.size() > 1U)
+					if (HostsTableIter.AddrOrTargetList.size() > 1U)
 					{
-						std::uniform_int_distribution<size_t> RamdomDistribution(0, HostsTableIter.AddrList.size() - 1U);
+						std::uniform_int_distribution<size_t> RamdomDistribution(0, HostsTableIter.AddrOrTargetList.size() - 1U);
 						RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 					}
 
 				//Make response.
-					for (Index = 0;Index < HostsTableIter.AddrList.size();++Index)
+					for (Index = 0;Index < HostsTableIter.AddrOrTargetList.size();++Index)
 					{
 					//Make resource records.
 						DNS_Record = (pdns_record_aaaa)(Result + DataLength);
@@ -610,11 +631,11 @@ size_t CheckHostsProcess(
 						((pdns_record_aaaa)DNS_Record)->Type = htons(DNS_RECORD_AAAA);
 						((pdns_record_aaaa)DNS_Record)->Length = htons(sizeof(in6_addr));
 						if (Index == 0)
-							((pdns_record_aaaa)DNS_Record)->Addr = HostsTableIter.AddrList.at(RamdomIndex).IPv6.sin6_addr;
+							((pdns_record_aaaa)DNS_Record)->Addr = HostsTableIter.AddrOrTargetList.at(RamdomIndex).IPv6.sin6_addr;
 						else if (Index == RamdomIndex)
-							((pdns_record_aaaa)DNS_Record)->Addr = HostsTableIter.AddrList.at(0).IPv6.sin6_addr;
+							((pdns_record_aaaa)DNS_Record)->Addr = HostsTableIter.AddrOrTargetList.front().IPv6.sin6_addr;
 						else 
-							((pdns_record_aaaa)DNS_Record)->Addr = HostsTableIter.AddrList.at(Index).IPv6.sin6_addr;
+							((pdns_record_aaaa)DNS_Record)->Addr = HostsTableIter.AddrOrTargetList.at(Index).IPv6.sin6_addr;
 
 					//Hosts items length check
 						if (((Parameter.EDNS_Label || Packet->EDNS_Record > 0) && DataLength + sizeof(dns_record_aaaa) + EDNS_ADDITIONAL_MAXSIZE >= ResultSize) || //EDNS Label
@@ -644,14 +665,14 @@ size_t CheckHostsProcess(
 					memset(Result + DataLength, 0, ResultSize - DataLength);
 
 				//Hosts load balancing
-					if (HostsTableIter.AddrList.size() > 1U)
+					if (HostsTableIter.AddrOrTargetList.size() > 1U)
 					{
-						std::uniform_int_distribution<size_t> RamdomDistribution(0, HostsTableIter.AddrList.size() - 1U);
+						std::uniform_int_distribution<size_t> RamdomDistribution(0, HostsTableIter.AddrOrTargetList.size() - 1U);
 						RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 					}
 
 				//Make response.
-					for (Index = 0;Index < HostsTableIter.AddrList.size();++Index)
+					for (Index = 0;Index < HostsTableIter.AddrOrTargetList.size();++Index)
 					{
 					//Make resource records.
 						DNS_Record = (pdns_record_a)(Result + DataLength);
@@ -662,11 +683,11 @@ size_t CheckHostsProcess(
 						((pdns_record_a)DNS_Record)->Type = htons(DNS_RECORD_A);
 						((pdns_record_a)DNS_Record)->Length = htons(sizeof(in_addr));
 						if (Index == 0)
-							((pdns_record_a)DNS_Record)->Addr = HostsTableIter.AddrList.at(RamdomIndex).IPv4.sin_addr;
+							((pdns_record_a)DNS_Record)->Addr = HostsTableIter.AddrOrTargetList.at(RamdomIndex).IPv4.sin_addr;
 						else if (Index == RamdomIndex)
-							((pdns_record_a)DNS_Record)->Addr = HostsTableIter.AddrList.at(0).IPv4.sin_addr;
+							((pdns_record_a)DNS_Record)->Addr = HostsTableIter.AddrOrTargetList.front().IPv4.sin_addr;
 						else 
-							((pdns_record_a)DNS_Record)->Addr = HostsTableIter.AddrList.at(Index).IPv4.sin_addr;
+							((pdns_record_a)DNS_Record)->Addr = HostsTableIter.AddrOrTargetList.at(Index).IPv4.sin_addr;
 
 					//Hosts items length check
 						if (((Parameter.EDNS_Label || Packet->EDNS_Record > 0) && DataLength + sizeof(dns_record_a) + EDNS_ADDITIONAL_MAXSIZE >= ResultSize) || //EDNS Label
@@ -723,7 +744,23 @@ StopLoop_NormalHosts:
 	{
 		for (const auto &HostsTableIter:HostsFileSetIter.HostsList_Local)
 		{
-			if (std::regex_match(Domain, HostsTableIter.Pattern))
+			IsMatch = false;
+
+		//Dnsmasq normal mode
+			if (HostsTableIter.IsStringMatching)
+			{
+				if ((HostsTableIter.PatternOrDomainString.empty() && Domain.find(ASCII_PERIOD) == std::string::npos) || //Dnsmasq unqualified names only
+					StringReverseCompare(HostsTableIter.PatternOrDomainString, ReverseDomain))
+						IsMatch = true;
+			}
+		//Regex mode
+			else if (std::regex_match(Domain, HostsTableIter.Pattern))
+			{
+				IsMatch = true;
+			}
+
+		//Match hosts.
+			if (IsMatch)
 			{
 			//Check white and banned hosts list.
 				DataLength = CheckWhiteBannedHostsProcess(Packet->Length, HostsTableIter, DNS_Header, DNS_Query, &Packet->IsLocal);
@@ -734,6 +771,9 @@ StopLoop_NormalHosts:
 				else //IsLocal flag setting
 					Packet->IsLocal = true;
 
+			//Mark Local server target and stop loop.
+				if (Packet->IsLocal && !HostsTableIter.AddrOrTargetList.empty())
+					Packet->LocalTarget = HostsTableIter.AddrOrTargetList.front();
 				goto StopLoop_LocalHosts;
 			}
 		}
@@ -775,7 +815,7 @@ bool LocalRequestProcess(
 //TCP request
 	if (Parameter.LocalProtocol_Transport == REQUEST_MODE_TCP || MonitorQueryData.first.Protocol == IPPROTO_TCP)
 	{
-		DataLength = TCPRequest(REQUEST_PROCESS_LOCAL, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
+		DataLength = TCPRequest(REQUEST_PROCESS_LOCAL, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize, &MonitorQueryData.first.LocalTarget);
 
 	//Send response.
 		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
@@ -786,7 +826,7 @@ bool LocalRequestProcess(
 	}
 
 //UDP request and Send response.
-	DataLength = UDPCompleteRequest(REQUEST_PROCESS_LOCAL, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
+	DataLength = UDPCompleteRequest(REQUEST_PROCESS_LOCAL, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize, &MonitorQueryData.first.LocalTarget);
 	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
 		SendToRequester(OriginalRecv, DataLength, RecvSize, MonitorQueryData.first.Protocol, MonitorQueryData.second);
@@ -830,7 +870,7 @@ bool SOCKSRequestProcess(
 	{
 	//UDP request process
 		DataLength = SOCKSUDPRequest(MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
-		
+
 	//Send response.
 		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 		{
@@ -938,7 +978,7 @@ bool DirectRequestProcess(
 			DataLength = TCPRequestMultiple(REQUEST_PROCESS_DIRECT, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 	//Normal request process
 		else 
-			DataLength = TCPRequest(REQUEST_PROCESS_DIRECT, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
+			DataLength = TCPRequest(REQUEST_PROCESS_DIRECT, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize, nullptr);
 
 	//Send response.
 		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
@@ -952,7 +992,7 @@ bool DirectRequestProcess(
 	if (Parameter.AlternateMultipleRequest || Parameter.MultipleRequestTimes > 1U) //Multiple request process
 		DataLength = UDPCompleteRequestMultiple(REQUEST_PROCESS_DIRECT, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 	else //Normal request process
-		DataLength = UDPCompleteRequest(REQUEST_PROCESS_DIRECT, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
+		DataLength = UDPCompleteRequest(REQUEST_PROCESS_DIRECT, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize, nullptr);
 
 //Send response.
 	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
@@ -1063,7 +1103,7 @@ bool TCPRequestProcess(
 		DataLength = TCPRequestMultiple(REQUEST_PROCESS_TCP, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
 //Normal request process
 	else 
-		DataLength = TCPRequest(REQUEST_PROCESS_TCP, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize);
+		DataLength = TCPRequest(REQUEST_PROCESS_TCP, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize, nullptr);
 
 //Send response.
 	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)

@@ -19,7 +19,13 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-# Create a release directory.
+# Set variables and create release directories.
+CMakeShell="cmake "
+if (uname -s | grep -iq "Darwin"); then
+	ThreadNum=`sysctl -n hw.ncpu`
+else
+	ThreadNum=`grep "processor" /proc/cpuinfo | sort -u | wc -l`
+fi
 cd ..
 rm -Rrf Object
 mkdir Release
@@ -27,7 +33,6 @@ mkdir Release
 # Build Pcap_DNSProxy.
 mkdir Object
 cd Object
-CMakeShell="cmake "
 if !(echo "$*" | grep -iq -e "--disable-libsodium"); then
 	CMakeShell="${CMakeShell}-DENABLE_LIBSODIUM=ON "
 fi
@@ -39,7 +44,7 @@ if (echo "$*" | grep -iq -e "--enable-static"); then
 fi
 CMakeShell="${CMakeShell}../Pcap_DNSProxy"
 ${CMakeShell}
-make
+make -j${ThreadNum}
 cd ..
 mv -f Object/Pcap_DNSProxy Release
 rm -Rrf Object

@@ -528,7 +528,7 @@ void DNSCurveSocketPrecomputation(
 			}
 		}
 	}
-	
+
 //Jump here to skip Main process
 SkipMain:
 	sodium_memzero(&SocketDataTemp, sizeof(SocketDataTemp));
@@ -556,7 +556,7 @@ SkipMain:
 
 			return;
 		}
-	
+
 	//Socket initialization
 		if (Protocol == IPPROTO_TCP) //TCP
 		{
@@ -709,13 +709,13 @@ size_t DNSCurvePacketEncryption(
 		{
 			std::shared_ptr<uint8_t> BufferTemp(new uint8_t[DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN]());
 			sodium_memzero(BufferTemp.get(), DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN);
-			BufferTemp.swap(Buffer);
+			Buffer.swap(BufferTemp);
 		}
 		else if (Protocol == IPPROTO_UDP) //UDP
 		{
 			std::shared_ptr<uint8_t> BufferTemp(new uint8_t[DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN]());
 			sodium_memzero(BufferTemp.get(), DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN);
-			BufferTemp.swap(Buffer);
+			Buffer.swap(BufferTemp);
 		}
 		else {
 			return EXIT_FAILURE;
@@ -1784,7 +1784,7 @@ size_t DNSCurveTCPRequest(
 	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.ClientEphemeralKey)
 	{
 		std::shared_ptr<uint8_t> Client_PublicKey_PTR_Temp(new uint8_t[crypto_box_PUBLICKEYBYTES]());
-		Client_PublicKey_PTR_Temp.swap(Client_PublicKey_PTR);
+		Client_PublicKey_PTR.swap(Client_PublicKey_PTR_Temp);
 
 		DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> PrecomputationKeyPTR_Temp(crypto_box_BEFORENMBYTES);
 		PrecomputationKeyPTR_Temp.Swap(PrecomputationKeyPTR);
@@ -1960,8 +1960,8 @@ size_t DNSCurveUDPRequest(
 	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.ClientEphemeralKey)
 	{
 		std::shared_ptr<uint8_t> Client_PublicKey_PTR_Temp(new uint8_t[crypto_box_PUBLICKEYBYTES]()), PrecomputationKeyPTR_Temp(new uint8_t[crypto_box_BEFORENMBYTES]());
-		Client_PublicKey_PTR_Temp.swap(Client_PublicKey_PTR);
-		PrecomputationKeyPTR_Temp.swap(PrecomputationKeyPTR);
+		Client_PublicKey_PTR.swap(Client_PublicKey_PTR_Temp);
+		PrecomputationKeyPTR.swap(PrecomputationKeyPTR_Temp);
 		Client_PublicKey = Client_PublicKey_PTR.get();
 		PrecomputationKey = PrecomputationKeyPTR.get();
 		if (!DNSCurvePrecomputationKeySetting(PrecomputationKey, Client_PublicKey, PacketTarget->ServerFingerprint))
@@ -2035,7 +2035,7 @@ size_t DNSCurveUDPRequestMultiple(
 	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.ClientEphemeralKey)
 	{
 		DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> PrecomputationKeyPTR_Temp(crypto_box_BEFORENMBYTES), Alternate_PrecomputationKeyPTR_Temp(crypto_box_BEFORENMBYTES);
-		
+
 	//Main
 		PrecomputationKeyPTR_Temp.Swap(PrecomputationKeyPTR);
 		PrecomputationKey = PrecomputationKeyPTR.Buffer;

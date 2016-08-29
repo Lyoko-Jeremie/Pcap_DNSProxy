@@ -83,7 +83,7 @@ int main(
 	if (!StartServiceCtrlDispatcherW(ServiceTable))
 	{
 		auto ErrorCode = GetLastError();
-		
+
 	//Print to screen.
 		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
 		PrintToScreen(false, L"System Error: Service start error, error code is %lu.\n", ErrorCode);
@@ -334,7 +334,7 @@ bool ReadCommands(
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 				FileHandle = fopen("KeyPair.txt", "w+");
 			#endif
-			
+
 		//Print keypair to file.
 			if (FileHandle != nullptr)
 			{

@@ -33,7 +33,7 @@ bool ReadIPFilterData(
 		if (StringIter == ASCII_HT)
 			StringIter = ASCII_SPACE;
 	}
-	while (!Data.empty() && Data.at(0) == ASCII_SPACE)
+	while (!Data.empty() && Data.front() == ASCII_SPACE)
 		Data.erase(0, 1U);
 	while (!Data.empty() && Data.back() == ASCII_SPACE)
 		Data.pop_back();
@@ -46,12 +46,13 @@ bool ReadIPFilterData(
 	if (!ReadMultipleLineComments(Data, IsLabelComments) || Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
 		return true;
 
+/* Old version(2016-08-27)
 //[Base] block
 	if (Data.find("[Base]") == 0 || Data.find("[base]") == 0 || 
 		Data.find("Version = ") == 0 || Data.find("version = ") == 0 || 
 		Data.find("Default TTL = ") == 0 || Data.find("default ttl = ") == 0)
 			return true;
-
+*/
 //[Local Routing] block(A part)
 	if (LabelType == 0 && (Parameter.Target_Server_Local_IPv4.Storage.ss_family > 0 || Parameter.Target_Server_Local_IPv6.Storage.ss_family > 0) && 
 	#if defined(PLATFORM_WIN) //Case-insensitive in Windows
@@ -98,8 +99,10 @@ bool ReadIPFilterData(
 		LabelType = LABEL_STOP;
 		return true;
 	}
-	if (LabelType == LABEL_STOP)
+	else if (LabelType == LABEL_STOP)
+	{
 		return true;
+	}
 
 //[Blacklist] block(B part)
 	if (LabelType == LABEL_IPFILTER && Data.find(ASCII_MINUS) == std::string::npos)
@@ -207,7 +210,7 @@ bool ReadBlacklistData(
 	ADDRESS_RANGE_TABLE AddressRangeTableTemp;
 	uint8_t Addr[ADDR_STRING_MAXSIZE] = {0};
 	std::vector<std::string> ListData;
-	GetParameterListData(ListData, Data, 0, Separated, false);
+	GetParameterListData(ListData, Data, 0, Separated, ASCII_VERTICAL, false, false);
 	ssize_t Result = 0;
 
 //Mark all data in list.
@@ -280,7 +283,8 @@ bool ReadBlacklistData(
 			memset(&AddressRangeTableTemp, 0, sizeof(AddressRangeTableTemp));
 		}
 	//A records(IPv4)
-		else {
+		else if (StringIter.find(ASCII_PERIOD) != std::string::npos)
+		{
 		//Address range format
 			if (StringIter.find(ASCII_MINUS) != std::string::npos)
 			{
@@ -344,6 +348,10 @@ bool ReadBlacklistData(
 			ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTableTemp);
 			memset(&AddressRangeTableTemp, 0, sizeof(AddressRangeTableTemp));
 		}
+		else {
+			PrintError(LOG_LEVEL_1, LOG_ERROR_IPFILTER, L"Data format error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
 	}
 
 //Block these IP addresses from all request.
@@ -386,7 +394,7 @@ bool ReadLocalRoutingData(
 	const size_t FileIndex, 
 	const size_t Line)
 {
-//Check format of items.
+//Check data format.
 	if (Data.find("/") == std::string::npos || Data.rfind("/") < 3U || Data.rfind("/") == Data.length() - 1U)
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Address Prefix Block format error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
@@ -559,7 +567,7 @@ bool ReadAddressPrefixBlock(
 {
 	std::string Data(OriginalData, DataOffset);
 
-//Check format of items.
+//Check data format.
 	if (Data.find("/") == std::string::npos || Data.rfind("/") < 3U || Data.rfind("/") == Data.length() - 1U)
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Address Prefix Block format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
@@ -658,7 +666,7 @@ bool ReadMainIPFilterData(
 	ssize_t SignedResult = 0;
 	size_t Index = 0, UnsignedResult = 0;
 
-//Check format of items.
+//Check data format.
 	if (Data.find(ASCII_COMMA) != std::string::npos && Data.find(ASCII_COMMA) > Data.find(ASCII_MINUS)) //IPFilter.dat
 	{
 	//IPv4 spacial delete
@@ -688,7 +696,7 @@ bool ReadMainIPFilterData(
 				Data.replace(Data.find(".-"), strlen(".-"), (".0-"));
 			if (Data.find("-.") != std::string::npos)
 				Data.replace(Data.find("-."), strlen("-."), ("-0."));
-			if (Data.at(0) == ASCII_PERIOD)
+			if (Data.front() == ASCII_PERIOD)
 				Data.replace(0, 1U, ("0."));
 		}
 
@@ -750,7 +758,7 @@ bool ReadMainIPFilterData(
 				Data.replace(Data.find(".-"), strlen(".-"), (".0-"));
 			if (Data.find("-.") != std::string::npos)
 				Data.replace(Data.find("-."), strlen("-."), ("-0."));
-			if (Data.at(0) == ASCII_PERIOD)
+			if (Data.front() == ASCII_PERIOD)
 				Data.replace(0, 1U, ("0."));
 			if (Data.at(Data.length() - 1U) == ASCII_PERIOD)
 				Data.append("0");
@@ -785,7 +793,7 @@ bool ReadMainIPFilterData(
 					Data.replace(Data.find(".-"), strlen(".-"), (".0-"));
 				if (Data.find("-.") != std::string::npos)
 					Data.replace(Data.find("-."), strlen("-."), ("-0."));
-				if (Data.at(0) == ASCII_PERIOD)
+				if (Data.front() == ASCII_PERIOD)
 					Data.replace(0, 1U, ("0."));
 				if (Data.at(Data.length() - 1U) == ASCII_PERIOD)
 					Data.append("0");

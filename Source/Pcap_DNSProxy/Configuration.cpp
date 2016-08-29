@@ -132,7 +132,7 @@ bool ReadText(
 				if (FileBuffer.get()[Index] > 0xE0 && Index >= 3U)
 				{
 					SingleText = (((uint16_t)(FileBuffer.get()[Index] & 0x0F)) << 12U) + (((uint16_t)(FileBuffer.get()[Index + 1U] & 0x3F)) << 6U) + (uint16_t)(FileBuffer.get()[Index + 2U] & 0x3F);
-				
+
 				//Next line format
 					if (SingleText == UNICODE_LINE_SEPARATOR || SingleText == UNICODE_PARAGRAPH_SEPARATOR)
 					{
@@ -178,14 +178,14 @@ bool ReadText(
 						continue;
 					}
 				}
-				
+
 			//Delete all Non-ASCII.
 				if (FileBuffer.get()[Index] > ASCII_MAX_NUM)
 					FileBuffer.get()[Index] = 0;
 			//Next line format
-				if (FileBuffer.get()[Index] == ASCII_CR && Index + 1U < ReadLength && FileBuffer.get()[Index + 1U] == ASCII_LF)
+				if (FileBuffer.get()[Index] == ASCII_CR)
 					FileBuffer.get()[Index] = 0;
-				else if (FileBuffer.get()[Index] == ASCII_CR || FileBuffer.get()[Index] == ASCII_VT || FileBuffer.get()[Index] == ASCII_FF)
+				else if (FileBuffer.get()[Index] == ASCII_VT || FileBuffer.get()[Index] == ASCII_FF)
 					FileBuffer.get()[Index] = ASCII_LF;
 
 			//Next text
@@ -208,13 +208,8 @@ bool ReadText(
 					*SingleText = ntoh16_Force(*SingleText);
 			#endif
 			//Next line format
-				if (*SingleText == ASCII_CR && Index + sizeof(uint16_t) < ReadLength && 
-				#if BYTE_ORDER == LITTLE_ENDIAN
-					((Encoding == CODEPAGE_UTF_16_BE && ntoh16_Force(*(SingleText + 1U)) == ASCII_LF) || (Encoding == CODEPAGE_UTF_16_LE && *(SingleText + 1U) == ASCII_LF)))
-				#else
-					((Encoding == CODEPAGE_UTF_16_LE && ntoh16_Force(*(SingleText + 1U)) == ASCII_LF) || (Encoding == CODEPAGE_UTF_16_BE && *(SingleText + 1U) == ASCII_LF)))
-				#endif
-						*SingleText = 0;
+				if (*SingleText == ASCII_CR)
+					*SingleText = 0;
 				else if (*SingleText == ASCII_CR || *SingleText == ASCII_VT || *SingleText == ASCII_FF || *SingleText == UNICODE_NEXT_LINE || 
 					*SingleText == UNICODE_LINE_SEPARATOR || *SingleText == UNICODE_PARAGRAPH_SEPARATOR)
 						*SingleText = ASCII_LF;
@@ -247,15 +242,8 @@ bool ReadText(
 					*SingleText = ntoh32_Force(*SingleText);
 			#endif
 			//Next line format
-				if (*SingleText == ASCII_CR && Index + sizeof(uint32_t) < ReadLength && 
-				#if BYTE_ORDER == LITTLE_ENDIAN
-					((Encoding == CODEPAGE_UTF_32_BE && ntoh32_Force(*(SingleText + 1U)) == ASCII_LF) || 
-					(Encoding == CODEPAGE_UTF_32_LE && *(SingleText + 1U) == ASCII_LF)))
-				#else
-					((Encoding == CODEPAGE_UTF_32_LE && ntoh32_Force(*(SingleText + 1U)) == ASCII_LF) || 
-					(Encoding == CODEPAGE_UTF_32_BE && *(SingleText + 1U) == ASCII_LF)))
-				#endif
-						*SingleText = 0;
+				if (*SingleText == ASCII_CR)
+					*SingleText = 0;
 				else if (*SingleText == ASCII_CR || *SingleText == ASCII_VT || *SingleText == ASCII_FF || *SingleText == UNICODE_NEXT_LINE || 
 					*SingleText == UNICODE_LINE_SEPARATOR || *SingleText == UNICODE_PARAGRAPH_SEPARATOR)
 						*SingleText = ASCII_LF;
@@ -292,7 +280,7 @@ bool ReadText(
 					PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Text encoding error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				}break;
 			}
-			
+
 			return false;
 		}
 
@@ -742,7 +730,7 @@ void ReadIPFilter(
 	memset(&FileStatData, 0, sizeof(FileStatData));
 #endif
 	std::unique_lock<std::mutex> IPFilterFileMutex(IPFilterFileLock, std::defer_lock);
-	
+
 //File Monitor
 	for (;;)
 	{
@@ -1120,7 +1108,9 @@ void GetParameterListData(
 	const std::string Data, 
 	const size_t DataOffset, 
 	const size_t Length, 
-	const bool IsCaseConvert)
+	const uint8_t SeparatedSign, 
+	const bool IsCaseConvert, 
+	const bool KeepEmptyItem)
 {
 //Initialization
 	std::string NameString;
@@ -1132,19 +1122,43 @@ void GetParameterListData(
 	//Last data
 		if (Index + 1U == Length)
 		{
-			NameString.append(Data, Index, 1U);
-			if (IsCaseConvert)
-				CaseConvert(false, NameString);
-			ListData.push_back(NameString);
-			break;
+			if (Data.at(Index) != SeparatedSign)
+				NameString.append(Data, Index, 1U);
+			if (NameString.empty())
+			{
+				if (KeepEmptyItem)
+					ListData.push_back(NameString);
+
+				break;
+			}
+			else {
+				if (IsCaseConvert)
+					CaseConvert(false, NameString);
+				ListData.push_back(NameString);
+				if (KeepEmptyItem && Data.at(Index) == SeparatedSign)
+				{
+					NameString.clear();
+					ListData.push_back(NameString);
+				}
+
+				break;
+			}
 		}
 	//Separated
-		else if (Data.at(Index) == ASCII_VERTICAL)
+		else if (Data.at(Index) == SeparatedSign)
 		{
-			if (IsCaseConvert)
-				CaseConvert(false, NameString);
-			ListData.push_back(NameString);
-			NameString.clear();
+			if (!NameString.empty())
+			{
+				if (IsCaseConvert)
+					CaseConvert(false, NameString);
+				ListData.push_back(NameString);
+				NameString.clear();
+			}
+			else if (KeepEmptyItem)
+			{
+				ListData.push_back(NameString);
+				NameString.clear();
+			}
 		}
 		else {
 			NameString.append(Data, Index, 1U);

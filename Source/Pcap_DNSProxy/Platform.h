@@ -302,7 +302,7 @@
 		#endif
 		#if defined(ENABLE_PCAP)
 			#include <pcap/pcap.h>
-		#endif		
+		#endif
 	#elif defined(PLATFORM_MACX)
 		#define ENABLE_LIBSODIUM                   //LibSodium is always enable on Mac OS X.
 		#define ENABLE_PCAP                        //LibPcap is always enable on Mac OS X.
@@ -396,7 +396,7 @@
 	}sockaddr_in6_Windows;
 
 //Linux and Mac OS X compatible definitions(Part 2)
-	#define FALSE                    0	
+	#define FALSE                    0
 	#define INVALID_SOCKET           (-1)
 	#define SOCKET_ERROR             (-1)
 	#define RETURN_ERROR             (-1)
@@ -408,7 +408,7 @@
 	#define WSAEHOSTUNREACH          EHOSTUNREACH
 	#define WSAENETUNREACH           ENETUNREACH
 	#define WSAENOTSOCK              ENOTSOCK
-	#define WSAETIMEDOUT             ETIMEDOUT	
+	#define WSAETIMEDOUT             ETIMEDOUT
 	#define in_addr                  in_addr_Windows
 	#define in6_addr                 in6_addr_Windows
 	#define sockaddr_in              sockaddr_in_Windows

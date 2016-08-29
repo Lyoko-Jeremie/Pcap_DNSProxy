@@ -475,7 +475,7 @@ void ConfigurationTable::MonitorItemToUsing(
 	{
 	//Reset old items.
 		memset(&ConfigurationParameter->SOCKS_TargetServer, 0, sizeof(ConfigurationParameter->SOCKS_TargetServer));
-		
+
 	//Copy new items.
 		*ConfigurationParameter->SOCKS_TargetDomain = *SOCKS_TargetDomain;
 		ConfigurationParameter->SOCKS_TargetDomain_Port = SOCKS_TargetDomain_Port;
@@ -779,7 +779,7 @@ HostsTable::HostsTable(
 	void)
 {
 	PermissionType = 0;
-	IsRegex = false;
+	IsStringMatching = false;
 	PermissionOperation = false;
 
 	return;

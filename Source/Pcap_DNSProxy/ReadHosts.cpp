@@ -33,7 +33,7 @@ bool ReadHostsData(
 		if (StringIter == ASCII_HT)
 			StringIter = ASCII_SPACE;
 	}
-	while (!Data.empty() && Data.at(0) == ASCII_SPACE)
+	while (!Data.empty() && Data.front() == ASCII_SPACE)
 		Data.erase(0, 1U);
 	while (!Data.empty() && Data.back() == ASCII_SPACE)
 		Data.pop_back();
@@ -52,12 +52,13 @@ bool ReadHostsData(
 	if (Data.length() < READ_HOSTS_MINSIZE)
 		return true;
 
+/* Old version(2016-08-27)
 //[Base] block
 	if (Data.find("[Base]") == 0 || Data.find("[base]") == 0 || 
 		Data.find("Version = ") == 0 || Data.find("version = ") == 0 || 
 		Data.find("Default TTL = ") == 0 || Data.find("default ttl = ") == 0)
 			return true;
-
+*/
 //[Local Hosts] block(A part)
 	if (LabelType == 0 && (Parameter.Target_Server_Local_IPv4.Storage.ss_family > 0 || Parameter.Target_Server_Local_IPv6.Storage.ss_family > 0) && 
 	#if defined(PLATFORM_WIN) //Case-insensitive in Windows
@@ -132,62 +133,34 @@ bool ReadHostsData(
 		LabelType = LABEL_STOP;
 		return true;
 	}
-	if (LabelType == LABEL_STOP)
+	else if (LabelType == LABEL_STOP)
+	{
 		return true;
+	}
 
-//Whitelist items
+//Whitelist, Banned and their Extended items
+	size_t LabelTypeTemp = 0;
 	if (Data.find("NULL ") == 0 || Data.find("NULL,") == 0 || 
 		Data.find("Null ") == 0 || Data.find("Null,") == 0 || 
 		Data.find("null ") == 0 || Data.find("null,") == 0)
-	{
-		if (LabelType == LABEL_HOSTS_TYPE_NORMAL || LabelType == LABEL_HOSTS_TYPE_LOCAL)
-		{
-			return ReadOtherHostsData(Data, FileIndex, Line, LabelType, LABEL_HOSTS_TYPE_WHITE);
-		}
-		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
-			return false;
-		}
-	}
-
-//Banned items
+			LabelTypeTemp = LABEL_HOSTS_TYPE_WHITE;
 	else if (Data.find("BAN ") == 0 || Data.find("BAN,") == 0 || 
 		Data.find("BANNED ") == 0 || Data.find("BANNED,") == 0 || 
 		Data.find("Ban ") == 0 || Data.find("Ban,") == 0 || 
 		Data.find("Banned ") == 0 || Data.find("Banned,") == 0 || 
 		Data.find("ban ") == 0 || Data.find("ban,") == 0 || 
 		Data.find("banned ") == 0 || Data.find("banned,") == 0)
-	{
-		if (LabelType == LABEL_HOSTS_TYPE_NORMAL || LabelType == LABEL_HOSTS_TYPE_LOCAL)
-		{
-			return ReadOtherHostsData(Data, FileIndex, Line, LabelType, LABEL_HOSTS_TYPE_BANNED);
-		}
-		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
-			return false;
-		}
-	}
-
-//Whitelist Extended items
+			LabelTypeTemp = LABEL_HOSTS_TYPE_BANNED;
 	else if (Data.find("NULL") == 0 || Data.find("Null") == 0 || Data.find("null") == 0)
-	{
-		if (LabelType == LABEL_HOSTS_TYPE_NORMAL || LabelType == LABEL_HOSTS_TYPE_LOCAL)
-		{
-			return ReadOtherHostsData(Data, FileIndex, Line, LabelType, LABEL_HOSTS_TYPE_WHITE_EXTENDED);
-		}
-		else {
-			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
-			return false;
-		}
-	}
-
-//Banned Extended items
+		LabelTypeTemp = LABEL_HOSTS_TYPE_WHITE_EXTENDED;
 	else if (Data.find("BAN") == 0 || Data.find("BANNED") == 0 || Data.find("Ban") == 0 || 
 		Data.find("Banned") == 0 || Data.find("ban") == 0 || Data.find("banned") == 0)
+			LabelTypeTemp = LABEL_HOSTS_TYPE_BANNED_EXTENDED;
+	if (LabelTypeTemp > 0)
 	{
 		if (LabelType == LABEL_HOSTS_TYPE_NORMAL || LabelType == LABEL_HOSTS_TYPE_LOCAL)
 		{
-			return ReadOtherHostsData(Data, FileIndex, Line, LabelType, LABEL_HOSTS_TYPE_BANNED_EXTENDED);
+			return ReadOtherHostsData(Data, FileIndex, Line, LabelType, LabelTypeTemp);
 		}
 		else {
 			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
@@ -204,32 +177,23 @@ bool ReadHostsData(
 			return ReadLocalHostsData(Data, FileIndex, Line);
 	}
 
-//[Address Hosts] block
-	else if (LabelType == LABEL_HOSTS_TYPE_ADDRESS)
+//Delete spaces before or after verticals.
+	while (Data.find(" |") != std::string::npos || Data.find("| ") != std::string::npos)
 	{
-	//Delete spaces before or after verticals.
-		while (Data.find(" |") != std::string::npos || Data.find("| ") != std::string::npos)
-		{
-			if (Data.find(" |") != std::string::npos)
-				Data.erase(Data.find(" |"), strlen(" "));
-			if (Data.find("| ") != std::string::npos)
-				Data.erase(Data.find("| ") + 1U, strlen("|"));
-		}
+		if (Data.find(" |") != std::string::npos)
+			Data.erase(Data.find(" |"), strlen(" "));
+		if (Data.find("| ") != std::string::npos)
+			Data.erase(Data.find("| ") + 1U, strlen("|"));
+	}
 
+//[Address Hosts] block
+	if (LabelType == LABEL_HOSTS_TYPE_ADDRESS)
+	{
 		return ReadAddressHostsData(Data, FileIndex, Line);
 	}
 
 //Main Hosts block
 	else {
-	//Delete spaces before or after verticals.
-		while (Data.find(" |") != std::string::npos || Data.find("| ") != std::string::npos)
-		{
-			if (Data.find(" |") != std::string::npos)
-				Data.erase(Data.find(" |"), strlen(" "));
-			if (Data.find("| ") != std::string::npos)
-				Data.erase(Data.find("| ") + 1U, strlen("|"));
-		}
-
 	//[CNAME Hosts] block
 		if (LabelType == LABEL_HOSTS_TYPE_CNAME)
 			return ReadMainHostsData(Data, HOSTS_TYPE_CNAME, FileIndex, Line);
@@ -295,7 +259,7 @@ bool ReadOtherHostsData(
 		ssize_t Result = 0;
 
 	//Mark all data in list.
-		GetParameterListData(ListData, Data, Data.find(ASCII_COLON) + 1U, Separated, false);
+		GetParameterListData(ListData, Data, Data.find(ASCII_COLON) + 1U, Separated, ASCII_VERTICAL, false, false);
 		for (const auto &StringIter:ListData)
 		{
 			RecordType = DNSTypeNameToBinary((const uint8_t *)StringIter.c_str());
@@ -322,9 +286,9 @@ bool ReadOtherHostsData(
 	}
 
 //Mark patterns.
-	HostsTableTemp.PatternString.append(Data, Separated, Data.length() - Separated);
+	HostsTableTemp.PatternOrDomainString.append(Data, Separated, Data.length() - Separated);
 	try {
-		std::regex PatternHostsTableTemp(HostsTableTemp.PatternString);
+		std::regex PatternHostsTableTemp(HostsTableTemp.PatternOrDomainString);
 		HostsTableTemp.Pattern.swap(PatternHostsTableTemp);
 	}
 	catch (std::regex_error& Error)
@@ -363,20 +327,281 @@ bool ReadLocalHostsData(
 	const size_t Line)
 {
 	HOSTS_TABLE HostsTableTemp;
+	std::vector<std::string> HostsListData;
+	size_t SeparatedOrResult = 0;
+	auto DnsmasqFormat = false;
+
+//Dnsmasq format(http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html)
+	if (Data.find("--") == 0)
+	{
+		if (Data.find("--Server=/") == std::string::npos && Data.find("--server=/") == std::string::npos)
+		{
+			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
+		else {
+			DnsmasqFormat = true;
+			SeparatedOrResult = Data.find(ASCII_SLASH) + 1U;
+		}
+	}
+	else if (Data.find("Server=/") == 0 || Data.find("Server=/"))
+	{
+		DnsmasqFormat = true;
+		SeparatedOrResult = Data.find(ASCII_SLASH) + 1U;
+	}
+
+//Dnsmasq format check
+	if (DnsmasqFormat)
+	{
+	//Delete all spaces and string length check.
+		while (Data.find(ASCII_SPACE) != std::string::npos)
+			Data.erase(Data.find(ASCII_SPACE), 1U);
+
+	//Get all list data.
+		GetParameterListData(HostsListData, Data, SeparatedOrResult, Data.length(), ASCII_SLASH, false, true);
+		if (HostsListData.empty() || HostsListData.size() > 2U)
+		{
+			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
+		else if (HostsListData.front().empty()) //Dnsmasq unqualified names only
+		{
+			HostsTableTemp.IsStringMatching = true;
+			
+		//Default target server
+			if (HostsListData.back().empty())
+			{
+				goto AddToGlobalList;
+			}
+		//Dnsmasq Whitelist items
+			else if (HostsListData.back() == "#") //Dnsmasq use the standard servers
+			{
+				HostsTableTemp.PermissionType = HOSTS_TYPE_WHITE;
+				goto AddToGlobalList;
+			}
+		//Mark target server.
+			else {
+			//Target server with port
+				std::string DataTemp(HostsListData.back());
+				HostsListData.clear();
+				GetParameterListData(HostsListData, DataTemp, 0, DataTemp.length(), ASCII_HASHTAG, false, false);
+				if (HostsListData.empty() || HostsListData.size() > 2U)
+				{
+					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+					return false;
+				}
+			
+			//Response initialization
+				ADDRESS_UNION_DATA AddressUnionDataTemp;
+				memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
+				ssize_t Result = 0;
+
+			//Convert address.
+				if (HostsListData.front().find(ASCII_COLON) != std::string::npos) //IPv6
+				{
+					if (!AddressStringToBinary((const uint8_t *)HostsListData.front().c_str(), AF_INET6, &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
+					{
+						PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+						return false;
+					}
+					else {
+						AddressUnionDataTemp.Storage.ss_family = AF_INET6;
+					}
+				}
+				else if (HostsListData.front().find(ASCII_PERIOD) != std::string::npos) //IPv4
+				{
+					if (!AddressStringToBinary((const uint8_t *)HostsListData.front().c_str(), AF_INET, &AddressUnionDataTemp.IPv4.sin_addr, &Result))
+					{
+						PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+						return false;
+					}
+					else {
+						AddressUnionDataTemp.Storage.ss_family = AF_INET;
+					}
+				}
+				else {
+					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+					return false;
+				}
+
+			//Convert port.
+				if (HostsListData.size() == 2U) //Non-standard port
+				{
+					SeparatedOrResult = ServiceNameToBinary((const uint8_t *)HostsListData.back().c_str());
+					if (SeparatedOrResult == 0)
+					{
+						_set_errno(0);
+						SeparatedOrResult = strtoul((const char *)HostsListData.back().c_str(), nullptr, 0);
+						if (SeparatedOrResult <= 0 || SeparatedOrResult >= ULONG_MAX)
+						{
+							PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 address port error", errno, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+							return false;
+						}
+					}
+				}
+				else { //Standard port
+					SeparatedOrResult = IPPORT_DNS;
+				}
+
+			//Mark port.
+				if (AddressUnionDataTemp.Storage.ss_family == AF_INET6) //IPv6
+				{
+					AddressUnionDataTemp.IPv6.sin6_port = htons((uint16_t)SeparatedOrResult);
+				}
+				else if (AddressUnionDataTemp.Storage.ss_family == AF_INET) //IPv4
+				{
+					AddressUnionDataTemp.IPv4.sin_port = htons((uint16_t)SeparatedOrResult);
+				}
+				else {
+					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+					return false;
+				}
+
+			//Add to list.
+				HostsTableTemp.AddrOrTargetList.push_back(AddressUnionDataTemp);
+			}
+		}
+		else {
+		//Domain length check
+			if (HostsListData.front().empty())
+			{
+				PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+				return false;
+			}
+
+		//Mark domain.
+			if (HostsListData.front().front() == ASCII_COLON || HostsListData.front().back() == ASCII_COLON) //Dnsmasq regex mode
+			{
+			//Regex format check
+				if (HostsListData.front().front() != ASCII_COLON || HostsListData.front().back() != ASCII_COLON)
+				{
+					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+					return false;
+				}
+
+			//Mark domain.
+				HostsListData.front().erase(0, 1U);
+				HostsListData.front().pop_back();
+				HostsTableTemp.PatternOrDomainString = HostsListData.front();
+			}
+			else { //Dnsmasq normal mode
+			//Make string reversed.
+				MakeStringReversed(HostsListData.front());
+				HostsTableTemp.PatternOrDomainString = HostsListData.front();
+				HostsTableTemp.IsStringMatching = true;
+			}
+
+		//Try to mark target server.
+			if (!HostsListData.back().empty())
+			{
+			//Dnsmasq Whitelist items
+				if (HostsListData.back() == "#") //Dnsmasq use the standard servers
+				{
+					HostsTableTemp.PermissionType = HOSTS_TYPE_WHITE;
+				}
+			//Mark target server.
+				else {
+				//Target server with port
+					std::string DataTemp(HostsListData.back());
+					HostsListData.clear();
+					GetParameterListData(HostsListData, DataTemp, 0, DataTemp.length(), ASCII_HASHTAG, false, false);
+					if (HostsListData.empty() || HostsListData.size() > 2U)
+					{
+						PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+						return false;
+					}
+			
+				//Response initialization
+					ADDRESS_UNION_DATA AddressUnionDataTemp;
+					memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
+					ssize_t Result = 0;
+
+				//Convert address.
+					if (HostsListData.front().find(ASCII_COLON) != std::string::npos) //IPv6
+					{
+						if (!AddressStringToBinary((const uint8_t *)HostsListData.front().c_str(), AF_INET6, &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
+						{
+							PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+							return false;
+						}
+						else {
+							AddressUnionDataTemp.Storage.ss_family = AF_INET6;
+						}
+					}
+					else if (HostsListData.front().find(ASCII_PERIOD) != std::string::npos) //IPv4
+					{
+						if (!AddressStringToBinary((const uint8_t *)HostsListData.front().c_str(), AF_INET, &AddressUnionDataTemp.IPv4.sin_addr, &Result))
+						{
+							PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+							return false;
+						}
+						else {
+							AddressUnionDataTemp.Storage.ss_family = AF_INET;
+						}
+					}
+					else {
+						PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+						return false;
+					}
+
+				//Convert port.
+					if (HostsListData.size() == 2U) //Non-standard port
+					{
+						SeparatedOrResult = ServiceNameToBinary((const uint8_t *)HostsListData.back().c_str());
+						if (SeparatedOrResult == 0)
+						{
+							_set_errno(0);
+							SeparatedOrResult = strtoul((const char *)HostsListData.back().c_str(), nullptr, 0);
+							if (SeparatedOrResult <= 0 || SeparatedOrResult >= ULONG_MAX)
+							{
+								PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 address port error", errno, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+								return false;
+							}
+						}
+					}
+					else { //Standard port
+						SeparatedOrResult = IPPORT_DNS;
+					}
+
+				//Mark port.
+					if (AddressUnionDataTemp.Storage.ss_family == AF_INET6) //IPv6
+					{
+						AddressUnionDataTemp.IPv6.sin6_port = htons((uint16_t)SeparatedOrResult);
+					}
+					else if (AddressUnionDataTemp.Storage.ss_family == AF_INET) //IPv4
+					{
+						AddressUnionDataTemp.IPv4.sin_port = htons((uint16_t)SeparatedOrResult);
+					}
+					else {
+						PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+						return false;
+					}
+
+				//Add to list.
+					HostsTableTemp.AddrOrTargetList.push_back(AddressUnionDataTemp);
+				}
+			}
+		}
+	}
 
 //Mark patterns.
-	HostsTableTemp.PatternString = Data;
-	try {
-		std::regex PatternHostsTableTemp(HostsTableTemp.PatternString);
-		HostsTableTemp.Pattern.swap(PatternHostsTableTemp);
-	}
-	catch (std::regex_error& Error)
+	if (!HostsTableTemp.IsStringMatching)
 	{
-		PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Regular expression pattern error", Error.code(), FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
-		return false;
+		if (!DnsmasqFormat)
+			HostsTableTemp.PatternOrDomainString = Data;
+		try {
+			std::regex PatternHostsTableTemp(HostsTableTemp.PatternOrDomainString);
+			HostsTableTemp.Pattern.swap(PatternHostsTableTemp);
+		}
+		catch (std::regex_error& Error)
+		{
+			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Regular expression pattern error", Error.code(), FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
 	}
 
 //Add to global list.
+AddToGlobalList:
 	for (auto &HostsFileSetIter:*HostsFileSetModificating)
 	{
 		if (HostsFileSetIter.FileIndex == FileIndex)
@@ -441,12 +666,11 @@ bool ReadAddressHostsData(
 	ADDRESS_HOSTS_TABLE AddressHostsTableTemp;
 	sockaddr_storage SockAddr;
 	memset(&SockAddr, 0, sizeof(SockAddr));
-	uint8_t Addr[ADDR_STRING_MAXSIZE] = {0};
 
 //Get target data.
 	std::vector<std::string> TargetListData, SourceListData;
-	GetParameterListData(TargetListData, Data, 0, Separated, false);
-	GetParameterListData(SourceListData, Data, Separated, Data.length(), false);
+	GetParameterListData(TargetListData, Data, 0, Separated, ASCII_VERTICAL, false, false);
+	GetParameterListData(SourceListData, Data, Separated, Data.length(), ASCII_VERTICAL, false, false);
 	ssize_t Result = 0;
 
 //Mark all data in list.
@@ -468,7 +692,8 @@ bool ReadAddressHostsData(
 			AddressHostsTableTemp.Address_Target.push_back(SockAddr);
 		}
 	//A records(IPv4)
-		else {
+		else if (StringIter.find(ASCII_PERIOD) != std::string::npos)
+		{
 		//Convert to binary address.
 			memset(&SockAddr, 0, sizeof(SockAddr));
 			if (!AddressStringToBinary((const uint8_t *)StringIter.c_str(), AF_INET, &((PSOCKADDR_IN)&SockAddr)->sin_addr, &Result))
@@ -481,10 +706,15 @@ bool ReadAddressHostsData(
 			SockAddr.ss_family = AF_INET;
 			AddressHostsTableTemp.Address_Target.push_back(SockAddr);
 		}
+		else {
+			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
 	}
 
 //Get source data.
 	ADDRESS_RANGE_TABLE AddressRangeTableTemp;
+	uint8_t Addr[ADDR_STRING_MAXSIZE] = {0};
 	memset(Addr, 0, ADDR_STRING_MAXSIZE);
 
 //Mark all data in list.
@@ -542,7 +772,8 @@ bool ReadAddressHostsData(
 			AddressHostsTableTemp.Address_Source.push_back(AddressRangeTableTemp);
 		}
 	//A records(IPv4)
-		else {
+		else if (StringIter.find(ASCII_PERIOD) != std::string::npos)
+		{
 			memset(&AddressRangeTableTemp, 0, sizeof(AddressRangeTableTemp));
 
 		//Address range format
@@ -591,6 +822,10 @@ bool ReadAddressHostsData(
 		//Add to list.
 			AddressHostsTableTemp.Address_Source.push_back(AddressRangeTableTemp);
 		}
+		else {
+			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
 	}
 
 //Add to global list.
@@ -613,8 +848,10 @@ bool ReadMainHostsData(
 	const size_t FileIndex, 
 	const size_t Line)
 {
-//Mark separated location.
 	size_t Separated = 0;
+	auto DnsmasqFormat = false;
+
+//Mark separated location.
 	if (Data.find(ASCII_COMMA) != std::string::npos)
 	{
 	//Delete spaces before or after commas.
@@ -639,6 +876,32 @@ bool ReadMainHostsData(
 	{
 		Separated = Data.find(ASCII_SPACE);
 	}
+//Dnsmasq format(http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html)
+	else if (HostsType != HOSTS_TYPE_SOURCE && Data.find("--") == 0)
+	{
+		if ((Data.find("--Address=/") == std::string::npos && Data.find("--address=/") == std::string::npos) || 
+			Data.find("--Address=//") == 0 || Data.find("--address=//") == 0)
+		{
+			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
+		else {
+			DnsmasqFormat = true;
+			Separated = Data.find(ASCII_SLASH);
+		}
+	}
+	else if (HostsType != HOSTS_TYPE_SOURCE && (Data.find("Address=/") == 0 || Data.find("address=/") == 0))
+	{
+		if (Data.find("Address=//") == 0 || Data.find("address=//") == 0)
+		{
+			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
+		else {
+			DnsmasqFormat = true;
+			Separated = Data.find(ASCII_SLASH);
+		}
+	}
 	else {
 		PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 		return false;
@@ -654,10 +917,10 @@ bool ReadMainHostsData(
 //Delete all spaces and string length check.
 	while (Data.find(ASCII_SPACE) != std::string::npos)
 		Data.erase(Data.find(ASCII_SPACE), 1U);
-	if (Separated < READ_HOSTS_MINSIZE)
+	if (!DnsmasqFormat && Separated < READ_HOSTS_MINSIZE)
 		return false;
 
-//Initialization
+//Initialization(Part 1)
 	HOSTS_TABLE HostsTableTemp;
 	std::vector<std::string> HostsListData;
 
@@ -665,7 +928,7 @@ bool ReadMainHostsData(
 	if (HostsType == HOSTS_TYPE_SOURCE)
 	{
 		std::vector<std::string> SourceListData;
-		GetParameterListData(SourceListData, Data, 0, Data.find("->"), false);
+		GetParameterListData(SourceListData, Data, 0, Data.find("->"), ASCII_VERTICAL, false, false);
 		if (SourceListData.empty())
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
@@ -690,10 +953,13 @@ bool ReadMainHostsData(
 			}
 		}
 
-		GetParameterListData(HostsListData, Data, Data.find("->") + strlen("->"), Separated, false);
+		GetParameterListData(HostsListData, Data, Data.find("->") + strlen("->"), Separated, ASCII_VERTICAL, false, false);
 	}
 	else {
-		GetParameterListData(HostsListData, Data, 0, Separated, false);
+		if (DnsmasqFormat)
+			GetParameterListData(HostsListData, Data, Separated, Data.length(), ASCII_SLASH, false, false);
+		else 
+			GetParameterListData(HostsListData, Data, 0, Separated, ASCII_VERTICAL, false, false);
 	}
 
 //Address counts check
@@ -702,7 +968,28 @@ bool ReadMainHostsData(
 		PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 		return false;
 	}
-	else if (HostsListData.front().find(ASCII_COLON) != std::string::npos) //AAAA records(IPv6)
+
+//Dnsmasq format check
+	std::string *HostsListDataIter = &HostsListData.front();
+	if (DnsmasqFormat)
+	{
+		if (HostsListData.size() > 2U || HostsListData.front().empty())
+		{
+			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
+		else if (HostsListData.size() == 2U)
+		{
+			HostsListDataIter = &HostsListData.back();
+		}
+	}
+
+//Mark record type.
+	if (DnsmasqFormat && HostsListData.size() == 1U) //Dnsmasq Banned items
+	{
+		HostsTableTemp.PermissionType = HOSTS_TYPE_BANNED;
+	}
+	else if (HostsListDataIter->find(ASCII_COLON) != std::string::npos) //AAAA records(IPv6)
 	{
 		if (HostsListData.size() > DNS_RR_MAXCOUNT_AAAA)
 		{
@@ -713,7 +1000,8 @@ bool ReadMainHostsData(
 			HostsTableTemp.RecordTypeList.push_back(htons(DNS_RECORD_AAAA));
 		}
 	}
-	else { //A records(IPv4)
+	else if (HostsListDataIter->find(ASCII_PERIOD) != std::string::npos) //A records(IPv4)
+	{
 		if (HostsListData.size() > DNS_RR_MAXCOUNT_A)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Too many Hosts IPv4 addresses", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
@@ -723,59 +1011,128 @@ bool ReadMainHostsData(
 			HostsTableTemp.RecordTypeList.push_back(htons(DNS_RECORD_A));
 		}
 	}
+	else {
+		PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+		return false;
+	}
 
 //Response initialization
 	ADDRESS_UNION_DATA AddressUnionDataTemp;
 	memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
-	uint8_t Addr[ADDR_STRING_MAXSIZE] = {0};
 	ssize_t Result = 0;
 
 //Mark all data in list.
-	for (const auto &StringIter:HostsListData)
+	if (DnsmasqFormat)
 	{
-		memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
-		memset(Addr, 0, ADDR_STRING_MAXSIZE);
-		memcpy_s(Addr, ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.length());
-
-	//AAAA records(IPv6)
-		if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_AAAA))
+		if (HostsListData.size() != 1U)
 		{
-			if (!AddressStringToBinary(Addr, AF_INET6, &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
-			{
-				PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
-				return false;
-			}
-		}
-	//A records(IPv4)
-		else {
-			if (!AddressStringToBinary(Addr, AF_INET, &AddressUnionDataTemp.IPv4.sin_addr, &Result))
-			{
-				PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
-				return false;
-			}
-		}
+			memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
 
-	//Add to global list.
-		HostsTableTemp.AddrList.push_back(AddressUnionDataTemp);
+		//AAAA records(IPv6)
+			if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_AAAA))
+			{
+				if (!AddressStringToBinary((const uint8_t *)HostsListData.back().c_str(), AF_INET6, &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
+				{
+					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+					return false;
+				}
+			}
+		//A records(IPv4)
+			else if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_A))
+			{
+				if (!AddressStringToBinary((const uint8_t *)HostsListData.back().c_str(), AF_INET, &AddressUnionDataTemp.IPv4.sin_addr, &Result))
+				{
+					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+					return false;
+				}
+			}
+			else {
+				PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+				return false;
+			}
+
+		//Add to global list.
+			HostsTableTemp.AddrOrTargetList.push_back(AddressUnionDataTemp);
+		}
+	}
+	else {
+		for (const auto &StringIter:HostsListData)
+		{
+			memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
+
+		//AAAA records(IPv6)
+			if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_AAAA))
+			{
+				if (!AddressStringToBinary((const uint8_t *)StringIter.c_str(), AF_INET6, &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
+				{
+					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+					return false;
+				}
+			}
+		//A records(IPv4)
+			else if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_A))
+			{
+				if (!AddressStringToBinary((const uint8_t *)StringIter.c_str(), AF_INET, &AddressUnionDataTemp.IPv4.sin_addr, &Result))
+				{
+					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+					return false;
+				}
+			}
+			else {
+				PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+				return false;
+			}
+
+		//Add to global list.
+			HostsTableTemp.AddrOrTargetList.push_back(AddressUnionDataTemp);
+		}
 	}
 
 //Address list check
-	if (HostsTableTemp.AddrList.empty())
+	if (HostsTableTemp.PermissionType != HOSTS_TYPE_BANNED && HostsTableTemp.AddrOrTargetList.empty())
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 		return false;
 	}
 
-//Mark patterns.
-	HostsTableTemp.PatternString.append(Data, Separated, Data.length() - Separated);
-	try {
-		std::regex PatternHostsTableTemp(HostsTableTemp.PatternString);
-		HostsTableTemp.Pattern.swap(PatternHostsTableTemp);
-	}
-	catch (std::regex_error& Error)
+//Dnsmasq format(Normal mode)
+	if (DnsmasqFormat && (HostsListData.front().front() != ASCII_COLON || HostsListData.front().back() != ASCII_COLON))
 	{
-		PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Regular expression pattern error", Error.code(), FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
-		return false;
+	//Make string reversed and mark it to list.
+		MakeStringReversed(HostsListData.front());
+		HostsTableTemp.PatternOrDomainString.append(HostsListData.front());
+		HostsTableTemp.IsStringMatching = true;
+	}
+//Mark patterns.
+	else {
+		if (DnsmasqFormat) //Dnsmasq format(Regex mode)
+		{
+		//Regex format check
+			if (HostsListData.front().front() != ASCII_COLON || HostsListData.front().back() != ASCII_COLON)
+			{
+				PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+				return false;
+			}
+
+		//Mark domain.
+			HostsListData.front().erase(0, 1U);
+			HostsListData.front().pop_back();
+			HostsTableTemp.PatternOrDomainString.append(HostsListData.front());
+		}
+		else {
+			HostsTableTemp.PatternOrDomainString.append(Data, Separated, Data.length() - Separated);
+		}
+		
+	//Try to mark patterns.
+		try {
+			std::regex PatternHostsTableTemp(HostsTableTemp.PatternOrDomainString);
+			HostsTableTemp.Pattern.swap(PatternHostsTableTemp);
+		}
+		catch (std::regex_error& Error)
+		{
+			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Regular expression pattern error", Error.code(), FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
 	}
 
 //Add to global list.

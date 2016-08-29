@@ -36,7 +36,8 @@ bool SelectTargetSocket(
 	SOCKET_DATA *TargetSocketData, 
 	bool **IsAlternate, 
 	size_t **AlternateTimeoutTimes, 
-	const uint16_t Protocol);
+	const uint16_t Protocol, 
+	const ADDRESS_UNION_DATA *SpecifieTargetData);
 bool SelectTargetSocketMultiple(
 	std::vector<SOCKET_DATA> &TargetSocketDataList, 
 	const uint16_t Protocol);

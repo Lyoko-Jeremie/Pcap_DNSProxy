@@ -529,6 +529,7 @@ bool UDPMonitor(
 					MonitorQueryData.first.Buffer = RecvBuffer.get() + PACKET_MAXSIZE * Index;
 					MonitorQueryData.first.Length = RecvLen;
 					MonitorQueryData.first.IsLocal = false;
+					memset(&MonitorQueryData.first.LocalTarget, 0, sizeof(MonitorQueryData.first.LocalTarget));
 
 				//Check DNS query data.
 					if (!CheckQueryData(&MonitorQueryData.first, SendBuffer.get(), PACKET_MAXSIZE, MonitorQueryData.second))
@@ -583,7 +584,7 @@ bool TCPMonitor(
 		#if defined(PLATFORM_LINUX)
 			(Parameter.TCP_FastOpen && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
 		#endif
-	#endif	
+	#endif
 		!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
 	{
 		*Result = false;
@@ -816,7 +817,7 @@ bool TCPReceiveProcess(
 			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 			return false;
 		}
-		
+
 	//Main request process
 		EnterRequestProcess(MonitorQueryData, nullptr, 0);
 	}

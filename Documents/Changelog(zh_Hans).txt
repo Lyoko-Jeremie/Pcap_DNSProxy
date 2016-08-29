@@ -1,4 +1,28 @@
-﻿Pcap_DNSProxy 0.4.6.1-0.4.7.0 更新日志(2016-08-22)：
+﻿Pcap_DNSProxy 0.4.7.1 更新日志(2016-08-29)：
+
+* 添加对 Dnsmasq 的 Address 和 Server 兼容格式配置文件的支持
+  * 支持使用 Address 和 Server 兼容格式的非正则表达式模式对域名查询进行字符串匹配
+  * 支持使用 Server 兼容格式指定特定境内 DNS 目标服务器以及指定目标服务器请求的端口
+  * 附带的 WhiteList.txt 切换到 Dnsmasq Server 兼容格式以降低启用境内白名单功能时的资源占用
+* 添加 CMake 系统并行多线程编译支持 (Linux/Mac)
+* 修复 Windows 换行格式下行数统计错误的问题
+* 文件校验码(0.4.7.1)
+  * SHA-1:
+    * Windows/Pcap_DNSProxy.exe -> 0A2C105C6CC05AE9E56118353FF645E256AC1BB8
+    * Windows/Pcap_DNSProxy_x86.exe -> 49631EC92622BD6A3778C8951553A36C60227494
+    * Windows/Pcap_DNSProxy_XP.exe -> 1839FE916555A8EEB8C3184213ACC94C34B0A043
+    * Mac/Pcap_DNSProxy -> B2B78BCB117BB43D72D7E21E4A50B1576AE95643
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe -> CD2B2B2D5DE23B01DC5BAC1AB792DEC922943D1B78CD40C48E3453AF5AD62A3E
+    * Windows/Pcap_DNSProxy_x86.exe -> 9EF84A299F985F26348424046F5E81C6D697435CD3FD13DC8A9F3AB183A72E21
+    * Windows/Pcap_DNSProxy_XP.exe -> 31208BB42382A536CAAB70B294694C97A4F0DBCAD66CE44761680F3943791552
+    * Mac/Pcap_DNSProxy -> DD426BBED38A0732B37280BB45C7A49E6245415174DEE3E083BB16A706AEFED6
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy 0.4.6.1-0.4.7.0 更新日志(2016-08-22)：
 
 * 添加 Source Hosts 根据域名请求的来源地址进行 Hosts 的功能
 * 添加 Local Force Request 参数，可强制已确定使用境内服务器的域名请求不使用其它服务器进行解析
@@ -11,9 +35,9 @@
 * Multi Request Times 参数更名为 Multiple Request Times
 * Alternate Multi Request 参数更名为 Alternate Multiple Request
 * 合并 KeyPairGenerator 工具到主程序，作为支持参数使用
-* 分离 32 位版本对 Windows XP/2003 的支持 (Windows)
+* 分离 32 位版本对 XP/2003 系统的支持 (Windows)
 * 修复数据包过滤模块过于严格导致无法使用部分正常 DNS 服务器的问题 [muink]
-* 修复批处理在 Windows 2003 下无法正常工作的问题 [wuxiao2522]
+* 修复批处理在 2003 系统下无法正常工作的问题 (Windows) [wuxiao2522]
 * 修复抓包模块错误判断正确数据包的问题
 * 修复抓包模块对 IPv6 数据包识别错误的问题
 * 修复 Pcap Devices Blacklist 参数工作不正常的问题

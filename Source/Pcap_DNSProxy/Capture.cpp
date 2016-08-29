@@ -84,7 +84,7 @@ void CaptureInit(
 								break;
 							}
 						}
-						
+
 					//Start a capture monitor.
 						if (IsFound)
 						{
@@ -92,7 +92,7 @@ void CaptureInit(
 							CaptureThread.detach();
 						}
 					}
-					
+
 					pDrive = pDrive->next;
 				}
 
@@ -227,7 +227,7 @@ void CaptureFilterRulesInit(
 	std::string AddrString;
 	FilterRules.clear();
 	FilterRules.append("(src host ");
-	
+
 //Minimum supported system of inet_ntop function and inet_pton function is Windows Vista. [Roy Tam]
 #if defined(PLATFORM_WIN_XP)
 	sockaddr_storage SockAddr;

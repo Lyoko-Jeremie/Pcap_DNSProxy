@@ -436,14 +436,14 @@ size_t AddEDNSLabelToAdditionalRR(
 		//Make EDNS Subnet header.
 			EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
 			EDNS_Subnet_Header->Family = htons(ADDRESS_FAMILY_IPV6);
-			
+
 		//No recommendation is provided for IPv6 at this time so keep all bits, see https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
 				EDNS_Subnet_Header->Netmask_Source = sizeof(in6_addr) * BYTES_TO_BITS;
 			else 
 				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet_IPv6->second;
 			DataLength += sizeof(edns_client_subnet);
-			
+
 		//Length check
 			if (DataLength + sizeof(in6_addr) > MaxLen)
 				return DataLength;
@@ -472,7 +472,7 @@ size_t AddEDNSLabelToAdditionalRR(
 			else 
 				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet_IPv4->second;
 			DataLength += sizeof(edns_client_subnet);
-			
+
 		//Length check
 			if (DataLength + sizeof(in_addr) > MaxLen)
 				return DataLength;
@@ -556,7 +556,7 @@ bool AddEDNSLabelToAdditionalRR(
 				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet_IPv6->second;
 			Packet->Length += sizeof(edns_client_subnet);
 			Packet->EDNS_Record += sizeof(edns_client_subnet);
-			
+
 		//Length check
 			if (Packet->Length + sizeof(in6_addr) > Packet->BufferSize)
 				return true;
@@ -587,7 +587,7 @@ bool AddEDNSLabelToAdditionalRR(
 				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet_IPv4->second;
 			Packet->Length += sizeof(edns_client_subnet);
 			Packet->EDNS_Record += sizeof(edns_client_subnet);
-			
+
 		//Length check
 			if (Packet->Length + sizeof(in_addr) > Packet->BufferSize)
 				return true;
