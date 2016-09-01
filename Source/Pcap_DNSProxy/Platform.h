@@ -215,6 +215,7 @@
 //Windows API headers
 //Part 1 including files
 //	#include <mstcpip.h>               //Microsoft-specific extensions to the core Winsock definitions.
+	#include <mswsock.h>               //Microsoft-specific extensions to the Windows Sockets API(MUST be including before winsock2.h).
 //	#include <tchar.h>                 //Unicode(UTF-8/UTF-16)/Wide-Character Support
 //	#include <VersionHelpers.h>        //Version Helper functions, minimum supported system is Windows Vista.
 	#include <winsock2.h>              //WinSock 2.0+ support(MUST be including before windows.h)
@@ -261,7 +262,11 @@
 //Code definitions
 	#define WINSOCK_VERSION_LOW        2                            //Low byte of Winsock version(2.2)
 	#define WINSOCK_VERSION_HIGH       2                            //High byte of Winsock version(2.2)
-	#define SIO_UDP_CONNRESET          _WSAIOW(IOC_VENDOR, 12)      //Block connection reset error message from system.
+
+//TCP Fast Open support
+	#ifndef TCP_FASTOPEN
+		#define TCP_FASTOPEN               15
+	#endif
 
 //Windows compatible definitions
 	typedef SSIZE_T                    ssize_t;
@@ -399,6 +404,7 @@
 	#define FALSE                    0
 	#define INVALID_SOCKET           (-1)
 	#define SOCKET_ERROR             (-1)
+	#define TRUE                     1U
 	#define RETURN_ERROR             (-1)
 	#define MAX_PATH                 PATH_MAX
 	#define SD_BOTH                  SHUT_RDWR

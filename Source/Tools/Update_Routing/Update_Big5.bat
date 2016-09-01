@@ -15,7 +15,7 @@ md latest\ipv4>nul 2>nul
 md latest\ipv6>nul 2>nul
 :: 檢查bin程序組完整性
 ..\Support\md5 -c609F46A341FEDEAEEC18ABF9FB7C9647 ..\Support\md5.exe 2>nul||echo.依賴程序似乎被破壞了, 重新安裝一次試試?&&ping -n 5 127.0.0.1>nul&&goto END
-..\Support\md5 -cFE925023AB904B93D242481D05F9D838 ..\Support\curl.exe 2>nul||echo.依賴程序似乎被破壞了, 重新安裝一次試試?&&ping -n 5 127.0.0.1>nul&&goto END
+..\Support\md5 -cA0BAC06597560FFDE52C225659F2BF3A ..\Support\curl.exe 2>nul||echo.依賴程序似乎被破壞了, 重新安裝一次試試?&&ping -n 5 127.0.0.1>nul&&goto END
 ..\Support\md5 -cC95C0A045697BE8F782C71BD46958D73 ..\Support\sed.exe 2>nul||echo.依賴程序似乎被破壞了, 重新安裝一次試試?&&ping -n 5 127.0.0.1>nul&&goto END
 ..\Support\md5 -c9A5E35DCB4B35A2350E6FDF4620743B6 ..\Support\CCase.exe 2>nul||echo.依賴程序似乎被破壞了, 重新安裝一次試試?&&ping -n 5 127.0.0.1>nul&&goto END
 

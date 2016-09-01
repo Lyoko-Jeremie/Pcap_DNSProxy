@@ -233,7 +233,7 @@ bool SOCKSSelectionExchange(
 	}
 	memset(OriginalRecv, 0, RecvSize);
 
-//Socket timeout setting
+//Socket attribute setting(Timeout)
 #if defined(PLATFORM_WIN)
 	Timeout->tv_sec = Parameter.SOCKS_SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
 	Timeout->tv_usec = Parameter.SOCKS_SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -339,7 +339,7 @@ bool SOCKSAuthenticationUsernamePassword(
 	memcpy_s(SendBuffer + Length, LARGE_PACKET_MAXSIZE - Length, Parameter.SOCKS_Password->c_str(), Parameter.SOCKS_Password->length());
 	Length += Parameter.SOCKS_Password->length();
 
-//Socket timeout setting
+//Socket attribute setting(Timeout)
 #if defined(PLATFORM_WIN)
 	Timeout->tv_sec = Parameter.SOCKS_SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
 	Timeout->tv_usec = Parameter.SOCKS_SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -457,7 +457,7 @@ bool SOCKSClientCommandRequest(
 		}
 	}
 
-//Socket timeout setting
+//Socket attribute setting(Timeout)
 #if defined(PLATFORM_WIN)
 	Timeout->tv_sec = Parameter.SOCKS_SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
 	Timeout->tv_usec = Parameter.SOCKS_SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -616,8 +616,9 @@ size_t SOCKSTCPRequest(
 		return EXIT_FAILURE;
 	}
 
-//Non-blocking mode setting and Hop Limits setting
+//Socket attribute settings
 	if (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
+		!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr) || 
 		(TCPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr)) || 
 		(TCPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr)) || 
 		!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
@@ -626,7 +627,7 @@ size_t SOCKSTCPRequest(
 		return EXIT_FAILURE;
 	}
 
-//Selecting structure setting
+//Socket selecting structure initialization
 	fd_set ReadFDS, WriteFDS;
 	timeval Timeout;
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
@@ -669,7 +670,7 @@ size_t SOCKSTCPRequest(
 		return EXIT_FAILURE;
 	}
 
-//Socket timeout setting
+//Socket attribute setting(Timeout)
 #if defined(PLATFORM_WIN)
 	Timeout.tv_sec = Parameter.SOCKS_SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
 	Timeout.tv_usec = Parameter.SOCKS_SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -782,14 +783,15 @@ size_t SOCKSUDPRequest(
 		return EXIT_FAILURE;
 	}
 
-//Socket check and Hop Limits setting
+//Socket attribute settings
 	if ((!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr)) || 
+		!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr) || 
 		(TCPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr)) || 
 		(TCPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr)) || 
 		!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr) || 
 		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
-		(UDPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr)) || 
-		(UDPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr)) || 
+		(UDPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr)) || 
+		(UDPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr)) || 
 		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
 	{
 		SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
@@ -800,7 +802,7 @@ size_t SOCKSUDPRequest(
 		return EXIT_FAILURE;
 	}
 
-//Non-blocking mode setting
+//Socket attribute setting(Non-blocking mode)
 	if ((!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr)) || 
 		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
 	{
@@ -811,7 +813,7 @@ size_t SOCKSUDPRequest(
 		return EXIT_FAILURE;
 	}
 
-//Selecting structure setting
+//Socket selecting structure initialization
 	fd_set ReadFDS, WriteFDS;
 	timeval Timeout;
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
@@ -925,7 +927,7 @@ size_t SOCKSUDPRequest(
 	memcpy_s(SendBuffer.get() + RecvLen, RecvSize, OriginalSend, SendSize);
 	RecvLen += (ssize_t)SendSize;
 
-//Socket timeout setting
+//Socket attribute setting(Timeout)
 #if defined(PLATFORM_WIN)
 	Timeout.tv_sec = Parameter.SOCKS_SocketTimeout_Unreliable / SECOND_TO_MILLISECOND;
 	Timeout.tv_usec = Parameter.SOCKS_SocketTimeout_Unreliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -1056,8 +1058,9 @@ size_t HTTPRequest(
 		return EXIT_FAILURE;
 	}
 
-//Socket check and Hop Limits setting
+//Socket attribute settings
 	if (!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
+		!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr) || 
 		(HTTPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr)) || 
 		(HTTPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr)) || 
 		!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
@@ -1068,14 +1071,14 @@ size_t HTTPRequest(
 		return EXIT_FAILURE;
 	}
 
-//Non-blocking mode setting
+//Socket attribute setting(Non-blocking mode)
 	if (!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
 	{
 		SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return EXIT_FAILURE;
 	}
 
-//Selecting structure setting
+//Socket selecting structure initialization
 	fd_set ReadFDS, WriteFDS;
 	timeval Timeout;
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
@@ -1101,7 +1104,7 @@ size_t HTTPRequest(
 		return EXIT_FAILURE;
 	}
 
-//Socket timeout setting
+//Socket attribute setting(Timeout)
 #if defined(PLATFORM_WIN)
 	Timeout.tv_sec = Parameter.HTTP_SocketTimeout / SECOND_TO_MILLISECOND;
 	Timeout.tv_usec = Parameter.HTTP_SocketTimeout % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -1166,7 +1169,7 @@ bool HTTP_CONNECTRequest(
 		HTTPString.append(*Parameter.HTTP_ProxyAuthorization);
 	HTTPString.append("\r\n");
 
-//Socket timeout setting
+//Socket attribute setting(Timeout)
 #if defined(PLATFORM_WIN)
 	Timeout->tv_sec = Parameter.HTTP_SocketTimeout / SECOND_TO_MILLISECOND;
 	Timeout->tv_usec = Parameter.HTTP_SocketTimeout % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;

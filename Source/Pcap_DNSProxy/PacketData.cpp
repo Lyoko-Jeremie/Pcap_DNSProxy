@@ -120,7 +120,7 @@ uint16_t GetChecksum_TCP_UDP(
 	const uint16_t Protocol_Transport)
 {
 	uint16_t Result = EXIT_FAILURE;
-	if (Protocol_Network == AF_INET6) //IPv6
+	if (Protocol_Network == AF_INET6)
 	{
 		std::shared_ptr<uint8_t> Validation(new uint8_t[sizeof(ipv6_psd_hdr) + Length]());
 		memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length);
@@ -132,7 +132,7 @@ uint16_t GetChecksum_TCP_UDP(
 		memcpy_s(Validation.get() + sizeof(ipv6_psd_hdr), Length, Buffer + sizeof(ipv6_hdr), Length);
 		Result = GetChecksum((uint16_t *)Validation.get(), sizeof(ipv6_psd_hdr) + Length);
 	}
-	else if (Protocol_Network == AF_INET) //IPv4
+	else if (Protocol_Network == AF_INET)
 	{
 		std::shared_ptr<uint8_t> Validation(new uint8_t[sizeof(ipv4_psd_hdr) + Length]());
 		memset(Validation.get(), 0, sizeof(ipv4_psd_hdr) + Length);

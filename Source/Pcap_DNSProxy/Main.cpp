@@ -130,7 +130,7 @@ bool ReadCommands(
 		return false;
 #endif
 
-//Screen output buffer setting
+//Screen output buffer settings
 	_set_errno(0);
 	if (setvbuf(stderr, NULL, _IONBF, 0) != 0)
 	{

@@ -52,42 +52,10 @@ bool ReadHostsData(
 	if (Data.length() < READ_HOSTS_MINSIZE)
 		return true;
 
-/* Old version(2016-08-27)
-//[Base] block
-	if (Data.find("[Base]") == 0 || Data.find("[base]") == 0 || 
-		Data.find("Version = ") == 0 || Data.find("version = ") == 0 || 
-		Data.find("Default TTL = ") == 0 || Data.find("default ttl = ") == 0)
-			return true;
-*/
 //[Local Hosts] block(A part)
 	if (LabelType == 0 && (Parameter.Target_Server_Local_IPv4.Storage.ss_family > 0 || Parameter.Target_Server_Local_IPv6.Storage.ss_family > 0) && 
-	#if defined(PLATFORM_WIN) //Case-insensitive in Windows
-		((FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") != std::wstring::npos && 
-		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"whitelist.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") + wcslen(L"whitelist.txt") == FileList_Hosts.at(FileIndex).FileName.length()) || 
-		(FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") != std::wstring::npos && 
-		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"white_list.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") + wcslen(L"white_list.txt") == FileList_Hosts.at(FileIndex).FileName.length())))
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		((FileList_Hosts.at(FileIndex).FileName.rfind(L"WhiteList.txt") != std::wstring::npos && 
-		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"WhiteList.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"WhiteList.txt") + wcslen(L"WhiteList.txt") == FileList_Hosts.at(FileIndex).FileName.length()) || 
-		(FileList_Hosts.at(FileIndex).FileName.rfind(L"Whitelist.txt") != std::wstring::npos && 
-		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"Whitelist.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"Whitelist.txt") + wcslen(L"Whitelist.txt") == FileList_Hosts.at(FileIndex).FileName.length()) || 
-		(FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") != std::wstring::npos && 
-		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"whitelist.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"whitelist.txt") + wcslen(L"whitelist.txt") == FileList_Hosts.at(FileIndex).FileName.length()) || 
-		(FileList_Hosts.at(FileIndex).FileName.rfind(L"White_List.txt") != std::wstring::npos && 
-		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"White_List.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"White_List.txt") + wcslen(L"White_List.txt") == FileList_Hosts.at(FileIndex).FileName.length()) || 
-		(FileList_Hosts.at(FileIndex).FileName.rfind(L"White_list.txt") != std::wstring::npos && 
-		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"White_list.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"White_list.txt") + wcslen(L"White_list.txt") == FileList_Hosts.at(FileIndex).FileName.length()) || 
-		(FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") != std::wstring::npos && 
-		FileList_Hosts.at(FileIndex).FileName.length() > wcslen(L"white_list.txt") && 
-		FileList_Hosts.at(FileIndex).FileName.rfind(L"white_list.txt") + wcslen(L"white_list.txt") == FileList_Hosts.at(FileIndex).FileName.length())))
-	#endif
+		(CompareStringReversed(L"whitelist.txt", FileList_IPFilter.at(FileIndex).FileName.c_str(), true) || 
+		CompareStringReversed(L"white_list.txt", FileList_IPFilter.at(FileIndex).FileName.c_str(), true)))
 			LabelType = LABEL_HOSTS_TYPE_LOCAL;
 
 //[Address Hosts] block
@@ -444,11 +412,11 @@ bool ReadLocalHostsData(
 				}
 
 			//Mark port.
-				if (AddressUnionDataTemp.Storage.ss_family == AF_INET6) //IPv6
+				if (AddressUnionDataTemp.Storage.ss_family == AF_INET6)
 				{
 					AddressUnionDataTemp.IPv6.sin6_port = htons((uint16_t)SeparatedOrResult);
 				}
-				else if (AddressUnionDataTemp.Storage.ss_family == AF_INET) //IPv4
+				else if (AddressUnionDataTemp.Storage.ss_family == AF_INET)
 				{
 					AddressUnionDataTemp.IPv4.sin_port = htons((uint16_t)SeparatedOrResult);
 				}

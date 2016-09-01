@@ -27,9 +27,9 @@ bool AddressStringToBinary(
 	ssize_t *ErrorCode)
 {
 	std::string sAddrString((const char *)AddrString);
-	if (Protocol == AF_INET6) //IPv6
+	if (Protocol == AF_INET6)
 		memset(OriginalAddr, 0, sizeof(in6_addr));
-	else if (Protocol == AF_INET) //IPv4
+	else if (Protocol == AF_INET)
 		memset(OriginalAddr, 0, sizeof(in_addr));
 	else 
 		return false;
@@ -45,7 +45,7 @@ bool AddressStringToBinary(
 	ssize_t Result = 0;
 #endif
 
-	if (Protocol == AF_INET6) //IPv6
+	if (Protocol == AF_INET6)
 	{
 	//Check IPv6 addresses.
 		if (sAddrString.find(ASCII_COLON) == std::string::npos || sAddrString.find(ASCII_PERIOD) != std::string::npos || 
@@ -95,7 +95,7 @@ bool AddressStringToBinary(
 		}
 	#endif
 	}
-	else if (Protocol == AF_INET) //IPv4
+	else if (Protocol == AF_INET)
 	{
 	//Check IPv4 addresses.
 		if (sAddrString.find(ASCII_PERIOD) == std::string::npos || sAddrString.find(ASCII_COLON) != std::string::npos)
@@ -178,7 +178,7 @@ size_t AddressesComparing(
 	const void *OriginalAddrEnd, 
 	const uint16_t Protocol)
 {
-	if (Protocol == AF_INET6) //IPv6
+	if (Protocol == AF_INET6)
 	{
 		for (size_t Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);++Index)
 		{
@@ -198,7 +198,7 @@ size_t AddressesComparing(
 			}
 		}
 	}
-	else if(Protocol == AF_INET) //IPv4
+	else if (Protocol == AF_INET)
 	{
 		if (((in_addr *)OriginalAddrBegin)->s_net > ((in_addr *)OriginalAddrEnd)->s_net)
 		{
@@ -248,7 +248,7 @@ bool CheckSpecialAddress(
 	const bool IsPrivateUse, 
 	const uint8_t *Domain)
 {
-	if (Protocol == AF_INET6) //IPv6
+	if (Protocol == AF_INET6)
 	{
 		if (
 		//DNS Poisoning addresses from CERNET2, see https://code.google.com/p/goagent/issues/detail?id=17571.
@@ -385,7 +385,7 @@ bool CheckSpecialAddress(
 			}
 		}
 	}
-	else if (Protocol == AF_INET) //IPv4
+	else if (Protocol == AF_INET)
 	{
 		if (
 		//DNS Poisoning addresses from CERNET2, see https://code.google.com/p/goagent/issues/detail?id=17571.
@@ -573,7 +573,7 @@ bool CheckAddressRouting(
 	std::lock_guard<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 
 //Check address routing.
-	if (Protocol == AF_INET6) //IPv6
+	if (Protocol == AF_INET6)
 	{
 		for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
 		{
@@ -596,7 +596,7 @@ bool CheckAddressRouting(
 			}
 		}
 	}
-	else if (Protocol == AF_INET) //IPv4
+	else if (Protocol == AF_INET)
 	{
 		for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
 		{
@@ -617,7 +617,7 @@ bool CheckCustomModeFilter(
 	const uint16_t Protocol)
 {
 	std::lock_guard<std::mutex> IPFilterFileMutex(IPFilterFileLock);
-	if (Protocol == AF_INET6) //IPv6
+	if (Protocol == AF_INET6)
 	{
 	//Permit mode
 		if (Parameter.IPFilterType)
@@ -687,7 +687,7 @@ bool CheckCustomModeFilter(
 			}
 		}
 	}
-	else if (Protocol == AF_INET) //IPv4
+	else if (Protocol == AF_INET)
 	{
 	//Permit mode
 		if (Parameter.IPFilterType)
@@ -859,7 +859,7 @@ size_t CheckResponseCNAME(
 			if (HostsTableIter.IsStringMatching)
 			{
 				if (HostsTableIter.PatternOrDomainString == "#" || //Dnsmasq "#" matches any domain.
-					StringReverseCompare(HostsTableIter.PatternOrDomainString, ReverseDomain))
+					CompareStringReversed(HostsTableIter.PatternOrDomainString, ReverseDomain))
 						IsMatch = true;
 			}
 		//Regex mode

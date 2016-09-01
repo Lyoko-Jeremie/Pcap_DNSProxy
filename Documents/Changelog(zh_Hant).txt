@@ -1,22 +1,27 @@
-﻿Pcap_DNSProxy 0.4.7.1 更新日誌(2016-08-29)：
+﻿Pcap_DNSProxy 0.4.7.1-0.4.7.2 更新日誌(2016-09-01)：
 
 * 添加對 Dnsmasq 的 Address 和 Server 相容格式設定檔的支援
   * 支援使用 Address 和 Server 相容格式的非正則運算式模式對功能變數名稱查詢進行字串匹配
   * 支援使用 Server 相容格式指定特定境內 DNS 目標伺服器以及指定目標伺服器請求的埠
   * 附帶的 WhiteList.txt 切換到 Dnsmasq Server 相容格式以降低啟用境內白名單功能時的資源佔用
 * 添加 CMake 系統並行多執行緒編譯支援 (Linux/Mac)
-* 修復 Windows 換行格式下行數統計錯誤的問題
-* 檔校驗碼(0.4.7.1)
+* 添加伺服器端 TCP Fast Open 屬性的實驗性支援 (Windows)
+* 修復通訊端不正確的關閉有可能造成的系統資源耗盡問題 [AVC A]
+* 修復 IPv6 協定通訊端參數錯誤的問題 [gaoyan1234]
+* 修復 dig 請求權威根功能變數名稱伺服器的問題
+* 修復 CR + LF 換行格式下行數統計錯誤的問題
+* 修復通訊端 TCP Fast Open 屬性不生效的問題 (Linux)
+* 檔校驗碼(0.4.7.2)
   * SHA-1:
-    * Windows/Pcap_DNSProxy.exe -> 0A2C105C6CC05AE9E56118353FF645E256AC1BB8
-    * Windows/Pcap_DNSProxy_x86.exe -> 49631EC92622BD6A3778C8951553A36C60227494
-    * Windows/Pcap_DNSProxy_XP.exe -> 1839FE916555A8EEB8C3184213ACC94C34B0A043
-    * Mac/Pcap_DNSProxy -> B2B78BCB117BB43D72D7E21E4A50B1576AE95643
+    * Windows/Pcap_DNSProxy.exe -> 407693A27A0CFC01E256E1FE97963218F1A5AE4D
+    * Windows/Pcap_DNSProxy_x86.exe -> 2BD6F3B506FF8F9B00E5FD5539D85A53362F5FE8
+    * Windows/Pcap_DNSProxy_XP.exe -> 46F10EE4F921591CAA5E737DA5872567F7641884
+    * Mac/Pcap_DNSProxy -> 17416777FDDABC87F4CF6116C25B0CC7CC4C0C27
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe -> CD2B2B2D5DE23B01DC5BAC1AB792DEC922943D1B78CD40C48E3453AF5AD62A3E
-    * Windows/Pcap_DNSProxy_x86.exe -> 9EF84A299F985F26348424046F5E81C6D697435CD3FD13DC8A9F3AB183A72E21
-    * Windows/Pcap_DNSProxy_XP.exe -> 31208BB42382A536CAAB70B294694C97A4F0DBCAD66CE44761680F3943791552
-    * Mac/Pcap_DNSProxy -> DD426BBED38A0732B37280BB45C7A49E6245415174DEE3E083BB16A706AEFED6
+    * Windows/Pcap_DNSProxy.exe -> BE38D5059AEBB14556894CC38B0A14E07DB271BCE11E4A33706CCAB0C4BEAFF9
+    * Windows/Pcap_DNSProxy_x86.exe -> A08F40721D1D89BC10E52F1BEC4B5A5779E9C360E4AAF468D7808D7E071C9840
+    * Windows/Pcap_DNSProxy_XP.exe -> 567257FDEC91CC782ABE15FCBEBD229E1314990FB9BCF4D21938FAC5DA314D45
+    * Mac/Pcap_DNSProxy -> 6175674D9252C3B8414C15EEC4F697DB83CF8577746BEE3250CCCEA86C4AC1A7
 
 
 -------------------------------------------------------------------------------

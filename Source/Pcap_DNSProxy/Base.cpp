@@ -219,6 +219,24 @@ void CaseConvert(
 	return;
 }
 
+//Convert lowercase/uppercase words to uppercase/lowercase words(C++ wstring version)
+void CaseConvert(
+	const bool IsLowerToUpper, 
+	std::wstring &Buffer)
+{
+	for (auto &StringIter:Buffer)
+	{
+	//Lowercase to uppercase
+		if (IsLowerToUpper)
+			StringIter = (wchar_t)toupper(StringIter);
+	//Uppercase to lowercase
+		else 
+			StringIter = (wchar_t)tolower(StringIter);
+	}
+
+	return;
+}
+
 //Make string reversed
 void MakeStringReversed(
 	std::string &String)
@@ -239,18 +257,70 @@ void MakeStringReversed(
 	return;
 }
 
+//Make string reversed
+void MakeStringReversed(
+	std::wstring &String)
+{
+//String check
+	if (String.size() <= 1U)
+		return;
+
+//Make string reversed
+	wchar_t StringIter = 0;
+	for (size_t Index = 0;Index < String.length() / 2U;++Index)
+	{
+		StringIter = String.at(String.length() - 1U - Index);
+		String.at(String.length() - 1U - Index) = String.at(Index);
+		String.at(Index) = StringIter;
+	}
+
+	return;
+}
+
 //Reversed string comparing
-bool StringReverseCompare(
-	const std::string &DomainString, 
-	std::string ReverseDomain)
+bool CompareStringReversed(
+	const std::string &RuleItem, 
+	const std::string &TestItem)
 {
 //Length check
-	if (DomainString.empty() || ReverseDomain.empty() || ReverseDomain.length() < DomainString.length())
+	if (RuleItem.empty() || TestItem.empty() || TestItem.length() < RuleItem.length())
 		return false;
 
 //Compare each other.
-	else if (memcmp(DomainString.c_str(), ReverseDomain.c_str(), DomainString.length()) == 0)
+	else if (memcmp(RuleItem.c_str(), TestItem.c_str(), RuleItem.length()) == 0)
 		return true;
+
+	return false;
+}
+
+//Reversed string comparing
+bool CompareStringReversed(
+	const wchar_t *RuleItem, 
+	const wchar_t *TestItem, 
+	const bool IsCaseConvert)
+{
+//Initialization
+	std::wstring InnerRuleItem(RuleItem), InnerTestItem(TestItem);
+	if (IsCaseConvert)
+	{
+		CaseConvert(false, InnerRuleItem);
+		CaseConvert(false, InnerTestItem);
+	}
+
+//Length check
+	if (InnerRuleItem.empty() || InnerTestItem.empty() || InnerTestItem.length() < InnerRuleItem.length())
+	{
+		return false;
+	}
+	else {
+	//Make string reversed to compare.
+		MakeStringReversed(InnerRuleItem);
+		MakeStringReversed(InnerTestItem);
+
+	//Compare each other.
+		if (memcmp(InnerRuleItem.c_str(), InnerTestItem.c_str(), InnerRuleItem.length()) == 0)
+			return true;
+	}
 
 	return false;
 }

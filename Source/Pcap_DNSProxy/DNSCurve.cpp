@@ -127,9 +127,9 @@ size_t DNSCurveSelectTargetSocket(
 //Socket initialization
 	size_t ServerType = 0;
 	uint16_t SocketType = 0;
-	if (Protocol == IPPROTO_TCP) //TCP
+	if (Protocol == IPPROTO_TCP)
 		SocketType = SOCK_STREAM;
-	else if (Protocol == IPPROTO_UDP) //UDP
+	else if (Protocol == IPPROTO_UDP)
 		SocketType = SOCK_DGRAM;
 	sodium_memzero(TargetSocketData, sizeof(SOCKET_DATA));
 
@@ -139,13 +139,11 @@ size_t DNSCurveSelectTargetSocket(
 		DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //IPv6
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 	{
-	//TCP
 		if (Protocol == IPPROTO_TCP)
 		{
 			*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_DNSCURVE_TCP_IPV6];
 			*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_TCP_IPV6];
 		}
-	//UDP
 		else if (Protocol == IPPROTO_UDP)
 		{
 			*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_DNSCURVE_UDP_IPV6];
@@ -194,6 +192,7 @@ size_t DNSCurveSelectTargetSocket(
 		TargetSocketData->SockAddr.ss_family = AF_INET6;
 		TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
 		if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
+			(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
 			!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr))
 		{
 			SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_CLOSE, false, nullptr);
@@ -211,13 +210,11 @@ size_t DNSCurveSelectTargetSocket(
 		DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //IPv4
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 	{
-	//TCP
 		if (Protocol == IPPROTO_TCP)
 		{
 			*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_DNSCURVE_TCP_IPV4];
 			*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_TCP_IPV4];
 		}
-	//UDP
 		else if (Protocol == IPPROTO_UDP)
 		{
 			*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_DNSCURVE_UDP_IPV4];
@@ -266,6 +263,7 @@ size_t DNSCurveSelectTargetSocket(
 		TargetSocketData->SockAddr.ss_family = AF_INET;
 		TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
 		if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
+			(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
 			!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
 			!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
 		{
@@ -297,9 +295,9 @@ bool DNSCurveSelectTargetSocketMultiple(
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 	{
 		IsIPv6 = true;
-		if (Protocol == IPPROTO_TCP) //TCP
+		if (Protocol == IPPROTO_TCP)
 			*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_DNSCURVE_TCP_IPV6];
-		else if (Protocol == IPPROTO_UDP) //UDP
+		else if (Protocol == IPPROTO_UDP)
 			*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_DNSCURVE_UDP_IPV6];
 		else 
 			return false;
@@ -311,9 +309,9 @@ bool DNSCurveSelectTargetSocketMultiple(
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 	{
 		IsIPv6 = false;
-		if (Protocol == IPPROTO_TCP) //TCP
+		if (Protocol == IPPROTO_TCP)
 			*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_DNSCURVE_TCP_IPV4];
-		else if (Protocol == IPPROTO_UDP) //UDP
+		else if (Protocol == IPPROTO_UDP)
 			*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_DNSCURVE_UDP_IPV4];
 		else 
 			return false;
@@ -421,9 +419,9 @@ void DNSCurveSocketPrecomputation(
 	auto Client_PublicKey = Client_PublicKey_PTR;
 	size_t Index = 0, LoopLimits = 0;
 	uint16_t InnerProtocol = 0;
-	if (Protocol == IPPROTO_TCP) //TCP
+	if (Protocol == IPPROTO_TCP)
 		InnerProtocol = SOCK_STREAM;
-	else if (Protocol == IPPROTO_UDP) //UDP
+	else if (Protocol == IPPROTO_UDP)
 		InnerProtocol = SOCK_DGRAM;
 	else 
 		return;
@@ -432,7 +430,7 @@ void DNSCurveSocketPrecomputation(
 	if (!*IsAlternate)
 	{
 	//Set target.
-		if (IsIPv6) //IPv6
+		if (IsIPv6)
 			*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_IPv6;
 		else //IPv4
 			*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_IPv4;
@@ -445,22 +443,23 @@ void DNSCurveSocketPrecomputation(
 				goto SkipMain;
 
 	//Socket initialization
-		if (Protocol == IPPROTO_TCP) //TCP
+		if (Protocol == IPPROTO_TCP)
 			LoopLimits = Parameter.MultipleRequestTimes;
-		else if (Protocol == IPPROTO_UDP) //UDP
+		else if (Protocol == IPPROTO_UDP)
 			LoopLimits = 1U;
 		else 
 			goto SkipMain;
 		for (Index = 0;Index < LoopLimits;++Index)
 		{
 			SocketDataTemp.SockAddr = (*PacketTarget)->AddressData.Storage;
-			if (IsIPv6) //IPv6
+			if (IsIPv6)
 				SocketDataTemp.Socket = socket(AF_INET6, InnerProtocol, Protocol);
 			else //IPv4
 				SocketDataTemp.Socket = socket(AF_INET, InnerProtocol, Protocol);
 
-		//Socket check, non-blocking mode setting, Hop Limits setting and Do Not Fragment setting
+		//Socket attribute settings
 			if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
+				(InnerProtocol == IPPROTO_TCP && !SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
 				!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
 				(IsIPv6 && !SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr)) || 
 				(!IsIPv6 && (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
@@ -534,7 +533,7 @@ SkipMain:
 	sodium_memzero(&SocketDataTemp, sizeof(SocketDataTemp));
 
 //Set target.
-	if (IsIPv6) //IPv6
+	if (IsIPv6)
 		*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6;
 	else //IPv4
 		*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4;
@@ -558,11 +557,11 @@ SkipMain:
 		}
 
 	//Socket initialization
-		if (Protocol == IPPROTO_TCP) //TCP
+		if (Protocol == IPPROTO_TCP)
 		{
 			LoopLimits = Parameter.MultipleRequestTimes;
 		}
-		else if (Protocol == IPPROTO_UDP) //UDP
+		else if (Protocol == IPPROTO_UDP)
 		{
 			LoopLimits = 1U;
 		}
@@ -578,13 +577,14 @@ SkipMain:
 		for (Index = 0;Index < LoopLimits;++Index)
 		{
 			SocketDataTemp.SockAddr = (*PacketTarget)->AddressData.Storage;
-			if (IsIPv6) //IPv6
+			if (IsIPv6)
 				SocketDataTemp.Socket = socket(AF_INET6, InnerProtocol, Protocol);
 			else //IPv4
 				SocketDataTemp.Socket = socket(AF_INET, InnerProtocol, Protocol);
 
-		//Socket check, non-blocking mode setting, Hop Limits setting and Do Not Fragment setting
+		//Socket attribute settings
 			if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
+				(Protocol == IPPROTO_TCP && !SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
 				!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
 				(IsIPv6 && !SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr)) || 
 				(!IsIPv6 && (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
@@ -705,13 +705,13 @@ size_t DNSCurvePacketEncryption(
 
 	//Make a crypto box.
 		std::shared_ptr<uint8_t> Buffer;
-		if (Protocol == IPPROTO_TCP) //TCP
+		if (Protocol == IPPROTO_TCP)
 		{
 			std::shared_ptr<uint8_t> BufferTemp(new uint8_t[DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN]());
 			sodium_memzero(BufferTemp.get(), DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN);
 			Buffer.swap(BufferTemp);
 		}
-		else if (Protocol == IPPROTO_UDP) //UDP
+		else if (Protocol == IPPROTO_UDP)
 		{
 			std::shared_ptr<uint8_t> BufferTemp(new uint8_t[DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN]());
 			sodium_memzero(BufferTemp.get(), DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVE_LEN);
@@ -725,7 +725,7 @@ size_t DNSCurvePacketEncryption(
 		DNSCurvePaddingData(true, Buffer.get(), crypto_box_ZEROBYTES + Length);
 
 	//Encrypt data.
-		if (Protocol == IPPROTO_TCP) //TCP
+		if (Protocol == IPPROTO_TCP)
 		{
 			if (crypto_box_afternm(
 					SendBuffer + DNSCRYPT_BUFFER_RESERVE_TCP_LEN, 
@@ -735,7 +735,7 @@ size_t DNSCurvePacketEncryption(
 					PrecomputationKey) != 0)
 						return EXIT_FAILURE;
 		}
-		else if (Protocol == IPPROTO_UDP) //UDP
+		else if (Protocol == IPPROTO_UDP)
 		{
 			if (crypto_box_afternm(
 					SendBuffer + DNSCRYPT_BUFFER_RESERVE_LEN, 
@@ -751,7 +751,7 @@ size_t DNSCurvePacketEncryption(
 
 	//Make DNSCurve encryption packet.
 		Buffer.reset();
-		if (Protocol == IPPROTO_TCP) //TCP
+		if (Protocol == IPPROTO_TCP)
 		{
 			memcpy_s(SendBuffer + sizeof(uint16_t), SendSize - sizeof(uint16_t), SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
 			memcpy_s(SendBuffer + sizeof(uint16_t) + DNSCURVE_MAGIC_QUERY_LEN, SendSize - sizeof(uint16_t) - DNSCURVE_MAGIC_QUERY_LEN, Client_PublicKey, crypto_box_PUBLICKEYBYTES);
@@ -760,7 +760,7 @@ size_t DNSCurvePacketEncryption(
 		//Add length of request packet(It must be written in header when transport with TCP protocol).
 			*(uint16_t *)SendBuffer = htons((uint16_t)(DNSCurveParameter.DNSCurvePayloadSize - sizeof(uint16_t)));
 		}
-		else if (Protocol == IPPROTO_UDP) //UDP
+		else if (Protocol == IPPROTO_UDP)
 		{
 			memcpy_s(SendBuffer, SendSize, SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
 			memcpy_s(SendBuffer + DNSCURVE_MAGIC_QUERY_LEN, SendSize - DNSCURVE_MAGIC_QUERY_LEN, Client_PublicKey, crypto_box_PUBLICKEYBYTES);
@@ -775,9 +775,9 @@ size_t DNSCurvePacketEncryption(
 //Normal mode
 	else {
 		memcpy_s(SendBuffer, SendSize, OriginalSend, Length);
-		if (Protocol == IPPROTO_TCP) //TCP
+		if (Protocol == IPPROTO_TCP)
 			return AddLengthDataToHeader(SendBuffer, Length, SendSize); //Add length of request packet(It must be written in header when transport with TCP protocol).
-		else if (Protocol == IPPROTO_UDP) //UDP
+		else if (Protocol == IPPROTO_UDP)
 			return Length;
 	}
 
@@ -862,13 +862,11 @@ ssize_t DNSCurveSocketSelecting(
 			SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 			SocketDataList.at(Index).Socket = 0;
 		}
-	#if defined(PLATFORM_LINUX)
 		else if (Protocol == IPPROTO_TCP && Parameter.TCP_FastOpen && RecvLen >= (ssize_t)DNS_PACKET_MINSIZE)
 		{
 			SocketSelectingList.at(Index).IsPacketSend = true;
 			++Index;
 		}
-	#endif
 	}
 
 //Socket check(Part 1)
@@ -891,7 +889,7 @@ ssize_t DNSCurveSocketSelecting(
 	SYSTEM_SOCKET MaxSocket = 0;
 	auto IsAllSocketClosed = false;
 
-//Socket timeout setting
+//Socket attribute setting(Timeout)
 #if defined(PLATFORM_WIN)
 	Timeout.tv_sec = DNSCurveParameter.DNSCurve_SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
 	Timeout.tv_usec = DNSCurveParameter.DNSCurve_SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -929,13 +927,13 @@ ssize_t DNSCurveSocketSelecting(
 		FD_ZERO(&WriteFDS);
 		MaxSocket = 0;
 
-	//Socket check and non-blocking process setting
+	//Socket check and non-blocking process
 		for (Index = 0;Index < SocketDataList.size();++Index)
 		{
-		//Non-blocking process setting
+		//Non-blocking process
 			if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 			{
-			//Select structure setting
+			//Select structure initialization
 				if (SocketDataList.at(Index).Socket > MaxSocket)
 					MaxSocket = SocketDataList.at(Index).Socket;
 
@@ -1130,14 +1128,6 @@ ssize_t DNSCurveSelectingResult(
 				memcpy_s(OriginalRecv, RecvSize, SocketSelectingList.at(Index).RecvBuffer.get(), RecvLen);
 			}
 
-/* Old version(2016-08-21)
-		//Close all sockets.
-			for (auto &SocketDataIter:SocketDataList)
-			{
-				SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-				SocketDataIter.Socket = 0;
-			}
-*/
 		//Mark sockets to global list.
 			std::unique_lock<std::mutex> SocketMarkingMutex(SocketMarkingLock);
 			for (auto &SocketDataIter:SocketDataList)
@@ -1170,7 +1160,7 @@ ssize_t DNSCurveSelectingResult(
 						continue;
 					}
 
-					SocketMarkingList.push(SocketMarkingDataTemp);
+					SocketMarkingList.push_back(SocketMarkingDataTemp);
 					SocketDataIter.Socket = 0;
 				}
 			}
@@ -1321,14 +1311,14 @@ bool DNSCurveTCPSignatureRequest(
 #endif
 	DNS_TCP_Header->Flags = htons(DNS_STANDARD);
 	DNS_TCP_Header->Question = htons(U16_NUM_ONE);
-	if (Protocol == AF_INET6) //IPv6
+	if (Protocol == AF_INET6)
 	{
 		if (IsAlternate)
 			DataLength += CharToDNSQuery(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ProviderName, SendBuffer.get() + DataLength);
 		else 
 			DataLength += CharToDNSQuery(DNSCurveParameter.DNSCurve_Target_Server_IPv6.ProviderName, SendBuffer.get() + DataLength);
 	}
-	else if (Protocol == AF_INET) //IPv4
+	else if (Protocol == AF_INET)
 	{
 		if (IsAlternate)
 			DataLength += CharToDNSQuery(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ProviderName, SendBuffer.get() + DataLength);
@@ -1352,7 +1342,7 @@ bool DNSCurveTCPSignatureRequest(
 //Socket initialization(Part 1)
 	size_t ServerType = 0;
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
-	if (Protocol == AF_INET6) //IPv6
+	if (Protocol == AF_INET6)
 	{
 		if (IsAlternate)
 		{
@@ -1371,7 +1361,7 @@ bool DNSCurveTCPSignatureRequest(
 		TCPSocketDataList.front().AddrLen = sizeof(sockaddr_in6);
 		TCPSocketDataList.front().SockAddr.ss_family = AF_INET6;
 	}
-	else if (Protocol == AF_INET) //IPv4
+	else if (Protocol == AF_INET)
 	{
 		if (IsAlternate)
 		{
@@ -1421,13 +1411,14 @@ bool DNSCurveTCPSignatureRequest(
 		}
 
 	//Socket initialization(Part 2)
-		if (Protocol == AF_INET6) //IPv6
+		if (Protocol == AF_INET6)
 			TCPSocketDataList.front().Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-		else if (Protocol == AF_INET) //IPv4
+		else if (Protocol == AF_INET)
 			TCPSocketDataList.front().Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 		else 
 			goto JumpToRestart;
 		if (!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
+			!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr) || 
 			!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
 			(Protocol == AF_INET6 && !SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr)) || 
 			(Protocol == AF_INET && (!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
@@ -1442,8 +1433,7 @@ bool DNSCurveTCPSignatureRequest(
 		}
 		else {
 		//Check Signature.
-			if (PacketTarget == nullptr || 
-				!DNSCruveGetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
+			if (PacketTarget == nullptr || !DNSCruveGetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
 				CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 				CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 					goto JumpToRestart;
@@ -1506,14 +1496,14 @@ bool DNSCurveUDPSignatureRequest(
 #endif
 	DNS_Header->Flags = htons(DNS_STANDARD);
 	DNS_Header->Question = htons(U16_NUM_ONE);
-	if (Protocol == AF_INET6) //IPv6
+	if (Protocol == AF_INET6)
 	{
 		if (IsAlternate)
 			DataLength += CharToDNSQuery(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ProviderName, SendBuffer.get() + DataLength);
 		else 
 			DataLength += CharToDNSQuery(DNSCurveParameter.DNSCurve_Target_Server_IPv6.ProviderName, SendBuffer.get() + DataLength);
 	}
-	else if (Protocol == AF_INET) //IPv4
+	else if (Protocol == AF_INET)
 	{
 		if (IsAlternate)
 			DataLength += CharToDNSQuery(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ProviderName, SendBuffer.get() + DataLength);
@@ -1533,7 +1523,7 @@ bool DNSCurveUDPSignatureRequest(
 //Socket initialization(Part 1)
 	size_t ServerType = 0;
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
-	if (Protocol == AF_INET6) //IPv6
+	if (Protocol == AF_INET6)
 	{
 		if (IsAlternate)
 		{
@@ -1552,7 +1542,7 @@ bool DNSCurveUDPSignatureRequest(
 		UDPSocketDataList.front().AddrLen = sizeof(sockaddr_in6);
 		UDPSocketDataList.front().SockAddr.ss_family = AF_INET6;
 	}
-	else if (Protocol == AF_INET) //IPv4
+	else if (Protocol == AF_INET)
 	{
 		if (IsAlternate)
 		{
@@ -1602,9 +1592,9 @@ bool DNSCurveUDPSignatureRequest(
 		}
 
 	//Socket initialization(Part 2)
-		if (Protocol == AF_INET6) //IPv6
+		if (Protocol == AF_INET6)
 			UDPSocketDataList.front().Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-		else if (Protocol == AF_INET) //IPv4
+		else if (Protocol == AF_INET)
 			UDPSocketDataList.front().Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 		else 
 			goto JumpToRestart;
@@ -1623,8 +1613,7 @@ bool DNSCurveUDPSignatureRequest(
 		}
 		else {
 		//Check Signature.
-			if (PacketTarget == nullptr || 
-				!DNSCruveGetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
+			if (PacketTarget == nullptr || !DNSCruveGetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
 				CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 				CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 					goto JumpToRestart;
@@ -1771,8 +1760,8 @@ size_t DNSCurveTCPRequest(
 	TCPSocketSelectingData.ServerType = DNSCurveSelectTargetSocket(&TCPSocketDataList.front(), &PacketTarget, &IsAlternate, &AlternateTimeoutTimes, IPPROTO_TCP);
 	if (TCPSocketSelectingData.ServerType == 0)
 	{
-		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"DNSCurve TCP socket initialization error", 0, nullptr, 0);
 		SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"DNSCurve TCP socket initialization error", 0, nullptr, 0);
 
 		return EXIT_FAILURE;
 	}
@@ -1800,7 +1789,7 @@ size_t DNSCurveTCPRequest(
 		PrecomputationKey = PacketTarget->PrecomputationKey, Client_PublicKey = DNSCurveParameter.Client_PublicKey;
 	}
 
-//Socket non-blocking mode setting
+//Socket attribute setting(Non-blocking mode)
 	if (!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
 	{
 		SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
@@ -1815,7 +1804,7 @@ size_t DNSCurveTCPRequest(
 		return EXIT_FAILURE;
 	}
 
-//Socket selecting structure setting
+//Socket selecting structure initialization
 	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> TCPSocketSelectingList;
 	if (DNSCurveParameter.IsEncryption) //Encryption mode
 	{
@@ -1834,9 +1823,9 @@ size_t DNSCurveTCPRequest(
 	RecvLen = DNSCurveSocketSelecting(IPPROTO_TCP, TCPSocketDataList, TCPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
-		if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6
+		if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in6))
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_TCP_IPV6];
-		else if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in)) //IPv4
+		else if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in))
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_UDP_IPV4];
 	}
 
@@ -1880,7 +1869,7 @@ size_t DNSCurveTCPRequestMultiple(
 	if (TCPSocketDataList.empty() || TCPSocketDataList.size() != TCPSocketSelectingList.size())
 		return EXIT_FAILURE;
 
-//Socket selecting structure setting
+//Socket selecting structure initialization
 	for (size_t Index = 0;Index < TCPSocketDataList.size();++Index)
 	{
 	//Encryption mode
@@ -1917,9 +1906,9 @@ size_t DNSCurveTCPRequestMultiple(
 	ssize_t ErrorCode = 0, RecvLen = DNSCurveSocketSelecting(IPPROTO_TCP, TCPSocketDataList, TCPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
-		if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6
+		if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in6))
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_UDP_IPV6];
-		else if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in)) //IPv4
+		else if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in))
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_UDP_IPV4];
 	}
 
@@ -1948,8 +1937,8 @@ size_t DNSCurveUDPRequest(
 	UDPSocketSelectingData.ServerType = DNSCurveSelectTargetSocket(&UDPSocketDataList.front(), &PacketTarget, &IsAlternate, &AlternateTimeoutTimes, IPPROTO_UDP);
 	if (UDPSocketSelectingData.ServerType == 0)
 	{
-		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"DNSCurve UDP socket initialization error", 0, nullptr, 0);
 		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"DNSCurve UDP socket initialization error", 0, nullptr, 0);
 
 		return EXIT_FAILURE;
 	}
@@ -1974,7 +1963,7 @@ size_t DNSCurveUDPRequest(
 		PrecomputationKey = PacketTarget->PrecomputationKey, Client_PublicKey = DNSCurveParameter.Client_PublicKey;
 	}
 
-//Socket timeout setting and UDP connecting
+//Socket attribute setting(Timeout) and UDP connecting
 	if (!SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TIMEOUT, true, &DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable) || 
 		SocketConnecting(IPPROTO_UDP, UDPSocketDataList.front().Socket, (PSOCKADDR)&UDPSocketDataList.front().SockAddr, UDPSocketDataList.front().AddrLen, nullptr, 0) == EXIT_FAILURE)
 	{
@@ -1990,7 +1979,7 @@ size_t DNSCurveUDPRequest(
 		return EXIT_FAILURE;
 	}
 
-//Socket selecting structure setting
+//Socket selecting structure initialization
 	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> UDPSocketSelectingList;
 	if (DNSCurveParameter.IsEncryption) //Encryption mode
 	{
@@ -2013,9 +2002,9 @@ size_t DNSCurveUDPRequest(
 	RecvLen = DNSCurveSocketSelecting(IPPROTO_UDP, UDPSocketDataList, UDPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
-		if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6
+		if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in6))
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_UDP_IPV6];
-		else if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in)) //IPv4
+		else if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in))
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_UDP_IPV4];
 	}
 
@@ -2059,7 +2048,7 @@ size_t DNSCurveUDPRequestMultiple(
 	if (UDPSocketDataList.empty() || UDPSocketDataList.size() != UDPSocketSelectingList.size())
 		return EXIT_FAILURE;
 
-//Socket selecting structure setting
+//Socket selecting structure initialization
 	for (size_t Index = 0;Index < UDPSocketDataList.size();++Index)
 	{
 	//Encryption mode
@@ -2096,9 +2085,9 @@ size_t DNSCurveUDPRequestMultiple(
 	ssize_t ErrorCode = 0, RecvLen = DNSCurveSocketSelecting(IPPROTO_UDP, UDPSocketDataList, UDPSocketSelectingList, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
-		if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6
+		if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in6))
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_UDP_IPV6];
-		else if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in)) //IPv4
+		else if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in))
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_UDP_IPV4];
 	}
 

@@ -124,9 +124,13 @@ bool MonitorInit(
 						{
 							LocalSocketData.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
+							{
+								SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, true, nullptr);
 								break;
-
-							GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
+							}
+							else {
+								GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
+							}
 						}
 
 						((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr = ((PSOCKADDR_IN6)&ListenAddressIter)->sin6_addr;
@@ -156,9 +160,13 @@ bool MonitorInit(
 							{
 								LocalSocketData.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
+								{
+									SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, true, nullptr);
 									break;
-
-								GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
+								}
+								else {
+									GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
+								}
 							}
 
 							((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_port = ListenPortIter;
@@ -171,6 +179,9 @@ bool MonitorInit(
 						}
 					}
 				}
+			}
+			else {
+				SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, true, nullptr);
 			}
 		}
 
@@ -194,9 +205,13 @@ bool MonitorInit(
 						{
 							LocalSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
+							{
+								SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, true, nullptr);
 								break;
-
-							GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
+							}
+							else {
+								GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
+							}
 						}
 
 						((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr = ((PSOCKADDR_IN6)&ListenAddressIter)->sin6_addr;
@@ -226,9 +241,13 @@ bool MonitorInit(
 							{
 								LocalSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
+								{
+									SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, true, nullptr);
 									break;
-
-								GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
+								}
+								else {
+									GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
+								}
 							}
 
 							((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_port = ListenPortIter;
@@ -241,6 +260,9 @@ bool MonitorInit(
 						}
 					}
 				}
+			}
+			else {
+				SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, true, nullptr);
 			}
 		}
 	}
@@ -267,9 +289,13 @@ bool MonitorInit(
 						{
 							LocalSocketData.Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
+							{
+								SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, true, nullptr);
 								break;
-
-							GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
+							}
+							else {
+								GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
+							}
 						}
 
 						((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr = ((PSOCKADDR_IN)&ListenAddressIter)->sin_addr;
@@ -299,9 +325,13 @@ bool MonitorInit(
 							{
 								LocalSocketData.Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
+								{
+									SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, true, nullptr);
 									break;
-
-								GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
+								}
+								else {
+									GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
+								}
 							}
 
 							((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_port = ListenPortIter;
@@ -314,6 +344,9 @@ bool MonitorInit(
 						}
 					}
 				}
+			}
+			else {
+				SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, true, nullptr);
 			}
 		}
 
@@ -337,9 +370,13 @@ bool MonitorInit(
 						{
 							LocalSocketData.Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
+							{
+								SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, true, nullptr);
 								break;
-
-							GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
+							}
+							else {
+								GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
+							}
 						}
 
 						((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr = ((PSOCKADDR_IN)&ListenAddressIter)->sin_addr;
@@ -369,7 +406,13 @@ bool MonitorInit(
 							{
 								LocalSocketData.Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
+								{
+									SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, true, nullptr);
 									break;
+								}
+								else {
+									GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
+								}
 
 								GlobalRunningStatus.LocalListeningSocket->push_back(LocalSocketData.Socket);
 							}
@@ -384,6 +427,9 @@ bool MonitorInit(
 						}
 					}
 				}
+			}
+			else {
+				SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, true, nullptr);
 			}
 		}
 	}
@@ -434,7 +480,7 @@ bool UDPMonitor(
 	const SOCKET_DATA LocalSocketData, 
 	bool *Result)
 {
-//Block UDP RESET message, socket timeout, reusing and non-blocking mode setting
+//Socket attribute settings
 	if (
 	#if defined(PLATFORM_WIN)
 		!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_UDP_BLOCK_RESET, true, nullptr) || 
@@ -575,16 +621,14 @@ bool TCPMonitor(
 	const SOCKET_DATA LocalSocketData, 
 	bool *Result)
 {
-//Socket timeout, reusing, TCP Fast Open and non-blocking mode setting
+//Socket attribute settings
 	if (
 	#if defined(PLATFORM_WIN)
 		!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, true, nullptr) || 
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		(LocalSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_REUSE, true, nullptr)) || 
-		#if defined(PLATFORM_LINUX)
-			(Parameter.TCP_FastOpen && !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
-		#endif
 	#endif
+		!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr) || 
 		!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
 	{
 		*Result = false;
@@ -757,7 +801,7 @@ bool TCPReceiveProcess(
 	{
 		Length = RecvLen;
 
-	//Socket selecting structure setting
+	//Socket selecting structure initialization
 		memset(&ReadFDS, 0, sizeof(ReadFDS));
 		memset(&Timeout, 0, sizeof(Timeout));
 	#if defined(PLATFORM_WIN)
@@ -854,11 +898,11 @@ void AlternateServerMonitor(
 		{
 		//Reset TimeoutTimes out of alternate time range.
 		#if defined(PLATFORM_WIN_XP)
-			if (GetTickCount() >= RangeTimer[Index])
+			if (RangeTimer[Index] <= GetTickCount())
 			{
 				RangeTimer[Index] = GetTickCount() + Parameter.AlternateTimeRange;
 		#else
-			if (GetTickCount64() >= RangeTimer[Index])
+			if (RangeTimer[Index] <= GetTickCount64())
 			{
 				RangeTimer[Index] = GetTickCount64() + Parameter.AlternateTimeRange;
 		#endif
@@ -870,9 +914,9 @@ void AlternateServerMonitor(
 			if (AlternateSwapList.IsSwap[Index])
 			{
 			#if defined(PLATFORM_WIN_XP)
-				if (GetTickCount() >= SwapTimer[Index])
+				if (SwapTimer[Index] <= GetTickCount())
 			#else
-				if (GetTickCount64() >= SwapTimer[Index])
+				if (SwapTimer[Index] <= GetTickCount64())
 			#endif
 				{
 					AlternateSwapList.IsSwap[Index] = false;
@@ -913,9 +957,9 @@ addrinfo *GetLocalAddressList(
 	addrinfo Hints;
 	memset(&Hints, 0, sizeof(Hints));
 	addrinfo *Result = nullptr;
-	if (Protocol == AF_INET6) //IPv6
+	if (Protocol == AF_INET6)
 		Hints.ai_family = AF_INET6;
-	else if (Protocol == AF_INET) //IPv4
+	else if (Protocol == AF_INET)
 		Hints.ai_family = AF_INET;
 	else 
 		return nullptr;
@@ -960,16 +1004,17 @@ bool GetBestInterfaceAddress(
 //Socket check
 	if (!SocketSetting(InterfaceSocket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 	{
-		if (Protocol == AF_INET6) //IPv6
+		SocketSetting(InterfaceSocket, SOCKET_SETTING_CLOSE, false, nullptr);
+		if (Protocol == AF_INET6)
 			GlobalRunningStatus.GatewayAvailable_IPv6 = false;
-		else if (Protocol == AF_INET) //IPv4
+		else if (Protocol == AF_INET)
 			GlobalRunningStatus.GatewayAvailable_IPv4 = false;
 
 		return false;
 	}
 
 //Check parameter.
-	if (Protocol == AF_INET6) //IPv6
+	if (Protocol == AF_INET6)
 	{
 		((PSOCKADDR_IN6)&SockAddr)->sin6_addr = ((PSOCKADDR_IN6)OriginalSockAddr)->sin6_addr;
 		((PSOCKADDR_IN6)&SockAddr)->sin6_port = ((PSOCKADDR_IN6)OriginalSockAddr)->sin6_port;
@@ -980,13 +1025,13 @@ bool GetBestInterfaceAddress(
 			getsockname(InterfaceSocket, (PSOCKADDR)&SockAddr, &AddrLen) == SOCKET_ERROR || SockAddr.ss_family != AF_INET6 || 
 			AddrLen != sizeof(sockaddr_in6) || CheckEmptyBuffer(&((PSOCKADDR_IN6)&SockAddr)->sin6_addr, sizeof(in6_addr)))
 		{
-			GlobalRunningStatus.GatewayAvailable_IPv6 = false;
 			SocketSetting(InterfaceSocket, SOCKET_SETTING_CLOSE, false, nullptr);
+			GlobalRunningStatus.GatewayAvailable_IPv6 = false;
 
 			return false;
 		}
 	}
-	else if (Protocol == AF_INET) //IPv4
+	else if (Protocol == AF_INET)
 	{
 		((PSOCKADDR_IN)&SockAddr)->sin_addr = ((PSOCKADDR_IN)OriginalSockAddr)->sin_addr;
 		((PSOCKADDR_IN)&SockAddr)->sin_port = ((PSOCKADDR_IN)OriginalSockAddr)->sin_port;
@@ -997,8 +1042,8 @@ bool GetBestInterfaceAddress(
 			getsockname(InterfaceSocket, (PSOCKADDR)&SockAddr, &AddrLen) == SOCKET_ERROR || SockAddr.ss_family != AF_INET || 
 			AddrLen != sizeof(sockaddr_in) || CheckEmptyBuffer(&((PSOCKADDR_IN)&SockAddr)->sin_addr, sizeof(in_addr)))
 		{
-			GlobalRunningStatus.GatewayAvailable_IPv4 = false;
 			SocketSetting(InterfaceSocket, SOCKET_SETTING_CLOSE, false, nullptr);
+			GlobalRunningStatus.GatewayAvailable_IPv4 = false;
 
 			return false;
 		}
@@ -1017,7 +1062,6 @@ bool GetBestInterfaceAddress(
 void GetGatewayInformation(
 	const uint16_t Protocol)
 {
-//IPv6
 	if (Protocol == AF_INET6)
 	{
 		if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0 && Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family == 0 && 
@@ -1101,8 +1145,7 @@ void GetGatewayInformation(
 
 		GlobalRunningStatus.GatewayAvailable_IPv6 = true;
 	}
-//IPv4
-	else if (Protocol == AF_INET) //IPv4
+	else if (Protocol == AF_INET)
 	{
 		if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0 && Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family == 0 && 
 			Parameter.Target_Server_Local_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Alternate_Local_IPv4.Storage.ss_family == 0
@@ -1604,13 +1647,13 @@ void NetworkInformationMonitor(
 	//Close all marking sockets.
 		SocketMarkingMutex.lock();
 	#if defined(PLATFORM_WIN_XP)
-		while (!SocketMarkingList.empty() && SocketMarkingList.back().second <= GetTickCount())
+		while (!SocketMarkingList.empty() && SocketMarkingList.front().second <= GetTickCount())
 	#else
-		while (!SocketMarkingList.empty() && SocketMarkingList.back().second <= GetTickCount64())
+		while (!SocketMarkingList.empty() && SocketMarkingList.front().second <= GetTickCount64())
 	#endif
 		{
-			SocketSetting(SocketMarkingList.back().first, SOCKET_SETTING_CLOSE, false, nullptr);
-			SocketMarkingList.pop();
+			SocketSetting(SocketMarkingList.front().first, SOCKET_SETTING_CLOSE, false, nullptr);
+			SocketMarkingList.pop_front();
 		}
 		SocketMarkingMutex.unlock();
 

@@ -388,7 +388,7 @@ size_t CheckHostsProcess(
 		return EXIT_FAILURE;
 	}
 
-//Response setting
+//Response initilization
 	memset(Result, 0, ResultSize);
 	memcpy_s(Result, ResultSize, Packet->Buffer, Packet->Length);
 	DNS_Header = (pdns_hdr)Result;
@@ -547,7 +547,7 @@ size_t CheckHostsProcess(
 			if (HostsTableIter.IsStringMatching)
 			{
 				if (HostsTableIter.PatternOrDomainString == "#" || //Dnsmasq "#" matches any domain.
-					StringReverseCompare(HostsTableIter.PatternOrDomainString, ReverseDomain))
+					CompareStringReversed(HostsTableIter.PatternOrDomainString, ReverseDomain))
 						IsMatch = true;
 			}
 		//Regex mode
@@ -720,9 +720,9 @@ StopLoop_NormalHosts:
 	if (Parameter.CacheType == CACHE_TYPE_TIMER) //Delete DNS cache.
 	{
 	#if defined(PLATFORM_WIN_XP)
-		while (!DNSCacheList.empty() && GetTickCount() >= DNSCacheList.back().ClearCacheTime)
+		while (!DNSCacheList.empty() && DNSCacheList.back().ClearCacheTime <= GetTickCount())
 	#else
-		while (!DNSCacheList.empty() && GetTickCount64() >= DNSCacheList.back().ClearCacheTime)
+		while (!DNSCacheList.empty() && DNSCacheList.back().ClearCacheTime <= GetTickCount64())
 	#endif
 			DNSCacheList.pop_back();
 	}
@@ -750,7 +750,7 @@ StopLoop_NormalHosts:
 			if (HostsTableIter.IsStringMatching)
 			{
 				if ((HostsTableIter.PatternOrDomainString.empty() && Domain.find(ASCII_PERIOD) == std::string::npos) || //Dnsmasq unqualified names only
-					StringReverseCompare(HostsTableIter.PatternOrDomainString, ReverseDomain))
+					CompareStringReversed(HostsTableIter.PatternOrDomainString, ReverseDomain))
 						IsMatch = true;
 			}
 		//Regex mode
@@ -768,7 +768,8 @@ StopLoop_NormalHosts:
 					return DataLength;
 				else if (DataLength == EXIT_FAILURE)
 					Packet->IsLocal = false;
-				else //IsLocal flag setting
+			//IsLocal flag setting
+				else 
 					Packet->IsLocal = true;
 
 			//Mark Local server target and stop loop.
@@ -1342,17 +1343,17 @@ bool MarkDomainCache(
 
 	//Delete old cache.
 		std::lock_guard<std::mutex> DNSCacheListMutex(DNSCacheListLock);
-		if (Parameter.CacheType == CACHE_TYPE_QUEUE)
+		if (Parameter.CacheType == CACHE_TYPE_TIMER)
 		{
-			while (DNSCacheList.size() > Parameter.CacheParameter)
+		#if defined(PLATFORM_WIN_XP)
+			while (!DNSCacheList.empty() && DNSCacheList.back().ClearCacheTime <= GetTickCount())
+		#else
+			while (!DNSCacheList.empty() && DNSCacheList.back().ClearCacheTime <= GetTickCount64())
+		#endif
 				DNSCacheList.pop_back();
 		}
-		else { //CACHE_TYPE_TIMER
-		#if defined(PLATFORM_WIN_XP)
-			while (!DNSCacheList.empty() && GetTickCount() >= DNSCacheList.back().ClearCacheTime)
-		#else
-			while (!DNSCacheList.empty() && GetTickCount64() >= DNSCacheList.back().ClearCacheTime)
-		#endif
+		else { //CACHE_TYPE_QUEUE
+			while (DNSCacheList.size() > Parameter.CacheParameter)
 				DNSCacheList.pop_back();
 		}
 

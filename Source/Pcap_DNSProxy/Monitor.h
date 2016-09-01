@@ -26,9 +26,8 @@ extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 #if defined(ENABLE_LIBSODIUM)
 extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 #endif
-extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM];
-extern std::queue<SOCKET_MARKING_DATA> SocketMarkingList;
-extern std::mutex SocketMarkingLock;
+extern std::deque<SOCKET_MARKING_DATA> SocketMarkingList;
+extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM], SocketMarkingLock;
 
 //Functions
 bool UDPMonitor(

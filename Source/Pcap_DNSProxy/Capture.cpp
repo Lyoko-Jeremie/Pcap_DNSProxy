@@ -239,7 +239,6 @@ void CaptureFilterRulesInit(
 	RepeatingItem = false;
 	for (const auto &DNSServerDataIter:AddrList)
 	{
-	//IPv6
 		if (DNSServerDataIter->AddressData.Storage.ss_family == AF_INET6)
 		{
 			if (RepeatingItem)
@@ -258,7 +257,6 @@ void CaptureFilterRulesInit(
 			AddrString.append((const char *)Addr);
 			memset(Addr, 0, ADDR_STRING_MAXSIZE);
 		}
-	//IPv4
 		else if (DNSServerDataIter->AddressData.Storage.ss_family == AF_INET)
 		{
 			if (RepeatingItem)
@@ -601,14 +599,14 @@ bool CaptureNetworkLayer(
 			return true;
 		}
 
-	//TCP Protocol
+	//TCP
 		if (Parameter.HeaderCheck_TCP && IPv6_Header->NextHeader == IPPROTO_TCP && ntohs(IPv6_Header->PayloadLength) >= sizeof(tcp_hdr))
 		{
 		//Validate TCP checksum.
 			if (GetChecksum_TCP_UDP(Buffer, ntohs(IPv6_Header->PayloadLength), AF_INET6, IPPROTO_TCP) != CHECKSUM_SUCCESS)
 				return false;
 
-		//TCP check
+		//Packet check
 			if (CaptureCheck_TCP(Buffer + sizeof(ipv6_hdr)))
 				PacketSource->HopLimitData_Mark.HopLimit = IPv6_Header->HopLimit;
 
@@ -732,14 +730,14 @@ bool CaptureNetworkLayer(
 			return true;
 		}
 
-	//TCP Protocol
+	//TCP
 		if (Parameter.HeaderCheck_TCP && IPv4_Header->Protocol == IPPROTO_TCP && ntohs(IPv4_Header->Length) >= IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(tcp_hdr))
 		{
 		//Validate TCP checksum.
 			if (GetChecksum_TCP_UDP(Buffer, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES, AF_INET, IPPROTO_TCP) != CHECKSUM_SUCCESS)
 				return false;
 
-		//TCP check
+		//Packet check
 			if (CaptureCheck_TCP(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES))
 				PacketSource->HopLimitData_Mark.TTL = IPv4_Header->TTL;
 
@@ -950,18 +948,18 @@ ClearOutputPacketListData:
 	//Mark timeout.
 		if (OutputPacketList.front().ClearPortTime > 0)
 		{
-			if (OutputPacketList.front().Protocol_Network == AF_INET6) //IPv6
+			if (OutputPacketList.front().Protocol_Network == AF_INET6)
 			{
-				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
+				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP)
 					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV6];
-				else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP) //UDP
+				else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP)
 					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV6];
 			}
-			else if (OutputPacketList.front().Protocol_Network == AF_INET) //IPv4
+			else if (OutputPacketList.front().Protocol_Network == AF_INET)
 			{
-				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
+				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP)
 					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV4];
-				else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP) //UDP
+				else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP)
 					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV4];
 			}
 		}
@@ -974,18 +972,18 @@ ClearOutputPacketListData:
 	//Mark timeout.
 		if (OutputPacketList.front().ClearPortTime > 0)
 		{
-			if (OutputPacketList.front().Protocol_Network == AF_INET6) //IPv6
+			if (OutputPacketList.front().Protocol_Network == AF_INET6)
 			{
-				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
+				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP)
 					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV6];
-				else if(OutputPacketList.front().Protocol_Transport == IPPROTO_UDP) //UDP
+				else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP)
 					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV6];
 			}
-			else if (OutputPacketList.front().Protocol_Network == AF_INET) //IPv4
+			else if (OutputPacketList.front().Protocol_Network == AF_INET)
 			{
-				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP) //TCP
+				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP)
 					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV4];
-				else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP) //UDP
+				else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP)
 					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV4];
 			}
 		}

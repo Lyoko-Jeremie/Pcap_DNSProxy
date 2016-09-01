@@ -46,30 +46,10 @@ bool ReadIPFilterData(
 	if (!ReadMultipleLineComments(Data, IsLabelComments) || Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
 		return true;
 
-/* Old version(2016-08-27)
-//[Base] block
-	if (Data.find("[Base]") == 0 || Data.find("[base]") == 0 || 
-		Data.find("Version = ") == 0 || Data.find("version = ") == 0 || 
-		Data.find("Default TTL = ") == 0 || Data.find("default ttl = ") == 0)
-			return true;
-*/
 //[Local Routing] block(A part)
 	if (LabelType == 0 && (Parameter.Target_Server_Local_IPv4.Storage.ss_family > 0 || Parameter.Target_Server_Local_IPv6.Storage.ss_family > 0) && 
-	#if defined(PLATFORM_WIN) //Case-insensitive in Windows
-		((FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") != std::wstring::npos && 
-		FileList_IPFilter.at(FileIndex).FileName.length() > wcslen(L"chnrouting.txt") && 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") + wcslen(L"chnrouting.txt") == FileList_IPFilter.at(FileIndex).FileName.length()) || 
-		(FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") != std::wstring::npos && 
-		FileList_IPFilter.at(FileIndex).FileName.length() > wcslen(L"chnroute.txt") && 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") + wcslen(L"chnroute.txt") == FileList_IPFilter.at(FileIndex).FileName.length())))
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		((FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") != std::wstring::npos && 
-		FileList_IPFilter.at(FileIndex).FileName.length() > wcslen(L"chnrouting.txt") && 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnrouting.txt") + wcslen(L"chnrouting.txt") == FileList_IPFilter.at(FileIndex).FileName.length()) || 
-		(FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") != std::wstring::npos && 
-		FileList_IPFilter.at(FileIndex).FileName.length() > wcslen(L"chnroute.txt") && 
-		FileList_IPFilter.at(FileIndex).FileName.rfind(L"chnroute.txt") + wcslen(L"chnroute.txt") == FileList_IPFilter.at(FileIndex).FileName.length())))
-	#endif
+		(CompareStringReversed(L"chnrouting.txt", FileList_IPFilter.at(FileIndex).FileName.c_str(), true) || 
+		CompareStringReversed(L"chnroute.txt", FileList_IPFilter.at(FileIndex).FileName.c_str(), true)))
 			LabelType = LABEL_IPFILTER_LOCAL_ROUTING;
 
 //[IPFilter] block

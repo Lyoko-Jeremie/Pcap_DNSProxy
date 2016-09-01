@@ -106,12 +106,9 @@
 #define UNICODE_IDEOGRAPHIC_SPACE                     0x3000                      //Ideographic Space in CJK
 
 //Version definitions
-/* Old version(2016-08-21)
-#define CONFIG_VERSION_POINT_THREE                    0.3
-*/
 #define CONFIG_VERSION                                0.4                                   //Current configuration file version
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
-#define FULL_VERSION                                  L"0.4.7.1"
+#define FULL_VERSION                                  L"0.4.7.2"
 
 //Size and length definitions(Number)
 #define ADDR_STRING_MAXSIZE                           64U                         //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -162,7 +159,7 @@
 #define UINT8_MAX_STRING_LENGTH                       4U                          //Maximum number of 8 bits is 255, its length is 3.
 
 //Size and length definitions(Data)
-#define DNS_PACKET_MINSIZE                            (sizeof(dns_hdr) + 4U + sizeof(dns_qry))                                          //Minimum DNS packet size(DNS Header + Minimum Domain + DNS Query)
+#define DNS_PACKET_MINSIZE                            (sizeof(dns_hdr) + 1U + sizeof(dns_qry))                                          //Minimum DNS packet size(DNS Header + Minimum Domain<ROOT> + DNS Query)
 #define EDNS_ADDITIONAL_MAXSIZE                       (sizeof(dns_record_opt) * 2U + sizeof(edns_client_subnet) + sizeof(in6_addr))     //Maximum of EDNS Additional Record Resources size
 #define HTTP_RESPONSE_MINSIZE                         (strlen("HTTP/") + HTTP_VERSION_LENGTH + strlen(" ") + HTTP_STATUS_CODE_LENGTH)   //Minimum size of HTTP server response
 #define DNSCRYPT_BUFFER_RESERVE_LEN                   (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES - crypto_box_BOXZEROBYTES)
@@ -601,16 +598,23 @@ public:
 	size_t                               ThreadPoolResetTime;
 	size_t                               QueueResetTime;
 	size_t                               EDNSPayloadSize;
+#if defined(PLATFORM_WIN)
+	DWORD                                PacketHopLimits_IPv4_Begin;
+	DWORD                                PacketHopLimits_IPv4_End;
+	DWORD                                PacketHopLimits_IPv6_Begin;
+	DWORD                                PacketHopLimits_IPv6_End;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	int                                  PacketHopLimits_IPv4_Begin;
 	int                                  PacketHopLimits_IPv4_End;
 	int                                  PacketHopLimits_IPv6_Begin;
 	int                                  PacketHopLimits_IPv6_End;
+#endif
 #if defined(ENABLE_PCAP)
 	uint8_t                              HopLimitFluctuation;
 #endif
 #if defined(PLATFORM_WIN)
-	int                                  SocketTimeout_Reliable;
-	int                                  SocketTimeout_Unreliable;
+	DWORD                                SocketTimeout_Reliable;
+	DWORD                                SocketTimeout_Unreliable;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	timeval                              SocketTimeout_Reliable;
 	timeval                              SocketTimeout_Unreliable;
@@ -621,9 +625,7 @@ public:
 	size_t                               AlternateResetTime;
 	size_t                               MultipleRequestTimes;
 //[Switches] block
-#if defined(PLATFORM_LINUX)
 	bool                                 TCP_FastOpen;
-#endif
 	bool                                 DomainCaseConversion;
 	bool                                 CompressionPointerMutation;
 	bool                                 CPM_PointerToHeader;
@@ -673,8 +675,8 @@ public:
 	size_t                               SOCKS_Protocol_Network;
 	size_t                               SOCKS_Protocol_Transport;
 #if defined(PLATFORM_WIN)
-	int                                  SOCKS_SocketTimeout_Reliable;
-	int                                  SOCKS_SocketTimeout_Unreliable;
+	DWORD                                SOCKS_SocketTimeout_Reliable;
+	DWORD                                SOCKS_SocketTimeout_Unreliable;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	timeval                              SOCKS_SocketTimeout_Reliable;
 	timeval                              SOCKS_SocketTimeout_Unreliable;
@@ -691,7 +693,7 @@ public:
 	bool                                 HTTP_Proxy;
 	size_t                               HTTP_Protocol;
 #if defined(PLATFORM_WIN)
-	int                                  HTTP_SocketTimeout;
+	DWORD                                HTTP_SocketTimeout;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	timeval                              HTTP_SocketTimeout;
 #endif
@@ -774,7 +776,7 @@ public:
 		void);
 }GLOBAL_STATUS;
 
-//IPv4/IPv6 addresses ranges class
+//IPv4/IPv6 address ranges class
 typedef class AddressRangeTable
 {
 public:
@@ -1015,8 +1017,8 @@ public:
 	size_t                               DNSCurveProtocol_Network;
 	size_t                               DNSCurveProtocol_Transport;
 #if defined(PLATFORM_WIN)
-	int                                  DNSCurve_SocketTimeout_Reliable;
-	int                                  DNSCurve_SocketTimeout_Unreliable;
+	DWORD                                DNSCurve_SocketTimeout_Reliable;
+	DWORD                                DNSCurve_SocketTimeout_Unreliable;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	timeval                              DNSCurve_SocketTimeout_Reliable;
 	timeval                              DNSCurve_SocketTimeout_Unreliable;
@@ -1076,11 +1078,20 @@ void CaseConvert(
 void CaseConvert(
 	const bool IsLowerToUpper, 
 	std::string &Buffer);
+void CaseConvert(
+	const bool IsLowerToUpper,
+	std::wstring &Buffer);
 void MakeStringReversed(
 	std::string &String);
-bool StringReverseCompare(
-	const std::string &DomainString, 
-	std::string ReverseDomain);
+void MakeStringReversed(
+	std::wstring &String);
+bool CompareStringReversed(
+	const std::string &RuleItem, 
+	const std::string &TestItem);
+bool CompareStringReversed(
+	const wchar_t *RuleItem, 
+	const wchar_t *TestItem, 
+	const bool IsCaseConvert);
 bool SortCompare_IPFilter(
 	const DIFFERNET_FILE_SET_IPFILTER &Begin, 
 	const DIFFERNET_FILE_SET_IPFILTER &End);
