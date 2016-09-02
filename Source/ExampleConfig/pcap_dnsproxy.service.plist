@@ -17,5 +17,10 @@
 			<key>SuccessfulExit</key>
 			<false/>
 		</dict>
+		<key>SoftResourceLimits</key>
+		<dict>
+			<key>NumberOfFiles</key>
+			<integer>10240</integer>
+		</dict>
 	</dict>
 </plist>
