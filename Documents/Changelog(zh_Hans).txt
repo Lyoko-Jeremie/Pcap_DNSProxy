@@ -1,27 +1,30 @@
-﻿Pcap_DNSProxy 0.4.7.1-0.4.7.2 更新日志(2016-09-01)：
+﻿Pcap_DNSProxy 0.4.7.1-0.4.7.3 更新日志(2016-09-07)：
 
 * 添加对 Dnsmasq 的 Address 和 Server 兼容格式配置文件的支持
   * 支持使用 Address 和 Server 兼容格式的非正则表达式模式对域名查询进行字符串匹配
   * 支持使用 Server 兼容格式指定特定境内 DNS 目标服务器以及指定目标服务器请求的端口
   * 附带的 WhiteList.txt 切换到 Dnsmasq Server 兼容格式以降低启用境内白名单功能时的资源占用
+* 添加一种时间 + 队列双重检测类型的 DNS 缓存策略
 * 添加 CMake 系统并行多线程编译支持 (Linux/Mac)
 * 添加服务器端 TCP Fast Open 属性的实验性支持 (Windows)
 * 修复套接字不正确的关闭有可能造成的系统资源耗尽问题 [AVC A]
 * 修复 IPv6 协议套接字参数错误的问题 [gaoyan1234]
+* 修复在不启用任何 Local 选项同时附带白名单列表时报错的问题
+* 修复在程序启动后修改配置文件重新读取时报错的问题
 * 修复 dig 请求权威根域名服务器的问题
 * 修复 CR + LF 换行格式下行数统计错误的问题
 * 修复套接字 TCP Fast Open 属性不生效的问题 (Linux)
-* 文件校验码(0.4.7.2)
+* 文件校验码(0.4.7.3)
   * SHA-1:
-    * Windows/Pcap_DNSProxy.exe -> 407693A27A0CFC01E256E1FE97963218F1A5AE4D
-    * Windows/Pcap_DNSProxy_x86.exe -> 2BD6F3B506FF8F9B00E5FD5539D85A53362F5FE8
-    * Windows/Pcap_DNSProxy_XP.exe -> 46F10EE4F921591CAA5E737DA5872567F7641884
-    * Mac/Pcap_DNSProxy -> 17416777FDDABC87F4CF6116C25B0CC7CC4C0C27
+    * Windows/Pcap_DNSProxy.exe -> BDA1CDD1F017DC1B6C3B506A5805D39D86F7B256
+    * Windows/Pcap_DNSProxy_x86.exe -> F9FD048788A351724311B6E856DC1644C723537B
+    * Windows/Pcap_DNSProxy_XP.exe -> F4892B78CB8486011AC4A596FF3ED30D278C04D2
+    * Mac/Pcap_DNSProxy -> 888B87F000C1799119158969FF20937902DFCC62
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe -> BE38D5059AEBB14556894CC38B0A14E07DB271BCE11E4A33706CCAB0C4BEAFF9
-    * Windows/Pcap_DNSProxy_x86.exe -> A08F40721D1D89BC10E52F1BEC4B5A5779E9C360E4AAF468D7808D7E071C9840
-    * Windows/Pcap_DNSProxy_XP.exe -> 567257FDEC91CC782ABE15FCBEBD229E1314990FB9BCF4D21938FAC5DA314D45
-    * Mac/Pcap_DNSProxy -> 6175674D9252C3B8414C15EEC4F697DB83CF8577746BEE3250CCCEA86C4AC1A7
+    * Windows/Pcap_DNSProxy.exe -> 8CBCDBF6C72801D24D950056C362567CD9B832024AD074736A2AC24536C1BEDF
+    * Windows/Pcap_DNSProxy_x86.exe -> D880C215115A8265E1D58B52451E15D3FCF62D81E3935F2C96544D1B94E618B2
+    * Windows/Pcap_DNSProxy_XP.exe -> AD766A1157C5C2F4AE9A901E17D14872B73E50271F5715FC9C73D8546906E052
+    * Mac/Pcap_DNSProxy -> E9B23E0CBA4DA40297F8FDA9CCB8DF202385930DCDB64D4F065A757CFF8392D5
 
 
 -------------------------------------------------------------------------------

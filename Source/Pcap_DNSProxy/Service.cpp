@@ -60,15 +60,15 @@ size_t WINAPI ServiceMain(
 
 //Service initialization
 	ServiceStatusHandle = RegisterServiceCtrlHandlerW(SYSTEM_SERVICE_NAME, (LPHANDLER_FUNCTION)ServiceControl);
-	if (!ServiceStatusHandle || !UpdateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0, 1U, UPDATE_SERVICE_TIME))
+	if (!ServiceStatusHandle || UpdateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0, 1U, UPDATE_SERVICE_TIME) == FALSE)
 		return FALSE;
 
 	ServiceEvent = CreateEventW(0, TRUE, FALSE, 0);
-	if (!ServiceEvent || !UpdateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0, 2U, STANDARD_TIMEOUT) || !ExecuteService())
+	if (!ServiceEvent || UpdateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0, 2U, STANDARD_TIMEOUT) == FALSE || ExecuteService() == FALSE)
 		return FALSE;
 
 	ServiceCurrentStatus = SERVICE_RUNNING;
-	if (!UpdateServiceStatus(SERVICE_RUNNING, NO_ERROR, 0, 0, 0))
+	if (UpdateServiceStatus(SERVICE_RUNNING, NO_ERROR, 0, 0, 0) == FALSE)
 		return FALSE;
 
 	WaitForSingleObject(ServiceEvent, INFINITE);
@@ -128,7 +128,7 @@ DWORD WINAPI ServiceProc(
 	PVOID lpParameter)
 {
 //Start main process.
-	if (!IsServiceRunning || !MonitorInit())
+	if (IsServiceRunning == FALSE || !MonitorInit())
 	{
 		TerminateService();
 		return FALSE;
@@ -165,7 +165,7 @@ BOOL WINAPI UpdateServiceStatus(
 	ServiceStatus.dwCheckPoint = dwCheckPoint;
 	ServiceStatus.dwWaitHint = dwWaitHint;
 
-	if (!SetServiceStatus(ServiceStatusHandle, &ServiceStatus))
+	if (SetServiceStatus(ServiceStatusHandle, &ServiceStatus) == 0)
 	{
 		TerminateService();
 		return FALSE;
@@ -199,11 +199,18 @@ bool FlushDNSMailSlotMonitor(
 	PSID SID_Value = nullptr;
 
 //System security setting
-	InitializeSecurityDescriptor(&SecurityDescriptor, SECURITY_DESCRIPTOR_REVISION);
-	InitializeAcl((PACL)ACL_Buffer.get(), FILE_BUFFER_SIZE, ACL_REVISION);
-	ConvertStringSidToSidW(SID_ADMINISTRATORS_GROUP, &SID_Value);
-	AddAccessAllowedAce((PACL)ACL_Buffer.get(), ACL_REVISION, GENERIC_ALL, SID_Value);
-	SetSecurityDescriptorDacl(&SecurityDescriptor, true, (PACL)ACL_Buffer.get(), false);
+	if (InitializeSecurityDescriptor(&SecurityDescriptor, SECURITY_DESCRIPTOR_REVISION) == 0 || 
+		InitializeAcl((PACL)ACL_Buffer.get(), FILE_BUFFER_SIZE, ACL_REVISION) == 0 || 
+		ConvertStringSidToSidW(SID_ADMINISTRATORS_GROUP, &SID_Value) == 0 || 
+		AddAccessAllowedAce((PACL)ACL_Buffer.get(), ACL_REVISION, GENERIC_ALL, SID_Value) == 0 || 
+		SetSecurityDescriptorDacl(&SecurityDescriptor, true, (PACL)ACL_Buffer.get(), false) == 0)
+	{
+		if (SID_Value != nullptr)
+			LocalFree(SID_Value);
+
+		PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create mailslot error", GetLastError(), nullptr, 0);
+		return false;
+	}
 	SecurityAttributes.lpSecurityDescriptor = &SecurityDescriptor;
 	SecurityAttributes.bInheritHandle = true;
 
@@ -211,7 +218,8 @@ bool FlushDNSMailSlotMonitor(
 	HANDLE hSlot = CreateMailslotW(MAILSLOT_NAME, FILE_BUFFER_SIZE - 1U, MAILSLOT_WAIT_FOREVER, &SecurityAttributes);
 	if (hSlot == INVALID_HANDLE_VALUE)
 	{
-		LocalFree(SID_Value);
+		if (SID_Value != nullptr)
+			LocalFree(SID_Value);
 
 		PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create mailslot error", GetLastError(), nullptr, 0);
 		return false;
@@ -297,7 +305,7 @@ bool WINAPI FlushDNSMailSlotSender(
 
 //Write into mailslot.
 	DWORD cbWritten = 0;
-	if (!WriteFile(hFile, Message.c_str(), (DWORD)(sizeof(wchar_t) * Message.length() + 1U), &cbWritten, nullptr))
+	if (WriteFile(hFile, Message.c_str(), (DWORD)(sizeof(wchar_t) * Message.length() + 1U), &cbWritten, nullptr) == 0)
 	{
 		PrintToScreen(true, L"MailSlot write messages error, error code is %lu.\n", GetLastError());
 		CloseHandle(hFile);
@@ -428,7 +436,7 @@ bool FlushDNSFIFOSender(
 void FlushDNSCache(
 	const uint8_t *Domain)
 {
-//Flush DNS cache in program.
+//Flush DNS cache in process.
 	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
 	if (Domain == nullptr) //Flush all DNS cache.
 	{
@@ -447,21 +455,10 @@ void FlushDNSCache(
 	DNSCacheListMutex.unlock();
 
 //Flush system DNS interval time check
-#if defined(PLATFORM_WIN_XP)
-	if (LastFlushDNSTime > 0 && LastFlushDNSTime < GetTickCount() + FLUSH_DNS_CACHE_INTERVAL_TIME * SECOND_TO_MILLISECOND)
-#else
-	if (LastFlushDNSTime > 0 && LastFlushDNSTime < GetTickCount64() + FLUSH_DNS_CACHE_INTERVAL_TIME * SECOND_TO_MILLISECOND)
-#endif
-	{
+	if (LastFlushDNSTime > 0 && LastFlushDNSTime < GetCurrentSystemTime() + FLUSH_DNS_CACHE_INTERVAL_TIME * SECOND_TO_MILLISECOND)
 		return;
-	}
-	else {
-	#if defined(PLATFORM_WIN_XP)
-		LastFlushDNSTime = GetTickCount();
-	#else
-		LastFlushDNSTime = GetTickCount64();
-	#endif
-	}
+	else 
+		LastFlushDNSTime = GetCurrentSystemTime();
 
 //Flush DNS cache in system.
 	std::lock_guard<std::mutex> ScreenMutex(ScreenLock);

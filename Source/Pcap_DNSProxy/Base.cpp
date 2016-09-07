@@ -37,7 +37,7 @@ bool CheckEmptyBuffer(
 	//Scan all data.
 		for (size_t Index = 0;Index < Length;++Index)
 		{
-			if (((uint8_t *)Buffer)[Index] != 0)
+			if (*(((uint8_t *)Buffer) + Index) != 0)
 				return false;
 		}
 	}
@@ -45,6 +45,7 @@ bool CheckEmptyBuffer(
 	return true;
 }
 
+/* Old version(2016-09-06)
 //Convert host values to network byte order with 16 bits(Force)
 uint16_t hton16_Force(
 	const uint16_t Value)
@@ -61,6 +62,7 @@ uint16_t ntoh16_Force(
 }
 */
 
+/* Old version(2016-09-06)
 //Convert host values to network byte order with 32 bits(Force)
 uint32_t hton32_Force(
 	const uint32_t Value)
@@ -79,6 +81,7 @@ uint32_t ntoh32_Force(
 }
 */
 
+/* Old version(2016-09-06)
 //Convert host values to network byte order with 64 bits
 uint64_t hton64(
 	const uint64_t Value)

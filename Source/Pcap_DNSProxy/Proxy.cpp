@@ -701,7 +701,7 @@ size_t SOCKSTCPRequest(
 			return EXIT_FAILURE;
 
 	//Mark DNS cache.
-		if (Parameter.CacheType > 0)
+		if (Parameter.CacheType > CACHE_TYPE_NONE)
 			MarkDomainCache(OriginalRecv, RecvLen);
 
 		return RecvLen;
@@ -1009,7 +1009,7 @@ size_t SOCKSUDPRequest(
 				return EXIT_FAILURE;
 
 		//Mark DNS cache.
-			if (Parameter.CacheType > 0)
+			if (Parameter.CacheType > CACHE_TYPE_NONE)
 				MarkDomainCache(OriginalRecv, RecvLen);
 
 			return RecvLen;
@@ -1135,7 +1135,7 @@ size_t HTTPRequest(
 			return EXIT_FAILURE;
 
 	//Mark DNS cache.
-		if (Parameter.CacheType > 0)
+		if (Parameter.CacheType > CACHE_TYPE_NONE)
 			MarkDomainCache(OriginalRecv, RecvLen);
 
 		return RecvLen;

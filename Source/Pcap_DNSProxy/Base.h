@@ -108,7 +108,7 @@
 //Version definitions
 #define CONFIG_VERSION                                0.4                                   //Current configuration file version
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
-#define FULL_VERSION                                  L"0.4.7.2"
+#define FULL_VERSION                                  L"0.4.7.3"
 
 //Size and length definitions(Number)
 #define ADDR_STRING_MAXSIZE                           64U                         //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -133,7 +133,7 @@
 #define DOMAIN_MINSIZE                                2U                          //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
 #define DOMAIN_RAMDOM_MINSIZE                         6U                          //Minimum size of ramdom domain request
 #define FILE_BUFFER_SIZE                              4096U                       //Maximum size of file buffer(4KB/4096 bytes)
-#define HTTP_VERSION_LENGTH                           2U                          //HTTP version size
+#define HTTP_VERSION_LENGTH                           2U                          //HTTP version length
 #define HTTP_STATUS_CODE_LENGTH                       3U                          //HTTP status code length
 #define ICMP_PADDING_MAXSIZE                          1484U                       //Length of ICMP padding data must between 18 bytes and 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
 #if defined(PLATFORM_LINUX)
@@ -202,14 +202,14 @@
 	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT             2000U                   //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds/2000ms)
 	#define DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT         6000U                   //Default timeout of SOCKS reliable sockets(Such as TCP, 6 seconds/6000ms)
 	#define DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT       3000U                   //Default timeout of SOCKS unreliable sockets(Such as UDP, 3 seconds/3000ms)
-	#define DEFAULT_HTTP_SOCKET_TIMEOUT                   3000U                   //Default timeout of HTTP sockets(3 seconds/3000ms)
+	#define DEFAULT_HTTP_SOCKET_TIMEOUT                   3000U                   //Default timeout of HTTP sockets, 3000 ms(3 seconds)
 	#define UPDATE_SERVICE_TIME                           3000U                   //Update service timeout, 3000 ms(3 seconds)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT               3U                      //Default timeout of reliable sockets(Such as TCP, 3 seconds)
 	#define DEFAULT_UNRELIABLE_SOCKET_TIMEOUT             2U                      //Default timeout of unreliable sockets(Such as ICMP/ICMPv6/UDP, 2 seconds)
 	#define DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT         6U                      //Default timeout of SOCKS reliable sockets(Such as TCP, 6 seconds)
 	#define DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT       3U                      //Default timeout of SOCKS unreliable sockets(Such as UDP, 3 seconds)
-	#define DEFAULT_HTTP_SOCKET_TIMEOUT                   3U                      //Default timeout of HTTP sockets(3 seconds)
+	#define DEFAULT_HTTP_SOCKET_TIMEOUT                   3U                      //Default timeout of HTTP sockets, 3 seconds)
 #endif
 #if defined(ENABLE_LIBSODIUM)
 	#define DEFAULT_DNSCURVE_RECHECK_TIME                 1800U                               //Default DNSCurve keys recheck time, 1800 seconds
@@ -219,7 +219,7 @@
 #endif
 //#define LOOP_INTERVAL_TIME_MONITOR                    10000U                      //Loop interval time(Monitor mode), 10000 ms(10 seconds)
 //#define LOOP_INTERVAL_TIME_NO_DELAY                   10U                         //Loop interval time(No delay mode), 10 ms
-#define LOOP_MAX_TIMES                                16U                         //Maximum of loop times, 8 times
+#define LOOP_MAX_TIMES                                16U                         //Maximum of loop times, 16 times
 #define MICROSECOND_TO_MILLISECOND                    1000U                       //1000 microseconds(1 millisecond)
 #define SECOND_TO_MILLISECOND                         1000U                       //1000 milliseconds(1 second)
 #define SENDING_INTERVAL_TIME                         5000U                       //Time between every sending, 5000 ms(5 seconds)
@@ -343,6 +343,7 @@
 #define CACHE_TYPE_NONE                               0
 #define CACHE_TYPE_TIMER                              1U
 #define CACHE_TYPE_QUEUE                              2U
+#define CACHE_TYPE_BOTH                               3U
 #define CPM_POINTER_TO_HEADER                         0
 #define CPM_POINTER_TO_RR                             1U
 #define CPM_POINTER_TO_ADDITIONAL                     2U
@@ -407,15 +408,26 @@
 
 //////////////////////////////////////////////////
 // Function definitions(Part 2)
+#define hton16_Force(Value)   ((uint16_t)(((uint8_t *)&Value)[0] << (sizeof(uint8_t) * BYTES_TO_BITS) | ((uint8_t *)&Value)[1U]))
 #define ntoh16_Force          hton16_Force
+#define hton32_Force(Value)   ((uint32_t)(((uint8_t *)&Value)[0] << ((sizeof(uint16_t) + sizeof(uint8_t)) * BYTES_TO_BITS) | ((uint8_t *)&Value)[1U] << (sizeof(uint16_t) * BYTES_TO_BITS) | ((uint8_t *)&Value)[2U] << (sizeof(uint8_t) * BYTES_TO_BITS) | ((uint8_t *)&Value)[3U]))
 #define ntoh32_Force          hton32_Force
+#if BYTE_ORDER == LITTLE_ENDIAN
+	#define hton64(Value)         ((uint64_t)((((uint64_t)htonl((int32_t)((Value << (sizeof(uint32_t) * BYTES_TO_BITS)) >> (sizeof(uint32_t) * BYTES_TO_BITS)))) << (sizeof(uint32_t) * BYTES_TO_BITS)) | (uint32_t)htonl((int32_t)(Value >> (sizeof(uint32_t) * BYTES_TO_BITS)))))
+#else //BIG_ENDIAN
+	#define hton64(Value)         Value
+#endif
 #define ntoh64                hton64
 #if defined(PLATFORM_WIN)
-	#define Sleep(Millisecond)    Sleep((DWORD)(Millisecond))
+	#if defined(PLATFORM_WIN_XP)
+		#define GetCurrentSystemTime   GetTickCount
+	#else
+		#define GetCurrentSystemTime   GetTickCount64
+	#endif
+	#define Sleep(Millisecond)     Sleep((DWORD)(Millisecond))
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	#define GetTickCount64        GetCurrentSystemTime
-	#define Sleep(Millisecond)    usleep((useconds_t)((Millisecond) * MICROSECOND_TO_MILLISECOND))
-	#define usleep(Millisecond)   usleep((useconds_t)(Millisecond))
+	#define Sleep(Millisecond)     usleep((useconds_t)((Millisecond) * MICROSECOND_TO_MILLISECOND))
+	#define usleep(Millisecond)    usleep((useconds_t)(Millisecond))
 #endif
 
 
@@ -795,7 +807,7 @@ typedef class HostsTable
 public:
 	std::vector<ADDRESS_PREFIX_BLOCK>    SourceList;
 	std::vector<ADDRESS_UNION_DATA>      AddrOrTargetList;
-	std::regex                           Pattern;
+	std::regex                           PatternRegex;
 	std::string                          PatternOrDomainString;
 	std::vector<uint16_t>                RecordTypeList;
 	size_t                               PermissionType;
@@ -824,7 +836,7 @@ typedef class ResultBlacklistTable
 {
 public:
 	std::vector<AddressRangeTable>       Addresses;
-	std::regex                           Pattern;
+	std::regex                           PatternRegex;
 	std::string                          PatternString;
 }RESULT_BLACKLIST_TABLE;
 
@@ -1057,12 +1069,6 @@ public:
 bool CheckEmptyBuffer(
 	const void *Buffer, 
 	const size_t Length);
-uint16_t hton16_Force(
-	const uint16_t Value);
-uint32_t hton32_Force(
-	const uint32_t Value);
-uint64_t hton64(
-	const uint64_t Value);
 bool MBSToWCSString(
 	const uint8_t *Buffer, 
 	const size_t MaxLen, 
@@ -1079,7 +1085,7 @@ void CaseConvert(
 	const bool IsLowerToUpper, 
 	std::string &Buffer);
 void CaseConvert(
-	const bool IsLowerToUpper,
+	const bool IsLowerToUpper, 
 	std::wstring &Buffer);
 void MakeStringReversed(
 	std::string &String);
@@ -1164,6 +1170,8 @@ size_t DNSCurveUDPRequestMultiple(
 
 //Monitor.h
 bool MonitorInit(
+	void);
+void AlternateServerMonitor(
 	void);
 void NetworkInformationMonitor(
 	void);

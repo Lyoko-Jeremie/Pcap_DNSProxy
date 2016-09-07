@@ -38,8 +38,6 @@ bool TCPMonitor(
 	bool *Result);
 bool TCPReceiveProcess(
 	const SOCKET_DATA LocalSocketData);
-void AlternateServerMonitor(
-	void);
 #if defined(PLATFORM_WIN)
 addrinfo *GetLocalAddressList(
 	const uint16_t Protocol, 

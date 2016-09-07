@@ -99,7 +99,7 @@ bool ParameterCheckAndSetting(
 
 //[DNS] block part 1
 	//DNS cache check
-	if (IsFirstRead && Parameter.CacheType > 0 && Parameter.CacheParameter == 0)
+	if (IsFirstRead && Parameter.CacheType > CACHE_TYPE_NONE && Parameter.CacheParameter == 0)
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNS Cache error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
@@ -1768,12 +1768,14 @@ bool ReadParameterData(
 		if (Data.find("CacheType=") == 0 && Data.length() > strlen("CacheType="))
 		{
 			CaseConvert(true, Data);
-			if (Data.find("TIMER") != std::string::npos)
+			if (Data.find("QUEUE") != std::string::npos && Data.find("TIMER") != std::string::npos)
+				Parameter.CacheType = CACHE_TYPE_BOTH;
+			else if (Data.find("TIMER") != std::string::npos)
 				Parameter.CacheType = CACHE_TYPE_TIMER;
 			else if (Data.find("QUEUE") != std::string::npos)
 				Parameter.CacheType = CACHE_TYPE_QUEUE;
 		}
-		else if (Parameter.CacheType > 0 && Data.find("CacheParameter=") == 0 && Data.length() > strlen("CacheParameter="))
+		else if (Parameter.CacheType > CACHE_TYPE_NONE && Data.find("CacheParameter=") == 0 && Data.length() > strlen("CacheParameter="))
 		{
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("CacheParameter="), nullptr, 0);
@@ -1781,7 +1783,7 @@ bool ReadParameterData(
 			{
 				if (Parameter.CacheType == CACHE_TYPE_TIMER)
 					Parameter.CacheParameter = UnsignedResult * SECOND_TO_MILLISECOND;
-				else if (Parameter.CacheType == CACHE_TYPE_QUEUE)
+				else if (Parameter.CacheType == CACHE_TYPE_BOTH || Parameter.CacheType == CACHE_TYPE_QUEUE)
 					Parameter.CacheParameter = UnsignedResult;
 			}
 			else {
@@ -2149,22 +2151,22 @@ bool ReadParameterData(
 #if defined(ENABLE_PCAP)
 	else if (Data.find("IPv4DNSTTL=") == 0 && Data.length() > strlen("IPv4DNSTTL="))
 	{
-		if (!ReadHopLimitData(Data, strlen("IPv4DNSTTL="), AF_INET, ParameterPTR->Target_Server_IPv4_Multiple, FileIndex, Line))
+		if (!ReadHopLimitData(Data, strlen("IPv4DNSTTL="), AF_INET, Parameter.Target_Server_IPv4_Multiple, IsFirstRead, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("IPv6DNSHopLimits=") == 0 && Data.length() > strlen("IPv6DNSHopLimits="))
 	{
-		if (!ReadHopLimitData(Data, strlen("IPv6DNSHopLimits="), AF_INET6, ParameterPTR->Target_Server_IPv6_Multiple, FileIndex, Line))
+		if (!ReadHopLimitData(Data, strlen("IPv6DNSHopLimits="), AF_INET6, Parameter.Target_Server_IPv6_Multiple, IsFirstRead, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("IPv4AlternateDNSTTL=") == 0 && Data.length() > strlen("IPv4AlternateDNSTTL="))
 	{
-		if (!ReadHopLimitData(Data, strlen("IPv4AlternateDNSTTL="), AF_INET, ParameterPTR->Target_Server_IPv4_Multiple, FileIndex, Line))
+		if (!ReadHopLimitData(Data, strlen("IPv4AlternateDNSTTL="), AF_INET, Parameter.Target_Server_IPv4_Multiple, IsFirstRead, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("IPv6AlternateDNSHopLimits=") == 0 && Data.length() > strlen("IPv6AlternateDNSHopLimits="))
 	{
-		if (!ReadHopLimitData(Data, strlen("IPv6AlternateDNSHopLimits="), AF_INET6, ParameterPTR->Target_Server_IPv6_Multiple, FileIndex, Line))
+		if (!ReadHopLimitData(Data, strlen("IPv6AlternateDNSHopLimits="), AF_INET6, Parameter.Target_Server_IPv6_Multiple, IsFirstRead, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("HopLimitsFluctuation=") == 0 && Data.length() > strlen("HopLimitsFluctuation="))
@@ -3510,6 +3512,7 @@ bool ReadHopLimitData(
 	const size_t DataOffset, 
 	const uint16_t Protocol, 
 	std::vector<DNS_SERVER_DATA> *DNSServerDataList, 
+	const bool IsFirstRead, 
 	const size_t FileIndex, 
 	const size_t Line)
 {
@@ -3523,11 +3526,26 @@ bool ReadHopLimitData(
 	{
 		_set_errno(0);
 		UnsignedResult = strtoul(StringIter.c_str(), nullptr, 0);
-		if (UnsignedResult < UINT8_MAX && DNSServerDataList != nullptr && !DNSServerDataList->empty())
+		if (UnsignedResult < UINT8_MAX && DNSServerDataList != nullptr)
 		{
 			if (Protocol == AF_INET6)
 			{
-				if (HopLimitIndex[NETWORK_LAYER_IPV6] < DNSServerDataList->size())
+			//Monitor mode
+				if (!IsFirstRead)
+				{
+					if (HopLimitIndex[NETWORK_LAYER_IPV6] == 0)
+						Parameter.Target_Server_IPv6.HopLimitData_Assign.HopLimit = (uint8_t)UnsignedResult;
+					else if (HopLimitIndex[NETWORK_LAYER_IPV6] == 1U)
+						Parameter.Target_Server_Alternate_IPv6.HopLimitData_Assign.HopLimit = (uint8_t)UnsignedResult;
+					else if (!DNSServerDataList->empty() && HopLimitIndex[NETWORK_LAYER_IPV6] - 2U < DNSServerDataList->size())
+						DNSServerDataList->at(HopLimitIndex[NETWORK_LAYER_IPV6] - 2U).HopLimitData_Assign.HopLimit = (uint8_t)UnsignedResult;
+					else 
+						goto PrintDataFormatError;
+
+					++HopLimitIndex[NETWORK_LAYER_IPV6];
+				}
+			//Normal mode
+				else if (!DNSServerDataList->empty() && HopLimitIndex[NETWORK_LAYER_IPV6] < DNSServerDataList->size())
 				{
 					DNSServerDataList->at(HopLimitIndex[NETWORK_LAYER_IPV6]).HopLimitData_Assign.HopLimit = (uint8_t)UnsignedResult;
 					++HopLimitIndex[NETWORK_LAYER_IPV6];
@@ -3538,7 +3556,22 @@ bool ReadHopLimitData(
 			}
 			else if (Protocol == AF_INET)
 			{
-				if (HopLimitIndex[NETWORK_LAYER_IPV4] < DNSServerDataList->size())
+			//Monitor mode
+				if (!IsFirstRead)
+				{
+					if (HopLimitIndex[NETWORK_LAYER_IPV4] == 0)
+						Parameter.Target_Server_IPv4.HopLimitData_Assign.TTL = (uint8_t)UnsignedResult;
+					else if (HopLimitIndex[NETWORK_LAYER_IPV4] == 1U)
+						Parameter.Target_Server_Alternate_IPv4.HopLimitData_Assign.TTL = (uint8_t)UnsignedResult;
+					else if (!DNSServerDataList->empty() && HopLimitIndex[NETWORK_LAYER_IPV4] - 2U < DNSServerDataList->size())
+						DNSServerDataList->at(HopLimitIndex[NETWORK_LAYER_IPV4] - 2U).HopLimitData_Assign.TTL = (uint8_t)UnsignedResult;
+					else 
+						goto PrintDataFormatError;
+
+					++HopLimitIndex[NETWORK_LAYER_IPV4];
+				}
+			//Normal mode
+				else if (!DNSServerDataList->empty() && HopLimitIndex[NETWORK_LAYER_IPV4] < DNSServerDataList->size())
 				{
 					DNSServerDataList->at(HopLimitIndex[NETWORK_LAYER_IPV4]).HopLimitData_Assign.TTL = (uint8_t)UnsignedResult;
 					++HopLimitIndex[NETWORK_LAYER_IPV4];

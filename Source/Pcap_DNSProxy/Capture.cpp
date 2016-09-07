@@ -49,7 +49,7 @@ void CaptureInit(
 		}
 
 	//Permissions check and check available network devices.
-		if (pThedevs == nullptr)
+		else if (pThedevs == nullptr)
 		{
 			if (IsErrorFirstPrint)
 				IsErrorFirstPrint = false;
@@ -502,7 +502,7 @@ void CaptureHandler(
 	}
 
 //Virtual Bridged LAN(VLAN, IEEE 802.1Q)
-	if (Protocol == htons(OSI_L2_VLAN))
+	if (ntohs(Protocol) == OSI_L2_VLAN)
 	{
 		if (Length > sizeof(ieee_8021q_hdr))
 		{
@@ -516,7 +516,7 @@ void CaptureHandler(
 	}
 
 //PPP(Such as ADSL, a part of organization networks)
-	if (Protocol == htons(OSI_L2_PPPS))
+	if (ntohs(Protocol) == OSI_L2_PPPS)
 	{
 		if (Length > sizeof(ppp_hdr))
 		{
@@ -530,8 +530,8 @@ void CaptureHandler(
 	}
 
 //LAN, WLAN and IEEE 802.1X, some Mobile Communications Standard/MCS drives which disguise as a LAN
-	if (((Protocol == htons(OSI_L2_IPV6) || Protocol == htons(PPP_IPV6)) && Length > sizeof(ipv6_hdr)) || //IPv6
-		((Protocol == htons(OSI_L2_IPV4) || Protocol == htons(PPP_IPV4)) && Length > sizeof(ipv4_hdr))) //IPv4
+	if (((ntohs(Protocol) == OSI_L2_IPV6 || ntohs(Protocol) == PPP_IPV6) && Length > sizeof(ipv6_hdr)) || //IPv6
+		((ntohs(Protocol) == OSI_L2_IPV4 || ntohs(Protocol) == PPP_IPV4) && Length > sizeof(ipv4_hdr))) //IPv4
 			CaptureNetworkLayer(ParamList->Buffer, Length, ParamList->BufferSize, ntohs(Protocol));
 
 	return;
@@ -585,7 +585,7 @@ bool CaptureNetworkLayer(
 		}
 
 	//Get Hop Limits from IPv6 DNS server.
-	//ICMPv6 Protocol
+	//ICMPv6
 		if (Parameter.ICMP_Speed > 0 && IPv6_Header->NextHeader == IPPROTO_ICMPV6 && ntohs(IPv6_Header->PayloadLength) >= sizeof(icmpv6_hdr))
 		{
 		//Validate ICMPv6 checksum.
@@ -613,7 +613,7 @@ bool CaptureNetworkLayer(
 			return true;
 		}
 
-	//UDP Protocol
+	//UDP
 		if (IPv6_Header->NextHeader == IPPROTO_UDP && ntohs(IPv6_Header->PayloadLength) >= sizeof(udp_hdr) + DNS_PACKET_MINSIZE)
 		{
 		//Validate UDP checksum.
@@ -716,7 +716,7 @@ bool CaptureNetworkLayer(
 		}
 
 	//Get TTL from IPv4 DNS server.
-	//ICMP Protocol
+	//ICMP
 		if (Parameter.ICMP_Speed > 0 && IPv4_Header->Protocol == IPPROTO_ICMP && ntohs(IPv4_Header->Length) >= IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(icmp_hdr))
 		{
 		//Validate ICMP checksum.
@@ -744,7 +744,7 @@ bool CaptureNetworkLayer(
 			return true;
 		}
 
-	//UDP Protocol
+	//UDP
 		if (IPv4_Header->Protocol == IPPROTO_UDP && ntohs(IPv4_Header->Length) >= IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr) + DNS_PACKET_MINSIZE)
 		{
 		//Validate UDP checksum.
@@ -915,11 +915,11 @@ StopLoop:
 	{
 		for (auto &SocketDataIter:PortTableIter.SocketData_Output)
 		{
-			if ((PortTableIter.ClearPortTime > 0 && //Do not scan expired data.
-				Protocol == AF_INET6 && SocketDataIter.AddrLen == sizeof(sockaddr_in6) && SocketDataIter.SockAddr.ss_family == AF_INET6 && 
+			if (PortTableIter.ClearPortTime > 0 && //Do not scan expired data.
+				((Protocol == AF_INET6 && SocketDataIter.AddrLen == sizeof(sockaddr_in6) && SocketDataIter.SockAddr.ss_family == AF_INET6 && 
 				Port == ((PSOCKADDR_IN6)&SocketDataIter.SockAddr)->sin6_port) || //IPv6
 				(Protocol == AF_INET && SocketDataIter.AddrLen == sizeof(sockaddr_in) && SocketDataIter.SockAddr.ss_family == AF_INET && 
-				Port == ((PSOCKADDR_IN)&SocketDataIter.SockAddr)->sin_port)) //IPv4
+				Port == ((PSOCKADDR_IN)&SocketDataIter.SockAddr)->sin_port))) //IPv4
 			{
 				if (PortTableIter.ReceiveIndex == ReceiveIndex)
 				{
@@ -940,10 +940,7 @@ StopLoop:
 
 //Jump here to stop loop and clear expired data.
 ClearOutputPacketListData:
-
-//Minimum supported system of GetTickCount64 function is Windows Vista.
-#if defined(PLATFORM_WIN_XP)
-	while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= GetTickCount())
+	while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= GetCurrentSystemTime())
 	{
 	//Mark timeout.
 		if (OutputPacketList.front().ClearPortTime > 0)
@@ -966,31 +963,6 @@ ClearOutputPacketListData:
 
 		OutputPacketList.pop_front();
 	}
-#else
-	while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= GetTickCount64())
-	{
-	//Mark timeout.
-		if (OutputPacketList.front().ClearPortTime > 0)
-		{
-			if (OutputPacketList.front().Protocol_Network == AF_INET6)
-			{
-				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP)
-					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV6];
-				else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP)
-					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV6];
-			}
-			else if (OutputPacketList.front().Protocol_Network == AF_INET)
-			{
-				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP)
-					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV4];
-				else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP)
-					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV4];
-			}
-		}
-
-		OutputPacketList.pop_front();
-	}
-#endif
 	OutputPacketListMutex.unlock();
 
 //Drop resopnses which not in OutputPacketList.
@@ -999,7 +971,7 @@ ClearOutputPacketListData:
 			return false;
 
 //Mark DNS cache.
-	if (Parameter.CacheType > 0)
+	if (Parameter.CacheType > CACHE_TYPE_NONE)
 		MarkDomainCache(Buffer, Length);
 
 //Send to localhost.

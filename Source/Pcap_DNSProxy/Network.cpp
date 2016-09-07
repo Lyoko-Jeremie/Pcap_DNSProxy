@@ -772,20 +772,16 @@ ssize_t SelectingResult(
 					SocketMarkingDataTemp.first = SocketDataIter.Socket;
 					if (Protocol == IPPROTO_TCP)
 					{
-					#if defined(PLATFORM_WIN_XP)
-						SocketMarkingDataTemp.second = GetTickCount() + Parameter.SocketTimeout_Reliable;
-					#elif defined(PLATFORM_WIN)
-						SocketMarkingDataTemp.second = GetTickCount64() + Parameter.SocketTimeout_Reliable;
+					#if defined(PLATFORM_WIN)
+						SocketMarkingDataTemp.second = GetCurrentSystemTime() + Parameter.SocketTimeout_Reliable;
 					#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 						SocketMarkingDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), Parameter.SocketTimeout_Reliable);
 					#endif
 					}
 					else if (Protocol == IPPROTO_UDP)
 					{
-					#if defined(PLATFORM_WIN_XP)
-						SocketMarkingDataTemp.second = GetTickCount() + Parameter.SocketTimeout_Unreliable;
-					#elif defined(PLATFORM_WIN)
-						SocketMarkingDataTemp.second = GetTickCount64() + Parameter.SocketTimeout_Unreliable;
+					#if defined(PLATFORM_WIN)
+						SocketMarkingDataTemp.second = GetCurrentSystemTime() + Parameter.SocketTimeout_Unreliable;
 					#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 						SocketMarkingDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), Parameter.SocketTimeout_Unreliable);
 					#endif
@@ -801,7 +797,7 @@ ssize_t SelectingResult(
 			SocketMarkingMutex.unlock();
 
 		//Mark DNS cache.
-			if (Parameter.CacheType > 0)
+			if (Parameter.CacheType > CACHE_TYPE_NONE)
 				MarkDomainCache(OriginalRecv, RecvLen);
 
 			return RecvLen;
@@ -870,20 +866,16 @@ void MarkPortToList(
 		OutputPacketListTemp.Protocol_Network = Protocol;
 		if (Protocol == IPPROTO_TCP)
 		{
-		#if defined(PLATFORM_WIN_XP)
-			OutputPacketListTemp.ClearPortTime = GetTickCount() + Parameter.SocketTimeout_Reliable;
-		#elif defined(PLATFORM_WIN)
-			OutputPacketListTemp.ClearPortTime = GetTickCount64() + Parameter.SocketTimeout_Reliable;
+		#if defined(PLATFORM_WIN)
+			OutputPacketListTemp.ClearPortTime = GetCurrentSystemTime() + Parameter.SocketTimeout_Reliable;
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			OutputPacketListTemp.ClearPortTime = IncreaseMillisecondTime(GetCurrentSystemTime(), Parameter.SocketTimeout_Reliable);
 		#endif
 		}
 		else if (Protocol == IPPROTO_UDP)
 		{
-		#if defined(PLATFORM_WIN_XP)
-			OutputPacketListTemp.ClearPortTime = GetTickCount() + Parameter.SocketTimeout_Unreliable;
-		#elif defined(PLATFORM_WIN)
-			OutputPacketListTemp.ClearPortTime = GetTickCount64() + Parameter.SocketTimeout_Unreliable;
+		#if defined(PLATFORM_WIN)
+			OutputPacketListTemp.ClearPortTime = GetCurrentSystemTime() + Parameter.SocketTimeout_Unreliable;
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			OutputPacketListTemp.ClearPortTime = IncreaseMillisecondTime(GetCurrentSystemTime(), Parameter.SocketTimeout_Unreliable);
 		#endif
@@ -894,32 +886,7 @@ void MarkPortToList(
 
 	//Clear expired data.
 		std::lock_guard<std::mutex> OutputPacketListMutex(OutputPacketListLock);
-	#if defined(PLATFORM_WIN_XP)
-		while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= GetTickCount())
-		{
-		//Mark timeout.
-			if (OutputPacketList.front().ClearPortTime > 0)
-			{
-				if (OutputPacketList.front().Protocol_Network == AF_INET6)
-				{
-					if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP)
-						++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV6];
-					else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP)
-						++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV6];
-					}
-				else if (OutputPacketList.front().Protocol_Network == AF_INET)
-				{
-					if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP)
-						++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV4];
-					else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP)
-						++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV4];
-				}
-			}
-
-			OutputPacketList.pop_front();
-		}
-	#else
-		while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= GetTickCount64())
+		while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= GetCurrentSystemTime())
 		{
 		//Mark timeout.
 			if (OutputPacketList.front().ClearPortTime > 0)
@@ -942,7 +909,6 @@ void MarkPortToList(
 
 			OutputPacketList.pop_front();
 		}
-	#endif
 
 		OutputPacketList.push_back(OutputPacketListTemp);
 	}
@@ -1448,7 +1414,7 @@ bool ICMPTestRequest(
 				sendto(SocketDataIter.Socket, (const char *)Buffer.get(), (int)Length, 0, (PSOCKADDR)&SocketDataIter.SockAddr, SocketDataIter.AddrLen);
 
 		//Increase Sequence.
-			if (Parameter.ICMP_Sequence == htons(DEFAULT_SEQUENCE))
+			if (ntohs(Parameter.ICMP_Sequence) == DEFAULT_SEQUENCE)
 			{
 				if (Protocol == AF_INET6)
 				{

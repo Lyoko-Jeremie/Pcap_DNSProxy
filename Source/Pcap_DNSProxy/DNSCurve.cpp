@@ -92,8 +92,10 @@ bool DNSCurveVerifyKeypair(
 			return false;
 	else 
 		memcpy_s(Validation + crypto_box_ZEROBYTES, crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES, PublicKey, crypto_box_PUBLICKEYBYTES);
+
+//Make DNSCurve Test Nonce, 0x00 - 0x23(ASCII).
 	uint8_t Nonce[crypto_box_NONCEBYTES] = {0};
-	for (size_t Index = 0;Index < crypto_box_NONCEBYTES;++Index) //DNSCurve Test Nonce, 0x00 - 0x23(ASCII)
+	for (size_t Index = 0;Index < crypto_box_NONCEBYTES;++Index)
 		*(Nonce + Index) = (uint8_t)Index;
 
 //Verify keys
@@ -371,13 +373,10 @@ bool DNSCurvePrecomputationKeySetting(
 		sodium_memzero(Client_PublicKey, crypto_box_PUBLICKEYBYTES);
 	}
 
-//Make a client ephemeral key pair.
+//Make a client ephemeral key pair and a precomputation key.
 	DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> Client_SecretKey(crypto_box_SECRETKEYBYTES);
-	if (crypto_box_keypair(Client_PublicKey, Client_SecretKey.Buffer) != 0)
-		return false;
-
-//Make a precomputation key.
-	if (crypto_box_beforenm(
+	if (crypto_box_keypair(Client_PublicKey, Client_SecretKey.Buffer) != 0 || 
+		crypto_box_beforenm(
 			PrecomputationKey, 
 			ServerFingerprint, 
 			Client_SecretKey.Buffer) != 0)
@@ -792,7 +791,6 @@ ssize_t DNSCurvePacketDecryption(
 	const size_t RecvSize, 
 	const ssize_t Length)
 {
-//Initialization
 	ssize_t DataLength = Length;
 
 //Encryption mode
@@ -848,6 +846,7 @@ ssize_t DNSCurveSocketSelecting(
 	const size_t RecvSize, 
 	ssize_t *ErrorCode)
 {
+//Initialization
 	size_t Index = 0;
 	if (ErrorCode != nullptr)
 		*ErrorCode = 0;
@@ -1138,20 +1137,16 @@ ssize_t DNSCurveSelectingResult(
 					SocketMarkingDataTemp.first = SocketDataIter.Socket;
 					if (Protocol == IPPROTO_TCP)
 					{
-					#if defined(PLATFORM_WIN_XP)
-						SocketMarkingDataTemp.second = GetTickCount() + DNSCurveParameter.DNSCurve_SocketTimeout_Reliable;
-					#elif defined(PLATFORM_WIN)
-						SocketMarkingDataTemp.second = GetTickCount64() + DNSCurveParameter.DNSCurve_SocketTimeout_Reliable;
+					#if defined(PLATFORM_WIN)
+						SocketMarkingDataTemp.second = GetCurrentSystemTime() + DNSCurveParameter.DNSCurve_SocketTimeout_Reliable;
 					#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 						SocketMarkingDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), DNSCurveParameter.DNSCurve_SocketTimeout_Reliable);
 					#endif
 					}
 					else if (Protocol == IPPROTO_UDP)
 					{
-					#if defined(PLATFORM_WIN_XP)
-						SocketMarkingDataTemp.second = GetTickCount() + DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable;
-					#elif defined(PLATFORM_WIN)
-						SocketMarkingDataTemp.second = GetTickCount64() + DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable;
+					#if defined(PLATFORM_WIN)
+						SocketMarkingDataTemp.second = GetCurrentSystemTime() + DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable;
 					#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 						SocketMarkingDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable);
 					#endif
@@ -1167,7 +1162,7 @@ ssize_t DNSCurveSelectingResult(
 			SocketMarkingMutex.unlock();
 
 		//Mark DNS cache.
-			if (Parameter.CacheType > 0)
+			if (Parameter.CacheType > CACHE_TYPE_NONE)
 				MarkDomainCache(OriginalRecv, RecvLen);
 
 			return RecvLen;
@@ -1659,12 +1654,12 @@ bool DNSCruveGetSignatureData(
 	const uint8_t *Buffer, 
 	const size_t ServerType)
 {
-	if (((pdns_record_txt)Buffer)->Name == htons(DNS_POINTER_QUERY) && 
-		((pdns_record_txt)Buffer)->Length == htons(((pdns_record_txt)Buffer)->TXT_Length + 1U) && ((pdns_record_txt)Buffer)->TXT_Length == DNSCRYPT_RECORD_TXT_LEN)
+	if (ntohs(((pdns_record_txt)Buffer)->Name) == DNS_POINTER_QUERY && 
+		ntohs(((pdns_record_txt)Buffer)->Length) == ((pdns_record_txt)Buffer)->TXT_Length + 1U && ((pdns_record_txt)Buffer)->TXT_Length == DNSCRYPT_RECORD_TXT_LEN)
 	{
 		if (sodium_memcmp(&((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->CertMagicNumber, DNSCRYPT_CERT_MAGIC, sizeof(uint16_t)) == 0 && 
-			((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->MajorVersion == htons(DNSCURVE_VERSION_MAJOR) && 
-			((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->MinorVersion == DNSCURVE_VERSION_MINOR)
+			ntohs(((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->MajorVersion) == DNSCURVE_VERSION_MAJOR && 
+			ntohs(((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->MinorVersion) == DNSCURVE_VERSION_MINOR)
 		{
 			unsigned long long SignatureLength = 0;
 

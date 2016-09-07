@@ -64,3 +64,5 @@ void UDPRequestProcess(
 #endif
 uint16_t SelectNetworkProtocol(
 	void);
+void AutoClearDNSCache(
+	void);

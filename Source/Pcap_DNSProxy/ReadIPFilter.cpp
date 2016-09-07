@@ -74,13 +74,9 @@ bool ReadIPFilterData(
 	}
 
 //Temporary stop read.
-	else if (Data.find("[Stop]") == 0 || Data.find("[stop]") == 0)
+	else if (LabelType == LABEL_STOP || Data.find("[Stop]") == 0 || Data.find("[stop]") == 0)
 	{
 		LabelType = LABEL_STOP;
-		return true;
-	}
-	else if (LabelType == LABEL_STOP)
-	{
 		return true;
 	}
 
@@ -102,7 +98,7 @@ bool ReadIPFilterData(
 	}
 
 //Blacklist items
-	if (Parameter.DataCheck_Blacklist && LabelType == LABEL_IPFILTER_BLACKLIST)
+	if (LabelType == LABEL_IPFILTER_BLACKLIST && Parameter.DataCheck_Blacklist)
 	{
 	//Delete spaces before or after verticals.
 		while (Data.find(" |") != std::string::npos || Data.find("| ") != std::string::npos)
@@ -116,7 +112,7 @@ bool ReadIPFilterData(
 		return ReadBlacklistData(Data, FileIndex, Line);
 	}
 //Local Routing items
-	else if (Parameter.LocalRouting && LabelType == LABEL_IPFILTER_LOCAL_ROUTING)
+	else if (LabelType == LABEL_IPFILTER_LOCAL_ROUTING && Parameter.LocalRouting)
 	{
 		while (Data.find(ASCII_SPACE) != std::string::npos)
 			Data.erase(Data.find(ASCII_SPACE), 1U);
@@ -124,7 +120,7 @@ bool ReadIPFilterData(
 			return ReadLocalRoutingData(Data, FileIndex, Line);
 	}
 //Main IPFilter items
-	else if (Parameter.OperationMode == LISTEN_MODE_CUSTOM && LabelType == LABEL_IPFILTER)
+	else if (LabelType == LABEL_IPFILTER && Parameter.OperationMode == LISTEN_MODE_CUSTOM)
 	{
 		while (Data.find(ASCII_SPACE) != std::string::npos)
 			Data.erase(Data.find(ASCII_SPACE), 1U);
@@ -344,8 +340,8 @@ bool ReadBlacklistData(
 //Other request
 	else {
 		try {
-			std::regex PatternTemp(ResultBlacklistTableTemp.PatternString);
-			ResultBlacklistTableTemp.Pattern.swap(PatternTemp);
+			std::regex PatternRegexTemp(ResultBlacklistTableTemp.PatternString);
+			ResultBlacklistTableTemp.PatternRegex.swap(PatternRegexTemp);
 		}
 		catch (std::regex_error& Error)
 		{

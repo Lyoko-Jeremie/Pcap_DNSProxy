@@ -54,8 +54,8 @@ bool ReadHostsData(
 
 //[Local Hosts] block(A part)
 	if (LabelType == 0 && (Parameter.Target_Server_Local_IPv4.Storage.ss_family > 0 || Parameter.Target_Server_Local_IPv6.Storage.ss_family > 0) && 
-		(CompareStringReversed(L"whitelist.txt", FileList_IPFilter.at(FileIndex).FileName.c_str(), true) || 
-		CompareStringReversed(L"white_list.txt", FileList_IPFilter.at(FileIndex).FileName.c_str(), true)))
+		(CompareStringReversed(L"whitelist.txt", FileList_Hosts.at(FileIndex).FileName.c_str(), true) || 
+		CompareStringReversed(L"white_list.txt", FileList_Hosts.at(FileIndex).FileName.c_str(), true)))
 			LabelType = LABEL_HOSTS_TYPE_LOCAL;
 
 //[Address Hosts] block
@@ -96,13 +96,9 @@ bool ReadHostsData(
 	}
 
 //Temporary stop read.
-	else if (Data.find("[Stop]") == 0 || Data.find("[stop]") == 0)
+	else if (LabelType == LABEL_STOP || Data.find("[Stop]") == 0 || Data.find("[stop]") == 0)
 	{
 		LabelType = LABEL_STOP;
-		return true;
-	}
-	else if (LabelType == LABEL_STOP)
-	{
 		return true;
 	}
 
@@ -126,7 +122,11 @@ bool ReadHostsData(
 			LabelTypeTemp = LABEL_HOSTS_TYPE_BANNED_EXTENDED;
 	if (LabelTypeTemp > 0)
 	{
-		if (LabelType == LABEL_HOSTS_TYPE_NORMAL || LabelType == LABEL_HOSTS_TYPE_LOCAL)
+		if (LabelType == LABEL_HOSTS_TYPE_LOCAL && (!Parameter.LocalHosts || (Parameter.Target_Server_Local_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Local_IPv6.Storage.ss_family == 0)))
+		{
+			return true;
+		}
+		else if (LabelType == LABEL_HOSTS_TYPE_NORMAL || LabelType == LABEL_HOSTS_TYPE_LOCAL)
 		{
 			return ReadOtherHostsData(Data, FileIndex, Line, LabelType, LabelTypeTemp);
 		}
@@ -139,9 +139,10 @@ bool ReadHostsData(
 //[Local Hosts] block
 	else if (LabelType == LABEL_HOSTS_TYPE_LOCAL)
 	{
-		if (Parameter.LocalMain)
-			return true;
-		else if (Parameter.LocalHosts && (Parameter.Target_Server_Local_IPv4.Storage.ss_family > 0 || Parameter.Target_Server_Local_IPv6.Storage.ss_family > 0))
+		if (!Parameter.LocalHosts || Parameter.LocalMain || 
+			(Parameter.Target_Server_Local_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Local_IPv6.Storage.ss_family == 0))
+				return true;
+		else 
 			return ReadLocalHostsData(Data, FileIndex, Line);
 	}
 
@@ -154,24 +155,15 @@ bool ReadHostsData(
 			Data.erase(Data.find("| ") + 1U, strlen("|"));
 	}
 
-//[Address Hosts] block
-	if (LabelType == LABEL_HOSTS_TYPE_ADDRESS)
-	{
-		return ReadAddressHostsData(Data, FileIndex, Line);
-	}
-
 //Main Hosts block
-	else {
-	//[CNAME Hosts] block
-		if (LabelType == LABEL_HOSTS_TYPE_CNAME)
-			return ReadMainHostsData(Data, HOSTS_TYPE_CNAME, FileIndex, Line);
-	//[Source Hosts] block
-		else if (LabelType == LABEL_HOSTS_TYPE_SOURCE)
-			return ReadMainHostsData(Data, HOSTS_TYPE_SOURCE, FileIndex, Line);
-	//[Hosts] block
-		else 
-			return ReadMainHostsData(Data, HOSTS_TYPE_NORMAL, FileIndex, Line);
-	}
+	if (LabelType == LABEL_HOSTS_TYPE_ADDRESS) //[Address Hosts] block
+		return ReadAddressHostsData(Data, FileIndex, Line);
+	else if (LabelType == LABEL_HOSTS_TYPE_CNAME) //[CNAME Hosts] block
+		return ReadMainHostsData(Data, HOSTS_TYPE_CNAME, FileIndex, Line);
+	else if (LabelType == LABEL_HOSTS_TYPE_SOURCE) //[Source Hosts] block
+		return ReadMainHostsData(Data, HOSTS_TYPE_SOURCE, FileIndex, Line);
+	else //[Hosts] block
+		return ReadMainHostsData(Data, HOSTS_TYPE_NORMAL, FileIndex, Line);
 
 	return true;
 }
@@ -256,8 +248,10 @@ bool ReadOtherHostsData(
 //Mark patterns.
 	HostsTableTemp.PatternOrDomainString.append(Data, Separated, Data.length() - Separated);
 	try {
-		std::regex PatternHostsTableTemp(HostsTableTemp.PatternOrDomainString);
-		HostsTableTemp.Pattern.swap(PatternHostsTableTemp);
+		std::regex PatternRegexTemp(HostsTableTemp.PatternOrDomainString);
+		HostsTableTemp.PatternRegex.swap(PatternRegexTemp);
+		HostsTableTemp.PatternOrDomainString.clear();
+		HostsTableTemp.PatternOrDomainString.shrink_to_fit();
 	}
 	catch (std::regex_error& Error)
 	{
@@ -558,8 +552,10 @@ bool ReadLocalHostsData(
 		if (!DnsmasqFormat)
 			HostsTableTemp.PatternOrDomainString = Data;
 		try {
-			std::regex PatternHostsTableTemp(HostsTableTemp.PatternOrDomainString);
-			HostsTableTemp.Pattern.swap(PatternHostsTableTemp);
+			std::regex PatternRegexTemp(HostsTableTemp.PatternOrDomainString);
+			HostsTableTemp.PatternRegex.swap(PatternRegexTemp);
+			HostsTableTemp.PatternOrDomainString.clear();
+			HostsTableTemp.PatternOrDomainString.shrink_to_fit();
 		}
 		catch (std::regex_error& Error)
 		{
@@ -1093,8 +1089,10 @@ bool ReadMainHostsData(
 		
 	//Try to mark patterns.
 		try {
-			std::regex PatternHostsTableTemp(HostsTableTemp.PatternOrDomainString);
-			HostsTableTemp.Pattern.swap(PatternHostsTableTemp);
+			std::regex PatternRegexTemp(HostsTableTemp.PatternOrDomainString);
+			HostsTableTemp.PatternRegex.swap(PatternRegexTemp);
+			HostsTableTemp.PatternOrDomainString.clear();
+			HostsTableTemp.PatternOrDomainString.shrink_to_fit();
 		}
 		catch (std::regex_error& Error)
 		{

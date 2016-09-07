@@ -323,7 +323,6 @@ size_t CheckWhiteBannedHostsProcess(
 	//Block all types.
 		if (HostsTableIter.RecordTypeList.empty())
 		{
-//			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_SNH);
 			DNS_Header->Flags = htons(DNS_SET_R_SNH);
 			return Length;
 		}
@@ -340,7 +339,6 @@ size_t CheckWhiteBannedHostsProcess(
 					}
 					else if (RecordTypeIter + 1U == HostsTableIter.RecordTypeList.end())
 					{
-//						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
 						DNS_Header->Flags = htons(DNS_SQR_NE);
 						return Length;
 					}
@@ -352,7 +350,6 @@ size_t CheckWhiteBannedHostsProcess(
 				{
 					if (DNS_Query->Type == RecordTypeIter)
 					{
-//						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
 						DNS_Header->Flags = htons(DNS_SQR_NE);
 						return Length;
 					}
@@ -377,7 +374,7 @@ size_t CheckHostsProcess(
 	auto DNS_Header = (pdns_hdr)Packet->Buffer;
 
 //Request check
-	if (DNS_Header->Question == htons(U16_NUM_ONE) && CheckQueryNameLength(Packet->Buffer + sizeof(dns_hdr)) + 1U < DOMAIN_MAXSIZE)
+	if (ntohs(DNS_Header->Question) == U16_NUM_ONE && CheckQueryNameLength(Packet->Buffer + sizeof(dns_hdr)) + 1U < DOMAIN_MAXSIZE)
 	{
 		if (DNSQueryToChar(Packet->Buffer + sizeof(dns_hdr), Domain) <= DOMAIN_MINSIZE)
 			return EXIT_SUCCESS;
@@ -388,14 +385,12 @@ size_t CheckHostsProcess(
 		return EXIT_FAILURE;
 	}
 
-//Response initilization
+//Response initilization and Classes check
 	memset(Result, 0, ResultSize);
 	memcpy_s(Result, ResultSize, Packet->Buffer, Packet->Length);
 	DNS_Header = (pdns_hdr)Result;
 	auto DNS_Query = (pdns_qry)(Result + DNS_PACKET_QUERY_LOCATE(Result));
-
-//Check Classes.
-	if (DNS_Query->Classes != htons(DNS_CLASS_IN))
+	if (ntohs(DNS_Query->Classes) != DNS_CLASS_IN)
 		return EXIT_FAILURE;
 
 //Check Accept Types list.
@@ -410,7 +405,6 @@ size_t CheckHostsProcess(
 				{
 					if (*AcceptTypeTableIter != DNS_Query->Type)
 					{
-//						DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_SNH);
 						DNS_Header->Flags = htons(DNS_SET_R_SNH);
 						return Packet->Length;
 					}
@@ -427,7 +421,6 @@ size_t CheckHostsProcess(
 			{
 				if (DNS_Query->Type == AcceptTypeTableIter)
 				{
-//					DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_SNH);
 					DNS_Header->Flags = htons(DNS_SET_R_SNH);
 					return Packet->Length;
 				}
@@ -438,7 +431,7 @@ size_t CheckHostsProcess(
 //PTR Records
 //LLMNR protocol of Mac OS X powered by mDNS with PTR records
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-	if (DNS_Query->Type == htons(DNS_RECORD_PTR) && Parameter.LocalServer_Length + Packet->Length <= ResultSize)
+	if (ntohs(DNS_Query->Type) == DNS_RECORD_PTR && Parameter.LocalServer_Length + Packet->Length <= ResultSize)
 	{
 		auto IsPTRSend = false;
 
@@ -453,7 +446,7 @@ size_t CheckHostsProcess(
 		else {
 		//IPv6 check
 			std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0]);
-			for (const auto &StringIter:*GlobalRunningStatus.LocalAddress_ResponsePTR[0])
+			for (const auto &StringIter:*GlobalRunningStatus.LocalAddress_ResponsePTR[NETWORK_LAYER_IPV6])
 			{
 				if (Domain == StringIter)
 				{
@@ -467,7 +460,7 @@ size_t CheckHostsProcess(
 			if (!IsPTRSend)
 			{
 				std::lock_guard<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[1U]);
-				for (const auto &StringIter:*GlobalRunningStatus.LocalAddress_ResponsePTR[1U])
+				for (const auto &StringIter:*GlobalRunningStatus.LocalAddress_ResponsePTR[NETWORK_LAYER_IPV4])
 				{
 					if (Domain == StringIter)
 					{
@@ -503,25 +496,25 @@ size_t CheckHostsProcess(
 	if (Parameter.LocalFQDN_String != nullptr && Domain == *Parameter.LocalFQDN_String)
 	{
 	//IPv6
-		if (DNS_Query->Type == htons(DNS_RECORD_AAAA))
+		if (ntohs(DNS_Query->Type) == DNS_RECORD_AAAA)
 		{
 			std::lock_guard<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[0]);
-			if (GlobalRunningStatus.LocalAddress_Length[0] >= DNS_PACKET_MINSIZE)
+			if (GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6] >= DNS_PACKET_MINSIZE)
 			{
 				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
-				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), GlobalRunningStatus.LocalAddress_Response[0] + sizeof(uint16_t), GlobalRunningStatus.LocalAddress_Length[0] - sizeof(uint16_t));
-				return GlobalRunningStatus.LocalAddress_Length[0];
+				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV6] + sizeof(uint16_t), GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6] - sizeof(uint16_t));
+				return GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6];
 			}
 		}
 	//IPv4
-		else if (DNS_Query->Type == htons(DNS_RECORD_A))
+		else if (ntohs(DNS_Query->Type) == DNS_RECORD_A)
 		{
 			std::lock_guard<std::mutex> LocalAddressMutexIPv4(LocalAddressLock[1U]);
-			if (GlobalRunningStatus.LocalAddress_Length[1U] >= DNS_PACKET_MINSIZE)
+			if (GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4] >= DNS_PACKET_MINSIZE)
 			{
 				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
-				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), GlobalRunningStatus.LocalAddress_Response[1U] + sizeof(uint16_t), GlobalRunningStatus.LocalAddress_Length[1U] - sizeof(uint16_t));
-				return GlobalRunningStatus.LocalAddress_Length[1U];
+				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV4] + sizeof(uint16_t), GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4] - sizeof(uint16_t));
+				return GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4];
 			}
 		}
 	}
@@ -544,14 +537,15 @@ size_t CheckHostsProcess(
 			IsMatch = false;
 
 		//Dnsmasq normal mode(http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html)
-			if (HostsTableIter.IsStringMatching)
+			if (HostsTableIter.IsStringMatching && !HostsTableIter.PatternOrDomainString.empty())
 			{
 				if (HostsTableIter.PatternOrDomainString == "#" || //Dnsmasq "#" matches any domain.
-					CompareStringReversed(HostsTableIter.PatternOrDomainString, ReverseDomain))
+					(HostsTableIter.PatternOrDomainString.front() == ReverseDomain.front() && //Fast check to reduce resource using
+					CompareStringReversed(HostsTableIter.PatternOrDomainString, ReverseDomain)))
 						IsMatch = true;
 			}
 		//Regex mode
-			else if (std::regex_match(Domain, HostsTableIter.Pattern))
+			else if (std::regex_match(Domain, HostsTableIter.PatternRegex))
 			{
 				IsMatch = true;
 			}
@@ -564,7 +558,8 @@ size_t CheckHostsProcess(
 				{
 					for (const auto &SourceListIter:HostsTableIter.SourceList)
 					{
-						if (LocalSocketData.SockAddr.ss_family == AF_INET6 && SourceListIter.first.ss_family == AF_INET6) //IPv6
+					//IPv6
+						if (LocalSocketData.SockAddr.ss_family == AF_INET6 && SourceListIter.first.ss_family == AF_INET6)
 						{
 							if (SourceListIter.second < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 							{
@@ -578,7 +573,8 @@ size_t CheckHostsProcess(
 									goto JumpToContinue;
 							}
 						}
-						else if (LocalSocketData.SockAddr.ss_family == AF_INET && SourceListIter.first.ss_family == AF_INET && //IPv4
+					//IPv4
+						else if (LocalSocketData.SockAddr.ss_family == AF_INET && SourceListIter.first.ss_family == AF_INET && 
 							htonl(ntohl(((sockaddr_in *)&LocalSocketData.SockAddr)->sin_addr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - SourceListIter.second))) == 
 							((sockaddr_in *)&SourceListIter.first)->sin_addr.s_addr)
 						{
@@ -604,10 +600,9 @@ size_t CheckHostsProcess(
 				size_t RamdomIndex = 0, Index = 0;
 
 			//IPv6(AAAA records)
-				if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && HostsTableIter.RecordTypeList.front() == htons(DNS_RECORD_AAAA))
+				if (ntohs(DNS_Query->Type) == DNS_RECORD_AAAA && HostsTableIter.RecordTypeList.front() == htons(DNS_RECORD_AAAA))
 				{
 				//Set header flags and convert DNS query to DNS response packet.
-//					DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
 					DNS_Header->Flags = htons(DNS_SQR_NE);
 					DataLength = sizeof(dns_hdr) + Packet->Question;
 					memset(Result + DataLength, 0, ResultSize - DataLength);
@@ -656,10 +651,9 @@ size_t CheckHostsProcess(
 					return DataLength;
 				}
 			//IPv4(A records)
-				else if (DNS_Query->Type == htons(DNS_RECORD_A) && HostsTableIter.RecordTypeList.front() == htons(DNS_RECORD_A))
+				else if (ntohs(DNS_Query->Type) == DNS_RECORD_A && HostsTableIter.RecordTypeList.front() == htons(DNS_RECORD_A))
 				{
 				//Set header flags and convert DNS query to DNS response packet.
-//					DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
 					DNS_Header->Flags = htons(DNS_SQR_NE);
 					DataLength = sizeof(dns_hdr) + Packet->Question;
 					memset(Result + DataLength, 0, ResultSize - DataLength);
@@ -716,27 +710,23 @@ StopLoop_NormalHosts:
 	HostsFileMutex.unlock();
 
 //Check DNS cache.
-	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
-	if (Parameter.CacheType == CACHE_TYPE_TIMER) //Delete DNS cache.
+	if (Parameter.CacheType > CACHE_TYPE_NONE)
 	{
-	#if defined(PLATFORM_WIN_XP)
-		while (!DNSCacheList.empty() && DNSCacheList.back().ClearCacheTime <= GetTickCount())
-	#else
-		while (!DNSCacheList.empty() && DNSCacheList.back().ClearCacheTime <= GetTickCount64())
-	#endif
-			DNSCacheList.pop_back();
-	}
-	for (const auto &DNSCacheDataIter:DNSCacheList) //Scan all DNS cache.
-	{
-		if (Domain == DNSCacheDataIter.Domain && DNS_Query->Type == DNSCacheDataIter.RecordType)
-		{
-			memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
-			memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), DNSCacheDataIter.Response.get(), DNSCacheDataIter.Length);
+		std::lock_guard<std::mutex> DNSCacheListMutex(DNSCacheListLock);
+		AutoClearDNSCache();
 
-			return DNSCacheDataIter.Length + sizeof(uint16_t);
+	//Scan all DNS cache.
+		for (const auto &DNSCacheDataIter:DNSCacheList)
+		{
+			if (Domain == DNSCacheDataIter.Domain && DNS_Query->Type == DNSCacheDataIter.RecordType)
+			{
+				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
+				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), DNSCacheDataIter.Response.get(), DNSCacheDataIter.Length);
+
+				return DNSCacheDataIter.Length + sizeof(uint16_t);
+			}
 		}
 	}
-	DNSCacheListMutex.unlock();
 
 //Local Hosts check
 	HostsFileMutex.lock();
@@ -747,14 +737,15 @@ StopLoop_NormalHosts:
 			IsMatch = false;
 
 		//Dnsmasq normal mode
-			if (HostsTableIter.IsStringMatching)
+			if (HostsTableIter.IsStringMatching && !HostsTableIter.PatternOrDomainString.empty())
 			{
 				if ((HostsTableIter.PatternOrDomainString.empty() && Domain.find(ASCII_PERIOD) == std::string::npos) || //Dnsmasq unqualified names only
-					CompareStringReversed(HostsTableIter.PatternOrDomainString, ReverseDomain))
+					(HostsTableIter.PatternOrDomainString.front() == ReverseDomain.front() && //Fast check to reduce resource using
+					CompareStringReversed(HostsTableIter.PatternOrDomainString, ReverseDomain)))
 						IsMatch = true;
 			}
 		//Regex mode
-			else if (std::regex_match(Domain, HostsTableIter.Pattern))
+			else if (std::regex_match(Domain, HostsTableIter.PatternRegex))
 			{
 				IsMatch = true;
 			}
@@ -1232,7 +1223,7 @@ bool MarkDomainCache(
 	//Not a response packet
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RESPONSE) == 0 || 
 	//Question Resource Records must be one.
-		DNS_Header->Question != htons(U16_NUM_ONE) || 
+		ntohs(DNS_Header->Question) != U16_NUM_ONE || 
 	//Not any Answer Resource Records
 		(DNS_Header->Answer == 0 && DNS_Header->Authority == 0 /* && DNS_Header->Additional == 0 */ ) || 
 	//OPCode must be set Query/0.
@@ -1281,9 +1272,9 @@ bool MarkDomainCache(
 				break;
 
 		//Resource Records Data
-			if (DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && DNS_Record_Standard->TTL > 0 && 
-				((DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA) && DNS_Record_Standard->Length == htons(sizeof(in6_addr))) || 
-				(DNS_Record_Standard->Type == htons(DNS_RECORD_A) && DNS_Record_Standard->Length == htons(sizeof(in_addr)))))
+			if (ntohs(DNS_Record_Standard->Classes) == DNS_CLASS_IN && DNS_Record_Standard->TTL > 0 && 
+				((ntohs(DNS_Record_Standard->Type) == DNS_RECORD_AAAA && ntohs(DNS_Record_Standard->Length) == sizeof(in6_addr)) || 
+				(ntohs(DNS_Record_Standard->Type) == DNS_RECORD_A && ntohs(DNS_Record_Standard->Length) == sizeof(in_addr))))
 			{
 				ResponseTTL += ntohl(DNS_Record_Standard->TTL);
 				++TTLCounts;
@@ -1308,7 +1299,7 @@ bool MarkDomainCache(
 			if (ResponseTTL * SECOND_TO_MILLISECOND < Parameter.CacheParameter)
 				ResponseTTL = (uint32_t)(Parameter.CacheParameter / SECOND_TO_MILLISECOND - ResponseTTL + STANDARD_TIMEOUT / SECOND_TO_MILLISECOND);
 		}
-		else { //CACHE_TYPE_QUEUE
+		else { //CACHE_TYPE_QUEUE and CACHE_TYPE_BOTH
 			if (ResponseTTL < Parameter.HostsDefaultTTL)
 				ResponseTTL = Parameter.HostsDefaultTTL - ResponseTTL + STANDARD_TIMEOUT / SECOND_TO_MILLISECOND;
 		}
@@ -1334,32 +1325,41 @@ bool MarkDomainCache(
 		CaseConvert(false, DNSCacheDataTemp.Domain);
 		memcpy_s(DNSCacheDataTemp.Response.get(), PACKET_MAXSIZE, Buffer + sizeof(uint16_t), Length - sizeof(uint16_t));
 		DNSCacheDataTemp.Length = Length - sizeof(uint16_t);
-
-	#if defined(PLATFORM_WIN_XP)
-		DNSCacheDataTemp.ClearCacheTime = GetTickCount() + ResponseTTL * SECOND_TO_MILLISECOND;
-	#else
-		DNSCacheDataTemp.ClearCacheTime = GetTickCount64() + ResponseTTL * SECOND_TO_MILLISECOND;
-	#endif
+		DNSCacheDataTemp.ClearCacheTime = GetCurrentSystemTime() + ResponseTTL * SECOND_TO_MILLISECOND;
 
 	//Delete old cache.
 		std::lock_guard<std::mutex> DNSCacheListMutex(DNSCacheListLock);
-		if (Parameter.CacheType == CACHE_TYPE_TIMER)
-		{
-		#if defined(PLATFORM_WIN_XP)
-			while (!DNSCacheList.empty() && DNSCacheList.back().ClearCacheTime <= GetTickCount())
-		#else
-			while (!DNSCacheList.empty() && DNSCacheList.back().ClearCacheTime <= GetTickCount64())
-		#endif
-				DNSCacheList.pop_back();
-		}
-		else { //CACHE_TYPE_QUEUE
-			while (DNSCacheList.size() > Parameter.CacheParameter)
-				DNSCacheList.pop_back();
-		}
-
+		AutoClearDNSCache();
 		DNSCacheList.push_front(DNSCacheDataTemp);
+
 		return true;
 	}
 
 	return false;
+}
+
+//Auto clean DNS cache
+void AutoClearDNSCache(
+	void)
+{
+//Timer mode
+	if (Parameter.CacheType == CACHE_TYPE_TIMER)
+	{
+		while (!DNSCacheList.empty() && DNSCacheList.back().ClearCacheTime <= GetCurrentSystemTime())
+			DNSCacheList.pop_back();
+	}
+//Queue mode
+	else if (Parameter.CacheType == CACHE_TYPE_QUEUE)
+	{
+		while (DNSCacheList.size() > Parameter.CacheParameter)
+			DNSCacheList.pop_back();
+	}
+//Both mode(Timer + Queue)
+	else if (Parameter.CacheType == CACHE_TYPE_BOTH)
+	{
+		while (DNSCacheList.size() > Parameter.CacheParameter || (!DNSCacheList.empty() && DNSCacheList.back().ClearCacheTime <= GetCurrentSystemTime()))
+			DNSCacheList.pop_back();
+	}
+
+	return;
 }

@@ -253,59 +253,57 @@ bool CheckSpecialAddress(
 		if (
 		//DNS Poisoning addresses from CERNET2, see https://code.google.com/p/goagent/issues/detail?id=17571.
 //			(((in6_addr *)Addr)->s6_words[0] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_bytes[8U] == 0x90 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == 0) || //::90xx:xxxx:0:0, including in reserved address ranges
-//			(((in6_addr *)Addr)->s6_words[0] == htons(0x0010) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x2222)) || //10::2222, including in reserved address ranges
-//			(((in6_addr *)Addr)->s6_words[0] == htons(0x0021) && ((in6_addr *)Addr)->s6_words[1U] == htons(0x0002) && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0002)) || //21:2::2, including in reserved address ranges
-//			(((in6_addr *)Addr)->s6_words[0] == htons(0x0101) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x1234)) || //101::1234, including in reserved address ranges
-
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) == 0x0010 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ntohs(((in6_addr *)Addr)->s6_words[7U]) == 0x2222) || //10::2222, including in reserved address ranges
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) == 0x0021 && ntohs(((in6_addr *)Addr)->s6_words[1U]) == 0x0002 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ntohs(((in6_addr *)Addr)->s6_words[7U] == 0x0002) || //21:2::2, including in reserved address ranges
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) == 0x0101 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ntohs(((in6_addr *)Addr)->s6_words[7U]) == 0x1234) || //101::1234, including in reserved address ranges
 		//New DNS Poisoning addresses which had been added in August 2016
-//			(((in6_addr *)Addr)->s6_words[0] == htons(0x0200) && ((in6_addr *)Addr)->s6_words[1U] == htons(0x0002) && 
-//			(((((in6_addr *)Addr)->s6_words[2U] == htons(0x0807) && ((in6_addr *)Addr)->s6_words[3U] == htons(0xC62D))) || //200:2:807:C62D::, including in reserved address ranges
-//			((((in6_addr *)Addr)->s6_words[2U] == htons(0x253D) && ((in6_addr *)Addr)->s6_words[3U] == htons(0x369E))) || //200:2:253D:369E::, including in reserved address ranges
-//			((((in6_addr *)Addr)->s6_words[2U] == htons(0x2E52) && ((in6_addr *)Addr)->s6_words[3U] == htons(0xAE44))) || //200:2:2E52:AE44::, including in reserved address ranges
-//			((((in6_addr *)Addr)->s6_words[2U] == htons(0x3B18) && ((in6_addr *)Addr)->s6_words[3U] == htons(0x03AD))) || //200:2:3B18:3AD::, including in reserved address ranges
-//			((((in6_addr *)Addr)->s6_words[2U] == htons(0x4E10) && ((in6_addr *)Addr)->s6_words[3U] == htons(0x310F))) || //200:2:4E10:310F::, including in reserved address ranges
-//			((((in6_addr *)Addr)->s6_words[2U] == htons(0x5D2E) && ((in6_addr *)Addr)->s6_words[3U] == htons(0x0859))) || //200:2:5D2E:859::, including in reserved address ranges
-//			((((in6_addr *)Addr)->s6_words[2U] == htons(0x9F6A) && ((in6_addr *)Addr)->s6_words[3U] == htons(0x794B))) || //200:2:9F6A:794B::, including in reserved address ranges
-//			((((in6_addr *)Addr)->s6_words[2U] == htons(0xCB62) && ((in6_addr *)Addr)->s6_words[3U] == htons(0x0741))) || //200:2:CB62:741::, including in reserved address ranges
-//			((((in6_addr *)Addr)->s6_words[2U] == htons(0xF3B9) && ((in6_addr *)Addr)->s6_words[3U] == htons(0xBB27)))) && //200:2:F3B9:BB27::, including in reserved address ranges
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) == 0x0200 && ntohs(((in6_addr *)Addr)->s6_words[1U]) == 0x0002 && 
+//			((ntohs((((in6_addr *)Addr)->s6_words[2U]) == 0x0807 && ntohs(((in6_addr *)Addr)->s6_words[3U]) == 0xC62D))) || //200:2:807:C62D::, including in reserved address ranges
+//			((ntohs(((in6_addr *)Addr)->s6_words[2U]) == 0x253D && ntohs(((in6_addr *)Addr)->s6_words[3U]) == 0x369E)) || //200:2:253D:369E::, including in reserved address ranges
+//			((ntohs(((in6_addr *)Addr)->s6_words[2U]) == 0x2E52 && ntohs(((in6_addr *)Addr)->s6_words[3U]) == 0xAE44)) || //200:2:2E52:AE44::, including in reserved address ranges
+//			((ntohs(((in6_addr *)Addr)->s6_words[2U]) == 0x3B18 && ntohs(((in6_addr *)Addr)->s6_words[3U]) == 0x03AD)) || //200:2:3B18:3AD::, including in reserved address ranges
+//			((ntohs(((in6_addr *)Addr)->s6_words[2U]) == 0x4E10 && ntohs(((in6_addr *)Addr)->s6_words[3U]) == 0x310F)) || //200:2:4E10:310F::, including in reserved address ranges
+//			((ntohs(((in6_addr *)Addr)->s6_words[2U]) == 0x5D2E && ntohs(((in6_addr *)Addr)->s6_words[3U]) == 0x0859)) || //200:2:5D2E:859::, including in reserved address ranges
+//			((ntohs(((in6_addr *)Addr)->s6_words[2U]) == 0x9F6A && ntohs(((in6_addr *)Addr)->s6_words[3U]) == 0x794B)) || //200:2:9F6A:794B::, including in reserved address ranges
+//			((ntohs(((in6_addr *)Addr)->s6_words[2U]) == 0xCB62 && ntohs(((in6_addr *)Addr)->s6_words[3U]) == 0x0741)) || //200:2:CB62:741::, including in reserved address ranges
+//			((ntohs(((in6_addr *)Addr)->s6_words[2U]) == 0xF3B9 && ntohs(((in6_addr *)Addr)->s6_words[3U]) == 0xBB27))) && //200:2:F3B9:BB27::, including in reserved address ranges
 //			((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == 0) || 
-			(((in6_addr *)Addr)->s6_words[0] == htons(0x2001) && 
-			((IsPrivateUse && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0212)) || //2001::212
-			(((in6_addr *)Addr)->s6_words[1U] == htons(0x0DA8) && ((in6_addr *)Addr)->s6_words[2U] == htons(0x0112) && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x21AE)))) || //2001:DA8:112::21AE
-			(((in6_addr *)Addr)->s6_words[0] == htons(0x2003) && ((in6_addr *)Addr)->s6_words[1U] == htons(0x00FF) && ((in6_addr *)Addr)->s6_words[2U] == htons(0x0001) && ((in6_addr *)Addr)->s6_words[3U] == htons(0x0002) && ((in6_addr *)Addr)->s6_words[4U] == htons(0x0003) && ((in6_addr *)Addr)->s6_words[5U] == htons(0x0004) && ((in6_addr *)Addr)->s6_words[6U] == htons(0x5FFF)) || //2003:FF:1:2:3:4:5FFF:xxxx
-			(((in6_addr *)Addr)->s6_words[0] == htons(0x2123) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x3E12)) || //2123::3E12
-
+			(ntohs(((in6_addr *)Addr)->s6_words[0]) == 0x2001 && 
+			((IsPrivateUse && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ntohs(((in6_addr *)Addr)->s6_words[7U]) == 0x0212) || //2001::212
+			(ntohs(((in6_addr *)Addr)->s6_words[1U]) == 0x0DA8 && ntohs(((in6_addr *)Addr)->s6_words[2U]) == 0x0112 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ntohs(((in6_addr *)Addr)->s6_words[7U]) == 0x21AE))) || //2001:DA8:112::21AE
+			(ntohs(((in6_addr *)Addr)->s6_words[0]) == 0x2003 && ntohs(((in6_addr *)Addr)->s6_words[1U]) == 0x00FF && ntohs(((in6_addr *)Addr)->s6_words[2U]) == 0x0001 && ntohs(((in6_addr *)Addr)->s6_words[3U]) == 0x0002 && ntohs(((in6_addr *)Addr)->s6_words[4U]) == 0x0003 && ntohs(((in6_addr *)Addr)->s6_words[5U]) == 0x0004 && ntohs(((in6_addr *)Addr)->s6_words[6U]) == 0x5FFF) || //2003:FF:1:2:3:4:5FFF:xxxx
+			(ntohs(((in6_addr *)Addr)->s6_words[0]) == 0x2123 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ntohs(((in6_addr *)Addr)->s6_words[7U]) == 0x3E12) || //2123::3E12
 		//Special-use or reserved addresses, see https://en.wikipedia.org/wiki/IPv6_address#Presentation and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv6_addresses.
 		//Also https://www.iana.org/assignments/ipv6-address-space/ipv6-address-space.xhtml and https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry.xhtml
 			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0 && ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x00FF && //Reserved by IETF(::/8)
 			!(((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && 
 //			(((in6_addr *)Addr)->s6_words[5U] == 0 || //IPv4-Compatible Contrast addresses(::/96, Section 2.5.5.1 in RFC 4291), including in reserved address ranges
 //			((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == 0 || //Unspecified addresses(::, Section 2.5.2 in RFC 4291), including in reserved address ranges
-			((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001))) || //Loopback addresses(::1, Section 2.5.3 in RFC 4291)
-//			((in6_addr *)Addr)->s6_words[5U] == htons(0xFFFF))) || //IPv4-mapped addresses(::FFFF:0:0/96, Section 2.5.5 in RFC 4291), including in reserved address ranges
-//			(IsPrivateUse && ((in6_addr *)Addr)->s6_words[0] == htons(0x0064) && ((in6_addr *)Addr)->s6_words[1U] == htons(0xFF9B) && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0) || //Well Known Prefix addresses(64:FF9B::/96, Section 2.1 in RFC 4773), including in reserved address ranges
+			((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ntohs(((in6_addr *)Addr)->s6_words[7U]) == 0x0001)) || //Loopback addresses(::1, Section 2.5.3 in RFC 4291)
+//			ntohs(((in6_addr *)Addr)->s6_words[5U]) == 0xFFFF)) || //IPv4-mapped addresses(::FFFF:0:0/96, Section 2.5.5 in RFC 4291), including in reserved address ranges
+//			(IsPrivateUse && ntohs(((in6_addr *)Addr)->s6_words[0]) == 0x0064 && ntohs(((in6_addr *)Addr)->s6_words[1U]) == 0xFF9B && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0) || //Well Known Prefix addresses(64:FF9B::/96, Section 2.1 in RFC 4773), including in reserved address ranges
 			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0x0100 && ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x01FF) || //Reserved by IETF(0100::/8)
-//			(((in6_addr *)Addr)->s6_words[0] == htons(0x0100) && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0) || //Discard Prefix addresses(100::/64, Section 4 RFC 6666), including in reserved address ranges
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) == 0x0100 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0) || //Discard Prefix addresses(100::/64, Section 4 RFC 6666), including in reserved address ranges
 			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0x0200 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x03FF)) || //Reserved by IETF(0200::/7), deprecated as of RFC 4048 and formerly an OSI NSAP-mapped prefix set in RFC 4548
 //			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0x0400 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x07FF)) || //Reserved by IETF(0400::/6)
 //			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0x0800 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x0FFF)) || //Reserved by IETF(0800::/5)
 //			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0x1000 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x1FFF)) || //Reserved by IETF(1000::/4)
-			(((in6_addr *)Addr)->s6_words[0] == htons(0x2001) && 
+			(ntohs(((in6_addr *)Addr)->s6_words[0]) == 0x2001 && 
 			((ntohs(((in6_addr *)Addr)->s6_words[1U]) >= 0 && ntohs(((in6_addr *)Addr)->s6_words[1U]) <= 0x01FF) || //IETF Protocol Assignments(2001::/23, RFC 2928)
 //			((in6_addr *)Addr)->s6_words[1U] == 0 || //Teredo relay/tunnel addresses(2001::/32, RFC 4380), including in reserved address ranges
 //			((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_bytes[2U] == 0 && ((in6_addr *)Addr)->s6_bytes[3U] <= 0x07) || //Sub-TLA IDs assigned to IANA addresses(2001::/29, Section 2 in RFC 4773)
-//			(((in6_addr *)Addr)->s6_words[1U] == htons(0x0001) && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == htons(0x0001)) || //Port Control Protocol Anycast(2001:1::1/128, RFC 7723)
-			(((in6_addr *)Addr)->s6_words[1U] == htons(0x0002) && ((in6_addr *)Addr)->s6_words[2U] == 0) || //Benchmarking(2001:2::/48, RFC 5180)
-//			((in6_addr *)Addr)->s6_words[1U] == htons(0x0003) || //AMT(2001:3::/32, RFC 7450)
-//			(((in6_addr *)Addr)->s6_words[1U] == htons(0x0004) && ((in6_addr *)Addr)->s6_words[1U] == htons(0x0112)) || //AS112-v6(2001:4:112::/48, RFC 7535)
-//			((in6_addr *)Addr)->s6_words[1U] == htons(0x0005) || //EID Space for LISP, Managed by RIPE NCC(2001:5::/32, RFC-ietf-lisp-eid-block-13)
+//			(ntohs(((in6_addr *)Addr)->s6_words[1U]) == 0x0001 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ntohs(((in6_addr *)Addr)->s6_words[7U]) == 0x0001) || //Port Control Protocol Anycast(2001:1::1/128, RFC 7723)
+			(ntohs(((in6_addr *)Addr)->s6_words[1U]) == 0x0002 && ((in6_addr *)Addr)->s6_words[2U] == 0) || //Benchmarking(2001:2::/48, RFC 5180)
+//			ntohs(((in6_addr *)Addr)->s6_words[1U]) == 0x0003 || //AMT(2001:3::/32, RFC 7450)
+//			(ntohs(((in6_addr *)Addr)->s6_words[1U]) == 0x0004 && ntohs(((in6_addr *)Addr)->s6_words[1U]) == 0x0112) || //AS112-v6(2001:4:112::/48, RFC 7535)
+//			ntohs(((in6_addr *)Addr)->s6_words[1U]) == 0x0005 || //EID Space for LISP, Managed by RIPE NCC(2001:5::/32, RFC-ietf-lisp-eid-block-13)
 			(ntohs(((in6_addr *)Addr)->s6_words[1U]) >= 0x0010 && ntohs(((in6_addr *)Addr)->s6_words[1U]) <= 0x001F) || //Deprecated, previously ORCHID(2001:10::/28, RFC 4843)
 //			(ntohs(((in6_addr *)Addr)->s6_words[1U]) >= 0x0020 && ntohs(((in6_addr *)Addr)->s6_words[1U]) <= 0x002F) || //ORCHIDv2(2001:20::/28, RFC 7343)
 			(((in6_addr *)Addr)->s6_bytes[2U] == 0x01 && ((in6_addr *)Addr)->s6_bytes[3U] >= 0xF8) || //Sub-TLA IDs assigned to IANA addresses(2001:01F8::/29, Section 2 in RFC 4773)
-			((in6_addr *)Addr)->s6_words[1U] == htons(0x0DB8))) || //Contrast Address prefix reserved for documentation addresses(2001:DB8::/32, RFC 3849)
-			(IsPrivateUse && ((in6_addr *)Addr)->s6_words[0] == htons(0x2002)) || //6to4 relay/tunnel addresses(2002::/16, Section 2 in RFC 3056)
-//			(((in6_addr *)Addr)->s6_words[0] == htons(0x2620) && ((in6_addr *)Addr)->s6_words[1U] == htons(0x004F) && ((in6_addr *)Addr)->s6_words[2U] == htons(0x8000)) || //Direct Delegation AS112 Service(2620:4F:8000::/48, RFC 7534)
-			((in6_addr *)Addr)->s6_words[0] == htons(0x3FFE) || //6bone addresses(3FFE::/16, RFC 3701)
+			ntohs(((in6_addr *)Addr)->s6_words[1U]) == 0x0DB8)) || //Contrast Address prefix reserved for documentation addresses(2001:DB8::/32, RFC 3849)
+			(IsPrivateUse && ntohs(((in6_addr *)Addr)->s6_words[0]) == 0x2002) || //6to4 relay/tunnel addresses(2002::/16, Section 2 in RFC 3056)
+//			(ntohs(((in6_addr *)Addr)->s6_words[0]) == 0x2620 && ntohs(((in6_addr *)Addr)->s6_words[1U]) == 0x004F && ntohs(((in6_addr *)Addr)->s6_words[2U]) == 0x8000) || //Direct Delegation AS112 Service(2620:4F:8000::/48, RFC 7534)
+			ntohs(((in6_addr *)Addr)->s6_words[0]) == 0x3FFE || //6bone addresses(3FFE::/16, RFC 3701)
 //			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0x4000 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x5FFF)) || //Reserved by IETF(4000::/3)
 			((in6_addr *)Addr)->s6_bytes[0] == 0x5F || //6bone(5F00::/8, RFC 3701)
 //			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0x6000 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x7FFF)) || //Reserved by IETF(6000::/3)
@@ -319,7 +317,7 @@ bool CheckSpecialAddress(
 //			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0xFE00 && (ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0xFE7F)) || //Reserved by IETF(FE00::/9)
 			(((in6_addr *)Addr)->s6_bytes[0] == 0xFE && IsPrivateUse && 
 			((((in6_addr *)Addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF) || //Link-Local Unicast Contrast addresses/LUC(FE80::/10, Section 2.5.6 in RFC 4291)
-//			((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == htons(0x5EFE)) || //ISATAP Interface Identifiers addresses(Prefix:0:5EFE:0:0:0:0/64, which also in Link-Local Unicast Contrast addresses/LUC, Section 6.1 in RFC 5214)
+//			((in6_addr *)Addr)->s6_bytes[1U] <= 0xBF && ((in6_addr *)Addr)->s6_words[4U] == 0 && ntohs(((in6_addr *)Addr)->s6_words[5U]) == 0x5EFE) || //ISATAP Interface Identifiers addresses(Prefix:0:5EFE:0:0:0:0/64, which also in Link-Local Unicast Contrast addresses/LUC, Section 6.1 in RFC 5214)
 			((in6_addr *)Addr)->s6_bytes[1U] >= 0xC0)) || //Site-Local scoped addresses(FEC0::/10, RFC 3879)
 			(IsPrivateUse && ((in6_addr *)Addr)->s6_bytes[0] == 0xFF)) //Multicast addresses(FF00::/8, Section 2.7 in RFC 4291)
 				return true;
@@ -338,7 +336,7 @@ bool CheckSpecialAddress(
 				for (const auto &ResultBlacklistTableIter:IPFilterFileSetIter.ResultBlacklist)
 				{
 					if (ResultBlacklistTableIter.Addresses.front().Begin.ss_family == AF_INET6 && 
-						(ResultBlacklistTableIter.PatternString.empty() || std::regex_match(InnerDomain, ResultBlacklistTableIter.Pattern)))
+						(ResultBlacklistTableIter.PatternString.empty() || std::regex_match(InnerDomain, ResultBlacklistTableIter.PatternRegex)))
 					{
 						for (const auto &AddressRangeTableIter:ResultBlacklistTableIter.Addresses)
 						{
@@ -389,94 +387,94 @@ bool CheckSpecialAddress(
 	{
 		if (
 		//DNS Poisoning addresses from CERNET2, see https://code.google.com/p/goagent/issues/detail?id=17571.
-			((in_addr *)Addr)->s_addr == htonl(0x01020304) || //1.2.3.4
+			ntohl(((in_addr *)Addr)->s_addr) == 0x01020304 || //1.2.3.4
 		//Traditional DNS Poisoning addresses, see https://zh.wikipedia.org/wiki/%E5%9F%9F%E5%90%8D%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%BC%93%E5%AD%98%E6%B1%A1%E6%9F%93#.E8.99.9A.E5.81.87IP.E5.9C.B0.E5.9D.80.
-			((in_addr *)Addr)->s_addr == htonl(0x042442B2) || //4.36.66.178
-			((in_addr *)Addr)->s_addr == htonl(0x0807C62D) || //8.7.198.45
-			((in_addr *)Addr)->s_addr == htonl(0x253D369E) || //37.61.54.158
-			((in_addr *)Addr)->s_addr == htonl(0x2E52AE44) || //46.82.174.68
-			((in_addr *)Addr)->s_addr == htonl(0x3B1803AD) || //59.24.3.173
-			((in_addr *)Addr)->s_addr == htonl(0x402158A1) || //64.33.88.161
-			((in_addr *)Addr)->s_addr == htonl(0x4021632F) || //64.33.99.47
-			((in_addr *)Addr)->s_addr == htonl(0x4042A3FB) || //64.66.163.251
-			((in_addr *)Addr)->s_addr == htonl(0x4168CAFC) || //65.104.202.252
-			((in_addr *)Addr)->s_addr == htonl(0x41A0DB71) || //65.160.219.113
-			((in_addr *)Addr)->s_addr == htonl(0x422DFCED) || //66.45.252.237
-			((in_addr *)Addr)->s_addr == htonl(0x480ECD63) || //72.14.205.99
-			((in_addr *)Addr)->s_addr == htonl(0x480ECD68) || //72.14.205.104
-			((in_addr *)Addr)->s_addr == htonl(0x4E10310F) || //78.16.49.15
-			((in_addr *)Addr)->s_addr == htonl(0x5D2E0859) || //93.46.8.89
-			((in_addr *)Addr)->s_addr == htonl(0x80797E8B) || //128.121.126.139
-			((in_addr *)Addr)->s_addr == htonl(0x9F1803AD) || //159.24.3.173
-			((in_addr *)Addr)->s_addr == htonl(0x9F6A794B) || //159.106.121.75
-			((in_addr *)Addr)->s_addr == htonl(0xA9840D67) || //169.132.13.103
-			((in_addr *)Addr)->s_addr == htonl(0xC043C606) || //192.67.198.6
-			((in_addr *)Addr)->s_addr == htonl(0xCA6A0102) || //202.106.1.2
-			((in_addr *)Addr)->s_addr == htonl(0xCAB50755) || //202.181.7.85
-			((in_addr *)Addr)->s_addr == htonl(0xCB620741) || //203.98.7.65
-			((in_addr *)Addr)->s_addr == htonl(0xCBA1E6AB) || //203.161.230.171
-			((in_addr *)Addr)->s_addr == htonl(0xCF0C5862) || //207.12.88.98
-			((in_addr *)Addr)->s_addr == htonl(0xD0381F2B) || //208.56.31.43
-			((in_addr *)Addr)->s_addr == htonl(0xD1244921) || //209.36.73.33
-			((in_addr *)Addr)->s_addr == htonl(0xD1913632) || //209.145.54.50
-			((in_addr *)Addr)->s_addr == htonl(0xD1DC1EAE) || //209.220.30.174
-			((in_addr *)Addr)->s_addr == htonl(0xD35E4293) || //211.94.66.147
-			((in_addr *)Addr)->s_addr == htonl(0xD5A9FB23) || //213.169.251.35
-			((in_addr *)Addr)->s_addr == htonl(0xD8DDBCD6) || //216.221.188.182
+			ntohl(((in_addr *)Addr)->s_addr) == 0x042442B2 || //4.36.66.178
+			ntohl(((in_addr *)Addr)->s_addr) == 0x0807C62D || //8.7.198.45
+			ntohl(((in_addr *)Addr)->s_addr) == 0x253D369E || //37.61.54.158
+			ntohl(((in_addr *)Addr)->s_addr) == 0x2E52AE44 || //46.82.174.68
+			ntohl(((in_addr *)Addr)->s_addr) == 0x3B1803AD || //59.24.3.173
+			ntohl(((in_addr *)Addr)->s_addr) == 0x402158A1 || //64.33.88.161
+			ntohl(((in_addr *)Addr)->s_addr) == 0x4021632F || //64.33.99.47
+			ntohl(((in_addr *)Addr)->s_addr) == 0x4042A3FB || //64.66.163.251
+			ntohl(((in_addr *)Addr)->s_addr) == 0x4168CAFC || //65.104.202.252
+			ntohl(((in_addr *)Addr)->s_addr) == 0x41A0DB71 || //65.160.219.113
+			ntohl(((in_addr *)Addr)->s_addr) == 0x422DFCED || //66.45.252.237
+			ntohl(((in_addr *)Addr)->s_addr) == 0x480ECD63 || //72.14.205.99
+			ntohl(((in_addr *)Addr)->s_addr) == 0x480ECD68 || //72.14.205.104
+			ntohl(((in_addr *)Addr)->s_addr) == 0x4E10310F || //78.16.49.15
+			ntohl(((in_addr *)Addr)->s_addr) == 0x5D2E0859 || //93.46.8.89
+			ntohl(((in_addr *)Addr)->s_addr) == 0x80797E8B || //128.121.126.139
+			ntohl(((in_addr *)Addr)->s_addr) == 0x9F1803AD || //159.24.3.173
+			ntohl(((in_addr *)Addr)->s_addr) == 0x9F6A794B || //159.106.121.75
+			ntohl(((in_addr *)Addr)->s_addr) == 0xA9840D67 || //169.132.13.103
+			ntohl(((in_addr *)Addr)->s_addr) == 0xC043C606 || //192.67.198.6
+			ntohl(((in_addr *)Addr)->s_addr) == 0xCA6A0102 || //202.106.1.2
+			ntohl(((in_addr *)Addr)->s_addr) == 0xCAB50755 || //202.181.7.85
+			ntohl(((in_addr *)Addr)->s_addr) == 0xCB620741 || //203.98.7.65
+			ntohl(((in_addr *)Addr)->s_addr) == 0xCBA1E6AB || //203.161.230.171
+			ntohl(((in_addr *)Addr)->s_addr) == 0xCF0C5862 || //207.12.88.98
+			ntohl(((in_addr *)Addr)->s_addr) == 0xD0381F2B || //208.56.31.43
+			ntohl(((in_addr *)Addr)->s_addr) == 0xD1244921 || //209.36.73.33
+			ntohl(((in_addr *)Addr)->s_addr) == 0xD1913632 || //209.145.54.50
+			ntohl(((in_addr *)Addr)->s_addr) == 0xD1DC1EAE || //209.220.30.174
+			ntohl(((in_addr *)Addr)->s_addr) == 0xD35E4293 || //211.94.66.147
+			ntohl(((in_addr *)Addr)->s_addr) == 0xD5A9FB23 || //213.169.251.35
+			ntohl(((in_addr *)Addr)->s_addr) == 0xD8DDBCD6 || //216.221.188.182
 		//New DNS Poisoning addresses which had been added in May 2011, see http://forums.internetfreedom.org/index.php?topic=7953.0.
-			((in_addr *)Addr)->s_addr == htonl(0x1759053C) || //23.89.5.60
-			((in_addr *)Addr)->s_addr == htonl(0x31027B38) || //49.2.123.56
-			((in_addr *)Addr)->s_addr == htonl(0x364C8701) || //54.76.135.1
-			((in_addr *)Addr)->s_addr == htonl(0x4D04075C) || //77.4.7.92
-			((in_addr *)Addr)->s_addr == htonl(0x76050460) || //118.5.4.96
-			((in_addr *)Addr)->s_addr == htonl(0xBC050460) || //188.5.4.96
-			((in_addr *)Addr)->s_addr == htonl(0xBDA31105) || //189.163.17.5
-			((in_addr *)Addr)->s_addr == htonl(0xC504040C) || //197.4.4.12
-			((in_addr *)Addr)->s_addr == htonl(0xD8EAB30D) || //216.234.179.13
-//			((in_addr *)Addr)->s_addr == htonl(0xF3B9BB27) || //243.185.187.39, including in reserved address ranges
-//			((in_addr *)Addr)->s_addr == htonl(0xF9812E30) || //249.129.46.48, including in reserved address ranges
-//			((in_addr *)Addr)->s_addr == htonl(0xFD9D0EA5) || //253.157.14.165, including in reserved address ranges
+			ntohl(((in_addr *)Addr)->s_addr) == 0x1759053C || //23.89.5.60
+			ntohl(((in_addr *)Addr)->s_addr) == 0x31027B38 || //49.2.123.56
+			ntohl(((in_addr *)Addr)->s_addr) == 0x364C8701 || //54.76.135.1
+			ntohl(((in_addr *)Addr)->s_addr) == 0x4D04075C || //77.4.7.92
+			ntohl(((in_addr *)Addr)->s_addr) == 0x76050460 || //118.5.4.96
+			ntohl(((in_addr *)Addr)->s_addr) == 0xBC050460 || //188.5.4.96
+			ntohl(((in_addr *)Addr)->s_addr) == 0xBDA31105 || //189.163.17.5
+			ntohl(((in_addr *)Addr)->s_addr) == 0xC504040C || //197.4.4.12
+			ntohl(((in_addr *)Addr)->s_addr) == 0xD8EAB30D || //216.234.179.13
+//			ntohl(((in_addr *)Addr)->s_addr) == 0xF3B9BB27 || //243.185.187.39, including in reserved address ranges
+//			ntohl(((in_addr *)Addr)->s_addr) == 0xF9812E30 || //249.129.46.48, including in reserved address ranges
+//			ntohl(((in_addr *)Addr)->s_addr) == 0xFD9D0EA5 || //253.157.14.165, including in reserved address ranges
 		//China Network Anomaly in 2014-01-21, see https ://zh.wikipedia.org/wiki/2014%E5%B9%B4%E4%B8%AD%E5%9B%BD%E7%BD%91%E7%BB%9C%E5%BC%82%E5%B8%B8%E4%BA%8B%E4%BB%B6
-			((in_addr *)Addr)->s_addr == htonl(0x413102B2) || //65.49.2.178
+			ntohl(((in_addr *)Addr)->s_addr) == 0x413102B2 || //65.49.2.178
 		//New addresses in IPv6 which has been added in September 2014, see https://code.google.com/p/goagent/issues/detail?id=17571.
-			((in_addr *)Addr)->s_addr == htonl(0x01010101) || //1.1.1.1
-			((in_addr *)Addr)->s_addr == htonl(0x0A0A0A0A) || //10.10.10.10
-			((in_addr *)Addr)->s_addr == htonl(0x14141414) || //20.20.20.20
-//			((in_addr *)Addr)->s_addr == htonl(0xFFFFFFFF) || //255.255.255.255, including in reserved address ranges
+			ntohl(((in_addr *)Addr)->s_addr) == 0x01010101 || //1.1.1.1
+			ntohl(((in_addr *)Addr)->s_addr) == 0x0A0A0A0A || //10.10.10.10
+			ntohl(((in_addr *)Addr)->s_addr) == 0x14141414 || //20.20.20.20
+//			ntohl(((in_addr *)Addr)->s_addr) == 0xFFFFFFFF || //255.255.255.255, including in reserved address ranges
 		//New DNS Poisoning addresses which had been added in December 2014, see https://www.v2ex.com/t/156926.
 //			((in_addr *)Addr)->s_addr == 0 || //0.0.0.0, including in reserved address ranges
-			((in_addr *)Addr)->s_addr == htonl(0x02010102) || //2.1.1.2
-			((in_addr *)Addr)->s_addr == htonl(0x04C15000) || //4.193.80.0
-			((in_addr *)Addr)->s_addr == htonl(0x08695400) || //8.105.84.0
-			((in_addr *)Addr)->s_addr == htonl(0x0C578500) || //12.87.133.0
-			((in_addr *)Addr)->s_addr == htonl(0x103F9B00) || //16.63.155.0
-			((in_addr *)Addr)->s_addr == htonl(0x148B3800) || //20.139.56.0
-			((in_addr *)Addr)->s_addr == htonl(0x1833B800) || //24.51.184.0
-			((in_addr *)Addr)->s_addr == htonl(0x1C797E8B) || //28.121.126.139
-			((in_addr *)Addr)->s_addr == htonl(0x1C0DD800) || //28.13.216.0
-			((in_addr *)Addr)->s_addr == htonl(0x2E147EFC) || //46.20.126.252
-			((in_addr *)Addr)->s_addr == htonl(0x2E2618D1) || //46.38.24.209
-			((in_addr *)Addr)->s_addr == htonl(0x3D361C06) || //61.54.28.6
-			((in_addr *)Addr)->s_addr == htonl(0x42CE0BC2) || //66.206.11.194
-			((in_addr *)Addr)->s_addr == htonl(0x4A75398A) || //74.117.57.138
-			((in_addr *)Addr)->s_addr == htonl(0x591F376A) || //89.31.55.106
-			((in_addr *)Addr)->s_addr == htonl(0x710BC2BE) || //113.11.194.190
-			((in_addr *)Addr)->s_addr == htonl(0x76053106) || //118.5.49.6
-			((in_addr *)Addr)->s_addr == htonl(0x7ADA65BE) || //122.218.101.190
-			((in_addr *)Addr)->s_addr == htonl(0x7B3231AB) || //123.50.49.171
-			((in_addr *)Addr)->s_addr == htonl(0x7B7EF9EE) || //123.126.249.238
-			((in_addr *)Addr)->s_addr == htonl(0x7DE69430) || //125.230.148.48
-//			((in_addr *)Addr)->s_addr == htonl(0x7F000002) || //127.0.0.2, including in reserved address ranges
-			((in_addr *)Addr)->s_addr == htonl(0xADC9D806) || //173.201.216.6
-			((in_addr *)Addr)->s_addr == htonl(0xCBC73951) || //203.199.57.81
-			((in_addr *)Addr)->s_addr == htonl(0xD06D8A37) || //208.109.138.55
-			((in_addr *)Addr)->s_addr == htonl(0xD3058512) || //211.5.133.18
-			((in_addr *)Addr)->s_addr == htonl(0xD308451B) || //211.8.69.27
-			((in_addr *)Addr)->s_addr == htonl(0xD5BA2105) || //213.186.33.5
-			((in_addr *)Addr)->s_addr == htonl(0xD88BD590) || //216.139.213.144
-			((in_addr *)Addr)->s_addr == htonl(0xDD08451B) || //221.8.69.27
-//			((in_addr *)Addr)->s_addr == htonl(0xF3B9BB03) || //243.185.187.3, including in reserved address ranges
-//			((in_addr *)Addr)->s_addr == htonl(0xF3B9BB1E) || //243.185.187.30, including in reserved address ranges
+			ntohl(((in_addr *)Addr)->s_addr) == 0x02010102 || //2.1.1.2
+			ntohl(((in_addr *)Addr)->s_addr) == 0x04C15000 || //4.193.80.0
+			ntohl(((in_addr *)Addr)->s_addr) == 0x08695400 || //8.105.84.0
+			ntohl(((in_addr *)Addr)->s_addr) == 0x0C578500 || //12.87.133.0
+			ntohl(((in_addr *)Addr)->s_addr) == 0x103F9B00 || //16.63.155.0
+			ntohl(((in_addr *)Addr)->s_addr) == 0x148B3800 || //20.139.56.0
+			ntohl(((in_addr *)Addr)->s_addr) == 0x1833B800 || //24.51.184.0
+			ntohl(((in_addr *)Addr)->s_addr) == 0x1C797E8B || //28.121.126.139
+			ntohl(((in_addr *)Addr)->s_addr) == 0x1C0DD800 || //28.13.216.0
+			ntohl(((in_addr *)Addr)->s_addr) == 0x2E147EFC || //46.20.126.252
+			ntohl(((in_addr *)Addr)->s_addr) == 0x2E2618D1 || //46.38.24.209
+			ntohl(((in_addr *)Addr)->s_addr) == 0x3D361C06 || //61.54.28.6
+			ntohl(((in_addr *)Addr)->s_addr) == 0x42CE0BC2 || //66.206.11.194
+			ntohl(((in_addr *)Addr)->s_addr) == 0x4A75398A || //74.117.57.138
+			ntohl(((in_addr *)Addr)->s_addr) == 0x591F376A || //89.31.55.106
+			ntohl(((in_addr *)Addr)->s_addr) == 0x710BC2BE || //113.11.194.190
+			ntohl(((in_addr *)Addr)->s_addr) == 0x76053106 || //118.5.49.6
+			ntohl(((in_addr *)Addr)->s_addr) == 0x7ADA65BE || //122.218.101.190
+			ntohl(((in_addr *)Addr)->s_addr) == 0x7B3231AB || //123.50.49.171
+			ntohl(((in_addr *)Addr)->s_addr) == 0x7B7EF9EE || //123.126.249.238
+			ntohl(((in_addr *)Addr)->s_addr) == 0x7DE69430 || //125.230.148.48
+//			ntohl(((in_addr *)Addr)->s_addr) == 0x7F000002 || //127.0.0.2, including in reserved address ranges
+			ntohl(((in_addr *)Addr)->s_addr) == 0xADC9D806 || //173.201.216.6
+			ntohl(((in_addr *)Addr)->s_addr) == 0xCBC73951 || //203.199.57.81
+			ntohl(((in_addr *)Addr)->s_addr) == 0xD06D8A37 || //208.109.138.55
+			ntohl(((in_addr *)Addr)->s_addr) == 0xD3058512 || //211.5.133.18
+			ntohl(((in_addr *)Addr)->s_addr) == 0xD308451B || //211.8.69.27
+			ntohl(((in_addr *)Addr)->s_addr) == 0xD5BA2105 || //213.186.33.5
+			ntohl(((in_addr *)Addr)->s_addr) == 0xD88BD590 || //216.139.213.144
+			ntohl(((in_addr *)Addr)->s_addr) == 0xDD08451B || //221.8.69.27
+//			ntohl(((in_addr *)Addr)->s_addr) == 0xF3B9BB03 || //243.185.187.3, including in reserved address ranges
+//			ntohl(((in_addr *)Addr)->s_addr) == 0xF3B9BB1E || //243.185.187.30, including in reserved address ranges
 		//Special-use or reserved addresses, see https://en.wikipedia.org/wiki/IPv4#Special-use_addresses and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv4_addresses.
 		//Also https://www.iana.org/assignments/ipv4-address-space/ipv4-address-space.xhtml
 			((in_addr *)Addr)->s_net == 0 || //Current network whick only valid as source addresses(0.0.0.0/8, Section 3.2.1.3 in RFC 1122)
@@ -512,7 +510,7 @@ bool CheckSpecialAddress(
 				for (const auto &ResultBlacklistTableIter:IPFilterFileSetIter.ResultBlacklist)
 				{
 					if (ResultBlacklistTableIter.Addresses.front().Begin.ss_family == AF_INET && 
-						(ResultBlacklistTableIter.PatternString.empty() || std::regex_match(InnerDomain, ResultBlacklistTableIter.Pattern)))
+						(ResultBlacklistTableIter.PatternString.empty() || std::regex_match(InnerDomain, ResultBlacklistTableIter.PatternRegex)))
 					{
 						for (const auto &AddressRangeTableIter:ResultBlacklistTableIter.Addresses)
 						{
@@ -856,14 +854,15 @@ size_t CheckResponseCNAME(
 			IsMatch = false;
 
 		//Dnsmasq normal mode(http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html)
-			if (HostsTableIter.IsStringMatching)
+			if (HostsTableIter.IsStringMatching && !HostsTableIter.PatternOrDomainString.empty())
 			{
 				if (HostsTableIter.PatternOrDomainString == "#" || //Dnsmasq "#" matches any domain.
-					CompareStringReversed(HostsTableIter.PatternOrDomainString, ReverseDomain))
+					(HostsTableIter.PatternOrDomainString.front() == ReverseDomain.front() && //Fast check to reduce resource using
+					CompareStringReversed(HostsTableIter.PatternOrDomainString, ReverseDomain)))
 						IsMatch = true;
 			}
 		//Regex mode
-			else if (std::regex_match(Domain, HostsTableIter.Pattern))
+			else if (std::regex_match(Domain, HostsTableIter.PatternRegex))
 			{
 				IsMatch = true;
 			}
@@ -883,10 +882,9 @@ size_t CheckResponseCNAME(
 				size_t RamdomIndex = 0, Index = 0;
 
 			//IPv6(AAAA records)
-				if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && HostsTableIter.RecordTypeList.front() == htons(DNS_RECORD_AAAA))
+				if (ntohs(DNS_Query->Type) == DNS_RECORD_AAAA && HostsTableIter.RecordTypeList.front() == htons(DNS_RECORD_AAAA))
 				{
 				//Set header flags and convert DNS query to DNS response packet.
-//					DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
 					DNS_Header->Flags = htons(DNS_SQR_NE);
 					DataLength = CNAME_Index + CNAME_Length;
 					memset(Buffer + DataLength, 0, BufferSize - DataLength);
@@ -937,10 +935,9 @@ size_t CheckResponseCNAME(
 					return DataLength;
 				}
 			//IPv4(A records)
-				else if (DNS_Query->Type == htons(DNS_RECORD_A) && HostsTableIter.RecordTypeList.front() == htons(DNS_RECORD_A))
+				else if (ntohs(DNS_Query->Type) == DNS_RECORD_A && HostsTableIter.RecordTypeList.front() == htons(DNS_RECORD_A))
 				{
 				//Set header flags and convert DNS query to DNS response packet.
-//					DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R);
 					DNS_Header->Flags = htons(DNS_SQR_NE);
 					DataLength = CNAME_Index + CNAME_Length;
 					memset(Buffer + DataLength, 0, BufferSize - DataLength);
@@ -1014,7 +1011,7 @@ bool CheckQueryData(
 				(Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
 				!((((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] <= 0xFD) || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
 				(((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] == 0xFE && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[1U] <= 0xBF) || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
-				(((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_words[6U] == 0 && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_words[7U] == htons(0x0001)))) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
+				(((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_words[6U] == 0 && ntohs(((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_words[7U]) == 0x0001))) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
 			//Check Custom Mode(IPv6).
 				(Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr, AF_INET6)))
 					return false;
@@ -1059,7 +1056,7 @@ bool CheckQueryData(
 	//Must not set RCode.
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) > 0 || 
 	//Question Resource Records Counts must be set 1.
-		DNS_Header->Question != htons(U16_NUM_ONE) || 
+		ntohs(DNS_Header->Question) != U16_NUM_ONE || 
 	//Answer Resource Records Counts must be set 0.
 		DNS_Header->Answer > 0 || 
 	//Authority Resource Records Counts must be set 0.
@@ -1079,7 +1076,6 @@ bool CheckQueryData(
 	{
 		if (Packet->Length >= DNS_PACKET_MINSIZE)
 		{
-//			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_FE);
 			DNS_Header->Flags = htons(DNS_SET_R_FE);
 			SendToRequester(Packet->Buffer, Packet->Length, Packet->BufferSize, Packet->Protocol, LocalSocketData);
 		}
@@ -1121,7 +1117,7 @@ bool CheckQueryData(
 		{
 		//EDNS Label check
 			if (Index == ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional) - 1U && 
-				DNS_Record_Standard->Type == htons(DNS_RECORD_OPT))
+				ntohs(DNS_Record_Standard->Type) == DNS_RECORD_OPT)
 			{
 				Packet->EDNS_Record += RecordLength;
 				break;
@@ -1140,21 +1136,18 @@ bool CheckQueryData(
 	}
 
 //UDP Truncated check
-	if (Packet->Protocol == IPPROTO_UDP)
+	if (Packet->Protocol == IPPROTO_UDP && Packet->Length + EDNS_ADDITIONAL_MAXSIZE > Parameter.EDNSPayloadSize && 
+		(Parameter.EDNS_Label || Packet->Length > Parameter.EDNSPayloadSize))
 	{
-		if (Packet->Length + EDNS_ADDITIONAL_MAXSIZE > Parameter.EDNSPayloadSize && (Parameter.EDNS_Label || Packet->Length > Parameter.EDNSPayloadSize))
-		{
-		//Make packets with EDNS Label.
-//			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SET_R_TC);
-			DNS_Header->Flags = htons(DNS_SET_R_TC);
-			AddEDNSLabelToAdditionalRR(Packet, nullptr);
+	//Make packets with EDNS Label.
+		DNS_Header->Flags = htons(DNS_SET_R_TC);
+		AddEDNSLabelToAdditionalRR(Packet, nullptr);
 
-		//Send request.
-			if (Packet->Length >= DNS_PACKET_MINSIZE)
-				SendToRequester(Packet->Buffer, Packet->Length, Packet->BufferSize, Packet->Protocol, LocalSocketData);
+	//Send request.
+		if (Packet->Length >= DNS_PACKET_MINSIZE)
+			SendToRequester(Packet->Buffer, Packet->Length, Packet->BufferSize, Packet->Protocol, LocalSocketData);
 
-			return false;
-		}
+		return false;
 	}
 
 //EDNS Label
@@ -1215,7 +1208,7 @@ size_t CheckResponseData(
 	//Must not set Reserved bit.
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_Z) > 0 || 
 	//Question Resource Records Counts must be set 1.
-		DNS_Header->Question != htons(U16_NUM_ONE) || 
+		ntohs(DNS_Header->Question) != U16_NUM_ONE || 
 	//Additional EDNS Label Resource Records check
 		(Parameter.EDNS_Label && DNS_Header->Additional == 0 && 
 		(ResponseType == 0 || //Normal
@@ -1238,12 +1231,12 @@ size_t CheckResponseData(
 		}
 
 	//Check repeating DNS Domain without Compression.
-		if (DNS_Header->Answer == htons(U16_NUM_ONE) && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && 
+		if (ntohs(DNS_Header->Answer) == U16_NUM_ONE && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && 
 			CheckQueryNameLength(Buffer + sizeof(dns_hdr)) == CheckQueryNameLength(Buffer + DNS_PACKET_RR_LOCATE(Buffer)))
 		{
-			if (((pdns_record_standard)(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U))->Classes == htons(DNS_CLASS_IN) && 
-				(((pdns_record_standard)(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U))->Type == htons(DNS_RECORD_A) || 
-				((pdns_record_standard)(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U))->Type == htons(DNS_RECORD_AAAA)) && 
+			if (ntohs(((pdns_record_standard)(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U))->Classes) == DNS_CLASS_IN && 
+				(ntohs(((pdns_record_standard)(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U))->Type) == DNS_RECORD_A || 
+				ntohs(((pdns_record_standard)(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U))->Type) == DNS_RECORD_AAAA) && 
 				memcmp(Buffer + sizeof(dns_hdr), Buffer + DNS_PACKET_RR_LOCATE(Buffer), CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + 1U) == 0)
 					return EXIT_FAILURE;
 		}
@@ -1287,8 +1280,8 @@ size_t CheckResponseData(
 			return EXIT_FAILURE;
 
 	//CNAME Hosts
-		if (Index < ntohs(DNS_Header->Answer) && DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && DNS_Record_Standard->TTL > 0 && 
-			DNS_Record_Standard->Type == htons(DNS_RECORD_CNAME) && DNS_Record_Standard->Length >= DOMAIN_MINSIZE && 
+		if (Index < ntohs(DNS_Header->Answer) && ntohs(DNS_Record_Standard->Classes) == DNS_CLASS_IN && DNS_Record_Standard->TTL > 0 && 
+			ntohs(DNS_Record_Standard->Type) == DNS_RECORD_CNAME && ntohs(DNS_Record_Standard->Length) >= DOMAIN_MINSIZE && 
 			DataLength + ntohs(DNS_Record_Standard->Length) < Length)
 		{
 			size_t RecordNum = 0;
@@ -1303,31 +1296,31 @@ size_t CheckResponseData(
 	//EDNS Label(OPT Records) and DNSSEC Records(RRSIG/DNSKEY/DS/NSEC/NSEC3/NSEC3PARAM) check
 		if (ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && Parameter.EDNS_Label)
 		{
-			if (DNS_Record_Standard->Type == htons(DNS_RECORD_OPT))
+			if (ntohs(DNS_Record_Standard->Type) == DNS_RECORD_OPT)
 				IsEDNS_Label = true;
 			else if (Parameter.DNSSEC_Request && 
-				(DNS_Record_Standard->Type == htons(DNS_RECORD_SIG) || DNS_Record_Standard->Type == htons(DNS_RECORD_KEY) || 
-				DNS_Record_Standard->Type == htons(DNS_RECORD_DS) || DNS_Record_Standard->Type == htons(DNS_RECORD_RRSIG) || 
-				DNS_Record_Standard->Type == htons(DNS_RECORD_NSEC) || DNS_Record_Standard->Type == htons(DNS_RECORD_DNSKEY) || 
-				DNS_Record_Standard->Type == htons(DNS_RECORD_NSEC3) || DNS_Record_Standard->Type == htons(DNS_RECORD_NSEC3PARAM) || 
-				DNS_Record_Standard->Type == htons(DNS_RECORD_CDS) || DNS_Record_Standard->Type == htons(DNS_RECORD_CDNSKEY)))
+				(ntohs(DNS_Record_Standard->Type) == DNS_RECORD_SIG || ntohs(DNS_Record_Standard->Type) == DNS_RECORD_KEY || 
+				ntohs(DNS_Record_Standard->Type) == DNS_RECORD_DS || ntohs(DNS_Record_Standard->Type) == DNS_RECORD_RRSIG || 
+				ntohs(DNS_Record_Standard->Type) == DNS_RECORD_NSEC || ntohs(DNS_Record_Standard->Type) == DNS_RECORD_DNSKEY || 
+				ntohs(DNS_Record_Standard->Type) == DNS_RECORD_NSEC3 || ntohs(DNS_Record_Standard->Type) == DNS_RECORD_NSEC3PARAM || 
+				ntohs(DNS_Record_Standard->Type) == DNS_RECORD_CDS || ntohs(DNS_Record_Standard->Type) == DNS_RECORD_CDNSKEY))
 			{
 				IsDNSSEC_Records = true;
 
 			//DNSSEC Validation
-				if (Parameter.DNSSEC_Validation && !CheckDNSSECRecords(Buffer + DataLength, ntohs(DNS_Record_Standard->Length), DNS_Record_Standard->Type, BeforeType))
+				if (Parameter.DNSSEC_Validation && !CheckDNSSECRecords(Buffer + DataLength, ntohs(DNS_Record_Standard->Length), ntohs(DNS_Record_Standard->Type), BeforeType))
 					return EXIT_FAILURE;
 			}
 		}
 
 	//Read Resource Records data
-		if (ResponseType != REQUEST_PROCESS_DNSCURVE && DNS_Record_Standard->Classes == htons(DNS_CLASS_IN) && DNS_Record_Standard->TTL > 0)
+		if (ResponseType != REQUEST_PROCESS_DNSCURVE && ntohs(DNS_Record_Standard->Classes) == DNS_CLASS_IN && DNS_Record_Standard->TTL > 0)
 		{
 		//AAAA Records
-			if (DNS_Record_Standard->Type == htons(DNS_RECORD_AAAA) && DNS_Record_Standard->Length == htons(sizeof(in6_addr)))
+			if (ntohs(DNS_Record_Standard->Type) == DNS_RECORD_AAAA && ntohs(DNS_Record_Standard->Length) == sizeof(in6_addr))
 			{
 			//Records Type in responses check
-				if (Index < ntohs(DNS_Header->Answer) && Parameter.HeaderCheck_DNS && DNS_Query->Type == htons(DNS_RECORD_A))
+				if (Index < ntohs(DNS_Header->Answer) && Parameter.HeaderCheck_DNS && ntohs(DNS_Query->Type) == DNS_RECORD_A)
 					return EXIT_FAILURE;
 
 			//Check addresses.
@@ -1340,10 +1333,10 @@ size_t CheckResponseData(
 				IsGotAddressResult = true;
 			}
 		//A Records
-			else if (DNS_Record_Standard->Type == htons(DNS_RECORD_A) && DNS_Record_Standard->Length == htons(sizeof(in_addr)))
+			else if (ntohs(DNS_Record_Standard->Type) == DNS_RECORD_A && ntohs(DNS_Record_Standard->Length) == sizeof(in_addr))
 			{
 			//Records Type in responses check
-				if (Index < ntohs(DNS_Header->Answer) && Parameter.HeaderCheck_DNS && DNS_Query->Type == htons(DNS_RECORD_AAAA))
+				if (Index < ntohs(DNS_Header->Answer) && Parameter.HeaderCheck_DNS && ntohs(DNS_Query->Type) == DNS_RECORD_AAAA)
 					return EXIT_FAILURE;
 
 			//Check addresses.
@@ -1385,7 +1378,7 @@ size_t CheckResponseData(
 //Mark Hop Limits or TTL.
 	if (ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && 
 		((IsMarkHopLimit != nullptr && Parameter.HeaderCheck_DNS && 
-//		DNS_Header->Answer != htons(U16_NUM_ONE) || //Some ISP will return fake responses with more than one Answer records.
+//		ntohs(DNS_Header->Answer) != U16_NUM_ONE || //Some ISP will return fake responses with more than one Answer records.
 		(DNS_Header->Answer == 0 || //No any Answer records
 		DNS_Header->Authority > 0 || DNS_Header->Additional > 0 || //More than one Authority records and/or Additional records
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NXDOMAIN)) || //No Such Name, not standard query response and no error check.
@@ -1405,7 +1398,7 @@ bool CheckDNSSECRecords(
 	const uint16_t BeforeType)
 {
 //DS and CDS Records
-	if (Type == htons(DNS_RECORD_DS) || Type == htons(DNS_RECORD_CDS))
+	if (Type == DNS_RECORD_DS || Type == DNS_RECORD_CDS)
 	{
 		auto DNS_Record_DS = (pdns_record_ds)Buffer;
 
@@ -1425,7 +1418,7 @@ bool CheckDNSSECRecords(
 				return false;
 	}
 //SIG and RRSIG Records
-	else if (Type == htons(DNS_RECORD_SIG) || Type == htons(DNS_RECORD_RRSIG))
+	else if (Type == DNS_RECORD_SIG || Type == DNS_RECORD_RRSIG)
 	{
 		auto DNS_Record_RRSIG = (pdns_record_rrsig)Buffer;
 		auto TimeValues = time(nullptr);
@@ -1462,7 +1455,7 @@ bool CheckDNSSECRecords(
 				return false;
 	}
 //DNSKEY and CDNSKEY Records
-	else if (Type == htons(DNS_RECORD_DNSKEY) || Type == htons(DNS_RECORD_CDNSKEY))
+	else if (Type == DNS_RECORD_DNSKEY || Type == DNS_RECORD_CDNSKEY)
 	{
 		auto DNS_Record_DNSKEY = (pdns_record_dnskey)Buffer;
 
@@ -1475,7 +1468,7 @@ bool CheckDNSSECRecords(
 				return false;
 	}
 //NSEC3 Records
-	else if (Type == htons(DNS_RECORD_NSEC3))
+	else if (Type == DNS_RECORD_NSEC3)
 	{
 		auto DNS_Record_NSEC3 = (pdns_record_nsec3)Buffer;
 
@@ -1492,7 +1485,7 @@ bool CheckDNSSECRecords(
 				return false;
 	}
 //NSEC3PARAM Records
-	else if (Type == htons(DNS_RECORD_NSEC3PARAM))
+	else if (Type == DNS_RECORD_NSEC3PARAM)
 	{
 		auto DNS_Record_NSEC3PARAM = (pdns_record_nsec3param)Buffer;
 

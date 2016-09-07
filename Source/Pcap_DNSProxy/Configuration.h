@@ -118,6 +118,7 @@ bool ReadHopLimitData(
 	const size_t DataOffset, 
 	const uint16_t Protocol, 
 	std::vector<DNS_SERVER_DATA> *DNSServerDataList, 
+	const bool IsFirstRead, 
 	const size_t FileIndex, 
 	const size_t Line);
 #endif

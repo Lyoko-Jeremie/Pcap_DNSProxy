@@ -311,9 +311,13 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Direct Request - 直连模式，启用后将使用系统的 API 直接请求远程服务器而启用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，关闭为 0
     * 建议当系统使用全局代理功能时启用，程序将除境内服务器外的所有请求直接交给系统而不作任何过滤等处理，系统会将请求自动发往远程服务器进行解析
     * 填入 IPv4 或 IPv6 时将会启用对应协议的 Direct Request 功能，填入 IPv4 + IPv6 将会启用所有协议的功能
-  * Cache Type - DNS 缓存的类型：分 Timer/计时型以及 Queue/队列型，填入 0 为关闭此功能
-  * Cache Parameter - DNS 缓存的参数：Timer/计时型 时为时间长度（单位为秒），Queue/队列型 时为队列长度
+  * Cache Type - DNS 缓存的类型：分 Timer/计时型、Queue/队列型以及它们的混合类型，填入 0 为关闭此功能
+    * Timer/计时型：超过指定时间的 DNS 缓存将会被丢弃
+    * Queue/队列型：超过队列长度时，将删除最旧的 DNS 缓存
+    * 混合类型：超过指定时间时、超过队列长度时以及超过域名本身 TTL 时，都会删除最旧的 DNS 缓存
+  * Cache Parameter - DNS 缓存的参数：Timer/计时型 时为时间长度（单位为秒），Queue/队列型和混合类型时为队列长度
   * Default TTL - 已缓存 DNS 记录默认生存时间：单位为秒，留空则为 900秒/15分钟
+    * DNS 缓存的类型为混合类型时，本参数将同时指定域名本身 TTL 的最小缓存时间
   
 * Local DNS - 境内域名解析参数区域
   * Local Protocol - 发送境内请求所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP

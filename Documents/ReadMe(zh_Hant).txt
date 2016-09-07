@@ -313,9 +313,13 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Direct Request - 直連模式，啟用後將使用系統的 API 直接請求遠端伺服器而啟用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，關閉為 0
     * 建議當系統使用全域代理功能時啟用，程式將除境內服務器外的所有請求直接交給系統而不作任何過濾等處理，系統會將請求自動發往遠端伺服器進行解析
     * 填入 IPv4 或 IPv6 時將會啟用對應協定的 Direct Request 功能，填入 IPv4 + IPv6 將會啟用所有協定的功能
-  * Cache Type - DNS 緩存的類型：分 Timer/計時型以及 Queue/佇列型，填入 0 為關閉此功能
-  * Cache Parameter - DNS 緩存的參數：Timer/計時型 時為時間長度（單位為秒），Queue/佇列型 時為佇列長度
+  * Cache Type - DNS 緩存的類型：分 Timer/計時型、Queue/佇列型以及它們的混合類型，填入 0 為關閉此功能
+    * Timer/計時型：超過指定時間的 DNS 緩存將會被丟棄
+    * Queue/佇列型：超過佇列長度時，將刪除最舊的 DNS 緩存
+    * 混合類型：超過指定時間時、超過佇列長度時以及超過功能變數名稱本身 TTL 時，都會刪除最舊的 DNS 緩存
+  * Cache Parameter - DNS 緩存的參數：Timer/計時型 時為時間長度（單位為秒），Queue/佇列型和混合類型時為佇列長度
   * Default TTL - 已緩存 DNS 記錄預設存留時間：單位為秒，留空則為 900秒/15分鐘
+    * DNS 緩存的類型為混合類型時，本參數將同時指定功能變數名稱本身 TTL 的最小緩存時間
   
 * Local DNS - 境內功能變數名稱解析參數區域
   * Local Protocol - 發送境內請求所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP

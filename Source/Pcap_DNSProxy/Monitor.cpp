@@ -23,78 +23,6 @@
 bool MonitorInit(
 	void)
 {
-//Capture initialization
-#if defined(ENABLE_PCAP)
-	if (Parameter.IsPcapCapture && 
-	//Direct Request mode
-		!(Parameter.DirectRequest == DIRECT_REQUEST_MODE_BOTH || 
-		(Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV6 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0 && 
-		Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV4 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0)) && 
-	//SOCKS request only mode
-		!(Parameter.SOCKS_Proxy && Parameter.SOCKS_Only) && 
-	//HTTP request only mode
-		!(Parameter.HTTP_Proxy && Parameter.HTTP_Only)
-	//DNSCurve request only mode
-	#if defined(ENABLE_LIBSODIUM)
-		&& !(Parameter.IsDNSCurve && DNSCurveParameter.IsEncryptionOnly)
-	#endif
-		)
-	{
-	#if defined(ENABLE_PCAP)
-		std::thread CaptureInitializationThread(std::bind(CaptureInit));
-		CaptureInitializationThread.detach();
-	#endif
-
-	//Get Hop Limits/TTL with normal DNS request.
-		if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-			(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
-		{
-			std::thread IPv6TestDoaminThread(std::bind(DomainTestRequest, AF_INET6));
-			IPv6TestDoaminThread.detach();
-		}
-
-		if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-			(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
-		{
-			std::thread IPv4TestDoaminThread(std::bind(DomainTestRequest, AF_INET));
-			IPv4TestDoaminThread.detach();
-		}
-
-	//Get Hop Limits/TTL with ICMP echo.
-	//ICMPv6
-		if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-			(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
-		{
-			std::thread ICMPv6Thread(std::bind(ICMPTestRequest, AF_INET6));
-			ICMPv6Thread.detach();
-		}
-
-	//ICMP
-		if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-			(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
-		{
-			std::thread ICMPThread(std::bind(ICMPTestRequest, AF_INET));
-			ICMPThread.detach();
-		}
-	}
-#endif
-
-//Set Preferred DNS servers switcher.
-	if ((!Parameter.AlternateMultipleRequest && 
-		(Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 || Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0
-	#if defined(ENABLE_LIBSODIUM)
-		|| DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 || DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0
-	#endif
-		)) || Parameter.Target_Server_Alternate_Local_IPv6.Storage.ss_family > 0 || Parameter.Target_Server_Alternate_Local_IPv4.Storage.ss_family > 0)
-	{
-		std::thread AlternateServerMonitorThread(std::bind(AlternateServerMonitor));
-		AlternateServerMonitorThread.detach();
-	}
-
 //Initialization
 	std::vector<std::thread> MonitorThread((Parameter.ListenPort->size() + 1U) * TRANSPORT_LAYER_PARTNUM);
 	SOCKET_DATA LocalSocketData;
@@ -436,16 +364,6 @@ bool MonitorInit(
 
 	memset(&LocalSocketData, 0, sizeof(LocalSocketData));
 
-#if defined(PLATFORM_WIN)
-//Set MailSlot Monitor.
-	std::thread FlushDNSMailSlotMonitorThread(std::bind(FlushDNSMailSlotMonitor));
-	FlushDNSMailSlotMonitorThread.detach();
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-//Set FIFO Monitor.
-	std::thread FlushDNSFIFOMonitorThread(std::bind(FlushDNSFIFOMonitor));
-	FlushDNSFIFOMonitorThread.detach();
-#endif
-
 //Start monitor request consumer threads.
 	if (Parameter.ThreadPoolBaseNum > 0)
 	{
@@ -509,20 +427,14 @@ bool UDPMonitor(
 	memset(RecvBuffer.get(), 0, PACKET_MAXSIZE * Parameter.ThreadPoolMaxNum);
 	memset(SendBuffer.get(), 0, PACKET_MAXSIZE);
 	MONITOR_QUEUE_DATA MonitorQueryData;
-	SOCKET_DATA *SocketDataPTR = nullptr;
 	fd_set ReadFDS;
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
 	MonitorQueryData.first.BufferSize = PACKET_MAXSIZE;
 	MonitorQueryData.first.Protocol = IPPROTO_UDP;
+	PSOCKET_DATA SocketDataPTR = nullptr;
 	uint64_t LastMarkTime = 0, NowTime = 0;
 	if (Parameter.QueueResetTime > 0)
-	{
-	#if defined(PLATFORM_WIN_XP)
-		LastMarkTime = GetTickCount();
-	#else
-		LastMarkTime = GetTickCount64();
-	#endif
-	}
+		LastMarkTime = GetCurrentSystemTime();
 	ssize_t SelectResult = 0, RecvLen = 0;
 	size_t Index = 0;
 
@@ -532,19 +444,11 @@ bool UDPMonitor(
 	//Interval time between receive
 		if (Parameter.QueueResetTime > 0 && Index + 1U == Parameter.ThreadPoolMaxNum)
 		{
-		#if defined(PLATFORM_WIN_XP)
-			NowTime = GetTickCount();
-		#else
-			NowTime = GetTickCount64();
-		#endif
+			NowTime = GetCurrentSystemTime();
 			if (LastMarkTime + Parameter.QueueResetTime > NowTime)
 				Sleep(LastMarkTime + Parameter.QueueResetTime - NowTime);
 
-		#if defined(PLATFORM_WIN_XP)
-			LastMarkTime = GetTickCount();
-		#else
-			LastMarkTime = GetTickCount64();
-		#endif
+			LastMarkTime = GetCurrentSystemTime();
 		}
 
 	//Reset parameters.
@@ -662,13 +566,7 @@ bool TCPMonitor(
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
 	uint64_t LastMarkTime = 0, NowTime = 0;
 	if (Parameter.QueueResetTime > 0)
-	{
-	#if defined(PLATFORM_WIN_XP)
-		LastMarkTime = GetTickCount();
-	#else
-		LastMarkTime = GetTickCount64();
-	#endif
-	}
+		LastMarkTime = GetCurrentSystemTime();
 	ssize_t SelectResult = 0;
 	size_t Index = 0;
 
@@ -678,19 +576,11 @@ bool TCPMonitor(
 	//Interval time between receive
 		if (Parameter.QueueResetTime > 0 && Index + 1U == Parameter.ThreadPoolMaxNum)
 		{
-		#if defined(PLATFORM_WIN_XP)
-			NowTime = GetTickCount();
-		#else
-			NowTime = GetTickCount64();
-		#endif
+			NowTime = GetCurrentSystemTime();
 			if (LastMarkTime + Parameter.QueueResetTime > NowTime)
 				Sleep(LastMarkTime + Parameter.QueueResetTime - NowTime);
 
-		#if defined(PLATFORM_WIN_XP)
-			LastMarkTime = GetTickCount();
-		#else
-			LastMarkTime = GetTickCount64();
-		#endif
+			LastMarkTime = GetCurrentSystemTime();
 		}
 
 	//Reset parameters.
@@ -897,27 +787,18 @@ void AlternateServerMonitor(
 		for (Index = 0;Index < ALTERNATE_SERVERNUM;++Index)
 		{
 		//Reset TimeoutTimes out of alternate time range.
-		#if defined(PLATFORM_WIN_XP)
-			if (RangeTimer[Index] <= GetTickCount())
+			if (RangeTimer[Index] <= GetCurrentSystemTime())
 			{
-				RangeTimer[Index] = GetTickCount() + Parameter.AlternateTimeRange;
-		#else
-			if (RangeTimer[Index] <= GetTickCount64())
-			{
-				RangeTimer[Index] = GetTickCount64() + Parameter.AlternateTimeRange;
-		#endif
+				RangeTimer[Index] = GetCurrentSystemTime() + Parameter.AlternateTimeRange;
 				AlternateSwapList.TimeoutTimes[Index] = 0;
+
 				continue;
 			}
 
 		//Reset alternate switching.
 			if (AlternateSwapList.IsSwap[Index])
 			{
-			#if defined(PLATFORM_WIN_XP)
-				if (SwapTimer[Index] <= GetTickCount())
-			#else
-				if (SwapTimer[Index] <= GetTickCount64())
-			#endif
+				if (SwapTimer[Index] <= GetCurrentSystemTime())
 				{
 					AlternateSwapList.IsSwap[Index] = false;
 					AlternateSwapList.TimeoutTimes[Index] = 0;
@@ -930,11 +811,7 @@ void AlternateServerMonitor(
 				{
 					AlternateSwapList.IsSwap[Index] = true;
 					AlternateSwapList.TimeoutTimes[Index] = 0;
-				#if defined(PLATFORM_WIN_XP)
-					SwapTimer[Index] = GetTickCount() + Parameter.AlternateResetTime;
-				#else
-					SwapTimer[Index] = GetTickCount64() + Parameter.AlternateResetTime;
-				#endif
+					SwapTimer[Index] = GetCurrentSystemTime() + Parameter.AlternateResetTime;
 				}
 			}
 		}
@@ -1282,25 +1159,25 @@ void NetworkInformationMonitor(
 			}
 			else {
 				LocalAddressMutexIPv6.lock();
-				memset(GlobalRunningStatus.LocalAddress_Response[0], 0, PACKET_MAXSIZE);
-				GlobalRunningStatus.LocalAddress_Length[0] = 0;
+				memset(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV6], 0, PACKET_MAXSIZE);
+				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6] = 0;
 			#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 				std::string DNSPTRString;
-				GlobalRunningStatus.LocalAddress_ResponsePTR[0]->clear();
-				GlobalRunningStatus.LocalAddress_ResponsePTR[0]->shrink_to_fit();
+				GlobalRunningStatus.LocalAddress_ResponsePTR[NETWORK_LAYER_IPV6]->clear();
+				GlobalRunningStatus.LocalAddress_ResponsePTR[NETWORK_LAYER_IPV6]->shrink_to_fit();
 			#endif
 
 			//Mark local addresses(A part).
-				DNS_Header = (pdns_hdr)GlobalRunningStatus.LocalAddress_Response[0];
+				DNS_Header = (pdns_hdr)GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV6];
 				DNS_Header->Flags = htons(DNS_SQR_NEA);
 				DNS_Header->Question = htons(U16_NUM_ONE);
-				GlobalRunningStatus.LocalAddress_Length[0] += sizeof(dns_hdr);
-				memcpy_s(GlobalRunningStatus.LocalAddress_Response[0] + GlobalRunningStatus.LocalAddress_Length[0], PACKET_MAXSIZE - GlobalRunningStatus.LocalAddress_Length[0], Parameter.LocalFQDN_Response, Parameter.LocalFQDN_Length);
-				GlobalRunningStatus.LocalAddress_Length[0] += Parameter.LocalFQDN_Length;
-				DNS_Query = (pdns_qry)(GlobalRunningStatus.LocalAddress_Response[0] + GlobalRunningStatus.LocalAddress_Length[0]);
+				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6] += sizeof(dns_hdr);
+				memcpy_s(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV6] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6], PACKET_MAXSIZE - GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6], Parameter.LocalFQDN_Response, Parameter.LocalFQDN_Length);
+				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6] += Parameter.LocalFQDN_Length;
+				DNS_Query = (pdns_qry)(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV6] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6]);
 				DNS_Query->Type = htons(DNS_RECORD_AAAA);
 				DNS_Query->Classes = htons(DNS_CLASS_IN);
-				GlobalRunningStatus.LocalAddress_Length[0] += sizeof(dns_qry);
+				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6] += sizeof(dns_qry);
 
 			//Read addresses list and convert to Fully Qualified Domain Name/FQDN PTR.
 			#if defined(PLATFORM_WIN)
@@ -1310,16 +1187,16 @@ void NetworkInformationMonitor(
 						LocalAddressTableIter->ai_addr->sa_family == AF_INET6)
 					{
 					//Mark local addresses(B part).
-						if (GlobalRunningStatus.LocalAddress_Length[0] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
+						if (GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
 						{
-							DNS_Record = (pdns_record_aaaa)(GlobalRunningStatus.LocalAddress_Response[0] + GlobalRunningStatus.LocalAddress_Length[0]);
+							DNS_Record = (pdns_record_aaaa)(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV6] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6]);
 							((pdns_record_aaaa)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
 							((pdns_record_aaaa)DNS_Record)->Classes = htons(DNS_CLASS_IN);
 							((pdns_record_aaaa)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
 							((pdns_record_aaaa)DNS_Record)->Type = htons(DNS_RECORD_AAAA);
 							((pdns_record_aaaa)DNS_Record)->Length = htons(sizeof(in6_addr));
 							((pdns_record_aaaa)DNS_Record)->Addr = ((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr;
-							GlobalRunningStatus.LocalAddress_Length[0] += sizeof(dns_record_aaaa);
+							GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6] += sizeof(dns_record_aaaa);
 							++DNS_Header->Answer;
 						}
 
@@ -1366,7 +1243,7 @@ void NetworkInformationMonitor(
 						Result.append("ip6.arpa");
 
 					//Add to global list.
-						GlobalRunningStatus.LocalAddress_ResponsePTR[0]->push_back(Result);
+						GlobalRunningStatus.LocalAddress_ResponsePTR[NETWORK_LAYER_IPV6]->push_back(Result);
 						Result.clear();
 						Result.shrink_to_fit();
 					}
@@ -1377,16 +1254,16 @@ void NetworkInformationMonitor(
 					if (InterfaceAddressIter->ifa_addr != nullptr && InterfaceAddressIter->ifa_addr->sa_family == AF_INET6)
 					{
 					//Mark local addresses(B part).
-						if (GlobalRunningStatus.LocalAddress_Length[0] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
+						if (GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
 						{
-							DNS_Record = (pdns_record_aaaa)(GlobalRunningStatus.LocalAddress_Response[0] + GlobalRunningStatus.LocalAddress_Length[0]);
+							DNS_Record = (pdns_record_aaaa)(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV6] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6]);
 							((pdns_record_aaaa)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
 							((pdns_record_aaaa)DNS_Record)->Classes = htons(DNS_CLASS_IN);
 							((pdns_record_aaaa)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
 							((pdns_record_aaaa)DNS_Record)->Type = htons(DNS_RECORD_AAAA);
 							((pdns_record_aaaa)DNS_Record)->Length = htons(sizeof(in6_addr));
 							((pdns_record_aaaa)DNS_Record)->Addr = ((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr;
-							GlobalRunningStatus.LocalAddress_Length[0] += sizeof(dns_record_aaaa);
+							GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6] += sizeof(dns_record_aaaa);
 							++DNS_Header->Answer;
 						}
 
@@ -1434,7 +1311,7 @@ void NetworkInformationMonitor(
 						Result.append("ip6.arpa");
 
 					//Add to global list.
-						GlobalRunningStatus.LocalAddress_ResponsePTR[0]->push_back(Result);
+						GlobalRunningStatus.LocalAddress_ResponsePTR[NETWORK_LAYER_IPV6]->push_back(Result);
 						Result.clear();
 						Result.shrink_to_fit();
 					#endif
@@ -1445,8 +1322,8 @@ void NetworkInformationMonitor(
 			//Mark local addresses(C part).
 				if (DNS_Header->Answer == 0)
 				{
-					memset(GlobalRunningStatus.LocalAddress_Response[0], 0, PACKET_MAXSIZE);
-					GlobalRunningStatus.LocalAddress_Length[0] = 0;
+					memset(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV6], 0, PACKET_MAXSIZE);
+					GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6] = 0;
 				}
 				else {
 					DNS_Header->Answer = htons(DNS_Header->Answer);
@@ -1476,25 +1353,25 @@ void NetworkInformationMonitor(
 			{
 		#endif
 				LocalAddressMutexIPv4.lock();
-				memset(GlobalRunningStatus.LocalAddress_Response[1U], 0, PACKET_MAXSIZE);
-				GlobalRunningStatus.LocalAddress_Length[1U] = 0;
+				memset(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV4], 0, PACKET_MAXSIZE);
+				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4] = 0;
 			#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 				std::string DNSPTRString;
-				GlobalRunningStatus.LocalAddress_ResponsePTR[1U]->clear();
-				GlobalRunningStatus.LocalAddress_ResponsePTR[1U]->shrink_to_fit();
+				GlobalRunningStatus.LocalAddress_ResponsePTR[NETWORK_LAYER_IPV4]->clear();
+				GlobalRunningStatus.LocalAddress_ResponsePTR[NETWORK_LAYER_IPV4]->shrink_to_fit();
 			#endif
 
 			//Mark local addresses(A part).
-				DNS_Header = (pdns_hdr)GlobalRunningStatus.LocalAddress_Response[1U];
+				DNS_Header = (pdns_hdr)GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV4];
 				DNS_Header->Flags = htons(DNS_SQR_NEA);
 				DNS_Header->Question = htons(U16_NUM_ONE);
-				GlobalRunningStatus.LocalAddress_Length[1U] += sizeof(dns_hdr);
-				memcpy_s(GlobalRunningStatus.LocalAddress_Response[1U] + GlobalRunningStatus.LocalAddress_Length[1U], PACKET_MAXSIZE - GlobalRunningStatus.LocalAddress_Length[1U], Parameter.LocalFQDN_Response, Parameter.LocalFQDN_Length);
-				GlobalRunningStatus.LocalAddress_Length[1U] += Parameter.LocalFQDN_Length;
-				DNS_Query = (pdns_qry)(GlobalRunningStatus.LocalAddress_Response[1U] + GlobalRunningStatus.LocalAddress_Length[1U]);
+				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4] += sizeof(dns_hdr);
+				memcpy_s(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV4] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4], PACKET_MAXSIZE - GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4], Parameter.LocalFQDN_Response, Parameter.LocalFQDN_Length);
+				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4] += Parameter.LocalFQDN_Length;
+				DNS_Query = (pdns_qry)(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV4] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4]);
 				DNS_Query->Type = htons(DNS_RECORD_AAAA);
 				DNS_Query->Classes = htons(DNS_CLASS_IN);
-				GlobalRunningStatus.LocalAddress_Length[1U] += sizeof(dns_qry);
+				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4] += sizeof(dns_qry);
 
 			//Read addresses list and convert to Fully Qualified Domain Name/FQDN PTR.
 			#if defined(PLATFORM_WIN)
@@ -1504,16 +1381,16 @@ void NetworkInformationMonitor(
 						LocalAddressTableIter->ai_addr->sa_family == AF_INET)
 					{
 					//Mark local addresses(B part).
-						if (GlobalRunningStatus.LocalAddress_Length[1U] <= PACKET_MAXSIZE - sizeof(dns_record_a))
+						if (GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4] <= PACKET_MAXSIZE - sizeof(dns_record_a))
 						{
-							DNS_Record = (pdns_record_a)(GlobalRunningStatus.LocalAddress_Response[1U] + GlobalRunningStatus.LocalAddress_Length[1U]);
+							DNS_Record = (pdns_record_a)(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV4] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4]);
 							((pdns_record_a)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
 							((pdns_record_a)DNS_Record)->Classes = htons(DNS_CLASS_IN);
 							((pdns_record_a)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
 							((pdns_record_a)DNS_Record)->Type = htons(DNS_RECORD_A);
 							((pdns_record_a)DNS_Record)->Length = htons(sizeof(in_addr));
 							((pdns_record_a)DNS_Record)->Addr = ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr;
-							GlobalRunningStatus.LocalAddress_Length[1U] += sizeof(dns_record_a);
+							GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4] += sizeof(dns_record_a);
 							++DNS_Header->Answer;
 						}
 
@@ -1541,7 +1418,7 @@ void NetworkInformationMonitor(
 						Result.append("in-addr.arpa");
 
 					//Add to global list.
-						GlobalRunningStatus.LocalAddress_ResponsePTR[1U]->push_back(Result);
+						GlobalRunningStatus.LocalAddress_ResponsePTR[NETWORK_LAYER_IPV4]->push_back(Result);
 						Result.clear();
 						Result.shrink_to_fit();
 					}
@@ -1552,16 +1429,16 @@ void NetworkInformationMonitor(
 					if (InterfaceAddressIter->ifa_addr != nullptr && InterfaceAddressIter->ifa_addr->sa_family == AF_INET)
 					{
 					//Mark local addresses(B part).
-						if (GlobalRunningStatus.LocalAddress_Length[1U] <= PACKET_MAXSIZE - sizeof(dns_record_a))
+						if (GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4] <= PACKET_MAXSIZE - sizeof(dns_record_a))
 						{
-							DNS_Record = (pdns_record_a)(GlobalRunningStatus.LocalAddress_Response[1U] + GlobalRunningStatus.LocalAddress_Length[1U]);
+							DNS_Record = (pdns_record_a)(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV4] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4]);
 							((pdns_record_a)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
 							((pdns_record_a)DNS_Record)->Classes = htons(DNS_CLASS_IN);
 							((pdns_record_a)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
 							((pdns_record_a)DNS_Record)->Type = htons(DNS_RECORD_A);
 							((pdns_record_a)DNS_Record)->Length = htons(sizeof(in_addr));
 							((pdns_record_a)DNS_Record)->Addr = ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr;
-							GlobalRunningStatus.LocalAddress_Length[1U] += sizeof(dns_record_a);
+							GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4] += sizeof(dns_record_a);
 							++DNS_Header->Answer;
 						}
 
@@ -1590,7 +1467,7 @@ void NetworkInformationMonitor(
 						Result.append("in-addr.arpa");
 
 					//Add to global list.
-						GlobalRunningStatus.LocalAddress_ResponsePTR[1U]->push_back(Result);
+						GlobalRunningStatus.LocalAddress_ResponsePTR[NETWORK_LAYER_IPV4]->push_back(Result);
 						Result.clear();
 						Result.shrink_to_fit();
 					#endif
@@ -1601,8 +1478,8 @@ void NetworkInformationMonitor(
 			//Mark local addresses(C part).
 				if (DNS_Header->Answer == 0)
 				{
-					memset(GlobalRunningStatus.LocalAddress_Response[1U], 0, PACKET_MAXSIZE);
-					GlobalRunningStatus.LocalAddress_Length[1U] = 0;
+					memset(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV4], 0, PACKET_MAXSIZE);
+					GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4] = 0;
 				}
 				else {
 					DNS_Header->Answer = htons(DNS_Header->Answer);
@@ -1646,11 +1523,7 @@ void NetworkInformationMonitor(
 
 	//Close all marking sockets.
 		SocketMarkingMutex.lock();
-	#if defined(PLATFORM_WIN_XP)
-		while (!SocketMarkingList.empty() && SocketMarkingList.front().second <= GetTickCount())
-	#else
-		while (!SocketMarkingList.empty() && SocketMarkingList.front().second <= GetTickCount64())
-	#endif
+		while (!SocketMarkingList.empty() && SocketMarkingList.front().second <= GetCurrentSystemTime())
 		{
 			SocketSetting(SocketMarkingList.front().first, SOCKET_SETTING_CLOSE, false, nullptr);
 			SocketMarkingList.pop_front();

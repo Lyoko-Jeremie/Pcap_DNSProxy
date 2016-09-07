@@ -423,13 +423,13 @@ size_t AddEDNSLabelToAdditionalRR(
 		auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
 
 	//Length, DNS Class and DNS record check
-		if (DataLength + sizeof(edns_client_subnet) > MaxLen || DNS_Query->Classes != htons(DNS_CLASS_IN) || 
-			(DNS_Query->Type != htons(DNS_RECORD_AAAA) && DNS_Query->Type != htons(DNS_RECORD_A)))
+		if (DataLength + sizeof(edns_client_subnet) > MaxLen || ntohs(DNS_Query->Classes) != DNS_CLASS_IN || 
+			(ntohs(DNS_Query->Type) != DNS_RECORD_AAAA && ntohs(DNS_Query->Type) != DNS_RECORD_A))
 				return DataLength;
 		auto EDNS_Subnet_Header = (pedns_client_subnet)(Buffer + DataLength);
 
 	//IPv6
-		if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && 
+		if (ntohs(DNS_Query->Type) == DNS_RECORD_AAAA && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6) || 
 			Parameter.LocalhostSubnet_IPv6 != nullptr))
 		{
@@ -458,7 +458,7 @@ size_t AddEDNSLabelToAdditionalRR(
 			DataLength += sizeof(in6_addr);
 		}
 	//IPv4
-		else if (DNS_Query->Type == htons(DNS_RECORD_A) && 
+		else if (ntohs(DNS_Query->Type) == DNS_RECORD_A && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET) || 
 			Parameter.LocalhostSubnet_IPv4 != nullptr))
 		{
@@ -528,20 +528,20 @@ bool AddEDNSLabelToAdditionalRR(
 
 //EDNS client subnet
 	if (!(ntohs(DNS_Record_OPT->DataLength) >= sizeof(edns_client_subnet) && 
-		((pedns_client_subnet)(Packet->Buffer + Packet->Length - Packet->EDNS_Record + sizeof(dns_record_opt)))->Code == htons(EDNS_CODE_CSUBNET)) && 
+		ntohs(((pedns_client_subnet)(Packet->Buffer + Packet->Length - Packet->EDNS_Record + sizeof(dns_record_opt)))->Code) == EDNS_CODE_CSUBNET) && 
 		((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr) || 
 		Parameter.LocalhostSubnet_IPv6 != nullptr || Parameter.LocalhostSubnet_IPv4 != nullptr))
 	{
 		auto DNS_Query = (pdns_qry)(Packet->Buffer + DNS_PACKET_QUERY_LOCATE(Packet->Buffer));
 
 	//Length, DNS Class and DNS record check
-		if (Packet->Length + sizeof(edns_client_subnet) > Packet->BufferSize || DNS_Query->Classes != htons(DNS_CLASS_IN) || 
-			(DNS_Query->Type != htons(DNS_RECORD_AAAA) && DNS_Query->Type != htons(DNS_RECORD_A)))
+		if (Packet->Length + sizeof(edns_client_subnet) > Packet->BufferSize || ntohs(DNS_Query->Classes) != DNS_CLASS_IN || 
+			(ntohs(DNS_Query->Type) != DNS_RECORD_AAAA && ntohs(DNS_Query->Type) != DNS_RECORD_A))
 				return true;
 		auto EDNS_Subnet_Header = (pedns_client_subnet)(Packet->Buffer + Packet->Length);
 
 	//IPv6
-		if (DNS_Query->Type == htons(DNS_RECORD_AAAA) && 
+		if (ntohs(DNS_Query->Type) == DNS_RECORD_AAAA && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6) || 
 			Parameter.LocalhostSubnet_IPv6 != nullptr))
 		{
@@ -572,7 +572,7 @@ bool AddEDNSLabelToAdditionalRR(
 			Packet->EDNS_Record += sizeof(in6_addr);
 		}
 	//IPv4
-		else if (DNS_Query->Type == htons(DNS_RECORD_A) && 
+		else if (ntohs(DNS_Query->Type) == DNS_RECORD_A && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET) || 
 			Parameter.LocalhostSubnet_IPv4 != nullptr))
 		{
@@ -661,11 +661,8 @@ size_t MakeCompressionPointerMutation(
 		memmove_s(Buffer + Length - sizeof(dns_qry) + 1U, sizeof(dns_qry), Buffer + Length - sizeof(dns_qry), sizeof(dns_qry));
 		*(Buffer + Length - sizeof(dns_qry) - 1U) = (uint8_t)DNS_POINTER_8_BITS_STRING;
 
-	#if defined(PLATFORM_WIN_XP)
-		Index = GetTickCount() % 4U;
-	#else
-		Index = GetTickCount64() % 4U;
-	#endif
+	//Choose a ramdom one.
+		Index = GetCurrentSystemTime() % 4U;
 		switch (Index)
 		{
 			case 0:
@@ -715,7 +712,7 @@ size_t MakeCompressionPointerMutation(
 			std::uniform_int_distribution<uint32_t> RamdomDistribution_Additional(0, UINT32_MAX);
 
 		//Make records.
-			if (DNS_Query.Type == htons(DNS_RECORD_AAAA))
+			if (ntohs(DNS_Query.Type) == DNS_RECORD_AAAA)
 			{
 				auto DNS_Record_AAAA = (pdns_record_aaaa)(Buffer + Length);
 				DNS_Record_AAAA->Type = htons(DNS_RECORD_AAAA);

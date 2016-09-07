@@ -43,3 +43,5 @@ bool ReadCommands(
 bool FileNameInit(
 	const char *OriginalPath);
 #endif
+void MonitorLauncher(
+	void);

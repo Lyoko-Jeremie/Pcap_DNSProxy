@@ -32,55 +32,27 @@ int main(
 {
 #endif
 //Get commands.
-	if (argc > 0)
+	if (argc < 1)
 	{
-		if (!ReadCommands(argc, argv))
-			return EXIT_SUCCESS;
+		return EXIT_FAILURE;
 	}
 	else {
-		return EXIT_FAILURE;
+	//Read commands and configuration file, also launch all monitors.
+		if (!ReadCommands(argc, argv))
+			return EXIT_SUCCESS;
+		else if (!ReadParameter(true))
+			return EXIT_FAILURE;
+		else 
+			MonitorLauncher();
+
+	//Wait for multiple threads working.
+		Sleep(STANDARD_TIMEOUT);
 	}
 
-//Read configuration file.
-	if (!ReadParameter(true))
-		return EXIT_FAILURE;
-
-//DNSCurve initialization
-#if defined(ENABLE_LIBSODIUM)
-	if (Parameter.IsDNSCurve)
-	{
-		DNSCurveParameterModificating.SetToMonitorItem();
-
-	//Encryption mode initialization
-		if (DNSCurveParameter.IsEncryption)
-			DNSCurveInit();
-	}
-#endif
-
-//Mark Local DNS address to PTR Records, read Parameter(Monitor mode), IPFilter and Hosts.
-	ParameterModificating.SetToMonitorItem();
-	std::thread NetworkInformationMonitorThread(std::bind(NetworkInformationMonitor));
-	NetworkInformationMonitorThread.detach();
-	if (!GlobalRunningStatus.FileList_IPFilter->empty())
-	{
-		std::thread ReadParameterThread(std::bind(ReadParameter, false));
-		ReadParameterThread.detach();
-	}
-	if (!GlobalRunningStatus.FileList_Hosts->empty())
-	{
-		std::thread ReadHostsThread(std::bind(ReadHosts));
-		ReadHostsThread.detach();
-	}
-	if (Parameter.OperationMode == LISTEN_MODE_CUSTOM || Parameter.DataCheck_Blacklist || Parameter.LocalRouting)
-	{
-		std::thread ReadIPFilterThread(std::bind(ReadIPFilter));
-		ReadIPFilterThread.detach();
-	}
-
+//Main process initialization
 #if defined(PLATFORM_WIN)
-//Service initialization and start service.
-	SERVICE_TABLE_ENTRYW ServiceTable[]{{SYSTEM_SERVICE_NAME, (LPSERVICE_MAIN_FUNCTIONW)ServiceMain}, {nullptr, nullptr}};
-	if (!StartServiceCtrlDispatcherW(ServiceTable))
+	SERVICE_TABLE_ENTRYW ServiceTable[]{{SYSTEM_SERVICE_NAME, (LPSERVICE_MAIN_FUNCTIONW)ServiceMain}, {nullptr, nullptr}}; //Service begining
+	if (StartServiceCtrlDispatcherW(ServiceTable) == 0)
 	{
 		auto ErrorCode = GetLastError();
 
@@ -91,8 +63,11 @@ int main(
 		PrintToScreen(false, L"Please ignore these error messages if you want to run in console mode.\n\n");
 		ScreenMutex.unlock();
 
-	//Handle the system signal and start all monitors.
-		SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, TRUE);
+	//Handle the system signal.
+		if (SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, TRUE) == 0)
+			PrintToScreen(true, L"System Error: Set console control handler error, error code is %lu.\n", GetLastError());
+
+	//Main process
 		if (!MonitorInit())
 			return EXIT_FAILURE;
 	}
@@ -104,7 +79,7 @@ int main(
 	return EXIT_SUCCESS;
 }
 
-//Read commands from main program
+//Read commands from main process
 #if defined(PLATFORM_WIN)
 bool ReadCommands(
 	int argc, 
@@ -546,3 +521,127 @@ bool FirewallTest(
 	return true;
 }
 #endif
+
+//Monitor launcher process
+void MonitorLauncher(
+	void)
+{
+//Network monitor(Mark Local DNS address to PTR Records)
+	ParameterModificating.SetToMonitorItem();
+	std::thread NetworkInformationMonitorThread(std::bind(NetworkInformationMonitor));
+	NetworkInformationMonitorThread.detach();
+
+//DNSCurve initialization(Encryption mode)
+#if defined(ENABLE_LIBSODIUM)
+	if (Parameter.IsDNSCurve)
+	{
+		DNSCurveParameterModificating.SetToMonitorItem();
+		if (DNSCurveParameter.IsEncryption)
+			DNSCurveInit();
+	}
+#endif
+
+//Read parameter(Monitor mode)
+	if (!GlobalRunningStatus.FileList_IPFilter->empty())
+	{
+		std::thread ReadParameterThread(std::bind(ReadParameter, false));
+		ReadParameterThread.detach();
+	}
+
+//Read Hosts monitor
+	if (!GlobalRunningStatus.FileList_Hosts->empty())
+	{
+		std::thread ReadHostsThread(std::bind(ReadHosts));
+		ReadHostsThread.detach();
+	}
+
+//Read IPFilter monitor
+	if (Parameter.OperationMode == LISTEN_MODE_CUSTOM || Parameter.DataCheck_Blacklist || Parameter.LocalRouting)
+	{
+		std::thread ReadIPFilterThread(std::bind(ReadIPFilter));
+		ReadIPFilterThread.detach();
+	}
+
+//Capture monitor
+#if defined(ENABLE_PCAP)
+	if (Parameter.IsPcapCapture && 
+	//Direct Request mode
+		!(Parameter.DirectRequest == DIRECT_REQUEST_MODE_BOTH || 
+		(Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV6 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0 && 
+		Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV4 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0)) && 
+	//SOCKS request only mode
+		!(Parameter.SOCKS_Proxy && Parameter.SOCKS_Only) && 
+	//HTTP request only mode
+		!(Parameter.HTTP_Proxy && Parameter.HTTP_Only)
+	//DNSCurve request only mode
+	#if defined(ENABLE_LIBSODIUM)
+		&& !(Parameter.IsDNSCurve && DNSCurveParameter.IsEncryptionOnly)
+	#endif
+		)
+	{
+	#if defined(ENABLE_PCAP)
+		std::thread CaptureInitializationThread(std::bind(CaptureInit));
+		CaptureInitializationThread.detach();
+	#endif
+
+	//Get Hop Limits/TTL with normal DNS request(IPv6).
+		if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
+			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
+			(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
+		{
+			std::thread IPv6TestDoaminThread(std::bind(DomainTestRequest, AF_INET6));
+			IPv6TestDoaminThread.detach();
+		}
+
+	//Get Hop Limits/TTL with normal DNS request(IPv4).
+		if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
+			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
+			(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
+		{
+			std::thread IPv4TestDoaminThread(std::bind(DomainTestRequest, AF_INET));
+			IPv4TestDoaminThread.detach();
+		}
+
+	//Get Hop Limits with ICMPv6 echo.
+		if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
+			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
+			(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
+		{
+			std::thread ICMPv6Thread(std::bind(ICMPTestRequest, AF_INET6));
+			ICMPv6Thread.detach();
+		}
+
+	//Get TTL with ICMP echo.
+		if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
+			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
+			(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
+		{
+			std::thread ICMPThread(std::bind(ICMPTestRequest, AF_INET));
+			ICMPThread.detach();
+		}
+	}
+#endif
+
+//Alternate server monitor(Set Preferred DNS servers switcher)
+	if ((!Parameter.AlternateMultipleRequest && 
+		(Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 || Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0
+	#if defined(ENABLE_LIBSODIUM)
+		|| DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 || DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0
+	#endif
+		)) || Parameter.Target_Server_Alternate_Local_IPv6.Storage.ss_family > 0 || Parameter.Target_Server_Alternate_Local_IPv4.Storage.ss_family > 0)
+	{
+		std::thread AlternateServerMonitorThread(std::bind(AlternateServerMonitor));
+		AlternateServerMonitorThread.detach();
+	}
+
+//MailSlot and FIFO monitor
+#if defined(PLATFORM_WIN)
+	std::thread FlushDNSMailSlotMonitorThread(std::bind(FlushDNSMailSlotMonitor));
+	FlushDNSMailSlotMonitorThread.detach();
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	std::thread FlushDNSFIFOMonitorThread(std::bind(FlushDNSFIFOMonitor));
+	FlushDNSFIFOMonitorThread.detach();
+#endif
+
+	return;
+}
