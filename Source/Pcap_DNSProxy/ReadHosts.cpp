@@ -234,7 +234,7 @@ bool ReadOtherHostsData(
 					HostsTableTemp.RecordTypeList.push_back(htons((uint16_t)Result));
 				}
 				else {
-					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNS Records type error", errno, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNS Record type error", errno, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 			}
@@ -361,7 +361,7 @@ bool ReadLocalHostsData(
 			//Convert address.
 				if (HostsListData.front().find(ASCII_COLON) != std::string::npos) //IPv6
 				{
-					if (!AddressStringToBinary((const uint8_t *)HostsListData.front().c_str(), AF_INET6, &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
+					if (!AddressStringToBinary(AF_INET6, (const uint8_t *)HostsListData.front().c_str(), &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
 					{
 						PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 						return false;
@@ -372,7 +372,7 @@ bool ReadLocalHostsData(
 				}
 				else if (HostsListData.front().find(ASCII_PERIOD) != std::string::npos) //IPv4
 				{
-					if (!AddressStringToBinary((const uint8_t *)HostsListData.front().c_str(), AF_INET, &AddressUnionDataTemp.IPv4.sin_addr, &Result))
+					if (!AddressStringToBinary(AF_INET, (const uint8_t *)HostsListData.front().c_str(), &AddressUnionDataTemp.IPv4.sin_addr, &Result))
 					{
 						PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 						return false;
@@ -481,7 +481,7 @@ bool ReadLocalHostsData(
 				//Convert address.
 					if (HostsListData.front().find(ASCII_COLON) != std::string::npos) //IPv6
 					{
-						if (!AddressStringToBinary((const uint8_t *)HostsListData.front().c_str(), AF_INET6, &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
+						if (!AddressStringToBinary(AF_INET6, (const uint8_t *)HostsListData.front().c_str(), &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
 						{
 							PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 							return false;
@@ -492,7 +492,7 @@ bool ReadLocalHostsData(
 					}
 					else if (HostsListData.front().find(ASCII_PERIOD) != std::string::npos) //IPv4
 					{
-						if (!AddressStringToBinary((const uint8_t *)HostsListData.front().c_str(), AF_INET, &AddressUnionDataTemp.IPv4.sin_addr, &Result))
+						if (!AddressStringToBinary(AF_INET, (const uint8_t *)HostsListData.front().c_str(), &AddressUnionDataTemp.IPv4.sin_addr, &Result))
 						{
 							PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 							return false;
@@ -645,7 +645,7 @@ bool ReadAddressHostsData(
 		{
 		//Convert to binary address.
 			memset(&SockAddr, 0, sizeof(SockAddr));
-			if (!AddressStringToBinary((const uint8_t *)StringIter.c_str(), AF_INET6, &((PSOCKADDR_IN6)&SockAddr)->sin6_addr, &Result))
+			if (!AddressStringToBinary(AF_INET6, (const uint8_t *)StringIter.c_str(), &((PSOCKADDR_IN6)&SockAddr)->sin6_addr, &Result))
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -660,7 +660,7 @@ bool ReadAddressHostsData(
 		{
 		//Convert to binary address.
 			memset(&SockAddr, 0, sizeof(SockAddr));
-			if (!AddressStringToBinary((const uint8_t *)StringIter.c_str(), AF_INET, &((PSOCKADDR_IN)&SockAddr)->sin_addr, &Result))
+			if (!AddressStringToBinary(AF_INET, (const uint8_t *)StringIter.c_str(), &((PSOCKADDR_IN)&SockAddr)->sin_addr, &Result))
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -678,8 +678,8 @@ bool ReadAddressHostsData(
 
 //Get source data.
 	ADDRESS_RANGE_TABLE AddressRangeTableTemp;
-	uint8_t Addr[ADDR_STRING_MAXSIZE] = {0};
-	memset(Addr, 0, ADDR_STRING_MAXSIZE);
+	uint8_t Addr[ADDRESS_STRING_MAXSIZE] = {0};
+	memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
 
 //Mark all data in list.
 	for (const auto &StringIter:SourceListData)
@@ -693,9 +693,9 @@ bool ReadAddressHostsData(
 			if (StringIter.find(ASCII_MINUS) != std::string::npos)
 			{
 			//Convert address(Begin).
-				memset(Addr, 0, ADDR_STRING_MAXSIZE);
-				memcpy_s(Addr, ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
-				if (!AddressStringToBinary(Addr, AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
+				memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
+				memcpy_s(Addr, ADDRESS_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
+				if (!AddressStringToBinary(AF_INET6, Addr, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -703,9 +703,9 @@ bool ReadAddressHostsData(
 				AddressRangeTableTemp.Begin.ss_family = AF_INET6;
 
 			//Convert address(End).
-				memset(Addr, 0, ADDR_STRING_MAXSIZE);
-				memcpy_s(Addr, ADDR_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
-				if (!AddressStringToBinary(Addr, AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, &Result))
+				memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
+				memcpy_s(Addr, ADDRESS_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
+				if (!AddressStringToBinary(AF_INET6, Addr, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -713,7 +713,7 @@ bool ReadAddressHostsData(
 				AddressRangeTableTemp.End.ss_family = AF_INET6;
 
 			//Check address range.
-				if (AddressesComparing(&((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, AF_INET6) > ADDRESS_COMPARE_EQUAL)
+				if (AddressesComparing(AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr) > ADDRESS_COMPARE_EQUAL)
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv6 address range error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -722,7 +722,7 @@ bool ReadAddressHostsData(
 		//Normal format
 			else {
 			//Convert to binary address.
-				if (!AddressStringToBinary((const uint8_t *)StringIter.c_str(), AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
+				if (!AddressStringToBinary(AF_INET6, (const uint8_t *)StringIter.c_str(), &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -744,9 +744,9 @@ bool ReadAddressHostsData(
 			if (StringIter.find(ASCII_MINUS) != std::string::npos)
 			{
 			//Convert address(Begin).
-				memset(Addr, 0, ADDR_STRING_MAXSIZE);
-				memcpy_s(Addr, ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
-				if (!AddressStringToBinary(Addr, AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &Result))
+				memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
+				memcpy_s(Addr, ADDRESS_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
+				if (!AddressStringToBinary(AF_INET, Addr, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -754,9 +754,9 @@ bool ReadAddressHostsData(
 				AddressRangeTableTemp.Begin.ss_family = AF_INET;
 
 			//Convert address(End).
-				memset(Addr, 0, ADDR_STRING_MAXSIZE);
-				memcpy_s(Addr, ADDR_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
-				if (!AddressStringToBinary(Addr, AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, &Result))
+				memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
+				memcpy_s(Addr, ADDRESS_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
+				if (!AddressStringToBinary(AF_INET, Addr, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -764,7 +764,7 @@ bool ReadAddressHostsData(
 				AddressRangeTableTemp.End.ss_family = AF_INET;
 
 			//Check address range.
-				if (AddressesComparing(&((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, AF_INET) > ADDRESS_COMPARE_EQUAL)
+				if (AddressesComparing(AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr) > ADDRESS_COMPARE_EQUAL)
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv4 address range error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -773,7 +773,7 @@ bool ReadAddressHostsData(
 		//Normal format
 			else {
 			//Convert to binary address.
-				if (!AddressStringToBinary((const uint8_t *)StringIter.c_str(), AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &Result))
+				if (!AddressStringToBinary(AF_INET, (const uint8_t *)StringIter.c_str(), &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -995,7 +995,7 @@ bool ReadMainHostsData(
 		//AAAA records(IPv6)
 			if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_AAAA))
 			{
-				if (!AddressStringToBinary((const uint8_t *)HostsListData.back().c_str(), AF_INET6, &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
+				if (!AddressStringToBinary(AF_INET6, (const uint8_t *)HostsListData.back().c_str(), &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -1004,7 +1004,7 @@ bool ReadMainHostsData(
 		//A records(IPv4)
 			else if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_A))
 			{
-				if (!AddressStringToBinary((const uint8_t *)HostsListData.back().c_str(), AF_INET, &AddressUnionDataTemp.IPv4.sin_addr, &Result))
+				if (!AddressStringToBinary(AF_INET, (const uint8_t *)HostsListData.back().c_str(), &AddressUnionDataTemp.IPv4.sin_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -1027,7 +1027,7 @@ bool ReadMainHostsData(
 		//AAAA records(IPv6)
 			if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_AAAA))
 			{
-				if (!AddressStringToBinary((const uint8_t *)StringIter.c_str(), AF_INET6, &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
+				if (!AddressStringToBinary(AF_INET6, (const uint8_t *)StringIter.c_str(), &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -1036,7 +1036,7 @@ bool ReadMainHostsData(
 		//A records(IPv4)
 			else if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_A))
 			{
-				if (!AddressStringToBinary((const uint8_t *)StringIter.c_str(), AF_INET, &AddressUnionDataTemp.IPv4.sin_addr, &Result))
+				if (!AddressStringToBinary(AF_INET, (const uint8_t *)StringIter.c_str(), &AddressUnionDataTemp.IPv4.sin_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;

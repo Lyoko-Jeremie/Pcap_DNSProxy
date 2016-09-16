@@ -114,10 +114,10 @@ uint16_t GetChecksum_ICMPv6(
 
 //Get TCP or UDP checksum
 uint16_t GetChecksum_TCP_UDP(
-	const uint8_t *Buffer, 
-	const size_t Length, 
 	const uint16_t Protocol_Network, 
-	const uint16_t Protocol_Transport)
+	const uint16_t Protocol_Transport, 
+	const uint8_t *Buffer, 
+	const size_t Length)
 {
 	uint16_t Result = EXIT_FAILURE;
 	if (Protocol_Network == AF_INET6)

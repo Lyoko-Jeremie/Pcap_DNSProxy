@@ -69,7 +69,7 @@ bool ParameterCheckAndSetting(
 		!Parameter.IsPcapCapture && 
 	#endif
 	//Direct Request mode
-		ParameterPTR->DirectRequest == DIRECT_REQUEST_MODE_NONE && 
+		ParameterPTR->DirectRequest == REQUEST_MODE_DIRECT_NONE && 
 	//SOCKS request mode
 		!Parameter.SOCKS_Proxy && 
 	//HTTP request mode
@@ -110,14 +110,14 @@ bool ParameterCheckAndSetting(
 	if (Parameter.Target_Server_Local_IPv6.Storage.ss_family == 0 && ParameterPTR->LocalProtocol_Network == REQUEST_MODE_IPV6)
 	{
 		PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, nullptr, 0);
-		ParameterPTR->LocalProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
+		ParameterPTR->LocalProtocol_Network = REQUEST_MODE_BOTH;
 	}
 
 //Local Protocol(IPv4)
 	if (Parameter.Target_Server_Local_IPv4.Storage.ss_family == 0 && ParameterPTR->LocalProtocol_Network == REQUEST_MODE_IPV4)
 	{
 		PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, nullptr, 0);
-		ParameterPTR->LocalProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
+		ParameterPTR->LocalProtocol_Network = REQUEST_MODE_BOTH;
 	}
 
 	if (IsFirstRead)
@@ -243,20 +243,20 @@ bool ParameterCheckAndSetting(
 		if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6)
 		{
 			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, nullptr, 0);
-			Parameter.RequestMode_Network = REQUEST_MODE_NETWORK_BOTH;
+			Parameter.RequestMode_Network = REQUEST_MODE_BOTH;
 		}
 
 	//Protocol(IPv4)
 		if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0 && Parameter.RequestMode_Network == REQUEST_MODE_IPV4)
 		{
 			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, nullptr, 0);
-			Parameter.RequestMode_Network = REQUEST_MODE_NETWORK_BOTH;
+			Parameter.RequestMode_Network = REQUEST_MODE_BOTH;
 		}
 	}
 
 //Direct Request check
-	if ((ParameterPTR->DirectRequest == DIRECT_REQUEST_MODE_IPV6 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0) || 
-		(ParameterPTR->DirectRequest == DIRECT_REQUEST_MODE_IPV4 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0))
+	if ((ParameterPTR->DirectRequest == REQUEST_MODE_DIRECT_IPV6 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0) || 
+		(ParameterPTR->DirectRequest == REQUEST_MODE_DIRECT_IPV4 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0))
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Direct Request error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
@@ -345,14 +345,14 @@ bool ParameterCheckAndSetting(
 	//Multiple Request Times check
 	if (ParameterPTR->MultipleRequestTimes < 1U)
 		++ParameterPTR->MultipleRequestTimes;
-	if ((Parameter.Target_Server_IPv4_Multiple != nullptr && (Parameter.Target_Server_IPv4_Multiple->size() + 2U) * ParameterPTR->MultipleRequestTimes > MULTI_REQUEST_MAXNUM) || 
-		(Parameter.Target_Server_IPv4_Multiple == nullptr && ParameterPTR->MultipleRequestTimes * 2U > MULTI_REQUEST_MAXNUM))
+	if ((Parameter.Target_Server_IPv4_Multiple != nullptr && (Parameter.Target_Server_IPv4_Multiple->size() + 2U) * ParameterPTR->MultipleRequestTimes > MULTIPLE_REQUEST_MAXNUM) || 
+		(Parameter.Target_Server_IPv4_Multiple == nullptr && ParameterPTR->MultipleRequestTimes * 2U > MULTIPLE_REQUEST_MAXNUM))
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 total request number error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
 	}
-	if ((Parameter.Target_Server_IPv6_Multiple != nullptr && (Parameter.Target_Server_IPv6_Multiple->size() + 2U) * ParameterPTR->MultipleRequestTimes > MULTI_REQUEST_MAXNUM) || 
-		(Parameter.Target_Server_IPv6_Multiple == nullptr && ParameterPTR->MultipleRequestTimes * 2U > MULTI_REQUEST_MAXNUM))
+	if ((Parameter.Target_Server_IPv6_Multiple != nullptr && (Parameter.Target_Server_IPv6_Multiple->size() + 2U) * ParameterPTR->MultipleRequestTimes > MULTIPLE_REQUEST_MAXNUM) || 
+		(Parameter.Target_Server_IPv6_Multiple == nullptr && ParameterPTR->MultipleRequestTimes * 2U > MULTIPLE_REQUEST_MAXNUM))
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 total request number error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
@@ -492,7 +492,7 @@ bool ParameterCheckAndSetting(
 			else if ((Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0 && Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6) || 
 				(Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0 && Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4))
 			{
-				Parameter.SOCKS_Protocol_Network = REQUEST_MODE_NETWORK_BOTH;
+				Parameter.SOCKS_Protocol_Network = REQUEST_MODE_BOTH;
 			}
 
 		//Only SOCKS version 5 support client authentication.
@@ -567,7 +567,7 @@ bool ParameterCheckAndSetting(
 			else if ((Parameter.HTTP_Address_IPv6.Storage.ss_family == 0 && Parameter.HTTP_Protocol == REQUEST_MODE_IPV6) || 
 				(Parameter.HTTP_Address_IPv4.Storage.ss_family == 0 && Parameter.HTTP_Protocol == REQUEST_MODE_IPV4))
 			{
-				Parameter.HTTP_Protocol = REQUEST_MODE_NETWORK_BOTH;
+				Parameter.HTTP_Protocol = REQUEST_MODE_BOTH;
 			}
 		}
 
@@ -607,7 +607,7 @@ bool ParameterCheckAndSetting(
 				DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6)
 			{
 				PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, nullptr, 0);
-				DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
+				DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_BOTH;
 			}
 
 		//IPv4
@@ -615,7 +615,7 @@ bool ParameterCheckAndSetting(
 				DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4)
 			{
 				PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, nullptr, 0);
-				DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
+				DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_BOTH;
 			}
 		#endif
 		}
@@ -633,7 +633,9 @@ bool ParameterCheckAndSetting(
 
 					sodium_memzero(DNSCurveParameterPTR->Client_PublicKey, crypto_box_PUBLICKEYBYTES);
 					sodium_memzero(DNSCurveParameterPTR->Client_SecretKey, crypto_box_SECRETKEYBYTES);
-					if (crypto_box_keypair(DNSCurveParameterPTR->Client_PublicKey, DNSCurveParameterPTR->Client_SecretKey) != 0)
+					if (crypto_box_keypair(
+							DNSCurveParameterPTR->Client_PublicKey, 
+							DNSCurveParameterPTR->Client_SecretKey) != 0)
 					{
 						PrintError(LOG_LEVEL_1, LOG_ERROR_DNSCURVE, L"Client keypair error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 						return false;
@@ -643,7 +645,9 @@ bool ParameterCheckAndSetting(
 			else {
 				sodium_memzero(DNSCurveParameterPTR->Client_PublicKey, crypto_box_PUBLICKEYBYTES);
 				sodium_memzero(DNSCurveParameterPTR->Client_SecretKey, crypto_box_SECRETKEYBYTES);
-				if (crypto_box_keypair(DNSCurveParameterPTR->Client_PublicKey, DNSCurveParameterPTR->Client_SecretKey) != 0)
+				if (crypto_box_keypair(
+						DNSCurveParameterPTR->Client_PublicKey, 
+						DNSCurveParameterPTR->Client_SecretKey) != 0)
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_DNSCURVE, L"Client keypair error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					return false;
@@ -721,16 +725,14 @@ bool ParameterCheckAndSetting(
 					return false;
 				}
 			}
-			else if (!DNSCurveParameter.ClientEphemeralKey)
+			else if (!DNSCurveParameter.ClientEphemeralKey && 
+				crypto_box_beforenm(
+					DNSCurveParameterPTR->DNSCurve_Target_Server_IPv6.PrecomputationKey, 
+					DNSCurveParameterPTR->DNSCurve_Target_Server_IPv6.ServerFingerprint, 
+					DNSCurveParameterPTR->Client_SecretKey) != 0)
 			{
-				if (crypto_box_beforenm(
-						DNSCurveParameterPTR->DNSCurve_Target_Server_IPv6.PrecomputationKey, 
-						DNSCurveParameterPTR->DNSCurve_Target_Server_IPv6.ServerFingerprint, 
-						DNSCurveParameterPTR->Client_SecretKey) != 0)
-				{
-					PrintError(LOG_LEVEL_1, LOG_ERROR_DNSCURVE, L"Key calculating error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-					return false;
-				}
+				PrintError(LOG_LEVEL_1, LOG_ERROR_DNSCURVE, L"Key calculating error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+				return false;
 			}
 		}
 		else if (IsFirstRead)
@@ -776,16 +778,14 @@ bool ParameterCheckAndSetting(
 					return false;
 				}
 			}
-			else if (!DNSCurveParameter.ClientEphemeralKey)
+			else if (!DNSCurveParameter.ClientEphemeralKey && 
+				crypto_box_beforenm(
+					DNSCurveParameterPTR->DNSCurve_Target_Server_IPv4.PrecomputationKey, 
+					DNSCurveParameterPTR->DNSCurve_Target_Server_IPv4.ServerFingerprint, 
+					DNSCurveParameterPTR->Client_SecretKey) != 0)
 			{
-				if (crypto_box_beforenm(
-						DNSCurveParameterPTR->DNSCurve_Target_Server_IPv4.PrecomputationKey, 
-						DNSCurveParameterPTR->DNSCurve_Target_Server_IPv4.ServerFingerprint, 
-						DNSCurveParameterPTR->Client_SecretKey) != 0)
-				{
-					PrintError(LOG_LEVEL_1, LOG_ERROR_DNSCURVE, L"Key calculating error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-					return false;
-				}
+				PrintError(LOG_LEVEL_1, LOG_ERROR_DNSCURVE, L"Key calculating error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+				return false;
 			}
 		}
 		else if (IsFirstRead)
@@ -831,16 +831,14 @@ bool ParameterCheckAndSetting(
 					return false;
 				}
 			}
-			else if (!DNSCurveParameter.ClientEphemeralKey)
+			else if (!DNSCurveParameter.ClientEphemeralKey && 
+				crypto_box_beforenm(
+					DNSCurveParameterPTR->DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, 
+					DNSCurveParameterPTR->DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, 
+					DNSCurveParameterPTR->Client_SecretKey) != 0)
 			{
-				if (crypto_box_beforenm(
-						DNSCurveParameterPTR->DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, 
-						DNSCurveParameterPTR->DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, 
-						DNSCurveParameterPTR->Client_SecretKey) != 0)
-				{
-					PrintError(LOG_LEVEL_1, LOG_ERROR_DNSCURVE, L"Key calculating error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-					return false;
-				}
+				PrintError(LOG_LEVEL_1, LOG_ERROR_DNSCURVE, L"Key calculating error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+				return false;
 			}
 		}
 		else if (IsFirstRead)
@@ -886,16 +884,14 @@ bool ParameterCheckAndSetting(
 					return false;
 				}
 			}
-			else if (!DNSCurveParameter.ClientEphemeralKey)
+			else if (!DNSCurveParameter.ClientEphemeralKey && 
+				crypto_box_beforenm(
+					DNSCurveParameterPTR->DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, 
+					DNSCurveParameterPTR->DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, 
+					DNSCurveParameterPTR->Client_SecretKey) != 0)
 			{
-				if (crypto_box_beforenm(
-						DNSCurveParameterPTR->DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, 
-						DNSCurveParameterPTR->DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, 
-						DNSCurveParameterPTR->Client_SecretKey) != 0)
-				{
-					PrintError(LOG_LEVEL_1, LOG_ERROR_DNSCURVE, L"Key calculating error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-					return false;
-				}
+				PrintError(LOG_LEVEL_1, LOG_ERROR_DNSCURVE, L"Key calculating error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+				return false;
 			}
 		}
 		else if (IsFirstRead)
@@ -1006,7 +1002,7 @@ uint16_t ServiceNameToBinary(
 	const uint8_t *OriginalBuffer)
 {
 	std::string Buffer((const char *)OriginalBuffer);
-	CaseConvert(true, Buffer);
+	CaseConvert(Buffer, true);
 
 //Server name
 	if (Buffer == ("TCPMUX"))
@@ -1197,7 +1193,7 @@ uint16_t DNSTypeNameToBinary(
 	const uint8_t *OriginalBuffer)
 {
 	std::string Buffer((const char *)OriginalBuffer);
-	CaseConvert(true, Buffer);
+	CaseConvert(Buffer, true);
 
 //DNS type name
 	if (Buffer == ("A"))
@@ -1510,7 +1506,7 @@ bool ReadParameterData(
 	}
 	else if (Data.find("LogMaximumSize=") == 0 && Data.length() > strlen("LogMaximumSize="))
 	{
-		CaseConvert(true, Data);
+		CaseConvert(Data, true);
 		if (Data.find("KB") != std::string::npos)
 		{
 			Data.erase(Data.length() - 2U, 2U);
@@ -1593,7 +1589,7 @@ bool ReadParameterData(
 	#endif
 		else if (Data.find("ListenProtocol=") == 0 && Data.length() > strlen("ListenProtocol="))
 		{
-			CaseConvert(true, Data);
+			CaseConvert(Data, true);
 
 		//Network layer
 			if (Data.find("IPV6") != std::string::npos)
@@ -1643,7 +1639,7 @@ bool ReadParameterData(
 		}
 		else if (Data.find("OperationMode=") == 0 && Data.length() > strlen("OperationMode="))
 		{
-			CaseConvert(true, Data);
+			CaseConvert(Data, true);
 			if (Data.find("PRIVATE") != std::string::npos)
 				Parameter.OperationMode = LISTEN_MODE_PRIVATE;
 			else if (Data.find("SERVER") != std::string::npos)
@@ -1704,7 +1700,7 @@ bool ReadParameterData(
 					UnsignedResult = strtoul(StringIter.c_str(), nullptr, 0);
 					if (UnsignedResult <= 0 || UnsignedResult > UINT16_MAX)
 					{
-						PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNS Records type error", errno, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+						PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNS Record type error", errno, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 						return false;
 					}
 				}
@@ -1717,13 +1713,13 @@ bool ReadParameterData(
 //[DNS] block
 	if (IsFirstRead && Data.find("Protocol=") == 0 && Data.length() > strlen("Protocol="))
 	{
-		CaseConvert(true, Data);
+		CaseConvert(Data, true);
 
 	//Network layer
 		if (Data.find("IPV6") != std::string::npos)
 		{
 			if (Data.find("IPV4") != std::string::npos)
-				Parameter.RequestMode_Network = REQUEST_MODE_NETWORK_BOTH;
+				Parameter.RequestMode_Network = REQUEST_MODE_BOTH;
 			else 
 				Parameter.RequestMode_Network = REQUEST_MODE_IPV6;
 		}
@@ -1742,23 +1738,23 @@ bool ReadParameterData(
 	{
 		if (Data.find("DirectRequest=1") == 0 || Data.find("HostsOnly=1") == 0)
 		{
-			ParameterPTR->DirectRequest = DIRECT_REQUEST_MODE_BOTH;
+			ParameterPTR->DirectRequest = REQUEST_MODE_DIRECT_BOTH;
 		}
 		else {
-			CaseConvert(true, Data);
+			CaseConvert(Data, true);
 			if (Data.find("IPV6") != std::string::npos)
 			{
 				if (Data.find("IPV4") != std::string::npos)
-					ParameterPTR->DirectRequest = DIRECT_REQUEST_MODE_BOTH;
+					ParameterPTR->DirectRequest = REQUEST_MODE_DIRECT_BOTH;
 				else 
-					ParameterPTR->DirectRequest = DIRECT_REQUEST_MODE_IPV6;
+					ParameterPTR->DirectRequest = REQUEST_MODE_DIRECT_IPV6;
 			}
 			else if (Data.find("IPV4") != std::string::npos)
 			{
 				if (Data.find("IPV6") != std::string::npos)
-					ParameterPTR->DirectRequest = DIRECT_REQUEST_MODE_BOTH;
+					ParameterPTR->DirectRequest = REQUEST_MODE_DIRECT_BOTH;
 				else 
-					ParameterPTR->DirectRequest = DIRECT_REQUEST_MODE_IPV4;
+					ParameterPTR->DirectRequest = REQUEST_MODE_DIRECT_IPV4;
 			}
 		}
 	}
@@ -1767,7 +1763,7 @@ bool ReadParameterData(
 	{
 		if (Data.find("CacheType=") == 0 && Data.length() > strlen("CacheType="))
 		{
-			CaseConvert(true, Data);
+			CaseConvert(Data, true);
 			if (Data.find("QUEUE") != std::string::npos && Data.find("TIMER") != std::string::npos)
 				Parameter.CacheType = CACHE_TYPE_BOTH;
 			else if (Data.find("TIMER") != std::string::npos)
@@ -1815,13 +1811,13 @@ bool ReadParameterData(
 //[Local DNS] block
 	if (Data.find("LocalProtocol=") == 0)
 	{
-		CaseConvert(true, Data);
+		CaseConvert(Data, true);
 
 	//Network layer
 		if (Data.find("IPV6") != std::string::npos)
 		{
 			if (Data.find("IPV4") != std::string::npos)
-				ParameterPTR->LocalProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
+				ParameterPTR->LocalProtocol_Network = REQUEST_MODE_BOTH;
 			else 
 				ParameterPTR->LocalProtocol_Network = REQUEST_MODE_IPV6;
 		}
@@ -2029,7 +2025,7 @@ bool ReadParameterData(
 	//Range
 		if (Data.find(ASCII_MINUS) != std::string::npos && Data.length() > Data.find(ASCII_MINUS) + 1U)
 		{
-		//Mark begining value.
+		//Mark beginning value.
 			std::string ValueString;
 			ValueString.append(Data, strlen("IPv4PacketTTL="), Data.find(ASCII_MINUS) - strlen("IPv4PacketTTL="));
 			_set_errno(0);
@@ -2091,7 +2087,7 @@ bool ReadParameterData(
 	//Range
 		if (Data.find(ASCII_MINUS) != std::string::npos)
 		{
-		//Mark begining value.
+		//Mark beginning value.
 			std::string ValueString;
 			ValueString.append(Data, strlen("IPv6PacketHopLimits="), Data.find(ASCII_MINUS) - strlen("IPv6PacketHopLimits="));
 			_set_errno(0);
@@ -2563,7 +2559,7 @@ bool ReadParameterData(
 		}
 		else if (Data.find("SOCKSVersion=") == 0 && Data.length() > strlen("SOCKSVersion="))
 		{
-			CaseConvert(true, Data);
+			CaseConvert(Data, true);
 
 			if (Data.find("4A") != std::string::npos)
 				Parameter.SOCKS_Version = SOCKS_VERSION_CONFIG_4A;
@@ -2574,13 +2570,13 @@ bool ReadParameterData(
 		}
 		else if (Data.find("SOCKSProtocol=") == 0)
 		{
-			CaseConvert(true, Data);
+			CaseConvert(Data, true);
 
 		//Network layer
 			if (Data.find("IPV6") != std::string::npos)
 			{
 				if (Data.find("IPV4") != std::string::npos)
-					Parameter.SOCKS_Protocol_Network = REQUEST_MODE_NETWORK_BOTH;
+					Parameter.SOCKS_Protocol_Network = REQUEST_MODE_BOTH;
 				else 
 					Parameter.SOCKS_Protocol_Network = REQUEST_MODE_IPV6;
 			}
@@ -2701,11 +2697,11 @@ bool ReadParameterData(
 		}
 		else if (Data.find("HTTPProtocol=") == 0)
 		{
-			CaseConvert(true, Data);
+			CaseConvert(Data, true);
 			if (Data.find("IPV6") != std::string::npos)
 			{
 				if (Data.find("IPV4") != std::string::npos)
-					Parameter.HTTP_Protocol = REQUEST_MODE_NETWORK_BOTH;
+					Parameter.HTTP_Protocol = REQUEST_MODE_BOTH;
 				else 
 					Parameter.HTTP_Protocol = REQUEST_MODE_IPV6;
 			}
@@ -2796,13 +2792,13 @@ bool ReadParameterData(
 		}
 		else if (Data.find("DNSCurveProtocol=") == 0)
 		{
-			CaseConvert(true, Data);
+			CaseConvert(Data, true);
 
 		//Network layer
 			if (Data.find("IPV6") != std::string::npos)
 			{
 				if (Data.find("IPV4") != std::string::npos)
-					DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
+					DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_BOTH;
 				else 
 					DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_IPV6;
 			}
@@ -3221,7 +3217,7 @@ bool ReadMultipleAddresses(
 	}
 	DNS_SERVER_DATA DNSServerDataTemp;
 	memset(&DNSServerDataTemp, 0, sizeof(DNSServerDataTemp));
-	uint8_t Addr[ADDR_STRING_MAXSIZE] = {0};
+	uint8_t Addr[ADDRESS_STRING_MAXSIZE] = {0};
 	std::vector<std::string> ListData;
 	ssize_t SignedResult = 0;
 	size_t UnsignedResult = 0;
@@ -3245,17 +3241,17 @@ bool ReadMultipleAddresses(
 			}
 
 		//Convert IPv6 address.
-			memset(Addr, 0, ADDR_STRING_MAXSIZE);
-			memcpy_s(Addr, ADDR_STRING_MAXSIZE, StringIter.c_str() + strlen("["), StringIter.find(ASCII_BRACKETS_RIGHT) - strlen("["));
-			if (!AddressStringToBinary(Addr, AF_INET6, &DNSServerDataTemp.AddressData.IPv6.sin6_addr, &SignedResult))
+			memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
+			memcpy_s(Addr, ADDRESS_STRING_MAXSIZE, StringIter.c_str() + strlen("["), StringIter.find(ASCII_BRACKETS_RIGHT) - strlen("["));
+			if (!AddressStringToBinary(AF_INET6, Addr, &DNSServerDataTemp.AddressData.IPv6.sin6_addr, &SignedResult))
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 address format error", SignedResult, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
 			}
 
 		//Convert IPv6 port.
-			memset(Addr, 0, ADDR_STRING_MAXSIZE);
-			memcpy_s(Addr, ADDR_STRING_MAXSIZE, StringIter.c_str() + StringIter.find("]:") + strlen("]:"), StringIter.length() - (StringIter.find("]:") + strlen("]:")));
+			memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
+			memcpy_s(Addr, ADDRESS_STRING_MAXSIZE, StringIter.c_str() + StringIter.find("]:") + strlen("]:"), StringIter.length() - (StringIter.find("]:") + strlen("]:")));
 			UnsignedResult = ServiceNameToBinary(Addr);
 			if (UnsignedResult == 0)
 			{
@@ -3309,17 +3305,17 @@ bool ReadMultipleAddresses(
 			}
 
 		//Convert IPv4 address.
-			memset(Addr, 0, ADDR_STRING_MAXSIZE);
-			memcpy_s(Addr, ADDR_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_COLON));
-			if (!AddressStringToBinary(Addr, AF_INET, &DNSServerDataTemp.AddressData.IPv4.sin_addr, &SignedResult))
+			memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
+			memcpy_s(Addr, ADDRESS_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_COLON));
+			if (!AddressStringToBinary(AF_INET, Addr, &DNSServerDataTemp.AddressData.IPv4.sin_addr, &SignedResult))
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 address format error", SignedResult, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
 			}
 
 		//Convert IPv4 port.
-			memset(Addr, 0, ADDR_STRING_MAXSIZE);
-			memcpy_s(Addr, ADDR_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_COLON) + strlen(":"), StringIter.length() - (StringIter.find(ASCII_COLON) + strlen(":")));
+			memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
+			memcpy_s(Addr, ADDRESS_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_COLON) + strlen(":"), StringIter.length() - (StringIter.find(ASCII_COLON) + strlen(":")));
 			UnsignedResult = ServiceNameToBinary(Addr);
 			if (UnsignedResult == 0)
 			{
@@ -3380,7 +3376,7 @@ bool ReadSOCKSAddressAndDomain(
 	}
 
 //Initialization
-	uint8_t Addr[ADDR_STRING_MAXSIZE] = {0};
+	uint8_t Addr[ADDRESS_STRING_MAXSIZE] = {0};
 	ssize_t SignedResult = 0;
 	size_t UnsignedResult = 0;
 
@@ -3395,16 +3391,16 @@ bool ReadSOCKSAddressAndDomain(
 		}
 		else {
 		//Convert IPv6 address.
-			memcpy_s(Addr, ADDR_STRING_MAXSIZE, Data.c_str() + DataOffset + strlen("["), Data.find(ASCII_BRACKETS_RIGHT) - (DataOffset + strlen("[")));
-			if (!AddressStringToBinary(Addr, AF_INET6, &ParameterPTR->SOCKS_TargetServer.IPv6.sin6_addr, &SignedResult))
+			memcpy_s(Addr, ADDRESS_STRING_MAXSIZE, Data.c_str() + DataOffset + strlen("["), Data.find(ASCII_BRACKETS_RIGHT) - (DataOffset + strlen("[")));
+			if (!AddressStringToBinary(AF_INET6, Addr, &ParameterPTR->SOCKS_TargetServer.IPv6.sin6_addr, &SignedResult))
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 address format error", SignedResult, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
 			}
 
 		//Convert IPv6 port.
-			memset(Addr, 0, ADDR_STRING_MAXSIZE);
-			memcpy_s(Addr, ADDR_STRING_MAXSIZE, Data.c_str() + Data.find("]:") + strlen("]:"), Data.length() - (Data.find("]:") + strlen("]:")));
+			memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
+			memcpy_s(Addr, ADDRESS_STRING_MAXSIZE, Data.c_str() + Data.find("]:") + strlen("]:"), Data.length() - (Data.find("]:") + strlen("]:")));
 			UnsignedResult = ServiceNameToBinary(Addr);
 			if (UnsignedResult == 0)
 			{
@@ -3449,7 +3445,7 @@ bool ReadSOCKSAddressAndDomain(
 			ParameterPTR->SOCKS_TargetDomain->append(Data, DataOffset, Data.find(ASCII_COLON) - DataOffset);
 
 		//Convert port.
-			memcpy_s(Addr, ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COLON) + strlen(":"), Data.length() - (Data.find(ASCII_COLON) + strlen(":")));
+			memcpy_s(Addr, ADDRESS_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COLON) + strlen(":"), Data.length() - (Data.find(ASCII_COLON) + strlen(":")));
 			UnsignedResult = ServiceNameToBinary(Addr);
 			if (UnsignedResult == 0)
 			{
@@ -3475,16 +3471,16 @@ bool ReadSOCKSAddressAndDomain(
 			}
 
 		//Convert IPv4 address.
-			memcpy_s(Addr, ADDR_STRING_MAXSIZE, Data.c_str() + DataOffset, Data.find(ASCII_COLON) - DataOffset);
-			if (!AddressStringToBinary(Addr, AF_INET, &ParameterPTR->SOCKS_TargetServer.IPv4.sin_addr, &SignedResult))
+			memcpy_s(Addr, ADDRESS_STRING_MAXSIZE, Data.c_str() + DataOffset, Data.find(ASCII_COLON) - DataOffset);
+			if (!AddressStringToBinary(AF_INET, Addr, &ParameterPTR->SOCKS_TargetServer.IPv4.sin_addr, &SignedResult))
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 address format error", SignedResult, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
 			}
 
 		//Convert IPv4 port.
-			memset(Addr, 0, ADDR_STRING_MAXSIZE);
-			memcpy_s(Addr, ADDR_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COLON) + strlen(":"), Data.length() - (Data.find(ASCII_COLON) + strlen(":")));
+			memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
+			memcpy_s(Addr, ADDRESS_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COLON) + strlen(":"), Data.length() - (Data.find(ASCII_COLON) + strlen(":")));
 			UnsignedResult = ServiceNameToBinary(Addr);
 			if (UnsignedResult == 0)
 			{
@@ -3646,15 +3642,15 @@ bool ReadDNSCurveKey(
 	memset(KeyData, 0, crypto_box_SECRETKEYBYTES);
 
 //Initialization
-	uint8_t Addr[ADDR_STRING_MAXSIZE] = {0};
+	uint8_t Addr[ADDRESS_STRING_MAXSIZE] = {0};
 	const char *ResultPointer = nullptr;
 	size_t ResultLength = 0;
 
 //Convert hex format to binary.
 	if (Data.length() > DataOffset + crypto_box_PUBLICKEYBYTES * 2U && Data.length() < DataOffset + crypto_box_PUBLICKEYBYTES * 3U)
 	{
-		auto Result = sodium_hex2bin(Addr, ADDR_STRING_MAXSIZE, Data.c_str() + DataOffset, Data.length() - DataOffset, ": ", &ResultLength, &ResultPointer);
-		if (Result == 0 && ResultLength == crypto_box_PUBLICKEYBYTES && ResultPointer != nullptr)
+		auto Result = sodium_hex2bin(Addr, ADDRESS_STRING_MAXSIZE, Data.c_str() + DataOffset, Data.length() - DataOffset, ": ", &ResultLength, &ResultPointer);
+		if (Result == 0 && ResultPointer != nullptr && ResultLength == crypto_box_PUBLICKEYBYTES)
 		{
 			memcpy_s(KeyData, crypto_box_SECRETKEYBYTES, Addr, crypto_box_PUBLICKEYBYTES);
 		}

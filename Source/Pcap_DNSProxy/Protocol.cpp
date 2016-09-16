@@ -19,13 +19,14 @@
 
 #include "Protocol.h"
 
-//Convert address strings to binary.
+//Convert address strings to binary
 bool AddressStringToBinary(
-	const uint8_t *AddrString, 
 	const uint16_t Protocol, 
+	const uint8_t *AddrString, 
 	void *OriginalAddr, 
 	ssize_t *ErrorCode)
 {
+//Initialization
 	std::string sAddrString((const char *)AddrString);
 	if (Protocol == AF_INET6)
 		memset(OriginalAddr, 0, sizeof(in6_addr));
@@ -36,15 +37,15 @@ bool AddressStringToBinary(
 	if (ErrorCode != nullptr)
 		*ErrorCode = 0;
 
-//inet_ntop function and inet_pton function was only support in Windows Vista and newer system. [Roy Tam]
+//Convert address.
+//Minimum supported system of inet_ntop function and inet_pton function is Windows Vista. [Roy Tam]
 #if defined(PLATFORM_WIN_XP)
 	sockaddr_storage SockAddr;
 	memset(&SockAddr, 0, sizeof(SockAddr));
-	int SockLength = 0;
+	socklen_t SockLength = 0;
 #else
 	ssize_t Result = 0;
 #endif
-
 	if (Protocol == AF_INET6)
 	{
 	//Check IPv6 addresses.
@@ -75,7 +76,12 @@ bool AddressStringToBinary(
 	//Convert to binary.
 	#if defined(PLATFORM_WIN_XP)
 		SockLength = sizeof(sockaddr_in6);
-		if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET6, nullptr, (PSOCKADDR)&SockAddr, &SockLength) == SOCKET_ERROR)
+		if (WSAStringToAddressA(
+				(char *)sAddrString.c_str(), 
+				AF_INET6, 
+				nullptr, 
+				(PSOCKADDR)&SockAddr, 
+				&SockLength) == SOCKET_ERROR)
 		{
 			if (ErrorCode != nullptr)
 				*ErrorCode = WSAGetLastError();
@@ -145,7 +151,12 @@ bool AddressStringToBinary(
 	//Convert to binary.
 	#if defined(PLATFORM_WIN_XP)
 		SockLength = sizeof(sockaddr_in);
-		if (WSAStringToAddressA((char *)sAddrString.c_str(), AF_INET, nullptr, (PSOCKADDR)&SockAddr, &SockLength) == SOCKET_ERROR)
+		if (WSAStringToAddressA(
+				(char *)sAddrString.c_str(), 
+				AF_INET, 
+				nullptr, 
+				(PSOCKADDR)&SockAddr, 
+				&SockLength) == SOCKET_ERROR)
 		{
 			if (ErrorCode != nullptr)
 				*ErrorCode = WSAGetLastError();
@@ -172,11 +183,62 @@ bool AddressStringToBinary(
 	return true;
 }
 
+//Convert binary address strings
+bool BinaryToAddressString(
+	const uint16_t Protocol, 
+	const void *OriginalAddr, 
+	void *AddressString, 
+	const size_t StringSize, 
+	ssize_t *ErrorCode)
+{
+//Initialization
+	if (ErrorCode != nullptr)
+		*ErrorCode = 0;
+
+//Convert address.
+//Minimum supported system of inet_ntop function and inet_pton function is Windows Vista. [Roy Tam]
+#if defined(PLATFORM_WIN_XP)
+	sockaddr_storage SockAddr;
+	memset(&SockAddr, 0, sizeof(SockAddr));
+	if (Protocol == AF_INET6)
+	{
+		SockAddr.ss_family = AF_INET6;
+		((PSOCKADDR_IN6)&SockAddr)->sin6_addr = *(in6_addr *)OriginalAddr;
+	}
+	else if (Protocol == AF_INET)
+	{
+		SockAddr.ss_family = AF_INET;
+		((PSOCKADDR_IN)&SockAddr)->sin_addr = *(in_addr *)OriginalAddr;
+	}
+	else {
+		return false;
+	}
+
+	DWORD BufferLength = StringSize;
+	if (WSAAddressToStringA(
+		(PSOCKADDR)&SockAddr, 
+		sizeof(sockaddr_in6), 
+		nullptr, 
+		(LPSTR)AddressString, 
+		&BufferLength) == SOCKET_ERROR)
+#else
+	if (inet_ntop(Protocol, (void *)OriginalAddr, (char *)AddressString, (socklen_t)StringSize) == nullptr)
+#endif
+	{
+		if (ErrorCode != nullptr)
+			*ErrorCode = WSAGetLastError();
+
+		return false;
+	}
+
+	return true;
+}
+
 //Compare two addresses
 size_t AddressesComparing(
+	const uint16_t Protocol, 
 	const void *OriginalAddrBegin, 
-	const void *OriginalAddrEnd, 
-	const uint16_t Protocol)
+	const void *OriginalAddrEnd)
 {
 	if (Protocol == AF_INET6)
 	{
@@ -243,8 +305,8 @@ size_t AddressesComparing(
 
 //Check IPv4/IPv6 special addresses
 bool CheckSpecialAddress(
-	void *Addr, 
 	const uint16_t Protocol, 
+	void *Addr, 
 	const bool IsPrivateUse, 
 	const uint8_t *Domain)
 {
@@ -327,7 +389,7 @@ bool CheckSpecialAddress(
 		{
 		//Domain Case Conversion
 			std::string InnerDomain((const char *)Domain);
-			CaseConvert(false, InnerDomain);
+			CaseConvert(InnerDomain, false);
 
 		//Main check
 			std::lock_guard<std::mutex> IPFilterFileMutex(IPFilterFileLock);
@@ -341,8 +403,8 @@ bool CheckSpecialAddress(
 						for (const auto &AddressRangeTableIter:ResultBlacklistTableIter.Addresses)
 						{
 							if ((AddressRangeTableIter.End.ss_family == AF_INET6 && 
-								AddressesComparing(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL && 
-								AddressesComparing(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr, AF_INET6) <= ADDRESS_COMPARE_EQUAL) || 
+								AddressesComparing(AF_INET6, Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr) >= ADDRESS_COMPARE_EQUAL && 
+								AddressesComparing(AF_INET6, Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr) <= ADDRESS_COMPARE_EQUAL) || 
 								memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == 0)
 									return true;
 						}
@@ -362,8 +424,8 @@ bool CheckSpecialAddress(
 					for (const auto &AddressRangeTableIter:AddressHostsTableIter.Address_Source)
 					{
 						if ((AddressRangeTableIter.Begin.ss_family == AF_INET6 && AddressRangeTableIter.End.ss_family == AF_INET6 && 
-							AddressesComparing(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, AF_INET6) >= ADDRESS_COMPARE_EQUAL && 
-							AddressesComparing(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr, AF_INET6) <= ADDRESS_COMPARE_EQUAL) || 
+							AddressesComparing(AF_INET6, Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr) >= ADDRESS_COMPARE_EQUAL && 
+							AddressesComparing(AF_INET6, Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr) <= ADDRESS_COMPARE_EQUAL) || 
 							memcmp(Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr, sizeof(in6_addr)) == 0)
 						{
 							if (AddressHostsTableIter.Address_Target.size() > 1U)
@@ -501,7 +563,7 @@ bool CheckSpecialAddress(
 		{
 		//Domain Case Conversion
 			std::string InnerDomain((const char *)Domain);
-			CaseConvert(false, InnerDomain);
+			CaseConvert(InnerDomain, false);
 
 		//Main check
 			std::lock_guard<std::mutex> IPFilterFileMutex(IPFilterFileLock);
@@ -515,8 +577,8 @@ bool CheckSpecialAddress(
 						for (const auto &AddressRangeTableIter:ResultBlacklistTableIter.Addresses)
 						{
 							if ((AddressRangeTableIter.End.ss_family == AF_INET && 
-								AddressesComparing(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr, AF_INET) >= ADDRESS_COMPARE_EQUAL && 
-								AddressesComparing(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr, AF_INET) <= ADDRESS_COMPARE_EQUAL) || 
+								AddressesComparing(AF_INET, Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr) >= ADDRESS_COMPARE_EQUAL && 
+								AddressesComparing(AF_INET, Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr) <= ADDRESS_COMPARE_EQUAL) || 
 								((in_addr *)Addr)->s_addr == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_addr)
 									return true;
 						}
@@ -536,8 +598,8 @@ bool CheckSpecialAddress(
 					for (const auto &AddressRangeTableIter:AddressHostsTableIter.Address_Source)
 					{
 						if ((AddressRangeTableIter.Begin.ss_family == AF_INET && AddressRangeTableIter.End.ss_family == AF_INET && 
-							AddressesComparing(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr, AF_INET) >= ADDRESS_COMPARE_EQUAL && 
-							AddressesComparing(Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr, AF_INET) <= ADDRESS_COMPARE_EQUAL) || 
+							AddressesComparing(AF_INET, Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr) >= ADDRESS_COMPARE_EQUAL && 
+							AddressesComparing(AF_INET, Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr) <= ADDRESS_COMPARE_EQUAL) || 
 							((in_addr *)Addr)->s_addr == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_addr)
 						{
 							if (AddressHostsTableIter.Address_Target.size() > 1U)
@@ -565,8 +627,8 @@ StopLoop:
 
 //Check routing of addresses
 bool CheckAddressRouting(
-	const void *Addr, 
-	const uint16_t Protocol)
+	const uint16_t Protocol, 
+	const void *Addr)
 {
 	std::lock_guard<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 
@@ -611,8 +673,8 @@ bool CheckAddressRouting(
 
 //Custom Mode address filter
 bool CheckCustomModeFilter(
-	const void *OriginalAddr, 
-	const uint16_t Protocol)
+	const uint16_t Protocol, 
+	const void *OriginalAddr)
 {
 	std::lock_guard<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 	if (Protocol == AF_INET6)
@@ -838,7 +900,7 @@ size_t CheckResponseCNAME(
 	auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
 	size_t DataLength = 0;
 	RecordNum = 0;
-	CaseConvert(false, Domain);
+	CaseConvert(Domain, false);
 
 //Make domain reversed.
 	std::string ReverseDomain(Domain);
@@ -1013,7 +1075,7 @@ bool CheckQueryData(
 				(((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] == 0xFE && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[1U] <= 0xBF) || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
 				(((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_words[6U] == 0 && ntohs(((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_words[7U]) == 0x0001))) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
 			//Check Custom Mode(IPv6).
-				(Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr, AF_INET6)))
+				(Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(AF_INET6, &((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)))
 					return false;
 		}
 		else if (LocalSocketData.AddrLen == sizeof(sockaddr_in)) //IPv4
@@ -1027,7 +1089,7 @@ bool CheckQueryData(
 				(((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0xAC && ((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_host >= 0x10 && ((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_host <= 0x1F) || //Private class B address(172.16.0.0/12, Section 3 in RFC 1918)
 				(((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0xC0 && ((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_host == 0xA8))) || //Private class C address(192.168.0.0/16, Section 3 in RFC 1918)
 			//Check Custom Mode(IPv4).
-				(Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr, AF_INET)))
+				(Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(AF_INET, &((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)))
 					return false;
 		}
 		else {
@@ -1077,7 +1139,7 @@ bool CheckQueryData(
 		if (Packet->Length >= DNS_PACKET_MINSIZE)
 		{
 			DNS_Header->Flags = htons(DNS_SET_R_FE);
-			SendToRequester(Packet->Buffer, Packet->Length, Packet->BufferSize, Packet->Protocol, LocalSocketData);
+			SendToRequester(Packet->Protocol, Packet->Buffer, Packet->Length, Packet->BufferSize, LocalSocketData);
 		}
 
 		return false;
@@ -1145,7 +1207,7 @@ bool CheckQueryData(
 
 	//Send request.
 		if (Packet->Length >= DNS_PACKET_MINSIZE)
-			SendToRequester(Packet->Buffer, Packet->Length, Packet->BufferSize, Packet->Protocol, LocalSocketData);
+			SendToRequester(Packet->Protocol, Packet->Buffer, Packet->Length, Packet->BufferSize, LocalSocketData);
 
 		return false;
 	}
@@ -1155,8 +1217,8 @@ bool CheckQueryData(
 	{
 	//Check special address.
 		PSOCKET_DATA EDNSSocketData = nullptr;
-		if ((LocalSocketData.AddrLen == sizeof(sockaddr_in6) && !CheckSpecialAddress(&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr, AF_INET6, true, nullptr)) || //IPv6
-			(LocalSocketData.AddrLen == sizeof(sockaddr_in) && !CheckSpecialAddress(&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr, AF_INET, true, nullptr))) //IPv4
+		if ((LocalSocketData.AddrLen == sizeof(sockaddr_in6) && !CheckSpecialAddress(AF_INET6, &((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr, true, nullptr)) || //IPv6
+			(LocalSocketData.AddrLen == sizeof(sockaddr_in) && !CheckSpecialAddress(AF_INET, &((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr, true, nullptr))) //IPv4
 				EDNSSocketData = (PSOCKET_DATA)&LocalSocketData;
 
 	//Add EDNS Label to query data.
@@ -1168,7 +1230,7 @@ bool CheckQueryData(
 	auto DataLength = CheckHostsProcess(Packet, SendBuffer, SendSize, LocalSocketData);
 	if (DataLength >= DNS_PACKET_MINSIZE)
 	{
-		SendToRequester(SendBuffer, DataLength, SendSize, Packet->Protocol, LocalSocketData);
+		SendToRequester(Packet->Protocol, SendBuffer, DataLength, SendSize, LocalSocketData);
 		return false;
 	}
 
@@ -1325,9 +1387,9 @@ size_t CheckResponseData(
 
 			//Check addresses.
 				Addr = (in6_addr *)(Buffer + DataLength);
-				if ((Parameter.DataCheck_Blacklist && CheckSpecialAddress(Addr, AF_INET6, false, DomainString)) || 
+				if ((Parameter.DataCheck_Blacklist && CheckSpecialAddress(AF_INET6, Addr, false, DomainString)) || 
 					(Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && 
-					ResponseType == REQUEST_PROCESS_LOCAL && !CheckAddressRouting(Addr, AF_INET6)))
+					ResponseType == REQUEST_PROCESS_LOCAL && !CheckAddressRouting(AF_INET6, Addr)))
 						return EXIT_FAILURE;
 
 				IsGotAddressResult = true;
@@ -1341,9 +1403,9 @@ size_t CheckResponseData(
 
 			//Check addresses.
 				Addr = (in_addr *)(Buffer + DataLength);
-				if ((Parameter.DataCheck_Blacklist && CheckSpecialAddress(Addr, AF_INET, false, DomainString)) || 
+				if ((Parameter.DataCheck_Blacklist && CheckSpecialAddress(AF_INET, Addr, false, DomainString)) || 
 					(Index < ntohs(DNS_Header->Answer) && !Parameter.LocalHosts && Parameter.LocalRouting && 
-					ResponseType == REQUEST_PROCESS_LOCAL && !CheckAddressRouting(Addr, AF_INET)))
+					ResponseType == REQUEST_PROCESS_LOCAL && !CheckAddressRouting(AF_INET, Addr)))
 						return EXIT_FAILURE;
 
 				IsGotAddressResult = true;

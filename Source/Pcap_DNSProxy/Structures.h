@@ -2292,7 +2292,6 @@ typedef struct _dnscurve_txt_signature_
 * SOCKS(version 4): A protocol for TCP proxy across firewalls(http://www.openssh.com/txt/socks4.protocol)
 * SOCKS 4A: A Simple Extension to SOCKS 4 Protocol(http://www.openssh.com/txt/socks4a.protocol)
 */
-
 //Version, Method, Command and Reply definitions
 #define SOCKS_VERSION_4                            4U
 #define SOCKS_VERSION_4A                           4U

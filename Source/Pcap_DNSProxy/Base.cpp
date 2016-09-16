@@ -45,68 +45,6 @@ bool CheckEmptyBuffer(
 	return true;
 }
 
-/* Old version(2016-09-06)
-//Convert host values to network byte order with 16 bits(Force)
-uint16_t hton16_Force(
-	const uint16_t Value)
-{
-	return (uint16_t)(((uint8_t *)&Value)[0] << (sizeof(uint8_t) * BYTES_TO_BITS) | ((uint8_t *)&Value)[1U]);
-}
-
-/* Redirect to hton16_Force.
-//Convert network byte order to host values with 16 bits(Force)
-uint16_t ntoh16_Force(
-	const uint16_t Value)
-{
-	return (uint16_t)(((uint8_t *)&Value)[0] << (sizeof(uint8_t) * BYTES_TO_BITS) | ((uint8_t *)&Value)[1U]);
-}
-*/
-
-/* Old version(2016-09-06)
-//Convert host values to network byte order with 32 bits(Force)
-uint32_t hton32_Force(
-	const uint32_t Value)
-{
-	return (uint32_t)(((uint8_t *)&Value)[0] << ((sizeof(uint16_t) + sizeof(uint8_t)) * BYTES_TO_BITS) | 
-		((uint8_t *)&Value)[1U] << (sizeof(uint16_t) * BYTES_TO_BITS) | ((uint8_t *)&Value)[2U] << (sizeof(uint8_t) * BYTES_TO_BITS) | ((uint8_t *)&Value)[3U]);
-}
-
-/* Redirect to hton32_Force.
-//Convert network byte order to host values with 32 bits(Force)
-uint32_t ntoh32_Force(
-	const uint32_t Value)
-{
-	return (uint32_t)(((uint8_t *)&Value)[0] << ((sizeof(uint16_t) + sizeof(uint8_t)) * BYTES_TO_BITS) | 
-		((uint8_t *)&Value)[1U] << (sizeof(uint16_t) * BYTES_TO_BITS) | ((uint8_t *)&Value)[2U] << (sizeof(uint8_t) * BYTES_TO_BITS) | ((uint8_t *)&Value)[3U]);
-}
-*/
-
-/* Old version(2016-09-06)
-//Convert host values to network byte order with 64 bits
-uint64_t hton64(
-	const uint64_t Value)
-{
-#if BYTE_ORDER == LITTLE_ENDIAN
-	return (((uint64_t)htonl((int32_t)((Value << (sizeof(uint32_t) * BYTES_TO_BITS)) >> (sizeof(uint32_t) * BYTES_TO_BITS)))) << (sizeof(uint32_t) * BYTES_TO_BITS)) | 
-		(uint32_t)htonl((int32_t)(Value >> (sizeof(uint32_t) * BYTES_TO_BITS)));
-#else //BIG_ENDIAN
-	return Value;
-#endif
-}
-
-/* Redirect to hton64.
-//Convert network byte order to host values with 64 bits
-uint64_t ntoh64(const uint64_t Value)
-{
-#if BYTE_ORDER == LITTLE_ENDIAN
-	return (((uint64_t)ntohl((int32_t)((Value << (sizeof(uint32_t) * BYTES_TO_BITS)) >> (sizeof(uint32_t) * BYTES_TO_BITS)))) << (sizeof(uint32_t) * BYTES_TO_BITS)) | 
-		(uint32_t)ntohl((int32_t)(Value >> (sizeof(uint32_t) * BYTES_TO_BITS)));
-#else //BIG_ENDIAN
-	return Value;
-#endif
-}
-*/
-
 //Convert multiple bytes to wide char string
 bool MBSToWCSString(
 	const uint8_t *Buffer, 
@@ -125,7 +63,13 @@ bool MBSToWCSString(
 	std::shared_ptr<wchar_t> TargetPTR(new wchar_t[Length + PADDING_RESERVED_BYTES]());
 	wmemset(TargetPTR.get(), 0, Length + PADDING_RESERVED_BYTES);
 #if defined(PLATFORM_WIN)
-	if (MultiByteToWideChar(CP_ACP, 0, (LPCCH)Buffer, MBSTOWCS_NULLTERMINATE, TargetPTR.get(), (int)(Length + PADDING_RESERVED_BYTES)) == 0)
+	if (MultiByteToWideChar(
+			CP_ACP, 
+			0, 
+			(LPCCH)Buffer, 
+			MBSTOWCS_NULLTERMINATE, 
+			TargetPTR.get(), 
+			(int)(Length + PADDING_RESERVED_BYTES)) == 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (mbstowcs(TargetPTR.get(), (const char *)Buffer, Length + PADDING_RESERVED_BYTES) == (size_t)RETURN_ERROR)
 #endif
@@ -160,7 +104,15 @@ bool WCSToMBSString(
 	std::shared_ptr<uint8_t> TargetPTR(new uint8_t[Length + PADDING_RESERVED_BYTES]());
 	memset(TargetPTR.get(), 0, Length + PADDING_RESERVED_BYTES);
 #if defined(PLATFORM_WIN)
-	if (WideCharToMultiByte(CP_ACP, 0, Buffer, MBSTOWCS_NULLTERMINATE, (LPSTR)TargetPTR.get(), (int)(Length + PADDING_RESERVED_BYTES), nullptr, nullptr) == 0)
+	if (WideCharToMultiByte(
+			CP_ACP, 
+			0, 
+			Buffer, 
+			MBSTOWCS_NULLTERMINATE, 
+			(LPSTR)TargetPTR.get(), 
+			(int)(Length + PADDING_RESERVED_BYTES), 
+			nullptr, 
+			nullptr) == 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (wcstombs((char *)TargetPTR.get(), Buffer, Length + PADDING_RESERVED_BYTES) == (size_t)RETURN_ERROR)
 #endif
@@ -179,9 +131,9 @@ bool WCSToMBSString(
 
 //Convert lowercase/uppercase words to uppercase/lowercase words(C-Style version)
 void CaseConvert(
-	const bool IsLowerToUpper, 
 	uint8_t *Buffer, 
-	const size_t Length)
+	const size_t Length, 
+	const bool IsLowerToUpper)
 {
 //Null pointer
 	if (Buffer == nullptr)
@@ -206,8 +158,8 @@ void CaseConvert(
 
 //Convert lowercase/uppercase words to uppercase/lowercase words(C++ string version)
 void CaseConvert(
-	const bool IsLowerToUpper, 
-	std::string &Buffer)
+	std::string &Buffer, 
+	const bool IsLowerToUpper)
 {
 	for (auto &StringIter:Buffer)
 	{
@@ -224,8 +176,8 @@ void CaseConvert(
 
 //Convert lowercase/uppercase words to uppercase/lowercase words(C++ wstring version)
 void CaseConvert(
-	const bool IsLowerToUpper, 
-	std::wstring &Buffer)
+	std::wstring &Buffer, 
+	const bool IsLowerToUpper)
 {
 	for (auto &StringIter:Buffer)
 	{
@@ -302,13 +254,7 @@ bool CompareStringReversed(
 	const wchar_t *TestItem, 
 	const bool IsCaseConvert)
 {
-//Initialization
 	std::wstring InnerRuleItem(RuleItem), InnerTestItem(TestItem);
-	if (IsCaseConvert)
-	{
-		CaseConvert(false, InnerRuleItem);
-		CaseConvert(false, InnerTestItem);
-	}
 
 //Length check
 	if (InnerRuleItem.empty() || InnerTestItem.empty() || InnerTestItem.length() < InnerRuleItem.length())
@@ -317,6 +263,11 @@ bool CompareStringReversed(
 	}
 	else {
 	//Make string reversed to compare.
+		if (IsCaseConvert)
+		{
+			CaseConvert(InnerRuleItem, false);
+			CaseConvert(InnerTestItem, false);
+		}
 		MakeStringReversed(InnerRuleItem);
 		MakeStringReversed(InnerTestItem);
 
@@ -344,8 +295,8 @@ bool SortCompare_Hosts(
 	return Begin.FileIndex < End.FileIndex;
 }
 
+//Base64 encoding
 //Base64 encoding or decoding is from https://github.com/zhicheng/base64.
-//Base64 encode
 size_t Base64_Encode(
 	uint8_t *Input, 
 	const size_t Length, 
@@ -400,7 +351,7 @@ size_t Base64_Encode(
 	return strnlen_s((const char *)Output, OutputSize);
 }
 
-/* Base64 decode
+/* Base64 decoding
 size_t Base64_Decode(
 	uint8_t *Input, 
 	const size_t Length, 

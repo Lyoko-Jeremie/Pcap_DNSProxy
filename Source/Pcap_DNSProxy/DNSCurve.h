@@ -34,15 +34,15 @@ ssize_t DNSCurvePaddingData(
 	uint8_t *Buffer, 
 	const ssize_t Length);
 size_t DNSCurveSelectTargetSocket(
+	const uint16_t Protocol, 
 	SOCKET_DATA *TargetSocketData, 
 	DNSCURVE_SERVER_DATA **PacketTarget, 
 	bool **IsAlternate, 
-	size_t **AlternateTimeoutTimes, 
-	const uint16_t Protocol);
+	size_t **AlternateTimeoutTimes);
 bool DNSCurveSelectTargetSocketMultiple(
+	const uint16_t Protocol, 
 	bool &IsIPv6, 
-	bool **IsAlternate, 
-	const uint16_t Protocol);
+	bool **IsAlternate);
 bool DNSCurvePacketTargetSetting(
 	const size_t ServerType, 
 	DNSCURVE_SERVER_DATA **PacketTarget);

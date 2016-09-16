@@ -257,6 +257,7 @@ bool SOCKSSelectionExchange(
 	else {
 		RecvLen = ProxySocketSelecting(SOCKSSocketData->Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, Length, OriginalRecv, RecvSize, sizeof(socks_server_selection), nullptr);
 	}
+
 //SOCKS server selection check(Part 1)
 	if (RecvLen < (ssize_t)sizeof(socks_server_selection))
 	{
@@ -584,7 +585,7 @@ size_t SOCKSTCPRequest(
 
 //Socket initialization
 	if (Parameter.SOCKS_Address_IPv6.Storage.ss_family > 0 && //IPv6
-		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
+		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 || //IPv6
 		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 && Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
 	{
@@ -595,7 +596,7 @@ size_t SOCKSTCPRequest(
 		TCPSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 	}
 	else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family > 0 && //IPv4
-		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
+		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 || //IPv4
 		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 && Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6
 	{
@@ -726,7 +727,7 @@ size_t SOCKSUDPRequest(
 
 //Socket initialization
 	if (Parameter.SOCKS_Address_IPv6.Storage.ss_family > 0 && //IPv6
-		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
+		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 || //IPv6
 		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 && Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
 	{
@@ -753,7 +754,7 @@ size_t SOCKSUDPRequest(
 		UDPSocketData.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	}
 	else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family > 0 && //IPv4
-		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
+		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 || //IPv4
 		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 && Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6
 	{
@@ -903,7 +904,7 @@ size_t SOCKSUDPRequest(
 		RecvLen += (ssize_t)sizeof(uint16_t);
 		*(uint16_t *)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv4.sin_port;
 	}
-	else if (Parameter.SOCKS_TargetDomain != nullptr && !Parameter.SOCKS_TargetDomain->empty()) //Damain
+	else if (Parameter.SOCKS_TargetDomain != nullptr && !Parameter.SOCKS_TargetDomain->empty()) //Domain
 	{
 		((psocks_udp_relay_request)SOCKS_Pointer)->Address_Type = SOCKS5_ADDRESS_DOMAIN;
 		SOCKS_Pointer = SendBuffer.get() + RecvLen;
@@ -1033,7 +1034,7 @@ size_t HTTPRequest(
 
 //Socket initialization
 	if (Parameter.HTTP_Address_IPv6.Storage.ss_family > 0 && //IPv6
-		((Parameter.HTTP_Protocol == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
+		((Parameter.HTTP_Protocol == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		Parameter.HTTP_Protocol == REQUEST_MODE_IPV6 || //IPv6
 		(Parameter.HTTP_Protocol == REQUEST_MODE_IPV4 && Parameter.HTTP_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
 	{
@@ -1044,7 +1045,7 @@ size_t HTTPRequest(
 		HTTPSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 	}
 	else if (Parameter.HTTP_Address_IPv4.Storage.ss_family > 0 && //IPv4
-		((Parameter.HTTP_Protocol == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
+		((Parameter.HTTP_Protocol == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		Parameter.HTTP_Protocol == REQUEST_MODE_IPV4 || //IPv4
 		(Parameter.HTTP_Protocol == REQUEST_MODE_IPV6 && Parameter.HTTP_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6
 	{
@@ -1212,12 +1213,12 @@ bool HTTP_CONNECTRequest(
 	}
 	else if (HTTPString.find(" 200 ") == std::string::npos || HTTPString.find(" 200 ") >= HTTPString.find("\r\n")) //Not HTTP status code 200: OK
 	{
-		std::wstring wErrBuffer;
+		std::wstring Message;
 		HTTPString.erase(HTTPString.find("\r\n"), HTTPString.length() - HTTPString.find("\r\n"));
-		if (!MBSToWCSString((const uint8_t *)HTTPString.c_str(), HTTPString.length(), wErrBuffer))
+		if (!MBSToWCSString((const uint8_t *)HTTPString.c_str(), HTTPString.length(), Message))
 			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 		else 
-			PrintError(LOG_LEVEL_3, LOG_ERROR_HTTP, wErrBuffer.c_str(), 0, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_HTTP, Message.c_str(), 0, nullptr, 0);
 
 		return false;
 	}

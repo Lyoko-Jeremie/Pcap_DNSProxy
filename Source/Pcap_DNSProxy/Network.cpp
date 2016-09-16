@@ -85,9 +85,8 @@ bool SocketSetting(
 		case SOCKET_SETTING_REUSE:
 		{
 		#if defined(PLATFORM_WIN)
-			DWORD OptionValue = TRUE;
-
 		//Preventing other sockets from being forcibly bound to the same address and port(Windows).
+			DWORD OptionValue = TRUE;
 			if (setsockopt(Socket, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			{
 				if (IsPrintError)
@@ -163,7 +162,7 @@ bool SocketSetting(
 		case SOCKET_SETTING_NON_BLOCKING_MODE:
 		{
 		#if defined(PLATFORM_WIN)
-			unsigned long SocketMode = 1U;
+			unsigned long SocketMode = TRUE;
 			if (ioctlsocket(Socket, FIONBIO, &SocketMode) == SOCKET_ERROR)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 			auto SocketMode = fcntl(Socket, F_GETFL, 0);
@@ -1079,6 +1078,7 @@ bool DomainTestRequest(
 				DataLength = CharToDNSQuery(DNSQuery.get(), Buffer.get() + sizeof(dns_hdr)) + sizeof(dns_hdr);
 				memset(DNSQuery.get(), 0, DOMAIN_MAXSIZE);
 
+			//Make DNS query data.
 				DNS_Query = (pdns_qry)(Buffer.get() + DataLength);
 				DNS_Query->Classes = htons(DNS_CLASS_IN);
 				if (Protocol == AF_INET6)
@@ -1098,7 +1098,7 @@ bool DomainTestRequest(
 			}
 
 		//Send process
-			UDPRequestMultiple(REQUEST_PROCESS_UDP_NO_MARKING, Buffer.get(), DataLength, nullptr, 0);
+			UDPRequestMultiple(REQUEST_PROCESS_UDP_NO_MARKING, 0, Buffer.get(), DataLength, nullptr);
 			Sleep(SENDING_INTERVAL_TIME);
 			++Times;
 		}
@@ -1532,7 +1532,7 @@ bool SelectTargetSocket(
 	{
 	//IPv6
 		if (Parameter.Target_Server_Local_IPv6.Storage.ss_family > 0 && 
-			((Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
+			((Parameter.LocalProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV6 || //IPv6
 			(Parameter.LocalProtocol_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_Local_IPv4.Storage.ss_family == 0))) //Non-IPv4
 		{
@@ -1577,7 +1577,7 @@ bool SelectTargetSocket(
 		}
 	//IPv4
 		else if (Parameter.Target_Server_Local_IPv4.Storage.ss_family > 0 && 
-			((Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
+			((Parameter.LocalProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV4 || //IPv4
 			(Parameter.LocalProtocol_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_Local_IPv6.Storage.ss_family == 0))) //Non-IPv6
 		{
@@ -1629,7 +1629,7 @@ bool SelectTargetSocket(
 	else {
 	//IPv6
 		if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
-			((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
+			((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
 			(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 		{
@@ -1674,7 +1674,7 @@ bool SelectTargetSocket(
 		}
 	//IPv4
 		else if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
-			((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
+			((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 			(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 		{
@@ -1746,7 +1746,7 @@ bool SelectTargetSocketMultiple(
 
 //IPv6
 	if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
-		((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
+		((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
 		(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 	{
@@ -1850,7 +1850,7 @@ bool SelectTargetSocketMultiple(
 	}
 //IPv4
 	else if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
-		((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
+		((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 		(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 	{
@@ -2053,10 +2053,10 @@ size_t TCPRequestMultiple(
 #if defined(ENABLE_PCAP)
 size_t UDPRequest(
 	const size_t RequestType, 
+	const uint16_t Protocol, 
 	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
-	const SOCKET_DATA *LocalSocketData, 
-	const uint16_t Protocol)
+	const SOCKET_DATA *LocalSocketData)
 {
 //Initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
@@ -2098,10 +2098,10 @@ size_t UDPRequest(
 //Transmission of UDP protocol(Multiple threading)
 size_t UDPRequestMultiple(
 	const size_t RequestType, 
+	const uint16_t Protocol, 
 	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
-	const SOCKET_DATA *LocalSocketData, 
-	const uint16_t Protocol)
+	const SOCKET_DATA *LocalSocketData)
 {
 //Socket initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList;

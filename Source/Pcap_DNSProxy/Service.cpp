@@ -20,7 +20,7 @@
 #include "Service.h"
 
 #if defined(PLATFORM_WIN)
-//Catch Control-C exception from keyboard.
+//Catch Control-C exception from keyboard
 BOOL WINAPI CtrlHandler(
 	const DWORD fdwCtrlType)
 {
@@ -32,17 +32,17 @@ BOOL WINAPI CtrlHandler(
 		//Handle the CTRL-C signal.
 			case CTRL_C_EVENT:
 			{
-				PrintToScreen(true, L"Get Control-C.\n");
+				PrintToScreen(true, L"[Notice] Get Control-C.\n");
 			}break;
 		//Handle the CTRL-Break signal.
 			case CTRL_BREAK_EVENT:
 			{
-				PrintToScreen(true, L"Get Control-Break.\n");
+				PrintToScreen(true, L"[Notice] Get Control-Break.\n");
 			}break;
 		//Handle other signals.
 			default:
 			{
-				PrintToScreen(true, L"Get closing signal.\n");
+				PrintToScreen(true, L"[Notice] Get closing signal.\n");
 			}break;
 		}
 	}
@@ -59,11 +59,17 @@ size_t WINAPI ServiceMain(
 	GlobalRunningStatus.IsConsole = false;
 
 //Service initialization
-	ServiceStatusHandle = RegisterServiceCtrlHandlerW(SYSTEM_SERVICE_NAME, (LPHANDLER_FUNCTION)ServiceControl);
+	ServiceStatusHandle = RegisterServiceCtrlHandlerW(
+		SYSTEM_SERVICE_NAME, 
+		(LPHANDLER_FUNCTION)ServiceControl);
 	if (!ServiceStatusHandle || UpdateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0, 1U, UPDATE_SERVICE_TIME) == FALSE)
 		return FALSE;
 
-	ServiceEvent = CreateEventW(0, TRUE, FALSE, 0);
+	ServiceEvent = CreateEventW(
+		0, 
+		TRUE, 
+		FALSE, 
+		0);
 	if (!ServiceEvent || UpdateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0, 2U, STANDARD_TIMEOUT) == FALSE || ExecuteService() == FALSE)
 		return FALSE;
 
@@ -71,8 +77,11 @@ size_t WINAPI ServiceMain(
 	if (UpdateServiceStatus(SERVICE_RUNNING, NO_ERROR, 0, 0, 0) == FALSE)
 		return FALSE;
 
-	WaitForSingleObject(ServiceEvent, INFINITE);
-	CloseHandle(ServiceEvent);
+	WaitForSingleObject(
+		ServiceEvent, 
+		INFINITE);
+	CloseHandle(
+		ServiceEvent);
 	return EXIT_SUCCESS;
 }
 
@@ -113,7 +122,13 @@ BOOL WINAPI ExecuteService(
 	void)
 {
 	DWORD dwThreadID = 0;
-	HANDLE hServiceThread = CreateThread(0, 0, (PTHREAD_START_ROUTINE)ServiceProc, nullptr, 0, &dwThreadID);
+	HANDLE hServiceThread = CreateThread(
+		0, 
+		0, 
+		(PTHREAD_START_ROUTINE)ServiceProc, 
+		nullptr, 
+		0, 
+		&dwThreadID);
 	if (hServiceThread != nullptr)
 	{
 		IsServiceRunning = TRUE;
@@ -165,7 +180,9 @@ BOOL WINAPI UpdateServiceStatus(
 	ServiceStatus.dwCheckPoint = dwCheckPoint;
 	ServiceStatus.dwWaitHint = dwWaitHint;
 
-	if (SetServiceStatus(ServiceStatusHandle, &ServiceStatus) == 0)
+	if (SetServiceStatus(
+			ServiceStatusHandle, 
+			&ServiceStatus) == 0)
 	{
 		TerminateService();
 		return FALSE;
@@ -185,7 +202,7 @@ void WINAPI TerminateService(
 	return;
 }
 
-//MailSlot of flush DNS cache Monitor
+//Mailslot of flush DNS cache Monitor
 bool FlushDNSMailSlotMonitor(
 	void)
 {
@@ -199,11 +216,26 @@ bool FlushDNSMailSlotMonitor(
 	PSID SID_Value = nullptr;
 
 //System security setting
-	if (InitializeSecurityDescriptor(&SecurityDescriptor, SECURITY_DESCRIPTOR_REVISION) == 0 || 
-		InitializeAcl((PACL)ACL_Buffer.get(), FILE_BUFFER_SIZE, ACL_REVISION) == 0 || 
-		ConvertStringSidToSidW(SID_ADMINISTRATORS_GROUP, &SID_Value) == 0 || 
-		AddAccessAllowedAce((PACL)ACL_Buffer.get(), ACL_REVISION, GENERIC_ALL, SID_Value) == 0 || 
-		SetSecurityDescriptorDacl(&SecurityDescriptor, true, (PACL)ACL_Buffer.get(), false) == 0)
+	if (InitializeSecurityDescriptor(
+			&SecurityDescriptor, 
+			SECURITY_DESCRIPTOR_REVISION) == 0 || 
+		InitializeAcl(
+			(PACL)ACL_Buffer.get(), 
+			FILE_BUFFER_SIZE, 
+			ACL_REVISION) == 0 || 
+		ConvertStringSidToSidW(
+			SID_ADMINISTRATORS_GROUP, 
+			&SID_Value) == 0 || 
+		AddAccessAllowedAce(
+			(PACL)ACL_Buffer.get(), 
+			ACL_REVISION, 
+			GENERIC_ALL, 
+			SID_Value) == 0 || 
+		SetSecurityDescriptorDacl(
+			&SecurityDescriptor, 
+			true, 
+			(PACL)ACL_Buffer.get(),
+			false) == 0)
 	{
 		if (SID_Value != nullptr)
 			LocalFree(SID_Value);
@@ -215,7 +247,10 @@ bool FlushDNSMailSlotMonitor(
 	SecurityAttributes.bInheritHandle = true;
 
 //Create mailslot.
-	HANDLE hSlot = CreateMailslotW(MAILSLOT_NAME, FILE_BUFFER_SIZE - 1U, MAILSLOT_WAIT_FOREVER, &SecurityAttributes);
+	HANDLE hSlot = CreateMailslotW(
+		MAILSLOT_NAME, FILE_BUFFER_SIZE - 1U, 
+		MAILSLOT_WAIT_FOREVER, 
+		&SecurityAttributes);
 	if (hSlot == INVALID_HANDLE_VALUE)
 	{
 		if (SID_Value != nullptr)
@@ -226,7 +261,8 @@ bool FlushDNSMailSlotMonitor(
 	}
 
 	ACL_Buffer.reset();
-	LocalFree(SID_Value);
+	LocalFree(
+		SID_Value);
 
 //Initialization
 	std::shared_ptr<wchar_t> lpszBuffer(new wchar_t[FILE_BUFFER_SIZE]());
@@ -236,7 +272,7 @@ bool FlushDNSMailSlotMonitor(
 	DWORD cbMessage = 0;
 	BOOL Result = 0;
 
-//MailSlot monitor
+//Mailslot monitor
 	for (;;)
 	{
 	//Reset parameters.
@@ -244,10 +280,15 @@ bool FlushDNSMailSlotMonitor(
 		cbMessage = 0;
 
 	//Read message from mailslot.
-		Result = ReadFile(hSlot, lpszBuffer.get(), FILE_BUFFER_SIZE, &cbMessage, nullptr);
+		Result = ReadFile(
+			hSlot, 
+			lpszBuffer.get(), 
+			FILE_BUFFER_SIZE, 
+			&cbMessage, 
+			nullptr);
 		if (Result == FALSE)
 		{
-			PrintError(LOG_LEVEL_3, LOG_ERROR_SYSTEM, L"MailSlot read messages error", GetLastError(), nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_SYSTEM, L"Mailslot read messages error", GetLastError(), nullptr, 0);
 
 			CloseHandle(hSlot);
 			return false;
@@ -279,19 +320,37 @@ bool FlushDNSMailSlotMonitor(
 
 //Monitor terminated
 	CloseHandle(hSlot);
-	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"MailSlot module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Mailslot module Monitor terminated", 0, nullptr, 0);
 	return false;
 }
 
-//MailSlot of flush DNS cache sender
+//Mailslot of flush DNS cache sender
 bool WINAPI FlushDNSMailSlotSender(
 	const wchar_t *Domain)
 {
 //Mailslot initialization
-	HANDLE hFile = CreateFileW(MAILSLOT_NAME, GENERIC_WRITE, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+	HANDLE hFile = CreateFileW(
+		MAILSLOT_NAME, 
+		GENERIC_WRITE, 
+		FILE_SHARE_READ, 
+		nullptr, 
+		OPEN_EXISTING, 
+		FILE_ATTRIBUTE_NORMAL, 
+		nullptr);
 	if (hFile == INVALID_HANDLE_VALUE)
 	{
-		PrintToScreen(true, L"Create mailslot error, error code is %lu.\n", GetLastError());
+		std::wstring InnerMessage(L"[System Error] Create mailslot error");
+		if (GetLastError() == 0)
+		{
+			InnerMessage.append(L".\n");
+			PrintToScreen(true, InnerMessage.c_str());
+		}
+		else {
+			ErrorCodeToMessage(GetLastError(), InnerMessage);
+			InnerMessage.append(L".\n");
+			PrintToScreen(true, InnerMessage.c_str(), GetLastError());
+		}
+
 		return false;
 	}
 
@@ -305,16 +364,31 @@ bool WINAPI FlushDNSMailSlotSender(
 
 //Write into mailslot.
 	DWORD cbWritten = 0;
-	if (WriteFile(hFile, Message.c_str(), (DWORD)(sizeof(wchar_t) * Message.length() + 1U), &cbWritten, nullptr) == 0)
+	if (WriteFile(
+			hFile, 
+			Message.c_str(), 
+			(DWORD)(sizeof(wchar_t) * Message.length() + 1U), 
+			&cbWritten, 
+			nullptr) == 0)
 	{
-		PrintToScreen(true, L"MailSlot write messages error, error code is %lu.\n", GetLastError());
 		CloseHandle(hFile);
+		std::wstring InnerMessage(L"[System Error] Mailslot write messages error");
+		if (GetLastError() == 0)
+		{
+			InnerMessage.append(L".\n");
+			PrintToScreen(true, InnerMessage.c_str());
+		}
+		else {
+			ErrorCodeToMessage(GetLastError(), InnerMessage);
+			InnerMessage.append(L".\n");
+			PrintToScreen(true, InnerMessage.c_str(), GetLastError());
+		}
 
 		return false;
 	}
 	else {
 		CloseHandle(hFile);
-		PrintToScreen(true, L"Flush DNS cache message was sent successfully.\n");
+		PrintToScreen(true, L"[Notice] Flush DNS cache message was sent successfully.\n");
 	}
 
 	return true;
@@ -325,27 +399,27 @@ bool WINAPI FlushDNSMailSlotSender(
 bool FlushDNSFIFOMonitor(
 	void)
 {
-//Create FIFO and create its notify monitor.
-	unlink(FIFO_PATH_NAME);
-	errno = 0;
-	if (mkfifo(FIFO_PATH_NAME, O_CREAT) == RETURN_ERROR || 
-		chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) == RETURN_ERROR)
-	{
-		PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
-
-		unlink(FIFO_PATH_NAME);
-		return false;
-	}
-
-//FIFO Monitor
+//Initialization
 	std::shared_ptr<uint8_t> Buffer(new uint8_t[FILE_BUFFER_SIZE]());
 	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 	std::string Message;
 	int FIFO_Handle = 0;
 	ssize_t Length = 0;
+
+//FIFO Monitor
 	for (;;)
 	{
-		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
+	//Create FIFO and create its notify monitor.
+		unlink(FIFO_PATH_NAME);
+		errno = 0;
+		if (mkfifo(FIFO_PATH_NAME, O_CREAT) == RETURN_ERROR || 
+			chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) == RETURN_ERROR)
+		{
+			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
+
+			unlink(FIFO_PATH_NAME);
+			return false;
+		}
 
 	//Open FIFO.
 		errno = 0;
@@ -360,6 +434,7 @@ bool FlushDNSFIFOMonitor(
 
 	//Read file data.
 		errno = 0;
+		memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 		Length = read(FIFO_Handle, Buffer.get(), FILE_BUFFER_SIZE);
 		if (Length == RETURN_ERROR || Length < (ssize_t)DOMAIN_MINSIZE || Length > (ssize_t)DOMAIN_MAXSIZE)
 		{
@@ -411,7 +486,7 @@ bool FlushDNSFIFOSender(
 		if (write(FIFO_Handle, Message.c_str(), Message.length() + 1U) > 0)
 		{
 			close(FIFO_Handle);
-			PrintToScreen(true, L"Flush DNS cache message was sent successfully.\n");
+			PrintToScreen(true, L"[Notice] Flush DNS cache message was sent successfully.\n");
 
 			return true;
 		}
@@ -421,12 +496,17 @@ bool FlushDNSFIFOSender(
 	}
 
 //Print error log.
-	std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
-	PrintToScreen(false, L"FIFO write messages error");
-	if (errno > 0)
-		PrintToScreen(false, L", error code is %d.\n", errno);
-	else 
-		PrintToScreen(false, L".\n");
+	std::wstring InnerMessage(L"[System Error] FIFO write messages error");
+	if (errno == 0)
+	{
+		InnerMessage.append(L".\n");
+		PrintToScreen(true, InnerMessage.c_str());
+	}
+	else {
+		ErrorCodeToMessage(errno, InnerMessage);
+		InnerMessage.append(L".\n");
+		PrintToScreen(true, InnerMessage.c_str(), errno);
+	}
 
 	return false;
 }

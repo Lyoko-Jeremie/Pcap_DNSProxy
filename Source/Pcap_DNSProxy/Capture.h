@@ -41,7 +41,7 @@ std::string PcapFilterRules;
 std::list<std::string> PcapRunningList;
 
 //Functions
-void CaptureFilterRulesInit(
+bool CaptureFilterRulesInit(
 	std::string &FilterRules);
 bool CaptureModule(
 	const pcap_if *pDrive, 
@@ -51,20 +51,20 @@ void CaptureHandler(
 	const pcap_pkthdr *PacketHeader, 
 	const uint8_t *PacketData);
 bool CaptureNetworkLayer(
+	const uint16_t Protocol, 
 	const uint8_t *Buffer, 
 	const size_t Length, 
-	const size_t BufferSize, 
-	const uint16_t Protocol);
+	const size_t BufferSize);
 bool CaptureCheck_ICMP(
+	const uint16_t Protocol, 
 	const uint8_t *Buffer, 
-	const size_t Length, 
-	const uint16_t Protocol);
+	const size_t Length);
 bool CaptureCheck_TCP(
 	const uint8_t *Buffer);
 bool MatchPortToSend(
+	const uint16_t Protocol, 
 	const uint8_t *Buffer, 
 	const size_t Length, 
 	const size_t BufferSize, 
-	const uint16_t Protocol, 
 	const uint16_t Port);
 #endif

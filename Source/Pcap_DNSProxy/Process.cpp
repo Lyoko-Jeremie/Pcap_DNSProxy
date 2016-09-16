@@ -195,7 +195,7 @@ bool EnterRequestProcess(
 	}
 
 //Direct Request request process
-	if (Parameter.DirectRequest > DIRECT_REQUEST_MODE_NONE && DirectRequestProcess(MonitorQueryData, RecvBuffer, RecvSize, true))
+	if (Parameter.DirectRequest > REQUEST_MODE_DIRECT_NONE && DirectRequestProcess(MonitorQueryData, RecvBuffer, RecvSize, true))
 	{
 	//Fin TCP request connection.
 		if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
@@ -379,7 +379,7 @@ size_t CheckHostsProcess(
 		if (DNSQueryToChar(Packet->Buffer + sizeof(dns_hdr), Domain) <= DOMAIN_MINSIZE)
 			return EXIT_SUCCESS;
 		else 
-			CaseConvert(false, Domain);
+			CaseConvert(Domain, false);
 	}
 	else {
 		return EXIT_FAILURE;
@@ -812,7 +812,7 @@ bool LocalRequestProcess(
 	//Send response.
 		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 		{
-			SendToRequester(OriginalRecv, DataLength, RecvSize, MonitorQueryData.first.Protocol, MonitorQueryData.second);
+			SendToRequester(MonitorQueryData.first.Protocol, OriginalRecv, DataLength, RecvSize, MonitorQueryData.second);
 			return true;
 		}
 	}
@@ -821,7 +821,7 @@ bool LocalRequestProcess(
 	DataLength = UDPCompleteRequest(REQUEST_PROCESS_LOCAL, MonitorQueryData.first.Buffer, EDNS_SwitchLength, OriginalRecv, RecvSize, &MonitorQueryData.first.LocalTarget);
 	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
-		SendToRequester(OriginalRecv, DataLength, RecvSize, MonitorQueryData.first.Protocol, MonitorQueryData.second);
+		SendToRequester(MonitorQueryData.first.Protocol, OriginalRecv, DataLength, RecvSize, MonitorQueryData.second);
 		return true;
 	}
 
@@ -866,7 +866,7 @@ bool SOCKSRequestProcess(
 	//Send response.
 		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 		{
-			SendToRequester(OriginalRecv, DataLength, RecvSize, MonitorQueryData.first.Protocol, MonitorQueryData.second);
+			SendToRequester(MonitorQueryData.first.Protocol, OriginalRecv, DataLength, RecvSize, MonitorQueryData.second);
 			return true;
 		}
 	}
@@ -877,7 +877,7 @@ bool SOCKSRequestProcess(
 //Send response.
 	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
-		SendToRequester(OriginalRecv, DataLength, RecvSize, MonitorQueryData.first.Protocol, MonitorQueryData.second);
+		SendToRequester(MonitorQueryData.first.Protocol, OriginalRecv, DataLength, RecvSize, MonitorQueryData.second);
 		return true;
 	}
 
@@ -919,7 +919,7 @@ bool HTTPRequestProcess(
 //Send response.
 	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
-		SendToRequester(OriginalRecv, DataLength, RecvSize, MonitorQueryData.first.Protocol, MonitorQueryData.second);
+		SendToRequester(MonitorQueryData.first.Protocol, OriginalRecv, DataLength, RecvSize, MonitorQueryData.second);
 		return true;
 	}
 
@@ -945,8 +945,9 @@ bool DirectRequestProcess(
 
 //Direct Request mode check
 	DataLength = SelectNetworkProtocol();
-	if (DirectRequest && ((DataLength == AF_INET6 && Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV4) || //IPv6
-		(DataLength == AF_INET && Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV6))) //IPv4
+	if (DirectRequest && 
+		((DataLength == AF_INET6 && Parameter.DirectRequest == REQUEST_MODE_DIRECT_IPV4) || //IPv6
+		(DataLength == AF_INET && Parameter.DirectRequest == REQUEST_MODE_DIRECT_IPV6))) //IPv4
 			return false;
 
 //EDNS switching(Part 1)
@@ -975,7 +976,7 @@ bool DirectRequestProcess(
 	//Send response.
 		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 		{
-			SendToRequester(OriginalRecv, DataLength, RecvSize, MonitorQueryData.first.Protocol, MonitorQueryData.second);
+			SendToRequester(MonitorQueryData.first.Protocol, OriginalRecv, DataLength, RecvSize, MonitorQueryData.second);
 			return true;
 		}
 	}
@@ -989,7 +990,7 @@ bool DirectRequestProcess(
 //Send response.
 	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
-		SendToRequester(OriginalRecv, DataLength, RecvSize, MonitorQueryData.first.Protocol, MonitorQueryData.second);
+		SendToRequester(MonitorQueryData.first.Protocol, OriginalRecv, DataLength, RecvSize, MonitorQueryData.second);
 		return true;
 	}
 
@@ -1039,7 +1040,7 @@ bool DNSCurveRequestProcess(
 	//Send response.
 		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 		{
-			SendToRequester(OriginalRecv, DataLength, RecvSize, MonitorQueryData.first.Protocol, MonitorQueryData.second);
+			SendToRequester(MonitorQueryData.first.Protocol, OriginalRecv, DataLength, RecvSize, MonitorQueryData.second);
 			return true;
 		}
 	}
@@ -1053,7 +1054,7 @@ bool DNSCurveRequestProcess(
 //Send response.
 	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
-		SendToRequester(OriginalRecv, DataLength, RecvSize, MonitorQueryData.first.Protocol, MonitorQueryData.second);
+		SendToRequester(MonitorQueryData.first.Protocol, OriginalRecv, DataLength, RecvSize, MonitorQueryData.second);
 		return true;
 	}
 
@@ -1100,7 +1101,7 @@ bool TCPRequestProcess(
 //Send response.
 	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
-		SendToRequester(OriginalRecv, DataLength, RecvSize, MonitorQueryData.first.Protocol, MonitorQueryData.second);
+		SendToRequester(MonitorQueryData.first.Protocol, OriginalRecv, DataLength, RecvSize, MonitorQueryData.second);
 		return true;
 	}
 
@@ -1120,13 +1121,13 @@ uint16_t SelectNetworkProtocol(
 {
 //IPv6
 	if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
-		((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
+		((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
 		(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 			return AF_INET6;
 //IPv4
 	else if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
-		((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
+		((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 		(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 			return AF_INET;
@@ -1154,10 +1155,10 @@ void UDPRequestProcess(
 
 //Multiple request process
 	if (Parameter.AlternateMultipleRequest || Parameter.MultipleRequestTimes > 1U)
-		UDPRequestMultiple(REQUEST_PROCESS_UDP_NORMAL, MonitorQueryData.first.Buffer, EDNS_SwitchLength, &MonitorQueryData.second, MonitorQueryData.first.Protocol);
+		UDPRequestMultiple(REQUEST_PROCESS_UDP_NORMAL, MonitorQueryData.first.Protocol, MonitorQueryData.first.Buffer, EDNS_SwitchLength, &MonitorQueryData.second);
 //Normal request process
 	else 
-		UDPRequest(REQUEST_PROCESS_UDP_NORMAL, MonitorQueryData.first.Buffer, EDNS_SwitchLength, &MonitorQueryData.second, MonitorQueryData.first.Protocol);
+		UDPRequest(REQUEST_PROCESS_UDP_NORMAL, MonitorQueryData.first.Protocol, MonitorQueryData.first.Buffer, EDNS_SwitchLength, &MonitorQueryData.second);
 
 //Fin TCP request connection.
 	if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
@@ -1176,10 +1177,10 @@ void UDPRequestProcess(
 
 //Send responses to requester
 bool SendToRequester(
+	const uint16_t Protocol, 
 	uint8_t *RecvBuffer, 
 	const size_t RecvSize, 
 	const size_t MaxLen, 
-	const uint16_t Protocol, 
 	const SOCKET_DATA &LocalSocketData)
 {
 //Response check
@@ -1322,7 +1323,7 @@ bool MarkDomainCache(
 	if (DNSQueryToChar(Buffer + sizeof(dns_hdr), DNSCacheDataTemp.Domain) > DOMAIN_MINSIZE)
 	{
 	//Domain Case Conversion
-		CaseConvert(false, DNSCacheDataTemp.Domain);
+		CaseConvert(DNSCacheDataTemp.Domain, false);
 		memcpy_s(DNSCacheDataTemp.Response.get(), PACKET_MAXSIZE, Buffer + sizeof(uint16_t), Length - sizeof(uint16_t));
 		DNSCacheDataTemp.Length = Length - sizeof(uint16_t);
 		DNSCacheDataTemp.ClearCacheTime = GetCurrentSystemTime() + ResponseTTL * SECOND_TO_MILLISECOND;

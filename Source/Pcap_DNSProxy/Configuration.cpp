@@ -51,7 +51,7 @@ bool ReadText(
 		auto ReadLength = fread_s(FileBuffer.get(), FILE_BUFFER_SIZE, sizeof(uint8_t), FILE_BUFFER_SIZE, (FILE *)FileHandle);
 		if (ReadLength == 0)
 		{
-			if (errno > 0)
+			if (errno != 0)
 			{
 				ReadTextPrintLog(InputType, FileIndex, Line);
 				return false;
@@ -74,8 +74,7 @@ bool ReadText(
 			}
 
 		//8-bit Unicode Transformation Format/UTF-8 with BOM
-			if (FileBuffer.get()[0] == 0xEF && FileBuffer.get()[1U] == 0xBB && 
-				FileBuffer.get()[2U] == 0xBF) //0xEF, 0xBB, 0xBF
+			if (FileBuffer.get()[0] == 0xEF && FileBuffer.get()[1U] == 0xBB && FileBuffer.get()[2U] == 0xBF) //0xEF, 0xBB, 0xBF
 			{
 				memmove_s(FileBuffer.get(), FILE_BUFFER_SIZE, FileBuffer.get() + BOM_UTF_8_LENGTH, FILE_BUFFER_SIZE - BOM_UTF_8_LENGTH);
 				memset(FileBuffer.get() + FILE_BUFFER_SIZE - BOM_UTF_8_LENGTH, 0, BOM_UTF_8_LENGTH);
@@ -92,8 +91,8 @@ bool ReadText(
 				Encoding = CODEPAGE_UTF_32_LE;
 			}
 		//32-bit Unicode Transformation Format/UTF-32 Big Endian/BE
-			else if (FileBuffer.get()[0] == 0 && FileBuffer.get()[1U] == 0 && FileBuffer.get()[2U] == 0xFE && 
-				FileBuffer.get()[3U] == 0xFF) //0x00, 0x00, 0xFE, 0xFF
+			else if (FileBuffer.get()[0] == 0 && FileBuffer.get()[1U] == 0 && 
+				FileBuffer.get()[2U] == 0xFE && FileBuffer.get()[3U] == 0xFF) //0x00, 0x00, 0xFE, 0xFF
 			{
 				memmove_s(FileBuffer.get(), FILE_BUFFER_SIZE, FileBuffer.get() + BOM_UTF_32_LENGTH, FILE_BUFFER_SIZE - BOM_UTF_32_LENGTH);
 				memset(FileBuffer.get() + FILE_BUFFER_SIZE - BOM_UTF_32_LENGTH, 0, BOM_UTF_32_LENGTH);
@@ -170,7 +169,7 @@ bool ReadText(
 						continue;
 					}
 				//Space format
-					if (SingleText == UNICODE_NO_BREAK_SPACE)
+					else if (SingleText == UNICODE_NO_BREAK_SPACE)
 					{
 						FileBuffer.get()[Index] = ASCII_SPACE;
 						FileBuffer.get()[Index + 1U] = 0;
@@ -183,7 +182,7 @@ bool ReadText(
 				if (FileBuffer.get()[Index] > ASCII_MAX_NUM)
 					FileBuffer.get()[Index] = 0;
 			//Next line format
-				if (FileBuffer.get()[Index] == ASCII_CR)
+				else if (FileBuffer.get()[Index] == ASCII_CR)
 					FileBuffer.get()[Index] = 0;
 				else if (FileBuffer.get()[Index] == ASCII_VT || FileBuffer.get()[Index] == ASCII_FF)
 					FileBuffer.get()[Index] = ASCII_LF;
@@ -483,13 +482,16 @@ bool ReadParameter(
 
 	//Check whole file size.
 	#if defined(PLATFORM_WIN)
-		if (GetFileAttributesExW(FileList_Config.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, &FileAttributeData) != FALSE)
+		if (GetFileAttributesExW(
+				FileList_Config.at(FileIndex).FileName.c_str(), 
+				GetFileExInfoStandard, 
+				&FileAttributeData) != FALSE)
 		{
 			LARGE_INTEGER ConfigFileSize;
 			memset(&ConfigFileSize, 0, sizeof(ConfigFileSize));
 			ConfigFileSize.HighPart = FileAttributeData.nFileSizeHigh;
 			ConfigFileSize.LowPart = FileAttributeData.nFileSizeLow;
-			if (ConfigFileSize.QuadPart >= DEFAULT_FILE_MAXSIZE)
+			if (ConfigFileSize.QuadPart < 0 || (size_t)ConfigFileSize.QuadPart >= DEFAULT_FILE_MAXSIZE)
 			{
 				PrintError(LOG_LEVEL_3, LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				return false;
@@ -568,7 +570,10 @@ bool ReadParameter(
 
 		//Get attributes of file.
 		#if defined(PLATFORM_WIN)
-			if (GetFileAttributesExW(FileList_Config.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, &FileAttributeData) == FALSE)
+			if (GetFileAttributesExW(
+					FileList_Config.at(FileIndex).FileName.c_str(), 
+					GetFileExInfoStandard, 
+					&FileAttributeData) == FALSE)
 			{
 				memset(&FileAttributeData, 0, sizeof(FileAttributeData));
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -583,7 +588,7 @@ bool ReadParameter(
 			#if defined(PLATFORM_WIN)
 				FileSizeData.HighPart = FileAttributeData.nFileSizeHigh;
 				FileSizeData.LowPart = FileAttributeData.nFileSizeLow;
-				if (FileSizeData.QuadPart >= DEFAULT_FILE_MAXSIZE)
+				if (FileSizeData.QuadPart < 0 || (size_t)FileSizeData.QuadPart >= DEFAULT_FILE_MAXSIZE)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 				if (FileStatData.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 			#endif
@@ -668,12 +673,12 @@ bool ReadParameter(
 				#endif
 				}
 				else {
-			#if defined(PLATFORM_WIN)
+				#if defined(PLATFORM_WIN)
 					memset(&FileAttributeData, 0, sizeof(FileAttributeData));
 					memset(&FileSizeData, 0, sizeof(FileSizeData));
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 					memset(&FileStatData, 0, sizeof(FileStatData));
-			#endif
+				#endif
 				}
 			}
 
@@ -741,7 +746,10 @@ void ReadIPFilter(
 		{
 		//Get attributes of file.
 		#if defined(PLATFORM_WIN)
-			if (GetFileAttributesExW(FileList_IPFilter.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, &FileAttributeData) == FALSE)
+			if (GetFileAttributesExW(
+					FileList_IPFilter.at(FileIndex).FileName.c_str(), 
+					GetFileExInfoStandard, 
+					&FileAttributeData) == FALSE)
 			{
 				memset(&FileAttributeData, 0, sizeof(FileAttributeData));
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -760,7 +768,7 @@ void ReadIPFilter(
 			#if defined(PLATFORM_WIN)
 				FileSizeData.HighPart = FileAttributeData.nFileSizeHigh;
 				FileSizeData.LowPart = FileAttributeData.nFileSizeLow;
-				if (FileSizeData.QuadPart >= DEFAULT_FILE_MAXSIZE)
+				if (FileSizeData.QuadPart < 0 || (size_t)FileSizeData.QuadPart >= DEFAULT_FILE_MAXSIZE)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 				if (FileStatData.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 			#endif
@@ -930,7 +938,10 @@ void ReadHosts(
 		{
 		//Get attributes of file.
 		#if defined(PLATFORM_WIN)
-			if (GetFileAttributesExW(FileList_Hosts.at(FileIndex).FileName.c_str(), GetFileExInfoStandard, &FileAttributeData) == FALSE)
+			if (GetFileAttributesExW(
+					FileList_Hosts.at(FileIndex).FileName.c_str(), 
+					GetFileExInfoStandard, 
+					&FileAttributeData) == FALSE)
 			{
 				memset(&FileAttributeData, 0, sizeof(FileAttributeData));
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -949,7 +960,7 @@ void ReadHosts(
 			#if defined(PLATFORM_WIN)
 				FileSizeData.HighPart = FileAttributeData.nFileSizeHigh;
 				FileSizeData.LowPart = FileAttributeData.nFileSizeLow;
-				if (FileSizeData.QuadPart >= DEFAULT_FILE_MAXSIZE)
+				if (FileSizeData.QuadPart < 0 || (size_t)FileSizeData.QuadPart >= DEFAULT_FILE_MAXSIZE)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 				if (FileStatData.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
 			#endif
@@ -1133,7 +1144,7 @@ void GetParameterListData(
 			}
 			else {
 				if (IsCaseConvert)
-					CaseConvert(false, NameString);
+					CaseConvert(NameString, false);
 				ListData.push_back(NameString);
 				if (KeepEmptyItem && Data.at(Index) == SeparatedSign)
 				{
@@ -1150,7 +1161,7 @@ void GetParameterListData(
 			if (!NameString.empty())
 			{
 				if (IsCaseConvert)
-					CaseConvert(false, NameString);
+					CaseConvert(NameString, false);
 				ListData.push_back(NameString);
 				NameString.clear();
 			}

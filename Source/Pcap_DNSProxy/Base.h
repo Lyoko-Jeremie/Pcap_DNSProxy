@@ -78,8 +78,6 @@
 #define ASCII_VERTICAL                                124                         //"|"
 #define ASCII_TILDE                                   126                         //"~"
 #define ASCII_MAX_NUM                                 0x7F
-//#define ASCII_UPPER_TO_LOWER                          32U                         //Uppercase to lowercase
-//#define ASCII_LOWER_TO_UPPER                          32U                         //Lowercase to uppercase
 
 //Unicode value definitions
 #define UNICODE_NEXT_LINE                             0x0085                      //Next Line
@@ -108,10 +106,10 @@
 //Version definitions
 #define CONFIG_VERSION                                0.4                                   //Current configuration file version
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
-#define FULL_VERSION                                  L"0.4.7.3"
+#define FULL_VERSION                                  L"0.4.7.4"
 
 //Size and length definitions(Number)
-#define ADDR_STRING_MAXSIZE                           64U                         //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
+#define ADDRESS_STRING_MAXSIZE                        64U                         //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
 #define ALTERNATE_SERVERNUM                           12U                         //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
 #define BOM_UTF_16_LENGTH                             2U                          //UTF-16 BOM length
 #define BOM_UTF_32_LENGTH                             4U                          //UTF-32 BOM length
@@ -146,7 +144,7 @@
 #define IPV4_SHORTEST_ADDRSTRING                      6U                          //The shortest IPv4 address strings(*.*.*.*).
 #define IPV6_SHORTEST_ADDRSTRING                      3U                          //The shortest IPv6 address strings(::).
 #define LARGE_PACKET_MAXSIZE                          4096U                       //Maximum size of packets(4KB/4096 bytes) of TCP protocol
-#define MULTI_REQUEST_MAXNUM                          64U                         //Maximum number of multiple request.
+#define MULTIPLE_REQUEST_MAXNUM                       64U                         //Maximum number of multiple request.
 #define NETWORK_LAYER_PARTNUM                         2U                          //Number of network layer protocols(IPv6 and IPv4)
 #define ORIGINAL_PACKET_MAXSIZE                       1512U                       //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header + 4 bytes FCS)
 #define PACKET_MAXSIZE                                1500U                       //Maximum size of packets, Standard MTU of Ethernet II network
@@ -248,8 +246,8 @@
 	#define CONFIG_FILE_NAME_LIST                         L"Config.ini", L"Config.conf", L"Config.cfg", L"Config"
 	#define ERROR_LOG_FILE_NAME                           L"Error.log"
 	#define DEFAULT_ICMP_PADDING_DATA                     ("abcdefghijklmnopqrstuvwabcdefghi")         //Default ICMP padding data in Windows
-	#define MAILSLOT_MESSAGE_FLUSH_DNS                    L"Flush DNS cache of Pcap_DNSProxy"          //The mailslot message to flush dns cache
-	#define MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN             L"Flush DNS cache of Pcap_DNSProxy: "        //The mailslot message to flush dns cache(Single domain)
+	#define MAILSLOT_MESSAGE_FLUSH_DNS                    L"Flush Pcap_DNSProxy DNS cache"             //The mailslot message to flush dns cache
+	#define MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN             L"Flush Pcap_DNSProxy DNS cache: "           //The mailslot message to flush dns cache(Single domain)
 	#define MAILSLOT_NAME                                 L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot"   //MailSlot name
 	#define SID_ADMINISTRATORS_GROUP                      L"S-1-5-32-544"                              //Windows SID of Administrators group
 	#define SYSTEM_SERVICE_NAME                           L"PcapDNSProxyService"                       //System service name
@@ -287,8 +285,8 @@
 
 //Base64 definitions
 #define BASE64_PAD                                    ('=')
-//#define BASE64_DE_FIRST                               ('+')
-//#define BASE64_DE_LAST                                ('z')
+//#define BASE64_DECODE_FIRST                           ('+')
+//#define BASE64_DECODE_LAST                            ('z')
 #define BASE64_ENCODE_OUT_SIZE(Message)               (((Message) + 2U) / 3U * 4U)
 //#define BASE64_DECODE_OUT_SIZE(Message)               (((Message)) / 4U * 3U)
 
@@ -341,16 +339,12 @@
 	#define ALTERNATE_TYPE_DNSCURVE_UDP_IPV4              11U
 #endif
 #define CACHE_TYPE_NONE                               0
-#define CACHE_TYPE_TIMER                              1U
-#define CACHE_TYPE_QUEUE                              2U
-#define CACHE_TYPE_BOTH                               3U
+#define CACHE_TYPE_BOTH                               1U
+#define CACHE_TYPE_TIMER                              2U
+#define CACHE_TYPE_QUEUE                              3U
 #define CPM_POINTER_TO_HEADER                         0
 #define CPM_POINTER_TO_RR                             1U
 #define CPM_POINTER_TO_ADDITIONAL                     2U
-#define DIRECT_REQUEST_MODE_NONE                      0
-#define DIRECT_REQUEST_MODE_BOTH                      1U
-#define DIRECT_REQUEST_MODE_IPV4                      3U
-#define DIRECT_REQUEST_MODE_IPV6                      2U
 #define HOSTS_TYPE_WHITE                              1U
 #define HOSTS_TYPE_BANNED                             2U
 #define HOSTS_TYPE_NORMAL                             3U
@@ -369,11 +363,15 @@
 #define LISTEN_PROTOCOL_UDP                           2U
 #define NETWORK_LAYER_IPV6                            0
 #define NETWORK_LAYER_IPV4                            1U
-#define REQUEST_MODE_NETWORK_BOTH                     0
+#define REQUEST_MODE_BOTH                             0
 #define REQUEST_MODE_IPV6                             1U
 #define REQUEST_MODE_IPV4                             2U
 #define REQUEST_MODE_UDP                              0
 #define REQUEST_MODE_TCP                              1U
+#define REQUEST_MODE_DIRECT_NONE                      0
+#define REQUEST_MODE_DIRECT_BOTH                      1U
+#define REQUEST_MODE_DIRECT_IPV6                      2U
+#define REQUEST_MODE_DIRECT_IPV4                      3U
 #define SOCKET_SETTING_INVALID_CHECK                  0
 #define SOCKET_SETTING_CLOSE                          1U
 #define SOCKET_SETTING_TIMEOUT                        2U
@@ -1078,15 +1076,15 @@ bool WCSToMBSString(
 	const size_t MaxLen, 
 	std::string &Target);
 void CaseConvert(
-	const bool IsLowerToUpper, 
 	uint8_t *Buffer, 
-	const size_t Length);
+	const size_t Length, 
+	const bool IsLowerToUpper);
 void CaseConvert(
-	const bool IsLowerToUpper, 
-	std::string &Buffer);
+	std::string &Buffer, 
+	const bool IsLowerToUpper);
 void CaseConvert(
-	const bool IsLowerToUpper, 
-	std::wstring &Buffer);
+	std::wstring &Buffer, 
+	const bool IsLowerToUpper);
 void MakeStringReversed(
 	std::string &String);
 void MakeStringReversed(
@@ -1220,16 +1218,16 @@ size_t TCPRequestMultiple(
 #if defined(ENABLE_PCAP)
 size_t UDPRequest(
 	const size_t RequestType, 
+	const uint16_t Protocol, 
 	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
-	const SOCKET_DATA *LocalSocketData, 
-	const uint16_t Protocol);
+	const SOCKET_DATA *LocalSocketData);
 size_t UDPRequestMultiple(
 	const size_t RequestType, 
+	const uint16_t Protocol, 
 	const uint8_t *OriginalSend, 
 	const size_t SendSize, 
-	const SOCKET_DATA *LocalSocketData, 
-	const uint16_t Protocol);
+	const SOCKET_DATA *LocalSocketData);
 #endif
 size_t UDPCompleteRequest(
 	const size_t RequestType, 
@@ -1255,10 +1253,10 @@ uint16_t GetChecksum_ICMPv6(
 	const in6_addr &Destination, 
 	const in6_addr &Source);
 uint16_t GetChecksum_TCP_UDP(
-	const uint8_t *Buffer, 
-	const size_t Length, 
 	const uint16_t Protocol_Network, 
-	const uint16_t Protocol_Transport);
+	const uint16_t Protocol_Transport, 
+	const uint8_t *Buffer, 
+	const size_t Length);
 size_t AddLengthDataToHeader(
 	uint8_t *Buffer, 
 	const size_t RecvLen, 
@@ -1299,15 +1297,14 @@ bool PrintError(
 	const ssize_t ErrorCode, 
 	const wchar_t *FileName, 
 	const size_t Line);
-bool PrintScreenAndWriteFile(
-	const std::wstring Message, 
-	const ssize_t ErrorCode, 
-	const size_t Line);
 void PrintToScreen(
 	const bool IsInnerLock, 
 	const wchar_t *Format, 
 	...
 );
+void ErrorCodeToMessage(
+	const ssize_t ErrorCode, 
+	std::wstring &Message);
 void ReadTextPrintLog(
 	const size_t InputType, 
 	const size_t FileIndex, 
@@ -1339,10 +1336,10 @@ size_t CheckHostsProcess(
 	const size_t ResultSize, 
 	const SOCKET_DATA &LocalSocketData);
 bool SendToRequester(
+	const uint16_t Protocol, 
 	uint8_t *RecvBuffer, 
 	const size_t RecvSize, 
 	const size_t MaxLen, 
-	const uint16_t Protocol, 
 	const SOCKET_DATA &LocalSocketData);
 bool MarkDomainCache(
 	const uint8_t *Buffer, 
@@ -1350,25 +1347,31 @@ bool MarkDomainCache(
 
 //Protocol.h
 bool AddressStringToBinary(
-	const uint8_t *AddrString, 
 	const uint16_t Protocol, 
+	const uint8_t *AddrString, 
 	void *OriginalAddr, 
 	ssize_t *ErrorCode);
-size_t AddressesComparing(
-	const void *OriginalAddrBegin, 
-	const void *OriginalAddrEnd, 
-	const uint16_t Protocol);
-bool CheckSpecialAddress(
-	void *Addr, 
+bool BinaryToAddressString(
 	const uint16_t Protocol, 
+	const void *OriginalAddr, 
+	void *AddressString, 
+	const size_t StringSize, 
+	ssize_t *ErrorCode);
+size_t AddressesComparing(
+	const uint16_t Protocol, 
+	const void *OriginalAddrBegin, 
+	const void *OriginalAddrEnd);
+bool CheckSpecialAddress(
+	const uint16_t Protocol, 
+	void *Addr, 
 	const bool IsPrivateUse, 
 	const uint8_t *Domain);
 bool CheckAddressRouting(
-	const void *Addr, 
-	const uint16_t Protocol);
+	const uint16_t Protocol, 
+	const void *Addr);
 bool CheckCustomModeFilter(
-	const void *OriginalAddr, 
-	const uint16_t Protocol);
+	const uint16_t Protocol, 
+	const void *OriginalAddr);
 size_t CheckQueryNameLength(
 	const uint8_t *Buffer);
 bool CheckQueryData(

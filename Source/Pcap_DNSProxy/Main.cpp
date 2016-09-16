@@ -51,21 +51,37 @@ int main(
 
 //Main process initialization
 #if defined(PLATFORM_WIN)
-	SERVICE_TABLE_ENTRYW ServiceTable[]{{SYSTEM_SERVICE_NAME, (LPSERVICE_MAIN_FUNCTIONW)ServiceMain}, {nullptr, nullptr}}; //Service begining
-	if (StartServiceCtrlDispatcherW(ServiceTable) == 0)
+	SERVICE_TABLE_ENTRYW ServiceTable[]{{SYSTEM_SERVICE_NAME, (LPSERVICE_MAIN_FUNCTIONW)ServiceMain}, {nullptr, nullptr}}; //Service beginning
+	if (StartServiceCtrlDispatcherW(
+			ServiceTable) == 0)
 	{
-		auto ErrorCode = GetLastError();
-
 	//Print to screen.
-		std::unique_lock<std::mutex> ScreenMutex(ScreenLock);
-		PrintToScreen(false, L"System Error: Service start error, error code is %lu.\n", ErrorCode);
-		PrintToScreen(false, L"System Error: Program will continue to run in console mode.\n");
-		PrintToScreen(false, L"Please ignore these error messages if you want to run in console mode.\n\n");
-		ScreenMutex.unlock();
+		std::wstring Message(L"[System Error] Service start error");
+		if (GetLastError() == 0)
+		{
+			Message.append(L".\n");
+			std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
+			PrintToScreen(false, Message.c_str());
+			PrintToScreen(false, L"[Notice] Program will continue to run in console mode.\n");
+			PrintToScreen(false, L"[Notice] Please ignore these error messages if you want to run in console mode.\n\n");
+		}
+		else {
+			ErrorCodeToMessage(GetLastError(), Message);
+			Message.append(L".\n");
+			std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
+			PrintToScreen(false, Message.c_str(), GetLastError());
+			PrintToScreen(false, L"[Notice] Program will continue to run in console mode.\n");
+			PrintToScreen(false, L"[Notice] Please ignore these error messages if you want to run in console mode.\n\n");
+		}
 
 	//Handle the system signal.
-		if (SetConsoleCtrlHandler((PHANDLER_ROUTINE)CtrlHandler, TRUE) == 0)
-			PrintToScreen(true, L"System Error: Set console control handler error, error code is %lu.\n", GetLastError());
+		if (SetConsoleCtrlHandler(
+				(PHANDLER_ROUTINE)CtrlHandler,
+				TRUE) == 0)
+		{
+			PrintError(LOG_LEVEL_1, LOG_ERROR_SYSTEM, L"Set console control handler error", GetLastError(), nullptr, 0);
+			return EXIT_FAILURE;
+		}
 
 	//Main process
 		if (!MonitorInit())
@@ -93,26 +109,22 @@ bool ReadCommands(
 //Path initialization
 #if defined(PLATFORM_WIN)
 	if (!FileNameInit(argv[0]))
-		return false;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	char FileName[PATH_MAX + 1U] = {0};
 	if (getcwd(FileName, PATH_MAX) == nullptr)
 	{
-		PrintToScreen(true, L"Path initialization error.\n");
+		PrintToScreen(true, L"[System Error] Path initialization error.\n");
 		return false;
 	}
 	if (!FileNameInit(FileName))
-		return false;
 #endif
+		return false;
 
 //Screen output buffer settings
 	_set_errno(0);
-	if (setvbuf(stderr, NULL, _IONBF, 0) != 0)
+	if (setvbuf(stderr, nullptr, _IONBF, 0) != 0)
 	{
-		auto ErrorCode = errno;
-		PrintToScreen(true, L"Screen output buffer setting error, error code is %d.\n", ErrorCode);
-		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Screen output buffer setting error", ErrorCode, nullptr, 0);
-
+		PrintError(LOG_LEVEL_1, LOG_ERROR_SYSTEM, L"Screen output buffer setting error", errno, nullptr, 0);
 		return false;
 	}
 
@@ -120,13 +132,13 @@ bool ReadCommands(
 #if defined(PLATFORM_WIN)
 	WSAData WSAInitialization;
 	memset(&WSAInitialization, 0, sizeof(WSAInitialization));
-	if (WSAStartup(MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), &WSAInitialization) != 0 || //WinSock 2.2
-		LOBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_LOW || HIBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_HIGH)
+	if (WSAStartup(
+			MAKEWORD(WINSOCK_VERSION_HIGH, WINSOCK_VERSION_LOW), //WinSock 2.2
+			&WSAInitialization) != 0 || 
+		LOBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_LOW || 
+		HIBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_HIGH)
 	{
-		auto ErrorCode = WSAGetLastError();
-		PrintToScreen(true, L"Winsock initialization error, error code is %d.\n", ErrorCode);
-		PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"Winsock initialization error", ErrorCode, nullptr, 0);
-
+		PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"Winsock initialization error", WSAGetLastError(), nullptr, 0);
 		return false;
 	}
 	else {
@@ -154,7 +166,7 @@ bool ReadCommands(
 				if (strnlen(argv[2U], FILE_BUFFER_SIZE) <= DOMAIN_MINSIZE && strnlen(argv[2U], FILE_BUFFER_SIZE) >= DOMAIN_MAXSIZE)
 			#endif
 				{
-					PrintToScreen(true, L"Domain name parameter is too long.\n");
+					PrintToScreen(true, L"[Parameter Error] Domain name parameter error.\n");
 				}
 				else {
 				#if defined(PLATFORM_WIN)
@@ -179,15 +191,11 @@ bool ReadCommands(
 	#if defined(PLATFORM_WIN)
 		else if (Commands == COMMAND_FIREWALL_TEST)
 		{
-			if (!FirewallTest(AF_INET6) && !FirewallTest(AF_INET))
-			{
-				auto ErrorCode = WSAGetLastError();
-				PrintToScreen(true, L"Windows Firewall Test error, error code is %d.\n", ErrorCode);
+			ssize_t ErrorCode = 0;
+			if (!FirewallTest(AF_INET6, ErrorCode) && !FirewallTest(AF_INET, ErrorCode))
 				PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Windows Firewall Test error", ErrorCode, nullptr, 0);
-			}
-			else {
-				PrintToScreen(true, L"Windows Firewall was tested successfully.\n");
-			}
+			else 
+				PrintToScreen(true, L"[Notice] Windows Firewall was tested successfully.\n");
 
 			return false;
 		}
@@ -220,7 +228,7 @@ bool ReadCommands(
 				if (MBSToWCSString((const uint8_t *)SODIUM_VERSION_STRING, strlen(SODIUM_VERSION_STRING), LibVersion))
 					PrintToScreen(true, L"LibSodium version %ls\n", LibVersion.c_str());
 				else 
-					PrintToScreen(true, L"Convert multiple byte or wide char string error.\n");
+					PrintToScreen(true, L"[System Error] Convert multiple byte or wide char string error.\n");
 			#endif
 
 			//WinPcap or LibPcap version
@@ -228,10 +236,10 @@ bool ReadCommands(
 				if (MBSToWCSString((const uint8_t *)pcap_lib_version(), strlen(pcap_lib_version()), LibVersion))
 					PrintToScreen(true, L"%ls\n", LibVersion.c_str());
 				else 
-					PrintToScreen(true, L"Convert multiple byte or wide char string error.\n");
+					PrintToScreen(true, L"[System Error] Convert multiple byte or wide char string error.\n");
 			#endif
 		#else
-			PrintToScreen(true, L"No any available libraries.\n");
+			PrintToScreen(true, L"[Notice] No any available libraries.\n");
 		#endif
 
 			return false;
@@ -275,9 +283,7 @@ bool ReadCommands(
 		//Commands check
 			if ((int)Index + 1 >= argc)
 			{
-				PrintToScreen(true, L"Commands error.\n");
 				PrintError(LOG_LEVEL_1, LOG_ERROR_SYSTEM, L"Commands error", 0, nullptr, 0);
-
 				return false;
 			}
 			else {
@@ -287,9 +293,7 @@ bool ReadCommands(
 			//Path check.
 				if (Commands.length() > MAX_PATH)
 				{
-					PrintToScreen(true, L"Commands error.\n");
 					PrintError(LOG_LEVEL_1, LOG_ERROR_SYSTEM, L"Commands error", 0, nullptr, 0);
-
 					return false;
 				}
 				else {
@@ -321,15 +325,17 @@ bool ReadCommands(
 				size_t InnerIndex = 0;
 
 			//Generator a ramdon keypair and write public key.
-				if (crypto_box_keypair(PublicKey, SecretKey.Buffer) != 0 || 
+				if (crypto_box_keypair(
+						PublicKey, 
+						SecretKey.Buffer) != 0 || 
 					sodium_bin2hex((char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, PublicKey, crypto_box_PUBLICKEYBYTES) == nullptr)
 				{
 					fclose(FileHandle);
-					PrintToScreen(true, L"Create ramdom key pair failed, please try again.\n");
+					PrintToScreen(true, L"[System Error] Create ramdom key pair failed, please try again.\n");
 
 					return false;
 				}
-				CaseConvert(true, Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);
+				CaseConvert(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, true);
 				fwprintf_s(FileHandle, L"Client Public Key = ");
 				for (InnerIndex = 0;InnerIndex < strnlen_s((const char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
 				{
@@ -346,11 +352,11 @@ bool ReadCommands(
 				if (sodium_bin2hex((char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, SecretKey.Buffer, crypto_box_SECRETKEYBYTES) == nullptr)
 				{
 					fclose(FileHandle);
-					PrintToScreen(true, L"Create ramdom key pair failed, please try again.\n");
+					PrintToScreen(true, L"[System Error] Create ramdom key pair failed, please try again.\n");
 
 					return false;
 				}
-				CaseConvert(true, Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);
+				CaseConvert(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, true);
 				fwprintf_s(FileHandle, L"Client Secret Key = ");
 				for (InnerIndex = 0;InnerIndex < strnlen_s((const char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
 				{
@@ -364,13 +370,13 @@ bool ReadCommands(
 
 			//Close file.
 				fclose(FileHandle);
-				PrintToScreen(true, L"DNSCurve/DNSCrypt keypair was generated successfully.\n");
+				PrintToScreen(true, L"[Notice] DNSCurve/DNSCrypt keypair was generated successfully.\n");
 			}
 			else {
-				PrintToScreen(true, L"Cannot create target file(KeyPair.txt).\n");
+				PrintToScreen(true, L"[System Error] Cannot create target file(KeyPair.txt).\n");
 			}
 		#else
-			PrintToScreen(true, L"LibSodium is disable.\n");
+			PrintToScreen(true, L"[Notice] LibSodium is disable.\n");
 		#endif
 
 			return false;
@@ -381,7 +387,7 @@ bool ReadCommands(
 #if defined(PLATFORM_LINUX)
 	if (GlobalRunningStatus.IsDaemon && daemon(0, 0) == RETURN_ERROR)
 	{
-		PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Set system daemon error", 0, nullptr, 0);
+		PrintError(LOG_LEVEL_1, LOG_ERROR_SYSTEM, L"Set system daemon error", 0, nullptr, 0);
 		return false;
 	}
 #endif
@@ -443,7 +449,8 @@ bool FileNameInit(
 #if defined(PLATFORM_WIN)
 //Windows Firewall Test
 bool FirewallTest(
-	const uint16_t Protocol)
+	const uint16_t Protocol, 
+	ssize_t &ErrorCode)
 {
 //Ramdom number distribution initialization
 	std::uniform_int_distribution<uint16_t> RamdomDistribution(DYNAMIC_MIN_PORT, UINT16_MAX - 1U);
@@ -451,6 +458,7 @@ bool FirewallTest(
 	memset(&SockAddr, 0, sizeof(SockAddr));
 	SYSTEM_SOCKET FirewallSocket = 0;
 	size_t Index = 0;
+	ErrorCode = 0;
 
 //IPv6
 	if (Protocol == AF_INET6)
@@ -463,6 +471,7 @@ bool FirewallTest(
 	//Bind local socket.
 		if (!SocketSetting(FirewallSocket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 		{
+			ErrorCode = WSAGetLastError();
 			return false;
 		}
 		else if (bind(FirewallSocket, (PSOCKADDR)&SockAddr, sizeof(sockaddr_in6)) == SOCKET_ERROR)
@@ -476,7 +485,9 @@ bool FirewallTest(
 					++Index;
 				}
 				else {
+					ErrorCode = WSAGetLastError();
 					SocketSetting(FirewallSocket, SOCKET_SETTING_CLOSE, false, nullptr);
+
 					return false;
 				}
 			}
@@ -493,6 +504,7 @@ bool FirewallTest(
 	//Bind local socket.
 		if (!SocketSetting(FirewallSocket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
 		{
+			ErrorCode = WSAGetLastError();
 			return false;
 		}
 		else if (bind(FirewallSocket, (PSOCKADDR)&SockAddr, sizeof(sockaddr_in)) == SOCKET_ERROR)
@@ -506,7 +518,9 @@ bool FirewallTest(
 					++Index;
 				}
 				else {
+					ErrorCode = WSAGetLastError();
 					SocketSetting(FirewallSocket, SOCKET_SETTING_CLOSE, false, nullptr);
+
 					return false;
 				}
 			}
@@ -566,9 +580,9 @@ void MonitorLauncher(
 #if defined(ENABLE_PCAP)
 	if (Parameter.IsPcapCapture && 
 	//Direct Request mode
-		!(Parameter.DirectRequest == DIRECT_REQUEST_MODE_BOTH || 
-		(Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV6 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0 && 
-		Parameter.DirectRequest == DIRECT_REQUEST_MODE_IPV4 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0)) && 
+		!(Parameter.DirectRequest == REQUEST_MODE_DIRECT_BOTH || 
+		(Parameter.DirectRequest == REQUEST_MODE_DIRECT_IPV6 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0 && 
+		Parameter.DirectRequest == REQUEST_MODE_DIRECT_IPV4 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0)) && 
 	//SOCKS request only mode
 		!(Parameter.SOCKS_Proxy && Parameter.SOCKS_Only) && 
 	//HTTP request only mode
@@ -586,7 +600,7 @@ void MonitorLauncher(
 
 	//Get Hop Limits/TTL with normal DNS request(IPv6).
 		if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
+			(Parameter.RequestMode_Network == REQUEST_MODE_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
 			(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 		{
 			std::thread IPv6TestDoaminThread(std::bind(DomainTestRequest, AF_INET6));
@@ -595,7 +609,7 @@ void MonitorLauncher(
 
 	//Get Hop Limits/TTL with normal DNS request(IPv4).
 		if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
+			(Parameter.RequestMode_Network == REQUEST_MODE_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 			(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 		{
 			std::thread IPv4TestDoaminThread(std::bind(DomainTestRequest, AF_INET));
@@ -604,7 +618,7 @@ void MonitorLauncher(
 
 	//Get Hop Limits with ICMPv6 echo.
 		if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
+			(Parameter.RequestMode_Network == REQUEST_MODE_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
 			(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 		{
 			std::thread ICMPv6Thread(std::bind(ICMPTestRequest, AF_INET6));
@@ -613,7 +627,7 @@ void MonitorLauncher(
 
 	//Get TTL with ICMP echo.
 		if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
+			(Parameter.RequestMode_Network == REQUEST_MODE_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 			(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 		{
 			std::thread ICMPThread(std::bind(ICMPTestRequest, AF_INET));

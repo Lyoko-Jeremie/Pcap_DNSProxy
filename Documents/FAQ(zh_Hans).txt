@@ -74,13 +74,13 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Set system daemon error - 守护进程设置错误：建议重新启动服务或程序
     * Linux/Mac 的错误代码参见 http://man7.org/linux/man-pages/man3/errno.3.html
   * Convert multiple byte or wide char string error - 多/宽字节字符转换错误：建议重新启动服务或程序
-  * Create mailslot error - MailSlot 创建失败：建议重新启动服务或程序
-  * MailSlot read messages error - MailSlot 读取信息失败：建议重新启动服务或程序
-  * MailSlot write messages error - MailSlot 写入信息失败：建议重新启动服务或程序
+  * Create mailslot error - Mailslot 创建失败：建议重新启动服务或程序
+  * Mailslot read messages error - Mailslot 读取信息失败：建议重新启动服务或程序
+  * Mailslot write messages error - Mailslot 写入信息失败：建议重新启动服务或程序
   * Create FIFO error - FIFO 创建失败：建议重新启动服务或程序
   * FIFO read messages error - FIFO 读取信息失败：建议重新启动服务或程序
   * FIFO write messages error - FIFO 写入信息失败：建议重新启动服务或程序
-  * Mailslot Monitor initialization error - MailSlot 监视模块初始化失败：建议重新启动服务或程序
+  * Mailslot Monitor initialization error - Mailslot 监视模块初始化失败：建议重新启动服务或程序
   * Read Parameter module Monitor terminated - 配置文件读取模块已经停止监视：建议重新启动服务或程序
   * Read Hosts module Monitor terminated - Hosts 读取模块已经停止监视：建议重新启动服务或程序
   * Read IPFilter module Monitor terminated - IPFilter 读取模块已经停止监视：建议重新启动服务或程序
@@ -92,7 +92,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * ICMPv6 Test module Monitor terminated - ICMPv6 请求已经停止请求：建议重新启动服务或程序
   * UDP listening module Monitor terminated - UDP 协议监听模块已经停止监视：建议重新启动服务或程序
   * TCP listening module Monitor terminated - TCP 协议监听模块已经停止监视：建议重新启动服务或程序
-  * MailSlot module Monitor terminated - MailSlot 监视模块已经停止运行：建议重新启动服务或程序
+  * Mailslot module Monitor terminated - Mailslot 监视模块已经停止运行：建议重新启动服务或程序
   * FIFO module Monitor terminated - FIFO 监视模块已经停止运行：建议重新启动服务或程序
   * Capture module Monitor terminated - 抓包模块已经停止运行：建议重新启动服务或程序
   * DNSCurve TCP Signature Request module Monitor terminated - DNSCurve TCP 协议握手信息获取模块已经停止运行：建议重新启动服务或程序
@@ -127,7 +127,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * DNS Cache error - DNS 缓存配置错误：请检查缓存的参数
   * DNS target error - DNS 目标服务器配置错误：请检查 DNS 服务器的地址
   * Local request options error - 境内请求参数错误：请检查境内服务器是否可用，参见 ReadMe 文档中对这3个参数的介绍
-  * DNS Records type error - DNS 记录参数错误：请检查 Accept Type 的值是否符合要求
+  * DNS Record type error - DNS 记录参数错误：请检查 Accept Type 的值是否符合要求
   * Hop Limit Fluctuations error - Hop Limit 或 TTL 可接受范围错误：请检查范围的值
   * Alternate Multiple request error - 主要备用或多个服务器下同时请求参数错误：请确认所有服务器的信息
   * IPv4 total request number error - IPv4 请求总次数限制错误：填入主要/备用服务器的数量

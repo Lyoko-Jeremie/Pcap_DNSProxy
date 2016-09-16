@@ -852,10 +852,10 @@ addrinfo *GetLocalAddressList(
 	}
 
 //Get localhost data.
-	int ResultGetaddrinfo = getaddrinfo((char *)HostName, nullptr, &Hints, &Result);
-	if (ResultGetaddrinfo != 0)
+	int InnerResult = getaddrinfo((char *)HostName, nullptr, &Hints, &Result);
+	if (InnerResult != 0)
 	{
-		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get localhost address error", ResultGetaddrinfo, nullptr, 0);
+		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get localhost address error", InnerResult, nullptr, 0);
 
 		freeaddrinfo(Result);
 		return nullptr;
@@ -954,18 +954,30 @@ void GetGatewayInformation(
 	#if defined(PLATFORM_WIN)
 		DWORD AdaptersIndex = 0;
 		if ((Parameter.Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
-			GetBestInterfaceEx((PSOCKADDR)&Parameter.Target_Server_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR) || 
+			GetBestInterfaceEx(
+				(PSOCKADDR)&Parameter.Target_Server_IPv6.AddressData.IPv6, 
+				&AdaptersIndex) != NO_ERROR) || 
 			(Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
-			GetBestInterfaceEx((PSOCKADDR)&Parameter.Target_Server_Alternate_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR) || 
+			GetBestInterfaceEx(
+				(PSOCKADDR)&Parameter.Target_Server_Alternate_IPv6.AddressData.IPv6, &
+				AdaptersIndex) != NO_ERROR) || 
 			(Parameter.Target_Server_Local_IPv6.Storage.ss_family > 0 && 
-			GetBestInterfaceEx((PSOCKADDR)&Parameter.Target_Server_Local_IPv6.IPv6, &AdaptersIndex) != NO_ERROR) || 
+			GetBestInterfaceEx(
+				(PSOCKADDR)&Parameter.Target_Server_Local_IPv6.IPv6, 
+				&AdaptersIndex) != NO_ERROR) || 
 			(Parameter.Target_Server_Alternate_Local_IPv6.Storage.ss_family > 0 && 
-			GetBestInterfaceEx((PSOCKADDR)&Parameter.Target_Server_Alternate_Local_IPv6.IPv6, &AdaptersIndex) != NO_ERROR)
+			GetBestInterfaceEx(
+				(PSOCKADDR)&Parameter.Target_Server_Alternate_Local_IPv6.IPv6, 
+				&AdaptersIndex) != NO_ERROR)
 		#if defined(ENABLE_LIBSODIUM)
 			|| (DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
-			GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR) || 
+			GetBestInterfaceEx(
+				(PSOCKADDR)&DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.IPv6, 
+				&AdaptersIndex) != NO_ERROR) || 
 			(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
-			GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.IPv6, &AdaptersIndex) != NO_ERROR)
+			GetBestInterfaceEx(
+				(PSOCKADDR)&DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.IPv6, 
+				&AdaptersIndex) != NO_ERROR)
 		#endif
 			)
 		{
@@ -978,7 +990,9 @@ void GetGatewayInformation(
 		{
 			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv6_Multiple)
 			{
-				if (GetBestInterfaceEx((PSOCKADDR)&DNSServerDataIter.AddressData.IPv6, &AdaptersIndex) != NO_ERROR)
+				if (GetBestInterfaceEx(
+					(PSOCKADDR)&DNSServerDataIter.AddressData.IPv6, 
+					&AdaptersIndex) != NO_ERROR)
 				{
 					GlobalRunningStatus.GatewayAvailable_IPv6 = false;
 					return;
@@ -1037,18 +1051,30 @@ void GetGatewayInformation(
 	#if defined(PLATFORM_WIN)
 		DWORD AdaptersIndex = 0;
 		if ((Parameter.Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
-			GetBestInterfaceEx((PSOCKADDR)&Parameter.Target_Server_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR) || 
+			GetBestInterfaceEx(
+				(PSOCKADDR)&Parameter.Target_Server_IPv4.AddressData.IPv4, 
+				&AdaptersIndex) != NO_ERROR) || 
 			(Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
-			GetBestInterfaceEx((PSOCKADDR)&Parameter.Target_Server_Alternate_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR) || 
+			GetBestInterfaceEx(
+				(PSOCKADDR)&Parameter.Target_Server_Alternate_IPv4.AddressData.IPv4, 
+				&AdaptersIndex) != NO_ERROR) || 
 			(Parameter.Target_Server_Local_IPv4.Storage.ss_family > 0 && 
-			GetBestInterfaceEx((PSOCKADDR)&Parameter.Target_Server_Local_IPv4.IPv4, &AdaptersIndex) != NO_ERROR) || 
+			GetBestInterfaceEx(
+				(PSOCKADDR)&Parameter.Target_Server_Local_IPv4.IPv4, 
+				&AdaptersIndex) != NO_ERROR) || 
 			(Parameter.Target_Server_Alternate_Local_IPv4.Storage.ss_family > 0 && 
-			GetBestInterfaceEx((PSOCKADDR)&Parameter.Target_Server_Alternate_Local_IPv4.IPv4, &AdaptersIndex) != NO_ERROR)
+			GetBestInterfaceEx(
+				(PSOCKADDR)&Parameter.Target_Server_Alternate_Local_IPv4.IPv4, 
+				&AdaptersIndex) != NO_ERROR)
 		#if defined(ENABLE_LIBSODIUM)
 			|| DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
-			(GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR) || 
+			(GetBestInterfaceEx(
+				(PSOCKADDR)&DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.IPv4, 
+				&AdaptersIndex) != NO_ERROR) || 
 			DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
-			(GetBestInterfaceEx((PSOCKADDR)&DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.IPv4, &AdaptersIndex) != NO_ERROR)
+			(GetBestInterfaceEx(
+				(PSOCKADDR)&DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.IPv4, 
+				&AdaptersIndex) != NO_ERROR)
 		#endif
 			)
 		{
@@ -1061,7 +1087,9 @@ void GetGatewayInformation(
 		{
 			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv4_Multiple)
 			{
-				if (GetBestInterfaceEx((PSOCKADDR)&DNSServerDataIter.AddressData.IPv4, &AdaptersIndex) != NO_ERROR)
+				if (GetBestInterfaceEx(
+					(PSOCKADDR)&DNSServerDataIter.AddressData.IPv4, 
+					&AdaptersIndex) != NO_ERROR)
 				{
 					GlobalRunningStatus.GatewayAvailable_IPv4 = false;
 					return;
@@ -1115,16 +1143,18 @@ void NetworkInformationMonitor(
 {
 //Initialization
 #if defined(PLATFORM_WIN)
+	uint8_t Addr[ADDRESS_STRING_MAXSIZE] = {0};
 	uint8_t HostName[DOMAIN_MAXSIZE] = {0};
-#endif
-#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-	uint8_t Addr[ADDR_STRING_MAXSIZE] = {0};
+	addrinfo *LocalAddressList = nullptr, *LocalAddressTableIter = nullptr;
 	std::string Result;
 	ssize_t Index = 0;
-#endif
-#if defined(PLATFORM_WIN)
-	addrinfo *LocalAddressList = nullptr, *LocalAddressTableIter = nullptr;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif defined(PLATFORM_LINUX)
+	uint8_t Addr[ADDRESS_STRING_MAXSIZE] = {0};
+	ifaddrs *InterfaceAddressList = nullptr, *InterfaceAddressIter = nullptr;
+	auto IsErrorFirstPrint = true;
+	std::string Result;
+	ssize_t Index = 0;
+#elif defined(PLATFORM_MACX)
 	ifaddrs *InterfaceAddressList = nullptr, *InterfaceAddressIter = nullptr;
 	auto IsErrorFirstPrint = true;
 #endif
@@ -1148,11 +1178,10 @@ void NetworkInformationMonitor(
 			errno = 0;
 			if (getifaddrs(&InterfaceAddressList) != 0 || InterfaceAddressList == nullptr)
 			{
-				auto ErrorCode = errno;
+				PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get localhost address error", errno, nullptr, 0);
 				if (InterfaceAddressList != nullptr)
 					freeifaddrs(InterfaceAddressList);
 				InterfaceAddressList = nullptr;
-				PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get localhost address error", ErrorCode, nullptr, 0);
 		#endif
 
 				goto JumpToRestart;
@@ -1202,23 +1231,23 @@ void NetworkInformationMonitor(
 
 					//Initialization
 						DNSPTRString.clear();
-						memset(Addr, 0, ADDR_STRING_MAXSIZE);
+						memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
 
 					//Convert from in6_addr to string.
 						size_t AddrStringLen = 0;
 						for (Index = 0;Index < (ssize_t)(sizeof(in6_addr) / sizeof(uint16_t));++Index)
 						{
-							sprintf_s((char *)Addr, ADDR_STRING_MAXSIZE, "%x", ntohs(((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr.s6_words[Index]));
+							sprintf_s((char *)Addr, ADDRESS_STRING_MAXSIZE, "%x", ntohs(((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr.s6_words[Index]));
 
 						//Add zeros to beginning of string.
-							if (strnlen_s((const char *)Addr, ADDR_STRING_MAXSIZE) < 4U)
+							if (strnlen_s((const char *)Addr, ADDRESS_STRING_MAXSIZE) < 4U)
 							{
-								AddrStringLen = strnlen_s((const char *)Addr, ADDR_STRING_MAXSIZE);
-								memmove_s(Addr + 4U - strnlen_s((const char *)Addr, ADDR_STRING_MAXSIZE), ADDR_STRING_MAXSIZE, Addr, strnlen_s((const char *)Addr, ADDR_STRING_MAXSIZE));
+								AddrStringLen = strnlen_s((const char *)Addr, ADDRESS_STRING_MAXSIZE);
+								memmove_s(Addr + 4U - strnlen_s((const char *)Addr, ADDRESS_STRING_MAXSIZE), ADDRESS_STRING_MAXSIZE, Addr, strnlen_s((const char *)Addr, ADDRESS_STRING_MAXSIZE));
 								memset(Addr, ASCII_ZERO, 4U - AddrStringLen);
 							}
 							DNSPTRString.append((const char *)Addr);
-							memset(Addr, 0, ADDR_STRING_MAXSIZE);
+							memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
 
 						//Last data
 							if (Index < (ssize_t)(sizeof(in6_addr) / sizeof(uint16_t) - 1U))
@@ -1270,23 +1299,23 @@ void NetworkInformationMonitor(
 					#if defined(PLATFORM_LINUX)
 					//Initialization
 						DNSPTRString.clear();
-						memset(Addr, 0, ADDR_STRING_MAXSIZE);
+						memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
 
 					//Convert from in6_addr to string.
 						size_t AddrStringLen = 0;
 						for (Index = 0;Index < (ssize_t)(sizeof(in6_addr) / sizeof(uint16_t));++Index)
 						{
-							snprintf((char *)Addr, ADDR_STRING_MAXSIZE, "%x", ntohs(((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr.s6_words[Index]));
+							snprintf((char *)Addr, ADDRESS_STRING_MAXSIZE, "%x", ntohs(((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr.s6_words[Index]));
 
 						//Add zeros to beginning of string.
-							if (strnlen((const char *)Addr, ADDR_STRING_MAXSIZE) < 4U)
+							if (strnlen((const char *)Addr, ADDRESS_STRING_MAXSIZE) < 4U)
 							{
-								AddrStringLen = strnlen((const char *)Addr, ADDR_STRING_MAXSIZE);
-								memmove_s(Addr + 4U - strnlen((const char *)Addr, ADDR_STRING_MAXSIZE), ADDR_STRING_MAXSIZE, Addr, strnlen((const char *)Addr, ADDR_STRING_MAXSIZE));
+								AddrStringLen = strnlen((const char *)Addr, ADDRESS_STRING_MAXSIZE);
+								memmove_s(Addr + 4U - strnlen((const char *)Addr, ADDRESS_STRING_MAXSIZE), ADDRESS_STRING_MAXSIZE, Addr, strnlen((const char *)Addr, ADDRESS_STRING_MAXSIZE));
 								memset(Addr, ASCII_ZERO, 4U - AddrStringLen);
 							}
 							DNSPTRString.append((const char *)Addr);
-							memset(Addr, 0, ADDR_STRING_MAXSIZE);
+							memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
 
 						//Last data
 							if (Index < (ssize_t)(sizeof(in6_addr) / sizeof(uint16_t) - 1U))
@@ -1396,26 +1425,25 @@ void NetworkInformationMonitor(
 
 					//Initialization
 						DNSPTRString.clear();
-						memset(Addr, 0, ADDR_STRING_MAXSIZE);
+						memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
 
 					//Convert from in_addr to DNS PTR.
-						sprintf_s((char *)Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_impno);
+						sprintf_s((char *)Addr, ADDRESS_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_impno);
 						Result.append((const char *)Addr);
-						memset(Addr, 0, ADDR_STRING_MAXSIZE);
+						memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
 						Result.append(".");
-						sprintf_s((char *)Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_lh);
+						sprintf_s((char *)Addr, ADDRESS_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_lh);
 						Result.append((const char *)Addr);
-						memset(Addr, 0, ADDR_STRING_MAXSIZE);
+						memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
 						Result.append(".");
-						sprintf_s((char *)Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_host);
+						sprintf_s((char *)Addr, ADDRESS_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_host);
 						Result.append((const char *)Addr);
-						memset(Addr, 0, ADDR_STRING_MAXSIZE);
+						memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
 						Result.append(".");
-						sprintf_s((char *)Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_net);
+						sprintf_s((char *)Addr, ADDRESS_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr.s_net);
 						Result.append((const char *)Addr);
-						memset(Addr, 0, ADDR_STRING_MAXSIZE);
-						Result.append(".");
-						Result.append("in-addr.arpa");
+						memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
+						Result.append(".in-addr.arpa");
 
 					//Add to global list.
 						GlobalRunningStatus.LocalAddress_ResponsePTR[NETWORK_LAYER_IPV4]->push_back(Result);
@@ -1445,26 +1473,25 @@ void NetworkInformationMonitor(
 					#if defined(PLATFORM_LINUX)
 					//Initialization
 						DNSPTRString.clear();
-						memset(Addr, 0, ADDR_STRING_MAXSIZE);
+						memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
 
 					//Convert from in_addr to DNS PTR.
-						snprintf((char *)Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_impno);
+						snprintf((char *)Addr, ADDRESS_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_impno);
 						Result.append((const char *)Addr);
-						memset(Addr, 0, ADDR_STRING_MAXSIZE);
+						memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
 						Result.append(".");
-						snprintf((char *)Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_lh);
+						snprintf((char *)Addr, ADDRESS_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_lh);
 						Result.append((const char *)Addr);
-						memset(Addr, 0, ADDR_STRING_MAXSIZE);
+						memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
 						Result.append(".");
-						snprintf((char *)Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_host);
+						snprintf((char *)Addr, ADDRESS_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_host);
 						Result.append((const char *)Addr);
-						memset(Addr, 0, ADDR_STRING_MAXSIZE);
+						memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
 						Result.append(".");
-						snprintf((char *)Addr, ADDR_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_net);
+						snprintf((char *)Addr, ADDRESS_STRING_MAXSIZE, "%u", ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr.s_net);
 						Result.append((const char *)Addr);
-						memset(Addr, 0, ADDR_STRING_MAXSIZE);
-						Result.append(".");
-						Result.append("in-addr.arpa");
+						memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
+						Result.append(".in-addr.arpa");
 
 					//Add to global list.
 						GlobalRunningStatus.LocalAddress_ResponsePTR[NETWORK_LAYER_IPV4]->push_back(Result);

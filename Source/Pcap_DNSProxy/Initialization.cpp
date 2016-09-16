@@ -196,14 +196,14 @@ void ConfigurationTableSetting(
 	ConfigurationParameter->OperationMode = LISTEN_MODE_PROXY;
 
 	//[DNS] block
-	ConfigurationParameter->RequestMode_Network = REQUEST_MODE_NETWORK_BOTH;
+	ConfigurationParameter->RequestMode_Network = REQUEST_MODE_BOTH;
 	ConfigurationParameter->RequestMode_Transport = REQUEST_MODE_UDP;
-	ConfigurationParameter->DirectRequest = DIRECT_REQUEST_MODE_NONE;
+	ConfigurationParameter->DirectRequest = REQUEST_MODE_DIRECT_NONE;
 	ConfigurationParameter->CacheType = CACHE_TYPE_NONE;
 	ConfigurationParameter->HostsDefaultTTL = DEFAULT_HOSTS_TTL;
 
 	//[Local DNS] block
-	ConfigurationParameter->LocalProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
+	ConfigurationParameter->LocalProtocol_Network = REQUEST_MODE_BOTH;
 	ConfigurationParameter->LocalProtocol_Transport = REQUEST_MODE_UDP;
 
 	//[Values] block
@@ -261,7 +261,7 @@ void ConfigurationTableSetting(
 
 	//[Proxy] block
 	ConfigurationParameter->SOCKS_Version = SOCKS_VERSION_5;
-	ConfigurationParameter->SOCKS_Protocol_Network = REQUEST_MODE_NETWORK_BOTH;
+	ConfigurationParameter->SOCKS_Protocol_Network = REQUEST_MODE_BOTH;
 	ConfigurationParameter->SOCKS_Protocol_Transport = REQUEST_MODE_TCP;
 #if defined(PLATFORM_WIN)
 	ConfigurationParameter->SOCKS_SocketTimeout_Reliable = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
@@ -270,7 +270,7 @@ void ConfigurationTableSetting(
 	ConfigurationParameter->SOCKS_SocketTimeout_Reliable.tv_sec = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
 	ConfigurationParameter->SOCKS_SocketTimeout_Unreliable.tv_sec = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
 #endif
-	ConfigurationParameter->HTTP_Protocol = REQUEST_MODE_NETWORK_BOTH;
+	ConfigurationParameter->HTTP_Protocol = REQUEST_MODE_BOTH;
 #if defined(PLATFORM_WIN)
 	ConfigurationParameter->HTTP_SocketTimeout = DEFAULT_HTTP_SOCKET_TIMEOUT;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -527,7 +527,7 @@ void ConfigurationTable::MonitorItemReset(
 	HostsDefaultTTL = DEFAULT_HOSTS_TTL;
 
 //[Local DNS] block
-	LocalProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
+	LocalProtocol_Network = REQUEST_MODE_BOTH;
 	LocalProtocol_Transport = REQUEST_MODE_UDP;
 	LocalForce = false;
 
@@ -962,7 +962,7 @@ void DNSCurveConfigurationTableSetting(
 
 //Default settings
 	//[DNSCurve] block
-	DNSCurveConfigurationParameter->DNSCurveProtocol_Network = REQUEST_MODE_NETWORK_BOTH;
+	DNSCurveConfigurationParameter->DNSCurveProtocol_Network = REQUEST_MODE_BOTH;
 	DNSCurveConfigurationParameter->DNSCurveProtocol_Transport = REQUEST_MODE_UDP;
 	DNSCurveConfigurationParameter->DNSCurvePayloadSize = EDNS_PACKET_MINSIZE;
 #if defined(PLATFORM_WIN)

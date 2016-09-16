@@ -35,7 +35,8 @@ bool ReadCommands(
 bool FileNameInit(
 	const wchar_t *OriginalPath);
 bool FirewallTest(
-	const uint16_t Protocol);
+	const uint16_t Protocol, 
+	ssize_t &ErrorCode);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 bool ReadCommands(
 	int argc, 

@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy 0.4.7.1-0.4.7.3 更新日志(2016-09-07)：
+﻿Pcap_DNSProxy 0.4.7.1-0.4.7.4 更新日志(2016-09-16)：
 
 * 添加对 Dnsmasq 的 Address 和 Server 兼容格式配置文件的支持
   * 支持使用 Address 和 Server 兼容格式的非正则表达式模式对域名查询进行字符串匹配
@@ -7,24 +7,26 @@
 * 添加一种时间 + 队列双重检测类型的 DNS 缓存策略
 * 添加 CMake 系统并行多线程编译支持 (Linux/Mac)
 * 添加服务器端 TCP Fast Open 属性的实验性支持 (Windows)
+* 现在输出错误代码时将附上一段对该错误代码的说明 [Syrone Wong]
 * 修复套接字不正确的关闭有可能造成的系统资源耗尽问题 [AVC A]
 * 修复 IPv6 协议套接字参数错误的问题 [gaoyan1234]
+* 修复 DNS 缓存清除功能的问题 (Linux/Mac) [kiliwalk]
 * 修复在不启用任何 Local 选项同时附带白名单列表时报错的问题
 * 修复在程序启动后修改配置文件重新读取时报错的问题
 * 修复 dig 请求权威根域名服务器的问题
 * 修复 CR + LF 换行格式下行数统计错误的问题
 * 修复套接字 TCP Fast Open 属性不生效的问题 (Linux)
-* 文件校验码(0.4.7.3)
+* 文件校验码(0.4.7.4)
   * SHA-1:
-    * Windows/Pcap_DNSProxy.exe -> BDA1CDD1F017DC1B6C3B506A5805D39D86F7B256
-    * Windows/Pcap_DNSProxy_x86.exe -> F9FD048788A351724311B6E856DC1644C723537B
-    * Windows/Pcap_DNSProxy_XP.exe -> F4892B78CB8486011AC4A596FF3ED30D278C04D2
-    * Mac/Pcap_DNSProxy -> 888B87F000C1799119158969FF20937902DFCC62
+    * Windows/Pcap_DNSProxy.exe -> 7F6000C5167A53B6DEEAC4C4331F958D1FA44D53
+    * Windows/Pcap_DNSProxy_x86.exe -> F647CA44808F8C6CBE2ED30D72B3AE9A2E9F6E7F
+    * Windows/Pcap_DNSProxy_XP.exe -> 35087C15CCDD38FEA9EFB50247FA529C52976BB5
+    * Mac/Pcap_DNSProxy -> 9CF3D26549DA09B400E5D3F9FABFBDE4DE158CFF
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe -> 8CBCDBF6C72801D24D950056C362567CD9B832024AD074736A2AC24536C1BEDF
-    * Windows/Pcap_DNSProxy_x86.exe -> D880C215115A8265E1D58B52451E15D3FCF62D81E3935F2C96544D1B94E618B2
-    * Windows/Pcap_DNSProxy_XP.exe -> AD766A1157C5C2F4AE9A901E17D14872B73E50271F5715FC9C73D8546906E052
-    * Mac/Pcap_DNSProxy -> E9B23E0CBA4DA40297F8FDA9CCB8DF202385930DCDB64D4F065A757CFF8392D5
+    * Windows/Pcap_DNSProxy.exe -> 5BD4C5E2A3D83208EB1785DBA1EFECD309E5CF6CB2BD8D2950CC03FC8FEEA93F
+    * Windows/Pcap_DNSProxy_x86.exe -> 99A8BB9A62BE2D72E534BCC395E4803DD57D673ADAB23308F2C51B140FBE703E
+    * Windows/Pcap_DNSProxy_XP.exe -> AA309EF3514FA6DC6A1FAA1236A8D698ADE4F847DD261E68FDD0F2917475EB72
+    * Mac/Pcap_DNSProxy -> 1DC33F6CEBE43B9C78A0FA20FD1144B40E2B79EB714216D22D4A46D9705AF309
 
 
 -------------------------------------------------------------------------------
