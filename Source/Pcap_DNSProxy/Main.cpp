@@ -76,7 +76,7 @@ int main(
 
 	//Handle the system signal.
 		if (SetConsoleCtrlHandler(
-				(PHANDLER_ROUTINE)CtrlHandler,
+				(PHANDLER_ROUTINE)CtrlHandler, 
 				TRUE) == 0)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_SYSTEM, L"Set console control handler error", GetLastError(), nullptr, 0);
@@ -142,7 +142,7 @@ bool ReadCommands(
 		return false;
 	}
 	else {
-		GlobalRunningStatus.Initialization_WinSock = true;
+		GlobalRunningStatus.IsWinSockInitialized = true;
 	}
 
 //Read commands.

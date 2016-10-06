@@ -35,7 +35,7 @@
   * 也可能是因為長時間運行有錯誤累積造成，專案組正努力解決。可嘗試重啟服務（參見 ReadMe 文檔中的 重啟服務）
 
    >nslookup www.google.com
-    伺服器: pcap-dnsproxy.localhost.server（視設定檔設置的值而定，參見 ReadMe 文檔中 設定檔詳細參數說明）
+    伺服器: pcap-dnsproxy.server（視設定檔設置的值而定，參見 ReadMe 文檔中 設定檔詳細參數說明）
     Address: ::1（視所在網路環境而定，本地監聽協定為 IPv4 時為 127.0.0.1）
 
     DNS request timed out.
@@ -46,10 +46,10 @@
         timeout was 2 seconds.
     DNS request timed out.
         timeout was 2 seconds.
-    *** 請求 pcap-dnsproxy.localhost.server 超時（視設定檔設置的值而定，參見 ReadMe 文檔中 設定檔詳細參數說明）
+    *** 請求 pcap-dnsproxy.server 超時（視設定檔設置的值而定，參見 ReadMe 文檔中 設定檔詳細參數說明）
 
    >nslookup -vc www.google.com
-    伺服器:  pcap-dnsproxy.localhost.server（視設定檔設置的值而定，參見 ReadMe 文檔中 設定檔詳細參數說明）
+    伺服器:  pcap-dnsproxy.server（視設定檔設置的值而定，參見 ReadMe 文檔中 設定檔詳細參數說明）
     Address: ::1（視所在網路環境而定，本地監聽協定為 IPv4 時為 127.0.0.1）
 
     *** 沒有 www.google.com 可以使用的 internal type for both IPv4 and IPv6 Addresses (A+AAAA)記錄
@@ -122,7 +122,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * IPv6 prefix error - IPv6 網路尾碼長度錯誤：IPv6 網路尾碼的長度介乎與 1-128
   * Pcap Capture error - 抓包模塊參數錯誤：請檢查相關參數的使用要求說明
   * Direct Request error - 直連模塊參數錯誤：請檢查相關參數的使用要求說明
-  * Localhost listening port error - 本地監聽埠錯誤：請檢查本地監聽埠的值，可適用範圍為 1 - 65535
+  * Local machine listening port error - 本地監聽埠錯誤：請檢查本地監聽埠的值，可適用範圍為 1 - 65535
   * IPFilter Level error - IPFilter 過濾級別錯誤：請檢查過濾級別的值，可適用範圍為 1 - 65535
   * DNS Cache error - DNS 緩存配置錯誤：請檢查緩存的參數
   * DNS target error - DNS 目標伺服器配置錯誤：請檢查 DNS 伺服器的位址
@@ -185,8 +185,8 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Bind UDP Monitor socket error - UDP 協定本地通訊端綁定失敗：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體原因參見錯誤代碼
   * Bind TCP Monitor socket error - TCP 協定本地通訊端綁定失敗：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體原因參見錯誤代碼
   * TCP Monitor socket listening initialization error - TCP 協定本地通訊端監聽失敗：原因參見錯誤代碼
-  * Get localhost name error - 獲取本地電腦名稱稱失敗：原因參見錯誤代碼
-  * Get localhost address error - 獲取本地電腦位址失敗：沒有任何生效的網路介面卡，可能是硬體或者驅動程式的問題
+  * Get local machine name error - 獲取本地電腦名稱稱失敗：原因參見錯誤代碼
+  * Get local machine address error - 獲取本地電腦位址失敗：沒有任何生效的網路介面卡，可能是硬體或者驅動程式的問題
   * UDP socket initialization error - UDP 協定請求通訊端初始化失敗：原因參見錯誤代碼
   * TCP socket initialization error - TCP 協定請求通訊端初始化失敗：原因參見錯誤代碼
   * SOCKS socket initialization error - SOCKS 協定請求通訊端初始化失敗：原因參見錯誤代碼

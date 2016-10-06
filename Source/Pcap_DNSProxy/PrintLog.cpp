@@ -156,7 +156,7 @@ bool WriteScreenAndFile(
 	memset(&TimeStructure, 0, sizeof(TimeStructure));
 	auto TimeValues = time(nullptr);
 #if defined(PLATFORM_WIN)
-	if (localtime_s(&TimeStructure, &TimeValues) > 0)
+	if (localtime_s(&TimeStructure, &TimeValues) != 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	if (localtime_r(&TimeValues, &TimeStructure) == nullptr)
 #endif
@@ -348,7 +348,7 @@ void ErrorCodeToMessage(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS|FORMAT_MESSAGE_MAX_WIDTH_MASK, 
 		nullptr, 
 		(DWORD)ErrorCode, 
-		MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+		MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), 
 		(LPWSTR)&InnerMessage, 
 		0, 
 		nullptr) == 0)
@@ -368,7 +368,7 @@ void ErrorCodeToMessage(
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	std::wstring InnerMessage;
 	auto ErrorMessage = strerror((int)ErrorCode);
-	if (ErrorMessage == nullptr || !MBSToWCSString((const uint8_t *)ErrorMessage, FILE_BUFFER_SIZE, InnerMessage))
+	if (ErrorMessage == nullptr || !MBSToWCSString((const uint8_t *)ErrorMessage, strnlen(ErrorMessage, FILE_BUFFER_SIZE), InnerMessage))
 	{
 		Message.append(L"%d");
 	}

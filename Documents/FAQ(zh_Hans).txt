@@ -35,7 +35,7 @@
   * 也可能是因为长时间运行有错误累积造成，项目组正努力解决。可尝试重启服务（参见 ReadMe 文档中的 重启服务）
 
    >nslookup www.google.com
-    服务器:  pcap-dnsproxy.localhost.server（视配置文件设置的值而定，参见 ReadMe 文档中 配置文件详细参数说明）
+    服务器:  pcap-dnsproxy.server（视配置文件设置的值而定，参见 ReadMe 文档中 配置文件详细参数说明）
     Address: ::1（视所在网络环境而定，本地监听协议为 IPv4 时为 127.0.0.1）
 
     DNS request timed out.
@@ -46,10 +46,10 @@
         timeout was 2 seconds.
     DNS request timed out.
         timeout was 2 seconds.
-    *** 请求 pcap-dnsproxy.localhost.server 超时（视配置文件设置的值而定，参见 ReadMe 文档中 配置文件详细参数说明）
+    *** 请求 pcap-dnsproxy.server 超时（视配置文件设置的值而定，参见 ReadMe 文档中 配置文件详细参数说明）
     
    >nslookup -vc www.google.com
-    服务器:  pcap-dnsproxy.localhost.server（视配置文件设置的值而定，参见 ReadMe 文档中 配置文件详细参数说明）
+    服务器:  pcap-dnsproxy.server（视配置文件设置的值而定，参见 ReadMe 文档中 配置文件详细参数说明）
     Address: ::1（视所在网络环境而定，本地监听协议为 IPv4 时为 127.0.0.1）
 
     *** 没有 www.google.com 可以使用的 internal type for both IPv4 and IPv6 Addresses (A+AAAA)记录
@@ -122,7 +122,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * IPv4 special address error - IPv4 特殊地址检查错误：请检查 IPv4 地址是否为特殊地址
   * Pcap Capture error - 抓包模块参数错误：请检查相关参数的使用要求说明
   * Direct Request error - 直连模式参数错误：请检查相关参数的使用要求说明
-  * Localhost listening port error - 本地监听端口错误：请检查本地监听端口的值，可适用范围为 1 - 65535
+  * Local machine listening port error - 本地监听端口错误：请检查本地监听端口的值，可适用范围为 1 - 65535
   * IPFilter Level error - IPFilter 过滤级别错误：请检查过滤级别的值，可适用范围为 1 - 65535
   * DNS Cache error - DNS 缓存配置错误：请检查缓存的参数
   * DNS target error - DNS 目标服务器配置错误：请检查 DNS 服务器的地址
@@ -186,8 +186,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Bind UDP Monitor socket error - UDP 协议本地套接字绑定失败：本地可能已经存在 DNS 服务器或者多重运行了本工具，具体原因参见错误代码
   * Bind TCP Monitor socket error - TCP 协议本地套接字绑定失败：本地可能已经存在 DNS 服务器或者多重运行了本工具，具体原因参见错误代码
   * TCP Monitor socket listening initialization error - TCP 协议本地套接字监听失败：原因参见错误代码
-  * Get localhost name error - 获取本地计算机名称失败：原因参见错误代码
-  * Get localhost address error - 获取本地计算机地址失败：没有任何生效的网络适配器，可能是硬件或者驱动程序的问题
+  * Get local machine name error - 获取本地计算机名称失败：原因参见错误代码
+  * Get local machine address error - 获取本地计算机地址失败：没有任何生效的网络适配器，可能是硬件或者驱动程序的问题
   * UDP socket initialization error - UDP 协议请求套接字初始化失败：原因参见错误代码
   * TCP socket initialization error - TCP 协议请求套接字初始化失败：原因参见错误代码
   * SOCKS socket initialization error - SOCKS 协议请求套接字初始化失败：原因参见错误代码

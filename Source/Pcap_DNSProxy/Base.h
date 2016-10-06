@@ -106,7 +106,7 @@
 //Version definitions
 #define CONFIG_VERSION                                0.4                                   //Current configuration file version
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
-#define FULL_VERSION                                  L"0.4.7.4"
+#define FULL_VERSION                                  L"0.4.7.5"
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_MAXSIZE                        64U                         //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -193,7 +193,7 @@
 	#define DEFAULT_PCAP_CAPTURE_TIMEOUT                  250U                        //Default Pcap Capture reading timeout, 250 ms
 	#define PCAP_CAPTURE_MIN_TIMEOUT                      10U                         //Minimum Pcap Capture reading timeout, 10 ms
 #endif
-#define DEFAULT_THREAD_POOL_RESET_TIME                60U                         //Default time to reset thread pool number, 60 seconds
+#define DEFAULT_THREAD_POOL_RESET_TIME                60000U                      //Default time to reset thread pool number, 60000 ms(60 seconds)
 #define FLUSH_DNS_CACHE_INTERVAL_TIME                 5U                          //Time between every flushing, 5000 ms(5 seconds)
 #if defined(PLATFORM_WIN)
 	#define DEFAULT_RELIABLE_SOCKET_TIMEOUT               3000U                   //Default timeout of reliable sockets(Such as TCP, 3 seconds/3000ms)
@@ -273,7 +273,7 @@
 	#define FIFO_PATH_NAME                                ("/tmp/pcap_dnsproxy_fifo")                  //FIFO pathname
 #endif
 #define DEFAULT_HTTP_VERSION                          "1.1"                                                                                       //Default HTTP version
-#define DEFAULT_LOCAL_SERVERNAME                      ("pcap-dnsproxy.localhost.server")                                                          //Default Local DNS server name
+#define DEFAULT_LOCAL_SERVERNAME                      ("pcap-dnsproxy.server")                                                                    //Default Local DNS server name
 #if defined(PLATFORM_MACX)
 	#define DEFAULT_SEQUENCE                               0
 #else
@@ -411,7 +411,7 @@
 #define hton32_Force(Value)   ((uint32_t)(((uint8_t *)&Value)[0] << ((sizeof(uint16_t) + sizeof(uint8_t)) * BYTES_TO_BITS) | ((uint8_t *)&Value)[1U] << (sizeof(uint16_t) * BYTES_TO_BITS) | ((uint8_t *)&Value)[2U] << (sizeof(uint8_t) * BYTES_TO_BITS) | ((uint8_t *)&Value)[3U]))
 #define ntoh32_Force          hton32_Force
 #if BYTE_ORDER == LITTLE_ENDIAN
-	#define hton64(Value)         ((uint64_t)((((uint64_t)htonl((int32_t)((Value << (sizeof(uint32_t) * BYTES_TO_BITS)) >> (sizeof(uint32_t) * BYTES_TO_BITS)))) << (sizeof(uint32_t) * BYTES_TO_BITS)) | (uint32_t)htonl((int32_t)(Value >> (sizeof(uint32_t) * BYTES_TO_BITS)))))
+	#define hton64(Value)         ((uint64_t)((((uint64_t)htonl((uint32_t)((Value << (sizeof(uint32_t) * BYTES_TO_BITS)) >> (sizeof(uint32_t) * BYTES_TO_BITS)))) << (sizeof(uint32_t) * BYTES_TO_BITS)) | (uint32_t)htonl((uint32_t)(Value >> (sizeof(uint32_t) * BYTES_TO_BITS)))))
 #else //BIG_ENDIAN
 	#define hton64(Value)         Value
 #endif
@@ -590,8 +590,8 @@ public:
 //[Addresses] block
 	std::vector<sockaddr_storage>        *ListenAddress_IPv6;
 	std::vector<sockaddr_storage>        *ListenAddress_IPv4;
-	PADDRESS_PREFIX_BLOCK                LocalhostSubnet_IPv6;
-	PADDRESS_PREFIX_BLOCK                LocalhostSubnet_IPv4;
+	PADDRESS_PREFIX_BLOCK                LocalMachineSubnet_IPv6;
+	PADDRESS_PREFIX_BLOCK                LocalMachineSubnet_IPv4;
 	DNS_SERVER_DATA                      Target_Server_IPv6;
 	DNS_SERVER_DATA                      Target_Server_Alternate_IPv6;
 	DNS_SERVER_DATA                      Target_Server_IPv4;
@@ -739,7 +739,7 @@ typedef class GlobalStatus
 public:
 //Libraries initialization status
 #if defined(PLATFORM_WIN)
-	bool                                 Initialization_WinSock;
+	bool                                 IsWinSockInitialized;
 #endif
 
 //Running status
@@ -755,6 +755,7 @@ public:
 	uint8_t                              *Base64_EncodeTable;
 //	int8_t                               *Base64_DecodeTable;
 	std::atomic<size_t>                  *ThreadRunningNum;
+	std::atomic<size_t>                  *ThreadRunningFreeNum;
 
 //Path and file status
 	std::vector<std::wstring>            *Path_Global;
@@ -1169,6 +1170,10 @@ size_t DNSCurveUDPRequestMultiple(
 //Monitor.h
 bool MonitorInit(
 	void);
+bool TCPReceiveProcess(
+	MONITOR_QUEUE_DATA MonitorQueryData, 
+	uint8_t *OriginalRecv, 
+	size_t RecvSize);
 void AlternateServerMonitor(
 	void);
 void NetworkInformationMonitor(

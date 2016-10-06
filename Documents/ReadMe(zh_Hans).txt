@@ -46,6 +46,21 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * Direct Request = IPv4
     * Direct Request = IPv6
     * Direct Request = IPv4 + IPv6
+  * 修改 DNS 服务器时请务必设置一个正确的、有效的、可以正常使用的境外 DNS 服务器！
+  * Windows 平台下读取文件名时不存在大小写的区别
+  * 配置文件 Hosts 文件 IPFilter 文件和错误报告所在的目录以上文 安装方法 一节中第4步注册的服务信息为准
+    * 填写时一行不要超过 4096字节/4KB
+    * 文件读取只支持整个文本单一的编码和换行格式组合，切勿在文本文件中混合所支持的编码或换行格式！
+  * 服务启动前请先确认没有其它本地 DNS 服务器运行或本工具多个拷贝运行中，否则可能会导致监听冲突无法正常工作
+    * 监听冲突会生成错误报告，可留意 Windows Socket 相关的错误（参见 FAQ 文档中 Error.log 详细错误报告 一节）
+  * 杀毒软件/第三方防火墙可能会阻止本程序的操作，请将行为全部允许或将本程序加入到白名单中
+  * 如果启动服务时提示 "服务没有及时响应启动或者控制请求" 请留意是否有错误报告生成，详细的错误信息参见 FAQ 文档中 Error.log 详细错误报告 一节
+  * 目录和程序的名称可以随意更改，但请务必在进行安装方法第4步前完成。如果服务注册后需移动工具目录的路径，参见上文 卸载方法 第2步的注意事项
+  * 由于本人水平有限，程序编写难免会出现差错疏漏，遇到问题请先更新到最新版本，如有问题可至项目页面提出，望谅解 v_v
+
+
+-------------------------------------------------------------------------------
+
 
 
 重启服务方法（需要以管理员身份进行）：
@@ -86,7 +101,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 3.运行结果应类似：
 
    >nslookup www.google.com
-    服务器:  pcap-dnsproxy.localhost.server（视配置文件设置的值而定，参见下文 配置文件详细参数说明 一节）
+    服务器:  pcap-dnsproxy.server（视配置文件设置的值而定，参见下文 配置文件详细参数说明 一节）
     Address:  127.0.0.1（视所在网络环境而定，本地监听协议为 IPv6 时为 ::1）
 
     非权威应答:
@@ -99,25 +114,38 @@ https://sourceforge.net/projects/pcap-dnsproxy
 -------------------------------------------------------------------------------
 
 
-注意事项：
+特别使用技巧：
+这里列出部分项目组建议的介绍和使用技巧，供大家参考和使用。关于调整配置，参见下文 配置文件详细参数说明 一节
 
-* 修改 DNS 服务器时请务必设置一个正确的、有效的、可以正常使用的境外 DNS 服务器！
-* Windows 平台下读取文件名时不存在大小写的区别
-* 配置文件 Hosts 文件 IPFilter 文件和错误报告所在的目录以上文 安装方法 一节中第4步注册的服务信息为准
-  * 填写时一行不要超过 4096字节/4KB
-  * 文件读取只支持整个文本单一的编码和换行格式组合，切勿在文本文件中混合所支持的编码或换行格式！
-* 服务启动前请先确认没有其它本地 DNS 服务器运行或本工具多个拷贝运行中，否则可能会导致监听冲突无法正常工作
-  * 监听冲突会生成错误报告，可留意 Windows Socket 相关的错误（参见 FAQ 文档中 Error.log 详细错误报告 一节）
-* 杀毒软件/第三方防火墙可能会阻止本程序的操作，请将行为全部允许或将本程序加入到白名单中
-* 如果启动服务时提示 "服务没有及时响应启动或者控制请求" 请留意是否有错误报告生成，详细的错误信息参见 FAQ 文档中 Error.log 详细错误报告 一节
-* 目录和程序的名称可以随意更改，但请务必在进行安装方法第4步前完成。如果服务注册后需移动工具目录的路径，参见上文 卸载方法 第2步的注意事项
-* 由于本人水平有限，程序编写难免会出现差错疏漏，遇到问题请先更新到最新版本，如有问题可至项目页面提出，望谅解 v_v
-
+* 本工具配置选项丰富，配置不同的组合会有不同的效果，介绍几个比较常用的组合：
+  * 默认配置：UDP 请求 + 抓包模式
+  * Protocol = ...TCP：先 TCP 请求失败后再 UDP 请求 + 抓包模式，对网络资源的占用比较高
+    * 由于 TCP 请求大部分时候不会被投毒污染，此组合的过滤效果比较可靠
+  * EDNS Label = 1：开启 EDNS 请求标签功能
+    * 此功能开启后将有利于对伪造数据包的过滤能力，此组合的过滤效果比较可靠
+  * 将目标服务器的请求端口改为非标准 DNS 端口：例如 OpenDNS 支持 53 标准端口和 5353 非标准端口的请求
+    * 非标准 DNS 端口现阶段尚未被干扰，此组合的过滤效果比较可靠
+  * Multiple Request Times = xx 时：应用到所有除请求境内服务器外的所有请求，一个请求多次发送功能
+    * 此功能用于对抗网络丢包比较严重的情况，对系统和网络资源的占用都比较高，但在网络环境恶劣的情况下能提高获得解析结果的可靠性
+  * DNSCurve = 1 同时 Encryption = 0：使用 DNSCurve/DNSCrypt 非加密模式请求域名解析
+    * 此组合等于使用非标准 DNS 端口请求，域名解析可靠性比较高，详细情况参见上文
+  * DNSCurve = 1 同时 Encryption = 1：使用 DNSCurve/DNSCrypt 加密模式请求域名解析
+    * 此组合加密传输所有域名请求，域名解析可靠性最高
+  * DNSCurve = 1 同时 Encryption = 1 同时 Encryption Only = 1：只使用 DNSCurve/DNSCrypt 加密模式请求域名解析
+    * 上文的加密组合并不阻止程序在请求 DNSCurve/DNSCrypt 加密模式失败是使用其它协议请求域名解析，开启 Encryption Only = 1 后将只允许使用加密传输，安全性和可靠性最高，但域名解析成功率可能会下降
+* 优化大量请求下程序表现：
+  * Pcap Reading Timeout 适当调低这个参数能使抓包模块以更高的频率抓取数据包，降低延迟
+  * Cache Parameter 尽量调高这个参数能增加缓存的生存时间或者队列长度，提高缓存命中率
+  * Thread Pool Maximum Number 适当调高这个参数能可以增大缓冲区最大可容纳请求的数量
+  * Queue Limits Reset Time 不要开启，限制请求数量的参数
+  * Multiple Request Times 非极其恶劣情况慎用，消耗大量系统资源且会些微提高延迟
+	
 
 -------------------------------------------------------------------------------
 
 
 功能和技术：
+
 * 批处理的作用：
   * 运行结束会有运行结果，具体是否成功需要留意屏幕上的提示
   * 1: Install service - 将程序注册为系统服务，并启动程序进行 Windows 防火墙测试
@@ -139,34 +167,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSCurve 协议为 Streamlined/精简类型
   * 自动获取连接信息时必须保证系统时间的正确，否则证书验证时会出错导致连接信息获取失败！
   * DNSCrypt 官方工具会占用本地 DNS 端口导致 Pcap_DNSProxy 部署失败！
-
-
--------------------------------------------------------------------------------
-
-
-特别使用技巧：
-这里罗列出部分项目组建议的介绍和使用技巧，供大家参考和使用。关于调整配置，参见下文 配置文件详细参数说明 一节
-
-* DNS 缓存类型
-  * Timer/计时型：可以自定义缓存的时间长度，队列长度不限
-  * Queue/队列型：可通过 Default TTL 值自定义，同时可自定义缓存队列长度（亦即限制队列长度的 Timer/计时型）
-  * 强烈建议打开 DNS 缓存功能！
-* 本工具配置选项丰富，配置不同的组合会有不同的效果，介绍几个比较常用的组合：
-  * 默认配置：UDP 请求 + 抓包模式
-  * Protocol = ...TCP：先 TCP 请求失败后再 UDP 请求 + 抓包模式，对网络资源的占用比较高
-    * 由于 TCP 请求大部分时候不会被投毒污染，此组合的过滤效果比较可靠
-  * EDNS Label = 1：开启 EDNS 请求标签功能
-    * 此功能开启后将有利于对伪造数据包的过滤能力，此组合的过滤效果比较可靠
-  * 将目标服务器的请求端口改为非标准 DNS 端口：例如 OpenDNS 支持 53 标准端口和 5353 非标准端口的请求
-    * 非标准 DNS 端口现阶段尚未被干扰，此组合的过滤效果比较可靠
-  * Multiple Request Times = xx 时：应用到所有除请求境内服务器外的所有请求，一个请求多次发送功能
-    * 此功能用于对抗网络丢包比较严重的情况，对系统和网络资源的占用都比较高，但在网络环境恶劣的情况下能提高获得解析结果的可靠性
-  * DNSCurve = 1 同时 Encryption = 0：使用 DNSCurve/DNSCrypt 非加密模式请求域名解析
-    * 此组合等于使用非标准 DNS 端口请求，域名解析可靠性比较高，详细情况参见上文
-  * DNSCurve = 1 同时 Encryption = 1：使用 DNSCurve/DNSCrypt 加密模式请求域名解析
-    * 此组合加密传输所有域名请求，域名解析可靠性最高
-  * DNSCurve = 1 同时 Encryption = 1 同时 Encryption Only = 1：只使用 DNSCurve/DNSCrypt 加密模式请求域名解析
-    * 上文的加密组合并不阻止程序在请求 DNSCurve/DNSCrypt 加密模式失败是使用其它协议请求域名解析，开启 Encryption Only = 1 后将只允许使用加密传输，安全性和可靠性最高，但域名解析成功率可能会下降
 
 
 -------------------------------------------------------------------------------
@@ -475,10 +475,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Values - 扩展参数值区域
   * Thread Pool Base Number - 线程池基础最低保持线程数量：最小为 8 设置为 0 则关闭线程池的功能
   * Thread Pool Maximum Number - 线程池最大线程数量以及缓冲区队列数量限制：最小为 8
-    * 线程池最大线程数量功能暂时未有实际用途
     * 启用 Queue Limits Reset Time 参数时，此参数为单位时间内最多可接受请求的数量
     * 不启用 Queue Limits Reset Time 参数时为用于接收数据的缓冲区的数量
-  * Thread Pool Reset Time - 暂时未有实际用途
+  * Thread Pool Reset Time - 线程池中线程数量超出 Thread Pool Base Number 所指定数量后线程将会自动退出前所驻留的时间：单位为秒
   * Queue Limits Reset Time - 数据缓冲区队列数量限制重置时间：单位为秒，最小为 5 设置为 0 时关闭此功能
   * EDNS Payload Size - EDNS 标签附带使用的最大载荷长度：最小为 DNS 协议实现要求的 512(bytes)，留空则使用 EDNS 标签要求最短的 1220(bytes)
   * IPv4 Packet TTL - 发出 IPv4 数据包头部 TTL 值：0 为由操作系统自动决定，取值为 1-255 之间
@@ -563,7 +562,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Domain Test Data - DNS 服务器解析域名测试：请输入正确、确认不会被投毒污染的域名并且不要超过 253 字节 ASCII 数据，留空则会随机生成一个域名进行测试
   * Domain Test ID - DNS 数据包头部 ID 的值：格式为 0x**** 的十六进制字符，如果留空则为 0x0001
   * ICMP PaddingData - ICMP 附加数据，Ping 程序发送请求时为补足数据使其达到 Ethernet 类型网络最低的可发送长度时添加的数据：长度介乎于 18字节 - 1500字节 ASCII 数据之间，留空则使用 Microsoft Windows Ping 程序的 ICMP 附加数据
-  * Localhost Server Name - 本地 DNS 服务器名称：请输入正确的域名并且不要超过253字节 ASCII 数据，留空则使用 pcap-dnsproxy.localhost.server 作为本地服务器名称
+  * Local Machine Server Name - 本地 DNS 服务器名称：请输入正确的域名并且不要超过253字节 ASCII 数据，留空则使用 pcap-dnsproxy.server 作为本地服务器名称
 
 * Proxy - 代理区域
   * SOCKS Proxy - SOCKS 协议总开关，控制所有和 SOCKS 协议有关的选项：开启为 1 /关闭为 0
@@ -764,10 +763,10 @@ Hosts 配置文件分为多个提供不同功能的区域
   * 有效参数格式为 "NULL 正则表达式"（不含引号）
   * 注意优先级的问题，例如有一片含白名单条目的区域：
 
-    NULL .*\.test.localhost
-    127.0.0.1|127.0.0.2|127.0.0.3 .*\.localhost
+    NULL .*\.test\.test
+    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test
 
-  * 虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并返回使用远程服务器解析
+  * 虽然 .*\.test 包含了 .*\.test\.test 但由于优先级别自上而下递减，故先命中 .*\.test\.test 并返回使用远程服务器解析
   * 从而绕过了下面的条目，不使用 Hosts 的功能
 
 
@@ -776,8 +775,8 @@ Hosts 配置文件分为多个提供不同功能的区域
   * 有效参数格式为 "NULL:DNS类型(|DNS类型) 正则表达式"（不含引号，括号内为可选项目）
   * 只允许特定类型域名请求，有效参数格式为 "NULL(Permit):DNS类型(|DNS类型) 正则表达式"（不含引号，括号内为可选项目）
 
-    NULL:A|AAAA .*\.test.localhost
-    NULL(Deny):NS|SOA .*\.localhost
+    NULL:A|AAAA .*\.test\.test
+    NULL(Deny):NS|SOA .*\.test
 
   * 第一条即直接跳过匹配规则的 A 记录和 AAAA 记录的域名请求，其它类型的请求则被匹配规则
   * 而第二条则只匹配规则的 NS 记录和 SOA 记录的域名请求，其它类型的请求则被直接跳过
@@ -788,10 +787,10 @@ Hosts 配置文件分为多个提供不同功能的区域
   * 有效参数格式为 "BANNED 正则表达式"（不含引号）
   * 注意优先级的问题，例如有一片含黑名单条目的区域：
 
-    BANNED .*\.test.localhost
-    127.0.0.1|127.0.0.2|127.0.0.3 .*\.localhost
+    BANNED .*\.test\.test
+    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test
 
-  * 虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并直接返回域名不存在
+  * 虽然 .*\.test 包含了 .*\.test\.test 但由于优先级别自上而下递减，故先命中 .*\.test\.test 并直接返回域名不存在
   * 从而绕过了下面的条目，达到屏蔽域名的目的
 
 
@@ -800,8 +799,8 @@ Hosts 配置文件分为多个提供不同功能的区域
   * 有效参数格式为 "BANNED:DNS类型(|DNS类型) 正则表达式"（不含引号，括号内为可选项目）
   * 只允许特定类型域名请求，有效参数格式为 "BANNED(Permit):DNS类型(|DNS类型) 正则表达式"（不含引号，括号内为可选项目）
 
-    BANNED:A|AAAA .*\.test.localhost
-    BANNED(Permit):NS|SOA .*\.localhost
+    BANNED:A|AAAA .*\.test\.test
+    BANNED(Permit):NS|SOA .*\.test
 
   * 第一条即屏蔽匹配规则的 A 记录和 AAAA 记录的域名请求，其它类型的请求则被放行
   * 而第二条则只放行匹配规则的 NS 记录和 SOA 记录的域名请求，其它类型的请求则被屏蔽
@@ -817,16 +816,16 @@ Hosts 配置文件分为多个提供不同功能的区域
   * 平行地址原理为一次返回多个记录，而具体使用哪个记录则由请求者决定，一般为第1个
   * 例如有一个 [Hosts] 下有效数据区域：
 
-    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.localhost
-    127.0.0.4|127.0.0.5|127.0.0.6 .*\.localhost
-    ::1|::2|::3 .*\.test\.localhost
-    ::4|::5|::6 .*\.localhost
+    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.test
+    127.0.0.4|127.0.0.5|127.0.0.6 .*\.test
+    ::1|::2|::3 .*\.test\.test
+    ::4|::5|::6 .*\.test
 
-  * 虽然 .*\.localhost 包含了 .*\.test\.localhost 但由于优先级别自上而下递减，故先命中 .*\.test\.localhost 并直接返回，不会再进行其它检查
-    * 请求解析 xxx.localhost 的 A 记录（IPv4）会返回 127.0.0.4、127.0.0.5 和 127.0.0.6
-    * 请求解析 xxx.localhost 的 AAAA 记录（IPv6）会返回 ::4、::5 和 ::6
-    * 请求解析 xxx.test.localhost 的 A 记录（IPv4）会返回 127.0.0.1、127.0.0.2 和 127.0.0.3
-    * 请求解析 xxx.test.localhost 的 AAAA 记录（IPv6）会返回 ::1、::2 和 ::3
+  * 虽然 .*\.test 包含了 .*\.test\.test 但由于优先级别自上而下递减，故先命中 .*\.test\.test 并直接返回，不会再进行其它检查
+    * 请求解析 xxx.test 的 A 记录（IPv4）会返回 127.0.0.4、127.0.0.5 和 127.0.0.6
+    * 请求解析 xxx.test 的 AAAA 记录（IPv6）会返回 ::4、::5 和 ::6
+    * 请求解析 xxx.test.test 的 A 记录（IPv4）会返回 127.0.0.1、127.0.0.2 和 127.0.0.3
+    * 请求解析 xxx.test.test 的 AAAA 记录（IPv6）会返回 ::1、::2 和 ::3
 
 
 * Local Hosts - 境内 DNS 解析域名列表
@@ -836,8 +835,8 @@ Hosts 配置文件分为多个提供不同功能的区域
   * 本功能不会对境内 DNS 服务器回复进行任何过滤，请确认本区域填入的数据不会受到 DNS 投毒污染的干扰
   * 例如有一个 [Local Hosts] 下有效数据区域：
 
-    .*\.test\.localhost
-    .*\.localhost
+    .*\.test\.test
+    .*\.test
 
   * 即所有符合以上正则表达式的域名请求都将使用境内 DNS 服务器解析
 
@@ -858,25 +857,25 @@ Hosts 配置文件分为多个提供不同功能的区域
   * 例如有一片数据区域：
 
     [Hosts]
-    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.localhost
+    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.test
     [Stop]
-    127.0.0.4|127.0.0.5|127.0.0.6 .*\.localhost
-    ::1|::2|::3 .*\.test\.localhost
-    ::4|::5|::6 .*\.localhost
+    127.0.0.4|127.0.0.5|127.0.0.6 .*\.test
+    ::1|::2|::3 .*\.test\.test
+    ::4|::5|::6 .*\.test
 
     [Local Hosts]
-    .*\.test\.localhost
-    .*\.localhost
+    .*\.test\.test
+    .*\.test
 
   * 则从 [Stop] 一行开始，下面到 [Local Hosts] 之间的数据都将不会被读取
   * 即实际有效的数据区域是：
 
     [Hosts]
-    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.localhost
+    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.test
 
     [Local Hosts]
-    .*\.test\.localhost
-    .*\.localhost
+    .*\.test\.test
+    .*\.test
 
 
 * Dnsmasq Address - Dnsmasq 兼容格式
@@ -888,8 +887,8 @@ Hosts 配置文件分为多个提供不同功能的区域
     * 地址部分如果留空不填，则相当于 Banned - 黑名单条目
   * 例如以下 [Hosts] 条目是完全等价的：
 
-    Address=/:.*\blocalhost:/127.0.0.1
-    Address=/localhost/127.0.0.1
+    Address=/:.*\btest:/127.0.0.1
+    Address=/test/127.0.0.1
 
   * 匹配所有域名的解析结果到 ::1
 
@@ -897,7 +896,7 @@ Hosts 配置文件分为多个提供不同功能的区域
 
   * 对符合规则的域名返回域名不存在信息
 
-    Address=/localhost/
+    Address=/test/
 
 
 * Dnsmasq Server - Dnsmasq 兼容格式
@@ -912,12 +911,12 @@ Hosts 配置文件分为多个提供不同功能的区域
     * 指定进行解析的 DNS 地址部分只填入 "#" 相当于 Whitelist - 白名单条目
   * 例如以下 [Local Hosts] 条目是完全等价的：
 
-    Server=/:.*\blocalhost:/::1#53
-    Server=/localhost/::
+    Server=/:.*\btest:/::1#53
+    Server=/test/::
 
   * 对符合规则的域名使用程序配置文件指定的默认 DNS 服务器进行解析
 
-    Server=/localhost/
+    Server=/test/
 
   * 不符合标准的域名全部发往 127.0.0.1 进行解析
 

@@ -177,6 +177,7 @@ bool SocketSetting(
 				return false;
 			}
 		}break;
+
 /* Not necessary
 	//Socket attribute setting(TCP KeepAlive mode)
 		case SOCKET_SETTING_TCP_KEEPALIVE:

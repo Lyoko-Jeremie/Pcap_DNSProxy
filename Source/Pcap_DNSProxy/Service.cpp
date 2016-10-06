@@ -234,7 +234,7 @@ bool FlushDNSMailSlotMonitor(
 		SetSecurityDescriptorDacl(
 			&SecurityDescriptor, 
 			true, 
-			(PACL)ACL_Buffer.get(),
+			(PACL)ACL_Buffer.get(), 
 			false) == 0)
 	{
 		if (SID_Value != nullptr)

@@ -148,10 +148,10 @@ bool ParameterCheckAndSetting(
 		}
 
 	//EDNS Client Subnet Address check(IPv6)
-		if (Parameter.LocalhostSubnet_IPv6->first.ss_family == 0)
+		if (Parameter.LocalMachineSubnet_IPv6->first.ss_family == 0)
 		{
-			delete Parameter.LocalhostSubnet_IPv6;
-			Parameter.LocalhostSubnet_IPv6 = nullptr;
+			delete Parameter.LocalMachineSubnet_IPv6;
+			Parameter.LocalMachineSubnet_IPv6 = nullptr;
 		}
 		else if (!Parameter.EDNS_Label)
 		{
@@ -160,10 +160,10 @@ bool ParameterCheckAndSetting(
 		}
 
 	//EDNS Client Subnet Address check(IPv4)
-		if (Parameter.LocalhostSubnet_IPv4->first.ss_family == 0)
+		if (Parameter.LocalMachineSubnet_IPv4->first.ss_family == 0)
 		{
-			delete Parameter.LocalhostSubnet_IPv4;
-			Parameter.LocalhostSubnet_IPv4 = nullptr;
+			delete Parameter.LocalMachineSubnet_IPv4;
+			Parameter.LocalMachineSubnet_IPv4 = nullptr;
 		}
 		else if (!Parameter.EDNS_Label)
 		{
@@ -1629,7 +1629,7 @@ bool ReadParameterData(
 					UnsignedResult = strtoul(StringIter.c_str(), nullptr, 0);
 					if (UnsignedResult <= 0 || UnsignedResult > UINT16_MAX)
 					{
-						PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Localhost listening port error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+						PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Local machine listening port error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 						return false;
 					}
 				}
@@ -1863,7 +1863,7 @@ bool ReadParameterData(
 		}
 		else if (Data.find("IPv4EDNSClientSubnetAddress=") == 0 && Data.length() > strlen("IPv4EDNSClientSubnetAddress="))
 		{
-			if (!ReadAddressPrefixBlock(Data, strlen("IPv4EDNSClientSubnetAddress="), AF_INET, Parameter.LocalhostSubnet_IPv4, FileIndex, Line))
+			if (!ReadAddressPrefixBlock(Data, strlen("IPv4EDNSClientSubnetAddress="), AF_INET, Parameter.LocalMachineSubnet_IPv4, FileIndex, Line))
 				return false;
 		}
 		else if (Data.find("IPv4DNSAddress=") == 0 && Data.length() > strlen("IPv4DNSAddress="))
@@ -1906,7 +1906,7 @@ bool ReadParameterData(
 		}
 		else if (Data.find("IPv6EDNSClientSubnetAddress=") == 0 && Data.length() > strlen("IPv6EDNSClientSubnetAddress="))
 		{
-			if (!ReadAddressPrefixBlock(Data, strlen("IPv6EDNSClientSubnetAddress="), AF_INET6, Parameter.LocalhostSubnet_IPv6, FileIndex, Line))
+			if (!ReadAddressPrefixBlock(Data, strlen("IPv6EDNSClientSubnetAddress="), AF_INET6, Parameter.LocalMachineSubnet_IPv6, FileIndex, Line))
 				return false;
 		}
 		else if (Data.find("IPv6DNSAddress=") == 0 && Data.length() > strlen("IPv6DNSAddress="))
@@ -1953,8 +1953,8 @@ bool ReadParameterData(
 				goto PrintDataFormatError;
 			}
 		}
-		else if ((Data.find("BufferQueueLimits=") == 0 && Data.length() > strlen("BufferQueueLimits=")) || //Old version compatible support
-			(Data.find("ThreadPoolMaximumNumber=") == 0 && Data.length() > strlen("ThreadPoolMaximumNumber=")))
+		else if ((Data.find("ThreadPoolMaximumNumber=") == 0 && Data.length() > strlen("ThreadPoolMaximumNumber=")) || 
+			(Data.find("BufferQueueLimits=") == 0 && Data.length() > strlen("BufferQueueLimits="))) //Old version compatible support
 		{
 			size_t Offset = 0;
 			if (Data.find("BufferQueueLimits=") == 0 && Data.length() > strlen("BufferQueueLimits="))
@@ -2309,26 +2309,21 @@ bool ReadParameterData(
 		}
 	}
 
-	if (Data.find("MultipleRequestTimes=") == 0 && Data.length() > strlen("MultipleRequestTimes="))
+	if ((Data.find("MultipleRequestTimes=") == 0 && Data.length() > strlen("MultipleRequestTimes=")) || 
+		(Data.find("MultiRequestTimes=") == 0 && Data.length() > strlen("MultiRequestTimes="))) //Old version compatible support)
 	{
-		if (Data.length() < strlen("MultipleRequestTimes=") + UINT16_MAX_STRING_LENGTH)
+		size_t Offset = 0;
+		if (Data.find("MultiRequestTimes=") == 0 && Data.length() > strlen("MultiRequestTimes="))
+			Offset = strlen("MultiRequestTimes=");
+		else 
+			Offset = strlen("MultipleRequestTimes=");
+
+	//Read data.
+		if (Data.length() < Offset + UINT16_MAX_STRING_LENGTH)
 		{
 			_set_errno(0);
-			UnsignedResult = strtoul(Data.c_str() + strlen("MultipleRequestTimes="), nullptr, 0);
+			UnsignedResult = strtoul(Data.c_str() + Offset, nullptr, 0);
 			if (UnsignedResult > 0 && UnsignedResult < ULONG_MAX)
-				ParameterPTR->MultipleRequestTimes = UnsignedResult;
-		}
-		else {
-			goto PrintDataFormatError;
-		}
-	}
-	else if (Data.find("MultiRequestTimes=") == 0 && Data.length() > strlen("MultiRequestTimes=")) //Old version compatible support
-	{
-		if (Data.length() < strlen("MultiRequestTimes=") + UINT16_MAX_STRING_LENGTH)
-		{
-			_set_errno(0);
-			UnsignedResult = strtoul(Data.c_str() + strlen("MultiRequestTimes="), nullptr, 0);
-			if (ParameterPTR->MultipleRequestTimes == 0 && UnsignedResult > 0 && UnsignedResult < ULONG_MAX)
 				ParameterPTR->MultipleRequestTimes = UnsignedResult;
 		}
 		else {
@@ -2524,13 +2519,21 @@ bool ReadParameterData(
 				goto PrintDataFormatError;
 		}
 	#endif
-		else if (Data.find("LocalhostServerName=") == 0 && Data.length() > strlen("LocalhostServerName="))
+		else if ((Data.find("LocalMachineServerName=") == 0 && Data.length() > strlen("LocalMachineServerName=")) || 
+			(Data.find("LocalhostServerName=") == 0 && Data.length() > strlen("LocalhostServerName="))) //Old version compatible support
 		{
-			if (Data.length() > strlen("LocalhostServerName=") + DOMAIN_MINSIZE && Data.length() < strlen("LocalhostServerName=") + DOMAIN_DATA_MAXSIZE)
+			size_t Offset = 0;
+			if (Data.find("LocalhostServerName=") == 0 && Data.length() > strlen("LocalhostServerName="))
+				Offset = strlen("LocalhostServerName=");
+			else 
+				Offset = strlen("LocalMachineServerName=");
+
+		//Read data.
+			if (Data.length() > Offset + DOMAIN_MINSIZE && Data.length() < Offset + DOMAIN_DATA_MAXSIZE)
 			{
 				uint8_t LocalFQDN[DOMAIN_MAXSIZE] = {0};
-				Parameter.LocalFQDN_Length = Data.length() - strlen("LocalhostServerName=");
-				memcpy_s(LocalFQDN, DOMAIN_MAXSIZE, Data.c_str() + strlen("LocalhostServerName="), Parameter.LocalFQDN_Length);
+				Parameter.LocalFQDN_Length = Data.length() - Offset;
+				memcpy_s(LocalFQDN, DOMAIN_MAXSIZE, Data.c_str() + Offset, Parameter.LocalFQDN_Length);
 				*Parameter.LocalFQDN_String = (const char *)LocalFQDN;
 				memset(Parameter.LocalFQDN_Response, 0, DOMAIN_MAXSIZE);
 				UnsignedResult = CharToDNSQuery(LocalFQDN, Parameter.LocalFQDN_Response);

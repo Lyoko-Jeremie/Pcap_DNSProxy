@@ -418,7 +418,7 @@ size_t AddEDNSLabelToAdditionalRR(
 
 //EDNS client subnet
 	if ((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr) || 
-		Parameter.LocalhostSubnet_IPv6 != nullptr || Parameter.LocalhostSubnet_IPv4 != nullptr)
+		Parameter.LocalMachineSubnet_IPv6 != nullptr || Parameter.LocalMachineSubnet_IPv4 != nullptr)
 	{
 		auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
 
@@ -431,7 +431,7 @@ size_t AddEDNSLabelToAdditionalRR(
 	//IPv6
 		if (ntohs(DNS_Query->Type) == DNS_RECORD_AAAA && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6) || 
-			Parameter.LocalhostSubnet_IPv6 != nullptr))
+			Parameter.LocalMachineSubnet_IPv6 != nullptr))
 		{
 		//Make EDNS Subnet header.
 			EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
@@ -441,7 +441,7 @@ size_t AddEDNSLabelToAdditionalRR(
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
 				EDNS_Subnet_Header->Netmask_Source = sizeof(in6_addr) * BYTES_TO_BITS;
 			else 
-				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet_IPv6->second;
+				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalMachineSubnet_IPv6->second;
 			DataLength += sizeof(edns_client_subnet);
 
 		//Length check
@@ -452,7 +452,7 @@ size_t AddEDNSLabelToAdditionalRR(
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
 				*(in6_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr;
 			else 
-				*(in6_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN6)&Parameter.LocalhostSubnet_IPv6->first)->sin6_addr;
+				*(in6_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN6)&Parameter.LocalMachineSubnet_IPv6->first)->sin6_addr;
 			EDNS_Subnet_Header->Length = htons((uint16_t)(sizeof(uint16_t) + sizeof(uint8_t) * 2U + sizeof(in6_addr)));
 			DNS_Record_OPT->DataLength = htons(sizeof(edns_client_subnet) + sizeof(in6_addr));
 			DataLength += sizeof(in6_addr);
@@ -460,7 +460,7 @@ size_t AddEDNSLabelToAdditionalRR(
 	//IPv4
 		else if (ntohs(DNS_Query->Type) == DNS_RECORD_A && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET) || 
-			Parameter.LocalhostSubnet_IPv4 != nullptr))
+			Parameter.LocalMachineSubnet_IPv4 != nullptr))
 		{
 		//Make EDNS Subnet header.
 			EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
@@ -470,7 +470,7 @@ size_t AddEDNSLabelToAdditionalRR(
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)
 				EDNS_Subnet_Header->Netmask_Source = (sizeof(in_addr) - 1U) * BYTES_TO_BITS;
 			else 
-				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet_IPv4->second;
+				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalMachineSubnet_IPv4->second;
 			DataLength += sizeof(edns_client_subnet);
 
 		//Length check
@@ -481,7 +481,7 @@ size_t AddEDNSLabelToAdditionalRR(
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)
 				*(in_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr;
 			else 
-				*(in_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN)&Parameter.LocalhostSubnet_IPv4->first)->sin_addr;
+				*(in_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN)&Parameter.LocalMachineSubnet_IPv4->first)->sin_addr;
 			EDNS_Subnet_Header->Length = htons((uint16_t)(sizeof(uint16_t) + sizeof(uint8_t) * 2U + sizeof(in_addr)));
 			DNS_Record_OPT->DataLength = htons(sizeof(edns_client_subnet) + sizeof(in_addr));
 			DataLength += sizeof(in_addr);
@@ -530,7 +530,7 @@ bool AddEDNSLabelToAdditionalRR(
 	if (!(ntohs(DNS_Record_OPT->DataLength) >= sizeof(edns_client_subnet) && 
 		ntohs(((pedns_client_subnet)(Packet->Buffer + Packet->Length - Packet->EDNS_Record + sizeof(dns_record_opt)))->Code) == EDNS_CODE_CSUBNET) && 
 		((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr) || 
-		Parameter.LocalhostSubnet_IPv6 != nullptr || Parameter.LocalhostSubnet_IPv4 != nullptr))
+		Parameter.LocalMachineSubnet_IPv6 != nullptr || Parameter.LocalMachineSubnet_IPv4 != nullptr))
 	{
 		auto DNS_Query = (pdns_qry)(Packet->Buffer + DNS_PACKET_QUERY_LOCATE(Packet->Buffer));
 
@@ -543,7 +543,7 @@ bool AddEDNSLabelToAdditionalRR(
 	//IPv6
 		if (ntohs(DNS_Query->Type) == DNS_RECORD_AAAA && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6) || 
-			Parameter.LocalhostSubnet_IPv6 != nullptr))
+			Parameter.LocalMachineSubnet_IPv6 != nullptr))
 		{
 		//Make EDNS Subnet header.
 			EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
@@ -553,7 +553,7 @@ bool AddEDNSLabelToAdditionalRR(
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
 				EDNS_Subnet_Header->Netmask_Source = sizeof(in6_addr) * BYTES_TO_BITS;
 			else 
-				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet_IPv6->second;
+				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalMachineSubnet_IPv6->second;
 			Packet->Length += sizeof(edns_client_subnet);
 			Packet->EDNS_Record += sizeof(edns_client_subnet);
 
@@ -565,7 +565,7 @@ bool AddEDNSLabelToAdditionalRR(
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
 				*(in6_addr *)(Packet->Buffer + Packet->Length) = ((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr;
 			else 
-				*(in6_addr *)(Packet->Buffer + Packet->Length) = ((PSOCKADDR_IN6)&Parameter.LocalhostSubnet_IPv6->first)->sin6_addr;
+				*(in6_addr *)(Packet->Buffer + Packet->Length) = ((PSOCKADDR_IN6)&Parameter.LocalMachineSubnet_IPv6->first)->sin6_addr;
 			EDNS_Subnet_Header->Length = htons((uint16_t)(sizeof(uint16_t) + sizeof(uint8_t) * 2U + sizeof(in6_addr)));
 			DNS_Record_OPT->DataLength = htons(sizeof(edns_client_subnet) + sizeof(in6_addr));
 			Packet->Length += sizeof(in6_addr);
@@ -574,7 +574,7 @@ bool AddEDNSLabelToAdditionalRR(
 	//IPv4
 		else if (ntohs(DNS_Query->Type) == DNS_RECORD_A && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET) || 
-			Parameter.LocalhostSubnet_IPv4 != nullptr))
+			Parameter.LocalMachineSubnet_IPv4 != nullptr))
 		{
 		//Make EDNS Subnet header.
 			EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
@@ -584,7 +584,7 @@ bool AddEDNSLabelToAdditionalRR(
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)
 				EDNS_Subnet_Header->Netmask_Source = (sizeof(in_addr) - 1U) * BYTES_TO_BITS;
 			else 
-				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalhostSubnet_IPv4->second;
+				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalMachineSubnet_IPv4->second;
 			Packet->Length += sizeof(edns_client_subnet);
 			Packet->EDNS_Record += sizeof(edns_client_subnet);
 
@@ -596,7 +596,7 @@ bool AddEDNSLabelToAdditionalRR(
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)
 				*(in_addr *)(Packet->Buffer + Packet->Length) = ((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr;
 			else 
-				*(in_addr *)(Packet->Buffer + Packet->Length) = ((PSOCKADDR_IN)&Parameter.LocalhostSubnet_IPv4->first)->sin_addr;
+				*(in_addr *)(Packet->Buffer + Packet->Length) = ((PSOCKADDR_IN)&Parameter.LocalMachineSubnet_IPv4->first)->sin_addr;
 			EDNS_Subnet_Header->Length = htons((uint16_t)(sizeof(uint16_t) + sizeof(uint8_t) * 2U + sizeof(in_addr)));
 			DNS_Record_OPT->DataLength = htons(sizeof(edns_client_subnet) + sizeof(in_addr));
 			Packet->Length += sizeof(in_addr);

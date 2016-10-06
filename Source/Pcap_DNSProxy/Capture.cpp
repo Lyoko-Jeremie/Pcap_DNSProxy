@@ -964,7 +964,7 @@ ClearOutputPacketListData:
 	if (Parameter.CacheType > CACHE_TYPE_NONE)
 		MarkDomainCache(Buffer, Length);
 
-//Send to localhost.
+//Send to requester.
 	SendToRequester(SystemProtocol, (uint8_t *)Buffer, Length, BufferSize, SocketData_Input);
 	if (SystemProtocol == IPPROTO_TCP)
 	{

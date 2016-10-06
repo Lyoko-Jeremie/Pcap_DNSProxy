@@ -25,6 +25,17 @@ void MonitorRequestProvider(
 {
 //Add to blocking queue.
 	MonitorBlockingQueue.push(MonitorQueryData);
+
+//Thread pool check
+	if (Parameter.ThreadPoolBaseNum > 0 && GlobalRunningStatus.ThreadRunningFreeNum->load() == 0 && 
+		GlobalRunningStatus.ThreadRunningNum->load() < Parameter.ThreadPoolMaxNum)
+	{
+		++(*GlobalRunningStatus.ThreadRunningNum);
+		++(*GlobalRunningStatus.ThreadRunningFreeNum);
+		std::thread MonitorConsumerThread(std::bind(MonitorRequestConsumer));
+		MonitorConsumerThread.detach();
+	}
+
 	return;
 }
 
@@ -35,20 +46,45 @@ void MonitorRequestConsumer(
 //Initialization
 	MONITOR_QUEUE_DATA MonitorQueryData;
 	std::shared_ptr<uint8_t> SendBuffer(new uint8_t[LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]()), RecvBuffer(new uint8_t[LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
+	size_t LastActiveTime = 0;
 
 //Monitor consumer
 	for (;;)
 	{
 	//Reset parameters.
+		if (Parameter.ThreadPoolBaseNum > 0)
+			LastActiveTime = (size_t)GetCurrentSystemTime();
 		memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 		memset(RecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 
 	//Pop from blocking queue.
 		MonitorBlockingQueue.pop(MonitorQueryData);
+		if (Parameter.ThreadPoolBaseNum > 0 && GlobalRunningStatus.ThreadRunningFreeNum->load() > 0)
+			--(*GlobalRunningStatus.ThreadRunningFreeNum);
+
+	//Handle process
 		memcpy_s(SendBuffer.get(), LARGE_PACKET_MAXSIZE, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length);
 		MonitorQueryData.first.Buffer = SendBuffer.get();
 		MonitorQueryData.first.BufferSize = LARGE_PACKET_MAXSIZE;
-		EnterRequestProcess(MonitorQueryData, RecvBuffer.get(), LARGE_PACKET_MAXSIZE);
+		if (MonitorQueryData.first.Protocol == IPPROTO_TCP)
+			TCPReceiveProcess(MonitorQueryData, RecvBuffer.get(), LARGE_PACKET_MAXSIZE);
+		else if (MonitorQueryData.first.Protocol == IPPROTO_UDP)
+			EnterRequestProcess(MonitorQueryData, RecvBuffer.get(), LARGE_PACKET_MAXSIZE);
+
+	//Thread pool check
+		if (Parameter.ThreadPoolBaseNum > 0)
+		{
+			if (LastActiveTime + Parameter.ThreadPoolResetTime <= GetCurrentSystemTime() && 
+				GlobalRunningStatus.ThreadRunningNum->load() > Parameter.ThreadPoolBaseNum && 
+				GlobalRunningStatus.ThreadRunningFreeNum->load() > 0)
+			{
+				--(*GlobalRunningStatus.ThreadRunningNum);
+				break;
+			}
+			else {
+				++(*GlobalRunningStatus.ThreadRunningFreeNum);
+			}
+		}
 	}
 
 	return;
@@ -62,8 +98,7 @@ bool EnterRequestProcess(
 {
 //Initialization(Send buffer part)
 	std::shared_ptr<uint8_t> SendBuffer;
-	if ((RecvBuffer == nullptr || RecvSize == 0) && //Thread pool mode
-		MonitorQueryData.first.Protocol == IPPROTO_UDP)
+	if ((RecvBuffer == nullptr || RecvSize == 0) && MonitorQueryData.first.Protocol == IPPROTO_UDP) //New thread mode
 	{
 		if (Parameter.CompressionPointerMutation)
 		{
@@ -101,7 +136,7 @@ bool EnterRequestProcess(
 
 //Initialization(Receive buffer part)
 	std::shared_ptr<uint8_t> RecvBufferPTR;
-	if (RecvBuffer == nullptr || RecvSize == 0) //Thread pool mode
+	if (RecvBuffer == nullptr || RecvSize == 0) //New thread mode
 	{
 		if (Parameter.RequestMode_Transport == REQUEST_MODE_TCP || MonitorQueryData.first.Protocol == IPPROTO_TCP || //TCP request
 			Parameter.LocalProtocol_Transport == REQUEST_MODE_TCP || //Local request
@@ -372,6 +407,7 @@ size_t CheckHostsProcess(
 	std::string Domain;
 	size_t DataLength = 0;
 	auto DNS_Header = (pdns_hdr)Packet->Buffer;
+	void *DNS_Record = nullptr;
 
 //Request check
 	if (ntohs(DNS_Header->Question) == U16_NUM_ONE && CheckQueryNameLength(Packet->Buffer + sizeof(dns_hdr)) + 1U < DOMAIN_MAXSIZE)
@@ -428,6 +464,91 @@ size_t CheckHostsProcess(
 		}
 	}
 
+//Make domain reversed.
+	std::string ReverseDomain(Domain);
+	MakeStringReversed(ReverseDomain);
+
+//Domain Name Reservation Considerations for "test."
+//RFC 6761, Special-Use Domain Names(https://tools.ietf.org/html/rfc6761)
+// Caching DNS servers SHOULD recognize test names as special and SHOULD NOT, by default, attempt to look up NS records for them, 
+// or otherwise query authoritative DNS servers in an attempt to resolve test names. Instead, caching DNS servers SHOULD, by
+// default, generate immediate negative responses for all such queries. This is to avoid unnecessary load on the root name
+// servers and other name servers.  Caching DNS servers SHOULD offer a configuration option (disabled by default) to enable upstream
+// resolving of test names, for use in networks where test names are known to be handled by an authoritative DNS server in said private network.
+
+//Domain Name Reservation Considerations for "localhost."
+//RFC 6761, Special-Use Domain Names(https://tools.ietf.org/html/rfc6761)
+	if (CompareStringReversed("tsohlacol", ReverseDomain))
+	{
+	//IPv6
+		if (ntohs(DNS_Query->Type) == DNS_RECORD_AAAA)
+		{
+		//Set header flags and convert DNS query to DNS response packet.
+			DNS_Header->Flags = htons(DNS_SQR_NE);
+			DataLength = sizeof(dns_hdr) + Packet->Question;
+			memset(Result + DataLength, 0, ResultSize - DataLength);
+
+		//Make resource records.
+			DNS_Record = (pdns_record_aaaa)(Result + DataLength);
+			DataLength += sizeof(dns_record_aaaa);
+			((pdns_record_aaaa)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
+			((pdns_record_aaaa)DNS_Record)->Classes = htons(DNS_CLASS_IN);
+			((pdns_record_aaaa)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
+			((pdns_record_aaaa)DNS_Record)->Type = htons(DNS_RECORD_AAAA);
+			((pdns_record_aaaa)DNS_Record)->Length = htons(sizeof(in6_addr));
+			((pdns_record_aaaa)DNS_Record)->Addr = in6addr_loopback;
+
+		//Set DNS counts and EDNS Label
+			DNS_Header->Answer = htons(U16_NUM_ONE);
+			DNS_Header->Authority = 0;
+			DNS_Header->Additional = 0;
+			if (Parameter.EDNS_Label || Packet->EDNS_Record > 0)
+				DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, nullptr);
+
+			return DataLength;
+		}
+	//IPv4
+		else if (ntohs(DNS_Query->Type) == DNS_RECORD_A)
+		{
+		//Set header flags and convert DNS query to DNS response packet.
+			DNS_Header->Flags = htons(DNS_SQR_NE);
+			DataLength = sizeof(dns_hdr) + Packet->Question;
+			memset(Result + DataLength, 0, ResultSize - DataLength);
+
+		//Make resource records.
+			DNS_Record = (pdns_record_a)(Result + DataLength);
+			DataLength += sizeof(dns_record_a);
+			((pdns_record_a)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
+			((pdns_record_a)DNS_Record)->Classes = htons(DNS_CLASS_IN);
+			((pdns_record_a)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
+			((pdns_record_a)DNS_Record)->Type = htons(DNS_RECORD_A);
+			((pdns_record_a)DNS_Record)->Length = htons(sizeof(in_addr));
+			((pdns_record_a)DNS_Record)->Addr.S_un.S_addr = htonl(INADDR_LOOPBACK);
+
+		//Set DNS counts and EDNS Label
+			DNS_Header->Answer = htons(U16_NUM_ONE);
+			DNS_Header->Authority = 0;
+			DNS_Header->Additional = 0;
+			if (Parameter.EDNS_Label || Packet->EDNS_Record > 0)
+				DataLength = AddEDNSLabelToAdditionalRR(Result, DataLength, ResultSize, nullptr);
+
+			return DataLength;
+		}
+	}
+
+//Domain Name Reservation Considerations for "invalid."
+//RFC 6761, Special-Use Domain Names(https://tools.ietf.org/html/rfc6761)
+	if (CompareStringReversed("dilavni", ReverseDomain))
+	{
+		DNS_Header->Flags = htons(DNS_SET_R_SNH);
+		return Packet->Length;
+	}
+
+//Domain Name Reservation Considerations for Example Domains
+//RFC 6761, Special-Use Domain Names(https://tools.ietf.org/html/rfc6761)
+// The domains "example.", "example.com.", "example.net.", "example.org.", and any names falling within those domains.
+// Caching DNS servers SHOULD NOT recognize example names as special and SHOULD resolve them normally.
+
 //PTR Records
 //LLMNR protocol of Mac OS X powered by mDNS with PTR records
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
@@ -435,9 +556,8 @@ size_t CheckHostsProcess(
 	{
 		auto IsPTRSend = false;
 
-	//IPv6 check
+	//RFC 6761, Special-Use Domain Names(https://tools.ietf.org/html/rfc6761)
 		if (Domain == ("1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa") || //Loopback address(::1, Section 2.5.3 in RFC 4291)
-	//IPv4 check
 			Domain.find(".127.in-addr.arpa") != std::string::npos || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
 			Domain.find(".254.169.in-addr.arpa") != std::string::npos) //Link-local address(169.254.0.0/16, RFC 3927)
 		{
@@ -471,7 +591,7 @@ size_t CheckHostsProcess(
 			}
 		}
 
-	//Send Localhost PTR.
+	//Send local machine PTR.
 		if (IsPTRSend)
 		{
 		//Set header flags and copy response to buffer.
@@ -493,7 +613,22 @@ size_t CheckHostsProcess(
 #endif
 
 //LocalFQDN check
-	if (Parameter.LocalFQDN_String != nullptr && Domain == *Parameter.LocalFQDN_String)
+//RFC 6761, Special-Use Domain Names(https://tools.ietf.org/html/rfc6761)
+	if (Parameter.LocalFQDN_String != nullptr && Domain == *Parameter.LocalFQDN_String
+/*
+	//Private class A addresses(10.0.0.0/8, Section 3 in RFC 1918)
+		|| Domain.find("10.in-addr.arpa") != std::string::npos || 
+	//Private class B addresses(172.16.0.0/12, Section 3 in RFC 1918)
+		Domain.find("16.172.in-addr.arpa") != std::string::npos || Domain.find("17.172.in-addr.arpa") != std::string::npos || Domain.find("18.172.in-addr.arpa") != std::string::npos || 
+		Domain.find("19.172.in-addr.arpa") != std::string::npos || Domain.find("20.172.in-addr.arpa") != std::string::npos || Domain.find("21.172.in-addr.arpa") != std::string::npos || 
+		Domain.find("22.172.in-addr.arpa") != std::string::npos || Domain.find("23.172.in-addr.arpa") != std::string::npos || Domain.find("24.172.in-addr.arpa") != std::string::npos || 
+		Domain.find("25.172.in-addr.arpa") != std::string::npos || Domain.find("26.172.in-addr.arpa") != std::string::npos || Domain.find("27.172.in-addr.arpa") != std::string::npos || 
+		Domain.find("28.172.in-addr.arpa") != std::string::npos || Domain.find("29.172.in-addr.arpa") != std::string::npos || Domain.find("30.172.in-addr.arpa") != std::string::npos || 
+		Domain.find("31.172.in-addr.arpa") != std::string::npos || 
+	//Private class C addresses(192.168.0.0/16, Section 3 in RFC 1918)
+		Domain.find("168.192.in-addr.arpa") != std::string::npos
+*/
+		)
 	{
 	//IPv6
 		if (ntohs(DNS_Query->Type) == DNS_RECORD_AAAA)
@@ -523,12 +658,8 @@ size_t CheckHostsProcess(
 	if (Parameter.LocalMain)
 		Packet->IsLocal = true;
 
-//Make domain reversed.
-	std::string ReverseDomain(Domain);
-	MakeStringReversed(ReverseDomain);
-	auto IsMatch = false;
-
 //Normal Hosts check
+	auto IsMatch = false;
 	std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock);
 	for (const auto &HostsFileSetIter:*HostsFileSetUsing)
 	{
@@ -596,7 +727,6 @@ size_t CheckHostsProcess(
 					goto StopLoop_NormalHosts;
 
 			//Initialization
-				void *DNS_Record = nullptr;
 				size_t RamdomIndex = 0, Index = 0;
 
 			//IPv6(AAAA records)

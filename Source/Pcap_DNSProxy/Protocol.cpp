@@ -1068,7 +1068,7 @@ bool CheckQueryData(
 	{
 		if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
 		{
-			if (CheckEmptyBuffer(&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr, sizeof(in6_addr)) || //Empty address
+			if (CheckEmptyBuffer(&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr, sizeof(((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)) || //Empty address
 			//Check Private Mode(IPv6).
 				(Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
 				!((((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] <= 0xFD) || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)

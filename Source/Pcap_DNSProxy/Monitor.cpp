@@ -30,7 +30,7 @@ bool MonitorInit(
 	size_t MonitorThreadIndex = 0;
 	auto ReturnValue = true, *Result = &ReturnValue;
 
-//Set localhost Monitor sockets(IPv6/UDP).
+//Set local machine Monitor sockets(IPv6/UDP).
 	if (Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_NETWORK_BOTH || Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV6)
 	{
 		if (Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TRANSPORT_BOTH || Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_UDP)
@@ -113,7 +113,7 @@ bool MonitorInit(
 			}
 		}
 
-	//Set localhost socket(IPv6/TCP).
+	//Set local machine Monitor sockets(IPv6/TCP).
 		if (Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TRANSPORT_BOTH || Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TCP)
 		{
 			memset(&LocalSocketData, 0, sizeof(LocalSocketData));
@@ -195,7 +195,7 @@ bool MonitorInit(
 		}
 	}
 
-//Set localhost socket(IPv4/UDP).
+//Set local machine Monitor sockets(IPv4/UDP).
 	if (Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_NETWORK_BOTH || Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV4)
 	{
 		if (Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TRANSPORT_BOTH || Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_UDP)
@@ -278,7 +278,7 @@ bool MonitorInit(
 			}
 		}
 
-	//Set localhost socket(IPv4/TCP).
+	//Set local machine Monitor sockets(IPv4/TCP).
 		if (Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TRANSPORT_BOTH || Parameter.ListenProtocol_Transport == LISTEN_PROTOCOL_TCP)
 		{
 			memset(&LocalSocketData, 0, sizeof(LocalSocketData));
@@ -374,7 +374,8 @@ bool MonitorInit(
 			MonitorConsumerThread.detach();
 		}
 
-		GlobalRunningStatus.ThreadRunningNum += Parameter.ThreadPoolBaseNum;
+		*GlobalRunningStatus.ThreadRunningNum += Parameter.ThreadPoolBaseNum;
+		*GlobalRunningStatus.ThreadRunningFreeNum += Parameter.ThreadPoolBaseNum;
 	}
 
 //Join threads.
@@ -431,7 +432,7 @@ bool UDPMonitor(
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
 	MonitorQueryData.first.BufferSize = PACKET_MAXSIZE;
 	MonitorQueryData.first.Protocol = IPPROTO_UDP;
-	PSOCKET_DATA SocketDataPTR = nullptr;
+	PSOCKET_DATA SocketDataPTR = &MonitorQueryData.second;
 	uint64_t LastMarkTime = 0, NowTime = 0;
 	if (Parameter.QueueResetTime > 0)
 		LastMarkTime = GetCurrentSystemTime();
@@ -469,7 +470,6 @@ bool UDPMonitor(
 			if (FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS))
 			{
 			//Receive response and check DNS query data.
-				SocketDataPTR = &MonitorQueryData.second;
 				RecvLen = recvfrom(MonitorQueryData.second.Socket, (char *)RecvBuffer.get() + PACKET_MAXSIZE * Index, PACKET_MAXSIZE, 0, (PSOCKADDR)&SocketDataPTR->SockAddr, (socklen_t *)&SocketDataPTR->AddrLen);
 				if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
 				{
@@ -560,10 +560,12 @@ bool TCPMonitor(
 	}
 
 //Initialization
-	SOCKET_DATA ClientData;
+	MONITOR_QUEUE_DATA MonitorQueryData;
 	fd_set ReadFDS;
-	memset(&ClientData, 0, sizeof(ClientData));
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
+	MonitorQueryData.first.BufferSize = LARGE_PACKET_MAXSIZE;
+	MonitorQueryData.first.Protocol = IPPROTO_TCP;
+	PSOCKET_DATA SocketDataPTR = &MonitorQueryData.second;
 	uint64_t LastMarkTime = 0, NowTime = 0;
 	if (Parameter.QueueResetTime > 0)
 		LastMarkTime = GetCurrentSystemTime();
@@ -584,9 +586,9 @@ bool TCPMonitor(
 		}
 
 	//Reset parameters.
-		memset(&ClientData.SockAddr, 0, sizeof(ClientData.SockAddr));
-		ClientData.AddrLen = LocalSocketData.AddrLen;
-		ClientData.SockAddr.ss_family = LocalSocketData.SockAddr.ss_family;
+		memset(&MonitorQueryData.second.SockAddr, 0, sizeof(MonitorQueryData.second.SockAddr));
+		MonitorQueryData.second.AddrLen = LocalSocketData.AddrLen;
+		MonitorQueryData.second.SockAddr.ss_family = LocalSocketData.SockAddr.ss_family;
 		FD_ZERO(&ReadFDS);
 		FD_SET(LocalSocketData.Socket, &ReadFDS);
 
@@ -600,23 +602,30 @@ bool TCPMonitor(
 		{
 			if (FD_ISSET(LocalSocketData.Socket, &ReadFDS))
 			{
-			//Accept connection
-				ClientData.Socket = accept(LocalSocketData.Socket, (PSOCKADDR)&ClientData.SockAddr, &ClientData.AddrLen);
-				if (!SocketSetting(ClientData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
+			//Accept connection.
+				MonitorQueryData.second.Socket = accept(LocalSocketData.Socket, (PSOCKADDR)&SocketDataPTR->SockAddr, &SocketDataPTR->AddrLen);
+				if (!SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 					continue;
 
 			//Check request address.
-				if (!CheckQueryData(nullptr, nullptr, 0, ClientData))
+				if (!CheckQueryData(nullptr, nullptr, 0, MonitorQueryData.second))
 				{
-					SocketSetting(ClientData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-					ClientData.Socket = 0;
+					SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+					MonitorQueryData.second.Socket = 0;
 
 					continue;
 				}
 
 			//Accept process.
-				std::thread TCPReceiveThread(std::bind(TCPReceiveProcess, ClientData));
-				TCPReceiveThread.detach();
+				if (Parameter.ThreadPoolBaseNum > 0) //Thread pool mode
+				{
+					MonitorRequestProvider(MonitorQueryData);
+				}
+				else { //New thread mode
+					std::thread TCPReceiveThread(std::bind(TCPReceiveProcess, MonitorQueryData, nullptr, 0));
+					TCPReceiveThread.detach();
+				}
+
 				Index = (Index + 1U) % Parameter.ThreadPoolMaxNum;
 			}
 		}
@@ -643,7 +652,9 @@ bool TCPMonitor(
 
 //TCP Monitor receive process
 bool TCPReceiveProcess(
-	const SOCKET_DATA LocalSocketData)
+	MONITOR_QUEUE_DATA MonitorQueryData, 
+	uint8_t *OriginalRecv, 
+	size_t RecvSize)
 {
 //Initialization(Part 1)
 	std::shared_ptr<uint8_t> RecvBuffer(new uint8_t[LARGE_PACKET_MAXSIZE]());
@@ -663,20 +674,20 @@ bool TCPReceiveProcess(
 	Timeout.tv_usec = Parameter.SocketTimeout_Reliable.tv_usec;
 #endif
 	FD_ZERO(&ReadFDS);
-	FD_SET(LocalSocketData.Socket, &ReadFDS);
+	FD_SET(MonitorQueryData.second.Socket, &ReadFDS);
 
 #if defined(PLATFORM_WIN)
 	RecvLen = select(0, &ReadFDS, nullptr, nullptr, &Timeout);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	RecvLen = select(LocalSocketData.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
+	RecvLen = select(MonitorQueryData.second.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
 #endif
-	if (RecvLen > 0 && FD_ISSET(LocalSocketData.Socket, &ReadFDS))
+	if (RecvLen > 0 && FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS))
 	{
-		RecvLen = recv(LocalSocketData.Socket, (char *)RecvBuffer.get(), LARGE_PACKET_MAXSIZE, 0);
+		RecvLen = recv(MonitorQueryData.second.Socket, (char *)RecvBuffer.get(), LARGE_PACKET_MAXSIZE, 0);
 	}
 //Timeout or SOCKET_ERROR
 	else {
-		SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return false;
 	}
 
@@ -684,7 +695,7 @@ bool TCPReceiveProcess(
 	size_t Length = 0;
 	if (RecvLen <= 0)
 	{
-		SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return false;
 	}
 	else if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
@@ -702,17 +713,17 @@ bool TCPReceiveProcess(
 		Timeout.tv_usec = Parameter.SocketTimeout_Reliable.tv_usec;
 	#endif
 		FD_ZERO(&ReadFDS);
-		FD_SET(LocalSocketData.Socket, &ReadFDS);
+		FD_SET(MonitorQueryData.second.Socket, &ReadFDS);
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
 		RecvLen = select(0, &ReadFDS, nullptr, nullptr, &Timeout);
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		RecvLen = select(LocalSocketData.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
+		RecvLen = select(MonitorQueryData.second.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
 	#endif
-		if (RecvLen > 0 && FD_ISSET(LocalSocketData.Socket, &ReadFDS))
+		if (RecvLen > 0 && FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS))
 		{
-			RecvLen = recv(LocalSocketData.Socket, (char *)RecvBuffer.get() + Length, (int)(LARGE_PACKET_MAXSIZE - Length), 0);
+			RecvLen = recv(MonitorQueryData.second.Socket, (char *)RecvBuffer.get() + Length, (int)(LARGE_PACKET_MAXSIZE - Length), 0);
 
 		//Receive length check
 			if (RecvLen > 0)
@@ -721,13 +732,13 @@ bool TCPReceiveProcess(
 			}
 		//Connection closed or SOCKET_ERROR
 			else {
-				SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 				return false;
 			}
 		}
 	//Timeout or SOCKET_ERROR
 		else {
-			SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 			return false;
 		}
 	}
@@ -736,12 +747,10 @@ bool TCPReceiveProcess(
 	Length = ntohs(((uint16_t *)RecvBuffer.get())[0]);
 	if (RecvLen >= (ssize_t)Length && Length >= DNS_PACKET_MINSIZE)
 	{
-		MONITOR_QUEUE_DATA MonitorQueryData;
 		MonitorQueryData.first.Buffer = RecvBuffer.get() + sizeof(uint16_t);
-		MonitorQueryData.first.BufferSize = LARGE_PACKET_MAXSIZE;
 		MonitorQueryData.first.Length = Length;
-		MonitorQueryData.first.Protocol = IPPROTO_TCP;
-		MonitorQueryData.second = LocalSocketData;
+		MonitorQueryData.first.IsLocal = false;
+		memset(&MonitorQueryData.first.LocalTarget, 0, sizeof(MonitorQueryData.first.LocalTarget));
 
 	//Check DNS query data.
 		std::shared_ptr<uint8_t> SendBuffer(new uint8_t[LARGE_PACKET_MAXSIZE]());
@@ -753,21 +762,21 @@ bool TCPReceiveProcess(
 		}
 
 	//Main request process
-		EnterRequestProcess(MonitorQueryData, nullptr, 0);
+		EnterRequestProcess(MonitorQueryData, OriginalRecv, RecvSize);
 	}
 	else {
-		SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return false;
 	}
 
 //Block Port Unreachable messages of system.
-	shutdown(LocalSocketData.Socket, SD_SEND);
+	shutdown(MonitorQueryData.second.Socket, SD_SEND);
 #if defined(PLATFORM_WIN)
 	Sleep(Parameter.SocketTimeout_Reliable);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	usleep(Parameter.SocketTimeout_Reliable.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.SocketTimeout_Reliable.tv_usec);
 #endif
-	SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+	SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 
 	return true;
 }
@@ -844,18 +853,18 @@ addrinfo *GetLocalAddressList(
 	Hints.ai_protocol = IPPROTO_UDP;
 	memset(HostName, 0, DOMAIN_MAXSIZE);
 
-//Get localhost name.
+//Get local machine name.
 	if (gethostname((char *)HostName, DOMAIN_MAXSIZE) == SOCKET_ERROR)
 	{
-		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get localhost name error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get local machine name error", WSAGetLastError(), nullptr, 0);
 		return nullptr;
 	}
 
-//Get localhost data.
+//Get local machine name data.
 	int InnerResult = getaddrinfo((char *)HostName, nullptr, &Hints, &Result);
 	if (InnerResult != 0)
 	{
-		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get localhost address error", InnerResult, nullptr, 0);
+		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get local machine address error", InnerResult, nullptr, 0);
 
 		freeaddrinfo(Result);
 		return nullptr;
@@ -900,7 +909,7 @@ bool GetBestInterfaceAddress(
 	//UDP connecting
 		if (connect(InterfaceSocket, (PSOCKADDR)&SockAddr, sizeof(sockaddr_in6)) == SOCKET_ERROR || 
 			getsockname(InterfaceSocket, (PSOCKADDR)&SockAddr, &AddrLen) == SOCKET_ERROR || SockAddr.ss_family != AF_INET6 || 
-			AddrLen != sizeof(sockaddr_in6) || CheckEmptyBuffer(&((PSOCKADDR_IN6)&SockAddr)->sin6_addr, sizeof(in6_addr)))
+			AddrLen != sizeof(sockaddr_in6) || CheckEmptyBuffer(&((PSOCKADDR_IN6)&SockAddr)->sin6_addr, sizeof(((PSOCKADDR_IN6)&SockAddr)->sin6_addr)))
 		{
 			SocketSetting(InterfaceSocket, SOCKET_SETTING_CLOSE, false, nullptr);
 			GlobalRunningStatus.GatewayAvailable_IPv6 = false;
@@ -917,7 +926,7 @@ bool GetBestInterfaceAddress(
 	//UDP connecting
 		if (connect(InterfaceSocket, (PSOCKADDR)&SockAddr, sizeof(sockaddr_in)) == SOCKET_ERROR || 
 			getsockname(InterfaceSocket, (PSOCKADDR)&SockAddr, &AddrLen) == SOCKET_ERROR || SockAddr.ss_family != AF_INET || 
-			AddrLen != sizeof(sockaddr_in) || CheckEmptyBuffer(&((PSOCKADDR_IN)&SockAddr)->sin_addr, sizeof(in_addr)))
+			AddrLen != sizeof(sockaddr_in) || CheckEmptyBuffer(&((PSOCKADDR_IN)&SockAddr)->sin_addr, sizeof(((PSOCKADDR_IN)&SockAddr)->sin_addr)))
 		{
 			SocketSetting(InterfaceSocket, SOCKET_SETTING_CLOSE, false, nullptr);
 			GlobalRunningStatus.GatewayAvailable_IPv4 = false;
@@ -1166,7 +1175,7 @@ void NetworkInformationMonitor(
 //Monitor
 	for (;;)
 	{
-	//Get localhost addresses(IPv6)
+	//Get local machine addresses(IPv6)
 		if (Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_NETWORK_BOTH || Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV6)
 		{
 		#if defined(PLATFORM_WIN)
@@ -1178,7 +1187,7 @@ void NetworkInformationMonitor(
 			errno = 0;
 			if (getifaddrs(&InterfaceAddressList) != 0 || InterfaceAddressList == nullptr)
 			{
-				PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get localhost address error", errno, nullptr, 0);
+				PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Get local machine address error", errno, nullptr, 0);
 				if (InterfaceAddressList != nullptr)
 					freeifaddrs(InterfaceAddressList);
 				InterfaceAddressList = nullptr;
@@ -1367,7 +1376,7 @@ void NetworkInformationMonitor(
 			}
 		}
 
-	//Get localhost addresses(IPv4)
+	//Get local machine addresses(IPv4)
 		if (Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_NETWORK_BOTH || Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV4)
 		{
 		#if defined(PLATFORM_WIN)

@@ -1,13 +1,21 @@
-﻿Pcap_DNSProxy 0.4.7.1-0.4.7.4 更新日志(2016-09-16)：
+﻿Pcap_DNSProxy 0.4.7.1-0.4.7.5 更新日志(2016-10-06)：
 
 * 添加对 Dnsmasq 的 Address 和 Server 兼容格式配置文件的支持
   * 支持使用 Address 和 Server 兼容格式的非正则表达式模式对域名查询进行字符串匹配
   * 支持使用 Server 兼容格式指定特定境内 DNS 目标服务器以及指定目标服务器请求的端口
   * 附带的 WhiteList.txt 切换到 Dnsmasq Server 兼容格式以降低启用境内白名单功能时的资源占用
 * 添加一种时间 + 队列双重检测类型的 DNS 缓存策略
+* 添加完整的线程池支持
+* 添加对 RFC 6761 特殊域名标准化解析的支持
+  * Localhost Server Name 参数改名为 Local Machine Server Name
+  * 修改默认的本机名称为 pcap-dnsproxy.server
+  * 以 localhost 后缀的域名将全部解析到环回地址
+  * 以 invalid 后缀的域名将全部解析为域名不存在
+  * 以 test 后缀和 Example Domains 的域名将不作处理
 * 添加 CMake 系统并行多线程编译支持 (Linux/Mac)
 * 添加服务器端 TCP Fast Open 属性的实验性支持 (Windows)
 * 现在输出错误代码时将附上一段对该错误代码的说明 [Syrone Wong]
+* Xcode 更新到 8.0 (Mac)
 * 修复套接字不正确的关闭有可能造成的系统资源耗尽问题 [AVC A]
 * 修复 IPv6 协议套接字参数错误的问题 [gaoyan1234]
 * 修复 DNS 缓存清除功能的问题 (Linux/Mac) [kiliwalk]
@@ -16,17 +24,17 @@
 * 修复 dig 请求权威根域名服务器的问题
 * 修复 CR + LF 换行格式下行数统计错误的问题
 * 修复套接字 TCP Fast Open 属性不生效的问题 (Linux)
-* 文件校验码(0.4.7.4)
+* 文件校验码(0.4.7.5)
   * SHA-1:
-    * Windows/Pcap_DNSProxy.exe -> 7F6000C5167A53B6DEEAC4C4331F958D1FA44D53
-    * Windows/Pcap_DNSProxy_x86.exe -> F647CA44808F8C6CBE2ED30D72B3AE9A2E9F6E7F
-    * Windows/Pcap_DNSProxy_XP.exe -> 35087C15CCDD38FEA9EFB50247FA529C52976BB5
-    * Mac/Pcap_DNSProxy -> 9CF3D26549DA09B400E5D3F9FABFBDE4DE158CFF
+    * Windows/Pcap_DNSProxy.exe -> E50C7D25F5EFAD095204ADD516010C719AE06AE0
+    * Windows/Pcap_DNSProxy_x86.exe -> 9492E96189DD3871C8F836EFDD0E358C9E1A6D96
+    * Windows/Pcap_DNSProxy_XP.exe -> E0D28F5C6BE02B9139FEAFDF44D234475724D635
+    * Mac/Pcap_DNSProxy -> 0F585A1BBFAFB11141F6B06096524FB06E819F2C
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe -> 5BD4C5E2A3D83208EB1785DBA1EFECD309E5CF6CB2BD8D2950CC03FC8FEEA93F
-    * Windows/Pcap_DNSProxy_x86.exe -> 99A8BB9A62BE2D72E534BCC395E4803DD57D673ADAB23308F2C51B140FBE703E
-    * Windows/Pcap_DNSProxy_XP.exe -> AA309EF3514FA6DC6A1FAA1236A8D698ADE4F847DD261E68FDD0F2917475EB72
-    * Mac/Pcap_DNSProxy -> 1DC33F6CEBE43B9C78A0FA20FD1144B40E2B79EB714216D22D4A46D9705AF309
+    * Windows/Pcap_DNSProxy.exe -> 776C0B3A107A4069D80EE0A76A4ADFA12AABA47F1045E20D691D17E1981CEC22
+    * Windows/Pcap_DNSProxy_x86.exe -> 7555B2F01C92C535F06249640F3D81C0DC798CCD1F924FC9132E94A1106DE363
+    * Windows/Pcap_DNSProxy_XP.exe -> AB926F169F86871C4B19E3DE7EF4C3A3F63C8ADD9556A339B761B8987734CE56
+    * Mac/Pcap_DNSProxy -> 2B87713337F5597EB33927ACEC41F551A801A55691141C786CBC894C0E9F3673
 
 
 -------------------------------------------------------------------------------

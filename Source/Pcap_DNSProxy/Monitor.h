@@ -36,8 +36,6 @@ bool UDPMonitor(
 bool TCPMonitor(
 	const SOCKET_DATA LocalSocketData, 
 	bool *Result);
-bool TCPReceiveProcess(
-	const SOCKET_DATA LocalSocketData);
 #if defined(PLATFORM_WIN)
 addrinfo *GetLocalAddressList(
 	const uint16_t Protocol, 

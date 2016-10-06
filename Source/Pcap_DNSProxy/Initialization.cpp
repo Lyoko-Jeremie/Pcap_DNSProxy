@@ -32,6 +32,7 @@ static uint8_t Base64_EncodeTable_Initialization[] =
 	'w', 'x', 'y', 'z', '0', '1', '2', '3', 
 	'4', '5', '6', '7', '8', '9', '+', '/'
 };
+
 /* Not necessary
 static int8_t Base64_DecodeTable_Initialization[] = //ASCII order for BASE 64 decode, -1 in unused character.
 {
@@ -74,8 +75,8 @@ ConfigurationTable::ConfigurationTable(
 	//[Addresses] block
 		ListenAddress_IPv6 = new std::vector<sockaddr_storage>();
 		ListenAddress_IPv4 = new std::vector<sockaddr_storage>();
-		LocalhostSubnet_IPv6 = new ADDRESS_PREFIX_BLOCK();
-		LocalhostSubnet_IPv4 = new ADDRESS_PREFIX_BLOCK();
+		LocalMachineSubnet_IPv6 = new ADDRESS_PREFIX_BLOCK();
+		LocalMachineSubnet_IPv4 = new ADDRESS_PREFIX_BLOCK();
 		Target_Server_IPv6_Multiple = new std::vector<DNS_SERVER_DATA>();
 		Target_Server_IPv4_Multiple = new std::vector<DNS_SERVER_DATA>();
 
@@ -114,14 +115,14 @@ ConfigurationTable::ConfigurationTable(
 	//[Addresses] block
 		delete ListenAddress_IPv6;
 		delete ListenAddress_IPv4;
-		delete LocalhostSubnet_IPv6;
-		delete LocalhostSubnet_IPv4;
+		delete LocalMachineSubnet_IPv6;
+		delete LocalMachineSubnet_IPv4;
 		delete Target_Server_IPv6_Multiple;
 		delete Target_Server_IPv4_Multiple;
 		ListenAddress_IPv6 = nullptr;
 		ListenAddress_IPv4 = nullptr;
-		LocalhostSubnet_IPv6 = nullptr;
-		LocalhostSubnet_IPv4 = nullptr;
+		LocalMachineSubnet_IPv6 = nullptr;
+		LocalMachineSubnet_IPv4 = nullptr;
 		Target_Server_IPv6_Multiple = nullptr;
 		Target_Server_IPv4_Multiple = nullptr;
 
@@ -297,14 +298,14 @@ ConfigurationTable::~ConfigurationTable(
 //[Addresses] block
 	delete ListenAddress_IPv6;
 	delete ListenAddress_IPv4;
-	delete LocalhostSubnet_IPv6;
-	delete LocalhostSubnet_IPv4;
+	delete LocalMachineSubnet_IPv6;
+	delete LocalMachineSubnet_IPv4;
 	delete Target_Server_IPv6_Multiple;
 	delete Target_Server_IPv4_Multiple;
 	ListenAddress_IPv6 = nullptr;
 	ListenAddress_IPv4 = nullptr;
-	LocalhostSubnet_IPv6 = nullptr;
-	LocalhostSubnet_IPv4 = nullptr;
+	LocalMachineSubnet_IPv6 = nullptr;
+	LocalMachineSubnet_IPv4 = nullptr;
 	Target_Server_IPv6_Multiple = nullptr;
 	Target_Server_IPv4_Multiple = nullptr;
 
@@ -358,14 +359,14 @@ void ConfigurationTable::SetToMonitorItem(
 //[Addresses] block
 	delete ListenAddress_IPv6;
 	delete ListenAddress_IPv4;
-	delete LocalhostSubnet_IPv6;
-	delete LocalhostSubnet_IPv4;
+	delete LocalMachineSubnet_IPv6;
+	delete LocalMachineSubnet_IPv4;
 	delete Target_Server_IPv6_Multiple;
 	delete Target_Server_IPv4_Multiple;
 	ListenAddress_IPv6 = nullptr;
 	ListenAddress_IPv4 = nullptr;
-	LocalhostSubnet_IPv6 = nullptr;
-	LocalhostSubnet_IPv4 = nullptr;
+	LocalMachineSubnet_IPv6 = nullptr;
+	LocalMachineSubnet_IPv4 = nullptr;
 	Target_Server_IPv6_Multiple = nullptr;
 	Target_Server_IPv4_Multiple = nullptr;
 
@@ -608,6 +609,7 @@ GlobalStatus::GlobalStatus(
 		LocalListeningSocket = new std::vector<SYSTEM_SOCKET>();
 		RamdomEngine = new std::default_random_engine();
 		ThreadRunningNum = new std::atomic<size_t>();
+		ThreadRunningFreeNum = new std::atomic<size_t>();
 		Path_Global = new std::vector<std::wstring>();
 		Path_ErrorLog = new std::wstring();
 		FileList_Hosts = new std::vector<std::wstring>();
@@ -630,6 +632,7 @@ GlobalStatus::GlobalStatus(
 		delete LocalListeningSocket;
 		delete RamdomEngine;
 		delete ThreadRunningNum;
+		delete ThreadRunningFreeNum;
 		delete Path_Global;
 		delete Path_ErrorLog;
 		delete FileList_Hosts;
@@ -699,7 +702,7 @@ GlobalStatus::~GlobalStatus(
 //Close all file handles and WinSock cleanup.
 #if defined(PLATFORM_WIN)
 	_fcloseall();
-	if (Initialization_WinSock)
+	if (IsWinSockInitialized)
 		WSACleanup();
 #elif (defined(PLATFORM_LINUX) && !defined(PLATFORM_OPENWRT))
 	fcloseall();

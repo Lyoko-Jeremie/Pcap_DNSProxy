@@ -46,6 +46,20 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * Direct Request = IPv4
     * Direct Request = IPv6
     * Direct Request = IPv4 + IPv6
+  * 修改 DNS 伺服器時請務必設置一個正確的、有效的、可以正常使用的境外 DNS 伺服器！
+  * Windows 平臺下讀取檔案名時不存在大小寫的區別
+  * 設定檔 Hosts 檔 IPFilter 檔和錯誤報表所在的目錄以上文 安裝方法 一節中第4步註冊的服務資訊為准
+    * 填寫時一行不要超過 4096位元組/4KB
+    * 檔讀取只支援整個文本單一的編碼和換行格式組合，切勿在文字檔中混合所支援的編碼或換行格式！
+  * 服務啟動前請先確認沒有其它本地 DNS 伺服器運行或本工具多個拷貝運行中，否則可能會導致監聽衝突無法正常工作
+    * 監聽衝突會建置錯誤報告，可留意 Windows Socket 相關的錯誤（參見 FAQ 文檔中 Error.log 詳細錯誤報表 一節）
+  * 殺毒軟體/協力廠商防火牆可能會阻止本程式的操作，請將行為全部允許或將本程式加入到白名單中
+  * 如果啟動服務時提示 "服務沒有及時回應啟動或者控制請求" 請留意是否有錯誤報表生成，詳細的錯誤資訊參見 FAQ 文檔中 Error.log 詳細錯誤報表 一節
+  * 目錄和程式的名稱可以隨意更改，但請務必在進行安裝方法第4步前完成。如果服務註冊後需移動工具目錄的路徑，參見上文 卸載方法 第2步的注意事項
+  * 由於本人水準有限，程式編寫難免會出現差錯疏漏，遇到問題請先更新到最新版本，如有問題可至專案頁面提出，望諒解 v_v
+
+
+-------------------------------------------------------------------------------
 
 
 重啟服務方法（需要以管理員身份進行）：
@@ -87,7 +101,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 3.運行結果應類似：
 
    >nslookup www.google.com
-    服务器:  pcap-dnsproxy.localhost.server（視設定檔設置的值而定，參見下文 設定檔詳細參數說明 一節）
+    服务器:  pcap-dnsproxy.server（視設定檔設置的值而定，參見下文 設定檔詳細參數說明 一節）
     Address:  127.0.0.1（視所在網路環境而定，原生 IPv6 為 ::1）
 
     非权威应答:
@@ -101,53 +115,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
 -------------------------------------------------------------------------------
 
 
-注意事項：
-
-* 修改 DNS 伺服器時請務必設置一個正確的、有效的、可以正常使用的境外 DNS 伺服器！
-* Windows 平臺下讀取檔案名時不存在大小寫的區別
-* 設定檔 Hosts 檔 IPFilter 檔和錯誤報表所在的目錄以上文 安裝方法 一節中第4步註冊的服務資訊為准
-  * 填寫時一行不要超過 4096位元組/4KB
-  * 檔讀取只支援整個文本單一的編碼和換行格式組合，切勿在文字檔中混合所支援的編碼或換行格式！
-* 服務啟動前請先確認沒有其它本地 DNS 伺服器運行或本工具多個拷貝運行中，否則可能會導致監聽衝突無法正常工作
-  * 監聽衝突會建置錯誤報告，可留意 Windows Socket 相關的錯誤（參見 FAQ 文檔中 Error.log 詳細錯誤報表 一節）
-* 殺毒軟體/協力廠商防火牆可能會阻止本程式的操作，請將行為全部允許或將本程式加入到白名單中
-* 如果啟動服務時提示 "服務沒有及時回應啟動或者控制請求" 請留意是否有錯誤報表生成，詳細的錯誤資訊參見 FAQ 文檔中 Error.log 詳細錯誤報表 一節
-* 目錄和程式的名稱可以隨意更改，但請務必在進行安裝方法第4步前完成。如果服務註冊後需移動工具目錄的路徑，參見上文 卸載方法 第2步的注意事項
-* 由於本人水準有限，程式編寫難免會出現差錯疏漏，遇到問題請先更新到最新版本，如有問題可至專案頁面提出，望諒解 v_v
-
-
--------------------------------------------------------------------------------
-
-
-功能和技術：
-* 批次處理的作用：
-  * 運行結束會有運行結果，具體是否成功需要留意螢幕上的提示
-  * 1: Install service - 將程式註冊為系統服務，並啟動程式進行 Windows 防火牆測試
-  * 2: Uninstall service - 停止並卸載工具的服務
-  * 3: Start service - 啟動工具的服務
-  * 4: Stop service - 停止工具的服務
-  * 5: Restart service - 重啟工具的服務
-  * 6: Flush DNS cache in Pcap_DNSProxy - 刷新程序的内部和系統的 DNS 緩存
-  * 7: Flush DNS cache in system only - 刷新系統的 DNS 緩存
-  * 8: Exit - 退出
-* 設定檔支援的檔案名（只會讀取優先順序較高者，優先順序較低者將被直接忽略）：
-  * Windows: Config.ini > Config.conf > Config.cfg > Config
-  * Linux/Mac: Config.conf > Config.ini > Config.cfg > Config
-* 請求功能變數名稱解析優先順序
-  * 使用系統 API 函數進行功能變數名稱解析（大部分）：系統 Hosts > Pcap_DNSProxy 的 Hosts 條目（Whitelist/白名單條目 > Hosts/主要Hosts清單） > DNS緩存 > Local Hosts/境內 DNS 解析功能變數名稱清單 > 遠端DNS伺服器
-  * 直接從網路介面卡設置內讀取 DNS 伺服器位址進行功能變數名稱解析（小部分）：Pcap_DNSProxy 的 Hosts 配置檔案（Whitelist/白名單條目 > Hosts/主要Hosts清單） > DNS緩存 > Local Hosts/境內 DNS 解析功能變數名稱清單 > 遠端 DNS 伺服器
-  * 請求遠端 DNS 伺服器的優先順序：Direct Request 模式 > TCP 模式的 DNSCurve 加密/非加密模式（如有） > UDP 模式的 DNSCurve 加密/非加密模式（如有） > TCP模式普通請求（如有） > UDP模式普通請求
-* 本工具的 DNSCurve/DNSCrypt 協定是內置的實現，不需要安裝 DNSCrypt 官方的工具！
-  * DNSCurve 協定為 Streamlined/精簡類型
-  * 自動獲取連接資訊時必須保證系統時間的正確，否則證書驗證時會出錯導致連接資訊獲取失敗！
-  * DNSCrypt 官方工具會佔用本地 DNS 埠導致 Pcap_DNSProxy 部署失敗！
-
-
--------------------------------------------------------------------------------
-
-
 特別使用技巧：
-這裡羅列出部分項目組建議的介紹和使用技巧，供大家參考和使用。關於調整配置，參見下文 設定檔詳細參數說明 一節
+這裡列出部分項目組建議的介紹和使用技巧，供大家參考和使用。關於調整配置，參見下文 設定檔詳細參數說明 一節
 
 * DNS 緩存類型
   * Timer/計時型：可以自訂緩存的時間長度，佇列長度不限
@@ -169,6 +138,40 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 此組合加密傳輸所有功能變數名稱請求，功能變數名稱解析可靠性最高
   * DNSCurve = 1 同時 Encryption = 1 同時 Encryption Only = 1：只使用 DNSCurve/DNSCrypt 加密模式請求功能變數名稱解析
     * 上文的加密組合並不阻止程式在請求 DNSCurve/DNSCrypt 加密模式失敗是使用其它協定請求功能變數名稱解析，開啟 Encryption Only = 1 後將只允許使用加密傳輸，安全性和可靠性最高，但功能變數名稱解析成功率可能會下降
+* 優化大量請求下程式表現：
+  * Pcap Reading Timeout 適當調低這個參數能使抓包模組以更高的頻率抓取資料包，降低延遲
+  * Cache Parameter 儘量調高這個參數能增加緩存的存留時間或者佇列長度，提高緩存命中率
+  * Thread Pool Maximum Number 適當調高這個參數能可以增大緩衝區最大可容納請求的數量
+  * Queue Limits Reset Time 不要開啟，限制請求數量的參數
+  * Multiple Request Times 非極其惡劣情況慎用，消耗大量系統資源且會些微提高延遲
+
+
+-------------------------------------------------------------------------------
+
+
+功能和技術：
+
+* 批次處理的作用：
+  * 運行結束會有運行結果，具體是否成功需要留意螢幕上的提示
+  * 1: Install service - 將程式註冊為系統服務，並啟動程式進行 Windows 防火牆測試
+  * 2: Uninstall service - 停止並卸載工具的服務
+  * 3: Start service - 啟動工具的服務
+  * 4: Stop service - 停止工具的服務
+  * 5: Restart service - 重啟工具的服務
+  * 6: Flush DNS cache in Pcap_DNSProxy - 刷新程序的内部和系統的 DNS 緩存
+  * 7: Flush DNS cache in system only - 刷新系統的 DNS 緩存
+  * 8: Exit - 退出
+* 設定檔支援的檔案名（只會讀取優先順序較高者，優先順序較低者將被直接忽略）：
+  * Windows: Config.ini > Config.conf > Config.cfg > Config
+  * Linux/Mac: Config.conf > Config.ini > Config.cfg > Config
+* 請求功能變數名稱解析優先順序
+  * 使用系統 API 函數進行功能變數名稱解析（大部分）：系統 Hosts > Pcap_DNSProxy 的 Hosts 條目（Whitelist/白名單條目 > Hosts/主要Hosts清單） > DNS緩存 > Local Hosts/境內 DNS 解析功能變數名稱清單 > 遠端DNS伺服器
+  * 直接從網路介面卡設置內讀取 DNS 伺服器位址進行功能變數名稱解析（小部分）：Pcap_DNSProxy 的 Hosts 配置檔案（Whitelist/白名單條目 > Hosts/主要Hosts清單） > DNS緩存 > Local Hosts/境內 DNS 解析功能變數名稱清單 > 遠端 DNS 伺服器
+  * 請求遠端 DNS 伺服器的優先順序：Direct Request 模式 > TCP 模式的 DNSCurve 加密/非加密模式（如有） > UDP 模式的 DNSCurve 加密/非加密模式（如有） > TCP模式普通請求（如有） > UDP模式普通請求
+* 本工具的 DNSCurve/DNSCrypt 協定是內置的實現，不需要安裝 DNSCrypt 官方的工具！
+  * DNSCurve 協定為 Streamlined/精簡類型
+  * 自動獲取連接資訊時必須保證系統時間的正確，否則證書驗證時會出錯導致連接資訊獲取失敗！
+  * DNSCrypt 官方工具會佔用本地 DNS 埠導致 Pcap_DNSProxy 部署失敗！
 
 
 -------------------------------------------------------------------------------
@@ -477,10 +480,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Values - 擴展參數值區域
   * Thread Pool Base Number - 執行緒池基礎最低保持執行緒數量：最小為 8 設置為 0 則關閉執行緒池的功能
   * Thread Pool Maximum Number - 執行緒池最大執行緒數量以及緩衝區佇列數量限制：最小為 8
-    * 執行緒池最大執行緒數量功能暫時未有實際用途
     * 啟用 Queue Limits Reset Time 參數時，此參數為單位時間內最多可接受請求的數量
     * 不啟用 Queue Limits Reset Time 參數時為用於接收資料的緩衝區的數量
-  * Thread Pool Reset Time - 暫時未有實際用途
+  * Thread Pool Reset Time - 執行緒池中線程數量超出 Thread Pool Base Number 所指定數量後執行緒將會自動結束前所駐留的時間：單位為秒
   * Queue Limits Reset Time - 資料緩衝區佇列數量限制重置時間：單位為秒，最小為 5 設置為 0 時關閉此功能
   * EDNS Payload Size - EDNS 標籤附帶使用的最大載荷長度：最小為 DNS 協定實現要求的 512(bytes)，留空則使用 EDNS 標籤要求最短的 1220(bytes)
   * IPv4 Packet TTL - 發出 IPv4 資料包頭部 TTL 值：0 為由作業系統自動決定，取值為 1-255 之間
@@ -565,7 +567,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Domain Test Data - DNS 伺服器解析功能變數名稱測試：請輸入正確、確認不會被投毒污染的功能變數名稱並且不要超過 253 位元組 ASCII 資料，留空則會隨機生成一個功能變數名稱進行測試
   * Domain Test ID - DNS 資料包頭部 ID 的值：格式為 0x**** 的十六進位字元，如果留空則為 0x0001
   * ICMP PaddingData - ICMP 附加資料，Ping 程式發送請求時為補足資料使其達到 Ethernet 類型網路最低的可發送長度時添加的資料：長度介乎于 18位元組 - 1500位元組 ASCII 資料之間，留空則使用 Microsoft Windows Ping 程式的 ICMP 附加資料
-  * Localhost Server Name - 本地 DNS 伺服器名稱：請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，留空則使用 pcap-dnsproxy.localhost.server 作為本機伺服器名稱
+  * Local Machine Server Name - 本地 DNS 伺服器名稱：請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，留空則使用 pcap-dnsproxy.server 作為本機伺服器名稱
 
 * Proxy - 代理區域
   * SOCKS Proxy - SOCKS 協定總開關，控制所有和 SOCKS 協定有關的選項：開啟為 1 /關閉為 0
@@ -766,10 +768,10 @@ Hosts 設定檔分為多個提供不同功能的區域
   * 有效參數格式為 "NULL 正則運算式"（不含引號）
   * 注意優先順序的問題，例如有一片含白名單條目的區域：
 
-    NULL .*\.test.localhost
-    127.0.0.1|127.0.0.2|127.0.0.3 .*\.localhost
+    NULL .*\.test\.test
+    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test
 
-  * 雖然 .*\.localhost 包含了 .*\.test\.localhost 但由於優先順序別自上而下遞減，故先命中 .*\.test\.localhost 並返回使用遠端伺服器解析
+  * 雖然 .*\.test 包含了 .*\.test\.test 但由於優先順序別自上而下遞減，故先命中 .*\.test\.test 並返回使用遠端伺服器解析
   * 從而繞過了下面的條目，不使用 Hosts 的功能
 
 
@@ -778,8 +780,8 @@ Hosts 設定檔分為多個提供不同功能的區域
   * 有效參數格式為 "NULL:DNS類型(|DNS類型) 正則運算式"（不含引號，括弧內為可選項目）
   * 只允許特定類型功能變數名稱請求，有效參數格式為 "NULL(Permit):DNS類型(|DNS類型) 正則運算式"（不含引號）
 
-    NULL:A|AAAA .*\.test.localhost
-    NULL(Deny):NS|SOA .*\.localhost
+    NULL:A|AAAA .*\.test\.test
+    NULL(Deny):NS|SOA .*\.test
 
   * 第一條即直接跳過匹配規則的 A 記錄和 AAAA 記錄的功能變數名稱請求，其它類型的請求則被匹配規則
   * 而第二條則只匹配規則的 NS 記錄和 SOA 記錄的功能變數名稱請求，其它類型的請求則被直接跳過
@@ -790,10 +792,10 @@ Hosts 設定檔分為多個提供不同功能的區域
   * 有效參數格式為 "BANNED 正則運算式"（不含引號）
   * 注意優先順序的問題，例如有一片含黑名單條目的區域：
 
-    Banned .*\.test.localhost
-    127.0.0.1|127.0.0.2|127.0.0.3 .*\.localhost
+    Banned .*\.test\.test
+    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test
 
-  * 雖然 .*\.localhost 包含了 .*\.test\.localhost 但由於優先順序別自上而下遞減，故先命中 .*\.test\.localhost 並直接返回功能變數名稱不存在
+  * 雖然 .*\.test 包含了 .*\.test\.test 但由於優先順序別自上而下遞減，故先命中 .*\.test\.test 並直接返回功能變數名稱不存在
   * 從而繞過了下面的條目，達到遮罩功能變數名稱的目的
 
 
@@ -802,8 +804,8 @@ Hosts 設定檔分為多個提供不同功能的區域
   * 有效參數格式為 "BANNED:DNS類型(|DNS類型) 正則運算式"（不含引號，括弧內為可選項目）
   * 只允許特定類型功能變數名稱請求，有效參數格式為 "BANNED(Permit):DNS類型(|DNS類型) 正則運算式"（不含引號，括弧內為可選項目）
 
-    BANNED:A|AAAA .*\.test.localhost
-    BANNED(Permit):NS|SOA .*\.localhost
+    BANNED:A|AAAA .*\.test\.test
+    BANNED(Permit):NS|SOA .*\.test
 
   * 第一条即屏蔽匹配规则的 A 记录和 AAAA 记录的域名请求，其它类型的请求则被放行
   * 而第二条则只放行匹配规则的 NS 记录和 SOA 记录的域名请求，其它类型的请求则被屏蔽
@@ -819,16 +821,16 @@ Hosts 設定檔分為多個提供不同功能的區域
   * 平行位址原理為一次返回多個記錄，而具體使用哪個記錄則由要求者決定，一般為第1個
   * 例如有一個 [Hosts] 下有效資料區域：
 
-    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.localhost
-    127.0.0.4|127.0.0.5|127.0.0.6 .*\.localhost
-    ::1|::2|::3 .*\.test\.localhost
-    ::4|::5|::6 .*\.localhost
+    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.test
+    127.0.0.4|127.0.0.5|127.0.0.6 .*\.test
+    ::1|::2|::3 .*\.test\.test
+    ::4|::5|::6 .*\.test
 
-  * 雖然 .*\.localhost 包含了 .*\.test\.localhost 但由於優先順序別自上而下遞減，故先命中 .*\.test\.localhost 並直接返回，不會再進行其它檢查
-    * 請求解析 xxx.localhost 的 A 記錄（IPv4）會返回 127.0.0.4、127.0.0.5 和 127.0.0.6
-    * 請求解析 xxx.localhost 的 AAAA 記錄（IPv6）會返回 ::4、::5 和 ::6
-    * 請求解析 xxx.test.localhost 的 A 記錄（IPv4）會返回 127.0.0.1、127.0.0.2 和 127.0.0.3
-    * 請求解析 xxx.test.localhost 的 AAAA 記錄（IPv6）會返回 ::1、::2 和 ::3
+  * 雖然 .*\.test 包含了 .*\.test\.test 但由於優先順序別自上而下遞減，故先命中 .*\.test\.test 並直接返回，不會再進行其它檢查
+    * 請求解析 xxx.test 的 A 記錄（IPv4）會返回 127.0.0.4、127.0.0.5 和 127.0.0.6
+    * 請求解析 xxx.test 的 AAAA 記錄（IPv6）會返回 ::4、::5 和 ::6
+    * 請求解析 xxx.test.test 的 A 記錄（IPv4）會返回 127.0.0.1、127.0.0.2 和 127.0.0.3
+    * 請求解析 xxx.test.test 的 AAAA 記錄（IPv6）會返回 ::1、::2 和 ::3
 
 
 * Local Hosts - 境內 DNS 解析功能變數名稱清單
@@ -838,8 +840,8 @@ Hosts 設定檔分為多個提供不同功能的區域
   * 本功能不會對境內 DNS 伺服器回復進行任何過濾，請確認本區域填入的資料不會受到 DNS 投毒污染的干擾
   * 例如有一個 [Local Hosts] 下有效資料區域：
 
-    .*\.test\.localhost
-    .*\.localhost
+    .*\.test\.test
+    .*\.test
 
   * 即所有符合以上正則運算式的功能變數名稱請求都將使用境內 DNS 伺服器解析
 
@@ -860,25 +862,25 @@ Hosts 設定檔分為多個提供不同功能的區域
   * 例如有一片資料區域：
 
     [Hosts]
-    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.localhost
+    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.test
     [Stop]
-    127.0.0.4|127.0.0.5|127.0.0.6 .*\.localhost
-    ::1|::2|::3 .*\.test\.localhost
-    ::4|::5|::6 .*\.localhost
+    127.0.0.4|127.0.0.5|127.0.0.6 .*\.test
+    ::1|::2|::3 .*\.test\.test
+    ::4|::5|::6 .*\.test
 
     [Local Hosts]
-    .*\.test\.localhost
-    .*\.localhost
+    .*\.test\.test
+    .*\.test
 
   * 則從 [Stop] 一行開始，下面到 [Local Hosts] 之間的資料都將不會被讀取
   * 即實際有效的資料區域是：
 
     [Hosts]
-    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.localhost
+    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.test
 
     [Local Hosts]
-    .*\.test\.localhost
-    .*\.localhost
+    .*\.test\.test
+    .*\.test
 
 
 * Dnsmasq Address - Dnsmasq 相容格式
@@ -890,8 +892,8 @@ Hosts 設定檔分為多個提供不同功能的區域
     * 位址部分如果留空不填，則相當於 Banned - 黑名單條目
   * 例如以下 [Hosts] 條目是完全等價的：
 
-    Address=/:.*\blocalhost:/127.0.0.1
-    Address=/localhost/127.0.0.1
+    Address=/:.*\btest:/127.0.0.1
+    Address=/test/127.0.0.1
 
   * 匹配所有功能變數名稱的解析結果到 ::1
 
@@ -899,7 +901,7 @@ Hosts 設定檔分為多個提供不同功能的區域
 
   * 對符合規則的功能變數名稱返回功能變數名稱不存在資訊
 
-    Address=/localhost/
+    Address=/test/
 
 
 * Dnsmasq Server - Dnsmasq 相容格式
@@ -914,12 +916,12 @@ Hosts 設定檔分為多個提供不同功能的區域
     * 指定進行解析的 DNS 位址部分只填入 "#" 相當於 Whitelist - 白名單條目
   * 例如以下 [Local Hosts] 條目是完全等價的：
 
-    Server=/:.*\blocalhost:/::1#53
-    Server=/localhost/::
+    Server=/:.*\btest:/::1#53
+    Server=/test/::
 
   * 對符合規則的功能變數名稱使用程式設定檔指定的預設 DNS 伺服器進行解析
 
-    Server=/localhost/
+    Server=/test/
 
   * 不符合標準的功能變數名稱全部發往 127.0.0.1 進行解析
 
