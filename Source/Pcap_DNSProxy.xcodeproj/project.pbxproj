@@ -25,7 +25,7 @@
 		D93C47421CD7598500CD334A /* ReadIPFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C473B1CD7598500CD334A /* ReadIPFilter.cpp */; };
 		D93C47431CD7598500CD334A /* ReadParameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C473C1CD7598500CD334A /* ReadParameter.cpp */; };
 		D93C47481CD7599300CD334A /* Service.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C47451CD7599300CD334A /* Service.cpp */; };
-		D93C47CF1CD75FF700CD334A /* LibSodium_Mac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D93C47CC1CD75FF700CD334A /* LibSodium_Mac.a */; };
+		D96B09B61DABB1DF001AC633 /* LibSodium_Mac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D96B09B51DABB1DF001AC633 /* LibSodium_Mac.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -136,7 +136,7 @@
 		D93C47C91CD75B4E00CD334A /* sodium.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = sodium.h; path = LibSodium/sodium.h; sourceTree = "<group>"; };
 		D93C47CA1CD75B4E00CD334A /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utils.h; path = LibSodium/utils.h; sourceTree = "<group>"; };
 		D93C47CB1CD75E9200CD334A /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = version.h; path = LibSodium/version.h; sourceTree = "<group>"; };
-		D93C47CC1CD75FF700CD334A /* LibSodium_Mac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibSodium_Mac.a; path = LibSodium/LibSodium_Mac.a; sourceTree = "<group>"; };
+		D96B09B51DABB1DF001AC633 /* LibSodium_Mac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibSodium_Mac.a; path = LibSodium/LibSodium_Mac.a; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -144,8 +144,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D96B09B61DABB1DF001AC633 /* LibSodium_Mac.a in Frameworks */,
 				D9112FA61CD7637100540550 /* libpcap.tbd in Frameworks */,
-				D93C47CF1CD75FF700CD334A /* LibSodium_Mac.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -212,7 +212,7 @@
 		D93C478D1CD75B0700CD334A /* Dependency */ = {
 			isa = PBXGroup;
 			children = (
-				D9112FA51CD7637100540550 /* libpcap.tbd */,
+				D96B09B41DABB1DF001AC633 /* Frameworks */,
 				D93C478E1CD75B2200CD334A /* LibSodium */,
 			);
 			name = Dependency;
@@ -221,7 +221,6 @@
 		D93C478E1CD75B2200CD334A /* LibSodium */ = {
 			isa = PBXGroup;
 			children = (
-				D93C47CC1CD75FF700CD334A /* LibSodium_Mac.a */,
 				D93C47921CD75B4200CD334A /* core.h */,
 				D93C47931CD75B4200CD334A /* crypto_aead_aes256gcm.h */,
 				D93C47941CD75B4200CD334A /* crypto_aead_chacha20poly1305.h */,
@@ -292,6 +291,15 @@
 				D93C47911CD75B3800CD334A /* curve25519_ref10.h */,
 			);
 			name = private;
+			sourceTree = "<group>";
+		};
+		D96B09B41DABB1DF001AC633 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				D9112FA51CD7637100540550 /* libpcap.tbd */,
+				D96B09B51DABB1DF001AC633 /* LibSodium_Mac.a */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -461,7 +469,10 @@
 		D93C47061CD7582600CD334A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/LibSodium",
+				);
 				"LIBRARY_SEARCH_PATHS[arch=*]" = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -470,7 +481,10 @@
 		D93C47071CD7582600CD334A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/LibSodium",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

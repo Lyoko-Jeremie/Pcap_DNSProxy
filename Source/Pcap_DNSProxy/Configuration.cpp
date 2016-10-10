@@ -24,7 +24,7 @@ size_t HopLimitIndex[]{0, 0};
 
 //Read texts
 bool ReadText(
-	const FILE *FileHandle, 
+	const FILE * const FileHandle, 
 	const size_t InputType, 
 	const size_t FileIndex)
 {

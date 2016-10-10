@@ -25,7 +25,7 @@ extern GLOBAL_STATUS GlobalRunningStatus;
 
 //Check empty buffer
 bool CheckEmptyBuffer(
-	const void *Buffer, 
+	const void * const Buffer, 
 	const size_t Length)
 {
 //Null pointer
@@ -47,7 +47,7 @@ bool CheckEmptyBuffer(
 
 //Convert multiple bytes to wide char string
 bool MBSToWCSString(
-	const uint8_t *Buffer, 
+	const uint8_t * const Buffer, 
 	const size_t MaxLen, 
 	std::wstring &Target)
 {
@@ -88,7 +88,7 @@ bool MBSToWCSString(
 
 //Convert wide char string to multiple bytes
 bool WCSToMBSString(
-	const wchar_t *Buffer, 
+	const wchar_t * const Buffer, 
 	const size_t MaxLen, 
 	std::string &Target)
 {
@@ -131,7 +131,7 @@ bool WCSToMBSString(
 
 //Convert lowercase/uppercase words to uppercase/lowercase words(C-Style version)
 void CaseConvert(
-	uint8_t *Buffer, 
+	uint8_t * const Buffer, 
 	const size_t Length, 
 	const bool IsLowerToUpper)
 {
@@ -250,8 +250,8 @@ bool CompareStringReversed(
 
 //Reversed string comparing
 bool CompareStringReversed(
-	const wchar_t *RuleItem, 
-	const wchar_t *TestItem, 
+	const wchar_t * const RuleItem, 
+	const wchar_t * const TestItem, 
 	const bool IsCaseConvert)
 {
 	std::wstring InnerRuleItem(RuleItem), InnerTestItem(TestItem);
@@ -298,9 +298,9 @@ bool SortCompare_Hosts(
 //Base64 encoding
 //Base64 encoding or decoding is from https://github.com/zhicheng/base64.
 size_t Base64_Encode(
-	uint8_t *Input, 
+	uint8_t * const Input, 
 	const size_t Length, 
-	uint8_t *Output, 
+	uint8_t * const Output, 
 	const size_t OutputSize)
 {
 //Initialization

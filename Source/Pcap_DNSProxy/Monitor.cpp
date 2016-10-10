@@ -28,7 +28,7 @@ bool MonitorInit(
 	SOCKET_DATA LocalSocketData;
 	memset(&LocalSocketData, 0, sizeof(LocalSocketData));
 	size_t MonitorThreadIndex = 0;
-	auto ReturnValue = true, *Result = &ReturnValue;
+	auto ReturnValue = true, * const Result = &ReturnValue;
 
 //Set local machine Monitor sockets(IPv6/UDP).
 	if (Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_NETWORK_BOTH || Parameter.ListenProtocol_Network == LISTEN_PROTOCOL_IPV6)
@@ -397,7 +397,7 @@ bool MonitorInit(
 //Local DNS server with UDP protocol
 bool UDPMonitor(
 	const SOCKET_DATA LocalSocketData, 
-	bool *Result)
+	bool * const Result)
 {
 //Socket attribute settings
 	if (
@@ -432,7 +432,7 @@ bool UDPMonitor(
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
 	MonitorQueryData.first.BufferSize = PACKET_MAXSIZE;
 	MonitorQueryData.first.Protocol = IPPROTO_UDP;
-	PSOCKET_DATA SocketDataPTR = &MonitorQueryData.second;
+	const PSOCKET_DATA SocketDataPTR = &MonitorQueryData.second;
 	uint64_t LastMarkTime = 0, NowTime = 0;
 	if (Parameter.QueueResetTime > 0)
 		LastMarkTime = GetCurrentSystemTime();
@@ -523,7 +523,7 @@ bool UDPMonitor(
 //Local DNS server with TCP protocol
 bool TCPMonitor(
 	const SOCKET_DATA LocalSocketData, 
-	bool *Result)
+	bool * const Result)
 {
 //Socket attribute settings
 	if (
@@ -565,7 +565,7 @@ bool TCPMonitor(
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
 	MonitorQueryData.first.BufferSize = LARGE_PACKET_MAXSIZE;
 	MonitorQueryData.first.Protocol = IPPROTO_TCP;
-	PSOCKET_DATA SocketDataPTR = &MonitorQueryData.second;
+	const PSOCKET_DATA SocketDataPTR = &MonitorQueryData.second;
 	uint64_t LastMarkTime = 0, NowTime = 0;
 	if (Parameter.QueueResetTime > 0)
 		LastMarkTime = GetCurrentSystemTime();
@@ -653,7 +653,7 @@ bool TCPMonitor(
 //TCP Monitor receive process
 bool TCPReceiveProcess(
 	MONITOR_QUEUE_DATA MonitorQueryData, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	size_t RecvSize)
 {
 //Initialization(Part 1)
@@ -787,7 +787,7 @@ void AlternateServerMonitor(
 {
 //Initialization
 	size_t Index = 0;
-	uint64_t RangeTimer[ALTERNATE_SERVERNUM] = {0}, SwapTimer[ALTERNATE_SERVERNUM] = {0};
+	uint64_t RangeTimer[ALTERNATE_SERVERNUM]{0}, SwapTimer[ALTERNATE_SERVERNUM]{0};
 
 //Switcher
 	for (;;)
@@ -837,7 +837,7 @@ void AlternateServerMonitor(
 #if defined(PLATFORM_WIN)
 addrinfo *GetLocalAddressList(
 	const uint16_t Protocol, 
-	uint8_t *HostName)
+	uint8_t * const HostName)
 {
 //Initialization
 	addrinfo Hints;
@@ -878,7 +878,7 @@ addrinfo *GetLocalAddressList(
 //Get address from best network interface
 bool GetBestInterfaceAddress(
 	const uint16_t Protocol, 
-	const sockaddr_storage *OriginalSockAddr)
+	const sockaddr_storage * const OriginalSockAddr)
 {
 //Initialization
 	sockaddr_storage SockAddr;
@@ -1152,13 +1152,13 @@ void NetworkInformationMonitor(
 {
 //Initialization
 #if defined(PLATFORM_WIN)
-	uint8_t Addr[ADDRESS_STRING_MAXSIZE] = {0};
-	uint8_t HostName[DOMAIN_MAXSIZE] = {0};
+	uint8_t Addr[ADDRESS_STRING_MAXSIZE]{0};
+	uint8_t HostName[DOMAIN_MAXSIZE]{0};
 	addrinfo *LocalAddressList = nullptr, *LocalAddressTableIter = nullptr;
 	std::string Result;
 	ssize_t Index = 0;
 #elif defined(PLATFORM_LINUX)
-	uint8_t Addr[ADDRESS_STRING_MAXSIZE] = {0};
+	uint8_t Addr[ADDRESS_STRING_MAXSIZE]{0};
 	ifaddrs *InterfaceAddressList = nullptr, *InterfaceAddressIter = nullptr;
 	auto IsErrorFirstPrint = true;
 	std::string Result;

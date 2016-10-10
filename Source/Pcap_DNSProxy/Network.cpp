@@ -24,7 +24,7 @@ bool SocketSetting(
 	const SYSTEM_SOCKET Socket, 
 	const size_t SettingType, 
 	const bool IsPrintError, 
-	void *DataPointer)
+	void * const DataPointer)
 {
 	switch (SettingType)
 	{
@@ -65,7 +65,7 @@ bool SocketSetting(
 
 		//Socket timeout options
 		#if defined(PLATFORM_WIN)
-			DWORD OptionValue = *(DWORD *)DataPointer;
+			const DWORD OptionValue = *(DWORD *)DataPointer;
 			if (setsockopt(Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR || 
 				setsockopt(Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -86,7 +86,7 @@ bool SocketSetting(
 		{
 		#if defined(PLATFORM_WIN)
 		//Preventing other sockets from being forcibly bound to the same address and port(Windows).
-			DWORD OptionValue = TRUE;
+			const DWORD OptionValue = TRUE;
 			if (setsockopt(Socket, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			{
 				if (IsPrintError)
@@ -98,7 +98,7 @@ bool SocketSetting(
 			}
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 		//Set TIME_WAIT resuing(Linux/Mac).
-			int OptionValue = TRUE;
+			const int OptionValue = TRUE;
 /*			errno = 0;
 			if (setsockopt(Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			{
@@ -111,7 +111,6 @@ bool SocketSetting(
 			}
 */
 		//Set an IPv6 server socket that must not accept IPv4 connections in Linux.
-			OptionValue = TRUE;
 			errno = 0;
 			if (setsockopt(Socket, IPPROTO_IPV6, IPV6_V6ONLY, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			{
@@ -134,7 +133,7 @@ bool SocketSetting(
 
 		//Socket attribute setting process
 		#if defined(PLATFORM_WIN)
-			DWORD OptionValue = TRUE;
+			const DWORD OptionValue = TRUE;
 			if (setsockopt(Socket, IPPROTO_TCP, TCP_FASTOPEN, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			{
 				if (IsPrintError)
@@ -145,7 +144,7 @@ bool SocketSetting(
 				return false;
 			}
 		#elif defined(PLATFORM_LINUX)
-			int OptionValue = TCP_FASTOPEN_HINT;
+			const int OptionValue = TCP_FASTOPEN_HINT;
 			errno = 0;
 			if (setsockopt(Socket, SOL_TCP, TCP_FASTOPEN, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			{
@@ -165,7 +164,7 @@ bool SocketSetting(
 			unsigned long SocketMode = TRUE;
 			if (ioctlsocket(Socket, FIONBIO, &SocketMode) == SOCKET_ERROR)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			auto SocketMode = fcntl(Socket, F_GETFL, 0);
+			const auto SocketMode = fcntl(Socket, F_GETFL, 0);
 			if (SocketMode == RETURN_ERROR || fcntl(Socket, F_SETFL, SocketMode|O_NONBLOCK) == RETURN_ERROR)
 		#endif
 			{
@@ -183,7 +182,7 @@ bool SocketSetting(
 		case SOCKET_SETTING_TCP_KEEPALIVE:
 		{
 		#if defined(PLATFORM_WIN)
-			DWORD OptionValue = TRUE;
+			const DWORD OptionValue = TRUE;
 			if (setsockopt(Socket, SOL_SOCKET, SO_KEEPALIVE, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			{
 				shutdown(Socket, SD_BOTH);
@@ -208,7 +207,7 @@ bool SocketSetting(
 				return false;
 			}
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			int OptionValue = TRUE;
+			const int OptionValue = TRUE;
 			if (setsockopt(Socket, SOL_SOCKET, SO_KEEPALIVE, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			{
 				shutdown(Socket, SD_BOTH);
@@ -245,11 +244,11 @@ bool SocketSetting(
 			//Socket attribute setting process
 			#if defined(PLATFORM_WIN)
 				std::uniform_int_distribution<DWORD> RamdomDistribution(Parameter.PacketHopLimits_IPv4_Begin, Parameter.PacketHopLimits_IPv4_End);
-				DWORD OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+				const DWORD OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 				if (setsockopt(Socket, IPPROTO_IP, IP_TTL, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 				std::uniform_int_distribution<int> RamdomDistribution(Parameter.PacketHopLimits_IPv4_Begin, Parameter.PacketHopLimits_IPv4_End);
-				int OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+				const int OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 				if (setsockopt(Socket, IPPROTO_IP, IP_TTL, &OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			#endif
 				{
@@ -288,11 +287,11 @@ bool SocketSetting(
 			//Socket attribute setting process
 			#if defined(PLATFORM_WIN)
 				std::uniform_int_distribution<DWORD> RamdomDistribution(Parameter.PacketHopLimits_IPv6_Begin, Parameter.PacketHopLimits_IPv6_End);
-				DWORD OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+				const DWORD OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 				if (setsockopt(Socket, IPPROTO_IPV6, IPV6_UNICAST_HOPS, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 				std::uniform_int_distribution<int> RamdomDistribution(Parameter.PacketHopLimits_IPv6_Begin, Parameter.PacketHopLimits_IPv6_End);
-				int OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+				const int OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 				if (setsockopt(Socket, IPPROTO_IPV6, IPV6_UNICAST_HOPS, &OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			#endif
 				{
@@ -329,10 +328,10 @@ bool SocketSetting(
 			if (Parameter.DoNotFragment)
 			{
 			#if defined(PLATFORM_WIN)
-				DWORD OptionValue = TRUE;
+				const DWORD OptionValue = TRUE;
 				if (setsockopt(Socket, IPPROTO_IP, IP_DONTFRAGMENT, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				int OptionValue = IP_PMTUDISC_DO;
+				const int OptionValue = IP_PMTUDISC_DO;
 				if (setsockopt(Socket, IPPROTO_IP, IP_MTU_DISCOVER, &OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			#endif
 				{
@@ -355,9 +354,9 @@ bool SocketSetting(
 size_t SocketConnecting(
 	const uint16_t Protocol, 
 	const SYSTEM_SOCKET Socket, 
-	const sockaddr *SockAddr, 
+	const sockaddr * const SockAddr, 
 	const socklen_t AddrLen, 
-	const uint8_t *OriginalSend, 
+	const uint8_t * const OriginalSend, 
 	const size_t SendSize)
 {
 //TCP connecting
@@ -419,11 +418,11 @@ ssize_t SocketSelecting(
 	const size_t RequestType, 
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
-	const uint8_t *OriginalSend, 
+	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
-	ssize_t *ErrorCode)
+	ssize_t * const ErrorCode)
 {
 //Initialization(Part 1)
 	std::vector<SOCKET_SELECTING_DATA> SocketSelectingList(SocketDataList.size());
@@ -701,7 +700,7 @@ ssize_t SelectingResult(
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingList, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize)
 {
 	ssize_t RecvLen = 0;
@@ -811,7 +810,7 @@ ssize_t SelectingResult(
 //Mark socket information to global list
 void MarkPortToList(
 	const uint16_t Protocol, 
-	const SOCKET_DATA *LocalSocketData, 
+	const SOCKET_DATA * const LocalSocketData, 
 	std::vector<SOCKET_DATA> &SocketDataList)
 {
 	if (LocalSocketData != nullptr && Protocol > 0)
@@ -951,7 +950,7 @@ bool DomainTestRequest(
 	memset(DNSQuery.get(), 0, PACKET_MAXSIZE);
 
 //Make a DNS request with Doamin Test packet.
-	auto DNS_Header = (pdns_hdr)Buffer.get();
+	const auto DNS_Header = (pdns_hdr)Buffer.get();
 	DNS_Header->ID = Parameter.DomainTest_ID;
 	DNS_Header->Flags = htons(DNS_STANDARD);
 	DNS_Header->Question = htons(U16_NUM_ONE);
@@ -1124,8 +1123,8 @@ bool ICMPTestRequest(
 		return false;
 	std::shared_ptr<uint8_t> Buffer(new uint8_t[Length]());
 	memset(Buffer.get(), 0, Length);
-	auto ICMP_Header = (picmp_hdr)Buffer.get();
-	auto ICMPv6_Header = (picmpv6_hdr)Buffer.get();
+	const auto ICMP_Header = (picmp_hdr)Buffer.get();
+	const auto ICMPv6_Header = (picmpv6_hdr)Buffer.get();
 	std::vector<SOCKET_DATA> ICMPSocketData;
 #if defined(PLATFORM_LINUX)
 	std::uniform_int_distribution<uint32_t> RamdomDistribution(0, UINT32_MAX);
@@ -1470,11 +1469,11 @@ bool ICMPTestRequest(
 //Select socket data of DNS target(Independent)
 bool SelectTargetSocket(
 	const size_t RequestType, 
-	SOCKET_DATA *TargetSocketData, 
-	bool **IsAlternate, 
-	size_t **AlternateTimeoutTimes, 
+	SOCKET_DATA * const TargetSocketData, 
+	bool ** const IsAlternate, 
+	size_t ** const AlternateTimeoutTimes, 
 	const uint16_t Protocol, 
-	const ADDRESS_UNION_DATA *SpecifieTargetData)
+	const ADDRESS_UNION_DATA * const SpecifieTargetData)
 {
 //Socket initialization
 	uint16_t SocketType = 0;
@@ -1966,17 +1965,17 @@ bool SelectTargetSocketMultiple(
 //Transmission and reception of TCP protocol(Independent)
 size_t TCPRequest(
 	const size_t RequestType, 
-	const uint8_t *OriginalSend, 
+	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
-	const ADDRESS_UNION_DATA *SpecifieTargetData)
+	const ADDRESS_UNION_DATA * const SpecifieTargetData)
 {
 //Initialization
 	std::vector<SOCKET_DATA> TCPSocketDataList(1U);
 	memset(&TCPSocketDataList.front(), 0, sizeof(TCPSocketDataList.front()));
 	memset(OriginalRecv, 0, RecvSize);
-	auto SendBuffer = OriginalRecv;
+	const auto SendBuffer = OriginalRecv;
 	memcpy_s(SendBuffer, RecvSize, OriginalSend, SendSize);
 
 //Socket initialization
@@ -2006,7 +2005,8 @@ size_t TCPRequest(
 	}
 
 //Socket selecting
-	ssize_t ErrorCode = 0, RecvLen = SocketSelecting(RequestType, IPPROTO_TCP, TCPSocketDataList, SendBuffer, DataLength, OriginalRecv, RecvSize, &ErrorCode);
+	ssize_t ErrorCode = 0;
+	const ssize_t RecvLen = SocketSelecting(RequestType, IPPROTO_TCP, TCPSocketDataList, SendBuffer, DataLength, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && IsAlternate != nullptr && !*IsAlternate && //Mark timeout.
 		(!Parameter.AlternateMultipleRequest || RequestType == REQUEST_PROCESS_LOCAL))
 			++(*AlternateTimeoutTimes);
@@ -2017,14 +2017,14 @@ size_t TCPRequest(
 //Transmission and reception of TCP protocol(Multiple threading)
 size_t TCPRequestMultiple(
 	const size_t RequestType, 
-	const uint8_t *OriginalSend, 
+	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize)
 {
 //Initialization
 	memset(OriginalRecv, 0, RecvSize);
-	auto SendBuffer = OriginalRecv;
+	const auto SendBuffer = OriginalRecv;
 	memcpy_s(SendBuffer, RecvSize, OriginalSend, SendSize);
 
 //Socket initialization
@@ -2038,7 +2038,8 @@ size_t TCPRequestMultiple(
 		return EXIT_FAILURE;
 
 //Socket selecting
-	ssize_t ErrorCode = 0, RecvLen = SocketSelecting(RequestType, IPPROTO_TCP, TCPSocketDataList, SendBuffer, DataLength, OriginalRecv, RecvSize, &ErrorCode);
+	ssize_t ErrorCode = 0;
+	const ssize_t RecvLen = SocketSelecting(RequestType, IPPROTO_TCP, TCPSocketDataList, SendBuffer, DataLength, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6
@@ -2055,9 +2056,9 @@ size_t TCPRequestMultiple(
 size_t UDPRequest(
 	const size_t RequestType, 
 	const uint16_t Protocol, 
-	const uint8_t *OriginalSend, 
+	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
-	const SOCKET_DATA *LocalSocketData)
+	const SOCKET_DATA * const LocalSocketData)
 {
 //Initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
@@ -2100,9 +2101,9 @@ size_t UDPRequest(
 size_t UDPRequestMultiple(
 	const size_t RequestType, 
 	const uint16_t Protocol, 
-	const uint8_t *OriginalSend, 
+	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
-	const SOCKET_DATA *LocalSocketData)
+	const SOCKET_DATA * const LocalSocketData)
 {
 //Socket initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList;
@@ -2128,11 +2129,11 @@ size_t UDPRequestMultiple(
 //Complete transmission of UDP protocol
 size_t UDPCompleteRequest(
 	const size_t RequestType, 
-	const uint8_t *OriginalSend, 
+	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
-	const ADDRESS_UNION_DATA *SpecifieTargetData)
+	const ADDRESS_UNION_DATA * const SpecifieTargetData)
 {
 //Initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
@@ -2158,7 +2159,8 @@ size_t UDPCompleteRequest(
 	}
 
 //Socket selecting
-	ssize_t ErrorCode = 0, RecvLen = SocketSelecting(RequestType, IPPROTO_UDP, UDPSocketDataList, OriginalSend, SendSize, OriginalRecv, RecvSize, &ErrorCode);
+	ssize_t ErrorCode = 0;
+	const ssize_t RecvLen = SocketSelecting(RequestType, IPPROTO_UDP, UDPSocketDataList, OriginalSend, SendSize, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && IsAlternate != nullptr && !*IsAlternate && //Mark timeout.
 		(!Parameter.AlternateMultipleRequest || RequestType == REQUEST_PROCESS_LOCAL))
 			++(*AlternateTimeoutTimes);
@@ -2169,9 +2171,9 @@ size_t UDPCompleteRequest(
 //Complete transmission of UDP protocol(Multiple threading)
 size_t UDPCompleteRequestMultiple(
 	const size_t RequestType, 
-	const uint8_t *OriginalSend, 
+	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize)
 {
 //Initialization
@@ -2183,7 +2185,8 @@ size_t UDPCompleteRequestMultiple(
 		return EXIT_FAILURE;
 
 //Socket selecting
-	ssize_t ErrorCode = 0, RecvLen = SocketSelecting(RequestType, IPPROTO_UDP, UDPSocketDataList, OriginalSend, SendSize, OriginalRecv, RecvSize, &ErrorCode);
+	ssize_t ErrorCode = 0;
+	const ssize_t RecvLen = SocketSelecting(RequestType, IPPROTO_UDP, UDPSocketDataList, OriginalSend, SendSize, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6

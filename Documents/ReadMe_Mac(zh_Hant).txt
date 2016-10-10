@@ -1,7 +1,5 @@
 ﻿Pcap_DNSProxy 專案的 GitHub 頁面：
-
-* 主分支: https://github.com/chengr28/Pcap_DNSProxy
-* Release 分支: https://github.com/chengr28/Pcap_DNSProxy/tree/Release
+https://github.com/chengr28/Pcap_DNSProxy
 
 Pcap_DNSProxy 專案的 Sourceforge 頁面：
 https://sourceforge.net/projects/pcap-dnsproxy
@@ -15,8 +13,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 安裝方法（使用已編譯好的二進位可執行檔）：
 
-1.訪問 https://github.com/chengr28/Pcap_DNSProxy/tree/Release 使用 GitHub 的 Download ZIP 功能將所有檔下載到本地
-2.打開下載回來的 ZIP 檔，將 Mac 目錄解壓到磁片的任意位置
+1.訪問 https://github.com/chengr28/Pcap_DNSProxy/releases 將二進位可執行檔包下載到本地
+2.打開下載回來的二進位可執行檔包，將 Mac 目錄解壓到磁片的任意位置
 3.編輯 pcap_dnsproxy.service.plist 檔案
   * 清空 <string>/usr/local/opt/pcap_dnsproxy/bin/Pcap_DNSProxy</string> 標籤內的內容，改為 "<string>程式所在的完整路徑/程式名稱</string>"（不含引號）
   * 清空 <string>/usr/local/etc/pcap_dnsproxy/</string> 標籤內的內容，改為 "<string>程式所在的完整路徑</string>"（不含引號）

@@ -33,30 +33,30 @@ extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM], HostsFileLock, DNSCac
 //Functions
 bool LocalRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
 bool SOCKSRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
 bool HTTPRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
 bool DirectRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
 	const bool DirectRequest);
 #if defined(ENABLE_LIBSODIUM)
 bool DNSCurveRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
 #endif
 bool TCPRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
 #if defined(ENABLE_PCAP)
 void UDPRequestProcess(

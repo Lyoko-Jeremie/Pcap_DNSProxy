@@ -25,7 +25,7 @@ void CaptureInit(
 	void)
 {
 //Initialization and capture filter initialization
-	uint8_t ErrorBuffer[PCAP_ERRBUF_SIZE] = {0};
+	uint8_t ErrorBuffer[PCAP_ERRBUF_SIZE]{0};
 	std::wstring Message;
 	pcap_if *pThedevs = nullptr, *pDrive = nullptr;
 	auto IsErrorFirstPrint = true, IsFound = false;
@@ -227,7 +227,7 @@ bool CaptureFilterRulesInit(
 	}
 
 //Initialization(Part 2)
-	uint8_t Addr[ADDRESS_STRING_MAXSIZE] = {0};
+	uint8_t Addr[ADDRESS_STRING_MAXSIZE]{0};
 	std::string AddrString;
 	FilterRules.clear();
 	FilterRules.append("(src host ");
@@ -280,7 +280,7 @@ bool CaptureFilterRulesInit(
 
 //Capture process
 bool CaptureModule(
-	const pcap_if *pDrive, 
+	const pcap_if * const pDrive, 
 	const bool IsCaptureList)
 {
 	std::string CaptureDevice;
@@ -460,12 +460,12 @@ DevicesNotSkip:
 
 //Handler of WinPcap/LibPcap loop function
 void CaptureHandler(
-	uint8_t *Param, 
-	const pcap_pkthdr *PacketHeader, 
-	const uint8_t *PacketData)
+	uint8_t * const Param, 
+	const pcap_pkthdr * const PacketHeader, 
+	const uint8_t * const PacketData)
 {
 //Initialization
-	auto ParamList = (PCAPTURE_HANDLER_PARAM)Param;
+	const auto ParamList = (PCAPTURE_HANDLER_PARAM)Param;
 	memset(ParamList->Buffer, 0, LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 	size_t Length = PacketHeader->caplen;
 	uint16_t Protocol = 0;
@@ -530,7 +530,7 @@ void CaptureHandler(
 //Network Layer(Internet Protocol/IP) process
 bool CaptureNetworkLayer(
 	const uint16_t Protocol, 
-	const uint8_t *Buffer, 
+	const uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t BufferSize)
 {
@@ -541,7 +541,7 @@ bool CaptureNetworkLayer(
 	if ((Protocol == PPP_IPV6 || Protocol == OSI_L2_IPV6) && 
 		Parameter.DirectRequest != REQUEST_MODE_DIRECT_BOTH && Parameter.DirectRequest != REQUEST_MODE_DIRECT_IPV6)
 	{
-		auto IPv6_Header = (pipv6_hdr)Buffer;
+		const auto IPv6_Header = (pipv6_hdr)Buffer;
 
 	//Validate IPv6 header length.
 		if (ntohs(IPv6_Header->PayloadLength) > Length - sizeof(ipv6_hdr))
@@ -611,12 +611,12 @@ bool CaptureNetworkLayer(
 				return false;
 
 		//Port check
-			auto UDP_Header = (pudp_hdr)(Buffer + sizeof(ipv6_hdr));
+			const auto UDP_Header = (pudp_hdr)(Buffer + sizeof(ipv6_hdr));
 			if (UDP_Header->SrcPort == PacketSource->AddressData.IPv6.sin6_port)
 			{
 			//Domain Test and DNS Options check and get Hop Limit from Domain Test.
 				auto IsMarkHopLimit = false;
-				auto DataLength = CheckResponseData(
+				const auto DataLength = CheckResponseData(
 					REQUEST_PROCESS_UDP_NORMAL, 
 					(uint8_t *)(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr)), 
 					ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), 
@@ -659,7 +659,7 @@ bool CaptureNetworkLayer(
 	else if ((Protocol == PPP_IPV4 || Protocol == OSI_L2_IPV4) && 
 		Parameter.DirectRequest != REQUEST_MODE_DIRECT_BOTH && Parameter.DirectRequest != REQUEST_MODE_DIRECT_IPV4)
 	{
-		auto IPv4_Header = (pipv4_hdr)Buffer;
+		const auto IPv4_Header = (pipv4_hdr)Buffer;
 
 	//Validate IPv4 header.
 		if (ntohs(IPv4_Header->Length) <= IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES || ntohs(IPv4_Header->Length) > Length || 
@@ -742,12 +742,12 @@ bool CaptureNetworkLayer(
 				return false;
 
 		//Port check
-			auto UDP_Header = (pudp_hdr)(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES);
+			const auto UDP_Header = (pudp_hdr)(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES);
 			if (UDP_Header->SrcPort == PacketSource->AddressData.IPv4.sin_port)
 			{
 			//Domain Test and DNS Options check and get TTL from Domain Test.
 				auto IsMarkHopLimit = false;
-				auto DataLength = CheckResponseData(
+				const auto DataLength = CheckResponseData(
 					REQUEST_PROCESS_UDP_NORMAL, 
 					(uint8_t *)(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr)), 
 					ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES - sizeof(udp_hdr), 
@@ -796,7 +796,7 @@ bool CaptureNetworkLayer(
 //ICMP header options check
 bool CaptureCheck_ICMP(
 	const uint16_t Protocol, 
-	const uint8_t *Buffer, 
+	const uint8_t * const Buffer, 
 	const size_t Length)
 {
 //ICMPv6
@@ -822,7 +822,7 @@ bool CaptureCheck_ICMP(
 
 //TCP header options check
 bool CaptureCheck_TCP(
-	const uint8_t *Buffer)
+	const uint8_t * const Buffer)
 {
 	if (
 	//CWR bit is set.
@@ -851,7 +851,7 @@ bool CaptureCheck_TCP(
 //Match socket information of responses and send responses to system sockets process
 bool MatchPortToSend(
 	const uint16_t Protocol, 
-	const uint8_t *Buffer, 
+	const uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t BufferSize, 
 	const uint16_t Port)

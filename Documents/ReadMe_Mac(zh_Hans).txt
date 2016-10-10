@@ -1,7 +1,5 @@
 ﻿Pcap_DNSProxy 项目的 GitHub 页面：
-
-* 主分支: https://github.com/chengr28/Pcap_DNSProxy
-* Release 分支: https://github.com/chengr28/Pcap_DNSProxy/tree/Release
+https://github.com/chengr28/Pcap_DNSProxy
 
 Pcap_DNSProxy 项目的 Sourceforge 页面：
 https://sourceforge.net/projects/pcap-dnsproxy
@@ -15,8 +13,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 安装方法（使用已编译好的二进制可执行文件）：
 
-1.访问 https://github.com/chengr28/Pcap_DNSProxy/tree/Release 使用 GitHub 的 Download ZIP 功能将所有文件下载到本地
-2.打开下载回来的 ZIP 文件，将 Mac 目录解压到磁盘的任意位置
+1.访问 https://github.com/chengr28/Pcap_DNSProxy/releases 将二进制可执行文件包下载到本地
+2.打开下载回来的二进制可执行文件包，将 Mac 目录解压到磁盘的任意位置
 3.编辑 pcap_dnsproxy.service.plist 文件
   * 清空 <string>/usr/local/opt/pcap_dnsproxy/bin/Pcap_DNSProxy</string> 标签内的内容，改为 "<string>程序所在的完整路径/程序名称</string>"（不含引号）
   * 清空 <string>/usr/local/etc/pcap_dnsproxy/</string> 标签内的内容，改为 "<string>程序所在的完整路径</string>"（不含引号）

@@ -1,7 +1,5 @@
 ﻿Pcap_DNSProxy 專案的 GitHub 頁面：
-
-* 主分支: https://github.com/chengr28/Pcap_DNSProxy
-* Release 分支: https://github.com/chengr28/Pcap_DNSProxy/tree/Release
+https://github.com/chengr28/Pcap_DNSProxy
 
 Pcap_DNSProxy 專案的 Sourceforge 頁面：
 https://sourceforge.net/projects/pcap-dnsproxy

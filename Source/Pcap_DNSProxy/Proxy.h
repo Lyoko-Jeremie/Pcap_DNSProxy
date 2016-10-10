@@ -26,45 +26,45 @@ extern GLOBAL_STATUS GlobalRunningStatus;
 //Functions
 ssize_t ProxySocketSelecting(
 	SYSTEM_SOCKET Socket, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	const uint8_t *SendBuffer, 
+	fd_set * const ReadFDS, 
+	fd_set * const WriteFDS, 
+	timeval * const Timeout, 
+	const uint8_t * const SendBuffer, 
 	const size_t SendSize, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
 	const size_t MinLen, 
-	ssize_t *ErrorCode);
+	ssize_t * const ErrorCode);
 bool SOCKSSelectionExchange(
-	SOCKET_DATA *SOCKSSocketData, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	uint8_t *SendBuffer, 
-	uint8_t *OriginalRecv, 
+	SOCKET_DATA * const SOCKSSocketData, 
+	fd_set * const ReadFDS, 
+	fd_set * const WriteFDS, 
+	timeval * const Timeout, 
+	uint8_t * const SendBuffer, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
 bool SOCKSAuthenticationUsernamePassword(
 	SYSTEM_SOCKET Socket, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	uint8_t *SendBuffer, 
-	uint8_t *OriginalRecv, 
+	fd_set * const ReadFDS, 
+	fd_set * const WriteFDS, 
+	timeval * const Timeout, 
+	uint8_t * const SendBuffer, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
 bool SOCKSClientCommandRequest(
 	const uint16_t Protocol, 
 	SYSTEM_SOCKET Socket, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	uint8_t *SendBuffer, 
-	uint8_t *OriginalRecv, 
+	fd_set * const ReadFDS, 
+	fd_set * const WriteFDS, 
+	timeval * const Timeout, 
+	uint8_t * const SendBuffer, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
-	SOCKET_DATA *UDP_ASSOCIATE_TCP_Connecting_Address);
+	SOCKET_DATA * const UDP_ASSOCIATE_TCP_Connecting_Address);
 bool HTTP_CONNECTRequest(
-	SOCKET_DATA *HTTPSocketData, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	uint8_t *OriginalRecv, 
+	SOCKET_DATA * const HTTPSocketData, 
+	fd_set * const ReadFDS, 
+	fd_set * const WriteFDS, 
+	timeval * const Timeout, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);

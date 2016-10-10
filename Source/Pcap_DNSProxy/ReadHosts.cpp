@@ -678,7 +678,7 @@ bool ReadAddressHostsData(
 
 //Get source data.
 	ADDRESS_RANGE_TABLE AddressRangeTableTemp;
-	uint8_t Addr[ADDRESS_STRING_MAXSIZE] = {0};
+	uint8_t Addr[ADDRESS_STRING_MAXSIZE]{0};
 	memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
 
 //Mark all data in list.

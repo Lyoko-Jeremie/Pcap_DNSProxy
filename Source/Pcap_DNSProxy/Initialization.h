@@ -40,10 +40,10 @@ std::mutex ScreenLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], SocketMarkingLoc
 
 //Functions
 void ConfigurationTableSetting(
-	CONFIGURATION_TABLE *ConfigurationParameter);
+	CONFIGURATION_TABLE * const ConfigurationParameter);
 void GlobalStatusSetting(
-	GLOBAL_STATUS *GlobalRunningStatusParameter);
+	GLOBAL_STATUS * const GlobalRunningStatusParameter);
 #if defined(ENABLE_LIBSODIUM)
 void DNSCurveConfigurationTableSetting(
-	DNSCURVE_CONFIGURATION_TABLE *DNSCurveConfigurationParameter);
+	DNSCURVE_CONFIGURATION_TABLE * const DNSCurveConfigurationParameter);
 #endif

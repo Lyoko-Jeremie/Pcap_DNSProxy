@@ -58,7 +58,7 @@ extern std::mutex IPFilterFileLock, HostsFileLock;
 
 //Functions in Configuration.cpp
 bool ReadText(
-	const FILE *FileHandle, 
+	const FILE * const FileHandle, 
 	const size_t InputType, 
 	const size_t FileIndex);
 bool ReadMultipleLineComments(
@@ -73,9 +73,9 @@ bool ParameterCheckAndSetting(
 	const bool IsFirstRead, 
 	const size_t FileIndex);
 uint16_t ServiceNameToBinary(
-	const uint8_t *OriginalBuffer);
+	const uint8_t * const OriginalBuffer);
 uint16_t DNSTypeNameToBinary(
-	const uint8_t *OriginalBuffer);
+	const uint8_t * const OriginalBuffer);
 bool ReadParameterData(
 	std::string Data, 
 	const size_t FileIndex, 
@@ -87,7 +87,7 @@ bool ReadPathAndFileName(
 	std::string Data, 
 	const size_t DataOffset, 
 	const bool Path, 
-	std::vector<std::wstring> *ListData, 
+	std::vector<std::wstring> * const ListData, 
 	const size_t FileIndex, 
 	const size_t Line);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -95,21 +95,21 @@ bool ReadPathAndFileName(
 	std::string Data, 
 	const size_t DataOffset, 
 	const bool Path, 
-	std::vector<std::wstring> *ListData, 
-	std::vector<std::string> *sListData, 
+	std::vector<std::wstring> * const ListData, 
+	std::vector<std::string> * const sListData, 
 	const size_t FileIndex, const size_t Line);
 #endif
 bool ReadMultipleAddresses(
 	std::string Data, 
 	const size_t DataOffset, 
 	const uint16_t Protocol, 
-	std::vector<DNS_SERVER_DATA> *DNSServerDataList, 
+	std::vector<DNS_SERVER_DATA> * const DNSServerDataList, 
 	const size_t FileIndex, 
 	const size_t Line);
 bool ReadSOCKSAddressAndDomain(
 	std::string Data, 
 	const size_t DataOffset, 
-	CONFIGURATION_TABLE *ParameterPTR, 
+	CONFIGURATION_TABLE * const ParameterPTR, 
 	const size_t FileIndex, 
 	const size_t Line);
 #if defined(ENABLE_PCAP)
@@ -117,7 +117,7 @@ bool ReadHopLimitData(
 	std::string Data, 
 	const size_t DataOffset, 
 	const uint16_t Protocol, 
-	std::vector<DNS_SERVER_DATA> *DNSServerDataList, 
+	std::vector<DNS_SERVER_DATA> * const DNSServerDataList, 
 	const bool IsFirstRead, 
 	const size_t FileIndex, 
 	const size_t Line);
@@ -126,20 +126,20 @@ bool ReadHopLimitData(
 bool ReadDNSCurveProviderName(
 	std::string Data, 
 	const size_t DataOffset, 
-	uint8_t *ProviderNameData, 
+	uint8_t * const ProviderNameData, 
 	const size_t FileIndex, 
 	const size_t Line);
 bool ReadDNSCurveKey(
 	std::string Data, 
 	const size_t DataOffset, 
-	uint8_t *KeyData, 
+	uint8_t * const KeyData, 
 	const size_t FileIndex, 
 	const size_t Line);
 #endif
 bool ReadDNSCurveMagicNumber(
 	std::string Data, 
 	const size_t DataOffset, 
-	uint8_t *MagicNumber, 
+	uint8_t * const MagicNumber, 
 	const size_t FileIndex, 
 	const size_t Line);
 
@@ -162,7 +162,7 @@ bool ReadAddressPrefixBlock(
 	std::string OriginalData, 
 	const size_t DataOffset, 
 	const uint16_t Protocol, 
-	ADDRESS_PREFIX_BLOCK *AddressPrefix, 
+	ADDRESS_PREFIX_BLOCK * const AddressPrefix, 
 	const size_t FileIndex, 
 	const size_t Line);
 bool ReadMainIPFilterData(

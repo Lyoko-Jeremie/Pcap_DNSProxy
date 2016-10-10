@@ -33,11 +33,11 @@ extern std::mutex SocketMarkingLock;
 //Functions
 bool SelectTargetSocket(
 	const size_t RequestType, 
-	SOCKET_DATA *TargetSocketData, 
-	bool **IsAlternate, 
-	size_t **AlternateTimeoutTimes, 
+	SOCKET_DATA * const TargetSocketData, 
+	bool ** const IsAlternate, 
+	size_t ** const AlternateTimeoutTimes, 
 	const uint16_t Protocol, 
-	const ADDRESS_UNION_DATA *SpecifieTargetData);
+	const ADDRESS_UNION_DATA * const SpecifieTargetData);
 bool SelectTargetSocketMultiple(
 	std::vector<SOCKET_DATA> &TargetSocketDataList, 
 	const uint16_t Protocol);
@@ -46,9 +46,9 @@ ssize_t SelectingResult(
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingList, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
 void MarkPortToList(
 	const uint16_t Protocol, 
-	const SOCKET_DATA *LocalSocketData, 
+	const SOCKET_DATA * const LocalSocketData, 
 	std::vector<SOCKET_DATA> &SocketDataList);

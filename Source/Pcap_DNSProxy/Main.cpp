@@ -51,7 +51,7 @@ int main(
 
 //Main process initialization
 #if defined(PLATFORM_WIN)
-	SERVICE_TABLE_ENTRYW ServiceTable[]{{SYSTEM_SERVICE_NAME, (LPSERVICE_MAIN_FUNCTIONW)ServiceMain}, {nullptr, nullptr}}; //Service beginning
+	const SERVICE_TABLE_ENTRYW ServiceTable[]{{SYSTEM_SERVICE_NAME, (LPSERVICE_MAIN_FUNCTIONW)ServiceMain}, {nullptr, nullptr}}; //Service beginning
 	if (StartServiceCtrlDispatcherW(
 			ServiceTable) == 0)
 	{
@@ -110,7 +110,7 @@ bool ReadCommands(
 #if defined(PLATFORM_WIN)
 	if (!FileNameInit(argv[0]))
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	char FileName[PATH_MAX + 1U] = {0};
+	char FileName[PATH_MAX + 1U]{0};
 	if (getcwd(FileName, PATH_MAX) == nullptr)
 	{
 		PrintToScreen(true, L"[System Error] Path initialization error.\n");
@@ -321,7 +321,7 @@ bool ReadCommands(
 				std::shared_ptr<uint8_t> Buffer(new uint8_t[DNSCRYPT_KEYPAIR_MESSAGE_LEN]());
 				sodium_memzero(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);
 				DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> SecretKey(crypto_box_SECRETKEYBYTES);
-				uint8_t PublicKey[crypto_box_PUBLICKEYBYTES] = {0};
+				uint8_t PublicKey[crypto_box_PUBLICKEYBYTES]{0};
 				size_t InnerIndex = 0;
 
 			//Generator a ramdon keypair and write public key.
@@ -398,10 +398,10 @@ bool ReadCommands(
 //Get path of program from the main function parameter and Winsock initialization
 #if defined(PLATFORM_WIN)
 bool FileNameInit(
-	const wchar_t *OriginalPath)
+	const wchar_t * const OriginalPath)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 bool FileNameInit(
-	const char *OriginalPath)
+	const char * const OriginalPath)
 #endif
 {
 //Path process

@@ -22,9 +22,9 @@
 //Convert address strings to binary
 bool AddressStringToBinary(
 	const uint16_t Protocol, 
-	const uint8_t *AddrString, 
-	void *OriginalAddr, 
-	ssize_t *ErrorCode)
+	const uint8_t * const AddrString, 
+	void * const OriginalAddr, 
+	ssize_t * const ErrorCode)
 {
 //Initialization
 	std::string sAddrString((const char *)AddrString);
@@ -186,10 +186,10 @@ bool AddressStringToBinary(
 //Convert binary address strings
 bool BinaryToAddressString(
 	const uint16_t Protocol, 
-	const void *OriginalAddr, 
-	void *AddressString, 
+	const void * const OriginalAddr, 
+	void * const AddressString, 
 	const size_t StringSize, 
-	ssize_t *ErrorCode)
+	ssize_t * const ErrorCode)
 {
 //Initialization
 	if (ErrorCode != nullptr)
@@ -237,8 +237,8 @@ bool BinaryToAddressString(
 //Compare two addresses
 size_t AddressesComparing(
 	const uint16_t Protocol, 
-	const void *OriginalAddrBegin, 
-	const void *OriginalAddrEnd)
+	const void * const OriginalAddrBegin, 
+	const void * const OriginalAddrEnd)
 {
 	if (Protocol == AF_INET6)
 	{
@@ -306,9 +306,9 @@ size_t AddressesComparing(
 //Check IPv4/IPv6 special addresses
 bool CheckSpecialAddress(
 	const uint16_t Protocol, 
-	void *Addr, 
+	void * const Addr, 
 	const bool IsPrivateUse, 
-	const uint8_t *Domain)
+	const uint8_t * const Domain)
 {
 	if (Protocol == AF_INET6)
 	{
@@ -628,7 +628,7 @@ StopLoop:
 //Check routing of addresses
 bool CheckAddressRouting(
 	const uint16_t Protocol, 
-	const void *Addr)
+	const void * const Addr)
 {
 	std::lock_guard<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 
@@ -647,7 +647,7 @@ bool CheckAddressRouting(
 							return true;
 					}
 					else {
-						auto AddrMapIter = LocalRoutingTableIter.AddressRoutingList_IPv6.find(ntoh64(*(uint64_t *)Addr));
+						const auto AddrMapIter = LocalRoutingTableIter.AddressRoutingList_IPv6.find(ntoh64(*(uint64_t *)Addr));
 						if (AddrMapIter != LocalRoutingTableIter.AddressRoutingList_IPv6.end() && 
 							AddrMapIter->second.count(ntoh64(*(uint64_t *)((uint8_t *)Addr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - LocalRoutingTableIter.Prefix))) > 0)
 								return true;
@@ -674,7 +674,7 @@ bool CheckAddressRouting(
 //Custom Mode address filter
 bool CheckCustomModeFilter(
 	const uint16_t Protocol, 
-	const void *OriginalAddr)
+	const void * const OriginalAddr)
 {
 	std::lock_guard<std::mutex> IPFilterFileMutex(IPFilterFileLock);
 	if (Protocol == AF_INET6)
@@ -869,7 +869,7 @@ bool CheckCustomModeFilter(
 
 //Count DNS Query Name length
 size_t CheckQueryNameLength(
-	const uint8_t *Buffer)
+	const uint8_t * const Buffer)
 {
 	size_t Index = 0;
 	for (Index = 0;Index < DOMAIN_MAXSIZE;++Index)
@@ -885,7 +885,7 @@ size_t CheckQueryNameLength(
 
 //Check response CNAME resource records
 size_t CheckResponseCNAME(
-	uint8_t *Buffer, 
+	uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t CNAME_Index, 
 	const size_t CNAME_Length, 
@@ -896,8 +896,8 @@ size_t CheckResponseCNAME(
 	std::string Domain;
 	if (MarkWholeDNSQuery(Buffer, Length, Buffer + CNAME_Index, CNAME_Index, Domain) <= DOMAIN_MINSIZE)
 		return EXIT_FAILURE;
-	auto DNS_Header = (pdns_hdr)Buffer;
-	auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
+	const auto DNS_Header = (pdns_hdr)Buffer;
+	const auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
 	size_t DataLength = 0;
 	RecordNum = 0;
 	CaseConvert(Domain, false);
@@ -1058,8 +1058,8 @@ size_t CheckResponseCNAME(
 
 //Check DNS query data
 bool CheckQueryData(
-	DNS_PACKET_DATA *Packet, 
-	uint8_t *SendBuffer, 
+	DNS_PACKET_DATA * const Packet, 
+	uint8_t * const SendBuffer, 
 	const size_t SendSize, 
 	const SOCKET_DATA &LocalSocketData)
 {
@@ -1102,7 +1102,7 @@ bool CheckQueryData(
 		return true;
 
 //Check request packet data.
-	auto DNS_Header = (pdns_hdr)Packet->Buffer;
+	const auto DNS_Header = (pdns_hdr)Packet->Buffer;
 	if (
 	//Base DNS header check
 		DNS_Header->ID == 0 || //ID must not be set 0.
@@ -1227,7 +1227,7 @@ bool CheckQueryData(
 
 //Check Hosts.
 	memset(SendBuffer, 0, SendSize);
-	auto DataLength = CheckHostsProcess(Packet, SendBuffer, SendSize, LocalSocketData);
+	const auto DataLength = CheckHostsProcess(Packet, SendBuffer, SendSize, LocalSocketData);
 	if (DataLength >= DNS_PACKET_MINSIZE)
 	{
 		SendToRequester(Packet->Protocol, SendBuffer, DataLength, SendSize, LocalSocketData);
@@ -1240,13 +1240,13 @@ bool CheckQueryData(
 //Check DNS response results
 size_t CheckResponseData(
 	const size_t ResponseType, 
-	uint8_t *Buffer, 
+	uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t BufferSize, 
-	bool *IsMarkHopLimit)
+	bool * const IsMarkHopLimit)
 {
 //DNS Options part
-	auto DNS_Header = (pdns_hdr)Buffer;
+	const auto DNS_Header = (pdns_hdr)Buffer;
 	if (
 	//Base DNS header check
 		DNS_Header->ID == 0 || //ID must not be set 0.
@@ -1312,7 +1312,7 @@ size_t CheckResponseData(
 		DomainString = (const uint8_t *)Domain.c_str();
 
 //Initialization
-	auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
+	const auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
 	size_t DataLength = DNS_PACKET_RR_LOCATE(Buffer);
 	uint16_t DNS_Pointer = 0, BeforeType = 0;
 	pdns_record_standard DNS_Record_Standard = nullptr;
@@ -1347,7 +1347,7 @@ size_t CheckResponseData(
 			DataLength + ntohs(DNS_Record_Standard->Length) < Length)
 		{
 			size_t RecordNum = 0;
-			auto CNAME_DataLength = CheckResponseCNAME(Buffer, Length, DataLength, ntohs(DNS_Record_Standard->Length), BufferSize, RecordNum);
+			const auto CNAME_DataLength = CheckResponseCNAME(Buffer, Length, DataLength, ntohs(DNS_Record_Standard->Length), BufferSize, RecordNum);
 			if (CNAME_DataLength >= DNS_PACKET_MINSIZE && RecordNum > 0)
 			{
 				DNS_Header->Answer = htons((uint16_t)(Index + 1U + RecordNum));
@@ -1454,7 +1454,7 @@ size_t CheckResponseData(
 
 //Check DNSSEC Records
 bool CheckDNSSECRecords(
-	const uint8_t *Buffer, 
+	const uint8_t * const Buffer, 
 	const size_t Length, 
 	const uint16_t Type, 
 	const uint16_t BeforeType)
@@ -1462,7 +1462,7 @@ bool CheckDNSSECRecords(
 //DS and CDS Records
 	if (Type == DNS_RECORD_DS || Type == DNS_RECORD_CDS)
 	{
-		auto DNS_Record_DS = (pdns_record_ds)Buffer;
+		const auto DNS_Record_DS = (pdns_record_ds)Buffer;
 
 	//Key Tag, Algorithm and Digest Type check
 		if (DNS_Record_DS->KeyTag == 0 || 
@@ -1482,8 +1482,8 @@ bool CheckDNSSECRecords(
 //SIG and RRSIG Records
 	else if (Type == DNS_RECORD_SIG || Type == DNS_RECORD_RRSIG)
 	{
-		auto DNS_Record_RRSIG = (pdns_record_rrsig)Buffer;
-		auto TimeValues = time(nullptr);
+		const auto DNS_Record_RRSIG = (pdns_record_rrsig)Buffer;
+		const auto TimeValues = time(nullptr);
 
 	//RRSIG header check
 		if (
@@ -1519,7 +1519,7 @@ bool CheckDNSSECRecords(
 //DNSKEY and CDNSKEY Records
 	else if (Type == DNS_RECORD_DNSKEY || Type == DNS_RECORD_CDNSKEY)
 	{
-		auto DNS_Record_DNSKEY = (pdns_record_dnskey)Buffer;
+		const auto DNS_Record_DNSKEY = (pdns_record_dnskey)Buffer;
 
 	//Key Revoked bit, Protocol and Algorithm check
 		if ((ntohs(DNS_Record_DNSKEY->Flags) & DNSSEC_DNSKEY_FLAGS_RSV) > 0 || DNS_Record_DNSKEY->Protocol != DNSSEC_DNSKEY_PROTOCOL || 
@@ -1532,7 +1532,7 @@ bool CheckDNSSECRecords(
 //NSEC3 Records
 	else if (Type == DNS_RECORD_NSEC3)
 	{
-		auto DNS_Record_NSEC3 = (pdns_record_nsec3)Buffer;
+		const auto DNS_Record_NSEC3 = (pdns_record_nsec3)Buffer;
 
 	//Algorithm check
 		if (DNS_Record_NSEC3->Algorithm == DNSSEC_AlGORITHM_RESERVED_0 || DNS_Record_NSEC3->Algorithm == DNSSEC_AlGORITHM_RESERVED_4 || 
@@ -1549,7 +1549,7 @@ bool CheckDNSSECRecords(
 //NSEC3PARAM Records
 	else if (Type == DNS_RECORD_NSEC3PARAM)
 	{
-		auto DNS_Record_NSEC3PARAM = (pdns_record_nsec3param)Buffer;
+		const auto DNS_Record_NSEC3PARAM = (pdns_record_nsec3param)Buffer;
 
 	//Algorithm check
 		if (DNS_Record_NSEC3PARAM->Algorithm == DNSSEC_AlGORITHM_RESERVED_0 || DNS_Record_NSEC3PARAM->Algorithm == DNSSEC_AlGORITHM_RESERVED_4 || 

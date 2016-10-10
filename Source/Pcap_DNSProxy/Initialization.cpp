@@ -20,8 +20,8 @@
 #include "Initialization.h"
 
 //RFC domain and Base64 encoding/decoding table
-static uint8_t DomainTable_Initialization[] = (".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"); //Preferred name syntax(Section 2.3.1 in RFC 1035)
-static uint8_t Base64_EncodeTable_Initialization[] = 
+static const uint8_t DomainTable_Initialization[] = (".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"); //Preferred name syntax(Section 2.3.1 in RFC 1035)
+static const uint8_t Base64_EncodeTable_Initialization[] = 
 {
 	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 
 	'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 
@@ -34,7 +34,7 @@ static uint8_t Base64_EncodeTable_Initialization[] =
 };
 
 /* Not necessary
-static int8_t Base64_DecodeTable_Initialization[] = //ASCII order for BASE 64 decode, -1 in unused character.
+static const int8_t Base64_DecodeTable_Initialization[] = //ASCII order for BASE 64 decode, -1 in unused character.
 {
 	'+', ',', '-', '.', '/', '0', '1', '2', 
 	62,  -1,  -1,  -1,  63,  52,  53,  54, 
@@ -168,7 +168,7 @@ ConfigurationTable::ConfigurationTable(
 
 //ConfigurationTable class constructor settings
 void ConfigurationTableSetting(
-	CONFIGURATION_TABLE *ConfigurationParameter)
+	CONFIGURATION_TABLE * const ConfigurationParameter)
 {
 //Initialization
 #if defined(ENABLE_PCAP)
@@ -391,7 +391,7 @@ void ConfigurationTable::SetToMonitorItem(
 
 //ConfigurationTable class MonitorItemToUsing function
 void ConfigurationTable::MonitorItemToUsing(
-	ConfigurationTable *ConfigurationParameter)
+	ConfigurationTable * const ConfigurationParameter)
 {
 //[Base] block
 	ConfigurationParameter->Version = Version;
@@ -674,16 +674,16 @@ GlobalStatus::GlobalStatus(
 
 //GlobalStatus class constructor settings
 void GlobalStatusSetting(
-	GLOBAL_STATUS *GlobalRunningStatusParameter)
+	GLOBAL_STATUS * const GlobalRunningStatusParameter)
 {
 #if defined(PLATFORM_LINUX)
 	GlobalRunningStatusParameter->IsDaemon = true;
 #endif
 	std::random_device RamdomDevice;
 	GlobalRunningStatusParameter->RamdomEngine->seed(RamdomDevice());
-	GlobalRunningStatusParameter->DomainTable = DomainTable_Initialization;
-	GlobalRunningStatusParameter->Base64_EncodeTable = Base64_EncodeTable_Initialization;
-//	GlobalRunningStatusParameter->Base64_DecodeTable = Base64_DecodeTable_Initialization;
+	GlobalRunningStatusParameter->DomainTable = (uint8_t *)DomainTable_Initialization;
+	GlobalRunningStatusParameter->Base64_EncodeTable = (uint8_t *)Base64_EncodeTable_Initialization;
+//	GlobalRunningStatusParameter->Base64_DecodeTable = (uint8_t *)Base64_DecodeTable_Initialization;
 	GlobalRunningStatusParameter->GatewayAvailable_IPv4 = true;
 	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_IPV6], 0, PACKET_MAXSIZE);
 	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_IPV4], 0, PACKET_MAXSIZE);
@@ -929,7 +929,7 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 
 //DNSCurveConfigurationTable class constructor settings
 void DNSCurveConfigurationTableSetting(
-	DNSCURVE_CONFIGURATION_TABLE *DNSCurveConfigurationParameter)
+	DNSCURVE_CONFIGURATION_TABLE * const DNSCurveConfigurationParameter)
 {
 //[DNSCurve Addresses] block
 	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_IPv4.ProviderName, DOMAIN_MAXSIZE);
@@ -1064,7 +1064,7 @@ void DNSCurveConfigurationTable::SetToMonitorItem(
 
 //DNSCurveConfigurationTable class MonitorItemToUsing function
 void DNSCurveConfigurationTable::MonitorItemToUsing(
-	DNSCurveConfigurationTable *DNSCurveConfigurationParameter)
+	DNSCurveConfigurationTable * const DNSCurveConfigurationParameter)
 {
 //[DNSCurve] block
 	DNSCurveConfigurationParameter->DNSCurve_SocketTimeout_Reliable = DNSCurve_SocketTimeout_Reliable;

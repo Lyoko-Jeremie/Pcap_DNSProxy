@@ -32,18 +32,18 @@ extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM], SocketMarkingLock;
 //Functions
 bool UDPMonitor(
 	const SOCKET_DATA LocalSocketData, 
-	bool *Result);
+	bool * const Result);
 bool TCPMonitor(
 	const SOCKET_DATA LocalSocketData, 
-	bool *Result);
+	bool * const Result);
 #if defined(PLATFORM_WIN)
 addrinfo *GetLocalAddressList(
 	const uint16_t Protocol, 
-	uint8_t *HostName);
+	uint8_t * const HostName);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 bool GetBestInterfaceAddress(
 	const uint16_t Protocol, 
-	const sockaddr_storage *OriginalSockAddr);
+	const sockaddr_storage * const OriginalSockAddr);
 #endif
 void GetGatewayInformation(
 	const uint16_t Protocol);

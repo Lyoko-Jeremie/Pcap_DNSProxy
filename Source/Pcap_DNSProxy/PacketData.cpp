@@ -24,7 +24,7 @@ uint32_t GetFCS(
 	const uint8_t *Buffer, 
 	const size_t Length)
 {
-	uint32_t Table[FCS_TABLE_SIZE] = {0}, Gx = 0x04C11DB7, Temp = 0, CRCTable = 0, Value = 0, UI = 0;
+	uint32_t Table[FCS_TABLE_SIZE]{0}, Gx = 0x04C11DB7, Temp = 0, CRCTable = 0, Value = 0, UI = 0;
 	uint8_t ReflectNum[]{8, 32};
 	int Index[]{0, 0, 0};
 
@@ -95,7 +95,7 @@ uint16_t GetChecksum(
 
 //Get ICMPv6 checksum
 uint16_t GetChecksum_ICMPv6(
-	const uint8_t *Buffer, 
+	const uint8_t * const Buffer, 
 	const size_t Length, 
 	const in6_addr &Destination, 
 	const in6_addr &Source)
@@ -116,7 +116,7 @@ uint16_t GetChecksum_ICMPv6(
 uint16_t GetChecksum_TCP_UDP(
 	const uint16_t Protocol_Network, 
 	const uint16_t Protocol_Transport, 
-	const uint8_t *Buffer, 
+	const uint8_t * const Buffer, 
 	const size_t Length)
 {
 	uint16_t Result = EXIT_FAILURE;
@@ -150,7 +150,7 @@ uint16_t GetChecksum_TCP_UDP(
 
 //Add length data to TCP DNS transmission
 size_t AddLengthDataToHeader(
-	uint8_t *Buffer, 
+	uint8_t * const Buffer, 
 	const size_t RecvLen, 
 	const size_t MaxLen)
 {
@@ -166,8 +166,8 @@ size_t AddLengthDataToHeader(
 
 //Convert data from string to DNS query
 size_t CharToDNSQuery(
-	const uint8_t *FName, 
-	uint8_t *TName)
+	const uint8_t * const FName, 
+	uint8_t * const TName)
 {
 //Initialization
 	int Index[]{(int)strnlen_s((const char *)FName, DOMAIN_MAXSIZE) - 1, 0, 0};
@@ -194,7 +194,7 @@ size_t CharToDNSQuery(
 
 //Convert data from DNS query to string
 size_t DNSQueryToChar(
-	const uint8_t *TName, 
+	const uint8_t * const TName, 
 	std::string &FName)
 {
 //Initialization
@@ -235,9 +235,9 @@ size_t DNSQueryToChar(
 
 //Convert data from compression DNS query to whole DNS query
 size_t MarkWholeDNSQuery(
-	const uint8_t *Packet, 
+	const uint8_t * const Packet, 
 	const size_t Length, 
-	const uint8_t *TName, 
+	const uint8_t * const TName, 
 	const size_t TNameIndex, 
 	std::string &FName)
 {
@@ -293,7 +293,7 @@ size_t MarkWholeDNSQuery(
 
 //Make ramdom domains
 void MakeRamdomDomain(
-	uint8_t *Buffer)
+	uint8_t * const Buffer)
 {
 //Ramdom number distribution initialization and make ramdom domain length.
 	std::uniform_int_distribution<size_t> RamdomDistribution(DOMAIN_RAMDOM_MINSIZE, DOMAIN_LEVEL_DATA_MAXSIZE);
@@ -359,7 +359,7 @@ void MakeRamdomDomain(
 
 //Make Domain Case Conversion
 void MakeDomainCaseConversion(
-	uint8_t *Buffer)
+	uint8_t * const Buffer)
 {
 //Ramdom number distribution initialization
 	std::uniform_int_distribution<size_t> RamdomDistribution(0, 1U);
@@ -387,13 +387,13 @@ void MakeDomainCaseConversion(
 
 //Add EDNS options to Additional Resource Records in DNS packet(C-Style string)
 size_t AddEDNSLabelToAdditionalRR(
-	uint8_t *Buffer, 
+	uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t MaxLen, 
-	const SOCKET_DATA *LocalSocketData)
+	const SOCKET_DATA * const LocalSocketData)
 {
 //Initialization
-	auto DNS_Header = (pdns_hdr)Buffer;
+	const auto DNS_Header = (pdns_hdr)Buffer;
 	if (DNS_Header->Additional > 0)
 		return Length;
 	else 
@@ -403,7 +403,7 @@ size_t AddEDNSLabelToAdditionalRR(
 //Add a new EDNS/OPT Additional Resource Records.
 	if (DataLength + sizeof(dns_record_opt) > MaxLen)
 		return DataLength;
-	auto DNS_Record_OPT = (pdns_record_opt)(Buffer + DataLength);
+	const auto DNS_Record_OPT = (pdns_record_opt)(Buffer + DataLength);
 	DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
 	DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 	DataLength += sizeof(dns_record_opt);
@@ -420,13 +420,13 @@ size_t AddEDNSLabelToAdditionalRR(
 	if ((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr) || 
 		Parameter.LocalMachineSubnet_IPv6 != nullptr || Parameter.LocalMachineSubnet_IPv4 != nullptr)
 	{
-		auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
+		const auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
 
 	//Length, DNS Class and DNS record check
 		if (DataLength + sizeof(edns_client_subnet) > MaxLen || ntohs(DNS_Query->Classes) != DNS_CLASS_IN || 
 			(ntohs(DNS_Query->Type) != DNS_RECORD_AAAA && ntohs(DNS_Query->Type) != DNS_RECORD_A))
 				return DataLength;
-		auto EDNS_Subnet_Header = (pedns_client_subnet)(Buffer + DataLength);
+		const auto EDNS_Subnet_Header = (pedns_client_subnet)(Buffer + DataLength);
 
 	//IPv6
 		if (ntohs(DNS_Query->Type) == DNS_RECORD_AAAA && 
@@ -493,11 +493,11 @@ size_t AddEDNSLabelToAdditionalRR(
 
 //Add EDNS options to Additional Resource Records in DNS packet(DNS packet structure)
 bool AddEDNSLabelToAdditionalRR(
-	DNS_PACKET_DATA *Packet, 
-	const SOCKET_DATA *LocalSocketData)
+	DNS_PACKET_DATA * const Packet, 
+	const SOCKET_DATA * const LocalSocketData)
 {
 //Initialization
-	auto DNS_Header = (pdns_hdr)Packet->Buffer;
+	const auto DNS_Header = (pdns_hdr)Packet->Buffer;
 	pdns_record_opt DNS_Record_OPT = nullptr;
 
 //Add a new EDNS/OPT Additional Resource Records.
@@ -532,13 +532,13 @@ bool AddEDNSLabelToAdditionalRR(
 		((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr) || 
 		Parameter.LocalMachineSubnet_IPv6 != nullptr || Parameter.LocalMachineSubnet_IPv4 != nullptr))
 	{
-		auto DNS_Query = (pdns_qry)(Packet->Buffer + DNS_PACKET_QUERY_LOCATE(Packet->Buffer));
+		const auto DNS_Query = (pdns_qry)(Packet->Buffer + DNS_PACKET_QUERY_LOCATE(Packet->Buffer));
 
 	//Length, DNS Class and DNS record check
 		if (Packet->Length + sizeof(edns_client_subnet) > Packet->BufferSize || ntohs(DNS_Query->Classes) != DNS_CLASS_IN || 
 			(ntohs(DNS_Query->Type) != DNS_RECORD_AAAA && ntohs(DNS_Query->Type) != DNS_RECORD_A))
 				return true;
-		auto EDNS_Subnet_Header = (pedns_client_subnet)(Packet->Buffer + Packet->Length);
+		const auto EDNS_Subnet_Header = (pedns_client_subnet)(Packet->Buffer + Packet->Length);
 
 	//IPv6
 		if (ntohs(DNS_Query->Type) == DNS_RECORD_AAAA && 
@@ -609,7 +609,7 @@ bool AddEDNSLabelToAdditionalRR(
 
 //Make Compression Pointer Mutation
 size_t MakeCompressionPointerMutation(
-	uint8_t *Buffer, 
+	uint8_t * const Buffer, 
 	const size_t Length)
 {
 //Ramdom number distribution initialization
@@ -705,7 +705,7 @@ size_t MakeCompressionPointerMutation(
 		}
 	//Pointer to Additional, like "[DNS Header][Pointer][Query][Additional]" and the pointer is point to domain in [Additional].
 		else {
-			auto DNS_Header = (pdns_hdr)Buffer;
+			const auto DNS_Header = (pdns_hdr)Buffer;
 			DNS_Header->Additional = htons(U16_NUM_ONE);
 
 		//Ramdom number distribution initialization
@@ -714,7 +714,7 @@ size_t MakeCompressionPointerMutation(
 		//Make records.
 			if (ntohs(DNS_Query.Type) == DNS_RECORD_AAAA)
 			{
-				auto DNS_Record_AAAA = (pdns_record_aaaa)(Buffer + Length);
+				const auto DNS_Record_AAAA = (pdns_record_aaaa)(Buffer + Length);
 				DNS_Record_AAAA->Type = htons(DNS_RECORD_AAAA);
 				DNS_Record_AAAA->Classes = htons(DNS_CLASS_IN);
 				DNS_Record_AAAA->TTL = htonl(RamdomDistribution_Additional(*GlobalRunningStatus.RamdomEngine));
@@ -725,7 +725,7 @@ size_t MakeCompressionPointerMutation(
 				return Length + sizeof(dns_record_aaaa);
 			}
 			else {
-				auto DNS_Record_A = (pdns_record_a)(Buffer + Length);
+				const auto DNS_Record_A = (pdns_record_a)(Buffer + Length);
 				DNS_Record_A->Type = htons(DNS_RECORD_A);
 				DNS_Record_A->Classes = htons(DNS_CLASS_IN);
 				DNS_Record_A->TTL = htonl(RamdomDistribution_Additional(*GlobalRunningStatus.RamdomEngine));

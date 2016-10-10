@@ -999,7 +999,7 @@ bool ParameterCheckAndSetting(
 
 //Convert service name to port
 uint16_t ServiceNameToBinary(
-	const uint8_t *OriginalBuffer)
+	const uint8_t * const OriginalBuffer)
 {
 	std::string Buffer((const char *)OriginalBuffer);
 	CaseConvert(Buffer, true);
@@ -1190,7 +1190,7 @@ uint16_t ServiceNameToBinary(
 
 //Convert DNS type name to hex
 uint16_t DNSTypeNameToBinary(
-	const uint8_t *OriginalBuffer)
+	const uint8_t * const OriginalBuffer)
 {
 	std::string Buffer((const char *)OriginalBuffer);
 	CaseConvert(Buffer, true);
@@ -2531,7 +2531,7 @@ bool ReadParameterData(
 		//Read data.
 			if (Data.length() > Offset + DOMAIN_MINSIZE && Data.length() < Offset + DOMAIN_DATA_MAXSIZE)
 			{
-				uint8_t LocalFQDN[DOMAIN_MAXSIZE] = {0};
+				uint8_t LocalFQDN[DOMAIN_MAXSIZE]{0};
 				Parameter.LocalFQDN_Length = Data.length() - Offset;
 				memcpy_s(LocalFQDN, DOMAIN_MAXSIZE, Data.c_str() + Offset, Parameter.LocalFQDN_Length);
 				*Parameter.LocalFQDN_String = (const char *)LocalFQDN;
@@ -3063,7 +3063,7 @@ bool ReadPathAndFileName(
 	std::string Data, 
 	const size_t DataOffset, 
 	const bool Path, 
-	std::vector<std::wstring> *ListData, 
+	std::vector<std::wstring> * const ListData, 
 	const size_t FileIndex, 
 	const size_t Line)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -3071,8 +3071,8 @@ bool ReadPathAndFileName(
 	std::string Data, 
 	const size_t DataOffset, 
 	const bool Path, 
-	std::vector<std::wstring> *ListData, 
-	std::vector<std::string> *sListData, 
+	std::vector<std::wstring> * const ListData, 
+	std::vector<std::string> * const sListData, 
 	const size_t FileIndex, const size_t Line)
 #endif
 {
@@ -3208,7 +3208,7 @@ bool ReadMultipleAddresses(
 	std::string Data, 
 	const size_t DataOffset, 
 	const uint16_t Protocol, 
-	std::vector<DNS_SERVER_DATA> *DNSServerDataList, 
+	std::vector<DNS_SERVER_DATA> * const DNSServerDataList, 
 	const size_t FileIndex, 
 	const size_t Line)
 {
@@ -3220,7 +3220,7 @@ bool ReadMultipleAddresses(
 	}
 	DNS_SERVER_DATA DNSServerDataTemp;
 	memset(&DNSServerDataTemp, 0, sizeof(DNSServerDataTemp));
-	uint8_t Addr[ADDRESS_STRING_MAXSIZE] = {0};
+	uint8_t Addr[ADDRESS_STRING_MAXSIZE]{0};
 	std::vector<std::string> ListData;
 	ssize_t SignedResult = 0;
 	size_t UnsignedResult = 0;
@@ -3367,7 +3367,7 @@ bool ReadMultipleAddresses(
 bool ReadSOCKSAddressAndDomain(
 	std::string Data, 
 	const size_t DataOffset, 
-	CONFIGURATION_TABLE *ParameterPTR, 
+	CONFIGURATION_TABLE * const ParameterPTR, 
 	const size_t FileIndex, 
 	const size_t Line)
 {
@@ -3379,7 +3379,7 @@ bool ReadSOCKSAddressAndDomain(
 	}
 
 //Initialization
-	uint8_t Addr[ADDRESS_STRING_MAXSIZE] = {0};
+	uint8_t Addr[ADDRESS_STRING_MAXSIZE]{0};
 	ssize_t SignedResult = 0;
 	size_t UnsignedResult = 0;
 
@@ -3510,7 +3510,7 @@ bool ReadHopLimitData(
 	std::string Data, 
 	const size_t DataOffset, 
 	const uint16_t Protocol, 
-	std::vector<DNS_SERVER_DATA> *DNSServerDataList, 
+	std::vector<DNS_SERVER_DATA> * const DNSServerDataList, 
 	const bool IsFirstRead, 
 	const size_t FileIndex, 
 	const size_t Line)
@@ -3602,7 +3602,7 @@ PrintDataFormatError:
 bool ReadDNSCurveProviderName(
 	std::string Data, 
 	const size_t DataOffset, 
-	uint8_t *ProviderNameData, 
+	uint8_t * const ProviderNameData, 
 	const size_t FileIndex, 
 	const size_t Line)
 {
@@ -3638,21 +3638,21 @@ bool ReadDNSCurveProviderName(
 bool ReadDNSCurveKey(
 	std::string Data, 
 	const size_t DataOffset, 
-	uint8_t *KeyData, 
+	uint8_t * const KeyData, 
 	const size_t FileIndex, 
 	const size_t Line)
 {
 	memset(KeyData, 0, crypto_box_SECRETKEYBYTES);
 
 //Initialization
-	uint8_t Addr[ADDRESS_STRING_MAXSIZE] = {0};
+	uint8_t Addr[ADDRESS_STRING_MAXSIZE]{0};
 	const char *ResultPointer = nullptr;
 	size_t ResultLength = 0;
 
 //Convert hex format to binary.
 	if (Data.length() > DataOffset + crypto_box_PUBLICKEYBYTES * 2U && Data.length() < DataOffset + crypto_box_PUBLICKEYBYTES * 3U)
 	{
-		auto Result = sodium_hex2bin(Addr, ADDRESS_STRING_MAXSIZE, Data.c_str() + DataOffset, Data.length() - DataOffset, ": ", &ResultLength, &ResultPointer);
+		const auto Result = sodium_hex2bin(Addr, ADDRESS_STRING_MAXSIZE, Data.c_str() + DataOffset, Data.length() - DataOffset, ": ", &ResultLength, &ResultPointer);
 		if (Result == 0 && ResultPointer != nullptr && ResultLength == crypto_box_PUBLICKEYBYTES)
 		{
 			memcpy_s(KeyData, crypto_box_SECRETKEYBYTES, Addr, crypto_box_PUBLICKEYBYTES);
@@ -3674,7 +3674,7 @@ bool ReadDNSCurveKey(
 bool ReadDNSCurveMagicNumber(
 	std::string Data, 
 	const size_t DataOffset, 
-	uint8_t *MagicNumber, 
+	uint8_t * const MagicNumber, 
 	const size_t FileIndex, 
 	const size_t Line)
 {
@@ -3688,7 +3688,7 @@ bool ReadDNSCurveMagicNumber(
 		size_t ResultLength = 0;
 
 	//Convert hex format to binary.
-		auto Result = sodium_hex2bin(MagicNumber, DNSCURVE_MAGIC_QUERY_LEN, Data.c_str() + DataOffset + strlen("0x"), DNSCURVE_MAGIC_QUERY_HEX_LEN, nullptr, &ResultLength, &ResultPointer);
+		const auto Result = sodium_hex2bin(MagicNumber, DNSCURVE_MAGIC_QUERY_LEN, Data.c_str() + DataOffset + strlen("0x"), DNSCURVE_MAGIC_QUERY_HEX_LEN, nullptr, &ResultLength, &ResultPointer);
 		if (Result != 0 || ResultLength != DNSCURVE_MAGIC_QUERY_LEN || ResultPointer == nullptr)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);

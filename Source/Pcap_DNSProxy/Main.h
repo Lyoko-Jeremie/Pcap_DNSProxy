@@ -33,7 +33,7 @@ bool ReadCommands(
 	int argc, 
 	wchar_t *argv[]);
 bool FileNameInit(
-	const wchar_t *OriginalPath);
+	const wchar_t * const OriginalPath);
 bool FirewallTest(
 	const uint16_t Protocol, 
 	ssize_t &ErrorCode);
@@ -42,7 +42,7 @@ bool ReadCommands(
 	int argc, 
 	char *argv[]);
 bool FileNameInit(
-	const char *OriginalPath);
+	const char * const OriginalPath);
 #endif
 void MonitorLauncher(
 	void);

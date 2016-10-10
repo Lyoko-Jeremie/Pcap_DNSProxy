@@ -31,33 +31,33 @@ extern std::mutex SocketMarkingLock;
 //Functions
 ssize_t DNSCurvePaddingData(
 	const bool SetPadding, 
-	uint8_t *Buffer, 
+	uint8_t * const Buffer, 
 	const ssize_t Length);
 size_t DNSCurveSelectTargetSocket(
 	const uint16_t Protocol, 
-	SOCKET_DATA *TargetSocketData, 
-	DNSCURVE_SERVER_DATA **PacketTarget, 
-	bool **IsAlternate, 
-	size_t **AlternateTimeoutTimes);
+	SOCKET_DATA * const TargetSocketData, 
+	DNSCURVE_SERVER_DATA ** const PacketTarget, 
+	bool ** const IsAlternate, 
+	size_t ** const AlternateTimeoutTimes);
 bool DNSCurveSelectTargetSocketMultiple(
 	const uint16_t Protocol, 
 	bool &IsIPv6, 
-	bool **IsAlternate);
+	bool ** const IsAlternate);
 bool DNSCurvePacketTargetSetting(
 	const size_t ServerType, 
-	DNSCURVE_SERVER_DATA **PacketTarget);
+	DNSCURVE_SERVER_DATA ** const PacketTarget);
 bool DNSCurvePrecomputationKeySetting(
-	uint8_t *PrecomputationKey, 
-	uint8_t *Client_PublicKey, 
-	const uint8_t *ServerFingerprint);
+	uint8_t * const PrecomputationKey, 
+	uint8_t * const Client_PublicKey, 
+	const uint8_t * const ServerFingerprint);
 void DNSCurveSocketPrecomputation(
 	const uint16_t Protocol, 
-	const uint8_t *OriginalSend, 
+	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	const size_t RecvSize, 
-	uint8_t **PrecomputationKey, 
-	uint8_t **Alternate_PrecomputationKey, 
-	DNSCURVE_SERVER_DATA **PacketTarget, 
+	uint8_t ** const PrecomputationKey, 
+	uint8_t ** const Alternate_PrecomputationKey, 
+	DNSCURVE_SERVER_DATA ** const PacketTarget, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
 	std::shared_ptr<uint8_t> &SendBuffer, 
@@ -66,31 +66,31 @@ void DNSCurveSocketPrecomputation(
 	size_t &Alternate_DataLength);
 size_t DNSCurvePacketEncryption(
 	const uint16_t Protocol, 
-	const uint8_t *SendMagicNumber, 
-	const uint8_t *Client_PublicKey, 
-	const uint8_t *PrecomputationKey, 
-	const uint8_t *OriginalSend, 
+	const uint8_t * const SendMagicNumber, 
+	const uint8_t * const Client_PublicKey, 
+	const uint8_t * const PrecomputationKey, 
+	const uint8_t * const OriginalSend, 
 	const size_t Length, 
-	uint8_t *SendBuffer, 
+	uint8_t * const SendBuffer, 
 	const size_t SendSize);
 ssize_t DNSCurvePacketDecryption(
-	const uint8_t *ReceiveMagicNumber, 
-	const uint8_t *PrecomputationKey, 
-	uint8_t *OriginalRecv, 
+	const uint8_t * const ReceiveMagicNumber, 
+	const uint8_t * const PrecomputationKey, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
 	const ssize_t Length);
 ssize_t DNSCurveSocketSelecting(
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
-	ssize_t *ErrorCode);
+	ssize_t * const ErrorCode);
 ssize_t DNSCurveSelectingResult(
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<DNSCURVE_SOCKET_SELECTING_DATA> &SocketSelectingList, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
 bool DNSCurveTCPSignatureRequest(
 	const uint16_t Protocol, 
@@ -99,6 +99,6 @@ bool DNSCurveUDPSignatureRequest(
 	const uint16_t Protocol, 
 	const bool IsAlternate);
 bool DNSCruveGetSignatureData(
-	const uint8_t *Buffer, 
+	const uint8_t * const Buffer, 
 	const size_t ServerType);
 #endif

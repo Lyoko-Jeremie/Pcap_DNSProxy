@@ -134,15 +134,15 @@
 //Proxy non-blocking mode selecting
 ssize_t ProxySocketSelecting(
 	SYSTEM_SOCKET Socket, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	const uint8_t *SendBuffer, 
+	fd_set * const ReadFDS, 
+	fd_set * const WriteFDS, 
+	timeval * const Timeout, 
+	const uint8_t * const SendBuffer, 
 	const size_t SendSize, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
 	const size_t MinLen, 
-	ssize_t *ErrorCode)
+	ssize_t * const ErrorCode)
 {
 //Initialization
 	ssize_t RecvLen = 0, SelectResult = 0;
@@ -207,12 +207,12 @@ ssize_t ProxySocketSelecting(
 
 //SOCKS selection exchange process
 bool SOCKSSelectionExchange(
-	SOCKET_DATA *SOCKSSocketData, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	uint8_t *SendBuffer, 
-	uint8_t *OriginalRecv, 
+	SOCKET_DATA * const SOCKSSocketData, 
+	fd_set * const ReadFDS, 
+	fd_set * const WriteFDS, 
+	timeval * const Timeout, 
+	uint8_t * const SendBuffer, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize)
 {
 //Initialization
@@ -319,11 +319,11 @@ bool SOCKSSelectionExchange(
 //SOCKS username/password authentication process
 bool SOCKSAuthenticationUsernamePassword(
 	SYSTEM_SOCKET Socket, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	uint8_t *SendBuffer, 
-	uint8_t *OriginalRecv, 
+	fd_set * const ReadFDS, 
+	fd_set * const WriteFDS, 
+	timeval * const Timeout, 
+	uint8_t * const SendBuffer, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize)
 {
 //Initialization
@@ -362,13 +362,13 @@ bool SOCKSAuthenticationUsernamePassword(
 bool SOCKSClientCommandRequest(
 	const uint16_t Protocol, 
 	SYSTEM_SOCKET Socket, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	uint8_t *SendBuffer, 
-	uint8_t *OriginalRecv, 
+	fd_set * const ReadFDS, 
+	fd_set * const WriteFDS, 
+	timeval * const Timeout, 
+	uint8_t * const SendBuffer, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
-	SOCKET_DATA *UDP_ASSOCIATE_TCP_Connecting_Address)
+	SOCKET_DATA * const UDP_ASSOCIATE_TCP_Connecting_Address)
 {
 //Initialization
 	size_t Length = 0;
@@ -573,9 +573,9 @@ bool SOCKSClientCommandRequest(
 
 //Transmission and reception of SOCKS protocol(TCP)
 size_t SOCKSTCPRequest(
-	const uint8_t *OriginalSend, 
+	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize)
 {
 //Initialization(Part 1)
@@ -713,9 +713,9 @@ size_t SOCKSTCPRequest(
 
 //Transmission and reception of SOCKS protocol(UDP)
 size_t SOCKSUDPRequest(
-	const uint8_t *OriginalSend, 
+	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize)
 {
 //Initialization(Part 1)
@@ -1022,9 +1022,9 @@ size_t SOCKSUDPRequest(
 
 //Transmission and reception of HTTP protocol
 size_t HTTPRequest(
-	const uint8_t *OriginalSend, 
+	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
-	uint8_t *OriginalRecv, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize)
 {
 //Initialization
@@ -1147,11 +1147,11 @@ size_t HTTPRequest(
 
 //HTTP CONNECT request exchange process
 bool HTTP_CONNECTRequest(
-	SOCKET_DATA *HTTPSocketData, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	uint8_t *OriginalRecv, 
+	SOCKET_DATA * const HTTPSocketData, 
+	fd_set * const ReadFDS, 
+	fd_set * const WriteFDS, 
+	timeval * const Timeout, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize)
 {
 //Initialization

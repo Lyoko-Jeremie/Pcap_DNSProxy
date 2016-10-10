@@ -1,7 +1,5 @@
 ﻿Pcap_DNSProxy 專案的 GitHub 頁面：
-
-* 主分支: https://github.com/chengr28/Pcap_DNSProxy
-* Release 分支: https://github.com/chengr28/Pcap_DNSProxy/tree/Release
+https://github.com/chengr28/Pcap_DNSProxy
 
 Pcap_DNSProxy 專案的 Sourceforge 頁面：
 https://sourceforge.net/projects/pcap-dnsproxy
@@ -17,10 +15,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 如果 WinPcap 提示已安裝舊版本無法繼續時，參見 FAQ 中 運行結果分析 一節
   * 安裝時自啟動選項對工具的運行沒有影響，因為本工具直接調用 WinPcap API，不需要經過伺服器程式
 
-2.訪問 https://github.com/chengr28/Pcap_DNSProxy/tree/Release 並使用 GitHub 的 Download ZIP 功能將所有檔下載到本地
-  * Windows 版本的 Pcap_DNSProxy 在 ZIP 的 Windows 目錄內，可將整個目錄單獨抽出運行
+2.訪問 https://github.com/chengr28/Pcap_DNSProxy/releases 將二進位可執行檔包下載到本地
+  * Windows 版本的 Pcap_DNSProxy 在二進位可執行檔包的 Windows 目錄內，可將整個目錄單獨抽出運行
 
-3.打開下載回來的 ZIP 檔，將 Windows 目錄解壓到磁片的任意位置
+3.打開下載回來的二進位可執行檔包，將 Windows 目錄解壓到磁片的任意位置
   * 目錄所在位置和程式檔案名可以隨意更改
   * 設定檔需要使用固定的檔案名（更多詳細情況參見下文 功能和技術 一節）
 

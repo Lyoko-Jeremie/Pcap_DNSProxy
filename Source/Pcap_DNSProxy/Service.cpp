@@ -122,7 +122,7 @@ BOOL WINAPI ExecuteService(
 	void)
 {
 	DWORD dwThreadID = 0;
-	HANDLE hServiceThread = CreateThread(
+	const HANDLE hServiceThread = CreateThread(
 		0, 
 		0, 
 		(PTHREAD_START_ROUTINE)ServiceProc, 
@@ -247,7 +247,7 @@ bool FlushDNSMailSlotMonitor(
 	SecurityAttributes.bInheritHandle = true;
 
 //Create mailslot.
-	HANDLE hSlot = CreateMailslotW(
+	const HANDLE hSlot = CreateMailslotW(
 		MAILSLOT_NAME, FILE_BUFFER_SIZE - 1U, 
 		MAILSLOT_WAIT_FOREVER, 
 		&SecurityAttributes);
@@ -326,10 +326,10 @@ bool FlushDNSMailSlotMonitor(
 
 //Mailslot of flush DNS cache sender
 bool WINAPI FlushDNSMailSlotSender(
-	const wchar_t *Domain)
+	const wchar_t * const Domain)
 {
 //Mailslot initialization
-	HANDLE hFile = CreateFileW(
+	const HANDLE hFile = CreateFileW(
 		MAILSLOT_NAME, 
 		GENERIC_WRITE, 
 		FILE_SHARE_READ, 
@@ -468,7 +468,7 @@ bool FlushDNSFIFOMonitor(
 
 //Flush DNS cache FIFO sender
 bool FlushDNSFIFOSender(
-	const uint8_t *Domain)
+	const uint8_t * const Domain)
 {
 //Message initialization
 	std::string Message(FIFO_MESSAGE_FLUSH_DNS);
@@ -480,7 +480,7 @@ bool FlushDNSFIFOSender(
 
 //Write into FIFO file.
 	errno = 0;
-	int FIFO_Handle = open(FIFO_PATH_NAME, O_WRONLY|O_TRUNC|O_NONBLOCK, 0);
+	const int FIFO_Handle = open(FIFO_PATH_NAME, O_WRONLY|O_TRUNC|O_NONBLOCK, 0);
 	if (FIFO_Handle > 0)
 	{
 		if (write(FIFO_Handle, Message.c_str(), Message.length() + 1U) > 0)
@@ -514,7 +514,7 @@ bool FlushDNSFIFOSender(
 
 //Flush DNS cache
 void FlushDNSCache(
-	const uint8_t *Domain)
+	const uint8_t * const Domain)
 {
 //Flush DNS cache in process.
 	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);

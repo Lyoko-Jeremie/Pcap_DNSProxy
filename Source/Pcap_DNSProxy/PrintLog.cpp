@@ -23,9 +23,9 @@
 bool PrintError(
 	const size_t ErrorLevel, 
 	const size_t ErrorType, 
-	const wchar_t *Message, 
+	const wchar_t * const Message, 
 	const ssize_t ErrorCode, 
-	const wchar_t *FileName, 
+	const wchar_t * const FileName, 
 	const size_t Line)
 {
 //Print log level check, parameter check, message check and file name check
@@ -154,7 +154,7 @@ bool WriteScreenAndFile(
 //Get current date and time.
 	tm TimeStructure;
 	memset(&TimeStructure, 0, sizeof(TimeStructure));
-	auto TimeValues = time(nullptr);
+	const auto TimeValues = time(nullptr);
 #if defined(PLATFORM_WIN)
 	if (localtime_s(&TimeStructure, &TimeValues) != 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -306,7 +306,7 @@ bool WriteScreenAndFile(
 //Print words to screen
 void PrintToScreen(
 	const bool IsInnerLock, 
-	const wchar_t *Format, 
+	const wchar_t * const Format, 
 	...
 )
 {
