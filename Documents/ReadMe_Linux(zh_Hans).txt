@@ -104,12 +104,12 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * 直接修改 dhclient.conf 文件，修改或添加 prepend domain-name-servers 一项即可
       * 如果 prepend domain-name-servers 一项被 # 注释则需要把注释去掉以使配置生效，不需要添加新的条目
       * dhclient.conf 文件可能存在多个 prepend domain-name-servers 项，是各个网络接口的配置项目，直接修改总的配置项目即可
-      * 使用 service network(/networking) restart 或 ipdown/ipup 或 ifcondig stop/start 重启网络服务/网络端口
+      * 使用 service network(/networking) restart 或 ifdown/ifup 或 ifconfig stop/start 重启网络服务/网络端口
     * 非自动获取地址(DHCP)时：
       * 以 root 权限进入 /etc 目录
       * 直接修改 resolv.conf 文件里的 nameserver 即可
       * 如果重启后配置被覆盖，则需要修改或新建 /etc/resolvconf/resolv.conf.d 文件，内容和 resolv.conf 一样
-      * 使用 service network(/networking) restart 或 ipdown/ipup 或 ifcondig stop/start 重启网络服务/网络端口
+      * 使用 service network(/networking) restart 或 ifdown/ifup 或 ifconfig stop/start 重启网络服务/网络端口
 
 
 -------------------------------------------------------------------------------
