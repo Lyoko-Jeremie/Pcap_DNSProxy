@@ -19,22 +19,7 @@
 
 #include "Base.h"
 
-#if defined(ENABLE_LIBSODIUM)
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
-extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
-extern std::deque<SOCKET_MARKING_DATA> SocketMarkingList;
-extern std::mutex SocketMarkingLock;
-
-//Functions
-ssize_t DNSCurvePaddingData(
-	const bool SetPadding, 
-	uint8_t * const Buffer, 
-	const ssize_t Length);
-bool DNSCurveSelectTargetSocket(
-	const uint16_t Protocol, 
-	bool &IsIPv6, 
-	bool ** const IsAlternate);
-#endif

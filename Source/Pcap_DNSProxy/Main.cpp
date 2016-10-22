@@ -585,8 +585,8 @@ void MonitorLauncher(
 		Parameter.DirectRequest == REQUEST_MODE_DIRECT_IPV4 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0)) && 
 	//SOCKS request only mode
 		!(Parameter.SOCKS_Proxy && Parameter.SOCKS_Only) && 
-	//HTTP request only mode
-		!(Parameter.HTTP_Proxy && Parameter.HTTP_Only)
+	//HTTP CONNECT request only mode
+		!(Parameter.HTTP_CONNECT_Proxy && Parameter.HTTP_CONNECT_Only)
 	//DNSCurve request only mode
 	#if defined(ENABLE_LIBSODIUM)
 		&& !(Parameter.IsDNSCurve && DNSCurveParameter.IsEncryptionOnly)

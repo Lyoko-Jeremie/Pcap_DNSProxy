@@ -534,9 +534,9 @@ bool ReadLocalRoutingData(
 
 //Read Address Prefix Block data
 bool ReadAddressPrefixBlock(
+	const uint16_t Protocol, 
 	std::string OriginalData, 
 	const size_t DataOffset, 
-	const uint16_t Protocol, 
 	ADDRESS_PREFIX_BLOCK * const AddressPrefix, 
 	const size_t FileIndex, 
 	const size_t Line)

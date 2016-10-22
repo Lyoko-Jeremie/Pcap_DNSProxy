@@ -910,7 +910,7 @@ bool ReadMainHostsData(
 		//Mark all data in list.
 			for (const auto &StringIter:SourceListData)
 			{
-				if (!ReadAddressPrefixBlock(StringIter, 0, Protocol, &AddressPrefix, FileIndex, Line))
+				if (!ReadAddressPrefixBlock(Protocol, StringIter, 0, &AddressPrefix, FileIndex, Line))
 					return false;
 				else 
 					HostsTableTemp.SourceList.push_back(AddressPrefix);
@@ -961,7 +961,7 @@ bool ReadMainHostsData(
 			return false;
 		}
 		else {
-			HostsTableTemp.RecordTypeList.push_back(htons(DNS_RECORD_AAAA));
+			HostsTableTemp.RecordTypeList.push_back(htons(DNS_TYPE_AAAA));
 		}
 	}
 	else if (HostsListDataIter->find(ASCII_PERIOD) != std::string::npos) //A records(IPv4)
@@ -972,7 +972,7 @@ bool ReadMainHostsData(
 			return false;
 		}
 		else {
-			HostsTableTemp.RecordTypeList.push_back(htons(DNS_RECORD_A));
+			HostsTableTemp.RecordTypeList.push_back(htons(DNS_TYPE_A));
 		}
 	}
 	else {
@@ -993,7 +993,7 @@ bool ReadMainHostsData(
 			memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
 
 		//AAAA records(IPv6)
-			if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_AAAA))
+			if (HostsTableTemp.RecordTypeList.front() == htons(DNS_TYPE_AAAA))
 			{
 				if (!AddressStringToBinary(AF_INET6, (const uint8_t *)HostsListData.back().c_str(), &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
 				{
@@ -1002,7 +1002,7 @@ bool ReadMainHostsData(
 				}
 			}
 		//A records(IPv4)
-			else if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_A))
+			else if (HostsTableTemp.RecordTypeList.front() == htons(DNS_TYPE_A))
 			{
 				if (!AddressStringToBinary(AF_INET, (const uint8_t *)HostsListData.back().c_str(), &AddressUnionDataTemp.IPv4.sin_addr, &Result))
 				{
@@ -1025,7 +1025,7 @@ bool ReadMainHostsData(
 			memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
 
 		//AAAA records(IPv6)
-			if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_AAAA))
+			if (HostsTableTemp.RecordTypeList.front() == htons(DNS_TYPE_AAAA))
 			{
 				if (!AddressStringToBinary(AF_INET6, (const uint8_t *)StringIter.c_str(), &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
 				{
@@ -1034,7 +1034,7 @@ bool ReadMainHostsData(
 				}
 			}
 		//A records(IPv4)
-			else if (HostsTableTemp.RecordTypeList.front() == htons(DNS_RECORD_A))
+			else if (HostsTableTemp.RecordTypeList.front() == htons(DNS_TYPE_A))
 			{
 				if (!AddressStringToBinary(AF_INET, (const uint8_t *)StringIter.c_str(), &AddressUnionDataTemp.IPv4.sin_addr, &Result))
 				{

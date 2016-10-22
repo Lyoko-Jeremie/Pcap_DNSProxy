@@ -123,10 +123,10 @@ bool PrintError(
 		{
 			ErrorMessage.append(L"[SOCKS Error] ");
 		}break;
-	//HTTP Error
-		case LOG_ERROR_HTTP:
+	//HTTP CONNECT Error
+		case LOG_ERROR_HTTP_CONNECT:
 		{
-			ErrorMessage.append(L"[HTTP Error] ");
+			ErrorMessage.append(L"[HTTP CONNECT Error] ");
 		}break;
 		default:
 		{

@@ -63,7 +63,19 @@
     <ClInclude Include="Service.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Structures.h">
+    <ClInclude Include="Template.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Definition.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Structure.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Request.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DNSCurveRequest.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -117,6 +129,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="ReadParameter.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Request.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DNSCurveRequest.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

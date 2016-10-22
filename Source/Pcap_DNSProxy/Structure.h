@@ -1348,129 +1348,370 @@ typedef struct _ipv6_psd_hdr_
 #define DNS_POINTER_QUERY             0xC00C     //Pointer of first query
 
 //OPCode definitions
-#define DNS_OPCODE_QUERY        0                //OPCode Query is 0.
-#define DNS_OPCODE_IQUERY       1U               //OPCode Inverse Query(Obsolete) is 1.
-#define DNS_OPCODE_STATUS       2U               //OPCode Status is 2.
-#define DNS_OPCODE_NOTIFY       4U               //OPCode Notify is 3.
-#define DNS_OPCODE_UPDATE       5U               //OPCode Update is 4.
-#define DNS_OPCODE_RESERVED     0xFFFF           //DNS Reserved OPCode is 65535.
+#ifndef DNS_OPCODE_QUERY
+	#define DNS_OPCODE_QUERY           0                //OPCode Query is 0.
+#endif
+#ifndef DNS_OPCODE_IQUERY
+	#define DNS_OPCODE_IQUERY          1U               //OPCode Inverse Query(Obsolete) is 1.
+#endif
+#ifndef DNS_OPCODE_SERVER_STATUS
+	#define DNS_OPCODE_SERVER_STATUS   2U               //OPCode Status is 2.
+#endif
+#ifndef DNS_OPCODE_UNKNOWN
+	#define DNS_OPCODE_UNKNOWN         3U               //OPCode Unknown is 3.
+#endif
+#ifndef DNS_OPCODE_NOTIFY
+	#define DNS_OPCODE_NOTIFY          4U               //OPCode Notify is 4.
+#endif
+#ifndef DNS_OPCODE_UPDATE
+	#define DNS_OPCODE_UPDATE          5U               //OPCode Update is 5.
+#endif
+#ifndef DNS_OPCODE_RESERVED
+	#define DNS_OPCODE_RESERVED        0xFFFF           //DNS Reserved OPCode is 65535.
+#endif
 
 //Classes definitions
-#define DNS_CLASS_IN            0x0001           //DNS INTERNET Classes is 1.
-#define DNS_CLASS_CSNET         0x0002           //DNS CSNET Classes is 2.
-#define DNS_CLASS_CHAOS         0x0003           //DNS CHAOS Classes is 3.
-#define DNS_CLASS_HESIOD        0x0004           //DNS HESIOD Classes is 4.
-#define DNS_CLASS_NONE          0x00FE           //DNS NONE Classes is 254.
-#define DNS_CLASS_ALL           0x00FF           //DNS ALL Classes is 255.
-#define DNS_CLASS_ANY           0x00FF           //DNS ANY Classes is 255.
+#ifndef DNS_CLASS_INTERNET
+	#define DNS_CLASS_INTERNET      0x0001           //DNS INTERNET Classes is 1.
+#endif
+#ifndef DNS_CLASS_CSNET
+	#define DNS_CLASS_CSNET         0x0002           //DNS CSNET Classes is 2.
+#endif
+#ifndef DNS_CLASS_CHAOS
+	#define DNS_CLASS_CHAOS         0x0003           //DNS CHAOS Classes is 3.
+#endif
+#ifndef DNS_CLASS_HESIOD
+	#define DNS_CLASS_HESIOD        0x0004           //DNS HESIOD Classes is 4.
+#endif
+#ifndef DNS_CLASS_NONE
+	#define DNS_CLASS_NONE          0x00FE           //DNS NONE Classes is 254.
+#endif
+#ifndef DNS_CLASS_ALL
+	#define DNS_CLASS_ALL           0x00FF           //DNS ALL Classes is 255.
+#endif
+#ifndef DNS_CLASS_ANY
+	#define DNS_CLASS_ANY           0x00FF           //DNS ANY Classes is 255.
+#endif
 
 //RCode definitions
-#define DNS_RCODE_NOERROR       0                //RCode No Error is 0.
-#define DNS_RCODE_FORMERR       0x0001           //RCode Format Error is 1.
-#define DNS_RCODE_SERVFAIL      0x0002           //RCode Server Failure is 2.
-#define DNS_RCODE_NXDOMAIN      0x0003           //RCode Non-Existent Domain is 3.
-#define DNS_RCODE_NOTIMP        0x0004           //RCode Not Implemented is 4.
-#define DNS_RCODE_REFUSED       0x0005           //RCode Query Refused is 5.
-#define DNS_RCODE_YXDOMAIN      0x0006           //RCode Name Exists when it should not is 6.
-#define DNS_RCODE_YXRRSET       0x0007           //RCode RR Set Exists when it should not is 7.
-#define DNS_RCODE_NXRRSET       0x0008           //RCode RR Set that should exist does not is 8.
-#define DNS_RCODE_NOTAUTH       0x0009           //RCode Server Not Authoritative for zone/Not Authorized is 9.
-#define DNS_RCODE_NOTZONE       0x000A           //RCode Name not contained in zone is 10.
-#define DNS_RCODE_BADVERS       0x0010           //RCode Bad OPT Version/TSIG Signature Failure is 16.
-#define DNS_RCODE_BADKEY        0x0011           //RCode Key not recognized is 17.
-#define DNS_RCODE_BADTIME       0x0012           //RCode Signature out of time window is 18.
-#define DNS_RCODE_BADMODE       0x0013           //RCode Bad TKEY Mode is 19.
-#define DNS_RCODE_BADNAME       0x0014           //RCode Duplicate key name is 20.
-#define DNS_RCODE_BADALG        0x0015           //RCode Algorithm not supported is 21.
-#define DNS_RCODE_BADTRUNC      0x0016           //RCode Bad Truncation is 22.
-#define DNS_RCODE_PRIVATE_A     0xFF00           //DNS Reserved Private use RCode is begin at 3841.
-#define DNS_RCODE_PRIVATE_B     0xFFFE           //DNS Reserved Private use RCode is end at 4095.
+#ifndef DNS_RCODE_NOERROR
+	#define DNS_RCODE_NOERROR       0                //RCode No Error is 0.
+#endif
+#ifndef DNS_RCODE_FORMERR
+	#define DNS_RCODE_FORMERR       0x0001           //RCode Format Error is 1.
+#endif
+#ifndef DNS_RCODE_SERVFAIL
+	#define DNS_RCODE_SERVFAIL      0x0002           //RCode Server Failure is 2.
+#endif
+#ifndef DNS_RCODE_NXDOMAIN
+	#define DNS_RCODE_NXDOMAIN      0x0003           //RCode Non-Existent Domain is 3.
+#endif
+#ifndef DNS_RCODE_NOTIMPL
+	#define DNS_RCODE_NOTIMPL       0x0004           //RCode Not Implemented is 4.
+#endif
+#ifndef DNS_RCODE_REFUSED
+	#define DNS_RCODE_REFUSED       0x0005           //RCode Query Refused is 5.
+#endif
+#ifndef DNS_RCODE_YXDOMAIN
+	#define DNS_RCODE_YXDOMAIN      0x0006           //RCode Name Exists when it should not is 6.
+#endif
+#ifndef DNS_RCODE_YXRRSET
+	#define DNS_RCODE_YXRRSET       0x0007           //RCode RR Set Exists when it should not is 7.
+#endif
+#ifndef DNS_RCODE_NXRRSET
+	#define DNS_RCODE_NXRRSET       0x0008           //RCode RR Set that should exist does not is 8.
+#endif
+#ifndef DNS_RCODE_NOTAUTH
+	#define DNS_RCODE_NOTAUTH       0x0009           //RCode Server Not Authoritative for zone/Not Authorized is 9.
+#endif
+#ifndef DNS_RCODE_NOTZONE
+	#define DNS_RCODE_NOTZONE       0x000A           //RCode Name not contained in zone is 10.
+#endif
+#ifndef DNS_RCODE_BADVERS
+	#define DNS_RCODE_BADVERS       0x0010           //RCode Bad OPT Version/TSIG Signature Failure is 16.
+#endif
+#ifndef DNS_RCODE_BADKEY
+	#define DNS_RCODE_BADKEY        0x0011           //RCode Key not recognized is 17.
+#endif
+#ifndef DNS_RCODE_BADTIME
+	#define DNS_RCODE_BADTIME       0x0012           //RCode Signature out of time window is 18.
+#endif
+#ifndef DNS_RCODE_BADMODE
+	#define DNS_RCODE_BADMODE       0x0013           //RCode Bad TKEY Mode is 19.
+#endif
+#ifndef DNS_RCODE_BADNAME
+	#define DNS_RCODE_BADNAME       0x0014           //RCode Duplicate key name is 20.
+#endif
+#ifndef DNS_RCODE_BADALG
+	#define DNS_RCODE_BADALG        0x0015           //RCode Algorithm not supported is 21.
+#endif
+#ifndef DNS_RCODE_BADTRUNC
+	#define DNS_RCODE_BADTRUNC      0x0016           //RCode Bad Truncation is 22.
+#endif
+#ifndef DNS_RCODE_PRIVATE_A
+	#define DNS_RCODE_PRIVATE_A     0xFF00           //DNS Reserved Private use RCode is begin at 3841.
+#endif
+#ifndef DNS_RCODE_PRIVATE_B
+	#define DNS_RCODE_PRIVATE_B     0xFFFE           //DNS Reserved Private use RCode is end at 4095.
+#endif
 
 //Record Types definitions
-#define DNS_RECORD_A            0x0001           //DNS Record A is 1.
-#define DNS_RECORD_NS           0x0002           //DNS Record NS is 2.
-#define DNS_RECORD_MD           0x0003           //DNS Record MD is 3(Obsolete).
-#define DNS_RECORD_MF           0x0004           //DNS Record MF is 4(Obsolete).
-#define DNS_RECORD_CNAME        0x0005           //DNS Record CNAME is 5.
-#define DNS_RECORD_SOA          0x0006           //DNS Record SOA is 6.
-#define DNS_RECORD_MB           0x0007           //DNS Record MB is 7(Experimental).
-#define DNS_RECORD_MG           0x0008           //DNS Record MG is 8(Experimental).
-#define DNS_RECORD_MR           0x0009           //DNS Record MR is 9(Experimental).
-#define DNS_RECORD_NULL         0x000A           //DNS Record NULL is 10(Experimental).
-#define DNS_RECORD_WKS          0x000B           //DNS Record WKS is 11.
-#define DNS_RECORD_PTR          0x000C           //DNS Record PTR is 12.
-#define DNS_RECORD_HINFO        0x000D           //DNS Record HINFO is 13.
-#define DNS_RECORD_MINFO        0x000E           //DNS Record MINFO is 14.
-#define DNS_RECORD_MX           0x000F           //DNS Record MX is 15.
-#define DNS_RECORD_TXT          0x0010           //DNS Record TXT is 16.
-#define DNS_RECORD_RP           0x0011           //DNS Record RP is 17.
-#define DNS_RECORD_AFSDB        0x0012           //DNS Record AFSDB is 18.
-#define DNS_RECORD_X25          0x0013           //DNS Record X25 is 19.
-#define DNS_RECORD_ISDN         0x0014           //DNS Record ISDN is 20.
-#define DNS_RECORD_RT           0x0015           //DNS Record RT is 21.
-#define DNS_RECORD_NSAP         0x0016           //DNS Record NSAP is 22.
-#define DNS_RECORD_NSAP_PTR     0x0017           //DNS Record NSAP PTR is 23(Obsolete).
-#define DNS_RECORD_SIG          0x0018           //DNS Record SIG is 24.
-#define DNS_RECORD_KEY          0x0019           //DNS Record KEY is 25.
-#define DNS_RECORD_PX           0x001A           //DNS Record PX is 26.
-#define DNS_RECORD_GPOS         0x001B           //DNS Record GPOS is 27.
-#define DNS_RECORD_AAAA         0x001C           //DNS Record AAAA is 28.
-#define DNS_RECORD_LOC          0x001D           //DNS Record LOC is 29.
-#define DNS_RECORD_NXT          0x001E           //DNS Record NXT is 30.
-#define DNS_RECORD_EID          0x001F           //DNS Record EID is 31.
-#define DNS_RECORD_NIMLOC       0x0020           //DNS Record NIMLOC is 32.
-#define DNS_RECORD_SRV          0x0021           //DNS Record SRV is 33.
-#define DNS_RECORD_ATMA         0x0022           //DNS Record ATMA is 34.
-#define DNS_RECORD_NAPTR        0x0023           //DNS Record NAPTR is 35.
-#define DNS_RECORD_KX           0x0024           //DNS Record KX is 36.
-#define DNS_RECORD_CERT         0x0025           //DNS Record CERT is 37.
-#define DNS_RECORD_A6           0x0026           //DNS Record A6 is 38(Obsolete).
-#define DNS_RECORD_DNAME        0x0027           //DNS Record DNAME is 39.
-#define DNS_RECORD_SINK         0x0028           //DNS Record SINK is 40.
-#define DNS_RECORD_OPT          0x0029           //DNS Record OPT/EDNS is 41.
-#define DNS_RECORD_APL          0x002A           //DNS Record APL is 42.
-#define DNS_RECORD_DS           0x002B           //DNS Record DS is 43.
-#define DNS_RECORD_SSHFP        0x002C           //DNS Record SSHFP is 44.
-#define DNS_RECORD_IPSECKEY     0x002D           //DNS Record IPSECKEY is 45.
-#define DNS_RECORD_RRSIG        0x002E           //DNS Record RRSIG is 46.
-#define DNS_RECORD_NSEC         0x002F           //DNS Record NSEC is 47.
-#define DNS_RECORD_DNSKEY       0x0030           //DNS Record DNSKEY is 48.
-#define DNS_RECORD_DHCID        0x0031           //DNS Record DHCID is 49.
-#define DNS_RECORD_NSEC3        0x0032           //DNS Record NSEC3 is 50.
-#define DNS_RECORD_NSEC3PARAM   0x0033           //DNS Record NSEC3PARAM is 51.
-#define DNS_RECORD_TLSA         0x0034           //DNS Record Record TLSA is 52.
-#define DNS_RECORD_HIP          0x0037           //DNS Record HIP is 55.
-#define DNS_RECORD_NINFO        0x0038           //DNS Record NINFO is 56.
-#define DNS_RECORD_RKEY         0x0039           //DNS Record RKEY is 57.
-#define DNS_RECORD_TALINK       0x003A           //DNS Record TALINK is 58.
-#define DNS_RECORD_CDS          0x003B           //DNS Record CDS is 59.
-#define DNS_RECORD_CDNSKEY      0x003C           //DNS Record CDNSKEY is 60.
-#define DNS_RECORD_OPENPGPKEY   0x003D           //DNS Record OPENPGPKEY is 61.
-#define DNS_RECORD_SPF          0x0063           //DNS Record SPF is 99.
-#define DNS_RECORD_UINFO        0x0064           //DNS Record UINFO is 100.
-#define DNS_RECORD_UID          0x0065           //DNS Record UID is 101.
-#define DNS_RECORD_GID          0x0066           //DNS Record GID is 102.
-#define DNS_RECORD_UNSPEC       0x0067           //DNS Record UNSPEC is 103.
-#define DNS_RECORD_NID          0x0068           //DNS Record NID is 104.
-#define DNS_RECORD_L32          0x0069           //DNS Record L32 is 105.
-#define DNS_RECORD_L64          0x006A           //DNS Record L64 is 106.
-#define DNS_RECORD_LP           0x006B           //DNS Record LP is 107.
-#define DNS_RECORD_EUI48        0x006C           //DNS Record EUI48 is 108.
-#define DNS_RECORD_EUI64        0x006D           //DNS Record EUI64 is 109.
-#define DNS_RECORD_TKEY         0x00F9           //DNS Record TKEY is 249.
-#define DNS_RECORD_TSIG         0x00FA           //DNS Record TSIG is 250.
-#define DNS_RECORD_IXFR         0x00FB           //DNS Record IXFR is 251.
-#define DNS_RECORD_AXFR         0x00FC           //DNS Record AXFR is 252.
-#define DNS_RECORD_MAILB        0x00FD           //DNS Record MAILB is 253.
-#define DNS_RECORD_MAILA        0x00FE           //DNS Record MAILA is 254.
-#define DNS_RECORD_ANY          0x00FF           //DNS Record ANY is 255.
-#define DNS_RECORD_URI          0x0100           //DNS Record URI is 256.
-#define DNS_RECORD_CAA          0x0101           //DNS Record CAA is 257.
-#define DNS_RECORD_TA           0x8000           //DNS Record TA is 32768.
-#define DNS_RECORD_DLV          0x8001           //DNS Record DLVS is 32769.
-#define DNS_RECORD_PRIVATE_A    0xFF00           //DNS Reserved Private use records is begin at 65280.
-#define DNS_RECORD_PRIVATE_B    0xFFFE           //DNS Reserved Private use records is end at 65534.
-#define DNS_RECORD_RESERVED     0xFFFF           //DNS Reserved records is 65535.
+#ifndef DNS_TYPE_A
+	#define DNS_TYPE_A            0x0001             //DNS Type A is 1.
+#endif
+#ifndef DNS_TYPE_NS
+	#define DNS_TYPE_NS           0x0002             //DNS Type NS is 2.
+#endif
+#ifndef DNS_TYPE_MD
+	#define DNS_TYPE_MD           0x0003             //DNS Type MD is 3(Obsolete).
+#endif
+#ifndef DNS_TYPE_MF
+	#define DNS_TYPE_MF           0x0004             //DNS Type MF is 4(Obsolete).
+#endif
+#ifndef DNS_TYPE_CNAME
+	#define DNS_TYPE_CNAME        0x0005             //DNS Type CNAME is 5.
+#endif
+#ifndef DNS_TYPE_SOA
+	#define DNS_TYPE_SOA          0x0006             //DNS Type SOA is 6.
+#endif
+#ifndef DNS_TYPE_MB
+	#define DNS_TYPE_MB           0x0007             //DNS Type MB is 7(Experimental).
+#endif
+#ifndef DNS_TYPE_MG
+	#define DNS_TYPE_MG           0x0008             //DNS Type MG is 8(Experimental).
+#endif
+#ifndef DNS_TYPE_MR
+	#define DNS_TYPE_MR           0x0009             //DNS Type MR is 9(Experimental).
+#endif
+#ifndef DNS_TYPE_NULL
+	#define DNS_TYPE_NULL         0x000A             //DNS Type NULL is 10(Experimental).
+#endif
+#ifndef DNS_TYPE_WKS
+	#define DNS_TYPE_WKS          0x000B             //DNS Type WKS is 11.
+#endif
+#ifndef DNS_TYPE_PTR
+	#define DNS_TYPE_PTR          0x000C             //DNS Type PTR is 12.
+#endif
+#ifndef DNS_TYPE_HINFO
+	#define DNS_TYPE_HINFO        0x000D             //DNS Type HINFO is 13.
+#endif
+#ifndef DNS_TYPE_MINFO
+	#define DNS_TYPE_MINFO        0x000E             //DNS Type MINFO is 14.
+#endif
+#ifndef DNS_TYPE_MX
+	#define DNS_TYPE_MX           0x000F             //DNS Type MX is 15.
+#endif
+#ifndef DNS_TYPE_TEXT
+	#define DNS_TYPE_TEXT          0x0010             //DNS Type TXT is 16.
+#endif
+#ifndef DNS_TYPE_RP
+	#define DNS_TYPE_RP           0x0011             //DNS Type RP is 17.
+#endif
+#ifndef DNS_TYPE_AFSDB
+	#define DNS_TYPE_AFSDB        0x0012             //DNS Type AFSDB is 18.
+#endif
+#ifndef DNS_TYPE_X25
+	#define DNS_TYPE_X25          0x0013             //DNS Type X25 is 19.
+#endif
+#ifndef DNS_TYPE_ISDN
+	#define DNS_TYPE_ISDN         0x0014             //DNS Type ISDN is 20.
+#endif
+#ifndef DNS_TYPE_RT
+	#define DNS_TYPE_RT           0x0015             //DNS Type RT is 21.
+#endif
+#ifndef DNS_TYPE_NSAP
+	#define DNS_TYPE_NSAP         0x0016             //DNS Type NSAP is 22.
+#endif
+#ifndef DNS_TYPE_NSAPPTR
+	#define DNS_TYPE_NSAPPTR     0x0017             //DNS Type NSAPPTR is 23(Obsolete).
+#endif
+#ifndef DNS_TYPE_SIG
+	#define DNS_TYPE_SIG          0x0018             //DNS Type SIG is 24.
+#endif
+#ifndef DNS_TYPE_KEY
+	#define DNS_TYPE_KEY          0x0019             //DNS Type KEY is 25.
+#endif
+#ifndef DNS_TYPE_PX
+	#define DNS_TYPE_PX           0x001A             //DNS Type PX is 26.
+#endif
+#ifndef DNS_TYPE_GPOS
+	#define DNS_TYPE_GPOS         0x001B             //DNS Type GPOS is 27.
+#endif
+#ifndef DNS_TYPE_AAAA
+	#define DNS_TYPE_AAAA         0x001C             //DNS Type AAAA is 28.
+#endif
+#ifndef DNS_TYPE_LOC
+	#define DNS_TYPE_LOC          0x001D             //DNS Type LOC is 29.
+#endif
+#ifndef DNS_TYPE_NXT
+	#define DNS_TYPE_NXT          0x001E             //DNS Type NXT is 30.
+#endif
+#ifndef DNS_TYPE_EID
+	#define DNS_TYPE_EID          0x001F             //DNS Type EID is 31.
+#endif
+#ifndef DNS_TYPE_NIMLOC
+	#define DNS_TYPE_NIMLOC       0x0020             //DNS Type NIMLOC is 32.
+#endif
+#ifndef DNS_TYPE_SRV
+	#define DNS_TYPE_SRV          0x0021             //DNS Type SRV is 33.
+#endif
+#ifndef DNS_TYPE_ATMA
+	#define DNS_TYPE_ATMA         0x0022             //DNS Type ATMA is 34.
+#endif
+#ifndef DNS_TYPE_NAPTR
+	#define DNS_TYPE_NAPTR        0x0023             //DNS Type NAPTR is 35.
+#endif
+#ifndef DNS_TYPE_KX
+	#define DNS_TYPE_KX           0x0024             //DNS Type KX is 36.
+#endif
+#ifndef DNS_TYPE_CERT
+	#define DNS_TYPE_CERT         0x0025             //DNS Type CERT is 37.
+#endif
+#ifndef DNS_TYPE_A6
+	#define DNS_TYPE_A6           0x0026             //DNS Type A6 is 38(Obsolete).
+#endif
+#ifndef DNS_TYPE_DNAME
+	#define DNS_TYPE_DNAME        0x0027             //DNS Type DNAME is 39.
+#endif
+#ifndef DNS_TYPE_SINK
+	#define DNS_TYPE_SINK         0x0028             //DNS Type SINK is 40.
+#endif
+#ifndef DNS_TYPE_OPT
+	#define DNS_TYPE_OPT          0x0029             //DNS Type OPT/EDNS is 41.
+#endif
+#ifndef DNS_TYPE_APL
+	#define DNS_TYPE_APL          0x002A             //DNS Type APL is 42.
+#endif
+#ifndef DNS_TYPE_DS
+	#define DNS_TYPE_DS           0x002B             //DNS Type DS is 43.
+#endif
+#ifndef DNS_TYPE_SSHFP
+	#define DNS_TYPE_SSHFP        0x002C             //DNS Type SSHFP is 44.
+#endif
+#ifndef DNS_TYPE_IPSECKEY
+	#define DNS_TYPE_IPSECKEY     0x002D             //DNS Type IPSECKEY is 45.
+#endif
+#ifndef DNS_TYPE_RRSIG
+	#define DNS_TYPE_RRSIG        0x002E             //DNS Type RRSIG is 46.
+#endif
+#ifndef DNS_TYPE_NSEC
+	#define DNS_TYPE_NSEC         0x002F             //DNS Type NSEC is 47.
+#endif
+#ifndef DNS_TYPE_DNSKEY
+	#define DNS_TYPE_DNSKEY       0x0030             //DNS Type DNSKEY is 48.
+#endif
+#ifndef DNS_TYPE_DHCID
+	#define DNS_TYPE_DHCID        0x0031             //DNS Type DHCID is 49.
+#endif
+#ifndef DNS_TYPE_NSEC3
+	#define DNS_TYPE_NSEC3        0x0032             //DNS Type NSEC3 is 50.
+#endif
+#ifndef DNS_TYPE_NSEC3PARAM
+	#define DNS_TYPE_NSEC3PARAM   0x0033             //DNS Type NSEC3PARAM is 51.
+#endif
+#ifndef DNS_TYPE_TLSA
+	#define DNS_TYPE_TLSA         0x0034             //DNS Type Record TLSA is 52.
+#endif
+#ifndef DNS_TYPE_HIP
+	#define DNS_TYPE_HIP          0x0037             //DNS Type HIP is 55.
+#endif
+#ifndef DNS_TYPE_NINFO
+	#define DNS_TYPE_NINFO        0x0038             //DNS Type NINFO is 56.
+#endif
+#ifndef DNS_TYPE_RKEY
+	#define DNS_TYPE_RKEY         0x0039             //DNS Type RKEY is 57.
+#endif
+#ifndef DNS_TYPE_TALINK
+	#define DNS_TYPE_TALINK       0x003A             //DNS Type TALINK is 58.
+#endif
+#ifndef DNS_TYPE_CDS
+	#define DNS_TYPE_CDS          0x003B             //DNS Type CDS is 59.
+#endif
+#ifndef DNS_TYPE_CDNSKEY
+	#define DNS_TYPE_CDNSKEY      0x003C             //DNS Type CDNSKEY is 60.
+#endif
+#ifndef DNS_TYPE_OPENPGPKEY
+	#define DNS_TYPE_OPENPGPKEY   0x003D             //DNS Type OPENPGPKEY is 61.
+#endif
+#ifndef DNS_TYPE_SPF
+	#define DNS_TYPE_SPF          0x0063             //DNS Type SPF is 99.
+#endif
+#ifndef DNS_TYPE_UINFO
+	#define DNS_TYPE_UINFO        0x0064             //DNS Type UINFO is 100.
+#endif
+#ifndef DNS_TYPE_UID
+	#define DNS_TYPE_UID          0x0065             //DNS Type UID is 101.
+#endif
+#ifndef DNS_TYPE_GID
+	#define DNS_TYPE_GID          0x0066             //DNS Type GID is 102.
+#endif
+#ifndef DNS_TYPE_UNSPEC
+	#define DNS_TYPE_UNSPEC       0x0067             //DNS Type UNSPEC is 103.
+#endif
+#ifndef DNS_TYPE_NID
+	#define DNS_TYPE_NID          0x0068             //DNS Type NID is 104.
+#endif
+#ifndef DNS_TYPE_L32
+	#define DNS_TYPE_L32          0x0069             //DNS Type L32 is 105.
+#endif
+#ifndef DNS_TYPE_L64
+	#define DNS_TYPE_L64          0x006A             //DNS Type L64 is 106.
+#endif
+#ifndef DNS_TYPE_LP
+	#define DNS_TYPE_LP           0x006B             //DNS Type LP is 107.
+#endif
+#ifndef DNS_TYPE_EUI48
+	#define DNS_TYPE_EUI48        0x006C             //DNS Type EUI48 is 108.
+#endif
+#ifndef DNS_TYPE_EUI64
+	#define DNS_TYPE_EUI64        0x006D             //DNS Type EUI64 is 109.
+#endif
+#ifndef DNS_TYPE_ADDRS
+	#define DNS_TYPE_ADDRS        0x00F8             //DNS Type TKEY is 248.
+#endif
+#ifndef DNS_TYPE_TKEY
+	#define DNS_TYPE_TKEY         0x00F9             //DNS Type TKEY is 249.
+#endif
+#ifndef DNS_TYPE_TSIG
+	#define DNS_TYPE_TSIG         0x00FA             //DNS Type TSIG is 250.
+#endif
+#ifndef DNS_TYPE_IXFR
+	#define DNS_TYPE_IXFR         0x00FB             //DNS Type IXFR is 251.
+#endif
+#ifndef DNS_TYPE_AXFR
+	#define DNS_TYPE_AXFR         0x00FC             //DNS Type AXFR is 252.
+#endif
+#ifndef DNS_TYPE_MAILB
+	#define DNS_TYPE_MAILB        0x00FD             //DNS Type MAILB is 253.
+#endif
+#ifndef DNS_TYPE_MAILA
+	#define DNS_TYPE_MAILA        0x00FE             //DNS Type MAILA is 254.
+#endif
+#ifndef DNS_TYPE_ANY
+	#define DNS_TYPE_ANY          0x00FF             //DNS Type ANY is 255.
+#endif
+#ifndef DNS_TYPE_URI
+	#define DNS_TYPE_URI          0x0100             //DNS Type URI is 256.
+#endif
+#ifndef DNS_TYPE_CAA
+	#define DNS_TYPE_CAA          0x0101             //DNS Type CAA is 257.
+#endif
+#ifndef DNS_TYPE_TA
+	#define DNS_TYPE_TA           0x8000             //DNS Type TA is 32768.
+#endif
+#ifndef DNS_TYPE_DLV
+	#define DNS_TYPE_DLV          0x8001             //DNS Type DLVS is 32769.
+#endif
+#ifndef DNS_TYPE_PRIVATE_A
+	#define DNS_TYPE_PRIVATE_A    0xFF00             //DNS Reserved Private use records is begin at 65280.
+#endif
+#ifndef DNS_TYPE_PRIVATE_B
+	#define DNS_TYPE_PRIVATE_B    0xFFFE             //DNS Reserved Private use records is end at 65534.
+#endif
+#ifndef DNS_TYPE_RESERVED
+	#define DNS_TYPE_RESERVED     0xFFFF             //DNS Reserved records is 65535.
+#endif
+
 
 /* Domain Name System/DNS header
 //With User Datagram Protocol/UDP
@@ -2313,6 +2554,7 @@ typedef struct _dnscurve_txt_signature_
 #define SOCKS_COMMAND_CONNECT                      1U
 #define SOCKS_COMMAND_BIND                         2U
 #define SOCKS_COMMAND_UDP_ASSOCIATE                3U
+#define SOCKS4_VERSION_BYTES                       0
 #define SOCKS4_ADDRESS_DOMAIN_ADDRESS              0x00000001
 #define SOCKS4_REPLY_GRANTED                       0x5A         //Request granted
 #define SOCKS4_REPLY_REJECTED                      0x5B         //Request rejected or failed
@@ -2374,16 +2616,16 @@ typedef struct _socks_server_selection_message_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |Password Length|                   Password                    /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
+*/
 typedef struct _socks_client_user_authentication_
 {
 	uint8_t               Version;
-	uint8_t               UserName_Length;
-	uint8_t               *UserName;
-	uint8_t               Password_Length;
-	uint8_t               *Password;
+//	uint8_t               UserName_Length;
+//	uint8_t               *UserName;
+//	uint8_t               Password_Length;
+//	uint8_t               *Password;
 }socks_client_user_authentication, *psocks_client_user_authentication;
-*/
+
 
 //SOCKS server Username/Password authentication message
 /*

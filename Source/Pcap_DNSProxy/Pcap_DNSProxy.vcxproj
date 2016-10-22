@@ -254,7 +254,9 @@
     <ClInclude Include="Base.h" />
     <ClInclude Include="Capture.h" />
     <ClInclude Include="Configuration.h" />
+    <ClInclude Include="Definition.h" />
     <ClInclude Include="DNSCurve.h" />
+    <ClInclude Include="DNSCurveRequest.h" />
     <ClInclude Include="Initialization.h" />
     <ClInclude Include="Main.h" />
     <ClInclude Include="Monitor.h" />
@@ -265,15 +267,18 @@
     <ClInclude Include="Process.h" />
     <ClInclude Include="Protocol.h" />
     <ClInclude Include="Proxy.h" />
+    <ClInclude Include="Request.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Service.h" />
-    <ClInclude Include="Structures.h" />
+    <ClInclude Include="Structure.h" />
+    <ClInclude Include="Template.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Base.cpp" />
     <ClCompile Include="Capture.cpp" />
     <ClCompile Include="Configuration.cpp" />
     <ClCompile Include="DNSCurve.cpp" />
+    <ClCompile Include="DNSCurveRequest.cpp" />
     <ClCompile Include="Initialization.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Monitor.cpp" />
@@ -286,6 +291,7 @@
     <ClCompile Include="ReadHosts.cpp" />
     <ClCompile Include="ReadIPFilter.cpp" />
     <ClCompile Include="ReadParameter.cpp" />
+    <ClCompile Include="Request.cpp" />
     <ClCompile Include="Service.cpp" />
   </ItemGroup>
   <ItemGroup>

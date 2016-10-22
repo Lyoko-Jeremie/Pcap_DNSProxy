@@ -18,7 +18,7 @@
 
 
 //////////////////////////////////////////////////
-// Operating system
+// Operating system selection
 // 
 /* This code is from Qt source, which in qglobal.h header file.
 // See https://www.qt.io/developers
@@ -168,7 +168,7 @@
 
 
 //////////////////////////////////////////////////
-// Base header
+// Base headers
 // 
 //Linux and Mac OS X compatible definitions(Part 1)
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -178,12 +178,8 @@
 //C Standard Library and C++ Standard Template Library/STL headers
 #include <algorithm>               //Algorithm support
 #include <atomic>                  //Atomic support
-//#include <cstdio>                  //File Input/Output support
-//#include <cstdlib>                 //C Standard Library
 #include <condition_variable>      //Condition variable support
-//#include <ctime>                   //Date and Time support
 #include <deque>                   //Double-ended queue support
-//#include <functional>              //Function object support
 #include <list>                    //List support
 #include <map>                     //Map support
 #include <memory>                  //Manage dynamic memory support
@@ -192,47 +188,78 @@
 #include <random>                  //Random-number generator support
 #include <regex>                   //Regular expression support
 #include <set>                     //Set support
-//#include <string>                  //String support
 #include <thread>                  //Thread support
-//#include <vector>                  //Vector support
 
 #if defined(PLATFORM_WIN)
 //LibSodium header
-	#define ENABLE_LIBSODIUM               //LibSodium is always enable in Windows.
-	#define SODIUM_STATIC                  //LibSodium preprocessor definitions
+	#ifndef ENABLE_LIBSODIUM
+		#define ENABLE_LIBSODIUM               //LibSodium is always enable in Windows.
+	#endif
+	#ifndef SODIUM_STATIC
+		#define SODIUM_STATIC                  //LibSodium preprocessor definitions
+	#endif
 	#if defined(ENABLE_LIBSODIUM)
 		#include "..\\LibSodium\\sodium.h"
 	#endif
 
 //WinPcap header
-	#define ENABLE_PCAP              //WinPcap is always enable in Windows.
-	#define WPCAP                    //WinPcap preprocessor definitions
-	#define HAVE_REMOTE              //WinPcap preprocessor definitions
+	#ifndef ENABLE_PCAP
+		#define ENABLE_PCAP              //WinPcap is always enable in Windows.
+	#endif
+	#ifndef WPCAP
+		#define WPCAP                    //WinPcap preprocessor definitions
+	#endif
+	#ifndef HAVE_REMOTE
+		#define HAVE_REMOTE              //WinPcap preprocessor definitions
+	#endif
 	#if defined(ENABLE_PCAP)
 		#include "WinPcap\\pcap.h"
 	#endif
 
 //Windows API headers
 //Part 1 including files
-//	#include <mstcpip.h>               //Microsoft-specific extensions to the core Winsock definitions.
-	#include <mswsock.h>               //Microsoft-specific extensions to the Windows Sockets API(MUST be including before winsock2.h).
-//	#include <tchar.h>                 //Unicode(UTF-8/UTF-16)/Wide-Character Support
-//	#include <VersionHelpers.h>        //Version Helper functions, minimum supported system is Windows Vista.
-	#include <winsock2.h>              //WinSock 2.0+ support(MUST be including before windows.h)
+	#include <winsock2.h>              //WinSock 2.0+ support
 //	#include <winsvc.h>                //Service Control Manager
-	#include <ws2tcpip.h>              //WinSock 2.0+ Extension for TCP/IP protocols
-//	#include <windns.h>                //Windows DNS definitions and DNS API
 
 //Part 2 including files(MUST be including after Part 1)
-	#include <windows.h>               //Master include file in Windows
+//	#include <mstcpip.h>               //Microsoft-specific extensions to the core Winsock definitions.
+	#include <mswsock.h>               //Microsoft-specific extensions to the Windows Sockets API.
+	#include <windns.h>                //Windows DNS definitions and DNS API
+	#include <ws2tcpip.h>              //WinSock 2.0+ Extension for TCP/IP protocols
 
 //Part 3 including files(MUST be including after Part 2)
+	#include <windows.h>               //Master include file in Windows
+
+//Part 4 including files(MUST be including after Part 3)
 	#include <iphlpapi.h>              //IP Stack for MIB-II and related functionality
 	#include <sddl.h>                  //Support and conversions routines necessary for SDDL
+//	#include <versionhelpers.h>        //Version Helper functions
+
+//Part 5 including files(MUST be including after Part 4)
+	#ifndef ENABLE_HTTP
+		#define ENABLE_HTTP
+	#endif
+	#if defined(ENABLE_HTTP)
+		#include <wininet.h>               //Contains manifests, macros, types and prototypes for Microsoft Windows Internet Extensions
+	#endif
+	#ifndef ENABLE_TLS
+		#define ENABLE_TLS
+	#endif
+	#if defined(ENABLE_TLS)
+		#define SECURITY_WIN32
+		#include <schannel.h>              //Public Definitions for SCHANNEL Security Provider
+		#include <sspi.h>                  //Security Support Provider Interface
+	#endif
 
 //Static libraries
 	#pragma comment(lib, "iphlpapi.lib")   //Windows IP Helper, IP Stack for MIB-II and related functionality support
 	#pragma comment(lib, "ws2_32.lib")     //Windows WinSock 2.0+ support
+	#if defined(ENABLE_HTTP)
+		#pragma comment(lib, "wininet.lib")    //Contains manifests, macros, types and prototypes for Microsoft Windows Internet Extensions support
+	#endif
+	#if defined(ENABLE_TLS)
+		#pragma comment(lib, "secur32.lib")    //Security Support Provider Interface support
+	#endif
 	#if defined(PLATFORM_WIN64)
 		#if defined(ENABLE_LIBSODIUM)
 			#pragma comment(lib, "..\\LibSodium\\LibSodium_x64.lib")
@@ -309,12 +336,18 @@
 			#include <pcap/pcap.h>
 		#endif
 	#elif defined(PLATFORM_MACX)
-		#define ENABLE_LIBSODIUM                   //LibSodium is always enable on Mac OS X.
-		#define ENABLE_PCAP                        //LibPcap is always enable on Mac OS X.
-		#define SODIUM_STATIC                      //LibSodium static linking always enable in Windows and Mac OS X
+		#ifndef ENABLE_LIBSODIUM
+			#define ENABLE_LIBSODIUM                   //LibSodium is always enable on Mac OS X.
+		#endif
+		#ifndef SODIUM_STATIC
+			#define SODIUM_STATIC                      //LibSodium static linking always enable in Windows and Mac OS X
+		#endif
 		#include "../LibSodium/sodium.h"
-		#include <pcap/pcap.h>
 		#pragma comment(lib, "../LibSodium/LibSodium_Mac.a")
+		#ifndef ENABLE_PCAP
+			#define ENABLE_PCAP                        //LibPcap is always enable on Mac OS X.
+		#endif
+		#include <pcap/pcap.h>
 	#endif
 
 //TCP Fast Open support

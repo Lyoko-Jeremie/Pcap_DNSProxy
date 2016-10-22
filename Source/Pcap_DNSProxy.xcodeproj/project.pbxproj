@@ -26,6 +26,8 @@
 		D93C47431CD7598500CD334A /* ReadParameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C473C1CD7598500CD334A /* ReadParameter.cpp */; };
 		D93C47481CD7599300CD334A /* Service.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C47451CD7599300CD334A /* Service.cpp */; };
 		D96B09B61DABB1DF001AC633 /* LibSodium_Mac.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D96B09B51DABB1DF001AC633 /* LibSodium_Mac.a */; };
+		D96BE5C61DB7A895001D8BF3 /* DNSCurveRequest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D96BE5C41DB7A895001D8BF3 /* DNSCurveRequest.cpp */; };
+		D96BE5C91DB7A8A7001D8BF3 /* Request.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D96BE5C71DB7A8A7001D8BF3 /* Request.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -75,7 +77,6 @@
 		D93C473C1CD7598500CD334A /* ReadParameter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ReadParameter.cpp; sourceTree = "<group>"; };
 		D93C47451CD7599300CD334A /* Service.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Service.cpp; sourceTree = "<group>"; };
 		D93C47461CD7599300CD334A /* Service.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Service.h; sourceTree = "<group>"; };
-		D93C47471CD7599300CD334A /* Structures.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Structures.h; sourceTree = "<group>"; };
 		D93C47901CD75B3800CD334A /* common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = common.h; path = LibSodium/private/common.h; sourceTree = "<group>"; };
 		D93C47911CD75B3800CD334A /* curve25519_ref10.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = curve25519_ref10.h; path = LibSodium/private/curve25519_ref10.h; sourceTree = "<group>"; };
 		D93C47921CD75B4200CD334A /* core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = core.h; path = LibSodium/core.h; sourceTree = "<group>"; };
@@ -137,6 +138,13 @@
 		D93C47CA1CD75B4E00CD334A /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utils.h; path = LibSodium/utils.h; sourceTree = "<group>"; };
 		D93C47CB1CD75E9200CD334A /* version.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = version.h; path = LibSodium/version.h; sourceTree = "<group>"; };
 		D96B09B51DABB1DF001AC633 /* LibSodium_Mac.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibSodium_Mac.a; path = LibSodium/LibSodium_Mac.a; sourceTree = "<group>"; };
+		D96BE5C31DB7A887001D8BF3 /* Definition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Definition.h; sourceTree = "<group>"; };
+		D96BE5C41DB7A895001D8BF3 /* DNSCurveRequest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DNSCurveRequest.cpp; sourceTree = "<group>"; };
+		D96BE5C51DB7A895001D8BF3 /* DNSCurveRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DNSCurveRequest.h; sourceTree = "<group>"; };
+		D96BE5C71DB7A8A7001D8BF3 /* Request.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Request.cpp; sourceTree = "<group>"; };
+		D96BE5C81DB7A8A7001D8BF3 /* Request.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Request.h; sourceTree = "<group>"; };
+		D96BE5CA1DB7A8AF001D8BF3 /* Structure.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Structure.h; sourceTree = "<group>"; };
+		D96BE5CB1DB7A8AF001D8BF3 /* Template.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Template.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -176,6 +184,7 @@
 				D93C47171CD7596A00CD334A /* Capture.cpp */,
 				D93C471A1CD7596A00CD334A /* Configuration.cpp */,
 				D93C471C1CD7596A00CD334A /* DNSCurve.cpp */,
+				D96BE5C41DB7A895001D8BF3 /* DNSCurveRequest.cpp */,
 				D93C471E1CD7596A00CD334A /* Initialization.cpp */,
 				D93C47201CD7596A00CD334A /* Main.cpp */,
 				D93C47221CD7596A00CD334A /* Monitor.cpp */,
@@ -188,11 +197,14 @@
 				D93C473A1CD7598500CD334A /* ReadHosts.cpp */,
 				D93C473B1CD7598500CD334A /* ReadIPFilter.cpp */,
 				D93C473C1CD7598500CD334A /* ReadParameter.cpp */,
+				D96BE5C71DB7A8A7001D8BF3 /* Request.cpp */,
 				D93C47451CD7599300CD334A /* Service.cpp */,
 				D93C47161CD7596A00CD334A /* Base.h */,
 				D93C47181CD7596A00CD334A /* Capture.h */,
 				D93C471B1CD7596A00CD334A /* Configuration.h */,
+				D96BE5C31DB7A887001D8BF3 /* Definition.h */,
 				D93C471D1CD7596A00CD334A /* DNSCurve.h */,
+				D96BE5C51DB7A895001D8BF3 /* DNSCurveRequest.h */,
 				D93C471F1CD7596A00CD334A /* Initialization.h */,
 				D93C47211CD7596A00CD334A /* Main.h */,
 				D93C47231CD7596A00CD334A /* Monitor.h */,
@@ -203,8 +215,10 @@
 				D93C47351CD7598500CD334A /* Process.h */,
 				D93C47371CD7598500CD334A /* Protocol.h */,
 				D93C47391CD7598500CD334A /* Proxy.h */,
+				D96BE5C81DB7A8A7001D8BF3 /* Request.h */,
 				D93C47461CD7599300CD334A /* Service.h */,
-				D93C47471CD7599300CD334A /* Structures.h */,
+				D96BE5CA1DB7A8AF001D8BF3 /* Structure.h */,
+				D96BE5CB1DB7A8AF001D8BF3 /* Template.h */,
 			);
 			path = Pcap_DNSProxy;
 			sourceTree = "<group>";
@@ -369,6 +383,8 @@
 				D93C47421CD7598500CD334A /* ReadIPFilter.cpp in Sources */,
 				D93C473F1CD7598500CD334A /* Protocol.cpp in Sources */,
 				D93C47401CD7598500CD334A /* Proxy.cpp in Sources */,
+				D96BE5C91DB7A8A7001D8BF3 /* Request.cpp in Sources */,
+				D96BE5C61DB7A895001D8BF3 /* DNSCurveRequest.cpp in Sources */,
 				D93C47411CD7598500CD334A /* ReadHosts.cpp in Sources */,
 				D93C47241CD7596A00CD334A /* Base.cpp in Sources */,
 				D93C47271CD7596A00CD334A /* DNSCurve.cpp in Sources */,

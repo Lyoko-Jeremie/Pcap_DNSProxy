@@ -36,13 +36,9 @@ bool LocalRequestProcess(
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
 bool SOCKSRequestProcess(
-	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	uint8_t * const OriginalRecv, 
-	const size_t RecvSize);
-bool HTTPRequestProcess(
-	const MONITOR_QUEUE_DATA &MonitorQueryData, 
-	uint8_t * const OriginalRecv, 
-	const size_t RecvSize);
+	const MONITOR_QUEUE_DATA &MonitorQueryData);
+bool HTTPCONNECTRequestProcess(
+	const MONITOR_QUEUE_DATA &MonitorQueryData);
 bool DirectRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 

@@ -404,7 +404,7 @@ size_t AddEDNSLabelToAdditionalRR(
 	if (DataLength + sizeof(dns_record_opt) > MaxLen)
 		return DataLength;
 	const auto DNS_Record_OPT = (pdns_record_opt)(Buffer + DataLength);
-	DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
+	DNS_Record_OPT->Type = htons(DNS_TYPE_OPT);
 	DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 	DataLength += sizeof(dns_record_opt);
 
@@ -423,13 +423,13 @@ size_t AddEDNSLabelToAdditionalRR(
 		const auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
 
 	//Length, DNS Class and DNS record check
-		if (DataLength + sizeof(edns_client_subnet) > MaxLen || ntohs(DNS_Query->Classes) != DNS_CLASS_IN || 
-			(ntohs(DNS_Query->Type) != DNS_RECORD_AAAA && ntohs(DNS_Query->Type) != DNS_RECORD_A))
+		if (DataLength + sizeof(edns_client_subnet) > MaxLen || ntohs(DNS_Query->Classes) != DNS_CLASS_INTERNET || 
+			(ntohs(DNS_Query->Type) != DNS_TYPE_AAAA && ntohs(DNS_Query->Type) != DNS_TYPE_A))
 				return DataLength;
 		const auto EDNS_Subnet_Header = (pedns_client_subnet)(Buffer + DataLength);
 
 	//IPv6
-		if (ntohs(DNS_Query->Type) == DNS_RECORD_AAAA && 
+		if (ntohs(DNS_Query->Type) == DNS_TYPE_AAAA && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6) || 
 			Parameter.LocalMachineSubnet_IPv6 != nullptr))
 		{
@@ -458,7 +458,7 @@ size_t AddEDNSLabelToAdditionalRR(
 			DataLength += sizeof(in6_addr);
 		}
 	//IPv4
-		else if (ntohs(DNS_Query->Type) == DNS_RECORD_A && 
+		else if (ntohs(DNS_Query->Type) == DNS_TYPE_A && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET) || 
 			Parameter.LocalMachineSubnet_IPv4 != nullptr))
 		{
@@ -506,7 +506,7 @@ bool AddEDNSLabelToAdditionalRR(
 		if (Packet->Length + sizeof(dns_record_opt) >= Packet->BufferSize)
 			return true;
 		DNS_Record_OPT = (pdns_record_opt)(Packet->Buffer + Packet->Length);
-		DNS_Record_OPT->Type = htons(DNS_RECORD_OPT);
+		DNS_Record_OPT->Type = htons(DNS_TYPE_OPT);
 		DNS_Record_OPT->UDPPayloadSize = htons((uint16_t)Parameter.EDNSPayloadSize);
 
 	//Change structure information.
@@ -535,13 +535,13 @@ bool AddEDNSLabelToAdditionalRR(
 		const auto DNS_Query = (pdns_qry)(Packet->Buffer + DNS_PACKET_QUERY_LOCATE(Packet->Buffer));
 
 	//Length, DNS Class and DNS record check
-		if (Packet->Length + sizeof(edns_client_subnet) > Packet->BufferSize || ntohs(DNS_Query->Classes) != DNS_CLASS_IN || 
-			(ntohs(DNS_Query->Type) != DNS_RECORD_AAAA && ntohs(DNS_Query->Type) != DNS_RECORD_A))
+		if (Packet->Length + sizeof(edns_client_subnet) > Packet->BufferSize || ntohs(DNS_Query->Classes) != DNS_CLASS_INTERNET || 
+			(ntohs(DNS_Query->Type) != DNS_TYPE_AAAA && ntohs(DNS_Query->Type) != DNS_TYPE_A))
 				return true;
 		const auto EDNS_Subnet_Header = (pedns_client_subnet)(Packet->Buffer + Packet->Length);
 
 	//IPv6
-		if (ntohs(DNS_Query->Type) == DNS_RECORD_AAAA && 
+		if (ntohs(DNS_Query->Type) == DNS_TYPE_AAAA && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6) || 
 			Parameter.LocalMachineSubnet_IPv6 != nullptr))
 		{
@@ -572,7 +572,7 @@ bool AddEDNSLabelToAdditionalRR(
 			Packet->EDNS_Record += sizeof(in6_addr);
 		}
 	//IPv4
-		else if (ntohs(DNS_Query->Type) == DNS_RECORD_A && 
+		else if (ntohs(DNS_Query->Type) == DNS_TYPE_A && 
 			((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET) || 
 			Parameter.LocalMachineSubnet_IPv4 != nullptr))
 		{
@@ -712,11 +712,11 @@ size_t MakeCompressionPointerMutation(
 			std::uniform_int_distribution<uint32_t> RamdomDistribution_Additional(0, UINT32_MAX);
 
 		//Make records.
-			if (ntohs(DNS_Query.Type) == DNS_RECORD_AAAA)
+			if (ntohs(DNS_Query.Type) == DNS_TYPE_AAAA)
 			{
 				const auto DNS_Record_AAAA = (pdns_record_aaaa)(Buffer + Length);
-				DNS_Record_AAAA->Type = htons(DNS_RECORD_AAAA);
-				DNS_Record_AAAA->Classes = htons(DNS_CLASS_IN);
+				DNS_Record_AAAA->Type = htons(DNS_TYPE_AAAA);
+				DNS_Record_AAAA->Classes = htons(DNS_CLASS_INTERNET);
 				DNS_Record_AAAA->TTL = htonl(RamdomDistribution_Additional(*GlobalRunningStatus.RamdomEngine));
 				DNS_Record_AAAA->Length = htons(sizeof(in6_addr));
 				for (Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);++Index)
@@ -726,8 +726,8 @@ size_t MakeCompressionPointerMutation(
 			}
 			else {
 				const auto DNS_Record_A = (pdns_record_a)(Buffer + Length);
-				DNS_Record_A->Type = htons(DNS_RECORD_A);
-				DNS_Record_A->Classes = htons(DNS_CLASS_IN);
+				DNS_Record_A->Type = htons(DNS_TYPE_A);
+				DNS_Record_A->Classes = htons(DNS_CLASS_INTERNET);
 				DNS_Record_A->TTL = htonl(RamdomDistribution_Additional(*GlobalRunningStatus.RamdomEngine));
 				DNS_Record_A->Length = htons(sizeof(in_addr));
 				DNS_Record_A->Addr.s_addr = htonl(RamdomDistribution_Additional(*GlobalRunningStatus.RamdomEngine));

@@ -23,6 +23,9 @@
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
+#if defined(ENABLE_LIBSODIUM)
+extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
+#endif
 extern std::deque<SOCKET_MARKING_DATA> SocketMarkingList;
 #if defined(ENABLE_PCAP)
 extern std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
@@ -31,24 +34,11 @@ extern std::mutex OutputPacketListLock;
 extern std::mutex SocketMarkingLock;
 
 //Functions
-bool SelectTargetSocket(
-	const size_t RequestType, 
-	SOCKET_DATA * const TargetSocketData, 
-	bool ** const IsAlternate, 
-	size_t ** const AlternateTimeoutTimes, 
-	const uint16_t Protocol, 
-	const ADDRESS_UNION_DATA * const SpecifieTargetData);
-bool SelectTargetSocketMultiple(
-	std::vector<SOCKET_DATA> &TargetSocketDataList, 
-	const uint16_t Protocol);
-ssize_t SelectingResult(
+ssize_t SelectingResultOnce(
 	const size_t RequestType, 
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingList, 
+	std::vector<SOCKET_SELECTING_DATA> *SocketSelectingList, 
+	void * const OriginalDNSCurveSocketSelectingList, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
-void MarkPortToList(
-	const uint16_t Protocol, 
-	const SOCKET_DATA * const LocalSocketData, 
-	std::vector<SOCKET_DATA> &SocketDataList);

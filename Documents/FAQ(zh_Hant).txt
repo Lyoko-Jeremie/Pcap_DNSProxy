@@ -6,8 +6,6 @@
 -------------------------------------------------------------------------------
 
 
-運行結果分析：
-
 * WinPcap 提示已安裝舊版本無法繼續：
   * 到安裝和卸載程式、運行功能表或 %PROGRAMFILES(x86)%(64位系統)/%PROGRAMFILES%(32位系統) 尋找 WinPcap 的卸載程式
   * 如果找不到卸載程式，則可能需要進入安全模式刪除 WinPcap 的所有檔然後重新安裝：
@@ -28,6 +26,10 @@
     Address: ::1（視所在網路環境而定，本地監聽協定為 IPv4 時為 127.0.0.1）
 
     *** UnKnown 找不到 www.google.com: No response from server
+
+
+-------------------------------------------------------------------------------
+
 
 * 如果出現以下結果，則說明服務已經運行成功但遠端DNS伺服器沒有回應，請檢查是否有錯誤報表生成
   * 請務必設置一個正確的、有效的、可以使用的境外DNS伺服器
@@ -59,9 +61,10 @@
 
 
 當程式運行時發生錯誤，可能會建置錯誤報告也就是 Error.log 檔，其位於工具服務註冊的目錄內，對解決問題至關重要
-錯誤報表的格式為 "日期 時間 -> 錯誤類型: 詳細錯誤資訊(in line 行數 of 所在檔, error code is 錯誤代碼)"（不含雙引號，括弧為可能出現內容）
-* 錯誤代碼為 系統/Winsock/WinPcap API 提供的出錯代碼，詳細情況參見下文 Error.log 詳細錯誤報表
-* 由於程式重啟時會自動刪除之前生成的錯誤報表，所以如果有錯誤報表生成建議先備份並嘗試解決後再重新開機工具服務
+* 錯誤報表的格式為 "[日期 時間] -> [錯誤類型] 對錯誤代碼的簡單介紹[錯誤代碼] in 錯誤出處(Line 行數)."（不含雙引號）
+* Windows 的錯誤代碼參見 https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
+* Linux/Mac 的錯誤代碼參見 http://man7.org/linux/man-pages/man3/errno.3.html
+* WinPcap/LibPcap 錯誤資訊的具體含義可移步 https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
 
 
 Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
@@ -70,9 +73,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Screen output buffer setting error - 螢幕輸出緩衝區配置錯誤：建議重新開機服務或程式
   * Commands error - 程式啟動參數錯誤：請檢查為程式傳入的參數
   * Service start error - 服務啟動失敗：可能未在系統註冊服務，或在系統內註冊的服務路徑不正確
-    * 錯誤代碼參見 https://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
   * Set system daemon error - 守护程式配置錯誤：建議重新開機服務或程式
-    * Linux/Mac 的錯誤代碼參見 http://man7.org/linux/man-pages/man3/errno.3.html
   * Convert multiple byte or wide char string error - 多/寬位元組字元轉換錯誤：建議重新開機服務或程式
   * Create mailslot error - Mailslot 創建失敗：建議重新開機服務或程式
   * Mailslot read messages error - Mailslot 讀取資訊失敗：建議重新開機服務或程式
@@ -190,12 +191,12 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * UDP socket initialization error - UDP 協定請求通訊端初始化失敗：原因參見錯誤代碼
   * TCP socket initialization error - TCP 協定請求通訊端初始化失敗：原因參見錯誤代碼
   * SOCKS socket initialization error - SOCKS 協定請求通訊端初始化失敗：原因參見錯誤代碼
-  * HTTP socket initialization error - SOCKS 協定請求通訊端初始化失敗：原因參見錯誤代碼
+  * HTTP CONNECT socket initialization error - HTTP CONNECT 協定請求通訊端初始化失敗：原因參見錯誤代碼
   * Complete UDP socket initialization error - UDP 協定請求通訊端初始化失敗：原因參見錯誤代碼
   * SOCKS connecting error - SOCKS 協定連接錯誤：可能為網路錯誤，原因參見錯誤代碼
-  * HTTP connecting error - SOCKS 協定連接錯誤：可能為網路錯誤，原因參見錯誤代碼
+  * HTTP CONNECT connecting error - HTTP CONNECT 協定連接錯誤：可能為網路錯誤，原因參見錯誤代碼
   * SOCKS request error - SOCKS 協定請求失敗：可能為網路錯誤，具體原因可參見錯誤代碼
-  * HTTP request error - SOCKS 協定請求失敗：可能為網路錯誤，具體原因可參見錯誤代碼
+  * HTTP CONNECT request error - HTTP CONNECT 協定請求失敗：可能為網路錯誤，具體原因可參見錯誤代碼
   * DNSCurve UDP socket initialization error - DNSCurve 協定 UDP 協定通訊端初始化失敗：可能為網路錯誤，具體原因可參見錯誤代碼
   * DNSCurve TCP socket initialization error - DNSCurve 協定 TCP 協定通訊端初始化失敗：可能為網路錯誤，具體原因可參見錯誤代碼
   * DNSCurve Local Signature socket initialization error - DNSCurve 協定本地請求通訊端初始化失敗：可能為網路錯誤，具體原因可參見錯誤代碼
@@ -206,7 +207,6 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
 6.Pcap Error - Pcap 錯誤
   * Insufficient privileges or not any available network devices - 沒有任何可用的網路介面卡：請檢查硬體設備和驅動程式是否安裝正確，也可能許可權不足
   * 本類型錯誤會直接將 WinPcap 的錯誤資訊直接列印至錯誤報表
-  * WinPcap 錯誤資訊的具體含義可移步 https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
 
 7.DNSCurve Error - DNSCurve 協定錯誤
   * Libsodium initialization error - Libsodium 庫初始化錯誤：請與開發者聯繫
@@ -238,10 +238,10 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Username or Password incorrect - SOCKS 協定使用者名/密碼不正確：請檢查使用者名/密碼是否錯誤
   * Client command request error - 用戶端請求連接失敗：請檢查 SOCKS 協定目標位址否受支援或是否可用，原因參見錯誤代碼
 
-9.HTTP Error - HTTP 協定錯誤
- * HTTP address error - HTTP 代理位址錯誤：請檢查該伺服器是否可用
- * HTTP target server error - HTTP 代理目標位址錯誤：請檢查該伺服器是否可用
- * HTTP server response error - HTTP 代理伺服器回應錯誤：請檢查該伺服器是否可用
+9.HTTP CONNECT Error - HTTP CONNECT 協定錯誤
+ * HTTP CONNECT address error - HTTP CONNECT 代理位址錯誤：請檢查該伺服器是否可用
+ * HTTP CONNECT target server error - HTTP CONNECT 代理目標位址錯誤：請檢查該伺服器是否可用
+ * HTTP CONNECT server response error - HTTP CONNECT 代理伺服器回應錯誤：請檢查該伺服器是否可用
 
 10.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
   * Old log file was deleted - 錯誤日誌檔已滿並被刪除

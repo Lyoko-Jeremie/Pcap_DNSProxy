@@ -563,7 +563,7 @@ bool TCPMonitor(
 	MONITOR_QUEUE_DATA MonitorQueryData;
 	fd_set ReadFDS;
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
-	MonitorQueryData.first.BufferSize = LARGE_PACKET_MAXSIZE;
+	MonitorQueryData.first.BufferSize = Parameter.LargeBufferSize;
 	MonitorQueryData.first.Protocol = IPPROTO_TCP;
 	const PSOCKET_DATA SocketDataPTR = &MonitorQueryData.second;
 	uint64_t LastMarkTime = 0, NowTime = 0;
@@ -657,8 +657,8 @@ bool TCPReceiveProcess(
 	size_t RecvSize)
 {
 //Initialization(Part 1)
-	std::shared_ptr<uint8_t> RecvBuffer(new uint8_t[LARGE_PACKET_MAXSIZE]());
-	memset(RecvBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
+	std::shared_ptr<uint8_t> RecvBuffer(new uint8_t[Parameter.LargeBufferSize]());
+	memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize);
 	fd_set ReadFDS;
 	timeval Timeout;
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
@@ -667,11 +667,11 @@ bool TCPReceiveProcess(
 
 //Receive process
 #if defined(PLATFORM_WIN)
-	Timeout.tv_sec = Parameter.SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
-	Timeout.tv_usec = Parameter.SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+	Timeout.tv_sec = Parameter.SocketTimeout_Reliable_Once / SECOND_TO_MILLISECOND;
+	Timeout.tv_usec = Parameter.SocketTimeout_Reliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	Timeout.tv_sec = Parameter.SocketTimeout_Reliable.tv_sec;
-	Timeout.tv_usec = Parameter.SocketTimeout_Reliable.tv_usec;
+	Timeout.tv_sec = Parameter.SocketTimeout_Reliable_Once.tv_sec;
+	Timeout.tv_usec = Parameter.SocketTimeout_Reliable_Once.tv_usec;
 #endif
 	FD_ZERO(&ReadFDS);
 	FD_SET(MonitorQueryData.second.Socket, &ReadFDS);
@@ -683,7 +683,7 @@ bool TCPReceiveProcess(
 #endif
 	if (RecvLen > 0 && FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS))
 	{
-		RecvLen = recv(MonitorQueryData.second.Socket, (char *)RecvBuffer.get(), LARGE_PACKET_MAXSIZE, 0);
+		RecvLen = recv(MonitorQueryData.second.Socket, (char *)RecvBuffer.get(), (int)Parameter.LargeBufferSize, 0);
 	}
 //Timeout or SOCKET_ERROR
 	else {
@@ -706,11 +706,11 @@ bool TCPReceiveProcess(
 		memset(&ReadFDS, 0, sizeof(ReadFDS));
 		memset(&Timeout, 0, sizeof(Timeout));
 	#if defined(PLATFORM_WIN)
-		Timeout.tv_sec = Parameter.SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
-		Timeout.tv_usec = Parameter.SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+		Timeout.tv_sec = Parameter.SocketTimeout_Reliable_Once / SECOND_TO_MILLISECOND;
+		Timeout.tv_usec = Parameter.SocketTimeout_Reliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		Timeout.tv_sec = Parameter.SocketTimeout_Reliable.tv_sec;
-		Timeout.tv_usec = Parameter.SocketTimeout_Reliable.tv_usec;
+		Timeout.tv_sec = Parameter.SocketTimeout_Reliable_Once.tv_sec;
+		Timeout.tv_usec = Parameter.SocketTimeout_Reliable_Once.tv_usec;
 	#endif
 		FD_ZERO(&ReadFDS);
 		FD_SET(MonitorQueryData.second.Socket, &ReadFDS);
@@ -723,7 +723,7 @@ bool TCPReceiveProcess(
 	#endif
 		if (RecvLen > 0 && FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS))
 		{
-			RecvLen = recv(MonitorQueryData.second.Socket, (char *)RecvBuffer.get() + Length, (int)(LARGE_PACKET_MAXSIZE - Length), 0);
+			RecvLen = recv(MonitorQueryData.second.Socket, (char *)RecvBuffer.get() + Length, (int)(Parameter.LargeBufferSize - Length), 0);
 
 		//Receive length check
 			if (RecvLen > 0)
@@ -753,9 +753,9 @@ bool TCPReceiveProcess(
 		memset(&MonitorQueryData.first.LocalTarget, 0, sizeof(MonitorQueryData.first.LocalTarget));
 
 	//Check DNS query data.
-		std::shared_ptr<uint8_t> SendBuffer(new uint8_t[LARGE_PACKET_MAXSIZE]());
-		memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
-		if (!CheckQueryData(&MonitorQueryData.first, SendBuffer.get(), LARGE_PACKET_MAXSIZE, MonitorQueryData.second))
+		std::shared_ptr<uint8_t> SendBuffer(new uint8_t[Parameter.LargeBufferSize]());
+		memset(SendBuffer.get(), 0, Parameter.LargeBufferSize);
+		if (!CheckQueryData(&MonitorQueryData.first, SendBuffer.get(), Parameter.LargeBufferSize, MonitorQueryData.second))
 		{
 			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 			return false;
@@ -772,9 +772,9 @@ bool TCPReceiveProcess(
 //Block Port Unreachable messages of system.
 	shutdown(MonitorQueryData.second.Socket, SD_SEND);
 #if defined(PLATFORM_WIN)
-	Sleep(Parameter.SocketTimeout_Reliable);
+	Sleep(Parameter.SocketTimeout_Reliable_Once);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	usleep(Parameter.SocketTimeout_Reliable.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.SocketTimeout_Reliable.tv_usec);
+	usleep(Parameter.SocketTimeout_Reliable_Once.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.SocketTimeout_Reliable_Once.tv_usec);
 #endif
 	SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 
@@ -1213,8 +1213,8 @@ void NetworkInformationMonitor(
 				memcpy_s(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV6] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6], PACKET_MAXSIZE - GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6], Parameter.LocalFQDN_Response, Parameter.LocalFQDN_Length);
 				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6] += Parameter.LocalFQDN_Length;
 				DNS_Query = (pdns_qry)(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV6] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6]);
-				DNS_Query->Type = htons(DNS_RECORD_AAAA);
-				DNS_Query->Classes = htons(DNS_CLASS_IN);
+				DNS_Query->Type = htons(DNS_TYPE_AAAA);
+				DNS_Query->Classes = htons(DNS_CLASS_INTERNET);
 				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6] += sizeof(dns_qry);
 
 			//Read addresses list and convert to Fully Qualified Domain Name/FQDN PTR.
@@ -1229,9 +1229,9 @@ void NetworkInformationMonitor(
 						{
 							DNS_Record = (pdns_record_aaaa)(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV6] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6]);
 							((pdns_record_aaaa)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
-							((pdns_record_aaaa)DNS_Record)->Classes = htons(DNS_CLASS_IN);
+							((pdns_record_aaaa)DNS_Record)->Classes = htons(DNS_CLASS_INTERNET);
 							((pdns_record_aaaa)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
-							((pdns_record_aaaa)DNS_Record)->Type = htons(DNS_RECORD_AAAA);
+							((pdns_record_aaaa)DNS_Record)->Type = htons(DNS_TYPE_AAAA);
 							((pdns_record_aaaa)DNS_Record)->Length = htons(sizeof(in6_addr));
 							((pdns_record_aaaa)DNS_Record)->Addr = ((PSOCKADDR_IN6)LocalAddressTableIter->ai_addr)->sin6_addr;
 							GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6] += sizeof(dns_record_aaaa);
@@ -1296,9 +1296,9 @@ void NetworkInformationMonitor(
 						{
 							DNS_Record = (pdns_record_aaaa)(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV6] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6]);
 							((pdns_record_aaaa)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
-							((pdns_record_aaaa)DNS_Record)->Classes = htons(DNS_CLASS_IN);
+							((pdns_record_aaaa)DNS_Record)->Classes = htons(DNS_CLASS_INTERNET);
 							((pdns_record_aaaa)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
-							((pdns_record_aaaa)DNS_Record)->Type = htons(DNS_RECORD_AAAA);
+							((pdns_record_aaaa)DNS_Record)->Type = htons(DNS_TYPE_AAAA);
 							((pdns_record_aaaa)DNS_Record)->Length = htons(sizeof(in6_addr));
 							((pdns_record_aaaa)DNS_Record)->Addr = ((PSOCKADDR_IN6)InterfaceAddressIter->ifa_addr)->sin6_addr;
 							GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV6] += sizeof(dns_record_aaaa);
@@ -1407,8 +1407,8 @@ void NetworkInformationMonitor(
 				memcpy_s(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV4] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4], PACKET_MAXSIZE - GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4], Parameter.LocalFQDN_Response, Parameter.LocalFQDN_Length);
 				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4] += Parameter.LocalFQDN_Length;
 				DNS_Query = (pdns_qry)(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV4] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4]);
-				DNS_Query->Type = htons(DNS_RECORD_AAAA);
-				DNS_Query->Classes = htons(DNS_CLASS_IN);
+				DNS_Query->Type = htons(DNS_TYPE_AAAA);
+				DNS_Query->Classes = htons(DNS_CLASS_INTERNET);
 				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4] += sizeof(dns_qry);
 
 			//Read addresses list and convert to Fully Qualified Domain Name/FQDN PTR.
@@ -1423,9 +1423,9 @@ void NetworkInformationMonitor(
 						{
 							DNS_Record = (pdns_record_a)(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV4] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4]);
 							((pdns_record_a)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
-							((pdns_record_a)DNS_Record)->Classes = htons(DNS_CLASS_IN);
+							((pdns_record_a)DNS_Record)->Classes = htons(DNS_CLASS_INTERNET);
 							((pdns_record_a)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
-							((pdns_record_a)DNS_Record)->Type = htons(DNS_RECORD_A);
+							((pdns_record_a)DNS_Record)->Type = htons(DNS_TYPE_A);
 							((pdns_record_a)DNS_Record)->Length = htons(sizeof(in_addr));
 							((pdns_record_a)DNS_Record)->Addr = ((PSOCKADDR_IN)LocalAddressTableIter->ai_addr)->sin_addr;
 							GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4] += sizeof(dns_record_a);
@@ -1470,9 +1470,9 @@ void NetworkInformationMonitor(
 						{
 							DNS_Record = (pdns_record_a)(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_IPV4] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4]);
 							((pdns_record_a)DNS_Record)->Name = htons(DNS_POINTER_QUERY);
-							((pdns_record_a)DNS_Record)->Classes = htons(DNS_CLASS_IN);
+							((pdns_record_a)DNS_Record)->Classes = htons(DNS_CLASS_INTERNET);
 							((pdns_record_a)DNS_Record)->TTL = htonl(Parameter.HostsDefaultTTL);
-							((pdns_record_a)DNS_Record)->Type = htons(DNS_RECORD_A);
+							((pdns_record_a)DNS_Record)->Type = htons(DNS_TYPE_A);
 							((pdns_record_a)DNS_Record)->Length = htons(sizeof(in_addr));
 							((pdns_record_a)DNS_Record)->Addr = ((PSOCKADDR_IN)InterfaceAddressIter->ifa_addr)->sin_addr;
 							GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_IPV4] += sizeof(dns_record_a);

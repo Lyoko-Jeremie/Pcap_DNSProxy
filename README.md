@@ -3,7 +3,7 @@
 A local DNS server based on WinPcap and LibPcap
 
 ### Updated
-**0.4.7.6**
+**0.4.7.7**
 
 ### Usage
 **说明文档参见项目 [Documents 文件夹](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的内容**

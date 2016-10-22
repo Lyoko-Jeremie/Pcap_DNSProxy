@@ -491,14 +491,14 @@ bool ReadParameter(
 			memset(&ConfigFileSize, 0, sizeof(ConfigFileSize));
 			ConfigFileSize.HighPart = FileAttributeData.nFileSizeHigh;
 			ConfigFileSize.LowPart = FileAttributeData.nFileSizeLow;
-			if (ConfigFileSize.QuadPart < 0 || (size_t)ConfigFileSize.QuadPart >= DEFAULT_FILE_MAXSIZE)
+			if (ConfigFileSize.QuadPart < 0 || (size_t)ConfigFileSize.QuadPart >= FILE_READING_MAXSIZE)
 			{
 				PrintError(LOG_LEVEL_3, LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				return false;
 			}
 		}
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		if (stat(FileList_Config.at(FileIndex).sFileName.c_str(), &FileStatData) == 0 && FileStatData.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+		if (stat(FileList_Config.at(FileIndex).sFileName.c_str(), &FileStatData) == 0 && FileStatData.st_size >= (off_t)FILE_READING_MAXSIZE)
 		{
 			PrintError(LOG_LEVEL_3, LOG_ERROR_PARAMETER, L"Configuration file is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
@@ -588,9 +588,9 @@ bool ReadParameter(
 			#if defined(PLATFORM_WIN)
 				FileSizeData.HighPart = FileAttributeData.nFileSizeHigh;
 				FileSizeData.LowPart = FileAttributeData.nFileSizeLow;
-				if (FileSizeData.QuadPart < 0 || (size_t)FileSizeData.QuadPart >= DEFAULT_FILE_MAXSIZE)
+				if (FileSizeData.QuadPart < 0 || (size_t)FileSizeData.QuadPart >= FILE_READING_MAXSIZE)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				if (FileStatData.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+				if (FileStatData.st_size >= (off_t)FILE_READING_MAXSIZE)
 			#endif
 				{
 					PrintError(LOG_LEVEL_3, LOG_ERROR_PARAMETER, L"Configuration file size is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
@@ -768,9 +768,9 @@ void ReadIPFilter(
 			#if defined(PLATFORM_WIN)
 				FileSizeData.HighPart = FileAttributeData.nFileSizeHigh;
 				FileSizeData.LowPart = FileAttributeData.nFileSizeLow;
-				if (FileSizeData.QuadPart < 0 || (size_t)FileSizeData.QuadPart >= DEFAULT_FILE_MAXSIZE)
+				if (FileSizeData.QuadPart < 0 || (size_t)FileSizeData.QuadPart >= FILE_READING_MAXSIZE)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				if (FileStatData.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+				if (FileStatData.st_size >= (off_t)FILE_READING_MAXSIZE)
 			#endif
 				{
 					PrintError(LOG_LEVEL_3, LOG_ERROR_PARAMETER, L"IPFilter file size is too large", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), 0);
@@ -960,9 +960,9 @@ void ReadHosts(
 			#if defined(PLATFORM_WIN)
 				FileSizeData.HighPart = FileAttributeData.nFileSizeHigh;
 				FileSizeData.LowPart = FileAttributeData.nFileSizeLow;
-				if (FileSizeData.QuadPart < 0 || (size_t)FileSizeData.QuadPart >= DEFAULT_FILE_MAXSIZE)
+				if (FileSizeData.QuadPart < 0 || (size_t)FileSizeData.QuadPart >= FILE_READING_MAXSIZE)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				if (FileStatData.st_size >= (off_t)DEFAULT_FILE_MAXSIZE)
+				if (FileStatData.st_size >= (off_t)FILE_READING_MAXSIZE)
 			#endif
 				{
 					PrintError(LOG_LEVEL_3, LOG_ERROR_PARAMETER, L"Hosts file size is too large", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), 0);

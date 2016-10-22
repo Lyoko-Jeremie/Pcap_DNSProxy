@@ -95,10 +95,10 @@ ConfigurationTable::ConfigurationTable(
 		SOCKS_TargetDomain = new std::string();
 		SOCKS_Username = new std::string();
 		SOCKS_Password = new std::string();
-		HTTP_TargetDomain = new std::string();
-		HTTP_Version = new std::string();
-		HTTP_HeaderField = new std::string();
-		HTTP_ProxyAuthorization = new std::string();
+		HTTP_CONNECT_TargetDomain = new std::string();
+		HTTP_CONNECT_Version = new std::string();
+		HTTP_CONNECT_HeaderField = new std::string();
+		HTTP_CONNECT_ProxyAuthorization = new std::string();
 	}
 	catch (std::bad_alloc)
 	{
@@ -146,17 +146,17 @@ ConfigurationTable::ConfigurationTable(
 		delete SOCKS_TargetDomain;
 		delete SOCKS_Username;
 		delete SOCKS_Password;
-		delete HTTP_TargetDomain;
-		delete HTTP_Version;
-		delete HTTP_HeaderField;
-		delete HTTP_ProxyAuthorization;
+		delete HTTP_CONNECT_TargetDomain;
+		delete HTTP_CONNECT_Version;
+		delete HTTP_CONNECT_HeaderField;
+		delete HTTP_CONNECT_ProxyAuthorization;
 		SOCKS_TargetDomain = nullptr;
 		SOCKS_Username = nullptr;
 		SOCKS_Password = nullptr;
-		HTTP_TargetDomain = nullptr;
-		HTTP_Version = nullptr;
-		HTTP_HeaderField = nullptr;
-		HTTP_ProxyAuthorization = nullptr;
+		HTTP_CONNECT_TargetDomain = nullptr;
+		HTTP_CONNECT_Version = nullptr;
+		HTTP_CONNECT_HeaderField = nullptr;
+		HTTP_CONNECT_ProxyAuthorization = nullptr;
 
 		exit(EXIT_FAILURE);
 		return;
@@ -183,10 +183,11 @@ void ConfigurationTableSetting(
 //Default value settings
 	//[Base] block
 	ConfigurationParameter->FileRefreshTime = DEFAULT_FILEREFRESH_TIME;
+	ConfigurationParameter->LargeBufferSize = DEFAULT_LARGE_BUFFER_SIZE;
 
 	//[Log] block
 	ConfigurationParameter->PrintLogLevel = DEFAULT_LOG_LEVEL;
-	ConfigurationParameter->LogMaxSize = DEFAULT_LOG_MAXSIZE;
+	ConfigurationParameter->LogMaxSize = LOG_READING_MAXSIZE;
 
 	//[Listen] block
 #if defined(ENABLE_PCAP)
@@ -213,11 +214,19 @@ void ConfigurationTableSetting(
 	ConfigurationParameter->ThreadPoolResetTime = DEFAULT_THREAD_POOL_RESET_TIME;
 	ConfigurationParameter->EDNSPayloadSize = EDNS_PACKET_MINSIZE;
 #if defined(PLATFORM_WIN)
-	ConfigurationParameter->SocketTimeout_Reliable = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
-	ConfigurationParameter->SocketTimeout_Unreliable = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
+	ConfigurationParameter->SocketTimeout_Reliable_Once = DEFAULT_RELIABLE_ONCE_SOCKET_TIMEOUT;
+	ConfigurationParameter->SocketTimeout_Unreliable_Once = DEFAULT_UNRELIABLE_ONCE_SOCKET_TIMEOUT;
+	ConfigurationParameter->SocketTimeout_Reliable_Serial = DEFAULT_RELIABLE_SERIAL_SOCKET_TIMEOUT;
+	ConfigurationParameter->SocketTimeout_Unreliable_Serial = DEFAULT_UNRELIABLE_SERIAL_SOCKET_TIMEOUT;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	ConfigurationParameter->SocketTimeout_Reliable.tv_sec = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
-	ConfigurationParameter->SocketTimeout_Unreliable.tv_sec = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
+	ConfigurationParameter->SocketTimeout_Reliable_Once.tv_sec = DEFAULT_RELIABLE_ONCE_SOCKET_TIMEOUT / SECOND_TO_MILLISECOND;
+	ConfigurationParameter->SocketTimeout_Reliable_Once.tv_usec = DEFAULT_RELIABLE_ONCE_SOCKET_TIMEOUT % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+	ConfigurationParameter->SocketTimeout_Unreliable_Once.tv_sec = DEFAULT_UNRELIABLE_ONCE_SOCKET_TIMEOUT / SECOND_TO_MILLISECOND;
+	ConfigurationParameter->SocketTimeout_Unreliable_Once.tv_usec = DEFAULT_RELIABLE_ONCE_SOCKET_TIMEOUT % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+	ConfigurationParameter->SocketTimeout_Reliable_Serial.tv_sec = DEFAULT_RELIABLE_SERIAL_SOCKET_TIMEOUT / SECOND_TO_MILLISECOND;
+	ConfigurationParameter->SocketTimeout_Reliable_Serial.tv_usec = DEFAULT_RELIABLE_SERIAL_SOCKET_TIMEOUT % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+	ConfigurationParameter->SocketTimeout_Unreliable_Serial.tv_sec = DEFAULT_UNRELIABLE_SERIAL_SOCKET_TIMEOUT / SECOND_TO_MILLISECOND;
+	ConfigurationParameter->SocketTimeout_Unreliable_Serial.tv_usec = DEFAULT_RELIABLE_SERIAL_SOCKET_TIMEOUT % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 #endif
 #if defined(ENABLE_PCAP)
 	ConfigurationParameter->ICMP_Speed = DEFAULT_ICMP_TEST_TIME * SECOND_TO_MILLISECOND;
@@ -264,19 +273,7 @@ void ConfigurationTableSetting(
 	ConfigurationParameter->SOCKS_Version = SOCKS_VERSION_5;
 	ConfigurationParameter->SOCKS_Protocol_Network = REQUEST_MODE_BOTH;
 	ConfigurationParameter->SOCKS_Protocol_Transport = REQUEST_MODE_TCP;
-#if defined(PLATFORM_WIN)
-	ConfigurationParameter->SOCKS_SocketTimeout_Reliable = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
-	ConfigurationParameter->SOCKS_SocketTimeout_Unreliable = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	ConfigurationParameter->SOCKS_SocketTimeout_Reliable.tv_sec = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
-	ConfigurationParameter->SOCKS_SocketTimeout_Unreliable.tv_sec = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
-#endif
-	ConfigurationParameter->HTTP_Protocol = REQUEST_MODE_BOTH;
-#if defined(PLATFORM_WIN)
-	ConfigurationParameter->HTTP_SocketTimeout = DEFAULT_HTTP_SOCKET_TIMEOUT;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	ConfigurationParameter->HTTP_SocketTimeout.tv_sec = DEFAULT_HTTP_SOCKET_TIMEOUT;
-#endif
+	ConfigurationParameter->HTTP_CONNECT_Protocol = REQUEST_MODE_BOTH;
 
 	return;
 }
@@ -329,17 +326,17 @@ ConfigurationTable::~ConfigurationTable(
 	delete SOCKS_TargetDomain;
 	delete SOCKS_Username;
 	delete SOCKS_Password;
-	delete HTTP_TargetDomain;
-	delete HTTP_Version;
-	delete HTTP_HeaderField;
-	delete HTTP_ProxyAuthorization;
+	delete HTTP_CONNECT_TargetDomain;
+	delete HTTP_CONNECT_Version;
+	delete HTTP_CONNECT_HeaderField;
+	delete HTTP_CONNECT_ProxyAuthorization;
 	SOCKS_TargetDomain = nullptr;
 	SOCKS_Username = nullptr;
 	SOCKS_Password = nullptr;
-	HTTP_TargetDomain = nullptr;
-	HTTP_Version = nullptr;
-	HTTP_HeaderField = nullptr;
-	HTTP_ProxyAuthorization = nullptr;
+	HTTP_CONNECT_TargetDomain = nullptr;
+	HTTP_CONNECT_Version = nullptr;
+	HTTP_CONNECT_HeaderField = nullptr;
+	HTTP_CONNECT_ProxyAuthorization = nullptr;
 
 	return;
 }
@@ -428,8 +425,10 @@ void ConfigurationTable::MonitorItemToUsing(
 	ConfigurationParameter->Target_Server_Alternate_IPv4.HopLimitData_Mark.TTL = Target_Server_Alternate_IPv4.HopLimitData_Mark.TTL;
 	ConfigurationParameter->Target_Server_Alternate_IPv6.HopLimitData_Mark.HopLimit = Target_Server_Alternate_IPv6.HopLimitData_Mark.HopLimit;
 #endif
-	ConfigurationParameter->SocketTimeout_Reliable = SocketTimeout_Reliable;
-	ConfigurationParameter->SocketTimeout_Unreliable = SocketTimeout_Unreliable;
+	ConfigurationParameter->SocketTimeout_Reliable_Once = SocketTimeout_Reliable_Once;
+	ConfigurationParameter->SocketTimeout_Unreliable_Once = SocketTimeout_Unreliable_Once;
+	ConfigurationParameter->SocketTimeout_Reliable_Serial = SocketTimeout_Reliable_Serial;
+	ConfigurationParameter->SocketTimeout_Unreliable_Serial = SocketTimeout_Unreliable_Serial;
 	ConfigurationParameter->ReceiveWaiting = ReceiveWaiting;
 #if defined(ENABLE_PCAP)
 	ConfigurationParameter->ICMP_Speed = ICMP_Speed;
@@ -446,8 +445,6 @@ void ConfigurationTable::MonitorItemToUsing(
 	ConfigurationParameter->HeaderCheck_DNS = HeaderCheck_DNS;
 
 //[Proxy] block
-	ConfigurationParameter->SOCKS_SocketTimeout_Reliable = SOCKS_SocketTimeout_Reliable;
-	ConfigurationParameter->SOCKS_SocketTimeout_Unreliable = SOCKS_SocketTimeout_Unreliable;
 	if (ConfigurationParameter->SOCKS_TargetDomain != nullptr && !SOCKS_TargetDomain->empty() && SOCKS_TargetDomain_Port > 0)
 	{
 	//Reset old items.
@@ -481,24 +478,23 @@ void ConfigurationTable::MonitorItemToUsing(
 		else 
 			ConfigurationParameter->SOCKS_Password->clear();
 	}
-	ConfigurationParameter->HTTP_SocketTimeout = HTTP_SocketTimeout;
-	if (ConfigurationParameter->HTTP_TargetDomain != nullptr && !HTTP_TargetDomain->empty())
-		*ConfigurationParameter->HTTP_TargetDomain = *HTTP_TargetDomain;
-	if (ConfigurationParameter->HTTP_Version != nullptr && !HTTP_Version->empty())
-		*ConfigurationParameter->HTTP_Version = *HTTP_Version;
-	if (ConfigurationParameter->HTTP_HeaderField != nullptr)
+	if (ConfigurationParameter->HTTP_CONNECT_TargetDomain != nullptr && !HTTP_CONNECT_TargetDomain->empty())
+		*ConfigurationParameter->HTTP_CONNECT_TargetDomain = *HTTP_CONNECT_TargetDomain;
+	if (ConfigurationParameter->HTTP_CONNECT_Version != nullptr && !HTTP_CONNECT_Version->empty())
+		*ConfigurationParameter->HTTP_CONNECT_Version = *HTTP_CONNECT_Version;
+	if (ConfigurationParameter->HTTP_CONNECT_HeaderField != nullptr)
 	{
-		if (!HTTP_HeaderField->empty())
-			*ConfigurationParameter->HTTP_HeaderField = *HTTP_HeaderField;
+		if (!HTTP_CONNECT_HeaderField->empty())
+			*ConfigurationParameter->HTTP_CONNECT_HeaderField = *HTTP_CONNECT_HeaderField;
 		else 
-			ConfigurationParameter->HTTP_HeaderField->clear();
+			ConfigurationParameter->HTTP_CONNECT_HeaderField->clear();
 	}
-	if (ConfigurationParameter->HTTP_ProxyAuthorization != nullptr)
+	if (ConfigurationParameter->HTTP_CONNECT_ProxyAuthorization != nullptr)
 	{
-		if (!HTTP_ProxyAuthorization->empty())
-			*ConfigurationParameter->HTTP_ProxyAuthorization = *HTTP_ProxyAuthorization;
+		if (!HTTP_CONNECT_ProxyAuthorization->empty())
+			*ConfigurationParameter->HTTP_CONNECT_ProxyAuthorization = *HTTP_CONNECT_ProxyAuthorization;
 		else 
-			ConfigurationParameter->HTTP_ProxyAuthorization->clear();
+			ConfigurationParameter->HTTP_CONNECT_ProxyAuthorization->clear();
 	}
 
 	return;
@@ -514,7 +510,7 @@ void ConfigurationTable::MonitorItemReset(
 
 //[Log] block
 	PrintLogLevel = DEFAULT_LOG_LEVEL;
-	LogMaxSize = DEFAULT_LOG_MAXSIZE;
+	LogMaxSize = LOG_READING_MAXSIZE;
 
 //[Listen] block
 	IPFilterType = 0;
@@ -545,13 +541,19 @@ void ConfigurationTable::MonitorItemReset(
 	Target_Server_Alternate_IPv6.HopLimitData_Mark.HopLimit = 0;
 #endif
 #if defined(PLATFORM_WIN)
-	SocketTimeout_Reliable = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
-	SocketTimeout_Unreliable = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
+	SocketTimeout_Reliable_Once = DEFAULT_RELIABLE_ONCE_SOCKET_TIMEOUT;
+	SocketTimeout_Unreliable_Once = DEFAULT_UNRELIABLE_ONCE_SOCKET_TIMEOUT;
+	SocketTimeout_Reliable_Serial = DEFAULT_RELIABLE_SERIAL_SOCKET_TIMEOUT;
+	SocketTimeout_Unreliable_Serial = DEFAULT_UNRELIABLE_SERIAL_SOCKET_TIMEOUT;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	SocketTimeout_Reliable.tv_sec = DEFAULT_RELIABLE_SOCKET_TIMEOUT;
-	SocketTimeout_Reliable.tv_usec = 0;
-	SocketTimeout_Unreliable.tv_sec = DEFAULT_UNRELIABLE_SOCKET_TIMEOUT;
-	SocketTimeout_Unreliable.tv_usec = 0;
+	SocketTimeout_Reliable_Once.tv_sec = DEFAULT_RELIABLE_ONCE_SOCKET_TIMEOUT / SECOND_TO_MILLISECOND;
+	SocketTimeout_Reliable_Once.tv_usec = DEFAULT_RELIABLE_ONCE_SOCKET_TIMEOUT % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+	SocketTimeout_Unreliable_Once.tv_sec = DEFAULT_UNRELIABLE_ONCE_SOCKET_TIMEOUT / SECOND_TO_MILLISECOND;
+	SocketTimeout_Unreliable_Once.tv_usec = DEFAULT_UNRELIABLE_ONCE_SOCKET_TIMEOUT % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+	SocketTimeout_Reliable_Serial.tv_sec = DEFAULT_RELIABLE_SERIAL_SOCKET_TIMEOUT / SECOND_TO_MILLISECOND;
+	SocketTimeout_Reliable_Serial.tv_usec = DEFAULT_RELIABLE_SERIAL_SOCKET_TIMEOUT % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+	SocketTimeout_Unreliable_Serial.tv_sec = DEFAULT_UNRELIABLE_SERIAL_SOCKET_TIMEOUT / SECOND_TO_MILLISECOND;
+	SocketTimeout_Unreliable_Serial.tv_usec = DEFAULT_RELIABLE_SERIAL_SOCKET_TIMEOUT % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 #endif
 	ReceiveWaiting = 0;
 #if defined(ENABLE_PCAP)
@@ -569,15 +571,6 @@ void ConfigurationTable::MonitorItemReset(
 	HeaderCheck_DNS = false;
 
 //[Proxy] block
-#if defined(PLATFORM_WIN)
-	SOCKS_SocketTimeout_Reliable = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
-	SOCKS_SocketTimeout_Unreliable = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	SOCKS_SocketTimeout_Reliable.tv_sec = DEFAULT_SOCKS_RELIABLE_SOCKET_TIMEOUT;
-	SOCKS_SocketTimeout_Reliable.tv_usec = 0;
-	SOCKS_SocketTimeout_Unreliable.tv_sec = DEFAULT_SOCKS_UNRELIABLE_SOCKET_TIMEOUT;
-	SOCKS_SocketTimeout_Unreliable.tv_usec = 0;
-#endif
 	memset(&SOCKS_TargetServer, 0, sizeof(SOCKS_TargetServer));
 	if (SOCKS_TargetDomain != nullptr)
 		SOCKS_TargetDomain->clear();
@@ -586,16 +579,10 @@ void ConfigurationTable::MonitorItemReset(
 		SOCKS_Username->clear();
 	if (SOCKS_Password != nullptr)
 		SOCKS_Password->clear();
-#if defined(PLATFORM_WIN)
-	HTTP_SocketTimeout = DEFAULT_HTTP_SOCKET_TIMEOUT;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	HTTP_SocketTimeout.tv_sec = DEFAULT_HTTP_SOCKET_TIMEOUT;
-	HTTP_SocketTimeout.tv_usec = 0;
-#endif
-	HTTP_TargetDomain->clear();
-	HTTP_Version->clear();
-	HTTP_HeaderField->clear();
-	HTTP_ProxyAuthorization->clear();
+	HTTP_CONNECT_TargetDomain->clear();
+	HTTP_CONNECT_Version->clear();
+	HTTP_CONNECT_HeaderField->clear();
+	HTTP_CONNECT_ProxyAuthorization->clear();
 
 	return;
 }

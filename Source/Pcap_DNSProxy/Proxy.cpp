@@ -131,185 +131,547 @@
 
 */
 
-//Proxy non-blocking mode selecting
-ssize_t ProxySocketSelecting(
-	SYSTEM_SOCKET Socket, 
-	fd_set * const ReadFDS, 
-	fd_set * const WriteFDS, 
-	timeval * const Timeout, 
-	const uint8_t * const SendBuffer, 
+//Transmission and reception of SOCKS protocol(TCP)
+size_t SOCKS_TCP_Request(
+	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
-	uint8_t * const OriginalRecv, 
-	const size_t RecvSize, 
-	const size_t MinLen, 
-	ssize_t * const ErrorCode)
+	std::shared_ptr<uint8_t> &OriginalRecv, 
+	size_t &RecvSize)
 {
 //Initialization
-	ssize_t RecvLen = 0, SelectResult = 0;
-	memset(OriginalRecv, 0, RecvSize);
-	if (ErrorCode != nullptr)
-		*ErrorCode = 0;
-	FD_ZERO(ReadFDS);
-	FD_ZERO(WriteFDS);
-	if (SendBuffer != nullptr)
-		FD_SET(Socket, WriteFDS);
+	std::vector<SOCKET_DATA> SocketDataList(1U);
+	std::vector<SOCKET_SELECTING_DATA> SocketSelectingDataList(1U);
+	std::vector<ssize_t> ErrorCodeList(1U);
+	memset(&SocketDataList.front(), 0, sizeof(SocketDataList.front()));
+	memset(&SocketSelectingDataList.front(), 0, sizeof(SocketSelectingDataList.front()));
+	ErrorCodeList.front() = 0;
 
-//Selecting process
-	for (;;)
+//Socket initialization
+	if (Parameter.SOCKS_Address_IPv6.Storage.ss_family > 0 && //IPv6
+		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
+		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 || //IPv6
+		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 && Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
 	{
-	//Wait for system calling.
-	#if defined(PLATFORM_WIN)
-		SelectResult = select(0, ReadFDS, WriteFDS, nullptr, Timeout);
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		SelectResult = select(Socket + 1U, ReadFDS, WriteFDS, nullptr, Timeout);
-	#endif
-		if (SelectResult > 0)
+		SocketDataList.front().SockAddr.ss_family = AF_INET6;
+		((PSOCKADDR_IN6)&SocketDataList.front().SockAddr)->sin6_addr = Parameter.SOCKS_Address_IPv6.IPv6.sin6_addr;
+		((PSOCKADDR_IN6)&SocketDataList.front().SockAddr)->sin6_port = Parameter.SOCKS_Address_IPv6.IPv6.sin6_port;
+		SocketDataList.front().AddrLen = sizeof(sockaddr_in6);
+		SocketDataList.front().Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+	}
+	else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family > 0 && //IPv4
+		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
+		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 || //IPv4
+		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 && Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6
+	{
+		SocketDataList.front().SockAddr.ss_family = AF_INET;
+		((PSOCKADDR_IN)&SocketDataList.front().SockAddr)->sin_addr = Parameter.SOCKS_Address_IPv4.IPv4.sin_addr;
+		((PSOCKADDR_IN)&SocketDataList.front().SockAddr)->sin_port = Parameter.SOCKS_Address_IPv4.IPv4.sin_port;
+		SocketDataList.front().AddrLen = sizeof(sockaddr_in);
+		SocketDataList.front().Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	}
+	else {
+		return EXIT_FAILURE;
+	}
+
+//Socket check
+	if (!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
+	{
+		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"SOCKS socket initialization error", 0, nullptr, 0);
+		return EXIT_FAILURE;
+	}
+
+//Socket attribute settings
+	if (!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
+		!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr) || 
+		(SocketDataList.front().SockAddr.ss_family == AF_INET6 && !SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr)) || 
+		(SocketDataList.front().SockAddr.ss_family == AF_INET && !SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr)) || 
+		!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
+	{
+		SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		return EXIT_FAILURE;
+	}
+
+//Selection exchange process
+	if (Parameter.SOCKS_Version == SOCKS_VERSION_5 && !SOCKS_Selection_Exchange(SocketDataList, SocketSelectingDataList, ErrorCodeList))
+	{
+		SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		return EXIT_FAILURE;
+	}
+
+//Client command request process
+	if (!SOCKS_Client_Command_Request(IPPROTO_TCP, SocketDataList, SocketSelectingDataList, ErrorCodeList, nullptr))
+	{
+		SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		return EXIT_FAILURE;
+	}
+
+//Add length of request packet(It must be written in header when transport with TCP protocol).
+	std::shared_ptr<uint8_t> SendBuffer(new uint8_t[SendSize + sizeof(uint16_t)]());
+	memset(SendBuffer.get(), 0, SendSize + sizeof(uint16_t));
+	memcpy_s(SendBuffer.get(), SendSize + sizeof(uint16_t), OriginalSend, SendSize);
+	SocketSelectingDataList.front().SendBuffer.swap(SendBuffer);
+	SendBuffer.reset();
+	size_t RecvLen = AddLengthDataToHeader(SocketSelectingDataList.front().SendBuffer.get(), SendSize, SendSize + sizeof(uint16_t));
+	if (RecvLen < DNS_PACKET_MINSIZE)
+	{
+		SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		return EXIT_FAILURE;
+	}
+	else {
+		SocketSelectingDataList.front().SendSize = RecvLen;
+	}
+
+//Request exchange and response check
+	SocketSelectingDataList.front().RecvBuffer.reset();
+	SocketSelectingDataList.front().RecvSize = 0;
+	SocketSelectingDataList.front().Length = 0;
+	RecvLen = SocketSelectingSerial(REQUEST_PROCESS_SOCKS_MAIN, IPPROTO_TCP, SocketDataList, SocketSelectingDataList, ErrorCodeList);
+	SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+	SocketSelectingDataList.front().SendBuffer.reset();
+	SocketSelectingDataList.front().SendSize = 0;
+	if (RecvLen != EXIT_FAILURE && 
+		SocketSelectingDataList.front().Length >= DNS_PACKET_MINSIZE && ntohs(((uint16_t *)SocketSelectingDataList.front().RecvBuffer.get())[0]) >= DNS_PACKET_MINSIZE && 
+		SocketSelectingDataList.front().Length >= ntohs(((uint16_t *)SocketSelectingDataList.front().RecvBuffer.get())[0]))
+	{
+		RecvLen = ntohs(((uint16_t *)SocketSelectingDataList.front().RecvBuffer.get())[0]);
+		memmove_s(SocketSelectingDataList.front().RecvBuffer.get(), SocketSelectingDataList.front().RecvSize, SocketSelectingDataList.front().RecvBuffer.get() + sizeof(uint16_t), RecvLen);
+		memset(SocketSelectingDataList.front().RecvBuffer.get() + RecvLen, 0, SocketSelectingDataList.front().RecvSize - RecvLen);
+
+	//Responses check
+		RecvLen = CheckResponseData(
+			REQUEST_PROCESS_SOCKS_MAIN, 
+			SocketSelectingDataList.front().RecvBuffer.get(), 
+			RecvLen, 
+			SocketSelectingDataList.front().RecvSize, 
+			nullptr);
+		if (RecvLen < DNS_PACKET_MINSIZE)
+			return EXIT_FAILURE;
+
+	//Mark DNS cache.
+		if (Parameter.CacheType > CACHE_TYPE_NONE)
+			MarkDomainCache(SocketSelectingDataList.front().RecvBuffer.get(), RecvLen);
+
+	//Swap buffer.
+		OriginalRecv.swap(SocketSelectingDataList.front().RecvBuffer);
+		RecvSize = SocketSelectingDataList.front().RecvSize;
+		return RecvLen;
+	}
+
+	return EXIT_FAILURE;
+}
+
+//Transmission and reception of SOCKS protocol(UDP)
+size_t SOCKS_UDP_Request(
+	const uint8_t * const OriginalSend, 
+	const size_t SendSize, 
+	std::shared_ptr<uint8_t> &OriginalRecv, 
+	size_t &RecvSize)
+{
+//Initialization
+	std::vector<SOCKET_DATA> TCPSocketDataList(1U), UDPSocketDataList(1U), LocalSocketDataList(1U);
+	std::vector<SOCKET_SELECTING_DATA> TCPSocketSelectingDataList(1U), UDPSocketSelectingDataList(1U), LocalSocketSelectingDataList(1U);
+	std::vector<ssize_t> TCPErrorCodeList(1U), UDPErrorCodeList(1U), LocalErrorCodeList(1U);
+	memset(&TCPSocketDataList.front(), 0, sizeof(TCPSocketDataList.front()));
+	memset(&UDPSocketDataList.front(), 0, sizeof(UDPSocketDataList.front()));
+	memset(&LocalSocketDataList.front(), 0, sizeof(LocalSocketDataList.front()));
+	memset(&TCPSocketSelectingDataList.front(), 0, sizeof(TCPSocketSelectingDataList.front()));
+	memset(&UDPSocketSelectingDataList.front(), 0, sizeof(UDPSocketSelectingDataList.front()));
+	memset(&LocalSocketSelectingDataList.front(), 0, sizeof(LocalSocketSelectingDataList.front()));
+	TCPErrorCodeList.front() = 0;
+	UDPErrorCodeList.front() = 0;
+	LocalErrorCodeList.front() = 0;
+
+//Socket initialization
+	if (Parameter.SOCKS_Address_IPv6.Storage.ss_family > 0 && //IPv6
+		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
+		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 || //IPv6
+		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 && Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
+	{
+		if (!Parameter.SOCKS_UDP_NoHandshake)
 		{
-		//Receive process
-			if (FD_ISSET(Socket, ReadFDS))
-			{
-			//Receive from selecting.
-				RecvLen = recv(Socket, (char *)OriginalRecv, (int)RecvSize, 0);
+		//TCP process
+			TCPSocketDataList.front().SockAddr.ss_family = AF_INET6;
+			((PSOCKADDR_IN6)&TCPSocketDataList.front().SockAddr)->sin6_addr = Parameter.SOCKS_Address_IPv6.IPv6.sin6_addr;
+			((PSOCKADDR_IN6)&TCPSocketDataList.front().SockAddr)->sin6_port = Parameter.SOCKS_Address_IPv6.IPv6.sin6_port;
+			TCPSocketDataList.front().AddrLen = sizeof(sockaddr_in6);
+			TCPSocketDataList.front().Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 
-			//Connection closed or SOCKET_ERROR
-				if (RecvLen < (ssize_t)MinLen)
-					break;
-				else 
-					return RecvLen;
+		//Local process
+			LocalSocketDataList.front().SockAddr.ss_family = AF_INET6;
+			LocalSocketDataList.front().AddrLen = sizeof(sockaddr_in6);
+		}
+
+	//UDP process
+		UDPSocketDataList.front().SockAddr.ss_family = AF_INET6;
+		((PSOCKADDR_IN6)&UDPSocketDataList.front().SockAddr)->sin6_addr = Parameter.SOCKS_Address_IPv6.IPv6.sin6_addr;
+		if (Parameter.SOCKS_UDP_NoHandshake)
+			((PSOCKADDR_IN6)&UDPSocketDataList.front().SockAddr)->sin6_port = Parameter.SOCKS_Address_IPv6.IPv6.sin6_port;
+		UDPSocketDataList.front().AddrLen = sizeof(sockaddr_in6);
+		UDPSocketDataList.front().Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
+	}
+	else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family > 0 && //IPv4
+		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
+		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 || //IPv4
+		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 && Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6
+	{
+		if (!Parameter.SOCKS_UDP_NoHandshake)
+		{
+		//TCP process
+			TCPSocketDataList.front().SockAddr.ss_family = AF_INET;
+			((PSOCKADDR_IN)&TCPSocketDataList.front().SockAddr)->sin_addr = Parameter.SOCKS_Address_IPv4.IPv4.sin_addr;
+			((PSOCKADDR_IN)&TCPSocketDataList.front().SockAddr)->sin_port = Parameter.SOCKS_Address_IPv4.IPv4.sin_port;
+			TCPSocketDataList.front().AddrLen = sizeof(sockaddr_in);
+			TCPSocketDataList.front().Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+
+		//Local process
+			LocalSocketDataList.front().SockAddr.ss_family = AF_INET;
+			LocalSocketDataList.front().AddrLen = sizeof(sockaddr_in);
+		}
+
+	//UDP process
+		UDPSocketDataList.front().SockAddr.ss_family = AF_INET;
+		((PSOCKADDR_IN)&UDPSocketDataList.front().SockAddr)->sin_addr = Parameter.SOCKS_Address_IPv4.IPv4.sin_addr;
+		if (Parameter.SOCKS_UDP_NoHandshake)
+			((PSOCKADDR_IN)&UDPSocketDataList.front().SockAddr)->sin_port = Parameter.SOCKS_Address_IPv4.IPv4.sin_port;
+		UDPSocketDataList.front().AddrLen = sizeof(sockaddr_in);
+		UDPSocketDataList.front().Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	}
+	else {
+		return EXIT_FAILURE;
+	}
+
+//Socket attribute settings
+	if ((!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr)) || 
+		!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr) || 
+		(TCPSocketDataList.front().SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr)) || 
+		(TCPSocketDataList.front().SockAddr.ss_family == AF_INET && !SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr)) || 
+		!SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr) || 
+		!SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
+		(UDPSocketDataList.front().SockAddr.ss_family == AF_INET6 && !SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr)) || 
+		(UDPSocketDataList.front().SockAddr.ss_family == AF_INET && !SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr)) || 
+		!SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
+	{
+		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		if (!Parameter.SOCKS_UDP_NoHandshake)
+			SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"SOCKS socket initialization error", 0, nullptr, 0);
+
+		return EXIT_FAILURE;
+	}
+	
+//Socket attribute setting(Non-blocking mode)
+	if ((!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr)) || 
+		!SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
+	{
+		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		if (!Parameter.SOCKS_UDP_NoHandshake)
+			SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+
+		return EXIT_FAILURE;
+	}
+
+//UDP transmission of standard SOCKS protocol must connect with TCP to server at first.
+	if (!Parameter.SOCKS_UDP_NoHandshake)
+	{
+	//Selection exchange process
+		if (!SOCKS_Selection_Exchange(TCPSocketDataList, TCPSocketSelectingDataList, TCPErrorCodeList))
+		{
+			SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+			SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+
+			return EXIT_FAILURE;
+		}
+
+	//UDP connecting and get UDP socket infomation.
+		if (SocketConnecting(IPPROTO_UDP, UDPSocketDataList.front().Socket, (PSOCKADDR)&UDPSocketDataList.front().SockAddr, UDPSocketDataList.front().AddrLen, nullptr, 0) == EXIT_FAILURE || 
+			getsockname(UDPSocketDataList.front().Socket, (PSOCKADDR)&LocalSocketDataList.front().SockAddr, &LocalSocketDataList.front().AddrLen) == SOCKET_ERROR)
+		{
+			SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+			SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
+
+			return EXIT_FAILURE;
+		}
+
+	//Client command request process
+	//IPPROTO_UDP means UDP ASSOCIATE process, this part must transport with TCP protocol.
+		if (!SOCKS_Client_Command_Request(IPPROTO_UDP, TCPSocketDataList, TCPSocketSelectingDataList, TCPErrorCodeList, &LocalSocketDataList.front()))
+		{
+			SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+			SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+
+			return EXIT_FAILURE;
+		}
+		else {
+		//Copy network infomation from server message.
+			if (UDPSocketDataList.front().SockAddr.ss_family == AF_INET6) //IPv6
+				((PSOCKADDR_IN6)&UDPSocketDataList.front().SockAddr)->sin6_port = ((PSOCKADDR_IN6)&LocalSocketDataList.front().SockAddr)->sin6_port;
+			else if (UDPSocketDataList.front().SockAddr.ss_family == AF_INET) //IPv4
+				((PSOCKADDR_IN)&UDPSocketDataList.front().SockAddr)->sin_port = ((PSOCKADDR_IN)&LocalSocketDataList.front().SockAddr)->sin_port;
+		}
+	}
+
+//UDP connecting again to bind new socket data.
+	if (SocketConnecting(IPPROTO_UDP, UDPSocketDataList.front().Socket, (PSOCKADDR)&UDPSocketDataList.front().SockAddr, UDPSocketDataList.front().AddrLen, nullptr, 0) == EXIT_FAILURE)
+	{
+		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		if (!Parameter.SOCKS_UDP_NoHandshake)
+			SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+
+		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
+		return EXIT_FAILURE;
+	}
+
+//Buffer initialization(Part 1)
+	std::shared_ptr<uint8_t> SendBuffer(new uint8_t[Parameter.LargeBufferSize]());
+	memset(SendBuffer.get(), 0, Parameter.LargeBufferSize);
+	UDPSocketSelectingDataList.front().SendBuffer.swap(SendBuffer);
+	SendBuffer.reset();
+
+//SOCKS UDP relay header
+	size_t RecvLen = 0;
+	if (Parameter.SOCKS_TargetServer.Storage.ss_family == AF_INET6) //IPv6
+	{
+	//Address type
+		((psocks_udp_relay_request)UDPSocketSelectingDataList.front().SendBuffer.get())->Address_Type = SOCKS5_ADDRESS_IPV6;
+		RecvLen = sizeof(socks_udp_relay_request);
+
+	//Address
+		*(in6_addr *)(UDPSocketSelectingDataList.front().SendBuffer.get() + RecvLen) = Parameter.SOCKS_TargetServer.IPv6.sin6_addr;
+		RecvLen += sizeof(in6_addr);
+
+	//Port
+		*(uint16_t *)(UDPSocketSelectingDataList.front().SendBuffer.get() + RecvLen) = Parameter.SOCKS_TargetServer.IPv6.sin6_port;
+		RecvLen += sizeof(uint16_t);
+	}
+	else if (Parameter.SOCKS_TargetServer.Storage.ss_family == AF_INET) //IPv4
+	{
+	//Address type
+		((psocks_udp_relay_request)UDPSocketSelectingDataList.front().SendBuffer.get())->Address_Type = SOCKS5_ADDRESS_IPV4;
+		RecvLen = sizeof(socks_udp_relay_request);
+
+	//Address
+		*(in_addr *)(UDPSocketSelectingDataList.front().SendBuffer.get() + RecvLen) = Parameter.SOCKS_TargetServer.IPv4.sin_addr;
+		RecvLen += sizeof(in_addr);
+
+	//Port
+		*(uint16_t *)(UDPSocketSelectingDataList.front().SendBuffer.get() + RecvLen) = Parameter.SOCKS_TargetServer.IPv4.sin_port;
+		RecvLen += sizeof(uint16_t);
+	}
+	else if (Parameter.SOCKS_TargetDomain != nullptr && !Parameter.SOCKS_TargetDomain->empty()) //Domain
+	{
+	//Address type
+		((psocks_udp_relay_request)UDPSocketSelectingDataList.front().SendBuffer.get())->Address_Type = SOCKS5_ADDRESS_DOMAIN;
+		RecvLen = sizeof(socks_udp_relay_request);
+
+	//Domain
+		*(uint8_t *)(UDPSocketSelectingDataList.front().SendBuffer.get() + RecvLen) = (uint8_t)Parameter.SOCKS_TargetDomain->length();
+		RecvLen += sizeof(uint8_t);
+		memcpy_s(UDPSocketSelectingDataList.front().SendBuffer.get() + RecvLen, UDPSocketSelectingDataList.front().SendSize - RecvLen, Parameter.SOCKS_TargetDomain->c_str(), Parameter.SOCKS_TargetDomain->length());
+		RecvLen += Parameter.SOCKS_TargetDomain->length();
+		
+	//Port
+		*(uint16_t *)(UDPSocketSelectingDataList.front().SendBuffer.get() + RecvLen) = Parameter.SOCKS_TargetDomain_Port;
+		RecvLen += sizeof(uint16_t);
+	}
+	else {
+		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		if (!Parameter.SOCKS_UDP_NoHandshake)
+			SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+
+		return EXIT_FAILURE;
+	}
+
+//Buffer initialization(Part 2)
+	memcpy_s(UDPSocketSelectingDataList.front().SendBuffer.get() + RecvLen, UDPSocketSelectingDataList.front().SendSize - RecvLen, OriginalSend, SendSize);
+	RecvLen += SendSize;
+	UDPSocketSelectingDataList.front().SendSize = RecvLen;
+
+//Request exchange and response check
+	TCPSocketSelectingDataList.front().RecvBuffer.reset();
+	UDPSocketSelectingDataList.front().RecvBuffer.reset();
+	LocalSocketSelectingDataList.front().RecvBuffer.reset();
+	TCPSocketSelectingDataList.front().RecvSize = 0;
+	UDPSocketSelectingDataList.front().RecvSize = 0;
+	LocalSocketSelectingDataList.front().RecvSize = 0;
+	TCPSocketSelectingDataList.front().Length = 0;
+	UDPSocketSelectingDataList.front().Length = 0;
+	LocalSocketSelectingDataList.front().Length = 0;
+	RecvLen = SocketSelectingSerial(REQUEST_PROCESS_SOCKS_MAIN, IPPROTO_UDP, UDPSocketDataList, UDPSocketSelectingDataList, UDPErrorCodeList);
+	SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+	if (!Parameter.SOCKS_UDP_NoHandshake)
+		SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+	UDPSocketSelectingDataList.front().SendBuffer.reset();
+	UDPSocketSelectingDataList.front().SendSize = 0;
+	if (RecvLen != EXIT_FAILURE && UDPSocketSelectingDataList.front().Length >= sizeof(socks_udp_relay_request) + DNS_PACKET_MINSIZE)
+	{
+	//Remove SOCKS UDP relay header
+		if (Parameter.SOCKS_TargetServer.Storage.ss_family == AF_INET6 && //IPv6
+			((psocks_udp_relay_request)UDPSocketSelectingDataList.front().RecvBuffer.get())->Address_Type == SOCKS5_ADDRESS_IPV6 && //Address type
+			UDPSocketSelectingDataList.front().Length >= sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t) + DNS_PACKET_MINSIZE && //IPv6 address length check
+			memcmp((in6_addr *)(UDPSocketSelectingDataList.front().RecvBuffer.get() + sizeof(socks_udp_relay_request)), &Parameter.SOCKS_TargetServer.IPv6.sin6_addr, sizeof(in6_addr)) == 0 && //Address
+			*(uint16_t *)(UDPSocketSelectingDataList.front().RecvBuffer.get() + sizeof(socks_udp_relay_request) + sizeof(in6_addr)) == Parameter.SOCKS_TargetServer.IPv6.sin6_port) //Port
+		{
+			memmove_s(UDPSocketSelectingDataList.front().RecvBuffer.get(), UDPSocketSelectingDataList.front().RecvSize, UDPSocketSelectingDataList.front().RecvBuffer.get() + sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t), UDPSocketSelectingDataList.front().Length - (sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t)));
+			UDPSocketSelectingDataList.front().Length -= sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t);
+		}
+		else if (Parameter.SOCKS_TargetServer.Storage.ss_family == AF_INET && //IPv4
+			((psocks_udp_relay_request)UDPSocketSelectingDataList.front().RecvBuffer.get())->Address_Type == SOCKS5_ADDRESS_IPV4 && //Address type
+			UDPSocketSelectingDataList.front().Length >= sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t) + DNS_PACKET_MINSIZE && //IPv4 address length check
+			(*(in_addr *)(UDPSocketSelectingDataList.front().RecvBuffer.get() + sizeof(socks_udp_relay_request))).s_addr == Parameter.SOCKS_TargetServer.IPv4.sin_addr.s_addr && //Address
+			*(uint16_t *)(UDPSocketSelectingDataList.front().RecvBuffer.get() + sizeof(socks_udp_relay_request) + sizeof(in_addr)) == Parameter.SOCKS_TargetServer.IPv4.sin_port) //Port
+		{
+			memmove_s(UDPSocketSelectingDataList.front().RecvBuffer.get(), UDPSocketSelectingDataList.front().RecvSize, UDPSocketSelectingDataList.front().RecvBuffer.get() + sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t), UDPSocketSelectingDataList.front().Length - (sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t)));
+			UDPSocketSelectingDataList.front().Length -= sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t);
+		}
+		else if (Parameter.SOCKS_TargetDomain != nullptr && !Parameter.SOCKS_TargetDomain->empty() //Domain
+/* SOCKS server will reply IPv4/IPv6 address of domain.
+			((psocks_udp_relay_request)UDPSocketSelectingDataList.front().RecvBuffer.get())->Address_Type == SOCKS5_ADDRESS_DOMAIN && //Address type
+			UDPSocketSelectingDataList.front().Length >= sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length() + sizeof(uint16_t) + DNS_PACKET_MINSIZE && //Domain length check
+			*(uint8_t *)(UDPSocketSelectingDataList.front().RecvBuffer.get() + sizeof(socks_udp_relay_request)) == Parameter.SOCKS_TargetDomain->length() && 
+			memcmp(UDPSocketSelectingDataList.front().RecvBuffer.get() + sizeof(socks_udp_relay_request) + sizeof(uint8_t), Parameter.SOCKS_TargetDomain->c_str(), Parameter.SOCKS_TargetDomain->length()) == 0 && //Domain
+			*(uint16_t *)(UDPSocketSelectingDataList.front().RecvBuffer.get() + sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length()) == Parameter.SOCKS_TargetDomain_Port //Port
+*/
+			)
+		{
+		//IPv6
+			if (((psocks_udp_relay_request)UDPSocketSelectingDataList.front().RecvBuffer.get())->Address_Type == SOCKS5_ADDRESS_IPV6 && //Address type
+				UDPSocketSelectingDataList.front().Length >= sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t) + DNS_PACKET_MINSIZE) //Length check
+			{
+				memmove_s(UDPSocketSelectingDataList.front().RecvBuffer.get(), UDPSocketSelectingDataList.front().RecvSize, UDPSocketSelectingDataList.front().RecvBuffer.get() + sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t), UDPSocketSelectingDataList.front().Length - (sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t)));
+				UDPSocketSelectingDataList.front().Length -= sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t);
+			}
+		//IPv4
+			else if (((psocks_udp_relay_request)UDPSocketSelectingDataList.front().RecvBuffer.get())->Address_Type == SOCKS5_ADDRESS_IPV4 && //Address type
+				UDPSocketSelectingDataList.front().Length >= sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t) + DNS_PACKET_MINSIZE) //Length check
+			{
+				memmove_s(UDPSocketSelectingDataList.front().RecvBuffer.get(), UDPSocketSelectingDataList.front().RecvSize, UDPSocketSelectingDataList.front().RecvBuffer.get() + sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t), UDPSocketSelectingDataList.front().Length - (sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t)));
+				UDPSocketSelectingDataList.front().Length -= sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t);
 			}
 
-		//Send process
-			if (SendBuffer != nullptr && FD_ISSET(Socket, WriteFDS))
-			{
-				if (send(Socket, (const char *)SendBuffer, (int)SendSize, 0) == SOCKET_ERROR)
-				{
-					break;
-				}
-				else {
-					FD_ZERO(ReadFDS);
-					FD_ZERO(WriteFDS);
-					FD_SET(Socket, ReadFDS);
-
-					continue;
-				}
-			}
+/* SOCKS server will reply IPv4/IPv6 address of domain.
+			memmove_s(UDPSocketSelectingDataList.front().RecvBuffer.get(), UDPSocketSelectingDataList.front().RecvSize, UDPSocketSelectingDataList.front().RecvBuffer.get() + sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length() + sizeof(uint16_t), UDPSocketSelectingDataList.front().Length - (sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length() + sizeof(uint16_t)));
+			UDPSocketSelectingDataList.front().Length -= sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length() + sizeof(uint16_t);
+*/
 		}
-		else { //Timeout or SOCKET_ERROR
-			if (SelectResult == SOCKET_ERROR && ErrorCode != nullptr)
-				*ErrorCode = WSAGetLastError();
 
-			break;
-		}
+	//Responses check
+		RecvLen = CheckResponseData(
+			REQUEST_PROCESS_HTTP_CONNECT, 
+			UDPSocketSelectingDataList.front().RecvBuffer.get(), 
+			UDPSocketSelectingDataList.front().Length, 
+			UDPSocketSelectingDataList.front().RecvSize, 
+			nullptr);
+		if (RecvLen < DNS_PACKET_MINSIZE)
+			return EXIT_FAILURE;
+
+	//Mark DNS cache.
+		if (Parameter.CacheType > CACHE_TYPE_NONE)
+			MarkDomainCache(UDPSocketSelectingDataList.front().RecvBuffer.get(), RecvLen);
+
+	//Swap buffer.
+		OriginalRecv.swap(UDPSocketSelectingDataList.front().RecvBuffer);
+		RecvSize = UDPSocketSelectingDataList.front().RecvSize;
+		return RecvLen;
 	}
 
 	return EXIT_FAILURE;
 }
 
 //SOCKS selection exchange process
-bool SOCKSSelectionExchange(
-	SOCKET_DATA * const SOCKSSocketData, 
-	fd_set * const ReadFDS, 
-	fd_set * const WriteFDS, 
-	timeval * const Timeout, 
-	uint8_t * const SendBuffer, 
-	uint8_t * const OriginalRecv, 
-	const size_t RecvSize)
+bool SOCKS_Selection_Exchange(
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList)
 {
-//Initialization
-	size_t Length = 0;
-	void *SOCKS_Pointer = SendBuffer;
-	((psocks_client_selection)SOCKS_Pointer)->Version = SOCKS_VERSION_5;
-	((psocks_client_selection)SOCKS_Pointer)->Methods_A = SOCKS_METHOD_NO_AUTHENTICATION_REQUIRED;
+//Buffer initialization
+	{
+		std::shared_ptr<uint8_t> SendBuffer(new uint8_t[sizeof(socks_client_selection)]());
+		memset(SendBuffer.get(), 0, sizeof(socks_client_selection));
+		SocketSelectingDataList.front().SendBuffer.swap(SendBuffer);
+		SocketSelectingDataList.front().SendSize = sizeof(socks_client_selection);
+	}
+
+//Client selection packet
+	((psocks_client_selection)SocketSelectingDataList.front().SendBuffer.get())->Version = SOCKS_VERSION_5;
+	((psocks_client_selection)SocketSelectingDataList.front().SendBuffer.get())->Methods_A = SOCKS_METHOD_NO_AUTHENTICATION_REQUIRED;
 	if (Parameter.SOCKS_Username != nullptr && !Parameter.SOCKS_Username->empty() && 
 		Parameter.SOCKS_Password != nullptr && !Parameter.SOCKS_Password->empty())
 	{
-		((psocks_client_selection)SOCKS_Pointer)->Methods_Number = SOCKS_METHOD_SUPPORT_NUM;
-		((psocks_client_selection)SOCKS_Pointer)->Methods_B = SOCKS_METHOD_USERNAME_PASSWORD;
-		Length = sizeof(socks_client_selection);
+		((psocks_client_selection)SocketSelectingDataList.front().SendBuffer.get())->Methods_Number = SOCKS_METHOD_SUPPORT_NUM;
+		((psocks_client_selection)SocketSelectingDataList.front().SendBuffer.get())->Methods_B = SOCKS_METHOD_USERNAME_PASSWORD;
+		SocketSelectingDataList.front().SendSize = sizeof(socks_client_selection);
 	}
 	else {
-		((psocks_client_selection)SOCKS_Pointer)->Methods_Number = SOCKS_METHOD_NO_AUTHENTICATION_NUM;
-		Length = sizeof(socks_client_selection) - sizeof(uint8_t);
+		((psocks_client_selection)SocketSelectingDataList.front().SendBuffer.get())->Methods_Number = SOCKS_METHOD_NO_AUTHENTICATION_NUM;
+		SocketSelectingDataList.front().SendSize = sizeof(socks_client_selection) - sizeof(uint8_t);
 	}
-	memset(OriginalRecv, 0, RecvSize);
-
-//Socket attribute setting(Timeout)
-#if defined(PLATFORM_WIN)
-	Timeout->tv_sec = Parameter.SOCKS_SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
-	Timeout->tv_usec = Parameter.SOCKS_SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	Timeout->tv_sec = Parameter.SOCKS_SocketTimeout_Reliable.tv_sec;
-	Timeout->tv_usec = Parameter.SOCKS_SocketTimeout_Reliable.tv_usec;
-#endif
 
 //TCP connecting
-	ssize_t RecvLen = SocketConnecting(IPPROTO_TCP, SOCKSSocketData->Socket, (PSOCKADDR)&SOCKSSocketData->SockAddr, SOCKSSocketData->AddrLen, SendBuffer, Length);
+	size_t RecvLen = SocketConnecting(IPPROTO_TCP, SocketDataList.front().Socket, (PSOCKADDR)&SocketDataList.front().SockAddr, SocketDataList.front().AddrLen, SocketSelectingDataList.front().SendBuffer.get(), SocketSelectingDataList.front().SendSize);
 	if (RecvLen == EXIT_FAILURE)
 	{
 		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
 		return false;
 	}
-//Client selection exchange
-	else if (RecvLen >= (ssize_t)DNS_PACKET_MINSIZE)
+	else if (RecvLen >= DNS_PACKET_MINSIZE)
 	{
-		RecvLen = ProxySocketSelecting(SOCKSSocketData->Socket, ReadFDS, WriteFDS, Timeout, nullptr, 0, OriginalRecv, RecvSize, sizeof(socks_server_selection), nullptr);
-	}
-	else {
-		RecvLen = ProxySocketSelecting(SOCKSSocketData->Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, Length, OriginalRecv, RecvSize, sizeof(socks_server_selection), nullptr);
+		SocketSelectingDataList.front().SendBuffer.reset();
+		SocketSelectingDataList.front().SendSize = 0;
 	}
 
-//SOCKS server selection check(Part 1)
-	if (RecvLen < (ssize_t)sizeof(socks_server_selection))
+//Client selection exchange
+	SocketSelectingDataList.front().RecvBuffer.reset();
+	SocketSelectingDataList.front().RecvSize = 0;
+	SocketSelectingDataList.front().Length = 0;
+	RecvLen = SocketSelectingSerial(REQUEST_PROCESS_SOCKS_CLIENT_SELECTION, IPPROTO_TCP, SocketDataList, SocketSelectingDataList, ErrorCodeList);
+	SocketSelectingDataList.front().SendBuffer.reset();
+	SocketSelectingDataList.front().SendSize = 0;
+	if (RecvLen == EXIT_FAILURE || SocketSelectingDataList.front().Length < sizeof(socks_server_selection))
 	{
 		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS request error", 0, nullptr, 0);
 		return false;
 	}
 	else {
-		memset(SendBuffer, 0, LARGE_PACKET_MAXSIZE);
-		Length = 0;
-	}
-
-//Server server selection check(Part 2)
-	SOCKS_Pointer = OriginalRecv;
-	if (((psocks_server_selection)SOCKS_Pointer)->Version != SOCKS_VERSION_5)
-	{
-		PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Server SOCKS protocol version error", 0, nullptr, 0);
-		return false;
-	}
-
-//Method check
-	switch (((psocks_server_selection)SOCKS_Pointer)->Method)
-	{
-	//No authentication
-		case SOCKS_METHOD_NO_AUTHENTICATION_REQUIRED:
+	//Server server selection version check
+		if (((psocks_server_selection)SocketSelectingDataList.front().RecvBuffer.get())->Version != SOCKS_VERSION_5)
 		{
-			break;
-		}break;
-	//Require username/password authentication
-		case SOCKS_METHOD_USERNAME_PASSWORD:
+			PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Server SOCKS protocol version error", 0, nullptr, 0);
+			return false;
+		}
+		
+	//Server server selection method check
+		switch (((psocks_server_selection)SocketSelectingDataList.front().RecvBuffer.get())->Method)
 		{
-			if (Parameter.SOCKS_Username != nullptr && !Parameter.SOCKS_Username->empty() && 
-				Parameter.SOCKS_Password != nullptr && !Parameter.SOCKS_Password->empty())
+		//No authentication
+			case SOCKS_METHOD_NO_AUTHENTICATION_REQUIRED:
 			{
-				if (!SOCKSAuthenticationUsernamePassword(SOCKSSocketData->Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, OriginalRecv, RecvSize))
+				break;
+			}break;
+		//Require username or password authentication
+			case SOCKS_METHOD_USERNAME_PASSWORD:
+			{
+			//Username or password authentication process
+				if (Parameter.SOCKS_Username != nullptr && !Parameter.SOCKS_Username->empty() && 
+					Parameter.SOCKS_Password != nullptr && !Parameter.SOCKS_Password->empty())
 				{
-					PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Username or Password incorrect", 0, nullptr, 0);
-					return false;
+					if (!SOCKS_Authentication_Exchange(SocketDataList, SocketSelectingDataList, ErrorCodeList))
+					{
+						PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Username or Password incorrect", 0, nullptr, 0);
+						return false;
+					}
 				}
 				else {
-					memset(SendBuffer, 0, LARGE_PACKET_MAXSIZE);
+					PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Server require username and password authentication", 0, nullptr, 0);
+					return false;
 				}
-			}
-			else {
-				PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Server require username and password authentication", 0, nullptr, 0);
+			}break;
+		//Not support or error
+			default:
+			{
+				PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Authentication method not support", 0, nullptr, 0);
 				return false;
 			}
-		}break;
-	//Not support or error
-		default:
-		{
-			PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Authentication method not support", 0, nullptr, 0);
-			return false;
 		}
 	}
 
@@ -317,117 +679,129 @@ bool SOCKSSelectionExchange(
 }
 
 //SOCKS username/password authentication process
-bool SOCKSAuthenticationUsernamePassword(
-	SYSTEM_SOCKET Socket, 
-	fd_set * const ReadFDS, 
-	fd_set * const WriteFDS, 
-	timeval * const Timeout, 
-	uint8_t * const SendBuffer, 
-	uint8_t * const OriginalRecv, 
-	const size_t RecvSize)
+bool SOCKS_Authentication_Exchange(
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList)
 {
-//Initialization
-	size_t Length = sizeof(uint8_t) * 2U;
-	memset(OriginalRecv, 0, RecvSize);
+//Buffer initialization
+	{
+		std::shared_ptr<uint8_t> SendBuffer(new uint8_t[sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_Username->length() + Parameter.SOCKS_Password->length()]());
+		memset(SendBuffer.get(), 0, sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_Username->length() + Parameter.SOCKS_Password->length());
+		SocketSelectingDataList.front().SendBuffer.swap(SendBuffer);
+		SocketSelectingDataList.front().SendSize = sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_Username->length() + Parameter.SOCKS_Password->length();
+	}
 
 //Username/password authentication packet
-	SendBuffer[0] = SOCKS_USERNAME_PASSWORD_VERSION;
-	SendBuffer[1U] = (uint8_t)Parameter.SOCKS_Username->length();
-	memcpy_s(SendBuffer + Length, LARGE_PACKET_MAXSIZE, Parameter.SOCKS_Username->c_str(), Parameter.SOCKS_Username->length());
-	Length += Parameter.SOCKS_Username->length();
-	SendBuffer[Length] = (uint8_t)Parameter.SOCKS_Password->length();
-	Length += sizeof(uint8_t);
-	memcpy_s(SendBuffer + Length, LARGE_PACKET_MAXSIZE - Length, Parameter.SOCKS_Password->c_str(), Parameter.SOCKS_Password->length());
-	Length += Parameter.SOCKS_Password->length();
-
-//Socket attribute setting(Timeout)
-#if defined(PLATFORM_WIN)
-	Timeout->tv_sec = Parameter.SOCKS_SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
-	Timeout->tv_usec = Parameter.SOCKS_SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	Timeout->tv_sec = Parameter.SOCKS_SocketTimeout_Reliable.tv_sec;
-	Timeout->tv_usec = Parameter.SOCKS_SocketTimeout_Reliable.tv_usec;
-#endif
+	size_t RecvLen = 0;
+	((psocks_client_user_authentication)SocketSelectingDataList.front().SendBuffer.get())->Version = SOCKS_USERNAME_PASSWORD_VERSION;
+	RecvLen += sizeof(socks_client_user_authentication);
+	*((uint8_t *)(SocketSelectingDataList.front().SendBuffer.get() + RecvLen)) = (uint8_t)Parameter.SOCKS_Username->length();
+	RecvLen += sizeof(uint8_t);
+	memcpy_s(SocketSelectingDataList.front().SendBuffer.get() + RecvLen, SocketSelectingDataList.front().SendSize - RecvLen, Parameter.SOCKS_Username->c_str(), Parameter.SOCKS_Username->length());
+	RecvLen += Parameter.SOCKS_Username->length();
+	*((uint8_t *)(SocketSelectingDataList.front().SendBuffer.get() + RecvLen)) = (uint8_t)Parameter.SOCKS_Password->length();
+	RecvLen += sizeof(uint8_t);
+	memcpy_s(SocketSelectingDataList.front().SendBuffer.get() + RecvLen, SocketSelectingDataList.front().SendSize - RecvLen, Parameter.SOCKS_Password->c_str(), Parameter.SOCKS_Password->length());
+	RecvLen += Parameter.SOCKS_Password->length();
 
 //Username/password authentication exchange and server reply check
-	if (ProxySocketSelecting(Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, Length, OriginalRecv, RecvSize, sizeof(socks_server_user_authentication), nullptr) < (ssize_t)sizeof(socks_server_user_authentication) || 
-		((psocks_server_user_authentication)OriginalRecv)->Version != SOCKS_USERNAME_PASSWORD_VERSION || 
-		((psocks_server_user_authentication)OriginalRecv)->Status != SOCKS_USERNAME_PASSWORD_SUCCESS)
+	SocketSelectingDataList.front().RecvBuffer.reset();
+	SocketSelectingDataList.front().RecvSize = 0;
+	SocketSelectingDataList.front().Length = 0;
+	RecvLen = SocketSelectingSerial(REQUEST_PROCESS_SOCKS_USER_AUTHENTICATION, IPPROTO_TCP, SocketDataList, SocketSelectingDataList, ErrorCodeList);
+	SocketSelectingDataList.front().SendBuffer.reset();
+	SocketSelectingDataList.front().SendSize = 0;
+	if (RecvLen == EXIT_FAILURE || SocketSelectingDataList.front().Length < sizeof(socks_server_user_authentication) || 
+		((psocks_server_user_authentication)SocketSelectingDataList.front().RecvBuffer.get())->Version != SOCKS_USERNAME_PASSWORD_VERSION || 
+		((psocks_server_user_authentication)SocketSelectingDataList.front().RecvBuffer.get())->Status != SOCKS_USERNAME_PASSWORD_SUCCESS)
 			return false;
 
 	return true;
 }
 
 //SOCKS client command request process
-bool SOCKSClientCommandRequest(
+bool SOCKS_Client_Command_Request(
 	const uint16_t Protocol, 
-	SYSTEM_SOCKET Socket, 
-	fd_set * const ReadFDS, 
-	fd_set * const WriteFDS, 
-	timeval * const Timeout, 
-	uint8_t * const SendBuffer, 
-	uint8_t * const OriginalRecv, 
-	const size_t RecvSize, 
-	SOCKET_DATA * const UDP_ASSOCIATE_TCP_Connecting_Address)
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList, 
+	SOCKET_DATA * const UDP_ASSOCIATE_Address)
 {
-//Initialization
-	size_t Length = 0;
-	memset(OriginalRecv, 0, RecvSize);
+//Buffer initialization
+	{
+		std::shared_ptr<uint8_t> SendBuffer(new uint8_t[Parameter.LargeBufferSize]());
+		memset(SendBuffer.get(), 0, Parameter.LargeBufferSize);
+		SocketSelectingDataList.front().SendBuffer.swap(SendBuffer);
+		SocketSelectingDataList.front().SendSize = Parameter.LargeBufferSize;
+	}
 
 //Client command request packet
-	void *SOCKS_Pointer = SendBuffer;
+	size_t RecvLen = 0;
 	if (Parameter.SOCKS_Version == SOCKS_VERSION_5) //SOCKS version 5
 	{
-		((psocks5_client_command_request)SOCKS_Pointer)->Version = SOCKS_VERSION_5;
+	//Command request header
+		((psocks5_client_command_request)SocketSelectingDataList.front().SendBuffer.get())->Version = SOCKS_VERSION_5;
 		if (Protocol == IPPROTO_TCP) //TCP CONNECT
-			((psocks5_client_command_request)SOCKS_Pointer)->Command = SOCKS_COMMAND_CONNECT;
+			((psocks5_client_command_request)SocketSelectingDataList.front().SendBuffer.get())->Command = SOCKS_COMMAND_CONNECT;
 		else if (Protocol == IPPROTO_UDP) //UDP ASSOCIATE
-			((psocks5_client_command_request)SOCKS_Pointer)->Command = SOCKS_COMMAND_UDP_ASSOCIATE;
+			((psocks5_client_command_request)SocketSelectingDataList.front().SendBuffer.get())->Command = SOCKS_COMMAND_UDP_ASSOCIATE;
 		else 
 			return false;
-		Length = sizeof(socks5_client_command_request);
+		RecvLen = sizeof(socks5_client_command_request);
 
 	//Write address.
 		if (Parameter.SOCKS_TargetServer.Storage.ss_family == AF_INET6) //IPv6
 		{
-			((psocks5_client_command_request)SOCKS_Pointer)->Address_Type = SOCKS5_ADDRESS_IPV6;
-			SOCKS_Pointer = SendBuffer + Length;
+		//Address type
+			((psocks5_client_command_request)SocketSelectingDataList.front().SendBuffer.get())->Address_Type = SOCKS5_ADDRESS_IPV6;
+
+		//Address
 			if (Protocol == IPPROTO_TCP) //Empty address in UDP ASSOCIATE
-				*(in6_addr *)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv6.sin6_addr;
-			Length += sizeof(in6_addr);
-			SOCKS_Pointer = SendBuffer + Length;
+				*(in6_addr *)(SocketSelectingDataList.front().SendBuffer.get() + RecvLen) = Parameter.SOCKS_TargetServer.IPv6.sin6_addr;
+			RecvLen += sizeof(in6_addr);
+
+		//Port
 			if (Protocol == IPPROTO_TCP) //TCP CONNECT
-				*(uint16_t *)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv6.sin6_port;
-			else if (UDP_ASSOCIATE_TCP_Connecting_Address != nullptr) //UDP ASSOCIATE
-				*(uint16_t *)SOCKS_Pointer = ((PSOCKADDR_IN6)&UDP_ASSOCIATE_TCP_Connecting_Address->SockAddr)->sin6_port;
-			Length += sizeof(uint16_t);
+				*(uint16_t *)(SocketSelectingDataList.front().SendBuffer.get() + RecvLen) = Parameter.SOCKS_TargetServer.IPv6.sin6_port;
+			else if (UDP_ASSOCIATE_Address != nullptr) //UDP ASSOCIATE
+				*(uint16_t *)(SocketSelectingDataList.front().SendBuffer.get() + RecvLen) = ((PSOCKADDR_IN6)&UDP_ASSOCIATE_Address->SockAddr)->sin6_port;
+			else 
+				return false;
+			RecvLen += sizeof(uint16_t);
 		}
 		else if (Parameter.SOCKS_TargetServer.Storage.ss_family == AF_INET || //IPv4
 			Protocol == IPPROTO_UDP) //UDP ASSOCIATE
 		{
-			((psocks5_client_command_request)SOCKS_Pointer)->Address_Type = SOCKS5_ADDRESS_IPV4;
-			SOCKS_Pointer = SendBuffer + Length;
+		//Address type
+			((psocks5_client_command_request)SocketSelectingDataList.front().SendBuffer.get())->Address_Type = SOCKS5_ADDRESS_IPV4;
+		
+		//Address
 			if (Protocol == IPPROTO_TCP) //Empty address in UDP ASSOCIATE
-				*(in_addr *)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv4.sin_addr;
-			Length += sizeof(in_addr);
-			SOCKS_Pointer = SendBuffer + Length;
+				*(in_addr *)(SocketSelectingDataList.front().SendBuffer.get() + RecvLen) = Parameter.SOCKS_TargetServer.IPv4.sin_addr;
+			RecvLen += sizeof(in_addr);
+
+		//Port
 			if (Protocol == IPPROTO_TCP) //TCP CONNECT
-				*(uint16_t *)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv4.sin_port;
-			else if (UDP_ASSOCIATE_TCP_Connecting_Address != nullptr) //UDP ASSOCIATE
-				*(uint16_t *)SOCKS_Pointer = ((PSOCKADDR_IN)&UDP_ASSOCIATE_TCP_Connecting_Address->SockAddr)->sin_port;
-			Length += sizeof(uint16_t);
+				*(uint16_t *)(SocketSelectingDataList.front().SendBuffer.get() + RecvLen) = Parameter.SOCKS_TargetServer.IPv4.sin_port;
+			else if (UDP_ASSOCIATE_Address != nullptr) //UDP ASSOCIATE
+				*(uint16_t *)(SocketSelectingDataList.front().SendBuffer.get() + RecvLen) = ((PSOCKADDR_IN)&UDP_ASSOCIATE_Address->SockAddr)->sin_port;
+			RecvLen += sizeof(uint16_t);
 		}
 		else if (Parameter.SOCKS_TargetDomain != nullptr && !Parameter.SOCKS_TargetDomain->empty()) //Domain
 		{
-			((psocks5_client_command_request)SOCKS_Pointer)->Address_Type = SOCKS5_ADDRESS_DOMAIN;
-			SOCKS_Pointer = SendBuffer + Length;
-			*(uint8_t *)SOCKS_Pointer = (uint8_t)Parameter.SOCKS_TargetDomain->length();
-			Length += sizeof(uint8_t);
-			memcpy_s(SendBuffer + Length, LARGE_PACKET_MAXSIZE - Length, Parameter.SOCKS_TargetDomain->c_str(), Parameter.SOCKS_TargetDomain->length());
-			Length += Parameter.SOCKS_TargetDomain->length();
-			SOCKS_Pointer = SendBuffer + Length;
-			*(uint16_t *)SOCKS_Pointer = Parameter.SOCKS_TargetDomain_Port;
-			Length += sizeof(uint16_t);
+		//Address type
+			((psocks5_client_command_request)SocketSelectingDataList.front().SendBuffer.get())->Address_Type = SOCKS5_ADDRESS_DOMAIN;
+
+		//Domain
+			*(uint8_t *)(SocketSelectingDataList.front().SendBuffer.get() + RecvLen) = (uint8_t)Parameter.SOCKS_TargetDomain->length();
+			RecvLen += sizeof(uint8_t);
+			memcpy_s(SocketSelectingDataList.front().SendBuffer.get() + RecvLen, SocketSelectingDataList.front().SendSize - RecvLen, Parameter.SOCKS_TargetDomain->c_str(), Parameter.SOCKS_TargetDomain->length());
+			RecvLen += Parameter.SOCKS_TargetDomain->length();
+			
+		//Port
+			*(uint16_t *)(SocketSelectingDataList.front().SendBuffer.get() + RecvLen) = Parameter.SOCKS_TargetDomain_Port;
+			RecvLen += sizeof(uint16_t);
 		}
 		else {
 			return false;
@@ -435,68 +809,68 @@ bool SOCKSClientCommandRequest(
 	}
 	else if (Parameter.SOCKS_Version == SOCKS_VERSION_4 || Parameter.SOCKS_Version == SOCKS_VERSION_CONFIG_4A) //SOCKS version 4 or 4a
 	{
-		((psocks4_client_command_request)SOCKS_Pointer)->Version = SOCKS_VERSION_4; //Same value in version byte(4/4a)
-		((psocks4_client_command_request)SOCKS_Pointer)->Command = SOCKS_COMMAND_CONNECT;
-		((psocks4_client_command_request)SOCKS_Pointer)->Remote_Port = Parameter.SOCKS_TargetServer.IPv4.sin_port;
-		((psocks4_client_command_request)SOCKS_Pointer)->Remote_Address.s_addr = Parameter.SOCKS_TargetServer.IPv4.sin_addr.s_addr;
-		Length = sizeof(socks4_client_command_request);
+		((psocks4_client_command_request)SocketSelectingDataList.front().SendBuffer.get())->Version = SOCKS_VERSION_4; //Same value in version byte(4/4a)
+		((psocks4_client_command_request)SocketSelectingDataList.front().SendBuffer.get())->Command = SOCKS_COMMAND_CONNECT;
+		((psocks4_client_command_request)SocketSelectingDataList.front().SendBuffer.get())->Remote_Port = Parameter.SOCKS_TargetServer.IPv4.sin_port;
+		((psocks4_client_command_request)SocketSelectingDataList.front().SendBuffer.get())->Remote_Address.s_addr = Parameter.SOCKS_TargetServer.IPv4.sin_addr.s_addr;
+		RecvLen = sizeof(socks4_client_command_request);
 
 	//Write UserID.
 		if (Parameter.SOCKS_Username != nullptr && !Parameter.SOCKS_Username->empty())
 		{
-			memcpy_s(SendBuffer + (Length - sizeof(uint8_t)), LARGE_PACKET_MAXSIZE - (Length - sizeof(uint8_t)), Parameter.SOCKS_Username->c_str(), Parameter.SOCKS_Username->length());
-			Length += Parameter.SOCKS_Username->length();
+			memcpy_s(SocketSelectingDataList.front().SendBuffer.get() + (RecvLen - sizeof(uint8_t)), SocketSelectingDataList.front().SendSize - (RecvLen - sizeof(uint8_t)), Parameter.SOCKS_Username->c_str(), Parameter.SOCKS_Username->length());
+			RecvLen += Parameter.SOCKS_Username->length();
 		}
 
 	//Write target domain.
 		if (Parameter.SOCKS_Version == SOCKS_VERSION_CONFIG_4A && Parameter.SOCKS_TargetDomain != nullptr && !Parameter.SOCKS_TargetDomain->empty())
 		{
-			((psocks4_client_command_request)SOCKS_Pointer)->Remote_Port = Parameter.SOCKS_TargetDomain_Port;
-			((psocks4_client_command_request)SOCKS_Pointer)->Remote_Address.s_addr = htonl(SOCKS4_ADDRESS_DOMAIN_ADDRESS);
-			memcpy_s(SendBuffer + Length, LARGE_PACKET_MAXSIZE - Length, Parameter.SOCKS_TargetDomain->c_str(), Parameter.SOCKS_TargetDomain->length());
-			Length += Parameter.SOCKS_TargetDomain->length() + sizeof(uint8_t);
+			((psocks4_client_command_request)SocketSelectingDataList.front().SendBuffer.get())->Remote_Port = Parameter.SOCKS_TargetDomain_Port;
+			((psocks4_client_command_request)SocketSelectingDataList.front().SendBuffer.get())->Remote_Address.s_addr = htonl(SOCKS4_ADDRESS_DOMAIN_ADDRESS);
+			memcpy_s(SocketSelectingDataList.front().SendBuffer.get() + RecvLen, SocketSelectingDataList.front().SendSize - RecvLen, Parameter.SOCKS_TargetDomain->c_str(), Parameter.SOCKS_TargetDomain->length());
+			RecvLen += Parameter.SOCKS_TargetDomain->length() + sizeof(uint8_t);
 		}
 	}
 
-//Socket attribute setting(Timeout)
-#if defined(PLATFORM_WIN)
-	Timeout->tv_sec = Parameter.SOCKS_SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
-	Timeout->tv_usec = Parameter.SOCKS_SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	Timeout->tv_sec = Parameter.SOCKS_SocketTimeout_Reliable.tv_sec;
-	Timeout->tv_usec = Parameter.SOCKS_SocketTimeout_Reliable.tv_usec;
-#endif
-
 //Client command request exchange
-	ssize_t RecvLen = 0;
+	SocketSelectingDataList.front().SendSize = RecvLen;
 	if (Parameter.SOCKS_Version == SOCKS_VERSION_5) //SOCKS version 5
 	{
-		RecvLen = ProxySocketSelecting(Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, Length, OriginalRecv, RecvSize, sizeof(socks5_server_command_reply), nullptr);
-		if (RecvLen < (ssize_t)sizeof(socks5_server_command_reply))
+		SocketSelectingDataList.front().RecvBuffer.reset();
+		SocketSelectingDataList.front().RecvSize = 0;
+		SocketSelectingDataList.front().Length = 0;
+		RecvLen = SocketSelectingSerial(REQUEST_PROCESS_SOCKS_5_COMMAND_REPLY, IPPROTO_TCP, SocketDataList, SocketSelectingDataList, ErrorCodeList);
+		SocketSelectingDataList.front().SendBuffer.reset();
+		SocketSelectingDataList.front().SendSize = 0;
+		if (RecvLen == EXIT_FAILURE || SocketSelectingDataList.front().Length < sizeof(socks5_server_command_reply))
 		{
 			PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS request error", 0, nullptr, 0);
 			return false;
 		}
 	}
-	else if ((Parameter.SOCKS_Version == SOCKS_VERSION_4 || Parameter.SOCKS_Version == SOCKS_VERSION_CONFIG_4A) && //SOCKS version 4 or 4a
-		UDP_ASSOCIATE_TCP_Connecting_Address != nullptr)
+	else if (Parameter.SOCKS_Version == SOCKS_VERSION_4 || Parameter.SOCKS_Version == SOCKS_VERSION_CONFIG_4A) //SOCKS version 4 or 4a
 	{
 	//TCP connecting
-		RecvLen = SocketConnecting(IPPROTO_TCP, Socket, (PSOCKADDR)&UDP_ASSOCIATE_TCP_Connecting_Address->SockAddr, UDP_ASSOCIATE_TCP_Connecting_Address->AddrLen, SendBuffer, Length);
+		RecvLen = SocketConnecting(IPPROTO_TCP, SocketDataList.front().Socket, (PSOCKADDR)&SocketDataList.front().SockAddr, SocketDataList.front().AddrLen, SocketSelectingDataList.front().SendBuffer.get(), SocketSelectingDataList.front().SendSize);
 		if (RecvLen == EXIT_FAILURE)
 		{
 			PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
 			return false;
 		}
-	//Client command request process
-		else if (RecvLen >= (ssize_t)DNS_PACKET_MINSIZE)
+		else if (RecvLen >= DNS_PACKET_MINSIZE)
 		{
-			RecvLen = ProxySocketSelecting(Socket, ReadFDS, WriteFDS, Timeout, nullptr, 0, OriginalRecv, RecvSize, sizeof(socks4_server_command_reply), nullptr);
+			SocketSelectingDataList.front().SendBuffer.reset();
+			SocketSelectingDataList.front().SendSize = 0;
 		}
-		else {
-			RecvLen = ProxySocketSelecting(Socket, ReadFDS, WriteFDS, Timeout, SendBuffer, Length, OriginalRecv, RecvSize, sizeof(socks4_server_command_reply), nullptr);
-		}
-		if (RecvLen < (ssize_t)sizeof(socks4_server_command_reply))
+
+	//Client command request process
+		SocketSelectingDataList.front().RecvBuffer.reset();
+		SocketSelectingDataList.front().RecvSize = 0;
+		SocketSelectingDataList.front().Length = 0;
+		RecvLen = SocketSelectingSerial(REQUEST_PROCESS_SOCKS_4_COMMAND_REPLY, IPPROTO_TCP, SocketDataList, SocketSelectingDataList, ErrorCodeList);
+		SocketSelectingDataList.front().SendBuffer.reset();
+		SocketSelectingDataList.front().SendSize = 0;
+		if (RecvLen == EXIT_FAILURE || SocketSelectingDataList.front().Length < sizeof(socks4_server_command_reply))
 		{
 			PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS request error", 0, nullptr, 0);
 			return false;
@@ -507,46 +881,42 @@ bool SOCKSClientCommandRequest(
 	}
 
 //Server command request check
-	SOCKS_Pointer = OriginalRecv;
 	if (Parameter.SOCKS_Version == SOCKS_VERSION_5) //SOCKS version 5
 	{
-		if (((psocks5_server_command_reply)SOCKS_Pointer)->Version != SOCKS_VERSION_5 || ((psocks5_server_command_reply)SOCKS_Pointer)->Reserved != 0)
+		if (((psocks5_server_command_reply)SocketSelectingDataList.front().RecvBuffer.get())->Version != SOCKS_VERSION_5 || 
+			((psocks5_server_command_reply)SocketSelectingDataList.front().RecvBuffer.get())->Reserved != 0)
 		{
 			PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Server SOCKS protocol version error", 0, nullptr, 0);
 			return false;
 		}
-		else if (((psocks5_server_command_reply)SOCKS_Pointer)->Reply != SOCKS5_REPLY_SUCCESS)
+		else if (((psocks5_server_command_reply)SocketSelectingDataList.front().RecvBuffer.get())->Reply != SOCKS5_REPLY_SUCCESS)
 		{
-			PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Client command request error", ((psocks5_server_command_reply)SOCKS_Pointer)->Reply, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Client command request error", ((psocks5_server_command_reply)SocketSelectingDataList.front().RecvBuffer.get())->Reply, nullptr, 0);
 			return false;
 		}
-		else if (Protocol == IPPROTO_UDP && UDP_ASSOCIATE_TCP_Connecting_Address != nullptr) //UDP ASSOCIATE
+		else if (UDP_ASSOCIATE_Address != nullptr) //UDP ASSOCIATE
 		{
 		//IPv6
-			if (((psocks5_server_command_reply)SOCKS_Pointer)->Bind_Address_Type == SOCKS5_ADDRESS_IPV6 && 
-				RecvLen >= (ssize_t)(sizeof(socks5_server_command_reply) + sizeof(in6_addr) + sizeof(uint16_t)) && 
-				UDP_ASSOCIATE_TCP_Connecting_Address->SockAddr.ss_family == AF_INET6)
+			if (((psocks5_server_command_reply)SocketSelectingDataList.front().RecvBuffer.get())->Bind_Address_Type == SOCKS5_ADDRESS_IPV6 && 
+				SocketSelectingDataList.front().Length >= sizeof(socks5_server_command_reply) + sizeof(in6_addr) + sizeof(uint16_t) && 
+				UDP_ASSOCIATE_Address->SockAddr.ss_family == AF_INET6)
 			{
 			//Address
-				SOCKS_Pointer = OriginalRecv + sizeof(socks5_server_command_reply);
-				((PSOCKADDR_IN6)&UDP_ASSOCIATE_TCP_Connecting_Address->SockAddr)->sin6_addr = *(in6_addr *)SOCKS_Pointer;
+				((PSOCKADDR_IN6)&UDP_ASSOCIATE_Address->SockAddr)->sin6_addr = *(in6_addr *)(SocketSelectingDataList.front().RecvBuffer.get() + sizeof(socks5_server_command_reply));
 
 			//Port
-				SOCKS_Pointer = OriginalRecv + sizeof(socks5_server_command_reply) + sizeof(in6_addr);
-				((PSOCKADDR_IN6)&UDP_ASSOCIATE_TCP_Connecting_Address->SockAddr)->sin6_port = *(uint16_t *)SOCKS_Pointer;
+				((PSOCKADDR_IN6)&UDP_ASSOCIATE_Address->SockAddr)->sin6_port = *(uint16_t *)(SocketSelectingDataList.front().RecvBuffer.get() + sizeof(socks5_server_command_reply) + sizeof(in6_addr));
 			}
 		//IPv4
-			else if (((psocks5_server_command_reply)SOCKS_Pointer)->Bind_Address_Type == SOCKS5_ADDRESS_IPV4 && 
-				RecvLen >= (ssize_t)(sizeof(socks5_server_command_reply) + sizeof(in_addr) + sizeof(uint16_t)) && 
-				UDP_ASSOCIATE_TCP_Connecting_Address->SockAddr.ss_family == AF_INET)
+			else if (((psocks5_server_command_reply)SocketSelectingDataList.front().RecvBuffer.get())->Bind_Address_Type == SOCKS5_ADDRESS_IPV4 && 
+				SocketSelectingDataList.front().Length >= sizeof(socks5_server_command_reply) + sizeof(in_addr) + sizeof(uint16_t) && 
+				UDP_ASSOCIATE_Address->SockAddr.ss_family == AF_INET)
 			{
 			//Address
-				SOCKS_Pointer = OriginalRecv + sizeof(socks5_server_command_reply);
-				((PSOCKADDR_IN)&UDP_ASSOCIATE_TCP_Connecting_Address->SockAddr)->sin_addr = *(in_addr *)SOCKS_Pointer;
+				((PSOCKADDR_IN)&UDP_ASSOCIATE_Address->SockAddr)->sin_addr = *(in_addr *)(SocketSelectingDataList.front().RecvBuffer.get() + sizeof(socks5_server_command_reply));
 
 			//Port
-				SOCKS_Pointer = OriginalRecv + sizeof(socks5_server_command_reply) + sizeof(in_addr);
-				((PSOCKADDR_IN)&UDP_ASSOCIATE_TCP_Connecting_Address->SockAddr)->sin_port = *(uint16_t *)SOCKS_Pointer;
+				((PSOCKADDR_IN)&UDP_ASSOCIATE_Address->SockAddr)->sin_port = *(uint16_t *)(SocketSelectingDataList.front().RecvBuffer.get() + sizeof(socks5_server_command_reply) + sizeof(in_addr));
 			}
 			else {
 				PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Client command request error", 0, nullptr, 0);
@@ -556,14 +926,14 @@ bool SOCKSClientCommandRequest(
 	}
 	else if (Parameter.SOCKS_Version == SOCKS_VERSION_4 || Parameter.SOCKS_Version == SOCKS_VERSION_CONFIG_4A) //SOCKS version 4 or 4a
 	{
-		if (((psocks4_server_command_reply)SOCKS_Pointer)->Version != SOCKS_VERSION_4)
+		if (((psocks4_server_command_reply)SocketSelectingDataList.front().RecvBuffer.get())->Version != SOCKS4_VERSION_BYTES)
 		{
 			PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Server SOCKS protocol version error", 0, nullptr, 0);
 			return false;
 		}
-		else if (((psocks4_server_command_reply)SOCKS_Pointer)->Command != SOCKS4_REPLY_GRANTED)
+		else if (((psocks4_server_command_reply)SocketSelectingDataList.front().RecvBuffer.get())->Command != SOCKS4_REPLY_GRANTED)
 		{
-			PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Client command request error", ((psocks4_server_command_reply)SOCKS_Pointer)->Command, nullptr, 0);
+			PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Client command request error", ((psocks4_server_command_reply)SocketSelectingDataList.front().RecvBuffer.get())->Command, nullptr, 0);
 			return false;
 		}
 	}
@@ -571,574 +941,125 @@ bool SOCKSClientCommandRequest(
 	return true;
 }
 
-//Transmission and reception of SOCKS protocol(TCP)
-size_t SOCKSTCPRequest(
+//Transmission and reception of HTTP CONNECT protocol
+size_t HTTP_CONNECT_Request(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
-	uint8_t * const OriginalRecv, 
-	const size_t RecvSize)
+	std::shared_ptr<uint8_t> &OriginalRecv, 
+	size_t &RecvSize)
 {
 //Initialization(Part 1)
-	SOCKET_DATA TCPSocketData;
-	memset(&TCPSocketData, 0, sizeof(TCPSocketData));
-	memset(OriginalRecv, 0, RecvSize);
+	std::vector<SOCKET_DATA> SocketDataList(1U);
+	std::vector<SOCKET_SELECTING_DATA> SocketSelectingDataList(1U);
+	std::vector<ssize_t> ErrorCodeList(1U);
+	memset(&SocketDataList.front(), 0, sizeof(SocketDataList.front()));
+	memset(&SocketSelectingDataList.front(), 0, sizeof(SocketSelectingDataList.front()));
+	ErrorCodeList.front() = 0;
 
 //Socket initialization
-	if (Parameter.SOCKS_Address_IPv6.Storage.ss_family > 0 && //IPv6
-		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
-		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 || //IPv6
-		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 && Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
+	if (Parameter.HTTP_CONNECT_Address_IPv6.Storage.ss_family > 0 && //IPv6
+		((Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
+		Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_IPV6 || //IPv6
+		(Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_IPV4 && Parameter.HTTP_CONNECT_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
 	{
-		TCPSocketData.SockAddr.ss_family = AF_INET6;
-		((PSOCKADDR_IN6)&TCPSocketData.SockAddr)->sin6_addr = Parameter.SOCKS_Address_IPv6.IPv6.sin6_addr;
-		((PSOCKADDR_IN6)&TCPSocketData.SockAddr)->sin6_port = Parameter.SOCKS_Address_IPv6.IPv6.sin6_port;
-		TCPSocketData.AddrLen = sizeof(sockaddr_in6);
-		TCPSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
+		SocketDataList.front().SockAddr.ss_family = AF_INET6;
+		((PSOCKADDR_IN6)&SocketDataList.front().SockAddr)->sin6_addr = Parameter.HTTP_CONNECT_Address_IPv6.IPv6.sin6_addr;
+		((PSOCKADDR_IN6)&SocketDataList.front().SockAddr)->sin6_port = Parameter.HTTP_CONNECT_Address_IPv6.IPv6.sin6_port;
+		SocketDataList.front().AddrLen = sizeof(sockaddr_in6);
+		SocketDataList.front().Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 	}
-	else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family > 0 && //IPv4
-		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
-		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 || //IPv4
-		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 && Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6
+	else if (Parameter.HTTP_CONNECT_Address_IPv4.Storage.ss_family > 0 && //IPv4
+		((Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
+		Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_IPV4 || //IPv4
+		(Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_IPV6 && Parameter.HTTP_CONNECT_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6
 	{
-		TCPSocketData.SockAddr.ss_family = AF_INET;
-		((PSOCKADDR_IN)&TCPSocketData.SockAddr)->sin_addr = Parameter.SOCKS_Address_IPv4.IPv4.sin_addr;
-		((PSOCKADDR_IN)&TCPSocketData.SockAddr)->sin_port = Parameter.SOCKS_Address_IPv4.IPv4.sin_port;
-		TCPSocketData.AddrLen = sizeof(sockaddr_in);
-		TCPSocketData.Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	}
-	else {
-		return EXIT_FAILURE;
-	}
-
-//Socket check
-	if (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
-	{
-		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"SOCKS socket initialization error", 0, nullptr, 0);
-		return EXIT_FAILURE;
-	}
-
-//Socket attribute settings
-	if (!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
-		!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr) || 
-		(TCPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr)) || 
-		(TCPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr)) || 
-		!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
-	{
-		SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-		return EXIT_FAILURE;
-	}
-
-//Socket selecting structure initialization
-	fd_set ReadFDS, WriteFDS;
-	timeval Timeout;
-	memset(&ReadFDS, 0, sizeof(ReadFDS));
-	memset(&WriteFDS, 0, sizeof(WriteFDS));
-	memset(&Timeout, 0, sizeof(Timeout));
-
-//Initialization(Part 2)
-	std::shared_ptr<uint8_t> SendBuffer(new uint8_t[LARGE_PACKET_MAXSIZE]());
-	memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
-
-//Selection exchange process
-	if (Parameter.SOCKS_Version == SOCKS_VERSION_5)
-	{
-		if (!SOCKSSelectionExchange(&TCPSocketData, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), OriginalRecv, RecvSize))
-		{
-			SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-			return EXIT_FAILURE;
-		}
-		else {
-			memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
-		}
-	}
-
-//Client command request process
-	if (!SOCKSClientCommandRequest(IPPROTO_TCP, TCPSocketData.Socket, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), OriginalRecv, RecvSize, &TCPSocketData))
-	{
-		SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-		return EXIT_FAILURE;
-	}
-	else {
-		memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
-	}
-
-//Add length of request packet(It must be written in header when transport with TCP protocol).
-	memcpy_s(SendBuffer.get(), RecvSize, OriginalSend, SendSize);
-	ssize_t RecvLen = AddLengthDataToHeader(SendBuffer.get(), SendSize, RecvSize);
-	if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
-	{
-		SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-		return EXIT_FAILURE;
-	}
-
-//Socket attribute setting(Timeout)
-#if defined(PLATFORM_WIN)
-	Timeout.tv_sec = Parameter.SOCKS_SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
-	Timeout.tv_usec = Parameter.SOCKS_SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	Timeout.tv_sec = Parameter.SOCKS_SocketTimeout_Reliable.tv_sec;
-	Timeout.tv_usec = Parameter.SOCKS_SocketTimeout_Reliable.tv_usec;
-#endif
-
-//Data exchange
-	RecvLen = ProxySocketSelecting(TCPSocketData.Socket, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, DNS_PACKET_MINSIZE, nullptr);
-	SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-
-//Server response check
-	if (RecvLen >= (ssize_t)DNS_PACKET_MINSIZE && ntohs(((uint16_t *)OriginalRecv)[0]) >= DNS_PACKET_MINSIZE && 
-		RecvLen >= ntohs(((uint16_t *)OriginalRecv)[0]))
-	{
-		RecvLen = ntohs(((uint16_t *)OriginalRecv)[0]);
-		memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(uint16_t), RecvLen);
-
-	//Responses check
-		RecvLen = CheckResponseData(
-			REQUEST_PROCESS_SOCKS, 
-			OriginalRecv, 
-			RecvLen, 
-			RecvSize, 
-			nullptr);
-		if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
-			return EXIT_FAILURE;
-
-	//Mark DNS cache.
-		if (Parameter.CacheType > CACHE_TYPE_NONE)
-			MarkDomainCache(OriginalRecv, RecvLen);
-
-		return RecvLen;
-	}
-
-	return EXIT_FAILURE;
-}
-
-//Transmission and reception of SOCKS protocol(UDP)
-size_t SOCKSUDPRequest(
-	const uint8_t * const OriginalSend, 
-	const size_t SendSize, 
-	uint8_t * const OriginalRecv, 
-	const size_t RecvSize)
-{
-//Initialization(Part 1)
-	SOCKET_DATA TCPSocketData, LocalSocketData, UDPSocketData;
-	memset(&TCPSocketData, 0, sizeof(TCPSocketData));
-	memset(&LocalSocketData, 0, sizeof(LocalSocketData));
-	memset(&UDPSocketData, 0, sizeof(UDPSocketData));
-	memset(OriginalRecv, 0, RecvSize);
-
-//Socket initialization
-	if (Parameter.SOCKS_Address_IPv6.Storage.ss_family > 0 && //IPv6
-		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
-		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 || //IPv6
-		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 && Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
-	{
-		if (!Parameter.SOCKS_UDP_NoHandshake)
-		{
-		//TCP process
-			TCPSocketData.SockAddr.ss_family = AF_INET6;
-			((PSOCKADDR_IN6)&TCPSocketData.SockAddr)->sin6_addr = Parameter.SOCKS_Address_IPv6.IPv6.sin6_addr;
-			((PSOCKADDR_IN6)&TCPSocketData.SockAddr)->sin6_port = Parameter.SOCKS_Address_IPv6.IPv6.sin6_port;
-			TCPSocketData.AddrLen = sizeof(sockaddr_in6);
-			TCPSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-
-		//Local process
-			LocalSocketData.SockAddr.ss_family = AF_INET6;
-			LocalSocketData.AddrLen = sizeof(sockaddr_in6);
-		}
-
-	//UDP process
-		UDPSocketData.SockAddr.ss_family = AF_INET6;
-		((PSOCKADDR_IN6)&UDPSocketData.SockAddr)->sin6_addr = Parameter.SOCKS_Address_IPv6.IPv6.sin6_addr;
-		if (Parameter.SOCKS_UDP_NoHandshake)
-			((PSOCKADDR_IN6)&UDPSocketData.SockAddr)->sin6_port = Parameter.SOCKS_Address_IPv6.IPv6.sin6_port;
-		UDPSocketData.AddrLen = sizeof(sockaddr_in6);
-		UDPSocketData.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
-	}
-	else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family > 0 && //IPv4
-		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
-		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 || //IPv4
-		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 && Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6
-	{
-		if (!Parameter.SOCKS_UDP_NoHandshake)
-		{
-		//TCP process
-			TCPSocketData.SockAddr.ss_family = AF_INET;
-			((PSOCKADDR_IN)&TCPSocketData.SockAddr)->sin_addr = Parameter.SOCKS_Address_IPv4.IPv4.sin_addr;
-			((PSOCKADDR_IN)&TCPSocketData.SockAddr)->sin_port = Parameter.SOCKS_Address_IPv4.IPv4.sin_port;
-			TCPSocketData.AddrLen = sizeof(sockaddr_in);
-			TCPSocketData.Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-		//Local process
-			LocalSocketData.SockAddr.ss_family = AF_INET;
-			LocalSocketData.AddrLen = sizeof(sockaddr_in);
-		}
-
-	//UDP process
-		UDPSocketData.SockAddr.ss_family = AF_INET;
-		((PSOCKADDR_IN)&UDPSocketData.SockAddr)->sin_addr = Parameter.SOCKS_Address_IPv4.IPv4.sin_addr;
-		if (Parameter.SOCKS_UDP_NoHandshake)
-			((PSOCKADDR_IN)&UDPSocketData.SockAddr)->sin_port = Parameter.SOCKS_Address_IPv4.IPv4.sin_port;
-		UDPSocketData.AddrLen = sizeof(sockaddr_in);
-		UDPSocketData.Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+		SocketDataList.front().SockAddr.ss_family = AF_INET;
+		((PSOCKADDR_IN)&SocketDataList.front().SockAddr)->sin_addr = Parameter.HTTP_CONNECT_Address_IPv4.IPv4.sin_addr;
+		((PSOCKADDR_IN)&SocketDataList.front().SockAddr)->sin_port = Parameter.HTTP_CONNECT_Address_IPv4.IPv4.sin_port;
+		SocketDataList.front().AddrLen = sizeof(sockaddr_in);
+		SocketDataList.front().Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	}
 	else {
 		return EXIT_FAILURE;
 	}
 
 //Socket attribute settings
-	if ((!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr)) || 
-		!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr) || 
-		(TCPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr)) || 
-		(TCPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr)) || 
-		!SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr) || 
-		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
-		(UDPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr)) || 
-		(UDPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr)) || 
-		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
+	if (!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
+		!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr) || 
+		(SocketDataList.front().SockAddr.ss_family == AF_INET6 && !SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr)) || 
+		(SocketDataList.front().SockAddr.ss_family == AF_INET && !SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr)) || 
+		!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
 	{
-		SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-		if (!Parameter.SOCKS_UDP_NoHandshake)
-			SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"SOCKS socket initialization error", 0, nullptr, 0);
+		SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"HTTP CONNECT socket initialization error", 0, nullptr, 0);
 
 		return EXIT_FAILURE;
 	}
 
 //Socket attribute setting(Non-blocking mode)
-	if ((!Parameter.SOCKS_UDP_NoHandshake && !SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr)) || 
-		!SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
+	if (!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
 	{
-		SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-		if (!Parameter.SOCKS_UDP_NoHandshake)
-			SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-
+		SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return EXIT_FAILURE;
 	}
 
-//Socket selecting structure initialization
-	fd_set ReadFDS, WriteFDS;
-	timeval Timeout;
-	memset(&ReadFDS, 0, sizeof(ReadFDS));
-	memset(&WriteFDS, 0, sizeof(WriteFDS));
-	memset(&Timeout, 0, sizeof(Timeout));
-
-//Initialization(Part 2)
-	std::shared_ptr<uint8_t> SendBuffer(new uint8_t[LARGE_PACKET_MAXSIZE]());
-	memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
-
-//UDP transmission of standard SOCKS protocol must connect with TCP to server at first.
-	if (!Parameter.SOCKS_UDP_NoHandshake)
+//HTTP CONNECT exchange
+	if (Parameter.HTTP_CONNECT_TargetDomain == nullptr || Parameter.HTTP_CONNECT_Version == nullptr || 
+		!HTTP_CONNECT_Exchange(SocketDataList, SocketSelectingDataList, ErrorCodeList))
 	{
-	//Selection exchange process
-		if (!SOCKSSelectionExchange(&TCPSocketData, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), OriginalRecv, RecvSize))
-		{
-			SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-			SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-
-			return EXIT_FAILURE;
-		}
-		else {
-			memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
-		}
-
-	//UDP connecting and get UDP socket infomation.
-		if (SocketConnecting(IPPROTO_UDP, UDPSocketData.Socket, (PSOCKADDR)&UDPSocketData.SockAddr, UDPSocketData.AddrLen, nullptr, 0) == EXIT_FAILURE || 
-			getsockname(UDPSocketData.Socket, (PSOCKADDR)&LocalSocketData.SockAddr, &LocalSocketData.AddrLen) == SOCKET_ERROR)
-		{
-			SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-			SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-			PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
-
-			return EXIT_FAILURE;
-		}
-
-	//Client command request process
-		if (!SOCKSClientCommandRequest(IPPROTO_UDP, TCPSocketData.Socket, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), OriginalRecv, RecvSize, &LocalSocketData))
-		{
-			SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-			SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-
-			return EXIT_FAILURE;
-		}
-		else {
-			memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
-
-		//Copy network infomation from server message.
-			if (UDPSocketData.SockAddr.ss_family == AF_INET6) //IPv6
-				((PSOCKADDR_IN6)&UDPSocketData.SockAddr)->sin6_port = ((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_port;
-			else if (UDPSocketData.SockAddr.ss_family == AF_INET) //IPv4
-				((PSOCKADDR_IN)&UDPSocketData.SockAddr)->sin_port = ((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_port;
-		}
-	}
-
-//UDP connecting again
-	if (SocketConnecting(IPPROTO_UDP, UDPSocketData.Socket, (PSOCKADDR)&UDPSocketData.SockAddr, UDPSocketData.AddrLen, nullptr, 0) == EXIT_FAILURE)
-	{
-		SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-		if (!Parameter.SOCKS_UDP_NoHandshake)
-			SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-
-		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"SOCKS connecting error", 0, nullptr, 0);
-		return EXIT_FAILURE;
-	}
-
-//SOCKS UDP relay header
-	ssize_t RecvLen = sizeof(socks_udp_relay_request);
-	void *SOCKS_Pointer = SendBuffer.get();
-	if (Parameter.SOCKS_TargetServer.Storage.ss_family == AF_INET6) //IPv6
-	{
-		((psocks_udp_relay_request)SOCKS_Pointer)->Address_Type = SOCKS5_ADDRESS_IPV6;
-		SOCKS_Pointer = SendBuffer.get() + RecvLen;
-		RecvLen += (ssize_t)sizeof(in6_addr);
-		*(in6_addr *)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv6.sin6_addr;
-		SOCKS_Pointer = SendBuffer.get() + RecvLen;
-		RecvLen += (ssize_t)sizeof(uint16_t);
-		*(uint16_t *)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv6.sin6_port;
-	}
-	else if (Parameter.SOCKS_TargetServer.Storage.ss_family == AF_INET) //IPv4
-	{
-		((psocks_udp_relay_request)SOCKS_Pointer)->Address_Type = SOCKS5_ADDRESS_IPV4;
-		SOCKS_Pointer = SendBuffer.get() + RecvLen;
-		RecvLen += (ssize_t)sizeof(in_addr);
-		*(in_addr *)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv4.sin_addr;
-		SOCKS_Pointer = SendBuffer.get() + RecvLen;
-		RecvLen += (ssize_t)sizeof(uint16_t);
-		*(uint16_t *)SOCKS_Pointer = Parameter.SOCKS_TargetServer.IPv4.sin_port;
-	}
-	else if (Parameter.SOCKS_TargetDomain != nullptr && !Parameter.SOCKS_TargetDomain->empty()) //Domain
-	{
-		((psocks_udp_relay_request)SOCKS_Pointer)->Address_Type = SOCKS5_ADDRESS_DOMAIN;
-		SOCKS_Pointer = SendBuffer.get() + RecvLen;
-		RecvLen += (ssize_t)sizeof(uint8_t);
-		*(uint8_t *)SOCKS_Pointer = (uint8_t)Parameter.SOCKS_TargetDomain->length();
-		SOCKS_Pointer = SendBuffer.get() + RecvLen;
-		memcpy_s(SOCKS_Pointer, (ssize_t)LARGE_PACKET_MAXSIZE - ((ssize_t)sizeof(socks_udp_relay_request) + RecvLen), Parameter.SOCKS_TargetDomain->c_str(), Parameter.SOCKS_TargetDomain->length());
-		RecvLen += (ssize_t)Parameter.SOCKS_TargetDomain->length();
-		SOCKS_Pointer = SendBuffer.get() + RecvLen;
-		*(uint16_t *)SOCKS_Pointer = Parameter.SOCKS_TargetDomain_Port;
-		RecvLen += (ssize_t)sizeof(uint16_t);
-	}
-	else {
-		SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-		if (!Parameter.SOCKS_UDP_NoHandshake)
-			SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-
-		return EXIT_FAILURE;
-	}
-
-	memcpy_s(SendBuffer.get() + RecvLen, RecvSize, OriginalSend, SendSize);
-	RecvLen += (ssize_t)SendSize;
-
-//Socket attribute setting(Timeout)
-#if defined(PLATFORM_WIN)
-	Timeout.tv_sec = Parameter.SOCKS_SocketTimeout_Unreliable / SECOND_TO_MILLISECOND;
-	Timeout.tv_usec = Parameter.SOCKS_SocketTimeout_Unreliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	Timeout.tv_sec = Parameter.SOCKS_SocketTimeout_Reliable.tv_sec;
-	Timeout.tv_usec = Parameter.SOCKS_SocketTimeout_Reliable.tv_usec;
-#endif
-
-//Data exchange
-	RecvLen = ProxySocketSelecting(UDPSocketData.Socket, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, sizeof(socks_udp_relay_request) + DNS_PACKET_MINSIZE, nullptr);
-	SocketSetting(UDPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-	if (!Parameter.SOCKS_UDP_NoHandshake)
-		SocketSetting(TCPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-	if (RecvLen >= (ssize_t)DNS_PACKET_MINSIZE)
-	{
-		ssize_t OriginalRecvLen = RecvLen;
-
-	//Remove SOCKS UDP relay header
-		SOCKS_Pointer = OriginalRecv;
-		if (Parameter.SOCKS_TargetServer.Storage.ss_family == AF_INET6 && //IPv6
-			((psocks_udp_relay_request)SOCKS_Pointer)->Address_Type == SOCKS5_ADDRESS_IPV6 && 
-			RecvLen >= (ssize_t)(sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t) + DNS_PACKET_MINSIZE) && 
-			memcmp((in6_addr *)(OriginalRecv + sizeof(socks_udp_relay_request)), &Parameter.SOCKS_TargetServer.IPv6.sin6_addr, sizeof(in6_addr)) == 0 && 
-			*(uint16_t *)(OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(in6_addr)) == Parameter.SOCKS_TargetServer.IPv6.sin6_port)
-		{
-			memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t), RecvLen - (ssize_t)(sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t)));
-			RecvLen -= sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t);
-		}
-		else if (Parameter.SOCKS_TargetServer.Storage.ss_family == AF_INET && //IPv4
-			((psocks_udp_relay_request)SOCKS_Pointer)->Address_Type == SOCKS5_ADDRESS_IPV4 && 
-			RecvLen >= (ssize_t)(sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t) + DNS_PACKET_MINSIZE) && 
-			(*(in_addr *)(OriginalRecv + sizeof(socks_udp_relay_request))).s_addr == Parameter.SOCKS_TargetServer.IPv4.sin_addr.s_addr && 
-			*(uint16_t *)(OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(in_addr)) == Parameter.SOCKS_TargetServer.IPv4.sin_port)
-		{
-			memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t), RecvLen - (ssize_t)(sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t)));
-			RecvLen -= sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t);
-		}
-		else if (Parameter.SOCKS_TargetDomain != nullptr && !Parameter.SOCKS_TargetDomain->empty()) //Domain
-/* SOCKS server will reply IPv4/IPv6 address of domain.
-			((psocks_udp_relay_request)SOCKS_Pointer)->Address_Type == SOCKS5_ADDRESS_DOMAIN && 
-			RecvLen >= (ssize_t)(sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length() + sizeof(uint16_t) + DNS_PACKET_MINSIZE) && 
-			*(uint8_t *)(OriginalRecv + sizeof(socks_udp_relay_request)) == Parameter.SOCKS_TargetDomain->length() && 
-			memcmp(OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(uint8_t), Parameter.SOCKS_TargetDomain->c_str(), Parameter.SOCKS_TargetDomain->length()) == 0 && 
-			*(uint16_t *)(OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length()) == Parameter.SOCKS_TargetDomain_Port)
-*/
-		{
-		//IPv6
-			if (((psocks_udp_relay_request)SOCKS_Pointer)->Address_Type == SOCKS5_ADDRESS_IPV6 && 
-				RecvLen >= (ssize_t)(sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t) + DNS_PACKET_MINSIZE))
-			{
-				memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t), RecvLen - (ssize_t)(sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t)));
-				RecvLen -= sizeof(socks_udp_relay_request) + sizeof(in6_addr) + sizeof(uint16_t);
-			}
-		//IPv4
-			else if (((psocks_udp_relay_request)SOCKS_Pointer)->Address_Type == SOCKS5_ADDRESS_IPV4 && 
-				RecvLen >= (ssize_t)(sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t) + DNS_PACKET_MINSIZE))
-			{
-				memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t), RecvLen - (ssize_t)(sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t)));
-				RecvLen -= sizeof(socks_udp_relay_request) + sizeof(in_addr) + sizeof(uint16_t);
-			}
-
-/* SOCKS server will reply IPv4/IPv6 address of domain.
-			memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length() + sizeof(uint16_t), RecvLen - (ssize_t)(sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length() + sizeof(uint16_t)));
-			return RecvLen - (ssize_t)(sizeof(socks_udp_relay_request) + sizeof(uint8_t) + Parameter.SOCKS_TargetDomain->length() + sizeof(uint16_t));
-*/
-		}
-
-	//Server response check
-		if (OriginalRecvLen != RecvLen)
-		{
-		//Responses check
-			RecvLen = CheckResponseData(
-				REQUEST_PROCESS_SOCKS, 
-				OriginalRecv, 
-				RecvLen, 
-				RecvSize, 
-				nullptr);
-			if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
-				return EXIT_FAILURE;
-
-		//Mark DNS cache.
-			if (Parameter.CacheType > CACHE_TYPE_NONE)
-				MarkDomainCache(OriginalRecv, RecvLen);
-
-			return RecvLen;
-		}
-	}
-
-	return EXIT_FAILURE;
-}
-
-//Transmission and reception of HTTP protocol
-size_t HTTPRequest(
-	const uint8_t * const OriginalSend, 
-	const size_t SendSize, 
-	uint8_t * const OriginalRecv, 
-	const size_t RecvSize)
-{
-//Initialization
-	SOCKET_DATA HTTPSocketData;
-	memset(&HTTPSocketData, 0, sizeof(HTTPSocketData));
-	memset(OriginalRecv, 0, RecvSize);
-
-//Socket initialization
-	if (Parameter.HTTP_Address_IPv6.Storage.ss_family > 0 && //IPv6
-		((Parameter.HTTP_Protocol == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
-		Parameter.HTTP_Protocol == REQUEST_MODE_IPV6 || //IPv6
-		(Parameter.HTTP_Protocol == REQUEST_MODE_IPV4 && Parameter.HTTP_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
-	{
-		HTTPSocketData.SockAddr.ss_family = AF_INET6;
-		((PSOCKADDR_IN6)&HTTPSocketData.SockAddr)->sin6_addr = Parameter.HTTP_Address_IPv6.IPv6.sin6_addr;
-		((PSOCKADDR_IN6)&HTTPSocketData.SockAddr)->sin6_port = Parameter.HTTP_Address_IPv6.IPv6.sin6_port;
-		HTTPSocketData.AddrLen = sizeof(sockaddr_in6);
-		HTTPSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
-	}
-	else if (Parameter.HTTP_Address_IPv4.Storage.ss_family > 0 && //IPv4
-		((Parameter.HTTP_Protocol == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
-		Parameter.HTTP_Protocol == REQUEST_MODE_IPV4 || //IPv4
-		(Parameter.HTTP_Protocol == REQUEST_MODE_IPV6 && Parameter.HTTP_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6
-	{
-		HTTPSocketData.SockAddr.ss_family = AF_INET;
-		((PSOCKADDR_IN)&HTTPSocketData.SockAddr)->sin_addr = Parameter.HTTP_Address_IPv4.IPv4.sin_addr;
-		((PSOCKADDR_IN)&HTTPSocketData.SockAddr)->sin_port = Parameter.HTTP_Address_IPv4.IPv4.sin_port;
-		HTTPSocketData.AddrLen = sizeof(sockaddr_in);
-		HTTPSocketData.Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	}
-	else {
-		return EXIT_FAILURE;
-	}
-
-//Socket attribute settings
-	if (!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
-		!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr) || 
-		(HTTPSocketData.SockAddr.ss_family == AF_INET6 && !SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, false, nullptr)) || 
-		(HTTPSocketData.SockAddr.ss_family == AF_INET && !SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, false, nullptr)) || 
-		!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
-	{
-		SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-		PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"HTTP socket initialization error", 0, nullptr, 0);
-
-		return EXIT_FAILURE;
-	}
-
-//Socket attribute setting(Non-blocking mode)
-	if (!SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr))
-	{
-		SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-		return EXIT_FAILURE;
-	}
-
-//Socket selecting structure initialization
-	fd_set ReadFDS, WriteFDS;
-	timeval Timeout;
-	memset(&ReadFDS, 0, sizeof(ReadFDS));
-	memset(&WriteFDS, 0, sizeof(WriteFDS));
-	memset(&Timeout, 0, sizeof(Timeout));
-
-//HTTP CONNECT request
-	if (Parameter.HTTP_TargetDomain == nullptr || Parameter.HTTP_Version == nullptr || 
-		!HTTP_CONNECTRequest(&HTTPSocketData, &ReadFDS, &WriteFDS, &Timeout, OriginalRecv, RecvSize))
-	{
-		SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return EXIT_FAILURE;
 	}
 
 //Add length of request packet(It must be written in header when transport with TCP protocol).
-	std::shared_ptr<uint8_t> SendBuffer(new uint8_t[LARGE_PACKET_MAXSIZE]());
-	memset(SendBuffer.get(), 0, LARGE_PACKET_MAXSIZE);
-	memcpy_s(SendBuffer.get(), RecvSize, OriginalSend, SendSize);
-	ssize_t RecvLen = AddLengthDataToHeader(SendBuffer.get(), SendSize, RecvSize);
-	if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
+	std::shared_ptr<uint8_t> SendBuffer(new uint8_t[SendSize + sizeof(uint16_t)]());
+	memset(SendBuffer.get(), 0, SendSize + sizeof(uint16_t));
+	memcpy_s(SendBuffer.get(), SendSize + sizeof(uint16_t), OriginalSend, SendSize);
+	SocketSelectingDataList.front().SendBuffer.swap(SendBuffer);
+	SendBuffer.reset();
+	size_t RecvLen = AddLengthDataToHeader(SocketSelectingDataList.front().SendBuffer.get(), SendSize, SendSize + sizeof(uint16_t));
+	if (RecvLen < DNS_PACKET_MINSIZE)
 	{
-		SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return EXIT_FAILURE;
 	}
+	else {
+		SocketSelectingDataList.front().SendSize = RecvLen;
+	}
 
-//Socket attribute setting(Timeout)
-#if defined(PLATFORM_WIN)
-	Timeout.tv_sec = Parameter.HTTP_SocketTimeout / SECOND_TO_MILLISECOND;
-	Timeout.tv_usec = Parameter.HTTP_SocketTimeout % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	Timeout.tv_sec = Parameter.HTTP_SocketTimeout.tv_sec;
-	Timeout.tv_usec = Parameter.HTTP_SocketTimeout.tv_usec;
-#endif
-
-//Data exchange
-	RecvLen = ProxySocketSelecting(HTTPSocketData.Socket, &ReadFDS, &WriteFDS, &Timeout, SendBuffer.get(), RecvLen, OriginalRecv, RecvSize, DNS_PACKET_MINSIZE, nullptr);
-	SocketSetting(HTTPSocketData.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
-
-//Server response check
-	if (RecvLen >= (ssize_t)DNS_PACKET_MINSIZE && ntohs(((uint16_t *)OriginalRecv)[0]) >= DNS_PACKET_MINSIZE && 
-		RecvLen >= ntohs(((uint16_t *)OriginalRecv)[0]))
+//Request exchange and response check
+	SocketSelectingDataList.front().RecvBuffer.reset();
+	SocketSelectingDataList.front().RecvSize = 0;
+	SocketSelectingDataList.front().Length = 0;
+	RecvLen = SocketSelectingSerial(REQUEST_PROCESS_HTTP_CONNECT, IPPROTO_TCP, SocketDataList, SocketSelectingDataList, ErrorCodeList);
+	SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+	SocketSelectingDataList.front().SendBuffer.reset();
+	SocketSelectingDataList.front().SendSize = 0;
+	if (RecvLen != EXIT_FAILURE && 
+		SocketSelectingDataList.front().Length >= DNS_PACKET_MINSIZE && ntohs(((uint16_t *)SocketSelectingDataList.front().RecvBuffer.get())[0]) >= DNS_PACKET_MINSIZE && 
+		SocketSelectingDataList.front().Length >= ntohs(((uint16_t *)SocketSelectingDataList.front().RecvBuffer.get())[0]))
 	{
-		RecvLen = ntohs(((uint16_t *)OriginalRecv)[0]);
-		memmove_s(OriginalRecv, RecvSize, OriginalRecv + sizeof(uint16_t), RecvLen);
+		RecvLen = ntohs(((uint16_t *)SocketSelectingDataList.front().RecvBuffer.get())[0]);
+		memmove_s(SocketSelectingDataList.front().RecvBuffer.get(), SocketSelectingDataList.front().RecvSize, SocketSelectingDataList.front().RecvBuffer.get() + sizeof(uint16_t), RecvLen);
+		memset(SocketSelectingDataList.front().RecvBuffer.get() + RecvLen, 0, SocketSelectingDataList.front().RecvSize - RecvLen);
 
 	//Responses check
 		RecvLen = CheckResponseData(
-			REQUEST_PROCESS_HTTP, 
-			OriginalRecv, 
+			REQUEST_PROCESS_HTTP_CONNECT, 
+			SocketSelectingDataList.front().RecvBuffer.get(), 
 			RecvLen, 
-			RecvSize, 
+			SocketSelectingDataList.front().RecvSize, 
 			nullptr);
-		if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
+		if (RecvLen < DNS_PACKET_MINSIZE)
 			return EXIT_FAILURE;
 
 	//Mark DNS cache.
 		if (Parameter.CacheType > CACHE_TYPE_NONE)
-			MarkDomainCache(OriginalRecv, RecvLen);
+			MarkDomainCache(SocketSelectingDataList.front().RecvBuffer.get(), RecvLen);
 
+	//Swap buffer.
+		OriginalRecv.swap(SocketSelectingDataList.front().RecvBuffer);
+		RecvSize = SocketSelectingDataList.front().RecvSize;
 		return RecvLen;
 	}
 
@@ -1146,82 +1067,93 @@ size_t HTTPRequest(
 }
 
 //HTTP CONNECT request exchange process
-bool HTTP_CONNECTRequest(
-	SOCKET_DATA * const HTTPSocketData, 
-	fd_set * const ReadFDS, 
-	fd_set * const WriteFDS, 
-	timeval * const Timeout, 
-	uint8_t * const OriginalRecv, 
-	const size_t RecvSize)
+bool HTTP_CONNECT_Exchange(
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList)
 {
-//Initialization
-	memset(OriginalRecv, 0, RecvSize);
+//HTTP CONNECT packet
 	std::string HTTPString;
 	HTTPString.append("CONNECT ");
-	HTTPString.append(*Parameter.HTTP_TargetDomain);
+	HTTPString.append(*Parameter.HTTP_CONNECT_TargetDomain);
 	HTTPString.append(" HTTP/");
-	HTTPString.append(*Parameter.HTTP_Version);
+	HTTPString.append(*Parameter.HTTP_CONNECT_Version);
 	HTTPString.append("\r\nHost: ");
-	HTTPString.append(*Parameter.HTTP_TargetDomain);
+	HTTPString.append(*Parameter.HTTP_CONNECT_TargetDomain);
 	HTTPString.append("\r\n");
-	if (Parameter.HTTP_HeaderField != nullptr && !Parameter.HTTP_HeaderField->empty())
-		HTTPString.append(*Parameter.HTTP_HeaderField);
-	if (Parameter.HTTP_ProxyAuthorization != nullptr && !Parameter.HTTP_ProxyAuthorization->empty())
-		HTTPString.append(*Parameter.HTTP_ProxyAuthorization);
+	if (Parameter.HTTP_CONNECT_HeaderField != nullptr && !Parameter.HTTP_CONNECT_HeaderField->empty())
+		HTTPString.append(*Parameter.HTTP_CONNECT_HeaderField);
+	if (Parameter.HTTP_CONNECT_ProxyAuthorization != nullptr && !Parameter.HTTP_CONNECT_ProxyAuthorization->empty())
+		HTTPString.append(*Parameter.HTTP_CONNECT_ProxyAuthorization);
 	HTTPString.append("\r\n");
 
-//Socket attribute setting(Timeout)
-#if defined(PLATFORM_WIN)
-	Timeout->tv_sec = Parameter.HTTP_SocketTimeout / SECOND_TO_MILLISECOND;
-	Timeout->tv_usec = Parameter.HTTP_SocketTimeout % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	Timeout->tv_sec = Parameter.HTTP_SocketTimeout.tv_sec;
-	Timeout->tv_usec = Parameter.HTTP_SocketTimeout.tv_usec;
-#endif
+//Buffer initialization
+	{
+		std::shared_ptr<uint8_t> SendBuffer(new uint8_t[HTTPString.length()]());
+		memset(SendBuffer.get(), 0, HTTPString.length());
+		memcpy_s(SendBuffer.get(), HTTPString.length(), HTTPString.c_str(), HTTPString.length());
+		SocketSelectingDataList.front().SendBuffer.swap(SendBuffer);
+		SocketSelectingDataList.front().SendSize = HTTPString.length();
+	}
 
 //TCP connecting
-	ssize_t RecvLen = SocketConnecting(IPPROTO_TCP, HTTPSocketData->Socket, (PSOCKADDR)&HTTPSocketData->SockAddr, HTTPSocketData->AddrLen, (const uint8_t *)HTTPString.c_str(), HTTPString.length());
+	size_t RecvLen = SocketConnecting(IPPROTO_TCP, SocketDataList.front().Socket, (PSOCKADDR)&SocketDataList.front().SockAddr, SocketDataList.front().AddrLen, (const uint8_t *)SocketSelectingDataList.front().SendBuffer.get(), SocketSelectingDataList.front().SendSize);
 	if (RecvLen == EXIT_FAILURE)
 	{
-		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"HTTP connecting error", 0, nullptr, 0);
+		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"HTTP CONNECT connecting error", 0, nullptr, 0);
 		return false;
 	}
-//HTTP CONNECT request exchange
-	else if (RecvLen >= (ssize_t)DNS_PACKET_MINSIZE)
+	else if (RecvLen >= DNS_PACKET_MINSIZE)
 	{
-		RecvLen = ProxySocketSelecting(HTTPSocketData->Socket, ReadFDS, WriteFDS, Timeout, nullptr, 0, OriginalRecv, RecvSize, HTTP_RESPONSE_MINSIZE, nullptr);
+		SocketSelectingDataList.front().SendBuffer.reset();
+		SocketSelectingDataList.front().SendSize = 0;
 	}
-	else {
-		RecvLen = ProxySocketSelecting(HTTPSocketData->Socket, ReadFDS, WriteFDS, Timeout, (const uint8_t *)HTTPString.c_str(), HTTPString.length(), OriginalRecv, RecvSize, HTTP_RESPONSE_MINSIZE, nullptr);
-	}
-	if (RecvLen < (ssize_t)HTTP_RESPONSE_MINSIZE)
+
+//HTTP CONNECT request
+	SocketSelectingDataList.front().RecvBuffer.reset();
+	SocketSelectingDataList.front().RecvSize = 0;
+	SocketSelectingDataList.front().Length = 0;
+	RecvLen = SocketSelectingSerial(REQUEST_PROCESS_HTTP_CONNECT, IPPROTO_TCP, SocketDataList, SocketSelectingDataList, ErrorCodeList);
+	SocketSelectingDataList.front().SendBuffer.reset();
+	SocketSelectingDataList.front().SendSize = 0;
+	if (RecvLen == EXIT_FAILURE || SocketSelectingDataList.front().Length < HTTP_RESPONSE_MINSIZE)
 	{
-		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"HTTP request error", 0, nullptr, 0);
+		PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"HTTP CONNECT request error", 0, nullptr, 0);
 		return false;
 	}
 	else {
-		OriginalRecv[RecvSize - 1U] = 0;
+	//Add fin sign to buffer end.
+		if (SocketSelectingDataList.front().Length == SocketSelectingDataList.front().RecvSize)
+		{
+			std::shared_ptr<uint8_t> RecvBuffer(new uint8_t[SocketSelectingDataList.front().RecvSize + PADDING_RESERVED_BYTES]());
+			memset(RecvBuffer.get(), 0, SocketSelectingDataList.front().RecvSize + PADDING_RESERVED_BYTES);
+			SocketSelectingDataList.front().RecvSize += PADDING_RESERVED_BYTES;
+			memcpy_s(RecvBuffer.get(), SocketSelectingDataList.front().RecvSize, SocketSelectingDataList.front().RecvBuffer.get(), SocketSelectingDataList.front().Length);
+			SocketSelectingDataList.front().RecvBuffer.swap(RecvBuffer);
+		}
+
+	//Build HTTP string.
 		HTTPString.clear();
-		HTTPString = (const char *)OriginalRecv;
+		HTTPString = (const char *)SocketSelectingDataList.front().RecvBuffer.get();
 	}
 
 //HTTP CONNECT response check
-	if (HTTPString.find("\r\n") == std::string::npos || HTTPString.find("HTTP/") == std::string::npos)
+	if (CheckConnectionStreamFin(REQUEST_PROCESS_HTTP_CONNECT, (const uint8_t *)HTTPString.c_str(), HTTPString.length()))
 	{
-		PrintError(LOG_LEVEL_3, LOG_ERROR_HTTP, L"HTTP server response error", 0, nullptr, 0);
-		return false;
+		return true;
 	}
-	else if (HTTPString.find(" 200 ") == std::string::npos || HTTPString.find(" 200 ") >= HTTPString.find("\r\n")) //Not HTTP status code 200: OK
+	else if (HTTPString.find("HTTP/") == 0 && HTTPString.find(ASCII_SPACE) != std::string::npos && HTTPString.find("\r\n\r\n") != std::string::npos)
 	{
 		std::wstring Message;
-		HTTPString.erase(HTTPString.find("\r\n"), HTTPString.length() - HTTPString.find("\r\n"));
+		HTTPString.erase(HTTPString.find("\r\n\r\n"), HTTPString.length() - HTTPString.find("\r\n\r\n"));
 		if (!MBSToWCSString((const uint8_t *)HTTPString.c_str(), HTTPString.length(), Message))
 			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
-		else 
-			PrintError(LOG_LEVEL_3, LOG_ERROR_HTTP, Message.c_str(), 0, nullptr, 0);
-
-		return false;
+		else
+			PrintError(LOG_LEVEL_3, LOG_ERROR_HTTP_CONNECT, Message.c_str(), 0, nullptr, 0);
 	}
-
-	return true;
+	else {
+		PrintError(LOG_LEVEL_3, LOG_ERROR_HTTP_CONNECT, L"HTTP CONNECT server response error", 0, nullptr, 0);
+	}
+	
+	return false;
 }

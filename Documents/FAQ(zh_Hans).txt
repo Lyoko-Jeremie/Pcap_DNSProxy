@@ -6,8 +6,6 @@
 -------------------------------------------------------------------------------
 
 
-运行结果分析：
-
 * WinPcap 提示已安装旧版本无法继续：
   * 到安装和卸载程序、运行菜单或 %PROGRAMFILES(x86)%(64位系统)/%PROGRAMFILES%(32位系统) 寻找 WinPcap 的卸载程序
   * 如果找不到卸载程序，则可能需要进入安全模式删除 WinPcap 的所有文件然后重新安装：
@@ -28,7 +26,11 @@
     Address: ::1（视所在网络环境而定，本地监听协议为 IPv4 时为 127.0.0.1）
 
     *** UnKnown 找不到 www.google.com: No response from server
-    
+
+
+-------------------------------------------------------------------------------
+
+
 * 如果出现以下结果，则说明服务已经运行成功但远程 DNS 服务器没有回应，请检查是否有错误报告生成
   * 请务必设置一个正确的、有效的、可以使用的境外 DNS 服务器
   * 出现这种情况可能为网络问题。部分地区ISP/运营商对 UDP 协议转发丢包率比较高，可尝试切换到 TCP 协议模式（参见 ReadMe 文档中 配置文件详细参数说明 中 Base 基本区域 的 Operation Mode 一节）或者多尝试请求几次
@@ -59,9 +61,10 @@
 
 
 当程序运行时发生错误，可能会生成错误报告也就是 Error.log 文件，其位于工具服务注册的目录内，对解决问题至关重要
-错误报告的格式为 "日期 时间 -> 错误类型: 详细错误信息(in line 行数 of 所在文件, error code is 错误代码)"（不含双引号，括号为可能出现内容）
-* 错误代码为 系统/Winsock/Network API 提供的出错代码，详细情况参见下文 Error.log 详细错误报告
-* 由于程序重启时会自动删除之前生成的错误报告，所以如果有错误报告生成建议先备份并尝试解决后再重新启动工具服务
+* 错误报告的格式为 "[日期 时间] -> [错误类型] 对错误代码的简单介绍[错误代码] in 错误出处(Line 行数)."（不含双引号）
+* Windows 的错误代码参见 https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
+* Linux/Mac 的错误代码参见 http://man7.org/linux/man-pages/man3/errno.3.html
+* WinPcap/LibPcap 错误信息的具体含义可移步 https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
 
 
 Error.log 详细错误报告，错误报告一共有7大类型：
@@ -70,9 +73,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Screen output buffer setting error - 屏幕输出缓冲区配置错误：建议重新启动服务或程序
   * Commands error - 程序启动参数错误：请检查为程序传入的参数
   * Service start error - 服务启动失败：可能未在系统注册服务，或在系统内注册的服务路径不正确
-    * Windows 的错误代码参见 https://msdn.microsoft.com/en-us/library/windows/desktop/ms686324(v=vs.85).aspx
   * Set system daemon error - 守护进程设置错误：建议重新启动服务或程序
-    * Linux/Mac 的错误代码参见 http://man7.org/linux/man-pages/man3/errno.3.html
   * Convert multiple byte or wide char string error - 多/宽字节字符转换错误：建议重新启动服务或程序
   * Create mailslot error - Mailslot 创建失败：建议重新启动服务或程序
   * Mailslot read messages error - Mailslot 读取信息失败：建议重新启动服务或程序
@@ -191,12 +192,12 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * UDP socket initialization error - UDP 协议请求套接字初始化失败：原因参见错误代码
   * TCP socket initialization error - TCP 协议请求套接字初始化失败：原因参见错误代码
   * SOCKS socket initialization error - SOCKS 协议请求套接字初始化失败：原因参见错误代码
-  * HTTP socket initialization error - HTTP 协议请求套接字初始化失败：原因参见错误代码
+  * HTTP CONNECT socket initialization error - HTTP CONNECT 协议请求套接字初始化失败：原因参见错误代码
   * Complete UDP socket initialization error - UDP 协议请求套接字初始化失败：原因参见错误代码
   * SOCKS connecting error - SOCKS 协议连接错误：可能为网络错误，原因参见错误代码
-  * HTTP connecting error - HTTP 协议连接错误：可能为网络错误，原因参见错误代码
+  * HTTP CONNECT connecting error - HTTP CONNECT 协议连接错误：可能为网络错误，原因参见错误代码
   * SOCKS request error - SOCKS 协议请求失败：可能为网络错误，具体原因可参见错误代码
-  * HTTP request error - HTTP 协议请求失败：可能为网络错误，具体原因可参见错误代码
+  * HTTP CONNECT request error - HTTP CONNECT 协议请求失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve UDP socket initialization error - DNSCurve 协议 UDP 协议套接字初始化失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve TCP socket initialization error - DNSCurve 协议 TCP 协议套接字初始化失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve Local Signature socket initialization error - DNSCurve 协议本地请求套接字初始化失败：可能为网络错误，具体原因可参见错误代码
@@ -207,7 +208,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
 6.Pcap Error - Pcap 错误
   * Insufficient privileges or not any available network devices - 没有任何可用的网络适配器：请检查硬件设备和驱动程序是否安装正确，也可能权限不足
   * 本类型错误会直接将 WinPcap 的错误信息直接打印至错误报告
-  * WinPcap 错误信息的具体含义可移步 https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
 
 7.DNSCurve Error - DNSCurve 协议错误
   * Libsodium initialization error - Libsodium 库初始化错误：请与开发者联系
@@ -239,10 +239,10 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Username or Password incorrect - SOCKS 协议用户名/密码不正确：请检查用户名/密码是否错误
   * Client command request error - 客户端请求连接失败：请检查 SOCKS 协议目标地址否受支持或是否可用，原因参见错误代码
 
-9.HTTP Error - HTTP 协议错误
-  * HTTP address error - HTTP 代理地址错误：请检查该服务器是否可用
-  * HTTP target server error - HTTP 代理目标地址错误：请检查该服务器是否可用
-  * HTTP server response error - HTTP 代理服务器响应错误：请检查该服务器是否可用
+9.HTTP CONNECT Error - HTTP CONNECT 协议错误
+  * HTTP CONNECT address error - HTTP CONNECT 代理地址错误：请检查该服务器是否可用
+  * HTTP CONNECT target server error - HTTP CONNECT 代理目标地址错误：请检查该服务器是否可用
+  * HTTP CONNECT server response error - HTTP CONNECT 代理服务器响应错误：请检查该服务器是否可用
 
 10.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
   * Old log file was deleted - 错误日志文件已满并被删除

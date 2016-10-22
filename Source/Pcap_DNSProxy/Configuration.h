@@ -100,9 +100,9 @@ bool ReadPathAndFileName(
 	const size_t FileIndex, const size_t Line);
 #endif
 bool ReadMultipleAddresses(
+	const uint16_t Protocol, 
 	std::string Data, 
 	const size_t DataOffset, 
-	const uint16_t Protocol, 
 	std::vector<DNS_SERVER_DATA> * const DNSServerDataList, 
 	const size_t FileIndex, 
 	const size_t Line);
@@ -114,9 +114,9 @@ bool ReadSOCKSAddressAndDomain(
 	const size_t Line);
 #if defined(ENABLE_PCAP)
 bool ReadHopLimitData(
+	const uint16_t Protocol, 
 	std::string Data, 
 	const size_t DataOffset, 
-	const uint16_t Protocol, 
 	std::vector<DNS_SERVER_DATA> * const DNSServerDataList, 
 	const bool IsFirstRead, 
 	const size_t FileIndex, 
@@ -159,9 +159,9 @@ bool ReadLocalRoutingData(
 	const size_t FileIndex, 
 	const size_t Line);
 bool ReadAddressPrefixBlock(
+	const uint16_t Protocol, 
 	std::string OriginalData, 
 	const size_t DataOffset, 
-	const uint16_t Protocol, 
 	ADDRESS_PREFIX_BLOCK * const AddressPrefix, 
 	const size_t FileIndex, 
 	const size_t Line);

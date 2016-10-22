@@ -36,8 +36,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
         * automake 可访问 https://www.gnu.org/software/automake 获取
         * libtool 可访问 https://www.gnu.org/software/libtool 获取
       * 获得 root 权限后进入目录，运行 ./autogen.sh -> ./configure -> make -> make install 即可
-      * 部分 Linux 发行版可能还需要 Libsodium-Dev 工具的支持
-      * 部分 Linux 发行版可能还需要运行 ldconfig 刷新系统的库缓存
+      * 部分 Linux 发行版可能还需要 Libsodium-Dev 工具的支持，以及运行 ldconfig 刷新系统库缓存
 
 2.编译 Pcap_DNSProxy 程序并配置程序属性
   * 切勿更改脚本的换行格式 (UNIX/LF)
@@ -49,7 +48,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * 设置 Pcap_DNSProxy 程序以及 PcapDNSProxyService 和 Pcap_DNSProxy.service 服务控制脚本的基本读写可执行权限
       * 设置 Linux_(Un)Install.Systemd.sh 以及 Linux_(Un)Install.SysV.sh 服务控制安装脚本的基本读写可执行权限
       * 从 ExampleConfig 复制默认配置文件到 Release 目录
-    * 执行时使用 ./CMake_Build.sh --disable-libsodium 可剥离 Libsodium 的依赖，不建议使用
+    * 执行时使用 ./CMake_Build.sh --disable-libsodium 可剥离对 Libsodium 的依赖，不建议使用
       * 剥离后编译时将不需要 Libsodium 库的支持
       * 剥离后程序将完全失去支持 DNSCurve/DNSCrypt 协议的功能，且运行时将不会产生任何错误提示，慎用！
 
@@ -116,7 +115,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 
 卸载方法：
-* 由于不同的 Linux 发行版对系统服务和守护进程的处理方式不同，本步仅供参考
+* 由于不同的 Linux 发行版对系统服务和守护进程的处理方式不同，本节仅供参考
 
 1.还原系统网络配置
 2.以 root 权限进入 Release 目录，执行 ./Linux_Uninstall.Systemd.sh 或 ./Linux_Uninstall.SysV.sh

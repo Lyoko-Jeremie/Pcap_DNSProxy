@@ -1,4 +1,39 @@
-﻿Pcap_DNSProxy 0.4.7.1-0.4.7.6 更新日志(2016-10-10)：
+﻿Pcap_DNSProxy 0.4.7.7 更新日志(2016-10-22)：
+
+* 添加 Large Buffer Size 参数，用于指定大型数据缓冲区的固定长度
+* 添加串行请求通讯模块，重写部分网络请求协议
+  * 重写 SOCKS Proxy 以及 HTTP CONNECT Proxy 协议实现，解除传输数据量受一次性请求通讯模块固定缓冲区的长度限制
+  * 新增 Reliable Serial Socket Timeout 和 Unrliable Serial Socket Timeout 参数控制串行通讯超时时间
+  * HTTP Proxy 改名为 HTTP CONNECT Proxy
+  * HTTP Protocol 改名为 HTTP CONNECT Protocol
+  * HTTP Proxy Only 改名为 HTTP CONNECT Proxy Only
+  * HTTP IPv4 Address 改名为 HTTP CONNECT IPv4 Address
+  * HTTP IPv6 Address 改名为 HTTP CONNECT IPv6 Address
+  * HTTP Target Server 改名为 HTTP CONNECT Target Server
+  * HTTP Version 改名为 HTTP CONNECT Version
+  * HTTP Header Field 改名为 HTTP CONNECT Header Field
+  * HTTP Proxy Authorization 改名为 HTTP CONNECT Proxy Authorization
+  * 移除 HTTP Socket Timeout/SOCKS Reliable Socket Timeout/SOCKS Unreliable Socket Timeout 参数
+* 修复 SOCKS 4/4a 协议不能工作的问题
+* 修复 CMake 编译提示宏重定义的问题 (Mac)
+* 提供 SHA-2(256)/SHA256 文件校验值，淘汰 SHA-1 算法
+* Release Hash:
+  * SHA-2(256):
+    * Windows/Pcap_DNSProxy.exe: 10AFCBA7C06B93AEAFA25D077614027E0DCCCB519A0A63DA15CDB6686F6F79AF
+    * Windows/Pcap_DNSProxy_x86.exe: AE07893DC2516ABFF3FB5B49580AC1A1CFCC6557AAF0A7BCC696B7B056D4566E
+    * Windows/Pcap_DNSProxy_XP.exe: D767C4B8242CFD870481227814651B0CA826C91EBEA43340AF507D8EC2BF7DEA
+    * Mac/Pcap_DNSProxy: 243B55DDB05D3793F98EA6191D4405932112033FBF2AFF3A64A15D51D768266D
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe: 47E34A2027CC9E189FC2272AFBB3DDEFC240AEBEF9F70F4BC973F123D097D600
+    * Windows/Pcap_DNSProxy_x86.exe: 6042923500261A6898B3505CB68AD0BFF9DFAC591A8B4104CA27289366A01E7C
+    * Windows/Pcap_DNSProxy_XP.exe: 585850BF970BB13624B7BF36E9A2B86984608038AF482BC92C0018015C148BED
+    * Mac/Pcap_DNSProxy: 941600E779C4AE0FE730DA4DFA617ACDC0BCB652DD708474DEFA1B3AA9EE95B7
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy 0.4.7.1-0.4.7.6 更新日志(2016-10-10)：
 
 * 添加对 Dnsmasq 的 Address 和 Server 兼容格式配置文件的支持
   * 支持使用 Address 和 Server 兼容格式的非正则表达式模式对域名查询进行字符串匹配
@@ -425,7 +460,7 @@ Pcap_DNSProxy v0.3 更新日志：
 * 修复白名单域名请求测试在 TCP 模式下被禁用的 bug
 * 修复 WinPcap 抓取数据包线程退出后可能导致的内存泄漏问题
 * 注释 Console 和部分 Ethernet 的调试代码
-* 源代码全部转为 USC-2(Little-Endian) 编码和 Dos\Windows档案格式
+* 源代码全部转为 USC-2(Little-Endian) 编码和 Windows(CR-LF) 档案格式
 
 
 -------------------------------------------------------------------------------
@@ -433,7 +468,7 @@ Pcap_DNSProxy v0.3 更新日志：
 
 Pcap_DNSProxy v0.2 更新日志：
 
-* 重写编码读取模块，新增支持 Macintosh 换行格式
+* 重写编码读取模块，新增支持 Macintosh(CR) 换行格式
 * 修复无法在 PPPoE 环境下使用的 bug
 * 使用C语言标准库返回值
 * 宏定义错误报告类型

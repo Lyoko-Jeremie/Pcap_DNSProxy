@@ -41,7 +41,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 1.準備程式編譯環境
   * Homebrew 可訪問 http://brew.sh 獲取
-  * CMake 可訪問 https://cmake.org 獲取
+  * CMake 可訪問 https://cmake.org 或通過 Homebrew 獲取
   * Libsodium 可訪問 https://github.com/jedisct1/libsodium 獲取
     * 編譯時如果剝離 Libsodium 的依賴則可跳過編譯和安裝下表的依賴庫和工具，具體參見下文的介紹，不建議使用
     * 獲得 root 許可權後進入目錄，運行 ./autogen.sh -> ./configure -> make -> make install 即可
@@ -56,7 +56,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * 設置 Pcap_DNSProxy 程式以及 pcap_dnsproxy.service.plist 服務控制腳本的基本讀寫可執行許可權
       * 設置 Mac_(Un)Install.sh 服務控制安裝腳本的基本讀寫可執行權
       * 從 ExampleConfig 複製預設設定檔到 Release 目錄
-    * 執行時使用 ./CMake_Build.sh --disable-libsodium 可剝離 Libsodium 的依賴，不建議使用
+    * 執行時使用 ./CMake_Build.sh --disable-libsodium 可剝離對 Libsodium 的依賴，不建議使用
       * 剝離後編譯時將不需要 Libsodium 庫的支援
       * 剝離後程式將完全失去支援 DNSCurve/DNSCrypt 協定的功能，且運行時將不會產生任何錯誤提示，慎用！
 
@@ -71,9 +71,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 1.還原系統網路設定
 2.打開終端，使用 sudo -i 獲得 root 許可權並進入 Mac 目錄內
 3.使用 ./Mac_Uninstall.sh 執行服務卸載腳本
-  * 腳本所進行的操作：
-    * 停止並卸載守護進程服務
-    * 刪除 plist 設定檔
+  * 腳本所進行的操作：停止並卸載守護進程服務，刪除 plist 設定檔
 4.刪除所有 Pcap_DNSProxy 相關檔
 
 

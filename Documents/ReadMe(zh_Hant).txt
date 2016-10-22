@@ -37,15 +37,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 注意：建議將 "本地連接" 和 "無線連接" 以及 "寬頻連線" 全部修改！
 
 6.特別注意：
-  * Windows XP 如出現 10022/WSAEINVAL 錯誤，需要先啟用系統的 IPv6 支援，再重新開機服務：
-   * 以管理員身份運行 cmd
-   * 輸入 ipv6 install 並回車
   * 如需讓程式的流量通過系統路由級別的代理（例如 VPN 等）進行變數名稱解析，請選擇其中一種方案，配置完成後重啟服務：
     * Direct Request = IPv4
     * Direct Request = IPv6
     * Direct Request = IPv4 + IPv6
-  * 修改 DNS 伺服器時請務必設置一個正確的、有效的、可以正常使用的境外 DNS 伺服器！
-  * Windows 平臺下讀取檔案名時不存在大小寫的區別
   * 設定檔 Hosts 檔 IPFilter 檔和錯誤報表所在的目錄以上文 安裝方法 一節中第4步註冊的服務資訊為准
     * 填寫時一行不要超過 4096位元組/4KB
     * 檔讀取只支援整個文本單一的編碼和換行格式組合，切勿在文字檔中混合所支援的編碼或換行格式！
@@ -54,7 +49,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 殺毒軟體/協力廠商防火牆可能會阻止本程式的操作，請將行為全部允許或將本程式加入到白名單中
   * 如果啟動服務時提示 "服務沒有及時回應啟動或者控制請求" 請留意是否有錯誤報表生成，詳細的錯誤資訊參見 FAQ 文檔中 Error.log 詳細錯誤報表 一節
   * 目錄和程式的名稱可以隨意更改，但請務必在進行安裝方法第4步前完成。如果服務註冊後需移動工具目錄的路徑，參見上文 卸載方法 第2步的注意事項
-  * 由於本人水準有限，程式編寫難免會出現差錯疏漏，遇到問題請先更新到最新版本，如有問題可至專案頁面提出，望諒解 v_v
+  * Windows XP 如出現 10022 錯誤，需要先啟用系統的 IPv6 支援（以管理員身份運行 cmd 輸入 ipv6 install 並回車，一次性操作），再重新開機服務
 
 
 -------------------------------------------------------------------------------
@@ -65,8 +60,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 2.輸入 5 並回車，即選擇 "5: Restart service" 立刻重啟服務
 
 
-更新程式方法（需要以管理員身份進行）：
-* 注意：更新程式切勿直接覆蓋，否則可能會造成不可預料的錯誤！請按照以下的步驟進行：
+更新程式方法（需要以管理員身份進行，切勿直接覆蓋，否則可能會造成不可預料的錯誤）：
 1.提前下載好新版本的 Pcap_DNSProxy（亦即 安裝方法 中第2步），更新過程可能會造成功能變數名稱解析短暫中斷
 2.備份好所有設定檔 Hosts 檔 IPFilter 檔的自訂內容
 3.右鍵以管理員身份(Vista 以及更新版本)或直接以管理員登錄按兩下(XP/2003)運行 ServiceControl.bat
@@ -88,6 +82,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 輸入 2 並回車，即選擇 "2: Uninstall service" 卸載服務
   * 注意：Windows 防火牆可能會留有允許程式訪問網路的資訊，故卸載後可能需要使用註冊表清理工具清理
   * 轉移工具目錄路徑不需要卸載服務，先停止服務轉移，轉移完成後重新開機服務即可
+
+
+-------------------------------------------------------------------------------
 
 
 正常工作查看方法：
@@ -138,7 +135,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 上文的加密組合並不阻止程式在請求 DNSCurve/DNSCrypt 加密模式失敗是使用其它協定請求功能變數名稱解析，開啟 Encryption Only = 1 後將只允許使用加密傳輸，安全性和可靠性最高，但功能變數名稱解析成功率可能會下降
 * 優化大量請求下程式表現：
   * Pcap Reading Timeout 適當調低這個參數能使抓包模組以更高的頻率抓取資料包，降低延遲
-  * Cache Parameter 儘量調高這個參數能增加緩存的存留時間或者佇列長度，提高緩存命中率
+  * Cache Parameter/Default TTL 儘量調高這個參數能增加緩存的存留時間或者佇列長度，提高緩存命中率
   * Thread Pool Maximum Number 適當調高這個參數能可以增大緩衝區最大可容納請求的數量
   * Queue Limits Reset Time 不要開啟，限制請求數量的參數
   * Multiple Request Times 非極其惡劣情況慎用，消耗大量系統資源且會些微提高延遲
@@ -175,6 +172,33 @@ https://sourceforge.net/projects/pcap-dnsproxy
 -------------------------------------------------------------------------------
 
 
+程序運行參數說明：
+由於部分功能無法通過使用配置文件指定使用，故而使用程序外掛參數進行支持
+所有外掛參數也可通過-h 和--help 參數查詢
+
+* -v 和 --version
+  輸出程序版本號資訊到屏幕上
+* --lib-version
+  輸出程式所用庫的版本號資訊到螢幕上
+* -h 和 --help
+  輸出程序幫助信息到屏幕上
+* --flush-dns
+  立即清空所有程序內以及系統的 DNS 緩存
+* --flush-dns Domain
+  立即清空功能變數名稱為 Domain 以及所有系統內的 DNS 緩存
+* --first-setup
+  進行本地防火牆測試(Windows)
+* -c Path 和 --config-file Path
+  啟動時指定配置文件所在的工作目錄
+* --keypair-generator
+  生成 DNSCurve/DNSCrypt 協定所需使用的金鑰組到 KeyPair.txt
+* --disable-daemon
+  關閉守護進程模式(Linux)
+
+
+-------------------------------------------------------------------------------
+
+
 設定檔詳細參數說明：
 
 有效參數格式為 "選項名稱 = 數值/資料"（不含引號，注意空格和等號的位置）
@@ -183,6 +207,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Base - 基本參數區域
   * Version - 設定檔的版本，用於正確識別設定檔：本參數與程式版本號不相關，切勿修改
   * File Refresh Time - 檔刷新間隔時間：單位為秒，最小為 5
+  * Large Buffer Size - 大型資料緩衝區的固定長度：單位為位元組，最小為 1500
   * Additional Path - 附加的資料檔案讀取路徑，附加在此處的目錄路徑下的 Hosts 檔和 IPFilter 檔會被依次讀取：請填入目錄的絕對路徑
   * Hosts File Name - Hosts 檔的檔案名，附加在此處的 Hosts 檔案名將被依次讀取
   * IPFilter File Name - IPFilter 檔的檔案名，附加在此處的 IPFilter 檔案名將被依次讀取
@@ -198,8 +223,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * Listen - 監聽參數區域
   * Pcap Capture - 抓包功能總開關，開啟後抓包模組才能正常使用：開啟為 1 /關閉為 0
-    * 此參數關閉後程式會自動切換為直連模式
-    * 直連模式下不能完全避免 DNS 投毒污染的問題，需要依賴其它的檢測方式，例如 EDNS 標籤等方法
+    * 注意：如果關閉抓包模組，需要開啟其它方式獲取功能變數名稱解析，否則會報錯！
   * Pcap Devices Blacklist - 指定不對含有此名稱的網路介面卡進行抓包，名稱或簡介裡含有此字串的網路介面卡將被直接忽略
     * 本參數支援指定多個名稱，大小寫不敏感，格式為 "網路介面卡的名稱(|網路介面卡的名稱)"（不含引號，括弧內為可選項目）
     * 以抓包模組從系統中獲取的名稱或簡介為准，與其它網路設定程式所顯示的不一定相同
@@ -221,90 +245,90 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 當相應協定的 Listen Address 生效時，相應協定的本參數將會被自動忽略
   * IPFilter Type - IPFilter 參數的類型：分為 Deny 禁止和 Permit 允許，對應 IPFilter 參數應用為黑名單或白名單
   * IPFilter Level - IPFilter 參數的過濾級別，級別越高過濾越嚴格，與 IPFilter 條目相對應：0 為不啟用過濾，如果留空則為 0
-  * Accept Type - 禁止或只允許所列 DNS 類型的請求：格式為 "Deny:DNS記錄的名稱或ID(|DNS記錄的名稱或ID)" 或 "Permit:DNS記錄的名稱或ID(|DNS記錄的名稱或ID)"（不含引號，括弧內為可選項目）
-    * 所有可用的 DNS 類型清單：
-      * A/1
-      * NS/2
-      * MD/3
-      * MF/4
-      * CNAME/5
-      * SOA/6
-      * MB/7
-      * MG/8
-      * MR/9
-      * NULL/10
-      * WKS/11
-      * PTR/12
-      * HINFO/13
-      * MINFO/14
-      * MX/15
-      * TXT/16
-      * RP/17
-      * AFSDB/18
-      * X25/19
-      * ISDN/20
-      * RT/21
-      * NSAP/22
-      * NSAP_PTR/23
-      * SIG/24
-      * KEY/25
-      * PX/26
-      * GPOS/27
-      * AAAA/28
-      * LOC/29
-      * NXT/30
-      * EID/31
-      * NIMLOC/32
-      * SRV/33
-      * ATMA/34
-      * NAPTR/35
-      * KX/36
-      * CERT/37
-      * A6/38
-      * DNAME/39
-      * SINK/40
-      * OPT/41
-      * APL/42
-      * DS/43
-      * SSHFP/44
-      * IPSECKEY/45
-      * RRSIG/46
-      * NSEC/47
-      * DNSKEY/48
-      * DHCID/49
-      * NSEC3/50
-      * NSEC3PARAM/51
-      * TLSA/52
-      * HIP/55
-      * NINFO/56
-      * RKEY/57
-      * TALINK/58
-      * CDS/59
-      * CDNSKEY/60
-      * OPENPGPKEY/61
-      * SPF/99
-      * UINFO/100
-      * UID/101
-      * GID/102
-      * UNSPEC/103
-      * NID/104
-      * L32/105
-      * L64/106
-      * LP/107
-      * EUI48/108
-      * EUI64/109
-      * TKEY/249
-      * TSIG/250
-      * IXFR/251
-      * AXFR/252
-      * MAILB/253
-      * MAILA/254
-      * ANY/255
-      * URI/256
-      * CAA/257
-      * TA/32768
-      * DLV/32769
-      * RESERVED/65535
+  * Accept Type - 禁止或只允許所列 DNS 類型的請求：格式為 "Deny:DNS記錄的名稱或ID(|DNS記錄的名稱或ID)" 或 "Permit:DNS記錄的名稱或ID(|DNS記錄的名稱或ID)"（不含引號，括弧內為可選項目），所有可用的 DNS 類型清單：
+    * A/1
+    * NS/2
+    * MD/3
+    * MF/4
+    * CNAME/5
+    * SOA/6
+    * MB/7
+    * MG/8
+    * MR/9
+    * NULL/10
+    * WKS/11
+    * PTR/12
+    * HINFO/13
+    * MINFO/14
+    * MX/15
+    * TXT/16
+    * RP/17
+    * AFSDB/18
+    * X25/19
+    * ISDN/20
+    * RT/21
+    * NSAP/22
+    * NSAP_PTR/23
+    * SIG/24
+    * KEY/25
+    * PX/26
+    * GPOS/27
+    * AAAA/28
+    * LOC/29
+    * NXT/30
+    * EID/31
+    * NIMLOC/32
+    * SRV/33
+    * ATMA/34
+    * NAPTR/35
+    * KX/36
+    * CERT/37
+    * A6/38
+    * DNAME/39
+    * SINK/40
+    * OPT/41
+    * APL/42
+    * DS/43
+    * SSHFP/44
+    * IPSECKEY/45
+    * RRSIG/46
+    * NSEC/47
+    * DNSKEY/48
+    * DHCID/49
+    * NSEC3/50
+    * NSEC3PARAM/51
+    * TLSA/52
+    * HIP/55
+    * NINFO/56
+    * RKEY/57
+    * TALINK/58
+    * CDS/59
+    * CDNSKEY/60
+    * OPENPGPKEY/61
+    * SPF/99
+    * UINFO/100
+    * UID/101
+    * GID/102
+    * UNSPEC/103
+    * NID/104
+    * L32/105
+    * L64/106
+    * LP/107
+    * EUI48/108
+    * EUI64/109
+    * ADDRS/248
+    * TKEY/249
+    * TSIG/250
+    * IXFR/251
+    * AXFR/252
+    * MAILB/253
+    * MAILA/254
+    * ANY/255
+    * URI/256
+    * CAA/257
+    * TA/32768
+    * DLV/32769
+    * RESERVED/65535
 
 * DNS - 功能變數名稱解析參數區域
   * Protocol - 發送請求所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
@@ -318,7 +342,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * Timer/計時型：超過指定時間的 DNS 緩存將會被丟棄
     * Queue/佇列型：超過佇列長度時，將刪除最舊的 DNS 緩存
     * 混合類型：超過指定時間時、超過佇列長度時以及超過功能變數名稱本身 TTL 時，都會刪除最舊的 DNS 緩存
-  * Cache Parameter - DNS 緩存的參數：Timer/計時型 時為時間長度（單位為秒），Queue/佇列型和混合類型時為佇列長度
+  * Cache Parameter - DNS 緩存的參數：分 Timer/計時型、Queue/佇列型以及它們的混合類型，填入 0 為關閉此功能
+    * Timer/計時型：緩存時間，單位為秒
+    * Queue/佇列型：佇列長度
+    * 混合類型：佇列長度
   * Default TTL - 已緩存 DNS 記錄預設存留時間：單位為秒，留空則為 900秒/15分鐘
     * DNS 緩存的類型為混合類型時，本參數將同時指定功能變數名稱本身 TTL 的最小緩存時間
   
@@ -496,8 +523,18 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv6 Alternate DNS Hop Limits - IPv6 備用 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 Hop Limits 值：0 為自動獲取，取值為 1-255 之間
     * 支援多個 Hop Limits 值，與 IPv6 Alternate DNS Address 相對應
   * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受範圍，即 IPv4 TTL/IPv6 Hop Limits 的值 ± 數值的範圍內的資料包均可被接受，用於避免網路環境短暫變化造成解析失敗的問題：取值為 1-255 之間
-  * Reliable Socket Timeout - 可靠協定埠超時時間，可靠埠指 TCP 協定：單位為毫秒，最小為 500 可留空，留空時為 3000
-  * Unreliable Socket Timeout - 不可靠協定埠超時時間，不可靠埠指 UDP/ICMP/ICMPv6 協定：單位為毫秒，最小為 500 可留空，留空時為 2000
+  * Reliable Socket Timeout - 一次性可靠協定埠超時時間：單位為毫秒，最小為 500 可留空，留空時為 3000
+    * 一次性是指請求在一次 RTT 往返網路傳輸內即可完成，例如標準 DNS 和 DNSCurve/DNSCrypt 協定
+    * 可靠埠是指 TCP 協定
+  * Unreliable Socket Timeout - 一次性不可靠協定埠超時時間：單位為毫秒，最小為 500 可留空，留空時為 2000
+    * 一次性是指請求在一次 RTT 往返網路傳輸內即可完成，例如標準 DNS 和 DNSCurve/DNSCrypt 協定
+    * 不可靠埠指 UDP/ICMP/ICMPv6 協定
+  * Reliable Serial Socket Timeout - 串列可靠協定埠超時時間：單位為毫秒，最小為 500 可留空，留空時為 1500
+    * 串列是指此操作需要多次交互網路傳輸才能完成，例如 SOCKS 和 HTTP CONNECT 協定
+    * 可靠埠是指 TCP 協定
+  * Unreliable Serial Socket Timeout - 串列可靠協定埠超時時間：單位為毫秒，最小為 500 可留空，留空時為 1000
+    * 串列是指此操作需要多次交互網路傳輸才能完成，例如 SOCKS 和 HTTP CONNECT 協定
+    * 不可靠埠指 UDP/ICMP/ICMPv6 協定
   * Receive Waiting - 資料包接收等待時間，啟用後程式會嘗試等待一段時間以嘗試接收所有資料包並返回最後到達的資料包：單位為毫秒，留空或填 0 表示關閉此功能
     * 本參數與 Pcap Reading Timeout 密切相關，由於抓包模組每隔一段讀取超時時間才會返回給程式一次，當資料包接收等待時間小於讀取超時時間時會導致本參數變得沒有意義，在一些情況下甚至會拖慢功能變數名稱解析的回應速度
     * 本參數啟用後雖然本身只決定抓包模組的接收等待時間，但同時會影響到非抓包模組的請求。 非抓包模組會自動切換為等待超時時間後發回最後收到的回復，預設為接受最先到達的正確的回復，而它們的超時時間由 Reliable Socket Timeout/Unreliable Socket Timeout 參數決定
@@ -535,7 +572,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入多個時，當實際需要使用隨機添加壓縮指標時將隨機使用其中的一種，每個請求都有可能不相同
   * EDNS Label - EDNS 標籤支援，開啟後將為請求添加 EDNS 標籤：全部開啟為 1 /關閉為 0
     * 本參數可只指定部分的請求過程使用 EDNS 標籤，以下可用的參數可隨意刪減以實現此功能
-    * 可用的參數：Local + SOCKS Proxy + HTTP Proxy + Direct Request + DNSCurve + TCP + UDP
+    * 可用的參數：Local + SOCKS Proxy + HTTP CONNECT Proxy + Direct Request + DNSCurve + TCP + UDP
   * EDNS Client Subnet Relay - EDNS 用戶端子網轉發功能，開啟後將為來自非私有網路位址的所有請求添加其請求時所使用的位址的 EDNS 子網位址：開啟為 1 /關閉為 0
     * 本功能要求啟用 EDNS Label 參數
     * 本參數優先順序比 IPv4/IPv6 EDNS Client Subnet Address 參數高，故需要添加 EDNS 子網位址時將優先添加本參數的位址
@@ -576,8 +613,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向 SOCKS 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
     * 同時填入 TCP 和 UDP 等於只填入 UDP 因為 TCP 為 SOCKS 最先支援以及最普遍支援的標準網路層協定，所以即使填入 UDP 請求失敗時也會使用 TCP 請求
-  * SOCKS Reliable Socket Timeout - 可靠 SOCKS 協定埠超時時間，可靠埠指 TCP 協定：單位為毫秒，最小為 500，可留空，留空時為 6000
-  * SOCKS Unreliable Socket Timeout - 不可靠 SOCKS 協定埠超時時間，不可靠埠指 UDP 協定：單位為毫秒，最小為 500，可留空，留空時為 3000
   * SOCKS UDP No Handshake - SOCKS UDP 不握手模式，開啟後將不進行 TCP 握手直接發送 UDP 轉發請求：開啟為 1 /關閉為 0
     * SOCKS 協定的標準流程使用 UDP 轉發功能前必須使用 TCP 連接交換握手資訊，否則 SOCKS 伺服器將直接丟棄轉發請求
     * 部分 SOCKS 本地代理可以直接進行 UDP 轉發而不需要使用 TCP 連接交換握手資訊，啟用前請務必確認 SOCKS 伺服器的支援情況
@@ -593,25 +628,24 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 支援使用服務名稱代替埠號
   * SOCKS Username - 連接 SOCKS 伺服器時所使用的使用者名：最長可填入 255 個字元，留空為不啟用
   * SOCKS Password - 連接 SOCKS 伺服器時所使用的密碼：最長可填入 255 個字元，留空為不啟用
-  * HTTP Proxy - HTTP 協定總開關，控制所有和 HTTP 協定有關的選項：開啟為 1 /關閉為 0
-  * HTTP Protocol - 發送 HTTP 協定請求所使用的協定：可填入 IPv4 和 IPv6
-    * 填入的協定可隨意組合，只填 IPv4 或 IPv6 時，只使用指定協定向 HTTP 伺服器發出請求
+  * HTTP CONNECT Proxy - HTTP CONNECT 協定總開關，控制所有和 HTTP CONNECT 協定有關的選項：開啟為 1 /關閉為 0
+  * HTTP CONNECT Protocol - 發送 HTTP CONNECT 協定請求所使用的協定：可填入 IPv4 和 IPv6
+    * 填入的協定可隨意組合，只填 IPv4 或 IPv6 時，只使用指定協定向 HTTP CONNECT 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
-  * HTTP Socket Timeout - HTTP 協定埠超時時間：單位為毫秒，最小為 500，可留空，留空時為 3000
-  * HTTP Proxy Only - 只使用 HTTP 協定代理模式，所有請求將只通過 HTTP 協定進行：開啟為 1 /關閉為 0
-  * HTTP IPv4 Address - HTTP 協定 IPv4 主要 HTTP 伺服器位址：需要輸入一個帶埠格式的位址
+  * HTTP CONNECT Proxy Only - 只使用 HTTP CONNECT 協定代理模式，所有請求將只通過 HTTP CONNECT 協定進行：開啟為 1 /關閉為 0
+  * HTTP CONNECT IPv4 Address - HTTP CONNECT 協定 IPv4 主要 HTTP CONNECT 伺服器位址：需要輸入一個帶埠格式的位址
     * 不支援多個位址，只能填入單個位址
     * 支援使用服務名稱代替埠號
-  * HTTP IPv6 Address - HTTP 協定 IPv6 主要 HTTP 伺服器位址：需要輸入一個帶埠格式的位址
+  * HTTP CONNECT IPv6 Address - HTTP CONNECT 協定 IPv6 主要 HTTP CONNECT 伺服器位址：需要輸入一個帶埠格式的位址
     * 不支援多個位址，只能填入單個位址
     * 支援使用服務名稱代替埠號
-  * HTTP Target Server - HTTP 最終目標伺服器：需要輸入一個帶埠格式的 IPv4/IPv6 位址或功能變數名稱
+  * HTTP CONNECT Target Server - HTTP CONNECT 最終目標伺服器：需要輸入一個帶埠格式的 IPv4/IPv6 位址或功能變數名稱
     * 不支援多個位址或功能變數名稱，只能填入單個位址或功能變數名稱
     * 支援使用服務名稱代替埠號
-  * HTTP Version - 附帶在 HTTP Header 的 HTTP 協定版本號
-  * HTTP Header Field - 附帶在 HTTP Header 的資訊：所輸入的資訊將被直接添加到 HTTP Header
-    * 本參數可重複多次出現，所有有內容的 HTTP Header 的資訊都將被記錄並在請求時按順序添加到 HTTP Header 裡
-  * HTTP Proxy Authorization - 連接 HTTP Proxy 伺服器時所使用的認證資訊：需要輸入 "使用者名:密碼"（不含引號），留空為不啟用
+  * HTTP CONNECT Version - 附帶在 HTTP CONNECT Header 的 HTTP CONNECT 協定版本號
+  * HTTP CONNECT Header Field - 附帶在 HTTP CONNECT Header 的資訊：所輸入的資訊將被直接添加到 HTTP CONNECT Header
+    * 本參數可重複多次出現，所有有內容的 HTTP CONNECT Header 的資訊都將被記錄並在請求時按順序添加到 HTTP CONNECT Header 裡
+  * HTTP CONNECT Proxy Authorization - 連接 HTTP CONNECT Proxy 伺服器時所使用的認證資訊：需要輸入 "使用者名:密碼"（不含引號），留空為不啟用
     * 只支援 Base 方式的認證
 
 * DNSCurve - DNSCurve 協定基本參數區域
@@ -676,76 +710,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 注意：Magic Number 參數均同時支援使用 ASCII 字元或十六進位字串進行指定
     * 直接填入可列印 ASCII 字串即可
     * 十六進位字串需要在字串前面加上 0x（大小寫敏感）
-
-
--------------------------------------------------------------------------------
-
-
-設定檔自動刷新支援參數清單：
-
-* 以下清單中的參數在寫入設定檔後會自動刷新而無須重新開機程式，其它參數的刷新則必須重新開機程式
-* 如非必要建議不要依賴程式的自動刷新功能，強烈建議修改設定檔後重新開機程式！
-
-* Version
-* File Refresh Time
-* Print Error
-* Log Maximum Size
-* IPFilter Type
-* IPFilter Level
-* Accept Type
-* Direct Request
-* Default TTL
-* Local Protocol
-* Local Force Request
-* Thread Pool Reset Time
-* IPv4 Packet TTL
-* IPv6 Packet Hop Limits
-* IPv4 TTL
-* IPv6 HopLimits
-* IPv4 AlternateTTL
-* IPv6 AlternateHopLimits
-* HopLimits Fluctuation
-* Reliable Socket Timeout
-* Unreliable Socket Timeout
-* Receive Waiting
-* ICMP Test
-* Domain Test
-* Multiple Request Times
-* Domain Case Conversion
-* IPv4 Do Not Fragment
-* IPv4 Data Filter
-* TCP Data Filter
-* DNS Data Filter
-* SOCKS Reliable Socket Timeout
-* SOCKS Unreliable Socket Timeout
-* SOCKS Target Server
-* SOCKS Username
-* SOCKS Password
-* HTTP Target Server
-* HTTP Version
-* HTTP Header Field
-* HTTP Proxy Authorization
-* DNSCurve Reliable Socket Timeout
-* DNSCurve Unreliable Socket Timeout
-* Key Recheck Time
-* Client Public Key
-* Client Secret Key
-* IPv4 DNS Public Key
-* IPv4 Alternate DNS Public Key
-* IPv6 DNS Public Key
-* IPv6 Alternate DNS Public Key
-* IPv4 DNS Fingerprint
-* IPv4 Alternate DNS Fingerprint
-* IPv6 DNS Fingerprint
-* IPv6 Alternate DNS Fingerprint
-* IPv4 Receive Magic Number
-* IPv4 Alternate Receive Magic Number
-* IPv6 Receive Magic Number
-* IPv6 Alternate Receive Magic Number
-* IPv4 DNS Magic Number
-* IPv4 Alternate DNS Magic Number
-* IPv6 DNS Magic Number
-* IPv6 Alternate DNS Magic Number
 
 
 -------------------------------------------------------------------------------
@@ -966,25 +930,68 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 -------------------------------------------------------------------------------
 
 
-程序運行參數說明：
-由於部分功能無法通過使用配置文件指定使用，故而使用程序外掛參數進行支持
-所有外掛參數也可通過-h 和--help 參數查詢
+設定檔自動刷新支援參數清單：
 
-* -v 和 --version
-  輸出程序版本號資訊到屏幕上
-* --lib-version
-  輸出程式所用庫的版本號資訊到螢幕上
-* -h 和 --help
-  輸出程序幫助信息到屏幕上
-* --flush-dns
-  立即清空所有程序內以及系統的 DNS 緩存
-* --flush-dns Domain
-  立即清空功能變數名稱為 Domain 以及所有系統內的 DNS 緩存
-* --first-setup
-  進行本地防火牆測試(Windows)
-* -c Path 和 --config-file Path
-  啟動時指定配置文件所在的工作目錄
-* --keypair-generator
-  生成 DNSCurve/DNSCrypt 協定所需使用的金鑰組到 KeyPair.txt
-* --disable-daemon
-  關閉守護進程模式(Linux)
+* 以下清單中的參數在寫入設定檔後會自動刷新而無須重新開機程式，其它參數的刷新則必須重新開機程式
+* 如非必要建議不要依賴程式的自動刷新功能，強烈建議修改設定檔後重新開機程式！
+
+* Version
+* File Refresh Time
+* Print Error
+* Log Maximum Size
+* IPFilter Type
+* IPFilter Level
+* Accept Type
+* Direct Request
+* Default TTL
+* Local Protocol
+* Local Force Request
+* Thread Pool Reset Time
+* IPv4 Packet TTL
+* IPv6 Packet Hop Limits
+* IPv4 TTL
+* IPv6 HopLimits
+* IPv4 AlternateTTL
+* IPv6 AlternateHopLimits
+* HopLimits Fluctuation
+* Reliable Socket Timeout
+* Unreliable Socket Timeout
+* Reliable Serial Socket Timeout
+* Unrliable Serial Socket Timeout
+* Receive Waiting
+* ICMP Test
+* Domain Test
+* Multiple Request Times
+* Domain Case Conversion
+* IPv4 Do Not Fragment
+* IPv4 Data Filter
+* TCP Data Filter
+* DNS Data Filter
+* SOCKS Target Server
+* SOCKS Username
+* SOCKS Password
+* HTTP CONNECT Target Server
+* HTTP CONNECT Version
+* HTTP CONNECT Header Field
+* HTTP CONNECT Proxy Authorization
+* DNSCurve Reliable Socket Timeout
+* DNSCurve Unreliable Socket Timeout
+* Key Recheck Time
+* Client Public Key
+* Client Secret Key
+* IPv4 DNS Public Key
+* IPv4 Alternate DNS Public Key
+* IPv6 DNS Public Key
+* IPv6 Alternate DNS Public Key
+* IPv4 DNS Fingerprint
+* IPv4 Alternate DNS Fingerprint
+* IPv6 DNS Fingerprint
+* IPv6 Alternate DNS Fingerprint
+* IPv4 Receive Magic Number
+* IPv4 Alternate Receive Magic Number
+* IPv6 Receive Magic Number
+* IPv6 Alternate Receive Magic Number
+* IPv4 DNS Magic Number
+* IPv4 Alternate DNS Magic Number
+* IPv6 DNS Magic Number
+* IPv6 Alternate DNS Magic Number

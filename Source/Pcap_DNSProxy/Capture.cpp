@@ -333,8 +333,8 @@ SkipDevices:
 DevicesNotSkip:
 
 //Initialization(Part 1)
-	std::shared_ptr<uint8_t> Buffer(new uint8_t[LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
-	memset(Buffer.get(), 0, LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+	std::shared_ptr<uint8_t> Buffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
+	memset(Buffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 	pcap_t *DeviceHandle = nullptr;
 	CaptureDevice.clear();
 	CaptureDevice.append(pDrive->name);
@@ -342,9 +342,9 @@ DevicesNotSkip:
 
 //Open device
 #if defined(PLATFORM_WIN)
-	if ((DeviceHandle = pcap_open(pDrive->name, LARGE_PACKET_MAXSIZE, 0, (int)Parameter.PcapReadingTimeout, nullptr, (char *)Buffer.get())) == nullptr)
+	if ((DeviceHandle = pcap_open(pDrive->name, (int)Parameter.LargeBufferSize, 0, (int)Parameter.PcapReadingTimeout, nullptr, (char *)Buffer.get())) == nullptr)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	if ((DeviceHandle = pcap_open_live(pDrive->name, LARGE_PACKET_MAXSIZE, 0, (int)Parameter.PcapReadingTimeout, (char *)Buffer.get())) == nullptr)
+	if ((DeviceHandle = pcap_open_live(pDrive->name, (int)Parameter.LargeBufferSize, 0, (int)Parameter.PcapReadingTimeout, (char *)Buffer.get())) == nullptr)
 #endif
 	{
 		std::wstring Message;
@@ -419,7 +419,7 @@ DevicesNotSkip:
 	memset(&ParamList, 0, sizeof(ParamList));
 	ParamList.DeviceType = DeviceType;
 	ParamList.Buffer = Buffer.get();
-	ParamList.BufferSize = LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES;
+	ParamList.BufferSize = Parameter.LargeBufferSize + PADDING_RESERVED_BYTES;
 	ssize_t Result = 0;
 	std::unique_lock<std::mutex> CaptureMutex(CaptureLock, std::defer_lock);
 
@@ -466,7 +466,7 @@ void CaptureHandler(
 {
 //Initialization
 	const auto ParamList = (PCAPTURE_HANDLER_PARAM)Param;
-	memset(ParamList->Buffer, 0, LARGE_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+	memset(ParamList->Buffer, 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 	size_t Length = PacketHeader->caplen;
 	uint16_t Protocol = 0;
 
@@ -475,7 +475,7 @@ void CaptureHandler(
 	{
 		if (Length <= sizeof(eth_hdr))
 			return;
-		memcpy_s(ParamList->Buffer, LARGE_PACKET_MAXSIZE, PacketData + sizeof(eth_hdr), Length - sizeof(eth_hdr));
+		memcpy_s(ParamList->Buffer, Parameter.LargeBufferSize, PacketData + sizeof(eth_hdr), Length - sizeof(eth_hdr));
 		Protocol = ((peth_hdr)PacketData)->Type;
 		Length -= sizeof(eth_hdr);
 	}
@@ -483,7 +483,7 @@ void CaptureHandler(
 	{
 		if (Length <= sizeof(ieee_1394_hdr))
 			return;
-		memcpy_s(ParamList->Buffer, LARGE_PACKET_MAXSIZE, PacketData + sizeof(ieee_1394_hdr), Length - sizeof(ieee_1394_hdr));
+		memcpy_s(ParamList->Buffer, Parameter.LargeBufferSize, PacketData + sizeof(ieee_1394_hdr), Length - sizeof(ieee_1394_hdr));
 		Protocol = ((pieee_1394_hdr)PacketData)->Type;
 		Length -= sizeof(ieee_1394_hdr);
 	}
@@ -497,7 +497,7 @@ void CaptureHandler(
 		if (Length > sizeof(ieee_8021q_hdr))
 		{
 			Protocol = ((pieee_8021q_hdr)ParamList->Buffer)->Type;
-			memmove_s(ParamList->Buffer, LARGE_PACKET_MAXSIZE, ParamList->Buffer + sizeof(ieee_8021q_hdr), Length - sizeof(ieee_8021q_hdr));
+			memmove_s(ParamList->Buffer, Parameter.LargeBufferSize, ParamList->Buffer + sizeof(ieee_8021q_hdr), Length - sizeof(ieee_8021q_hdr));
 			Length -= sizeof(ieee_8021q_hdr);
 		}
 		else {
@@ -511,7 +511,7 @@ void CaptureHandler(
 		if (Length > sizeof(ppp_hdr))
 		{
 			Protocol = ((pppp_hdr)ParamList->Buffer)->Protocol;
-			memmove_s(ParamList->Buffer, LARGE_PACKET_MAXSIZE, ParamList->Buffer + sizeof(ppp_hdr), Length - sizeof(ppp_hdr));
+			memmove_s(ParamList->Buffer, Parameter.LargeBufferSize, ParamList->Buffer + sizeof(ppp_hdr), Length - sizeof(ppp_hdr));
 			Length -= sizeof(ppp_hdr);
 		}
 		else {

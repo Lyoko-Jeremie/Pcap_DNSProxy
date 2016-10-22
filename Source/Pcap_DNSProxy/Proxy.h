@@ -24,47 +24,21 @@ extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 
 //Functions
-ssize_t ProxySocketSelecting(
-	SYSTEM_SOCKET Socket, 
-	fd_set * const ReadFDS, 
-	fd_set * const WriteFDS, 
-	timeval * const Timeout, 
-	const uint8_t * const SendBuffer, 
-	const size_t SendSize, 
-	uint8_t * const OriginalRecv, 
-	const size_t RecvSize, 
-	const size_t MinLen, 
-	ssize_t * const ErrorCode);
-bool SOCKSSelectionExchange(
-	SOCKET_DATA * const SOCKSSocketData, 
-	fd_set * const ReadFDS, 
-	fd_set * const WriteFDS, 
-	timeval * const Timeout, 
-	uint8_t * const SendBuffer, 
-	uint8_t * const OriginalRecv, 
-	const size_t RecvSize);
-bool SOCKSAuthenticationUsernamePassword(
-	SYSTEM_SOCKET Socket, 
-	fd_set * const ReadFDS, 
-	fd_set * const WriteFDS, 
-	timeval * const Timeout, 
-	uint8_t * const SendBuffer, 
-	uint8_t * const OriginalRecv, 
-	const size_t RecvSize);
-bool SOCKSClientCommandRequest(
+bool SOCKS_Selection_Exchange(
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList);
+bool SOCKS_Authentication_Exchange(
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList);
+bool SOCKS_Client_Command_Request(
 	const uint16_t Protocol, 
-	SYSTEM_SOCKET Socket, 
-	fd_set * const ReadFDS, 
-	fd_set * const WriteFDS, 
-	timeval * const Timeout, 
-	uint8_t * const SendBuffer, 
-	uint8_t * const OriginalRecv, 
-	const size_t RecvSize, 
-	SOCKET_DATA * const UDP_ASSOCIATE_TCP_Connecting_Address);
-bool HTTP_CONNECTRequest(
-	SOCKET_DATA * const HTTPSocketData, 
-	fd_set * const ReadFDS, 
-	fd_set * const WriteFDS, 
-	timeval * const Timeout, 
-	uint8_t * const OriginalRecv, 
-	const size_t RecvSize);
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList, 
+	SOCKET_DATA * const UDP_ASSOCIATE_Address);
+bool HTTP_CONNECT_Exchange(
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList);
