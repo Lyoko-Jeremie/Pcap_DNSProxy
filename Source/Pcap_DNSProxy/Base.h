@@ -221,8 +221,8 @@ size_t SocketSelectingSerial(
 	const size_t RequestType, 
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingDataList, 
-	std::vector<ssize_t> &ErrorCode);
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList);
 void MarkPortToList(
 	const uint16_t Protocol, 
 	const SOCKET_DATA * const LocalSocketData, 
@@ -288,6 +288,7 @@ void PrintToScreen(
 	...
 );
 void ErrorCodeToMessage(
+	const size_t ErrorType, 
 	const ssize_t ErrorCode, 
 	std::wstring &Message);
 void ReadTextPrintLog(
@@ -459,3 +460,42 @@ bool FlushDNSFIFOSender(
 #endif
 void FlushDNSCache(
 	const uint8_t * const Domain);
+
+//TransportSecurity.h
+#if defined(ENABLE_TLS)
+#if defined(PLATFORM_WIN)
+bool SSPI_SChannelInitializtion(
+	SSPI_HANDLE_TABLE &SSPI_Handle);
+bool SSPI_Handshake(
+	SSPI_HANDLE_TABLE &SSPI_Handle, 
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList);
+bool TLS_TransportSerial(
+	const size_t PacketMinSize, 
+	SSPI_HANDLE_TABLE &SSPI_Handle, 
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList);
+bool SSPI_ShutdownConnection(
+	SSPI_HANDLE_TABLE &SSPI_Handle, 
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<ssize_t> &ErrorCodeList);
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+void OpenSSL_Library_Init(
+	bool IsLoad);
+bool OpenSSL_CTX_Initializtion(
+	OPENSSL_CONTEXT_TABLE &OpenSSL_CTX);
+bool OpenSSL_BIO_Initializtion(
+	OPENSSL_CONTEXT_TABLE &OpenSSL_CTX);
+bool OpenSSL_Handshake(
+	OPENSSL_CONTEXT_TABLE &OpenSSL_CTX);
+bool TLS_TransportSerial(
+	const size_t RequestType, 
+	const size_t PacketMinSize, 
+	OPENSSL_CONTEXT_TABLE &OpenSSL_CTX, 
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList);
+bool OpenSSL_ShutdownConnection(
+	OPENSSL_CONTEXT_TABLE &OpenSSL_CTX);
+#endif
+#endif

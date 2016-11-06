@@ -182,22 +182,23 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Socket UDP block RESET message setting error - 设置 UDP 协议套接字屏蔽 ICMP Port Unreachable 信息错误：具体原因可参见错误代码
   * Socket Hop Limits setting error - 设置 Hop Limits/TTL 错误：具体原因可参见错误代码
   * Socket Do Not Fragment flag setting error - 设置 IPv4 Do Not Fragment 标志错误：具体原因可参见错误代码
-  * UDP Monitor socket initialization error - UDP 协议本地套接字初始化失败：原因参见错误代码
-  * TCP Monitor socket initialization error - TCP 协议本地套接字初始化失败：原因参见错误代码
-  * Bind UDP Monitor socket error - UDP 协议本地套接字绑定失败：本地可能已经存在 DNS 服务器或者多重运行了本工具，具体原因参见错误代码
-  * Bind TCP Monitor socket error - TCP 协议本地套接字绑定失败：本地可能已经存在 DNS 服务器或者多重运行了本工具，具体原因参见错误代码
-  * TCP Monitor socket listening initialization error - TCP 协议本地套接字监听失败：原因参见错误代码
-  * Get local machine name error - 获取本地计算机名称失败：原因参见错误代码
+  * UDP Monitor socket initialization error - UDP 协议本地套接字初始化失败：具体原因可参见错误代码
+  * TCP Monitor socket initialization error - TCP 协议本地套接字初始化失败：具体原因可参见错误代码
+  * Bind UDP Monitor socket error - UDP 协议本地套接字绑定失败：本地可能已经存在 DNS 服务器或者多重运行了本工具，具体具体原因可参见错误代码
+  * Bind TCP Monitor socket error - TCP 协议本地套接字绑定失败：本地可能已经存在 DNS 服务器或者多重运行了本工具，具体具体原因可参见错误代码
+  * TCP Monitor socket listening initialization error - TCP 协议本地套接字监听失败：具体原因可参见错误代码
+  * Get local machine name error - 获取本地计算机名称失败：具体原因可参见错误代码
   * Get local machine address error - 获取本地计算机地址失败：没有任何生效的网络适配器，可能是硬件或者驱动程序的问题
-  * UDP socket initialization error - UDP 协议请求套接字初始化失败：原因参见错误代码
-  * TCP socket initialization error - TCP 协议请求套接字初始化失败：原因参见错误代码
-  * SOCKS socket initialization error - SOCKS 协议请求套接字初始化失败：原因参见错误代码
-  * HTTP CONNECT socket initialization error - HTTP CONNECT 协议请求套接字初始化失败：原因参见错误代码
-  * Complete UDP socket initialization error - UDP 协议请求套接字初始化失败：原因参见错误代码
-  * SOCKS connecting error - SOCKS 协议连接错误：可能为网络错误，原因参见错误代码
-  * HTTP CONNECT connecting error - HTTP CONNECT 协议连接错误：可能为网络错误，原因参见错误代码
+  * UDP socket initialization error - UDP 协议请求套接字初始化失败：具体原因可参见错误代码
+  * TCP socket initialization error - TCP 协议请求套接字初始化失败：具体原因可参见错误代码
+  * SOCKS socket initialization error - SOCKS 协议请求套接字初始化失败：具体原因可参见错误代码
+  * HTTP CONNECT socket initialization error - HTTP CONNECT 协议请求套接字初始化失败：具体原因可参见错误代码
+  * Complete UDP socket initialization error - UDP 协议请求套接字初始化失败：具体原因可参见错误代码
+  * SOCKS connecting error - SOCKS 协议连接错误：可能为网络错误，具体原因可参见错误代码
+  * HTTP CONNECT connecting error - HTTP CONNECT 协议连接错误：可能为网络错误，具体原因可参见错误代码
   * SOCKS request error - SOCKS 协议请求失败：可能为网络错误，具体原因可参见错误代码
   * HTTP CONNECT request error - HTTP CONNECT 协议请求失败：可能为网络错误，具体原因可参见错误代码
+  * TLS request error - TLS/SSL 协议请求失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve UDP socket initialization error - DNSCurve 协议 UDP 协议套接字初始化失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve TCP socket initialization error - DNSCurve 协议 TCP 协议套接字初始化失败：可能为网络错误，具体原因可参见错误代码
   * DNSCurve Local Signature socket initialization error - DNSCurve 协议本地请求套接字初始化失败：可能为网络错误，具体原因可参见错误代码
@@ -207,10 +208,10 @@ Error.log 详细错误报告，错误报告一共有7大类型：
 
 6.Pcap Error - Pcap 错误
   * Insufficient privileges or not any available network devices - 没有任何可用的网络适配器：请检查硬件设备和驱动程序是否安装正确，也可能权限不足
-  * 本类型错误会直接将 WinPcap 的错误信息直接打印至错误报告
+  * 本类型错误会直接将 WinPcap 的错误信息输出至错误报告
 
 7.DNSCurve Error - DNSCurve 协议错误
-  * Libsodium initialization error - Libsodium 库初始化错误：请与开发者联系
+  * Libsodium initialization error - Libsodium 库初始化错误：请与项目组联系
   * Client keypair error - 自定义客户端密钥对错误：请检查密钥对的正确性
   * Key calculating error -> 密钥计算错误：请与项目组联系
   * IPv6 Main Server TCP get signature data error - IPv6 TCP 协议主要服务器加密握手失败：请检查该服务器是否可用
@@ -237,14 +238,36 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Authentication method not support - 不支持的认证方式：请检查服务器对客户端认证方式的支持
   * Server require username and password authentication - 服务器要求使用用户名/密码认证：请检查 SOCKS 协议的用户名/密码
   * Username or Password incorrect - SOCKS 协议用户名/密码不正确：请检查用户名/密码是否错误
-  * Client command request error - 客户端请求连接失败：请检查 SOCKS 协议目标地址否受支持或是否可用，原因参见错误代码
+  * Client command request error - 客户端请求连接失败：请检查 SOCKS 协议目标地址否受支持或是否可用，具体原因可参见错误代码
 
 9.HTTP CONNECT Error - HTTP CONNECT 协议错误
   * HTTP CONNECT address error - HTTP CONNECT 代理地址错误：请检查该服务器是否可用
   * HTTP CONNECT target server error - HTTP CONNECT 代理目标地址错误：请检查该服务器是否可用
   * HTTP CONNECT server response error - HTTP CONNECT 代理服务器响应错误：请检查该服务器是否可用
+  * 本类型错误会直接将 HTTP 的错误信息输出至错误报告
+  * HTTP 状态码具体含义可移步 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 
-10.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
+10.TLS Error - TLS/SSL 协议错误
+  * SSPI get client credentials handle error - SSPI 获取客户端凭据错误：请与项目组联系，具体原因可参见错误代码
+  * SSPI initialize security context error - SSPI 初始化安全上下文错误：请检查 SSPI/SChannel 的版本或加密算法受支持等情况，具体原因可参见错误代码
+  * SSPI complete authentication token error - SSPI 无法完成完整的验证错误：请与项目组联系，具体原因可参见错误代码
+  * SSPI get stream encryption sizes error - SSPI 获取加密流限制长度错误：请与项目组联系，具体原因可参见错误代码
+  * SSPI plaintext sent to encrypt API is too large - SSPI 进行加密传输的原始数据过长：请与项目组联系，具体原因可参见错误代码
+  * SSPI encrypt data error - SSPI 加密数据错误：请检查 SSPI/SChannel 的版本或加密算法受支持等情况，具体原因可参见错误代码
+  * SSPI decrypt data error - SSPI 解密数据错误：请检查 SSPI/SChannel 的版本或加密算法受支持等情况，具体原因可参见错误代码
+  * OpenSSL create new client-method instance error - OpenSSL 创建客户端实例错误：请与项目组联系，具体原因可参见错误代码
+  * OpenSSL create new BIO method error - OpenSSL 创建 BIO 实例错误：请与项目组联系，具体原因可参见错误代码
+  * OpenSSL BIO and SSL data attribute setting error - OpenSSL 设置 BIO 和 TLS/SSL 属性错误：请与项目组联系，具体原因可参见错误代码
+  * OpenSSL connecting error - OpenSSL 连接错误：可能为网络错误，具体原因可参见错误代码
+  * OpenSSL handshake error - OpenSSL 握手错误：可能为网络错误，具体原因可参见错误代码
+  * OpenSSL verify server certificate error - OpenSSL 服务器证书验证错误：证书验证错误，请确认此服务器工作正常
+  * OpenSSL verify the result of chain verification error - OpenSSL 证书链验证错误：证书验证错误，请确认此服务器工作正常
+  * OpenSSL send data error - OpenSSL 发送数据错误：可能为网络错误，具体原因可参见错误代码
+  * OpenSSL receive data error - OpenSSL 接收数据错误：可能为网络错误，具体原因可参见错误代码
+  * SSPI/SChannel 错误代码具体含义可移步 https://msdn.microsoft.com/en-us/library/windows/desktop/aa380499(v=vs.85).aspx 和 https://msdn.microsoft.com/en-us/library/windows/desktop/dd721886(v=vs.85).aspx
+  * OpenSSL 错误代码具体含义可移步 https://www.openssl.org/docs/manmaster/man3/ERR_get_error.html
+
+11.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
   * Old log file was deleted - 错误日志文件已满并被删除
     * 日志文件最大容量的配置参见 详细说明文档 中 配置文件详细参数说明 中的 Log Maximum Size 参数
   * Listen Port is empty, set to standard DNS port(53) - 本地监听端口参数为空：程序将自动设置为标准 DNS 协议端口（53）
@@ -256,7 +279,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * EDNS Payload Size is too large - EDNS 载荷长度可能过长：此值建议不要超过以太网的 MTU(1500 bytes)
   * DNSSEC Request require EDNS Label - 开启 DNSSEC 请求时必须开启 EDNS 标签请求功能
   * EDNS Client Subnet require EDNS Label - 开启 EDNS Client Subnet 请求时必须开启 EDNS 标签请求功能
-  * Compression Pointer Mutation must set EDNS Label OFF - 使用 Compression Pointer Mutation 时不能开启 EDNS 标签请求功能，两者并不兼容
+  * Compression Pointer Mutation must disable EDNS Label - 使用 Compression Pointer Mutation 时不能开启 EDNS 标签请求功能，两者并不兼容
   * DNSSEC Validation require EDNS Label and DNSSEC Request - 开启 DNSSEC Validation 请求时必须开启 EDNS 标签请求和 DNSSEC 请求功能
   * DNSSEC Force Validation require EDNS Label, DNSSEC Request and DNSSEC Validation - 开启 DNSSEC Force Validation 请求时必须开启 EDNS 标签请求、DNSSEC 请求和 DNSSEC Validation 验证功能
   * DNSCurve Payload Size must longer than traditional DNS packet minimum supported size(512 bytes) - DNSCurve 协议载荷长度过短：实现 DNS 协议必须支持长度超过 512 bytes 的数据包

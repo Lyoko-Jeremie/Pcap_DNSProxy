@@ -124,7 +124,7 @@ bool SocketSetting(
 		#endif
 		}break;
 	//Socket attribute setting(TFO/TCP Fast Open)
-	//It seems that TCP Fast Open option is not ready in Windows and Mac OS X(2016-10-19).
+	//It seems that TCP Fast Open option is not ready in Windows and Mac OS X/macOS(2016-11-04).
 		case SOCKET_SETTING_TCP_FAST_OPEN:
 		{
 		//Global parameter check
@@ -177,8 +177,8 @@ bool SocketSetting(
 			}
 		}break;
 
-/* Not necessary
-	//Socket attribute setting(TCP KeepAlive mode)
+/* TCP keep alive mode
+	//Socket attribute setting(TCP keep alive mode)
 		case SOCKET_SETTING_TCP_KEEPALIVE:
 		{
 		#if defined(PLATFORM_WIN)
@@ -401,13 +401,13 @@ size_t SelectTargetSocketSingle(
 		//Encryption mode check
 			if (DNSCurveParameter.IsEncryption)
 			{
-				if ((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
-					(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
+				if ((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+					(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 					CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 						**IsAlternate = true;
 				if (**IsAlternate && 
-					((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
-					(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
+					((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+					(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 					CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 						**IsAlternate = false;
 			}
@@ -422,8 +422,8 @@ size_t SelectTargetSocketSingle(
 			else { //Main
 			//Encryption mode check
 				if (DNSCurveParameter.IsEncryption && 
-					((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
-					(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
+					((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+					(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 					CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 						return EXIT_FAILURE;
 
@@ -472,13 +472,13 @@ size_t SelectTargetSocketSingle(
 		//Encryption mode check
 			if (DNSCurveParameter.IsEncryption)
 			{
-				if ((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
-					(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
+				if ((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+					(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 					CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 						**IsAlternate = true;
 				if (**IsAlternate && 
-					((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
-					(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
+					((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+					(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 					CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 						**IsAlternate = false;
 			}
@@ -493,8 +493,8 @@ size_t SelectTargetSocketSingle(
 			else { //Main
 			//Encryption mode check
 				if (DNSCurveParameter.IsEncryption && 
-					((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
-					(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
+					((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+					(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 					CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 						return EXIT_FAILURE;
 
@@ -1079,7 +1079,7 @@ ssize_t SocketSelectingOnce(
 	ssize_t * const ErrorCode)
 {
 //Initialization(Part 1)
-	std::vector<SOCKET_SELECTING_DATA> SocketSelectingList;
+	std::vector<SOCKET_SELECTING_ONCE_DATA> SocketSelectingList;
 	size_t Index = 0;
 	ssize_t RecvLen = 0;
 	if (ErrorCode != nullptr)
@@ -1093,7 +1093,7 @@ ssize_t SocketSelectingOnce(
 	}
 	else {
 #endif
-		SOCKET_SELECTING_DATA InnerSocketData;
+		SOCKET_SELECTING_ONCE_DATA InnerSocketData;
 		memset(&InnerSocketData, 0, sizeof(InnerSocketData));
 		for (Index = 0;Index < SocketDataList.size();++Index)
 			SocketSelectingList.push_back(InnerSocketData);
@@ -1311,7 +1311,7 @@ ssize_t SocketSelectingOnce(
 						}
 
 					//Receive from selecting.
-						RecvLen = recv(SocketDataList.at(Index).Socket, (char *)DNSCurveSocketSelectingList->at(Index).RecvBuffer.get() + DNSCurveSocketSelectingList->at(Index).Length, (int)(RecvSize - DNSCurveSocketSelectingList->at(Index).Length), 0);
+						RecvLen = recv(SocketDataList.at(Index).Socket, (char *)DNSCurveSocketSelectingList->at(Index).RecvBuffer.get() + DNSCurveSocketSelectingList->at(Index).RecvLen, (int)(RecvSize - DNSCurveSocketSelectingList->at(Index).RecvLen), 0);
 
 					//Connection closed or SOCKET_ERROR
 						if (RecvLen <= 0)
@@ -1319,18 +1319,18 @@ ssize_t SocketSelectingOnce(
 							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 							SocketDataList.at(Index).Socket = 0;
 							DNSCurveSocketSelectingList->at(Index).RecvBuffer.reset();
-							DNSCurveSocketSelectingList->at(Index).Length = 0;
+							DNSCurveSocketSelectingList->at(Index).RecvLen = 0;
 							continue;
 						}
-						else if (Protocol == IPPROTO_UDP && RecvLen > (ssize_t)DNS_PACKET_MINSIZE && DNSCurveSocketSelectingList->at(Index).Length > 0)
+						else if (Protocol == IPPROTO_UDP && RecvLen > (ssize_t)DNS_PACKET_MINSIZE && DNSCurveSocketSelectingList->at(Index).RecvLen > 0)
 						{
-							sodium_memzero(DNSCurveSocketSelectingList->at(Index).RecvBuffer.get(), DNSCurveSocketSelectingList->at(Index).Length);
-							memmove_s(DNSCurveSocketSelectingList->at(Index).RecvBuffer.get(), RecvSize, DNSCurveSocketSelectingList->at(Index).RecvBuffer.get() + DNSCurveSocketSelectingList->at(Index).Length, RecvLen);
-							DNSCurveSocketSelectingList->at(Index).Length = 0;
+							sodium_memzero(DNSCurveSocketSelectingList->at(Index).RecvBuffer.get(), DNSCurveSocketSelectingList->at(Index).RecvLen);
+							memmove_s(DNSCurveSocketSelectingList->at(Index).RecvBuffer.get(), RecvSize, DNSCurveSocketSelectingList->at(Index).RecvBuffer.get() + DNSCurveSocketSelectingList->at(Index).RecvLen, RecvLen);
+							DNSCurveSocketSelectingList->at(Index).RecvLen = 0;
 						}
 
 					//Mark whole packet length and last packet.
-						DNSCurveSocketSelectingList->at(Index).Length += RecvLen;
+						DNSCurveSocketSelectingList->at(Index).RecvLen += RecvLen;
 						LastReceiveIndex = Index;
 					}
 
@@ -1352,7 +1352,7 @@ ssize_t SocketSelectingOnce(
 						#endif
 							{
 								DNSCurveSocketSelectingList->at(Index).RecvBuffer.reset();
-								DNSCurveSocketSelectingList->at(Index).Length = 0;
+								DNSCurveSocketSelectingList->at(Index).RecvLen = 0;
 							}
 						}
 						else {
@@ -1374,11 +1374,10 @@ ssize_t SocketSelectingOnce(
 								std::shared_ptr<uint8_t> RecvBufferSwap(new uint8_t[RecvSize]());
 								memset(RecvBufferSwap.get(), 0, RecvSize);
 								SocketSelectingList.at(Index).RecvBuffer.swap(RecvBufferSwap);
-								SocketSelectingList.at(Index).RecvSize = RecvSize;
 							}
 
 						//Receive from selecting.
-							RecvLen = recv(SocketDataList.at(Index).Socket, (char *)SocketSelectingList.at(Index).RecvBuffer.get() + SocketSelectingList.at(Index).Length, (int)(RecvSize - SocketSelectingList.at(Index).Length), 0);
+							RecvLen = recv(SocketDataList.at(Index).Socket, (char *)SocketSelectingList.at(Index).RecvBuffer.get() + SocketSelectingList.at(Index).RecvLen, (int)(RecvSize - SocketSelectingList.at(Index).RecvLen), 0);
 
 						//Connection closed or SOCKET_ERROR
 							if (RecvLen <= 0)
@@ -1386,19 +1385,18 @@ ssize_t SocketSelectingOnce(
 								SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 								SocketDataList.at(Index).Socket = 0;
 								SocketSelectingList.at(Index).RecvBuffer.reset();
-								SocketSelectingList.at(Index).RecvSize = 0;
-								SocketSelectingList.at(Index).Length = 0;
+								SocketSelectingList.at(Index).RecvLen = 0;
 								continue;
 							}
-							else if (Protocol == IPPROTO_UDP && RecvLen > (ssize_t)DNS_PACKET_MINSIZE && SocketSelectingList.at(Index).Length > 0)
+							else if (Protocol == IPPROTO_UDP && RecvLen > (ssize_t)DNS_PACKET_MINSIZE && SocketSelectingList.at(Index).RecvLen > 0)
 							{
-								memset(SocketSelectingList.at(Index).RecvBuffer.get(), 0, SocketSelectingList.at(Index).Length);
-								memmove_s(SocketSelectingList.at(Index).RecvBuffer.get(), RecvSize, SocketSelectingList.at(Index).RecvBuffer.get() + SocketSelectingList.at(Index).Length, RecvLen);
-								SocketSelectingList.at(Index).Length = 0;
+								memset(SocketSelectingList.at(Index).RecvBuffer.get(), 0, SocketSelectingList.at(Index).RecvLen);
+								memmove_s(SocketSelectingList.at(Index).RecvBuffer.get(), RecvSize, SocketSelectingList.at(Index).RecvBuffer.get() + SocketSelectingList.at(Index).RecvLen, RecvLen);
+								SocketSelectingList.at(Index).RecvLen = 0;
 							}
 
 						//Mark whole packet length and last packet.
-							SocketSelectingList.at(Index).Length += RecvLen;
+							SocketSelectingList.at(Index).RecvLen += RecvLen;
 							LastReceiveIndex = Index;
 						}
 						else {
@@ -1429,8 +1427,7 @@ ssize_t SocketSelectingOnce(
 						#endif
 							{
 								SocketSelectingList.at(Index).RecvBuffer.reset();
-								SocketSelectingList.at(Index).RecvSize = 0;
-								SocketSelectingList.at(Index).Length = 0;
+								SocketSelectingList.at(Index).RecvLen = 0;
 							}
 						}
 						else {
@@ -1463,20 +1460,17 @@ ssize_t SocketSelectingOnce(
 					DNSCurveSocketSelectingList->at(Index).ReceiveMagicNumber = DNSCurveSocketSelectingList->at(LastReceiveIndex).ReceiveMagicNumber;
 					DNSCurveSocketSelectingList->at(LastReceiveIndex).ReceiveMagicNumber = ReceiveMagicNumberTemp;
 					DNSCurveSocketSelectingList->at(LastReceiveIndex).RecvBuffer.swap(DNSCurveSocketSelectingList->at(Index).RecvBuffer);
-					RecvLen = DNSCurveSocketSelectingList->at(LastReceiveIndex).Length;
-					DNSCurveSocketSelectingList->at(LastReceiveIndex).Length = DNSCurveSocketSelectingList->at(Index).Length;
-					DNSCurveSocketSelectingList->at(Index).Length = RecvLen;
+					RecvLen = DNSCurveSocketSelectingList->at(LastReceiveIndex).RecvLen;
+					DNSCurveSocketSelectingList->at(LastReceiveIndex).RecvLen = DNSCurveSocketSelectingList->at(Index).RecvLen;
+					DNSCurveSocketSelectingList->at(Index).RecvLen = RecvLen;
 					RecvLen = SelectingResultOnce(RequestType, Protocol, SocketDataList, nullptr, DNSCurveSocketSelectingList, OriginalRecv, RecvSize);
 				}
 				else {
 			#endif
 					SocketSelectingList.at(LastReceiveIndex).RecvBuffer.swap(SocketSelectingList.at(Index).RecvBuffer);
-					RecvLen = SocketSelectingList.at(LastReceiveIndex).Length;
-					SocketSelectingList.at(LastReceiveIndex).Length = SocketSelectingList.at(Index).Length;
-					SocketSelectingList.at(Index).Length = RecvLen;
-					RecvLen = SocketSelectingList.at(LastReceiveIndex).RecvSize;
-					SocketSelectingList.at(LastReceiveIndex).RecvSize = SocketSelectingList.at(Index).RecvSize;
-					SocketSelectingList.at(Index).RecvSize = RecvLen;
+					RecvLen = SocketSelectingList.at(LastReceiveIndex).RecvLen;
+					SocketSelectingList.at(LastReceiveIndex).RecvLen = SocketSelectingList.at(Index).RecvLen;
+					SocketSelectingList.at(Index).RecvLen = RecvLen;
 					RecvLen = SelectingResultOnce(RequestType, Protocol, SocketDataList, &SocketSelectingList, nullptr, OriginalRecv, RecvSize);
 			#if defined(ENABLE_LIBSODIUM)
 				}
@@ -1526,7 +1520,7 @@ ssize_t SelectingResultOnce(
 	const size_t RequestType, 
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<SOCKET_SELECTING_DATA> *SocketSelectingList, 
+	std::vector<SOCKET_SELECTING_ONCE_DATA> *SocketSelectingList, 
 	void * const OriginalDNSCurveSocketSelectingList, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize)
@@ -1554,18 +1548,18 @@ ssize_t SelectingResultOnce(
 	//DNSCurve
 		if (RequestType == REQUEST_PROCESS_DNSCURVE_MAIN)
 		{
-			if (DNSCurveSocketSelectingList->at(Index).RecvBuffer && DNSCurveSocketSelectingList->at(Index).Length >= DNS_PACKET_MINSIZE)
+			if (DNSCurveSocketSelectingList->at(Index).RecvBuffer && DNSCurveSocketSelectingList->at(Index).RecvLen >= DNS_PACKET_MINSIZE)
 			{
 			//TCP header length check
 				if (Protocol == IPPROTO_TCP)
 				{
 					RecvLen = ntohs(((uint16_t *)DNSCurveSocketSelectingList->at(Index).RecvBuffer.get())[0]);
-					if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE || RecvLen >= (ssize_t)RecvSize || RecvLen > (ssize_t)DNSCurveSocketSelectingList->at(Index).Length)
+					if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE || RecvLen >= (ssize_t)RecvSize || RecvLen > (ssize_t)DNSCurveSocketSelectingList->at(Index).RecvLen)
 					{
 						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 						SocketDataList.at(Index).Socket = 0;
 						DNSCurveSocketSelectingList->at(Index).RecvBuffer.reset();
-						DNSCurveSocketSelectingList->at(Index).Length = 0;
+						DNSCurveSocketSelectingList->at(Index).RecvLen = 0;
 						continue;
 					}
 					else {
@@ -1576,13 +1570,13 @@ ssize_t SelectingResultOnce(
 			//UDP length
 				else if (Protocol == IPPROTO_UDP)
 				{
-					RecvLen = DNSCurveSocketSelectingList->at(Index).Length;
+					RecvLen = DNSCurveSocketSelectingList->at(Index).RecvLen;
 				}
 				else {
 					SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 					SocketDataList.at(Index).Socket = 0;
 					DNSCurveSocketSelectingList->at(Index).RecvBuffer.reset();
-					DNSCurveSocketSelectingList->at(Index).Length = 0;
+					DNSCurveSocketSelectingList->at(Index).RecvLen = 0;
 					continue;
 				}
 
@@ -1595,7 +1589,7 @@ ssize_t SelectingResultOnce(
 						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 						SocketDataList.at(Index).Socket = 0;
 						DNSCurveSocketSelectingList->at(Index).RecvBuffer.reset();
-						DNSCurveSocketSelectingList->at(Index).Length = 0;
+						DNSCurveSocketSelectingList->at(Index).RecvLen = 0;
 						continue;
 					}
 					else {
@@ -1643,19 +1637,18 @@ ssize_t SelectingResultOnce(
 	//Normal
 		else {
 	#endif
-			if (SocketSelectingList->at(Index).RecvBuffer && SocketSelectingList->at(Index).Length >= DNS_PACKET_MINSIZE)
+			if (SocketSelectingList->at(Index).RecvBuffer && SocketSelectingList->at(Index).RecvLen >= DNS_PACKET_MINSIZE)
 			{
 			//TCP header length check
 				if (Protocol == IPPROTO_TCP)
 				{
 					RecvLen = ntohs(((uint16_t *)SocketSelectingList->at(Index).RecvBuffer.get())[0]);
-					if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE || RecvLen >= (ssize_t)RecvSize || RecvLen > (ssize_t)SocketSelectingList->at(Index).Length)
+					if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE || RecvLen >= (ssize_t)RecvSize || RecvLen > (ssize_t)SocketSelectingList->at(Index).RecvLen)
 					{
 						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 						SocketDataList.at(Index).Socket = 0;
 						SocketSelectingList->at(Index).RecvBuffer.reset();
-						SocketSelectingList->at(Index).RecvSize = 0;
-						SocketSelectingList->at(Index).Length = 0;
+						SocketSelectingList->at(Index).RecvLen = 0;
 						continue;
 					}
 					else {
@@ -1666,14 +1659,13 @@ ssize_t SelectingResultOnce(
 			//UDP length
 				else if (Protocol == IPPROTO_UDP)
 				{
-					RecvLen = SocketSelectingList->at(Index).Length;
+					RecvLen = SocketSelectingList->at(Index).RecvLen;
 				}
 				else {
 					SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 					SocketDataList.at(Index).Socket = 0;
 					SocketSelectingList->at(Index).RecvBuffer.reset();
-					SocketSelectingList->at(Index).RecvSize = 0;
-					SocketSelectingList->at(Index).Length = 0;
+					SocketSelectingList->at(Index).RecvLen = 0;
 					continue;
 				}
 
@@ -1689,8 +1681,7 @@ ssize_t SelectingResultOnce(
 					SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 					SocketDataList.at(Index).Socket = 0;
 					SocketSelectingList->at(Index).RecvBuffer.reset();
-					SocketSelectingList->at(Index).RecvSize = 0;
-					SocketSelectingList->at(Index).Length = 0;
+					SocketSelectingList->at(Index).RecvLen = 0;
 					continue;
 				}
 				else {
@@ -1751,8 +1742,8 @@ size_t SocketSelectingSerial(
 	const size_t RequestType, 
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingDataList, 
-	std::vector<ssize_t> &ErrorCode)
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList)
 {
 //Initialization
 	fd_set ReadFDS, WriteFDS;
@@ -1773,7 +1764,7 @@ size_t SocketSelectingSerial(
 			return EXIT_FAILURE;
 	}
 
-//Socket attribute setting(Send process timeout)
+//Socket attribute setting
 	if (Protocol == IPPROTO_TCP)
 	{
 	#if defined(PLATFORM_WIN)
@@ -1784,7 +1775,8 @@ size_t SocketSelectingSerial(
 		Timeout.tv_usec = Parameter.SocketTimeout_Reliable_Serial.tv_usec;
 	#endif
 	}
-	else { //UDP
+	else if (Protocol == IPPROTO_UDP)
+	{
 	#if defined(PLATFORM_WIN)
 		Timeout.tv_sec = Parameter.SocketTimeout_Unreliable_Serial / SECOND_TO_MILLISECOND;
 		Timeout.tv_usec = Parameter.SocketTimeout_Unreliable_Serial % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -1793,11 +1785,16 @@ size_t SocketSelectingSerial(
 		Timeout.tv_usec = Parameter.SocketTimeout_Unreliable_Serial.tv_usec;
 	#endif
 	}
+	else {
+		return EXIT_FAILURE;
+	}
+
+//Socket check and attribute setting
 	for (Index = 0;Index < SocketSelectingDataList.size();++Index)
 	{
 		SocketSelectingDataList.at(Index).IsPacketDone = false;
 		if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
-			ErrorCode.at(Index) = 0;
+			ErrorCodeList.at(Index) = 0;
 	}
 
 //Selecting send process
@@ -1811,8 +1808,8 @@ size_t SocketSelectingSerial(
 		for (Index = 0;Index < SocketDataList.size();++Index)
 		{
 			if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) && 
-				SocketSelectingDataList.at(Index).SendBuffer && SocketSelectingDataList.at(Index).SendSize > 0 && 
-				!SocketSelectingDataList.at(Index).IsPacketDone && ErrorCode.at(Index) == 0)
+				SocketSelectingDataList.at(Index).SendBuffer && SocketSelectingDataList.at(Index).SendLen > 0 && 
+				!SocketSelectingDataList.at(Index).IsPacketDone && ErrorCodeList.at(Index) == 0)
 			{
 			//Select structure initialization
 				FD_SET(SocketDataList.at(Index).Socket, &WriteFDS);
@@ -1837,20 +1834,20 @@ size_t SocketSelectingSerial(
 			{
 				if (FD_ISSET(SocketDataList.at(Index).Socket, &WriteFDS) && !SocketSelectingDataList.at(Index).IsPacketDone)
 				{
-					if (send(SocketDataList.at(Index).Socket, (const char *)SocketSelectingDataList.at(Index).SendBuffer.get(), (int)SocketSelectingDataList.at(Index).SendSize, 0) == SOCKET_ERROR)
+					if (send(SocketDataList.at(Index).Socket, (const char *)SocketSelectingDataList.at(Index).SendBuffer.get(), (int)SocketSelectingDataList.at(Index).SendLen, 0) == SOCKET_ERROR)
 					{
-						ErrorCode.at(Index) = WSAGetLastError();
+						ErrorCodeList.at(Index) = WSAGetLastError();
 				
 					//Send in progress.
 					#if defined(PLATFORM_WIN)
-						if (ErrorCode.at(Index) == WSAEWOULDBLOCK)
+						if (ErrorCodeList.at(Index) == WSAEWOULDBLOCK)
 					#elif defined(PLATFORM_LINUX)
-						if (ErrorCode.at(Index) == EAGAIN || ErrorCode.at(Index) == EINPROGRESS)
+						if (ErrorCodeList.at(Index) == EAGAIN || ErrorCodeList.at(Index) == EINPROGRESS)
 					#elif defined(PLATFORM_MACX)
-						if (ErrorCode.at(Index) == EWOULDBLOCK || ErrorCode.at(Index) == EAGAIN || ErrorCode.at(Index) == EINPROGRESS)
+						if (ErrorCodeList.at(Index) == EWOULDBLOCK || ErrorCodeList.at(Index) == EAGAIN || ErrorCodeList.at(Index) == EINPROGRESS)
 					#endif
 						{
-							ErrorCode.at(Index) = 0;
+							ErrorCodeList.at(Index) = 0;
 						}
 					//SOCKET_ERROR
 						else {
@@ -1867,11 +1864,11 @@ size_t SocketSelectingSerial(
 	//Timeout
 		else if (SelectResult == 0)
 		{
-			for (Index = 0;Index < ErrorCode.size();++Index)
+			for (Index = 0;Index < ErrorCodeList.size();++Index)
 			{
 				if (!SocketSelectingDataList.at(Index).IsPacketDone)
 				{
-					ErrorCode.at(Index) = WSAETIMEDOUT;
+					ErrorCodeList.at(Index) = WSAETIMEDOUT;
 					SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 					SocketDataList.at(Index).Socket = 0;
 				}
@@ -1881,9 +1878,9 @@ size_t SocketSelectingSerial(
 		}
 	//SOCKET_ERROR
 		else {
-			for (Index = 0;Index < ErrorCode.size();++Index)
+			for (Index = 0;Index < ErrorCodeList.size();++Index)
 			{
-				ErrorCode.at(Index) = WSAGetLastError();
+				ErrorCodeList.at(Index) = WSAGetLastError();
 				SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 				SocketDataList.at(Index).Socket = 0;
 			}
@@ -1894,12 +1891,6 @@ size_t SocketSelectingSerial(
 
 //Jump here to stop loop.
 StopLoop:
-	for (Index = 0;Index < SocketSelectingDataList.size();++Index)
-	{
-		SocketSelectingDataList.at(Index).IsPacketDone = false;
-		if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
-			ErrorCode.at(Index) = 0;
-	}
 
 //Socket check(Receive process)
 	for (auto SocketDataIter = SocketDataList.begin();SocketDataIter != SocketDataList.end();++SocketDataIter)
@@ -1910,30 +1901,15 @@ StopLoop:
 			return EXIT_FAILURE;
 	}
 
-//Socket attribute setting(Receive process timeout)
-	memset(&Timeout, 0, sizeof(Timeout));
-	if (Protocol == IPPROTO_TCP)
+//Socket check and attribute setting
+	for (Index = 0;Index < SocketSelectingDataList.size();++Index)
 	{
-	#if defined(PLATFORM_WIN)
-		Timeout.tv_sec = Parameter.SocketTimeout_Reliable_Serial / SECOND_TO_MILLISECOND;
-		Timeout.tv_usec = Parameter.SocketTimeout_Reliable_Serial % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		Timeout.tv_sec = Parameter.SocketTimeout_Reliable_Serial.tv_sec;
-		Timeout.tv_usec = Parameter.SocketTimeout_Reliable_Serial.tv_usec;
-	#endif
-	}
-	else { //UDP
-	#if defined(PLATFORM_WIN)
-		Timeout.tv_sec = Parameter.SocketTimeout_Unreliable_Serial / SECOND_TO_MILLISECOND;
-		Timeout.tv_usec = Parameter.SocketTimeout_Unreliable_Serial % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-		Timeout.tv_sec = Parameter.SocketTimeout_Unreliable_Serial.tv_sec;
-		Timeout.tv_usec = Parameter.SocketTimeout_Unreliable_Serial.tv_usec;
-	#endif
+		SocketSelectingDataList.at(Index).IsPacketDone = false;
+		if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
+			ErrorCodeList.at(Index) = 0;
 	}
 
 //Selecting receive process
-	memset(&ReadFDS, 0, sizeof(ReadFDS));
 	for (;;)
 	{
 	//Reset parameters.
@@ -1944,7 +1920,8 @@ StopLoop:
 		for (Index = 0;Index < SocketDataList.size();++Index)
 		{
 			if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) && 
-				!SocketSelectingDataList.at(Index).IsPacketDone && ErrorCode.at(Index) == 0)
+				!SocketSelectingDataList.at(Index).IsPacketDone && !SocketSelectingDataList.at(Index).IsSendOnly && 
+				ErrorCodeList.at(Index) == 0)
 			{
 			//Select structure initialization
 				FD_SET(SocketDataList.at(Index).Socket, &ReadFDS);
@@ -1967,7 +1944,8 @@ StopLoop:
 		{
 			for (Index = 0;Index < SocketDataList.size();++Index)
 			{
-				if (FD_ISSET(SocketDataList.at(Index).Socket, &ReadFDS) && !SocketSelectingDataList.at(Index).IsPacketDone)
+				if (FD_ISSET(SocketDataList.at(Index).Socket, &ReadFDS) && 
+					!SocketSelectingDataList.at(Index).IsPacketDone && !SocketSelectingDataList.at(Index).IsSendOnly)
 				{
 				//Receive all packets from socket.
 					for (;;)
@@ -1979,36 +1957,36 @@ StopLoop:
 							memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize);
 							SocketSelectingDataList.at(Index).RecvBuffer.swap(RecvBuffer);
 							SocketSelectingDataList.at(Index).RecvSize = Parameter.LargeBufferSize;
-							SocketSelectingDataList.at(Index).Length = 0;
+							SocketSelectingDataList.at(Index).RecvLen = 0;
 						}
-						else if (SocketSelectingDataList.at(Index).RecvSize < SocketSelectingDataList.at(Index).Length + Parameter.LargeBufferSize)
+						else if (SocketSelectingDataList.at(Index).RecvSize < SocketSelectingDataList.at(Index).RecvLen + Parameter.LargeBufferSize)
 						{
 							std::shared_ptr<uint8_t> RecvBuffer(new uint8_t[SocketSelectingDataList.at(Index).RecvSize + Parameter.LargeBufferSize]);
 							memset(RecvBuffer.get(), 0, SocketSelectingDataList.at(Index).RecvSize + Parameter.LargeBufferSize);
-							memcpy_s(RecvBuffer.get(), SocketSelectingDataList.at(Index).RecvSize + Parameter.LargeBufferSize, SocketSelectingDataList.at(Index).RecvBuffer.get(), SocketSelectingDataList.at(Index).Length);
+							memcpy_s(RecvBuffer.get(), SocketSelectingDataList.at(Index).RecvSize + Parameter.LargeBufferSize, SocketSelectingDataList.at(Index).RecvBuffer.get(), SocketSelectingDataList.at(Index).RecvLen);
 							SocketSelectingDataList.at(Index).RecvBuffer.swap(RecvBuffer);
 							SocketSelectingDataList.at(Index).RecvSize += Parameter.LargeBufferSize;
 						}
 
 					//Receive process
-						RecvLen = recv(SocketDataList.at(Index).Socket, (char *)(SocketSelectingDataList.at(Index).RecvBuffer.get() + SocketSelectingDataList.at(Index).Length), (int)(SocketSelectingDataList.at(Index).RecvSize - SocketSelectingDataList.at(Index).Length), 0);
+						RecvLen = recv(SocketDataList.at(Index).Socket, (char *)(SocketSelectingDataList.at(Index).RecvBuffer.get() + SocketSelectingDataList.at(Index).RecvLen), (int)(SocketSelectingDataList.at(Index).RecvSize - SocketSelectingDataList.at(Index).RecvLen), 0);
 						if (RecvLen == SOCKET_ERROR)
 						{
-							ErrorCode.at(Index) = WSAGetLastError();
+							ErrorCodeList.at(Index) = WSAGetLastError();
 
 						//Receive in progress.
 						#if defined(PLATFORM_WIN)
-							if (ErrorCode.at(Index) == WSAEWOULDBLOCK)
+							if (ErrorCodeList.at(Index) == WSAEWOULDBLOCK)
 						#elif defined(PLATFORM_LINUX)
-							if (ErrorCode.at(Index) == EAGAIN || ErrorCode.at(Index) == EINPROGRESS)
+							if (ErrorCodeList.at(Index) == EAGAIN || ErrorCodeList.at(Index) == EINPROGRESS)
 						#elif defined(PLATFORM_MACX)
-							if (ErrorCode.at(Index) == EWOULDBLOCK || ErrorCode.at(Index) == EAGAIN || ErrorCode.at(Index) == EINPROGRESS)
+							if (ErrorCodeList.at(Index) == EWOULDBLOCK || ErrorCodeList.at(Index) == EAGAIN || ErrorCodeList.at(Index) == EINPROGRESS)
 						#endif
 							{
-								ErrorCode.at(Index) = 0;
+								ErrorCodeList.at(Index) = 0;
 
 							//Connection stream finished check
-								if (Protocol == IPPROTO_UDP || CheckConnectionStreamFin(RequestType, SocketSelectingDataList.at(Index).RecvBuffer.get(), SocketSelectingDataList.at(Index).Length))
+								if (Protocol == IPPROTO_UDP || CheckConnectionStreamFin(RequestType, SocketSelectingDataList.at(Index).RecvBuffer.get(), SocketSelectingDataList.at(Index).RecvLen))
 									SocketSelectingDataList.at(Index).IsPacketDone = true;
 							}
 						//SOCKET_ERROR
@@ -2027,7 +2005,7 @@ StopLoop:
 							break;
 						}
 						else {
-							SocketSelectingDataList.at(Index).Length += (size_t)RecvLen;
+							SocketSelectingDataList.at(Index).RecvLen += (size_t)RecvLen;
 						}
 					}
 				}
@@ -2040,9 +2018,9 @@ StopLoop:
 		}
 	//SOCKET_ERROR
 		else {
-			for (Index = 0;Index < ErrorCode.size();++Index)
+			for (Index = 0;Index < ErrorCodeList.size();++Index)
 			{
-				ErrorCode.at(Index) = WSAGetLastError();
+				ErrorCodeList.at(Index) = WSAGetLastError();
 				SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 				SocketDataList.at(Index).Socket = 0;
 			}

@@ -237,10 +237,10 @@ bool FlushDNSMailSlotMonitor(
 			(PACL)ACL_Buffer.get(), 
 			false) == 0)
 	{
+		PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create mailslot error", GetLastError(), nullptr, 0);
 		if (SID_Value != nullptr)
 			LocalFree(SID_Value);
 
-		PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create mailslot error", GetLastError(), nullptr, 0);
 		return false;
 	}
 	SecurityAttributes.lpSecurityDescriptor = &SecurityDescriptor;
@@ -253,16 +253,17 @@ bool FlushDNSMailSlotMonitor(
 		&SecurityAttributes);
 	if (hSlot == INVALID_HANDLE_VALUE)
 	{
+		PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create mailslot error", GetLastError(), nullptr, 0);
 		if (SID_Value != nullptr)
 			LocalFree(SID_Value);
 
-		PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create mailslot error", GetLastError(), nullptr, 0);
 		return false;
 	}
 
+//Free pointer.
 	ACL_Buffer.reset();
-	LocalFree(
-		SID_Value);
+	if (SID_Value != nullptr)
+		LocalFree(SID_Value);
 
 //Initialization
 	std::shared_ptr<wchar_t> lpszBuffer(new wchar_t[FILE_BUFFER_SIZE]());
@@ -346,7 +347,7 @@ bool WINAPI FlushDNSMailSlotSender(
 			PrintToScreen(true, InnerMessage.c_str());
 		}
 		else {
-			ErrorCodeToMessage(GetLastError(), InnerMessage);
+			ErrorCodeToMessage(LOG_ERROR_SYSTEM, GetLastError(), InnerMessage);
 			InnerMessage.append(L".\n");
 			PrintToScreen(true, InnerMessage.c_str(), GetLastError());
 		}
@@ -379,7 +380,7 @@ bool WINAPI FlushDNSMailSlotSender(
 			PrintToScreen(true, InnerMessage.c_str());
 		}
 		else {
-			ErrorCodeToMessage(GetLastError(), InnerMessage);
+			ErrorCodeToMessage(LOG_ERROR_SYSTEM, GetLastError(), InnerMessage);
 			InnerMessage.append(L".\n");
 			PrintToScreen(true, InnerMessage.c_str(), GetLastError());
 		}
@@ -503,7 +504,7 @@ bool FlushDNSFIFOSender(
 		PrintToScreen(true, InnerMessage.c_str());
 	}
 	else {
-		ErrorCodeToMessage(errno, InnerMessage);
+		ErrorCodeToMessage(LOG_ERROR_SYSTEM, errno, InnerMessage);
 		InnerMessage.append(L".\n");
 		PrintToScreen(true, InnerMessage.c_str(), errno);
 	}
@@ -522,8 +523,7 @@ void FlushDNSCache(
 	{
 		DNSCacheList.clear();
 	}
-//Flush single domain cache.
-	else {
+	else { //Flush single domain cache.
 		for (auto DNSCacheDataIter = DNSCacheList.begin();DNSCacheDataIter != DNSCacheList.end();)
 		{
 			if (DNSCacheDataIter->Domain == (const char *)Domain)
@@ -558,7 +558,7 @@ void FlushDNSCache(
 //	system("lookupd -flushcache 2>/dev/null"); //Less than Mac OS X Tiger(10.4)
 //	system("dscacheutil -flushcache 2>/dev/null"); //Mac OS X Leopard(10.5) and Snow Leopard(10.6)
 	system("killall -HUP mDNSResponder 2>/dev/null"); //Mac OS X Lion(10.7), Mountain Lion(10.8) and Mavericks(10.9)
-	system("discoveryutil mdnsflushcache 2>/dev/null"); //Mac OS X Yosemite(10.10) and newer version
+	system("discoveryutil mdnsflushcache 2>/dev/null"); //Mac OS X Yosemite(10.10) and newer Mac OS X/macOS version
 #endif
 
 	return;

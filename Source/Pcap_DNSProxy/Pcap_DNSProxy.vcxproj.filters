@@ -78,6 +78,9 @@
     <ClInclude Include="DNSCurveRequest.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="TransportSecurity.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Service.cpp">
@@ -135,6 +138,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="DNSCurveRequest.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TransportSecurity.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

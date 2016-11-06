@@ -33,11 +33,14 @@ mkdir Release
 # Build Pcap_DNSProxy.
 mkdir Object
 cd Object
+if !(echo "$*" | grep -iq -e "--disable-libpcap"); then
+	CMakeShell="${CMakeShell}-DENABLE_PCAP=ON "
+fi
 if !(echo "$*" | grep -iq -e "--disable-libsodium"); then
 	CMakeShell="${CMakeShell}-DENABLE_LIBSODIUM=ON "
 fi
-if !(echo "$*" | grep -iq -e "--disable-libpcap"); then
-	CMakeShell="${CMakeShell}-DENABLE_PCAP=ON "
+if !(echo "$*" | grep -iq -e "--disable-tls"); then
+	CMakeShell="${CMakeShell}-DENABLE_TLS=ON "
 fi
 if (echo "$*" | grep -iq -e "--enable-static"); then
 	CMakeShell="${CMakeShell}-DSTATIC_LIB=ON "

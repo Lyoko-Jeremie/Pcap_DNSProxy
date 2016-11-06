@@ -50,6 +50,7 @@ set(MAIN_SRC_FILES
 		"Service.h"
 		"Structure.h"
 		"Template.h"
+		"TransportSecurity.h"
 		"Base.cpp"
 		"Capture.cpp"
 		"Configuration.cpp"
@@ -68,7 +69,8 @@ set(MAIN_SRC_FILES
 		"ReadIPFilter.cpp"
 		"ReadParameter.cpp"
 		"Request.cpp"
-		"Service.cpp")
+		"Service.cpp"
+		"TransportSecurity.cpp")
 
 # Libraries linking(Part 1)
 find_package(Threads REQUIRED)
@@ -93,6 +95,9 @@ ENDIF(ENABLE_PCAP)
 IF(ENABLE_LIBSODIUM)
 	add_definitions(-DENABLE_LIBSODIUM)
 ENDIF(ENABLE_LIBSODIUM)
+IF(ENABLE_TLS)
+	add_definitions(-DENABLE_TLS)
+ENDIF(ENABLE_TLS)
 
 # Link to static libraries if needed
 IF(STATIC_LIB)
@@ -114,3 +119,7 @@ ENDIF(ENABLE_PCAP)
 IF(ENABLE_LIBSODIUM)
 	target_link_libraries(Pcap_DNSProxy sodium)
 ENDIF(ENABLE_LIBSODIUM)
+IF(ENABLE_TLS)
+	target_link_libraries(Pcap_DNSProxy crypto)
+	target_link_libraries(Pcap_DNSProxy ssl)
+ENDIF(ENABLE_TLS)

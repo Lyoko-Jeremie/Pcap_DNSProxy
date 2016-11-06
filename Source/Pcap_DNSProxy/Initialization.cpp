@@ -33,8 +33,8 @@ static const uint8_t Base64_EncodeTable_Initialization[] =
 	'4', '5', '6', '7', '8', '9', '+', '/'
 };
 
-/* Not necessary
-static const int8_t Base64_DecodeTable_Initialization[] = //ASCII order for BASE 64 decode, -1 in unused character.
+/* ASCII order for BASE 64 decode, -1 in unused character.
+static const int8_t Base64_DecodeTable_Initialization[] = 
 {
 	'+', ',', '-', '.', '/', '0', '1', '2', 
 	62,  -1,  -1,  -1,  63,  52,  53,  54, 
@@ -95,6 +95,14 @@ ConfigurationTable::ConfigurationTable(
 		SOCKS_TargetDomain = new std::string();
 		SOCKS_Username = new std::string();
 		SOCKS_Password = new std::string();
+	#if defined(ENABLE_TLS)
+		HTTP_CONNECT_TLS_SNI = new std::wstring();
+		sHTTP_CONNECT_TLS_SNI = new std::string();
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			HTTP_CONNECT_TLS_AddressString_IPv4 = new std::string();
+			HTTP_CONNECT_TLS_AddressString_IPv6 = new std::string();
+		#endif
+	#endif
 		HTTP_CONNECT_TargetDomain = new std::string();
 		HTTP_CONNECT_Version = new std::string();
 		HTTP_CONNECT_HeaderField = new std::string();
@@ -146,6 +154,14 @@ ConfigurationTable::ConfigurationTable(
 		delete SOCKS_TargetDomain;
 		delete SOCKS_Username;
 		delete SOCKS_Password;
+	#if defined(ENABLE_TLS)
+		delete HTTP_CONNECT_TLS_SNI;
+		delete sHTTP_CONNECT_TLS_SNI;
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			delete HTTP_CONNECT_TLS_AddressString_IPv4;
+			delete HTTP_CONNECT_TLS_AddressString_IPv6;
+		#endif
+	#endif
 		delete HTTP_CONNECT_TargetDomain;
 		delete HTTP_CONNECT_Version;
 		delete HTTP_CONNECT_HeaderField;
@@ -153,6 +169,14 @@ ConfigurationTable::ConfigurationTable(
 		SOCKS_TargetDomain = nullptr;
 		SOCKS_Username = nullptr;
 		SOCKS_Password = nullptr;
+	#if defined(ENABLE_TLS)
+		HTTP_CONNECT_TLS_SNI = nullptr;
+		sHTTP_CONNECT_TLS_SNI = nullptr;
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
+			HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
+		#endif
+	#endif
 		HTTP_CONNECT_TargetDomain = nullptr;
 		HTTP_CONNECT_Version = nullptr;
 		HTTP_CONNECT_HeaderField = nullptr;
@@ -274,6 +298,9 @@ void ConfigurationTableSetting(
 	ConfigurationParameter->SOCKS_Protocol_Network = REQUEST_MODE_BOTH;
 	ConfigurationParameter->SOCKS_Protocol_Transport = REQUEST_MODE_TCP;
 	ConfigurationParameter->HTTP_CONNECT_Protocol = REQUEST_MODE_BOTH;
+#if defined(ENABLE_TLS)
+	ConfigurationParameter->HTTP_CONNECT_TLS_Validation = true;
+#endif
 
 	return;
 }
@@ -326,6 +353,14 @@ ConfigurationTable::~ConfigurationTable(
 	delete SOCKS_TargetDomain;
 	delete SOCKS_Username;
 	delete SOCKS_Password;
+#if defined(ENABLE_TLS)
+	delete HTTP_CONNECT_TLS_SNI;
+	delete sHTTP_CONNECT_TLS_SNI;
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		delete HTTP_CONNECT_TLS_AddressString_IPv4;
+		delete HTTP_CONNECT_TLS_AddressString_IPv6;
+	#endif
+#endif
 	delete HTTP_CONNECT_TargetDomain;
 	delete HTTP_CONNECT_Version;
 	delete HTTP_CONNECT_HeaderField;
@@ -333,6 +368,14 @@ ConfigurationTable::~ConfigurationTable(
 	SOCKS_TargetDomain = nullptr;
 	SOCKS_Username = nullptr;
 	SOCKS_Password = nullptr;
+#if defined(ENABLE_TLS)
+	HTTP_CONNECT_TLS_SNI = nullptr;
+	sHTTP_CONNECT_TLS_SNI = nullptr;
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
+		HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
+	#endif
+#endif
 	HTTP_CONNECT_TargetDomain = nullptr;
 	HTTP_CONNECT_Version = nullptr;
 	HTTP_CONNECT_HeaderField = nullptr;
@@ -480,6 +523,10 @@ void ConfigurationTable::MonitorItemToUsing(
 	}
 	if (ConfigurationParameter->HTTP_CONNECT_TargetDomain != nullptr && !HTTP_CONNECT_TargetDomain->empty())
 		*ConfigurationParameter->HTTP_CONNECT_TargetDomain = *HTTP_CONNECT_TargetDomain;
+#if defined(ENABLE_TLS)
+	ConfigurationParameter->HTTP_CONNECT_TLS_Version = HTTP_CONNECT_TLS_Version;
+	ConfigurationParameter->HTTP_CONNECT_TLS_Validation = HTTP_CONNECT_TLS_Validation;
+#endif
 	if (ConfigurationParameter->HTTP_CONNECT_Version != nullptr && !HTTP_CONNECT_Version->empty())
 		*ConfigurationParameter->HTTP_CONNECT_Version = *HTTP_CONNECT_Version;
 	if (ConfigurationParameter->HTTP_CONNECT_HeaderField != nullptr)
@@ -579,10 +626,18 @@ void ConfigurationTable::MonitorItemReset(
 		SOCKS_Username->clear();
 	if (SOCKS_Password != nullptr)
 		SOCKS_Password->clear();
-	HTTP_CONNECT_TargetDomain->clear();
-	HTTP_CONNECT_Version->clear();
-	HTTP_CONNECT_HeaderField->clear();
-	HTTP_CONNECT_ProxyAuthorization->clear();
+	if (HTTP_CONNECT_TargetDomain != nullptr)
+		HTTP_CONNECT_TargetDomain->clear();
+#if defined(ENABLE_TLS)
+	HTTP_CONNECT_TLS_Version = TLS_VERSION_AUTO;
+	HTTP_CONNECT_TLS_Validation = true;
+#endif
+	if (HTTP_CONNECT_Version != nullptr)
+		HTTP_CONNECT_Version->clear();
+	if (HTTP_CONNECT_HeaderField != nullptr)
+		HTTP_CONNECT_HeaderField->clear();
+	if (HTTP_CONNECT_ProxyAuthorization != nullptr)
+		HTTP_CONNECT_ProxyAuthorization->clear();
 
 	return;
 }
@@ -691,7 +746,13 @@ GlobalStatus::~GlobalStatus(
 	_fcloseall();
 	if (IsWinSockInitialized)
 		WSACleanup();
-#elif (defined(PLATFORM_LINUX) && !defined(PLATFORM_OPENWRT))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#if defined(ENABLE_TLS)
+	if (IsOpenSSLInitialized)
+		OpenSSL_Library_Init(false);
+#endif
+#endif
+#if (defined(PLATFORM_LINUX) && !defined(PLATFORM_OPENWRT))
 	fcloseall();
 #endif
 
@@ -1201,4 +1262,54 @@ void DNSCurveConfigurationTable::MonitorItemReset(
 
 	return;
 }
+#endif
+
+#if defined(ENABLE_TLS)
+#if defined(PLATFORM_WIN)
+//SSPIHandleTable class constructor
+SSPIHandleTable::SSPIHandleTable(
+	void)
+{
+	memset(&ClientCredentials, 0, sizeof(ClientCredentials));
+	memset(&ContextHandle, 0, sizeof(ContextHandle));
+	InputFlags = 0;
+	memset(&StreamSizes, 0, sizeof(StreamSizes));
+	LastReturnValue = 0;
+
+	return;
+}
+
+//SSPIHandleTable class destructor
+SSPIHandleTable::~SSPIHandleTable(
+	void)
+{
+	FreeCredentialsHandle(&ClientCredentials);
+	DeleteSecurityContext(&ContextHandle);
+
+	return;
+}
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+//SSPIHandleTable class constructor
+OpenSSLContextTable::OpenSSLContextTable(
+	void)
+{
+	MethodContext = nullptr;
+	SessionBIO = nullptr;
+	SessionData = nullptr;
+
+	return;
+}
+
+//OpenSSLContextTable class destructor
+OpenSSLContextTable::~OpenSSLContextTable(
+	void)
+{
+	if (SessionBIO != nullptr)
+		BIO_free_all(SessionBIO);
+	if (MethodContext != nullptr)
+		SSL_CTX_free(MethodContext);
+
+	return;
+}
+#endif
 #endif

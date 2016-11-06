@@ -181,22 +181,23 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Socket UDP block RESET message setting error - 設置 UDP 協定通訊端遮罩 ICMP Port Unreachable 資訊錯誤：具體原因可參見錯誤代碼
   * Socket Hop Limits setting error - 設置 Hop Limits/TTL 錯誤：具體原因可參見錯誤代碼
   * Socket Do Not Fragment flag setting error - 設置 IPv4 Do Not Fragment 標誌錯誤：具體原因可參見錯誤代碼
-  * UDP Monitor socket initialization error - UDP 協定本地通訊端初始化失敗：原因參見錯誤代碼
-  * TCP Monitor socket initialization error - TCP 協定本地通訊端初始化失敗：原因參見錯誤代碼
-  * Bind UDP Monitor socket error - UDP 協定本地通訊端綁定失敗：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體原因參見錯誤代碼
-  * Bind TCP Monitor socket error - TCP 協定本地通訊端綁定失敗：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體原因參見錯誤代碼
-  * TCP Monitor socket listening initialization error - TCP 協定本地通訊端監聽失敗：原因參見錯誤代碼
-  * Get local machine name error - 獲取本地電腦名稱稱失敗：原因參見錯誤代碼
+  * UDP Monitor socket initialization error - UDP 協定本地通訊端初始化失敗：具體原因可參見錯誤代碼
+  * TCP Monitor socket initialization error - TCP 協定本地通訊端初始化失敗：具體原因可參見錯誤代碼
+  * Bind UDP Monitor socket error - UDP 協定本地通訊端綁定失敗：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體具體原因可參見錯誤代碼
+  * Bind TCP Monitor socket error - TCP 協定本地通訊端綁定失敗：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體具體原因可參見錯誤代碼
+  * TCP Monitor socket listening initialization error - TCP 協定本地通訊端監聽失敗：具體原因可參見錯誤代碼
+  * Get local machine name error - 獲取本地電腦名稱稱失敗：具體原因可參見錯誤代碼
   * Get local machine address error - 獲取本地電腦位址失敗：沒有任何生效的網路介面卡，可能是硬體或者驅動程式的問題
-  * UDP socket initialization error - UDP 協定請求通訊端初始化失敗：原因參見錯誤代碼
-  * TCP socket initialization error - TCP 協定請求通訊端初始化失敗：原因參見錯誤代碼
-  * SOCKS socket initialization error - SOCKS 協定請求通訊端初始化失敗：原因參見錯誤代碼
-  * HTTP CONNECT socket initialization error - HTTP CONNECT 協定請求通訊端初始化失敗：原因參見錯誤代碼
-  * Complete UDP socket initialization error - UDP 協定請求通訊端初始化失敗：原因參見錯誤代碼
-  * SOCKS connecting error - SOCKS 協定連接錯誤：可能為網路錯誤，原因參見錯誤代碼
-  * HTTP CONNECT connecting error - HTTP CONNECT 協定連接錯誤：可能為網路錯誤，原因參見錯誤代碼
+  * UDP socket initialization error - UDP 協定請求通訊端初始化失敗：具體原因可參見錯誤代碼
+  * TCP socket initialization error - TCP 協定請求通訊端初始化失敗：具體原因可參見錯誤代碼
+  * SOCKS socket initialization error - SOCKS 協定請求通訊端初始化失敗：具體原因可參見錯誤代碼
+  * HTTP CONNECT socket initialization error - HTTP CONNECT 協定請求通訊端初始化失敗：具體原因可參見錯誤代碼
+  * Complete UDP socket initialization error - UDP 協定請求通訊端初始化失敗：具體原因可參見錯誤代碼
+  * SOCKS connecting error - SOCKS 協定連接錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * HTTP CONNECT connecting error - HTTP CONNECT 協定連接錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
   * SOCKS request error - SOCKS 協定請求失敗：可能為網路錯誤，具體原因可參見錯誤代碼
   * HTTP CONNECT request error - HTTP CONNECT 協定請求失敗：可能為網路錯誤，具體原因可參見錯誤代碼
+  * TLS request error - TLS/SSL 協定請求失敗：可能為網路錯誤，具體原因可參見錯誤代碼
   * DNSCurve UDP socket initialization error - DNSCurve 協定 UDP 協定通訊端初始化失敗：可能為網路錯誤，具體原因可參見錯誤代碼
   * DNSCurve TCP socket initialization error - DNSCurve 協定 TCP 協定通訊端初始化失敗：可能為網路錯誤，具體原因可參見錯誤代碼
   * DNSCurve Local Signature socket initialization error - DNSCurve 協定本地請求通訊端初始化失敗：可能為網路錯誤，具體原因可參見錯誤代碼
@@ -206,10 +207,10 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
 
 6.Pcap Error - Pcap 錯誤
   * Insufficient privileges or not any available network devices - 沒有任何可用的網路介面卡：請檢查硬體設備和驅動程式是否安裝正確，也可能許可權不足
-  * 本類型錯誤會直接將 WinPcap 的錯誤資訊直接列印至錯誤報表
+  * 本類型錯誤會直接將 WinPcap 的錯誤資訊輸出至錯誤報表
 
 7.DNSCurve Error - DNSCurve 協定錯誤
-  * Libsodium initialization error - Libsodium 庫初始化錯誤：請與開發者聯繫
+  * Libsodium initialization error - Libsodium 庫初始化錯誤：請與項目組聯繫
   * Client keypair error - 自訂用戶端金鑰組錯誤：請檢查金鑰組的正確性
   * Key calculating error -> 金鑰計算錯誤：請與專案組聯繫
   * IPv6 Main Server TCP get signature data error - IPv6 TCP 協定主要伺服器加密握手失敗：請檢查該伺服器是否可用
@@ -236,14 +237,36 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Authentication method not support - 不支援的認證方式：請檢查伺服器對用戶端認證方式的支援
   * Server require username and password authentication - 伺服器要求使用使用者名/密碼認證：請檢查 SOCKS 協定的使用者名/密碼
   * Username or Password incorrect - SOCKS 協定使用者名/密碼不正確：請檢查使用者名/密碼是否錯誤
-  * Client command request error - 用戶端請求連接失敗：請檢查 SOCKS 協定目標位址否受支援或是否可用，原因參見錯誤代碼
+  * Client command request error - 用戶端請求連接失敗：請檢查 SOCKS 協定目標位址否受支援或是否可用，具體原因可參見錯誤代碼
 
 9.HTTP CONNECT Error - HTTP CONNECT 協定錯誤
- * HTTP CONNECT address error - HTTP CONNECT 代理位址錯誤：請檢查該伺服器是否可用
- * HTTP CONNECT target server error - HTTP CONNECT 代理目標位址錯誤：請檢查該伺服器是否可用
- * HTTP CONNECT server response error - HTTP CONNECT 代理伺服器回應錯誤：請檢查該伺服器是否可用
+  * HTTP CONNECT address error - HTTP CONNECT 代理位址錯誤：請檢查該伺服器是否可用
+  * HTTP CONNECT target server error - HTTP CONNECT 代理目標位址錯誤：請檢查該伺服器是否可用
+  * HTTP CONNECT server response error - HTTP CONNECT 代理伺服器回應錯誤：請檢查該伺服器是否可用
+  * 本類型錯誤會直接將 HTTP 的錯誤資訊輸出至錯誤報表
+  * HTTP 狀態碼具體含義可移步 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+  
+10.TLS Error - TLS/SSL 協定錯誤
+  * SSPI get client credentials handle error - SSPI 獲取用戶端憑據錯誤：請與專案組聯繫，具體原因可參見錯誤代碼
+  * SSPI initialize security coNtext error - SSPI 初始化安全上下文錯誤：請檢查 SSPI/SChannel 的版本或加密演算法受支援等情況，具體原因可參見錯誤代碼
+  * SSPI complete authentication token error - SSPI 無法完成完整的驗證錯誤：請與專案組聯繫，具體原因可參見錯誤代碼
+  * SSPI get stream encryption sizes error - SSPI 獲取加密流限制長度錯誤：請與專案組聯繫，具體原因可參見錯誤代碼
+  * SSPI plaiNtext sent to encrypt API is too large - SSPI 進行加密傳輸的原始資料過長：請與專案組聯繫，具體原因可參見錯誤代碼
+  * SSPI encrypt data error - SSPI 加密資料錯誤：請檢查 SSPI/SChannel 的版本或加密演算法受支援等情況，具體原因可參見錯誤代碼
+  * SSPI decrypt data error - SSPI 解密資料錯誤：請檢查 SSPI/SChannel 的版本或加密演算法受支援等情況，具體原因可參見錯誤代碼
+  * OpenSSL create new client-method instance error - OpenSSL 創建用戶端實例錯誤：請與專案組聯繫，具體原因可參見錯誤代碼
+  * OpenSSL create new BIO method error - OpenSSL 創建 BIO 實例錯誤：請與專案組聯繫，具體原因可參見錯誤代碼
+  * OpenSSL BIO and SSL data attribute setting error - OpenSSL 設置 BIO 和 TLS/SSL 屬性錯誤：請與專案組聯繫，具體原因可參見錯誤代碼
+  * OpenSSL connecting error - OpenSSL 連線錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * OpenSSL handshake error - OpenSSL 握手錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * OpenSSL verify server certificate error - OpenSSL 伺服器憑證驗證錯誤：證書驗證錯誤，請確認此伺服器工作正常
+  * OpenSSL verify the result of chain verification error - OpenSSL 憑證鏈驗證錯誤：證書驗證錯誤，請確認此伺服器工作正常
+  * OpenSSL send data error - OpenSSL 發送資料錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * OpenSSL receive data error - OpenSSL 接收資料錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * SSPI/SChannel 錯誤代碼具體含義可移步 https://msdn.microsoft.com/en-us/library/windows/desktop/aa380499(v=vs.85).aspx 和 https://msdn.microsoft.com/en-us/library/windows/desktop/dd721886(v=vs.85).aspx
+  * OpenSSL 錯誤代碼具體含義可移步 https://www.openssl.org/docs/manmaster/man3/ERR_get_error.html
 
-10.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
+11.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
   * Old log file was deleted - 錯誤日誌檔已滿並被刪除
     * 日誌檔最大容量的配置參見 詳細說明文檔 中 設定檔詳細參數說明 中的 Log Maximum Size 參數
   * Listen Port is empty, set to standard DNS port(53) - 本地監聽埠參數為空：程式將自動設置為標準 DNS 協定埠（53）
@@ -255,7 +278,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * EDNS Payload Size is too large - EDNS 載荷長度可能過長：此值建議不要超過乙太網的 MTU(1500 bytes)
   * DNSSEC Request require EDNS Label - 開啟 DNSSEC 請求時必須開啟 EDNS 標籤請求功能
   * EDNS Client Subnet require EDNS Label - 開啟 EDNS Client Subnet 請求時必須開啟 EDNS 標籤請求功能
-  * Compression Pointer Mutation must set EDNS Label OFF - 使用 Compression Pointer Mutation 時不能開啟 EDNS 標籤請求功能，兩者並不相容
+  * Compression Pointer Mutation must disable EDNS Label - 使用 Compression Pointer Mutation 時不能開啟 EDNS 標籤請求功能，兩者並不相容
   * DNSSEC Validation require EDNS Label and DNSSEC Request - 開啟 DNSSEC Validation 請求時必須開啟 EDNS 標籤請求和 DNSSEC 請求功能
   * DNSSEC Force Validation require EDNS Label, DNSSEC Request and DNSSEC Validation - 開啟 DNSSEC Force Validation 請求時必須開啟 EDNS 標籤請求、DNSSEC 請求和 DNSSEC Validation 驗證功能
   * DNSCurve Payload Size must longer than traditional DNS packet minimum supported size(512 bytes) - DNSCurve 協定載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包

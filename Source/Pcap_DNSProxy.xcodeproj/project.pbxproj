@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		D9112FA61CD7637100540550 /* libpcap.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = D9112FA51CD7637100540550 /* libpcap.tbd */; };
+		D92660A51DCDB4A600061CE8 /* TransportSecurity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D92660A31DCDB4A600061CE8 /* TransportSecurity.cpp */; };
 		D93C47241CD7596A00CD334A /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C47151CD7596A00CD334A /* Base.cpp */; };
 		D93C47251CD7596A00CD334A /* Capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C47171CD7596A00CD334A /* Capture.cpp */; };
 		D93C47261CD7596A00CD334A /* Configuration.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C471A1CD7596A00CD334A /* Configuration.cpp */; };
@@ -44,6 +45,8 @@
 
 /* Begin PBXFileReference section */
 		D9112FA51CD7637100540550 /* libpcap.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libpcap.tbd; path = usr/lib/libpcap.tbd; sourceTree = SDKROOT; };
+		D92660A31DCDB4A600061CE8 /* TransportSecurity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TransportSecurity.cpp; sourceTree = "<group>"; };
+		D92660A41DCDB4A600061CE8 /* TransportSecurity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TransportSecurity.h; sourceTree = "<group>"; };
 		D93C46FE1CD7582600CD334A /* Pcap_DNSProxy */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Pcap_DNSProxy; sourceTree = BUILT_PRODUCTS_DIR; };
 		D93C47151CD7596A00CD334A /* Base.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Base.cpp; sourceTree = "<group>"; };
 		D93C47161CD7596A00CD334A /* Base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Base.h; sourceTree = "<group>"; };
@@ -199,6 +202,7 @@
 				D93C473C1CD7598500CD334A /* ReadParameter.cpp */,
 				D96BE5C71DB7A8A7001D8BF3 /* Request.cpp */,
 				D93C47451CD7599300CD334A /* Service.cpp */,
+				D92660A31DCDB4A600061CE8 /* TransportSecurity.cpp */,
 				D93C47161CD7596A00CD334A /* Base.h */,
 				D93C47181CD7596A00CD334A /* Capture.h */,
 				D93C471B1CD7596A00CD334A /* Configuration.h */,
@@ -219,6 +223,7 @@
 				D93C47461CD7599300CD334A /* Service.h */,
 				D96BE5CA1DB7A8AF001D8BF3 /* Structure.h */,
 				D96BE5CB1DB7A8AF001D8BF3 /* Template.h */,
+				D92660A41DCDB4A600061CE8 /* TransportSecurity.h */,
 			);
 			path = Pcap_DNSProxy;
 			sourceTree = "<group>";
@@ -387,6 +392,7 @@
 				D96BE5C61DB7A895001D8BF3 /* DNSCurveRequest.cpp in Sources */,
 				D93C47411CD7598500CD334A /* ReadHosts.cpp in Sources */,
 				D93C47241CD7596A00CD334A /* Base.cpp in Sources */,
+				D92660A51DCDB4A600061CE8 /* TransportSecurity.cpp in Sources */,
 				D93C47271CD7596A00CD334A /* DNSCurve.cpp in Sources */,
 				D93C472F1CD7597600CD334A /* Network.cpp in Sources */,
 				D93C47281CD7596A00CD334A /* Initialization.cpp in Sources */,

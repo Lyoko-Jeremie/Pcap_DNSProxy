@@ -72,7 +72,7 @@ bool DomainTestRequest(
 	size_t SleepTime_DomainTest = 0, SpeedTime_DomainTest = Parameter.DomainTest_Speed, Times = 0;
 	for (;;)
 	{
-	//Domain Test Disable
+	//Domain Test disable
 		if (Parameter.DomainTest_Speed == 0)
 		{
 			Sleep(Parameter.FileRefreshTime);
@@ -515,7 +515,7 @@ bool ICMPTestRequest(
 				}
 			}
 
-		//Increase Sequence.
+		//Increase sequence.
 			if (ntohs(Parameter.ICMP_Sequence) == DEFAULT_SEQUENCE)
 			{
 				if (Protocol == AF_INET6)
@@ -689,7 +689,7 @@ size_t UDPRequestSingle(
 	}
 
 //Socket selecting
-	ssize_t RecvLen = SocketSelectingOnce(RequestType, IPPROTO_UDP, UDPSocketDataList, nullptr, OriginalSend, SendSize, nullptr, 0, nullptr);
+	auto RecvLen = SocketSelectingOnce(RequestType, IPPROTO_UDP, UDPSocketDataList, nullptr, OriginalSend, SendSize, nullptr, 0, nullptr);
 	if (RecvLen != EXIT_SUCCESS)
 	{
 		for (auto &SocketDataIter:UDPSocketDataList)
@@ -717,7 +717,7 @@ size_t UDPRequestMultiple(
 		return EXIT_FAILURE;
 
 //Socket selecting
-	ssize_t RecvLen = SocketSelectingOnce(RequestType, IPPROTO_UDP, UDPSocketDataList, nullptr, OriginalSend, SendSize, nullptr, 0, nullptr);
+	auto RecvLen = SocketSelectingOnce(RequestType, IPPROTO_UDP, UDPSocketDataList, nullptr, OriginalSend, SendSize, nullptr, 0, nullptr);
 	if (RecvLen != EXIT_SUCCESS)
 	{
 		for (auto &SocketDataIter:UDPSocketDataList)

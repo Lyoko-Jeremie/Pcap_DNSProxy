@@ -326,8 +326,8 @@ void DNSCurveSocketPrecomputation(
 
 	//Encryption mode check
 		if (DNSCurveParameter.IsEncryption && 
-			((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
-			(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
+			((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer((*PacketTarget)->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 				goto SkipMain;
 
@@ -380,7 +380,7 @@ void DNSCurveSocketPrecomputation(
 		}
 
 	//Make Precomputation Key between client and server.
-		if (DNSCurveParameter.IsEncryption && DNSCurveParameter.ClientEphemeralKey)
+		if (DNSCurveParameter.IsEncryption && DNSCurveParameter.IsClientEphemeralKey)
 		{
 			if (!DNSCurvePrecomputationKeySetting(*PrecomputationKey, Client_PublicKey, (*PacketTarget)->ServerFingerprint))
 			{
@@ -432,8 +432,8 @@ SkipMain:
 	{
 	//Encryption mode check
 		if (DNSCurveParameter.IsEncryption && 
-			((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
-			(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
+			((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer((*PacketTarget)->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
 			for (auto &SocketDataIter:SocketDataList)
@@ -510,7 +510,7 @@ SkipMain:
 		}
 
 	//Make Precomputation Key between client and server.
-		if (DNSCurveParameter.IsEncryption && DNSCurveParameter.ClientEphemeralKey)
+		if (DNSCurveParameter.IsEncryption && DNSCurveParameter.IsClientEphemeralKey)
 		{
 			if (!DNSCurvePrecomputationKeySetting(*Alternate_PrecomputationKey, Client_PublicKey, (*PacketTarget)->ServerFingerprint))
 			{
@@ -714,7 +714,7 @@ ssize_t DNSCurvePacketDecryption(
 			return EXIT_FAILURE;
 	}
 
-//Responses check
+//Response check
 	DataLength = CheckResponseData(
 		REQUEST_PROCESS_DNSCURVE_MAIN, 
 		OriginalRecv, 
@@ -775,7 +775,7 @@ bool DNSCruveGetSignatureData(
 			{
 				memcpy_s(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, ((pdnscurve_txt_signature)DeBuffer.get())->MagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
 				memcpy_s(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES, ((pdnscurve_txt_signature)DeBuffer.get())->PublicKey, crypto_box_PUBLICKEYBYTES);
-				if (!DNSCurveParameter.ClientEphemeralKey)
+				if (!DNSCurveParameter.IsClientEphemeralKey)
 				{
 					if (crypto_box_beforenm(
 							PacketTarget->PrecomputationKey, 

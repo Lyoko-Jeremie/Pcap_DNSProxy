@@ -17,40 +17,41 @@ https://sourceforge.net/projects/pcap-dnsproxy
 1.準備程式編譯環境：編譯前需要使用包管理工具安裝，或者需要自行編譯和安裝依賴庫
   * 依賴工具/庫清單：
     * GCC/g++ 可訪問 https://gcc.gnu.org 獲取
-      * GCC 建議最低版本為 4.9 從此版本開始 GCC 完整支援 C++ 11 標準，4.9 之前的版本對 C++ 11 標準的實現有問題
+      * GCC 最低版本要求為 4.9 從此版本開始 GCC 完整支援 C++ 11 標準，4.9 之前的版本對 C++ 11 標準的實現有問題
       * GCC 當前版本可使用 gcc --version 查看，使用舊版本 GCC 強行編譯可能會出現無法預料的問題！
-    * Bison 可訪問 https://www.gnu.org/software/bison 獲取
-    * M4 可訪問 https://www.gnu.org/software/m4 獲取
-    * Flex 可訪問 http://flex.sourceforge.net 獲取
     * CMake 可訪問 https://cmake.org 獲取
-    * LibPcap 可訪問 http://www.tcpdump.org/#latest-release 獲取
+    * LibPcap 可訪問 HTTP://www.tcpdump.org/#latest-release 獲取
+      * 編譯時如果剝離 LibPcap 的依賴則可跳過編譯和安裝下表的依賴庫和工具，具體參見下文的介紹，不建議使用
       * 獲得 root 許可權後使用 ./configure -> make -> make install 即可
-      * 部分 Linux 發行版本可能還需要 LibPcap-Dev 工具的支援
+      * 部分 Linux 發行版本可能還需要 libpcap-dev 工具的支援，以及運行 ldconfig 刷新系統庫緩存
     * Libsodium 可訪問 https://github.com/jedisct1/libsodium 獲取
       * 編譯時如果剝離 Libsodium 的依賴則可跳過編譯和安裝下表的依賴庫和工具，具體參見下文的介紹，不建議使用
-      * Libsodium 的編譯和安裝依賴 Automake/Autoconf 套裝工具：
-        * aclocal
-        * autoscan
-        * autoconf 可訪問 https://www.gnu.org/software/autoconf 獲取
-        * autoheader
-        * automake 可訪問 https://www.gnu.org/software/automake 獲取
-        * libtool 可訪問 https://www.gnu.org/software/libtool 獲取
       * 獲得 root 許可權後進入目錄，運行 ./autogen.sh -> ./configure -> make -> make install 即可
-      * 部分 Linux 發行版本可能還需要 Libsodium-Dev 工具的支援，以及運行 ldconfig 刷新系統庫緩存
+      * 部分 Linux 發行版本可能還需要 libsodium-dev 工具的支援，以及運行 ldconfig 刷新系統庫緩存
+    * OpenSSL 可訪問 https://www.openssl.org 獲取
+      * 編譯時如果剝離 OpenSSL 的依賴則可跳過編譯和安裝下表的依賴庫和工具，具體參見下文的介紹，不建議使用
+      * 獲得 root 許可權後使用 ./configure [編譯平臺] -> make -> make install 即可
+      * 部分 Linux 發行版本可能還需要 openssl-dev/libssl-dev 工具的支援，以及運行 ldconfig 刷新系統庫緩存
 
 2.編譯 Pcap_DNSProxy 程式並配置程式屬性
   * 切勿更改腳本的換行格式 (UNIX/LF)
   * 使用終端進入 Source/Scripts 目錄，使用 chmod 755 CMake_Build.sh 使腳本獲得執行許可權
   * 使用 ./CMake_Build.sh 執行編譯器
-    * 添加參數 --enable-static 即 ./CMake_Build.sh --enable-static 可啟用靜態編譯
     * 腳本所進行的操作：
       * CMake 將編譯並在 Release 目錄生成 Pcap_DNSProxy 程式
       * 設置 Pcap_DNSProxy 程式以及 PcapDNSProxyService 和 Pcap_DNSProxy.service 服務控制腳本的基本讀寫可執行許可權
       * 設置 Linux_(Un)Install.Systemd.sh 以及 Linux_(Un)Install.SysV.sh 服務控制安裝腳本的基本讀寫可執行許可權
       * 從 ExampleConfig 複製預設設定檔到 Release 目錄
+    * 添加參數 --enable-static 即 ./CMake_Build.sh --enable-static 可啟用靜態編譯
+    * 執行時使用 ./CMake_Build.sh --disable-libpcap 可剝離對 LibPcap 的依賴，不建議使用
+      * 剝離後編譯時將不需要 LibPcap 庫的支援
+      * 剝離後程式將完全失去支援 LibPcap 的功能，且運行時將不會產生任何錯誤提示，慎用！
     * 執行時使用 ./CMake_Build.sh --disable-libsodium 可剝離對 Libsodium 的依賴，不建議使用
       * 剝離後編譯時將不需要 Libsodium 庫的支援
       * 剝離後程式將完全失去支援 DNSCurve/DNSCrypt 協定的功能，且運行時將不會產生任何錯誤提示，慎用！
+    * 執行時使用 ./CMake_Build.sh --disable-tls 可剝離對 OpenSSL 的依賴，不建議使用
+      * 剝離後編譯時將不需要 OpenSSL 庫的支援
+      * 剝離後程式將完全失去支援 TLS/SSL 協定的功能，且運行時將不會產生任何錯誤提示，慎用！
 
 3.配置系統守護進程服務
   * 由於不同的 Linux 發行版本對系統服務和守護進程的處理方式不同，本步僅供參考

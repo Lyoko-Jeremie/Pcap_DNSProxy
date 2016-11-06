@@ -752,7 +752,7 @@ typedef struct _icmp_hdr_
 	uint16_t               Checksum;
 	uint16_t               ID;
 	uint16_t               Sequence;
-//ICMP Timestamp option is defalut set ON in Linux and Mac OS X.
+//ICMP Timestamp option is defalut enable in Linux and Mac OS X/macOS.
 #if defined(PLATFORM_LINUX)
 	uint64_t               Timestamp;
 	uint64_t               Nonce;
@@ -786,7 +786,7 @@ typedef struct _icmpv6_hdr_
 	uint16_t               Checksum;
 	uint16_t               ID;
 	uint16_t               Sequence;
-//ICMPv6 Timestamp option is defalut set ON in Linux and Mac OS X.
+//ICMPv6 Timestamp option is defalut enable in Linux and Mac OS X/macOS.
 #if defined(PLATFORM_LINUX)
 	uint64_t               Timestamp;
 	uint64_t               Nonce;
@@ -2752,3 +2752,25 @@ typedef struct _socks_udp_relay_request_
 //	uint8_t               *Remote_Address;
 //	uint16_t              Remote_Port;
 }socks_udp_relay_request, *psocks_udp_relay_request;
+
+
+#if defined(ENABLE_TLS)
+//TLS Protocol part
+//TLS base record
+/*
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+| Content Type  |            Version            |    Length     /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/    Length     /                    Payload                    /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+-+-+-+-+-+-+-++-+-+-+-+-+-+
+
+*/
+typedef struct _tls_base_record_
+{
+	uint8_t               ContentType;
+	uint16_t              Version;
+	uint16_t              Length;
+}tls_base_record, *ptls_base_record;
+#endif

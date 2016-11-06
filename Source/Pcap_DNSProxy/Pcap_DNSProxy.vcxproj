@@ -272,6 +272,7 @@
     <ClInclude Include="Service.h" />
     <ClInclude Include="Structure.h" />
     <ClInclude Include="Template.h" />
+    <ClInclude Include="TransportSecurity.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Base.cpp" />
@@ -293,6 +294,7 @@
     <ClCompile Include="ReadParameter.cpp" />
     <ClCompile Include="Request.cpp" />
     <ClCompile Include="Service.cpp" />
+    <ClCompile Include="TransportSecurity.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

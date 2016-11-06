@@ -26,19 +26,30 @@ extern GLOBAL_STATUS GlobalRunningStatus;
 //Functions
 bool SOCKS_Selection_Exchange(
 	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingDataList, 
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
 	std::vector<ssize_t> &ErrorCodeList);
 bool SOCKS_Authentication_Exchange(
 	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingDataList, 
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
 	std::vector<ssize_t> &ErrorCodeList);
 bool SOCKS_Client_Command_Request(
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingDataList, 
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
 	std::vector<ssize_t> &ErrorCodeList, 
 	SOCKET_DATA * const UDP_ASSOCIATE_Address);
+bool HTTP_CONNECT_Handshake(
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList, 
+	void *TLS_Context);
 bool HTTP_CONNECT_Exchange(
 	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<SOCKET_SELECTING_DATA> &SocketSelectingDataList, 
-	std::vector<ssize_t> &ErrorCodeList);
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList, 
+	void *TLS_Context);
+size_t HTTP_CONNECT_Transport(
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList, 
+	void *TLS_Context);

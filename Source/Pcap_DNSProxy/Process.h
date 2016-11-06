@@ -35,9 +35,9 @@ bool LocalRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
-bool SOCKSRequestProcess(
+bool SOCKS_RequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData);
-bool HTTPCONNECTRequestProcess(
+bool HTTP_CONNECT_RequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData);
 bool DirectRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
@@ -50,12 +50,12 @@ bool DNSCurveRequestProcess(
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
 #endif
-bool TCPRequestProcess(
+bool TCP_RequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
 #if defined(ENABLE_PCAP)
-void UDPRequestProcess(
+void UDP_RequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData);
 #endif
 uint16_t SelectNetworkProtocol(

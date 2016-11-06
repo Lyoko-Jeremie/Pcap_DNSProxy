@@ -199,7 +199,7 @@ bool EnterRequestProcess(
 	if (Parameter.SOCKS_Proxy)
 	{
 	//SOCKS request
-		if (SOCKSRequestProcess(MonitorQueryData))
+		if (SOCKS_RequestProcess(MonitorQueryData))
 			return true;
 
 	//SOCKS Proxy Only mode
@@ -220,7 +220,7 @@ bool EnterRequestProcess(
 	if (Parameter.HTTP_CONNECT_Proxy)
 	{
 	//HTTP CONNECT request
-		if (HTTPCONNECTRequestProcess(MonitorQueryData))
+		if (HTTP_CONNECT_RequestProcess(MonitorQueryData))
 			return true;
 
 	//HTTP CONNECT Proxy Only mode
@@ -282,7 +282,7 @@ SkipDNSCurve:
 
 //TCP request process
 	if ((Parameter.RequestMode_Transport == REQUEST_MODE_TCP || MonitorQueryData.first.Protocol == IPPROTO_TCP) && 
-		TCPRequestProcess(MonitorQueryData, RecvBuffer, RecvSize))
+		TCP_RequestProcess(MonitorQueryData, RecvBuffer, RecvSize))
 			return true;
 
 //Direct request when Pcap Capture module is not available.
@@ -308,7 +308,7 @@ SkipDNSCurve:
 		RecvBufferPTR.reset();
 
 //UDP request
-	UDPRequestProcess(MonitorQueryData);
+	UDP_RequestProcess(MonitorQueryData);
 	return true;
 #endif
 }
@@ -478,7 +478,7 @@ size_t CheckHostsProcess(
 
 //Domain Name Reservation Considerations for "test."
 //RFC 6761, Special-Use Domain Names(https://tools.ietf.org/html/rfc6761)
-// Caching DNS servers SHOULD recognize test names as special and SHOULD NOT, by default, attempt to look up NS records for them, 
+//Caching DNS servers SHOULD recognize test names as special and SHOULD NOT, by default, attempt to look up NS records for them, 
 // or otherwise query authoritative DNS servers in an attempt to resolve test names. Instead, caching DNS servers SHOULD, by
 // default, generate immediate negative responses for all such queries. This is to avoid unnecessary load on the root name
 // servers and other name servers.  Caching DNS servers SHOULD offer a configuration option (disabled by default) to enable upstream
@@ -554,11 +554,11 @@ size_t CheckHostsProcess(
 
 //Domain Name Reservation Considerations for Example Domains
 //RFC 6761, Special-Use Domain Names(https://tools.ietf.org/html/rfc6761)
-// The domains "example.", "example.com.", "example.net.", "example.org.", and any names falling within those domains.
+//The domains "example.", "example.com.", "example.net.", "example.org.", and any names falling within those domains.
 // Caching DNS servers SHOULD NOT recognize example names as special and SHOULD resolve them normally.
 
 //PTR Records
-//LLMNR protocol of Mac OS X powered by mDNS with PTR records
+//LLMNR protocol of Mac OS X and macOS powered by mDNS with PTR records
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	if (ntohs(DNS_Query->Type) == DNS_TYPE_PTR && Parameter.LocalServer_Length + Packet->Length <= ResultSize)
 	{
@@ -974,7 +974,7 @@ bool LocalRequestProcess(
 }
 
 //Request Process(SOCKS part)
-bool SOCKSRequestProcess(
+bool SOCKS_RequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData)
 {
 	std::shared_ptr<uint8_t> RecvBuffer;
@@ -1032,7 +1032,7 @@ bool SOCKSRequestProcess(
 }
 
 //Request Process(HTTP CONNECT part)
-bool HTTPCONNECTRequestProcess(
+bool HTTP_CONNECT_RequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData)
 {
 //EDNS switching(Part 1)
@@ -1206,7 +1206,7 @@ bool DNSCurveRequestProcess(
 #endif
 
 //Request Process(TCP part)
-bool TCPRequestProcess(
+bool TCP_RequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize)
@@ -1273,7 +1273,7 @@ uint16_t SelectNetworkProtocol(
 
 //Request Process(UDP part)
 #if defined(ENABLE_PCAP)
-void UDPRequestProcess(
+void UDP_RequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData)
 {
 //EDNS switching(Part 1)

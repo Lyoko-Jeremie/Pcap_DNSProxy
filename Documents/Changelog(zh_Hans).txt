@@ -1,9 +1,9 @@
-﻿Pcap_DNSProxy 0.4.7.7 更新日志(2016-10-22)：
+﻿Pcap_DNSProxy 0.4.7.7-0.4.7.8 更新日志(2016-11-06)：
 
 * 添加 Large Buffer Size 参数，用于指定大型数据缓冲区的固定长度
 * 添加串行请求通讯模块，重写部分网络请求协议
   * 重写 SOCKS Proxy 以及 HTTP CONNECT Proxy 协议实现，解除传输数据量受一次性请求通讯模块固定缓冲区的长度限制
-  * 新增 Reliable Serial Socket Timeout 和 Unrliable Serial Socket Timeout 参数控制串行通讯超时时间
+  * 新增 Reliable Serial Socket Timeout 和 Unreliable Serial Socket Timeout 参数控制串行通讯超时时间
   * HTTP Proxy 改名为 HTTP CONNECT Proxy
   * HTTP Protocol 改名为 HTTP CONNECT Protocol
   * HTTP Proxy Only 改名为 HTTP CONNECT Proxy Only
@@ -14,20 +14,57 @@
   * HTTP Header Field 改名为 HTTP CONNECT Header Field
   * HTTP Proxy Authorization 改名为 HTTP CONNECT Proxy Authorization
   * 移除 HTTP Socket Timeout/SOCKS Reliable Socket Timeout/SOCKS Unreliable Socket Timeout 参数
+* 添加实验性 HTTP CONNECT Tunnel 单独 TLS/SSL 握手和加密传输的能力
+  * TLS/SSL 握手和加密传输由 SSPI/SChannel(Windows) 和 OpenSSL(Linux) 支持
+    * 此功能暂时不支持 Mac 平台
+    * 此功能暂时不支持高于 OpenSSL 1.1.0 的版本
+  * 添加 HTTP CONNECT TLS Handshake 参数，用于开启 TLS 握手功能
+  * 添加 HTTP CONNECT TLS Version 参数，用于指定所使用的 TLS 版本
+  * 添加 HTTP CONNECT TLS Validation 参数，用于选择是否验证 TLS 服务器证书链
+  * 添加 HTTP CONNECT TLS Server Name Indication 参数，用于指定 TLS 握手时所使用的域名
+* 配置文件版本要求升级到 0.45
+  * Protocol 改名为 Output Protocol
+  * Reliable Socket Timeout 改名为 Reliable Once Socket Timeout
+  * Unreliable Socket Timeout 改名为 Unreliable Once Socket Timeout
+  * Encryption 改名为 DNSCurve Encryption
+  * Encryption Only 改名为 DNSCurve Encryption Only
+  * Client Ephemeral Key 改名为 DNSCurve Client Ephemeral Key
+  * Key Recheck Time 改名为 DNSCurve Key Recheck Time
+  * Client Public Key 改名为 DNSCurve Client Public Key
+  * Client Secret Key 改名为 DNSCurve Client Secret Key
+  * IPv4 DNS Public Key 改名为 DNSCurve IPv4 DNS Public Key
+  * IPv4 Alternate DNS Public Key 改名为 DNSCurve IPv4 Alternate DNS Public Key
+  * IPv6 DNS Public Key 改名为 DNSCurve IPv6 DNS Public Key
+  * IPv6 Alternate DNS Public Key 改名为 DNSCurve IPv6 Alternate DNS Public Key
+  * IPv4 DNS Fingerprint 改名为 DNSCurve IPv4 DNS Fingerprint
+  * IPv4 Alternate DNS Fingerprint 改名为 DNSCurve IPv4 Alternate DNS Fingerprint
+  * IPv6 DNS Fingerprint 改名为 DNSCurve IPv6 DNS Fingerprint
+  * IPv6 Alternate DNS Fingerprint 改名为 DNSCurve IPv6 Alternate DNS Fingerprint
+  * IPv4 Receive Magic Number 改名为 DNSCurve IPv4 Receive Magic Number
+  * IPv4 Alternate Receive Magic Number 改名为 DNSCurve IPv4 Alternate Receive Magic Number
+  * IPv6 Receive Magic Number 改名为 DNSCurve IPv6 Receive Magic Number
+  * IPv6 Alternate Receive Magic Number 改名为 DNSCurve IPv6 Alternate Receive Magic Number
+  * IPv4 DNS Magic Number 改名为 DNSCurve IPv4 DNS Magic Number
+  * IPv4 Alternate DNS Magic Number 改名为 DNSCurve IPv4 Alternate DNS Magic Number
+  * IPv6 DNS Magic Number 改名为 DNSCurve IPv6 DNS Magic Number
+  * IPv6 Alternate DNS Magic Number 改名为 DNSCurve IPv6 Alternate DNS Magic Number
 * 修复 SOCKS 4/4a 协议不能工作的问题
+* 修复 HTTP CONNECT Proxy 无法正确进行 Basic 验证的问题
+* 修复错误报告提供的错误代码格式错误的问题
+* 修复错误详细信息有时可能缺少最后一个字符的问题 (Windows)
 * 修复 CMake 编译提示宏重定义的问题 (Mac)
 * 提供 SHA-2(256)/SHA256 文件校验值，淘汰 SHA-1 算法
 * Release Hash:
-  * SHA-2(256):
-    * Windows/Pcap_DNSProxy.exe: 10AFCBA7C06B93AEAFA25D077614027E0DCCCB519A0A63DA15CDB6686F6F79AF
-    * Windows/Pcap_DNSProxy_x86.exe: AE07893DC2516ABFF3FB5B49580AC1A1CFCC6557AAF0A7BCC696B7B056D4566E
-    * Windows/Pcap_DNSProxy_XP.exe: D767C4B8242CFD870481227814651B0CA826C91EBEA43340AF507D8EC2BF7DEA
-    * Mac/Pcap_DNSProxy: 243B55DDB05D3793F98EA6191D4405932112033FBF2AFF3A64A15D51D768266D
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe: 47E34A2027CC9E189FC2272AFBB3DDEFC240AEBEF9F70F4BC973F123D097D600
-    * Windows/Pcap_DNSProxy_x86.exe: 6042923500261A6898B3505CB68AD0BFF9DFAC591A8B4104CA27289366A01E7C
-    * Windows/Pcap_DNSProxy_XP.exe: 585850BF970BB13624B7BF36E9A2B86984608038AF482BC92C0018015C148BED
-    * Mac/Pcap_DNSProxy: 941600E779C4AE0FE730DA4DFA617ACDC0BCB652DD708474DEFA1B3AA9EE95B7
+    * Windows/Pcap_DNSProxy.exe: AE95B9AC3B3EF005ACBDD2D225768A21B98DAFB6E31E40F707A8C8E64496BB14
+    * Windows/Pcap_DNSProxy_x86.exe: 91A4E440B05043A2E6921891F22B04848E4435140B6F913A83FA9E18F986F8AE
+    * Windows/Pcap_DNSProxy_XP.exe: F6F50F7C26203817D1A7EC3A53CCE22382D26135D206536A13A24CF48D8DA556
+    * Mac/Pcap_DNSProxy: 878C79920F40836E75E213E19F2EBEE41F9B8FFDACDE3AC515B71AC55B4E7F26
+  * SHA-2(256):
+    * Windows/Pcap_DNSProxy.exe: E124F58EBA9A25C19141889A0A636A51C676574768282756A4D679C41746B6EF
+    * Windows/Pcap_DNSProxy_x86.exe: 2CE9DA2DAA7D0261B1650BDAF3DF597DFF6DFF304439EF694CCF5FA411173721
+    * Windows/Pcap_DNSProxy_XP.exe: 79BF5CB3BFF408CE74CE6529DF91DBBC7DE029CF1B72565E3C14F0ED9060E1BE
+    * Mac/Pcap_DNSProxy: 2C79676D861FF7B84FA4AE159480787BBED8631C69345324F3E18C6869BE0CB1
 
 
 -------------------------------------------------------------------------------

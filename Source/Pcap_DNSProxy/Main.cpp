@@ -52,8 +52,7 @@ int main(
 //Main process initialization
 #if defined(PLATFORM_WIN)
 	const SERVICE_TABLE_ENTRYW ServiceTable[]{{SYSTEM_SERVICE_NAME, (LPSERVICE_MAIN_FUNCTIONW)ServiceMain}, {nullptr, nullptr}}; //Service beginning
-	if (StartServiceCtrlDispatcherW(
-			ServiceTable) == 0)
+	if (StartServiceCtrlDispatcherW(ServiceTable) == 0)
 	{
 	//Print to screen.
 		std::wstring Message(L"[System Error] Service start error");
@@ -66,7 +65,7 @@ int main(
 			PrintToScreen(false, L"[Notice] Please ignore these error messages if you want to run in console mode.\n\n");
 		}
 		else {
-			ErrorCodeToMessage(GetLastError(), Message);
+			ErrorCodeToMessage(LOG_ERROR_SYSTEM, GetLastError(), Message);
 			Message.append(L".\n");
 			std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 			PrintToScreen(false, Message.c_str(), GetLastError());
@@ -220,7 +219,7 @@ bool ReadCommands(
 	//Print library version.
 		else if (Commands == COMMAND_LIB_VERSION)
 		{
-		#if (defined(ENABLE_LIBSODIUM) || defined(ENABLE_PCAP))
+		#if (defined(ENABLE_LIBSODIUM) || defined(ENABLE_PCAP) || defined(ENABLE_TLS))
 			std::wstring LibVersion;
 
 			//LibSodium version
@@ -237,6 +236,16 @@ bool ReadCommands(
 					PrintToScreen(true, L"%ls\n", LibVersion.c_str());
 				else 
 					PrintToScreen(true, L"[System Error] Convert multiple byte or wide char string error.\n");
+			#endif
+
+			//OpenSSL version
+			#if defined(ENABLE_TLS)
+			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				if (MBSToWCSString((const uint8_t *)SSLeay_version(SSLEAY_VERSION), strnlen(SSLeay_version(SSLEAY_VERSION), OPENSSL_STATIC_BUFFER_SIZE), LibVersion))
+					PrintToScreen(true, L"%ls\n", LibVersion.c_str());
+				else 
+					PrintToScreen(true, L"[System Error] Convert multiple byte or wide char string error.\n");
+			#endif
 			#endif
 		#else
 			PrintToScreen(true, L"[Notice] No any available libraries.\n");

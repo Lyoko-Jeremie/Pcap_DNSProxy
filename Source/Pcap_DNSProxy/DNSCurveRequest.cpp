@@ -57,8 +57,8 @@ void DNSCurveInit(
 		if (DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //Auto select and IPv6
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0)) && //Non-IPv4
-			((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
-			(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
+			((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
 			std::thread DNSCurveTCPSignatureRequestThread(std::bind(DNSCurveTCPSignatureRequest, AF_INET6, false));
@@ -69,8 +69,8 @@ void DNSCurveInit(
 		if (DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //Auto select and IPv4
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0)) && //Non-IPv6
-			((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
-			(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
+			((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
 			std::thread DNSCurveTCPSignatureRequestThread(std::bind(DNSCurveTCPSignatureRequest, AF_INET, false));
@@ -81,8 +81,8 @@ void DNSCurveInit(
 		if (DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //Auto select and IPv6
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0)) && //Non-IPv4
-			((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
-			(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
+			((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
 			std::thread DNSCurveTCPSignatureRequestThread(std::bind(DNSCurveTCPSignatureRequest, AF_INET6, true));
@@ -93,8 +93,8 @@ void DNSCurveInit(
 		if (DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //Auto select and IPv4
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0)) && //Non-IPv6
-			((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
-			(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
+			((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
 			std::thread DNSCurveTCPSignatureRequestThread(std::bind(DNSCurveTCPSignatureRequest, AF_INET, true));
@@ -107,8 +107,8 @@ void DNSCurveInit(
 	if (DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //Auto select and IPv6
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0)) && //Non-IPv4
-		((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
-		(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
+		((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+		(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
 		std::thread DNSCurveUDPSignatureRequestThread(std::bind(DNSCurveUDPSignatureRequest, AF_INET6, false));
@@ -119,8 +119,8 @@ void DNSCurveInit(
 	if (DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //Auto select and IPv4
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0)) && //Non-IPv6
-		((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
-		(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
+		((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+		(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
 		std::thread DNSCurveUDPSignatureRequestThread(std::bind(DNSCurveUDPSignatureRequest, AF_INET, false));
@@ -131,8 +131,8 @@ void DNSCurveInit(
 	if (DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //Auto select and IPv6
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0)) && //Non-IPv4
-		((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
-		(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
+		((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+		(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
 		std::thread DNSCurveUDPSignatureRequestThread(std::bind(DNSCurveUDPSignatureRequest, AF_INET6, true));
@@ -143,8 +143,8 @@ void DNSCurveInit(
 	if (DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH || DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //Auto select and IPv4
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0)) && //Non-IPv6
-		((!DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
-		(DNSCurveParameter.ClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
+		((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+		(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
 		std::thread DNSCurveUDPSignatureRequestThread(std::bind(DNSCurveUDPSignatureRequest, AF_INET, true));
@@ -463,7 +463,7 @@ size_t DNSCurveTCPRequestSingle(
 	uint8_t *Client_PublicKey = nullptr, *PrecomputationKey = nullptr;
 	std::shared_ptr<uint8_t> Client_PublicKey_PTR;
 	DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> PrecomputationKeyPTR;
-	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.ClientEphemeralKey)
+	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.IsClientEphemeralKey)
 	{
 		std::shared_ptr<uint8_t> Client_PublicKey_PTR_Temp(new uint8_t[crypto_box_PUBLICKEYBYTES]());
 		Client_PublicKey_PTR.swap(Client_PublicKey_PTR_Temp);
@@ -507,7 +507,7 @@ size_t DNSCurveTCPRequestSingle(
 
 	TCPSocketSelectingData.SendBuffer = SendBuffer;
 	TCPSocketSelectingData.SendSize = RecvLen;
-	TCPSocketSelectingData.Length = 0;
+	TCPSocketSelectingData.RecvLen = 0;
 	TCPSocketSelectingData.IsPacketDone = false;
 	TCPSocketSelectingList.push_back(TCPSocketSelectingData);
 
@@ -535,7 +535,7 @@ size_t DNSCurveTCPRequestMultiple(
 //Key initialization
 	uint8_t *PrecomputationKey = nullptr, *Alternate_PrecomputationKey = nullptr;
 	DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> PrecomputationKeyPTR, Alternate_PrecomputationKeyPTR;
-	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.ClientEphemeralKey)
+	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.IsClientEphemeralKey)
 	{
 		DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> PrecomputationKeyPTR_Temp(crypto_box_BEFORENMBYTES), Alternate_PrecomputationKeyPTR_Temp(crypto_box_BEFORENMBYTES);
 
@@ -591,7 +591,7 @@ size_t DNSCurveTCPRequestMultiple(
 			TCPSocketSelectingList.at(Index).SendSize = DataLength;
 		}
 
-		TCPSocketSelectingList.at(Index).Length = 0;
+		TCPSocketSelectingList.at(Index).RecvLen = 0;
 		TCPSocketSelectingList.at(Index).IsPacketDone = false;
 	}
 
@@ -640,7 +640,7 @@ size_t DNSCurveUDPRequestSingle(
 //Make Precomputation Key between client and server.
 	uint8_t *Client_PublicKey = nullptr, *PrecomputationKey = nullptr;
 	std::shared_ptr<uint8_t> Client_PublicKey_PTR, PrecomputationKeyPTR;
-	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.ClientEphemeralKey)
+	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.IsClientEphemeralKey)
 	{
 		std::shared_ptr<uint8_t> Client_PublicKey_PTR_Temp(new uint8_t[crypto_box_PUBLICKEYBYTES]()), PrecomputationKeyPTR_Temp(new uint8_t[crypto_box_BEFORENMBYTES]());
 		Client_PublicKey_PTR.swap(Client_PublicKey_PTR_Temp);
@@ -687,7 +687,7 @@ size_t DNSCurveUDPRequestSingle(
 		UDPSocketSelectingData.SendSize = SendSize;
 	}
 
-	UDPSocketSelectingData.Length = 0;
+	UDPSocketSelectingData.RecvLen = 0;
 	UDPSocketSelectingData.IsPacketDone = false;
 	UDPSocketSelectingList.push_back(UDPSocketSelectingData);
 
@@ -715,7 +715,7 @@ size_t DNSCurveUDPRequestMultiple(
 //Key initialization
 	uint8_t *PrecomputationKey = nullptr, *Alternate_PrecomputationKey = nullptr;
 	DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> PrecomputationKeyPTR, Alternate_PrecomputationKeyPTR;
-	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.ClientEphemeralKey)
+	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.IsClientEphemeralKey)
 	{
 		DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> PrecomputationKeyPTR_Temp(crypto_box_BEFORENMBYTES), Alternate_PrecomputationKeyPTR_Temp(crypto_box_BEFORENMBYTES);
 
@@ -771,7 +771,7 @@ size_t DNSCurveUDPRequestMultiple(
 			UDPSocketSelectingList.at(Index).SendSize = SendSize;
 		}
 
-		UDPSocketSelectingList.at(Index).Length = 0;
+		UDPSocketSelectingList.at(Index).RecvLen = 0;
 		UDPSocketSelectingList.at(Index).IsPacketDone = false;
 	}
 

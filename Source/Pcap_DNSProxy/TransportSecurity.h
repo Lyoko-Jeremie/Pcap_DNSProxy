@@ -16,29 +16,26 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-
 #include "Base.h"
 
+#if defined(ENABLE_TLS)
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
-extern GLOBAL_STATUS GlobalRunningStatus;
-extern ALTERNATE_SWAP_TABLE AlternateSwapList;
-#if defined(ENABLE_LIBSODIUM)
-extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
-#endif
-extern std::deque<SOCKET_MARKING_DATA> SocketMarkingList;
-#if defined(ENABLE_PCAP)
-extern std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
-extern std::mutex OutputPacketListLock;
-#endif
-extern std::mutex SocketMarkingLock;
 
+#if defined(PLATFORM_WIN)
 //Functions
-ssize_t SelectingResultOnce(
-	const size_t RequestType, 
-	const uint16_t Protocol, 
+bool SSPI_HandshakeLoop(
+	SSPI_HANDLE_TABLE &SSPI_Handle, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<SOCKET_SELECTING_ONCE_DATA> *SocketSelectingList, 
-	void * const OriginalDNSCurveSocketSelectingList, 
-	uint8_t * const OriginalRecv, 
-	const size_t RecvSize);
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList);
+bool SSPI_GetStreamSize(
+	SSPI_HANDLE_TABLE &SSPI_Handle);
+bool SSPI_EncryptPacket(
+	SSPI_HANDLE_TABLE &SSPI_Handle, 
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList);
+bool SSPI_DecryptPacket(
+	SSPI_HANDLE_TABLE &SSPI_Handle, 
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList);
+#endif
+#endif

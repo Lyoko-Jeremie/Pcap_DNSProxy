@@ -42,6 +42,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
 1.准备程序编译环境
   * Homebrew 可访问 http://brew.sh 获取
   * CMake 可访问 https://cmake.org 或通过 Homebrew 获取
+  * LibPcap 可访问 http://www.tcpdump.org/#latest-release 获取
+    * 编译时如果剥离 LibPcap 的依赖则可跳过编译和安装下表的依赖库和工具，具体参见下文的介绍，不建议使用
+    * 获得 root 权限后使用 ./configure -> make -> make install 即可
   * Libsodium 可访问 https://github.com/jedisct1/libsodium 获取
     * 编译时如果剥离 Libsodium 的依赖则可跳过编译和安装下表的依赖库和工具，具体参见下文的介绍，不建议使用
     * 获得 root 权限后进入目录，运行 ./autogen.sh -> ./configure -> make -> make install 即可
@@ -50,12 +53,15 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 切勿更改脚本的换行格式 (UNIX/LF)
   * 使用终端进入 Source/Scripts 目录，使用 chmod 755 CMake_Build.sh 使脚本获得执行权限
   * 使用 ./CMake_Build.sh 执行编译程序
-    * 添加参数 --enable-static 即 ./CMake_Build.sh --enable-static 可启用静态编译
     * 脚本所进行的操作：
       * CMake 将编译并在 Release 目录生成 Pcap_DNSProxy 程序
       * 设置 Pcap_DNSProxy 程序以及 pcap_dnsproxy.service.plist 服务控制脚本的基本读写可执行权限
       * 设置 Mac_(Un)Install.sh 服务控制安装脚本的基本读写可执行权
       * 从 ExampleConfig 复制默认配置文件到 Release 目录
+    * 添加参数 --enable-static 即 ./CMake_Build.sh --enable-static 可启用静态编译
+    * 执行时使用 ./CMake_Build.sh --disable-libpcap 可剥离对 LibPcap 的依赖，不建议使用
+      * 剥离后编译时将不需要 LibPcap 库的支持
+      * 剥离后程序将完全失去支持 LibPcap 的功能，且运行时将不会产生任何错误提示，慎用！
     * 执行时使用 ./CMake_Build.sh --disable-libsodium 可剥离对 Libsodium 的依赖，不建议使用
       * 剥离后编译时将不需要 Libsodium 库的支持
       * 剥离后程序将完全失去支持 DNSCurve/DNSCrypt 协议的功能，且运行时将不会产生任何错误提示，慎用！

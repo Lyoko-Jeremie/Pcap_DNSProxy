@@ -92,7 +92,7 @@ bool WCSToMBSString(
 	const size_t MaxLen, 
 	std::string &Target)
 {
-//Check buffer.
+//Check buffer pointer.
 	Target.clear();
 	if (Buffer == nullptr || MaxLen == 0)
 		return false;

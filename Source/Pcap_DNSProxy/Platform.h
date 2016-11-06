@@ -147,7 +147,7 @@
 #elif !defined(PLATFORM_UNIX)
 #  define PLATFORM_UNIX
 #endif
-/* Apple Mac OS X Xcode support
+/* Apple Mac OS X/macOS Xcode support
 #if defined(PLATFORM_MACX)
 #  ifdef MAC_OS_X_VERSION_MIN_REQUIRED
 #    undef MAC_OS_X_VERSION_MIN_REQUIRED
@@ -170,7 +170,7 @@
 //////////////////////////////////////////////////
 // Base headers
 // 
-//Linux and Mac OS X compatible definitions(Part 1)
+//Linux and macOS compatible definitions(Part 1)
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 	#define _FILE_OFFSET_BITS   64     //File offset data type size(64 bits).
 #endif
@@ -193,10 +193,10 @@
 #if defined(PLATFORM_WIN)
 //LibSodium header
 	#ifndef ENABLE_LIBSODIUM
-		#define ENABLE_LIBSODIUM               //LibSodium is always enable in Windows.
+		#define ENABLE_LIBSODIUM               //LibSodium always enable in Windows
 	#endif
 	#ifndef SODIUM_STATIC
-		#define SODIUM_STATIC                  //LibSodium preprocessor definitions
+		#define SODIUM_STATIC                  //LibSodium static linking always enable in Windows
 	#endif
 	#if defined(ENABLE_LIBSODIUM)
 		#include "..\\LibSodium\\sodium.h"
@@ -204,7 +204,7 @@
 
 //WinPcap header
 	#ifndef ENABLE_PCAP
-		#define ENABLE_PCAP              //WinPcap is always enable in Windows.
+		#define ENABLE_PCAP              //WinPcap always enable in Windows
 	#endif
 	#ifndef WPCAP
 		#define WPCAP                    //WinPcap preprocessor definitions
@@ -237,13 +237,13 @@
 
 //Part 5 including files(MUST be including after Part 4)
 	#ifndef ENABLE_HTTP
-		#define ENABLE_HTTP
+		#define ENABLE_HTTP                //WinINET always enable in Windows
 	#endif
 	#if defined(ENABLE_HTTP)
 		#include <wininet.h>               //Contains manifests, macros, types and prototypes for Microsoft Windows Internet Extensions
 	#endif
 	#ifndef ENABLE_TLS
-		#define ENABLE_TLS
+		#define ENABLE_TLS                 //SSPI always enable in Windows
 	#endif
 	#if defined(ENABLE_TLS)
 		#define SECURITY_WIN32
@@ -327,27 +327,45 @@
 	#include <sys/time.h>                  //Date and time support
 	#include <sys/types.h>                 //Types support
 
-//LibSodium and LibPcap header
+//Dependency header
 	#if defined(PLATFORM_LINUX)
+	//LibSodium part
 		#if defined(ENABLE_LIBSODIUM)
 			#include <sodium.h>
 		#endif
-		#if defined(ENABLE_PCAP)
-			#include <pcap/pcap.h>
-		#endif
 	#elif defined(PLATFORM_MACX)
+	//LibSodium part
 		#ifndef ENABLE_LIBSODIUM
-			#define ENABLE_LIBSODIUM                   //LibSodium is always enable on Mac OS X.
+			#define ENABLE_LIBSODIUM                   //LibSodium always enable in macOS
 		#endif
 		#ifndef SODIUM_STATIC
-			#define SODIUM_STATIC                      //LibSodium static linking always enable in Windows and Mac OS X
+			#define SODIUM_STATIC                      //LibSodium static linking always enable in macOS
 		#endif
 		#include "../LibSodium/sodium.h"
 		#pragma comment(lib, "../LibSodium/LibSodium_Mac.a")
+
+	//LibPcap part
 		#ifndef ENABLE_PCAP
-			#define ENABLE_PCAP                        //LibPcap is always enable on Mac OS X.
+			#define ENABLE_PCAP                        //LibPcap always enable in macOS.
 		#endif
+
+	//OpenSSL part
+		#ifndef ENABLE_TLS
+//			#define ENABLE_TLS                         //OpenSSL always enable in macOS
+		#endif
+	#endif
+
+	//LibPcap part
+	#if defined(ENABLE_PCAP)
 		#include <pcap/pcap.h>
+	#endif
+
+	//OpenSSL part
+	#if defined(ENABLE_TLS)
+		#include <openssl/bio.h>
+		#include <openssl/conf.h>
+		#include <openssl/err.h>
+		#include <openssl/ssl.h>
 	#endif
 
 //TCP Fast Open support
@@ -433,7 +451,7 @@
 		uint32_t           sin6_scope_id;      //Scope ID (new in 2.4)
 	}sockaddr_in6_Windows;
 
-//Linux and Mac OS X compatible definitions(Part 2)
+//Linux and macOS compatible definitions(Part 2)
 	#define FALSE                    0
 	#define INVALID_SOCKET           (-1)
 	#define SOCKET_ERROR             (-1)

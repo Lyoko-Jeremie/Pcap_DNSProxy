@@ -40,8 +40,11 @@ https://sourceforge.net/projects/pcap-dnsproxy
 安裝方法（編譯二進位可執行檔）：
 
 1.準備程式編譯環境
-  * Homebrew 可訪問 http://brew.sh 獲取
+  * Homebrew 可訪問 HTTP://brew.sh 獲取
   * CMake 可訪問 https://cmake.org 或通過 Homebrew 獲取
+  * LibPcap 可訪問 HTTP://www.tcpdump.org/#latest-release 獲取
+    * 編譯時如果剝離 LibPcap 的依賴則可跳過編譯和安裝下表的依賴庫和工具，具體參見下文的介紹，不建議使用
+    * 獲得 root 許可權後使用 ./configure -> make -> make install 即可
   * Libsodium 可訪問 https://github.com/jedisct1/libsodium 獲取
     * 編譯時如果剝離 Libsodium 的依賴則可跳過編譯和安裝下表的依賴庫和工具，具體參見下文的介紹，不建議使用
     * 獲得 root 許可權後進入目錄，運行 ./autogen.sh -> ./configure -> make -> make install 即可
@@ -50,15 +53,21 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 切勿更改腳本的換行格式 (UNIX/LF)
   * 使用終端進入 Source/Scripts 目錄，使用 chmod 755 CMake_Build.sh 使腳本獲得執行許可權
   * 使用 ./CMake_Build.sh 執行編譯器
-    * 添加參數 --enable-static 即 ./CMake_Build.sh --enable-static 可啟用靜態編譯
     * 腳本所進行的操作：
       * CMake 將編譯並在 Release 目錄生成 Pcap_DNSProxy 程式
       * 設置 Pcap_DNSProxy 程式以及 pcap_dnsproxy.service.plist 服務控制腳本的基本讀寫可執行許可權
       * 設置 Mac_(Un)Install.sh 服務控制安裝腳本的基本讀寫可執行權
       * 從 ExampleConfig 複製預設設定檔到 Release 目錄
+    * 添加參數 --enable-static 即 ./CMake_Build.sh --enable-static 可啟用靜態編譯
+    * 執行時使用 ./CMake_Build.sh --disable-libpcap 可剝離對 LibPcap 的依賴，不建議使用
+      * 剝離後編譯時將不需要 LibPcap 庫的支援
+      * 剝離後程式將完全失去支援 LibPcap 的功能，且運行時將不會產生任何錯誤提示，慎用！
     * 執行時使用 ./CMake_Build.sh --disable-libsodium 可剝離對 Libsodium 的依賴，不建議使用
       * 剝離後編譯時將不需要 Libsodium 庫的支援
       * 剝離後程式將完全失去支援 DNSCurve/DNSCrypt 協定的功能，且運行時將不會產生任何錯誤提示，慎用！
+    * 執行時使用 ./CMake_Build.sh --disable-tls 可剝離對 OpenSSL 的依賴，不建議使用
+      * 剝離後編譯時將不需要 OpenSSL 庫的支援
+      * 剝離後程式將完全失去支援 TLS/SSL 協定的功能，且運行時將不會產生任何錯誤提示，慎用！
 
 3.按照安裝方法（使用已編譯好的二進位可執行檔）中第3步的操作繼續進行即可
 

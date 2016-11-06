@@ -38,7 +38,6 @@ bool AddressStringToBinary(
 		*ErrorCode = 0;
 
 //Convert address.
-//Minimum supported system of inet_ntop function and inet_pton function is Windows Vista. [Roy Tam]
 #if defined(PLATFORM_WIN_XP)
 	sockaddr_storage SockAddr;
 	memset(&SockAddr, 0, sizeof(SockAddr));
@@ -196,7 +195,6 @@ bool BinaryToAddressString(
 		*ErrorCode = 0;
 
 //Convert address.
-//Minimum supported system of inet_ntop function and inet_pton function is Windows Vista. [Roy Tam]
 #if defined(PLATFORM_WIN_XP)
 	sockaddr_storage SockAddr;
 	memset(&SockAddr, 0, sizeof(SockAddr));
@@ -1102,8 +1100,46 @@ bool CheckConnectionStreamFin(
 		if (Length >= sizeof(socks4_server_command_reply))
 			return true;
 	}
+#if defined(ENABLE_TLS)
+//TLS transport
+	else if (RequestType == REQUEST_PROCESS_TLS_HANDSHAKE || RequestType == REQUEST_PROCESS_TLS_TRANSPORT || RequestType == REQUEST_PROCESS_TLS_SHUTDOWN)
+	{
+	//TLS base record scanning
+		if (Length >= sizeof(tls_base_record) && ((tls_base_record *)Stream)->ContentType > 0 && ntohs(((tls_base_record *)Stream)->Version) >= TLS_MIN_VERSION)
+		{
+		//TLS base record format check
+			if (ntohs(((tls_base_record *)Stream)->Length) + sizeof(tls_base_record) == Length)
+			{
+				return true;
+			}
+			else if (ntohs(((tls_base_record *)Stream)->Length) + sizeof(tls_base_record) < Length)
+			{
+			//Scan all TLS base records in whole packet(s).
+				size_t InnerLength = ntohs(((tls_base_record *)Stream)->Length);
+				for (size_t Index = 1U;;++Index)
+				{
+					if (sizeof(tls_base_record) * Index + InnerLength == Length)
+					{
+						return true;
+					}
+					else if (sizeof(tls_base_record) * Index + InnerLength < Length)
+					{
+						if (sizeof(tls_base_record) * (Index + 1U) + InnerLength <= Length)
+							InnerLength += ntohs(((tls_base_record *)(Stream + sizeof(tls_base_record) * Index + InnerLength))->Length);
+						else 
+							break;
+					}
+					else {
+						break;
+					}
+				}
+			}
+		}
+	}
+#endif
 //TCP DNS response
-	else if (Length > sizeof(uint16_t) && ntohs(*((uint16_t *)Stream)) + sizeof(uint16_t) >= Length)
+	else if ((RequestType == REQUEST_PROCESS_SOCKS_MAIN || RequestType == REQUEST_PROCESS_TCP) && 
+		Length > sizeof(uint16_t) && ntohs(*((uint16_t *)Stream)) + sizeof(uint16_t) >= Length)
 	{
 		return true;
 	}
@@ -1307,7 +1343,7 @@ size_t CheckResponseData(
 	//Must not any Non-Question Resource Records when RCode is No Error and not Truncated
 		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) == 0 && (ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NOERROR && 
 		DNS_Header->Answer == 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0) || 
-	//Responses are not authoritative when there are no Authoritative Nameservers Records and Additional Resource Records.
+	//Response are not authoritative when there are no Authoritative Nameservers Records and Additional Resource Records.
 //		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_AA) != 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0) || 
 	//Do query recursively bit must be set when RCode is No Error and there are Answers Resource Records.
 		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RD) == 0 && (ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NOERROR && DNS_Header->Answer == 0) || 
@@ -1330,7 +1366,7 @@ size_t CheckResponseData(
 		((ResponseType == REQUEST_PROCESS_UDP_NORMAL || ResponseType == REQUEST_PROCESS_UDP_NO_MARKING) && Parameter.EDNS_Switch_UDP)))))) //UDP
 			return EXIT_FAILURE;
 
-//Responses question pointer check
+//Response question pointer check
 	if (ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && Parameter.HeaderCheck_DNS)
 	{
 		for (size_t Index = sizeof(dns_hdr);Index < DNS_PACKET_QUERY_LOCATE(Buffer);++Index)

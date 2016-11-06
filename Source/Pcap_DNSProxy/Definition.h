@@ -104,9 +104,9 @@
 #define UNICODE_IDEOGRAPHIC_SPACE                     0x3000                      //Ideographic Space in CJK
 
 //Version definitions
-#define CONFIG_VERSION                                0.4                                   //Current configuration file version
-#define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"
-#define FULL_VERSION                                  L"0.4.7.7"
+#define CONFIG_VERSION                                0.45                                  //Current configuration file version
+#define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"   //Copyright message
+#define FULL_VERSION                                  L"0.4.7.8"                            //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_MAXSIZE                        64U                         //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -170,8 +170,6 @@
 #define CHECKSUM_SUCCESS                              0                           //Result of getting correct checksum.
 #define DYNAMIC_MIN_PORT                              1024U                       //Well-known port is from 1 to 1023.
 #if defined(ENABLE_PCAP)
-//	#define PCAP_READ_TIMEOUT                             0                            //Pcap read timeout with pcap_open_live function has elapsed. In this case pkt_header and pkt_data don't point to a valid packet.
-//	#define PCAP_READ_SUCCESS                             1                            //Pcap packets has been read without problems.
 	#define PCAP_LOOP_INFINITY                            (-1)                         //Pcap packets are processed until another ending condition occurs.
 	#define PCAP_COMPILE_OPTIMIZE                         1                            //Pcap optimization on the resulting code is performed.
 #endif
@@ -198,7 +196,7 @@
 #define DEFAULT_RELIABLE_ONCE_SOCKET_TIMEOUT          3000U                       //Default timeout of reliable once sockets(Such as TCP, 3000 ms/3 seconds)
 #define DEFAULT_RELIABLE_SERIAL_SOCKET_TIMEOUT        1500U                       //Default timeout of reliable serial sockets(Such as TCP, 1500 ms/1.5 second)
 #define DEFAULT_UNRELIABLE_ONCE_SOCKET_TIMEOUT        2000U                       //Default timeout of unreliable once sockets(Such as ICMP/ICMPv6/UDP, 2000 ms/2 seconds)
-#define DEFAULT_UNRELIABLE_SERIAL_SOCKET_TIMEOUT      1000U                       //Default timeout of unreliable serial sockets(Such as ICMP/ICMPv6/UDP, 1000 ms/1 second)
+#define DEFAULT_UNRELIABLE_SERIAL_SOCKET_TIMEOUT      1000U                        //Default timeout of unreliable serial sockets(Such as ICMP/ICMPv6/UDP, 1000 ms/1 second)
 #if defined(ENABLE_LIBSODIUM)
 	#define DEFAULT_DNSCURVE_RECHECK_TIME                 1800U                                    //Default DNSCurve keys recheck time(30 minutes/1800 seconds)
 	#define DEFAULT_DNSCURVE_RELIABLE_SOCKET_TIMEOUT      DEFAULT_RELIABLE_ONCE_SOCKET_TIMEOUT     //Same as default timeout of reliable sockets
@@ -206,8 +204,9 @@
 	#define SHORTEST_DNSCURVE_RECHECK_TIME                10U                                      //The shortset DNSCurve keys recheck time(10 seconds)
 #endif
 #define FLUSH_DNS_CACHE_INTERVAL_TIME                 5U                          //Time between every flushing(5 seconds)
-//#define LOOP_INTERVAL_TIME_MONITOR                    10000U                      //Monitor mode loop interval time(10000 ms/10 seconds)
-//#define LOOP_INTERVAL_TIME_NO_DELAY                   10U                         //No delay mode loop interval time(10 ms)
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	#define LOOP_INTERVAL_TIME_NO_DELAY                   20000U                         //No delay mode loop interval time(20000 us/20 ms)
+#endif
 #define LOOP_MAX_TIMES                                16U                         //Maximum of loop times(16 times)
 #define MICROSECOND_TO_MILLISECOND                    1000U                       //1000 microseconds(1 ms)
 #define SECOND_TO_MILLISECOND                         1000U                       //1000 milliseconds(1 second)
@@ -314,6 +313,9 @@
 #endif
 #define LOG_ERROR_SOCKS                               9U                          // 09: SOCKS Error
 #define LOG_ERROR_HTTP_CONNECT                        10U                         // 10: HTTP CONNECT Error
+#if defined(ENABLE_TLS)
+	#define LOG_ERROR_TLS                                 11U                          // 08: TLS Error
+#endif
 
 //Codes and types definitions
 #define ALTERNATE_TYPE_MAIN_TCP_IPV6                  0
@@ -379,17 +381,22 @@
 //Request process type definitions
 #define REQUEST_PROCESS_LOCAL                         1U
 #define REQUEST_PROCESS_SOCKS_MAIN                    2U
-#define REQUEST_PROCESS_SOCKS_CLIENT_SELECTION        3U
-#define REQUEST_PROCESS_SOCKS_USER_AUTHENTICATION     4U
-#define REQUEST_PROCESS_SOCKS_4_COMMAND_REPLY         5U
-#define REQUEST_PROCESS_SOCKS_5_COMMAND_REPLY         6U
-#define REQUEST_PROCESS_HTTP_CONNECT                  7U
-#define REQUEST_PROCESS_DIRECT                        8U
-#define REQUEST_PROCESS_DNSCURVE_MAIN                 9U
-#define REQUEST_PROCESS_DNSCURVE_SIGN                 10U
-#define REQUEST_PROCESS_TCP                           11U
-#define REQUEST_PROCESS_UDP_NORMAL                    12U
-#define REQUEST_PROCESS_UDP_NO_MARKING                13U
+#define REQUEST_PROCESS_HTTP_CONNECT                  3U
+#define REQUEST_PROCESS_DIRECT                        4U
+#define REQUEST_PROCESS_DNSCURVE_MAIN                 5U
+#define REQUEST_PROCESS_DNSCURVE_SIGN                 6U
+#define REQUEST_PROCESS_TCP                           7U
+#define REQUEST_PROCESS_UDP_NORMAL                    8U
+#define REQUEST_PROCESS_UDP_NO_MARKING                9U
+#define REQUEST_PROCESS_SOCKS_CLIENT_SELECTION        10U
+#define REQUEST_PROCESS_SOCKS_USER_AUTHENTICATION     11U
+#define REQUEST_PROCESS_SOCKS_4_COMMAND_REPLY         12U
+#define REQUEST_PROCESS_SOCKS_5_COMMAND_REPLY         13U
+#if defined(ENABLE_TLS)
+	#define REQUEST_PROCESS_TLS_HANDSHAKE                 14U
+	#define REQUEST_PROCESS_TLS_TRANSPORT                 15U
+	#define REQUEST_PROCESS_TLS_SHUTDOWN                  16U
+#endif
 
 //DNSCurve server type definitions(Do NOT define the same with EXIT_SUCCESS == 0 and EXIT_FAILURE == 1U)
 #if defined(ENABLE_LIBSODIUM)
@@ -397,6 +404,24 @@
 	#define DNSCURVE_MAIN_IPV4                        3U                          //DNSCurve Main(IPv4)
 	#define DNSCURVE_ALTERNATE_IPV6                   4U                          //DNSCurve Alternate(IPv6)
 	#define DNSCURVE_ALTERNATE_IPV4                   5U                          //DNSCurve Alternate(IPv4)
+#endif
+
+//TLS type definitions
+#if defined(ENABLE_TLS)
+	#define TLS_MIN_VERSION                           0x0301                      //TLS 1.0 = SSL 3.1
+	#define TLS_VERSION_AUTO                          0
+	#define TLS_VERSION_1_0                           10U
+	#define TLS_VERSION_1_1                           11U
+	#define TLS_VERSION_1_2                           12U
+	#define TLS_VERSION_1_3                           13U
+	#if defined(PLATFORM_WIN)
+		#define SSPI_SECURE_BUFFER_NUM                    4U
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		#define OPENSSL_VERSION_1_0_1                     0x10001000L
+		#define OPENSSL_VERSION_1_1_0                     0x10100000L
+		#define OPENSSL_STATIC_BUFFER_SIZE                256U
+		#define OPENSSL_STRONG_CIPHER_LIST                ("HIGH:!SSLv2:!SSLv3:!aNULL:!kRSA:!PSK:!SRP:!MD5:!RC4")
+	#endif
 #endif
 
 
@@ -477,16 +502,26 @@ typedef struct _dns_server_data_
 #endif
 }DNSServerData, DNS_SERVER_DATA, *PDNSServerData, *PDNS_SERVER_DATA;
 
-//Socket Selecting Data structure
-typedef struct _socket_selecting_data_
+//Socket Selecting Once Data structure
+typedef struct _socket_selecting_once_data_
+{
+	std::shared_ptr<uint8_t>             RecvBuffer;
+	size_t                               RecvLen;
+	bool                                 IsPacketDone;
+}SocketSelectingOnceData, SOCKET_SELECTING_ONCE_DATA, *PSocketSelectingOnceData, *PSOCKET_SELECTING_ONCE_DATA;
+
+//Socket Selecting Serial Data structure
+typedef struct _socket_selecting_serial_data_
 {
 	std::shared_ptr<uint8_t>             SendBuffer;
 	size_t                               SendSize;
+	size_t                               SendLen;
 	std::shared_ptr<uint8_t>             RecvBuffer;
 	size_t                               RecvSize;
-	size_t                               Length;
+	size_t                               RecvLen;
 	bool                                 IsPacketDone;
-}SocketSelectingData, SOCKET_SELECTING_DATA, *PSocketSelectingData, *PSOCKET_SELECTING_DATA;
+	bool                                 IsSendOnly;
+}SocketSelectingSerialData, SOCKET_SELECTING_SERIAL_DATA, *PSocketSelectingSerialData, *PSOCKET_SELECTING_SERIAL_DATA;
 
 //DNS Packet Data structure
 typedef struct _dns_packet_data_
@@ -541,7 +576,7 @@ typedef struct _dnscurve_socket_selecting_data_
 	uint8_t                              *SendBuffer;
 	size_t                               SendSize;
 	std::shared_ptr<uint8_t>             RecvBuffer;
-	size_t                               Length;
+	size_t                               RecvLen;
 	bool                                 IsPacketDone;
 }DNSCurveSocketSelectingData, DNSCURVE_SOCKET_SELECTING_DATA, *PDNSCurveSocketSelectingData, *PDNSCURVE_SOCKET_SELECTING_DATA;
 #endif
@@ -702,6 +737,17 @@ public:
 	bool                                 HTTP_CONNECT_Only;
 	ADDRESS_UNION_DATA                   HTTP_CONNECT_Address_IPv4;
 	ADDRESS_UNION_DATA                   HTTP_CONNECT_Address_IPv6;
+#if defined(ENABLE_TLS)
+	bool                                 HTTP_CONNECT_TLS_Handshake;
+	size_t                               HTTP_CONNECT_TLS_Version;
+	bool                                 HTTP_CONNECT_TLS_Validation;
+	std::wstring                         *HTTP_CONNECT_TLS_SNI;
+	std::string                          *sHTTP_CONNECT_TLS_SNI;
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	std::string                          *HTTP_CONNECT_TLS_AddressString_IPv4;
+	std::string                          *HTTP_CONNECT_TLS_AddressString_IPv6;
+#endif
+#endif
 	std::string                          *HTTP_CONNECT_TargetDomain;
 	std::string                          *HTTP_CONNECT_Version;
 	std::string                          *HTTP_CONNECT_HeaderField;
@@ -732,6 +778,10 @@ public:
 //Libraries initialization status
 #if defined(PLATFORM_WIN)
 	bool                                 IsWinSockInitialized;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#if defined(ENABLE_TLS)
+	bool                                 IsOpenSSLInitialized;
+#endif
 #endif
 
 //Running status
@@ -917,7 +967,7 @@ public:
 #endif
 	bool                                 IsEncryption;
 	bool                                 IsEncryptionOnly;
-	bool                                 ClientEphemeralKey;
+	bool                                 IsClientEphemeralKey;
 	size_t                               KeyRecheckTime;
 //[DNSCurve Addresses] block
 	uint8_t                              *Client_PublicKey;
@@ -939,4 +989,41 @@ public:
 	~DNSCurveConfigurationTable(
 		void);
 }DNSCURVE_CONFIGURATION_TABLE;
+#endif
+
+#if defined(ENABLE_TLS)
+#if defined(PLATFORM_WIN)
+//SSPI Handle class
+typedef class SSPIHandleTable
+{
+public:
+	CredHandle                           ClientCredentials;
+	CtxtHandle                           ContextHandle;
+	DWORD                                InputFlags;
+	SecPkgContext_StreamSizes            StreamSizes;
+	SECURITY_STATUS                      LastReturnValue;
+
+//Member functions
+	SSPIHandleTable(
+		void);
+	~SSPIHandleTable(
+		void);
+}SSPI_HANDLE_TABLE;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+//OpenSSL Context class
+typedef class OpenSSLContextTable
+{
+public:
+	SSL_CTX                              *MethodContext;
+	BIO                                  *SessionBIO;
+	SSL                                  *SessionData;
+	std::string                          AddressString;
+
+//Member functions
+	OpenSSLContextTable(
+		void);
+	~OpenSSLContextTable(
+		void);
+}OPENSSL_CONTEXT_TABLE;
+#endif
 #endif

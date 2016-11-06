@@ -13,7 +13,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 1.訪問 https://www.winpcap.org/install/default.htm 下載並以管理員許可權安裝 WinPcap
   * WinPcap 只需要安裝一次，以前安裝過最新版本或以後更新本工具時請從第2步開始操作
   * 如果 WinPcap 提示已安裝舊版本無法繼續時，參見 FAQ 中 運行結果分析 一節
-  * 安裝時自啟動選項對工具的運行沒有影響，因為本工具直接調用 WinPcap API，不需要經過伺服器程式
+  * 安裝時自啟動選項對工具的運行沒有影響，本工具直接調用 WinPcap API 不需要經過伺服器程式
 
 2.訪問 https://github.com/chengr28/Pcap_DNSProxy/releases 將二進位可執行檔包下載到本地
   * Windows 版本的 Pcap_DNSProxy 在二進位可執行檔包的 Windows 目錄內，可將整個目錄單獨抽出運行
@@ -119,7 +119,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 強烈建議打開 DNS 緩存功能！
 * 本工具配置選項豐富，配置不同的組合會有不同的效果，介紹幾個比較常用的組合：
   * 預設配置：UDP 請求 + 抓包模式
-  * Protocol = ...TCP：先 TCP 請求失敗後再 UDP 請求 + 抓包模式，對網路資源的佔用比較高
+  * Output Protocol = ...TCP：先 TCP 請求失敗後再 UDP 請求 + 抓包模式，對網路資源的佔用比較高
     * 由於 TCP 請求大部分時候不會被投毒污染，此組合的過濾效果比較可靠
   * EDNS Label = 1：開啟 EDNS 請求標籤功能
     * 此功能開啟後將有利於對偽造資料包的過濾能力，此組合的過濾效果比較可靠
@@ -331,7 +331,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * RESERVED/65535
 
 * DNS - 功能變數名稱解析參數區域
-  * Protocol - 發送請求所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
+  * Output Protocol - 發送請求所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向遠端 DNS 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
     * 同時填入 TCP 和 UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
@@ -523,10 +523,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv6 Alternate DNS Hop Limits - IPv6 備用 DNS 伺服器接受請求的遠端 DNS 伺服器資料包的 Hop Limits 值：0 為自動獲取，取值為 1-255 之間
     * 支援多個 Hop Limits 值，與 IPv6 Alternate DNS Address 相對應
   * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受範圍，即 IPv4 TTL/IPv6 Hop Limits 的值 ± 數值的範圍內的資料包均可被接受，用於避免網路環境短暫變化造成解析失敗的問題：取值為 1-255 之間
-  * Reliable Socket Timeout - 一次性可靠協定埠超時時間：單位為毫秒，最小為 500 可留空，留空時為 3000
+  * Reliable Once Socket Timeout - 一次性可靠協定埠超時時間：單位為毫秒，最小為 500 可留空，留空時為 3000
     * 一次性是指請求在一次 RTT 往返網路傳輸內即可完成，例如標準 DNS 和 DNSCurve/DNSCrypt 協定
     * 可靠埠是指 TCP 協定
-  * Unreliable Socket Timeout - 一次性不可靠協定埠超時時間：單位為毫秒，最小為 500 可留空，留空時為 2000
+  * Unreliable Once Socket Timeout - 一次性不可靠協定埠超時時間：單位為毫秒，最小為 500 可留空，留空時為 2000
     * 一次性是指請求在一次 RTT 往返網路傳輸內即可完成，例如標準 DNS 和 DNSCurve/DNSCrypt 協定
     * 不可靠埠指 UDP/ICMP/ICMPv6 協定
   * Reliable Serial Socket Timeout - 串列可靠協定埠超時時間：單位為毫秒，最小為 500 可留空，留空時為 1500
@@ -535,12 +535,12 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Unreliable Serial Socket Timeout - 串列可靠協定埠超時時間：單位為毫秒，最小為 500 可留空，留空時為 1000
     * 串列是指此操作需要多次交互網路傳輸才能完成，例如 SOCKS 和 HTTP CONNECT 協定
     * 不可靠埠指 UDP/ICMP/ICMPv6 協定
-  * Receive Waiting - 資料包接收等待時間，啟用後程式會嘗試等待一段時間以嘗試接收所有資料包並返回最後到達的資料包：單位為毫秒，留空或填 0 表示關閉此功能
+  * Receive Waiting - 資料包接收等待時間，啟用後程式會嘗試等待一段時間以嘗試接收所有資料包並返回最後到達的資料包：單位為毫秒，留空或設置為 0 表示關閉此功能
     * 本參數與 Pcap Reading Timeout 密切相關，由於抓包模組每隔一段讀取超時時間才會返回給程式一次，當資料包接收等待時間小於讀取超時時間時會導致本參數變得沒有意義，在一些情況下甚至會拖慢功能變數名稱解析的回應速度
-    * 本參數啟用後雖然本身只決定抓包模組的接收等待時間，但同時會影響到非抓包模組的請求。 非抓包模組會自動切換為等待超時時間後發回最後收到的回復，預設為接受最先到達的正確的回復，而它們的超時時間由 Reliable Socket Timeout/Unreliable Socket Timeout 參數決定
+    * 本參數啟用後雖然本身只決定抓包模組的接收等待時間，但同時會影響到非抓包模組的請求。 非抓包模組會自動切換為等待超時時間後發回最後收到的回復，預設為接受最先到達的正確的回復，而它們的超時時間由 Reliable Once Socket Timeout/Unreliable Once Socket Timeout 參數決定
     * 一般情況下，越靠後所收到的資料包，其可靠性可能會更高
-  * ICMP Test - ICMP/Ping 測試間隔時間：單位為秒，最小為 5 填 0 表示關閉此功能
-  * Domain Test - DNS 伺服器解析功能變數名稱測試間隔時間：單位為秒，最小為 5 填 0 表示關閉此功能
+  * ICMP Test - ICMP/Ping 測試間隔時間：單位為秒，最小為 5 設置為 0 表示關閉此功能
+  * Domain Test - DNS 伺服器解析功能變數名稱測試間隔時間：單位為秒，最小為 5 設置為 0 表示關閉此功能
   * Alternate Times - 待命伺服器失敗次數閾值，一定週期內如超出閾值會觸發伺服器切換：單位為次
   * Alternate Time Range - 待命伺服器失敗次數閾值計算週期：單位為秒，最小為 5
   * Alternate Reset Time - 待命伺服器重置切換時間，切換產生後經過此事件會切換回主要伺服器：單位為秒，最小為 5
@@ -556,7 +556,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * Switches - 控制開關區域
   * TCP Fast Open - TCP 快速打開功能：開啟為 1 /關閉為 0
-    * 目前本功能只支援 Linux 平臺，非 Linux 平臺將直接忽略此參數，其中：
+    * 目前本功能只支援 Linux 平臺，Windows 和 Mac 平臺將直接忽略此參數，其中：
       * IPv4 需要 3.7 以及更新版本的內核支援
       * IPv6 需要 3.16 以及更新版本的內核支援
       * 切勿在不受支援的內核版本上開啟本功能，否則可能導致程式無法正常收發資料包！
@@ -590,7 +590,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Alternate Multiple Request - 待命伺服器同時請求參數，開啟後將同時請求主要伺服器和待命伺服器並採用最快回應的伺服器的結果：開啟為 1 /關閉為 0
     * 同時請求多伺服器啟用後本參數將強制啟用，將同時請求所有存在於清單中的伺服器，並採用最快回應的伺服器的結果
   * IPv4 Do Not Fragment - IPv4 資料包頭部 Do Not Fragment 標誌：開啟為 1 /關閉為 0
-    * 目前本功能不支援 Mac OS X 平臺，此平臺將直接忽略此參數
+    * 目前本功能不支援 macOS 平臺，此平臺將直接忽略此參數
   * IPv4 Data Filter - IPv4 資料包頭檢測：開啟為 1 /關閉為 0
   * TCP Data Filter - TCP 資料包頭檢測：開啟為 1 /關閉為 0
   * DNS Data Filter - DNS 資料包頭檢測：開啟為 1 /關閉為 0
@@ -642,6 +642,14 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * HTTP CONNECT Target Server - HTTP CONNECT 最終目標伺服器：需要輸入一個帶埠格式的 IPv4/IPv6 位址或功能變數名稱
     * 不支援多個位址或功能變數名稱，只能填入單個位址或功能變數名稱
     * 支援使用服務名稱代替埠號
+  * HTTP CONNECT TLS Handshake - HTTP CONNECT 協定 TLS 握手和加密傳輸總開關：開啟為 1 /關閉為 0
+  * HTTP CONNECT TLS Version - HTTP CONNECT 協定啟用 TLS 握手和加密傳輸時所指定使用的版本：設置為 0 則自動選擇
+    * 現階段可填入 1.0 或 1.1 或 1.2
+    * Windows XP/2003 和 Windows Vista 不支援高於 1.0 的版本
+    * OpenSSL 1.0.0 以及更舊的版本不支援高於 1.0 的版本
+  * HTTP CONNECT TLS Validation - HTTP CONNECT 協定啟用 TLS 握手時伺服器憑證鏈檢查：開啟為 1 /關閉為 0
+    * 警告：關閉此功能將可能導致加密連接被中間人攻擊，強烈建議開啟！
+  * HTTP CONNECT TLS Server Name Indication - HTTP CONNECT 協定用於指定 TLS 握手時所指定使用的功能變數名稱伺服器：請輸入正確的功能變數名稱並且不要超過253位元組 ASCII 資料，留空則不啟用此功能
   * HTTP CONNECT Version - 附帶在 HTTP CONNECT Header 的 HTTP CONNECT 協定版本號
   * HTTP CONNECT Header Field - 附帶在 HTTP CONNECT Header 的資訊：所輸入的資訊將被直接添加到 HTTP CONNECT Header
     * 本參數可重複多次出現，所有有內容的 HTTP CONNECT Header 的資訊都將被記錄並在請求時按順序添加到 HTTP CONNECT Header 裡
@@ -657,11 +665,11 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSCurve Payload Size - DNSCurve EDNS 標籤附帶使用的最大載荷長度，同時亦為發送請求的總長度，並決定請求的填充長度：最小為 DNS 協定實現要求的 512(bytes)，留空則為 512(bytes)
   * DNSCurve Reliable Socket Timeout - 可靠 DNSCurve 協定埠超時時間，可靠埠指 TCP 協定：單位為毫秒，最小為 500，可留空，留空時為 3000
   * DNSCurve Unreliable Socket Timeout - 不可靠 DNSCurve 協定埠超時時間，不可靠埠指 UDP 協定：單位為毫秒，最小為 500，可留空，留空時為 2000
-  * Encryption - 啟用加密，DNSCurve 協定支援加密和非加密模式：開啟為 1 /關閉為 0
-  * Encryption Only - 只使用加密模式，所有請求將只通過 DNCurve 加密模式進行：開啟為 1 /關閉為 0
+  * DNSCurve Encryption - 啟用加密，DNSCurve 協定支援加密和非加密模式：開啟為 1 /關閉為 0
+  * DNSCurve Encryption Only - 只使用加密模式，所有請求將只通過 DNCurve 加密模式進行：開啟為 1 /關閉為 0
     * 注意：使用 "只使用加密模式" 時必須提供伺服器的魔數和指紋用於請求和接收
-  * Client Ephemeral Key - 一次性用戶端金鑰組模式：每次請求解析均使用隨機生成的一次性用戶端金鑰組：開啟為 1 /關閉為 0
-  * Key Recheck Time - DNSCurve 協定 DNS 伺服器連接資訊檢查間隔：單位為秒，最小為 10
+  * DNSCurve Client Ephemeral Key - 一次性用戶端金鑰組模式：每次請求解析均使用隨機生成的一次性用戶端金鑰組：開啟為 1 /關閉為 0
+  * DNSCurve Key Recheck Time - DNSCurve 協定 DNS 伺服器連接資訊檢查間隔：單位為秒，最小為 10
 
 * DNSCurve Addresses - DNSCurve 協定位址區域
   * DNSCurve IPv4 DNS Address - DNSCurve 協定 IPv4 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址
@@ -685,28 +693,28 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 更多支援 DNSCurve/DNSCrypt 的伺服器請移步 https://github.com/jedisct1/dnscrypt-proxy/blob/master/dnscrypt-resolvers.csv
 
 * DNSCurve Keys - DNSCurve 協定金鑰區域
-  * Client Public Key - 自訂用戶端公開金鑰：可使用 KeyPairGenerator 生成，留空則每次啟動時自動生成
-  * Client Secret Key - 自訂用戶端私密金鑰：可使用 KeyPairGenerator 生成，留空則每次啟動時自動生成
-  * IPv4 DNS Public Key - DNSCurve 協定 IPv4 主要 DNS 伺服器驗證用公開金鑰
-  * IPv4 Alternate DNS Public Key - DNSCurve 協定 IPv4 備用 DNS 伺服器驗證用公開金鑰
-  * IPv6 DNS Public Key - DNSCurve 協定 IPv6 主要 DNS 伺服器驗證用公開金鑰
-  * IPv6 Alternate DNS Public Key - DNSCurve 協定 IPv6 備用 DNS 伺服器驗證用公開金鑰
-  * IPv4 DNS Fingerprint - DNSCurve 協定 IPv4 主要 DNS 伺服器傳輸用指紋，留空則自動通過伺服器提供者和公開金鑰獲取
-  * IPv4 Alternate DNS Fingerprint - DNSCurve 協定 IPv4 備用 DNS 伺服器傳輸用指紋，留空則自動通過伺服器提供者和公開金鑰獲取
-  * IPv6 DNS Fingerprint - DNSCurve 協定 IPv6 備用 DNS 伺服器傳輸用指紋，留空則自動通過伺服器提供者和公開金鑰獲取
-  * IPv6 Alternate DNS Fingerprint - DNSCurve 協定 IPv6 備用 DNS 伺服器傳輸用指紋，留空則自動通過伺服器提供者和公開金鑰獲取
+  * DNSCurve Client Public Key - 自訂用戶端公開金鑰：可使用 KeyPairGenerator 生成，留空則每次啟動時自動生成
+  * DNSCurve Client Secret Key - 自訂用戶端私密金鑰：可使用 KeyPairGenerator 生成，留空則每次啟動時自動生成
+  * DNSCurve IPv4 DNS Public Key - DNSCurve 協定 IPv4 主要 DNS 伺服器驗證用公開金鑰
+  * DNSCurve IPv4 Alternate DNS Public Key - DNSCurve 協定 IPv4 備用 DNS 伺服器驗證用公開金鑰
+  * DNSCurve IPv6 DNS Public Key - DNSCurve 協定 IPv6 主要 DNS 伺服器驗證用公開金鑰
+  * DNSCurve IPv6 Alternate DNS Public Key - DNSCurve 協定 IPv6 備用 DNS 伺服器驗證用公開金鑰
+  * DNSCurve IPv4 DNS Fingerprint - DNSCurve 協定 IPv4 主要 DNS 伺服器傳輸用指紋，留空則自動通過伺服器提供者和公開金鑰獲取
+  * DNSCurve IPv4 Alternate DNS Fingerprint - DNSCurve 協定 IPv4 備用 DNS 伺服器傳輸用指紋，留空則自動通過伺服器提供者和公開金鑰獲取
+  * DNSCurve IPv6 DNS Fingerprint - DNSCurve 協定 IPv6 備用 DNS 伺服器傳輸用指紋，留空則自動通過伺服器提供者和公開金鑰獲取
+  * DNSCurve IPv6 Alternate DNS Fingerprint - DNSCurve 協定 IPv6 備用 DNS 伺服器傳輸用指紋，留空則自動通過伺服器提供者和公開金鑰獲取
   * 注意：
     * 公開網站上的 "公開金鑰" 普遍為驗證用的公開金鑰，用於驗證與伺服器通訊時使用的指紋，兩者為不同性質的公開金鑰不可混用！
 
 * DNSCurve Magic Number - DNSCurve 協定魔數區域
-  * IPv4 Receive Magic Number - DNSCurve 協定 IPv4 主要 DNS 伺服器接收魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則使用程式內置的接收魔數
-  * IPv4 Alternate Receive Magic Number - DNSCurve 協定 IPv4 備用 DNS 伺服器接收魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則使用程式內置的接收魔數
-  * IPv6 Receive Magic Number - DNSCurve 協定 IPv6 主要 DNS 伺服器接收魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則使用程式內置的接收魔數
-  * IPv6 Alternate Receive Magic Number - DNSCurve 協定 IPv6 備用 DNS 伺服器接收魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則使用程式內置的接收魔數
-  * IPv4 DNS Magic Number - DNSCurve 協定 IPv4 主要 DNS 伺服器發送魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則自動獲取
-  * IPv4 Alternate DNS Magic Number - DNSCurve 協定 IPv4 備用 DNS 伺服器發送魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則自動獲取
-  * IPv6 DNS Magic Number - 協定 IPv6 主要 DNS 伺服器發送魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則自動獲取
-  * IPv6 Alternate DNS Magic Number - DNSCurve 協定 IPv6 備用 DNS 伺服器發送魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則自動獲取
+  * DNSCurve IPv4 Receive Magic Number - DNSCurve 協定 IPv4 主要 DNS 伺服器接收魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則使用程式內置的接收魔數
+  * DNSCurve IPv4 Alternate Receive Magic Number - DNSCurve 協定 IPv4 備用 DNS 伺服器接收魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則使用程式內置的接收魔數
+  * DNSCurve IPv6 Receive Magic Number - DNSCurve 協定 IPv6 主要 DNS 伺服器接收魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則使用程式內置的接收魔數
+  * DNSCurve IPv6 Alternate Receive Magic Number - DNSCurve 協定 IPv6 備用 DNS 伺服器接收魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則使用程式內置的接收魔數
+  * DNSCurve IPv4 DNS Magic Number - DNSCurve 協定 IPv4 主要 DNS 伺服器發送魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則自動獲取
+  * DNSCurve IPv4 Alternate DNS Magic Number - DNSCurve 協定 IPv4 備用 DNS 伺服器發送魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則自動獲取
+  * DNSCurve IPv6 DNS Magic Number - 協定 IPv6 主要 DNS 伺服器發送魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則自動獲取
+  * DNSCurve IPv6 Alternate DNS Magic Number - DNSCurve 協定 IPv6 備用 DNS 伺服器發送魔數：長度必須為 8 位元組（ASCII）或 18 位元組（十六進位），留空則自動獲取
   * 注意：Magic Number 參數均同時支援使用 ASCII 字元或十六進位字串進行指定
     * 直接填入可列印 ASCII 字串即可
     * 十六進位字串需要在字串前面加上 0x（大小寫敏感）
@@ -937,7 +945,7 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 
 * Version
 * File Refresh Time
-* Print Error
+* Print Log Level
 * Log Maximum Size
 * IPFilter Type
 * IPFilter Level
@@ -954,10 +962,10 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 * IPv4 AlternateTTL
 * IPv6 AlternateHopLimits
 * HopLimits Fluctuation
-* Reliable Socket Timeout
-* Unreliable Socket Timeout
+* Reliable Once Socket Timeout
+* Unreliable Once Socket Timeout
 * Reliable Serial Socket Timeout
-* Unrliable Serial Socket Timeout
+* Unreliable Serial Socket Timeout
 * Receive Waiting
 * ICMP Test
 * Domain Test
@@ -971,27 +979,29 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 * SOCKS Username
 * SOCKS Password
 * HTTP CONNECT Target Server
+* HTTP CONNECT TLS Version
+* HTTP CONNECT TLS Validation
 * HTTP CONNECT Version
 * HTTP CONNECT Header Field
 * HTTP CONNECT Proxy Authorization
 * DNSCurve Reliable Socket Timeout
 * DNSCurve Unreliable Socket Timeout
-* Key Recheck Time
-* Client Public Key
-* Client Secret Key
-* IPv4 DNS Public Key
-* IPv4 Alternate DNS Public Key
-* IPv6 DNS Public Key
-* IPv6 Alternate DNS Public Key
-* IPv4 DNS Fingerprint
-* IPv4 Alternate DNS Fingerprint
-* IPv6 DNS Fingerprint
-* IPv6 Alternate DNS Fingerprint
-* IPv4 Receive Magic Number
-* IPv4 Alternate Receive Magic Number
-* IPv6 Receive Magic Number
-* IPv6 Alternate Receive Magic Number
-* IPv4 DNS Magic Number
-* IPv4 Alternate DNS Magic Number
-* IPv6 DNS Magic Number
-* IPv6 Alternate DNS Magic Number
+* DNSCurve Key Recheck Time
+* DNSCurve Client Public Key
+* DNSCurve Client Secret Key
+* DNSCurve IPv4 DNS Public Key
+* DNSCurve IPv4 Alternate DNS Public Key
+* DNSCurve IPv6 DNS Public Key
+* DNSCurve IPv6 Alternate DNS Public Key
+* DNSCurve IPv4 DNS Fingerprint
+* DNSCurve IPv4 Alternate DNS Fingerprint
+* DNSCurve IPv6 DNS Fingerprint
+* DNSCurve IPv6 Alternate DNS Fingerprint
+* DNSCurve IPv4 Receive Magic Number
+* DNSCurve IPv4 Alternate Receive Magic Number
+* DNSCurve IPv6 Receive Magic Number
+* DNSCurve IPv6 Alternate Receive Magic Number
+* DNSCurve IPv4 DNS Magic Number
+* DNSCurve IPv4 Alternate DNS Magic Number
+* DNSCurve IPv6 DNS Magic Number
+* DNSCurve IPv6 Alternate DNS Magic Number
