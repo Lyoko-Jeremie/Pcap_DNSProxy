@@ -22,51 +22,43 @@
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
+extern BLOCKING_QUEUE<MONITOR_QUEUE_DATA> MonitorBlockingQueue;
 #if defined(ENABLE_LIBSODIUM)
-	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
+extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 #endif
 extern std::vector<DIFFERNET_FILE_SET_HOSTS> *HostsFileSetUsing, *HostsFileSetModificating;
 extern std::deque<DNS_CACHE_DATA> DNSCacheList;
 extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM], HostsFileLock, DNSCacheListLock;
 
 //Functions
-bool __fastcall LocalRequestProcess(
-	const DNS_PACKET_DATA &Packet, 
-	char *OriginalRecv, 
+bool LocalRequestProcess(
+	const MONITOR_QUEUE_DATA &MonitorQueryData, 
+	uint8_t * const OriginalRecv, 
+	const size_t RecvSize);
+bool SOCKS_RequestProcess(
+	const MONITOR_QUEUE_DATA &MonitorQueryData);
+bool HTTP_CONNECT_RequestProcess(
+	const MONITOR_QUEUE_DATA &MonitorQueryData);
+bool DirectRequestProcess(
+	const MONITOR_QUEUE_DATA &MonitorQueryData, 
+	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
-	const SOCKET_DATA &LocalSocketData);
-bool __fastcall SOCKSRequestProcess(
-	const DNS_PACKET_DATA &Packet, 
-	char *OriginalRecv, 
-	const size_t RecvSize, 
-	const SOCKET_DATA &LocalSocketData);
-bool __fastcall HTTPRequestProcess(
-	const DNS_PACKET_DATA &Packet, 
-	char *OriginalRecv, 
-	const size_t RecvSize, 
-	const SOCKET_DATA &LocalSocketData);
-bool __fastcall DirectRequestProcess(
-	const DNS_PACKET_DATA &Packet, 
-	char *OriginalRecv, 
-	const size_t RecvSize, 
-	const bool DirectRequest, 
-	const SOCKET_DATA &LocalSocketData);
+	const bool DirectRequest);
 #if defined(ENABLE_LIBSODIUM)
-bool __fastcall DNSCurveRequestProcess(
-	const DNS_PACKET_DATA &Packet, 
-	char *OriginalRecv, 
-	const size_t RecvSize, 
-	const SOCKET_DATA &LocalSocketData);
+bool DNSCurveRequestProcess(
+	const MONITOR_QUEUE_DATA &MonitorQueryData, 
+	uint8_t * const OriginalRecv, 
+	const size_t RecvSize);
 #endif
-bool __fastcall TCPRequestProcess(
-	const DNS_PACKET_DATA &Packet, 
-	char *OriginalRecv, 
-	const size_t RecvSize, 
-	const SOCKET_DATA &LocalSocketData);
+bool TCP_RequestProcess(
+	const MONITOR_QUEUE_DATA &MonitorQueryData, 
+	uint8_t * const OriginalRecv, 
+	const size_t RecvSize);
 #if defined(ENABLE_PCAP)
-void __fastcall UDPRequestProcess(
-	const DNS_PACKET_DATA &Packet, 
-	const SOCKET_DATA &LocalSocketData);
+void UDP_RequestProcess(
+	const MONITOR_QUEUE_DATA &MonitorQueryData);
 #endif
-uint16_t __fastcall SelectNetworkProtocol(
+uint16_t SelectNetworkProtocol(
+	void);
+void AutoClearDNSCache(
 	void);

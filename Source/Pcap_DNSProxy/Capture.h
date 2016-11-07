@@ -20,12 +20,12 @@
 #include "Base.h"
 
 #if defined(ENABLE_PCAP)
-//Structures
+//Structure definitions
 typedef struct _capture_handler_param_
 {
-	uint16_t   DeviceType;
-	char       *Buffer;
-	size_t     BufferSize;
+	uint16_t      DeviceType;
+	uint8_t       *Buffer;
+	size_t        BufferSize;
 }CaptureHandlerParam, CAPTURE_HANDLER_PARAM, *PCaptureHandlerParam, *PCAPTURE_HANDLER_PARAM;
 
 //Global variables
@@ -33,38 +33,38 @@ extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 #if defined(ENABLE_LIBSODIUM)
-	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
+extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 #endif
 extern std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
 extern std::mutex CaptureLock, OutputPacketListLock;
 std::string PcapFilterRules;
-std::vector<std::string> PcapRunningList;
+std::list<std::string> PcapRunningList;
 
 //Functions
-void __fastcall CaptureFilterRulesInit(
+bool CaptureFilterRulesInit(
 	std::string &FilterRules);
-bool __fastcall CaptureModule(
-	const pcap_if *pDrive, 
+bool CaptureModule(
+	const pcap_if * const pDrive, 
 	const bool IsCaptureList);
 void CaptureHandler(
-	unsigned char *Param, 
-	const struct pcap_pkthdr *PacketHeader, 
-	const unsigned char *PacketData);
-bool __fastcall CaptureNetworkLayer(
-	const char *Buffer, 
-	const size_t Length, 
-	const size_t BufferSize, 
-	const uint16_t Protocol);
-bool __fastcall CaptureCheck_ICMP(
-	const char *Buffer, 
-	const size_t Length, 
-	const uint16_t Protocol);
-bool __fastcall CaptureCheck_TCP(
-	const char *Buffer);
-bool __fastcall MatchPortToSend(
-	const char *Buffer, 
-	const size_t Length, 
-	const size_t BufferSize, 
+	uint8_t * const Param, 
+	const pcap_pkthdr * const PacketHeader, 
+	const uint8_t * const PacketData);
+bool CaptureNetworkLayer(
 	const uint16_t Protocol, 
+	const uint8_t * const Buffer, 
+	const size_t Length, 
+	const size_t BufferSize);
+bool CaptureCheck_ICMP(
+	const uint16_t Protocol, 
+	const uint8_t * const Buffer, 
+	const size_t Length);
+bool CaptureCheck_TCP(
+	const uint8_t * const Buffer);
+bool MatchPortToSend(
+	const uint16_t Protocol, 
+	const uint8_t * const Buffer, 
+	const size_t Length, 
+	const size_t BufferSize, 
 	const uint16_t Port);
 #endif

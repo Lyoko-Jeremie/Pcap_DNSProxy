@@ -24,47 +24,32 @@ extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 
 //Functions
-SSIZE_T __fastcall ProxySocketSelecting(
-	SYSTEM_SOCKET Socket, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	const char *SendBuffer, 
-	const size_t SendSize, 
-	char *OriginalRecv, 
-	const size_t RecvSize, 
-	const size_t MinLen, 
-	SSIZE_T *ErrorCode);
-bool __fastcall SOCKSSelectionExchange(
-	SOCKET_DATA *SOCKSSocketData, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	char *SendBuffer, 
-	char *OriginalRecv, 
-	const size_t RecvSize);
-bool __fastcall SOCKSAuthenticationUsernamePassword(
-	SYSTEM_SOCKET Socket, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	char *SendBuffer, 
-	char *OriginalRecv, 
-	const size_t RecvSize);
-bool __fastcall SOCKSClientCommandRequest(
+bool SOCKS_Selection_Exchange(
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList);
+bool SOCKS_Authentication_Exchange(
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList);
+bool SOCKS_Client_Command_Request(
 	const uint16_t Protocol, 
-	SYSTEM_SOCKET Socket, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	char *SendBuffer, 
-	char *OriginalRecv, 
-	const size_t RecvSize, 
-	SOCKET_DATA *UDP_ASSOCIATE_TCP_Connecting_Address);
-bool __fastcall HTTP_CONNECTRequest(
-	SOCKET_DATA *HTTPSocketData, 
-	fd_set *ReadFDS, 
-	fd_set *WriteFDS, 
-	timeval *Timeout, 
-	char *OriginalRecv, 
-	const size_t RecvSize);
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList, 
+	SOCKET_DATA * const UDP_ASSOCIATE_Address);
+bool HTTP_CONNECT_Handshake(
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList, 
+	void *TLS_Context);
+bool HTTP_CONNECT_Exchange(
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList, 
+	void *TLS_Context);
+size_t HTTP_CONNECT_Transport(
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	std::vector<ssize_t> &ErrorCodeList, 
+	void *TLS_Context);

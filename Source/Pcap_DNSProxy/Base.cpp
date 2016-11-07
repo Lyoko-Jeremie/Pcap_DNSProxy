@@ -24,82 +24,30 @@ extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 
 //Check empty buffer
-bool __fastcall CheckEmptyBuffer(
-	const void *Buffer, 
+bool CheckEmptyBuffer(
+	const void * const Buffer, 
 	const size_t Length)
 {
 //Null pointer
 	if (Buffer == nullptr)
-		return false;
-
-//Scan all data.
-	for (size_t Index = 0;Index < Length;++Index)
 	{
-		if (((uint8_t *)Buffer)[Index] != 0)
-			return false;
+		return false;
+	}
+	else {
+	//Scan all data.
+		for (size_t Index = 0;Index < Length;++Index)
+		{
+			if (*(((uint8_t *)Buffer) + Index) != 0)
+				return false;
+		}
 	}
 
 	return true;
 }
 
-//Convert host values to network byte order with 16 bits(Force)
-uint16_t __fastcall hton16_Force(
-	const uint16_t Value)
-{
-	return (uint16_t)(((uint8_t *)&Value)[0] << 8U | ((uint8_t *)&Value)[1U]);
-}
-
-/* Redirect to hton16_Force.
-//Convert network byte order to host values with 16 bits(Force)
-uint16_t __fastcall ntoh16_Force(
-	const uint16_t Value)
-{
-	return (uint16_t)(((uint8_t *)&Value)[0] << 8U | ((uint8_t *)&Value)[1U]);
-}
-*/
-
-//Convert host values to network byte order with 32 bits(Force)
-uint32_t __fastcall hton32_Force(
-	const uint32_t Value)
-{
-	return (uint32_t)(((uint8_t *)&Value)[0] << 24U | ((uint8_t *)&Value)[1U] << 16U | ((uint8_t *)&Value)[2U] << 8U | ((uint8_t *)&Value)[3U]);
-}
-
-/* Redirect to hton32_Force.
-//Convert network byte order to host values with 32 bits(Force)
-uint32_t __fastcall ntoh32_Force(
-	const uint32_t Value)
-{
-	return (uint32_t)(((uint8_t *)&Value)[0] << 24U | ((uint8_t *)&Value)[1U] << 16U | ((uint8_t *)&Value)[2U] << 8U | ((uint8_t *)&Value)[3U]);
-}
-*/
-
-//Convert host values to network byte order with 64 bits
-uint64_t __fastcall hton64(
-	const uint64_t Value)
-{
-#if BYTE_ORDER == LITTLE_ENDIAN
-	return (((uint64_t)htonl((int32_t)((Value << (sizeof(uint32_t) * BYTES_TO_BITS)) >> (sizeof(uint32_t) * BYTES_TO_BITS)))) << (sizeof(uint32_t) * BYTES_TO_BITS)) | (uint32_t)htonl((int32_t)(Value >> (sizeof(uint32_t) * BYTES_TO_BITS)));
-#else //BIG_ENDIAN
-	return Value;
-#endif
-}
-
-/* Redirect to hton64.
-//Convert network byte order to host values with 64 bits
-uint64_t __fastcall ntoh64(const uint64_t Value)
-{
-#if BYTE_ORDER == LITTLE_ENDIAN
-	return (((uint64_t)ntohl((int32_t)((Value << (sizeof(uint32_t) * BYTES_TO_BITS)) >> (sizeof(uint32_t) * BYTES_TO_BITS)))) << (sizeof(uint32_t) * BYTES_TO_BITS)) | (uint32_t)ntohl((int32_t)(Value >> (sizeof(uint32_t) * BYTES_TO_BITS)));
-#else //BIG_ENDIAN
-	return Value;
-#endif
-}
-*/
-
 //Convert multiple bytes to wide char string
-bool __fastcall MBSToWCSString(
-	const char *Buffer, 
+bool MBSToWCSString(
+	const uint8_t * const Buffer, 
 	const size_t MaxLen, 
 	std::wstring &Target)
 {
@@ -107,58 +55,111 @@ bool __fastcall MBSToWCSString(
 	Target.clear();
 	if (Buffer == nullptr || MaxLen == 0)
 		return false;
-	size_t Length = strnlen_s(Buffer, MaxLen);
+	size_t Length = strnlen_s((const char *)Buffer, MaxLen);
 	if (Length == 0 || CheckEmptyBuffer(Buffer, Length))
 		return false;
 
 //Convert string.
-	std::shared_ptr<wchar_t> TargetPTR(new wchar_t[Length + 1U]());
-	wmemset(TargetPTR.get(), 0, Length + 1U);
+	std::shared_ptr<wchar_t> TargetPTR(new wchar_t[Length + PADDING_RESERVED_BYTES]());
+	wmemset(TargetPTR.get(), 0, Length + PADDING_RESERVED_BYTES);
 #if defined(PLATFORM_WIN)
-	if (MultiByteToWideChar(CP_ACP, 0, Buffer, MBSTOWCS_NULLTERMINATE, TargetPTR.get(), (int)(Length + 1U)) == 0)
+	if (MultiByteToWideChar(
+			CP_ACP, 
+			0, 
+			(LPCCH)Buffer, 
+			MBSTOWCS_NULLTERMINATE, 
+			TargetPTR.get(), 
+			(int)(Length + PADDING_RESERVED_BYTES)) == 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-	if (mbstowcs(TargetPTR.get(), Buffer, Length + 1U) == (size_t)RETURN_ERROR)
+	if (mbstowcs(TargetPTR.get(), (const char *)Buffer, Length + PADDING_RESERVED_BYTES) == (size_t)RETURN_ERROR)
 #endif
 	{
 		return false;
 	}
 	else {
-		Target = TargetPTR.get();
-		if (Target.empty())
+		if (wcsnlen_s(TargetPTR.get(), Length + PADDING_RESERVED_BYTES) == 0)
 			return false;
+		else 
+			Target = TargetPTR.get();
+	}
+
+	return true;
+}
+
+//Convert wide char string to multiple bytes
+bool WCSToMBSString(
+	const wchar_t * const Buffer, 
+	const size_t MaxLen, 
+	std::string &Target)
+{
+//Check buffer pointer.
+	Target.clear();
+	if (Buffer == nullptr || MaxLen == 0)
+		return false;
+	size_t Length = wcsnlen_s(Buffer, MaxLen);
+	if (Length == 0 || CheckEmptyBuffer(Buffer, sizeof(wchar_t) * Length))
+		return false;
+
+//Convert string.
+	std::shared_ptr<uint8_t> TargetPTR(new uint8_t[Length + PADDING_RESERVED_BYTES]());
+	memset(TargetPTR.get(), 0, Length + PADDING_RESERVED_BYTES);
+#if defined(PLATFORM_WIN)
+	if (WideCharToMultiByte(
+			CP_ACP, 
+			0, 
+			Buffer, 
+			MBSTOWCS_NULLTERMINATE, 
+			(LPSTR)TargetPTR.get(), 
+			(int)(Length + PADDING_RESERVED_BYTES), 
+			nullptr, 
+			nullptr) == 0)
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	if (wcstombs((char *)TargetPTR.get(), Buffer, Length + PADDING_RESERVED_BYTES) == (size_t)RETURN_ERROR)
+#endif
+	{
+		return false;
+	}
+	else {
+		if (strnlen_s((const char *)TargetPTR.get(), Length + PADDING_RESERVED_BYTES) == 0)
+			return false;
+		else 
+			Target = (const char *)TargetPTR.get();
 	}
 
 	return true;
 }
 
 //Convert lowercase/uppercase words to uppercase/lowercase words(C-Style version)
-void __fastcall CaseConvert(
-	const bool IsLowerToUpper, 
-	char *Buffer, 
-	const size_t Length)
+void CaseConvert(
+	uint8_t * const Buffer, 
+	const size_t Length, 
+	const bool IsLowerToUpper)
 {
 //Null pointer
 	if (Buffer == nullptr)
-		return;
-
-//Convert words.
-	for (size_t Index = 0;Index < Length;++Index)
 	{
-	//Lowercase to uppercase
-		if (IsLowerToUpper)
-			Buffer[Index] = (char)toupper(Buffer[Index]);
-	//Uppercase to lowercase
-		else 
-			Buffer[Index] = (char)tolower(Buffer[Index]);
+		return;
+	}
+	else {
+	//Convert words.
+		for (size_t Index = 0;Index < Length;++Index)
+		{
+		//Lowercase to uppercase
+			if (IsLowerToUpper)
+				Buffer[Index] = (uint8_t)toupper(Buffer[Index]);
+		//Uppercase to lowercase
+			else 
+				Buffer[Index] = (uint8_t)tolower(Buffer[Index]);
+		}
 	}
 
 	return;
 }
 
 //Convert lowercase/uppercase words to uppercase/lowercase words(C++ string version)
-void __fastcall CaseConvert(
-	const bool IsLowerToUpper, 
-	std::string &Buffer)
+void CaseConvert(
+	std::string &Buffer, 
+	const bool IsLowerToUpper)
 {
 	for (auto &StringIter:Buffer)
 	{
@@ -173,8 +174,113 @@ void __fastcall CaseConvert(
 	return;
 }
 
+//Convert lowercase/uppercase words to uppercase/lowercase words(C++ wstring version)
+void CaseConvert(
+	std::wstring &Buffer, 
+	const bool IsLowerToUpper)
+{
+	for (auto &StringIter:Buffer)
+	{
+	//Lowercase to uppercase
+		if (IsLowerToUpper)
+			StringIter = (wchar_t)toupper(StringIter);
+	//Uppercase to lowercase
+		else 
+			StringIter = (wchar_t)tolower(StringIter);
+	}
+
+	return;
+}
+
+//Make string reversed
+void MakeStringReversed(
+	std::string &String)
+{
+//String check
+	if (String.size() <= 1U)
+		return;
+
+//Make string reversed
+	uint8_t StringIter = 0;
+	for (size_t Index = 0;Index < String.length() / 2U;++Index)
+	{
+		StringIter = String.at(String.length() - 1U - Index);
+		String.at(String.length() - 1U - Index) = String.at(Index);
+		String.at(Index) = StringIter;
+	}
+
+	return;
+}
+
+//Make string reversed
+void MakeStringReversed(
+	std::wstring &String)
+{
+//String check
+	if (String.size() <= 1U)
+		return;
+
+//Make string reversed
+	wchar_t StringIter = 0;
+	for (size_t Index = 0;Index < String.length() / 2U;++Index)
+	{
+		StringIter = String.at(String.length() - 1U - Index);
+		String.at(String.length() - 1U - Index) = String.at(Index);
+		String.at(Index) = StringIter;
+	}
+
+	return;
+}
+
+//Reversed string comparing
+bool CompareStringReversed(
+	const std::string &RuleItem, 
+	const std::string &TestItem)
+{
+//Length check
+	if (RuleItem.empty() || TestItem.empty() || TestItem.length() < RuleItem.length())
+		return false;
+
+//Compare each other.
+	else if (memcmp(RuleItem.c_str(), TestItem.c_str(), RuleItem.length()) == 0)
+		return true;
+
+	return false;
+}
+
+//Reversed string comparing
+bool CompareStringReversed(
+	const wchar_t * const RuleItem, 
+	const wchar_t * const TestItem, 
+	const bool IsCaseConvert)
+{
+	std::wstring InnerRuleItem(RuleItem), InnerTestItem(TestItem);
+
+//Length check
+	if (InnerRuleItem.empty() || InnerTestItem.empty() || InnerTestItem.length() < InnerRuleItem.length())
+	{
+		return false;
+	}
+	else {
+	//Make string reversed to compare.
+		if (IsCaseConvert)
+		{
+			CaseConvert(InnerRuleItem, false);
+			CaseConvert(InnerTestItem, false);
+		}
+		MakeStringReversed(InnerRuleItem);
+		MakeStringReversed(InnerTestItem);
+
+	//Compare each other.
+		if (memcmp(InnerRuleItem.c_str(), InnerTestItem.c_str(), InnerRuleItem.length()) == 0)
+			return true;
+	}
+
+	return false;
+}
+
 //Sort compare(IPFilter)
-bool __fastcall SortCompare_IPFilter(
+bool SortCompare_IPFilter(
 	const DIFFERNET_FILE_SET_IPFILTER &Begin, 
 	const DIFFERNET_FILE_SET_IPFILTER &End)
 {
@@ -182,19 +288,19 @@ bool __fastcall SortCompare_IPFilter(
 }
 
 //Sort compare(Hosts)
-bool __fastcall SortCompare_Hosts(
+bool SortCompare_Hosts(
 	const DIFFERNET_FILE_SET_HOSTS &Begin, 
 	const DIFFERNET_FILE_SET_HOSTS &End)
 {
 	return Begin.FileIndex < End.FileIndex;
 }
 
-//Base64 encode or decode is from https://github.com/zhicheng/base64.
-//Base64 encode
-size_t __fastcall Base64_Encode(
-	uint8_t *Input, 
+//Base64 encoding
+//Base64 encoding or decoding is from https://github.com/zhicheng/base64.
+size_t Base64_Encode(
+	uint8_t * const Input, 
 	const size_t Length, 
-	char *Output, 
+	uint8_t * const Output, 
 	const size_t OutputSize)
 {
 //Initialization
@@ -242,12 +348,12 @@ size_t __fastcall Base64_Encode(
 		Output[Index[1U]++] = BASE64_PAD;
 	}
 
-	return strnlen_s(Output, OutputSize);
+	return strnlen_s((const char *)Output, OutputSize);
 }
 
-/* Base64 decode
-size_t __fastcall Base64_Decode(
-	char *Input, 
+/* Base64 decoding
+size_t Base64_Decode(
+	uint8_t *Input, 
 	const size_t Length, 
 	uint8_t *Output, 
 	const size_t OutputSize)
@@ -263,10 +369,11 @@ size_t __fastcall Base64_Decode(
 	//From 6/gcd(6, 8)
 		StringIter = 0;
 		Index[2U] = Index[0] % 4U;
-		if (Input[Index[0]] == '=')
+		if (Input[Index[0]] == (uint8_t)BASE64_PAD)
 			return strnlen_s(Output, OutputSize);
-		if (Input[Index[0]] < BASE64_DE_FIRST || Input[Index[0]] > BASE64_DE_LAST || (StringIter = GlobalRunningStatus.Base64_DecodeTable[Input[Index[0]] - BASE64_DE_FIRST]) == -1)
-			return 0;
+		if (Input[Index[0]] < BASE64_DE_FIRST || Input[Index[0]] > BASE64_DE_LAST || 
+			(StringIter = GlobalRunningStatus.Base64_DecodeTable[Input[Index[0]] - BASE64_DE_FIRST]) == -1)
+				return 0;
 		switch (Index[2U])
 		{
 			case 0:
@@ -279,7 +386,7 @@ size_t __fastcall Base64_Decode(
 				Output[Index[1U]++] += (StringIter >> 4U) & 0x3;
 
 			//If not last char with padding
-				if (Index[0] < (Length - 3U) || Input[Length - 2U] != '=')
+				if (Index[0] < (Length - 3U) || Input[Length - 2U] != (uint8_t)BASE64_PAD)
 					Output[Index[1U]] = (StringIter & 0xF) << 4U;
 				continue;
 			}
@@ -288,7 +395,7 @@ size_t __fastcall Base64_Decode(
 				Output[Index[1U]++] += (StringIter >> 2U) & 0xF;
 
 			//If not last char with padding
-				if (Index[0] < (Length - 2U) || Input[Length - 1U] != '=')
+				if (Index[0] < (Length - 2U) || Input[Length - 1U] != (uint8_t)BASE64_PAD)
 					Output[Index[1U]] = (StringIter & 0x3) << 6U;
 				continue;
 			}
@@ -303,98 +410,23 @@ size_t __fastcall Base64_Decode(
 }
 */
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-//Linux and Mac OS X compatible with GetTickCount64
+//Increase time with milliseconds
+uint64_t IncreaseMillisecondTime(
+	const uint64_t CurrentTime, 
+	const timeval IncreaseTime)
+{
+	return CurrentTime + IncreaseTime.tv_sec * SECOND_TO_MILLISECOND + IncreaseTime.tv_usec / MICROSECOND_TO_MILLISECOND;
+}
+
+//Get current system time
 uint64_t GetCurrentSystemTime(
 	void)
 {
-	timeval CurrentTime = {0};
+	timeval CurrentTime;
+	memset(&CurrentTime, 0, sizeof(CurrentTime));
 	if (gettimeofday(&CurrentTime, nullptr) == 0)
-		return (uint64_t)CurrentTime.tv_sec * SECOND_TO_MILLISECOND + (uint64_t)CurrentTime.tv_usec / MICROSECOND_TO_MILLISECOND;
+		return IncreaseMillisecondTime(0, CurrentTime);
 
 	return 0;
-}
-
-//Windows XP with SP3 support
-#elif (defined(PLATFORM_WIN32) && !defined(PLATFORM_WIN64))
-//Verify version of system
-BOOL WINAPI IsGreaterThanVista(
-	void)
-{
-	OSVERSIONINFOEXW OSVI = {0};
-	DWORDLONG dwlConditionMask = 0;
-
-//Initialization
-	OSVI.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEXW);
-	OSVI.dwMajorVersion = 6U; //Greater than Windows Vista.
-	OSVI.dwMinorVersion = 0;
-
-//System Major version > dwMajorVersion
-	VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_GREATER);
-	if (VerifyVersionInfoW(&OSVI, VER_MAJORVERSION, dwlConditionMask))
-		return TRUE;
-
-//Sytem Major version = dwMajorVersion and Minor version > dwMinorVersion
-	VER_SET_CONDITION(dwlConditionMask, VER_MAJORVERSION, VER_EQUAL);
-	VER_SET_CONDITION(dwlConditionMask, VER_MINORVERSION, VER_GREATER);
-	return VerifyVersionInfoW(&OSVI, VER_MAJORVERSION|VER_MINORVERSION, dwlConditionMask);
-}
-
-//Try to load library to get pointers of functions
-BOOL WINAPI GetFunctionPointer(
-	const size_t FunctionType)
-{
-//GetTickCount64() function
-	if (FunctionType == FUNCTION_GETTICKCOUNT64)
-	{
-		GlobalRunningStatus.FunctionLibrary_GetTickCount64 = LoadLibraryW(L"Kernel32.dll");
-		if (GlobalRunningStatus.FunctionLibrary_GetTickCount64 != nullptr)
-		{
-			GlobalRunningStatus.FunctionPTR_GetTickCount64 = (FunctionType_GetTickCount64)GetProcAddress(GlobalRunningStatus.FunctionLibrary_GetTickCount64, "GetTickCount64");
-			if (GlobalRunningStatus.FunctionPTR_GetTickCount64 == nullptr)
-			{
-				FreeLibrary(GlobalRunningStatus.FunctionLibrary_GetTickCount64);
-				GlobalRunningStatus.FunctionLibrary_GetTickCount64 = nullptr;
-			}
-			else {
-				return TRUE;
-			}
-		}
-	}
-//inet_ntop() function
-	else if (FunctionType == FUNCTION_INET_NTOP)
-	{
-		GlobalRunningStatus.FunctionLibrary_InetNtop = LoadLibraryW(L"ws2_32.dll");
-		if (GlobalRunningStatus.FunctionLibrary_InetNtop != nullptr)
-		{
-			GlobalRunningStatus.FunctionPTR_InetNtop = (FunctionType_InetNtop)GetProcAddress(GlobalRunningStatus.FunctionLibrary_InetNtop, "inet_ntop");
-			if (GlobalRunningStatus.FunctionPTR_InetNtop == nullptr)
-			{
-				FreeLibrary(GlobalRunningStatus.FunctionLibrary_InetNtop);
-				GlobalRunningStatus.FunctionLibrary_InetNtop = nullptr;
-			}
-			else {
-				return TRUE;
-			}
-		}
-	}
-//inet_pton() function
-	else if (FunctionType == FUNCTION_INET_PTON)
-	{
-		GlobalRunningStatus.FunctionLibrary_InetPton = LoadLibraryW(L"ws2_32.dll");
-		if (GlobalRunningStatus.FunctionLibrary_InetPton != nullptr)
-		{
-			GlobalRunningStatus.FunctionPTR_InetPton = (FunctionType_InetPton)GetProcAddress(GlobalRunningStatus.FunctionLibrary_InetPton, "inet_pton");
-			if (GlobalRunningStatus.FunctionPTR_InetPton == nullptr)
-			{
-				FreeLibrary(GlobalRunningStatus.FunctionLibrary_InetPton);
-				GlobalRunningStatus.FunctionLibrary_InetPton = nullptr;
-			}
-			else {
-				return TRUE;
-			}
-		}
-	}
-
-	return FALSE;
 }
 #endif

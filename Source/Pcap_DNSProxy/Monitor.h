@@ -24,29 +24,26 @@ extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 #if defined(ENABLE_LIBSODIUM)
-	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
+extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 #endif
-extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM];
+extern std::deque<SOCKET_MARKING_DATA> SocketMarkingList;
+extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM], SocketMarkingLock;
 
 //Functions
-bool __fastcall UDPMonitor(
+bool UDPMonitor(
 	const SOCKET_DATA LocalSocketData, 
-	bool *Result);
-bool __fastcall TCPMonitor(
+	bool * const Result);
+bool TCPMonitor(
 	const SOCKET_DATA LocalSocketData, 
-	bool *Result);
-bool __fastcall TCPReceiveProcess(
-	const SOCKET_DATA LocalSocketData);
-void __fastcall AlternateServerMonitor(
-	void);
+	bool * const Result);
 #if defined(PLATFORM_WIN)
-addrinfo * __fastcall GetLocalAddressList(
+addrinfo *GetLocalAddressList(
 	const uint16_t Protocol, 
-	char *HostName);
+	uint8_t * const HostName);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
 bool GetBestInterfaceAddress(
 	const uint16_t Protocol, 
-	const sockaddr_storage *OriginalSockAddr);
+	const sockaddr_storage * const OriginalSockAddr);
 #endif
-void __fastcall GetGatewayInformation(
+void GetGatewayInformation(
 	const uint16_t Protocol);

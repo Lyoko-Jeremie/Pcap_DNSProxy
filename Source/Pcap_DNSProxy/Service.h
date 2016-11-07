@@ -20,21 +20,22 @@
 #include "Base.h"
 
 //Global variables
-#if defined(PLATFORM_WIN)
-	extern CONFIGURATION_TABLE Parameter;
-	extern GLOBAL_STATUS GlobalRunningStatus;
-#endif
+extern CONFIGURATION_TABLE Parameter;
 extern std::deque<DNS_CACHE_DATA> DNSCacheList;
 extern std::mutex ScreenLock, DNSCacheListLock;
-
 #if defined(PLATFORM_WIN)
+extern GLOBAL_STATUS GlobalRunningStatus;
+
 //Local variables
 static DWORD ServiceCurrentStatus = 0;
 static BOOL IsServiceRunning = FALSE;
 SERVICE_STATUS_HANDLE ServiceStatusHandle = nullptr;
 HANDLE ServiceEvent = nullptr;
+#endif
+uint64_t LastFlushDNSTime = 0;
 
 //Functions
+#if defined(PLATFORM_WIN)
 size_t WINAPI ServiceControl(
 	const DWORD dwControlCode);
 BOOL WINAPI ExecuteService(

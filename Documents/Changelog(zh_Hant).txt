@@ -1,4 +1,158 @@
-﻿Pcap_DNSProxy 0.4.5.1-0.4.5.5 更新日誌(2016-04-03)：
+﻿Pcap_DNSProxy 0.4.7.7-0.4.7.8 更新日誌(2016-11-06)：
+
+* 添加 Large Buffer Size 參數，用於指定大型資料緩衝區的固定長度
+* 添加串列請求通訊模組，重寫部分網路請求協定
+  * 重寫 SOCKS Proxy 以及 HTTP CONNECT Proxy 協定實現，解除傳輸資料量受一次性請求通訊模組固定緩衝區的長度限制
+  * 新增 Reliable Serial Socket Timeout 和 Unreliable Serial Socket Timeout 參數控制串列通訊超時時間
+  * HTTP Proxy 改名為 HTTP CONNECT Proxy
+  * HTTP Protocol 改名為 HTTP CONNECT Protocol
+  * HTTP Proxy Only 改名為 HTTP CONNECT Proxy Only
+  * HTTP IPv4 Address 改名為 HTTP CONNECT IPv4 Address
+  * HTTP IPv6 Address 改名為 HTTP CONNECT IPv6 Address
+  * HTTP Target Server 改名為 HTTP CONNECT Target Server
+  * HTTP Version 改名為 HTTP CONNECT Version
+  * HTTP Header Field 改名為 HTTP CONNECT Header Field
+  * HTTP Proxy Authorization 改名為 HTTP CONNECT Proxy Authorization
+  * 移除 HTTP Socket Timeout/SOCKS Reliable Socket Timeout/SOCKS Unreliable Socket Timeout 參數
+* 添加實驗性 HTTP CONNECT Tunnel 單獨 TLS/SSL 握手和加密傳輸的能力
+  * TLS/SSL 握手和加密傳輸由 SSPI/SChannel(Windows) 和 OpenSSL(Linux) 支援
+    * 此功能暫時不支援 Mac 平臺
+    * 此功能暫時不支援高於 OpenSSL 1.1.0 的版本
+  * 添加 HTTP CONNECT TLS Handshake 參數，用於開啟 TLS 握手功能
+  * 添加 HTTP CONNECT TLS Version 參數，用於指定所使用的 TLS 版本
+  * 添加 HTTP CONNECT TLS Validation 參數，用於選擇是否驗證 TLS 伺服器憑證鏈
+  * 添加 HTTP CONNECT TLS Server Name Indication 參數，用於指定 TLS 握手時所使用的功能變數名稱
+* 設定檔版本要求升級到 0.45
+  * Protocol 改名為 Output Protocol
+  * Reliable Socket Timeout 改名為 Reliable Once Socket Timeout
+  * Unreliable Socket Timeout 改名為 Unreliable Once Socket Timeout
+  * Encryption 改名為 DNSCurve Encryption
+  * Encryption Only 改名為 DNSCurve Encryption Only
+  * Client Ephemeral Key 改名為 DNSCurve Client Ephemeral Key
+  * Key Recheck Time 改名為 DNSCurve Key Recheck Time
+  * Client Public Key 改名為 DNSCurve Client Public Key
+  * Client Secret Key 改名為 DNSCurve Client Secret Key
+  * IPv4 DNS Public Key 改名為 DNSCurve IPv4 DNS Public Key
+  * IPv4 Alternate DNS Public Key 改名為 DNSCurve IPv4 Alternate DNS Public Key
+  * IPv6 DNS Public Key 改名為 DNSCurve IPv6 DNS Public Key
+  * IPv6 Alternate DNS Public Key 改名為 DNSCurve IPv6 Alternate DNS Public Key
+  * IPv4 DNS Fingerprint 改名為 DNSCurve IPv4 DNS Fingerprint
+  * IPv4 Alternate DNS Fingerprint 改名為 DNSCurve IPv4 Alternate DNS Fingerprint
+  * IPv6 DNS Fingerprint 改名為 DNSCurve IPv6 DNS Fingerprint
+  * IPv6 Alternate DNS Fingerprint 改名為 DNSCurve IPv6 Alternate DNS Fingerprint
+  * IPv4 Receive Magic Number 改名為 DNSCurve IPv4 Receive Magic Number
+  * IPv4 Alternate Receive Magic Number 改名為 DNSCurve IPv4 Alternate Receive Magic Number
+  * IPv6 Receive Magic Number 改名為 DNSCurve IPv6 Receive Magic Number
+  * IPv6 Alternate Receive Magic Number 改名為 DNSCurve IPv6 Alternate Receive Magic Number
+  * IPv4 DNS Magic Number 改名為 DNSCurve IPv4 DNS Magic Number
+  * IPv4 Alternate DNS Magic Number 改名為 DNSCurve IPv4 Alternate DNS Magic Number
+  * IPv6 DNS Magic Number 改名為 DNSCurve IPv6 DNS Magic Number
+  * IPv6 Alternate DNS Magic Number 改名為 DNSCurve IPv6 Alternate DNS Magic Number
+* 修復 SOCKS 4/4a 協定不能工作的問題
+* 修復 HTTP CONNECT Proxy 無法正確進行 Basic 驗證的問題
+* 修復錯誤報表提供的錯誤代碼格式錯誤的問題
+* 修復錯誤詳細資訊有時可能缺少最後一個字元的問題 (Windows)
+* 修復 CMake 編譯提示宏重定義的問題 (Mac)
+* 提供 SHA-2(256)/SHA256 檔校驗值，淘汰 SHA-1 演算法
+* Release Hash:
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe: AE95B9AC3B3EF005ACBDD2D225768A21B98DAFB6E31E40F707A8C8E64496BB14
+    * Windows/Pcap_DNSProxy_x86.exe: 91A4E440B05043A2E6921891F22B04848E4435140B6F913A83FA9E18F986F8AE
+    * Windows/Pcap_DNSProxy_XP.exe: F6F50F7C26203817D1A7EC3A53CCE22382D26135D206536A13A24CF48D8DA556
+    * Mac/Pcap_DNSProxy: 878C79920F40836E75E213E19F2EBEE41F9B8FFDACDE3AC515B71AC55B4E7F26
+  * SHA-2(256):
+    * Windows/Pcap_DNSProxy.exe: E124F58EBA9A25C19141889A0A636A51C676574768282756A4D679C41746B6EF
+    * Windows/Pcap_DNSProxy_x86.exe: 2CE9DA2DAA7D0261B1650BDAF3DF597DFF6DFF304439EF694CCF5FA411173721
+    * Windows/Pcap_DNSProxy_XP.exe: 79BF5CB3BFF408CE74CE6529DF91DBBC7DE029CF1B72565E3C14F0ED9060E1BE
+    * Mac/Pcap_DNSProxy: 2C79676D861FF7B84FA4AE159480787BBED8631C69345324F3E18C6869BE0CB1
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy 0.4.7.1-0.4.7.6 更新日誌(2016-10-10)：
+
+* 添加對 Dnsmasq 的 Address 和 Server 相容格式設定檔的支援
+  * 支援使用 Address 和 Server 相容格式的非正則運算式模式對功能變數名稱查詢進行字串匹配
+  * 支援使用 Server 相容格式指定特定境內 DNS 目標伺服器以及指定目標伺服器請求的埠
+  * 附帶的 WhiteList.txt 切換到 Dnsmasq Server 相容格式以降低啟用境內白名單功能時的資源佔用
+* 添加一種時間 + 佇列雙重檢測類型的 DNS 緩存策略
+* 添加完整的執行緒池支援
+* 添加對 RFC 6761 特殊功能變數名稱標準化解析的支援
+  * Localhost Server Name 參數改名為 Local Machine Server Name
+  * 修改預設的本機名稱為 pcap-dnsproxy.server
+  * 以 localhost 尾碼的功能變數名稱將全部解析到迴路位址
+  * 以 invalid 尾碼的功能變數名稱將全部解析為功能變數名稱不存在
+  * 以 test 尾碼和 Example Domains 的功能變數名稱將不作處理
+* 添加 CMake 系統並行多執行緒編譯支援 (Linux/Mac)
+* 添加伺服器端 TCP Fast Open 屬性的實驗性支援 (Windows)
+* 現在輸出錯誤代碼時將附上一段對該錯誤代碼的說明 [Syrone Wong]
+* Xcode 更新到 8.0 (Mac)
+* 修復通訊端不正確的關閉有可能造成的系統資源耗盡問題 [AVC A]
+* 修復 IPv6 協定通訊端參數錯誤的問題 [gaoyan1234]
+* 修復 DNS 緩存清除功能的問題 (Linux/Mac) [kiliwalk]
+* 修復在不啟用任何 Local 選項同時附帶白名單清單時報錯的問題
+* 修復在程式啟動後修改設定檔重新讀取時報錯的問題
+* 修復 dig 請求權威根功能變數名稱伺服器的問題
+* 修復 CR + LF 換行格式下行數統計錯誤的問題
+* 修復通訊端 TCP Fast Open 屬性不生效的問題 (Linux)
+* Release Hash:
+  * SHA-1:
+    * Windows/Pcap_DNSProxy.exe: 04629413231FCE9CCD375E7E08EED21D975E893B
+    * Windows/Pcap_DNSProxy_x86.exe: 771551DFE793F5BD28684BEDBE95A67FB32A0F36
+    * Windows/Pcap_DNSProxy_XP.exe: 70E6E5C6974846E19C666A3F2494956DCC731F18
+    * Mac/Pcap_DNSProxy: 1D8F5D58681B74BD831C7BBED47E126A273C6AB8
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe: 0ED522E220D953D5F334FCCCEF1762836C2393AFAD4AD074217A3E5F0E095A4A
+    * Windows/Pcap_DNSProxy_x86.exe: 8A1115810A8DA7D3F8A21D37E69A9CBAAF4E0C65B2CB51E60343BD8CDC78D580
+    * Windows/Pcap_DNSProxy_XP.exe: 1D96315F010DC6A06A2649589CE214E8E856D49A69D37363BFECD5187FC1C5AD
+    * Mac/Pcap_DNSProxy: E730137DA5CE3E6AEBC4EE2180BB45EBF48F8678E7E9A10B1985ADC3C7BF39CA
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy 0.4.6.1-0.4.7.0 更新日誌(2016-08-22)：
+
+* 添加 Source Hosts 根據功能變數名稱請求的來源位址進行 Hosts 的功能
+* 添加 Local Force Request 參數，可強制已確定使用境內伺服器的功能變數名稱請求不使用其它伺服器進行解析
+* 添加 --flush-dns 參數指定功能變數名稱功能，可清除特定功能變數名稱的緩存
+* 添加遺漏的 DNS 投毒污染黑名單位址
+* 添加實驗性的執行緒池支援，並將 Buffer Queue Limits 參數更名為 Thread Pool Maximum Number
+* 添加對刷新系統緩存的時間間隔限制 [Syrone Wong]
+* 添加 CMake 的 Clang 編譯器支援 (Mac)
+* LibSodium 庫更新到 1.0.11 (Windows/Mac)
+* Multi Request Times 參數更名為 Multiple Request Times
+* Alternate Multi Request 參數更名為 Alternate Multiple Request
+* 合併 KeyPairGenerator 工具到主程式，作為支援參數使用
+* 分離 32 位版本對 XP/2003 系統的支援 (Windows)
+* 修復資料包過濾模組過於嚴格導致無法使用部分正常 DNS 伺服器的問題 [muink]
+* 修復批次處理在 2003 系統下無法正常工作的問題 (Windows) [wuxiao2522]
+* 修復抓包模組錯誤判斷正確資料包的問題
+* 修復抓包模組對 IPv6 資料包識別錯誤的問題
+* 修復 Pcap Devices Blacklist 參數工作不正常的問題
+* 修復 Hop Limits/TTL 參數讀取不正常的問題
+* 修復 Hop Limits/TTL 參數指定的值被覆蓋的問題
+* 修復由於部分通訊端被過早清理造成系統協定棧返回 ICMP/ICMPv6 埠不可達資訊的問題
+* 移除附帶的 FileHash 工具，其將分離至 https://github.com/chengr28/Toolkit 專案繼續開發
+* 移除對舊版設定檔的相容
+* Release Hash:
+  * SHA-1:
+    * Windows/Pcap_DNSProxy.exe: DA363FB8F5E3906A1FB65464A0E1343C747DA72C
+    * Windows/Pcap_DNSProxy_x86.exe: 96F508BBDB48DD16B0B13D7B58D42F333042F198
+    * Windows/Pcap_DNSProxy_XP.exe: 07DB9B0D32E5314E8D46A13F02014D712CD1761D
+    * Mac/Pcap_DNSProxy: 9B5EF5662DF6697E0FA5DC66B000EA56996FE30C
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe: E51761D6A7F5EDC505CC6281CF880D70EC2828904BC34A133C89875A31499B47
+    * Windows/Pcap_DNSProxy_x86.exe: D50D4218D14C8C62F67F3BE845B4D668994D807A8A85C2D8D432C50BEB7E1709
+    * Windows/Pcap_DNSProxy_XP.exe: D7342D887B52C4FA87402FF9C4273E7C6F6461CA01FDCADC92253D06FD8E8072
+    * Mac/Pcap_DNSProxy: DBF31E10FD8BBA080D16256F2DB062B106A157831C3B9DE2824C61890A63A429
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy 0.4.5.1-0.4.6.0 更新日誌(2016-04-23)：
 
 * 為 FileHash 工具添加 Hash 演算法支援
   * CRC family: CRC-8 family + CRC-16 family + CRC-24 family + CRC-32 family + CRC-40 + CRC-64 family
@@ -8,17 +162,17 @@
     * CRC-32 family: Normal + JamCRC + C + D + BZIP2 + MPEG2 + POSIX + K + Q
     * CRC-64 family: Normal + 1B + WE + Jones
   * Checksum: Internet Protocol Checksum
-  * SHA family: SHA-2(384) + SHA-2(512) SHA-2(512/224) + SHA-2(512/256)
+  * SHA family: SHA-2(384) + SHA-2(512) + SHA-2(512/224) + SHA-2(512/256)
   * MD family: MD2 + MD4 + eD2k Hash + MD5
 * 添加抓包模組對 Virtual Bridged LAN/IEEE 802.1Q 標籤的支援
-* 添加 IPv4 Packet TTL 和 IPv6 Hop Limits 參數，支援指定和隨機化的 TTL/Hop Limits 值
+* 添加 IPv4 Packet TTL 和 IPv6 Packet Hop Limits 參數，支援指定和隨機化的 TTL/Hop Limits 值
 * 添加 Update_WhiteList 工具，可自動更新白名單功能變數名稱清單 [dgeibi]
 * 添加錯誤日誌輸出分級功能，並將 Print Error 參數更名為 Print Log Level [smounives]
 * 添加 IPv4 Do Not Fragment 參數，支援指定 Do Not Fragment 標誌 (Windows/Linux)
 * 添加 Update_Routing 工具的自動更新腳本 (Linux/Mac)
 * 通過外部命令清除程式內部 DNS 緩存的過程，現在將能無延遲地立即完成
 * 增強對 EDNS Label 的精細化控制
-* LibSodium 庫更新到 1.0.9 (Windows/Mac)
+* LibSodium 庫更新到 1.0.10 (Windows/Mac)
 * Visual Studio 更新到 2015 (Windows)
 * Xcode 更新到 7.2 (Mac)
 * IPv4 TTL 參數更名為 IPv4 DNS TTL
@@ -28,21 +182,23 @@
 * 修復白名單清單不工作的問題 [lonsx]
 * 修復白名單/黑名單清單在 CNAME Hosts 區域內不生效的問題 [shuangzhijinghua]
 * 修復一個特定情況下可能導致程式崩潰的問題
+* 修復因 errno 造成的錯誤代碼延續問題 [Syrone Wong]
 * 修復 Additional Path 失效的問題 [jzp820927]
 * 修復 Additional Path/Hosts File Name/IPFilter File Name 參數大小寫和空格相容問題
 * 修復使用 Win10Pcap 時抓包模組不能工作的問題 (Windows) [smounives]
+* 修復在抓包模式下 CNAME Hosts 格式錯誤的問題 [debugzxcv]
 * 修復程式內部 DNS 緩存被錯誤自動清除的問題 (Linux/Mac)
 * 修復 Update_Routing 工具在 ICMP/ICMPv6 協定被遮罩的網路下不能工作的問題 (Windows) [w48325832/wongsyrone]
 * 修復重啟服務間隔時間過短可能導致的崩潰問題 (Windows)
-* 檔校驗碼(0.4.5.5)
+* Release Hash:
   * SHA-1:
-    * Windows/Pcap_DNSProxy.exe -> 10C6F54101068C3312CBC4E2C9C3B0F57D11D5AC
-    * Windows/Pcap_DNSProxy_x86.exe -> 5B3B065801E2BD58B11D80A74300314BCCADC41C
-    * Mac/Pcap_DNSProxy -> 33781AA39C249D85FCA815ADA3A6B0EEE7D1CCFC
+    * Windows/Pcap_DNSProxy.exe: 8805389165915A4611458B28A5C98303F7A6BC6F
+    * Windows/Pcap_DNSProxy_x86.exe: 27C6219FFB2A225A56E6D3186B7BE299535DF1F7
+    * Mac/Pcap_DNSProxy: 14B86B5CA6BF38D7A242279C2164F53E383CAC52
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe -> BB32A9EB77D2780F155DB6F73543936427893F568D49214DFAEEA30037D9B8EB
-    * Windows/Pcap_DNSProxy_x86.exe -> 88E0DA56D5B4EC3FDCE56EB57F23D66DAB61B135618E04E91BFEFD6110CF4554
-    * Mac/Pcap_DNSProxy -> B8134CFF65C86F5D5F341FB7264D5F9BA137FC2E6FD5B3C187FCFCBBA53B267E
+    * Windows/Pcap_DNSProxy.exe: 72930EBF627021684C10C4BBC0988BBBF9CC3F38BE53E93DC4152494CEF88D7F
+    * Windows/Pcap_DNSProxy_x86.exe: 04DF32B593D26019545AF121F8551B1632905A7A85506D11E8F83BD174A8C188
+    * Mac/Pcap_DNSProxy: 0091474FAEB8CAB2FEF225BCA646A3D46DC0E957FF8AF6F49B8E4FCB9990C1C1
 
 
 -------------------------------------------------------------------------------
@@ -73,15 +229,15 @@ Pcap_DNSProxy 0.4.4.1-0.4.5.0 更新日誌(2015-12-30)：
 * 修復監視模組可能出現的休眠錯誤 [shuangzhijinghua]
 * 修復多次啟動程式時可能造成的崩潰問題 (Windows)
 * 修復主控台輸出內容混疊的問題 (Windows)
-* 檔校驗碼(0.4.5.0)
+* Release Hash:
   * SHA-1:
-    * Windows/Pcap_DNSProxy.exe -> AC94CDFD0F69A336DE9BFC4A877E3468BFCFAD0C
-    * Windows/Pcap_DNSProxy_x86.exe -> 938FD04259497D2DD8204F91E51F0B99B108BE57
-    * Mac/Pcap_DNSProxy -> A9765A1BE67999036C80061CFC66C7EE0191CF90
+    * Windows/Pcap_DNSProxy.exe: AC94CDFD0F69A336DE9BFC4A877E3468BFCFAD0C
+    * Windows/Pcap_DNSProxy_x86.exe: 938FD04259497D2DD8204F91E51F0B99B108BE57
+    * Mac/Pcap_DNSProxy: A9765A1BE67999036C80061CFC66C7EE0191CF90
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe -> 4CFC917AFD6DE227710CBBA5B6C8A6A4F0BDF8216E9FBE8B26E1F195F2E8AD12
-    * Windows/Pcap_DNSProxy_x86.exe -> CF36584F70E1EE30F0AB1FB445A4D0971067540F7F7BA3C45C0F0B08984A9066
-    * Mac/Pcap_DNSProxy -> C653A3DA815BDF5C8995803F105DB666ADB31EC57C942411297469D69C4CA7F9
+    * Windows/Pcap_DNSProxy.exe: 4CFC917AFD6DE227710CBBA5B6C8A6A4F0BDF8216E9FBE8B26E1F195F2E8AD12
+    * Windows/Pcap_DNSProxy_x86.exe: CF36584F70E1EE30F0AB1FB445A4D0971067540F7F7BA3C45C0F0B08984A9066
+    * Mac/Pcap_DNSProxy: C653A3DA815BDF5C8995803F105DB666ADB31EC57C942411297469D69C4CA7F9
 
 
 -------------------------------------------------------------------------------
@@ -248,24 +404,24 @@ Pcap_DNSProxy v0.4(Windows/Linux/Mac) 更新日誌(2015-05-12)：
   * 在開啟散列演算法特徵檢測檔改變的情況下，自動更新 Hosts 清單時將自動清空系統 DNS 緩存
   * 重寫文字檔編碼讀取模組，支援混合換行格式編碼（但不建議使用）
   * 可相容 v0.3 以前的檔版本，但強烈建議升級為當前版本 v0.4
-* 添加視窗模式以支援在安全模式下的運行(Windows)
-* 錯誤報表在視窗模式下現在會即時顯示(Windows)
-* 添加剥离 Libsodium 库的选项(Linux)
+* 添加視窗模式以支援在安全模式下的運行 (Windows)
+* 錯誤報表在視窗模式下現在會即時顯示 (Windows)
+* 添加剥离 Libsodium 库的选项 (Linux)
 * 請求本機伺服器的完整網功能變數名稱稱現在會返回本機伺服器的所有 IPv4/IPv6 位址
 * 調整請求本地 DNS 伺服器由抓包模式到直連模式，加快回應速度降低資源佔用
 * 調整 IPv4 Data Filter/IPv4資料包篩檢程式，預設為關閉
 * 調整 ICMP 和隨機功能變數名稱請求模組的編號和序號建置規則
 * 調整 ICMP 附加資料限制長度最長到 1484 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header)
 * 調整隨機功能變數名稱生成模組，使用 C++ STL 提供的梅森旋轉演算法引擎產生離散型均勻分佈的隨機功能變數名稱
-* 調整內置預設本機伺服器完整網功能變數名稱稱為 "pcap-dnsproxy.localhost.server"（不含引號）以遵循網域名稱系統的標準
+* 調整內置預設本機伺服器完整網功能變數名稱稱為 "pcap-dnsproxy.server"（不含引號）以遵循網域名稱系統的標準
 * 調整記憶體分配策略（標準乙太網 MTU 長度、資料包緩衝區長度和 STL 標準庫調用）減少資源佔用
 * 調整錯誤報表為帶 BOM 的 UTF-8 編碼，避免可能產生的亂碼問題 [Hugo Chan]
 * 調整正則運算式為完全符合模式，提供更準確的匹配效果 [Hugo Chan]
-* 合併 x86 和 x64 版本可執行檔(Windows) [Hugo Chan]
+* 合併 x86 和 x64 版本可執行檔 (Windows) [Hugo Chan]
 * 改進初次開機時進行的防火牆測試模組(Windows)
 * 改進無法找到或禁用重啟網路介面卡後自動重試的功能
 * 改進抓包模組的回復機制，降低資源佔用
-* 使用 CMake 套裝編譯(Linux)
+* 使用 CMake 套裝編譯 (Linux)
 * 為 Debian 系 Linux 發行版本提供服務控制腳本自動安裝腳本
 * 移除建置錯誤報告
   * 找不到 Hosts 檔時
@@ -275,8 +431,8 @@ Pcap_DNSProxy v0.4(Windows/Linux/Mac) 更新日誌(2015-05-12)：
 * 修復 TCP 協定下因為遠端伺服器無回應而造成的過長時間不回應請求的錯誤
 * 修復存在橋接器配接器時可能造成的崩潰 [JonyOang]
 * 修復多執行緒模型下競爭讀寫全域物件可能造成的錯誤
-* 修復本地監聽埠可能被盜用的安全問題(Windows)
-* 修復因為系統預設 IPv6/IPv4 通訊端配置造成的衝突問題(Linux)
+* 修復本地監聽埠可能被盜用的安全問題 (Windows)
+* 修復因為系統預設 IPv6/IPv4 通訊端配置造成的衝突問題 (Linux)
 * 修復自身伺服器名稱讀取和 IPv6 環境下回複自身伺服器名稱的錯誤
 * 修復反向解析功能變數名稱時回復自身伺服器名稱到所有私有網路位址對應功能變數名稱的錯誤
 * 修復在 IPv6 環境下抓包回復時的匹配錯誤
@@ -285,15 +441,15 @@ Pcap_DNSProxy v0.4(Windows/Linux/Mac) 更新日誌(2015-05-12)：
 * 修復隨機功能變數名稱生成模組可能生產空功能變數名稱(ROOT)的錯誤
 * 修復超長 Hosts 條目可能導致的溢出錯誤以及最短長度限制的問題
 * 修復部分情況下無法讀取檔最後一行的錯誤 [Hugo Chan]
-* 服務現在將設定為在第一次和第二次遇到錯誤時自動重新開機(Windows) [yfdyh000]
+* 服務現在將設定為在第一次和第二次遇到錯誤時自動重新開機 (Windows) [yfdyh000]
 * 程式啟動時將不再刪除錯誤和運行日誌檔 [yfdyh000]
-* 合併批次處理(Windows) [yfdyh000]
+* 合併批次處理 (Windows) [yfdyh000]
 * 修復批次處理在開啟 UAC 的情況下無法使用的錯誤(Windows) [Haruyuki Arita/Hugo Chan/Ryans233/streamgo/watchingyoufall]
 * 在非管理員許可權下運行批次處理無法修改系統服務資訊的錯誤現在將有提醒(Windows) [Haruyuki Arita/Hugo Chan/Ryans233/watchingyoufall]
 * 原始程式碼現在開始將使用 UTF-8 編碼
-* 專案升級到 Visual Studio 2013(Windows)
+* 專案升級到 Visual Studio 2013 (Windows)
 * 修復在 IPv6 環境下抓取來自境內功能變數名稱解析伺服器回復包的錯誤，但此功能在新版已被移除，特此公告 [David Webb/eqielb]
-* 修復 Makefile 的錯誤，但此功能在新版已被移除，特此公告(Linux) [otakuchiyan]
+* 修復 Makefile 的錯誤，但此功能在新版已被移除，特此公告 (Linux) [otakuchiyan]
 
 
 -------------------------------------------------------------------------------
@@ -301,11 +457,11 @@ Pcap_DNSProxy v0.4(Windows/Linux/Mac) 更新日誌(2015-05-12)：
 
 Pcap_DNSProxy v0.3.2(Windows)/v0.2(Linux)/v0.1(Mac) 更新日誌：
 * Pcap_DNSProxy v0.1 Mac Release 正式發佈！
-* 提供可用於 x86 和 x64 環境的可執行檔(Linux)
-* 啟用對 Ethernet 設備的識別(Linux)
-* 修復在錯誤使用低許可權運行程式可能造成的 Bug
-* 修復在部分情況下錯誤建置錯誤報告的 Bug(Linux)
-* 修正說明文檔的錯誤操作(Linux)
+* 提供可用於 x86 和 x64 環境的可執行檔 (Linux)
+* 啟用對 Ethernet 設備的識別 (Linux)
+* 修復在錯誤使用低許可權運行程式可能造成的 bug
+* 修復在部分情況下錯誤建置錯誤報告的 bug (Linux)
+* 修正說明文檔的錯誤操作 (Linux)
 
 
 -------------------------------------------------------------------------------
@@ -313,11 +469,11 @@ Pcap_DNSProxy v0.3.2(Windows)/v0.2(Linux)/v0.1(Mac) 更新日誌：
 
 Pcap_DNSProxy v0.3.1(Windows)/v0.1(Linux) 更新日誌：
 * Pcap_DNSProxy v0.1 Linux Release 正式發佈！
-* 剝離並更新 IPv4/IPv6 保留地址清單過濾模組(Windows)
+* 剝離並更新 IPv4/IPv6 保留地址清單過濾模組 (Windows)
    * 升級解析結果黑名單位址過濾功能
-   * 修復本地 IPv6 位址獲取功能的 Bug
-   * 修復自動刷新本地位址的 Bug
-* 修復本地可郵寄地址識別錯誤的 Bug(Windows)
+   * 修復本地 IPv6 位址獲取功能的 bug
+   * 修復自動刷新本地位址的 bug
+* 修復本地可郵寄地址識別錯誤的 bug (Windows)
 
 
 -------------------------------------------------------------------------------
@@ -331,22 +487,22 @@ Pcap_DNSProxy v0.3 更新日誌：
   * 為設定檔添加版本檢測功能
   * 為 Hosts 添加白名單功能
 * 更新設定檔讀取模組
-  * 修復部分編碼/換行格式下錯誤輸出行數至錯誤報表的 Bug
-  * 修復 Hosts 檔一定情況下錯誤識別注釋的 Bug
+  * 修復部分編碼/換行格式下錯誤輸出行數至錯誤報表的 bug
+  * 修復 Hosts 檔一定情況下錯誤識別注釋的 bug
   * 增強對不同換行格式的識別
-* 修復 ICMP(v6)/Ping 測試模組的 Bug
-* 修復白名單功能變數名稱請求測試在TCP模式下被禁用的 Bug
+* 修復 ICMP(v6)/Ping 測試模組的 bug
+* 修復白名單功能變數名稱請求測試在TCP模式下被禁用的 bug
 * 修復 WinPcap 抓取資料包執行緒退出後可能導致的記憶體洩漏問題
 * 注釋 Console 和部分 Ethernet 的調試代碼
-* 原始程式碼全部轉為 USC-2(Little-Endian) 編碼和 Dos\Windows 檔案格式
+* 原始程式碼全部轉為 USC-2(Little-Endian) 編碼和 Windows(CR-LF) 檔案格式
 
 
 -------------------------------------------------------------------------------
 
 
 Pcap_DNSProxy v0.2 更新日誌：
-* 重寫編碼讀取模組，新增支援 ·Macintosh· 換行格式
-* 修復無法在 PPPoE 環境下使用的 Bug
+* 重寫編碼讀取模組，新增支援 Macintosh(CR) 換行格式
+* 修復無法在 PPPoE 環境下使用的 bug
 * 使用C語言標準庫傳回值
 * 巨集定義錯誤報表類型
 

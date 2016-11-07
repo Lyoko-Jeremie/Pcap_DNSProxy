@@ -20,11 +20,7 @@
 #include "Base.h"
 
 //Base definitions
-//Read Texts input and Label types definitions
-#define READ_TEXT_PARAMETER                   0
-#define READ_TEXT_PARAMETER_MONITOR           1U
-#define READ_TEXT_HOSTS                       2U
-#define READ_TEXT_IPFILTER                    3U
+//Label types definitions
 #define LABEL_STOP                            1U
 #define LABEL_IPFILTER                        2U
 #define LABEL_IPFILTER_BLACKLIST              3U
@@ -37,6 +33,7 @@
 #define LABEL_HOSTS_TYPE_CNAME                10U
 #define LABEL_HOSTS_TYPE_LOCAL                11U
 #define LABEL_HOSTS_TYPE_ADDRESS              12U
+#define LABEL_HOSTS_TYPE_SOURCE               13U
 
 //Length definitions
 #define READ_DATA_MINSIZE                     4U
@@ -52,7 +49,7 @@
 extern CONFIGURATION_TABLE Parameter, ParameterModificating;
 extern GLOBAL_STATUS GlobalRunningStatus;
 #if defined(ENABLE_LIBSODIUM)
-	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
+extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
 #endif
 extern std::vector<FILE_DATA> FileList_Config, FileList_IPFilter, FileList_Hosts;
 extern std::vector<DIFFERNET_FILE_SET_IPFILTER> *IPFilterFileSetUsing, *IPFilterFileSetModificating;
@@ -60,37 +57,37 @@ extern std::vector<DIFFERNET_FILE_SET_HOSTS> *HostsFileSetUsing, *HostsFileSetMo
 extern std::mutex IPFilterFileLock, HostsFileLock;
 
 //Functions in Configuration.cpp
-bool __fastcall ReadText(
-	const FILE *Input, 
+bool ReadText(
+	const FILE * const FileHandle, 
 	const size_t InputType, 
 	const size_t FileIndex);
-bool __fastcall ReadMultiLineComments(
+bool ReadMultipleLineComments(
 	std::string &Data, 
 	bool &IsLabelComments);
-void __fastcall ClearModificatingListData(
+void ClearModificatingListData(
 	const size_t ClearType, 
 	const size_t FileIndex);
 
 //Functions in ReadParameter.cpp
-bool __fastcall ParameterCheckAndSetting(
+bool ParameterCheckAndSetting(
 	const bool IsFirstRead, 
 	const size_t FileIndex);
-uint16_t __fastcall ServiceNameToBinary(
-	const char *OriginalBuffer);
-uint16_t __fastcall DNSTypeNameToBinary(
-	const char *OriginalBuffer);
-bool __fastcall ReadParameterData(
+uint16_t ServiceNameToBinary(
+	const uint8_t * const OriginalBuffer);
+uint16_t DNSTypeNameToBinary(
+	const uint8_t * const OriginalBuffer);
+bool ReadParameterData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const bool IsFirstRead, 
 	const size_t Line, 
 	bool &IsLabelComments);
 #if defined(PLATFORM_WIN)
-bool __fastcall ReadPathAndFileName(
+bool ReadPathAndFileName(
 	std::string Data, 
 	const size_t DataOffset, 
 	const bool Path, 
-	std::vector<std::wstring> *ListData, 
+	std::vector<std::wstring> * const ListData, 
 	const size_t FileIndex, 
 	const size_t Line);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
@@ -98,105 +95,103 @@ bool ReadPathAndFileName(
 	std::string Data, 
 	const size_t DataOffset, 
 	const bool Path, 
-	std::vector<std::wstring> *ListData, 
-	std::vector<std::string> *sListData, 
-	const size_t FileIndex, 
-	const size_t Line);
+	std::vector<std::wstring> * const ListData, 
+	std::vector<std::string> * const sListData, 
+	const size_t FileIndex, const size_t Line);
 #endif
-bool __fastcall ReadMultipleAddresses(
+bool ReadMultipleAddresses(
+	const uint16_t Protocol, 
 	std::string Data, 
 	const size_t DataOffset, 
-	const uint16_t Protocol, 
-	const bool IsMultiAddresses, 
-	sockaddr_storage &SockAddr, 
-	std::vector<sockaddr_storage> *SockAddrList, 
+	std::vector<DNS_SERVER_DATA> * const DNSServerDataList, 
 	const size_t FileIndex, 
 	const size_t Line);
-bool __fastcall ReadSOCKSAddressAndDomain(
+bool ReadSOCKSAddressAndDomain(
 	std::string Data, 
 	const size_t DataOffset, 
-	CONFIGURATION_TABLE *ParameterPTR, 
+	CONFIGURATION_TABLE * const ParameterPTR, 
 	const size_t FileIndex, 
 	const size_t Line);
 #if defined(ENABLE_PCAP)
-bool __fastcall ReadHopLimitData(
+bool ReadHopLimitData(
+	const uint16_t Protocol, 
 	std::string Data, 
 	const size_t DataOffset, 
-	const uint16_t Protocol, 
-	uint8_t &HopLimit, 
+	std::vector<DNS_SERVER_DATA> * const DNSServerDataList, 
+	const bool IsFirstRead, 
 	const size_t FileIndex, 
 	const size_t Line);
 #endif
 #if defined(ENABLE_LIBSODIUM)
-bool __fastcall ReadDNSCurveProviderName(
+bool ReadDNSCurveProviderName(
 	std::string Data, 
 	const size_t DataOffset, 
-	char *ProviderNameData, 
+	uint8_t * const ProviderNameData, 
 	const size_t FileIndex, 
 	const size_t Line);
-bool __fastcall ReadDNSCurveKey(
+bool ReadDNSCurveKey(
 	std::string Data, 
 	const size_t DataOffset, 
-	uint8_t *KeyData, 
+	uint8_t * const KeyData, 
 	const size_t FileIndex, 
 	const size_t Line);
 #endif
-bool __fastcall ReadDNSCurveMagicNumber(
+bool ReadDNSCurveMagicNumber(
 	std::string Data, 
 	const size_t DataOffset, 
-	char *MagicNumber, 
+	uint8_t * const MagicNumber, 
 	const size_t FileIndex, 
 	const size_t Line);
 
 //Functions in ReadIPFilter.cpp
-bool __fastcall ReadIPFilterData(
+bool ReadIPFilterData(
 	std::string Data, 
 	const size_t FileIndex, 
 	size_t &LabelType, 
 	const size_t Line, 
 	bool &IsLabelComments);
-bool __fastcall ReadBlacklistData(
+bool ReadBlacklistData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line);
-bool __fastcall ReadLocalRoutingData(
+bool ReadLocalRoutingData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line);
-bool __fastcall ReadAddressPrefixBlock(
+bool ReadAddressPrefixBlock(
+	const uint16_t Protocol, 
 	std::string OriginalData, 
 	const size_t DataOffset, 
-	const uint16_t Protocol, 
-	ADDRESS_PREFIX_BLOCK *AddressPrefix, 
+	ADDRESS_PREFIX_BLOCK * const AddressPrefix, 
 	const size_t FileIndex, 
 	const size_t Line);
-bool __fastcall ReadMainIPFilterData(
+bool ReadMainIPFilterData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line);
 
 //Functions in ReadHosts.cpp
-bool __fastcall ReadHostsData(
+bool ReadHostsData(
 	std::string Data, 
 	const size_t FileIndex, 
 	size_t &LabelType, 
 	const size_t Line, 
 	bool &IsLabelComments);
-bool __fastcall ReadOtherHostsData(
+bool ReadOtherHostsData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line, 
 	const size_t LabelType, 
 	const size_t ItemType);
-bool __fastcall ReadLocalHostsData(
+bool ReadLocalHostsData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line);
-bool __fastcall ReadAddressHostsData(
+bool ReadAddressHostsData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line);
-bool __fastcall ReadMainHostsData(
+bool ReadMainHostsData(
 	std::string Data, 
 	const size_t HostsType, 
 	const size_t FileIndex, 

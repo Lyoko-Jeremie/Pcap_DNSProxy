@@ -1,4 +1,4 @@
-常見問題
+﻿常見問題
 
 * 本文檔為常見問題的處理方法，當工具無法正常使用時可先參考本文檔尋找解決方法
 * 錯誤報表的詳細情況，參見 FAQ(...). txt
@@ -21,7 +21,7 @@
     ;; global options: +cmd
     ;; connection timed out; no servers could be reached
 
-* 錯誤由其它 DNS 伺服器回應，留意 "SERVER: ...#53(...)" 一行必須為 127.0.0.1（IPv4，IPv6下為 ::1 ）
+* 錯誤由其它 DNS 伺服器回應，留意 "SERVER: ...#53(...)" 一行必須為 ::1（IPv6，IPv4 下為 127.0.0.1）
   * 請檢查系統的網路設置，或者也可能是服務沒有運行成功或者服務已經運行成功但遠端 DNS 伺服器沒有回應
 
     >dig www.google.com

@@ -23,22 +23,22 @@
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 #if defined(ENABLE_LIBSODIUM)
-	extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
+extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 #endif
-	extern std::vector<DIFFERNET_FILE_SET_IPFILTER> *IPFilterFileSetUsing, *IPFilterFileSetModificating;
+extern std::vector<DIFFERNET_FILE_SET_IPFILTER> *IPFilterFileSetUsing, *IPFilterFileSetModificating;
 extern std::vector<DIFFERNET_FILE_SET_HOSTS> *HostsFileSetUsing, *HostsFileSetModificating;
 extern std::mutex IPFilterFileLock, HostsFileLock;
 
 //Functions
-size_t __fastcall CheckResponseCNAME(
-	char *Buffer, 
+size_t CheckResponseCNAME(
+	uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t CNAME_Index, 
 	const size_t CNAME_Length, 
 	const size_t BufferSize, 
 	size_t &RecordNum);
-bool __fastcall CheckDNSSECRecords(
-	const char *Buffer, 
+bool CheckDNSSECRecords(
+	const uint8_t * const Buffer, 
 	const size_t Length, 
 	const uint16_t Type, 
 	const uint16_t BeforeType);

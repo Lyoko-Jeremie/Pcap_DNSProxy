@@ -1,9 +1,31 @@
-Documents/* eol=crlf
-Source/ExampleConfig/Config.ini eol=crlf
-Source/ExampleConfig/Hosts.ini eol=crlf
-Source/ExampleConfig/IPFilter.ini eol=crlf
-Source/ExampleConfig/Routing.txt eol=crlf
-Source/ExampleConfig/ServiceControl.bat eol=crlf
-Source/ExampleConfig/WhiteList.txt eol=crlf
-Source/Tools/Update_Routing/* eol=crlf
-Source/Tools/Update_WhiteList/* eol=crlf
+# Newline format in Windows(CR-LF)
+*.bat text eol=crlf
+*.filters text eol=crlf
+*.ini text eol=crlf
+*.rc text eol=crlf
+*.sln text eol=crlf
+*.vcxproj text eol=crlf
+Documents/*.txt text eol=crlf
+Source/Pcap_DNSProxy/WinPcap/* eol=crlf
+Source/Tools/* eol=crlf
+
+# Newline format in Linux/Mac(LF)
+*.pbxproj text eol=lf
+*.plist text eol=lf
+*.service text eol=lf
+*.xcscheme text eol=lf
+CMakeLists.txt text eol=lf
+Source/FileHash/CMakeLists.txt text eol=lf
+Source/FileHash/SHA-3/CMakeLists.txt text eol=lf
+Source/FileHash.xcodeproj/* eol=lf
+Source/KeyPairGenerator/CMakeLists.txt text eol=lf
+Source/KeyPairGenerator.xcodeproj/* eol=lf
+Source/Pcap_DNSProxy/CMakeLists.txt text eol=lf
+Source/Pcap_DNSProxy.xcodeproj/* eol=lf
+Source/Scripts/* text eol=lf
+
+# Binary files
+*.exe binary
+*.lib binary
+*.a binary
+*.xcworkspacedata binary

@@ -24,7 +24,5 @@ ELSE(PLATFORM_OPENWRT)
 	cmake_minimum_required(VERSION 3.0.2)
 ENDIF(PLATFORM_OPENWRT)
 
-# Add sub directories
-add_subdirectory(Source/FileHash)
-add_subdirectory(Source/KeyPairGenerator)
+# Sub directories
 add_subdirectory(Source/Pcap_DNSProxy)

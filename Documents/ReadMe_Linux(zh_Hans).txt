@@ -1,7 +1,5 @@
 ﻿Pcap_DNSProxy 项目的 GitHub 页面：
-
-* 主分支: https://github.com/chengr28/Pcap_DNSProxy
-* Release 分支: https://github.com/chengr28/Pcap_DNSProxy/tree/Release
+https://github.com/chengr28/Pcap_DNSProxy
 
 Pcap_DNSProxy 项目的 Sourceforge 页面：
 https://sourceforge.net/projects/pcap-dnsproxy
@@ -21,39 +19,39 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * GCC/g++ 可访问 https://gcc.gnu.org 获取
       * GCC 最低版本要求为 4.9 从此版本开始 GCC 完整支持 C++ 11 标准，4.9 之前的版本对 C++ 11 标准的实现有问题
       * GCC 当前版本可使用 gcc --version 查看，使用旧版本 GCC 强行编译可能会出现无法预料的问题！
-    * Bison 可访问 https://www.gnu.org/software/bison 获取
-    * M4 可访问 https://www.gnu.org/software/m4 获取
-    * Flex 可访问 http://flex.sourceforge.net 获取
-    * CMake 可访问 http://www.cmake.org 获取
+    * CMake 可访问 https://cmake.org 获取
     * LibPcap 可访问 http://www.tcpdump.org/#latest-release 获取
+      * 编译时如果剥离 LibPcap 的依赖则可跳过编译和安装下表的依赖库和工具，具体参见下文的介绍，不建议使用
       * 获得 root 权限后使用 ./configure -> make -> make install 即可
-      * 部分 Linux 发行版可能还需要 LibPcap-Dev 工具的支持
+      * 部分 Linux 发行版可能还需要 libpcap-dev 工具的支持，以及运行 ldconfig 刷新系统库缓存
     * Libsodium 可访问 https://github.com/jedisct1/libsodium 获取
       * 编译时如果剥离 Libsodium 的依赖则可跳过编译和安装下表的依赖库和工具，具体参见下文的介绍，不建议使用
-      * Libsodium 的编译和安装依赖 Automake/Autoconf 套装工具：
-        * aclocal
-        * autoscan
-        * autoconf 可访问 https://www.gnu.org/software/autoconf 获取
-        * autoheader
-        * automake 可访问 https://www.gnu.org/software/automake 获取
-        * libtool 可访问 https://www.gnu.org/software/libtool 获取
       * 获得 root 权限后进入目录，运行 ./autogen.sh -> ./configure -> make -> make install 即可
-      * 部分 Linux 发行版可能还需要 Libsodium-Dev 工具的支持
-      * 部分 Linux 发行版可能还需要运行 ldconfig 刷新系统的库缓存
+      * 部分 Linux 发行版可能还需要 libsodium-dev 工具的支持，以及运行 ldconfig 刷新系统库缓存
+    * OpenSSL 可访问 https://www.openssl.org 获取
+      * 编译时如果剥离 OpenSSL 的依赖则可跳过编译和安装下表的依赖库和工具，具体参见下文的介绍，不建议使用
+      * 获得 root 权限后使用 ./configure [编译平台] -> make -> make install 即可
+      * 部分 Linux 发行版可能还需要 openssl-dev/libssl-dev 工具的支持，以及运行 ldconfig 刷新系统库缓存
 
 2.编译 Pcap_DNSProxy 程序并配置程序属性
   * 切勿更改脚本的换行格式 (UNIX/LF)
-  * 使用终端进入 Source/Scripts 目录，使用 chmod 755 Linux_Build.sh 使脚本获得执行权限
-  * 使用 ./Linux_Build.sh 执行编译程序
-    * 添加参数 --enable-static 即 ./Linux_Build.sh --enable-static 可启用静态编译
+  * 使用终端进入 Source/Scripts 目录，使用 chmod 755 CMake_Build.sh 使脚本获得执行权限
+  * 使用 ./CMake_Build.sh 执行编译程序
     * 脚本所进行的操作：
-      * CMake 将编译并在 Release 目录生成 Pcap_DNSProxy 和 KeyPairGenerator 程序
-      * 设置 Pcap_DNSProxy 和 KeyPairGenerator 程序以及 PcapDNSProxyService 和 Pcap_DNSProxy.service 服务控制脚本的基本读写可执行权限
+      * CMake 将编译并在 Release 目录生成 Pcap_DNSProxy 程序
+      * 设置 Pcap_DNSProxy 程序以及 PcapDNSProxyService 和 Pcap_DNSProxy.service 服务控制脚本的基本读写可执行权限
       * 设置 Linux_(Un)Install.Systemd.sh 以及 Linux_(Un)Install.SysV.sh 服务控制安装脚本的基本读写可执行权限
       * 从 ExampleConfig 复制默认配置文件到 Release 目录
-    * 执行时使用 ./Linux_Build.sh --disable-libsodium 可剥离 Libsodium 的依赖，不建议使用
+    * 添加参数 --enable-static 即 ./CMake_Build.sh --enable-static 可启用静态编译
+    * 执行时使用 ./CMake_Build.sh --disable-libpcap 可剥离对 LibPcap 的依赖，不建议使用
+      * 剥离后编译时将不需要 LibPcap 库的支持
+      * 剥离后程序将完全失去支持 LibPcap 的功能，且运行时将不会产生任何错误提示，慎用！
+    * 执行时使用 ./CMake_Build.sh --disable-libsodium 可剥离对 Libsodium 的依赖，不建议使用
       * 剥离后编译时将不需要 Libsodium 库的支持
       * 剥离后程序将完全失去支持 DNSCurve/DNSCrypt 协议的功能，且运行时将不会产生任何错误提示，慎用！
+    * 执行时使用 ./CMake_Build.sh --disable-tls 可剥离对 OpenSSL 的依赖，不建议使用
+      * 剥离后编译时将不需要 OpenSSL 库的支持
+      * 剥离后程序将完全失去支持 TLS/SSL 协议的功能，且运行时将不会产生任何错误提示，慎用！
 
 3.配置系统守护进程服务
   * 由于不同的 Linux 发行版对系统服务和守护进程的处理方式不同，本步仅供参考
@@ -106,19 +104,19 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * 直接修改 dhclient.conf 文件，修改或添加 prepend domain-name-servers 一项即可
       * 如果 prepend domain-name-servers 一项被 # 注释则需要把注释去掉以使配置生效，不需要添加新的条目
       * dhclient.conf 文件可能存在多个 prepend domain-name-servers 项，是各个网络接口的配置项目，直接修改总的配置项目即可
-      * 使用 service network(/networking) restart 或 ipdown/ipup 或 ifcondig stop/start 重启网络服务/网络端口
+      * 使用 service network(/networking) restart 或 ifdown/ifup 或 ifconfig stop/start 重启网络服务/网络端口
     * 非自动获取地址(DHCP)时：
       * 以 root 权限进入 /etc 目录
       * 直接修改 resolv.conf 文件里的 nameserver 即可
       * 如果重启后配置被覆盖，则需要修改或新建 /etc/resolvconf/resolv.conf.d 文件，内容和 resolv.conf 一样
-      * 使用 service network(/networking) restart 或 ipdown/ipup 或 ifcondig stop/start 重启网络服务/网络端口
+      * 使用 service network(/networking) restart 或 ifdown/ifup 或 ifconfig stop/start 重启网络服务/网络端口
 
 
 -------------------------------------------------------------------------------
 
 
 卸载方法：
-* 由于不同的 Linux 发行版对系统服务和守护进程的处理方式不同，本步仅供参考
+* 由于不同的 Linux 发行版对系统服务和守护进程的处理方式不同，本节仅供参考
 
 1.还原系统网络配置
 2.以 root 权限进入 Release 目录，执行 ./Linux_Uninstall.Systemd.sh 或 ./Linux_Uninstall.SysV.sh
@@ -169,7 +167,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
    ...
 
    ;; Query time: ... msec
-   ;; SERVER: 127.0.0.1#53(127.0.0.1)（IPv4，IPv6下为 ::1 ）
+   ;; SERVER: ::1#53(::1)（IPv6，IPv4 下为 127.0.0.1）
    ;; WHEN: ...
    ;; MSG SIZE  rcvd: ...
 

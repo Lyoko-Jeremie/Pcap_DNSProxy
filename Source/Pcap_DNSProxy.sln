@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.24720.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pcap_DNSProxy", "Pcap_DNSProxy\Pcap_DNSProxy.vcxproj", "{9221C40D-99FA-447B-BB53-767F9C6945EB}"
 EndProject
@@ -36,7 +36,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleConfig", "ExampleCon
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{075F715C-B15F-40E4-907E-8DE5ECB2ED73}"
 	ProjectSection(SolutionItems) = preProject
-		Scripts\Linux_Build.sh = Scripts\Linux_Build.sh
+		Scripts\CMake_Build.sh = Scripts\CMake_Build.sh
 		Scripts\Linux_Install.Systemd.sh = Scripts\Linux_Install.Systemd.sh
 		Scripts\Linux_Install.SysV.sh = Scripts\Linux_Install.SysV.sh
 		Scripts\Linux_Uninstall.Systemd.sh = Scripts\Linux_Uninstall.Systemd.sh
@@ -115,6 +115,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibSodium", "LibSodium", "{
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{64D86D92-3AA0-400E-91E4-EB93EF26EEE6}"
+	ProjectSection(SolutionItems) = preProject
+		Tools\WinPcap_4.1.3.exe = Tools\WinPcap_4.1.3.exe
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_Routing", "Update_Routing", "{A1267D16-9EC5-4FE4-9000-D9B168A8F6E4}"
 	ProjectSection(SolutionItems) = preProject
@@ -138,10 +141,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Support", "Support", "{7227
 		Tools\Support\md5.exe = Tools\Support\md5.exe
 		Tools\Support\sed.exe = Tools\Support\sed.exe
 	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FileHash", "FileHash\FileHash.vcxproj", "{E65C4C70-40DF-48E8-9FE1-52DD7D003558}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "KeyPairGenerator", "KeyPairGenerator\KeyPairGenerator.vcxproj", "{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WinPcap", "WinPcap", "{D099D655-939B-4399-A0CB-07D88BFD3BA0}"
 	ProjectSection(SolutionItems) = preProject
@@ -173,10 +172,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pcap", "pcap", "{B47BEE44-3
 		Pcap_DNSProxy\WinPcap\pcap\vlan.h = Pcap_DNSProxy\WinPcap\pcap\vlan.h
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "private", "private", "{505791ED-97BA-491F-BA24-40E4EF6171F3}"
+	ProjectSection(SolutionItems) = preProject
+		LibSodium\private\common.h = LibSodium\private\common.h
+		LibSodium\private\curve25519_ref10.h = LibSodium\private\curve25519_ref10.h
+		LibSodium\private\mutex.h = LibSodium\private\mutex.h
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
+		Release_XP|x64 = Release_XP|x64
+		Release_XP|x86 = Release_XP|x86
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
 	EndGlobalSection
@@ -185,26 +193,14 @@ Global
 		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Debug|x64.Build.0 = Debug|x64
 		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Debug|x86.ActiveCfg = Debug|Win32
 		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Debug|x86.Build.0 = Debug|Win32
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release_XP|x64.ActiveCfg = Release_XP|x64
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release_XP|x64.Build.0 = Release_XP|x64
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release_XP|x86.ActiveCfg = Release_XP|Win32
+		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release_XP|x86.Build.0 = Release_XP|Win32
 		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x64.ActiveCfg = Release|x64
 		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x64.Build.0 = Release|x64
 		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x86.ActiveCfg = Release|Win32
 		{9221C40D-99FA-447B-BB53-767F9C6945EB}.Release|x86.Build.0 = Release|Win32
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Debug|x64.ActiveCfg = Debug|x64
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Debug|x64.Build.0 = Debug|x64
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Debug|x86.ActiveCfg = Debug|Win32
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Debug|x86.Build.0 = Debug|Win32
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Release|x64.ActiveCfg = Release|x64
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Release|x64.Build.0 = Release|x64
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Release|x86.ActiveCfg = Release|Win32
-		{E65C4C70-40DF-48E8-9FE1-52DD7D003558}.Release|x86.Build.0 = Release|Win32
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Debug|x64.ActiveCfg = Debug|x64
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Debug|x64.Build.0 = Debug|x64
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Debug|x86.ActiveCfg = Debug|Win32
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Debug|x86.Build.0 = Debug|Win32
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Release|x64.ActiveCfg = Release|x64
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Release|x64.Build.0 = Release|x64
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Release|x86.ActiveCfg = Release|Win32
-		{FFF69D20-E20A-4414-892D-0DFF26CDB7C3}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -216,5 +212,6 @@ Global
 		{722796B9-8775-49FE-9071-636DE5332F9A} = {64D86D92-3AA0-400E-91E4-EB93EF26EEE6}
 		{D099D655-939B-4399-A0CB-07D88BFD3BA0} = {777BC78B-14C3-4CEE-AF7A-05DCC515DB21}
 		{B47BEE44-34A2-4E23-B146-82D3DD81A2E0} = {D099D655-939B-4399-A0CB-07D88BFD3BA0}
+		{505791ED-97BA-491F-BA24-40E4EF6171F3} = {874D6810-2479-4A52-8C16-3AFAB5640254}
 	EndGlobalSection
 EndGlobal
