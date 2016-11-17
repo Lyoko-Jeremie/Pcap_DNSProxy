@@ -104,7 +104,7 @@ bool DomainTestRequest(
 		//Test again check.
 			if (Protocol == AF_INET6)
 			{
-				if ((Parameter.Target_Server_IPv6.HopLimitData_Assign.HopLimit == 0 && Parameter.Target_Server_IPv6.HopLimitData_Mark.HopLimit == 0) || //Main
+				if ((Parameter.Target_Server_Main_IPv6.HopLimitData_Assign.HopLimit == 0 && Parameter.Target_Server_Main_IPv6.HopLimitData_Mark.HopLimit == 0) || //Main
 					(Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 && //Alternate
 					Parameter.Target_Server_Alternate_IPv6.HopLimitData_Assign.HopLimit == 0 && Parameter.Target_Server_Alternate_IPv6.HopLimitData_Mark.HopLimit == 0))
 						goto JumpToRetest;
@@ -121,7 +121,7 @@ bool DomainTestRequest(
 			}
 			else if (Protocol == AF_INET)
 			{
-				if ((Parameter.Target_Server_IPv4.HopLimitData_Assign.TTL == 0 && Parameter.Target_Server_IPv4.HopLimitData_Mark.TTL == 0) || //Main
+				if ((Parameter.Target_Server_Main_IPv4.HopLimitData_Assign.TTL == 0 && Parameter.Target_Server_Main_IPv4.HopLimitData_Mark.TTL == 0) || //Main
 					(Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0 && //Alternate
 					Parameter.Target_Server_Alternate_IPv4.HopLimitData_Assign.TTL == 0 && Parameter.Target_Server_Alternate_IPv4.HopLimitData_Mark.TTL == 0))
 						goto JumpToRetest;
@@ -222,7 +222,7 @@ bool ICMPTestRequest(
 	#if defined(PLATFORM_LINUX)
 		ICMPv6_Header->Timestamp = (uint64_t)time(nullptr);
 		ICMPv6_Header->Nonce = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
-	#elif defined(PLATFORM_MACX)
+	#elif defined(PLATFORM_MACOS)
 		ICMPv6_Header->Timestamp = (uint64_t)time(nullptr);
 	#endif
 
@@ -233,7 +233,7 @@ bool ICMPTestRequest(
 	//Main
 	#if defined(PLATFORM_WIN)
 		SocketDataTemp.Socket = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		SocketDataTemp.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
 	#endif
 		if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
@@ -243,8 +243,8 @@ bool ICMPTestRequest(
 			return false;
 		}
 		else {
-			SocketDataTemp.SockAddr.ss_family = Parameter.Target_Server_IPv6.AddressData.Storage.ss_family;
-			((PSOCKADDR_IN6)&SocketDataTemp.SockAddr)->sin6_addr = Parameter.Target_Server_IPv6.AddressData.IPv6.sin6_addr;
+			SocketDataTemp.SockAddr.ss_family = Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family;
+			((PSOCKADDR_IN6)&SocketDataTemp.SockAddr)->sin6_addr = Parameter.Target_Server_Main_IPv6.AddressData.IPv6.sin6_addr;
 			SocketDataTemp.AddrLen = sizeof(sockaddr_in6);
 			ICMPSocketData.push_back(SocketDataTemp);
 			memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
@@ -255,7 +255,7 @@ bool ICMPTestRequest(
 		{
 		#if defined(PLATFORM_WIN)
 			SocketDataTemp.Socket = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			SocketDataTemp.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
 		#endif
 			if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
@@ -282,7 +282,7 @@ bool ICMPTestRequest(
 			{
 			#if defined(PLATFORM_WIN)
 				SocketDataTemp.Socket = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				SocketDataTemp.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
 			#endif
 				if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
@@ -315,7 +315,7 @@ bool ICMPTestRequest(
 	#if defined(PLATFORM_LINUX)
 		ICMP_Header->Timestamp = (uint64_t)time(nullptr);
 		ICMP_Header->Nonce = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
-	#elif defined(PLATFORM_MACX)
+	#elif defined(PLATFORM_MACOS)
 		ICMP_Header->Timestamp = (uint64_t)time(nullptr);
 	#endif
 		ICMP_Header->Checksum = GetChecksum((uint16_t *)SendBuffer.get(), Length);
@@ -334,8 +334,8 @@ bool ICMPTestRequest(
 			return false;
 		}
 		else {
-			SocketDataTemp.SockAddr.ss_family = Parameter.Target_Server_IPv4.AddressData.Storage.ss_family;
-			((PSOCKADDR_IN)&SocketDataTemp.SockAddr)->sin_addr = Parameter.Target_Server_IPv4.AddressData.IPv4.sin_addr;
+			SocketDataTemp.SockAddr.ss_family = Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family;
+			((PSOCKADDR_IN)&SocketDataTemp.SockAddr)->sin_addr = Parameter.Target_Server_Main_IPv4.AddressData.IPv4.sin_addr;
 			SocketDataTemp.AddrLen = sizeof(sockaddr_in);
 			ICMPSocketData.push_back(SocketDataTemp);
 		}
@@ -446,7 +446,7 @@ bool ICMPTestRequest(
 		//Test again check.
 			if (Protocol == AF_INET6)
 			{
-				if ((Parameter.Target_Server_IPv6.HopLimitData_Assign.HopLimit == 0 && Parameter.Target_Server_IPv6.HopLimitData_Mark.HopLimit == 0) || //Main
+				if ((Parameter.Target_Server_Main_IPv6.HopLimitData_Assign.HopLimit == 0 && Parameter.Target_Server_Main_IPv6.HopLimitData_Mark.HopLimit == 0) || //Main
 					(Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 && //Alternate
 					Parameter.Target_Server_Alternate_IPv6.HopLimitData_Assign.HopLimit == 0 && Parameter.Target_Server_Alternate_IPv6.HopLimitData_Mark.HopLimit == 0))
 						goto JumpToRetest;
@@ -463,7 +463,7 @@ bool ICMPTestRequest(
 			}
 			else if (Protocol == AF_INET)
 			{
-				if ((Parameter.Target_Server_IPv4.HopLimitData_Assign.TTL == 0 && Parameter.Target_Server_IPv4.HopLimitData_Mark.TTL == 0) || //Main
+				if ((Parameter.Target_Server_Main_IPv4.HopLimitData_Assign.TTL == 0 && Parameter.Target_Server_Main_IPv4.HopLimitData_Mark.TTL == 0) || //Main
 					(Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0 && //Alternate
 					Parameter.Target_Server_Alternate_IPv4.HopLimitData_Assign.TTL == 0 && Parameter.Target_Server_Alternate_IPv4.HopLimitData_Mark.TTL == 0))
 						goto JumpToRetest;
@@ -529,7 +529,7 @@ bool ICMPTestRequest(
 				#if defined(PLATFORM_LINUX)
 					ICMPv6_Header->Timestamp = (uint64_t)time(nullptr);
 					ICMPv6_Header->Nonce = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
-				#elif defined(PLATFORM_MACX)
+				#elif defined(PLATFORM_MACOS)
 					ICMPv6_Header->Timestamp = (uint64_t)time(nullptr);
 				#endif
 				}
@@ -544,7 +544,7 @@ bool ICMPTestRequest(
 				#if defined(PLATFORM_LINUX)
 					ICMP_Header->Timestamp = (uint64_t)time(nullptr);
 					ICMP_Header->Nonce = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
-				#elif defined(PLATFORM_MACX)
+				#elif defined(PLATFORM_MACOS)
 					ICMP_Header->Timestamp = (uint64_t)time(nullptr);
 				#endif
 

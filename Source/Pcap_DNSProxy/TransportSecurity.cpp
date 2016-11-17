@@ -587,7 +587,27 @@ bool SSPI_ShutdownConnection(
 
 	return true;
 }
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+//OpenSSL print error message process
+bool OpenSSL_PrintError(
+	const uint8_t *OpenSSL_ErrorMessage, 
+	const wchar_t *ErrorMessage)
+{
+	std::wstring Message;
+	if (MBSToWCSString(OpenSSL_ErrorMessage, OPENSSL_STATIC_BUFFER_SIZE, Message))
+	{
+		std::wstring InnerMessage(ErrorMessage); //OpenSSL will return message like "error:..."
+		InnerMessage.append(Message);
+		PrintError(LOG_LEVEL_3, LOG_ERROR_TLS, InnerMessage.c_str(), 0, nullptr, 0);
+	}
+	else {
+		PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
+		return false;
+	}
+
+	return true;
+}
+
 //OpenSSL initializtion
 void OpenSSL_Library_Init(
 	bool IsLoad)
@@ -595,20 +615,23 @@ void OpenSSL_Library_Init(
 //Load all OpenSSL libraries, algorithms and strings.
 	if (IsLoad)
 	{
+	#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0 //OpenSSL version after 1.1.0
+		OPENSSL_init_ssl(0, nullptr);
+	#else //OpenSSL version before 1.1.0
 		SSL_library_init();
 		OpenSSL_add_all_algorithms();
 		SSL_load_error_strings();
 		ERR_load_crypto_strings();
-	#if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_1_0
 		OPENSSL_config(nullptr);
 	#endif
 	}
-//Unoad all OpenSSL libraries, algorithms and strings.
-	else {
+#if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_1_0 //OpenSSL version brfore 1.1.0
+	else { //Unoad all OpenSSL libraries, algorithms and strings.
 		CONF_modules_unload(TRUE);
 		ERR_free_strings();
 		EVP_cleanup();
 	}
+#endif
 
 	return;
 }
@@ -617,46 +640,62 @@ void OpenSSL_Library_Init(
 bool OpenSSL_CTX_Initializtion(
 	OPENSSL_CONTEXT_TABLE &OpenSSL_CTX)
 {
-//TLS version selection
-//OpenSSL version before 1.0.1 are not support TLS 1.0+.
-#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_0_1
+	ssize_t Result = 0;
+
+//TLS version selection(Part 1)
+#if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_0_1 //OpenSSL version before 1.0.1
+	if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_1_0) //OpenSSL version before 1.0.1 only support TLS version 1.0
+		OpenSSL_CTX.MethodContext = SSL_CTX_new(TLSv1_0_method());
+	else //Auto-select
+		OpenSSL_CTX.MethodContext = SSL_CTX_new(SSLv23_method());
+#elif OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_1_0 //OpenSSL version between 1.0.1 and 1.1.0
 	if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_1_2)
 		OpenSSL_CTX.MethodContext = SSL_CTX_new(TLSv1_2_method());
 	else if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_1_1)
 		OpenSSL_CTX.MethodContext = SSL_CTX_new(TLSv1_1_method());
 	else if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_1_0)
 		OpenSSL_CTX.MethodContext = SSL_CTX_new(TLSv1_method());
-	#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0
-		else //Auto select
-			OpenSSL_CTX.MethodContext = SSL_CTX_new(TLS_method());
-	#else
-		else //Auto select
-			OpenSSL_CTX.MethodContext = SSL_CTX_new(SSLv23_method());
-	#endif
-#else
-	if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_1_0)
-		OpenSSL_CTX.MethodContext = SSL_CTX_new(TLSv1_0_method());
-	else //Auto-select
+	else //Auto select
 		OpenSSL_CTX.MethodContext = SSL_CTX_new(SSLv23_method());
+#else //OpenSSL version after 1.1.0
+	OpenSSL_CTX.MethodContext = SSL_CTX_new(TLS_method()); //TLS selection after OpenSSL version 1.1.0 must set flags of method context.
 #endif
-
 
 //Create new client-method instance.
 	if (OpenSSL_CTX.MethodContext == nullptr)
 	{
-		std::wstring Message;
-		if (MBSToWCSString((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), OPENSSL_STATIC_BUFFER_SIZE, Message))
-		{
-			std::wstring InnerMessage(L"OpenSSL create new client-method instance "); //OpenSSL will return message like "error:..."
-			InnerMessage.append(Message);
-			PrintError(LOG_LEVEL_3, LOG_ERROR_TLS, InnerMessage.c_str(), 0, nullptr, 0);
-		}
-		else {
-			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
-		}
-
+		OpenSSL_PrintError((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), L"OpenSSL create new client-method instance ");
 		return false;
 	}
+	
+//TLS version selection(Part 2)
+#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0 //OpenSSL version after 1.1.0
+	if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_1_2)
+	{
+		Result = SSL_CTX_set_min_proto_version(OpenSSL_CTX.MethodContext, TLS1_2_VERSION);
+		Result = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, TLS1_2_VERSION);
+	}
+	else if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_1_1)
+	{
+		Result = SSL_CTX_set_min_proto_version(OpenSSL_CTX.MethodContext, TLS1_1_VERSION);
+		Result = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, TLS1_1_VERSION);
+	}
+	else if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_1_0)
+	{
+		Result = SSL_CTX_set_min_proto_version(OpenSSL_CTX.MethodContext, TLS1_VERSION);
+		Result = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, TLS1_VERSION);
+	}
+	else { //Setting the minimum or maximum version to 0, will enable protocol versions down to the lowest version, or up to the highest version supported by the library, respectively.
+		Result = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, 0);
+	}
+
+//TLS selection check
+	if (Result == FALSE)
+	{
+		OpenSSL_PrintError((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), L"OpenSSL TLS version selection ");
+		return false;
+	}
+#endif
 
 //TLS connection flags
 	SSL_CTX_set_options(OpenSSL_CTX.MethodContext, SSL_OP_NO_SSLv2); //Block SSLv2 protocol
@@ -665,8 +704,16 @@ bool OpenSSL_CTX_Initializtion(
 	SSL_CTX_set_options(OpenSSL_CTX.MethodContext, SSL_OP_SINGLE_DH_USE); //Always create a new key when using temporary/ephemeral DH parameters.
 	if (Parameter.HTTP_CONNECT_TLS_Validation)
 	{
-		SSL_CTX_set_default_verify_paths(OpenSSL_CTX.MethodContext); //Locate default certificate store.
-		SSL_CTX_set_verify(OpenSSL_CTX.MethodContext, SSL_VERIFY_PEER, nullptr); //Set certificate verification.
+	//Locate default certificate store.
+		Result = SSL_CTX_set_default_verify_paths(OpenSSL_CTX.MethodContext);
+		if (Result == FALSE)
+		{
+			OpenSSL_PrintError((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), L"OpenSSL locate default certificate store ");
+			return false;
+		}
+
+	//Set certificate verification.
+		SSL_CTX_set_verify(OpenSSL_CTX.MethodContext, SSL_VERIFY_PEER, nullptr);
 	}
 
 	return true;
@@ -680,17 +727,7 @@ bool OpenSSL_BIO_Initializtion(
 	OpenSSL_CTX.SessionBIO = BIO_new_ssl_connect(OpenSSL_CTX.MethodContext);
 	if (OpenSSL_CTX.SessionBIO == nullptr)
 	{
-		std::wstring Message;
-		if (MBSToWCSString((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), OPENSSL_STATIC_BUFFER_SIZE, Message))
-		{
-			std::wstring InnerMessage(L"OpenSSL create new BIO method "); //OpenSSL will return message like "error:..."
-			InnerMessage.append(Message);
-			PrintError(LOG_LEVEL_3, LOG_ERROR_TLS, InnerMessage.c_str(), 0, nullptr, 0);
-		}
-		else {
-			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
-		}
-
+		OpenSSL_PrintError((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), L"OpenSSL create new BIO method ");
 		return false;
 	}
 
@@ -702,27 +739,53 @@ bool OpenSSL_BIO_Initializtion(
 //Get SSL method data.
 	if (OpenSSL_CTX.SessionData == nullptr)
 	{
-		std::wstring Message;
-		if (MBSToWCSString((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), OPENSSL_STATIC_BUFFER_SIZE, Message))
-		{
-			std::wstring InnerMessage(L"OpenSSL BIO and SSL data attribute setting "); //OpenSSL will return message like "error:..."
-			InnerMessage.append(Message);
-			PrintError(LOG_LEVEL_3, LOG_ERROR_TLS, InnerMessage.c_str(), 0, nullptr, 0);
-		}
-		else {
-			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
-		}
-
+		OpenSSL_PrintError((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), L"OpenSSL BIO and SSL data attribute setting ");
 		return false;
 	}
 
 //SSL data attribute settings
+	ssize_t Result = 0;
 	SSL_set_mode(OpenSSL_CTX.SessionData, SSL_MODE_AUTO_RETRY);
+#if defined(SSL_MODE_RELEASE_BUFFERS)
+	SSL_set_mode(OpenSSL_CTX.SessionData, SSL_MODE_RELEASE_BUFFERS);
+#endif
 	if (Parameter.sHTTP_CONNECT_TLS_SNI != nullptr && !Parameter.sHTTP_CONNECT_TLS_SNI->empty())
 		SSL_set_tlsext_host_name(OpenSSL_CTX.SessionData, Parameter.sHTTP_CONNECT_TLS_SNI->c_str()); //TLS Server Name Indication/SNI
-	SSL_set_cipher_list(OpenSSL_CTX.SessionData, OPENSSL_STRONG_CIPHER_LIST); //Set strong ciphers.
+
+//Set strong ciphers.
+	Result = SSL_set_cipher_list(OpenSSL_CTX.SessionData, OPENSSL_STRONG_CIPHER_LIST); 
+	if (Result == FALSE)
+	{
+		OpenSSL_PrintError((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), L"OpenSSL set strong ciphers ");
+		return false;
+	}
+
+//Built-in functionality for hostname checking and validation after OpenSSL 1.0.2.
+#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_0_2 //OpenSSL version after 1.0.2
+	if (Parameter.HTTP_CONNECT_TLS_Validation && Parameter.sHTTP_CONNECT_TLS_SNI != nullptr && !Parameter.sHTTP_CONNECT_TLS_SNI->empty())
+	{
+	//Get certificate paremeter.
+		X509_VERIFY_PARAM *X509_Param = nullptr;
+		X509_Param = SSL_get0_param(OpenSSL_CTX.SessionData);
+		if (X509_Param == nullptr)
+		{
+			OpenSSL_PrintError((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), L"OpenSSL hostname checking and validation ");
+			return false;
+		}
+		
+	//Set certificate paremeter flags.
+		X509_VERIFY_PARAM_set_hostflags(X509_Param, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
+		if (X509_VERIFY_PARAM_set1_host(X509_Param, Parameter.sHTTP_CONNECT_TLS_SNI->c_str(), 0) == FALSE)
+		{
+			OpenSSL_PrintError((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), L"OpenSSL hostname checking and validation ");
+			return false;
+		}
+	}
+#endif
+
+//Set certificate verification.
 	if (Parameter.HTTP_CONNECT_TLS_Validation)
-		SSL_set_verify(OpenSSL_CTX.SessionData, SSL_VERIFY_PEER, nullptr); //Set certificate verification.
+		SSL_set_verify(OpenSSL_CTX.SessionData, SSL_VERIFY_PEER, nullptr); 
 
 	return true;
 }
@@ -750,17 +813,7 @@ bool OpenSSL_Handshake(
 			Timeout += LOOP_INTERVAL_TIME_NO_DELAY;
 		}
 		else {
-			std::wstring Message;
-			if (MBSToWCSString((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), OPENSSL_STATIC_BUFFER_SIZE, Message))
-			{
-				std::wstring InnerMessage(L"OpenSSL connecting "); //OpenSSL will return message like "error:..."
-				InnerMessage.append(Message);
-				PrintError(LOG_LEVEL_3, LOG_ERROR_TLS, InnerMessage.c_str(), 0, nullptr, 0);
-			}
-			else {
-				PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
-			}
-
+			OpenSSL_PrintError((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), L"OpenSSL connecting ");
 			return false;
 		}
 	}
@@ -782,17 +835,7 @@ bool OpenSSL_Handshake(
 			Timeout += LOOP_INTERVAL_TIME_NO_DELAY;
 		}
 		else {
-			std::wstring Message;
-			if (MBSToWCSString((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), OPENSSL_STATIC_BUFFER_SIZE, Message))
-			{
-				std::wstring InnerMessage(L"OpenSSL handshake "); //OpenSSL will return message like "error:..."
-				InnerMessage.append(Message);
-				PrintError(LOG_LEVEL_3, LOG_ERROR_TLS, InnerMessage.c_str(), 0, nullptr, 0);
-			}
-			else {
-				PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
-			}
-
+			OpenSSL_PrintError((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), L"OpenSSL handshake ");
 			return false;
 		}
 	}
@@ -801,17 +844,7 @@ bool OpenSSL_Handshake(
 	auto Certificate = SSL_get_peer_certificate(OpenSSL_CTX.SessionData);
 	if (Certificate == nullptr)
 	{
-		std::wstring Message;
-		if (MBSToWCSString((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), OPENSSL_STATIC_BUFFER_SIZE, Message))
-		{
-			std::wstring InnerMessage(L"OpenSSL verify server certificate "); //OpenSSL will return message like "error:..."
-			InnerMessage.append(Message);
-			PrintError(LOG_LEVEL_3, LOG_ERROR_TLS, InnerMessage.c_str(), 0, nullptr, 0);
-		}
-		else {
-			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
-		}
-
+		OpenSSL_PrintError((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), L"OpenSSL verify server certificate ");
 		return false;
 	}
 	else {
@@ -822,21 +855,9 @@ bool OpenSSL_Handshake(
 //Verify the result of chain verification, verification performed according to RFC 4158.
 	if (Parameter.HTTP_CONNECT_TLS_Validation && SSL_get_verify_result(OpenSSL_CTX.SessionData) != X509_V_OK)
 	{
-		std::wstring Message;
-		if (MBSToWCSString((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), OPENSSL_STATIC_BUFFER_SIZE, Message))
-		{
-			std::wstring InnerMessage(L"OpenSSL verify the result of chain verification "); //OpenSSL will return message like "error:..."
-			InnerMessage.append(Message);
-			PrintError(LOG_LEVEL_3, LOG_ERROR_TLS, InnerMessage.c_str(), 0, nullptr, 0);
-		}
-		else {
-			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
-		}
-
+		OpenSSL_PrintError((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), L"OpenSSL verify the result of chain verification ");
 		return false;
 	}
-
-//There are no any hostname validation before OpenSSL 1.0.2!
 
 	return true;
 }
@@ -857,7 +878,7 @@ bool TLS_TransportSerial(
 	{
 		while (RecvLen <= 0)
 		{
-			RecvLen = BIO_write(OpenSSL_CTX.SessionBIO, SocketSelectingDataList.front().SendBuffer.get(), SocketSelectingDataList.front().SendLen);
+			RecvLen = BIO_write(OpenSSL_CTX.SessionBIO, SocketSelectingDataList.front().SendBuffer.get(), (int)SocketSelectingDataList.front().SendLen);
 			if (RecvLen >= (ssize_t)SocketSelectingDataList.front().SendLen)
 			{
 				break;
@@ -875,17 +896,7 @@ bool TLS_TransportSerial(
 				SocketSelectingDataList.front().SendLen = 0;
 
 			//Print error message.
-				std::wstring Message;
-				if (MBSToWCSString((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), OPENSSL_STATIC_BUFFER_SIZE, Message))
-				{
-					std::wstring InnerMessage(L"OpenSSL send data "); //OpenSSL will return message like "error:..."
-					InnerMessage.append(Message);
-					PrintError(LOG_LEVEL_3, LOG_ERROR_TLS, InnerMessage.c_str(), 0, nullptr, 0);
-				}
-				else {
-					PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
-				}
-
+				OpenSSL_PrintError((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), L"OpenSSL send data ");
 				return false;
 			}
 		}
@@ -923,7 +934,7 @@ bool TLS_TransportSerial(
 		}
 
 	//Receive process
-		RecvLen = BIO_read(OpenSSL_CTX.SessionBIO, SocketSelectingDataList.front().RecvBuffer.get() + SocketSelectingDataList.front().RecvLen, Parameter.LargeBufferSize);
+		RecvLen = BIO_read(OpenSSL_CTX.SessionBIO, SocketSelectingDataList.front().RecvBuffer.get() + SocketSelectingDataList.front().RecvLen, (int)Parameter.LargeBufferSize);
 		if (RecvLen <= 0)
 		{
 			if (Timeout <= Parameter.SocketTimeout_Reliable_Serial.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.SocketTimeout_Reliable_Serial.tv_usec && 
@@ -943,17 +954,7 @@ bool TLS_TransportSerial(
 				SocketSelectingDataList.front().RecvLen = 0;
 
 			//Print error message.
-				std::wstring Message;
-				if (MBSToWCSString((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), OPENSSL_STATIC_BUFFER_SIZE, Message))
-				{
-					std::wstring InnerMessage(L"OpenSSL receive data "); //OpenSSL will return message like "error:..."
-					InnerMessage.append(Message);
-					PrintError(LOG_LEVEL_3, LOG_ERROR_TLS, InnerMessage.c_str(), 0, nullptr, 0);
-				}
-				else {
-					PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
-				}
-
+				OpenSSL_PrintError((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), L"OpenSSL receive data ");
 				return false;
 			}
 		}

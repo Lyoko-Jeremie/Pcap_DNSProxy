@@ -136,7 +136,7 @@
 #if defined(PLATFORM_LINUX)
 	#define ICMP_PADDING_LENGTH_LINUX                     40U
 	#define ICMP_STRING_START_NUM_LINUX                   16U
-#elif defined(PLATFORM_MACX)
+#elif defined(PLATFORM_MACOS)
 	#define ICMP_PADDING_LENGTH_MAC                       48U
 	#define ICMP_STRING_START_NUM_MAC                     8U
 #endif
@@ -176,7 +176,7 @@
 #if defined(PLATFORM_WIN)
 	#define SYSTEM_SOCKET                                 UINT_PTR                     //System Socket defined(WinSock2.h), which is not the same in x86 and x64 platform and defined in WinSock2.h file.
 	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE           8192U                        //Buffer maximum size of QueryServiceConfig function(8KB/8192 Bytes)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#define SYSTEM_SOCKET                                 int
 #endif
 
@@ -204,7 +204,7 @@
 	#define SHORTEST_DNSCURVE_RECHECK_TIME                10U                                      //The shortset DNSCurve keys recheck time(10 seconds)
 #endif
 #define FLUSH_DNS_CACHE_INTERVAL_TIME                 5U                          //Time between every flushing(5 seconds)
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#define LOOP_INTERVAL_TIME_NO_DELAY                   20000U                         //No delay mode loop interval time(20000 us/20 ms)
 #endif
 #define LOOP_MAX_TIMES                                16U                         //Maximum of loop times(16 times)
@@ -242,7 +242,7 @@
 	#define MAILSLOT_NAME                                 L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot"   //MailSlot name
 	#define SID_ADMINISTRATORS_GROUP                      L"S-1-5-32-544"                              //Windows SID of Administrators group
 	#define SYSTEM_SERVICE_NAME                           L"PcapDNSProxyService"                       //System service name
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#if defined(PLATFORM_LINUX)
 		#define COMMAND_DISABLE_DAEMON                        ("--disable-daemon")
 	#endif
@@ -265,7 +265,7 @@
 #endif
 #define DEFAULT_HTTP_CONNECT_VERSION                  ("1.1")                                      //Default HTTP CONNECT version
 #define DEFAULT_LOCAL_SERVERNAME                      ("pcap-dnsproxy.server")                     //Default Local DNS server name
-#if defined(PLATFORM_MACX)
+#if defined(PLATFORM_MACOS)
 	#define DEFAULT_SEQUENCE                               0
 #else
 	#define DEFAULT_SEQUENCE                               0x0001                                      //Default sequence of protocol
@@ -416,8 +416,9 @@
 	#define TLS_VERSION_1_3                           13U
 	#if defined(PLATFORM_WIN)
 		#define SSPI_SECURE_BUFFER_NUM                    4U
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		#define OPENSSL_VERSION_1_0_1                     0x10001000L
+		#define OPENSSL_VERSION_1_0_2                     0x10002000L
 		#define OPENSSL_VERSION_1_1_0                     0x10100000L
 		#define OPENSSL_STATIC_BUFFER_SIZE                256U
 		#define OPENSSL_STRONG_CIPHER_LIST                ("HIGH:!SSLv2:!SSLv3:!aNULL:!kRSA:!PSK:!SRP:!MD5:!RC4")
@@ -444,7 +445,7 @@
 		#define GetCurrentSystemTime   GetTickCount64
 	#endif
 	#define Sleep(Millisecond)     Sleep((DWORD)(Millisecond))
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#define Sleep(Millisecond)     usleep((useconds_t)((Millisecond) * MICROSECOND_TO_MILLISECOND))
 	#define usleep(Millisecond)    usleep((useconds_t)(Millisecond))
 #endif
@@ -457,7 +458,7 @@
 typedef struct _file_data_
 {
 	std::wstring                         FileName;
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	std::string                          sFileName;
 #endif
 	time_t                               ModificationTime;
@@ -585,8 +586,8 @@ typedef struct _dnscurve_socket_selecting_data_
 //Configuration class
 typedef class ConfigurationTable
 {
-public:
 //Parameters from configure files
+public:
 //[Base] block
 	double                               Version;
 	size_t                               FileRefreshTime;
@@ -627,14 +628,14 @@ public:
 	std::vector<sockaddr_storage>        *ListenAddress_IPv4;
 	PADDRESS_PREFIX_BLOCK                LocalMachineSubnet_IPv6;
 	PADDRESS_PREFIX_BLOCK                LocalMachineSubnet_IPv4;
-	DNS_SERVER_DATA                      Target_Server_IPv6;
+	DNS_SERVER_DATA                      Target_Server_Main_IPv6;
 	DNS_SERVER_DATA                      Target_Server_Alternate_IPv6;
-	DNS_SERVER_DATA                      Target_Server_IPv4;
+	DNS_SERVER_DATA                      Target_Server_Main_IPv4;
 	DNS_SERVER_DATA                      Target_Server_Alternate_IPv4;
-	ADDRESS_UNION_DATA                   Target_Server_Local_IPv6;
-	ADDRESS_UNION_DATA                   Target_Server_Alternate_Local_IPv6;
-	ADDRESS_UNION_DATA                   Target_Server_Local_IPv4;
-	ADDRESS_UNION_DATA                   Target_Server_Alternate_Local_IPv4;
+	ADDRESS_UNION_DATA                   Target_Server_Local_Main_IPv6;
+	ADDRESS_UNION_DATA                   Target_Server_Local_Alternate_IPv6;
+	ADDRESS_UNION_DATA                   Target_Server_Local_Main_IPv4;
+	ADDRESS_UNION_DATA                   Target_Server_Local_Alternate_IPv4;
 	std::vector<DNS_SERVER_DATA>         *Target_Server_IPv6_Multiple;
 	std::vector<DNS_SERVER_DATA>         *Target_Server_IPv4_Multiple;
 //[Values] block
@@ -648,7 +649,7 @@ public:
 	DWORD                                PacketHopLimits_IPv4_End;
 	DWORD                                PacketHopLimits_IPv6_Begin;
 	DWORD                                PacketHopLimits_IPv6_End;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	int                                  PacketHopLimits_IPv4_Begin;
 	int                                  PacketHopLimits_IPv4_End;
 	int                                  PacketHopLimits_IPv6_Begin;
@@ -659,13 +660,13 @@ public:
 #endif
 #if defined(PLATFORM_WIN)
 	DWORD                                SocketTimeout_Reliable_Once;
-	DWORD                                SocketTimeout_Unreliable_Once;
 	DWORD                                SocketTimeout_Reliable_Serial;
+	DWORD                                SocketTimeout_Unreliable_Once;
 	DWORD                                SocketTimeout_Unreliable_Serial;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	timeval                              SocketTimeout_Reliable_Once;
-	timeval                              SocketTimeout_Unreliable_Once;
 	timeval                              SocketTimeout_Reliable_Serial;
+	timeval                              SocketTimeout_Unreliable_Once;
 	timeval                              SocketTimeout_Unreliable_Serial;
 #endif
 	size_t                               ReceiveWaiting;
@@ -743,7 +744,7 @@ public:
 	bool                                 HTTP_CONNECT_TLS_Validation;
 	std::wstring                         *HTTP_CONNECT_TLS_SNI;
 	std::string                          *sHTTP_CONNECT_TLS_SNI;
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	std::string                          *HTTP_CONNECT_TLS_AddressString_IPv4;
 	std::string                          *HTTP_CONNECT_TLS_AddressString_IPv6;
 #endif
@@ -778,7 +779,7 @@ public:
 //Libraries initialization status
 #if defined(PLATFORM_WIN)
 	bool                                 IsWinSockInitialized;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 #if defined(ENABLE_TLS)
 	bool                                 IsOpenSSLInitialized;
 #endif
@@ -804,7 +805,7 @@ public:
 	std::wstring                         *Path_ErrorLog;
 	std::vector<std::wstring>            *FileList_Hosts;
 	std::vector<std::wstring>            *FileList_IPFilter;
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	std::vector<std::string>             *sPath_Global;
 	std::string                          *sPath_ErrorLog;
 	std::vector<std::string>             *sFileList_Hosts;
@@ -961,7 +962,7 @@ public:
 #if defined(PLATFORM_WIN)
 	DWORD                                DNSCurve_SocketTimeout_Reliable;
 	DWORD                                DNSCurve_SocketTimeout_Unreliable;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	timeval                              DNSCurve_SocketTimeout_Reliable;
 	timeval                              DNSCurve_SocketTimeout_Unreliable;
 #endif
@@ -972,9 +973,9 @@ public:
 //[DNSCurve Addresses] block
 	uint8_t                              *Client_PublicKey;
 	uint8_t                              *Client_SecretKey;
-	DNSCURVE_SERVER_DATA                 DNSCurve_Target_Server_IPv6;
+	DNSCURVE_SERVER_DATA                 DNSCurve_Target_Server_Main_IPv6;
 	DNSCURVE_SERVER_DATA                 DNSCurve_Target_Server_Alternate_IPv6;
-	DNSCURVE_SERVER_DATA                 DNSCurve_Target_Server_IPv4;
+	DNSCURVE_SERVER_DATA                 DNSCurve_Target_Server_Main_IPv4;
 	DNSCURVE_SERVER_DATA                 DNSCurve_Target_Server_Alternate_IPv4;
 
 //Member functions
@@ -1009,7 +1010,7 @@ public:
 	~SSPIHandleTable(
 		void);
 }SSPI_HANDLE_TABLE;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 //OpenSSL Context class
 typedef class OpenSSLContextTable
 {

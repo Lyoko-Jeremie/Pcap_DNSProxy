@@ -37,5 +37,9 @@ bool SSPI_EncryptPacket(
 bool SSPI_DecryptPacket(
 	SSPI_HANDLE_TABLE &SSPI_Handle, 
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList);
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+bool OpenSSL_PrintError(
+	const uint8_t *OpenSSL_ErrorMessage, 
+	const wchar_t *ErrorMessage);
 #endif
 #endif

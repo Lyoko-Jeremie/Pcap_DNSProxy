@@ -107,14 +107,14 @@ bool ParameterCheckAndSetting(
 
 //[Local DNS] block
 	//Local Protocol(IPv6)
-	if (Parameter.Target_Server_Local_IPv6.Storage.ss_family == 0 && ParameterPTR->LocalProtocol_Network == REQUEST_MODE_IPV6)
+	if (Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0 && ParameterPTR->LocalProtocol_Network == REQUEST_MODE_IPV6)
 	{
 		PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, nullptr, 0);
 		ParameterPTR->LocalProtocol_Network = REQUEST_MODE_BOTH;
 	}
 
 //Local Protocol(IPv4)
-	if (Parameter.Target_Server_Local_IPv4.Storage.ss_family == 0 && ParameterPTR->LocalProtocol_Network == REQUEST_MODE_IPV4)
+	if (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0 && ParameterPTR->LocalProtocol_Network == REQUEST_MODE_IPV4)
 	{
 		PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, nullptr, 0);
 		ParameterPTR->LocalProtocol_Network = REQUEST_MODE_BOTH;
@@ -124,7 +124,7 @@ bool ParameterCheckAndSetting(
 	{
 	//Local Main, Local Hosts and Local Routing check
 		if (((Parameter.LocalMain || Parameter.LocalHosts || Parameter.LocalRouting || Parameter.LocalForce) && 
-			Parameter.Target_Server_Local_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Local_IPv6.Storage.ss_family == 0) || 
+			Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0) || 
 			(Parameter.LocalHosts && (Parameter.LocalMain || Parameter.LocalRouting)) || 
 			(Parameter.LocalRouting && !Parameter.LocalMain))
 		{
@@ -175,9 +175,9 @@ bool ParameterCheckAndSetting(
 		if (!Parameter.Target_Server_IPv6_Multiple->empty())
 		{
 		//Copy DNS Server Data when Main server data is empty.
-			if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0)
+			if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0)
 			{
-				Parameter.Target_Server_IPv6 = Parameter.Target_Server_IPv6_Multiple->front();
+				Parameter.Target_Server_Main_IPv6 = Parameter.Target_Server_IPv6_Multiple->front();
 				Parameter.Target_Server_IPv6_Multiple->erase(Parameter.Target_Server_IPv6_Multiple->begin());
 			}
 
@@ -207,9 +207,9 @@ bool ParameterCheckAndSetting(
 		if (!Parameter.Target_Server_IPv4_Multiple->empty())
 		{
 		//Copy DNS Server Data when Main server data is empty.
-			if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0)
+			if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0)
 			{
-				Parameter.Target_Server_IPv4 = Parameter.Target_Server_IPv4_Multiple->front();
+				Parameter.Target_Server_Main_IPv4 = Parameter.Target_Server_IPv4_Multiple->front();
 				Parameter.Target_Server_IPv4_Multiple->erase(Parameter.Target_Server_IPv4_Multiple->begin());
 			}
 
@@ -240,14 +240,14 @@ bool ParameterCheckAndSetting(
 	if (IsFirstRead)
 	{
 	//Protocol(IPv6)
-		if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6)
+		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && Parameter.RequestMode_Network == REQUEST_MODE_IPV6)
 		{
 			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, nullptr, 0);
 			Parameter.RequestMode_Network = REQUEST_MODE_BOTH;
 		}
 
 	//Protocol(IPv4)
-		if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0 && Parameter.RequestMode_Network == REQUEST_MODE_IPV4)
+		if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0 && Parameter.RequestMode_Network == REQUEST_MODE_IPV4)
 		{
 			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, nullptr, 0);
 			Parameter.RequestMode_Network = REQUEST_MODE_BOTH;
@@ -255,8 +255,8 @@ bool ParameterCheckAndSetting(
 	}
 
 //Direct Request check
-	if ((ParameterPTR->DirectRequest == REQUEST_MODE_DIRECT_IPV6 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0) || 
-		(ParameterPTR->DirectRequest == REQUEST_MODE_DIRECT_IPV4 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0))
+	if ((ParameterPTR->DirectRequest == REQUEST_MODE_DIRECT_IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0) || 
+		(ParameterPTR->DirectRequest == REQUEST_MODE_DIRECT_IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Direct Request error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
@@ -292,16 +292,16 @@ bool ParameterCheckAndSetting(
 	//Hop Limit and TTL must between 1 and 255.
 		if (
 		//IPv6
-			(ParameterPTR->Target_Server_IPv6.HopLimitData_Assign.HopLimit > 0 && 
-			((size_t)ParameterPTR->Target_Server_IPv6.HopLimitData_Assign.HopLimit + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
-			(ssize_t)ParameterPTR->Target_Server_IPv6.HopLimitData_Assign.HopLimit < (ssize_t)ParameterPTR->HopLimitFluctuation + 1)) || 
+			(ParameterPTR->Target_Server_Main_IPv6.HopLimitData_Assign.HopLimit > 0 && 
+			((size_t)ParameterPTR->Target_Server_Main_IPv6.HopLimitData_Assign.HopLimit + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
+			(ssize_t)ParameterPTR->Target_Server_Main_IPv6.HopLimitData_Assign.HopLimit < (ssize_t)ParameterPTR->HopLimitFluctuation + 1)) || 
 			(ParameterPTR->Target_Server_Alternate_IPv6.HopLimitData_Assign.HopLimit > 0 && 
 			((size_t)ParameterPTR->Target_Server_Alternate_IPv6.HopLimitData_Assign.HopLimit + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
 			(ssize_t)ParameterPTR->Target_Server_Alternate_IPv6.HopLimitData_Assign.HopLimit < (ssize_t)ParameterPTR->HopLimitFluctuation + 1)) || 
 		//IPv4
-			(ParameterPTR->Target_Server_IPv4.HopLimitData_Assign.TTL > 0 && 
-			((size_t)ParameterPTR->Target_Server_IPv4.HopLimitData_Assign.TTL + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
-			(ssize_t)ParameterPTR->Target_Server_IPv4.HopLimitData_Assign.TTL < (ssize_t)ParameterPTR->HopLimitFluctuation + 1)) || 
+			(ParameterPTR->Target_Server_Main_IPv4.HopLimitData_Assign.TTL > 0 && 
+			((size_t)ParameterPTR->Target_Server_Main_IPv4.HopLimitData_Assign.TTL + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
+			(ssize_t)ParameterPTR->Target_Server_Main_IPv4.HopLimitData_Assign.TTL < (ssize_t)ParameterPTR->HopLimitFluctuation + 1)) || 
 			(ParameterPTR->Target_Server_Alternate_IPv4.HopLimitData_Assign.TTL > 0 && 
 			((size_t)ParameterPTR->Target_Server_Alternate_IPv4.HopLimitData_Assign.TTL + (size_t)ParameterPTR->HopLimitFluctuation > UINT8_MAX || 
 			(ssize_t)ParameterPTR->Target_Server_Alternate_IPv4.HopLimitData_Assign.TTL < (ssize_t)ParameterPTR->HopLimitFluctuation + 1)))
@@ -422,7 +422,7 @@ bool ParameterCheckAndSetting(
 	//IPv4 Data Filter option check
 	if (ParameterPTR->HeaderCheck_IPv4)
 	{
-		if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0)
+		if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0)
 			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv4 Data Filter require IPv4 DNS server", 0, nullptr, 0);
 		else if (!Parameter.IsPcapCapture)
 			PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv4 Data Filter require Pcap Cpature", 0, nullptr, 0);
@@ -458,7 +458,7 @@ bool ParameterCheckAndSetting(
 		}
 
 	//Set Local DNS server PTR response.
-	//LLMNR protocol of Mac OS X and macOS powered by mDNS with PTR records
+	//LLMNR protocol of macOS powered by mDNS with PTR records
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		if (Parameter.LocalServer_Length == 0)
 		{
@@ -590,19 +590,19 @@ bool ParameterCheckAndSetting(
 			{
 				delete Parameter.HTTP_CONNECT_TLS_SNI;
 				delete Parameter.sHTTP_CONNECT_TLS_SNI;
-			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				delete Parameter.HTTP_CONNECT_TLS_AddressString_IPv4;
 				delete Parameter.HTTP_CONNECT_TLS_AddressString_IPv6;
 			#endif
 				Parameter.HTTP_CONNECT_TLS_SNI = nullptr;
 				Parameter.sHTTP_CONNECT_TLS_SNI = nullptr;
-			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				Parameter.HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
 				Parameter.HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
 			#endif
 			}
 			else {
-			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			//HTTP CONNECT IPv4/IPv6 address check
 				if (Parameter.HTTP_CONNECT_TLS_AddressString_IPv6->empty() && Parameter.HTTP_CONNECT_TLS_AddressString_IPv4->empty())
 				{
@@ -648,7 +648,7 @@ bool ParameterCheckAndSetting(
 	#if defined(ENABLE_TLS)
 		delete Parameter.HTTP_CONNECT_TLS_SNI;
 		delete Parameter.sHTTP_CONNECT_TLS_SNI;
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			delete Parameter.HTTP_CONNECT_TLS_AddressString_IPv4;
 			delete Parameter.HTTP_CONNECT_TLS_AddressString_IPv6;
 		#endif
@@ -661,7 +661,7 @@ bool ParameterCheckAndSetting(
 	#if defined(ENABLE_TLS)
 		Parameter.HTTP_CONNECT_TLS_SNI = nullptr;
 		Parameter.sHTTP_CONNECT_TLS_SNI = nullptr;
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			Parameter.HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
 			Parameter.HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
 		#endif
@@ -677,7 +677,7 @@ bool ParameterCheckAndSetting(
 		{
 		//IPv6
 		#if defined(ENABLE_LIBSODIUM)
-			if (Parameter.IsDNSCurve && DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0 && 
+			if (Parameter.IsDNSCurve && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && 
 				DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6)
 			{
 				PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, nullptr, 0);
@@ -685,7 +685,7 @@ bool ParameterCheckAndSetting(
 			}
 
 		//IPv4
-			if (Parameter.IsDNSCurve && DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0 && 
+			if (Parameter.IsDNSCurve && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0 && 
 				DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4)
 			{
 				PrintError(LOG_LEVEL_3, LOG_MESSAGE_NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, nullptr, 0);
@@ -739,25 +739,25 @@ bool ParameterCheckAndSetting(
 		if (IsFirstRead)
 		{
 		//DNSCurve targets check
-			if (DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0)
+			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0)
 			{
-				DNSCurveParameter.DNSCurve_Target_Server_IPv6 = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6;
+				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6 = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6;
 				sodium_memzero(&DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6));
 			}
-			if (DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0)
+			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0)
 			{
-				DNSCurveParameter.DNSCurve_Target_Server_IPv4 = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4;
+				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4 = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4;
 				sodium_memzero(&DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4));
 			}
 
-			if ((DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0) || 
+			if ((DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0) || 
 			//Check repeating items.
-				(DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
+				(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family > 0 && 
 				DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
-				DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.IPv4.sin_addr.s_addr == DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr) || 
-				(DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
+				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.IPv4.sin_addr.s_addr == DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr) || 
+				(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family > 0 && 
 				DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
-				memcmp(&DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.IPv6.sin6_addr, &DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.IPv6.sin6_addr)) == 0))
+				memcmp(&DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.IPv6.sin6_addr, &DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.IPv6.sin6_addr)) == 0))
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNSCurve target error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				return false;
@@ -772,28 +772,28 @@ bool ParameterCheckAndSetting(
 		}
 
 	//Main(IPv6)
-		if (DNSCurveParameter.IsEncryption && DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family > 0)
+		if (DNSCurveParameter.IsEncryption && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family > 0)
 		{
 		//Empty Server Fingerprint
-			if (CheckEmptyBuffer(DNSCurveParameterPTR->DNSCurve_Target_Server_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES))
+			if (CheckEmptyBuffer(DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES))
 			{
 			//Encryption Only mode check
 				if (DNSCurveParameter.IsEncryptionOnly && 
-					CheckEmptyBuffer(DNSCurveParameterPTR->DNSCurve_Target_Server_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
+					CheckEmptyBuffer(DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNSCurve Encryption Only mode error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					return false;
 				}
 
 			//Empty Provider Name
-				if (CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv6.ProviderName, DOMAIN_MAXSIZE))
+				if (CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ProviderName, DOMAIN_MAXSIZE))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNSCurve empty Provider Name error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					return false;
 				}
 
 			//Empty Public Key
-				if (CheckEmptyBuffer(DNSCurveParameterPTR->DNSCurve_Target_Server_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES))
+				if (CheckEmptyBuffer(DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNSCurve empty Public Key error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					return false;
@@ -801,8 +801,8 @@ bool ParameterCheckAndSetting(
 			}
 			else if (!DNSCurveParameter.IsClientEphemeralKey && 
 				crypto_box_beforenm(
-					DNSCurveParameterPTR->DNSCurve_Target_Server_IPv6.PrecomputationKey, 
-					DNSCurveParameterPTR->DNSCurve_Target_Server_IPv6.ServerFingerprint, 
+					DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv6.PrecomputationKey, 
+					DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv6.ServerFingerprint, 
 					DNSCurveParameterPTR->Client_SecretKey) != 0)
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_DNSCURVE, L"Key calculating error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
@@ -811,42 +811,42 @@ bool ParameterCheckAndSetting(
 		}
 		else if (IsFirstRead)
 		{
-			delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv6.ProviderName;
-			sodium_free(DNSCurveParameter.DNSCurve_Target_Server_IPv6.PrecomputationKey);
-			delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv6.ServerPublicKey;
-			delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv6.ReceiveMagicNumber;
-			delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv6.SendMagicNumber;
+			delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ProviderName;
+			sodium_free(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.PrecomputationKey);
+			delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ServerPublicKey;
+			delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber;
+			delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.SendMagicNumber;
 
-			DNSCurveParameter.DNSCurve_Target_Server_IPv6.ProviderName = nullptr;
-			DNSCurveParameter.DNSCurve_Target_Server_IPv6.PrecomputationKey = nullptr;
-			DNSCurveParameter.DNSCurve_Target_Server_IPv6.ServerPublicKey = nullptr;
-			DNSCurveParameter.DNSCurve_Target_Server_IPv6.ReceiveMagicNumber = nullptr;
-			DNSCurveParameter.DNSCurve_Target_Server_IPv6.SendMagicNumber = nullptr;
+			DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ProviderName = nullptr;
+			DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.PrecomputationKey = nullptr;
+			DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ServerPublicKey = nullptr;
+			DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber = nullptr;
+			DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.SendMagicNumber = nullptr;
 		}
 
 	//Main(IPv4)
-		if (DNSCurveParameter.IsEncryption && DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family > 0)
+		if (DNSCurveParameter.IsEncryption && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family > 0)
 		{
 		//Empty Server Fingerprint
-			if (CheckEmptyBuffer(DNSCurveParameterPTR->DNSCurve_Target_Server_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES))
+			if (CheckEmptyBuffer(DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES))
 			{
 			//Encryption Only mode check
 				if (DNSCurveParameter.IsEncryptionOnly && 
-					CheckEmptyBuffer(DNSCurveParameterPTR->DNSCurve_Target_Server_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
+					CheckEmptyBuffer(DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNSCurve Encryption Only mode error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					return false;
 				}
 
 			//Empty Provider Name
-				if (CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_IPv4.ProviderName, DOMAIN_MAXSIZE))
+				if (CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ProviderName, DOMAIN_MAXSIZE))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNSCurve empty Provider Name error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					return false;
 				}
 
 			//Empty Public Key
-				if (CheckEmptyBuffer(DNSCurveParameterPTR->DNSCurve_Target_Server_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES))
+				if (CheckEmptyBuffer(DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES))
 				{
 					PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"DNSCurve empty Public Key error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					return false;
@@ -854,8 +854,8 @@ bool ParameterCheckAndSetting(
 			}
 			else if (!DNSCurveParameter.IsClientEphemeralKey && 
 				crypto_box_beforenm(
-					DNSCurveParameterPTR->DNSCurve_Target_Server_IPv4.PrecomputationKey, 
-					DNSCurveParameterPTR->DNSCurve_Target_Server_IPv4.ServerFingerprint, 
+					DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv4.PrecomputationKey, 
+					DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv4.ServerFingerprint, 
 					DNSCurveParameterPTR->Client_SecretKey) != 0)
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_DNSCURVE, L"Key calculating error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
@@ -864,17 +864,17 @@ bool ParameterCheckAndSetting(
 		}
 		else if (IsFirstRead)
 		{
-			delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv4.ProviderName;
-			sodium_free(DNSCurveParameter.DNSCurve_Target_Server_IPv4.PrecomputationKey);
-			delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv4.ServerPublicKey;
-			delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv4.ReceiveMagicNumber;
-			delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv4.SendMagicNumber;
+			delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ProviderName;
+			sodium_free(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.PrecomputationKey);
+			delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ServerPublicKey;
+			delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber;
+			delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.SendMagicNumber;
 
-			DNSCurveParameter.DNSCurve_Target_Server_IPv4.ProviderName = nullptr;
-			DNSCurveParameter.DNSCurve_Target_Server_IPv4.PrecomputationKey = nullptr;
-			DNSCurveParameter.DNSCurve_Target_Server_IPv4.ServerPublicKey = nullptr;
-			DNSCurveParameter.DNSCurve_Target_Server_IPv4.ReceiveMagicNumber = nullptr;
-			DNSCurveParameter.DNSCurve_Target_Server_IPv4.SendMagicNumber = nullptr;
+			DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ProviderName = nullptr;
+			DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.PrecomputationKey = nullptr;
+			DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ServerPublicKey = nullptr;
+			DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber = nullptr;
+			DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.SendMagicNumber = nullptr;
 		}
 
 	//Alternate(IPv6)
@@ -1002,14 +1002,14 @@ bool ParameterCheckAndSetting(
 			}
 
 		//Main(IPv6)
-			if (DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
-				CheckEmptyBuffer(DNSCurveParameterPTR->DNSCurve_Target_Server_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
-					memcpy_s(DNSCurveParameterPTR->DNSCurve_Target_Server_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCRYPT_RECEIVE_MAGIC, DNSCURVE_MAGIC_QUERY_LEN);
+			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family > 0 && 
+				CheckEmptyBuffer(DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
+					memcpy_s(DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCRYPT_RECEIVE_MAGIC, DNSCURVE_MAGIC_QUERY_LEN);
 
 		//Main(IPv4)
-			if (DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
-				CheckEmptyBuffer(DNSCurveParameterPTR->DNSCurve_Target_Server_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
-					memcpy_s(DNSCurveParameterPTR->DNSCurve_Target_Server_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCRYPT_RECEIVE_MAGIC, DNSCURVE_MAGIC_QUERY_LEN);
+			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family > 0 && 
+				CheckEmptyBuffer(DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
+					memcpy_s(DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, DNSCRYPT_RECEIVE_MAGIC, DNSCURVE_MAGIC_QUERY_LEN);
 
 		//Alternate(IPv6)
 			if (DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
@@ -1029,42 +1029,42 @@ bool ParameterCheckAndSetting(
 	else if (IsFirstRead)
 	{
 	//[DNSCurve Addresses] block
-		delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv4.ProviderName;
+		delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ProviderName;
 		delete[] DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ProviderName;
-		delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv6.ProviderName;
+		delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ProviderName;
 		delete[] DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ProviderName;
 	//[DNSCurve Keys] block
 		delete[] DNSCurveParameter.Client_PublicKey;
 		sodium_free(DNSCurveParameter.Client_SecretKey);
-		sodium_free(DNSCurveParameter.DNSCurve_Target_Server_IPv4.PrecomputationKey);
+		sodium_free(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.PrecomputationKey);
 		sodium_free(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey);
-		sodium_free(DNSCurveParameter.DNSCurve_Target_Server_IPv6.PrecomputationKey);
+		sodium_free(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.PrecomputationKey);
 		sodium_free(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey);
-		delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv4.ServerPublicKey;
+		delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ServerPublicKey;
 		delete[] DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey;
-		delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv6.ServerPublicKey;
+		delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ServerPublicKey;
 		delete[] DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey;
-		delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv4.ServerFingerprint;
+		delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ServerFingerprint;
 		delete[] DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint;
-		delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv6.ServerFingerprint;
+		delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ServerFingerprint;
 		delete[] DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint;
 	//[DNSCurve Magic Number] block
-		delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv4.ReceiveMagicNumber;
+		delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber;
 		delete[] DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber;
-		delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv6.ReceiveMagicNumber;
+		delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber;
 		delete[] DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber;
-		delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv4.SendMagicNumber;
+		delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.SendMagicNumber;
 		delete[] DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber;
-		delete[] DNSCurveParameter.DNSCurve_Target_Server_IPv6.SendMagicNumber;
+		delete[] DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.SendMagicNumber;
 		delete[] DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber;
 
-		DNSCurveParameter.DNSCurve_Target_Server_IPv4.ProviderName = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ProviderName = nullptr, DNSCurveParameter.DNSCurve_Target_Server_IPv6.ProviderName = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ProviderName = nullptr;
+		DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ProviderName = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ProviderName = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ProviderName = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ProviderName = nullptr;
 		DNSCurveParameter.Client_PublicKey = nullptr, DNSCurveParameter.Client_SecretKey = nullptr;
-		DNSCurveParameter.DNSCurve_Target_Server_IPv4.PrecomputationKey = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey = nullptr, DNSCurveParameter.DNSCurve_Target_Server_IPv6.PrecomputationKey = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey = nullptr;
-		DNSCurveParameter.DNSCurve_Target_Server_IPv4.ServerPublicKey = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey = nullptr, DNSCurveParameter.DNSCurve_Target_Server_IPv6.ServerPublicKey = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey = nullptr;
-		DNSCurveParameter.DNSCurve_Target_Server_IPv4.ServerFingerprint = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint = nullptr, DNSCurveParameter.DNSCurve_Target_Server_IPv6.ServerFingerprint = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint = nullptr;
-		DNSCurveParameter.DNSCurve_Target_Server_IPv4.SendMagicNumber = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber = nullptr, DNSCurveParameter.DNSCurve_Target_Server_IPv6.SendMagicNumber = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber = nullptr;
-		DNSCurveParameter.DNSCurve_Target_Server_IPv4.ReceiveMagicNumber = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber = nullptr, DNSCurveParameter.DNSCurve_Target_Server_IPv6.ReceiveMagicNumber = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber = nullptr;
+		DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.PrecomputationKey = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.PrecomputationKey = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey = nullptr;
+		DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ServerPublicKey = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ServerPublicKey = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey = nullptr;
+		DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ServerFingerprint = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ServerFingerprint = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint = nullptr;
+		DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.SendMagicNumber = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.SendMagicNumber = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber = nullptr;
+		DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber = nullptr, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber = nullptr;
 	}
 #endif
 
@@ -1448,8 +1448,7 @@ bool ReadParameterData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const bool IsFirstRead, 
-	const size_t Line, 
-	bool &IsLabelComments)
+	const size_t Line)
 {
 //Delete delete spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs) and check minimum length of ipfilter items.
 //Delete comments(Number Sign/NS and double slashs) and check minimum length of configuration items.
@@ -1471,10 +1470,6 @@ bool ReadParameterData(
 	if (Data.length() < READ_PARAMETER_MINSIZE)
 		return true;
 
-//Multiple line comments check
-	if (Data.find("HTTP CONNECT Header Field = ") != 0 && !ReadMultipleLineComments(Data, IsLabelComments))
-		return true;
-
 //Initialization
 	CONFIGURATION_TABLE *ParameterPTR = nullptr;
 #if defined(ENABLE_LIBSODIUM)
@@ -1493,16 +1488,6 @@ bool ReadParameterData(
 	#if defined(ENABLE_LIBSODIUM)
 		DNSCurveParameterPTR = &DNSCurveParameterModificating;
 	#endif
-	}
-
-//Old configuration parameters check 
-	if (Data.find("Hosts=") == 0 || Data.find("HopLimits/TTLFluctuation=") == 0 || Data.find("PrintError=") == 0 || 
-		Data.find("IPv4TTL=") == 0 || Data.find("IPv6HopLimits=") == 0 || Data.find("IPv4AlternateTTL=") == 0 || Data.find("IPv6AlternateHopLimits=") == 0 || 
-		Data.find("IPv4OptionsFilter=") == 0 || Data.find("TCPOptionsFilter=") == 0 || Data.find("DNSOptionsFilter=") == 0 || Data.find("DomainTestSpeed=") == 0 || 
-		Data.find("EDNS0Label=") == 0 || Data.find("EDNSClientSubnet=") == 0)
-	{
-		PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Configuration file version error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-		return false;
 	}
 
 //[Base] block
@@ -1552,7 +1537,7 @@ bool ReadParameterData(
 		{
 		#if defined(PLATFORM_WIN)
 			if (!ReadPathAndFileName(Data, strlen("Additional Path = "), true, GlobalRunningStatus.Path_Global, FileIndex, Line))
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (!ReadPathAndFileName(Data, strlen("Additional Path = "), true, GlobalRunningStatus.Path_Global, GlobalRunningStatus.sPath_Global, FileIndex, Line))
 		#endif
 				return false;
@@ -1561,7 +1546,7 @@ bool ReadParameterData(
 		{
 		#if defined(PLATFORM_WIN)
 			if (!ReadPathAndFileName(Data, strlen("Hosts File Name = "), false, GlobalRunningStatus.FileList_Hosts, FileIndex, Line))
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (!ReadPathAndFileName(Data, strlen("Hosts File Name = "), false, GlobalRunningStatus.FileList_Hosts, GlobalRunningStatus.sFileList_Hosts, FileIndex, Line))
 		#endif
 				return false;
@@ -1570,7 +1555,7 @@ bool ReadParameterData(
 		{
 		#if defined(PLATFORM_WIN)
 			if (!ReadPathAndFileName(Data, strlen("IPFilter File Name = "), false, GlobalRunningStatus.FileList_IPFilter, FileIndex, Line))
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (!ReadPathAndFileName(Data, strlen("IPFilter File Name = "), false, GlobalRunningStatus.FileList_IPFilter, GlobalRunningStatus.sFileList_IPFilter, FileIndex, Line))
 		#endif
 				return false;
@@ -1952,9 +1937,9 @@ bool ReadParameterData(
 			if (!ReadAddressPrefixBlock(AF_INET, Data, strlen("IPv4EDNSClientSubnetAddress="), Parameter.LocalMachineSubnet_IPv4, FileIndex, Line))
 				return false;
 		}
-		else if (Data.find("IPv4DNSAddress=") == 0 && Data.length() > strlen("IPv4DNSAddress="))
+		else if (Data.find("IPv4MainDNSAddress=") == 0 && Data.length() > strlen("IPv4MainDNSAddress="))
 		{
-			if (!ReadMultipleAddresses(AF_INET, Data, strlen("IPv4DNSAddress="), Parameter.Target_Server_IPv4_Multiple, FileIndex, Line))
+			if (!ReadMultipleAddresses(AF_INET, Data, strlen("IPv4MainDNSAddress="), Parameter.Target_Server_IPv4_Multiple, FileIndex, Line))
 				return false;
 		}
 		else if (Data.find("IPv4AlternateDNSAddress=") == 0 && Data.length() > strlen("IPv4AlternateDNSAddress="))
@@ -1962,13 +1947,13 @@ bool ReadParameterData(
 			if (!ReadMultipleAddresses(AF_INET, Data, strlen("IPv4AlternateDNSAddress="), Parameter.Target_Server_IPv4_Multiple, FileIndex, Line))
 				return false;
 		}
-		else if (Data.find("IPv4LocalDNSAddress=") == 0 && Data.length() > strlen("IPv4LocalDNSAddress="))
+		else if (Data.find("IPv4LocalMainDNSAddress=") == 0 && Data.length() > strlen("IPv4LocalMainDNSAddress="))
 		{
 			std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
-			if (!ReadMultipleAddresses(AF_INET, Data, strlen("IPv4LocalDNSAddress="), &DNSServerDataTemp, FileIndex, Line) || DNSServerDataTemp.empty())
+			if (!ReadMultipleAddresses(AF_INET, Data, strlen("IPv4LocalMainDNSAddress="), &DNSServerDataTemp, FileIndex, Line) || DNSServerDataTemp.empty())
 				return false;
 			else 
-				Parameter.Target_Server_Local_IPv4 = DNSServerDataTemp.front().AddressData;
+				Parameter.Target_Server_Local_Main_IPv4 = DNSServerDataTemp.front().AddressData;
 		}
 		else if (Data.find("IPv4LocalAlternateDNSAddress=") == 0 && Data.length() > strlen("IPv4LocalAlternateDNSAddress="))
 		{
@@ -1976,7 +1961,7 @@ bool ReadParameterData(
 			if (!ReadMultipleAddresses(AF_INET, Data, strlen("IPv4LocalAlternateDNSAddress="), &DNSServerDataTemp, FileIndex, Line) || DNSServerDataTemp.empty())
 				return false;
 			else 
-				Parameter.Target_Server_Alternate_Local_IPv4 = DNSServerDataTemp.front().AddressData;
+				Parameter.Target_Server_Local_Alternate_IPv4 = DNSServerDataTemp.front().AddressData;
 		}
 		else if (Data.find("IPv6ListenAddress=") == 0 && Data.length() > strlen("IPv6ListenAddress="))
 		{
@@ -1995,9 +1980,9 @@ bool ReadParameterData(
 			if (!ReadAddressPrefixBlock(AF_INET6, Data, strlen("IPv6EDNSClientSubnetAddress="), Parameter.LocalMachineSubnet_IPv6, FileIndex, Line))
 				return false;
 		}
-		else if (Data.find("IPv6DNSAddress=") == 0 && Data.length() > strlen("IPv6DNSAddress="))
+		else if (Data.find("IPv6MainDNSAddress=") == 0 && Data.length() > strlen("IPv6MainDNSAddress="))
 		{
-			if (!ReadMultipleAddresses(AF_INET6, Data, strlen("IPv6DNSAddress="), Parameter.Target_Server_IPv6_Multiple, FileIndex, Line))
+			if (!ReadMultipleAddresses(AF_INET6, Data, strlen("IPv6MainDNSAddress="), Parameter.Target_Server_IPv6_Multiple, FileIndex, Line))
 				return false;
 		}
 		else if (Data.find("IPv6AlternateDNSAddress=") == 0 && Data.length() > strlen("IPv6AlternateDNSAddress="))
@@ -2005,13 +1990,13 @@ bool ReadParameterData(
 			if (!ReadMultipleAddresses(AF_INET6, Data, strlen("IPv6AlternateDNSAddress="), Parameter.Target_Server_IPv6_Multiple, FileIndex, Line))
 				return false;
 		}
-		else if (Data.find("IPv6LocalDNSAddress=") == 0 && Data.length() > strlen("IPv6LocalDNSAddress="))
+		else if (Data.find("IPv6LocalMainDNSAddress=") == 0 && Data.length() > strlen("IPv6LocalMainDNSAddress="))
 		{
 			std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
-			if (!ReadMultipleAddresses(AF_INET6, Data, strlen("IPv6LocalDNSAddress="), &DNSServerDataTemp, FileIndex, Line) || DNSServerDataTemp.empty())
+			if (!ReadMultipleAddresses(AF_INET6, Data, strlen("IPv6LocalMainDNSAddress="), &DNSServerDataTemp, FileIndex, Line) || DNSServerDataTemp.empty())
 				return false;
 			else 
-				Parameter.Target_Server_Local_IPv6 = DNSServerDataTemp.front().AddressData;
+				Parameter.Target_Server_Local_Main_IPv6 = DNSServerDataTemp.front().AddressData;
 		}
 		else if (Data.find("IPv6LocalAlternateDNSAddress=") == 0 && Data.length() > strlen("IPv6LocalAlternateDNSAddress="))
 		{
@@ -2019,7 +2004,7 @@ bool ReadParameterData(
 			if (!ReadMultipleAddresses(AF_INET6, Data, strlen("IPv6LocalAlternateDNSAddress="),  &DNSServerDataTemp, FileIndex, Line) || DNSServerDataTemp.empty())
 				return false;
 			else 
-				Parameter.Target_Server_Alternate_Local_IPv6 = DNSServerDataTemp.front().AddressData;
+				Parameter.Target_Server_Local_Alternate_IPv6 = DNSServerDataTemp.front().AddressData;
 		}
 	}
 
@@ -2119,7 +2104,7 @@ bool ReadParameterData(
 			if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult <= UINT8_MAX))
 			#if defined(PLATFORM_WIN)
 				ParameterPTR->PacketHopLimits_IPv4_Begin = (DWORD)UnsignedResult;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				ParameterPTR->PacketHopLimits_IPv4_Begin = (int)UnsignedResult;
 			#endif
 			else 
@@ -2133,7 +2118,7 @@ bool ReadParameterData(
 			if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult <= UINT8_MAX))
 			#if defined(PLATFORM_WIN)
 				ParameterPTR->PacketHopLimits_IPv4_End = (DWORD)UnsignedResult;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				ParameterPTR->PacketHopLimits_IPv4_End = (int)UnsignedResult;
 			#endif
 			else 
@@ -2157,7 +2142,7 @@ bool ReadParameterData(
 				if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult <= UINT8_MAX))
 				#if defined(PLATFORM_WIN)
 					ParameterPTR->PacketHopLimits_IPv4_Begin = (DWORD)UnsignedResult;
-				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 					ParameterPTR->PacketHopLimits_IPv4_Begin = (int)UnsignedResult;
 				#endif
 				else 
@@ -2168,6 +2153,28 @@ bool ReadParameterData(
 			}
 		}
 	}
+#if defined(ENABLE_PCAP)
+	else if (Data.find("IPv4MainDNSTTL=") == 0 && Data.length() > strlen("IPv4MainDNSTTL="))
+	{
+		if (!ReadHopLimitData(AF_INET, Data, strlen("IPv4MainDNSTTL="), Parameter.Target_Server_IPv4_Multiple, IsFirstRead, FileIndex, Line))
+			return false;
+	}
+	else if (Data.find("IPv4AlternateDNSTTL=") == 0 && Data.length() > strlen("IPv4AlternateDNSTTL="))
+	{
+		if (!ReadHopLimitData(AF_INET, Data, strlen("IPv4AlternateDNSTTL="), Parameter.Target_Server_IPv4_Multiple, IsFirstRead, FileIndex, Line))
+			return false;
+	}
+	else if (Data.find("IPv6MainDNSHopLimits=") == 0 && Data.length() > strlen("IPv6MainDNSHopLimits="))
+	{
+		if (!ReadHopLimitData(AF_INET6, Data, strlen("IPv6MainDNSHopLimits="), Parameter.Target_Server_IPv6_Multiple, IsFirstRead, FileIndex, Line))
+			return false;
+	}
+	else if (Data.find("IPv6AlternateDNSHopLimits=") == 0 && Data.length() > strlen("IPv6AlternateDNSHopLimits="))
+	{
+		if (!ReadHopLimitData(AF_INET6, Data, strlen("IPv6AlternateDNSHopLimits="), Parameter.Target_Server_IPv6_Multiple, IsFirstRead, FileIndex, Line))
+			return false;
+	}
+#endif
 	else if (Data.find("IPv6PacketHopLimits=") == 0 && Data.length() > strlen("IPv6PacketHopLimits="))
 	{
 	//Range
@@ -2181,7 +2188,7 @@ bool ReadParameterData(
 			if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult <= UINT8_MAX))
 			#if defined(PLATFORM_WIN)
 				ParameterPTR->PacketHopLimits_IPv6_Begin = (DWORD)UnsignedResult;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				ParameterPTR->PacketHopLimits_IPv6_Begin = (int)UnsignedResult;
 			#endif
 			else 
@@ -2195,7 +2202,7 @@ bool ReadParameterData(
 			if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult <= UINT8_MAX))
 			#if defined(PLATFORM_WIN)
 				ParameterPTR->PacketHopLimits_IPv6_End = (DWORD)UnsignedResult;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				ParameterPTR->PacketHopLimits_IPv6_End = (int)UnsignedResult;
 			#endif
 			else 
@@ -2219,7 +2226,7 @@ bool ReadParameterData(
 				if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult <= UINT8_MAX))
 				#if defined(PLATFORM_WIN)
 					ParameterPTR->PacketHopLimits_IPv6_Begin = (DWORD)UnsignedResult;
-				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 					ParameterPTR->PacketHopLimits_IPv6_Begin = (int)UnsignedResult;
 				#endif
 				else 
@@ -2231,26 +2238,6 @@ bool ReadParameterData(
 		}
 	}
 #if defined(ENABLE_PCAP)
-	else if (Data.find("IPv4DNSTTL=") == 0 && Data.length() > strlen("IPv4DNSTTL="))
-	{
-		if (!ReadHopLimitData(AF_INET, Data, strlen("IPv4DNSTTL="), Parameter.Target_Server_IPv4_Multiple, IsFirstRead, FileIndex, Line))
-			return false;
-	}
-	else if (Data.find("IPv6DNSHopLimits=") == 0 && Data.length() > strlen("IPv6DNSHopLimits="))
-	{
-		if (!ReadHopLimitData(AF_INET6, Data, strlen("IPv6DNSHopLimits="), Parameter.Target_Server_IPv6_Multiple, IsFirstRead, FileIndex, Line))
-			return false;
-	}
-	else if (Data.find("IPv4AlternateDNSTTL=") == 0 && Data.length() > strlen("IPv4AlternateDNSTTL="))
-	{
-		if (!ReadHopLimitData(AF_INET, Data, strlen("IPv4AlternateDNSTTL="), Parameter.Target_Server_IPv4_Multiple, IsFirstRead, FileIndex, Line))
-			return false;
-	}
-	else if (Data.find("IPv6AlternateDNSHopLimits=") == 0 && Data.length() > strlen("IPv6AlternateDNSHopLimits="))
-	{
-		if (!ReadHopLimitData(AF_INET6, Data, strlen("IPv6AlternateDNSHopLimits="), Parameter.Target_Server_IPv6_Multiple, IsFirstRead, FileIndex, Line))
-			return false;
-	}
 	else if (Data.find("HopLimitsFluctuation=") == 0 && Data.length() > strlen("HopLimitsFluctuation="))
 	{
 		if (Data.length() < strlen("HopLimitsFluctuation=") + UINT8_MAX_STRING_LENGTH)
@@ -2274,30 +2261,10 @@ bool ReadParameterData(
 			if (UnsignedResult > SOCKET_MIN_TIMEOUT && UnsignedResult < ULONG_MAX)
 			#if defined(PLATFORM_WIN)
 				ParameterPTR->SocketTimeout_Reliable_Once = (DWORD)UnsignedResult;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			{
 				ParameterPTR->SocketTimeout_Reliable_Once.tv_sec = UnsignedResult / SECOND_TO_MILLISECOND;
 				ParameterPTR->SocketTimeout_Reliable_Once.tv_usec = UnsignedResult % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
-			}
-			#endif
-		}
-		else {
-			goto PrintDataFormatError;
-		}
-	}
-	else if (Data.find("UnreliableOnceSocketTimeout=") == 0 && Data.length() > strlen("UnreliableOnceSocketTimeout="))
-	{
-		if (Data.length() < strlen("UnreliableOnceSocketTimeout=") + UINT32_MAX_STRING_LENGTH)
-		{
-			_set_errno(0);
-			UnsignedResult = strtoul(Data.c_str() + strlen("UnreliableOnceSocketTimeout="), nullptr, 0);
-			if (UnsignedResult > SOCKET_MIN_TIMEOUT && UnsignedResult < ULONG_MAX)
-			#if defined(PLATFORM_WIN)
-				ParameterPTR->SocketTimeout_Unreliable_Once = (DWORD)UnsignedResult;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-			{
-				ParameterPTR->SocketTimeout_Unreliable_Once.tv_sec = UnsignedResult / SECOND_TO_MILLISECOND;
-				ParameterPTR->SocketTimeout_Unreliable_Once.tv_usec = UnsignedResult % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 			}
 			#endif
 		}
@@ -2314,10 +2281,30 @@ bool ReadParameterData(
 			if (UnsignedResult > SOCKET_MIN_TIMEOUT && UnsignedResult < ULONG_MAX)
 			#if defined(PLATFORM_WIN)
 				ParameterPTR->SocketTimeout_Reliable_Serial = (DWORD)UnsignedResult;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			{
 				ParameterPTR->SocketTimeout_Reliable_Serial.tv_sec = UnsignedResult / SECOND_TO_MILLISECOND;
 				ParameterPTR->SocketTimeout_Reliable_Serial.tv_usec = UnsignedResult % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
+			}
+			#endif
+		}
+		else {
+			goto PrintDataFormatError;
+		}
+	}
+	else if (Data.find("UnreliableOnceSocketTimeout=") == 0 && Data.length() > strlen("UnreliableOnceSocketTimeout="))
+	{
+		if (Data.length() < strlen("UnreliableOnceSocketTimeout=") + UINT32_MAX_STRING_LENGTH)
+		{
+			_set_errno(0);
+			UnsignedResult = strtoul(Data.c_str() + strlen("UnreliableOnceSocketTimeout="), nullptr, 0);
+			if (UnsignedResult > SOCKET_MIN_TIMEOUT && UnsignedResult < ULONG_MAX)
+			#if defined(PLATFORM_WIN)
+				ParameterPTR->SocketTimeout_Unreliable_Once = (DWORD)UnsignedResult;
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			{
+				ParameterPTR->SocketTimeout_Unreliable_Once.tv_sec = UnsignedResult / SECOND_TO_MILLISECOND;
+				ParameterPTR->SocketTimeout_Unreliable_Once.tv_usec = UnsignedResult % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 			}
 			#endif
 		}
@@ -2334,7 +2321,7 @@ bool ReadParameterData(
 			if (UnsignedResult > SOCKET_MIN_TIMEOUT && UnsignedResult < ULONG_MAX)
 			#if defined(PLATFORM_WIN)
 				ParameterPTR->SocketTimeout_Unreliable_Serial = (DWORD)UnsignedResult;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			{
 				ParameterPTR->SocketTimeout_Unreliable_Serial.tv_sec = UnsignedResult / SECOND_TO_MILLISECOND;
 				ParameterPTR->SocketTimeout_Unreliable_Serial.tv_usec = UnsignedResult % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -2747,7 +2734,7 @@ bool ReadParameterData(
 
 	if (Data.find("SOCKSTargetServer=") == 0 && Data.length() > strlen("SOCKSTargetServer="))
 	{
-		if (!ReadSOCKSAddressAndDomain(Data, strlen("SOCKSTargetServer="), ParameterPTR, FileIndex, Line))
+		if (!Read_SOCKS_AddressAndDomain(Data, strlen("SOCKSTargetServer="), ParameterPTR, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("SOCKSUsername=") == 0 && Data.length() > strlen("SOCKSUsername="))
@@ -2807,10 +2794,10 @@ bool ReadParameterData(
 			else {
 				Parameter.HTTP_CONNECT_Address_IPv4 = DNSServerDataTemp.front().AddressData;
 			#if defined(ENABLE_TLS)
-			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				Parameter.HTTP_CONNECT_TLS_AddressString_IPv4->clear();
-				Parameter.HTTP_CONNECT_TLS_AddressString_IPv4->append(Data, strlen("HTTPCONNECTIPv4Address="), Data.length() - strlen("HTTPCONNECTIPv4Address="));
-			#endif
+				#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+					Parameter.HTTP_CONNECT_TLS_AddressString_IPv4->clear();
+					Parameter.HTTP_CONNECT_TLS_AddressString_IPv4->append(Data, strlen("HTTPCONNECTIPv4Address="), Data.length() - strlen("HTTPCONNECTIPv4Address="));
+				#endif
 			#endif
 			}
 		}
@@ -2824,10 +2811,10 @@ bool ReadParameterData(
 			else {
 				Parameter.HTTP_CONNECT_Address_IPv6 = DNSServerDataTemp.front().AddressData;
 			#if defined(ENABLE_TLS)
-			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
-				Parameter.HTTP_CONNECT_TLS_AddressString_IPv6->clear();
-				Parameter.HTTP_CONNECT_TLS_AddressString_IPv6->append(Data, strlen("HTTPCONNECTIPv6Address="), Data.length() - strlen("HTTPCONNECTIPv6Address="));
-			#endif
+				#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+					Parameter.HTTP_CONNECT_TLS_AddressString_IPv6->clear();
+					Parameter.HTTP_CONNECT_TLS_AddressString_IPv6->append(Data, strlen("HTTPCONNECTIPv6Address="), Data.length() - strlen("HTTPCONNECTIPv6Address="));
+				#endif
 			#endif
 			}
 		}
@@ -2939,7 +2926,7 @@ bool ReadParameterData(
 			if (UnsignedResult > SOCKET_MIN_TIMEOUT && UnsignedResult < ULONG_MAX)
 			#if defined(PLATFORM_WIN)
 				DNSCurveParameterPTR->DNSCurve_SocketTimeout_Reliable = (DWORD)UnsignedResult;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			{
 				DNSCurveParameterPTR->DNSCurve_SocketTimeout_Reliable.tv_sec = UnsignedResult / SECOND_TO_MILLISECOND;
 				DNSCurveParameterPTR->DNSCurve_SocketTimeout_Reliable.tv_usec = UnsignedResult % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -2959,7 +2946,7 @@ bool ReadParameterData(
 			if (UnsignedResult > SOCKET_MIN_TIMEOUT && UnsignedResult < ULONG_MAX)
 			#if defined(PLATFORM_WIN)
 				DNSCurveParameterPTR->DNSCurve_SocketTimeout_Unreliable = (DWORD)UnsignedResult;
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			{
 				DNSCurveParameterPTR->DNSCurve_SocketTimeout_Unreliable.tv_sec = UnsignedResult / SECOND_TO_MILLISECOND;
 				DNSCurveParameterPTR->DNSCurve_SocketTimeout_Unreliable.tv_usec = UnsignedResult % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -3000,13 +2987,13 @@ bool ReadParameterData(
 //[DNSCurve Addresses] block
 	if (IsFirstRead)
 	{
-		if (Data.find("DNSCurveIPv4DNSAddress=") == 0 && Data.length() > strlen("DNSCurveIPv4DNSAddress="))
+		if (Data.find("DNSCurveIPv4MainDNSAddress=") == 0 && Data.length() > strlen("DNSCurveIPv4MainDNSAddress="))
 		{
 			std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
-			if (!ReadMultipleAddresses(AF_INET, Data, strlen("DNSCurveIPv4DNSAddress="), &DNSServerDataTemp, FileIndex, Line) || DNSServerDataTemp.empty())
+			if (!ReadMultipleAddresses(AF_INET, Data, strlen("DNSCurveIPv4MainDNSAddress="), &DNSServerDataTemp, FileIndex, Line) || DNSServerDataTemp.empty())
 				return false;
 			else 
-				DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData = DNSServerDataTemp.front().AddressData;
+				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData = DNSServerDataTemp.front().AddressData;
 		}
 		else if (Data.find("DNSCurveIPv4AlternateDNSAddress=") == 0 && Data.length() > strlen("DNSCurveIPv4AlternateDNSAddress="))
 		{
@@ -3016,13 +3003,13 @@ bool ReadParameterData(
 			else 
 				DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData = DNSServerDataTemp.front().AddressData;
 		}
-		else if (Data.find("DNSCurveIPv6DNSAddress=") == 0 && Data.length() > strlen("DNSCurveIPv6DNSAddress="))
+		else if (Data.find("DNSCurveIPv6MainDNSAddress=") == 0 && Data.length() > strlen("DNSCurveIPv6MainDNSAddress="))
 		{
 			std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
-			if (!ReadMultipleAddresses(AF_INET6, Data, strlen("DNSCurveIPv6DNSAddress="), &DNSServerDataTemp, FileIndex, Line) || DNSServerDataTemp.empty())
+			if (!ReadMultipleAddresses(AF_INET6, Data, strlen("DNSCurveIPv6MainDNSAddress="), &DNSServerDataTemp, FileIndex, Line) || DNSServerDataTemp.empty())
 				return false;
 			else 
-				DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData = DNSServerDataTemp.front().AddressData;
+				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData = DNSServerDataTemp.front().AddressData;
 		}
 		else if (Data.find("DNSCurveIPv6AlternateDNSAddress=") == 0 && Data.length() > strlen("DNSCurveIPv6AlternateDNSAddress="))
 		{
@@ -3032,9 +3019,9 @@ bool ReadParameterData(
 			else 
 				DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData = DNSServerDataTemp.front().AddressData;
 		}
-		else if (Data.find("DNSCurveIPv4ProviderName=") == 0 && Data.length() > strlen("DNSCurveIPv4ProviderName="))
+		else if (Data.find("DNSCurveIPv4MainProviderName=") == 0 && Data.length() > strlen("DNSCurveIPv4MainProviderName="))
 		{
-			if (!ReadDNSCurveProviderName(Data, strlen("DNSCurveIPv4ProviderName="), DNSCurveParameter.DNSCurve_Target_Server_IPv4.ProviderName, FileIndex, Line))
+			if (!ReadDNSCurveProviderName(Data, strlen("DNSCurveIPv4MainProviderName="), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ProviderName, FileIndex, Line))
 				return false;
 		}
 		else if (Data.find("DNSCurveIPv4AlternateProviderName=") == 0 && Data.length() > strlen("DNSCurveIPv4AlternateProviderName="))
@@ -3042,9 +3029,9 @@ bool ReadParameterData(
 			if (!ReadDNSCurveProviderName(Data, strlen("DNSCurveIPv4AlternateProviderName="), DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ProviderName, FileIndex, Line))
 				return false;
 		}
-		else if (Data.find("DNSCurveIPv6ProviderName=") == 0 && Data.length() > strlen("DNSCurveIPv6ProviderName="))
+		else if (Data.find("DNSCurveIPv6MainProviderName=") == 0 && Data.length() > strlen("DNSCurveIPv6MainProviderName="))
 		{
-			if (!ReadDNSCurveProviderName(Data, strlen("DNSCurveIPv6ProviderName="), DNSCurveParameter.DNSCurve_Target_Server_IPv6.ProviderName, FileIndex, Line))
+			if (!ReadDNSCurveProviderName(Data, strlen("DNSCurveIPv6MainProviderName="), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ProviderName, FileIndex, Line))
 				return false;
 		}
 		else if (Data.find("DNSCurveIPv6AlternateProviderName=") == 0 && Data.length() > strlen("DNSCurveIPv6AlternateProviderName="))
@@ -3065,9 +3052,9 @@ bool ReadParameterData(
 		if (!ReadDNSCurveKey(Data, strlen("DNSCurveClientSecretKey="), DNSCurveParameterPTR->Client_SecretKey, FileIndex, Line))
 			return false;
 	}
-	else if (Data.find("DNSCurveIPv4DNSPublicKey=") == 0 && Data.length() > strlen("DNSCurveIPv4DNSPublicKey="))
+	else if (Data.find("DNSCurveIPv4MainDNSPublicKey=") == 0 && Data.length() > strlen("DNSCurveIPv4MainDNSPublicKey="))
 	{
-		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv4DNSPublicKey="), DNSCurveParameterPTR->DNSCurve_Target_Server_IPv4.ServerPublicKey, FileIndex, Line))
+		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv4MainDNSPublicKey="), DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv4.ServerPublicKey, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("DNSCurveIPv4AlternateDNSPublicKey=") == 0 && Data.length() > strlen("DNSCurveIPv4AlternateDNSPublicKey="))
@@ -3075,9 +3062,9 @@ bool ReadParameterData(
 		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv4AlternateDNSPublicKey="), DNSCurveParameterPTR->DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey, FileIndex, Line))
 			return false;
 	}
-	else if (Data.find("DNSCurveIPv6DNSPublicKey=") == 0 && Data.length() > strlen("DNSCurveIPv6DNSPublicKey="))
+	else if (Data.find("DNSCurveIPv6MainDNSPublicKey=") == 0 && Data.length() > strlen("DNSCurveIPv6MainDNSPublicKey="))
 	{
-		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv6DNSPublicKey="), DNSCurveParameterPTR->DNSCurve_Target_Server_IPv6.ServerPublicKey, FileIndex, Line))
+		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv6MainDNSPublicKey="), DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv6.ServerPublicKey, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("DNSCurveIPv6AlternateDNSPublicKey=") == 0 && Data.length() > strlen("DNSCurveIPv6AlternateDNSPublicKey="))
@@ -3085,9 +3072,9 @@ bool ReadParameterData(
 		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv6AlternateDNSPublicKey="), DNSCurveParameterPTR->DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey, FileIndex, Line))
 			return false;
 	}
-	else if (Data.find("DNSCurveIPv4DNSFingerprint=") == 0 && Data.length() > strlen("DNSCurveIPv4DNSFingerprint="))
+	else if (Data.find("DNSCurveIPv4MainDNSFingerprint=") == 0 && Data.length() > strlen("DNSCurveIPv4MainDNSFingerprint="))
 	{
-		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv4DNSFingerprint="), DNSCurveParameterPTR->DNSCurve_Target_Server_IPv4.ServerFingerprint, FileIndex, Line))
+		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv4MainDNSFingerprint="), DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv4.ServerFingerprint, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("DNSCurveIPv4AlternateDNSFingerprint=") == 0 && Data.length() > strlen("DNSCurveIPv4AlternateDNSFingerprint="))
@@ -3095,9 +3082,9 @@ bool ReadParameterData(
 		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv4AlternateDNSFingerprint="), DNSCurveParameterPTR->DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, FileIndex, Line))
 			return false;
 	}
-	else if (Data.find("DNSCurveIPv6DNSFingerprint=") == 0 && Data.length() > strlen("DNSCurveIPv6DNSFingerprint="))
+	else if (Data.find("DNSCurveIPv6MainDNSFingerprint=") == 0 && Data.length() > strlen("DNSCurveIPv6MainDNSFingerprint="))
 	{
-		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv6DNSFingerprint="), DNSCurveParameterPTR->DNSCurve_Target_Server_IPv6.ServerFingerprint, FileIndex, Line))
+		if (!ReadDNSCurveKey(Data, strlen("DNSCurveIPv6MainDNSFingerprint="), DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv6.ServerFingerprint, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("DNSCurveIPv6AlternateDNSFingerprint=") == 0 && Data.length() > strlen("DNSCurveIPv6AlternateDNSFingerprint="))
@@ -3107,9 +3094,9 @@ bool ReadParameterData(
 	}
 
 //[DNSCurve Magic Number] block
-	if (Data.find("DNSCurveIPv4ReceiveMagicNumber=") == 0 && Data.length() > strlen("DNSCurveIPv4ReceiveMagicNumber="))
+	if (Data.find("DNSCurveIPv4MainReceiveMagicNumber=") == 0 && Data.length() > strlen("DNSCurveIPv4MainReceiveMagicNumber="))
 	{
-		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv4ReceiveMagicNumber="), DNSCurveParameterPTR->DNSCurve_Target_Server_IPv4.ReceiveMagicNumber, FileIndex, Line))
+		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv4MainReceiveMagicNumber="), DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("DNSCurveIPv4AlternateReceiveMagicNumber=") == 0 && Data.length() > strlen("DNSCurveIPv4AlternateReceiveMagicNumber="))
@@ -3117,9 +3104,9 @@ bool ReadParameterData(
 		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv4AlternateReceiveMagicNumber="), DNSCurveParameterPTR->DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber, FileIndex, Line))
 			return false;
 	}
-	else if (Data.find("DNSCurveIPv6ReceiveMagicNumber=") == 0 && Data.length() > strlen("DNSCurveIPv6ReceiveMagicNumber="))
+	else if (Data.find("DNSCurveIPv6MainReceiveMagicNumber=") == 0 && Data.length() > strlen("DNSCurveIPv6MainReceiveMagicNumber="))
 	{
-		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv6ReceiveMagicNumber="), DNSCurveParameterPTR->DNSCurve_Target_Server_IPv6.ReceiveMagicNumber, FileIndex, Line))
+		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv6MainReceiveMagicNumber="), DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("DNSCurveIPv6AlternateReceiveMagicNumber=") == 0 && Data.length() > strlen("DNSCurveIPv6AlternateReceiveMagicNumber="))
@@ -3127,9 +3114,9 @@ bool ReadParameterData(
 		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv6AlternateReceiveMagicNumber="), DNSCurveParameterPTR->DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber, FileIndex, Line))
 			return false;
 	}
-	else if (Data.find("DNSCurveIPv4DNSMagicNumber=") == 0 && Data.length() > strlen("DNSCurveIPv4DNSMagicNumber="))
+	else if (Data.find("DNSCurveIPv4MainDNSMagicNumber=") == 0 && Data.length() > strlen("DNSCurveIPv4MainDNSMagicNumber="))
 	{
-		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv4DNSMagicNumber="), DNSCurveParameterPTR->DNSCurve_Target_Server_IPv4.SendMagicNumber, FileIndex, Line))
+		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv4MainDNSMagicNumber="), DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv4.SendMagicNumber, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("DNSCurveIPv4AlternateDNSMagicNumber=") == 0 && Data.length() > strlen("DNSCurveIPv4AlternateDNSMagicNumber="))
@@ -3137,9 +3124,9 @@ bool ReadParameterData(
 		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv4AlternateDNSMagicNumber="), DNSCurveParameterPTR->DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, FileIndex, Line))
 			return false;
 	}
-	else if (Data.find("DNSCurveIPv6DNSMagicNumber=") == 0 && Data.length() > strlen("DNSCurveIPv6DNSMagicNumber="))
+	else if (Data.find("DNSCurveIPv6MainDNSMagicNumber=") == 0 && Data.length() > strlen("DNSCurveIPv6MainDNSMagicNumber="))
 	{
-		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv6DNSMagicNumber="), DNSCurveParameterPTR->DNSCurve_Target_Server_IPv6.SendMagicNumber, FileIndex, Line))
+		if (!ReadDNSCurveMagicNumber(Data, strlen("DNSCurveIPv6MainDNSMagicNumber="), DNSCurveParameterPTR->DNSCurve_Target_Server_Main_IPv6.SendMagicNumber, FileIndex, Line))
 			return false;
 	}
 	else if (Data.find("DNSCurveIPv6AlternateDNSMagicNumber=") == 0 && Data.length() > strlen("DNSCurveIPv6AlternateDNSMagicNumber="))
@@ -3153,7 +3140,7 @@ bool ReadParameterData(
 
 //Label of printing data format error
 PrintDataFormatError:
-	PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+	PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data format error", errno, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 	return false;
 }
 
@@ -3166,7 +3153,7 @@ bool ReadPathAndFileName(
 	std::vector<std::wstring> * const ListData, 
 	const size_t FileIndex, 
 	const size_t Line)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 bool ReadPathAndFileName(
 	std::string Data, 
 	const size_t DataOffset, 
@@ -3191,7 +3178,7 @@ bool ReadPathAndFileName(
 		#if defined(PLATFORM_WIN)
 			if (StringIter.back() != ASCII_BACKSLASH)
 				StringIter.append("\\");
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (StringIter.back() != ASCII_SLASH)
 				StringIter.append("/");
 		#endif
@@ -3229,7 +3216,7 @@ bool ReadPathAndFileName(
 				}
 			}
 
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			for (auto InnerStringIter = GlobalRunningStatus.sPath_Global->begin();InnerStringIter < GlobalRunningStatus.sPath_Global->end();++InnerStringIter)
 			{
 				if (*InnerStringIter == StringIter)
@@ -3277,7 +3264,7 @@ bool ReadPathAndFileName(
 				}
 			}
 
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (sListData->empty())
 			{
 				sListData->push_back(StringIter);
@@ -3464,7 +3451,7 @@ bool ReadMultipleAddresses(
 }
 
 //Read address or domain of SOCKS
-bool ReadSOCKSAddressAndDomain(
+bool Read_SOCKS_AddressAndDomain(
 	std::string Data, 
 	const size_t DataOffset, 
 	CONFIGURATION_TABLE * const ParameterPTR, 
@@ -3633,7 +3620,7 @@ bool ReadHopLimitData(
 				if (!IsFirstRead)
 				{
 					if (HopLimitIndex[NETWORK_LAYER_IPV6] == 0)
-						Parameter.Target_Server_IPv6.HopLimitData_Assign.HopLimit = (uint8_t)UnsignedResult;
+						Parameter.Target_Server_Main_IPv6.HopLimitData_Assign.HopLimit = (uint8_t)UnsignedResult;
 					else if (HopLimitIndex[NETWORK_LAYER_IPV6] == 1U)
 						Parameter.Target_Server_Alternate_IPv6.HopLimitData_Assign.HopLimit = (uint8_t)UnsignedResult;
 					else if (!DNSServerDataList->empty() && HopLimitIndex[NETWORK_LAYER_IPV6] - 2U < DNSServerDataList->size())
@@ -3659,7 +3646,7 @@ bool ReadHopLimitData(
 				if (!IsFirstRead)
 				{
 					if (HopLimitIndex[NETWORK_LAYER_IPV4] == 0)
-						Parameter.Target_Server_IPv4.HopLimitData_Assign.TTL = (uint8_t)UnsignedResult;
+						Parameter.Target_Server_Main_IPv4.HopLimitData_Assign.TTL = (uint8_t)UnsignedResult;
 					else if (HopLimitIndex[NETWORK_LAYER_IPV4] == 1U)
 						Parameter.Target_Server_Alternate_IPv4.HopLimitData_Assign.TTL = (uint8_t)UnsignedResult;
 					else if (!DNSServerDataList->empty() && HopLimitIndex[NETWORK_LAYER_IPV4] - 2U < DNSServerDataList->size())
@@ -3692,7 +3679,7 @@ bool ReadHopLimitData(
 
 //Label of printing data format error
 PrintDataFormatError:
-	PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+	PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Data format error", errno, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 	return false;
 }
 #endif

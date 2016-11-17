@@ -70,7 +70,7 @@ bool MBSToWCSString(
 			MBSTOWCS_NULLTERMINATE, 
 			TargetPTR.get(), 
 			(int)(Length + PADDING_RESERVED_BYTES)) == 0)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	if (mbstowcs(TargetPTR.get(), (const char *)Buffer, Length + PADDING_RESERVED_BYTES) == (size_t)RETURN_ERROR)
 #endif
 	{
@@ -113,7 +113,7 @@ bool WCSToMBSString(
 			(int)(Length + PADDING_RESERVED_BYTES), 
 			nullptr, 
 			nullptr) == 0)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	if (wcstombs((char *)TargetPTR.get(), Buffer, Length + PADDING_RESERVED_BYTES) == (size_t)RETURN_ERROR)
 #endif
 	{
@@ -409,7 +409,7 @@ size_t Base64_Decode(
 	return strnlen_s(Output, OutputSize);
 }
 */
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 //Increase time with milliseconds
 uint64_t IncreaseMillisecondTime(
 	const uint64_t CurrentTime, 

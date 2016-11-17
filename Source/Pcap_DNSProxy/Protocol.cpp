@@ -311,7 +311,7 @@ bool CheckSpecialAddress(
 	if (Protocol == AF_INET6)
 	{
 		if (
-		//DNS Poisoning addresses from CERNET2, see https://code.google.com/p/goagent/issues/detail?id=17571.
+		//DNS Poisoning addresses from CERNET2, visit https://code.google.com/p/goagent/issues/detail?id=17571.
 //			(((in6_addr *)Addr)->s6_words[0] == 0 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_bytes[8U] == 0x90 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ((in6_addr *)Addr)->s6_words[7U] == 0) || //::90xx:xxxx:0:0, including in reserved address ranges
 //			(ntohs(((in6_addr *)Addr)->s6_words[0]) == 0x0010 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ntohs(((in6_addr *)Addr)->s6_words[7U]) == 0x2222) || //10::2222, including in reserved address ranges
 //			(ntohs(((in6_addr *)Addr)->s6_words[0]) == 0x0021 && ntohs(((in6_addr *)Addr)->s6_words[1U]) == 0x0002 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ntohs(((in6_addr *)Addr)->s6_words[7U] == 0x0002) || //21:2::2, including in reserved address ranges
@@ -333,7 +333,7 @@ bool CheckSpecialAddress(
 			(ntohs(((in6_addr *)Addr)->s6_words[1U]) == 0x0DA8 && ntohs(((in6_addr *)Addr)->s6_words[2U]) == 0x0112 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ntohs(((in6_addr *)Addr)->s6_words[7U]) == 0x21AE))) || //2001:DA8:112::21AE
 			(ntohs(((in6_addr *)Addr)->s6_words[0]) == 0x2003 && ntohs(((in6_addr *)Addr)->s6_words[1U]) == 0x00FF && ntohs(((in6_addr *)Addr)->s6_words[2U]) == 0x0001 && ntohs(((in6_addr *)Addr)->s6_words[3U]) == 0x0002 && ntohs(((in6_addr *)Addr)->s6_words[4U]) == 0x0003 && ntohs(((in6_addr *)Addr)->s6_words[5U]) == 0x0004 && ntohs(((in6_addr *)Addr)->s6_words[6U]) == 0x5FFF) || //2003:FF:1:2:3:4:5FFF:xxxx
 			(ntohs(((in6_addr *)Addr)->s6_words[0]) == 0x2123 && ((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && ((in6_addr *)Addr)->s6_words[5U] == 0 && ((in6_addr *)Addr)->s6_words[6U] == 0 && ntohs(((in6_addr *)Addr)->s6_words[7U]) == 0x3E12) || //2123::3E12
-		//Special-use or reserved addresses, see https://en.wikipedia.org/wiki/IPv6_address#Presentation and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv6_addresses.
+		//Special-use or reserved addresses, visit https://en.wikipedia.org/wiki/IPv6_address#Presentation and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv6_addresses.
 		//Also https://www.iana.org/assignments/ipv6-address-space/ipv6-address-space.xhtml and https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry.xhtml
 			(ntohs(((in6_addr *)Addr)->s6_words[0]) >= 0 && ntohs(((in6_addr *)Addr)->s6_words[0]) <= 0x00FF && //Reserved by IETF(::/8)
 			!(((in6_addr *)Addr)->s6_words[1U] == 0 && ((in6_addr *)Addr)->s6_words[2U] == 0 && ((in6_addr *)Addr)->s6_words[3U] == 0 && ((in6_addr *)Addr)->s6_words[4U] == 0 && 
@@ -446,9 +446,9 @@ bool CheckSpecialAddress(
 	else if (Protocol == AF_INET)
 	{
 		if (
-		//DNS Poisoning addresses from CERNET2, see https://code.google.com/p/goagent/issues/detail?id=17571.
+		//DNS Poisoning addresses from CERNET2, visit https://code.google.com/p/goagent/issues/detail?id=17571.
 			ntohl(((in_addr *)Addr)->s_addr) == 0x01020304 || //1.2.3.4
-		//Traditional DNS Poisoning addresses, see https://zh.wikipedia.org/wiki/%E5%9F%9F%E5%90%8D%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%BC%93%E5%AD%98%E6%B1%A1%E6%9F%93#.E8.99.9A.E5.81.87IP.E5.9C.B0.E5.9D.80.
+		//Traditional DNS Poisoning addresses, visit https://zh.wikipedia.org/wiki/%E5%9F%9F%E5%90%8D%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%BC%93%E5%AD%98%E6%B1%A1%E6%9F%93#.E8.99.9A.E5.81.87IP.E5.9C.B0.E5.9D.80.
 			ntohl(((in_addr *)Addr)->s_addr) == 0x042442B2 || //4.36.66.178
 			ntohl(((in_addr *)Addr)->s_addr) == 0x0807C62D || //8.7.198.45
 			ntohl(((in_addr *)Addr)->s_addr) == 0x253D369E || //37.61.54.158
@@ -481,7 +481,7 @@ bool CheckSpecialAddress(
 			ntohl(((in_addr *)Addr)->s_addr) == 0xD35E4293 || //211.94.66.147
 			ntohl(((in_addr *)Addr)->s_addr) == 0xD5A9FB23 || //213.169.251.35
 			ntohl(((in_addr *)Addr)->s_addr) == 0xD8DDBCD6 || //216.221.188.182
-		//New DNS Poisoning addresses which had been added in May 2011, see http://forums.internetfreedom.org/index.php?topic=7953.0.
+		//New DNS Poisoning addresses which had been added in May 2011, visit http://forums.internetfreedom.org/index.php?topic=7953.0.
 			ntohl(((in_addr *)Addr)->s_addr) == 0x1759053C || //23.89.5.60
 			ntohl(((in_addr *)Addr)->s_addr) == 0x31027B38 || //49.2.123.56
 			ntohl(((in_addr *)Addr)->s_addr) == 0x364C8701 || //54.76.135.1
@@ -494,14 +494,14 @@ bool CheckSpecialAddress(
 //			ntohl(((in_addr *)Addr)->s_addr) == 0xF3B9BB27 || //243.185.187.39, including in reserved address ranges
 //			ntohl(((in_addr *)Addr)->s_addr) == 0xF9812E30 || //249.129.46.48, including in reserved address ranges
 //			ntohl(((in_addr *)Addr)->s_addr) == 0xFD9D0EA5 || //253.157.14.165, including in reserved address ranges
-		//China Network Anomaly in 2014-01-21, see https ://zh.wikipedia.org/wiki/2014%E5%B9%B4%E4%B8%AD%E5%9B%BD%E7%BD%91%E7%BB%9C%E5%BC%82%E5%B8%B8%E4%BA%8B%E4%BB%B6
+		//China Network Anomaly in 2014-01-21, visit https ://zh.wikipedia.org/wiki/2014%E5%B9%B4%E4%B8%AD%E5%9B%BD%E7%BD%91%E7%BB%9C%E5%BC%82%E5%B8%B8%E4%BA%8B%E4%BB%B6
 			ntohl(((in_addr *)Addr)->s_addr) == 0x413102B2 || //65.49.2.178
-		//New addresses in IPv6 which has been added in September 2014, see https://code.google.com/p/goagent/issues/detail?id=17571.
+		//New addresses in IPv6 which has been added in September 2014, visit https://code.google.com/p/goagent/issues/detail?id=17571.
 			ntohl(((in_addr *)Addr)->s_addr) == 0x01010101 || //1.1.1.1
 			ntohl(((in_addr *)Addr)->s_addr) == 0x0A0A0A0A || //10.10.10.10
 			ntohl(((in_addr *)Addr)->s_addr) == 0x14141414 || //20.20.20.20
 //			ntohl(((in_addr *)Addr)->s_addr) == 0xFFFFFFFF || //255.255.255.255, including in reserved address ranges
-		//New DNS Poisoning addresses which had been added in December 2014, see https://www.v2ex.com/t/156926.
+		//New DNS Poisoning addresses which had been added in December 2014, visit https://www.v2ex.com/t/156926.
 //			((in_addr *)Addr)->s_addr == 0 || //0.0.0.0, including in reserved address ranges
 			ntohl(((in_addr *)Addr)->s_addr) == 0x02010102 || //2.1.1.2
 			ntohl(((in_addr *)Addr)->s_addr) == 0x04C15000 || //4.193.80.0
@@ -535,7 +535,7 @@ bool CheckSpecialAddress(
 			ntohl(((in_addr *)Addr)->s_addr) == 0xDD08451B || //221.8.69.27
 //			ntohl(((in_addr *)Addr)->s_addr) == 0xF3B9BB03 || //243.185.187.3, including in reserved address ranges
 //			ntohl(((in_addr *)Addr)->s_addr) == 0xF3B9BB1E || //243.185.187.30, including in reserved address ranges
-		//Special-use or reserved addresses, see https://en.wikipedia.org/wiki/IPv4#Special-use_addresses and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv4_addresses.
+		//Special-use or reserved addresses, visit https://en.wikipedia.org/wiki/IPv4#Special-use_addresses and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv4_addresses.
 		//Also https://www.iana.org/assignments/ipv4-address-space/ipv4-address-space.xhtml
 			((in_addr *)Addr)->s_net == 0 || //Current network whick only valid as source addresses(0.0.0.0/8, Section 3.2.1.3 in RFC 1122)
 			(IsPrivateUse && ((in_addr *)Addr)->s_net == 0x0A) || //Private class A addresses(10.0.0.0/8, Section 3 in RFC 1918)

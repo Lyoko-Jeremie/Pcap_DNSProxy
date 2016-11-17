@@ -20,11 +20,11 @@
 #include "Base.h"
 
 //Global variables
-extern CONFIGURATION_TABLE Parameter;
+extern CONFIGURATION_TABLE Parameter, ParameterModificating;
 extern GLOBAL_STATUS GlobalRunningStatus;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 #if defined(ENABLE_LIBSODIUM)
-extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
+extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
 #endif
 extern std::deque<SOCKET_MARKING_DATA> SocketMarkingList;
 extern std::mutex LocalAddressLock[NETWORK_LAYER_PARTNUM], SocketMarkingLock;
@@ -40,7 +40,7 @@ bool TCPMonitor(
 addrinfo *GetLocalAddressList(
 	const uint16_t Protocol, 
 	uint8_t * const HostName);
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 bool GetBestInterfaceAddress(
 	const uint16_t Protocol, 
 	const sockaddr_storage * const OriginalSockAddr);

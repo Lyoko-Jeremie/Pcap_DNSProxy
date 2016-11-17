@@ -6,26 +6,15 @@
 *.sln text eol=crlf
 *.vcxproj text eol=crlf
 Documents/*.txt text eol=crlf
-Source/Pcap_DNSProxy/WinPcap/* eol=crlf
-Source/Tools/* eol=crlf
+Source/Dependency/WinPcap/* eol=crlf
 
-# Newline format in Linux/Mac(LF)
+# Newline format in Linux/macOS(LF)
 *.pbxproj text eol=lf
 *.plist text eol=lf
 *.service text eol=lf
 *.xcscheme text eol=lf
 CMakeLists.txt text eol=lf
-Source/FileHash/CMakeLists.txt text eol=lf
-Source/FileHash/SHA-3/CMakeLists.txt text eol=lf
-Source/FileHash.xcodeproj/* eol=lf
-Source/KeyPairGenerator/CMakeLists.txt text eol=lf
-Source/KeyPairGenerator.xcodeproj/* eol=lf
+Source/Auxiliary/Scripts/* text eol=lf
+Source/Dependency/OpenSSL/* text eol=lf
 Source/Pcap_DNSProxy/CMakeLists.txt text eol=lf
 Source/Pcap_DNSProxy.xcodeproj/* eol=lf
-Source/Scripts/* text eol=lf
-
-# Binary files
-*.exe binary
-*.lib binary
-*.a binary
-*.xcworkspacedata binary

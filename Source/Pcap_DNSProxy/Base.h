@@ -66,7 +66,7 @@ size_t Base64_Encode(
 	const size_t Length, 
 	uint8_t * const Output, 
 	const size_t OutputSize);
-#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 uint64_t IncreaseMillisecondTime(
 	const uint64_t CurrentTime, 
 	const timeval IncreaseTime);
@@ -172,6 +172,8 @@ size_t DNSCurveUDPRequestMultiple(
 #endif
 
 //Monitor.h
+void MonitorLauncher(
+	void);
 bool MonitorInit(
 	void);
 bool TCPReceiveProcess(
@@ -184,6 +186,11 @@ void NetworkInformationMonitor(
 	void);
 
 //Network.h
+#if defined(PLATFORM_WIN)
+bool FirewallTest(
+	const uint16_t Protocol, 
+	ssize_t &ErrorCode);
+#endif
 bool SocketSetting(
 	const SYSTEM_SOCKET Socket, 
 	const size_t SettingType, 
@@ -452,7 +459,7 @@ bool FlushDNSMailSlotMonitor(
 	void);
 bool WINAPI FlushDNSMailSlotSender(
 	const wchar_t * const Domain);
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 bool FlushDNSFIFOMonitor(
 	void);
 bool FlushDNSFIFOSender(
@@ -481,7 +488,7 @@ bool SSPI_ShutdownConnection(
 	SSPI_HANDLE_TABLE &SSPI_Handle, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<ssize_t> &ErrorCodeList);
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 void OpenSSL_Library_Init(
 	bool IsLoad);
 bool OpenSSL_CTX_Initializtion(

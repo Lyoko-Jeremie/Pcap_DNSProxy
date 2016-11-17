@@ -127,10 +127,10 @@ bool DNSCurveSelectTargetSocket(
 	IsIPv6 = false;
 
 //IPv6
-	if (DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
+	if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family > 0 && 
 		((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //IPv6
-		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
+		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 	{
 		IsIPv6 = true;
 		if (Protocol == IPPROTO_TCP)
@@ -141,10 +141,10 @@ bool DNSCurveSelectTargetSocket(
 			return false;
 	}
 //IPv4
-	else if (DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
+	else if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family > 0 && 
 		((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //IPv4
-		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
+		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 	{
 		IsIPv6 = false;
 		if (Protocol == IPPROTO_TCP)
@@ -179,9 +179,9 @@ PDNSCURVE_SERVER_DATA DNSCurveSelectSignatureTargetSocket(
 			ServerType = DNSCURVE_ALTERNATE_IPV6;
 		}
 		else { //Main
-			((PSOCKADDR_IN6)&SocketDataList.front().SockAddr)->sin6_addr = DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.IPv6.sin6_addr;
-			((PSOCKADDR_IN6)&SocketDataList.front().SockAddr)->sin6_port = DNSCurveParameter.DNSCurve_Target_Server_IPv6.AddressData.IPv6.sin6_port;
-			PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_IPv6;
+			((PSOCKADDR_IN6)&SocketDataList.front().SockAddr)->sin6_addr = DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.IPv6.sin6_addr;
+			((PSOCKADDR_IN6)&SocketDataList.front().SockAddr)->sin6_port = DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.IPv6.sin6_port;
+			PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6;
 			ServerType = DNSCURVE_MAIN_IPV6;
 		}
 
@@ -199,9 +199,9 @@ PDNSCURVE_SERVER_DATA DNSCurveSelectSignatureTargetSocket(
 			ServerType = DNSCURVE_ALTERNATE_IPV4;
 		}
 		else { //Main
-			((PSOCKADDR_IN)&SocketDataList.front().SockAddr)->sin_addr = DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.IPv4.sin_addr;
-			((PSOCKADDR_IN)&SocketDataList.front().SockAddr)->sin_port = DNSCurveParameter.DNSCurve_Target_Server_IPv4.AddressData.IPv4.sin_port;
-			PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_IPv4;
+			((PSOCKADDR_IN)&SocketDataList.front().SockAddr)->sin_addr = DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.IPv4.sin_addr;
+			((PSOCKADDR_IN)&SocketDataList.front().SockAddr)->sin_port = DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.IPv4.sin_port;
+			PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4;
 			ServerType = DNSCURVE_MAIN_IPV4;
 		}
 
@@ -226,7 +226,7 @@ bool DNSCurvePacketTargetSetting(
 		}break;
 		case DNSCURVE_MAIN_IPV6:
 		{
-			*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_IPv6;
+			*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6;
 		}break;
 		case DNSCURVE_ALTERNATE_IPV4:
 		{
@@ -234,7 +234,7 @@ bool DNSCurvePacketTargetSetting(
 		}break;
 		case DNSCURVE_MAIN_IPV4:
 		{
-			*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_IPv4;
+			*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4;
 		}break;
 		default:
 		{
@@ -320,9 +320,9 @@ void DNSCurveSocketPrecomputation(
 	{
 	//Set target.
 		if (IsIPv6)
-			*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_IPv6;
+			*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6;
 		else //IPv4
-			*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_IPv4;
+			*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4;
 
 	//Encryption mode check
 		if (DNSCurveParameter.IsEncryption && 

@@ -24,8 +24,7 @@ bool ReadIPFilterData(
 	std::string Data, 
 	const size_t FileIndex, 
 	size_t &LabelType, 
-	const size_t Line, 
-	bool &IsLabelComments)
+	const size_t Line)
 {
 //Convert horizontal tab/HT to space and delete spaces before or after data.
 	for (auto &StringIter:Data)
@@ -42,12 +41,12 @@ bool ReadIPFilterData(
 	if (Data.empty())
 		return true;
 
-//Multiple line comments check, delete spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs) and check minimum length of ipfilter items.
-	if (!ReadMultipleLineComments(Data, IsLabelComments) || Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
+//Delete spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs) and check minimum length of ipfilter items.
+	if (Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
 		return true;
 
 //[Local Routing] block(A part)
-	if (LabelType == 0 && (Parameter.Target_Server_Local_IPv4.Storage.ss_family > 0 || Parameter.Target_Server_Local_IPv6.Storage.ss_family > 0) && 
+	if (LabelType == 0 && (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family > 0 || Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family > 0) && 
 		(CompareStringReversed(L"chnrouting.txt", FileList_IPFilter.at(FileIndex).FileName.c_str(), true) || 
 		CompareStringReversed(L"chnroute.txt", FileList_IPFilter.at(FileIndex).FileName.c_str(), true)))
 			LabelType = LABEL_IPFILTER_LOCAL_ROUTING;
@@ -87,7 +86,7 @@ bool ReadIPFilterData(
 		return false;
 	}
 
-//Multiple line comments check, delete comments(Number Sign/NS and double slashs) and check minimum length.
+//Delete comments(Number Sign/NS and double slashs) and check minimum length.
 	else if (Data.rfind(" //") != std::string::npos)
 	{
 		Data.erase(Data.rfind(" //"), Data.length() - Data.rfind(" //"));

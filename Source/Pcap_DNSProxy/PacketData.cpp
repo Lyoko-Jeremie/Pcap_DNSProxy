@@ -437,7 +437,7 @@ size_t AddEDNSLabelToAdditionalRR(
 			EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
 			EDNS_Subnet_Header->Family = htons(ADDRESS_FAMILY_IPV6);
 
-		//No recommendation is provided for IPv6 at this time so keep all bits, see https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
+		//No recommendation is provided for IPv6 at this time so keep all bits, visit https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
 				EDNS_Subnet_Header->Netmask_Source = sizeof(in6_addr) * BYTES_TO_BITS;
 			else 
@@ -466,7 +466,7 @@ size_t AddEDNSLabelToAdditionalRR(
 			EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
 			EDNS_Subnet_Header->Family = htons(ADDRESS_FAMILY_IPV4);
 
-		//Keep 24 bits of IPv4 address, see https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
+		//Keep 24 bits of IPv4 address, visit https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)
 				EDNS_Subnet_Header->Netmask_Source = (sizeof(in_addr) - 1U) * BYTES_TO_BITS;
 			else 
@@ -549,7 +549,7 @@ bool AddEDNSLabelToAdditionalRR(
 			EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
 			EDNS_Subnet_Header->Family = htons(ADDRESS_FAMILY_IPV6);
 
-		//No recommendation is provided for IPv6 at this time so keep all bits, see https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
+		//No recommendation is provided for IPv6 at this time so keep all bits, visit https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
 				EDNS_Subnet_Header->Netmask_Source = sizeof(in6_addr) * BYTES_TO_BITS;
 			else 
@@ -580,7 +580,7 @@ bool AddEDNSLabelToAdditionalRR(
 			EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
 			EDNS_Subnet_Header->Family = htons(ADDRESS_FAMILY_IPV4);
 
-		//Keep 24 bits of IPv4 address, see https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
+		//Keep 24 bits of IPv4 address, visit https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)
 				EDNS_Subnet_Header->Netmask_Source = (sizeof(in_addr) - 1U) * BYTES_TO_BITS;
 			else 

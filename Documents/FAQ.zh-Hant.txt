@@ -1,0 +1,291 @@
+﻿常見問題
+
+本文檔為常見問題的處理方法，當工具無法正常使用時可先參考本文檔尋找解決方法
+
+
+-------------------------------------------------------------------------------
+
+
+* WinPcap 提示已安裝舊版本無法繼續：
+  * 到安裝和卸載程式、運行功能表或 %PROGRAMFILES(x86)%(64位系統)/%PROGRAMFILES%(32位系統) 尋找 WinPcap 的卸載程式
+  * 如果找不到卸載程式，則可能需要進入安全模式刪除 WinPcap 的所有檔然後重新安裝：
+    * %WINDIR%\system32\Packet.dll
+    * %WINDIR%\system32\drivers\npf.sys
+    * %WINDIR%\system32\WanPacket.dll
+    * %WINDIR%\system32\wpcap.dll
+    * %WINDIR%\system32\pthreadVC.dll
+
+* 安裝、運行或重啟服務時出現：
+  * 服務沒有及時回應啟動或控制請求 - 請檢查是否有錯誤報表生成，詳細情況參見下文 Error.log 詳細錯誤報表 一節
+  * Service start failed, please check the configuration. - 請檢查是否有錯誤報表生成，詳細情況參見下文 Error.log 詳細錯誤報表 一節
+
+* 如果出現以下結果，則說明服務沒有運行成功或者設置出錯，請檢查是否有錯誤報表生成，或請移步 ReadMe 文檔中 安裝方法 一節
+
+   >nslookup www.google.com
+    伺服器:  UnKnown
+    Address: ::1（視所在網路環境而定，本地監聽協定為 IPv4 時為 127.0.0.1）
+
+    *** UnKnown 找不到 www.google.com: No response from server
+
+
+-------------------------------------------------------------------------------
+
+
+* 如果出現以下結果，則說明服務已經運行成功但遠端DNS伺服器沒有回應，請檢查是否有錯誤報表生成
+  * 請務必設置一個正確的、有效的、可以使用的境外DNS伺服器
+  * 出現這種情況可能為網路問題。部分地區ISP/運營商對UDP協定轉發丟包率比較高，可嘗試切換到 TCP 協定模式（參見 ReadMe 文檔中 設定檔詳細參數說明 中 Base 基本區域 的 Operation Mode 一節）或者多嘗試請求幾次
+  * 也可能是因為長時間運行有錯誤累積造成，專案組正努力解決。可嘗試重啟服務（參見 ReadMe 文檔中的 重啟服務）
+
+   >nslookup www.google.com
+    伺服器: pcap-dnsproxy.server（視設定檔設置的值而定，參見 ReadMe 文檔中 設定檔詳細參數說明）
+    Address: ::1（視所在網路環境而定，本地監聽協定為 IPv4 時為 127.0.0.1）
+
+    DNS request timed out.
+        timeout was 2 seconds.
+    DNS request timed out.
+        timeout was 2 seconds.
+    DNS request timed out.
+        timeout was 2 seconds.
+    DNS request timed out.
+        timeout was 2 seconds.
+    *** 請求 pcap-dnsproxy.server 超時（視設定檔設置的值而定，參見 ReadMe 文檔中 設定檔詳細參數說明）
+
+   >nslookup -vc www.google.com
+    伺服器:  pcap-dnsproxy.server（視設定檔設置的值而定，參見 ReadMe 文檔中 設定檔詳細參數說明）
+    Address: ::1（視所在網路環境而定，本地監聽協定為 IPv4 時為 127.0.0.1）
+
+    *** 沒有 www.google.com 可以使用的 internal type for both IPv4 and IPv6 Addresses (A+AAAA)記錄
+
+
+-------------------------------------------------------------------------------
+
+
+當程式運行時發生錯誤，可能會建置錯誤報告也就是 Error.log 檔，其位於工具服務註冊的目錄內，對解決問題至關重要
+* 錯誤報表的格式為 "[日期 時間] -> [錯誤類型] 對錯誤代碼的簡單介紹[錯誤代碼] in 錯誤出處(Line 行數)."（不含雙引號）
+* Windows 的錯誤代碼參見 https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
+* Linux/macOS 的錯誤代碼參見 http://man7.org/linux/man-pages/man3/errno.3.html
+* WinPcap/LibPcap 錯誤資訊的具體含義可移步 https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
+
+
+Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
+
+1.System Error - 系統錯誤
+  * Screen output buffer setting error - 螢幕輸出緩衝區配置錯誤：建議重新開機服務或程式
+  * Commands error - 程式啟動參數錯誤：請檢查為程式傳入的參數
+  * Service start error - 服務啟動錯誤：可能未在系統註冊服務，或在系統內註冊的服務路徑不正確
+  * Set console control handler error - 設置主控台信號捕捉鉤子錯誤：建議重新開機服務或程式
+  * Ignore system signal error - 設置忽略系統部分信號錯誤：建議重新開機服務或程式
+  * Set system daemon error - 守护程式配置錯誤：建議重新開機服務或程式
+  * Convert multiple byte or wide char string error - 多/寬位元組字元轉換錯誤：建議重新開機服務或程式
+  * Create mailslot error - Mailslot 創建錯誤：建議重新開機服務或程式
+  * Mailslot read messages error - Mailslot 讀取資訊錯誤：建議重新開機服務或程式
+  * Mailslot write messages error - Mailslot 寫入資訊錯誤：建議重新開機服務或程式
+  * Create FIFO error - FIFO 創建錯誤：建議重新開機服務或程式
+  * FIFO read messages error - FIFO 讀取資訊錯誤：建議重新開機服務或程式
+  * FIFO write messages error - FIFO 寫入資訊錯誤：建議重新開機服務或程式
+  * Mailslot Monitor initialization error - Mailslot 監視模組初始化錯誤：建議重新開機服務或程式
+  * Read Parameter module Monitor terminated - 設定檔讀取模組已經停止監視：建議重新開機服務或程式
+  * Read Hosts module Monitor terminated - Hosts 讀取模組已經停止監視：建議重新開機服務或程式
+  * Read IPFilter module Monitor terminated - IPFilter 讀取模組已經停止監視：建議重新開機服務或程式
+  * Alternate Server module Monitor terminated - 待命伺服器切換模組已經停止運行：建議重新開機服務或程式
+  * DNS Cache Timer module Monitor terminated - DNS 緩存模組已經停止運行：建議重新開機服務或程式
+  * Get Local Address Information module Monitor terminated - 本地位址監視模組已經停止監視：建議重新開機服務或程式
+  * Domain Test module Monitor terminated - 功能變數名稱測試模組已經停止運行：建議重新開機服務或程式
+  * ICMP Test module Monitor terminated - ICMP 請求模組已經停止請求：建議重新開機服務或程式
+  * ICMPv6 Test module Monitor terminated - ICMPv6 請求已經停止請求：建議重新開機服務或程式
+  * UDP listening module Monitor terminated - UDP 協定監聽模組已經停止監視：建議重新開機服務或程式
+  * TCP listening module Monitor terminated - TCP 協定監聽模組已經停止監視：建議重新開機服務或程式
+  * Mailslot module Monitor terminated - Mailslot 監視模組已經停止運行：建議重新開機服務或程式
+  * FIFO module Monitor terminated - FIFO 監視模組已經停止運行：建議重新開機服務或程式
+  * Capture module Monitor terminated - 抓包模組已經停止運行：建議重新開機服務或程式
+  * DNSCurve TCP Signature Request module Monitor terminated - DNSCurve TCP 協定握手資訊獲取模組已經停止運行：建議重新開機服務或程式
+  * DNSCurve UDP Signature Request module Monitor terminated - DNSCurve UDP 協定握手資訊獲取模組已經停止運行：建議重新開機服務或程式
+
+2.Parameter Error - 讀取設定檔參數錯誤
+  * Cannot open any configuration files - 未發現任何設定檔：請確認檔是否存在
+  * Configuration file is too large - 設定檔容量過大：請確認設定檔的內容，整個檔的大小不要超過 4GB
+  * IPFilter file size is too large - IPFilter 檔容量過大：請確認 IPFilter 檔的內容，整個檔的大小不要超過 4GB
+  * Hosts file size is too large - Hosts 檔容量過大：請確認 Hosts 檔的內容，整個檔的大小不要超過 4GB
+  * Configuration file version error - 設定檔版本錯誤：請確認設定檔是否需要更新
+  * Data format error - 設定檔參數一行資料超過 4096 位元組/4KB，或該行資料長度不符合要求，或者資料格式錯誤：請確認該行的內容是否符合要求
+  * Text encoding error - 檔案編碼錯誤：請確認設定檔的編碼類型
+  * Data of a line is too short - 該參數過短：請確認設定檔的內容
+  * Data of a line is too long - 該參數過長：一行資料切勿超過 4096 位元組/4KB
+  * Read file name error - 讀取檔案名參數錯誤：請確認該行的內容是否符合要求
+  * Read file path error - 讀取檔路徑參數錯誤：請確認該行的內容是否符合要求
+  * Log file size error - 設定檔指定的最大日誌檔容量錯誤：可接受範圍為 4KB - 4GB
+  * IPv6 address format error - IPv6 位址格式錯誤：請檢查 IPv6 的位址格式
+  * IPv6 address port error - IPv6 位址埠格式錯誤：請檢查 IPv6 的位址埠格式
+  * IPv4 address format error - IPv4 位址格式錯誤：請檢查 IPv4 的位址格式
+  * IPv4 address port error - IPv4 位址埠格式錯誤：請檢查 IPv4 的位址埠格式
+  * IPv6 special address error - IPv6 特殊位址檢查錯誤：請檢查 IPv6 位址是否為特殊位址
+  * IPv4 special address error - IPv4 特殊位址檢查錯誤：請檢查 IPv4 位址是否為特殊位址
+  * Address Prefix Block format error - 帶前置長度的位址塊格式錯誤：請檢查位址塊的格式
+  * IPv4 prefix error - IPv4 網路尾碼長度錯誤：IPv4 網路尾碼的長度介乎與 1-32
+  * IPv6 prefix error - IPv6 網路尾碼長度錯誤：IPv6 網路尾碼的長度介乎與 1-128
+  * Pcap Capture error - 抓包模塊參數錯誤：請檢查相關參數的使用要求說明
+  * Direct Request error - 直連模塊參數錯誤：請檢查相關參數的使用要求說明
+  * Local machine listening port error - 本地監聽埠錯誤：請檢查本地監聽埠的值，可適用範圍為 1 - 65535
+  * IPFilter Level error - IPFilter 過濾級別錯誤：請檢查過濾級別的值，可適用範圍為 1 - 65535
+  * DNS Cache error - DNS 緩存配置錯誤：請檢查緩存的參數
+  * DNS target error - DNS 目標伺服器配置錯誤：請檢查 DNS 伺服器的位址
+  * Local request options error - 境內請求參數錯誤：請檢查境內伺服器是否可用，參見 ReadMe 文檔中對這3個參數的介紹
+  * DNS Record type error - DNS 記錄參數錯誤：請檢查 Accept Type 的值是否符合要求
+  * Hop Limit Fluctuations error - Hop Limit 或 TTL 可接受範圍錯誤：請檢查範圍的值
+  * Alternate Multiple request error - 主要備用或多個伺服器下同時請求參數錯誤：請確認所有伺服器的資訊
+  * IPv4 total request number error - IPv4 請求總次數限制錯誤：填入主要/待命伺服器的數量
+  * Multiple Request Times = 總請求的數值，此數值不能超過 64
+  * IPv6 total request number error - IPv6 請求總次數限制錯誤：填入主要/待命伺服器的數量
+  * Multiple Request Times = 總請求的數值，此數值不能超過 64
+  * IPv4 packet TTL range error - IPv4 資料包 TTL 值範圍錯誤：請確認該條目的內容
+  * IPv6 packet Hop Limits range error - IPv6 資料包 Hop Limits 值範圍錯誤：請確認該條目的內容
+  * Thread Pool number error - 執行緒池參數錯誤：請確認與 Thread Pool 相關參數的內容
+  * DNSCurve target error - DNSCurve 協定使用的 DNS 目標伺服器位址錯誤：請檢查 DNSCurve 協定使用 DNS 伺服器的位址
+  * DNSCurve encryption options error - DNSCurve 協定加密選項配置錯誤：開啟加密選項和只使用加密模式選項衝突
+  * DNSCurve Encryption Only mode error - DNSCurve 協定只使用加密模式配置錯誤：只使用加密模式必須提供伺服器的魔數和指紋
+  * DNSCurve Provider Name error - DNSCurve 協定伺服器提供者格式錯誤：請確認該條目的內容
+  * DNSCurve Key format error - DNSCurve 協定金鑰格式錯誤：請確認該條目的內容
+  * DNSCurve empty Provider Name error - DNSCurve 協定伺服器提供者不存在錯誤：不存在魔數或指紋時必須提供伺服器的提供者資訊以自動獲取連接參數
+  * DNSCurve empty Public Key error - DNSCurve 協定伺服器公開金鑰不存在錯誤：不存在魔數或指紋時必須提供伺服器的公開金鑰以自動獲取連接參數
+
+3.IPFilter Error - 讀取 IPFilter 檔錯誤
+  * Data of a line is too short - 該 IPFilter 條目過短：請確認該條目的內容
+  * Data of a line is too long - 該 IPFilter 條目過長：一行資料切勿超過 4096 位元組/4KB
+  * Item format error - IPFilter 條目格式錯誤：請檢查該條目的格式
+  * Regular expression pattern error - 錯誤的正則運算式：請檢查正則運算式的正確
+  * IPv6 address format error - IPFilter 的 IPv6 位址格式錯誤：請檢查 IPFilter 條目的位址
+  * IPv4 address format error - IPFilter 的 IPv4 位址格式錯誤：請檢查 IPFilter 條目的位址
+  * IPv6 address range error - IPFilter 的 IPv6 位址範圍錯誤：請檢查 IPFilter 條目的位址
+  * IPv4 address range error - IPFilter 的 IPv6 位址範圍錯誤：請檢查 IPFilter 條目的位址
+  * Repeating items error, this item is not available - 存在重複的 IPFilter 條目：本條目將不啟用的提示
+  * IPv4 prefix error - IPv4 網路尾碼長度錯誤：IPv4 網路尾碼的長度介乎與 1-32
+  * IPv6 prefix error - IPv6 網路尾碼長度錯誤：IPv6 網路尾碼的長度介乎與 1-128
+  * Level error - IPFilter 過濾級別錯誤：過濾級別介乎與 0 - 0xFFFF(65535)
+
+4.Hosts Error - 讀取 Hosts 檔錯誤
+  * Data of a line is too short - 該 Hosts 條目過短：請確認該條目的內容
+  * Data of a line is too long - 該 Hosts 條目過長：一行資料切勿超過 4096 位元組/4KB
+  * Default TTL redefinition - 預設存留時間重定義：以第一個出現的預設存留時間為准
+  * Regular expression pattern error - 錯誤的正則運算式：請檢查正則運算式的正確性
+  * IPv6 address format error - Hosts 的 IPv6 位址格式錯誤：請檢查 Hosts 條目的位址
+  * IPv4 address format error - Hosts 的 IPv4 位址格式錯誤：請檢查 Hosts 條目的位址
+  * Too many Hosts IPv4 addresses - Hosts 條目的平行位址過多：請檢查 Hosts 條目位址的數量，A 記錄不能超過75個
+  * Too many Hosts IPv6 addresses - Hosts 條目的平行位址過多：請檢查 Hosts 條目位址的數量，AAAA 記錄不能超過43個
+
+5.Network Error - 網路錯誤
+  * Winsock initialization error - Winsock 初始化錯誤：請確認使用的作業系統平臺是否受支援
+  * Windows Firewall Test error - Windows 防火牆測試錯誤：請確認是否以管理員身份運行批次處理
+  * Socket treating wildcard bind setting error - 設置通訊端協定獨佔模式錯誤：具體原因可參見錯誤代碼
+  * Socket reusing disable setting error - 設置通訊端埠獨佔模式錯誤：具體原因可參見錯誤代碼
+  * Socket non-blocking mode setting error - 設置通訊端非阻塞模式錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * Socket timeout setting error - 設置通訊端超時時間錯誤：具體原因可參見錯誤代碼
+  * Socket TCP Fast Open setting error - 設置 TCP Fast Open 錯誤：請檢查系統是否支援此功能
+  * Socket UDP block RESET message setting error - 設置 UDP 協定通訊端遮罩 ICMP Port Unreachable 資訊錯誤：具體原因可參見錯誤代碼
+  * Socket Hop Limits setting error - 設置 Hop Limits/TTL 錯誤：具體原因可參見錯誤代碼
+  * Socket Do Not Fragment flag setting error - 設置 IPv4 Do Not Fragment 標誌錯誤：具體原因可參見錯誤代碼
+  * UDP Monitor socket initialization error - UDP 協定本地通訊端初始化錯誤：具體原因可參見錯誤代碼
+  * TCP Monitor socket initialization error - TCP 協定本地通訊端初始化錯誤：具體原因可參見錯誤代碼
+  * Bind UDP Monitor socket error - UDP 協定本地通訊端綁定錯誤：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體具體原因可參見錯誤代碼
+  * Bind TCP Monitor socket error - TCP 協定本地通訊端綁定錯誤：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體具體原因可參見錯誤代碼
+  * TCP Monitor socket listening initialization error - TCP 協定本地通訊端監聽錯誤：具體原因可參見錯誤代碼
+  * Get local machine name error - 獲取本地電腦名稱稱錯誤：具體原因可參見錯誤代碼
+  * Get local machine address error - 獲取本地電腦位址錯誤：沒有任何生效的網路介面卡，可能是硬體或者驅動程式的問題
+  * UDP socket initialization error - UDP 協定請求通訊端初始化錯誤：具體原因可參見錯誤代碼
+  * TCP socket initialization error - TCP 協定請求通訊端初始化錯誤：具體原因可參見錯誤代碼
+  * SOCKS socket initialization error - SOCKS 協定請求通訊端初始化錯誤：具體原因可參見錯誤代碼
+  * HTTP CONNECT socket initialization error - HTTP CONNECT 協定請求通訊端初始化錯誤：具體原因可參見錯誤代碼
+  * Complete UDP socket initialization error - UDP 協定請求通訊端初始化錯誤：具體原因可參見錯誤代碼
+  * SOCKS connecting error - SOCKS 協定連接錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * HTTP CONNECT connecting error - HTTP CONNECT 協定連接錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * SOCKS request error - SOCKS 協定請求錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * HTTP CONNECT request error - HTTP CONNECT 協定請求錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * TLS request error - TLS/SSL 協定請求錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * DNSCurve UDP socket initialization error - DNSCurve 協定 UDP 協定通訊端初始化錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * DNSCurve TCP socket initialization error - DNSCurve 協定 TCP 協定通訊端初始化錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * DNSCurve Local Signature socket initialization error - DNSCurve 協定本地請求通訊端初始化錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * DNSCurve Local Signature request error - DNSCurve 協定本地請求錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * Not any available gateways to public network - 沒有任何通往公共網路的可用閘道：可能為網路錯誤，請檢查網路是否通暢
+  * Winsock 錯誤代碼具體含義可移步 https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
+
+6.Pcap Error - Pcap 錯誤
+  * Insufficient privileges or not any available network devices - 沒有任何可用的網路介面卡：請檢查硬體設備和驅動程式是否安裝正確，也可能許可權不足
+  * 本類型錯誤會直接將 WinPcap 的錯誤資訊輸出至錯誤報表
+
+7.DNSCurve Error - DNSCurve 協定錯誤
+  * Libsodium initialization error - Libsodium 庫初始化錯誤：建議重新開機服務或程式
+  * Client keypair error - 自訂用戶端金鑰組錯誤：請檢查金鑰組的正確性
+  * Key calculating error -> 金鑰計算錯誤：建議重新開機服務或程式
+  * IPv6 Main Server TCP get signature data error - IPv6 TCP 協定主要伺服器加密握手錯誤：請檢查該伺服器是否可用
+  * IPv6 Alternate Server TCP get signature data error - IPv6 TCP 協定待命伺服器加密握手錯誤：請檢查該伺服器是否可用
+  * IPv4 Main Server TCP get signature data error - IPv4 TCP 協定主要伺服器加密握手錯誤：請檢查該伺服器是否可用
+  * IPv4 Alternate Server TCP get signature data error - IPv4 TCP 協定待命伺服器加密握手錯誤：請檢查該伺服器是否可用
+  * IPv6 Main Server UDP get signature data error - IPv6 UDP 協定主要伺服器加密握手錯誤：請檢查該伺服器是否可用
+  * IPv6 Alternate Server UDP get signature data error - IPv6 UDP 協定待命伺服器加密握手錯誤：請檢查該伺服器是否可用
+  * IPv4 Main Server UDP get signature data error - IPv4 UDP 協定主要伺服器加密握手錯誤：請檢查該伺服器是否可用
+  * IPv4 Alternate Server UDP get signature data error - IPv4 UDP 協定待命伺服器加密握手錯誤：請檢查該伺服器是否可用
+  * IPv6 Main Server Fingerprint signature validation error - IPv6 主要伺服器憑證驗證錯誤：請檢查該伺服器是否可用
+  * IPv6 Alternate Server Fingerprint signature validation error - IPv6 待命伺服器證書驗證錯誤：請檢查該伺服器是否可用
+  * IPv4 Main Server Fingerprint signature validation error - IPv4 主要伺服器憑證驗證錯誤：請檢查該伺服器是否可用
+  * IPv4 Alternate Server Fingerprint signature validation error - IPv4 待命伺服器證書驗證錯誤：請檢查該伺服器是否可用
+
+8.SOCKS Error - SOCKS 協定錯誤
+  * SOCKS version 4 and 4a are not support UDP relay - SOCKS 版本 4 和 4a 不支援 UDP 轉發：請更換為版本 5
+  * SOCKS version 4 and 4a are not support IPv6 target server - SOCKS 版本 4 和 4a 不支援 IPv6 位址的目標伺服器位址：請更換為版本 5
+  * SOCKS version 4 is not support domain target server - SOCKS 版本 4 不支援目標為功能變數名稱的伺服器位址：請更換為版本 4a 或版本 5
+  * SOCKS address error - SOCKS 代理地址錯誤：請檢查該伺服器是否可用
+  * SOCKS target server error - SOCKS 代理目標地址錯誤：請檢查該伺服器是否可用
+  * SOCKS username and password error - SOCKS 協定的使用者名和密碼配置錯誤 - 請檢查所輸入的使用者名和密碼是否正確
+  * Server SOCKS protocol version error - 伺服器 SOCKS 協定版本錯誤：請檢查該伺服器是否可用
+  * Authentication method not support - 不支援的認證方式：請檢查伺服器對用戶端認證方式的支援
+  * Server require username and password authentication - 伺服器要求使用使用者名/密碼認證：請檢查 SOCKS 協定的使用者名/密碼
+  * Username or Password incorrect - SOCKS 協定使用者名/密碼不正確：請檢查使用者名/密碼是否錯誤
+  * Client command request error - 用戶端請求連接錯誤：請檢查 SOCKS 協定目標位址否受支援或是否可用，具體原因可參見錯誤代碼
+
+9.HTTP CONNECT Error - HTTP CONNECT 協定錯誤
+  * HTTP CONNECT address error - HTTP CONNECT 代理位址錯誤：請檢查該伺服器是否可用
+  * HTTP CONNECT target server error - HTTP CONNECT 代理目標位址錯誤：請檢查該伺服器是否可用
+  * HTTP CONNECT server response error - HTTP CONNECT 代理伺服器回應錯誤：請檢查該伺服器是否可用
+  * 本類型錯誤會直接將 HTTP 的錯誤資訊輸出至錯誤報表
+  * HTTP 狀態碼具體含義可移步 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+  
+10.TLS Error - TLS/SSL 協定錯誤
+  * SSPI get client credentials handle error - SSPI 獲取用戶端憑據錯誤：建議重新開機服務或程式，具體原因可參見錯誤代碼
+  * SSPI initialize security coNtext error - SSPI 初始化安全上下文錯誤：請檢查 SSPI/SChannel 的版本或加密演算法受支援等情況，具體原因可參見錯誤代碼
+  * SSPI complete authentication token error - SSPI 無法完成完整的驗證錯誤：建議重新開機服務或程式，具體原因可參見錯誤代碼
+  * SSPI get stream encryption sizes error - SSPI 獲取加密流限制長度錯誤：建議重新開機服務或程式，具體原因可參見錯誤代碼
+  * SSPI plaiNtext sent to encrypt API is too large - SSPI 進行加密傳輸的原始資料過長：建議重新開機服務或程式，具體原因可參見錯誤代碼
+  * SSPI encrypt data error - SSPI 加密資料錯誤：請檢查 SSPI/SChannel 的版本或加密演算法受支援等情況，具體原因可參見錯誤代碼
+  * SSPI decrypt data error - SSPI 解密資料錯誤：請檢查 SSPI/SChannel 的版本或加密演算法受支援等情況，具體原因可參見錯誤代碼
+  * OpenSSL TLS version selection error - OpenSSL TLS 版本選擇錯誤：請檢查 OpenSSL 的版本或加密演算法受支援等情況，具體原因可參見錯誤代碼
+  * OpenSSL locate default certificate store error - OpenSSL 定位預設證書庫錯誤：請檢查 OpenSSL 的版本或加密演算法受支援等情況，具體原因可參見錯誤代碼
+  * OpenSSL set strong ciphers error - OpenSSL 設置安全密碼套件錯誤：請檢查 OpenSSL 的版本或加密演算法受支援等情況，具體原因可參見錯誤代碼
+  * OpenSSL create new client-method instance error - OpenSSL 創建用戶端實例錯誤：建議重新開機服務或程式，具體原因可參見錯誤代碼
+  * OpenSSL create new BIO method error - OpenSSL 創建 BIO 實例錯誤：建議重新開機服務或程式，具體原因可參見錯誤代碼
+  * OpenSSL BIO and SSL data attribute setting error - OpenSSL 設置 BIO 和 TLS/SSL 屬性錯誤：建議重新開機服務或程式，具體原因可參見錯誤代碼
+  * OpenSSL hostname checking and validation error - OpenSSL 伺服器憑證功能變數名稱驗證錯誤：證書驗證錯誤，請確認此伺服器工作正常
+  * OpenSSL connecting error - OpenSSL 連線錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * OpenSSL handshake error - OpenSSL 握手錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * OpenSSL verify server certificate error - OpenSSL 伺服器憑證驗證錯誤：證書驗證錯誤，請確認此伺服器工作正常
+  * OpenSSL verify the result of chain verification error - OpenSSL 憑證鏈驗證錯誤：證書驗證錯誤，請確認此伺服器工作正常
+  * OpenSSL send data error - OpenSSL 發送資料錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * OpenSSL receive data error - OpenSSL 接收資料錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * SSPI/SChannel 錯誤代碼具體含義可移步 https://msdn.microsoft.com/en-us/library/windows/desktop/aa380499(v=vs.85).aspx 和 https://msdn.microsoft.com/en-us/library/windows/desktop/dd721886(v=vs.85).aspx
+  * OpenSSL 錯誤代碼具體含義可移步 https://www.openssl.org/docs/manmaster/man3/ERR_get_error.html
+
+11.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
+  * Old log file was deleted - 錯誤日誌檔已滿並被刪除
+    * 日誌檔最大容量的配置參見 詳細說明文檔 中 設定檔詳細參數說明 中的 Log Maximum Size 參數
+  * Listen Port is empty, set to standard DNS port(53) - 本地監聽埠參數為空：程式將自動設置為標準 DNS 協定埠（53）
+  * TCP Data Filter require TCP Request Mode - 開啟 TCP 資料包頭檢測時必須將 Request Mode 設置為 TCP：程式將自動關閉此功能
+  * TCP Data Filter require Pcap Cpature - 開啟 TCP 資料包頭檢測時必須啟用 Pcap Cpature：程式將自動關閉此功能
+  * IPv4 Data Filter require IPv4 DNS server - 開啟 IPv4 資料包頭檢測時必須存在 IPv4 協定的 DNS 伺服器：程式將自動關閉此功能
+  * IPv4 Data Filter require Pcap Cpature - 開啟 IPv4 資料包頭檢測時必須啟用 Pcap Cpature：程式將自動關閉此功能
+  * EDNS Payload Size must longer than traditional DNS packet minimum supported size(512 bytes) - EDNS 載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包
+  * EDNS Payload Size is too large - EDNS 載荷長度可能過長：此值建議不要超過乙太網的 MTU(1500 bytes)
+  * DNSSEC Request require EDNS Label - 開啟 DNSSEC 請求時必須開啟 EDNS 標籤請求功能
+  * EDNS Client Subnet require EDNS Label - 開啟 EDNS Client Subnet 請求時必須開啟 EDNS 標籤請求功能
+  * Compression Pointer Mutation must disable EDNS Label - 使用 Compression Pointer Mutation 時不能開啟 EDNS 標籤請求功能，兩者並不相容
+  * DNSSEC Validation require EDNS Label and DNSSEC Request - 開啟 DNSSEC Validation 請求時必須開啟 EDNS 標籤請求和 DNSSEC 請求功能
+  * DNSSEC Force Validation require EDNS Label, DNSSEC Request and DNSSEC Validation - 開啟 DNSSEC Force Validation 請求時必須開啟 EDNS 標籤請求、DNSSEC 請求和 DNSSEC Validation 驗證功能
+  * DNSCurve Payload Size must longer than traditional DNS packet minimum supported size(512 bytes) - DNSCurve 協定載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包
+  * DNSCurve Payload Size is too large - DNSCurve 協定載荷長度可能過長：此值建議不要超過乙太網的 MTU(1500 bytes)

@@ -61,9 +61,6 @@ bool ReadText(
 	const FILE * const FileHandle, 
 	const size_t InputType, 
 	const size_t FileIndex);
-bool ReadMultipleLineComments(
-	std::string &Data, 
-	bool &IsLabelComments);
 void ClearModificatingListData(
 	const size_t ClearType, 
 	const size_t FileIndex);
@@ -80,8 +77,7 @@ bool ReadParameterData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const bool IsFirstRead, 
-	const size_t Line, 
-	bool &IsLabelComments);
+	const size_t Line);
 #if defined(PLATFORM_WIN)
 bool ReadPathAndFileName(
 	std::string Data, 
@@ -90,7 +86,7 @@ bool ReadPathAndFileName(
 	std::vector<std::wstring> * const ListData, 
 	const size_t FileIndex, 
 	const size_t Line);
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 bool ReadPathAndFileName(
 	std::string Data, 
 	const size_t DataOffset, 
@@ -106,7 +102,7 @@ bool ReadMultipleAddresses(
 	std::vector<DNS_SERVER_DATA> * const DNSServerDataList, 
 	const size_t FileIndex, 
 	const size_t Line);
-bool ReadSOCKSAddressAndDomain(
+bool Read_SOCKS_AddressAndDomain(
 	std::string Data, 
 	const size_t DataOffset, 
 	CONFIGURATION_TABLE * const ParameterPTR, 
@@ -148,8 +144,7 @@ bool ReadIPFilterData(
 	std::string Data, 
 	const size_t FileIndex, 
 	size_t &LabelType, 
-	const size_t Line, 
-	bool &IsLabelComments);
+	const size_t Line);
 bool ReadBlacklistData(
 	std::string Data, 
 	const size_t FileIndex, 
@@ -175,8 +170,7 @@ bool ReadHostsData(
 	std::string Data, 
 	const size_t FileIndex, 
 	size_t &LabelType, 
-	const size_t Line, 
-	bool &IsLabelComments);
+	const size_t Line);
 bool ReadOtherHostsData(
 	std::string Data, 
 	const size_t FileIndex, 

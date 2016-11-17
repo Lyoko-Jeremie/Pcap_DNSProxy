@@ -15,7 +15,7 @@ Pcap_DNSProxy 是一个基于 WinPcap/LibPcap 用于过滤 DNS 投毒污染的�
 * 支持对 CNAME 记录和解析结果进行 Hosts 并同时支持 Local Hosts 境内 DNS 服务器解析，可提高对境内域名解析速度和服务器访问速度
 * 主要/备用双服务器模式，境外服务器支持并行多次请求，提高 DNS 解析可靠性
 * 独立 DNS 缓存、EDNS 标签、DNSSEC 请求功能以及完整的 DNSCurve/DNSCrypt 协议支持
-* 原生 SOCKS 版本 4/4a/5 和 HTTP CONNECT Tunnel 协议支持
+* 原生 SOCKS 版本 4/4a/5 和 HTTP CONNECT Tunnel 协议包括 TLS/SSL 加密连接的支持
 * 丰富的配置参数和选项以及错误报告功能
 * 支持 ASCII、UTF-8(/BOM)、UTF-16(LE/BE) 和 UTF-32(LE/BE) 编码以及 Unicode 标准要求实现的所有空格/换行格式
 

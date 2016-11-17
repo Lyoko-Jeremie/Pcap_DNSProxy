@@ -289,6 +289,7 @@
     <ClCompile Include="Process.cpp" />
     <ClCompile Include="Protocol.cpp" />
     <ClCompile Include="Proxy.cpp" />
+    <ClCompile Include="ReadCommand.cpp" />
     <ClCompile Include="ReadHosts.cpp" />
     <ClCompile Include="ReadIPFilter.cpp" />
     <ClCompile Include="ReadParameter.cpp" />

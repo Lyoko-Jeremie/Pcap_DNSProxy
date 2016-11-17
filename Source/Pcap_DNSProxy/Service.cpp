@@ -395,7 +395,7 @@ bool WINAPI FlushDNSMailSlotSender(
 	return true;
 }
 
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 //Flush DNS cache FIFO Monitor
 bool FlushDNSFIFOMonitor(
 	void)
@@ -413,8 +413,7 @@ bool FlushDNSFIFOMonitor(
 	//Create FIFO and create its notify monitor.
 		unlink(FIFO_PATH_NAME);
 		errno = 0;
-		if (mkfifo(FIFO_PATH_NAME, O_CREAT) == RETURN_ERROR || 
-			chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) == RETURN_ERROR)
+		if (mkfifo(FIFO_PATH_NAME, O_CREAT) == RETURN_ERROR || chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) == RETURN_ERROR)
 		{
 			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
 
@@ -554,7 +553,7 @@ void FlushDNSCache(
 		Result = system("rndc restart 2>/dev/null"); //Name server control utility of BIND(9.1.3 and older version)
 		Result = system("rndc flush 2>/dev/null"); //Name server control utility of BIND(9.2.0 and newer version)
 	#endif
-#elif defined(PLATFORM_MACX)
+#elif defined(PLATFORM_MACOS)
 //	system("lookupd -flushcache 2>/dev/null"); //Less than Mac OS X Tiger(10.4)
 //	system("dscacheutil -flushcache 2>/dev/null"); //Mac OS X Leopard(10.5) and Snow Leopard(10.6)
 	system("killall -HUP mDNSResponder 2>/dev/null"); //Mac OS X Lion(10.7), Mountain Lion(10.8) and Mavericks(10.9)

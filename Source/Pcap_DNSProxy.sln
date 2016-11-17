@@ -5,178 +5,280 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pcap_DNSProxy", "Pcap_DNSProxy\Pcap_DNSProxy.vcxproj", "{9221C40D-99FA-447B-BB53-767F9C6945EB}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{66A0A7DD-23F9-4C76-95AC-E507433C2531}"
-	ProjectSection(SolutionItems) = preProject
-		Documents\Changelog(zh_Hans).txt = Documents\Changelog(zh_Hans).txt
-		Documents\Changelog(zh_Hant).txt = Documents\Changelog(zh_Hant).txt
-		Documents\FAQ(zh_Hans).txt = Documents\FAQ(zh_Hans).txt
-		Documents\FAQ(zh_Hant).txt = Documents\FAQ(zh_Hant).txt
-		Documents\FAQ_Linux_Mac(zh_Hans).txt = Documents\FAQ_Linux_Mac(zh_Hans).txt
-		Documents\FAQ_Linux_Mac(zh_Hant).txt = Documents\FAQ_Linux_Mac(zh_Hant).txt
-		Documents\ReadMe(zh_Hans).txt = Documents\ReadMe(zh_Hans).txt
-		Documents\ReadMe(zh_Hant).txt = Documents\ReadMe(zh_Hant).txt
-		Documents\ReadMe_Linux(zh_Hans).txt = Documents\ReadMe_Linux(zh_Hans).txt
-		Documents\ReadMe_Linux(zh_Hant).txt = Documents\ReadMe_Linux(zh_Hant).txt
-		Documents\ReadMe_Mac(zh_Hans).txt = Documents\ReadMe_Mac(zh_Hans).txt
-		Documents\ReadMe_Mac(zh_Hant).txt = Documents\ReadMe_Mac(zh_Hant).txt
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleConfig", "ExampleConfig", "{CF90D142-5E6E-4ED2-B886-78FD7B10ED50}"
-	ProjectSection(SolutionItems) = preProject
-		ExampleConfig\Config.ini = ExampleConfig\Config.ini
-		ExampleConfig\Hosts.ini = ExampleConfig\Hosts.ini
-		ExampleConfig\IPFilter.ini = ExampleConfig\IPFilter.ini
-		ExampleConfig\Pcap_DNSProxy.service = ExampleConfig\Pcap_DNSProxy.service
-		ExampleConfig\pcap_dnsproxy.service.plist = ExampleConfig\pcap_dnsproxy.service.plist
-		ExampleConfig\PcapDNSProxyService = ExampleConfig\PcapDNSProxyService
-		ExampleConfig\Routing.txt = ExampleConfig\Routing.txt
-		ExampleConfig\ServiceControl.bat = ExampleConfig\ServiceControl.bat
-		ExampleConfig\WhiteList.txt = ExampleConfig\WhiteList.txt
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{075F715C-B15F-40E4-907E-8DE5ECB2ED73}"
-	ProjectSection(SolutionItems) = preProject
-		Scripts\CMake_Build.sh = Scripts\CMake_Build.sh
-		Scripts\Linux_Install.Systemd.sh = Scripts\Linux_Install.Systemd.sh
-		Scripts\Linux_Install.SysV.sh = Scripts\Linux_Install.SysV.sh
-		Scripts\Linux_Uninstall.Systemd.sh = Scripts\Linux_Uninstall.Systemd.sh
-		Scripts\Linux_Uninstall.SysV.sh = Scripts\Linux_Uninstall.SysV.sh
-		Scripts\Mac_Install.sh = Scripts\Mac_Install.sh
-		Scripts\Mac_Uninstall.sh = Scripts\Mac_Uninstall.sh
-		Scripts\Update_Routing.sh = Scripts\Update_Routing.sh
-		Scripts\Update_WhiteList.sh = Scripts\Update_WhiteList.sh
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependency", "Dependency", "{777BC78B-14C3-4CEE-AF7A-05DCC515DB21}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibSodium", "LibSodium", "{874D6810-2479-4A52-8C16-3AFAB5640254}"
 	ProjectSection(SolutionItems) = preProject
-		LibSodium\core.h = LibSodium\core.h
-		LibSodium\crypto_aead_aes256gcm.h = LibSodium\crypto_aead_aes256gcm.h
-		LibSodium\crypto_aead_chacha20poly1305.h = LibSodium\crypto_aead_chacha20poly1305.h
-		LibSodium\crypto_auth.h = LibSodium\crypto_auth.h
-		LibSodium\crypto_auth_hmacsha256.h = LibSodium\crypto_auth_hmacsha256.h
-		LibSodium\crypto_auth_hmacsha512.h = LibSodium\crypto_auth_hmacsha512.h
-		LibSodium\crypto_auth_hmacsha512256.h = LibSodium\crypto_auth_hmacsha512256.h
-		LibSodium\crypto_box.h = LibSodium\crypto_box.h
-		LibSodium\crypto_box_curve25519xsalsa20poly1305.h = LibSodium\crypto_box_curve25519xsalsa20poly1305.h
-		LibSodium\crypto_core_hchacha20.h = LibSodium\crypto_core_hchacha20.h
-		LibSodium\crypto_core_hsalsa20.h = LibSodium\crypto_core_hsalsa20.h
-		LibSodium\crypto_core_salsa20.h = LibSodium\crypto_core_salsa20.h
-		LibSodium\crypto_core_salsa2012.h = LibSodium\crypto_core_salsa2012.h
-		LibSodium\crypto_core_salsa208.h = LibSodium\crypto_core_salsa208.h
-		LibSodium\crypto_generichash.h = LibSodium\crypto_generichash.h
-		LibSodium\crypto_generichash_blake2b.h = LibSodium\crypto_generichash_blake2b.h
-		LibSodium\crypto_hash.h = LibSodium\crypto_hash.h
-		LibSodium\crypto_hash_sha256.h = LibSodium\crypto_hash_sha256.h
-		LibSodium\crypto_hash_sha512.h = LibSodium\crypto_hash_sha512.h
-		LibSodium\crypto_int32.h = LibSodium\crypto_int32.h
-		LibSodium\crypto_int64.h = LibSodium\crypto_int64.h
-		LibSodium\crypto_onetimeauth.h = LibSodium\crypto_onetimeauth.h
-		LibSodium\crypto_onetimeauth_poly1305.h = LibSodium\crypto_onetimeauth_poly1305.h
-		LibSodium\crypto_pwhash.h = LibSodium\crypto_pwhash.h
-		LibSodium\crypto_pwhash_argon2i.h = LibSodium\crypto_pwhash_argon2i.h
-		LibSodium\crypto_pwhash_scryptsalsa208sha256.h = LibSodium\crypto_pwhash_scryptsalsa208sha256.h
-		LibSodium\crypto_scalarmult.h = LibSodium\crypto_scalarmult.h
-		LibSodium\crypto_scalarmult_curve25519.h = LibSodium\crypto_scalarmult_curve25519.h
-		LibSodium\crypto_secretbox.h = LibSodium\crypto_secretbox.h
-		LibSodium\crypto_secretbox_xsalsa20poly1305.h = LibSodium\crypto_secretbox_xsalsa20poly1305.h
-		LibSodium\crypto_shorthash.h = LibSodium\crypto_shorthash.h
-		LibSodium\crypto_shorthash_siphash24.h = LibSodium\crypto_shorthash_siphash24.h
-		LibSodium\crypto_sign.h = LibSodium\crypto_sign.h
-		LibSodium\crypto_sign_ed25519.h = LibSodium\crypto_sign_ed25519.h
-		LibSodium\crypto_sign_edwards25519sha512batch.h = LibSodium\crypto_sign_edwards25519sha512batch.h
-		LibSodium\crypto_stream.h = LibSodium\crypto_stream.h
-		LibSodium\crypto_stream_aes128ctr.h = LibSodium\crypto_stream_aes128ctr.h
-		LibSodium\crypto_stream_chacha20.h = LibSodium\crypto_stream_chacha20.h
-		LibSodium\crypto_stream_salsa20.h = LibSodium\crypto_stream_salsa20.h
-		LibSodium\crypto_stream_salsa2012.h = LibSodium\crypto_stream_salsa2012.h
-		LibSodium\crypto_stream_salsa208.h = LibSodium\crypto_stream_salsa208.h
-		LibSodium\crypto_stream_xsalsa20.h = LibSodium\crypto_stream_xsalsa20.h
-		LibSodium\crypto_uint16.h = LibSodium\crypto_uint16.h
-		LibSodium\crypto_uint32.h = LibSodium\crypto_uint32.h
-		LibSodium\crypto_uint64.h = LibSodium\crypto_uint64.h
-		LibSodium\crypto_uint8.h = LibSodium\crypto_uint8.h
-		LibSodium\crypto_verify_16.h = LibSodium\crypto_verify_16.h
-		LibSodium\crypto_verify_32.h = LibSodium\crypto_verify_32.h
-		LibSodium\crypto_verify_64.h = LibSodium\crypto_verify_64.h
-		LibSodium\export.h = LibSodium\export.h
-		LibSodium\LibSodium_Mac.a = LibSodium\LibSodium_Mac.a
-		LibSodium\LibSodium_x64.lib = LibSodium\LibSodium_x64.lib
-		LibSodium\LibSodium_x86.lib = LibSodium\LibSodium_x86.lib
-		LibSodium\randombytes.h = LibSodium\randombytes.h
-		LibSodium\randombytes_nativeclient.h = LibSodium\randombytes_nativeclient.h
-		LibSodium\randombytes_salsa20_random.h = LibSodium\randombytes_salsa20_random.h
-		LibSodium\randombytes_sysrandom.h = LibSodium\randombytes_sysrandom.h
-		LibSodium\runtime.h = LibSodium\runtime.h
-		LibSodium\sodium.h = LibSodium\sodium.h
-		LibSodium\utils.h = LibSodium\utils.h
-		LibSodium\version.h = LibSodium\version.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{64D86D92-3AA0-400E-91E4-EB93EF26EEE6}"
-	ProjectSection(SolutionItems) = preProject
-		Tools\WinPcap_4.1.3.exe = Tools\WinPcap_4.1.3.exe
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_Routing", "Update_Routing", "{A1267D16-9EC5-4FE4-9000-D9B168A8F6E4}"
-	ProjectSection(SolutionItems) = preProject
-		Tools\Update_Routing\Log_Lib = Tools\Update_Routing\Log_Lib
-		Tools\Update_Routing\ReadMe_Hans.md = Tools\Update_Routing\ReadMe_Hans.md
-		Tools\Update_Routing\ReadMe_Hant.md = Tools\Update_Routing\ReadMe_Hant.md
-		Tools\Update_Routing\Update.bat = Tools\Update_Routing\Update.bat
-		Tools\Update_Routing\Update_Big5.bat = Tools\Update_Routing\Update_Big5.bat
-		Tools\Update_Routing\Update_GB2312.bat = Tools\Update_Routing\Update_GB2312.bat
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_WhiteList", "Update_WhiteList", "{635FE3E1-B560-447C-880A-1689F162AE05}"
-	ProjectSection(SolutionItems) = preProject
-		Tools\Update_WhiteList\Update_WhiteList.bat = Tools\Update_WhiteList\Update_WhiteList.bat
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Support", "Support", "{722796B9-8775-49FE-9071-636DE5332F9A}"
-	ProjectSection(SolutionItems) = preProject
-		Tools\Support\CCase.exe = Tools\Support\CCase.exe
-		Tools\Support\curl.exe = Tools\Support\curl.exe
-		Tools\Support\md5.exe = Tools\Support\md5.exe
-		Tools\Support\sed.exe = Tools\Support\sed.exe
+		Dependency\LibSodium\core.h = Dependency\LibSodium\core.h
+		Dependency\LibSodium\crypto_aead_aes256gcm.h = Dependency\LibSodium\crypto_aead_aes256gcm.h
+		Dependency\LibSodium\crypto_aead_chacha20poly1305.h = Dependency\LibSodium\crypto_aead_chacha20poly1305.h
+		Dependency\LibSodium\crypto_auth.h = Dependency\LibSodium\crypto_auth.h
+		Dependency\LibSodium\crypto_auth_hmacsha256.h = Dependency\LibSodium\crypto_auth_hmacsha256.h
+		Dependency\LibSodium\crypto_auth_hmacsha512.h = Dependency\LibSodium\crypto_auth_hmacsha512.h
+		Dependency\LibSodium\crypto_auth_hmacsha512256.h = Dependency\LibSodium\crypto_auth_hmacsha512256.h
+		Dependency\LibSodium\crypto_box.h = Dependency\LibSodium\crypto_box.h
+		Dependency\LibSodium\crypto_box_curve25519xsalsa20poly1305.h = Dependency\LibSodium\crypto_box_curve25519xsalsa20poly1305.h
+		Dependency\LibSodium\crypto_core_hchacha20.h = Dependency\LibSodium\crypto_core_hchacha20.h
+		Dependency\LibSodium\crypto_core_hsalsa20.h = Dependency\LibSodium\crypto_core_hsalsa20.h
+		Dependency\LibSodium\crypto_core_salsa20.h = Dependency\LibSodium\crypto_core_salsa20.h
+		Dependency\LibSodium\crypto_core_salsa2012.h = Dependency\LibSodium\crypto_core_salsa2012.h
+		Dependency\LibSodium\crypto_core_salsa208.h = Dependency\LibSodium\crypto_core_salsa208.h
+		Dependency\LibSodium\crypto_generichash.h = Dependency\LibSodium\crypto_generichash.h
+		Dependency\LibSodium\crypto_generichash_blake2b.h = Dependency\LibSodium\crypto_generichash_blake2b.h
+		Dependency\LibSodium\crypto_hash.h = Dependency\LibSodium\crypto_hash.h
+		Dependency\LibSodium\crypto_hash_sha256.h = Dependency\LibSodium\crypto_hash_sha256.h
+		Dependency\LibSodium\crypto_hash_sha512.h = Dependency\LibSodium\crypto_hash_sha512.h
+		Dependency\LibSodium\crypto_int32.h = Dependency\LibSodium\crypto_int32.h
+		Dependency\LibSodium\crypto_int64.h = Dependency\LibSodium\crypto_int64.h
+		Dependency\LibSodium\crypto_onetimeauth.h = Dependency\LibSodium\crypto_onetimeauth.h
+		Dependency\LibSodium\crypto_onetimeauth_poly1305.h = Dependency\LibSodium\crypto_onetimeauth_poly1305.h
+		Dependency\LibSodium\crypto_pwhash.h = Dependency\LibSodium\crypto_pwhash.h
+		Dependency\LibSodium\crypto_pwhash_argon2i.h = Dependency\LibSodium\crypto_pwhash_argon2i.h
+		Dependency\LibSodium\crypto_pwhash_scryptsalsa208sha256.h = Dependency\LibSodium\crypto_pwhash_scryptsalsa208sha256.h
+		Dependency\LibSodium\crypto_scalarmult.h = Dependency\LibSodium\crypto_scalarmult.h
+		Dependency\LibSodium\crypto_scalarmult_curve25519.h = Dependency\LibSodium\crypto_scalarmult_curve25519.h
+		Dependency\LibSodium\crypto_secretbox.h = Dependency\LibSodium\crypto_secretbox.h
+		Dependency\LibSodium\crypto_secretbox_xsalsa20poly1305.h = Dependency\LibSodium\crypto_secretbox_xsalsa20poly1305.h
+		Dependency\LibSodium\crypto_shorthash.h = Dependency\LibSodium\crypto_shorthash.h
+		Dependency\LibSodium\crypto_shorthash_siphash24.h = Dependency\LibSodium\crypto_shorthash_siphash24.h
+		Dependency\LibSodium\crypto_sign.h = Dependency\LibSodium\crypto_sign.h
+		Dependency\LibSodium\crypto_sign_ed25519.h = Dependency\LibSodium\crypto_sign_ed25519.h
+		Dependency\LibSodium\crypto_sign_edwards25519sha512batch.h = Dependency\LibSodium\crypto_sign_edwards25519sha512batch.h
+		Dependency\LibSodium\crypto_stream.h = Dependency\LibSodium\crypto_stream.h
+		Dependency\LibSodium\crypto_stream_aes128ctr.h = Dependency\LibSodium\crypto_stream_aes128ctr.h
+		Dependency\LibSodium\crypto_stream_chacha20.h = Dependency\LibSodium\crypto_stream_chacha20.h
+		Dependency\LibSodium\crypto_stream_salsa20.h = Dependency\LibSodium\crypto_stream_salsa20.h
+		Dependency\LibSodium\crypto_stream_salsa2012.h = Dependency\LibSodium\crypto_stream_salsa2012.h
+		Dependency\LibSodium\crypto_stream_salsa208.h = Dependency\LibSodium\crypto_stream_salsa208.h
+		Dependency\LibSodium\crypto_stream_xsalsa20.h = Dependency\LibSodium\crypto_stream_xsalsa20.h
+		Dependency\LibSodium\crypto_uint16.h = Dependency\LibSodium\crypto_uint16.h
+		Dependency\LibSodium\crypto_uint32.h = Dependency\LibSodium\crypto_uint32.h
+		Dependency\LibSodium\crypto_uint64.h = Dependency\LibSodium\crypto_uint64.h
+		Dependency\LibSodium\crypto_uint8.h = Dependency\LibSodium\crypto_uint8.h
+		Dependency\LibSodium\crypto_verify_16.h = Dependency\LibSodium\crypto_verify_16.h
+		Dependency\LibSodium\crypto_verify_32.h = Dependency\LibSodium\crypto_verify_32.h
+		Dependency\LibSodium\crypto_verify_64.h = Dependency\LibSodium\crypto_verify_64.h
+		Dependency\LibSodium\export.h = Dependency\LibSodium\export.h
+		Dependency\LibSodium\LibSodium_macOS.a = Dependency\LibSodium\LibSodium_macOS.a
+		Dependency\LibSodium\LibSodium_x64.lib = Dependency\LibSodium\LibSodium_x64.lib
+		Dependency\LibSodium\LibSodium_x86.lib = Dependency\LibSodium\LibSodium_x86.lib
+		Dependency\LibSodium\randombytes.h = Dependency\LibSodium\randombytes.h
+		Dependency\LibSodium\randombytes_nativeclient.h = Dependency\LibSodium\randombytes_nativeclient.h
+		Dependency\LibSodium\randombytes_salsa20_random.h = Dependency\LibSodium\randombytes_salsa20_random.h
+		Dependency\LibSodium\randombytes_sysrandom.h = Dependency\LibSodium\randombytes_sysrandom.h
+		Dependency\LibSodium\runtime.h = Dependency\LibSodium\runtime.h
+		Dependency\LibSodium\sodium.h = Dependency\LibSodium\sodium.h
+		Dependency\LibSodium\utils.h = Dependency\LibSodium\utils.h
+		Dependency\LibSodium\version.h = Dependency\LibSodium\version.h
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WinPcap", "WinPcap", "{D099D655-939B-4399-A0CB-07D88BFD3BA0}"
 	ProjectSection(SolutionItems) = preProject
-		Pcap_DNSProxy\WinPcap\bittypes.h = Pcap_DNSProxy\WinPcap\bittypes.h
-		Pcap_DNSProxy\WinPcap\ip6_misc.h = Pcap_DNSProxy\WinPcap\ip6_misc.h
-		Pcap_DNSProxy\WinPcap\LibPacket.a = Pcap_DNSProxy\WinPcap\LibPacket.a
-		Pcap_DNSProxy\WinPcap\LibWPCAP.a = Pcap_DNSProxy\WinPcap\LibWPCAP.a
-		Pcap_DNSProxy\WinPcap\Packet32.h = Pcap_DNSProxy\WinPcap\Packet32.h
-		Pcap_DNSProxy\WinPcap\Packet_x64.lib = Pcap_DNSProxy\WinPcap\Packet_x64.lib
-		Pcap_DNSProxy\WinPcap\Packet_x86.lib = Pcap_DNSProxy\WinPcap\Packet_x86.lib
-		Pcap_DNSProxy\WinPcap\pcap-bpf.h = Pcap_DNSProxy\WinPcap\pcap-bpf.h
-		Pcap_DNSProxy\WinPcap\pcap-namedb.h = Pcap_DNSProxy\WinPcap\pcap-namedb.h
-		Pcap_DNSProxy\WinPcap\pcap-stdinc.h = Pcap_DNSProxy\WinPcap\pcap-stdinc.h
-		Pcap_DNSProxy\WinPcap\pcap.h = Pcap_DNSProxy\WinPcap\pcap.h
-		Pcap_DNSProxy\WinPcap\remote-ext.h = Pcap_DNSProxy\WinPcap\remote-ext.h
-		Pcap_DNSProxy\WinPcap\Win32-Extensions.h = Pcap_DNSProxy\WinPcap\Win32-Extensions.h
-		Pcap_DNSProxy\WinPcap\WPCAP_x64.lib = Pcap_DNSProxy\WinPcap\WPCAP_x64.lib
-		Pcap_DNSProxy\WinPcap\WPCAP_x86.lib = Pcap_DNSProxy\WinPcap\WPCAP_x86.lib
+		Dependency\WinPcap\bittypes.h = Dependency\WinPcap\bittypes.h
+		Dependency\WinPcap\ip6_misc.h = Dependency\WinPcap\ip6_misc.h
+		Dependency\WinPcap\LibPacket.a = Dependency\WinPcap\LibPacket.a
+		Dependency\WinPcap\LibWPCAP.a = Dependency\WinPcap\LibWPCAP.a
+		Dependency\WinPcap\Packet32.h = Dependency\WinPcap\Packet32.h
+		Dependency\WinPcap\Packet_x64.lib = Dependency\WinPcap\Packet_x64.lib
+		Dependency\WinPcap\Packet_x86.lib = Dependency\WinPcap\Packet_x86.lib
+		Dependency\WinPcap\pcap-bpf.h = Dependency\WinPcap\pcap-bpf.h
+		Dependency\WinPcap\pcap-namedb.h = Dependency\WinPcap\pcap-namedb.h
+		Dependency\WinPcap\pcap-stdinc.h = Dependency\WinPcap\pcap-stdinc.h
+		Dependency\WinPcap\pcap.h = Dependency\WinPcap\pcap.h
+		Dependency\WinPcap\remote-ext.h = Dependency\WinPcap\remote-ext.h
+		Dependency\WinPcap\Win32-Extensions.h = Dependency\WinPcap\Win32-Extensions.h
+		Dependency\WinPcap\WPCAP_x64.lib = Dependency\WinPcap\WPCAP_x64.lib
+		Dependency\WinPcap\WPCAP_x86.lib = Dependency\WinPcap\WPCAP_x86.lib
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pcap", "pcap", "{B47BEE44-34A2-4E23-B146-82D3DD81A2E0}"
 	ProjectSection(SolutionItems) = preProject
-		Pcap_DNSProxy\WinPcap\pcap\bluetooth.h = Pcap_DNSProxy\WinPcap\pcap\bluetooth.h
-		Pcap_DNSProxy\WinPcap\pcap\bpf.h = Pcap_DNSProxy\WinPcap\pcap\bpf.h
-		Pcap_DNSProxy\WinPcap\pcap\namedb.h = Pcap_DNSProxy\WinPcap\pcap\namedb.h
-		Pcap_DNSProxy\WinPcap\pcap\pcap.h = Pcap_DNSProxy\WinPcap\pcap\pcap.h
-		Pcap_DNSProxy\WinPcap\pcap\sll.h = Pcap_DNSProxy\WinPcap\pcap\sll.h
-		Pcap_DNSProxy\WinPcap\pcap\usb.h = Pcap_DNSProxy\WinPcap\pcap\usb.h
-		Pcap_DNSProxy\WinPcap\pcap\vlan.h = Pcap_DNSProxy\WinPcap\pcap\vlan.h
+		Dependency\WinPcap\pcap\bluetooth.h = Dependency\WinPcap\pcap\bluetooth.h
+		Dependency\WinPcap\pcap\bpf.h = Dependency\WinPcap\pcap\bpf.h
+		Dependency\WinPcap\pcap\namedb.h = Dependency\WinPcap\pcap\namedb.h
+		Dependency\WinPcap\pcap\pcap.h = Dependency\WinPcap\pcap\pcap.h
+		Dependency\WinPcap\pcap\sll.h = Dependency\WinPcap\pcap\sll.h
+		Dependency\WinPcap\pcap\usb.h = Dependency\WinPcap\pcap\usb.h
+		Dependency\WinPcap\pcap\vlan.h = Dependency\WinPcap\pcap\vlan.h
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "private", "private", "{505791ED-97BA-491F-BA24-40E4EF6171F3}"
 	ProjectSection(SolutionItems) = preProject
-		LibSodium\private\common.h = LibSodium\private\common.h
-		LibSodium\private\curve25519_ref10.h = LibSodium\private\curve25519_ref10.h
-		LibSodium\private\mutex.h = LibSodium\private\mutex.h
+		Dependency\LibSodium\private\common.h = Dependency\LibSodium\private\common.h
+		Dependency\LibSodium\private\curve25519_ref10.h = Dependency\LibSodium\private\curve25519_ref10.h
+		Dependency\LibSodium\private\mutex.h = Dependency\LibSodium\private\mutex.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenSSL", "OpenSSL", "{48201270-2D78-4FFC-A7C0-56B3F0641B25}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\OpenSSL\LibCrypto_macOS.a = Dependency\OpenSSL\LibCrypto_macOS.a
+		Dependency\OpenSSL\LibSSL_macOS.a = Dependency\OpenSSL\LibSSL_macOS.a
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "openssl", "openssl", "{A2A74FF1-7A41-41CA-B5EC-D9AE51915369}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\OpenSSL\openssl\__DECC_INCLUDE_EPILOGUE.H = Dependency\OpenSSL\openssl\__DECC_INCLUDE_EPILOGUE.H
+		Dependency\OpenSSL\openssl\__DECC_INCLUDE_PROLOGUE.H = Dependency\OpenSSL\openssl\__DECC_INCLUDE_PROLOGUE.H
+		Dependency\OpenSSL\openssl\aes.h = Dependency\OpenSSL\openssl\aes.h
+		Dependency\OpenSSL\openssl\asn1.h = Dependency\OpenSSL\openssl\asn1.h
+		Dependency\OpenSSL\openssl\asn1_mac.h = Dependency\OpenSSL\openssl\asn1_mac.h
+		Dependency\OpenSSL\openssl\asn1t.h = Dependency\OpenSSL\openssl\asn1t.h
+		Dependency\OpenSSL\openssl\async.h = Dependency\OpenSSL\openssl\async.h
+		Dependency\OpenSSL\openssl\bio.h = Dependency\OpenSSL\openssl\bio.h
+		Dependency\OpenSSL\openssl\blowfish.h = Dependency\OpenSSL\openssl\blowfish.h
+		Dependency\OpenSSL\openssl\bn.h = Dependency\OpenSSL\openssl\bn.h
+		Dependency\OpenSSL\openssl\buffer.h = Dependency\OpenSSL\openssl\buffer.h
+		Dependency\OpenSSL\openssl\camellia.h = Dependency\OpenSSL\openssl\camellia.h
+		Dependency\OpenSSL\openssl\cast.h = Dependency\OpenSSL\openssl\cast.h
+		Dependency\OpenSSL\openssl\cmac.h = Dependency\OpenSSL\openssl\cmac.h
+		Dependency\OpenSSL\openssl\cms.h = Dependency\OpenSSL\openssl\cms.h
+		Dependency\OpenSSL\openssl\comp.h = Dependency\OpenSSL\openssl\comp.h
+		Dependency\OpenSSL\openssl\conf.h = Dependency\OpenSSL\openssl\conf.h
+		Dependency\OpenSSL\openssl\conf_api.h = Dependency\OpenSSL\openssl\conf_api.h
+		Dependency\OpenSSL\openssl\crypto.h = Dependency\OpenSSL\openssl\crypto.h
+		Dependency\OpenSSL\openssl\ct.h = Dependency\OpenSSL\openssl\ct.h
+		Dependency\OpenSSL\openssl\des.h = Dependency\OpenSSL\openssl\des.h
+		Dependency\OpenSSL\openssl\dh.h = Dependency\OpenSSL\openssl\dh.h
+		Dependency\OpenSSL\openssl\dsa.h = Dependency\OpenSSL\openssl\dsa.h
+		Dependency\OpenSSL\openssl\dtls1.h = Dependency\OpenSSL\openssl\dtls1.h
+		Dependency\OpenSSL\openssl\e_os2.h = Dependency\OpenSSL\openssl\e_os2.h
+		Dependency\OpenSSL\openssl\ebcdic.h = Dependency\OpenSSL\openssl\ebcdic.h
+		Dependency\OpenSSL\openssl\ec.h = Dependency\OpenSSL\openssl\ec.h
+		Dependency\OpenSSL\openssl\ecdh.h = Dependency\OpenSSL\openssl\ecdh.h
+		Dependency\OpenSSL\openssl\ecdsa.h = Dependency\OpenSSL\openssl\ecdsa.h
+		Dependency\OpenSSL\openssl\engine.h = Dependency\OpenSSL\openssl\engine.h
+		Dependency\OpenSSL\openssl\err.h = Dependency\OpenSSL\openssl\err.h
+		Dependency\OpenSSL\openssl\evp.h = Dependency\OpenSSL\openssl\evp.h
+		Dependency\OpenSSL\openssl\hmac.h = Dependency\OpenSSL\openssl\hmac.h
+		Dependency\OpenSSL\openssl\idea.h = Dependency\OpenSSL\openssl\idea.h
+		Dependency\OpenSSL\openssl\kdf.h = Dependency\OpenSSL\openssl\kdf.h
+		Dependency\OpenSSL\openssl\lhash.h = Dependency\OpenSSL\openssl\lhash.h
+		Dependency\OpenSSL\openssl\md2.h = Dependency\OpenSSL\openssl\md2.h
+		Dependency\OpenSSL\openssl\md4.h = Dependency\OpenSSL\openssl\md4.h
+		Dependency\OpenSSL\openssl\md5.h = Dependency\OpenSSL\openssl\md5.h
+		Dependency\OpenSSL\openssl\mdc2.h = Dependency\OpenSSL\openssl\mdc2.h
+		Dependency\OpenSSL\openssl\modes.h = Dependency\OpenSSL\openssl\modes.h
+		Dependency\OpenSSL\openssl\obj_mac.h = Dependency\OpenSSL\openssl\obj_mac.h
+		Dependency\OpenSSL\openssl\objects.h = Dependency\OpenSSL\openssl\objects.h
+		Dependency\OpenSSL\openssl\ocsp.h = Dependency\OpenSSL\openssl\ocsp.h
+		Dependency\OpenSSL\openssl\opensslconf.h = Dependency\OpenSSL\openssl\opensslconf.h
+		Dependency\OpenSSL\openssl\opensslv.h = Dependency\OpenSSL\openssl\opensslv.h
+		Dependency\OpenSSL\openssl\ossl_typ.h = Dependency\OpenSSL\openssl\ossl_typ.h
+		Dependency\OpenSSL\openssl\pem.h = Dependency\OpenSSL\openssl\pem.h
+		Dependency\OpenSSL\openssl\pem2.h = Dependency\OpenSSL\openssl\pem2.h
+		Dependency\OpenSSL\openssl\pkcs12.h = Dependency\OpenSSL\openssl\pkcs12.h
+		Dependency\OpenSSL\openssl\pkcs7.h = Dependency\OpenSSL\openssl\pkcs7.h
+		Dependency\OpenSSL\openssl\rand.h = Dependency\OpenSSL\openssl\rand.h
+		Dependency\OpenSSL\openssl\rc2.h = Dependency\OpenSSL\openssl\rc2.h
+		Dependency\OpenSSL\openssl\rc4.h = Dependency\OpenSSL\openssl\rc4.h
+		Dependency\OpenSSL\openssl\rc5.h = Dependency\OpenSSL\openssl\rc5.h
+		Dependency\OpenSSL\openssl\ripemd.h = Dependency\OpenSSL\openssl\ripemd.h
+		Dependency\OpenSSL\openssl\rsa.h = Dependency\OpenSSL\openssl\rsa.h
+		Dependency\OpenSSL\openssl\safestack.h = Dependency\OpenSSL\openssl\safestack.h
+		Dependency\OpenSSL\openssl\seed.h = Dependency\OpenSSL\openssl\seed.h
+		Dependency\OpenSSL\openssl\sha.h = Dependency\OpenSSL\openssl\sha.h
+		Dependency\OpenSSL\openssl\srp.h = Dependency\OpenSSL\openssl\srp.h
+		Dependency\OpenSSL\openssl\srtp.h = Dependency\OpenSSL\openssl\srtp.h
+		Dependency\OpenSSL\openssl\ssl.h = Dependency\OpenSSL\openssl\ssl.h
+		Dependency\OpenSSL\openssl\ssl2.h = Dependency\OpenSSL\openssl\ssl2.h
+		Dependency\OpenSSL\openssl\ssl3.h = Dependency\OpenSSL\openssl\ssl3.h
+		Dependency\OpenSSL\openssl\stack.h = Dependency\OpenSSL\openssl\stack.h
+		Dependency\OpenSSL\openssl\symhacks.h = Dependency\OpenSSL\openssl\symhacks.h
+		Dependency\OpenSSL\openssl\tls1.h = Dependency\OpenSSL\openssl\tls1.h
+		Dependency\OpenSSL\openssl\ts.h = Dependency\OpenSSL\openssl\ts.h
+		Dependency\OpenSSL\openssl\txt_db.h = Dependency\OpenSSL\openssl\txt_db.h
+		Dependency\OpenSSL\openssl\ui.h = Dependency\OpenSSL\openssl\ui.h
+		Dependency\OpenSSL\openssl\whrlpool.h = Dependency\OpenSSL\openssl\whrlpool.h
+		Dependency\OpenSSL\openssl\x509.h = Dependency\OpenSSL\openssl\x509.h
+		Dependency\OpenSSL\openssl\x509_vfy.h = Dependency\OpenSSL\openssl\x509_vfy.h
+		Dependency\OpenSSL\openssl\x509v3.h = Dependency\OpenSSL\openssl\x509v3.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "internal", "internal", "{485839E0-2F50-4431-9351-84E7782DDBDA}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\OpenSSL\internal\bio.h = Dependency\OpenSSL\internal\bio.h
+		Dependency\OpenSSL\internal\comp.h = Dependency\OpenSSL\internal\comp.h
+		Dependency\OpenSSL\internal\conf.h = Dependency\OpenSSL\internal\conf.h
+		Dependency\OpenSSL\internal\constant_time_locl.h = Dependency\OpenSSL\internal\constant_time_locl.h
+		Dependency\OpenSSL\internal\dane.h = Dependency\OpenSSL\internal\dane.h
+		Dependency\OpenSSL\internal\dso.h = Dependency\OpenSSL\internal\dso.h
+		Dependency\OpenSSL\internal\err.h = Dependency\OpenSSL\internal\err.h
+		Dependency\OpenSSL\internal\numbers.h = Dependency\OpenSSL\internal\numbers.h
+		Dependency\OpenSSL\internal\o_dir.h = Dependency\OpenSSL\internal\o_dir.h
+		Dependency\OpenSSL\internal\o_str.h = Dependency\OpenSSL\internal\o_str.h
+		Dependency\OpenSSL\internal\thread_once.h = Dependency\OpenSSL\internal\thread_once.h
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Auxiliary", "Auxiliary", "{F2A72142-51AE-44D6-8E8D-2F93839DA1EF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{A58D2A84-D0D4-4058-AECA-EDFAD230CE6B}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Documents\Changelog.zh-Hans.txt = Auxiliary\Documents\Changelog.zh-Hans.txt
+		Auxiliary\Documents\Changelog.zh-Hant.txt = Auxiliary\Documents\Changelog.zh-Hant.txt
+		Auxiliary\Documents\FAQ.zh-Hans.txt = Auxiliary\Documents\FAQ.zh-Hans.txt
+		Auxiliary\Documents\FAQ.zh-Hant.txt = Auxiliary\Documents\FAQ.zh-Hant.txt
+		Auxiliary\Documents\FAQ_Linux_macOS.zh-Hans.txt = Auxiliary\Documents\FAQ_Linux_macOS.zh-Hans.txt
+		Auxiliary\Documents\FAQ_Linux_macOS.zh-Hant.txt = Auxiliary\Documents\FAQ_Linux_macOS.zh-Hant.txt
+		Auxiliary\Documents\ReadMe.zh-Hans.txt = Auxiliary\Documents\ReadMe.zh-Hans.txt
+		Auxiliary\Documents\ReadMe.zh-Hant.txt = Auxiliary\Documents\ReadMe.zh-Hant.txt
+		Auxiliary\Documents\ReadMe_Linux.zh-Hans.txt = Auxiliary\Documents\ReadMe_Linux.zh-Hans.txt
+		Auxiliary\Documents\ReadMe_Linux.zh-Hant.txt = Auxiliary\Documents\ReadMe_Linux.zh-Hant.txt
+		Auxiliary\Documents\ReadMe_macOS.zh-Hans.txt = Auxiliary\Documents\ReadMe_macOS.zh-Hans.txt
+		Auxiliary\Documents\ReadMe_macOS.zh-Hant.txt = Auxiliary\Documents\ReadMe_macOS.zh-Hant.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleConfig", "ExampleConfig", "{9A911CC0-63B2-400E-B819-2EA7DB529AAE}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\ExampleConfig\Config.ini = Auxiliary\ExampleConfig\Config.ini
+		Auxiliary\ExampleConfig\Hosts.ini = Auxiliary\ExampleConfig\Hosts.ini
+		Auxiliary\ExampleConfig\IPFilter.ini = Auxiliary\ExampleConfig\IPFilter.ini
+		Auxiliary\ExampleConfig\Pcap_DNSProxy.service = Auxiliary\ExampleConfig\Pcap_DNSProxy.service
+		Auxiliary\ExampleConfig\pcap_dnsproxy.service.plist = Auxiliary\ExampleConfig\pcap_dnsproxy.service.plist
+		Auxiliary\ExampleConfig\PcapDNSProxyService = Auxiliary\ExampleConfig\PcapDNSProxyService
+		Auxiliary\ExampleConfig\Routing.txt = Auxiliary\ExampleConfig\Routing.txt
+		Auxiliary\ExampleConfig\ServiceControl.bat = Auxiliary\ExampleConfig\ServiceControl.bat
+		Auxiliary\ExampleConfig\WhiteList.txt = Auxiliary\ExampleConfig\WhiteList.txt
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{4998748C-219A-49EF-BA88-5CFAAF3BEC97}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Scripts\CMake_Build.sh = Auxiliary\Scripts\CMake_Build.sh
+		Auxiliary\Scripts\Linux_Install.Systemd.sh = Auxiliary\Scripts\Linux_Install.Systemd.sh
+		Auxiliary\Scripts\Linux_Install.SysV.sh = Auxiliary\Scripts\Linux_Install.SysV.sh
+		Auxiliary\Scripts\Linux_Uninstall.Systemd.sh = Auxiliary\Scripts\Linux_Uninstall.Systemd.sh
+		Auxiliary\Scripts\Linux_Uninstall.SysV.sh = Auxiliary\Scripts\Linux_Uninstall.SysV.sh
+		Auxiliary\Scripts\macOS_Install.sh = Auxiliary\Scripts\macOS_Install.sh
+		Auxiliary\Scripts\macOS_Uninstall.sh = Auxiliary\Scripts\macOS_Uninstall.sh
+		Auxiliary\Scripts\Update_Routing.sh = Auxiliary\Scripts\Update_Routing.sh
+		Auxiliary\Scripts\Update_WhiteList.sh = Auxiliary\Scripts\Update_WhiteList.sh
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{5F168452-68EB-45A8-995F-9897E161545E}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Tools\WinPcap_4.1.3.exe = Auxiliary\Tools\WinPcap_4.1.3.exe
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Support", "Support", "{566F4AAB-2745-4A16-B86E-72F9EB5D0F51}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Tools\Support\CCase.exe = Auxiliary\Tools\Support\CCase.exe
+		Auxiliary\Tools\Support\curl.exe = Auxiliary\Tools\Support\curl.exe
+		Auxiliary\Tools\Support\md5.exe = Auxiliary\Tools\Support\md5.exe
+		Auxiliary\Tools\Support\sed.exe = Auxiliary\Tools\Support\sed.exe
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_Routing", "Update_Routing", "{6DAEC5F3-28DD-4A68-8093-FB4883C5580A}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Tools\Update_Routing\Log_Lib = Auxiliary\Tools\Update_Routing\Log_Lib
+		Auxiliary\Tools\Update_Routing\ReadMe_Hans.md = Auxiliary\Tools\Update_Routing\ReadMe_Hans.md
+		Auxiliary\Tools\Update_Routing\ReadMe_Hant.md = Auxiliary\Tools\Update_Routing\ReadMe_Hant.md
+		Auxiliary\Tools\Update_Routing\Update.bat = Auxiliary\Tools\Update_Routing\Update.bat
+		Auxiliary\Tools\Update_Routing\Update_Big5.bat = Auxiliary\Tools\Update_Routing\Update_Big5.bat
+		Auxiliary\Tools\Update_Routing\Update_GB2312.bat = Auxiliary\Tools\Update_Routing\Update_GB2312.bat
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_WhiteList", "Update_WhiteList", "{A495709C-E95F-4F60-B9B2-0976AB560420}"
+	ProjectSection(SolutionItems) = preProject
+		Auxiliary\Tools\Update_WhiteList\Update_WhiteList.bat = Auxiliary\Tools\Update_WhiteList\Update_WhiteList.bat
 	EndProjectSection
 EndProject
 Global
@@ -207,11 +309,18 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{874D6810-2479-4A52-8C16-3AFAB5640254} = {777BC78B-14C3-4CEE-AF7A-05DCC515DB21}
-		{A1267D16-9EC5-4FE4-9000-D9B168A8F6E4} = {64D86D92-3AA0-400E-91E4-EB93EF26EEE6}
-		{635FE3E1-B560-447C-880A-1689F162AE05} = {64D86D92-3AA0-400E-91E4-EB93EF26EEE6}
-		{722796B9-8775-49FE-9071-636DE5332F9A} = {64D86D92-3AA0-400E-91E4-EB93EF26EEE6}
 		{D099D655-939B-4399-A0CB-07D88BFD3BA0} = {777BC78B-14C3-4CEE-AF7A-05DCC515DB21}
 		{B47BEE44-34A2-4E23-B146-82D3DD81A2E0} = {D099D655-939B-4399-A0CB-07D88BFD3BA0}
 		{505791ED-97BA-491F-BA24-40E4EF6171F3} = {874D6810-2479-4A52-8C16-3AFAB5640254}
+		{48201270-2D78-4FFC-A7C0-56B3F0641B25} = {777BC78B-14C3-4CEE-AF7A-05DCC515DB21}
+		{A2A74FF1-7A41-41CA-B5EC-D9AE51915369} = {48201270-2D78-4FFC-A7C0-56B3F0641B25}
+		{485839E0-2F50-4431-9351-84E7782DDBDA} = {48201270-2D78-4FFC-A7C0-56B3F0641B25}
+		{A58D2A84-D0D4-4058-AECA-EDFAD230CE6B} = {F2A72142-51AE-44D6-8E8D-2F93839DA1EF}
+		{9A911CC0-63B2-400E-B819-2EA7DB529AAE} = {F2A72142-51AE-44D6-8E8D-2F93839DA1EF}
+		{4998748C-219A-49EF-BA88-5CFAAF3BEC97} = {F2A72142-51AE-44D6-8E8D-2F93839DA1EF}
+		{5F168452-68EB-45A8-995F-9897E161545E} = {F2A72142-51AE-44D6-8E8D-2F93839DA1EF}
+		{566F4AAB-2745-4A16-B86E-72F9EB5D0F51} = {5F168452-68EB-45A8-995F-9897E161545E}
+		{6DAEC5F3-28DD-4A68-8093-FB4883C5580A} = {5F168452-68EB-45A8-995F-9897E161545E}
+		{A495709C-E95F-4F60-B9B2-0976AB560420} = {5F168452-68EB-45A8-995F-9897E161545E}
 	EndGlobalSection
 EndGlobal

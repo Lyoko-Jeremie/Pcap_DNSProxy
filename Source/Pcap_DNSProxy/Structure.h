@@ -147,7 +147,7 @@ typedef struct _ppp_hdr_
 }ppp_hdr, *pppp_hdr;
 
 //Internet Protocol Numbers
-//About this list, see IANA Assigned Internet Protocol Numbers(https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)
+//About this list, visit IANA Assigned Internet Protocol Numbers(https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)
 #ifndef IPPROTO_HOPOPTS
 	#define IPPROTO_HOPOPTS           0                    //IPv6 Hop-by-Hop Option
 #endif
@@ -752,11 +752,11 @@ typedef struct _icmp_hdr_
 	uint16_t               Checksum;
 	uint16_t               ID;
 	uint16_t               Sequence;
-//ICMP Timestamp option is defalut enable in Linux and Mac OS X/macOS.
+//ICMP Timestamp option is defalut enable in Linux and macOS.
 #if defined(PLATFORM_LINUX)
 	uint64_t               Timestamp;
 	uint64_t               Nonce;
-#elif defined(PLATFORM_MACX)
+#elif defined(PLATFORM_MACOS)
 	uint64_t               Timestamp;
 #endif
 }icmp_hdr, *picmp_hdr;
@@ -786,11 +786,11 @@ typedef struct _icmpv6_hdr_
 	uint16_t               Checksum;
 	uint16_t               ID;
 	uint16_t               Sequence;
-//ICMPv6 Timestamp option is defalut enable in Linux and Mac OS X/macOS.
+//ICMPv6 Timestamp option is defalut enable in Linux and macOS.
 #if defined(PLATFORM_LINUX)
 	uint64_t               Timestamp;
 	uint64_t               Nonce;
-#elif defined(PLATFORM_MACX)
+#elif defined(PLATFORM_MACOS)
 	uint64_t               Timestamp;
 #endif
 }icmpv6_hdr, *picmpv6_hdr;
@@ -847,7 +847,7 @@ typedef struct _icmpv6_hdr_
 #define TCP_STATUS_PSH_ACK    0x0018   //TCP status: PSH, ACK
 
 //Port definitions(1 - 1024, well-known ports)
-//About this list, see IANA Service Name and Transport Protocol Port Number Registry(https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml)
+//About this list, visit IANA Service Name and Transport Protocol Port Number Registry(https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml)
 #ifndef IPPORT_TCPMUX
 	#define IPPORT_TCPMUX               1U
 #endif
@@ -1309,7 +1309,7 @@ typedef struct _ipv6_psd_hdr_
 * RFC 7314, Extension Mechanisms for DNS (EDNS) EXPIRE Option(https://tools.ietf.org/html/rfc7314)
 */
 
-//About this list, see IANA Domain Name System (DNS) Parameters(https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml)
+//About this list, visit IANA Domain Name System (DNS) Parameters(https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml)
 //Port and Flags definitions
 #ifndef IPPORT_DNS
 	#define IPPORT_DNS                    53U        //Standard DNS(TCP and UDP) Port
@@ -2162,7 +2162,7 @@ typedef struct _dns_record_opt_
 #define EDNS_CODE_CSUBNET             0x0008   //Client subnet as assigned by IANA
 #define EDNS_CODE_EDNS_EXPIRE         0x0009   //EDNS Expire (RFC 7314)
 
-//About Address Family Numbers, see https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml.
+//About Address Family Numbers, visit https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml.
 #define ADDRESS_FAMILY_IPV4           0x0001
 #define ADDRESS_FAMILY_IPV6           0x0002
 typedef struct _edns_client_subnet_
@@ -2194,7 +2194,7 @@ typedef struct _edns_client_subnet_
 #define DNSSEC_DS_DIGEST_GOST                  3U       //RFC 5933, Use of GOST Signature Algorithms in DNSKEY and RRSIG Resource Records for DNSSEC(https://tools.ietf.org/html/rfc5933)
 #define DNSSEC_DS_DIGEST_SHA384                4U       //RFC 6605, Elliptic Curve Digital Signature Algorithm (DSA) for DNSSEC(https://tools.ietf.org/html/rfc6605)
 
-//About this list, see https://www.iana.org/assignments/ds-rr-types/ds-rr-types.xhtml
+//About this list, visit https://www.iana.org/assignments/ds-rr-types/ds-rr-types.xhtml
 #define DNSSEC_DS_TYPE_RESERVED                0
 #define DNSSEC_DS_TYPE_SHA1                    1U
 #define DNSSEC_DS_TYPE_SHA256                  2U
@@ -2355,7 +2355,7 @@ typedef struct _dns_record_nsec_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-//About this list, see IANA Domain Name System Security (DNSSEC) NextSECure3 (NSEC3) Parameters(https://www.iana.org/assignments/dnssec-nsec3-parameters/dnssec-nsec3-parameters.xhtml)
+//About this list, visit IANA Domain Name System Security (DNSSEC) NextSECure3 (NSEC3) Parameters(https://www.iana.org/assignments/dnssec-nsec3-parameters/dnssec-nsec3-parameters.xhtml)
 #define DNSSEC_NSEC3_ALGORITHM_SHA1            1U
 typedef struct _dns_record_nsec3_
 {
@@ -2392,7 +2392,7 @@ typedef struct _dns_record_nsec3_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-//About this list, see IANA Domain Name System Security (DNSSEC) NextSECure3 (NSEC3) Parameters(https://www.iana.org/assignments/dnssec-nsec3-parameters/dnssec-nsec3-parameters.xhtml)
+//About this list, visit IANA Domain Name System Security (DNSSEC) NextSECure3 (NSEC3) Parameters(https://www.iana.org/assignments/dnssec-nsec3-parameters/dnssec-nsec3-parameters.xhtml)
 typedef struct _dns_record_nsec3param_
 {
 	uint8_t               Algorithm;

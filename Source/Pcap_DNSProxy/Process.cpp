@@ -558,7 +558,7 @@ size_t CheckHostsProcess(
 // Caching DNS servers SHOULD NOT recognize example names as special and SHOULD resolve them normally.
 
 //PTR Records
-//LLMNR protocol of Mac OS X and macOS powered by mDNS with PTR records
+//LLMNR protocol of macOS powered by mDNS with PTR records
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	if (ntohs(DNS_Query->Type) == DNS_TYPE_PTR && Parameter.LocalServer_Length + Packet->Length <= ResultSize)
 	{
@@ -1256,16 +1256,16 @@ uint16_t SelectNetworkProtocol(
 	void)
 {
 //IPv6
-	if (Parameter.Target_Server_IPv6.AddressData.Storage.ss_family > 0 && 
+	if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family > 0 && 
 		((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-		(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
+		(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 			return AF_INET6;
 //IPv4
-	else if (Parameter.Target_Server_IPv4.AddressData.Storage.ss_family > 0 && 
+	else if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family > 0 && 
 		((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-		(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
+		(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 			return AF_INET;
 
 	return 0;

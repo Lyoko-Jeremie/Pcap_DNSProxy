@@ -70,7 +70,7 @@ bool PrintError(
 			ErrorMessage.append(L"[Notice] ");
 		}break;
 	//System Error
-	//About System Error Codes, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx.
+	//About System Error Codes, visit https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx.
 		case LOG_ERROR_SYSTEM:
 		{
 			ErrorMessage.append(L"[System Error] ");
@@ -91,7 +91,7 @@ bool PrintError(
 			ErrorMessage.append(L"[Hosts Error] ");
 		}break;
 	//Network Error
-	//About Windows Sockets Error Codes, see https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
+	//About Windows Sockets Error Codes, visit https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
 		case LOG_ERROR_NETWORK:
 		{
 		//Block error messages when getting Network Unreachable and Host Unreachable error.
@@ -164,7 +164,7 @@ bool WriteScreenAndFile(
 	const auto TimeValues = time(nullptr);
 #if defined(PLATFORM_WIN)
 	if (localtime_s(&TimeStructure, &TimeValues) != 0)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	if (localtime_r(&TimeValues, &TimeStructure) == nullptr)
 #endif
 		return false;
@@ -239,7 +239,7 @@ bool WriteScreenAndFile(
 				return false;
 		}
 	}
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	struct stat FileStatData;
 	memset(&FileStatData, 0, sizeof(FileStatData));
 	if (stat(GlobalRunningStatus.sPath_ErrorLog->c_str(), &FileStatData) == 0 && FileStatData.st_size >= (off_t)Parameter.LogMaxSize)
@@ -255,7 +255,7 @@ bool WriteScreenAndFile(
 #if defined(PLATFORM_WIN)
 	FILE *FileHandle = nullptr;
 	if (_wfopen_s(&FileHandle, GlobalRunningStatus.Path_ErrorLog->c_str(), L"a,ccs=UTF-8") == 0 && FileHandle != nullptr)
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	auto FileHandle = fopen(GlobalRunningStatus.sPath_ErrorLog->c_str(), "a");
 	if (FileHandle != nullptr)
 #endif
@@ -363,11 +363,11 @@ void ErrorCodeToMessage(
 	{
 	//Define error code format.
 	#if defined(ENABLE_TLS)
-	#if defined(PLATFORM_WIN)
-		if (ErrorType == LOG_ERROR_TLS)
-			Message.append(L"0x%x");
-		else 
-	#endif
+		#if defined(PLATFORM_WIN)
+			if (ErrorType == LOG_ERROR_TLS)
+				Message.append(L"0x%x");
+			else 
+		#endif
 	#endif
 		if (ErrorType == LOG_MESSAGE_NOTICE || ErrorType == LOG_ERROR_SYSTEM || ErrorType == LOG_ERROR_SOCKS || 
 			ErrorType == LOG_ERROR_HTTP_CONNECT)
@@ -389,11 +389,11 @@ void ErrorCodeToMessage(
 
 	//Define error code format.
 	#if defined(ENABLE_TLS)
-	#if defined(PLATFORM_WIN)
-		if (ErrorType == LOG_ERROR_TLS)
-			Message.append(L"[0x%x]");
-		else 
-	#endif
+		#if defined(PLATFORM_WIN)
+			if (ErrorType == LOG_ERROR_TLS)
+				Message.append(L"[0x%x]");
+			else 
+		#endif
 	#endif
 		if (ErrorType == LOG_ERROR_SYSTEM || ErrorType == LOG_ERROR_SOCKS || ErrorType == LOG_ERROR_HTTP_CONNECT)
 			Message.append(L"[%u]");
@@ -403,7 +403,7 @@ void ErrorCodeToMessage(
 	//Free pointer.
 		LocalFree(InnerMessage);
 	}
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACX))
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	std::wstring InnerMessage;
 	auto ErrorMessage = strerror((int)ErrorCode);
 	if (ErrorMessage == nullptr || !MBSToWCSString((const uint8_t *)ErrorMessage, strnlen(ErrorMessage, FILE_BUFFER_SIZE), InnerMessage))
