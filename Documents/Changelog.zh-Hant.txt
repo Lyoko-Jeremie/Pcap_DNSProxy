@@ -1,5 +1,6 @@
-﻿Pcap_DNSProxy 0.4.7.7-0.4.7.8 更新日誌(2016-11-17)：
+﻿Pcap_DNSProxy 0.4.7.7-0.4.8.0 更新日誌(2016-11-23)：
 
+* 添加 Include Guard Macros 的支援 [Syrone Wong]
 * 添加 Large Buffer Size 參數，用於指定大型資料緩衝區的固定長度
 * 添加串列請求通訊模組，重寫部分網路請求協定
   * 重寫 SOCKS Proxy 以及 HTTP CONNECT Proxy 協定實現，解除傳輸資料量受一次性請求通訊模組固定緩衝區的長度限制
@@ -20,6 +21,7 @@
   * 添加 HTTP CONNECT TLS Version 參數，用於指定所使用的 TLS 版本
   * 添加 HTTP CONNECT TLS Validation 參數，用於選擇是否驗證 TLS 伺服器憑證鏈
   * 添加 HTTP CONNECT TLS Server Name Indication 參數，用於指定 TLS 握手時所使用的功能變數名稱
+* 添加 IPFilter 和 Hosts 檔臨時停止讀取標籤的區塊化支援
 * 設定檔版本要求升級到 0.45
   * Protocol 改名為 Output Protocol
   * IPv4 DNS Address 改名為 IPv4 Main DNS Address
@@ -52,26 +54,28 @@
   * IPv4 Alternate DNS Magic Number 改名為 DNSCurve IPv4 Alternate DNS Magic Number
   * IPv6 DNS Magic Number 改名為 DNSCurve IPv6 Main DNS Magic Number
   * IPv6 Alternate DNS Magic Number 改名為 DNSCurve IPv6 Alternate DNS Magic Number
+* 修復普通格式 Local Hosts 清單讀取錯誤的問題 [muink]
+* 修復 Custom 模式下自訂 IPFilter 不能工作的問題
 * 修復 SOCKS 4/4a 協定不能工作的問題
 * 修復 HTTP CONNECT Proxy 無法正確進行 Basic 驗證的問題
 * 修復錯誤報表提供的錯誤代碼格式錯誤的問題
-* 修復程式由於系統 Signal 導致的意外退出問題 (Linux/macOS)
 * 修復 CMake 的缺陷造成的錯誤依賴問題 (Linux/macOS) [Syrone Wong]
+* 修復程式由於系統 Signal 導致的意外退出問題 (Linux/macOS)
 * 修復錯誤詳細資訊有時可能缺少最後一個字元的問題 (Windows)
 * 修復 CMake 編譯提示宏重定義的問題 (macOS)
 * 移除對 Hosts 檔和 IPFilter 檔的多行注釋支援
 * 提供 SHA-2(256)/SHA256 檔校驗值，淘汰 SHA-1 演算法
 * Release Hash:
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe: AE95B9AC3B3EF005ACBDD2D225768A21B98DAFB6E31E40F707A8C8E64496BB14
-    * Windows/Pcap_DNSProxy_x86.exe: 91A4E440B05043A2E6921891F22B04848E4435140B6F913A83FA9E18F986F8AE
-    * Windows/Pcap_DNSProxy_XP.exe: F6F50F7C26203817D1A7EC3A53CCE22382D26135D206536A13A24CF48D8DA556
-    * macOS/Pcap_DNSProxy: 878C79920F40836E75E213E19F2EBEE41F9B8FFDACDE3AC515B71AC55B4E7F26
+    * Windows/Pcap_DNSProxy.exe: 65F41F53AAAD9C18828216EC614D276ADE589CBF877B54D7FC7987C05806021D
+    * Windows/Pcap_DNSProxy_x86.exe: D84318648F8EFA3DC8667B002DA5211AC2598D6B28D99A95D2DECB84213E898D
+    * Windows/Pcap_DNSProxy_XP.exe: C35A23EC22DD3C0ABC0805E2AF7DE8457D7610EAA6E8E9ECAF2931C1C6E6EF96
+    * macOS/Pcap_DNSProxy: 7E26203D5F0388ED5D396D2C665FE50E44725BF85CAA6C41088D9A060E5B40E2
   * SHA-2(256):
-    * Windows/Pcap_DNSProxy.exe: E124F58EBA9A25C19141889A0A636A51C676574768282756A4D679C41746B6EF
-    * Windows/Pcap_DNSProxy_x86.exe: 2CE9DA2DAA7D0261B1650BDAF3DF597DFF6DFF304439EF694CCF5FA411173721
-    * Windows/Pcap_DNSProxy_XP.exe: 79BF5CB3BFF408CE74CE6529DF91DBBC7DE029CF1B72565E3C14F0ED9060E1BE
-    * macOS/Pcap_DNSProxy: 2C79676D861FF7B84FA4AE159480787BBED8631C69345324F3E18C6869BE0CB1
+    * Windows/Pcap_DNSProxy.exe: 3626D21FD0674830F1D13776EB79626D79F653C65108041F8042CA4DDA62B299
+    * Windows/Pcap_DNSProxy_x86.exe: 76EC284B340FD7FFA585E8B9DA7E92F54F72AB3FFEA3F9DC1CEAE13B49005266
+    * Windows/Pcap_DNSProxy_XP.exe: C4744E588BEE4C15E3BD3B77F1A71E55F8B8C9677F43D6E8691D8B41885AF602
+    * macOS/Pcap_DNSProxy: 8C87587D30F6BB6BEE84F6AF07EA27AB77F110BF905CFFDD890ABAB10492F955
 
 
 -------------------------------------------------------------------------------

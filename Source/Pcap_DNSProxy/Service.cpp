@@ -65,6 +65,7 @@ size_t WINAPI ServiceMain(
 	if (!ServiceStatusHandle || UpdateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0, 1U, UPDATE_SERVICE_TIME) == FALSE)
 		return FALSE;
 
+//Create service event.
 	ServiceEvent = CreateEventW(
 		0, 
 		TRUE, 
@@ -73,10 +74,12 @@ size_t WINAPI ServiceMain(
 	if (!ServiceEvent || UpdateServiceStatus(SERVICE_START_PENDING, NO_ERROR, 0, 2U, STANDARD_TIMEOUT) == FALSE || ExecuteService() == FALSE)
 		return FALSE;
 
+//Update service status.
 	ServiceCurrentStatus = SERVICE_RUNNING;
 	if (UpdateServiceStatus(SERVICE_RUNNING, NO_ERROR, 0, 0, 0) == FALSE)
 		return FALSE;
 
+//Wait signal to shutdown.
 	WaitForSingleObject(
 		ServiceEvent, 
 		INFINITE);
@@ -161,25 +164,25 @@ BOOL WINAPI UpdateServiceStatus(
 	const DWORD dwCheckPoint, 
 	const DWORD dwWaitHint)
 {
+//Initialization
 	SERVICE_STATUS ServiceStatus;
 	memset(&ServiceStatus, 0, sizeof(ServiceStatus));
 	ServiceStatus.dwServiceType = SERVICE_WIN32;
 	ServiceStatus.dwCurrentState = dwCurrentState;
-
 	if (dwCurrentState == SERVICE_START_PENDING)
 		ServiceStatus.dwControlsAccepted = 0;
 	else 
-		ServiceStatus.dwControlsAccepted = (SERVICE_ACCEPT_STOP|SERVICE_ACCEPT_SHUTDOWN);
+		ServiceStatus.dwControlsAccepted = SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN;
 
 	if (dwServiceSpecificExitCode == 0)
 		ServiceStatus.dwWin32ExitCode = dwWin32ExitCode;
 	else 
 		ServiceStatus.dwWin32ExitCode = ERROR_SERVICE_SPECIFIC_ERROR;
-
 	ServiceStatus.dwServiceSpecificExitCode = dwServiceSpecificExitCode;
 	ServiceStatus.dwCheckPoint = dwCheckPoint;
 	ServiceStatus.dwWaitHint = dwWaitHint;
 
+//Service status setting
 	if (SetServiceStatus(
 			ServiceStatusHandle, 
 			&ServiceStatus) == 0)
@@ -203,7 +206,7 @@ void WINAPI TerminateService(
 }
 
 //Mailslot of flush DNS cache Monitor
-bool FlushDNSMailSlotMonitor(
+bool Flush_DNS_MailSlotMonitor(
 	void)
 {
 //System security initialization
@@ -307,7 +310,7 @@ bool FlushDNSMailSlotMonitor(
 				Message.length() > wcslen(MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN) + DOMAIN_MINSIZE && //Domain length check
 				Message.length() < wcslen(MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN) + DOMAIN_MAXSIZE)
 			{
-				if (WCSToMBSString(Message.c_str() + wcslen(MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN), DOMAIN_MAXSIZE, Domain) && 
+				if (WCS_To_MBS_String(Message.c_str() + wcslen(MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN), DOMAIN_MAXSIZE, Domain) && 
 					Domain.length() > DOMAIN_MINSIZE && Domain.length() < DOMAIN_MAXSIZE)
 						FlushDNSCache((const uint8_t *)Domain.c_str());
 				else 
@@ -326,7 +329,7 @@ bool FlushDNSMailSlotMonitor(
 }
 
 //Mailslot of flush DNS cache sender
-bool WINAPI FlushDNSMailSlotSender(
+bool WINAPI Flush_DNS_MailSlotSender(
 	const wchar_t * const Domain)
 {
 //Mailslot initialization
@@ -397,7 +400,7 @@ bool WINAPI FlushDNSMailSlotSender(
 
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 //Flush DNS cache FIFO Monitor
-bool FlushDNSFIFOMonitor(
+bool Flush_DNS_FIFO_Monitor(
 	void)
 {
 //Initialization
@@ -413,7 +416,8 @@ bool FlushDNSFIFOMonitor(
 	//Create FIFO and create its notify monitor.
 		unlink(FIFO_PATH_NAME);
 		errno = 0;
-		if (mkfifo(FIFO_PATH_NAME, O_CREAT) == RETURN_ERROR || chmod(FIFO_PATH_NAME, S_IRUSR|S_IWUSR|S_IWGRP|S_IWOTH) == RETURN_ERROR)
+		if (mkfifo(FIFO_PATH_NAME, O_CREAT) == RETURN_ERROR || 
+			chmod(FIFO_PATH_NAME, S_IRUSR | S_IWUSR | S_IWGRP | S_IWOTH) == RETURN_ERROR)
 		{
 			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create FIFO error", errno, nullptr, 0);
 
@@ -467,7 +471,7 @@ bool FlushDNSFIFOMonitor(
 }
 
 //Flush DNS cache FIFO sender
-bool FlushDNSFIFOSender(
+bool Flush_DNS_FIFO_Sender(
 	const uint8_t * const Domain)
 {
 //Message initialization
@@ -480,7 +484,7 @@ bool FlushDNSFIFOSender(
 
 //Write into FIFO file.
 	errno = 0;
-	const int FIFO_Handle = open(FIFO_PATH_NAME, O_WRONLY|O_TRUNC|O_NONBLOCK, 0);
+	const int FIFO_Handle = open(FIFO_PATH_NAME, O_WRONLY | O_TRUNC | O_NONBLOCK, 0);
 	if (FIFO_Handle > 0)
 	{
 		if (write(FIFO_Handle, Message.c_str(), Message.length() + 1U) > 0)

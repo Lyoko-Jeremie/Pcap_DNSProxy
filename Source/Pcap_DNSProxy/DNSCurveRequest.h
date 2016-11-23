@@ -17,6 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_DNSCURVEREQUEST_H
+#define PCAP_DNSPROXY_DNSCURVEREQUEST_H
+
 #include "Base.h"
 
 #if defined(ENABLE_LIBSODIUM)
@@ -26,10 +29,11 @@ extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 
 //Functions
-bool DNSCurveTCPSignatureRequest(
+bool DNSCurve_TCP_SignatureRequest(
 	const uint16_t Protocol, 
 	const bool IsAlternate);
-bool DNSCurveUDPSignatureRequest(
+bool DNSCurve_UDP_SignatureRequest(
 	const uint16_t Protocol, 
 	const bool IsAlternate);
+#endif
 #endif

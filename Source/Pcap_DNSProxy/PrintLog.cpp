@@ -91,7 +91,7 @@ bool PrintError(
 			ErrorMessage.append(L"[Hosts Error] ");
 		}break;
 	//Network Error
-	//About Windows Sockets Error Codes, visit https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
+	//About Windows Sockets error codes, visit https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
 		case LOG_ERROR_NETWORK:
 		{
 		//Block error messages when getting Network Unreachable and Host Unreachable error.
@@ -100,7 +100,8 @@ bool PrintError(
 			else 
 				ErrorMessage.append(L"[Network Error] ");
 		}break;
-	//WinPcap Error
+	//WinPcap/LibPcap Error
+	//About WinPcap/LibPcap error codes, visit https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html.
 	#if defined(ENABLE_PCAP)
 		case LOG_ERROR_PCAP:
 		{
@@ -124,11 +125,14 @@ bool PrintError(
 			ErrorMessage.append(L"[SOCKS Error] ");
 		}break;
 	//HTTP CONNECT Error
+	//About HTTP status codes, vitis https://en.wikipedia.org/wiki/List_of_HTTP_status_codes.
 		case LOG_ERROR_HTTP_CONNECT:
 		{
 			ErrorMessage.append(L"[HTTP CONNECT Error] ");
 		}break;
 	//TLS Error
+	//About SSPI/SChannel error codes, visit https://msdn.microsoft.com/en-us/library/windows/desktop/aa380499(v=vs.85).aspx and https://msdn.microsoft.com/en-us/library/windows/desktop/dd721886(v=vs.85).aspx.
+	//About OpenSSL error codes, visit https://www.openssl.org/docs/manmaster/man3/ERR_get_error.html.
 	#if defined(ENABLE_TLS)
 		case LOG_ERROR_TLS:
 		{
@@ -369,9 +373,8 @@ void ErrorCodeToMessage(
 			else 
 		#endif
 	#endif
-		if (ErrorType == LOG_MESSAGE_NOTICE || ErrorType == LOG_ERROR_SYSTEM || ErrorType == LOG_ERROR_SOCKS || 
-			ErrorType == LOG_ERROR_HTTP_CONNECT)
-				Message.append(L"%u");
+		if (ErrorType == LOG_MESSAGE_NOTICE || ErrorType == LOG_ERROR_SYSTEM || ErrorType == LOG_ERROR_SOCKS || ErrorType == LOG_ERROR_HTTP_CONNECT)
+			Message.append(L"%u");
 		else 
 			Message.append(L"%d");
 
@@ -406,7 +409,7 @@ void ErrorCodeToMessage(
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	std::wstring InnerMessage;
 	auto ErrorMessage = strerror((int)ErrorCode);
-	if (ErrorMessage == nullptr || !MBSToWCSString((const uint8_t *)ErrorMessage, strnlen(ErrorMessage, FILE_BUFFER_SIZE), InnerMessage))
+	if (ErrorMessage == nullptr || !MBS_To_WCS_String((const uint8_t *)ErrorMessage, strnlen(ErrorMessage, FILE_BUFFER_SIZE), InnerMessage))
 	{
 		Message.append(L"%d");
 	}

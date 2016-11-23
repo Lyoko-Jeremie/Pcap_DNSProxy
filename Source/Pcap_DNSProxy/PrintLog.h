@@ -17,6 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_PRINTLOG_H
+#define PCAP_DNSPROXY_PRINTLOG_H
+
 #include "Base.h"
 
 //Global variables
@@ -31,3 +34,4 @@ bool WriteScreenAndFile(
 	const std::wstring Message, 
 	const ssize_t ErrorCode, 
 	const size_t Line);
+#endif

@@ -17,6 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_DNSCURVE_H
+#define PCAP_DNSPROXY_DNSCURVE_H
+
 #include "Base.h"
 
 #if defined(ENABLE_LIBSODIUM)
@@ -37,4 +40,5 @@ bool DNSCurveSelectTargetSocket(
 	const uint16_t Protocol, 
 	bool &IsIPv6, 
 	bool ** const IsAlternate);
+#endif
 #endif

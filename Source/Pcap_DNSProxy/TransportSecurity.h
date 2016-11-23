@@ -16,6 +16,10 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+
+#ifndef PCAP_DNSPROXY_TRANSPORTSECURITY_H
+#define PCAP_DNSPROXY_TRANSPORTSECURITY_H
+
 #include "Base.h"
 
 #if defined(ENABLE_TLS)
@@ -41,5 +45,6 @@ bool SSPI_DecryptPacket(
 bool OpenSSL_PrintError(
 	const uint8_t *OpenSSL_ErrorMessage, 
 	const wchar_t *ErrorMessage);
+#endif
 #endif
 #endif

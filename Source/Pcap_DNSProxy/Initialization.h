@@ -17,6 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_INITIALIZATION_H
+#define PCAP_DNSPROXY_INITIALIZATION_H
+
 #include "Base.h"
 
 //Global variables
@@ -46,4 +49,5 @@ void GlobalStatusSetting(
 #if defined(ENABLE_LIBSODIUM)
 void DNSCurveConfigurationTableSetting(
 	DNSCURVE_CONFIGURATION_TABLE * const DNSCurveConfigurationParameter);
+#endif
 #endif

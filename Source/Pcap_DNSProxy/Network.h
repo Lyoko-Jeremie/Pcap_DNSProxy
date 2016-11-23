@@ -17,6 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_NETWORK_H
+#define PCAP_DNSPROXY_NETWORK_H
+
 #include "Base.h"
 
 //Global variables
@@ -42,3 +45,4 @@ ssize_t SelectingResultOnce(
 	void * const OriginalDNSCurveSocketSelectingList, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
+#endif

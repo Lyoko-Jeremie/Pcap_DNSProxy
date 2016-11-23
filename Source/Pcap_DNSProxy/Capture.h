@@ -17,13 +17,16 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_CAPTURE_H
+#define PCAP_DNSPROXY_CAPTURE_H
+
 #include "Base.h"
 
 #if defined(ENABLE_PCAP)
 //Structure definitions
 typedef struct _capture_handler_param_
 {
-	uint16_t      DeviceType;
+	int           DeviceType;
 	uint8_t       *Buffer;
 	size_t        BufferSize;
 }CaptureHandlerParam, CAPTURE_HANDLER_PARAM, *PCaptureHandlerParam, *PCAPTURE_HANDLER_PARAM;
@@ -67,4 +70,5 @@ bool MatchPortToSend(
 	const size_t Length, 
 	const size_t BufferSize, 
 	const uint16_t Port);
+#endif
 #endif

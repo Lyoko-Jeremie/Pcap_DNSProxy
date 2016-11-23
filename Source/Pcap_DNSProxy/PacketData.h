@@ -17,8 +17,12 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_PACKETDATA_H
+#define PCAP_DNSPROXY_PACKETDATA_H
+
 #include "Base.h"
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
+#endif

@@ -194,14 +194,14 @@ size_t SOCKS_TCP_Request(
 	}
 
 //Selection exchange process
-	if (Parameter.SOCKS_Version == SOCKS_VERSION_5 && !SOCKS_Selection_Exchange(SocketDataList, SocketSelectingDataList, ErrorCodeList))
+	if (Parameter.SOCKS_Version == SOCKS_VERSION_5 && !SOCKS_SelectionExchange(SocketDataList, SocketSelectingDataList, ErrorCodeList))
 	{
 		SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return EXIT_FAILURE;
 	}
 
 //Client command request process
-	if (!SOCKS_Client_Command_Request(IPPROTO_TCP, SocketDataList, SocketSelectingDataList, ErrorCodeList, nullptr))
+	if (!SOCKS_ClientCommandRequest(IPPROTO_TCP, SocketDataList, SocketSelectingDataList, ErrorCodeList, nullptr))
 	{
 		SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 		return EXIT_FAILURE;
@@ -380,7 +380,7 @@ size_t SOCKS_UDP_Request(
 	if (!Parameter.SOCKS_UDP_NoHandshake)
 	{
 	//Selection exchange process
-		if (!SOCKS_Selection_Exchange(TCPSocketDataList, TCPSocketSelectingDataList, TCPErrorCodeList))
+		if (!SOCKS_SelectionExchange(TCPSocketDataList, TCPSocketSelectingDataList, TCPErrorCodeList))
 		{
 			SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 			SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
@@ -401,7 +401,7 @@ size_t SOCKS_UDP_Request(
 
 	//Client command request process
 	//IPPROTO_UDP means UDP ASSOCIATE process, this part must transport with TCP protocol.
-		if (!SOCKS_Client_Command_Request(IPPROTO_UDP, TCPSocketDataList, TCPSocketSelectingDataList, TCPErrorCodeList, &LocalSocketDataList.front()))
+		if (!SOCKS_ClientCommandRequest(IPPROTO_UDP, TCPSocketDataList, TCPSocketSelectingDataList, TCPErrorCodeList, &LocalSocketDataList.front()))
 		{
 			SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 			SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
@@ -590,7 +590,7 @@ size_t SOCKS_UDP_Request(
 }
 
 //SOCKS selection exchange process
-bool SOCKS_Selection_Exchange(
+bool SOCKS_SelectionExchange(
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
 	std::vector<ssize_t> &ErrorCodeList)
@@ -670,7 +670,7 @@ bool SOCKS_Selection_Exchange(
 				if (Parameter.SOCKS_Username != nullptr && !Parameter.SOCKS_Username->empty() && 
 					Parameter.SOCKS_Password != nullptr && !Parameter.SOCKS_Password->empty())
 				{
-					if (!SOCKS_Authentication_Exchange(SocketDataList, SocketSelectingDataList, ErrorCodeList))
+					if (!SOCKS_AuthenticationExchange(SocketDataList, SocketSelectingDataList, ErrorCodeList))
 					{
 						PrintError(LOG_LEVEL_3, LOG_ERROR_SOCKS, L"Username or Password incorrect", 0, nullptr, 0);
 						return false;
@@ -694,7 +694,7 @@ bool SOCKS_Selection_Exchange(
 }
 
 //SOCKS username/password authentication process
-bool SOCKS_Authentication_Exchange(
+bool SOCKS_AuthenticationExchange(
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
 	std::vector<ssize_t> &ErrorCodeList)
@@ -739,7 +739,7 @@ bool SOCKS_Authentication_Exchange(
 }
 
 //SOCKS client command request process
-bool SOCKS_Client_Command_Request(
+bool SOCKS_ClientCommandRequest(
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
@@ -1307,7 +1307,7 @@ bool HTTP_CONNECT_Exchange(
 		else 
 			HTTPString.erase(HTTPString.find("\r\n\r\n"), HTTPString.length() - HTTPString.find("\r\n"));
 		std::wstring Message;
-		if (!MBSToWCSString((const uint8_t *)HTTPString.c_str(), HTTPString.length(), Message))
+		if (!MBS_To_WCS_String((const uint8_t *)HTTPString.c_str(), HTTPString.length(), Message))
 			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 		else 
 			PrintError(LOG_LEVEL_3, LOG_ERROR_HTTP_CONNECT, Message.c_str(), 0, nullptr, 0);

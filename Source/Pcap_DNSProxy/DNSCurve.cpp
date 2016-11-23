@@ -88,10 +88,10 @@ bool DNSCurveVerifyKeypair(
 //Keypair, Nonce and validation data
 	if (crypto_box_keypair(
 			Test_PublicKey, 
-			Test_SecretKey.Buffer) != 0)
-				return false;
+			Test_SecretKey.Buffer) == 0)
+				memcpy_s(Validation + crypto_box_ZEROBYTES, crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES, PublicKey, crypto_box_PUBLICKEYBYTES);
 	else 
-		memcpy_s(Validation + crypto_box_ZEROBYTES, crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES, PublicKey, crypto_box_PUBLICKEYBYTES);
+		return false;
 
 //Make DNSCurve Test Nonce, 0x00 - 0x23(ASCII).
 	uint8_t Nonce[crypto_box_NONCEBYTES]{0};
@@ -733,14 +733,13 @@ bool DNSCruveGetSignatureData(
 	const size_t ServerType)
 {
 	if (ntohs(((pdns_record_txt)Buffer)->Name) == DNS_POINTER_QUERY && 
-		ntohs(((pdns_record_txt)Buffer)->Length) == ((pdns_record_txt)Buffer)->TXT_Length + 1U && ((pdns_record_txt)Buffer)->TXT_Length == DNSCRYPT_RECORD_TXT_LEN)
+		ntohs(((pdns_record_txt)Buffer)->Length) == ((pdns_record_txt)Buffer)->TXT_Length + 1U && 
+		((pdns_record_txt)Buffer)->TXT_Length == DNSCRYPT_RECORD_TXT_LEN)
 	{
 		if (sodium_memcmp(&((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->CertMagicNumber, DNSCRYPT_CERT_MAGIC, sizeof(uint16_t)) == 0 && 
 			ntohs(((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->MajorVersion) == DNSCURVE_VERSION_MAJOR && 
 			ntohs(((pdnscurve_txt_hdr)(Buffer + sizeof(dns_record_txt)))->MinorVersion) == DNSCURVE_VERSION_MINOR)
 		{
-			unsigned long long SignatureLength = 0;
-
 		//Get Send Magic Number, Server Fingerprint and Precomputation Key.
 			PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
 			if (!DNSCurvePacketTargetSetting(ServerType, &PacketTarget))
@@ -749,6 +748,7 @@ bool DNSCruveGetSignatureData(
 		//Check Signature.
 			std::shared_ptr<uint8_t> DeBuffer(new uint8_t[PACKET_MAXSIZE]());
 			memset(DeBuffer.get(), 0, PACKET_MAXSIZE);
+			unsigned long long SignatureLength = 0;
 			if (PacketTarget == nullptr || 
 				crypto_sign_open(
 					(unsigned char *)DeBuffer.get(), 

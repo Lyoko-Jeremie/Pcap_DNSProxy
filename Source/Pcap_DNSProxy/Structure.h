@@ -17,6 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_STRUCTURE_H
+#define PCAP_DNSPROXY_STRUCTURE_H
+
 #include "Platform.h"
 
 //////////////////////////////////////////////////
@@ -1099,6 +1102,9 @@ typedef struct _icmpv6_hdr_
 #endif
 #ifndef IPPORT_AODV
 	#define IPPORT_AODV                 654U
+#endif
+#ifndef IPPORT_DNS_TLS
+	#define IPPORT_DNS_TLS              853U
 #endif
 #ifndef IPPORT_FTPSDATA
 	#define IPPORT_FTPSDATA             989U
@@ -2773,4 +2779,5 @@ typedef struct _tls_base_record_
 	uint16_t              Version;
 	uint16_t              Length;
 }tls_base_record, *ptls_base_record;
+#endif
 #endif

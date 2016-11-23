@@ -65,6 +65,10 @@
 * Windows 的错误代码参见 https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
 * Linux/macOS 的错误代码参见 http://man7.org/linux/man-pages/man3/errno.3.html
 * WinPcap/LibPcap 错误信息的具体含义可移步 https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
+* Winsock 错误代码具体含义可移步 https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
+* HTTP 状态码具体含义可移步 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+* SSPI/SChannel 错误代码具体含义可移步 https://msdn.microsoft.com/en-us/library/windows/desktop/aa380499(v=vs.85).aspx 和 https://msdn.microsoft.com/en-us/library/windows/desktop/dd721886(v=vs.85).aspx
+* OpenSSL 错误代码具体含义可移步 https://www.openssl.org/docs/manmaster/man3/ERR_get_error.html
 
 
 Error.log 详细错误报告，错误报告一共有7大类型：
@@ -206,7 +210,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * DNSCurve Local Signature socket initialization error - DNSCurve 协议本地请求套接字初始化错误：可能为网络错误，具体原因可参见错误代码
   * DNSCurve Local Signature request error - DNSCurve 协议本地请求错误：可能为网络错误，具体原因可参见错误代码
   * Not any available gateways to public network - 没有任何通往公共网络的可用网关：可能为网络错误，请检查网络是否通畅
-  * Winsock 错误代码具体含义可移步 https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
 
 6.Pcap Error - Pcap 错误
   * Insufficient privileges or not any available network devices - 没有任何可用的网络适配器：请检查硬件设备和驱动程序是否安装正确，也可能权限不足
@@ -247,7 +250,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * HTTP CONNECT target server error - HTTP CONNECT 代理目标地址错误：请检查该服务器是否可用
   * HTTP CONNECT server response error - HTTP CONNECT 代理服务器响应错误：请检查该服务器是否可用
   * 本类型错误会直接将 HTTP 的错误信息输出至错误报告
-  * HTTP 状态码具体含义可移步 https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 
 10.TLS Error - TLS/SSL 协议错误
   * SSPI get client credentials handle error - SSPI 获取客户端凭据错误：建议重新启动服务或程序，具体原因可参见错误代码
@@ -270,8 +272,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * OpenSSL verify the result of chain verification error - OpenSSL 证书链验证错误：证书验证错误，请确认此服务器工作正常
   * OpenSSL send data error - OpenSSL 发送数据错误：可能为网络错误，具体原因可参见错误代码
   * OpenSSL receive data error - OpenSSL 接收数据错误：可能为网络错误，具体原因可参见错误代码
-  * SSPI/SChannel 错误代码具体含义可移步 https://msdn.microsoft.com/en-us/library/windows/desktop/aa380499(v=vs.85).aspx 和 https://msdn.microsoft.com/en-us/library/windows/desktop/dd721886(v=vs.85).aspx
-  * OpenSSL 错误代码具体含义可移步 https://www.openssl.org/docs/manmaster/man3/ERR_get_error.html
 
 11.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
   * Old log file was deleted - 错误日志文件已满并被删除

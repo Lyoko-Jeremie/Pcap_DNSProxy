@@ -17,6 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_DEFINITION_H
+#define PCAP_DNSPROXY_DEFINITION_H
+
 #include "Structure.h"
 
 //////////////////////////////////////////////////
@@ -106,7 +109,7 @@
 //Version definitions
 #define CONFIG_VERSION                                0.45                                  //Current configuration file version
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"   //Copyright message
-#define FULL_VERSION                                  L"0.4.7.8"                            //Current full version
+#define FULL_VERSION                                  L"0.4.8.0"                            //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_MAXSIZE                        64U                         //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -157,8 +160,8 @@
 #define UINT8_MAX_STRING_LENGTH                       4U                          //Maximum number of 8 bits is 255, its length is 3.
 
 //Size and length definitions(Data)
-#define DNS_PACKET_MINSIZE                            (sizeof(dns_hdr) + 1U + sizeof(dns_qry))                                          //Minimum DNS packet size(DNS Header + Minimum Domain<ROOT> + DNS Query)
-#define EDNS_ADDITIONAL_MAXSIZE                       (sizeof(dns_record_opt) * 2U + sizeof(edns_client_subnet) + sizeof(in6_addr))     //Maximum of EDNS Additional Record Resources size
+#define DNS_PACKET_MINSIZE                            (sizeof(dns_hdr) + 1U + sizeof(dns_qry))                                                 //Minimum DNS packet size(DNS Header + Minimum Domain<ROOT> + DNS Query)
+#define EDNS_ADDITIONAL_MAXSIZE                       (sizeof(dns_record_opt) * 2U + sizeof(edns_client_subnet) + sizeof(in6_addr))            //Maximum of EDNS Additional Record Resources size
 #define HTTP_TOP_HEADER_LENGTH                        (strlen("HTTP/"))
 #define HTTP_RESPONSE_MINSIZE                         (HTTP_TOP_HEADER_LENGTH + HTTP_VERSION_LENGTH + strlen(" ") + HTTP_STATUS_CODE_LENGTH)   //Minimum size of HTTP server response
 #define DNSCRYPT_BUFFER_RESERVE_LEN                   (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES - crypto_box_BOXZEROBYTES)
@@ -196,7 +199,7 @@
 #define DEFAULT_RELIABLE_ONCE_SOCKET_TIMEOUT          3000U                       //Default timeout of reliable once sockets(Such as TCP, 3000 ms/3 seconds)
 #define DEFAULT_RELIABLE_SERIAL_SOCKET_TIMEOUT        1500U                       //Default timeout of reliable serial sockets(Such as TCP, 1500 ms/1.5 second)
 #define DEFAULT_UNRELIABLE_ONCE_SOCKET_TIMEOUT        2000U                       //Default timeout of unreliable once sockets(Such as ICMP/ICMPv6/UDP, 2000 ms/2 seconds)
-#define DEFAULT_UNRELIABLE_SERIAL_SOCKET_TIMEOUT      1000U                        //Default timeout of unreliable serial sockets(Such as ICMP/ICMPv6/UDP, 1000 ms/1 second)
+#define DEFAULT_UNRELIABLE_SERIAL_SOCKET_TIMEOUT      1000U                       //Default timeout of unreliable serial sockets(Such as ICMP/ICMPv6/UDP, 1000 ms/1 second)
 #if defined(ENABLE_LIBSODIUM)
 	#define DEFAULT_DNSCURVE_RECHECK_TIME                 1800U                                    //Default DNSCurve keys recheck time(30 minutes/1800 seconds)
 	#define DEFAULT_DNSCURVE_RELIABLE_SOCKET_TIMEOUT      DEFAULT_RELIABLE_ONCE_SOCKET_TIMEOUT     //Same as default timeout of reliable sockets
@@ -605,9 +608,9 @@ public:
 	size_t                               ListenProtocol_Network;
 	size_t                               ListenProtocol_Transport;
 	std::vector<uint16_t>                *ListenPort;
-	bool                                 IPFilterType;
+	bool                                 IsIPFilterTypePermit;
 	size_t                               IPFilterLevel;
-	bool                                 AcceptType;
+	bool                                 IsAcceptTypePermit;
 	std::vector<uint16_t>                *AcceptTypeList;
 //[DNS] block
 	size_t                               RequestMode_Network;
@@ -1026,5 +1029,6 @@ public:
 	~OpenSSLContextTable(
 		void);
 }OPENSSL_CONTEXT_TABLE;
+#endif
 #endif
 #endif

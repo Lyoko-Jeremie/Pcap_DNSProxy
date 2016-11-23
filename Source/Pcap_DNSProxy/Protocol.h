@@ -17,6 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_PROTOCOL_H
+#define PCAP_DNSPROXY_PROTOCOL_H
+
 #include "Base.h"
 
 //Global variables
@@ -30,15 +33,22 @@ extern std::vector<DIFFERNET_FILE_SET_HOSTS> *HostsFileSetUsing, *HostsFileSetMo
 extern std::mutex IPFilterFileLock, HostsFileLock;
 
 //Functions
-size_t CheckResponseCNAME(
+bool CheckAddressRouting(
+	const uint16_t Protocol, 
+	const void * const Addr);
+bool OperationModeFilter(
+	const uint16_t Protocol, 
+	const void * const OriginalAddr);
+size_t CheckResponse_CNAME(
 	uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t CNAME_Index, 
 	const size_t CNAME_Length, 
 	const size_t BufferSize, 
 	size_t &RecordNum);
-bool CheckDNSSECRecords(
+bool Check_DNSSEC_Record(
 	const uint8_t * const Buffer, 
 	const size_t Length, 
 	const uint16_t Type, 
 	const uint16_t BeforeType);
+#endif

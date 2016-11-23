@@ -72,7 +72,7 @@ uint32_t GetFCS(
 }
 */
 
-//Get Checksum
+//Get checksum
 uint16_t GetChecksum(
 	const uint16_t *Buffer, 
 	const size_t Length)
@@ -103,7 +103,7 @@ uint16_t GetChecksum_ICMPv6(
 	std::shared_ptr<uint8_t> Validation(new uint8_t[sizeof(ipv6_psd_hdr) + Length]());
 	memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length);
 
-//Get checksum
+//Get checksum.
 	((pipv6_psd_hdr)Validation.get())->Destination = Destination;
 	((pipv6_psd_hdr)Validation.get())->Source = Source;
 	((pipv6_psd_hdr)Validation.get())->Length = htonl((uint32_t)Length);
@@ -165,12 +165,16 @@ size_t AddLengthDataToHeader(
 }
 
 //Convert data from string to DNS query
-size_t CharToDNSQuery(
+size_t StringToPacketQuery(
 	const uint8_t * const FName, 
 	uint8_t * const TName)
 {
 //Initialization
-	int Index[]{(int)strnlen_s((const char *)FName, DOMAIN_MAXSIZE) - 1, 0, 0};
+	int Index[]{(int)strnlen_s((const char *)FName, DOMAIN_MAXSIZE), 0, 0};
+	if (Index[0] > 0)
+		--Index[0];
+	else 
+		return 0;
 	Index[2U] = Index[0] + 1;
 	*(TName + Index[0] + 2) = 0;
 
@@ -193,7 +197,7 @@ size_t CharToDNSQuery(
 }
 
 //Convert data from DNS query to string
-size_t DNSQueryToChar(
+size_t PacketQueryToString(
 	const uint8_t * const TName, 
 	std::string &FName)
 {
@@ -234,7 +238,7 @@ size_t DNSQueryToChar(
 }
 
 //Convert data from compression DNS query to whole DNS query
-size_t MarkWholeDNSQuery(
+size_t MarkWholePacketQuery(
 	const uint8_t * const Packet, 
 	const size_t Length, 
 	const uint8_t * const TName, 
@@ -262,7 +266,7 @@ size_t MarkWholeDNSQuery(
 				if (!FName.empty())
 					FName.append(".");
 
-				return MarkWholeDNSQuery(Packet, Length, Packet + PointerIndex, PointerIndex, FName);
+				return MarkWholePacketQuery(Packet, Length, Packet + PointerIndex, PointerIndex, FName);
 			}
 			else {
 				return uIndex;
@@ -386,7 +390,7 @@ void MakeDomainCaseConversion(
 }
 
 //Add EDNS options to Additional Resource Records in DNS packet(C-Style string)
-size_t AddEDNSLabelToAdditionalRR(
+size_t Add_EDNS_To_Additional_RR(
 	uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t MaxLen, 
@@ -492,7 +496,7 @@ size_t AddEDNSLabelToAdditionalRR(
 }
 
 //Add EDNS options to Additional Resource Records in DNS packet(DNS packet structure)
-bool AddEDNSLabelToAdditionalRR(
+bool Add_EDNS_To_Additional_RR(
 	DNS_PACKET_DATA * const Packet, 
 	const SOCKET_DATA * const LocalSocketData)
 {
@@ -656,7 +660,7 @@ size_t MakeCompressionPointerMutation(
 	}
 
 //Make Compression Pointer Mutation.
-	if (Index == CPM_POINTER_TO_HEADER) //Pointer to header, like "[DNS Header][Domain][Pointer][Query]" and the pointer is point to [DNS Header].
+	if (Index == CPM_POINTER_TO_HEADER) //Pointer to header, like "[DNS Header][Domain][Pointer][Query]" and point to [DNS Header].
 	{
 		memmove_s(Buffer + Length - sizeof(dns_qry) + 1U, sizeof(dns_qry), Buffer + Length - sizeof(dns_qry), sizeof(dns_qry));
 		*(Buffer + Length - sizeof(dns_qry) - 1U) = (uint8_t)DNS_POINTER_8_BITS_STRING;
@@ -698,12 +702,12 @@ size_t MakeCompressionPointerMutation(
 		*(Buffer + sizeof(dns_hdr)) = (uint8_t)DNS_POINTER_8_BITS_STRING;
 		*(Buffer + sizeof(dns_hdr) + 1U) = ('\x12');
 
-	//Pointer to RR, like "[DNS Header][Pointer][Query][Domain]" and the pointer is point to [Domain].
+	//Pointer to RR, like "[DNS Header][Pointer][Query][Domain]" and point to [Domain].
 		if (Index == CPM_POINTER_TO_RR)
 		{
 			return Length + 2U;
 		}
-	//Pointer to Additional, like "[DNS Header][Pointer][Query][Additional]" and the pointer is point to domain in [Additional].
+	//Pointer to Additional, like "[DNS Header][Pointer][Query][Additional]" and point to domain in [Additional].
 		else {
 			const auto DNS_Header = (pdns_hdr)Buffer;
 			DNS_Header->Additional = htons(U16_NUM_ONE);

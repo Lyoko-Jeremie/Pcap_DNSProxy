@@ -106,7 +106,12 @@ bool SSPI_Handshake(
 	DWORD OutputFlags = 0;
 
 //First handshake
-	SSPI_Handle.InputFlags = ISC_REQ_SEQUENCE_DETECT | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONFIDENTIALITY | ISC_RET_EXTENDED_ERROR | ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_STREAM;
+	SSPI_Handle.InputFlags |= ISC_REQ_SEQUENCE_DETECT;
+	SSPI_Handle.InputFlags |= ISC_REQ_REPLAY_DETECT;
+	SSPI_Handle.InputFlags |= ISC_REQ_CONFIDENTIALITY;
+	SSPI_Handle.InputFlags |= ISC_RET_EXTENDED_ERROR;
+	SSPI_Handle.InputFlags |= ISC_REQ_ALLOCATE_MEMORY;
+	SSPI_Handle.InputFlags |= ISC_REQ_STREAM;
 	SSPI_Handle.LastReturnValue = InitializeSecurityContextW(
 		&SSPI_Handle.ClientCredentials, 
 		nullptr, 
@@ -204,7 +209,12 @@ bool SSPI_HandshakeLoop(
 	for (;;)
 	{
 	//Reset parameter.
-		SSPI_Handle.InputFlags = ISC_REQ_SEQUENCE_DETECT | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONFIDENTIALITY | ISC_RET_EXTENDED_ERROR | ISC_RET_ALLOCATED_MEMORY | ISC_REQ_STREAM;
+		SSPI_Handle.InputFlags |= ISC_REQ_SEQUENCE_DETECT;
+		SSPI_Handle.InputFlags |= ISC_REQ_REPLAY_DETECT;
+		SSPI_Handle.InputFlags |= ISC_REQ_CONFIDENTIALITY;
+		SSPI_Handle.InputFlags |= ISC_RET_EXTENDED_ERROR;
+		SSPI_Handle.InputFlags |= ISC_RET_ALLOCATED_MEMORY;
+		SSPI_Handle.InputFlags |= ISC_REQ_STREAM;
 		InputBufferSec[0].BufferType = SECBUFFER_TOKEN;
 		InputBufferSec[0].pvBuffer = SocketSelectingDataList.front().RecvBuffer.get();
 		InputBufferSec[0].cbBuffer = (DWORD)SocketSelectingDataList.front().RecvLen;
@@ -524,7 +534,12 @@ bool SSPI_ShutdownConnection(
 	}
 
 //Buffer initializtion(Part 2)
-	SSPI_Handle.InputFlags = ISC_REQ_SEQUENCE_DETECT | ISC_REQ_REPLAY_DETECT | ISC_REQ_CONFIDENTIALITY | ISC_RET_EXTENDED_ERROR | ISC_REQ_ALLOCATE_MEMORY | ISC_REQ_STREAM;
+	SSPI_Handle.InputFlags |= ISC_REQ_SEQUENCE_DETECT;
+	SSPI_Handle.InputFlags |= ISC_REQ_REPLAY_DETECT;
+	SSPI_Handle.InputFlags |= ISC_REQ_CONFIDENTIALITY;
+	SSPI_Handle.InputFlags |= ISC_RET_EXTENDED_ERROR;
+	SSPI_Handle.InputFlags |= ISC_REQ_ALLOCATE_MEMORY;
+	SSPI_Handle.InputFlags |= ISC_REQ_STREAM;
 	BufferSec[0].BufferType = SECBUFFER_TOKEN;
 	BufferSec[0].pvBuffer = nullptr;
 	BufferSec[0].cbBuffer = 0;
@@ -594,7 +609,7 @@ bool OpenSSL_PrintError(
 	const wchar_t *ErrorMessage)
 {
 	std::wstring Message;
-	if (MBSToWCSString(OpenSSL_ErrorMessage, OPENSSL_STATIC_BUFFER_SIZE, Message))
+	if (MBS_To_WCS_String(OpenSSL_ErrorMessage, OPENSSL_STATIC_BUFFER_SIZE, Message))
 	{
 		std::wstring InnerMessage(ErrorMessage); //OpenSSL will return message like "error:..."
 		InnerMessage.append(Message);

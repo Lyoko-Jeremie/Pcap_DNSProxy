@@ -17,6 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_PLATFORM_H
+#define PCAP_DNSPROXY_PLATFORM_H
+
 //////////////////////////////////////////////////
 // Operating system selection
 // 
@@ -577,12 +580,12 @@
 
 		//Conditional define for TCP_FASTOPEN
 			#ifndef TCP_FASTOPEN
-				#define TCP_FASTOPEN   23
+				#define TCP_FASTOPEN       23
 			#endif
 
 		//Conditional define for MSG_FASTOPEN
 			#ifndef MSG_FASTOPEN
-				#define MSG_FASTOPEN   0x20000000
+				#define MSG_FASTOPEN       0x20000000
 			#endif
 		#endif
 
@@ -698,3 +701,4 @@
 
 //Memory alignment: 1 bytes = 8 bits
 #pragma pack(1)
+#endif

@@ -24,6 +24,7 @@ bool ReadHostsData(
 	std::string Data, 
 	const size_t FileIndex, 
 	size_t &LabelType, 
+	bool * const IsStopLabel, 
 	const size_t Line)
 {
 //Convert horizontal tab/HT to space and delete spaces before or after data.
@@ -58,7 +59,9 @@ bool ReadHostsData(
 			LabelType = LABEL_HOSTS_TYPE_LOCAL;
 
 //[Address Hosts] block
-	if (Data.find("[Source Hosts]") == 0 || Data.find("[Source hosts]") == 0 || Data.find("[source Hosts]") == 0 || Data.find("[source hosts]") == 0)
+	if (Data.find("[SOURCE HOSTS]") == 0 || 
+		Data.find("[Source Hosts]") == 0 || Data.find("[Source hosts]") == 0 || 
+		Data.find("[source Hosts]") == 0 || Data.find("[source hosts]") == 0)
 	{
 		LabelType = LABEL_HOSTS_TYPE_SOURCE;
 		return true;
@@ -72,14 +75,17 @@ bool ReadHostsData(
 	}
 
 //[Local Hosts] block(B part)
-	else if (Data.find("[Local Hosts]") == 0 || Data.find("[Local hosts]") == 0 || Data.find("[local Hosts]") == 0 || Data.find("[local hosts]") == 0)
+	else if (Data.find("[LOCAL HOSTS]") == 0 || 
+		Data.find("[Local Hosts]") == 0 || Data.find("[Local hosts]") == 0 || 
+		Data.find("[local Hosts]") == 0 || Data.find("[local hosts]") == 0)
 	{
 		LabelType = LABEL_HOSTS_TYPE_LOCAL;
 		return true;
 	}
 
 //[CNAME Hosts] block
-	else if (Data.find("[CNAME Hosts]") == 0 || Data.find("[CNAME hosts]") == 0 || 
+	else if (Data.find("[CNAME HOSTS]") == 0 || 
+		Data.find("[CNAME Hosts]") == 0 || Data.find("[CNAME hosts]") == 0 || 
 		Data.find("[Cname Hosts]") == 0 || Data.find("[Cname hosts]") == 0 || 
 		Data.find("[cname Hosts]") == 0 || Data.find("[cname hosts]") == 0)
 	{
@@ -88,17 +94,26 @@ bool ReadHostsData(
 	}
 
 //[Address Hosts] block
-	else if (Data.find("[Address Hosts]") == 0 || Data.find("[Address hosts]") == 0 || Data.find("[address Hosts]") == 0 || Data.find("[address hosts]") == 0)
+	else if (Data.find("[ADDRESS HOSTS]") == 0 || 
+		Data.find("[Address Hosts]") == 0 || Data.find("[Address hosts]") == 0 || 
+		Data.find("[address Hosts]") == 0 || Data.find("[address hosts]") == 0)
 	{
 		LabelType = LABEL_HOSTS_TYPE_ADDRESS;
 		return true;
 	}
 
 //Temporary stop read.
-	else if (LabelType == LABEL_STOP || Data.find("[Stop]") == 0 || Data.find("[stop]") == 0)
+	else if (IsStopLabel != nullptr)
 	{
-		LabelType = LABEL_STOP;
-		return true;
+		if (Data.find("[STOP]") == 0 || Data.find("[Stop]") == 0 || Data.find("[stop]") == 0)
+		{
+			*IsStopLabel = !*IsStopLabel;
+			return true;
+		}
+		else if (*IsStopLabel)
+		{
+			return true;
+		}
 	}
 
 //Whitelist, Banned and their Extended items
@@ -252,7 +267,7 @@ bool ReadOtherHostsData(
 		HostsTableTemp.PatternOrDomainString.clear();
 		HostsTableTemp.PatternOrDomainString.shrink_to_fit();
 	}
-	catch (std::regex_error& Error)
+	catch (std::regex_error &Error)
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Regular expression pattern error", Error.code(), FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 		return false;
@@ -290,29 +305,29 @@ bool ReadLocalHostsData(
 	HOSTS_TABLE HostsTableTemp;
 	std::vector<std::string> HostsListData;
 	size_t SeparatedOrResult = 0;
-	auto DnsmasqFormat = false;
+	auto IsDnsmasqFormat = false;
 
 //Dnsmasq format(http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html)
 	if (Data.find("--") == 0)
 	{
-		if (Data.find("--Server=/") == std::string::npos && Data.find("--server=/") == std::string::npos)
+		if (Data.find("--SERVER=/") == std::string::npos && Data.find("--Server=/") == std::string::npos && Data.find("--server=/") == std::string::npos)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 			return false;
 		}
 		else {
-			DnsmasqFormat = true;
+			IsDnsmasqFormat = true;
 			SeparatedOrResult = Data.find(ASCII_SLASH) + 1U;
 		}
 	}
-	else if (Data.find("Server=/") == 0 || Data.find("Server=/"))
+	else if (Data.find("SERVER=/") == 0 || Data.find("Server=/") == 0 || Data.find("server=/") == 0)
 	{
-		DnsmasqFormat = true;
+		IsDnsmasqFormat = true;
 		SeparatedOrResult = Data.find(ASCII_SLASH) + 1U;
 	}
 
 //Dnsmasq format check
-	if (DnsmasqFormat)
+	if (IsDnsmasqFormat)
 	{
 	//Delete all spaces and string length check.
 		while (Data.find(ASCII_SPACE) != std::string::npos)
@@ -548,7 +563,7 @@ bool ReadLocalHostsData(
 //Mark patterns.
 	if (!HostsTableTemp.IsStringMatching)
 	{
-		if (!DnsmasqFormat)
+		if (!IsDnsmasqFormat)
 			HostsTableTemp.PatternOrDomainString = Data;
 		try {
 			std::regex PatternRegexTemp(HostsTableTemp.PatternOrDomainString);
@@ -556,7 +571,7 @@ bool ReadLocalHostsData(
 			HostsTableTemp.PatternOrDomainString.clear();
 			HostsTableTemp.PatternOrDomainString.shrink_to_fit();
 		}
-		catch (std::regex_error& Error)
+		catch (std::regex_error &Error)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Regular expression pattern error", Error.code(), FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -812,7 +827,7 @@ bool ReadMainHostsData(
 	const size_t Line)
 {
 	size_t Separated = 0;
-	auto DnsmasqFormat = false;
+	auto IsDnsmasqFormat = false;
 
 //Mark separated location.
 	if (Data.find(ASCII_COMMA) != std::string::npos)
@@ -842,26 +857,26 @@ bool ReadMainHostsData(
 //Dnsmasq format(http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html)
 	else if (HostsType != HOSTS_TYPE_SOURCE && Data.find("--") == 0)
 	{
-		if ((Data.find("--Address=/") == std::string::npos && Data.find("--address=/") == std::string::npos) || 
-			Data.find("--Address=//") == 0 || Data.find("--address=//") == 0)
+		if ((Data.find("--ADDRESS=/") == std::string::npos && Data.find("--Address=/") == std::string::npos && Data.find("--address=/") == std::string::npos) || 
+			Data.find("--ADDRESS=//") == 0 || Data.find("--Address=//") == 0 || Data.find("--address=//") == 0)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 			return false;
 		}
 		else {
-			DnsmasqFormat = true;
+			IsDnsmasqFormat = true;
 			Separated = Data.find(ASCII_SLASH);
 		}
 	}
-	else if (HostsType != HOSTS_TYPE_SOURCE && (Data.find("Address=/") == 0 || Data.find("address=/") == 0))
+	else if (HostsType != HOSTS_TYPE_SOURCE && (Data.find("ADDRESS=/") == 0 || Data.find("Address=/") == 0 || Data.find("address=/") == 0))
 	{
-		if (Data.find("Address=//") == 0 || Data.find("address=//") == 0)
+		if (Data.find("ADDRESS=//") == 0 || Data.find("Address=//") == 0 || Data.find("address=//") == 0)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 			return false;
 		}
 		else {
-			DnsmasqFormat = true;
+			IsDnsmasqFormat = true;
 			Separated = Data.find(ASCII_SLASH);
 		}
 	}
@@ -880,7 +895,7 @@ bool ReadMainHostsData(
 //Delete all spaces and string length check.
 	while (Data.find(ASCII_SPACE) != std::string::npos)
 		Data.erase(Data.find(ASCII_SPACE), 1U);
-	if (!DnsmasqFormat && Separated < READ_HOSTS_MINSIZE)
+	if (!IsDnsmasqFormat && Separated < READ_HOSTS_MINSIZE)
 		return false;
 
 //Initialization(Part 1)
@@ -919,7 +934,7 @@ bool ReadMainHostsData(
 		GetParameterListData(HostsListData, Data, Data.find("->") + strlen("->"), Separated, ASCII_VERTICAL, false, false);
 	}
 	else {
-		if (DnsmasqFormat)
+		if (IsDnsmasqFormat)
 			GetParameterListData(HostsListData, Data, Separated, Data.length(), ASCII_SLASH, false, false);
 		else 
 			GetParameterListData(HostsListData, Data, 0, Separated, ASCII_VERTICAL, false, false);
@@ -934,7 +949,7 @@ bool ReadMainHostsData(
 
 //Dnsmasq format check
 	std::string *HostsListDataIter = &HostsListData.front();
-	if (DnsmasqFormat)
+	if (IsDnsmasqFormat)
 	{
 		if (HostsListData.size() > 2U || HostsListData.front().empty())
 		{
@@ -948,7 +963,7 @@ bool ReadMainHostsData(
 	}
 
 //Mark record type.
-	if (DnsmasqFormat && HostsListData.size() == 1U) //Dnsmasq Banned items
+	if (IsDnsmasqFormat && HostsListData.size() == 1U) //Dnsmasq Banned items
 	{
 		HostsTableTemp.PermissionType = HOSTS_TYPE_BANNED;
 	}
@@ -985,7 +1000,7 @@ bool ReadMainHostsData(
 	ssize_t Result = 0;
 
 //Mark all data in list.
-	if (DnsmasqFormat)
+	if (IsDnsmasqFormat)
 	{
 		if (HostsListData.size() != 1U)
 		{
@@ -1059,7 +1074,7 @@ bool ReadMainHostsData(
 	}
 
 //Dnsmasq format(Normal mode)
-	if (DnsmasqFormat && (HostsListData.front().front() != ASCII_COLON || HostsListData.front().back() != ASCII_COLON))
+	if (IsDnsmasqFormat && (HostsListData.front().front() != ASCII_COLON || HostsListData.front().back() != ASCII_COLON))
 	{
 	//Make string reversed and mark it to list.
 		MakeStringReversed(HostsListData.front());
@@ -1068,7 +1083,7 @@ bool ReadMainHostsData(
 	}
 //Mark patterns.
 	else {
-		if (DnsmasqFormat) //Dnsmasq format(Regex mode)
+		if (IsDnsmasqFormat) //Dnsmasq format(Regex mode)
 		{
 		//Regex format check
 			if (HostsListData.front().front() != ASCII_COLON || HostsListData.front().back() != ASCII_COLON)
@@ -1093,7 +1108,7 @@ bool ReadMainHostsData(
 			HostsTableTemp.PatternOrDomainString.clear();
 			HostsTableTemp.PatternOrDomainString.shrink_to_fit();
 		}
-		catch (std::regex_error& Error)
+		catch (std::regex_error &Error)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Regular expression pattern error", Error.code(), FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 			return false;

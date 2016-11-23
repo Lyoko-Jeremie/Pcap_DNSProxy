@@ -17,6 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_MAIN_H
+#define PCAP_DNSPROXY_MAIN_H
+
 #include "Base.h"
 
 //Global variables
@@ -36,4 +39,5 @@ bool ReadCommands(
 	char *argv[]);
 bool FileNameInit(
 	const char * const OriginalPath);
+#endif
 #endif

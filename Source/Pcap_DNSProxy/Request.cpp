@@ -40,7 +40,7 @@ bool DomainTestRequest(
 	pdns_qry DNS_Query = nullptr;
 	if (Parameter.DomainTest_Data != nullptr)
 	{
-		DataLength = CharToDNSQuery(Parameter.DomainTest_Data, DNSQuery.get());
+		DataLength = StringToPacketQuery(Parameter.DomainTest_Data, DNSQuery.get());
 		if (DataLength > DOMAIN_MINSIZE && DataLength < PACKET_MAXSIZE - sizeof(dns_hdr))
 		{
 			memcpy_s(Buffer.get() + sizeof(dns_hdr), PACKET_MAXSIZE - sizeof(dns_hdr), DNSQuery.get(), DataLength);
@@ -58,7 +58,7 @@ bool DomainTestRequest(
 		//EDNS Label
 			if (Parameter.EDNS_Label)
 			{
-				DataLength = AddEDNSLabelToAdditionalRR(Buffer.get(), DataLength + sizeof(dns_hdr), PACKET_MAXSIZE, nullptr);
+				DataLength = Add_EDNS_To_Additional_RR(Buffer.get(), DataLength + sizeof(dns_hdr), PACKET_MAXSIZE, nullptr);
 				DataLength -= sizeof(dns_hdr);
 			}
 		}
@@ -155,7 +155,7 @@ bool DomainTestRequest(
 			{
 				memset(Buffer.get() + sizeof(dns_hdr), 0, PACKET_MAXSIZE - sizeof(dns_hdr));
 				MakeRamdomDomain(DNSQuery.get());
-				DataLength = CharToDNSQuery(DNSQuery.get(), Buffer.get() + sizeof(dns_hdr)) + sizeof(dns_hdr);
+				DataLength = StringToPacketQuery(DNSQuery.get(), Buffer.get() + sizeof(dns_hdr)) + sizeof(dns_hdr);
 				memset(DNSQuery.get(), 0, DOMAIN_MAXSIZE);
 
 			//Make DNS query data.
@@ -173,12 +173,12 @@ bool DomainTestRequest(
 				if (Parameter.EDNS_Label)
 				{
 					DNS_Header->Additional = 0;
-					DataLength = AddEDNSLabelToAdditionalRR(Buffer.get(), DataLength, PACKET_MAXSIZE, nullptr);
+					DataLength = Add_EDNS_To_Additional_RR(Buffer.get(), DataLength, PACKET_MAXSIZE, nullptr);
 				}
 			}
 
 		//Send process
-			UDPRequestMultiple(REQUEST_PROCESS_UDP_NO_MARKING, 0, Buffer.get(), DataLength, nullptr);
+			UDP_RequestMultiple(REQUEST_PROCESS_UDP_NO_MARKING, 0, Buffer.get(), DataLength, nullptr);
 			Sleep(SENDING_INTERVAL_TIME);
 			++Times;
 		}
@@ -190,7 +190,7 @@ bool DomainTestRequest(
 }
 
 //Internet Control Message Protocol(version 6)/ICMP(v6) echo(Ping) request
-bool ICMPTestRequest(
+bool ICMP_TestRequest(
 	const uint16_t Protocol)
 {
 //Initialization
@@ -569,7 +569,7 @@ bool ICMPTestRequest(
 #endif
 
 //Transmission and reception of TCP protocol
-size_t TCPRequestSingle(
+size_t TCP_RequestSingle(
 	const size_t RequestType, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
@@ -621,7 +621,7 @@ size_t TCPRequestSingle(
 }
 
 //Transmission and reception of TCP protocol(Multiple threading)
-size_t TCPRequestMultiple(
+size_t TCP_RequestMultiple(
 	const size_t RequestType, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
@@ -659,7 +659,7 @@ size_t TCPRequestMultiple(
 
 //Transmission of UDP protocol
 #if defined(ENABLE_PCAP)
-size_t UDPRequestSingle(
+size_t UDP_RequestSingle(
 	const size_t RequestType, 
 	const uint16_t Protocol, 
 	const uint8_t * const OriginalSend, 
@@ -704,7 +704,7 @@ size_t UDPRequestSingle(
 }
 
 //Transmission of UDP protocol(Multiple threading)
-size_t UDPRequestMultiple(
+size_t UDP_RequestMultiple(
 	const size_t RequestType, 
 	const uint16_t Protocol, 
 	const uint8_t * const OriginalSend, 
@@ -733,7 +733,7 @@ size_t UDPRequestMultiple(
 #endif
 
 //Complete transmission of UDP protocol
-size_t UDPCompleteRequestSingle(
+size_t UDP_CompleteRequestSingle(
 	const size_t RequestType, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
@@ -775,7 +775,7 @@ size_t UDPCompleteRequestSingle(
 }
 
 //Complete transmission of UDP protocol(Multiple threading)
-size_t UDPCompleteRequestMultiple(
+size_t UDP_CompleteRequestMultiple(
 	const size_t RequestType, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 

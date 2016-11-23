@@ -17,6 +17,9 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
+#ifndef PCAP_DNSPROXY_TEMPLATE_H
+#define PCAP_DNSPROXY_TEMPLATE_H
+
 #include "Definition.h"
 
 //////////////////////////////////////////////////
@@ -37,7 +40,7 @@ public:
 private:
 	Container                OriginalQueue;
 	MutexType                OriginalMutex;
-	ConditionVariableType    OriginalCondVar;
+	ConditionVariableType    OriginalConditionVariable;
 
 public:
 //Redefine operator functions
@@ -50,7 +53,7 @@ public:
 		Reference Elem)
 	{
 		std::unique_lock<MutexType> Lock(OriginalMutex);
-		OriginalCondVar.wait(Lock, [this](){return !OriginalQueue.empty();});
+		OriginalConditionVariable.wait(Lock, [this](){return !OriginalQueue.empty();});
 		Elem = std::move(OriginalQueue.front());
 		OriginalQueue.pop();
 
@@ -93,7 +96,7 @@ public:
 		std::unique_lock<MutexType> Lock(OriginalMutex);
 		OriginalQueue.push(Elem);
 		Lock.unlock();
-		OriginalCondVar.notify_one();
+		OriginalConditionVariable.notify_one();
 
 		return;
 	}
@@ -105,7 +108,7 @@ public:
 		std::unique_lock<MutexType> Lock(OriginalMutex);
 		OriginalQueue.push(std::move(Elem));
 		Lock.unlock();
-		OriginalCondVar.notify_one();
+		OriginalConditionVariable.notify_one();
 
 		return;
 	}
@@ -207,4 +210,5 @@ template<typename Ty> DNSCurveHeapBufferTable<Ty>::~DNSCurveHeapBufferTable(
 
 	return;
 }
+#endif
 #endif

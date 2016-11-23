@@ -28,20 +28,20 @@ bool ReadText(
 	const size_t InputType, 
 	const size_t FileIndex)
 {
-//Initialization
-	std::shared_ptr<uint8_t> FileBuffer(new uint8_t[FILE_BUFFER_SIZE]()), TextBuffer(new uint8_t[FILE_BUFFER_SIZE]());
-	memset(FileBuffer.get(), 0, FILE_BUFFER_SIZE);
-	memset(TextBuffer.get(), 0, FILE_BUFFER_SIZE);
-	std::string TextData;
-	size_t Encoding = 0, Index = 0, Line = 0, LabelType = 0;
-	auto IsEraseBOM = true, NewLine_Point = false;
-
 //Reset global variables.
 	if (InputType == READ_TEXT_PARAMETER || InputType == READ_TEXT_PARAMETER_MONITOR)
 	{
 		HopLimitIndex[NETWORK_LAYER_IPV6] = 0;
 		HopLimitIndex[NETWORK_LAYER_IPV4] = 0;
 	}
+
+//Initialization
+	std::shared_ptr<uint8_t> FileBuffer(new uint8_t[FILE_BUFFER_SIZE]()), TextBuffer(new uint8_t[FILE_BUFFER_SIZE]());
+	memset(FileBuffer.get(), 0, FILE_BUFFER_SIZE);
+	memset(TextBuffer.get(), 0, FILE_BUFFER_SIZE);
+	std::string TextData;
+	size_t Encoding = 0, Index = 0, Line = 0, LabelType = 0;
+	auto IsEraseBOM = true, NewLine_Point = false, IsStopLabel = false;
 
 //Read data.
 	while (!feof((FILE *)FileHandle))
@@ -342,11 +342,11 @@ bool ReadText(
 					{
 						case READ_TEXT_HOSTS: //ReadHosts
 						{
-							ReadHostsData(TextData, FileIndex, LabelType, Line);
+							ReadHostsData(TextData, FileIndex, LabelType, &IsStopLabel, Line);
 						}break;
 						case READ_TEXT_IPFILTER: //ReadIPFilter
 						{
-							ReadIPFilterData(TextData, FileIndex, LabelType, Line);
+							ReadIPFilterData(TextData, FileIndex, LabelType, &IsStopLabel, Line);
 						}break;
 						case READ_TEXT_PARAMETER: //ReadParameter
 						{
@@ -1060,7 +1060,6 @@ void ClearModificatingListData(
 			}
 		}
 	}
-
 //Clear IPFilter file set.
 	else if (ClearType == READ_TEXT_IPFILTER)
 	{

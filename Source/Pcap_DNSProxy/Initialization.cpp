@@ -439,9 +439,9 @@ void ConfigurationTable::MonitorItemToUsing(
 	ConfigurationParameter->LogMaxSize = LogMaxSize;
 
 //[Listen] block
-	ConfigurationParameter->IPFilterType = IPFilterType;
+	ConfigurationParameter->IsIPFilterTypePermit = IsIPFilterTypePermit;
 	ConfigurationParameter->IPFilterLevel = IPFilterLevel;
-	ConfigurationParameter->AcceptType = AcceptType;
+	ConfigurationParameter->IsAcceptTypePermit = IsAcceptTypePermit;
 	ConfigurationParameter->AcceptTypeList->swap(*AcceptTypeList);
 
 //[DNS] block
@@ -557,9 +557,9 @@ void ConfigurationTable::MonitorItemReset(
 	LogMaxSize = LOG_READING_MAXSIZE;
 
 //[Listen] block
-	IPFilterType = 0;
+	IsIPFilterTypePermit = false;
 	IPFilterLevel = 0;
-	AcceptType = false;
+	IsAcceptTypePermit = false;
 	AcceptTypeList->clear();
 	AcceptTypeList->shrink_to_fit();
 

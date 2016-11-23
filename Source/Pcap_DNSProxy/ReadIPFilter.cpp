@@ -24,6 +24,7 @@ bool ReadIPFilterData(
 	std::string Data, 
 	const size_t FileIndex, 
 	size_t &LabelType, 
+	bool * const IsStopLabel, 
 	const size_t Line)
 {
 //Convert horizontal tab/HT to space and delete spaces before or after data.
@@ -52,31 +53,42 @@ bool ReadIPFilterData(
 			LabelType = LABEL_IPFILTER_LOCAL_ROUTING;
 
 //[IPFilter] block
-	if (Data.find("[IPFilter]") == 0 || Data.find("[IPfilter]") == 0 || Data.find("[ipfilter]") == 0)
+	if (Data.find("[IPFILTER]") == 0 || Data.find("[IPFilter]") == 0 || 
+		Data.find("[IPfilter]") == 0 || Data.find("[ipfilter]") == 0)
 	{
 		LabelType = LABEL_IPFILTER;
 		return true;
 	}
 
 //[Blacklist] block(A part)
-	else if (Data.find("[BlackList]") == 0 || Data.find("[Blacklist]") == 0 || Data.find("[blacklist]") == 0)
+	else if (Data.find("[BLACKLIST]") == 0 || Data.find("[BlackList]") == 0 || 
+		Data.find("[Blacklist]") == 0 || Data.find("[blacklist]") == 0)
 	{
 		LabelType = LABEL_IPFILTER_BLACKLIST;
 		return true;
 	}
 
 //[Local Routing] block(B part)
-	else if (Data.find("[Local Routing]") == 0 || Data.find("[Local routing]") == 0 || Data.find("[local routing]") == 0)
+	else if (Data.find("[LOCAL ROUTING]") == 0 || 
+		Data.find("[Local Routing]") == 0 || Data.find("[Local routing]") == 0 || 
+		Data.find("[local Routing]") == 0 || Data.find("[local routing]") == 0)
 	{
 		LabelType = LABEL_IPFILTER_LOCAL_ROUTING;
 		return true;
 	}
 
 //Temporary stop read.
-	else if (LabelType == LABEL_STOP || Data.find("[Stop]") == 0 || Data.find("[stop]") == 0)
+	else if (IsStopLabel != nullptr)
 	{
-		LabelType = LABEL_STOP;
-		return true;
+		if (Data.find("[STOP]") == 0 || Data.find("[Stop]") == 0 || Data.find("[stop]") == 0)
+		{
+			*IsStopLabel = !*IsStopLabel;
+			return true;
+		}
+		else if (*IsStopLabel)
+		{
+			return true;
+		}
 	}
 
 //[Blacklist] block(B part)
@@ -342,7 +354,7 @@ bool ReadBlacklistData(
 			std::regex PatternRegexTemp(ResultBlacklistTableTemp.PatternString);
 			ResultBlacklistTableTemp.PatternRegex.swap(PatternRegexTemp);
 		}
-		catch (std::regex_error& Error)
+		catch (std::regex_error &Error)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_IPFILTER, L"Regular expression pattern error", Error.code(), FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;

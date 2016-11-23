@@ -669,200 +669,207 @@ bool CheckAddressRouting(
 	return false;
 }
 
-//Custom Mode address filter
-bool CheckCustomModeFilter(
+//Operation Mode address filter
+bool OperationModeFilter(
 	const uint16_t Protocol, 
 	const void * const OriginalAddr)
 {
-	std::lock_guard<std::mutex> IPFilterFileMutex(IPFilterFileLock);
-	if (Protocol == AF_INET6)
+//Empty address check
+	if ((Protocol == AF_INET6 && CheckEmptyBuffer(OriginalAddr, sizeof(in6_addr))) || //IPv6
+		(Protocol == AF_INET && CheckEmptyBuffer(OriginalAddr, sizeof(in_addr)))) //IPv4
 	{
-	//Permit mode
-		if (Parameter.IPFilterType)
-		{
-			for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
-			{
-				for (const auto &AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
-				{
-				//Check Protocol and Level.
-					if (AddressRangeTableIter.Begin.ss_family != AF_INET6 || (Parameter.IPFilterLevel > 0 && AddressRangeTableIter.Level < Parameter.IPFilterLevel))
-						continue;
-
-				//Check address.
-					for (size_t Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);++Index)
-					{
-						if (ntohs(((in6_addr *)OriginalAddr)->s6_words[Index]) > ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index]) && 
-							ntohs(((in6_addr *)OriginalAddr)->s6_words[Index]) < ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index]))
-						{
-							return true;
-						}
-						else if (((in6_addr *)OriginalAddr)->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index] || 
-							((in6_addr *)OriginalAddr)->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index])
-						{
-							if (Index == sizeof(in6_addr) / sizeof(uint16_t) - 1U)
-								return true;
-							else 
-								continue;
-						}
-						else {
-							return false;
-						}
-					}
-				}
-			}
-		}
-	//Deny mode
-		else {
-			for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
-			{
-				for (const auto &AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
-				{
-				//Check Protocol and Level.
-					if (AddressRangeTableIter.Begin.ss_family != AF_INET6 || (Parameter.IPFilterLevel > 0 && AddressRangeTableIter.Level < Parameter.IPFilterLevel))
-						continue;
-
-				//Check address.
-					for (size_t Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);++Index)
-					{
-						if (ntohs(((in6_addr *)OriginalAddr)->s6_words[Index]) > ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index]) && 
-							ntohs(((in6_addr *)OriginalAddr)->s6_words[Index]) < ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index]))
-						{
-							return false;
-						}
-						else if (((in6_addr *)OriginalAddr)->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index] || 
-							((in6_addr *)OriginalAddr)->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index])
-						{
-							if (Index == sizeof(in6_addr) / sizeof(uint16_t) - 1U)
-								return false;
-							else 
-								continue;
-						}
-						else {
-							return true;
-						}
-					}
-				}
-			}
-		}
-	}
-	else if (Protocol == AF_INET)
-	{
-	//Permit mode
-		if (Parameter.IPFilterType)
-		{
-			for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
-			{
-				for (const auto &AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
-				{
-				//Check Protocol and Level.
-					if (AddressRangeTableIter.Begin.ss_family != AF_INET || (Parameter.IPFilterLevel > 0 && AddressRangeTableIter.Level < Parameter.IPFilterLevel))
-						continue;
-
-				//Check address.
-					if (((in_addr *)OriginalAddr)->s_net > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net && 
-						((in_addr *)OriginalAddr)->s_net < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
-					{
-						return true;
-					}
-					else if (((in_addr *)OriginalAddr)->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net || 
-						((in_addr *)OriginalAddr)->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
-					{
-						if (((in_addr *)OriginalAddr)->s_host > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host && 
-							((in_addr *)OriginalAddr)->s_host < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
-						{
-							return true;
-						}
-						else if (((in_addr *)OriginalAddr)->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host || 
-							((in_addr *)OriginalAddr)->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
-						{
-							if (((in_addr *)OriginalAddr)->s_lh > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh && 
-								((in_addr *)OriginalAddr)->s_lh < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
-							{
-								return true;
-							}
-							else if (((in_addr *)OriginalAddr)->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh || 
-								((in_addr *)OriginalAddr)->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
-							{
-								if (((in_addr *)OriginalAddr)->s_impno >= ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_impno && 
-									((in_addr *)OriginalAddr)->s_impno <= ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_impno)
-										return true;
-								else 
-									return false;
-							}
-							else {
-								return false;
-							}
-						}
-						else {
-							return false;
-						}
-					}
-					else {
-						return false;
-					}
-				}
-			}
-		}
-	//Deny mode
-		else {
-			for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
-			{
-				for (const auto &AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
-				{
-				//Check Protocol and Level.
-					if (AddressRangeTableIter.Begin.ss_family != AF_INET || (Parameter.IPFilterLevel > 0 && AddressRangeTableIter.Level < Parameter.IPFilterLevel))
-						continue;
-
-				//Check address.
-					if (((in_addr *)OriginalAddr)->s_net > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net && 
-						((in_addr *)OriginalAddr)->s_net < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
-					{
-						return false;
-					}
-					else if (((in_addr *)OriginalAddr)->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net || 
-						((in_addr *)OriginalAddr)->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
-					{
-						if (((in_addr *)OriginalAddr)->s_host > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host && ((in_addr *)OriginalAddr)->s_host < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
-						{
-							return false;
-						}
-						else if (((in_addr *)OriginalAddr)->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host || 
-							((in_addr *)OriginalAddr)->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
-						{
-							if (((in_addr *)OriginalAddr)->s_lh > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh && 
-								((in_addr *)OriginalAddr)->s_lh < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
-							{
-								return false;
-							}
-							else if (((in_addr *)OriginalAddr)->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh || 
-								((in_addr *)OriginalAddr)->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
-							{
-								if (((in_addr *)OriginalAddr)->s_impno >= ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_impno && 
-									((in_addr *)OriginalAddr)->s_impno <= ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_impno)
-										return false;
-								else 
-									return true;
-							}
-							else {
-								return true;
-							}
-						}
-						else {
-							return true;
-						}
-					}
-					else {
-						return true;
-					}
-				}
-			}
-		}
-	}
-	else {
 		return false;
 	}
+//Private Mode address filter
+	else if (Parameter.OperationMode == LISTEN_MODE_PRIVATE)
+	{
+		if (
+		//IPv6
+			(Protocol == AF_INET6 && 
+			((((in6_addr *)OriginalAddr)->s6_bytes[0] >= 0xFC && ((in6_addr *)OriginalAddr)->s6_bytes[0] <= 0xFD) || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
+			(((in6_addr *)OriginalAddr)->s6_bytes[0] == 0xFE && ((in6_addr *)OriginalAddr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)OriginalAddr)->s6_bytes[1U] <= 0xBF) || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
+			(((in6_addr *)OriginalAddr)->s6_words[6U] == 0 && ntohs(((in6_addr *)OriginalAddr)->s6_words[7U]) == 0x0001))) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
+		//IPv4
+			(Protocol == AF_INET && 
+			(((in_addr *)OriginalAddr)->s_net == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
+			((in_addr *)OriginalAddr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
+			(((in_addr *)OriginalAddr)->s_net == 0xA9 && ((in_addr *)OriginalAddr)->s_host >= 0xFE) || //Link-local addresses(169.254.0.0/16, Section 1.5 in RFC 3927)
+			(((in_addr *)OriginalAddr)->s_net == 0xAC && ((in_addr *)OriginalAddr)->s_host >= 0x10 && ((in_addr *)OriginalAddr)->s_host <= 0x1F) || //Private class B address(172.16.0.0/12, Section 3 in RFC 1918)
+			(((in_addr *)OriginalAddr)->s_net == 0xC0 && ((in_addr *)OriginalAddr)->s_host == 0xA8)))) //Private class C address(192.168.0.0/16, Section 3 in RFC 1918)
+				return true;
+		else 
+			return false;
+	}
+//Custom Mode address filter
+	else if (Parameter.OperationMode == LISTEN_MODE_CUSTOM)
+	{
+		std::lock_guard<std::mutex> IPFilterFileMutex(IPFilterFileLock);
+		if (Protocol == AF_INET6)
+		{
+		//Permit mode
+			if (Parameter.IsIPFilterTypePermit)
+			{
+				for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
+				{
+					for (const auto &AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
+					{
+					//Check Protocol and Level.
+						if (AddressRangeTableIter.Begin.ss_family != AF_INET6 || Parameter.IPFilterLevel == 0 || AddressRangeTableIter.Level >= Parameter.IPFilterLevel)
+							continue;
 
-	return true;
+					//Check address.
+						for (size_t Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);++Index)
+						{
+							if (ntohs(((in6_addr *)OriginalAddr)->s6_words[Index]) > ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index]) && 
+								ntohs(((in6_addr *)OriginalAddr)->s6_words[Index]) < ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index]))
+							{
+								return true;
+							}
+							else if (((in6_addr *)OriginalAddr)->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index] || 
+								((in6_addr *)OriginalAddr)->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index])
+							{
+								if (Index == sizeof(in6_addr) / sizeof(uint16_t) - 1U)
+									return true;
+							}
+						}
+					}
+				}
+
+				return false;
+			}
+		//Deny mode
+			else {
+				for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
+				{
+					for (const auto &AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
+					{
+					//Check Protocol and Level.
+						if (AddressRangeTableIter.Begin.ss_family != AF_INET6 || Parameter.IPFilterLevel == 0 || AddressRangeTableIter.Level >= Parameter.IPFilterLevel)
+							continue;
+
+					//Check address.
+						for (size_t Index = 0;Index < sizeof(in6_addr) / sizeof(uint16_t);++Index)
+						{
+							if (ntohs(((in6_addr *)OriginalAddr)->s6_words[Index]) > ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index]) && 
+								ntohs(((in6_addr *)OriginalAddr)->s6_words[Index]) < ntohs(((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index]))
+							{
+								return false;
+							}
+							else if (((in6_addr *)OriginalAddr)->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr.s6_words[Index] || 
+								((in6_addr *)OriginalAddr)->s6_words[Index] == ((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr.s6_words[Index])
+							{
+								if (Index == sizeof(in6_addr) / sizeof(uint16_t) - 1U)
+									return false;
+							}
+						}
+					}
+				}
+
+				return true;
+			}
+		}
+		else if (Protocol == AF_INET)
+		{
+		//Permit mode
+			if (Parameter.IsIPFilterTypePermit)
+			{
+				for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
+				{
+					for (const auto &AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
+					{
+					//Check Protocol and Level.
+						if (AddressRangeTableIter.Begin.ss_family != AF_INET || Parameter.IPFilterLevel == 0 || AddressRangeTableIter.Level >= Parameter.IPFilterLevel)
+							continue;
+
+					//Check address.
+						if (((in_addr *)OriginalAddr)->s_net > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net && 
+							((in_addr *)OriginalAddr)->s_net < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
+						{
+							return true;
+						}
+						else if (((in_addr *)OriginalAddr)->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net || 
+							((in_addr *)OriginalAddr)->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
+						{
+							if (((in_addr *)OriginalAddr)->s_host > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host && 
+								((in_addr *)OriginalAddr)->s_host < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
+							{
+								return true;
+							}
+							else if (((in_addr *)OriginalAddr)->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host || 
+								((in_addr *)OriginalAddr)->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
+							{
+								if (((in_addr *)OriginalAddr)->s_lh > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh && 
+									((in_addr *)OriginalAddr)->s_lh < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
+								{
+									return true;
+								}
+								else if (((in_addr *)OriginalAddr)->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh || 
+									((in_addr *)OriginalAddr)->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
+								{
+									if (((in_addr *)OriginalAddr)->s_impno >= ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_impno && 
+										((in_addr *)OriginalAddr)->s_impno <= ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_impno)
+											return true;
+								}
+							}
+						}
+					}
+				}
+
+				return false;
+			}
+		//Deny mode
+			else {
+				for (const auto &IPFilterFileSetIter:*IPFilterFileSetUsing)
+				{
+					for (const auto &AddressRangeTableIter:IPFilterFileSetIter.AddressRange)
+					{
+					//Check Protocol and Level.
+						if (AddressRangeTableIter.Begin.ss_family != AF_INET || Parameter.IPFilterLevel == 0 || AddressRangeTableIter.Level >= Parameter.IPFilterLevel)
+							continue;
+
+					//Check address.
+						if (((in_addr *)OriginalAddr)->s_net > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net && 
+							((in_addr *)OriginalAddr)->s_net < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
+						{
+							return false;
+						}
+						else if (((in_addr *)OriginalAddr)->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_net || 
+							((in_addr *)OriginalAddr)->s_net == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_net)
+						{
+							if (((in_addr *)OriginalAddr)->s_host > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host && 
+								((in_addr *)OriginalAddr)->s_host < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
+							{
+								return false;
+							}
+							else if (((in_addr *)OriginalAddr)->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_host || 
+								((in_addr *)OriginalAddr)->s_host == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_host)
+							{
+								if (((in_addr *)OriginalAddr)->s_lh > ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh && 
+									((in_addr *)OriginalAddr)->s_lh < ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
+								{
+									return false;
+								}
+								else if (((in_addr *)OriginalAddr)->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_lh || 
+									((in_addr *)OriginalAddr)->s_lh == ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_lh)
+								{
+									if (((in_addr *)OriginalAddr)->s_impno >= ((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr.s_impno && 
+										((in_addr *)OriginalAddr)->s_impno <= ((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr.s_impno)
+											return false;
+								}
+							}
+						}
+					}
+				}
+
+				return true;
+			}
+		}
+		else {
+			return false;
+		}
+	}
+
+	return false;
 }
 
 //Count DNS Query Name length
@@ -888,34 +895,20 @@ bool CheckQueryData(
 	const size_t SendSize, 
 	const SOCKET_DATA &LocalSocketData)
 {
-//Check address.
-	if (!(Packet != nullptr && SendBuffer != nullptr && Packet->Protocol == IPPROTO_TCP && Packet->Length >= DNS_PACKET_MINSIZE))
+//Check address(UDP monitor and TCP monitor when accepting connections).
+	if (Packet == nullptr || SendBuffer == nullptr || SendSize < DNS_PACKET_MINSIZE || Packet->Protocol == IPPROTO_UDP)
 	{
-		if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) //IPv6
+	//IPv6
+		if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) 
 		{
-			if (CheckEmptyBuffer(&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr, sizeof(((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)) || //Empty address
-			//Check Private Mode(IPv6).
-				(Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
-				!((((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] >= 0xFC && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] <= 0xFD) || //Unique Local Unicast address/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
-				(((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[0] == 0xFE && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[1U] >= 0x80 && ((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_bytes[1U] <= 0xBF) || //Link-Local Unicast Contrast address(FE80::/10, Section 2.5.6 in RFC 4291)
-				(((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_words[6U] == 0 && ntohs(((in6_addr *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)->s6_words[7U]) == 0x0001))) || //Loopback address(::1, Section 2.5.3 in RFC 4291)
-			//Check Custom Mode(IPv6).
-				(Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(AF_INET6, &((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr)))
-					return false;
+			if (!OperationModeFilter(AF_INET6, &((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr))
+				return false;
 		}
-		else if (LocalSocketData.AddrLen == sizeof(sockaddr_in)) //IPv4
+	//IPv4
+		else if (LocalSocketData.AddrLen == sizeof(sockaddr_in))
 		{
-			if ((*(in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr).s_addr == 0 || //Empty address
-			//Check Private Mode(IPv4).
-				(Parameter.OperationMode == LISTEN_MODE_PRIVATE && 
-				!(((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0x0A || //Private class A address(10.0.0.0/8, Section 3 in RFC 1918)
-				((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
-				(((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0xA9 && ((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_host >= 0xFE) || //Link-local addresses(169.254.0.0/16, Section 1.5 in RFC 3927)
-				(((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0xAC && ((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_host >= 0x10 && ((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_host <= 0x1F) || //Private class B address(172.16.0.0/12, Section 3 in RFC 1918)
-				(((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_net == 0xC0 && ((in_addr *)&((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)->s_host == 0xA8))) || //Private class C address(192.168.0.0/16, Section 3 in RFC 1918)
-			//Check Custom Mode(IPv4).
-				(Parameter.OperationMode == LISTEN_MODE_CUSTOM && !CheckCustomModeFilter(AF_INET, &((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr)))
-					return false;
+			if (!OperationModeFilter(AF_INET, &((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr))
+				return false;
 		}
 		else {
 			return false;
@@ -1028,7 +1021,7 @@ bool CheckQueryData(
 	{
 	//Make packets with EDNS Label.
 		DNS_Header->Flags = htons(DNS_SET_R_TC);
-		AddEDNSLabelToAdditionalRR(Packet, nullptr);
+		Add_EDNS_To_Additional_RR(Packet, nullptr);
 
 	//Send request.
 		if (Packet->Length >= DNS_PACKET_MINSIZE)
@@ -1047,7 +1040,7 @@ bool CheckQueryData(
 				EDNSSocketData = (PSOCKET_DATA)&LocalSocketData;
 
 	//Add EDNS Label to query data.
-		AddEDNSLabelToAdditionalRR(Packet, EDNSSocketData);
+		Add_EDNS_To_Additional_RR(Packet, EDNSSocketData);
 	}
 
 //Check Hosts.
@@ -1148,7 +1141,7 @@ bool CheckConnectionStreamFin(
 }
 
 //Check response CNAME resource records
-size_t CheckResponseCNAME(
+size_t CheckResponse_CNAME(
 	uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t CNAME_Index, 
@@ -1158,11 +1151,12 @@ size_t CheckResponseCNAME(
 {
 //Mark whole DNS query.
 	std::string Domain;
-	if (MarkWholeDNSQuery(Buffer, Length, Buffer + CNAME_Index, CNAME_Index, Domain) <= DOMAIN_MINSIZE)
+	size_t DataLength = MarkWholePacketQuery(Buffer, Length, Buffer + CNAME_Index, CNAME_Index, Domain);
+	if (DataLength < DOMAIN_MINSIZE || DataLength >= DOMAIN_MAXSIZE)
 		return EXIT_FAILURE;
 	const auto DNS_Header = (pdns_hdr)Buffer;
 	const auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
-	size_t DataLength = 0;
+	DataLength = 0;
 	RecordNum = 0;
 	CaseConvert(Domain, false);
 
@@ -1213,6 +1207,8 @@ size_t CheckResponseCNAME(
 				//Set header flags and convert DNS query to DNS response packet.
 					DNS_Header->Flags = htons(DNS_SQR_NE);
 					DataLength = CNAME_Index + CNAME_Length;
+					if (DataLength >= BufferSize)
+						return EXIT_FAILURE;
 					memset(Buffer + DataLength, 0, BufferSize - DataLength);
 
 				//Hosts load balancing
@@ -1249,13 +1245,13 @@ size_t CheckResponseCNAME(
 						}
 					}
 
-				//Set DNS counts and EDNS Label
+				//Set DNS counts and EDNS Label.
 					RecordNum = Index;
 					DNS_Header->Authority = 0;
 					if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
 					{
 						DNS_Header->Additional = 0;
-						DataLength = AddEDNSLabelToAdditionalRR(Buffer, DataLength, BufferSize, nullptr);
+						DataLength = Add_EDNS_To_Additional_RR(Buffer, DataLength, BufferSize, nullptr);
 					}
 
 					return DataLength;
@@ -1266,6 +1262,8 @@ size_t CheckResponseCNAME(
 				//Set header flags and convert DNS query to DNS response packet.
 					DNS_Header->Flags = htons(DNS_SQR_NE);
 					DataLength = CNAME_Index + CNAME_Length;
+					if (DataLength >= BufferSize)
+						return EXIT_FAILURE;
 					memset(Buffer + DataLength, 0, BufferSize - DataLength);
 
 				//Hosts load balancing
@@ -1302,13 +1300,13 @@ size_t CheckResponseCNAME(
 						}
 					}
 
-				//Set DNS counts and EDNS Label
+				//Set DNS counts and EDNS Label.
 					RecordNum = Index;
 					DNS_Header->Authority = 0;
 					if (Parameter.EDNS_Label || DNS_Header->Additional > 0)
 					{
 						DNS_Header->Additional = 0;
-						DataLength = AddEDNSLabelToAdditionalRR(Buffer, DataLength, BufferSize, nullptr);
+						DataLength = Add_EDNS_To_Additional_RR(Buffer, DataLength, BufferSize, nullptr);
 					}
 
 					return DataLength;
@@ -1390,13 +1388,13 @@ size_t CheckResponseData(
 //Mark domain.
 	std::string Domain;
 	const uint8_t *DomainString = nullptr;
-	DNSQueryToChar(Buffer + sizeof(dns_hdr), Domain);
+	PacketQueryToString(Buffer + sizeof(dns_hdr), Domain);
 	if (!Domain.empty())
 		DomainString = (const uint8_t *)Domain.c_str();
 
 //Initialization
 	const auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
-	size_t DataLength = DNS_PACKET_RR_LOCATE(Buffer);
+	size_t DataLength = DNS_PACKET_RR_LOCATE(Buffer), RecordNum = 0, CNAME_DataLength = 0;
 	uint16_t DNS_Pointer = 0, BeforeType = 0;
 	pdns_record_standard DNS_Record_Standard = nullptr;
 	void *Addr = nullptr;
@@ -1406,7 +1404,11 @@ size_t CheckResponseData(
 	for (size_t Index = 0;Index < (size_t)(ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional));++Index)
 	{
 	//Pointer check
-		if (DataLength + sizeof(uint16_t) < Length && Buffer[DataLength] >= DNS_POINTER_8_BITS)
+		if (DataLength >= Length || DataLength + sizeof(uint16_t) >= Length)
+		{
+			return EXIT_FAILURE;
+		}
+		else if (Buffer[DataLength] >= DNS_POINTER_8_BITS)
 		{
 			DNS_Pointer = ntohs(*(uint16_t *)(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
 			if (DNS_Pointer >= Length || DNS_Pointer < sizeof(dns_hdr) || DNS_Pointer == DataLength || DNS_Pointer == DataLength + 1U)
@@ -1426,11 +1428,11 @@ size_t CheckResponseData(
 
 	//CNAME Hosts
 		if (Index < ntohs(DNS_Header->Answer) && ntohs(DNS_Record_Standard->Classes) == DNS_CLASS_INTERNET && DNS_Record_Standard->TTL > 0 && 
-			ntohs(DNS_Record_Standard->Type) == DNS_TYPE_CNAME && ntohs(DNS_Record_Standard->Length) >= DOMAIN_MINSIZE && 
-			DataLength + ntohs(DNS_Record_Standard->Length) < Length)
+			ntohs(DNS_Record_Standard->Type) == DNS_TYPE_CNAME && DataLength + ntohs(DNS_Record_Standard->Length) < Length && 
+			ntohs(DNS_Record_Standard->Length) >= DOMAIN_MINSIZE && ntohs(DNS_Record_Standard->Length) < DOMAIN_MAXSIZE)
 		{
-			size_t RecordNum = 0;
-			const auto CNAME_DataLength = CheckResponseCNAME(Buffer, Length, DataLength, ntohs(DNS_Record_Standard->Length), BufferSize, RecordNum);
+			RecordNum = 0;
+			CNAME_DataLength = CheckResponse_CNAME(Buffer, Length, DataLength, ntohs(DNS_Record_Standard->Length), BufferSize, RecordNum);
 			if (CNAME_DataLength >= DNS_PACKET_MINSIZE && RecordNum > 0)
 			{
 				DNS_Header->Answer = htons((uint16_t)(Index + 1U + RecordNum));
@@ -1453,7 +1455,7 @@ size_t CheckResponseData(
 				IsDNSSEC_Records = true;
 
 			//DNSSEC Validation
-				if (Parameter.DNSSEC_Validation && !CheckDNSSECRecords(Buffer + DataLength, ntohs(DNS_Record_Standard->Length), ntohs(DNS_Record_Standard->Type), BeforeType))
+				if (Parameter.DNSSEC_Validation && !Check_DNSSEC_Record(Buffer + DataLength, ntohs(DNS_Record_Standard->Length), ntohs(DNS_Record_Standard->Type), BeforeType))
 					return EXIT_FAILURE;
 			}
 		}
@@ -1502,8 +1504,6 @@ size_t CheckResponseData(
 		DataLength += ntohs(DNS_Record_Standard->Length);
 	}
 
-	return Length;
-
 //Additional EDNS Label Resource Records check, DNSSEC Validation check and Local request result check
 	if (ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && 
 		((Parameter.EDNS_Label && 
@@ -1536,7 +1536,7 @@ size_t CheckResponseData(
 }
 
 //Check DNSSEC Records
-bool CheckDNSSECRecords(
+bool Check_DNSSEC_Record(
 	const uint8_t * const Buffer, 
 	const size_t Length, 
 	const uint16_t Type, 

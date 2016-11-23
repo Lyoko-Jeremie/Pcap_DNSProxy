@@ -46,7 +46,7 @@ bool CheckEmptyBuffer(
 }
 
 //Convert multiple bytes to wide char string
-bool MBSToWCSString(
+bool MBS_To_WCS_String(
 	const uint8_t * const Buffer, 
 	const size_t MaxLen, 
 	std::wstring &Target)
@@ -55,7 +55,7 @@ bool MBSToWCSString(
 	Target.clear();
 	if (Buffer == nullptr || MaxLen == 0)
 		return false;
-	size_t Length = strnlen_s((const char *)Buffer, MaxLen);
+	auto Length = strnlen_s((const char *)Buffer, MaxLen);
 	if (Length == 0 || CheckEmptyBuffer(Buffer, Length))
 		return false;
 
@@ -87,7 +87,7 @@ bool MBSToWCSString(
 }
 
 //Convert wide char string to multiple bytes
-bool WCSToMBSString(
+bool WCS_To_MBS_String(
 	const wchar_t * const Buffer, 
 	const size_t MaxLen, 
 	std::string &Target)
@@ -96,7 +96,7 @@ bool WCSToMBSString(
 	Target.clear();
 	if (Buffer == nullptr || MaxLen == 0)
 		return false;
-	size_t Length = wcsnlen_s(Buffer, MaxLen);
+	auto Length = wcsnlen_s(Buffer, MaxLen);
 	if (Length == 0 || CheckEmptyBuffer(Buffer, sizeof(wchar_t) * Length))
 		return false;
 
@@ -197,7 +197,7 @@ void MakeStringReversed(
 	std::string &String)
 {
 //String check
-	if (String.size() <= 1U)
+	if (String.length() <= 1U)
 		return;
 
 //Make string reversed
@@ -217,7 +217,7 @@ void MakeStringReversed(
 	std::wstring &String)
 {
 //String check
-	if (String.size() <= 1U)
+	if (String.length() <= 1U)
 		return;
 
 //Make string reversed
@@ -237,12 +237,7 @@ bool CompareStringReversed(
 	const std::string &RuleItem, 
 	const std::string &TestItem)
 {
-//Length check
-	if (RuleItem.empty() || TestItem.empty() || TestItem.length() < RuleItem.length())
-		return false;
-
-//Compare each other.
-	else if (memcmp(RuleItem.c_str(), TestItem.c_str(), RuleItem.length()) == 0)
+	if (!RuleItem.empty() && !TestItem.empty() && TestItem.length() >= RuleItem.length() && memcmp(RuleItem.c_str(), TestItem.c_str(), RuleItem.length()) == 0)
 		return true;
 
 	return false;
@@ -366,7 +361,6 @@ size_t Base64_Decode(
 //Convert from Base64 to binary.
 	for (Index[0] = Index[1U] = 0;Index[0] < Length;++Index[0])
 	{
-	//From 6/gcd(6, 8)
 		StringIter = 0;
 		Index[2U] = Index[0] % 4U;
 		if (Input[Index[0]] == (uint8_t)BASE64_PAD)

@@ -20,7 +20,7 @@
 #include "Configuration.h"
 
 //Global variables
-extern size_t HopLimitIndex[NETWORK_LAYER_PARTNUM];
+extern size_t HopLimitIndex[];
 
 //Check parameter list and set default values
 bool ParameterCheckAndSetting(
@@ -345,14 +345,18 @@ bool ParameterCheckAndSetting(
 	//Multiple Request Times check
 	if (ParameterPTR->MultipleRequestTimes < 1U)
 		++ParameterPTR->MultipleRequestTimes;
-	if ((Parameter.Target_Server_IPv4_Multiple != nullptr && (Parameter.Target_Server_IPv4_Multiple->size() + 2U) * ParameterPTR->MultipleRequestTimes > MULTIPLE_REQUEST_MAXNUM) || 
-		(Parameter.Target_Server_IPv4_Multiple == nullptr && ParameterPTR->MultipleRequestTimes * 2U > MULTIPLE_REQUEST_MAXNUM))
+	if ((Parameter.Target_Server_IPv4_Multiple != nullptr && 
+		(Parameter.Target_Server_IPv4_Multiple->size() + 2U) * ParameterPTR->MultipleRequestTimes > MULTIPLE_REQUEST_MAXNUM) || 
+		(Parameter.Target_Server_IPv4_Multiple == nullptr && 
+			ParameterPTR->MultipleRequestTimes * 2U > MULTIPLE_REQUEST_MAXNUM))
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 total request number error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
 	}
-	if ((Parameter.Target_Server_IPv6_Multiple != nullptr && (Parameter.Target_Server_IPv6_Multiple->size() + 2U) * ParameterPTR->MultipleRequestTimes > MULTIPLE_REQUEST_MAXNUM) || 
-		(Parameter.Target_Server_IPv6_Multiple == nullptr && ParameterPTR->MultipleRequestTimes * 2U > MULTIPLE_REQUEST_MAXNUM))
+	if ((Parameter.Target_Server_IPv6_Multiple != nullptr && 
+		(Parameter.Target_Server_IPv6_Multiple->size() + 2U) * ParameterPTR->MultipleRequestTimes > MULTIPLE_REQUEST_MAXNUM) || 
+		(Parameter.Target_Server_IPv6_Multiple == nullptr && 
+		ParameterPTR->MultipleRequestTimes * 2U > MULTIPLE_REQUEST_MAXNUM))
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 total request number error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
@@ -453,7 +457,7 @@ bool ParameterCheckAndSetting(
 	//Default Local DNS server name
 		if (Parameter.LocalFQDN_Length <= 0)
 		{
-			Parameter.LocalFQDN_Length = CharToDNSQuery((const uint8_t *)DEFAULT_LOCAL_SERVERNAME, Parameter.LocalFQDN_Response);
+			Parameter.LocalFQDN_Length = StringToPacketQuery((const uint8_t *)DEFAULT_LOCAL_SERVERNAME, Parameter.LocalFQDN_Response);
 			*Parameter.LocalFQDN_String = DEFAULT_LOCAL_SERVERNAME;
 		}
 
@@ -621,7 +625,7 @@ bool ParameterCheckAndSetting(
 			//Mark TLS Server Name Indication/SNI.
 				if (Parameter.sHTTP_CONNECT_TLS_SNI != nullptr && !Parameter.sHTTP_CONNECT_TLS_SNI->empty())
 				{
-					if (!MBSToWCSString((const uint8_t *)Parameter.sHTTP_CONNECT_TLS_SNI->c_str(), Parameter.sHTTP_CONNECT_TLS_SNI->length(), *Parameter.HTTP_CONNECT_TLS_SNI))
+					if (!MBS_To_WCS_String((const uint8_t *)Parameter.sHTTP_CONNECT_TLS_SNI->c_str(), Parameter.sHTTP_CONNECT_TLS_SNI->length(), *Parameter.HTTP_CONNECT_TLS_SNI))
 					{
 						PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 						delete Parameter.HTTP_CONNECT_TLS_SNI;
@@ -1452,9 +1456,9 @@ bool ReadParameterData(
 {
 //Delete delete spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs) and check minimum length of ipfilter items.
 //Delete comments(Number Sign/NS and double slashs) and check minimum length of configuration items.
+//HTTP CONNECT Header Field, Additional Path, Hosts File Name and IPFilter File Name must not be deleted spaces or horizontal tab/HT.
 	if (Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
 		return true;
-	//HTTP CONNECT Header Field, Additional Path, Hosts File Name and IPFilter File Name must not be deleted spaces or horizontal tab/HT.
 	else if (Data.find("HTTP CONNECT Header Field = ") != 0 && Data.find("Additional Path = ") != 0 && 
 		Data.find("Hosts File Name =") != 0 && Data.find("IPFilter File Name = ") != 0)
 	{
@@ -1720,14 +1724,16 @@ bool ReadParameterData(
 				Parameter.OperationMode = LISTEN_MODE_SERVER;
 			else if (Data.find("CUSTOM") != std::string::npos)
 				Parameter.OperationMode = LISTEN_MODE_CUSTOM;
-			else 
+			else //Proxy mode
 				Parameter.OperationMode = LISTEN_MODE_PROXY;
 		}
 	}
 
-	if (Data.find("IPFilterType=PERMIT") == 0 || Data.find("IPFilterType=Permit") == 0 || Data.find("IPFilterType=permit") == 0)
+	if (Data.find("IPFilterType=") == 0 && Data.length() > strlen("IPFilterType="))
 	{
-		ParameterPTR->IPFilterType = true;
+		CaseConvert(Data, true);
+		if (Data.find("IPFILTERTYPE=PERMIT") == 0)
+			ParameterPTR->IsIPFilterTypePermit = true;
 	}
 	else if (Data.find("IPFilterLevel<") == 0 && Data.length() > strlen("IPFilterLevel<"))
 	{
@@ -1755,11 +1761,13 @@ bool ReadParameterData(
 			goto PrintDataFormatError;
 		}
 		else {
+			CaseConvert(Data, true);
+
 		//Permit or Deny mode check
-			if (Data.find("Permit:") != std::string::npos || Data.find("PERMIT:") != std::string::npos || Data.find("permit:") != std::string::npos)
-				ParameterPTR->AcceptType = true;
+			if (Data.find("PERMIT:") != std::string::npos)
+				ParameterPTR->IsAcceptTypePermit = true;
 			else 
-				ParameterPTR->AcceptType = false;
+				ParameterPTR->IsAcceptTypePermit = false;
 
 		//Mark all data in list.
 			std::vector<std::string> ListData;
@@ -1807,10 +1815,9 @@ bool ReadParameterData(
 		else 
 			Parameter.RequestMode_Transport = REQUEST_MODE_UDP;
 	}
-	else if ((Data.find("DirectRequest=") == 0 && Data.length() > strlen("DirectRequest=")) || 
-		(Data.find("HostsOnly=") == 0 && Data.length() > strlen("HostsOnly="))) //Old version compatible support
+	else if (Data.find("DirectRequest=") == 0 && Data.length() > strlen("DirectRequest="))
 	{
-		if (Data.find("DirectRequest=1") == 0 || Data.find("HostsOnly=1") == 0)
+		if (Data.find("DirectRequest=1") == 0)
 		{
 			ParameterPTR->DirectRequest = REQUEST_MODE_DIRECT_BOTH;
 		}
@@ -2024,20 +2031,12 @@ bool ReadParameterData(
 				goto PrintDataFormatError;
 			}
 		}
-		else if ((Data.find("ThreadPoolMaximumNumber=") == 0 && Data.length() > strlen("ThreadPoolMaximumNumber=")) || 
-			(Data.find("BufferQueueLimits=") == 0 && Data.length() > strlen("BufferQueueLimits="))) //Old version compatible support
+		else if (Data.find("ThreadPoolMaximumNumber=") == 0 && Data.length() > strlen("ThreadPoolMaximumNumber="))
 		{
-			size_t Offset = 0;
-			if (Data.find("BufferQueueLimits=") == 0 && Data.length() > strlen("BufferQueueLimits="))
-				Offset = strlen("BufferQueueLimits=");
-			else 
-				Offset = strlen("ThreadPoolMaximumNumber=");
-
-		//Read data.
-			if (Data.length() < Offset + UINT32_MAX_STRING_LENGTH - 1U)
+			if (Data.length() < strlen("ThreadPoolMaximumNumber=") + UINT32_MAX_STRING_LENGTH - 1U)
 			{
 				_set_errno(0);
-				UnsignedResult = strtoul(Data.c_str() + Offset, nullptr, 0);
+				UnsignedResult = strtoul(Data.c_str() + strlen("ThreadPoolMaximumNumber="), nullptr, 0);
 				if (UnsignedResult >= THREAD_POOL_MINNUM && UnsignedResult <= THREAD_POOL_MAXNUM)
 					Parameter.ThreadPoolMaxNum = UnsignedResult;
 			}
@@ -2422,20 +2421,12 @@ bool ReadParameterData(
 		}
 	}
 
-	if ((Data.find("MultipleRequestTimes=") == 0 && Data.length() > strlen("MultipleRequestTimes=")) || 
-		(Data.find("MultiRequestTimes=") == 0 && Data.length() > strlen("MultiRequestTimes="))) //Old version compatible support)
+	if (Data.find("MultipleRequestTimes=") == 0 && Data.length() > strlen("MultipleRequestTimes="))
 	{
-		size_t Offset = 0;
-		if (Data.find("MultiRequestTimes=") == 0 && Data.length() > strlen("MultiRequestTimes="))
-			Offset = strlen("MultiRequestTimes=");
-		else 
-			Offset = strlen("MultipleRequestTimes=");
-
-	//Read data.
-		if (Data.length() < Offset + UINT16_MAX_STRING_LENGTH)
+		if (Data.length() < strlen("MultipleRequestTimes=") + UINT16_MAX_STRING_LENGTH)
 		{
 			_set_errno(0);
-			UnsignedResult = strtoul(Data.c_str() + Offset, nullptr, 0);
+			UnsignedResult = strtoul(Data.c_str() + strlen("MultipleRequestTimes="), nullptr, 0);
 			if (UnsignedResult > 0 && UnsignedResult < ULONG_MAX)
 				ParameterPTR->MultipleRequestTimes = UnsignedResult;
 		}
@@ -2469,7 +2460,8 @@ bool ReadParameterData(
 		}
 		else if (Data.find("EDNSLabel=") == 0)
 		{
-			if (Data.find("EDNSLabel=1") == 0)
+			CaseConvert(Data, true);
+			if (Data.find("EDNSLABEL=1") == 0)
 			{
 				Parameter.EDNS_Label = true;
 				Parameter.EDNS_Switch_Local = true;
@@ -2481,31 +2473,31 @@ bool ReadParameterData(
 				Parameter.EDNS_Switch_UDP = true;
 			}
 			else {
-				if (Data.find("Local") != std::string::npos)
+				if (Data.find("LOCAL") != std::string::npos)
 				{
 					Parameter.EDNS_Label = true;
 					Parameter.EDNS_Switch_Local = true;
 				}
 
-				if (Data.find("SOCKS Proxy") != std::string::npos)
+				if (Data.find("SOCKS") != std::string::npos)
 				{
 					Parameter.EDNS_Label = true;
 					Parameter.EDNS_Switch_SOCKS = true;
 				}
 
-				if (Data.find("HTTP CONNECT Proxy") != std::string::npos)
+				if (Data.find("HTTP CONNECT") != std::string::npos)
 				{
 					Parameter.EDNS_Label = true;
 					Parameter.EDNS_Switch_HTTP_CONNECT = true;
 				}
 
-				if (Data.find("Direct") != std::string::npos)
+				if (Data.find("DIRECT") != std::string::npos)
 				{
 					Parameter.EDNS_Label = true;
 					Parameter.EDNS_Switch_Direct = true;
 				}
 
-				if (Data.find("DNSCurve") != std::string::npos || Data.find("DNSCrypt") != std::string::npos)
+				if (Data.find("DNSCURVE") != std::string::npos || Data.find("DNSCRYPT") != std::string::npos)
 				{
 					Parameter.EDNS_Label = true;
 					Parameter.EDNS_Switch_DNSCurve = true;
@@ -2540,8 +2532,7 @@ bool ReadParameterData(
 		{
 			Parameter.DNSSEC_ForceValidation = true;
 		}
-		else if (Data.find("AlternateMultipleRequest=1") == 0 || 
-			Data.find("AlternateMultiRequest=1") == 0) //Old version compatible support
+		else if (Data.find("AlternateMultipleRequest=1") == 0)
 		{
 			Parameter.AlternateMultipleRequest = true;
 		}
@@ -2632,24 +2623,16 @@ bool ReadParameterData(
 				goto PrintDataFormatError;
 		}
 	#endif
-		if ((Data.find("LocalMachineServerName=") == 0 && Data.length() > strlen("LocalMachineServerName=")) || 
-			(Data.find("LocalhostServerName=") == 0 && Data.length() > strlen("LocalhostServerName="))) //Old version compatible support
+		if (Data.find("LocalMachineServerName=") == 0 && Data.length() > strlen("LocalMachineServerName="))
 		{
-			size_t Offset = 0;
-			if (Data.find("LocalhostServerName=") == 0 && Data.length() > strlen("LocalhostServerName="))
-				Offset = strlen("LocalhostServerName=");
-			else 
-				Offset = strlen("LocalMachineServerName=");
-
-		//Read data.
-			if (Data.length() > Offset + DOMAIN_MINSIZE && Data.length() < Offset + DOMAIN_DATA_MAXSIZE)
+			if (Data.length() > strlen("LocalMachineServerName=") + DOMAIN_MINSIZE && Data.length() < strlen("LocalMachineServerName=") + DOMAIN_DATA_MAXSIZE)
 			{
 				uint8_t LocalFQDN[DOMAIN_MAXSIZE]{0};
-				Parameter.LocalFQDN_Length = Data.length() - Offset;
-				memcpy_s(LocalFQDN, DOMAIN_MAXSIZE, Data.c_str() + Offset, Parameter.LocalFQDN_Length);
+				Parameter.LocalFQDN_Length = Data.length() - strlen("LocalMachineServerName=");
+				memcpy_s(LocalFQDN, DOMAIN_MAXSIZE, Data.c_str() + strlen("LocalMachineServerName="), Parameter.LocalFQDN_Length);
 				*Parameter.LocalFQDN_String = (const char *)LocalFQDN;
 				memset(Parameter.LocalFQDN_Response, 0, DOMAIN_MAXSIZE);
-				UnsignedResult = CharToDNSQuery(LocalFQDN, Parameter.LocalFQDN_Response);
+				UnsignedResult = StringToPacketQuery(LocalFQDN, Parameter.LocalFQDN_Response);
 				if (UnsignedResult > DOMAIN_MINSIZE)
 				{
 					Parameter.LocalFQDN_Length = UnsignedResult;
@@ -2676,7 +2659,6 @@ bool ReadParameterData(
 		else if (Data.find("SOCKSVersion=") == 0 && Data.length() > strlen("SOCKSVersion="))
 		{
 			CaseConvert(Data, true);
-
 			if (Data.find("4A") != std::string::npos)
 				Parameter.SOCKS_Version = SOCKS_VERSION_CONFIG_4A;
 			else if (Data.find("4") != std::string::npos)
@@ -3184,7 +3166,7 @@ bool ReadPathAndFileName(
 		#endif
 
 		//Convert to wide string.
-			if (!MBSToWCSString((const uint8_t *)StringIter.c_str(), StringIter.length(), wNameString))
+			if (!MBS_To_WCS_String((const uint8_t *)StringIter.c_str(), StringIter.length(), wNameString))
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Read file path error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -3238,7 +3220,7 @@ bool ReadPathAndFileName(
 		for (const auto &StringIter:InnerListData)
 		{
 		//Convert to wide string.
-			if (!MBSToWCSString((const uint8_t *)StringIter.c_str(), StringIter.length(), wNameString))
+			if (!MBS_To_WCS_String((const uint8_t *)StringIter.c_str(), StringIter.length(), wNameString))
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Read file path error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
