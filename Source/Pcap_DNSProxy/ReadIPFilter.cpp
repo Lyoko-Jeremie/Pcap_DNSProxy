@@ -23,9 +23,9 @@
 bool ReadIPFilterData(
 	std::string Data, 
 	const size_t FileIndex, 
+	const size_t Line, 
 	size_t &LabelType, 
-	bool * const IsStopLabel, 
-	const size_t Line)
+	bool &IsStopLabel)
 {
 //Convert horizontal tab/HT to space and delete spaces before or after data.
 	for (auto &StringIter:Data)
@@ -46,49 +46,57 @@ bool ReadIPFilterData(
 	if (Data.find(ASCII_HASHTAG) == 0 || Data.find(ASCII_SLASH) == 0)
 		return true;
 
+//Case insensitive
+	std::string InsensitiveString(Data);
+	CaseConvert(InsensitiveString, true);
+
 //[Local Routing] block(A part)
-	if (LabelType == 0 && (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family > 0 || Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family > 0) && 
-		(CompareStringReversed(L"chnrouting.txt", FileList_IPFilter.at(FileIndex).FileName.c_str(), true) || 
-		CompareStringReversed(L"chnroute.txt", FileList_IPFilter.at(FileIndex).FileName.c_str(), true)))
+	if (LabelType == 0 && (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family != 0 || Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family != 0))
+	{
+		std::wstring WCS_InsensitiveString(FileList_IPFilter.at(FileIndex).FileName);
+		CaseConvert(WCS_InsensitiveString, true);
+		if (CompareStringReversed(L"CHNROUTING.TXT", WCS_InsensitiveString.c_str()) || CompareStringReversed(L"CHNROUTE.TXT", WCS_InsensitiveString.c_str()))
 			LabelType = LABEL_IPFILTER_LOCAL_ROUTING;
+	}
 
 //[IPFilter] block
-	if (Data.find("[IPFILTER]") == 0 || Data.find("[IPFilter]") == 0 || 
-		Data.find("[IPfilter]") == 0 || Data.find("[ipfilter]") == 0)
+	if (InsensitiveString.find("[IPFILTER]") == 0)
 	{
 		LabelType = LABEL_IPFILTER;
 		return true;
 	}
 
 //[Blacklist] block(A part)
-	else if (Data.find("[BLACKLIST]") == 0 || Data.find("[BlackList]") == 0 || 
-		Data.find("[Blacklist]") == 0 || Data.find("[blacklist]") == 0)
+	else if (InsensitiveString.find("[BLACKLIST]") == 0)
 	{
 		LabelType = LABEL_IPFILTER_BLACKLIST;
 		return true;
 	}
 
 //[Local Routing] block(B part)
-	else if (Data.find("[LOCAL ROUTING]") == 0 || 
-		Data.find("[Local Routing]") == 0 || Data.find("[Local routing]") == 0 || 
-		Data.find("[local Routing]") == 0 || Data.find("[local routing]") == 0)
+	else if (InsensitiveString.find("[LOCAL ROUTING]") == 0)
 	{
 		LabelType = LABEL_IPFILTER_LOCAL_ROUTING;
 		return true;
 	}
 
 //Temporary stop read.
-	else if (IsStopLabel != nullptr)
+	else if (InsensitiveString.find("[STOP") == 0)
 	{
-		if (Data.find("[STOP]") == 0 || Data.find("[Stop]") == 0 || Data.find("[stop]") == 0)
+		if (InsensitiveString.find("END]") != std::string::npos)
 		{
-			*IsStopLabel = !*IsStopLabel;
+			IsStopLabel = false;
 			return true;
 		}
-		else if (*IsStopLabel)
+		else if (InsensitiveString.find("[STOP]") == 0)
 		{
+			IsStopLabel = true;
 			return true;
 		}
+	}
+	else if (IsStopLabel)
+	{
+		return true;
 	}
 
 //[Blacklist] block(B part)
@@ -343,7 +351,9 @@ bool ReadBlacklistData(
 
 //Block these IP addresses from all request.
 	ResultBlacklistTableTemp.PatternString.append(Data, Separated, Data.length() - Separated);
-	if (ResultBlacklistTableTemp.PatternString == ("ALL") || ResultBlacklistTableTemp.PatternString == ("All") || ResultBlacklistTableTemp.PatternString == ("all"))
+	std::string InsensitiveString(ResultBlacklistTableTemp.PatternString);
+	CaseConvert(InsensitiveString, true);
+	if (InsensitiveString == ("ALL"))
 	{
 		ResultBlacklistTableTemp.PatternString.clear();
 		ResultBlacklistTableTemp.PatternString.shrink_to_fit();

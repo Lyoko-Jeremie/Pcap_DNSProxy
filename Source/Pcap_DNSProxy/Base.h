@@ -56,8 +56,7 @@ bool CompareStringReversed(
 	const std::string &TestItem);
 bool CompareStringReversed(
 	const wchar_t * const RuleItem, 
-	const wchar_t * const TestItem, 
-	const bool IsCaseConvert);
+	const wchar_t * const TestItem);
 bool SortCompare_IPFilter(
 	const DIFFERNET_FILE_SET_IPFILTER &Begin, 
 	const DIFFERNET_FILE_SET_IPFILTER &End);
@@ -68,6 +67,11 @@ size_t Base64_Encode(
 	uint8_t * const Input, 
 	const size_t Length, 
 	uint8_t * const Output, 
+	const size_t OutputSize);
+size_t Base64_Decode(
+	uint8_t *Input, 
+	const size_t Length, 
+	uint8_t *Output, 
 	const size_t OutputSize);
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 uint64_t IncreaseMillisecondTime(

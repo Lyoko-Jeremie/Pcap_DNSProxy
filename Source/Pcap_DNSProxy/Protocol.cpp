@@ -27,7 +27,7 @@ bool AddressStringToBinary(
 	ssize_t * const ErrorCode)
 {
 //Initialization
-	std::string sAddrString((const char *)AddrString);
+	std::string InnerAddrString((const char *)AddrString);
 	if (Protocol == AF_INET6)
 		memset(OriginalAddr, 0, sizeof(in6_addr));
 	else if (Protocol == AF_INET)
@@ -48,10 +48,10 @@ bool AddressStringToBinary(
 	if (Protocol == AF_INET6)
 	{
 	//Check IPv6 addresses.
-		if (sAddrString.find(ASCII_COLON) == std::string::npos || sAddrString.find(ASCII_PERIOD) != std::string::npos || 
-			sAddrString.find("::") != sAddrString.rfind("::"))
+		if (InnerAddrString.find(ASCII_COLON) == std::string::npos || InnerAddrString.find(ASCII_PERIOD) != std::string::npos || 
+			InnerAddrString.find("::") != InnerAddrString.rfind("::"))
 				return false;
-		for (const auto &StringIter:sAddrString)
+		for (const auto &StringIter:InnerAddrString)
 		{
 			if (StringIter < ASCII_ZERO || 
 				(StringIter > ASCII_COLON && StringIter < ASCII_UPPERCASE_A) || 
@@ -61,22 +61,22 @@ bool AddressStringToBinary(
 		}
 
 	//Check abbreviation format.
-		if (sAddrString.find(ASCII_COLON) == std::string::npos)
+		if (InnerAddrString.find(ASCII_COLON) == std::string::npos)
 		{
-			sAddrString.clear();
-			sAddrString.append("::");
-			sAddrString.append((const char *)AddrString);
+			InnerAddrString.clear();
+			InnerAddrString.append("::");
+			InnerAddrString.append((const char *)AddrString);
 		}
-		else if (sAddrString.find(ASCII_COLON) == sAddrString.rfind(ASCII_COLON))
+		else if (InnerAddrString.find(ASCII_COLON) == InnerAddrString.rfind(ASCII_COLON))
 		{
-			sAddrString.replace(sAddrString.find(ASCII_COLON), 1U, ("::"));
+			InnerAddrString.replace(InnerAddrString.find(ASCII_COLON), 1U, ("::"));
 		}
 
 	//Convert to binary.
 	#if defined(PLATFORM_WIN_XP)
 		SockLength = sizeof(sockaddr_in6);
 		if (WSAStringToAddressA(
-				(char *)sAddrString.c_str(), 
+				(char *)InnerAddrString.c_str(), 
 				AF_INET6, 
 				nullptr, 
 				(PSOCKADDR)&SockAddr, 
@@ -90,7 +90,7 @@ bool AddressStringToBinary(
 
 		memcpy_s(OriginalAddr, sizeof(((PSOCKADDR_IN6)&SockAddr)->sin6_addr), &((PSOCKADDR_IN6)&SockAddr)->sin6_addr, sizeof(((PSOCKADDR_IN6)&SockAddr)->sin6_addr));
 	#else
-		Result = inet_pton(AF_INET6, sAddrString.c_str(), OriginalAddr);
+		Result = inet_pton(AF_INET6, InnerAddrString.c_str(), OriginalAddr);
 		if (Result == SOCKET_ERROR || Result == 0)
 		{
 			if (Result != 0 && ErrorCode != nullptr)
@@ -103,10 +103,10 @@ bool AddressStringToBinary(
 	else if (Protocol == AF_INET)
 	{
 	//Check IPv4 addresses.
-		if (sAddrString.find(ASCII_PERIOD) == std::string::npos || sAddrString.find(ASCII_COLON) != std::string::npos)
+		if (InnerAddrString.find(ASCII_PERIOD) == std::string::npos || InnerAddrString.find(ASCII_COLON) != std::string::npos)
 			return false;
 		size_t CommaNum = 0;
-		for (const auto &StringIter:sAddrString)
+		for (const auto &StringIter:InnerAddrString)
 		{
 			if ((StringIter != ASCII_PERIOD && StringIter < ASCII_ZERO) || StringIter > ASCII_NINE)
 				return false;
@@ -115,43 +115,43 @@ bool AddressStringToBinary(
 		}
 
 	//Delete zeros before whole data.
-		while (sAddrString.length() > 1U && sAddrString[0] == ASCII_ZERO && sAddrString[1U] != ASCII_PERIOD)
-			sAddrString.erase(0, 1U);
+		while (InnerAddrString.length() > 1U && InnerAddrString[0] == ASCII_ZERO && InnerAddrString[1U] != ASCII_PERIOD)
+			InnerAddrString.erase(0, 1U);
 
 	//Check abbreviation format.
 		switch (CommaNum)
 		{
 			case 0:
 			{
-				sAddrString.clear();
-				sAddrString.append("0.0.0.");
-				sAddrString.append((const char *)AddrString);
+				InnerAddrString.clear();
+				InnerAddrString.append("0.0.0.");
+				InnerAddrString.append((const char *)AddrString);
 			}break;
 			case 1U:
 			{
-				sAddrString.replace(sAddrString.find(ASCII_PERIOD), 1U, (".0.0."));
+				InnerAddrString.replace(InnerAddrString.find(ASCII_PERIOD), 1U, (".0.0."));
 			}break;
 			case 2U:
 			{
-				sAddrString.replace(sAddrString.find(ASCII_PERIOD), 1U, (".0."));
+				InnerAddrString.replace(InnerAddrString.find(ASCII_PERIOD), 1U, (".0."));
 			}break;
 		}
 
 	//Delete zeros before data.
-		while (sAddrString.find(".00") != std::string::npos)
-			sAddrString.replace(sAddrString.find(".00"), 3U, ("."));
-		while (sAddrString.find(".0") != std::string::npos)
-			sAddrString.replace(sAddrString.find(".0"), 2U, ("."));
-		while (sAddrString.find("..") != std::string::npos)
-			sAddrString.replace(sAddrString.find(".."), 2U, (".0."));
-		if (sAddrString.at(sAddrString.length() - 1U) == ASCII_PERIOD)
-			sAddrString.append("0");
+		while (InnerAddrString.find(".00") != std::string::npos)
+			InnerAddrString.replace(InnerAddrString.find(".00"), 3U, ("."));
+		while (InnerAddrString.find(".0") != std::string::npos)
+			InnerAddrString.replace(InnerAddrString.find(".0"), 2U, ("."));
+		while (InnerAddrString.find("..") != std::string::npos)
+			InnerAddrString.replace(InnerAddrString.find(".."), 2U, (".0."));
+		if (InnerAddrString.at(InnerAddrString.length() - 1U) == ASCII_PERIOD)
+			InnerAddrString.append("0");
 
 	//Convert to binary.
 	#if defined(PLATFORM_WIN_XP)
 		SockLength = sizeof(sockaddr_in);
 		if (WSAStringToAddressA(
-				(char *)sAddrString.c_str(), 
+				(char *)InnerAddrString.c_str(), 
 				AF_INET, 
 				nullptr, 
 				(PSOCKADDR)&SockAddr, 
@@ -165,7 +165,7 @@ bool AddressStringToBinary(
 
 		memcpy_s(OriginalAddr, sizeof(((PSOCKADDR_IN)&SockAddr)->sin_addr), &((PSOCKADDR_IN)&SockAddr)->sin_addr, sizeof(((PSOCKADDR_IN)&SockAddr)->sin_addr));
 	#else
-		Result = inet_pton(AF_INET, sAddrString.c_str(), OriginalAddr);
+		Result = inet_pton(AF_INET, InnerAddrString.c_str(), OriginalAddr);
 		if (Result == SOCKET_ERROR || Result == 0)
 		{
 			if (Result != 0 && ErrorCode != nullptr)
@@ -680,6 +680,13 @@ bool OperationModeFilter(
 	{
 		return false;
 	}
+//Proxy Mode address filter
+	else if (Parameter.OperationMode == LISTEN_MODE_PROXY)
+	{
+		if ((Protocol == AF_INET6 && memcmp(OriginalAddr, &in6addr_loopback, sizeof(in6_addr)) == 0) || //IPv6
+			(Protocol == AF_INET && ((in_addr *)OriginalAddr)->s_addr == htonl(INADDR_LOOPBACK))) //IPv4
+				return true;
+	}
 //Private Mode address filter
 	else if (Parameter.OperationMode == LISTEN_MODE_PRIVATE)
 	{
@@ -697,8 +704,11 @@ bool OperationModeFilter(
 			(((in_addr *)OriginalAddr)->s_net == 0xAC && ((in_addr *)OriginalAddr)->s_host >= 0x10 && ((in_addr *)OriginalAddr)->s_host <= 0x1F) || //Private class B address(172.16.0.0/12, Section 3 in RFC 1918)
 			(((in_addr *)OriginalAddr)->s_net == 0xC0 && ((in_addr *)OriginalAddr)->s_host == 0xA8)))) //Private class C address(192.168.0.0/16, Section 3 in RFC 1918)
 				return true;
-		else 
-			return false;
+	}
+//Server Mode address filter
+	else if (Parameter.OperationMode == LISTEN_MODE_SERVER)
+	{
+		return true;
 	}
 //Custom Mode address filter
 	else if (Parameter.OperationMode == LISTEN_MODE_CUSTOM)
@@ -1152,7 +1162,7 @@ size_t CheckResponse_CNAME(
 //Mark whole DNS query.
 	std::string Domain;
 	size_t DataLength = MarkWholePacketQuery(Buffer, Length, Buffer + CNAME_Index, CNAME_Index, Domain);
-	if (DataLength < DOMAIN_MINSIZE || DataLength >= DOMAIN_MAXSIZE)
+	if (DataLength <= DOMAIN_MINSIZE || DataLength >= DOMAIN_MAXSIZE)
 		return EXIT_FAILURE;
 	const auto DNS_Header = (pdns_hdr)Buffer;
 	const auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
@@ -1396,6 +1406,7 @@ size_t CheckResponseData(
 	const auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
 	size_t DataLength = DNS_PACKET_RR_LOCATE(Buffer), RecordNum = 0, CNAME_DataLength = 0;
 	uint16_t DNS_Pointer = 0, BeforeType = 0;
+	uint32_t Record_TTL = 0;
 	pdns_record_standard DNS_Record_Standard = nullptr;
 	void *Addr = nullptr;
 	auto IsEDNS_Label = false, IsDNSSEC_Records = false, IsGotAddressResult = false;
@@ -1428,8 +1439,8 @@ size_t CheckResponseData(
 
 	//CNAME Hosts
 		if (Index < ntohs(DNS_Header->Answer) && ntohs(DNS_Record_Standard->Classes) == DNS_CLASS_INTERNET && DNS_Record_Standard->TTL > 0 && 
-			ntohs(DNS_Record_Standard->Type) == DNS_TYPE_CNAME && DataLength + ntohs(DNS_Record_Standard->Length) < Length && 
-			ntohs(DNS_Record_Standard->Length) >= DOMAIN_MINSIZE && ntohs(DNS_Record_Standard->Length) < DOMAIN_MAXSIZE)
+			ntohs(DNS_Record_Standard->Type) == DNS_TYPE_CNAME && DataLength + ntohs(DNS_Record_Standard->Length) <= Length && 
+			ntohs(DNS_Record_Standard->Length) > DOMAIN_MINSIZE && ntohs(DNS_Record_Standard->Length) < DOMAIN_MAXSIZE)
 		{
 			RecordNum = 0;
 			CNAME_DataLength = CheckResponse_CNAME(Buffer, Length, DataLength, ntohs(DNS_Record_Standard->Length), BufferSize, RecordNum);
@@ -1477,6 +1488,17 @@ size_t CheckResponseData(
 					ResponseType == REQUEST_PROCESS_LOCAL && !CheckAddressRouting(AF_INET6, Addr)))
 						return EXIT_FAILURE;
 
+			//Strict resource record TTL check when enforce strict RFC 2181(https://tools.ietf.org/html/rfc2181) compliance
+			//This will cause filter to reject DNS answers with incorrect timestamp settings(multiple RRs of the same type and for the same domain with different TTLs).
+				if (Parameter.DataCheck_Strict_RR_TTL)
+				{
+					if (Record_TTL == 0)
+						Record_TTL = ntohl(DNS_Record_Standard->TTL);
+					else if (Record_TTL != ntohl(DNS_Record_Standard->TTL))
+						return EXIT_FAILURE;
+				}
+
+			//Set successful flag.
 				IsGotAddressResult = true;
 			}
 		//A Records
@@ -1493,6 +1515,17 @@ size_t CheckResponseData(
 					ResponseType == REQUEST_PROCESS_LOCAL && !CheckAddressRouting(AF_INET, Addr)))
 						return EXIT_FAILURE;
 
+			//Strict resource record TTL check when enforce strict RFC 2181(https://tools.ietf.org/html/rfc2181) compliance
+			//This will cause filter to reject DNS answers with incorrect timestamp settings(multiple RRs of the same type and for the same domain with different TTLs).
+				if (Parameter.DataCheck_Strict_RR_TTL)
+				{
+					if (Record_TTL == 0)
+						Record_TTL = ntohl(DNS_Record_Standard->TTL);
+					else if (Record_TTL != ntohl(DNS_Record_Standard->TTL))
+						return EXIT_FAILURE;
+				}
+
+			//Set successful flag.
 				IsGotAddressResult = true;
 			}
 		}

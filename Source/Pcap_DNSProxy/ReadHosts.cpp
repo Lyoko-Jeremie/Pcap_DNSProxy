@@ -23,9 +23,9 @@
 bool ReadHostsData(
 	std::string Data, 
 	const size_t FileIndex, 
+	const size_t Line, 
 	size_t &LabelType, 
-	bool * const IsStopLabel, 
-	const size_t Line)
+	bool &IsStopLabel)
 {
 //Convert horizontal tab/HT to space and delete spaces before or after data.
 	for (auto &StringIter:Data)
@@ -52,88 +52,84 @@ bool ReadHostsData(
 	if (Data.length() < READ_HOSTS_MINSIZE)
 		return true;
 
+//Case insensitive
+	std::string InsensitiveString(Data);
+	CaseConvert(InsensitiveString, true);
+
 //[Local Hosts] block(A part)
-	if (LabelType == 0 && (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family > 0 || Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family > 0) && 
-		(CompareStringReversed(L"whitelist.txt", FileList_Hosts.at(FileIndex).FileName.c_str(), true) || 
-		CompareStringReversed(L"white_list.txt", FileList_Hosts.at(FileIndex).FileName.c_str(), true)))
+	if (LabelType == 0 && (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family != 0 || Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family != 0))
+	{
+		std::wstring WCS_InsensitiveString(FileList_Hosts.at(FileIndex).FileName);
+		CaseConvert(WCS_InsensitiveString, true);
+		if (CompareStringReversed(L"WHITELIST.TXT", WCS_InsensitiveString.c_str()) || CompareStringReversed(L"WHITE_LIST.TXT", WCS_InsensitiveString.c_str()))
 			LabelType = LABEL_HOSTS_TYPE_LOCAL;
+	}
 
 //[Address Hosts] block
-	if (Data.find("[SOURCE HOSTS]") == 0 || 
-		Data.find("[Source Hosts]") == 0 || Data.find("[Source hosts]") == 0 || 
-		Data.find("[source Hosts]") == 0 || Data.find("[source hosts]") == 0)
+	if (InsensitiveString.find("[SOURCE HOSTS]") == 0)
 	{
 		LabelType = LABEL_HOSTS_TYPE_SOURCE;
 		return true;
 	}
 
 //[Hosts] block
-	else if (Data.find("[Hosts]") == 0 || Data.find("[hosts]") == 0)
+	else if (InsensitiveString.find("[HOSTS]") == 0)
 	{
 		LabelType = LABEL_HOSTS_TYPE_NORMAL;
 		return true;
 	}
 
 //[Local Hosts] block(B part)
-	else if (Data.find("[LOCAL HOSTS]") == 0 || 
-		Data.find("[Local Hosts]") == 0 || Data.find("[Local hosts]") == 0 || 
-		Data.find("[local Hosts]") == 0 || Data.find("[local hosts]") == 0)
+	else if (InsensitiveString.find("[LOCAL HOSTS]") == 0)
 	{
 		LabelType = LABEL_HOSTS_TYPE_LOCAL;
 		return true;
 	}
 
 //[CNAME Hosts] block
-	else if (Data.find("[CNAME HOSTS]") == 0 || 
-		Data.find("[CNAME Hosts]") == 0 || Data.find("[CNAME hosts]") == 0 || 
-		Data.find("[Cname Hosts]") == 0 || Data.find("[Cname hosts]") == 0 || 
-		Data.find("[cname Hosts]") == 0 || Data.find("[cname hosts]") == 0)
+	else if (InsensitiveString.find("[CNAME HOSTS]") == 0)
 	{
 		LabelType = LABEL_HOSTS_TYPE_CNAME;
 		return true;
 	}
 
 //[Address Hosts] block
-	else if (Data.find("[ADDRESS HOSTS]") == 0 || 
-		Data.find("[Address Hosts]") == 0 || Data.find("[Address hosts]") == 0 || 
-		Data.find("[address Hosts]") == 0 || Data.find("[address hosts]") == 0)
+	else if (InsensitiveString.find("[ADDRESS HOSTS]") == 0)
 	{
 		LabelType = LABEL_HOSTS_TYPE_ADDRESS;
 		return true;
 	}
 
 //Temporary stop read.
-	else if (IsStopLabel != nullptr)
+	else if (InsensitiveString.find("[STOP") == 0)
 	{
-		if (Data.find("[STOP]") == 0 || Data.find("[Stop]") == 0 || Data.find("[stop]") == 0)
+		if (InsensitiveString.find("[STOP]") == 0)
 		{
-			*IsStopLabel = !*IsStopLabel;
+			IsStopLabel = true;
 			return true;
 		}
-		else if (*IsStopLabel)
+		else if (InsensitiveString.find("END") != std::string::npos)
 		{
+			IsStopLabel = false;
 			return true;
 		}
+	}
+	else if (IsStopLabel)
+	{
+		return true;
 	}
 
 //Whitelist, Banned and their Extended items
 	size_t LabelTypeTemp = 0;
-	if (Data.find("NULL ") == 0 || Data.find("NULL,") == 0 || 
-		Data.find("Null ") == 0 || Data.find("Null,") == 0 || 
-		Data.find("null ") == 0 || Data.find("null,") == 0)
-			LabelTypeTemp = LABEL_HOSTS_TYPE_WHITE;
-	else if (Data.find("BAN ") == 0 || Data.find("BAN,") == 0 || 
-		Data.find("BANNED ") == 0 || Data.find("BANNED,") == 0 || 
-		Data.find("Ban ") == 0 || Data.find("Ban,") == 0 || 
-		Data.find("Banned ") == 0 || Data.find("Banned,") == 0 || 
-		Data.find("ban ") == 0 || Data.find("ban,") == 0 || 
-		Data.find("banned ") == 0 || Data.find("banned,") == 0)
+	if (InsensitiveString.find("NULL ") == 0 || InsensitiveString.find("NULL,") == 0)
+		LabelTypeTemp = LABEL_HOSTS_TYPE_WHITE;
+	else if (InsensitiveString.find("BAN ") == 0 || InsensitiveString.find("BAN,") == 0 || 
+		InsensitiveString.find("BANNED ") == 0 || InsensitiveString.find("BANNED,") == 0)
 			LabelTypeTemp = LABEL_HOSTS_TYPE_BANNED;
-	else if (Data.find("NULL") == 0 || Data.find("Null") == 0 || Data.find("null") == 0)
+	else if (InsensitiveString.find("NULL") == 0)
 		LabelTypeTemp = LABEL_HOSTS_TYPE_WHITE_EXTENDED;
-	else if (Data.find("BAN") == 0 || Data.find("BANNED") == 0 || Data.find("Ban") == 0 || 
-		Data.find("Banned") == 0 || Data.find("ban") == 0 || Data.find("banned") == 0)
-			LabelTypeTemp = LABEL_HOSTS_TYPE_BANNED_EXTENDED;
+	else if (InsensitiveString.find("BAN") == 0 || InsensitiveString.find("BANNED") == 0)
+		LabelTypeTemp = LABEL_HOSTS_TYPE_BANNED_EXTENDED;
 	if (LabelTypeTemp > 0)
 	{
 		if (LabelType == LABEL_HOSTS_TYPE_LOCAL && (!Parameter.LocalHosts || (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0)))
@@ -216,15 +212,13 @@ bool ReadOtherHostsData(
 	HOSTS_TABLE HostsTableTemp;
 	if (ItemType == LABEL_HOSTS_TYPE_WHITE_EXTENDED || ItemType == LABEL_HOSTS_TYPE_BANNED_EXTENDED)
 	{
+	//Case insensitive
+		std::string InsensitiveString(Data);
+		CaseConvert(InsensitiveString, true);
+
 	//Permit or Deny mode check
-		if ((ItemType == LABEL_HOSTS_TYPE_WHITE_EXTENDED && 
-			((Data.find("DENY") != std::string::npos && Data.find("DENY") <= Separated) || 
-			(Data.find("Deny") != std::string::npos && Data.find("Deny") <= Separated) || 
-			(Data.find("deny") != std::string::npos && Data.find("deny") <= Separated))) || 
-			(ItemType == LABEL_HOSTS_TYPE_BANNED_EXTENDED && 
-			((Data.find("PERMIT") != std::string::npos && Data.find("PERMIT") <= Separated) || 
-			(Data.find("Permit") != std::string::npos && Data.find("Permit") <= Separated) || 
-			(Data.find("permit") != std::string::npos && Data.find("permit") <= Separated))))
+		if ((ItemType == LABEL_HOSTS_TYPE_WHITE_EXTENDED && InsensitiveString.find("DENY") != std::string::npos && InsensitiveString.find("DENY") <= Separated) || 
+			(ItemType == LABEL_HOSTS_TYPE_BANNED_EXTENDED && InsensitiveString.find("PERMIT") != std::string::npos && InsensitiveString.find("PERMIT") <= Separated))
 				HostsTableTemp.PermissionOperation = true;
 
 	//Mark types.
@@ -307,10 +301,14 @@ bool ReadLocalHostsData(
 	size_t SeparatedOrResult = 0;
 	auto IsDnsmasqFormat = false;
 
+//Case insensitive
+	std::string InsensitiveString(Data);
+	CaseConvert(InsensitiveString, true);
+
 //Dnsmasq format(http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html)
 	if (Data.find("--") == 0)
 	{
-		if (Data.find("--SERVER=/") == std::string::npos && Data.find("--Server=/") == std::string::npos && Data.find("--server=/") == std::string::npos)
+		if (InsensitiveString.find("--SERVER=/") == std::string::npos)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -320,7 +318,7 @@ bool ReadLocalHostsData(
 			SeparatedOrResult = Data.find(ASCII_SLASH) + 1U;
 		}
 	}
-	else if (Data.find("SERVER=/") == 0 || Data.find("Server=/") == 0 || Data.find("server=/") == 0)
+	else if (InsensitiveString.find("SERVER=/") == 0)
 	{
 		IsDnsmasqFormat = true;
 		SeparatedOrResult = Data.find(ASCII_SLASH) + 1U;
@@ -826,8 +824,13 @@ bool ReadMainHostsData(
 	const size_t FileIndex, 
 	const size_t Line)
 {
+//Initialization
 	size_t Separated = 0;
 	auto IsDnsmasqFormat = false;
+
+//Case insensitive
+	std::string InsensitiveString(Data);
+	CaseConvert(InsensitiveString, true);
 
 //Mark separated location.
 	if (Data.find(ASCII_COMMA) != std::string::npos)
@@ -857,8 +860,7 @@ bool ReadMainHostsData(
 //Dnsmasq format(http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html)
 	else if (HostsType != HOSTS_TYPE_SOURCE && Data.find("--") == 0)
 	{
-		if ((Data.find("--ADDRESS=/") == std::string::npos && Data.find("--Address=/") == std::string::npos && Data.find("--address=/") == std::string::npos) || 
-			Data.find("--ADDRESS=//") == 0 || Data.find("--Address=//") == 0 || Data.find("--address=//") == 0)
+		if (InsensitiveString.find("--ADDRESS=/") == std::string::npos || InsensitiveString.find("--ADDRESS=//") == 0)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -868,9 +870,9 @@ bool ReadMainHostsData(
 			Separated = Data.find(ASCII_SLASH);
 		}
 	}
-	else if (HostsType != HOSTS_TYPE_SOURCE && (Data.find("ADDRESS=/") == 0 || Data.find("Address=/") == 0 || Data.find("address=/") == 0))
+	else if (HostsType != HOSTS_TYPE_SOURCE && InsensitiveString.find("ADDRESS=/") == 0)
 	{
-		if (Data.find("ADDRESS=//") == 0 || Data.find("Address=//") == 0 || Data.find("address=//") == 0)
+		if (InsensitiveString.find("ADDRESS=//") == 0)
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 			return false;

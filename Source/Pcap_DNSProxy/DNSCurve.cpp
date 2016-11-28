@@ -29,7 +29,7 @@ Client -> Server:
 * Variable encryption data ...
 
 Server -> Client:
-*  8 bytes: The string r6fnvWJ8 (DNSCRYPT_MAGIC_RESPONSE)
+*  8 bytes: The string "r6fnvWJ8" (DNSCRYPT_MAGIC_RESPONSE)
 * 12 bytes: The client's nonce (crypto_box_NONCEBYTES / 2)
 * 12 bytes: A server-selected nonce extension (crypto_box_NONCEBYTES / 2)
 * 16 bytes: Poly1305 MAC (crypto_box_ZEROBYTES - crypto_box_BOXZEROBYTES)
@@ -37,7 +37,7 @@ Server -> Client:
 
 Using TCP protocol:
 * 2 bytes: DNSCurve/DNSCrypt data payload length
-* Variable DNSCurve/DNSCrypt data ...
+* Variable original DNSCurve/DNSCrypt data ...
 
 */
 
@@ -54,19 +54,19 @@ ssize_t DNSCurvePaddingData(
 		Buffer[Length] = (uint8_t)DNSCRYPT_PADDING_SIGN_STRING;
 	}
 //Check padding data sign.
-	else if (Length > (ssize_t)DNS_PACKET_MINSIZE)
+	else if (Length >= (ssize_t)DNS_PACKET_MINSIZE)
 	{
 		ssize_t Index = 0;
 
 	//Check padding data sign(0x80).
-		for (Index = Length - 1U;Index > (ssize_t)DNS_PACKET_MINSIZE;--Index)
+		for (Index = Length - 1U;Index >= (ssize_t)DNS_PACKET_MINSIZE;--Index)
 		{
 			if (Buffer[Index] == DNSCRYPT_PADDING_SIGN)
 				return Index;
 		}
 
 	//Check no null sign.
-		for (Index = Length - 1U;Index > (ssize_t)DNS_PACKET_MINSIZE;--Index)
+		for (Index = Length - 1U;Index >= (ssize_t)DNS_PACKET_MINSIZE;--Index)
 		{
 			if (Buffer[Index] > 0)
 				return Index;
@@ -127,7 +127,7 @@ bool DNSCurveSelectTargetSocket(
 	IsIPv6 = false;
 
 //IPv6
-	if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family > 0 && 
+	if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 		((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //IPv6
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
@@ -141,7 +141,7 @@ bool DNSCurveSelectTargetSocket(
 			return false;
 	}
 //IPv4
-	else if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family > 0 && 
+	else if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 		((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //IPv4
 		(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
@@ -428,7 +428,7 @@ SkipMain:
 		*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4;
 
 //Alternate
-	if ((*PacketTarget)->AddressData.Storage.ss_family > 0 && (*IsAlternate || Parameter.AlternateMultipleRequest))
+	if ((*PacketTarget)->AddressData.Storage.ss_family != 0 && (*IsAlternate || Parameter.AlternateMultipleRequest))
 	{
 	//Encryption mode check
 		if (DNSCurveParameter.IsEncryption && 

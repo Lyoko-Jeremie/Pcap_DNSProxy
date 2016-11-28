@@ -28,13 +28,13 @@ extern std::mutex ScreenLock;
 
 //Functions in ReadCommand.cpp
 #if defined(PLATFORM_WIN)
-bool ReadCommands(
+bool ReadCommand(
 	int argc, 
 	wchar_t *argv[]);
 bool FileNameInit(
 	const wchar_t * const OriginalPath);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-bool ReadCommands(
+bool ReadCommand(
 	int argc, 
 	char *argv[]);
 bool FileNameInit(

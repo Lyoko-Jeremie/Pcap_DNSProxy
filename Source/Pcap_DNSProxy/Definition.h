@@ -109,7 +109,7 @@
 //Version definitions
 #define CONFIG_VERSION                                0.45                                  //Current configuration file version
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2016 Chengr28"   //Copyright message
-#define FULL_VERSION                                  L"0.4.8.0"                            //Current full version
+#define FULL_VERSION                                  L"0.4.8.1"                            //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_MAXSIZE                        64U                         //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -240,6 +240,9 @@
 	#define CONFIG_FILE_NAME_LIST                         L"Config.ini", L"Config.conf", L"Config.cfg", L"Config"
 	#define ERROR_LOG_FILE_NAME                           L"Error.log"
 	#define DEFAULT_ICMP_PADDING_DATA                     ("abcdefghijklmnopqrstuvwabcdefghi")         //Default ICMP padding data in Windows
+	#if defined(ENABLE_LIBSODIUM)
+		#define DNSCURVE_KEY_PAIR_FILE_NAME                   L"KeyPair.txt"
+	#endif
 	#define MAILSLOT_MESSAGE_FLUSH_DNS                    L"Flush Pcap_DNSProxy DNS cache"             //The mailslot message to flush dns cache
 	#define MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN             L"Flush Pcap_DNSProxy DNS cache: "           //The mailslot message to flush dns cache(Single domain)
 	#define MAILSLOT_NAME                                 L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot"   //MailSlot name
@@ -260,8 +263,11 @@
 	#define COMMAND_SHORT_SET_PATH                        ("-c")
 	#define CONFIG_FILE_NAME_LIST                         L"Config.conf", L"Config.ini", L"Config.cfg", L"Config"
 	#define CONFIG_FILE_NAME_LIST_STRING                  "Config.conf", "Config.ini", "Config.cfg", "Config"
+	#if defined(ENABLE_LIBSODIUM)
+		#define DNSCURVE_KEY_PAIR_FILE_NAME                   ("KeyPair.txt")
+	#endif
 	#define ERROR_LOG_FILE_NAME                           L"Error.log"
-	#define ERROR_LOG_FILE_NAME_STRING                    ("Error.log")
+	#define ERROR_LOG_FILE_NAME_MBS                       ("Error.log")
 	#define FIFO_MESSAGE_FLUSH_DNS                        ("Flush DNS cache of Pcap_DNSProxy")         //The FIFO message to flush dns cache
 	#define FIFO_MESSAGE_FLUSH_DNS_DOMAIN                 ("Flush DNS cache of Pcap_DNSProxy: ")       //The FIFO message to flush dns cache(Single domain)
 	#define FIFO_PATH_NAME                                ("/tmp/pcap_dnsproxy_fifo")                  //FIFO pathname
@@ -279,16 +285,16 @@
 
 //Base64 definitions
 #define BASE64_PAD                                    ('=')
-//#define BASE64_DECODE_FIRST                           ('+')
-//#define BASE64_DECODE_LAST                            ('z')
-//#define BASE64_DECODE_OUT_SIZE(Message)               (((Message)) / 4U * 3U)
+#define BASE64_DECODE_FIRST                           ('+')
+#define BASE64_DECODE_LAST                            ('z')
+#define BASE64_DECODE_OUT_SIZE(Message)               (((Message)) / 4U * 3U)
 #define BASE64_ENCODE_OUT_SIZE(Message)               (((Message) + 2U) / 3U * 4U)
 
 //Read text input types and Compare addresses definitions
 #define ADDRESS_COMPARE_LESS                          1U
 #define ADDRESS_COMPARE_EQUAL                         2U
 #define ADDRESS_COMPARE_GREATER                       3U
-#define READ_TEXT_PARAMETER                           0
+#define READ_TEXT_PARAMETER_NORMAL                    0
 #define READ_TEXT_PARAMETER_MONITOR                   1U
 #define READ_TEXT_HOSTS                               2U
 #define READ_TEXT_IPFILTER                            3U
@@ -424,7 +430,8 @@
 		#define OPENSSL_VERSION_1_0_2                     0x10002000L
 		#define OPENSSL_VERSION_1_1_0                     0x10100000L
 		#define OPENSSL_STATIC_BUFFER_SIZE                256U
-		#define OPENSSL_STRONG_CIPHER_LIST                ("HIGH:!SSLv2:!SSLv3:!aNULL:!kRSA:!PSK:!SRP:!MD5:!RC4")
+		#define OPENSSL_CIPHER_LIST_COMPATIBILITY         ("HIGH:!SSLv2:!aNULL:!kRSA:!PSK:!SRP:!MD5:!RC4")
+		#define OPENSSL_CIPHER_LIST_STRONG                ("HIGH:!SSLv2:!SSLv3:!aNULL:!kRSA:!PSK:!SRP:!MD5:!RC4")
 	#endif
 #endif
 
@@ -462,7 +469,7 @@ typedef struct _file_data_
 {
 	std::wstring                         FileName;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	std::string                          sFileName;
+	std::string                          MBS_FileName;
 #endif
 	time_t                               ModificationTime;
 }FileData, FILE_DATA, *PFileData, *PFILE_DATA;
@@ -704,6 +711,7 @@ public:
 #endif
 	bool                                 HeaderCheck_DNS;
 	bool                                 DataCheck_Blacklist;
+	bool                                 DataCheck_Strict_RR_TTL;
 //[Data] block
 #if defined(ENABLE_PCAP)
 	uint16_t                             ICMP_ID;
@@ -746,7 +754,7 @@ public:
 	size_t                               HTTP_CONNECT_TLS_Version;
 	bool                                 HTTP_CONNECT_TLS_Validation;
 	std::wstring                         *HTTP_CONNECT_TLS_SNI;
-	std::string                          *sHTTP_CONNECT_TLS_SNI;
+	std::string                          *MBS_HTTP_CONNECT_TLS_SNI;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	std::string                          *HTTP_CONNECT_TLS_AddressString_IPv4;
 	std::string                          *HTTP_CONNECT_TLS_AddressString_IPv6;
@@ -799,7 +807,7 @@ public:
 	std::default_random_engine           *RamdomEngine;
 	uint8_t                              *DomainTable;
 	uint8_t                              *Base64_EncodeTable;
-//	int8_t                               *Base64_DecodeTable;
+	int8_t                               *Base64_DecodeTable;
 	std::atomic<size_t>                  *ThreadRunningNum;
 	std::atomic<size_t>                  *ThreadRunningFreeNum;
 
@@ -809,10 +817,10 @@ public:
 	std::vector<std::wstring>            *FileList_Hosts;
 	std::vector<std::wstring>            *FileList_IPFilter;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	std::vector<std::string>             *sPath_Global;
-	std::string                          *sPath_ErrorLog;
-	std::vector<std::string>             *sFileList_Hosts;
-	std::vector<std::string>             *sFileList_IPFilter;
+	std::vector<std::string>             *MBS_Path_Global;
+	std::string                          *MBS_Path_ErrorLog;
+	std::vector<std::string>             *MBS_FileList_Hosts;
+	std::vector<std::string>             *MBS_FileList_IPFilter;
 #endif
 
 //Network status

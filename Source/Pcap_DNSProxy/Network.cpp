@@ -187,8 +187,9 @@ bool SocketSetting(
 				return false;
 			}
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		//Set TIME_WAIT resuing(Linux/macOS).
 			const int OptionValue = TRUE;
+
+		//Set TIME_WAIT resuing(Linux/macOS).
 /*			errno = 0;
 			if (setsockopt(Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			{
@@ -214,7 +215,7 @@ bool SocketSetting(
 		#endif
 		}break;
 	//Socket attribute setting(TFO/TCP Fast Open)
-	//It seems that TCP Fast Open option is not ready in Windows and macOS(2016-11-19).
+	//It seems that TCP Fast Open option is not ready in Windows and macOS(2016-11-28).
 		case SOCKET_SETTING_TCP_FAST_OPEN:
 		{
 		//Global parameter check
@@ -266,7 +267,6 @@ bool SocketSetting(
 				return false;
 			}
 		}break;
-
 /* TCP keep alive mode
 	//Socket attribute setting(TCP keep alive mode)
 		case SOCKET_SETTING_TCP_KEEPALIVE:
@@ -469,7 +469,7 @@ size_t SelectTargetSocketSingle(
 			return EXIT_FAILURE;
 
 	//IPv6
-		if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family > 0 && 
+		if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 			((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 			DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //IPv6
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
@@ -502,7 +502,7 @@ size_t SelectTargetSocketSingle(
 						**IsAlternate = false;
 			}
 
-			if (**IsAlternate && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0)
+			if (**IsAlternate && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0)
 			{
 				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_addr = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_addr;
 				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_port = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_port;
@@ -540,7 +540,7 @@ size_t SelectTargetSocketSingle(
 			}
 		}
 	//IPv4
-		else if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family > 0 && 
+		else if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 			((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 			DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //IPv4
 			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
@@ -573,7 +573,7 @@ size_t SelectTargetSocketSingle(
 						**IsAlternate = false;
 			}
 
-			if (**IsAlternate && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0)
+			if (**IsAlternate && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0)
 			{
 				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_addr = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.IPv4.sin_addr;
 				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_port = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.IPv4.sin_port;
@@ -617,7 +617,7 @@ size_t SelectTargetSocketSingle(
 #endif
 
 //Specifie target request
-	if (SpecifieTargetData != nullptr && SpecifieTargetData->Storage.ss_family > 0)
+	if (SpecifieTargetData != nullptr && SpecifieTargetData->Storage.ss_family != 0)
 	{
 		if (SpecifieTargetData->Storage.ss_family == AF_INET6)
 		{
@@ -662,7 +662,7 @@ size_t SelectTargetSocketSingle(
 	else if (RequestType == REQUEST_PROCESS_LOCAL)
 	{
 	//IPv6
-		if (Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family > 0 && 
+		if (Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family != 0 && 
 			((Parameter.LocalProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV6 || //IPv6
 			(Parameter.LocalProtocol_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0))) //Non-IPv4
@@ -682,7 +682,7 @@ size_t SelectTargetSocketSingle(
 			}
 
 		//Alternate
-			if (**IsAlternate && Parameter.Target_Server_Local_Alternate_IPv6.Storage.ss_family > 0)
+			if (**IsAlternate && Parameter.Target_Server_Local_Alternate_IPv6.Storage.ss_family != 0)
 			{
 				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_addr = Parameter.Target_Server_Local_Alternate_IPv6.IPv6.sin6_addr;
 				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_port = Parameter.Target_Server_Local_Alternate_IPv6.IPv6.sin6_port;
@@ -707,7 +707,7 @@ size_t SelectTargetSocketSingle(
 			}
 		}
 	//IPv4
-		else if (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family > 0 && 
+		else if (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family != 0 && 
 			((Parameter.LocalProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV4 || //IPv4
 			(Parameter.LocalProtocol_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0))) //Non-IPv6
@@ -727,7 +727,7 @@ size_t SelectTargetSocketSingle(
 			}
 
 		//Alternate
-			if (**IsAlternate && Parameter.Target_Server_Local_Alternate_IPv4.Storage.ss_family > 0)
+			if (**IsAlternate && Parameter.Target_Server_Local_Alternate_IPv4.Storage.ss_family != 0)
 			{
 				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_addr = Parameter.Target_Server_Local_Alternate_IPv4.IPv4.sin_addr;
 				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_port = Parameter.Target_Server_Local_Alternate_IPv4.IPv4.sin_port;
@@ -759,7 +759,7 @@ size_t SelectTargetSocketSingle(
 //Main request
 	else {
 	//IPv6
-		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family > 0 && 
+		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 			((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
 			(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
@@ -779,7 +779,7 @@ size_t SelectTargetSocketSingle(
 			}
 
 		//Alternate
-			if (**IsAlternate && Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0)
+			if (**IsAlternate && Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0)
 			{
 				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_addr = Parameter.Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_addr;
 				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_port = Parameter.Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_port;
@@ -804,7 +804,7 @@ size_t SelectTargetSocketSingle(
 			}
 		}
 	//IPv4
-		else if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family > 0 && 
+		else if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 			((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 			(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
@@ -824,7 +824,7 @@ size_t SelectTargetSocketSingle(
 			}
 
 		//Alternate
-			if (**IsAlternate && Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0)
+			if (**IsAlternate && Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0)
 			{
 				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_addr = Parameter.Target_Server_Alternate_IPv4.AddressData.IPv4.sin_addr;
 				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_port = Parameter.Target_Server_Alternate_IPv4.AddressData.IPv4.sin_port;
@@ -876,7 +876,7 @@ bool SelectTargetSocketMultiple(
 		return false;
 
 //IPv6
-	if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family > 0 && 
+	if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 		((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
 		(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
@@ -919,7 +919,7 @@ bool SelectTargetSocketMultiple(
 		}
 
 	//Alternate
-		if (Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 && (*IsAlternate || Parameter.AlternateMultipleRequest))
+		if (Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && (*IsAlternate || Parameter.AlternateMultipleRequest))
 		{
 			for (Index = 0;Index < Parameter.MultipleRequestTimes;++Index)
 			{
@@ -980,7 +980,7 @@ bool SelectTargetSocketMultiple(
 		}
 	}
 //IPv4
-	else if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family > 0 && 
+	else if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 		((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 		(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
@@ -1024,7 +1024,7 @@ bool SelectTargetSocketMultiple(
 		}
 
 	//Alternate
-		if (Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0 && (*IsAlternate || Parameter.AlternateMultipleRequest))
+		if (Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0 && (*IsAlternate || Parameter.AlternateMultipleRequest))
 		{
 			for (Index = 0;Index < Parameter.MultipleRequestTimes;++Index)
 			{
@@ -1206,7 +1206,7 @@ ssize_t SocketSelectingOnce(
 			SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
 			SocketDataList.at(Index).Socket = 0;
 		}
-		else if (Protocol == IPPROTO_TCP && Parameter.TCP_FastOpen && RecvLen > (ssize_t)DNS_PACKET_MINSIZE)
+		else if (Protocol == IPPROTO_TCP && Parameter.TCP_FastOpen && RecvLen >= (ssize_t)DNS_PACKET_MINSIZE)
 		{
 		#if defined(ENABLE_LIBSODIUM)
 			if (RequestType == REQUEST_PROCESS_DNSCURVE_MAIN)
@@ -1412,7 +1412,7 @@ ssize_t SocketSelectingOnce(
 							DNSCurveSocketSelectingList->at(Index).RecvLen = 0;
 							continue;
 						}
-						else if (Protocol == IPPROTO_UDP && RecvLen > (ssize_t)DNS_PACKET_MINSIZE && DNSCurveSocketSelectingList->at(Index).RecvLen > 0)
+						else if (Protocol == IPPROTO_UDP && RecvLen >= (ssize_t)DNS_PACKET_MINSIZE && DNSCurveSocketSelectingList->at(Index).RecvLen > 0)
 						{
 							sodium_memzero(DNSCurveSocketSelectingList->at(Index).RecvBuffer.get(), DNSCurveSocketSelectingList->at(Index).RecvLen);
 							memmove_s(DNSCurveSocketSelectingList->at(Index).RecvBuffer.get(), RecvSize, DNSCurveSocketSelectingList->at(Index).RecvBuffer.get() + DNSCurveSocketSelectingList->at(Index).RecvLen, RecvLen);
@@ -1478,7 +1478,7 @@ ssize_t SocketSelectingOnce(
 								SocketSelectingList.at(Index).RecvLen = 0;
 								continue;
 							}
-							else if (Protocol == IPPROTO_UDP && RecvLen > (ssize_t)DNS_PACKET_MINSIZE && SocketSelectingList.at(Index).RecvLen > 0)
+							else if (Protocol == IPPROTO_UDP && RecvLen >= (ssize_t)DNS_PACKET_MINSIZE && SocketSelectingList.at(Index).RecvLen > 0)
 							{
 								memset(SocketSelectingList.at(Index).RecvBuffer.get(), 0, SocketSelectingList.at(Index).RecvLen);
 								memmove_s(SocketSelectingList.at(Index).RecvBuffer.get(), RecvSize, SocketSelectingList.at(Index).RecvBuffer.get() + SocketSelectingList.at(Index).RecvLen, RecvLen);
@@ -1718,7 +1718,7 @@ ssize_t SelectingResultOnce(
 				SocketMarkingMutex.unlock();
 
 			//Mark DNS cache.
-				if (Parameter.CacheType > CACHE_TYPE_NONE)
+				if (Parameter.CacheType != CACHE_TYPE_NONE)
 					MarkDomainCache(OriginalRecv, RecvLen);
 
 				return RecvLen;
@@ -1814,7 +1814,7 @@ ssize_t SelectingResultOnce(
 				SocketMarkingMutex.unlock();
 
 			//Mark DNS cache.
-				if (Parameter.CacheType > CACHE_TYPE_NONE)
+				if (Parameter.CacheType != CACHE_TYPE_NONE)
 					MarkDomainCache(OriginalRecv, RecvLen);
 
 				return RecvLen;

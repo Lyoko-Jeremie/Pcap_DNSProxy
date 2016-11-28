@@ -764,11 +764,15 @@ bool OpenSSL_BIO_Initializtion(
 #if defined(SSL_MODE_RELEASE_BUFFERS)
 	SSL_set_mode(OpenSSL_CTX.SessionData, SSL_MODE_RELEASE_BUFFERS);
 #endif
-	if (Parameter.sHTTP_CONNECT_TLS_SNI != nullptr && !Parameter.sHTTP_CONNECT_TLS_SNI->empty())
-		SSL_set_tlsext_host_name(OpenSSL_CTX.SessionData, Parameter.sHTTP_CONNECT_TLS_SNI->c_str()); //TLS Server Name Indication/SNI
+	if (Parameter.MBS_HTTP_CONNECT_TLS_SNI != nullptr && !Parameter.MBS_HTTP_CONNECT_TLS_SNI->empty())
+		SSL_set_tlsext_host_name(OpenSSL_CTX.SessionData, Parameter.MBS_HTTP_CONNECT_TLS_SNI->c_str()); //TLS Server Name Indication/SNI
 
 //Set strong ciphers.
-	Result = SSL_set_cipher_list(OpenSSL_CTX.SessionData, OPENSSL_STRONG_CIPHER_LIST); 
+#if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_0_1 //OpenSSL version before 1.0.1
+	Result = SSL_set_cipher_list(OpenSSL_CTX.SessionData, OPENSSL_CIPHER_LIST_COMPATIBILITY);
+#else //OpenSSL version after 1.0.1
+	Result = SSL_set_cipher_list(OpenSSL_CTX.SessionData, OPENSSL_CIPHER_LIST_STRONG);
+#endif
 	if (Result == FALSE)
 	{
 		OpenSSL_PrintError((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), L"OpenSSL set strong ciphers ");
@@ -777,7 +781,7 @@ bool OpenSSL_BIO_Initializtion(
 
 //Built-in functionality for hostname checking and validation after OpenSSL 1.0.2.
 #if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_0_2 //OpenSSL version after 1.0.2
-	if (Parameter.HTTP_CONNECT_TLS_Validation && Parameter.sHTTP_CONNECT_TLS_SNI != nullptr && !Parameter.sHTTP_CONNECT_TLS_SNI->empty())
+	if (Parameter.HTTP_CONNECT_TLS_Validation && Parameter.MBS_HTTP_CONNECT_TLS_SNI != nullptr && !Parameter.MBS_HTTP_CONNECT_TLS_SNI->empty())
 	{
 	//Get certificate paremeter.
 		X509_VERIFY_PARAM *X509_Param = nullptr;
@@ -790,7 +794,7 @@ bool OpenSSL_BIO_Initializtion(
 		
 	//Set certificate paremeter flags.
 		X509_VERIFY_PARAM_set_hostflags(X509_Param, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
-		if (X509_VERIFY_PARAM_set1_host(X509_Param, Parameter.sHTTP_CONNECT_TLS_SNI->c_str(), 0) == FALSE)
+		if (X509_VERIFY_PARAM_set1_host(X509_Param, Parameter.MBS_HTTP_CONNECT_TLS_SNI->c_str(), 0) == FALSE)
 		{
 			OpenSSL_PrintError((const uint8_t *)ERR_error_string(ERR_get_error(), nullptr), L"OpenSSL hostname checking and validation ");
 			return false;
@@ -800,7 +804,7 @@ bool OpenSSL_BIO_Initializtion(
 
 //Set certificate verification.
 	if (Parameter.HTTP_CONNECT_TLS_Validation)
-		SSL_set_verify(OpenSSL_CTX.SessionData, SSL_VERIFY_PEER, nullptr); 
+		SSL_set_verify(OpenSSL_CTX.SessionData, SSL_VERIFY_PEER, nullptr);
 
 	return true;
 }

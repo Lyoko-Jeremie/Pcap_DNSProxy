@@ -19,7 +19,7 @@
 
 #include "Initialization.h"
 
-//RFC domain and Base64 encoding/decoding table
+//RFC domain and Base64 encoding table
 static const uint8_t DomainTable_Initialization[] = (".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"); //Preferred name syntax(Section 2.3.1 in RFC 1035)
 static const uint8_t Base64_EncodeTable_Initialization[] = 
 {
@@ -33,7 +33,7 @@ static const uint8_t Base64_EncodeTable_Initialization[] =
 	'4', '5', '6', '7', '8', '9', '+', '/'
 };
 
-/* ASCII order for BASE 64 decode, -1 in unused character.
+//RFC domain and Base64 decoding table
 static const int8_t Base64_DecodeTable_Initialization[] = 
 {
 	'+', ',', '-', '.', '/', '0', '1', '2', 
@@ -48,16 +48,15 @@ static const int8_t Base64_DecodeTable_Initialization[] =
 	10,  11,  12,  13,  14,  15,  16,  17, 
 	'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 
 	18,  19,  20,  21,  22,  23,  24,  25, 
-	'[', '\', ']', '^', '_', '`', 'a', 'b', 
+	'[', '\\', ']', '^', '_', '`', 'a', 'b', 
 	-1,  -1,  -1,  -1,  -1,  -1,  26,  27, 
 	'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 
 	28,  29,  30,  31,  32,  33,  34,  35, 
 	'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 
 	36,  37,  38,  39,  40,  41,  42,  43, 
-	's', 't', 'u', 'v', 'w', 'x', 'y', 'z'
+	's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 
 	44,  45,  46,  47,  48,  49,  50,  51
 };
-*/
 
 //ConfigurationTable class constructor
 ConfigurationTable::ConfigurationTable(
@@ -97,7 +96,7 @@ ConfigurationTable::ConfigurationTable(
 		SOCKS_Password = new std::string();
 	#if defined(ENABLE_TLS)
 		HTTP_CONNECT_TLS_SNI = new std::wstring();
-		sHTTP_CONNECT_TLS_SNI = new std::string();
+		MBS_HTTP_CONNECT_TLS_SNI = new std::string();
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			HTTP_CONNECT_TLS_AddressString_IPv4 = new std::string();
 			HTTP_CONNECT_TLS_AddressString_IPv6 = new std::string();
@@ -156,7 +155,7 @@ ConfigurationTable::ConfigurationTable(
 		delete SOCKS_Password;
 	#if defined(ENABLE_TLS)
 		delete HTTP_CONNECT_TLS_SNI;
-		delete sHTTP_CONNECT_TLS_SNI;
+		delete MBS_HTTP_CONNECT_TLS_SNI;
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			delete HTTP_CONNECT_TLS_AddressString_IPv4;
 			delete HTTP_CONNECT_TLS_AddressString_IPv6;
@@ -171,7 +170,7 @@ ConfigurationTable::ConfigurationTable(
 		SOCKS_Password = nullptr;
 	#if defined(ENABLE_TLS)
 		HTTP_CONNECT_TLS_SNI = nullptr;
-		sHTTP_CONNECT_TLS_SNI = nullptr;
+		MBS_HTTP_CONNECT_TLS_SNI = nullptr;
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
 			HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
@@ -219,7 +218,7 @@ void ConfigurationTableSetting(
 #endif
 	ConfigurationParameter->ListenProtocol_Network = LISTEN_PROTOCOL_NETWORK_BOTH;
 	ConfigurationParameter->ListenProtocol_Transport = LISTEN_PROTOCOL_TRANSPORT_BOTH;
-	ConfigurationParameter->OperationMode = LISTEN_MODE_PROXY;
+	ConfigurationParameter->OperationMode = LISTEN_MODE_PRIVATE;
 
 	//[DNS] block
 	ConfigurationParameter->RequestMode_Network = REQUEST_MODE_BOTH;
@@ -352,7 +351,7 @@ ConfigurationTable::~ConfigurationTable(
 	delete SOCKS_Password;
 #if defined(ENABLE_TLS)
 	delete HTTP_CONNECT_TLS_SNI;
-	delete sHTTP_CONNECT_TLS_SNI;
+	delete MBS_HTTP_CONNECT_TLS_SNI;
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		delete HTTP_CONNECT_TLS_AddressString_IPv4;
 		delete HTTP_CONNECT_TLS_AddressString_IPv6;
@@ -367,7 +366,7 @@ ConfigurationTable::~ConfigurationTable(
 	SOCKS_Password = nullptr;
 #if defined(ENABLE_TLS)
 	HTTP_CONNECT_TLS_SNI = nullptr;
-	sHTTP_CONNECT_TLS_SNI = nullptr;
+	MBS_HTTP_CONNECT_TLS_SNI = nullptr;
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
 		HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
@@ -483,6 +482,7 @@ void ConfigurationTable::MonitorItemToUsing(
 	ConfigurationParameter->HeaderCheck_TCP = HeaderCheck_TCP;
 #endif
 	ConfigurationParameter->HeaderCheck_DNS = HeaderCheck_DNS;
+	ConfigurationParameter->DataCheck_Strict_RR_TTL = DataCheck_Strict_RR_TTL;
 
 //[Proxy] block
 	if (ConfigurationParameter->SOCKS_TargetDomain != nullptr && !SOCKS_TargetDomain->empty() && SOCKS_TargetDomain_Port > 0)
@@ -494,7 +494,7 @@ void ConfigurationTable::MonitorItemToUsing(
 		*ConfigurationParameter->SOCKS_TargetDomain = *SOCKS_TargetDomain;
 		ConfigurationParameter->SOCKS_TargetDomain_Port = SOCKS_TargetDomain_Port;
 	}
-	else if (SOCKS_TargetServer.Storage.ss_family > 0)
+	else if (SOCKS_TargetServer.Storage.ss_family != 0)
 	{
 	//Reset old items.
 		if (ConfigurationParameter->SOCKS_TargetDomain != nullptr)
@@ -613,6 +613,7 @@ void ConfigurationTable::MonitorItemReset(
 	HeaderCheck_TCP = false;
 #endif
 	HeaderCheck_DNS = false;
+	DataCheck_Strict_RR_TTL = false;
 
 //[Proxy] block
 	memset(&SOCKS_TargetServer, 0, sizeof(SOCKS_TargetServer));
@@ -654,10 +655,10 @@ GlobalStatus::GlobalStatus(
 		FileList_Hosts = new std::vector<std::wstring>();
 		FileList_IPFilter = new std::vector<std::wstring>();
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		sPath_Global = new std::vector<std::string>();
-		sPath_ErrorLog = new std::string();
-		sFileList_Hosts = new std::vector<std::string>();
-		sFileList_IPFilter = new std::vector<std::string>();
+		MBS_Path_Global = new std::vector<std::string>();
+		MBS_Path_ErrorLog = new std::string();
+		MBS_FileList_Hosts = new std::vector<std::string>();
+		MBS_FileList_IPFilter = new std::vector<std::string>();
 	#endif
 		LocalAddress_Response[NETWORK_LAYER_IPV6] = new uint8_t[PACKET_MAXSIZE]();
 		LocalAddress_Response[NETWORK_LAYER_IPV4] = new uint8_t[PACKET_MAXSIZE]();
@@ -683,14 +684,14 @@ GlobalStatus::GlobalStatus(
 		FileList_Hosts = nullptr;
 		FileList_IPFilter = nullptr;
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		delete sPath_Global;
-		delete sPath_ErrorLog;
-		delete sFileList_Hosts;
-		delete sFileList_IPFilter;
-		sPath_Global = nullptr;
-		sPath_ErrorLog = nullptr;
-		sFileList_Hosts = nullptr;
-		sFileList_IPFilter = nullptr;
+		delete MBS_Path_Global;
+		delete MBS_Path_ErrorLog;
+		delete MBS_FileList_Hosts;
+		delete MBS_FileList_IPFilter;
+		MBS_Path_Global = nullptr;
+		MBS_Path_ErrorLog = nullptr;
+		MBS_FileList_Hosts = nullptr;
+		MBS_FileList_IPFilter = nullptr;
 	#endif
 		delete[] LocalAddress_Response[NETWORK_LAYER_IPV6];
 		delete[] LocalAddress_Response[NETWORK_LAYER_IPV4];
@@ -722,7 +723,7 @@ void GlobalStatusSetting(
 	GlobalRunningStatusParameter->RamdomEngine->seed(RamdomDevice());
 	GlobalRunningStatusParameter->DomainTable = (uint8_t *)DomainTable_Initialization;
 	GlobalRunningStatusParameter->Base64_EncodeTable = (uint8_t *)Base64_EncodeTable_Initialization;
-//	GlobalRunningStatusParameter->Base64_DecodeTable = (uint8_t *)Base64_DecodeTable_Initialization;
+	GlobalRunningStatusParameter->Base64_DecodeTable = (int8_t *)Base64_DecodeTable_Initialization;
 	GlobalRunningStatusParameter->GatewayAvailable_IPv4 = true;
 	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_IPV6], 0, PACKET_MAXSIZE);
 	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_IPV4], 0, PACKET_MAXSIZE);
@@ -769,14 +770,14 @@ GlobalStatus::~GlobalStatus(
 	FileList_Hosts = nullptr;
 	FileList_IPFilter = nullptr;
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	delete sPath_Global;
-	delete sPath_ErrorLog;
-	delete sFileList_Hosts;
-	delete sFileList_IPFilter;
-	sPath_Global = nullptr;
-	sPath_ErrorLog = nullptr;
-	sFileList_Hosts = nullptr;
-	sFileList_IPFilter = nullptr;
+	delete MBS_Path_Global;
+	delete MBS_Path_ErrorLog;
+	delete MBS_FileList_Hosts;
+	delete MBS_FileList_IPFilter;
+	MBS_Path_Global = nullptr;
+	MBS_Path_ErrorLog = nullptr;
+	MBS_FileList_Hosts = nullptr;
+	MBS_FileList_IPFilter = nullptr;
 #endif
 	delete[] LocalAddress_Response[NETWORK_LAYER_IPV6];
 	delete[] LocalAddress_Response[NETWORK_LAYER_IPV4];

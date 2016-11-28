@@ -26,7 +26,7 @@ void CaptureInit(
 {
 //Initialization and capture filter initialization
 	uint8_t ErrorBuffer[PCAP_ERRBUF_SIZE]{0};
-	pcap_if *pThedevs = nullptr, *pDrive = nullptr;
+	pcap_if *CaptureDriveList = nullptr, *CaptureDriveIter = nullptr;
 	std::wstring Message;
 	auto IsErrorFirstPrint = true, IsFound = false;
 	std::unique_lock<std::mutex> CaptureMutex(CaptureLock, std::defer_lock);
@@ -40,7 +40,7 @@ void CaptureInit(
 	for (;;)
 	{
 	//Open all devices.
-		if (pcap_findalldevs(&pThedevs, (char *)ErrorBuffer) < 0)
+		if (pcap_findalldevs(&CaptureDriveList, (char *)ErrorBuffer) < 0)
 		{
 			if (MBS_To_WCS_String(ErrorBuffer, PCAP_ERRBUF_SIZE, Message))
 				PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, Message.c_str(), 0, nullptr, 0);
@@ -52,7 +52,7 @@ void CaptureInit(
 			continue;
 		}
 	//Permissions check and check available network devices.
-		else if (pThedevs == nullptr)
+		else if (CaptureDriveList == nullptr)
 		{
 			if (IsErrorFirstPrint)
 				IsErrorFirstPrint = false;
@@ -66,22 +66,22 @@ void CaptureInit(
 		else {
 			if (PcapRunningList.empty())
 			{
-				std::thread CaptureThread(std::bind(CaptureModule, pThedevs, true));
+				std::thread CaptureThread(std::bind(CaptureModule, CaptureDriveList, true));
 				CaptureThread.detach();
 			}
 			else {
-				pDrive = pThedevs;
+				CaptureDriveIter = CaptureDriveList;
 
 			//Scan all devices.
 				CaptureMutex.lock();
-				while (pDrive != nullptr)
+				while (CaptureDriveIter != nullptr)
 				{
-					if (pDrive->name != nullptr)
+					if (CaptureDriveIter->name != nullptr)
 					{
 						IsFound = true;
 						for (const auto &CaptureIter:PcapRunningList)
 						{
-							if (CaptureIter == pDrive->name)
+							if (CaptureIter == CaptureDriveIter->name)
 							{
 								IsFound = false;
 								break;
@@ -91,12 +91,12 @@ void CaptureInit(
 					//Start a capture monitor.
 						if (IsFound)
 						{
-							std::thread CaptureThread(std::bind(CaptureModule, pDrive, false));
+							std::thread CaptureThread(std::bind(CaptureModule, CaptureDriveIter, false));
 							CaptureThread.detach();
 						}
 					}
 
-					pDrive = pDrive->next;
+					CaptureDriveIter = CaptureDriveIter->next;
 				}
 
 				CaptureMutex.unlock();
@@ -104,7 +104,7 @@ void CaptureInit(
 		}
 
 		Sleep(Parameter.FileRefreshTime);
-		pcap_freealldevs(pThedevs);
+		pcap_freealldevs(CaptureDriveList);
 	}
 
 //Monitor terminated
@@ -126,11 +126,11 @@ bool CaptureFilterRulesInit(
 		(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 	{
 	//Main
-		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family > 0)
+		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0)
 			AddrList.push_back(&Parameter.Target_Server_Main_IPv6);
 
 	//Alternate
-		if (Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0)
+		if (Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0)
 		{
 		//Check repeating items.
 			for (const auto &DNSServerDataIter:AddrList)
@@ -179,11 +179,11 @@ bool CaptureFilterRulesInit(
 		(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 	{
 	//Main
-		if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family > 0)
+		if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0)
 			AddrList.push_back(&Parameter.Target_Server_Main_IPv4);
 
 	//Alternate
-		if (Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0)
+		if (Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0)
 		{
 		//Check repeating items.
 			for (const auto &DNSServerDataIter:AddrList)
@@ -280,25 +280,25 @@ bool CaptureFilterRulesInit(
 
 //Capture process
 bool CaptureModule(
-	const pcap_if * const pDrive, 
+	const pcap_if * const DriveInterface, 
 	const bool IsCaptureList)
 {
 	std::string CaptureDevice;
 
 //Devices name, addresses and type check
-	if (pDrive == nullptr)
+	if (DriveInterface == nullptr)
 		return false;
 #if defined(PLATFORM_WIN)
-	else if (pDrive->name == nullptr || pDrive->addresses == nullptr || pDrive->addresses->netmask == nullptr || pDrive->flags == PCAP_IF_LOOPBACK)
+	else if (DriveInterface->name == nullptr || DriveInterface->addresses == nullptr || DriveInterface->addresses->netmask == nullptr || DriveInterface->flags == PCAP_IF_LOOPBACK)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	else if (pDrive->name == nullptr || pDrive->addresses == nullptr || pDrive->flags == PCAP_IF_LOOPBACK)
+	else if (DriveInterface->name == nullptr || DriveInterface->addresses == nullptr || DriveInterface->flags == PCAP_IF_LOOPBACK)
 #endif
 		goto SkipDevices;
 
 //Pcap devices blacklist check
-	if (pDrive->description != nullptr)
+	if (DriveInterface->description != nullptr)
 	{
-		CaptureDevice.append(pDrive->description);
+		CaptureDevice.append(DriveInterface->description);
 		CaseConvert(CaptureDevice, false);
 		for (const auto &CaptureIter:*Parameter.PcapDevicesBlacklist)
 		{
@@ -309,7 +309,7 @@ bool CaptureModule(
 
 //Mark capture name.
 	CaptureDevice.clear();
-	CaptureDevice.append(pDrive->name);
+	CaptureDevice.append(DriveInterface->name);
 	CaseConvert(CaptureDevice, false);
 	for (const auto &CaptureIter:*Parameter.PcapDevicesBlacklist)
 	{
@@ -321,9 +321,9 @@ bool CaptureModule(
 	goto DevicesNotSkip;
 
 SkipDevices:
-	if (IsCaptureList && pDrive->next != nullptr)
+	if (IsCaptureList && DriveInterface->next != nullptr)
 	{
-		std::thread CaptureThread(std::bind(CaptureModule, pDrive->next, true));
+		std::thread CaptureThread(std::bind(CaptureModule, DriveInterface->next, true));
 		CaptureThread.detach();
 	}
 
@@ -336,14 +336,14 @@ DevicesNotSkip:
 	std::shared_ptr<uint8_t> Buffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
 	memset(Buffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 	CaptureDevice.clear();
-	CaptureDevice.append(pDrive->name);
+	CaptureDevice.append(DriveInterface->name);
 	CaptureDevice.shrink_to_fit();
 
 //Open device
 #if defined(PLATFORM_WIN)
-	auto DeviceHandle = pcap_open(pDrive->name, (int)Parameter.LargeBufferSize, 0, (int)Parameter.PcapReadingTimeout, nullptr, (char *)Buffer.get());
+	auto DeviceHandle = pcap_open(DriveInterface->name, (int)Parameter.LargeBufferSize, 0, (int)Parameter.PcapReadingTimeout, nullptr, (char *)Buffer.get());
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	auto DeviceHandle = pcap_open_live(pDrive->name, (int)Parameter.LargeBufferSize, 0, (int)Parameter.PcapReadingTimeout, (char *)Buffer.get());
+	auto DeviceHandle = pcap_open_live(DriveInterface->name, (int)Parameter.LargeBufferSize, 0, (int)Parameter.PcapReadingTimeout, (char *)Buffer.get());
 #endif
 	if (DeviceHandle == nullptr)
 	{
@@ -406,9 +406,9 @@ DevicesNotSkip:
 
 //Start captures with other devices.
 	PcapRunningList.push_back(CaptureDevice);
-	if (IsCaptureList && pDrive->next != nullptr)
+	if (IsCaptureList && DriveInterface->next != nullptr)
 	{
-		std::thread CaptureThread(std::bind(CaptureModule, pDrive->next, IsCaptureList));
+		std::thread CaptureThread(std::bind(CaptureModule, DriveInterface->next, IsCaptureList));
 		CaptureThread.detach();
 	}
 
@@ -636,11 +636,11 @@ bool CaptureNetworkLayer(
 			#if defined(ENABLE_LIBSODIUM)
 				if (Parameter.IsDNSCurve && 
 				//Main(IPv6)
-					((DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family > 0 && 
+					((DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 					DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber != nullptr && 
 					sodium_memcmp(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0) || 
 				//Alternate(IPv6)
-					(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family > 0 && 
+					(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && 
 					DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber != nullptr && 
 					sodium_memcmp(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0)))
 						return false;
@@ -667,7 +667,8 @@ bool CaptureNetworkLayer(
 		const auto IPv4_Header = (pipv4_hdr)Buffer;
 
 	//Validate IPv4 header.
-		if (ntohs(IPv4_Header->Length) <= IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES || ntohs(IPv4_Header->Length) > Length || 
+		if (ntohs(IPv4_Header->Length) <= IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES || 
+			ntohs(IPv4_Header->Length) > Length || 
 			GetChecksum((uint16_t *)Buffer, sizeof(ipv4_hdr)) != CHECKSUM_SUCCESS)
 				return false;
 
@@ -769,11 +770,11 @@ bool CaptureNetworkLayer(
 			#if defined(ENABLE_LIBSODIUM)
 				if (Parameter.IsDNSCurve && 
 				//Main(IPv4)
-					((DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family > 0 && 
+					((DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 					DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber != nullptr &&  
 					sodium_memcmp(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0) || 
 				//Alternate(IPv4)
-					(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family > 0 && 
+					(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0 && 
 					DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber != nullptr && 
 					sodium_memcmp(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0)))
 						return false;
@@ -958,12 +959,12 @@ ClearOutputPacketListData:
 	OutputPacketListMutex.unlock();
 
 //Drop resopnses which not in OutputPacketList.
-	if (!SocketSetting(SocketData_Input.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
-		SocketData_Input.AddrLen == 0 || SocketData_Input.SockAddr.ss_family == 0 || SystemProtocol == 0)
+	if (SocketData_Input.AddrLen == 0 || SocketData_Input.SockAddr.ss_family == 0 || SystemProtocol == 0 || 
+		!SocketSetting(SocketData_Input.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 			return false;
 
 //Mark DNS cache.
-	if (Parameter.CacheType > CACHE_TYPE_NONE)
+	if (Parameter.CacheType != CACHE_TYPE_NONE)
 		MarkDomainCache(Buffer, Length);
 
 //Send to requester.

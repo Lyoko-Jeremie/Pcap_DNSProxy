@@ -588,6 +588,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * TCP Data Filter - TCP 数据包头检测：开启为 1 /关闭为 0
   * DNS Data Filter - DNS 数据包头检测：开启为 1 /关闭为 0
   * Blacklist Filter - 解析结果黑名单过滤：开启为 1 /关闭为 0
+  * Strict Resource Record TTL Filter - 严格的资源记录生存时间过滤，标准要求同一名称和类型的资源记录必须具有相同的生存时间：开启为 1/关闭为 0
   
 * Data - 数据区域
   * ICMP ID - ICMP/Ping 数据包头部 ID 的值：格式为 0x**** 的十六进制字符，如果留空则获取线程的 ID 作为请求用 ID
@@ -822,13 +823,15 @@ Hosts 配置文件分为多个提供不同功能的区域
 
 
 * Stop - 临时停止读取标签
-  * 在需要停止读取的数据前添加 "[Stop]"（不含引号） 标签即可在中途停止对文件的读取，直到再次遇到临时停止读取标签或其它标签时再重新开始读取
+  * 在需要停止读取的数据前添加 "[Stop]" 和数据后添加 "[Stop End]"（均不含引号）标签即可在中途停止对文件的读取
+  * 临时停止读取生效后需要遇到临时停止读取终止标签或其它标签时才会重新开始读取
   * 例如有一片数据区域：
 
     [Hosts]
-    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.test
     [Stop]
+    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.test
     127.0.0.4|127.0.0.5|127.0.0.6 .*\.test
+    [Stop End]
     ::1|::2|::3 .*\.test\.test
     ::4|::5|::6 .*\.test
 
@@ -836,11 +839,12 @@ Hosts 配置文件分为多个提供不同功能的区域
     .*\.test\.test
     .*\.test
 
-  * 则从 [Stop] 一行开始，下面到 [Local Hosts] 之间的数据都将不会被读取
+  * 则从 [Stop] 一行开始，下面到 [Stop End] 之间的数据都将不会被读取
   * 即实际有效的数据区域是：
 
     [Hosts]
-    127.0.0.1|127.0.0.2|127.0.0.3 .*\.test\.test
+    ::1|::2|::3 .*\.test\.test
+    ::4|::5|::6 .*\.test
 
     [Local Hosts]
     .*\.test\.test
@@ -969,6 +973,7 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
 * IPv4 Data Filter
 * TCP Data Filter
 * DNS Data Filter
+* Strict Resource Record TTL Filter
 * SOCKS Target Server
 * SOCKS Username
 * SOCKS Password

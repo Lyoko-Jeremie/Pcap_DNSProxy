@@ -109,7 +109,7 @@ bool PrintError(
 			ErrorMessage.append(L"[Pcap Error] ");
 			ErrorMessage.append(Message);
 
-			return WriteScreenAndFile(ErrorMessage, ErrorCode, Line);
+			return WriteMessage_ScreenFile(ErrorMessage, ErrorCode, Line);
 		}break;
 	#endif
 	//DNSCurve Error
@@ -153,11 +153,11 @@ bool PrintError(
 	ErrorMessage.append(L".\n");
 
 //Print error log.
-	return WriteScreenAndFile(ErrorMessage, ErrorCode, Line);
+	return WriteMessage_ScreenFile(ErrorMessage, ErrorCode, Line);
 }
 
 //Write to screen and file
-bool WriteScreenAndFile(
+bool WriteMessage_ScreenFile(
 	const std::wstring Message, 
 	const ssize_t ErrorCode, 
 	const size_t Line)
@@ -246,9 +246,9 @@ bool WriteScreenAndFile(
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	struct stat FileStatData;
 	memset(&FileStatData, 0, sizeof(FileStatData));
-	if (stat(GlobalRunningStatus.sPath_ErrorLog->c_str(), &FileStatData) == 0 && FileStatData.st_size >= (off_t)Parameter.LogMaxSize)
+	if (stat(GlobalRunningStatus.MBS_Path_ErrorLog->c_str(), &FileStatData) == 0 && FileStatData.st_size >= (off_t)Parameter.LogMaxSize)
 	{
-		if (remove(GlobalRunningStatus.sPath_ErrorLog->c_str()) == 0)
+		if (remove(GlobalRunningStatus.MBS_Path_ErrorLog->c_str()) == 0)
 			IsFileDeleted = true;
 		else 
 			return false;
@@ -260,7 +260,7 @@ bool WriteScreenAndFile(
 	FILE *FileHandle = nullptr;
 	if (_wfopen_s(&FileHandle, GlobalRunningStatus.Path_ErrorLog->c_str(), L"a,ccs=UTF-8") == 0 && FileHandle != nullptr)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	auto FileHandle = fopen(GlobalRunningStatus.sPath_ErrorLog->c_str(), "a");
+	auto FileHandle = fopen(GlobalRunningStatus.MBS_Path_ErrorLog->c_str(), "a");
 	if (FileHandle != nullptr)
 #endif
 	{
@@ -438,7 +438,7 @@ void ReadTextPrintLog(
 		{
 			PrintError(LOG_LEVEL_2, LOG_ERROR_IPFILTER, L"Data of a line is too short", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 		}break;
-		case READ_TEXT_PARAMETER: //ReadParameter
+		case READ_TEXT_PARAMETER_NORMAL: //ReadParameter
 		{
 			PrintError(LOG_LEVEL_2, LOG_ERROR_PARAMETER, L"Data of a line is too short", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 		}break;

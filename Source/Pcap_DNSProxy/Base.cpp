@@ -136,7 +136,7 @@ void CaseConvert(
 	const bool IsLowerToUpper)
 {
 //Null pointer
-	if (Buffer == nullptr)
+	if (Buffer == nullptr || Length == 0)
 	{
 		return;
 	}
@@ -246,8 +246,7 @@ bool CompareStringReversed(
 //Reversed string comparing
 bool CompareStringReversed(
 	const wchar_t * const RuleItem, 
-	const wchar_t * const TestItem, 
-	const bool IsCaseConvert)
+	const wchar_t * const TestItem)
 {
 	std::wstring InnerRuleItem(RuleItem), InnerTestItem(TestItem);
 
@@ -258,11 +257,6 @@ bool CompareStringReversed(
 	}
 	else {
 	//Make string reversed to compare.
-		if (IsCaseConvert)
-		{
-			CaseConvert(InnerRuleItem, false);
-			CaseConvert(InnerTestItem, false);
-		}
 		MakeStringReversed(InnerRuleItem);
 		MakeStringReversed(InnerTestItem);
 
@@ -299,6 +293,8 @@ size_t Base64_Encode(
 	const size_t OutputSize)
 {
 //Initialization
+	if (Length == 0)
+		return 0;
 	size_t Index[]{0, 0, 0};
 	memset(Output, 0, OutputSize);
 
@@ -346,7 +342,8 @@ size_t Base64_Encode(
 	return strnlen_s((const char *)Output, OutputSize);
 }
 
-/* Base64 decoding
+//Base64 decoding
+//Base64 encoding or decoding is from https://github.com/zhicheng/base64.
 size_t Base64_Decode(
 	uint8_t *Input, 
 	const size_t Length, 
@@ -354,9 +351,11 @@ size_t Base64_Decode(
 	const size_t OutputSize)
 {
 //Initialization
-	memset(Output, 0, OutputSize);
+	if (Length == 0)
+		return 0;
 	size_t Index[]{0, 0, 0};
 	int StringIter = 0;
+	memset(Output, 0, OutputSize);
 
 //Convert from Base64 to binary.
 	for (Index[0] = Index[1U] = 0;Index[0] < Length;++Index[0])
@@ -364,9 +363,9 @@ size_t Base64_Decode(
 		StringIter = 0;
 		Index[2U] = Index[0] % 4U;
 		if (Input[Index[0]] == (uint8_t)BASE64_PAD)
-			return strnlen_s(Output, OutputSize);
-		if (Input[Index[0]] < BASE64_DE_FIRST || Input[Index[0]] > BASE64_DE_LAST || 
-			(StringIter = GlobalRunningStatus.Base64_DecodeTable[Input[Index[0]] - BASE64_DE_FIRST]) == -1)
+			return strnlen_s((const char *)Output, OutputSize);
+		if (Input[Index[0]] < BASE64_DECODE_FIRST || Input[Index[0]] > BASE64_DECODE_LAST || 
+			(StringIter = GlobalRunningStatus.Base64_DecodeTable[Input[Index[0]] - BASE64_DECODE_FIRST]) == -1)
 				return 0;
 		switch (Index[2U])
 		{
@@ -400,9 +399,9 @@ size_t Base64_Decode(
 		}
 	}
 
-	return strnlen_s(Output, OutputSize);
+	return strnlen_s((const char *)Output, OutputSize);
 }
-*/
+
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 //Increase time with milliseconds
 uint64_t IncreaseMillisecondTime(

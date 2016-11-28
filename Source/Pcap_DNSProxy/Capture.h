@@ -47,7 +47,7 @@ std::list<std::string> PcapRunningList;
 bool CaptureFilterRulesInit(
 	std::string &FilterRules);
 bool CaptureModule(
-	const pcap_if * const pDrive, 
+	const pcap_if * const DriveInterface, 
 	const bool IsCaptureList);
 void CaptureHandler(
 	uint8_t * const Param, 

@@ -149,7 +149,7 @@ size_t SOCKS_TCP_Request(
 	ErrorCodeList.front() = 0;
 
 //Socket initialization
-	if (Parameter.SOCKS_Address_IPv6.Storage.ss_family > 0 && //IPv6
+	if (Parameter.SOCKS_Address_IPv6.Storage.ss_family != 0 && //IPv6
 		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 || //IPv6
 		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 && Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
@@ -160,7 +160,7 @@ size_t SOCKS_TCP_Request(
 		SocketDataList.front().AddrLen = sizeof(sockaddr_in6);
 		SocketDataList.front().Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 	}
-	else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family > 0 && //IPv4
+	else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family != 0 && //IPv4
 		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 || //IPv4
 		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 && Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6
@@ -255,7 +255,7 @@ size_t SOCKS_TCP_Request(
 			return EXIT_FAILURE;
 
 	//Mark DNS cache.
-		if (Parameter.CacheType > CACHE_TYPE_NONE)
+		if (Parameter.CacheType != CACHE_TYPE_NONE)
 			MarkDomainCache(SocketSelectingDataList.front().RecvBuffer.get(), RecvLen);
 
 	//Swap buffer.
@@ -289,7 +289,7 @@ size_t SOCKS_UDP_Request(
 	LocalErrorCodeList.front() = 0;
 
 //Socket initialization
-	if (Parameter.SOCKS_Address_IPv6.Storage.ss_family > 0 && //IPv6
+	if (Parameter.SOCKS_Address_IPv6.Storage.ss_family != 0 && //IPv6
 		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 || //IPv6
 		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 && Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
@@ -316,7 +316,7 @@ size_t SOCKS_UDP_Request(
 		UDPSocketDataList.front().AddrLen = sizeof(sockaddr_in6);
 		UDPSocketDataList.front().Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	}
-	else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family > 0 && //IPv4
+	else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family != 0 && //IPv4
 		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV4 || //IPv4
 		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_IPV6 && Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6
@@ -577,7 +577,7 @@ size_t SOCKS_UDP_Request(
 			return EXIT_FAILURE;
 
 	//Mark DNS cache.
-		if (Parameter.CacheType > CACHE_TYPE_NONE)
+		if (Parameter.CacheType != CACHE_TYPE_NONE)
 			MarkDomainCache(UDPSocketSelectingDataList.front().RecvBuffer.get(), RecvLen);
 
 	//Swap buffer.
@@ -1034,7 +1034,7 @@ size_t HTTP_CONNECT_Request(
 	if (RecvLen >= DNS_PACKET_MINSIZE)
 	{
 	//Mark DNS cache.
-		if (Parameter.CacheType > CACHE_TYPE_NONE)
+		if (Parameter.CacheType != CACHE_TYPE_NONE)
 			MarkDomainCache(SocketSelectingDataList.front().RecvBuffer.get(), RecvLen);
 
 	//Swap buffer.
@@ -1057,7 +1057,7 @@ bool HTTP_CONNECT_Handshake(
 	void *TLS_Context)
 {
 //Socket initialization
-	if (Parameter.HTTP_CONNECT_Address_IPv6.Storage.ss_family > 0 && //IPv6
+	if (Parameter.HTTP_CONNECT_Address_IPv6.Storage.ss_family != 0 && //IPv6
 		((Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_IPV6 || //IPv6
 		(Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_IPV4 && Parameter.HTTP_CONNECT_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
@@ -1085,7 +1085,7 @@ bool HTTP_CONNECT_Handshake(
 		#endif
 	#endif
 	}
-	else if (Parameter.HTTP_CONNECT_Address_IPv4.Storage.ss_family > 0 && //IPv4
+	else if (Parameter.HTTP_CONNECT_Address_IPv4.Storage.ss_family != 0 && //IPv4
 		((Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_IPV4 || //IPv4
 		(Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_IPV6 && Parameter.HTTP_CONNECT_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6

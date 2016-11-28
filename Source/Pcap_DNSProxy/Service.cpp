@@ -124,15 +124,15 @@ size_t WINAPI ServiceControl(
 BOOL WINAPI ExecuteService(
 	void)
 {
-	DWORD dwThreadID = 0;
-	const HANDLE hServiceThread = CreateThread(
+	DWORD ThreadID = 0;
+	const HANDLE ServiceThread = CreateThread(
 		0, 
 		0, 
 		(PTHREAD_START_ROUTINE)ServiceProc, 
 		nullptr, 
 		0, 
-		&dwThreadID);
-	if (hServiceThread != nullptr)
+		&ThreadID);
+	if (ServiceThread != nullptr)
 	{
 		IsServiceRunning = TRUE;
 		return TRUE;
@@ -250,11 +250,12 @@ bool Flush_DNS_MailSlotMonitor(
 	SecurityAttributes.bInheritHandle = true;
 
 //Create mailslot.
-	const HANDLE hSlot = CreateMailslotW(
-		MAILSLOT_NAME, FILE_BUFFER_SIZE - 1U, 
+	const HANDLE MailslotHandle = CreateMailslotW(
+		MAILSLOT_NAME, 
+		FILE_BUFFER_SIZE - 1U, 
 		MAILSLOT_WAIT_FOREVER, 
 		&SecurityAttributes);
-	if (hSlot == INVALID_HANDLE_VALUE)
+	if (MailslotHandle == INVALID_HANDLE_VALUE)
 	{
 		PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Create mailslot error", GetLastError(), nullptr, 0);
 		if (SID_Value != nullptr)
@@ -269,10 +270,10 @@ bool Flush_DNS_MailSlotMonitor(
 		LocalFree(SID_Value);
 
 //Initialization
-	std::shared_ptr<wchar_t> lpszBuffer(new wchar_t[FILE_BUFFER_SIZE]());
-	wmemset(lpszBuffer.get(), 0, FILE_BUFFER_SIZE);
+	std::shared_ptr<wchar_t> Buffer(new wchar_t[FILE_BUFFER_SIZE]());
+	wmemset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 	std::wstring Message;
-	std::string Domain; 
+	std::string Domain;
 	DWORD cbMessage = 0;
 	BOOL Result = 0;
 
@@ -280,13 +281,13 @@ bool Flush_DNS_MailSlotMonitor(
 	for (;;)
 	{
 	//Reset parameters.
-		wmemset(lpszBuffer.get(), 0, FILE_BUFFER_SIZE);
+		wmemset(Buffer.get(), 0, FILE_BUFFER_SIZE);
 		cbMessage = 0;
 
 	//Read message from mailslot.
 		Result = ReadFile(
-			hSlot, 
-			lpszBuffer.get(), 
+			MailslotHandle, 
+			Buffer.get(), 
 			FILE_BUFFER_SIZE, 
 			&cbMessage, 
 			nullptr);
@@ -294,11 +295,11 @@ bool Flush_DNS_MailSlotMonitor(
 		{
 			PrintError(LOG_LEVEL_3, LOG_ERROR_SYSTEM, L"Mailslot read messages error", GetLastError(), nullptr, 0);
 
-			CloseHandle(hSlot);
+			CloseHandle(MailslotHandle);
 			return false;
 		}
 		else {
-			Message = lpszBuffer.get();
+			Message = Buffer.get();
 			Domain.clear();
 
 		//Read message.
@@ -323,7 +324,7 @@ bool Flush_DNS_MailSlotMonitor(
 	}
 
 //Monitor terminated
-	CloseHandle(hSlot);
+	CloseHandle(MailslotHandle);
 	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Mailslot module Monitor terminated", 0, nullptr, 0);
 	return false;
 }
@@ -333,7 +334,7 @@ bool WINAPI Flush_DNS_MailSlotSender(
 	const wchar_t * const Domain)
 {
 //Mailslot initialization
-	const HANDLE hFile = CreateFileW(
+	const HANDLE FileHandle = CreateFileW(
 		MAILSLOT_NAME, 
 		GENERIC_WRITE, 
 		FILE_SHARE_READ, 
@@ -341,7 +342,7 @@ bool WINAPI Flush_DNS_MailSlotSender(
 		OPEN_EXISTING, 
 		FILE_ATTRIBUTE_NORMAL, 
 		nullptr);
-	if (hFile == INVALID_HANDLE_VALUE)
+	if (FileHandle == INVALID_HANDLE_VALUE)
 	{
 		std::wstring InnerMessage(L"[System Error] Create mailslot error");
 		if (GetLastError() == 0)
@@ -360,22 +361,22 @@ bool WINAPI Flush_DNS_MailSlotSender(
 
 //Message initialization
 	std::wstring Message(MAILSLOT_MESSAGE_FLUSH_DNS);
-	if (Domain != nullptr)
+	if (Domain != nullptr && wcsnlen_s(Domain, DOMAIN_MAXSIZE) > DOMAIN_MINSIZE)
 	{
 		Message.append(L": ");
 		Message.append(Domain);
 	}
 
 //Write into mailslot.
-	DWORD cbWritten = 0;
+	DWORD WrittenBytes = 0;
 	if (WriteFile(
-			hFile, 
+			FileHandle, 
 			Message.c_str(), 
 			(DWORD)(sizeof(wchar_t) * Message.length() + 1U), 
-			&cbWritten, 
+			&WrittenBytes, 
 			nullptr) == 0)
 	{
-		CloseHandle(hFile);
+		CloseHandle(FileHandle);
 		std::wstring InnerMessage(L"[System Error] Mailslot write messages error");
 		if (GetLastError() == 0)
 		{
@@ -391,7 +392,7 @@ bool WINAPI Flush_DNS_MailSlotSender(
 		return false;
 	}
 	else {
-		CloseHandle(hFile);
+		CloseHandle(FileHandle);
 		PrintToScreen(true, L"[Notice] Flush DNS cache message was sent successfully.\n");
 	}
 
@@ -476,7 +477,7 @@ bool Flush_DNS_FIFO_Sender(
 {
 //Message initialization
 	std::string Message(FIFO_MESSAGE_FLUSH_DNS);
-	if (Domain != nullptr)
+	if (Domain != nullptr && strnlen((const char *)Domain, DOMAIN_MAXSIZE) > DOMAIN_MINSIZE)
 	{
 		Message.append(": ");
 		Message.append((const char *)Domain);
@@ -522,7 +523,8 @@ void FlushDNSCache(
 {
 //Flush DNS cache in process.
 	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
-	if (Domain == nullptr) //Flush all DNS cache.
+	if (Domain == nullptr || //Flush all DNS cache.
+		strnlen_s((const char *)Domain, DOMAIN_MAXSIZE) > DOMAIN_MINSIZE)
 	{
 		DNSCacheList.clear();
 	}

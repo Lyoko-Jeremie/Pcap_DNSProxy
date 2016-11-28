@@ -54,6 +54,8 @@ void MonitorRequestConsumer(
 //Initialization
 	MONITOR_QUEUE_DATA MonitorQueryData;
 	std::shared_ptr<uint8_t> SendBuffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]()), RecvBuffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
+	memset(SendBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
+	memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 	size_t LastActiveTime = 0;
 
 //Monitor consumer
@@ -850,7 +852,7 @@ StopLoop_NormalHosts:
 	HostsFileMutex.unlock();
 
 //Check DNS cache.
-	if (Parameter.CacheType > CACHE_TYPE_NONE)
+	if (Parameter.CacheType != CACHE_TYPE_NONE)
 	{
 		std::lock_guard<std::mutex> DNSCacheListMutex(DNSCacheListLock);
 		AutoClearDNSCache();
@@ -1256,13 +1258,13 @@ uint16_t SelectNetworkProtocol(
 	void)
 {
 //IPv6
-	if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family > 0 && 
+	if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 		((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
 		(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 			return AF_INET6;
 //IPv4
-	else if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family > 0 && 
+	else if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 		((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
 		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
 		(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
@@ -1320,7 +1322,7 @@ bool SendToRequester(
 	const SOCKET_DATA &LocalSocketData)
 {
 //Response check
-	if (RecvSize < DNS_PACKET_MINSIZE || CheckEmptyBuffer(RecvBuffer, RecvSize) || 
+	if (RecvSize < DNS_PACKET_MINSIZE || CheckEmptyBuffer(RecvBuffer, RecvSize) || !SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) || 
 		((pdns_hdr)RecvBuffer)->ID == 0 || ((pdns_hdr)RecvBuffer)->Flags == 0) //DNS header ID and flags must not be set 0.
 			return false;
 

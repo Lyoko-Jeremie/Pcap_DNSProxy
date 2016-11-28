@@ -154,7 +154,7 @@ size_t AddLengthDataToHeader(
 	const size_t RecvLen, 
 	const size_t MaxLen)
 {
-	if (MaxLen >= RecvLen + sizeof(uint16_t))
+	if (RecvLen + sizeof(uint16_t) < MaxLen)
 	{
 		memmove_s(Buffer + sizeof(uint16_t), MaxLen - sizeof(uint16_t), Buffer, RecvLen);
 		((pdns_tcp_hdr)Buffer)->Length = htons((uint16_t)RecvLen);
@@ -202,39 +202,39 @@ size_t PacketQueryToString(
 	std::string &FName)
 {
 //Initialization
-	size_t uIndex = 0;
+	size_t LocateIndex = 0;
 	uint8_t CharIter[]{0, 0};
-	int Index[]{0, 0};
+	int MarkIndex[]{0, 0};
 	FName.clear();
 
 //Convert domain.
-	for (uIndex = 0;uIndex < DOMAIN_MAXSIZE;++uIndex)
+	for (LocateIndex = 0;LocateIndex < DOMAIN_MAXSIZE;++LocateIndex)
 	{
 	//Pointer check
-		if (TName[uIndex] >= DNS_POINTER_8_BITS)
+		if (TName[LocateIndex] >= DNS_POINTER_8_BITS)
 		{
-			return uIndex + sizeof(uint16_t);
+			return LocateIndex + sizeof(uint16_t);
 		}
-		else if (uIndex == 0)
+		else if (LocateIndex == 0)
 		{
-			Index[0] = TName[uIndex];
+			MarkIndex[0] = TName[LocateIndex];
 		}
-		else if (uIndex == Index[0] + Index[1U] + 1U)
+		else if (LocateIndex == MarkIndex[0] + MarkIndex[1U] + 1U)
 		{
-			Index[0] = TName[uIndex];
-			if (Index[0] == 0)
+			MarkIndex[0] = TName[LocateIndex];
+			if (MarkIndex[0] == 0)
 				break;
 
-			Index[1U] = (int)uIndex;
+			MarkIndex[1U] = (int)LocateIndex;
 			FName.append(".");
 		}
 		else {
-			CharIter[0] = TName[uIndex];
+			CharIter[0] = TName[LocateIndex];
 			FName.append((const char *)CharIter);
 		}
 	}
 
-	return uIndex;
+	return LocateIndex;
 }
 
 //Convert data from compression DNS query to whole DNS query
@@ -250,17 +250,17 @@ size_t MarkWholePacketQuery(
 		return 0;
 
 //Initialization
-	size_t uIndex = 0, PointerIndex = 0;
+	size_t LocateIndex = 0, PointerIndex = 0;
 	uint8_t CharIter[]{0, 0};
 	int Index[]{0, 0};
 
 //Convert domain.
-	for (uIndex = 0;uIndex < Length - TNameIndex;++uIndex)
+	for (LocateIndex = 0;LocateIndex < Length - TNameIndex;++LocateIndex)
 	{
 	//Pointer check
-		if (TName[uIndex] >= DNS_POINTER_8_BITS)
+		if (TName[LocateIndex] >= DNS_POINTER_8_BITS)
 		{
-			PointerIndex = ntohs(*(uint16_t *)(TName + uIndex)) & DNS_POINTER_BITS_GET_LOCATE;
+			PointerIndex = ntohs(*(uint16_t *)(TName + LocateIndex)) & DNS_POINTER_BITS_GET_LOCATE;
 			if (PointerIndex < TNameIndex)
 			{
 				if (!FName.empty())
@@ -269,30 +269,30 @@ size_t MarkWholePacketQuery(
 				return MarkWholePacketQuery(Packet, Length, Packet + PointerIndex, PointerIndex, FName);
 			}
 			else {
-				return uIndex;
+				return LocateIndex;
 			}
 		}
-		else if (uIndex == 0)
+		else if (LocateIndex == 0)
 		{
-			Index[0] = TName[uIndex];
+			Index[0] = TName[LocateIndex];
 		}
-		else if (uIndex == Index[0] + Index[1U] + 1U)
+		else if (LocateIndex == Index[0] + Index[1U] + 1U)
 		{
-			Index[0] = TName[uIndex];
+			Index[0] = TName[LocateIndex];
 			if (Index[0] == 0)
 				break;
 			else 
-				Index[1U] = (int)uIndex;
+				Index[1U] = (int)LocateIndex;
 
 			FName.append(".");
 		}
 		else {
-			CharIter[0] = TName[uIndex];
+			CharIter[0] = TName[LocateIndex];
 			FName.append((const char *)CharIter);
 		}
 	}
 
-	return uIndex;
+	return LocateIndex;
 }
 
 //Make ramdom domains
@@ -365,25 +365,40 @@ void MakeRamdomDomain(
 void MakeDomainCaseConversion(
 	uint8_t * const Buffer)
 {
-//Ramdom number distribution initialization
-	std::uniform_int_distribution<size_t> RamdomDistribution(0, 1U);
-	size_t Index = 0;
-
-//Make Case Conversion.
-	if (RamdomDistribution(*GlobalRunningStatus.RamdomEngine) % 2U == 0)
+//Initialization
+	auto Length = strnlen_s((const char *)Buffer, DOMAIN_MAXSIZE);
+	if (Length <= DOMAIN_MINSIZE)
+		return;
+	std::vector<size_t> RamdomIndex;
+	for (size_t Index = 0;Index < Length;++Index)
 	{
-		for (Index = 0;Index < strnlen_s((const char *)Buffer, DOMAIN_MAXSIZE);++Index)
-		{
-			if (Index % 2U == 0)
-				*(Buffer + Index) = (uint8_t)toupper(*(Buffer + Index));
-		}
+		if (*(Buffer + Index) >= ASCII_LOWERCASE_A && *(Buffer + Index) <= ASCII_LOWERCASE_Z)
+			RamdomIndex.push_back(Index);
 	}
-	else {
-		for (Index = 0;Index < strnlen_s((const char *)Buffer, DOMAIN_MAXSIZE);++Index)
-		{
-			if (Index % 2U > 0)
-				*(Buffer + Index) = (uint8_t)toupper(*(Buffer + Index));
-		}
+
+//Ramdom number distribution initialization
+	if (RamdomIndex.empty())
+		return;
+	std::uniform_int_distribution<size_t> RamdomDistribution(0, RamdomIndex.size() - 1U);
+	size_t RamdomCounts = RamdomDistribution(*GlobalRunningStatus.RamdomEngine), BufferIndex = 0;
+	if (RamdomCounts == 0)
+		++RamdomCounts;
+
+//Make Domain Case Conversion.
+	for (size_t Index = 0;Index < RamdomCounts;++Index)
+	{
+		BufferIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+		*(Buffer + RamdomIndex.at(BufferIndex)) = (uint8_t)toupper(*(Buffer + RamdomIndex.at(BufferIndex)));
+	}
+
+//Make sure that domain must have more than one char which in the last or the second last to convert.
+	if (*(Buffer + (Length - 1U)) >= ASCII_LOWERCASE_A && *(Buffer + (Length - 1U)) <= ASCII_LOWERCASE_Z && 
+		*(Buffer + (Length - 2U)) >= ASCII_LOWERCASE_A && *(Buffer + (Length - 2U)) <= ASCII_LOWERCASE_Z)
+	{
+		if (RamdomCounts % 2U == 0)
+			*(Buffer + (Length - 1U)) = (uint8_t)toupper(*(Buffer + (Length - 1U)));
+		else 
+			*(Buffer + (Length - 2U)) = (uint8_t)toupper(*(Buffer + (Length - 2U)));
 	}
 
 	return;
@@ -405,7 +420,7 @@ size_t Add_EDNS_To_Additional_RR(
 	size_t DataLength = Length;
 
 //Add a new EDNS/OPT Additional Resource Records.
-	if (DataLength + sizeof(dns_record_opt) > MaxLen)
+	if (DataLength + sizeof(dns_record_opt) >= MaxLen)
 		return DataLength;
 	const auto DNS_Record_OPT = (pdns_record_opt)(Buffer + DataLength);
 	DNS_Record_OPT->Type = htons(DNS_TYPE_OPT);
@@ -427,7 +442,7 @@ size_t Add_EDNS_To_Additional_RR(
 		const auto DNS_Query = (pdns_qry)(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
 
 	//Length, DNS Class and DNS record check
-		if (DataLength + sizeof(edns_client_subnet) > MaxLen || ntohs(DNS_Query->Classes) != DNS_CLASS_INTERNET || 
+		if (DataLength + sizeof(edns_client_subnet) >= MaxLen || ntohs(DNS_Query->Classes) != DNS_CLASS_INTERNET || 
 			(ntohs(DNS_Query->Type) != DNS_TYPE_AAAA && ntohs(DNS_Query->Type) != DNS_TYPE_A))
 				return DataLength;
 		const auto EDNS_Subnet_Header = (pedns_client_subnet)(Buffer + DataLength);
@@ -449,7 +464,7 @@ size_t Add_EDNS_To_Additional_RR(
 			DataLength += sizeof(edns_client_subnet);
 
 		//Length check
-			if (DataLength + sizeof(in6_addr) > MaxLen)
+			if (DataLength + sizeof(in6_addr) >= MaxLen)
 				return DataLength;
 
 		//Copy subnet address.
@@ -478,7 +493,7 @@ size_t Add_EDNS_To_Additional_RR(
 			DataLength += sizeof(edns_client_subnet);
 
 		//Length check
-			if (DataLength + sizeof(in_addr) > MaxLen)
+			if (DataLength + sizeof(in_addr) >= MaxLen)
 				return DataLength;
 
 		//Copy subnet address.
@@ -539,7 +554,7 @@ bool Add_EDNS_To_Additional_RR(
 		const auto DNS_Query = (pdns_qry)(Packet->Buffer + DNS_PACKET_QUERY_LOCATE(Packet->Buffer));
 
 	//Length, DNS Class and DNS record check
-		if (Packet->Length + sizeof(edns_client_subnet) > Packet->BufferSize || ntohs(DNS_Query->Classes) != DNS_CLASS_INTERNET || 
+		if (Packet->Length + sizeof(edns_client_subnet) >= Packet->BufferSize || ntohs(DNS_Query->Classes) != DNS_CLASS_INTERNET || 
 			(ntohs(DNS_Query->Type) != DNS_TYPE_AAAA && ntohs(DNS_Query->Type) != DNS_TYPE_A))
 				return true;
 		const auto EDNS_Subnet_Header = (pedns_client_subnet)(Packet->Buffer + Packet->Length);
@@ -562,7 +577,7 @@ bool Add_EDNS_To_Additional_RR(
 			Packet->EDNS_Record += sizeof(edns_client_subnet);
 
 		//Length check
-			if (Packet->Length + sizeof(in6_addr) > Packet->BufferSize)
+			if (Packet->Length + sizeof(in6_addr) >= Packet->BufferSize)
 				return true;
 
 		//Copy subnet address.
@@ -593,7 +608,7 @@ bool Add_EDNS_To_Additional_RR(
 			Packet->EDNS_Record += sizeof(edns_client_subnet);
 
 		//Length check
-			if (Packet->Length + sizeof(in_addr) > Packet->BufferSize)
+			if (Packet->Length + sizeof(in_addr) >= Packet->BufferSize)
 				return true;
 
 		//Copy subnet address.
@@ -630,7 +645,7 @@ size_t MakeCompressionPointerMutation(
 				if (Parameter.CPM_PointerToRR)
 					++Index;
 				else //Pointer to Additional(2)
-					Index += CPM_POINTER_TO_ADDITIONAL;
+					Index += 2U;
 			}
 		}break;
 		case CPM_POINTER_TO_RR:

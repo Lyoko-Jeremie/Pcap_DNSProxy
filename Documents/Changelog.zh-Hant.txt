@@ -1,4 +1,28 @@
-﻿Pcap_DNSProxy 0.4.7.7-0.4.8.0 更新日誌(2016-11-23)：
+﻿Pcap_DNSProxy 0.4.8.1 更新日誌(2016-11-28)：
+
+* 新增 Strict Resource Record TTL Filter 參數以支援 RFC 2181 標準所要求的資源記錄 TTL 檢查
+* 改進的 Domain Case Conversion 功能
+* 修改多行注釋區域的標籤要求 [Monoremonton/wx0]
+* 修復記憶體對齊可能造成的性能問題 [Syrone Wong]
+* 修復 Operation Mpde 參數指定為 Proxy 和 Server 模式時工作不正常的問題 [Syrone Wong/wang20150419]
+* 修復使用低於 OpenSSL 1.0.1 版本時指定過於嚴格的規則導致沒有任何 Ciphers Suites 可用的問題 (Linux/macOS)
+* Release Hash:
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe: BB993019BAAFD1C0F22EB8051A5A5F6E6E676FC09115EA339E0091B8AE696320
+    * Windows/Pcap_DNSProxy_x86.exe: 270F5D16B8D4828B164B0E4FCE5EA3039D8F8F4E0764A471E977F472D9C19827
+    * Windows/Pcap_DNSProxy_XP.exe: 0ABAAED32E218066095F6DEB53C70C47189FC97FB5DE78F33DADC7B147CB9762
+    * macOS/Pcap_DNSProxy: D121AF87A0F886B0A1ABD7742CF5691CC77F0704CA29B60AD1223D5E7A11CFF7
+  * SHA-2(256):
+    * Windows/Pcap_DNSProxy.exe: 309AD316E0C233EB74C3E04207805AD1E0CD8447CA56D3D4C386AC6E2E6F84F5
+    * Windows/Pcap_DNSProxy_x86.exe: 6BB7DF6F324FA411A42D7312EE9100A229EF6BAE72ED6F0307A884AEBDACA3FB
+    * Windows/Pcap_DNSProxy_XP.exe: 31D48E67B56C8FAFA3D89E32BC6EFE0AF7FA2A68E6BDD8F6B2273255F98E0320
+    * macOS/Pcap_DNSProxy: 9CE802C78220282DA18452956A35167E4252CF9773CABFA41267C22D538EC5F9
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy 0.4.7.7-0.4.8.0 更新日誌(2016-11-23)：
 
 * 添加 Include Guard Macros 的支援 [Syrone Wong]
 * 添加 Large Buffer Size 參數，用於指定大型資料緩衝區的固定長度
