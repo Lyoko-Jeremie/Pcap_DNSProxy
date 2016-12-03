@@ -305,7 +305,7 @@ bool Flush_DNS_MailSlotMonitor(
 		//Read message.
 			if (Message == MAILSLOT_MESSAGE_FLUSH_DNS) //Flush all DNS cache.
 			{
-				FlushDNSCache(nullptr);
+				Flush_DNS_Cache(nullptr);
 			}
 			else if (Message.find(MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN) == 0 && //Flush single domain cache.
 				Message.length() > wcslen(MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN) + DOMAIN_MINSIZE && //Domain length check
@@ -313,7 +313,7 @@ bool Flush_DNS_MailSlotMonitor(
 			{
 				if (WCS_To_MBS_String(Message.c_str() + wcslen(MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN), DOMAIN_MAXSIZE, Domain) && 
 					Domain.length() > DOMAIN_MINSIZE && Domain.length() < DOMAIN_MAXSIZE)
-						FlushDNSCache((const uint8_t *)Domain.c_str());
+						Flush_DNS_Cache((const uint8_t *)Domain.c_str());
 				else 
 					PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 			}
@@ -450,11 +450,11 @@ bool Flush_DNS_FIFO_Monitor(
 
 		//Read message.
 			if (Message == FIFO_MESSAGE_FLUSH_DNS) //Flush all DNS cache.
-				FlushDNSCache(nullptr);
+				Flush_DNS_Cache(nullptr);
 			else if (Message.find(FIFO_MESSAGE_FLUSH_DNS_DOMAIN) == 0 && //Flush single domain cache.
 				Message.length() > strlen(FIFO_MESSAGE_FLUSH_DNS_DOMAIN) + DOMAIN_MINSIZE && //Domain length check
 				Message.length() < strlen(FIFO_MESSAGE_FLUSH_DNS_DOMAIN) + DOMAIN_MAXSIZE)
-					FlushDNSCache((const uint8_t *)Message.c_str() + strlen(FIFO_MESSAGE_FLUSH_DNS_DOMAIN));
+					Flush_DNS_Cache((const uint8_t *)Message.c_str() + strlen(FIFO_MESSAGE_FLUSH_DNS_DOMAIN));
 			else 
 				Sleep(Parameter.FileRefreshTime);
 		}
@@ -518,7 +518,7 @@ bool Flush_DNS_FIFO_Sender(
 #endif
 
 //Flush DNS cache
-void FlushDNSCache(
+void Flush_DNS_Cache(
 	const uint8_t * const Domain)
 {
 //Flush DNS cache in process.
@@ -539,11 +539,13 @@ void FlushDNSCache(
 	}
 	DNSCacheListMutex.unlock();
 
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 //Flush system DNS interval time check
 	if (LastFlushDNSTime > 0 && LastFlushDNSTime < GetCurrentSystemTime() + FLUSH_DNS_CACHE_INTERVAL_TIME * SECOND_TO_MILLISECOND)
 		return;
 	else 
 		LastFlushDNSTime = GetCurrentSystemTime();
+#endif
 
 //Flush DNS cache in system.
 	std::lock_guard<std::mutex> ScreenMutex(ScreenLock);

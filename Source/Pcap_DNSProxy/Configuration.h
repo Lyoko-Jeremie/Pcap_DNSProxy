@@ -169,6 +169,7 @@ bool ReadAddressPrefixBlock(
 	std::string OriginalData, 
 	const size_t DataOffset, 
 	ADDRESS_PREFIX_BLOCK * const AddressPrefix, 
+	const std::vector<FILE_DATA> &FileList, 
 	const size_t FileIndex, 
 	const size_t Line);
 bool ReadMainIPFilterData(

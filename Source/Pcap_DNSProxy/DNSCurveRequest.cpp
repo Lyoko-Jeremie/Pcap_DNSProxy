@@ -167,7 +167,7 @@ bool DNSCurve_TCP_SignatureRequest(
 	sodium_memzero(&TCPSocketDataList.front(), sizeof(TCPSocketDataList.front()));
 
 //Make packet data(Part 1).
-	size_t DataLength = sizeof(dns_tcp_hdr);
+	auto DataLength = sizeof(dns_tcp_hdr);
 	const auto DNS_TCP_Header = (pdns_tcp_hdr)SendBuffer.get();
 #if defined(ENABLE_PCAP)
 	DNS_TCP_Header->ID = Parameter.DomainTest_ID;
@@ -309,7 +309,7 @@ bool DNSCurve_UDP_SignatureRequest(
 
 //Make packet data(Part 1).
 	const auto DNS_Header = (pdns_hdr)SendBuffer.get();
-	size_t DataLength = sizeof(dns_hdr);
+	auto DataLength = sizeof(dns_hdr);
 #if defined(ENABLE_PCAP)
 	DNS_Header->ID = Parameter.DomainTest_ID;
 #else
@@ -597,7 +597,7 @@ size_t DNSCurve_TCP_RequestMultiple(
 
 //Socket selecting
 	ssize_t ErrorCode = 0;
-	const ssize_t RecvLen = SocketSelectingOnce(REQUEST_PROCESS_DNSCURVE_MAIN, IPPROTO_TCP, TCPSocketDataList, &TCPSocketSelectingList, nullptr, 0, OriginalRecv, RecvSize, &ErrorCode);
+	const auto RecvLen = SocketSelectingOnce(REQUEST_PROCESS_DNSCURVE_MAIN, IPPROTO_TCP, TCPSocketDataList, &TCPSocketSelectingList, nullptr, 0, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in6))
@@ -777,7 +777,7 @@ size_t DNSCurve_UDP_RequestMultiple(
 
 //Socket selecting
 	ssize_t ErrorCode = 0;
-	const ssize_t RecvLen = SocketSelectingOnce(REQUEST_PROCESS_DNSCURVE_MAIN, IPPROTO_UDP, UDPSocketDataList, &UDPSocketSelectingList, nullptr, 0, OriginalRecv, RecvSize, &ErrorCode);
+	const auto RecvLen = SocketSelectingOnce(REQUEST_PROCESS_DNSCURVE_MAIN, IPPROTO_UDP, UDPSocketDataList, &UDPSocketSelectingList, nullptr, 0, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in6))

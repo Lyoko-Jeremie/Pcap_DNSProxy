@@ -20,7 +20,7 @@
 #include "Configuration.h"
 
 //Global variables
-extern size_t HopLimitIndex[];
+extern size_t ParameterHopLimitIndex[];
 
 //Check parameter list and set default values
 bool Parameter_CheckSetting(
@@ -48,7 +48,7 @@ bool Parameter_CheckSetting(
 
 //[Base] block
 	//Configuration file version check
-	if (ParameterPTR->Version != CONFIG_VERSION)
+	if (ParameterPTR->Version != CONFIG_FILE_VERSION)
 	{
 		PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Configuration file version error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
@@ -122,11 +122,12 @@ bool Parameter_CheckSetting(
 
 	if (IsFirstRead)
 	{
-	//Local Main, Local Hosts and Local Routing check
+	//Local Main, Local Hosts, Local Routing and Local Force Request check
 		if (((Parameter.LocalMain || Parameter.LocalHosts || Parameter.LocalRouting || Parameter.LocalForce) && 
 			Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0) || 
 			(Parameter.LocalHosts && (Parameter.LocalMain || Parameter.LocalRouting)) || 
-			(Parameter.LocalRouting && !Parameter.LocalMain))
+			(Parameter.LocalRouting && !Parameter.LocalMain) || 
+			(Parameter.LocalForce && !Parameter.LocalHosts))
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"Local request options error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
@@ -457,8 +458,8 @@ bool Parameter_CheckSetting(
 	//Default Local DNS server name
 		if (Parameter.LocalFQDN_Length <= 0)
 		{
-			Parameter.LocalFQDN_Length = StringToPacketQuery((const uint8_t *)DEFAULT_LOCAL_SERVERNAME, Parameter.LocalFQDN_Response);
-			*Parameter.LocalFQDN_String = DEFAULT_LOCAL_SERVERNAME;
+			Parameter.LocalFQDN_Length = StringToPacketQuery((const uint8_t *)DEFAULT_LOCAL_SERVER_NAME, Parameter.LocalFQDN_Response);
+			*Parameter.LocalFQDN_String = DEFAULT_LOCAL_SERVER_NAME;
 		}
 
 	//Set Local DNS server PTR response.
@@ -1501,7 +1502,7 @@ bool ReadParameterData(
 		if (Data.length() > strlen("Version=") && Data.length() < strlen("Version=") + 8U)
 		{
 			ParameterPTR->Version = strtod(Data.c_str() + strlen("Version="), nullptr);
-			if (ParameterPTR->Version == 0 || ParameterPTR->Version == HUGE_VAL)
+			if (ParameterPTR->Version <= 0 || ParameterPTR->Version == HUGE_VAL)
 				goto PrintDataFormatError;
 		}
 		else {
@@ -1941,7 +1942,7 @@ bool ReadParameterData(
 		}
 		else if (Data.find("IPv4EDNSClientSubnetAddress=") == 0 && Data.length() > strlen("IPv4EDNSClientSubnetAddress="))
 		{
-			if (!ReadAddressPrefixBlock(AF_INET, Data, strlen("IPv4EDNSClientSubnetAddress="), Parameter.LocalMachineSubnet_IPv4, FileIndex, Line))
+			if (!ReadAddressPrefixBlock(AF_INET, Data, strlen("IPv4EDNSClientSubnetAddress="), Parameter.LocalMachineSubnet_IPv4, FileList_Config, FileIndex, Line))
 				return false;
 		}
 		else if (Data.find("IPv4MainDNSAddress=") == 0 && Data.length() > strlen("IPv4MainDNSAddress="))
@@ -1984,7 +1985,7 @@ bool ReadParameterData(
 		}
 		else if (Data.find("IPv6EDNSClientSubnetAddress=") == 0 && Data.length() > strlen("IPv6EDNSClientSubnetAddress="))
 		{
-			if (!ReadAddressPrefixBlock(AF_INET6, Data, strlen("IPv6EDNSClientSubnetAddress="), Parameter.LocalMachineSubnet_IPv6, FileIndex, Line))
+			if (!ReadAddressPrefixBlock(AF_INET6, Data, strlen("IPv6EDNSClientSubnetAddress="), Parameter.LocalMachineSubnet_IPv6, FileList_Config, FileIndex, Line))
 				return false;
 		}
 		else if (Data.find("IPv6MainDNSAddress=") == 0 && Data.length() > strlen("IPv6MainDNSAddress="))
@@ -2468,7 +2469,9 @@ bool ReadParameterData(
 				Parameter.EDNS_Switch_SOCKS = true;
 				Parameter.EDNS_Switch_HTTP_CONNECT = true;
 				Parameter.EDNS_Switch_Direct = true;
+			#if defined(ENABLE_LIBSODIUM)
 				Parameter.EDNS_Switch_DNSCurve = true;
+			#endif
 				Parameter.EDNS_Switch_TCP = true;
 				Parameter.EDNS_Switch_UDP = true;
 			}
@@ -2497,11 +2500,13 @@ bool ReadParameterData(
 					Parameter.EDNS_Switch_Direct = true;
 				}
 
+			#if defined(ENABLE_LIBSODIUM)
 				if (Data.find("DNSCURVE") != std::string::npos || Data.find("DNSCRYPT") != std::string::npos)
 				{
 					Parameter.EDNS_Label = true;
 					Parameter.EDNS_Switch_DNSCurve = true;
 				}
+			#endif
 
 				if (Data.find("TCP") != std::string::npos)
 				{
@@ -3311,7 +3316,7 @@ bool ReadMultipleAddresses(
 		//IPv6 address and port check.
 			if (StringIter.find(ASCII_BRACKETS_LEFT) == std::string::npos || StringIter.find(ASCII_BRACKETS_RIGHT) == std::string::npos || 
 				StringIter.find("]:") == std::string::npos || StringIter.find(ASCII_BRACKETS_RIGHT) <= strlen("[") || 
-				StringIter.find(ASCII_BRACKETS_RIGHT) < IPV6_SHORTEST_ADDRSTRING || StringIter.length() <= StringIter.find("]:") + strlen("]:"))
+				StringIter.find(ASCII_BRACKETS_RIGHT) < IPV6_SHORTEST_ADDR_STRING || StringIter.length() <= StringIter.find("]:") + strlen("]:"))
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -3375,7 +3380,7 @@ bool ReadMultipleAddresses(
 
 		//IPv4 address and port check.
 			if (StringIter.find(ASCII_COLON) == std::string::npos || StringIter.find(ASCII_PERIOD) == std::string::npos || 
-				StringIter.find(ASCII_COLON) < IPV4_SHORTEST_ADDRSTRING || StringIter.length() <= StringIter.find(ASCII_COLON) + strlen(":"))
+				StringIter.find(ASCII_COLON) < IPV4_SHORTEST_ADDR_STRING || StringIter.length() <= StringIter.find(ASCII_COLON) + strlen(":"))
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -3461,7 +3466,7 @@ bool Read_SOCKS_AddressDomain(
 	if (Data.find(ASCII_BRACKETS_LEFT) != std::string::npos || Data.find(ASCII_BRACKETS_RIGHT) != std::string::npos)
 	{
 		if (Data.find("]:") == std::string::npos || Data.find(ASCII_BRACKETS_RIGHT) <= DataOffset + strlen("[") || 
-			Data.find(ASCII_BRACKETS_RIGHT) < DataOffset + IPV6_SHORTEST_ADDRSTRING || Data.length() <= Data.find("]:") + strlen("]:"))
+			Data.find(ASCII_BRACKETS_RIGHT) < DataOffset + IPV6_SHORTEST_ADDR_STRING || Data.length() <= Data.find("]:") + strlen("]:"))
 		{
 			PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -3541,7 +3546,7 @@ bool Read_SOCKS_AddressDomain(
 		else {
 		//IPv4 address and port check.
 			if (Data.find(ASCII_COLON) == std::string::npos || Data.find(ASCII_PERIOD) == std::string::npos || 
-				Data.find(ASCII_COLON) < DataOffset + IPV4_SHORTEST_ADDRSTRING || Data.length() <= Data.find(ASCII_COLON) + strlen(":"))
+				Data.find(ASCII_COLON) < DataOffset + IPV4_SHORTEST_ADDR_STRING || Data.length() <= Data.find(ASCII_COLON) + strlen(":"))
 			{
 				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -3606,22 +3611,22 @@ bool ReadHopLimitData(
 			//Monitor mode
 				if (!IsFirstRead)
 				{
-					if (HopLimitIndex[NETWORK_LAYER_IPV6] == 0)
+					if (ParameterHopLimitIndex[NETWORK_LAYER_IPV6] == 0)
 						Parameter.Target_Server_Main_IPv6.HopLimitData_Assign.HopLimit = (uint8_t)UnsignedResult;
-					else if (HopLimitIndex[NETWORK_LAYER_IPV6] == 1U)
+					else if (ParameterHopLimitIndex[NETWORK_LAYER_IPV6] == 1U)
 						Parameter.Target_Server_Alternate_IPv6.HopLimitData_Assign.HopLimit = (uint8_t)UnsignedResult;
-					else if (!DNSServerDataList->empty() && HopLimitIndex[NETWORK_LAYER_IPV6] - 2U < DNSServerDataList->size())
-						DNSServerDataList->at(HopLimitIndex[NETWORK_LAYER_IPV6] - 2U).HopLimitData_Assign.HopLimit = (uint8_t)UnsignedResult;
+					else if (!DNSServerDataList->empty() && ParameterHopLimitIndex[NETWORK_LAYER_IPV6] - 2U < DNSServerDataList->size())
+						DNSServerDataList->at(ParameterHopLimitIndex[NETWORK_LAYER_IPV6] - 2U).HopLimitData_Assign.HopLimit = (uint8_t)UnsignedResult;
 					else 
 						goto PrintDataFormatError;
 
-					++HopLimitIndex[NETWORK_LAYER_IPV6];
+					++ParameterHopLimitIndex[NETWORK_LAYER_IPV6];
 				}
 			//Normal mode
-				else if (!DNSServerDataList->empty() && HopLimitIndex[NETWORK_LAYER_IPV6] < DNSServerDataList->size())
+				else if (!DNSServerDataList->empty() && ParameterHopLimitIndex[NETWORK_LAYER_IPV6] < DNSServerDataList->size())
 				{
-					DNSServerDataList->at(HopLimitIndex[NETWORK_LAYER_IPV6]).HopLimitData_Assign.HopLimit = (uint8_t)UnsignedResult;
-					++HopLimitIndex[NETWORK_LAYER_IPV6];
+					DNSServerDataList->at(ParameterHopLimitIndex[NETWORK_LAYER_IPV6]).HopLimitData_Assign.HopLimit = (uint8_t)UnsignedResult;
+					++ParameterHopLimitIndex[NETWORK_LAYER_IPV6];
 				}
 				else {
 					goto PrintDataFormatError;
@@ -3632,22 +3637,22 @@ bool ReadHopLimitData(
 			//Monitor mode
 				if (!IsFirstRead)
 				{
-					if (HopLimitIndex[NETWORK_LAYER_IPV4] == 0)
+					if (ParameterHopLimitIndex[NETWORK_LAYER_IPV4] == 0)
 						Parameter.Target_Server_Main_IPv4.HopLimitData_Assign.TTL = (uint8_t)UnsignedResult;
-					else if (HopLimitIndex[NETWORK_LAYER_IPV4] == 1U)
+					else if (ParameterHopLimitIndex[NETWORK_LAYER_IPV4] == 1U)
 						Parameter.Target_Server_Alternate_IPv4.HopLimitData_Assign.TTL = (uint8_t)UnsignedResult;
-					else if (!DNSServerDataList->empty() && HopLimitIndex[NETWORK_LAYER_IPV4] - 2U < DNSServerDataList->size())
-						DNSServerDataList->at(HopLimitIndex[NETWORK_LAYER_IPV4] - 2U).HopLimitData_Assign.TTL = (uint8_t)UnsignedResult;
+					else if (!DNSServerDataList->empty() && ParameterHopLimitIndex[NETWORK_LAYER_IPV4] - 2U < DNSServerDataList->size())
+						DNSServerDataList->at(ParameterHopLimitIndex[NETWORK_LAYER_IPV4] - 2U).HopLimitData_Assign.TTL = (uint8_t)UnsignedResult;
 					else 
 						goto PrintDataFormatError;
 
-					++HopLimitIndex[NETWORK_LAYER_IPV4];
+					++ParameterHopLimitIndex[NETWORK_LAYER_IPV4];
 				}
 			//Normal mode
-				else if (!DNSServerDataList->empty() && HopLimitIndex[NETWORK_LAYER_IPV4] < DNSServerDataList->size())
+				else if (!DNSServerDataList->empty() && ParameterHopLimitIndex[NETWORK_LAYER_IPV4] < DNSServerDataList->size())
 				{
-					DNSServerDataList->at(HopLimitIndex[NETWORK_LAYER_IPV4]).HopLimitData_Assign.TTL = (uint8_t)UnsignedResult;
-					++HopLimitIndex[NETWORK_LAYER_IPV4];
+					DNSServerDataList->at(ParameterHopLimitIndex[NETWORK_LAYER_IPV4]).HopLimitData_Assign.TTL = (uint8_t)UnsignedResult;
+					++ParameterHopLimitIndex[NETWORK_LAYER_IPV4];
 				}
 				else {
 					goto PrintDataFormatError;
@@ -3683,7 +3688,7 @@ bool ReadDNSCurveProviderName(
 	sodium_memzero(ProviderNameData, DOMAIN_MAXSIZE);
 	if (Data.length() > DataOffset + DOMAIN_MINSIZE && Data.length() < DataOffset + DOMAIN_DATA_MAXSIZE)
 	{
-		for (size_t Index = DataOffset;Index < Data.length() - DataOffset;++Index)
+		for (auto Index = DataOffset;Index < Data.length() - DataOffset;++Index)
 		{
 			for (size_t InnerIndex = 0;InnerIndex < strnlen_s((const char *)GlobalRunningStatus.DomainTable, DOMAIN_MAXSIZE);++InnerIndex)
 			{

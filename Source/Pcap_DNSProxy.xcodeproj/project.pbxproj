@@ -713,7 +713,7 @@
 		D93C47071CD7582600CD334A /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				GCC_PREPROCESSOR_DEFINITIONS = PLATFORM_MACX_XCODE;
+				GCC_PREPROCESSOR_DEFINITIONS = PLATFORM_MACOS_XCODE;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/Dependency/LibSodium",

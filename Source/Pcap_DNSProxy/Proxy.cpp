@@ -208,13 +208,13 @@ size_t SOCKS_TCP_Request(
 	}
 
 //Add length of request packet(It must be written in header when transport with TCP protocol).
-	if (SocketSelectingDataList.front().SendSize < SendSize + sizeof(uint16_t))
+	if (SocketSelectingDataList.front().SendSize < SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES)
 	{
-		std::shared_ptr<uint8_t> SendBuffer(new uint8_t[SendSize + sizeof(uint16_t)]());
-		memset(SendBuffer.get(), 0, SendSize + sizeof(uint16_t));
-		memcpy_s(SendBuffer.get(), SendSize + sizeof(uint16_t), OriginalSend, SendSize);
+		std::shared_ptr<uint8_t> SendBuffer(new uint8_t[SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES]());
+		memset(SendBuffer.get(), 0, SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES);
+		memcpy_s(SendBuffer.get(), SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES, OriginalSend, SendSize);
 		SocketSelectingDataList.front().SendBuffer.swap(SendBuffer);
-		SocketSelectingDataList.front().SendSize = SendSize + sizeof(uint16_t);
+		SocketSelectingDataList.front().SendSize = SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES;
 		SocketSelectingDataList.front().SendLen = SendSize;
 	}
 	auto RecvLen = AddLengthDataToHeader(SocketSelectingDataList.front().SendBuffer.get(), SocketSelectingDataList.front().SendLen, SocketSelectingDataList.front().SendSize);
@@ -595,6 +595,10 @@ bool SOCKS_SelectionExchange(
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
 	std::vector<ssize_t> &ErrorCodeList)
 {
+//Socket data check
+	if (SocketDataList.empty() || SocketSelectingDataList.empty() || ErrorCodeList.empty())
+		return false;
+
 //Buffer initialization
 	if (SocketSelectingDataList.front().SendSize < sizeof(socks_client_selection))
 	{
@@ -699,6 +703,10 @@ bool SOCKS_AuthenticationExchange(
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
 	std::vector<ssize_t> &ErrorCodeList)
 {
+//Socket data check
+	if (SocketDataList.empty() || SocketSelectingDataList.empty() || ErrorCodeList.empty())
+		return false;
+
 //Buffer initialization
 	if (SocketSelectingDataList.front().SendSize < sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_Username->length() + Parameter.SOCKS_Password->length())
 	{
@@ -746,6 +754,10 @@ bool SOCKS_ClientCommandRequest(
 	std::vector<ssize_t> &ErrorCodeList, 
 	SOCKET_DATA * const UDP_ASSOCIATE_Address)
 {
+//Socket data check
+	if (SocketDataList.empty() || SocketSelectingDataList.empty() || ErrorCodeList.empty())
+		return false;
+
 //Buffer initialization
 	if (SocketSelectingDataList.front().SendSize < Parameter.LargeBufferSize)
 	{
@@ -998,13 +1010,13 @@ size_t HTTP_CONNECT_Request(
 		return EXIT_FAILURE;
 
 //Buffer initialization
-	if (SocketSelectingDataList.front().SendSize < SendSize + sizeof(uint16_t))
+	if (SocketSelectingDataList.front().SendSize < SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES)
 	{
-		std::shared_ptr<uint8_t> SendBuffer(new uint8_t[SendSize + sizeof(uint16_t)]());
-		memset(SendBuffer.get(), 0, SendSize + sizeof(uint16_t));
-		memcpy_s(SendBuffer.get(), SendSize + sizeof(uint16_t), OriginalSend, SendSize);
+		std::shared_ptr<uint8_t> SendBuffer(new uint8_t[SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES]());
+		memset(SendBuffer.get(), 0, SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES);
+		memcpy_s(SendBuffer.get(), SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES, OriginalSend, SendSize);
 		SocketSelectingDataList.front().SendBuffer.swap(SendBuffer);
-		SocketSelectingDataList.front().SendSize = SendSize + sizeof(uint16_t);
+		SocketSelectingDataList.front().SendSize = SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES;
 		SocketSelectingDataList.front().SendLen = SendSize;
 	}
 
@@ -1056,6 +1068,10 @@ bool HTTP_CONNECT_Handshake(
 	std::vector<ssize_t> &ErrorCodeList, 
 	void *TLS_Context)
 {
+//Socket data check
+	if (SocketDataList.empty() || SocketSelectingDataList.empty() || ErrorCodeList.empty())
+		return false;
+
 //Socket initialization
 	if (Parameter.HTTP_CONNECT_Address_IPv6.Storage.ss_family != 0 && //IPv6
 		((Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
@@ -1213,6 +1229,10 @@ bool HTTP_CONNECT_Exchange(
 	std::vector<ssize_t> &ErrorCodeList, 
 	void *TLS_Context)
 {
+//Socket data check
+	if (SocketDataList.empty() || SocketSelectingDataList.empty() || ErrorCodeList.empty())
+		return false;
+
 //HTTP CONNECT packet
 	std::string HTTPString("CONNECT ");
 	HTTPString.append(*Parameter.HTTP_CONNECT_TargetDomain);
@@ -1326,6 +1346,11 @@ size_t HTTP_CONNECT_Transport(
 	std::vector<ssize_t> &ErrorCodeList, 
 	void *TLS_Context)
 {
+//Socket data check
+	if (SocketDataList.empty() || SocketSelectingDataList.empty() || ErrorCodeList.empty())
+		return false;
+
+//Initialization
 	size_t RecvLen = 0;
 
 //Request exchange

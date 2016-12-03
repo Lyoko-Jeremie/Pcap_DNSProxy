@@ -20,7 +20,7 @@
 #include "Configuration.h"
 
 //Global variables
-size_t HopLimitIndex[]{0, 0};
+size_t ParameterHopLimitIndex[]{0, 0};
 
 //Read texts
 bool ReadText(
@@ -31,8 +31,8 @@ bool ReadText(
 //Reset global variables.
 	if (InputType == READ_TEXT_PARAMETER_NORMAL || InputType == READ_TEXT_PARAMETER_MONITOR)
 	{
-		HopLimitIndex[NETWORK_LAYER_IPV6] = 0;
-		HopLimitIndex[NETWORK_LAYER_IPV4] = 0;
+		ParameterHopLimitIndex[NETWORK_LAYER_IPV6] = 0;
+		ParameterHopLimitIndex[NETWORK_LAYER_IPV4] = 0;
 	}
 
 //Initialization
@@ -648,7 +648,7 @@ bool ReadParameter(
 
 		//Flush DNS cache and Auto-refresh
 			if (IsFileModified)
-				FlushDNSCache(nullptr);
+				Flush_DNS_Cache(nullptr);
 
 			Sleep(Parameter.FileRefreshTime);
 		}
@@ -842,7 +842,7 @@ void ReadIPFilter(
 		IPFilterFileSetModificating->shrink_to_fit();
 
 	//Flush DNS cache and Auto-refresh
-		FlushDNSCache(nullptr);
+		Flush_DNS_Cache(nullptr);
 		Sleep(Parameter.FileRefreshTime);
 	}
 
@@ -1034,7 +1034,7 @@ void ReadHosts(
 		HostsFileSetModificating->shrink_to_fit();
 
 	//Flush DNS cache and Auto-refresh
-		FlushDNSCache(nullptr);
+		Flush_DNS_Cache(nullptr);
 		Sleep(Parameter.FileRefreshTime);
 	}
 
@@ -1091,7 +1091,7 @@ void GetParameterListData(
 	ListData.clear();
 
 //Get all list data.
-	for (size_t Index = DataOffset;Index < Length;++Index)
+	for (auto Index = DataOffset;Index < Length;++Index)
 	{
 	//Last data
 		if (Index + 1U == Length)

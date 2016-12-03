@@ -1168,6 +1168,10 @@ ssize_t SocketSelectingOnce(
 	const size_t RecvSize, 
 	ssize_t * const ErrorCode)
 {
+//Socket data check
+	if (SocketDataList.empty())
+		return EXIT_FAILURE;
+
 //Initialization(Part 1)
 	std::vector<SOCKET_SELECTING_ONCE_DATA> SocketSelectingList;
 	size_t Index = 0;
@@ -1239,7 +1243,11 @@ ssize_t SocketSelectingOnce(
 	size_t LastReceiveIndex = 0;
 	SYSTEM_SOCKET MaxSocket = 0;
 	auto IsAllSocketShutdown = false;
-	if (OriginalRecv == nullptr && RequestType != REQUEST_PROCESS_DNSCURVE_MAIN)
+	if (OriginalRecv == nullptr
+	#if defined(ENABLE_LIBSODIUM)
+		&& RequestType != REQUEST_PROCESS_DNSCURVE_MAIN
+	#endif
+		)
 	{
 		std::shared_ptr<uint8_t> RecvBufferSwap(new uint8_t[PACKET_MAXSIZE]());
 		memset(RecvBufferSwap.get(), 0, PACKET_MAXSIZE);
@@ -1353,7 +1361,11 @@ ssize_t SocketSelectingOnce(
 				#if defined(ENABLE_LIBSODIUM)
 					(RequestType == REQUEST_PROCESS_DNSCURVE_MAIN && !DNSCurveSocketSelectingList->at(Index).IsPacketDone) || 
 				#endif
-					(RequestType != REQUEST_PROCESS_DNSCURVE_MAIN && !SocketSelectingList.at(Index).IsPacketDone))
+					(
+				#if defined(ENABLE_LIBSODIUM)
+					RequestType != REQUEST_PROCESS_DNSCURVE_MAIN && 
+				#endif
+					!SocketSelectingList.at(Index).IsPacketDone))
 						FD_SET(SocketDataList.at(Index).Socket, &WriteFDS);
 			}
 			else if (MaxSocket == 0 && Index + 1U == SocketDataList.size())
@@ -1364,7 +1376,11 @@ ssize_t SocketSelectingOnce(
 
 	//Send request only
 		if (OriginalRecv == nullptr && 
-			RequestType != REQUEST_PROCESS_UDP_NO_MARKING && RequestType != REQUEST_PROCESS_DNSCURVE_MAIN)
+			RequestType != REQUEST_PROCESS_UDP_NO_MARKING
+		#if defined(ENABLE_LIBSODIUM)
+			&& RequestType != REQUEST_PROCESS_DNSCURVE_MAIN
+		#endif
+			)
 		{
 			for (Index = 0;Index < SocketDataList.size();++Index)
 			{
@@ -1615,6 +1631,11 @@ ssize_t SelectingResultOnce(
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize)
 {
+//Socket data check
+	if (SocketDataList.empty())
+		return EXIT_FAILURE;
+
+//Initialization
 #if defined(ENABLE_LIBSODIUM)
 	auto DNSCurveSocketSelectingList = (std::vector<DNSCURVE_SOCKET_SELECTING_DATA> *)OriginalDNSCurveSocketSelectingList;
 	if (RequestType == REQUEST_PROCESS_DNSCURVE_MAIN)
@@ -1835,6 +1856,10 @@ size_t SocketSelectingSerial(
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
 	std::vector<ssize_t> &ErrorCodeList)
 {
+//Socket data check
+	if (SocketDataList.empty() || SocketSelectingDataList.empty() || ErrorCodeList.empty())
+		return EXIT_FAILURE;
+
 //Initialization
 	fd_set ReadFDS, WriteFDS;
 	timeval Timeout;
@@ -2129,6 +2154,11 @@ void MarkPortToList(
 	const SOCKET_DATA * const LocalSocketData, 
 	std::vector<SOCKET_DATA> &SocketDataList)
 {
+//Socket data check
+	if (SocketDataList.empty())
+		return;
+
+//Mark port.
 	if (LocalSocketData != nullptr && Protocol > 0)
 	{
 		SOCKET_DATA SocketDataTemp;

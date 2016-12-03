@@ -662,7 +662,8 @@ bool UDP_Monitor(
 				else {
 					MonitorQueryData.first.Buffer = RecvBuffer.get() + PACKET_MAXSIZE * Index;
 					MonitorQueryData.first.Length = RecvLen;
-					MonitorQueryData.first.IsLocal = false;
+					MonitorQueryData.first.IsLocalRequest = false;
+					MonitorQueryData.first.IsLocalForce = false;
 					memset(&MonitorQueryData.first.LocalTarget, 0, sizeof(MonitorQueryData.first.LocalTarget));
 
 				//Check DNS query data.
@@ -933,7 +934,8 @@ bool TCP_ReceiveProcess(
 	{
 		MonitorQueryData.first.Buffer = RecvBuffer.get() + sizeof(uint16_t);
 		MonitorQueryData.first.Length = Length;
-		MonitorQueryData.first.IsLocal = false;
+		MonitorQueryData.first.IsLocalRequest = false;
+		MonitorQueryData.first.IsLocalForce = false;
 		memset(&MonitorQueryData.first.LocalTarget, 0, sizeof(MonitorQueryData.first.LocalTarget));
 
 	//Check DNS query data.

@@ -90,6 +90,10 @@ bool SSPI_Handshake(
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
 	std::vector<ssize_t> &ErrorCodeList)
 {
+//Socket data check
+	if (SocketDataList.empty() || SocketSelectingDataList.empty() || ErrorCodeList.empty())
+		return false;
+	
 //Initializtion
 	SecBufferDesc OutputBufferDesc;
 	SecBuffer OutputBufferSec[1U]{0};
@@ -193,6 +197,10 @@ bool SSPI_HandshakeLoop(
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
 	std::vector<ssize_t> &ErrorCodeList)
 {
+//Socket data check
+	if (SocketDataList.empty() || SocketSelectingDataList.empty() || ErrorCodeList.empty())
+		return false;
+
 //Initializtion
 	SecBufferDesc InputBufferDesc, OutputBufferDesc;
 	memset(&InputBufferDesc, 0, sizeof(InputBufferDesc));
@@ -338,6 +346,10 @@ bool SSPI_EncryptPacket(
 	SSPI_HANDLE_TABLE &SSPI_Handle, 
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList)
 {
+//Socket data check
+	if (SocketSelectingDataList.empty())
+		return false;
+
 //Send length check
 	if (SocketSelectingDataList.front().SendLen >= SSPI_Handle.StreamSizes.cbMaximumMessage)
 	{
@@ -396,6 +408,10 @@ bool SSPI_DecryptPacket(
 	SSPI_HANDLE_TABLE &SSPI_Handle, 
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList)
 {
+//Socket data check
+	if (SocketSelectingDataList.empty())
+		return false;
+
 //Initializtion
 	SecBufferDesc BufferDesc;
 	memset(&BufferDesc, 0, sizeof(BufferDesc));
@@ -464,6 +480,10 @@ bool TLS_TransportSerial(
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
 	std::vector<ssize_t> &ErrorCodeList)
 {
+//Socket data check
+	if (SocketDataList.empty() || SocketSelectingDataList.empty() || ErrorCodeList.empty())
+		return false;
+
 //TLS encrypt packet.
 	if (!SSPI_EncryptPacket(SSPI_Handle, SocketSelectingDataList) || SocketSelectingDataList.front().SendLen < sizeof(tls_base_record))
 	{
@@ -506,6 +526,10 @@ bool SSPI_ShutdownConnection(
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<ssize_t> &ErrorCodeList)
 {
+//Socket data check
+	if (SocketDataList.empty() || ErrorCodeList.empty())
+		return false;
+
 //Socket check
 	if (!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
 		return false;
@@ -608,6 +632,16 @@ bool OpenSSL_PrintError(
 	const uint8_t *OpenSSL_ErrorMessage, 
 	const wchar_t *ErrorMessage)
 {
+//Message check
+	if (OpenSSL_ErrorMessage == nullptr || ErrorMessage == nullptr || 
+		strnlen((const char *)OpenSSL_ErrorMessage, OPENSSL_STATIC_BUFFER_SIZE) == 0 || 
+		wcsnlen(ErrorMessage, OPENSSL_STATIC_BUFFER_SIZE) == 0)
+	{
+		PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
+		return false;
+	}
+
+//Convert message.
 	std::wstring Message;
 	if (MBS_To_WCS_String(OpenSSL_ErrorMessage, OPENSSL_STATIC_BUFFER_SIZE, Message))
 	{
@@ -767,11 +801,14 @@ bool OpenSSL_BIO_Initializtion(
 	if (Parameter.MBS_HTTP_CONNECT_TLS_SNI != nullptr && !Parameter.MBS_HTTP_CONNECT_TLS_SNI->empty())
 		SSL_set_tlsext_host_name(OpenSSL_CTX.SessionData, Parameter.MBS_HTTP_CONNECT_TLS_SNI->c_str()); //TLS Server Name Indication/SNI
 
-//Set strong ciphers.
+//Set ciphers suites.
 #if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_0_1 //OpenSSL version before 1.0.1
 	Result = SSL_set_cipher_list(OpenSSL_CTX.SessionData, OPENSSL_CIPHER_LIST_COMPATIBILITY);
 #else //OpenSSL version after 1.0.1
-	Result = SSL_set_cipher_list(OpenSSL_CTX.SessionData, OPENSSL_CIPHER_LIST_STRONG);
+	if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_1_0 || Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_1_1)
+		Result = SSL_set_cipher_list(OpenSSL_CTX.SessionData, OPENSSL_CIPHER_LIST_COMPATIBILITY);
+	else //Auto select and newer TLS version
+		Result = SSL_set_cipher_list(OpenSSL_CTX.SessionData, OPENSSL_CIPHER_LIST_STRONG);
 #endif
 	if (Result == FALSE)
 	{
@@ -888,6 +925,10 @@ bool TLS_TransportSerial(
 	OPENSSL_CONTEXT_TABLE &OpenSSL_CTX, 
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList)
 {
+//Socket data check
+	if (SocketSelectingDataList.empty())
+		return false;
+
 //Initializtion
 	ssize_t RecvLen = 0;
 	size_t Timeout = 0;

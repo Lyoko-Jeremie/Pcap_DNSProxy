@@ -125,8 +125,8 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * IPv6 special address error - IPv6 特殊位址檢查錯誤：請檢查 IPv6 位址是否為特殊位址
   * IPv4 special address error - IPv4 特殊位址檢查錯誤：請檢查 IPv4 位址是否為特殊位址
   * Address Prefix Block format error - 帶前置長度的位址塊格式錯誤：請檢查位址塊的格式
-  * IPv4 prefix error - IPv4 網路尾碼長度錯誤：IPv4 網路尾碼的長度介乎與 1-32
-  * IPv6 prefix error - IPv6 網路尾碼長度錯誤：IPv6 網路尾碼的長度介乎與 1-128
+  * IPv4 prefix error - IPv4 網路首碼長度錯誤：IPv4 網路首碼的長度介乎與 1-32
+  * IPv6 prefix error - IPv6 網路首碼長度錯誤：IPv6 網路首碼的長度介乎與 1-128
   * Pcap Capture error - 抓包模塊參數錯誤：請檢查相關參數的使用要求說明
   * Direct Request error - 直連模塊參數錯誤：請檢查相關參數的使用要求說明
   * Local machine listening port error - 本地監聽埠錯誤：請檢查本地監聽埠的值，可適用範圍為 1 - 65535
@@ -162,8 +162,8 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * IPv6 address range error - IPFilter 的 IPv6 位址範圍錯誤：請檢查 IPFilter 條目的位址
   * IPv4 address range error - IPFilter 的 IPv6 位址範圍錯誤：請檢查 IPFilter 條目的位址
   * Repeating items error, this item is not available - 存在重複的 IPFilter 條目：本條目將不啟用的提示
-  * IPv4 prefix error - IPv4 網路尾碼長度錯誤：IPv4 網路尾碼的長度介乎與 1-32
-  * IPv6 prefix error - IPv6 網路尾碼長度錯誤：IPv6 網路尾碼的長度介乎與 1-128
+  * IPv4 prefix error - IPv4 網路首碼長度錯誤：IPv4 網路首碼的長度介乎與 1-32
+  * IPv6 prefix error - IPv6 網路首碼長度錯誤：IPv6 網路首碼的長度介乎與 1-128
   * Level error - IPFilter 過濾級別錯誤：過濾級別介乎與 0 - 0xFFFF(65535)
 
 4.Hosts Error - 讀取 Hosts 檔錯誤

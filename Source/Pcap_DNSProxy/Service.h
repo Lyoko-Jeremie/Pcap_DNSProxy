@@ -35,7 +35,9 @@ static BOOL IsServiceRunning = FALSE;
 SERVICE_STATUS_HANDLE ServiceStatusHandle = nullptr;
 HANDLE ServiceEvent = nullptr;
 #endif
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 uint64_t LastFlushDNSTime = 0;
+#endif
 
 //Functions
 #if defined(PLATFORM_WIN)

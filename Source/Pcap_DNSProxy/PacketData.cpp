@@ -78,7 +78,7 @@ uint16_t GetChecksum(
 	const size_t Length)
 {
 	uint32_t Checksum = CHECKSUM_SUCCESS;
-	size_t InnerLength = Length;
+	auto InnerLength = Length;
 	while (InnerLength > 1U)
 	{
 		Checksum += *Buffer++;
@@ -239,7 +239,7 @@ size_t PacketQueryToString(
 
 //Convert data from compression DNS query to whole DNS query
 size_t MarkWholePacketQuery(
-	const uint8_t * const Packet, 
+	const uint8_t * const WholePacket, 
 	const size_t Length, 
 	const uint8_t * const TName, 
 	const size_t TNameIndex, 
@@ -266,7 +266,7 @@ size_t MarkWholePacketQuery(
 				if (!FName.empty())
 					FName.append(".");
 
-				return MarkWholePacketQuery(Packet, Length, Packet + PointerIndex, PointerIndex, FName);
+				return MarkWholePacketQuery(WholePacket, Length, WholePacket + PointerIndex, PointerIndex, FName);
 			}
 			else {
 				return LocateIndex;
@@ -417,7 +417,7 @@ size_t Add_EDNS_To_Additional_RR(
 		return Length;
 	else 
 		DNS_Header->Additional = htons(U16_NUM_ONE);
-	size_t DataLength = Length;
+	auto DataLength = Length;
 
 //Add a new EDNS/OPT Additional Resource Records.
 	if (DataLength + sizeof(dns_record_opt) >= MaxLen)
@@ -456,20 +456,30 @@ size_t Add_EDNS_To_Additional_RR(
 			EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
 			EDNS_Subnet_Header->Family = htons(ADDRESS_FAMILY_IPV6);
 
-		//No recommendation is provided for IPv6 at this time so keep all bits, visit https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
+		//Keep 56 bits of IPv6 address, visit RFC 7871(https://tools.ietf.org/html/rfc7871).
+			in6_addr InnerAddr;
+			memset(&InnerAddr, 0, sizeof(InnerAddr));
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
-				EDNS_Subnet_Header->Netmask_Source = sizeof(in6_addr) * BYTES_TO_BITS;
-			else 
+			{
+				EDNS_Subnet_Header->Netmask_Source = EDNS_CLIENT_SUBNET_NETMASK_SOURCE_IPV6;
+
+			//Mark network prefix.
+				InnerAddr = ((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr;
+				*(uint64_t *)&InnerAddr = hton64(ntoh64(*(uint64_t *)&InnerAddr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - EDNS_CLIENT_SUBNET_NETMASK_SOURCE_IPV6))); //Mark high 64 bits.
+				*(uint64_t *)((uint8_t *)&InnerAddr + sizeof(in6_addr) / 2U) = 0; //Delete low 64 bits.
+			}
+			else {
 				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalMachineSubnet_IPv6->second;
-			DataLength += sizeof(edns_client_subnet);
+			}
 
 		//Length check
+			DataLength += sizeof(edns_client_subnet);
 			if (DataLength + sizeof(in6_addr) >= MaxLen)
 				return DataLength;
 
 		//Copy subnet address.
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
-				*(in6_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr;
+				*(in6_addr *)(Buffer + DataLength) = InnerAddr;
 			else 
 				*(in6_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN6)&Parameter.LocalMachineSubnet_IPv6->first)->sin6_addr;
 			EDNS_Subnet_Header->Length = htons((uint16_t)(sizeof(uint16_t) + sizeof(uint8_t) * 2U + sizeof(in6_addr)));
@@ -485,20 +495,29 @@ size_t Add_EDNS_To_Additional_RR(
 			EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
 			EDNS_Subnet_Header->Family = htons(ADDRESS_FAMILY_IPV4);
 
-		//Keep 24 bits of IPv4 address, visit https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
+		//Keep 24 bits of IPv4 address, visit RFC 7871(https://tools.ietf.org/html/rfc7871).
+			in_addr InnerAddr;
+			memset(&InnerAddr, 0, sizeof(InnerAddr));
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)
-				EDNS_Subnet_Header->Netmask_Source = (sizeof(in_addr) - 1U) * BYTES_TO_BITS;
-			else 
+			{
+				EDNS_Subnet_Header->Netmask_Source = EDNS_CLIENT_SUBNET_NETMASK_SOURCE_IPV4;
+
+			//Mark network prefix.
+				InnerAddr = ((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr;
+				InnerAddr.s_addr = htonl(ntohl(InnerAddr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - EDNS_CLIENT_SUBNET_NETMASK_SOURCE_IPV4)));
+			}
+			else {
 				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalMachineSubnet_IPv4->second;
-			DataLength += sizeof(edns_client_subnet);
+			}
 
 		//Length check
+			DataLength += sizeof(edns_client_subnet);
 			if (DataLength + sizeof(in_addr) >= MaxLen)
 				return DataLength;
 
 		//Copy subnet address.
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)
-				*(in_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr;
+				*(in_addr *)(Buffer + DataLength) = InnerAddr;
 			else 
 				*(in_addr *)(Buffer + DataLength) = ((PSOCKADDR_IN)&Parameter.LocalMachineSubnet_IPv4->first)->sin_addr;
 			EDNS_Subnet_Header->Length = htons((uint16_t)(sizeof(uint16_t) + sizeof(uint8_t) * 2U + sizeof(in_addr)));
@@ -568,21 +587,31 @@ bool Add_EDNS_To_Additional_RR(
 			EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
 			EDNS_Subnet_Header->Family = htons(ADDRESS_FAMILY_IPV6);
 
-		//No recommendation is provided for IPv6 at this time so keep all bits, visit https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
+		//Keep 56 bits of IPv6 address, visit RFC 7871(https://tools.ietf.org/html/rfc7871).
+			in6_addr InnerAddr;
+			memset(&InnerAddr, 0, sizeof(InnerAddr));
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
-				EDNS_Subnet_Header->Netmask_Source = sizeof(in6_addr) * BYTES_TO_BITS;
-			else 
+			{
+				EDNS_Subnet_Header->Netmask_Source = EDNS_CLIENT_SUBNET_NETMASK_SOURCE_IPV6;
+
+			//Mark network prefix.
+				InnerAddr = ((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr;
+				*(uint64_t *)&InnerAddr = hton64(ntoh64(*(uint64_t *)&InnerAddr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - EDNS_CLIENT_SUBNET_NETMASK_SOURCE_IPV6))); //Mark high 64 bits.
+				*(uint64_t *)((uint8_t *)&InnerAddr + sizeof(in6_addr) / 2U) = 0; //Delete low 64 bits.
+			}
+			else {
 				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalMachineSubnet_IPv6->second;
-			Packet->Length += sizeof(edns_client_subnet);
-			Packet->EDNS_Record += sizeof(edns_client_subnet);
+			}
 
 		//Length check
+			Packet->Length += sizeof(edns_client_subnet);
+			Packet->EDNS_Record += sizeof(edns_client_subnet);
 			if (Packet->Length + sizeof(in6_addr) >= Packet->BufferSize)
 				return true;
 
 		//Copy subnet address.
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
-				*(in6_addr *)(Packet->Buffer + Packet->Length) = ((PSOCKADDR_IN6)&LocalSocketData->SockAddr)->sin6_addr;
+				*(in6_addr *)(Packet->Buffer + Packet->Length) = InnerAddr;
 			else 
 				*(in6_addr *)(Packet->Buffer + Packet->Length) = ((PSOCKADDR_IN6)&Parameter.LocalMachineSubnet_IPv6->first)->sin6_addr;
 			EDNS_Subnet_Header->Length = htons((uint16_t)(sizeof(uint16_t) + sizeof(uint8_t) * 2U + sizeof(in6_addr)));
@@ -599,21 +628,30 @@ bool Add_EDNS_To_Additional_RR(
 			EDNS_Subnet_Header->Code = htons(EDNS_CODE_CSUBNET);
 			EDNS_Subnet_Header->Family = htons(ADDRESS_FAMILY_IPV4);
 
-		//Keep 24 bits of IPv4 address, visit https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08.
+		//Keep 24 bits of IPv4 address, visit RFC 7871(https://tools.ietf.org/html/rfc7871).
+			in_addr InnerAddr;
+			memset(&InnerAddr, 0, sizeof(InnerAddr));
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)
-				EDNS_Subnet_Header->Netmask_Source = (sizeof(in_addr) - 1U) * BYTES_TO_BITS;
-			else 
+			{
+				EDNS_Subnet_Header->Netmask_Source = EDNS_CLIENT_SUBNET_NETMASK_SOURCE_IPV4;
+
+			//Mark network prefix.
+				InnerAddr = ((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr;
+				InnerAddr.s_addr = htonl(ntohl(InnerAddr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - EDNS_CLIENT_SUBNET_NETMASK_SOURCE_IPV4)));
+			}
+			else {
 				EDNS_Subnet_Header->Netmask_Source = (uint8_t)Parameter.LocalMachineSubnet_IPv4->second;
-			Packet->Length += sizeof(edns_client_subnet);
-			Packet->EDNS_Record += sizeof(edns_client_subnet);
+			}
 
 		//Length check
+			Packet->Length += sizeof(edns_client_subnet);
+			Packet->EDNS_Record += sizeof(edns_client_subnet);
 			if (Packet->Length + sizeof(in_addr) >= Packet->BufferSize)
 				return true;
 
 		//Copy subnet address.
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)
-				*(in_addr *)(Packet->Buffer + Packet->Length) = ((PSOCKADDR_IN)&LocalSocketData->SockAddr)->sin_addr;
+				*(in_addr *)(Packet->Buffer + Packet->Length) = InnerAddr;
 			else 
 				*(in_addr *)(Packet->Buffer + Packet->Length) = ((PSOCKADDR_IN)&Parameter.LocalMachineSubnet_IPv4->first)->sin_addr;
 			EDNS_Subnet_Header->Length = htons((uint16_t)(sizeof(uint16_t) + sizeof(uint8_t) * 2U + sizeof(in_addr)));

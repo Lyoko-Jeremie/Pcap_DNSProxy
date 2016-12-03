@@ -2147,7 +2147,7 @@ typedef struct _dns_record_opt_
 }dns_record_opt, *pdns_record_opt, edns_header, *pedns_header;
 
 /* Extension Mechanisms for Domain Name System/DNS, Client subnet in EDNS requests
-* Client Subnet in DNS Requests draft-vandergaast-edns-client-subnet-02(https://tools.ietf.org/html/draft-ietf-dnsop-edns-client-subnet-08)
+* RFC 7871, Client Subnet in DNS Queries(https://tools.ietf.org/html/rfc7871)
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -2162,19 +2162,23 @@ typedef struct _dns_record_opt_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define EDNS_CODE_LLQ                 0x0001   //Long-lived query
-#define EDNS_CODE_UL                  0x0002   //Update lease
-#define EDNS_CODE_NSID                0x0003   //Name Server Identifier (RFC 5001)
-#define EDNS_CODE_OWNER               0x0004   //Owner, reserved
-#define EDNS_CODE_DAU                 0x0005   //DNSSEC Algorithm Understood (RFC 6975)
-#define EDNS_CODE_DHU                 0x0006   //DS Hash Understood (RFC 6975)
-#define EDNS_CODE_N3U                 0x0007   //DSEC3 Hash Understood (RFC 6975)
-#define EDNS_CODE_CSUBNET             0x0008   //Client subnet as assigned by IANA
-#define EDNS_CODE_EDNS_EXPIRE         0x0009   //EDNS Expire (RFC 7314)
+#define EDNS_CODE_LLQ                            0x0001   //Long-lived query
+#define EDNS_CODE_UL                             0x0002   //Update lease
+#define EDNS_CODE_NSID                           0x0003   //Name Server Identifier (RFC 5001)
+#define EDNS_CODE_OWNER                          0x0004   //Owner, reserved
+#define EDNS_CODE_DAU                            0x0005   //DNSSEC Algorithm Understood (RFC 6975)
+#define EDNS_CODE_DHU                            0x0006   //DS Hash Understood (RFC 6975)
+#define EDNS_CODE_N3U                            0x0007   //DSEC3 Hash Understood (RFC 6975)
+#define EDNS_CODE_CSUBNET                        0x0008   //Client subnet as assigned by IANA
+#define EDNS_CODE_EDNS_EXPIRE                    0x0009   //EDNS Expire (RFC 7314)
 
 //About Address Family Numbers, visit https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml.
-#define ADDRESS_FAMILY_IPV4           0x0001
-#define ADDRESS_FAMILY_IPV6           0x0002
+#define ADDRESS_FAMILY_IPV4                      0x0001
+#define ADDRESS_FAMILY_IPV6                      0x0002
+
+//Netmask Source bits
+#define EDNS_CLIENT_SUBNET_NETMASK_SOURCE_IPV6   56U
+#define EDNS_CLIENT_SUBNET_NETMASK_SOURCE_IPV4   24U
 typedef struct _edns_client_subnet_
 {
 	uint16_t              Code;

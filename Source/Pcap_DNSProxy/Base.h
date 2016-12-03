@@ -259,7 +259,7 @@ size_t PacketQueryToString(
 	const uint8_t * const TName, 
 	std::string &FName);
 size_t MarkWholePacketQuery(
-	const uint8_t * const Packet, 
+	const uint8_t * const WholePacket, 
 	const size_t Length, 
 	const uint8_t * const TName, 
 	const size_t TNameIndex, 
@@ -321,7 +321,7 @@ size_t CheckWhiteBannedHostsProcess(
 	const HostsTable &HostsTableIter, 
 	dns_hdr * const DNS_Header, 
 	dns_qry * const DNS_Query, 
-	bool * const IsLocal);
+	bool * const IsLocalRequest);
 size_t CheckHostsProcess(
 	DNS_PACKET_DATA * const Packet, 
 	uint8_t * const Result, 
@@ -458,7 +458,7 @@ bool Flush_DNS_FIFO_Monitor(
 bool Flush_DNS_FIFO_Sender(
 	const uint8_t * const Domain);
 #endif
-void FlushDNSCache(
+void Flush_DNS_Cache(
 	const uint8_t * const Domain);
 
 //TransportSecurity.h

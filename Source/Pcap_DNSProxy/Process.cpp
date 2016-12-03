@@ -30,7 +30,7 @@ void MonitorRequestProvider(
 	if (Parameter.ThreadPoolBaseNum > 0 && GlobalRunningStatus.ThreadRunningFreeNum->load() == 0 && 
 		GlobalRunningStatus.ThreadRunningNum->load() < Parameter.ThreadPoolMaxNum)
 	{
-		size_t ThreadIncreaseNum = Parameter.ThreadPoolBaseNum;
+		auto ThreadIncreaseNum = Parameter.ThreadPoolBaseNum;
 		if (GlobalRunningStatus.ThreadRunningNum->load() + Parameter.ThreadPoolBaseNum > Parameter.ThreadPoolMaxNum)
 			ThreadIncreaseNum = Parameter.ThreadPoolMaxNum - GlobalRunningStatus.ThreadRunningNum->load();
 		(*GlobalRunningStatus.ThreadRunningNum) += ThreadIncreaseNum;
@@ -175,10 +175,10 @@ bool EnterRequestProcess(
 	}
 
 //Local request process
-	if (MonitorQueryData.first.IsLocal)
+	if (MonitorQueryData.first.IsLocalRequest)
 	{
 		const auto Result = LocalRequestProcess(MonitorQueryData, RecvBuffer, RecvSize);
-		if (Result || Parameter.LocalForce)
+		if (Result || (MonitorQueryData.first.IsLocalForce && Parameter.LocalForce))
 		{
 		//Fin TCP request connection.
 			if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
@@ -323,14 +323,14 @@ size_t CheckWhiteBannedHostsProcess(
 	const HostsTable &HostsTableIter, 
 	dns_hdr * const DNS_Header, 
 	dns_qry * const DNS_Query, 
-	bool * const IsLocal)
+	bool * const IsLocalRequest)
 {
 //Whitelist Hosts
 	if (HostsTableIter.PermissionType == HOSTS_TYPE_WHITE)
 	{
-	//Reset IsLocal flag.
-		if (IsLocal != nullptr)
-			*IsLocal = false;
+	//Reset flag.
+		if (IsLocalRequest != nullptr)
+			*IsLocalRequest = false;
 
 	//Ignore all types.
 		if (HostsTableIter.RecordTypeList.empty())
@@ -363,9 +363,9 @@ size_t CheckWhiteBannedHostsProcess(
 //Banned Hosts
 	else if (HostsTableIter.PermissionType == HOSTS_TYPE_BANNED)
 	{
-	//Reset IsLocal flag.
-		if (IsLocal != nullptr)
-			*IsLocal = false;
+	//Reset flag.
+		if (IsLocalRequest != nullptr)
+			*IsLocalRequest = false;
 
 	//Block all types.
 		if (HostsTableIter.RecordTypeList.empty())
@@ -668,7 +668,7 @@ size_t CheckHostsProcess(
 
 //Local Main parameter check
 	if (Parameter.LocalMain)
-		Packet->IsLocal = true;
+		Packet->IsLocalRequest = true;
 
 //Normal Hosts check
 	auto IsMatch = false;
@@ -707,19 +707,20 @@ size_t CheckHostsProcess(
 							if (SourceListIter.second < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 							{
 								const auto AddressPart = hton64(ntoh64(*(uint64_t *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - SourceListIter.second)));
-								if (memcmp(&AddressPart, &((sockaddr_in6 *)&SourceListIter.first)->sin6_addr, sizeof(AddressPart)) == 0)
+								if (memcmp(&AddressPart, &((PSOCKADDR_IN6)&SourceListIter.first)->sin6_addr, sizeof(AddressPart)) == 0)
 									goto JumpToContinue;
 							}
-							else {
-								const auto AddressPart = hton64(ntoh64(*(uint64_t *)((uint8_t *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - SourceListIter.second)));
-								if (memcmp(&AddressPart, (uint8_t *)&((sockaddr_in6 *)&SourceListIter.first)->sin6_addr + sizeof(in6_addr) / 2U, sizeof(AddressPart)) == 0)
+							else if (memcmp(&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr, &((PSOCKADDR_IN6)&SourceListIter.first)->sin6_addr, sizeof(uint64_t)) == 0) //Mark high 64 bits.
+							{
+								const auto AddressPart = hton64(ntoh64(*(uint64_t *)((uint8_t *)&((PSOCKADDR_IN6)&LocalSocketData.SockAddr)->sin6_addr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - SourceListIter.second)));
+								if (memcmp(&AddressPart, (uint8_t *)&((PSOCKADDR_IN6)&SourceListIter.first)->sin6_addr + sizeof(in6_addr) / 2U, sizeof(AddressPart)) == 0) //Mark low 64 bits.
 									goto JumpToContinue;
 							}
 						}
 					//IPv4
 						else if (LocalSocketData.SockAddr.ss_family == AF_INET && SourceListIter.first.ss_family == AF_INET && 
-							htonl(ntohl(((sockaddr_in *)&LocalSocketData.SockAddr)->sin_addr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - SourceListIter.second))) == 
-							((sockaddr_in *)&SourceListIter.first)->sin_addr.s_addr)
+							htonl(ntohl(((PSOCKADDR_IN)&LocalSocketData.SockAddr)->sin_addr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - SourceListIter.second))) == 
+							((PSOCKADDR_IN)&SourceListIter.first)->sin_addr.s_addr)
 						{
 							goto JumpToContinue;
 						}
@@ -732,7 +733,7 @@ size_t CheckHostsProcess(
 			JumpToContinue:
 
 			//Check white and banned hosts list, empty record type list check
-				DataLength = CheckWhiteBannedHostsProcess(Packet->Length, HostsTableIter, DNS_Header, DNS_Query, &Packet->IsLocal);
+				DataLength = CheckWhiteBannedHostsProcess(Packet->Length, HostsTableIter, DNS_Header, DNS_Query, &Packet->IsLocalRequest);
 				if (DataLength >= DNS_PACKET_MINSIZE)
 					return DataLength;
 				else if (DataLength == EXIT_FAILURE)
@@ -896,17 +897,23 @@ StopLoop_NormalHosts:
 			if (IsMatch)
 			{
 			//Check white and banned hosts list.
-				DataLength = CheckWhiteBannedHostsProcess(Packet->Length, HostsTableIter, DNS_Header, DNS_Query, &Packet->IsLocal);
+				DataLength = CheckWhiteBannedHostsProcess(Packet->Length, HostsTableIter, DNS_Header, DNS_Query, &Packet->IsLocalRequest);
 				if (DataLength >= DNS_PACKET_MINSIZE)
+				{
 					return DataLength;
+				}
 				else if (DataLength == EXIT_FAILURE)
-					Packet->IsLocal = false;
+				{
+					Packet->IsLocalRequest = false;
+				}
 			//IsLocal flag setting
-				else 
-					Packet->IsLocal = true;
+				else {
+					Packet->IsLocalRequest = true;
+					Packet->IsLocalForce = true;
+				}
 
 			//Mark Local server target and stop loop.
-				if (Packet->IsLocal && !HostsTableIter.AddrOrTargetList.empty())
+				if (Packet->IsLocalRequest && !HostsTableIter.AddrOrTargetList.empty())
 					Packet->LocalTarget = HostsTableIter.AddrOrTargetList.front();
 				goto StopLoop_LocalHosts;
 			}
@@ -933,7 +940,7 @@ bool LocalRequestProcess(
 	memset(OriginalRecv, 0, RecvSize);
 
 //EDNS switching(Part 1)
-	size_t EDNS_SwitchLength = MonitorQueryData.first.Length;
+	auto EDNS_SwitchLength = MonitorQueryData.first.Length;
 	const uint16_t EDNS_Packet_Flags = ((dns_hdr *)(MonitorQueryData.first.Buffer))->Flags;
 	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_Local)
 	{
@@ -982,7 +989,7 @@ bool SOCKS_RequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData)
 {
 //EDNS switching(Part 1)
-	size_t EDNS_SwitchLength = MonitorQueryData.first.Length;
+	auto EDNS_SwitchLength = MonitorQueryData.first.Length;
 	const uint16_t EDNS_Packet_Flags = ((dns_hdr *)(MonitorQueryData.first.Buffer))->Flags;
 	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_SOCKS)
 	{
@@ -1039,7 +1046,7 @@ bool HTTP_CONNECT_RequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData)
 {
 //EDNS switching(Part 1)
-	size_t EDNS_SwitchLength = MonitorQueryData.first.Length;
+	auto EDNS_SwitchLength = MonitorQueryData.first.Length;
 	const uint16_t EDNS_Packet_Flags = ((dns_hdr *)(MonitorQueryData.first.Buffer))->Flags;
 	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_HTTP_CONNECT)
 	{
@@ -1089,7 +1096,7 @@ bool DirectRequestProcess(
 			return false;
 
 //EDNS switching(Part 1)
-	size_t EDNS_SwitchLength = MonitorQueryData.first.Length;
+	auto EDNS_SwitchLength = MonitorQueryData.first.Length;
 	const uint16_t EDNS_Packet_Flags = ((dns_hdr *)(MonitorQueryData.first.Buffer))->Flags;
 	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_Direct)
 	{
@@ -1152,7 +1159,7 @@ bool DNSCurveRequestProcess(
 	memset(OriginalRecv, 0, RecvSize);
 
 //EDNS switching(Part 1)
-	size_t EDNS_SwitchLength = MonitorQueryData.first.Length;
+	auto EDNS_SwitchLength = MonitorQueryData.first.Length;
 	const uint16_t EDNS_Packet_Flags = ((dns_hdr *)(MonitorQueryData.first.Buffer))->Flags;
 	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_DNSCurve)
 	{
@@ -1216,7 +1223,7 @@ bool TCP_RequestProcess(
 	memset(OriginalRecv, 0, RecvSize);
 
 //EDNS switching(Part 1)
-	size_t EDNS_SwitchLength = MonitorQueryData.first.Length;
+	auto EDNS_SwitchLength = MonitorQueryData.first.Length;
 	const uint16_t EDNS_Packet_Flags = ((dns_hdr *)(MonitorQueryData.first.Buffer))->Flags;
 	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_TCP)
 	{
@@ -1279,7 +1286,7 @@ void UDP_RequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData)
 {
 //EDNS switching(Part 1)
-	size_t EDNS_SwitchLength = MonitorQueryData.first.Length;
+	auto EDNS_SwitchLength = MonitorQueryData.first.Length;
 	const uint16_t EDNS_Packet_Flags = ((dns_hdr *)(MonitorQueryData.first.Buffer))->Flags;
 	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_UDP)
 	{

@@ -603,7 +603,7 @@ size_t TCP_RequestSingle(
 	}
 
 //Add length of request packet(It must be written in header when transport with TCP protocol).
-	size_t DataLength = AddLengthDataToHeader(SendBuffer, SendSize, RecvSize);
+	auto DataLength = AddLengthDataToHeader(SendBuffer, SendSize, RecvSize);
 	if (DataLength == EXIT_FAILURE)
 	{
 		SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_CLOSE, false, nullptr);
@@ -612,7 +612,7 @@ size_t TCP_RequestSingle(
 
 //Socket selecting
 	ssize_t ErrorCode = 0;
-	const ssize_t RecvLen = SocketSelectingOnce(RequestType, IPPROTO_TCP, TCPSocketDataList, nullptr, SendBuffer, DataLength, OriginalRecv, RecvSize, &ErrorCode);
+	const auto RecvLen = SocketSelectingOnce(RequestType, IPPROTO_TCP, TCPSocketDataList, nullptr, SendBuffer, DataLength, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && IsAlternate != nullptr && !*IsAlternate && //Mark timeout.
 		(!Parameter.AlternateMultipleRequest || RequestType == REQUEST_PROCESS_LOCAL))
 			++(*AlternateTimeoutTimes);
@@ -639,13 +639,13 @@ size_t TCP_RequestMultiple(
 		return EXIT_FAILURE;
 
 //Add length of request packet(It must be written in header when transport with TCP protocol).
-	size_t DataLength = AddLengthDataToHeader(SendBuffer, SendSize, RecvSize);
+	auto DataLength = AddLengthDataToHeader(SendBuffer, SendSize, RecvSize);
 	if (DataLength == EXIT_FAILURE)
 		return EXIT_FAILURE;
 
 //Socket selecting
 	ssize_t ErrorCode = 0;
-	const ssize_t RecvLen = SocketSelectingOnce(RequestType, IPPROTO_TCP, TCPSocketDataList, nullptr, SendBuffer, DataLength, OriginalRecv, RecvSize, &ErrorCode);
+	const auto RecvLen = SocketSelectingOnce(RequestType, IPPROTO_TCP, TCPSocketDataList, nullptr, SendBuffer, DataLength, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6
@@ -766,7 +766,7 @@ size_t UDP_CompleteRequestSingle(
 
 //Socket selecting
 	ssize_t ErrorCode = 0;
-	const ssize_t RecvLen = SocketSelectingOnce(RequestType, IPPROTO_UDP, UDPSocketDataList, nullptr, OriginalSend, SendSize, OriginalRecv, RecvSize, &ErrorCode);
+	const auto RecvLen = SocketSelectingOnce(RequestType, IPPROTO_UDP, UDPSocketDataList, nullptr, OriginalSend, SendSize, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && IsAlternate != nullptr && !*IsAlternate && //Mark timeout.
 		(!Parameter.AlternateMultipleRequest || RequestType == REQUEST_PROCESS_LOCAL))
 			++(*AlternateTimeoutTimes);
@@ -792,7 +792,7 @@ size_t UDP_CompleteRequestMultiple(
 
 //Socket selecting
 	ssize_t ErrorCode = 0;
-	const ssize_t RecvLen = SocketSelectingOnce(RequestType, IPPROTO_UDP, UDPSocketDataList, nullptr, OriginalSend, SendSize, OriginalRecv, RecvSize, &ErrorCode);
+	const auto RecvLen = SocketSelectingOnce(RequestType, IPPROTO_UDP, UDPSocketDataList, nullptr, OriginalSend, SendSize, OriginalRecv, RecvSize, &ErrorCode);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in6)) //IPv6

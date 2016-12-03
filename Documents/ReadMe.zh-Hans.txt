@@ -238,7 +238,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 当相应协议的 Listen Address 生效时，相应协议的本参数将会被自动忽略
   * IPFilter Type - IPFilter 参数的类型：分为 Deny 禁止和 Permit 允许，对应 IPFilter 参数应用为黑名单或白名单
   * IPFilter Level - IPFilter 参数的过滤级别，级别越高过滤越严格，与 IPFilter 条目相对应：0 为不启用过滤，如果留空则为 0
-  * Accept Type - 禁止或只允许所列 DNS 类型的请求：格式为 "Deny:DNS记录的名称或ID(|DNS记录的名称或ID)" 或 "Permit:DNS记录的名称或ID(|DNS记录的名称或ID)"（不含引号，括号内为可选项目），所有可用的 DNS 类型列表：
+  * Accept Type - 禁止或只允许所列 DNS 类型的请求，格式为 "Deny:DNS记录的名称或ID(|DNS记录的名称或ID)" 或 "Permit:DNS记录的名称或ID(|DNS记录的名称或ID)"（不含引号，括号内为可选项目），所有可用的 DNS 类型列表：
     * A/1
     * NS/2
     * MD/3
@@ -365,11 +365,12 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv4 EDNS Client Subnet Address - IPv4 客户端子网地址，输入后将为所有请求添加此地址的 EDNS 子网信息：需要输入一个带前缀长度的本机公共网络地址，留空为不启用
     * 本功能要求启用 EDNS Label 参数
     * EDNS Client Subnet Relay 参数优先级比此参数高，启用后将优先添加 EDNS Client Subnet Relay 参数的 EDNS 子网地址
+    * RFC 标准建议 IPv4 地址的前缀长度为 24 位，IPv6 地址为 56 位
   * IPv4 Main DNS Address - IPv4 主要 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用
-    * 支持多个地址
+    * 支持多个地址，注意填入后将强制启用 Alternate Multiple Request 参数
     * 支持使用服务名称代替端口号
   * IPv4 Alternate DNS Address - IPv4 备用 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用
-    * 支持多个地址
+    * 支持多个地址，注意填入后将强制启用 Alternate Multiple Request 参数
     * 支持使用服务名称代替端口号
   * IPv4 Main Local DNS Address - IPv4 主要境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，留空为不启用
     * 不支持多个地址，只能填入单个地址
@@ -384,10 +385,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 本功能要求启用 EDNS Label 参数
     * EDNS Client Subnet Relay 参数优先级比此参数高，启用后将优先添加 EDNS Client Subnet Relay 参数的 EDNS 子网地址
   * IPv6 Main DNS Address - IPv6 主要 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用
-    * 支持多个地址
+    * 支持多个地址，注意填入后将强制启用 Alternate Multiple Request 参数
     * 支持使用服务名称代替端口号
   * IPv6 Alternate DNS Address - IPv6 备用 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用
-    * 支持多个地址
+    * 支持多个地址，注意填入后将强制启用 Alternate Multiple Request 参数
     * 支持使用服务名称代替端口号
   * IPv6 Local Main DNS Address - IPv6 主要境内 DNS 服务器地址，用于境内域名解析：需要输入一个带端口格式的地址，留空为不启用
     * 不支持多个地址，只能填入单个地址
@@ -663,7 +664,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSCurve Encryption - 启用加密，DNSCurve 协议支持加密和非加密模式：开启为 1 /关闭为 0
   * DNSCurve Encryption Only - 只使用加密模式，所有请求将只通过 DNCurve 加密模式进行：开启为 1 /关闭为 0
     * 注意：使用 "只使用加密模式" 时必须提供服务器的魔数和指纹用于请求和接收
-  * DNSCurve Client Ephemeral Key - 一次性客户端密钥对模式：每次请求解析均使用随机生成的一次性客户端密钥对：开启为 1 /关闭为 0
+  * DNSCurve Client Ephemeral Key - 一次性客户端密钥对模式，每次请求解析均使用随机生成的一次性客户端密钥对，提供前向安全性：开启为 1 /关闭为 0
   * DNSCurve Key Recheck Time - DNSCurve 协议 DNS 服务器连接信息检查间隔：单位为秒，最小为 10
 
 * DNSCurve Addresses - DNSCurve 协议地址区域
@@ -813,13 +814,20 @@ Hosts 配置文件分为多个提供不同功能的区域
 
 * Address Hosts - 解析结果地址替换列表
   * 本区域数据用于替换解析结果中的地址，提供更精确的 Hosts 自定义能力
+  * 目标地址区域支持使用网络前缀格式，可根据指定的前缀长度替换解析结果中地址的前缀数据
+    * 使用网络前缀格式时第一个目标地址条目必须指定前缀长度，其它目标地址可省略不写也可全部写上
+    * 网络前缀格式指定后将应用到所有目标地址上，注意整个条目只能指定同一个前缀长度
   * 例如有一个 [Address Hosts] 下有效数据区域：
 
     127.0.0.1|127.0.0.2 127.0.0.0-127.255.255.255
+    255.255.255.255/24 255.254.253.252
     ::1 ::-::FFFF
+    FFFF:EEEE::/64|FFFF:EEEE:: FFFF::EEEE|FFFF::EEEF-FFFF::FFFF
 
   * 解析结果的地址范围为 127.0.0.0 到 127.255.255.255 时将被替换为 127.0.0.1 或 127.0.0.2
+  * 解析结果的地址为 255.254.253.252 时将被替换为 255.255.255.252
   * 解析结果的地址范围为 :: 到 ::FFFF 时将被替换为 ::1
+  * 解析结果的地址范围为 FFFF::EEEE 或 FFFF::EEEF 到 FFFF::FFFF 时将被替换为 FFFF:FFFF::EEEE 或 FFFF:FFFF::xxxx:xxxx:xxxx:xxxx 或 FFFF:EEEE::EEEE 或 FFFF:EEEE::xxxx:xxxx:xxxx:xxxx
 
 
 * Stop - 临时停止读取标签
@@ -929,8 +937,7 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
 
 
 * Stop - 临时停止读取标签
-  * 在需要停止读取的数据前添加 "[Stop]"（不含引号） 标签即可在中途停止对文件的读取，直到再次遇到临时停止读取标签或其它标签时再重新开始读取
-  * 具体情况参见上文的介绍
+  * 详细介绍参见上文对本功能的介绍
 
 
 -------------------------------------------------------------------------------

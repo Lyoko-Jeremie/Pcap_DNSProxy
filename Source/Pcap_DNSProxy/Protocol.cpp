@@ -395,7 +395,7 @@ bool CheckSpecialAddress(
 			{
 				for (const auto &ResultBlacklistTableIter:IPFilterFileSetIter.ResultBlacklist)
 				{
-					if (ResultBlacklistTableIter.Addresses.front().Begin.ss_family == AF_INET6 && 
+					if (!ResultBlacklistTableIter.Addresses.empty() && ResultBlacklistTableIter.Addresses.front().Begin.ss_family == AF_INET6 && 
 						(ResultBlacklistTableIter.PatternString.empty() || std::regex_match(InnerDomain, ResultBlacklistTableIter.PatternRegex)))
 					{
 						for (const auto &AddressRangeTableIter:ResultBlacklistTableIter.Addresses)
@@ -417,10 +417,11 @@ bool CheckSpecialAddress(
 		{
 			for (const auto &AddressHostsTableIter:HostsFileSetIter.AddressHostsList)
 			{
-				if (AddressHostsTableIter.Address_Target.front().ss_family == AF_INET6)
+				if (!AddressHostsTableIter.Address_Target.empty() && AddressHostsTableIter.Address_Target.front().first.ss_family == AF_INET6)
 				{
 					for (const auto &AddressRangeTableIter:AddressHostsTableIter.Address_Source)
 					{
+					//Check address.
 						if ((AddressRangeTableIter.Begin.ss_family == AF_INET6 && AddressRangeTableIter.End.ss_family == AF_INET6 && 
 							AddressesComparing(AF_INET6, Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.Begin)->sin6_addr) >= ADDRESS_COMPARE_EQUAL && 
 							AddressesComparing(AF_INET6, Addr, &((PSOCKADDR_IN6)&AddressRangeTableIter.End)->sin6_addr) <= ADDRESS_COMPARE_EQUAL) || 
@@ -430,10 +431,43 @@ bool CheckSpecialAddress(
 							{
 							//Get a ramdom one.
 								std::uniform_int_distribution<size_t> RamdomDistribution(0, AddressHostsTableIter.Address_Target.size() - 1U);
-								*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)))->sin6_addr;
+								
+							//Rewrite address.
+								if (AddressHostsTableIter.Address_Target.front().second > 0)
+								{
+									if (AddressHostsTableIter.Address_Target.front().second < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
+									{
+										*((uint64_t *)Addr) = hton64(ntoh64(*((uint64_t *)Addr)) & (UINT64_MAX >> AddressHostsTableIter.Address_Target.front().second));
+										*((uint64_t *)Addr) = hton64(ntoh64(*((uint64_t *)Addr)) | ntoh64(*((uint64_t *)&((PSOCKADDR_IN6)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)).first)->sin6_addr)));
+									}
+									else {
+										*((uint64_t *)Addr) = *((uint64_t *)&((PSOCKADDR_IN6)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)).first)->sin6_addr);
+										*((uint64_t *)((uint8_t *)Addr + sizeof(in6_addr) / 2U)) = hton64(ntoh64(*((uint64_t *)((uint8_t *)Addr + sizeof(in6_addr) / 2U))) & (UINT64_MAX >> (AddressHostsTableIter.Address_Target.front().second - sizeof(in6_addr) * BYTES_TO_BITS / 2U)));
+										*((uint64_t *)((uint8_t *)Addr + sizeof(in6_addr) / 2U)) = hton64(ntoh64(*((uint64_t *)((uint8_t *)Addr + sizeof(in6_addr) / 2U))) | ntoh64(*((uint64_t *)&((PSOCKADDR_IN6)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)).first)->sin6_addr)));
+									}
+								}
+								else {
+									*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)).first)->sin6_addr;
+								}
 							}
 							else {
-								*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.Address_Target.front())->sin6_addr;
+							//Rewrite address.
+								if (AddressHostsTableIter.Address_Target.front().second > 0)
+								{
+									if (AddressHostsTableIter.Address_Target.front().second < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
+									{
+										*((uint64_t *)Addr) = hton64(ntoh64(*((uint64_t *)Addr)) & (UINT64_MAX >> AddressHostsTableIter.Address_Target.front().second));
+										*((uint64_t *)Addr) = hton64(ntoh64(*((uint64_t *)Addr)) | ntoh64(*((uint64_t *)&((PSOCKADDR_IN6)&AddressHostsTableIter.Address_Target.front().first)->sin6_addr)));
+									}
+									else {
+										*((uint64_t *)Addr) = *((uint64_t *)&((PSOCKADDR_IN6)&AddressHostsTableIter.Address_Target.front().first)->sin6_addr);
+										*((uint64_t *)((uint8_t *)Addr + sizeof(in6_addr) / 2U)) = hton64(ntoh64(*((uint64_t *)((uint8_t *)Addr + sizeof(in6_addr) / 2U))) & (UINT64_MAX >> (AddressHostsTableIter.Address_Target.front().second - sizeof(in6_addr) * BYTES_TO_BITS / 2U)));
+										*((uint64_t *)((uint8_t *)Addr + sizeof(in6_addr) / 2U)) = hton64(ntoh64(*((uint64_t *)((uint8_t *)Addr + sizeof(in6_addr) / 2U))) | ntoh64(*((uint64_t *)&((PSOCKADDR_IN6)&AddressHostsTableIter.Address_Target.front().first)->sin6_addr)));
+									}
+								}
+								else {
+									*(in6_addr *)Addr = ((PSOCKADDR_IN6)&AddressHostsTableIter.Address_Target.front().first)->sin6_addr;
+								}
 							}
 
 							goto StopLoop;
@@ -569,7 +603,7 @@ bool CheckSpecialAddress(
 			{
 				for (const auto &ResultBlacklistTableIter:IPFilterFileSetIter.ResultBlacklist)
 				{
-					if (ResultBlacklistTableIter.Addresses.front().Begin.ss_family == AF_INET && 
+					if (!ResultBlacklistTableIter.Addresses.empty() && ResultBlacklistTableIter.Addresses.front().Begin.ss_family == AF_INET && 
 						(ResultBlacklistTableIter.PatternString.empty() || std::regex_match(InnerDomain, ResultBlacklistTableIter.PatternRegex)))
 					{
 						for (const auto &AddressRangeTableIter:ResultBlacklistTableIter.Addresses)
@@ -591,10 +625,11 @@ bool CheckSpecialAddress(
 		{
 			for (const auto &AddressHostsTableIter:HostsFileSetIter.AddressHostsList)
 			{
-				if (AddressHostsTableIter.Address_Target.front().ss_family == AF_INET)
+				if (!AddressHostsTableIter.Address_Target.empty() && AddressHostsTableIter.Address_Target.front().first.ss_family == AF_INET)
 				{
 					for (const auto &AddressRangeTableIter:AddressHostsTableIter.Address_Source)
 					{
+					//Check address.
 						if ((AddressRangeTableIter.Begin.ss_family == AF_INET && AddressRangeTableIter.End.ss_family == AF_INET && 
 							AddressesComparing(AF_INET, Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.Begin)->sin_addr) >= ADDRESS_COMPARE_EQUAL && 
 							AddressesComparing(AF_INET, Addr, &((PSOCKADDR_IN)&AddressRangeTableIter.End)->sin_addr) <= ADDRESS_COMPARE_EQUAL) || 
@@ -604,10 +639,27 @@ bool CheckSpecialAddress(
 							{
 							//Get a ramdom one.
 								std::uniform_int_distribution<size_t> RamdomDistribution(0, AddressHostsTableIter.Address_Target.size() - 1U);
-								*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)))->sin_addr;
+
+							//Rewrite address.
+								if (AddressHostsTableIter.Address_Target.front().second > 0)
+								{
+									((in_addr *)Addr)->s_addr = htonl(ntohl(((in_addr *)Addr)->s_addr) & (UINT32_MAX >> AddressHostsTableIter.Address_Target.front().second));
+									((in_addr *)Addr)->s_addr = htonl(ntohl(((in_addr *)Addr)->s_addr) | ntohl(((PSOCKADDR_IN)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)).first)->sin_addr.s_addr));
+								}
+								else {
+									*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)).first)->sin_addr;
+								}
 							}
 							else {
-								*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.Address_Target.front())->sin_addr;
+							//Rewrite address.
+								if (AddressHostsTableIter.Address_Target.front().second > 0)
+								{
+									((in_addr *)Addr)->s_addr = htonl(ntohl(((in_addr *)Addr)->s_addr) & (UINT32_MAX >> AddressHostsTableIter.Address_Target.front().second));
+									((in_addr *)Addr)->s_addr = htonl(ntohl(((in_addr *)Addr)->s_addr) | ntohl(((PSOCKADDR_IN)&AddressHostsTableIter.Address_Target.front().first)->sin_addr.s_addr));
+								}
+								else {
+									*(in_addr *)Addr = ((PSOCKADDR_IN)&AddressHostsTableIter.Address_Target.front().first)->sin_addr;
+								}
 							}
 
 							break;
@@ -1161,7 +1213,7 @@ size_t CheckResponse_CNAME(
 {
 //Mark whole DNS query.
 	std::string Domain;
-	size_t DataLength = MarkWholePacketQuery(Buffer, Length, Buffer + CNAME_Index, CNAME_Index, Domain);
+	auto DataLength = MarkWholePacketQuery(Buffer, Length, Buffer + CNAME_Index, CNAME_Index, Domain);
 	if (DataLength <= DOMAIN_MINSIZE || DataLength >= DOMAIN_MAXSIZE)
 		return EXIT_FAILURE;
 	const auto DNS_Header = (pdns_hdr)Buffer;
@@ -1247,7 +1299,8 @@ size_t CheckResponse_CNAME(
 							((pdns_record_aaaa)DNS_Record)->Addr = HostsTableIter.AddrOrTargetList.at(Index).IPv6.sin6_addr;
 
 					//Hosts items length check
-						if (((Parameter.EDNS_Label || DNS_Header->Additional > 0) && DataLength + sizeof(dns_record_aaaa) + EDNS_ADDITIONAL_MAXSIZE >= BufferSize) || //EDNS Label
+						if (((Parameter.EDNS_Label || DNS_Header->Additional > 0) && 
+							DataLength + sizeof(dns_record_aaaa) + EDNS_ADDITIONAL_MAXSIZE >= BufferSize) || //EDNS Label
 							DataLength + sizeof(dns_record_aaaa) >= BufferSize) //Normal query
 						{
 							++Index;
@@ -1302,7 +1355,8 @@ size_t CheckResponse_CNAME(
 							((pdns_record_a)DNS_Record)->Addr = HostsTableIter.AddrOrTargetList.at(Index).IPv4.sin_addr;
 
 					//Hosts items length check
-						if (((Parameter.EDNS_Label || DNS_Header->Additional > 0) && DataLength + sizeof(dns_record_a) + EDNS_ADDITIONAL_MAXSIZE >= BufferSize) || //EDNS Label
+						if (((Parameter.EDNS_Label || DNS_Header->Additional > 0) && 
+							DataLength + sizeof(dns_record_a) + EDNS_ADDITIONAL_MAXSIZE >= BufferSize) || //EDNS Label
 							DataLength + sizeof(dns_record_a) >= BufferSize) //Normal query
 						{
 							++Index;
@@ -1343,7 +1397,10 @@ size_t CheckResponseData(
 		DNS_Header->ID == 0 || //ID must not be set 0.
 		DNS_Header->Flags == 0 || //Flags must not be set 0.
 	//NoCheck flag
-		(ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && 
+		(
+	#if defined(ENABLE_LIBSODIUM)
+		ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && 
+	#endif
 	//Extended DNS header check
 		Parameter.HeaderCheck_DNS && 
 	//Must be set Response bit.
@@ -1369,15 +1426,21 @@ size_t CheckResponseData(
 		(ResponseType == REQUEST_PROCESS_SOCKS_MAIN && Parameter.EDNS_Switch_SOCKS) || //SOCKS Proxy
 		(ResponseType == REQUEST_PROCESS_HTTP_CONNECT && Parameter.EDNS_Switch_HTTP_CONNECT) || //HTTP CONNECT Proxy
 		(ResponseType == REQUEST_PROCESS_DIRECT && Parameter.EDNS_Switch_Direct) || //Direct Request
+	#if defined(ENABLE_LIBSODIUM)
 		(ResponseType == REQUEST_PROCESS_DNSCURVE_MAIN && Parameter.EDNS_Switch_DNSCurve) || //DNSCurve
+	#endif
 		(ResponseType == REQUEST_PROCESS_TCP && Parameter.EDNS_Switch_TCP) || //TCP
 		((ResponseType == REQUEST_PROCESS_UDP_NORMAL || ResponseType == REQUEST_PROCESS_UDP_NO_MARKING) && Parameter.EDNS_Switch_UDP)))))) //UDP
 			return EXIT_FAILURE;
 
 //Response question pointer check
-	if (ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && Parameter.HeaderCheck_DNS)
+	if (Parameter.HeaderCheck_DNS
+	#if defined(ENABLE_LIBSODIUM)
+		&& ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN
+	#endif
+		)
 	{
-		for (size_t Index = sizeof(dns_hdr);Index < DNS_PACKET_QUERY_LOCATE(Buffer);++Index)
+		for (auto Index = sizeof(dns_hdr);Index < DNS_PACKET_QUERY_LOCATE(Buffer);++Index)
 		{
 			if (*(Buffer + Index) == (uint8_t)DNS_POINTER_8_BITS_STRING)
 				return EXIT_FAILURE;
@@ -1442,7 +1505,6 @@ size_t CheckResponseData(
 			ntohs(DNS_Record_Standard->Type) == DNS_TYPE_CNAME && DataLength + ntohs(DNS_Record_Standard->Length) <= Length && 
 			ntohs(DNS_Record_Standard->Length) > DOMAIN_MINSIZE && ntohs(DNS_Record_Standard->Length) < DOMAIN_MAXSIZE)
 		{
-			RecordNum = 0;
 			CNAME_DataLength = CheckResponse_CNAME(Buffer, Length, DataLength, ntohs(DNS_Record_Standard->Length), BufferSize, RecordNum);
 			if (CNAME_DataLength >= DNS_PACKET_MINSIZE && RecordNum > 0)
 			{
@@ -1452,7 +1514,11 @@ size_t CheckResponseData(
 		}
 
 	//EDNS Label(OPT Records) and DNSSEC Records(RRSIG/DNSKEY/DS/NSEC/NSEC3/NSEC3PARAM) check
-		if (ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && Parameter.EDNS_Label)
+		if (Parameter.EDNS_Label
+		#if defined(ENABLE_LIBSODIUM)
+			&& ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN
+		#endif
+			)
 		{
 			if (ntohs(DNS_Record_Standard->Type) == DNS_TYPE_OPT)
 				IsEDNS_Label = true;
@@ -1472,7 +1538,11 @@ size_t CheckResponseData(
 		}
 
 	//Read Resource Records data
-		if (ResponseType != REQUEST_PROCESS_DNSCURVE_MAIN && ntohs(DNS_Record_Standard->Classes) == DNS_CLASS_INTERNET && DNS_Record_Standard->TTL > 0)
+		if (
+		#if defined(ENABLE_LIBSODIUM)
+			ResponseType != REQUEST_PROCESS_DNSCURVE_MAIN && 
+		#endif
+			ntohs(DNS_Record_Standard->Classes) == DNS_CLASS_INTERNET && DNS_Record_Standard->TTL > 0)
 		{
 		//AAAA Records
 			if (ntohs(DNS_Record_Standard->Type) == DNS_TYPE_AAAA && ntohs(DNS_Record_Standard->Length) == sizeof(in6_addr))
@@ -1531,30 +1601,46 @@ size_t CheckResponseData(
 		}
 
 	//Mark Resource Records type.
-		if (ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && Parameter.EDNS_Label && Parameter.DNSSEC_Request && Parameter.DNSSEC_Validation)
-			BeforeType = DNS_Record_Standard->Type;
+		if (
+		#if defined(ENABLE_LIBSODIUM)
+			ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && 
+		#endif
+			Parameter.EDNS_Label && Parameter.DNSSEC_Request && Parameter.DNSSEC_Validation)
+				BeforeType = DNS_Record_Standard->Type;
 
 		DataLength += ntohs(DNS_Record_Standard->Length);
 	}
 
 //Additional EDNS Label Resource Records check, DNSSEC Validation check and Local request result check
-	if (ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && 
-		((Parameter.EDNS_Label && 
+	if (
+	#if defined(ENABLE_LIBSODIUM)
+		ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && (
+	#endif
+		(Parameter.EDNS_Label && 
 		(ResponseType == 0 || //Normal
 		(ResponseType == REQUEST_PROCESS_LOCAL && Parameter.EDNS_Switch_Local) || //Local
 		(ResponseType == REQUEST_PROCESS_SOCKS_MAIN && Parameter.EDNS_Switch_SOCKS) || //SOCKS Proxy
 		(ResponseType == REQUEST_PROCESS_HTTP_CONNECT && Parameter.EDNS_Switch_HTTP_CONNECT) || //HTTP CONNECT Proxy
 		(ResponseType == REQUEST_PROCESS_DIRECT && Parameter.EDNS_Switch_Direct) || //Direct Request
+	#if defined(ENABLE_LIBSODIUM)
 		(ResponseType == REQUEST_PROCESS_DNSCURVE_MAIN && Parameter.EDNS_Switch_DNSCurve) || //DNSCurve
+	#endif
 		(ResponseType == REQUEST_PROCESS_TCP && Parameter.EDNS_Switch_TCP) || //TCP
 		((ResponseType == REQUEST_PROCESS_UDP_NORMAL || ResponseType == REQUEST_PROCESS_UDP_NO_MARKING) && Parameter.EDNS_Switch_UDP)) && //UDP
 		(!IsEDNS_Label || (Parameter.DNSSEC_Request && Parameter.DNSSEC_ForceValidation && !IsDNSSEC_Records))) || 
-		(ResponseType == REQUEST_PROCESS_LOCAL && !Parameter.LocalForce && !IsGotAddressResult)))
+		(ResponseType == REQUEST_PROCESS_LOCAL && !Parameter.LocalForce && !IsGotAddressResult)
+	#if defined(ENABLE_LIBSODIUM)
+		)
+	#endif
+		)
 			return EXIT_FAILURE;
 
 #if defined(ENABLE_PCAP)
 //Mark Hop Limits or TTL.
-	if (ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && 
+	if (
+	#if defined(ENABLE_LIBSODIUM)
+		ResponseType != REQUEST_PROCESS_DNSCURVE_SIGN && 
+	#endif	
 		((IsMarkHopLimit != nullptr && Parameter.HeaderCheck_DNS && 
 //		ntohs(DNS_Header->Answer) != U16_NUM_ONE || //Some ISP will return fake responses with more than one Answer records.
 		(DNS_Header->Answer == 0 || //No any Answer records

@@ -123,8 +123,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * IPv4 address format error - IPv4 地址格式错误：请检查 IPv4 的地址格式
   * IPv4 address port error - IPv4 地址端口格式错误：请检查 IPv4 的地址端口格式
   * Address Prefix Block format error - 带前缀长度的地址块格式错误：请检查地址块的格式
-  * IPv4 prefix error - IPv4 网络后缀长度错误：IPv4 网络后缀的长度介乎与 1-32
-  * IPv6 prefix error - IPv6 网络后缀长度错误：IPv6 网络后缀的长度介乎与 1-128
+  * IPv4 prefix error - IPv4 网络前缀长度错误：IPv4 网络前缀的长度介乎与 1-32
+  * IPv6 prefix error - IPv6 网络前缀长度错误：IPv6 网络前缀的长度介乎与 1-128
   * IPv6 special address error - IPv6 特殊地址检查错误：请检查 IPv6 地址是否为特殊地址
   * IPv4 special address error - IPv4 特殊地址检查错误：请检查 IPv4 地址是否为特殊地址
   * Pcap Capture error - 抓包模块参数错误：请检查相关参数的使用要求说明
@@ -162,8 +162,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * IPv6 address range error - IPFilter 的 IPv6 地址范围错误：请检查 IPFilter 条目的地址
   * IPv4 address range error - IPFilter 的 IPv6 地址范围错误：请检查 IPFilter 条目的地址
   * Repeating items error, this item is not available - 存在重复的 IPFilter 条目：本条目将不启用的提示
-  * IPv4 prefix error - IPv4 网络后缀长度错误：IPv4 网络后缀的长度介乎与 1-32
-  * IPv6 prefix error - IPv6 网络后缀长度错误：IPv6 网络后缀的长度介乎与 1-128
+  * IPv4 prefix error - IPv4 网络前缀长度错误：IPv4 网络前缀的长度介乎与 1-32
+  * IPv6 prefix error - IPv6 网络前缀长度错误：IPv6 网络前缀的长度介乎与 1-128
   * Level error - IPFilter 过滤级别错误：过滤级别介乎与 0 - 0xFFFF(65535)
 
 4.Hosts Error - 读取 Hosts 文件错误

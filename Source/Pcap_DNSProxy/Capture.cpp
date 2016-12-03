@@ -226,6 +226,10 @@ bool CaptureFilterRulesInit(
 		}
 	}
 
+//Address list check
+	if (AddrList.empty())
+		return false;
+
 //Initialization(Part 2)
 	uint8_t Addr[ADDRESS_STRING_MAXSIZE]{0};
 	std::string AddrString;

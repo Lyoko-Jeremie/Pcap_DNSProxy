@@ -484,9 +484,9 @@
 	#if defined(PLATFORM_LINUX)
 		#include <endian.h>                    //Endian support
 	#elif defined(PLATFORM_MACOS)
-		#define __LITTLE_ENDIAN            1234                         //Little Endian
-		#define __BIG_ENDIAN               4321                         //Big Endian
-		#define __BYTE_ORDER               __LITTLE_ENDIAN              //x86 and x86-64/x64 is Little Endian in macOS.
+		#define __LITTLE_ENDIAN                1234                         //Little Endian
+		#define __BIG_ENDIAN                   4321                         //Big Endian
+		#define __BYTE_ORDER                   __LITTLE_ENDIAN              //x86 and x86-64/x64 is Little Endian in macOS.
 	#endif
 	#include <fcntl.h>                     //Manipulate file descriptor support
 	#include <ifaddrs.h>                   //Getting network interface addresses support
@@ -593,12 +593,8 @@
 		#define TCP_FASTOPEN_HINT      5
 	#endif
 
-//Memory alignment settings
-	#pragma pack(push) //Push current alignment to stack.
-	#pragma pack(1) //Set alignment to 1 byte boundary.
-
-//Internet Protocol version 4/IPv4 Address
-	typedef struct _in_addr_windows_
+//Internet Protocol version 4/IPv4 Address(Own structure)
+	typedef struct _in_addr_own_
 	{
 		union {
 			union {
@@ -612,7 +608,7 @@
 			}S_un;
 			uint32_t           s_addr;
 		};
-	}in_addr_Windows;
+	}InAddrOwn, IN_ADDR_OWN, *PInAddrOwn, *PIN_ADDR_OWN;
 //	#define s_addr             S_un.S_addr
 	#define s_host             S_un.S_un_b.s_b2
 	#define s_net              S_un.S_un_b.s_b1
@@ -620,8 +616,8 @@
 	#define s_impno            S_un.S_un_b.s_b4
 	#define s_lh               S_un.S_un_b.s_b3
 
-//Internet Protocol version 6/IPv6 Address
-	typedef struct _in6_addr_windows_
+//Internet Protocol version 6/IPv6 Address(Own structure)
+	typedef struct _in6_addr_own_
 	{
 		union {
 			union {
@@ -634,34 +630,31 @@
 				uint32_t       __u6_addr32[4U];
 			};
 		};
-	}in6_addr_Windows;
+	}In6AddrOwn, IN6_ADDR_OWN, *PIn6AddrOwn, *PIN6_ADDR_OWN;
 //	#define _S6_un             u
 //	#define _S6_u8             Byte
 //	#define s6_addr            _S6_un._S6_u8
 	#define s6_bytes           u.Byte
 	#define s6_words           u.Word
 
-//Internet Protocol version 4/IPv4 Socket Address
-	typedef struct _sockaddr_in_windows_
+//Internet Protocol version 4/IPv4 Socket Address(Own structure)
+	typedef struct _sockaddr_in_own_
 	{
 		sa_family_t       sin_family;          //Address family: AF_INET
 		in_port_t         sin_port;            //Port in network byte order
-		in_addr_Windows   sin_addr;            //Internet address
+		IN_ADDR_OWN       sin_addr;            //Internet address
 		uint8_t           sin_zero[8U];        //Zero
-	}sockaddr_in_Windows;
+	}SockAddrInOwn, SOCKADDR_IN_OWN, *PSockAddrInOwn, *PSOCKADDR_IN_OWN;
 
-//Internet Protocol version 6/IPv6 Socket Address
-	typedef struct _sockaddr_in6_windows_ 
+//Internet Protocol version 6/IPv6 Socket Address(Own structure)
+	typedef struct _sockaddr_in6_own_ 
 	{
 		sa_family_t        sin6_family;        //AF_INET6
 		in_port_t          sin6_port;          //Port number
 		uint32_t           sin6_flowinfo;      //IPv6 flow information
-		in6_addr_Windows   sin6_addr;          //IPv6 address
+		IN6_ADDR_OWN       sin6_addr;          //IPv6 address
 		uint32_t           sin6_scope_id;      //Scope ID (new in 2.4)
-	}sockaddr_in6_Windows;
-
-//Memory alignment(Part 2)
-	#pragma pack(pop) //Restore original alignment from stack.
+	}SockAddrIn6Own, SOCKADDR_IN6_OWN, *PSockAddrIn6Own, *PSOCKADDR_IN6_OWN;
 
 //Linux and macOS compatible definitions(Part 2)
 	#define FALSE                    0
@@ -678,12 +671,12 @@
 	#define WSAENETUNREACH           ENETUNREACH
 	#define WSAENOTSOCK              ENOTSOCK
 	#define WSAETIMEDOUT             ETIMEDOUT
-	#define in_addr                  in_addr_Windows
-	#define in6_addr                 in6_addr_Windows
-	#define sockaddr_in              sockaddr_in_Windows
-	#define sockaddr_in6             sockaddr_in6_Windows
-	#define in6addr_loopback         *(in6_addr *)&in6addr_loopback
-	#define in6addr_any              *(in6_addr *)&in6addr_any
+	#define in_addr                  IN_ADDR_OWN
+	#define in6_addr                 IN6_ADDR_OWN
+	#define sockaddr_in              SOCKADDR_IN_OWN
+	#define sockaddr_in6             SOCKADDR_IN6_OWN
+	#define in6addr_loopback         (*(in6_addr *)&in6addr_loopback)
+	#define in6addr_any              (*(in6_addr *)&in6addr_any)
 	typedef sockaddr                 *PSOCKADDR;
 	typedef sockaddr_in              *PSOCKADDR_IN;
 	typedef sockaddr_in6             *PSOCKADDR_IN6;
@@ -698,7 +691,7 @@
 	#define vfwprintf_s                                                  vfwprintf
 	#define wcsnlen_s                                                    wcsnlen
 	#define WSAGetLastError()                                            errno
-	#define _set_errno(Value)                                            errno = Value
+	#define _set_errno(Value)                                            errno = (Value)
 	#define fread_s(Dst, DstSize, ElementSize, Count, File)              fread(Dst, ElementSize, Count, File)
 	#define memcpy_s(Dst, DstSize, Src, Size)                            memcpy(Dst, Src, Size)
 	#define memmove_s(Dst, DstSize, Src, Size)                           memmove(Dst, Src, Size)

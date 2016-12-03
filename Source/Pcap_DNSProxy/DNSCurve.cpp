@@ -168,6 +168,11 @@ PDNSCURVE_SERVER_DATA DNSCurveSelectSignatureTargetSocket(
 	size_t &ServerType, 
 	std::vector<SOCKET_DATA> &SocketDataList)
 {
+//Socket data check
+	if (SocketDataList.empty())
+		return nullptr;
+
+//Select target.
 	PDNSCURVE_SERVER_DATA PacketTarget = nullptr;
 	if (Protocol == AF_INET6)
 	{
@@ -664,8 +669,10 @@ size_t DNSCurvePacketEncryption(
 //Normal mode
 	else {
 		memcpy_s(SendBuffer, SendSize, OriginalSend, Length);
+
+	//Add length of request packet(It must be written in header when transport with TCP protocol).
 		if (Protocol == IPPROTO_TCP)
-			return AddLengthDataToHeader(SendBuffer, Length, SendSize); //Add length of request packet(It must be written in header when transport with TCP protocol).
+			return AddLengthDataToHeader(SendBuffer, Length, SendSize);
 		else if (Protocol == IPPROTO_UDP)
 			return Length;
 	}
@@ -681,7 +688,7 @@ ssize_t DNSCurvePacketDecryption(
 	const size_t RecvSize, 
 	const ssize_t Length)
 {
-	ssize_t DataLength = Length;
+	auto DataLength = Length;
 
 //Encryption mode
 	if (DNSCurveParameter.IsEncryption)
