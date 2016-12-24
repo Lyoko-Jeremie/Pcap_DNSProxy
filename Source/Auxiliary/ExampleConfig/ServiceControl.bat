@@ -13,7 +13,7 @@ if ERRORLEVEL 1 (
 	echo.
 	pause & break
 	echo.
-	exit
+	cls
 )
 
 

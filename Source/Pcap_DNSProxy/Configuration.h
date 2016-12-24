@@ -22,20 +22,27 @@
 
 #include "Base.h"
 
-//Base definitions
-//Label types definitions
-#define LABEL_IPFILTER                        1U
-#define LABEL_IPFILTER_BLACKLIST              2U
-#define LABEL_IPFILTER_LOCAL_ROUTING          3U
-#define LABEL_HOSTS_TYPE_WHITE                4U
-#define LABEL_HOSTS_TYPE_BANNED               5U
-#define LABEL_HOSTS_TYPE_WHITE_EXTENDED       6U
-#define LABEL_HOSTS_TYPE_BANNED_EXTENDED      7U
-#define LABEL_HOSTS_TYPE_NORMAL               8U
-#define LABEL_HOSTS_TYPE_CNAME                9U
-#define LABEL_HOSTS_TYPE_LOCAL                10U
-#define LABEL_HOSTS_TYPE_ADDRESS              11U
-#define LABEL_HOSTS_TYPE_SOURCE               12U
+//Type definitions
+typedef enum class _label_ipfilter_type_
+{
+	NONE, 
+	NORMAL, 
+	BLACKLIST, 
+	LOCAL_ROUTING
+}LABEL_IPFILTER_TYPE;
+typedef enum class _label_hosts_type_
+{
+	NONE, 
+	WHITE, 
+	BANNED, 
+	WHITE_EXTENDED, 
+	BANNED_EXTENDED, 
+	NORMAL, 
+	CNAME, 
+	LOCAL, 
+	ADDRESS, 
+	SOURCE
+}LABEL_HOSTS_TYPE;
 
 //Length definitions
 #define READ_DATA_MINSIZE                     4U
@@ -61,14 +68,14 @@ extern std::mutex IPFilterFileLock, HostsFileLock;
 //Functions in Configuration.cpp
 bool ReadText(
 	const FILE * const FileHandle, 
-	const size_t InputType, 
+	const READ_TEXT_TYPE InputType, 
 	const size_t FileIndex);
 void ClearModificatingListData(
-	const size_t ClearType, 
+	const READ_TEXT_TYPE ClearType, 
 	const size_t FileIndex);
 void GetParameterListData(
 	std::vector<std::string> &ListData, 
-	const std::string Data, 
+	const std::string &Data, 
 	const size_t DataOffset, 
 	const size_t Length, 
 	const uint8_t SeparatedSign, 
@@ -88,23 +95,16 @@ bool ReadParameterData(
 	const size_t FileIndex, 
 	const bool IsFirstRead, 
 	const size_t Line);
-#if defined(PLATFORM_WIN)
 bool ReadName_PathFile(
 	std::string Data, 
 	const size_t DataOffset, 
-	const bool Path, 
+	const bool IsPath, 
 	std::vector<std::wstring> * const ListData, 
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	std::vector<std::string> * const MBS_ListData, 
+#endif
 	const size_t FileIndex, 
 	const size_t Line);
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-bool ReadName_PathFile(
-	std::string Data, 
-	const size_t DataOffset, 
-	const bool Path, 
-	std::vector<std::wstring> * const ListData, 
-	std::vector<std::string> * const MBS_ListData, 
-	const size_t FileIndex, const size_t Line);
-#endif
 bool ReadMultipleAddresses(
 	const uint16_t Protocol, 
 	std::string Data, 
@@ -115,7 +115,7 @@ bool ReadMultipleAddresses(
 bool Read_SOCKS_AddressDomain(
 	std::string Data, 
 	const size_t DataOffset, 
-	CONFIGURATION_TABLE * const ParameterPTR, 
+	CONFIGURATION_TABLE * const ParameterPointer, 
 	const size_t FileIndex, 
 	const size_t Line);
 #if defined(ENABLE_PCAP)
@@ -154,7 +154,7 @@ bool ReadIPFilterData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line, 
-	size_t &LabelType, 
+	LABEL_IPFILTER_TYPE &LabelType, 
 	bool &IsStopLabel);
 bool ReadBlacklistData(
 	std::string Data, 
@@ -182,14 +182,14 @@ bool ReadHostsData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line, 
-	size_t &LabelType, 
+	LABEL_HOSTS_TYPE &LabelType, 
 	bool &IsStopLabel);
 bool ReadOtherHostsData(
 	std::string Data, 
 	const size_t FileIndex, 
 	const size_t Line, 
-	const size_t LabelType, 
-	const size_t ItemType);
+	const LABEL_HOSTS_TYPE LabelType, 
+	const LABEL_HOSTS_TYPE ItemType);
 bool ReadLocalHostsData(
 	std::string Data, 
 	const size_t FileIndex, 
@@ -200,7 +200,7 @@ bool ReadAddressHostsData(
 	const size_t Line);
 bool ReadMainHostsData(
 	std::string Data, 
-	const size_t HostsType, 
+	const HOSTS_TYPE HostsType, 
 	const size_t FileIndex, 
 	const size_t Line);
 #endif

@@ -48,7 +48,7 @@ bool ReadCommand(
 	_set_errno(0);
 	if (setvbuf(stderr, nullptr, _IONBF, 0) != 0)
 	{
-		PrintError(LOG_LEVEL_1, LOG_ERROR_SYSTEM, L"Screen output buffer setting error", errno, nullptr, 0);
+		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Screen output buffer setting error", errno, nullptr, 0);
 		return false;
 	}
 
@@ -62,28 +62,23 @@ bool ReadCommand(
 		LOBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_LOW_BYTE || 
 		HIBYTE(WSAInitialization.wVersion) != WINSOCK_VERSION_HIGH_BYTE)
 	{
-		PrintError(LOG_LEVEL_1, LOG_ERROR_NETWORK, L"Winsock initialization error", WSAGetLastError(), nullptr, 0);
+		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::NETWORK, L"Winsock initialization error", WSAGetLastError(), nullptr, 0);
 		return false;
 	}
 	else {
-		GlobalRunningStatus.IsWinSockInitialized = true;
+		GlobalRunningStatus.IsInitialized_WinSock = true;
 	}
+#endif
 
 //Read commands.
-	std::wstring Commands;
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	std::string Commands;
-#endif
 	for (size_t Index = 1U;(int)Index < argc;++Index)
 	{
-		Commands = argv[Index];
-
 	//Case insensitive
-		#if defined(PLATFORM_WIN)
-			std::wstring InsensitiveString(Commands);
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			std::string InsensitiveString(Commands);
-		#endif
+	#if defined(PLATFORM_WIN)
+		std::wstring Commands(argv[Index]), InsensitiveString(argv[Index]);
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		std::string Commands(argv[Index]), InsensitiveString(argv[Index]);
+	#endif
 		CaseConvert(InsensitiveString, false);
 
 	//Set working directory from commands.
@@ -92,7 +87,7 @@ bool ReadCommand(
 		//Commands check
 			if ((int)Index + 1 >= argc)
 			{
-				PrintError(LOG_LEVEL_1, LOG_ERROR_SYSTEM, L"Commands error", 0, nullptr, 0);
+				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Commands error", 0, nullptr, 0);
 				return false;
 			}
 			else {
@@ -102,7 +97,7 @@ bool ReadCommand(
 			//Path check.
 				if (Commands.length() > MAX_PATH)
 				{
-					PrintError(LOG_LEVEL_1, LOG_ERROR_SYSTEM, L"Commands error", 0, nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Commands error", 0, nullptr, 0);
 					return false;
 				}
 				else {
@@ -319,7 +314,7 @@ bool ReadCommand(
 		{
 			ssize_t ErrorCode = 0;
 			if (!FirewallTest(AF_INET6, ErrorCode) && !FirewallTest(AF_INET, ErrorCode))
-				PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Windows Firewall Test error", ErrorCode, nullptr, 0);
+				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Windows Firewall Test error", ErrorCode, nullptr, 0);
 			else 
 				PrintToScreen(true, L"[Notice] Windows Firewall was tested successfully.\n");
 
@@ -332,7 +327,7 @@ bool ReadCommand(
 #if defined(PLATFORM_LINUX)
 	if (GlobalRunningStatus.IsDaemon && daemon(0, 0) == RETURN_ERROR)
 	{
-		PrintError(LOG_LEVEL_1, LOG_ERROR_SYSTEM, L"Set system daemon error", 0, nullptr, 0);
+		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Set system daemon error", 0, nullptr, 0);
 		return false;
 	}
 #endif
@@ -356,7 +351,7 @@ bool FileNameInit(
 	GlobalRunningStatus.Path_Global->front().erase(GlobalRunningStatus.Path_Global->front().rfind(L"\\") + 1U);
 	for (size_t Index = 0;Index < GlobalRunningStatus.Path_Global->front().length();++Index)
 	{
-		if ((GlobalRunningStatus.Path_Global->front()).at(Index) == L'\\')
+		if ((GlobalRunningStatus.Path_Global->front()).at(Index) == (L'\\'))
 		{
 			GlobalRunningStatus.Path_Global->front().insert(Index, L"\\");
 			++Index;
@@ -376,13 +371,11 @@ bool FileNameInit(
 #endif
 
 //Get path of error/running status log file and mark start time.
-	GlobalRunningStatus.Path_ErrorLog->clear();
 	*GlobalRunningStatus.Path_ErrorLog = GlobalRunningStatus.Path_Global->front();
 	GlobalRunningStatus.Path_ErrorLog->append(ERROR_LOG_FILE_NAME);
 #if defined(PLATFORM_WIN)
 	GlobalRunningStatus.IsConsole = true;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	GlobalRunningStatus.MBS_Path_ErrorLog->clear();
 	*GlobalRunningStatus.MBS_Path_ErrorLog = GlobalRunningStatus.MBS_Path_Global->front();
 	GlobalRunningStatus.MBS_Path_ErrorLog->append(ERROR_LOG_FILE_NAME_MBS);
 #endif

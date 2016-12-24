@@ -31,7 +31,7 @@ std::mutex ErrorLogLock;
 
 //Functions
 bool WriteMessage_ScreenFile(
-	const std::wstring Message, 
+	const std::wstring &Message, 
 	const ssize_t ErrorCode, 
 	const size_t Line);
 #endif

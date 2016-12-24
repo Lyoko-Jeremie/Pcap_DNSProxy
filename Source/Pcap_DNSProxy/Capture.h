@@ -50,7 +50,7 @@ bool CaptureModule(
 	const pcap_if * const DriveInterface, 
 	const bool IsCaptureList);
 void CaptureHandler(
-	uint8_t * const Param, 
+	uint8_t * const ProcParameter, 
 	const pcap_pkthdr * const PacketHeader, 
 	const uint8_t * const PacketData);
 bool CaptureNetworkLayer(

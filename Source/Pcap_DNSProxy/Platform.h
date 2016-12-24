@@ -424,7 +424,7 @@
 		#include <sspi.h>                  //Security Support Provider Interface
 	#endif
 
-//Static libraries
+//Library linking
 	#pragma comment(lib, "iphlpapi.lib")   //Windows IP Helper, IP Stack for MIB-II and related functionality support
 	#pragma comment(lib, "ws2_32.lib")     //Windows WinSock 2.0+ support
 	#if defined(ENABLE_HTTP)
@@ -459,7 +459,7 @@
 	#define BIG_ENDIAN                 __BIG_ENDIAN
 	#define BYTE_ORDER                 __BYTE_ORDER
 
-//Code definitions
+//Winsock definitions
 	#define WINSOCK_VERSION_LOW_BYTE    2                           //Low byte of Winsock version 2.2
 	#define WINSOCK_VERSION_HIGH_BYTE   2                           //High byte of Winsock version 2.2
 
@@ -593,69 +593,6 @@
 		#define TCP_FASTOPEN_HINT      5
 	#endif
 
-//Internet Protocol version 4/IPv4 Address(Own structure)
-	typedef struct _in_addr_own_
-	{
-		union {
-			union {
-				struct {
-					uint8_t    s_b1, s_b2, s_b3, s_b4;
-				}S_un_b;
-				struct {
-					uint16_t   s_w1, s_w2;
-				}S_un_w;
-				uint32_t       S_addr;
-			}S_un;
-			uint32_t           s_addr;
-		};
-	}InAddrOwn, IN_ADDR_OWN, *PInAddrOwn, *PIN_ADDR_OWN;
-//	#define s_addr             S_un.S_addr
-	#define s_host             S_un.S_un_b.s_b2
-	#define s_net              S_un.S_un_b.s_b1
-	#define s_imp              S_un.S_un_w.s_w2
-	#define s_impno            S_un.S_un_b.s_b4
-	#define s_lh               S_un.S_un_b.s_b3
-
-//Internet Protocol version 6/IPv6 Address(Own structure)
-	typedef struct _in6_addr_own_
-	{
-		union {
-			union {
-				uint8_t        Byte[16U];
-				uint16_t       Word[8U];
-			}u;
-			union {
-				uint8_t	       __u6_addr8[16U];
-				uint16_t       __u6_addr16[8U];
-				uint32_t       __u6_addr32[4U];
-			};
-		};
-	}In6AddrOwn, IN6_ADDR_OWN, *PIn6AddrOwn, *PIN6_ADDR_OWN;
-//	#define _S6_un             u
-//	#define _S6_u8             Byte
-//	#define s6_addr            _S6_un._S6_u8
-	#define s6_bytes           u.Byte
-	#define s6_words           u.Word
-
-//Internet Protocol version 4/IPv4 Socket Address(Own structure)
-	typedef struct _sockaddr_in_own_
-	{
-		sa_family_t       sin_family;          //Address family: AF_INET
-		in_port_t         sin_port;            //Port in network byte order
-		IN_ADDR_OWN       sin_addr;            //Internet address
-		uint8_t           sin_zero[8U];        //Zero
-	}SockAddrInOwn, SOCKADDR_IN_OWN, *PSockAddrInOwn, *PSOCKADDR_IN_OWN;
-
-//Internet Protocol version 6/IPv6 Socket Address(Own structure)
-	typedef struct _sockaddr_in6_own_ 
-	{
-		sa_family_t        sin6_family;        //AF_INET6
-		in_port_t          sin6_port;          //Port number
-		uint32_t           sin6_flowinfo;      //IPv6 flow information
-		IN6_ADDR_OWN       sin6_addr;          //IPv6 address
-		uint32_t           sin6_scope_id;      //Scope ID (new in 2.4)
-	}SockAddrIn6Own, SOCKADDR_IN6_OWN, *PSockAddrIn6Own, *PSOCKADDR_IN6_OWN;
-
 //Linux and macOS compatible definitions(Part 2)
 	#define FALSE                    0
 	#define INVALID_SOCKET           (-1)
@@ -671,12 +608,6 @@
 	#define WSAENETUNREACH           ENETUNREACH
 	#define WSAENOTSOCK              ENOTSOCK
 	#define WSAETIMEDOUT             ETIMEDOUT
-	#define in_addr                  IN_ADDR_OWN
-	#define in6_addr                 IN6_ADDR_OWN
-	#define sockaddr_in              SOCKADDR_IN_OWN
-	#define sockaddr_in6             SOCKADDR_IN6_OWN
-	#define in6addr_loopback         (*(in6_addr *)&in6addr_loopback)
-	#define in6addr_any              (*(in6_addr *)&in6addr_any)
 	typedef sockaddr                 *PSOCKADDR;
 	typedef sockaddr_in              *PSOCKADDR_IN;
 	typedef sockaddr_in6             *PSOCKADDR_IN6;

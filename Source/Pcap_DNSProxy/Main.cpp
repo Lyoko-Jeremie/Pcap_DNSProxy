@@ -45,7 +45,7 @@ int main(
 		else 
 			MonitorLauncher();
 
-	//Wait for multiple threads working.
+	//Wait for multiple threads to work.
 		Sleep(STANDARD_TIMEOUT);
 	}
 
@@ -55,17 +55,18 @@ int main(
 	if (StartServiceCtrlDispatcherW(ServiceTable) == 0)
 	{
 	//Print to screen.
-		std::wstring Message(L"[System Error] Service start error");
+		
 		if (GetLastError() == 0)
 		{
-			Message.append(L".\n");
+			std::wstring Message(L"[System Error] Service start error.\n");
 			std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 			PrintToScreen(false, Message.c_str());
 			PrintToScreen(false, L"[Notice] Program will continue to run in console mode.\n");
 			PrintToScreen(false, L"[Notice] Please ignore these error messages if you want to run in console mode.\n\n");
 		}
 		else {
-			ErrorCodeToMessage(LOG_ERROR_SYSTEM, GetLastError(), Message);
+			std::wstring Message(L"[System Error] Service start error");
+			ErrorCodeToMessage(LOG_ERROR_TYPE::SYSTEM, GetLastError(), Message);
 			Message.append(L".\n");
 			std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 			PrintToScreen(false, Message.c_str(), GetLastError());
@@ -78,7 +79,7 @@ int main(
 				(PHANDLER_ROUTINE)CtrlHandler, 
 				TRUE) == 0)
 		{
-			PrintError(LOG_LEVEL_1, LOG_ERROR_SYSTEM, L"Set console control handler error", GetLastError(), nullptr, 0);
+			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Set console control handler error", GetLastError(), nullptr, 0);
 			return EXIT_FAILURE;
 		}
 
@@ -91,7 +92,7 @@ int main(
 	errno = 0;
 	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
 	{
-		PrintError(LOG_LEVEL_1, LOG_ERROR_SYSTEM, L"Ignore system signal error", errno, nullptr, 0);
+		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Ignore system signal error", errno, nullptr, 0);
 		return EXIT_FAILURE;
 	}
 

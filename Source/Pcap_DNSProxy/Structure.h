@@ -1908,7 +1908,7 @@ typedef struct _dns_record_a_
 	uint16_t              Classes;
 	uint32_t              TTL;
 	uint16_t              Length;
-	in_addr               Addr;
+	in_addr               Address;
 }dns_record_a, *pdns_record_a;
 
 /* Domain Name System/DNS Canonical Name/CNAME Records
@@ -1997,7 +1997,7 @@ typedef struct _dns_record_soa_
 */
 typedef struct _dns_record_ptr_
 {
-	uint16_t              PTR;
+	uint16_t              Pointer;
 	uint16_t              Type;
 	uint16_t              Classes;
 	uint32_t              TTL;
@@ -2078,7 +2078,7 @@ typedef struct _dns_record_aaaa_
 	uint16_t              Classes;
 	uint32_t              TTL;
 	uint16_t              Length;
-	in6_addr              Addr;
+	in6_addr              Address;
 }dns_record_aaaa, *pdns_record_aaaa;
 
 /* Domain Name System/DNS Server Selection/SRV Resource Records
@@ -2470,6 +2470,7 @@ typedef struct _dns_record_caa_
 // DNSCrypt, A protocol to improve DNS security(https://dnscrypt.org)
 #define DNSCURVE_MAGIC_QUERY_LEN          8U
 #define DNSCURVE_MAGIC_QUERY_HEX_LEN      16U
+#define DNSCURVE_PAYLOAD_MULTIPLE_TIME    64U
 #define DNSCRYPT_RECEIVE_MAGIC            ("r6fnvWj8")                   //Receive Magic Number
 #define DNSCRYPT_CERT_MAGIC               ("DNSC")                       //Signature Magic Number
 #define DNSCRYPT_PADDING_SIGN             0x80
@@ -2495,8 +2496,9 @@ typedef struct _dns_record_caa_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define DNSCURVE_VERSION_MAJOR     0x0001    //Latest major version of DNSCurve
-#define DNSCURVE_VERSION_MINOR     0         //Latest minor version of DNSCurve
+#define DNSCURVE_VERSION_MINOR                   0        //DNSCurve minor version
+#define DNSCURVE_ES_X25519_XSALSA20_POLY1305     0x0001   //DNSCurve es version of X25519-XSalsa20Poly1305
+#define DNSCURVE_ES_X25519_XCHACHA20_POLY1305    0x0002   //DNSCurve es version of X25519-XChacha20Poly1305
 typedef struct _dnscurve_txt_hdr_
 {
 	uint32_t              CertMagicNumber;
@@ -2568,26 +2570,26 @@ typedef struct _dnscurve_txt_signature_
 #define SOCKS_COMMAND_CONNECT                      1U
 #define SOCKS_COMMAND_BIND                         2U
 #define SOCKS_COMMAND_UDP_ASSOCIATE                3U
-#define SOCKS4_VERSION_BYTES                       0
-#define SOCKS4_ADDRESS_DOMAIN_ADDRESS              0x00000001
-#define SOCKS4_REPLY_GRANTED                       0x5A         //Request granted
-#define SOCKS4_REPLY_REJECTED                      0x5B         //Request rejected or failed
-#define SOCKS4_REPLY_NOT_IDENTD                    0x5C         //Request failed because client is not running identd(or not reachable from the server).
-#define SOCKS4_REPLY_NOT_CONFIRM                   0x5D         //Request failed because client's identd could not confirm the user ID string in the request.
-#define SOCKS5_ADDRESS_IPV4                        1U
-#define SOCKS5_ADDRESS_DOMAIN                      3U
-#define SOCKS5_ADDRESS_IPV6                        4U
-#define SOCKS5_REPLY_SUCCESS                       0
-#define SOCKS5_REPLY_SERVER_FAILURE                1U
-#define SOCKS5_REPLY_NOT_ALLOWED                   2U
-#define SOCKS5_REPLY_NETWORK_UNREACHABLE           3U
-#define SOCKS5_REPLY_HOST_UNREACHABLE              4U
-#define SOCKS5_REPLY_REFUSED                       5U
-#define SOCKS5_REPLY_TTL_EXPORED                   6U
-#define SOCKS5_REPLY_COMMAND_NOT_SUPPORTED         7U
-#define SOCKS5_REPLY_ADDRESS_TYPE_NOT_SUPPORTED    8U
-#define SOCKS5_REPLY_UNASSIGNED_A                  9U
-#define SOCKS5_REPLY_UNASSIGNED_B                  0xFF
+#define SOCKS_4_VERSION_BYTES                      0
+#define SOCKS_4_ADDRESS_DOMAIN_ADDRESS             0x00000001
+#define SOCKS_4_REPLY_GRANTED                      0x5A         //Request granted
+#define SOCKS_4_REPLY_REJECTED                     0x5B         //Request rejected or failed
+#define SOCKS_4_REPLY_NOT_IDENTD                   0x5C         //Request failed because client is not running identd(or not reachable from the server).
+#define SOCKS_4_REPLY_NOT_CONFIRM                  0x5D         //Request failed because client's identd could not confirm the user ID string in the request.
+#define SOCKS_5_ADDRESS_IPV4                       1U
+#define SOCKS_5_ADDRESS_DOMAIN                     3U
+#define SOCKS_5_ADDRESS_IPV6                       4U
+#define SOCKS_5_REPLY_SUCCESS                      0
+#define SOCKS_5_REPLY_SERVER_FAILURE               1U
+#define SOCKS_5_REPLY_NOT_ALLOWED                  2U
+#define SOCKS_5_REPLY_NETWORK_UNREACHABLE          3U
+#define SOCKS_5_REPLY_HOST_UNREACHABLE             4U
+#define SOCKS_5_REPLY_REFUSED                      5U
+#define SOCKS_5_REPLY_TTL_EXPORED                  6U
+#define SOCKS_5_REPLY_COMMAND_NOT_SUPPORTED        7U
+#define SOCKS_5_REPLY_ADDRESS_TYPE_NOT_SUPPORTED   8U
+#define SOCKS_5_REPLY_UNASSIGNED_A                 9U
+#define SOCKS_5_REPLY_UNASSIGNED_B                 0xFF
 
 //SOCKS client version identifier and method selection message
 /*

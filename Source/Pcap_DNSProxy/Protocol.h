@@ -35,7 +35,7 @@ extern std::mutex IPFilterFileLock, HostsFileLock;
 //Functions
 bool CheckAddressRouting(
 	const uint16_t Protocol, 
-	const void * const Addr);
+	const void * const OriginalAddr);
 bool OperationModeFilter(
 	const uint16_t Protocol, 
 	const void * const OriginalAddr);

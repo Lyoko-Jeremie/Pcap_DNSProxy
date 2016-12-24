@@ -60,27 +60,27 @@ bool MBS_To_WCS_String(
 		return false;
 
 //Convert string.
-	std::shared_ptr<wchar_t> TargetPTR(new wchar_t[Length + PADDING_RESERVED_BYTES]());
-	wmemset(TargetPTR.get(), 0, Length + PADDING_RESERVED_BYTES);
+	std::shared_ptr<wchar_t> TargetBuffer(new wchar_t[Length + PADDING_RESERVED_BYTES]());
+	wmemset(TargetBuffer.get(), 0, Length + PADDING_RESERVED_BYTES);
 #if defined(PLATFORM_WIN)
 	if (MultiByteToWideChar(
 			CP_ACP, 
 			0, 
 			(LPCCH)Buffer, 
-			MBSTOWCS_NULLTERMINATE, 
-			TargetPTR.get(), 
+			MBSTOWCS_NULL_TERMINATE, 
+			TargetBuffer.get(), 
 			(int)(Length + PADDING_RESERVED_BYTES)) == 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (mbstowcs(TargetPTR.get(), (const char *)Buffer, Length + PADDING_RESERVED_BYTES) == (size_t)RETURN_ERROR)
+	if (mbstowcs(TargetBuffer.get(), (const char *)Buffer, Length + PADDING_RESERVED_BYTES) == (size_t)RETURN_ERROR)
 #endif
 	{
 		return false;
 	}
 	else {
-		if (wcsnlen_s(TargetPTR.get(), Length + PADDING_RESERVED_BYTES) == 0)
+		if (wcsnlen_s(TargetBuffer.get(), Length + PADDING_RESERVED_BYTES) == 0)
 			return false;
 		else 
-			Target = TargetPTR.get();
+			Target = TargetBuffer.get();
 	}
 
 	return true;
@@ -101,29 +101,29 @@ bool WCS_To_MBS_String(
 		return false;
 
 //Convert string.
-	std::shared_ptr<uint8_t> TargetPTR(new uint8_t[Length + PADDING_RESERVED_BYTES]());
-	memset(TargetPTR.get(), 0, Length + PADDING_RESERVED_BYTES);
+	std::shared_ptr<uint8_t> TargetBuffer(new uint8_t[Length + PADDING_RESERVED_BYTES]());
+	memset(TargetBuffer.get(), 0, Length + PADDING_RESERVED_BYTES);
 #if defined(PLATFORM_WIN)
 	if (WideCharToMultiByte(
 			CP_ACP, 
 			0, 
 			Buffer, 
-			MBSTOWCS_NULLTERMINATE, 
-			(LPSTR)TargetPTR.get(), 
+			MBSTOWCS_NULL_TERMINATE, 
+			(LPSTR)TargetBuffer.get(), 
 			(int)(Length + PADDING_RESERVED_BYTES), 
 			nullptr, 
 			nullptr) == 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (wcstombs((char *)TargetPTR.get(), Buffer, Length + PADDING_RESERVED_BYTES) == (size_t)RETURN_ERROR)
+	if (wcstombs((char *)TargetBuffer.get(), Buffer, Length + PADDING_RESERVED_BYTES) == (size_t)RETURN_ERROR)
 #endif
 	{
 		return false;
 	}
 	else {
-		if (strnlen_s((const char *)TargetPTR.get(), Length + PADDING_RESERVED_BYTES) == 0)
+		if (strnlen_s((const char *)TargetBuffer.get(), Length + PADDING_RESERVED_BYTES) == 0)
 			return false;
 		else 
-			Target = (const char *)TargetPTR.get();
+			Target = (const char *)TargetBuffer.get();
 	}
 
 	return true;
@@ -201,10 +201,9 @@ void MakeStringReversed(
 		return;
 
 //Make string reversed
-	uint8_t StringIter = 0;
 	for (size_t Index = 0;Index < String.length() / 2U;++Index)
 	{
-		StringIter = String.at(String.length() - 1U - Index);
+		uint8_t StringIter = String.at(String.length() - 1U - Index);
 		String.at(String.length() - 1U - Index) = String.at(Index);
 		String.at(Index) = StringIter;
 	}
@@ -221,10 +220,9 @@ void MakeStringReversed(
 		return;
 
 //Make string reversed
-	wchar_t StringIter = 0;
 	for (size_t Index = 0;Index < String.length() / 2U;++Index)
 	{
-		StringIter = String.at(String.length() - 1U - Index);
+		wchar_t StringIter = String.at(String.length() - 1U - Index);
 		String.at(String.length() - 1U - Index) = String.at(Index);
 		String.at(Index) = StringIter;
 	}
@@ -248,9 +246,12 @@ bool CompareStringReversed(
 	const wchar_t * const RuleItem, 
 	const wchar_t * const TestItem)
 {
-	std::wstring InnerRuleItem(RuleItem), InnerTestItem(TestItem);
+//Buffer check
+	if (RuleItem == nullptr || TestItem == nullptr)
+		return false;
 
 //Length check
+	std::wstring InnerRuleItem(RuleItem), InnerTestItem(TestItem);
 	if (InnerRuleItem.empty() || InnerTestItem.empty() || InnerTestItem.length() < InnerRuleItem.length())
 	{
 		return false;
@@ -292,13 +293,13 @@ size_t Base64_Encode(
 	uint8_t * const Output, 
 	const size_t OutputSize)
 {
-//Initialization
+//Length check
 	if (Length == 0)
 		return 0;
-	size_t Index[]{0, 0, 0};
-	memset(Output, 0, OutputSize);
 
 //Convert from binary to Base64.
+	size_t Index[]{0, 0, 0};
+	memset(Output, 0, OutputSize);
 	for (Index[0] = Index[1U] = 0;Index[0] < Length;++Index[0])
 	{
 	//From 6/gcd(6, 8)
@@ -354,13 +355,12 @@ size_t Base64_Decode(
 	if (Length == 0)
 		return 0;
 	size_t Index[]{0, 0, 0};
-	int StringIter = 0;
 	memset(Output, 0, OutputSize);
 
 //Convert from Base64 to binary.
 	for (Index[0] = Index[1U] = 0;Index[0] < Length;++Index[0])
 	{
-		StringIter = 0;
+		int StringIter = 0;
 		Index[2U] = Index[0] % 4U;
 		if (Input[Index[0]] == (uint8_t)BASE64_PAD)
 			return strnlen_s((const char *)Output, OutputSize);

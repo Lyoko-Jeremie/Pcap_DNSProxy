@@ -19,42 +19,44 @@
 
 #include "Initialization.h"
 
+//Preferred name syntax(Section 2.3.1 in RFC 1035)
+static const uint8_t DomainTable_Initialization[] = (".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+
 //RFC domain and Base64 encoding table
-static const uint8_t DomainTable_Initialization[] = (".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"); //Preferred name syntax(Section 2.3.1 in RFC 1035)
 static const uint8_t Base64_EncodeTable_Initialization[] = 
 {
-	'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 
-	'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 
-	'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 
-	'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 
-	'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 
-	'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 
-	'w', 'x', 'y', 'z', '0', '1', '2', '3', 
-	'4', '5', '6', '7', '8', '9', '+', '/'
+	('A'), ('B'), ('C'), ('D'), ('E'), ('F'), ('G'), ('H'), 
+	('I'), ('J'), ('K'), ('L'), ('M'), ('N'), ('O'), ('P'), 
+	('Q'), ('R'), ('S'), ('T'), ('U'), ('V'), ('W'), ('X'), 
+	('Y'), ('Z'), ('a'), ('b'), ('c'), ('d'), ('e'), ('f'), 
+	('g'), ('h'), ('i'), ('j'), ('k'), ('l'), ('m'), ('n'), 
+	('o'), ('p'), ('q'), ('r'), ('s'), ('t'), ('u'), ('v'), 
+	('w'), ('x'), ('y'), ('z'), ('0'), ('1'), ('2'), ('3'), 
+	('4'), ('5'), ('6'), ('7'), ('8'), ('9'), ('+'), ('/')
 };
 
 //RFC domain and Base64 decoding table
 static const int8_t Base64_DecodeTable_Initialization[] = 
 {
-	'+', ',', '-', '.', '/', '0', '1', '2', 
+	('+'), (','), ('-'), ('.'), ('/'), ('0'), ('1'), ('2'), 
 	62,  -1,  -1,  -1,  63,  52,  53,  54, 
-	'3', '4', '5', '6', '7', '8', '9', ':', 
+	('3'), ('4'), ('5'), ('6'), ('7'), ('8'), ('9'), (':'), 
 	55,  56,  57,  58,  59,  60,  61,  -1, 
-	';', '<', '=', '>', '?', '@', 'A', 'B', 
+	(';'), ('<'), ('='), ('>'), ('?'), ('@'), ('A'), ('B'), 
 	-1,  -1,  -1,  -1,  -1,  -1,   0,  1, 
-	'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 
+	('C'), ('D'), ('E'), ('F'), ('G'), ('H'), ('I'), ('J'), 
 	2,   3,   4,   5,   6,   7,   8,   9, 
-	'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 
+	('K'), ('L'), ('M'), ('N'), ('O'), ('P'), ('Q'), ('R'), 
 	10,  11,  12,  13,  14,  15,  16,  17, 
-	'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 
+	('S'), ('T'), ('U'), ('V'), ('W'), ('X'), ('Y'), ('Z'), 
 	18,  19,  20,  21,  22,  23,  24,  25, 
-	'[', '\\', ']', '^', '_', '`', 'a', 'b', 
+	('['), ('\\'), (']'), ('^'), ('_'), ('`'), ('a'), ('b'), 
 	-1,  -1,  -1,  -1,  -1,  -1,  26,  27, 
-	'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 
+	('c'), ('d'), ('e'), ('f'), ('g'), ('h'), ('i'), ('j'), 
 	28,  29,  30,  31,  32,  33,  34,  35, 
-	'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 
+	('k'), ('l'), ('m'), ('n'), ('o'), ('p'), ('q'), ('r'), 
 	36,  37,  38,  39,  40,  41,  42,  43, 
-	's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 
+	('s'), ('t'), ('u'), ('v'), ('w'), ('x'), ('y'), ('z'), 
 	44,  45,  46,  47,  48,  49,  50,  51
 };
 
@@ -84,8 +86,8 @@ ConfigurationTable::ConfigurationTable(
 		ICMP_PaddingData = new uint8_t[ICMP_PADDING_MAXSIZE]();
 		DomainTest_Data = new uint8_t[DOMAIN_MAXSIZE]();
 	#endif
-		LocalFQDN_Response = new uint8_t[DOMAIN_MAXSIZE]();
 		LocalFQDN_String = new std::string();
+		LocalFQDN_Response = new uint8_t[DOMAIN_MAXSIZE]();
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		LocalServer_Response = new uint8_t[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt)]();
 	#endif
@@ -140,10 +142,10 @@ ConfigurationTable::ConfigurationTable(
 		ICMP_PaddingData = nullptr;
 		DomainTest_Data = nullptr;
 	#endif
-		delete[] LocalFQDN_Response;
 		delete LocalFQDN_String;
-		LocalFQDN_Response = nullptr;
+		delete[] LocalFQDN_Response;
 		LocalFQDN_String = nullptr;
+		LocalFQDN_Response = nullptr;
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		delete[] LocalServer_Response;
 		LocalServer_Response = nullptr;
@@ -182,10 +184,477 @@ ConfigurationTable::ConfigurationTable(
 		HTTP_CONNECT_ProxyAuthorization = nullptr;
 
 		exit(EXIT_FAILURE);
-		return;
+//		return;
 	}
 
 	ConfigurationTableSetting(this);
+	return;
+}
+
+//ConfigurationTable class copy constructor
+ConfigurationTable::ConfigurationTable(
+	const ConfigurationTable &Reference)
+{
+//Check itself.
+	if (this == &Reference)
+		return;
+	
+//Class constructor
+	memset(this, 0, sizeof(CONFIGURATION_TABLE));
+	try {
+	//[Listen] block
+	#if defined(ENABLE_PCAP)
+		PcapDevicesBlacklist = new std::vector<std::string>();
+	#endif
+		ListenPort = new std::vector<uint16_t>();
+		AcceptTypeList = new std::vector<uint16_t>();
+
+	//[Addresses] block
+		ListenAddress_IPv6 = new std::vector<sockaddr_storage>();
+		ListenAddress_IPv4 = new std::vector<sockaddr_storage>();
+		LocalMachineSubnet_IPv6 = new ADDRESS_PREFIX_BLOCK();
+		LocalMachineSubnet_IPv4 = new ADDRESS_PREFIX_BLOCK();
+		Target_Server_IPv6_Multiple = new std::vector<DNS_SERVER_DATA>();
+		Target_Server_IPv4_Multiple = new std::vector<DNS_SERVER_DATA>();
+
+	//[Data] block
+	#if defined(ENABLE_PCAP)
+		ICMP_PaddingData = new uint8_t[ICMP_PADDING_MAXSIZE]();
+		DomainTest_Data = new uint8_t[DOMAIN_MAXSIZE]();
+	#endif
+		LocalFQDN_String = new std::string();
+		LocalFQDN_Response = new uint8_t[DOMAIN_MAXSIZE]();
+	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+		LocalServer_Response = new uint8_t[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt)]();
+	#endif
+
+	//[Proxy] block
+		SOCKS_TargetDomain = new std::string();
+		SOCKS_Username = new std::string();
+		SOCKS_Password = new std::string();
+	#if defined(ENABLE_TLS)
+		HTTP_CONNECT_TLS_SNI = new std::wstring();
+		MBS_HTTP_CONNECT_TLS_SNI = new std::string();
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			HTTP_CONNECT_TLS_AddressString_IPv4 = new std::string();
+			HTTP_CONNECT_TLS_AddressString_IPv6 = new std::string();
+		#endif
+	#endif
+		HTTP_CONNECT_TargetDomain = new std::string();
+		HTTP_CONNECT_Version = new std::string();
+		HTTP_CONNECT_HeaderField = new std::string();
+		HTTP_CONNECT_ProxyAuthorization = new std::string();
+	}
+	catch (std::bad_alloc)
+	{
+	//[Listen] block
+	#if defined(ENABLE_PCAP)
+		delete PcapDevicesBlacklist;
+		PcapDevicesBlacklist = nullptr;
+	#endif
+		delete ListenPort;
+		delete AcceptTypeList;
+		ListenPort = nullptr;
+		AcceptTypeList = nullptr;
+
+	//[Addresses] block
+		delete ListenAddress_IPv6;
+		delete ListenAddress_IPv4;
+		delete LocalMachineSubnet_IPv6;
+		delete LocalMachineSubnet_IPv4;
+		delete Target_Server_IPv6_Multiple;
+		delete Target_Server_IPv4_Multiple;
+		ListenAddress_IPv6 = nullptr;
+		ListenAddress_IPv4 = nullptr;
+		LocalMachineSubnet_IPv6 = nullptr;
+		LocalMachineSubnet_IPv4 = nullptr;
+		Target_Server_IPv6_Multiple = nullptr;
+		Target_Server_IPv4_Multiple = nullptr;
+
+	//[Data] block
+	#if defined(ENABLE_PCAP)
+		delete[] ICMP_PaddingData;
+		delete[] DomainTest_Data;
+		ICMP_PaddingData = nullptr;
+		DomainTest_Data = nullptr;
+	#endif
+		delete LocalFQDN_String;
+		delete[] LocalFQDN_Response;
+		LocalFQDN_String = nullptr;
+		LocalFQDN_Response = nullptr;
+	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+		delete[] LocalServer_Response;
+		LocalServer_Response = nullptr;
+	#endif
+
+	//[Proxy] block
+		delete SOCKS_TargetDomain;
+		delete SOCKS_Username;
+		delete SOCKS_Password;
+	#if defined(ENABLE_TLS)
+		delete HTTP_CONNECT_TLS_SNI;
+		delete MBS_HTTP_CONNECT_TLS_SNI;
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			delete HTTP_CONNECT_TLS_AddressString_IPv4;
+			delete HTTP_CONNECT_TLS_AddressString_IPv6;
+		#endif
+	#endif
+		delete HTTP_CONNECT_TargetDomain;
+		delete HTTP_CONNECT_Version;
+		delete HTTP_CONNECT_HeaderField;
+		delete HTTP_CONNECT_ProxyAuthorization;
+		SOCKS_TargetDomain = nullptr;
+		SOCKS_Username = nullptr;
+		SOCKS_Password = nullptr;
+	#if defined(ENABLE_TLS)
+		HTTP_CONNECT_TLS_SNI = nullptr;
+		MBS_HTTP_CONNECT_TLS_SNI = nullptr;
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
+			HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
+		#endif
+	#endif
+		HTTP_CONNECT_TargetDomain = nullptr;
+		HTTP_CONNECT_Version = nullptr;
+		HTTP_CONNECT_HeaderField = nullptr;
+		HTTP_CONNECT_ProxyAuthorization = nullptr;
+
+		exit(EXIT_FAILURE);
+//		return;
+	}
+
+	ConfigurationTableSetting(this);
+
+//Copy constructor
+	//[Base] block
+	Version_Major = Reference.Version_Major;
+	Version_Minor = Reference.Version_Minor;
+	FileRefreshTime = Reference.FileRefreshTime;
+	LargeBufferSize = Reference.LargeBufferSize;
+	//[Log] block
+	PrintLogLevel = Reference.PrintLogLevel;
+	LogMaxSize = Reference.LogMaxSize;
+	//[Listen] block
+#if defined(ENABLE_PCAP)
+	IsPcapCapture = Reference.IsPcapCapture;
+	if (Reference.PcapDevicesBlacklist != nullptr)
+	{
+		*PcapDevicesBlacklist = *Reference.PcapDevicesBlacklist;
+	}
+	else {
+		delete PcapDevicesBlacklist;
+		PcapDevicesBlacklist = nullptr;
+	}
+	PcapReadingTimeout = Reference.PcapReadingTimeout;
+#endif
+	OperationMode = Reference.OperationMode;
+	ListenProtocol_Network = Reference.ListenProtocol_Network;
+	ListenProtocol_Transport = Reference.ListenProtocol_Transport;
+	if (Reference.ListenPort != nullptr)
+	{
+		*ListenPort = *Reference.ListenPort;
+	}
+	else {
+		delete ListenPort;
+		ListenPort = nullptr;
+	}
+	IsIPFilterTypePermit = Reference.IsIPFilterTypePermit;
+	IPFilterLevel = Reference.IPFilterLevel;
+	IsAcceptTypePermit = Reference.IsAcceptTypePermit;
+	if (Reference.AcceptTypeList != nullptr)
+	{
+		*AcceptTypeList = *Reference.AcceptTypeList;
+	}
+	else {
+		delete AcceptTypeList;
+		AcceptTypeList = nullptr;
+	}
+
+	//[DNS] block
+	RequestMode_Network = Reference.RequestMode_Network;
+	RequestMode_Transport = Reference.RequestMode_Transport;
+	DirectRequest = Reference.DirectRequest;
+	DNS_CacheType = Reference.DNS_CacheType;
+	DNS_CacheParameter = Reference.DNS_CacheParameter;
+	HostsDefaultTTL = Reference.HostsDefaultTTL;
+
+	//[Local DNS] block
+	LocalProtocol_Network = Reference.LocalProtocol_Network;
+	LocalProtocol_Transport = Reference.LocalProtocol_Transport;
+	IsLocalForce = Reference.IsLocalForce;
+	IsLocalMain = Reference.IsLocalMain;
+	IsLocalHosts = Reference.IsLocalHosts;
+	IsLocalRouting = Reference.IsLocalRouting;
+
+	//[Addresses] block
+	if (Reference.ListenAddress_IPv6 != nullptr)
+	{
+		*ListenAddress_IPv6 = *Reference.ListenAddress_IPv6;
+	}
+	else {
+		delete ListenAddress_IPv6;
+		ListenAddress_IPv6 = nullptr;
+	}
+	if (Reference.ListenAddress_IPv4 != nullptr)
+	{
+		*ListenAddress_IPv4 = *Reference.ListenAddress_IPv4;
+	}
+	else {
+		delete ListenAddress_IPv4;
+		ListenAddress_IPv4 = nullptr;
+	}
+	if (Reference.LocalMachineSubnet_IPv6 != nullptr)
+	{
+		*LocalMachineSubnet_IPv6 = *Reference.LocalMachineSubnet_IPv6;
+	}
+	else {
+		delete LocalMachineSubnet_IPv6;
+		LocalMachineSubnet_IPv6 = nullptr;
+	}
+	if (Reference.LocalMachineSubnet_IPv4 != nullptr)
+	{
+		*LocalMachineSubnet_IPv4 = *Reference.LocalMachineSubnet_IPv4;
+	}
+	else {
+		delete LocalMachineSubnet_IPv4;
+		LocalMachineSubnet_IPv4 = nullptr;
+	}
+	Target_Server_Main_IPv6 = Reference.Target_Server_Main_IPv6;
+	Target_Server_Alternate_IPv6 = Reference.Target_Server_Alternate_IPv6;
+	Target_Server_Main_IPv4 = Reference.Target_Server_Main_IPv4;
+	Target_Server_Alternate_IPv4 = Reference.Target_Server_Alternate_IPv4;
+	Target_Server_Local_Main_IPv6 = Reference.Target_Server_Local_Main_IPv6;
+	Target_Server_Local_Alternate_IPv6 = Reference.Target_Server_Local_Alternate_IPv6;
+	Target_Server_Local_Main_IPv4 = Reference.Target_Server_Local_Main_IPv4;
+	Target_Server_Local_Alternate_IPv4 = Reference.Target_Server_Local_Alternate_IPv4;
+	if (Reference.Target_Server_IPv6_Multiple != nullptr)
+	{
+		*Target_Server_IPv6_Multiple = *Reference.Target_Server_IPv6_Multiple;
+	}
+	else {
+		delete Target_Server_IPv6_Multiple;
+		Target_Server_IPv6_Multiple = nullptr;
+	}
+	if (Reference.Target_Server_IPv4_Multiple != nullptr)
+	{
+		*Target_Server_IPv4_Multiple = *Reference.Target_Server_IPv4_Multiple;
+	}
+	else {
+		delete Target_Server_IPv4_Multiple;
+		Target_Server_IPv4_Multiple = nullptr;
+	}
+
+	//[Values] block
+	ThreadPoolBaseNum = Reference.ThreadPoolBaseNum;
+	ThreadPoolMaxNum = Reference.ThreadPoolMaxNum;
+	ThreadPoolResetTime = Reference.ThreadPoolResetTime;
+	QueueResetTime = Reference.QueueResetTime;
+	EDNS_PayloadSize = Reference.EDNS_PayloadSize;
+	PacketHopLimits_IPv4_Begin = Reference.PacketHopLimits_IPv4_Begin;
+	PacketHopLimits_IPv4_End = Reference.PacketHopLimits_IPv4_End;
+	PacketHopLimits_IPv6_Begin = Reference.PacketHopLimits_IPv6_Begin;
+	PacketHopLimits_IPv6_End = Reference.PacketHopLimits_IPv6_End;
+#if defined(ENABLE_PCAP)
+	HopLimitFluctuation = Reference.HopLimitFluctuation;
+#endif
+	SocketTimeout_Reliable_Once = Reference.SocketTimeout_Reliable_Once;
+	SocketTimeout_Reliable_Serial = Reference.SocketTimeout_Reliable_Serial;
+	SocketTimeout_Unreliable_Once = Reference.SocketTimeout_Unreliable_Once;
+	SocketTimeout_Unreliable_Serial = Reference.SocketTimeout_Unreliable_Serial;
+	ReceiveWaiting = Reference.ReceiveWaiting;
+	AlternateTimes = Reference.AlternateTimes;
+	AlternateTimeRange = Reference.AlternateTimeRange;
+	AlternateResetTime = Reference.AlternateResetTime;
+	MultipleRequestTimes = Reference.MultipleRequestTimes;
+
+	//[Switches] block
+	TCP_FastOpen = Reference.TCP_FastOpen;
+	DomainCaseConversion = Reference.DomainCaseConversion;
+	CompressionPointerMutation = Reference.CompressionPointerMutation;
+	CPM_PointerToHeader = Reference.CPM_PointerToHeader;
+	CPM_PointerToRR = Reference.CPM_PointerToRR;
+	CPM_PointerToAdditional = Reference.CPM_PointerToAdditional;
+	EDNS_Label = Reference.EDNS_Label;
+	EDNS_Switch_Local = Reference.EDNS_Switch_Local;
+	EDNS_Switch_SOCKS = Reference.EDNS_Switch_SOCKS;
+	EDNS_Switch_HTTP_CONNECT = Reference.EDNS_Switch_HTTP_CONNECT;
+	EDNS_Switch_Direct = Reference.EDNS_Switch_Direct;
+#if defined(ENABLE_LIBSODIUM)
+	EDNS_Switch_DNSCurve = Reference.EDNS_Switch_DNSCurve;
+#endif
+	EDNS_Switch_TCP = Reference.EDNS_Switch_TCP;
+	EDNS_Switch_UDP = Reference.EDNS_Switch_UDP;
+	EDNS_ClientSubnet_Relay = Reference.EDNS_ClientSubnet_Relay;
+	DNSSEC_Request = Reference.DNSSEC_Request;
+	DNSSEC_Validation = Reference.DNSSEC_Validation;
+	DNSSEC_ForceValidation = Reference.DNSSEC_ForceValidation;
+	AlternateMultipleRequest = Reference.AlternateMultipleRequest;
+	DoNotFragment = Reference.DoNotFragment;
+#if defined(ENABLE_PCAP)
+	HeaderCheck_IPv4 = Reference.HeaderCheck_IPv4;
+	HeaderCheck_TCP = Reference.HeaderCheck_TCP;
+#endif
+	HeaderCheck_DNS = Reference.HeaderCheck_DNS;
+	DataCheck_Blacklist = Reference.DataCheck_Blacklist;
+	DataCheck_Strict_RR_TTL = Reference.DataCheck_Strict_RR_TTL;
+
+	//[Data] block
+#if defined(ENABLE_PCAP)
+	ICMP_ID = Reference.ICMP_ID;
+	ICMP_Sequence = Reference.ICMP_Sequence;
+	ICMP_Speed = Reference.ICMP_Speed;
+	if (Reference.ICMP_PaddingData != nullptr)
+	{
+		memcpy_s(ICMP_PaddingData, ICMP_PADDING_MAXSIZE, Reference.ICMP_PaddingData, ICMP_PADDING_MAXSIZE);
+	}
+	else {
+		delete[] ICMP_PaddingData;
+		ICMP_PaddingData = nullptr;
+	}
+	ICMP_PaddingLength = Reference.ICMP_PaddingLength;
+	if (Reference.DomainTest_Data != nullptr)
+	{
+		memcpy_s(DomainTest_Data, DOMAIN_MAXSIZE, Reference.DomainTest_Data, DOMAIN_MAXSIZE);
+	}
+	else {
+		delete[] DomainTest_Data;
+		DomainTest_Data = nullptr;
+	}
+	DomainTest_ID = Reference.DomainTest_ID;
+	DomainTest_Speed = Reference.DomainTest_Speed;
+#endif
+	if (Reference.LocalFQDN_String != nullptr)
+	{
+		*LocalFQDN_String = *Reference.LocalFQDN_String;
+	}
+	else {
+		delete LocalFQDN_String;
+		LocalFQDN_String = nullptr;
+	}
+	memcpy_s(LocalFQDN_Response, DOMAIN_MAXSIZE, Reference.LocalFQDN_Response, DOMAIN_MAXSIZE);
+	LocalFQDN_Length = Reference.LocalFQDN_Length;
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+	memcpy_s(LocalServer_Response, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt), Reference.LocalServer_Response, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt));
+	LocalServer_Length = Reference.LocalServer_Length;
+#endif
+
+	//[Proxy] block
+	SOCKS_Proxy = Reference.SOCKS_Proxy;
+	SOCKS_Version = Reference.SOCKS_Version;
+	SOCKS_Protocol_Network = Reference.SOCKS_Protocol_Network;
+	SOCKS_Protocol_Transport = Reference.SOCKS_Protocol_Transport;
+	SOCKS_UDP_NoHandshake = Reference.SOCKS_UDP_NoHandshake;
+	SOCKS_Only = Reference.SOCKS_Only;
+	SOCKS_Address_IPv4 = Reference.SOCKS_Address_IPv4;
+	SOCKS_Address_IPv6 = Reference.SOCKS_Address_IPv6;
+	SOCKS_TargetServer = Reference.SOCKS_TargetServer;
+	if (Reference.SOCKS_TargetDomain != nullptr)
+	{
+		*SOCKS_TargetDomain = *Reference.SOCKS_TargetDomain;
+	}
+	else {
+		delete SOCKS_TargetDomain;
+		SOCKS_TargetDomain = nullptr;
+	}
+	SOCKS_TargetDomain_Port = Reference.SOCKS_TargetDomain_Port;
+	if (Reference.SOCKS_Username != nullptr)
+	{
+		*SOCKS_Username = *Reference.SOCKS_Username;
+	}
+	else {
+		delete SOCKS_Username;
+		SOCKS_Username = nullptr;
+	}
+	if (Reference.SOCKS_Password != nullptr)
+	{
+		*SOCKS_Password = *Reference.SOCKS_Password;
+	}
+	else {
+		delete SOCKS_Password;
+		SOCKS_Password = nullptr;
+	}
+	HTTP_CONNECT_Proxy = Reference.HTTP_CONNECT_Proxy;
+	HTTP_CONNECT_Protocol = Reference.HTTP_CONNECT_Protocol;
+	HTTP_CONNECT_Only = Reference.HTTP_CONNECT_Only;
+	HTTP_CONNECT_Address_IPv4 = Reference.HTTP_CONNECT_Address_IPv4;
+	HTTP_CONNECT_Address_IPv6 = Reference.HTTP_CONNECT_Address_IPv6;
+#if defined(ENABLE_TLS)
+	HTTP_CONNECT_TLS_Handshake = Reference.HTTP_CONNECT_TLS_Handshake;
+	HTTP_CONNECT_TLS_Version = Reference.HTTP_CONNECT_TLS_Version;
+	HTTP_CONNECT_TLS_Validation = Reference.HTTP_CONNECT_TLS_Validation;
+	if (Reference.HTTP_CONNECT_TLS_SNI != nullptr)
+	{
+		*HTTP_CONNECT_TLS_SNI = *Reference.HTTP_CONNECT_TLS_SNI;
+	}
+	else {
+		delete HTTP_CONNECT_TLS_SNI;
+		HTTP_CONNECT_TLS_SNI = nullptr;
+	}
+	if (Reference.MBS_HTTP_CONNECT_TLS_SNI != nullptr)
+	{
+		*MBS_HTTP_CONNECT_TLS_SNI = *Reference.MBS_HTTP_CONNECT_TLS_SNI;
+	}
+	else {
+		delete MBS_HTTP_CONNECT_TLS_SNI;
+		MBS_HTTP_CONNECT_TLS_SNI = nullptr;
+	}
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	if (Reference.HTTP_CONNECT_TLS_AddressString_IPv4 != nullptr)
+	{
+		*HTTP_CONNECT_TLS_AddressString_IPv4 = *Reference.HTTP_CONNECT_TLS_AddressString_IPv4;
+	}
+	else {
+		delete HTTP_CONNECT_TLS_AddressString_IPv4;
+		HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
+	}
+	if (Reference.HTTP_CONNECT_TLS_AddressString_IPv6 != nullptr)
+	{
+		*HTTP_CONNECT_TLS_AddressString_IPv6 = *Reference.HTTP_CONNECT_TLS_AddressString_IPv6;
+	}
+	else {
+		delete HTTP_CONNECT_TLS_AddressString_IPv6;
+		HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
+	}
+#endif
+#endif
+	if (Reference.HTTP_CONNECT_TargetDomain != nullptr)
+	{
+		*HTTP_CONNECT_TargetDomain = *Reference.HTTP_CONNECT_TargetDomain;
+	}
+	else {
+		delete HTTP_CONNECT_TargetDomain;
+		HTTP_CONNECT_TargetDomain = nullptr;
+	}
+	if (Reference.HTTP_CONNECT_Version != nullptr)
+	{
+		*HTTP_CONNECT_Version = *Reference.HTTP_CONNECT_Version;
+	}
+	else {
+		delete HTTP_CONNECT_Version;
+		HTTP_CONNECT_Version = nullptr;
+	}
+	if (Reference.HTTP_CONNECT_HeaderField != nullptr)
+	{
+		*HTTP_CONNECT_HeaderField = *Reference.HTTP_CONNECT_HeaderField;
+	}
+	else {
+		delete HTTP_CONNECT_HeaderField;
+		HTTP_CONNECT_HeaderField = nullptr;
+	}
+	if (Reference.HTTP_CONNECT_ProxyAuthorization != nullptr)
+	{
+		*HTTP_CONNECT_ProxyAuthorization = *Reference.HTTP_CONNECT_ProxyAuthorization;
+	}
+	else {
+		delete HTTP_CONNECT_ProxyAuthorization;
+		HTTP_CONNECT_ProxyAuthorization = nullptr;
+	}
+
+	//[DNSCurve/DNSCrypt] block
+#if defined(ENABLE_LIBSODIUM)
+	IsDNSCurve = Reference.IsDNSCurve;
+#endif
+
 	return;
 }
 
@@ -216,26 +685,26 @@ void ConfigurationTableSetting(
 #if defined(ENABLE_PCAP)
 	ConfigurationParameter->PcapReadingTimeout = DEFAULT_PCAP_CAPTURE_TIMEOUT;
 #endif
-	ConfigurationParameter->ListenProtocol_Network = LISTEN_PROTOCOL_NETWORK_BOTH;
-	ConfigurationParameter->ListenProtocol_Transport = LISTEN_PROTOCOL_TRANSPORT_BOTH;
-	ConfigurationParameter->OperationMode = LISTEN_MODE_PRIVATE;
+	ConfigurationParameter->ListenProtocol_Network = LISTEN_PROTOCOL_NETWORK::BOTH;
+	ConfigurationParameter->ListenProtocol_Transport = LISTEN_PROTOCOL_TRANSPORT::BOTH;
+	ConfigurationParameter->OperationMode = LISTEN_MODE::PRIVATE;
 
 	//[DNS] block
-	ConfigurationParameter->RequestMode_Network = REQUEST_MODE_BOTH;
-	ConfigurationParameter->RequestMode_Transport = REQUEST_MODE_UDP;
-	ConfigurationParameter->DirectRequest = REQUEST_MODE_DIRECT_NONE;
-	ConfigurationParameter->CacheType = CACHE_TYPE_NONE;
+	ConfigurationParameter->RequestMode_Network = REQUEST_MODE_NETWORK::BOTH;
+	ConfigurationParameter->RequestMode_Transport = REQUEST_MODE_TRANSPORT::UDP;
+	ConfigurationParameter->DirectRequest = REQUEST_MODE_DIRECT::NONE;
+	ConfigurationParameter->DNS_CacheType = DNS_CACHE_TYPE::NONE;
 	ConfigurationParameter->HostsDefaultTTL = DEFAULT_HOSTS_TTL;
 
 	//[Local DNS] block
-	ConfigurationParameter->LocalProtocol_Network = REQUEST_MODE_BOTH;
-	ConfigurationParameter->LocalProtocol_Transport = REQUEST_MODE_UDP;
+	ConfigurationParameter->LocalProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
+	ConfigurationParameter->LocalProtocol_Transport = REQUEST_MODE_TRANSPORT::UDP;
 
 	//[Values] block
 	ConfigurationParameter->ThreadPoolBaseNum = DEFAULT_THREAD_POOL_BASENUM;
 	ConfigurationParameter->ThreadPoolMaxNum = DEFAULT_THREAD_POOL_MAXNUM;
 	ConfigurationParameter->ThreadPoolResetTime = DEFAULT_THREAD_POOL_RESET_TIME;
-	ConfigurationParameter->EDNSPayloadSize = EDNS_PACKET_MINSIZE;
+	ConfigurationParameter->EDNS_PayloadSize = EDNS_PACKET_MINSIZE;
 #if defined(PLATFORM_WIN)
 	ConfigurationParameter->SocketTimeout_Reliable_Once = DEFAULT_RELIABLE_ONCE_SOCKET_TIMEOUT;
 	ConfigurationParameter->SocketTimeout_Reliable_Serial = DEFAULT_RELIABLE_SERIAL_SOCKET_TIMEOUT;
@@ -273,13 +742,11 @@ void ConfigurationTableSetting(
 		ConfigurationParameter->ICMP_PaddingLength = strlen(DEFAULT_ICMP_PADDING_DATA);
 		memcpy_s(ConfigurationParameter->ICMP_PaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_ICMP_PADDING_DATA, ConfigurationParameter->ICMP_PaddingLength); //Load default padding data in Windows.
 	#elif defined(PLATFORM_LINUX)
-		size_t CharData = ICMP_STRING_START_NUM_LINUX;
-		for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_LINUX;++Index, ++CharData)
+		for (size_t Index = 0, CharData = ICMP_STRING_START_NUM_LINUX;Index < ICMP_PADDING_LENGTH_LINUX;++Index, ++CharData)
 			ConfigurationParameter->ICMP_PaddingData[Index] = CharData;
 		ConfigurationParameter->ICMP_PaddingLength = strlen((const char *)ConfigurationParameter->ICMP_PaddingData); //Load default padding data in Linux.
 	#elif defined(PLATFORM_MACOS)
-		size_t CharData = ICMP_STRING_START_NUM_MACOS;
-		for (size_t Index = 0;Index < ICMP_PADDING_LENGTH_MACOS;++Index, ++CharData)
+		for (size_t Index = 0, CharData = ICMP_STRING_START_NUM_MACOS;Index < ICMP_PADDING_LENGTH_MACOS;++Index, ++CharData)
 			ConfigurationParameter->ICMP_PaddingData[Index] = CharData;
 		ConfigurationParameter->ICMP_PaddingLength = strlen((const char *)ConfigurationParameter->ICMP_PaddingData); //Load default padding data in macOS.
 	#endif
@@ -294,9 +761,9 @@ void ConfigurationTableSetting(
 
 	//[Proxy] block
 	ConfigurationParameter->SOCKS_Version = SOCKS_VERSION_5;
-	ConfigurationParameter->SOCKS_Protocol_Network = REQUEST_MODE_BOTH;
-	ConfigurationParameter->SOCKS_Protocol_Transport = REQUEST_MODE_TCP;
-	ConfigurationParameter->HTTP_CONNECT_Protocol = REQUEST_MODE_BOTH;
+	ConfigurationParameter->SOCKS_Protocol_Network = REQUEST_MODE_NETWORK::BOTH;
+	ConfigurationParameter->SOCKS_Protocol_Transport = REQUEST_MODE_TRANSPORT::TCP;
+	ConfigurationParameter->HTTP_CONNECT_Protocol = REQUEST_MODE_NETWORK::BOTH;
 
 	return;
 }
@@ -336,10 +803,10 @@ ConfigurationTable::~ConfigurationTable(
 	ICMP_PaddingData = nullptr;
 	DomainTest_Data = nullptr;
 #endif
-	delete[] LocalFQDN_Response;
 	delete LocalFQDN_String;
-	LocalFQDN_Response = nullptr;
+	delete[] LocalFQDN_Response;
 	LocalFQDN_String = nullptr;
+	LocalFQDN_Response = nullptr;
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	delete[] LocalServer_Response;
 	LocalServer_Response = nullptr;
@@ -413,10 +880,10 @@ void ConfigurationTable::SetToMonitorItem(
 	ICMP_PaddingData = nullptr;
 	DomainTest_Data = nullptr;
 #endif
-	delete[] LocalFQDN_Response;
 	delete LocalFQDN_String;
-	LocalFQDN_Response = nullptr;
+	delete[] LocalFQDN_Response;
 	LocalFQDN_String = nullptr;
+	LocalFQDN_Response = nullptr;
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	delete[] LocalServer_Response;
 	LocalServer_Response = nullptr;
@@ -430,7 +897,8 @@ void ConfigurationTable::MonitorItemToUsing(
 	ConfigurationTable * const ConfigurationParameter)
 {
 //[Base] block
-	ConfigurationParameter->Version = Version;
+	ConfigurationParameter->Version_Major = Version_Major;
+	ConfigurationParameter->Version_Minor = Version_Minor;
 	ConfigurationParameter->FileRefreshTime = FileRefreshTime;
 
 //[Log] block
@@ -450,7 +918,7 @@ void ConfigurationTable::MonitorItemToUsing(
 //[Local DNS] block
 	ConfigurationParameter->LocalProtocol_Network = LocalProtocol_Network;
 	ConfigurationParameter->LocalProtocol_Transport = LocalProtocol_Transport;
-	ConfigurationParameter->LocalForce = LocalForce;
+	ConfigurationParameter->IsLocalForce = IsLocalForce;
 
 //[Values] block
 	ConfigurationParameter->ThreadPoolResetTime = ThreadPoolResetTime;
@@ -549,7 +1017,8 @@ void ConfigurationTable::MonitorItemReset(
 	void)
 {
 //[Base] block
-	Version = 0;
+	Version_Major = 0;
+	Version_Minor = 0;
 	FileRefreshTime = DEFAULT_FILE_REFRESH_TIME;
 
 //[Log] block
@@ -564,13 +1033,13 @@ void ConfigurationTable::MonitorItemReset(
 	AcceptTypeList->shrink_to_fit();
 
 //[DNS] block
-	DirectRequest = false;
+	DirectRequest = REQUEST_MODE_DIRECT::NONE;
 	HostsDefaultTTL = DEFAULT_HOSTS_TTL;
 
 //[Local DNS] block
-	LocalProtocol_Network = REQUEST_MODE_BOTH;
-	LocalProtocol_Transport = REQUEST_MODE_UDP;
-	LocalForce = false;
+	LocalProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
+	LocalProtocol_Transport = REQUEST_MODE_TRANSPORT::UDP;
+	IsLocalForce = false;
 
 //[Values] block
 	ThreadPoolResetTime = DEFAULT_THREAD_POOL_RESET_TIME;
@@ -627,7 +1096,7 @@ void ConfigurationTable::MonitorItemReset(
 	if (HTTP_CONNECT_TargetDomain != nullptr)
 		HTTP_CONNECT_TargetDomain->clear();
 #if defined(ENABLE_TLS)
-	HTTP_CONNECT_TLS_Version = TLS_VERSION_AUTO;
+	HTTP_CONNECT_TLS_Version = TLS_VERSION_SELECTION::AUTO;
 	HTTP_CONNECT_TLS_Validation = false;
 #endif
 	if (HTTP_CONNECT_Version != nullptr)
@@ -660,11 +1129,11 @@ GlobalStatus::GlobalStatus(
 		MBS_FileList_Hosts = new std::vector<std::string>();
 		MBS_FileList_IPFilter = new std::vector<std::string>();
 	#endif
-		LocalAddress_Response[NETWORK_LAYER_IPV6] = new uint8_t[PACKET_MAXSIZE]();
-		LocalAddress_Response[NETWORK_LAYER_IPV4] = new uint8_t[PACKET_MAXSIZE]();
+		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6] = new uint8_t[PACKET_MAXSIZE]();
+		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4] = new uint8_t[PACKET_MAXSIZE]();
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-		LocalAddress_ResponsePTR[NETWORK_LAYER_IPV6] = new std::vector<std::string>();
-		LocalAddress_ResponsePTR[NETWORK_LAYER_IPV4] = new std::vector<std::string>();
+		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6] = new std::vector<std::string>();
+		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4] = new std::vector<std::string>();
 	#endif
 	}
 	catch (std::bad_alloc)
@@ -693,22 +1162,223 @@ GlobalStatus::GlobalStatus(
 		MBS_FileList_Hosts = nullptr;
 		MBS_FileList_IPFilter = nullptr;
 	#endif
-		delete[] LocalAddress_Response[NETWORK_LAYER_IPV6];
-		delete[] LocalAddress_Response[NETWORK_LAYER_IPV4];
-		LocalAddress_Response[NETWORK_LAYER_IPV6] = nullptr;
-		LocalAddress_Response[NETWORK_LAYER_IPV4] = nullptr;
+		delete[] LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6];
+		delete[] LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4];
+		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6] = nullptr;
+		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4] = nullptr;
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-		delete LocalAddress_ResponsePTR[NETWORK_LAYER_IPV6];
-		delete LocalAddress_ResponsePTR[NETWORK_LAYER_IPV4];
-		LocalAddress_ResponsePTR[NETWORK_LAYER_IPV6] = nullptr;
-		LocalAddress_ResponsePTR[NETWORK_LAYER_IPV4] = nullptr;
+		delete LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6];
+		delete LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4];
+		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6] = nullptr;
+		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4] = nullptr;
 	#endif
 
 		exit(EXIT_FAILURE);
-		return;
+//		return;
 	}
 
 	GlobalStatusSetting(this);
+	return;
+}
+
+//GlobalStatus class copy constructor
+GlobalStatus::GlobalStatus(
+	const GlobalStatus &Reference)
+{
+//Check itself.
+	if (this == &Reference)
+		return;
+
+//Class constructor
+	memset(this, 0, sizeof(GLOBAL_STATUS));
+	try {
+		LocalListeningSocket = new std::vector<SYSTEM_SOCKET>();
+		RamdomEngine = new std::default_random_engine();
+		ThreadRunningNum = new std::atomic<size_t>();
+		ThreadRunningFreeNum = new std::atomic<size_t>();
+		Path_Global = new std::vector<std::wstring>();
+		Path_ErrorLog = new std::wstring();
+		FileList_Hosts = new std::vector<std::wstring>();
+		FileList_IPFilter = new std::vector<std::wstring>();
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		MBS_Path_Global = new std::vector<std::string>();
+		MBS_Path_ErrorLog = new std::string();
+		MBS_FileList_Hosts = new std::vector<std::string>();
+		MBS_FileList_IPFilter = new std::vector<std::string>();
+	#endif
+		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6] = new uint8_t[PACKET_MAXSIZE]();
+		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4] = new uint8_t[PACKET_MAXSIZE]();
+	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6] = new std::vector<std::string>();
+		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4] = new std::vector<std::string>();
+	#endif
+	}
+	catch (std::bad_alloc)
+	{
+		delete LocalListeningSocket;
+		delete RamdomEngine;
+		delete ThreadRunningNum;
+		delete ThreadRunningFreeNum;
+		delete Path_Global;
+		delete Path_ErrorLog;
+		delete FileList_Hosts;
+		delete FileList_IPFilter;
+		LocalListeningSocket = nullptr;
+		RamdomEngine = nullptr;
+		Path_Global = nullptr;
+		Path_ErrorLog = nullptr;
+		FileList_Hosts = nullptr;
+		FileList_IPFilter = nullptr;
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		delete MBS_Path_Global;
+		delete MBS_Path_ErrorLog;
+		delete MBS_FileList_Hosts;
+		delete MBS_FileList_IPFilter;
+		MBS_Path_Global = nullptr;
+		MBS_Path_ErrorLog = nullptr;
+		MBS_FileList_Hosts = nullptr;
+		MBS_FileList_IPFilter = nullptr;
+	#endif
+		delete[] LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6];
+		delete[] LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4];
+		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6] = nullptr;
+		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4] = nullptr;
+	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+		delete LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6];
+		delete LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4];
+		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6] = nullptr;
+		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4] = nullptr;
+	#endif
+
+		exit(EXIT_FAILURE);
+//		return;
+	}
+
+	GlobalStatusSetting(this);
+
+//Copy constructor
+#if defined(PLATFORM_WIN)
+	IsInitialized_WinSock = Reference.IsInitialized_WinSock;
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#if defined(ENABLE_TLS)
+	IsInitialized_OpenSSL = Reference.IsInitialized_OpenSSL;
+#endif
+#endif
+	StartupTime = Reference.StartupTime;
+#if defined(PLATFORM_WIN)
+	IsConsole = Reference.IsConsole;
+#elif defined(PLATFORM_LINUX)
+	IsDaemon = Reference.IsDaemon;
+#endif
+	GatewayAvailable_IPv6 = Reference.GatewayAvailable_IPv6;
+	GatewayAvailable_IPv4 = Reference.GatewayAvailable_IPv4;
+	LocalAddress_Length[NETWORK_LAYER_TYPE_IPV6] = Reference.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV6];
+	LocalAddress_Length[NETWORK_LAYER_TYPE_IPV4] = Reference.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV4];
+	if (Reference.LocalListeningSocket != nullptr)
+	{
+		*LocalListeningSocket = *Reference.LocalListeningSocket;
+	}
+	else {
+		delete LocalListeningSocket;
+		LocalListeningSocket = nullptr;
+	}
+	if (Reference.RamdomEngine != nullptr)
+	{
+		*RamdomEngine = *Reference.RamdomEngine;
+	}
+	else {
+		delete RamdomEngine;
+		RamdomEngine = nullptr;
+	}
+	ThreadRunningNum->store(*Reference.ThreadRunningNum);
+	ThreadRunningFreeNum->store(*Reference.ThreadRunningFreeNum);
+	if (Reference.Path_Global != nullptr)
+	{
+		*Path_Global = *Reference.Path_Global;
+	}
+	else {
+		delete Path_Global;
+		Path_Global = nullptr;
+	}
+	if (Reference.Path_ErrorLog != nullptr)
+	{
+		*Path_ErrorLog = *Reference.Path_ErrorLog;
+	}
+	else {
+		delete Path_ErrorLog;
+		Path_ErrorLog = nullptr;
+	}
+	if (Reference.FileList_Hosts != nullptr)
+	{
+		*FileList_Hosts = *Reference.FileList_Hosts;
+	}
+	else {
+		delete FileList_Hosts;
+		FileList_Hosts = nullptr;
+	}
+	if (Reference.FileList_IPFilter != nullptr)
+	{
+		*FileList_IPFilter = *Reference.FileList_IPFilter;
+	}
+	else {
+		delete FileList_IPFilter;
+		FileList_IPFilter = nullptr;
+	}
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	if (Reference.MBS_Path_Global != nullptr)
+	{
+		*MBS_Path_Global = *Reference.MBS_Path_Global;
+	}
+	else {
+		delete MBS_Path_Global;
+		MBS_Path_Global = nullptr;
+	}
+	if (Reference.MBS_Path_ErrorLog != nullptr)
+	{
+		*MBS_Path_ErrorLog = *Reference.MBS_Path_ErrorLog;
+	}
+	else {
+		delete MBS_Path_ErrorLog;
+		MBS_Path_ErrorLog = nullptr;
+	}
+	if (Reference.MBS_FileList_Hosts != nullptr)
+	{
+		*MBS_FileList_Hosts = *Reference.MBS_FileList_Hosts;
+	}
+	else {
+		delete MBS_FileList_Hosts;
+		MBS_FileList_Hosts = nullptr;
+	}
+	if (Reference.MBS_FileList_IPFilter != nullptr)
+	{
+		*MBS_FileList_IPFilter = *Reference.MBS_FileList_IPFilter;
+	}
+	else {
+		delete MBS_FileList_IPFilter;
+		MBS_FileList_IPFilter = nullptr;
+	}
+#endif
+	memcpy_s(LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6], PACKET_MAXSIZE, Reference.LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6], PACKET_MAXSIZE);
+	memcpy_s(LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4], PACKET_MAXSIZE, Reference.LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4], PACKET_MAXSIZE);
+#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
+	if (Reference.LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6] != nullptr)
+	{
+		*LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6] = *Reference.LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6];
+	}
+	else {
+		delete LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6];
+		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6] = nullptr;
+	}
+	if (Reference.LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4] != nullptr)
+	{
+		*LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4] = *Reference.LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4];
+	}
+	else {
+		delete LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4];
+		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4] = nullptr;
+	}
+#endif
+
 	return;
 }
 
@@ -725,8 +1395,8 @@ void GlobalStatusSetting(
 	GlobalRunningStatusParameter->Base64_EncodeTable = (uint8_t *)Base64_EncodeTable_Initialization;
 	GlobalRunningStatusParameter->Base64_DecodeTable = (int8_t *)Base64_DecodeTable_Initialization;
 	GlobalRunningStatusParameter->GatewayAvailable_IPv4 = true;
-	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_IPV6], 0, PACKET_MAXSIZE);
-	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_IPV4], 0, PACKET_MAXSIZE);
+	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6], 0, PACKET_MAXSIZE);
+	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4], 0, PACKET_MAXSIZE);
 
 	return;
 }
@@ -737,17 +1407,17 @@ GlobalStatus::~GlobalStatus(
 {
 //Close all sockets.
 	for (const auto &SocketIter:*LocalListeningSocket)
-		SocketSetting(SocketIter, SOCKET_SETTING_CLOSE, false, nullptr);
+		SocketSetting(SocketIter, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 //Close all file handles and WinSock cleanup.
 #if defined(PLATFORM_WIN)
 	_fcloseall();
-	if (IsWinSockInitialized)
+	if (IsInitialized_WinSock)
 		WSACleanup();
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#if defined(ENABLE_TLS)
 		#if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_1_0 //OpenSSL version brfore 1.1.0
-			if (IsOpenSSLInitialized)
+			if (IsInitialized_OpenSSL)
 				OpenSSL_Library_Init(false);
 		#endif
 	#endif
@@ -779,15 +1449,15 @@ GlobalStatus::~GlobalStatus(
 	MBS_FileList_Hosts = nullptr;
 	MBS_FileList_IPFilter = nullptr;
 #endif
-	delete[] LocalAddress_Response[NETWORK_LAYER_IPV6];
-	delete[] LocalAddress_Response[NETWORK_LAYER_IPV4];
-	LocalAddress_Response[NETWORK_LAYER_IPV6] = nullptr;
-	LocalAddress_Response[NETWORK_LAYER_IPV4] = nullptr;
+	delete[] LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6];
+	delete[] LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4];
+	LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6] = nullptr;
+	LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4] = nullptr;
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-	delete LocalAddress_ResponsePTR[NETWORK_LAYER_IPV6];
-	delete LocalAddress_ResponsePTR[NETWORK_LAYER_IPV4];
-	LocalAddress_ResponsePTR[NETWORK_LAYER_IPV6] = nullptr;
-	LocalAddress_ResponsePTR[NETWORK_LAYER_IPV4] = nullptr;
+	delete LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6];
+	delete LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4];
+	LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6] = nullptr;
+	LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4] = nullptr;
 #endif
 
 	return;
@@ -805,10 +1475,18 @@ AddressRangeTable::AddressRangeTable(
 HostsTable::HostsTable(
 	void)
 {
-	PermissionType = 0;
+	PermissionType = HOSTS_TYPE::NONE;
 	IsStringMatching = false;
 	PermissionOperation = false;
 
+	return;
+}
+
+//AddressRoutingTable class constructor
+AddressRoutingTable::AddressRoutingTable(
+	void)
+{
+	Prefix = 0;
 	return;
 }
 
@@ -820,11 +1498,29 @@ AlternateSwapTable::AlternateSwapTable(
 	return;
 }
 
-//AddressRoutingTable class constructor
-AddressRoutingTable::AddressRoutingTable(
+//DiffernetFileSetIPFilter class constructor
+DiffernetFileSetIPFilter::DiffernetFileSetIPFilter(
 	void)
 {
-	Prefix = 0;
+	FileIndex = 0;
+	return;
+}
+
+//DiffernetFileSetHosts class constructor
+DiffernetFileSetHosts::DiffernetFileSetHosts(
+	void)
+{
+	FileIndex = 0;
+	return;
+}
+
+//SocketSelectingOnceTable class constructor
+SocketSelectingOnceTable::SocketSelectingOnceTable(
+	void)
+{
+	RecvLen = 0;
+	IsPacketDone = false;
+
 	return;
 }
 
@@ -844,22 +1540,6 @@ OutputPacketTable::OutputPacketTable(
 }
 #endif
 
-//DiffernetFileSetIPFilter class constructor
-DiffernetFileSetIPFilter::DiffernetFileSetIPFilter(
-	void)
-{
-	FileIndex = 0;
-	return;
-}
-
-//DiffernetFileSetHosts class constructor
-DiffernetFileSetHosts::DiffernetFileSetHosts(
-	void)
-{
-	FileIndex = 0;
-	return;
-}
-
 #if defined(ENABLE_LIBSODIUM)
 //DNSCurveConfigurationTable class constructor
 DNSCurveConfigurationTable::DNSCurveConfigurationTable(
@@ -869,7 +1549,7 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 	if (sodium_init() == LIBSODIUM_ERROR)
 	{
 		exit(EXIT_FAILURE);
-		return;
+//		return;
 	}
 
 //Class constructor
@@ -968,10 +1648,353 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 		DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber = nullptr;
 
 		exit(EXIT_FAILURE);
-		return;
+//		return;
 	}
 
 	DNSCurveConfigurationTableSetting(this);
+	return;
+}
+
+//DNSCurveConfigurationTable class copy constructor
+DNSCurveConfigurationTable::DNSCurveConfigurationTable(
+	const DNSCurveConfigurationTable &Reference)
+{
+//Check itself.
+	if (this == &Reference)
+		return;
+
+//Class constructor
+	memset(this, 0, sizeof(DNSCURVE_CONFIGURATION_TABLE));
+	try {
+	//[DNSCurve Addresses] block
+		DNSCurve_Target_Server_Main_IPv4.ProviderName = new uint8_t[DOMAIN_MAXSIZE]();
+		DNSCurve_Target_Server_Alternate_IPv4.ProviderName = new uint8_t[DOMAIN_MAXSIZE]();
+		DNSCurve_Target_Server_Main_IPv6.ProviderName = new uint8_t[DOMAIN_MAXSIZE]();
+		DNSCurve_Target_Server_Alternate_IPv6.ProviderName = new uint8_t[DOMAIN_MAXSIZE]();
+
+	//[DNSCurve Keys] block
+		Client_PublicKey = new uint8_t[crypto_box_PUBLICKEYBYTES]();
+		Client_SecretKey = (uint8_t *)sodium_malloc(crypto_box_SECRETKEYBYTES);
+		DNSCurve_Target_Server_Main_IPv4.PrecomputationKey = (uint8_t *)sodium_malloc(crypto_box_BEFORENMBYTES);
+		DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey = (uint8_t *)sodium_malloc(crypto_box_BEFORENMBYTES);
+		DNSCurve_Target_Server_Main_IPv6.PrecomputationKey = (uint8_t *)sodium_malloc(crypto_box_BEFORENMBYTES);
+		DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey = (uint8_t *)sodium_malloc(crypto_box_BEFORENMBYTES);
+		DNSCurve_Target_Server_Main_IPv4.ServerPublicKey = new uint8_t[crypto_box_PUBLICKEYBYTES]();
+		DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey = new uint8_t[crypto_box_PUBLICKEYBYTES]();
+		DNSCurve_Target_Server_Main_IPv6.ServerPublicKey = new uint8_t[crypto_box_PUBLICKEYBYTES]();
+		DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey = new uint8_t[crypto_box_PUBLICKEYBYTES]();
+		DNSCurve_Target_Server_Main_IPv4.ServerFingerprint = new uint8_t[crypto_box_PUBLICKEYBYTES]();
+		DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint = new uint8_t[crypto_box_PUBLICKEYBYTES]();
+		DNSCurve_Target_Server_Main_IPv6.ServerFingerprint = new uint8_t[crypto_box_PUBLICKEYBYTES]();
+		DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint = new uint8_t[crypto_box_PUBLICKEYBYTES]();
+
+	//[DNSCurve Magic Number] block
+		DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_Main_IPv4.SendMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_Main_IPv6.SendMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
+		DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
+	}
+	catch (std::bad_alloc)
+	{
+	//[DNSCurve Addresses] block
+		delete[] DNSCurve_Target_Server_Main_IPv4.ProviderName;
+		delete[] DNSCurve_Target_Server_Alternate_IPv4.ProviderName;
+		delete[] DNSCurve_Target_Server_Main_IPv6.ProviderName;
+		delete[] DNSCurve_Target_Server_Alternate_IPv6.ProviderName;
+		DNSCurve_Target_Server_Main_IPv4.ProviderName = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv4.ProviderName = nullptr;
+		DNSCurve_Target_Server_Main_IPv6.ProviderName = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv6.ProviderName = nullptr;
+
+	//[DNSCurve Keys] block
+		delete[] Client_PublicKey;
+		sodium_free(Client_SecretKey);
+		sodium_free(DNSCurve_Target_Server_Main_IPv4.PrecomputationKey);
+		sodium_free(DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey);
+		sodium_free(DNSCurve_Target_Server_Main_IPv6.PrecomputationKey);
+		sodium_free(DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey);
+		delete[] DNSCurve_Target_Server_Main_IPv4.ServerPublicKey;
+		delete[] DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey;
+		delete[] DNSCurve_Target_Server_Main_IPv6.ServerPublicKey;
+		delete[] DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey;
+		delete[] DNSCurve_Target_Server_Main_IPv4.ServerFingerprint;
+		delete[] DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint;
+		delete[] DNSCurve_Target_Server_Main_IPv6.ServerFingerprint;
+		delete[] DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint;
+		Client_PublicKey = nullptr;
+		Client_SecretKey = nullptr;
+		DNSCurve_Target_Server_Main_IPv4.PrecomputationKey = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey = nullptr;
+		DNSCurve_Target_Server_Main_IPv6.PrecomputationKey = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey = nullptr;
+		DNSCurve_Target_Server_Main_IPv4.ServerPublicKey = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey = nullptr;
+		DNSCurve_Target_Server_Main_IPv6.ServerPublicKey = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey = nullptr;
+		DNSCurve_Target_Server_Main_IPv4.ServerFingerprint = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint = nullptr;
+		DNSCurve_Target_Server_Main_IPv6.ServerFingerprint = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint = nullptr;
+
+	//[DNSCurve Magic Number] block
+		delete[] DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber;
+		delete[] DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber;
+		delete[] DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber;
+		delete[] DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber;
+		delete[] DNSCurve_Target_Server_Main_IPv4.SendMagicNumber;
+		delete[] DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber;
+		delete[] DNSCurve_Target_Server_Main_IPv6.SendMagicNumber;
+		delete[] DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber;
+		DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber = nullptr;
+		DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber = nullptr;
+		DNSCurve_Target_Server_Main_IPv4.SendMagicNumber = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber = nullptr;
+		DNSCurve_Target_Server_Main_IPv6.SendMagicNumber = nullptr;
+		DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber = nullptr;
+
+		exit(EXIT_FAILURE);
+//		return;
+	}
+
+	DNSCurveConfigurationTableSetting(this);
+
+//Copy constructor
+	//[DNSCurve] block
+	DNSCurvePayloadSize = Reference.DNSCurvePayloadSize;
+	DNSCurveProtocol_Network = Reference.DNSCurveProtocol_Network;
+	DNSCurveProtocol_Transport = Reference.DNSCurveProtocol_Transport;
+	IsEncryption = Reference.IsEncryption;
+	IsEncryptionOnly = Reference.IsEncryptionOnly;
+	IsClientEphemeralKey = Reference.IsClientEphemeralKey;
+	DNSCurve_SocketTimeout_Reliable = Reference.DNSCurve_SocketTimeout_Reliable;
+	DNSCurve_SocketTimeout_Unreliable = Reference.DNSCurve_SocketTimeout_Unreliable;
+	KeyRecheckTime = Reference.KeyRecheckTime;
+
+	//[DNSCurve Addresses] block
+	DNSCurve_Target_Server_Main_IPv6.AddressData = Reference.DNSCurve_Target_Server_Main_IPv6.AddressData;
+	DNSCurve_Target_Server_Alternate_IPv6.AddressData = Reference.DNSCurve_Target_Server_Alternate_IPv6.AddressData;
+	DNSCurve_Target_Server_Main_IPv4.AddressData = Reference.DNSCurve_Target_Server_Main_IPv4.AddressData;
+	DNSCurve_Target_Server_Alternate_IPv4.AddressData = Reference.DNSCurve_Target_Server_Alternate_IPv4.AddressData;
+	if (Reference.DNSCurve_Target_Server_Main_IPv4.ProviderName != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Main_IPv4.ProviderName, DOMAIN_MAXSIZE, Reference.DNSCurve_Target_Server_Main_IPv4.ProviderName, DOMAIN_MAXSIZE);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Main_IPv4.ProviderName;
+		DNSCurve_Target_Server_Main_IPv4.ProviderName = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Alternate_IPv4.ProviderName != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Alternate_IPv4.ProviderName, DOMAIN_MAXSIZE, Reference.DNSCurve_Target_Server_Alternate_IPv4.ProviderName, DOMAIN_MAXSIZE);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Alternate_IPv4.ProviderName;
+		DNSCurve_Target_Server_Alternate_IPv4.ProviderName = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Main_IPv6.ProviderName != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Main_IPv6.ProviderName, DOMAIN_MAXSIZE, Reference.DNSCurve_Target_Server_Main_IPv6.ProviderName, DOMAIN_MAXSIZE);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Main_IPv6.ProviderName;
+		DNSCurve_Target_Server_Main_IPv6.ProviderName = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Alternate_IPv6.ProviderName != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Alternate_IPv6.ProviderName, DOMAIN_MAXSIZE, Reference.DNSCurve_Target_Server_Alternate_IPv6.ProviderName, DOMAIN_MAXSIZE);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Alternate_IPv6.ProviderName;
+		DNSCurve_Target_Server_Alternate_IPv6.ProviderName = nullptr;
+	}
+
+	//[DNSCurve Keys] block
+	if (Reference.Client_PublicKey != nullptr)
+	{
+		memcpy_s(Client_PublicKey, crypto_box_PUBLICKEYBYTES, Reference.Client_PublicKey, crypto_box_PUBLICKEYBYTES);
+	}
+	else {
+		delete[] Client_PublicKey;
+		Client_PublicKey = nullptr;
+	}
+	if (Reference.Client_SecretKey != nullptr)
+	{
+		memcpy_s(Client_SecretKey, crypto_box_SECRETKEYBYTES, Reference.Client_SecretKey, crypto_box_PUBLICKEYBYTES);
+	}
+	else {
+		delete[] Client_SecretKey;
+		Client_SecretKey = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Main_IPv4.PrecomputationKey != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Main_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES, Reference.DNSCurve_Target_Server_Main_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Main_IPv4.PrecomputationKey;
+		DNSCurve_Target_Server_Main_IPv4.PrecomputationKey = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES, Reference.DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey;
+		DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Main_IPv6.PrecomputationKey != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Main_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES, Reference.DNSCurve_Target_Server_Main_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Main_IPv6.PrecomputationKey;
+		DNSCurve_Target_Server_Main_IPv6.PrecomputationKey = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES, Reference.DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey;
+		DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Main_IPv4.ServerPublicKey != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Main_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES, Reference.DNSCurve_Target_Server_Main_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Main_IPv4.ServerPublicKey;
+		DNSCurve_Target_Server_Main_IPv4.ServerPublicKey = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES, Reference.DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey;
+		DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Main_IPv6.ServerPublicKey != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Main_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES, Reference.DNSCurve_Target_Server_Main_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Main_IPv6.ServerPublicKey;
+		DNSCurve_Target_Server_Main_IPv6.ServerPublicKey = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES, Reference.DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey, crypto_box_PUBLICKEYBYTES);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey;
+		DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Main_IPv4.ServerFingerprint != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Main_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES, Reference.DNSCurve_Target_Server_Main_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Main_IPv4.ServerFingerprint;
+		DNSCurve_Target_Server_Main_IPv4.ServerFingerprint = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES, Reference.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint;
+		DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Main_IPv6.ServerFingerprint != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Main_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES, Reference.DNSCurve_Target_Server_Main_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Main_IPv6.ServerFingerprint;
+		DNSCurve_Target_Server_Main_IPv6.ServerFingerprint = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES, Reference.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint;
+		DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint = nullptr;
+	}
+	
+
+	//[DNSCurve Magic Number] block
+	if (Reference.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, Reference.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber;
+		DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, Reference.DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber;
+		DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, Reference.DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber;
+		DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, Reference.DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber;
+		DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Main_IPv4.SendMagicNumber != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Main_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, Reference.DNSCurve_Target_Server_Main_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Main_IPv4.SendMagicNumber;
+		DNSCurve_Target_Server_Main_IPv4.SendMagicNumber = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, Reference.DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber;
+		DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Main_IPv6.SendMagicNumber != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Main_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, Reference.DNSCurve_Target_Server_Main_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Main_IPv6.SendMagicNumber;
+		DNSCurve_Target_Server_Main_IPv6.SendMagicNumber = nullptr;
+	}
+	if (Reference.DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber != nullptr)
+	{
+		memcpy_s(DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, Reference.DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+	}
+	else {
+		delete[] DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber;
+		DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber = nullptr;
+	}
+
 	return;
 }
 
@@ -1013,8 +2036,8 @@ void DNSCurveConfigurationTableSetting(
 
 //Default settings
 	//[DNSCurve] block
-	DNSCurveConfigurationParameter->DNSCurveProtocol_Network = REQUEST_MODE_BOTH;
-	DNSCurveConfigurationParameter->DNSCurveProtocol_Transport = REQUEST_MODE_UDP;
+	DNSCurveConfigurationParameter->DNSCurveProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
+	DNSCurveConfigurationParameter->DNSCurveProtocol_Transport = REQUEST_MODE_TRANSPORT::UDP;
 	DNSCurveConfigurationParameter->DNSCurvePayloadSize = EDNS_PACKET_MINSIZE;
 #if defined(PLATFORM_WIN)
 	DNSCurveConfigurationParameter->DNSCurve_SocketTimeout_Reliable = DEFAULT_DNSCURVE_RELIABLE_SOCKET_TIMEOUT;
@@ -1262,6 +2285,21 @@ void DNSCurveConfigurationTable::MonitorItemReset(
 
 	return;
 }
+
+//DNSCurveSocketSelectingTable class constructor
+DNSCurveSocketSelectingTable::DNSCurveSocketSelectingTable(
+	void)
+{
+	ServerType = DNSCURVE_SERVER_TYPE::NONE;
+	PrecomputationKey = nullptr;
+	ReceiveMagicNumber = nullptr;
+	SendBuffer = nullptr;
+	SendSize = 0;
+	RecvLen = 0;
+	IsPacketDone = false;
+
+	return;
+}
 #endif
 
 #if defined(ENABLE_TLS)
@@ -1296,6 +2334,7 @@ OpenSSLContextTable::OpenSSLContextTable(
 	MethodContext = nullptr;
 	SessionBIO = nullptr;
 	SessionData = nullptr;
+	Protocol = 0;
 
 	return;
 }

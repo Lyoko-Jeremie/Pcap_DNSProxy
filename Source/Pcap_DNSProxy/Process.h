@@ -46,7 +46,7 @@ bool DirectRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
-	const bool DirectRequest);
+	const bool IsDirectRequest);
 #if defined(ENABLE_LIBSODIUM)
 bool DNSCurveRequestProcess(
 	const MONITOR_QUEUE_DATA &MonitorQueryData, 
@@ -63,6 +63,6 @@ void UDP_RequestProcess(
 #endif
 uint16_t SelectNetworkProtocol(
 	void);
-void AutoClearDNSCache(
+void AutoClear_DNS_Cache(
 	void);
 #endif

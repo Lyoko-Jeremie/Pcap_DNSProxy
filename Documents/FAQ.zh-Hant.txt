@@ -217,7 +217,8 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
 7.DNSCurve Error - DNSCurve 協定錯誤
   * Libsodium initialization error - Libsodium 庫初始化錯誤：建議重新開機服務或程式
   * Client keypair error - 自訂用戶端金鑰組錯誤：請檢查金鑰組的正確性
-  * Key calculating error -> 金鑰計算錯誤：建議重新開機服務或程式
+  * Key calculating error - 金鑰計算錯誤：建議重新開機服務或程式
+  * DNSCurve Payload Size must remain a multiple of 64 bytes - DNSCurve 載荷長度錯誤：載荷長度必須為 64 位元組的倍數
   * IPv6 Main Server TCP get signature data error - IPv6 TCP 協定主要伺服器加密握手錯誤：請檢查該伺服器是否可用
   * IPv6 Alternate Server TCP get signature data error - IPv6 TCP 協定待命伺服器加密握手錯誤：請檢查該伺服器是否可用
   * IPv4 Main Server TCP get signature data error - IPv4 TCP 協定主要伺服器加密握手錯誤：請檢查該伺服器是否可用
@@ -273,7 +274,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * OpenSSL receive data error - OpenSSL 接收資料錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
 
 11.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
-  * Old log file was deleted - 錯誤日誌檔已滿並被刪除
+  * Old log file was removed - 錯誤日誌檔已滿並被刪除
     * 日誌檔最大容量的配置參見 詳細說明文檔 中 設定檔詳細參數說明 中的 Log Maximum Size 參數
   * Listen Port is empty, set to standard DNS port(53) - 本地監聽埠參數為空：程式將自動設置為標準 DNS 協定埠（53）
   * TCP Data Filter require TCP Request Mode - 開啟 TCP 資料包頭檢測時必須將 Request Mode 設置為 TCP：程式將自動關閉此功能

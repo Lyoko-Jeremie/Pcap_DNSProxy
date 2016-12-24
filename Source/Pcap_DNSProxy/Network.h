@@ -38,10 +38,10 @@ extern std::mutex SocketMarkingLock;
 
 //Functions
 ssize_t SelectingResultOnce(
-	const size_t RequestType, 
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<SOCKET_SELECTING_ONCE_DATA> *SocketSelectingList, 
+	std::vector<SOCKET_SELECTING_ONCE_TABLE> *SocketSelectingList, 
 	void * const OriginalDNSCurveSocketSelectingList, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);

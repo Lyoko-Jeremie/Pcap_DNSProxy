@@ -42,7 +42,7 @@ bool FirewallTest(
 		FirewallSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 
 	//Bind local socket.
-		if (!SocketSetting(FirewallSocket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
+		if (!SocketSetting(FirewallSocket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr))
 		{
 			ErrorCode = WSAGetLastError();
 			return false;
@@ -59,7 +59,7 @@ bool FirewallTest(
 				}
 				else {
 					ErrorCode = WSAGetLastError();
-					SocketSetting(FirewallSocket, SOCKET_SETTING_CLOSE, false, nullptr);
+					SocketSetting(FirewallSocket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 					return false;
 				}
@@ -75,7 +75,7 @@ bool FirewallTest(
 		FirewallSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 	//Bind local socket.
-		if (!SocketSetting(FirewallSocket, SOCKET_SETTING_INVALID_CHECK, true, nullptr))
+		if (!SocketSetting(FirewallSocket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr))
 		{
 			ErrorCode = WSAGetLastError();
 			return false;
@@ -92,7 +92,7 @@ bool FirewallTest(
 				}
 				else {
 					ErrorCode = WSAGetLastError();
-					SocketSetting(FirewallSocket, SOCKET_SETTING_CLOSE, false, nullptr);
+					SocketSetting(FirewallSocket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 					return false;
 				}
@@ -104,7 +104,7 @@ bool FirewallTest(
 	}
 
 //Close socket.
-	SocketSetting(FirewallSocket, SOCKET_SETTING_CLOSE, false, nullptr);
+	SocketSetting(FirewallSocket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 	return true;
 }
 #endif
@@ -112,14 +112,14 @@ bool FirewallTest(
 //Socket option settings
 bool SocketSetting(
 	const SYSTEM_SOCKET Socket, 
-	const size_t SettingType, 
+	const SOCKET_SETTING_TYPE SettingType, 
 	const bool IsPrintError, 
 	void * const DataPointer)
 {
 	switch (SettingType)
 	{
 	//Socket invalid check
-		case SOCKET_SETTING_INVALID_CHECK:
+		case SOCKET_SETTING_TYPE::INVALID_CHECK:
 		{
 		#if defined(PLATFORM_WIN)
 			if (Socket == 0 || Socket == INVALID_SOCKET || Socket == SOCKET_ERROR)
@@ -128,13 +128,13 @@ bool SocketSetting(
 		#endif
 			{
 				if (IsPrintError)
-					PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Socket initialization error", WSAGetLastError(), nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket initialization error", WSAGetLastError(), nullptr, 0);
 
 				return false;
 			}
 		}break;
 	//Socket closing process
-		case SOCKET_SETTING_CLOSE:
+		case SOCKET_SETTING_TYPE::CLOSE:
 		{
 		#if defined(PLATFORM_WIN)
 			if (Socket != 0 && Socket != INVALID_SOCKET && Socket != SOCKET_ERROR)
@@ -147,7 +147,7 @@ bool SocketSetting(
 			}
 		}break;
 	//Socket attribute setting(Timeout)
-		case SOCKET_SETTING_TIMEOUT:
+		case SOCKET_SETTING_TYPE::TIMEOUT:
 		{
 		//Pointer check
 			if (DataPointer == nullptr)
@@ -155,7 +155,7 @@ bool SocketSetting(
 
 		//Socket timeout options
 		#if defined(PLATFORM_WIN)
-			const DWORD OptionValue = *(DWORD *)DataPointer;
+			const auto OptionValue = *(DWORD *)DataPointer;
 			if (setsockopt(Socket, SOL_SOCKET, SO_SNDTIMEO, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR || 
 				setsockopt(Socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
@@ -164,7 +164,7 @@ bool SocketSetting(
 		#endif
 			{
 				if (IsPrintError)
-					PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Socket timeout setting error", WSAGetLastError(), nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket timeout setting error", WSAGetLastError(), nullptr, 0);
 				shutdown(Socket, SD_BOTH);
 				closesocket(Socket);
 
@@ -172,7 +172,7 @@ bool SocketSetting(
 			}
 		}break;
 	//Socket attribute setting(Reusing)
-		case SOCKET_SETTING_REUSE:
+		case SOCKET_SETTING_TYPE::REUSE:
 		{
 		#if defined(PLATFORM_WIN)
 		//Preventing other sockets from being forcibly bound to the same address and port(Windows).
@@ -180,7 +180,7 @@ bool SocketSetting(
 			if (setsockopt(Socket, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			{
 				if (IsPrintError)
-					PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Socket reusing disable setting error", WSAGetLastError(), nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket reusing disable setting error", WSAGetLastError(), nullptr, 0);
 				shutdown(Socket, SD_BOTH);
 				closesocket(Socket);
 
@@ -194,19 +194,19 @@ bool SocketSetting(
 			if (setsockopt(Socket, SOL_SOCKET, SO_REUSEADDR, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			{
 				if (IsPrintError)
-					PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Socket reusing enable setting error", errno, nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket reusing enable setting error", errno, nullptr, 0);
 				shutdown(Socket, SHUT_RDWR);
 				close(Socket);
 
 				return false;
 			}
 */
-		//Set an IPv6 server socket that must not accept IPv4 connections in Linux.
+		//Set an IPv6 server socket that must not accept IPv4 connections in Linux and macOS.
 			errno = 0;
 			if (setsockopt(Socket, IPPROTO_IPV6, IPV6_V6ONLY, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			{
 				if (IsPrintError)
-					PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Socket treating wildcard bind setting error", errno, nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket treating wildcard bind setting error", errno, nullptr, 0);
 				shutdown(Socket, SHUT_RDWR);
 				close(Socket);
 
@@ -216,7 +216,7 @@ bool SocketSetting(
 		}break;
 	//Socket attribute setting(TFO/TCP Fast Open)
 	//It seems that TCP Fast Open option is not ready in Windows and macOS(2016-11-28).
-		case SOCKET_SETTING_TCP_FAST_OPEN:
+		case SOCKET_SETTING_TYPE::TCP_FAST_OPEN:
 		{
 		//Global parameter check
 			if (!Parameter.TCP_FastOpen)
@@ -228,7 +228,7 @@ bool SocketSetting(
 			if (setsockopt(Socket, IPPROTO_TCP, TCP_FASTOPEN, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			{
 				if (IsPrintError)
-					PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Socket TCP Fast Open setting error", WSAGetLastError(), nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket TCP Fast Open setting error", WSAGetLastError(), nullptr, 0);
 				shutdown(Socket, SD_BOTH);
 				closesocket(Socket);
 
@@ -240,7 +240,7 @@ bool SocketSetting(
 			if (setsockopt(Socket, SOL_TCP, TCP_FASTOPEN, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			{
 				if (IsPrintError)
-					PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Socket TCP Fast Open setting error", errno, nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket TCP Fast Open setting error", errno, nullptr, 0);
 				shutdown(Socket, SHUT_RDWR);
 				close(Socket);
 
@@ -249,7 +249,7 @@ bool SocketSetting(
 		#endif
 		}break;
 	//Socket attribute setting(Non-blocking mode)
-		case SOCKET_SETTING_NON_BLOCKING_MODE:
+		case SOCKET_SETTING_TYPE::NON_BLOCKING_MODE:
 		{
 		#if defined(PLATFORM_WIN)
 			unsigned long SocketMode = TRUE;
@@ -260,7 +260,7 @@ bool SocketSetting(
 		#endif
 			{
 				if (IsPrintError)
-					PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Socket non-blocking mode setting error", WSAGetLastError(), nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket non-blocking mode setting error", WSAGetLastError(), nullptr, 0);
 				shutdown(Socket, SD_BOTH);
 				closesocket(Socket);
 
@@ -269,7 +269,7 @@ bool SocketSetting(
 		}break;
 /* TCP keep alive mode
 	//Socket attribute setting(TCP keep alive mode)
-		case SOCKET_SETTING_TCP_KEEPALIVE:
+		case SOCKET_SETTING_TYPE::TCP_KEEP_ALIVE:
 		{
 		#if defined(PLATFORM_WIN)
 			const DWORD OptionValue = TRUE;
@@ -310,14 +310,14 @@ bool SocketSetting(
 */
 	//Socket attribute setting(UDP RESET message blocking)
 	#if defined(PLATFORM_WIN)
-		case SOCKET_SETTING_UDP_BLOCK_RESET:
+		case SOCKET_SETTING_TYPE::UDP_BLOCK_RESET:
 		{
 			BOOL NewBehavior = FALSE;
 			DWORD BytesReturned = 0;
 			if (WSAIoctl(Socket, SIO_UDP_CONNRESET, &NewBehavior, sizeof(BOOL), nullptr, 0, &BytesReturned, nullptr, nullptr) == SOCKET_ERROR)
 			{
 				if (IsPrintError)
-					PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Socket UDP block RESET message setting error", WSAGetLastError(), nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket UDP block RESET message setting error", WSAGetLastError(), nullptr, 0);
 				shutdown(Socket, SD_BOTH);
 				closesocket(Socket);
 
@@ -326,7 +326,7 @@ bool SocketSetting(
 		}break;
 	#endif
 	//Socket attribute setting(IPv4 header TTL)
-		case SOCKET_SETTING_HOP_LIMITS_IPV4:
+		case SOCKET_SETTING_TYPE::HOP_LIMIT_IPV4:
 		{
 		//Range
 			if (Parameter.PacketHopLimits_IPv4_End > 0)
@@ -334,16 +334,16 @@ bool SocketSetting(
 			//Socket attribute setting process
 			#if defined(PLATFORM_WIN)
 				std::uniform_int_distribution<DWORD> RamdomDistribution(Parameter.PacketHopLimits_IPv4_Begin, Parameter.PacketHopLimits_IPv4_End);
-				const DWORD OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+				const auto OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 				if (setsockopt(Socket, IPPROTO_IP, IP_TTL, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				std::uniform_int_distribution<int> RamdomDistribution(Parameter.PacketHopLimits_IPv4_Begin, Parameter.PacketHopLimits_IPv4_End);
-				const int OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+				const auto OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 				if (setsockopt(Socket, IPPROTO_IP, IP_TTL, &OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			#endif
 				{
 					if (IsPrintError)
-						PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Socket Hop Limits setting error", WSAGetLastError(), nullptr, 0);
+						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket Hop Limits setting error", WSAGetLastError(), nullptr, 0);
 					shutdown(Socket, SD_BOTH);
 					closesocket(Socket);
 
@@ -360,7 +360,7 @@ bool SocketSetting(
 			#endif
 				{
 					if (IsPrintError)
-						PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Socket Hop Limits setting error", WSAGetLastError(), nullptr, 0);
+						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket Hop Limits setting error", WSAGetLastError(), nullptr, 0);
 					shutdown(Socket, SD_BOTH);
 					closesocket(Socket);
 
@@ -369,7 +369,7 @@ bool SocketSetting(
 			}
 		}break;
 	//Socket attribute setting(IPv6 header Hop Limts)
-		case SOCKET_SETTING_HOP_LIMITS_IPV6:
+		case SOCKET_SETTING_TYPE::HOP_LIMIT_IPV6:
 		{
 		//Range
 			if (Parameter.PacketHopLimits_IPv6_End > 0)
@@ -377,16 +377,16 @@ bool SocketSetting(
 			//Socket attribute setting process
 			#if defined(PLATFORM_WIN)
 				std::uniform_int_distribution<DWORD> RamdomDistribution(Parameter.PacketHopLimits_IPv6_Begin, Parameter.PacketHopLimits_IPv6_End);
-				const DWORD OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+				const auto OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 				if (setsockopt(Socket, IPPROTO_IPV6, IPV6_UNICAST_HOPS, (const char *)&OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				std::uniform_int_distribution<int> RamdomDistribution(Parameter.PacketHopLimits_IPv6_Begin, Parameter.PacketHopLimits_IPv6_End);
-				const int OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+				const auto OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
 				if (setsockopt(Socket, IPPROTO_IPV6, IPV6_UNICAST_HOPS, &OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			#endif
 				{
 					if (IsPrintError)
-						PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Socket Hop Limits setting error", WSAGetLastError(), nullptr, 0);
+						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket Hop Limits setting error", WSAGetLastError(), nullptr, 0);
 					shutdown(Socket, SD_BOTH);
 					closesocket(Socket);
 
@@ -403,7 +403,7 @@ bool SocketSetting(
 			#endif
 				{
 					if (IsPrintError)
-						PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Socket Hop Limits setting error", WSAGetLastError(), nullptr, 0);
+						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket Hop Limits setting error", WSAGetLastError(), nullptr, 0);
 					shutdown(Socket, SD_BOTH);
 					closesocket(Socket);
 
@@ -412,9 +412,9 @@ bool SocketSetting(
 			}
 		}break;
 	//Socket attribute setting(IPv4 header Do Not Fragment flag)
-	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-		case SOCKET_SETTING_DO_NOT_FRAGMENT:
+		case SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT:
 		{
+		#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 			if (Parameter.DoNotFragment)
 			{
 			#if defined(PLATFORM_WIN)
@@ -426,15 +426,15 @@ bool SocketSetting(
 			#endif
 				{
 					if (IsPrintError)
-						PrintError(LOG_LEVEL_2, LOG_ERROR_NETWORK, L"Socket Do Not Fragment flag setting error", WSAGetLastError(), nullptr, 0);
+						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket Do Not Fragment flag setting error", WSAGetLastError(), nullptr, 0);
 					shutdown(Socket, SD_BOTH);
 					closesocket(Socket);
 
 					return EXIT_FAILURE;
 				}
 			}
+		#endif
 		}break;
-	#endif
 	}
 
 	return true;
@@ -442,13 +442,14 @@ bool SocketSetting(
 
 //Select socket data of DNS target
 size_t SelectTargetSocketSingle(
-	const size_t RequestType, 
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint16_t Protocol, 
 	SOCKET_DATA * const TargetSocketData, 
-	void ** const DNSCurvePacketTarget, 
 	bool ** const IsAlternate, 
 	size_t ** const AlternateTimeoutTimes, 
-	const ADDRESS_UNION_DATA * const SpecifieTargetData)
+	const ADDRESS_UNION_DATA * const SpecifieTargetData, 
+	void * DNSCurvePacketServerType, 
+	void ** const DNSCurvePacketTarget)
 {
 //Socket type and request type check
 	uint16_t SocketType = 0;
@@ -458,31 +459,32 @@ size_t SelectTargetSocketSingle(
 		SocketType = SOCK_DGRAM;
 	else 
 		return EXIT_FAILURE;
-#if defined(ENABLE_LIBSODIUM)
-	auto PacketTarget = (DNSCURVE_SERVER_DATA **)DNSCurvePacketTarget;
-	size_t ServerType = 0;
 
 //Select DNSCurve target socket
-	if (RequestType == REQUEST_PROCESS_DNSCURVE_MAIN)
+#if defined(ENABLE_LIBSODIUM)
+	if (RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
 	{
-		if (PacketTarget == nullptr)
+	//Pointer check
+		auto PacketTarget = (DNSCURVE_SERVER_DATA **)DNSCurvePacketTarget;
+		if (PacketTarget == nullptr || DNSCurvePacketServerType == nullptr)
 			return EXIT_FAILURE;
 
 	//IPv6
 		if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
-			((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
-			DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 || //IPv6
-			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
+			((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
+			DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV6 || //IPv6
+			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV4 && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 		{
+		//Timeout settings
 			if (Protocol == IPPROTO_TCP)
 			{
-				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_DNSCURVE_TCP_IPV6];
-				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_TCP_IPV6];
+				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_DNSCURVE_TCP_IPV6];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_TCP_IPV6];
 			}
 			else if (Protocol == IPPROTO_UDP)
 			{
-				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_DNSCURVE_UDP_IPV6];
-				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_UDP_IPV6];
+				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV6];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV6];
 			}
 			else {
 				return EXIT_FAILURE;
@@ -502,14 +504,16 @@ size_t SelectTargetSocketSingle(
 						**IsAlternate = false;
 			}
 
+		//Alternate
 			if (**IsAlternate && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0)
 			{
 				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_addr = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_addr;
 				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_port = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_port;
 				*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6;
-				ServerType = DNSCURVE_ALTERNATE_IPV6;
+				*(DNSCURVE_SERVER_TYPE *)DNSCurvePacketServerType = DNSCURVE_SERVER_TYPE::ALTERNATE_IPV6;
 			}
-			else { //Main
+		//Main
+			else {
 			//Encryption mode check
 				if (DNSCurveParameter.IsEncryption && 
 					((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
@@ -520,40 +524,39 @@ size_t SelectTargetSocketSingle(
 				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_addr = DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.IPv6.sin6_addr;
 				((PSOCKADDR_IN6)&TargetSocketData->SockAddr)->sin6_port = DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.IPv6.sin6_port;
 				*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6;
-				ServerType = DNSCURVE_MAIN_IPV6;
+				*(DNSCURVE_SERVER_TYPE *)DNSCurvePacketServerType = DNSCURVE_SERVER_TYPE::MAIN_IPV6;
 			}
 
+		//Socket attribute settings
 			TargetSocketData->AddrLen = sizeof(sockaddr_in6);
 			TargetSocketData->SockAddr.ss_family = AF_INET6;
 			TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
-			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
-				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
-				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr))
+			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
+				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::HOP_LIMIT_IPV6, true, nullptr))
 			{
-				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				TargetSocketData->Socket = 0;
 
 				return EXIT_FAILURE;
 			}
-			else {
-				return ServerType;
-			}
 		}
 	//IPv4
 		else if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
-			((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
-			DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV4 || //IPv4
-			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_IPV6 && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
+			((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
+			DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV4 || //IPv4
+			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV6 && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 		{
+		//Timeout settings
 			if (Protocol == IPPROTO_TCP)
 			{
-				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_DNSCURVE_TCP_IPV4];
-				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_TCP_IPV4];
+				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_DNSCURVE_TCP_IPV4];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_TCP_IPV4];
 			}
 			else if (Protocol == IPPROTO_UDP)
 			{
-				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_DNSCURVE_UDP_IPV4];
-				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_DNSCURVE_UDP_IPV4];
+				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4];
 			}
 			else {
 				return EXIT_FAILURE;
@@ -573,14 +576,16 @@ size_t SelectTargetSocketSingle(
 						**IsAlternate = false;
 			}
 
+		//Alternate
 			if (**IsAlternate && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0)
 			{
 				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_addr = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.IPv4.sin_addr;
 				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_port = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.IPv4.sin_port;
 				*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4;
-				ServerType = DNSCURVE_ALTERNATE_IPV4;
+				*(DNSCURVE_SERVER_TYPE *)DNSCurvePacketServerType = DNSCURVE_SERVER_TYPE::ALTERNATE_IPV4;
 			}
-			else { //Main
+		//Main
+			else {
 			//Encryption mode check
 				if (DNSCurveParameter.IsEncryption && 
 					((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
@@ -591,24 +596,22 @@ size_t SelectTargetSocketSingle(
 				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_addr = DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.IPv4.sin_addr;
 				((PSOCKADDR_IN)&TargetSocketData->SockAddr)->sin_port = DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.IPv4.sin_port;
 				*PacketTarget = &DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4;
-				ServerType = DNSCURVE_MAIN_IPV4;
+				*(DNSCURVE_SERVER_TYPE *)DNSCurvePacketServerType = DNSCURVE_SERVER_TYPE::MAIN_IPV4;
 			}
 
+		//Socket attribute settings
 			TargetSocketData->AddrLen = sizeof(sockaddr_in);
 			TargetSocketData->SockAddr.ss_family = AF_INET;
 			TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
-			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
-				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
-				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
-				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
+			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
+				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::HOP_LIMIT_IPV4, true, nullptr) || 
+				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))
 			{
-				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				TargetSocketData->Socket = 0;
 
 				return EXIT_FAILURE;
-			}
-			else {
-				return ServerType;
 			}
 		}
 
@@ -626,11 +629,11 @@ size_t SelectTargetSocketSingle(
 			TargetSocketData->SockAddr.ss_family = AF_INET6;
 			TargetSocketData->AddrLen = sizeof(sockaddr_in6);
 			TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
-			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
-				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
-				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr))
+			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
+				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::HOP_LIMIT_IPV6, true, nullptr))
 			{
-				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				TargetSocketData->Socket = 0;
 
 				return EXIT_FAILURE;
@@ -643,12 +646,12 @@ size_t SelectTargetSocketSingle(
 			TargetSocketData->SockAddr.ss_family = AF_INET;
 			TargetSocketData->AddrLen = sizeof(sockaddr_in);
 			TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
-			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
-				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
-				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
-				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
+			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
+				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::HOP_LIMIT_IPV4, true, nullptr) || 
+				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))
 			{
-				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				TargetSocketData->Socket = 0;
 
 				return EXIT_FAILURE;
@@ -659,23 +662,23 @@ size_t SelectTargetSocketSingle(
 		}
 	}
 //Local request
-	else if (RequestType == REQUEST_PROCESS_LOCAL)
+	else if (RequestType == REQUEST_PROCESS_TYPE::LOCAL)
 	{
 	//IPv6
 		if (Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family != 0 && 
-			((Parameter.LocalProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
-			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV6 || //IPv6
-			(Parameter.LocalProtocol_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0))) //Non-IPv4
+			((Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
+			Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK::IPV6 || //IPv6
+			(Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK::IPV4 && Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0))) //Non-IPv4
 		{
 			if (Protocol == IPPROTO_TCP)
 			{
-				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_LOCAL_TCP_IPV6];
-				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_LOCAL_TCP_IPV6];
+				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_LOCAL_TCP_IPV6];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_LOCAL_TCP_IPV6];
 			}
 			else if (Protocol == IPPROTO_UDP)
 			{
-				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_LOCAL_UDP_IPV6];
-				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_LOCAL_UDP_IPV6];
+				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_LOCAL_UDP_IPV6];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_LOCAL_UDP_IPV6];
 			}
 			else {
 				return EXIT_FAILURE;
@@ -696,11 +699,11 @@ size_t SelectTargetSocketSingle(
 			TargetSocketData->SockAddr.ss_family = AF_INET6;
 			TargetSocketData->AddrLen = sizeof(sockaddr_in6);
 			TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
-			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
-				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
-				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr))
+			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
+				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::HOP_LIMIT_IPV6, true, nullptr))
 			{
-				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				TargetSocketData->Socket = 0;
 
 				return EXIT_FAILURE;
@@ -708,19 +711,19 @@ size_t SelectTargetSocketSingle(
 		}
 	//IPv4
 		else if (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family != 0 && 
-			((Parameter.LocalProtocol_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
-			Parameter.LocalProtocol_Network == REQUEST_MODE_IPV4 || //IPv4
-			(Parameter.LocalProtocol_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0))) //Non-IPv6
+			((Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
+			Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK::IPV4 || //IPv4
+			(Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK::IPV6 && Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0))) //Non-IPv6
 		{
 			if (Protocol == IPPROTO_TCP)
 			{
-				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_LOCAL_TCP_IPV4];
-				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_LOCAL_TCP_IPV4];
+				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_LOCAL_TCP_IPV4];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_LOCAL_TCP_IPV4];
 			}
 			else if (Protocol == IPPROTO_UDP)
 			{
-				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_LOCAL_UDP_IPV4];
-				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_LOCAL_UDP_IPV4];
+				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_LOCAL_UDP_IPV4];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_LOCAL_UDP_IPV4];
 			}
 			else {
 				return EXIT_FAILURE;
@@ -741,12 +744,12 @@ size_t SelectTargetSocketSingle(
 			TargetSocketData->SockAddr.ss_family = AF_INET;
 			TargetSocketData->AddrLen = sizeof(sockaddr_in);
 			TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
-			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
-				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
-				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
-				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
+			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
+				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::HOP_LIMIT_IPV4, true, nullptr) || 
+				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))
 			{
-				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				TargetSocketData->Socket = 0;
 
 				return EXIT_FAILURE;
@@ -760,19 +763,19 @@ size_t SelectTargetSocketSingle(
 	else {
 	//IPv6
 		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
-			((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-			(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
+			((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
+			Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 || //IPv6
+			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 		{
 			if (Protocol == IPPROTO_TCP)
 			{
-				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_MAIN_TCP_IPV6];
-				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV6];
+				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_MAIN_TCP_IPV6];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_MAIN_TCP_IPV6];
 			}
 			else if (Protocol == IPPROTO_UDP)
 			{
-				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_MAIN_UDP_IPV6];
-				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV6];
+				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_MAIN_UDP_IPV6];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_MAIN_UDP_IPV6];
 			}
 			else {
 				return false;
@@ -793,11 +796,11 @@ size_t SelectTargetSocketSingle(
 			TargetSocketData->SockAddr.ss_family = AF_INET6;
 			TargetSocketData->AddrLen = sizeof(sockaddr_in6);
 			TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
-			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
-				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
-				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr))
+			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
+				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::HOP_LIMIT_IPV6, true, nullptr))
 			{
-				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				TargetSocketData->Socket = 0;
 
 				return EXIT_FAILURE;
@@ -805,19 +808,19 @@ size_t SelectTargetSocketSingle(
 		}
 	//IPv4
 		else if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
-			((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
-			Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-			(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
+			((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
+			Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 || //IPv4
+			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 		{
 			if (Protocol == IPPROTO_TCP)
 			{
-				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_MAIN_TCP_IPV4];
-				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV4];
+				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_MAIN_TCP_IPV4];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_MAIN_TCP_IPV4];
 			}
 			else if (Protocol == IPPROTO_UDP)
 			{
-				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_MAIN_UDP_IPV4];
-				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV4];
+				*IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_MAIN_UDP_IPV4];
+				*AlternateTimeoutTimes = &AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_MAIN_UDP_IPV4];
 			}
 			else {
 				return EXIT_FAILURE;
@@ -838,12 +841,12 @@ size_t SelectTargetSocketSingle(
 			TargetSocketData->SockAddr.ss_family = AF_INET;
 			TargetSocketData->AddrLen = sizeof(sockaddr_in);
 			TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
-			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
-				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
-				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
-				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
+			if (!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
+				(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::HOP_LIMIT_IPV4, true, nullptr) || 
+				!SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))
 			{
-				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				SocketSetting(TargetSocketData->Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				TargetSocketData->Socket = 0;
 
 				return EXIT_FAILURE;
@@ -877,15 +880,15 @@ bool SelectTargetSocketMultiple(
 
 //IPv6
 	if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
-		((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-		(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
+		((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
+		Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 || //IPv6
+		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 	{
 	//Set Alternate swap list.
 		if (Protocol == IPPROTO_TCP)
-			IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_MAIN_TCP_IPV6];
+			IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_MAIN_TCP_IPV6];
 		else if (Protocol == IPPROTO_UDP)
-			IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_MAIN_UDP_IPV6];
+			IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_MAIN_UDP_IPV6];
 		else 
 			return false;
 
@@ -899,14 +902,14 @@ bool SelectTargetSocketMultiple(
 				TargetSocketData.Socket = socket(AF_INET6, SocketType, Protocol);
 
 			//Socket attribute settings
-				if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
-					(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
-					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
-					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr))
+				if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
+					(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
+					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMIT_IPV6, true, nullptr))
 				{
 					for (auto &SocketDataIter:TargetSocketDataList)
 					{
-						SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+						SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 						SocketDataIter.Socket = 0;
 					}
 
@@ -928,14 +931,14 @@ bool SelectTargetSocketMultiple(
 				TargetSocketData.Socket = socket(AF_INET6, SocketType, Protocol);
 
 			//Socket attribute settings
-				if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
-					(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
-					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
-					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr))
+				if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
+					(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
+					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMIT_IPV6, true, nullptr))
 				{
 					for (auto &SocketDataIter:TargetSocketDataList)
 					{
-						SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+						SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 						SocketDataIter.Socket = 0;
 					}
 
@@ -959,14 +962,14 @@ bool SelectTargetSocketMultiple(
 					TargetSocketData.Socket = socket(AF_INET6, SocketType, Protocol);
 
 				//Socket attribute settings
-					if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
-						(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
-						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
-						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV6, true, nullptr))
+					if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
+						(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
+						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMIT_IPV6, true, nullptr))
 					{
 						for (auto &SocketDataIter:TargetSocketDataList)
 						{
-							SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+							SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 							SocketDataIter.Socket = 0;
 						}
 
@@ -981,15 +984,15 @@ bool SelectTargetSocketMultiple(
 	}
 //IPv4
 	else if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
-		((Parameter.RequestMode_Network == REQUEST_MODE_BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
-		Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-		(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
+		((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
+		Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 || //IPv4
+		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 	{
 	//Set Alternate swap list.
 		if (Protocol == IPPROTO_TCP)
-			IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_MAIN_TCP_IPV4];
+			IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_MAIN_TCP_IPV4];
 		else if (Protocol == IPPROTO_UDP)
-			IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_TYPE_MAIN_UDP_IPV4];
+			IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_MAIN_UDP_IPV4];
 		else 
 			return false;
 
@@ -1003,15 +1006,15 @@ bool SelectTargetSocketMultiple(
 				TargetSocketData.Socket = socket(AF_INET, SocketType, Protocol);
 
 			//Socket attribute settings
-				if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
-					(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
-					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
-					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
-					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
+				if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
+					(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
+					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMIT_IPV4, true, nullptr) || 
+					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))
 				{
 					for (auto &SocketDataIter:TargetSocketDataList)
 					{
-						SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+						SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 						SocketDataIter.Socket = 0;
 					}
 
@@ -1033,15 +1036,15 @@ bool SelectTargetSocketMultiple(
 				TargetSocketData.Socket = socket(AF_INET, SocketType, Protocol);
 
 			//Socket attribute settings
-				if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
-					(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
-					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
-					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
-					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
+				if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
+					(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
+					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMIT_IPV4, true, nullptr) || 
+					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))
 				{
 					for (auto &SocketDataIter:TargetSocketDataList)
 					{
-						SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+						SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 						SocketDataIter.Socket = 0;
 					}
 
@@ -1065,15 +1068,15 @@ bool SelectTargetSocketMultiple(
 					TargetSocketData.Socket = socket(AF_INET, SocketType, Protocol);
 
 				//Socket attribute settings
-					if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_INVALID_CHECK, true, nullptr) || 
-						(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TCP_FAST_OPEN, true, nullptr)) || 
-						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_NON_BLOCKING_MODE, true, nullptr) || 
-						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_HOP_LIMITS_IPV4, true, nullptr) || 
-						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_DO_NOT_FRAGMENT, true, nullptr))
+					if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
+						(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
+						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMIT_IPV4, true, nullptr) || 
+						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))
 					{
 						for (auto &SocketDataIter:TargetSocketDataList)
 						{
-							SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+							SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 							SocketDataIter.Socket = 0;
 						}
 
@@ -1105,10 +1108,8 @@ size_t SocketConnecting(
 //TCP connecting
 	if (Protocol == IPPROTO_TCP)
 	{
-		ssize_t ErrorCode = 0;
-
 	#if defined(PLATFORM_LINUX)
-		if (Parameter.TCP_FastOpen && OriginalSend != nullptr && SendSize >= DNS_PACKET_MINSIZE)
+		if (Parameter.TCP_FastOpen && OriginalSend != nullptr && SendSize > 0)
 		{
 			errno = 0;
 			ssize_t RecvLen = sendto(Socket, OriginalSend, (int)SendSize, MSG_FASTOPEN, SockAddr, AddrLen);
@@ -1123,7 +1124,7 @@ size_t SocketConnecting(
 	#endif
 			if (connect(Socket, SockAddr, AddrLen) == SOCKET_ERROR)
 			{
-				ErrorCode = WSAGetLastError();
+				ssize_t ErrorCode = WSAGetLastError();
 
 			#if defined(PLATFORM_WIN)
 				if (ErrorCode != WSAEWOULDBLOCK)
@@ -1143,8 +1144,8 @@ size_t SocketConnecting(
 	{
 		if (connect(Socket, SockAddr, AddrLen) == SOCKET_ERROR)
 		{
-			PrintError(LOG_LEVEL_3, LOG_ERROR_NETWORK, L"Socket connecting error", WSAGetLastError(), nullptr, 0);
-			SocketSetting(Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"Socket connecting error", WSAGetLastError(), nullptr, 0);
+			SocketSetting(Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 			return EXIT_FAILURE;
 		}
@@ -1158,7 +1159,7 @@ size_t SocketConnecting(
 
 //Non-blocking mode selecting(Once)
 ssize_t SocketSelectingOnce(
-	const size_t RequestType, 
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	void * const OriginalDNSCurveSocketSelectingList, 
@@ -1173,22 +1174,21 @@ ssize_t SocketSelectingOnce(
 		return EXIT_FAILURE;
 
 //Initialization(Part 1)
-	std::vector<SOCKET_SELECTING_ONCE_DATA> SocketSelectingList;
+	std::vector<SOCKET_SELECTING_ONCE_TABLE> SocketSelectingList;
 	size_t Index = 0;
 	ssize_t RecvLen = 0;
 	if (ErrorCode != nullptr)
 		*ErrorCode = 0;
 #if defined(ENABLE_LIBSODIUM)
-	auto DNSCurveSocketSelectingList = (std::vector<DNSCURVE_SOCKET_SELECTING_DATA> *)OriginalDNSCurveSocketSelectingList;
-	if (RequestType == REQUEST_PROCESS_DNSCURVE_MAIN)
+	auto DNSCurveSocketSelectingList = (std::vector<DNSCURVE_SOCKET_SELECTING_TABLE> *)OriginalDNSCurveSocketSelectingList;
+	if (RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
 	{
 		if (DNSCurveSocketSelectingList == nullptr)
 			return EXIT_FAILURE;
 	}
 	else {
 #endif
-		SOCKET_SELECTING_ONCE_DATA InnerSocketData;
-		memset(&InnerSocketData, 0, sizeof(InnerSocketData));
+		SOCKET_SELECTING_ONCE_TABLE InnerSocketData;
 		for (Index = 0;Index < SocketDataList.size();++Index)
 			SocketSelectingList.push_back(InnerSocketData);
 #if defined(ENABLE_LIBSODIUM)
@@ -1200,20 +1200,20 @@ ssize_t SocketSelectingOnce(
 	{
 	//Set send buffer(DNSCurve).
 	#if defined(ENABLE_LIBSODIUM)
-		if (RequestType == REQUEST_PROCESS_DNSCURVE_MAIN)
+		if (RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
 			RecvLen = SocketConnecting(Protocol, SocketDataList.at(Index).Socket, (PSOCKADDR)&SocketDataList.at(Index).SockAddr, SocketDataList.at(Index).AddrLen, DNSCurveSocketSelectingList->at(Index).SendBuffer, DNSCurveSocketSelectingList->at(Index).SendSize);
 		else 
 	#endif
 			RecvLen = SocketConnecting(Protocol, SocketDataList.at(Index).Socket, (PSOCKADDR)&SocketDataList.at(Index).SockAddr, SocketDataList.at(Index).AddrLen, OriginalSend, SendSize);
 		if (RecvLen == EXIT_FAILURE)
 		{
-			SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+			SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			SocketDataList.at(Index).Socket = 0;
 		}
 		else if (Protocol == IPPROTO_TCP && Parameter.TCP_FastOpen && RecvLen >= (ssize_t)DNS_PACKET_MINSIZE)
 		{
 		#if defined(ENABLE_LIBSODIUM)
-			if (RequestType == REQUEST_PROCESS_DNSCURVE_MAIN)
+			if (RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
 				DNSCurveSocketSelectingList->at(Index).IsPacketDone = true;
 			else 
 		#endif
@@ -1226,7 +1226,7 @@ ssize_t SocketSelectingOnce(
 //Socket check(Part 1)
 	for (auto SocketDataIter = SocketDataList.begin();SocketDataIter != SocketDataList.end();++SocketDataIter)
 	{
-		if (SocketSetting(SocketDataIter->Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
+		if (SocketSetting(SocketDataIter->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 			break;
 		else if (SocketDataIter + 1U == SocketDataList.end())
 			return EXIT_FAILURE;
@@ -1239,13 +1239,10 @@ ssize_t SocketSelectingOnce(
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
 	memset(&WriteFDS, 0, sizeof(WriteFDS));
 	memset(&Timeout, 0, sizeof(Timeout));
-	ssize_t SelectResult = 0;
 	size_t LastReceiveIndex = 0;
-	SYSTEM_SOCKET MaxSocket = 0;
-	auto IsAllSocketShutdown = false;
 	if (OriginalRecv == nullptr
 	#if defined(ENABLE_LIBSODIUM)
-		&& RequestType != REQUEST_PROCESS_DNSCURVE_MAIN
+		&& RequestType != REQUEST_PROCESS_TYPE::DNSCURVE_MAIN
 	#endif
 		)
 	{
@@ -1256,7 +1253,7 @@ ssize_t SocketSelectingOnce(
 
 //Socket attribute setting(Timeout)
 #if defined(ENABLE_LIBSODIUM)
-	if (RequestType == REQUEST_PROCESS_DNSCURVE_MAIN)
+	if (RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
 	{
 		if (Protocol == IPPROTO_TCP)
 		{
@@ -1264,8 +1261,7 @@ ssize_t SocketSelectingOnce(
 			Timeout.tv_sec = DNSCurveParameter.DNSCurve_SocketTimeout_Reliable / SECOND_TO_MILLISECOND;
 			Timeout.tv_usec = DNSCurveParameter.DNSCurve_SocketTimeout_Reliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			Timeout.tv_sec = DNSCurveParameter.DNSCurve_SocketTimeout_Reliable.tv_sec;
-			Timeout.tv_usec = DNSCurveParameter.DNSCurve_SocketTimeout_Reliable.tv_usec;
+			Timeout = DNSCurveParameter.DNSCurve_SocketTimeout_Reliable;
 		#endif
 		}
 		else { //UDP
@@ -1273,8 +1269,7 @@ ssize_t SocketSelectingOnce(
 			Timeout.tv_sec = DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable / SECOND_TO_MILLISECOND;
 			Timeout.tv_usec = DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			Timeout.tv_sec = DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable.tv_sec;
-			Timeout.tv_usec = DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable.tv_usec;
+			Timeout = DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable;
 		#endif
 		}
 	}
@@ -1286,8 +1281,7 @@ ssize_t SocketSelectingOnce(
 			Timeout.tv_sec = Parameter.SocketTimeout_Reliable_Once / SECOND_TO_MILLISECOND;
 			Timeout.tv_usec = Parameter.SocketTimeout_Reliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			Timeout.tv_sec = Parameter.SocketTimeout_Reliable_Once.tv_sec;
-			Timeout.tv_usec = Parameter.SocketTimeout_Reliable_Once.tv_usec;
+			Timeout = Parameter.SocketTimeout_Reliable_Once;
 		#endif
 		}
 		else { //UDP
@@ -1295,8 +1289,7 @@ ssize_t SocketSelectingOnce(
 			Timeout.tv_sec = Parameter.SocketTimeout_Unreliable_Once / SECOND_TO_MILLISECOND;
 			Timeout.tv_usec = Parameter.SocketTimeout_Unreliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			Timeout.tv_sec = Parameter.SocketTimeout_Unreliable_Once.tv_sec;
-			Timeout.tv_usec = Parameter.SocketTimeout_Unreliable_Once.tv_usec;
+			Timeout = Parameter.SocketTimeout_Unreliable_Once;
 		#endif
 		}
 #if defined(ENABLE_LIBSODIUM)
@@ -1306,16 +1299,18 @@ ssize_t SocketSelectingOnce(
 //Selecting process
 	for (;;)
 	{
+		auto IsAllSocketShutdown = false;
+
 	//Socket check(Part 2)
 		for (auto SocketDataIter = SocketDataList.begin();SocketDataIter != SocketDataList.end();++SocketDataIter)
 		{
-			if (SocketSetting(SocketDataIter->Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
+			if (SocketSetting(SocketDataIter->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 			{
 				break;
 			}
 			else if (SocketDataIter + 1U == SocketDataList.end())
 			{
-				if (RequestType == REQUEST_PROCESS_UDP_NO_MARKING)
+				if (RequestType == REQUEST_PROCESS_TYPE::UDP_WITHOUT_MARKING)
 					return EXIT_SUCCESS;
 				else 
 					IsAllSocketShutdown = true;
@@ -1327,7 +1322,7 @@ ssize_t SocketSelectingOnce(
 		{
 		//Scan all result.
 		#if defined(ENABLE_LIBSODIUM)
-			if (RequestType == REQUEST_PROCESS_DNSCURVE_MAIN)
+			if (RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
 				RecvLen = SelectingResultOnce(RequestType, Protocol, SocketDataList, nullptr, DNSCurveSocketSelectingList, OriginalRecv, RecvSize);
 			else 
 		#endif
@@ -1343,13 +1338,13 @@ ssize_t SocketSelectingOnce(
 	//Reset parameters.
 		FD_ZERO(&ReadFDS);
 		FD_ZERO(&WriteFDS);
-		MaxSocket = 0;
-
+		SYSTEM_SOCKET MaxSocket = 0;
+			
 	//Socket check and non-blocking process
 		for (Index = 0;Index < SocketDataList.size();++Index)
 		{
 		//Non-blocking process
-			if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
+			if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 			{
 			//Select structure initialization
 				if (SocketDataList.at(Index).Socket > MaxSocket)
@@ -1359,11 +1354,11 @@ ssize_t SocketSelectingOnce(
 				FD_SET(SocketDataList.at(Index).Socket, &ReadFDS);
 				if (
 				#if defined(ENABLE_LIBSODIUM)
-					(RequestType == REQUEST_PROCESS_DNSCURVE_MAIN && !DNSCurveSocketSelectingList->at(Index).IsPacketDone) || 
+					(RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN && !DNSCurveSocketSelectingList->at(Index).IsPacketDone) || 
 				#endif
 					(
 				#if defined(ENABLE_LIBSODIUM)
-					RequestType != REQUEST_PROCESS_DNSCURVE_MAIN && 
+					RequestType != REQUEST_PROCESS_TYPE::DNSCURVE_MAIN && 
 				#endif
 					!SocketSelectingList.at(Index).IsPacketDone))
 						FD_SET(SocketDataList.at(Index).Socket, &WriteFDS);
@@ -1376,9 +1371,9 @@ ssize_t SocketSelectingOnce(
 
 	//Send request only
 		if (OriginalRecv == nullptr && 
-			RequestType != REQUEST_PROCESS_UDP_NO_MARKING
+			RequestType != REQUEST_PROCESS_TYPE::UDP_WITHOUT_MARKING
 		#if defined(ENABLE_LIBSODIUM)
-			&& RequestType != REQUEST_PROCESS_DNSCURVE_MAIN
+			&& RequestType != REQUEST_PROCESS_TYPE::DNSCURVE_MAIN
 		#endif
 			)
 		{
@@ -1393,9 +1388,9 @@ ssize_t SocketSelectingOnce(
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
-		SelectResult = select(0, &ReadFDS, &WriteFDS, nullptr, &Timeout);
+		ssize_t SelectResult = select(0, &ReadFDS, &WriteFDS, nullptr, &Timeout);
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		SelectResult = select(MaxSocket + 1U, &ReadFDS, &WriteFDS, nullptr, &Timeout);
+		ssize_t SelectResult = select(MaxSocket + 1U, &ReadFDS, &WriteFDS, nullptr, &Timeout);
 	#endif
 		if (SelectResult > 0)
 		{
@@ -1403,7 +1398,7 @@ ssize_t SocketSelectingOnce(
 			{
 			#if defined(ENABLE_LIBSODIUM)
 			//DNSCurve
-				if (RequestType == REQUEST_PROCESS_DNSCURVE_MAIN)
+				if (RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
 				{
 				//Receive process
 					if (FD_ISSET(SocketDataList.at(Index).Socket, &ReadFDS))
@@ -1422,7 +1417,7 @@ ssize_t SocketSelectingOnce(
 					//Connection closed or SOCKET_ERROR
 						if (RecvLen <= 0)
 						{
-							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 							SocketDataList.at(Index).Socket = 0;
 							DNSCurveSocketSelectingList->at(Index).RecvBuffer.reset();
 							DNSCurveSocketSelectingList->at(Index).RecvLen = 0;
@@ -1446,7 +1441,7 @@ ssize_t SocketSelectingOnce(
 						if (send(SocketDataList.at(Index).Socket, (const char *)DNSCurveSocketSelectingList->at(Index).SendBuffer, (int)DNSCurveSocketSelectingList->at(Index).SendSize, 0) == SOCKET_ERROR)
 						{
 							ssize_t InnerErrorCode = WSAGetLastError();
-							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 							SocketDataList.at(Index).Socket = 0;
 
 						#if defined(PLATFORM_WIN)
@@ -1488,7 +1483,7 @@ ssize_t SocketSelectingOnce(
 						//Connection closed or SOCKET_ERROR
 							if (RecvLen <= 0)
 							{
-								SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+								SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 								SocketDataList.at(Index).Socket = 0;
 								SocketSelectingList.at(Index).RecvBuffer.reset();
 								SocketSelectingList.at(Index).RecvLen = 0;
@@ -1507,10 +1502,9 @@ ssize_t SocketSelectingOnce(
 						}
 						else {
 						//Receive, drop all data and close sockets.
-							RecvLen = recv(SocketDataList.at(Index).Socket, (char *)RecvBufferTemp.get(), PACKET_MAXSIZE, 0);
+							recv(SocketDataList.at(Index).Socket, (char *)RecvBufferTemp.get(), PACKET_MAXSIZE, 0);
 							memset(RecvBufferTemp.get(), 0, PACKET_MAXSIZE);
-							RecvLen = 0;
-							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 							SocketDataList.at(Index).Socket = 0;
 						}
 					}
@@ -1521,7 +1515,7 @@ ssize_t SocketSelectingOnce(
 						if (send(SocketDataList.at(Index).Socket, (const char *)OriginalSend, (int)SendSize, 0) == SOCKET_ERROR)
 						{
 							ssize_t InnerErrorCode = WSAGetLastError();
-							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 							SocketDataList.at(Index).Socket = 0;
 
 						#if defined(PLATFORM_WIN)
@@ -1557,7 +1551,7 @@ ssize_t SocketSelectingOnce(
 				SocketDataList.at(LastReceiveIndex).Socket = SocketDataList.at(Index).Socket;
 				SocketDataList.at(Index).Socket = MaxSocket;
 			#if defined(ENABLE_LIBSODIUM)
-				if (RequestType == REQUEST_PROCESS_DNSCURVE_MAIN)
+				if (RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
 				{
 					auto PrecomputationKeyTemp = DNSCurveSocketSelectingList->at(Index).PrecomputationKey;
 					DNSCurveSocketSelectingList->at(Index).PrecomputationKey = DNSCurveSocketSelectingList->at(LastReceiveIndex).PrecomputationKey;
@@ -1586,12 +1580,12 @@ ssize_t SocketSelectingOnce(
 				if (RecvLen >= (ssize_t)DNS_PACKET_MINSIZE)
 					return RecvLen;
 			}
-			else if (RequestType == REQUEST_PROCESS_UDP_NO_MARKING)
+			else if (RequestType == REQUEST_PROCESS_TYPE::UDP_WITHOUT_MARKING)
 			{
 			//Close all sockets.
 				for (auto &SocketDataIter:SocketDataList)
 				{
-					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 					SocketDataIter.Socket = 0;
 				}
 
@@ -1614,7 +1608,7 @@ ssize_t SocketSelectingOnce(
 //Close all sockets.
 	for (auto &SocketDataIter:SocketDataList)
 	{
-		SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 		SocketDataIter.Socket = 0;
 	}
 
@@ -1623,10 +1617,10 @@ ssize_t SocketSelectingOnce(
 
 //Socket selecting result(Once)
 ssize_t SelectingResultOnce(
-	const size_t RequestType, 
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<SOCKET_SELECTING_ONCE_DATA> *SocketSelectingList, 
+	std::vector<SOCKET_SELECTING_ONCE_TABLE> *SocketSelectingList, 
 	void * const OriginalDNSCurveSocketSelectingList, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize)
@@ -1637,8 +1631,8 @@ ssize_t SelectingResultOnce(
 
 //Initialization
 #if defined(ENABLE_LIBSODIUM)
-	auto DNSCurveSocketSelectingList = (std::vector<DNSCURVE_SOCKET_SELECTING_DATA> *)OriginalDNSCurveSocketSelectingList;
-	if (RequestType == REQUEST_PROCESS_DNSCURVE_MAIN)
+	auto DNSCurveSocketSelectingList = (std::vector<DNSCURVE_SOCKET_SELECTING_TABLE> *)OriginalDNSCurveSocketSelectingList;
+	if (RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
 	{
 		if (DNSCurveSocketSelectingList == nullptr)
 			return EXIT_FAILURE;
@@ -1657,7 +1651,7 @@ ssize_t SelectingResultOnce(
 	{
 	#if defined(ENABLE_LIBSODIUM)
 	//DNSCurve
-		if (RequestType == REQUEST_PROCESS_DNSCURVE_MAIN)
+		if (RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
 		{
 			if (DNSCurveSocketSelectingList->at(Index).RecvBuffer && DNSCurveSocketSelectingList->at(Index).RecvLen >= DNS_PACKET_MINSIZE)
 			{
@@ -1667,7 +1661,7 @@ ssize_t SelectingResultOnce(
 					RecvLen = ntohs(((uint16_t *)DNSCurveSocketSelectingList->at(Index).RecvBuffer.get())[0]);
 					if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE || RecvLen >= (ssize_t)RecvSize || RecvLen > (ssize_t)DNSCurveSocketSelectingList->at(Index).RecvLen)
 					{
-						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 						SocketDataList.at(Index).Socket = 0;
 						DNSCurveSocketSelectingList->at(Index).RecvBuffer.reset();
 						DNSCurveSocketSelectingList->at(Index).RecvLen = 0;
@@ -1684,7 +1678,7 @@ ssize_t SelectingResultOnce(
 					RecvLen = DNSCurveSocketSelectingList->at(Index).RecvLen;
 				}
 				else {
-					SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+					SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 					SocketDataList.at(Index).Socket = 0;
 					DNSCurveSocketSelectingList->at(Index).RecvBuffer.reset();
 					DNSCurveSocketSelectingList->at(Index).RecvLen = 0;
@@ -1692,12 +1686,12 @@ ssize_t SelectingResultOnce(
 				}
 
 			//Decrypt or get packet data(DNSCurve).
-				if (RequestType == REQUEST_PROCESS_DNSCURVE_MAIN)
+				if (RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
 				{
 					RecvLen = DNSCurvePacketDecryption(DNSCurveSocketSelectingList->at(Index).ReceiveMagicNumber, DNSCurveSocketSelectingList->at(Index).PrecomputationKey, DNSCurveSocketSelectingList->at(Index).RecvBuffer.get(), RecvSize, RecvLen);
 					if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
 					{
-						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 						SocketDataList.at(Index).Socket = 0;
 						DNSCurveSocketSelectingList->at(Index).RecvBuffer.reset();
 						DNSCurveSocketSelectingList->at(Index).RecvLen = 0;
@@ -1713,7 +1707,7 @@ ssize_t SelectingResultOnce(
 				std::unique_lock<std::mutex> SocketMarkingMutex(SocketMarkingLock);
 				for (auto &SocketDataIter:SocketDataList)
 				{
-					if (SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
+					if (SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 					{
 						SOCKET_MARKING_DATA SocketMarkingDataTemp;
 						SocketMarkingDataTemp.first = SocketDataIter.Socket;
@@ -1736,10 +1730,11 @@ ssize_t SelectingResultOnce(
 						SocketDataIter.Socket = 0;
 					}
 				}
+
 				SocketMarkingMutex.unlock();
 
 			//Mark DNS cache.
-				if (Parameter.CacheType != CACHE_TYPE_NONE)
+				if (Parameter.DNS_CacheType != DNS_CACHE_TYPE::NONE)
 					MarkDomainCache(OriginalRecv, RecvLen);
 
 				return RecvLen;
@@ -1756,7 +1751,7 @@ ssize_t SelectingResultOnce(
 					RecvLen = ntohs(((uint16_t *)SocketSelectingList->at(Index).RecvBuffer.get())[0]);
 					if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE || RecvLen >= (ssize_t)RecvSize || RecvLen > (ssize_t)SocketSelectingList->at(Index).RecvLen)
 					{
-						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 						SocketDataList.at(Index).Socket = 0;
 						SocketSelectingList->at(Index).RecvBuffer.reset();
 						SocketSelectingList->at(Index).RecvLen = 0;
@@ -1773,7 +1768,7 @@ ssize_t SelectingResultOnce(
 					RecvLen = SocketSelectingList->at(Index).RecvLen;
 				}
 				else {
-					SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+					SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 					SocketDataList.at(Index).Socket = 0;
 					SocketSelectingList->at(Index).RecvBuffer.reset();
 					SocketSelectingList->at(Index).RecvLen = 0;
@@ -1789,7 +1784,7 @@ ssize_t SelectingResultOnce(
 					nullptr);
 				if (RecvLen < (ssize_t)DNS_PACKET_MINSIZE)
 				{
-					SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+					SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 					SocketDataList.at(Index).Socket = 0;
 					SocketSelectingList->at(Index).RecvBuffer.reset();
 					SocketSelectingList->at(Index).RecvLen = 0;
@@ -1804,7 +1799,7 @@ ssize_t SelectingResultOnce(
 				std::unique_lock<std::mutex> SocketMarkingMutex(SocketMarkingLock);
 				for (auto &SocketDataIter:SocketDataList)
 				{
-					if (SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
+					if (SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 					{
 						SOCKET_MARKING_DATA SocketMarkingDataTemp;
 						SocketMarkingDataTemp.first = SocketDataIter.Socket;
@@ -1832,10 +1827,11 @@ ssize_t SelectingResultOnce(
 						SocketDataIter.Socket = 0;
 					}
 				}
+
 				SocketMarkingMutex.unlock();
 
 			//Mark DNS cache.
-				if (Parameter.CacheType != CACHE_TYPE_NONE)
+				if (Parameter.DNS_CacheType != DNS_CACHE_TYPE::NONE)
 					MarkDomainCache(OriginalRecv, RecvLen);
 
 				return RecvLen;
@@ -1850,7 +1846,7 @@ ssize_t SelectingResultOnce(
 
 //Non-blocking mode selecting(Serial)
 size_t SocketSelectingSerial(
-	const size_t RequestType, 
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
@@ -1873,7 +1869,7 @@ size_t SocketSelectingSerial(
 //Socket check(Send process)
 	for (auto SocketDataIter = SocketDataList.begin();SocketDataIter != SocketDataList.end();++SocketDataIter)
 	{
-		if (SocketSetting(SocketDataIter->Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
+		if (SocketSetting(SocketDataIter->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 			break;
 		else if (SocketDataIter + 1U == SocketDataList.end())
 			return EXIT_FAILURE;
@@ -1886,8 +1882,7 @@ size_t SocketSelectingSerial(
 		Timeout.tv_sec = Parameter.SocketTimeout_Reliable_Serial / SECOND_TO_MILLISECOND;
 		Timeout.tv_usec = Parameter.SocketTimeout_Reliable_Serial % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		Timeout.tv_sec = Parameter.SocketTimeout_Reliable_Serial.tv_sec;
-		Timeout.tv_usec = Parameter.SocketTimeout_Reliable_Serial.tv_usec;
+		Timeout = Parameter.SocketTimeout_Reliable_Serial;
 	#endif
 	}
 	else if (Protocol == IPPROTO_UDP)
@@ -1896,8 +1891,7 @@ size_t SocketSelectingSerial(
 		Timeout.tv_sec = Parameter.SocketTimeout_Unreliable_Serial / SECOND_TO_MILLISECOND;
 		Timeout.tv_usec = Parameter.SocketTimeout_Unreliable_Serial % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		Timeout.tv_sec = Parameter.SocketTimeout_Unreliable_Serial.tv_sec;
-		Timeout.tv_usec = Parameter.SocketTimeout_Unreliable_Serial.tv_usec;
+		Timeout = Parameter.SocketTimeout_Unreliable_Serial;
 	#endif
 	}
 	else {
@@ -1908,7 +1902,7 @@ size_t SocketSelectingSerial(
 	for (Index = 0;Index < SocketSelectingDataList.size();++Index)
 	{
 		SocketSelectingDataList.at(Index).IsPacketDone = false;
-		if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
+		if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 			ErrorCodeList.at(Index) = 0;
 	}
 
@@ -1922,7 +1916,7 @@ size_t SocketSelectingSerial(
 	//Socket check and non-blocking process
 		for (Index = 0;Index < SocketDataList.size();++Index)
 		{
-			if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) && 
+			if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
 				SocketSelectingDataList.at(Index).SendBuffer && SocketSelectingDataList.at(Index).SendLen > 0 && 
 				!SocketSelectingDataList.at(Index).IsPacketDone && ErrorCodeList.at(Index) == 0)
 			{
@@ -1966,7 +1960,7 @@ size_t SocketSelectingSerial(
 						}
 					//SOCKET_ERROR
 						else {
-							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 							SocketDataList.at(Index).Socket = 0;
 						}
 					}
@@ -1984,7 +1978,7 @@ size_t SocketSelectingSerial(
 				if (!SocketSelectingDataList.at(Index).IsPacketDone)
 				{
 					ErrorCodeList.at(Index) = WSAETIMEDOUT;
-					SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+					SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 					SocketDataList.at(Index).Socket = 0;
 				}
 			}
@@ -1996,7 +1990,7 @@ size_t SocketSelectingSerial(
 			for (Index = 0;Index < ErrorCodeList.size();++Index)
 			{
 				ErrorCodeList.at(Index) = WSAGetLastError();
-				SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				SocketDataList.at(Index).Socket = 0;
 			}
 
@@ -2010,7 +2004,7 @@ StopLoop:
 //Socket check(Receive process)
 	for (auto SocketDataIter = SocketDataList.begin();SocketDataIter != SocketDataList.end();++SocketDataIter)
 	{
-		if (SocketSetting(SocketDataIter->Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
+		if (SocketSetting(SocketDataIter->Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 			break;
 		else if (SocketDataIter + 1U == SocketDataList.end())
 			return EXIT_FAILURE;
@@ -2020,7 +2014,7 @@ StopLoop:
 	for (Index = 0;Index < SocketSelectingDataList.size();++Index)
 	{
 		SocketSelectingDataList.at(Index).IsPacketDone = false;
-		if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
+		if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 			ErrorCodeList.at(Index) = 0;
 	}
 
@@ -2034,7 +2028,7 @@ StopLoop:
 	//Socket check and non-blocking process
 		for (Index = 0;Index < SocketDataList.size();++Index)
 		{
-			if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr) && 
+			if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
 				!SocketSelectingDataList.at(Index).IsPacketDone && !SocketSelectingDataList.at(Index).IsSendOnly && 
 				ErrorCodeList.at(Index) == 0)
 			{
@@ -2106,7 +2100,7 @@ StopLoop:
 							}
 						//SOCKET_ERROR
 							else {
-								SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+								SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 								SocketDataList.at(Index).Socket = 0;
 							}
 
@@ -2114,7 +2108,7 @@ StopLoop:
 						}
 						else if (RecvLen == 0) //Connection closed
 						{
-							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 							SocketDataList.at(Index).Socket = 0;
 
 							break;
@@ -2136,7 +2130,7 @@ StopLoop:
 			for (Index = 0;Index < ErrorCodeList.size();++Index)
 			{
 				ErrorCodeList.at(Index) = WSAGetLastError();
-				SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				SocketDataList.at(Index).Socket = 0;
 			}
 
@@ -2164,7 +2158,6 @@ void MarkPortToList(
 		SOCKET_DATA SocketDataTemp;
 		OUTPUT_PACKET_TABLE OutputPacketListTemp;
 		memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
-		memset(&OutputPacketListTemp, 0, sizeof(OutputPacketListTemp));
 
 	//Mark system connection data.
 		OutputPacketListTemp.SocketData_Input = *LocalSocketData;
@@ -2172,7 +2165,7 @@ void MarkPortToList(
 	//Mark sending connection data.
 		for (auto &SocketDataIter:SocketDataList)
 		{
-			if (!SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
+			if (!SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 				continue;
 			else 
 				memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
@@ -2180,7 +2173,7 @@ void MarkPortToList(
 		//Get socket information.
 			if (getsockname(SocketDataIter.Socket, (PSOCKADDR)&SocketDataIter.SockAddr, &SocketDataIter.AddrLen) != 0)
 			{
-				SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				SocketDataIter.Socket = 0;
 
 				continue;
@@ -2198,7 +2191,7 @@ void MarkPortToList(
 				((PSOCKADDR_IN)&SocketDataTemp.SockAddr)->sin_port = ((PSOCKADDR_IN)&SocketDataIter.SockAddr)->sin_port;
 			}
 			else {
-				SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+				SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				SocketDataIter.Socket = 0;
 
 				continue;
@@ -2239,16 +2232,16 @@ void MarkPortToList(
 				if (OutputPacketList.front().Protocol_Network == AF_INET6)
 				{
 					if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP)
-						++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV6];
+						++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_MAIN_TCP_IPV6];
 					else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP)
-						++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV6];
+						++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_MAIN_UDP_IPV6];
 				}
 				else if (OutputPacketList.front().Protocol_Network == AF_INET)
 				{
 					if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP)
-						++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV4];
+						++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_MAIN_TCP_IPV4];
 					else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP)
-						++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV4];
+						++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_MAIN_UDP_IPV4];
 				}
 			}
 
@@ -2261,7 +2254,7 @@ void MarkPortToList(
 //Block Port Unreachable messages of system or close the TCP request connections.
 	for (auto &SocketDataIter:SocketDataList)
 	{
-		if (SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
+		if (SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 			shutdown(SocketDataIter.Socket, SD_SEND);
 	}
 #if defined(PLATFORM_WIN)
@@ -2277,7 +2270,7 @@ void MarkPortToList(
 #endif
 	for (auto &SocketDataIter:SocketDataList)
 	{
-		SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+		SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 		SocketDataIter.Socket = 0;
 	}
 

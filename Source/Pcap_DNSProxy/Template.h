@@ -50,11 +50,11 @@ public:
 
 //Pop function
 	void pop(
-		Reference Elem)
+		Reference Element)
 	{
 		std::unique_lock<MutexType> Lock(OriginalMutex);
 		OriginalConditionVariable.wait(Lock, [this](){return !OriginalQueue.empty();});
-		Elem = std::move(OriginalQueue.front());
+		Element = std::move(OriginalQueue.front());
 		OriginalQueue.pop();
 
 		return;
@@ -62,12 +62,12 @@ public:
 
 //Try to pop function
 	bool try_pop(
-		Reference Elem)
+		Reference Element)
 	{
 		std::lock_guard<MutexType> Lock(OriginalMutex);
 		if (OriginalQueue.empty())
 			return false;
-		Elem = std::move(OriginalQueue.front());
+		Element = std::move(OriginalQueue.front());
 		OriginalQueue.pop();
 
 		return true;
@@ -91,10 +91,10 @@ public:
 
 //Push function
 	void push(
-		const ValueType &Elem)
+		const ValueType &Element)
 	{
 		std::unique_lock<MutexType> Lock(OriginalMutex);
-		OriginalQueue.push(Elem);
+		OriginalQueue.push(Element);
 		Lock.unlock();
 		OriginalConditionVariable.notify_one();
 
@@ -103,10 +103,10 @@ public:
 
 //Push function
 	void push(
-		ValueType &&Elem)
+		ValueType &&Element)
 	{
 		std::unique_lock<MutexType> Lock(OriginalMutex);
-		OriginalQueue.push(std::move(Elem));
+		OriginalQueue.push(std::move(Element));
 		Lock.unlock();
 		OriginalConditionVariable.notify_one();
 
@@ -126,7 +126,7 @@ public:
 //Member functions
 	DNSCurveHeapBufferTable(
 		void);
-	DNSCurveHeapBufferTable(
+	explicit DNSCurveHeapBufferTable(
 		const size_t Size);
 	DNSCurveHeapBufferTable(
 		const size_t Count, 
@@ -154,14 +154,13 @@ template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
 	const size_t Size)
 {
 	Buffer = (Ty *)sodium_malloc(Size);
-	if (Buffer == nullptr)
+	if (Buffer != nullptr)
 	{
-		exit(EXIT_FAILURE);
-		return;
-	}
-	else {
 		sodium_memzero(Buffer, Size);
 		BufferSize = Size;
+	}
+	else {
+		exit(EXIT_FAILURE);
 	}
 
 	return;
@@ -173,14 +172,13 @@ template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
 	const size_t Size)
 {
 	Buffer = (Ty *)sodium_allocarray(Count, Size);
-	if (Buffer == nullptr)
+	if (Buffer != nullptr)
 	{
-		exit(EXIT_FAILURE);
-		return;
-	}
-	else {
 		sodium_memzero(Buffer, Count * Size);
 		BufferSize = Count * Size;
+	}
+	else {
+		exit(EXIT_FAILURE);
 	}
 
 	return;

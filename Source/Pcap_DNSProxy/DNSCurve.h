@@ -32,10 +32,11 @@ extern std::deque<SOCKET_MARKING_DATA> SocketMarkingList;
 extern std::mutex SocketMarkingLock;
 
 //Functions
-ssize_t DNSCurvePaddingData(
-	const bool SetPadding, 
+size_t DNSCurvePaddingData(
+	const bool IsSetPadding, 
 	uint8_t * const Buffer, 
-	const ssize_t Length);
+	const size_t Length, 
+	const size_t BufferSize);
 bool DNSCurveSelectTargetSocket(
 	const uint16_t Protocol, 
 	bool &IsIPv6, 

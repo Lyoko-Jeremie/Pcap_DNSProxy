@@ -49,6 +49,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 如果启动服务时提示 "服务没有及时响应启动或者控制请求" 请留意是否有错误报告生成，详细的错误信息参见 FAQ 文档中 Error.log 详细错误报告 一节
   * 目录和程序的名称可以随意更改，但请务必在进行安装方法第4步前完成。如果服务注册后需移动工具目录的路径，参见上文 卸载方法 第2步的注意事项
   * Windows XP 如出现 10022 错误，需要先启用系统的 IPv6 支持（以管理员身份运行 cmd 输入 ipv6 install 并回车，一次性操作），再重新启动服务
+  * 本项目仅对最新版本提供技术支持，在新版本发布后旧版本的支持会即时停止，反馈前请先务必升级到最新版本
 
 
 -------------------------------------------------------------------------------
@@ -658,7 +659,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求
     * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
     * 同时填入 TCP 和 UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
-  * DNSCurve Payload Size - DNSCurve EDNS 标签附带使用的最大载荷长度，同时亦为发送请求的总长度，并决定请求的填充长度：最小为 DNS 协议实现要求的 512(bytes)，留空则为 512(bytes)
+  * DNSCurve Payload Size - DNSCurve 标签附带使用的最大载荷长度，同时亦为发送请求的总长度，并决定请求的填充长度：单位为字节
+    * 最小为 DNS 协议实现要求的 512，留空则为 512
+    * 最大为 1500 减去 DNSCurve 头长度，建议不要超过 1220
+    * DNSCurve 协议要求此值必须为 64 的倍数
   * DNSCurve Reliable Socket Timeout - 可靠 DNSCurve 协议端口超时时间，可靠端口指 TCP 协议：单位为毫秒，最小为 500 可留空，留空时为 3000
   * DNSCurve Unreliable Socket Timeout - 不可靠 DNSCurve 协议端口超时时间，不可靠端口指 UDP 协议：单位为毫秒，最小为 500 可留空，留空时为 2000
   * DNSCurve Encryption - 启用加密，DNSCurve 协议支持加密和非加密模式：开启为 1 /关闭为 0
@@ -926,7 +930,6 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
 地址过滤黑名单或白名单由配置文件的 IPFilter Type 值决定，Deny 禁止/黑名单和 Permit 允许/白名单
 有效参数格式为 "开始地址 - 结束地址, 过滤等级, 条目简介注释"（不含引号）
   * 同时支持 IPv4 和 IPv6 地址，但填写时请分开为2个条目
-  * 同一类型的地址地址段有重复的条目将会被自动合并
 
 
 * Local Routing - 境内路由表区域

@@ -218,7 +218,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
 7.DNSCurve Error - DNSCurve 协议错误
   * Libsodium initialization error - Libsodium 库初始化错误：建议重新启动服务或程序
   * Client keypair error - 自定义客户端密钥对错误：请检查密钥对的正确性
-  * Key calculating error -> 密钥计算错误：建议重新启动服务或程序
+  * Key calculating error - 密钥计算错误：建议重新启动服务或程序
+  * DNSCurve Payload Size must remain a multiple of 64 bytes - DNSCurve 载荷长度错误：载荷长度必须为 64 字节的倍数
   * IPv6 Main Server TCP get signature data error - IPv6 TCP 协议主要服务器加密握手错误：请检查该服务器是否可用
   * IPv6 Alternate Server TCP get signature data error - IPv6 TCP 协议备用服务器加密握手错误：请检查该服务器是否可用
   * IPv4 Main Server TCP get signature data error - IPv4 TCP 协议主要服务器加密握手错误：请检查该服务器是否可用
@@ -274,7 +275,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * OpenSSL receive data error - OpenSSL 接收数据错误：可能为网络错误，具体原因可参见错误代码
 
 11.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
-  * Old log file was deleted - 错误日志文件已满并被删除
+  * Old log file was removed - 错误日志文件已满并被删除
     * 日志文件最大容量的配置参见 详细说明文档 中 配置文件详细参数说明 中的 Log Maximum Size 参数
   * Listen Port is empty, set to standard DNS port(53) - 本地监听端口参数为空：程序将自动设置为标准 DNS 协议端口（53）
   * TCP Data Filter require TCP Request Mode - 开启 TCP 数据包头检测时必须将 Request Mode 设置为 TCP：程序将自动关闭此功能

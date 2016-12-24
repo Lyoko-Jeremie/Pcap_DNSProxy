@@ -43,9 +43,9 @@ void CaptureInit(
 		if (pcap_findalldevs(&CaptureDriveList, (char *)ErrorBuffer) < 0)
 		{
 			if (MBS_To_WCS_String(ErrorBuffer, PCAP_ERRBUF_SIZE, Message))
-				PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, Message.c_str(), 0, nullptr, 0);
+				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PCAP, Message.c_str(), 0, nullptr, 0);
 			else 
-				PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
+				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 
 			memset(ErrorBuffer, 0, PCAP_ERRBUF_SIZE);
 			Sleep(Parameter.FileRefreshTime);
@@ -57,7 +57,7 @@ void CaptureInit(
 			if (IsErrorFirstPrint)
 				IsErrorFirstPrint = false;
 			else 
-				PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, L"Insufficient privileges or not any available network devices.", 0, nullptr, 0);
+				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PCAP, L"Insufficient privileges or not any available network devices.", 0, nullptr, 0);
 
 			Sleep(Parameter.FileRefreshTime);
 			continue;
@@ -108,7 +108,7 @@ void CaptureInit(
 	}
 
 //Monitor terminated
-	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Capture module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Capture module Monitor terminated", 0, nullptr, 0);
 	return;
 }
 
@@ -122,8 +122,8 @@ bool CaptureFilterRulesInit(
 	auto RepeatingItem = false;
 
 //IPv6
-	if (Parameter.RequestMode_Network == REQUEST_MODE_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV6 || //IPv6
-		(Parameter.RequestMode_Network == REQUEST_MODE_IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
+	if (Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 || //IPv6
+		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
 	{
 	//Main
 		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0)
@@ -169,14 +169,15 @@ bool CaptureFilterRulesInit(
 			//Add to address list.
 				if (!RepeatingItem)
 					AddrList.push_back(&DNSServerDataIter);
+
 				RepeatingItem = false;
 			}
 		}
 	}
 
 //IPv4
-	if (Parameter.RequestMode_Network == REQUEST_MODE_BOTH || Parameter.RequestMode_Network == REQUEST_MODE_IPV4 || //IPv4
-		(Parameter.RequestMode_Network == REQUEST_MODE_IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
+	if (Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 || //IPv4
+		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
 	{
 	//Main
 		if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0)
@@ -199,6 +200,7 @@ bool CaptureFilterRulesInit(
 		//Add to address list.
 			if (!RepeatingItem)
 				AddrList.push_back(&Parameter.Target_Server_Alternate_IPv4);
+
 			RepeatingItem = false;
 		}
 
@@ -221,6 +223,7 @@ bool CaptureFilterRulesInit(
 			//Add to address list.
 				if (!RepeatingItem)
 					AddrList.push_back(&DNSServerDataIter);
+
 				RepeatingItem = false;
 			}
 		}
@@ -231,7 +234,7 @@ bool CaptureFilterRulesInit(
 		return false;
 
 //Initialization(Part 2)
-	uint8_t Addr[ADDRESS_STRING_MAXSIZE]{0};
+	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE]{0};
 	std::string AddrString;
 	FilterRules.clear();
 	FilterRules.append("(src host ");
@@ -243,33 +246,39 @@ bool CaptureFilterRulesInit(
 	{
 		if (DNSServerDataIter->AddressData.Storage.ss_family == AF_INET6)
 		{
+		//Add joiner.
 			if (RepeatingItem)
 				AddrString.append(" or ");
 			RepeatingItem = true;
 
-			if (!BinaryToAddressString(AF_INET6, &DNSServerDataIter->AddressData.IPv6.sin6_addr, Addr, ADDRESS_STRING_MAXSIZE, &Result))
+		//Convert binary to address string.
+			if (!BinaryToAddressString(AF_INET6, &DNSServerDataIter->AddressData.IPv6.sin6_addr, AddrBuffer, ADDRESS_STRING_MAXSIZE, &Result))
 			{
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv6 address format error", Result, nullptr, 0);
+				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv6 address format error", Result, nullptr, 0);
 				return false;
 			}
 
-			AddrString.append((const char *)Addr);
-			memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
+		//Add assress string to end.
+			AddrString.append((const char *)AddrBuffer);
+			memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 		}
 		else if (DNSServerDataIter->AddressData.Storage.ss_family == AF_INET)
 		{
+		//Add joiner.
 			if (RepeatingItem)
 				AddrString.append(" or ");
 			RepeatingItem = true;
 
-			if (!BinaryToAddressString(AF_INET, &DNSServerDataIter->AddressData.IPv4.sin_addr, Addr, ADDRESS_STRING_MAXSIZE, &Result))
+		//Convert binary to address string.
+			if (!BinaryToAddressString(AF_INET, &DNSServerDataIter->AddressData.IPv4.sin_addr, AddrBuffer, ADDRESS_STRING_MAXSIZE, &Result))
 			{
-				PrintError(LOG_LEVEL_1, LOG_ERROR_PARAMETER, L"IPv4 address format error", Result, nullptr, 0);
+				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv4 address format error", Result, nullptr, 0);
 				return false;
 			}
 
-			AddrString.append((const char *)Addr);
-			memset(Addr, 0, ADDRESS_STRING_MAXSIZE);
+		//Add assress string to end.
+			AddrString.append((const char *)AddrBuffer);
+			memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 		}
 	}
 
@@ -287,19 +296,29 @@ bool CaptureModule(
 	const pcap_if * const DriveInterface, 
 	const bool IsCaptureList)
 {
-	std::string CaptureDevice;
-
 //Devices name, addresses and type check
 	if (DriveInterface == nullptr)
+	{
 		return false;
+	}
 #if defined(PLATFORM_WIN)
-	else if (DriveInterface->name == nullptr || DriveInterface->addresses == nullptr || DriveInterface->addresses->netmask == nullptr || DriveInterface->flags == PCAP_IF_LOOPBACK)
+	else if (DriveInterface->name == nullptr || DriveInterface->addresses == nullptr || DriveInterface->addresses->netmask == nullptr || 
+		DriveInterface->flags == PCAP_IF_LOOPBACK)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	else if (DriveInterface->name == nullptr || DriveInterface->addresses == nullptr || DriveInterface->flags == PCAP_IF_LOOPBACK)
 #endif
-		goto SkipDevices;
+	{
+		if (IsCaptureList && DriveInterface->next != nullptr)
+		{
+			std::thread CaptureThread(std::bind(CaptureModule, DriveInterface->next, true));
+			CaptureThread.detach();
+		}
+
+		return true;
+	}
 
 //Pcap devices blacklist check
+	std::string CaptureDevice;
 	if (DriveInterface->description != nullptr)
 	{
 		CaptureDevice.append(DriveInterface->description);
@@ -307,40 +326,39 @@ bool CaptureModule(
 		for (const auto &CaptureIter:*Parameter.PcapDevicesBlacklist)
 		{
 			if (CaptureDevice.find(CaptureIter) != std::string::npos)
-				goto SkipDevices;
+			{
+				if (IsCaptureList && DriveInterface->next != nullptr)
+				{
+					std::thread CaptureThread(std::bind(CaptureModule, DriveInterface->next, true));
+					CaptureThread.detach();
+				}
+
+				return true;
+			}
 		}
 	}
 
 //Mark capture name.
-	CaptureDevice.clear();
-	CaptureDevice.append(DriveInterface->name);
+	CaptureDevice = DriveInterface->name;
 	CaseConvert(CaptureDevice, false);
 	for (const auto &CaptureIter:*Parameter.PcapDevicesBlacklist)
 	{
 		if (CaptureDevice.find(CaptureIter) != std::string::npos)
-			goto SkipDevices;
+		{
+			if (IsCaptureList && DriveInterface->next != nullptr)
+			{
+				std::thread CaptureThread(std::bind(CaptureModule, DriveInterface->next, true));
+				CaptureThread.detach();
+			}
+
+			return true;
+		}
 	}
-
-//Jump here to skip this device.
-	goto DevicesNotSkip;
-
-SkipDevices:
-	if (IsCaptureList && DriveInterface->next != nullptr)
-	{
-		std::thread CaptureThread(std::bind(CaptureModule, DriveInterface->next, true));
-		CaptureThread.detach();
-	}
-
-	return true;
-
-//Jump here to keep this device.
-DevicesNotSkip:
 
 //Initialization(Part 1)
 	std::shared_ptr<uint8_t> Buffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
 	memset(Buffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
-	CaptureDevice.clear();
-	CaptureDevice.append(DriveInterface->name);
+	CaptureDevice = DriveInterface->name;
 	CaptureDevice.shrink_to_fit();
 
 //Open device
@@ -353,9 +371,9 @@ DevicesNotSkip:
 	{
 		std::wstring Message;
 		if (MBS_To_WCS_String(Buffer.get(), PCAP_ERRBUF_SIZE, Message))
-			PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, Message.c_str(), 0, nullptr, 0);
+			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PCAP, Message.c_str(), 0, nullptr, 0);
 		else 
-			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
+			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 
 		return false;
 	}
@@ -386,9 +404,9 @@ DevicesNotSkip:
 	{
 		std::wstring Message;
 		if (MBS_To_WCS_String((const uint8_t *)pcap_geterr(DeviceHandle), PCAP_ERRBUF_SIZE, Message))
-			PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, Message.c_str(), 0, nullptr, 0);
+			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PCAP, Message.c_str(), 0, nullptr, 0);
 		else 
-			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
+			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 
 		pcap_close(DeviceHandle);
 		return false;
@@ -399,9 +417,9 @@ DevicesNotSkip:
 	{
 		std::wstring Message;
 		if (MBS_To_WCS_String((const uint8_t *)pcap_geterr(DeviceHandle), PCAP_ERRBUF_SIZE, Message))
-			PrintError(LOG_LEVEL_3, LOG_ERROR_PCAP, Message.c_str(), 0, nullptr, 0);
+			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PCAP, Message.c_str(), 0, nullptr, 0);
 		else 
-			PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
+			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 
 		pcap_freecode(&BPF_Code);
 		pcap_close(DeviceHandle);
@@ -422,12 +440,11 @@ DevicesNotSkip:
 	ParamList.DeviceType = DeviceType;
 	ParamList.Buffer = Buffer.get();
 	ParamList.BufferSize = Parameter.LargeBufferSize + PADDING_RESERVED_BYTES;
-	ssize_t Result = 0;
 
 //Start monitor.
 	for (;;)
 	{
-		Result = pcap_loop(DeviceHandle, PCAP_LOOP_INFINITY, CaptureHandler, (unsigned char *)&ParamList);
+		ssize_t Result = pcap_loop(DeviceHandle, PCAP_LOOP_INFINITY, CaptureHandler, (unsigned char *)&ParamList);
 		if (Result < 0)
 		{
 		//Shutdown this capture handle.
@@ -454,18 +471,18 @@ DevicesNotSkip:
 //Monitor terminated
 	pcap_freecode(&BPF_Code);
 	pcap_close(DeviceHandle);
-	PrintError(LOG_LEVEL_2, LOG_ERROR_SYSTEM, L"Capture module Monitor terminated", 0, nullptr, 0);
+	PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Capture module Monitor terminated", 0, nullptr, 0);
 	return true;
 }
 
 //Handler of WinPcap/LibPcap loop function
 void CaptureHandler(
-	uint8_t * const Param, 
+	uint8_t * const ProcParameter, 
 	const pcap_pkthdr * const PacketHeader, 
 	const uint8_t * const PacketData)
 {
 //Initialization
-	const auto ParamList = (PCAPTURE_HANDLER_PARAM)Param;
+	const auto ParamList = (PCAPTURE_HANDLER_PARAM)ProcParameter;
 	memset(ParamList->Buffer, 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 	size_t Length = PacketHeader->caplen;
 	uint16_t Protocol = 0;
@@ -547,7 +564,7 @@ bool CaptureNetworkLayer(
 
 //IPv6
 	if ((Protocol == PPP_IPV6 || Protocol == OSI_L2_IPV6) && 
-		Parameter.DirectRequest != REQUEST_MODE_DIRECT_BOTH && Parameter.DirectRequest != REQUEST_MODE_DIRECT_IPV6)
+		Parameter.DirectRequest != REQUEST_MODE_DIRECT::BOTH && Parameter.DirectRequest != REQUEST_MODE_DIRECT::IPV6)
 	{
 		const auto IPv6_Header = (pipv6_hdr)Buffer;
 
@@ -626,7 +643,7 @@ bool CaptureNetworkLayer(
 			//Domain Test and DNS Options check and get Hop Limit from Domain Test.
 				auto IsMarkHopLimit = false;
 				const auto DataLength = CheckResponseData(
-					REQUEST_PROCESS_UDP_NORMAL, 
+					REQUEST_PROCESS_TYPE::UDP_NORMAL, 
 					(uint8_t *)(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr)), 
 					ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), 
 					BufferSize, 
@@ -666,7 +683,7 @@ bool CaptureNetworkLayer(
 	}
 //IPv4
 	else if ((Protocol == PPP_IPV4 || Protocol == OSI_L2_IPV4) && 
-		Parameter.DirectRequest != REQUEST_MODE_DIRECT_BOTH && Parameter.DirectRequest != REQUEST_MODE_DIRECT_IPV4)
+		Parameter.DirectRequest != REQUEST_MODE_DIRECT::BOTH && Parameter.DirectRequest != REQUEST_MODE_DIRECT::IPV4)
 	{
 		const auto IPv4_Header = (pipv4_hdr)Buffer;
 
@@ -760,7 +777,7 @@ bool CaptureNetworkLayer(
 			//Domain Test and DNS Options check and get TTL from Domain Test.
 				auto IsMarkHopLimit = false;
 				const auto DataLength = CheckResponseData(
-					REQUEST_PROCESS_UDP_NORMAL, 
+					REQUEST_PROCESS_TYPE::UDP_NORMAL, 
 					(uint8_t *)(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr)), 
 					ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES - sizeof(udp_hdr), 
 					BufferSize, 
@@ -945,30 +962,31 @@ ClearOutputPacketListData:
 			if (OutputPacketList.front().Protocol_Network == AF_INET6)
 			{
 				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP)
-					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV6];
+					++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_MAIN_TCP_IPV6];
 				else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP)
-					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV6];
+					++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_MAIN_UDP_IPV6];
 			}
 			else if (OutputPacketList.front().Protocol_Network == AF_INET)
 			{
 				if (OutputPacketList.front().Protocol_Transport == IPPROTO_TCP)
-					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_TCP_IPV4];
+					++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_MAIN_TCP_IPV4];
 				else if (OutputPacketList.front().Protocol_Transport == IPPROTO_UDP)
-					++AlternateSwapList.TimeoutTimes[ALTERNATE_TYPE_MAIN_UDP_IPV4];
+					++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_MAIN_UDP_IPV4];
 			}
 		}
 
 		OutputPacketList.pop_front();
 	}
+
 	OutputPacketListMutex.unlock();
 
 //Drop resopnses which not in OutputPacketList.
 	if (SocketData_Input.AddrLen == 0 || SocketData_Input.SockAddr.ss_family == 0 || SystemProtocol == 0 || 
-		!SocketSetting(SocketData_Input.Socket, SOCKET_SETTING_INVALID_CHECK, false, nullptr))
+		!SocketSetting(SocketData_Input.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 			return false;
 
 //Mark DNS cache.
-	if (Parameter.CacheType != CACHE_TYPE_NONE)
+	if (Parameter.DNS_CacheType != DNS_CACHE_TYPE::NONE)
 		MarkDomainCache(Buffer, Length);
 
 //Send to requester.
@@ -987,7 +1005,7 @@ ClearOutputPacketListData:
 		}
 	}
 
-	SocketSetting(SocketData_Input.Socket, SOCKET_SETTING_CLOSE, false, nullptr);
+	SocketSetting(SocketData_Input.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 	return true;
 }
 #endif
