@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2016 Chengr28
+// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Copyright (C) 2012-2017 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -146,7 +146,8 @@ bool ReadHostsData(
 		LabelTypeTemp = LABEL_HOSTS_TYPE::BANNED_EXTENDED;
 	if (LabelTypeTemp > LABEL_HOSTS_TYPE::NONE)
 	{
-		if (LabelType == LABEL_HOSTS_TYPE::LOCAL && (!Parameter.IsLocalHosts || (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0)))
+		if (LabelType == LABEL_HOSTS_TYPE::LOCAL && (!Parameter.IsLocalHosts || 
+			(Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0 && Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0)))
 		{
 			return true;
 		}
@@ -164,7 +165,7 @@ bool ReadHostsData(
 	else if (LabelType == LABEL_HOSTS_TYPE::LOCAL)
 	{
 		if (!Parameter.IsLocalHosts || Parameter.IsLocalMain || 
-			(Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0))
+			(Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0 && Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0))
 				return true;
 		else 
 			return ReadLocalHostsData(Data, FileIndex, Line);
@@ -243,7 +244,7 @@ bool ReadOtherHostsData(
 		GetParameterListData(ListData, Data, Data.find(ASCII_COLON) + 1U, Separated, ASCII_VERTICAL, false, false);
 		for (const auto &StringIter:ListData)
 		{
-			const auto RecordType = DNSTypeNameToBinary((const uint8_t *)StringIter.c_str());
+			const auto RecordType = DNSTypeNameToBinary(reinterpret_cast<const uint8_t *>(StringIter.c_str()));
 
 		//Number types
 			if (RecordType == 0)
@@ -252,7 +253,7 @@ bool ReadOtherHostsData(
 				Result = strtoul(StringIter.c_str(), nullptr, 0);
 				if (Result > 0 && Result <= UINT16_MAX)
 				{
-					HostsTableTemp.RecordTypeList.push_back(htons((uint16_t)Result));
+					HostsTableTemp.RecordTypeList.push_back(htons(static_cast<uint16_t>(Result)));
 				}
 				else {
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"DNS Record type error", errno, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
@@ -270,7 +271,7 @@ bool ReadOtherHostsData(
 	HostsTableTemp.PatternOrDomainString.append(Data, Separated, Data.length() - Separated);
 	try {
 		std::regex PatternRegexTemp(HostsTableTemp.PatternOrDomainString);
-		HostsTableTemp.PatternRegex.swap(PatternRegexTemp);
+		std::swap(HostsTableTemp.PatternRegex, PatternRegexTemp);
 		HostsTableTemp.PatternOrDomainString.clear();
 		HostsTableTemp.PatternOrDomainString.shrink_to_fit();
 	}
@@ -386,7 +387,7 @@ bool ReadLocalHostsData(
 			//Convert address.
 				if (HostsListData.front().find(ASCII_COLON) != std::string::npos && HostsListData.front().find(ASCII_PERIOD) == std::string::npos) //IPv6
 				{
-					if (!AddressStringToBinary(AF_INET6, (const uint8_t *)HostsListData.front().c_str(), &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
+					if (!AddressStringToBinary(AF_INET6, reinterpret_cast<const uint8_t *>(HostsListData.front().c_str()), &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
 					{
 						PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 						return false;
@@ -397,7 +398,7 @@ bool ReadLocalHostsData(
 				}
 				else if (HostsListData.front().find(ASCII_PERIOD) != std::string::npos && HostsListData.front().find(ASCII_COLON) == std::string::npos) //IPv4
 				{
-					if (!AddressStringToBinary(AF_INET, (const uint8_t *)HostsListData.front().c_str(), &AddressUnionDataTemp.IPv4.sin_addr, &Result))
+					if (!AddressStringToBinary(AF_INET, reinterpret_cast<const uint8_t *>(HostsListData.front().c_str()), &AddressUnionDataTemp.IPv4.sin_addr, &Result))
 					{
 						PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 						return false;
@@ -414,11 +415,11 @@ bool ReadLocalHostsData(
 			//Convert port.
 				if (HostsListData.size() == 2U) //Non-standard port
 				{
-					SeparatedOrResult = ServiceNameToBinary((const uint8_t *)HostsListData.back().c_str());
+					SeparatedOrResult = ServiceNameToBinary(reinterpret_cast<const uint8_t *>(HostsListData.back().c_str()));
 					if (SeparatedOrResult == 0)
 					{
 						_set_errno(0);
-						SeparatedOrResult = strtoul((const char *)HostsListData.back().c_str(), nullptr, 0);
+						SeparatedOrResult = strtoul(reinterpret_cast<const char *>(HostsListData.back().c_str()), nullptr, 0);
 						if (SeparatedOrResult == 0 || SeparatedOrResult >= ULONG_MAX)
 						{
 							PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv6 address port error", errno, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
@@ -433,11 +434,11 @@ bool ReadLocalHostsData(
 			//Mark port.
 				if (AddressUnionDataTemp.Storage.ss_family == AF_INET6)
 				{
-					AddressUnionDataTemp.IPv6.sin6_port = htons((uint16_t)SeparatedOrResult);
+					AddressUnionDataTemp.IPv6.sin6_port = htons(static_cast<uint16_t>(SeparatedOrResult));
 				}
 				else if (AddressUnionDataTemp.Storage.ss_family == AF_INET)
 				{
-					AddressUnionDataTemp.IPv4.sin_port = htons((uint16_t)SeparatedOrResult);
+					AddressUnionDataTemp.IPv4.sin_port = htons(static_cast<uint16_t>(SeparatedOrResult));
 				}
 				else {
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
@@ -499,7 +500,7 @@ bool ReadLocalHostsData(
 				//Convert address.
 					if (HostsListData.front().find(ASCII_COLON) != std::string::npos && HostsListData.front().find(ASCII_PERIOD) == std::string::npos) //IPv6
 					{
-						if (!AddressStringToBinary(AF_INET6, (const uint8_t *)HostsListData.front().c_str(), &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
+						if (!AddressStringToBinary(AF_INET6, reinterpret_cast<const uint8_t *>(HostsListData.front().c_str()), &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
 						{
 							PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 							return false;
@@ -510,7 +511,7 @@ bool ReadLocalHostsData(
 					}
 					else if (HostsListData.front().find(ASCII_PERIOD) != std::string::npos && HostsListData.front().find(ASCII_COLON) == std::string::npos) //IPv4
 					{
-						if (!AddressStringToBinary(AF_INET, (const uint8_t *)HostsListData.front().c_str(), &AddressUnionDataTemp.IPv4.sin_addr, &Result))
+						if (!AddressStringToBinary(AF_INET, reinterpret_cast<const uint8_t *>(HostsListData.front().c_str()), &AddressUnionDataTemp.IPv4.sin_addr, &Result))
 						{
 							PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 							return false;
@@ -527,11 +528,11 @@ bool ReadLocalHostsData(
 				//Convert port.
 					if (HostsListData.size() == 2U) //Non-standard port
 					{
-						SeparatedOrResult = ServiceNameToBinary((const uint8_t *)HostsListData.back().c_str());
+						SeparatedOrResult = ServiceNameToBinary(reinterpret_cast<const uint8_t *>(HostsListData.back().c_str()));
 						if (SeparatedOrResult == 0)
 						{
 							_set_errno(0);
-							SeparatedOrResult = strtoul((const char *)HostsListData.back().c_str(), nullptr, 0);
+							SeparatedOrResult = strtoul(reinterpret_cast<const char *>(HostsListData.back().c_str()), nullptr, 0);
 							if (SeparatedOrResult == 0 || SeparatedOrResult >= ULONG_MAX)
 							{
 								PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv6 address port error", errno, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
@@ -546,11 +547,11 @@ bool ReadLocalHostsData(
 				//Mark port.
 					if (AddressUnionDataTemp.Storage.ss_family == AF_INET6) //IPv6
 					{
-						AddressUnionDataTemp.IPv6.sin6_port = htons((uint16_t)SeparatedOrResult);
+						AddressUnionDataTemp.IPv6.sin6_port = htons(static_cast<uint16_t>(SeparatedOrResult));
 					}
 					else if (AddressUnionDataTemp.Storage.ss_family == AF_INET) //IPv4
 					{
-						AddressUnionDataTemp.IPv4.sin_port = htons((uint16_t)SeparatedOrResult);
+						AddressUnionDataTemp.IPv4.sin_port = htons(static_cast<uint16_t>(SeparatedOrResult));
 					}
 					else {
 						PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
@@ -571,7 +572,7 @@ bool ReadLocalHostsData(
 			HostsTableTemp.PatternOrDomainString = Data;
 		try {
 			std::regex PatternRegexTemp(HostsTableTemp.PatternOrDomainString);
-			HostsTableTemp.PatternRegex.swap(PatternRegexTemp);
+			std::swap(HostsTableTemp.PatternRegex, PatternRegexTemp);
 			HostsTableTemp.PatternOrDomainString.clear();
 			HostsTableTemp.PatternOrDomainString.shrink_to_fit();
 		}
@@ -661,7 +662,7 @@ bool ReadAddressHostsData(
 	{
 		AddressTargetPrefix.second = 0;
 
-	//AAAA records(IPv6)
+	//AAAA record(IPv6)
 		if (StringIter.find(ASCII_COLON) != std::string::npos)
 		{
 		//Before type check
@@ -697,7 +698,7 @@ bool ReadAddressHostsData(
 			}
 		//Normal format
 			else {
-				if (!AddressStringToBinary(AF_INET6, (const uint8_t *)StringIter.c_str(), &((PSOCKADDR_IN6)&AddressTargetPrefix.first)->sin6_addr, &Result))
+				if (!AddressStringToBinary(AF_INET6, reinterpret_cast<const uint8_t *>(StringIter.c_str()), &(reinterpret_cast<sockaddr_in6 *>(&AddressTargetPrefix.first))->sin6_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -706,7 +707,7 @@ bool ReadAddressHostsData(
 				AddressTargetPrefix.first.ss_family = AF_INET6;
 			}
 		}
-	//A records(IPv4)
+	//A record(IPv4)
 		else if (StringIter.find(ASCII_PERIOD) != std::string::npos)
 		{
 		//Before type check
@@ -742,7 +743,7 @@ bool ReadAddressHostsData(
 			}
 		//Normal format
 			else {
-				if (!AddressStringToBinary(AF_INET, (const uint8_t *)StringIter.c_str(), &((PSOCKADDR_IN)&AddressTargetPrefix.first)->sin_addr, &Result))
+				if (!AddressStringToBinary(AF_INET, reinterpret_cast<const uint8_t *>(StringIter.c_str()), &(reinterpret_cast<sockaddr_in *>(&AddressTargetPrefix.first))->sin_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -767,7 +768,7 @@ bool ReadAddressHostsData(
 //Mark all data in list.
 	for (auto &StringIter:SourceListData)
 	{
-	//AAAA records(IPv6)
+	//AAAA record(IPv6)
 		if (StringIter.find(ASCII_COLON) != std::string::npos && BeforeType == AF_INET6)
 		{
 			memset(&AddressRangeTableTemp, 0, sizeof(AddressRangeTableTemp));
@@ -778,7 +779,7 @@ bool ReadAddressHostsData(
 			//Convert address(Begin).
 				memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 				memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
-				if (!AddressStringToBinary(AF_INET6, AddrBuffer, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
+				if (!AddressStringToBinary(AF_INET6, AddrBuffer, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin))->sin6_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -788,7 +789,7 @@ bool ReadAddressHostsData(
 			//Convert address(End).
 				memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 				memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
-				if (!AddressStringToBinary(AF_INET6, AddrBuffer, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, &Result))
+				if (!AddressStringToBinary(AF_INET6, AddrBuffer, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.End))->sin6_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -796,7 +797,7 @@ bool ReadAddressHostsData(
 				AddressRangeTableTemp.End.ss_family = AF_INET6;
 
 			//Check address range.
-				if (AddressesComparing(AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr) > ADDRESS_COMPARE_TYPE::EQUAL)
+				if (AddressesComparing(AF_INET6, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin))->sin6_addr, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.End))->sin6_addr) > ADDRESS_COMPARE_TYPE::EQUAL)
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv6 address range error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -805,7 +806,7 @@ bool ReadAddressHostsData(
 		//Normal format
 			else {
 			//Convert to binary address.
-				if (!AddressStringToBinary(AF_INET6, (const uint8_t *)StringIter.c_str(), &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
+				if (!AddressStringToBinary(AF_INET6, reinterpret_cast<const uint8_t *>(StringIter.c_str()), &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin))->sin6_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -819,7 +820,7 @@ bool ReadAddressHostsData(
 		//Add to list.
 			AddressHostsTableTemp.Address_Source.push_back(AddressRangeTableTemp);
 		}
-	//A records(IPv4)
+	//A record(IPv4)
 		else if (StringIter.find(ASCII_PERIOD) != std::string::npos && BeforeType == AF_INET)
 		{
 			memset(&AddressRangeTableTemp, 0, sizeof(AddressRangeTableTemp));
@@ -830,7 +831,7 @@ bool ReadAddressHostsData(
 			//Convert address(Begin).
 				memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 				memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
-				if (!AddressStringToBinary(AF_INET, AddrBuffer, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &Result))
+				if (!AddressStringToBinary(AF_INET, AddrBuffer, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin))->sin_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -840,7 +841,7 @@ bool ReadAddressHostsData(
 			//Convert address(End).
 				memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 				memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
-				if (!AddressStringToBinary(AF_INET, AddrBuffer, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, &Result))
+				if (!AddressStringToBinary(AF_INET, AddrBuffer, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.End))->sin_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -848,7 +849,7 @@ bool ReadAddressHostsData(
 				AddressRangeTableTemp.End.ss_family = AF_INET;
 
 			//Check address range.
-				if (AddressesComparing(AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr) > ADDRESS_COMPARE_TYPE::EQUAL)
+				if (AddressesComparing(AF_INET, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin))->sin_addr, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.End))->sin_addr) > ADDRESS_COMPARE_TYPE::EQUAL)
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv4 address range error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -857,7 +858,7 @@ bool ReadAddressHostsData(
 		//Normal format
 			else {
 			//Convert to binary address.
-				if (!AddressStringToBinary(AF_INET, (const uint8_t *)StringIter.c_str(), &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &Result))
+				if (!AddressStringToBinary(AF_INET, reinterpret_cast<const uint8_t *>(StringIter.c_str()), &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin))->sin_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -1042,7 +1043,7 @@ bool ReadMainHostsData(
 	{
 		HostsTableTemp.PermissionType = HOSTS_TYPE::BANNED;
 	}
-	else if (HostsListDataIter->find(ASCII_COLON) != std::string::npos) //AAAA records(IPv6)
+	else if (HostsListDataIter->find(ASCII_COLON) != std::string::npos) //AAAA record(IPv6)
 	{
 		if (HostsListData.size() > DNS_RR_MAX_AAAA_COUNT)
 		{
@@ -1053,7 +1054,7 @@ bool ReadMainHostsData(
 			HostsTableTemp.RecordTypeList.push_back(htons(DNS_TYPE_AAAA));
 		}
 	}
-	else if (HostsListDataIter->find(ASCII_PERIOD) != std::string::npos) //A records(IPv4)
+	else if (HostsListDataIter->find(ASCII_PERIOD) != std::string::npos) //A record(IPv4)
 	{
 		if (HostsListData.size() > DNS_RR_MAX_A_COUNT)
 		{
@@ -1081,19 +1082,19 @@ bool ReadMainHostsData(
 		{
 			memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
 
-		//AAAA records(IPv6)
+		//AAAA record(IPv6)
 			if (HostsTableTemp.RecordTypeList.front() == htons(DNS_TYPE_AAAA))
 			{
-				if (!AddressStringToBinary(AF_INET6, (const uint8_t *)HostsListData.back().c_str(), &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
+				if (!AddressStringToBinary(AF_INET6, reinterpret_cast<const uint8_t *>(HostsListData.back().c_str()), &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 			}
-		//A records(IPv4)
+		//A record(IPv4)
 			else if (HostsTableTemp.RecordTypeList.front() == htons(DNS_TYPE_A))
 			{
-				if (!AddressStringToBinary(AF_INET, (const uint8_t *)HostsListData.back().c_str(), &AddressUnionDataTemp.IPv4.sin_addr, &Result))
+				if (!AddressStringToBinary(AF_INET, reinterpret_cast<const uint8_t *>(HostsListData.back().c_str()), &AddressUnionDataTemp.IPv4.sin_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -1113,19 +1114,19 @@ bool ReadMainHostsData(
 		{
 			memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
 
-		//AAAA records(IPv6)
+		//AAAA record(IPv6)
 			if (HostsTableTemp.RecordTypeList.front() == htons(DNS_TYPE_AAAA))
 			{
-				if (!AddressStringToBinary(AF_INET6, (const uint8_t *)StringIter.c_str(), &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
+				if (!AddressStringToBinary(AF_INET6, reinterpret_cast<const uint8_t *>(StringIter.c_str()), &AddressUnionDataTemp.IPv6.sin6_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 			}
-		//A records(IPv4)
+		//A record(IPv4)
 			else if (HostsTableTemp.RecordTypeList.front() == htons(DNS_TYPE_A))
 			{
-				if (!AddressStringToBinary(AF_INET, (const uint8_t *)StringIter.c_str(), &AddressUnionDataTemp.IPv4.sin_addr, &Result))
+				if (!AddressStringToBinary(AF_INET, reinterpret_cast<const uint8_t *>(StringIter.c_str()), &AddressUnionDataTemp.IPv4.sin_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -1179,7 +1180,7 @@ bool ReadMainHostsData(
 	//Try to mark patterns.
 		try {
 			std::regex PatternRegexTemp(HostsTableTemp.PatternOrDomainString);
-			HostsTableTemp.PatternRegex.swap(PatternRegexTemp);
+			std::swap(HostsTableTemp.PatternRegex, PatternRegexTemp);
 			HostsTableTemp.PatternOrDomainString.clear();
 			HostsTableTemp.PatternOrDomainString.shrink_to_fit();
 		}

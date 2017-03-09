@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2016 Chengr28
+// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Copyright (C) 2012-2017 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -222,7 +222,7 @@ bool ReadBlacklistData(
 //Mark all data in list.
 	for (const auto &StringIter:ListData)
 	{
-	//AAAA records(IPv6)
+	//AAAA record(IPv6)
 		if (StringIter.find(ASCII_COLON) != std::string::npos)
 		{
 		//Before type check
@@ -249,7 +249,7 @@ bool ReadBlacklistData(
 			//Convert address(Begin).
 				memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 				memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
-				if (!AddressStringToBinary(AF_INET6, AddrBuffer, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
+				if (!AddressStringToBinary(AF_INET6, AddrBuffer, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin))->sin6_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -259,7 +259,7 @@ bool ReadBlacklistData(
 			//Convert address(End).
 				memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 				memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
-				if (!AddressStringToBinary(AF_INET6, AddrBuffer, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, &Result))
+				if (!AddressStringToBinary(AF_INET6, AddrBuffer, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.End))->sin6_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -267,7 +267,7 @@ bool ReadBlacklistData(
 				AddressRangeTableTemp.End.ss_family = AF_INET6;
 
 			//Check address range.
-				if (AddressesComparing(AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr) > ADDRESS_COMPARE_TYPE::EQUAL)
+				if (AddressesComparing(AF_INET6, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin))->sin6_addr, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.End))->sin6_addr) > ADDRESS_COMPARE_TYPE::EQUAL)
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address range error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -278,14 +278,14 @@ bool ReadBlacklistData(
 			//Convert address.
 				memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 				memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, StringIter.c_str(), StringIter.length());
-				if (!AddressStringToBinary(AF_INET6, AddrBuffer, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &Result))
+				if (!AddressStringToBinary(AF_INET6, AddrBuffer, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin))->sin6_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 
 			//Check repeating items.
-				if (CheckSpecialAddress(AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, false, nullptr))
+				if (CheckSpecialAddress(AF_INET6, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin))->sin6_addr, false, nullptr))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::IPFILTER, L"Repeating items error, this item is not available", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -293,13 +293,13 @@ bool ReadBlacklistData(
 
 				AddressRangeTableTemp.Begin.ss_family = AF_INET6;
 				AddressRangeTableTemp.End.ss_family = AF_INET6;
-				((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr = ((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr;
+				(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.End))->sin6_addr = (reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin))->sin6_addr;
 			}
 
 			ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTableTemp);
 			memset(&AddressRangeTableTemp, 0, sizeof(AddressRangeTableTemp));
 		}
-	//A records(IPv4)
+	//A record(IPv4)
 		else if (StringIter.find(ASCII_PERIOD) != std::string::npos)
 		{
 		//Before type check
@@ -326,7 +326,7 @@ bool ReadBlacklistData(
 			//Convert address(Begin).
 				memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 				memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, StringIter.c_str(), StringIter.find(ASCII_MINUS));
-				if (!AddressStringToBinary(AF_INET, AddrBuffer, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &Result))
+				if (!AddressStringToBinary(AF_INET, AddrBuffer, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin))->sin_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -336,7 +336,7 @@ bool ReadBlacklistData(
 			//Convert address(End).
 				memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 				memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, StringIter.c_str() + StringIter.find(ASCII_MINUS) + 1U, StringIter.length() - StringIter.find(ASCII_MINUS) - 1U);
-				if (!AddressStringToBinary(AF_INET, AddrBuffer, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, &Result))
+				if (!AddressStringToBinary(AF_INET, AddrBuffer, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.End))->sin_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -344,7 +344,7 @@ bool ReadBlacklistData(
 				AddressRangeTableTemp.End.ss_family = AF_INET;
 
 			//Check address range.
-				if (AddressesComparing(AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr) > ADDRESS_COMPARE_TYPE::EQUAL)
+				if (AddressesComparing(AF_INET, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin))->sin_addr, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.End))->sin_addr) > ADDRESS_COMPARE_TYPE::EQUAL)
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address range error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -355,14 +355,14 @@ bool ReadBlacklistData(
 			//Convert address.
 				memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 				memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, StringIter.c_str(), StringIter.length());
-				if (!AddressStringToBinary(AF_INET, AddrBuffer, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &Result))
+				if (!AddressStringToBinary(AF_INET, AddrBuffer, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin))->sin_addr, &Result))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
 
 			//Check repeating items.
-				if (CheckSpecialAddress(AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, false, nullptr))
+				if (CheckSpecialAddress(AF_INET, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin))->sin_addr, false, nullptr))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::IPFILTER, L"Repeating items error, this item is not available", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
@@ -370,7 +370,7 @@ bool ReadBlacklistData(
 
 				AddressRangeTableTemp.Begin.ss_family = AF_INET;
 				AddressRangeTableTemp.End.ss_family = AF_INET;
-				((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr = ((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr;
+				(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.End))->sin_addr = (reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin))->sin_addr;
 			}
 
 			ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTableTemp);
@@ -395,7 +395,7 @@ bool ReadBlacklistData(
 	else {
 		try {
 			std::regex PatternRegexTemp(ResultBlacklistTableTemp.PatternString);
-			ResultBlacklistTableTemp.PatternRegex.swap(PatternRegexTemp);
+			std::swap(ResultBlacklistTableTemp.PatternRegex, PatternRegexTemp);
 		}
 		catch (std::regex_error &Error)
 		{
@@ -488,22 +488,22 @@ bool ReadLocalRoutingData(
 				{
 					if (LocalRoutingTableIter.Prefix == AddressRoutingTableTemp.Prefix)
 					{
-						const auto AddressRoutingListIter = LocalRoutingTableIter.AddressRoutingList_IPv6.find(hton64(*(uint64_t *)&BinaryAddr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)));
+						const auto AddressRoutingListIter = LocalRoutingTableIter.AddressRoutingList_IPv6.find(hton64(*reinterpret_cast<uint64_t *>(&BinaryAddr)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)));
 						if (AddressRoutingListIter != LocalRoutingTableIter.AddressRoutingList_IPv6.end())
 						{
-							if (AddressRoutingListIter->second.count(hton64(*(uint64_t *)((uint8_t *)&BinaryAddr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix))) == 0)
-								AddressRoutingListIter->second.insert(hton64(*(uint64_t *)((uint8_t *)&BinaryAddr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
+							if (AddressRoutingListIter->second.count(hton64(*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&BinaryAddr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix))) == 0)
+								AddressRoutingListIter->second.insert(hton64(*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&BinaryAddr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
 						}
 						else {
 							AddrBackSet.clear();
 							if (AddressRoutingTableTemp.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 							{
 								AddrBackSet.insert(0);
-								LocalRoutingTableIter.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*(uint64_t *)&BinaryAddr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)), AddrBackSet));
+								LocalRoutingTableIter.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*reinterpret_cast<uint64_t *>(&BinaryAddr)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)), AddrBackSet));
 							}
 							else {
-								AddrBackSet.insert(hton64(*(uint64_t *)((uint8_t *)&BinaryAddr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
-								LocalRoutingTableIter.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*(uint64_t *)&BinaryAddr), AddrBackSet));
+								AddrBackSet.insert(hton64(*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&BinaryAddr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
+								LocalRoutingTableIter.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*reinterpret_cast<uint64_t *>(&BinaryAddr)), AddrBackSet));
 							}
 						}
 
@@ -517,11 +517,11 @@ bool ReadLocalRoutingData(
 				if (AddressRoutingTableTemp.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 				{
 					AddrBackSet.insert(0);
-					AddressRoutingTableTemp.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*(uint64_t *)&BinaryAddr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)), AddrBackSet));
+					AddressRoutingTableTemp.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*reinterpret_cast<uint64_t *>(&BinaryAddr)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressRoutingTableTemp.Prefix)), AddrBackSet));
 				}
 				else {
-					AddrBackSet.insert(hton64(*(uint64_t *)((uint8_t *)&BinaryAddr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
-					AddressRoutingTableTemp.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*(uint64_t *)&BinaryAddr), AddrBackSet));
+					AddrBackSet.insert(hton64(*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&BinaryAddr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
+					AddressRoutingTableTemp.AddressRoutingList_IPv6.insert(std::pair<uint64_t, std::set<uint64_t>>(hton64(*reinterpret_cast<uint64_t *>(&BinaryAddr)), AddrBackSet));
 				}
 				IPFilterFileSetIter.LocalRoutingList.push_back(AddressRoutingTableTemp);
 				break;
@@ -625,7 +625,7 @@ bool ReadAddressPrefixBlock(
 	if (Protocol == AF_INET6)
 	{
 	//Convert address.
-		if (!AddressStringToBinary(AF_INET6, AddrBuffer, &((PSOCKADDR_IN6)&AddressPrefix->first)->sin6_addr, &SignedResult))
+		if (!AddressStringToBinary(AF_INET6, AddrBuffer, &(reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first))->sin6_addr, &SignedResult))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv6 address format error", SignedResult, FileList.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -645,11 +645,11 @@ bool ReadAddressPrefixBlock(
 		//Mark prefix block.
 			if (AddressPrefix->second < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 			{
-				*(uint64_t *)&((PSOCKADDR_IN6)&AddressPrefix->first)->sin6_addr = hton64(ntoh64(*(uint64_t *)&((PSOCKADDR_IN6)&AddressPrefix->first)->sin6_addr) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressPrefix->second))); //Mark high 64 bits.
-				*(uint64_t *)((uint8_t *)&((PSOCKADDR_IN6)&AddressPrefix->first)->sin6_addr + sizeof(in6_addr) / 2U) = 0; //Delete low 64 bits.
+				*reinterpret_cast<uint64_t *>(&(reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first))->sin6_addr) = hton64(ntoh64(*reinterpret_cast<uint64_t *>(&(reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first))->sin6_addr)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressPrefix->second))); //Mark high 64 bits.
+				*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&(reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first))->sin6_addr) + sizeof(in6_addr) / 2U) = 0; //Delete low 64 bits.
 			}
 			else {
-				*(uint64_t *)((uint8_t *)&((PSOCKADDR_IN6)&AddressPrefix->first)->sin6_addr + sizeof(in6_addr) / 2U) = hton64(ntoh64(*(uint64_t *)((uint8_t *)&((PSOCKADDR_IN6)&AddressPrefix->first)->sin6_addr + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressPrefix->second))); //Mark low 64 bits.
+				*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&(reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first))->sin6_addr) + sizeof(in6_addr) / 2U) = hton64(ntoh64(*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&(reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first))->sin6_addr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressPrefix->second))); //Mark low 64 bits.
 			}
 		}
 
@@ -659,7 +659,7 @@ bool ReadAddressPrefixBlock(
 	else if (Protocol == AF_INET)
 	{
 	//Convert address.
-		if (!AddressStringToBinary(AF_INET, AddrBuffer, &((PSOCKADDR_IN)&AddressPrefix->first)->sin_addr, &SignedResult))
+		if (!AddressStringToBinary(AF_INET, AddrBuffer, &(reinterpret_cast<sockaddr_in *>(&AddressPrefix->first))->sin_addr, &SignedResult))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv4 address format error", SignedResult, FileList.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -677,7 +677,7 @@ bool ReadAddressPrefixBlock(
 			AddressPrefix->second = UnsignedResult;
 
 		//Mark prefix block.
-			((PSOCKADDR_IN)&AddressPrefix->first)->sin_addr.s_addr = htonl(ntohl(((PSOCKADDR_IN)&AddressPrefix->first)->sin_addr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressPrefix->second)));
+			(reinterpret_cast<sockaddr_in *>(&AddressPrefix->first))->sin_addr.s_addr = htonl(ntohl((reinterpret_cast<sockaddr_in *>(&AddressPrefix->first))->sin_addr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressPrefix->second)));
 		}
 
 		AddressPrefix->first.ss_family = AF_INET;
@@ -749,7 +749,7 @@ bool ReadMainIPFilterData(
 		uint8_t Level[ADDRESS_STRING_MAXSIZE]{0};
 		memcpy_s(Level, ADDRESS_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COMMA) + 1U, Data.find(ASCII_COMMA, Data.find(ASCII_COMMA) + 1U) - Data.find(ASCII_COMMA) - 1U);
 		_set_errno(0);
-		size_t UnsignedResult = strtoul((const char *)Level, nullptr, 0);
+		size_t UnsignedResult = strtoul(reinterpret_cast<const char *>(Level), nullptr, 0);
 		if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult < ULONG_MAX))
 		{
 			AddressRangeTableTemp.Level = UnsignedResult;
@@ -843,7 +843,7 @@ bool ReadMainIPFilterData(
 	//Begin address
 		AddressRangeTableTemp.Begin.ss_family = AF_INET6;
 		memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_MINUS));
-		if (!AddressStringToBinary(AF_INET6, AddrBuffer, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &SignedResult))
+		if (!AddressStringToBinary(AF_INET6, AddrBuffer, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin))->sin6_addr, &SignedResult))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address format error", SignedResult, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -853,25 +853,24 @@ bool ReadMainIPFilterData(
 		memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 		AddressRangeTableTemp.End.ss_family = AF_INET6;
 		memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_MINUS) + 1U, Data.length() - Data.find(ASCII_MINUS));
-		if (!AddressStringToBinary(AF_INET6, AddrBuffer, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr, &SignedResult))
+		if (!AddressStringToBinary(AF_INET6, AddrBuffer, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.End))->sin6_addr, &SignedResult))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address format error", SignedResult, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
 		}
 
 	//Check address range.
-		if (AddressesComparing(AF_INET6, &((PSOCKADDR_IN6)&AddressRangeTableTemp.Begin)->sin6_addr, &((PSOCKADDR_IN6)&AddressRangeTableTemp.End)->sin6_addr) > ADDRESS_COMPARE_TYPE::EQUAL)
+		if (AddressesComparing(AF_INET6, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin))->sin6_addr, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.End))->sin6_addr) > ADDRESS_COMPARE_TYPE::EQUAL)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address range error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
 		}
 	}
-//IPv4
-	else {
+	else { //IPv4
 	//Begin address
 		AddressRangeTableTemp.Begin.ss_family = AF_INET;
 		memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, Data.c_str(), Data.find(ASCII_MINUS));
-		if (!AddressStringToBinary(AF_INET, AddrBuffer, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &SignedResult))
+		if (!AddressStringToBinary(AF_INET, AddrBuffer, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin))->sin_addr, &SignedResult))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address format error", SignedResult, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -881,14 +880,14 @@ bool ReadMainIPFilterData(
 		memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
 		AddressRangeTableTemp.End.ss_family = AF_INET;
 		memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_MINUS) + 1U, Data.length() - Data.find(ASCII_MINUS));
-		if (!AddressStringToBinary(AF_INET, AddrBuffer, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr, &SignedResult))
+		if (!AddressStringToBinary(AF_INET, AddrBuffer, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.End))->sin_addr, &SignedResult))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address format error", SignedResult, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
 		}
 
 	//Check address range.
-		if (AddressesComparing(AF_INET, &((PSOCKADDR_IN)&AddressRangeTableTemp.Begin)->sin_addr, &((PSOCKADDR_IN)&AddressRangeTableTemp.End)->sin_addr) > ADDRESS_COMPARE_TYPE::EQUAL)
+		if (AddressesComparing(AF_INET, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin))->sin_addr, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.End))->sin_addr) > ADDRESS_COMPARE_TYPE::EQUAL)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address range error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;

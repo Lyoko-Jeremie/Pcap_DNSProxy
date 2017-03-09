@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2016 Chengr28
+// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Copyright (C) 2012-2017 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -153,7 +153,7 @@ template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
 template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
 	const size_t Size)
 {
-	Buffer = (Ty *)sodium_malloc(Size);
+	Buffer = reinterpret_cast<Ty *>(sodium_malloc(Size));
 	if (Buffer != nullptr)
 	{
 		sodium_memzero(Buffer, Size);
@@ -171,7 +171,7 @@ template<typename Ty> DNSCurveHeapBufferTable<Ty>::DNSCurveHeapBufferTable(
 	const size_t Count, 
 	const size_t Size)
 {
-	Buffer = (Ty *)sodium_allocarray(Count, Size);
+	Buffer = reinterpret_cast<Ty *>(sodium_allocarray(Count, Size));
 	if (Buffer != nullptr)
 	{
 		sodium_memzero(Buffer, Count * Size);

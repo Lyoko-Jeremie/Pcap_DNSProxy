@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # 
 # This code is part of Pcap_DNSProxy
-# A local DNS server based on WinPcap and LibPcap
-# Copyright (C) 2012-2016 Chengr28
+# Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+# Copyright (C) 2012-2017 Chengr28
 # 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -25,4 +25,5 @@ chmod -R 755 Tools
 cp pcap_dnsproxy.service.plist /Library/LaunchDaemons/pcap_dnsproxy.service.plist
 cd /Library/LaunchDaemons
 chmod 644 pcap_dnsproxy.service.plist
+killall Pcap_DNSProxy 2>/dev/null
 launchctl load pcap_dnsproxy.service.plist

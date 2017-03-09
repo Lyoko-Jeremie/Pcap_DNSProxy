@@ -15,11 +15,13 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 1.访问 https://github.com/chengr28/Pcap_DNSProxy/releases 将二进制可执行文件包下载到本地
 2.打开下载回来的二进制可执行文件包，将 macOS 目录解压到磁盘的任意位置
+  * 建议将本项目放置在一个独立的目录内，不要和其它文件混合
   * 注意：TLS/SSL 协议相关功能的问题，请浏览下文有关 OpenSSL 库的特别说明
 3.编辑 pcap_dnsproxy.service.plist 文件
   * 清空 <string>/usr/local/opt/pcap_dnsproxy/bin/Pcap_DNSProxy</string> 标签内的内容，改为 "<string>程序所在的完整路径/程序名称</string>"（不含引号）
   * 清空 <string>/usr/local/etc/pcap_dnsproxy/</string> 标签内的内容，改为 "<string>程序所在的完整路径</string>"（不含引号）
-4.打开终端，使用 sudo -i 获得 root 权限：
+4.打开终端，使用 sudo -i 获得 root 权限并进入 macOS 目录内：
+  * 使用 cd 切换回程序所在目录
   * 使用 chmod 755 macOS_Install.sh 使服务安装脚本获得可执行权限
   * 使用 ./macOS_Install.sh 执行服务安装脚本
   * 脚本所进行的操作：

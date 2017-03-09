@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2016 Chengr28
+// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Copyright (C) 2012-2017 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -34,6 +34,6 @@
 
 
 //Resource including and defining
-#define FULL_VERSION        L"0.4.8.3"
-#define DETACH_VERSION      0,4,8,3
-#define COPYRIGHT_MESSAGE   L"Copyright (C) 2012-2016 Chengr28"
+#define FULL_VERSION        L"0.4.8.4"
+#define DETACH_VERSION      0,4,8,4
+#define COPYRIGHT_MESSAGE   L"Copyright (C) 2012-2017 Chengr28"

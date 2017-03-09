@@ -1,5 +1,5 @@
 :: Pcap_DNSProxy service control batch
-:: A local DNS server based on WinPcap and LibPcap
+:: Pcap DNSProxy, a local DNS server based on WinPcap and LibPcap
 :: Author: Hugo Chan, wongsyrone, Chengr28
 
 
@@ -54,13 +54,14 @@ goto %UserChoice%
 	sc stop PcapDNSProxyService
 	sc delete PcapDNSProxyService
 	ping 127.0.0.1 -n 3 >NUL
+	taskkill /F /IM Pcap_DNSProxy.exe >NUL
 
 	sc create PcapDNSProxyService binPath= "%~dp0%Prog%" DisplayName= "PcapDNSProxy Service" start= auto
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v Application /d "%~dp0%Prog%" /f
 	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v AppDirectory /d "%~dp0" /f
 	%Prog% --first-setup
 
-	sc description PcapDNSProxyService "A local DNS server based on WinPcap and LibPcap"
+	sc description PcapDNSProxyService "Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap"
 	sc failure PcapDNSProxyService reset= 0 actions= restart/5000/restart/10000//
 	sc start PcapDNSProxyService
 	ipconfig /flushdns
@@ -75,6 +76,7 @@ goto %UserChoice%
 	sc stop PcapDNSProxyService
 	sc delete PcapDNSProxyService
 	ping 127.0.0.1 -n 3 >NUL
+	taskkill /F /IM Pcap_DNSProxy.exe >NUL
 	ipconfig /flushdns
 	echo.
 	pause
@@ -109,6 +111,7 @@ goto %UserChoice%
 :CASE_5
 	sc stop PcapDNSProxyService
 	ping 127.0.0.1 -n 3 >NUL
+	taskkill /F /IM Pcap_DNSProxy.exe >NUL
 	sc start PcapDNSProxyService
 	ping 127.0.0.1 -n 3 >NUL
 	ipconfig /flushdns

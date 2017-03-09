@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2016 Chengr28
+// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Copyright (C) 2012-2017 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -31,8 +31,8 @@ BLOCKING_QUEUE<MONITOR_QUEUE_DATA> MonitorBlockingQueue;
 DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
 #endif
 std::vector<FILE_DATA> FileList_Config, FileList_IPFilter, FileList_Hosts;
-std::vector<DIFFERNET_FILE_SET_IPFILTER> IPFilterFileSet[2U], *IPFilterFileSetUsing = &IPFilterFileSet[0], *IPFilterFileSetModificating = &IPFilterFileSet[1U];
-std::vector<DIFFERNET_FILE_SET_HOSTS> HostsFileSet[2U], *HostsFileSetUsing = &HostsFileSet[0], *HostsFileSetModificating = &HostsFileSet[1U];
+std::vector<DIFFERNET_FILE_SET_IPFILTER> IPFilterFileSet[DIFFERNET_FILE_SET_NUM], *IPFilterFileSetUsing = &IPFilterFileSet[0], *IPFilterFileSetModificating = &IPFilterFileSet[1U];
+std::vector<DIFFERNET_FILE_SET_HOSTS> HostsFileSet[DIFFERNET_FILE_SET_NUM], *HostsFileSetUsing = &HostsFileSet[0], *HostsFileSetModificating = &HostsFileSet[1U];
 std::deque<SOCKET_MARKING_DATA> SocketMarkingList;
 #if defined(ENABLE_PCAP)
 std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;

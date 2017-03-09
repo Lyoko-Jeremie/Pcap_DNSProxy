@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2016 Chengr28
+// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Copyright (C) 2012-2017 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -24,12 +24,12 @@
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
+extern GLOBAL_STATUS GlobalRunningStatus;
 extern std::deque<DNS_CACHE_DATA> DNSCacheList;
 extern std::mutex ScreenLock, DNSCacheListLock;
-#if defined(PLATFORM_WIN)
-extern GLOBAL_STATUS GlobalRunningStatus;
 
 //Local variables
+#if defined(PLATFORM_WIN)
 static DWORD ServiceCurrentStatus = 0;
 static BOOL IsServiceRunning = FALSE;
 SERVICE_STATUS_HANDLE ServiceStatusHandle = nullptr;
@@ -41,6 +41,11 @@ uint64_t LastFlushDNSTime = 0;
 
 //Functions
 #if defined(PLATFORM_WIN)
+bool SystemSecurityInit(
+	const ACL * const ACL_Buffer, 
+	SECURITY_ATTRIBUTES &SecurityAttributes, 
+	SECURITY_DESCRIPTOR &SecurityDescriptor, 
+	PSID &SID_Value);
 size_t WINAPI ServiceControl(
 	const DWORD ControlCode);
 HANDLE WINAPI ExecuteService(

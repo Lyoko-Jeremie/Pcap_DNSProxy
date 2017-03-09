@@ -19,7 +19,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Windows 版本的 Pcap_DNSProxy 在二進位可執行檔包的 Windows 目錄內，可將整個目錄單獨抽出運行
 
 3.打開下載回來的二進位可執行檔包，將 Windows 目錄解壓到磁片的任意位置
-  * 目錄所在位置和程式檔案名可以隨意更改
+  * 目錄所在位置和程式檔案名可以隨意更改，建議將本專案放置在一個獨立的目錄內
   * 設定檔需要使用固定的檔案名（更多詳細情況參見下文 功能和技術 一節）
 
 4.確定工具目錄的名稱和路徑後進入目錄內，右鍵以管理員身份(Vista 以及更新版本)或直接以管理員登錄按兩下(XP/2003)運行 ServiceControl.bat
@@ -120,7 +120,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 強烈建議打開 DNS 緩存功能！
 * 本工具配置選項豐富，配置不同的組合會有不同的效果，介紹幾個比較常用的組合：
   * 預設配置：UDP 請求 + 抓包模式
-  * Output Protocol = ...TCP：先 TCP 請求失敗後再 UDP 請求 + 抓包模式，對網路資源的佔用比較高
+  * Outgoing Protocol = ...TCP：先 TCP 請求失敗後再 UDP 請求 + 抓包模式，對網路資源的佔用比較高
     * 由於 TCP 請求大部分時候不會被投毒污染，此組合的過濾效果比較可靠
   * EDNS Label = 1：開啟 EDNS 請求標籤功能
     * 此功能開啟後將有利於對偽造資料包的過濾能力，此組合的過濾效果比較可靠
@@ -208,6 +208,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Base - 基本參數區域
   * Version - 設定檔的版本，用於正確識別設定檔：本參數與程式版本號不相關，切勿修改
   * File Refresh Time - 檔刷新間隔時間：單位為秒，最小為 5
+    * 本參數同時決定監視器的時間休眠時間片的細微性，其指的是休眠一段長時間時會根據此細微性啟動並檢查是否需要重新運行特定監視專案，而不需要等到長時間完全過去休眠完全結束後才能重新對此進行監視，此功能對程式的網路狀況適應能力會有提高
   * Large Buffer Size - 大型資料緩衝區的固定長度：單位為位元組，最小為 1500
   * Additional Path - 附加的資料檔案讀取路徑，附加在此處的目錄路徑下的 Hosts 檔和 IPFilter 檔會被依次讀取：請填入目錄的絕對路徑
   * Hosts File Name - Hosts 檔的檔案名，附加在此處的 Hosts 檔案名將被依次讀取
@@ -224,7 +225,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * Listen - 監聽參數區域
   * Pcap Capture - 抓包功能總開關，開啟後抓包模組才能正常使用：開啟為 1 /關閉為 0
-    * 注意：如果關閉抓包模組，需要開啟其它方式獲取功能變數名稱解析，否則會報錯！
+    * 注意：如果抓包模組被關閉，則會自動開啟 Direct Request 功能，啟用 Direct Request 時對 DNS 投毒污染的防禦能力比較弱
   * Pcap Devices Blacklist - 指定不對含有此名稱的網路介面卡進行抓包，名稱或簡介裡含有此字串的網路介面卡將被直接忽略
     * 本參數支援指定多個名稱，大小寫不敏感，格式為 "網路介面卡的名稱(|網路介面卡的名稱)"（不含引號，括弧內為可選項目）
     * 以抓包模組從系統中獲取的名稱或簡介為准，與其它網路設定程式所顯示的不一定相同
@@ -332,7 +333,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * RESERVED/65535
 
 * DNS - 功能變數名稱解析參數區域
-  * Output Protocol - 發送請求所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
+  * Outgoing Protocol - 發送請求所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向遠端 DNS 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
     * 同時填入 TCP 和 UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
@@ -342,13 +343,26 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Cache Type - DNS 緩存的類型：分 Timer/計時型、Queue/佇列型以及它們的混合類型，填入 0 為關閉此功能
     * Timer/計時型：超過指定時間的 DNS 緩存將會被丟棄
     * Queue/佇列型：超過佇列長度時，將刪除最舊的 DNS 緩存
+    * 混合類型：超過指定時間時和超過佇列長度時，都會刪除最舊的 DNS 緩存
+  * Cache Type - DNS 緩存的類型：分 Timer/計時型、Queue/佇列型以及它們的混合類型，填入 0 為關閉此功能
+    * Timer/計時型：超過指定時間的 DNS 緩存將會被丟棄
+    * Queue/佇列型：超過佇列長度時，將刪除最舊的 DNS 緩存
     * 混合類型：超過指定時間時、超過佇列長度時以及超過功能變數名稱本身 TTL 時，都會刪除最舊的 DNS 緩存
   * Cache Parameter - DNS 緩存的參數：分 Timer/計時型、Queue/佇列型以及它們的混合類型，填入 0 為關閉此功能
-    * Timer/計時型：緩存時間，單位為秒
+    * Timer/計時型
+      * 緩存時間，單位為秒
+      * 如果解析結果的平均 TTL 值大於此值，則使用 [TTL + 此值] 為最終的緩存時間
+      * 如果解析結果的平均 TTL 值小於等於此值，則使用 [此值] 為最終的緩存時間
+      * 如果填 0 則最終的緩存時間為 TTL 值
     * Queue/佇列型：佇列長度
-    * 混合類型：佇列長度
+    * 混合類型
+      * 佇列長度
+      * 此模式下最終的緩存時間由 Default TTL 參數決定
   * Default TTL - 已緩存 DNS 記錄預設存留時間：單位為秒，留空則為 900秒/15分鐘
-    * DNS 緩存的類型為混合類型時，本參數將同時指定功能變數名稱本身 TTL 的最小緩存時間
+    * DNS 緩存的類型為混合類型時，本參數將同時決定最終的緩存時間
+      * 如果解析結果的平均 TTL 值大於此值，則使用 [TTL + 此值] 為最終的緩存時間
+      * 如果解析結果的平均 TTL 值小於等於此值，則使用 [此值] 為最終的緩存時間
+      * 如果填 0 則最終的緩存時間為 TTL 值
   
 * Local DNS - 境內功能變數名稱解析參數區域
   * Local Protocol - 發送境內請求所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
@@ -573,8 +587,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 可單獨使用其中一個，即只填一個數位，或填入多個，中間使用 + 號連接
     * 填入多個時，當實際需要使用隨機添加壓縮指標時將隨機使用其中的一種，每個請求都有可能不相同
   * EDNS Label - EDNS 標籤支援，開啟後將為請求添加 EDNS 標籤：全部開啟為 1 /關閉為 0
-    * 本參數可只指定部分的請求過程使用 EDNS 標籤，以下可用的參數可隨意刪減以實現此功能
-    * 可用的參數：Local + SOCKS Proxy + HTTP CONNECT Proxy + Direct Request + DNSCurve + TCP + UDP
+    * 本參數可只指定部分的請求過程使用 EDNS 標籤，分為指定模式和排除模式：
+    * 指定清單模式，列出的過程才啟用此功能：EDNS Label = Local + SOCKS Proxy + HTTP CONNECT Proxy + Direct Request + DNSCurve + TCP + UDP
+    * 排除清單模式，列出的過程不啟用此功能：EDNS Label = 1 - Local - SOCKS Proxy - HTTP CONNECT Proxy - Direct Request - DNSCurve - TCP - UDP
   * EDNS Client Subnet Relay - EDNS 用戶端子網轉發功能，開啟後將為來自非私有網路位址的所有請求添加其請求時所使用的位址的 EDNS 子網位址：開啟為 1 /關閉為 0
     * 本功能要求啟用 EDNS Label 參數
     * 本參數優先順序比 IPv4/IPv6 EDNS Client Subnet Address 參數高，故需要添加 EDNS 子網位址時將優先添加本參數的位址

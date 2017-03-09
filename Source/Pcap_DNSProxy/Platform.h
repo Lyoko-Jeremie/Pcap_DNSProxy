@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2016 Chengr28
+// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Copyright (C) 2012-2017 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -391,6 +391,7 @@
 
 //Windows API headers
 //Part 1 including files
+	#include <direct.h>                //Functions for directory handling and creation
 	#include <winsock2.h>              //WinSock 2.0+ support
 //	#include <winsvc.h>                //Service Control Manager
 
@@ -495,6 +496,7 @@
 	#include <unistd.h>                    //Standard library API support
 	#include <arpa/inet.h>                 //Internet operations support
 	#include <netinet/tcp.h>               //TCP protocol support
+	#include <sys/file.h>                  //File descriptor support
 	#include <sys/socket.h>                //Socket support
 	#include <sys/stat.h>                  //Getting information about files attributes support
 	#include <sys/time.h>                  //Date and time support
@@ -599,7 +601,6 @@
 	#define SOCKET_ERROR             (-1)
 	#define TRUE                     1U
 	#define RETURN_ERROR             (-1)
-	#define MAX_PATH                 PATH_MAX
 	#define SD_BOTH                  SHUT_RDWR
 	#define SD_RECV                  SHUT_RD
 	#define SD_SEND                  SHUT_WR
@@ -608,25 +609,19 @@
 	#define WSAENETUNREACH           ENETUNREACH
 	#define WSAENOTSOCK              ENOTSOCK
 	#define WSAETIMEDOUT             ETIMEDOUT
-	typedef sockaddr                 *PSOCKADDR;
-	typedef sockaddr_in              *PSOCKADDR_IN;
-	typedef sockaddr_in6             *PSOCKADDR_IN6;
 
 //Function definitions(Part 1)
 	#define closesocket                                                  close
-	#if defined(PLATFORM_LINUX)
-		#define _fcloseall                                                   fcloseall
-	#endif
 	#define fwprintf_s                                                   fwprintf
 	#define strnlen_s                                                    strnlen
 	#define vfwprintf_s                                                  vfwprintf
 	#define wcsnlen_s                                                    wcsnlen
 	#define WSAGetLastError()                                            errno
 	#define _set_errno(Value)                                            errno = (Value)
-	#define fread_s(Dst, DstSize, ElementSize, Count, File)              fread(Dst, ElementSize, Count, File)
-	#define memcpy_s(Dst, DstSize, Src, Size)                            memcpy(Dst, Src, Size)
-	#define memmove_s(Dst, DstSize, Src, Size)                           memmove(Dst, Src, Size)
-	#define strncpy_s(Dst, DstSize, Src, Size)                           strncpy(Dst, Src, Size)
-	#define wcsncpy_s(Dst, DstSize, Src, Size)                           wcsncpy(Dst, Src, Size)
+	#define fread_s(Dst, DstSize, ElementSize, Count, File)              fread((Dst), (ElementSize), (Count), (File))
+	#define memcpy_s(Dst, DstSize, Src, Size)                            memcpy((Dst), (Src), (Size))
+	#define memmove_s(Dst, DstSize, Src, Size)                           memmove((Dst), (Src), (Size))
+	#define strncpy_s(Dst, DstSize, Src, Size)                           strncpy((Dst), (Src), (Size))
+	#define wcsncpy_s(Dst, DstSize, Src, Size)                           wcsncpy((Dst), (Src), (Size))
 #endif
 #endif

@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2016 Chengr28
+// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Copyright (C) 2012-2017 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -70,7 +70,7 @@ bool PrintError(
 			ErrorMessage.append(L"[Notice] ");
 		}break;
 	//System Error
-	//About System Error Codes, visit https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx.
+	//About System Error Codes, please visit https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx.
 		case LOG_ERROR_TYPE::SYSTEM:
 		{
 			ErrorMessage.append(L"[System Error] ");
@@ -91,7 +91,7 @@ bool PrintError(
 			ErrorMessage.append(L"[Hosts Error] ");
 		}break;
 	//Network Error
-	//About Windows Sockets error codes, visit https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
+	//About Windows Sockets error codes, please visit https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
 		case LOG_ERROR_TYPE::NETWORK:
 		{
 		//Block error messages when getting Network Unreachable and Host Unreachable error.
@@ -101,7 +101,7 @@ bool PrintError(
 				ErrorMessage.append(L"[Network Error] ");
 		}break;
 	//WinPcap/LibPcap Error
-	//About WinPcap/LibPcap error codes, visit https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html.
+	//About WinPcap/LibPcap error codes, please visit https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html.
 	#if defined(ENABLE_PCAP)
 		case LOG_ERROR_TYPE::PCAP:
 		{
@@ -131,8 +131,8 @@ bool PrintError(
 			ErrorMessage.append(L"[HTTP CONNECT Error] ");
 		}break;
 	//TLS Error
-	//About SSPI/SChannel error codes, visit https://msdn.microsoft.com/en-us/library/windows/desktop/aa380499(v=vs.85).aspx and https://msdn.microsoft.com/en-us/library/windows/desktop/dd721886(v=vs.85).aspx.
-	//About OpenSSL error codes, visit https://www.openssl.org/docs/manmaster/man3/ERR_get_error.html.
+	//About SSPI/SChannel error codes, please visit https://msdn.microsoft.com/en-us/library/windows/desktop/aa380499(v=vs.85).aspx and https://msdn.microsoft.com/en-us/library/windows/desktop/dd721886(v=vs.85).aspx.
+	//About OpenSSL error codes, please visit https://www.openssl.org/docs/manmaster/man3/ERR_get_error.html.
 	#if defined(ENABLE_TLS)
 		case LOG_ERROR_TYPE::TLS:
 		{
@@ -167,9 +167,9 @@ bool WriteMessage_ScreenFile(
 	memset(&TimeStructure, 0, sizeof(TimeStructure));
 	const auto TimeValues = time(nullptr);
 #if defined(PLATFORM_WIN)
-	if (localtime_s(&TimeStructure, &TimeValues) != 0)
+	if (TimeValues <= 0 || localtime_s(&TimeStructure, &TimeValues) != 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (localtime_r(&TimeValues, &TimeStructure) == nullptr)
+	if (TimeValues <= 0 || localtime_r(&TimeValues, &TimeStructure) == nullptr)
 #endif
 		return false;
 
@@ -221,10 +221,10 @@ bool WriteMessage_ScreenFile(
 
 //Check whole file size.
 	auto IsFileDeleted = false;
-	std::lock_guard<std::mutex> ErrorLogMutex(ErrorLogLock);
 #if defined(PLATFORM_WIN)
 	WIN32_FILE_ATTRIBUTE_DATA FileAttributeData;
 	memset(&FileAttributeData, 0, sizeof(FileAttributeData));
+	std::lock_guard<std::mutex> ErrorLogMutex(ErrorLogLock);
 	if (GetFileAttributesExW(
 		GlobalRunningStatus.Path_ErrorLog->c_str(), 
 		GetFileExInfoStandard, 
@@ -234,7 +234,7 @@ bool WriteMessage_ScreenFile(
 		memset(&ErrorFileSize, 0, sizeof(ErrorFileSize));
 		ErrorFileSize.HighPart = FileAttributeData.nFileSizeHigh;
 		ErrorFileSize.LowPart = FileAttributeData.nFileSizeLow;
-		if (ErrorFileSize.QuadPart > 0 && (uint64_t)ErrorFileSize.QuadPart >= Parameter.LogMaxSize)
+		if (ErrorFileSize.QuadPart > 0 && static_cast<uint64_t>(ErrorFileSize.QuadPart) >= Parameter.LogMaxSize)
 		{
 			if (DeleteFileW(
 				GlobalRunningStatus.Path_ErrorLog->c_str()) != FALSE)
@@ -246,7 +246,8 @@ bool WriteMessage_ScreenFile(
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	struct stat FileStatData;
 	memset(&FileStatData, 0, sizeof(FileStatData));
-	if (stat(GlobalRunningStatus.MBS_Path_ErrorLog->c_str(), &FileStatData) == 0 && FileStatData.st_size >= (off_t)Parameter.LogMaxSize)
+	std::lock_guard<std::mutex> ErrorLogMutex(ErrorLogLock);
+	if (stat(GlobalRunningStatus.MBS_Path_ErrorLog->c_str(), &FileStatData) == 0 && FileStatData.st_size >= static_cast<off_t>(Parameter.LogMaxSize))
 	{
 		if (remove(GlobalRunningStatus.MBS_Path_ErrorLog->c_str()) == 0)
 			IsFileDeleted = true;
@@ -335,7 +336,7 @@ void PrintToScreen(
 		vfwprintf_s(stderr, Format, ArgList);
 	}
 
-//Cleanup
+//Variable arguments cleanup
 	va_end(ArgList);
 	return;
 }
@@ -358,9 +359,9 @@ void ErrorCodeToMessage(
 	if (FormatMessageW(
 		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_MAX_WIDTH_MASK, 
 		nullptr, 
-		(DWORD)ErrorCode, 
+		static_cast<DWORD>(ErrorCode), 
 		MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), 
-		(LPWSTR)&InnerMessage, 
+		reinterpret_cast<LPWSTR>(&InnerMessage), 
 		0, 
 		nullptr) == 0)
 	{
@@ -407,8 +408,8 @@ void ErrorCodeToMessage(
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	std::wstring InnerMessage;
-	auto ErrorMessage = strerror((int)ErrorCode);
-	if (ErrorMessage == nullptr || !MBS_To_WCS_String((const uint8_t *)ErrorMessage, strnlen(ErrorMessage, FILE_BUFFER_SIZE), InnerMessage))
+	const auto ErrorMessage = strerror(static_cast<int>(ErrorCode));
+	if (ErrorMessage == nullptr || !MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(ErrorMessage), strnlen(ErrorMessage, FILE_BUFFER_SIZE), InnerMessage))
 	{
 		Message.append(L"%d");
 	}

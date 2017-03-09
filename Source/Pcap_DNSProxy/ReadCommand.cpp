@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2016 Chengr28
+// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Copyright (C) 2012-2017 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,17 +32,99 @@ bool ReadCommand(
 {
 //Path initialization
 #if defined(PLATFORM_WIN)
-	if (!FileNameInit(argv[0]))
-#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	char FileName[PATH_MAX + 1U]{0};
-	if (getcwd(FileName, PATH_MAX) == nullptr)
+	std::unique_ptr<wchar_t[]> FilePathBuffer(new wchar_t[FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES]());
+	wmemset(FilePathBuffer.get(), 0, FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
+	std::wstring FilePathString;
+	size_t BufferSize = FILE_BUFFER_SIZE;
+	for (;;)
+	{
+	//Get full module file name which is the location of program and not its working directory.
+		const auto Result = GetModuleFileName(
+			nullptr, 
+			FilePathBuffer.get(), 
+			static_cast<DWORD>(BufferSize));
+		if (Result == 0)
+		{
+			std::wstring Message(L"[System Error] Path initialization error");
+			if (GetLastError() == 0)
+			{
+				Message.append(L".\n");
+				PrintToScreen(true, Message.c_str());
+			}
+			else {
+				ErrorCodeToMessage(LOG_ERROR_TYPE::SYSTEM, GetLastError(), Message);
+				Message.append(L".\n");
+				PrintToScreen(true, Message.c_str(), GetLastError());
+			}
+
+			return false;
+		}
+		else if (Result == BufferSize)
+		{
+		//Buffer is too small to hold the module name.
+		#if defined(PLATFORM_WIN_XP)
+			if (GetLastError() == ERROR_SUCCESS)
+		#else
+			if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+		#endif
+			{
+				std::unique_ptr<wchar_t[]> FilePathBufferTemp(new wchar_t[BufferSize + FILE_BUFFER_SIZE]());
+				wmemset(FilePathBufferTemp.get(), 0, BufferSize + FILE_BUFFER_SIZE);
+				std::swap(FilePathBuffer, FilePathBufferTemp);
+				BufferSize += FILE_BUFFER_SIZE;
+			}
+		//Hold the whole module name.
+			else {
+				FilePathString = FilePathBuffer.get();
+				break;
+			}
+		}
+		else {
+		//Hold the whole module name.
+			FilePathString = FilePathBuffer.get();
+			break;
+		}
+	}
+	
+//File name initialization
+	FilePathBuffer.reset();
+	if (!FileNameInit(FilePathString))
 	{
 		PrintToScreen(true, L"[System Error] Path initialization error.\n");
 		return false;
 	}
-	if (!FileNameInit(FileName))
-#endif
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	auto FilePath = getcwd(nullptr, 0);
+	if (FilePath == nullptr)
+	{
+		std::wstring Message(L"[System Error] Path initialization error");
+		if (errno == 0)
+		{
+			Message.append(L".\n");
+			PrintToScreen(true, Message.c_str());
+		}
+		else {
+			ErrorCodeToMessage(LOG_ERROR_TYPE::SYSTEM, errno, Message);
+			Message.append(L".\n");
+			PrintToScreen(true, Message.c_str(), errno);
+		}
+
 		return false;
+	}
+	else {
+	//Copy to local storage and free pointer.
+		std::string FilePathString(FilePath);
+		free(FilePath);
+		FilePath = nullptr;
+		
+	//File name initialization
+		if (!FileNameInit(FilePathString))
+		{
+			PrintToScreen(true, L"[System Error] Path initialization error.\n");
+			return false;
+		}
+	}
+#endif
 
 //Screen output buffer settings
 	_set_errno(0);
@@ -71,7 +153,7 @@ bool ReadCommand(
 #endif
 
 //Read commands.
-	for (size_t Index = 1U;(int)Index < argc;++Index)
+	for (size_t Index = 1U;static_cast<int>(Index) < argc;++Index)
 	{
 	//Case insensitive
 	#if defined(PLATFORM_WIN)
@@ -85,7 +167,7 @@ bool ReadCommand(
 		if (InsensitiveString == COMMAND_LONG_SET_PATH || InsensitiveString == COMMAND_SHORT_SET_PATH)
 		{
 		//Commands check
-			if ((int)Index + 1 >= argc)
+			if (static_cast<int>(Index) + 1 >= argc)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Commands error", 0, nullptr, 0);
 				return false;
@@ -94,15 +176,21 @@ bool ReadCommand(
 				++Index;
 				Commands = argv[Index];
 
-			//Path check.
-				if (Commands.length() > MAX_PATH)
+			//Path and file name check.
+			//Path and file name size limit is removed, read https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx to get more details.
+			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+				if (Commands.length() >= PATH_MAX)
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Commands error", 0, nullptr, 0);
 					return false;
 				}
-				else {
-					if (!FileNameInit(Commands.c_str()))
-						return false;
+			#endif
+
+			//Mark path and file name.
+				if (!FileNameInit(Commands))
+				{
+					PrintToScreen(true, L"[System Error] Path initialization error.\n");
+					return false;
 				}
 			}
 		}
@@ -167,7 +255,7 @@ bool ReadCommand(
 				#if defined(PLATFORM_WIN)
 					Flush_DNS_MailSlotSender(argv[2U]);
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-					Flush_DNS_FIFO_Sender((const uint8_t *)argv[2U]);
+					Flush_DNS_FIFO_Sender(reinterpret_cast<const uint8_t *>(argv[2U]));
 				#endif
 				}
 			}
@@ -198,7 +286,7 @@ bool ReadCommand(
 			if (FileHandle != nullptr)
 			{
 			//Initialization and make keypair.
-				std::shared_ptr<uint8_t> Buffer(new uint8_t[DNSCRYPT_KEYPAIR_MESSAGE_LEN]());
+				std::unique_ptr<uint8_t> Buffer(new uint8_t[DNSCRYPT_KEYPAIR_MESSAGE_LEN]());
 				sodium_memzero(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);
 				DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> SecretKey(crypto_box_SECRETKEYBYTES);
 				uint8_t PublicKey[crypto_box_PUBLICKEYBYTES]{0};
@@ -208,7 +296,7 @@ bool ReadCommand(
 				if (crypto_box_keypair(
 						PublicKey, 
 						SecretKey.Buffer) != 0 || 
-					sodium_bin2hex((char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, PublicKey, crypto_box_PUBLICKEYBYTES) == nullptr)
+					sodium_bin2hex(reinterpret_cast<char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN, PublicKey, crypto_box_PUBLICKEYBYTES) == nullptr)
 				{
 					fclose(FileHandle);
 					PrintToScreen(true, L"[System Error] Create ramdom key pair failed, please try again.\n");
@@ -217,10 +305,10 @@ bool ReadCommand(
 				}
 				CaseConvert(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, true);
 				fwprintf_s(FileHandle, L"Client Public Key = ");
-				for (InnerIndex = 0;InnerIndex < strnlen_s((const char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
+				for (InnerIndex = 0;InnerIndex < strnlen_s(reinterpret_cast<const char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
 				{
 					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && 
-						InnerIndex + 1U < strnlen_s((const char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
+						InnerIndex + 1U < strnlen_s(reinterpret_cast<const char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
 							fwprintf_s(FileHandle, L":");
 
 					fwprintf_s(FileHandle, L"%c", Buffer.get()[InnerIndex]);
@@ -229,7 +317,7 @@ bool ReadCommand(
 				fwprintf_s(FileHandle, L"\n");
 
 			//Write secret key.
-				if (sodium_bin2hex((char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, SecretKey.Buffer, crypto_box_SECRETKEYBYTES) == nullptr)
+				if (sodium_bin2hex(reinterpret_cast<char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN, SecretKey.Buffer, crypto_box_SECRETKEYBYTES) == nullptr)
 				{
 					fclose(FileHandle);
 					PrintToScreen(true, L"[System Error] Create ramdom key pair failed, please try again.\n");
@@ -238,10 +326,10 @@ bool ReadCommand(
 				}
 				CaseConvert(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, true);
 				fwprintf_s(FileHandle, L"Client Secret Key = ");
-				for (InnerIndex = 0;InnerIndex < strnlen_s((const char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
+				for (InnerIndex = 0;InnerIndex < strnlen_s(reinterpret_cast<const char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
 				{
 					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && 
-						InnerIndex + 1U < strnlen_s((const char *)Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
+						InnerIndex + 1U < strnlen_s(reinterpret_cast<const char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN))
 							fwprintf_s(FileHandle, L":");
 
 					fwprintf_s(FileHandle, L"%c", Buffer.get()[InnerIndex]);
@@ -269,7 +357,7 @@ bool ReadCommand(
 
 			//LibSodium version
 			#if defined(ENABLE_LIBSODIUM)
-				if (MBS_To_WCS_String((const uint8_t *)sodium_version_string(), strlen(sodium_version_string()), LibVersion))
+				if (MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(sodium_version_string()), strlen(sodium_version_string()), LibVersion))
 					PrintToScreen(true, L"LibSodium version %ls\n", LibVersion.c_str());
 				else 
 					PrintToScreen(true, L"[System Error] Convert multiple byte or wide char string error.\n");
@@ -277,7 +365,7 @@ bool ReadCommand(
 
 			//WinPcap or LibPcap version
 			#if defined(ENABLE_PCAP)
-				if (MBS_To_WCS_String((const uint8_t *)pcap_lib_version(), strlen(pcap_lib_version()), LibVersion))
+				if (MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(pcap_lib_version()), strlen(pcap_lib_version()), LibVersion))
 					PrintToScreen(true, L"%ls\n", LibVersion.c_str());
 				else 
 					PrintToScreen(true, L"[System Error] Convert multiple byte or wide char string error.\n");
@@ -287,9 +375,9 @@ bool ReadCommand(
 			#if defined(ENABLE_TLS)
 				#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0 //OpenSSL version after 1.1.0
-					if (MBS_To_WCS_String((const uint8_t *)OpenSSL_version(OPENSSL_VERSION), strnlen(OpenSSL_version(OPENSSL_VERSION), OPENSSL_STATIC_BUFFER_SIZE), LibVersion))
+					if (MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(OpenSSL_version(OPENSSL_VERSION)), strnlen(OpenSSL_version(OPENSSL_VERSION), OPENSSL_STATIC_BUFFER_SIZE), LibVersion))
 				#else //OpenSSL version before 1.1.0
-					if (MBS_To_WCS_String((const uint8_t *)SSLeay_version(SSLEAY_VERSION), strnlen(SSLeay_version(SSLEAY_VERSION), OPENSSL_STATIC_BUFFER_SIZE), LibVersion))
+					if (MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(SSLeay_version(SSLEAY_VERSION)), strnlen(SSLeay_version(SSLEAY_VERSION), OPENSSL_STATIC_BUFFER_SIZE), LibVersion))
 				#endif
 						PrintToScreen(true, L"%ls\n", LibVersion.c_str());
 					else 
@@ -338,14 +426,14 @@ bool ReadCommand(
 //Get path of program from the main function parameter and Winsock initialization
 #if defined(PLATFORM_WIN)
 bool FileNameInit(
-	const wchar_t * const OriginalPath)
+	const std::wstring &OriginalPath)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 bool FileNameInit(
-	const char * const OriginalPath)
+	const std::string &OriginalPath)
 #endif
 {
-//Path process
 #if defined(PLATFORM_WIN)
+//Path process(The path is full path name, including module name)
 	GlobalRunningStatus.Path_Global->clear();
 	GlobalRunningStatus.Path_Global->push_back(OriginalPath);
 	GlobalRunningStatus.Path_Global->front().erase(GlobalRunningStatus.Path_Global->front().rfind(L"\\") + 1U);
@@ -358,11 +446,12 @@ bool FileNameInit(
 		}
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+//Path process(The path is location path, not including module name)
 	GlobalRunningStatus.MBS_Path_Global->clear();
 	GlobalRunningStatus.MBS_Path_Global->push_back(OriginalPath);
 	GlobalRunningStatus.MBS_Path_Global->front().append("/");
 	std::wstring StringTemp;
-	if (!MBS_To_WCS_String((const uint8_t *)OriginalPath, PATH_MAX + 1U, StringTemp))
+	if (!MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(OriginalPath.c_str()), PATH_MAX + NULL_TERMINATE_LENGTH, StringTemp))
 		return false;
 	StringTemp.append(L"/");
 	GlobalRunningStatus.Path_Global->clear();
@@ -380,6 +469,8 @@ bool FileNameInit(
 	GlobalRunningStatus.MBS_Path_ErrorLog->append(ERROR_LOG_FILE_NAME_MBS);
 #endif
 	GlobalRunningStatus.StartupTime = time(nullptr);
+	if (GlobalRunningStatus.StartupTime <= 0)
+		return false;
 
 	return true;
 }

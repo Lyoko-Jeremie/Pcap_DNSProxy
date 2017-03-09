@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # 
 # This code is part of Pcap_DNSProxy
-# A local DNS server based on WinPcap and LibPcap
-# Copyright (C) 2012-2016 Chengr28
+# Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+# Copyright (C) 2012-2017 Chengr28
 # 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -22,6 +22,7 @@
 cp Pcap_DNSProxy.service /etc/systemd/system/Pcap_DNSProxy.service
 cd /etc/systemd/system
 chmod 644 Pcap_DNSProxy.service
+killall Pcap_DNSProxy 2>/dev/null
 systemctl enable Pcap_DNSProxy
 systemctl start Pcap_DNSProxy
 systemctl status Pcap_DNSProxy

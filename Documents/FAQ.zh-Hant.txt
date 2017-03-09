@@ -78,9 +78,12 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Commands error - 程式啟動參數錯誤：請檢查為程式傳入的參數
   * Service start error - 服務啟動錯誤：可能未在系統註冊服務，或在系統內註冊的服務路徑不正確
   * Set console control handler error - 設置主控台信號捕捉鉤子錯誤：建議重新開機服務或程式
+  * Handle the system signal error - 設置系統信號處理函數錯誤：建議重新開機服務或程式
   * Ignore system signal error - 設置忽略系統部分信號錯誤：建議重新開機服務或程式
   * Set system daemon error - 守护程式配置錯誤：建議重新開機服務或程式
   * Convert multiple byte or wide char string error - 多/寬位元組字元轉換錯誤：建議重新開機服務或程式
+  * Security attributes and descriptor initialization error - 安全控制碼屬性和描述項初始化錯誤：建議重新開機服務或程式
+  * Process already exists error - 進程已經存在：請確認只有一個本程式實例運行中
   * Create mailslot error - Mailslot 創建錯誤：建議重新開機服務或程式
   * Mailslot read messages error - Mailslot 讀取資訊錯誤：建議重新開機服務或程式
   * Mailslot write messages error - Mailslot 寫入資訊錯誤：建議重新開機服務或程式
@@ -127,15 +130,15 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Address Prefix Block format error - 帶前置長度的位址塊格式錯誤：請檢查位址塊的格式
   * IPv4 prefix error - IPv4 網路首碼長度錯誤：IPv4 網路首碼的長度介乎與 1-32
   * IPv6 prefix error - IPv6 網路首碼長度錯誤：IPv6 網路首碼的長度介乎與 1-128
-  * Pcap Capture error - 抓包模塊參數錯誤：請檢查相關參數的使用要求說明
   * Direct Request error - 直連模塊參數錯誤：請檢查相關參數的使用要求說明
   * Local machine listening port error - 本地監聽埠錯誤：請檢查本地監聽埠的值，可適用範圍為 1 - 65535
   * IPFilter Level error - IPFilter 過濾級別錯誤：請檢查過濾級別的值，可適用範圍為 1 - 65535
   * DNS Cache error - DNS 緩存配置錯誤：請檢查緩存的參數
+  * Default TTL error - 預設 TTL 配置錯誤：請檢查緩存的參數
   * DNS target error - DNS 目標伺服器配置錯誤：請檢查 DNS 伺服器的位址
   * Local request options error - 境內請求參數錯誤：請檢查境內伺服器是否可用，參見 ReadMe 文檔中對這3個參數的介紹
   * DNS Record type error - DNS 記錄參數錯誤：請檢查 Accept Type 的值是否符合要求
-  * Hop Limit Fluctuations error - Hop Limit 或 TTL 可接受範圍錯誤：請檢查範圍的值
+  * Hop Limits Fluctuation error - Hop Limits 或 TTL 可接受範圍錯誤：請檢查範圍的值
   * Alternate Multiple request error - 主要備用或多個伺服器下同時請求參數錯誤：請確認所有伺服器的資訊
   * IPv4 total request number error - IPv4 請求總次數限制錯誤：填入主要/待命伺服器的數量
   * Multiple Request Times = 總請求的數值，此數值不能超過 64
@@ -275,7 +278,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
 
 11.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
   * Old log file was removed - 錯誤日誌檔已滿並被刪除
-    * 日誌檔最大容量的配置參見 詳細說明文檔 中 設定檔詳細參數說明 中的 Log Maximum Size 參數
+    * 注意：日誌檔最大容量的配置參見 詳細說明文檔 中 設定檔詳細參數說明 中的 Log Maximum Size 參數
   * Listen Port is empty, set to standard DNS port(53) - 本地監聽埠參數為空：程式將自動設置為標準 DNS 協定埠（53）
   * TCP Data Filter require TCP Request Mode - 開啟 TCP 資料包頭檢測時必須將 Request Mode 設置為 TCP：程式將自動關閉此功能
   * TCP Data Filter require Pcap Cpature - 開啟 TCP 資料包頭檢測時必須啟用 Pcap Cpature：程式將自動關閉此功能
@@ -286,6 +289,7 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * DNSSEC Request require EDNS Label - 開啟 DNSSEC 請求時必須開啟 EDNS 標籤請求功能
   * EDNS Client Subnet require EDNS Label - 開啟 EDNS Client Subnet 請求時必須開啟 EDNS 標籤請求功能
   * Compression Pointer Mutation must disable EDNS Label - 使用 Compression Pointer Mutation 時不能開啟 EDNS 標籤請求功能，兩者並不相容
+  * EDNS Label require at least one of process - 開啟 EDNS Label 請求時必須指定至少一個請求過程
   * DNSSEC Validation require EDNS Label and DNSSEC Request - 開啟 DNSSEC Validation 請求時必須開啟 EDNS 標籤請求和 DNSSEC 請求功能
   * DNSSEC Force Validation require EDNS Label, DNSSEC Request and DNSSEC Validation - 開啟 DNSSEC Force Validation 請求時必須開啟 EDNS 標籤請求、DNSSEC 請求和 DNSSEC Validation 驗證功能
   * DNSCurve Payload Size must longer than traditional DNS packet minimum supported size(512 bytes) - DNSCurve 協定載荷長度過短：實現 DNS 協定必須支援長度超過 512 bytes 的資料包

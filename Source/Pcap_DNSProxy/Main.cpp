@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2016 Chengr28
+// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Copyright (C) 2012-2017 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,14 +32,16 @@ int main(
 {
 #endif
 //Get commands.
-	if (argc < 1)
+	if (argc < COMMAND_MIN_COUNT)
 	{
 		return EXIT_FAILURE;
 	}
 	else {
-	//Read commands and configuration file, also launch all monitors.
+	//Read commands and configuration file, process already exists check, also launch all monitors.
 		if (!ReadCommand(argc, argv))
 			return EXIT_SUCCESS;
+		else if (!CheckProcessExists())
+			return EXIT_FAILURE;
 		else if (!ReadParameter(true))
 			return EXIT_FAILURE;
 		else 
@@ -51,7 +53,7 @@ int main(
 
 //Main process initialization
 #if defined(PLATFORM_WIN)
-	const SERVICE_TABLE_ENTRYW ServiceTable[]{{SYSTEM_SERVICE_NAME, (LPSERVICE_MAIN_FUNCTIONW)ServiceMain}, {nullptr, nullptr}}; //Service beginning
+	const SERVICE_TABLE_ENTRYW ServiceTable[]{{SYSTEM_SERVICE_NAME, reinterpret_cast<LPSERVICE_MAIN_FUNCTIONW>(ServiceMain)}, {nullptr, nullptr}}; //Service beginning
 	if (StartServiceCtrlDispatcherW(ServiceTable) == 0)
 	{
 	//Print to screen.
@@ -76,7 +78,7 @@ int main(
 
 	//Handle the system signal.
 		if (SetConsoleCtrlHandler(
-				(PHANDLER_ROUTINE)CtrlHandler, 
+				reinterpret_cast<PHANDLER_ROUTINE>(CtrlHandler), 
 				TRUE) == 0)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Set console control handler error", GetLastError(), nullptr, 0);
@@ -88,6 +90,15 @@ int main(
 			return EXIT_FAILURE;
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+//Handle the system signal.
+	errno = 0;
+	if (signal(SIGHUP, SIG_Handler) == SIG_ERR || signal(SIGINT, SIG_Handler) == SIG_ERR || 
+		signal(SIGQUIT, SIG_Handler) == SIG_ERR || signal(SIGTERM, SIG_Handler) == SIG_ERR)
+	{
+		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Handle the system signal error", errno, nullptr, 0);
+		return EXIT_FAILURE;
+	}
+
 //Set system signal handler to ignore EPIPE signal when transport with socket.
 	errno = 0;
 	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)

@@ -7,12 +7,12 @@
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Pcap_DNSProxy service
-# Description:       A local DNS server based on Libpcap and WinPcap
+# Description:       Pcap_DNSProxy, a local DNS server based on Libpcap and WinPcap
 ### END INIT INFO
 # 
 # This code is part of Pcap_DNSProxy
-# A local DNS server base on WinPcap and LibPcap
-# Copyright (C) 2012-2016 Chengr28
+# Pcap_DNSProxy, a local DNS server base on WinPcap and LibPcap
+# Copyright (C) 2012-2017 Chengr28
 # 
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -39,7 +39,7 @@ STOP_FLAGS="--stop --chuid root --exec"
 # Controller settings
 case "$1" in
 start)
-	echo "Start Pcap_DNSProxy service"
+	echo "Start Pcap_DNSProxy service."
 	$PROGRAM $START_FLAGS $PATH/$NAME --chdir $PATH
 ;;
 stop)
@@ -47,7 +47,7 @@ stop)
 	$PROGRAM $STOP_FLAGS $PATH/$NAME
 ;;
 force-reload|restart)
-	echo "Force-reload/Restart Pcap_DNSProxy service"
+	echo "Force-reload/Restart Pcap_DNSProxy service."
 	$PROGRAM $STOP_FLAGS $PATH/$NAME
 	$PROGRAM $START_FLAGS $PATH/$NAME --chdir $PATH
 ;;

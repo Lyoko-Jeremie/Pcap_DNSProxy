@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2016 Chengr28
+// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Copyright (C) 2012-2017 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -37,7 +37,7 @@ bool CheckEmptyBuffer(
 	//Scan all data.
 		for (size_t Index = 0;Index < Length;++Index)
 		{
-			if (*(((uint8_t *)Buffer) + Index) != 0)
+			if (*(reinterpret_cast<const uint8_t *>(Buffer) + Index) != 0)
 				return false;
 		}
 	}
@@ -55,23 +55,23 @@ bool MBS_To_WCS_String(
 	Target.clear();
 	if (Buffer == nullptr || MaxLen == 0)
 		return false;
-	auto Length = strnlen_s((const char *)Buffer, MaxLen);
+	const auto Length = strnlen_s(reinterpret_cast<const char *>(Buffer), MaxLen);
 	if (Length == 0 || CheckEmptyBuffer(Buffer, Length))
 		return false;
 
 //Convert string.
-	std::shared_ptr<wchar_t> TargetBuffer(new wchar_t[Length + PADDING_RESERVED_BYTES]());
+	std::unique_ptr<wchar_t[]> TargetBuffer(new wchar_t[Length + PADDING_RESERVED_BYTES]());
 	wmemset(TargetBuffer.get(), 0, Length + PADDING_RESERVED_BYTES);
 #if defined(PLATFORM_WIN)
 	if (MultiByteToWideChar(
 			CP_ACP, 
 			0, 
-			(LPCCH)Buffer, 
+			reinterpret_cast<const LPCCH>(Buffer), 
 			MBSTOWCS_NULL_TERMINATE, 
 			TargetBuffer.get(), 
-			(int)(Length + PADDING_RESERVED_BYTES)) == 0)
+			static_cast<int>(Length + PADDING_RESERVED_BYTES)) == 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (mbstowcs(TargetBuffer.get(), (const char *)Buffer, Length + PADDING_RESERVED_BYTES) == (size_t)RETURN_ERROR)
+	if (mbstowcs(TargetBuffer.get(), reinterpret_cast<const char *>(Buffer), Length + PADDING_RESERVED_BYTES) == static_cast<size_t>(RETURN_ERROR))
 #endif
 	{
 		return false;
@@ -96,34 +96,34 @@ bool WCS_To_MBS_String(
 	Target.clear();
 	if (Buffer == nullptr || MaxLen == 0)
 		return false;
-	auto Length = wcsnlen_s(Buffer, MaxLen);
+	const auto Length = wcsnlen_s(Buffer, MaxLen);
 	if (Length == 0 || CheckEmptyBuffer(Buffer, sizeof(wchar_t) * Length))
 		return false;
 
 //Convert string.
-	std::shared_ptr<uint8_t> TargetBuffer(new uint8_t[Length + PADDING_RESERVED_BYTES]());
+	std::unique_ptr<uint8_t[]> TargetBuffer(new uint8_t[Length + PADDING_RESERVED_BYTES]());
 	memset(TargetBuffer.get(), 0, Length + PADDING_RESERVED_BYTES);
 #if defined(PLATFORM_WIN)
 	if (WideCharToMultiByte(
 			CP_ACP, 
 			0, 
 			Buffer, 
-			MBSTOWCS_NULL_TERMINATE, 
-			(LPSTR)TargetBuffer.get(), 
-			(int)(Length + PADDING_RESERVED_BYTES), 
+			WCSTOMBS_NULL_TERMINATE, 
+			reinterpret_cast<LPSTR>(TargetBuffer.get()), 
+			static_cast<int>(Length + PADDING_RESERVED_BYTES), 
 			nullptr, 
 			nullptr) == 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (wcstombs((char *)TargetBuffer.get(), Buffer, Length + PADDING_RESERVED_BYTES) == (size_t)RETURN_ERROR)
+	if (wcstombs(reinterpret_cast<char *>(TargetBuffer.get()), Buffer, Length + PADDING_RESERVED_BYTES) == static_cast<size_t>(RETURN_ERROR))
 #endif
 	{
 		return false;
 	}
 	else {
-		if (strnlen_s((const char *)TargetBuffer.get(), Length + PADDING_RESERVED_BYTES) == 0)
+		if (strnlen_s(reinterpret_cast<const char *>(TargetBuffer.get()), Length + PADDING_RESERVED_BYTES) == 0)
 			return false;
 		else 
-			Target = (const char *)TargetBuffer.get();
+			Target = reinterpret_cast<const char *>(TargetBuffer.get());
 	}
 
 	return true;
@@ -146,10 +146,10 @@ void CaseConvert(
 		{
 		//Lowercase to uppercase
 			if (IsLowerToUpper)
-				Buffer[Index] = (uint8_t)toupper(Buffer[Index]);
+				Buffer[Index] = static_cast<uint8_t>(toupper(Buffer[Index]));
 		//Uppercase to lowercase
 			else 
-				Buffer[Index] = (uint8_t)tolower(Buffer[Index]);
+				Buffer[Index] = static_cast<uint8_t>(tolower(Buffer[Index]));
 		}
 	}
 
@@ -165,10 +165,10 @@ void CaseConvert(
 	{
 	//Lowercase to uppercase
 		if (IsLowerToUpper)
-			StringIter = (char)toupper(StringIter);
+			StringIter = static_cast<char>(toupper(StringIter));
 	//Uppercase to lowercase
 		else 
-			StringIter = (char)tolower(StringIter);
+			StringIter = static_cast<char>(tolower(StringIter));
 	}
 
 	return;
@@ -183,10 +183,10 @@ void CaseConvert(
 	{
 	//Lowercase to uppercase
 		if (IsLowerToUpper)
-			StringIter = (wchar_t)toupper(StringIter);
+			StringIter = static_cast<wchar_t>(toupper(StringIter));
 	//Uppercase to lowercase
 		else 
-			StringIter = (wchar_t)tolower(StringIter);
+			StringIter = static_cast<wchar_t>(tolower(StringIter));
 	}
 
 	return;
@@ -235,7 +235,7 @@ bool CompareStringReversed(
 	const std::string &RuleItem, 
 	const std::string &TestItem)
 {
-	if (!RuleItem.empty() && !TestItem.empty() && TestItem.length() >= RuleItem.length() && memcmp(RuleItem.c_str(), TestItem.c_str(), RuleItem.length()) == 0)
+	if (!RuleItem.empty() && !TestItem.empty() && TestItem.length() >= RuleItem.length() && TestItem.compare(0, RuleItem.length(), RuleItem) == 0)
 		return true;
 
 	return false;
@@ -262,7 +262,7 @@ bool CompareStringReversed(
 		MakeStringReversed(InnerTestItem);
 
 	//Compare each other.
-		if (memcmp(InnerRuleItem.c_str(), InnerTestItem.c_str(), InnerRuleItem.length()) == 0)
+		if (InnerTestItem.compare(0, InnerRuleItem.length(), InnerRuleItem) == 0)
 			return true;
 	}
 
@@ -340,7 +340,7 @@ size_t Base64_Encode(
 		Output[Index[1U]++] = BASE64_PAD;
 	}
 
-	return strnlen_s((const char *)Output, OutputSize);
+	return strnlen_s(reinterpret_cast<const char *>(Output), OutputSize);
 }
 
 //Base64 decoding
@@ -362,16 +362,16 @@ size_t Base64_Decode(
 	{
 		int StringIter = 0;
 		Index[2U] = Index[0] % 4U;
-		if (Input[Index[0]] == (uint8_t)BASE64_PAD)
-			return strnlen_s((const char *)Output, OutputSize);
+		if (Input[Index[0]] == static_cast<uint8_t>(BASE64_PAD))
+			return strnlen_s(reinterpret_cast<const char *>(Output), OutputSize);
 		if (Input[Index[0]] < BASE64_DECODE_FIRST || Input[Index[0]] > BASE64_DECODE_LAST || 
-			(StringIter = GlobalRunningStatus.Base64_DecodeTable[Input[Index[0]] - BASE64_DECODE_FIRST]) == -1)
+			(StringIter = GlobalRunningStatus.Base64_DecodeTable[Input[Index[0]] - BASE64_DECODE_FIRST]) == (-1))
 				return 0;
 		switch (Index[2U])
 		{
 			case 0:
 			{
-				Output[Index[1U]] = (uint8_t)(StringIter << 2U);
+				Output[Index[1U]] = static_cast<uint8_t>(StringIter << 2U);
 				continue;
 			}
 			case 1U:
@@ -379,7 +379,7 @@ size_t Base64_Decode(
 				Output[Index[1U]++] += (StringIter >> 4U) & 0x3;
 
 			//If not last char with padding
-				if (Index[0] < (Length - 3U) || Input[Length - 2U] != (uint8_t)BASE64_PAD)
+				if (Index[0] < (Length - 3U) || Input[Length - 2U] != static_cast<uint8_t>(BASE64_PAD))
 					Output[Index[1U]] = (StringIter & 0xF) << 4U;
 				continue;
 			}
@@ -388,18 +388,18 @@ size_t Base64_Decode(
 				Output[Index[1U]++] += (StringIter >> 2U) & 0xF;
 
 			//If not last char with padding
-				if (Index[0] < (Length - 2U) || Input[Length - 1U] != (uint8_t)BASE64_PAD)
+				if (Index[0] < (Length - 2U) || Input[Length - 1U] != static_cast<uint8_t>(BASE64_PAD))
 					Output[Index[1U]] = (StringIter & 0x3) << 6U;
 				continue;
 			}
 			case 3U:
 			{
-				Output[Index[1U]++] += (uint8_t)StringIter;
+				Output[Index[1U]++] += static_cast<uint8_t>(StringIter);
 			}
 		}
 	}
 
-	return strnlen_s((const char *)Output, OutputSize);
+	return strnlen_s(reinterpret_cast<const char *>(Output), OutputSize);
 }
 
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))

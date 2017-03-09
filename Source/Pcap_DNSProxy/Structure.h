@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2016 Chengr28
+// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Copyright (C) 2012-2017 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -22,7 +22,7 @@
 
 #include "Platform.h"
 
-//Memory alignment settings
+//Memory alignment settings(Part 1)
 #pragma pack(push) //Push current alignment to stack.
 #pragma pack(1) //Set alignment to 1 byte boundary.
 
@@ -65,7 +65,7 @@ typedef struct _eth_hdr_
 	uint16_t               Type;
 //	uint8_t                *Payload;
 //	uint32_t               FCS;
-}eth_hdr, *peth_hdr;
+}eth_hdr;
 
 /* Apple IEEE 1394/FireWire header
 * IEEE 1394-1995, IEEE Standard for a High Performance Serial Bus(https://standards.ieee.org/findstds/standard/1394-1995.html)
@@ -96,7 +96,7 @@ typedef struct _ieee_1394_hdr_
 	uint8_t                Dst[8U];
 	uint8_t                Src[8U];
 	uint16_t               Type;
-}ieee_1394_hdr, *pieee_1394_hdr;
+}ieee_1394_hdr;
 
 /* IEEE 802.1Q
 * Media Access Control Bridges and Virtual Bridged Local Area Networks/VLAN(https://www.ietf.org/meeting/86/tutorials/86-IEEE-8021-Thaler.pdf)
@@ -127,7 +127,7 @@ typedef struct _ieee_8021q_hdr_
 		}Flags_Bits;
 	};
 	uint16_t               Type;
-}ieee_8021q_hdr, *pieee_8021q_hdr;
+}ieee_8021q_hdr;
 
 
 /* Point-to-Point Protocol /PPP header
@@ -151,10 +151,10 @@ typedef struct _ppp_hdr_
 	uint16_t               SessionID;
 	uint16_t               Length;
 	uint16_t               Protocol;
-}ppp_hdr, *pppp_hdr;
+}ppp_hdr;
 
 //Internet Protocol Numbers
-//About this list, visit IANA Assigned Internet Protocol Numbers(https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)
+//About this list, please visit IANA Assigned Internet Protocol Numbers(https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml)
 #ifndef IPPROTO_HOPOPTS
 	#define IPPROTO_HOPOPTS           0                    //IPv6 Hop-by-Hop Option
 #endif
@@ -662,7 +662,7 @@ typedef struct _ipv4_hdr_
 	uint16_t               Checksum;
 	in_addr                Source;
 	in_addr                Destination;
-}ipv4_hdr, *pipv4_hdr;
+}ipv4_hdr;
 
 /* Internet Protocol version 6/IPv6 header
 * RFC 2460, Internet Protocol, Version 6 (IPv6) Specification(https://tools.ietf.org/html/rfc2460)
@@ -732,7 +732,7 @@ typedef struct _ipv6_hdr_
 	uint8_t                    HopLimit;
 	in6_addr                   Source;
 	in6_addr                   Destination;
-}ipv6_hdr, *pipv6_hdr;
+}ipv6_hdr;
 
 /* Internet Control Message Protocol/ICMP header
 * RFC 792, INTERNET CONTROL MESSAGE PROTOCOL(https://tools.ietf.org/html/rfc792)
@@ -766,7 +766,7 @@ typedef struct _icmp_hdr_
 #elif defined(PLATFORM_MACOS)
 	uint64_t               Timestamp;
 #endif
-}icmp_hdr, *picmp_hdr;
+}icmp_hdr;
 
 /* Internet Control Message Protocol version 6/ICMPv6 header
 * RFC 4443, Internet Control Message Protocol (ICMPv6) for the Internet Protocol Version 6 (IPv6) Specification(https://tools.ietf.org/html/rfc4443)
@@ -800,7 +800,7 @@ typedef struct _icmpv6_hdr_
 #elif defined(PLATFORM_MACOS)
 	uint64_t               Timestamp;
 #endif
-}icmpv6_hdr, *picmpv6_hdr;
+}icmpv6_hdr;
 
 /* Transmission Control Protocol/TCP header
 * RFC 675, SPECIFICATION OF INTERNET TRANSMISSION CONTROL PROGRAM(https://tools.ietf.org/html/rfc675)
@@ -854,7 +854,7 @@ typedef struct _icmpv6_hdr_
 #define TCP_STATUS_PSH_ACK    0x0018   //TCP status: PSH, ACK
 
 //Port definitions(1 - 1024, well-known ports)
-//About this list, visit IANA Service Name and Transport Protocol Port Number Registry(https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml)
+//About this list, please visit IANA Service Name and Transport Protocol Port Number Registry(https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml)
 #ifndef IPPORT_TCPMUX
 	#define IPPORT_TCPMUX               1U
 #endif
@@ -1161,7 +1161,7 @@ typedef struct _tcp_hdr_
 	uint16_t               Windows;
 	uint16_t               Checksum;
 	uint16_t               UrgentPointer;
-}tcp_hdr, *ptcp_hdr;
+}tcp_hdr;
 
 /* User Datagram Protocol/UDP header
 * RFC 768, User Datagram Protocol(https://tools.ietf.org/html/rfc768)
@@ -1186,7 +1186,7 @@ typedef struct _udp_hdr_
 	uint16_t               DstPort;
 	uint16_t               Length;
 	uint16_t               Checksum;
-}udp_hdr, *pudp_hdr;
+}udp_hdr;
 
 /* Transmission Control Protocol/TCP and User Datagram Protocol/UDP Pseudo header with IPv4
 
@@ -1208,7 +1208,7 @@ typedef struct _ipv4_psd_hdr_
 	uint8_t               Zero;
 	uint8_t               Protocol;
 	uint16_t              Length;
-}ipv4_psd_hdr, *pipv4_psd_hdr;
+}ipv4_psd_hdr;
 
 /* Internet Control Message Protocol version 6/ICMPv6, Transmission Control Protocol/TCP and User Datagram Protocol/UDP Pseudo header with IPv4
 
@@ -1238,7 +1238,7 @@ typedef struct _ipv6_psd_hdr_
 	uint32_t              Length;
 	uint8_t               Zero[3U];
 	uint8_t               NextHeader;
-}ipv6_psd_hdr, *pipv6_psd_hdr;
+}ipv6_psd_hdr;
 
 
 //Domain Name System/DNS part
@@ -1319,7 +1319,7 @@ typedef struct _ipv6_psd_hdr_
 * RFC 7314, Extension Mechanisms for DNS (EDNS) EXPIRE Option(https://tools.ietf.org/html/rfc7314)
 */
 
-//About this list, visit IANA Domain Name System (DNS) Parameters(https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml)
+//About this list, please visit IANA Domain Name System (DNS) Parameters(https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml)
 //Port and Flags definitions
 #ifndef IPPORT_DNS
 	#define IPPORT_DNS                    53U        //Standard DNS(TCP and UDP) Port
@@ -1775,7 +1775,7 @@ typedef struct _dns_hdr_
 	uint16_t              Answer;
 	uint16_t              Authority;
 	uint16_t              Additional;
-}dns_hdr, *pdns_hdr;
+}dns_hdr;
 
 /* Domain Name System/DNS header
 //With Transmission Control Protocol/TCP
@@ -1831,7 +1831,7 @@ typedef struct _dns_tcp_hdr_
 	uint16_t              Answer;
 	uint16_t              Authority;
 	uint16_t              Additional;
-}dns_tcp_hdr, *pdns_tcp_hdr;
+}dns_tcp_hdr;
 
 /* Domain Name System/DNS Query
 
@@ -1851,7 +1851,7 @@ typedef struct _dns_qry_
 //	uint8_t               *Name;
 	uint16_t              Type;
 	uint16_t              Classes;
-}dns_qry, *pdns_qry;
+}dns_qry;
 
 /* Domain Name System/DNS Standard Resource Records
 
@@ -1880,7 +1880,7 @@ typedef struct _dns_record_standard_
 	uint32_t              TTL;
 	uint16_t              Length;
 //	uint8_t               *Data;
-}dns_record_standard, *pdns_record_standard;
+}dns_record_standard;
 
 /* Domain Name System/DNS A(IPv4) Records
 
@@ -1909,7 +1909,7 @@ typedef struct _dns_record_a_
 	uint32_t              TTL;
 	uint16_t              Length;
 	in_addr               Address;
-}dns_record_a, *pdns_record_a;
+}dns_record_a;
 
 /* Domain Name System/DNS Canonical Name/CNAME Records
 
@@ -1940,7 +1940,7 @@ typedef struct _dns_record_cname_
 	uint32_t              TTL;
 	uint16_t              Length;
 //	uint8_t               *PrimaryName;
-}dns_record_cname, *pdns_record_cname;
+}dns_record_cname;
 
 /* Domain Name System/DNS Start Of a zone of Authority/SOA Resource Records
 
@@ -1976,7 +1976,7 @@ typedef struct _dns_record_soa_
 	uint32_t              RetryInterval;
 	uint32_t              ExpireLimit;
 	uint32_t              MinimumTTL;
-}dns_record_soa, *pdns_record_soa;
+}dns_record_soa;
 
 /* Domain Name System/DNS Pointer/PTR Records
 
@@ -2003,7 +2003,7 @@ typedef struct _dns_record_ptr_
 	uint32_t              TTL;
 	uint16_t              Length;
 //	uint8_t               *Name;
-}dns_record_ptr, *pdns_record_ptr;
+}dns_record_ptr;
 
 /* Domain Name System/DNS Mail eXchange/MX Resource Records
 
@@ -2022,7 +2022,7 @@ typedef struct _dns_record_mx_
 {
 	uint16_t              Preference;
 //	uint8_t               MailExchangeName;
-}dns_record_mx, *pdns_record_mx;
+}dns_record_mx;
 
 /* Domain Name System/DNS Test Strings/TXT Records
 
@@ -2052,7 +2052,7 @@ typedef struct _dns_record_txt_
 	uint16_t              Length;
 	uint8_t               TXT_Length;
 //	uint8_t               *TXT;
-}dns_record_txt, *pdns_record_txt;
+}dns_record_txt;
 
 /* Domain Name System/DNS AAAA(IPv6) Records
 
@@ -2079,7 +2079,7 @@ typedef struct _dns_record_aaaa_
 	uint32_t              TTL;
 	uint16_t              Length;
 	in6_addr              Address;
-}dns_record_aaaa, *pdns_record_aaaa;
+}dns_record_aaaa;
 
 /* Domain Name System/DNS Server Selection/SRV Resource Records
 
@@ -2102,7 +2102,7 @@ typedef struct _dns_record_srv_
 	uint16_t             Weight;
 	uint16_t             Port;
 //	uint8_t              *Target;
-}dns_record_srv, *pdns_record_srv;
+}dns_record_srv;
 
 /* Extension Mechanisms for Domain Name System/DNS, EDNS Label/OPT Resource Records
 
@@ -2144,7 +2144,27 @@ typedef struct _dns_record_opt_
 		}Z_Bits;
 	};
 	uint16_t              DataLength;
-}dns_record_opt, *pdns_record_opt, edns_header, *pedns_header;
+}dns_record_opt, edns_header;
+
+/* Extension Mechanisms for Domain Name System/EDNS Option
+                    1                   2                   3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                             Code                              |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                            Length                             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                             Data                              /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+*/
+typedef struct _dns_edns_option_
+{
+	uint16_t              Code;
+	uint16_t              Length;
+//	uint8_t               *Data;
+}dns_edns_option;
 
 /* Extension Mechanisms for Domain Name System/DNS, Client subnet in EDNS requests
 * RFC 7871, Client Subnet in DNS Queries(https://tools.ietf.org/html/rfc7871)
@@ -2172,7 +2192,7 @@ typedef struct _dns_record_opt_
 #define EDNS_CODE_CSUBNET                        0x0008   //Client subnet as assigned by IANA
 #define EDNS_CODE_EDNS_EXPIRE                    0x0009   //EDNS Expire (RFC 7314)
 
-//About Address Family Numbers, visit https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml.
+//About Address Family Numbers, please visit https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml.
 #define ADDRESS_FAMILY_IPV4                      0x0001
 #define ADDRESS_FAMILY_IPV6                      0x0002
 
@@ -2187,7 +2207,7 @@ typedef struct _edns_client_subnet_
 	uint8_t               Netmask_Source;
 	uint8_t               Netmask_Scope;
 //	uint8_t               *Address;
-}edns_client_subnet, *pedns_client_subnet;
+}edns_client_subnet;
 
 /* Domain Name System/DNS Delegation Signer/DS Resource Records
 
@@ -2208,7 +2228,7 @@ typedef struct _edns_client_subnet_
 #define DNSSEC_DS_DIGEST_GOST                  3U       //RFC 5933, Use of GOST Signature Algorithms in DNSKEY and RRSIG Resource Records for DNSSEC(https://tools.ietf.org/html/rfc5933)
 #define DNSSEC_DS_DIGEST_SHA384                4U       //RFC 6605, Elliptic Curve Digital Signature Algorithm (DSA) for DNSSEC(https://tools.ietf.org/html/rfc6605)
 
-//About this list, visit https://www.iana.org/assignments/ds-rr-types/ds-rr-types.xhtml
+//About this list, please visit https://www.iana.org/assignments/ds-rr-types/ds-rr-types.xhtml
 #define DNSSEC_DS_TYPE_RESERVED                0
 #define DNSSEC_DS_TYPE_SHA1                    1U
 #define DNSSEC_DS_TYPE_SHA256                  2U
@@ -2224,7 +2244,7 @@ typedef struct _dns_record_ds_
 	uint8_t               Algorithm;
 	uint8_t               Type;
 //	uint8_t               *Digest;
-}dns_record_ds, *pdns_record_ds;
+}dns_record_ds;
 
 /* Domain Name System/DNS Resource Record Digital Signature/RRSIG Records
 
@@ -2285,7 +2305,7 @@ typedef struct _dns_record_rrsig_
 	uint16_t              KeyTag;
 //	uint8_t               *SignerName;
 //	uint8_t               *Signature;
-}dns_record_rrsig, *pdns_record_rrsig;
+}dns_record_rrsig;
 
 /* Domain Name System/DNS DNS Key/DNSKEY Resource Records
 
@@ -2328,7 +2348,7 @@ typedef struct _dns_record_dnskey_
 	uint8_t               Protocol;
 	uint8_t               Algorithm;
 //	uint8_t               *PublicKey;
-}dns_record_dnskey, *pdns_record_dnskey;
+}dns_record_dnskey;
 
 /* Domain Name System/DNS Next-Secure/NSEC Resource Records
 
@@ -2348,7 +2368,7 @@ typedef struct _dns_record_nsec_
 {
 //	uint8_t                NextDomainName;
 //	uint8_t                TypeBitMap;
-}dns_record_nsec, *pdns_record_nsec;
+}dns_record_nsec;
 */
 
 /* Domain Name System/DNS NSEC version 3/NSEC3 Resource Records
@@ -2369,7 +2389,7 @@ typedef struct _dns_record_nsec_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-//About this list, visit IANA Domain Name System Security (DNSSEC) NextSECure3 (NSEC3) Parameters(https://www.iana.org/assignments/dnssec-nsec3-parameters/dnssec-nsec3-parameters.xhtml)
+//About this list, please visit IANA Domain Name System Security (DNSSEC) NextSECure3 (NSEC3) Parameters(https://www.iana.org/assignments/dnssec-nsec3-parameters/dnssec-nsec3-parameters.xhtml)
 #define DNSSEC_NSEC3_ALGORITHM_SHA1            1U
 typedef struct _dns_record_nsec3_
 {
@@ -2392,7 +2412,7 @@ typedef struct _dns_record_nsec3_
 //	uint8_t               HashLength;
 //	uint8_t               *NextHashedOwnerName;
 //	uint8_t               *TypeBitMap;
-}dns_record_nsec3, *pdns_record_nsec3;
+}dns_record_nsec3;
 
 /* Domain Name System/DNS NSEC version 3 Parameters/NSEC3PARAM Resource Records
 
@@ -2406,7 +2426,7 @@ typedef struct _dns_record_nsec3_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-//About this list, visit IANA Domain Name System Security (DNSSEC) NextSECure3 (NSEC3) Parameters(https://www.iana.org/assignments/dnssec-nsec3-parameters/dnssec-nsec3-parameters.xhtml)
+//About this list, please visit IANA Domain Name System Security (DNSSEC) NextSECure3 (NSEC3) Parameters(https://www.iana.org/assignments/dnssec-nsec3-parameters/dnssec-nsec3-parameters.xhtml)
 typedef struct _dns_record_nsec3param_
 {
 	uint8_t               Algorithm;
@@ -2425,7 +2445,7 @@ typedef struct _dns_record_nsec3param_
 	uint16_t              Iterations;
 	uint8_t               SaltLength;
 //	uint8_t               *Salt;
-}dns_record_nsec3param, *pdns_record_nsec3param;
+}dns_record_nsec3param;
 
 /* Domain Name System/DNS Certification Authority Authorization/CAA Resource Records
 
@@ -2460,7 +2480,7 @@ typedef struct _dns_record_caa_
 	uint8_t               Length;
 //	uint8_t               *Tag;
 //	uint8_t               *Value;
-}dns_record_caa, *pdns_record_caa;
+}dns_record_caa;
 
 
 //Domain Name System Curve/DNSCurve part
@@ -2504,7 +2524,7 @@ typedef struct _dnscurve_txt_hdr_
 	uint32_t              CertMagicNumber;
 	uint16_t              MajorVersion;
 	uint16_t              MinorVersion;
-}dnscurve_txt_hdr, *pdnscurve_txt_hdr;
+}dnscurve_txt_hdr;
 
 /* Domain Name System Curve/DNSCurve Signature with Test Strings/TXT Data
 
@@ -2538,7 +2558,7 @@ typedef struct _dnscurve_txt_signature_
 	uint32_t              Serial;
 	uint32_t              CertTime_Begin;
 	uint32_t              CertTime_End;
-}dnscurve_txt_signature, *pdnscurve_txt_signature;
+}dnscurve_txt_signature;
 #endif
 
 
@@ -2606,7 +2626,7 @@ typedef struct _socks_client_selection_message_
 	uint8_t               Methods_Number;
 	uint8_t               Methods_A;
 	uint8_t               Methods_B;
-}socks_client_selection, *psocks_client_selection;
+}socks_client_selection;
 
 //SOCKS server method selection message
 /*
@@ -2621,7 +2641,7 @@ typedef struct _socks_server_selection_message_
 {
 	uint8_t               Version;
 	uint8_t               Method;
-}socks_server_selection, *psocks_server_selection;
+}socks_server_selection;
 
 //SOCKS client Username/Password authentication message
 /*
@@ -2640,7 +2660,7 @@ typedef struct _socks_client_user_authentication_
 //	uint8_t               *UserName;
 //	uint8_t               Password_Length;
 //	uint8_t               *Password;
-}socks_client_user_authentication, *psocks_client_user_authentication;
+}socks_client_user_authentication;
 
 
 //SOCKS server Username/Password authentication message
@@ -2656,7 +2676,7 @@ typedef struct _socks_server_user_authentication_
 {
 	uint8_t               Version;
 	uint8_t               Status;
-}socks_server_user_authentication, *psocks_server_user_authentication;
+}socks_server_user_authentication;
 
 //SOCKS version 4 client request message
 /*
@@ -2678,7 +2698,7 @@ typedef struct _socks4_client_command_request_
 	uint16_t              Remote_Port;
 	in_addr               Remote_Address;
 	uint8_t               UserID;
-}socks4_client_command_request, *psocks4_client_command_request;
+}socks4_client_command_request;
 
 //SOCKS version 4 server reply message
 /*
@@ -2699,7 +2719,7 @@ typedef struct _socks4_server_command_reply_
 	uint8_t               Command;
 	uint16_t              Remote_Port;
 	in_addr               Remote_Address;
-}socks4_server_command_reply, *psocks4_server_command_reply;
+}socks4_server_command_reply;
 
 //SOCKS version 5 client request message
 /*
@@ -2722,7 +2742,7 @@ typedef struct _socks5_client_command_request_
 	uint8_t               Address_Type;
 //	uint8_t               *Remote_Address;
 //	uint16_t              Remote_Port;
-}socks5_client_command_request, *psocks5_client_command_request;
+}socks5_client_command_request;
 
 //SOCKS version 5 server reply message
 /*
@@ -2745,7 +2765,7 @@ typedef struct _socks5_server_command_reply_
 	uint8_t               Bind_Address_Type;
 //	uint8_t               *Bind_Address;
 //	uint16_t              Bind_Port;
-}socks5_server_command_reply, *psocks5_server_command_reply;
+}socks5_server_command_reply;
 
 //SOCKS UDP relay request
 /*
@@ -2767,7 +2787,7 @@ typedef struct _socks_udp_relay_request_
 	uint8_t               Address_Type;
 //	uint8_t               *Remote_Address;
 //	uint16_t              Remote_Port;
-}socks_udp_relay_request, *psocks_udp_relay_request;
+}socks_udp_relay_request;
 
 
 #if defined(ENABLE_TLS)
@@ -2788,9 +2808,9 @@ typedef struct _tls_base_record_
 	uint8_t               ContentType;
 	uint16_t              Version;
 	uint16_t              Length;
-}tls_base_record, *ptls_base_record;
+}tls_base_record;
 #endif
 
-//Memory alignment(Part 2)
+//Memory alignment settings(Part 2)
 #pragma pack(pop) //Restore original alignment from stack.
 #endif

@@ -19,7 +19,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Windows 版本的 Pcap_DNSProxy 在二进制可执行文件包的 Windows 目录内，可将整个目录单独抽出运行
 
 3.打开下载回来的二进制可执行文件包，将 Windows 目录解压到磁盘的任意位置
-  * 目录所在位置和程序文件名可以随意更改
+  * 目录所在位置和程序文件名可以随意更改，建议将本项目放置在一个独立的目录内
   * 配置文件需要使用固定的文件名（更多详细情况参见下文 功能和技术 一节）
 
 4.确定工具目录的名称和路径后进入目录内，右键以管理员身份(Vista 以及更新版本)或直接以管理员登录双击(XP/2003)运行 ServiceControl.bat
@@ -113,7 +113,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * 本工具配置选项丰富，配置不同的组合会有不同的效果，介绍几个比较常用的组合：
   * 默认配置：UDP 请求 + 抓包模式
-  * Output Protocol = ...TCP：先 TCP 请求失败后再 UDP 请求 + 抓包模式，对网络资源的占用比较高
+  * Outgoing Protocol = ...TCP：先 TCP 请求失败后再 UDP 请求 + 抓包模式，对网络资源的占用比较高
     * 由于 TCP 请求大部分时候不会被投毒污染，此组合的过滤效果比较可靠
   * EDNS Label = 1：开启 EDNS 请求标签功能
     * 此功能开启后将有利于对伪造数据包的过滤能力，此组合的过滤效果比较可靠
@@ -201,6 +201,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Base - 基本参数区域
   * Version - 配置文件的版本，用于正确识别配置文件：本参数与程序版本号不相关，切勿修改
   * File Refresh Time - 文件刷新间隔时间：单位为秒，最小为 5
+    * 本参数同时决定监视器的时间休眠时间片的粒度，其指的是休眠一段长时间时会根据此粒度激活并检查是否需要重新运行特定监视项目，而不需要等到长时间完全过去休眠完全结束后才能重新对此进行监视，此功能对程序的网络状况适应能力会有提高
   * Large Buffer Size - 大型数据缓冲区的固定长度：单位为字节，最小为 1500
   * Additional Path - 附加的数据文件读取路径，附加在此处的目录路径下的 Hosts 文件和 IPFilter 文件会被依次读取：请填入目录的绝对路径
   * Hosts File Name - Hosts 文件的文件名，附加在此处的 Hosts 文件名将被依次读取
@@ -217,7 +218,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * Listen - 监听参数区域
   * Pcap Capture - 抓包功能总开关，开启后抓包模块才能正常使用：开启为 1 /关闭为 0
-    * 注意：如果关闭抓包模块，需要开启其它方式获取域名解析，否则会报错！
+    * 注意：如果抓包模块被关闭，则会自动开启 Direct Request 功能，启用 Direct Request 时对 DNS 投毒污染的防御能力比较弱
   * Pcap Devices Blacklist - 指定不对含有此名称的网络适配器进行抓包，名称或简介里含有此字符串的网络适配器将被直接忽略
     * 本参数支持指定多个名称，大小写不敏感，格式为 "网络适配器的名称(|网络适配器的名称)"（不含引号，括号内为可选项目）
     * 以抓包模块从系统中获取的名称或简介为准，与其它网络配置程序所显示的不一定相同
@@ -325,7 +326,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * RESERVED/65535
       
 * DNS - 域名解析参数区域
-  * Output Protocol - 发送请求所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
+  * Outgoing Protocol - 发送请求所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求
     * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
     * 同时填入 TCP 和 UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
@@ -335,14 +336,23 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Cache Type - DNS 缓存的类型：分 Timer/计时型、Queue/队列型以及它们的混合类型，填入 0 为关闭此功能
     * Timer/计时型：超过指定时间的 DNS 缓存将会被丢弃
     * Queue/队列型：超过队列长度时，将删除最旧的 DNS 缓存
-    * 混合类型：超过指定时间时、超过队列长度时以及超过域名本身 TTL 时，都会删除最旧的 DNS 缓存
+    * 混合类型：超过指定时间时和超过队列长度时，都会删除最旧的 DNS 缓存
   * Cache Parameter - DNS 缓存的参数：分 Timer/计时型、Queue/队列型以及它们的混合类型，填入 0 为关闭此功能
-    * Timer/计时型：缓存时间，单位为秒
+    * Timer/计时型
+      * 缓存时间，单位为秒
+      * 如果解析结果的平均 TTL 值大于此值，则使用 [TTL + 此值] 为最终的缓存时间
+      * 如果解析结果的平均 TTL 值小于等于此值，则使用 [此值] 为最终的缓存时间
+      * 如果填 0 则最终的缓存时间为 TTL 值
     * Queue/队列型：队列长度
-    * 混合类型：队列长度
+    * 混合类型
+      * 队列长度
+      * 此模式下最终的缓存时间由 Default TTL 参数决定
   * Default TTL - 已缓存 DNS 记录默认生存时间：单位为秒，留空则为 900秒/15分钟
-    * DNS 缓存的类型为混合类型时，本参数将同时指定域名本身 TTL 的最小缓存时间
-  
+    * DNS 缓存的类型为混合类型时，本参数将同时决定最终的缓存时间
+      * 如果解析结果的平均 TTL 值大于此值，则使用 [TTL + 此值] 为最终的缓存时间
+      * 如果解析结果的平均 TTL 值小于等于此值，则使用 [此值] 为最终的缓存时间
+      * 如果填 0 则最终的缓存时间为 TTL 值
+
 * Local DNS - 境内域名解析参数区域
   * Local Protocol - 发送境内请求所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向境内 DNS 服务器发出请求
@@ -566,8 +576,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 可单独使用其中一个，即只填一个数字，或填入多个，中间使用 + 号连接
     * 填入多个时，当实际需要使用随机添加压缩指针时将随机使用其中的一种，每个请求都有可能不相同
   * EDNS Label - EDNS 标签支持，开启后将为请求添加 EDNS 标签：全部开启为 1 /关闭为 0
-    * 本参数可只指定部分的请求过程使用 EDNS 标签，以下可用的参数可随意删减以实现此功能
-    * 可用的参数：Local + SOCKS Proxy + HTTP CONNECT Proxy + Direct Request + DNSCurve + TCP + UDP
+    * 本参数可只指定部分的请求过程使用 EDNS 标签，分为指定模式和排除模式：
+    * 指定列表模式，列出的过程才启用此功能：EDNS Label = Local + SOCKS Proxy + HTTP CONNECT Proxy + Direct Request + DNSCurve + TCP + UDP
+    * 排除列表模式，列出的过程不启用此功能：EDNS Label = 1 - Local - SOCKS Proxy - HTTP CONNECT Proxy - Direct Request - DNSCurve - TCP - UDP
   * EDNS Client Subnet Relay - EDNS 客户端子网转发功能，开启后将为来自非私有网络地址的所有请求添加其请求时所使用的地址的 EDNS 子网地址：开启为 1 /关闭为 0
     * 本功能要求启用 EDNS Label 参数
     * 本参数优先级比 IPv4/IPv6 EDNS Client Subnet Address 参数高，故需要添加 EDNS 子网地址时将优先添加本参数的地址

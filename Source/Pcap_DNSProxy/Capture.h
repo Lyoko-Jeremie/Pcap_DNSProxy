@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2016 Chengr28
+// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Copyright (C) 2012-2017 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@ typedef struct _capture_handler_param_
 	int           DeviceType;
 	uint8_t       *Buffer;
 	size_t        BufferSize;
-}CaptureHandlerParam, CAPTURE_HANDLER_PARAM, *PCaptureHandlerParam, *PCAPTURE_HANDLER_PARAM;
+}CaptureHandlerParam, CAPTURE_HANDLER_PARAM;
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter;

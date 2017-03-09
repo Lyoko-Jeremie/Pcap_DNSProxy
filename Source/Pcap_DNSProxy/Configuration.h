@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2016 Chengr28
+// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Copyright (C) 2012-2017 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -80,7 +80,7 @@ void GetParameterListData(
 	const size_t Length, 
 	const uint8_t SeparatedSign, 
 	const bool IsCaseConvert, 
-	const bool KeepEmptyItem);
+	const bool IsKeepEmptyItem);
 
 //Functions in ReadParameter.cpp
 bool Parameter_CheckSetting(
@@ -119,7 +119,7 @@ bool Read_SOCKS_AddressDomain(
 	const size_t FileIndex, 
 	const size_t Line);
 #if defined(ENABLE_PCAP)
-bool ReadHopLimitData(
+bool ReadHopLimitsData(
 	const uint16_t Protocol, 
 	std::string Data, 
 	const size_t DataOffset, 

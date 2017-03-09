@@ -1,15 +1,22 @@
-﻿Pcap_DNSProxy 0.4.8.1-0.4.8.3 更新日志(2016-12-24)：
+﻿Pcap_DNSProxy 0.4.8.1-0.4.8.4 更新日志(2017-03-10)：
 
 * 添加 Address Hosts 的前缀长度支持 [LGA1150]
+* 添加 EDNS Label 参数名单的排除模式支持 [燒香の貓咪]
 * 添加 Strict Resource Record TTL Filter 参数以支持 RFC 2181 标准所要求的资源记录 TTL 检查
+* 添加内置的单一实例限制多开支持
 * 添加一组 Pcap Devices Blacklist 非必要抓包黑名单 (macOS)
 * 标准化 EDNS Client Subnet 的行为
+* 解除对 260 字符路径/文件名的内部逻辑限制，相关限制仍会受系统配置所影响 (Windows)
 * 改进的 Domain Case Conversion 功能
 * 改进在启用手动版本选择时所指定使用的 Ciphers Suites (Linux/macOS)
+* Output Protocol 改名为 Outgoing Protocol
 * 修改多行注释区域的标签要求 [Monoremonton/wx0]
+* 修改全部类型 DNS 缓存的缓存策略 [kraml]
 * 修复内存对齐可能造成的性能问题 [Syrone Wong]
 * 修复 Operation Mode 参数指定为 Proxy 和 Server 模式时工作不正常的问题 [Syrone Wong/wang20150419]
 * 修复预编译二进制版本无法正确运行的错误 (macOS) [fysly]
+* 修复在部分情况下 DNS 缓存无法以超时形式移除的问题 [kraml]
+* 修复一个可能在部分编译器造成严重内存泄漏的问题
 * 修复 IPv6 地址的 Local Routing 在指定部分前缀长度时可能出现的崩溃问题
 * 修复 IPv6 地址实际地址与前缀长度所指定的地址不一致的问题
 * 修复多行注释区域无法通过其它非多行注释区域标签重置的问题
@@ -22,15 +29,15 @@
 * 修复在启用 TCP Fast Open 的情况下有几率出现的请求发送失败的问题 (Linux)
 * Release Hash:
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe: E2D2E4C5921CADE5295087774E3D5DE95E185C9ED1B916EA1BAA590A2B8DF9C4
-    * Windows/Pcap_DNSProxy_x86.exe: A356A00FF99675530D6191F4CCD3D6EF74D0630B2C97E7644C3C9C86F0D8D4F4
-    * Windows/Pcap_DNSProxy_XP.exe: 9BB6B68FB76837EFBF91A5D7CA184937CDFAB4A8992542A1558E85091A5C6571
-    * macOS/Pcap_DNSProxy: 298444DE7C84718883995A73D3FC330C564B067654BA89CC8B254810E7D71923
+    * Windows/Pcap_DNSProxy.exe: B28B1D013FE4690F809D3D1FFCA0FFAF152C9F2A3201E2596D398F90E78B2657
+    * Windows/Pcap_DNSProxy_x86.exe: 04E0783F9BB6175C70EE39182BCEF2C1C3B831E78ABCF2E70641568E7098205D
+    * Windows/Pcap_DNSProxy_XP.exe: DF509FDB4EC3EBDF9A734A92864E1B31C48FB102543FD1C3CD800FEB015B2DD7
+    * macOS/Pcap_DNSProxy: 4C3FDC39D26EAC29E25238D15D4319230BF1631873CEF68C7EFC260B26C4F4C8
   * SHA-2(256):
-    * Windows/Pcap_DNSProxy.exe: 56357C58AF62FF768A342AEB2F110117C1E0C2197A0A2E335E7E457FEE2D0293
-    * Windows/Pcap_DNSProxy_x86.exe: AACCC71A957CE5C4D6A38605E6785E1660F529CDC333C90520CE91F22E1A54E6
-    * Windows/Pcap_DNSProxy_XP.exe: 5D9923C2E996A2676EC920549FCDF49378CB8276FC5BB1DAA9F94FDA75B7D930
-    * macOS/Pcap_DNSProxy: E077CA975041469E1A5637AAA8517C860BF9E4B90A58C7B53E32C4AED521ECE5
+    * Windows/Pcap_DNSProxy.exe: 49295353E340B4EBB3FDBAA069C267074C81C1693A9966161B7EFE4AFBA97D1D
+    * Windows/Pcap_DNSProxy_x86.exe: 565DEF67183452397957EBF24088C427A8B8DCDD20E81F27804898448D1C6C93
+    * Windows/Pcap_DNSProxy_XP.exe: 12705D3715D525C6536B8E662AC648D51C839111B13950EF3ED27FD430E9445A
+    * macOS/Pcap_DNSProxy: 479223CD534D4F8D9CEC0DD44AD4BC1EEB85108D5AE8FF3A6EF3AF5C6DFB1501
 
 
 -------------------------------------------------------------------------------

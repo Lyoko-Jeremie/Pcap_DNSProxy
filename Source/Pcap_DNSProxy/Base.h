@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
-// A local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2016 Chengr28
+// Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+// Copyright (C) 2012-2017 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -100,7 +100,7 @@ void ReadHosts(
 bool DNSCurveVerifyKeypair(
 	const uint8_t * const PublicKey, 
 	const uint8_t * const SecretKey);
-PDNSCURVE_SERVER_DATA DNSCurveSelectSignatureTargetSocket(
+DNSCURVE_SERVER_DATA *DNSCurveSelectSignatureTargetSocket(
 	const uint16_t Protocol, 
 	const bool IsAlternate, 
 	DNSCURVE_SERVER_TYPE &ServerType, 
@@ -122,9 +122,9 @@ void DNSCurveSocketPrecomputation(
 	DNSCURVE_SERVER_DATA ** const PacketTarget, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<DNSCURVE_SOCKET_SELECTING_TABLE> &SocketSelectingList, 
-	std::shared_ptr<uint8_t> &SendBuffer, 
+	std::unique_ptr<uint8_t[]> &SendBuffer, 
 	size_t &DataLength, 
-	std::shared_ptr<uint8_t> &Alternate_SendBuffer, 
+	std::unique_ptr<uint8_t[]> &Alternate_SendBuffer, 
 	size_t &Alternate_DataLength);
 size_t DNSCurvePacketEncryption(
 	const uint16_t Protocol, 
@@ -375,23 +375,23 @@ size_t CheckResponseData(
 	uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t BufferSize, 
-	bool * const IsMarkHopLimit);
+	bool * const IsMarkHopLimits);
 
 //Proxy.h
 size_t SOCKS_TCP_Request(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
-	std::shared_ptr<uint8_t> &OriginalRecv, 
+	std::unique_ptr<uint8_t[]> &OriginalRecv, 
 	size_t &RecvSize);
 size_t SOCKS_UDP_Request(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
-	std::shared_ptr<uint8_t> &OriginalRecv, 
+	std::unique_ptr<uint8_t[]> &OriginalRecv, 
 	size_t &RecvSize);
 size_t HTTP_CONNECT_Request(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
-	std::shared_ptr<uint8_t> &OriginalRecv, 
+	std::unique_ptr<uint8_t[]> &OriginalRecv, 
 	size_t &RecvSize);
 
 //Request.h
@@ -443,6 +443,8 @@ size_t UDP_CompleteRequestMultiple(
 	const size_t RecvSize);
 
 //Service.h
+bool CheckProcessExists(
+	void);
 #if defined(PLATFORM_WIN)
 BOOL WINAPI CtrlHandler(
 	const DWORD ControlType);
@@ -454,6 +456,8 @@ bool Flush_DNS_MailSlotMonitor(
 bool WINAPI Flush_DNS_MailSlotSender(
 	const wchar_t * const Domain);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+void SIG_Handler(
+	const int Signal);
 bool Flush_DNS_FIFO_Monitor(
 	void);
 bool Flush_DNS_FIFO_Sender(
