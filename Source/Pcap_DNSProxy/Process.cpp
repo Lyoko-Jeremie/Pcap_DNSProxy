@@ -691,7 +691,7 @@ size_t CheckHostsProcess(
 			if (HostsTableIter.IsStringMatching && !HostsTableIter.PatternOrDomainString.empty())
 			{
 				if (HostsTableIter.PatternOrDomainString == ("#") || //Dnsmasq "#" matches any domain.
-					(HostsTableIter.PatternOrDomainString.front() == ReverseDomain.front() && //Fast check to reduce resource using
+					(HostsTableIter.PatternOrDomainString.front() == ReverseDomain.front() && //Quick check to reduce resource using
 					CompareStringReversed(HostsTableIter.PatternOrDomainString, ReverseDomain)))
 						IsMatch = true;
 			}
@@ -897,7 +897,7 @@ StopLoop_NormalHosts:
 			if (HostsTableIter.IsStringMatching && !HostsTableIter.PatternOrDomainString.empty())
 			{
 				if ((HostsTableIter.PatternOrDomainString.empty() && Domain.find(ASCII_PERIOD) == std::string::npos) || //Dnsmasq unqualified names only
-					(HostsTableIter.PatternOrDomainString.front() == ReverseDomain.front() && //Fast check to reduce resource using
+					(HostsTableIter.PatternOrDomainString.front() == ReverseDomain.front() && //Quick check to reduce resource using
 					CompareStringReversed(HostsTableIter.PatternOrDomainString, ReverseDomain)))
 						IsMatch = true;
 			}

@@ -219,6 +219,7 @@ bool ICMP_TestRequest(
 			return false;
 		
 	//Make a ICMPv6 request echo packet.
+	//ICMPv6 protocol checksum will always be calculated by network stack in all platforms.
 		ICMPv6_Header->Type = ICMPV6_TYPE_REQUEST;
 		ICMPv6_Header->Code = ICMPV6_CODE_REQUEST;
 		ICMPv6_Header->ID = Parameter.ICMP_ID;
@@ -232,13 +233,16 @@ bool ICMP_TestRequest(
 	#endif
 
 	//Socket initialization
+	//Windows: Use SOCK_RAW type with IPPROTO_ICMPV6.
+	//Linux: Use SOCK_RAW type with IPPROTO_ICMPV6, also support SOCK_DGRAM type but default disabled.
+	//macOS: Use SOCK_DGRAM type with IPPROTO_ICMPV6.
 		SOCKET_DATA SocketDataTemp;
 		memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
 
 	//Main
-	#if defined(PLATFORM_WIN)
+	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		SocketDataTemp.Socket = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#elif defined(PLATFORM_MACOS)
 		SocketDataTemp.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
 	#endif
 		if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
@@ -258,9 +262,9 @@ bool ICMP_TestRequest(
 	//Alternate
 		if (Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0)
 		{
-		#if defined(PLATFORM_WIN)
+		#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 			SocketDataTemp.Socket = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
-		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		#elif defined(PLATFORM_MACOS)
 			SocketDataTemp.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
 		#endif
 			if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
@@ -285,9 +289,9 @@ bool ICMP_TestRequest(
 		{
 			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv6_Multiple)
 			{
-			#if defined(PLATFORM_WIN)
+			#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 				SocketDataTemp.Socket = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#elif defined(PLATFORM_MACOS)
 				SocketDataTemp.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
 			#endif
 				if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
@@ -312,6 +316,10 @@ bool ICMP_TestRequest(
 	else if (Protocol == AF_INET)
 	{
 	//Make a ICMP request echo packet.
+	//Calculate checksum by us to make sure that is correct
+	//Windows: It seems that it's not calculate by network stack.
+	//Linux: Calculate by network stack.
+	//macOS: It seems that it's not calculate by network stack.
 		ICMP_Header->Type = ICMP_TYPE_REQUEST;
 		ICMP_Header->Code = ICMP_CODE_REQUEST;
 		ICMP_Header->ID = Parameter.ICMP_ID;
@@ -326,11 +334,18 @@ bool ICMP_TestRequest(
 		ICMP_Header->Checksum = GetChecksum(reinterpret_cast<uint16_t *>(SendBuffer.get()), Length);
 
 	//Socket initialization
+	//Windows: Use SOCK_RAW type with IPPROTO_ICMP.
+	//Linux: Use SOCK_RAW type with IPPROTO_ICMP, also support SOCK_DGRAM type but default disabled and need to set <net.ipv4.ping_group_range='0 10'>.
+	//macOS: Use SOCK_DGRAM type with IPPROTO_ICMP.
 		SOCKET_DATA SocketDataTemp;
 		memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
 
 	//Main
+	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		SocketDataTemp.Socket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+	#elif defined(PLATFORM_MACOS)
+		SocketDataTemp.Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
+	#endif
 		if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
 			!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
 			!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))
@@ -343,13 +358,17 @@ bool ICMP_TestRequest(
 			(reinterpret_cast<sockaddr_in *>(&SocketDataTemp.SockAddr))->sin_addr = Parameter.Target_Server_Main_IPv4.AddressData.IPv4.sin_addr;
 			SocketDataTemp.AddrLen = sizeof(sockaddr_in);
 			ICMPSocketData.push_back(SocketDataTemp);
+			memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
 		}
 
 	//Alternate
 		if (Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0)
 		{
-			memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
+		#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 			SocketDataTemp.Socket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+		#elif defined(PLATFORM_MACOS)
+			SocketDataTemp.Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
+		#endif
 			if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
 				!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
 				!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))
@@ -373,8 +392,11 @@ bool ICMP_TestRequest(
 		{
 			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv4_Multiple)
 			{
-				memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
+			#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 				SocketDataTemp.Socket = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+			#elif defined(PLATFORM_MACOS)
+				SocketDataTemp.Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_ICMP);
+			#endif
 				if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
 					!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
 					!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))
@@ -541,7 +563,6 @@ bool ICMP_TestRequest(
 				#elif defined(PLATFORM_MACOS)
 					ICMPv6_Header->Timestamp = static_cast<uint64_t>(Timestamp);
 				#endif
-					
 				}
 				else if (Protocol == AF_INET)
 				{
@@ -555,6 +576,9 @@ bool ICMP_TestRequest(
 				#elif defined(PLATFORM_MACOS)
 					ICMP_Header->Timestamp = static_cast<uint64_t>(Timestamp);
 				#endif
+
+				//Checksum calculating
+					ICMP_Header->Checksum = 0;
 					ICMP_Header->Checksum = GetChecksum(reinterpret_cast<uint16_t *>(SendBuffer.get()), Length);
 				}
 			}

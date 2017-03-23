@@ -29,7 +29,7 @@ void CaptureInit(
 	pcap_if *CaptureDriveList = nullptr, *CaptureDriveIter = nullptr;
 	std::wstring Message;
 	std::string CaptureName, CaptureDescription;
-	auto IsErrorFirstPrint = true, IsFound = true;
+	auto IsFound = true;
 	std::unique_lock<std::mutex> CaptureMutex(CaptureLock, std::defer_lock);
 	if (!CaptureFilterRulesInit(PcapFilterRules))
 	{
@@ -59,12 +59,9 @@ void CaptureInit(
 	//Permissions check and check available network devices.
 		else if (CaptureDriveList == nullptr)
 		{
-			if (IsErrorFirstPrint)
-				IsErrorFirstPrint = false;
-			else 
-				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PCAP, L"Insufficient privileges or not any available network devices.", 0, nullptr, 0);
-
+			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PCAP, L"Insufficient privileges or not any available network devices.", 0, nullptr, 0);
 			Sleep(Parameter.FileRefreshTime);
+
 			continue;
 		}
 	//Mark captures.
@@ -391,7 +388,7 @@ bool CaptureModule(
 	}
 
 //Initialization(Part 1)
-	std::unique_ptr<uint8_t> Buffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
+	std::unique_ptr<uint8_t[]> Buffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
 	memset(Buffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 	CaptureDevice = DriveInterface->name;
 	CaptureDevice.shrink_to_fit();

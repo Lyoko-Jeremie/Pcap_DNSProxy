@@ -36,8 +36,8 @@ bool ReadText(
 	}
 
 //Initialization
-	std::unique_ptr<uint8_t> FileBuffer(new uint8_t[FILE_BUFFER_SIZE]());
-	std::unique_ptr<uint8_t> TextBuffer(new uint8_t[FILE_BUFFER_SIZE]());
+	std::unique_ptr<uint8_t[]> FileBuffer(new uint8_t[FILE_BUFFER_SIZE]());
+	std::unique_ptr<uint8_t[]> TextBuffer(new uint8_t[FILE_BUFFER_SIZE]());
 	memset(FileBuffer.get(), 0, FILE_BUFFER_SIZE);
 	memset(TextBuffer.get(), 0, FILE_BUFFER_SIZE);
 	std::string TextData;

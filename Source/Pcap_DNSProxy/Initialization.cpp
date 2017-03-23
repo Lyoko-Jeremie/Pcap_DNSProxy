@@ -744,15 +744,15 @@ void ConfigurationTableSetting(
 	ConfigurationParameter->ICMP_Sequence = htons(DEFAULT_SEQUENCE);
 	#if defined(PLATFORM_WIN)
 		ConfigurationParameter->ICMP_PaddingLength = strlen(DEFAULT_ICMP_PADDING_DATA);
-		memcpy_s(ConfigurationParameter->ICMP_PaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_ICMP_PADDING_DATA, ConfigurationParameter->ICMP_PaddingLength); //Load default padding data in Windows.
+		memcpy_s(ConfigurationParameter->ICMP_PaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_ICMP_PADDING_DATA, ConfigurationParameter->ICMP_PaddingLength); //Load default padding data(Windows).
 	#elif defined(PLATFORM_LINUX)
 		for (size_t Index = 0, CharData = ICMP_STRING_START_NUM_LINUX;Index < ICMP_PADDING_LENGTH_LINUX;++Index, ++CharData)
 			ConfigurationParameter->ICMP_PaddingData[Index] = CharData;
-		ConfigurationParameter->ICMP_PaddingLength = strlen(reinterpret_cast<const char *>(ConfigurationParameter->ICMP_PaddingData)); //Load default padding data in Linux.
+		ConfigurationParameter->ICMP_PaddingLength = strlen(reinterpret_cast<const char *>(ConfigurationParameter->ICMP_PaddingData)); //Load default padding data(Linux).
 	#elif defined(PLATFORM_MACOS)
 		for (size_t Index = 0, CharData = ICMP_STRING_START_NUM_MACOS;Index < ICMP_PADDING_LENGTH_MACOS;++Index, ++CharData)
 			ConfigurationParameter->ICMP_PaddingData[Index] = CharData;
-		ConfigurationParameter->ICMP_PaddingLength = strlen(reinterpret_cast<const char *>(ConfigurationParameter->ICMP_PaddingData)); //Load default padding data in macOS.
+		ConfigurationParameter->ICMP_PaddingLength = strlen(reinterpret_cast<const char *>(ConfigurationParameter->ICMP_PaddingData)); //Load default padding data(macOS).
 	#endif
 	#if defined(PLATFORM_WIN)
 		ConfigurationParameter->DomainTest_ID = htons(static_cast<uint16_t>(GetCurrentProcessId())); //Default DNS ID is current thread ID.
@@ -1273,8 +1273,8 @@ GlobalStatus::GlobalStatus(
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 #if defined(ENABLE_TLS)
 	IsInitialized_OpenSSL = Reference.IsInitialized_OpenSSL;
-	Initialized_MutexHandle = Reference.Initialized_MutexHandle;
 #endif
+	Initialized_MutexHandle = Reference.Initialized_MutexHandle;
 #endif
 	StartupTime = Reference.StartupTime;
 #if defined(PLATFORM_WIN)

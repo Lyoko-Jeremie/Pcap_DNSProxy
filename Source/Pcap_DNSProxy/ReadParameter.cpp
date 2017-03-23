@@ -1827,9 +1827,7 @@ bool ReadParameterData(
 	}
 
 //[DNS] block
-	if (IsFirstRead && ((Data.compare(0, strlen("OutgoingProtocol="), ("OutgoingProtocol=")) == 0 && Data.length() > strlen("OutgoingProtocol=")) || 
-	//Old version compatibility(2017-01-04)
-		(Data.compare(0, strlen("OutputProtocol="), ("OutputProtocol=")) == 0 && Data.length() > strlen("OutputProtocol="))))
+	if (IsFirstRead && Data.compare(0, strlen("OutgoingProtocol="), ("OutgoingProtocol=")) == 0 && Data.length() > strlen("OutgoingProtocol="))
 	{
 		CaseConvert(Data, true);
 
@@ -2377,6 +2375,19 @@ bool ReadParameterData(
 			goto PrintDataFormatError;
 		}
 	}
+	else if (IsFirstRead && Data.compare(0, strlen("TCPFastOpen="), ("TCPFastOpen=")) == 0 && Data.length() > strlen("TCPFastOpen="))
+	{
+		if (Data.length() < strlen("TCPFastOpen=") + UINT16_MAX_STRING_LENGTH)
+		{
+			_set_errno(0);
+			UnsignedResult = strtoul(Data.c_str() + strlen("TCPFastOpen="), nullptr, 0);
+			if (UnsignedResult > 0 && UnsignedResult < ULONG_MAX)
+				Parameter.TCP_FastOpen = UnsignedResult;
+		}
+		else {
+			goto PrintDataFormatError;
+		}
+	}
 	else if (Data.compare(0, strlen("ReceiveWaiting="), ("ReceiveWaiting=")) == 0 && Data.length() > strlen("ReceiveWaiting="))
 	{
 		if (Data.length() < strlen("ReceiveWaiting=") + UINT16_MAX_STRING_LENGTH)
@@ -2482,11 +2493,7 @@ bool ReadParameterData(
 	}
 
 //[Switches] block
-	if (IsFirstRead && Data.compare(0, strlen("TCPFastOpen=1"), ("TCPFastOpen=1")) == 0)
-	{
-		Parameter.TCP_FastOpen = true;
-	}
-	else if (Data.compare(0, strlen("DomainCaseConversion=1"), ("DomainCaseConversion=1")) == 0)
+	if (Data.compare(0, strlen("DomainCaseConversion=1"), ("DomainCaseConversion=1")) == 0)
 	{
 		ParameterPointer->DomainCaseConversion = true;
 	}
@@ -2923,7 +2930,7 @@ bool ReadParameterData(
 	else if (Data.compare(0, strlen("HTTPCONNECTProxyAuthorization="), ("HTTPCONNECTProxyAuthorization=")) == 0 && 
 		Data.length() > strlen("HTTPCONNECTProxyAuthorization="))
 	{
-		std::unique_ptr<uint8_t> ProxyAuthorization(new uint8_t[BASE64_ENCODE_OUT_SIZE(Data.length() - strlen("HTTPCONNECTProxyAuthorization=")) + NULL_TERMINATE_LENGTH]());
+		std::unique_ptr<uint8_t[]> ProxyAuthorization(new uint8_t[BASE64_ENCODE_OUT_SIZE(Data.length() - strlen("HTTPCONNECTProxyAuthorization=")) + NULL_TERMINATE_LENGTH]());
 		memset(ProxyAuthorization.get(), 0, BASE64_ENCODE_OUT_SIZE(Data.length() - strlen("HTTPCONNECTProxyAuthorization=")) + NULL_TERMINATE_LENGTH);
 		Base64_Encode(reinterpret_cast<uint8_t *>(const_cast<char *>(Data.c_str() + strlen("HTTPCONNECTProxyAuthorization="))), Data.length() - strlen("HTTPCONNECTProxyAuthorization="), ProxyAuthorization.get(), BASE64_ENCODE_OUT_SIZE(Data.length() - strlen("HTTPCONNECTProxyAuthorization=")));
 		*ParameterPointer->HTTP_CONNECT_ProxyAuthorization = ("Proxy-Authorization: Basic ");
@@ -3254,13 +3261,27 @@ bool ReadName_PathFile(
 	//Mark all data in list.
 		for (auto &StringIter:InnerListData)
 		{
-		//Add backslash or slash.
+		//Path, file name check and add backslash or slash to the end.
 		#if defined(PLATFORM_WIN)
-			if (StringIter.back() != ASCII_BACKSLASH)
+			if (StringIter.find("\\\\") != std::string::npos)
+			{
+				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Read file path error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+				return false;
+			}
+			else if (StringIter.back() != ASCII_BACKSLASH)
+			{
 				StringIter.append("\\");
+			}
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			if (StringIter.back() != ASCII_SLASH)
+			if (StringIter.find("//") != std::string::npos)
+			{
+				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Read file path error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+				return false;
+			}
+			else if (StringIter.back() != ASCII_SLASH)
+			{
 				StringIter.append("/");
+			}
 		#endif
 
 		//Convert to wide string.
@@ -3682,6 +3703,14 @@ bool ReadHopLimitsData(
 	const size_t FileIndex, 
 	const size_t Line)
 {
+//DNS server list check
+	if (DNSServerDataList == nullptr)
+		return false;
+	else if (DNSServerDataList->empty() && 
+		((Protocol == AF_INET6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0) || 
+		(Protocol == AF_INET && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0)))
+			return true;
+
 //Initialization
 	std::vector<std::string> ListData;
 	GetParameterListData(ListData, Data, DataOffset, Data.length(), ASCII_VERTICAL, false, false);
@@ -3692,7 +3721,7 @@ bool ReadHopLimitsData(
 	{
 		_set_errno(0);
 		UnsignedResult = strtoul(StringIter.c_str(), nullptr, 0);
-		if (UnsignedResult < UINT8_MAX && DNSServerDataList != nullptr)
+		if (UnsignedResult < UINT8_MAX)
 		{
 			if (Protocol == AF_INET6)
 			{

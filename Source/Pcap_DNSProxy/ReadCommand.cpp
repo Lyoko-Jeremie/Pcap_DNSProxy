@@ -39,7 +39,7 @@ bool ReadCommand(
 	for (;;)
 	{
 	//Get full module file name which is the location of program and not its working directory.
-		const auto Result = GetModuleFileName(
+		const auto Result = GetModuleFileNameW(
 			nullptr, 
 			FilePathBuffer.get(), 
 			static_cast<DWORD>(BufferSize));
@@ -118,7 +118,13 @@ bool ReadCommand(
 		FilePath = nullptr;
 		
 	//File name initialization
-		if (!FileNameInit(FilePathString))
+	// If the current directory is not below the root directory of the current process(e.g., because the process set a new filesystem root
+	// using chroot(2) without changing its current directory into the new root), then, since Linux 2.6.36, the returned path will be prefixed
+	// with the string "(unreachable)".
+		if (FilePathString.back() != ASCII_SLASH)
+			FilePathString.append("/");
+		if (FilePathString.compare(0, strlen("(unreachable)"), ("(unreachable)")) == 0 || 
+			!FileNameInit(FilePathString))
 		{
 			PrintToScreen(true, L"[System Error] Path initialization error.\n");
 			return false;
@@ -176,13 +182,27 @@ bool ReadCommand(
 				++Index;
 				Commands = argv[Index];
 
-			//Path and file name check.
-			//Path and file name size limit is removed, read https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx to get more details.
-			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-				if (Commands.length() >= PATH_MAX)
+			//Path, file name check and ddd backslash or slash to the end.
+			//Path and file name size limit is removed, visit https://msdn.microsoft.com/en-us/library/windows/desktop/aa365247(v=vs.85).aspx to get more details.
+			#if defined(PLATFORM_WIN)
+				if (Commands.find(L"\\\\") != std::string::npos)
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Commands error", 0, nullptr, 0);
 					return false;
+				}
+				else if (Commands.back() != ASCII_BACKSLASH)
+				{
+					Commands.append(L"\\");
+				}
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+				if (Commands.length() >= PATH_MAX || Commands.find("//") != std::string::npos)
+				{
+					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Commands error", 0, nullptr, 0);
+					return false;
+				}
+				else if (Commands.back() != ASCII_SLASH)
+				{
+					Commands.append("/");
 				}
 			#endif
 
@@ -286,7 +306,7 @@ bool ReadCommand(
 			if (FileHandle != nullptr)
 			{
 			//Initialization and make keypair.
-				std::unique_ptr<uint8_t> Buffer(new uint8_t[DNSCRYPT_KEYPAIR_MESSAGE_LEN]());
+				std::unique_ptr<uint8_t[]> Buffer(new uint8_t[DNSCRYPT_KEYPAIR_MESSAGE_LEN]());
 				sodium_memzero(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);
 				DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> SecretKey(crypto_box_SECRETKEYBYTES);
 				uint8_t PublicKey[crypto_box_PUBLICKEYBYTES]{0};
@@ -433,27 +453,30 @@ bool FileNameInit(
 #endif
 {
 #if defined(PLATFORM_WIN)
-//Path process(The path is full path name, including module name)
+//Path process(The path is location path with backslash not including module name at the end of this process, like "System:\\xxx\\")
+//The path is full path name including module name from file name initialization.
+//The path is location path not including module name from set path command.
 	GlobalRunningStatus.Path_Global->clear();
 	GlobalRunningStatus.Path_Global->push_back(OriginalPath);
-	GlobalRunningStatus.Path_Global->front().erase(GlobalRunningStatus.Path_Global->front().rfind(L"\\") + 1U);
+	if (GlobalRunningStatus.Path_Global->front().rfind(L"\\") == std::wstring::npos)
+		return false;
+	else if (GlobalRunningStatus.Path_Global->front().rfind(L"\\") + 1U < GlobalRunningStatus.Path_Global->front().length())
+		GlobalRunningStatus.Path_Global->front().erase(GlobalRunningStatus.Path_Global->front().rfind(L"\\") + 1U);
 	for (size_t Index = 0;Index < GlobalRunningStatus.Path_Global->front().length();++Index)
 	{
-		if ((GlobalRunningStatus.Path_Global->front()).at(Index) == (L'\\'))
+		if (GlobalRunningStatus.Path_Global->front().at(Index) == (L'\\'))
 		{
 			GlobalRunningStatus.Path_Global->front().insert(Index, L"\\");
 			++Index;
 		}
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-//Path process(The path is location path, not including module name)
+//Path process(The path is location path with slash not including module name at the end of this process, like "/xxx/")
 	GlobalRunningStatus.MBS_Path_Global->clear();
 	GlobalRunningStatus.MBS_Path_Global->push_back(OriginalPath);
-	GlobalRunningStatus.MBS_Path_Global->front().append("/");
 	std::wstring StringTemp;
 	if (!MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(OriginalPath.c_str()), PATH_MAX + NULL_TERMINATE_LENGTH, StringTemp))
 		return false;
-	StringTemp.append(L"/");
 	GlobalRunningStatus.Path_Global->clear();
 	GlobalRunningStatus.Path_Global->push_back(StringTemp);
 	StringTemp.clear();

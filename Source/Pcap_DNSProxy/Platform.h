@@ -364,20 +364,20 @@
 #include <thread>                  //Thread support
 
 #if defined(PLATFORM_WIN)
-//LibSodium header
+//LibSodium header, always enabled(Windows)
 	#ifndef ENABLE_LIBSODIUM
-		#define ENABLE_LIBSODIUM           //LibSodium always enable in Windows
+		#define ENABLE_LIBSODIUM
 	#endif
 	#ifndef SODIUM_STATIC
-		#define SODIUM_STATIC              //LibSodium static linking always enable in Windows
+		#define SODIUM_STATIC
 	#endif
 	#if defined(ENABLE_LIBSODIUM)
 		#include "..\\Dependency\\LibSodium\\sodium.h"
 	#endif
 
-//WinPcap header
+//WinPcap header, always enabled(Windows)
 	#ifndef ENABLE_PCAP
-		#define ENABLE_PCAP                //WinPcap always enable in Windows
+		#define ENABLE_PCAP
 	#endif
 	#ifndef WPCAP
 		#define WPCAP                      //WinPcap preprocessor definitions
@@ -402,7 +402,7 @@
 	#include <ws2tcpip.h>              //WinSock 2.0+ Extension for TCP/IP protocols
 
 //Part 3 including files(MUST be including after Part 2)
-	#include <windows.h>               //Master include file in Windows
+	#include <windows.h>               //Master include file
 
 //Part 4 including files(MUST be including after Part 3)
 	#include <iphlpapi.h>              //IP Stack for MIB-II and related functionality
@@ -411,13 +411,13 @@
 
 //Part 5 including files(MUST be including after Part 4)
 	#ifndef ENABLE_HTTP
-		#define ENABLE_HTTP                //WinINET always enable in Windows
+		#define ENABLE_HTTP                //WinINET, always enabled(Windows)
 	#endif
 	#if defined(ENABLE_HTTP)
 		#include <wininet.h>               //Contains manifests, macros, types and prototypes for Microsoft Windows Internet Extensions
 	#endif
 	#ifndef ENABLE_TLS
-		#define ENABLE_TLS                 //SSPI always enable in Windows
+		#define ENABLE_TLS                 //SSPI, always enabled(Windows)
 	#endif
 	#if defined(ENABLE_TLS)
 		#define SECURITY_WIN32
@@ -455,7 +455,7 @@
 //Endian definitions
 	#define __LITTLE_ENDIAN            1234                         //Little Endian
 	#define __BIG_ENDIAN               4321                         //Big Endian
-	#define __BYTE_ORDER               __LITTLE_ENDIAN              //x86 and x86-64/x64 is Little Endian in Windows.
+	#define __BYTE_ORDER               __LITTLE_ENDIAN              //x86 and x86-64/x64 is Little Endian.
 	#define LITTLE_ENDIAN              __LITTLE_ENDIAN
 	#define BIG_ENDIAN                 __BIG_ENDIAN
 	#define BYTE_ORDER                 __BYTE_ORDER
@@ -487,7 +487,7 @@
 	#elif defined(PLATFORM_MACOS)
 		#define __LITTLE_ENDIAN                1234                         //Little Endian
 		#define __BIG_ENDIAN                   4321                         //Big Endian
-		#define __BYTE_ORDER                   __LITTLE_ENDIAN              //x86 and x86-64/x64 is Little Endian in macOS.
+		#define __BYTE_ORDER                   __LITTLE_ENDIAN              //x86 and x86-64/x64 is Little Endian.
 	#endif
 	#include <fcntl.h>                     //Manipulate file descriptor support
 	#include <ifaddrs.h>                   //Getting network interface addresses support
@@ -590,9 +590,6 @@
 				#define MSG_FASTOPEN       0x20000000
 			#endif
 		#endif
-
-	//A hint value for the Linux Kernel with TCP Fast Open
-		#define TCP_FASTOPEN_HINT      5
 	#endif
 
 //Linux and macOS compatible definitions(Part 2)

@@ -1,4 +1,28 @@
-﻿Pcap_DNSProxy 0.4.8.1-0.4.8.4 更新日志(2017-03-10)：
+﻿Pcap_DNSProxy 0.4.8.5 更新日志(2017-03-23)：
+
+* 添加对指定 TCP Fast Open 的监听队列长度支持 (Linux)
+* 添加对 TCP Fast Open 的支持 (macOS)
+* LibSodium 库更新到 1.0.12 (Windows/macOS)
+* 修复在完全禁用 IPv6 协议栈的情况下程序依旧尝试使用 IPv6 协议栈的问题 [dzxx36gyy]
+* 修复 -c/--config-file 参数在部分情况下无法正常指定路径的问题
+* 修复在启用 TCP Fast Open 多线程请求的情况下部分服务器被跳过的问题 (Linux)
+* Release Hash:
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe: DBE482160689518D70A515A9FB77C024C987A6E02B789E0141C7D3E003573257
+    * Windows/Pcap_DNSProxy_x86.exe: 173DB95A8AF4A3EF0408D725F59912192CB8EFEA466DB7C0181ACA1F5FD4537B
+    * Windows/Pcap_DNSProxy_XP.exe: 8C7B16BD34E482CE8688B45A7A6020C897BE66BBEAE01464804EA7D338D890F7
+    * macOS/Pcap_DNSProxy: F961B67D2B86B286A6850712C42664AD4D40A20F0E54C392F470D2061972E062
+  * SHA-2(256):
+    * Windows/Pcap_DNSProxy.exe: BC99E7D197362F7D5213C3EFB77F38EABC15BA8AC2AAF40279458B506F79F735
+    * Windows/Pcap_DNSProxy_x86.exe: 932359EF0C7B0E55E425EB0B9403C986BE501BD3007CB7A38D8FD00F6510AFB7
+    * Windows/Pcap_DNSProxy_XP.exe: 9E97445BD5F3A730149B7DFE1AF1BD79CEBFED76206D4E2BCFC9E82601EC2093
+    * macOS/Pcap_DNSProxy: 4C7467E95E15C43CA39FE149F739E57F1E1CC7654CD9225C0454C156DD7EF8F0
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy 0.4.8.1-0.4.8.4 更新日志(2017-03-11)：
 
 * 添加 Address Hosts 的前缀长度支持 [LGA1150]
 * 添加 EDNS Label 参数名单的排除模式支持 [燒香の貓咪]
@@ -10,6 +34,7 @@
 * 改进的 Domain Case Conversion 功能
 * 改进在启用手动版本选择时所指定使用的 Ciphers Suites (Linux/macOS)
 * Output Protocol 改名为 Outgoing Protocol
+* OpenSSL 更新到 1.1.0e (macOS)
 * 修改多行注释区域的标签要求 [Monoremonton/wx0]
 * 修改全部类型 DNS 缓存的缓存策略 [kraml]
 * 修复内存对齐可能造成的性能问题 [Syrone Wong]

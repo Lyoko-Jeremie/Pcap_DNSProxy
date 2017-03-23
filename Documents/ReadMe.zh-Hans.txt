@@ -540,6 +540,21 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Unreliable Serial Socket Timeout - 串行可靠协议端口超时时间：单位为毫秒，最小为 500 可留空，留空时为 1000
     * 串行是指此操作需要多次交互网络传输才能完成，例如 SOCKS 和 HTTP CONNECT 协议
     * 不可靠端口指 UDP/ICMP/ICMPv6 协议
+  * TCP Fast Open - TCP 快速打开功能：
+    * 本功能的支持情况：
+      * Windows 平台
+        * 开启为 1 /关闭为 0
+        * 服务器端支持，客户端由于不同类型 I/O 的问题暂时无法进行支持
+        * 需要 Windows 10 Version 1607 以及更新版本的支持
+      * Linux 平台：
+        * 此参数可同时指定支持 TCP Fast Open 监听队列长度，直接填入大于 0 的值即为队列长度，关闭为 0
+        * 服务器端和客户端完全支持
+        * IPv4 协议需要 Linux Kernel 3.7 以及更新版本的支持，IPv6 协议需要 Linux Kernel 3.16 以及更新版本的内核支持
+      * macOS 平台：
+        * 开启为 1 /关闭为 0
+        * 服务器端和客户端完全支持
+        * 需要 macOS 10.11 Sierra 以及更新版本的支持
+    * 警告：切勿在不受支持的版本上开启本功能，否则可能导致程序无法正常收发数据包！
   * Receive Waiting - 数据包接收等待时间，启用后程序会尝试等待一段时间以尝试接收所有数据包并返回最后到达的数据包：单位为毫秒，留空或设置为 0 表示关闭此功能
     * 本参数与 Pcap Reading Timeout 密切相关，由于抓包模块每隔一段读取超时时间才会返回给程序一次，当数据包接收等待时间小于读取超时时间时会导致本参数变得没有意义，在一些情况下甚至会拖慢域名解析的响应速度
     * 本参数启用后虽然本身只决定抓包模块的接收等待时间，但同时会影响到非抓包模块的请求。非抓包模块会自动切换为等待超时时间后发回最后收到的回复，默认为接受最先到达的正确的回复，而它们的超时时间由 Reliable Once Socket Timeout/Unreliable Once Socket Timeout 参数决定
@@ -560,16 +575,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 使用多 TTL/Hop Limits 值所对应的顺序与对应地址参数中的地址顺序相同
 
 * Switches - 控制开关区域
-  * TCP Fast Open - TCP 快速打开功能：开启为 1 /关闭为 0
-    * 目前本功能只支持 Linux 平台，Windows 和 macOS 平台将直接忽略此参数，其中：
-      * IPv4 需要 3.7 以及更新版本的内核支持
-      * IPv6 需要 3.16 以及更新版本的内核支持
-      * 警告：切勿在不受支持的内核版本上开启本功能，否则可能导致程序无法正常收发数据包！
-    * 开启系统对本功能的支持：
-      * 临时支持：需要在拥有 ROOT 权限的终端执行 echo 3 > /proc/sys/net/ipv4/tcp_fastopen
-      * 长期支持：
-        * 在 /etc/rc.local 文件最下面添加 echo 3 > /proc/sys/net/ipv4/tcp_fastopen 保存，以后每次启动都将自动设置此值
-        * 在 /etc/sysctl.conf 文件中添加 net.ipv4.tcp_fastopen = 3 保存
   * Domain Case Conversion - 随机转换域名请求大小写：开启为 1 /关闭为 0
   * Compression Pointer Mutation - 随机添加压缩指针：可填入 1 (+ 2 + 3)，关闭为 0
     * 随机添加压缩指针有3种不同的类型，对应 1 和 2 和 3

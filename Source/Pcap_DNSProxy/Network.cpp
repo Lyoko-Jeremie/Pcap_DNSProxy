@@ -305,7 +305,7 @@ bool SocketSetting(
 				return false;
 			}
 */
-		//Set an IPv6 server socket that must not accept IPv4 connections in Linux and macOS.
+		//Set an IPv6 server socket that must not accept IPv4 connections(Linux/macOS).
 			errno = 0;
 			if (setsockopt(Socket, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			{
@@ -321,36 +321,42 @@ bool SocketSetting(
 	//Socket attribute setting(TFO/TCP Fast Open)
 		case SOCKET_SETTING_TYPE::TCP_FAST_OPEN:
 		{
-		//Global parameter check
-			if (!Parameter.TCP_FastOpen)
-				return true;
-
 		//Socket attribute setting process
-		//It seems that TCP Fast Open option is not ready in Windows and macOS(2017-02-28).
-		#if defined(PLATFORM_WIN)
-			const DWORD OptionValue = TRUE;
-			if (setsockopt(Socket, IPPROTO_TCP, TCP_FASTOPEN, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
+			if (Parameter.TCP_FastOpen > 0)
 			{
-				if (IsPrintError)
-					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket TCP Fast Open setting error", WSAGetLastError(), nullptr, 0);
-				shutdown(Socket, SD_BOTH);
-				closesocket(Socket);
+			//Windows: Server side is completed but need to confirm in the new SDK, client side is only support overlapped I/O so waiting Microsoft to extend it to normal socket(2017-03-23).
+			//Linux: Server side and client side is both completed, also support queue length.
+			//macOS: Server side and client side is both completed.
+			#if defined(PLATFORM_WIN)
+				const DWORD OptionValue = TRUE;
+				if (setsockopt(Socket, IPPROTO_TCP, TCP_FASTOPEN, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
+				{
+					if (IsPrintError)
+						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket TCP Fast Open setting error", WSAGetLastError(), nullptr, 0);
+					shutdown(Socket, SD_BOTH);
+					closesocket(Socket);
 
-				return false;
-			}
-		#elif defined(PLATFORM_LINUX)
-			const int OptionValue = TCP_FASTOPEN_HINT;
-			errno = 0;
-			if (setsockopt(Socket, SOL_TCP, TCP_FASTOPEN, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
-			{
-				if (IsPrintError)
-					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket TCP Fast Open setting error", errno, nullptr, 0);
-				shutdown(Socket, SHUT_RDWR);
-				close(Socket);
+					return false;
+				}
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFOEM_MACOS))
+				errno = 0;
+				#if defined(PLATFORM_LINUX)
+					const int OptionValue = Parameter.TCP_FastOpen;
+					if (setsockopt(Socket, SOL_TCP, TCP_FASTOPEN, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
+				#elif defined(PLATFOEM_MACOS)
+					const int OptionValue = TRUE;
+					if (setsockopt(Socket, IPPROTO_TCP, TCP_FASTOPEN, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
+				#endif
+				{
+					if (IsPrintError)
+						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket TCP Fast Open setting error", errno, nullptr, 0);
+					shutdown(Socket, SHUT_RDWR);
+					close(Socket);
 
-				return false;
+					return false;
+				}
+			#endif
 			}
-		#endif
 		}break;
 /* TCP keep alive mode
 	//Socket attribute setting(TCP keep alive mode)
@@ -1108,17 +1114,52 @@ size_t SocketConnecting(
 //TCP connecting
 	if (Protocol == IPPROTO_TCP)
 	{
-	#if defined(PLATFORM_LINUX)
-		if (Parameter.TCP_FastOpen && OriginalSend != nullptr && SendSize > 0)
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		if (Parameter.TCP_FastOpen > 0 && OriginalSend != nullptr && SendSize > 0)
 		{
 			errno = 0;
-			ssize_t RecvLen = sendto(Socket, OriginalSend, static_cast<int>(SendSize), MSG_FASTOPEN, SockAddr, AddrLen);
+			
+		#if defined(PLATFORM_LINUX)
+		//Send request and it will automatic connect to server.
+			ssize_t RecvLen = sendto(Socket, OriginalSend, SendSize, MSG_FASTOPEN, SockAddr, AddrLen);
 			if (RecvLen == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
 				return EXIT_FAILURE;
 			else if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
 				return EXIT_SUCCESS;
 			else 
 				return RecvLen;
+		#elif defined(PLATFORM_MACOS)
+		//Socket initialization
+			sa_endpoints_t EndPoints;
+			memset(&EndPoints, 0, sizeof(EndPoints));
+			EndPoints.sae_srcif = 0;
+			EndPoints.sae_srcaddr = nullptr;
+			EndPoints.sae_srcaddrlen = 0;
+			EndPoints.sae_dstaddr = SockAddr;
+			EndPoints.sae_dstaddrlen = AddrLen;
+
+		//Socket length initialization
+			if (AddrLen == sizeof(sockaddr_in6))
+				(reinterpret_cast<sockaddr_in6 *>(const_cast<sockaddr *>(EndPoints.sae_dstaddr)))->sin6_len = sizeof(sockaddr_in6);
+			else if (AddrLen == sizeof(sockaddr_in))
+				(reinterpret_cast<sockaddr_in *>(const_cast<sockaddr *>(EndPoints.sae_dstaddr)))->sin_len = sizeof(sockaddr_in);
+			else 
+				return EXIT_FAILURE;
+			
+		//Hold connecting to server.
+			ssize_t RecvLen = connectx(Socket, &EndPoints, SAE_ASSOCID_ANY, CONNECT_RESUME_ON_READ_WRITE | CONNECT_DATA_IDEMPOTENT, nullptr, 0, nullptr, nullptr);
+			if (RecvLen == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+				return EXIT_FAILURE;
+			
+		//Send request and it will automatic connect to server.
+			RecvLen = send(Socket, OriginalSend, SendSize, 0);
+			if (RecvLen == SOCKET_ERROR && errno != EAGAIN && errno != EINPROGRESS)
+				return EXIT_FAILURE;
+			else if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
+				return EXIT_SUCCESS;
+			else 
+				return RecvLen;
+		#endif
 		}
 		else {
 	#endif
@@ -1128,14 +1169,12 @@ size_t SocketConnecting(
 
 			#if defined(PLATFORM_WIN)
 				if (ErrorCode != WSAEWOULDBLOCK)
-			#elif defined(PLATFORM_LINUX)
+			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				if (ErrorCode != EAGAIN && ErrorCode != EINPROGRESS)
-			#elif defined(PLATFORM_MACOS)
-				if (ErrorCode != EWOULDBLOCK && ErrorCode != EAGAIN && ErrorCode != EINPROGRESS)
 			#endif
 					return EXIT_FAILURE;
 			}
-	#if defined(PLATFORM_LINUX)
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		}
 	#endif
 	}
@@ -1203,7 +1242,7 @@ ssize_t SocketSelectingOnce(
 			SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			SocketDataList.at(Index).Socket = 0;
 		}
-		else if (Protocol == IPPROTO_TCP && Parameter.TCP_FastOpen && RecvLen >= static_cast<ssize_t>(DNS_PACKET_MINSIZE))
+		else if (Protocol == IPPROTO_TCP && Parameter.TCP_FastOpen > 0 && RecvLen >= static_cast<ssize_t>(DNS_PACKET_MINSIZE))
 		{
 		#if defined(ENABLE_LIBSODIUM)
 			if (RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
@@ -1211,8 +1250,6 @@ ssize_t SocketSelectingOnce(
 			else 
 		#endif
 				SocketSelectingList.at(Index).IsPacketDone = true;
-
-			++Index;
 		}
 	}
 
@@ -1439,10 +1476,8 @@ ssize_t SocketSelectingOnce(
 
 						#if defined(PLATFORM_WIN)
 							if (InnerErrorCode == WSAEWOULDBLOCK)
-						#elif defined(PLATFORM_LINUX)
+						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 							if (InnerErrorCode == EAGAIN || InnerErrorCode == EINPROGRESS)
-						#elif defined(PLATFORM_MACOS)
-							if (InnerErrorCode == EWOULDBLOCK || InnerErrorCode == EAGAIN || InnerErrorCode == EINPROGRESS)
 						#endif
 							{
 								DNSCurveSocketSelectingList->at(Index).RecvBuffer.reset();
@@ -1513,10 +1548,8 @@ ssize_t SocketSelectingOnce(
 
 						#if defined(PLATFORM_WIN)
 							if (InnerErrorCode == WSAEWOULDBLOCK)
-						#elif defined(PLATFORM_LINUX)
+						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 							if (InnerErrorCode == EAGAIN || InnerErrorCode == EINPROGRESS)
-						#elif defined(PLATFORM_MACOS)
-							if (InnerErrorCode == EWOULDBLOCK || InnerErrorCode == EAGAIN || InnerErrorCode == EINPROGRESS)
 						#endif
 							{
 								SocketSelectingList.at(Index).RecvBuffer.reset();
@@ -1948,10 +1981,8 @@ size_t SocketSelectingSerial(
 					//Send in progress.
 					#if defined(PLATFORM_WIN)
 						if (ErrorCodeList.at(Index) == WSAEWOULDBLOCK)
-					#elif defined(PLATFORM_LINUX)
+					#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 						if (ErrorCodeList.at(Index) == EAGAIN || ErrorCodeList.at(Index) == EINPROGRESS)
-					#elif defined(PLATFORM_MACOS)
-						if (ErrorCodeList.at(Index) == EWOULDBLOCK || ErrorCodeList.at(Index) == EAGAIN || ErrorCodeList.at(Index) == EINPROGRESS)
 					#endif
 						{
 							ErrorCodeList.at(Index) = 0;
@@ -2084,10 +2115,8 @@ StopLoop:
 						//Receive in progress.
 						#if defined(PLATFORM_WIN)
 							if (ErrorCodeList.at(Index) == WSAEWOULDBLOCK)
-						#elif defined(PLATFORM_LINUX)
+						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 							if (ErrorCodeList.at(Index) == EAGAIN || ErrorCodeList.at(Index) == EINPROGRESS)
-						#elif defined(PLATFORM_MACOS)
-							if (ErrorCodeList.at(Index) == EWOULDBLOCK || ErrorCodeList.at(Index) == EAGAIN || ErrorCodeList.at(Index) == EINPROGRESS)
 						#endif
 							{
 								ErrorCodeList.at(Index) = 0;

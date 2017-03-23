@@ -26,17 +26,17 @@
 // Main definitions
 // 
 //Base definitions
-#define KILOBYTE_TIMES                                1024U                        //1KB = 1,024 bytes
-#define MEGABYTE_TIMES                                1048576U                     //1MB = 1,048,576 bytes
-#define GIGABYTE_TIMES                                1073741824U                  //1GB = 1,073,741,824 bytes
-#define TERABYTE_TIMES                                1099511627776U               //1TB = 1,099,511,627,776 bytes
-#define PETABYTE_TIMES                                1125899906842624U            //1PB = 1,125,899,906,842,624 bytes
-#define CODEPAGE_ASCII                                1U                           //Microsoft Windows Codepage of ANSI
-#define CODEPAGE_UTF_8                                65001U                       //Microsoft Windows Codepage of UTF-8
-#define CODEPAGE_UTF_16_LE                            1200U                        //Microsoft Windows Codepage of UTF-16 Little Endian/LE
-#define CODEPAGE_UTF_16_BE                            1201U                        //Microsoft Windows Codepage of UTF-16 Big Endian/BE
-#define CODEPAGE_UTF_32_LE                            12000U                       //Microsoft Windows Codepage of UTF-32 Little Endian/LE
-#define CODEPAGE_UTF_32_BE                            12001U                       //Microsoft Windows Codepage of UTF-32 Big Endian/BE
+#define KILOBYTE_TIMES                                1024U                       //1KB = 1,024 bytes
+#define MEGABYTE_TIMES                                1048576U                    //1MB = 1,048,576 bytes
+#define GIGABYTE_TIMES                                1073741824U                 //1GB = 1,073,741,824 bytes
+#define TERABYTE_TIMES                                1099511627776U              //1TB = 1,099,511,627,776 bytes
+#define PETABYTE_TIMES                                1125899906842624U           //1PB = 1,125,899,906,842,624 bytes
+#define CODEPAGE_ASCII                                1U                          //Microsoft Windows Codepage of ANSI
+#define CODEPAGE_UTF_8                                65001U                      //Microsoft Windows Codepage of UTF-8
+#define CODEPAGE_UTF_16_LE                            1200U                       //Microsoft Windows Codepage of UTF-16 Little Endian/LE
+#define CODEPAGE_UTF_16_BE                            1201U                       //Microsoft Windows Codepage of UTF-16 Big Endian/BE
+#define CODEPAGE_UTF_32_LE                            12000U                      //Microsoft Windows Codepage of UTF-32 Little Endian/LE
+#define CODEPAGE_UTF_32_BE                            12001U                      //Microsoft Windows Codepage of UTF-32 Big Endian/BE
 #if defined(PLATFORM_WIN)
 	#define MBSTOWCS_NULL_TERMINATE                       (-1)                        //MultiByteToWideChar function null-terminate
 	#define WCSTOMBS_NULL_TERMINATE                       MBSTOWCS_NULL_TERMINATE     //WideCharToMultiByte function null-terminate
@@ -111,7 +111,7 @@
 #define CONFIG_VERSION_MAJOR                          0                                     //Current configuration file major version(0.45)
 #define CONFIG_VERSION_MINOR                          45U                                   //Current configuration file minor version(0.45)
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2017 Chengr28"   //Copyright message
-#define FULL_VERSION                                  L"0.4.8.4"                            //Current full version
+#define FULL_VERSION                                  L"0.4.8.5"                            //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_MAXSIZE                        64U                         //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -253,7 +253,7 @@
 	#define COMMAND_SHORT_SET_PATH                        (L"-c")
 	#define CONFIG_FILE_NAME_LIST                         {(L"Config.ini"), (L"Config.conf"), (L"Config.cfg"), (L"Config")}
 	#define ERROR_LOG_FILE_NAME                           (L"Error.log")
-	#define DEFAULT_ICMP_PADDING_DATA                     ("abcdefghijklmnopqrstuvwabcdefghi")           //Default ICMP padding data in Windows
+	#define DEFAULT_ICMP_PADDING_DATA                     ("abcdefghijklmnopqrstuvwabcdefghi")           //Default ICMP padding data(Windows)
 	#if defined(ENABLE_LIBSODIUM)
 		#define DNSCURVE_KEY_PAIR_FILE_NAME                   (L"KeyPair.txt")
 	#endif
@@ -746,7 +746,7 @@ public:
 	size_t                               AlternateResetTime;
 	size_t                               MultipleRequestTimes;
 //[Switches] block
-	bool                                 TCP_FastOpen;
+	size_t                               TCP_FastOpen;
 	bool                                 DomainCaseConversion;
 	bool                                 CompressionPointerMutation;
 	bool                                 CPM_PointerToHeader;
@@ -861,8 +861,8 @@ public:
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 #if defined(ENABLE_TLS)
 	bool                                 IsInitialized_OpenSSL;
-	int                                  Initialized_MutexHandle;
 #endif
+	int                                  Initialized_MutexHandle;
 #endif
 
 //Running status

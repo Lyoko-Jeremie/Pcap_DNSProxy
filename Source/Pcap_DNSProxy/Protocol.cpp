@@ -1312,7 +1312,7 @@ size_t CheckResponse_CNAME(
 			if (HostsTableIter.IsStringMatching && !HostsTableIter.PatternOrDomainString.empty())
 			{
 				if (HostsTableIter.PatternOrDomainString == ("#") || //Dnsmasq "#" matches any domain.
-					(HostsTableIter.PatternOrDomainString.front() == ReverseDomain.front() && //Fast check to reduce resource using
+					(HostsTableIter.PatternOrDomainString.front() == ReverseDomain.front() && //Quick check to reduce resource using
 					CompareStringReversed(HostsTableIter.PatternOrDomainString, ReverseDomain)))
 						IsMatch = true;
 			}
