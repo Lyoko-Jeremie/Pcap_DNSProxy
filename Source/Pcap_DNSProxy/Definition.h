@@ -740,13 +740,13 @@ public:
 	timeval                              SocketTimeout_Unreliable_Once;
 	timeval                              SocketTimeout_Unreliable_Serial;
 #endif
+	size_t                               TCP_FastOpen;
 	size_t                               ReceiveWaiting;
 	size_t                               AlternateTimes;
 	size_t                               AlternateTimeRange;
 	size_t                               AlternateResetTime;
 	size_t                               MultipleRequestTimes;
 //[Switches] block
-	size_t                               TCP_FastOpen;
 	bool                                 DomainCaseConversion;
 	bool                                 CompressionPointerMutation;
 	bool                                 CPM_PointerToHeader;

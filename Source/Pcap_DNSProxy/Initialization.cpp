@@ -465,6 +465,7 @@ ConfigurationTable::ConfigurationTable(
 	SocketTimeout_Reliable_Serial = Reference.SocketTimeout_Reliable_Serial;
 	SocketTimeout_Unreliable_Once = Reference.SocketTimeout_Unreliable_Once;
 	SocketTimeout_Unreliable_Serial = Reference.SocketTimeout_Unreliable_Serial;
+	TCP_FastOpen = Reference.TCP_FastOpen;
 	ReceiveWaiting = Reference.ReceiveWaiting;
 	AlternateTimes = Reference.AlternateTimes;
 	AlternateTimeRange = Reference.AlternateTimeRange;
@@ -472,7 +473,6 @@ ConfigurationTable::ConfigurationTable(
 	MultipleRequestTimes = Reference.MultipleRequestTimes;
 
 	//[Switches] block
-	TCP_FastOpen = Reference.TCP_FastOpen;
 	DomainCaseConversion = Reference.DomainCaseConversion;
 	CompressionPointerMutation = Reference.CompressionPointerMutation;
 	CPM_PointerToHeader = Reference.CPM_PointerToHeader;

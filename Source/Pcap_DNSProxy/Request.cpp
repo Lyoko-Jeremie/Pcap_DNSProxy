@@ -316,7 +316,7 @@ bool ICMP_TestRequest(
 	else if (Protocol == AF_INET)
 	{
 	//Make a ICMP request echo packet.
-	//Calculate checksum by us to make sure that is correct
+	//Calculate checksum by us to make sure that is correct.
 	//Windows: It seems that it's not calculate by network stack.
 	//Linux: Calculate by network stack.
 	//macOS: It seems that it's not calculate by network stack.

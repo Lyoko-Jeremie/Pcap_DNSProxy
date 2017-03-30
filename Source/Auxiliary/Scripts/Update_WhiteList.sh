@@ -31,12 +31,22 @@ sed -e "s|114.114.114.114$||" -e "s|^s|S|" accelerated-domains.china.conf >> Whi
 
 # Download domain data of Google in China part.
 echo
-read -p "Use google.china.conf in dnsmasq-china-list? [Y/N]:" yn
+read -p "Do you want to add Google database(google.china.conf) in dnsmasq-china-list? [Y/N]:" yn
 if [ "${yn}" == "Y" ] || [ "${yn}" == "y" ]; then
 	echo
 	curl -O https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/google.china.conf
 	sed -e "s|114.114.114.114$||" -e "s|^s|S|" google.china.conf >> WhiteList.txt
 	rm -rf google.china.conf
+fi
+
+# Download domain data of Apple in China part.
+echo
+read -p "Do you want to add Apple database(apple.china.conf) in dnsmasq-china-list? [Y/N]:" yn
+if [ "${yn}" == "Y" ] || [ "${yn}" == "y" ]; then
+	echo
+	curl -O https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/apple.china.conf
+	sed -e "s|114.114.114.114$||" -e "s|^s|S|" apple.china.conf >> WhiteList.txt
+	rm -rf apple.china.conf
 fi
 
 # Cleanup

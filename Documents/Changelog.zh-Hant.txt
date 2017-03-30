@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy 0.4.8.5 更新日誌(2017-03-23)：
+﻿Pcap_DNSProxy 0.4.8.5 更新日誌(2017-03-30)：
 
 * 添加對指定 TCP Fast Open 的監聽佇列長度支援 (Linux)
 * 添加對 TCP Fast Open 的支援 (macOS)
