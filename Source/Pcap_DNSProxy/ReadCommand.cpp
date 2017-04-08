@@ -296,11 +296,11 @@ bool ReadCommand(
 		//File handle initialization
 		#if defined(ENABLE_LIBSODIUM)
 			FILE *FileHandle = nullptr;
-			#if defined(PLATFORM_WIN)
-				_wfopen_s(&FileHandle, DNSCURVE_KEY_PAIR_FILE_NAME, L"w+,ccs=UTF-8");
-			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-				FileHandle = fopen(DNSCURVE_KEY_PAIR_FILE_NAME, "w+");
-			#endif
+		#if defined(PLATFORM_WIN)
+			_wfopen_s(&FileHandle, DNSCURVE_KEY_PAIR_FILE_NAME, L"w+,ccs=UTF-8");
+		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			FileHandle = fopen(DNSCURVE_KEY_PAIR_FILE_NAME, "w+");
+		#endif
 
 		//Print keypair to file.
 			if (FileHandle != nullptr)
@@ -393,16 +393,16 @@ bool ReadCommand(
 
 			//OpenSSL version
 			#if defined(ENABLE_TLS)
-				#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-				#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0 //OpenSSL version after 1.1.0
-					if (MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(OpenSSL_version(OPENSSL_VERSION)), strnlen(OpenSSL_version(OPENSSL_VERSION), OPENSSL_STATIC_BUFFER_SIZE), LibVersion))
-				#else //OpenSSL version before 1.1.0
-					if (MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(SSLeay_version(SSLEAY_VERSION)), strnlen(SSLeay_version(SSLEAY_VERSION), OPENSSL_STATIC_BUFFER_SIZE), LibVersion))
-				#endif
-						PrintToScreen(true, L"%ls\n", LibVersion.c_str());
-					else 
-						PrintToScreen(true, L"[System Error] Convert multiple byte or wide char string error.\n");
-				#endif
+			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0 //OpenSSL version after 1.1.0
+				if (MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(OpenSSL_version(OPENSSL_VERSION)), strnlen(OpenSSL_version(OPENSSL_VERSION), OPENSSL_STATIC_BUFFER_SIZE), LibVersion))
+			#else //OpenSSL version before 1.1.0
+				if (MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(SSLeay_version(SSLEAY_VERSION)), strnlen(SSLeay_version(SSLEAY_VERSION), OPENSSL_STATIC_BUFFER_SIZE), LibVersion))
+			#endif
+					PrintToScreen(true, L"%ls\n", LibVersion.c_str());
+				else 
+					PrintToScreen(true, L"[System Error] Convert multiple byte or wide char string error.\n");
+			#endif
 			#endif
 		#else
 			PrintToScreen(true, L"[Notice] No any available libraries.\n");
@@ -444,13 +444,13 @@ bool ReadCommand(
 }
 
 //Get path of program from the main function parameter and Winsock initialization
+bool FileNameInit(
 #if defined(PLATFORM_WIN)
-bool FileNameInit(
-	const std::wstring &OriginalPath)
+	const std::wstring &OriginalPath
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-bool FileNameInit(
-	const std::string &OriginalPath)
+	const std::string &OriginalPath
 #endif
+)
 {
 #if defined(PLATFORM_WIN)
 //Path process(The path is location path with backslash not including module name at the end of this process, like "System:\\xxx\\")

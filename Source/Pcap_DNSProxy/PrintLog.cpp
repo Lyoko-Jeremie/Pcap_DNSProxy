@@ -367,11 +367,11 @@ void ErrorCodeToMessage(
 	{
 	//Define error code format.
 	#if defined(ENABLE_TLS)
-		#if defined(PLATFORM_WIN)
-			if (ErrorType == LOG_ERROR_TYPE::TLS)
-				Message.append(L"0x%x");
-			else 
-		#endif
+	#if defined(PLATFORM_WIN)
+		if (ErrorType == LOG_ERROR_TYPE::TLS)
+			Message.append(L"0x%x");
+		else 
+	#endif
 	#endif
 		if (ErrorType == LOG_ERROR_TYPE::NOTICE || ErrorType == LOG_ERROR_TYPE::SYSTEM || ErrorType == LOG_ERROR_TYPE::SOCKS || ErrorType == LOG_ERROR_TYPE::HTTP_CONNECT)
 			Message.append(L"%u");
@@ -392,11 +392,11 @@ void ErrorCodeToMessage(
 
 	//Define error code format.
 	#if defined(ENABLE_TLS)
-		#if defined(PLATFORM_WIN)
-			if (ErrorType == LOG_ERROR_TYPE::TLS)
-				Message.append(L"[0x%x]");
-			else 
-		#endif
+	#if defined(PLATFORM_WIN)
+		if (ErrorType == LOG_ERROR_TYPE::TLS)
+			Message.append(L"[0x%x]");
+		else 
+	#endif
 	#endif
 		if (ErrorType == LOG_ERROR_TYPE::SYSTEM || ErrorType == LOG_ERROR_TYPE::SOCKS || ErrorType == LOG_ERROR_TYPE::HTTP_CONNECT)
 			Message.append(L"[%u]");
@@ -446,6 +446,16 @@ void ReadTextPrintLog(
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::PARAMETER, L"Data of a line is too short", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 		}break;
+	#if defined(ENABLE_LIBSODIUM)
+		case READ_TEXT_TYPE::DNSCURVE_DATABASE: //ReadDNSCurveDatabase
+		{
+			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::DNSCURVE, L"Data of a line is too short", 0, FileList_DNSCurveDatabase.at(FileIndex).FileName.c_str(), Line);
+		}break;
+		case READ_TEXT_TYPE::DNSCURVE_MONITOR: //ReadDNSCurveDatabase(Monitor mode)
+		{
+			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::DNSCURVE, L"Data of a line is too short", 0, FileList_DNSCurveDatabase.at(FileIndex).FileName.c_str(), Line);
+		}break;
+	#endif
 	}
 
 	return;

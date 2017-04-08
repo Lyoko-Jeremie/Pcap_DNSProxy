@@ -204,8 +204,11 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 本参数同时决定监视器的时间休眠时间片的粒度，其指的是休眠一段长时间时会根据此粒度激活并检查是否需要重新运行特定监视项目，而不需要等到长时间完全过去休眠完全结束后才能重新对此进行监视，此功能对程序的网络状况适应能力会有提高
   * Large Buffer Size - 大型数据缓冲区的固定长度：单位为字节，最小为 1500
   * Additional Path - 附加的数据文件读取路径，附加在此处的目录路径下的 Hosts 文件和 IPFilter 文件会被依次读取：请填入目录的绝对路径
+    * 本参数支持同时读取多个路径，各路径之间请使用 | 隔开
   * Hosts File Name - Hosts 文件的文件名，附加在此处的 Hosts 文件名将被依次读取
+    * 本参数支持同时读取多个文件名，各路径之间请使用 | 隔开
   * IPFilter File Name - IPFilter 文件的文件名，附加在此处的 IPFilter 文件名将被依次读取
+    * 本参数支持同时读取多个文件名，各路径之间请使用 | 隔开
 
 * Log - 日志参数区域
   * Print Log Level - 指定日志输出级别：留空为 3
@@ -686,6 +689,17 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 注意：使用 "只使用加密模式" 时必须提供服务器的魔数和指纹用于请求和接收
   * DNSCurve Client Ephemeral Key - 一次性客户端密钥对模式，每次请求解析均使用随机生成的一次性客户端密钥对，提供前向安全性：开启为 1 /关闭为 0
   * DNSCurve Key Recheck Time - DNSCurve 协议 DNS 服务器连接信息检查间隔：单位为秒，最小为 10
+
+* DNSCurve Database - DNSCurve 协议数据库区域
+  * DNSCurve Database Name - DNSCurve 协议数据库的文件名
+    * 不支持多个文件名
+  * DNSCurve Database IPv4 Main DNS - DNSCurve 协议 IPv4 主要 DNS 服务器地址：需要填入 DNSCurve 协议数据库中对应服务器的 Name 字段
+  * DNSCurve Database IPv4 Alternate DNS - DNSCurve 协议 IPv4 备用 DNS 服务器地址：需要填入 DNSCurve 协议数据库中对应服务器的 Name 字段
+  * DNSCurve Database IPv6 Main DNS - DNSCurve 协议 IPv6 主要 DNS 服务器地址：需要填入 DNSCurve 协议数据库中对应服务器的 Name 字段
+  * DNSCurve Database IPv6 Alternate DNS - DNSCurve 协议 IPv6 备用 DNS 服务器地址：需要填入 DNSCurve 协议数据库中对应服务器的 Name 字段
+  * 注意：
+    * 启用此部分功能后会覆盖配置文件中所设置 DNSCurve 服务器的相关配置！
+    * 当在多个附加路径存在多个 DNSCurve 协议数据库中存在同名 Name 字段时，以最先被读取的为准
 
 * DNSCurve Addresses - DNSCurve 协议地址区域
   * DNSCurve IPv4 Main DNS Address - DNSCurve 协议 IPv4 主要 DNS 服务器地址：需要输入一个带端口格式的地址

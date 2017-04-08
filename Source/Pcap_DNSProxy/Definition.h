@@ -111,7 +111,7 @@
 #define CONFIG_VERSION_MAJOR                          0                                     //Current configuration file major version(0.45)
 #define CONFIG_VERSION_MINOR                          45U                                   //Current configuration file minor version(0.45)
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2017 Chengr28"   //Copyright message
-#define FULL_VERSION                                  L"0.4.8.5"                            //Current full version
+#define FULL_VERSION                                  L"0.4.8.6"                            //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_MAXSIZE                        64U                         //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -128,8 +128,12 @@
 #define DNS_RR_MAX_AAAA_COUNT                         43U                         //Maximum Record Resources size of AAAA answers, 28 bytes * 43 = 1204 bytes
 #define DNS_RR_MAX_A_COUNT                            75U                         //Maximum Record Resources size of A answers, 16 bytes * 75 = 1200 bytes
 #if defined(ENABLE_LIBSODIUM)
-	#define DNSCRYPT_KEYPAIR_MESSAGE_LEN                  80U                         //DNSCurve/DNScrypt keypair messages length
-	#define DNSCRYPT_KEYPAIR_INTERVAL                     4U                          //DNSCurve/DNScrypt keypair interval length
+	#define DNSCRYPT_DATABASE_ITEM_MINNUM                 14U                         //Minimum number of item in DNSCrypt database
+	#define DNSCRYPT_DATABASE_ADDRESS_LOCATION            10U                         //Location of DNSCurve Address in DNSCrypt database
+	#define DNSCRYPT_DATABASE_PROVIDER_NAME_LOCATION      11U                         //Location of Provider Name in DNSCrypt database
+	#define DNSCRYPT_DATABASE_PROVIDER_KEY_LOCATION       12U                         //LOcation of Provider Public Key in DNSCrypt database
+	#define DNSCRYPT_KEYPAIR_MESSAGE_LEN                  80U                         //DNScrypt keypair messages length
+	#define DNSCRYPT_KEYPAIR_INTERVAL                     4U                          //DNScrypt keypair interval length
 	#define DNSCRYPT_RECORD_TXT_LEN                       124U                        //Length of DNScrypt TXT Records
 #endif
 #define DOMAIN_DATA_MAXSIZE                           253U                        //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
@@ -254,9 +258,9 @@
 	#define CONFIG_FILE_NAME_LIST                         {(L"Config.ini"), (L"Config.conf"), (L"Config.cfg"), (L"Config")}
 	#define ERROR_LOG_FILE_NAME                           (L"Error.log")
 	#define DEFAULT_ICMP_PADDING_DATA                     ("abcdefghijklmnopqrstuvwabcdefghi")           //Default ICMP padding data(Windows)
-	#if defined(ENABLE_LIBSODIUM)
-		#define DNSCURVE_KEY_PAIR_FILE_NAME                   (L"KeyPair.txt")
-	#endif
+#if defined(ENABLE_LIBSODIUM)
+	#define DNSCURVE_KEY_PAIR_FILE_NAME                   (L"KeyPair.txt")
+#endif
 	#define MAILSLOT_MESSAGE_FLUSH_DNS                    (L"Flush Pcap_DNSProxy DNS cache")             //The mailslot message to flush dns cache
 	#define MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN             (L"Flush Pcap_DNSProxy DNS cache: ")           //The mailslot message to flush dns cache(Single domain)
 	#define MUTEX_EXISTS_NAME                             (L"Global\\Pcap_DNSProxy Process Exists")      //Global mutex exists name
@@ -264,9 +268,9 @@
 	#define SID_ADMINISTRATORS_GROUP                      (L"S-1-5-32-544")                              //Windows SID of Administrators group
 	#define SYSTEM_SERVICE_NAME                           (L"PcapDNSProxyService")                       //System service name
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	#if defined(PLATFORM_LINUX)
-		#define COMMAND_DISABLE_DAEMON                        ("--disable-daemon")
-	#endif
+#if defined(PLATFORM_LINUX)
+	#define COMMAND_DISABLE_DAEMON                        ("--disable-daemon")
+#endif
 	#define COMMAND_FLUSH_DNS                             ("--flush-dns")
 	#define COMMAND_KEYPAIR_GENERATOR                     ("--keypair-generator")
 	#define COMMAND_LIB_VERSION                           ("--lib-version")
@@ -278,9 +282,9 @@
 	#define COMMAND_SHORT_SET_PATH                        ("-c")
 	#define CONFIG_FILE_NAME_LIST                         {(L"Config.conf"), (L"Config.ini"), (L"Config.cfg"), (L"Config")}
 	#define CONFIG_FILE_NAME_LIST_MBS                     {("Config.conf"), ("Config.ini"), ("Config.cfg"), ("Config")}
-	#if defined(ENABLE_LIBSODIUM)
-		#define DNSCURVE_KEY_PAIR_FILE_NAME                   ("KeyPair.txt")
-	#endif
+#if defined(ENABLE_LIBSODIUM)
+	#define DNSCURVE_KEY_PAIR_FILE_NAME                   ("KeyPair.txt")
+#endif
 	#define ERROR_LOG_FILE_NAME                           (L"Error.log")
 	#define ERROR_LOG_FILE_NAME_MBS                       ("Error.log")
 	#define FIFO_MESSAGE_FLUSH_DNS                        ("Flush DNS cache of Pcap_DNSProxy")         //The FIFO message to flush dns cache
@@ -318,7 +322,11 @@ typedef enum class _read_text_type_
 	PARAMETER_NORMAL, 
 	PARAMETER_MONITOR, 
 	HOSTS, 
-	IPFILTER
+	IPFILTER, 
+#if defined(ENABLE_LIBSODIUM)
+	DNSCURVE_DATABASE, 
+	DNSCURVE_MONITOR
+#endif
 }READ_TEXT_TYPE;
 typedef enum class _log_level_type_
 {
@@ -483,25 +491,25 @@ typedef enum class _dnscurve_server_type_
 }DNSCURVE_SERVER_TYPE;
 #endif
 #if defined(ENABLE_TLS)
-	#define TLS_MIN_VERSION                           0x0301                      //TLS 1.0 = SSL 3.1
-	typedef enum class _tls_version_selection
-	{
-		AUTO, 
-		VERSION_1_0, 
-		VERSION_1_1, 
-		VERSION_1_2, 
-		VERSION_1_3, 
-	}TLS_VERSION_SELECTION;
-	#if defined(PLATFORM_WIN)
-		#define SSPI_SECURE_BUFFER_NUM                    4U
-	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		#define OPENSSL_VERSION_1_0_1                     0x10001000L
-		#define OPENSSL_VERSION_1_0_2                     0x10002000L
-		#define OPENSSL_VERSION_1_1_0                     0x10100000L
-		#define OPENSSL_STATIC_BUFFER_SIZE                256U
-		#define OPENSSL_CIPHER_LIST_COMPATIBILITY         ("HIGH:!SSLv2:!aNULL:!kRSA:!PSK:!SRP:!MD5:!RC4")
-		#define OPENSSL_CIPHER_LIST_STRONG                ("HIGH:!SSLv2:!SSLv3:!aNULL:!kRSA:!PSK:!SRP:!MD5:!RC4")
-	#endif
+#define TLS_MIN_VERSION                           0x0301                      //TLS 1.0 = SSL 3.1
+typedef enum class _tls_version_selection
+{
+	AUTO, 
+	VERSION_1_0, 
+	VERSION_1_1, 
+	VERSION_1_2, 
+	VERSION_1_3, 
+}TLS_VERSION_SELECTION;
+#if defined(PLATFORM_WIN)
+	#define SSPI_SECURE_BUFFER_NUM                    4U
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#define OPENSSL_VERSION_1_0_1                     0x10001000L
+	#define OPENSSL_VERSION_1_0_2                     0x10002000L
+	#define OPENSSL_VERSION_1_1_0                     0x10100000L
+	#define OPENSSL_STATIC_BUFFER_SIZE                256U
+	#define OPENSSL_CIPHER_LIST_COMPATIBILITY         ("HIGH:!SSLv2:!aNULL:!kRSA:!PSK:!SRP:!MD5:!RC4")
+	#define OPENSSL_CIPHER_LIST_STRONG                ("HIGH:!SSLv2:!SSLv3:!aNULL:!kRSA:!PSK:!SRP:!MD5:!RC4")
+#endif
 #endif
 
 
@@ -527,11 +535,11 @@ typedef enum class _dnscurve_server_type_
 #endif
 #define ntoh64                hton64
 #if defined(PLATFORM_WIN)
-	#if defined(PLATFORM_WIN_XP)
-		#define GetCurrentSystemTime   GetTickCount
-	#else
-		#define GetCurrentSystemTime   GetTickCount64
-	#endif
+#if defined(PLATFORM_WIN_XP)
+	#define GetCurrentSystemTime   GetTickCount
+#else
+	#define GetCurrentSystemTime   GetTickCount64
+#endif
 	#define Sleep(Millisecond)     Sleep(static_cast<const DWORD>(Millisecond))
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#define Sleep(Millisecond)     usleep(static_cast<const useconds_t>((Millisecond) * MICROSECOND_TO_MILLISECOND))
@@ -891,6 +899,7 @@ public:
 	std::vector<std::string>             *MBS_FileList_Hosts;
 	std::vector<std::string>             *MBS_FileList_IPFilter;
 #endif
+	uint64_t                             ConfigFileModifiedTime;
 
 //Network status
 	bool                                 GatewayAvailable_IPv6;
@@ -1051,27 +1060,37 @@ typedef class DNSCurveConfigurationTable
 {
 public:
 //[DNSCurve] block
-	size_t                               DNSCurvePayloadSize;
-	REQUEST_MODE_NETWORK                 DNSCurveProtocol_Network;
-	REQUEST_MODE_TRANSPORT               DNSCurveProtocol_Transport;
+	size_t                                  DNSCurvePayloadSize;
+	REQUEST_MODE_NETWORK                    DNSCurveProtocol_Network;
+	REQUEST_MODE_TRANSPORT                  DNSCurveProtocol_Transport;
 #if defined(PLATFORM_WIN)
-	DWORD                                DNSCurve_SocketTimeout_Reliable;
-	DWORD                                DNSCurve_SocketTimeout_Unreliable;
+	DWORD                                   DNSCurve_SocketTimeout_Reliable;
+	DWORD                                   DNSCurve_SocketTimeout_Unreliable;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	timeval                              DNSCurve_SocketTimeout_Reliable;
-	timeval                              DNSCurve_SocketTimeout_Unreliable;
+	timeval                                 DNSCurve_SocketTimeout_Reliable;
+	timeval                                 DNSCurve_SocketTimeout_Unreliable;
 #endif
-	bool                                 IsEncryption;
-	bool                                 IsEncryptionOnly;
-	bool                                 IsClientEphemeralKey;
-	size_t                               KeyRecheckTime;
+	bool                                    IsEncryption;
+	bool                                    IsEncryptionOnly;
+	bool                                    IsClientEphemeralKey;
+	size_t                                  KeyRecheckTime;
+//[DNSCurve Database] block
+	std::wstring                            *DatabaseName;
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	std::string                             *MBS_DatabaseName;
+#endif
+	std::string                             *Database_Target_Server_Main_IPv6;
+	std::string                             *Database_Target_Server_Alternate_IPv6;
+	std::string                             *Database_Target_Server_Main_IPv4;
+	std::string                             *Database_Target_Server_Alternate_IPv4;
+	std::vector<std::vector<std::string>>   *Database_LineData;
 //[DNSCurve Addresses] block
-	uint8_t                              *Client_PublicKey;
-	uint8_t                              *Client_SecretKey;
-	DNSCURVE_SERVER_DATA                 DNSCurve_Target_Server_Main_IPv6;
-	DNSCURVE_SERVER_DATA                 DNSCurve_Target_Server_Alternate_IPv6;
-	DNSCURVE_SERVER_DATA                 DNSCurve_Target_Server_Main_IPv4;
-	DNSCURVE_SERVER_DATA                 DNSCurve_Target_Server_Alternate_IPv4;
+	uint8_t                                 *Client_PublicKey;
+	uint8_t                                 *Client_SecretKey;
+	DNSCURVE_SERVER_DATA                    DNSCurve_Target_Server_Main_IPv6;
+	DNSCURVE_SERVER_DATA                    DNSCurve_Target_Server_Alternate_IPv6;
+	DNSCURVE_SERVER_DATA                    DNSCurve_Target_Server_Main_IPv4;
+	DNSCURVE_SERVER_DATA                    DNSCurve_Target_Server_Alternate_IPv4;
 
 //Member functions
 	DNSCurveConfigurationTable(

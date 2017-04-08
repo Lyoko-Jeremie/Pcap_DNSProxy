@@ -146,19 +146,18 @@ https://sourceforge.net/projects/pcap-dnsproxy
 -------------------------------------------------------------------------------
 
 
-卸載方法：
-* 由於不同的 Linux 發行版本對系統服務和守護進程的處理方式不同，本節僅供參考
+重啟服務方法：
+* Systemd 部分：
+  1.打開終端，使用 su 獲得 root 許可權
+  2.使用 systemctl restart Pcap_DNSProxy 直接重啟服務即可
+  3.也可以先 systemctl stop Pcap_DNSProxy 停止服務，稍等一段時間再 systemctl start Pcap_DNSProxy 啟動服務即可
+* SysV 部分：
+  1.打開終端，使用 su 獲得 root 許可權
+  2.使用 service PcapDNSProxyService restart 直接重啟服務即可
+  3.也可以先 service PcapDNSProxyService stop 停止服務，稍等一段時間再 service PcapDNSProxyService start 啟動服務即可
 
-1.還原系統網路設定
-2.以 root 許可權進入 Release 目錄，執行 ./Linux_Uninstall.Systemd.sh 或 ./Linux_Uninstall.SysV.sh
-3.刪除所有 Pcap_DNSProxy 相關檔
 
-
--------------------------------------------------------------------------------
-
-
-建議的升級方法：
-
+更新程式方法（切勿直接覆蓋，否則可能會造成不可預料的錯誤）：
 * Systemd 部分：
   1.打開終端，使用 su 獲得 root 許可權並進入 Release 目錄內
   2.使用 ./Linux_Uninstall.Systemd.sh 執行服務卸載腳本
@@ -173,6 +172,13 @@ https://sourceforge.net/projects/pcap-dnsproxy
   4.按照安裝方法重新部署 Pcap_DNSProxy
     * 進行第4步前先將備份的配置檔案還原到 Release 目錄內
     * Config.conf 檔建議按照備份的設定檔重新設置一次，如直接覆蓋可能會導致沒有新功能的選項
+
+
+卸載方法：
+* 由於不同的 Linux 發行版本對系統服務和守護進程的處理方式不同，本節僅供參考
+1.還原系統網路設定
+2.以 root 許可權進入 Release 目錄，執行 ./Linux_Uninstall.Systemd.sh 或 ./Linux_Uninstall.SysV.sh
+3.刪除所有 Pcap_DNSProxy 相關檔
 
 
 -------------------------------------------------------------------------------

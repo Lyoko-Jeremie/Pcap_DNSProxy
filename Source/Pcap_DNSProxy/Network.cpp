@@ -324,7 +324,7 @@ bool SocketSetting(
 		//Socket attribute setting process
 			if (Parameter.TCP_FastOpen > 0)
 			{
-			//Windows: Server side is completed but need to confirm in the new SDK, client side is only support overlapped I/O so waiting Microsoft to extend it to normal socket(2017-03-30).
+			//Windows: Server side is completed but need to confirm in the new SDK, client side is only support overlapped I/O so waiting Microsoft to extend it to normal socket(2017-04-02).
 			//Linux: Server side and client side is both completed, also support queue length.
 			//macOS: Server side and client side is both completed.
 			#if defined(PLATFORM_WIN)
@@ -340,13 +340,13 @@ bool SocketSetting(
 				}
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFOEM_MACOS))
 				errno = 0;
-				#if defined(PLATFORM_LINUX)
-					const int OptionValue = Parameter.TCP_FastOpen;
-					if (setsockopt(Socket, SOL_TCP, TCP_FASTOPEN, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
-				#elif defined(PLATFOEM_MACOS)
-					const int OptionValue = TRUE;
-					if (setsockopt(Socket, IPPROTO_TCP, TCP_FASTOPEN, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
-				#endif
+			#if defined(PLATFORM_LINUX)
+				const int OptionValue = Parameter.TCP_FastOpen;
+				if (setsockopt(Socket, SOL_TCP, TCP_FASTOPEN, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
+			#elif defined(PLATFOEM_MACOS)
+				const int OptionValue = TRUE;
+				if (setsockopt(Socket, IPPROTO_TCP, TCP_FASTOPEN, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
+			#endif
 				{
 					if (IsPrintError)
 						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket TCP Fast Open setting error", errno, nullptr, 0);

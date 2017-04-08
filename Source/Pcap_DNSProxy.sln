@@ -232,6 +232,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleConfig", "ExampleConfig", "{9A911CC0-63B2-400E-B819-2EA7DB529AAE}"
 	ProjectSection(SolutionItems) = preProject
 		Auxiliary\ExampleConfig\Config.ini = Auxiliary\ExampleConfig\Config.ini
+		Auxiliary\ExampleConfig\dnscrypt-resolvers.csv = Auxiliary\ExampleConfig\dnscrypt-resolvers.csv
 		Auxiliary\ExampleConfig\Hosts.ini = Auxiliary\ExampleConfig\Hosts.ini
 		Auxiliary\ExampleConfig\IPFilter.ini = Auxiliary\ExampleConfig\IPFilter.ini
 		Auxiliary\ExampleConfig\Pcap_DNSProxy.service = Auxiliary\ExampleConfig\Pcap_DNSProxy.service

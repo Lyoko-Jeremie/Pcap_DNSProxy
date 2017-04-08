@@ -1402,8 +1402,6 @@ bool MarkDomainCache(
 
 //Initialization(A part)
 	DNS_CACHE_DATA DNSCacheDataTemp;
-	DNSCacheDataTemp.Length = 0;
-	DNSCacheDataTemp.ClearCacheTime = 0;
 	DNSCacheDataTemp.RecordType = (reinterpret_cast<const dns_qry *>(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer)))->Type;
 	uint32_t ResponseTTL = 0;
 

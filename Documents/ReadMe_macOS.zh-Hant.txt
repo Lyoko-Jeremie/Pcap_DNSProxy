@@ -107,26 +107,27 @@ https://sourceforge.net/projects/pcap-dnsproxy
 -------------------------------------------------------------------------------
 
 
-卸載方法：
-
-1.還原系統網路設定
-2.打開終端，使用 sudo -i 獲得 root 許可權並進入 macOS 目錄內
-3.使用 ./macOS_Uninstall.sh 執行服務卸載腳本
-  * 腳本所進行的操作：停止並卸載守護進程服務，刪除 plist 設定檔
-4.刪除所有 Pcap_DNSProxy 相關檔
+重啟服務方法：
+1.打開終端，使用 sudo -i 獲得 root 許可權並進入 /Library/LaunchDaemons 目錄內
+2.使用 launchctl unload pcap_dnsproxy.service.plist 停止服務，稍等一段時間
+3.使用 launchctl load pcap_dnsproxy.service.plist 啟動服務即可
 
 
--------------------------------------------------------------------------------
-
-
-建議的升級方法：
-
+更新程式方法（切勿直接覆蓋，否則可能會造成不可預料的錯誤）：
 1.打開終端，使用 sudo -i 獲得 root 許可權並進入 macOS 目錄內
 2.使用 ./macOS_Uninstall.sh 執行服務卸載腳本
 3.備份所有設定檔，刪除所有 Pcap_DNSProxy 相關檔
 4.按照安裝方法重新部署 Pcap_DNSProxy
   * 進行第4步前先將備份的配置檔案還原到 macOS 目錄內
   * Config.conf 檔建議按照備份的設定檔重新設置，如直接覆蓋可能會導致沒有新功能的選項
+
+
+卸載方法：
+1.還原系統網路設定
+2.打開終端，使用 sudo -i 獲得 root 許可權並進入 macOS 目錄內
+3.使用 ./macOS_Uninstall.sh 執行服務卸載腳本
+  * 腳本所進行的操作：停止並卸載守護進程服務，刪除 plist 設定檔
+4.刪除所有 Pcap_DNSProxy 相關檔
 
 
 -------------------------------------------------------------------------------

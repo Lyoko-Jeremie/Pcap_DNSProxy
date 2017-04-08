@@ -1,7 +1,7 @@
 ﻿[Local Hosts]
 ## China mainland domains
 ## Source: https://github.com/felixonmars/dnsmasq-china-list
-## Last update: 2017-03-30
+## Last update: 2017-04-08
 
 
 Server=/0-6.com/
@@ -30,6 +30,7 @@ Server=/001xin.com/
 Server=/0027.net/
 Server=/002dh.com/
 Server=/0033.com/
+Server=/003593.com/
 Server=/00394.net/
 Server=/005.tv/
 Server=/00544.com/
@@ -2739,6 +2740,7 @@ Server=/4658.net/
 Server=/466.com/
 Server=/46644.com/
 Server=/4671580.net/
+Server=/467541.com/
 Server=/473000.org/
 Server=/47365.com/
 Server=/4738.com/
@@ -8117,6 +8119,7 @@ Server=/boqiicdn.com/
 Server=/boree.net/
 Server=/boricardo.com/
 Server=/borpor.com/
+Server=/bosdile.com/
 Server=/bosera.com/
 Server=/boshipai.com/
 Server=/boshuo.net/
@@ -8562,6 +8565,7 @@ Server=/camelluotuo.com/
 Server=/camelsee.com/
 Server=/camera360.com/
 Server=/campusroom.com/
+Server=/camscanner.com/
 Server=/can.tv/
 Server=/canaanwed.com/
 Server=/canbo.com/
@@ -10777,6 +10781,7 @@ Server=/cnzyw.net/
 Server=/cnzz.com/
 Server=/cnzz.net/
 Server=/cnzz1.net/
+Server=/cnzz6.com/
 Server=/co-inclusion.org/
 Server=/co188.com/
 Server=/coal-link.com/
@@ -19940,6 +19945,7 @@ Server=/jpbhm.com/
 Server=/jpcai.com/
 Server=/jpdanji.com/
 Server=/jpmm8.com/
+Server=/jpnsp.com/
 Server=/jpppt.com/
 Server=/jproxy.io/
 Server=/jpshc.com/
@@ -26075,6 +26081,7 @@ Server=/qianzhan123.com/
 Server=/qianzhengdaiban.com/
 Server=/qiaobo.net/
 Server=/qiaobutang.com/
+Server=/qiaochucn.com/
 Server=/qiaodan.com/
 Server=/qiaohu.com/
 Server=/qiaojiang.tv/
@@ -37086,11 +37093,16 @@ Server=/toolbarqueries.google.com/
 Server=/update.googleapis.com/
 Server=/adcdownload.apple.com/
 Server=/appldnld.apple.com/
+Server=/cdn-cn1.apple-mapkit.com/
+Server=/cdn-cn2.apple-mapkit.com/
+Server=/cdn-cn3.apple-mapkit.com/
+Server=/cdn-cn4.apple-mapkit.com/
 Server=/cdn.apple-mapkit.com/
 Server=/cdn1.apple-mapkit.com/
 Server=/cdn2.apple-mapkit.com/
 Server=/cdn3.apple-mapkit.com/
 Server=/cdn4.apple-mapkit.com/
+Server=/cds.apple.com/
 Server=/cl1.apple.com/
 Server=/cl2.apple.com.edgekey.net.globalredir.akadns.net/
 Server=/cl2.apple.com.edgekey.net/

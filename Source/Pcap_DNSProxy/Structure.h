@@ -2488,6 +2488,10 @@ typedef struct _dns_record_caa_
 // About DNSCurve standards:
 // DNSCurve: Usable security for DNS(https://dnscurve.org)
 // DNSCrypt, A protocol to improve DNS security(https://dnscrypt.org)
+#ifndef IPPORT_DNSCURVE
+	#define IPPORT_DNSCURVE                   443U
+#endif
+#define DNSCURVE_DEFAULT_PORT_STRING      (":443")
 #define DNSCURVE_MAGIC_QUERY_LEN          8U
 #define DNSCURVE_MAGIC_QUERY_HEX_LEN      16U
 #define DNSCURVE_PAYLOAD_MULTIPLE_TIME    64U

@@ -31,6 +31,9 @@ BLOCKING_QUEUE<MONITOR_QUEUE_DATA> MonitorBlockingQueue;
 DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
 #endif
 std::vector<FILE_DATA> FileList_Config, FileList_IPFilter, FileList_Hosts;
+#if defined(ENABLE_LIBSODIUM)
+std::vector<FILE_DATA> FileList_DNSCurveDatabase;
+#endif
 std::vector<DIFFERNET_FILE_SET_IPFILTER> IPFilterFileSet[DIFFERNET_FILE_SET_NUM], *IPFilterFileSetUsing = &IPFilterFileSet[0], *IPFilterFileSetModificating = &IPFilterFileSet[1U];
 std::vector<DIFFERNET_FILE_SET_HOSTS> HostsFileSet[DIFFERNET_FILE_SET_NUM], *HostsFileSetUsing = &HostsFileSet[0], *HostsFileSetModificating = &HostsFileSet[1U];
 std::deque<SOCKET_MARKING_DATA> SocketMarkingList;

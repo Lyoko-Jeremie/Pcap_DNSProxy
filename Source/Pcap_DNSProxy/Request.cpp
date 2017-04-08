@@ -70,7 +70,8 @@ bool DomainTestRequest(
 	DataLength += sizeof(dns_hdr);
 
 //Send request.
-	size_t SleepTime_DomainTest = 0, SpeedTime_DomainTest = Parameter.DomainTest_Speed, Times = 0;
+	size_t TotalSleepTime = 0, Times = 0;
+	auto FileModifiedTime = GlobalRunningStatus.ConfigFileModifiedTime;
 	for (;;)
 	{
 	//Domain Test disable
@@ -80,21 +81,26 @@ bool DomainTestRequest(
 			continue;
 		}
 	//Sleep time controller
-		else if (SleepTime_DomainTest > 0)
+		else if (TotalSleepTime > 0)
 		{
-			if (SpeedTime_DomainTest != Parameter.DomainTest_Speed)
+		//Configuration files have been changed.
+			if (FileModifiedTime != GlobalRunningStatus.ConfigFileModifiedTime)
 			{
-				SpeedTime_DomainTest = Parameter.DomainTest_Speed;
+				FileModifiedTime = GlobalRunningStatus.ConfigFileModifiedTime;
+				TotalSleepTime = 0;
 			}
-			else if (SleepTime_DomainTest < SpeedTime_DomainTest)
+		//Interval time is not enough.
+			else if (TotalSleepTime < Parameter.DomainTest_Speed)
 			{
-				SleepTime_DomainTest += Parameter.FileRefreshTime;
+				TotalSleepTime += Parameter.FileRefreshTime;
 
 				Sleep(Parameter.FileRefreshTime);
 				continue;
 			}
-
-			SleepTime_DomainTest = 0;
+		//Interval time is enough, next recheck time.
+			else {
+				TotalSleepTime = 0;
+			}
 		}
 
 	//Interval time
@@ -142,7 +148,7 @@ bool DomainTestRequest(
 			}
 
 		//Wait for testing again.
-			SleepTime_DomainTest += Parameter.FileRefreshTime;
+			TotalSleepTime += Parameter.FileRefreshTime;
 			continue;
 
 		//Jump here to restart.
@@ -437,7 +443,8 @@ bool ICMP_TestRequest(
 	SOCKET_DATA InnerSocketData;
 	memset(RecvBuffer.get(), 0, PACKET_MAXSIZE);
 	memset(&InnerSocketData, 0, sizeof(InnerSocketData));
-	size_t SleepTime_ICMP = 0, SpeedTime_ICMP = Parameter.ICMP_Speed, Times = 0;
+	size_t TotalSleepTime = 0, Times = 0;
+	auto FileModifiedTime = GlobalRunningStatus.ConfigFileModifiedTime;
 	auto IsAllSend = false;
 	for (;;)
 	{
@@ -448,21 +455,26 @@ bool ICMP_TestRequest(
 			continue;
 		}
 	//Sleep time controller
-		else if (SleepTime_ICMP > 0)
+		else if (TotalSleepTime > 0)
 		{
-			if (SpeedTime_ICMP != Parameter.ICMP_Speed)
+		//Sleep time controller
+			if (FileModifiedTime != GlobalRunningStatus.ConfigFileModifiedTime)
 			{
-				SpeedTime_ICMP = Parameter.ICMP_Speed;
+				FileModifiedTime = GlobalRunningStatus.ConfigFileModifiedTime;
+				TotalSleepTime = 0;
 			}
-			else if (SleepTime_ICMP < SpeedTime_ICMP)
+		//Interval time is not enough.
+			else if (TotalSleepTime < Parameter.ICMP_Speed)
 			{
-				SleepTime_ICMP += Parameter.FileRefreshTime;
+				TotalSleepTime += Parameter.FileRefreshTime;
 				Sleep(Parameter.FileRefreshTime);
 
 				continue;
 			}
-
-			SleepTime_ICMP = 0;
+		//Interval time is enough, next recheck time.
+			else {
+				TotalSleepTime = 0;
+			}
 		}
 
 	//Interval time
@@ -510,7 +522,7 @@ bool ICMP_TestRequest(
 			}
 
 		//Wait for testing again.
-			SleepTime_ICMP += Parameter.FileRefreshTime;
+			TotalSleepTime += Parameter.FileRefreshTime;
 			continue;
 
 		//Jump here to restart.

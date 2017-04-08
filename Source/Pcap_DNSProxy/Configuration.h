@@ -61,6 +61,9 @@ extern GLOBAL_STATUS GlobalRunningStatus;
 extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
 #endif
 extern std::vector<FILE_DATA> FileList_Config, FileList_IPFilter, FileList_Hosts;
+#if defined(ENABLE_LIBSODIUM)
+extern std::vector<FILE_DATA> FileList_DNSCurveDatabase;
+#endif
 extern std::vector<DIFFERNET_FILE_SET_IPFILTER> *IPFilterFileSetUsing, *IPFilterFileSetModificating;
 extern std::vector<DIFFERNET_FILE_SET_HOSTS> *HostsFileSetUsing, *HostsFileSetModificating;
 extern std::mutex IPFilterFileLock, HostsFileLock;
@@ -110,6 +113,7 @@ bool ReadMultipleAddresses(
 	std::string Data, 
 	const size_t DataOffset, 
 	std::vector<DNS_SERVER_DATA> * const DNSServerDataList, 
+	const READ_TEXT_TYPE InputType, 
 	const size_t FileIndex, 
 	const size_t Line);
 bool Read_SOCKS_AddressDomain(
@@ -129,16 +133,25 @@ bool ReadHopLimitsData(
 	const size_t Line);
 #endif
 #if defined(ENABLE_LIBSODIUM)
+void ReadDNSCurveDatabaseData(
+	std::string Data, 
+	const READ_TEXT_TYPE InputType, 
+	const size_t FileIndex, 
+	const size_t Line);
+void ReadDNSCurveDatabaseItem(
+	const READ_TEXT_TYPE InputType);
 bool ReadDNSCurveProviderName(
 	std::string Data, 
 	const size_t DataOffset, 
 	uint8_t * const ProviderNameData, 
+//	const READ_TEXT_TYPE InputType, 
 	const size_t FileIndex, 
 	const size_t Line);
 bool ReadDNSCurveKey(
 	std::string Data, 
 	const size_t DataOffset, 
 	uint8_t * const KeyData, 
+	const READ_TEXT_TYPE InputType, 
 	const size_t FileIndex, 
 	const size_t Line);
 #endif

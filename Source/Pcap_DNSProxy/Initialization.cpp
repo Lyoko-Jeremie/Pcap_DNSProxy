@@ -99,10 +99,10 @@ ConfigurationTable::ConfigurationTable(
 	#if defined(ENABLE_TLS)
 		HTTP_CONNECT_TLS_SNI = new std::wstring();
 		MBS_HTTP_CONNECT_TLS_SNI = new std::string();
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			HTTP_CONNECT_TLS_AddressString_IPv6 = new std::string();
-			HTTP_CONNECT_TLS_AddressString_IPv4 = new std::string();
-		#endif
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		HTTP_CONNECT_TLS_AddressString_IPv6 = new std::string();
+		HTTP_CONNECT_TLS_AddressString_IPv4 = new std::string();
+	#endif
 	#endif
 		HTTP_CONNECT_TargetDomain = new std::string();
 		HTTP_CONNECT_Version = new std::string();
@@ -158,10 +158,10 @@ ConfigurationTable::ConfigurationTable(
 	#if defined(ENABLE_TLS)
 		delete HTTP_CONNECT_TLS_SNI;
 		delete MBS_HTTP_CONNECT_TLS_SNI;
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			delete HTTP_CONNECT_TLS_AddressString_IPv6;
-			delete HTTP_CONNECT_TLS_AddressString_IPv4;
-		#endif
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		delete HTTP_CONNECT_TLS_AddressString_IPv6;
+		delete HTTP_CONNECT_TLS_AddressString_IPv4;
+	#endif
 	#endif
 		delete HTTP_CONNECT_TargetDomain;
 		delete HTTP_CONNECT_Version;
@@ -173,10 +173,10 @@ ConfigurationTable::ConfigurationTable(
 	#if defined(ENABLE_TLS)
 		HTTP_CONNECT_TLS_SNI = nullptr;
 		MBS_HTTP_CONNECT_TLS_SNI = nullptr;
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
-			HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
-		#endif
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
+		HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
+	#endif
 	#endif
 		HTTP_CONNECT_TargetDomain = nullptr;
 		HTTP_CONNECT_Version = nullptr;
@@ -237,10 +237,10 @@ ConfigurationTable::ConfigurationTable(
 	#if defined(ENABLE_TLS)
 		HTTP_CONNECT_TLS_SNI = new std::wstring();
 		MBS_HTTP_CONNECT_TLS_SNI = new std::string();
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			HTTP_CONNECT_TLS_AddressString_IPv6 = new std::string();
-			HTTP_CONNECT_TLS_AddressString_IPv4 = new std::string();
-		#endif
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		HTTP_CONNECT_TLS_AddressString_IPv6 = new std::string();
+		HTTP_CONNECT_TLS_AddressString_IPv4 = new std::string();
+	#endif
 	#endif
 		HTTP_CONNECT_TargetDomain = new std::string();
 		HTTP_CONNECT_Version = new std::string();
@@ -296,10 +296,10 @@ ConfigurationTable::ConfigurationTable(
 	#if defined(ENABLE_TLS)
 		delete HTTP_CONNECT_TLS_SNI;
 		delete MBS_HTTP_CONNECT_TLS_SNI;
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			delete HTTP_CONNECT_TLS_AddressString_IPv6;
-			delete HTTP_CONNECT_TLS_AddressString_IPv4;
-		#endif
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		delete HTTP_CONNECT_TLS_AddressString_IPv6;
+		delete HTTP_CONNECT_TLS_AddressString_IPv4;
+	#endif
 	#endif
 		delete HTTP_CONNECT_TargetDomain;
 		delete HTTP_CONNECT_Version;
@@ -311,10 +311,10 @@ ConfigurationTable::ConfigurationTable(
 	#if defined(ENABLE_TLS)
 		HTTP_CONNECT_TLS_SNI = nullptr;
 		MBS_HTTP_CONNECT_TLS_SNI = nullptr;
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
-			HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
-		#endif
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
+		HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
+	#endif
 	#endif
 		HTTP_CONNECT_TargetDomain = nullptr;
 		HTTP_CONNECT_Version = nullptr;
@@ -734,33 +734,33 @@ void ConfigurationTableSetting(
 
 	//[Data] block
 #if defined(ENABLE_PCAP)
-	#if defined(PLATFORM_WIN)
-		ConfigurationParameter->ICMP_ID = htons(static_cast<uint16_t>(GetCurrentProcessId())); //Default ICMP ID is current thread ID.
-	#elif defined(PLATFORM_LINUX)
-		ConfigurationParameter->ICMP_ID = htons(static_cast<uint16_t>(pthread_self())); //Default ICMP ID is current thread ID.
-	#elif defined(PLATFORM_MACOS)
-		ConfigurationParameter->ICMP_ID = htons(*reinterpret_cast<uint16_t *>(pthread_self())); //Default ICMP ID is current thread ID.
-	#endif
-	ConfigurationParameter->ICMP_Sequence = htons(DEFAULT_SEQUENCE);
-	#if defined(PLATFORM_WIN)
-		ConfigurationParameter->ICMP_PaddingLength = strlen(DEFAULT_ICMP_PADDING_DATA);
-		memcpy_s(ConfigurationParameter->ICMP_PaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_ICMP_PADDING_DATA, ConfigurationParameter->ICMP_PaddingLength); //Load default padding data(Windows).
-	#elif defined(PLATFORM_LINUX)
-		for (size_t Index = 0, CharData = ICMP_STRING_START_NUM_LINUX;Index < ICMP_PADDING_LENGTH_LINUX;++Index, ++CharData)
-			ConfigurationParameter->ICMP_PaddingData[Index] = CharData;
-		ConfigurationParameter->ICMP_PaddingLength = strlen(reinterpret_cast<const char *>(ConfigurationParameter->ICMP_PaddingData)); //Load default padding data(Linux).
-	#elif defined(PLATFORM_MACOS)
-		for (size_t Index = 0, CharData = ICMP_STRING_START_NUM_MACOS;Index < ICMP_PADDING_LENGTH_MACOS;++Index, ++CharData)
-			ConfigurationParameter->ICMP_PaddingData[Index] = CharData;
-		ConfigurationParameter->ICMP_PaddingLength = strlen(reinterpret_cast<const char *>(ConfigurationParameter->ICMP_PaddingData)); //Load default padding data(macOS).
-	#endif
-	#if defined(PLATFORM_WIN)
-		ConfigurationParameter->DomainTest_ID = htons(static_cast<uint16_t>(GetCurrentProcessId())); //Default DNS ID is current thread ID.
-	#elif defined(PLATFORM_LINUX)
-		ConfigurationParameter->DomainTest_ID = htons(static_cast<uint16_t>(pthread_self())); //Default DNS ID is current thread ID.
-	#elif defined(PLATFORM_MACOS)
-		ConfigurationParameter->DomainTest_ID = htons(*reinterpret_cast<uint16_t *>(pthread_self())); //Default DNS ID is current thread ID.
-	#endif
+#if defined(PLATFORM_WIN)
+	ConfigurationParameter->ICMP_ID = htons(static_cast<uint16_t>(GetCurrentProcessId())); //Default ICMP ID is current thread ID.
+#elif defined(PLATFORM_LINUX)
+	ConfigurationParameter->ICMP_ID = htons(static_cast<uint16_t>(pthread_self())); //Default ICMP ID is current thread ID.
+#elif defined(PLATFORM_MACOS)
+	ConfigurationParameter->ICMP_ID = htons(*reinterpret_cast<uint16_t *>(pthread_self())); //Default ICMP ID is current thread ID.
+#endif
+ConfigurationParameter->ICMP_Sequence = htons(DEFAULT_SEQUENCE);
+#if defined(PLATFORM_WIN)
+	ConfigurationParameter->ICMP_PaddingLength = strlen(DEFAULT_ICMP_PADDING_DATA);
+	memcpy_s(ConfigurationParameter->ICMP_PaddingData, ICMP_PADDING_MAXSIZE, DEFAULT_ICMP_PADDING_DATA, ConfigurationParameter->ICMP_PaddingLength); //Load default padding data(Windows).
+#elif defined(PLATFORM_LINUX)
+	for (size_t Index = 0, CharData = ICMP_STRING_START_NUM_LINUX;Index < ICMP_PADDING_LENGTH_LINUX;++Index, ++CharData)
+		ConfigurationParameter->ICMP_PaddingData[Index] = CharData;
+	ConfigurationParameter->ICMP_PaddingLength = strlen(reinterpret_cast<const char *>(ConfigurationParameter->ICMP_PaddingData)); //Load default padding data(Linux).
+#elif defined(PLATFORM_MACOS)
+	for (size_t Index = 0, CharData = ICMP_STRING_START_NUM_MACOS;Index < ICMP_PADDING_LENGTH_MACOS;++Index, ++CharData)
+		ConfigurationParameter->ICMP_PaddingData[Index] = CharData;
+	ConfigurationParameter->ICMP_PaddingLength = strlen(reinterpret_cast<const char *>(ConfigurationParameter->ICMP_PaddingData)); //Load default padding data(macOS).
+#endif
+#if defined(PLATFORM_WIN)
+	ConfigurationParameter->DomainTest_ID = htons(static_cast<uint16_t>(GetCurrentProcessId())); //Default DNS ID is current thread ID.
+#elif defined(PLATFORM_LINUX)
+	ConfigurationParameter->DomainTest_ID = htons(static_cast<uint16_t>(pthread_self())); //Default DNS ID is current thread ID.
+#elif defined(PLATFORM_MACOS)
+	ConfigurationParameter->DomainTest_ID = htons(*reinterpret_cast<uint16_t *>(pthread_self())); //Default DNS ID is current thread ID.
+#endif
 #endif
 
 	//[Proxy] block
@@ -823,10 +823,10 @@ ConfigurationTable::~ConfigurationTable(
 #if defined(ENABLE_TLS)
 	delete HTTP_CONNECT_TLS_SNI;
 	delete MBS_HTTP_CONNECT_TLS_SNI;
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		delete HTTP_CONNECT_TLS_AddressString_IPv6;
-		delete HTTP_CONNECT_TLS_AddressString_IPv4;
-	#endif
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	delete HTTP_CONNECT_TLS_AddressString_IPv6;
+	delete HTTP_CONNECT_TLS_AddressString_IPv4;
+#endif
 #endif
 	delete HTTP_CONNECT_TargetDomain;
 	delete HTTP_CONNECT_Version;
@@ -838,10 +838,10 @@ ConfigurationTable::~ConfigurationTable(
 #if defined(ENABLE_TLS)
 	HTTP_CONNECT_TLS_SNI = nullptr;
 	MBS_HTTP_CONNECT_TLS_SNI = nullptr;
-	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
-		HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
-	#endif
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
+	HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
+#endif
 #endif
 	HTTP_CONNECT_TargetDomain = nullptr;
 	HTTP_CONNECT_Version = nullptr;
@@ -1390,6 +1390,7 @@ GlobalStatus::GlobalStatus(
 		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4] = nullptr;
 	}
 #endif
+	ConfigFileModifiedTime = Reference.ConfigFileModifiedTime;
 
 	return;
 }
@@ -1449,20 +1450,20 @@ GlobalStatus::~GlobalStatus(
 	}
 
 //Free all OpenSSL libraries
-	#if defined(ENABLE_TLS)
-	#if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_1_0 //OpenSSL version brfore 1.1.0
-		if (IsInitialized_OpenSSL)
-		{
-			OpenSSL_Library_Init(false);
-			IsInitialized_OpenSSL = false;
-		}
-	#endif
-	#endif
+#if defined(ENABLE_TLS)
+#if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_1_0 //OpenSSL version brfore 1.1.0
+	if (IsInitialized_OpenSSL)
+	{
+		OpenSSL_Library_Init(false);
+		IsInitialized_OpenSSL = false;
+	}
+#endif
+#endif
 
 //Close all file handles.
-	#if (defined(PLATFORM_LINUX) && !defined(PLATFORM_OPENWRT))
-		fcloseall();
-	#endif
+#if (defined(PLATFORM_LINUX) && !defined(PLATFORM_OPENWRT))
+	fcloseall();
+#endif
 #endif
 
 //Delete and reset pointers.
@@ -1594,6 +1595,17 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 //Class constructor
 	memset(this, 0, sizeof(DNSCURVE_CONFIGURATION_TABLE));
 	try {
+	//[DNSCurve Database] block
+		DatabaseName = new std::wstring();
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		MBS_DatabaseName = new std::string();
+	#endif
+		Database_Target_Server_Main_IPv6 = new std::string();
+		Database_Target_Server_Alternate_IPv6 = new std::string();
+		Database_Target_Server_Main_IPv4 = new std::string();
+		Database_Target_Server_Alternate_IPv4 = new std::string();
+		Database_LineData = new std::vector<std::vector<std::string>>();
+
 	//[DNSCurve Addresses] block
 		DNSCurve_Target_Server_Main_IPv6.ProviderName = new uint8_t[DOMAIN_MAXSIZE]();
 		DNSCurve_Target_Server_Alternate_IPv6.ProviderName = new uint8_t[DOMAIN_MAXSIZE]();
@@ -1628,6 +1640,24 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 	}
 	catch (std::bad_alloc)
 	{
+	//[DNSCurve Database] block
+		delete DatabaseName;
+		DatabaseName = nullptr;
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		delete MBS_DatabaseName;
+		MBS_DatabaseName = nullptr;
+	#endif
+		delete Database_Target_Server_Main_IPv6;
+		delete Database_Target_Server_Alternate_IPv6;
+		delete Database_Target_Server_Main_IPv4;
+		delete Database_Target_Server_Alternate_IPv4;
+		delete Database_LineData;
+		Database_Target_Server_Main_IPv6 = nullptr;
+		Database_Target_Server_Alternate_IPv6 = nullptr;
+		Database_Target_Server_Main_IPv4 = nullptr;
+		Database_Target_Server_Alternate_IPv4 = nullptr;
+		Database_LineData = nullptr;
+
 	//[DNSCurve Addresses] block
 		delete[] DNSCurve_Target_Server_Main_IPv6.ProviderName;
 		delete[] DNSCurve_Target_Server_Alternate_IPv6.ProviderName;
@@ -1707,6 +1737,17 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 //Class constructor
 	memset(this, 0, sizeof(DNSCURVE_CONFIGURATION_TABLE));
 	try {
+	//[DNSCurve Database] block
+		DatabaseName = new std::wstring();
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		MBS_DatabaseName = new std::string();
+	#endif
+		Database_Target_Server_Main_IPv6 = new std::string();
+		Database_Target_Server_Alternate_IPv6 = new std::string();
+		Database_Target_Server_Main_IPv4 = new std::string();
+		Database_Target_Server_Alternate_IPv4 = new std::string();
+		Database_LineData = new std::vector<std::vector<std::string>>();
+
 	//[DNSCurve Addresses] block
 		DNSCurve_Target_Server_Main_IPv6.ProviderName = new uint8_t[DOMAIN_MAXSIZE]();
 		DNSCurve_Target_Server_Alternate_IPv6.ProviderName = new uint8_t[DOMAIN_MAXSIZE]();
@@ -1741,6 +1782,24 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 	}
 	catch (std::bad_alloc)
 	{
+	//[DNSCurve Database] block
+		delete DatabaseName;
+		DatabaseName = nullptr;
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		delete MBS_DatabaseName;
+		MBS_DatabaseName = nullptr;
+	#endif
+		delete Database_Target_Server_Main_IPv6;
+		delete Database_Target_Server_Alternate_IPv6;
+		delete Database_Target_Server_Main_IPv4;
+		delete Database_Target_Server_Alternate_IPv4;
+		delete Database_LineData;
+		Database_Target_Server_Main_IPv6 = nullptr;
+		Database_Target_Server_Alternate_IPv6 = nullptr;
+		Database_Target_Server_Main_IPv4 = nullptr;
+		Database_Target_Server_Alternate_IPv4 = nullptr;
+		Database_LineData = nullptr;
+
 	//[DNSCurve Addresses] block
 		delete[] DNSCurve_Target_Server_Main_IPv6.ProviderName;
 		delete[] DNSCurve_Target_Server_Alternate_IPv6.ProviderName;
@@ -1818,6 +1877,66 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 	DNSCurve_SocketTimeout_Reliable = Reference.DNSCurve_SocketTimeout_Reliable;
 	DNSCurve_SocketTimeout_Unreliable = Reference.DNSCurve_SocketTimeout_Unreliable;
 	KeyRecheckTime = Reference.KeyRecheckTime;
+
+	//[DNSCurve Database] block
+	if (Reference.DatabaseName != nullptr)
+	{
+		*DatabaseName = *Reference.DatabaseName;
+	}
+	else {
+		delete DatabaseName;
+		DatabaseName = nullptr;
+	}
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	if (Reference.MBS_DatabaseName != nullptr)
+	{
+		*MBS_DatabaseName = *Reference.MBS_DatabaseName;
+	}
+	else {
+		delete MBS_DatabaseName;
+		MBS_DatabaseName = nullptr;
+	}
+#endif
+	if (Reference.Database_Target_Server_Main_IPv6 != nullptr)
+	{
+		*Database_Target_Server_Main_IPv6 = *Reference.Database_Target_Server_Main_IPv6;
+	}
+	else {
+		delete Database_Target_Server_Main_IPv6;
+		Database_Target_Server_Main_IPv6 = nullptr;
+	}
+	if (Reference.Database_Target_Server_Alternate_IPv6 != nullptr)
+	{
+		*Database_Target_Server_Alternate_IPv6 = *Reference.Database_Target_Server_Alternate_IPv6;
+	}
+	else {
+		delete Database_Target_Server_Alternate_IPv6;
+		Database_Target_Server_Alternate_IPv6 = nullptr;
+	}
+	if (Reference.Database_Target_Server_Main_IPv4 != nullptr)
+	{
+		*Database_Target_Server_Main_IPv4 = *Reference.Database_Target_Server_Main_IPv4;
+	}
+	else {
+		delete Database_Target_Server_Main_IPv4;
+		Database_Target_Server_Main_IPv4 = nullptr;
+	}
+	if (Reference.Database_Target_Server_Alternate_IPv4 != nullptr)
+	{
+		*Database_Target_Server_Alternate_IPv4 = *Reference.Database_Target_Server_Alternate_IPv4;
+	}
+	else {
+		delete Database_Target_Server_Alternate_IPv4;
+		Database_Target_Server_Alternate_IPv4 = nullptr;
+	}
+	if (Reference.Database_LineData != nullptr)
+	{
+		*Database_LineData = *Reference.Database_LineData;
+	}
+	else {
+		delete Database_LineData;
+		Database_LineData = nullptr;
+	}
 
 	//[DNSCurve Addresses] block
 	DNSCurve_Target_Server_Main_IPv6.AddressData = Reference.DNSCurve_Target_Server_Main_IPv6.AddressData;
@@ -2097,6 +2216,24 @@ void DNSCurveConfigurationTableSetting(
 DNSCurveConfigurationTable::~DNSCurveConfigurationTable(
 	void)
 {
+//[DNSCurve Database] block
+	delete DatabaseName;
+	DatabaseName = nullptr;
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	delete MBS_DatabaseName;
+	MBS_DatabaseName = nullptr;
+#endif
+	delete Database_Target_Server_Main_IPv6;
+	delete Database_Target_Server_Alternate_IPv6;
+	delete Database_Target_Server_Main_IPv4;
+	delete Database_Target_Server_Alternate_IPv4;
+	delete Database_LineData;
+	Database_Target_Server_Main_IPv6 = nullptr;
+	Database_Target_Server_Alternate_IPv6 = nullptr;
+	Database_Target_Server_Main_IPv4 = nullptr;
+	Database_Target_Server_Alternate_IPv4 = nullptr;
+	Database_LineData = nullptr;
+
 //[DNSCurve Addresses] block
 	delete[] DNSCurve_Target_Server_Main_IPv6.ProviderName;
 	delete[] DNSCurve_Target_Server_Alternate_IPv6.ProviderName;
@@ -2276,6 +2413,13 @@ void DNSCurveConfigurationTable::MonitorItemReset(
 	DNSCurve_SocketTimeout_Unreliable.tv_usec = 0;
 #endif
 	KeyRecheckTime = DEFAULT_DNSCURVE_RECHECK_TIME * SECOND_TO_MILLISECOND;
+
+//[DNSCurve database] block
+	if (Database_LineData != nullptr)
+	{
+		Database_LineData->clear();
+		Database_LineData->shrink_to_fit();
+	}
 
 //[DNSCurve Keys] block
 	if (Client_PublicKey != nullptr)

@@ -156,8 +156,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * DNSCurve empty Public Key error - DNSCurve 协议服务器公钥不存在错误：不存在魔数或指纹时必须提供服务器的公钥以自动获取连接参数
 
 3.IPFilter Error - 读取 IPFilter 文件错误
-  * Data of a line is too short - 该 IPFilter 条目过短：请确认该条目的内容
-  * Data of a line is too long - 该 IPFilter 条目过长：一行数据切勿超过 4096 字节/4KB
   * Item format error - IPFilter 条目格式错误：请检查该条目的格式
   * Regular expression pattern error - 错误的正则表达式：请检查正则表达式的正确
   * IPv6 address format error - IPFilter 的 IPv6 地址格式错误：请检查 IPFilter 条目的地址
@@ -170,8 +168,6 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Level error - IPFilter 过滤级别错误：过滤级别介乎与 0 - 0xFFFF(65535)
 
 4.Hosts Error - 读取 Hosts 文件错误
-  * Data of a line is too short - 该 Hosts 条目过短：请确认该条目的内容
-  * Data of a line is too long - 该 Hosts 条目过长：一行数据切勿超过 4096 字节/4KB
   * Item format error - Hosts 条目格式错误：请检查该条目的格式
   * Default TTL redefinition - 默认生存时间重定义：以第一个出现的默认生存时间为准
   * Regular expression pattern error - 错误的正则表达式：请检查正则表达式的正确性

@@ -1,5 +1,5 @@
 :: Pcap_DNSProxy service control batch
-:: Pcap DNSProxy, a local DNS server based on WinPcap and LibPcap
+:: Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
 :: Author: Hugo Chan, wongsyrone, Chengr28
 
 

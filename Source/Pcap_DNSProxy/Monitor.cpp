@@ -39,11 +39,8 @@ void MonitorLauncher(
 #endif
 
 //Read parameter(Monitor mode)
-	if (!GlobalRunningStatus.FileList_IPFilter->empty())
-	{
-		std::thread ReadParameterThread(std::bind(ReadParameter, false));
-		ReadParameterThread.detach();
-	}
+	std::thread ReadParameterThread(std::bind(ReadParameter, false));
+	ReadParameterThread.detach();
 
 //Read Hosts monitor
 	if (!GlobalRunningStatus.FileList_Hosts->empty())
@@ -53,7 +50,8 @@ void MonitorLauncher(
 	}
 
 //Read IPFilter monitor
-	if (Parameter.OperationMode == LISTEN_MODE::CUSTOM || Parameter.DataCheck_Blacklist || Parameter.IsLocalRouting)
+	if (!GlobalRunningStatus.FileList_IPFilter->empty() && 
+		(Parameter.OperationMode == LISTEN_MODE::CUSTOM || Parameter.DataCheck_Blacklist || Parameter.IsLocalRouting))
 	{
 		std::thread ReadIPFilterThread(std::bind(ReadIPFilter));
 		ReadIPFilterThread.detach();
@@ -86,7 +84,7 @@ void MonitorLauncher(
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 || //IPv6
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 		{
-			std::thread IPv6TestDoaminThread(std::bind(DomainTestRequest, AF_INET6));
+			std::thread IPv6TestDoaminThread(std::bind(DomainTestRequest, static_cast<uint16_t>(AF_INET6)));
 			IPv6TestDoaminThread.detach();
 		}
 
@@ -95,7 +93,7 @@ void MonitorLauncher(
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 || //IPv4
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 		{
-			std::thread IPv4TestDoaminThread(std::bind(DomainTestRequest, AF_INET));
+			std::thread IPv4TestDoaminThread(std::bind(DomainTestRequest, static_cast<uint16_t>(AF_INET)));
 			IPv4TestDoaminThread.detach();
 		}
 
@@ -104,7 +102,7 @@ void MonitorLauncher(
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 || //IPv6
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
 		{
-			std::thread ICMPv6Thread(std::bind(ICMP_TestRequest, AF_INET6));
+			std::thread ICMPv6Thread(std::bind(ICMP_TestRequest, static_cast<uint16_t>(AF_INET6)));
 			ICMPv6Thread.detach();
 		}
 
@@ -113,7 +111,7 @@ void MonitorLauncher(
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 || //IPv4
 			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
 		{
-			std::thread ICMP_Thread(std::bind(ICMP_TestRequest, AF_INET));
+			std::thread ICMP_Thread(std::bind(ICMP_TestRequest, static_cast<uint16_t>(AF_INET)));
 			ICMP_Thread.detach();
 		}
 	}
@@ -1362,13 +1360,13 @@ void NetworkInformationMonitor(
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE]{0};
 	std::string DomainString;
-	#if defined(PLATFORM_WIN)
-		uint8_t HostName[DOMAIN_MAXSIZE]{0};
-		addrinfo *LocalAddressList = nullptr, *LocalAddressTableIter = nullptr;
-	#elif defined(PLATFORM_LINUX)
-		ifaddrs *InterfaceAddressList = nullptr, *InterfaceAddressIter = nullptr;
-		auto IsErrorFirstPrint = true;
-	#endif
+#if defined(PLATFORM_WIN)
+	uint8_t HostName[DOMAIN_MAXSIZE]{0};
+	addrinfo *LocalAddressList = nullptr, *LocalAddressTableIter = nullptr;
+#elif defined(PLATFORM_LINUX)
+	ifaddrs *InterfaceAddressList = nullptr, *InterfaceAddressIter = nullptr;
+	auto IsErrorFirstPrint = true;
+#endif
 #elif defined(PLATFORM_MACOS)
 	ifaddrs *InterfaceAddressList = nullptr, *InterfaceAddressIter = nullptr;
 	auto IsErrorFirstPrint = true;
@@ -1388,16 +1386,17 @@ void NetworkInformationMonitor(
 			memset(HostName, 0, DOMAIN_MAXSIZE);
 			LocalAddressList = GetLocalAddressList(AF_INET6, HostName);
 			if (LocalAddressList == nullptr)
-			{
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			errno = 0;
 			if (getifaddrs(&InterfaceAddressList) != 0 || InterfaceAddressList == nullptr)
+		#endif
 			{
+			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"Get local machine address error", errno, nullptr, 0);
 				if (InterfaceAddressList != nullptr)
 					freeifaddrs(InterfaceAddressList);
 				InterfaceAddressList = nullptr;
-		#endif
+			#endif
 
 				goto JumpToRestart;
 			}
@@ -1428,13 +1427,13 @@ void NetworkInformationMonitor(
 				{
 					if (LocalAddressTableIter->ai_family == AF_INET6 && LocalAddressTableIter->ai_addrlen == sizeof(sockaddr_in6) && 
 						LocalAddressTableIter->ai_addr->sa_family == AF_INET6)
-					{
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				for (InterfaceAddressIter = InterfaceAddressList;InterfaceAddressIter != nullptr;InterfaceAddressIter = InterfaceAddressIter->ifa_next)
 				{
 					if (InterfaceAddressIter->ifa_addr != nullptr && InterfaceAddressIter->ifa_addr->sa_family == AF_INET6)
-					{
+					
 			#endif
+					{
 					//Mark local addresses(B part).
 						if (GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV6] <= PACKET_MAXSIZE - sizeof(dns_record_aaaa))
 						{
@@ -1549,16 +1548,17 @@ void NetworkInformationMonitor(
 			memset(HostName, 0, DOMAIN_MAXSIZE);
 			LocalAddressList = GetLocalAddressList(AF_INET, HostName);
 			if (LocalAddressList == nullptr)
-			{
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			errno = 0;
 			if (getifaddrs(&InterfaceAddressList) != 0 || InterfaceAddressList == nullptr)
+		#endif
 			{
+			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"Get local machine address error", errno, nullptr, 0);
 				if (InterfaceAddressList != nullptr)
 					freeifaddrs(InterfaceAddressList);
 				InterfaceAddressList = nullptr;
-		#endif
+			#endif
 
 				goto JumpToRestart;
 			}
@@ -1589,13 +1589,12 @@ void NetworkInformationMonitor(
 				{
 					if (LocalAddressTableIter->ai_family == AF_INET && LocalAddressTableIter->ai_addrlen == sizeof(sockaddr_in) && 
 						LocalAddressTableIter->ai_addr->sa_family == AF_INET)
-					{
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				for (InterfaceAddressIter = InterfaceAddressList;InterfaceAddressIter != nullptr;InterfaceAddressIter = InterfaceAddressIter->ifa_next)
 				{
 					if (InterfaceAddressIter->ifa_addr != nullptr && InterfaceAddressIter->ifa_addr->sa_family == AF_INET)
-					{
 			#endif
+					{
 					//Mark local addresses(B part).
 						if (GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV4] <= PACKET_MAXSIZE - sizeof(dns_record_a))
 						{

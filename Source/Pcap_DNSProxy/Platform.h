@@ -365,29 +365,29 @@
 
 #if defined(PLATFORM_WIN)
 //LibSodium header, always enabled(Windows)
-	#ifndef ENABLE_LIBSODIUM
-		#define ENABLE_LIBSODIUM
-	#endif
-	#ifndef SODIUM_STATIC
-		#define SODIUM_STATIC
-	#endif
-	#if defined(ENABLE_LIBSODIUM)
-		#include "..\\Dependency\\LibSodium\\sodium.h"
-	#endif
+#ifndef ENABLE_LIBSODIUM
+	#define ENABLE_LIBSODIUM
+#endif
+#ifndef SODIUM_STATIC
+	#define SODIUM_STATIC
+#endif
+#if defined(ENABLE_LIBSODIUM)
+	#include "..\\Dependency\\LibSodium\\sodium.h"
+#endif
 
 //WinPcap header, always enabled(Windows)
-	#ifndef ENABLE_PCAP
-		#define ENABLE_PCAP
-	#endif
-	#ifndef WPCAP
-		#define WPCAP                      //WinPcap preprocessor definitions
-	#endif
-	#ifndef HAVE_REMOTE
-		#define HAVE_REMOTE                //WinPcap preprocessor definitions
-	#endif
-	#if defined(ENABLE_PCAP)
-		#include "..\\Dependency\\WinPcap\\pcap.h"
-	#endif
+#ifndef ENABLE_PCAP
+	#define ENABLE_PCAP
+#endif
+#ifndef WPCAP
+	#define WPCAP                      //WinPcap preprocessor definitions
+#endif
+#ifndef HAVE_REMOTE
+	#define HAVE_REMOTE                //WinPcap preprocessor definitions
+#endif
+#if defined(ENABLE_PCAP)
+	#include "..\\Dependency\\WinPcap\\pcap.h"
+#endif
 
 //Windows API headers
 //Part 1 including files
@@ -410,47 +410,47 @@
 //	#include <versionhelpers.h>        //Version Helper functions
 
 //Part 5 including files(MUST be including after Part 4)
-	#ifndef ENABLE_HTTP
-		#define ENABLE_HTTP                //WinINET, always enabled(Windows)
-	#endif
-	#if defined(ENABLE_HTTP)
-		#include <wininet.h>               //Contains manifests, macros, types and prototypes for Microsoft Windows Internet Extensions
-	#endif
-	#ifndef ENABLE_TLS
-		#define ENABLE_TLS                 //SSPI, always enabled(Windows)
-	#endif
-	#if defined(ENABLE_TLS)
-		#define SECURITY_WIN32
-		#include <schannel.h>              //Public Definitions for SCHANNEL Security Provider
-		#include <sspi.h>                  //Security Support Provider Interface
-	#endif
+#ifndef ENABLE_HTTP
+	#define ENABLE_HTTP                //WinINET, always enabled(Windows)
+#endif
+#if defined(ENABLE_HTTP)
+	#include <wininet.h>               //Contains manifests, macros, types and prototypes for Microsoft Windows Internet Extensions
+#endif
+#ifndef ENABLE_TLS
+	#define ENABLE_TLS                 //SSPI, always enabled(Windows)
+#endif
+#if defined(ENABLE_TLS)
+	#define SECURITY_WIN32
+	#include <schannel.h>              //Public Definitions for SCHANNEL Security Provider
+	#include <sspi.h>                  //Security Support Provider Interface
+#endif
 
 //Library linking
 	#pragma comment(lib, "iphlpapi.lib")   //Windows IP Helper, IP Stack for MIB-II and related functionality support
 	#pragma comment(lib, "ws2_32.lib")     //Windows WinSock 2.0+ support
-	#if defined(ENABLE_HTTP)
-		#pragma comment(lib, "wininet.lib")    //Contains manifests, macros, types and prototypes for Microsoft Windows Internet Extensions support
-	#endif
-	#if defined(ENABLE_TLS)
-		#pragma comment(lib, "secur32.lib")    //Security Support Provider Interface support
-	#endif
-	#if defined(PLATFORM_WIN64)
-		#if defined(ENABLE_LIBSODIUM)
-			#pragma comment(lib, "..\\Dependency\\LibSodium\\LibSodium_x64.lib")
-		#endif
-		#if defined(ENABLE_PCAP)
-			#pragma comment(lib, "..\\Dependency\\WinPcap\\WPCAP_x64.lib")
-			#pragma comment(lib, "..\\Dependency\\WinPcap\\Packet_x64.lib")
-		#endif
-	#elif defined(PLATFORM_WIN32)
-		#if defined(ENABLE_LIBSODIUM)
-			#pragma comment(lib, "..\\Dependency\\LibSodium\\LibSodium_x86.lib")
-		#endif
-		#if defined(ENABLE_PCAP)
-			#pragma comment(lib, "..\\Dependency\\WinPcap\\WPCAP_x86.lib")
-			#pragma comment(lib, "..\\Dependency\\WinPcap\\Packet_x86.lib")
-		#endif
-	#endif
+#if defined(ENABLE_HTTP)
+	#pragma comment(lib, "wininet.lib")    //Contains manifests, macros, types and prototypes for Microsoft Windows Internet Extensions support
+#endif
+#if defined(ENABLE_TLS)
+	#pragma comment(lib, "secur32.lib")    //Security Support Provider Interface support
+#endif
+#if defined(PLATFORM_WIN64)
+#if defined(ENABLE_LIBSODIUM)
+	#pragma comment(lib, "..\\Dependency\\LibSodium\\LibSodium_x64.lib")
+#endif
+#if defined(ENABLE_PCAP)
+	#pragma comment(lib, "..\\Dependency\\WinPcap\\WPCAP_x64.lib")
+	#pragma comment(lib, "..\\Dependency\\WinPcap\\Packet_x64.lib")
+#endif
+#elif defined(PLATFORM_WIN32)
+#if defined(ENABLE_LIBSODIUM)
+	#pragma comment(lib, "..\\Dependency\\LibSodium\\LibSodium_x86.lib")
+#endif
+#if defined(ENABLE_PCAP)
+	#pragma comment(lib, "..\\Dependency\\WinPcap\\WPCAP_x86.lib")
+	#pragma comment(lib, "..\\Dependency\\WinPcap\\Packet_x86.lib")
+#endif
+#endif
 
 //Endian definitions
 	#define __LITTLE_ENDIAN            1234                         //Little Endian
@@ -482,13 +482,13 @@
 	#include <cwchar>                      //Wide characters support
 
 //Portable Operating System Interface/POSIX and Unix system header
-	#if defined(PLATFORM_LINUX)
-		#include <endian.h>                    //Endian support
-	#elif defined(PLATFORM_MACOS)
-		#define __LITTLE_ENDIAN                1234                         //Little Endian
-		#define __BIG_ENDIAN                   4321                         //Big Endian
-		#define __BYTE_ORDER                   __LITTLE_ENDIAN              //x86 and x86-64/x64 is Little Endian.
-	#endif
+#if defined(PLATFORM_LINUX)
+	#include <endian.h>                    //Endian support
+#elif defined(PLATFORM_MACOS)
+	#define __LITTLE_ENDIAN                1234                         //Little Endian
+	#define __BIG_ENDIAN                   4321                         //Big Endian
+	#define __BYTE_ORDER                   __LITTLE_ENDIAN              //x86 and x86-64/x64 is Little Endian.
+#endif
 	#include <fcntl.h>                     //Manipulate file descriptor support
 	#include <ifaddrs.h>                   //Getting network interface addresses support
 	#include <netdb.h>                     //Network database operations support
@@ -503,94 +503,94 @@
 	#include <sys/types.h>                 //Types support
 
 //Dependency header
-	#if defined(PLATFORM_LINUX)
-	//LibSodium part
-		#if defined(ENABLE_LIBSODIUM)
-			#include <sodium.h>
-		#endif
+#if defined(PLATFORM_LINUX)
+//LibSodium part
+#if defined(ENABLE_LIBSODIUM)
+	#include <sodium.h>
+#endif
 
-	//LibPcap part
-		#if defined(ENABLE_PCAP)
-			#include <pcap/pcap.h>
-		#endif
+//LibPcap part
+#if defined(ENABLE_PCAP)
+	#include <pcap/pcap.h>
+#endif
 
-	//OpenSSL part
-		#if defined(ENABLE_TLS)
-			#include <openssl/bio.h>
-			#include <openssl/conf.h>
-			#include <openssl/err.h>
-			#include <openssl/ssl.h>
-			#include <openssl/x509v3.h>
-		#endif
-	#elif defined(PLATFORM_MACOS)
-	//LibSodium part
-		#if defined(PLATFORM_MACOS_XCODE)
-			#ifndef ENABLE_LIBSODIUM
-				#define ENABLE_LIBSODIUM
-			#endif
-			#ifndef SODIUM_STATIC
-				#define SODIUM_STATIC
-			#endif
-			#include "../Dependency/LibSodium/sodium.h"
-			#pragma comment(lib, "../Dependency/LibSodium/LibSodium_macOS.a")
-		#else
-			#if defined(ENABLE_LIBSODIUM)
-				#ifndef SODIUM_STATIC
-					#define SODIUM_STATIC
-				#endif
-				#include <sodium.h>
-			#endif
-		#endif
+//OpenSSL part
+#if defined(ENABLE_TLS)
+	#include <openssl/bio.h>
+	#include <openssl/conf.h>
+	#include <openssl/err.h>
+	#include <openssl/ssl.h>
+	#include <openssl/x509v3.h>
+#endif
+#elif defined(PLATFORM_MACOS)
+//LibSodium part
+#if defined(PLATFORM_MACOS_XCODE)
+#ifndef ENABLE_LIBSODIUM
+	#define ENABLE_LIBSODIUM
+#endif
+#ifndef SODIUM_STATIC
+	#define SODIUM_STATIC
+#endif
+	#include "../Dependency/LibSodium/sodium.h"
+	#pragma comment(lib, "../Dependency/LibSodium/LibSodium_macOS.a")
+#else
+#if defined(ENABLE_LIBSODIUM)
+#ifndef SODIUM_STATIC
+	#define SODIUM_STATIC
+#endif
+	#include <sodium.h>
+#endif
+#endif
 
-	//LibPcap part
-		#if defined(PLATFORM_MACOS_XCODE)
-			#ifndef ENABLE_PCAP
-				#define ENABLE_PCAP
-			#endif
-		#endif
-		#if defined(ENABLE_PCAP)
-			#include <pcap/pcap.h>
-		#endif
+//LibPcap part
+#if defined(PLATFORM_MACOS_XCODE)
+#ifndef ENABLE_PCAP
+	#define ENABLE_PCAP
+#endif
+#endif
+#if defined(ENABLE_PCAP)
+	#include <pcap/pcap.h>
+#endif
 
-	//OpenSSL part
-		#if defined(PLATFORM_MACOS_XCODE)
-			#ifndef ENABLE_TLS
-				#define ENABLE_TLS
-			#endif
-			#include "../Dependency/OpenSSL/openssl/bio.h"
-			#include "../Dependency/OpenSSL/openssl/conf.h"
-			#include "../Dependency/OpenSSL/openssl/err.h"
-			#include "../Dependency/OpenSSL/openssl/ssl.h"
-			#include "../Dependency/OpenSSL/openssl/x509v3.h"
-			#pragma comment(lib, "../Dependency/OpenSSL/LibCrypto_macOS.a")
-			#pragma comment(lib, "../Dependency/OpenSSL/LibSSL_macOS.a")
-		#else
-			#if defined(ENABLE_TLS)
-				#include <openssl/bio.h>
-				#include <openssl/conf.h>
-				#include <openssl/err.h>
-				#include <openssl/ssl.h>
-				#include <openssl/x509v3.h>
-			#endif
-		#endif
-	#endif
+//OpenSSL part
+#if defined(PLATFORM_MACOS_XCODE)
+#ifndef ENABLE_TLS
+	#define ENABLE_TLS
+#endif
+	#include "../Dependency/OpenSSL/openssl/bio.h"
+	#include "../Dependency/OpenSSL/openssl/conf.h"
+	#include "../Dependency/OpenSSL/openssl/err.h"
+	#include "../Dependency/OpenSSL/openssl/ssl.h"
+	#include "../Dependency/OpenSSL/openssl/x509v3.h"
+	#pragma comment(lib, "../Dependency/OpenSSL/LibCrypto_macOS.a")
+	#pragma comment(lib, "../Dependency/OpenSSL/LibSSL_macOS.a")
+#else
+#if defined(ENABLE_TLS)
+	#include <openssl/bio.h>
+	#include <openssl/conf.h>
+	#include <openssl/err.h>
+	#include <openssl/ssl.h>
+	#include <openssl/x509v3.h>
+#endif
+#endif
+#endif
 
 //TCP Fast Open support
-	#if defined(PLATFORM_LINUX)
-		#ifndef _KERNEL_FASTOPEN
-			#define _KERNEL_FASTOPEN
+#if defined(PLATFORM_LINUX)
+#ifndef _KERNEL_FASTOPEN
+	#define _KERNEL_FASTOPEN
 
-		//Conditional define for TCP_FASTOPEN
-			#ifndef TCP_FASTOPEN
-				#define TCP_FASTOPEN       23
-			#endif
+//Conditional define for TCP_FASTOPEN
+#ifndef TCP_FASTOPEN
+	#define TCP_FASTOPEN       23
+#endif
 
-		//Conditional define for MSG_FASTOPEN
-			#ifndef MSG_FASTOPEN
-				#define MSG_FASTOPEN       0x20000000
-			#endif
-		#endif
-	#endif
+//Conditional define for MSG_FASTOPEN
+#ifndef MSG_FASTOPEN
+	#define MSG_FASTOPEN       0x20000000
+#endif
+#endif
+#endif
 
 //Linux and macOS compatible definitions(Part 2)
 	#define FALSE                    0

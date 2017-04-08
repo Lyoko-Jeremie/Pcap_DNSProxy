@@ -156,8 +156,6 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * DNSCurve empty Public Key error - DNSCurve 協定伺服器公開金鑰不存在錯誤：不存在魔數或指紋時必須提供伺服器的公開金鑰以自動獲取連接參數
 
 3.IPFilter Error - 讀取 IPFilter 檔錯誤
-  * Data of a line is too short - 該 IPFilter 條目過短：請確認該條目的內容
-  * Data of a line is too long - 該 IPFilter 條目過長：一行資料切勿超過 4096 位元組/4KB
   * Item format error - IPFilter 條目格式錯誤：請檢查該條目的格式
   * Regular expression pattern error - 錯誤的正則運算式：請檢查正則運算式的正確
   * IPv6 address format error - IPFilter 的 IPv6 位址格式錯誤：請檢查 IPFilter 條目的位址
@@ -170,8 +168,6 @@ Error.log 詳細錯誤報表，錯誤報表一共有7大類型：
   * Level error - IPFilter 過濾級別錯誤：過濾級別介乎與 0 - 0xFFFF(65535)
 
 4.Hosts Error - 讀取 Hosts 檔錯誤
-  * Data of a line is too short - 該 Hosts 條目過短：請確認該條目的內容
-  * Data of a line is too long - 該 Hosts 條目過長：一行資料切勿超過 4096 位元組/4KB
   * Default TTL redefinition - 預設存留時間重定義：以第一個出現的預設存留時間為准
   * Regular expression pattern error - 錯誤的正則運算式：請檢查正則運算式的正確性
   * IPv6 address format error - Hosts 的 IPv6 位址格式錯誤：請檢查 Hosts 條目的位址

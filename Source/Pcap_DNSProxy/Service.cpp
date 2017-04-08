@@ -745,14 +745,14 @@ void Flush_DNS_Cache(
 	system("ipconfig /flushdns 2>nul"); //All Windows version
 	fwprintf_s(stderr, L"\n");
 #elif defined(PLATFORM_LINUX)
-	#if defined(PLATFORM_OPENWRT)
-		system("/etc/init.d/dnsmasq restart 2>/dev/null"); //Dnsmasq manage DNS cache on OpenWrt
-	#else
-		auto Result = system("service nscd restart 2>/dev/null"); //Name Service Cache Daemon service
-		Result = system("service dnsmasq restart 2>/dev/null"); //Dnsmasq service
-		Result = system("rndc restart 2>/dev/null"); //Name server control utility of BIND(9.1.3 and older version)
-		Result = system("rndc flush 2>/dev/null"); //Name server control utility of BIND(9.2.0 and newer version)
-	#endif
+#if defined(PLATFORM_OPENWRT)
+	system("/etc/init.d/dnsmasq restart 2>/dev/null"); //Dnsmasq manage DNS cache on OpenWrt
+#else
+	auto Result = system("service nscd restart 2>/dev/null"); //Name Service Cache Daemon service
+	Result = system("service dnsmasq restart 2>/dev/null"); //Dnsmasq service
+	Result = system("rndc restart 2>/dev/null"); //Name server control utility of BIND(9.1.3 and older version)
+	Result = system("rndc flush 2>/dev/null"); //Name server control utility of BIND(9.2.0 and newer version)
+#endif
 #elif defined(PLATFORM_MACOS)
 //	system("lookupd -flushcache 2>/dev/null"); //Less than Mac OS X Tiger(10.4)
 //	system("dscacheutil -flushcache 2>/dev/null"); //Mac OS X Leopard(10.5) and Snow Leopard(10.6)

@@ -61,7 +61,7 @@ void DNSCurveInit(
 			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
-			std::thread DNSCurve_TCP_SignatureRequestThread(std::bind(DNSCurve_TCP_SignatureRequest, AF_INET6, false));
+			std::thread DNSCurve_TCP_SignatureRequestThread(std::bind(DNSCurve_TCP_SignatureRequest, static_cast<uint16_t>(AF_INET6), false));
 			DNSCurve_TCP_SignatureRequestThread.detach();
 		}
 
@@ -73,7 +73,7 @@ void DNSCurveInit(
 			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
-			std::thread DNSCurve_TCP_SignatureRequestThread(std::bind(DNSCurve_TCP_SignatureRequest, AF_INET, false));
+			std::thread DNSCurve_TCP_SignatureRequestThread(std::bind(DNSCurve_TCP_SignatureRequest, static_cast<uint16_t>(AF_INET), false));
 			DNSCurve_TCP_SignatureRequestThread.detach();
 		}
 
@@ -85,7 +85,7 @@ void DNSCurveInit(
 			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
-			std::thread DNSCurve_TCP_SignatureRequestThread(std::bind(DNSCurve_TCP_SignatureRequest, AF_INET6, true));
+			std::thread DNSCurve_TCP_SignatureRequestThread(std::bind(DNSCurve_TCP_SignatureRequest, static_cast<uint16_t>(AF_INET6), true));
 			DNSCurve_TCP_SignatureRequestThread.detach();
 		}
 
@@ -97,7 +97,7 @@ void DNSCurveInit(
 			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
-			std::thread DNSCurve_TCP_SignatureRequestThread(std::bind(DNSCurve_TCP_SignatureRequest, AF_INET, true));
+			std::thread DNSCurve_TCP_SignatureRequestThread(std::bind(DNSCurve_TCP_SignatureRequest, static_cast<uint16_t>(AF_INET), true));
 			DNSCurve_TCP_SignatureRequestThread.detach();
 		}
 	}
@@ -111,7 +111,7 @@ void DNSCurveInit(
 		(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
-		std::thread DNSCurve_UDP_SignatureRequestThread(std::bind(DNSCurve_UDP_SignatureRequest, AF_INET6, false));
+		std::thread DNSCurve_UDP_SignatureRequestThread(std::bind(DNSCurve_UDP_SignatureRequest, static_cast<uint16_t>(AF_INET6), false));
 		DNSCurve_UDP_SignatureRequestThread.detach();
 	}
 
@@ -123,7 +123,7 @@ void DNSCurveInit(
 		(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
-		std::thread DNSCurve_UDP_SignatureRequestThread(std::bind(DNSCurve_UDP_SignatureRequest, AF_INET, false));
+		std::thread DNSCurve_UDP_SignatureRequestThread(std::bind(DNSCurve_UDP_SignatureRequest, static_cast<uint16_t>(AF_INET), false));
 		DNSCurve_UDP_SignatureRequestThread.detach();
 	}
 
@@ -135,7 +135,7 @@ void DNSCurveInit(
 		(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
-		std::thread DNSCurve_UDP_SignatureRequestThread(std::bind(DNSCurve_UDP_SignatureRequest, AF_INET6, true));
+		std::thread DNSCurve_UDP_SignatureRequestThread(std::bind(DNSCurve_UDP_SignatureRequest, static_cast<uint16_t>(AF_INET6), true));
 		DNSCurve_UDP_SignatureRequestThread.detach();
 	}
 
@@ -147,7 +147,7 @@ void DNSCurveInit(
 		(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 		CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 	{
-		std::thread DNSCurve_UDP_SignatureRequestThread(std::bind(DNSCurve_UDP_SignatureRequest, AF_INET, true));
+		std::thread DNSCurve_UDP_SignatureRequestThread(std::bind(DNSCurve_UDP_SignatureRequest, static_cast<uint16_t>(AF_INET), true));
 		DNSCurve_UDP_SignatureRequestThread.detach();
 	}
 
@@ -206,7 +206,8 @@ bool DNSCurve_TCP_SignatureRequest(
 	DNS_TCP_Header->Length = htons(static_cast<uint16_t>(DataLength - sizeof(uint16_t)));
 
 //Socket initialization(Part 1)
-	size_t SleepTime_SignatureRequest = 0, SpeedTime_SignatureRequest = DNSCurveParameter.KeyRecheckTime;
+	size_t TotalSleepTime = 0;
+	auto FileModifiedTime = GlobalRunningStatus.ConfigFileModifiedTime;
 	auto ServerType = DNSCURVE_SERVER_TYPE::NONE;
 	auto PacketTarget = DNSCurveSelectSignatureTargetSocket(Protocol, IsAlternate, ServerType, TCPSocketDataList);
 	std::wstring Message;
@@ -216,21 +217,26 @@ bool DNSCurve_TCP_SignatureRequest(
 	for (;;)
 	{
 	//Sleep time controller
-		if (SleepTime_SignatureRequest > 0)
+		if (TotalSleepTime > 0)
 		{
-			if (SpeedTime_SignatureRequest != DNSCurveParameter.KeyRecheckTime)
+		//Configuration files have been changed.
+			if (FileModifiedTime != GlobalRunningStatus.ConfigFileModifiedTime)
 			{
-				SpeedTime_SignatureRequest = DNSCurveParameter.KeyRecheckTime;
+				FileModifiedTime = GlobalRunningStatus.ConfigFileModifiedTime;
+				TotalSleepTime = 0;
 			}
-			else if (SleepTime_SignatureRequest < SpeedTime_SignatureRequest)
+		//Interval time is not enough.
+			else if (TotalSleepTime < DNSCurveParameter.KeyRecheckTime)
 			{
-				SleepTime_SignatureRequest += Parameter.FileRefreshTime;
+				TotalSleepTime += Parameter.FileRefreshTime;
 
 				Sleep(Parameter.FileRefreshTime);
 				continue;
 			}
-
-			SleepTime_SignatureRequest = 0;
+		//Interval time is enough, next recheck time.
+			else {
+				TotalSleepTime = 0;
+			}
 		}
 
 	//Socket initialization(Part 2)
@@ -263,7 +269,7 @@ bool DNSCurve_TCP_SignatureRequest(
 		}
 
 	//Wait for sending again.
-		SleepTime_SignatureRequest += Parameter.FileRefreshTime;
+		TotalSleepTime += Parameter.FileRefreshTime;
 		continue;
 
 	//Jump here to restart.
@@ -345,7 +351,8 @@ bool DNSCurve_UDP_SignatureRequest(
 	DataLength = Add_EDNS_To_Additional_RR(SendBuffer.get(), DataLength, PACKET_MAXSIZE, nullptr);
 
 //Socket initialization(Part 1)
-	size_t SleepTime_SignatureRequest = 0, SpeedTime_SignatureRequest = DNSCurveParameter.KeyRecheckTime;
+	size_t TotalSleepTime = 0;
+	auto FileModifiedTime = GlobalRunningStatus.ConfigFileModifiedTime;
 	auto ServerType = DNSCURVE_SERVER_TYPE::NONE;
 	auto PacketTarget = DNSCurveSelectSignatureTargetSocket(Protocol, IsAlternate, ServerType, UDPSocketDataList);
 	std::wstring Message;
@@ -355,21 +362,26 @@ bool DNSCurve_UDP_SignatureRequest(
 	for (;;)
 	{
 	//Sleep time controller
-		if (SleepTime_SignatureRequest > 0)
+		if (TotalSleepTime > 0)
 		{
-			if (SpeedTime_SignatureRequest != DNSCurveParameter.KeyRecheckTime)
+		//Configuration files have been changed.
+			if (FileModifiedTime != GlobalRunningStatus.ConfigFileModifiedTime)
 			{
-				SpeedTime_SignatureRequest = DNSCurveParameter.KeyRecheckTime;
+				FileModifiedTime = GlobalRunningStatus.ConfigFileModifiedTime;
+				TotalSleepTime = 0;
 			}
-			else if (SleepTime_SignatureRequest < SpeedTime_SignatureRequest)
+		//Interval time is not enough.
+			else if (TotalSleepTime < DNSCurveParameter.KeyRecheckTime)
 			{
-				SleepTime_SignatureRequest += Parameter.FileRefreshTime;
+				TotalSleepTime += Parameter.FileRefreshTime;
 
 				Sleep(Parameter.FileRefreshTime);
 				continue;
 			}
-
-			SleepTime_SignatureRequest = 0;
+		//Interval time is enough, next recheck time.
+			else {
+				TotalSleepTime = 0;
+			}
 		}
 
 	//Socket initialization(Part 2)
@@ -401,7 +413,7 @@ bool DNSCurve_UDP_SignatureRequest(
 		}
 
 	//Wait for sending again.
-		SleepTime_SignatureRequest += Parameter.FileRefreshTime;
+		TotalSleepTime += Parameter.FileRefreshTime;
 		continue;
 
 	//Jump here to restart.

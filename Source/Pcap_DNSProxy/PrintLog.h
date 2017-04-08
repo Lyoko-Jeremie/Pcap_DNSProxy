@@ -26,6 +26,9 @@
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 extern std::vector<FILE_DATA> FileList_Config, FileList_IPFilter, FileList_Hosts;
+#if defined(ENABLE_LIBSODIUM)
+extern std::vector<FILE_DATA> FileList_DNSCurveDatabase;
+#endif
 extern std::mutex ScreenLock;
 std::mutex ErrorLogLock;
 

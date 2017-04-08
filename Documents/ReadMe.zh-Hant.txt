@@ -161,9 +161,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Windows: Config.ini > Config.conf > Config.cfg > Config
   * Linux/macOS: Config.conf > Config.ini > Config.cfg > Config
 * 請求功能變數名稱解析優先順序
-  * 使用系統 API 函數進行功能變數名稱解析（大部分）：系統 Hosts > Pcap_DNSProxy 的 Hosts 條目（Whitelist/白名單條目 > Hosts/主要Hosts清單） > DNS緩存 > Local Hosts/境內 DNS 解析功能變數名稱清單 > 遠端DNS伺服器
-  * 直接從網路介面卡設置內讀取 DNS 伺服器位址進行功能變數名稱解析（小部分）：Pcap_DNSProxy 的 Hosts 配置檔案（Whitelist/白名單條目 > Hosts/主要Hosts清單） > DNS緩存 > Local Hosts/境內 DNS 解析功能變數名稱清單 > 遠端 DNS 伺服器
-  * 請求遠端 DNS 伺服器的優先順序：Direct Request 模式 > TCP 模式的 DNSCurve 加密/非加密模式（如有） > UDP 模式的 DNSCurve 加密/非加密模式（如有） > TCP模式普通請求（如有） > UDP模式普通請求
+  * 使用系統 API 函數進行功能變數名稱解析（大部分）：系統 Hosts > Pcap_DNSProxy 的 Hosts 條目（Whitelist/白名單條目 > Hosts/主要 Hosts 清單） > DNS 緩存 > Local Hosts/境內 DNS 解析功能變數名稱清單 > 遠端DNS伺服器
+  * 直接從網路介面卡設置內讀取 DNS 伺服器位址進行功能變數名稱解析（小部分）：Pcap_DNSProxy 的 Hosts 配置檔案（Whitelist/白名單條目 > Hosts/主要 Hosts 清單） > DNS緩存 > Local Hosts/境內 DNS 解析功能變數名稱清單 > 遠端 DNS 伺服器
+  * 請求遠端 DNS 伺服器的優先順序：Direct Request 模式 > TCP 模式的 DNSCurve 加密/非加密模式（如有） > UDP 模式的 DNSCurve 加密/非加密模式（如有） > TCP 模式普通請求（如有） > UDP 模式普通請求
 * 本工具的 DNSCurve/DNSCrypt 協定是內置的實現，不需要安裝 DNSCrypt 官方的工具！
   * DNSCurve 協定為 Streamlined/精簡類型
   * 自動獲取連接資訊時必須保證系統時間的正確，否則證書驗證時會出錯導致連接資訊獲取失敗！
@@ -211,8 +211,11 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 本參數同時決定監視器的時間休眠時間片的細微性，其指的是休眠一段長時間時會根據此細微性啟動並檢查是否需要重新運行特定監視專案，而不需要等到長時間完全過去休眠完全結束後才能重新對此進行監視，此功能對程式的網路狀況適應能力會有提高
   * Large Buffer Size - 大型資料緩衝區的固定長度：單位為位元組，最小為 1500
   * Additional Path - 附加的資料檔案讀取路徑，附加在此處的目錄路徑下的 Hosts 檔和 IPFilter 檔會被依次讀取：請填入目錄的絕對路徑
+    * 本參數支援同時讀取多個路徑，各路徑之間請使用 | 隔開
   * Hosts File Name - Hosts 檔的檔案名，附加在此處的 Hosts 檔案名將被依次讀取
+    * 本參數支援同時讀取多個檔案名，各路徑之間請使用 | 隔開
   * IPFilter File Name - IPFilter 檔的檔案名，附加在此處的 IPFilter 檔案名將被依次讀取
+    * 本參數支援同時讀取多個檔案名，各路徑之間請使用 | 隔開
 
 * Log - 日誌參數區域
   * Print Log Level - 指定日誌輸出級別：留空為 3
@@ -697,6 +700,17 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 注意：使用 "只使用加密模式" 時必須提供伺服器的魔數和指紋用於請求和接收
   * DNSCurve Client Ephemeral Key - 一次性用戶端金鑰組模式，每次請求解析均使用隨機生成的一次性用戶端金鑰組，提供前向安全性：開啟為 1 /關閉為 0
   * DNSCurve Key Recheck Time - DNSCurve 協定 DNS 伺服器連接資訊檢查間隔：單位為秒，最小為 10
+
+* DNSCurve Database - DNSCurve 協定資料庫區域
+  * DNSCurve Database Name - DNSCurve 協定資料庫的檔案名
+    * 不支援多個檔案名
+  * DNSCurve Database IPv4 Main DNS - DNSCurve 協定 IPv4 主要 DNS 伺服器位址：需要填入 DNSCurve 協定資料庫中對應伺服器的 Name 欄位
+  * DNSCurve Database IPv4 Alternate DNS - DNSCurve 協定 IPv4 備用 DNS 伺服器位址：需要填入 DNSCurve 協定資料庫中對應伺服器的 Name 欄位
+  * DNSCurve Database IPv6 Main DNS - DNSCurve 協定 IPv6 主要 DNS 伺服器位址：需要填入 DNSCurve 協定資料庫中對應伺服器的 Name 欄位
+  * DNSCurve Database IPv6 Alternate DNS - DNSCurve 協定 IPv6 備用 DNS 伺服器位址：需要填入 DNSCurve 協定資料庫中對應伺服器的 Name 欄位
+  * 注意：
+    * 啟用此部分功能後會覆蓋設定檔中所設置 DNSCurve 伺服器的相關配置！
+    * 當在多個附加路徑存在多個 DNSCurve 協定資料庫中存在同名 Name 欄位時，以最先被讀取的為准
 
 * DNSCurve Addresses - DNSCurve 協定位址區域
   * DNSCurve IPv4 Main DNS Address - DNSCurve 協定 IPv4 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址
