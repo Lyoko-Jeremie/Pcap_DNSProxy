@@ -204,13 +204,9 @@ bool ReadOtherHostsData(
 //Mark separated location and check data format.
 	size_t Separated = 0;
 	if (Data.find(ASCII_SPACE) != std::string::npos)
-	{
 		Separated = Data.find(ASCII_SPACE);
-	}
 	else if (Data.find(ASCII_COMMA) != std::string::npos)
-	{
 		Separated = Data.find(ASCII_COMMA);
-	}
 	if (Separated == 0 || 
 		((ItemType == LABEL_HOSTS_TYPE::WHITE_EXTENDED || ItemType == LABEL_HOSTS_TYPE::BANNED_EXTENDED) && 
 		(Data.find(ASCII_COLON) == std::string::npos || Separated <= Data.find(ASCII_COLON) + 1U)))
@@ -287,7 +283,7 @@ bool ReadOtherHostsData(
 	else 
 		HostsTableTemp.PermissionType = HOSTS_TYPE::WHITE;
 
-//Add to global list.
+//Mark to global list.
 	for (auto &HostsFileSetIter:*HostsFileSetModificating)
 	{
 		if (HostsFileSetIter.FileIndex == FileIndex)
@@ -310,6 +306,7 @@ bool ReadLocalHostsData(
 	const size_t FileIndex, 
 	const size_t Line)
 {
+//Initialization
 	HOSTS_TABLE HostsTableTemp;
 	std::vector<std::string> HostsListData;
 	size_t SeparatedOrResult = 0;
@@ -472,7 +469,7 @@ bool ReadLocalHostsData(
 				HostsTableTemp.IsStringMatching = true;
 			}
 
-		//Try to mark target server.
+		//Mark target server.
 			if (!HostsListData.back().empty())
 			{
 			//Dnsmasq Whitelist items
@@ -583,7 +580,7 @@ bool ReadLocalHostsData(
 		}
 	}
 
-//Add to global list.
+//Jump here to mark to global list.
 AddToGlobalList:
 	for (auto &HostsFileSetIter:*HostsFileSetModificating)
 	{
@@ -703,8 +700,9 @@ bool ReadAddressHostsData(
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
-
-				AddressTargetPrefix.first.ss_family = AF_INET6;
+				else {
+					AddressTargetPrefix.first.ss_family = AF_INET6;
+				}
 			}
 		}
 	//A record(IPv4)
@@ -748,8 +746,9 @@ bool ReadAddressHostsData(
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
-
-				AddressTargetPrefix.first.ss_family = AF_INET;
+				else {
+					AddressTargetPrefix.first.ss_family = AF_INET;
+				}
 			}
 		}
 		else {
@@ -784,7 +783,9 @@ bool ReadAddressHostsData(
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
-				AddressRangeTableTemp.Begin.ss_family = AF_INET6;
+				else {
+					AddressRangeTableTemp.Begin.ss_family = AF_INET6;
+				}
 
 			//Convert address(End).
 				memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
@@ -794,7 +795,9 @@ bool ReadAddressHostsData(
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv6 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
-				AddressRangeTableTemp.End.ss_family = AF_INET6;
+				else {
+					AddressRangeTableTemp.End.ss_family = AF_INET6;
+				}
 
 			//Check address range.
 				if (AddressesComparing(AF_INET6, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin))->sin6_addr, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.End))->sin6_addr) > ADDRESS_COMPARE_TYPE::EQUAL)
@@ -836,7 +839,9 @@ bool ReadAddressHostsData(
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
-				AddressRangeTableTemp.Begin.ss_family = AF_INET;
+				else {
+					AddressRangeTableTemp.Begin.ss_family = AF_INET;
+				}
 
 			//Convert address(End).
 				memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
@@ -846,7 +851,9 @@ bool ReadAddressHostsData(
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"IPv4 address format error", Result, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
-				AddressRangeTableTemp.End.ss_family = AF_INET;
+				else {
+					AddressRangeTableTemp.End.ss_family = AF_INET;
+				}
 
 			//Check address range.
 				if (AddressesComparing(AF_INET, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin))->sin_addr, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.End))->sin_addr) > ADDRESS_COMPARE_TYPE::EQUAL)
@@ -878,7 +885,7 @@ bool ReadAddressHostsData(
 		}
 	}
 
-//Add to global list.
+//Mark to global list.
 	for (auto &HostsFileSetIter:*HostsFileSetModificating)
 	{
 		if (HostsFileSetIter.FileIndex == FileIndex)
@@ -1105,7 +1112,7 @@ bool ReadMainHostsData(
 				return false;
 			}
 
-		//Add to global list.
+		//Mark to global list.
 			HostsTableTemp.AddrOrTargetList.push_back(AddressUnionDataTemp);
 		}
 	}
@@ -1137,7 +1144,7 @@ bool ReadMainHostsData(
 				return false;
 			}
 
-		//Add to global list.
+		//Mark to global list.
 			HostsTableTemp.AddrOrTargetList.push_back(AddressUnionDataTemp);
 		}
 	}
@@ -1177,7 +1184,7 @@ bool ReadMainHostsData(
 			HostsTableTemp.PatternOrDomainString.append(Data, Separated, Data.length() - Separated);
 		}
 		
-	//Try to mark patterns.
+	//Mark patterns.
 		try {
 			std::regex PatternRegexTemp(HostsTableTemp.PatternOrDomainString);
 			std::swap(HostsTableTemp.PatternRegex, PatternRegexTemp);
@@ -1191,7 +1198,7 @@ bool ReadMainHostsData(
 		}
 	}
 
-//Add to global list.
+//Mark to global list.
 	for (auto &HostsFileSetIter:*HostsFileSetModificating)
 	{
 		if (HostsFileSetIter.FileIndex == FileIndex)

@@ -661,14 +661,28 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * HTTP CONNECT TLS Version - HTTP CONNECT 协议启用 TLS 握手和加密传输时所指定使用的版本：设置为 0 则自动选择
     * 现阶段可填入 1.0 或 1.1 或 1.2
     * Windows XP/2003 和 Windows Vista 不支持高于 1.0 的版本
-    * OpenSSL 1.0.0 以及更旧的版本不支持高于 1.0 的版本
+    * OpenSSL 1.0.0 以及之前的版本不支持高于 1.0 的版本
   * HTTP CONNECT TLS Validation - HTTP CONNECT 协议启用 TLS 握手时服务器证书链检查：开启为 1 /关闭为 0
     * 警告：关闭此功能将可能导致加密连接被中间人攻击，强烈建议开启！
     * 警告：OpenSSL 1.0.2 之前的版本不支持检查服务器证书的域名匹配情况，敬请留意！
-  * HTTP CONNECT TLS Server Name Indication - HTTP CONNECT 协议用于指定 TLS 握手时所指定使用的域名服务器：请输入正确的域名并且不要超过253字节 ASCII 数据，留空则不启用此功能
-  * HTTP CONNECT Version - 附带在 HTTP CONNECT Header 的 HTTP CONNECT 协议版本号
+  * HTTP CONNECT TLS Server Name Indication - HTTP CONNECT 协议用于指定 TLS 握手时所指定使用的域名服务器：请输入正确的域名并且不要超过 253 字节 ASCII 数据，留空则不启用此功能
+  * HTTP CONNECT TLS ALPN - HTTP CONNECT 协议 TLS 握手时是否启用 Application-Layer Protocol Negotiation/ALPN 扩展功能：开启为 1 /关闭为 0
+    * Windows 8 以及之前的版本不支持本功能
+    * OpenSSL 1.0.1 以及之前的版本不支持本功能
+    * 警告：切勿在不受支持的版本上开启本功能，否则可能导致程序无法正常收发数据包！
+  * HTTP CONNECT Version - HTTP CONNECT 协议所使用的版本：设置为 0 则自动选择
+    * 现阶段可填入 1.1 或 2
+    * 注意：根据标准的要求，使用 HTTP/2 同时开启 HTTP CONNECT TLS Handshake 时必须填入 HTTP CONNECT TLS Server Name Indication 和启用 HTTP CONNECT TLS ALPN 参数
+    * 注意：根据标准的要求，使用 HTTP/2 同时开启 HTTP CONNECT TLS Handshake 时必须指定大于等于 1.2 的 HTTP CONNECT TLS Version
+    * 警告：本功能不支持从 1.1 升级到 2 的过渡方案，使用 HTTP/2 时如果服务器不支持会直接导致请求失败！
   * HTTP CONNECT Header Field - 附带在 HTTP CONNECT Header 的信息：所输入的信息将被直接添加到 HTTP CONNECT Header
-    * 本参数可重复多次出现，所有有内容的 HTTP CONNECT Header 的信息都将被记录并在请求时按顺序添加到 HTTP CONNECT Header 里
+    * 本参数可重复多次出现，所有有内容的 HTTP CONNECT Header 的信息都将被记录并在请求时按顺序添加到 HTTP CONNECT Header 中
+    * 注意：根据标准的要求，本区域不能填入任何以下字段：
+      * Connection
+      * Content-Length
+      * Proxy-Connection
+      * Transfer-Encoding
+      * Upgrade
   * HTTP CONNECT Proxy Authorization - 连接 HTTP CONNECT Proxy 服务器时所使用的认证信息：需要输入 "用户名:密码"（不含引号），留空为不启用
     * 只支持 Base 方式的认证
 
@@ -1020,7 +1034,6 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
 * HTTP CONNECT Target Server
 * HTTP CONNECT TLS Version
 * HTTP CONNECT TLS Validation
-* HTTP CONNECT Version
 * HTTP CONNECT Header Field
 * HTTP CONNECT Proxy Authorization
 * DNSCurve Reliable Socket Timeout

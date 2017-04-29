@@ -105,8 +105,7 @@ ConfigurationTable::ConfigurationTable(
 	#endif
 	#endif
 		HTTP_CONNECT_TargetDomain = new std::string();
-		HTTP_CONNECT_Version = new std::string();
-		HTTP_CONNECT_HeaderField = new std::string();
+		HTTP_CONNECT_HeaderField = new std::vector<std::string>();
 		HTTP_CONNECT_ProxyAuthorization = new std::string();
 	}
 	catch (std::bad_alloc)
@@ -164,7 +163,6 @@ ConfigurationTable::ConfigurationTable(
 	#endif
 	#endif
 		delete HTTP_CONNECT_TargetDomain;
-		delete HTTP_CONNECT_Version;
 		delete HTTP_CONNECT_HeaderField;
 		delete HTTP_CONNECT_ProxyAuthorization;
 		SOCKS_TargetDomain = nullptr;
@@ -179,7 +177,6 @@ ConfigurationTable::ConfigurationTable(
 	#endif
 	#endif
 		HTTP_CONNECT_TargetDomain = nullptr;
-		HTTP_CONNECT_Version = nullptr;
 		HTTP_CONNECT_HeaderField = nullptr;
 		HTTP_CONNECT_ProxyAuthorization = nullptr;
 
@@ -243,8 +240,7 @@ ConfigurationTable::ConfigurationTable(
 	#endif
 	#endif
 		HTTP_CONNECT_TargetDomain = new std::string();
-		HTTP_CONNECT_Version = new std::string();
-		HTTP_CONNECT_HeaderField = new std::string();
+		HTTP_CONNECT_HeaderField = new std::vector<std::string>();
 		HTTP_CONNECT_ProxyAuthorization = new std::string();
 	}
 	catch (std::bad_alloc)
@@ -302,7 +298,6 @@ ConfigurationTable::ConfigurationTable(
 	#endif
 	#endif
 		delete HTTP_CONNECT_TargetDomain;
-		delete HTTP_CONNECT_Version;
 		delete HTTP_CONNECT_HeaderField;
 		delete HTTP_CONNECT_ProxyAuthorization;
 		SOCKS_TargetDomain = nullptr;
@@ -317,7 +312,6 @@ ConfigurationTable::ConfigurationTable(
 	#endif
 	#endif
 		HTTP_CONNECT_TargetDomain = nullptr;
-		HTTP_CONNECT_Version = nullptr;
 		HTTP_CONNECT_HeaderField = nullptr;
 		HTTP_CONNECT_ProxyAuthorization = nullptr;
 
@@ -620,6 +614,7 @@ ConfigurationTable::ConfigurationTable(
 		HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
 	}
 #endif
+	HTTP_CONNECT_TLS_ALPN = Reference.HTTP_CONNECT_TLS_ALPN;
 #endif
 	if (Reference.HTTP_CONNECT_TargetDomain != nullptr)
 	{
@@ -629,14 +624,7 @@ ConfigurationTable::ConfigurationTable(
 		delete HTTP_CONNECT_TargetDomain;
 		HTTP_CONNECT_TargetDomain = nullptr;
 	}
-	if (Reference.HTTP_CONNECT_Version != nullptr)
-	{
-		*HTTP_CONNECT_Version = *Reference.HTTP_CONNECT_Version;
-	}
-	else {
-		delete HTTP_CONNECT_Version;
-		HTTP_CONNECT_Version = nullptr;
-	}
+	HTTP_CONNECT_Version = Reference.HTTP_CONNECT_Version;
 	if (Reference.HTTP_CONNECT_HeaderField != nullptr)
 	{
 		*HTTP_CONNECT_HeaderField = *Reference.HTTP_CONNECT_HeaderField;
@@ -768,6 +756,7 @@ ConfigurationParameter->ICMP_Sequence = htons(DEFAULT_SEQUENCE);
 	ConfigurationParameter->SOCKS_Protocol_Network = REQUEST_MODE_NETWORK::BOTH;
 	ConfigurationParameter->SOCKS_Protocol_Transport = REQUEST_MODE_TRANSPORT::TCP;
 	ConfigurationParameter->HTTP_CONNECT_Protocol = REQUEST_MODE_NETWORK::BOTH;
+	ConfigurationParameter->HTTP_CONNECT_Version = HTTP_VERSION_SELECTION::VERSION_AUTO;
 
 	return;
 }
@@ -829,7 +818,6 @@ ConfigurationTable::~ConfigurationTable(
 #endif
 #endif
 	delete HTTP_CONNECT_TargetDomain;
-	delete HTTP_CONNECT_Version;
 	delete HTTP_CONNECT_HeaderField;
 	delete HTTP_CONNECT_ProxyAuthorization;
 	SOCKS_TargetDomain = nullptr;
@@ -844,7 +832,6 @@ ConfigurationTable::~ConfigurationTable(
 #endif
 #endif
 	HTTP_CONNECT_TargetDomain = nullptr;
-	HTTP_CONNECT_Version = nullptr;
 	HTTP_CONNECT_HeaderField = nullptr;
 	HTTP_CONNECT_ProxyAuthorization = nullptr;
 
@@ -996,8 +983,6 @@ void ConfigurationTable::MonitorItemToUsing(
 	ConfigurationParameter->HTTP_CONNECT_TLS_Version = HTTP_CONNECT_TLS_Version;
 	ConfigurationParameter->HTTP_CONNECT_TLS_Validation = HTTP_CONNECT_TLS_Validation;
 #endif
-	if (ConfigurationParameter->HTTP_CONNECT_Version != nullptr && !HTTP_CONNECT_Version->empty())
-		*ConfigurationParameter->HTTP_CONNECT_Version = *HTTP_CONNECT_Version;
 	if (ConfigurationParameter->HTTP_CONNECT_HeaderField != nullptr)
 	{
 		if (!HTTP_CONNECT_HeaderField->empty())
@@ -1100,11 +1085,9 @@ void ConfigurationTable::MonitorItemReset(
 	if (HTTP_CONNECT_TargetDomain != nullptr)
 		HTTP_CONNECT_TargetDomain->clear();
 #if defined(ENABLE_TLS)
-	HTTP_CONNECT_TLS_Version = TLS_VERSION_SELECTION::AUTO;
+	HTTP_CONNECT_TLS_Version = TLS_VERSION_SELECTION::VERSION_AUTO;
 	HTTP_CONNECT_TLS_Validation = false;
 #endif
-	if (HTTP_CONNECT_Version != nullptr)
-		HTTP_CONNECT_Version->clear();
 	if (HTTP_CONNECT_HeaderField != nullptr)
 		HTTP_CONNECT_HeaderField->clear();
 	if (HTTP_CONNECT_ProxyAuthorization != nullptr)

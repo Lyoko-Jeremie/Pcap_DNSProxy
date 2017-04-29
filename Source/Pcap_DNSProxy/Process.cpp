@@ -421,9 +421,9 @@ size_t CheckHostsProcess(
 	auto DNS_Header = reinterpret_cast<dns_hdr *>(Packet->Buffer);
 
 //Request check
-	if (ntohs(DNS_Header->Question) == U16_NUM_ONE && CheckQueryNameLength(Packet->Buffer + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH < DOMAIN_MAXSIZE)
+	if (ntohs(DNS_Header->Question) == U16_NUM_1 && CheckQueryNameLength(Packet->Buffer + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH < DOMAIN_MAXSIZE)
 	{
-		if (PacketQueryToString(Packet->Buffer + sizeof(dns_hdr), Domain) <= DOMAIN_MINSIZE)
+		if (PacketQueryToString(Packet->Buffer + sizeof(dns_hdr), Domain) <= DOMAIN_MINSIZE || Domain.empty())
 			return EXIT_SUCCESS;
 		else 
 			CaseConvert(Domain, false);
@@ -515,7 +515,7 @@ size_t CheckHostsProcess(
 			(reinterpret_cast<dns_record_aaaa *>(DNS_Record))->Address = in6addr_loopback;
 
 		//Set DNS counts and EDNS Label
-			DNS_Header->Answer = htons(U16_NUM_ONE);
+			DNS_Header->Answer = htons(U16_NUM_1);
 			DNS_Header->Authority = 0;
 			DNS_Header->Additional = 0;
 			if (Parameter.EDNS_Label || Packet->EDNS_Record > 0)
@@ -545,7 +545,7 @@ size_t CheckHostsProcess(
 			(reinterpret_cast<dns_record_a *>(DNS_Record))->Address.s_addr = htonl(INADDR_LOOPBACK);
 
 		//Set DNS counts and EDNS Label
-			DNS_Header->Answer = htons(U16_NUM_ONE);
+			DNS_Header->Answer = htons(U16_NUM_1);
 			DNS_Header->Authority = 0;
 			DNS_Header->Additional = 0;
 			if (Parameter.EDNS_Label || Packet->EDNS_Record > 0)
@@ -616,7 +616,7 @@ size_t CheckHostsProcess(
 		{
 		//Set header flags and copy response to buffer.
 			DNS_Header->Flags = htons(ntohs(DNS_Header->Flags) | DNS_SER_R_A);
-			DNS_Header->Answer = htons(U16_NUM_ONE);
+			DNS_Header->Answer = htons(U16_NUM_1);
 			DNS_Header->Authority = 0;
 			DNS_Header->Additional = 0;
 			memset(Result + sizeof(dns_hdr) + Packet->Question, 0, Packet->Length - (sizeof(dns_hdr) + Packet->Question));
@@ -679,13 +679,13 @@ size_t CheckHostsProcess(
 		Packet->IsLocalRequest = true;
 
 //Normal Hosts check
-	auto IsMatch = false;
+	auto IsMatchItem = false;
 	std::unique_lock<std::mutex> HostsFileMutex(HostsFileLock);
 	for (const auto &HostsFileSetIter:*HostsFileSetUsing)
 	{
 		for (const auto &HostsTableIter:HostsFileSetIter.HostsList_Normal)
 		{
-			IsMatch = false;
+			IsMatchItem = false;
 
 		//Dnsmasq normal mode(http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html)
 			if (HostsTableIter.IsStringMatching && !HostsTableIter.PatternOrDomainString.empty())
@@ -693,16 +693,16 @@ size_t CheckHostsProcess(
 				if (HostsTableIter.PatternOrDomainString == ("#") || //Dnsmasq "#" matches any domain.
 					(HostsTableIter.PatternOrDomainString.front() == ReverseDomain.front() && //Quick check to reduce resource using
 					CompareStringReversed(HostsTableIter.PatternOrDomainString, ReverseDomain)))
-						IsMatch = true;
+						IsMatchItem = true;
 			}
 		//Regex mode
 			else if (std::regex_match(Domain, HostsTableIter.PatternRegex))
 			{
-				IsMatch = true;
+				IsMatchItem = true;
 			}
 
 		//Match hosts.
-			if (IsMatch)
+			if (IsMatchItem)
 			{
 			//Source Hosts check
 				if (!HostsTableIter.SourceList.empty())
@@ -891,7 +891,7 @@ StopLoop_NormalHosts:
 	{
 		for (const auto &HostsTableIter:HostsFileSetIter.HostsList_Local)
 		{
-			IsMatch = false;
+			IsMatchItem = false;
 
 		//Dnsmasq normal mode
 			if (HostsTableIter.IsStringMatching && !HostsTableIter.PatternOrDomainString.empty())
@@ -899,16 +899,16 @@ StopLoop_NormalHosts:
 				if ((HostsTableIter.PatternOrDomainString.empty() && Domain.find(ASCII_PERIOD) == std::string::npos) || //Dnsmasq unqualified names only
 					(HostsTableIter.PatternOrDomainString.front() == ReverseDomain.front() && //Quick check to reduce resource using
 					CompareStringReversed(HostsTableIter.PatternOrDomainString, ReverseDomain)))
-						IsMatch = true;
+						IsMatchItem = true;
 			}
 		//Regex mode
 			else if (std::regex_match(Domain, HostsTableIter.PatternRegex))
 			{
-				IsMatch = true;
+				IsMatchItem = true;
 			}
 
 		//Match hosts.
-			if (IsMatch)
+			if (IsMatchItem)
 			{
 			//Check white and banned hosts list.
 				DataLength = CheckWhiteBannedHostsProcess(Packet->Length, HostsTableIter, DNS_Header, DNS_Query, &Packet->IsLocalRequest);
@@ -1301,7 +1301,7 @@ void UDP_RequestProcess(
 {
 //EDNS switching(Part 1)
 	auto EDNS_SwitchLength = MonitorQueryData.first.Length;
-/* UDP_RequestProcess is the last process, so not need to restore packet.
+/* UDP_RequestProcess is the last process, so no need to restore packet.
 	const auto EDNS_Packet_Flags = (reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Flags;
 */
 	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_UDP)
@@ -1325,7 +1325,7 @@ void UDP_RequestProcess(
 	if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 		SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
-/* UDP_RequestProcess is the last process, so not need to restore packet.
+/* UDP_RequestProcess is the last process, so no need to restore packet.
 //EDNS switching(Part 2)
 	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_UDP)
 	{
@@ -1388,7 +1388,7 @@ bool MarkDomainCache(
 	//Not a response packet
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RESPONSE) == 0 || 
 	//Question Resource Records must be one.
-		ntohs(DNS_Header->Question) != U16_NUM_ONE || 
+		ntohs(DNS_Header->Question) != U16_NUM_1 || 
 	//Not any Answer Resource Records
 		(DNS_Header->Answer == 0 && DNS_Header->Authority == 0 /* && DNS_Header->Additional == 0 */ ) || 
 	//OPCode must be set Query/0.
@@ -1458,9 +1458,9 @@ bool MarkDomainCache(
 	//Timer mode
 		if (Parameter.DNS_CacheType == DNS_CACHE_TYPE::TIMER)
 		{
-		//Cache time is [TTL] seconds when Cache Parameter is 0.
-		//Cache time is [Cache Parameter] seconds when TTL is shorter than Cache Parameter.
-		//Cache time is [TTL + Cache Parameter] seconds when TTL is longer than Cache Parameter.
+		//Cache time is <TTL> seconds when Cache Parameter is 0.
+		//Cache time is <Cache Parameter> seconds when TTL is shorter than Cache Parameter.
+		//Cache time is <TTL + Cache Parameter> seconds when TTL is longer than Cache Parameter.
 			if (Parameter.DNS_CacheParameter > 0)
 			{
 				if (ResponseTTL <= Parameter.DNS_CacheParameter)
@@ -1472,9 +1472,9 @@ bool MarkDomainCache(
 	//Both mode
 		else if (Parameter.DNS_CacheType == DNS_CACHE_TYPE::BOTH)
 		{
-		//Cache time is [TTL] seconds when Cache Parameter is 0.
-		//Cache time is [Default TTL] seconds when TTL is shorter than Default TTL.
-		//Cache time is [TTL + Default TTL] seconds when TTL is longer than Default TTL.
+		//Cache time is <TTL> seconds when Cache Parameter is 0.
+		//Cache time is <Default TTL> seconds when TTL is shorter than Default TTL.
+		//Cache time is <TTL + Default TTL> seconds when TTL is longer than Default TTL.
 			if (Parameter.HostsDefaultTTL > 0)
 			{
 				if (ResponseTTL <= Parameter.HostsDefaultTTL)

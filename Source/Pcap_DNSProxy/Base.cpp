@@ -59,9 +59,11 @@ bool MBS_To_WCS_String(
 	if (Length == 0 || CheckEmptyBuffer(Buffer, Length))
 		return false;
 
-//Convert string.
+//Initialization
 	std::unique_ptr<wchar_t[]> TargetBuffer(new wchar_t[Length + PADDING_RESERVED_BYTES]());
 	wmemset(TargetBuffer.get(), 0, Length + PADDING_RESERVED_BYTES);
+
+//Convert string.
 #if defined(PLATFORM_WIN)
 	if (MultiByteToWideChar(
 			CP_ACP, 
@@ -100,9 +102,11 @@ bool WCS_To_MBS_String(
 	if (Length == 0 || CheckEmptyBuffer(Buffer, sizeof(wchar_t) * Length))
 		return false;
 
-//Convert string.
+//Initialization
 	std::unique_ptr<uint8_t[]> TargetBuffer(new uint8_t[Length + PADDING_RESERVED_BYTES]());
 	memset(TargetBuffer.get(), 0, Length + PADDING_RESERVED_BYTES);
+
+//Convert string.
 #if defined(PLATFORM_WIN)
 	if (WideCharToMultiByte(
 			CP_ACP, 
@@ -135,12 +139,8 @@ void CaseConvert(
 	const size_t Length, 
 	const bool IsLowerToUpper)
 {
-//Null pointer
-	if (Buffer == nullptr || Length == 0)
+	if (Buffer != nullptr && Length > 0)
 	{
-		return;
-	}
-	else {
 	//Convert words.
 		for (size_t Index = 0;Index < Length;++Index)
 		{
@@ -196,16 +196,15 @@ void CaseConvert(
 void MakeStringReversed(
 	std::string &String)
 {
-//String check
-	if (String.length() <= 1U)
-		return;
-
-//Make string reversed
-	for (size_t Index = 0;Index < String.length() / 2U;++Index)
+	if (String.length() > 1U)
 	{
-		uint8_t StringIter = String.at(String.length() - 1U - Index);
-		String.at(String.length() - 1U - Index) = String.at(Index);
-		String.at(Index) = StringIter;
+	//Make string reversed
+		for (size_t Index = 0;Index < String.length() / 2U;++Index)
+		{
+			uint8_t StringIter = String.at(String.length() - 1U - Index);
+			String.at(String.length() - 1U - Index) = String.at(Index);
+			String.at(Index) = StringIter;
+		}
 	}
 
 	return;
@@ -215,16 +214,15 @@ void MakeStringReversed(
 void MakeStringReversed(
 	std::wstring &String)
 {
-//String check
-	if (String.length() <= 1U)
-		return;
-
-//Make string reversed
-	for (size_t Index = 0;Index < String.length() / 2U;++Index)
+	if (String.length() > 1U)
 	{
-		wchar_t StringIter = String.at(String.length() - 1U - Index);
-		String.at(String.length() - 1U - Index) = String.at(Index);
-		String.at(Index) = StringIter;
+	//Make string reversed
+		for (size_t Index = 0;Index < String.length() / 2U;++Index)
+		{
+			wchar_t StringIter = String.at(String.length() - 1U - Index);
+			String.at(String.length() - 1U - Index) = String.at(Index);
+			String.at(Index) = StringIter;
+		}
 	}
 
 	return;
@@ -252,11 +250,8 @@ bool CompareStringReversed(
 
 //Length check
 	std::wstring InnerRuleItem(RuleItem), InnerTestItem(TestItem);
-	if (InnerRuleItem.empty() || InnerTestItem.empty() || InnerTestItem.length() < InnerRuleItem.length())
+	if (!InnerRuleItem.empty() && !InnerTestItem.empty() && InnerTestItem.length() >= InnerRuleItem.length())
 	{
-		return false;
-	}
-	else {
 	//Make string reversed to compare.
 		MakeStringReversed(InnerRuleItem);
 		MakeStringReversed(InnerTestItem);

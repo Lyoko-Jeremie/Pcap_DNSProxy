@@ -594,7 +594,9 @@
 
 //Linux and macOS compatible definitions(Part 2)
 	#define FALSE                    0
+#ifndef INVALID_SOCKET
 	#define INVALID_SOCKET           (-1)
+#endif
 	#define SOCKET_ERROR             (-1)
 	#define TRUE                     1U
 	#define RETURN_ERROR             (-1)

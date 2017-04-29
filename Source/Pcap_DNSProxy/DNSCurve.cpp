@@ -563,7 +563,7 @@ SkipMain:
 			}
 		}
 
-	//Add to global list.
+	//Mark to global list.
 		if (!Alternate_SocketDataList.empty() && !Alternate_SocketSelectingList.empty())
 		{
 			for (auto &SocketDataIter:Alternate_SocketDataList)
@@ -735,11 +735,11 @@ bool DNSCruveGetSignatureData(
 {
 	if (ntohs((reinterpret_cast<const dns_record_txt *>(Buffer))->Name) == DNS_POINTER_QUERY && 
 		ntohs((reinterpret_cast<const dns_record_txt *>(Buffer))->Length) == (reinterpret_cast<const dns_record_txt *>(Buffer))->TXT_Length + NULL_TERMINATE_LENGTH && 
-		(reinterpret_cast<const dns_record_txt *>(Buffer))->TXT_Length == DNSCRYPT_RECORD_TXT_LEN)
+		(reinterpret_cast<const dns_record_txt *>(Buffer))->TXT_Length == DNSCRYPT_RECORD_TXT_LEN && 
+		sodium_memcmp(&(reinterpret_cast<const dnscurve_txt_hdr *>(Buffer + sizeof(dns_record_txt)))->CertMagicNumber, DNSCRYPT_CERT_MAGIC, sizeof(uint16_t)) == 0 && 
+		ntohs((reinterpret_cast<const dnscurve_txt_hdr *>(Buffer + sizeof(dns_record_txt)))->MinorVersion) == DNSCURVE_VERSION_MINOR)
 	{
-		if (sodium_memcmp(&(reinterpret_cast<const dnscurve_txt_hdr *>(Buffer + sizeof(dns_record_txt)))->CertMagicNumber, DNSCRYPT_CERT_MAGIC, sizeof(uint16_t)) == 0 && 
-			ntohs((reinterpret_cast<const dnscurve_txt_hdr *>(Buffer + sizeof(dns_record_txt)))->MajorVersion) == DNSCURVE_ES_X25519_XSALSA20_POLY1305 && 
-			ntohs((reinterpret_cast<const dnscurve_txt_hdr *>(Buffer + sizeof(dns_record_txt)))->MinorVersion) == DNSCURVE_VERSION_MINOR)
+		if (ntohs((reinterpret_cast<const dnscurve_txt_hdr *>(Buffer + sizeof(dns_record_txt)))->MajorVersion) == DNSCURVE_ES_X25519_XSALSA20_POLY1305) //DNSCurve X25519-XSalsa20Poly1305
 		{
 		//Get Send Magic Number, Server Fingerprint and Precomputation Key.
 			DNSCURVE_SERVER_DATA *PacketTarget = nullptr;
@@ -763,6 +763,9 @@ bool DNSCruveGetSignatureData(
 				{
 					Message.append(L"Fingerprint signature validation error");
 					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::DNSCURVE, Message.c_str(), 0, nullptr, 0);
+				}
+				else {
+					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::DNSCURVE, L"Fingerprint signature validation error", 0, nullptr, 0);
 				}
 
 				return false;
@@ -790,6 +793,9 @@ bool DNSCruveGetSignatureData(
 							Message.append(L"Key calculating error");
 							PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::DNSCURVE, Message.c_str(), 0, nullptr, 0);
 						}
+						else {
+							PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::DNSCURVE, L"Key calculating error", 0, nullptr, 0);
+						}
 
 						return false;
 					}
@@ -805,7 +811,13 @@ bool DNSCruveGetSignatureData(
 					Message.append(L"Fingerprint signature validation error");
 					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::DNSCURVE, Message.c_str(), 0, nullptr, 0);
 				}
+				else {
+					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::DNSCURVE, L"Fingerprint signature validation error", 0, nullptr, 0);
+				}
 			}
+		}
+		else {
+			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::DNSCURVE, L"DNSCurve version is not supported", 0, nullptr, 0);
 		}
 	}
 

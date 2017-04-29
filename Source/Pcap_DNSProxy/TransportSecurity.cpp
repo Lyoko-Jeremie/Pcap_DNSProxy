@@ -93,9 +93,66 @@ bool SSPI_Handshake(
 		return false;
 	
 //Initializtion
-	SecBufferDesc OutputBufferDesc;
-	SecBuffer OutputBufferSec[1U]{0};
+	SecBufferDesc InputBufferDesc, OutputBufferDesc;
+	SecBuffer InputBufferSec[1U]{0}, OutputBufferSec[1U]{0};
+	memset(&InputBufferDesc, 0, sizeof(InputBufferDesc));
 	memset(&OutputBufferDesc, 0, sizeof(OutputBufferDesc));
+	auto InputBufferDescPointer = &InputBufferDesc;
+
+//TLS ALPN extension buffer initializtion
+	std::unique_ptr<uint8_t[]> InputBufferPointer;
+	if (Parameter.HTTP_CONNECT_TLS_ALPN)
+	{
+	//The first 4 bytes will be an indicating number of bytes of data in the rest of the the buffer.
+	//The next 4 bytes are an indicator that this buffer will contain ALPN data.
+	//The next 2 bytes will be indicating the number of bytes used to list the preferred protocols.
+	//The next 1 byte will be indicating the number of bytes used to the ALPN string.
+		if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1)
+		{
+			std::unique_ptr<uint8_t[]> InputBufferPointerTemp(new uint8_t[sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP1_TLS_ALPN_STRING) + 1U]());
+			memset(InputBufferPointerTemp.get(), 0, strlen(HTTP1_TLS_ALPN_STRING) + 1U);
+			std::swap(InputBufferPointer, InputBufferPointerTemp);
+
+		//TLS ALPN extension buffer settings
+			*((uint32_t *)InputBufferPointer.get()) = static_cast<uint32_t>(sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP1_TLS_ALPN_STRING));
+			*((uint32_t *)(InputBufferPointer.get() + sizeof(uint32_t))) = SecApplicationProtocolNegotiationExt_ALPN;
+			*((uint16_t *)(InputBufferPointer.get() + sizeof(uint32_t) * 2U)) = static_cast<uint16_t>(sizeof(uint8_t) + strlen(HTTP1_TLS_ALPN_STRING));
+			*((uint8_t *)(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t))) = static_cast<uint8_t>(strlen(HTTP1_TLS_ALPN_STRING));
+			memcpy_s(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t), strlen(HTTP1_TLS_ALPN_STRING), HTTP1_TLS_ALPN_STRING, strlen(HTTP1_TLS_ALPN_STRING));
+			InputBufferSec[0].pvBuffer = InputBufferPointer.get();
+			InputBufferSec[0].BufferType = SECBUFFER_APPLICATION_PROTOCOLS;
+			InputBufferSec[0].cbBuffer = static_cast<unsigned long>(sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP1_TLS_ALPN_STRING));
+		}
+		else if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
+		{
+			std::unique_ptr<uint8_t[]> InputBufferPointerTemp(new uint8_t[sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP2_TLS_ALPN_STRING) + 1U]());
+			memset(InputBufferPointerTemp.get(), 0, strlen(HTTP2_TLS_ALPN_STRING) + 1U);
+			std::swap(InputBufferPointer, InputBufferPointerTemp);
+
+		//TLS ALPN extension buffer settings
+			*((uint32_t *)InputBufferPointer.get()) = static_cast<uint32_t>(sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP2_TLS_ALPN_STRING));
+			*((uint32_t *)(InputBufferPointer.get() + sizeof(uint32_t))) = SecApplicationProtocolNegotiationExt_ALPN;
+			*((uint16_t *)(InputBufferPointer.get() + sizeof(uint32_t) * 2U)) = static_cast<uint16_t>(sizeof(uint8_t) + strlen(HTTP2_TLS_ALPN_STRING));
+			*((uint8_t *)(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t))) = static_cast<uint8_t>(strlen(HTTP2_TLS_ALPN_STRING));
+			memcpy_s(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t), strlen(HTTP2_TLS_ALPN_STRING), HTTP2_TLS_ALPN_STRING, strlen(HTTP2_TLS_ALPN_STRING));
+			InputBufferSec[0].pvBuffer = InputBufferPointer.get();
+			InputBufferSec[0].BufferType = SECBUFFER_APPLICATION_PROTOCOLS;
+			InputBufferSec[0].cbBuffer = static_cast<unsigned long>(sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP2_TLS_ALPN_STRING));
+		}
+		else {
+			return false;
+		}
+
+	//BufferDesc initializtion
+		InputBufferDesc.cBuffers = 1U;
+		InputBufferDesc.pBuffers = InputBufferSec;
+		InputBufferDesc.ulVersion = SECBUFFER_VERSION;
+	}
+	else {
+		InputBufferDescPointer = nullptr;
+	}
+
+//Buffer initializtion
 	OutputBufferSec[0].pvBuffer = nullptr;
 	OutputBufferSec[0].BufferType = SECBUFFER_TOKEN;
 	OutputBufferSec[0].cbBuffer = 0;
@@ -121,7 +178,7 @@ bool SSPI_Handshake(
 		SSPI_Handle.InputFlags, 
 		0, 
 		0, 
-		nullptr, 
+		InputBufferDescPointer, 
 		0, 
 		&SSPI_Handle.ContextHandle, 
 		&OutputBufferDesc, 
@@ -136,6 +193,9 @@ bool SSPI_Handshake(
 		return false;
 	}
 	else {
+		InputBufferPointer.reset();
+		InputBufferDescPointer = nullptr;
+
 	//Connect to server.
 		auto RecvLen = SocketConnecting(IPPROTO_TCP, SocketDataList.front().Socket, reinterpret_cast<sockaddr *>(&SocketDataList.front().SockAddr), SocketDataList.front().AddrLen, reinterpret_cast<const uint8_t *>(OutputBufferSec[0].pvBuffer), OutputBufferSec[0].cbBuffer);
 		if (RecvLen == EXIT_FAILURE)
@@ -469,6 +529,7 @@ bool SSPI_DecryptPacket(
 
 //Transport with TLS security connection
 bool TLS_TransportSerial(
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const size_t PacketMinSize, 
 	SSPI_HANDLE_TABLE &SSPI_Handle, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
@@ -570,7 +631,7 @@ bool SSPI_ShutdownConnection(
 		SSPI_SNI = reinterpret_cast<SEC_WCHAR *>(const_cast<wchar_t *>(Parameter.HTTP_CONNECT_TLS_SNI->c_str()));
 	DWORD OutputFlags = 0;
 
-//Send "Close notify" to server to notify shutdown connection.
+//Send "Close Notify" to server to notify shutdown connection.
 	SSPI_Handle.LastReturnValue = InitializeSecurityContextW(
 		&SSPI_Handle.ClientCredentials, 
 		&SSPI_Handle.ContextHandle, 
@@ -659,9 +720,9 @@ void OpenSSL_Library_Init(
 //Load all OpenSSL libraries, algorithms and strings.
 	if (IsLoad)
 	{
-	#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0 //OpenSSL version after 1.1.0
+	#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0 //OpenSSL version 1.1.0 and above
 		OPENSSL_init_ssl(0, nullptr);
-	#else //OpenSSL version before 1.1.0
+	#else //OpenSSL version below 1.1.0
 		SSL_library_init();
 		OpenSSL_add_all_algorithms();
 		SSL_load_error_strings();
@@ -669,7 +730,7 @@ void OpenSSL_Library_Init(
 		OPENSSL_config(nullptr);
 	#endif
 	}
-#if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_1_0 //OpenSSL version brfore 1.1.0
+#if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_1_0 //OpenSSL version below 1.1.0
 	else { //Unoad all OpenSSL libraries, algorithms and strings.
 		CONF_modules_unload(TRUE);
 		ERR_free_strings();
@@ -684,11 +745,11 @@ void OpenSSL_Library_Init(
 bool OpenSSL_CTX_Initializtion(
 	OPENSSL_CONTEXT_TABLE &OpenSSL_CTX)
 {
-	ssize_t Result = 0;
+	ssize_t Result = 0, InnerResult = 0;
 
 //TLS version selection(Part 1)
-#if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_0_1 //OpenSSL version before 1.0.1
-	if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_0) //OpenSSL version before 1.0.1 only support TLS version 1.0
+#if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_0_1 //OpenSSL version below 1.0.1
+	if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_0) //OpenSSL version below 1.0.1 only support TLS version 1.0
 		OpenSSL_CTX.MethodContext = SSL_CTX_new(TLSv1_0_method());
 	else //Auto-select
 		OpenSSL_CTX.MethodContext = SSL_CTX_new(SSLv23_method());
@@ -701,8 +762,8 @@ bool OpenSSL_CTX_Initializtion(
 		OpenSSL_CTX.MethodContext = SSL_CTX_new(TLSv1_method());
 	else //Auto select
 		OpenSSL_CTX.MethodContext = SSL_CTX_new(SSLv23_method());
-#else //OpenSSL version after 1.1.0
-	OpenSSL_CTX.MethodContext = SSL_CTX_new(TLS_method()); //TLS selection after OpenSSL version 1.1.0 must set flags of method context.
+#else //OpenSSL version 1.1.0 and above
+	OpenSSL_CTX.MethodContext = SSL_CTX_new(TLS_method()); //TLS selection in OpenSSL version 1.1.0 and above must set flags of method context.
 #endif
 
 //Create new client-method instance.
@@ -713,28 +774,29 @@ bool OpenSSL_CTX_Initializtion(
 	}
 	
 //TLS version selection(Part 2)
-#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0 //OpenSSL version after 1.1.0
+#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0 //OpenSSL version 1.1.0 and above
+	InnerResult = TRUE;
 	if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_2)
 	{
 		Result = SSL_CTX_set_min_proto_version(OpenSSL_CTX.MethodContext, TLS1_2_VERSION);
-		Result = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, TLS1_2_VERSION);
+		InnerResult = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, TLS1_2_VERSION);
 	}
 	else if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_1)
 	{
 		Result = SSL_CTX_set_min_proto_version(OpenSSL_CTX.MethodContext, TLS1_1_VERSION);
-		Result = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, TLS1_1_VERSION);
+		InnerResult = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, TLS1_1_VERSION);
 	}
 	else if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_0)
 	{
 		Result = SSL_CTX_set_min_proto_version(OpenSSL_CTX.MethodContext, TLS1_VERSION);
-		Result = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, TLS1_VERSION);
+		InnerResult = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, TLS1_VERSION);
 	}
-	else { //Setting the minimum or maximum version to 0, will enable protocol versions down to the lowest version, or up to the highest version supported by the library, respectively.
+	else { //Setting the minimum or maximum version to 0 will enable protocol versions down to the lowest version, or up to the highest version supported by the library, respectively.
 		Result = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, 0);
 	}
 
 //TLS selection check
-	if (Result == FALSE)
+	if (Result == FALSE || InnerResult == FALSE)
 	{
 		OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL TLS version selection ");
 		return false;
@@ -746,6 +808,36 @@ bool OpenSSL_CTX_Initializtion(
 	SSL_CTX_set_options(OpenSSL_CTX.MethodContext, SSL_OP_NO_SSLv3); //Block SSLv3 protocol
 	SSL_CTX_set_options(OpenSSL_CTX.MethodContext, SSL_OP_NO_COMPRESSION); //Block TLS compression
 	SSL_CTX_set_options(OpenSSL_CTX.MethodContext, SSL_OP_SINGLE_DH_USE); //Always create a new key when using temporary/ephemeral DH parameters.
+
+//TLS ALPN extension settings
+#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_0_2 //OpenSSL version 1.0.2 and above
+	if (Parameter.HTTP_CONNECT_TLS_ALPN)
+	{
+		if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1)
+		{
+			static unsigned char HTTP1_ALPN_Vector[] = HTTP1_TLS_ALPN_STRING;
+			Result = SSL_CTX_set_alpn_protos(OpenSSL_CTX.MethodContext, HTTP1_ALPN_Vector, sizeof(HTTP1_ALPN_Vector));
+		}
+		else if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
+		{
+			static unsigned char HTTP2_ALPN_Vector[] = HTTP2_TLS_ALPN_STRING;
+			Result = SSL_CTX_set_alpn_protos(OpenSSL_CTX.MethodContext, HTTP2_ALPN_Vector, sizeof(HTTP2_ALPN_Vector));
+		}
+		else {
+			OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL set ALPN extension ");
+			return false;
+		}
+
+	//Result check
+		if (Result != 0)
+		{
+			OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL set ALPN extension ");
+			return false;
+		}
+	}
+#endif
+
+//TLS certificate store location and verification settings
 	if (Parameter.HTTP_CONNECT_TLS_Validation)
 	{
 	//Locate default certificate store.
@@ -813,9 +905,9 @@ bool OpenSSL_BIO_Initializtion(
 		SSL_set_tlsext_host_name(OpenSSL_CTX.SessionData, Parameter.MBS_HTTP_CONNECT_TLS_SNI->c_str()); //TLS Server Name Indication/SNI
 
 //Set ciphers suites.
-#if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_0_1 //OpenSSL version before 1.0.1
+#if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_0_1 //OpenSSL version below 1.0.1
 	Result = SSL_set_cipher_list(OpenSSL_CTX.SessionData, OPENSSL_CIPHER_LIST_COMPATIBILITY);
-#else //OpenSSL version after 1.0.1
+#else //OpenSSL version 1.0.1 and above
 	if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_0 || Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_1)
 		Result = SSL_set_cipher_list(OpenSSL_CTX.SessionData, OPENSSL_CIPHER_LIST_COMPATIBILITY);
 	else //Auto select and newer TLS version
@@ -827,8 +919,8 @@ bool OpenSSL_BIO_Initializtion(
 		return false;
 	}
 
-//Built-in functionality for hostname checking and validation after OpenSSL 1.0.2.
-#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_0_2 //OpenSSL version after 1.0.2
+//Built-in functionality for hostname checking and validation OpenSSL 1.0.2 and above.
+#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_0_2 //OpenSSL version 1.0.2 and above
 	if (Parameter.HTTP_CONNECT_TLS_Validation && Parameter.MBS_HTTP_CONNECT_TLS_SNI != nullptr && !Parameter.MBS_HTTP_CONNECT_TLS_SNI->empty())
 	{
 	//Get certificate paremeter.
@@ -1031,7 +1123,8 @@ bool TLS_TransportSerial(
 		else {
 			SocketSelectingDataList.front().RecvLen += RecvLen;
 			if (RecvLen < static_cast<ssize_t>(Parameter.LargeBufferSize) && SocketSelectingDataList.front().RecvLen >= PacketMinSize && 
-				(RequestType != REQUEST_PROCESS_TYPE::TCP || //Only TCP DNS response should be check.
+				((RequestType != REQUEST_PROCESS_TYPE::TCP && //Only TCP DNS response should be check.
+				RequestType != REQUEST_PROCESS_TYPE::HTTP_CONNECT_MAIN && RequestType != REQUEST_PROCESS_TYPE::HTTP_CONNECT_1 && RequestType != REQUEST_PROCESS_TYPE::HTTP_CONNECT_2) || //Only HTTP CONNECT response should be check.
 				CheckConnectionStreamFin(RequestType, SocketSelectingDataList.front().RecvBuffer.get(), SocketSelectingDataList.front().RecvLen)))
 					return true;
 		}
@@ -1048,7 +1141,7 @@ bool OpenSSL_ShutdownConnection(
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> SocketSelectingDataList(1U);
 	ssize_t Result = 0;
 
-//Send "Close notify" to server to notify shutdown connection.
+//Send "Close Notify" to server to notify shutdown connection.
 	while (Result == 0)
 	{
 	//Shutdown security connection.

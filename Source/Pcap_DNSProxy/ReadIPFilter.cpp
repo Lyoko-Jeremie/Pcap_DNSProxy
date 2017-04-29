@@ -254,7 +254,9 @@ bool ReadBlacklistData(
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
-				AddressRangeTableTemp.Begin.ss_family = AF_INET6;
+				else {
+					AddressRangeTableTemp.Begin.ss_family = AF_INET6;
+				}
 
 			//Convert address(End).
 				memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
@@ -264,7 +266,9 @@ bool ReadBlacklistData(
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
-				AddressRangeTableTemp.End.ss_family = AF_INET6;
+				else {
+					AddressRangeTableTemp.End.ss_family = AF_INET6;
+				}
 
 			//Check address range.
 				if (AddressesComparing(AF_INET6, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin))->sin6_addr, &(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.End))->sin6_addr) > ADDRESS_COMPARE_TYPE::EQUAL)
@@ -331,7 +335,9 @@ bool ReadBlacklistData(
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
-				AddressRangeTableTemp.Begin.ss_family = AF_INET;
+				else {
+					AddressRangeTableTemp.Begin.ss_family = AF_INET;
+				}
 
 			//Convert address(End).
 				memset(AddrBuffer, 0, ADDRESS_STRING_MAXSIZE);
@@ -341,7 +347,9 @@ bool ReadBlacklistData(
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address format error", Result, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
-				AddressRangeTableTemp.End.ss_family = AF_INET;
+				else {
+					AddressRangeTableTemp.End.ss_family = AF_INET;
+				}
 
 			//Check address range.
 				if (AddressesComparing(AF_INET, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin))->sin_addr, &(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.End))->sin_addr) > ADDRESS_COMPARE_TYPE::EQUAL)
@@ -404,7 +412,7 @@ bool ReadBlacklistData(
 		}
 	}
 
-//Add to global list.
+//Mark to global list.
 	for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
 	{
 		if (IPFilterFileSetIter.FileIndex == FileIndex)
@@ -473,7 +481,7 @@ bool ReadLocalRoutingData(
 			AddressRoutingTableTemp.Prefix = UnsignedResult;
 		}
 
-	//Add to global list(IPv6).
+	//IPv6 mark to global list.
 		std::set<uint64_t> AddrBackSet;
 		for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
 		{
@@ -511,7 +519,7 @@ bool ReadLocalRoutingData(
 					}
 				}
 
-			//Jump here to add new item to global list.
+			//Jump here to mark to global list.
 			AddToGlobalList_IPv6:
 				AddrBackSet.clear();
 				if (AddressRoutingTableTemp.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
@@ -553,7 +561,7 @@ bool ReadLocalRoutingData(
 			AddressRoutingTableTemp.Prefix = UnsignedResult;
 		}
 
-	//Add to global list(IPv4).
+	//IPv4 mark to global list.
 		for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
 		{
 			if (IPFilterFileSetIter.FileIndex == FileIndex)
@@ -574,7 +582,7 @@ bool ReadLocalRoutingData(
 					}
 				}
 
-			//Jump here to add new item to global list.
+			//Jump here to mark to global list.
 			AddToGlobalList_IPv4:
 				AddressRoutingTableTemp.AddressRoutingList_IPv4.insert(htonl(BinaryAddr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
 				IPFilterFileSetIter.LocalRoutingList.push_back(AddressRoutingTableTemp);
@@ -894,7 +902,7 @@ bool ReadMainIPFilterData(
 		}
 	}
 
-//Add to global list.
+//Mark to global list.
 	for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
 	{
 		if (IPFilterFileSetIter.FileIndex == FileIndex)

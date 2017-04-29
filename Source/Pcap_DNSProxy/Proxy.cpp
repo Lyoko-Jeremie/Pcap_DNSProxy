@@ -116,7 +116,7 @@
 *** Client <-> Server: UDP datagram...
 *** TCP connection between client and server must be kept alive until UDP transmission is finished.
 
-* HTTP CONNECT tunnel
+* HTTP version 1.x CONNECT tunnel
 ** TLS connection handshake
 ** Client -> Server: HTTP CONNECT method request
   * CONNECT TargetDomain:Port HTTP/version\r\n
@@ -125,12 +125,37 @@
   * Proxy-Authentication: Basic "Base64 of Username:Password"\r\n
   * \r\n
 ** Server -> Client: Server HTTP CONNECT response
-  * HTTP/version 200 ...\r\n
+  * HTTP/1.0 200 Connection established\r\n or HTTP/1.1 200 Connection established\r\n
   * Other HTTP headers...\r\n
   * \r\n
 ** Client <-> Server: Data stream...
 ** TLS connection shutdown
 
+* HTTP version 2 CONNECT tunnel
+** TLS connection handshake
+  * Must with ALPN extension "h2"
+** Client -> Server: HTTP CONNECT method request
+  * Magic frame: PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n
+  * SETTINGS frame: 
+    * Max concurrent streams: 100
+  * HEADERS frame: 
+    * :method CONNECT
+    * :authority TargetDomain:Port
+    * Other HTTP headers...
+    * proxy-authentication: Basic "Base64 of Username:Password"
+** Server -> Client: Server HTTP CONNECT response
+  * SETTINGS frame: Server settings
+  * SETTINGS frame: Client SETTINGS frame ACK
+  * HEADERS frame: 
+    * :status: 200
+    * Other HTTP headers...
+** Client -> Server: Client HTTP CONNECT response
+  * SETTINGS frame: Server SETTINGS frame ACK
+** Client <-> Server: Data stream...
+  * DATA frame
+** Client -> Server: Client HTTP CONNECT shutdown notify
+  * GOAWAY frame
+** TLS connection shutdown
 */
 
 //Transmission and reception of SOCKS protocol(TCP)
@@ -207,7 +232,7 @@ size_t SOCKS_TCP_Request(
 	}
 
 //Add length of request packet(It must be written in header when transport with TCP protocol).
-	if (SocketSelectingDataList.front().SendSize < SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES)
+	if (SocketSelectingDataList.front().SendSize <= SendSize + sizeof(uint16_t))
 	{
 		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES]());
 		memset(SendBuffer.get(), 0, SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES);
@@ -426,12 +451,12 @@ size_t SOCKS_UDP_Request(
 	}
 
 //Buffer initialization(Part 1)
-	if (UDPSocketSelectingDataList.front().SendSize < Parameter.LargeBufferSize)
+	if (UDPSocketSelectingDataList.front().SendSize <= Parameter.LargeBufferSize)
 	{
-		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[Parameter.LargeBufferSize]());
-		memset(SendBuffer.get(), 0, Parameter.LargeBufferSize);
+		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
+		memset(SendBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 		std::swap(UDPSocketSelectingDataList.front().SendBuffer, SendBuffer);
-		UDPSocketSelectingDataList.front().SendSize = Parameter.LargeBufferSize;
+		UDPSocketSelectingDataList.front().SendSize = Parameter.LargeBufferSize + PADDING_RESERVED_BYTES;
 		UDPSocketSelectingDataList.front().SendLen = 0;
 	}
 
@@ -565,7 +590,7 @@ size_t SOCKS_UDP_Request(
 
 	//Response check
 		RecvLen = CheckResponseData(
-			REQUEST_PROCESS_TYPE::HTTP_CONNECT, 
+			REQUEST_PROCESS_TYPE::SOCKS_MAIN, 
 			UDPSocketSelectingDataList.front().RecvBuffer.get(), 
 			UDPSocketSelectingDataList.front().RecvLen, 
 			UDPSocketSelectingDataList.front().RecvSize, 
@@ -597,23 +622,23 @@ bool SOCKS_SelectionExchange(
 		return false;
 
 //Buffer initialization
-	if (SocketSelectingDataList.front().SendSize < sizeof(socks_client_selection))
+	if (SocketSelectingDataList.front().SendSize <= sizeof(socks_client_selection))
 	{
-		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[sizeof(socks_client_selection)]());
-		memset(SendBuffer.get(), 0, sizeof(socks_client_selection));
+		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[sizeof(socks_client_selection) + PADDING_RESERVED_BYTES]());
+		memset(SendBuffer.get(), 0, sizeof(socks_client_selection) + PADDING_RESERVED_BYTES);
 		std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
-		SocketSelectingDataList.front().SendSize = sizeof(socks_client_selection);
+		SocketSelectingDataList.front().SendSize = sizeof(socks_client_selection) + PADDING_RESERVED_BYTES;
 		SocketSelectingDataList.front().SendLen = 0;
 	}
 
 //Client selection packet
 	(reinterpret_cast<socks_client_selection *>(SocketSelectingDataList.front().SendBuffer.get()))->Version = SOCKS_VERSION_5;
-	(reinterpret_cast<socks_client_selection *>(SocketSelectingDataList.front().SendBuffer.get()))->Methods_A = SOCKS_METHOD_NO_AUTHENTICATION_REQUIRED;
+	(reinterpret_cast<socks_client_selection *>(SocketSelectingDataList.front().SendBuffer.get()))->Methods_1 = SOCKS_METHOD_NO_AUTHENTICATION_REQUIRED;
 	if (Parameter.SOCKS_Username != nullptr && !Parameter.SOCKS_Username->empty() && 
 		Parameter.SOCKS_Password != nullptr && !Parameter.SOCKS_Password->empty())
 	{
 		(reinterpret_cast<socks_client_selection *>(SocketSelectingDataList.front().SendBuffer.get()))->Methods_Number = SOCKS_METHOD_SUPPORT_NUM;
-		(reinterpret_cast<socks_client_selection *>(SocketSelectingDataList.front().SendBuffer.get()))->Methods_B = SOCKS_METHOD_USERNAME_PASSWORD;
+		(reinterpret_cast<socks_client_selection *>(SocketSelectingDataList.front().SendBuffer.get()))->Methods_2 = SOCKS_METHOD_USERNAME_PASSWORD;
 		SocketSelectingDataList.front().SendLen = sizeof(socks_client_selection);
 	}
 	else {
@@ -685,7 +710,7 @@ bool SOCKS_SelectionExchange(
 		//Not support or error
 			default:
 			{
-				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::SOCKS, L"Authentication method not support", 0, nullptr, 0);
+				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::SOCKS, L"Authentication method is not supported", 0, nullptr, 0);
 				return false;
 			}
 		}
@@ -705,12 +730,12 @@ bool SOCKS_AuthenticationExchange(
 		return false;
 
 //Buffer initialization
-	if (SocketSelectingDataList.front().SendSize < sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_Username->length() + Parameter.SOCKS_Password->length())
+	if (SocketSelectingDataList.front().SendSize <= sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_Username->length() + Parameter.SOCKS_Password->length())
 	{
-		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_Username->length() + Parameter.SOCKS_Password->length()]());
-		memset(SendBuffer.get(), 0, sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_Username->length() + Parameter.SOCKS_Password->length());
+		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_Username->length() + Parameter.SOCKS_Password->length() + PADDING_RESERVED_BYTES]());
+		memset(SendBuffer.get(), 0, sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_Username->length() + Parameter.SOCKS_Password->length() + PADDING_RESERVED_BYTES);
 		std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
-		SocketSelectingDataList.front().SendSize = sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_Username->length() + Parameter.SOCKS_Password->length();
+		SocketSelectingDataList.front().SendSize = sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_Username->length() + Parameter.SOCKS_Password->length() + PADDING_RESERVED_BYTES;
 		SocketSelectingDataList.front().SendLen = 0;
 	}
 
@@ -756,12 +781,12 @@ bool SOCKS_ClientCommandRequest(
 		return false;
 
 //Buffer initialization
-	if (SocketSelectingDataList.front().SendSize < Parameter.LargeBufferSize)
+	if (SocketSelectingDataList.front().SendSize <= Parameter.LargeBufferSize)
 	{
-		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[Parameter.LargeBufferSize]());
-		memset(SendBuffer.get(), 0, Parameter.LargeBufferSize);
+		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
+		memset(SendBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 		std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
-		SocketSelectingDataList.front().SendSize = Parameter.LargeBufferSize;
+		SocketSelectingDataList.front().SendSize = Parameter.LargeBufferSize + PADDING_RESERVED_BYTES;
 		SocketSelectingDataList.front().SendLen = 0;
 	}
 
@@ -973,6 +998,540 @@ bool SOCKS_ClientCommandRequest(
 	return true;
 }
 
+//HTTP version 2 SETTINGS frame write bytes
+void HTTP_CONNECT_2_SETTINGS_WriteBytes(
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	const uint16_t Identifier, 
+	const uint32_t Value)
+{
+	(reinterpret_cast<http2_settings_frame *>(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen))->Identifier = htons(Identifier);
+	(reinterpret_cast<http2_settings_frame *>(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen))->Value = htonl(Value);
+	SocketSelectingDataList.front().SendLen += sizeof(http2_settings_frame);
+
+	return;
+}
+
+//HTTP version 2 HPACK integer representation encoding
+void HTTP_CONNECT_2_IntegerEncoding(
+	std::vector<uint8_t> &BytesList, 
+	size_t IntegerValue)
+{
+//N is 7 when disable Huffman, so the highest bit is 0.
+//Pseudocode to represent an integer I is as follows:
+//	if I < 2 ^ N(7) - 1, encode I on N(7) bits
+//	else
+//		encode (2 ^ N(7) - 1) on N(7) bits
+//		I = I - (2 ^ N(7) - 1)
+//		while I >= 128
+//			encode (I % 128 + 128) on 8 bits
+//			I = I / 128
+//		encode I on 8 bits
+	BytesList.clear();
+	if (IntegerValue < HTTP2_HEADERS_INTEGER_LOW_BITS)
+	{
+		const auto ValueBytes = static_cast<uint8_t>(IntegerValue);
+		BytesList.push_back(ValueBytes);
+	}
+	else {
+		uint8_t ValueBytes = HTTP2_HEADERS_INTEGER_LOW_BITS;
+		BytesList.push_back(ValueBytes);
+		IntegerValue -= HTTP2_HEADERS_INTEGER_LOW_BITS;
+
+		while (IntegerValue >= HTTP2_HEADERS_INTEGER_WHOLE_BITS)
+		{
+			ValueBytes = IntegerValue % HTTP2_HEADERS_INTEGER_WHOLE_BITS + HTTP2_HEADERS_INTEGER_WHOLE_BITS;
+			BytesList.push_back(ValueBytes);
+			IntegerValue /= HTTP2_HEADERS_INTEGER_WHOLE_BITS;
+		}
+
+		ValueBytes = static_cast<uint8_t>(IntegerValue);
+		BytesList.push_back(ValueBytes);
+	}
+
+	return;
+}
+
+//HTTP version 2 HPACK Header Compression write bytes
+bool HTTP_CONNECT_2_HEADERS_WriteBytes(
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	const uint8_t *Buffer, 
+	const size_t Length, 
+	const bool IsLiteralFlag)
+{
+//Buffer initialization
+	size_t ExtendedSize = DEFAULT_LARGE_BUFFER_SIZE;
+	if (Length >= DEFAULT_LARGE_BUFFER_SIZE)
+		ExtendedSize += Length + DEFAULT_LARGE_BUFFER_SIZE;
+	if (SocketSelectingDataList.front().SendSize <= SocketSelectingDataList.front().SendLen + ExtendedSize)
+	{
+		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[SocketSelectingDataList.front().SendSize + ExtendedSize + PADDING_RESERVED_BYTES]());
+		memset(SendBuffer.get(), 0, SocketSelectingDataList.front().SendSize + ExtendedSize + PADDING_RESERVED_BYTES);
+		memcpy_s(SendBuffer.get(), SocketSelectingDataList.front().SendSize + ExtendedSize + PADDING_RESERVED_BYTES, SocketSelectingDataList.front().SendBuffer.get(), SocketSelectingDataList.front().SendLen);
+		std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
+		SocketSelectingDataList.front().SendSize += ExtendedSize + PADDING_RESERVED_BYTES;
+	}
+
+//Write literal header field flags.
+	if (IsLiteralFlag)
+	{
+		*(reinterpret_cast<uint8_t *>(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen)) = HTTP2_HEADERS_LITERAL_NEVER_INDEXED;
+		SocketSelectingDataList.front().SendLen += sizeof(uint8_t);
+	}
+
+//Write length bytes.
+	std::vector<uint8_t> IntegerList;
+	HTTP_CONNECT_2_IntegerEncoding(IntegerList, Length);
+	if (!IntegerList.empty() && IntegerList.size() <= sizeof(uint8_t) + sizeof(uint16_t)) //The integer value is small enough, or extend more 8 or 16 bits to store.
+	{
+		for (const auto &IntegerIter:IntegerList)
+		{
+			*(reinterpret_cast<uint8_t *>(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen)) = IntegerIter;
+			SocketSelectingDataList.front().SendLen += sizeof(uint8_t);
+		}
+	}
+	else {
+		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HTTP_CONNECT, L"HTTP CONNECT header field data error", 0, nullptr, 0);
+		return false;
+	}
+
+//Write value bytes.
+	memcpy_s(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen, SocketSelectingDataList.front().SendSize - SocketSelectingDataList.front().SendLen, Buffer, Length);
+	SocketSelectingDataList.front().SendLen += Length;
+	return true;
+}
+
+//HTTP version 2 HPACK integer representation decoding
+size_t HTTP_CONNECT_2_IntegerDecoding(
+	uint8_t *Buffer, 
+	const size_t Length, 
+	size_t &IntegerValue)
+{
+//N is 7 when disable Huffman, so the highest bit is 0.
+//Decode I from the next N(7) bits
+//	if I < 2 ^ N(7) - 1, return I
+//	else
+//		M = 0
+//		repeat
+//			B = next octet
+//			I = I + (B & 127) * 2 ^ M
+//			M = M + 7
+//		while B & 128 == 128
+//		return I
+	IntegerValue = (*Buffer) & HTTP2_HEADERS_INTEGER_LOW_BITS;
+	if (*Buffer < HTTP2_HEADERS_INTEGER_LOW_BITS)
+	{
+		IntegerValue = *Buffer;
+		return sizeof(uint8_t);
+	}
+	else {
+		size_t IntegerSize = sizeof(uint8_t), Shift = 0;
+		IntegerValue = HTTP2_HEADERS_INTEGER_LOW_BITS;
+		for (;;)
+		{
+			if (IntegerSize >= Length)
+				return 0;
+			auto BytesData = *(Buffer + IntegerSize);
+			IntegerSize += sizeof(uint8_t);
+			if ((BytesData & HTTP2_HEADERS_INTEGER_WHOLE_BITS) != 0)
+			{
+				IntegerValue += static_cast<size_t>(BytesData & HTTP2_HEADERS_INTEGER_LOW_BITS) << Shift;
+				Shift += 7U;
+			}
+			else {
+				IntegerValue += static_cast<size_t>(BytesData) << Shift;
+				break;
+			}
+		}
+
+		return IntegerSize;
+	}
+
+	return 0;
+}
+
+//HTTP version 2 HPACK Header Compression read bytes
+bool HTTP_CONNECT_2_HEADERS_ReadBytes(
+	std::vector<std::string> &HeaderList, 
+	const uint8_t *Buffer, 
+	const size_t Length)
+{
+	size_t IntegerSize = 0, LiteralSize = 0;
+	for (size_t Index = 0;Index < Length;)
+	{
+	//String literal type check
+		if (((*(Buffer + Index)) & HTTP2_HEADERS_LITERAL_LOW_BITS) != 0 || //Literal Header Field with Indexed Names are not supported.
+			(((*(Buffer + Index)) & HTTP2_HEADERS_LITERAL_HIGH_BITS) != HTTP2_HEADERS_LITERAL_WITHOUT_INDEXED && //Literal Header Field without Indexing
+			((*(Buffer + Index)) & HTTP2_HEADERS_LITERAL_HIGH_BITS) != HTTP2_HEADERS_LITERAL_NEVER_INDEXED) || //Literal Header Field Never Indexed
+			(Index + sizeof(uint8_t) > Length && *(Buffer + Index + sizeof(uint8_t)) > HTTP2_HEADERS_INTEGER_LOW_BITS)) //Huffman encoding is not supported.
+				return false;
+		else 
+			Index += sizeof(uint8_t);
+
+	//Integer and literal size check
+		IntegerSize = HTTP_CONNECT_2_IntegerDecoding(const_cast<uint8_t *>(Buffer + Index), Length - Index, LiteralSize);
+		if (IntegerSize == 0 || IntegerSize + Index > Length || LiteralSize + IntegerSize + Index > Length || LiteralSize >= UINT16_MAX_STRING_LENGTH)
+			return false;
+		else 
+			Index += IntegerSize;
+
+	//Read name and value string.
+		std::unique_ptr<uint8_t[]> HeaderBuffer(new uint8_t[LiteralSize + PADDING_RESERVED_BYTES]());
+		memset(HeaderBuffer.get(), 0, LiteralSize + PADDING_RESERVED_BYTES);
+		memcpy_s(HeaderBuffer.get(), LiteralSize + PADDING_RESERVED_BYTES, Buffer + Index, LiteralSize);
+		HeaderList.push_back(reinterpret_cast<char *>(HeaderBuffer.get()));
+		Index += LiteralSize;
+	}
+
+	return true;
+}
+
+//HTTP CONNECT response bytes check
+bool HTTP_CONNECT_ResponseBytesCheck(
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList)
+{
+	auto IsGotResponseResult = false;
+
+//HTTP version 1.x response check
+	if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1)
+	{
+	//Length check
+		if (strnlen_s(reinterpret_cast<const char *>(SocketSelectingDataList.front().RecvBuffer.get()), SocketSelectingDataList.front().RecvLen + PADDING_RESERVED_BYTES) > SocketSelectingDataList.front().RecvLen)
+			goto PrintDataFormatError;
+
+	//HTTP version 1.x response
+		std::string HTTP_String(reinterpret_cast<const char *>(SocketSelectingDataList.front().RecvBuffer.get()));
+		if (CheckConnectionStreamFin(REQUEST_PROCESS_TYPE::HTTP_CONNECT_1, reinterpret_cast<const uint8_t *>(HTTP_String.c_str()), HTTP_String.length()))
+		{
+			IsGotResponseResult = true;
+		}
+		else if (HTTP_String.compare(0, strlen("HTTP/"), ("HTTP/")) == 0 && 
+			HTTP_String.find(ASCII_SPACE) != std::string::npos && HTTP_String.find("\r\n\r\n") != std::string::npos)
+		{
+			if (HTTP_String.find("\r\n") != std::string::npos)
+				HTTP_String.erase(HTTP_String.find("\r\n"), HTTP_String.length() - HTTP_String.find("\r\n"));
+			else 
+				HTTP_String.erase(HTTP_String.find("\r\n\r\n"), HTTP_String.length() - HTTP_String.find("\r\n"));
+			std::wstring Message;
+			if (!MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(HTTP_String.c_str()), HTTP_String.length(), Message))
+				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
+			else 
+				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::HTTP_CONNECT, Message.c_str(), 0, nullptr, 0);
+
+			return false;
+		}
+	}
+//HTTP version 2 response check
+	else if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
+	{
+	//HTTP version 1.x response, or HTTP version 2 large length is not supported.
+		if (*SocketSelectingDataList.front().RecvBuffer.get() != 0)
+		{
+		//Length check
+			if (strnlen_s(reinterpret_cast<const char *>(SocketSelectingDataList.front().RecvBuffer.get()), SocketSelectingDataList.front().RecvLen + PADDING_RESERVED_BYTES) > SocketSelectingDataList.front().RecvLen)
+				goto PrintDataFormatError;
+
+		//HTTP version 1.x response
+			std::string HTTP_String(reinterpret_cast<const char *>(SocketSelectingDataList.front().RecvBuffer.get()));
+			if (HTTP_String.compare(0, strlen("HTTP/"), ("HTTP/")) == 0 && 
+				HTTP_String.find(ASCII_SPACE) != std::string::npos && HTTP_String.find("\r\n\r\n") != std::string::npos)
+			{
+				if (HTTP_String.find("\r\n") != std::string::npos)
+					HTTP_String.erase(HTTP_String.find("\r\n"), HTTP_String.length() - HTTP_String.find("\r\n"));
+				else 
+					HTTP_String.erase(HTTP_String.find("\r\n\r\n"), HTTP_String.length() - HTTP_String.find("\r\n"));
+				std::wstring InnerMessage;
+				if (!MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(HTTP_String.c_str()), HTTP_String.length(), InnerMessage))
+				{
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
+				}
+				else {
+					std::wstring Message(L"HTTP version is not supported");
+					Message.append(InnerMessage);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::HTTP_CONNECT, Message.c_str(), 0, nullptr, 0);
+				}
+
+				return false;
+			}
+			else {
+				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::HTTP_CONNECT, L"HTTP version is not supported", 0, nullptr, 0);
+				return false;
+			}
+		}
+		else if (SocketSelectingDataList.front().RecvLen < sizeof(http2_frame_hdr))
+		{
+			goto PrintDataFormatError;
+		}
+
+	//Initialization
+		std::unique_ptr<uint8_t[]> HeaderBlockBuffer(nullptr);
+		std::vector<std::string> HeaderList;
+		size_t HeaderBlockSize = 0, HeaderBlockLength = 0;
+		uint32_t HeaderIdentifier = 0;
+
+	//HTTP version 2 response
+		for (size_t Index = 0;Index < SocketSelectingDataList.front().RecvLen;)
+		{
+		//Frame check
+			const auto FrameHeader = reinterpret_cast<http2_frame_hdr *>(SocketSelectingDataList.front().RecvBuffer.get() + Index);
+			if (Index + sizeof(http2_frame_hdr) + ntohs(FrameHeader->Length_Low) > SocketSelectingDataList.front().RecvLen || 
+			//DATA frame is not support PADDED flag.
+				(FrameHeader->Type == HTTP2_FRAME_TYPE_DATA && 
+				((FrameHeader->Flags & HTTP2_HEADERS_FLAGS_PADDED) != 0 || (FrameHeader->Flags & HTTP2_HEADERS_FLAGS_END_STREAM) != 0)) || 
+			//HEADERS frame is not support PADDED or PRIORITY flag and END_STREAM flag check.
+				(FrameHeader->Type == HTTP2_FRAME_TYPE_HEADERS && 
+				((FrameHeader->Flags & HTTP2_HEADERS_FLAGS_PADDED) != 0 || (FrameHeader->Flags & HTTP2_HEADERS_FLAGS_PRIORITY) != 0 || (FrameHeader->Flags & HTTP2_HEADERS_FLAGS_END_STREAM) != 0)) || 
+			//PRIORITY frame is not supported.
+				FrameHeader->Type == HTTP2_FRAME_TYPE_PRIORITY || 
+			//RST_STREAM frame is in the next step.
+			//SETTINGS frame is in the next step.
+			//PUSH_PROMISE frame is not supported.
+				FrameHeader->Type == HTTP2_FRAME_TYPE_PUSH_PROMISE
+			//PING frame is in the next step.
+			//GOAWAY frame is in the next step.
+			//WINDOW_UPDATE frame is ignored.
+			//CONTINUATION frame is in the next step.
+				)
+					goto PrintDataFormatError;
+			else 
+				Index += sizeof(http2_frame_hdr);
+
+		//Frame process
+			if (FrameHeader->Type == HTTP2_FRAME_TYPE_DATA || FrameHeader->Type == HTTP2_FRAME_TYPE_WINDOW_UPDATE) //DATA and WINDOW_UPDATE frame are ignored.
+			{
+				; //Do nothing.
+			}
+			else if (FrameHeader->Type == HTTP2_FRAME_TYPE_HEADERS || FrameHeader->Type == HTTP2_FRAME_TYPE_CONTINUATION) //HEADERS and CONTINUATION frame
+			{
+			//Header identifier check
+				if (FrameHeader->Type == HTTP2_FRAME_TYPE_HEADERS && HeaderIdentifier == 0)
+					HeaderIdentifier = ntohl(FrameHeader->StreamIdentifier);
+				else if (HeaderIdentifier != ntohl(FrameHeader->StreamIdentifier))
+					goto PrintDataFormatError;
+
+			//Header process
+				if (FrameHeader->Length_Low > 0)
+				{
+				//Buffer initialization
+					if (HeaderBlockSize <= HeaderBlockLength + ntohs(FrameHeader->Length_Low))
+					{
+						std::unique_ptr<uint8_t[]> HeaderBuffer(new uint8_t[HeaderBlockSize + ntohs(FrameHeader->Length_Low) + PADDING_RESERVED_BYTES]());
+						memset(HeaderBuffer.get(), 0, HeaderBlockSize + ntohs(FrameHeader->Length_Low) + PADDING_RESERVED_BYTES);
+						if (HeaderBlockBuffer)
+							memcpy_s(HeaderBuffer.get(), HeaderBlockSize + ntohs(FrameHeader->Length_Low) + PADDING_RESERVED_BYTES, HeaderBlockBuffer.get(), HeaderBlockLength);
+						std::swap(HeaderBlockBuffer, HeaderBuffer);
+						HeaderBlockSize += ntohs(FrameHeader->Length_Low) + PADDING_RESERVED_BYTES;
+					}
+
+				//Write to buffer.
+					if (HeaderBlockBuffer)
+					{
+						memcpy_s(HeaderBlockBuffer.get() + HeaderBlockLength, HeaderBlockSize - HeaderBlockLength, reinterpret_cast<const uint8_t *>(FrameHeader) + sizeof(http2_frame_hdr), ntohs(FrameHeader->Length_Low));
+						HeaderBlockLength += ntohs(FrameHeader->Length_Low);
+					}
+					else {
+						goto PrintDataFormatError;
+					}
+
+				//Header whole packet
+					if ((FrameHeader->Flags & HTTP2_HEADERS_FLAGS_END_HEADERS) != 0)
+					{
+						if (HTTP_CONNECT_2_HEADERS_ReadBytes(HeaderList, HeaderBlockBuffer.get(), HeaderBlockLength) && !HeaderList.empty())
+						{
+							auto IsStatusField = false;
+							for (const auto &StringIter:HeaderList)
+							{
+							//Fixed header :status field
+								if (StringIter == (":status"))
+								{
+									IsStatusField = true;
+								}
+								else if (IsStatusField)
+								{
+								//Status code 200
+									if (StringIter == ("200"))
+									{
+										IsGotResponseResult = true;
+										break;
+									}
+								//Other status code
+									else {
+										std::wstring InnerMessage;
+										if (!MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(StringIter.c_str()), StringIter.length(), InnerMessage))
+										{
+											PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
+										}
+										else {
+											std::wstring Message(L"HTTP CONNECT server response error: ");
+											Message.append(InnerMessage);
+											PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::HTTP_CONNECT, Message.c_str(), 0, nullptr, 0);
+										}
+									}
+
+									return false;
+								}
+							}
+						}
+
+						goto PrintDataFormatError;
+					}
+				}
+			}
+			else if (FrameHeader->Type == HTTP2_FRAME_TYPE_RST_STREAM && Index + sizeof(http2_rst_stream_frame) <= SocketSelectingDataList.front().RecvLen) //RST_STREAM frame
+			{
+				std::wstring Message(L"HTTP CONNECT server response error");
+				HTTP_CONNECT_2_PrintLog(ntohl(reinterpret_cast<http2_rst_stream_frame *>(SocketSelectingDataList.front().RecvBuffer.get() + Index)->ErrorCode), Message);
+				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::HTTP_CONNECT, Message.c_str(), 0, nullptr, 0);
+				
+				return false;
+			}
+			else if (FrameHeader->Type == HTTP2_FRAME_TYPE_SETTINGS && Index + sizeof(http2_settings_frame) <= SocketSelectingDataList.front().RecvLen) //SETTINGS frame
+			{
+				if ((FrameHeader->Flags & HTTP2_SETTINGS_FLAGS_ACK) == 0) //Server SETTINGS frame with ACK flag is ignored.
+				{
+				//Buffer initialization
+					if (SocketSelectingDataList.front().SendSize <= SocketSelectingDataList.front().SendLen + DEFAULT_LARGE_BUFFER_SIZE)
+					{
+						std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[SocketSelectingDataList.front().SendSize + DEFAULT_LARGE_BUFFER_SIZE + PADDING_RESERVED_BYTES]());
+						memset(SendBuffer.get(), 0, SocketSelectingDataList.front().SendSize + DEFAULT_LARGE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
+						memcpy_s(SendBuffer.get(), SocketSelectingDataList.front().SendSize + DEFAULT_LARGE_BUFFER_SIZE + PADDING_RESERVED_BYTES, SocketSelectingDataList.front().SendBuffer.get(), SocketSelectingDataList.front().SendLen);
+						std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
+						SocketSelectingDataList.front().SendSize += DEFAULT_LARGE_BUFFER_SIZE + PADDING_RESERVED_BYTES;
+					}
+
+				//SETTINGS frame response
+					memcpy_s(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen, SocketSelectingDataList.front().SendSize - SocketSelectingDataList.front().SendLen, FrameHeader, sizeof(http2_frame_hdr));
+					reinterpret_cast<http2_frame_hdr *>(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen)->Length_Low = 0;
+					reinterpret_cast<http2_frame_hdr *>(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen)->Flags = HTTP2_SETTINGS_FLAGS_ACK;
+					SocketSelectingDataList.front().SendLen += sizeof(http2_frame_hdr);
+				}
+			}
+			else if (FrameHeader->Type == HTTP2_FRAME_TYPE_PING && Index + sizeof(http2_ping_frame) <= SocketSelectingDataList.front().RecvLen) //PING frame
+			{
+				if ((FrameHeader->Flags & HTTP2_PING_FLAGS_ACK) == 0) //Server PING frame with ACK flag is ignored.
+				{
+				//Buffer initialization
+					if (SocketSelectingDataList.front().SendSize <= SocketSelectingDataList.front().SendLen + DEFAULT_LARGE_BUFFER_SIZE)
+					{
+						std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[SocketSelectingDataList.front().SendSize + DEFAULT_LARGE_BUFFER_SIZE + PADDING_RESERVED_BYTES]());
+						memset(SendBuffer.get(), 0, SocketSelectingDataList.front().SendSize + DEFAULT_LARGE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
+						memcpy_s(SendBuffer.get(), SocketSelectingDataList.front().SendSize + DEFAULT_LARGE_BUFFER_SIZE + PADDING_RESERVED_BYTES, SocketSelectingDataList.front().SendBuffer.get(), SocketSelectingDataList.front().SendLen);
+						std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
+						SocketSelectingDataList.front().SendSize += DEFAULT_LARGE_BUFFER_SIZE + PADDING_RESERVED_BYTES;
+					}
+
+				//PING frame response
+					memcpy_s(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen, SocketSelectingDataList.front().SendSize - SocketSelectingDataList.front().SendLen, FrameHeader, sizeof(http2_frame_hdr) + sizeof(http2_ping_frame));
+					reinterpret_cast<http2_frame_hdr *>(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen)->Flags = HTTP2_PING_FLAGS_ACK;
+					SocketSelectingDataList.front().SendLen += sizeof(http2_frame_hdr) + sizeof(http2_ping_frame);
+				}
+			}
+			else if (FrameHeader->Type == HTTP2_FRAME_TYPE_GOAWAY && Index + sizeof(http2_goaway_frame) <= SocketSelectingDataList.front().RecvLen) //GOAWAY frame
+			{
+				std::wstring Message(L"HTTP CONNECT server response error");
+				HTTP_CONNECT_2_PrintLog(ntohl(reinterpret_cast<http2_goaway_frame *>(SocketSelectingDataList.front().RecvBuffer.get() + Index)->ErrorCode), Message);
+				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::HTTP_CONNECT, Message.c_str(), 0, nullptr, 0);
+
+				return false;
+			}
+			else { //Other unknown frame
+				goto PrintDataFormatError;
+			}
+
+		//Length check
+			if (Index + ntohs(FrameHeader->Length_Low) == SocketSelectingDataList.front().RecvLen)
+				break;
+			else 
+				Index += ntohs(FrameHeader->Length_Low);
+		}
+	}
+
+//Get HTTP status code 200.
+	if (IsGotResponseResult)
+		return true;
+
+//Jump here to print server response error.
+PrintDataFormatError:
+	PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::HTTP_CONNECT, L"HTTP CONNECT server response error", 0, nullptr, 0);
+	return false;
+}
+
+//HTTP CONNECT shutdown HTTP version 2 connection
+bool HTTP_CONNECT_2_ShutdownConnection(
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<ssize_t> &ErrorCodeList, 
+	const size_t Type, 
+	const size_t ErrorCode, 
+	void *TLS_Context)
+{
+//Socket data check
+	if (SocketDataList.empty() || ErrorCodeList.empty() || !SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
+		return false;
+
+//Initializtion
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> SocketSelectingDataList(1U);
+	if (Type == HTTP2_FRAME_TYPE_RST_STREAM) //RST_STREAM frame
+	{
+	//Buffer initializtion
+		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[sizeof(http2_frame_hdr) + sizeof(http2_rst_stream_frame) + PADDING_RESERVED_BYTES]());
+		memset(SendBuffer.get(), 0, sizeof(http2_frame_hdr) + sizeof(http2_rst_stream_frame) + PADDING_RESERVED_BYTES);
+		std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
+		SocketSelectingDataList.front().SendSize = sizeof(http2_frame_hdr) + sizeof(http2_rst_stream_frame) + PADDING_RESERVED_BYTES;
+
+	//RST_STREAM frames MUST be associated with a stream.
+	//If a RST_STREAM frame is received with a stream identifier of 0x0, the recipient MUST treat this as a connection error of type PROTOCOL_ERROR.
+		reinterpret_cast<http2_frame_hdr *>(SocketSelectingDataList.front().SendBuffer.get())->Length_Low = htons(sizeof(http2_rst_stream_frame));
+		reinterpret_cast<http2_frame_hdr *>(SocketSelectingDataList.front().SendBuffer.get())->Type = HTTP2_FRAME_TYPE_RST_STREAM;
+		reinterpret_cast<http2_frame_hdr *>(SocketSelectingDataList.front().SendBuffer.get())->StreamIdentifier = htonl(HTTP2_FRAME_INIT_STREAM_ID);
+		SocketSelectingDataList.front().SendLen = sizeof(http2_frame_hdr);
+		reinterpret_cast<http2_rst_stream_frame *>(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen)->ErrorCode = htonl(static_cast<uint32_t>(ErrorCode));
+		SocketSelectingDataList.front().SendLen += sizeof(http2_rst_stream_frame);
+	}
+	else if (Type == HTTP2_FRAME_TYPE_GOAWAY) //GOAWAY frame
+	{
+	//Buffer initializtion
+		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[sizeof(http2_frame_hdr) + sizeof(http2_goaway_frame) + PADDING_RESERVED_BYTES]());
+		memset(SendBuffer.get(), 0, sizeof(http2_frame_hdr) + sizeof(http2_goaway_frame) + PADDING_RESERVED_BYTES);
+		std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
+		SocketSelectingDataList.front().SendSize = sizeof(http2_frame_hdr) + sizeof(http2_goaway_frame) + PADDING_RESERVED_BYTES;
+
+	//GOAWAY frame
+		reinterpret_cast<http2_frame_hdr *>(SocketSelectingDataList.front().SendBuffer.get())->Length_Low = htons(sizeof(http2_goaway_frame));
+		reinterpret_cast<http2_frame_hdr *>(SocketSelectingDataList.front().SendBuffer.get())->Type = HTTP2_FRAME_TYPE_GOAWAY;
+		SocketSelectingDataList.front().SendLen = sizeof(http2_frame_hdr);
+		reinterpret_cast<http2_goaway_frame *>(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen)->ErrorCode = htonl(static_cast<uint32_t>(ErrorCode));
+		SocketSelectingDataList.front().SendLen += sizeof(http2_goaway_frame);
+	}
+	else {
+		return false;
+	}
+
+//Request exchange
+	if (TLS_Context != nullptr)
+	{
+	#if defined(ENABLE_TLS)
+	#if defined(PLATFORM_WIN)
+		if (!TLS_TransportSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT_SHUTDOWN, 0, *static_cast<SSPI_HANDLE_TABLE *>(TLS_Context), SocketDataList, SocketSelectingDataList, ErrorCodeList))
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		if (!TLS_TransportSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT_SHUTDOWN, 0, *static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context), SocketSelectingDataList))
+	#endif
+			return false;
+	#endif
+	}
+	else {
+		SocketSelectingDataList.front().RecvBuffer.reset();
+		SocketSelectingDataList.front().RecvSize = 0;
+		SocketSelectingDataList.front().RecvLen = 0;
+		const auto RecvLen = SocketSelectingSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT_SHUTDOWN, IPPROTO_TCP, SocketDataList, SocketSelectingDataList, ErrorCodeList);
+		SocketSelectingDataList.front().SendBuffer.reset();
+		SocketSelectingDataList.front().SendSize = 0;
+		SocketSelectingDataList.front().SendLen = 0;
+		if (RecvLen == EXIT_FAILURE)
+			return false;
+	}
+
+	return true;
+}
+
 //Transmission and reception of HTTP CONNECT protocol
 size_t HTTP_CONNECT_Request(
 	const uint8_t * const OriginalSend, 
@@ -980,12 +1539,17 @@ size_t HTTP_CONNECT_Request(
 	std::unique_ptr<uint8_t[]> &OriginalRecv, 
 	size_t &RecvSize)
 {
+//HTTP CONNECT target domain check
+	if (Parameter.HTTP_CONNECT_TargetDomain == nullptr)
+		return EXIT_FAILURE;
+	
 //Initialization
 	std::vector<SOCKET_DATA> SocketDataList(1U);
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> SocketSelectingDataList(1U);
 	std::vector<ssize_t> ErrorCodeList(1U);
 	memset(&SocketDataList.front(), 0, sizeof(SocketDataList.front()));
 	ErrorCodeList.front() = 0;
+	size_t RecvLen = 0;
 
 //TLS initialization
 	void *TLS_Context = nullptr;
@@ -1005,21 +1569,55 @@ size_t HTTP_CONNECT_Request(
 	if (!HTTP_CONNECT_Handshake(SocketDataList, SocketSelectingDataList, ErrorCodeList, TLS_Context))
 		return EXIT_FAILURE;
 
-//Buffer initialization
-	if (SocketSelectingDataList.front().SendSize < SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES)
+//HTTP version 1.x packet
+	if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1)
 	{
-		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES]());
-		memset(SendBuffer.get(), 0, SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES);
-		memcpy_s(SendBuffer.get(), SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES, OriginalSend, SendSize);
-		std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
-		SocketSelectingDataList.front().SendSize = SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES;
-		SocketSelectingDataList.front().SendLen = SendSize;
+	//Buffer initialization
+		if (SocketSelectingDataList.front().SendSize <= SendSize + sizeof(uint16_t))
+		{
+			std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES]());
+			memset(SendBuffer.get(), 0, SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES);
+			memcpy_s(SendBuffer.get(), SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES, OriginalSend, SendSize);
+			std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
+			SocketSelectingDataList.front().SendSize = SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES;
+		}
+
+	//Write request to buffer.
+		RecvLen = AddLengthDataToHeader(SocketSelectingDataList.front().SendBuffer.get(), SendSize, SocketSelectingDataList.front().SendSize);
+	}
+//HTTP version 2 packet
+	else if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
+	{
+	//Buffer initialization
+		if (SocketSelectingDataList.front().SendSize <= SocketSelectingDataList.front().SendLen + SendSize + sizeof(uint16_t))
+		{
+			std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[SocketSelectingDataList.front().SendLen + SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES]());
+			memset(SendBuffer.get(), 0, SocketSelectingDataList.front().SendLen + SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES);
+			memcpy_s(SendBuffer.get(), SocketSelectingDataList.front().SendLen + SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES, SocketSelectingDataList.front().SendBuffer.get(), SocketSelectingDataList.front().SendLen);
+			std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
+			SocketSelectingDataList.front().SendSize = SocketSelectingDataList.front().SendLen + SendSize + sizeof(uint16_t) + PADDING_RESERVED_BYTES;
+		}
+
+	//DATA frame
+		reinterpret_cast<http2_frame_hdr *>(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen)->Length_Low = htons(static_cast<uint16_t>(SendSize + sizeof(uint16_t)));
+		reinterpret_cast<http2_frame_hdr *>(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen)->Type = HTTP2_FRAME_TYPE_DATA;
+		reinterpret_cast<http2_frame_hdr *>(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen)->Flags = HTTP2_DATA_FLAGS_END_STREAM;
+		reinterpret_cast<http2_frame_hdr *>(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen)->StreamIdentifier = htonl(HTTP2_FRAME_INIT_STREAM_ID);
+		SocketSelectingDataList.front().SendLen += sizeof(http2_frame_hdr);
+		
+	//Write request to buffer.
+		memcpy_s(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen, SocketSelectingDataList.front().SendSize - SocketSelectingDataList.front().SendLen, OriginalSend, SendSize);
+		RecvLen = AddLengthDataToHeader(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen, SendSize, SocketSelectingDataList.front().SendSize - SocketSelectingDataList.front().SendLen);
 	}
 
-//Add length of request packet(It must be written in header when transport with TCP protocol).
-	auto RecvLen = AddLengthDataToHeader(SocketSelectingDataList.front().SendBuffer.get(), SocketSelectingDataList.front().SendLen, SocketSelectingDataList.front().SendSize);
+//Add length of request packet, it must be written in header when transport with TCP protocol.
 	if (RecvLen < DNS_PACKET_MINSIZE)
 	{
+	//HTTP version 2 shutdown connection.
+		if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
+			HTTP_CONNECT_2_ShutdownConnection(SocketDataList, ErrorCodeList, HTTP2_FRAME_TYPE_RST_STREAM, HTTP2_ERROR_INTERNAL_ERROR, TLS_Context);
+
+	//TLS shutdown connection.
 	#if defined(ENABLE_TLS)
 		if (TLS_Context != nullptr)
 	#if defined(PLATFORM_WIN)
@@ -1029,12 +1627,14 @@ size_t HTTP_CONNECT_Request(
 		else 
 	#endif
 	#endif
+
+	//Normal shutdown connection.
 			SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 		return EXIT_FAILURE;
 	}
 	else {
-		SocketSelectingDataList.front().SendLen = RecvLen;
+		SocketSelectingDataList.front().SendLen += RecvLen;
 	}
 
 //HTTP CONNECT exchange
@@ -1206,9 +1806,13 @@ bool HTTP_CONNECT_Handshake(
 #endif
 
 //HTTP CONNECT exchange
-	if (Parameter.HTTP_CONNECT_TargetDomain == nullptr || Parameter.HTTP_CONNECT_Version == nullptr || 
-		!HTTP_CONNECT_Exchange(SocketDataList, SocketSelectingDataList, ErrorCodeList, TLS_Context))
+	if (!HTTP_CONNECT_Exchange(SocketDataList, SocketSelectingDataList, ErrorCodeList, TLS_Context))
 	{
+	//HTTP version 2 shutdown connection.
+		if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
+			HTTP_CONNECT_2_ShutdownConnection(SocketDataList, ErrorCodeList, HTTP2_FRAME_TYPE_RST_STREAM, HTTP2_ERROR_INTERNAL_ERROR, TLS_Context);
+
+	//TLS shutdown connection.
 	#if defined(ENABLE_TLS)
 		if (TLS_Context != nullptr)
 	#if defined(PLATFORM_WIN)
@@ -1218,6 +1822,8 @@ bool HTTP_CONNECT_Handshake(
 		else 
 	#endif
 	#endif
+
+	//Normal shutdown connection.
 			SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 		return false;
@@ -1237,29 +1843,126 @@ bool HTTP_CONNECT_Exchange(
 	if (SocketDataList.empty() || SocketSelectingDataList.empty() || ErrorCodeList.empty())
 		return false;
 
-//HTTP CONNECT packet
-	std::string HTTPString("CONNECT ");
-	HTTPString.append(*Parameter.HTTP_CONNECT_TargetDomain);
-	HTTPString.append(" HTTP/");
-	HTTPString.append(*Parameter.HTTP_CONNECT_Version);
-	HTTPString.append("\r\nHost: ");
-	HTTPString.append(*Parameter.HTTP_CONNECT_TargetDomain);
-	HTTPString.append("\r\n");
-	if (Parameter.HTTP_CONNECT_HeaderField != nullptr && !Parameter.HTTP_CONNECT_HeaderField->empty())
-		HTTPString.append(*Parameter.HTTP_CONNECT_HeaderField);
-	if (Parameter.HTTP_CONNECT_ProxyAuthorization != nullptr && !Parameter.HTTP_CONNECT_ProxyAuthorization->empty())
-		HTTPString.append(*Parameter.HTTP_CONNECT_ProxyAuthorization);
-	HTTPString.append("\r\n");
-
-//Buffer initialization
-	if (SocketSelectingDataList.front().SendSize < HTTPString.length())
+//HTTP CONNECT version 1.x packet
+	if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1)
 	{
-		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[HTTPString.length()]());
-		memset(SendBuffer.get(), 0, HTTPString.length());
-		memcpy_s(SendBuffer.get(), HTTPString.length(), HTTPString.c_str(), HTTPString.length());
-		std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
-		SocketSelectingDataList.front().SendSize = HTTPString.length();
-		SocketSelectingDataList.front().SendLen = HTTPString.length();
+	//Fixed header CONNECT field
+		std::string HTTP_String("CONNECT ");
+		HTTP_String.append(*Parameter.HTTP_CONNECT_TargetDomain);
+		HTTP_String.append(" HTTP/1.1\r\nHost: ");
+		HTTP_String.append(*Parameter.HTTP_CONNECT_TargetDomain);
+		HTTP_String.append("\r\n");
+
+	//Extended header list field
+		if (Parameter.HTTP_CONNECT_HeaderField != nullptr && !Parameter.HTTP_CONNECT_HeaderField->empty())
+		{
+			auto IsLiteralFlag = true;
+			for (const auto &StringIter:*Parameter.HTTP_CONNECT_HeaderField)
+			{
+				HTTP_String.append(StringIter);
+				if (IsLiteralFlag)
+					HTTP_String.append(": ");
+				else 
+					HTTP_String.append("\r\n");
+				IsLiteralFlag = !IsLiteralFlag;
+			}
+		}
+
+	//Extended header Proxy-Authorization field
+		if (Parameter.HTTP_CONNECT_ProxyAuthorization != nullptr && !Parameter.HTTP_CONNECT_ProxyAuthorization->empty())
+		{
+			HTTP_String.append("Proxy-Authorization: ");
+			HTTP_String.append(*Parameter.HTTP_CONNECT_ProxyAuthorization);
+			HTTP_String.append("\r\n");
+		}
+
+	//End of header
+		HTTP_String.append("\r\n");
+
+	//Buffer initialization
+		if (SocketSelectingDataList.front().SendSize <= HTTP_String.length())
+		{
+			std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[HTTP_String.length() + PADDING_RESERVED_BYTES]());
+			memset(SendBuffer.get(), 0, HTTP_String.length() + PADDING_RESERVED_BYTES);
+			memcpy_s(SendBuffer.get(), HTTP_String.length() + PADDING_RESERVED_BYTES, HTTP_String.c_str(), HTTP_String.length());
+			std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
+			SocketSelectingDataList.front().SendSize = HTTP_String.length() + PADDING_RESERVED_BYTES;
+			SocketSelectingDataList.front().SendLen = HTTP_String.length();
+		}
+	}
+//HTTP CONNECT version 2 packet
+	else if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
+	{
+	//Buffer initialization
+		if (SocketSelectingDataList.front().SendSize <= DEFAULT_LARGE_BUFFER_SIZE)
+		{
+			std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[SocketSelectingDataList.front().SendSize + DEFAULT_LARGE_BUFFER_SIZE + PADDING_RESERVED_BYTES]());
+			memset(SendBuffer.get(), 0, SocketSelectingDataList.front().SendSize + DEFAULT_LARGE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
+			std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
+			SocketSelectingDataList.front().SendSize += DEFAULT_LARGE_BUFFER_SIZE + PADDING_RESERVED_BYTES;
+			SocketSelectingDataList.front().SendLen = 0;
+		}
+
+	//Packet initialization(Magic header)
+		memcpy_s(SocketSelectingDataList.front().SendBuffer.get(), SocketSelectingDataList.front().SendSize - SocketSelectingDataList.front().SendLen, HTTP2_CONNECTION_CLIENT_PREFACE, strlen(HTTP2_CONNECTION_CLIENT_PREFACE));
+		SocketSelectingDataList.front().SendLen += strlen(HTTP2_CONNECTION_CLIENT_PREFACE);
+
+	//Packet initialization(SETTINGS frame)
+		auto FrameHeader = reinterpret_cast<http2_frame_hdr *>(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen);
+		FrameHeader->Type = HTTP2_FRAME_TYPE_SETTINGS;
+		SocketSelectingDataList.front().SendLen += sizeof(http2_frame_hdr);
+		auto LengthInterval = SocketSelectingDataList.front().SendLen;
+		HTTP_CONNECT_2_SETTINGS_WriteBytes(SocketSelectingDataList, HTTP2_SETTINGS_TYPE_HEADERS_TABLE_SIZE, 0); //Set header table size to 0 to disable header frame dynamic table compression.
+		HTTP_CONNECT_2_SETTINGS_WriteBytes(SocketSelectingDataList, HTTP2_SETTINGS_TYPE_ENABLE_PUSH, 0); //Disable server push.
+		HTTP_CONNECT_2_SETTINGS_WriteBytes(SocketSelectingDataList, HTTP2_SETTINGS_TYPE_MAX_CONCURRENT_STREAMS, HTTP2_SETTINGS_INIT_MAX_CONCURRENT_STREAMS); //Set max concurrent streams to 100(RFC 7540 recommoned).
+		HTTP_CONNECT_2_SETTINGS_WriteBytes(SocketSelectingDataList, HTTP2_SETTINGS_TYPE_INITIAL_WINDOW_SIZE, HTTP2_SETTINGS_INIT_INITIAL_WINDOW_SIZE); //Set window size to 65535(RFC 7540 recommoned).
+		if (LengthInterval >= SocketSelectingDataList.front().SendLen)
+			return false;
+		else 
+			FrameHeader->Length_Low = htons(static_cast<uint16_t>(SocketSelectingDataList.front().SendLen - LengthInterval));
+
+	//Packet initialization(HEADERS frame, part 1)
+		FrameHeader = reinterpret_cast<http2_frame_hdr *>(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen);
+		FrameHeader->Type = HTTP2_FRAME_TYPE_HEADERS;
+		FrameHeader->Flags = HTTP2_HEADERS_FLAGS_END_HEADERS;
+		FrameHeader->StreamIdentifier = htonl(HTTP2_FRAME_INIT_STREAM_ID);
+		SocketSelectingDataList.front().SendLen += sizeof(http2_frame_hdr);
+		LengthInterval = SocketSelectingDataList.front().SendLen;
+
+	//Fixed header :method and :authority field(HEADERS frame)
+		if (!HTTP_CONNECT_2_HEADERS_WriteBytes(SocketSelectingDataList, reinterpret_cast<const uint8_t *>(":method"), strlen(":method"), true) || 
+			!HTTP_CONNECT_2_HEADERS_WriteBytes(SocketSelectingDataList, reinterpret_cast<const uint8_t *>("CONNECT"), strlen("CONNECT"), false) || 
+			!HTTP_CONNECT_2_HEADERS_WriteBytes(SocketSelectingDataList, reinterpret_cast<const uint8_t *>(":authority"), strlen(":authority"), true) || 
+			!HTTP_CONNECT_2_HEADERS_WriteBytes(SocketSelectingDataList, const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(Parameter.HTTP_CONNECT_TargetDomain->c_str())), Parameter.HTTP_CONNECT_TargetDomain->length(), false))
+				return false;
+	
+	//Extended header list field(HEADERS frame)
+		if (Parameter.HTTP_CONNECT_HeaderField != nullptr && !Parameter.HTTP_CONNECT_HeaderField->empty())
+		{
+			auto IsLiteralFlag = true;
+			for (const auto &StringIter:*Parameter.HTTP_CONNECT_HeaderField)
+			{
+				if (!HTTP_CONNECT_2_HEADERS_WriteBytes(SocketSelectingDataList, const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(StringIter.c_str())), StringIter.length(), IsLiteralFlag))
+					return false;
+				else 
+					IsLiteralFlag = !IsLiteralFlag;
+			}
+		}
+
+	//Extended header proxy-authorization field(HEADERS frame)
+		if (Parameter.HTTP_CONNECT_ProxyAuthorization != nullptr && !Parameter.HTTP_CONNECT_ProxyAuthorization->empty() && 
+			(!HTTP_CONNECT_2_HEADERS_WriteBytes(SocketSelectingDataList, reinterpret_cast<const uint8_t *>("proxy-authorization"), strlen("proxy-authorization"), true) || 
+			!HTTP_CONNECT_2_HEADERS_WriteBytes(SocketSelectingDataList, const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(Parameter.HTTP_CONNECT_ProxyAuthorization->c_str())), Parameter.HTTP_CONNECT_ProxyAuthorization->length(), false)))
+				return false;
+
+	//Packet initialization(HEADERS frame, part 2)
+		FrameHeader = reinterpret_cast<http2_frame_hdr *>(SocketSelectingDataList.front().SendBuffer.get() + LengthInterval - sizeof(http2_frame_hdr));
+		FrameHeader->Length_Low = htons(static_cast<uint16_t>(SocketSelectingDataList.front().SendLen - LengthInterval));
+		if (ntohs(FrameHeader->Length_Low) >= HTTP2_FREAM_MAXSIZE)
+			return false;
+	}
+	else {
+		return false;
 	}
 
 //TLS encryption process
@@ -1267,11 +1970,13 @@ bool HTTP_CONNECT_Exchange(
 	{
 	#if defined(ENABLE_TLS)
 	#if defined(PLATFORM_WIN)
-		if (!TLS_TransportSerial(HTTP_RESPONSE_MINSIZE, *static_cast<SSPI_HANDLE_TABLE *>(TLS_Context), SocketDataList, SocketSelectingDataList, ErrorCodeList))
+		if ((Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1 && !TLS_TransportSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT_1, HTTP1_RESPONSE_MINSIZE, *static_cast<SSPI_HANDLE_TABLE *>(TLS_Context), SocketDataList, SocketSelectingDataList, ErrorCodeList)) || 
+			(Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2 && !TLS_TransportSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT_2, sizeof(http2_frame_hdr), *static_cast<SSPI_HANDLE_TABLE *>(TLS_Context), SocketDataList, SocketSelectingDataList, ErrorCodeList)))
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		if (!TLS_TransportSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT, HTTP_RESPONSE_MINSIZE, *static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context), SocketSelectingDataList))
+		if ((Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1 && !TLS_TransportSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT_1, HTTP1_RESPONSE_MINSIZE, *static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context), SocketSelectingDataList)) || 
+			(Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2 && !TLS_TransportSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT_2, sizeof(http2_frame_hdr), *static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context), SocketSelectingDataList)))
 	#endif
-			return false;
+				return false;
 	#endif
 	}
 //Normal process
@@ -1294,11 +1999,18 @@ bool HTTP_CONNECT_Exchange(
 		SocketSelectingDataList.front().RecvBuffer.reset();
 		SocketSelectingDataList.front().RecvSize = 0;
 		SocketSelectingDataList.front().RecvLen = 0;
-		RecvLen = SocketSelectingSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT, IPPROTO_TCP, SocketDataList, SocketSelectingDataList, ErrorCodeList);
+		if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1)
+			RecvLen = SocketSelectingSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT_1, IPPROTO_TCP, SocketDataList, SocketSelectingDataList, ErrorCodeList);
+		else if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
+			RecvLen = SocketSelectingSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT_2, IPPROTO_TCP, SocketDataList, SocketSelectingDataList, ErrorCodeList);
+		else 
+			return false;
 		SocketSelectingDataList.front().SendBuffer.reset();
 		SocketSelectingDataList.front().SendSize = 0;
 		SocketSelectingDataList.front().SendLen = 0;
-		if (RecvLen == EXIT_FAILURE || SocketSelectingDataList.front().RecvLen < HTTP_RESPONSE_MINSIZE)
+		if (RecvLen == EXIT_FAILURE || 
+			(Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1 && SocketSelectingDataList.front().RecvLen < HTTP1_RESPONSE_MINSIZE) || 
+			(Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2 && SocketSelectingDataList.front().RecvLen < sizeof(http2_frame_hdr)))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"HTTP CONNECT request error", ErrorCodeList.front(), nullptr, 0);
 			return false;
@@ -1306,7 +2018,7 @@ bool HTTP_CONNECT_Exchange(
 	}
 
 //Buffer initialization
-	if (SocketSelectingDataList.front().RecvLen == SocketSelectingDataList.front().RecvSize)
+	if (SocketSelectingDataList.front().RecvSize <= SocketSelectingDataList.front().RecvLen)
 	{
 		std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[SocketSelectingDataList.front().RecvSize + PADDING_RESERVED_BYTES]());
 		memset(RecvBuffer.get(), 0, SocketSelectingDataList.front().RecvSize + PADDING_RESERVED_BYTES);
@@ -1315,32 +2027,8 @@ bool HTTP_CONNECT_Exchange(
 		std::swap(SocketSelectingDataList.front().RecvBuffer, RecvBuffer);
 	}
 
-//Build HTTP string.
-	HTTPString = reinterpret_cast<const char *>(SocketSelectingDataList.front().RecvBuffer.get());
-
 //HTTP CONNECT response check
-	if (CheckConnectionStreamFin(REQUEST_PROCESS_TYPE::HTTP_CONNECT, reinterpret_cast<const uint8_t *>(HTTPString.c_str()), HTTPString.length()))
-	{
-		return true;
-	}
-	else if (HTTPString.compare(0, strlen("HTTP/"), ("HTTP/")) == 0 && 
-		HTTPString.find(ASCII_SPACE) != std::string::npos && HTTPString.find("\r\n\r\n") != std::string::npos)
-	{
-		if (HTTPString.find("\r\n") != std::string::npos)
-			HTTPString.erase(HTTPString.find("\r\n"), HTTPString.length() - HTTPString.find("\r\n"));
-		else 
-			HTTPString.erase(HTTPString.find("\r\n\r\n"), HTTPString.length() - HTTPString.find("\r\n"));
-		std::wstring Message;
-		if (!MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(HTTPString.c_str()), HTTPString.length(), Message))
-			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
-		else 
-			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::HTTP_CONNECT, Message.c_str(), 0, nullptr, 0);
-	}
-	else {
-		PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::HTTP_CONNECT, L"HTTP CONNECT server response error", 0, nullptr, 0);
-	}
-	
-	return false;
+	return HTTP_CONNECT_ResponseBytesCheck(SocketSelectingDataList);
 }
 
 //Transmission and reception of HTTP CONNECT protocol
@@ -1351,18 +2039,57 @@ size_t HTTP_CONNECT_Transport(
 	void *TLS_Context)
 {
 //Socket data check
-	if (SocketDataList.empty() || SocketSelectingDataList.empty() || ErrorCodeList.empty())
+	if (SocketDataList.empty())
+	{
 		return EXIT_FAILURE;
+	}
+	if (SocketSelectingDataList.empty() || ErrorCodeList.empty())
+	{	
+	//HTTP version 2 shutdown connection.
+		if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
+			HTTP_CONNECT_2_ShutdownConnection(SocketDataList, ErrorCodeList, HTTP2_FRAME_TYPE_RST_STREAM, HTTP2_ERROR_INTERNAL_ERROR, TLS_Context);
 
-//Initialization
-	size_t RecvLen = 0;
+	//TLS shutdown connection.
+	#if defined(ENABLE_TLS)
+		if (TLS_Context != nullptr)
+	#if defined(PLATFORM_WIN)
+			SSPI_ShutdownConnection(*static_cast<SSPI_HANDLE_TABLE *>(TLS_Context), SocketDataList, ErrorCodeList);
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			OpenSSL_ShutdownConnection(*static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context));
+		else 
+	#endif
+	#endif
+
+	//Normal shutdown connection.
+			SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+
+		return EXIT_FAILURE;
+	}
 
 //Request exchange
+	size_t RecvLen = 0;
 	if (TLS_Context != nullptr)
 	{
+	//Request type and packet minimum size initialization
+		auto RequestType = REQUEST_PROCESS_TYPE::NONE;
+		size_t PacketMinSize = DNS_PACKET_MINSIZE;
+		if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1)
+		{
+			RequestType = REQUEST_PROCESS_TYPE::TCP;
+		}
+		else if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
+		{
+			RequestType = REQUEST_PROCESS_TYPE::HTTP_CONNECT_2;
+			PacketMinSize += sizeof(http2_frame_hdr);
+		}
+		else {
+			return EXIT_FAILURE;
+		}
+
+	//TLS process
 	#if defined(ENABLE_TLS)
 	#if defined(PLATFORM_WIN)
-		if (!TLS_TransportSerial(DNS_PACKET_MINSIZE, *static_cast<SSPI_HANDLE_TABLE *>(TLS_Context), SocketDataList, SocketSelectingDataList, ErrorCodeList))
+		if (!TLS_TransportSerial(RequestType, PacketMinSize, *static_cast<SSPI_HANDLE_TABLE *>(TLS_Context), SocketDataList, SocketSelectingDataList, ErrorCodeList))
 		{
 			SSPI_ShutdownConnection(*static_cast<SSPI_HANDLE_TABLE *>(TLS_Context), SocketDataList, ErrorCodeList);
 			SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -1374,7 +2101,7 @@ size_t HTTP_CONNECT_Transport(
 			SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 		}
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		if (!TLS_TransportSerial(REQUEST_PROCESS_TYPE::TCP, DNS_PACKET_MINSIZE, *static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context), SocketSelectingDataList))
+		if (!TLS_TransportSerial(RequestType, PacketMinSize, *static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context), SocketSelectingDataList))
 		{
 			OpenSSL_ShutdownConnection(*static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context));
 			return EXIT_FAILURE;
@@ -1394,15 +2121,101 @@ size_t HTTP_CONNECT_Transport(
 		SocketSelectingDataList.front().SendBuffer.reset();
 		SocketSelectingDataList.front().SendSize = 0;
 		SocketSelectingDataList.front().SendLen = 0;
-		if (RecvLen == EXIT_FAILURE || SocketSelectingDataList.front().RecvLen < DNS_PACKET_MINSIZE)
+		if (RecvLen == EXIT_FAILURE || 
+			(Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1 && SocketSelectingDataList.front().RecvLen < DNS_PACKET_MINSIZE) || 
+			(Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2 && SocketSelectingDataList.front().RecvLen < sizeof(http2_frame_hdr) + DNS_PACKET_MINSIZE))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"HTTP CONNECT request error", ErrorCodeList.front(), nullptr, 0);
 			return EXIT_FAILURE;
 		}
 	}
 
+//HTTP version 2 response check
+	auto IsGotResponseResult = true;
+	if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
+	{
+	//Initialization
+		std::unique_ptr<uint8_t[]> DataBlockBuffer(nullptr);
+		size_t DataBlockSize = 0, DataBlockLength = 0;
+		uint32_t DataIdentifier = 0;
+		IsGotResponseResult = false;
+
+	//HTTP version 2 response
+		for (size_t Index = 0;Index < SocketSelectingDataList.front().RecvLen;)
+		{
+		//Frame check
+			const auto FrameHeader = reinterpret_cast<http2_frame_hdr *>(SocketSelectingDataList.front().RecvBuffer.get() + Index);
+			if (Index + sizeof(http2_frame_hdr) + ntohs(FrameHeader->Length_Low) > SocketSelectingDataList.front().RecvLen)
+			{
+				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"HTTP CONNECT response error", ErrorCodeList.front(), nullptr, 0);
+				return EXIT_FAILURE;
+			}
+
+		//DATA frame
+			if (FrameHeader->Type == HTTP2_FRAME_TYPE_DATA)
+			{
+			//Data identifier check
+				if (DataIdentifier == 0)
+				{
+					DataIdentifier = ntohl(FrameHeader->StreamIdentifier);
+				}
+				else if (DataIdentifier != ntohl(FrameHeader->StreamIdentifier))
+				{
+					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"HTTP CONNECT response error", ErrorCodeList.front(), nullptr, 0);
+					return EXIT_FAILURE;
+				}
+
+			//Data process
+				if (FrameHeader->Length_Low > 0)
+				{
+				//Buffer initialization
+					if (DataBlockSize <= DataBlockLength + ntohs(FrameHeader->Length_Low))
+					{
+						std::unique_ptr<uint8_t[]> DataBuffer(new uint8_t[DataBlockSize + ntohs(FrameHeader->Length_Low) + PADDING_RESERVED_BYTES]());
+						memset(DataBuffer.get(), 0, DataBlockSize + ntohs(FrameHeader->Length_Low) + PADDING_RESERVED_BYTES);
+						if (DataBlockBuffer)
+							memcpy_s(DataBuffer.get(), DataBlockSize + ntohs(FrameHeader->Length_Low) + PADDING_RESERVED_BYTES, DataBlockBuffer.get(), DataBlockLength);
+						std::swap(DataBlockBuffer, DataBuffer);
+						DataBlockSize += ntohs(FrameHeader->Length_Low) + PADDING_RESERVED_BYTES;
+					}
+
+				//Write to buffer.
+					if (DataBlockBuffer)
+					{
+						memcpy_s(DataBlockBuffer.get() + DataBlockLength, DataBlockSize - DataBlockLength, reinterpret_cast<const uint8_t *>(FrameHeader) + sizeof(http2_frame_hdr), ntohs(FrameHeader->Length_Low));
+						DataBlockLength += ntohs(FrameHeader->Length_Low);
+					}
+					else {
+						PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"HTTP CONNECT response error", ErrorCodeList.front(), nullptr, 0);
+						return EXIT_FAILURE;
+					}
+
+				//Data whole packet
+					if ((FrameHeader->Flags & HTTP2_DATA_FLAGS_END_STREAM) != 0)
+					{
+						if (DataBlockLength <= SocketSelectingDataList.front().RecvSize)
+						{
+							memset(SocketSelectingDataList.front().RecvBuffer.get(), 0, SocketSelectingDataList.front().RecvSize);
+							memcpy_s(SocketSelectingDataList.front().RecvBuffer.get(), SocketSelectingDataList.front().RecvSize, DataBlockBuffer.get(), DataBlockLength);
+							IsGotResponseResult = true;
+						}
+
+						break;
+					}
+				}
+			}
+
+		//Length check
+			if (Index + ntohs(FrameHeader->Length_Low) == SocketSelectingDataList.front().RecvLen)
+				break;
+			else 
+				Index += ntohs(FrameHeader->Length_Low);
+		}
+	}
+
 //HTTP CONNECT response check
-	if (SocketSelectingDataList.front().RecvLen >= DNS_PACKET_MINSIZE && ntohs((reinterpret_cast<uint16_t *>(SocketSelectingDataList.front().RecvBuffer.get()))[0]) >= DNS_PACKET_MINSIZE && 
+	if (IsGotResponseResult && 
+		SocketSelectingDataList.front().RecvLen >= DNS_PACKET_MINSIZE && ntohs((reinterpret_cast<uint16_t *>(SocketSelectingDataList.front().RecvBuffer.get()))[0]) >= DNS_PACKET_MINSIZE && 
 		SocketSelectingDataList.front().RecvLen >= ntohs((reinterpret_cast<uint16_t *>(SocketSelectingDataList.front().RecvBuffer.get()))[0]))
 	{
 		RecvLen = ntohs((reinterpret_cast<uint16_t *>(SocketSelectingDataList.front().RecvBuffer.get()))[0]);
@@ -1411,7 +2224,7 @@ size_t HTTP_CONNECT_Transport(
 
 	//Response check
 		RecvLen = CheckResponseData(
-			REQUEST_PROCESS_TYPE::HTTP_CONNECT, 
+			REQUEST_PROCESS_TYPE::HTTP_CONNECT_MAIN, 
 			SocketSelectingDataList.front().RecvBuffer.get(), 
 			RecvLen, 
 			SocketSelectingDataList.front().RecvSize, 

@@ -77,7 +77,7 @@ bool AddressStringToBinary(
 	#if defined(PLATFORM_WIN_XP)
 		SockLength = sizeof(sockaddr_in6);
 		if (WSAStringToAddressA(
-				reinterpret_cast<char *>(const_cast<char *>(AddrString.c_str())), 
+				const_cast<char *>(AddrString.c_str()), 
 				AF_INET6, 
 				nullptr, 
 				reinterpret_cast<sockaddr *>(&SockAddr), 
@@ -151,7 +151,7 @@ bool AddressStringToBinary(
 	#if defined(PLATFORM_WIN_XP)
 		SockLength = sizeof(sockaddr_in);
 		if (WSAStringToAddressA(
-				reinterpret_cast<char *>(const_cast<char *>(AddrString.c_str())), 
+				const_cast<char *>(AddrString.c_str()), 
 				AF_INET, 
 				nullptr, 
 				reinterpret_cast<sockaddr *>(&SockAddr), 
@@ -1089,13 +1089,13 @@ bool CheckQueryData(
 	//Must not set RCode.
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) > 0 || 
 	//Question Resource Records Counts must be set 1.
-		ntohs(DNS_Header->Question) != U16_NUM_ONE || 
+		ntohs(DNS_Header->Question) != U16_NUM_1 || 
 	//Answer Resource Records Counts must be set 0.
 		DNS_Header->Answer > 0 || 
 	//Authority Resource Records Counts must be set 0.
 		DNS_Header->Authority > 0 || 
 	//Additional Resource Records Counts must be set 1 or 0.
-		ntohs(DNS_Header->Additional) > U16_NUM_ONE)))
+		ntohs(DNS_Header->Additional) > U16_NUM_1)))
 			return false;
 
 //Scan all Resource Records.
@@ -1195,13 +1195,77 @@ bool CheckConnectionStreamFin(
 	const uint8_t * const Stream, 
 	const size_t Length)
 {
-//HTTP CONNECT method
-	if (RequestType == REQUEST_PROCESS_TYPE::HTTP_CONNECT && Length > HTTP_TOP_HEADER_LENGTH && memcmp(Stream, "HTTP/", HTTP_TOP_HEADER_LENGTH) == 0)
+//HTTP version 1.x CONNECT method
+	if (RequestType == REQUEST_PROCESS_TYPE::HTTP_CONNECT_1)
 	{
+	//Length check
+		if (strnlen_s(reinterpret_cast<const char *>(Stream), Length + PADDING_RESERVED_BYTES) > Length)
+			return true;
+
+	//HTTP version 1.x response
 		std::string DataStream(reinterpret_cast<const char *>(Stream));
-		if (DataStream.find(" 200 ") != std::string::npos && DataStream.find("\r\n\r\n") != std::string::npos && 
-			DataStream.find(" 200 ") < DataStream.find("\r\n\r\n")) //HTTP status code 200
+		if (DataStream.find("\r\n\r\n") != std::string::npos && 
+			(DataStream.compare(0, strlen("HTTP/1.0 200 "), ("HTTP/1.0 200 ")) == 0) || 
+			DataStream.compare(0, strlen("HTTP/1.1 200 "), ("HTTP/1.1 200 ")) == 0)
 				return true;
+	}
+//HTTP version 2 CONNECT method
+	else if (RequestType == REQUEST_PROCESS_TYPE::HTTP_CONNECT_2)
+	{
+	//HTTP version 1.x response, or HTTP version 2 large length is not supported.
+		if (*Stream != 0)
+		{
+		//Length check
+			if (strnlen_s(reinterpret_cast<const char *>(Stream), Length + PADDING_RESERVED_BYTES) > Length)
+				return true;
+
+		//HTTP version 1.x response
+			std::string DataStream(reinterpret_cast<const char *>(Stream));
+			if (DataStream.find("\r\n\r\n") != std::string::npos)
+				return true;
+		}
+	//HTTP version 2 response
+		else if (Length >= sizeof(http2_frame_hdr))
+		{
+			for (size_t Index = 0;Index < Length;)
+			{
+			//Frame check
+				const auto FrameHeader = const_cast<http2_frame_hdr *>(reinterpret_cast<const http2_frame_hdr *>(Stream + Index));
+				if (Index + sizeof(http2_frame_hdr) + ntohs(FrameHeader->Length_Low) > Length || 
+				//DATA frame must set PADDED and END_STREAM flag.
+					(FrameHeader->Type == HTTP2_FRAME_TYPE_DATA && 
+					((FrameHeader->Flags & HTTP2_HEADERS_FLAGS_PADDED) != 0 || (FrameHeader->Flags & HTTP2_HEADERS_FLAGS_END_STREAM) != 0)) || 
+				//HEADERS frame must set PADDED, END_HEADERS, END_STREAM and PRIORITY flag.
+					(FrameHeader->Type == HTTP2_FRAME_TYPE_HEADERS && 
+					((FrameHeader->Flags & HTTP2_HEADERS_FLAGS_PADDED) != 0 || (FrameHeader->Flags & HTTP2_HEADERS_FLAGS_END_HEADERS) != 0 || 
+					(FrameHeader->Flags & HTTP2_HEADERS_FLAGS_END_STREAM) != 0 || (FrameHeader->Flags & HTTP2_HEADERS_FLAGS_PRIORITY) != 0)) || 
+				//PRIORITY frame is not supported.
+					FrameHeader->Type == HTTP2_FRAME_TYPE_PRIORITY || 
+				//RST_STREAM frame
+					FrameHeader->Type == HTTP2_FRAME_TYPE_RST_STREAM || 
+				//SETTINGS frame is ignored.
+				//PUSH_PROMISE frame is not supported.
+				//PING frame is ignored.
+				//GOAWAY frame
+					FrameHeader->Type == HTTP2_FRAME_TYPE_GOAWAY || 
+				//WINDOW_UPDATE frame is ignored.
+				//CONTINUATION frame must set END_HEADERS flag.
+					(FrameHeader->Type == HTTP2_FRAME_TYPE_CONTINUATION && (FrameHeader->Flags & HTTP2_HEADERS_FLAGS_END_HEADERS) != 0))
+						return true;
+
+			//Length check
+				if (Index + sizeof(http2_frame_hdr) + ntohs(FrameHeader->Length_Low) == Length)
+					break;
+				else 
+					Index += sizeof(http2_frame_hdr) + ntohs(FrameHeader->Length_Low);
+			}
+		}
+	}
+//HTTP CONNECT shutdown connection.
+	else if (RequestType == REQUEST_PROCESS_TYPE::HTTP_CONNECT_SHUTDOWN)
+	{
+		if (Length >= sizeof(http2_frame_hdr))
+			return true;
 	}
 //SOCKS client selection
 	else if (RequestType == REQUEST_PROCESS_TYPE::SOCKS_CLIENT_SELECTION)
@@ -1298,7 +1362,7 @@ size_t CheckResponse_CNAME(
 //Make domain reversed.
 	std::string ReverseDomain(Domain);
 	MakeStringReversed(ReverseDomain);
-	auto IsMatch = false;
+	auto IsMatchItem = false;
 
 //CNAME Hosts
 	std::lock_guard<std::mutex> HostsFileMutex(HostsFileLock);
@@ -1306,7 +1370,7 @@ size_t CheckResponse_CNAME(
 	{
 		for (const auto &HostsTableIter:HostsFileSetIter.HostsList_CNAME)
 		{
-			IsMatch = false;
+			IsMatchItem = false;
 
 		//Dnsmasq normal mode(http://www.thekelleys.org.uk/dnsmasq/docs/dnsmasq-man.html)
 			if (HostsTableIter.IsStringMatching && !HostsTableIter.PatternOrDomainString.empty())
@@ -1314,16 +1378,16 @@ size_t CheckResponse_CNAME(
 				if (HostsTableIter.PatternOrDomainString == ("#") || //Dnsmasq "#" matches any domain.
 					(HostsTableIter.PatternOrDomainString.front() == ReverseDomain.front() && //Quick check to reduce resource using
 					CompareStringReversed(HostsTableIter.PatternOrDomainString, ReverseDomain)))
-						IsMatch = true;
+						IsMatchItem = true;
 			}
 		//Regex mode
 			else if (std::regex_match(Domain, HostsTableIter.PatternRegex))
 			{
-				IsMatch = true;
+				IsMatchItem = true;
 			}
 
 		//Match hosts.
-			if (IsMatch)
+			if (IsMatchItem)
 			{
 			//Check white and banned hosts list, empty record type list check
 				DataLength = CheckWhiteBannedHostsProcess(Length, HostsTableIter, DNS_Header, DNS_Query, nullptr);
@@ -1497,13 +1561,13 @@ size_t CheckResponseData(
 	//Must not set Reserved bit.
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_Z) > 0 || 
 	//Question Resource Records Counts must be set 1.
-		ntohs(DNS_Header->Question) != U16_NUM_ONE || 
+		ntohs(DNS_Header->Question) != U16_NUM_1 || 
 	//Additional EDNS Label Resource Records check
 		(Parameter.EDNS_Label && DNS_Header->Additional == 0 && 
 		(ResponseType == REQUEST_PROCESS_TYPE::NONE || //Normal
 		(ResponseType == REQUEST_PROCESS_TYPE::LOCAL && Parameter.EDNS_Switch_Local) || //Local
 		(ResponseType == REQUEST_PROCESS_TYPE::SOCKS_MAIN && Parameter.EDNS_Switch_SOCKS) || //SOCKS Proxy
-		(ResponseType == REQUEST_PROCESS_TYPE::HTTP_CONNECT && Parameter.EDNS_Switch_HTTP_CONNECT) || //HTTP CONNECT Proxy
+		(ResponseType == REQUEST_PROCESS_TYPE::HTTP_CONNECT_MAIN && Parameter.EDNS_Switch_HTTP_CONNECT) || //HTTP CONNECT Proxy
 		(ResponseType == REQUEST_PROCESS_TYPE::DIRECT && Parameter.EDNS_Switch_Direct) || //Direct Request
 	#if defined(ENABLE_LIBSODIUM)
 		(ResponseType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN && Parameter.EDNS_Switch_DNSCurve) || //DNSCurve
@@ -1526,7 +1590,7 @@ size_t CheckResponseData(
 		}
 
 	//Check repeating DNS Domain without Compression.
-		if (ntohs(DNS_Header->Answer) == U16_NUM_ONE && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && 
+		if (ntohs(DNS_Header->Answer) == U16_NUM_1 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && 
 			CheckQueryNameLength(Buffer + sizeof(dns_hdr)) == CheckQueryNameLength(Buffer + DNS_PACKET_RR_LOCATE(Buffer)))
 		{
 			if (ntohs((reinterpret_cast<dns_record_standard *>(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH))->Classes) == DNS_CLASS_INTERNET && 
@@ -1695,7 +1759,7 @@ size_t CheckResponseData(
 		(ResponseType == REQUEST_PROCESS_TYPE::NONE || //Normal
 		(ResponseType == REQUEST_PROCESS_TYPE::LOCAL && Parameter.EDNS_Switch_Local) || //Local
 		(ResponseType == REQUEST_PROCESS_TYPE::SOCKS_MAIN && Parameter.EDNS_Switch_SOCKS) || //SOCKS Proxy
-		(ResponseType == REQUEST_PROCESS_TYPE::HTTP_CONNECT && Parameter.EDNS_Switch_HTTP_CONNECT) || //HTTP CONNECT Proxy
+		(ResponseType == REQUEST_PROCESS_TYPE::HTTP_CONNECT_MAIN && Parameter.EDNS_Switch_HTTP_CONNECT) || //HTTP CONNECT Proxy
 		(ResponseType == REQUEST_PROCESS_TYPE::DIRECT && Parameter.EDNS_Switch_Direct) || //Direct Request
 	#if defined(ENABLE_LIBSODIUM)
 		(ResponseType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN && Parameter.EDNS_Switch_DNSCurve) || //DNSCurve
@@ -1717,7 +1781,7 @@ size_t CheckResponseData(
 		ResponseType != REQUEST_PROCESS_TYPE::DNSCURVE_SIGN && 
 	#endif	
 		((IsMarkHopLimits != nullptr && Parameter.HeaderCheck_DNS && 
-//		ntohs(DNS_Header->Answer) != U16_NUM_ONE || //Some ISP will return fake responses with more than one Answer records.
+//		ntohs(DNS_Header->Answer) != U16_NUM_1 || //Some ISP will return fake responses with more than one Answer records.
 		(DNS_Header->Answer == 0 || //No any Answer records
 		DNS_Header->Authority > 0 || DNS_Header->Additional > 0 || //More than one Authority records and/or Additional records
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NXDOMAIN)) || //No Such Name, not standard query response and no error check.

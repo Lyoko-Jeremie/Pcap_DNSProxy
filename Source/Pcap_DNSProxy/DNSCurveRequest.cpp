@@ -173,10 +173,10 @@ bool DNSCurve_TCP_SignatureRequest(
 #if defined(ENABLE_PCAP)
 	DNS_TCP_Header->ID = Parameter.DomainTest_ID;
 #else
-	DNS_TCP_Header->ID = htons(U16_NUM_ONE);
+	DNS_TCP_Header->ID = htons(U16_NUM_1);
 #endif
 	DNS_TCP_Header->Flags = htons(DNS_STANDARD);
-	DNS_TCP_Header->Question = htons(U16_NUM_ONE);
+	DNS_TCP_Header->Question = htons(U16_NUM_1);
 	if (Protocol == AF_INET6)
 	{
 		if (IsAlternate)
@@ -202,7 +202,7 @@ bool DNSCurve_TCP_SignatureRequest(
 	DataLength = Add_EDNS_To_Additional_RR(SendBuffer.get() + sizeof(uint16_t), DataLength - sizeof(uint16_t), PACKET_MAXSIZE, nullptr);
 	DataLength += sizeof(uint16_t);
 
-//Add length of request packet(It must be written in header when transport with TCP protocol).
+//Add length of request packet, it must be written in header when transport with TCP protocol.
 	DNS_TCP_Header->Length = htons(static_cast<uint16_t>(DataLength - sizeof(uint16_t)));
 
 //Socket initialization(Part 1)
@@ -284,6 +284,9 @@ bool DNSCurve_TCP_SignatureRequest(
 			Message.append(L"TCP get signature data error");
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::DNSCURVE, Message.c_str(), 0, nullptr, 0);
 		}
+		else {
+			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::DNSCURVE, L"TCP get signature data error", 0, nullptr, 0);
+		}
 
 	//Send request again.
 		sodium_memzero(RecvBuffer.get(), Parameter.LargeBufferSize);
@@ -322,10 +325,10 @@ bool DNSCurve_UDP_SignatureRequest(
 #if defined(ENABLE_PCAP)
 	DNS_Header->ID = Parameter.DomainTest_ID;
 #else
-	DNS_Header->ID = htons(U16_NUM_ONE);
+	DNS_Header->ID = htons(U16_NUM_1);
 #endif
 	DNS_Header->Flags = htons(DNS_STANDARD);
-	DNS_Header->Question = htons(U16_NUM_ONE);
+	DNS_Header->Question = htons(U16_NUM_1);
 	if (Protocol == AF_INET6)
 	{
 		if (IsAlternate)
@@ -427,6 +430,9 @@ bool DNSCurve_UDP_SignatureRequest(
 		{
 			Message.append(L"UDP get signature data error");
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::DNSCURVE, Message.c_str(), 0, nullptr, 0);
+		}
+		else {
+			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::DNSCURVE, L"UDP get signature data error", 0, nullptr, 0);
 		}
 
 	//Send request again.
@@ -537,6 +543,10 @@ size_t DNSCurve_TCP_RequestSingle(
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4];
 	}
 
+//Close all sockets.
+	if (SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
+		SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+
 	return RecvLen;
 }
 
@@ -620,6 +630,13 @@ size_t DNSCurve_TCP_RequestMultiple(
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV6];
 		else if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in))
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4];
+	}
+
+//Close all sockets.
+	for (auto &SocketIter:TCPSocketDataList)
+	{
+		if (SocketSetting(SocketIter.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
+			SocketSetting(SocketIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 	}
 
 	return RecvLen;
@@ -719,6 +736,10 @@ size_t DNSCurve_UDP_RequestSingle(
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4];
 	}
 
+//Close all sockets.
+	if (SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
+		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+
 	return RecvLen;
 }
 
@@ -802,6 +823,13 @@ size_t DNSCurve_UDP_RequestMultiple(
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV6];
 		else if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in))
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_DNSCURVE_UDP_IPV4];
+	}
+
+//Close all sockets.
+	for (auto &SocketIter:UDPSocketDataList)
+	{
+		if (SocketSetting(SocketIter.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
+			SocketSetting(SocketIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 	}
 
 	return RecvLen;

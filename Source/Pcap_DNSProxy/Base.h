@@ -302,6 +302,9 @@ void ReadTextPrintLog(
 	const READ_TEXT_TYPE InputType, 
 	const size_t FileIndex, 
 	const size_t Line);
+void HTTP_CONNECT_2_PrintLog(
+	const uint32_t ErrorCode, 
+	std::wstring &Message);
 #if defined(ENABLE_LIBSODIUM)
 void DNSCurvePrintLog(
 	const DNSCURVE_SERVER_TYPE ServerType, 
@@ -477,6 +480,7 @@ bool SSPI_Handshake(
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
 	std::vector<ssize_t> &ErrorCodeList);
 bool TLS_TransportSerial(
+	const REQUEST_PROCESS_TYPE RequestType, 
 	const size_t PacketMinSize, 
 	SSPI_HANDLE_TABLE &SSPI_Handle, 
 	std::vector<SOCKET_DATA> &SocketDataList, 

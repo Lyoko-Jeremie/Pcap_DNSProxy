@@ -261,7 +261,7 @@ bool WriteMessage_ScreenFile(
 	FILE *FileHandle = nullptr;
 	if (_wfopen_s(&FileHandle, GlobalRunningStatus.Path_ErrorLog->c_str(), L"a,ccs=UTF-8") == 0 && FileHandle != nullptr)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	auto FileHandle = fopen(GlobalRunningStatus.MBS_Path_ErrorLog->c_str(), "a");
+	auto FileHandle = fopen(GlobalRunningStatus.MBS_Path_ErrorLog->c_str(), ("a"));
 	if (FileHandle != nullptr)
 #endif
 	{
@@ -456,6 +456,78 @@ void ReadTextPrintLog(
 			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::DNSCURVE, L"Data of a line is too short", 0, FileList_DNSCurveDatabase.at(FileIndex).FileName.c_str(), Line);
 		}break;
 	#endif
+	}
+
+	return;
+}
+
+//Print error of HTTP CONNECT
+void HTTP_CONNECT_2_PrintLog(
+	const uint32_t ErrorCode, 
+	std::wstring &Message)
+{
+	switch (ErrorCode)
+	{
+		case HTTP2_ERROR_NO_ERROR:
+		{
+			return;
+		}break;
+		case HTTP2_ERROR_PROTOCOL_ERROR:
+		{
+			Message.append(L": PROTOCOL_ERROR");
+		}break;
+		case HTTP2_ERROR_INTERNAL_ERROR:
+		{
+			Message.append(L": INTERNAL_ERROR");
+		}break;
+		case HTTP2_ERROR_FLOW_CONTROL_ERROR:
+		{
+			Message.append(L": FLOW_CONTROL_ERROR");
+		}break;
+		case HTTP2_ERROR_SETTINGS_TIMEOUT:
+		{
+			Message.append(L": SETTINGS_TIMEOUT");
+		}break;
+		case HTTP2_ERROR_STREAM_CLOSED:
+		{
+			Message.append(L": STREAM_CLOSED");
+		}break;
+		case HTTP2_ERROR_FRAME_SIZE_ERROR:
+		{
+			Message.append(L": FRAME_SIZE_ERROR");
+		}break;
+		case HTTP2_ERROR_REFUSED_STREAM:
+		{
+			Message.append(L": REFUSED_STREAM");
+		}break;
+		case HTTP2_ERROR_CANCEL:
+		{
+			Message.append(L": CANCEL");
+		}break;
+		case HTTP2_ERROR_COMPRESSION_ERROR:
+		{
+			Message.append(L": COMPRESSION_ERROR");
+		}break;
+		case HTTP2_ERROR_CONNECT_ERROR:
+		{
+			Message.append(L": CONNECT_ERROR");
+		}break;
+		case HTTP2_ERROR_ENHANCE_YOUR_CALM:
+		{
+			Message.append(L": ENHANCE_YOUR_CALM");
+		}break;
+		case HTTP2_ERROR_INADEQUATE_SECURITY:
+		{
+			Message.append(L": INADEQUATE_SECURITY");
+		}break;
+		case HTTP2_ERROR_HTTP_1_1_REQUIRED:
+		{
+			Message.append(L": HTTP_1_1_REQUIRED");
+		}break;
+		default:
+		{
+			Message.append(L": UNKNOWN_ERROR");
+		}
 	}
 
 	return;

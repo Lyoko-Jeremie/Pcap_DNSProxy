@@ -110,9 +110,9 @@ Error.log 详细错误报告，错误报告一共有7大类型：
 
 2.Parameter Error - 读取配置文件参数错误
   * Cannot open any configuration files - 未发现任何配置文件：请确认文件是否存在
-  * Configuration file is too large - 配置文件容量过大：请确认配置文件的内容，整个文件的大小不要超过 4GB
-  * IPFilter file size is too large - IPFilter 文件容量过大：请确认 IPFilter 文件的内容，整个文件的大小不要超过 4GB
-  * Hosts file size is too large - Hosts 文件容量过大：请确认Hosts文件的内容，整个文件的大小不要超过 4GB
+  * Configuration file is too large - 配置文件容量过大：请确认配置文件的内容，整个文件的大小不要超过 512MB
+  * IPFilter file size is too large - IPFilter 文件容量过大：请确认 IPFilter 文件的内容，整个文件的大小不要超过 512MB
+  * Hosts file size is too large - Hosts 文件容量过大：请确认Hosts文件的内容，整个文件的大小不要超过 512MB
   * Configuration file version error - 配置文件版本错误：请确认配置文件是否需要更新
   * Data format error - 配置文件参数一行数据超过 4096 字节/4KB，或该行数据长度不符合要求，或者数据格式错误：请确认该行的内容是否符合要求
   * Text encoding error - 文件编码错误：请确认配置文件的编码类型
@@ -120,7 +120,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Data of a line is too long - 该参数过长：一行数据切勿超过 4096 字节/4KB
   * Read file name error - 读取文件名参数错误：请确认该行的内容是否符合要求
   * Read file path error - 读取文件路径参数错误：请确认该行的内容是否符合要求
-  * Log file size error - 配置文件指定的最大日志文件容量错误：可接受范围为 4KB - 4GB
+  * Log file size error - 配置文件指定的最大日志文件容量错误：可接受范围为 4KB - 8MB
   * IPv6 address format error - IPv6 地址格式错误：请检查 IPv6 的地址格式
   * IPv6 address port error - IPv6 地址端口格式错误：请检查 IPv6 的地址端口格式
   * IPv4 address format error - IPv4 地址格式错误：请检查 IPv4 的地址格式
@@ -180,7 +180,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Winsock initialization error - Winsock 初始化错误：请确认使用的操作系统平台是否受支持
   * Windows Firewall Test error - Windows 防火墙测试错误：请确认是否以管理员身份运行批处理
   * Socket treating wildcard bind setting error - 设置套接字协议独占模式错误：具体原因可参见错误代码
-  * Socket reusing disable setting error - 设置套接字端口独占模式错误：具体原因可参见错误代码
+  * Socket reusing disabled setting error - 设置套接字端口独占模式错误：具体原因可参见错误代码
   * Socket non-blocking mode setting error - 设置套接字非阻塞模式错误：可能为网络错误，具体原因可参见错误代码
   * Socket timeout setting error - 设置套接字超时时间错误：具体原因可参见错误代码
   * Socket TCP Fast Open setting error - 设置 TCP Fast Open 错误：请检查系统是否支持此功能
@@ -219,6 +219,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Client keypair error - 自定义客户端密钥对错误：请检查密钥对的正确性
   * Key calculating error - 密钥计算错误：建议重新启动服务或程序
   * DNSCurve Payload Size must remain a multiple of 64 bytes - DNSCurve 载荷长度错误：载荷长度必须为 64 字节的倍数
+  * DNSCurve version is not supported - DNSCurve 服务器所指定的 DNSCurve 版本不受支持：请检查该服务器是否可用
   * IPv6 Main Server TCP get signature data error - IPv6 TCP 协议主要服务器加密握手错误：请检查该服务器是否可用
   * IPv6 Alternate Server TCP get signature data error - IPv6 TCP 协议备用服务器加密握手错误：请检查该服务器是否可用
   * IPv4 Main Server TCP get signature data error - IPv4 TCP 协议主要服务器加密握手错误：请检查该服务器是否可用
@@ -233,6 +234,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * IPv4 Alternate Server Fingerprint signature validation error - IPv4 备用服务器证书验证错误：请检查该服务器是否可用
 
 8.SOCKS Error - SOCKS 协议错误
+  * SOCKS version is not supported - SOCKS 代理指定的 SOCKS 版本不受支持：请检查所指定的 SOCKS 版本
   * SOCKS version 4 and 4a are not support UDP relay - SOCKS 版本 4 和 4a 不支持 UDP 转发：请更换为版本 5
   * SOCKS version 4 and 4a are not support IPv6 target server - SOCKS 版本 4 和 4a 不支持 IPv6 地址的目标服务器地址：请更换为版本 5
   * SOCKS version 4 is not support domain target server - SOCKS 版本 4 不支持目标为域名的服务器地址：请更换为版本 4a 或版本 5
@@ -240,12 +242,15 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * SOCKS target server error - SOCKS 代理目标地址错误：请检查该服务器是否可用
   * SOCKS username and password error - SOCKS 协议的用户名和密码配置错误 - 请检查所输入的用户名和密码是否正确
   * Server SOCKS protocol version error - 服务器 SOCKS 协议版本错误：请检查该服务器是否可用
-  * Authentication method not support - 不支持的认证方式：请检查服务器对客户端认证方式的支持
+  * Authentication method is not supported - 不支持的认证方式：请检查服务器对客户端认证方式的支持
   * Server require username and password authentication - 服务器要求使用用户名/密码认证：请检查 SOCKS 协议的用户名/密码
   * Username or Password incorrect - SOCKS 协议用户名/密码不正确：请检查用户名/密码是否错误
   * Client command request error - 客户端请求连接错误：请检查 SOCKS 协议目标地址否受支持或是否可用，具体原因可参见错误代码
 
 9.HTTP CONNECT Error - HTTP CONNECT 协议错误
+  * HTTP version is not supported - HTTP CONNECT 代理指定的 HTTP 版本不受支持：请检查所指定的 HTTP 版本
+  * HTTP version 2 require TLS SNI extension - 开启 HTTP/2 协议请求时必须指定 HTTP CONNECT TLS Server Name Indication/SNI 扩展支持
+  * HTTP CONNECT header field data error - HTTP CONNECT 代理头部区域数据错误：请确认该条目的内容
   * HTTP CONNECT address error - HTTP CONNECT 代理地址错误：请检查该服务器是否可用
   * HTTP CONNECT target server error - HTTP CONNECT 代理目标地址错误：请检查该服务器是否可用
   * HTTP CONNECT server response error - HTTP CONNECT 代理服务器响应错误：请检查该服务器是否可用
@@ -260,6 +265,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * SSPI encrypt data error - SSPI 加密数据错误：请检查 SSPI/SChannel 的版本或加密算法受支持等情况，具体原因可参见错误代码
   * SSPI decrypt data error - SSPI 解密数据错误：请检查 SSPI/SChannel 的版本或加密算法受支持等情况，具体原因可参见错误代码
   * OpenSSL TLS version selection error - OpenSSL TLS 版本选择错误：请检查 OpenSSL 的版本或加密算法受支持等情况，具体原因可参见错误代码
+  * OpenSSL set ALPN extension error - OpenSSL 设置 ALPN 参数错误：请检查 OpenSSL 的版本或加密算法受支持等情况，具体原因可参见错误代码
   * OpenSSL locate default certificate store error - OpenSSL 定位默认证书库错误：请检查 OpenSSL 的版本或加密算法受支持等情况，具体原因可参见错误代码
   * OpenSSL set strong ciphers error - OpenSSL 设置安全密码套件错误：请检查 OpenSSL 的版本或加密算法受支持等情况，具体原因可参见错误代码
   * OpenSSL create new client-method instance error - OpenSSL 创建客户端实例错误：建议重新启动服务或程序，具体原因可参见错误代码
@@ -276,7 +282,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
 11.Notice - 提醒信息，此类型信息不影响程序的运行，但建议按照提示信息修改配置文件
   * Old log file was removed - 错误日志文件已满并被删除
     * 注意：日志文件最大容量的配置参见 详细说明文档 中 配置文件详细参数说明 中的 Log Maximum Size 参数
-  * Listen Port is empty, set to standard DNS port(53) - 本地监听端口参数为空：程序将自动设置为标准 DNS 协议端口（53）
+  * Listen Port is empty, use standard DNS port(53) - 本地监听端口参数为空：程序将自动设置为标准 DNS 协议端口（53）
   * TCP Data Filter require TCP Request Mode - 开启 TCP 数据包头检测时必须将 Request Mode 设置为 TCP：程序将自动关闭此功能
   * TCP Data Filter require Pcap Cpature - 开启 TCP 数据包头检测时必须启用 Pcap Cpature：程序将自动关闭此功能
   * IPv4 Data Filter require IPv4 DNS server - 开启 IPv4 数据包头检测时必须存在 IPv4 协议的 DNS 服务器：程序将自动关闭此功能
@@ -285,9 +291,11 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * EDNS Payload Size is too large - EDNS 载荷长度可能过长：此值建议不要超过以太网的 MTU(1500 bytes)
   * DNSSEC Request require EDNS Label - 开启 DNSSEC 请求时必须开启 EDNS 标签请求功能
   * EDNS Client Subnet require EDNS Label - 开启 EDNS Client Subnet 请求时必须开启 EDNS 标签请求功能
-  * Compression Pointer Mutation must disable EDNS Label - 使用 Compression Pointer Mutation 时不能开启 EDNS 标签请求功能，两者并不兼容
+  * Compression Pointer Mutation must shutdown EDNS Label - 使用 Compression Pointer Mutation 时不能开启 EDNS 标签请求功能，两者并不兼容
   * EDNS Label require at least one of process - 开启 EDNS Label 请求时必须指定至少一个请求过程
   * DNSSEC Validation require EDNS Label and DNSSEC Request - 开启 DNSSEC Validation 请求时必须开启 EDNS 标签请求和 DNSSEC 请求功能
   * DNSSEC Force Validation require EDNS Label, DNSSEC Request and DNSSEC Validation - 开启 DNSSEC Force Validation 请求时必须开启 EDNS 标签请求、DNSSEC 请求和 DNSSEC Validation 验证功能
+  * HTTP version 2 require TLS ALPN extension - 开启 HTTP/2 协议请求时必须开启 TLS ALPN 扩展支持
+  * HTTP version 2 require TLS 1.2 and above - 开启 HTTP/2 协议请求时所指定的 TLS 版本必须为 1.2 以及更新版本
   * DNSCurve Payload Size must longer than traditional DNS packet minimum supported size(512 bytes) - DNSCurve 协议载荷长度过短：实现 DNS 协议必须支持长度超过 512 bytes 的数据包
   * DNSCurve Payload Size is too large - DNSCurve 协议载荷长度可能过长：此值建议不要超过以太网的 MTU(1500 bytes)

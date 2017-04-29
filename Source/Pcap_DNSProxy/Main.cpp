@@ -23,7 +23,7 @@
 #if defined(PLATFORM_WIN)
 int wmain(
 	int argc, 
-	wchar_t* argv[])
+	wchar_t *argv[])
 {
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 int main(

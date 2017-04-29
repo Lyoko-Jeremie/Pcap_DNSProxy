@@ -299,7 +299,7 @@ bool ReadCommand(
 		#if defined(PLATFORM_WIN)
 			_wfopen_s(&FileHandle, DNSCURVE_KEY_PAIR_FILE_NAME, L"w+,ccs=UTF-8");
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			FileHandle = fopen(DNSCURVE_KEY_PAIR_FILE_NAME, "w+");
+			FileHandle = fopen(DNSCURVE_KEY_PAIR_FILE_NAME, ("w+"));
 		#endif
 
 		//Print keypair to file.
@@ -323,8 +323,10 @@ bool ReadCommand(
 
 					return false;
 				}
-				CaseConvert(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, true);
-				fwprintf_s(FileHandle, L"Client Public Key = ");
+				else {
+					CaseConvert(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, true);
+					fwprintf_s(FileHandle, L"Client Public Key = ");
+				}
 				for (InnerIndex = 0;InnerIndex < strnlen_s(reinterpret_cast<const char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
 				{
 					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && 
@@ -344,8 +346,10 @@ bool ReadCommand(
 
 					return false;
 				}
-				CaseConvert(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, true);
-				fwprintf_s(FileHandle, L"Client Secret Key = ");
+				else {
+					CaseConvert(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN, true);
+					fwprintf_s(FileHandle, L"Client Secret Key = ");
+				}
 				for (InnerIndex = 0;InnerIndex < strnlen_s(reinterpret_cast<const char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN);++InnerIndex)
 				{
 					if (InnerIndex > 0 && InnerIndex % DNSCRYPT_KEYPAIR_INTERVAL == 0 && 
@@ -394,9 +398,9 @@ bool ReadCommand(
 			//OpenSSL version
 			#if defined(ENABLE_TLS)
 			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0 //OpenSSL version after 1.1.0
+			#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0 //OpenSSL version 1.1.0 and above
 				if (MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(OpenSSL_version(OPENSSL_VERSION)), strnlen(OpenSSL_version(OPENSSL_VERSION), OPENSSL_STATIC_BUFFER_SIZE), LibVersion))
-			#else //OpenSSL version before 1.1.0
+			#else //OpenSSL version below 1.1.0
 				if (MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(SSLeay_version(SSLEAY_VERSION)), strnlen(SSLeay_version(SSLEAY_VERSION), OPENSSL_STATIC_BUFFER_SIZE), LibVersion))
 			#endif
 					PrintToScreen(true, L"%ls\n", LibVersion.c_str());

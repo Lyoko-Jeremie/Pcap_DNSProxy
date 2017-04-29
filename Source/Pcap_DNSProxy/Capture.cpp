@@ -24,18 +24,20 @@
 void CaptureInit(
 	void)
 {
-//Initialization and capture filter initialization
-	uint8_t ErrorBuffer[PCAP_ERRBUF_SIZE]{0};
-	pcap_if *CaptureDriveList = nullptr, *CaptureDriveIter = nullptr;
-	std::wstring Message;
-	std::string CaptureName, CaptureDescription;
-	auto IsFound = true;
-	std::unique_lock<std::mutex> CaptureMutex(CaptureLock, std::defer_lock);
+//Capture filter initialization
 	if (!CaptureFilterRulesInit(PcapFilterRules))
 	{
 		PcapFilterRules.clear();
 		return;
 	}
+
+//Initialization
+	uint8_t ErrorBuffer[PCAP_ERRBUF_SIZE]{0};
+	pcap_if *CaptureDriveList = nullptr, *CaptureDriveIter = nullptr;
+	std::wstring Message;
+	std::string CaptureName, CaptureDescription;
+	auto IsDeviceFound = true;
+	std::unique_lock<std::mutex> CaptureMutex(CaptureLock, std::defer_lock);
 
 //Capture Monitor
 	for (;;)
@@ -56,7 +58,7 @@ void CaptureInit(
 			Sleep(Parameter.FileRefreshTime);
 			continue;
 		}
-	//Permissions check and check available network devices.
+	//Permissions and available network devices check.
 		else if (CaptureDriveList == nullptr)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PCAP, L"Insufficient privileges or not any available network devices.", 0, nullptr, 0);
@@ -95,40 +97,40 @@ void CaptureInit(
 							CaptureDescription.clear();
 						}
 
-					//Pcap device blacklist check
-						IsFound = true;
+					//Capture device blacklist check
+						IsDeviceFound = true;
 						for (const auto &CaptureIter:*Parameter.PcapDevicesBlacklist)
 						{
 							if (CaptureName.find(CaptureIter) != std::string::npos || 
 								(!CaptureDescription.empty() && CaptureDescription.find(CaptureIter) != std::string::npos))
 							{
-								IsFound = false;
+								IsDeviceFound = false;
 								break;
 							}
 						}
 
 					//Skip this capture.
-						if (!IsFound)
+						if (!IsDeviceFound)
 						{
 							CaptureDriveIter = CaptureDriveIter->next;
 							continue;
 						}
 
 					//Capture monitor
-						IsFound = true;
+						IsDeviceFound = true;
 						CaptureMutex.lock();
 						for (const auto &CaptureIter:PcapRunningList)
 						{
 							if (CaptureIter == CaptureDriveIter->name)
 							{
-								IsFound = false;
+								IsDeviceFound = false;
 								break;
 							}
 						}
 						CaptureMutex.unlock();
 
 					//Start a capture monitor.
-						if (IsFound)
+						if (IsDeviceFound)
 						{
 							std::thread CaptureThread(std::bind(CaptureModule, CaptureDriveIter, false));
 							CaptureThread.detach();

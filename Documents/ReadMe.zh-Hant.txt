@@ -672,14 +672,28 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * HTTP CONNECT TLS Version - HTTP CONNECT 協定啟用 TLS 握手和加密傳輸時所指定使用的版本：設置為 0 則自動選擇
     * 現階段可填入 1.0 或 1.1 或 1.2
     * Windows XP/2003 和 Windows Vista 不支援高於 1.0 的版本
-    * OpenSSL 1.0.0 以及更舊的版本不支援高於 1.0 的版本
+    * OpenSSL 1.0.0 以及之前的版本不支援高於 1.0 的版本
   * HTTP CONNECT TLS Validation - HTTP CONNECT 協定啟用 TLS 握手時伺服器憑證鏈檢查：開啟為 1 /關閉為 0
     * 警告：關閉此功能將可能導致加密連接被中間人攻擊，強烈建議開啟！
     * 警告：OpenSSL 1.0.2 之前的版本不支援檢查伺服器憑證的功能變數名稱匹配情況，敬請留意！
-  * HTTP CONNECT TLS Server Name Indication - HTTP CONNECT 協定用於指定 TLS 握手時所指定使用的功能變數名稱伺服器：請輸入正確的功能變數名稱並且不要超過253位元組 ASCII 資料，留空則不啟用此功能
-  * HTTP CONNECT Version - 附帶在 HTTP CONNECT Header 的 HTTP CONNECT 協定版本號
+  * HTTP CONNECT TLS Server Name Indication - HTTP CONNECT 協定用於指定 TLS 握手時所指定使用的功能變數名稱伺服器：請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，留空則不啟用此功能
+  * HTTP CONNECT TLS ALPN - HTTP CONNECT 協定 TLS 握手時是否啟用 Application-Layer Protocol Negotiation/ALPN 擴展功能：開啟為 1 /關閉為 0
+    * Windows 8 以及之前的版本不支援本功能
+    * OpenSSL 1.0.1 以及之前的版本不支援本功能
+    * 警告：切勿在不受支援的版本上開啟本功能，否則可能導致程式無法正常收發資料包！
+  * HTTP CONNECT Version - HTTP CONNECT 協定所使用的版本：設置為 0 則自動選擇
+    * 現階段可填入 1.1 或 2
+    * 注意：根據標準的要求，使用 HTTP/2 同時開啟 HTTP CONNECT TLS Handshake 時必須填入 HTTP CONNECT TLS Server Name Indication 和啟用 HTTP CONNECT TLS ALPN 參數
+    * 注意：根據標準的要求，使用 HTTP/2 同時開啟 HTTP CONNECT TLS Handshake 時必須指定大於等於 1.2 的 HTTP CONNECT TLS Version
+    * 警告：本功能不支援從 1.1 升級到 2 的過渡方案，使用 HTTP/2 時如果伺服器不支援會直接導致請求失敗！
   * HTTP CONNECT Header Field - 附帶在 HTTP CONNECT Header 的資訊：所輸入的資訊將被直接添加到 HTTP CONNECT Header
-    * 本參數可重複多次出現，所有有內容的 HTTP CONNECT Header 的資訊都將被記錄並在請求時按順序添加到 HTTP CONNECT Header 裡
+    * 本參數可重複多次出現，所有有內容的 HTTP CONNECT Header 的資訊都將被記錄並在請求時按順序添加到 HTTP CONNECT Header 中
+    * 注意：根據標準的要求，本區域不能填入任何以下欄位：
+      * Connection
+      * Content-Length
+      * Proxy-Connection
+      * Transfer-Encoding
+      * Upgrade
   * HTTP CONNECT Proxy Authorization - 連接 HTTP CONNECT Proxy 伺服器時所使用的認證資訊：需要輸入 "使用者名:密碼"（不含引號），留空為不啟用
     * 只支援 Base 方式的認證
 
@@ -1031,7 +1045,6 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 * HTTP CONNECT Target Server
 * HTTP CONNECT TLS Version
 * HTTP CONNECT TLS Validation
-* HTTP CONNECT Version
 * HTTP CONNECT Header Field
 * HTTP CONNECT Proxy Authorization
 * DNSCurve Reliable Socket Timeout

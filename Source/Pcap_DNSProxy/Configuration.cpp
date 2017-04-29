@@ -446,7 +446,7 @@ bool ReadParameter(
 		#if defined(PLATFORM_WIN)
 			if (_wfopen_s(&FileHandle, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			FileHandle = fopen(FileList_Config.at(FileIndex).MBS_FileName.c_str(), "rb");
+			FileHandle = fopen(FileList_Config.at(FileIndex).MBS_FileName.c_str(), ("rb"));
 			if (FileHandle == nullptr)
 		#endif
 			{
@@ -567,7 +567,7 @@ bool ReadParameter(
 			#if defined(PLATFORM_WIN)
 				if (_wfopen_s(&FileHandle, FileList_DNSCurveDatabase.at(FileIndex).FileName.c_str(), L"rb") == 0 && FileHandle != nullptr)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-				FileHandle = fopen(FileList_DNSCurveDatabase.at(FileIndex).MBS_FileName.c_str(), "rb");
+				FileHandle = fopen(FileList_DNSCurveDatabase.at(FileIndex).MBS_FileName.c_str(), ("rb"));
 				if (FileHandle != nullptr)
 			#endif
 				{
@@ -584,8 +584,10 @@ bool ReadParameter(
 			}
 
 		//Read data from list.
-			ReadDNSCurveDatabaseItem(READ_TEXT_TYPE::DNSCURVE_DATABASE);
-			DNSCurveParameter.Database_LineData->clear();
+			if (!ReadDNSCurveDatabaseItem(READ_TEXT_TYPE::DNSCURVE_DATABASE))
+				return false;
+			else 
+				DNSCurveParameter.Database_LineData->clear();
 		}
 		else {
 			delete DNSCurveParameter.DatabaseName;
@@ -619,7 +621,7 @@ bool ReadParameter(
 		#if defined(PLATFORM_WIN)
 			if (_wfopen_s(&FileHandle, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			FileHandle = fopen(FileList_Config.at(FileIndex).MBS_FileName.c_str(), "rb");
+			FileHandle = fopen(FileList_Config.at(FileIndex).MBS_FileName.c_str(), ("rb"));
 			if (FileHandle == nullptr)
 		#endif
 			{
@@ -698,7 +700,7 @@ bool ReadParameter(
 				FileList_Config.at(FileIndex).ModificationTime = 0;
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PARAMETER, L"Configuration file size is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				
-				goto JumpToDNSCurve;
+				continue;
 			}
 
 		//Check modification time of configuration file.
@@ -729,21 +731,26 @@ bool ReadParameter(
 		#if defined(PLATFORM_WIN)
 			if (_wfopen_s(&FileHandle, FileList_Config.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			FileHandle = fopen(FileList_Config.at(FileIndex).MBS_FileName.c_str(), "rb");
+			FileHandle = fopen(FileList_Config.at(FileIndex).MBS_FileName.c_str(), ("rb"));
 			if (FileHandle == nullptr)
 		#endif
 			{
 				FileList_Config.at(FileIndex).ModificationTime = 0;
 				IsConfigFileModified = false;
 
-				goto JumpToDNSCurve;
+				continue;
 			}
 			else {
-				if (!IsFirstConfigMonitorRead)
-					ReadText(FileHandle, READ_TEXT_TYPE::PARAMETER_MONITOR, FileIndex);
-
-				fclose(FileHandle);
-				FileHandle = nullptr;
+				if (!IsFirstConfigMonitorRead && !ReadText(FileHandle, READ_TEXT_TYPE::PARAMETER_MONITOR, FileIndex))
+				{
+					fclose(FileHandle);
+					FileHandle = nullptr;
+					continue;
+				}
+				else {
+					fclose(FileHandle);
+					FileHandle = nullptr;
+				}
 			}
 
 		//Jump here to DNSCurve database file part
@@ -821,7 +828,7 @@ bool ReadParameter(
 				#if defined(PLATFORM_WIN)
 					if (_wfopen_s(&FileHandle, FileList_DNSCurveDatabase.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
 				#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-					FileHandle = fopen(FileList_DNSCurveDatabase.at(FileIndex).MBS_FileName.c_str(), "rb");
+					FileHandle = fopen(FileList_DNSCurveDatabase.at(FileIndex).MBS_FileName.c_str(), ("rb"));
 					if (FileHandle == nullptr)
 				#endif
 					{
@@ -829,16 +836,11 @@ bool ReadParameter(
 						continue;
 					}
 					else {
-						if (IsFirstDNSCurveMonitorRead)
+						if (IsFirstDNSCurveMonitorRead || !ReadText(FileHandle, READ_TEXT_TYPE::DNSCURVE_MONITOR, FileIndex))
 						{
 							fclose(FileHandle);
 							FileHandle = nullptr;
 							continue;
-						}
-						else if (!ReadText(FileHandle, READ_TEXT_TYPE::DNSCURVE_MONITOR, FileIndex))
-						{
-							fclose(FileHandle);
-							return false;
 						}
 						else {
 							fclose(FileHandle);
@@ -848,8 +850,8 @@ bool ReadParameter(
 				}
 
 			//Read data from list.
-				if (!IsFirstDNSCurveMonitorRead)
-					ReadDNSCurveDatabaseItem(READ_TEXT_TYPE::DNSCURVE_MONITOR);
+				if (!IsFirstDNSCurveMonitorRead && !ReadDNSCurveDatabaseItem(READ_TEXT_TYPE::DNSCURVE_MONITOR))
+					continue;
 			}
 		#endif
 
@@ -1033,7 +1035,7 @@ void ReadIPFilter(
 			#if defined(PLATFORM_WIN)
 				if (_wfopen_s(&FileHandle, FileList_IPFilter.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-				FileHandle = fopen(FileList_IPFilter.at(FileIndex).MBS_FileName.c_str(), "rb");
+				FileHandle = fopen(FileList_IPFilter.at(FileIndex).MBS_FileName.c_str(), ("rb"));
 				if (FileHandle == nullptr)
 			#endif
 				{
@@ -1082,7 +1084,7 @@ void ReadIPFilter(
 			}
 		}
 
-	//Update global lists.
+	//Mark to global list.
 		if (!IsFileModified)
 		{
 			Sleep(Parameter.FileRefreshTime);
@@ -1227,7 +1229,7 @@ void ReadHosts(
 			#if defined(PLATFORM_WIN)
 				if (_wfopen_s(&FileHandle, FileList_Hosts.at(FileIndex).FileName.c_str(), L"rb") != 0 || FileHandle == nullptr)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-				FileHandle = fopen(FileList_Hosts.at(FileIndex).MBS_FileName.c_str(), "rb");
+				FileHandle = fopen(FileList_Hosts.at(FileIndex).MBS_FileName.c_str(), ("rb"));
 				if (FileHandle == nullptr)
 			#endif
 				{
@@ -1276,7 +1278,7 @@ void ReadHosts(
 			}
 		}
 
-	//Update global lists.
+	//Mark to global list.
 		if (!IsFileModified)
 		{
 			Sleep(Parameter.FileRefreshTime);

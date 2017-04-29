@@ -34,7 +34,7 @@ bool DomainTestRequest(
 	const auto DNS_Header = reinterpret_cast<dns_hdr *>(Buffer.get());
 	DNS_Header->ID = Parameter.DomainTest_ID;
 	DNS_Header->Flags = htons(DNS_STANDARD);
-	DNS_Header->Question = htons(U16_NUM_ONE);
+	DNS_Header->Question = htons(U16_NUM_1);
 	size_t DataLength = 0;
 
 //Convert domain.
@@ -659,6 +659,10 @@ size_t TCP_RequestSingle(
 		(!Parameter.AlternateMultipleRequest || RequestType == REQUEST_PROCESS_TYPE::LOCAL))
 			++(*AlternateTimeoutTimes);
 
+//Close all sockets.
+	if (SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
+		SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+
 	return RecvLen;
 }
 
@@ -694,6 +698,13 @@ size_t TCP_RequestMultiple(
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_MAIN_TCP_IPV6];
 		else if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in)) //IPv4
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_MAIN_TCP_IPV4];
+	}
+
+//Close all sockets.
+	for (auto &SocketIter:TCPSocketDataList)
+	{
+		if (SocketSetting(SocketIter.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
+			SocketSetting(SocketIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 	}
 
 	return RecvLen;
@@ -813,6 +824,10 @@ size_t UDP_CompleteRequestSingle(
 		(!Parameter.AlternateMultipleRequest || RequestType == REQUEST_PROCESS_TYPE::LOCAL))
 			++(*AlternateTimeoutTimes);
 
+//Close all sockets.
+	if (SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
+		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+
 	return RecvLen;
 }
 
@@ -841,6 +856,13 @@ size_t UDP_CompleteRequestMultiple(
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_MAIN_TCP_IPV6];
 		else if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in)) //IPv4
 			++AlternateSwapList.TimeoutTimes[ALTERNATE_SWAP_TYPE_MAIN_TCP_IPV4];
+	}
+
+//Close all sockets.
+	for (auto &SocketIter:UDPSocketDataList)
+	{
+		if (SocketSetting(SocketIter.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
+			SocketSetting(SocketIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 	}
 
 	return RecvLen;

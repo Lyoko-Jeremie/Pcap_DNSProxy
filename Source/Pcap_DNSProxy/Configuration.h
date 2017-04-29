@@ -138,7 +138,7 @@ void ReadDNSCurveDatabaseData(
 	const READ_TEXT_TYPE InputType, 
 	const size_t FileIndex, 
 	const size_t Line);
-void ReadDNSCurveDatabaseItem(
+bool ReadDNSCurveDatabaseItem(
 	const READ_TEXT_TYPE InputType);
 bool ReadDNSCurveProviderName(
 	std::string Data, 

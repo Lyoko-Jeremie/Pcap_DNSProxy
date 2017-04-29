@@ -2485,7 +2485,7 @@ typedef struct _dns_record_caa_
 
 //Domain Name System Curve/DNSCurve part
 #if defined(ENABLE_LIBSODIUM)
-// About DNSCurve standards:
+// About DNSCurve standards: 
 // DNSCurve: Usable security for DNS(https://dnscurve.org)
 // DNSCrypt, A protocol to improve DNS security(https://dnscrypt.org)
 #ifndef IPPORT_DNSCURVE
@@ -2520,9 +2520,9 @@ typedef struct _dns_record_caa_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define DNSCURVE_VERSION_MINOR                   0        //DNSCurve minor version
 #define DNSCURVE_ES_X25519_XSALSA20_POLY1305     0x0001   //DNSCurve es version of X25519-XSalsa20Poly1305
 #define DNSCURVE_ES_X25519_XCHACHA20_POLY1305    0x0002   //DNSCurve es version of X25519-XChacha20Poly1305
+#define DNSCURVE_VERSION_MINOR                   0        //DNSCurve minor version
 typedef struct _dnscurve_txt_hdr_
 {
 	uint32_t              CertMagicNumber;
@@ -2628,8 +2628,8 @@ typedef struct _socks_client_selection_message_
 {
 	uint8_t               Version;
 	uint8_t               Methods_Number;
-	uint8_t               Methods_A;
-	uint8_t               Methods_B;
+	uint8_t               Methods_1;
+	uint8_t               Methods_2;
 }socks_client_selection;
 
 //SOCKS server method selection message
@@ -2794,6 +2794,294 @@ typedef struct _socks_udp_relay_request_
 }socks_udp_relay_request;
 
 
+// Hypertext Transfer Protocol/HTTP part
+/* About RFC standards
+* RFC 7230, Hypertext Transfer Protocol (HTTP/1.1): Message Syntax and Routing(https://tools.ietf.org/html/rfc7230)
+* RFC 7231, Hypertext Transfer Protocol (HTTP/1.1): Semantics and Content(https://tools.ietf.org/html/rfc7231)
+* RFC 7235, Hypertext Transfer Protocol (HTTP/1.1): Authentication(https://tools.ietf.org/html/rfc7235)
+* RFC 7540, Hypertext Transfer Protocol Version 2 (HTTP/2)(https://tools.ietf.org/html/rfc7540)
+* RFC 7541, HPACK: Header Compression for HTTP/2(https://tools.ietf.org/html/rfc7541)
+* RFC 7617, The 'Basic' HTTP Authentication Scheme(https://tools.ietf.org/html/rfc7617)
+*/
+//Size and data definitions
+#define HTTP_STATUS_CODE_SIZE                       3U
+#if defined(ENABLE_TLS)
+#if defined(PLATFORM_WIN)
+#define HTTP1_TLS_ALPN_STRING                       ("http/1.1")
+#define HTTP2_TLS_ALPN_STRING                       ("h2")
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+#define HTTP1_TLS_ALPN_STRING                       {8U, 'h', 't', 't', 'p', '/', '1', '.', '1'}
+#define HTTP2_TLS_ALPN_STRING                       {2U, 'h', '2'}
+#endif
+#endif
+/* Hypertext Transfer Protocol Version 2 (HTTP/2) frame header
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                    Length                     |     Type      |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|     Flags     |R|              Stream Identifier              |   R/Reserved
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   Stream ID   |                    Payload                    /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                            Padload                            /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+*/
+#define HTTP2_FRAME_TYPE_DATA                       0
+#define HTTP2_FRAME_TYPE_HEADERS                    1U
+#define HTTP2_FRAME_TYPE_PRIORITY                   2U
+#define HTTP2_FRAME_TYPE_RST_STREAM                 3U
+#define HTTP2_FRAME_TYPE_SETTINGS                   4U
+#define HTTP2_FRAME_TYPE_PUSH_PROMISE               5U
+#define HTTP2_FRAME_TYPE_PING                       6U
+#define HTTP2_FRAME_TYPE_GOAWAY                     7U
+#define HTTP2_FRAME_TYPE_WINDOW_UPDATE              8U
+#define HTTP2_FRAME_TYPE_CONTINUATION               9U
+#define HTTP2_FRAME_INIT_STREAM_ID                  1U
+#define HTTP2_FREAM_MAXSIZE                         16383U
+#define HTTP2_CONNECTION_CLIENT_PREFACE             ("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n")
+typedef struct _http2_frame_hdr_
+{
+	uint8_t               Length_High;
+	uint16_t              Length_Low;
+	uint8_t               Type;
+	uint8_t               Flags;
+	uint32_t              StreamIdentifier;
+//	uint8_t               *Payload;
+}http2_frame_hdr;
+
+//No padding at all, so do not need DATA frame header.
+/* Hypertext Transfer Protocol Version 2 (HTTP/2) DATA frame header
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/Padding Length /                     Data                      /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                             Data                              /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                            Padding                            /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+*/
+#define HTTP2_DATA_FLAGS_END_STREAM                  0x01
+/*
+typedef struct _http2_data_frame_hdr_
+{
+//	uint8_t               PaddingLength;
+	uint8_t               *Data;
+//	uint8_t               *Padding;
+}http2_data_frame_hdr;
+*/
+
+/* Hypertext Transfer Protocol Version 2 (HTTP/2) HEADERS frame header
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/Padding Length /E|              Stream Dependency              /   E/Explicitly
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/      SD       /    Weight     /     Header Block Fragment     /   SD/Stream Dependency
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                     Header Block Fragment                     /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                            Padding                            /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+*/
+#define HTTP2_HEADERS_FLAGS_END_STREAM               0x01
+#define HTTP2_HEADERS_FLAGS_END_HEADERS              0x04
+#define HTTP2_HEADERS_FLAGS_PADDED                   0x08
+#define HTTP2_HEADERS_FLAGS_PRIORITY                 0x20
+#define HTTP2_HEADERS_LITERAL_WITHOUT_INDEXED        0
+#define HTTP2_HEADERS_LITERAL_NEVER_INDEXED          0x10
+#define HTTP2_HEADERS_LITERAL_LOW_BITS               0x0F
+#define HTTP2_HEADERS_LITERAL_HIGH_BITS              0xF0
+#define HTTP2_HEADERS_INTEGER_LOW_BITS               0x7F
+#define HTTP2_HEADERS_INTEGER_WHOLE_BITS             0x80
+/*
+typedef struct _http2_headers_frame_hdr_
+{
+//	uint8_t               PaddingLength;
+//	uint32_t              StreamDependency;
+//	uint8_t               Weight;
+	uint8_t               *HeaderBlockFragment;
+//	uint8_t               *Padding;
+}http2_headers_frame_hdr;
+*/
+
+/* Hypertext Transfer Protocol Version 2 (HTTP/2) PRIORITY frame
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|E|                      Stream Dependency                      |   E/Explicitly
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|    Weigth     |
++-+-+-+-+-+-+-+-+
+*/
+typedef struct _http2_priority_frame_
+{
+	uint32_t              StreamDependency;
+	uint8_t               Weight;
+}http2_priority_frame;
+
+/* Hypertext Transfer Protocol Version 2 (HTTP/2) RST_STREAM frame
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                          Error Code                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+*/
+#define HTTP2_ERROR_NO_ERROR                        0
+#define HTTP2_ERROR_PROTOCOL_ERROR                  1U
+#define HTTP2_ERROR_INTERNAL_ERROR                  2U
+#define HTTP2_ERROR_FLOW_CONTROL_ERROR              3U
+#define HTTP2_ERROR_SETTINGS_TIMEOUT                4U
+#define HTTP2_ERROR_STREAM_CLOSED                   5U
+#define HTTP2_ERROR_FRAME_SIZE_ERROR                6U
+#define HTTP2_ERROR_REFUSED_STREAM                  7U
+#define HTTP2_ERROR_CANCEL                          8U
+#define HTTP2_ERROR_COMPRESSION_ERROR               9U
+#define HTTP2_ERROR_CONNECT_ERROR                   10U
+#define HTTP2_ERROR_ENHANCE_YOUR_CALM               11U
+#define HTTP2_ERROR_INADEQUATE_SECURITY             12U
+#define HTTP2_ERROR_HTTP_1_1_REQUIRED               13U
+typedef struct _http2_rst_stream_frame_
+{
+	uint32_t               ErrorCode;
+}http2_rst_stream_frame;
+
+/* Hypertext Transfer Protocol Version 2 (HTTP/2) SETTINGS frame
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|          Identifier           |             Value             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|             Value             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+*/
+#define HTTP2_SETTINGS_TYPE_HEADERS_TABLE_SIZE       1U
+#define HTTP2_SETTINGS_TYPE_ENABLE_PUSH              2U
+#define HTTP2_SETTINGS_TYPE_MAX_CONCURRENT_STREAMS   3U
+#define HTTP2_SETTINGS_TYPE_INITIAL_WINDOW_SIZE      4U
+#define HTTP2_SETTINGS_TYPE_MAX_FRAME_SIZE           5U
+#define HTTP2_SETTINGS_TYPE_MAX_HEADERS_LIST_SIZE    6U
+#define HTTP2_SETTINGS_FLAGS_ACK                     0x01
+#define HTTP2_SETTINGS_INIT_HEADERS_TABLE_SIZE       4096U
+#define HTTP2_SETTINGS_INIT_ENABLE_PUSH              1U
+#define HTTP2_SETTINGS_INIT_MAX_CONCURRENT_STREAMS   100U
+#define HTTP2_SETTINGS_INIT_INITIAL_WINDOW_SIZE      65535U
+#define HTTP2_SETTINGS_INIT_MAX_FRAME_SIZE           16384U
+typedef struct _http2_settings_frame_
+{
+	uint16_t               Identifier;
+	uint32_t               Value;
+}http2_settings_frame;
+
+/* Hypertext Transfer Protocol Version 2 (HTTP/2) PUSH_PROMISE frame header
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/Padding Length /R|             Promised Stream ID              /   R/Reserved
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/      SD       /    Weight     /     Header Block Fragment     /   SD/Stream Dependency
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                     Header Block Fragment                     /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                            Padding                            /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+typedef struct _http2_push_promise_frame_hdr_
+{
+//	uint8_t               PaddingLength;
+//	uint32_t              PromisedStreamID;
+	uint8_t               *HeaderBlockFragment;
+//	uint8_t               *Padding;
+}http2_push_promise_frame_hdr;
+*/
+
+/* Hypertext Transfer Protocol Version 2 (HTTP/2) PING frame
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                          Opaque Data                          |
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+*/
+#define HTTP2_PING_FLAGS_ACK                         0x01
+typedef struct _http2_ping_frame_
+{
+	uint64_t               OpaqueData;
+}http2_ping_frame;
+
+/* Hypertext Transfer Protocol Version 2 (HTTP/2) GOAWAY frame
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|R|                       Last-Stream-ID                        |   R/Reserved
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                          Error Code                           |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                     Additional Debug Data                     /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+*/
+typedef struct _http2_goaway_frame_
+{
+	uint32_t               LastStreamID;
+	uint32_t               ErrorCode;
+}http2_goaway_frame;
+
+/* Hypertext Transfer Protocol Version 2 (HTTP/2) WINDOW_UPDATE frame
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|R|                  Window Size Increment                      |   R/Reserved
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+*/
+typedef struct _http2_window_update_frame_
+{
+	uint32_t               WindowSizeIncrement;
+}http2_window_update_frame;
+
+/* Hypertext Transfer Protocol Version 2 (HTTP/2) CONTINUATION frame
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                                                               /
+/                     Header Block Fragment                     /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+typedef struct _http2_continuation_frame_
+{
+	uint8_t               *HeaderBlockFragment;
+}http2_continuation_frame;
+*/
+
+
 #if defined(ENABLE_TLS)
 //TLS Protocol part
 //TLS base record
@@ -2803,10 +3091,11 @@ typedef struct _socks_udp_relay_request_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 | Content Type  |            Version            |    Length     /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-/    Length     /                    Payload                    /
+/    Length     |                    Payload                    /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+-+-+-+-+-+-+-++-+-+-+-+-+-+
 
 */
+#define TLS_MIN_VERSION                             0x0301                      //TLS 1.0 = SSL 3.1
 typedef struct _tls_base_record_
 {
 	uint8_t               ContentType;

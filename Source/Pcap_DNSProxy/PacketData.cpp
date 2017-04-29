@@ -77,20 +77,20 @@ uint16_t GetChecksum(
 	const uint16_t *Buffer, 
 	const size_t Length)
 {
-	uint32_t Checksum = CHECKSUM_SUCCESS;
+	uint32_t Result = CHECKSUM_SUCCESS;
 	auto InnerLength = Length;
 	while (InnerLength > 1U)
 	{
-		Checksum += *Buffer++;
+		Result += *Buffer++;
 		InnerLength -= sizeof(uint16_t);
 	}
 
 	if (InnerLength)
-		Checksum += *reinterpret_cast<const uint8_t *>(Buffer);
+		Result += *reinterpret_cast<const uint8_t *>(Buffer);
+	Result = (Result >> (sizeof(uint16_t) * BYTES_TO_BITS)) + (Result & UINT16_MAX);
+	Result += (Result >> (sizeof(uint16_t) * BYTES_TO_BITS));
 
-	Checksum = (Checksum >> (sizeof(uint16_t) * BYTES_TO_BITS)) + (Checksum & UINT16_MAX);
-	Checksum += (Checksum >> (sizeof(uint16_t) * BYTES_TO_BITS));
-	return static_cast<uint16_t>(~Checksum);
+	return static_cast<uint16_t>(~Result);
 }
 
 //Get ICMPv6 checksum
@@ -100,6 +100,7 @@ uint16_t GetChecksum_ICMPv6(
 	const in6_addr &Destination, 
 	const in6_addr &Source)
 {
+//Initialization
 	std::unique_ptr<uint8_t[]> Validation(new uint8_t[sizeof(ipv6_psd_hdr) + Length]());
 	memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length);
 
@@ -109,6 +110,7 @@ uint16_t GetChecksum_ICMPv6(
 	(reinterpret_cast<ipv6_psd_hdr *>(Validation.get()))->Length = htonl(static_cast<uint32_t>(Length));
 	(reinterpret_cast<ipv6_psd_hdr *>(Validation.get()))->NextHeader = IPPROTO_ICMPV6;
 	memcpy_s(Validation.get() + sizeof(ipv6_psd_hdr), Length, Buffer + sizeof(ipv6_hdr), Length);
+	
 	return GetChecksum(reinterpret_cast<uint16_t *>(Validation.get()), sizeof(ipv6_psd_hdr) + Length);
 }
 
@@ -127,8 +129,8 @@ uint16_t GetChecksum_TCP_UDP(
 		(reinterpret_cast<ipv6_psd_hdr *>(Validation.get()))->Source = (reinterpret_cast<const ipv6_hdr *>(Buffer))->Source;
 		(reinterpret_cast<ipv6_psd_hdr *>(Validation.get()))->Length = htonl(static_cast<uint32_t>(Length));
 		(reinterpret_cast<ipv6_psd_hdr *>(Validation.get()))->NextHeader = static_cast<uint8_t>(Protocol_Transport);
-
 		memcpy_s(Validation.get() + sizeof(ipv6_psd_hdr), Length, Buffer + sizeof(ipv6_hdr), Length);
+		
 		return GetChecksum(reinterpret_cast<uint16_t *>(Validation.get()), sizeof(ipv6_psd_hdr) + Length);
 	}
 	else if (Protocol_Network == AF_INET)
@@ -139,8 +141,8 @@ uint16_t GetChecksum_TCP_UDP(
 		(reinterpret_cast<ipv4_psd_hdr *>(Validation.get()))->Source = (reinterpret_cast<const ipv4_hdr *>(Buffer))->Source;
 		(reinterpret_cast<ipv4_psd_hdr *>(Validation.get()))->Length = htons(static_cast<uint16_t>(Length));
 		(reinterpret_cast<ipv4_psd_hdr *>(Validation.get()))->Protocol = static_cast<uint8_t>(Protocol_Transport);
-
 		memcpy_s(Validation.get() + sizeof(ipv4_psd_hdr), Length, Buffer + (reinterpret_cast<const ipv4_hdr *>(Buffer))->IHL * IPV4_IHL_BYTES_TIMES, Length);
+		
 		return GetChecksum(reinterpret_cast<uint16_t *>(Validation.get()), sizeof(ipv4_psd_hdr) + Length);
 	}
 
@@ -416,7 +418,7 @@ size_t Add_EDNS_To_Additional_RR(
 	if (DNS_Header->Additional > 0)
 		return Length;
 	else 
-		DNS_Header->Additional = htons(U16_NUM_ONE);
+		DNS_Header->Additional = htons(U16_NUM_1);
 	auto DataLength = Length;
 
 //Add a new EDNS/OPT Additional Resource Records.
@@ -713,7 +715,7 @@ size_t MakeCompressionPointerMutation(
 	}
 
 //Make Compression Pointer Mutation.
-	if (Index == CPM_POINTER_TYPE_HEADER) //Pointer to header, like "[DNS Header][Domain][Pointer][Query]" and point to [DNS Header].
+	if (Index == CPM_POINTER_TYPE_HEADER) //Pointer to header, like "<DNS Header><Domain><Pointer><Query>" and point to <DNS Header>.
 	{
 		memmove_s(Buffer + Length - sizeof(dns_qry) + NULL_TERMINATE_LENGTH, sizeof(dns_qry), Buffer + Length - sizeof(dns_qry), sizeof(dns_qry));
 		*(Buffer + Length - sizeof(dns_qry) - 1U) = static_cast<uint8_t>(DNS_POINTER_8_BITS_STRING);
@@ -755,15 +757,15 @@ size_t MakeCompressionPointerMutation(
 		*(Buffer + sizeof(dns_hdr)) = static_cast<uint8_t>(DNS_POINTER_8_BITS_STRING);
 		*(Buffer + sizeof(dns_hdr) + 1U) = ('\x12');
 
-	//Pointer to RR, like "[DNS Header][Pointer][Query][Domain]" and point to [Domain].
+	//Pointer to RR, like "<DNS Header><Pointer><Query><Domain>" and point to <Domain>.
 		if (Index == CPM_POINTER_TYPE_RR)
 		{
 			return Length + 2U;
 		}
-	//Pointer to Additional, like "[DNS Header][Pointer][Query][Additional]" and point to domain in [Additional].
+	//Pointer to Additional, like "<DNS Header><Pointer><Query><Additional>" and point to domain in <Additional>.
 		else {
 			const auto DNS_Header = reinterpret_cast<dns_hdr *>(Buffer);
-			DNS_Header->Additional = htons(U16_NUM_ONE);
+			DNS_Header->Additional = htons(U16_NUM_1);
 
 		//Ramdom number distribution initialization
 			std::uniform_int_distribution<uint32_t> RamdomDistribution_Additional(0, UINT32_MAX);

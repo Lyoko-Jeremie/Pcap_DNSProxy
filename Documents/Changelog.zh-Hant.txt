@@ -1,11 +1,13 @@
-﻿Pcap_DNSProxy 0.4.8.5-0.4.8.6 更新日誌(2017-04-08)：
+﻿Pcap_DNSProxy 0.4.8.5-0.4.8.6 更新日誌(2017-04-30)：
 
 * 添加對 DNSCrypt 資料庫檔案 dnscrypt-resolvers.csv 配置的支援 [rampageX]
+* 添加對 TLS ALPN 擴展的支援
 * 添加對指定 TCP Fast Open 的監聽佇列長度支援 (Linux)
 * 添加對 TCP Fast Open 的支援 (macOS)
 * LibSodium 庫更新到 1.0.12 (Windows/macOS)
 * Visual Studio 更新到 2017 (Windows)
 * 修復在完全禁用 IPv6 協定棧的情況下程式依舊嘗試使用 IPv6 協定棧的問題 [dzxx36gyy]
+* 修復讀取 DNSCrypt 資料庫檔案 dnscrypt-resolvers.csv 機制的問題 [snakwu]
 * 修復 -c/--config-file 參數在部分情況下無法正常指定路徑的問題
 * 修復在設定檔重新讀取參數有改變的情況下沒有進行網路狀況重新測試的問題
 * 修復 DNSCurve/DNSCrypt 在設定檔重新讀取參數沒有改變的情況下可能無法正常工作的問題

@@ -26,6 +26,9 @@
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 
+//Length definitions
+#define HTTP1_RESPONSE_MINSIZE              (strlen(" HTTP/") + HTTP_VERSION_MAXSIZE + HTTP_STATUS_CODE_SIZE)
+
 //Functions
 bool SOCKS_SelectionExchange(
 	std::vector<SOCKET_DATA> &SocketDataList, 
@@ -41,6 +44,34 @@ bool SOCKS_ClientCommandRequest(
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
 	std::vector<ssize_t> &ErrorCodeList, 
 	SOCKET_DATA * const UDP_ASSOCIATE_Address);
+void HTTP_CONNECT_2_IntegerEncoding(
+	std::vector<uint8_t> &BytesList, 
+	size_t IntegerValue);
+void HTTP_CONNECT_2_SETTINGS_WriteBytes(
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	const uint16_t Identifier, 
+	const uint32_t Value);
+size_t HTTP_CONNECT_2_IntegerDecoding(
+	uint8_t *Buffer, 
+	const size_t Length, 
+	size_t &IntegerValue);
+bool HTTP_CONNECT_2_HEADERS_WriteBytes(
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	const uint8_t *Buffer, 
+	const size_t Length, 
+	const bool IsLiteralFlag);
+bool HTTP_CONNECT_2_HEADERS_ReadBytes(
+	std::vector<std::string> &HeaderList, 
+	const uint8_t *Buffer, 
+	const size_t Length);
+bool HTTP_CONNECT_ResponseBytesCheck(
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList);
+bool HTTP_CONNECT_2_ShutdownConnection(
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	std::vector<ssize_t> &ErrorCodeList, 
+	const size_t Type, 
+	const size_t ErrorCode, 
+	void *TLS_Context);
 bool HTTP_CONNECT_Handshake(
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 

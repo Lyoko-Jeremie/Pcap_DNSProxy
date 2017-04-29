@@ -44,8 +44,9 @@
 #if defined(ENABLE_LIBSODIUM)
 	#define LIBSODIUM_ERROR                               (-1)
 #endif
-#define BYTES_TO_BITS                                 8U
-#define U16_NUM_ONE                                   0x0001
+#define BYTES_TO_BITS                                 8U                          //8 bits = 1 byte
+#define U16_NUM_1                                     0x0001
+#define HEX_PREAMBLE_STRING                           ("0x")                      //Hexadecimal preamble
 
 //Character value definitions
 #define ASCII_HT                                      9                           //"?"
@@ -54,6 +55,7 @@
 #define ASCII_FF                                      0x0C                        //12, Form Feed
 #define ASCII_CR                                      0x0D                        //13, Carriage Return
 #define ASCII_SPACE                                   32                          //" "
+#define ASCII_QUOTATION_MARK                          34                          //"\""
 #define ASCII_HASHTAG                                 35                          //"#"
 #define ASCII_AMPERSAND                               38                          //"&"
 #define ASCII_PLUS                                    43                          //"+"
@@ -82,7 +84,7 @@
 #define ASCII_BRACES_LEFT                             123                         //"{"
 #define ASCII_VERTICAL                                124                         //"|"
 #define ASCII_TILDE                                   126                         //"~"
-#define ASCII_MAX_NUM                                 0x7F
+#define ASCII_MAX_NUM                                 0x7F                        //Maximum number of ASCII
 #define UNICODE_NEXT_LINE                             0x0085                      //Next Line
 #define UNICODE_NO_BREAK_SPACE                        0x00A0                      //No-Break Space
 #define UNICODE_OGHAM_SPACE_MARK                      0x1680                      //Ogham Space Mark
@@ -114,38 +116,38 @@
 #define FULL_VERSION                                  L"0.4.8.6"                            //Current full version
 
 //Size and length definitions(Number)
-#define ADDRESS_STRING_MAXSIZE                        64U                         //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
-#define ALTERNATE_SERVERNUM                           12U                         //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
-#define BOM_UTF_16_LENGTH                             2U                          //UTF-16 BOM length
-#define BOM_UTF_32_LENGTH                             4U                          //UTF-32 BOM length
-#define BOM_UTF_8_LENGTH                              3U                          //UTF-8 BOM length
-#define DEFAULT_LARGE_BUFFER_SIZE                     4096U                       //Default size of large buffer(4KB/4096 bytes)
-#define COMMAND_BUFFER_MAXSIZE                        DEFAULT_LARGE_BUFFER_SIZE   //Maximum size of commands buffer
-#define COMMAND_MIN_COUNT                             1
-#define DEFAULT_THREAD_POOL_BASENUM                   24U                         //Default number of base thread pool size
-#define DEFAULT_THREAD_POOL_MAXNUM                    256U                        //Default number of maximum thread pool size
-#define DIFFERNET_FILE_SET_NUM                        2U                          //Number of Different file set
-#define DNS_RR_MAX_AAAA_COUNT                         43U                         //Maximum Record Resources size of AAAA answers, 28 bytes * 43 = 1204 bytes
-#define DNS_RR_MAX_A_COUNT                            75U                         //Maximum Record Resources size of A answers, 16 bytes * 75 = 1200 bytes
+#define ADDRESS_STRING_MAXSIZE                        64U                               //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
+#define ALTERNATE_SERVERNUM                           12U                               //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
+#define BOM_UTF_16_LENGTH                             2U                                //UTF-16 BOM length
+#define BOM_UTF_32_LENGTH                             4U                                //UTF-32 BOM length
+#define BOM_UTF_8_LENGTH                              3U                                //UTF-8 BOM length
+#define DEFAULT_LARGE_BUFFER_SIZE                     4096U                             //Default size of large buffer(4KB/4096 bytes)
+#define COMMAND_BUFFER_MAXSIZE                        DEFAULT_LARGE_BUFFER_SIZE         //Maximum size of commands buffer
+#define COMMAND_MIN_COUNT                             1                                 //Minimum count of commands
+#define DEFAULT_THREAD_POOL_BASENUM                   24U                               //Default number of base thread pool size
+#define DEFAULT_THREAD_POOL_MAXNUM                    256U                              //Default number of maximum thread pool size
+#define DIFFERNET_FILE_SET_NUM                        2U                                //Number of Different file set
+#define DNS_RR_MAX_AAAA_COUNT                         43U                               //Maximum Record Resources size of AAAA answers, 28 bytes * 43 = 1204 bytes
+#define DNS_RR_MAX_A_COUNT                            75U                               //Maximum Record Resources size of A answers, 16 bytes * 75 = 1200 bytes
 #if defined(ENABLE_LIBSODIUM)
-	#define DNSCRYPT_DATABASE_ITEM_MINNUM                 14U                         //Minimum number of item in DNSCrypt database
-	#define DNSCRYPT_DATABASE_ADDRESS_LOCATION            10U                         //Location of DNSCurve Address in DNSCrypt database
-	#define DNSCRYPT_DATABASE_PROVIDER_NAME_LOCATION      11U                         //Location of Provider Name in DNSCrypt database
-	#define DNSCRYPT_DATABASE_PROVIDER_KEY_LOCATION       12U                         //LOcation of Provider Public Key in DNSCrypt database
-	#define DNSCRYPT_KEYPAIR_MESSAGE_LEN                  80U                         //DNScrypt keypair messages length
-	#define DNSCRYPT_KEYPAIR_INTERVAL                     4U                          //DNScrypt keypair interval length
-	#define DNSCRYPT_RECORD_TXT_LEN                       124U                        //Length of DNScrypt TXT Records
+	#define DNSCRYPT_DATABASE_ITEM_MINNUM                 14U                               //Minimum number of item in DNSCrypt database
+	#define DNSCRYPT_DATABASE_ADDRESS_LOCATION            10U                               //Location of DNSCurve Address in DNSCrypt database
+	#define DNSCRYPT_DATABASE_PROVIDER_NAME_LOCATION      11U                               //Location of Provider Name in DNSCrypt database
+	#define DNSCRYPT_DATABASE_PROVIDER_KEY_LOCATION       12U                               //LOcation of Provider Public Key in DNSCrypt database
+	#define DNSCRYPT_KEYPAIR_MESSAGE_LEN                  80U                               //DNScrypt keypair messages length
+	#define DNSCRYPT_KEYPAIR_INTERVAL                     4U                                //DNScrypt keypair interval length
+	#define DNSCRYPT_RECORD_TXT_LEN                       124U                              //Length of DNScrypt TXT Records
 #endif
-#define DOMAIN_DATA_MAXSIZE                           253U                        //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_LEVEL_DATA_MAXSIZE                     63U                         //Domain length is between 3 and 63(Labels must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
-#define DOMAIN_MAXSIZE                                256U                        //Maximum size of whole level domain is 256 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_MINSIZE                                2U                          //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_RAMDOM_MINSIZE                         6U                          //Minimum size of ramdom domain request
-#define FILE_BUFFER_SIZE                              DEFAULT_LARGE_BUFFER_SIZE   //Sizeof file reading buffer
-#define FILE_READING_MAXSIZE                          1073741824U                 //Maximum size of whole reading file(1GB/1073741824 bytes).
-#define HTTP_VERSION_LENGTH                           2U                          //HTTP version length
-#define HTTP_STATUS_CODE_LENGTH                       3U                          //HTTP status code length
-#define ICMP_PADDING_MAXSIZE                          1484U                       //Length of ICMP padding data must between 18 bytes and 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
+#define DOMAIN_DATA_MAXSIZE                           253U                              //Maximum data length of whole level domain is 253 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_LEVEL_DATA_MAXSIZE                     63U                               //Domain length is between 3 and 63(Labels must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
+#define DOMAIN_MAXSIZE                                256U                              //Maximum size of whole level domain is 256 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_MINSIZE                                2U                                //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
+#define DOMAIN_RAMDOM_MINSIZE                         6U                                //Minimum size of ramdom domain request
+#define FILE_BUFFER_SIZE                              DEFAULT_LARGE_BUFFER_SIZE         //Size of file reading buffer
+#define FILE_READING_MAXSIZE                          268435456U                        //Maximum size of whole reading file(256 MB/268435456 bytes).
+#define HTTP_VERSION_SUPPORT_COUNT                    2U                                //HTTP version 1.1 and 2 which are supported by us.
+#define HTTP_VERSION_MAXSIZE                          3U                                //Maximum size of HTTP version
+#define ICMP_PADDING_MAXSIZE                          1484U                             //Length of ICMP padding data must between 18 bytes and 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
 #if defined(PLATFORM_LINUX)
 	#define ICMP_PADDING_LENGTH_LINUX                     40U
 	#define ICMP_STRING_START_NUM_LINUX                   16U
@@ -153,18 +155,21 @@
 	#define ICMP_PADDING_LENGTH_MACOS                     48U
 	#define ICMP_STRING_START_NUM_MACOS                   8U
 #endif
-#define IPV4_SHORTEST_ADDR_STRING                     6U                          //The shortest IPv4 address strings(*.*.*.*)
-#define IPV6_SHORTEST_ADDR_STRING                     2U                          //The shortest IPv6 address strings(::)
-#define LOG_READING_MAXSIZE                           8388608U                    //Maximum size of whole log file(8MB/8388608 bytes)
-#define LOG_READING_MINSIZE                           DEFAULT_LARGE_BUFFER_SIZE   //Minimum size of whole log file(4KB/4096 bytes)
-#define MULTIPLE_REQUEST_MAXNUM                       64U                         //Maximum number of multiple request.
-#define NETWORK_LAYER_PARTNUM                         2U                          //Number of network layer protocols(IPv6 and IPv4)
-#define NULL_TERMINATE_LENGTH                         1U                          //Length of C style string null
-#define ORIGINAL_PACKET_MAXSIZE                       1512U                       //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header + 4 bytes FCS)
-#define PACKET_MAXSIZE                                1500U                       //Maximum size of packets, Standard MTU of Ethernet II network
-#define PADDING_RESERVED_BYTES                        2U                          //Padding reserved bytes(2 bytes)
+#define IPV4_SHORTEST_ADDR_STRING                     6U                                //The shortest IPv4 address strings(*.*.*.*)
+#define IPV6_SHORTEST_ADDR_STRING                     2U                                //The shortest IPv6 address strings(::)
+#define LOG_READING_MAXSIZE                           8388608U                          //Maximum size of whole log file(8MB/8388608 bytes)
+#define LOG_READING_MINSIZE                           DEFAULT_LARGE_BUFFER_SIZE         //Minimum size of whole log file(4KB/4096 bytes)
+#define MULTIPLE_REQUEST_MAXNUM                       64U                               //Maximum number of multiple request.
+#define NETWORK_LAYER_PARTNUM                         2U                                //Number of network layer protocols(IPv6 and IPv4)
+#define NULL_TERMINATE_LENGTH                         1U                                //Length of C style string null
+#define ORIGINAL_PACKET_MAXSIZE                       1512U                             //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header + 4 bytes FCS)
+#define PACKET_MAXSIZE                                1500U                             //Maximum size of packets, Standard MTU of Ethernet II network
+#define PADDING_RESERVED_BYTES                        2U                                //Padding reserved bytes(2 bytes)
 #if defined(ENABLE_PCAP)
 	#define PCAP_CAPTURE_STRING_MAXNUM                    256U                        //Maximum length of pcap capture drive name and description
+#endif
+#if defined(PLATFORM_WIN)
+	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE           8192U                        //Buffer maximum size of QueryServiceConfig function(8KB/8192 Bytes)
 #endif
 #define THREAD_POOL_MAXNUM                            1488095U                    //Number of maximum packet buffer queues, 1488095 pps or 1.488 Mpps in Gigabit Ethernet
 #define THREAD_POOL_MINNUM                            8U                          //Number of minimum packet buffer queues
@@ -174,10 +179,8 @@
 #define UINT8_MAX_STRING_LENGTH                       4U                          //Maximum number of 8 bits is 255, its length is 3.
 
 //Size and length definitions(Data)
-#define DNS_PACKET_MINSIZE                            (sizeof(dns_hdr) + NULL_TERMINATE_LENGTH + sizeof(dns_qry))                                                 //Minimum DNS packet size(DNS Header + Minimum Domain<ROOT> + DNS Query)
+#define DNS_PACKET_MINSIZE                            (sizeof(dns_hdr) + NULL_TERMINATE_LENGTH + sizeof(dns_qry))                              //Minimum DNS packet size(DNS Header + Minimum Domain<ROOT> + DNS Query)
 #define EDNS_ADDITIONAL_MAXSIZE                       (sizeof(dns_record_opt) * 2U + sizeof(edns_client_subnet) + sizeof(in6_addr))            //Maximum of EDNS Additional Record Resources size
-#define HTTP_TOP_HEADER_LENGTH                        (strlen("HTTP/"))
-#define HTTP_RESPONSE_MINSIZE                         (HTTP_TOP_HEADER_LENGTH + HTTP_VERSION_LENGTH + strlen(" ") + HTTP_STATUS_CODE_LENGTH)   //Minimum size of HTTP server response
 #if defined(ENABLE_LIBSODIUM)
 	#define DNSCRYPT_BUFFER_RESERVED_LEN                  (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES - crypto_box_BOXZEROBYTES)
 	#define DNSCRYPT_BUFFER_RESERVED_TCP_LEN              (sizeof(uint16_t) + DNSCRYPT_BUFFER_RESERVED_LEN)
@@ -194,7 +197,6 @@
 #endif
 #if defined(PLATFORM_WIN)
 	#define SYSTEM_SOCKET                                 UINT_PTR                     //System Socket defined(WinSock2.h), which is not the same in x86 and x64 platform and defined in WinSock2.h file.
-	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE           8192U                        //Buffer maximum size of QueryServiceConfig function(8KB/8192 Bytes)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#define SYSTEM_SOCKET                                 int
 #endif
@@ -265,7 +267,7 @@
 	#define MAILSLOT_MESSAGE_FLUSH_DNS_DOMAIN             (L"Flush Pcap_DNSProxy DNS cache: ")           //The mailslot message to flush dns cache(Single domain)
 	#define MUTEX_EXISTS_NAME                             (L"Global\\Pcap_DNSProxy Process Exists")      //Global mutex exists name
 	#define MAILSLOT_NAME                                 (L"\\\\.\\mailslot\\pcap_dnsproxy_mailslot")   //MailSlot name
-	#define SID_ADMINISTRATORS_GROUP                      (L"S-1-5-32-544")                              //Windows SID of Administrators group
+	#define SID_ADMINISTRATORS_GROUP                      (L"S-1-5-32-544")                              //Windows Administrators group SID header
 	#define SYSTEM_SERVICE_NAME                           (L"PcapDNSProxyService")                       //System service name
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 #if defined(PLATFORM_LINUX)
@@ -291,7 +293,6 @@
 	#define FIFO_MESSAGE_FLUSH_DNS_DOMAIN                 ("Flush DNS cache of Pcap_DNSProxy: ")       //The FIFO message to flush dns cache(Single domain)
 	#define FIFO_PATH_NAME                                ("/tmp/pcap_dnsproxy_fifo")                  //FIFO pathname
 #endif
-#define DEFAULT_HTTP_CONNECT_VERSION                  ("1.1")                                      //Default HTTP CONNECT version
 #define DEFAULT_LOCAL_SERVER_NAME                     ("pcap-dnsproxy.server")                     //Default Local DNS server name
 #if defined(PLATFORM_MACOS)
 	#define DEFAULT_SEQUENCE                               0
@@ -334,8 +335,8 @@ typedef enum class _log_level_type_
 	LEVEL_1,                                          //Failed messages
 	LEVEL_2,                                          //Base error messages
 	LEVEL_3,                                          //All error messages
-//	LEVEL_4,                                          //Reserved level
-//	LEVEL_5,                                          //Reserved level
+//	LEVEL_4,                                          //Reserved
+//	LEVEL_5                                           //Reserved
 }LOG_LEVEL_TYPE;
 #define DEFAULT_LOG_LEVEL                             LOG_LEVEL_TYPE::LEVEL_3
 #define LOG_LEVEL_MAXNUM                              LOG_LEVEL_TYPE::LEVEL_3
@@ -411,13 +412,13 @@ typedef enum class _listen_protocol_network_
 {
 	BOTH, 
 	IPV6, 
-	IPV4, 
+	IPV4
 }LISTEN_PROTOCOL_NETWORK;
 typedef enum class _listen_protocol_transport_
 {
 	BOTH, 
 	TCP, 
-	UDP, 
+	UDP
 }LISTEN_PROTOCOL_TRANSPORT;
 typedef enum _network_layer_type_
 {
@@ -460,25 +461,28 @@ typedef enum class _request_process_type_
 {
 	NONE, 
 	LOCAL, 
-	SOCKS_MAIN, 
-	HTTP_CONNECT, 
 	DIRECT, 
-#if defined(ENABLE_LIBSODIUM)
-	DNSCURVE_MAIN, 
-	DNSCURVE_SIGN, 
-#endif
 	TCP, 
-	UDP_NORMAL, 
-	UDP_WITHOUT_MARKING, 
+	SOCKS_MAIN, 
 	SOCKS_CLIENT_SELECTION, 
 	SOCKS_USER_AUTH, 
 	SOCKS_4_COMMAND_REPLY, 
 	SOCKS_5_COMMAND_REPLY, 
+	HTTP_CONNECT_MAIN, 
+	HTTP_CONNECT_1, 
+	HTTP_CONNECT_2, 
+	HTTP_CONNECT_SHUTDOWN, 
 #if defined(ENABLE_TLS)
 	TLS_HANDSHAKE, 
 	TLS_TRANSPORT, 
-	TLS_SHUTDOWN
+	TLS_SHUTDOWN, 
 #endif
+#if defined(ENABLE_LIBSODIUM)
+	DNSCURVE_MAIN, 
+	DNSCURVE_SIGN, 
+#endif
+	UDP_NORMAL, 
+	UDP_WITHOUT_MARKING
 }REQUEST_PROCESS_TYPE;
 #if defined(ENABLE_LIBSODIUM)
 typedef enum class _dnscurve_server_type_
@@ -490,15 +494,20 @@ typedef enum class _dnscurve_server_type_
 	ALTERNATE_IPV4
 }DNSCURVE_SERVER_TYPE;
 #endif
+typedef enum class _http_version_selection_
+{
+	VERSION_AUTO,
+	VERSION_1,
+	VERSION_2
+}HTTP_VERSION_SELECTION;
 #if defined(ENABLE_TLS)
-#define TLS_MIN_VERSION                           0x0301                      //TLS 1.0 = SSL 3.1
 typedef enum class _tls_version_selection
 {
-	AUTO, 
+	VERSION_AUTO, 
 	VERSION_1_0, 
 	VERSION_1_1, 
 	VERSION_1_2, 
-	VERSION_1_3, 
+	VERSION_1_3
 }TLS_VERSION_SELECTION;
 #if defined(PLATFORM_WIN)
 	#define SSPI_SECURE_BUFFER_NUM                    4U
@@ -830,10 +839,11 @@ public:
 	std::string                          *HTTP_CONNECT_TLS_AddressString_IPv6;
 	std::string                          *HTTP_CONNECT_TLS_AddressString_IPv4;
 #endif
+	bool                                 HTTP_CONNECT_TLS_ALPN;
 #endif
 	std::string                          *HTTP_CONNECT_TargetDomain;
-	std::string                          *HTTP_CONNECT_Version;
-	std::string                          *HTTP_CONNECT_HeaderField;
+	HTTP_VERSION_SELECTION               HTTP_CONNECT_Version;
+	std::vector<std::string>             *HTTP_CONNECT_HeaderField;
 	std::string                          *HTTP_CONNECT_ProxyAuthorization;
 
 //[DNSCurve/DNSCrypt] block
