@@ -73,6 +73,20 @@ size_t Base64_Decode(
 	const size_t Length, 
 	uint8_t *Output, 
 	const size_t OutputSize);
+HUFFMAN_RETURN_TYPE HPACK_HuffmanEncoding(
+	uint8_t *String, 
+	size_t ByteSize, 
+	size_t *Consumed, 
+	uint8_t *Buffer, 
+	size_t Length, 
+	size_t *Produced);
+HUFFMAN_RETURN_TYPE HPACK_HuffmanDecoding(
+	uint8_t *HuffmanBuffer, 
+	size_t ByteSize, 
+	size_t *Consumed, 
+	uint8_t *TargetBuffer, 
+	size_t Length, 
+	size_t *Produced);
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 uint64_t IncreaseMillisecondTime(
 	const uint64_t CurrentTime, 

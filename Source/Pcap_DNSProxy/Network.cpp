@@ -2030,6 +2030,10 @@ size_t SocketSelectingSerial(
 //Jump here to stop loop.
 StopLoop:
 
+//HTTP CONNECT shutdown connection is no need to receive anything.
+	if (RequestType == REQUEST_PROCESS_TYPE::HTTP_CONNECT_SHUTDOWN)
+		return EXIT_SUCCESS;
+
 //Socket check(Receive process)
 	for (auto SocketDataIter = SocketDataList.begin();SocketDataIter != SocketDataList.end();++SocketDataIter)
 	{

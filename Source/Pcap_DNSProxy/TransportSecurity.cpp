@@ -101,6 +101,7 @@ bool SSPI_Handshake(
 
 //TLS ALPN extension buffer initializtion
 	std::unique_ptr<uint8_t[]> InputBufferPointer;
+#if !defined(PLATFORM_WIN_XP)
 	if (Parameter.HTTP_CONNECT_TLS_ALPN)
 	{
 	//The first 4 bytes will be an indicating number of bytes of data in the rest of the the buffer.
@@ -149,8 +150,11 @@ bool SSPI_Handshake(
 		InputBufferDesc.ulVersion = SECBUFFER_VERSION;
 	}
 	else {
+#endif
 		InputBufferDescPointer = nullptr;
+#if !defined(PLATFORM_WIN_XP)
 	}
+#endif
 
 //Buffer initializtion
 	OutputBufferSec[0].pvBuffer = nullptr;

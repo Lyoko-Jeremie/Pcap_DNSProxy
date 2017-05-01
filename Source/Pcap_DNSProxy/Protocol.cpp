@@ -1205,8 +1205,8 @@ bool CheckConnectionStreamFin(
 	//HTTP version 1.x response
 		std::string DataStream(reinterpret_cast<const char *>(Stream));
 		if (DataStream.find("\r\n\r\n") != std::string::npos && 
-			(DataStream.compare(0, strlen("HTTP/1.0 200 "), ("HTTP/1.0 200 ")) == 0) || 
-			DataStream.compare(0, strlen("HTTP/1.1 200 "), ("HTTP/1.1 200 ")) == 0)
+			(DataStream.compare(0, strlen("HTTP/1.0 200 "), ("HTTP/1.0 200 ")) == 0 || 
+			DataStream.compare(0, strlen("HTTP/1.1 200 "), ("HTTP/1.1 200 ")) == 0))
 				return true;
 	}
 //HTTP version 2 CONNECT method
@@ -1264,7 +1264,7 @@ bool CheckConnectionStreamFin(
 //HTTP CONNECT shutdown connection.
 	else if (RequestType == REQUEST_PROCESS_TYPE::HTTP_CONNECT_SHUTDOWN)
 	{
-		if (Length >= sizeof(http2_frame_hdr))
+//		if (Length >= sizeof(http2_frame_hdr))
 			return true;
 	}
 //SOCKS client selection

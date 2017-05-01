@@ -614,7 +614,9 @@ ConfigurationTable::ConfigurationTable(
 		HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
 	}
 #endif
+#if !defined(PLATFORM_WIN_XP)
 	HTTP_CONNECT_TLS_ALPN = Reference.HTTP_CONNECT_TLS_ALPN;
+#endif
 #endif
 	if (Reference.HTTP_CONNECT_TargetDomain != nullptr)
 	{

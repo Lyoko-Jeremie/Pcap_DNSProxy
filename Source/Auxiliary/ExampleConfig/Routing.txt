@@ -1,7 +1,7 @@
 ﻿[Local Routing]
 ## China mainland routing blocks
 ## Source: https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest
-## Last update: 2017-04-29
+## Last update: 2017-05-01
 
 
 ## IPv4

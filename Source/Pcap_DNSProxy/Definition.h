@@ -113,7 +113,7 @@
 #define CONFIG_VERSION_MAJOR                          0                                     //Current configuration file major version(0.45)
 #define CONFIG_VERSION_MINOR                          45U                                   //Current configuration file minor version(0.45)
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2017 Chengr28"   //Copyright message
-#define FULL_VERSION                                  L"0.4.8.6"                            //Current full version
+#define FULL_VERSION                                  L"0.4.8.7"                            //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_MAXSIZE                        64U                               //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -311,6 +311,14 @@
 #define BASE64_ENCODE_OUT_SIZE(Message)               (((Message) + 2U) / 3U * 4U)
 
 //Type definitions
+typedef enum class _huffman_return_type_
+{
+	NONE, 
+	ERROR_OVERFLOW, 
+	ERROR_TRUNCATED, 
+	ERROR_EOS, 
+	ERROR_BAD_PREFIX, 
+}HUFFMAN_RETURN_TYPE;
 typedef enum class _address_compare_type_
 {
 	NONE, 
@@ -496,8 +504,8 @@ typedef enum class _dnscurve_server_type_
 #endif
 typedef enum class _http_version_selection_
 {
-	VERSION_AUTO,
-	VERSION_1,
+	VERSION_AUTO, 
+	VERSION_1, 
 	VERSION_2
 }HTTP_VERSION_SELECTION;
 #if defined(ENABLE_TLS)
@@ -559,6 +567,13 @@ typedef enum class _tls_version_selection
 //////////////////////////////////////////////////
 // Main structures and classes
 // 
+//Huffman Node structure
+typedef struct _huffman_node_
+{
+	uint32_t                             Bits;
+	uint8_t                              Size;
+}HuffmanNode, HUFFMAN_NODE;
+
 //File Data structure
 typedef struct _file_data_
 {
@@ -839,7 +854,9 @@ public:
 	std::string                          *HTTP_CONNECT_TLS_AddressString_IPv6;
 	std::string                          *HTTP_CONNECT_TLS_AddressString_IPv4;
 #endif
+#if !defined(PLATFORM_WIN_XP)
 	bool                                 HTTP_CONNECT_TLS_ALPN;
+#endif
 #endif
 	std::string                          *HTTP_CONNECT_TargetDomain;
 	HTTP_VERSION_SELECTION               HTTP_CONNECT_Version;

@@ -470,7 +470,7 @@ void HTTP_CONNECT_2_PrintLog(
 	{
 		case HTTP2_ERROR_NO_ERROR:
 		{
-			return;
+			Message.append(L": NO_ERROR");
 		}break;
 		case HTTP2_ERROR_PROTOCOL_ERROR:
 		{

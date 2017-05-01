@@ -51,9 +51,15 @@ void HTTP_CONNECT_2_SETTINGS_WriteBytes(
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
 	const uint16_t Identifier, 
 	const uint32_t Value);
-size_t HTTP_CONNECT_2_IntegerDecoding(
-	uint8_t *Buffer, 
+size_t HTTP_CONNECT_2_HeaderTableDecoding(
+	std::vector<std::string> &HeaderList, 
+	const uint8_t *Buffer, 
 	const size_t Length, 
+	const uint8_t PrefixSize);
+size_t HTTP_CONNECT_2_IntegerDecoding(
+	const uint8_t *Buffer, 
+	const size_t Length, 
+	const uint8_t PrefixSize, 
 	size_t &IntegerValue);
 bool HTTP_CONNECT_2_HEADERS_WriteBytes(
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 

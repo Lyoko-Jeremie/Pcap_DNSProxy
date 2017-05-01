@@ -687,11 +687,13 @@ bool Parameter_CheckSetting(
 				}
 
 			//TLS ALPN extension check
+			#if !defined(PLATFORM_WIN_XP)
 				if (!Parameter.HTTP_CONNECT_TLS_ALPN && Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"HTTP version 2 require TLS ALPN extension", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					Parameter.HTTP_CONNECT_TLS_ALPN = true;
 				}
+			#endif
 			}
 		}
 		else if (Parameter.HTTP_CONNECT_TLS_Handshake)
@@ -3019,11 +3021,13 @@ bool ReadParameterData(
 			Parameter.MBS_HTTP_CONNECT_TLS_SNI->clear();
 			Parameter.MBS_HTTP_CONNECT_TLS_SNI->append(Data, strlen("HTTPCONNECTTLSServerNameIndication="), Data.length() - strlen("HTTPCONNECTTLSServerNameIndication="));
 		}
+	#if !defined(PLATFORM_WIN_XP)
 		else if (Data.compare(0, strlen("HTTPCONNECTTLSALPN=1"), ("HTTPCONNECTTLSALPN=1")) == 0)
 		{
 			Parameter.HTTP_CONNECT_TLS_ALPN = true;
 		}
 		else 
+	#endif
 	#endif
 		if (Data.compare(0, strlen("HTTPCONNECTVersion="), ("HTTPCONNECTVersion=")) == 0 && 
 		Data.length() > strlen("HTTPCONNECTVersion="))

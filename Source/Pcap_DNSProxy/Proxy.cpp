@@ -1011,12 +1011,12 @@ void HTTP_CONNECT_2_SETTINGS_WriteBytes(
 	return;
 }
 
-//HTTP version 2 HPACK integer representation encoding
+//HTTP version 2 HPACK Header Compression integer representation encoding
 void HTTP_CONNECT_2_IntegerEncoding(
 	std::vector<uint8_t> &BytesList, 
 	size_t IntegerValue)
 {
-//N is 7 when disable Huffman, so the highest bit is 0.
+//N is 7 when disable huffman coding, so the highest bit is 0.
 //Pseudocode to represent an integer I is as follows:
 //	if I < 2 ^ N(7) - 1, encode I on N(7) bits
 //	else
@@ -1027,21 +1027,20 @@ void HTTP_CONNECT_2_IntegerEncoding(
 //			I = I / 128
 //		encode I on 8 bits
 	BytesList.clear();
-	if (IntegerValue < HTTP2_HEADERS_INTEGER_LOW_BITS)
+	if (IntegerValue < HTTP2_HEADERS_INTEGER_LOW_7_BITS)
 	{
-		const auto ValueBytes = static_cast<uint8_t>(IntegerValue);
-		BytesList.push_back(ValueBytes);
+		BytesList.push_back(static_cast<uint8_t>(IntegerValue));
 	}
 	else {
-		uint8_t ValueBytes = HTTP2_HEADERS_INTEGER_LOW_BITS;
+		uint8_t ValueBytes = HTTP2_HEADERS_INTEGER_LOW_7_BITS;
 		BytesList.push_back(ValueBytes);
-		IntegerValue -= HTTP2_HEADERS_INTEGER_LOW_BITS;
+		IntegerValue -= HTTP2_HEADERS_INTEGER_LOW_7_BITS;
 
-		while (IntegerValue >= HTTP2_HEADERS_INTEGER_WHOLE_BITS)
+		while (IntegerValue >= HTTP2_HEADERS_INTEGER_HIGH_1_BITS)
 		{
-			ValueBytes = IntegerValue % HTTP2_HEADERS_INTEGER_WHOLE_BITS + HTTP2_HEADERS_INTEGER_WHOLE_BITS;
+			ValueBytes = IntegerValue % HTTP2_HEADERS_INTEGER_HIGH_1_BITS + HTTP2_HEADERS_INTEGER_HIGH_1_BITS;
 			BytesList.push_back(ValueBytes);
-			IntegerValue /= HTTP2_HEADERS_INTEGER_WHOLE_BITS;
+			IntegerValue /= HTTP2_HEADERS_INTEGER_HIGH_1_BITS;
 		}
 
 		ValueBytes = static_cast<uint8_t>(IntegerValue);
@@ -1100,15 +1099,15 @@ bool HTTP_CONNECT_2_HEADERS_WriteBytes(
 	return true;
 }
 
-//HTTP version 2 HPACK integer representation decoding
+//HTTP version 2 HPACK Header Compression integer representation decoding
 size_t HTTP_CONNECT_2_IntegerDecoding(
-	uint8_t *Buffer, 
+	const uint8_t *Buffer, 
 	const size_t Length, 
+	const uint8_t PrefixSize, 
 	size_t &IntegerValue)
 {
-//N is 7 when disable Huffman, so the highest bit is 0.
-//Decode I from the next N(7) bits
-//	if I < 2 ^ N(7) - 1, return I
+//Decode I from the next N bits
+//	if I < 2 ^ N - 1, return I
 //	else
 //		M = 0
 //		repeat
@@ -1117,24 +1116,24 @@ size_t HTTP_CONNECT_2_IntegerDecoding(
 //			M = M + 7
 //		while B & 128 == 128
 //		return I
-	IntegerValue = (*Buffer) & HTTP2_HEADERS_INTEGER_LOW_BITS;
-	if (*Buffer < HTTP2_HEADERS_INTEGER_LOW_BITS)
+	IntegerValue = ((*Buffer) & PrefixSize);
+	if (IntegerValue < PrefixSize)
 	{
-		IntegerValue = *Buffer;
 		return sizeof(uint8_t);
 	}
 	else {
 		size_t IntegerSize = sizeof(uint8_t), Shift = 0;
-		IntegerValue = HTTP2_HEADERS_INTEGER_LOW_BITS;
+		IntegerValue = PrefixSize;
+
 		for (;;)
 		{
 			if (IntegerSize >= Length)
 				return 0;
 			auto BytesData = *(Buffer + IntegerSize);
 			IntegerSize += sizeof(uint8_t);
-			if ((BytesData & HTTP2_HEADERS_INTEGER_WHOLE_BITS) != 0)
+			if ((BytesData & HTTP2_HEADERS_INTEGER_HIGH_1_BITS) != 0)
 			{
-				IntegerValue += static_cast<size_t>(BytesData & HTTP2_HEADERS_INTEGER_LOW_BITS) << Shift;
+				IntegerValue += static_cast<size_t>(BytesData & HTTP2_HEADERS_INTEGER_LOW_7_BITS) << Shift;
 				Shift += 7U;
 			}
 			else {
@@ -1149,6 +1148,358 @@ size_t HTTP_CONNECT_2_IntegerDecoding(
 	return 0;
 }
 
+//HTTP version 2 HPACK Header Compression header table decoding
+/* Static Table Entries
+          +-------+-----------------------------+---------------+
+          | Index | Header Name                 | Header Value  |
+          +-------+-----------------------------+---------------+
+          | 1     | :authority                  |               |
+          | 2     | :method                     | GET           |
+          | 3     | :method                     | POST          |
+          | 4     | :path                       | /             |
+          | 5     | :path                       | /index.html   |
+          | 6     | :scheme                     | http          |
+          | 7     | :scheme                     | https         |
+          | 8     | :status                     | 200           |
+          | 9     | :status                     | 204           |
+          | 10    | :status                     | 206           |
+          | 11    | :status                     | 304           |
+          | 12    | :status                     | 400           |
+          | 13    | :status                     | 404           |
+          | 14    | :status                     | 500           |
+          | 15    | accept-charset              |               |
+          | 16    | accept-encoding             | gzip, deflate |
+          | 17    | accept-language             |               |
+          | 18    | accept-ranges               |               |
+          | 19    | accept                      |               |
+          | 20    | access-control-allow-origin |               |
+          | 21    | age                         |               |
+          | 22    | allow                       |               |
+          | 23    | authorization               |               |
+          | 24    | cache-control               |               |
+          | 25    | content-disposition         |               |
+          | 26    | content-encoding            |               |
+          | 27    | content-language            |               |
+          | 28    | content-length              |               |
+          | 29    | content-location            |               |
+          | 30    | content-range               |               |
+          | 31    | content-type                |               |
+          | 32    | cookie                      |               |
+          | 33    | date                        |               |
+          | 34    | etag                        |               |
+          | 35    | expect                      |               |
+          | 36    | expires                     |               |
+          | 37    | from                        |               |
+          | 38    | host                        |               |
+          | 39    | if-match                    |               |
+          | 40    | if-modified-since           |               |
+          | 41    | if-none-match               |               |
+          | 42    | if-range                    |               |
+          | 43    | if-unmodified-since         |               |
+          | 44    | last-modified               |               |
+          | 45    | link                        |               |
+          | 46    | location                    |               |
+          | 47    | max-forwards                |               |
+          | 48    | proxy-authenticate          |               |
+          | 49    | proxy-authorization         |               |
+          | 50    | range                       |               |
+          | 51    | referer                     |               |
+          | 52    | refresh                     |               |
+          | 53    | retry-after                 |               |
+          | 54    | server                      |               |
+          | 55    | set-cookie                  |               |
+          | 56    | strict-transport-security   |               |
+          | 57    | transfer-encoding           |               |
+          | 58    | user-agent                  |               |
+          | 59    | vary                        |               |
+          | 60    | via                         |               |
+          | 61    | www-authenticate            |               |
+          +-------+-----------------------------+---------------+
+*/
+size_t HTTP_CONNECT_2_HeaderTableDecoding(
+	std::vector<std::string> &HeaderList, 
+	const uint8_t *Buffer, 
+	const size_t Length, 
+	const uint8_t PrefixSize)
+{
+//Integer and literal size check
+	size_t IndexNumber = 0;
+	const auto IntegerSize = HTTP_CONNECT_2_IntegerDecoding(const_cast<uint8_t *>(Buffer), Length, PrefixSize, IndexNumber);
+	if (IntegerSize == 0 || IntegerSize > Length)
+		return 0;
+
+//Table index entries list
+	switch (IndexNumber)
+	{
+	//Static table check
+		case 1U:
+		{
+			HeaderList.push_back(":authority");
+		}break;
+		case 2U:
+		{
+			HeaderList.push_back(":method");
+			HeaderList.push_back("GET");
+		}break;
+		case 3U:
+		{
+			HeaderList.push_back(":method");
+			HeaderList.push_back("POST");
+		}break;
+		case 4U:
+		{
+			HeaderList.push_back(":path");
+			HeaderList.push_back("/");
+		}break;
+		case 5U:
+		{
+			HeaderList.push_back(":path");
+			HeaderList.push_back("/index.html");
+		}break;
+		case 6U:
+		{
+			HeaderList.push_back(":scheme");
+			HeaderList.push_back("http");
+		}break;
+		case 7U:
+		{
+			HeaderList.push_back(":scheme");
+			HeaderList.push_back("https");
+		}break;
+		case 8U:
+		{
+			HeaderList.push_back(":status");
+			HeaderList.push_back("200");
+		}break;
+		case 9U:
+		{
+			HeaderList.push_back(":status");
+			HeaderList.push_back("204");
+		}break;
+		case 10U:
+		{
+			HeaderList.push_back(":status");
+			HeaderList.push_back("206");
+		}break;
+		case 11U:
+		{
+			HeaderList.push_back(":status");
+			HeaderList.push_back("304");
+		}break;
+		case 12U:
+		{
+			HeaderList.push_back(":status");
+			HeaderList.push_back("400");
+		}break;
+		case 13U:
+		{
+			HeaderList.push_back(":status");
+			HeaderList.push_back("404");
+		}break;
+		case 14U:
+		{
+			HeaderList.push_back(":status");
+			HeaderList.push_back("500");
+		}break;
+		case 15U:
+		{
+			HeaderList.push_back("accept-charset");
+		}break;
+		case 16U:
+		{
+			HeaderList.push_back("accept-encoding");
+			HeaderList.push_back("gzip, deflate");
+		}break;
+		case 17U:
+		{
+			HeaderList.push_back("accept-language");
+		}break;
+		case 18U:
+		{
+			HeaderList.push_back("accept-ranges");
+		}break;
+		case 19U:
+		{
+			HeaderList.push_back("accept");
+		}break;
+		case 20U:
+		{
+			HeaderList.push_back("access-control-allow-origin");
+		}break;
+		case 21U:
+		{
+			HeaderList.push_back("age");
+		}break;
+		case 22U:
+		{
+			HeaderList.push_back("allow");
+		}break;
+		case 23U:
+		{
+			HeaderList.push_back("authorization");
+		}break;
+		case 24U:
+		{
+			HeaderList.push_back("cache-control");
+		}break;
+		case 25U:
+		{
+			HeaderList.push_back("content-disposition");
+		}break;
+		case 26U:
+		{
+			HeaderList.push_back("content-encoding");
+		}break;
+		case 27U:
+		{
+			HeaderList.push_back("content-language");
+		}break;
+		case 28U:
+		{
+			HeaderList.push_back("content-length");
+		}break;
+		case 29U:
+		{
+			HeaderList.push_back("content-location");
+		}break;
+		case 30U:
+		{
+			HeaderList.push_back("content-range");
+		}break;
+		case 31U:
+		{
+			HeaderList.push_back("content-type");
+		}break;
+		case 32U:
+		{
+			HeaderList.push_back("cookie");
+		}break;
+		case 33U:
+		{
+			HeaderList.push_back("date");
+		}break;
+		case 34U:
+		{
+			HeaderList.push_back("etag");
+		}break;
+		case 35U:
+		{
+			HeaderList.push_back("expect");
+		}break;
+		case 36U:
+		{
+			HeaderList.push_back("expires");
+		}break;
+		case 37U:
+		{
+			HeaderList.push_back("from");
+		}break;
+		case 38U:
+		{
+			HeaderList.push_back("host");
+		}break;
+		case 39U:
+		{
+			HeaderList.push_back("if-match");
+		}break;
+		case 40U:
+		{
+			HeaderList.push_back("if-modified-since");
+		}break;
+		case 41U:
+		{
+			HeaderList.push_back("if-none-match");
+		}break;
+		case 42U:
+		{
+			HeaderList.push_back("if-range");
+		}break;
+		case 43U:
+		{
+			HeaderList.push_back("if-unmodified-since");
+		}break;
+		case 44U:
+		{
+			HeaderList.push_back("last-modified");
+		}break;
+		case 45U:
+		{
+			HeaderList.push_back("link");
+		}break;
+		case 46U:
+		{
+			HeaderList.push_back("location");
+		}break;
+		case 47U:
+		{
+			HeaderList.push_back("max-forwards");
+		}break;
+		case 48U:
+		{
+			HeaderList.push_back("proxy-authenticate");
+		}break;
+		case 49U:
+		{
+			HeaderList.push_back("proxy-authorization");
+		}break;
+		case 50U:
+		{
+			HeaderList.push_back("range");
+		}break;
+		case 51U:
+		{
+			HeaderList.push_back("referer");
+		}break;
+		case 52U:
+		{
+			HeaderList.push_back("refresh");
+		}break;
+		case 53U:
+		{
+			HeaderList.push_back("retry-after");
+		}break;
+		case 54U:
+		{
+			HeaderList.push_back("server");
+		}break;
+		case 55U:
+		{
+			HeaderList.push_back("set-cookie");
+		}break;
+		case 56U:
+		{
+			HeaderList.push_back("strict-transport-security");
+		}break;
+		case 57U:
+		{
+			HeaderList.push_back("transfer-encoding");
+		}break;
+		case 58U:
+		{
+			HeaderList.push_back("user-agent");
+		}break;
+		case 59U:
+		{
+			HeaderList.push_back("vary");
+		}break;
+		case 60U:
+		{
+			HeaderList.push_back("via");
+		}break;
+		case 61U:
+		{
+			HeaderList.push_back("www-authenticate");
+		}break;
+	//Dynamic table is not supported.
+		default:
+		{
+			return 0;
+		}
+	}
+
+	return IntegerSize;
+}
+
 //HTTP version 2 HPACK Header Compression read bytes
 bool HTTP_CONNECT_2_HEADERS_ReadBytes(
 	std::vector<std::string> &HeaderList, 
@@ -1156,30 +1507,149 @@ bool HTTP_CONNECT_2_HEADERS_ReadBytes(
 	const size_t Length)
 {
 	size_t IntegerSize = 0, LiteralSize = 0;
+	uint8_t PrefixSize = 0;
+	auto IsNamedField = false;
 	for (size_t Index = 0;Index < Length;)
 	{
 	//String literal type check
-		if (((*(Buffer + Index)) & HTTP2_HEADERS_LITERAL_LOW_BITS) != 0 || //Literal Header Field with Indexed Names are not supported.
-			(((*(Buffer + Index)) & HTTP2_HEADERS_LITERAL_HIGH_BITS) != HTTP2_HEADERS_LITERAL_WITHOUT_INDEXED && //Literal Header Field without Indexing
-			((*(Buffer + Index)) & HTTP2_HEADERS_LITERAL_HIGH_BITS) != HTTP2_HEADERS_LITERAL_NEVER_INDEXED) || //Literal Header Field Never Indexed
-			(Index + sizeof(uint8_t) > Length && *(Buffer + Index + sizeof(uint8_t)) > HTTP2_HEADERS_INTEGER_LOW_BITS)) //Huffman encoding is not supported.
+		IsNamedField = !IsNamedField;
+		if (IsNamedField)
+		{
+		//Indexed Header Field
+			if (((*(Buffer + Index)) & HTTP2_HEADERS_INTEGER_HIGH_1_BITS) != 0)
+			{
+				PrefixSize = HTTP2_HEADERS_LITERAL_LOW_7_BITS;
+				IntegerSize = HTTP_CONNECT_2_HeaderTableDecoding(HeaderList, Buffer + Index, Length - Index, PrefixSize);
+				if (IntegerSize == 0)
+				{
+					return false;
+				}
+				else {
+					Index += IntegerSize;
+					IsNamedField = false;
+
+					continue;
+				}
+			}
+		//Literal Header Field with Incremental Indexing
+			else if (((*(Buffer + Index)) & HTTP2_HEADERS_LITERAL_HIGH_2_BITS) == HTTP2_HEADERS_LITERAL_INCREMENTAL_INDEXED)
+			{
+				PrefixSize = HTTP2_HEADERS_LITERAL_LOW_6_BITS;
+
+			//Literal Header Field with Incremental Indexing -- Indexed Name
+				if (((*(Buffer + Index)) & PrefixSize) != 0)
+				{
+					IntegerSize = HTTP_CONNECT_2_HeaderTableDecoding(HeaderList, Buffer + Index, Length - Index, PrefixSize);
+					if (IntegerSize == 0)
+					{
+						return false;
+					}
+					else {
+						Index += IntegerSize;
+						IsNamedField = false;
+					}
+				}
+			//Literal Header Field with Incremental Indexing -- New Name
+				else {
+					Index += sizeof(uint8_t);
+				}
+			}
+		//Dynamic Table Size Update
+			else if (((*(Buffer + Index)) & HTTP2_HEADERS_LITERAL_HIGH_3_BITS) == HTTP2_HEADERS_LITERAL_TABLE_SIZE_UPDATE)
+			{
+				if (((*(Buffer + Index)) & HTTP2_HEADERS_LITERAL_LOW_5_BITS) != 0) //Dynamic table size must be set to 0.
+				{
+					return false;
+				}
+				else {
+					Index += sizeof(uint8_t);
+					IsNamedField = false;
+
+					continue;
+				}
+			}
+		//Literal Header Field without Indexing and Literal Header Field Never Indexed
+			else if (((*(Buffer + Index)) & HTTP2_HEADERS_LITERAL_HIGH_4_BITS) == HTTP2_HEADERS_LITERAL_WITHOUT_INDEXED || 
+				((*(Buffer + Index)) & HTTP2_HEADERS_LITERAL_HIGH_4_BITS) == HTTP2_HEADERS_LITERAL_NEVER_INDEXED)
+			{
+				PrefixSize = HTTP2_HEADERS_LITERAL_LOW_4_BITS;
+
+			//Literal Header Field without Indexing and Literal Header Field Never Indexed -- Indexed Name
+				if (((*(Buffer + Index)) & PrefixSize) != 0)
+				{
+					IntegerSize = HTTP_CONNECT_2_HeaderTableDecoding(HeaderList, Buffer + Index, Length - Index, PrefixSize);
+					if (IntegerSize == 0)
+					{
+						return false;
+					}
+					else {
+						Index += IntegerSize;
+						IsNamedField = false;
+					}
+				}
+			//Literal Header Field without Indexing and Literal Header Field Never Indexed -- New Name
+				else {
+					Index += sizeof(uint8_t);
+				}
+			}
+			else {
 				return false;
-		else 
-			Index += sizeof(uint8_t);
+			}
+		}
 
-	//Integer and literal size check
-		IntegerSize = HTTP_CONNECT_2_IntegerDecoding(const_cast<uint8_t *>(Buffer + Index), Length - Index, LiteralSize);
-		if (IntegerSize == 0 || IntegerSize + Index > Length || LiteralSize + IntegerSize + Index > Length || LiteralSize >= UINT16_MAX_STRING_LENGTH)
-			return false;
-		else 
-			Index += IntegerSize;
+	//Huffman coding
+		if (*(Buffer + Index) > HTTP2_HEADERS_INTEGER_LOW_7_BITS)
+		{
+		//Integer and literal size check
+			IntegerSize = HTTP_CONNECT_2_IntegerDecoding(const_cast<uint8_t *>(Buffer + Index), Length - Index, HTTP2_HEADERS_INTEGER_LOW_7_BITS, LiteralSize);
+			if (IntegerSize == 0 || IntegerSize + Index > Length || LiteralSize + IntegerSize + Index > Length)
+				return false;
+			else 
+				Index += IntegerSize;
 
-	//Read name and value string.
-		std::unique_ptr<uint8_t[]> HeaderBuffer(new uint8_t[LiteralSize + PADDING_RESERVED_BYTES]());
-		memset(HeaderBuffer.get(), 0, LiteralSize + PADDING_RESERVED_BYTES);
-		memcpy_s(HeaderBuffer.get(), LiteralSize + PADDING_RESERVED_BYTES, Buffer + Index, LiteralSize);
-		HeaderList.push_back(reinterpret_cast<char *>(HeaderBuffer.get()));
-		Index += LiteralSize;
+		//Read huffman coding.
+			std::unique_ptr<uint8_t[]> HeaderBuffer;
+			size_t HeaderBufferSize = 0, HeaderBufferLen = 0;
+			for (;;)
+			{
+			//Buffer initializtion
+				std::unique_ptr<uint8_t[]> HuffmanBuffer(new uint8_t[HeaderBufferSize + DEFAULT_LARGE_BUFFER_SIZE + PADDING_RESERVED_BYTES]());
+				memset(HuffmanBuffer.get(), 0, HeaderBufferSize + DEFAULT_LARGE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
+				std::swap(HeaderBuffer, HuffmanBuffer);
+				HuffmanBuffer.reset();
+				HeaderBufferSize += DEFAULT_LARGE_BUFFER_SIZE + PADDING_RESERVED_BYTES;
+
+			//Huffman decoding
+				const auto Result = HPACK_HuffmanDecoding(const_cast<uint8_t *>(Buffer + Index), LiteralSize, &HeaderBufferLen, HeaderBuffer.get(), HeaderBufferSize, nullptr);
+				if (Result == HUFFMAN_RETURN_TYPE::NONE)
+				{
+					HeaderList.push_back(reinterpret_cast<char *>(HeaderBuffer.get()));
+					Index += HeaderBufferLen;
+
+					break;
+				}
+				else if (Result != HUFFMAN_RETURN_TYPE::ERROR_OVERFLOW)
+				{
+					return false;
+				}
+			}
+		}
+	//Normal string literal coding
+		else {
+		//Integer and literal size check
+			IntegerSize = HTTP_CONNECT_2_IntegerDecoding(const_cast<uint8_t *>(Buffer + Index), Length - Index, PrefixSize, LiteralSize);
+			if (IntegerSize == 0 || IntegerSize + Index > Length || LiteralSize + IntegerSize + Index > Length)
+				return false;
+			else 
+				Index += IntegerSize;
+
+		//Read Names and Values.
+			std::unique_ptr<uint8_t[]> HeaderBuffer(new uint8_t[LiteralSize + PADDING_RESERVED_BYTES]());
+			memset(HeaderBuffer.get(), 0, LiteralSize + PADDING_RESERVED_BYTES);
+			memcpy_s(HeaderBuffer.get(), LiteralSize + PADDING_RESERVED_BYTES, Buffer + Index, LiteralSize);
+			HeaderList.push_back(reinterpret_cast<char *>(HeaderBuffer.get()));
+			Index += LiteralSize;
+		}
 	}
 
 	return true;
@@ -1245,7 +1715,7 @@ bool HTTP_CONNECT_ResponseBytesCheck(
 					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 				}
 				else {
-					std::wstring Message(L"HTTP version is not supported");
+					std::wstring Message(L"HTTP version is not supported: ");
 					Message.append(InnerMessage);
 					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::HTTP_CONNECT, Message.c_str(), 0, nullptr, 0);
 				}
@@ -1372,7 +1842,9 @@ bool HTTP_CONNECT_ResponseBytesCheck(
 							}
 						}
 
-						goto PrintDataFormatError;
+					//Get HTTP response status code 200.
+						if (!IsGotResponseResult)
+							goto PrintDataFormatError;
 					}
 				}
 			}
@@ -1445,7 +1917,7 @@ bool HTTP_CONNECT_ResponseBytesCheck(
 		}
 	}
 
-//Get HTTP status code 200.
+//Get HTTP response status code 200.
 	if (IsGotResponseResult)
 		return true;
 
@@ -1929,6 +2401,10 @@ bool HTTP_CONNECT_Exchange(
 		SocketSelectingDataList.front().SendLen += sizeof(http2_frame_hdr);
 		LengthInterval = SocketSelectingDataList.front().SendLen;
 
+	//Header table size update(HEADERS frame)
+		*(SocketSelectingDataList.front().SendBuffer.get() + SocketSelectingDataList.front().SendLen) = HTTP2_HEADERS_LITERAL_TABLE_SIZE_UPDATE;
+		SocketSelectingDataList.front().SendLen += sizeof(uint8_t);
+
 	//Fixed header :method and :authority field(HEADERS frame)
 		if (!HTTP_CONNECT_2_HEADERS_WriteBytes(SocketSelectingDataList, reinterpret_cast<const uint8_t *>(":method"), strlen(":method"), true) || 
 			!HTTP_CONNECT_2_HEADERS_WriteBytes(SocketSelectingDataList, reinterpret_cast<const uint8_t *>("CONNECT"), strlen("CONNECT"), false) || 
@@ -2091,33 +2567,76 @@ size_t HTTP_CONNECT_Transport(
 	#if defined(PLATFORM_WIN)
 		if (!TLS_TransportSerial(RequestType, PacketMinSize, *static_cast<SSPI_HANDLE_TABLE *>(TLS_Context), SocketDataList, SocketSelectingDataList, ErrorCodeList))
 		{
+		//HTTP version 2 shutdown connection.
+			if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
+				HTTP_CONNECT_2_ShutdownConnection(SocketDataList, ErrorCodeList, HTTP2_FRAME_TYPE_RST_STREAM, HTTP2_ERROR_INTERNAL_ERROR, TLS_Context);
+
+		//TLS shutdown connection.
 			SSPI_ShutdownConnection(*static_cast<SSPI_HANDLE_TABLE *>(TLS_Context), SocketDataList, ErrorCodeList);
+
+		//Normal shutdown connection.
 			SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 			return EXIT_FAILURE;
 		}
 		else {
+		//HTTP version 2 shutdown connection.
+			if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
+				HTTP_CONNECT_2_ShutdownConnection(SocketDataList, ErrorCodeList, HTTP2_FRAME_TYPE_GOAWAY, HTTP2_ERROR_NO_ERROR, TLS_Context);
+
+		//TLS shutdown connection.
 			SSPI_ShutdownConnection(*static_cast<SSPI_HANDLE_TABLE *>(TLS_Context), SocketDataList, ErrorCodeList);
+
+		//Normal shutdown connection.
 			SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 		}
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		if (!TLS_TransportSerial(RequestType, PacketMinSize, *static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context), SocketSelectingDataList))
 		{
+		//HTTP version 2 shutdown connection.
+			if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
+				HTTP_CONNECT_2_ShutdownConnection(SocketDataList, ErrorCodeList, HTTP2_FRAME_TYPE_RST_STREAM, HTTP2_ERROR_INTERNAL_ERROR, TLS_Context);
+
+		//TLS shutdown connection.
 			OpenSSL_ShutdownConnection(*static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context));
+
 			return EXIT_FAILURE;
 		}
 		else {
+		//HTTP version 2 shutdown connection.
+			if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
+				HTTP_CONNECT_2_ShutdownConnection(SocketDataList, ErrorCodeList, HTTP2_FRAME_TYPE_GOAWAY, HTTP2_ERROR_NO_ERROR, TLS_Context);
+
+		//TLS shutdown connection.
 			OpenSSL_ShutdownConnection(*static_cast<OPENSSL_CONTEXT_TABLE *>(TLS_Context));
 		}
 	#endif
 	#endif
 	}
 	else {
+	//Send process.
 		SocketSelectingDataList.front().RecvBuffer.reset();
 		SocketSelectingDataList.front().RecvSize = 0;
 		SocketSelectingDataList.front().RecvLen = 0;
-		RecvLen = SocketSelectingSerial(REQUEST_PROCESS_TYPE::TCP, IPPROTO_TCP, SocketDataList, SocketSelectingDataList, ErrorCodeList);
+		if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
+		{
+			RecvLen = SocketSelectingSerial(REQUEST_PROCESS_TYPE::HTTP_CONNECT_2, IPPROTO_TCP, SocketDataList, SocketSelectingDataList, ErrorCodeList);
+
+		//HTTP version 2 shutdown connection.
+			HTTP_CONNECT_2_ShutdownConnection(SocketDataList, ErrorCodeList, HTTP2_FRAME_TYPE_GOAWAY, HTTP2_ERROR_NO_ERROR, TLS_Context);
+		}
+		else if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1)
+		{
+			RecvLen = SocketSelectingSerial(REQUEST_PROCESS_TYPE::TCP, IPPROTO_TCP, SocketDataList, SocketSelectingDataList, ErrorCodeList);
+		}
+		else {
+			return EXIT_FAILURE;
+		}
+
+	//Normal shutdown connection.
 		SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+
+	//Receive process
 		SocketSelectingDataList.front().SendBuffer.reset();
 		SocketSelectingDataList.front().SendSize = 0;
 		SocketSelectingDataList.front().SendLen = 0;
@@ -2191,7 +2710,8 @@ size_t HTTP_CONNECT_Transport(
 					}
 
 				//Data whole packet
-					if ((FrameHeader->Flags & HTTP2_DATA_FLAGS_END_STREAM) != 0)
+//					if ((FrameHeader->Flags & HTTP2_DATA_FLAGS_END_STREAM) != 0) //It seems that proxy server is not set END_STREAM flag although transport has been completed.
+					if (ntohs(FrameHeader->Length_Low) >= DNS_PACKET_MINSIZE)
 					{
 						if (DataBlockLength <= SocketSelectingDataList.front().RecvSize)
 						{

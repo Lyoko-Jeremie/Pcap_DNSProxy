@@ -2807,8 +2807,10 @@ typedef struct _socks_udp_relay_request_
 #define HTTP_STATUS_CODE_SIZE                       3U
 #if defined(ENABLE_TLS)
 #if defined(PLATFORM_WIN)
+#if !defined(PLATFORM_WIN_XP)
 #define HTTP1_TLS_ALPN_STRING                       ("http/1.1")
 #define HTTP2_TLS_ALPN_STRING                       ("h2")
+#endif
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 #define HTTP1_TLS_ALPN_STRING                       {8U, 'h', 't', 't', 'p', '/', '1', '.', '1'}
 #define HTTP2_TLS_ALPN_STRING                       {2U, 'h', '2'}
@@ -2904,10 +2906,28 @@ typedef struct _http2_data_frame_hdr_
 #define HTTP2_HEADERS_FLAGS_PRIORITY                 0x20
 #define HTTP2_HEADERS_LITERAL_WITHOUT_INDEXED        0
 #define HTTP2_HEADERS_LITERAL_NEVER_INDEXED          0x10
-#define HTTP2_HEADERS_LITERAL_LOW_BITS               0x0F
-#define HTTP2_HEADERS_LITERAL_HIGH_BITS              0xF0
-#define HTTP2_HEADERS_INTEGER_LOW_BITS               0x7F
-#define HTTP2_HEADERS_INTEGER_WHOLE_BITS             0x80
+#define HTTP2_HEADERS_LITERAL_TABLE_SIZE_UPDATE      0x20
+#define HTTP2_HEADERS_LITERAL_INCREMENTAL_INDEXED    0x40
+#define HTTP2_HEADERS_LITERAL_LOW_1_BITS             0x01
+#define HTTP2_HEADERS_LITERAL_LOW_2_BITS             0x03
+#define HTTP2_HEADERS_LITERAL_LOW_3_BITS             0x07
+#define HTTP2_HEADERS_LITERAL_LOW_4_BITS             0x0F
+#define HTTP2_HEADERS_LITERAL_LOW_5_BITS             0x1F
+#define HTTP2_HEADERS_LITERAL_LOW_6_BITS             0x3F
+#define HTTP2_HEADERS_LITERAL_LOW_7_BITS             0x7F
+#define HTTP2_HEADERS_LITERAL_HIGH_1_BITS            0x80
+#define HTTP2_HEADERS_LITERAL_HIGH_2_BITS            0xC0
+#define HTTP2_HEADERS_LITERAL_HIGH_3_BITS            0xE0
+#define HTTP2_HEADERS_LITERAL_HIGH_4_BITS            0xF0
+#define HTTP2_HEADERS_LITERAL_INDEXED_STATUS_200     0x88
+#define HTTP2_HEADERS_INTEGER_LOW_1_BITS             HTTP2_HEADERS_LITERAL_LOW_1_BITS
+#define HTTP2_HEADERS_INTEGER_LOW_2_BITS             HTTP2_HEADERS_LITERAL_LOW_2_BITS
+#define HTTP2_HEADERS_INTEGER_LOW_3_BITS             HTTP2_HEADERS_LITERAL_LOW_3_BITS
+#define HTTP2_HEADERS_INTEGER_LOW_4_BITS             HTTP2_HEADERS_LITERAL_LOW_4_BITS
+#define HTTP2_HEADERS_INTEGER_LOW_5_BITS             HTTP2_HEADERS_LITERAL_LOW_5_BITS
+#define HTTP2_HEADERS_INTEGER_LOW_6_BITS             HTTP2_HEADERS_LITERAL_LOW_6_BITS
+#define HTTP2_HEADERS_INTEGER_LOW_7_BITS             HTTP2_HEADERS_LITERAL_LOW_7_BITS
+#define HTTP2_HEADERS_INTEGER_HIGH_1_BITS            HTTP2_HEADERS_LITERAL_HIGH_1_BITS
 /*
 typedef struct _http2_headers_frame_hdr_
 {
