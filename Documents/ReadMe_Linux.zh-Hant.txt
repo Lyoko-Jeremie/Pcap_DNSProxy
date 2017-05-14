@@ -47,7 +47,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * 剝離後程式將完全失去支援 LibPcap 的功能，且運行時將不會產生任何錯誤提示，慎用！
     * 執行時使用 ./CMake_Build.sh --disable-libsodium 可剝離對 Libsodium 的依賴，不建議使用
       * 剝離後編譯時將不需要 Libsodium 庫的支援
-      * 剝離後程式將完全失去支援 DNSCurve/DNSCrypt 協定的功能，且運行時將不會產生任何錯誤提示，慎用！
+      * 剝離後程式將完全失去支援 DNSCurve(DNSCrypt) 協定的功能，且運行時將不會產生任何錯誤提示，慎用！
     * 執行時使用 ./CMake_Build.sh --disable-tls 可剝離對 OpenSSL 的依賴，不建議使用
       * 剝離後編譯時將不需要 OpenSSL 庫的支援
       * 剝離後程式將完全失去支援 TLS/SSL 協定的功能，且運行時將不會產生任何錯誤提示，慎用！

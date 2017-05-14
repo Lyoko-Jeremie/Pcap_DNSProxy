@@ -19,7 +19,7 @@
 
 #include "DNSCurve.h"
 
-/* DNSCurve/DNSCrypt Protocol version 2
+/* DNSCurve(DNSCrypt) Protocol version 2
 
 Client -> Server:
 *  8 bytes: Magic query bytes
@@ -36,8 +36,8 @@ Server -> Client:
 * Variable encryption data ...
 
 Using TCP protocol:
-* 2 bytes: DNSCurve/DNSCrypt data payload length
-* Variable original DNSCurve/DNSCrypt data ...
+* 2 bytes: DNSCurve(DNSCrypt) data payload length
+* Variable original DNSCurve(DNSCrypt) data ...
 
 */
 
@@ -406,8 +406,8 @@ void DNSCurveSocketPrecomputation(
 	//Make encryption or normal packet of Main server.
 		if (DNSCurveParameter.IsEncryption || Protocol == IPPROTO_TCP)
 		{
-			std::unique_ptr<uint8_t[]> SendBufferTemp(new uint8_t[RecvSize]());
-			sodium_memzero(SendBufferTemp.get(), RecvSize);
+			std::unique_ptr<uint8_t[]> SendBufferTemp(new uint8_t[RecvSize + PADDING_RESERVED_BYTES]());
+			sodium_memzero(SendBufferTemp.get(), RecvSize + PADDING_RESERVED_BYTES);
 			std::swap(SendBuffer, SendBufferTemp);
 			DataLength = DNSCurvePacketEncryption(Protocol, (*PacketTarget)->SendMagicNumber, Client_PublicKey, *PrecomputationKey, OriginalSend, SendSize, SendBuffer.get(), RecvSize);
 			if (DataLength < DNS_PACKET_MINSIZE)
@@ -541,8 +541,8 @@ SkipMain:
 	//Make encryption or normal packet of Alternate server.
 		if (DNSCurveParameter.IsEncryption)
 		{
-			std::unique_ptr<uint8_t[]> SendBufferTemp(new uint8_t[RecvSize]());
-			sodium_memzero(SendBufferTemp.get(), RecvSize);
+			std::unique_ptr<uint8_t[]> SendBufferTemp(new uint8_t[RecvSize + PADDING_RESERVED_BYTES]());
+			sodium_memzero(SendBufferTemp.get(), RecvSize + PADDING_RESERVED_BYTES);
 			std::swap(Alternate_SendBuffer, SendBufferTemp);
 			SendBufferTemp.reset();
 			Alternate_DataLength = DNSCurvePacketEncryption(Protocol, (*PacketTarget)->SendMagicNumber, Client_PublicKey, *Alternate_PrecomputationKey, OriginalSend, SendSize, Alternate_SendBuffer.get(), RecvSize);
@@ -645,7 +645,7 @@ size_t DNSCurvePacketEncryption(
 			memcpy_s(SendBuffer + sizeof(uint16_t) + DNSCURVE_MAGIC_QUERY_LEN, SendSize - sizeof(uint16_t) - DNSCURVE_MAGIC_QUERY_LEN, Client_PublicKey, crypto_box_PUBLICKEYBYTES);
 			memcpy_s(SendBuffer + sizeof(uint16_t) + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES, SendSize - sizeof(uint16_t) - DNSCURVE_MAGIC_QUERY_LEN - crypto_box_PUBLICKEYBYTES, Nonce, crypto_box_HALF_NONCEBYTES);
 
-		//Add length of request packet(It must be written in header when transport with TCP protocol).
+		//Add length of request packet.
 			*reinterpret_cast<uint16_t *>(SendBuffer) = htons(static_cast<uint16_t>(DNSCurveParameter.DNSCurvePayloadSize - sizeof(uint16_t)));
 		}
 		else if (Protocol == IPPROTO_UDP)
@@ -664,7 +664,7 @@ size_t DNSCurvePacketEncryption(
 	else {
 		memcpy_s(SendBuffer, SendSize, OriginalSend, Length);
 
-	//Add length of request packet(It must be written in header when transport with TCP protocol).
+	//Add length of request packet.
 		if (Protocol == IPPROTO_TCP)
 			return AddLengthDataToHeader(SendBuffer, Length, SendSize);
 		else if (Protocol == IPPROTO_UDP)
@@ -747,8 +747,8 @@ bool DNSCruveGetSignatureData(
 				return false;
 
 		//Check signature.
-			std::unique_ptr<uint8_t[]> DeBuffer(new uint8_t[PACKET_MAXSIZE]());
-			memset(DeBuffer.get(), 0, PACKET_MAXSIZE);
+			std::unique_ptr<uint8_t[]> DeBuffer(new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
+			memset(DeBuffer.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 			unsigned long long SignatureLength = 0;
 			if (PacketTarget == nullptr || 
 				crypto_sign_open(
@@ -808,11 +808,11 @@ bool DNSCruveGetSignatureData(
 				DNSCurvePrintLog(ServerType, Message);
 				if (!Message.empty())
 				{
-					Message.append(L"Fingerprint signature validation error");
+					Message.append(L"Fingerprint signature is not available in this time");
 					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::DNSCURVE, Message.c_str(), 0, nullptr, 0);
 				}
 				else {
-					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::DNSCURVE, L"Fingerprint signature validation error", 0, nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::DNSCURVE, L"Fingerprint signature is not available in this time", 0, nullptr, 0);
 				}
 			}
 		}

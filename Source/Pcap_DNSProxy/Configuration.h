@@ -73,6 +73,11 @@ bool ReadText(
 	const FILE * const FileHandle, 
 	const READ_TEXT_TYPE InputType, 
 	const size_t FileIndex);
+bool ReadFileAttributesLoop(
+	const READ_TEXT_TYPE InputType, 
+	const size_t FileIndex, 
+	FILE_DATA &FileListIter, 
+	bool &IsFileModified);
 void ClearModificatingListData(
 	const READ_TEXT_TYPE ClearType, 
 	const size_t FileIndex);
@@ -144,7 +149,7 @@ bool ReadDNSCurveProviderName(
 	std::string Data, 
 	const size_t DataOffset, 
 	uint8_t * const ProviderNameData, 
-//	const READ_TEXT_TYPE InputType, 
+	const READ_TEXT_TYPE InputType, 
 	const size_t FileIndex, 
 	const size_t Line);
 bool ReadDNSCurveKey(

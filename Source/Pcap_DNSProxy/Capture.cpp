@@ -487,7 +487,7 @@ bool CaptureModule(
 	memset(&ParamList, 0, sizeof(ParamList));
 	ParamList.DeviceType = DeviceType;
 	ParamList.Buffer = Buffer.get();
-	ParamList.BufferSize = Parameter.LargeBufferSize + PADDING_RESERVED_BYTES;
+	ParamList.BufferSize = Parameter.LargeBufferSize;
 
 //Start monitor.
 	for (;;)
@@ -531,7 +531,7 @@ void CaptureHandler(
 {
 //Initialization
 	const auto ParamList = reinterpret_cast<CAPTURE_HANDLER_PARAM *>(ProcParameter);
-	memset(ParamList->Buffer, 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
+	memset(ParamList->Buffer, 0, Parameter.LargeBufferSize);
 	size_t Length = PacketHeader->caplen;
 	uint16_t Protocol = 0;
 

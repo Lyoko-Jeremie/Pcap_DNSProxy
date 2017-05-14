@@ -1212,7 +1212,7 @@ bool CheckConnectionStreamFin(
 //HTTP version 2 CONNECT method
 	else if (RequestType == REQUEST_PROCESS_TYPE::HTTP_CONNECT_2)
 	{
-	//HTTP version 1.x response, or HTTP version 2 large length is not supported.
+	//HTTP version 1.x response and HTTP version 2 large length are not supported.
 		if (*Stream != 0)
 		{
 		//Length check
@@ -1330,7 +1330,9 @@ bool CheckConnectionStreamFin(
 #endif
 //TCP DNS response
 	else if ((RequestType == REQUEST_PROCESS_TYPE::SOCKS_MAIN || RequestType == REQUEST_PROCESS_TYPE::TCP) && 
-		Length > sizeof(uint16_t) && ntohs(*(reinterpret_cast<const uint16_t *>(Stream))) + sizeof(uint16_t) >= Length)
+		Length > sizeof(uint16_t) && 
+		ntohs(*(reinterpret_cast<const uint16_t *>(Stream))) >= DNS_PACKET_MINSIZE && 
+		ntohs(*(reinterpret_cast<const uint16_t *>(Stream))) + sizeof(uint16_t) >= Length)
 	{
 		return true;
 	}

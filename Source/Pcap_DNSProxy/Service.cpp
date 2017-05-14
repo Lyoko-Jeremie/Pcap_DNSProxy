@@ -68,8 +68,8 @@ bool CheckProcessExists(
 	void)
 {
 //System security initialization
-	std::unique_ptr<uint8_t[]> ACL_Buffer(new uint8_t[FILE_BUFFER_SIZE]());
-	memset(ACL_Buffer.get(), 0, FILE_BUFFER_SIZE);
+	std::unique_ptr<uint8_t[]> ACL_Buffer(new uint8_t[FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES]());
+	memset(ACL_Buffer.get(), 0, FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
 	memset(&GlobalRunningStatus.Initialized_MutexSecurityAttributes, 0, sizeof(GlobalRunningStatus.Initialized_MutexSecurityAttributes));
 	memset(&GlobalRunningStatus.Initialized_MutexSecurityDescriptor, 0, sizeof(GlobalRunningStatus.Initialized_MutexSecurityDescriptor));
 	PSID SID_Value = nullptr;
@@ -366,8 +366,8 @@ bool Flush_DNS_MailSlotMonitor(
 	void)
 {
 //System security initialization
-	std::unique_ptr<uint8_t[]> ACL_Buffer(new uint8_t[FILE_BUFFER_SIZE]());
-	memset(ACL_Buffer.get(), 0, FILE_BUFFER_SIZE);
+	std::unique_ptr<uint8_t[]> ACL_Buffer(new uint8_t[FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES]());
+	memset(ACL_Buffer.get(), 0, FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
 	SECURITY_ATTRIBUTES SecurityAttributes;
 	SECURITY_DESCRIPTOR SecurityDescriptor;
 	memset(&SecurityAttributes, 0, sizeof(SecurityAttributes));
@@ -402,8 +402,8 @@ bool Flush_DNS_MailSlotMonitor(
 		LocalFree(SID_Value);
 
 //Initialization
-	std::unique_ptr<wchar_t[]> Buffer(new wchar_t[FILE_BUFFER_SIZE]());
-	wmemset(Buffer.get(), 0, FILE_BUFFER_SIZE);
+	std::unique_ptr<wchar_t[]> Buffer(new wchar_t[FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES]());
+	wmemset(Buffer.get(), 0, FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
 	std::wstring Message;
 	std::string Domain;
 	DWORD MessageLength = 0;
@@ -596,8 +596,8 @@ bool Flush_DNS_FIFO_Monitor(
 	void)
 {
 //Initialization
-	std::unique_ptr<uint8_t[]> Buffer(new uint8_t[FILE_BUFFER_SIZE]());
-	memset(Buffer.get(), 0, FILE_BUFFER_SIZE);
+	std::unique_ptr<uint8_t[]> Buffer(new uint8_t[FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES]());
+	memset(Buffer.get(), 0, FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
 	std::string Message;
 	int FIFO_Handle = 0;
 	ssize_t Length = 0;

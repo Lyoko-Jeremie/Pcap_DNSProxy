@@ -76,8 +76,8 @@ bool Parameter_CheckSetting(
 
 //[DNS] block part 1
 	//DNS cache check
-	if (IsFirstRead && 
-		Parameter.DNS_CacheParameter == 0 && (Parameter.DNS_CacheType == DNS_CACHE_TYPE::BOTH || Parameter.DNS_CacheType == DNS_CACHE_TYPE::QUEUE)) //DNS Cache queue mode must set its parameter.
+	if (IsFirstRead && Parameter.DNS_CacheParameter == 0 && //DNS Cache queue mode must set cache parameter.
+		(Parameter.DNS_CacheType == DNS_CACHE_TYPE::BOTH || Parameter.DNS_CacheType == DNS_CACHE_TYPE::QUEUE))
 	{
 		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"DNS Cache error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
@@ -257,7 +257,7 @@ bool Parameter_CheckSetting(
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"EDNS Payload Size must longer than traditional DNS packet minimum supported size(512 bytes)", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
 		}
-		else if (Parameter.EDNS_PayloadSize >= PACKET_MAXSIZE - sizeof(ipv6_hdr) - sizeof(udp_hdr))
+		else if (Parameter.EDNS_PayloadSize >= NORMAL_PACKET_MAXSIZE - sizeof(ipv6_hdr) - sizeof(udp_hdr))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"EDNS Payload Size is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			Parameter.EDNS_PayloadSize = EDNS_PACKET_MINSIZE;
@@ -538,7 +538,7 @@ bool Parameter_CheckSetting(
 			return false;
 		}
 
-	//SOCKS Username and password check
+	//SOCKS username and password check
 		if (Parameter.SOCKS_Version == SOCKS_VERSION_5 && Parameter.SOCKS_Username->empty() && !Parameter.SOCKS_Password->empty())
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SOCKS, L"SOCKS username and password error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
@@ -753,8 +753,19 @@ bool Parameter_CheckSetting(
 	//DNSCurve Protocol check
 		if (IsFirstRead)
 		{
+		//DNSCurve targets check
+			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0)
+			{
+				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6 = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6;
+				sodium_memzero(&DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6));
+			}
+			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0)
+			{
+				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4 = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4;
+				sodium_memzero(&DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4));
+			}
+
 		//IPv6
-		#if defined(ENABLE_LIBSODIUM)
 			if (Parameter.IsDNSCurve && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && 
 				DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV6)
 			{
@@ -769,7 +780,6 @@ bool Parameter_CheckSetting(
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
 			}
-		#endif
 		}
 
 	//Client keys check
@@ -816,20 +826,8 @@ bool Parameter_CheckSetting(
 
 		if (IsFirstRead)
 		{
-		//DNSCurve targets check
-			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0)
-			{
-				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6 = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6;
-				sodium_memzero(&DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6));
-			}
-			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0)
-			{
-				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4 = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4;
-				sodium_memzero(&DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4));
-			}
-
+		//Check repeating items.
 			if ((DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0) || 
-			//Check repeating items.
 				(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 				DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && 
 				memcmp(&DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.IPv6.sin6_addr, &DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.IPv6.sin6_addr)) == 0) || 
@@ -1077,7 +1075,7 @@ bool Parameter_CheckSetting(
 					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"DNSCurve Payload Size must longer than traditional DNS packet minimum supported size(512 bytes)", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					DNSCurveParameter.DNSCurvePayloadSize = DNS_PACKET_MAXSIZE_TRADITIONAL;
 				}
-				else if (DNSCurveParameter.DNSCurvePayloadSize >= PACKET_MAXSIZE - DNSCRYPT_HEADER_RESERVED_LEN)
+				else if (DNSCurveParameter.DNSCurvePayloadSize >= NORMAL_PACKET_MAXSIZE - DNSCRYPT_HEADER_RESERVED_LEN)
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"DNSCurve Payload Size is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					DNSCurveParameter.DNSCurvePayloadSize = EDNS_PACKET_MINSIZE;
@@ -1634,7 +1632,7 @@ bool ReadParameterData(
 			{
 				_set_errno(0);
 				UnsignedResult = strtoul(Data.c_str() + strlen("LargeBufferSize="), nullptr, 0);
-				if (UnsignedResult >= PACKET_MAXSIZE && UnsignedResult < ULONG_MAX)
+				if (UnsignedResult >= NORMAL_PACKET_MAXSIZE && UnsignedResult < ULONG_MAX)
 					Parameter.LargeBufferSize = UnsignedResult;
 			}
 			else {
@@ -1978,7 +1976,7 @@ bool ReadParameterData(
 		{
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("CacheParameter="), nullptr, 0);
-			if (UnsignedResult > 0 && UnsignedResult < ULONG_MAX)
+			if (UnsignedResult < ULONG_MAX)
 				Parameter.DNS_CacheParameter = UnsignedResult;
 			else 
 				goto PrintDataFormatError;
@@ -2791,7 +2789,7 @@ bool ReadParameterData(
 				std::unique_ptr<uint8_t[]> FQDN_String(new uint8_t[NI_MAXHOST + PADDING_RESERVED_BYTES]());
 				memset(FQDN_String.get(), 0, NI_MAXHOST + PADDING_RESERVED_BYTES);
 				Parameter.Local_FQDN_Length = Data.length() - strlen("LocalMachineServerName=");
-				memcpy_s(FQDN_String.get(), DOMAIN_MAXSIZE, Data.c_str() + strlen("LocalMachineServerName="), Parameter.Local_FQDN_Length);
+				memcpy_s(FQDN_String.get(), NI_MAXHOST, Data.c_str() + strlen("LocalMachineServerName="), Parameter.Local_FQDN_Length);
 				*Parameter.Local_FQDN_String = reinterpret_cast<const char *>(FQDN_String.get());
 				memset(Parameter.Local_FQDN_Response, 0, DOMAIN_MAXSIZE);
 				UnsignedResult = StringToPacketQuery(FQDN_String.get(), Parameter.Local_FQDN_Response);
@@ -3124,8 +3122,8 @@ bool ReadParameterData(
 	else if (Data.compare(0, strlen("HTTPCONNECTProxyAuthorization="), ("HTTPCONNECTProxyAuthorization=")) == 0 && 
 		Data.length() > strlen("HTTPCONNECTProxyAuthorization="))
 	{
-		std::unique_ptr<uint8_t[]> ProxyAuthorization(new uint8_t[BASE64_ENCODE_OUT_SIZE(Data.length() - strlen("HTTPCONNECTProxyAuthorization=")) + NULL_TERMINATE_LENGTH]());
-		memset(ProxyAuthorization.get(), 0, BASE64_ENCODE_OUT_SIZE(Data.length() - strlen("HTTPCONNECTProxyAuthorization=")) + NULL_TERMINATE_LENGTH);
+		std::unique_ptr<uint8_t[]> ProxyAuthorization(new uint8_t[BASE64_ENCODE_OUT_SIZE(Data.length() - strlen("HTTPCONNECTProxyAuthorization=")) + PADDING_RESERVED_BYTES]());
+		memset(ProxyAuthorization.get(), 0, BASE64_ENCODE_OUT_SIZE(Data.length() - strlen("HTTPCONNECTProxyAuthorization=")) + PADDING_RESERVED_BYTES);
 		Base64_Encode(reinterpret_cast<uint8_t *>(const_cast<char *>(Data.c_str() + strlen("HTTPCONNECTProxyAuthorization="))), Data.length() - strlen("HTTPCONNECTProxyAuthorization="), ProxyAuthorization.get(), BASE64_ENCODE_OUT_SIZE(Data.length() - strlen("HTTPCONNECTProxyAuthorization=")));
 		*ParameterPointer->HTTP_CONNECT_ProxyAuthorization = ("Basic ");
 		ParameterPointer->HTTP_CONNECT_ProxyAuthorization->append(reinterpret_cast<const char *>(ProxyAuthorization.get()));
@@ -3319,25 +3317,25 @@ bool ReadParameterData(
 		else if (Data.compare(0, strlen("DNSCurveIPv4MainProviderName="), ("DNSCurveIPv4MainProviderName=")) == 0 && 
 			Data.length() > strlen("DNSCurveIPv4MainProviderName="))
 		{
-			if (!ReadDNSCurveProviderName(Data, strlen("DNSCurveIPv4MainProviderName="), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ProviderName, /* READ_TEXT_TYPE::PARAMETER_NORMAL, */ FileIndex, Line))
+			if (!ReadDNSCurveProviderName(Data, strlen("DNSCurveIPv4MainProviderName="), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ProviderName, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
 				return false;
 		}
 		else if (Data.compare(0, strlen("DNSCurveIPv4AlternateProviderName="), ("DNSCurveIPv4AlternateProviderName=")) == 0 && 
 			Data.length() > strlen("DNSCurveIPv4AlternateProviderName="))
 		{
-			if (!ReadDNSCurveProviderName(Data, strlen("DNSCurveIPv4AlternateProviderName="), DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ProviderName, /* READ_TEXT_TYPE::PARAMETER_NORMAL, */ FileIndex, Line))
+			if (!ReadDNSCurveProviderName(Data, strlen("DNSCurveIPv4AlternateProviderName="), DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ProviderName, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
 				return false;
 		}
 		else if (Data.compare(0, strlen("DNSCurveIPv6MainProviderName="), ("DNSCurveIPv6MainProviderName=")) == 0 && 
 			Data.length() > strlen("DNSCurveIPv6MainProviderName="))
 		{
-			if (!ReadDNSCurveProviderName(Data, strlen("DNSCurveIPv6MainProviderName="), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ProviderName, /* READ_TEXT_TYPE::PARAMETER_NORMAL, */ FileIndex, Line))
+			if (!ReadDNSCurveProviderName(Data, strlen("DNSCurveIPv6MainProviderName="), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ProviderName, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
 				return false;
 		}
 		else if (Data.compare(0, strlen("DNSCurveIPv6AlternateProviderName="), ("DNSCurveIPv6AlternateProviderName=")) == 0 && 
 			Data.length() > strlen("DNSCurveIPv6AlternateProviderName="))
 		{
-			if (!ReadDNSCurveProviderName(Data, strlen("DNSCurveIPv6AlternateProviderName="), DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ProviderName, /* READ_TEXT_TYPE::PARAMETER_NORMAL, */ FileIndex, Line))
+			if (!ReadDNSCurveProviderName(Data, strlen("DNSCurveIPv6AlternateProviderName="), DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ProviderName, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
 				return false;
 		}
 	}
@@ -4158,7 +4156,7 @@ bool ReadDNSCurveDatabaseItem(
 			!StringIter.at(DNSCRYPT_DATABASE_PROVIDER_KEY_LOCATION).empty()) //Provider Public Key location
 		{
 		//IPv6 Main
-			if (!IsIPv6_Main && DNSCurveParameterPointer->Database_Target_Server_Main_IPv6 != nullptr && StringIter.front() == *DNSCurveParameterPointer->Database_Target_Server_Main_IPv6)
+			if (!IsIPv6_Main && DNSCurveParameter.Database_Target_Server_Main_IPv6 != nullptr && StringIter.front() == *DNSCurveParameter.Database_Target_Server_Main_IPv6)
 			{
 			//Set default port.
 				if (StringIter.at(DNSCRYPT_DATABASE_ADDRESS_LOCATION).find("]:") == std::string::npos)
@@ -4166,9 +4164,11 @@ bool ReadDNSCurveDatabaseItem(
 
 			//DNSCurve Address location, Provider Name location and Provider Public Key location
 				std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
-				if (!ReadMultipleAddresses(AF_INET6, StringIter.at(DNSCRYPT_DATABASE_ADDRESS_LOCATION).c_str(), 0, &DNSServerDataTemp, READ_TEXT_TYPE::DNSCURVE_DATABASE, 0, 0) || DNSServerDataTemp.empty() || 
-//					!ReadDNSCurveProviderName(StringIter.at(DNSCRYPT_DATABASE_PROVIDER_NAME_LOCATION).c_str(), 0, DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv6.ProviderName, READ_TEXT_TYPE::DNSCURVE_DATABASE, 0, 0) || 
-					!ReadDNSCurveKey(StringIter.at(DNSCRYPT_DATABASE_PROVIDER_KEY_LOCATION).c_str(), 0, DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv6.ServerFingerprint, READ_TEXT_TYPE::DNSCURVE_DATABASE, 0, 0))
+				if (!ReadMultipleAddresses(AF_INET6, StringIter.at(DNSCRYPT_DATABASE_ADDRESS_LOCATION).c_str(), 0, &DNSServerDataTemp, InputType, 0, 0) || 
+					DNSServerDataTemp.empty() || 
+					(InputType == READ_TEXT_TYPE::DNSCURVE_DATABASE && 
+					!ReadDNSCurveProviderName(StringIter.at(DNSCRYPT_DATABASE_PROVIDER_NAME_LOCATION).c_str(), 0, DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ProviderName, InputType, 0, 0)) || 
+					!ReadDNSCurveKey(StringIter.at(DNSCRYPT_DATABASE_PROVIDER_KEY_LOCATION).c_str(), 0, DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv6.ServerPublicKey, InputType, 0, 0))
 				{
 					std::wstring Message;
 					DNSCurvePrintLog(DNSCURVE_SERVER_TYPE::MAIN_IPV6, Message);
@@ -4189,7 +4189,7 @@ bool ReadDNSCurveDatabaseItem(
 				}
 			}
 		//IPv6 Alternate
-			else if (!IsIPv6_Alternate && DNSCurveParameterPointer->Database_Target_Server_Alternate_IPv6 != nullptr && StringIter.front() == *DNSCurveParameterPointer->Database_Target_Server_Alternate_IPv6)
+			else if (!IsIPv6_Alternate && DNSCurveParameter.Database_Target_Server_Alternate_IPv6 != nullptr && StringIter.front() == *DNSCurveParameter.Database_Target_Server_Alternate_IPv6)
 			{
 			//Set default port.
 				if (StringIter.at(DNSCRYPT_DATABASE_ADDRESS_LOCATION).find("]:") == std::string::npos)
@@ -4197,9 +4197,11 @@ bool ReadDNSCurveDatabaseItem(
 
 			//DNSCurve Address location, Provider Name location and Provider Public Key location
 				std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
-				if (!ReadMultipleAddresses(AF_INET6, StringIter.at(DNSCRYPT_DATABASE_ADDRESS_LOCATION).c_str(), 0, &DNSServerDataTemp, READ_TEXT_TYPE::DNSCURVE_DATABASE, 0, 0) || DNSServerDataTemp.empty() || 
-//					!ReadDNSCurveProviderName(StringIter.at(DNSCRYPT_DATABASE_PROVIDER_NAME_LOCATION).c_str(), 0, DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv6.ProviderName, READ_TEXT_TYPE::DNSCURVE_DATABASE, 0, 0) || 
-					!ReadDNSCurveKey(StringIter.at(DNSCRYPT_DATABASE_PROVIDER_KEY_LOCATION).c_str(), 0, DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, READ_TEXT_TYPE::DNSCURVE_DATABASE, 0, 0))
+				if (!ReadMultipleAddresses(AF_INET6, StringIter.at(DNSCRYPT_DATABASE_ADDRESS_LOCATION).c_str(), 0, &DNSServerDataTemp, InputType, 0, 0) || 
+					DNSServerDataTemp.empty() || 
+					(InputType == READ_TEXT_TYPE::DNSCURVE_DATABASE && 
+					!ReadDNSCurveProviderName(StringIter.at(DNSCRYPT_DATABASE_PROVIDER_NAME_LOCATION).c_str(), 0, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ProviderName, InputType, 0, 0)) || 
+					!ReadDNSCurveKey(StringIter.at(DNSCRYPT_DATABASE_PROVIDER_KEY_LOCATION).c_str(), 0, DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv6.ServerPublicKey, InputType, 0, 0))
 				{
 					std::wstring Message;
 					DNSCurvePrintLog(DNSCURVE_SERVER_TYPE::ALTERNATE_IPV6, Message);
@@ -4220,7 +4222,7 @@ bool ReadDNSCurveDatabaseItem(
 				}
 			}
 		//IPv4 Main
-			else if (!IsIPv4_Main && DNSCurveParameterPointer->Database_Target_Server_Main_IPv4 != nullptr && StringIter.front() == *DNSCurveParameterPointer->Database_Target_Server_Main_IPv4)
+			else if (!IsIPv4_Main && DNSCurveParameter.Database_Target_Server_Main_IPv4 != nullptr && StringIter.front() == *DNSCurveParameter.Database_Target_Server_Main_IPv4)
 			{
 			//Set default port.
 				if (StringIter.at(DNSCRYPT_DATABASE_ADDRESS_LOCATION).find(ASCII_COLON) == std::string::npos)
@@ -4228,9 +4230,11 @@ bool ReadDNSCurveDatabaseItem(
 
 			//DNSCurve Address location, Provider Name location and Provider Public Key location
 				std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
-				if (!ReadMultipleAddresses(AF_INET, StringIter.at(DNSCRYPT_DATABASE_ADDRESS_LOCATION).c_str(), 0, &DNSServerDataTemp, READ_TEXT_TYPE::DNSCURVE_DATABASE, 0, 0) || DNSServerDataTemp.empty() || 
-//					!ReadDNSCurveProviderName(StringIter.at(DNSCRYPT_DATABASE_PROVIDER_NAME_LOCATION).c_str(), 0, DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv4.ProviderName, READ_TEXT_TYPE::DNSCURVE_DATABASE, 0, 0) || 
-					!ReadDNSCurveKey(StringIter.at(DNSCRYPT_DATABASE_PROVIDER_KEY_LOCATION).c_str(), 0, DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv4.ServerFingerprint, READ_TEXT_TYPE::DNSCURVE_DATABASE, 0, 0))
+				if (!ReadMultipleAddresses(AF_INET, StringIter.at(DNSCRYPT_DATABASE_ADDRESS_LOCATION).c_str(), 0, &DNSServerDataTemp, InputType, 0, 0) || 
+					DNSServerDataTemp.empty() || 
+					(InputType == READ_TEXT_TYPE::DNSCURVE_DATABASE && 
+					!ReadDNSCurveProviderName(StringIter.at(DNSCRYPT_DATABASE_PROVIDER_NAME_LOCATION).c_str(), 0, DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ProviderName, InputType, 0, 0)) || 
+					!ReadDNSCurveKey(StringIter.at(DNSCRYPT_DATABASE_PROVIDER_KEY_LOCATION).c_str(), 0, DNSCurveParameterPointer->DNSCurve_Target_Server_Main_IPv4.ServerPublicKey, InputType, 0, 0))
 				{
 					std::wstring Message;
 					DNSCurvePrintLog(DNSCURVE_SERVER_TYPE::MAIN_IPV4, Message);
@@ -4251,7 +4255,7 @@ bool ReadDNSCurveDatabaseItem(
 				}
 			}
 		//IPv4 Alternate
-			else if (!IsIPv4_Alternate && DNSCurveParameterPointer->Database_Target_Server_Alternate_IPv4 != nullptr && StringIter.front() == *DNSCurveParameterPointer->Database_Target_Server_Alternate_IPv4)
+			else if (!IsIPv4_Alternate && DNSCurveParameter.Database_Target_Server_Alternate_IPv4 != nullptr && StringIter.front() == *DNSCurveParameter.Database_Target_Server_Alternate_IPv4)
 			{
 			//Set default port.
 				if (StringIter.at(DNSCRYPT_DATABASE_ADDRESS_LOCATION).find(ASCII_COLON) == std::string::npos)
@@ -4259,9 +4263,11 @@ bool ReadDNSCurveDatabaseItem(
 
 			//DNSCurve Address location, Provider Name location and Provider Public Key location
 				std::vector<DNS_SERVER_DATA> DNSServerDataTemp;
-				if (!ReadMultipleAddresses(AF_INET, StringIter.at(DNSCRYPT_DATABASE_ADDRESS_LOCATION).c_str(), 0, &DNSServerDataTemp, READ_TEXT_TYPE::DNSCURVE_DATABASE, 0, 0) || DNSServerDataTemp.empty() || 
-//					!ReadDNSCurveProviderName(StringIter.at(DNSCRYPT_DATABASE_PROVIDER_NAME_LOCATION).c_str(), 0, DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv4.ProviderName, READ_TEXT_TYPE::DNSCURVE_DATABASE, 0, 0) || 
-					!ReadDNSCurveKey(StringIter.at(DNSCRYPT_DATABASE_PROVIDER_KEY_LOCATION).c_str(), 0, DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, READ_TEXT_TYPE::DNSCURVE_DATABASE, 0, 0))
+				if (!ReadMultipleAddresses(AF_INET, StringIter.at(DNSCRYPT_DATABASE_ADDRESS_LOCATION).c_str(), 0, &DNSServerDataTemp, InputType, 0, 0) || 
+					DNSServerDataTemp.empty() || 
+					(InputType == READ_TEXT_TYPE::DNSCURVE_DATABASE && 
+					!ReadDNSCurveProviderName(StringIter.at(DNSCRYPT_DATABASE_PROVIDER_NAME_LOCATION).c_str(), 0, DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ProviderName, InputType, 0, 0)) || 
+					!ReadDNSCurveKey(StringIter.at(DNSCRYPT_DATABASE_PROVIDER_KEY_LOCATION).c_str(), 0, DNSCurveParameterPointer->DNSCurve_Target_Server_Alternate_IPv4.ServerPublicKey, InputType, 0, 0))
 				{
 					std::wstring Message;
 					DNSCurvePrintLog(DNSCURVE_SERVER_TYPE::ALTERNATE_IPV4, Message);
@@ -4296,7 +4302,7 @@ bool ReadDNSCurveProviderName(
 	std::string Data, 
 	const size_t DataOffset, 
 	uint8_t * const ProviderNameData, 
-//	const READ_TEXT_TYPE InputType, 
+	const READ_TEXT_TYPE InputType, 
 	const size_t FileIndex, 
 	const size_t Line)
 {
@@ -4307,11 +4313,11 @@ bool ReadDNSCurveProviderName(
 		{
 			for (size_t InnerIndex = 0;InnerIndex < strnlen_s(reinterpret_cast<const char *>(GlobalRunningStatus.DomainTable), DOMAIN_MAXSIZE);++InnerIndex)
 			{
-				if (InnerIndex == strnlen_s(reinterpret_cast<const char *>(GlobalRunningStatus.DomainTable), DOMAIN_MAXSIZE) - 1U && Data.at(Index) != *(GlobalRunningStatus.DomainTable + InnerIndex))
+				if (InnerIndex + 1U == strnlen_s(reinterpret_cast<const char *>(GlobalRunningStatus.DomainTable), DOMAIN_MAXSIZE) && Data.at(Index) != *(GlobalRunningStatus.DomainTable + InnerIndex))
 				{
-//					if (InputType == READ_TEXT_TYPE::DNSCURVE_DATABASE || InputType == READ_TEXT_TYPE::DNSCURVE_MONITOR)
-//						PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::DNSCURVE, L"DNSCurve Provider Name error", 0, nullptr, 0);
-//					else 
+					if (InputType == READ_TEXT_TYPE::DNSCURVE_DATABASE || InputType == READ_TEXT_TYPE::DNSCURVE_MONITOR)
+						PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::DNSCURVE, L"DNSCurve Provider Name error", 0, nullptr, 0);
+					else 
 						PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"DNSCurve Provider Name error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 
 					return false;
@@ -4325,9 +4331,9 @@ bool ReadDNSCurveProviderName(
 		memcpy_s(ProviderNameData, DOMAIN_MAXSIZE, Data.c_str() + DataOffset, Data.length() - DataOffset);
 	}
 	else {
-//		if (InputType == READ_TEXT_TYPE::DNSCURVE_DATABASE || InputType == READ_TEXT_TYPE::DNSCURVE_MONITOR)
-//			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::DNSCURVE, L"Data length error", 0, nullptr, 0);
-//		else 
+		if (InputType == READ_TEXT_TYPE::DNSCURVE_DATABASE || InputType == READ_TEXT_TYPE::DNSCURVE_MONITOR)
+			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::DNSCURVE, L"Data length error", 0, nullptr, 0);
+		else 
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 		
 		return false;

@@ -113,7 +113,7 @@
 #define CONFIG_VERSION_MAJOR                          0                                     //Current configuration file major version(0.45)
 #define CONFIG_VERSION_MINOR                          45U                                   //Current configuration file minor version(0.45)
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2017 Chengr28"   //Copyright message
-#define FULL_VERSION                                  L"0.4.8.7"                            //Current full version
+#define FULL_VERSION                                  L"0.4.8.8"                            //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_MAXSIZE                        64U                               //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -133,7 +133,7 @@
 	#define DNSCRYPT_DATABASE_ITEM_MINNUM                 14U                               //Minimum number of item in DNSCrypt database
 	#define DNSCRYPT_DATABASE_ADDRESS_LOCATION            10U                               //Location of DNSCurve Address in DNSCrypt database
 	#define DNSCRYPT_DATABASE_PROVIDER_NAME_LOCATION      11U                               //Location of Provider Name in DNSCrypt database
-	#define DNSCRYPT_DATABASE_PROVIDER_KEY_LOCATION       12U                               //LOcation of Provider Public Key in DNSCrypt database
+	#define DNSCRYPT_DATABASE_PROVIDER_KEY_LOCATION       12U                               //Location of Provider Public Key in DNSCrypt database
 	#define DNSCRYPT_KEYPAIR_MESSAGE_LEN                  80U                               //DNScrypt keypair messages length
 	#define DNSCRYPT_KEYPAIR_INTERVAL                     4U                                //DNScrypt keypair interval length
 	#define DNSCRYPT_RECORD_TXT_LEN                       124U                              //Length of DNScrypt TXT Records
@@ -163,13 +163,13 @@
 #define NETWORK_LAYER_PARTNUM                         2U                                //Number of network layer protocols(IPv6 and IPv4)
 #define NULL_TERMINATE_LENGTH                         1U                                //Length of C style string null
 #define ORIGINAL_PACKET_MAXSIZE                       1512U                             //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header + 4 bytes FCS)
-#define PACKET_MAXSIZE                                1500U                             //Maximum size of packets, Standard MTU of Ethernet II network
+#define NORMAL_PACKET_MAXSIZE                         1500U                             //Maximum size of normal Ethernet II packets, Standard MTU of Ethernet II network
 #define PADDING_RESERVED_BYTES                        2U                                //Padding reserved bytes(2 bytes)
 #if defined(ENABLE_PCAP)
 	#define PCAP_CAPTURE_STRING_MAXNUM                    256U                        //Maximum length of pcap capture drive name and description
 #endif
 #if defined(PLATFORM_WIN)
-	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE           8192U                        //Buffer maximum size of QueryServiceConfig function(8KB/8192 Bytes)
+	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE           8192U                       //Buffer maximum size of QueryServiceConfig function(8KB/8192 Bytes)
 #endif
 #define THREAD_POOL_MAXNUM                            1488095U                    //Number of maximum packet buffer queues, 1488095 pps or 1.488 Mpps in Gigabit Ethernet
 #define THREAD_POOL_MINNUM                            8U                          //Number of minimum packet buffer queues
@@ -187,6 +187,7 @@
 	#define DNSCRYPT_PACKET_MINSIZE                       (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES + DNS_PACKET_MINSIZE)
 	#define DNSCRYPT_HEADER_RESERVED_LEN                  (sizeof(ipv6_hdr) + sizeof(udp_hdr) + DNSCRYPT_BUFFER_RESERVED_LEN)
 #endif
+#define HTTP1_RESPONSE_MINSIZE                        (strlen(" HTTP/") + HTTP_VERSION_MAXSIZE + HTTP_STATUS_CODE_SIZE)
 
 //Code definitions
 #define CHECKSUM_SUCCESS                              0                           //Result of getting correct checksum.
@@ -228,7 +229,8 @@
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#define LOOP_INTERVAL_TIME_NO_DELAY                   20000U                         //No delay mode loop interval time(20000 us/20 ms)
 #endif
-#define LOOP_MAX_TIMES                                16U                         //Maximum of loop times(16 times)
+#define LOOP_MAX_LITTLE_TIMES                         4U                          //Little maximum of loop times(4 times)
+#define LOOP_MAX_LARGE_TIMES                          8U                          //Large maximum of loop times(8 times)
 #define MICROSECOND_TO_MILLISECOND                    1000U                       //1000 microseconds(1 ms)
 #define SECOND_TO_MILLISECOND                         1000U                       //1000 milliseconds(1 second)
 #define SENDING_INTERVAL_TIME                         5000U                       //Time between every sending(5000 ms/5 seconds)
@@ -571,7 +573,7 @@ typedef enum class _tls_version_selection
 typedef struct _huffman_node_
 {
 	uint32_t                             Bits;
-	uint8_t                              Size;
+	uint8_t                              BitSize;
 }HuffmanNode, HUFFMAN_NODE;
 
 //File Data structure
@@ -863,7 +865,7 @@ public:
 	std::vector<std::string>             *HTTP_CONNECT_HeaderField;
 	std::string                          *HTTP_CONNECT_ProxyAuthorization;
 
-//[DNSCurve/DNSCrypt] block
+//[DNSCurve] block
 #if defined(ENABLE_LIBSODIUM)
 	bool                                 IsDNSCurve;
 #endif
@@ -1179,7 +1181,9 @@ public:
 	SSL_CTX                              *MethodContext;
 	BIO                                  *SessionBIO;
 	SSL                                  *SessionData;
-	uint16_t                             Protocol;
+	uint16_t                             Protocol_Network;
+	uint16_t                             Protocol_Transport;
+	SYSTEM_SOCKET                        Socket;
 	std::string                          AddressString;
 
 //Member functions

@@ -145,7 +145,7 @@ bool PrintError(
 		}
 	}
 
-//Add error message, error code details, file name and its line number.
+//Add error messages, error code details, file name and its line number.
 	ErrorMessage.append(Message);
 	ErrorCodeToMessage(ErrorType, ErrorCode, ErrorMessage);
 	if (!FileNameString.empty())
@@ -353,7 +353,7 @@ void ErrorCodeToMessage(
 	else 
 		Message.append(L": ");
 
-//Convert error code to error message.
+//Convert error code to error messages.
 #if defined(PLATFORM_WIN)
 	wchar_t *InnerMessage = nullptr;
 	if (FormatMessageW(

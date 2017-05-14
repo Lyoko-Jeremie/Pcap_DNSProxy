@@ -1,29 +1,33 @@
-﻿Pcap_DNSProxy 0.4.8.5-0.4.8.7 更新日誌(2017-05-01)：
+﻿Pcap_DNSProxy 0.4.8.5-0.4.8.8 更新日誌(2017-05-14)：
 
-* 添加對 DNSCrypt 資料庫檔案 dnscrypt-resolvers.csv 配置的支援 [rampageX]
+* 添加對 DNSCrypt 資料庫檔案 dnscrypt-resolvers.csv 配置的支援 [rampageX/snakwu]
 * 添加對 HTTP CONNECT 隧道 HTTP/2 版本的支援 [agentmario]
 * 添加對 TLS ALPN 擴展的支援
+添加對 ServiceControl.bat 啟動參數的支援，可直接通過在啟動時指定參數進行對應的操作 (Windows)
 * 添加對指定 TCP Fast Open 的監聽佇列長度支援 (Linux)
 * 添加對 TCP Fast Open 的支援 (macOS)
 * LibSodium 庫更新到 1.0.12 (Windows/macOS)
 * Visual Studio 更新到 2017 (Windows)
+* 修復讀取文字檔時最後一個字元為有效字元但被忽略的問題 [冰靈曦曉]
 * 修復在完全禁用 IPv6 協定棧的情況下程式依舊嘗試使用 IPv6 協定棧的問題 [dzxx36gyy]
-* 修復讀取 DNSCrypt 資料庫檔案 dnscrypt-resolvers.csv 機制的問題 [snakwu]
+* 修復 Cache Parameter 參數運作與說明文檔不符的問題 [LisonFan]
 * 修復 -c/--config-file 參數在部分情況下無法正常指定路徑的問題
 * 修復在設定檔重新讀取參數有改變的情況下沒有進行網路狀況重新測試的問題
-* 修復 DNSCurve/DNSCrypt 在設定檔重新讀取參數沒有改變的情況下可能無法正常工作的問題
+* 修復 DNSCurve(DNSCrypt) 在設定檔重新讀取參數沒有改變的情況下可能無法正常工作的問題
+* 修復 HTTP CONNECT 隧道在部分伺服器先行推送資料時無法正常工作的問題
+* 修復 OpenSSL 在部分情況下無法設置通訊端屬性的問題 (Linux/macOS)
 * 修復在啟用 TCP Fast Open 多執行緒請求的情況下部分伺服器被跳過的問題 (Linux)
 * Release Hash:
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe: 06A101CD9442A464E47E06D1C7D45DBB8C4063237E9FFA80E35436252A630F4B
-    * Windows/Pcap_DNSProxy_x86.exe: CC2DB27DF9E283B657EA898C8B7F84CC7B5E9F7A85D05EB012FE02B8C79D80E4
-    * Windows/Pcap_DNSProxy_XP.exe: 9A64B2C8CD8028A24CEEBB6C9D28040A7295585E4AC3B65DD95C4FDE895BD33F
-    * macOS/Pcap_DNSProxy: 00D08E044B095DFFE7810DF4CDE1579A711DD87ED5C36024D17819AC01AE2568
+    * Windows/Pcap_DNSProxy.exe: C8AA23436A5FC4CB2901F8E7781E4B005D76C9B3C20D27D34952384289488052
+    * Windows/Pcap_DNSProxy_x86.exe: 819A6AF8A5A760FDD3E0A65660D6E0D3D17EFF6F06DDE64B13917BA2515424E1
+    * Windows/Pcap_DNSProxy_XP.exe: 1F23844BCF05E67EE037574CDD3C468C3996AF39E874D1F0922BE733430CB367
+    * macOS/Pcap_DNSProxy: 4FAE1889541433E6E6997F542E24FAC107AF8A12C8912FD32555204B065CDC39
   * SHA-2(256):
-    * Windows/Pcap_DNSProxy.exe: 305444B95D2F9BF296D1A20B14700711678D8161724C72E194303D453F5C3548
-    * Windows/Pcap_DNSProxy_x86.exe: D5436FB5707557E7812387BA09723A8AC3E7809198E80FFDED4C50368CA9629B
-    * Windows/Pcap_DNSProxy_XP.exe: 85D38B0511ABBD596531779944166188BF9CD75B2FAF59BACE7FF88ED6EA5691
-    * macOS/Pcap_DNSProxy: 9F652C7B6EBC9AE922825BD2BF50DB54C7B9413962106FD7E26685953A4C1F70
+    * Windows/Pcap_DNSProxy.exe: 6DC0CDCDB32B29853A94B7673E996DF2763DFAC5ADDC31B6AAF9F2A4F2560145
+    * Windows/Pcap_DNSProxy_x86.exe: 31B93BC433EF421E95323D5489AEF767720D80732923735AF5B3D33683A4E6BA
+    * Windows/Pcap_DNSProxy_XP.exe: 211C6808B9FCBC73C4E03255952DD9410849B7378CE43899685C70B428353199
+    * macOS/Pcap_DNSProxy: DE860EA65B8BE6C57B56D94301805294403CDE360F4AE6FC891CFE31DA97B3C0
 
 
 -------------------------------------------------------------------------------
@@ -336,7 +340,7 @@ Pcap_DNSProxy 0.4.3.1-0.4.4 更新日誌(2015-09-27)：
 * 添加 Client Ephemeral Key 一次性用戶端金鑰組功能，增強 DNSCurve 協定傳輸資料的安全性 [DNSCrypt]
 * 添加對設定檔部分參數的自動刷新功能，具體受支援的參數參見說明文檔 [jedisct1/icylogic]
 * 添加 Local Protocol 參數用於指定請求境內伺服器時所使用的協定組合 [muink]
-* 添加對十六進位 DNSCurve/DNSCrypt 協定 Magic Number 參數的支援 [BiliBbb]
+* 添加對十六進位 DNSCurve(DNSCrypt) 協定 Magic Number 參數的支援 [BiliBbb]
 * 增強 DNSCurve Protocol 參數對協定組合的支援
 * 增強 Null 擴展 Hosts 白名單功能的支援，現在可以指定只對部分 DNS 類型生效
 * 添加對 BIND 9.2.0 之後版本清除 DNS 緩存的命令 (Linux) [hongyi-zhao]
@@ -443,7 +447,7 @@ Pcap_DNSProxy 0.4.0.1-0.4.1 更新日誌(2015-05-21)：
 Pcap_DNSProxy v0.4(Windows/Linux/Mac) 更新日誌(2015-05-12)：
 
 * 添加對 Apple IEEE 1394/FireWire 的支援
-* 添加對 Streamlined/精簡 格式 DNSCurve/DNSCrypt 協定的支援
+* 添加對 Streamlined/精簡 格式 DNSCurve(DNSCrypt) 協定的支援
   * 提供隨機 Curve25519/Salsa20/Poly1305(DNSCurve) 金鑰組生成程式 KeyPairGenerator
 * 添加緩存 DNS 回復包的功能
 * 添加切換待命伺服器，提供主要伺服器和待命伺服器自動切換的功能

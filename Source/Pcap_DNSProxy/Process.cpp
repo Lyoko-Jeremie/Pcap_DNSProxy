@@ -166,10 +166,10 @@ bool EnterRequestProcess(
 		}
 	//UDP
 		else {
-			std::unique_ptr<uint8_t[]> UDPRecvBuffer(new uint8_t[PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
-			memset(UDPRecvBuffer.get(), 0, PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+			std::unique_ptr<uint8_t[]> UDPRecvBuffer(new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
+			memset(UDPRecvBuffer.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 			std::swap(InnerRecvBuffer, UDPRecvBuffer);
-			RecvSize = PACKET_MAXSIZE;
+			RecvSize = NORMAL_PACKET_MAXSIZE;
 		}
 
 		RecvBuffer = InnerRecvBuffer.get();
@@ -1488,13 +1488,13 @@ bool MarkDomainCache(
 //Initialization(B part)
 	if (Length <= DOMAIN_MAXSIZE)
 	{
-		std::unique_ptr<uint8_t[]> DNSCacheDataBufferTemp(new uint8_t[DOMAIN_MAXSIZE]());
-		memset(DNSCacheDataBufferTemp.get(), 0, DOMAIN_MAXSIZE);
+		std::unique_ptr<uint8_t[]> DNSCacheDataBufferTemp(new uint8_t[DOMAIN_MAXSIZE + PADDING_RESERVED_BYTES]());
+		memset(DNSCacheDataBufferTemp.get(), 0, DOMAIN_MAXSIZE + PADDING_RESERVED_BYTES);
 		std::swap(DNSCacheDataTemp.Response, DNSCacheDataBufferTemp);
 	}
 	else {
-		std::unique_ptr<uint8_t[]> DNSCacheDataBufferTemp(new uint8_t[Length]());
-		memset(DNSCacheDataBufferTemp.get(), 0, Length);
+		std::unique_ptr<uint8_t[]> DNSCacheDataBufferTemp(new uint8_t[Length + PADDING_RESERVED_BYTES]());
+		memset(DNSCacheDataBufferTemp.get(), 0, Length + PADDING_RESERVED_BYTES);
 		std::swap(DNSCacheDataTemp.Response, DNSCacheDataBufferTemp);
 	}
 
@@ -1503,7 +1503,7 @@ bool MarkDomainCache(
 	{
 	//Domain Case Conversion
 		CaseConvert(DNSCacheDataTemp.Domain, false);
-		memcpy_s(DNSCacheDataTemp.Response.get(), PACKET_MAXSIZE, Buffer + sizeof(uint16_t), Length - sizeof(uint16_t));
+		memcpy_s(DNSCacheDataTemp.Response.get(), NORMAL_PACKET_MAXSIZE, Buffer + sizeof(uint16_t), Length - sizeof(uint16_t));
 		DNSCacheDataTemp.Length = Length - sizeof(uint16_t);
 		DNSCacheDataTemp.ClearCacheTime = GetCurrentSystemTime() + ResponseTTL * SECOND_TO_MILLISECOND;
 

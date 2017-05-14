@@ -25,6 +25,10 @@
 #if defined(ENABLE_TLS)
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
+#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+static unsigned char HTTP1_ALPN_Vector[] = HTTP1_TLS_ALPN_STRING;
+static unsigned char HTTP2_ALPN_Vector[] = HTTP2_TLS_ALPN_STRING;
+#endif
 
 #if defined(PLATFORM_WIN)
 //Functions

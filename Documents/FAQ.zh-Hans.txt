@@ -19,6 +19,12 @@
   * 服务没有及时响应启动或控制请求 - 请检查是否有错误报告生成，详细情况参见下文 Error.log 详细错误报告 一节
   * Service start failed, please check the configuration. - 请检查是否有错误报告生成，详细情况参见下文 Error.log 详细错误报告 一节
 
+* 调试模式
+  * 当有任何怀疑程序工作不正常或者出错的情况，可绕过服务控制程序直接使用程序的调试模式进行调试，所有错误都将直接输出到屏幕上
+  * 终止所有正在运行的实例，确定同一时间只能有一个程序正在运行中
+  * Windows
+    * 直接以管理员权限运行即可
+
 * 如果出现以下结果，则说明服务没有运行成功或者设置出错，请检查是否有错误报告生成，或请移步 ReadMe 文档中 安装方法 一节
 
    >nslookup www.google.com
@@ -74,7 +80,7 @@
 Error.log 详细错误报告，错误报告一共有7大类型：
 
 1.System Error - 系统错误
-  * Screen output buffer setting error - 屏幕输出缓冲区配置错误：建议重新启动服务或程序
+  * Screen output buffer settings error - 屏幕输出缓冲区配置错误：建议重新启动服务或程序
   * Commands error - 程序启动参数错误：请检查为程序传入的参数
   * Service start error - 服务启动错误：可能未在系统注册服务，或在系统内注册的服务路径不正确
   * Set console control handler error - 设置控制台信号捕捉钩子错误：建议重新启动服务或程序
@@ -110,7 +116,8 @@ Error.log 详细错误报告，错误报告一共有7大类型：
 
 2.Parameter Error - 读取配置文件参数错误
   * Cannot open any configuration files - 未发现任何配置文件：请确认文件是否存在
-  * Configuration file is too large - 配置文件容量过大：请确认配置文件的内容，整个文件的大小不要超过 512MB
+  * Configuration file size is too large - 配置文件容量过大：请确认配置文件的内容，整个文件的大小不要超过 512MB
+  * DNSCurve database file size is too large - DNSCurve 数据库文件容量过大：请确认配置文件的内容，整个文件的大小不要超过 512MB
   * IPFilter file size is too large - IPFilter 文件容量过大：请确认 IPFilter 文件的内容，整个文件的大小不要超过 512MB
   * Hosts file size is too large - Hosts 文件容量过大：请确认Hosts文件的内容，整个文件的大小不要超过 512MB
   * Configuration file version error - 配置文件版本错误：请确认配置文件是否需要更新
@@ -179,14 +186,14 @@ Error.log 详细错误报告，错误报告一共有7大类型：
 5.Network Error - 网络错误
   * Winsock initialization error - Winsock 初始化错误：请确认使用的操作系统平台是否受支持
   * Windows Firewall Test error - Windows 防火墙测试错误：请确认是否以管理员身份运行批处理
-  * Socket treating wildcard bind setting error - 设置套接字协议独占模式错误：具体原因可参见错误代码
-  * Socket reusing disabled setting error - 设置套接字端口独占模式错误：具体原因可参见错误代码
-  * Socket non-blocking mode setting error - 设置套接字非阻塞模式错误：可能为网络错误，具体原因可参见错误代码
-  * Socket timeout setting error - 设置套接字超时时间错误：具体原因可参见错误代码
-  * Socket TCP Fast Open setting error - 设置 TCP Fast Open 错误：请检查系统是否支持此功能
-  * Socket UDP block RESET message setting error - 设置 UDP 协议套接字屏蔽 ICMP Port Unreachable 信息错误：具体原因可参见错误代码
-  * Socket Hop Limits setting error - 设置 Hop Limits/TTL 错误：具体原因可参见错误代码
-  * Socket Do Not Fragment flag setting error - 设置 IPv4 Do Not Fragment 标志错误：具体原因可参见错误代码
+  * Socket treating wildcard bind settings error - 设置套接字协议独占模式错误：具体原因可参见错误代码
+  * Socket reusing disabled settings error - 设置套接字端口独占模式错误：具体原因可参见错误代码
+  * Socket non-blocking mode settings error - 设置套接字非阻塞模式错误：可能为网络错误，具体原因可参见错误代码
+  * Socket timeout settings error - 设置套接字超时时间错误：具体原因可参见错误代码
+  * Socket TCP Fast Open settings error - 设置 TCP Fast Open 错误：请检查系统是否支持此功能
+  * Socket UDP block RESET message settings error - 设置 UDP 协议套接字屏蔽 ICMP Port Unreachable 信息错误：具体原因可参见错误代码
+  * Socket Hop Limits settings error - 设置 Hop Limits/TTL 错误：具体原因可参见错误代码
+  * Socket Do Not Fragment flag settings error - 设置 IPv4 Do Not Fragment 标志错误：具体原因可参见错误代码
   * UDP Monitor socket initialization error - UDP 协议本地套接字初始化错误：具体原因可参见错误代码
   * TCP Monitor socket initialization error - TCP 协议本地套接字初始化错误：具体原因可参见错误代码
   * Bind UDP Monitor socket error - UDP 协议本地套接字绑定错误：本地可能已经存在 DNS 服务器或者多重运行了本工具，具体具体原因可参见错误代码
@@ -232,6 +239,10 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * IPv6 Alternate Server Fingerprint signature validation error - IPv6 备用服务器证书验证错误：请检查该服务器是否可用
   * IPv4 Main Server Fingerprint signature validation error - IPv4 主要服务器证书验证错误：请检查该服务器是否可用
   * IPv4 Alternate Server Fingerprint signature validation error - IPv4 备用服务器证书验证错误：请检查该服务器是否可用
+  * IPv6 Main Server Fingerprint signature is not available in this time - IPv6 主要服务器证书处于无效状态：请检查该服务器是否可用
+  * IPv6 Alternate Server Fingerprint signature is not available in this time - IPv6 备用服务器证书处于无效状态：请检查该服务器是否可用
+  * IPv4 Main Server Fingerprint signature is not available in this time - IPv4 主要服务器证书处于无效状态：请检查该服务器是否可用
+  * IPv4 Alternate Server Fingerprint signature is not available in this time - IPv4 备用服务器证书处于无效状态：请检查该服务器是否可用
 
 8.SOCKS Error - SOCKS 协议错误
   * SOCKS version is not supported - SOCKS 代理指定的 SOCKS 版本不受支持：请检查所指定的 SOCKS 版本
@@ -270,7 +281,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * OpenSSL set strong ciphers error - OpenSSL 设置安全密码套件错误：请检查 OpenSSL 的版本或加密算法受支持等情况，具体原因可参见错误代码
   * OpenSSL create new client-method instance error - OpenSSL 创建客户端实例错误：建议重新启动服务或程序，具体原因可参见错误代码
   * OpenSSL create new BIO method error - OpenSSL 创建 BIO 实例错误：建议重新启动服务或程序，具体原因可参见错误代码
-  * OpenSSL BIO and SSL data attribute setting error - OpenSSL 设置 BIO 和 TLS/SSL 属性错误：建议重新启动服务或程序，具体原因可参见错误代码
+  * OpenSSL BIO and SSL data attribute settings error - OpenSSL 设置 BIO 和 TLS/SSL 属性错误：建议重新启动服务或程序，具体原因可参见错误代码
   * OpenSSL hostname checking and validation error - OpenSSL 服务器证书域名验证错误：证书验证错误，请确认此服务器工作正常
   * OpenSSL connecting error - OpenSSL 连接错误：可能为网络错误，具体原因可参见错误代码
   * OpenSSL handshake error - OpenSSL 握手错误：可能为网络错误，具体原因可参见错误代码

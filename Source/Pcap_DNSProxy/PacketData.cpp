@@ -27,17 +27,18 @@ uint32_t GetFCS(
 	uint32_t Table[FCS_TABLE_SIZE]{0}, Gx = 0x04C11DB7, Temp = 0, CRC_Table = 0, Value = 0, UI = 0;
 	uint8_t ReflectNum[]{8, 32};
 	int Index[]{0, 0, 0};
-
 	for (Index[0] = 0;Index[0] <= UINT8_MAX;++Index[0])
 	{
 		Value = 0;
 		UI = Index[0];
+		
 		for (Index[1U] = 1;Index[1U] < 9;++Index[1U])
 		{
 			if (UI & 1)
 				Value |= 1 << (ReflectNum[0] - Index[1U]);
 			UI >>= 1;
 		}
+		
 		Temp = Value;
 		Table[Index[0]] = Temp << 24U;
 
@@ -51,16 +52,18 @@ uint32_t GetFCS(
 				t2 = Gx;
 			Table[Index[0]] = t1 ^ t2;
 		}
+		
 		CRC_Table = Table[Index[0]];
-
 		UI = Table[Index[0]];
 		Value = 0;
+		
 		for (Index[1U] = 1;Index[1U] < 33;++Index[1U])
 		{
 			if (UI & 1)
 				Value |= 1 << (ReflectNum[1U] - Index[1U]);
 			UI >>= 1;
 		}
+		
 		Table[Index[0]] = Value;
 	}
 
@@ -447,6 +450,7 @@ size_t Add_EDNS_To_Additional_RR(
 		if (DataLength + sizeof(edns_client_subnet) >= MaxLen || ntohs(DNS_Query->Classes) != DNS_CLASS_INTERNET || 
 			(ntohs(DNS_Query->Type) != DNS_TYPE_AAAA && ntohs(DNS_Query->Type) != DNS_TYPE_A))
 				return DataLength;
+		
 		const auto EDNS_Subnet_Header = reinterpret_cast<edns_client_subnet *>(Buffer + DataLength);
 
 	//AAAA record(IPv6)
@@ -578,6 +582,7 @@ bool Add_EDNS_To_Additional_RR(
 		if (Packet->Length + sizeof(edns_client_subnet) >= Packet->BufferSize || ntohs(DNS_Query->Classes) != DNS_CLASS_INTERNET || 
 			(ntohs(DNS_Query->Type) != DNS_TYPE_AAAA && ntohs(DNS_Query->Type) != DNS_TYPE_A))
 				return true;
+
 		const auto EDNS_Subnet_Header = reinterpret_cast<edns_client_subnet *>(Packet->Buffer + Packet->Length);
 
 	//AAAA record(IPv6)

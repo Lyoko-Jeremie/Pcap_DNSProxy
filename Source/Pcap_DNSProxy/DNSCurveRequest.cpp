@@ -19,7 +19,7 @@
 
 #include "DNSCurveRequest.h"
 
-/* DNSCurve/DNSCrypt Protocol version 2
+/* DNSCurve(DNSCrypt) Protocol version 2
 
 Client -> Server:
 *  8 bytes: Magic query bytes
@@ -36,8 +36,8 @@ Server -> Client:
 * Variable encryption data ...
 
 Using TCP protocol:
-* 2 bytes: DNSCurve/DNSCrypt data payload length
-* Variable original DNSCurve/DNSCrypt data ...
+* 2 bytes: DNSCurve(DNSCrypt) data payload length
+* Variable original DNSCurve(DNSCrypt) data ...
 
 */
 
@@ -160,10 +160,10 @@ bool DNSCurve_TCP_SignatureRequest(
 	const bool IsAlternate)
 {
 //Initialization
-	std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[PACKET_MAXSIZE]());
-	std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[Parameter.LargeBufferSize]());
-	sodium_memzero(SendBuffer.get(), PACKET_MAXSIZE);
-	sodium_memzero(RecvBuffer.get(), Parameter.LargeBufferSize);
+	std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
+	std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
+	sodium_memzero(SendBuffer.get(), NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+	sodium_memzero(RecvBuffer.get(), Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 	std::vector<SOCKET_DATA> TCPSocketDataList(1U);
 	sodium_memzero(&TCPSocketDataList.front(), sizeof(TCPSocketDataList.front()));
 
@@ -199,10 +199,10 @@ bool DNSCurve_TCP_SignatureRequest(
 	DataLength += sizeof(dns_qry);
 
 //EDNS Label
-	DataLength = Add_EDNS_To_Additional_RR(SendBuffer.get() + sizeof(uint16_t), DataLength - sizeof(uint16_t), PACKET_MAXSIZE, nullptr);
+	DataLength = Add_EDNS_To_Additional_RR(SendBuffer.get() + sizeof(uint16_t), DataLength - sizeof(uint16_t), NORMAL_PACKET_MAXSIZE, nullptr);
 	DataLength += sizeof(uint16_t);
 
-//Add length of request packet, it must be written in header when transport with TCP protocol.
+//Add length of request packet.
 	DNS_TCP_Header->Length = htons(static_cast<uint16_t>(DataLength - sizeof(uint16_t)));
 
 //Socket initialization(Part 1)
@@ -312,10 +312,10 @@ bool DNSCurve_UDP_SignatureRequest(
 	const bool IsAlternate)
 {
 //Initialization
-	std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[PACKET_MAXSIZE]());
-	std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[PACKET_MAXSIZE]());
-	sodium_memzero(SendBuffer.get(), PACKET_MAXSIZE);
-	sodium_memzero(RecvBuffer.get(), PACKET_MAXSIZE);
+	std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
+	std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
+	sodium_memzero(SendBuffer.get(), NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+	sodium_memzero(RecvBuffer.get(), NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
 	sodium_memzero(&UDPSocketDataList.front(), sizeof(UDPSocketDataList.front()));
 
@@ -351,7 +351,7 @@ bool DNSCurve_UDP_SignatureRequest(
 	DataLength += sizeof(dns_qry);
 
 //EDNS Label
-	DataLength = Add_EDNS_To_Additional_RR(SendBuffer.get(), DataLength, PACKET_MAXSIZE, nullptr);
+	DataLength = Add_EDNS_To_Additional_RR(SendBuffer.get(), DataLength, NORMAL_PACKET_MAXSIZE, nullptr);
 
 //Socket initialization(Part 1)
 	size_t TotalSleepTime = 0;
@@ -402,7 +402,7 @@ bool DNSCurve_UDP_SignatureRequest(
 				goto JumpToRestart;
 
 	//Socket selecting
-		RecvLen = SocketSelectingOnce(REQUEST_PROCESS_TYPE::DNSCURVE_SIGN, IPPROTO_UDP, UDPSocketDataList, nullptr, SendBuffer.get(), DataLength, RecvBuffer.get(), PACKET_MAXSIZE, nullptr);
+		RecvLen = SocketSelectingOnce(REQUEST_PROCESS_TYPE::DNSCURVE_SIGN, IPPROTO_UDP, UDPSocketDataList, nullptr, SendBuffer.get(), DataLength, RecvBuffer.get(), NORMAL_PACKET_MAXSIZE, nullptr);
 		if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
 		{
 			goto JumpToRestart;
@@ -436,7 +436,7 @@ bool DNSCurve_UDP_SignatureRequest(
 		}
 
 	//Send request again.
-		sodium_memzero(RecvBuffer.get(), PACKET_MAXSIZE);
+		sodium_memzero(RecvBuffer.get(), NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 		if (!Parameter.AlternateMultipleRequest)
 		{
 			if (ServerType == DNSCURVE_SERVER_TYPE::MAIN_IPV6)

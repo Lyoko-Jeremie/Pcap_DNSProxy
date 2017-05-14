@@ -353,6 +353,7 @@
 #include <atomic>                  //Atomic support
 #include <condition_variable>      //Condition variable support
 #include <deque>                   //Double-ended queue support
+#include <functional>              //Objects specifically designed to be used with a syntax similar to that of functions support
 #include <list>                    //List support
 #include <map>                     //Map support
 #include <memory>                  //Manage dynamic memory support
@@ -463,11 +464,6 @@
 //Winsock definitions
 	#define WINSOCK_VERSION_LOW_BYTE    2                           //Low byte of Winsock version 2.2
 	#define WINSOCK_VERSION_HIGH_BYTE   2                           //High byte of Winsock version 2.2
-
-//TCP Fast Open support
-	#ifndef TCP_FASTOPEN
-		#define TCP_FASTOPEN               15
-	#endif
 
 //Windows compatible definitions
 	typedef SSIZE_T                    ssize_t;

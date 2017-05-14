@@ -29,6 +29,12 @@ if not ERRORLEVEL 1 (
 set Prog=Pcap_DNSProxy%Arch%.exe
 
 
+:: Command
+set Command=%~1
+if not "%Command%" == "" (
+	goto CASE_%Command%
+)
+
 :: Choice
 :CHOICE
 echo Pcap_DNSProxy service control batch
@@ -66,9 +72,13 @@ goto %UserChoice%
 	sc start PcapDNSProxyService
 	ipconfig /flushdns
 	call :CHECK_PROG
-	pause
-	cls
-	goto :CHOICE
+	if "%Command%" == "" (
+		pause
+		cls
+		goto :CHOICE
+	) else (
+		exit
+	)
 
 
 :: Service uninstall
@@ -78,10 +88,14 @@ goto %UserChoice%
 	ping 127.0.0.1 -n 3 >NUL
 	taskkill /F /IM Pcap_DNSProxy.exe >NUL
 	ipconfig /flushdns
-	echo.
-	pause
-	cls
-	goto :CHOICE
+	if "%Command%" == "" (
+		echo.
+		pause
+		cls
+		goto :CHOICE
+	) else (
+		exit
+	)
 
 
 :: Service start
@@ -91,9 +105,13 @@ goto %UserChoice%
 	ipconfig /flushdns
 	ping 127.0.0.1 -n 3 >NUL
 	call :CHECK_PROG
-	pause
-	cls
-	goto :CHOICE
+	if "%Command%" == "" (
+		pause
+		cls
+		goto :CHOICE
+	) else (
+		exit
+	)
 
 
 :: Service stop
@@ -101,10 +119,14 @@ goto %UserChoice%
 	sc stop PcapDNSProxyService
 	ping 127.0.0.1 -n 3 >NUL
 	ipconfig /flushdns
-	echo.
-	pause
-	cls
-	goto :CHOICE
+	if "%Command%" == "" (
+		echo.
+		pause
+		cls
+		goto :CHOICE
+	) else (
+		exit
+	)
 
 
 :: Service restart
@@ -116,28 +138,40 @@ goto %UserChoice%
 	ping 127.0.0.1 -n 3 >NUL
 	ipconfig /flushdns
 	call :CHECK_PROG
-	pause
-	cls
-	goto :CHOICE
+	if "%Command%" == "" (
+		pause
+		cls
+		goto :CHOICE
+	) else (
+		exit
+	)
 
 
 :: Flush DNS cache(Pcap_DNSProxy)
 :CASE_6
 	call :CHECK_PROG
 	%Prog% --flush-dns
-	echo.
-	pause
-	cls
-	goto :CHOICE
+	if "%Command%" == "" (
+		echo.
+		pause
+		cls
+		goto :CHOICE
+	) else (
+		exit
+	)
 
 
 :: Flush DNS cache(System)
 :CASE_7
 	ipconfig /flushdns
-	echo.
-	pause
-	cls
-	goto :CHOICE
+	if "%Command%" == "" (
+		echo.
+		pause
+		cls
+		goto :CHOICE
+	) else (
+		exit
+	)
 
 
 :: Exit

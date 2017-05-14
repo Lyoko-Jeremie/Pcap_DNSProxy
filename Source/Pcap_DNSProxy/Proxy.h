@@ -26,9 +26,6 @@
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 
-//Length definitions
-#define HTTP1_RESPONSE_MINSIZE              (strlen(" HTTP/") + HTTP_VERSION_MAXSIZE + HTTP_STATUS_CODE_SIZE)
-
 //Functions
 bool SOCKS_SelectionExchange(
 	std::vector<SOCKET_DATA> &SocketDataList, 
@@ -71,7 +68,8 @@ bool HTTP_CONNECT_2_HEADERS_ReadBytes(
 	const uint8_t *Buffer, 
 	const size_t Length);
 bool HTTP_CONNECT_ResponseBytesCheck(
-	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList);
+	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
+	const bool IsPrintError);
 bool HTTP_CONNECT_2_ShutdownConnection(
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<ssize_t> &ErrorCodeList, 

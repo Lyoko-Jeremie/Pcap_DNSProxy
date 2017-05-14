@@ -673,7 +673,7 @@ bool ReadAddressHostsData(
 				return false;
 			}
 			
-		//Reset parameter.
+		//Reset parameters.
 			memset(&AddressTargetPrefix.first, 0, sizeof(AddressTargetPrefix.first));
 
 		//Address prefix format
@@ -719,7 +719,7 @@ bool ReadAddressHostsData(
 				return false;
 			}
 
-		//Reset parameter.
+		//Reset parameters.
 			memset(&AddressTargetPrefix.first, 0, sizeof(AddressTargetPrefix.first));
 
 		//Address prefix format

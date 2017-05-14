@@ -121,12 +121,12 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 非标准 DNS 端口现阶段尚未被干扰，此组合的过滤效果比较可靠
   * Multiple Request Times = xx 时：应用到所有除请求境内服务器外的所有请求，一个请求多次发送功能
     * 此功能用于对抗网络丢包比较严重的情况，对系统和网络资源的占用都比较高，但在网络环境恶劣的情况下能提高获得解析结果的可靠性
-  * DNSCurve = 1 同时 Encryption = 0：使用 DNSCurve/DNSCrypt 非加密模式请求域名解析
+  * DNSCurve = 1 同时 Encryption = 0：使用 DNSCurve(DNSCrypt) 非加密模式请求域名解析
     * 此组合等于使用非标准 DNS 端口请求，域名解析可靠性比较高，详细情况参见上文
-  * DNSCurve = 1 同时 Encryption = 1：使用 DNSCurve/DNSCrypt 加密模式请求域名解析
+  * DNSCurve = 1 同时 Encryption = 1：使用 DNSCurve(DNSCrypt) 加密模式请求域名解析
     * 此组合加密传输所有域名请求，域名解析可靠性最高
-  * DNSCurve = 1 同时 Encryption = 1 同时 Encryption Only = 1：只使用 DNSCurve/DNSCrypt 加密模式请求域名解析
-    * 上文的加密组合并不阻止程序在请求 DNSCurve/DNSCrypt 加密模式失败是使用其它协议请求域名解析，开启 Encryption Only = 1 后将只允许使用加密传输，安全性和可靠性最高，但域名解析成功率可能会下降
+  * DNSCurve = 1 同时 Encryption = 1 同时 Encryption Only = 1：只使用 DNSCurve(DNSCrypt) 加密模式请求域名解析
+    * 上文的加密组合并不阻止程序在请求 DNSCurve(DNSCrypt) 加密模式失败是使用其它协议请求域名解析，开启 Encryption Only = 1 后将只允许使用加密传输，安全性和可靠性最高，但域名解析成功率可能会下降
 * 优化大量请求下程序表现：
   * Pcap Reading Timeout 适当调低这个参数能使抓包模块以更高的频率抓取数据包，降低延迟
   * Cache Parameter/Default TTL 尽量调高这个参数能增加缓存的生存时间或者队列长度，提高缓存命中率
@@ -157,7 +157,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 使用系统 API函数进行域名解析（大部分）：系统 Hosts > Pcap_DNSProxy 的 Hosts 条目（Whitelist/白名单条目 > Hosts/主要 Hosts 列表） > DNS 缓存 > Local Hosts/境内 DNS 解析域名列表 > 远程 DNS 服务器
   * 直接从网络适配器设置内读取 DNS 服务器地址进行域名解析（小部分）：Pcap_DNSProxy 的 Hosts 配置文件（Whitelist/白名单条目 > Hosts/主要 Hosts 列表） > DNS 缓存 > Local Hosts/境内 DNS 解析域名列表 > 远程 DNS 服务器
   * 请求远程 DNS 服务器的优先级：Direct Request 模式 > TCP 模式的 DNSCurve 加密/非加密模式（如有） > UDP 模式的 DNSCurve 加密/非加密模式（如有） > TCP 模式普通请求（如有） > UDP 模式普通请求
-* 本工具的 DNSCurve/DNSCrypt 协议是内置的实现，不需要安装 DNSCrypt 官方的工具！
+* 本工具的 DNSCurve(DNSCrypt) 协议是内置的实现，不需要安装 DNSCrypt 官方的工具！
   * DNSCurve 协议为 Streamlined/精简类型
   * 自动获取连接信息时必须保证系统时间的正确，否则证书验证时会出错导致连接信息获取失败！
   * DNSCrypt 官方工具会占用本地 DNS 端口导致 Pcap_DNSProxy 部署失败！
@@ -181,7 +181,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * --flush-dns Domain
   立即清空域名为 Domain 以及所有系统内的 DNS 缓存
 * --keypair-generator
-  生成 DNSCurve/DNSCrypt 协议所需使用的密钥对到 KeyPair.txt
+  生成 DNSCurve(DNSCrypt) 协议所需使用的密钥对到 KeyPair.txt
 * --lib-version
   输出程序所用库的版本号信息到屏幕上
 * --disable-daemon
@@ -532,13 +532,13 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 支持多个 Hop Limits 值，与 IPv6 Alternate DNS Address 相对应
   * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受范围，即 IPv4 TTL/IPv6 Hop Limits 的值 ± 数值的范围内的数据包均可被接受，用于避免网络环境短暂变化造成解析失败的问题：取值为 1-255 之间
   * Reliable Once Socket Timeout - 一次性可靠协议端口超时时间：单位为毫秒，最小为 500 可留空，留空时为 3000
-    * 一次性是指请求在一次 RTT 往返网络传输内即可完成，例如标准 DNS 和 DNSCurve/DNSCrypt 协议
+    * 一次性是指请求在一次 RTT 往返网络传输内即可完成，例如标准 DNS 和 DNSCurve(DNSCrypt) 协议
     * 可靠端口是指 TCP 协议
   * Reliable Serial Socket Timeout - 串行可靠协议端口超时时间：单位为毫秒，最小为 500 可留空，留空时为 1500
     * 串行是指此操作需要多次交互网络传输才能完成，例如 SOCKS 和 HTTP CONNECT 协议
     * 可靠端口是指 TCP 协议
   * Unreliable Once Socket Timeout - 一次性不可靠协议端口超时时间：单位为毫秒，最小为 500 可留空，留空时为 2000
-    * 一次性是指请求在一次 RTT 往返网络传输内即可完成，例如标准 DNS 和 DNSCurve/DNSCrypt 协议
+    * 一次性是指请求在一次 RTT 往返网络传输内即可完成，例如标准 DNS 和 DNSCurve(DNSCrypt) 协议
     * 不可靠端口指 UDP/ICMP/ICMPv6 协议
   * Unreliable Serial Socket Timeout - 串行可靠协议端口超时时间：单位为毫秒，最小为 500 可留空，留空时为 1000
     * 串行是指此操作需要多次交互网络传输才能完成，例如 SOCKS 和 HTTP CONNECT 协议
@@ -734,7 +734,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSCurve IPv6 Alternate Provider Name - DNSCurve 协议 IPv6 备用 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据
   * 注意：
     * 自动获取 DNSCurve 服务器连接信息时必须输入提供者的域名，不能留空
-    * 更多支持 DNSCurve/DNSCrypt 的服务器请移步 https://github.com/jedisct1/dnscrypt-proxy/blob/master/dnscrypt-resolvers.csv
+    * 更多支持 DNSCurve(DNSCrypt) 的服务器请移步 https://github.com/jedisct1/dnscrypt-proxy/blob/master/dnscrypt-resolvers.csv
 
 * DNSCurve Keys - DNSCurve 协议密钥区域
   * DNSCurve Client Public Key - 自定义客户端公钥：可使用 KeyPairGenerator 生成，留空则每次启动时自动生成

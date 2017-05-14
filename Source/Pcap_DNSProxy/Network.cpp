@@ -52,7 +52,7 @@ bool FirewallTest(
 			(reinterpret_cast<sockaddr_in6 *>(&SockAddr))->sin6_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 			while (bind(FirewallSocket, reinterpret_cast<sockaddr *>(&SockAddr), sizeof(sockaddr_in6)) == SOCKET_ERROR)
 			{
-				if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)
+				if (Index < LOOP_MAX_LARGE_TIMES && WSAGetLastError() == WSAEADDRINUSE)
 				{
 					(reinterpret_cast<sockaddr_in6 *>(&SockAddr))->sin6_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 					++Index;
@@ -85,7 +85,7 @@ bool FirewallTest(
 			(reinterpret_cast<sockaddr_in *>(&SockAddr))->sin_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 			while (bind(FirewallSocket, reinterpret_cast<sockaddr *>(&SockAddr), sizeof(sockaddr_in)) == SOCKET_ERROR)
 			{
-				if (Index < LOOP_MAX_TIMES && WSAGetLastError() == WSAEADDRINUSE)
+				if (Index < LOOP_MAX_LARGE_TIMES && WSAGetLastError() == WSAEADDRINUSE)
 				{
 					(reinterpret_cast<sockaddr_in *>(&SockAddr))->sin_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
 					++Index;
@@ -146,7 +146,7 @@ bool SocketSetting(
 			#endif
 				{
 					if (IsPrintError)
-						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket Do Not Fragment flag setting error", WSAGetLastError(), nullptr, 0);
+						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket Do Not Fragment flag settings error", WSAGetLastError(), nullptr, 0);
 					shutdown(Socket, SD_BOTH);
 					closesocket(Socket);
 
@@ -161,7 +161,7 @@ bool SocketSetting(
 		//Range
 			if (Parameter.PacketHopLimits_IPv6_End > 0)
 			{
-			//Socket attribute setting process
+			//Socket attribute settings process
 			#if defined(PLATFORM_WIN)
 				std::uniform_int_distribution<DWORD> RamdomDistribution(Parameter.PacketHopLimits_IPv6_Begin, Parameter.PacketHopLimits_IPv6_End);
 				const auto OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
@@ -173,7 +173,7 @@ bool SocketSetting(
 			#endif
 				{
 					if (IsPrintError)
-						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket Hop Limits setting error", WSAGetLastError(), nullptr, 0);
+						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket Hop Limits settings error", WSAGetLastError(), nullptr, 0);
 					shutdown(Socket, SD_BOTH);
 					closesocket(Socket);
 
@@ -190,7 +190,7 @@ bool SocketSetting(
 			#endif
 				{
 					if (IsPrintError)
-						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket Hop Limits setting error", WSAGetLastError(), nullptr, 0);
+						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket Hop Limits settings error", WSAGetLastError(), nullptr, 0);
 					shutdown(Socket, SD_BOTH);
 					closesocket(Socket);
 
@@ -204,7 +204,7 @@ bool SocketSetting(
 		//Range
 			if (Parameter.PacketHopLimits_IPv4_End > 0)
 			{
-			//Socket attribute setting process
+			//Socket attribute settings process
 			#if defined(PLATFORM_WIN)
 				std::uniform_int_distribution<DWORD> RamdomDistribution(Parameter.PacketHopLimits_IPv4_Begin, Parameter.PacketHopLimits_IPv4_End);
 				const auto OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
@@ -216,7 +216,7 @@ bool SocketSetting(
 			#endif
 				{
 					if (IsPrintError)
-						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket Hop Limits setting error", WSAGetLastError(), nullptr, 0);
+						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket Hop Limits settings error", WSAGetLastError(), nullptr, 0);
 					shutdown(Socket, SD_BOTH);
 					closesocket(Socket);
 
@@ -233,7 +233,7 @@ bool SocketSetting(
 			#endif
 				{
 					if (IsPrintError)
-						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket Hop Limits setting error", WSAGetLastError(), nullptr, 0);
+						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket Hop Limits settings error", WSAGetLastError(), nullptr, 0);
 					shutdown(Socket, SD_BOTH);
 					closesocket(Socket);
 
@@ -268,7 +268,7 @@ bool SocketSetting(
 		#endif
 			{
 				if (IsPrintError)
-					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket non-blocking mode setting error", WSAGetLastError(), nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket non-blocking mode settings error", WSAGetLastError(), nullptr, 0);
 				shutdown(Socket, SD_BOTH);
 				closesocket(Socket);
 
@@ -284,7 +284,7 @@ bool SocketSetting(
 			if (setsockopt(Socket, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			{
 				if (IsPrintError)
-					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket reusing disabled setting error", WSAGetLastError(), nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket reusing disabled settings error", WSAGetLastError(), nullptr, 0);
 				shutdown(Socket, SD_BOTH);
 				closesocket(Socket);
 
@@ -298,7 +298,7 @@ bool SocketSetting(
 			if (setsockopt(Socket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			{
 				if (IsPrintError)
-					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket reusing enabled setting error", errno, nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket reusing enabled settings error", errno, nullptr, 0);
 				shutdown(Socket, SHUT_RDWR);
 				close(Socket);
 
@@ -310,7 +310,7 @@ bool SocketSetting(
 			if (setsockopt(Socket, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			{
 				if (IsPrintError)
-					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket treating wildcard bind setting error", errno, nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket treating wildcard bind settings error", errno, nullptr, 0);
 				shutdown(Socket, SHUT_RDWR);
 				close(Socket);
 
@@ -321,23 +321,25 @@ bool SocketSetting(
 	//Socket attribute setting(TFO/TCP Fast Open)
 		case SOCKET_SETTING_TYPE::TCP_FAST_OPEN:
 		{
-		//Socket attribute setting process
+		//Socket attribute settings process
 			if (Parameter.TCP_FastOpen > 0)
 			{
-			//Windows: Server side is completed but need to confirm in the new SDK, client side is only support overlapped I/O so waiting Microsoft to extend it to normal socket(2017-04-02).
-			//Linux: Server side and client side is both completed, also support queue length.
-			//macOS: Server side and client side is both completed.
+			//Windows: Server side is completed, client side is only support overlapped I/O. Waiting Microsoft extend to normal socket(2017-05-14).
+			//Linux: Server side and client side are both completed, also support queue length.
+			//macOS: Server side and client side are both completed.
 			#if defined(PLATFORM_WIN)
+			#if !defined(PLATFORM_WIN_XP)
 				const DWORD OptionValue = TRUE;
 				if (setsockopt(Socket, IPPROTO_TCP, TCP_FASTOPEN, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 				{
 					if (IsPrintError)
-						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket TCP Fast Open setting error", WSAGetLastError(), nullptr, 0);
+						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket TCP Fast Open settings error", WSAGetLastError(), nullptr, 0);
 					shutdown(Socket, SD_BOTH);
 					closesocket(Socket);
 
 					return false;
 				}
+			#endif
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFOEM_MACOS))
 				errno = 0;
 			#if defined(PLATFORM_LINUX)
@@ -349,7 +351,7 @@ bool SocketSetting(
 			#endif
 				{
 					if (IsPrintError)
-						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket TCP Fast Open setting error", errno, nullptr, 0);
+						PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket TCP Fast Open settings error", errno, nullptr, 0);
 					shutdown(Socket, SHUT_RDWR);
 					close(Socket);
 
@@ -417,7 +419,7 @@ bool SocketSetting(
 		#endif
 			{
 				if (IsPrintError)
-					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket timeout setting error", WSAGetLastError(), nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket timeout settings error", WSAGetLastError(), nullptr, 0);
 				shutdown(Socket, SD_BOTH);
 				closesocket(Socket);
 
@@ -433,7 +435,7 @@ bool SocketSetting(
 			if (WSAIoctl(Socket, SIO_UDP_CONNRESET, &NewBehavior, sizeof(BOOL), nullptr, 0, &BytesReturned, nullptr, nullptr) == SOCKET_ERROR)
 			{
 				if (IsPrintError)
-					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket UDP block RESET message setting error", WSAGetLastError(), nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket UDP block RESET message settings error", WSAGetLastError(), nullptr, 0);
 				shutdown(Socket, SD_BOTH);
 				closesocket(Socket);
 
@@ -1276,8 +1278,8 @@ ssize_t SocketSelectingOnce(
 	#endif
 		)
 	{
-		std::unique_ptr<uint8_t[]> RecvBufferSwap(new uint8_t[PACKET_MAXSIZE]());
-		memset(RecvBufferSwap.get(), 0, PACKET_MAXSIZE);
+		std::unique_ptr<uint8_t[]> RecvBufferSwap(new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
+		memset(RecvBufferSwap.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 		std::swap(RecvBufferTemp, RecvBufferSwap);
 	}
 
@@ -1436,7 +1438,7 @@ ssize_t SocketSelectingOnce(
 					//Buffer initialization
 						if (!DNSCurveSocketSelectingList->at(Index).RecvBuffer)
 						{
-							std::unique_ptr<uint8_t[]> DNSCurveRecvBuffer(new uint8_t[RecvSize]());
+							std::unique_ptr<uint8_t[]> DNSCurveRecvBuffer(new uint8_t[RecvSize + PADDING_RESERVED_BYTES]());
 							sodium_memzero(DNSCurveRecvBuffer.get(), RecvSize);
 							std::swap(DNSCurveSocketSelectingList->at(Index).RecvBuffer, DNSCurveRecvBuffer);
 						}
@@ -1500,7 +1502,7 @@ ssize_t SocketSelectingOnce(
 						//Buffer initialization
 							if (!SocketSelectingList.at(Index).RecvBuffer)
 							{
-								std::unique_ptr<uint8_t[]> RecvBufferSwap(new uint8_t[RecvSize]());
+								std::unique_ptr<uint8_t[]> RecvBufferSwap(new uint8_t[RecvSize + PADDING_RESERVED_BYTES]());
 								memset(RecvBufferSwap.get(), 0, RecvSize);
 								std::swap(SocketSelectingList.at(Index).RecvBuffer, RecvBufferSwap);
 							}
@@ -1530,8 +1532,8 @@ ssize_t SocketSelectingOnce(
 						}
 						else {
 						//Receive, drop all data and close sockets.
-							recv(SocketDataList.at(Index).Socket, reinterpret_cast<char *>(RecvBufferTemp.get()), PACKET_MAXSIZE, 0);
-							memset(RecvBufferTemp.get(), 0, PACKET_MAXSIZE);
+							recv(SocketDataList.at(Index).Socket, reinterpret_cast<char *>(RecvBufferTemp.get()), NORMAL_PACKET_MAXSIZE, 0);
+							memset(RecvBufferTemp.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 							SocketDataList.at(Index).Socket = 0;
 						}
@@ -2095,15 +2097,15 @@ StopLoop:
 					//Prepare buffer.
 						if (!SocketSelectingDataList.at(Index).RecvBuffer)
 						{
-							std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[Parameter.LargeBufferSize]);
-							memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize);
+							std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
+							memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 							std::swap(SocketSelectingDataList.at(Index).RecvBuffer, RecvBuffer);
 							SocketSelectingDataList.at(Index).RecvSize = Parameter.LargeBufferSize;
 							SocketSelectingDataList.at(Index).RecvLen = 0;
 						}
 						else if (SocketSelectingDataList.at(Index).RecvSize <= SocketSelectingDataList.at(Index).RecvLen + Parameter.LargeBufferSize)
 						{
-							std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[SocketSelectingDataList.at(Index).RecvSize + Parameter.LargeBufferSize]);
+							std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[SocketSelectingDataList.at(Index).RecvSize + Parameter.LargeBufferSize]());
 							memset(RecvBuffer.get(), 0, SocketSelectingDataList.at(Index).RecvSize + Parameter.LargeBufferSize);
 							memcpy_s(RecvBuffer.get(), SocketSelectingDataList.at(Index).RecvSize + Parameter.LargeBufferSize, SocketSelectingDataList.at(Index).RecvBuffer.get(), SocketSelectingDataList.at(Index).RecvLen);
 							std::swap(SocketSelectingDataList.at(Index).RecvBuffer, RecvBuffer);

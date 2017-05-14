@@ -31,7 +31,7 @@ bool SSPI_SChannelInitializtion(
 	SChannelCredentials.dwVersion = SCHANNEL_CRED_VERSION;
 
 //TLS version selection
-//Windows XP/2003 and Vista are not support TLS 1.0+.
+//Windows XP/2003 and Vista are not support TLS above 1.0.
 #if !defined(PLATFORM_WIN_XP)
 	if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_2)
 		SChannelCredentials.grbitEnabledProtocols = SP_PROT_TLS1_2_CLIENT;
@@ -110,15 +110,15 @@ bool SSPI_Handshake(
 	//The next 1 byte will be indicating the number of bytes used to the ALPN string.
 		if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1)
 		{
-			std::unique_ptr<uint8_t[]> InputBufferPointerTemp(new uint8_t[sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP1_TLS_ALPN_STRING) + 1U]());
-			memset(InputBufferPointerTemp.get(), 0, strlen(HTTP1_TLS_ALPN_STRING) + 1U);
+			std::unique_ptr<uint8_t[]> InputBufferPointerTemp(new uint8_t[sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP1_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH]());
+			memset(InputBufferPointerTemp.get(), 0, strlen(HTTP1_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH);
 			std::swap(InputBufferPointer, InputBufferPointerTemp);
 
 		//TLS ALPN extension buffer settings
-			*((uint32_t *)InputBufferPointer.get()) = static_cast<uint32_t>(sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP1_TLS_ALPN_STRING));
-			*((uint32_t *)(InputBufferPointer.get() + sizeof(uint32_t))) = SecApplicationProtocolNegotiationExt_ALPN;
-			*((uint16_t *)(InputBufferPointer.get() + sizeof(uint32_t) * 2U)) = static_cast<uint16_t>(sizeof(uint8_t) + strlen(HTTP1_TLS_ALPN_STRING));
-			*((uint8_t *)(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t))) = static_cast<uint8_t>(strlen(HTTP1_TLS_ALPN_STRING));
+			*reinterpret_cast<uint32_t *>(InputBufferPointer.get()) = static_cast<uint32_t>(sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP1_TLS_ALPN_STRING));
+			*reinterpret_cast<uint32_t *>(InputBufferPointer.get() + sizeof(uint32_t)) = SecApplicationProtocolNegotiationExt_ALPN;
+			*reinterpret_cast<uint16_t *>(InputBufferPointer.get() + sizeof(uint32_t) * 2U) = static_cast<uint16_t>(sizeof(uint8_t) + strlen(HTTP1_TLS_ALPN_STRING));
+			*reinterpret_cast<uint8_t *>(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t)) = static_cast<uint8_t>(strlen(HTTP1_TLS_ALPN_STRING));
 			memcpy_s(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t), strlen(HTTP1_TLS_ALPN_STRING), HTTP1_TLS_ALPN_STRING, strlen(HTTP1_TLS_ALPN_STRING));
 			InputBufferSec[0].pvBuffer = InputBufferPointer.get();
 			InputBufferSec[0].BufferType = SECBUFFER_APPLICATION_PROTOCOLS;
@@ -126,15 +126,15 @@ bool SSPI_Handshake(
 		}
 		else if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
 		{
-			std::unique_ptr<uint8_t[]> InputBufferPointerTemp(new uint8_t[sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP2_TLS_ALPN_STRING) + 1U]());
-			memset(InputBufferPointerTemp.get(), 0, strlen(HTTP2_TLS_ALPN_STRING) + 1U);
+			std::unique_ptr<uint8_t[]> InputBufferPointerTemp(new uint8_t[sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP2_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH]());
+			memset(InputBufferPointerTemp.get(), 0, strlen(HTTP2_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH);
 			std::swap(InputBufferPointer, InputBufferPointerTemp);
 
 		//TLS ALPN extension buffer settings
-			*((uint32_t *)InputBufferPointer.get()) = static_cast<uint32_t>(sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP2_TLS_ALPN_STRING));
-			*((uint32_t *)(InputBufferPointer.get() + sizeof(uint32_t))) = SecApplicationProtocolNegotiationExt_ALPN;
-			*((uint16_t *)(InputBufferPointer.get() + sizeof(uint32_t) * 2U)) = static_cast<uint16_t>(sizeof(uint8_t) + strlen(HTTP2_TLS_ALPN_STRING));
-			*((uint8_t *)(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t))) = static_cast<uint8_t>(strlen(HTTP2_TLS_ALPN_STRING));
+			*reinterpret_cast<uint32_t *>(InputBufferPointer.get()) = static_cast<uint32_t>(sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP2_TLS_ALPN_STRING));
+			*reinterpret_cast<uint32_t *>(InputBufferPointer.get() + sizeof(uint32_t)) = SecApplicationProtocolNegotiationExt_ALPN;
+			*reinterpret_cast<uint16_t *>(InputBufferPointer.get() + sizeof(uint32_t) * 2U) = static_cast<uint16_t>(sizeof(uint8_t) + strlen(HTTP2_TLS_ALPN_STRING));
+			*reinterpret_cast<uint8_t *>(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t)) = static_cast<uint8_t>(strlen(HTTP2_TLS_ALPN_STRING));
 			memcpy_s(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t), strlen(HTTP2_TLS_ALPN_STRING), HTTP2_TLS_ALPN_STRING, strlen(HTTP2_TLS_ALPN_STRING));
 			InputBufferSec[0].pvBuffer = InputBufferPointer.get();
 			InputBufferSec[0].BufferType = SECBUFFER_APPLICATION_PROTOCOLS;
@@ -218,8 +218,8 @@ bool SSPI_Handshake(
 		}
 
 	//Buffer initializtion
-		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[OutputBufferSec[0].cbBuffer]());
-		memset(SendBuffer.get(), 0, OutputBufferSec[0].cbBuffer);
+		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[OutputBufferSec[0].cbBuffer + PADDING_RESERVED_BYTES]());
+		memset(SendBuffer.get(), 0, OutputBufferSec[0].cbBuffer + PADDING_RESERVED_BYTES);
 		memcpy_s(SendBuffer.get(), OutputBufferSec[0].cbBuffer, OutputBufferSec[0].pvBuffer, OutputBufferSec[0].cbBuffer);
 		std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
 		SocketSelectingDataList.front().SendSize = OutputBufferSec[0].cbBuffer;
@@ -278,7 +278,7 @@ bool SSPI_HandshakeLoop(
 //Handshake loop exchange
 	for (;;)
 	{
-	//Reset parameter.
+	//Reset parameters.
 		SSPI_Handle.InputFlags |= ISC_REQ_SEQUENCE_DETECT;
 		SSPI_Handle.InputFlags |= ISC_REQ_REPLAY_DETECT;
 		SSPI_Handle.InputFlags |= ISC_REQ_CONFIDENTIALITY;
@@ -337,6 +337,7 @@ bool SSPI_HandshakeLoop(
 
 			if (OutputBufferSec[0].pvBuffer != nullptr)
 				FreeContextBuffer(OutputBufferSec[0].pvBuffer);
+
 			break;
 		}
 		else if (SSPI_Handle.LastReturnValue == SEC_I_CONTINUE_NEEDED)
@@ -344,8 +345,8 @@ bool SSPI_HandshakeLoop(
 		//Buffer initializtion
 			if (OutputBufferSec[0].pvBuffer != nullptr && OutputBufferSec[0].cbBuffer >= sizeof(tls_base_record))
 			{
-				std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[OutputBufferSec[0].cbBuffer]());
-				memset(SendBuffer.get(), 0, OutputBufferSec[0].cbBuffer);
+				std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[OutputBufferSec[0].cbBuffer + PADDING_RESERVED_BYTES]());
+				memset(SendBuffer.get(), 0, OutputBufferSec[0].cbBuffer + PADDING_RESERVED_BYTES);
 				memcpy_s(SendBuffer.get(), OutputBufferSec[0].cbBuffer, OutputBufferSec[0].pvBuffer, OutputBufferSec[0].cbBuffer);
 				std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
 				SocketSelectingDataList.front().SendSize = OutputBufferSec[0].cbBuffer;
@@ -426,8 +427,8 @@ bool SSPI_EncryptPacket(
 
 //Allocate a working buffer.
 //The plaintext sent to EncryptMessage can never be more than 'Sizes.cbMaximumMessage', so a buffer size of Sizes.cbMaximumMessage plus the header and trailer sizes is sufficient for the longest message.
-	std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[SSPI_Handle.StreamSizes.cbHeader + SSPI_Handle.StreamSizes.cbMaximumMessage + SSPI_Handle.StreamSizes.cbTrailer]());
-	memset(SendBuffer.get(), 0, SSPI_Handle.StreamSizes.cbHeader + SSPI_Handle.StreamSizes.cbMaximumMessage + SSPI_Handle.StreamSizes.cbTrailer);
+	std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[SSPI_Handle.StreamSizes.cbHeader + SSPI_Handle.StreamSizes.cbMaximumMessage + SSPI_Handle.StreamSizes.cbTrailer + PADDING_RESERVED_BYTES]());
+	memset(SendBuffer.get(), 0, SSPI_Handle.StreamSizes.cbHeader + SSPI_Handle.StreamSizes.cbMaximumMessage + SSPI_Handle.StreamSizes.cbTrailer + PADDING_RESERVED_BYTES);
 	memcpy_s(SendBuffer.get() + SSPI_Handle.StreamSizes.cbHeader, SSPI_Handle.StreamSizes.cbMaximumMessage + SSPI_Handle.StreamSizes.cbTrailer, SocketSelectingDataList.front().SendBuffer.get(), SocketSelectingDataList.front().SendLen);
 	BufferSec[0].BufferType = SECBUFFER_STREAM_HEADER;
 	BufferSec[0].pvBuffer = SendBuffer.get();
@@ -512,8 +513,8 @@ bool SSPI_DecryptPacket(
 			if (BufferSec[Index].BufferType == SECBUFFER_DATA && BufferSec[Index].pvBuffer != nullptr && BufferSec[Index].cbBuffer >= sizeof(tls_base_record))
 			{
 			//Buffer initializtion
-				std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[BufferSec[Index].cbBuffer]());
-				memset(RecvBuffer.get(), 0, BufferSec[Index].cbBuffer);
+				std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[BufferSec[Index].cbBuffer + PADDING_RESERVED_BYTES]());
+				memset(RecvBuffer.get(), 0, BufferSec[Index].cbBuffer + PADDING_RESERVED_BYTES);
 				memcpy_s(RecvBuffer.get(), BufferSec[Index].cbBuffer, BufferSec[Index].pvBuffer, BufferSec[Index].cbBuffer);
 				std::swap(SocketSelectingDataList.front().RecvBuffer, RecvBuffer);
 				SocketSelectingDataList.front().RecvSize = BufferSec[Index].cbBuffer;
@@ -545,7 +546,8 @@ bool TLS_TransportSerial(
 		return false;
 
 //TLS encrypt packet.
-	if (!SSPI_EncryptPacket(SSPI_Handle, SocketSelectingDataList) || SocketSelectingDataList.front().SendLen < sizeof(tls_base_record))
+	if (SocketSelectingDataList.front().SendBuffer && SocketSelectingDataList.front().SendLen > 0 && 
+		(!SSPI_EncryptPacket(SSPI_Handle, SocketSelectingDataList) || SocketSelectingDataList.front().SendLen < sizeof(tls_base_record)))
 	{
 		SocketSelectingDataList.front().SendBuffer.reset();
 		SocketSelectingDataList.front().SendSize = 0;
@@ -659,8 +661,8 @@ bool SSPI_ShutdownConnection(
 	}
 	else {
 	//Buffer initializtion
-		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[BufferSec[0].cbBuffer]());
-		memset(SendBuffer.get(), 0, BufferSec[0].cbBuffer);
+		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[BufferSec[0].cbBuffer + PADDING_RESERVED_BYTES]());
+		memset(SendBuffer.get(), 0, BufferSec[0].cbBuffer + PADDING_RESERVED_BYTES);
 		memcpy_s(SendBuffer.get(), BufferSec[0].cbBuffer, BufferSec[0].pvBuffer, BufferSec[0].cbBuffer);
 		std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
 		SocketSelectingDataList.front().SendSize = BufferSec[0].cbBuffer;
@@ -687,7 +689,7 @@ bool SSPI_ShutdownConnection(
 	return true;
 }
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-//OpenSSL print error message process
+//OpenSSL print error messages process
 bool OpenSSL_PrintError(
 	const uint8_t *OpenSSL_ErrorMessage, 
 	const wchar_t *ErrorMessage)
@@ -735,7 +737,8 @@ void OpenSSL_Library_Init(
 	#endif
 	}
 #if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_1_0 //OpenSSL version below 1.1.0
-	else { //Unoad all OpenSSL libraries, algorithms and strings.
+//Unoad all OpenSSL libraries, algorithms and strings.
+	else {
 		CONF_modules_unload(TRUE);
 		ERR_free_strings();
 		EVP_cleanup();
@@ -749,25 +752,54 @@ void OpenSSL_Library_Init(
 bool OpenSSL_CTX_Initializtion(
 	OPENSSL_CONTEXT_TABLE &OpenSSL_CTX)
 {
-	ssize_t Result = 0, InnerResult = 0;
+	ssize_t Result = 0;
 
 //TLS version selection(Part 1)
 #if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_0_1 //OpenSSL version below 1.0.1
-	if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_0) //OpenSSL version below 1.0.1 only support TLS version 1.0
-		OpenSSL_CTX.MethodContext = SSL_CTX_new(TLSv1_0_method());
-	else //Auto-select
-		OpenSSL_CTX.MethodContext = SSL_CTX_new(SSLv23_method());
+	if (OpenSSL_CTX.Protocol_Transport == IPPROTO_TCP)
+	{
+		if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_0) //OpenSSL version below 1.0.1 only support TLS version 1.0
+			OpenSSL_CTX.MethodContext = SSL_CTX_new(TLSv1_0_method());
+		else //Auto-select
+			OpenSSL_CTX.MethodContext = SSL_CTX_new(SSLv23_method());
+	}
+	else { //DTLS is not supported below 1.0.2
+		return false;
+	}
 #elif OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_1_0 //OpenSSL version between 1.0.1 and 1.1.0
-	if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_2)
-		OpenSSL_CTX.MethodContext = SSL_CTX_new(TLSv1_2_method());
-	else if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_1)
-		OpenSSL_CTX.MethodContext = SSL_CTX_new(TLSv1_1_method());
-	else if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_0)
-		OpenSSL_CTX.MethodContext = SSL_CTX_new(TLSv1_method());
-	else //Auto select
-		OpenSSL_CTX.MethodContext = SSL_CTX_new(SSLv23_method());
+	if (OpenSSL_CTX.Protocol_Transport == IPPROTO_TCP)
+	{
+		if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_2)
+			OpenSSL_CTX.MethodContext = SSL_CTX_new(TLSv1_2_method());
+		else if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_1)
+			OpenSSL_CTX.MethodContext = SSL_CTX_new(TLSv1_1_method());
+		else if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_0)
+			OpenSSL_CTX.MethodContext = SSL_CTX_new(TLSv1_method());
+		else //Auto select
+			OpenSSL_CTX.MethodContext = SSL_CTX_new(SSLv23_method());
+	}
+#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_0_2 //OpenSSL version between 1.0.2 and 1.1.0
+	else if (OpenSSL_CTX.Protocol_Transport == IPPROTO_UDP)
+	{
+		if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_2)
+			OpenSSL_CTX.MethodContext = SSL_CTX_new(DTLSv1_2_method());
+		else if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_1 || //DTLS has no any version 1.1.
+			Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_0)
+				OpenSSL_CTX.MethodContext = SSL_CTX_new(DTLSv1_method());
+		else //Auto select
+			OpenSSL_CTX.MethodContext = SSL_CTX_new(DTLS_method());
+	}
+#endif
+	else { //DTLS is not supported below 1.0.2
+		return false;
+	}
 #else //OpenSSL version 1.1.0 and above
-	OpenSSL_CTX.MethodContext = SSL_CTX_new(TLS_method()); //TLS selection in OpenSSL version 1.1.0 and above must set flags of method context.
+	if (OpenSSL_CTX.Protocol_Transport == IPPROTO_TCP)
+		OpenSSL_CTX.MethodContext = SSL_CTX_new(TLS_method()); //TLS selection in OpenSSL version 1.1.0 and above must set flags of method context.
+	else if (OpenSSL_CTX.Protocol_Transport == IPPROTO_UDP)
+		OpenSSL_CTX.MethodContext = SSL_CTX_new(DTLS_method()); //TLS selection in OpenSSL version 1.1.0 and above must set flags of method context.
+	else 
+		return false;
 #endif
 
 //Create new client-method instance.
@@ -779,28 +811,61 @@ bool OpenSSL_CTX_Initializtion(
 	
 //TLS version selection(Part 2)
 #if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0 //OpenSSL version 1.1.0 and above
-	InnerResult = TRUE;
+	ssize_t InnerResult = TRUE;
 	if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_2)
 	{
-		Result = SSL_CTX_set_min_proto_version(OpenSSL_CTX.MethodContext, TLS1_2_VERSION);
-		InnerResult = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, TLS1_2_VERSION);
+		if (OpenSSL_CTX.Protocol_Transport == IPPROTO_TCP)
+		{
+			Result = SSL_CTX_set_min_proto_version(OpenSSL_CTX.MethodContext, TLS1_2_VERSION);
+			InnerResult = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, TLS1_2_VERSION);
+		}
+		else if (OpenSSL_CTX.Protocol_Transport == IPPROTO_UDP)
+		{
+			Result = SSL_CTX_set_min_proto_version(OpenSSL_CTX.MethodContext, DTLS1_2_VERSION);
+			InnerResult = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, DTLS1_2_VERSION);
+		}
+		else {
+			return false;
+		}
 	}
 	else if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_1)
 	{
-		Result = SSL_CTX_set_min_proto_version(OpenSSL_CTX.MethodContext, TLS1_1_VERSION);
-		InnerResult = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, TLS1_1_VERSION);
+		if (OpenSSL_CTX.Protocol_Transport == IPPROTO_TCP)
+		{
+			Result = SSL_CTX_set_min_proto_version(OpenSSL_CTX.MethodContext, TLS1_1_VERSION);
+			InnerResult = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, TLS1_1_VERSION);
+		}
+		else if (OpenSSL_CTX.Protocol_Transport == IPPROTO_UDP)
+		{
+			Result = SSL_CTX_set_min_proto_version(OpenSSL_CTX.MethodContext, DTLS1_VERSION);
+			InnerResult = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, DTLS1_VERSION);
+		}
+		else {
+			return false;
+		}
 	}
 	else if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_0)
 	{
-		Result = SSL_CTX_set_min_proto_version(OpenSSL_CTX.MethodContext, TLS1_VERSION);
-		InnerResult = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, TLS1_VERSION);
+		if (OpenSSL_CTX.Protocol_Transport == IPPROTO_TCP)
+		{
+			Result = SSL_CTX_set_min_proto_version(OpenSSL_CTX.MethodContext, TLS1_VERSION);
+			InnerResult = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, TLS1_VERSION);
+		}
+		else if (OpenSSL_CTX.Protocol_Transport == IPPROTO_UDP)
+		{
+			Result = SSL_CTX_set_min_proto_version(OpenSSL_CTX.MethodContext, DTLS1_VERSION);
+			InnerResult = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, DTLS1_VERSION);
+		}
+		else {
+			return false;
+		}
 	}
 	else { //Setting the minimum or maximum version to 0 will enable protocol versions down to the lowest version, or up to the highest version supported by the library, respectively.
 		Result = SSL_CTX_set_max_proto_version(OpenSSL_CTX.MethodContext, 0);
 	}
 
 //TLS selection check
-	if (Result == FALSE || InnerResult == FALSE)
+	if (Result != TRUE || InnerResult != TRUE)
 	{
 		OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL TLS version selection ");
 		return false;
@@ -808,9 +873,9 @@ bool OpenSSL_CTX_Initializtion(
 #endif
 
 //TLS connection flags
-	SSL_CTX_set_options(OpenSSL_CTX.MethodContext, SSL_OP_NO_SSLv2); //Block SSLv2 protocol
-	SSL_CTX_set_options(OpenSSL_CTX.MethodContext, SSL_OP_NO_SSLv3); //Block SSLv3 protocol
-	SSL_CTX_set_options(OpenSSL_CTX.MethodContext, SSL_OP_NO_COMPRESSION); //Block TLS compression
+	SSL_CTX_set_options(OpenSSL_CTX.MethodContext, SSL_OP_NO_SSLv2); //Disable SSLv2 protocol
+	SSL_CTX_set_options(OpenSSL_CTX.MethodContext, SSL_OP_NO_SSLv3); //Disable SSLv3 protocol
+	SSL_CTX_set_options(OpenSSL_CTX.MethodContext, SSL_OP_NO_COMPRESSION); //Disable TLS compression
 	SSL_CTX_set_options(OpenSSL_CTX.MethodContext, SSL_OP_SINGLE_DH_USE); //Always create a new key when using temporary/ephemeral DH parameters.
 
 //TLS ALPN extension settings
@@ -818,19 +883,11 @@ bool OpenSSL_CTX_Initializtion(
 	if (Parameter.HTTP_CONNECT_TLS_ALPN)
 	{
 		if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1)
-		{
-			static unsigned char HTTP1_ALPN_Vector[] = HTTP1_TLS_ALPN_STRING;
 			Result = SSL_CTX_set_alpn_protos(OpenSSL_CTX.MethodContext, HTTP1_ALPN_Vector, sizeof(HTTP1_ALPN_Vector));
-		}
 		else if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
-		{
-			static unsigned char HTTP2_ALPN_Vector[] = HTTP2_TLS_ALPN_STRING;
 			Result = SSL_CTX_set_alpn_protos(OpenSSL_CTX.MethodContext, HTTP2_ALPN_Vector, sizeof(HTTP2_ALPN_Vector));
-		}
-		else {
-			OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL set ALPN extension ");
+		else 
 			return false;
-		}
 
 	//Result check
 		if (Result != 0)
@@ -846,14 +903,15 @@ bool OpenSSL_CTX_Initializtion(
 	{
 	//Locate default certificate store.
 		Result = SSL_CTX_set_default_verify_paths(OpenSSL_CTX.MethodContext);
-		if (Result == FALSE)
+		if (Result != TRUE)
 		{
 			OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL locate default certificate store ");
 			return false;
 		}
-
 	//Set certificate verification.
-		SSL_CTX_set_verify(OpenSSL_CTX.MethodContext, SSL_VERIFY_PEER, nullptr);
+		else {
+			SSL_CTX_set_verify(OpenSSL_CTX.MethodContext, SSL_VERIFY_PEER, nullptr);
+		}
 	}
 
 	return true;
@@ -871,32 +929,34 @@ bool OpenSSL_BIO_Initializtion(
 		return false;
 	}
 
-//BIO attribute settings
-	BIO_set_nbio(OpenSSL_CTX.SessionBIO, TRUE); //Socket non-blocking mode
-	BIO_set_conn_hostname(OpenSSL_CTX.SessionBIO, OpenSSL_CTX.AddressString.c_str()); //Set connect target
-	BIO_get_ssl(OpenSSL_CTX.SessionBIO, &OpenSSL_CTX.SessionData);
-
-//Get SSL method data.
-	if (OpenSSL_CTX.SessionData == nullptr)
-	{
-		OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL BIO and SSL data attribute setting ");
+//Create a new socket.
+	if (OpenSSL_CTX.Protocol_Transport == IPPROTO_TCP)
+		OpenSSL_CTX.Socket = socket(OpenSSL_CTX.Protocol_Network, SOCK_STREAM, OpenSSL_CTX.Protocol_Transport);
+	else if (OpenSSL_CTX.Protocol_Transport == IPPROTO_UDP)
+		OpenSSL_CTX.Socket = socket(OpenSSL_CTX.Protocol_Network, SOCK_DGRAM, OpenSSL_CTX.Protocol_Transport);
+	else 
 		return false;
-	}
 
 //Socket attribute settings
-	SYSTEM_SOCKET Socket = SSL_get_fd(OpenSSL_CTX.SessionData);
-	if (Socket <= 0)
+	if (!SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
+		!SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
+		(OpenSSL_CTX.Protocol_Transport == IPPROTO_TCP && !SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+		(OpenSSL_CTX.Protocol_Network == AF_INET6 && !SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr)) || 
+		(OpenSSL_CTX.Protocol_Network == AF_INET && (!SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
+		!SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))))
+			return false;
+
+//BIO attribute settings
+	BIO_set_fd(OpenSSL_CTX.SessionBIO, OpenSSL_CTX.Socket, BIO_NOCLOSE); //Set the socket.
+	BIO_set_nbio(OpenSSL_CTX.SessionBIO, TRUE); //Socket non-blocking mode
+	BIO_set_conn_hostname(OpenSSL_CTX.SessionBIO, OpenSSL_CTX.AddressString.c_str()); //Set connect target.
+
+//Get SSL method data.
+	BIO_get_ssl(OpenSSL_CTX.SessionBIO, &OpenSSL_CTX.SessionData);
+	if (OpenSSL_CTX.SessionData == nullptr)
 	{
-		OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL BIO and SSL data attribute setting ");
+		OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL BIO and SSL data attribute settings ");
 		return false;
-	}
-	else if (Socket > 0)
-	{
-		if (!SocketSetting(Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr) || 
-			(OpenSSL_CTX.Protocol == AF_INET6 && !SocketSetting(Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr)) || 
-			(OpenSSL_CTX.Protocol == AF_INET && (!SocketSetting(Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
-			!SocketSetting(Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))))
-				return false;
 	}
 
 //SSL data attribute settings
@@ -1061,7 +1121,7 @@ bool TLS_TransportSerial(
 				SocketSelectingDataList.front().SendSize = 0;
 				SocketSelectingDataList.front().SendLen = 0;
 
-			//Print error message.
+			//Print error messages.
 				OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL send data ");
 				return false;
 			}
@@ -1084,15 +1144,15 @@ bool TLS_TransportSerial(
 	//Prepare buffer.
 		if (!SocketSelectingDataList.front().RecvBuffer)
 		{
-			std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[Parameter.LargeBufferSize]);
-			memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize);
+			std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
+			memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 			std::swap(SocketSelectingDataList.front().RecvBuffer, RecvBuffer);
 			SocketSelectingDataList.front().RecvSize = Parameter.LargeBufferSize;
 			SocketSelectingDataList.front().RecvLen = 0;
 		}
 		else if (SocketSelectingDataList.front().RecvSize < SocketSelectingDataList.front().RecvLen + Parameter.LargeBufferSize)
 		{
-			std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[SocketSelectingDataList.front().RecvSize + Parameter.LargeBufferSize]);
+			std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[SocketSelectingDataList.front().RecvSize + Parameter.LargeBufferSize]());
 			memset(RecvBuffer.get(), 0, SocketSelectingDataList.front().RecvSize + Parameter.LargeBufferSize);
 			memcpy_s(RecvBuffer.get(), SocketSelectingDataList.front().RecvSize + Parameter.LargeBufferSize, SocketSelectingDataList.front().RecvBuffer.get(), SocketSelectingDataList.front().RecvLen);
 			std::swap(SocketSelectingDataList.front().RecvBuffer, RecvBuffer);
@@ -1119,7 +1179,7 @@ bool TLS_TransportSerial(
 				SocketSelectingDataList.front().RecvSize = 0;
 				SocketSelectingDataList.front().RecvLen = 0;
 
-			//Print error message.
+			//Print error messages.
 				OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL receive data ");
 				return false;
 			}

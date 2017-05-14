@@ -25,10 +25,10 @@ bool DomainTestRequest(
 	const uint16_t Protocol)
 {
 //Initialization
-	std::unique_ptr<uint8_t[]> Buffer(new uint8_t[PACKET_MAXSIZE]());
-	std::unique_ptr<uint8_t[]> DNSQuery(new uint8_t[PACKET_MAXSIZE]());
-	memset(Buffer.get(), 0, PACKET_MAXSIZE);
-	memset(DNSQuery.get(), 0, PACKET_MAXSIZE);
+	std::unique_ptr<uint8_t[]> Buffer(new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
+	std::unique_ptr<uint8_t[]> DNSQuery(new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
+	memset(Buffer.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+	memset(DNSQuery.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 
 //Make a DNS request with Doamin Test packet.
 	const auto DNS_Header = reinterpret_cast<dns_hdr *>(Buffer.get());
@@ -42,9 +42,9 @@ bool DomainTestRequest(
 	if (Parameter.DomainTest_Data != nullptr)
 	{
 		DataLength = StringToPacketQuery(Parameter.DomainTest_Data, DNSQuery.get());
-		if (DataLength > DOMAIN_MINSIZE && DataLength + sizeof(dns_hdr) < PACKET_MAXSIZE)
+		if (DataLength > DOMAIN_MINSIZE && DataLength + sizeof(dns_hdr) < NORMAL_PACKET_MAXSIZE)
 		{
-			memcpy_s(Buffer.get() + sizeof(dns_hdr), PACKET_MAXSIZE - sizeof(dns_hdr), DNSQuery.get(), DataLength);
+			memcpy_s(Buffer.get() + sizeof(dns_hdr), NORMAL_PACKET_MAXSIZE - sizeof(dns_hdr), DNSQuery.get(), DataLength);
 			DNS_Query = reinterpret_cast<dns_qry *>(Buffer.get() + sizeof(dns_hdr) + DataLength);
 			DNS_Query->Classes = htons(DNS_CLASS_INTERNET);
 			if (Protocol == AF_INET6)
@@ -59,7 +59,7 @@ bool DomainTestRequest(
 		//EDNS Label
 			if (Parameter.EDNS_Label)
 			{
-				DataLength = Add_EDNS_To_Additional_RR(Buffer.get(), DataLength + sizeof(dns_hdr), PACKET_MAXSIZE, nullptr);
+				DataLength = Add_EDNS_To_Additional_RR(Buffer.get(), DataLength + sizeof(dns_hdr), NORMAL_PACKET_MAXSIZE, nullptr);
 				DataLength -= sizeof(dns_hdr);
 			}
 		}
@@ -159,7 +159,7 @@ bool DomainTestRequest(
 		//Make ramdom domain request.
 			if (Parameter.DomainTest_Data == nullptr)
 			{
-				memset(Buffer.get() + sizeof(dns_hdr), 0, PACKET_MAXSIZE - sizeof(dns_hdr));
+				memset(Buffer.get() + sizeof(dns_hdr), 0, NORMAL_PACKET_MAXSIZE - sizeof(dns_hdr));
 				MakeRamdomDomain(DNSQuery.get());
 				DataLength = StringToPacketQuery(DNSQuery.get(), Buffer.get() + sizeof(dns_hdr)) + sizeof(dns_hdr);
 				memset(DNSQuery.get(), 0, DOMAIN_MAXSIZE);
@@ -179,7 +179,7 @@ bool DomainTestRequest(
 				if (Parameter.EDNS_Label)
 				{
 					DNS_Header->Additional = 0;
-					DataLength = Add_EDNS_To_Additional_RR(Buffer.get(), DataLength, PACKET_MAXSIZE, nullptr);
+					DataLength = Add_EDNS_To_Additional_RR(Buffer.get(), DataLength, NORMAL_PACKET_MAXSIZE, nullptr);
 				}
 			}
 
@@ -207,8 +207,8 @@ bool ICMP_TestRequest(
 		Length = sizeof(icmp_hdr) + Parameter.ICMP_PaddingLength;
 	else 
 		return false;
-	std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[Length]());
-	memset(SendBuffer.get(), 0, Length);
+	std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[Length + PADDING_RESERVED_BYTES]());
+	memset(SendBuffer.get(), 0, Length + PADDING_RESERVED_BYTES);
 	const auto ICMP_Header = reinterpret_cast<icmp_hdr *>(SendBuffer.get());
 	const auto ICMPv6_Header = reinterpret_cast<icmpv6_hdr *>(SendBuffer.get());
 	std::vector<SOCKET_DATA> ICMPSocketData;
@@ -439,9 +439,9 @@ bool ICMP_TestRequest(
 	}
 
 //Send request.
-	std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[PACKET_MAXSIZE]());
+	std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
 	SOCKET_DATA InnerSocketData;
-	memset(RecvBuffer.get(), 0, PACKET_MAXSIZE);
+	memset(RecvBuffer.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 	memset(&InnerSocketData, 0, sizeof(InnerSocketData));
 	size_t TotalSleepTime = 0, Times = 0;
 	auto FileModifiedTime = GlobalRunningStatus.ConfigFileModifiedTime;
@@ -548,8 +548,8 @@ bool ICMP_TestRequest(
 				}
 				else {
 					memcpy_s(&InnerSocketData, sizeof(InnerSocketData), &SocketDataIter, sizeof(InnerSocketData));
-					recvfrom(SocketDataIter.Socket, reinterpret_cast<char *>(RecvBuffer.get()), PACKET_MAXSIZE, 0, reinterpret_cast<sockaddr *>(&InnerSocketData.SockAddr), &InnerSocketData.AddrLen);
-					memset(RecvBuffer.get(), 0, PACKET_MAXSIZE);
+					recvfrom(SocketDataIter.Socket, reinterpret_cast<char *>(RecvBuffer.get()), NORMAL_PACKET_MAXSIZE, 0, reinterpret_cast<sockaddr *>(&InnerSocketData.SockAddr), &InnerSocketData.AddrLen);
+					memset(RecvBuffer.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 					memset(&InnerSocketData, 0, sizeof(InnerSocketData));
 				}
 			}
@@ -644,7 +644,7 @@ size_t TCP_RequestSingle(
 		return EXIT_FAILURE;
 	}
 
-//Add length of request packet(It must be written in header when transport with TCP protocol).
+//Add length of request packet.
 	const auto DataLength = AddLengthDataToHeader(SendBuffer, SendSize, RecvSize);
 	if (DataLength == EXIT_FAILURE)
 	{
@@ -684,7 +684,7 @@ size_t TCP_RequestMultiple(
 	if (!SelectTargetSocketMultiple(IPPROTO_TCP, TCPSocketDataList))
 		return EXIT_FAILURE;
 
-//Add length of request packet(It must be written in header when transport with TCP protocol).
+//Add length of request packet.
 	const auto DataLength = AddLengthDataToHeader(SendBuffer, SendSize, RecvSize);
 	if (DataLength == EXIT_FAILURE)
 		return EXIT_FAILURE;

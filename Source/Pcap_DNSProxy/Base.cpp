@@ -450,15 +450,15 @@ bool MBS_To_WCS_String(
 			reinterpret_cast<const LPCCH>(Buffer), 
 			MBSTOWCS_NULL_TERMINATE, 
 			TargetBuffer.get(), 
-			static_cast<int>(Length + PADDING_RESERVED_BYTES)) == 0)
+			static_cast<int>(Length + NULL_TERMINATE_LENGTH)) == 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (mbstowcs(TargetBuffer.get(), reinterpret_cast<const char *>(Buffer), Length + PADDING_RESERVED_BYTES) == static_cast<size_t>(RETURN_ERROR))
+	if (mbstowcs(TargetBuffer.get(), reinterpret_cast<const char *>(Buffer), Length + NULL_TERMINATE_LENGTH) == static_cast<size_t>(RETURN_ERROR))
 #endif
 	{
 		return false;
 	}
 	else {
-		if (wcsnlen_s(TargetBuffer.get(), Length + PADDING_RESERVED_BYTES) == 0)
+		if (wcsnlen_s(TargetBuffer.get(), Length + NULL_TERMINATE_LENGTH) == 0)
 			return false;
 		else 
 			Target = TargetBuffer.get();
@@ -493,17 +493,17 @@ bool WCS_To_MBS_String(
 			Buffer, 
 			WCSTOMBS_NULL_TERMINATE, 
 			reinterpret_cast<LPSTR>(TargetBuffer.get()), 
-			static_cast<int>(Length + PADDING_RESERVED_BYTES), 
+			static_cast<int>(Length + NULL_TERMINATE_LENGTH), 
 			nullptr, 
 			nullptr) == 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (wcstombs(reinterpret_cast<char *>(TargetBuffer.get()), Buffer, Length + PADDING_RESERVED_BYTES) == static_cast<size_t>(RETURN_ERROR))
+	if (wcstombs(reinterpret_cast<char *>(TargetBuffer.get()), Buffer, Length + NULL_TERMINATE_LENGTH) == static_cast<size_t>(RETURN_ERROR))
 #endif
 	{
 		return false;
 	}
 	else {
-		if (strnlen_s(reinterpret_cast<const char *>(TargetBuffer.get()), Length + PADDING_RESERVED_BYTES) == 0)
+		if (strnlen_s(reinterpret_cast<const char *>(TargetBuffer.get()), Length + NULL_TERMINATE_LENGTH) == 0)
 			return false;
 		else 
 			Target = reinterpret_cast<const char *>(TargetBuffer.get());
@@ -803,8 +803,8 @@ HUFFMAN_RETURN_TYPE HPACK_HuffmanEncoding(
 		++String;
 		++(*Consumed);
 		--ByteSize;
-		BitQueue = ((BitQueue << Huffman_Node.Size) | Huffman_Node.Bits); //Max 33 bits wide
-		BitLength += Huffman_Node.Size;
+		BitQueue = ((BitQueue << Huffman_Node.BitSize) | Huffman_Node.Bits); //Max 33 bits wide
+		BitLength += Huffman_Node.BitSize;
 
 	//Canibalise the top bytes.
 		while (BitLength >= 8U)
@@ -855,7 +855,7 @@ HUFFMAN_RETURN_TYPE HPACK_HuffmanDecoding(
 {
 	auto TC = *HuffmanDecodes;
 	uint16_t Temp = 0;
-	uint8_t Byte = 0, BC = 0, Mask = 0;
+	uint8_t ByteIter = 0, BC = 0, Mask = 0;
 	size_t _Produced = 0, _Consumed = 0;
 	if (!Produced)
 		Produced = &_Produced;
@@ -874,7 +874,7 @@ HUFFMAN_RETURN_TYPE HPACK_HuffmanDecoding(
 
 	while (ByteSize > 0)
 	{
-		Byte = *HuffmanBuffer;
+		ByteIter = *HuffmanBuffer;
 		++HuffmanBuffer;
 		++(*Consumed);
 		--ByteSize;
@@ -882,7 +882,7 @@ HUFFMAN_RETURN_TYPE HPACK_HuffmanDecoding(
 		Mask = 0x7F; //Padding mask
 		while (BC > 0)
 		{
-			if ((Byte & BC) == BC)
+			if ((ByteIter & BC) == BC)
 				Temp = ONE(TC);
 			else 
 				Temp = ZERO(TC);
@@ -901,7 +901,7 @@ HUFFMAN_RETURN_TYPE HPACK_HuffmanDecoding(
 						--Length;
 					}
 					++(*Produced);
-					if (ByteSize < 1 && (Byte & Mask) == Mask)
+					if (ByteSize < 1 && (ByteIter & Mask) == Mask)
 					{
 						TC = 0;
 						goto Done;

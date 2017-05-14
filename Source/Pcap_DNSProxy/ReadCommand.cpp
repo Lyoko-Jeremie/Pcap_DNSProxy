@@ -136,7 +136,7 @@ bool ReadCommand(
 	_set_errno(0);
 	if (setvbuf(stderr, nullptr, _IONBF, 0) != 0)
 	{
-		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Screen output buffer setting error", errno, nullptr, 0);
+		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Screen output buffer settings error", errno, nullptr, 0);
 		return false;
 	}
 
@@ -240,7 +240,7 @@ bool ReadCommand(
 			PrintToScreen(false, L"   --first-setup:         Test local firewall.\n");
 		#endif
 			PrintToScreen(false, L"   -c/--config-file Path: Set path of configuration file.\n");
-			PrintToScreen(false, L"   --keypair-generator:   Generate a DNSCurve/DNSCrypt keypair.\n");
+			PrintToScreen(false, L"   --keypair-generator:   Generate a DNSCurve(DNSCrypt) keypair.\n");
 		#if defined(PLATFORM_LINUX)
 			PrintToScreen(false, L"   --disable-daemon:      Disable daemon mode.\n");
 		#endif
@@ -290,7 +290,7 @@ bool ReadCommand(
 
 			return false;
 		}
-	//DNSCurve/DNSCrypt KeyPairGenerator
+	//DNSCurve(DNSCrypt) KeyPairGenerator
 		else if (InsensitiveString == COMMAND_KEYPAIR_GENERATOR)
 		{
 		//File handle initialization
@@ -306,8 +306,8 @@ bool ReadCommand(
 			if (FileHandle != nullptr)
 			{
 			//Initialization and make keypair.
-				std::unique_ptr<uint8_t[]> Buffer(new uint8_t[DNSCRYPT_KEYPAIR_MESSAGE_LEN]());
-				sodium_memzero(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);
+				std::unique_ptr<uint8_t[]> Buffer(new uint8_t[DNSCRYPT_KEYPAIR_MESSAGE_LEN + PADDING_RESERVED_BYTES]());
+				sodium_memzero(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN + PADDING_RESERVED_BYTES);
 				DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> SecretKey(crypto_box_SECRETKEYBYTES);
 				uint8_t PublicKey[crypto_box_PUBLICKEYBYTES]{0};
 				size_t InnerIndex = 0;
@@ -362,7 +362,7 @@ bool ReadCommand(
 
 			//Close file.
 				fclose(FileHandle);
-				PrintToScreen(true, L"[Notice] DNSCurve/DNSCrypt keypair was generated successfully.\n");
+				PrintToScreen(true, L"[Notice] DNSCurve(DNSCrypt) keypair was generated successfully.\n");
 			}
 			else {
 				PrintToScreen(true, L"[System Error] Cannot create target file(KeyPair.txt).\n");

@@ -40,9 +40,7 @@ int main(
 	//Read commands and configuration file, process already exists check, also launch all monitors.
 		if (!ReadCommand(argc, argv))
 			return EXIT_SUCCESS;
-		else if (!CheckProcessExists())
-			return EXIT_FAILURE;
-		else if (!ReadParameter(true))
+		else if (!CheckProcessExists() || !ReadParameter(true))
 			return EXIT_FAILURE;
 		else 
 			MonitorLauncher();
@@ -99,7 +97,7 @@ int main(
 		return EXIT_FAILURE;
 	}
 
-//Set system signal handler to ignore EPIPE signal when transport with socket.
+//Set system signal handler to ignore EPIPE signal when transmission with socket.
 	errno = 0;
 	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
 	{
