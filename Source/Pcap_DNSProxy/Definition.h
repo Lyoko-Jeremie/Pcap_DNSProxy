@@ -113,7 +113,7 @@
 #define CONFIG_VERSION_MAJOR                          0                                     //Current configuration file major version(0.45)
 #define CONFIG_VERSION_MINOR                          45U                                   //Current configuration file minor version(0.45)
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2017 Chengr28"   //Copyright message
-#define FULL_VERSION                                  L"0.4.8.8"                            //Current full version
+#define FULL_VERSION                                  L"0.4.9.0"                            //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_MAXSIZE                        64U                               //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -444,7 +444,9 @@ typedef enum class _request_mode_network_
 typedef enum class _request_mode_transport_
 {
 	UDP, 
-	TCP
+	TCP, 
+	FORCE_UDP, 
+	FORCE_TCP
 }REQUEST_MODE_TRANSPORT;
 typedef enum class _request_mode_direct_
 {
@@ -667,6 +669,7 @@ typedef struct _dns_cache_data_
 	size_t                               Length;
 	uint64_t                             ClearCacheTime;
 	uint16_t                             RecordType;
+	ADDRESS_UNION_DATA                   ForAddress;
 }DNSCacheData, DNS_CACHE_DATA;
 
 //Monitor Queue Data structure
@@ -720,6 +723,8 @@ public:
 	REQUEST_MODE_DIRECT                  DirectRequest;
 	DNS_CACHE_TYPE                       DNS_CacheType;
 	size_t                               DNS_CacheParameter;
+	size_t                               DNS_CacheSinglePrefix_IPv6;
+	size_t                               DNS_CacheSinglePrefix_IPv4;
 	uint32_t                             HostsDefaultTTL;
 //[Local DNS] block
 	REQUEST_MODE_NETWORK                 LocalProtocol_Network;

@@ -1035,7 +1035,7 @@ ClearOutputPacketListData:
 
 //Mark DNS cache.
 	if (Parameter.DNS_CacheType != DNS_CACHE_TYPE::NONE)
-		MarkDomainCache(Buffer, Length);
+		MarkDomainCache(Buffer, Length, &SocketData_Input);
 
 //Send to requester.
 	SendToRequester(SystemProtocol, const_cast<uint8_t *>(Buffer), Length, BufferSize, SocketData_Input);

@@ -340,6 +340,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向遠端 DNS 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
     * 同時填入 TCP 和 UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
+    * 填入 Force TCP 可阻止 TCP 請求失敗後使用 UDP 重新嘗試請求
   * Direct Request - 直連模式，啟用後將使用系統的 API 直接請求遠端伺服器而啟用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，關閉為 0
     * 建議當系統使用全域代理功能時啟用，程式將除境內服務器外的所有請求直接交給系統而不作任何過濾等處理，系統會將請求自動發往遠端伺服器進行解析
     * 填入 IPv4 或 IPv6 時將會啟用對應協定的 Direct Request 功能，填入 IPv4 + IPv6 將會啟用所有協定的功能
@@ -361,6 +362,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 混合類型
       * 佇列長度
       * 此模式下最終的緩存時間由 Default TTL 參數決定
+  * Cache Single IPv4 Address Prefix - IPv4 協定單獨 DNS 緩存佇列位址所使用的前置長度：單位為位，最大為 32 填入 0 為關閉此功能
+    * 位於私有位址的所有請求不受此參數控制，其擁有一個預設的緩存佇列
+  * Cache Single IPv6 Address Prefix - IPv6 協定單獨 DNS 緩存佇列位址所使用的前置長度：單位為位，最大為 128 填入 0 為關閉此功能
+    * 位於私有位址的所有請求不受此參數控制，其擁有一個預設的緩存佇列
   * Default TTL - 已緩存 DNS 記錄預設存留時間：單位為秒，留空則為 900秒/15分鐘
     * DNS 緩存的類型為混合類型時，本參數將同時決定最終的緩存時間
       * 如果解析結果的平均 TTL 值大於此值，則使用 [TTL + 此值] 為最終的緩存時間
@@ -372,6 +377,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向境內 DNS 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
     * 同時填入 TCP 和 UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
+    * 填入 Force TCP 可阻止 TCP 請求失敗後使用 UDP 重新嘗試請求
   * Local Force Request - 強制使用境內伺服器進行解析：開啟為 1 /關閉為 0
     * 本功能只對已經確定使用境內伺服器的功能變數名稱請求有效
   * Local Hosts - 白名單境內伺服器請求功能：開啟為 1 /關閉為 0
@@ -639,6 +645,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向 SOCKS 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
     * 同時填入 TCP 和 UDP 等於只填入 UDP 因為 TCP 為 SOCKS 最先支援以及最普遍支援的標準網路層協定，所以即使填入 UDP 請求失敗時也會使用 TCP 請求
+    * 填入 Force UDP 可阻止 UDP 請求失敗後使用 TCP 重新嘗試請求
   * SOCKS UDP No Handshake - SOCKS UDP 不握手模式，開啟後將不進行 TCP 握手直接發送 UDP 轉發請求：開啟為 1 /關閉為 0
     * SOCKS 協定的標準流程使用 UDP 轉發功能前必須使用 TCP 連接交換握手資訊，否則 SOCKS 伺服器將直接丟棄轉發請求
     * 部分 SOCKS 本地代理可以直接進行 UDP 轉發而不需要使用 TCP 連接交換握手資訊，啟用前請務必確認 SOCKS 伺服器的支援情況
@@ -703,6 +710,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向遠端 DNS 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
     * 同時填入 TCP 和 UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
+    * 填入 Force TCP 可阻止 TCP 請求失敗後使用 UDP 重新嘗試請求
   * DNSCurve Payload Size - DNSCurve 標籤附帶使用的最大載荷長度，同時亦為發送請求的總長度，並決定請求的填充長度：單位為位元組
     * 最小為 DNS 協定實現要求的 512，留空則為 512
     * 最大為 1500 減去 DNSCurve 頭長度，建議不要超過 1220

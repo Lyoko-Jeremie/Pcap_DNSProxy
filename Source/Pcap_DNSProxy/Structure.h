@@ -2196,9 +2196,9 @@ typedef struct _dns_edns_option_
 #define ADDRESS_FAMILY_IPV4                      0x0001
 #define ADDRESS_FAMILY_IPV6                      0x0002
 
-//Netmask Source bits
-#define EDNS_CLIENT_SUBNET_NETMASK_SOURCE_IPV6   56U
-#define EDNS_CLIENT_SUBNET_NETMASK_SOURCE_IPV4   24U
+//Source prefix bits
+#define EDNS_CLIENT_SUBNET_SOURCE_PREFIX_IPV6    56U
+#define EDNS_CLIENT_SUBNET_SOURCE_PREFIX_IPV4    24U
 typedef struct _edns_client_subnet_
 {
 	uint16_t              Code;

@@ -374,6 +374,8 @@ ConfigurationTable::ConfigurationTable(
 	DirectRequest = Reference.DirectRequest;
 	DNS_CacheType = Reference.DNS_CacheType;
 	DNS_CacheParameter = Reference.DNS_CacheParameter;
+	DNS_CacheSinglePrefix_IPv6 = Reference.DNS_CacheSinglePrefix_IPv6;
+	DNS_CacheSinglePrefix_IPv4 = Reference.DNS_CacheSinglePrefix_IPv4;
 	HostsDefaultTTL = Reference.HostsDefaultTTL;
 
 	//[Local DNS] block

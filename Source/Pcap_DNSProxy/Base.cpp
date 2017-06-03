@@ -660,7 +660,7 @@ bool SortCompare_Hosts(
 }
 
 //Base64 encoding
-//Base64 encoding and decoding are from https://github.com/zhicheng/base64.
+//Base64 encoding and decoding, please visit https://github.com/zhicheng/base64.
 size_t Base64_Encode(
 	uint8_t * const Input, 
 	const size_t Length, 
@@ -718,7 +718,7 @@ size_t Base64_Encode(
 }
 
 //Base64 decoding
-//Base64 encoding and decoding are from https://github.com/zhicheng/base64.
+//Base64 encoding and decoding, please visit https://github.com/zhicheng/base64.
 size_t Base64_Decode(
 	uint8_t *Input, 
 	const size_t Length, 
@@ -777,7 +777,7 @@ size_t Base64_Decode(
 }
 
 //HTTP version 2 HPACK Header Compression static huffman encoding
-//HPACK huffman encoding and decoding are from https://github.com/phluid61/mk-hpack.
+//HPACK huffman encoding and decoding, please visit https://github.com/phluid61/mk-hpack.
 HUFFMAN_RETURN_TYPE HPACK_HuffmanEncoding(
 	uint8_t *String, 
 	size_t ByteSize, 
@@ -844,7 +844,7 @@ HUFFMAN_RETURN_TYPE HPACK_HuffmanEncoding(
 }
 
 //HTTP version 2 HPACK Header Compression huffman decoding
-//HPACK huffman encoding and decoding are from https://github.com/phluid61/mk-hpack.
+//HPACK huffman encoding and decoding, please visit https://github.com/phluid61/mk-hpack.
 HUFFMAN_RETURN_TYPE HPACK_HuffmanDecoding(
 	uint8_t *HuffmanBuffer, 
 	size_t ByteSize, 

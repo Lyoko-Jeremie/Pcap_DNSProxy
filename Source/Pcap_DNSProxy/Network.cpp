@@ -1208,7 +1208,8 @@ ssize_t SocketSelectingOnce(
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
-	ssize_t * const ErrorCode)
+	ssize_t * const ErrorCode, 
+	const SOCKET_DATA * const LocalSocketData)
 {
 //Socket data check
 	if (SocketDataList.empty())
@@ -1355,10 +1356,10 @@ ssize_t SocketSelectingOnce(
 		//Scan all result.
 		#if defined(ENABLE_LIBSODIUM)
 			if (RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
-				RecvLen = SelectingResultOnce(RequestType, Protocol, SocketDataList, nullptr, DNSCurveSocketSelectingList, OriginalRecv, RecvSize);
+				RecvLen = SelectingResultOnce(RequestType, Protocol, SocketDataList, nullptr, DNSCurveSocketSelectingList, OriginalRecv, RecvSize, LocalSocketData);
 			else 
 		#endif
-				RecvLen = SelectingResultOnce(RequestType, Protocol, SocketDataList, &SocketSelectingList, nullptr, OriginalRecv, RecvSize);
+				RecvLen = SelectingResultOnce(RequestType, Protocol, SocketDataList, &SocketSelectingList, nullptr, OriginalRecv, RecvSize, LocalSocketData);
 
 		//Get result or all socket cloesed
 			if (RecvLen >= static_cast<ssize_t>(DNS_PACKET_MINSIZE))
@@ -1591,7 +1592,7 @@ ssize_t SocketSelectingOnce(
 					RecvLen = DNSCurveSocketSelectingList->at(LastReceiveIndex).RecvLen;
 					DNSCurveSocketSelectingList->at(LastReceiveIndex).RecvLen = DNSCurveSocketSelectingList->at(Index).RecvLen;
 					DNSCurveSocketSelectingList->at(Index).RecvLen = RecvLen;
-					RecvLen = SelectingResultOnce(RequestType, Protocol, SocketDataList, nullptr, DNSCurveSocketSelectingList, OriginalRecv, RecvSize);
+					RecvLen = SelectingResultOnce(RequestType, Protocol, SocketDataList, nullptr, DNSCurveSocketSelectingList, OriginalRecv, RecvSize, LocalSocketData);
 				}
 				else {
 			#endif
@@ -1599,7 +1600,7 @@ ssize_t SocketSelectingOnce(
 					RecvLen = SocketSelectingList.at(LastReceiveIndex).RecvLen;
 					SocketSelectingList.at(LastReceiveIndex).RecvLen = SocketSelectingList.at(Index).RecvLen;
 					SocketSelectingList.at(Index).RecvLen = RecvLen;
-					RecvLen = SelectingResultOnce(RequestType, Protocol, SocketDataList, &SocketSelectingList, nullptr, OriginalRecv, RecvSize);
+					RecvLen = SelectingResultOnce(RequestType, Protocol, SocketDataList, &SocketSelectingList, nullptr, OriginalRecv, RecvSize, LocalSocketData);
 			#if defined(ENABLE_LIBSODIUM)
 				}
 			#endif
@@ -1651,7 +1652,8 @@ ssize_t SelectingResultOnce(
 	std::vector<SOCKET_SELECTING_ONCE_TABLE> *SocketSelectingList, 
 	void * const OriginalDNSCurveSocketSelectingList, 
 	uint8_t * const OriginalRecv, 
-	const size_t RecvSize)
+	const size_t RecvSize, 
+	const SOCKET_DATA * const LocalSocketData)
 {
 //Socket data check
 	if (SocketDataList.empty())
@@ -1768,7 +1770,7 @@ ssize_t SelectingResultOnce(
 
 			//Mark DNS cache.
 				if (Parameter.DNS_CacheType != DNS_CACHE_TYPE::NONE)
-					MarkDomainCache(OriginalRecv, RecvLen);
+					MarkDomainCache(OriginalRecv, RecvLen, LocalSocketData);
 
 				return RecvLen;
 			}
@@ -1865,7 +1867,7 @@ ssize_t SelectingResultOnce(
 
 			//Mark DNS cache.
 				if (Parameter.DNS_CacheType != DNS_CACHE_TYPE::NONE)
-					MarkDomainCache(OriginalRecv, RecvLen);
+					MarkDomainCache(OriginalRecv, RecvLen, LocalSocketData);
 
 				return RecvLen;
 			}

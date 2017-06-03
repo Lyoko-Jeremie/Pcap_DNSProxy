@@ -163,7 +163,8 @@ size_t SOCKS_TCP_Request(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	std::unique_ptr<uint8_t[]> &OriginalRecv, 
-	size_t &RecvSize)
+	size_t &RecvSize, 
+	const SOCKET_DATA &LocalSocketData)
 {
 //Initialization
 	std::vector<SOCKET_DATA> SocketDataList(1U);
@@ -281,7 +282,7 @@ size_t SOCKS_TCP_Request(
 
 	//Mark DNS cache.
 		if (Parameter.DNS_CacheType != DNS_CACHE_TYPE::NONE)
-			MarkDomainCache(SocketSelectingDataList.front().RecvBuffer.get(), RecvLen);
+			MarkDomainCache(SocketSelectingDataList.front().RecvBuffer.get(), RecvLen, &LocalSocketData);
 
 	//Swap buffer.
 		std::swap(OriginalRecv, SocketSelectingDataList.front().RecvBuffer);
@@ -297,7 +298,8 @@ size_t SOCKS_UDP_Request(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	std::unique_ptr<uint8_t[]> &OriginalRecv, 
-	size_t &RecvSize)
+	size_t &RecvSize, 
+	const SOCKET_DATA &LocalSocketData)
 {
 //Initialization
 	std::vector<SOCKET_DATA> TCPSocketDataList(1U), UDPSocketDataList(1U), LocalSocketDataList(1U);
@@ -600,7 +602,7 @@ size_t SOCKS_UDP_Request(
 
 	//Mark DNS cache.
 		if (Parameter.DNS_CacheType != DNS_CACHE_TYPE::NONE)
-			MarkDomainCache(UDPSocketSelectingDataList.front().RecvBuffer.get(), RecvLen);
+			MarkDomainCache(UDPSocketSelectingDataList.front().RecvBuffer.get(), RecvLen, &LocalSocketData);
 
 	//Swap buffer.
 		std::swap(OriginalRecv, UDPSocketSelectingDataList.front().RecvBuffer);
@@ -2013,7 +2015,8 @@ size_t HTTP_CONNECT_Request(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	std::unique_ptr<uint8_t[]> &OriginalRecv, 
-	size_t &RecvSize)
+	size_t &RecvSize, 
+	const SOCKET_DATA &LocalSocketData)
 {
 //HTTP CONNECT target domain check
 	if (Parameter.HTTP_CONNECT_TargetDomain == nullptr)
@@ -2122,7 +2125,7 @@ size_t HTTP_CONNECT_Request(
 	{
 	//Mark DNS cache.
 		if (Parameter.DNS_CacheType != DNS_CACHE_TYPE::NONE)
-			MarkDomainCache(SocketSelectingDataList.front().RecvBuffer.get(), RecvLen);
+			MarkDomainCache(SocketSelectingDataList.front().RecvBuffer.get(), RecvLen, &LocalSocketData);
 
 	//Swap buffer.
 		std::swap(OriginalRecv, SocketSelectingDataList.front().RecvBuffer);

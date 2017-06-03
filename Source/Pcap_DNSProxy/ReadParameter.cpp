@@ -505,14 +505,15 @@ bool Parameter_CheckSetting(
 			}
 
 		//SOCKS UDP support check
-			if (Parameter.SOCKS_Protocol_Transport == REQUEST_MODE_TRANSPORT::UDP && (Parameter.SOCKS_Version == SOCKS_VERSION_4 || Parameter.SOCKS_Version == SOCKS_VERSION_CONFIG_4A))
+			if ((Parameter.SOCKS_Protocol_Transport == REQUEST_MODE_TRANSPORT::FORCE_UDP || Parameter.SOCKS_Protocol_Transport == REQUEST_MODE_TRANSPORT::UDP) && 
+				(Parameter.SOCKS_Version == SOCKS_VERSION_4 || Parameter.SOCKS_Version == SOCKS_VERSION_CONFIG_4A))
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SOCKS, L"SOCKS version 4 and 4a are not support UDP relay", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				Parameter.SOCKS_Protocol_Transport = REQUEST_MODE_TRANSPORT::TCP;
 			}
 
 		//SOCKS UDP no handshake check
-			if (Parameter.SOCKS_Protocol_Transport != REQUEST_MODE_TRANSPORT::UDP)
+			if (Parameter.SOCKS_Protocol_Transport != REQUEST_MODE_TRANSPORT::FORCE_UDP && Parameter.SOCKS_Protocol_Transport != REQUEST_MODE_TRANSPORT::UDP)
 				Parameter.SOCKS_UDP_NoHandshake = false;
 		}
 
@@ -1858,7 +1859,7 @@ bool ReadParameterData(
 		{
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("IPFilterLevel<"), nullptr, 0);
-			if (UnsignedResult <= UINT16_MAX)
+			if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult <= UINT16_MAX))
 			{
 				ParameterPointer->IPFilterLevel = UnsignedResult;
 			}
@@ -1930,7 +1931,9 @@ bool ReadParameterData(
 		}
 
 	//Transport layer
-		if (Data.find("TCP") != std::string::npos)
+		if (Data.find("FORCE") != std::string::npos)
+			Parameter.RequestMode_Transport = REQUEST_MODE_TRANSPORT::FORCE_TCP;
+		else if (Data.find("TCP") != std::string::npos)
 			Parameter.RequestMode_Transport = REQUEST_MODE_TRANSPORT::TCP;
 		else 
 			Parameter.RequestMode_Transport = REQUEST_MODE_TRANSPORT::UDP;
@@ -1976,10 +1979,24 @@ bool ReadParameterData(
 		{
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("CacheParameter="), nullptr, 0);
-			if (UnsignedResult < ULONG_MAX)
+			if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult < ULONG_MAX))
 				Parameter.DNS_CacheParameter = UnsignedResult;
 			else 
 				goto PrintDataFormatError;
+		}
+		else if (Data.compare(0, strlen("CacheSingleIPv4AddressPrefix="), ("CacheSingleIPv4AddressPrefix="))== 0 && Data.length() > strlen("CacheSingleIPv4AddressPrefix="))
+		{
+			_set_errno(0);
+			UnsignedResult = strtoul(Data.c_str() + strlen("CacheSingleIPv4AddressPrefix="), nullptr, 0);
+			if (UnsignedResult > 0 && UnsignedResult <= sizeof(in_addr) * BYTES_TO_BITS)
+				Parameter.DNS_CacheSinglePrefix_IPv4 = UnsignedResult;
+		}
+		else if (Data.compare(0, strlen("CacheSingleIPv6AddressPrefix="), ("CacheSingleIPv6AddressPrefix="))== 0 && Data.length() > strlen("CacheSingleIPv6AddressPrefix="))
+		{
+			_set_errno(0);
+			UnsignedResult = strtoul(Data.c_str() + strlen("CacheSingleIPv6AddressPrefix="), nullptr, 0);
+			if (UnsignedResult > 0 && UnsignedResult <= sizeof(in6_addr) * BYTES_TO_BITS)
+				Parameter.DNS_CacheSinglePrefix_IPv6 = UnsignedResult;
 		}
 	}
 
@@ -2021,7 +2038,9 @@ bool ReadParameterData(
 		}
 
 	//Transport layer
-		if (Data.find("TCP") != std::string::npos)
+		if (Data.find("FORCE") != std::string::npos)
+			ParameterPointer->LocalProtocol_Transport = REQUEST_MODE_TRANSPORT::FORCE_TCP;
+		else if (Data.find("TCP") != std::string::npos)
 			ParameterPointer->LocalProtocol_Transport = REQUEST_MODE_TRANSPORT::TCP;
 		else 
 			ParameterPointer->LocalProtocol_Transport = REQUEST_MODE_TRANSPORT::UDP;
@@ -2854,7 +2873,9 @@ bool ReadParameterData(
 			}
 
 		//Transport layer
-			if (Data.find("UDP") != std::string::npos)
+			if (Data.find("FORCE") != std::string::npos)
+				Parameter.SOCKS_Protocol_Transport = REQUEST_MODE_TRANSPORT::FORCE_UDP;
+			else if (Data.find("UDP") != std::string::npos)
 				Parameter.SOCKS_Protocol_Transport = REQUEST_MODE_TRANSPORT::UDP;
 			else 
 				Parameter.SOCKS_Protocol_Transport = REQUEST_MODE_TRANSPORT::TCP;
@@ -3154,7 +3175,9 @@ bool ReadParameterData(
 			}
 
 		//Transport layer
-			if (Data.find("TCP") != std::string::npos)
+			if (Data.find("FORCE") != std::string::npos)
+				DNSCurveParameter.DNSCurveProtocol_Transport = REQUEST_MODE_TRANSPORT::FORCE_TCP;
+			else if (Data.find("TCP") != std::string::npos)
 				DNSCurveParameter.DNSCurveProtocol_Transport = REQUEST_MODE_TRANSPORT::TCP;
 			else 
 				DNSCurveParameter.DNSCurveProtocol_Transport = REQUEST_MODE_TRANSPORT::UDP;
@@ -4007,7 +4030,7 @@ bool ReadHopLimitsData(
 	{
 		_set_errno(0);
 		UnsignedResult = strtoul(StringIter.c_str(), nullptr, 0);
-		if (UnsignedResult < UINT8_MAX)
+		if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult < UINT8_MAX))
 		{
 			if (Protocol == AF_INET6)
 			{

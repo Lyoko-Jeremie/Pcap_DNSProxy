@@ -44,5 +44,6 @@ ssize_t SelectingResultOnce(
 	std::vector<SOCKET_SELECTING_ONCE_TABLE> *SocketSelectingList, 
 	void * const OriginalDNSCurveSocketSelectingList, 
 	uint8_t * const OriginalRecv, 
-	const size_t RecvSize);
+	const size_t RecvSize, 
+	const SOCKET_DATA * const LocalSocketData);
 #endif

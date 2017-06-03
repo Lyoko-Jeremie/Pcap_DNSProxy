@@ -143,7 +143,7 @@ goto :eof
 
 :[FormatIPV6List]S
 :: Convert IPv6 data.
-@echo off&title Routing list update: Building IPv6 routing list...
+@echo off&title Routing list update: Converting IPv6 routing list...
 (for /f "tokens=4-5 delims=|" %%i in ('type ".\latest\ipv6\%IPV6md5%.md5"') do echo %%i/%%j|..\Support\ccase)>#Routingipv6#
 :: Remove flag.
 del /s/q "%temp%\#ipv6listLab#" >nul 2>nul
@@ -151,12 +151,12 @@ exit
 
 :[FormatIPV4List]S
 :: Convert IPv4 data.
-@echo off&title Routing list update: Building IPv4 routing list...
+@echo off&title Routing list update: Converting IPv4 routing list...
 (for /f "tokens=4-5 delims=|" %%i in ('type ".\latest\ipv4\%IPV4md5%.md5"') do echo.%%i/%%j#)>#Routingipv4#
 set /a index=1,indexx=2,index_out=0
 set str=*&set lop=0
 :[FormatIPV4List]S_LOOP
-if %lop% geq 32 start /w "Building IPv4 routing list error." "%~f0" [FormatIPV4List]S_ERROR&goto END
+if %lop% geq 32 start /w "Converting IPv4 routing list error." "%~f0" [FormatIPV4List]S_ERROR&goto END
 for /f "tokens=1-2 delims=/#" %%i in ('findstr /v "%str%" #Routingipv4#') do (
 	set address=%%i&set /a value_mi=%%j
 	call:[SearchLIB]

@@ -715,7 +715,7 @@ void Flush_DNS_Cache(
 //Flush DNS cache in process.
 	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
 	if (Domain == nullptr || //Flush all DNS cache.
-		strnlen_s(reinterpret_cast<const char *>(Domain), DOMAIN_MAXSIZE) > DOMAIN_MINSIZE)
+		strnlen_s(reinterpret_cast<const char *>(Domain), DOMAIN_MAXSIZE + PADDING_RESERVED_BYTES) > DOMAIN_MAXSIZE)
 	{
 		DNSCacheList.clear();
 	}
