@@ -57,7 +57,7 @@
 #define OSI_L2_VLAN         0x8100   //Virtual Bridged LAN
 #define OSI_L2_PPPD         0x8863   //PPPoE(Discovery Stage)
 #define OSI_L2_PPPS         0x8864   //PPPoE(Session Stage)
-#define FCS_TABLE_SIZE      256U     //FCS Table size
+//#define FCS_TABLE_SIZE      256U     //FCS Table size
 typedef struct _eth_hdr_
 {
 	uint8_t                Dst[6U];
@@ -217,7 +217,7 @@ typedef struct _ppp_hdr_
 #endif
 #ifndef IPPROTO_HMP
 	#define IPPROTO_HMP               20U                  //Host Monitoring
-#endif 
+#endif
 #ifndef IPPROTO_PRM
 	#define IPPROTO_PRM               21U                  //Packet Radio Measurement
 #endif

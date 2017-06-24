@@ -85,7 +85,7 @@ bool ReadCommand(
 			break;
 		}
 	}
-	
+
 //File name initialization
 	FilePathBuffer.reset();
 	if (!FileNameInit(FilePathString))
@@ -116,7 +116,7 @@ bool ReadCommand(
 		std::string FilePathString(FilePath);
 		free(FilePath);
 		FilePath = nullptr;
-		
+
 	//File name initialization
 	// If the current directory is not below the root directory of the current process(e.g., because the process set a new filesystem root
 	// using chroot(2) without changing its current directory into the new root), then, since Linux 2.6.36, the returned path will be prefixed
@@ -230,7 +230,7 @@ bool ReadCommand(
 			PrintToScreen(false, L"(macOS)\n");
 		#endif
 			PrintToScreen(false, COPYRIGHT_MESSAGE);
-			PrintToScreen(false, L"\nUsage: Please visit ReadMe... files in Documents folder.\n");
+			PrintToScreen(false, L"\nUsage: Please visit ReadMe.. files in Documents folder.\n");
 			PrintToScreen(false, L"   -v/--version:          Print current version on screen.\n");
 			PrintToScreen(false, L"   --lib-version:         Print current version of libraries on screen.\n");
 			PrintToScreen(false, L"   -h/--help:             Print help messages on screen.\n");
@@ -362,7 +362,7 @@ bool ReadCommand(
 
 			//Close file.
 				fclose(FileHandle);
-				PrintToScreen(true, L"[Notice] DNSCurve(DNSCrypt) keypair was generated successfully.\n");
+				PrintToScreen(true, L"[Notice] DNSCurve(DNSCrypt) keypair generation is successful.\n");
 			}
 			else {
 				PrintToScreen(true, L"[System Error] Cannot create target file(KeyPair.txt).\n");
@@ -378,10 +378,12 @@ bool ReadCommand(
 		{
 		#if (defined(ENABLE_LIBSODIUM) || defined(ENABLE_PCAP) || defined(ENABLE_TLS))
 			std::wstring LibVersion;
+			char *VersionString = nullptr;
 
 			//LibSodium version
 			#if defined(ENABLE_LIBSODIUM)
-				if (MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(sodium_version_string()), strlen(sodium_version_string()), LibVersion))
+				VersionString = const_cast<char *>(sodium_version_string());
+				if (VersionString != nullptr && MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(VersionString), strlen(VersionString), LibVersion))
 					PrintToScreen(true, L"LibSodium version %ls\n", LibVersion.c_str());
 				else 
 					PrintToScreen(true, L"[System Error] Convert multiple byte or wide char string error.\n");
@@ -389,7 +391,8 @@ bool ReadCommand(
 
 			//WinPcap or LibPcap version
 			#if defined(ENABLE_PCAP)
-				if (MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(pcap_lib_version()), strlen(pcap_lib_version()), LibVersion))
+				VersionString = const_cast<char *>(pcap_lib_version());
+				if (VersionString != nullptr && MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(VersionString), strlen(VersionString), LibVersion))
 					PrintToScreen(true, L"%ls\n", LibVersion.c_str());
 				else 
 					PrintToScreen(true, L"[System Error] Convert multiple byte or wide char string error.\n");
@@ -399,10 +402,11 @@ bool ReadCommand(
 			#if defined(ENABLE_TLS)
 			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			#if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0 //OpenSSL version 1.1.0 and above
-				if (MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(OpenSSL_version(OPENSSL_VERSION)), strnlen(OpenSSL_version(OPENSSL_VERSION), OPENSSL_STATIC_BUFFER_SIZE), LibVersion))
+				VersionString = const_cast<char *>(OpenSSL_version(OPENSSL_VERSION));
 			#else //OpenSSL version below 1.1.0
-				if (MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(SSLeay_version(SSLEAY_VERSION)), strnlen(SSLeay_version(SSLEAY_VERSION), OPENSSL_STATIC_BUFFER_SIZE), LibVersion))
+				VersionString = const_cast<char *>(SSLeay_version(SSLEAY_VERSION));
 			#endif
+				if (VersionString != nullptr && MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(VersionString), strnlen(VersionString, OPENSSL_STATIC_BUFFER_SIZE), LibVersion))
 					PrintToScreen(true, L"%ls\n", LibVersion.c_str());
 				else 
 					PrintToScreen(true, L"[System Error] Convert multiple byte or wide char string error.\n");
@@ -428,7 +432,7 @@ bool ReadCommand(
 			if (!FirewallTest(AF_INET6, ErrorCode) && !FirewallTest(AF_INET, ErrorCode))
 				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Windows Firewall Test error", ErrorCode, nullptr, 0);
 			else 
-				PrintToScreen(true, L"[Notice] Windows Firewall was tested successfully.\n");
+				PrintToScreen(true, L"[Notice] Windows Firewall test is successful.\n");
 
 			return false;
 		}

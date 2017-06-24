@@ -352,7 +352,7 @@ bool ReadLocalHostsData(
 		else if (HostsListData.front().empty()) //Dnsmasq unqualified names only
 		{
 			HostsTableTemp.IsStringMatching = true;
-			
+
 		//Default target server
 			if (HostsListData.back().empty())
 			{
@@ -375,7 +375,7 @@ bool ReadLocalHostsData(
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 					return false;
 				}
-			
+
 			//Response initialization
 				ADDRESS_UNION_DATA AddressUnionDataTemp;
 				memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
@@ -466,6 +466,7 @@ bool ReadLocalHostsData(
 			//Make string reversed.
 				MakeStringReversed(HostsListData.front());
 				HostsTableTemp.PatternOrDomainString = HostsListData.front();
+				HostsTableTemp.PatternOrDomainString.append(".");
 				HostsTableTemp.IsStringMatching = true;
 			}
 
@@ -488,7 +489,7 @@ bool ReadLocalHostsData(
 						PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 						return false;
 					}
-			
+
 				//Response initialization
 					ADDRESS_UNION_DATA AddressUnionDataTemp;
 					memset(&AddressUnionDataTemp, 0, sizeof(AddressUnionDataTemp));
@@ -672,7 +673,7 @@ bool ReadAddressHostsData(
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				return false;
 			}
-			
+
 		//Reset parameters.
 			memset(&AddressTargetPrefix.first, 0, sizeof(AddressTargetPrefix.first));
 
@@ -1162,6 +1163,7 @@ bool ReadMainHostsData(
 	//Make string reversed and mark it to list.
 		MakeStringReversed(HostsListData.front());
 		HostsTableTemp.PatternOrDomainString.append(HostsListData.front());
+		HostsTableTemp.PatternOrDomainString.append(".");
 		HostsTableTemp.IsStringMatching = true;
 	}
 //Mark patterns.
@@ -1183,7 +1185,7 @@ bool ReadMainHostsData(
 		else {
 			HostsTableTemp.PatternOrDomainString.append(Data, Separated, Data.length() - Separated);
 		}
-		
+
 	//Mark patterns.
 		try {
 			std::regex PatternRegexTemp(HostsTableTemp.PatternOrDomainString);

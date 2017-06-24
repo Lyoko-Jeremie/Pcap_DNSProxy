@@ -33,21 +33,47 @@ int main(
 #endif
 //Get commands.
 	if (argc < COMMAND_MIN_COUNT)
+		return EXIT_FAILURE;
+//Read commands.
+	else if (!ReadCommand(argc, argv))
+		return EXIT_SUCCESS;
+//Process already exists check
+	else if (!CheckProcessExists())
+		return EXIT_FAILURE;
+//Read configuration file.
+	else if (!ReadParameter(true))
+		return EXIT_FAILURE;
+
+//Handle the system signal.
+#if defined(PLATFORM_WIN)
+	if (SetConsoleCtrlHandler(
+			reinterpret_cast<PHANDLER_ROUTINE>(CtrlHandler), 
+			TRUE) == 0)
 	{
+		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Set console control handler error", GetLastError(), nullptr, 0);
 		return EXIT_FAILURE;
 	}
-	else {
-	//Read commands and configuration file, process already exists check, also launch all monitors.
-		if (!ReadCommand(argc, argv))
-			return EXIT_SUCCESS;
-		else if (!CheckProcessExists() || !ReadParameter(true))
-			return EXIT_FAILURE;
-		else 
-			MonitorLauncher();
-
-	//Wait for multiple threads to work.
-		Sleep(STANDARD_TIMEOUT);
+#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	errno = 0;
+	if (signal(SIGHUP, SIG_Handler) == SIG_ERR || signal(SIGINT, SIG_Handler) == SIG_ERR || signal(SIGQUIT, SIG_Handler) == SIG_ERR || 
+		signal(SIGTERM, SIG_Handler) == SIG_ERR)
+	{
+		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Handle the system signal error", errno, nullptr, 0);
+		return EXIT_FAILURE;
 	}
+
+//Set system signal handler to ignore EPIPE signal when transmission with socket.
+	errno = 0;
+	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
+	{
+		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Ignore system signal error", errno, nullptr, 0);
+		return EXIT_FAILURE;
+	}
+#endif
+
+//Launch all monitors and wait for multiple threads to work.
+	MonitorLauncher();
+	Sleep(STANDARD_TIMEOUT);
 
 //Main process initialization
 #if defined(PLATFORM_WIN)
@@ -55,7 +81,6 @@ int main(
 	if (StartServiceCtrlDispatcherW(ServiceTable) == 0)
 	{
 	//Print to screen.
-		
 		if (GetLastError() == 0)
 		{
 			std::wstring Message(L"[System Error] Service start error.\n");
@@ -74,38 +99,11 @@ int main(
 			PrintToScreen(false, L"[Notice] Please ignore these error messages if you want to run in console mode.\n\n");
 		}
 
-	//Handle the system signal.
-		if (SetConsoleCtrlHandler(
-				reinterpret_cast<PHANDLER_ROUTINE>(CtrlHandler), 
-				TRUE) == 0)
-		{
-			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Set console control handler error", GetLastError(), nullptr, 0);
-			return EXIT_FAILURE;
-		}
-
 	//Main process
 		if (!MonitorInit())
 			return EXIT_FAILURE;
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-//Handle the system signal.
-	errno = 0;
-	if (signal(SIGHUP, SIG_Handler) == SIG_ERR || signal(SIGINT, SIG_Handler) == SIG_ERR || 
-		signal(SIGQUIT, SIG_Handler) == SIG_ERR || signal(SIGTERM, SIG_Handler) == SIG_ERR)
-	{
-		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Handle the system signal error", errno, nullptr, 0);
-		return EXIT_FAILURE;
-	}
-
-//Set system signal handler to ignore EPIPE signal when transmission with socket.
-	errno = 0;
-	if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
-	{
-		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Ignore system signal error", errno, nullptr, 0);
-		return EXIT_FAILURE;
-	}
-
-//Main process initialization
 	if (!MonitorInit())
 		return EXIT_FAILURE;
 #endif

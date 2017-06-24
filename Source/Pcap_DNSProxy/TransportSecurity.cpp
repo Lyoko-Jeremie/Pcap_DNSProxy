@@ -91,7 +91,7 @@ bool SSPI_Handshake(
 //Socket data check
 	if (SocketDataList.empty() || SocketSelectingDataList.empty() || ErrorCodeList.empty())
 		return false;
-	
+
 //Initializtion
 	SecBufferDesc InputBufferDesc, OutputBufferDesc;
 	SecBuffer InputBufferSec[1U]{0}, OutputBufferSec[1U]{0};
@@ -100,7 +100,7 @@ bool SSPI_Handshake(
 	auto InputBufferDescPointer = &InputBufferDesc;
 
 //TLS ALPN extension buffer initializtion
-	std::unique_ptr<uint8_t[]> InputBufferPointer;
+	std::unique_ptr<uint8_t[]> InputBufferPointer(nullptr);
 #if !defined(PLATFORM_WIN_XP)
 	if (Parameter.HTTP_CONNECT_TLS_ALPN)
 	{
@@ -248,7 +248,7 @@ bool SSPI_Handshake(
 //TLS handshake loop and get TLS stream sizes.
 	if (!SSPI_HandshakeLoop(SSPI_Handle, SocketDataList, SocketSelectingDataList, ErrorCodeList) || !SSPI_GetStreamSize(SSPI_Handle))
 		return false;
-	
+
 	return true;
 }
 
@@ -589,11 +589,7 @@ bool SSPI_ShutdownConnection(
 	std::vector<ssize_t> &ErrorCodeList)
 {
 //Socket data check
-	if (SocketDataList.empty() || ErrorCodeList.empty())
-		return false;
-
-//Socket check
-	if (!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
+	if (SocketDataList.empty() || ErrorCodeList.empty() || !SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 		return false;
 
 //Buffer initializtion(Part 1)
@@ -707,7 +703,7 @@ bool OpenSSL_PrintError(
 	std::wstring Message;
 	if (MBS_To_WCS_String(OpenSSL_ErrorMessage, OPENSSL_STATIC_BUFFER_SIZE, Message))
 	{
-		std::wstring InnerMessage(ErrorMessage); //OpenSSL will return message like "error:..."
+		std::wstring InnerMessage(ErrorMessage); //OpenSSL will return message like "error:.."
 		InnerMessage.append(Message);
 		PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::TLS, InnerMessage.c_str(), 0, nullptr, 0);
 	}
@@ -808,7 +804,7 @@ bool OpenSSL_CTX_Initializtion(
 		OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL create new client-method instance ");
 		return false;
 	}
-	
+
 //TLS version selection(Part 2)
 #if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0 //OpenSSL version 1.1.0 and above
 	ssize_t InnerResult = TRUE;
@@ -994,7 +990,7 @@ bool OpenSSL_BIO_Initializtion(
 			OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL hostname checking and validation ");
 			return false;
 		}
-		
+
 	//Set certificate paremeter flags.
 		X509_VERIFY_PARAM_set_hostflags(X509_Param, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
 		if (X509_VERIFY_PARAM_set1_host(X509_Param, Parameter.MBS_HTTP_CONNECT_TLS_SNI->c_str(), 0) == FALSE)
@@ -1187,7 +1183,7 @@ bool TLS_TransportSerial(
 		else {
 			SocketSelectingDataList.front().RecvLen += RecvLen;
 			if (RecvLen < static_cast<ssize_t>(Parameter.LargeBufferSize) && SocketSelectingDataList.front().RecvLen >= PacketMinSize && 
-				((RequestType != REQUEST_PROCESS_TYPE::TCP && //Only TCP DNS response should be check.
+				((RequestType != REQUEST_PROCESS_TYPE::TCP_NORMAL && RequestType != REQUEST_PROCESS_TYPE::TCP_WITHOUT_MARKING && //Only TCP DNS response should be check.
 				RequestType != REQUEST_PROCESS_TYPE::HTTP_CONNECT_MAIN && RequestType != REQUEST_PROCESS_TYPE::HTTP_CONNECT_1 && RequestType != REQUEST_PROCESS_TYPE::HTTP_CONNECT_2) || //Only HTTP CONNECT response should be check.
 				CheckConnectionStreamFin(RequestType, SocketSelectingDataList.front().RecvBuffer.get(), SocketSelectingDataList.front().RecvLen)))
 					return true;

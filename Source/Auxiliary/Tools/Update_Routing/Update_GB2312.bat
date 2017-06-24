@@ -1,6 +1,8 @@
 :: Pcap_DNSProxy routing list update batch
 :: Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+:: 
 :: Author: muink, Chengr28
+:: 
 
 
 @echo off&title 路由表一键更新

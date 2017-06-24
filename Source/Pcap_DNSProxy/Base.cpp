@@ -518,7 +518,7 @@ void CaseConvert(
 	const size_t Length, 
 	const bool IsLowerToUpper)
 {
-	if (Buffer != nullptr && Length > 0)
+	if (Buffer != nullptr)
 	{
 	//Convert words.
 		for (size_t Index = 0;Index < Length;++Index)
@@ -623,21 +623,20 @@ bool CompareStringReversed(
 	const wchar_t * const RuleItem, 
 	const wchar_t * const TestItem)
 {
-//Buffer check
-	if (RuleItem == nullptr || TestItem == nullptr)
-		return false;
-
-//Length check
-	std::wstring InnerRuleItem(RuleItem), InnerTestItem(TestItem);
-	if (!InnerRuleItem.empty() && !InnerTestItem.empty() && InnerTestItem.length() >= InnerRuleItem.length())
+//Buffer and length check
+	if (RuleItem != nullptr && TestItem != nullptr)
 	{
-	//Make string reversed to compare.
-		MakeStringReversed(InnerRuleItem);
-		MakeStringReversed(InnerTestItem);
+		std::wstring InnerRuleItem(RuleItem), InnerTestItem(TestItem);
+		if (!InnerRuleItem.empty() && !InnerTestItem.empty() && InnerTestItem.length() >= InnerRuleItem.length())
+		{
+		//Make string reversed to compare.
+			MakeStringReversed(InnerRuleItem);
+			MakeStringReversed(InnerTestItem);
 
-	//Compare each other.
-		if (InnerTestItem.compare(0, InnerRuleItem.length(), InnerRuleItem) == 0)
-			return true;
+		//Compare each other.
+			if (InnerTestItem.compare(0, InnerRuleItem.length(), InnerRuleItem) == 0)
+				return true;
+		}
 	}
 
 	return false;
@@ -755,6 +754,7 @@ size_t Base64_Decode(
 			//If not last char with padding
 				if (Index[0] < (Length - 3U) || Input[Length - 2U] != static_cast<uint8_t>(BASE64_PAD))
 					Output[Index[1U]] = (StringIter & 0xF) << 4U;
+
 				continue;
 			}
 			case 2U:
@@ -764,6 +764,7 @@ size_t Base64_Decode(
 			//If not last char with padding
 				if (Index[0] < (Length - 2U) || Input[Length - 1U] != static_cast<uint8_t>(BASE64_PAD))
 					Output[Index[1U]] = (StringIter & 0x3) << 6U;
+
 				continue;
 			}
 			case 3U:
@@ -824,7 +825,7 @@ HUFFMAN_RETURN_TYPE HPACK_HuffmanEncoding(
 			BitLength -= 8U;
 		}
 	}
-	
+
 //Pad with EOS(incidentally all 1s).
 	if (BitLength > 0)
 	{
@@ -931,7 +932,7 @@ HUFFMAN_RETURN_TYPE HPACK_HuffmanDecoding(
 #undef ONE
 #undef IS_INT
 #undef VALUE_OF
-	
+
 Done:
 	if (TC)
 		return HUFFMAN_RETURN_TYPE::ERROR_TRUNCATED;

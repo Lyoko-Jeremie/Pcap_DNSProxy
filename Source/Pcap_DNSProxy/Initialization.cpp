@@ -197,7 +197,7 @@ ConfigurationTable::ConfigurationTable(
 //Check itself.
 	if (this == &Reference)
 		return;
-	
+
 //Class constructor
 	memset(this, 0, sizeof(CONFIGURATION_TABLE));
 	try {
@@ -512,6 +512,9 @@ ConfigurationTable::ConfigurationTable(
 		ICMP_PaddingData = nullptr;
 	}
 	ICMP_PaddingLength = Reference.ICMP_PaddingLength;
+	DomainTest_Protocol = Reference.DomainTest_Protocol;
+	DomainTest_ID = Reference.DomainTest_ID;
+	DomainTest_Speed = Reference.DomainTest_Speed;
 	if (Reference.DomainTest_Data != nullptr)
 	{
 		memcpy_s(DomainTest_Data, DOMAIN_MAXSIZE, Reference.DomainTest_Data, DOMAIN_MAXSIZE);
@@ -520,8 +523,6 @@ ConfigurationTable::ConfigurationTable(
 		delete[] DomainTest_Data;
 		DomainTest_Data = nullptr;
 	}
-	DomainTest_ID = Reference.DomainTest_ID;
-	DomainTest_Speed = Reference.DomainTest_Speed;
 #endif
 	if (Reference.Local_FQDN_String != nullptr)
 	{
@@ -718,6 +719,7 @@ void ConfigurationTableSetting(
 #endif
 #if defined(ENABLE_PCAP)
 	ConfigurationParameter->ICMP_Speed = DEFAULT_ICMP_TEST_TIME * SECOND_TO_MILLISECOND;
+	ConfigurationParameter->DomainTest_Protocol = REQUEST_MODE_TEST::UDP;
 	ConfigurationParameter->DomainTest_Speed = DEFAULT_DOMAIN_TEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
 #endif
 	ConfigurationParameter->AlternateTimes = DEFAULT_ALTERNATE_TIMES;
@@ -934,6 +936,7 @@ void ConfigurationTable::MonitorItemToUsing(
 	ConfigurationParameter->ReceiveWaiting = ReceiveWaiting;
 #if defined(ENABLE_PCAP)
 	ConfigurationParameter->ICMP_Speed = ICMP_Speed;
+	ConfigurationParameter->DomainTest_Protocol = DomainTest_Protocol;
 	ConfigurationParameter->DomainTest_Speed = DomainTest_Speed;
 #endif
 	ConfigurationParameter->MultipleRequestTimes = MultipleRequestTimes;
@@ -1064,6 +1067,7 @@ void ConfigurationTable::MonitorItemReset(
 	ReceiveWaiting = 0;
 #if defined(ENABLE_PCAP)
 	ICMP_Speed = DEFAULT_ICMP_TEST_TIME * SECOND_TO_MILLISECOND;
+	DomainTest_Protocol = REQUEST_MODE_TEST::UDP;
 	DomainTest_Speed = DEFAULT_DOMAIN_TEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
 #endif
 	MultipleRequestTimes = 0;
@@ -1406,7 +1410,7 @@ GlobalStatus::~GlobalStatus(
 	void)
 {
 //Close all sockets.
-	for (const auto &SocketIter:*LocalListeningSocket)
+	for (auto &SocketIter:*LocalListeningSocket)
 		SocketSetting(SocketIter, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 #if defined(PLATFORM_WIN)
@@ -1558,6 +1562,7 @@ OutputPacketTable::OutputPacketTable(
 {
 //Initialization
 	memset(&SocketData_Input, 0, sizeof(SocketData_Input));
+	SocketData_Input.Socket = INVALID_SOCKET;
 	Protocol_Network = 0;
 	Protocol_Transport = 0;
 	ClearPortTime = 0;
@@ -2181,7 +2186,7 @@ void DNSCurveConfigurationTableSetting(
 	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
 	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Main_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
 	sodium_memzero(DNSCurveConfigurationParameter->DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-	
+
 //Default settings
 	//[DNSCurve] block
 	DNSCurveConfigurationParameter->DNSCurveProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
@@ -2523,7 +2528,7 @@ OpenSSLContextTable::OpenSSLContextTable(
 	SessionData = nullptr;
 	Protocol_Network = 0;
 	Protocol_Transport = 0;
-	Socket = 0;
+	Socket = INVALID_SOCKET;
 
 	return;
 }

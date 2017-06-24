@@ -28,7 +28,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 设置程序、脚本以及 plist 配置文件的基本读写执行权限
     * 装载并启动守护进程服务
     * 以後每次開機在登錄前守護進程服務都將自動啟動
-5.打開 "系統偏好設置" 視窗
+5.請按照下文 正常工作查看方法 一節，先對程式是否在正常工作進行測試再修改網路設定！
+6.打開 "系統偏好設置" 視窗
   * 進入 "網路" 部分
   * 選中使用的網路介面卡，點擊 "高級" 按鈕
   * 切換到 "DNS" 選項卡，並點擊 "DNS伺服器" 下的 "+" 號
@@ -43,7 +44,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 安裝方法（編譯二進位可執行檔）：
 
 1.準備程式編譯環境
-  * Homebrew 可訪問 http://brew.sh 獲取
+  * Homebrew 可訪問 https://brew.sh 獲取
   * CMake 可訪問 https://cmake.org 或通過 Homebrew 獲取
   * LibPcap 可訪問 http://www.tcpdump.org/#latest-release 獲取
     * 編譯時如果剝離 LibPcap 的依賴則可跳過編譯和安裝下表的依賴庫和工具，具體參見下文的介紹，不建議使用
@@ -136,7 +137,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 正常工作查看方法：
 
 1.打開終端
-2.輸入 dig www.google.com 並回車
+2.輸入 dig @127.0.0.1 www.google.com 或者 dig @::1 www.google.com 並回車
 3.運行結果應類似：
 
    >dig www.google.com
@@ -153,7 +154,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
    ...
 
    ;; Query time: ... msec
-   ;; SERVER: ::1#53(::1)（IPv6，IPv4 下为 127.0.0.1）
+   ;; SERVER: ::1#53(::1)（視所在網路環境而定，本地監聽協定為 IPv4 時為 127.0.0.1）
    ;; WHEN: ...
    ;; MSG SIZE  rcvd: ...
 

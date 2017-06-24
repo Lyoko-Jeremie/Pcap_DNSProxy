@@ -26,18 +26,18 @@ Client -> Server:
 * 32 bytes: The client's DNSCurve public key (crypto_box_PUBLICKEYBYTES)
 * 12 bytes: A client-selected nonce for this packet (crypto_box_NONCEBYTES / 2)
 * 16 bytes: Poly1305 MAC (crypto_box_ZEROBYTES - crypto_box_BOXZEROBYTES)
-* Variable encryption data ...
+* Variable encryption data ..
 
 Server -> Client:
 *  8 bytes: The string "r6fnvWJ8" (DNSCRYPT_MAGIC_RESPONSE)
 * 12 bytes: The client's nonce (crypto_box_NONCEBYTES / 2)
 * 12 bytes: A server-selected nonce extension (crypto_box_NONCEBYTES / 2)
 * 16 bytes: Poly1305 MAC (crypto_box_ZEROBYTES - crypto_box_BOXZEROBYTES)
-* Variable encryption data ...
+* Variable encryption data ..
 
 Using TCP protocol:
 * 2 bytes: DNSCurve(DNSCrypt) data payload length
-* Variable original DNSCurve(DNSCrypt) data ...
+* Variable original DNSCurve(DNSCrypt) data ..
 
 */
 
@@ -308,6 +308,7 @@ void DNSCurveSocketPrecomputation(
 	SOCKET_DATA SocketDataTemp;
 	DNSCURVE_SOCKET_SELECTING_TABLE SocketSelectingDataTemp;
 	memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
+	SocketDataTemp.Socket = INVALID_SOCKET;
 	std::vector<SOCKET_DATA> Alternate_SocketDataList;
 	std::vector<DNSCURVE_SOCKET_SELECTING_TABLE> Alternate_SocketSelectingList;
 	uint8_t Client_PublicKey_Buffer[crypto_box_PUBLICKEYBYTES]{0};
@@ -609,7 +610,7 @@ size_t DNSCurvePacketEncryption(
 		}
 
 	//Make a crypto box.
-		memcpy_s(Buffer.get() + crypto_box_ZEROBYTES, DNSCurveParameter.DNSCurvePayloadSize - crypto_box_ZEROBYTES, OriginalSend, Length);
+		memcpy_s(Buffer.get() + crypto_box_ZEROBYTES, DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVED_LEN - crypto_box_ZEROBYTES, OriginalSend, Length);
 		DNSCurvePaddingData(true, Buffer.get(), crypto_box_ZEROBYTES + Length, DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVED_LEN);
 
 	//Encrypt data.

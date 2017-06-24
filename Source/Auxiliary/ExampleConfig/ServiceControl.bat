@@ -1,9 +1,12 @@
 :: Pcap_DNSProxy service control batch
 :: Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+:: 
 :: Author: Hugo Chan, wongsyrone, Chengr28
+:: 
 
 
 @echo off
+
 
 :: Administrative permission check
 net session >NUL 2>NUL
@@ -34,6 +37,7 @@ set Command=%~1
 if not "%Command%" == "" (
 	goto CASE_%Command%
 )
+
 
 :: Choice
 :CHOICE
@@ -176,6 +180,7 @@ goto %UserChoice%
 
 :: Exit
 :CASE_8
+	color
 	exit
 
 

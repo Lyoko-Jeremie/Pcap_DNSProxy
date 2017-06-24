@@ -348,7 +348,7 @@ bool CaptureModule(
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	else if (DriveInterface->name == nullptr || DriveInterface->addresses == nullptr || DriveInterface->flags == PCAP_IF_LOOPBACK)
 #endif
-	{		
+	{
 		if (IsCaptureList && DriveInterface->next != nullptr)
 		{
 			std::thread CaptureThread(std::bind(CaptureModule, DriveInterface->next, true));
@@ -419,7 +419,7 @@ bool CaptureModule(
 //Check device type.
 	auto DeviceType = pcap_datalink(DeviceHandle);
 	if (DeviceType == DLT_EN10MB || //Ethernet II(Standard)
-		DeviceType == DLT_PPP_ETHER || //PPPoE
+		DeviceType == DLT_PPP_ETHER || //PPP over Ethernet/PPPoE
 		DeviceType == DLT_EN3MB || //Ethernet II(Experiment)
 		DeviceType == DLT_APPLE_IP_OVER_IEEE1394) //Apple IEEE 1394
 	{
@@ -445,7 +445,7 @@ bool CaptureModule(
 		{
 			Message.append(L"\n");
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::PCAP, Message.c_str(), 0, nullptr, 0);
-		}	
+		}
 		else {
 			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"Convert multiple byte or wide char string error", 0, nullptr, 0);
 		}
@@ -592,7 +592,7 @@ void CaptureHandler(
 		}
 	}
 
-//LAN, WLAN and IEEE 802.1X, some Mobile Communications Standard/MCS drives which disguise as a LAN
+//LAN, WLAN and IEEE 802.1X, some Mobile Communications Standard/MCS devices which disguise as a LAN
 	if (((ntohs(Protocol) == OSI_L2_IPV6 || ntohs(Protocol) == PPP_IPV6) && Length > sizeof(ipv6_hdr)) || //IPv6
 		((ntohs(Protocol) == OSI_L2_IPV4 || ntohs(Protocol) == PPP_IPV4) && Length > sizeof(ipv4_hdr))) //IPv4
 			CaptureNetworkLayer(ntohs(Protocol), ParamList->Buffer, Length, ParamList->BufferSize);
@@ -876,13 +876,10 @@ bool CaptureCheck_ICMP(
 	const uint8_t * const Buffer, 
 	const size_t Length)
 {
-	if (
-	//ICMPv6
-		(Protocol == AF_INET6 && 
+	if ((Protocol == AF_INET6 && //ICMPv6
 		(reinterpret_cast<const icmpv6_hdr *>(Buffer))->Type == ICMPV6_TYPE_REPLY && (reinterpret_cast<const icmpv6_hdr *>(Buffer))->Code == ICMPV6_CODE_REPLY && //ICMPv6 echo reply
 		(reinterpret_cast<const icmpv6_hdr *>(Buffer))->ID == Parameter.ICMP_ID) || //Validate ICMPv6 ID.
-	//ICMP
-		(Protocol == AF_INET && 
+		(Protocol == AF_INET && //ICMP
 		(reinterpret_cast<const icmp_hdr *>(Buffer))->Type == ICMP_TYPE_ECHO && (reinterpret_cast<const icmpv6_hdr *>(Buffer))->Code == ICMP_CODE_ECHO && //ICMP echo reply
 		(reinterpret_cast<const icmp_hdr *>(Buffer))->ID == Parameter.ICMP_ID && //Validate ICMP ID.
 		Parameter.ICMP_PaddingData != nullptr && Length == sizeof(icmp_hdr) + Parameter.ICMP_PaddingLength && 
@@ -901,8 +898,8 @@ bool CaptureCheck_TCP(
 		(ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_CWR) > 0 || 
 	//ECE bit is set.
 		(ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_ECE) > 0 || 
-	//SYN and ACK bits are set, PSH bit is not set and header options are not empty.
-		((ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_IHL) >> 12U > TCP_STANDARD_IHL && 
+	//SYN and ACK bits are set, PSH bit is not set, header options are not empty but it must not only MSS option.
+		((ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_IHL) >> 12U > TCP_STANDARD_IHL + sizeof(uint8_t) && 
 		(ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_SYN_ACK) || 
 	//Standard IHL
 		((ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_IHL) >> 12U == TCP_STANDARD_IHL && 
@@ -912,7 +909,7 @@ bool CaptureCheck_TCP(
 		(ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_PSH_ACK || 
 	//FIN and ACK bits are set and header options are empty.
 		(ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_FIN_ACK || 
-	//RST bit is set, PSH and ACK bits are not set, Window size is zero and header options are empty.
+	//RST bit is set, PSH and ACK bits are not set, Window Size is zero and header options are empty.
 		((ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_RST && 
 		(reinterpret_cast<const tcp_hdr *>(Buffer))->Acknowledge == 0 && (reinterpret_cast<const tcp_hdr *>(Buffer))->Windows == 0))))
 			return true;
@@ -931,6 +928,7 @@ bool MatchPortToSend(
 //Initialization
 	SOCKET_DATA SocketData_Input;
 	memset(&SocketData_Input, 0, sizeof(SocketData_Input));
+	SocketData_Input.Socket = INVALID_SOCKET;
 	uint16_t SystemProtocol = 0;
 	size_t ReceiveIndex = 0;
 
@@ -961,6 +959,7 @@ bool MatchPortToSend(
 
 				//Clear item in global list.
 					memset(&PortTableIter.SocketData_Input, 0, sizeof(PortTableIter.SocketData_Input));
+					PortTableIter.SocketData_Input.Socket = INVALID_SOCKET;
 					goto ClearOutputPacketListData;
 				}
 			}
@@ -991,6 +990,7 @@ StopLoop:
 
 				//Clear item in global list.
 					memset(&PortTableIter.SocketData_Input, 0, sizeof(PortTableIter.SocketData_Input));
+					PortTableIter.SocketData_Input.Socket = INVALID_SOCKET;
 					goto ClearOutputPacketListData;
 				}
 				else {
@@ -1028,7 +1028,7 @@ ClearOutputPacketListData:
 
 	OutputPacketListMutex.unlock();
 
-//Drop resopnses which not in OutputPacketList.
+//Drop resopnses which are not in OutputPacketList.
 	if (SocketData_Input.AddrLen == 0 || SocketData_Input.SockAddr.ss_family == 0 || SystemProtocol == 0 || 
 		!SocketSetting(SocketData_Input.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 			return false;

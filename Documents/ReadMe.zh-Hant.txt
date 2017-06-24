@@ -27,7 +27,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 批次處理會將程式註冊系統服務，並進行 Windows 防火牆測試，每次開機服務都將自動啟動
   * 此時 Windows 系統會詢問是否同意程式訪問網路，請將 "私人網路絡" 以及 "公用網路" 都勾上並確認
 
-5.打開 "網路和共用中心" - "更改配接器設置" 選擇 "本地連接" 或 "無線連接" 或 "寬頻連線"
+5.請按照下文 正常工作查看方法 一節，先對程式是否在正常工作進行測試再修改網路設定！
+
+6.打開 "網路和共用中心" - "更改配接器設置" 選擇 "本地連接" 或 "無線連接" 或 "寬頻連線"
   * 右擊 "屬性" - "Internet協定(TCP/IP)"(XP/2003) 或 "Internet協定版本4(IPv4)"(Vista 以及更新版本) - "屬性" - 勾選 "使用下面的 DNS 伺服器位址"
   * 在 "首選DNS伺服器" 內填入 "127.0.0.1"（不含引號） 確定保存並退出即可
   * 如果需要使用 IPv6 協定的本機伺服器
@@ -36,13 +38,13 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 請務必確保只填入這兩個地址，填入其它地址可能會導致系統選擇其它 DNS 服務器繞過程序的代理
   * 注意：建議將 "本地連接" 和 "無線連接" 以及 "寬頻連線" 全部修改！
 
-6.特別注意：
+7.特別注意：
   * 如需讓程式的流量通過系統路由級別的代理（例如 VPN 等）進行變數名稱解析，請選擇其中一種方案，配置完成後重啟服務：
     * Direct Request = IPv4
     * Direct Request = IPv6
     * Direct Request = IPv4 + IPv6
   * 設定檔 Hosts 檔 IPFilter 檔和錯誤報表所在的目錄以上文 安裝方法 一節中第4步註冊的服務資訊為准
-    * 填寫時一行不要超過 4096位元組/4KB
+    * 填寫時一行不要超過 4096 位元組/4KB
     * 檔讀取只支援整個文本單一的編碼和換行格式組合，切勿在文字檔中混合所支援的編碼或換行格式！
   * 服務啟動前請先確認沒有其它本地 DNS 伺服器運行或本工具多個拷貝運行中，否則可能會導致監聽衝突無法正常工作
     * 監聽衝突會建置錯誤報告，可留意 Windows Socket 相關的錯誤（參見 FAQ 文檔中 Error.log 詳細錯誤報表 一節）
@@ -93,16 +95,16 @@ https://sourceforge.net/projects/pcap-dnsproxy
 1.打開命令提示符
   * 在開始功能表或直接 Win + R 調出 運行 ，輸入 cmd 並回車
   * 開始功能表 - 程式/所有程式 - 附件 - 命令提示符
-2.輸入 nslookup www.google.com 並回車
+2.輸入 nslookup www.google.com 127.0.0.1 或者 nslookup www.google.com ::1 並回車
 3.運行結果應類似：
 
    >nslookup www.google.com
     服务器:  pcap-dnsproxy.server（視設定檔設置的值而定，參見下文 設定檔詳細參數說明 一節）
-    Address:  127.0.0.1（視所在網路環境而定，原生 IPv6 為 ::1）
+    Address:  127.0.0.1（視所在網路環境而定，本地監聽協定為 IPv6 時為 ::1）
 
     非权威应答:
     名称:    www.google.com
-    Addresses: ……（IP位址或地址清單）
+    Addresses: ……（IP 位址或地址清單）
 
 
 4.如非以上結果，請移步 FAQ 文檔中 運行結果分析 一節
@@ -208,7 +210,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Base - 基本參數區域
   * Version - 設定檔的版本，用於正確識別設定檔：本參數與程式版本號不相關，切勿修改
   * File Refresh Time - 檔刷新間隔時間：單位為秒，最小為 5
-    * 本參數同時決定監視器的時間休眠時間片的細微性，其指的是休眠一段長時間時會根據此細微性啟動並檢查是否需要重新運行特定監視專案，而不需要等到長時間完全過去休眠完全結束後才能重新對此進行監視，此功能對程式的網路狀況適應能力會有提高
+    * 本參數同時決定監視器的時間休眠時間片的細微性，其指休眠一段長時間時會根據此細微性啟動並檢查是否需要重新運行特定監視專案，而不需要等到長時間完全過去休眠完全結束後才能重新對此進行監視，此功能的適當配置對程式的網路狀況適應能力會有提高
   * Large Buffer Size - 大型資料緩衝區的固定長度：單位為位元組，最小為 1500
   * Additional Path - 附加的資料檔案讀取路徑，附加在此處的目錄路徑下的 Hosts 檔和 IPFilter 檔會被依次讀取：請填入目錄的絕對路徑
     * 本參數支援同時讀取多個路徑，各路徑之間請使用 | 隔開
@@ -234,7 +236,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 以抓包模組從系統中獲取的名稱或簡介為准，與其它網路設定程式所顯示的不一定相同
   * Pcap Reading Timeout - 抓包模塊讀取超時時間，數據包只會在等待超時時間後才會被讀取，其餘時間抓包模塊處於休眠狀態：單位為毫秒，最小為 10
     * 讀取超時時間需要平衡需求和資源佔用，時間設置太長會導致域名解析請求響應緩慢導致請求解析超時，太快則會佔用過多系統處理的資源
-  * Listen Protocol - 監聽協定，本地監聽的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
+  * Listen Protocol - 本地監聽請求時所支援的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只監聽指定協定的本地埠
     * 注意：此處的協定指的是向本程式請求功能變數名稱解析時可使用的協定，而程式請求遠端 DNS 伺服器時所使用的協定由 Protocol 參數決定
   * Listen Port - 監聽埠，本地監聽請求的埠：格式為 "埠A(|埠B)"（不含引號，括弧內為可選項目）
@@ -336,7 +338,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * RESERVED/65535
 
 * DNS - 功能變數名稱解析參數區域
-  * Outgoing Protocol - 發送請求所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
+  * Outgoing Protocol - 發送請求到遠端 DNS 伺服器時所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向遠端 DNS 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
     * 同時填入 TCP 和 UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
@@ -373,7 +375,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * 如果填 0 則最終的緩存時間為 TTL 值
   
 * Local DNS - 境內功能變數名稱解析參數區域
-  * Local Protocol - 發送境內請求所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
+  * Local Protocol - 發送請求到境內 DNS 伺服器時所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向境內 DNS 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
     * 同時填入 TCP 和 UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
@@ -557,7 +559,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Unreliable Once Socket Timeout - 一次性不可靠協定埠超時時間：單位為毫秒，最小為 500 可留空，留空時為 2000
     * 一次性是指請求在一次 RTT 往返網路傳輸內即可完成，例如標準 DNS 和 DNSCurve(DNSCrypt) 協定
     * 不可靠埠指 UDP/ICMP/ICMPv6 協定
-  * Unreliable Serial Socket Timeout - 串列可靠協定埠超時時間：單位為毫秒，最小為 500 可留空，留空時為 1000
+  * Unreliable Serial Socket Timeout - 串列不可靠協定埠超時時間：單位為毫秒，最小為 500 可留空，留空時為 1000
     * 串列是指此操作需要多次交互網路傳輸才能完成，例如 SOCKS 和 HTTP CONNECT 協定
     * 不可靠埠指 UDP/ICMP/ICMPv6 協定
   * TCP Fast Open - TCP 快速打開功能：
@@ -630,10 +632,11 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * Data - 資料區域
   * ICMP ID - ICMP/Ping 資料包頭部 ID 的值：格式為 0x**** 的十六進位字元，如果留空則獲取執行緒的 ID 作為請求用 ID
-  * ICMP Sequence - ICMP/Ping 資料包頭部 Sequence/序號 的值：格式為 0x**** 的十六進位字元，如果留空則為 0x0001
-  * Domain Test Data - DNS 伺服器解析功能變數名稱測試：請輸入正確、確認不會被投毒污染的功能變數名稱並且不要超過 253 位元組 ASCII 資料，留空則會隨機生成一個功能變數名稱進行測試
-  * Domain Test ID - DNS 資料包頭部 ID 的值：格式為 0x**** 的十六進位字元，如果留空則為 0x0001
+  * ICMP Sequence - ICMP/Ping 資料包頭部 Sequence/序號 的值：格式為 0x**** 的十六進位字元，如果留空則為從 0x0001 開始每個請求回環式遞增
   * ICMP PaddingData - ICMP 附加資料，Ping 程式發送請求時為補足資料使其達到 Ethernet 類型網路最低的可發送長度時添加的資料：長度介乎于 18位元組 - 1500位元組 ASCII 資料之間，留空則使用 Microsoft Windows Ping 程式的 ICMP 附加資料
+  * Domain Test Protocol - 使用 Domain Test 發送請求時所使用的協定：可填入 TCP 和 UDP
+  * Domain Test ID - DNS 資料包頭部 ID 的值：格式為 0x**** 的十六進位字元，如果留空則獲取執行緒的 ID 作為請求用 ID
+  * Domain Test Data - DNS 伺服器解析功能變數名稱測試：請輸入正確、確認不會被投毒污染的功能變數名稱並且不要超過 253 位元組 ASCII 資料，留空則會隨機生成一個功能變數名稱進行測試
   * Local Machine Server Name - 本地 DNS 伺服器名稱：請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，留空則使用 pcap-dnsproxy.server 作為本機伺服器名稱
 
 * Proxy - 代理區域
@@ -641,7 +644,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * SOCKS Version - SOCKS 協定所使用的版本：可填入 4 或 4A 或 5
     * SOCKS 版本 4 不支援 IPv6 位址以及功能變數名稱的目標伺服器，以及不支援 UDP 轉發功能
     * SOCKS 版本 4a 不支援 IPv6 位址的目標伺服器，以及不支援 UDP 轉發功能
-  * SOCKS Protocol - 發送 SOCKS 協定請求所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
+  * SOCKS Protocol - 使用 SOCKS 協定發送請求時所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向 SOCKS 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
     * 同時填入 TCP 和 UDP 等於只填入 UDP 因為 TCP 為 SOCKS 最先支援以及最普遍支援的標準網路層協定，所以即使填入 UDP 請求失敗時也會使用 TCP 請求
@@ -662,7 +665,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * SOCKS Username - 連接 SOCKS 伺服器時所使用的使用者名：最長可填入 255 個字元，留空為不啟用
   * SOCKS Password - 連接 SOCKS 伺服器時所使用的密碼：最長可填入 255 個字元，留空為不啟用
   * HTTP CONNECT Proxy - HTTP CONNECT 協定總開關，控制所有和 HTTP CONNECT 協定有關的選項：開啟為 1 /關閉為 0
-  * HTTP CONNECT Protocol - 發送 HTTP CONNECT 協定請求所使用的協定：可填入 IPv4 和 IPv6
+  * HTTP CONNECT Protocol - 使用 HTTP CONNECT 協定請求時所使用的協定：可填入 IPv4 和 IPv6
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 時，只使用指定協定向 HTTP CONNECT 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
   * HTTP CONNECT Proxy Only - 只使用 HTTP CONNECT 協定代理模式，所有請求將只通過 HTTP CONNECT 協定進行：開啟為 1 /關閉為 0
@@ -706,7 +709,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * DNSCurve - DNSCurve 協定基本參數區域
   * DNSCurve - DNSCurve 協定總開關，控制所有和 DNSCurve 協定有關的選項：開啟為 1 /關閉為 0
-  * DNSCurve Protocol - DNSCurve 發送請求所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
+  * DNSCurve Protocol - 使用 DNSCurve 協定發送請求時所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向遠端 DNS 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
     * 同時填入 TCP 和 UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
@@ -1047,6 +1050,7 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 * TCP Data Filter
 * DNS Data Filter
 * Strict Resource Record TTL Filter
+* Domain Test Protocol
 * SOCKS Target Server
 * SOCKS Username
 * SOCKS Password

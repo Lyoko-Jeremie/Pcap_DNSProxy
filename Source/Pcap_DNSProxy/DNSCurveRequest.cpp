@@ -26,18 +26,18 @@ Client -> Server:
 * 32 bytes: The client's DNSCurve public key (crypto_box_PUBLICKEYBYTES)
 * 12 bytes: A client-selected nonce for this packet (crypto_box_NONCEBYTES / 2)
 * 16 bytes: Poly1305 MAC (crypto_box_ZEROBYTES - crypto_box_BOXZEROBYTES)
-* Variable encryption data ...
+* Variable encryption data ..
 
 Server -> Client:
 *  8 bytes: The string "r6fnvWJ8" (DNSCRYPT_MAGIC_RESPONSE)
 * 12 bytes: The client's nonce (crypto_box_NONCEBYTES / 2)
 * 12 bytes: A server-selected nonce extension (crypto_box_NONCEBYTES / 2)
 * 16 bytes: Poly1305 MAC (crypto_box_ZEROBYTES - crypto_box_BOXZEROBYTES)
-* Variable encryption data ...
+* Variable encryption data ..
 
 Using TCP protocol:
 * 2 bytes: DNSCurve(DNSCrypt) data payload length
-* Variable original DNSCurve(DNSCrypt) data ...
+* Variable original DNSCurve(DNSCrypt) data ..
 
 */
 
@@ -170,6 +170,7 @@ bool DNSCurve_TCP_SignatureRequest(
 	sodium_memzero(RecvBuffer.get(), Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 	std::vector<SOCKET_DATA> TCPSocketDataList(1U);
 	sodium_memzero(&TCPSocketDataList.front(), sizeof(TCPSocketDataList.front()));
+	TCPSocketDataList.front().Socket = INVALID_SOCKET;
 
 //Make packet data(Part 1).
 	auto DataLength = sizeof(dns_tcp_hdr);
@@ -177,10 +178,16 @@ bool DNSCurve_TCP_SignatureRequest(
 #if defined(ENABLE_PCAP)
 	DNS_TCP_Header->ID = Parameter.DomainTest_ID;
 #else
-	DNS_TCP_Header->ID = htons(U16_NUM_1);
+#if defined(PLATFORM_WIN)
+	DNS_TCP_Header->ID = htons(static_cast<uint16_t>(GetCurrentProcessId())); //Default DNS ID is current thread ID.
+#elif defined(PLATFORM_LINUX)
+	DNS_TCP_Header->ID = htons(static_cast<uint16_t>(pthread_self())); //Default DNS ID is current thread ID.
+#elif defined(PLATFORM_MACOS)
+	DNS_TCP_Header->ID = htons(*reinterpret_cast<uint16_t *>(pthread_self())); //Default DNS ID is current thread ID.
+#endif
 #endif
 	DNS_TCP_Header->Flags = htons(DNS_STANDARD);
-	DNS_TCP_Header->Question = htons(U16_NUM_1);
+	DNS_TCP_Header->Question = htons(U16_NUM_ONE);
 	if (Protocol == AF_INET6)
 	{
 		if (IsAlternate)
@@ -279,7 +286,7 @@ bool DNSCurve_TCP_SignatureRequest(
 	//Jump here to restart.
 	JumpToRestart:
 		SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-		TCPSocketDataList.front().Socket = 0;
+//		TCPSocketDataList.front().Socket = INVALID_SOCKET;
 
 	//Print error log.
 		DNSCurvePrintLog(ServerType, Message);
@@ -322,6 +329,7 @@ bool DNSCurve_UDP_SignatureRequest(
 	sodium_memzero(RecvBuffer.get(), NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
 	sodium_memzero(&UDPSocketDataList.front(), sizeof(UDPSocketDataList.front()));
+	UDPSocketDataList.front().Socket = INVALID_SOCKET;
 
 //Make packet data(Part 1).
 	const auto DNS_Header = reinterpret_cast<dns_hdr *>(SendBuffer.get());
@@ -329,10 +337,16 @@ bool DNSCurve_UDP_SignatureRequest(
 #if defined(ENABLE_PCAP)
 	DNS_Header->ID = Parameter.DomainTest_ID;
 #else
-	DNS_Header->ID = htons(U16_NUM_1);
+#if defined(PLATFORM_WIN)
+	DNS_Header->ID = htons(static_cast<uint16_t>(GetCurrentProcessId())); //Default DNS ID is current thread ID.
+#elif defined(PLATFORM_LINUX)
+	DNS_Header->ID = htons(static_cast<uint16_t>(pthread_self())); //Default DNS ID is current thread ID.
+#elif defined(PLATFORM_MACOS)
+	DNS_Header->ID = htons(*reinterpret_cast<uint16_t *>(pthread_self())); //Default DNS ID is current thread ID.
+#endif
 #endif
 	DNS_Header->Flags = htons(DNS_STANDARD);
-	DNS_Header->Question = htons(U16_NUM_1);
+	DNS_Header->Question = htons(U16_NUM_ONE);
 	if (Protocol == AF_INET6)
 	{
 		if (IsAlternate)
@@ -426,7 +440,7 @@ bool DNSCurve_UDP_SignatureRequest(
 	//Jump here to restart.
 	JumpToRestart:
 		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-		UDPSocketDataList.front().Socket = 0;
+//		UDPSocketDataList.front().Socket = INVALID_SOCKET;
 
 	//Print error log.
 		DNSCurvePrintLog(ServerType, Message);
@@ -468,6 +482,7 @@ size_t DNSCurve_TCP_RequestSingle(
 //Initialization
 	std::vector<SOCKET_DATA> TCPSocketDataList(1U);
 	sodium_memzero(&TCPSocketDataList.front(), sizeof(TCPSocketDataList.front()));
+	TCPSocketDataList.front().Socket = INVALID_SOCKET;
 	DNSCURVE_SOCKET_SELECTING_TABLE TCPSocketSelectingData;
 	DNSCURVE_SERVER_DATA *PacketTarget = nullptr;
 	bool *IsAlternate = nullptr;
@@ -659,6 +674,7 @@ size_t DNSCurve_UDP_RequestSingle(
 //Initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
 	sodium_memzero(&UDPSocketDataList.front(), sizeof(UDPSocketDataList.front()));
+	UDPSocketDataList.front().Socket = INVALID_SOCKET;
 	DNSCURVE_SOCKET_SELECTING_TABLE UDPSocketSelectingData;
 	DNSCURVE_SERVER_DATA *PacketTarget = nullptr;
 	bool *IsAlternate = nullptr;

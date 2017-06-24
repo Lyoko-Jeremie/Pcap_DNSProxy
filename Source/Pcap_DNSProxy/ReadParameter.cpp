@@ -712,7 +712,7 @@ bool Parameter_CheckSetting(
 			if ((ParameterPointer->HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_AUTO || 
 				ParameterPointer->HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_0 || 
 				ParameterPointer->HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_1) && 
-				Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2) 
+				Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"HTTP version 2 require TLS 1.2 and above", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				ParameterPointer->HTTP_CONNECT_TLS_Version = TLS_VERSION_SELECTION::VERSION_1_2;
@@ -1707,7 +1707,7 @@ bool ReadParameterData(
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
 			if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult < ULONG_MAX))
-				ParameterPointer->LogMaxSize = UnsignedResult * KILOBYTE_TIMES;
+				ParameterPointer->LogMaxSize = UnsignedResult * KIBIBYTE_TIMES;
 			else 
 				goto PrintDataFormatError;
 		}
@@ -1719,7 +1719,7 @@ bool ReadParameterData(
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
 			if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult < ULONG_MAX))
-				ParameterPointer->LogMaxSize = UnsignedResult * MEGABYTE_TIMES;
+				ParameterPointer->LogMaxSize = UnsignedResult * MEBIBYTE_TIMES;
 			else 
 				goto PrintDataFormatError;
 		}
@@ -1731,7 +1731,7 @@ bool ReadParameterData(
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("LogMaximumSize="), nullptr, 0);
 			if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult < ULONG_MAX))
-				ParameterPointer->LogMaxSize = UnsignedResult * GIGABYTE_TIMES;
+				ParameterPointer->LogMaxSize = UnsignedResult * GIBIBYTE_TIMES;
 			else 
 				goto PrintDataFormatError;
 		}
@@ -2196,7 +2196,7 @@ bool ReadParameterData(
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("ThreadPoolResetTime="), nullptr, 0);
 			if (UnsignedResult >= SHORTEST_THREAD_POOL_RESET_TIME && UnsignedResult < ULONG_MAX)
-				Parameter.ThreadPoolResetTime = UnsignedResult * SECOND_TO_MILLISECOND;
+				ParameterPointer->ThreadPoolResetTime = UnsignedResult * SECOND_TO_MILLISECOND;
 		}
 		else {
 			goto PrintDataFormatError;
@@ -2595,9 +2595,7 @@ bool ReadParameterData(
 
 //[Switches] block
 	if (Data.compare(0, strlen("DomainCaseConversion=1"), ("DomainCaseConversion=1")) == 0)
-	{
 		ParameterPointer->DomainCaseConversion = true;
-	}
 
 	if (IsFirstRead)
 	{
@@ -2742,7 +2740,7 @@ bool ReadParameterData(
 //[Data] block
 	if (IsFirstRead)
 	{
-	#if defined(ENABLE_PCAP)
+#if defined(ENABLE_PCAP)
 		if (Data.compare(0, strlen("ICMPID="), ("ICMPID=")) == 0 && Data.length() > strlen("ICMPID="))
 		{
 			if (Data.length() < strlen("ICMPID=") + strlen(HEX_PREAMBLE_STRING) + UINT8_MAX_STRING_LENGTH)
@@ -2780,7 +2778,26 @@ bool ReadParameterData(
 				goto PrintDataFormatError;
 			}
 		}
-		else if (Data.compare(0, strlen("DomainTestID="), ("DomainTestID=")) == 0 && Data.length() > strlen("DomainTestID="))
+	}
+
+	if (Data.compare(0, strlen("DomainTestProtocol="), ("DomainTestProtocol=")) == 0 && Data.length() > strlen("DomainTestProtocol="))
+	{
+		CaseConvert(Data, true);
+		if (Data.find("TCP") != std::string::npos)
+		{
+			if (Data.find("UDP") != std::string::npos)
+				ParameterPointer->DomainTest_Protocol = REQUEST_MODE_TEST::BOTH;
+			else 
+				ParameterPointer->DomainTest_Protocol = REQUEST_MODE_TEST::TCP;
+		}
+		else {
+			ParameterPointer->DomainTest_Protocol = REQUEST_MODE_TEST::UDP;
+		}
+	}
+
+	if (IsFirstRead)
+	{
+		if (Data.compare(0, strlen("DomainTestID="), ("DomainTestID=")) == 0 && Data.length() > strlen("DomainTestID="))
 		{
 			if (Data.length() < strlen("DomainTestID=") + strlen(HEX_PREAMBLE_STRING) + UINT8_MAX_STRING_LENGTH)
 			{
@@ -2882,7 +2899,7 @@ bool ReadParameterData(
 		}
 		else if (Data.compare(0, strlen("SOCKSUDPNoHandshake=1"), ("SOCKSUDPNoHandshake=1")) == 0)
 		{
-			ParameterPointer->SOCKS_UDP_NoHandshake = true;
+			Parameter.SOCKS_UDP_NoHandshake = true;
 		}
 		else if (Data.compare(0, strlen("SOCKSProxyOnly=1"), ("SOCKSProxyOnly=1")) == 0)
 		{
@@ -3688,7 +3705,7 @@ bool ReadMultipleAddresses(
 				else 
 			#endif
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv6 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				
+
 				return false;
 			}
 
@@ -3723,7 +3740,7 @@ bool ReadMultipleAddresses(
 					else 
 				#endif
 						PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv6 address port error", errno, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-					
+
 					return false;
 				}
 			}
@@ -3776,7 +3793,7 @@ bool ReadMultipleAddresses(
 				else 
 			#endif
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv4 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				
+
 				return false;
 			}
 
@@ -3791,7 +3808,7 @@ bool ReadMultipleAddresses(
 				else 
 			#endif
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv4 address format error", SignedResult, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-				
+
 				return false;
 			}
 
@@ -3811,7 +3828,7 @@ bool ReadMultipleAddresses(
 					else 
 				#endif
 						PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv4 address port error", errno, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-					
+
 					return false;
 				}
 			}
@@ -3837,7 +3854,7 @@ bool ReadMultipleAddresses(
 						else 
 					#endif
 							PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"DNS target error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-						
+
 						return false;
 					}
 				}
@@ -3853,7 +3870,7 @@ bool ReadMultipleAddresses(
 		else 
 	#endif
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Data format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-		
+
 		return false;
 	}
 
@@ -4310,7 +4327,7 @@ bool ReadDNSCurveDatabaseItem(
 					IsIPv4_Alternate = true;
 				}
 			}
-		
+
 		//Completed check
 			if (IsIPv6_Main && IsIPv6_Alternate && IsIPv4_Main && IsIPv4_Alternate)
 				break;
@@ -4358,7 +4375,7 @@ bool ReadDNSCurveProviderName(
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::DNSCURVE, L"Data length error", 0, nullptr, 0);
 		else 
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-		
+
 		return false;
 	}
 
@@ -4394,7 +4411,7 @@ bool ReadDNSCurveKey(
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::DNSCURVE, L"DNSCurve Key format error", 0, nullptr, 0);
 			else 
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"DNSCurve Key format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-			
+
 			return false;
 		}
 	}
@@ -4403,7 +4420,7 @@ bool ReadDNSCurveKey(
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::DNSCURVE, L"Data length error", 0, nullptr, 0);
 		else 
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
-		
+
 		return false;
 	}
 

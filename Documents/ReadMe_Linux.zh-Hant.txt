@@ -116,7 +116,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * force-reload/restart - 重启服务
       * status - 服务状态，如果 PID 为空则服务未启动
 
-4.配置系統 DNS 伺服器設置
+4.請按照下文 正常工作查看方法 一節，先對程式是否在正常工作進行測試再修改網路設定！
+
+5.配置系統 DNS 伺服器設置
   * 可參見 https://developers.google.com/speed/public-dns/docs/using 中 Changing your DNS servers settings 中 Linux 一節
   * 圖形介面以 GNOME 3 為例：
     * 打開所有程式清單，並 -> 設置 - 硬體分類 - 網路
@@ -187,7 +189,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 正常工作查看方法：
 
 1.打開終端
-2.輸入 dig www.google.com 並回車
+2.輸入 dig @127.0.0.1 www.google.com 或者 dig @::1 www.google.com 並回車
 3.運行結果應類似：
 
    >dig www.google.com
@@ -204,7 +206,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
    ...
 
    ;; Query time: ... msec
-   ;; SERVER: ::1#53(::1)（IPv6，IPv4 下为 127.0.0.1）
+   ;; SERVER: ::1#53(::1)（視所在網路環境而定，本地監聽協定為 IPv4 時為 127.0.0.1）
    ;; WHEN: ...
    ;; MSG SIZE  rcvd: ...
 

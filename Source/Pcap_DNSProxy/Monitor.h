@@ -34,10 +34,10 @@ extern std::mutex LocalAddressLock[], SocketMarkingLock;
 
 //Functions
 bool UDP_Monitor(
-	const SOCKET_DATA LocalSocketData, 
+	SOCKET_DATA LocalSocketData, 
 	bool * const Result);
 bool TCP_Monitor(
-	const SOCKET_DATA LocalSocketData, 
+	SOCKET_DATA LocalSocketData, 
 	bool * const Result);
 #if defined(PLATFORM_WIN)
 addrinfo *GetLocalAddressList(

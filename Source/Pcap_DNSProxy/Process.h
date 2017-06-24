@@ -35,31 +35,31 @@ extern std::mutex LocalAddressLock[], HostsFileLock, DNSCacheListLock;
 
 //Functions
 bool LocalRequestProcess(
-	const MONITOR_QUEUE_DATA &MonitorQueryData, 
+	MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
 bool SOCKS_RequestProcess(
-	const MONITOR_QUEUE_DATA &MonitorQueryData);
+	MONITOR_QUEUE_DATA &MonitorQueryData);
 bool HTTP_CONNECT_RequestProcess(
-	const MONITOR_QUEUE_DATA &MonitorQueryData);
+	MONITOR_QUEUE_DATA &MonitorQueryData);
 bool DirectRequestProcess(
-	const MONITOR_QUEUE_DATA &MonitorQueryData, 
+	MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
 	const bool IsAutomatic);
 #if defined(ENABLE_LIBSODIUM)
 bool DNSCurveRequestProcess(
-	const MONITOR_QUEUE_DATA &MonitorQueryData, 
+	MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
 #endif
 bool TCP_RequestProcess(
-	const MONITOR_QUEUE_DATA &MonitorQueryData, 
+	MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize);
 #if defined(ENABLE_PCAP)
 void UDP_RequestProcess(
-	const MONITOR_QUEUE_DATA &MonitorQueryData);
+	MONITOR_QUEUE_DATA &MonitorQueryData);
 #endif
 uint16_t SelectNetworkProtocol(
 	void);

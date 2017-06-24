@@ -154,6 +154,7 @@ bool MonitorInit(
 	std::vector<std::thread> MonitorThread((Parameter.ListenPort->size() + 1U) * TRANSPORT_LAYER_PARTNUM);
 	SOCKET_DATA LocalSocketData;
 	memset(&LocalSocketData, 0, sizeof(LocalSocketData));
+	LocalSocketData.Socket = INVALID_SOCKET;
 	size_t MonitorThreadIndex = 0;
 	auto ReturnValue = true, * const Result = &ReturnValue;
 
@@ -202,7 +203,7 @@ bool MonitorInit(
 							std::thread MonitorThreadTemp(std::bind(UDP_Monitor, LocalSocketData, Result));
 							std::swap(MonitorThread.at(MonitorThreadIndex), MonitorThreadTemp);
 							++MonitorThreadIndex;
-							LocalSocketData.Socket = 0;
+							LocalSocketData.Socket = INVALID_SOCKET;
 						}
 						else {
 							MonitorThread.clear();
@@ -245,7 +246,7 @@ bool MonitorInit(
 								std::thread MonitorThreadTemp(std::bind(UDP_Monitor, LocalSocketData, Result));
 								std::swap(MonitorThread.at(MonitorThreadIndex), MonitorThreadTemp);
 								++MonitorThreadIndex;
-								LocalSocketData.Socket = 0;
+								LocalSocketData.Socket = INVALID_SOCKET;
 							}
 							else {
 								MonitorThread.clear();
@@ -300,7 +301,7 @@ bool MonitorInit(
 							std::thread MonitorThreadTemp(std::bind(TCP_Monitor, LocalSocketData, Result));
 							std::swap(MonitorThread.at(MonitorThreadIndex), MonitorThreadTemp);
 							++MonitorThreadIndex;
-							LocalSocketData.Socket = 0;
+							LocalSocketData.Socket = INVALID_SOCKET;
 						}
 						else {
 							MonitorThread.clear();
@@ -343,7 +344,7 @@ bool MonitorInit(
 								std::thread MonitorThreadTemp(std::bind(TCP_Monitor, LocalSocketData, Result));
 								std::swap(MonitorThread.at(MonitorThreadIndex), MonitorThreadTemp);
 								++MonitorThreadIndex;
-								LocalSocketData.Socket = 0;
+								LocalSocketData.Socket = INVALID_SOCKET;
 							}
 							else {
 								MonitorThread.clear();
@@ -401,7 +402,7 @@ bool MonitorInit(
 							std::thread MonitorThreadTemp(std::bind(UDP_Monitor, LocalSocketData, Result));
 							std::swap(MonitorThread.at(MonitorThreadIndex), MonitorThreadTemp);
 							++MonitorThreadIndex;
-							LocalSocketData.Socket = 0;
+							LocalSocketData.Socket = INVALID_SOCKET;
 						}
 						else {
 							MonitorThread.clear();
@@ -444,7 +445,7 @@ bool MonitorInit(
 								std::thread MonitorThreadTemp(std::bind(UDP_Monitor, LocalSocketData, Result));
 								std::swap(MonitorThread.at(MonitorThreadIndex), MonitorThreadTemp);
 								++MonitorThreadIndex;
-								LocalSocketData.Socket = 0;
+								LocalSocketData.Socket = INVALID_SOCKET;
 							}
 							else {
 								MonitorThread.clear();
@@ -499,7 +500,7 @@ bool MonitorInit(
 							std::thread MonitorThreadTemp(std::bind(TCP_Monitor, LocalSocketData, Result));
 							std::swap(MonitorThread.at(MonitorThreadIndex), MonitorThreadTemp);
 							++MonitorThreadIndex;
-							LocalSocketData.Socket = 0;
+							LocalSocketData.Socket = INVALID_SOCKET;
 						}
 						else {
 							MonitorThread.clear();
@@ -544,7 +545,7 @@ bool MonitorInit(
 								std::thread InnerMonitorThreadTemp(std::bind(TCP_Monitor, LocalSocketData, Result));
 								std::swap(MonitorThread.at(MonitorThreadIndex), InnerMonitorThreadTemp);
 								++MonitorThreadIndex;
-								LocalSocketData.Socket = 0;
+								LocalSocketData.Socket = INVALID_SOCKET;
 							}
 							else {
 								MonitorThread.clear();
@@ -558,6 +559,7 @@ bool MonitorInit(
 	}
 
 	memset(&LocalSocketData, 0, sizeof(LocalSocketData));
+	LocalSocketData.Socket = INVALID_SOCKET;
 
 //Start monitor request consumer threads.
 	if (Parameter.ThreadPoolBaseNum > 0)
@@ -592,7 +594,7 @@ bool MonitorInit(
 
 //Local DNS server with UDP protocol
 bool UDP_Monitor(
-	const SOCKET_DATA LocalSocketData, 
+	SOCKET_DATA LocalSocketData, 
 	bool * const Result)
 {
 //Socket attribute settings
@@ -696,6 +698,9 @@ bool UDP_Monitor(
 
 				Index = (Index + 1U) % Parameter.ThreadPoolMaxNum;
 			}
+			else {
+				Sleep(LOOP_INTERVAL_TIME_DELAY);
+			}
 		}
 	//Timeout
 		else if (SelectResult == 0)
@@ -725,7 +730,7 @@ bool UDP_Monitor(
 
 //Local DNS server with TCP protocol
 bool TCP_Monitor(
-	const SOCKET_DATA LocalSocketData, 
+	SOCKET_DATA LocalSocketData, 
 	bool * const Result)
 {
 //Socket attribute settings
@@ -814,7 +819,7 @@ bool TCP_Monitor(
 				else if (!CheckQueryData(nullptr, nullptr, 0, MonitorQueryData.second))
 				{
 					SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-					MonitorQueryData.second.Socket = 0;
+//					MonitorQueryData.second.Socket = INVALID_SOCKET;
 
 					continue;
 				}
@@ -830,6 +835,9 @@ bool TCP_Monitor(
 				}
 
 				Index = (Index + 1U) % Parameter.ThreadPoolMaxNum;
+			}
+			else {
+				Sleep(LOOP_INTERVAL_TIME_DELAY);
 			}
 		}
 	//Timeout
@@ -1414,7 +1422,7 @@ void NetworkInformationMonitor(
 			//Mark local addresses(A part).
 				DNS_Header = reinterpret_cast<dns_hdr *>(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6]);
 				DNS_Header->Flags = htons(DNS_SQR_NEA);
-				DNS_Header->Question = htons(U16_NUM_1);
+				DNS_Header->Question = htons(U16_NUM_ONE);
 				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV6] += sizeof(dns_hdr);
 				memcpy_s(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV6], NORMAL_PACKET_MAXSIZE - GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV6], Parameter.Local_FQDN_Response, Parameter.Local_FQDN_Length);
 				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV6] += Parameter.Local_FQDN_Length;
@@ -1433,7 +1441,6 @@ void NetworkInformationMonitor(
 				for (InterfaceAddressIter = InterfaceAddressList;InterfaceAddressIter != nullptr;InterfaceAddressIter = InterfaceAddressIter->ifa_next)
 				{
 					if (InterfaceAddressIter->ifa_addr != nullptr && InterfaceAddressIter->ifa_addr->sa_family == AF_INET6)
-					
 			#endif
 					{
 					//Mark local addresses(B part).
@@ -1576,7 +1583,7 @@ void NetworkInformationMonitor(
 			//Mark local addresses(A part).
 				DNS_Header = reinterpret_cast<dns_hdr *>(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4]);
 				DNS_Header->Flags = htons(DNS_SQR_NEA);
-				DNS_Header->Question = htons(U16_NUM_1);
+				DNS_Header->Question = htons(U16_NUM_ONE);
 				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV4] += sizeof(dns_hdr);
 				memcpy_s(GlobalRunningStatus.LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4] + GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV4], NORMAL_PACKET_MAXSIZE - GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV4], Parameter.Local_FQDN_Response, Parameter.Local_FQDN_Length);
 				GlobalRunningStatus.LocalAddress_Length[NETWORK_LAYER_TYPE_IPV4] += Parameter.Local_FQDN_Length;
@@ -1721,7 +1728,6 @@ void NetworkInformationMonitor(
 			SocketSetting(SocketMarkingList.front().first, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			SocketMarkingList.pop_front();
 		}
-
 		SocketMarkingMutex.unlock();
 
 	//Wait for interval time.

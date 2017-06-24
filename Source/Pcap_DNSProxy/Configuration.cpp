@@ -49,7 +49,6 @@ bool ReadText(
 //Read data.
 	while (!feof(const_cast<FILE *>(FileHandle)))
 	{
-
 	//Read file and mark last read.
 		_set_errno(0);
 		auto ReadLength = fread_s(FileBuffer.get(), FILE_BUFFER_SIZE, sizeof(uint8_t), FILE_BUFFER_SIZE, const_cast<FILE *>(FileHandle));
@@ -426,7 +425,7 @@ bool ReadParameter(
 	if (IsFirstRead)
 	{
 		FILE_DATA FileDataTemp;
-		
+
 	//Create file list.
 		const wchar_t *WCS_ConfigFileNameList[] = CONFIG_FILE_NAME_LIST;
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
@@ -635,7 +634,7 @@ bool ReadParameter(
 					{
 						fclose(FileHandle);
 						FileHandle = nullptr;
-						
+
 						continue;
 					}
 					else {

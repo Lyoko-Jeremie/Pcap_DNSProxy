@@ -1,9 +1,12 @@
 :: Pcap_DNSProxy white list update batch
 :: Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
+:: 
 :: Author: dgeibi, Chengr28
+:: 
 
 
 @echo off
+
 
 :: Write header and download latest data.
 ..\Support\curl -O https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf

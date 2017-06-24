@@ -26,11 +26,14 @@
 // Main definitions
 // 
 //Base definitions
-#define KILOBYTE_TIMES                                1024U                       //1KB = 1,024 bytes
-#define MEGABYTE_TIMES                                1048576U                    //1MB = 1,048,576 bytes
-#define GIGABYTE_TIMES                                1073741824U                 //1GB = 1,073,741,824 bytes
-#define TERABYTE_TIMES                                1099511627776U              //1TB = 1,099,511,627,776 bytes
-#define PETABYTE_TIMES                                1125899906842624U           //1PB = 1,125,899,906,842,624 bytes
+#define KIBIBYTE_TIMES                                1024U                       //1 KiB = 1,024 bytes
+#define MEBIBYTE_TIMES                                1048576U                    //1 MiB = 1,048,576 bytes
+#define GIBIBYTE_TIMES                                1073741824U                 //1 GiB = 1,073,741,824 bytes
+#define TEBIBYTE_TIMES                                1099511627776U              //1 TiB = 1,099,511,627,776 bytes
+#define PEBIBYTE_TIMES                                1125899906842624U           //1 PiB = 1,125,899,906,842,624 bytes
+#define EXBIBYTE_TIMES                                1152921504606846976U        //1 EiB = 1,152,921,504,606,846,976 bytes
+#define ZEBIBYTE_TIMES                                1180591620717411303424U     //1 ZiB = 1,180,591,620,717,411,303,424 bytes
+#define YOBIBYTE_TIMES                                1208925819614629174706176U  //1 YiB = 1,208,925,819,614,629,174,706,176 bytes
 #define CODEPAGE_ASCII                                1U                          //Microsoft Windows Codepage of ANSI
 #define CODEPAGE_UTF_8                                65001U                      //Microsoft Windows Codepage of UTF-8
 #define CODEPAGE_UTF_16_LE                            1200U                       //Microsoft Windows Codepage of UTF-16 Little Endian/LE
@@ -45,7 +48,7 @@
 	#define LIBSODIUM_ERROR                               (-1)
 #endif
 #define BYTES_TO_BITS                                 8U                          //8 bits = 1 byte
-#define U16_NUM_1                                     0x0001
+#define U16_NUM_ONE                                   0x0001
 #define HEX_PREAMBLE_STRING                           ("0x")                      //Hexadecimal preamble
 
 //Character value definitions
@@ -113,7 +116,7 @@
 #define CONFIG_VERSION_MAJOR                          0                                     //Current configuration file major version(0.45)
 #define CONFIG_VERSION_MINOR                          45U                                   //Current configuration file minor version(0.45)
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2017 Chengr28"   //Copyright message
-#define FULL_VERSION                                  L"0.4.9.0"                            //Current full version
+#define FULL_VERSION                                  L"0.4.9.1"                            //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_MAXSIZE                        64U                               //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -127,8 +130,8 @@
 #define DEFAULT_THREAD_POOL_BASENUM                   24U                               //Default number of base thread pool size
 #define DEFAULT_THREAD_POOL_MAXNUM                    256U                              //Default number of maximum thread pool size
 #define DIFFERNET_FILE_SET_NUM                        2U                                //Number of Different file set
-#define DNS_RR_MAX_AAAA_COUNT                         43U                               //Maximum Record Resources size of AAAA answers, 28 bytes * 43 = 1204 bytes
-#define DNS_RR_MAX_A_COUNT                            75U                               //Maximum Record Resources size of A answers, 16 bytes * 75 = 1200 bytes
+#define DNS_RR_MAX_AAAA_COUNT                         43U                               //Maximum Record Resources size of whole AAAA answers, 28 bytes * 43 = 1204 bytes
+#define DNS_RR_MAX_A_COUNT                            75U                               //Maximum Record Resources size of whole A answers, 16 bytes * 75 = 1200 bytes
 #if defined(ENABLE_LIBSODIUM)
 	#define DNSCRYPT_DATABASE_ITEM_MINNUM                 14U                               //Minimum number of item in DNSCrypt database
 	#define DNSCRYPT_DATABASE_ADDRESS_LOCATION            10U                               //Location of DNSCurve Address in DNSCrypt database
@@ -145,7 +148,7 @@
 #define DOMAIN_RAMDOM_MINSIZE                         6U                                //Minimum size of ramdom domain request
 #define FILE_BUFFER_SIZE                              DEFAULT_LARGE_BUFFER_SIZE         //Size of file reading buffer
 #define FILE_READING_MAXSIZE                          268435456U                        //Maximum size of whole reading file(256 MB/268435456 bytes).
-#define HTTP_VERSION_SUPPORT_COUNT                    2U                                //HTTP version 1.1 and 2 which are supported by us.
+#define HTTP_VERSION_SUPPORT_COUNT                    2U                                //HTTP version 1.1 and 2 which are supported.
 #define HTTP_VERSION_MAXSIZE                          3U                                //Maximum size of HTTP version
 #define ICMP_PADDING_MAXSIZE                          1484U                             //Length of ICMP padding data must between 18 bytes and 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
 #if defined(PLATFORM_LINUX)
@@ -226,6 +229,7 @@
 	#define SHORTEST_DNSCURVE_RECHECK_TIME                10U                                      //The shortest DNSCurve keys recheck time(10 seconds)
 #endif
 #define FLUSH_DNS_CACHE_INTERVAL_TIME                 5U                          //Time between every flushing(5 seconds)
+#define LOOP_INTERVAL_TIME_DELAY                      20U                         //Delay mode loop interval time(20 ms)
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#define LOOP_INTERVAL_TIME_NO_DELAY                   20000U                         //No delay mode loop interval time(20000 us/20 ms)
 #endif
@@ -455,6 +459,12 @@ typedef enum class _request_mode_direct_
 	IPV6, 
 	IPV4
 }REQUEST_MODE_DIRECT;
+typedef enum class _request_mode_test_
+{
+	BOTH, 
+	TCP, 
+	UDP
+}REQUEST_MODE_TEST;
 typedef enum class _socket_setting_type
 {
 	CLOSE, 
@@ -474,7 +484,8 @@ typedef enum class _request_process_type_
 	NONE, 
 	LOCAL, 
 	DIRECT, 
-	TCP, 
+	TCP_NORMAL, 
+	TCP_WITHOUT_MARKING, 
 	SOCKS_MAIN, 
 	SOCKS_CLIENT_SELECTION, 
 	SOCKS_USER_AUTH, 
@@ -821,9 +832,10 @@ public:
 	size_t                               ICMP_Speed;
 	uint8_t                              *ICMP_PaddingData;
 	size_t                               ICMP_PaddingLength;
-	uint8_t                              *DomainTest_Data;
+	REQUEST_MODE_TEST                    DomainTest_Protocol;
 	uint16_t                             DomainTest_ID;
 	size_t                               DomainTest_Speed;
+	uint8_t                              *DomainTest_Data;
 #endif
 	std::string                          *Local_FQDN_String;
 	uint8_t                              *Local_FQDN_Response;

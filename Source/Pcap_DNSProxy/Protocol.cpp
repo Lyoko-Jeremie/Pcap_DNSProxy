@@ -33,7 +33,7 @@ bool AddressStringToBinary(
 		memset(OriginalAddr, 0, sizeof(in_addr));
 	else 
 		return false;
-	
+
 //Initialization
 	std::string AddrString(reinterpret_cast<const char *>(AddrBuffer));
 	if (ErrorCode != nullptr)
@@ -309,7 +309,7 @@ bool CheckSpecialAddress(
 	if (Protocol == AF_INET6)
 	{
 		if (
-		//DNS Poisoning addresses from CERNET2, please visit https://code.google.com/p/goagent/issues/detail?id=17571.		
+		//DNS Poisoning addresses from CERNET2, please visit https://code.google.com/p/goagent/issues/detail?id=17571.
 /*			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[4U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[5U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[6U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[7U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[8U] == 0x90 && 
@@ -457,9 +457,15 @@ bool CheckSpecialAddress(
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0xF0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0xF7) || //Reserved by IETF(F000::/5)
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0xF8 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0xFB) || //Reserved by IETF(F800::/6)
 */
-			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0xFC && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0xFD) || //Unique Local Unicast addresses/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
-/*			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0xFE && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] <= 0x7F) || //Reserved by IETF(FE00::/9)
-*/			
+			(IsPrivateUse && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0xFC && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0xFD) || //Unique Local Unicast addresses/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
+/*			!((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0xFD && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x3E && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0x4F && 
+			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0x5A && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[4U] == 0x5B && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[5U] == 0x81 && 
+			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[6U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[7U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[8U] == 0 && 
+			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[9U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[10U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[11U] == 0 && 
+			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[12U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[13U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[14U] == 0 && 
+			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[15U] == 0x01)) || //Network Connectivity Status Indicator/NSCI and Resulting Internet Communication/RIC in Windows(FD3E:4F5A:5B81::1)
+			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0xFE && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] <= 0x7F) || //Reserved by IETF(FE00::/9)
+*/
 			(IsPrivateUse && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0xFE && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] >= 0x80 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] <= 0xBF) || //Link-Local Unicast Contrast addresses/LUC(FE80::/10, Section 2.5.6 in RFC 4291)
 /*			(IsPrivateUse && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0x5E && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0xFE && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[4U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[5U] == 0 && 
@@ -518,7 +524,7 @@ bool CheckSpecialAddress(
 							{
 							//Get a ramdom one.
 								std::uniform_int_distribution<size_t> RamdomDistribution(0, AddressHostsTableIter.Address_Target.size() - 1U);
-								
+
 							//Rewrite address.
 								if (AddressHostsTableIter.Address_Target.front().second > 0)
 								{
@@ -660,8 +666,8 @@ bool CheckSpecialAddress(
 		//Also https://www.iana.org/assignments/ipv4-address-space/ipv4-address-space.xhtml
 			*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0 || //Current network whick only valid as source addresses(0.0.0.0/8, Section 3.2.1.3 in RFC 1122)
 			(IsPrivateUse && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0x0A) || //Private class A addresses(10.0.0.0/8, Section 3 in RFC 1918)
-			(*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0x7F && //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
-			!(*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) == 0 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t) * 2U) == 0 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t) * 3U) == 0x01)) || //The first of Loopback block address(127.0.0.1)
+			(IsPrivateUse && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0x7F) || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
+//			!(*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) == 0 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t) * 2U) == 0 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t) * 3U) == 0x01)) || //The first of Loopback block address(127.0.0.1)
 			( /* IsPrivateUse && */ *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0x64 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) > 0x40 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) < 0x7F) || //Carrier-grade NAT addresses(100.64.0.0/10, Section 7 in RFC 6598)
 			(IsPrivateUse && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0xA9 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) >= 0xFE) || //Link-local addresses(169.254.0.0/16, Section 1.5 in RFC 3927)
 			(IsPrivateUse && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0xAC && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) >= 0x10 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) <= 0x1F) || //Private class B addresses(172.16.0.0/12, Section 3 in RFC 1918)
@@ -1047,13 +1053,13 @@ bool CheckQueryData(
 	DNS_PACKET_DATA * const Packet, 
 	uint8_t * const SendBuffer, 
 	const size_t SendSize, 
-	const SOCKET_DATA &LocalSocketData)
+	SOCKET_DATA &LocalSocketData)
 {
 //Check address(UDP monitor and TCP monitor when accepting connections).
 	if (Packet == nullptr || SendBuffer == nullptr || SendSize < DNS_PACKET_MINSIZE || Packet->Protocol == IPPROTO_UDP)
 	{
 	//IPv6
-		if (LocalSocketData.AddrLen == sizeof(sockaddr_in6)) 
+		if (LocalSocketData.AddrLen == sizeof(sockaddr_in6))
 		{
 			if (!OperationModeFilter(AF_INET6, &reinterpret_cast<const sockaddr_in6 *>(&LocalSocketData.SockAddr)->sin6_addr, Parameter.OperationMode))
 				return false;
@@ -1077,7 +1083,7 @@ bool CheckQueryData(
 	const auto DNS_Header = reinterpret_cast<dns_hdr *>(Packet->Buffer);
 	if (
 	//Base DNS header check
-		DNS_Header->ID == 0 || //ID must not be set 0.
+//		DNS_Header->ID == 0 || //ID must not be set 0.
 //		DNS_Header->Flags == 0 || //Flags must not be set 0.
 	//Extended DNS header check
 		(Parameter.HeaderCheck_DNS && 
@@ -1090,13 +1096,13 @@ bool CheckQueryData(
 	//Must not set RCode.
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) > 0 || 
 	//Question Resource Records Counts must be set 1.
-		ntohs(DNS_Header->Question) != U16_NUM_1 || 
+		ntohs(DNS_Header->Question) != U16_NUM_ONE || 
 	//Answer Resource Records Counts must be set 0.
 		DNS_Header->Answer > 0 || 
 	//Authority Resource Records Counts must be set 0.
 		DNS_Header->Authority > 0 || 
-	//Additional Resource Records Counts must be set 1 or 0.
-		ntohs(DNS_Header->Additional) > U16_NUM_1)))
+	//Additional Resource Records Counts must be set 0 or 1.
+		ntohs(DNS_Header->Additional) > U16_NUM_ONE)))
 			return false;
 
 //Scan all Resource Records.
@@ -1330,7 +1336,7 @@ bool CheckConnectionStreamFin(
 	}
 #endif
 //TCP DNS response
-	else if ((RequestType == REQUEST_PROCESS_TYPE::SOCKS_MAIN || RequestType == REQUEST_PROCESS_TYPE::TCP) && 
+	else if ((RequestType == REQUEST_PROCESS_TYPE::SOCKS_MAIN || RequestType == REQUEST_PROCESS_TYPE::TCP_NORMAL || RequestType == REQUEST_PROCESS_TYPE::TCP_WITHOUT_MARKING) && 
 		Length > sizeof(uint16_t) && 
 		ntohs(*(reinterpret_cast<const uint16_t *>(Stream))) >= DNS_PACKET_MINSIZE && 
 		ntohs(*(reinterpret_cast<const uint16_t *>(Stream))) + sizeof(uint16_t) >= Length)
@@ -1540,8 +1546,8 @@ size_t CheckResponseData(
 	const auto DNS_Header = reinterpret_cast<dns_hdr *>(Buffer);
 	if (
 	//Base DNS header check
-		DNS_Header->ID == 0 || //ID must not be set 0.
-		DNS_Header->Flags == 0 || //Flags must not be set 0.
+//		DNS_Header->ID == 0 || //ID must not be set 0.
+		DNS_Header->Flags == 0 || //Flags must not be set 0, first bit in Flags must be set 1 to show it's a response. 
 	//NoCheck flag
 		(
 	#if defined(ENABLE_LIBSODIUM)
@@ -1564,7 +1570,7 @@ size_t CheckResponseData(
 	//Must not set Reserved bit.
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_Z) > 0 || 
 	//Question Resource Records Counts must be set 1.
-		ntohs(DNS_Header->Question) != U16_NUM_1 || 
+		ntohs(DNS_Header->Question) != U16_NUM_ONE || 
 	//Additional EDNS Label Resource Records check
 		(Parameter.EDNS_Label && DNS_Header->Additional == 0 && 
 		(ResponseType == REQUEST_PROCESS_TYPE::NONE || //Normal
@@ -1575,7 +1581,7 @@ size_t CheckResponseData(
 	#if defined(ENABLE_LIBSODIUM)
 		(ResponseType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN && Parameter.EDNS_Switch_DNSCurve) || //DNSCurve
 	#endif
-		(ResponseType == REQUEST_PROCESS_TYPE::TCP && Parameter.EDNS_Switch_TCP) || //TCP
+		((ResponseType == REQUEST_PROCESS_TYPE::TCP_NORMAL || ResponseType == REQUEST_PROCESS_TYPE::TCP_WITHOUT_MARKING) && Parameter.EDNS_Switch_TCP) || //TCP
 		((ResponseType == REQUEST_PROCESS_TYPE::UDP_NORMAL || ResponseType == REQUEST_PROCESS_TYPE::UDP_WITHOUT_MARKING) && Parameter.EDNS_Switch_UDP)))))) //UDP
 			return EXIT_FAILURE;
 
@@ -1593,7 +1599,7 @@ size_t CheckResponseData(
 		}
 
 	//Check repeating DNS Domain without Compression.
-		if (ntohs(DNS_Header->Answer) == U16_NUM_1 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && 
+		if (ntohs(DNS_Header->Answer) == U16_NUM_ONE && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && 
 			CheckQueryNameLength(Buffer + sizeof(dns_hdr)) == CheckQueryNameLength(Buffer + DNS_PACKET_RR_LOCATE(Buffer)))
 		{
 			if (ntohs((reinterpret_cast<dns_record_standard *>(Buffer + DNS_PACKET_RR_LOCATE(Buffer) + CheckQueryNameLength(Buffer + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH))->Classes) == DNS_CLASS_INTERNET && 
@@ -1711,7 +1717,7 @@ size_t CheckResponseData(
 						return EXIT_FAILURE;
 				}
 
-			//Set successful flag.
+			//Set got result flag.
 				IsGotAddressResult = true;
 			}
 		//A record(IPv4)
@@ -1737,7 +1743,7 @@ size_t CheckResponseData(
 						return EXIT_FAILURE;
 				}
 
-			//Set successful flag.
+			//Set got result flag.
 				IsGotAddressResult = true;
 			}
 		}
@@ -1767,7 +1773,7 @@ size_t CheckResponseData(
 	#if defined(ENABLE_LIBSODIUM)
 		(ResponseType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN && Parameter.EDNS_Switch_DNSCurve) || //DNSCurve
 	#endif
-		(ResponseType == REQUEST_PROCESS_TYPE::TCP && Parameter.EDNS_Switch_TCP) || //TCP
+		((ResponseType == REQUEST_PROCESS_TYPE::TCP_NORMAL || ResponseType == REQUEST_PROCESS_TYPE::TCP_WITHOUT_MARKING) && Parameter.EDNS_Switch_TCP) || //TCP
 		((ResponseType == REQUEST_PROCESS_TYPE::UDP_NORMAL || ResponseType == REQUEST_PROCESS_TYPE::UDP_WITHOUT_MARKING) && Parameter.EDNS_Switch_UDP)) && //UDP
 		(!IsEDNS_Label || (Parameter.DNSSEC_Request && Parameter.DNSSEC_ForceValidation && !IsDNSSEC_Records))) || 
 		(ResponseType == REQUEST_PROCESS_TYPE::LOCAL && !Parameter.IsLocalForce && !IsGotAddressResult)
@@ -1782,9 +1788,9 @@ size_t CheckResponseData(
 	if (
 	#if defined(ENABLE_LIBSODIUM)
 		ResponseType != REQUEST_PROCESS_TYPE::DNSCURVE_SIGN && 
-	#endif	
+	#endif
 		((IsMarkHopLimits != nullptr && Parameter.HeaderCheck_DNS && 
-//		ntohs(DNS_Header->Answer) != U16_NUM_1 || //Some ISP will return fake responses with more than one Answer records.
+//		ntohs(DNS_Header->Answer) != U16_NUM_ONE || //Some ISP will return fake responses with more than one Answer records.
 		(DNS_Header->Answer == 0 || //No any Answer records
 		DNS_Header->Authority > 0 || DNS_Header->Additional > 0 || //More than one Authority records and/or Additional records
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NXDOMAIN)) || //No Such Name, not standard query response and no error check.
