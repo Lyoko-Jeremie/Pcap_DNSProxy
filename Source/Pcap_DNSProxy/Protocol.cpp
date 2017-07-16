@@ -1399,7 +1399,7 @@ size_t CheckResponse_CNAME(
 			if (IsMatchItem)
 			{
 			//Check white and banned hosts list, empty record type list check
-				DataLength = CheckWhiteBannedHostsProcess(Length, HostsTableIter, DNS_Header, DNS_Query, nullptr);
+				DataLength = CheckWhiteBannedHostsProcess(Length, HostsTableIter, DNS_Header, DNS_Query, nullptr, nullptr);
 				if (DataLength >= DNS_PACKET_MINSIZE)
 					return DataLength;
 				else if (HostsTableIter.RecordTypeList.empty())
@@ -1703,7 +1703,7 @@ size_t CheckResponseData(
 
 			//Check addresses.
 				if ((Parameter.DataCheck_Blacklist && CheckSpecialAddress(AF_INET6, Buffer + DataLength, false, DomainString)) || 
-					(Index < ntohs(DNS_Header->Answer) && !Parameter.IsLocalHosts && Parameter.IsLocalRouting && 
+					(Index < ntohs(DNS_Header->Answer) && Parameter.IsLocalRouting && 
 					ResponseType == REQUEST_PROCESS_TYPE::LOCAL && !CheckAddressRouting(AF_INET6, Buffer + DataLength)))
 						return EXIT_FAILURE;
 
@@ -1729,7 +1729,7 @@ size_t CheckResponseData(
 
 			//Check addresses.
 				if ((Parameter.DataCheck_Blacklist && CheckSpecialAddress(AF_INET, Buffer + DataLength, false, DomainString)) || 
-					(Index < ntohs(DNS_Header->Answer) && !Parameter.IsLocalHosts && Parameter.IsLocalRouting && 
+					(Index < ntohs(DNS_Header->Answer) && Parameter.IsLocalRouting && 
 					ResponseType == REQUEST_PROCESS_TYPE::LOCAL && !CheckAddressRouting(AF_INET, Buffer + DataLength)))
 						return EXIT_FAILURE;
 

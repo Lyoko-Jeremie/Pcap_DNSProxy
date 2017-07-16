@@ -11,7 +11,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 安装方法（需要以管理员身份进行）：
 
 1.访问 https://www.winpcap.org/install/default.htm 下载并以管理员权限安装 WinPcap
-  * WinPcap 只需要安装一次，以前安装过最新版本或以后更新本工具时请从第2步开始操作
+  * WinPcap 只需要安装一次，以前安装过最新版本或以后更新本工具时请从第 2 步开始操作
   * 如果 WinPcap 提示已安装旧版本无法继续时，参见 FAQ 中 运行结果分析 一节
   * 安装时自启动选项对工具的运行没有影响，本工具直接调用 WinPcap API 不需要经过服务器程序
  
@@ -39,17 +39,18 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 注意：建议将 "本地连接" 和 "无线连接" 以及 "宽带连接" 全部修改！
 
 7.特别注意：
-  * 如需让程序的流量通过系统路由级别的代理（例如 VPN 等）进行域名解析，请选择其中一种方案，配置完成后重启服务：
+  * 如果需要让程序的流量通过系统路由级别的代理（例如 VPN 等）进行域名解析，请选择其中一种方案，配置完成后重启服务：
     * Direct Request = IPv4
     * Direct Request = IPv6
     * Direct Request = IPv4 + IPv6
-  * 配置文件 Hosts 文件 IPFilter 文件和错误报告所在的目录以上文 安装方法 一节中第4步注册的服务信息为准
+    * 更多的情况是系统路由级别的代理会通过虚拟网络适配器进行连接，此时的 DNS 由代理自行控制，此时则不需要进行任何操作
+  * 配置文件 Hosts 文件 IPFilter 文件和错误报告所在的目录以上文 安装方法 一节中第 4 步注册的服务信息为准
     * 填写时一行不要超过 4096 字节/4KB
     * 文件读取只支持整个文本单一的编码和换行格式组合，切勿在文本文件中混合所支持的编码或换行格式！
-  * 服务启动前请先确认没有其它本地 DNS 服务器运行或本工具多个拷贝运行中，否则可能会导致监听冲突无法正常工作
+  * 服务启动前请先确认监听的地址和端口是否有被其它程序或程序本身的其它实例占用，否则可能会导致监听冲突无法正常工作
   * 杀毒软件/第三方防火墙可能会阻止本程序的操作，请将行为全部允许或将本程序加入到白名单中
   * 如果启动服务时提示 "服务没有及时响应启动或者控制请求" 请留意是否有错误报告生成，详细的错误信息参见 FAQ 文档中 Error.log 详细错误报告 一节
-  * 目录和程序的名称可以随意更改，但请务必在进行安装方法第4步前完成。如果服务注册后需移动工具目录的路径，参见上文 卸载方法 第2步的注意事项
+  * 目录和程序的名称可以随意更改，但请务必在进行安装方法第 4 步前完成。如果服务注册后需移动工具目录的路径，参见上文 卸载方法 第2步的注意事项
   * Windows XP 如出现 10022 错误，需要先启用系统的 IPv6 支持（以管理员身份运行 cmd 输入 ipv6 install 并回车，一次性操作），再重新启动服务
   * 本项目仅对最新版本提供技术支持，在新版本发布后旧版本的支持会即时停止，反馈前请先务必升级到最新版本
 
@@ -116,10 +117,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * 本工具配置选项丰富，配置不同的组合会有不同的效果，介绍几个比较常用的组合：
   * 默认配置：UDP 请求 + 抓包模式
-  * Outgoing Protocol = ...TCP：先 TCP 请求失败后再 UDP 请求 + 抓包模式，对网络资源的占用比较高
+  * Outgoing Protocol = ..TCP：先 TCP 请求失败后再 UDP 请求 + 抓包模式，对网络资源的占用比较高
     * 由于 TCP 请求大部分时候不会被投毒污染，此组合的过滤效果比较可靠
   * EDNS Label = 1：开启 EDNS 请求标签功能
-    * 此功能开启后将有利于对伪造数据包的过滤能力，此组合的过滤效果比较可靠
+    * 此功能开启后将提高对伪造数据包的过滤能力，此组合的过滤效果比较可靠
   * 将目标服务器的请求端口改为非标准 DNS 端口：例如 OpenDNS 支持 53 标准端口和 5353 非标准端口的请求
     * 非标准 DNS 端口现阶段尚未被干扰，此组合的过滤效果比较可靠
   * Multiple Request Times = xx 时：应用到所有除请求境内服务器外的所有请求，一个请求多次发送功能
@@ -132,10 +133,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 上文的加密组合并不阻止程序在请求 DNSCurve(DNSCrypt) 加密模式失败是使用其它协议请求域名解析，开启 Encryption Only = 1 后将只允许使用加密传输，安全性和可靠性最高，但域名解析成功率可能会下降
 * 优化大量请求下程序表现：
   * Pcap Reading Timeout 适当调低这个参数能使抓包模块以更高的频率抓取数据包，降低延迟
-  * Cache Parameter/Default TTL 尽量调高这个参数能增加缓存的生存时间或者队列长度，提高缓存命中率
+  * Cache Parameter + Default TTL 尽量调高这个参数能增加缓存的生存时间或者队列长度，提高缓存命中率
   * Thread Pool Maximum Number 适当调高这个参数能可以增大缓冲区最大可容纳请求的数量
   * Queue Limits Reset Time 不要开启，限制请求数量的参数
-  * Multiple Request Times 非极其恶劣情况慎用，消耗大量系统资源且会些微提高延迟
+  * Multiple Request Times 非极其恶劣情况慎用，消耗大量系统资源且会增加延迟
 
 
 -------------------------------------------------------------------------------
@@ -157,7 +158,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Windows: Config.ini > Config.conf > Config.cfg > Config
   * Linux/macOS: Config.conf > Config.ini > Config.cfg > Config
 * 请求域名解析优先级
-  * 使用系统 API函数进行域名解析（大部分）：系统 Hosts > Pcap_DNSProxy 的 Hosts 条目（Whitelist/白名单条目 > Hosts/主要 Hosts 列表） > DNS 缓存 > Local Hosts/境内 DNS 解析域名列表 > 远程 DNS 服务器
+  * 使用系统 API 函数进行域名解析（大部分）：系统 Hosts > Pcap_DNSProxy 的 Hosts 条目（Whitelist/白名单条目 > Hosts/主要 Hosts 列表） > DNS 缓存 > Local Hosts/境内 DNS 解析域名列表 > 远程 DNS 服务器
   * 直接从网络适配器设置内读取 DNS 服务器地址进行域名解析（小部分）：Pcap_DNSProxy 的 Hosts 配置文件（Whitelist/白名单条目 > Hosts/主要 Hosts 列表） > DNS 缓存 > Local Hosts/境内 DNS 解析域名列表 > 远程 DNS 服务器
   * 请求远程 DNS 服务器的优先级：Direct Request 模式 > TCP 模式的 DNSCurve 加密/非加密模式（如有） > UDP 模式的 DNSCurve 加密/非加密模式（如有） > TCP 模式普通请求（如有） > UDP 模式普通请求
 * 本工具的 DNSCurve(DNSCrypt) 协议是内置的实现，不需要安装 DNSCrypt 官方的工具！
@@ -198,7 +199,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 配置文件详细参数说明：
 
-有效参数格式为 "选项名称 = 数值/数据"（不含引号，注意空格和等号的位置）
+有效参数格式为 "选项名称 = 数值/数据"（不含引号，注意等号的位置）
 注意：配置文件只会在工具服务开始时读取，修改本文件的参数后请重启服务（参见上文 注意事项 一节中的 重启服务）
 
 * Base - 基本参数区域
@@ -219,10 +220,15 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 1 为输出重大错误
     * 2 为输出一般错误
     * 3 为输出所有错误
-  * Log Maximum Size - 日志文件最大容量：直接填数字时单位为字节，可加上单位，支持的单位有 KB/MB/GB，可接受范围为 4KB - 1GB，如果留空则为 8MB
+  * Log Maximum Size - 日志文件最大容量：直接填数字时单位为字节，可加上单位，支持的单位有 KB/MB/GB，可接受范围为 4KB - 512MB，如果留空则为 8MB
     * 注意：日志文件到达最大容量后将被直接删除，然后重新生成新的日志文件，原来的日志将无法找回！
 
 * Listen - 监听参数区域
+  * Process Unique - 进程实例唯一性检查开关：开启为 1 /关闭为 0
+    * 开启时同一时间只能存在唯一一个程序实例运行
+    * 关闭时程序将不对实例数量进行检查，程序可多重运行并监听不同的地址和端口组合，但依赖系统全局特性实现的功能将无法使用：
+      * 不同实例之间的地址和端口组合不能重复，否则会因为监听冲突无法正常工作
+      * 外挂参数 --flush-dns (Domain) 将不能使用，此时如果需要清除程序内部的 DNS 缓存，可通过编辑配置文件改变文件的修改时间
   * Pcap Capture - 抓包功能总开关，开启后抓包模块才能正常使用：开启为 1 /关闭为 0
     * 注意：如果抓包模块被关闭，则会自动开启 Direct Request 功能，启用 Direct Request 时对 DNS 投毒污染的防御能力比较弱
   * Pcap Devices Blacklist - 指定不对含有此名称的网络适配器进行抓包，名称或简介里含有此字符串的网络适配器将被直接忽略
@@ -330,7 +336,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * TA/32768
     * DLV/32769
     * RESERVED/65535
-      
+
 * DNS - 域名解析参数区域
   * Outgoing Protocol - 发送请求到远程 DNS 服务器时所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求
@@ -370,16 +376,20 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
     * 同时填入 TCP 和 UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
     * 填入 Force TCP 可阻止 TCP 请求失败后使用 UDP 重新尝试请求
-  * Local Force Request - 强制使用境内服务器进行解析：开启为 1 /关闭为 0
-    * 本功能只对已经确定使用境内服务器的域名请求有效
   * Local Hosts - 白名单境内服务器请求功能：开启为 1 /关闭为 0
-    * 开启后才能使用自带或自定义的 Local Hosts 白名单，且不能与 Local Main 和 Local Routing 同时启用
-  * Local Main - 主要境内服务器请求功能：开启为 1 /关闭为 0
-    * 开启后所有请求先使用 Local 的服务器进行解析，遇到遭投毒污染的解析结果时自动再向境外服务器请求
-    * 本功能不能与 Local Hosts 同时启用
-  * Local Routing - Local 路由表识别功能：开启为 1 /关闭为 0
-    * 开启后使用 Local 请求的解析结果都会被检查，路由表命中会直接返回结果，命中失败将丢弃解析结果并向境外服务器再次发起请求
-    * 本功能只能在 Local Main 为启用状态时才能启用
+    * 本功能开启后才会尝试读取 Local Hosts 白名单内的数据，关闭时不会读取任何白名单的数据
+  * Local Routing - 境内路由表识别功能：开启为 1 /关闭为 0
+    * 本功能开启后所有请求都会先发送至境内服务器进行域名解析，再根据解析结果进行下一步的操作
+  * Local Force Request - 强制使用境内服务器进行解析：开启为 1 /关闭为 0
+    * 本功能要求启用 Local Hosts 参数
+  * 注意：关于 Local Force Request 和 Local Hosts 和 Local Routing 的组合说明
+    * 所有参数均为关闭时：直接跳过使用境内服务器进行域名解析的过程
+    * 默认情况下在境内服务器解析失败会进行下一步的操作
+    * 只开启 Local Hosts 时：将按照（黑）白名单（无）命中规则的域名，才（不）使用境内服务器进行解析
+      * 开启 Local Force Request 参数时，则强制已命中规则的域名只能使用境内服务器进行解析
+    * 只开启 Local Routing 时：所有请求都会先发送至境内服务器进行域名解析，然后根据路由表进行匹配，命中路由表的解析结果将直接返回给请求者
+    * 同时开启 Local Hosts 和 Local Routing 时：所有（除了黑名单所指定的）请求都会先发送至境内服务器进行域名解析，然后根据路由表进行匹配，命中路由表的解析结果将直接返回给请求者
+      * 开启 Local Force Request 参数时，则强制已命中规则的域名只能使用境内服务器进行解析
 
 * Addresses - 普通模式地址区域
   * IPv4 Listen Address - IPv4 本地监听地址：需要输入一个带端口格式的地址，留空为不启用
@@ -542,10 +552,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Hop Limits Fluctuation - IPv4 TTL/IPv6 Hop Limits 可接受范围，即 IPv4 TTL/IPv6 Hop Limits 的值 ± 数值的范围内的数据包均可被接受，用于避免网络环境短暂变化造成解析失败的问题：取值为 1-255 之间
   * Reliable Once Socket Timeout - 一次性可靠协议端口超时时间：单位为毫秒，最小为 500 可留空，留空时为 3000
     * 一次性是指请求在一次 RTT 往返网络传输内即可完成，例如标准 DNS 和 DNSCurve(DNSCrypt) 协议
-    * 可靠端口是指 TCP 协议
+    * 可靠端口指 TCP 协议
   * Reliable Serial Socket Timeout - 串行可靠协议端口超时时间：单位为毫秒，最小为 500 可留空，留空时为 1500
     * 串行是指此操作需要多次交互网络传输才能完成，例如 SOCKS 和 HTTP CONNECT 协议
-    * 可靠端口是指 TCP 协议
+    * 可靠端口指 TCP 协议
   * Unreliable Once Socket Timeout - 一次性不可靠协议端口超时时间：单位为毫秒，最小为 500 可留空，留空时为 2000
     * 一次性是指请求在一次 RTT 往返网络传输内即可完成，例如标准 DNS 和 DNSCurve(DNSCrypt) 协议
     * 不可靠端口指 UDP/ICMP/ICMPv6 协议
@@ -577,7 +587,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Alternate Time Range - 备用服务器失败次数阈值计算周期：单位为秒，最小为 5
   * Alternate Reset Time - 备用服务器重置切换时间，切换产生后经过此事件会切换回主要服务器：单位为秒，最小为 5
   * Multiple Request Times - 一次向同一个远程服务器发送并行域名解析请求：0 和 1 时为收到一个请求时请求 1 次，2 时为收到一个请求时请求 2 次，3 时为收到一个请求时请求 3 次……以此类推
-    * 此值将应用到 Local Hosts 外对所有远程服务器所有协议的请求，因此可能会对系统以及远程服务器造成压力，请谨慎考虑开启的风险！
+    * 此值将应用到 Local Hosts 外所有远程服务器对所有协议的请求，因此可能会对系统以及远程服务器造成压力，请谨慎考虑开启的风险！
     * 可填入的最大数值为：填入主要/备用服务器的数量
   * Multiple Request Times = 总请求的数值，此数值不能超过 64
     * 一般除非丢包非常严重干扰正常使用否则不建议开启，开启也不建议将值设得太大。实际使用可以每次+1后重启服务测试效果，找到最合适的值
@@ -595,7 +605,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * EDNS Label - EDNS 标签支持，开启后将为请求添加 EDNS 标签：全部开启为 1 /关闭为 0
     * 本参数可只指定部分的请求过程使用 EDNS 标签，分为指定模式和排除模式：
     * 指定列表模式，列出的过程才启用此功能：EDNS Label = Local + SOCKS Proxy + HTTP CONNECT Proxy + Direct Request + DNSCurve + TCP + UDP
-    * 排除列表模式，列出的过程不启用此功能：EDNS Label = 1 - Local - SOCKS Proxy - HTTP CONNECT Proxy - Direct Request - DNSCurve - TCP - UDP
+    * 排除列表模式，列出的过程不启用此功能：EDNS Label = All - Local - SOCKS Proxy - HTTP CONNECT Proxy - Direct Request - DNSCurve - TCP - UDP
   * EDNS Client Subnet Relay - EDNS 客户端子网转发功能，开启后将为来自非私有网络地址的所有请求添加其请求时所使用的地址的 EDNS 子网地址：开启为 1 /关闭为 0
     * 本功能要求启用 EDNS Label 参数
     * 本参数优先级比 IPv4/IPv6 EDNS Client Subnet Address 参数高，故需要添加 EDNS 子网地址时将优先添加本参数的地址
@@ -627,7 +637,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Domain Test Protocol - 使用 Domain Test 发送请求时所使用的协议：可填入 TCP 和 UDP
   * Domain Test ID - DNS 数据包头部 ID 的值：格式为 0x**** 的十六进制字符，如果留空则获取线程的 ID 作为请求用 ID
   * Domain Test Data - DNS 服务器解析域名测试：请输入正确、确认不会被投毒污染的域名并且不要超过 253 字节 ASCII 数据，留空则会随机生成一个域名进行测试
-  * Local Machine Server Name - 本地 DNS 服务器名称：请输入正确的域名并且不要超过253字节 ASCII 数据，留空则使用 pcap-dnsproxy.server 作为本地服务器名称
+  * Local Machine Server Name - 本地 DNS 服务器名称：请输入正确的域名并且不要超过 253 字节 ASCII 数据，留空则使用 pcap-dnsproxy.server 作为本地服务器名称
 
 * Proxy - 代理区域
   * SOCKS Proxy - SOCKS 协议总开关，控制所有和 SOCKS 协议有关的选项：开启为 1 /关闭为 0
@@ -783,10 +793,10 @@ Hosts 文件格式说明：
 
 Hosts 配置文件分为多个提供不同功能的区域
 * 区域通过标签识别，修改时切勿将其删除
-* 一条条目的总长度切勿超过 4096字节/4KB
+* 一条条目的总长度切勿超过 4096 字节/4KB
 * 需要注释请在条目开头添加 #/井号
 * 优先级别自上而下递减，条目越前优先级越高
-* 平行 Hosts 条目支持数量由请求域名以及 EDNS Payload 长度决定，建议不要超过75个 A 记录或43个 AAAA 记录
+* 平行 Hosts 条目支持数量由请求域名以及 EDNS Payload 长度决定，建议不要超过 75 个 A 记录或 43 个 AAAA 记录
 
 
 * Whitelist - 白名单条目
@@ -1017,7 +1027,6 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
 * Direct Request
 * Default TTL
 * Local Protocol
-* Local Force Request
 * Thread Pool Reset Time
 * IPv4 Packet TTL
 * IPv4 Main DNS TTL

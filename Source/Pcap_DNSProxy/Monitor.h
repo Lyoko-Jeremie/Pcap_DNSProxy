@@ -33,12 +33,13 @@ extern std::deque<SOCKET_MARKING_DATA> SocketMarkingList;
 extern std::mutex LocalAddressLock[], SocketMarkingLock;
 
 //Functions
+bool MonitorSocketBinding(
+	const uint16_t Protocol, 
+	SOCKET_DATA &LocalSocketData);
 bool UDP_Monitor(
-	SOCKET_DATA LocalSocketData, 
-	bool * const Result);
+	SOCKET_DATA LocalSocketData);
 bool TCP_Monitor(
-	SOCKET_DATA LocalSocketData, 
-	bool * const Result);
+	SOCKET_DATA LocalSocketData);
 #if defined(PLATFORM_WIN)
 addrinfo *GetLocalAddressList(
 	const uint16_t Protocol, 

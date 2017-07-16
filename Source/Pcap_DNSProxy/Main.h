@@ -23,6 +23,7 @@
 #include "Base.h"
 
 //Global variables
+extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 extern std::mutex ScreenLock;
 

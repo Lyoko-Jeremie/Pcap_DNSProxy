@@ -28,6 +28,7 @@
 * 如果出现以下结果，则说明服务没有运行成功或者设置出错，请检查是否有错误报告生成，或请移步 ReadMe 文档中 安装方法 一节
 
    >nslookup www.google.com
+    ..
     服务器:  UnKnown
     Address: ::1（视所在网络环境而定，本地监听协议为 IPv4 时为 127.0.0.1）
 
@@ -55,12 +56,12 @@
     DNS request timed out.
         timeout was 2 seconds.
     *** 请求 pcap-dnsproxy.server 超时（视配置文件设置的值而定，参见 ReadMe 文档中 配置文件详细参数说明）
-    
+
    >nslookup -vc www.google.com
     服务器:  pcap-dnsproxy.server（视配置文件设置的值而定，参见 ReadMe 文档中 配置文件详细参数说明）
     Address: ::1（视所在网络环境而定，本地监听协议为 IPv4 时为 127.0.0.1）
 
-    *** 没有 www.google.com 可以使用的 internal type for both IPv4 and IPv6 Addresses (A+AAAA)记录
+    *** 没有 www.google.com 可以使用的 internal type for both IPv4 and IPv6 Addresses (A+AAAA) 记录
 
 
 -------------------------------------------------------------------------------
@@ -119,7 +120,7 @@ Error.log 详细错误报告，错误报告一共有7大类型：
   * Configuration file size is too large - 配置文件容量过大：请确认配置文件的内容，整个文件的大小不要超过 512MB
   * DNSCurve database file size is too large - DNSCurve 数据库文件容量过大：请确认配置文件的内容，整个文件的大小不要超过 512MB
   * IPFilter file size is too large - IPFilter 文件容量过大：请确认 IPFilter 文件的内容，整个文件的大小不要超过 512MB
-  * Hosts file size is too large - Hosts 文件容量过大：请确认Hosts文件的内容，整个文件的大小不要超过 512MB
+  * Hosts file size is too large - Hosts 文件容量过大：请确认 Hosts 文件的内容，整个文件的大小不要超过 512MB
   * Configuration file version error - 配置文件版本错误：请确认配置文件是否需要更新
   * Data format error - 配置文件参数一行数据超过 4096 字节/4KB，或该行数据长度不符合要求，或者数据格式错误：请确认该行的内容是否符合要求
   * Text encoding error - 文件编码错误：请确认配置文件的编码类型

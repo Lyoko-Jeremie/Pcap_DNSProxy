@@ -333,6 +333,7 @@ ConfigurationTable::ConfigurationTable(
 	PrintLogLevel = Reference.PrintLogLevel;
 	LogMaxSize = Reference.LogMaxSize;
 	//[Listen] block
+	IsProcessUnique = Reference.IsProcessUnique;
 #if defined(ENABLE_PCAP)
 	IsPcapCapture = Reference.IsPcapCapture;
 	if (Reference.PcapDevicesBlacklist != nullptr)
@@ -381,10 +382,9 @@ ConfigurationTable::ConfigurationTable(
 	//[Local DNS] block
 	LocalProtocol_Network = Reference.LocalProtocol_Network;
 	LocalProtocol_Transport = Reference.LocalProtocol_Transport;
-	IsLocalForce = Reference.IsLocalForce;
-	IsLocalMain = Reference.IsLocalMain;
 	IsLocalHosts = Reference.IsLocalHosts;
 	IsLocalRouting = Reference.IsLocalRouting;
+	IsLocalForce = Reference.IsLocalForce;
 
 	//[Addresses] block
 	if (Reference.ListenAddress_IPv6 != nullptr)
@@ -679,6 +679,7 @@ void ConfigurationTableSetting(
 	ConfigurationParameter->LogMaxSize = LOG_READING_MAXSIZE;
 
 	//[Listen] block
+	ConfigurationParameter->IsProcessUnique = true;
 #if defined(ENABLE_PCAP)
 	ConfigurationParameter->PcapReadingTimeout = DEFAULT_PCAP_CAPTURE_TIMEOUT;
 #endif
@@ -915,7 +916,6 @@ void ConfigurationTable::MonitorItemToUsing(
 //[Local DNS] block
 	ConfigurationParameter->LocalProtocol_Network = LocalProtocol_Network;
 	ConfigurationParameter->LocalProtocol_Transport = LocalProtocol_Transport;
-	ConfigurationParameter->IsLocalForce = IsLocalForce;
 
 //[Values] block
 	ConfigurationParameter->ThreadPoolResetTime = ThreadPoolResetTime;
@@ -1035,7 +1035,6 @@ void ConfigurationTable::MonitorItemReset(
 //[Local DNS] block
 	LocalProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
 	LocalProtocol_Transport = REQUEST_MODE_TRANSPORT::UDP;
-	IsLocalForce = false;
 
 //[Values] block
 	ThreadPoolResetTime = DEFAULT_THREAD_POOL_RESET_TIME;
@@ -1555,8 +1554,49 @@ SocketSelectingOnceTable::SocketSelectingOnceTable(
 	return;
 }
 
-//InputPacketTable class constructor
 #if defined(ENABLE_PCAP)
+//CaptureDeviceTable class constructor
+CaptureDeviceTable::CaptureDeviceTable(
+	void)
+{
+	memset(this, 0, sizeof(CAPTURE_DEVICE_TABLE));
+	try {
+		DeviceName = new std::string();
+	}
+	catch (std::bad_alloc)
+	{
+		delete DeviceName;
+		DeviceName = nullptr;
+
+	//Exit process.
+		exit(EXIT_FAILURE);
+//		return;
+	}
+
+	return;
+}
+
+//CaptureDeviceTable class destructor
+CaptureDeviceTable::~CaptureDeviceTable(
+	void)
+{
+	delete DeviceName;
+	DeviceName = nullptr;
+	if (DeviceHandle != nullptr)
+	{
+		pcap_close(DeviceHandle);
+		DeviceHandle = nullptr;
+	}
+	if (!CheckEmptyBuffer(&BPF_Code, sizeof(BPF_Code)))
+	{
+		pcap_freecode(&BPF_Code);
+		memset(&BPF_Code, 0, sizeof(BPF_Code));
+	}
+
+	return;
+}
+
+//InputPacketTable class constructor
 OutputPacketTable::OutputPacketTable(
 	void)
 {

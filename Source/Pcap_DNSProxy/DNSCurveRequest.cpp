@@ -217,12 +217,19 @@ bool DNSCurve_TCP_SignatureRequest(
 	DNS_TCP_Header->Length = htons(static_cast<uint16_t>(DataLength - sizeof(uint16_t)));
 
 //Socket initialization(Part 1)
+	std::wstring Message;
 	size_t TotalSleepTime = 0;
+	ssize_t RecvLen = 0;
 	auto FileModifiedTime = GlobalRunningStatus.ConfigFileModifiedTime;
 	auto ServerType = DNSCURVE_SERVER_TYPE::NONE;
-	auto PacketTarget = DNSCurveSelectSignatureTargetSocket(Protocol, IsAlternate, ServerType, TCPSocketDataList);
-	std::wstring Message;
-	ssize_t RecvLen = 0;
+	const auto PacketTarget = DNSCurveSelectSignatureTargetSocket(Protocol, IsAlternate, ServerType, TCPSocketDataList);
+	if (PacketTarget == nullptr)
+	{
+		SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"DNSCurve TCP Signature Request module Monitor terminated", 0, nullptr, 0);
+
+		return false;
+	}
 
 //Send request.
 	for (;;)
@@ -273,7 +280,7 @@ bool DNSCurve_TCP_SignatureRequest(
 		}
 		else {
 		//Check signature.
-			if (PacketTarget == nullptr || !DNSCruveGetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
+			if (!DNSCruveGetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
 				CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 				CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 					goto JumpToRestart;
@@ -372,12 +379,19 @@ bool DNSCurve_UDP_SignatureRequest(
 	DataLength = Add_EDNS_To_Additional_RR(SendBuffer.get(), DataLength, NORMAL_PACKET_MAXSIZE, nullptr);
 
 //Socket initialization(Part 1)
+	std::wstring Message;
 	size_t TotalSleepTime = 0;
+	ssize_t RecvLen = 0;
 	auto FileModifiedTime = GlobalRunningStatus.ConfigFileModifiedTime;
 	auto ServerType = DNSCURVE_SERVER_TYPE::NONE;
-	auto PacketTarget = DNSCurveSelectSignatureTargetSocket(Protocol, IsAlternate, ServerType, UDPSocketDataList);
-	std::wstring Message;
-	ssize_t RecvLen = 0;
+	const auto PacketTarget = DNSCurveSelectSignatureTargetSocket(Protocol, IsAlternate, ServerType, UDPSocketDataList);
+	if (PacketTarget == nullptr)
+	{
+		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::SYSTEM, L"DNSCurve UDP Signature Request module Monitor terminated", 0, nullptr, 0);
+
+		return false;
+	}
 
 //Send request.
 	for (;;)
@@ -427,7 +441,7 @@ bool DNSCurve_UDP_SignatureRequest(
 		}
 		else {
 		//Check signature.
-			if (PacketTarget == nullptr || !DNSCruveGetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
+			if (!DNSCruveGetSignatureData(RecvBuffer.get() + DNS_PACKET_RR_LOCATE(RecvBuffer.get()), ServerType) || 
 				CheckEmptyBuffer(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES) || 
 				CheckEmptyBuffer(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 					goto JumpToRestart;

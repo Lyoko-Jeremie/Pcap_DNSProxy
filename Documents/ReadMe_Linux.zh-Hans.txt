@@ -5,7 +5,7 @@ Pcap_DNSProxy 项目的 Sourceforge 页面：
 https://sourceforge.net/projects/pcap-dnsproxy
 
 
-* 更多程序以及配置的详细情况，参见 ReadMe(...).txt
+* 更多程序以及配置的详细情况，参见 ReadMe(..).txt
 
 
 -------------------------------------------------------------------------------
@@ -164,19 +164,19 @@ https://sourceforge.net/projects/pcap-dnsproxy
    ; (1 server found)
    ;; global options: +cmd
    ;; Got answer:
-   ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: ...
-   ;; flags: ...; QUERY: ..., ANSWER: ..., AUTHORITY: ..., ADDITIONAL: ...
+   ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: ..
+   ;; flags: ..; QUERY: .., ANSWER: .., AUTHORITY: .., ADDITIONAL: ..
 
    ;; QUESTION SECTION:
    ;www.google.com.            IN    A
 
    ;; ANSWER SECTION:
-   ...
+   ..
 
-   ;; Query time: ... msec
+   ;; Query time: .. msec
    ;; SERVER: ::1#53(::1)（视所在网络环境而定，本地监听协议为 IPv4 时为 127.0.0.1）
-   ;; WHEN: ...
-   ;; MSG SIZE  rcvd: ...
+   ;; WHEN: ..
+   ;; MSG SIZE  rcvd: ..
 
 4.如非以上结果，请移步 Linux 版 FAQ 文档中 运行结果分析 一节
 

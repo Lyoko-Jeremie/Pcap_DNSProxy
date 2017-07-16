@@ -17,7 +17,7 @@ md latest\ipv4>nul 2>nul
 md latest\ipv6>nul 2>nul
 :: 检查bin程序组完整性
 ..\Support\md5 -c609F46A341FEDEAEEC18ABF9FB7C9647 ..\Support\md5.exe 2>nul||echo.依赖程序似乎被破坏了, 重新安装一次试试?&&ping -n 5 127.0.0.1>nul&&goto END
-..\Support\md5 -cA0BAC06597560FFDE52C225659F2BF3A ..\Support\curl.exe 2>nul||echo.依赖程序似乎被破坏了, 重新安装一次试试?&&ping -n 5 127.0.0.1>nul&&goto END
+..\Support\md5 -cC7D538B88A4A306B462BE0835025BCEF ..\Support\curl.exe 2>nul||echo.依赖程序似乎被破坏了, 重新安装一次试试?&&ping -n 5 127.0.0.1>nul&&goto END
 ..\Support\md5 -cC95C0A045697BE8F782C71BD46958D73 ..\Support\sed.exe 2>nul||echo.依赖程序似乎被破坏了, 重新安装一次试试?&&ping -n 5 127.0.0.1>nul&&goto END
 ..\Support\md5 -c9A5E35DCB4B35A2350E6FDF4620743B6 ..\Support\CCase.exe 2>nul||echo.依赖程序似乎被破坏了, 重新安装一次试试?&&ping -n 5 127.0.0.1>nul&&goto END
 
@@ -27,11 +27,11 @@ if not "%~1" == "" (
 
 :[main]
 :: 拉取FTP数据
-title 路由表一键更新: 拉取数据中...
+title 路由表一键更新: 拉取数据中..
 call:[DownloadData]
 
 :: 验证新旧LIST文件MD5
-title 路由表一键更新: 验证数据中...
+title 路由表一键更新: 验证数据中..
 call:[Hash_DAL]
 
 :: 若未更新,从本地缓存重建数据或取消更新
@@ -60,11 +60,11 @@ if defined IPV6md5_lab if exist #Routingipv6# set IPV6RoutCache=EXIST
 
 :: 标准化原始数据
 :FormatIPList
-title 路由表一键更新: 整理数据中...
+title 路由表一键更新: 整理数据中..
 del /s/q "%temp%\#ipv4listLab#" >nul 2>nul
 del /s/q "%temp%\#ipv6listLab#" >nul 2>nul
-if not defined IPV4RoutCache null>"%temp%\#ipv4listLab#" 2>nul&start /min "路由表一键更新: 生成ipv4路由表中..." "%~f0" [FormatIPV4List]S
-if not defined IPV6RoutCache null>"%temp%\#ipv6listLab#" 2>nul&start /min "路由表一键更新: 生成ipv6路由表中..." "%~f0" [FormatIPV6List]S
+if not defined IPV4RoutCache null>"%temp%\#ipv4listLab#" 2>nul&start /min "路由表一键更新: 生成ipv4路由表中.." "%~f0" [FormatIPV4List]S
+if not defined IPV6RoutCache null>"%temp%\#ipv6listLab#" 2>nul&start /min "路由表一键更新: 生成ipv6路由表中.." "%~f0" [FormatIPV6List]S
 :FormatIPList_DetectLabel
 :: 检测结束等待标志
 if exist "%temp%\#ipv4listLab#" ping /n 3 127.0.0.1>nul&goto FormatIPList_DetectLabel
@@ -145,7 +145,7 @@ goto :eof
 
 :[FormatIPV6List]S
 :: 格式化ipv6列表
-@echo off&title 路由表一键更新: 生成ipv6路由表中...
+@echo off&title 路由表一键更新: 生成ipv6路由表中..
 (for /f "tokens=4-5 delims=|" %%i in ('type ".\latest\ipv6\%IPV6md5%.md5"') do echo %%i/%%j|..\Support\ccase)>#Routingipv6#
 :: 删除结束等待标志
 del /s/q "%temp%\#ipv6listLab#" >nul 2>nul
@@ -153,12 +153,12 @@ exit
 
 :[FormatIPV4List]S
 :: 格式化ipv4列表
-@echo off&title 路由表一键更新: 生成ipv4路由表中...
+@echo off&title 路由表一键更新: 生成ipv4路由表中..
 (for /f "tokens=4-5 delims=|" %%i in ('type ".\latest\ipv4\%IPV4md5%.md5"') do echo.%%i/%%j#)>#Routingipv4#
 set /a index=1,indexx=2,index_out=0
 set str=*&set lop=0
 :[FormatIPV4List]S_LOOP
-if %lop% geq 32 start /w "路由表一键更新: 生成ipv4路由表发生错误..." "%~f0" [FormatIPV4List]S_ERROR&goto END
+if %lop% geq 32 start /w "路由表一键更新: 生成ipv4路由表发生错误.." "%~f0" [FormatIPV4List]S_ERROR&goto END
 for /f "tokens=1-2 delims=/#" %%i in ('findstr /v "%str%" #Routingipv4#') do (
 	set address=%%i&set /a value_mi=%%j
 	call:[SearchLIB]
@@ -168,7 +168,7 @@ for /f "tokens=1-2 delims=/#" %%i in ('findstr /v "%str%" #Routingipv4#') do (
 ..\Support\sed -i "s/#//g" #Routingipv4#
 goto [FormatIPV4List]S_END
 :[FormatIPV4List]S_ERROR
-echo.列表存在未知错误,即将退出...
+echo.列表存在未知错误,即将退出..
 ping /n 3 127.0.0.1>nul
 :[FormatIPV4List]S_END
 :: 删除结束等待标志

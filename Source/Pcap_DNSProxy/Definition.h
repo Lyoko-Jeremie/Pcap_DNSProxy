@@ -116,7 +116,7 @@
 #define CONFIG_VERSION_MAJOR                          0                                     //Current configuration file major version(0.45)
 #define CONFIG_VERSION_MINOR                          45U                                   //Current configuration file minor version(0.45)
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2017 Chengr28"   //Copyright message
-#define FULL_VERSION                                  L"0.4.9.1"                            //Current full version
+#define FULL_VERSION                                  L"0.4.9.2"                            //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_MAXSIZE                        64U                               //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -669,7 +669,8 @@ typedef struct _dns_packet_data_
 	ADDRESS_UNION_DATA                   LocalTarget;
 	uint16_t                             Protocol;
 	bool                                 IsLocalRequest;
-	bool                                 IsLocalForce;
+	bool                                 IsLocalInBlack;
+	bool                                 IsLocalInWhite;
 }DNSPacketData, DNS_PACKET_DATA;
 
 //DNS Cache Data structure
@@ -715,6 +716,7 @@ public:
 	LOG_LEVEL_TYPE                       PrintLogLevel;
 	size_t                               LogMaxSize;
 //[Listen] block
+	bool                                 IsProcessUnique;
 #if defined(ENABLE_PCAP)
 	bool                                 IsPcapCapture;
 	std::vector<std::string>             *PcapDevicesBlacklist;
@@ -740,10 +742,9 @@ public:
 //[Local DNS] block
 	REQUEST_MODE_NETWORK                 LocalProtocol_Network;
 	REQUEST_MODE_TRANSPORT               LocalProtocol_Transport;
-	bool                                 IsLocalForce;
-	bool                                 IsLocalMain;
 	bool                                 IsLocalHosts;
 	bool                                 IsLocalRouting;
+	bool                                 IsLocalForce;
 //[Addresses] block
 	std::vector<sockaddr_storage>        *ListenAddress_IPv6;
 	std::vector<sockaddr_storage>        *ListenAddress_IPv4;
@@ -1082,8 +1083,24 @@ public:
 		void);
 }SOCKET_SELECTING_ONCE_TABLE;
 
-//Port table class
 #if defined(ENABLE_PCAP)
+//Capture device class
+typedef class CaptureDeviceTable
+{
+public:
+	std::string                          *DeviceName;
+	pcap_t                               *DeviceHandle;
+	int                                  DeviceType;
+	bpf_program                          BPF_Code;
+
+//Member functions
+	CaptureDeviceTable(
+		void);
+	~CaptureDeviceTable(
+		void);
+}CAPTURE_DEVICE_TABLE;
+
+//Port table class
 typedef class OutputPacketTable
 {
 public:

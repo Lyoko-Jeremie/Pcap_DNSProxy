@@ -95,8 +95,9 @@ bool PrintError(
 		case LOG_ERROR_TYPE::NETWORK:
 		{
 		//Block error messages when getting Network Unreachable and Host Unreachable error.
-			if (Parameter.PrintLogLevel < LOG_LEVEL_TYPE::LEVEL_3 && (ErrorCode == WSAENETUNREACH || ErrorCode == WSAEHOSTUNREACH))
-				return true;
+			if ((Parameter.PrintLogLevel == LOG_LEVEL_TYPE::LEVEL_1 || Parameter.PrintLogLevel == LOG_LEVEL_TYPE::LEVEL_2) && 
+				(ErrorCode == WSAENETUNREACH || ErrorCode == WSAEHOSTUNREACH))
+					return true;
 			else 
 				ErrorMessage.append(L"[Network Error] ");
 		}break;

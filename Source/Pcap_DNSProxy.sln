@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pcap_DNSProxy", "Pcap_DNSProxy\Pcap_DNSProxy.vcxproj", "{9221C40D-99FA-447B-BB53-767F9C6945EB}"
 EndProject
@@ -37,6 +37,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibSodium", "LibSodium", "{
 		Dependency\LibSodium\crypto_onetimeauth_poly1305.h = Dependency\LibSodium\crypto_onetimeauth_poly1305.h
 		Dependency\LibSodium\crypto_pwhash.h = Dependency\LibSodium\crypto_pwhash.h
 		Dependency\LibSodium\crypto_pwhash_argon2i.h = Dependency\LibSodium\crypto_pwhash_argon2i.h
+		Dependency\LibSodium\crypto_pwhash_argon2id.h = Dependency\LibSodium\crypto_pwhash_argon2id.h
 		Dependency\LibSodium\crypto_pwhash_scryptsalsa208sha256.h = Dependency\LibSodium\crypto_pwhash_scryptsalsa208sha256.h
 		Dependency\LibSodium\crypto_scalarmult.h = Dependency\LibSodium\crypto_scalarmult.h
 		Dependency\LibSodium\crypto_scalarmult_curve25519.h = Dependency\LibSodium\crypto_scalarmult_curve25519.h
@@ -101,14 +102,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pcap", "pcap", "{B47BEE44-3
 		Dependency\WinPcap\pcap\sll.h = Dependency\WinPcap\pcap\sll.h
 		Dependency\WinPcap\pcap\usb.h = Dependency\WinPcap\pcap\usb.h
 		Dependency\WinPcap\pcap\vlan.h = Dependency\WinPcap\pcap\vlan.h
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "private", "private", "{505791ED-97BA-491F-BA24-40E4EF6171F3}"
-	ProjectSection(SolutionItems) = preProject
-		Dependency\LibSodium\private\common.h = Dependency\LibSodium\private\common.h
-		Dependency\LibSodium\private\curve25519_ref10.h = Dependency\LibSodium\private\curve25519_ref10.h
-		Dependency\LibSodium\private\mutex.h = Dependency\LibSodium\private\mutex.h
-		Dependency\LibSodium\private\sse2_64_32.h = Dependency\LibSodium\private\sse2_64_32.h
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "OpenSSL", "OpenSSL", "{48201270-2D78-4FFC-A7C0-56B3F0641B25}"
@@ -232,7 +225,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleConfig", "ExampleConfig", "{9A911CC0-63B2-400E-B819-2EA7DB529AAE}"
 	ProjectSection(SolutionItems) = preProject
 		Auxiliary\ExampleConfig\Config.ini = Auxiliary\ExampleConfig\Config.ini
-		Auxiliary\ExampleConfig\dnscrypt-resolvers.csv = Auxiliary\ExampleConfig\dnscrypt-resolvers.csv
 		Auxiliary\ExampleConfig\Hosts.ini = Auxiliary\ExampleConfig\Hosts.ini
 		Auxiliary\ExampleConfig\IPFilter.ini = Auxiliary\ExampleConfig\IPFilter.ini
 		Auxiliary\ExampleConfig\Pcap_DNSProxy.service = Auxiliary\ExampleConfig\Pcap_DNSProxy.service
@@ -257,17 +249,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{4998
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{5F168452-68EB-45A8-995F-9897E161545E}"
-	ProjectSection(SolutionItems) = preProject
-		Auxiliary\Tools\WinPcap_4.1.3.exe = Auxiliary\Tools\WinPcap_4.1.3.exe
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Support", "Support", "{566F4AAB-2745-4A16-B86E-72F9EB5D0F51}"
-	ProjectSection(SolutionItems) = preProject
-		Auxiliary\Tools\Support\CCase.exe = Auxiliary\Tools\Support\CCase.exe
-		Auxiliary\Tools\Support\curl.exe = Auxiliary\Tools\Support\curl.exe
-		Auxiliary\Tools\Support\md5.exe = Auxiliary\Tools\Support\md5.exe
-		Auxiliary\Tools\Support\sed.exe = Auxiliary\Tools\Support\sed.exe
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_Routing", "Update_Routing", "{6DAEC5F3-28DD-4A68-8093-FB4883C5580A}"
 	ProjectSection(SolutionItems) = preProject
@@ -282,6 +263,15 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Update_WhiteList", "Update_WhiteList", "{A495709C-E95F-4F60-B9B2-0976AB560420}"
 	ProjectSection(SolutionItems) = preProject
 		Auxiliary\Tools\Update_WhiteList\Update_WhiteList.bat = Auxiliary\Tools\Update_WhiteList\Update_WhiteList.bat
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "private", "private", "{01AE7C16-79D7-45D9-AF89-0775D86CCA41}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\LibSodium\private\common.h = Dependency\LibSodium\private\common.h
+		Dependency\LibSodium\private\curve25519_ref10.h = Dependency\LibSodium\private\curve25519_ref10.h
+		Dependency\LibSodium\private\implementations.h = Dependency\LibSodium\private\implementations.h
+		Dependency\LibSodium\private\mutex.h = Dependency\LibSodium\private\mutex.h
+		Dependency\LibSodium\private\sse2_64_32.h = Dependency\LibSodium\private\sse2_64_32.h
 	EndProjectSection
 EndProject
 Global
@@ -314,7 +304,6 @@ Global
 		{874D6810-2479-4A52-8C16-3AFAB5640254} = {777BC78B-14C3-4CEE-AF7A-05DCC515DB21}
 		{D099D655-939B-4399-A0CB-07D88BFD3BA0} = {777BC78B-14C3-4CEE-AF7A-05DCC515DB21}
 		{B47BEE44-34A2-4E23-B146-82D3DD81A2E0} = {D099D655-939B-4399-A0CB-07D88BFD3BA0}
-		{505791ED-97BA-491F-BA24-40E4EF6171F3} = {874D6810-2479-4A52-8C16-3AFAB5640254}
 		{48201270-2D78-4FFC-A7C0-56B3F0641B25} = {777BC78B-14C3-4CEE-AF7A-05DCC515DB21}
 		{A2A74FF1-7A41-41CA-B5EC-D9AE51915369} = {48201270-2D78-4FFC-A7C0-56B3F0641B25}
 		{485839E0-2F50-4431-9351-84E7782DDBDA} = {48201270-2D78-4FFC-A7C0-56B3F0641B25}
@@ -322,8 +311,8 @@ Global
 		{9A911CC0-63B2-400E-B819-2EA7DB529AAE} = {F2A72142-51AE-44D6-8E8D-2F93839DA1EF}
 		{4998748C-219A-49EF-BA88-5CFAAF3BEC97} = {F2A72142-51AE-44D6-8E8D-2F93839DA1EF}
 		{5F168452-68EB-45A8-995F-9897E161545E} = {F2A72142-51AE-44D6-8E8D-2F93839DA1EF}
-		{566F4AAB-2745-4A16-B86E-72F9EB5D0F51} = {5F168452-68EB-45A8-995F-9897E161545E}
 		{6DAEC5F3-28DD-4A68-8093-FB4883C5580A} = {5F168452-68EB-45A8-995F-9897E161545E}
 		{A495709C-E95F-4F60-B9B2-0976AB560420} = {5F168452-68EB-45A8-995F-9897E161545E}
+		{01AE7C16-79D7-45D9-AF89-0775D86CCA41} = {874D6810-2479-4A52-8C16-3AFAB5640254}
 	EndGlobalSection
 EndGlobal

@@ -100,12 +100,10 @@ bool Parameter_CheckSetting(
 
 	if (IsFirstRead)
 	{
-	//Local Main, Local Hosts, Local Routing and Local Force Request check
-		if (((Parameter.IsLocalMain || Parameter.IsLocalHosts || Parameter.IsLocalRouting || Parameter.IsLocalForce) && 
-			Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0 && Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0) || 
-			(Parameter.IsLocalHosts && (Parameter.IsLocalMain || Parameter.IsLocalRouting)) || 
-			(Parameter.IsLocalRouting && !Parameter.IsLocalMain) || 
-			(Parameter.IsLocalForce && !Parameter.IsLocalHosts))
+	//Local Hosts, Local Routing and Local Force Request check
+		if ((Parameter.IsLocalForce && !Parameter.IsLocalHosts) || //Local Force Request require Local Hosts.
+			((Parameter.IsLocalHosts || Parameter.IsLocalRouting) && 
+			Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0 && Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Local request options error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
@@ -1756,8 +1754,13 @@ bool ReadParameterData(
 //[Listen] block
 	if (IsFirstRead)
 	{
+		if (Data.compare(0, strlen("ProcessUnique=1"), ("ProcessUnique=1")) == 0)
+		{
+			Parameter.IsProcessUnique = true;
+		}
+
 	#if defined(ENABLE_PCAP)
-		if (Data.compare(0, strlen("PcapCapture=1"), ("PcapCapture=1")) == 0)
+		else if (Data.compare(0, strlen("PcapCapture=1"), ("PcapCapture=1")) == 0)
 		{
 			Parameter.IsPcapCapture = true;
 		}
@@ -1779,7 +1782,8 @@ bool ReadParameterData(
 			}
 		}
 	#endif
-		if (Data.compare(0, strlen("ListenProtocol="), ("ListenProtocol=")) == 0 && Data.length() > strlen("ListenProtocol="))
+
+		else if (Data.compare(0, strlen("ListenProtocol="), ("ListenProtocol=")) == 0 && Data.length() > strlen("ListenProtocol="))
 		{
 			CaseConvert(Data, true);
 
@@ -2045,19 +2049,15 @@ bool ReadParameterData(
 		else 
 			ParameterPointer->LocalProtocol_Transport = REQUEST_MODE_TRANSPORT::UDP;
 	}
-	else if (Data.compare(0, strlen("LocalForceRequest=1"), ("LocalForceRequest=1")) == 0)
-	{
-		ParameterPointer->IsLocalForce = true;
-	}
 
 	if (IsFirstRead)
 	{
 		if (Data.compare(0, strlen("LocalHosts=1"), ("LocalHosts=1")) == 0)
 			Parameter.IsLocalHosts = true;
-		else if (Data.compare(0, strlen("LocalMain=1"), ("LocalMain=1")) == 0)
-			Parameter.IsLocalMain = true;
 		else if (Data.compare(0, strlen("LocalRouting=1"), ("LocalRouting=1")) == 0)
 			Parameter.IsLocalRouting = true;
+		else if (Data.compare(0, strlen("LocalForceRequest=1"), ("LocalForceRequest=1")) == 0)
+			Parameter.IsLocalForce = true;
 
 //[Addresses] block
 		else if (Data.compare(0, strlen("IPv4ListenAddress="), ("IPv4ListenAddress=")) == 0 && 
@@ -2294,6 +2294,7 @@ bool ReadParameterData(
 			}
 		}
 	}
+
 #if defined(ENABLE_PCAP)
 	else if (Data.compare(0, strlen("IPv4MainDNSTTL="), ("IPv4MainDNSTTL=")) == 0 && Data.length() > strlen("IPv4MainDNSTTL="))
 	{
@@ -2316,6 +2317,7 @@ bool ReadParameterData(
 			return false;
 	}
 #endif
+
 	else if (Data.compare(0, strlen("IPv6PacketHopLimits="), ("IPv6PacketHopLimits=")) == 0 && Data.length() > strlen("IPv6PacketHopLimits="))
 	{
 	//Range
@@ -2377,6 +2379,7 @@ bool ReadParameterData(
 			}
 		}
 	}
+
 #if defined(ENABLE_PCAP)
 	else if (Data.compare(0, strlen("HopLimitsFluctuation="), ("HopLimitsFluctuation=")) == 0 && Data.length() > strlen("HopLimitsFluctuation="))
 	{
@@ -2392,6 +2395,7 @@ bool ReadParameterData(
 		}
 	}
 #endif
+
 	else if (Data.compare(0, strlen("ReliableOnceSocketTimeout="), ("ReliableOnceSocketTimeout=")) == 0 && 
 		Data.length() > strlen("ReliableOnceSocketTimeout="))
 	{
@@ -2502,6 +2506,7 @@ bool ReadParameterData(
 			goto PrintDataFormatError;
 		}
 	}
+
 #if defined(ENABLE_PCAP)
 	else if (Data.compare(0, strlen("ICMPTest="), ("ICMPTest=")) == 0 && Data.length() > strlen("ICMPTest="))
 	{
@@ -2536,6 +2541,7 @@ bool ReadParameterData(
 		}
 	}
 #endif
+
 	if (IsFirstRead)
 	{
 		if (Data.compare(0, strlen("AlternateTimes="), ("AlternateTimes=")) == 0 && Data.length() > strlen("AlternateTimes="))
@@ -2714,6 +2720,7 @@ bool ReadParameterData(
 	{
 		ParameterPointer->DoNotFragment = true;
 	}
+
 #if defined(ENABLE_PCAP)
 	else if (Data.compare(0, strlen("IPv4DataFilter=1"), ("IPv4DataFilter=1")) == 0)
 	{
@@ -2724,6 +2731,7 @@ bool ReadParameterData(
 		ParameterPointer->HeaderCheck_TCP = true;
 	}
 #endif
+
 	else if (Data.compare(0, strlen("DNSDataFilter=1"), ("DNSDataFilter=1")) == 0)
 	{
 		ParameterPointer->HeaderCheck_DNS = true;
@@ -3024,6 +3032,7 @@ bool ReadParameterData(
 		ParameterPointer->HTTP_CONNECT_TargetDomain->clear();
 		ParameterPointer->HTTP_CONNECT_TargetDomain->append(Data, strlen("HTTPCONNECTTargetServer="), Data.length() - strlen("HTTPCONNECTTargetServer="));
 	}
+
 #if defined(ENABLE_TLS)
 	else if (IsFirstRead && Data.compare(0, strlen("HTTPCONNECTTLSHandshake=1"), ("HTTPCONNECTTLSHandshake=1")) == 0)
 	{

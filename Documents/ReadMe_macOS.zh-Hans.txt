@@ -5,7 +5,7 @@ Pcap_DNSProxy 项目的 Sourceforge 页面：
 https://sourceforge.net/projects/pcap-dnsproxy
 
 
-* 更多程序以及配置的详细情况，参见 ReadMe(...).txt
+* 更多程序以及配置的详细情况，参见 ReadMe(..).txt
 
   
 -------------------------------------------------------------------------------
@@ -83,7 +83,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 有关 OpenSSL 库的特别说明：
 
-* 为系统安装新版本 OpenSSL 库后，在开启 TLS/SSL 功能进行编译时如果出现 undef: OPENSSL... 错误：
+* 为系统安装新版本 OpenSSL 库后，在开启 TLS/SSL 功能进行编译时如果出现 undef: OPENSSL.. 错误：
   * 原因是 macOS 自带的 OpenSSL 系列版本非常老旧(0.9.8)不支持新版本特性，链接器在链接时使用了系统自带库导致错误
   * 此时先查看编译过程的记录，将 Found OpenSSL 指示的 CMake 找到的 OpenSSL 库文件目录记下，并确认所使用的版本
     * 此时可编辑 Pcap_DNSProxy 目录下的 CMakeLists.txt 文件：
@@ -138,18 +138,18 @@ https://sourceforge.net/projects/pcap-dnsproxy
    ; (1 server found)
    ;; global options: +cmd
    ;; Got answer:
-   ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: ...
-   ;; flags: ...; QUERY: ..., ANSWER: ..., AUTHORITY: ..., ADDITIONAL: ...
+   ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: ..
+   ;; flags: ..; QUERY: .., ANSWER: .., AUTHORITY: .., ADDITIONAL: ..
 
    ;; QUESTION SECTION:
    ;www.google.com.            IN    A
 
    ;; ANSWER SECTION:
-   ...
+   ..
 
-   ;; Query time: ... msec
+   ;; Query time: .. msec
    ;; SERVER: ::1#53(::1)（视所在网络环境而定，本地监听协议为 IPv4 时为 127.0.0.1）
-   ;; WHEN: ...
-   ;; MSG SIZE  rcvd: ...
+   ;; WHEN: ..
+   ;; MSG SIZE  rcvd: ..
 
 4.如非以上结果，请移步 macOS 版 FAQ 文档中 运行结果分析 一节

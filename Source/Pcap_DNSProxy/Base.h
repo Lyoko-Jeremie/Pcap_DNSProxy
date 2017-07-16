@@ -345,7 +345,8 @@ size_t CheckWhiteBannedHostsProcess(
 	const HostsTable &HostsTableIter, 
 	dns_hdr * const DNS_Header, 
 	dns_qry * const DNS_Query, 
-	bool * const IsLocalRequest);
+	bool * const IsLocalRequest, 
+	bool * const IsLocalInBlack);
 size_t CheckHostsProcess(
 	DNS_PACKET_DATA * const Packet, 
 	uint8_t * const Result, 

@@ -37,11 +37,11 @@ int main(
 //Read commands.
 	else if (!ReadCommand(argc, argv))
 		return EXIT_SUCCESS;
-//Process already exists check
-	else if (!CheckProcessExists())
-		return EXIT_FAILURE;
 //Read configuration file.
 	else if (!ReadParameter(true))
+		return EXIT_FAILURE;
+//Process already exists check
+	else if (Parameter.IsProcessUnique && !CheckProcessExists())
 		return EXIT_FAILURE;
 
 //Handle the system signal.

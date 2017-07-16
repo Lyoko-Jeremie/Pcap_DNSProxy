@@ -5,7 +5,7 @@ Pcap_DNSProxy 專案的 Sourceforge 頁面：
 https://sourceforge.net/projects/pcap-dnsproxy
 
 
-* 更多程式以及配置的詳細情況，參見 ReadMe(...).txt
+* 更多程式以及配置的詳細情況，參見 ReadMe(..).txt
 
 
 -------------------------------------------------------------------------------
@@ -40,8 +40,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 腳本所進行的操作：
       * CMake 將編譯並在 Release 目錄生成 Pcap_DNSProxy 程式
       * 從 ExampleConfig 目錄和 Scripts 目錄複寫所需的腳本和預設設定檔到 Release 目錄，並設置基本讀寫可執行許可權
-  * 使用 ./CMake_Build.sh 腳本時可提供的參數：
     * 添加參數 --enable-static 即 ./CMake_Build.sh --enable-static 可啟用靜態編譯
+  * 使用 ./CMake_Build.sh 腳本時可提供的參數：
     * 執行時使用 ./CMake_Build.sh --disable-libpcap 可剝離對 LibPcap 的依賴，不建議使用
       * 剝離後編譯時將不需要 LibPcap 庫的支援
       * 剝離後程式將完全失去支援 LibPcap 的功能，且運行時將不會產生任何錯誤提示，慎用！
@@ -196,19 +196,19 @@ https://sourceforge.net/projects/pcap-dnsproxy
    ; (1 server found)
    ;; global options: +cmd
    ;; Got answer:
-   ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: ...
-   ;; flags: ...; QUERY: ..., ANSWER: ..., AUTHORITY: ..., ADDITIONAL: ...
+   ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: ..
+   ;; flags: ..; QUERY: .., ANSWER: .., AUTHORITY: .., ADDITIONAL: ..
 
    ;; QUESTION SECTION:
    ;www.google.com.            IN    A
 
    ;; ANSWER SECTION:
-   ...
+   ..
 
-   ;; Query time: ... msec
+   ;; Query time: .. msec
    ;; SERVER: ::1#53(::1)（視所在網路環境而定，本地監聽協定為 IPv4 時為 127.0.0.1）
-   ;; WHEN: ...
-   ;; MSG SIZE  rcvd: ...
+   ;; WHEN: ..
+   ;; MSG SIZE  rcvd: ..
 
 4.如非以上結果，請移步 Linux 版 FAQ 文檔中 運行結果分析 一節
 

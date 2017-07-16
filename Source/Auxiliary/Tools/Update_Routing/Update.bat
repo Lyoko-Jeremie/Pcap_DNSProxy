@@ -17,7 +17,7 @@ md latest\ipv4>nul 2>nul
 md latest\ipv6>nul 2>nul
 :: Bin check
 ..\Support\md5 -c609F46A341FEDEAEEC18ABF9FB7C9647 ..\Support\md5.exe 2>nul||echo.Checksum incorrect, please download all files again.&&ping -n 5 127.0.0.1>nul&&goto END
-..\Support\md5 -cA0BAC06597560FFDE52C225659F2BF3A ..\Support\curl.exe 2>nul||echo.Checksum incorrect, please download all files again.&&ping -n 5 127.0.0.1>nul&&goto END
+..\Support\md5 -cC7D538B88A4A306B462BE0835025BCEF ..\Support\curl.exe 2>nul||echo.Checksum incorrect, please download all files again.&&ping -n 5 127.0.0.1>nul&&goto END
 ..\Support\md5 -cC95C0A045697BE8F782C71BD46958D73 ..\Support\sed.exe 2>nul||echo.Checksum incorrect, please download all files again.&&ping -n 5 127.0.0.1>nul&&goto END
 ..\Support\md5 -c9A5E35DCB4B35A2350E6FDF4620743B6 ..\Support\CCase.exe 2>nul||echo.Checksum incorrect, please download all files again.&&ping -n 5 127.0.0.1>nul&&goto END
 
@@ -27,11 +27,11 @@ if not "%~1" == "" (
 
 :[main]
 :: Download via FTP.
-title Routing list update: Downloading...
+title Routing list update: Downloading..
 call:[DownloadData]
 
 :: List file checksum
-title Routing list update: Verifying...
+title Routing list update: Verifying..
 call:[Hash_DAL]
 
 :: No new data, build from local cache database or cancel.
@@ -60,11 +60,11 @@ if defined IPV6md5_lab if exist #Routingipv6# set IPV6RoutCache=EXIST
 
 :: Convert data.
 :FormatIPList
-title Analysing...
+title Analysing..
 del /s/q "%temp%\#ipv4listLab#" >nul 2>nul
 del /s/q "%temp%\#ipv6listLab#" >nul 2>nul
-if not defined IPV4RoutCache null>"%temp%\#ipv4listLab#" 2>nul&start /min "IPv4 Processing..." "%~f0" [FormatIPV4List]S
-if not defined IPV6RoutCache null>"%temp%\#ipv6listLab#" 2>nul&start /min "IPv6 Processing..." "%~f0" [FormatIPV6List]S
+if not defined IPV4RoutCache null>"%temp%\#ipv4listLab#" 2>nul&start /min "IPv4 Processing.." "%~f0" [FormatIPV4List]S
+if not defined IPV6RoutCache null>"%temp%\#ipv6listLab#" 2>nul&start /min "IPv6 Processing.." "%~f0" [FormatIPV6List]S
 :FormatIPList_DetectLabel
 :: Check EOF.
 if exist "%temp%\#ipv4listLab#" ping /n 3 127.0.0.1>nul&goto FormatIPList_DetectLabel
@@ -145,7 +145,7 @@ goto :eof
 
 :[FormatIPV6List]S
 :: Convert IPv6 data.
-@echo off&title Routing list update: Converting IPv6 routing list...
+@echo off&title Routing list update: Converting IPv6 routing list..
 (for /f "tokens=4-5 delims=|" %%i in ('type ".\latest\ipv6\%IPV6md5%.md5"') do echo %%i/%%j|..\Support\ccase)>#Routingipv6#
 :: Remove flag.
 del /s/q "%temp%\#ipv6listLab#" >nul 2>nul
@@ -153,7 +153,7 @@ exit
 
 :[FormatIPV4List]S
 :: Convert IPv4 data.
-@echo off&title Routing list update: Converting IPv4 routing list...
+@echo off&title Routing list update: Converting IPv4 routing list..
 (for /f "tokens=4-5 delims=|" %%i in ('type ".\latest\ipv4\%IPV4md5%.md5"') do echo.%%i/%%j#)>#Routingipv4#
 set /a index=1,indexx=2,index_out=0
 set str=*&set lop=0

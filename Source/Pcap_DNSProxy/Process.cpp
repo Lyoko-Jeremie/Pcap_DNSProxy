@@ -181,7 +181,7 @@ bool EnterRequestProcess(
 	if (MonitorQueryData.first.IsLocalRequest)
 	{
 		const auto Result = LocalRequestProcess(MonitorQueryData, RecvBuffer, RecvSize);
-		if (Result || (MonitorQueryData.first.IsLocalForce && Parameter.IsLocalForce))
+		if (Result || (MonitorQueryData.first.IsLocalInWhite && Parameter.IsLocalForce))
 		{
 		//Fin TCP request connection.
 			if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
@@ -245,7 +245,7 @@ bool EnterRequestProcess(
 	}
 
 //Direct Request request process
-	if (Parameter.DirectRequest > REQUEST_MODE_DIRECT::NONE && DirectRequestProcess(MonitorQueryData, RecvBuffer, RecvSize, false))
+	if (Parameter.DirectRequest != REQUEST_MODE_DIRECT::NONE && DirectRequestProcess(MonitorQueryData, RecvBuffer, RecvSize, false))
 	{
 	//Fin TCP request connection.
 		if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
@@ -327,14 +327,21 @@ size_t CheckWhiteBannedHostsProcess(
 	const HostsTable &HostsTableIter, 
 	dns_hdr * const DNS_Header, 
 	dns_qry * const DNS_Query, 
-	bool * const IsLocalRequest)
+	bool * const IsLocalRequest, 
+	bool * const IsLocalInBlack)
 {
 //Whitelist Hosts
 	if (HostsTableIter.PermissionType == HOSTS_TYPE::WHITE)
 	{
 	//Reset flag.
 		if (IsLocalRequest != nullptr)
+		{
 			*IsLocalRequest = false;
+
+		//Mark the flag to show this is the rule.
+			if (IsLocalInBlack != nullptr)
+				*IsLocalInBlack = true;
+		}
 
 	//Ignore all types.
 		if (HostsTableIter.RecordTypeList.empty())
@@ -369,7 +376,13 @@ size_t CheckWhiteBannedHostsProcess(
 	{
 	//Reset flag.
 		if (IsLocalRequest != nullptr)
+		{
 			*IsLocalRequest = false;
+
+		//Mark the flag to show this is the rule.
+			if (IsLocalInBlack != nullptr)
+				*IsLocalInBlack = true;
+		}
 
 	//Block all types.
 		if (HostsTableIter.RecordTypeList.empty())
@@ -678,8 +691,8 @@ size_t CheckHostsProcess(
 		}
 	}
 
-//Local Main parameter check
-	if (Parameter.IsLocalMain)
+//Local Routing parameter check
+	if (Parameter.IsLocalRouting) //All request will send to local server first.
 		Packet->IsLocalRequest = true;
 
 //Normal Hosts check
@@ -745,7 +758,7 @@ size_t CheckHostsProcess(
 			JumpToContinue:
 
 			//Check white and banned hosts list, empty record type list check
-				DataLength = CheckWhiteBannedHostsProcess(Packet->Length, HostsTableIter, DNS_Header, DNS_Query, &Packet->IsLocalRequest);
+				DataLength = CheckWhiteBannedHostsProcess(Packet->Length, HostsTableIter, DNS_Header, DNS_Query, &Packet->IsLocalRequest, &Packet->IsLocalInBlack);
 				if (DataLength >= DNS_PACKET_MINSIZE)
 					return DataLength;
 				else if (DataLength == EXIT_FAILURE)
@@ -903,25 +916,20 @@ StopLoop_NormalHosts:
 		//Match hosts.
 			if (IsMatchItem)
 			{
-			//Check white and banned hosts list.
-				DataLength = CheckWhiteBannedHostsProcess(Packet->Length, HostsTableIter, DNS_Header, DNS_Query, &Packet->IsLocalRequest);
-				if (DataLength >= DNS_PACKET_MINSIZE)
-				{
-					return DataLength;
-				}
-				else if (DataLength == EXIT_FAILURE)
-				{
-					Packet->IsLocalRequest = false;
-				}
-			//IsLocal flag setting
-				else {
-					Packet->IsLocalRequest = true;
-					Packet->IsLocalForce = true;
-				}
+				Packet->IsLocalInWhite = true;
 
-			//Mark Local server target and stop loop.
+			//Check white and banned hosts list.
+				DataLength = CheckWhiteBannedHostsProcess(Packet->Length, HostsTableIter, DNS_Header, DNS_Query, &Packet->IsLocalRequest, &Packet->IsLocalInBlack);
+				if (DataLength >= DNS_PACKET_MINSIZE)
+					return DataLength;
+				else if (DataLength == EXIT_SUCCESS)
+					Packet->IsLocalRequest = true;
+
+			//Mark Local server target.
 				if (Packet->IsLocalRequest && !HostsTableIter.AddrOrTargetList.empty())
 					Packet->LocalTarget = HostsTableIter.AddrOrTargetList.front();
+
+			//Stop loop.
 				goto StopLoop_LocalHosts;
 			}
 		}

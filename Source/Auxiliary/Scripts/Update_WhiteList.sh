@@ -29,7 +29,7 @@ echo $CurrentDate >> WhiteList.txt
 echo -e "\n" >> WhiteList.txt
 sed -e "s|114.114.114.114$||" -e "s|^s|S|" accelerated-domains.china.conf >> WhiteList.txt
 
-# Download domain data of Google in China part.
+# Download domain data of Google in Mainland China part.
 echo
 read -p "Do you want to add Google database(google.china.conf) in dnsmasq-china-list? [Y/N]:" yn
 if [ "${yn}" == "Y" ] || [ "${yn}" == "y" ]; then
@@ -39,7 +39,7 @@ if [ "${yn}" == "Y" ] || [ "${yn}" == "y" ]; then
 	rm -rf google.china.conf
 fi
 
-# Download domain data of Apple in China part.
+# Download domain data of Apple in Mainland China part.
 echo
 read -p "Do you want to add Apple database(apple.china.conf) in dnsmasq-china-list? [Y/N]:" yn
 if [ "${yn}" == "Y" ] || [ "${yn}" == "y" ]; then
