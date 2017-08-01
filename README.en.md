@@ -3,37 +3,34 @@
 Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
 
 ### Releases
-[![GitHub release](https://img.shields.io/github/release/chengr28/Pcap_DNSProxy.svg)](https://github.com/chengr28/Pcap_DNSProxy/releases/latest)
-[![GitHub (pre-)release](https://img.shields.io/github/release/chengr28/Pcap_DNSProxy/all.svg?label=pre-release)](https://github.com/chengr28/Pcap_DNSProxy/releases)
+[! [GitHub release] (https://img.shields.io/github/release/chengr28/Pcap_DNSProxy.svg)] (https://github.com/chengr28/Pcap_DNSProxy/releases/latest)
+[! [GitHub (pre) release] (https://img.shields.io/github/release/chengr28/Pcap_DNSProxy/all.svg?label=pre-release)] (https://github.com/chengr28 / Pcap_DNSProxy / releases)
 
 ### Usage
-**说明文档参见项目 [Documents 文件夹](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的内容**
+** Documentation See the contents of the project [Documents folder] (https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) **
 
 ### Summary
-Pcap_DNSProxy 是一个基于 WinPcap/LibPcap 用于过滤 DNS 投毒污染的工具，提供便捷和强大的包含正则表达式的修改 Hosts 的方法，以及对 DNSCurve/DNSCrypt 协议、并行和 TCP 协议请求的支持。多服务器并行请求功能，更可提高在恶劣网络环境下域名解析的可靠性：
-* IPv4/IPv6 协议双栈支持，并可自定义多端口多地址监听和远程请求协议
-* 服务器模式为其它设备提供解析服务，可限制请求范围
-* 支持对 CNAME 记录和解析结果进行 Hosts 并同时支持 Local Hosts 境内 DNS 服务器解析，可提高对境内域名解析速度和服务器访问速度
-* 主要/备用双服务器模式，境外服务器支持并行多次请求，提高 DNS 解析可靠性
-* 独立 DNS 缓存、EDNS 标签、DNSSEC 请求功能以及完整的 DNSCurve/DNSCrypt 协议支持
-* 原生 SOCKS 版本 4/4a/5 和 HTTP CONNECT 隧道协议包括 TLS/SSL 加密连接的支持
-* 丰富的配置参数和选项以及错误报告功能
-* 支持 ASCII 和 UTF-8(/BOM) 和 UTF-16(LE/BE) 和 UTF-32(LE/BE) 编码以及 Unicode 标准要求实现的所有空格/换行格式
+Pcap_DNSProxy is a tool based on WinPcap / LibPcap for filtering DNS poisoning, providing a convenient and powerful way to modify Hosts with regular expressions, as well as support for DNSCurve / DNSCrypt protocol, parallel and TCP protocol requests. Multi-server parallel request function, but also improve the reliability of domain name resolution in harsh network environments:
+* IPv4 / IPv6 protocol dual stack support, and can customize multi-port multi-address monitoring and remote request protocol
+* Server mode provides parsing services for other devices, limiting the scope of requests
+* Support for CNAME records and analysis of the results of Hosts and also support Local Hosts DNS server resolution, can improve the speed of the domain name resolution and server access speed
+* Main / standby dual server mode, external server support parallel requests multiple times, improve DNS resolution reliability
+* Independent DNS cache, EDNS tag, DNSSEC request function and full DNSCurve / DNSCrypt protocol support
+* Native SOCKS version 4 / 4a / 5 and HTTP CONNECT tunneling protocols include support for TLS / SSL encrypted connections
+* Rich configuration parameters and options and error reporting
+* Supports ASCII and UTF-8 (/ BOM) and UTF-16 (LE / BE) and UTF-32 (LE / BE) encoding as well as Unicode standard requirements to achieve all the space /
 
 ### Platform
 * Windows
-  * **64位/x64版本：Windows Vista/2008 以及更新的版本**
-  * **32位/x86版本：Windows XP SP3/2003 SP2 以及更新的版本**
+  * ** 64-bit / x64 version: Windows Vista / 2008 and newer version **
+  * ** 32-bit / x86 version: Windows XP SP3 / 2003 SP2 and newer version **
 * Linux
-  * 支持 [编译所需依赖包](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的 Linux 发行版
-* macOS
-  * **支持 64 位 Mac OS X 10.8(Mountain Lion) 以及更新的 macOS 版本**
-  * 可通过 Homebrew 安装正式版本
-* OpenWrt/LEDE
-  * **参见 [openwrt-Pcap_DNSProxy 项目](https://github.com/wongsyrone/openwrt-Pcap_DNSProxy)**
-* 本工具**抓包模块**所支持的网络类型
-  * 网络设备类型为 Ethernet 和 Apple IEEE 1394/FireWire 的网络
-  * 原生 IPv4/PPPoE 和 IPv6/PPPoEv6 网络
-
-### License
-GNU General Public License/GNU GPL v2
+  * Linux distributions that support the [dependency package required for compilation] (https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents)
+* MacOS
+  * ** support for 64-bit Mac OS X 10.8 (Mountain Lion) and updated macOS version **
+  * The official version can be installed via Homebrew
+* OpenWrt / LEDE
+  * ** See [openwrt-pcap_DNSProxy project] (https://github.com/wongsyrone/openwrt-Pcap_DNSProxy) **
+* This tool ** captures the module type of the supported module
+  * Network devices with Ethernet and Apple IEEE 1394 / FireWire networks
+  * Native IPv4 / PPPoE and IPv6 / PPPoEv6 networks
