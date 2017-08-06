@@ -1,21 +1,29 @@
-﻿common problem
+﻿Common Problem
 
-This document is a common method of dealing with the problem, when the tool can not be used normally can refer to this document to find a solution
-
+This document contains a set of common methods for dealing with the problem, 
+when the tool can not be used normally can refer to this document to find a solution
 
 -------------------------------------------------- -----------------------------
 
 
-* WinPcap suggested that older versions could not be installed:
-  * To install and uninstall the program, run the menu or% PROGRAMFILES (x86)% (64-bit system) /% PROGRAMFILES% (32-bit system) Find WinPcap uninstaller
-  * If you can not find the uninstaller, you may need to enter the safe mode to remove all WinPcap files and then reinstall:
-    *% WINDIR% \ system32 \ Packet.dll
-    *% WINDIR% \ system32 \ drivers \ npf.sys
-    *% WINDIR% \ system32 \ WanPacket.dll
-    *% WINDIR% \ system32 \ wpcap.dll
-    *% WINDIR% \ system32 \ pthreadVC.dll
+* WinPcap could not be installed over older version, so older versions must be uninstalled:
 
-* Appears when installing, running, or restarting services:
+  * Simple Option / Run the WinPCap Uninstaller if available
+    To install and uninstall WinPCap, find WinPCap in the Programs menu or search the directories for the uninstaller.
+
+  * Find WinPcap uninstaller
+        on WIN64 systems - \% PROGRAMFILES (x86)% (64-bit system) 
+        on WIN32 systems - \% PROGRAMFILES% (32-bit system) 
+
+  * If you can not find the uninstaller, you may need to enter the safe mode to remove all WinPcap files by hand  
+    These files are 
+        *% WINDIR% \ system32 \ Packet.dll
+        *% WINDIR% \ system32 \ drivers \ npf.sys
+        *% WINDIR% \ system32 \ WanPacket.dll
+        *% WINDIR% \ system32 \ wpcap.dll
+        *% WINDIR% \ system32 \ pthreadVC.dll
+
+* If a message "Service does not respond in time to start or control request" appears when installing, running, or restarting services:
   * Service does not respond in time to start or control request - check for error report generation, see below for details Error.log Detailed Error Report section
   * Please check if there is an error report generated. For details, see the following section. Error.log Detailed Error Report Section
 
@@ -71,14 +79,14 @@ When an error occurs while the program is running, it is possible to build an er
 * The format of the error report is "[Date Time] -> [Error Type] A brief introduction to the error code [Error code] in Error source (Line line number)." (Without double quotation marks)
 * Windows error code See https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
 * Linux / macOS error code See http://man7.org/linux/man-pages/man3/errno.3.html
-* WinPcap / LibPcap The exact meaning of the error information can be moved https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
-* Winsock error code specific meaning can be moved https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
-* HTTP status code specific meaning can be moved https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-* SSPI / SChannel error code specific meaning can be moved https://msdn.microsoft.com/en-us/library/windows/desktop/aa380499(v=vs.85).aspx and https://msdn.microsoft. Com / en-us / library / windows / desktop / dd721886 (v = vs.85) .aspx
-* OpenSSL error code specific meaning can be moved https://www.openssl.org/docs/manmaster/man3/ERR_get_error.html
+* WinPcap / LibPcap The exact meaning of the error information can be found at https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
+* Winsock error code specific meaning can be found at https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
+* HTTP status code specific meaning can be found at https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
+* SSPI / SChannel error code specific meaning can be found at https://msdn.microsoft.com/en-us/library/windows/desktop/aa380499(v=vs.85).aspx and https://msdn.microsoft. Com / en-us / library / windows / desktop / dd721886 (v = vs.85) .aspx
+* OpenSSL error code specific meaning can be found at https://www.openssl.org/docs/manmaster/man3/ERR_get_error.html
 
 
-Error.log Detailed error report, error report a total of seven major types:
+Error.log Detailed error report, error reports a total of eleven major types:
 
 1.System Error - System error
   * Screen output buffer settings error - screen output buffer configuration error: it is recommended to reboot service or program
