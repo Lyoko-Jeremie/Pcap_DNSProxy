@@ -1,0 +1,11 @@
+Homebrew formulae are simple Ruby scripts:
+
+Homebrew installs packages to their own directory and then symlinks their files into /usr/local
+Homebrew won’t install files outside its prefix, and you can place a Homebrew installation wherever you like.
+
+Creating a Homebrew package is done with the command: brew create https://foo.com/bar-1.0.tgz 
+
+The website says "It's all git and ruby underneath, so hack away with the knowledge that you can easily revert your modifications and merge upstream updates."
+
+
+
