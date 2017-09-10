@@ -8,7 +8,7 @@ Https://sourceforge.net/projects/pcap-dnsproxy
 * For more details on the program and configuration, see ReadMe (..). Txt
 
 
--------------------------------------------------- -----------------------------
+-------------------------------------------------------------------------------
 
 
 installation method:
@@ -145,7 +145,7 @@ The installation process is relatively long and more complex operation, please g
       * Use service network (/ networking) restart or ifdown / ifup or ifconfig stop / start to restart network service / network port
 
 
--------------------------------------------------- -----------------------------
+-------------------------------------------------------------------------------
 
 
 Reboot service method:
@@ -183,7 +183,7 @@ Uninstall method:
 3. Delete all Pcap_DNSProxy related files
 
 
--------------------------------------------------- -----------------------------
+-------------------------------------------------------------------------------
 
 
 Normal work View method:
@@ -211,6 +211,7 @@ Normal work View method:
    ;; MSG SIZE rcvd: ..
 
 4. If you do not have the above results, please move the Linux version of the FAQ document running the results analysis section
+
 
 -------------------------------------------------------------------------------
 

@@ -6,7 +6,9 @@ solutions to a number of common problems.
 
 * For details on the error report, see FAQ (..). Txt
 
--------------------------------------------------- -----------------------------
+
+-------------------------------------------------------------------------------
+
 
 * Debug mode
   * When there is any suspected program is not working properly or error situation, 
@@ -49,7 +51,8 @@ solutions to a number of common problems.
             * Press [Ctrl]+[Shift]+[Esc] and Windows Task Manager will launch instantly
 
 
--------------------------------------------------- -----------------------------
+-------------------------------------------------------------------------------
+
 
 Operational results analysis:
 
@@ -92,5 +95,3 @@ Operational results analysis:
     ;; SERVER: .. # 53 (..)
     WHEN: ..
     ;; MSG SIZE rcvd: ..
-
-

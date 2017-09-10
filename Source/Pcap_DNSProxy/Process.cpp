@@ -78,7 +78,7 @@ void MonitorRequestConsumer(
 		MonitorQueryData.first.Buffer = SendBuffer.get();
 		MonitorQueryData.first.BufferSize = Parameter.LargeBufferSize;
 		if (MonitorQueryData.first.Protocol == IPPROTO_TCP)
-			TCP_ReceiveProcess(MonitorQueryData, RecvBuffer.get(), Parameter.LargeBufferSize);
+			TCP_AcceptProcess(MonitorQueryData, RecvBuffer.get(), Parameter.LargeBufferSize);
 		else if (MonitorQueryData.first.Protocol == IPPROTO_UDP)
 			EnterRequestProcess(MonitorQueryData, RecvBuffer.get(), Parameter.LargeBufferSize);
 
@@ -1558,10 +1558,11 @@ bool MarkDomainCache(
 //		}
 	}
 
-//Delete old cache and mark to global list.
+//Delete old cache, mark cache data to global list and global index list.
 	std::lock_guard<std::mutex> DNSCacheListMutex(DNSCacheListLock);
-	AutoClear_DNS_Cache();
+	AutoRemoveExpired_DNS_Cache();
 	DNSCacheList.push_front(std::move(DNSCacheDataTemp));
+	DNSCacheIndexList.insert(std::make_pair(DNSCacheList.front().Domain, DNSCacheList.begin()));
 
 	return true;
 }
@@ -1588,57 +1589,61 @@ size_t CheckDomainCache(
 		AddrPart = htonl(ntohl((reinterpret_cast<const sockaddr_in *>(&LocalSocketData.SockAddr))->sin_addr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - Parameter.DNS_CacheSinglePrefix_IPv4)));
 	}
 
-//Scan all DNS cache.
+//Find all matched DNS cache.
 	std::lock_guard<std::mutex> DNSCacheListMutex(DNSCacheListLock);
-	AutoClear_DNS_Cache();
-	for (const auto &DNSCacheDataIter:DNSCacheList)
+	AutoRemoveExpired_DNS_Cache();
+	if (DNSCacheIndexList.find(Domain) != DNSCacheIndexList.end())
 	{
-	//Single address single cache(Part 2, IPv6)
-		if (DNSCacheDataIter.ForAddress.Storage.ss_family == AF_INET6)
+		const auto MapRange = DNSCacheIndexList.equal_range(Domain);
+		for (auto MapIter = MapRange.first;MapIter != MapRange.second;++MapIter)
 		{
-		//Check if the request protocol is not matched.
-			if (LocalSocketData.SockAddr.ss_family != AF_INET6)
-				continue;
-
-		//Check address prefix.
-			if (Parameter.DNS_CacheSinglePrefix_IPv6 > 0 && 
-				((Parameter.DNS_CacheSinglePrefix_IPv6 < sizeof(in6_addr) * BYTES_TO_BITS / 2U && memcmp(&AddrPart, &DNSCacheDataIter.ForAddress.IPv6.sin6_addr, sizeof(AddrPart)) != 0) || 
-				(Parameter.DNS_CacheSinglePrefix_IPv6 >= sizeof(in6_addr) * BYTES_TO_BITS / 2U && 
-				(memcmp(&reinterpret_cast<const sockaddr_in6 *>(&LocalSocketData.SockAddr)->sin6_addr, &DNSCacheDataIter.ForAddress.IPv6.sin6_addr, sizeof(uint64_t)) != 0 || 
-				memcmp(&AddrPart, reinterpret_cast<const uint8_t *>(&DNSCacheDataIter.ForAddress.IPv6.sin6_addr) + sizeof(in6_addr) / 2U, sizeof(AddrPart)) != 0))))
+		//Single address single cache(Part 2, IPv6)
+			if (MapIter->second->ForAddress.Storage.ss_family == AF_INET6)
+			{
+			//Check if the request protocol is not matched.
+				if (LocalSocketData.SockAddr.ss_family != AF_INET6)
 					continue;
-		}
-	//Single address single cache(Part 2, IPv4)
-		else if (DNSCacheDataIter.ForAddress.Storage.ss_family == AF_INET)
-		{
-		//Check if the request protocol is not matched.
-			if (LocalSocketData.SockAddr.ss_family != AF_INET)
-				continue;
 
-		//Check address prefix.
-			if (Parameter.DNS_CacheSinglePrefix_IPv4 > 0 && static_cast<uint32_t>(AddrPart) != DNSCacheDataIter.ForAddress.IPv4.sin_addr.s_addr)
-				continue;
-		}
-	//Single address single cache(Part 2, default queue or single address single cache has been shutdown are always pass)
-//		else {
-//			;
-//		}
+			//Check address prefix.
+				if (Parameter.DNS_CacheSinglePrefix_IPv6 > 0 && 
+					((Parameter.DNS_CacheSinglePrefix_IPv6 < sizeof(in6_addr) * BYTES_TO_BITS / 2U && memcmp(&AddrPart, &MapIter->second->ForAddress.IPv6.sin6_addr, sizeof(AddrPart)) != 0) || 
+					(Parameter.DNS_CacheSinglePrefix_IPv6 >= sizeof(in6_addr) * BYTES_TO_BITS / 2U && 
+					(memcmp(&reinterpret_cast<const sockaddr_in6 *>(&LocalSocketData.SockAddr)->sin6_addr, &MapIter->second->ForAddress.IPv6.sin6_addr, sizeof(uint64_t)) != 0 || 
+					memcmp(&AddrPart, reinterpret_cast<const uint8_t *>(&MapIter->second->ForAddress.IPv6.sin6_addr) + sizeof(in6_addr) / 2U, sizeof(AddrPart)) != 0))))
+						continue;
+			}
+		//Single address single cache(Part 2, IPv4)
+			else if (MapIter->second->ForAddress.Storage.ss_family == AF_INET)
+			{
+			//Check if the request protocol is not matched.
+				if (LocalSocketData.SockAddr.ss_family != AF_INET)
+					continue;
 
-	//Scan cache data.
-		if (DNSCacheDataIter.Domain == Domain && DNSCacheDataIter.RecordType == DNS_Query->Type)
-		{
-			memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
-			memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), DNSCacheDataIter.Response.get(), DNSCacheDataIter.Length);
+			//Check address prefix.
+				if (Parameter.DNS_CacheSinglePrefix_IPv4 > 0 && static_cast<uint32_t>(AddrPart) != MapIter->second->ForAddress.IPv4.sin_addr.s_addr)
+					continue;
+			}
+		//Single address single cache(Part 2, default queue or single address single cache has been shutdown are always pass)
+//			else {
+//				;
+//			}
 
-			return DNSCacheDataIter.Length + sizeof(uint16_t);
+		//Scan cache data.
+			if (MapIter->second->RecordType == DNS_Query->Type)
+			{
+				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
+				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), MapIter->second->Response.get(), MapIter->second->Length);
+
+				return MapIter->second->Length + sizeof(uint16_t);
+			}
 		}
 	}
 
 	return 0;
 }
 
-//Auto clean DNS cache
-void AutoClear_DNS_Cache(
+//Automatic remove expired DNS cache
+void AutoRemoveExpired_DNS_Cache(
 	void)
 {
 //Timer mode
@@ -1648,9 +1653,27 @@ void AutoClear_DNS_Cache(
 		for (auto DNSCacheDataIter = DNSCacheList.begin();DNSCacheDataIter != DNSCacheList.end();)
 		{
 			if (DNSCacheDataIter->ClearCacheTime <= GetCurrentSystemTime())
+			{
+			//Remove from DNS cache index list.
+				if (DNSCacheIndexList.find(DNSCacheDataIter->Domain) != DNSCacheIndexList.end())
+				{
+					const auto MapRange = DNSCacheIndexList.equal_range(DNSCacheDataIter->Domain);
+					for (auto MapIter = MapRange.first;MapIter != MapRange.second;++MapIter)
+					{
+						if (MapIter->second == DNSCacheDataIter)
+						{
+							DNSCacheIndexList.erase(MapIter);
+							break;
+						}
+					}
+				}
+
+			//Remove from DNS cache data list.
 				DNSCacheDataIter = DNSCacheList.erase(DNSCacheDataIter);
-			else 
+			}
+			else {
 				++DNSCacheDataIter;
+			}
 		}
 	}
 //Queue mode
@@ -1658,7 +1681,26 @@ void AutoClear_DNS_Cache(
 	{
 	//Queue length check
 		while (DNSCacheList.size() > Parameter.DNS_CacheParameter)
+		{
+		//Remove from DNS cache index list.
+			if (DNSCacheIndexList.find(DNSCacheList.back().Domain) != DNSCacheIndexList.end())
+			{
+				auto DNSCacheListIter = DNSCacheList.end();
+				--DNSCacheListIter;
+				const auto MapRange = DNSCacheIndexList.equal_range(DNSCacheList.back().Domain);
+				for (auto MapIter = MapRange.first;MapIter != MapRange.second;++MapIter)
+				{
+					if (MapIter->second == DNSCacheListIter)
+					{
+						DNSCacheIndexList.erase(MapIter);
+						break;
+					}
+				}
+			}
+
+		//Remove from DNS cache data list.
 			DNSCacheList.pop_back();
+		}
 	}
 //Both mode(Timer + Queue)
 	else if (Parameter.DNS_CacheType == DNS_CACHE_TYPE::BOTH)
@@ -1667,14 +1709,51 @@ void AutoClear_DNS_Cache(
 		for (auto DNSCacheDataIter = DNSCacheList.begin();DNSCacheDataIter != DNSCacheList.end();)
 		{
 			if (DNSCacheDataIter->ClearCacheTime <= GetCurrentSystemTime())
+			{
+			//Remove from DNS cache index list.
+				if (DNSCacheIndexList.find(DNSCacheDataIter->Domain) != DNSCacheIndexList.end())
+				{
+					const auto MapRange = DNSCacheIndexList.equal_range(DNSCacheDataIter->Domain);
+					for (auto MapIter = MapRange.first;MapIter != MapRange.second;++MapIter)
+					{
+						if (MapIter->second == DNSCacheDataIter)
+						{
+							DNSCacheIndexList.erase(MapIter);
+							break;
+						}
+					}
+				}
+
+			//Remove from DNS cache data list.
 				DNSCacheDataIter = DNSCacheList.erase(DNSCacheDataIter);
-			else 
+			}
+			else {
 				++DNSCacheDataIter;
+			}
 		}
 
 	//Queue length check
 		while (DNSCacheList.size() > Parameter.DNS_CacheParameter)
+		{
+		//Remove from DNS cache index list.
+			if (DNSCacheIndexList.find(DNSCacheList.back().Domain) != DNSCacheIndexList.end())
+			{
+				auto DNSCacheListIter = DNSCacheList.end();
+				--DNSCacheListIter;
+				const auto MapRange = DNSCacheIndexList.equal_range(DNSCacheList.back().Domain);
+				for (auto MapIter = MapRange.first;MapIter != MapRange.second;++MapIter)
+				{
+					if (MapIter->second == DNSCacheListIter)
+					{
+						DNSCacheIndexList.erase(MapIter);
+						break;
+					}
+				}
+			}
+
+		//Remove from DNS cache data list.
 			DNSCacheList.pop_back();
+		}
 	}
 
 	return;

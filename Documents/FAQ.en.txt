@@ -1,322 +1,321 @@
-﻿Common Problem
+﻿Frequently asked questions
 
-This document contains a set of common methods for dealing with the problem, 
-when the tool can not be used normally can refer to this document to find a solution
-
--------------------------------------------------- -----------------------------
+This document contains a set of common methods for dealing with problems, please refer the documents to find out the solution before asking, thanks a lot.
 
 
-* WinPcap could not be installed over older version, so older versions must be uninstalled:
+-------------------------------------------------------------------------------
 
-  * Simple Option / Run the WinPCap Uninstaller if available
-    To install and uninstall WinPCap, find WinPCap in the Programs menu or search the directories for the uninstaller.
 
-  * Find WinPcap uninstaller
-        on WIN64 systems - \% PROGRAMFILES (x86)% (64-bit system) 
-        on WIN32 systems - \% PROGRAMFILES% (32-bit system) 
+* WinPcap could not be installed and show that there is an older version:
+  * Please uninstall the older version of WinPcap first. You can find WinPcap in Programs menu or search directories for its uninstaller. WinPcap uninstaller should be located in %PROGRAMFILES(x86)% (64-bit system) or %PROGRAMFILES% (32-bit system).
+  * If you cannot find any uninstaller, you can reboot to safe mode and remove all WinPcap files manually:
+    * %WINDIR%\system32\Packet.dll
+    * %WINDIR%\system32\drivers\npf.sys
+    * %WINDIR%\system32\WanPacket.dll
+    * %WINDIR%\system32\wpcap.dll
+    * %WINDIR%\system32\pthreadVC.dll
 
-  * If you can not find the uninstaller, you may need to enter the safe mode to remove all WinPcap files by hand  
-    These files are 
-        *% WINDIR% \ system32 \ Packet.dll
-        *% WINDIR% \ system32 \ drivers \ npf.sys
-        *% WINDIR% \ system32 \ WanPacket.dll
-        *% WINDIR% \ system32 \ wpcap.dll
-        *% WINDIR% \ system32 \ pthreadVC.dll
-
-* If a message "Service does not respond in time to start or control request" appears when installing, running, or restarting services:
-  * Service does not respond in time to start or control request - check for error report generation, see below for details Error.log Detailed Error Report section
-  * Please check if there is an error report generated. For details, see the following section. Error.log Detailed Error Report Section
+* Error message prints when installing, running or restarting service:
+  * The service did not respond to the start or control request in a timely fashion - Please check if there is an error report generated. For details, please visit the following section below.
+  * Service start failed, please check the configuration - Please check if there is an error report generated. For details, please visit the following section below.
 
 * Debug mode
-  * When there is any suspected program is not working properly or error situation, you can bypass the service control program directly using the debug mode debug mode, all errors will be directly output to the screen
-  * Terminate all running instances and determine that only one program is running at the same time
+  * When in debug/console mode, all error messages will print to screen directly.
+  * Please make sure that there is only one instance running in the same time.
   * Windows
-    * Run directly with administrator permission
+    * Run directly with administrator privileges.
 
-* If the following results occur, the service is not running successfully or the setting error, please check whether there is an error report generated, or move the ReadMe document in the installation method section
+* Service is not running or system settings error, please check if there is an error report generated or visit installation section in ReadMe.
 
-   > Nslookup www.google.com
-    ..
-    Server: UnKnown
-    Address: :: 1 (depending on the network environment, 127.0.0.1 when the local listening protocol is IPv4)
+   >nslookup www.google.com
+    ..
+    Server:  UnKnown
+    Address: ::1 (IPv6, 127.0.0.1 if it's IPv4)
 
-    *** UnKnown not found www.google.com: No response from server
-
-
--------------------------------------------------- -----------------------------
+    *** UnKnown can't find www.google.com: No response from server
 
 
-* If the following results occur, the service is running successfully but the remote DNS server does not respond, check for error report generation
-  * Be sure to set up a correct, valid, and usable offshore DNS server
-  * This may be a problem with the network. Part of the ISP / operator to UDP protocol forwarding packet loss rate is relatively high, you can try to switch to the TCP protocol mode (see ReadMe document configuration parameters in the detailed description of the base base area of ​​the Operation Mode section) or try to request several times
-  * May also be due to a long time running a cumulative error caused by the task force is trying to solve. You can try to restart the service (see the restart service in the ReadMe documentation)
-
-   > Nslookup www.google.com
-    Server: pcap-dnsproxy.server (depending on the value of the profile settings, see the details of the profile in the ReadMe documentation)
-    Address: :: 1 (depending on the network environment, 127.0.0.1 when the local listening protocol is IPv4)
-
-    DNS request timed out.
-        Timeout was 2 seconds.
-    DNS request timed out.
-        Timeout was 2 seconds.
-    DNS request timed out.
-        Timeout was 2 seconds.
-    DNS request timed out.
-        Timeout was 2 seconds.
-    *** request pcap-dnsproxy.server timeout (depending on the value set by the profile, see the details of the configuration file in the ReadMe document)
-
-   > Nslookup -vc www.google.com
-    Server: pcap-dnsproxy.server (depending on the value of the profile settings, see the details of the profile in the ReadMe documentation)
-    Address: :: 1 (depending on the network environment, 127.0.0.1 when the local listening protocol is IPv4)
-
-    *** There is no internal type for both IPv4 and IPv6 Addresses (A + AAAA) records that www.google.com can use
+-------------------------------------------------------------------------------
 
 
--------------------------------------------------- -----------------------------
+* Service is running but remote DNS servers does not respond, please check if there is an error report generated.
+  * Please set correct, valid and usable outside DNS servers.
+  * This may be a problem with network. UDP protocol loss rate is relatively high in some ISPs, you can change to TCP protocol mode (Visit parameters details in ReadMe, Operation Mode section in Base tag) or try to request several times.
+  * May be it cause by bugs which we cannot locate and we are trying to keep working properly. You can try to restart service(Visit restart service section in ReadMe).
+
+   >nslookup www.google.com
+    Server:  pcap-dnsproxy.server (Visit parameters details in ReadMe, Local Machine Server Name parameter in Data tag)
+    Address: ::1 (IPv6, 127.0.0.1 if it's IPv4)
+
+    DNS request timed out.
+        timeout was 2 seconds.
+    DNS request timed out.
+        timeout was 2 seconds.
+    DNS request timed out.
+        timeout was 2 seconds.
+    DNS request timed out.
+        timeout was 2 seconds.
+    *** Request to pcap-dnsproxy.server timed-out (Visit parameters details in ReadMe, Local Machine Server Name parameter in Data tag)
+
+   >nslookup -vc www.google.com
+    Server:  pcap-dnsproxy.server (Visit parameters details in ReadMe, Local Machine Server Name parameter in Data tag)
+    Address: ::1 (IPv6, 127.0.0.1 if it's IPv4)
+
+    *** No internal type for both IPv4 and IPv6 Addresses (A+AAAA) records available for www.google.com
 
 
-When an error occurs while the program is running, it is possible to build an error report, that is, the Error.log file, which is located in the directory registered by the tool service and is critical to solving the problem
-* The format of the error report is "[Date Time] -> [Error Type] A brief introduction to the error code [Error code] in Error source (Line line number)." (Without double quotation marks)
-* Windows error code See https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx
-* Linux / macOS error code See http://man7.org/linux/man-pages/man3/errno.3.html
-* WinPcap / LibPcap The exact meaning of the error information can be found at https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html
-* Winsock error code specific meaning can be found at https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx
-* HTTP status code specific meaning can be found at https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
-* SSPI / SChannel error code specific meaning can be found at https://msdn.microsoft.com/en-us/library/windows/desktop/aa380499(v=vs.85).aspx and https://msdn.microsoft. Com / en-us / library / windows / desktop / dd721886 (v = vs.85) .aspx
-* OpenSSL error code specific meaning can be found at https://www.openssl.org/docs/manmaster/man3/ERR_get_error.html
+-------------------------------------------------------------------------------
 
 
-Error.log Detailed error report, error reports a total of eleven major types:
-
-1.System Error - System error
-  * Screen output buffer settings error - screen output buffer configuration error: it is recommended to reboot service or program
-  * Commands error - Program startup parameter error: Please check the parameters for program entry
-  * Service start error - Service startup error: Incorrect service path may not be registered in the system, or registered in the system
-  * Set console control handler error - set the console signal capture hook error: it is recommended to reboot service or program
-  * Handle the system signal error - Set system signal processing function error: it is recommended to reboot service or program
-  * Ignore system signal error - set to ignore part of the system signal error: it is recommended to reboot service or program
-  * Set system daemon error - daemon configuration error: it is recommended to reboot service or program
-  * Convert multiple byte or wide char string error - multi / wide tuple character conversion error: it is recommended to reboot service or program
-  * Security attributes and descriptor initialization error - security control code attributes and description of the initialization error: the proposed re-boot service or program
-  * Process already exists error - the process already exists: Make sure that only one of the program instances is running
-  * Create mailslot error - Mailslot Create an error: It is recommended to reboot the service or program
-  * Mailslot read messages error - Mailslot read information error: it is recommended to reboot service or program
-  * Mailslot write messages error - Mailslot write information error: it is recommended to reboot service or program
-  * Create FIFO error - FIFO creation error: it is recommended to reboot service or program
-  * FIFO read messages error - FIFO read message error: it is recommended to reboot service or program
-  * FIFO write messages error - FIFO write information error: it is recommended to reboot service or program
-  * Mailslot Monitor initialization error - Mailslot monitor module initialization error: it is recommended to reboot service or program
-  * Read Parameter module Monitor terminated - The profile read module has stopped monitoring: it is recommended to reboot the service or program
-  * Read Hosts module Monitor terminated - Hosts read module has stopped monitoring: it is recommended to reboot service or program
-  * Read IPFilter module Monitor terminated - IPFilter read module has stopped monitoring: it is recommended to reboot service or program
-  * Alternate Server module Monitor terminated - Standby server switch module has stopped running: it is recommended to reboot service or program
-  * DNS Cache Timer module terminated - DNS cache module has stopped running: it is recommended to reboot service or program
-  * Local address monitoring module has stopped monitoring: it is recommended to reboot service or program
-  * Domain Test module Monitor terminated - Function Variable Name Test module has stopped running: it is recommended to reboot service or program
-  * ICMP Test module Monitor terminated - ICMP request module has stopped request: it is recommended to reboot service or program
-  * ICMPv6 Test module Monitor terminated - ICMPv6 request has stopped request: it is recommended to reboot service or program
-  * UDP listening module Monitor terminated - UDP protocol monitoring module has stopped monitoring: it is recommended to reboot service or program
-  * TCP listening module monitor terminated - TCP protocol monitoring module has stopped monitoring: it is recommended to reboot service or program
-  * Mailslot module Monitor terminated - Mailslot The monitoring module has stopped running: it is recommended to reboot service or program
-  * FIFO module monitor terminated - FIFO monitoring module has stopped running: it is recommended to reboot service or program
-  * Capture module Monitor terminated - The packet capture module has been stopped: it is recommended to reboot the service or program
-  * DNSCurve TCP protocol Request server module has been stopped: it is recommended to reboot service or program
-  * DNSCurve UDP protocol Handshake information acquisition module has stopped running: it is recommended to reboot service or program
+Please find Error.log in working directory if there is an error report generated.
+* The format of error report is "[Date Time] -> [Error Type] Description of the error code[Error Code] in Filename(Line number)."
+* Error code in Windows, pleas visit https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx.
+* Error code in Linux/macOS, pleas visit http://man7.org/linux/man-pages/man3/errno.3.html.
+* Error code of WinPcap/LibPcap, pleas visit https://www.winpcap.org/docs/docs_40_2/html/group__wpcapfunc.html.
+* Error code of Winsock, pleas visit https://msdn.microsoft.com/en-us/library/windows/desktop/ms740668(v=vs.85).aspx.
+* Error code of HTTP status code, pleas visit https://en.wikipedia.org/wiki/List_of_HTTP_status_codes.
+* Error code of SSPI/SChannel, pleas visit https://msdn.microsoft.com/en-us/library/windows/desktop/aa380499(v=vs.85).aspx and https://msdn.microsoft.com/en-us/library/windows/desktop/dd721886(v=vs.85).aspx.
+* Error code of OpenSSL, pleas visit https://www.openssl.org/docs/manmaster/man3/ERR_get_error.html
 
 
-2.Parameter Error - Read the profile parameter error
-  * Can not open any configuration files - No profile found: Please confirm whether the file exists
-  * Configuration file size is too large - Profile is too large: Please confirm the contents of the configuration file, the size of the entire file should not exceed 512MB
-  * DNSCurve database capacity is too large: Please confirm the contents of the configuration file, the size of the entire file should not exceed 512MB
-  IPFilter file size is too large - IPFilter file capacity is too large: Please confirm the contents of IPFilter file, the size of the entire file should not exceed 512MB
-  Hosts file size is too large - Hosts file capacity is too large: Please confirm the contents of Hosts file, the size of the entire file should not exceed 512MB
-  * Configuration file version error - Profile version error: Make sure the profile needs to be updated
-  * Data format error - The profile parameter is more than 4096 bytes / 4KB, or the length of the line does not meet the requirements, or the data format is incorrect: Please confirm whether the contents of the line meet the requirements
-  * Text encoding error - File encoding error: Please confirm the encoding type of the profile
-  * This parameter is too short: Please confirm the contents of the profile
-  * This parameter is too long: one line of information must not exceed 4096 bytes / 4KB
-  * Read file name error - read file name parameter error: Please confirm whether the contents of the line meet the requirements
-  * Read file path error - read file path parameter error: Please confirm whether the contents of the line meet the requirements
-  * Log file size error - Maximum log file specified by the profile Capacity error: Acceptable range is 4KB - 8MB
-  * IPv6 address format error - IPv6 address format error: Please check the IPv6 address format
-  * IPv6 address port error - IPv6 address port format error: Please check the IPv6 address port format
-  * IPv4 address format error - IPv4 address format error: Please check the IPv4 address format
-  * IPv4 address port error - IPv4 address port format error: Please check the IPv4 address port format
-  * IPv6 special address error - IPv6 special address check error: Please check whether the IPv6 address is a special address
-  * IPv4 special address error - IPv4 special address check error: Please check whether the IPv4 address is a special address
-  * Address Prefix Block format error - Address block with preamble length Format error: Please check the format of the address block
-  * IPv4 prefix error - IPv4 network header length error: The length of the IPv4 network header is between 1-32
-  * IPv6 prefix error - IPv6 network header length error: The length of the IPv6 network header is between 1-128
-  * Direct Request error - Direct connection module parameter error: Please check the description of the relevant parameters
-  * Local machine listening port error - Local monitor port error: Please check the local monitor port value, the applicable range is 1 - 65535
-  * IPFilter Level error - IPFilter filter level error: Please check the filter level, the applicable range is 1 - 65535
-  * DNS Cache error - DNS cache configuration error: Please check the cached parameters
-  * Default TTL error - default TTL configuration error: Please check the cached parameters
-  * DNS target error - DNS target server configuration error: Please check the DNS server's address
-  * Local request options error - Inbound request parameter error: Please check whether the domestic server is available, see the ReadMe document for the introduction of these three parameters
-  * DNS Record type error - DNS record parameter error: Please check whether the Accept Type value meets the requirements
-  * Hop Limits Fluctuation error - Hop Limits or TTL Acceptable Range Error: Please check the value of the range
-  * Alternate Multiple request error - Request parameters at the same time on primary or multiple servers Error: Please confirm the information for all servers
-  * IPv4 total request number error - total number of IPv4 requests limit error: fill in the number of primary / standby servers
-  * Multiple Request Times = Total requested value, this value can not exceed 64
-  * IPv6 total request number error - Total number of IPv6 requests limit error: Enter the number of primary / standby servers
-  * Multiple Request Times = Total requested value, this value can not exceed 64
-  * IPv4 packet TTL range error - IPv4 packet TTL value range error: Please confirm the contents of the entry
-  * IPv6 packet Hop Limits range error - IPv6 packet Hop Limits Value range error: Please confirm the contents of the entry
-  * Thread Pool number error - Execute thread parameter error: Please check the contents of the parameters related to Thread Pool
-  * DNSCurve target error - DNS server address used by DNSCurve protocol Error: Please check DNSCurve protocol using DNS server address
-  * DNSCurve encryption options error - DNSCurve protocol encryption option configuration error: Enable encryption option and only use encryption mode option conflict
-  * DNSCurve Encryption Only mode error - DNSCurve protocol only uses encryption mode configuration error: only use encryption mode must provide server magic and fingerprints
-  * DNSCurve Provider Name error - DNSCurve protocol server provider format error: Please confirm the contents of the entry
-  * DNSCurve Key format error - DNSCurve agreement key format error: Please confirm the contents of the entry
-  * DNSCurve empty Provider Name error - DNSCurve protocol server provider does not exist Error: No magic number or fingerprint must be provided with server provider information to automatically get connection parameters
-  * DNSCurve empty Public Key error - DNSCurve protocol server public key does not exist error: no magic number or fingerprint must be provided when the server's public key to automatically obtain the connection parameters
+Details of Error.log error report:
 
-3.IPFilter Error - read IPFilter file error
-  * Item format error - IPFilter entry format error: Please check the format of the entry
-  * Regular expression pattern error - false regular expression: Please check the regular expression is correct
-  IPv6 address format error - IPFilter IPv6 address format error: Please check the IPFilter entry address
-  * IPv4 address format error - IPv4 address of IPFilter format error: Please check the address of IPFilter entry
-  * IPv6 address range error - IPv6 address range of IPFilter error: Please check the address of IPFilter entry
-  * IPv4 address range error - IPFilter IPv6 address range error: Please check the IPFilter entry address
-  * Repeating items error, this item is not available - there is a duplicate IPFilter entry: This entry will not be enabled for the prompt
-  * IPv4 prefix error - IPv4 network header length error: The length of the IPv4 network header is between 1-32
-  * IPv6 prefix error - IPv6 network header length error: The length of the IPv6 network header is between 1-128
-  * Level error - IPFilter filter level error: filter level between 0 and 0xFFFF (65535)
+1.System Error
+  * Alternate Server module Monitor terminated - It's recommended to restart the service or program.
+  * Capture module Monitor terminated - It's recommended to restart the service or program.
+  * Commands error - Please check the command parameters.
+  * Convert multiple byte or wide char string error - It's recommended to restart the service or program.
+  * Create FIFO error - It's recommended to restart the service or program.
+  * Create mailslot error - It's recommended to restart the service or program.
+  * DNSCurve TCP Signature Request module Monitor terminated - It's recommended to restart the service or program.
+  * DNSCurve UDP Signature Request module Monitor terminated - It's recommended to restart the service or program.
+  * Domain Test module Monitor terminated - It's recommended to restart the service or program.
+  * FIFO read messages error - It's recommended to restart the service or program.
+  * FIFO module Monitor terminated - It's recommended to restart the service or program.
+  * FIFO write messages error - It's recommended to restart the service or program.
+  * Get Local Address Information module Monitor terminated - It's recommended to restart the service or program.
+  * Handle system signals error - It's recommended to restart the service or program.
+  * ICMP Test module Monitor terminated - It's recommended to restart the service or program.
+  * Ignore system signal error - It's recommended to restart the service or program.
+  * Mailslot read messages error - It's recommended to restart the service or program.
+  * Mailslot module Monitor terminated - It's recommended to restart the service or program.
+  * Mailslot write messages error - It's recommended to restart the service or program.
+  * Process already exists error - Please make sure that only one process of this program is running at the same time.
+  * Read Hosts module Monitor terminated - It's recommended to restart the service or program.
+  * Read IPFilter module Monitor terminated - It's recommended to restart the service or program.
+  * Read Parameter module Monitor terminated - It's recommended to restart the service or program.
+  * Security attributes and descriptor initialization error - It's recommended to restart the service or program.
+  * Service start error - Please check the system service installing or the path of program.
+  * Set console control handler error - It's recommended to restart the service or program.
+  * Set system daemon error - It's recommended to restart the service or program.
+  * Screen output buffer settings error - It's recommended to restart the service or program.
+  * TCP listening module Monitor terminated - It's recommended to restart the service or program.
+  * UDP listening module Monitor terminated - It's recommended to restart the service or program.
 
-4.Hosts Error - Read Hosts file error
-  * Default TTL redefinition - Preset retention time Redefine: based on the first occurrence of the preset retention time
-  * Regular expression pattern error - false regular expression: Please check the correctness of the regular expression
-  * IPv6 address format error - Hosts IPv6 address format error: Please check the address of the Hosts entry
-  * IPv4 address format error - The IPv4 address of Hosts is formatted incorrectly: Please check the address of the Hosts entry
-  * Too many Hosts IPv4 addresses - Hosts entries have too many parallel addresses: Please check the number of Hosts entry addresses, A record can not exceed 75
-  * Too many Hosts IPv6 addresses - too many parallel addresses for Hosts entries: Please check the number of Hosts entry addresses, AAAA records can not exceed 43
+2.Parameter Error
+  * Address Prefix Block format error - Please make sure that the format is correct.
+  * Alternate Multiple request error - Please make sure that the data is correct.
+  * Configuration file size is too large - Please make sure that the data is correct, it should not be larger than 512 MB.
+  * Configuration file version error - Please make sure that the version is correct.
+  * Cannot open any configuration files - Please make sure that the files are correct.
+  * Data format error - Please make sure that the data is correct, it should not be longer than 4 KB/4096 bytes.
+  * Data length error - Please make sure that the data is correct, it should not be longer than 4 KB/4096 bytes.
+  * Data of a line is too long - Please make sure that the data is correct, it should not be longer than 4 KB/4096 bytes.
+  * Data of a line is too short - Please make sure that the data is correct, it should not be longer than 4 KB/4096 bytes.
+  * Default TTL error - Please make sure that the data is correct.
+  * Direct Request error - Please make sure that the data is correct.
+  * DNS cache error - Please make sure that the data is correct.
+  * DNS record type error - Please make sure that the data is correct.
+  * DNS target error - Please make sure that the data is correct.
+  * DNSCurve database file size is too large - Please make sure that the data is correct, it should not be larger than 512 MB.
+  * DNSCurve empty Provider Name error - Please fill Public Key when Send/Receive Magic Number and server Fingerprint are empty.
+  * DNSCurve empty Public Key error - Please fill Public Key when Send/Receive Magic Number and server Fingerprint are empty.
+  * DNSCurve Encryption Only mode error - Please fill Send/Receive Magic Number and server Fingerprint when Encryption Only mode is enabled.
+  * DNSCurve encryption options error - Encryption mode must be disabled when Encryption Only mode is enabled.
+  * DNSCurve Key format error - Please make sure that the data is correct.
+  * DNSCurve Provider Name error - Please make sure that the data is correct.
+  * DNSCurve target error - Please make sure that the data is correct.
+  * Hop Limits Fluctuation error - Please make sure that the data is correct.
+  * Hosts file size is too large - Please make sure that the data is correct, it should not be larger than 512 MB.
+  * IPFilter file size is too large - Please make sure that the data is correct, it should not be larger than 512 MB.
+  * IPFilter Level error - Please make sure that the data is correct, it should be between 1 and 65535.
+  * IPv4 address format error - Please make sure that the data is correct.
+  * IPv4 address port error - Please make sure that the data is correct.
+  * IPv4 packet TTL range error - Please make sure that the data is correct.
+  * IPv4 prefix error - Please make sure that the data is correct, it should be between 1 and 32.
+  * IPv4 total request number error - Please make sure that the data is correct.
+  * IPv6 address format error - Please make sure that the data is correct.
+  * IPv6 address port error - Please make sure that the data is correct.
+  * IPv6 packet Hop Limits range error - Please make sure that the data is correct.
+  * IPv6 prefix error - Please make sure that the data is correct, it should be between 1 and 128.
+  * IPv6 total request number error - Please make sure that the data is correct.
+  * Local machine listening port error - Please make sure that the data is correct, it should be between 1 and 65535.
+  * Local request options error - Please make sure that the data is correct.
+  * Log file size error - Please make sure that the data is correct, it should be between 4 KB and 256 MB.
+  * Read file path error - Please make sure that the data is correct.
+  * Text encoding error - Please make sure that the data is correct.
+  * Thread pool number error - Please make sure that the data is correct.
 
-5.Network Error - Network error
-  * Winsock initialization error - Winsock initialization error: Please confirm whether the operating system platform is supported
-  * Windows Firewall Test error - Windows Firewall Test Error: Please confirm whether to run batch processing as an administrator
-  * Socket operator wildcard bind settings error - set communication protocol exclusive mode error: the specific reasons can see the error code
-  * Socket reusing disabled settings error - set the communication port exclusive mode error: the specific reasons can see the error code
-  * Socket non-blocking mode settings error - set communication non-blocking mode error: may be a network error, the specific reasons can see the error code
-  * Socket timeout settings error - set the communication timeout time error: the specific reasons can see the error code
-  * Socket TCP Fast Open settings error - Set TCP Fast Open Error: Please check whether the system supports this feature
-  * Socket UDP block RESET message settings error - Set UDP protocol Communication mask ICMP Port Unreachable Error: For specific reasons see error code
-  * Socket Hop Limits settings error - Set Hop Limits / TTL error: For specific reasons, see the error code
-  * Socket Do Not Fragment flag settings error - Set IPv4 Do Not Fragment Flag Error: For specific reasons see error code
-  * UDP Monitor socket initialization error - UDP protocol Local communication terminal initialization error: the specific reasons can see the error code
-  * TCP Monitor socket initialization error - TCP protocol Local communication terminal initialization error: For specific reasons see the error code
-  * Bind UDP Monitor socket error - UDP protocol local communication side Binding error: the local may already exist DNS server or multiple running the tool, the specific reasons can see the error code
-  * Bind TCP Monitor socket error - TCP protocol Local communication Binding error: The local DNS server may already exist or the tool is running multiple. For specific reasons, see the error code
-  * TCP Monitor socket scan initialization error - TCP protocol Local communication side listening error: For specific reasons, see error code
-  * Get local machine name error - Get local computer name for error: For specific reasons see error code
-  * Get local machine address error - Get local computer address error: No valid web interface card, may be hardware or driver problem
-  * UDP socket initialization error - UDP protocol request communication terminal initialization error: the specific reasons can see the error code
-  * TCP socket initialization error - TCP protocol request communication terminal initialization error: the specific reasons can see the error code
-  * SOCKS socket initialization error - SOCKS protocol request communication terminal initialization error: the specific reasons can see the error code
-  * HTTP CONNECT socket initialization error - HTTP CONNECT protocol request communication terminal initialization error: the specific reasons can see the error code
-  * Complete UDP socket initialization error - UDP protocol request communication terminal initialization error: the specific reasons can see the error code
-  * SOCKS connecting error - SOCKS protocol connection error: may be a network error, the specific reasons can see the error code
-  * HTTP CONNECT connecting error - HTTP CONNECT protocol connection error: may be a network error, the specific reasons can see the error code
-  * SOCKS request error - SOCKS protocol request error: may be a network error, the specific reasons can see the error code
-  * HTTP CONNECT request error - HTTP CONNECT protocol request error: may be a network error, the specific reasons can see the error code
-  * TLS request error - TLS / SSL protocol request error: possible for network error, for specific reasons see error code
-  * DNSCurve UDP socket initialization error - DNSCurve protocol UDP protocol communication initialization error: may be a network error, the specific reasons can see the error code
-  * DNSCurve TCP socket initialization error - DNSCurve protocol TCP protocol communication initialization error: may be a network error, the specific reasons can see the error code
-  * DNSCurve Local Signature socket initialization error - DNSCurve Protocol Local Request Communication Initialization Error: Could be a network error. For specific reasons, see the error code
-  * DNSCurve Local Signature request error - DNSCurve agreement Local request error: possible network error, for specific reasons see error code
-  * No any available gateways to public network - no available gateway to public network: possible for network errors, please check whether the network is smooth
+3.IPFilter Error
+  * Data of a line is too long - Please make sure that the data is correct, it should not be longer than 4 KB/4096 bytes.
+  * Data of a line is too short - Please make sure that the data is correct.
+  * Item format error - IPFilter Please make sure that the data is correct.
+  * IPv4 address format error - Please make sure that the data is correct.
+  * IPv4 address range error - Please make sure that the data is correct.
+  * IPv4 prefix error - Please make sure that the data is correct, it should be between 1 and 32.
+  * IPv6 address format error - Please make sure that the data is correct.
+  * IPv6 address range error - Please make sure that the data is correct.
+  * IPv6 prefix error - Please make sure that the data is correct, it should be between 1 and 128.
+  * Level error - Please make sure that the data is correct, it should be between 1 and 0xFFFF(65535).
+  * Regular expression pattern error - Please make sure that the data is correct.
+  * Repeat item error, this item will disabled - This item is repeat and disabled.
 
-6.Pcap Error - Pcap error
-  * Insufficient privileges or not any available network devices - No network interface cards available: Please check that the hardware and drivers are installed correctly or that the license is insufficient
-  * This type of error will directly output WinPcap error information to the error report
+4.Hosts Error
+  * Data of a line is too long - Please make sure that the data is correct, it should not be longer than 4 KB/4096 bytes.
+  * Data of a line is too short - Please make sure that the data is correct.
+  * IPv4 address format error - Please make sure that the data is correct.
+  * IPv6 address format error - Please make sure that the data is correct.
+  * Item format error - Please make sure that the data is correct.
+  * Regular expression pattern error - Please make sure that the data is correct.
+  * Too many Hosts IPv6 addresses - Please make sure that the data is correct, AAAA record count should not be larger than 43.
+  * Too many Hosts IPv4 addresses - Please make sure that the data is correct, A record count should not be larger than 75.
 
+5.Network Error
+  * Bind TCP Monitor socket error - Please mark the error code.
+  * Bind UDP Monitor socket error - Please mark the error code.
+  * Complete UDP socket initialization error - Please mark the error code.
+  * DNSCurve TCP socket initialization error - Please mark the error code.
+  * DNSCurve UDP socket initialization error - Please mark the error code.
+  * Firewall test error - Please run as administrator privileges.
+  * Get local machine address error - Please check the network interface and the external network.
+  * Get local machine name error - Please mark the error code.
+  * HTTP CONNECT connecting error - Please mark the error code.
+  * HTTP CONNECT request error - Please mark the error code.
+  * HTTP CONNECT socket initialization error - Please mark the error code.
+  * No any available gateways to external network - Please check the network interface and the external network.
+  * Socket Do Not Fragment flag settings error - Please mark the error code.
+  * Socket Hop Limits settings error - Please mark the error code.
+  * Socket initialization error - Please mark the error code.
+  * Socket IPv6 checksum settings error - Please mark the error code.
+  * Socket non-blocking mode settings error - lease mark the error code.
+  * Socket reusing disabled settings error - Please mark the error code.
+  * Socket TCP Fast Open settings error - Please mark the error code.
+  * Socket timeout settings error - Please mark the error code.
+  * Socket treating wildcard binding settings error - Please mark the error code.
+  * Socket UDP block RESET message settings error - Please mark the error code.
+  * SOCKS connecting error - Please mark the error code.
+  * SOCKS request error - Please mark the error code.
+  * SOCKS socket initialization error - Please mark the error code.
+  * TCP connection initialization error - Please mark the error code.
+  * TCP Monitor socket initialization error - Please mark the error code.
+  * TCP Monitor socket listening initialization error - Please mark the error code.
+  * TCP socket connecting error - Please mark the error code.
+  * TCP socket initialization error - Please mark the error code.
+  * TLS request error - Please mark the error code.
+  * UDP connection initialization error - Please mark the error code.
+  * UDP Monitor socket initialization error - Please mark the error code.
+  * UDP socket connecting error - Please mark the error code.
+  * UDP socket initialization error - Please mark the error code.
+  * Winsock initialization error - Please conirm the system configuration.
 
-7.DNSCurve Error - DNSCurve agreement error
-  * Libsodium initialization error - Libsodium library initialization error: it is recommended to reboot service or program
-  * Client keypair error - Custom client key group error: Please check the correctness of the key group
-  * Key error - Key calculation error: it is recommended to reboot service or program
-  * DNSCurve payload length error must be a multiple of 64 bytes
-  * DNSCurve version is not supported - DNSCurve version specified by DNSCurve server is not supported: Please check if the server is available
-  * IPv6 Main Server TCP get signature data error - IPv6 TCP protocol Primary server encryption Handshake error: Please check if the server is available
-  * IPv6 Alternate Server TCP get signature data error - IPv6 TCP protocol standby server encryption Handshake Error: Please check if the server is available
-  * IPv4 Main Server TCP get signature data error - IPv4 TCP protocol Primary server encryption Handshake error: Please check if the server is available
-  * IPv4 Alternate Server TCP get signature data error - IPv4 TCP protocol standby server encryption handshake error: Please check whether the server is available
-  * IPv6 Main Server UDP get signature data error - IPv6 UDP protocol Primary server encryption Handshake error: Please check if the server is available
-  * IPv6 Alternate Server UDP get signature data error - IPv6 UDP protocol standby server encryption handshake error: Please check whether the server is available
-  * IPv4 Main Server UDP get signature data error - IPv4 UDP protocol Primary server encryption Handshake error: Please check if the server is available
-  * IPv4 Alternate Server UDP get signature data error - IPv4 UDP protocol standby server encryption handshake error: Please check whether the server is available
-  * IPv6 Main Server Fingerprint signature error error - IPv6 primary server certificate validation error: Please check if the server is available
-  * IPv6 Alternate Server Fingerprint signature validation error - IPv6 Standby Server Certificate Verification Error: Please check if the server is available
-  * IPv4 Main Server Fingerprint signature error error - IPv4 primary server certificate validation error: Please check if the server is available
-  * IPv4 Alternate Server Fingerprint signature error error - IPv4 Standby server certificate validation error: Please check if the server is available
-  * IPv6 Main Server Fingerprint signature is not available in this time - IPv6 primary server credentials are inactive: Please check if the server is available
-  * IPv6 Alternate Server Fingerprint signature is not available at this time - IPv6 standby server certificate is inactive: Please check if the server is available
-  * IPv4 Main Server Fingerprint signature is not available at this time - IPv4 primary server credentials are inactive: Please check if the server is available
-  * IPv4 Alternate Server Fingerprint signature is not available at this time - IPv4 Standby server certificate is inactive: Please check if the server is available
+6.Pcap Error
+  * Insufficient privileges or not any available network devices - Please run as administrator privileges, also check the network interface and the external network.
+  * This type of error will print error messages directly.
 
-8.SOCKS Error - SOCKS agreement error
-  * SOCKS version is not supported - SOCKS version specified SOCKS version is not supported: Please check the specified SOCKS version
-  * SOCKS version 4 and 4a are not support UDP relay - SOCKS versions 4 and 4a do not support UDP forwarding: Please replace version 5
-  * SOCKS version 4 and 4a are not support IPv6 target server - SOCKS versions 4 and 4a destination server addresses that do not support IPv6 addresses: Please replace version 5
-  * SOCKS version 4 is not support domain target server - SOCKS version 4 does not support server address with the target variable name: replace version 4a or version 5
-  * SOCKS address error - SOCKS proxy address error: Please check whether the server is available
-  * SOCKS target server error - SOCKS proxy destination address error: Please check if the server is available
-  * SOCKS username and password error - SOCKS user name and password configuration error - please check the user name and password is correct
-  * Server SOCKS protocol version error - Server SOCKS Agreement Version Error: Please check if the server is available
-  * Authentication method is not supporteded - Unsupported authentication mode: Please check the server support for client authentication mode
-  * Server require username and password authentication - The server requires a username / password authentication: Please check the SOCKS username / password
-  * Username or Password incorrect - SOCKS agreement username / password is incorrect: Please check if username / password is wrong
-  * Client command request error - Client request connection error: Please check SOCKS agreement target address No Supported or available, for specific reasons see error code
+7.DNSCurve Error
+  * Client keypair error - Please check the keypair.
+  * Data of a line is too long - Please make sure that the data is correct, it should not be longer than 4 KB/4096 bytes.
+  * Data of a line is too short - Please make sure that the data is correct.
+  * DNSCurve Payload Size must remain a multiple of 64 bytes - Please make sure that the data is correct.
+  * DNSCurve version is not supported - Please make sure that the server is available.
+  * IPv4 address format error - Please make sure that the data is correct.
+  * IPv4 address port error - Please make sure that the data is correct.
+  * IPv4 Alternate Server Fingerprint signature is not available in this time - Please make sure that the server is available.
+  * IPv4 Alternate Server Fingerprint signature validation error - Please make sure that the server is available.
+  * IPv4 Alternate Server Key calculating error - It's recommended to restart the service or program.
+  * IPv4 Alternate Server TCP get signature data error - Please make sure that the server is available.
+  * IPv4 Alternate Server UDP get signature data error - Please make sure that the server is available.
+  * IPv4 Main Server Fingerprint signature is not available in this time - Please make sure that the server is available.
+  * IPv4 Main Server Fingerprint signature validation error - Please make sure that the server is available.
+  * IPv4 Main Server Key calculating error - It's recommended to restart the service or program.
+  * IPv4 Main Server TCP get signature data error - Please make sure that the server is available.
+  * IPv4 Main Server UDP get signature data error - Please make sure that the server is available.
+  * IPv6 address format error - Please make sure that the data is correct.
+  * IPv6 address port error - Please make sure that the data is correct.
+  * IPv6 Alternate Server Fingerprint signature is not available in this time - Please make sure that the server is available.
+  * IPv6 Alternate Server Fingerprint signature validation error - Please make sure that the server is available.
+  * IPv6 Alternate Server Key calculating error - It's recommended to restart the service or program.
+  * IPv6 Alternate Server TCP get signature data error - Please make sure that the server is available.
+  * IPv6 Alternate Server UDP get signature data error - Please make sure that the server is available.
+  * IPv6 Main Server Fingerprint signature is not available in this time - Please make sure that the server is available.
+  * IPv6 Main Server Fingerprint signature Please make sure that the server is available.
+  * IPv6 Main Server Key calculating error - It's recommended to restart the service or program.
+  * IPv6 Main Server TCP get signature data error - Please make sure that the server is available.
+  * IPv6 Main Server UDP get signature data error - Please make sure that the server is available.
 
-9.HTTP CONNECT Error - HTTP CONNECT protocol error
-  * HTTP version is not supported - The HTTP version specified by the HTTP CONNECT agent is not supported: Please check the specified HTTP version
-  * HTTP version 2 require TLS SNI extension - HTTP HTTP request must be specified when opening an HTTP / 2 protocol request. Instance / SNI extension support
-  * HTTP CONNECT header field data error - HTTP CONNECT agent header area data error: Please confirm the contents of the entry
-  * HTTP CONNECT address error - HTTP CONNECT proxy address error: Please check if the server is available
-  * HTTP CONNECT target server error - HTTP CONNECT proxy destination address error: Please check if the server is available
-  * HTTP CONNECT server response error - HTTP CONNECT proxy server response error: Please check if the server is available
-  * This type of error will directly output HTTP error messages to the error report
-  
-10.TLS Error - TLS / SSL protocol error
-  * SSPI get client credentials handle error - SSPI get client credentials error: it is recommended to reboot service or program, the specific reasons can see the error code
-  * SSPI initialize security coNtext error - SSPI initialization security context error: Please check the SSPI / SChannel version or encryption algorithm is supported, etc., the specific reasons can see the error code
-  * SSPI complete authentication token error - SSPI can not complete the full verification error: it is recommended to reboot service or program, the specific reasons can see the error code
-  * SSPI get stream encryption sizes error - SSPI get encrypted stream limit length error: it is recommended to reboot service or program, the specific reasons can see the error code
-  * SSPI plaiNtext sent to encrypt API is too large - SSPI for encrypted transmission of raw data is too long: the proposed re-boot service or program, the specific reasons can see the error code
-  * SSPI encrypt data error - SSPI encryption error: Please check the SSPI / SChannel version or encryption algorithm supported, etc., for specific reasons see the error code
-  * SSPI decrypt data error - SSPI decryption data error: Please check the SSPI / SChannel version or encryption algorithm supported, etc., the specific reasons can see the error code
-  OpenSSL TLS version selection error - OpenSSL TLS version selection error: Please check the version of OpenSSL or encryption algorithm is supported, the specific reasons can see the error code
-  * OpenSSL set ALPN extension error - OpenSSL set ALPN parameter error: Please check the OpenSSL version or encryption algorithm is supported, etc., the specific reasons can see the error code
-  * OpenSSL locate default certificate store error - OpenSSL Locate the default certificate store error: Please check the version of OpenSSL or encryption algorithm is supported, for specific reasons can see the error code
-  * OpenSSL set strong ciphers error - OpenSSL set the security cipher suite error: Please check the OpenSSL version or encryption algorithm is supported, etc., the specific reasons can see the error code
-  * OpenSSL create new client-method instance error - OpenSSL create client instance error: it is recommended to reboot service or program, the specific reasons can see the error code
-  * OpenSSL create new BIO method error - OpenSSL create BIO instance error: it is recommended to reboot service or program, the specific reasons can see the error code
-  * OpenSSL BIO and TLS / SSL attributes are incorrect: it is recommended to reboot the service or program. For specific reasons, see the error code.
-  * OpenSSL hostname checking and validation error - OpenSSL server voucher function variable name Verification error: certificate validation error, please confirm that this server is working properly
-  * OpenSSL connecting error - OpenSSL connection error: possible network error, for specific reasons see error code
-  * OpenSSL handshake error - OpenSSL Handshake error: possible for network error, for specific reasons see error code
-  * OpenSSL verify server certificate error - OpenSSL server certificate validation error: certificate validation error, please confirm that this server is working properly
-  * OpenSSL verify the result of chain verification error - OpenSSL certificate chain validation error: certificate validation error, please confirm that this server is working properly
-  * OpenSSL send data error - OpenSSL send data error: may be a network error, the specific reasons can see the error code
-  * OpenSSL receive data error - OpenSSL receive data error: may be a network error, the specific reasons can see the error code
+8.SOCKS Error
+  * Authentication method is not supported - Please confirm the authentication methods of server.
+  * Client command request error - Please mark the error code.
+  * Server require username and password authentication - Please check the username and password.
+  * Server SOCKS protocol version error - Please make sure that the server is available.
+  * SOCKS address error - Please make sure that the server is available.
+  * SOCKS target server error - Please make sure that the server is available.
+  * SOCKS username and password error - Please check the username and password.
+  * SOCKS version 4 and 4a are not support IPv6 target server - Please change SOCKS version to 5.
+  * SOCKS version 4 and 4a are not support UDP relay - Please change SOCKS version to 5.
+  * SOCKS version 4 is not support domain target server - Please change SOCKS version to 4a or 5.
+  * SOCKS version is not supported - Please confirm the SOCKS version of server.
+  * Username or Password incorrect - Please check the username and password.
 
-11.Notice - alert information, this type of information does not affect the operation of the program, but it is recommended to follow the prompts to modify the configuration file
-  * Old log file was removed - Error log file is full and deleted
-    * Note: For the configuration of the maximum capacity of the log file, see the Log Maximum Size parameter in the detailed description of the configuration file in the detailed description.
-  (53) - local listening port is empty: the program will be automatically set to standard DNS protocol port (53)
-  * TCP Data Filter require TCP Request Mode - Set TCP Request Header to TCP when setting TCP header header: The program will automatically turn off this function
-  * TCP Data Filter require Pcap Cpature - Pcap Cpature must be enabled when opening TCP packet header detection: The program will automatically turn off this feature
-  * IPv4 Data Filter require IPv4 DNS server - DNS server that must exist for IPv4 packets header detection: The program will automatically turn off this feature
-  * IPv4 Data Filter require Pcap Cpature - Pcap Cpature must be enabled when opening IPv4 header detection: the program will automatically turn off this feature
-  * EDNS payload size is too short: the implementation of the DNS agreement must support more than 512 bytes of data packets
-  * EDNS Payload Size is too large - EDNS Load length may be too long: This value is recommended not to exceed MTU (1500 bytes)
-  * DNSSEC Request require EDNS Label - EDNS tag request must be enabled when DNSSEC request is enabled
-  * EDNS Client Subnet require EDNS Label - EDNS Client Subnet request must be enabled when opening EDNS request request
-  * Compression Pointer Mutation must shutdown EDNS Label - EDNS tag request can not be enabled when using Compression Pointer Mutation, both of which are not compatible
-  * EDNS Label require at least one of process - when opening EDNS Label request must specify at least one request process
-  * DNSSEC Validation require EDNS Label and DNSSEC Request - EDNS tag request and DNSSEC request function must be enabled when DNSSEC Validation request is enabled
-  * DNSSEC Force Validation require EDNS Label, DNSSEC Request and DNSSEC Validation - EDNS tag request, DNSSEC request and DNSSEC Validation verification function must be enabled when DNSSEC Force Validation request is enabled
-  * HTTP version 2 require TLS ALPN extension - must open TLS ALPN extension support when opening HTTP / 2 protocol request
-  * HTTP version 2 require TLS 1.2 and above - The TLS version specified when opening an HTTP / 2 protocol request must be 1.2 and later
-  * DNSCurve protocol load length is too short: the implementation of the DNS agreement must support the length of more than 512 bytes of the package
-  * DNSCurve protocol load length may be too long: this value is recommended not to exceed the Ethernet MTU (1500 bytes)
+9.HTTP CONNECT Error
+  * HTTP CONNECT address error - Please make sure that the server is available.
+  * HTTP CONNECT header field data error - Please make sure that the data is correct.
+  * HTTP CONNECT server response error - Please make sure that the server is available.
+  * HTTP CONNECT target server error - Please make sure that the server is available.
+  * HTTP version 2 require TLS SNI extension - HTTP CONNECT TLS Server Name Indication/SNI must be enabled when HTTP version is 2.
+  * HTTP version is not supported - Please confirm the HTTP version of server.
+  * This type of error will print error messages directly.
+
+10.TLS Error
+  * OpenSSL BIO and SSL data attribute settings error - Please mark the error code and it's recommended to restart the service or program.
+  * OpenSSL connecting error - Please mark the error code.
+  * OpenSSL create new BIO method error - Please mark the error code and it's recommended to restart the service or program.
+  * OpenSSL create new client-method instance error - Please mark the error code and it's recommended to restart the service or program.
+  * OpenSSL handshake error - Please mark the error code.
+  * OpenSSL hostname checking and validation error - Please make sure that the server is available.
+  * OpenSSL locate default certificate store error - Please mark the error code.
+  * OpenSSL receive data error - Please mark the error code.
+  * OpenSSL send data error - Please mark the error code.
+  * OpenSSL set ALPN extension error - Please mark the error code.
+  * OpenSSL set strong ciphers error - Please mark the error code.
+  * OpenSSL TLS version selection error - Please mark the error code.
+  * OpenSSL verify server certificate error - Please make sure that the server is available.
+  * OpenSSL verify result of chain verification error - Please make sure that the server is available.
+  * SSPI complete authentication token error - Please mark the error code and it's recommended to restart the service or program.
+  * SSPI decrypt data error - Please mark the error code.
+  * SSPI encrypt data error - Please mark the error code.
+  * SSPI get client credentials handle error - Please mark the error code and it's recommended to restart the service or program.
+  * SSPI get stream encryption sizes error - Please mark the error code and it's recommended to restart the service or program.
+  * SSPI initialize security context error - Please mark the error code.
+  * SSPI plaintext input length is too long - Please mark the error code and it's recommended to restart the service or program.
+
+11.Notice
+  * EDNS Label must be shutdown when Compression Pointer Mutation is enabled - Please make sure that the data is correct.
+  * DNSCurve Payload Size is too large - Please make sure that the data is correct, it should not be longer than Ethernet MTU(1500 bytes).
+  * DNSCurve Payload Size must longer than traditional DNS packet minimum supported size(512 bytes) - Please make sure that the data is correct.
+  * DNSSEC Force Validation require EDNS Label, DNSSEC Request and DNSSEC Validation - Please make sure that the data is correct.
+  * DNSSEC Request require EDNS Label - Please make sure that the data is correct.
+  * DNSSEC Validation require EDNS Label and DNSSEC Request - Please make sure that the data is correct.
+  * EDNS Client Subnet require EDNS Label - Please make sure that the data is correct.
+  * EDNS Label require at least of one process - Please make sure that the data is correct.
+  * EDNS Payload Size is too large - Please make sure that the data is correct, it should not be longer than Ethernet MTU(1500 bytes).
+  * EDNS Payload Size must longer than traditional DNS packet minimum supported size(512 bytes) - Please make sure that the data is correct.
+  * HTTP version 2 require TLS 1.2 and above - Please make sure that the data is correct.
+  * HTTP version 2 require TLS ALPN extension - Please make sure that the data is correct.
+  * IPv4 Data Filter require IPv4 DNS server - Please make sure that the data is correct.
+  * IPv4 Data Filter require Pcap Cpature - Please make sure that the data is correct.
+  * IPv4 Request Mode require IPv4 DNS server - Please make sure that the data is correct.
+  * IPv6 Request Mode require IPv6 DNS server - Please make sure that the data is correct.
+  * Listen Port is empty, set to standard DNS port(53) - Please make sure that the data is correct.
+  * Old log file was removed - Error.log file is too large.
+  * TCP Data Filter require Pcap Cpature - Please make sure that the data is correct.

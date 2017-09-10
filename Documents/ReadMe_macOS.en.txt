@@ -8,7 +8,7 @@ Https://sourceforge.net/projects/pcap-dnsproxy
 * For more details on the program and configuration, see ReadMe (..). Txt
 
   
--------------------------------------------------- -----------------------------
+-------------------------------------------------------------------------------
 
 
 Installation method (using compiled binary executable):
@@ -38,7 +38,7 @@ Installation method (using compiled binary executable):
   * Press "OK" and then press "Apply"
 
 
--------------------------------------------------- -----------------------------
+-------------------------------------------------------------------------------
 
 
 Installation method (compile binary executable file):
@@ -83,7 +83,7 @@ Installation method (compile binary executable file):
 3. Follow the instructions in step 3 of the installation method (using the compiled binary executable).
 
 
--------------------------------------------------- -----------------------------
+-------------------------------------------------------------------------------
 
 
 Special notes about the OpenSSL library:
@@ -104,7 +104,9 @@ Special notes about the OpenSSL library:
   * The certificate destination directory here is located near the OpenSSL library deployment directory found by CMake as described above for the Found OpenSSL directive. There should be a subdirectory named certs in the directory
   * For example mv cert.pem / usr / local / ssl
 
+
 -------------------------------------------------------------------------------
+
 
 Reboot service method:
 1. Open the terminal, use sudo -i to get the root permission and go to the / Library / LaunchDaemons directory
@@ -127,6 +129,7 @@ Uninstall method:
 3. Execute the service uninstall script using ./macOS_Uninstall.sh
   * What the script does: stop and uninstall the daemon service, remove the plist profile
 4. Remove all Pcap_DNSProxy dependencies
+
 
 -------------------------------------------------------------------------------
 

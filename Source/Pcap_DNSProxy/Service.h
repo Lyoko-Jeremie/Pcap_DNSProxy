@@ -25,7 +25,8 @@
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
-extern std::deque<DNS_CACHE_DATA> DNSCacheList;
+extern std::list<DNS_CACHE_DATA> DNSCacheList;
+extern std::unordered_multimap<std::string, std::list<DNS_CACHE_DATA>::iterator> DNSCacheIndexList;
 extern std::mutex ScreenLock, DNSCacheListLock;
 
 //Local variables

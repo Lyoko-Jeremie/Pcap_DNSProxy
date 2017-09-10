@@ -786,13 +786,13 @@ bool CheckAddressRouting(
 				{
 					if (LocalRoutingTableIter.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 					{
-						if (LocalRoutingTableIter.AddressRoutingList_IPv6.count(ntoh64(*static_cast<const uint64_t *>(OriginalAddr)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - LocalRoutingTableIter.Prefix))) > 0)
+						if (LocalRoutingTableIter.AddressRoutingList_IPv6.find(ntoh64(*static_cast<const uint64_t *>(OriginalAddr)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - LocalRoutingTableIter.Prefix))) != LocalRoutingTableIter.AddressRoutingList_IPv6.end())
 							return true;
 					}
 					else {
 						const auto AddrMapIter = LocalRoutingTableIter.AddressRoutingList_IPv6.find(ntoh64(*static_cast<const uint64_t *>(OriginalAddr)));
 						if (AddrMapIter != LocalRoutingTableIter.AddressRoutingList_IPv6.end() && 
-							AddrMapIter->second.count(ntoh64(*reinterpret_cast<const uint64_t *>(static_cast<const uint8_t *>(OriginalAddr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - LocalRoutingTableIter.Prefix))) > 0)
+							AddrMapIter->second.find(ntoh64(*reinterpret_cast<const uint64_t *>(static_cast<const uint8_t *>(OriginalAddr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - LocalRoutingTableIter.Prefix))) != AddrMapIter->second.end())
 								return true;
 					}
 				}
@@ -805,7 +805,7 @@ bool CheckAddressRouting(
 		{
 			for (const auto &LocalRoutingTableIter:IPFilterFileSetIter.LocalRoutingList)
 			{
-				if (LocalRoutingTableIter.AddressRoutingList_IPv4.count(ntohl((static_cast<const in_addr *>(OriginalAddr))->s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - LocalRoutingTableIter.Prefix))) > 0)
+				if (LocalRoutingTableIter.AddressRoutingList_IPv4.find(ntohl((static_cast<const in_addr *>(OriginalAddr))->s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - LocalRoutingTableIter.Prefix))) != LocalRoutingTableIter.AddressRoutingList_IPv4.end())
 					return true;
 			}
 		}
@@ -1598,7 +1598,7 @@ size_t CheckResponseData(
 				return EXIT_FAILURE;
 		}
 
-	//Check repeating DNS Domain without Compression.
+	//Check repeat DNS Domain without Compression.
 		if (ntohs(DNS_Header->Answer) == U16_NUM_ONE && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && 
 			CheckQueryNameLength(Buffer + sizeof(dns_hdr)) == CheckQueryNameLength(Buffer + DNS_PACKET_RR_LOCATE(Buffer)))
 		{

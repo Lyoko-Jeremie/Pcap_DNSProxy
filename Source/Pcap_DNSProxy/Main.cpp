@@ -58,7 +58,7 @@ int main(
 	if (signal(SIGHUP, SIG_Handler) == SIG_ERR || signal(SIGINT, SIG_Handler) == SIG_ERR || signal(SIGQUIT, SIG_Handler) == SIG_ERR || 
 		signal(SIGTERM, SIG_Handler) == SIG_ERR)
 	{
-		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Handle the system signal error", errno, nullptr, 0);
+		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Handle system signals error", errno, nullptr, 0);
 		return EXIT_FAILURE;
 	}
 

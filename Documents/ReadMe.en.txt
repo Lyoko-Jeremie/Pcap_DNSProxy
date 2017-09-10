@@ -24,7 +24,7 @@ Installation method (required as administrator):
 
 4. After determining the name and path of the tool directory, go to the directory and right-click on the administrator (Vista and later) or run the ServiceControl.bat (XP / 2003) by pressing the administrator login twice (XP / 2003)
   * Enter 1 and press Enter, select "1: Install service" to install the service
-  * Batch processing will program the system services, and Windows firewall test, each boot service will automatically start
+  * Batch processing will program the system services, and firewall test, each boot service will automatically start
   * At this point, the Windows system asks if you want to agree to programmatically access the network. Please tick "private network" and "public network" and confirm
 
 5. Please follow the following section of the normal work to see the method, the first test whether the normal work and then modify the network settings!
@@ -53,6 +53,7 @@ Installation method (required as administrator):
   * The names of directories and programs can be changed at will, but be sure to complete the installation method before step 4. If the path to the tool directory is to be moved after the service is registered, see the precautions in step 2 above.
   * Windows XP If there is a 10022 error, you need to enable the system's IPv6 support (run administrator as an administrator to enter ipv6 install and enter, one-time operation), and then reboot service
   * This project only provides technical support for the latest version, the new version of the release of the old version of the support will immediately stop, please be sure to upgrade to the latest version
+
 
 -------------------------------------------------------------------------------
 
@@ -85,6 +86,7 @@ Unload method (required as administrator):
   * Note: Windows Firewall may have permission to access the network information, it may need to use the registry cleanup after the clean-up
   * Transfer the tool directory path does not need to uninstall the service, first stop the service transfer, transfer is completed after the restart service
 
+
 -------------------------------------------------------------------------------
 
 
@@ -110,6 +112,7 @@ Normal work View method:
 
 -------------------------------------------------------------------------------
 
+
 Special use skills:
 Here are some of the proposed project group introduction and use of skills for your reference and use. For details on adjusting the configuration, see the section below
 
@@ -128,13 +131,15 @@ Here are some of the proposed project group introduction and use of skills for y
   * DNSCurve = 1 simultaneous Encryption = 1: use DNSCurve (DNSCrypt) encryption mode request function variable name resolution
     * This combination of encrypted transmission of all functional variable name request, function variable name resolution reliability of the highest
   * DNSCurve = 1 simultaneous Encryption = 1 At the same time Encryption Only = 1: only use DNSCurve (DNSCrypt) encryption mode request function variable name resolution
-    * The above encryption combination does not prevent the program from requesting DNSCurve (DNSCrypt) encryption mode failure is to use other protocol request function variable name resolution, open Encryption Only = 1 will only allow the use of encrypted transmission, the highest security and reliability, but Functional variable name resolution success rate may decline
+    * The above encryption combination does not prevent the program from request DNSCurve (DNSCrypt) encryption mode failure is to use other protocol request function variable name resolution, open Encryption Only = 1 will only allow the use of encrypted transmission, the highest security and reliability, but Functional variable name resolution success rate may decline
 * Optimize the large number of requests under the program performance:
-  * Pcap Reading Timeout This parameter allows the packet capture module to crawl the packet at a higher frequency,
+  * Pcap Reading Timeout This parameter allows the packet capture module to crawl the packet at a higher frequency
   * Cache Parameter + Default TTL as much as possible to increase the parameters of the cache can increase the retention time or queue length, increase the cache hit rate
   * Thread Pool Maximum Number This parameter can be increased by increasing the maximum number of buffers that can be requested
   * Queue Limits Reset Time Do not turn on parameters that limit the number of requests
   * Multiple Request Times is extremely harsh, caution, consumes a lot of system resources and will increase the delay
+
+
 -------------------------------------------------------------------------------
 
 
@@ -161,6 +166,7 @@ Function and technology:
   * DNSCurve agreement for Streamlined / Lite type
   * Automatically get the connection information must ensure that the system time is correct, otherwise the certificate will lead to failure to get the connection information failed!
   * DNSCrypt official tool will take up the local DNS port caused Pcap_DNSProxy deployment failed!
+
 
 -------------------------------------------------------------------------------
 
@@ -233,7 +239,7 @@ Base - the basic parameter area
     * Read the timeout time need to balance the demand and resource consumption, the time set too long will lead to the domain name resolution request response slow response request timeout, too fast will take up too much system to deal with resources
   * Listen Protocol - the protocol supported by the local listening request: can be filled with IPv4 and IPv6 and TCP and UDP
     * Fill in the agreement can be arbitrarily combined, only fill IPv4 or IPv6 with UDP or TCP, only listen to the specified agreement of the local port
-    * Note: The agreement here refers to the protocol that can be used when requesting the function variable name resolution, and the protocol used by the program requesting the remote DNS server is determined by the Protocol parameter
+    * Note: The agreement here refers to the protocol that can be used when request the function variable name resolution, and the protocol used by the program request the remote DNS server is determined by the Protocol parameter
   * Listen Port - the port of the listening port, the local listening request: the format "port A (| port B)" (without quotation marks, brackets are optional items)
     * Port can be filled in the service name, service name list see below
     * Can also fill in the port between 1-65535, if left to 53
@@ -784,6 +790,7 @@ Base - the basic parameter area
     * Can be filled directly to print ASCII string can be
     * Hexadecimal string need to precede the string with 0x (case sensitive)
 
+
 -------------------------------------------------------------------------------
 
 
@@ -968,6 +975,7 @@ Valid parameter format is "regular expression" (without quotation marks)
 
     Server = // 127.0.0.1
 
+
 -------------------------------------------------------------------------------
 
 
@@ -1001,6 +1009,7 @@ Valid parameter format is "Address block / network prefix length" (without quota
 
 * Stop - temporarily stop reading the label
   * For more information, see the introduction to this function
+
 
 -------------------------------------------------------------------------------
 

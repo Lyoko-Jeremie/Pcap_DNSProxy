@@ -349,20 +349,20 @@
 #endif
 
 //C Standard Library and C++ Standard Template Library/STL headers
-#include <algorithm>               //Algorithm support
-#include <atomic>                  //Atomic support
+#include <algorithm>               //Collection of functions especially designed to be used on ranges of elements algorithm support
+#include <atomic>                  //Atomic type support
 #include <condition_variable>      //Condition variable support
 #include <deque>                   //Double-ended queue support
-#include <functional>              //Objects specifically designed to be used with a syntax similar to that of functions support
-#include <list>                    //List support
-#include <map>                     //Map support
-#include <memory>                  //Manage dynamic memory support
-#include <mutex>                   //Mutex lock support
-#include <queue>                   //Queue support
-#include <random>                  //Random-number generator support
-#include <regex>                   //Regular expression support
-#include <set>                     //Set support
+#include <functional>              //Function objects are objects specifically designed to be used with a syntax similar to that of functions support
+#include <list>                    //List container support
+#include <memory>                  //General utilities to manage dynamic memory support
+#include <mutex>                   //Facilities that allow mutual exclusion (mutex) of concurrent execution of critical sections of code, allowing to explicitly avoid data races support
+#include <queue>                   //Queue and priority_queue container adaptor support
+#include <random>                  //Random number generation facilities support
+#include <regex>                   //Regular expressions are a standardized way to express patterns to be matched against sequences of characters support
 #include <thread>                  //Thread support
+#include <unordered_map>           //Unordered_map and unordered_multimap container support
+#include <unordered_set>           //Unordered_set and unordered_multiset container support
 
 #if defined(PLATFORM_WIN)
 //LibSodium header, always enabled(Windows)

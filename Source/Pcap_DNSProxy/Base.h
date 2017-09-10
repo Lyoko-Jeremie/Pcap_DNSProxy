@@ -193,7 +193,7 @@ void MonitorLauncher(
 	void);
 bool MonitorInit(
 	void);
-bool TCP_ReceiveProcess(
+bool TCP_AcceptProcess(
 	MONITOR_QUEUE_DATA MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
 	size_t RecvSize);

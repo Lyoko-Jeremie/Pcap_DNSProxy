@@ -837,6 +837,7 @@ size_t MakeCompressionPointerMutation(
 
 				return Length + sizeof(dns_record_aaaa);
 			}
+//			else if (ntohs(DNS_Query.Type) == DNS_TYPE_A)
 			else { //A record
 				const auto DNS_Record_A = reinterpret_cast<dns_record_a *>(Buffer + Length);
 				DNS_Record_A->Type = htons(DNS_TYPE_A);

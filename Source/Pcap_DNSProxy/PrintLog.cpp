@@ -164,22 +164,33 @@ bool WriteMessage_ScreenFile(
 	const size_t Line)
 {
 //Get current date and time.
-	tm TimeStructure;
-	memset(&TimeStructure, 0, sizeof(TimeStructure));
-	const auto TimeValues = time(nullptr);
+	tm CurrentTimeStructure;
+	memset(&CurrentTimeStructure, 0, sizeof(CurrentTimeStructure));
+	const auto CurrentTimeValue = time(nullptr);
 #if defined(PLATFORM_WIN)
-	if (TimeValues <= 0 || localtime_s(&TimeStructure, &TimeValues) != 0)
+	if (CurrentTimeValue <= 0 || localtime_s(&CurrentTimeStructure, &CurrentTimeValue) != 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (TimeValues <= 0 || localtime_r(&TimeValues, &TimeStructure) == nullptr)
+	if (CurrentTimeValue <= 0 || localtime_r(&CurrentTimeValue, &CurrentTimeStructure) == nullptr)
 #endif
 		return false;
 
 //Print startup time at first printing.
-	time_t LogStartupTime = 0;
+	time_t LogStartupTimeValue = 0;
+	tm LogStartupTimeStructure;
+	memset(&LogStartupTimeStructure, 0, sizeof(LogStartupTimeStructure));
 	if (GlobalRunningStatus.StartupTime > 0)
 	{
-		LogStartupTime = GlobalRunningStatus.StartupTime;
+	//Copy startup time and reset global value.
+		LogStartupTimeValue = GlobalRunningStatus.StartupTime;
 		GlobalRunningStatus.StartupTime = 0;
+
+	//Get log startup time.
+	#if defined(PLATFORM_WIN)
+		if (localtime_s(&LogStartupTimeStructure, &LogStartupTimeValue) != 0)
+	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		if (localtime_r(&LogStartupTimeValue, &LogStartupTimeStructure) == nullptr)
+	#endif
+			return false;
 	}
 
 //Print to screen.
@@ -190,26 +201,26 @@ bool WriteMessage_ScreenFile(
 #endif
 	{
 	//Print startup time.
-		if (LogStartupTime > 0)
+		if (LogStartupTimeValue > 0)
 		{
 			PrintToScreen(true, L"[%d-%02d-%02d %02d:%02d:%02d] -> [Notice] Pcap_DNSProxy started.\n", 
-				TimeStructure.tm_year + 1900, 
-				TimeStructure.tm_mon + 1, 
-				TimeStructure.tm_mday, 
-				TimeStructure.tm_hour, 
-				TimeStructure.tm_min, 
-				TimeStructure.tm_sec);
+				LogStartupTimeStructure.tm_year + 1900, 
+				LogStartupTimeStructure.tm_mon + 1, 
+				LogStartupTimeStructure.tm_mday, 
+				LogStartupTimeStructure.tm_hour, 
+				LogStartupTimeStructure.tm_min, 
+				LogStartupTimeStructure.tm_sec);
 		}
 
 	//Print message.
 		std::lock_guard<std::mutex> ScreenMutex(ScreenLock);
 		PrintToScreen(false, L"[%d-%02d-%02d %02d:%02d:%02d] -> ", 
-			TimeStructure.tm_year + 1900, 
-			TimeStructure.tm_mon + 1, 
-			TimeStructure.tm_mday, 
-			TimeStructure.tm_hour, 
-			TimeStructure.tm_min, 
-			TimeStructure.tm_sec);
+			CurrentTimeStructure.tm_year + 1900, 
+			CurrentTimeStructure.tm_mon + 1, 
+			CurrentTimeStructure.tm_mday, 
+			CurrentTimeStructure.tm_hour, 
+			CurrentTimeStructure.tm_min, 
+			CurrentTimeStructure.tm_sec);
 		if (Line > 0 && ErrorCode != 0)
 			PrintToScreen(false, Message.c_str(), ErrorCode, Line);
 		else if (Line > 0)
@@ -267,37 +278,37 @@ bool WriteMessage_ScreenFile(
 #endif
 	{
 	//Print startup time.
-		if (LogStartupTime > 0)
+		if (LogStartupTimeValue > 0)
 		{
 			fwprintf_s(FileHandle, L"[%d-%02d-%02d %02d:%02d:%02d] -> [Notice] Pcap_DNSProxy started.\n", 
-				TimeStructure.tm_year + 1900, 
-				TimeStructure.tm_mon + 1, 
-				TimeStructure.tm_mday, 
-				TimeStructure.tm_hour, 
-				TimeStructure.tm_min, 
-				TimeStructure.tm_sec);
+				LogStartupTimeStructure.tm_year + 1900, 
+				LogStartupTimeStructure.tm_mon + 1, 
+				LogStartupTimeStructure.tm_mday, 
+				LogStartupTimeStructure.tm_hour, 
+				LogStartupTimeStructure.tm_min, 
+				LogStartupTimeStructure.tm_sec);
 		}
 
 	//Print old file removed message.
 		if (IsFileDeleted)
 		{
 			fwprintf_s(FileHandle, L"[%d-%02d-%02d %02d:%02d:%02d] -> [Notice] Old log file was removed.\n", 
-				TimeStructure.tm_year + 1900, 
-				TimeStructure.tm_mon + 1, 
-				TimeStructure.tm_mday, 
-				TimeStructure.tm_hour, 
-				TimeStructure.tm_min, 
-				TimeStructure.tm_sec);
+				CurrentTimeStructure.tm_year + 1900, 
+				CurrentTimeStructure.tm_mon + 1, 
+				CurrentTimeStructure.tm_mday, 
+				CurrentTimeStructure.tm_hour, 
+				CurrentTimeStructure.tm_min, 
+				CurrentTimeStructure.tm_sec);
 		}
 
 	//Print main message.
 		fwprintf_s(FileHandle, L"[%d-%02d-%02d %02d:%02d:%02d] -> ", 
-			TimeStructure.tm_year + 1900, 
-			TimeStructure.tm_mon + 1, 
-			TimeStructure.tm_mday, 
-			TimeStructure.tm_hour, 
-			TimeStructure.tm_min, 
-			TimeStructure.tm_sec);
+			CurrentTimeStructure.tm_year + 1900, 
+			CurrentTimeStructure.tm_mon + 1, 
+			CurrentTimeStructure.tm_mday, 
+			CurrentTimeStructure.tm_hour, 
+			CurrentTimeStructure.tm_min, 
+			CurrentTimeStructure.tm_sec);
 		if (Line > 0 && ErrorCode != 0)
 			fwprintf_s(FileHandle, Message.c_str(), ErrorCode, Line);
 		else if (Line > 0)

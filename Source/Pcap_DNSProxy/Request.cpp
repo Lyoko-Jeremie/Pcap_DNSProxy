@@ -262,6 +262,7 @@ bool ICMP_TestRequest(
 		SOCKET_DATA SocketDataTemp;
 		memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
 		SocketDataTemp.Socket = INVALID_SOCKET;
+		int OptionValue = ICMPV6_OFFSET_CHECKSUM;
 
 	//Main
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
@@ -270,7 +271,9 @@ bool ICMP_TestRequest(
 		SocketDataTemp.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
 	#endif
 		if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-			!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr))
+			!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr) // || 
+//			!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::CHECKSUM_IPV6, true, &OptionValue) //ICMPv6 protocol checksum will always be calculated by network stack in all platforms.
+			)
 		{
 			SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			return false;
@@ -287,13 +290,17 @@ bool ICMP_TestRequest(
 	//Alternate
 		if (Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0)
 		{
+			OptionValue = ICMPV6_OFFSET_CHECKSUM;
+
 		#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 			SocketDataTemp.Socket = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
 		#elif defined(PLATFORM_MACOS)
 			SocketDataTemp.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
 		#endif
 			if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-				!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr))
+				!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr) // || 
+//				!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::CHECKSUM_IPV6, true, &OptionValue) //ICMPv6 protocol checksum will always be calculated by network stack in all platforms.
+				)
 			{
 				for (auto &SocketDataIter:ICMP_SocketData)
 					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -315,13 +322,17 @@ bool ICMP_TestRequest(
 		{
 			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv6_Multiple)
 			{
+				OptionValue = ICMPV6_OFFSET_CHECKSUM;
+
 			#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 				SocketDataTemp.Socket = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
 			#elif defined(PLATFORM_MACOS)
 				SocketDataTemp.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_ICMPV6);
 			#endif
 				if (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-					!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr))
+					!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr) // || 
+//					!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::CHECKSUM_IPV6, true, &OptionValue) //ICMPv6 protocol checksum will always be calculated by network stack in all platforms.
+					)
 				{
 					for (auto &SocketDataIter:ICMP_SocketData)
 						SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -342,8 +353,7 @@ bool ICMP_TestRequest(
 //ICMP
 	else if (Protocol == AF_INET)
 	{
-	//Make a ICMP request echo packet.
-	//Calculate checksum to make sure that is correct.
+	//Make a ICMP request echo packet, calculate checksum to make sure that is correct.
 	//Windows: It seems that it's not calculating by network stack.
 	//Linux: Calculate by network stack.
 	//macOS: It seems that it's not calculating by network stack.
@@ -558,8 +568,16 @@ bool ICMP_TestRequest(
 		}
 
 	//Send and receive process
-		for (const auto &SocketDataIter:ICMP_SocketData)
+		for (auto &SocketDataIter:ICMP_SocketData)
 		{
+		//Socket check
+			if (!SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr))
+			{
+				SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				continue;
+			}
+
+		//Send and receive data.
 			IsAllSend = false;
 			for (size_t Index = 0;Index < Parameter.MultipleRequestTimes;++Index)
 			{
@@ -874,10 +892,10 @@ size_t UDP_CompleteRequestMultiple(
 	const SOCKET_DATA * const LocalSocketData)
 {
 //Initialization
-	std::vector<SOCKET_DATA> UDPSocketDataList;
 	memset(OriginalRecv, 0, RecvSize);
 
 //Socket initialization
+	std::vector<SOCKET_DATA> UDPSocketDataList;
 	if (!SelectTargetSocketMultiple(IPPROTO_UDP, UDPSocketDataList))
 		return EXIT_FAILURE;
 

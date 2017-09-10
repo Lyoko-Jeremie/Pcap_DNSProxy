@@ -782,10 +782,11 @@ typedef struct _icmp_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define ICMPV6_TYPE_REQUEST    128U
-#define ICMPV6_TYPE_REPLY      129U
-#define ICMPV6_CODE_REQUEST    0
-#define ICMPV6_CODE_REPLY      0
+#define ICMPV6_OFFSET_CHECKSUM   2U
+#define ICMPV6_TYPE_REQUEST      128U
+#define ICMPV6_TYPE_REPLY        129U
+#define ICMPV6_CODE_REQUEST      0
+#define ICMPV6_CODE_REPLY        0
 typedef struct _icmpv6_hdr_
 {
 	uint8_t                Type;

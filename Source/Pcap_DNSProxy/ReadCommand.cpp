@@ -425,14 +425,14 @@ bool ReadCommand(
 			GlobalRunningStatus.IsDaemon = false;
 		}
 	#elif defined(PLATFORM_WIN)
-	//Windows Firewall Test in first start.
+	//Firewall Test in first start.
 		else if (InsensitiveString == COMMAND_FIREWALL_TEST)
 		{
 			ssize_t ErrorCode = 0;
 			if (!FirewallTest(AF_INET6, ErrorCode) && !FirewallTest(AF_INET, ErrorCode))
-				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Windows Firewall Test error", ErrorCode, nullptr, 0);
+				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Firewall test error", ErrorCode, nullptr, 0);
 			else 
-				PrintToScreen(true, L"[Notice] Windows Firewall test is successful.\n");
+				PrintToScreen(true, L"[Notice] Firewall test is successful.\n");
 
 			return false;
 		}

@@ -1506,8 +1506,8 @@ HostsTable::HostsTable(
 	void)
 {
 	PermissionType = HOSTS_TYPE::NONE;
-	IsStringMatching = false;
 	PermissionOperation = false;
+	IsStringMatching = false;
 
 	return;
 }

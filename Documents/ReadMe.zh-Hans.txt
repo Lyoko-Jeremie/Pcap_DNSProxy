@@ -24,7 +24,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 4.确定工具目录的名称和路径后进入目录内，右键以管理员身份(Vista 以及更新版本)或直接以管理员登录双击(XP/2003)运行 ServiceControl.bat
   * 输入 1 并回车，即选择 "1: Install service" 安装服务
-  * 批处理会将程序注册系统服务，并进行 Windows 防火墙测试，每次开机服务都将自动启动
+  * 批处理会将程序注册系统服务，并进行防火墙测试，每次开机服务都将自动启动
   * 此时 Windows 系统会询问是否同意程序访问网络，请将 "专用网络" 以及 "公用网络" 都勾上并确认
 
 5.请按照下文 正常工作查看方法 一节，先对程序是否在正常工作进行测试再修改网络配置！
@@ -629,7 +629,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNS Data Filter - DNS 数据包头检测：开启为 1 /关闭为 0
   * Blacklist Filter - 解析结果黑名单过滤：开启为 1 /关闭为 0
   * Strict Resource Record TTL Filter - 严格的资源记录生存时间过滤，标准要求同一名称和类型的资源记录必须具有相同的生存时间：开启为 1/关闭为 0
-  
+
 * Data - 数据区域
   * ICMP ID - ICMP/Ping 数据包头部 ID 的值：格式为 0x**** 的十六进制字符，如果留空则获取线程的 ID 作为请求用 ID
   * ICMP Sequence - ICMP/Ping 数据包头部 Sequence/序列号 的值：格式为 0x**** 的十六进制字符，如果留空则为从 0x0001 开始每个请求回环式递增

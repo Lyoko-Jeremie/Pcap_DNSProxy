@@ -20,7 +20,7 @@
 #include "Network.h"
 
 #if defined(PLATFORM_WIN)
-//Windows Firewall Test
+//Firewall Test
 bool FirewallTest(
 	const uint16_t Protocol, 
 	ssize_t &ErrorCode)
@@ -118,6 +118,27 @@ bool SocketSetting(
 {
 	switch (SettingType)
 	{
+/* ICMPv6 protocol checksum will always be calculated by network stack in all platforms.
+	//Socket checksum offset setting
+		case SOCKET_SETTING_TYPE::CHECKSUM_IPV6:
+		{
+		//Pointer check
+			if (DataPointer == nullptr)
+				return false;
+
+		//Socket timeout options
+			if (setsockopt(Socket, IPPROTO_IPV6, IPV6_CHECKSUM, reinterpret_cast<const char *>(DataPointer), sizeof(int)) == SOCKET_ERROR)
+			{
+				if (IsPrintError)
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket IPv6 checksum settings error", WSAGetLastError(), nullptr, 0);
+				shutdown(Socket, SD_BOTH);
+				closesocket(Socket);
+				Socket = INVALID_SOCKET;
+
+				return false;
+			}
+		}break;
+*/
 	//Socket closing process
 		case SOCKET_SETTING_TYPE::CLOSE:
 		{
@@ -319,7 +340,7 @@ bool SocketSetting(
 			if (setsockopt(Socket, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			{
 				if (IsPrintError)
-					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket treating wildcard bind settings error", errno, nullptr, 0);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Socket treating wildcard binding settings error", errno, nullptr, 0);
 				shutdown(Socket, SHUT_RDWR);
 				close(Socket);
 				Socket = INVALID_SOCKET;
@@ -1131,6 +1152,13 @@ size_t SocketConnecting(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize)
 {
+//Socket check
+	if (!SocketSetting(Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr))
+	{
+		SocketSetting(Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+		return EXIT_FAILURE;
+	}
+
 //TCP connecting
 	if (Protocol == IPPROTO_TCP)
 	{
@@ -1193,8 +1221,8 @@ size_t SocketConnecting(
 				if (ErrorCode != EAGAIN && ErrorCode != EINPROGRESS)
 			#endif
 				{
-//					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"Socket connecting error", ErrorCode, nullptr, 0);
-//					SocketSetting(Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"TCP connection initialization error", ErrorCode, nullptr, 0);
+					SocketSetting(Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 					return EXIT_FAILURE;
 				}
@@ -1216,7 +1244,7 @@ size_t SocketConnecting(
 			if (ErrorCode != EAGAIN && ErrorCode != EINPROGRESS)
 		#endif
 			{
-				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"Socket connecting error", ErrorCode, nullptr, 0);
+				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"UDP connection initialization error", ErrorCode, nullptr, 0);
 				SocketSetting(Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 				return EXIT_FAILURE;
@@ -1305,6 +1333,9 @@ ssize_t SocketSelectingOnce(
 	memset(&WriteFDS, 0, sizeof(WriteFDS));
 	memset(&Timeout, 0, sizeof(Timeout));
 	size_t LastReceiveIndex = 0;
+	bool IsReadReady = false, IsWriteReady = false;
+	int OptionValue = 0;
+	socklen_t OptionSize = sizeof(OptionValue);
 	if (OriginalRecv == nullptr
 	#if defined(ENABLE_LIBSODIUM)
 		&& RequestType != REQUEST_PROCESS_TYPE::DNSCURVE_MAIN
@@ -1329,13 +1360,17 @@ ssize_t SocketSelectingOnce(
 			Timeout = DNSCurveParameter.DNSCurve_SocketTimeout_Reliable;
 		#endif
 		}
-		else { //UDP
+		else if (Protocol == IPPROTO_UDP)
+		{
 		#if defined(PLATFORM_WIN)
 			Timeout.tv_sec = DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable / SECOND_TO_MILLISECOND;
 			Timeout.tv_usec = DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			Timeout = DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable;
 		#endif
+		}
+		else {
+			return EXIT_FAILURE;
 		}
 	}
 	else {
@@ -1349,13 +1384,17 @@ ssize_t SocketSelectingOnce(
 			Timeout = Parameter.SocketTimeout_Reliable_Once;
 		#endif
 		}
-		else { //UDP
+		else if (Protocol == IPPROTO_UDP)
+		{
 		#if defined(PLATFORM_WIN)
 			Timeout.tv_sec = Parameter.SocketTimeout_Unreliable_Once / SECOND_TO_MILLISECOND;
 			Timeout.tv_usec = Parameter.SocketTimeout_Unreliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			Timeout = Parameter.SocketTimeout_Unreliable_Once;
 		#endif
+		}
+		else {
+			return EXIT_FAILURE;
 		}
 #if defined(ENABLE_LIBSODIUM)
 	}
@@ -1461,13 +1500,52 @@ ssize_t SocketSelectingOnce(
 		{
 			for (Index = 0;Index < SocketDataList.size();++Index)
 			{
+			//File set available check
+				IsReadReady = false, IsWriteReady = false;
+				if (FD_ISSET(SocketDataList.at(Index).Socket, &ReadFDS))
+					IsReadReady = true;
+				if (FD_ISSET(SocketDataList.at(Index).Socket, &WriteFDS))
+					IsWriteReady = true;
+
+			//Socket option check
+			//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
+				if (IsReadReady && IsWriteReady)
+				{
+					OptionValue = 0;
+					OptionSize = sizeof(OptionValue);
+					if (getsockopt(SocketDataList.at(Index).Socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&OptionValue), &OptionSize) == SOCKET_ERROR)
+					{
+						if (Protocol == IPPROTO_TCP)
+							PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", WSAGetLastError(), nullptr, 0);
+						else if (Protocol == IPPROTO_UDP)
+							PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"UDP socket connecting error", WSAGetLastError(), nullptr, 0);
+						if (ErrorCode != nullptr)
+							*ErrorCode = WSAGetLastError();
+						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+						
+						continue;
+					}
+					else if (OptionValue > 0)
+					{
+						if (Protocol == IPPROTO_TCP)
+							PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", OptionValue, nullptr, 0);
+						else if (Protocol == IPPROTO_UDP)
+							PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"UDP socket connecting error", OptionValue, nullptr, 0);
+						if (ErrorCode != nullptr)
+							*ErrorCode = OptionValue;
+						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+
+						continue;
+					}
+				}
+
 			#if defined(ENABLE_LIBSODIUM)
 			//DNSCurve
 				if (RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
 				{
 				//Receive process
 					if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
-						FD_ISSET(SocketDataList.at(Index).Socket, &ReadFDS))
+						IsReadReady)
 					{
 					//Buffer initialization
 						if (!DNSCurveSocketSelectingList->at(Index).RecvBuffer)
@@ -1503,7 +1581,7 @@ ssize_t SocketSelectingOnce(
 
 				//Send process
 					if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
-						FD_ISSET(SocketDataList.at(Index).Socket, &WriteFDS) && 
+						IsWriteReady && 
 						!DNSCurveSocketSelectingList->at(Index).IsPacketDone)
 					{
 						if (send(SocketDataList.at(Index).Socket, reinterpret_cast<const char *>(DNSCurveSocketSelectingList->at(Index).SendBuffer), static_cast<int>(DNSCurveSocketSelectingList->at(Index).SendSize), 0) == SOCKET_ERROR)
@@ -1532,7 +1610,7 @@ ssize_t SocketSelectingOnce(
 			#endif
 				//Receive process
 					if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
-						FD_ISSET(SocketDataList.at(Index).Socket, &ReadFDS))
+						IsReadReady)
 					{
 						if (OriginalRecv != nullptr)
 						{
@@ -1578,7 +1656,7 @@ ssize_t SocketSelectingOnce(
 
 				//Send process
 					if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
-						FD_ISSET(SocketDataList.at(Index).Socket, &WriteFDS) && 
+						IsWriteReady && 
 						!SocketSelectingList.at(Index).IsPacketDone)
 					{
 						if (send(SocketDataList.at(Index).Socket, reinterpret_cast<const char *>(OriginalSend), static_cast<int>(SendSize), 0) == SOCKET_ERROR)
@@ -1661,6 +1739,7 @@ ssize_t SocketSelectingOnce(
 
 			if (ErrorCode != nullptr)
 				*ErrorCode = WSAETIMEDOUT;
+
 			break;
 		}
 	//SOCKET_ERROR
@@ -1938,6 +2017,9 @@ size_t SocketSelectingSerial(
 	ssize_t SelectResult = 0, RecvLen = 0;
 	SYSTEM_SOCKET MaxSocket = INVALID_SOCKET;
 	size_t Index = 0;
+	int OptionValue = 0;
+	socklen_t OptionSize = sizeof(OptionValue);
+	bool IsReadReady = false, IsWriteReady = false;
 
 //Socket check(Send process)
 	for (auto SocketDataIter = SocketDataList.begin();SocketDataIter != SocketDataList.end();++SocketDataIter)
@@ -2014,8 +2096,44 @@ size_t SocketSelectingSerial(
 		{
 			for (Index = 0;Index < SocketDataList.size();++Index)
 			{
+			//File set available check
+				IsWriteReady = false;
+				if (FD_ISSET(SocketDataList.at(Index).Socket, &WriteFDS))
+					IsWriteReady = true;
+
+			//Socket option check
+			//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
+				if (IsWriteReady)
+				{
+					OptionValue = 0;
+					OptionSize = sizeof(OptionValue);
+					if (getsockopt(SocketDataList.at(Index).Socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&OptionValue), &OptionSize) == SOCKET_ERROR)
+					{
+						if (Protocol == IPPROTO_TCP)
+							PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", WSAGetLastError(), nullptr, 0);
+						else if (Protocol == IPPROTO_UDP)
+							PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"UDP socket connecting error", WSAGetLastError(), nullptr, 0);
+						ErrorCodeList.at(Index) = WSAGetLastError();
+						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+						
+						continue;
+					}
+					else if (OptionValue > 0)
+					{
+						if (Protocol == IPPROTO_TCP)
+							PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", OptionValue, nullptr, 0);
+						else if (Protocol == IPPROTO_UDP)
+							PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"UDP socket connecting error", OptionValue, nullptr, 0);
+						ErrorCodeList.at(Index) = OptionValue;
+						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+
+						continue;
+					}
+				}
+
+			//Send data.
 				if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
-					FD_ISSET(SocketDataList.at(Index).Socket, &WriteFDS) && 
+					IsWriteReady && 
 					!SocketSelectingDataList.at(Index).IsPacketDone)
 				{
 					if (send(SocketDataList.at(Index).Socket, reinterpret_cast<const char *>(SocketSelectingDataList.at(Index).SendBuffer.get()), static_cast<int>(SocketSelectingDataList.at(Index).SendLen), 0) == SOCKET_ERROR)
@@ -2130,8 +2248,44 @@ StopLoop:
 		{
 			for (Index = 0;Index < SocketDataList.size();++Index)
 			{
+			//File set available check
+				IsReadReady = false;
+				if (FD_ISSET(SocketDataList.at(Index).Socket, &ReadFDS))
+					IsReadReady = true;
+
+			//Socket option check
+			//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
+				if (IsWriteReady)
+				{
+					OptionValue = 0;
+					OptionSize = sizeof(OptionValue);
+					if (getsockopt(SocketDataList.at(Index).Socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&OptionValue), &OptionSize) == SOCKET_ERROR)
+					{
+						if (Protocol == IPPROTO_TCP)
+							PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", WSAGetLastError(), nullptr, 0);
+						else if (Protocol == IPPROTO_UDP)
+							PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"UDP socket connecting error", WSAGetLastError(), nullptr, 0);
+						ErrorCodeList.at(Index) = WSAGetLastError();
+						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+
+						break;
+					}
+					else if (OptionValue > 0)
+					{
+						if (Protocol == IPPROTO_TCP)
+							PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", OptionValue, nullptr, 0);
+						else if (Protocol == IPPROTO_UDP)
+							PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"UDP socket connecting error", OptionValue, nullptr, 0);
+						ErrorCodeList.at(Index) = OptionValue;
+						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+
+						break;
+					}
+				}
+
+			//Receive data.
 				if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
-					FD_ISSET(SocketDataList.at(Index).Socket, &ReadFDS) && 
+					IsReadReady && 
 					!SocketSelectingDataList.at(Index).IsPacketDone && 
 					!SocketSelectingDataList.at(Index).IsSendOnly)
 				{

@@ -338,13 +338,15 @@ void DNSCurveSocketPrecomputation(
 			CheckEmptyBuffer((*PacketTarget)->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 				goto SkipMain;
 
-	//Socket initialization
+	//Set loop limit.
 		if (Protocol == IPPROTO_TCP)
 			LoopLimits = Parameter.MultipleRequestTimes;
 		else if (Protocol == IPPROTO_UDP)
 			LoopLimits = 1U;
 		else 
 			goto SkipMain;
+
+	//Socket initialization
 		for (Index = 0;Index < LoopLimits;++Index)
 		{
 			SocketDataTemp.SockAddr = (*PacketTarget)->AddressData.Storage;
@@ -452,7 +454,7 @@ SkipMain:
 			return;
 		}
 
-	//Socket initialization
+	//Set loop limit.
 		if (Protocol == IPPROTO_TCP)
 		{
 			LoopLimits = Parameter.MultipleRequestTimes;
@@ -470,6 +472,8 @@ SkipMain:
 
 			return;
 		}
+
+	//Socket initialization
 		for (Index = 0;Index < LoopLimits;++Index)
 		{
 			SocketDataTemp.SockAddr = (*PacketTarget)->AddressData.Storage;

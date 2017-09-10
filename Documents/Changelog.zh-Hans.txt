@@ -1,7 +1,8 @@
-﻿Pcap_DNSProxy 0.4.9.1-0.4.9.2 更新日志(2017-07-16)：
+﻿Pcap_DNSProxy 0.4.9.1-0.4.9.2 更新日志(2017-09-10)：
 
 * 添加 Domain Test 探测模块对 TCP 协议的支持
   * 添加 Domain Test Protocol 参数
+* 大幅提升 Local Routing 境内路由表和内置 DNS 缓存的查询效率 [Syrone Wong]
 * LibSodium 库更新到 1.0.13 (Windows/macOS)
 * 调整境内服务器请求过程的整体策略 [cjjdaq]
   * 移除 Local Main 参数
@@ -11,6 +12,7 @@
 * 修复 Local Hosts 白名单识别算法的问题 [cjjdaq/muink]
 * 修复 Transaction ID 在取特殊值的情况时无法进行解析的问题 [LisonFan]
 * 修复在部分情况下指定多个 Listen Address 时可能造成的错误报错问题
+* 修复错误日志输出模块的时间计算问题
 * 修复 NSCI 系统网络感应指示器 IPv6 地址被错误过滤的问题 (Windows) [hnsylzg]
 * Release Hash: 
   * SHA-3(256): 
@@ -316,7 +318,7 @@ Pcap_DNSProxy 0.4.5.1-0.4.6.0 更新日志(2016-04-23)：
 * 修复使用 Win10Pcap 时抓包模块不能工作的问题 (Windows) [smounives]
 * 修复在抓包模式下 CNAME Hosts 格式错误的问题 [debugzxcv]
 * 修复程序内部 DNS 缓存被错误自动清除的问题 (Linux/Mac)
-* 修复 Update_Routing 工具在 ICMP/ICMPv6 协议被屏蔽的网络下不能工作的问题 (Windows) [w48325832/wongsyrone]
+* 修复 Update_Routing 工具在 ICMP/ICMPv6 协议被屏蔽的网络下不能工作的问题 (Windows) [w48325832/Syrone Wong]
 * 修复重启服务间隔时间过短可能导致的崩溃问题 (Windows)
 * Release Hash:
   * SHA-1:
@@ -384,7 +386,7 @@ Pcap_DNSProxy 0.4.3.1-0.4.4 更新日志(2015-09-27)：
 * 修正 Receive Waiting 参数的含义以及对请求行为的影响
 * 修正 Local Hosts 参数启用时解析域名的流程，提高已缓存解析结果的解析速度 [hongyi-zhao]
 * 修正对并行请求的数量限制
-* 修复部分参数读取使用网络层服务名/DNS记录名称代替数字时的错误
+* 修复部分参数读取使用网络层服务名/DNS 记录名称代替数字时的错误
 * 修复多线程模式下服务器连接失败时无法切换的问题
 * 修复 TCP 协议请求时可能造成的分片问题
 * 修复 ICMP/ICMPv6 附加数据长度的计算问题
@@ -422,10 +424,10 @@ Pcap_DNSProxy 0.4.2.1-0.4.3 更新日志(2015-07-28)：
 * 修复数据包过滤模块的算法错误 [AVC A]
 * 修复文件读取模块对于前后留空的错误 [wen kangcheng]
 * 修复文件读取模块对于多重空格处理的问题 [yuyangzxw]
-* 修复 KeyPairGenerator 生成客户端密钥对的错误 [wongsyrone]
-* 修复 Accept List 参数读取 DNS 类型名称的错误 [wongsyrone]
+* 修复 KeyPairGenerator 生成客户端密钥对的错误 [Syrone Wong]
+* 修复 Accept List 参数读取 DNS 类型名称的错误 [Syrone Wong]
 * 修复 Address Hosts 功能溢出错误 [jzp820927]
-* 修复当请求的数据中带有 EDNS Label 时的错误 [wongsyrone]
+* 修复当请求的数据中带有 EDNS Label 时的错误 [Syrone Wong]
 * 修复收到截断数据包时无法重新按照标准适用 TCP 协议重新解析的错误 [shuangzhijinghua]
 * 修复睡眠或休眠前可能产生的错误报告输出 (Windows)
   * 启动第一次遇到 Insufficient privileges or not any available network devices 错误信息时将暂时不输出到错误报告文件
@@ -483,7 +485,7 @@ Pcap_DNSProxy 0.4.0.1-0.4.1 更新日志(2015-05-21)：
 Pcap_DNSProxy v0.4(Windows/Linux/Mac) 更新日志(2015-05-13)：
 
 * 添加对 Apple IEEE 1394/FireWire 的支持
-* 添加对 Streamlined/精简 格式 DNSCurve(DNSCrypt) 协议的支持
+* 添加对 Streamlined/精简格式 DNSCurve(DNSCrypt) 协议的支持
   * 提供随机 Curve25519/Salsa20/Poly1305(DNSCurve) 密钥对生成程序 KeyPairGenerator
 * 添加缓存 DNS 回复包的功能
 * 添加切换备用服务器，提供主要服务器和备用服务器自动切换的功能
@@ -502,10 +504,9 @@ Pcap_DNSProxy v0.4(Windows/Linux/Mac) 更新日志(2015-05-13)：
 * 添加 Compression Pointer Mutation/随机添加压缩指针 的功能，默认为关闭
 * 为抓包模块添加总开关 Pcap Capture
 * 为抓包模块添加 IPv4 扩展头部的支持
-* 为 TCP Data Filter/TCP数据包过滤器 添加检查 Checksum/校验和 的功能
+* 为 TCP Data Filter/TCP 数据包过滤器添加检查 Checksum/校验和的功能
 * 为 IPv4/IPv6 黑名单地址过滤功能添加新的投毒污染地址
 * 黑名单地址过滤功能应用到所有解析过程以避免权威服务器被污染的情况下所有结果被投毒污染的结果
-* 黑名单地址过滤功能现在将过滤所有解析结果的地址
 * 为 Operation Mode 增加 Private 和 Custom 模式 [陈斐]
   * Private 模式只允许私有网络请求解析
   * Custom 模式禁止或只允许列表中的地址请求解析，使用单独的地址过滤库（支持 IPFilter.dat 和 Guarding.P2P 格式）进行控制
@@ -521,7 +522,7 @@ Pcap_DNSProxy v0.4(Windows/Linux/Mac) 更新日志(2015-05-13)：
   * 为 Hosts 文件添加 CSV/逗号分隔值 格式的支持
   * 为 Hosts 文件添加 "BANNED 正则表达式"（不含引号）语法直接返回域名查找失败信息，用于快速屏蔽域名
   * 为 Hosts 文件添加 "BANNED:xxx 正则表达式"（不含引号）语法屏蔽特定类型记录的域名查询
-  * 为 IPFilter 数据库添加 "IP地址 ALL"（不含引号）语法直接屏蔽所有含此IP地址/地址范围的解析结果
+  * 为 IPFilter 数据库添加 "IP地址 ALL"（不含引号）语法直接屏蔽所有含此 IP 地址/地址范围的解析结果
   * URI 标准化 IPv6 地址格式，IPv4/IPv6 地址格式更改为带端口格式
   * 支持部分非标准的缩略 IPv4/IPv6 地址格式
   * 支持检查文件大小的功能
@@ -537,7 +538,7 @@ Pcap_DNSProxy v0.4(Windows/Linux/Mac) 更新日志(2015-05-13)：
 * 添加剥离 Libsodium 库的选项 (Linux)
 * 请求本地服务器的完整网域名称现在会返回本地服务器的所有 IPv4/IPv6 地址
 * 调整请求本地 DNS 服务器由抓包模式到直连模式，加快响应速度降低资源占用
-* 调整 IPv4 Data Filter/IPv4数据包过滤器，默认为关闭
+* 调整 IPv4 Data Filter/IPv4 数据包过滤器，默认为关闭
 * 调整 ICMP 和随机域名请求模块的编号和序列号生成规则
 * 调整 ICMP 附加数据限制长度最长到 1484 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header)
 * 调整随机域名生成模块，使用 C++ STL 提供的梅森旋转算法引擎产生离散型均匀分布的随机域名
@@ -554,7 +555,7 @@ Pcap_DNSProxy v0.4(Windows/Linux/Mac) 更新日志(2015-05-13)：
 * 移除生成错误报告
   * 找不到 Hosts 文件时
   * Windows XP 系统下不支持 IPv6 时
-* 修复超过额定长度（本次更新前为2KB）的文件读取能会造成的错误
+* 修复超过额定长度（本次更新前为 2 KB）的文件读取能会造成的错误
 * 修复 UDP 协议下过早关闭端口造成系统发送 ICMP(v6) Port Unreachable 端口不可到达信息的错误
 * 修复 TCP 协议下因为远程服务器无响应而造成的过长时间不回应请求的错误
 * 修复存在网桥适配器时可能造成的崩溃 [JonyOang]
@@ -611,9 +612,9 @@ Pcap_DNSProxy v0.3.1(Windows)/v0.1(Linux) 更新日志：
 
 Pcap_DNSProxy v0.3 更新日志：
 
-* 32位/x86版本使用 WSAAddressToString() 和 WSAStringToAddress() 替代 inet_ntop() 和 inet_pton() 以支持 Windows XP 以及更旧的系统 [Roy Tam]
+* 32 位/x86 版本使用 WSAAddressToString() 和 WSAStringToAddress() 替代 inet_ntop() 和 inet_pton() 以支持 Windows XP 以及更旧的系统 [Roy Tam]
 * 添加对固定列表域名请求境内域名解析服务器的功能 [陈斐]
-* 为 Windows 防火墙测试添加IPv6版本支持
+* 为 Windows 防火墙测试添加 IPv6 版本支持
 * INI 版本和 Hosts 版本更新至 0.3
   * 为配置文件添加版本检测功能
   * 为 Hosts 添加白名单功能
@@ -635,7 +636,7 @@ Pcap_DNSProxy v0.2 更新日志：
 
 * 重写编码读取模块，新增支持 Macintosh(CR) 换行格式
 * 修复无法在 PPPoE 环境下使用的 bug
-* 使用C语言标准库返回值
+* 使用 C 语言标准库返回值
 * 宏定义错误报告类型
 
 

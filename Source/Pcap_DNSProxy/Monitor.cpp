@@ -170,7 +170,7 @@ bool MonitorInit(
 			LocalSocketData.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 			if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr))
 			{
-				SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, true, nullptr);
+				SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			}
 		//Socket initialization
 			else {
@@ -188,7 +188,7 @@ bool MonitorInit(
 							LocalSocketData.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr))
 							{
-								SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, true, nullptr);
+								SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 								break;
 							}
 							else {
@@ -234,7 +234,7 @@ bool MonitorInit(
 								LocalSocketData.Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr))
 								{
-									SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, true, nullptr);
+									SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 									break;
 								}
 								else {
@@ -272,7 +272,7 @@ bool MonitorInit(
 			LocalSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 			if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr))
 			{
-				SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, true, nullptr);
+				SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			}
 		//Socket initialization
 			else {
@@ -290,7 +290,7 @@ bool MonitorInit(
 							LocalSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr))
 							{
-								SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, true, nullptr);
+								SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 								break;
 							}
 							else {
@@ -336,7 +336,7 @@ bool MonitorInit(
 								LocalSocketData.Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr))
 								{
-									SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, true, nullptr);
+									SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 									break;
 								}
 								else {
@@ -377,7 +377,7 @@ bool MonitorInit(
 			LocalSocketData.Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 			if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr))
 			{
-				SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, true, nullptr);
+				SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			}
 		//Socket initialization
 			else {
@@ -395,7 +395,7 @@ bool MonitorInit(
 							LocalSocketData.Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr))
 							{
-								SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, true, nullptr);
+								SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 								break;
 							}
 							else {
@@ -441,7 +441,7 @@ bool MonitorInit(
 								LocalSocketData.Socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr))
 								{
-									SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, true, nullptr);
+									SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 									break;
 								}
 								else {
@@ -479,7 +479,7 @@ bool MonitorInit(
 			LocalSocketData.Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 			if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr))
 			{
-				SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, true, nullptr);
+				SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			}
 		//Socket initialization
 			else {
@@ -497,7 +497,7 @@ bool MonitorInit(
 							LocalSocketData.Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 							if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr))
 							{
-								SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, true, nullptr);
+								SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 								break;
 							}
 							else {
@@ -543,7 +543,7 @@ bool MonitorInit(
 								LocalSocketData.Socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 								if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr))
 								{
-									SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, true, nullptr);
+									SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 									break;
 								}
 								else {
@@ -753,6 +753,8 @@ bool UDP_Monitor(
 		LastMarkTime = GetCurrentSystemTime();
 	ssize_t RecvLen = 0;
 	size_t Index = 0;
+	int OptionValue = 0;
+	socklen_t OptionSize = sizeof(OptionValue);
 
 //Listening module
 	for (;;)
@@ -773,6 +775,8 @@ bool UDP_Monitor(
 		MonitorQueryData.second = LocalSocketData;
 		FD_ZERO(&ReadFDS);
 		FD_SET(MonitorQueryData.second.Socket, &ReadFDS);
+		OptionValue = 0;
+		OptionSize = sizeof(OptionValue);
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
@@ -784,6 +788,23 @@ bool UDP_Monitor(
 		{
 			if (FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS))
 			{
+			//Socket option check
+			//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
+				if (getsockopt(MonitorQueryData.second.Socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&OptionValue), &OptionSize) == SOCKET_ERROR)
+				{
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"UDP socket connecting error", WSAGetLastError(), nullptr, 0);
+					Sleep(LOOP_INTERVAL_TIME_DELAY);
+
+					continue;
+				}
+				else if (OptionValue > 0)
+				{
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"UDP socket connecting error", OptionValue, nullptr, 0);
+					Sleep(LOOP_INTERVAL_TIME_DELAY);
+
+					continue;
+				}
+
 			//Receive response and check DNS query data.
 				RecvLen = recvfrom(MonitorQueryData.second.Socket, reinterpret_cast<char *>(RecvBuffer.get() + NORMAL_PACKET_MAXSIZE * Index), NORMAL_PACKET_MAXSIZE, 0, reinterpret_cast<sockaddr *>(&SocketDataPointer->SockAddr), reinterpret_cast<socklen_t *>(&SocketDataPointer->AddrLen));
 				if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
@@ -860,6 +881,8 @@ bool TCP_Monitor(
 	if (Parameter.QueueResetTime > 0)
 		LastMarkTime = GetCurrentSystemTime();
 	size_t Index = 0;
+	int OptionValue = 0;
+	socklen_t OptionSize = sizeof(OptionValue);
 
 //Start Monitor.
 	for (;;)
@@ -880,6 +903,8 @@ bool TCP_Monitor(
 		MonitorQueryData.second.SockAddr.ss_family = LocalSocketData.SockAddr.ss_family;
 		FD_ZERO(&ReadFDS);
 		FD_SET(LocalSocketData.Socket, &ReadFDS);
+		OptionValue = 0;
+		OptionSize = sizeof(OptionValue);
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
@@ -891,6 +916,23 @@ bool TCP_Monitor(
 		{
 			if (FD_ISSET(LocalSocketData.Socket, &ReadFDS))
 			{
+			//Socket option check
+			//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
+				if (getsockopt(LocalSocketData.Socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&OptionValue), &OptionSize) == SOCKET_ERROR)
+				{
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", WSAGetLastError(), nullptr, 0);
+					Sleep(LOOP_INTERVAL_TIME_DELAY);
+
+					continue;
+				}
+				else if (OptionValue > 0)
+				{
+					PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", OptionValue, nullptr, 0);
+					Sleep(LOOP_INTERVAL_TIME_DELAY);
+
+					continue;
+				}
+
 			//Accept connection.
 				MonitorQueryData.second.Socket = accept(LocalSocketData.Socket, reinterpret_cast<sockaddr *>(&SocketDataPointer->SockAddr), &SocketDataPointer->AddrLen);
 				if (!SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
@@ -912,8 +954,8 @@ bool TCP_Monitor(
 					MonitorRequestProvider(MonitorQueryData);
 				}
 				else { //New thread mode
-					std::thread TCP_ReceiveThread(std::bind(TCP_ReceiveProcess, MonitorQueryData, nullptr, 0));
-					TCP_ReceiveThread.detach();
+					std::thread TCP_AcceptProcessThread(std::bind(TCP_AcceptProcess, MonitorQueryData, nullptr, 0));
+					TCP_AcceptProcessThread.detach();
 				}
 
 				Index = (Index + 1U) % Parameter.ThreadPoolMaxNum;
@@ -948,8 +990,8 @@ bool TCP_Monitor(
 	return true;
 }
 
-//TCP Monitor receive process
-bool TCP_ReceiveProcess(
+//TCP Monitor accept process
+bool TCP_AcceptProcess(
 	MONITOR_QUEUE_DATA MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
 	size_t RecvSize)
@@ -961,9 +1003,11 @@ bool TCP_ReceiveProcess(
 	timeval Timeout;
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
 	memset(&Timeout, 0, sizeof(Timeout));
-	ssize_t RecvLen = 0;
+	ssize_t RecvLenFirst = 0, RecvLenSecond = 0;
+	int OptionValue = 0;
+	socklen_t OptionSize = sizeof(OptionValue);
 
-//Receive process
+//Socket selecting structure initialization(Part 1)
 #if defined(PLATFORM_WIN)
 	Timeout.tv_sec = Parameter.SocketTimeout_Reliable_Once / SECOND_TO_MILLISECOND;
 	Timeout.tv_usec = Parameter.SocketTimeout_Reliable_Once % SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND;
@@ -973,14 +1017,41 @@ bool TCP_ReceiveProcess(
 	FD_ZERO(&ReadFDS);
 	FD_SET(MonitorQueryData.second.Socket, &ReadFDS);
 
+//Receive process
+//Only receive 2 times data sending operations from sender when accepting, reject all connections which have more than 2 times sending operations.
 #if defined(PLATFORM_WIN)
-	RecvLen = select(0, &ReadFDS, nullptr, nullptr, &Timeout);
+	RecvLenFirst = select(0, &ReadFDS, nullptr, nullptr, &Timeout);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	RecvLen = select(MonitorQueryData.second.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
+	RecvLenFirst = select(MonitorQueryData.second.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
 #endif
-	if (RecvLen > 0 && FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS))
+	if (RecvLenFirst > 0 && FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS))
 	{
-		RecvLen = recv(MonitorQueryData.second.Socket, reinterpret_cast<char *>(RecvBuffer.get()), static_cast<int>(Parameter.LargeBufferSize), 0);
+	//Socket option check
+	//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
+		if (getsockopt(MonitorQueryData.second.Socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&OptionValue), &OptionSize) == SOCKET_ERROR)
+		{
+//			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", WSAGetLastError(), nullptr, 0);
+			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+			
+			return false;
+		}
+		else if (OptionValue > 0)
+		{
+//			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", OptionValue, nullptr, 0);
+			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+			
+			return false;
+		}
+
+	//Receive data.
+		RecvLenFirst = recv(MonitorQueryData.second.Socket, reinterpret_cast<char *>(RecvBuffer.get()), static_cast<int>(Parameter.LargeBufferSize), 0);
+
+	//Connection closed or SOCKET_ERROR
+		if (RecvLenFirst < static_cast<ssize_t>(sizeof(uint16_t))) //Sender must send packet length value(16 bits) at first.
+		{
+			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+			return false;
+		}
 	}
 //Timeout or SOCKET_ERROR
 	else {
@@ -989,17 +1060,9 @@ bool TCP_ReceiveProcess(
 	}
 
 //Connection closed or SOCKET_ERROR
-	size_t Length = 0;
-	if (RecvLen <= 0)
+	if (RecvLenFirst < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
 	{
-		SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-		return false;
-	}
-	else if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
-	{
-		Length = RecvLen;
-
-	//Socket selecting structure initialization
+	//Socket selecting structure initialization(Part 2)
 		memset(&ReadFDS, 0, sizeof(ReadFDS));
 		memset(&Timeout, 0, sizeof(Timeout));
 	#if defined(PLATFORM_WIN)
@@ -1010,24 +1073,40 @@ bool TCP_ReceiveProcess(
 	#endif
 		FD_ZERO(&ReadFDS);
 		FD_SET(MonitorQueryData.second.Socket, &ReadFDS);
+		OptionValue = 0;
+		OptionSize = sizeof(OptionValue);
 
 	//Wait for system calling.
 	#if defined(PLATFORM_WIN)
-		RecvLen = select(0, &ReadFDS, nullptr, nullptr, &Timeout);
+		RecvLenSecond = select(0, &ReadFDS, nullptr, nullptr, &Timeout);
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-		RecvLen = select(MonitorQueryData.second.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
+		RecvLenSecond = select(MonitorQueryData.second.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
 	#endif
-		if (RecvLen > 0 && FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS))
+		if (RecvLenSecond > 0 && FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS))
 		{
-			RecvLen = recv(MonitorQueryData.second.Socket, reinterpret_cast<char *>(RecvBuffer.get() + Length), static_cast<int>(Parameter.LargeBufferSize - Length), 0);
-
-		//Receive length check
-			if (RecvLen > 0)
+		//Socket option check
+		//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
+			if (getsockopt(MonitorQueryData.second.Socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&OptionValue), &OptionSize) == SOCKET_ERROR)
 			{
-				RecvLen += Length;
+//				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", WSAGetLastError(), nullptr, 0);
+				SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				
+				return false;
 			}
+			else if (OptionValue > 0)
+			{
+//				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", OptionValue, nullptr, 0);
+				SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+				
+				return false;
+			}
+
+		//Receive data.
+			RecvLenSecond = recv(MonitorQueryData.second.Socket, reinterpret_cast<char *>(RecvBuffer.get() + RecvLenFirst), static_cast<int>(Parameter.LargeBufferSize - RecvLenFirst), 0);
+
 		//Connection closed or SOCKET_ERROR
-			else {
+			if (RecvLenSecond <= 0)
+			{
 				SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 				return false;
 			}
@@ -1040,11 +1119,13 @@ bool TCP_ReceiveProcess(
 	}
 
 //Length check
-	Length = ntohs(reinterpret_cast<uint16_t *>(RecvBuffer.get())[0]);
-	if (RecvLen >= static_cast<ssize_t>(Length) && Length >= DNS_PACKET_MINSIZE)
+	const auto LengthValue = ntohs(reinterpret_cast<uint16_t *>(RecvBuffer.get())[0]);
+	if (LengthValue >= DNS_PACKET_MINSIZE && LengthValue + sizeof(uint16_t) < Parameter.LargeBufferSize && 
+		((RecvLenFirst < static_cast<ssize_t>(DNS_PACKET_MINSIZE) && RecvLenFirst + RecvLenSecond >= static_cast<ssize_t>(LengthValue + sizeof(uint16_t))) || 
+		(RecvLenFirst >= static_cast<ssize_t>(DNS_PACKET_MINSIZE) && RecvLenFirst >= static_cast<ssize_t>(LengthValue + sizeof(uint16_t)))))
 	{
 		MonitorQueryData.first.Buffer = RecvBuffer.get() + sizeof(uint16_t);
-		MonitorQueryData.first.Length = Length;
+		MonitorQueryData.first.Length = LengthValue;
 		MonitorQueryData.first.IsLocalRequest = false;
 		MonitorQueryData.first.IsLocalInBlack = false;
 		MonitorQueryData.first.IsLocalInWhite = false;
@@ -1057,6 +1138,9 @@ bool TCP_ReceiveProcess(
 		{
 			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			return false;
+		}
+		else {
+			SendBuffer.reset();
 		}
 
 	//Main request process
@@ -1794,7 +1878,7 @@ void NetworkInformationMonitor(
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			if (!(IsErrorFirstPrint || GlobalRunningStatus.GatewayAvailable_IPv6))
 		#endif
-				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"Not any available gateways to public network", 0, nullptr, 0);
+				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NETWORK, L"No any available gateways to external network", 0, nullptr, 0);
 
 		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			IsErrorFirstPrint = false;

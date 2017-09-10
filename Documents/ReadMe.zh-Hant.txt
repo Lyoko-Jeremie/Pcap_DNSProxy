@@ -24,7 +24,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 4.確定工具目錄的名稱和路徑後進入目錄內，右鍵以管理員身份(Vista 以及更新版本)或直接以管理員登錄按兩下(XP/2003)運行 ServiceControl.bat
   * 輸入 1 並回車，即選擇 "1: Install service" 安裝服務
-  * 批次處理會將程式註冊系統服務，並進行 Windows 防火牆測試，每次開機服務都將自動啟動
+  * 批次處理會將程式註冊系統服務，並進行防火牆測試，每次開機服務都將自動啟動
   * 此時 Windows 系統會詢問是否同意程式訪問網路，請將 "私人網路絡" 以及 "公用網路" 都勾上並確認
 
 5.請按照下文 正常工作查看方法 一節，先對程式是否在正常工作進行測試再修改網路設定！
@@ -39,7 +39,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 注意：建議將 "本地連接" 和 "無線連接" 以及 "寬頻連線" 全部修改！
 
 7.特別注意：
-  * 如果需要讓程式的流量通過系統路由級別的代理（例如 VPN 等）進行功能變數名稱解析，請選擇其中一種方案，配置完成後重啟服務：
+  * 如果需要讓程式的流量通過系統路由級別的代理（例如 VPN 等）進行網域名稱解析，請選擇其中一種方案，配置完成後重啟服務：
     * Direct Request = IPv4
     * Direct Request = IPv6
     * Direct Request = IPv4 + IPv6
@@ -64,7 +64,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 
 更新程式方法（需要以管理員身份進行，切勿直接覆蓋，否則可能會造成不可預料的錯誤）：
-1.提前下載好新版本的 Pcap_DNSProxy（亦即 安裝方法 中第2步），更新過程可能會造成功能變數名稱解析短暫中斷
+1.提前下載好新版本的 Pcap_DNSProxy（亦即 安裝方法 中第2步），更新過程可能會造成網域名稱解析短暫中斷
 2.備份好所有設定檔 Hosts 檔 IPFilter 檔的自訂內容
 3.右鍵以管理員身份(Vista 以及更新版本)或直接以管理員登錄按兩下(XP/2003)運行 ServiceControl.bat
 4.輸入 2 並回車，即選擇 "2: Uninstall service" 卸載服務
@@ -80,7 +80,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 
 卸載方法（需要以管理員身份進行）：
-1.按照 安裝方法 中第6步還原 DNS 功能變數名稱伺服器位址配置
+1.按照 安裝方法 中第6步還原 DNS 網域名稱伺服器位址配置
 2.右鍵以管理員身份(Vista 以及更新版本)或直接以管理員登錄按兩下(XP/2003)運行 ServiceControl.bat
   * 輸入 2 並回車，即選擇 "2: Uninstall service" 卸載服務
   * 注意：Windows 防火牆可能會留有允許程式訪問網路的資訊，故卸載後可能需要使用註冊表清理工具清理
@@ -126,12 +126,12 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 非標準 DNS 埠現階段尚未被干擾，此組合的過濾效果比較可靠
   * Multiple Request Times = xx 時：應用到所有除請求境內伺服器外的所有請求，一個請求多次發送功能
     * 此功能用於對抗網路丟包比較嚴重的情況，對系統和網路資源的佔用都比較高，但在網路環境惡劣的情況下能提高獲得解析結果的可靠性
-  * DNSCurve = 1 同時 Encryption = 0：使用 DNSCurve(DNSCrypt) 非加密模式請求功能變數名稱解析
-    * 此組合等於使用非標準 DNS 埠請求，功能變數名稱解析可靠性比較高，詳細情況參見上文
-  * DNSCurve = 1 同時 Encryption = 1：使用 DNSCurve(DNSCrypt) 加密模式請求功能變數名稱解析
-    * 此組合加密傳輸所有功能變數名稱請求，功能變數名稱解析可靠性最高
-  * DNSCurve = 1 同時 Encryption = 1 同時 Encryption Only = 1：只使用 DNSCurve(DNSCrypt) 加密模式請求功能變數名稱解析
-    * 上文的加密組合並不阻止程式在請求 DNSCurve(DNSCrypt) 加密模式失敗是使用其它協定請求功能變數名稱解析，開啟 Encryption Only = 1 後將只允許使用加密傳輸，安全性和可靠性最高，但功能變數名稱解析成功率可能會下降
+  * DNSCurve = 1 同時 Encryption = 0：使用 DNSCurve(DNSCrypt) 非加密模式請求網域名稱解析
+    * 此組合等於使用非標準 DNS 埠請求，網域名稱解析可靠性比較高，詳細情況參見上文
+  * DNSCurve = 1 同時 Encryption = 1：使用 DNSCurve(DNSCrypt) 加密模式請求網域名稱解析
+    * 此組合加密傳輸所有網域名稱請求，網域名稱解析可靠性最高
+  * DNSCurve = 1 同時 Encryption = 1 同時 Encryption Only = 1：只使用 DNSCurve(DNSCrypt) 加密模式請求網域名稱解析
+    * 上文的加密組合並不阻止程式在請求 DNSCurve(DNSCrypt) 加密模式失敗是使用其它協定請求網域名稱解析，開啟 Encryption Only = 1 後將只允許使用加密傳輸，安全性和可靠性最高，但網域名稱解析成功率可能會下降
 * 優化大量請求下程式表現：
   * Pcap Reading Timeout 適當調低這個參數能使抓包模組以更高的頻率抓取資料包，降低延遲
   * Cache Parameter + Default TTL 儘量調高這個參數能增加緩存的存留時間或者佇列長度，提高緩存命中率
@@ -158,9 +158,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * 設定檔支援的檔案名（只會讀取優先順序較高者，優先順序較低者將被直接忽略）：
   * Windows: Config.ini > Config.conf > Config.cfg > Config
   * Linux/macOS: Config.conf > Config.ini > Config.cfg > Config
-* 請求功能變數名稱解析優先順序
-  * 使用系統 API 函數進行功能變數名稱解析（大部分）：系統 Hosts > Pcap_DNSProxy 的 Hosts 條目（Whitelist/白名單條目 > Hosts/主要 Hosts 清單） > DNS 緩存 > Local Hosts/境內 DNS 解析功能變數名稱清單 > 遠端DNS伺服器
-  * 直接從網路介面卡設置內讀取 DNS 伺服器位址進行功能變數名稱解析（小部分）：Pcap_DNSProxy 的 Hosts 配置檔案（Whitelist/白名單條目 > Hosts/主要 Hosts 清單） > DNS緩存 > Local Hosts/境內 DNS 解析功能變數名稱清單 > 遠端 DNS 伺服器
+* 請求網域名稱解析優先順序
+  * 使用系統 API 函數進行網域名稱解析（大部分）：系統 Hosts > Pcap_DNSProxy 的 Hosts 條目（Whitelist/白名單條目 > Hosts/主要 Hosts 清單） > DNS 緩存 > Local Hosts/境內 DNS 解析網域名稱清單 > 遠端DNS伺服器
+  * 直接從網路介面卡設置內讀取 DNS 伺服器位址進行網域名稱解析（小部分）：Pcap_DNSProxy 的 Hosts 配置檔案（Whitelist/白名單條目 > Hosts/主要 Hosts 清單） > DNS緩存 > Local Hosts/境內 DNS 解析網域名稱清單 > 遠端 DNS 伺服器
   * 請求遠端 DNS 伺服器的優先順序：Direct Request 模式 > TCP 模式的 DNSCurve 加密/非加密模式（如有） > UDP 模式的 DNSCurve 加密/非加密模式（如有） > TCP 模式普通請求（如有） > UDP 模式普通請求
 * 本工具的 DNSCurve(DNSCrypt) 協定是內置的實現，不需要安裝 DNSCrypt 官方的工具！
   * DNSCurve 協定為 Streamlined/精簡類型
@@ -184,7 +184,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * --flush-dns
   立即清空所有程式內以及系統內的 DNS 緩存
 * --flush-dns Domain
-  立即清空功能變數名稱為 Domain 以及所有系統內的 DNS 緩存
+  立即清空網域名稱為 Domain 以及所有系統內的 DNS 緩存
 * --keypair-generator
   生成 DNSCurve(DNSCrypt) 協定所需使用的金鑰組到 KeyPair.txt
 * --lib-version
@@ -239,16 +239,16 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 讀取超時時間需要平衡需求和資源佔用，時間設置太長會導致域名解析請求響應緩慢導致請求解析超時，太快則會佔用過多系統處理的資源
   * Listen Protocol - 本地監聽請求時所支援的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只監聽指定協定的本地埠
-    * 注意：此處的協定指的是向本程式請求功能變數名稱解析時可使用的協定，而程式請求遠端 DNS 伺服器時所使用的協定由 Protocol 參數決定
+    * 注意：此處的協定指的是向本程式請求網域名稱解析時可使用的協定，而程式請求遠端 DNS 伺服器時所使用的協定由 Protocol 參數決定
   * Listen Port - 監聽埠，本地監聽請求的埠：格式為 "埠A(|埠B)"（不含引號，括弧內為可選項目）
     * 埠可填入服務名稱，服務名稱清單參見下文
     * 也可填入 1-65535 之間的埠，如果留空則為 53
     * 填入多個埠時，程式將會同時監聽請求
     * 當相應協定的 Listen Address 生效時，相應協定的本參數將會被自動忽略
   * Operation Mode - 程式的監聽工作模式：分 Server/伺服器模式、Private/私有網路模式 和 Proxy/代理模式
-    * Server/伺服器模式：打開 DNS 通用埠（TCP/UDP 同時打開），可為所有其它設備提供代理功能變數名稱解析請求服務
-    * Private/私有網路模式：打開 DNS 通用埠（TCP/UDP 同時打開），可為僅限於私有網路位址的設備提供代理功能變數名稱解析請求服務
-    * Proxy/代理模式：只打開回環位址的 DNS 埠（TCP/UDP 同時打開），只能為本機提供代理功能變數名稱解析請求服務
+    * Server/伺服器模式：打開 DNS 通用埠（TCP/UDP 同時打開），可為所有其它設備提供代理網域名稱解析請求服務
+    * Private/私有網路模式：打開 DNS 通用埠（TCP/UDP 同時打開），可為僅限於私有網路位址的設備提供代理網域名稱解析請求服務
+    * Proxy/代理模式：只打開回環位址的 DNS 埠（TCP/UDP 同時打開），只能為本機提供代理網域名稱解析請求服務
     * Custom/自訂模式：打開 DNS 通用埠（TCP/UDP 同時打開），可用的位址由 IPFilter 參數決定
     * 當相應協定的 Listen Address 生效時，相應協定的本參數將會被自動忽略
   * IPFilter Type - IPFilter 參數的類型：分為 Deny 禁止和 Permit 允許，對應 IPFilter 參數應用為黑名單或白名單
@@ -338,7 +338,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * DLV/32769
     * RESERVED/65535
 
-* DNS - 功能變數名稱解析參數區域
+* DNS - 網域名稱解析參數區域
   * Outgoing Protocol - 發送請求到遠端 DNS 伺服器時所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向遠端 DNS 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
@@ -354,7 +354,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Cache Type - DNS 緩存的類型：分 Timer/計時型、Queue/佇列型以及它們的混合類型，填入 0 為關閉此功能
     * Timer/計時型：超過指定時間的 DNS 緩存將會被丟棄
     * Queue/佇列型：超過佇列長度時，將刪除最舊的 DNS 緩存
-    * 混合類型：超過指定時間時、超過佇列長度時以及超過功能變數名稱本身 TTL 時，都會刪除最舊的 DNS 緩存
+    * 混合類型：超過指定時間時、超過佇列長度時以及超過網域名稱本身 TTL 時，都會刪除最舊的 DNS 緩存
   * Cache Parameter - DNS 緩存的參數：分 Timer/計時型、Queue/佇列型以及它們的混合類型，填入 0 為關閉此功能
     * Timer/計時型
       * 緩存時間，單位為秒
@@ -374,8 +374,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * 如果解析結果的平均 TTL 值大於此值，則使用 [TTL + 此值] 為最終的緩存時間
       * 如果解析結果的平均 TTL 值小於等於此值，則使用 [此值] 為最終的緩存時間
       * 如果填 0 則最終的緩存時間為 TTL 值
-  
-* Local DNS - 境內功能變數名稱解析參數區域
+
+* Local DNS - 境內網域名稱解析參數區域
   * Local Protocol - 發送請求到境內 DNS 伺服器時所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向境內 DNS 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
@@ -384,17 +384,17 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Local Hosts - 白名單境內伺服器請求功能：開啟為 1 /關閉為 0
     * 本功能開啟後才會嘗試讀取 Local Hosts 白名單內的資料，關閉時不會讀取任何白名單的資料
   * Local Routing - 境內路由表識別功能：開啟為 1 /關閉為 0
-    * 本功能開啟後所有請求都會先發送至境內伺服器進行功能變數名稱解析，再根據解析結果進行下一步的操作
+    * 本功能開啟後所有請求都會先發送至境內伺服器進行網域名稱解析，再根據解析結果進行下一步的操作
   * Local Force Request - 強制使用境內伺服器進行解析：開啟為 1 /關閉為 0
     * 本功能要求啟用 Local Hosts 參數
   * 注意：關於 Local Force Request 和 Local Hosts 和 Local Routing 的組合說明
-    * 所有參數均為關閉時：直接跳過使用境內伺服器進行功能變數名稱解析的過程
+    * 所有參數均為關閉時：直接跳過使用境內伺服器進行網域名稱解析的過程
     * 預設情況下在境內伺服器解析失敗會進行下一步的操作
-    * 只開啟 Local Hosts 時：將按照（黑）白名單（無）命中規則的功能變數名稱，才（不）使用境內伺服器進行解析
-    * 開啟 Local Force Request 參數時，則強制已命中規則的功能變數名稱只能使用境內伺服器進行解析
-      * 只開啟 Local Routing 時：所有請求都會先發送至境內伺服器進行功能變數名稱解析，然後根據路由表進行匹配，命中路由表的解析結果將直接返回給要求者
-    * 同時開啟 Local Hosts 和 Local Routing 時：所有（除了黑名單所指定的）請求都會先發送至境內伺服器進行功能變數名稱解析，然後根據路由表進行匹配，命中路由表的解析結果將直接返回給要求者
-      * 開啟 Local Force Request 參數時，則強制已命中規則的功能變數名稱只能使用境內伺服器進行解析
+    * 只開啟 Local Hosts 時：將按照（黑）白名單（無）命中規則的網域名稱，才（不）使用境內伺服器進行解析
+    * 開啟 Local Force Request 參數時，則強制已命中規則的網域名稱只能使用境內伺服器進行解析
+      * 只開啟 Local Routing 時：所有請求都會先發送至境內伺服器進行網域名稱解析，然後根據路由表進行匹配，命中路由表的解析結果將直接返回給要求者
+    * 同時開啟 Local Hosts 和 Local Routing 時：所有（除了黑名單所指定的）請求都會先發送至境內伺服器進行網域名稱解析，然後根據路由表進行匹配，命中路由表的解析結果將直接返回給要求者
+      * 開啟 Local Force Request 參數時，則強制已命中規則的網域名稱只能使用境內伺服器進行解析
 
 * Addresses - 普通模式位址區域
   * IPv4 Listen Address - IPv4 本地監聽位址：需要輸入一個帶埠格式的位址，留空為不啟用
@@ -410,10 +410,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv4 Alternate DNS Address - IPv4 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用
     * 支援多個位址，注意填入後將強制啟用 Alternate Multiple Request 參數
     * 支援使用服務名稱代替埠號
-  * IPv4 Local Main DNS Address - IPv4 主要境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用
+  * IPv4 Local Main DNS Address - IPv4 主要境內 DNS 伺服器位址，用於境內網域名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用
     * 不支援多個位址，只能填入單個位址
     * 支援使用服務名稱代替埠號
-  * IPv4 Local Alternate DNS Address - IPv4 備用境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用
+  * IPv4 Local Alternate DNS Address - IPv4 備用境內 DNS 伺服器位址，用於境內網域名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用
     * 不支援多個位址，只能填入單個位址
     * 支援使用服務名稱代替埠號
   * IPv6 Listen Address - IPv6 本地監聽位址：需要輸入一個帶埠格式的位址，留空為不啟用
@@ -428,10 +428,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv6 Alternate DNS Address - IPv6 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用
     * 支援多個位址，注意填入後將強制啟用 Alternate Multiple Request 參數
     * 支援使用服務名稱代替埠號
-  * IPv6 Local Main DNS Address - IPv6 主要境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用
+  * IPv6 Local Main DNS Address - IPv6 主要境內 DNS 伺服器位址，用於境內網域名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用
     * 不支援多個位址，只能填入單個位址
     * 支援使用服務名稱代替埠號
-  * IPv6 Local Alternate DNS Address - IPv6 備用境內 DNS 伺服器位址，用於境內功能變數名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用
+  * IPv6 Local Alternate DNS Address - IPv6 備用境內 DNS 伺服器位址，用於境內網域名稱解析：需要輸入一個帶埠格式的位址，留空為不啟用
     * 不支援多個位址，只能填入單個位址
     * 支援使用服務名稱代替埠號
   * 注意：
@@ -440,7 +440,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * 單個 IPv6 為 "[IPv6 位址]:埠"（不含引號）
       * 多個 IPv4 為 "位址A:埠|位址B:埠|位址C:埠"（不含引號）
       * 多個 IPv6 為 "[位址A]:埠|[位址B]:埠|[位址C]:埠"（不含引號）
-      * 啟用同時請求多伺服器後將同時向清單中的伺服器請求解析功能變數名稱，並採用最快回應的伺服器的結果，同時請求多伺服器啟用後將自動啟用 Alternate Multiple Request 參數（參見下文）
+      * 啟用同時請求多伺服器後將同時向清單中的伺服器請求解析網域名稱，並採用最快回應的伺服器的結果，同時請求多伺服器啟用後將自動啟用 Alternate Multiple Request 參數（參見下文）
       * 可填入的伺服器數量為：填入主要/待命伺服器的數量
       * Multiple Request Times = 總請求的數值，此數值不能超過 64
     * 帶前置長度位址的格式：
@@ -583,15 +583,15 @@ https://sourceforge.net/projects/pcap-dnsproxy
         * 需要 macOS 10.11 Sierra 以及更新版本的支援
     * 警告：切勿在不受支援的版本上開啟本功能，否則可能導致程式無法正常收發資料包！
   * Receive Waiting - 資料包接收等待時間，啟用後程式會嘗試等待一段時間以嘗試接收所有資料包並返回最後到達的資料包：單位為毫秒，留空或設置為 0 表示關閉此功能
-    * 本參數與 Pcap Reading Timeout 密切相關，由於抓包模組每隔一段讀取超時時間才會返回給程式一次，當資料包接收等待時間小於讀取超時時間時會導致本參數變得沒有意義，在一些情況下甚至會拖慢功能變數名稱解析的回應速度
+    * 本參數與 Pcap Reading Timeout 密切相關，由於抓包模組每隔一段讀取超時時間才會返回給程式一次，當資料包接收等待時間小於讀取超時時間時會導致本參數變得沒有意義，在一些情況下甚至會拖慢網域名稱解析的回應速度
     * 本參數啟用後雖然本身只決定抓包模組的接收等待時間，但同時會影響到非抓包模組的請求。 非抓包模組會自動切換為等待超時時間後發回最後收到的回復，預設為接受最先到達的正確的回復，而它們的超時時間由 Reliable Once Socket Timeout/Unreliable Once Socket Timeout 參數決定
     * 一般情況下，越靠後所收到的資料包，其可靠性可能會更高
   * ICMP Test - ICMP/Ping 測試間隔時間：單位為秒，最小為 5 設置為 0 表示關閉此功能
-  * Domain Test - DNS 伺服器解析功能變數名稱測試間隔時間：單位為秒，最小為 5 設置為 0 表示關閉此功能
+  * Domain Test - DNS 伺服器解析網域名稱測試間隔時間：單位為秒，最小為 5 設置為 0 表示關閉此功能
   * Alternate Times - 待命伺服器失敗次數閾值，一定週期內如超出閾值會觸發伺服器切換：單位為次
   * Alternate Time Range - 待命伺服器失敗次數閾值計算週期：單位為秒，最小為 5
   * Alternate Reset Time - 待命伺服器重置切換時間，切換產生後經過此事件會切換回主要伺服器：單位為秒，最小為 5
-  * Multiple Request Times - 一次向同一個遠端伺服器發送並行功能變數名稱解析請求：0 和 1 時為收到一個請求時請求 1 次，2 時為收到一個請求時請求 2 次，3 時為收到一個請求時請求 3 次.. 以此類推
+  * Multiple Request Times - 一次向同一個遠端伺服器發送並行網域名稱解析請求：0 和 1 時為收到一個請求時請求 1 次，2 時為收到一個請求時請求 2 次，3 時為收到一個請求時請求 3 次.. 以此類推
     * 此值將應用到 Local Hosts 外所有遠端伺服器對所有協定的請求，因此可能會對系統以及遠端伺服器造成壓力，請謹慎考慮開啟的風險！
     * 可填入的最大數值為：填入主要/待命伺服器的數量
   * Multiple Request Times = 總請求的數值，此數值不能超過 64
@@ -602,7 +602,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 使用多 TTL/Hop Limits 值所對應的順序與對應位址參數中的位址順序相同
 
 * Switches - 控制開關區域
-  * Domain Case Conversion - 隨機轉換功能變數名稱請求大小寫：開啟為 1 /關閉為 0
+  * Domain Case Conversion - 隨機轉換網域名稱請求大小寫：開啟為 1 /關閉為 0
   * Compression Pointer Mutation - 隨機添加壓縮指標：可填入 1 (+ 2 + 3)，關閉為 0 
     * 隨機添加壓縮指標有3種不同的類型，對應 1 和 2 和 3
     * 可單獨使用其中一個，即只填一個數位，或填入多個，中間使用 + 號連接
@@ -617,14 +617,14 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSSEC Request - DNSSEC 請求，開啟後將嘗試為所有請求添加 DNSSEC 請求：開啟為 1 /關閉為 0
     * 本功能要求啟用 EDNS Label 參數
     * 此功能不具備任何驗證 DNSSEC 記錄的能力，單獨開啟理論上並不能避免 DNS 投毒污染的問題
-  * DNSSEC Validation - DNSSEC 記錄驗證功能，將檢查所有帶有 DNSSEC 記錄的功能變數名稱解析，驗證失敗將被丟棄：開啟為 1 /關閉為 0
+  * DNSSEC Validation - DNSSEC 記錄驗證功能，將檢查所有帶有 DNSSEC 記錄的網域名稱解析，驗證失敗將被丟棄：開啟為 1 /關閉為 0
     * 本功能要求啟用 EDNS Label 和 DNSSEC Request 參數
     * 此功能不具備完整的 DNSSEC 記錄檢驗的能力，單獨開啟理論上不能避免 DNS 投毒污染的問題
-    * 本功能不檢查不存在 DNSSEC 記錄的功能變數名稱解析
-  * DNSSEC Force Validation - 強制 DNSSEC 記錄驗證功能，將丟棄所有沒有 DNSSEC 記錄的功能變數名稱解析：開啟為 1 /關閉為 0
+    * 本功能不檢查不存在 DNSSEC 記錄的網域名稱解析
+  * DNSSEC Force Validation - 強制 DNSSEC 記錄驗證功能，將丟棄所有沒有 DNSSEC 記錄的網域名稱解析：開啟為 1 /關閉為 0
     * 本功能要求啟用 EDNS Label、DNSSEC Request 和 DNSSEC Validation 參數
     * 此功能不具備完整的 DNSSEC 記錄檢驗的能力，單獨開啟理論上不能避免 DNS 投毒污染的問題
-    * 警告：由於現時已經部署 DNSSEC 的功能變數名稱數量極少，未部署 DNSSEC 的功能變數名稱解析沒有 DNSSEC 記錄，這將導致所有未部署 DNSSEC 的功能變數名稱解析失敗，現階段切勿開啟本功能！
+    * 警告：由於現時已經部署 DNSSEC 的網域名稱數量極少，未部署 DNSSEC 的網域名稱解析沒有 DNSSEC 記錄，這將導致所有未部署 DNSSEC 的網域名稱解析失敗，現階段切勿開啟本功能！
   * Alternate Multiple Request - 待命伺服器同時請求參數，開啟後將同時請求主要伺服器和待命伺服器並採用最快回應的伺服器的結果：開啟為 1 /關閉為 0
     * 同時請求多伺服器啟用後本參數將強制啟用，將同時請求所有存在於清單中的伺服器，並採用最快回應的伺服器的結果
   * IPv4 Do Not Fragment - IPv4 資料包頭部 Do Not Fragment 標誌：開啟為 1 /關閉為 0
@@ -641,13 +641,13 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * ICMP PaddingData - ICMP 附加資料，Ping 程式發送請求時為補足資料使其達到 Ethernet 類型網路最低的可發送長度時添加的資料：長度介乎于 18位元組 - 1500位元組 ASCII 資料之間，留空則使用 Microsoft Windows Ping 程式的 ICMP 附加資料
   * Domain Test Protocol - 使用 Domain Test 發送請求時所使用的協定：可填入 TCP 和 UDP
   * Domain Test ID - DNS 資料包頭部 ID 的值：格式為 0x**** 的十六進位字元，如果留空則獲取執行緒的 ID 作為請求用 ID
-  * Domain Test Data - DNS 伺服器解析功能變數名稱測試：請輸入正確、確認不會被投毒污染的功能變數名稱並且不要超過 253 位元組 ASCII 資料，留空則會隨機生成一個功能變數名稱進行測試
-  * Local Machine Server Name - 本地 DNS 伺服器名稱：請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，留空則使用 pcap-dnsproxy.server 作為本機伺服器名稱
+  * Domain Test Data - DNS 伺服器解析網域名稱測試：請輸入正確、確認不會被投毒污染的網域名稱並且不要超過 253 位元組 ASCII 資料，留空則會隨機生成一個網域名稱進行測試
+  * Local Machine Server Name - 本地 DNS 伺服器名稱：請輸入正確的網域名稱並且不要超過 253 位元組 ASCII 資料，留空則使用 pcap-dnsproxy.server 作為本機伺服器名稱
 
 * Proxy - 代理區域
   * SOCKS Proxy - SOCKS 協定總開關，控制所有和 SOCKS 協定有關的選項：開啟為 1 /關閉為 0
   * SOCKS Version - SOCKS 協定所使用的版本：可填入 4 或 4A 或 5
-    * SOCKS 版本 4 不支援 IPv6 位址以及功能變數名稱的目標伺服器，以及不支援 UDP 轉發功能
+    * SOCKS 版本 4 不支援 IPv6 位址以及網域名稱的目標伺服器，以及不支援 UDP 轉發功能
     * SOCKS 版本 4a 不支援 IPv6 位址的目標伺服器，以及不支援 UDP 轉發功能
   * SOCKS Protocol - 使用 SOCKS 協定發送請求時所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向 SOCKS 伺服器發出請求
@@ -664,8 +664,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * SOCKS IPv6 Address - SOCKS 協定 IPv6 主要 SOCKS 伺服器位址：需要輸入一個帶埠格式的位址
     * 不支援多個位址，只能填入單個位址
     * 支援使用服務名稱代替埠號
-  * SOCKS Target Server - SOCKS 最終目標伺服器：需要輸入一個帶埠格式的 IPv4/IPv6 位址或功能變數名稱
-    * 不支援多個位址或功能變數名稱，只能填入單個位址或功能變數名稱
+  * SOCKS Target Server - SOCKS 最終目標伺服器：需要輸入一個帶埠格式的 IPv4/IPv6 位址或網域名稱
+    * 不支援多個位址或網域名稱，只能填入單個位址或網域名稱
     * 支援使用服務名稱代替埠號
   * SOCKS Username - 連接 SOCKS 伺服器時所使用的使用者名：最長可填入 255 個字元，留空為不啟用
   * SOCKS Password - 連接 SOCKS 伺服器時所使用的密碼：最長可填入 255 個字元，留空為不啟用
@@ -680,8 +680,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * HTTP CONNECT IPv6 Address - HTTP CONNECT 協定 IPv6 主要 HTTP CONNECT 伺服器位址：需要輸入一個帶埠格式的位址
     * 不支援多個位址，只能填入單個位址
     * 支援使用服務名稱代替埠號
-  * HTTP CONNECT Target Server - HTTP CONNECT 最終目標伺服器：需要輸入一個帶埠格式的 IPv4/IPv6 位址或功能變數名稱
-    * 不支援多個位址或功能變數名稱，只能填入單個位址或功能變數名稱
+  * HTTP CONNECT Target Server - HTTP CONNECT 最終目標伺服器：需要輸入一個帶埠格式的 IPv4/IPv6 位址或網域名稱
+    * 不支援多個位址或網域名稱，只能填入單個位址或網域名稱
     * 支援使用服務名稱代替埠號
   * HTTP CONNECT TLS Handshake - HTTP CONNECT 協定 TLS 握手和加密傳輸總開關：開啟為 1 /關閉為 0
   * HTTP CONNECT TLS Version - HTTP CONNECT 協定啟用 TLS 握手和加密傳輸時所指定使用的版本：設置為 0 則自動選擇
@@ -690,8 +690,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * OpenSSL 1.0.0 以及之前的版本不支援高於 1.0 的版本
   * HTTP CONNECT TLS Validation - HTTP CONNECT 協定啟用 TLS 握手時伺服器憑證鏈檢查：開啟為 1 /關閉為 0
     * 警告：關閉此功能將可能導致加密連接被中間人攻擊，強烈建議開啟！
-    * 警告：OpenSSL 1.0.2 之前的版本不支援檢查伺服器憑證的功能變數名稱匹配情況，敬請留意！
-  * HTTP CONNECT TLS Server Name Indication - HTTP CONNECT 協定用於指定 TLS 握手時所指定使用的功能變數名稱伺服器：請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料，留空則不啟用此功能
+    * 警告：OpenSSL 1.0.2 之前的版本不支援檢查伺服器憑證的網域名稱匹配情況，敬請留意！
+  * HTTP CONNECT TLS Server Name Indication - HTTP CONNECT 協定用於指定 TLS 握手時所指定使用的網域名稱伺服器：請輸入正確的網域名稱並且不要超過 253 位元組 ASCII 資料，留空則不啟用此功能
   * HTTP CONNECT TLS ALPN - HTTP CONNECT 協定 TLS 握手時是否啟用 Application-Layer Protocol Negotiation/ALPN 擴展功能：開啟為 1 /關閉為 0
     * Windows 8 以及之前的版本不支援本功能
     * OpenSSL 1.0.1 以及之前的版本不支援本功能
@@ -755,12 +755,12 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSCurve IPv6 Alternate DNS Address - DNSCurve 協定 IPv6 備用 DNS 伺服器位址：需要輸入一個帶埠格式的位址
     * 不支援多個位址，只能填入單個位址
     * 支援使用服務名稱代替埠號
-  * DNSCurve IPv4 Main Provider Name - DNSCurve 協定 IPv4 主要 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料
-  * DNSCurve IPv4 Alternate Provider Name - DNSCurve 協定 IPv4 備用 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料
-  * DNSCurve IPv6 Main Provider Name - DNSCurve 協定 IPv6 主要 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料
-  * DNSCurve IPv6 Alternate Provider Name - DNSCurve 協定 IPv6 備用 DNS 伺服器提供者，請輸入正確的功能變數名稱並且不要超過 253 位元組 ASCII 資料
+  * DNSCurve IPv4 Main Provider Name - DNSCurve 協定 IPv4 主要 DNS 伺服器提供者，請輸入正確的網域名稱並且不要超過 253 位元組 ASCII 資料
+  * DNSCurve IPv4 Alternate Provider Name - DNSCurve 協定 IPv4 備用 DNS 伺服器提供者，請輸入正確的網域名稱並且不要超過 253 位元組 ASCII 資料
+  * DNSCurve IPv6 Main Provider Name - DNSCurve 協定 IPv6 主要 DNS 伺服器提供者，請輸入正確的網域名稱並且不要超過 253 位元組 ASCII 資料
+  * DNSCurve IPv6 Alternate Provider Name - DNSCurve 協定 IPv6 備用 DNS 伺服器提供者，請輸入正確的網域名稱並且不要超過 253 位元組 ASCII 資料
   * 注意：
-    * 自動獲取 DNSCurve 伺服器連接資訊時必須輸入提供者的功能變數名稱，不能留空
+    * 自動獲取 DNSCurve 伺服器連接資訊時必須輸入提供者的網域名稱，不能留空
     * 更多支援 DNSCurve(DNSCrypt) 的伺服器請移步 https://github.com/jedisct1/dnscrypt-proxy/blob/master/dnscrypt-resolvers.csv
 
 * DNSCurve Keys - DNSCurve 協定金鑰區域
@@ -801,11 +801,11 @@ Hosts 設定檔分為多個提供不同功能的區域
 * 一條條目的總長度切勿超過 4096 位元組/4KB
 * 需要注釋請在條目開頭添加 #/井號
 * 優先順序別自上而下遞減，條目越前優先順序越高
-* 平行 Hosts 條目支援數量由請求功能變數名稱以及 EDNS Payload 長度決定，不要超過 75 個 A 記錄或 43 個 AAAA 記錄
+* 平行 Hosts 條目支援數量由請求網域名稱以及 EDNS Payload 長度決定，不要超過 75 個 A 記錄或 43 個 AAAA 記錄
 
 
 * Whitelist - 白名單條目
-  * 此類型的條目列出的符合要求的功能變數名稱會直接繞過 Hosts 不會使用 Hosts 功能
+  * 此類型的條目列出的符合要求的網域名稱會直接繞過 Hosts 不會使用 Hosts 功能
   * 有效參數格式為 "NULL 正則運算式"（不含引號）
   * 注意優先順序的問題，例如有一片含白名單條目的區域：
 
@@ -817,33 +817,33 @@ Hosts 設定檔分為多個提供不同功能的區域
 
 
 * Whitelist Extended - 白名單條目擴展功能
-  * 此類型的條目還支援對符合規則的特定類型功能變數名稱請求直接繞過 Hosts 不會使用 Hosts 功能
+  * 此類型的條目還支援對符合規則的特定類型網域名稱請求直接繞過 Hosts 不會使用 Hosts 功能
   * 有效參數格式為 "NULL:DNS類型(|DNS類型) 正則運算式"（不含引號，括弧內為可選項目）
-  * 只允許特定類型功能變數名稱請求，有效參數格式為 "NULL(Permit):DNS類型(|DNS類型) 正則運算式"（不含引號）
+  * 只允許特定類型網域名稱請求，有效參數格式為 "NULL(Permit):DNS類型(|DNS類型) 正則運算式"（不含引號）
 
     NULL:A|AAAA .*\.test\.test
     NULL(Deny):NS|SOA .*\.test
 
-  * 第一條即直接跳過匹配規則的 A 記錄和 AAAA 記錄的功能變數名稱請求，其它類型的請求則被匹配規則
-  * 而第二條則只匹配規則的 NS 記錄和 SOA 記錄的功能變數名稱請求，其它類型的請求則被直接跳過
+  * 第一條即直接跳過匹配規則的 A 記錄和 AAAA 記錄的網域名稱請求，其它類型的請求則被匹配規則
+  * 而第二條則只匹配規則的 NS 記錄和 SOA 記錄的網域名稱請求，其它類型的請求則被直接跳過
 
 
 * Banned - 黑名單條目
-  * 此類型的條目列出的符合要求的功能變數名稱會直接返回功能變數名稱不存在的功能，避免重定向導致的超時問題
+  * 此類型的條目列出的符合要求的網域名稱會直接返回網域名稱不存在的功能，避免重定向導致的超時問題
   * 有效參數格式為 "BANNED 正則運算式"（不含引號）
   * 注意優先順序的問題，例如有一片含黑名單條目的區域：
 
     Banned .*\.test\.test
     127.0.0.1|127.0.0.2|127.0.0.3 .*\.test
 
-  * 雖然 .*\.test 包含了 .*\.test\.test 但由於優先順序別自上而下遞減，故先命中 .*\.test\.test 並直接返回功能變數名稱不存在
-  * 從而繞過了下面的條目，達到遮罩功能變數名稱的目的
+  * 雖然 .*\.test 包含了 .*\.test\.test 但由於優先順序別自上而下遞減，故先命中 .*\.test\.test 並直接返回網域名稱不存在
+  * 從而繞過了下面的條目，達到遮罩網域名稱的目的
 
 
 * Banned Extended - 黑名單條目擴展功能
-  * 此類型的條目還支援對符合規則的特定類型功能變數名稱請求進行遮罩或放行
+  * 此類型的條目還支援對符合規則的特定類型網域名稱請求進行遮罩或放行
   * 有效參數格式為 "BANNED:DNS類型(|DNS類型) 正則運算式"（不含引號，括弧內為可選項目）
-  * 只允許特定類型功能變數名稱請求，有效參數格式為 "BANNED(Permit):DNS類型(|DNS類型) 正則運算式"（不含引號，括弧內為可選項目）
+  * 只允許特定類型網域名稱請求，有效參數格式為 "BANNED(Permit):DNS類型(|DNS類型) 正則運算式"（不含引號，括弧內為可選項目）
 
     BANNED:A|AAAA .*\.test\.test
     BANNED(Permit):NS|SOA .*\.test
@@ -853,12 +853,12 @@ Hosts 設定檔分為多個提供不同功能的區域
 
 
 * Hosts/CNAME Hosts - 主要 Hosts 清單/CNAME Hosts 清單
-  * 主要 Hosts 清單和 CNAME Hosts 清單主要區別是作用範圍不相同，前者的作用範圍為接收到的功能變數名稱解析請求，後者的作用範圍為接收到的功能變數名稱解析結果
-    * 有效參數格式為 "位址(|位址A|位址B) 功能變數名稱的正則運算式"（不含引號，括弧內為可選項目，注意間隔所在的位置）
-  * 根據來源位址 Hosts 清單，根據接收到的功能變數名稱解析請求的來源位址判斷是否需要進行 Hosts
-    * 有效參數格式為 "來源位址/前置長度(|來源位址A/前置長度A|來源位址B/前置長度B)->位址(|位址A|位址B) 功能變數名稱的正則運算式"（不含引號，括弧內為可選項目，注意間隔所在的位置）
+  * 主要 Hosts 清單和 CNAME Hosts 清單主要區別是作用範圍不相同，前者的作用範圍為接收到的網域名稱解析請求，後者的作用範圍為接收到的網域名稱解析結果
+    * 有效參數格式為 "位址(|位址A|位址B) 網域名稱的正則運算式"（不含引號，括弧內為可選項目，注意間隔所在的位置）
+  * 根據來源位址 Hosts 清單，根據接收到的網域名稱解析請求的來源位址判斷是否需要進行 Hosts
+    * 有效參數格式為 "來源位址/前置長度(|來源位址A/前置長度A|來源位址B/前置長度B)->位址(|位址A|位址B) 網域名稱的正則運算式"（不含引號，括弧內為可選項目，注意間隔所在的位置）
   * 位址與正則運算式之間的間隔字元可為 Space/半形空格 或者 HT/水準定位符號，間隔長度不限，但切勿輸入全形空格
-  * 一條條目只能接受一種網址類別型（IPv4/IPv6），如有同一個功能變數名稱需要同時進行 IPv4/IPv6 的 Hosts，請分為兩個條目輸入
+  * 一條條目只能接受一種網址類別型（IPv4/IPv6），如有同一個網域名稱需要同時進行 IPv4/IPv6 的 Hosts，請分為兩個條目輸入
   * 平行位址原理為一次返回多個記錄，而具體使用哪個記錄則由要求者決定，一般為第1個
   * 例如有一個 [Hosts] 下有效資料區域：
 
@@ -874,8 +874,8 @@ Hosts 設定檔分為多個提供不同功能的區域
     * 請求解析 xxx.test.test 的 AAAA 記錄（IPv6）會返回 ::1、::2 和 ::3
 
 
-* Local Hosts - 境內 DNS 解析功能變數名稱清單
-本區域資料用於為功能變數名稱使用境內 DNS 伺服器解析提高存取速度，使用時請確認境內 DNS 伺服器位址不為空（參見上文 設定檔詳細參數說明 一節）
+* Local Hosts - 境內 DNS 解析網域名稱清單
+本區域資料用於為網域名稱使用境內 DNS 伺服器解析提高存取速度，使用時請確認境內 DNS 伺服器位址不為空（參見上文 設定檔詳細參數說明 一節）
 有效參數格式為 "正則運算式"（不含引號）
   * 要使用本功能，必須將設定檔內的 Local Hosts 選項打開！
   * 本功能不會對境內 DNS 伺服器回復進行任何過濾，請確認本區域填入的資料不會受到 DNS 投毒污染的干擾
@@ -884,7 +884,7 @@ Hosts 設定檔分為多個提供不同功能的區域
     .*\.test\.test
     .*\.test
 
-  * 即所有符合以上正則運算式的功能變數名稱請求都將使用境內 DNS 伺服器解析
+  * 即所有符合以上正則運算式的網域名稱請求都將使用境內 DNS 伺服器解析
 
 
 * Address Hosts - 解析結果位址其他清單
@@ -938,7 +938,7 @@ Hosts 設定檔分為多個提供不同功能的區域
   * Address 相容格式適用于 Hosts/CNAME Hosts - 主要 Hosts 清單/CNAME Hosts 清單
   * 有效參數格式：
     * 首碼支援 --ADDRESS=/ 或 --Address=/ 或 --address=/ 或 ADDRESS=/ 或 Address=/ 或 address=/
-    * 普通功能變數名稱字串匹配模式為 "Address=/功能變數名稱尾碼/(位址)"（不含引號，括弧內為可選項目），功能變數名稱尾碼如果只填入 "#" 則表示匹配所有功能變數名稱
+    * 普通網域名稱字串匹配模式為 "Address=/網域名稱尾碼/(位址)"（不含引號，括弧內為可選項目），網域名稱尾碼如果只填入 "#" 則表示匹配所有網域名稱
     * 正則運算式模式為 "Address=/:正則運算式:/(位址)"（不含引號，括弧內為可選項目）
     * 位址部分如果留空不填，則相當於 Banned - 黑名單條目
   * 例如以下 [Hosts] 條目是完全等價的：
@@ -946,23 +946,23 @@ Hosts 設定檔分為多個提供不同功能的區域
     Address=/:.*\btest:/127.0.0.1
     Address=/test/127.0.0.1
 
-  * 匹配所有功能變數名稱的解析結果到 ::1
+  * 匹配所有網域名稱的解析結果到 ::1
 
     Address=/#/::1
 
-  * 對符合規則的功能變數名稱返回功能變數名稱不存在資訊
+  * 對符合規則的網域名稱返回網域名稱不存在資訊
 
     Address=/test/
 
 
 * Dnsmasq Server - Dnsmasq 相容伺服器格式
   * 要使用本功能，必須將設定檔內的 Local Hosts 選項打開！
-  * Server 相容格式適用于 Local Hosts - 境內 DNS 解析功能變數名稱清單
+  * Server 相容格式適用于 Local Hosts - 境內 DNS 解析網域名稱清單
   * 有效參數格式：
     * 首碼支援 --SERVER=/ 或 --Server=/ 或 --server=/ 或 SERVER=/ 或 Server=/ 或 server=/
-    * 普通功能變數名稱字串匹配模式為 "Server=/(功能變數名稱尾碼)/(指定進行解析的 DNS 位址(#埠))"（不含引號，括弧內為可選項目）
+    * 普通網域名稱字串匹配模式為 "Server=/(網域名稱尾碼)/(指定進行解析的 DNS 位址(#埠))"（不含引號，括弧內為可選項目）
     * 正則運算式模式為 "Server=/(:正則運算式:)/(指定進行解析的 DNS 位址(#埠))"（不含引號，括弧內為可選項目）
-    * 功能變數名稱尾碼或者 :正則運算式: 部分留空不填，相當於匹配不符合標準的功能變數名稱，例如沒有任何 . 的功能變數名稱
+    * 網域名稱尾碼或者 :正則運算式: 部分留空不填，相當於匹配不符合標準的網域名稱，例如沒有任何 . 的網域名稱
     * 指定進行解析的 DNS 位址部分如果留空不填，則相當於使用程式設定檔指定的預設 DNS 伺服器進行解析
     * 指定進行解析的 DNS 位址部分只填入 "#" 相當於 Whitelist - 白名單條目
   * 例如以下 [Local Hosts] 條目是完全等價的：
@@ -970,11 +970,11 @@ Hosts 設定檔分為多個提供不同功能的區域
     Server=/:.*\btest:/::1#53
     Server=/test/::1
 
-  * 對符合規則的功能變數名稱使用程式設定檔指定的預設 DNS 伺服器進行解析
+  * 對符合規則的網域名稱使用程式設定檔指定的預設 DNS 伺服器進行解析
 
     Server=/test/
 
-  * 不符合標準的功能變數名稱全部發往 127.0.0.1 進行解析
+  * 不符合標準的網域名稱全部發往 127.0.0.1 進行解析
 
     Server=//127.0.0.1
 
@@ -991,10 +991,10 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 
 
 * Blacklist - 黑名單區域
-當 Blacklist Filter 為開啟時，將檢查本清單功能變數名稱與解析結果，如果解析結果裡含有與功能變數名稱對應的黑名單位址，則會直接丟棄此解析結果
+當 Blacklist Filter 為開啟時，將檢查本清單網域名稱與解析結果，如果解析結果裡含有與網域名稱對應的黑名單位址，則會直接丟棄此解析結果
 有效參數格式為 "位址(|位址A|位址B) 正則運算式"（不含引號，括弧內為可選項目，注意間隔所在的位置）
   * 位址與正則運算式之間的間隔字元可為 Space/半形空格 或者 HT/水準定位符號，間隔長度不限，但切勿輸入全形空格
-  * 一條條目只能接受一種網址類別型（IPv4/IPv6），如有同一個功能變數名稱需要同時進行 IPv4/IPv6 位址的過濾，請分為兩個條目輸入
+  * 一條條目只能接受一種網址類別型（IPv4/IPv6），如有同一個網域名稱需要同時進行 IPv4/IPv6 位址的過濾，請分為兩個條目輸入
 
 
 * IPFilter - 位址過濾區域
@@ -1004,7 +1004,7 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 
 
 * Local Routing - 境內路由表區域
-當 Local Routing 為開啟時，將檢查本清單的路由表是否命中，檢查與否與功能變數名稱請求是否使用 Local 伺服器有關，路由表命中後會直接返回結果，命中失敗將丟棄解析結果並向境外伺服器再次發起請求
+當 Local Routing 為開啟時，將檢查本清單的路由表是否命中，檢查與否與網域名稱請求是否使用 Local 伺服器有關，路由表命中後會直接返回結果，命中失敗將丟棄解析結果並向境外伺服器再次發起請求
 有效參數格式為 "位址塊/網路前置長度"（不含引號）
   * 本路由表支援 IPv4 和 IPv6 協定
   * IPv4 時網路前置長度範圍為 1-32，IPv6 時網路前置長度範圍為 1-128

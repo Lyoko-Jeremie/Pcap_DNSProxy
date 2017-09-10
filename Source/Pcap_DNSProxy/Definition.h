@@ -467,6 +467,7 @@ typedef enum class _request_mode_test_
 }REQUEST_MODE_TEST;
 typedef enum class _socket_setting_type
 {
+//	CHECKSUM_IPV6, 
 	CLOSE, 
 	DO_NOT_FRAGMENT, 
 	HOP_LIMITS_IPV6, 
@@ -981,7 +982,7 @@ public:
 		void);
 }ADDRESS_RANGE_TABLE;
 
-//Hosts lists class
+//Hosts list class
 typedef class HostsTable
 {
 public:
@@ -1020,9 +1021,9 @@ public:
 typedef class AddressRoutingTable
 {
 public:
-	std::map<uint64_t, std::set<uint64_t>>   AddressRoutingList_IPv6;
-	std::set<uint32_t>                       AddressRoutingList_IPv4;
-	size_t                                   Prefix;
+	std::unordered_map<uint64_t, std::unordered_set<uint64_t>>   AddressRoutingList_IPv6;
+	std::unordered_set<uint32_t>                                 AddressRoutingList_IPv4;
+	size_t                                                       Prefix;
 
 //Member functions
 	AddressRoutingTable(

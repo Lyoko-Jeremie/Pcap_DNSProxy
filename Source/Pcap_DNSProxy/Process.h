@@ -30,7 +30,8 @@ extern BLOCKING_QUEUE<MONITOR_QUEUE_DATA> MonitorBlockingQueue;
 extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 #endif
 extern std::vector<DIFFERNET_FILE_SET_HOSTS> *HostsFileSetUsing, *HostsFileSetModificating;
-extern std::deque<DNS_CACHE_DATA> DNSCacheList;
+extern std::list<DNS_CACHE_DATA> DNSCacheList;
+extern std::unordered_multimap<std::string, std::list<DNS_CACHE_DATA>::iterator> DNSCacheIndexList;
 extern std::mutex LocalAddressLock[], HostsFileLock, DNSCacheListLock;
 
 //Functions
@@ -63,6 +64,6 @@ void UDP_RequestProcess(
 #endif
 uint16_t SelectNetworkProtocol(
 	void);
-void AutoClear_DNS_Cache(
+void AutoRemoveExpired_DNS_Cache(
 	void);
 #endif

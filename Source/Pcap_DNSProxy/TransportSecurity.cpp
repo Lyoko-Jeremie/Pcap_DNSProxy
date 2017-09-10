@@ -416,7 +416,7 @@ bool SSPI_EncryptPacket(
 //Send length check
 	if (SocketSelectingDataList.front().SendLen >= SSPI_Handle.StreamSizes.cbMaximumMessage)
 	{
-		PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::TLS, L"SSPI plaintext sent to encrypt API is too large", 0, nullptr, 0);
+		PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::TLS, L"SSPI plaintext input length is too long", 0, nullptr, 0);
 		return false;
 	}
 
@@ -1073,7 +1073,7 @@ bool OpenSSL_Handshake(
 //Verify the result of chain verification, verification performed according to RFC 4158.
 	if (Parameter.HTTP_CONNECT_TLS_Validation && SSL_get_verify_result(OpenSSL_CTX.SessionData) != X509_V_OK)
 	{
-		OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL verify the result of chain verification ");
+		OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL verify result of chain verification ");
 		return false;
 	}
 

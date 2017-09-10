@@ -66,7 +66,7 @@ bool Parameter_CheckSetting(
 	//Listen Port default setting
 	if (IsFirstRead && Parameter.ListenPort->empty())
 	{
-		PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"Listen Port is empty, use standard DNS port(53)", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+		PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"Listen Port is empty, set to standard DNS port(53)", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		Parameter.ListenPort->push_back(htons(IPPORT_DNS));
 	}
 
@@ -79,7 +79,7 @@ bool Parameter_CheckSetting(
 	if (IsFirstRead && Parameter.DNS_CacheParameter == 0 && //DNS Cache queue mode must set cache parameter.
 		(Parameter.DNS_CacheType == DNS_CACHE_TYPE::BOTH || Parameter.DNS_CacheType == DNS_CACHE_TYPE::QUEUE))
 	{
-		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"DNS Cache error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"DNS cache error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
 	}
 
@@ -367,7 +367,7 @@ bool Parameter_CheckSetting(
 			!Parameter.EDNS_Switch_TCP && 
 			!Parameter.EDNS_Switch_UDP)
 		{
-			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"EDNS Label require at least one of process", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"EDNS Label require at least of one process", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			Parameter.EDNS_Label = false;
 		}
 
@@ -409,7 +409,7 @@ bool Parameter_CheckSetting(
 		//Compression Pointer Mutation check
 			if (Parameter.CompressionPointerMutation)
 			{
-				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"Compression Pointer Mutation must shutdown EDNS Label", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"EDNS Label must be shutdown when Compression Pointer Mutation is enabled", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				Parameter.CompressionPointerMutation = false;
 			}
 		}
@@ -825,7 +825,7 @@ bool Parameter_CheckSetting(
 
 		if (IsFirstRead)
 		{
-		//Check repeating items.
+		//Check repeat items.
 			if ((DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0) || 
 				(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 				DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && 
@@ -1906,7 +1906,7 @@ bool ReadParameterData(
 					UnsignedResult = strtoul(StringIter.c_str(), nullptr, 0);
 					if (UnsignedResult == 0 || UnsignedResult > UINT16_MAX)
 					{
-						PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"DNS Record type error", errno, FileList_Config.at(FileIndex).FileName.c_str(), Line);
+						PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"DNS record type error", errno, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 						return false;
 					}
 				}
@@ -2053,11 +2053,17 @@ bool ReadParameterData(
 	if (IsFirstRead)
 	{
 		if (Data.compare(0, strlen("LocalHosts=1"), ("LocalHosts=1")) == 0)
+		{
 			Parameter.IsLocalHosts = true;
+		}
 		else if (Data.compare(0, strlen("LocalRouting=1"), ("LocalRouting=1")) == 0)
+		{
 			Parameter.IsLocalRouting = true;
+		}
 		else if (Data.compare(0, strlen("LocalForceRequest=1"), ("LocalForceRequest=1")) == 0)
+		{
 			Parameter.IsLocalForce = true;
+		}
 
 //[Addresses] block
 		else if (Data.compare(0, strlen("IPv4ListenAddress="), ("IPv4ListenAddress=")) == 0 && 
@@ -3762,7 +3768,7 @@ bool ReadMultipleAddresses(
 				DNSServerDataList->push_back(DNSServerDataTemp);
 			}
 			else {
-			//Check repeating items.
+			//Check repeat items.
 				for (const auto &DNSServerDataIter:*DNSServerDataList)
 				{
 					if (DNSServerDataTemp.AddressData.Storage.ss_family == DNSServerDataIter.AddressData.Storage.ss_family && 
@@ -3850,7 +3856,7 @@ bool ReadMultipleAddresses(
 				DNSServerDataList->push_back(DNSServerDataTemp);
 			}
 			else {
-			//Check repeating items.
+			//Check repeat items.
 				for (const auto &DNSServerDataIter:*DNSServerDataList)
 				{
 					if (DNSServerDataTemp.AddressData.Storage.ss_family == DNSServerDataIter.AddressData.Storage.ss_family && 

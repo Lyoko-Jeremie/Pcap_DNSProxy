@@ -160,7 +160,7 @@ bool CaptureFilterRulesInit(
 {
 //Initialization(Part 1)
 	std::vector<DNS_SERVER_DATA *> AddrList;
-	auto IsRepeatingItem = false;
+	auto IsRepeatItem = false;
 
 //IPv6
 	if (Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 || //IPv6
@@ -173,22 +173,22 @@ bool CaptureFilterRulesInit(
 	//Alternate
 		if (Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0)
 		{
-		//Check repeating items.
+		//Check repeat items.
 			for (const auto &DNSServerDataIter:AddrList)
 			{
 				if (DNSServerDataIter->AddressData.Storage.ss_family == Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family && 
 					memcmp(&DNSServerDataIter->AddressData.IPv6.sin6_addr, &Parameter.Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(DNSServerDataIter->AddressData.IPv6.sin6_addr)) == 0)
 				{
-					IsRepeatingItem = true;
+					IsRepeatItem = true;
 					break;
 				}
 			}
 
 		//Add to address list.
-			if (!IsRepeatingItem)
+			if (!IsRepeatItem)
 				AddrList.push_back(&Parameter.Target_Server_Alternate_IPv6);
 
-			IsRepeatingItem = false;
+			IsRepeatItem = false;
 		}
 
 	//Multiple list(IPv6)
@@ -196,22 +196,22 @@ bool CaptureFilterRulesInit(
 		{
 			for (auto &DNSServerDataIter:*Parameter.Target_Server_IPv6_Multiple)
 			{
-			//Check repeating items.
+			//Check repeat items.
 				for (const auto &DNSServerDataInnerIter:AddrList)
 				{
 					if (DNSServerDataInnerIter->AddressData.Storage.ss_family == DNSServerDataIter.AddressData.Storage.ss_family && 
 						memcmp(&DNSServerDataInnerIter->AddressData.IPv6.sin6_addr, &DNSServerDataIter.AddressData.IPv6.sin6_addr, sizeof(DNSServerDataInnerIter->AddressData.IPv6.sin6_addr)) == 0)
 					{
-						IsRepeatingItem = true;
+						IsRepeatItem = true;
 						break;
 					}
 				}
 
 			//Add to address list.
-				if (!IsRepeatingItem)
+				if (!IsRepeatItem)
 					AddrList.push_back(&DNSServerDataIter);
 
-				IsRepeatingItem = false;
+				IsRepeatItem = false;
 			}
 		}
 	}
@@ -227,22 +227,22 @@ bool CaptureFilterRulesInit(
 	//Alternate
 		if (Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0)
 		{
-		//Check repeating items.
+		//Check repeat items.
 			for (const auto &DNSServerDataIter:AddrList)
 			{
 				if (DNSServerDataIter->AddressData.Storage.ss_family == Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family && 
 					DNSServerDataIter->AddressData.IPv4.sin_addr.s_addr == Parameter.Target_Server_Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr)
 				{
-					IsRepeatingItem = true;
+					IsRepeatItem = true;
 					break;
 				}
 			}
 
 		//Add to address list.
-			if (!IsRepeatingItem)
+			if (!IsRepeatItem)
 				AddrList.push_back(&Parameter.Target_Server_Alternate_IPv4);
 
-			IsRepeatingItem = false;
+			IsRepeatItem = false;
 		}
 
 	//Multiple list(IPv4)
@@ -250,22 +250,22 @@ bool CaptureFilterRulesInit(
 		{
 			for (auto &DNSServerDataIter:*Parameter.Target_Server_IPv4_Multiple)
 			{
-			//Check repeating items.
+			//Check repeat items.
 				for (const auto &DNSServerDataInnerIter:AddrList)
 				{
 					if (DNSServerDataInnerIter->AddressData.Storage.ss_family == DNSServerDataIter.AddressData.Storage.ss_family && 
 						DNSServerDataInnerIter->AddressData.IPv4.sin_addr.s_addr == DNSServerDataIter.AddressData.IPv4.sin_addr.s_addr)
 					{
-						IsRepeatingItem = true;
+						IsRepeatItem = true;
 						break;
 					}
 				}
 
 			//Add to address list.
-				if (!IsRepeatingItem)
+				if (!IsRepeatItem)
 					AddrList.push_back(&DNSServerDataIter);
 
-				IsRepeatingItem = false;
+				IsRepeatItem = false;
 			}
 		}
 	}
@@ -282,15 +282,15 @@ bool CaptureFilterRulesInit(
 	ssize_t Result = 0;
 
 //List all target addresses.
-	IsRepeatingItem = false;
+	IsRepeatItem = false;
 	for (const auto &DNSServerDataIter:AddrList)
 	{
 		if (DNSServerDataIter->AddressData.Storage.ss_family == AF_INET6)
 		{
 		//Add joiner.
-			if (IsRepeatingItem)
+			if (IsRepeatItem)
 				AddrString.append(" or ");
-			IsRepeatingItem = true;
+			IsRepeatItem = true;
 
 		//Convert binary to address string.
 			if (!BinaryToAddressString(AF_INET6, &DNSServerDataIter->AddressData.IPv6.sin6_addr, AddrBuffer, ADDRESS_STRING_MAXSIZE, &Result))
@@ -306,9 +306,9 @@ bool CaptureFilterRulesInit(
 		else if (DNSServerDataIter->AddressData.Storage.ss_family == AF_INET)
 		{
 		//Add joiner.
-			if (IsRepeatingItem)
+			if (IsRepeatItem)
 				AddrString.append(" or ");
-			IsRepeatingItem = true;
+			IsRepeatItem = true;
 
 		//Convert binary to address string.
 			if (!BinaryToAddressString(AF_INET, &DNSServerDataIter->AddressData.IPv4.sin_addr, AddrBuffer, ADDRESS_STRING_MAXSIZE, &Result))
@@ -830,7 +830,7 @@ bool CaptureNetworkLayer(
 				if (Parameter.IsDNSCurve && 
 				//Main(IPv4)
 					((DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
-					DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber != nullptr &&  
+					DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber != nullptr && 
 					sodium_memcmp(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0) || 
 				//Alternate(IPv4)
 					(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0 && 
