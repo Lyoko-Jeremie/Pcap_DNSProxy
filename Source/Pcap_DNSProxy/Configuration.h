@@ -44,7 +44,10 @@ typedef enum class _label_hosts_type_
 	SOURCE
 }LABEL_HOSTS_TYPE;
 
-//Length definitions
+//Size and length definitions
+#define BOM_UTF_16_LENGTH                     2U 
+#define BOM_UTF_32_LENGTH                     4U
+#define BOM_UTF_8_LENGTH                      3U
 #define READ_DATA_MINSIZE                     4U
 #define READ_TEXT_MINSIZE                     2U
 #define READ_PARAMETER_MINSIZE                8U

@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy 0.4.9.1-0.4.9.2 changelog(2017-09-10):
+﻿Pcap_DNSProxy 0.4.9.1-0.4.9.2 changelog(2017-09-19):
 
 * Add TCP protocol support to Domain Test module:
   * Add Domain Test Protocol parameter.
@@ -6,6 +6,8 @@
 * LibSodium version upgrade to 1.0.13. (Windows/macOS)
 * Improve local request process: [cjjdaq]
   * Remove Local Main parameter.
+* Improve built-in blacklist:
+  * WARNING: Please update IPFilter file when upgrading version!
 * Update filtering algorithm of TCP packets.
 * Fix multiple instances problem:
   * Add Process Unique parameter.

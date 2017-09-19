@@ -308,9 +308,10 @@ bool CheckSpecialAddress(
 {
 	if (Protocol == AF_INET6)
 	{
+/* All built-in IPv6 special addresses have been move to IPFilter blacklist.
 		if (
-		//DNS Poisoning addresses from CERNET2, please visit https://code.google.com/p/goagent/issues/detail?id=17571.
-/*			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
+		//DNS poisoning addresses from CERNET2.
+			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[4U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[5U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[6U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[7U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[8U] == 0x90 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[12U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[13U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[14U] == 0 && 
@@ -348,9 +349,8 @@ bool CheckSpecialAddress(
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[8U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[9U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[10U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[11U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[12U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[13U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[14U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[15U] == 0) || 
-*/
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x01 && 
-			((IsPrivateUse && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[4U] == 0 && 
+			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[4U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[5U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[6U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[7U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[8U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[9U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[10U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[11U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[12U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[13U] == 0 && 
@@ -371,10 +371,10 @@ bool CheckSpecialAddress(
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[9U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[10U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[11U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[12U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[13U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[14U] == 0x3E && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[15U] == 0x12) || //2123::3E12
-		//Special-use or reserved addresses, please visit https://en.wikipedia.org/wiki/IPv6_address#Presentation and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv6_addresses.
+		//Special-use or reserved addresses, please visit https://en.wikipedia.org/wiki/IPv6_address and https://en.wikipedia.org/wiki/Reserved_IP_addresses.
 		//Also https://www.iana.org/assignments/ipv6-address-space/ipv6-address-space.xhtml and https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry.xhtml
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0 || //Reserved by IETF(::/8)
-/*			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
+			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[4U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[5U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[6U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[7U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[8U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[9U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[10U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[11U] == 0) || //IPv4-Compatible Contrast addresses(::/96, Section 2.5.5.1 in RFC 4291), including in reserved address ranges
@@ -384,34 +384,29 @@ bool CheckSpecialAddress(
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[9U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[10U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[11U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[12U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[13U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[14U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[15U] == 0) || //Unspecified addresses(::, Section 2.5.2 in RFC 4291), including in reserved address ranges
-*/
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[4U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[5U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[6U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[7U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[8U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[9U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[10U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[11U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[12U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[13U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[14U] == 0 && 
-			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[15U] == 0x01) || //Loopback addresses(::1, Section 2.5.3 in RFC 4291)
-/*			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
+			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[15U] == 0x01) || //Loopback addresses(::1, Section 2.5.3 in RFC 4291), including in reserved address ranges
+			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[4U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[5U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[6U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[7U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[8U] == 0 && 
-			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[9U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[10U] == 0xFF && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[11U] == 0xFF) || //IPv4-mapped addresses(::FFFF:xxxx:xxxx/96, Section 2.5.5 in RFC 4291), including in reserved address ranges
-			(IsPrivateUse && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x64 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0xFF && 
+			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[9U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[10U] == 0xFF && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[11U] == 0xFF) || //IPv4-mapped addresses(::FFFF:0:0/96, Section 2.5.5 in RFC 4291), including in reserved address ranges
+			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x64 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0xFF && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0x9B && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[4U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[5U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[6U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[7U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[8U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[9U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[10U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[11U] == 0) || //Well Known Prefix addresses(64:FF9B::xxxx:xxxx/96, Section 2.1 in RFC 4773), including in reserved address ranges
-*/
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x01) || //Reserved by IETF(0100::/8)
-/*			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x01 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
+			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x01 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[4U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[5U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[6U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[7U] == 0) || //Discard Prefix addresses(100::/64, Section 4 RFC 6666), including in reserved address ranges
-*/
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0x02 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0x03) || //Reserved by IETF(0200::/7), deprecated as of RFC 4048 and formerly an OSI NSAP-mapped prefix set in RFC 4548
-/*			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0x04 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0x07) || //Reserved by IETF(0400::/6)
-			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0x08 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0x15) || //Reserved by IETF(0800::/5)
-			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x10) || //Reserved by IETF(1000::/4)
-*/
+			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0x04 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0x07) || //Reserved by IETF(0400::/6)
+			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0x08 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0x0F) || //Reserved by IETF(0800::/5)
+			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0x10 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0x1F) || //Reserved by IETF(1000::/4)
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x01 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] <= 0x01) || //IETF Protocol Assignments(2001::/23, RFC 2928)
-/*
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x01 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0) || //Teredo relay/tunnel addresses(2001::/32, RFC 4380), including in reserved address ranges
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x01 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
@@ -422,57 +417,44 @@ bool CheckSpecialAddress(
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[9U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[10U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[11U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[12U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[13U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[14U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[15U] == 0x01) || //Port Control Protocol Anycast(2001:1::1/128, RFC 7723)
-*/
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x01 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0x02 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[4U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[5U] == 0) || //Benchmarking(2001:2::/48, RFC 5180)
-/*			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x01 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
+			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x01 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0x03) || //AMT(2001:3::/32, RFC 7450)
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x01 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0x04 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[4U] == 0x01 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[5U] == 0x12) || //AS112-v6(2001:4:112::/48, RFC 7535)
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x01 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0x05) || //EID Space for LISP, Managed by RIPE NCC(2001:5::/32, RFC-ietf-lisp-eid-block-13)
-*/
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x01 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] >= 0x10 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] <= 0x1F) || //Deprecated, previously ORCHID(2001:10::/28, RFC 4843)
-/*			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x01 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
+			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x01 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] >= 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] <= 0x2F) || //ORCHIDv2(2001:20::/28, RFC 7343)
-*/
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x01 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0x01 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] >= 0xF8) || //Sub-TLA IDs assigned to IANA addresses(2001:01F8::/29, Section 2 in RFC 4773)
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x01 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0x0D && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0xB8) || //Contrast Address prefix reserved for documentation addresses(2001:DB8::/32, RFC 3849)
-			(IsPrivateUse && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x02) || //6to4 relay/tunnel addresses(2002::/16, Section 2 in RFC 3056)
-/*			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x26 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
+			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x26 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0 && 
 			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0x4F && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[4U] == 0x80 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[5U] == 0) || //Direct Delegation AS112 Service(2620:4F:8000::/48, RFC 7534)
-*/
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x3F && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0xFE) || //6bone(3FFE::/16, RFC 3701)
-/*			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0x40 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0x5F) || //Reserved by IETF(4000::/3)
-*/
+			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0x40 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0x5F) || //Reserved by IETF(4000::/3)
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x5F) || //6bone(5F00::/8, RFC 3701)
-/*			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0x60 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0x7F) || //Reserved by IETF(6000::/3)
+			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0x60 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0x7F) || //Reserved by IETF(6000::/3)
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0x80 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0x9F) || //Reserved by IETF(8000::/3)
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0xA0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0xBF) || //Reserved by IETF(A000::/3)
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0xC0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0xDF) || //Reserved by IETF(C000::/3)
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0xE0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0xEF) || //Reserved by IETF(E000::/4)
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0xF0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0xF7) || //Reserved by IETF(F000::/5)
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0xF8 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0xFB) || //Reserved by IETF(F800::/6)
-*/
-			(IsPrivateUse && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0xFC && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0xFD) || //Unique Local Unicast addresses/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
-/*			!((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0xFD && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x3E && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0x4F && 
-			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0x5A && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[4U] == 0x5B && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[5U] == 0x81 && 
-			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[6U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[7U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[8U] == 0 && 
-			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[9U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[10U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[11U] == 0 && 
-			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[12U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[13U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[14U] == 0 && 
-			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[15U] == 0x01)) || //Network Connectivity Status Indicator/NSCI and Resulting Internet Communication/RIC in Windows(FD3E:4F5A:5B81::1)
 			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0xFE && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] <= 0x7F) || //Reserved by IETF(FE00::/9)
+				return true;
 */
-			(IsPrivateUse && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0xFE && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] >= 0x80 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] <= 0xBF) || //Link-Local Unicast Contrast addresses/LUC(FE80::/10, Section 2.5.6 in RFC 4291)
-/*			(IsPrivateUse && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[2U] == 0x5E && 
-			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[3U] == 0xFE && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[4U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[5U] == 0 && 
-			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[6U] == 0 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[7U] == 0) || //ISATAP Interface Identifiers addresses(0:5EFE:0:0:0:0/64, which also in Link-Local Unicast Contrast addresses/LUC, Section 6.1 in RFC 5214)
-*/
-			(IsPrivateUse && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0xFE && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] >= 0xC0) || //Site-Local scoped addresses(FEC0::/10, RFC 3879)
-			(IsPrivateUse && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0xFF)) //Multicast addresses(FF00::/8, Section 2.7 in RFC 4291)
+	//Private using addresses check
+		if (IsPrivateUse && 
+			(((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0x20 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] == 0x02) || //6to4 relay/tunnel addresses(2002::/16, Section 2 in RFC 3056)
+			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] >= 0xFC && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] <= 0xFD) || //Unique Local Unicast addresses/ULA(FC00::/7, Section 2.5.7 in RFC 4193)
+			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0xFE && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] >= 0x80 && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] <= 0xBF) || //Link-Local Unicast Contrast addresses/LUC(FE80::/10, Section 2.5.6 in RFC 4291)
+			((static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0xFE && (static_cast<in6_addr *>(OriginalAddr))->s6_addr[1U] >= 0xC0) || //Site-Local scoped addresses(FEC0::/10, RFC 3879)
+			(static_cast<in6_addr *>(OriginalAddr))->s6_addr[0] == 0xFF)) //Multicast addresses(FF00::/8, Section 2.7 in RFC 4291)
 				return true;
 
 	//Result Blacklist check
@@ -572,10 +554,11 @@ bool CheckSpecialAddress(
 	}
 	else if (Protocol == AF_INET)
 	{
+/* All built-in IPv4 special addresses have been move to IPFilter blacklist.
 		if (
-		//DNS Poisoning addresses from CERNET2, please visit https://code.google.com/p/goagent/issues/detail?id=17571.
+		//DNS poisoning addresses from CERNET2.
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x01020304 || //1.2.3.4
-		//Traditional DNS Poisoning addresses, please visit https://zh.wikipedia.org/wiki/%E5%9F%9F%E5%90%8D%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%BC%93%E5%AD%98%E6%B1%A1%E6%9F%93#.E8.99.9A.E5.81.87IP.E5.9C.B0.E5.9D.80.
+		//Traditional DNS poisoning addresses, please visit https://zh.wikipedia.org/wiki/%E5%9F%9F%E5%90%8D%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%BC%93%E5%AD%98%E6%B1%A1%E6%9F%93.
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x042442B2 || //4.36.66.178
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x0807C62D || //8.7.198.45
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x253D369E || //37.61.54.158
@@ -608,7 +591,7 @@ bool CheckSpecialAddress(
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xD35E4293 || //211.94.66.147
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xD5A9FB23 || //213.169.251.35
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xD8DDBCD6 || //216.221.188.182
-		//New DNS Poisoning addresses which had been added in May 2011, please visit http://forums.internetfreedom.org/index.php?topic=7953.0.
+		//New DNS poisoning addresses which had been added in May 2011.
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x1759053C || //23.89.5.60
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x31027B38 || //49.2.123.56
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x364C8701 || //54.76.135.1
@@ -618,18 +601,18 @@ bool CheckSpecialAddress(
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xBDA31105 || //189.163.17.5
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xC504040C || //197.4.4.12
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xD8EAB30D || //216.234.179.13
-//			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xF3B9BB27 || //243.185.187.39, including in reserved address ranges
-//			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xF9812E30 || //249.129.46.48, including in reserved address ranges
-//			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xFD9D0EA5 || //253.157.14.165, including in reserved address ranges
-		//China Network Anomaly in 2014-01-21, please visit https://zh.wikipedia.org/wiki/2014%E5%B9%B4%E4%B8%AD%E5%9B%BD%E7%BD%91%E7%BB%9C%E5%BC%82%E5%B8%B8%E4%BA%8B%E4%BB%B6
+			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xF3B9BB27 || //243.185.187.39, including in reserved address ranges
+			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xF9812E30 || //249.129.46.48, including in reserved address ranges
+			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xFD9D0EA5 || //253.157.14.165, including in reserved address ranges
+		//China network anomaly in 2014-01-21, please visit https://zh.wikipedia.org/wiki/2014%E5%B9%B4%E4%B8%AD%E5%9B%BD%E7%BD%91%E7%BB%9C%E5%BC%82%E5%B8%B8%E4%BA%8B%E4%BB%B6.
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x413102B2 || //65.49.2.178
-		//New addresses in IPv6 which has been added in September 2014, please visit https://code.google.com/p/goagent/issues/detail?id=17571.
+		//New addresses in IPv6 which has been added in September 2014.
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x01010101 || //1.1.1.1
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x0A0A0A0A || //10.10.10.10
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x14141414 || //20.20.20.20
-//			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xFFFFFFFF || //255.255.255.255, including in reserved address ranges
-		//New DNS Poisoning addresses which had been added in December 2014, please visit https://www.v2ex.com/t/156926.
-//			Addr.s_addr == 0 || //0.0.0.0, including in reserved address ranges
+			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xFFFFFFFF || //255.255.255.255, including in reserved address ranges
+		//New DNS poisoning addresses which had been added in December 2014.
+			Addr.s_addr == 0 || //0.0.0.0, including in reserved address ranges
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x02010102 || //2.1.1.2
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x04C15000 || //4.193.80.0
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x08695400 || //8.105.84.0
@@ -651,7 +634,7 @@ bool CheckSpecialAddress(
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x7B3231AB || //123.50.49.171
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x7B7EF9EE || //123.126.249.238
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x7DE69430 || //125.230.148.48
-//			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x7F000002 || //127.0.0.2, including in reserved address ranges
+			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0x7F000002 || //127.0.0.2, including in reserved address ranges
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xADC9D806 || //173.201.216.6
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xCBC73951 || //203.199.57.81
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xD06D8A37 || //208.109.138.55
@@ -660,27 +643,30 @@ bool CheckSpecialAddress(
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xD5BA2105 || //213.186.33.5
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xD88BD590 || //216.139.213.144
 			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xDD08451B || //221.8.69.27
-//			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xF3B9BB03 || //243.185.187.3, including in reserved address ranges
-//			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xF3B9BB1E || //243.185.187.30, including in reserved address ranges
-		//Special-use or reserved addresses, please visit https://en.wikipedia.org/wiki/IPv4#Special-use_addresses and https://en.wikipedia.org/wiki/Reserved_IP_addresses#Reserved_IPv4_addresses.
-		//Also https://www.iana.org/assignments/ipv4-address-space/ipv4-address-space.xhtml
+			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xF3B9BB03 || //243.185.187.3, including in reserved address ranges
+			ntohl((static_cast<in_addr *>(OriginalAddr))->s_addr) == 0xF3B9BB1E || //243.185.187.30, including in reserved address ranges
+		//Special-use or reserved addresses, please visit https://en.wikipedia.org/wiki/IPv4 and https://en.wikipedia.org/wiki/Reserved_IP_addresses.
+		//Also https://www.iana.org/assignments/ipv4-address-space/ipv4-address-space.xhtml and https://www.iana.org/assignments/iana-ipv4-special-registry/iana-ipv4-special-registry.xhtml
 			*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0 || //Current network whick only valid as source addresses(0.0.0.0/8, Section 3.2.1.3 in RFC 1122)
-			(IsPrivateUse && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0x0A) || //Private class A addresses(10.0.0.0/8, Section 3 in RFC 1918)
-			(IsPrivateUse && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0x7F) || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
-//			!(*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) == 0 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t) * 2U) == 0 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t) * 3U) == 0x01)) || //The first of Loopback block address(127.0.0.1)
-			( /* IsPrivateUse && */ *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0x64 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) > 0x40 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) < 0x7F) || //Carrier-grade NAT addresses(100.64.0.0/10, Section 7 in RFC 6598)
-			(IsPrivateUse && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0xA9 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) >= 0xFE) || //Link-local addresses(169.254.0.0/16, Section 1.5 in RFC 3927)
-			(IsPrivateUse && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0xAC && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) >= 0x10 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) <= 0x1F) || //Private class B addresses(172.16.0.0/12, Section 3 in RFC 1918)
+			(*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0x64 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) > 0x40 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) < 0x7F) || //Carrier-grade NAT addresses(100.64.0.0/10, Section 7 in RFC 6598)
 			(*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0xC0 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) == 0 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t) * 2U) == 0 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t) * 3U) < 0x08) || //DS-Lite transition mechanism addresses(192.0.0.0/29, Section 3 in RFC 6333)
 			(*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0xC0 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) == 0 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t) * 2U) == 0) || //Reserved for IETF protocol assignments addresses(192.0.0.0/24, Section 3 in RFC 5735)
 			(*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0xC0 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) == 0 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t) * 2U) == 0x02) || //TEST-NET-1 addresses(192.0.2.0/24, Section 3 in RFC 5735)
-			(IsPrivateUse && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) == 0x58 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t) * 2U) == 0x63) || //6to4 relay/tunnel addresses(192.88.99.0/24, Section 2.3 in RFC 3068)
-			(IsPrivateUse && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0xC0 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) == 0xA8) || //Private class C addresses(192.168.0.0/16, Section 3 in RFC 1918)
+			(*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) == 0x58 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t) * 2U) == 0x63) || //6to4 relay/tunnel addresses(192.88.99.0/24, Section 2.3 in RFC 3068)
 			(*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0xC6 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) == 0x12) || //Benchmarking Methodology for Network Interconnect Devices addresses(198.18.0.0/15, Section 11.4.1 in RFC 2544)
 			(*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0xC6 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) == 0x33 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t) * 2U) == 0x64) || //TEST-NET-2 addresses(198.51.100.0/24, Section 3 in RFC 5737)
 			(*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0xCB && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) == 0 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t) * 2U) == 0x71) || //TEST-NET-3 addresses(203.0.113.0/24, Section 3 in RFC 5737)
-			(IsPrivateUse && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0xE0) || //Multicast addresses(224.0.0.0/4, Section 2 in RFC 3171)
 			*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) >= 0xF0) //Reserved for future use address(240.0.0.0/4, Section 4 in RFC 1112) and Broadcast addresses(255.255.255.255/32, Section 7 in RFC 919/RFC 922)
+				return true;
+*/
+	//Private using addresses check
+		if (IsPrivateUse && 
+			(*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0x0A || //Private class A addresses(10.0.0.0/8, Section 3 in RFC 1918)
+			*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0x7F || //Loopback address(127.0.0.0/8, Section 3.2.1.3 in RFC 1122)
+			(*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0xA9 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) >= 0xFE) || //Link-local addresses(169.254.0.0/16, Section 1.5 in RFC 3927)
+			(*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0xAC && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) >= 0x10 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) <= 0x1F) || //Private class B addresses(172.16.0.0/12, Section 3 in RFC 1918)
+			(*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0xC0 && *(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr) + sizeof(uint8_t)) == 0xA8) || //Private class C addresses(192.168.0.0/16, Section 3 in RFC 1918)
+			*(reinterpret_cast<uint8_t *>(&(static_cast<in_addr *>(OriginalAddr))->s_addr)) == 0xE0)) //Multicast addresses(224.0.0.0/4, Section 2 in RFC 3171)
 				return true;
 
 	//Result Blacklist check

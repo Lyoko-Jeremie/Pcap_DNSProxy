@@ -717,15 +717,24 @@ void Flush_DNS_Cache(
 	if (Domain == nullptr || //Flush all DNS cache.
 		strnlen_s(reinterpret_cast<const char *>(Domain), DOMAIN_MAXSIZE + PADDING_RESERVED_BYTES) > DOMAIN_MAXSIZE)
 	{
+	//Remove from DNS cache index list.
+		DNSCacheIndexList.clear();
+
+	//Remove from DNS cache data list.
 		DNSCacheList.clear();
 	}
 	else { //Flush single domain cache.
-		for (auto DNSCacheDataIter = DNSCacheList.begin();DNSCacheDataIter != DNSCacheList.end();)
+		std::string DomainString(reinterpret_cast<const char *>(Domain));
+		if (DNSCacheIndexList.find(DomainString) != DNSCacheIndexList.end())
 		{
-			if (DNSCacheDataIter->Domain == reinterpret_cast<const char *>(Domain))
-				DNSCacheDataIter = DNSCacheList.erase(DNSCacheDataIter);
-			else 
-				++DNSCacheDataIter;
+		//Remove from DNS cache data list.
+			const auto MapRange = DNSCacheIndexList.equal_range(DomainString);
+			for (auto MapIter = MapRange.first;MapIter != MapRange.second;++MapIter)
+				DNSCacheList.erase(MapIter->second);
+
+		//Remove from DNS cache index list.
+			while (DNSCacheIndexList.find(DomainString) != DNSCacheIndexList.end())
+				DNSCacheIndexList.erase(DNSCacheIndexList.find(DomainString));
 		}
 	}
 

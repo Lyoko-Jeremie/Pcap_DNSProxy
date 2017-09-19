@@ -221,7 +221,7 @@ Base - the basic parameter area
     * 1 for outputting a major error
     * 2 for output general error
     * 3 for outputting all errors
-  * Maximum size of log file: Maximum capacity of log file: The unit can be added to the unit, the unit is KB / MB / GB, the acceptable range is 4KB - 512MB, if it is blank, 8MB
+  * Maximum size of log file: Maximum capacity of log file: The unit can be added to the unit, the unit is KB / MB / GB, the acceptable range is 4 KB - 256 MB, if it is blank, 8 MB
     * Note: log file reaches the maximum capacity will be deleted directly, and then re-generate a new log file, the original log will not be able to recover!
 
 * Listen - Listen to parameter areas

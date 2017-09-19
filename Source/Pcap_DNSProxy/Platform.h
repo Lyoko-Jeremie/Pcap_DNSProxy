@@ -217,7 +217,7 @@
 #ifdef PLATFORM_DARWIN
 #  include <Availability.h>
 #  include <AvailabilityMacros.h>
-#
+# 
 #  ifdef PLATFORM_MACOS
 #    if !defined(__MAC_OS_X_VERSION_MIN_REQUIRED) || __MAC_OS_X_VERSION_MIN_REQUIRED < __MAC_10_6
 #       undef __MAC_OS_X_VERSION_MIN_REQUIRED
@@ -228,10 +228,10 @@
 #       define MAC_OS_X_VERSION_MIN_REQUIRED MAC_OS_X_VERSION_10_6
 #    endif
 #  endif
-#
+# 
 #  // Numerical checks are preferred to named checks, but to be safe
 #  // we define the missing version names in case Qt uses them.
-#
+# 
 #  if !defined(__MAC_10_7)
 #       define __MAC_10_7 1070
 #  endif
@@ -268,7 +268,7 @@
 #  if !defined(MAC_OS_X_VERSION_10_12)
 #       define MAC_OS_X_VERSION_10_12 101200
 #  endif
-#
+# 
 #  if !defined(__IPHONE_4_3)
 #       define __IPHONE_4_3 40300
 #  endif

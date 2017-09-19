@@ -738,9 +738,9 @@ bool UDP_Monitor(
 	SOCKET_DATA LocalSocketData)
 {
 //Initialization
-	std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[NORMAL_PACKET_MAXSIZE * Parameter.ThreadPoolMaxNum]());
+	std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[(NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES) * Parameter.ThreadPoolMaxNum]());
 	std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
-	memset(RecvBuffer.get(), 0, NORMAL_PACKET_MAXSIZE * Parameter.ThreadPoolMaxNum);
+	memset(RecvBuffer.get(), 0, (NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES) * Parameter.ThreadPoolMaxNum);
 	memset(SendBuffer.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 	MONITOR_QUEUE_DATA MonitorQueryData;
 	fd_set ReadFDS;
@@ -770,7 +770,7 @@ bool UDP_Monitor(
 		}
 
 	//Reset parameters.
-		memset(RecvBuffer.get() + NORMAL_PACKET_MAXSIZE * Index, 0, NORMAL_PACKET_MAXSIZE);
+		memset(RecvBuffer.get() + (NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES) * Index, 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 		memset(SendBuffer.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 		MonitorQueryData.second = LocalSocketData;
 		FD_ZERO(&ReadFDS);
@@ -806,13 +806,13 @@ bool UDP_Monitor(
 				}
 
 			//Receive response and check DNS query data.
-				RecvLen = recvfrom(MonitorQueryData.second.Socket, reinterpret_cast<char *>(RecvBuffer.get() + NORMAL_PACKET_MAXSIZE * Index), NORMAL_PACKET_MAXSIZE, 0, reinterpret_cast<sockaddr *>(&SocketDataPointer->SockAddr), reinterpret_cast<socklen_t *>(&SocketDataPointer->AddrLen));
+				RecvLen = recvfrom(MonitorQueryData.second.Socket, reinterpret_cast<char *>(RecvBuffer.get() + (NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES) * Index), NORMAL_PACKET_MAXSIZE, 0, reinterpret_cast<sockaddr *>(&SocketDataPointer->SockAddr), reinterpret_cast<socklen_t *>(&SocketDataPointer->AddrLen));
 				if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
 				{
 					continue;
 				}
 				else {
-					MonitorQueryData.first.Buffer = RecvBuffer.get() + NORMAL_PACKET_MAXSIZE * Index;
+					MonitorQueryData.first.Buffer = RecvBuffer.get() + (NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES) * Index;
 					MonitorQueryData.first.Length = RecvLen;
 					MonitorQueryData.first.IsLocalRequest = false;
 					MonitorQueryData.first.IsLocalInBlack = false;
@@ -1032,14 +1032,14 @@ bool TCP_AcceptProcess(
 		{
 //			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", WSAGetLastError(), nullptr, 0);
 			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-			
+
 			return false;
 		}
 		else if (OptionValue > 0)
 		{
 //			PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", OptionValue, nullptr, 0);
 			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-			
+
 			return false;
 		}
 
@@ -1090,14 +1090,14 @@ bool TCP_AcceptProcess(
 			{
 //				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", WSAGetLastError(), nullptr, 0);
 				SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-				
+
 				return false;
 			}
 			else if (OptionValue > 0)
 			{
 //				PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket connecting error", OptionValue, nullptr, 0);
 				SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-				
+
 				return false;
 			}
 

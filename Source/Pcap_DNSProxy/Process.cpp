@@ -1529,7 +1529,7 @@ bool MarkDomainCache(
 	DNSCacheDataTemp.ClearCacheTime = GetCurrentSystemTime() + ResponseTTL * SECOND_TO_MILLISECOND;
 
 //Single address single cache
-	if (LocalSocketData != nullptr) //Some network test thread do not need to mark request address, put in default queue.
+	if (LocalSocketData != nullptr) //Some network test thread do not need to mark request address, put them in default queue.
 	{
 	//IPv6
 		if (Parameter.DNS_CacheSinglePrefix_IPv6 > 0 && LocalSocketData->SockAddr.ss_family == AF_INET6 && 

@@ -1522,7 +1522,7 @@ ssize_t SocketSelectingOnce(
 						if (ErrorCode != nullptr)
 							*ErrorCode = WSAGetLastError();
 						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-						
+
 						continue;
 					}
 					else if (OptionValue > 0)
@@ -2115,7 +2115,7 @@ size_t SocketSelectingSerial(
 							PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"UDP socket connecting error", WSAGetLastError(), nullptr, 0);
 						ErrorCodeList.at(Index) = WSAGetLastError();
 						SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-						
+
 						continue;
 					}
 					else if (OptionValue > 0)

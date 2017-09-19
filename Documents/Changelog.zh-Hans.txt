@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy 0.4.9.1-0.4.9.2 更新日志(2017-09-10)：
+﻿Pcap_DNSProxy 0.4.9.1-0.4.9.2 更新日志(2017-09-19)：
 
 * 添加 Domain Test 探测模块对 TCP 协议的支持
   * 添加 Domain Test Protocol 参数
@@ -6,6 +6,8 @@
 * LibSodium 库更新到 1.0.13 (Windows/macOS)
 * 调整境内服务器请求过程的整体策略 [cjjdaq]
   * 移除 Local Main 参数
+* 调整内置 IP 地址黑名单的策略
+  * 警告：此次更新后所有内置的 IP 地址黑名单将移到 IPFilter 文件，请务必对 IPFilter 文件进行更新，否则有可能造成投毒污染的问题！
 * 修正对 TCP 报文的探测过滤算法
 * 修正多重实例运行的问题
   * 添加 Process Unique 参数

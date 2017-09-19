@@ -121,17 +121,15 @@
 //Size and length definitions(Number)
 #define ADDRESS_STRING_MAXSIZE                        64U                               //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
 #define ALTERNATE_SERVERNUM                           12U                               //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
-#define BOM_UTF_16_LENGTH                             2U                                //UTF-16 BOM length
-#define BOM_UTF_32_LENGTH                             4U                                //UTF-32 BOM length
-#define BOM_UTF_8_LENGTH                              3U                                //UTF-8 BOM length
 #define DEFAULT_LARGE_BUFFER_SIZE                     4096U                             //Default size of large buffer(4KB/4096 bytes)
 #define COMMAND_BUFFER_MAXSIZE                        DEFAULT_LARGE_BUFFER_SIZE         //Maximum size of commands buffer
 #define COMMAND_MIN_COUNT                             1                                 //Minimum count of commands
+#define DEFAULT_LOG_READING_MAXSIZE                   8388608U                          //Default number of maximum log file size(8MB/8388608 bytes)
 #define DEFAULT_THREAD_POOL_BASENUM                   24U                               //Default number of base thread pool size
 #define DEFAULT_THREAD_POOL_MAXNUM                    256U                              //Default number of maximum thread pool size
-#define DIFFERNET_FILE_SET_NUM                        2U                                //Number of Different file set
-#define DNS_RR_MAX_AAAA_COUNT                         43U                               //Maximum Record Resources size of whole AAAA answers, 28 bytes * 43 = 1204 bytes
-#define DNS_RR_MAX_A_COUNT                            75U                               //Maximum Record Resources size of whole A answers, 16 bytes * 75 = 1200 bytes
+#define DIFFERNET_FILE_SET_NUM                        2U                                //Number of different file set
+#define DNS_RR_MAX_AAAA_COUNT                         43U                               //Maximum Record Resources size of whole AAAA answers, 28 bytes * 43 records = 1204 bytes
+#define DNS_RR_MAX_A_COUNT                            75U                               //Maximum Record Resources size of whole A answers, 16 bytes * 75 records = 1200 bytes
 #if defined(ENABLE_LIBSODIUM)
 	#define DNSCRYPT_DATABASE_ITEM_MINNUM                 14U                               //Minimum number of item in DNSCrypt database
 	#define DNSCRYPT_DATABASE_ADDRESS_LOCATION            10U                               //Location of DNSCurve Address in DNSCrypt database
@@ -160,13 +158,12 @@
 #endif
 #define IPV4_SHORTEST_ADDR_STRING                     6U                                //The shortest IPv4 address strings(*.*.*.*)
 #define IPV6_SHORTEST_ADDR_STRING                     2U                                //The shortest IPv6 address strings(::)
-#define LOG_READING_MAXSIZE                           8388608U                          //Maximum size of whole log file(8MB/8388608 bytes)
-#define LOG_READING_MINSIZE                           DEFAULT_LARGE_BUFFER_SIZE         //Minimum size of whole log file(4KB/4096 bytes)
+#define LOG_READING_MINSIZE                           DEFAULT_LARGE_BUFFER_SIZE         //Minimum size of whole log file
 #define MULTIPLE_REQUEST_MAXNUM                       64U                               //Maximum number of multiple request.
 #define NETWORK_LAYER_PARTNUM                         2U                                //Number of network layer protocols(IPv6 and IPv4)
 #define NULL_TERMINATE_LENGTH                         1U                                //Length of C style string null
-#define ORIGINAL_PACKET_MAXSIZE                       1512U                             //Maximum size of original Ethernet II packets(1500 bytes maximum payload length + 8 bytes Ethernet header + 4 bytes FCS)
-#define NORMAL_PACKET_MAXSIZE                         1500U                             //Maximum size of normal Ethernet II packets, Standard MTU of Ethernet II network
+#define ORIGINAL_PACKET_MAXSIZE                       1522U                             //Maximum size of original Ethernet frame, 6 bytes destination MAC + 6 bytes source MAC + 4 bytes 802.1Q tag(optional) + 2 bytes Ethertype + 1500 bytes payload + 4 bytes Frame Check Sequence
+#define NORMAL_PACKET_MAXSIZE                         1480U                             //Maximum size of normal Ethernet frame, 1500 bytes maximum payload - 20 bytes IPv4 header(IPv6 header length is longer than IPv4) and ignore all other transport layer protocols.
 #define PADDING_RESERVED_BYTES                        2U                                //Padding reserved bytes(2 bytes)
 #if defined(ENABLE_PCAP)
 	#define PCAP_CAPTURE_STRING_MAXNUM                    256U                        //Maximum length of pcap capture drive name and description
@@ -174,7 +171,7 @@
 #if defined(PLATFORM_WIN)
 	#define QUERY_SERVICE_CONFIG_BUFFER_MAXSIZE           8192U                       //Buffer maximum size of QueryServiceConfig function(8KB/8192 Bytes)
 #endif
-#define THREAD_POOL_MAXNUM                            1488095U                    //Number of maximum packet buffer queues, 1488095 pps or 1.488 Mpps in Gigabit Ethernet
+#define THREAD_POOL_MAXNUM                            148809524U                  //Number of maximum packet buffer queues, 148809523pps or 148.809Mpps in 100 Gigabit Ethernet
 #define THREAD_POOL_MINNUM                            8U                          //Number of minimum packet buffer queues
 #define TRANSPORT_LAYER_PARTNUM                       4U                          //Number of transport layer protocols(00: IPv6/UDP, 01: IPv4/UDP, 02: IPv6/TCP, 03: IPv4/TCP)
 #define UINT16_MAX_STRING_LENGTH                      6U                          //Maximum number of 16 bits is 65535, its length is 5.

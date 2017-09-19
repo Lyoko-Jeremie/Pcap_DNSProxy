@@ -676,7 +676,7 @@ void ConfigurationTableSetting(
 
 	//[Log] block
 	ConfigurationParameter->PrintLogLevel = DEFAULT_LOG_LEVEL;
-	ConfigurationParameter->LogMaxSize = LOG_READING_MAXSIZE;
+	ConfigurationParameter->LogMaxSize = DEFAULT_LOG_READING_MAXSIZE;
 
 	//[Listen] block
 	ConfigurationParameter->IsProcessUnique = true;
@@ -1019,7 +1019,7 @@ void ConfigurationTable::MonitorItemReset(
 
 //[Log] block
 	PrintLogLevel = DEFAULT_LOG_LEVEL;
-	LogMaxSize = LOG_READING_MAXSIZE;
+	LogMaxSize = DEFAULT_LOG_READING_MAXSIZE;
 
 //[Listen] block
 	IsIPFilterTypePermit = false;
@@ -1123,8 +1123,8 @@ GlobalStatus::GlobalStatus(
 		MBS_FileList_Hosts = new std::vector<std::string>();
 		MBS_FileList_IPFilter = new std::vector<std::string>();
 	#endif
-		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6] = new uint8_t[NORMAL_PACKET_MAXSIZE]();
-		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4] = new uint8_t[NORMAL_PACKET_MAXSIZE]();
+		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6] = new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]();
+		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4] = new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]();
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6] = new std::vector<std::string>();
 		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4] = new std::vector<std::string>();
@@ -1202,8 +1202,8 @@ GlobalStatus::GlobalStatus(
 		MBS_FileList_Hosts = new std::vector<std::string>();
 		MBS_FileList_IPFilter = new std::vector<std::string>();
 	#endif
-		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6] = new uint8_t[NORMAL_PACKET_MAXSIZE]();
-		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4] = new uint8_t[NORMAL_PACKET_MAXSIZE]();
+		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6] = new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]();
+		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4] = new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]();
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6] = new std::vector<std::string>();
 		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4] = new std::vector<std::string>();
@@ -1398,8 +1398,8 @@ void GlobalStatusSetting(
 	GlobalRunningStatusParameter->Base64_EncodeTable = const_cast<uint8_t *>(Base64_EncodeTable_Initialization);
 	GlobalRunningStatusParameter->Base64_DecodeTable = const_cast<int8_t *>(Base64_DecodeTable_Initialization);
 	GlobalRunningStatusParameter->GatewayAvailable_IPv4 = true;
-	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6], 0, NORMAL_PACKET_MAXSIZE);
-	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4], 0, NORMAL_PACKET_MAXSIZE);
+	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6], 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4], 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 
 	return;
 }

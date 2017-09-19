@@ -115,7 +115,7 @@ Error.log 詳細錯誤報表：
 2.Parameter Error - 讀取設定檔參數錯誤
   * Address Prefix Block format error - 帶前置長度的位址塊格式錯誤：請檢查位址塊的格式
   * Alternate Multiple request error - 主要備用或多個伺服器下同時請求參數錯誤：請確認所有伺服器的資訊
-  * Configuration file size is too large - 設定檔容量過大：請確認設定檔的內容，整個檔的大小不要超過 512 MB
+  * Configuration file size is too large - 設定檔容量過大：請確認設定檔的內容，整個檔的大小不要超過 256 MB
   * Configuration file version error - 設定檔版本錯誤：請確認設定檔是否需要更新
   * Cannot open any configuration files - 未發現任何設定檔：請確認檔是否存在
   * Data format error - 設定檔參數一行資料超過 4096 位元組/4 KB，或該行資料長度不符合要求，或者資料格式錯誤：請確認該行的內容是否符合要求
@@ -127,7 +127,7 @@ Error.log 詳細錯誤報表：
   * DNS cache error - DNS 緩存配置錯誤：請檢查緩存的參數
   * DNS record type error - DNS 記錄參數錯誤：請檢查 Accept Type 的值是否符合要求
   * DNS target error - DNS 目標伺服器配置錯誤：請檢查 DNS 伺服器的位址
-  * DNSCurve database file size is too large - DNSCurve 資料庫檔案容量過大：請確認設定檔的內容，整個檔的大小不要超過 512 MB
+  * DNSCurve database file size is too large - DNSCurve 資料庫檔案容量過大：請確認設定檔的內容，整個檔的大小不要超過 256 MB
   * DNSCurve empty Provider Name error - DNSCurve 協定伺服器提供者不存在錯誤：不存在魔數或指紋時必須提供伺服器的提供者資訊以自動獲取連接參數
   * DNSCurve empty Public Key error - DNSCurve 協定伺服器公開金鑰不存在錯誤：不存在魔數或指紋時必須提供伺服器的公開金鑰以自動獲取連接參數
   * DNSCurve Encryption Only mode error - DNSCurve 協定只使用加密模式配置錯誤：只使用加密模式必須提供伺服器的魔數和指紋
@@ -136,8 +136,8 @@ Error.log 詳細錯誤報表：
   * DNSCurve Provider Name error - DNSCurve 協定伺服器提供者格式錯誤：請確認該條目的內容
   * DNSCurve target error - DNSCurve 協定使用的 DNS 目標伺服器位址錯誤：請檢查 DNSCurve 協定使用 DNS 伺服器的位址
   * Hop Limits Fluctuation error - Hop Limits 或 TTL 可接受範圍錯誤：請檢查範圍的值
-  * Hosts file size is too large - Hosts 檔容量過大：請確認 Hosts 檔的內容，整個檔的大小不要超過 512 MB
-  * IPFilter file size is too large - IPFilter 檔容量過大：請確認 IPFilter 檔的內容，整個檔的大小不要超過 512 MB
+  * Hosts file size is too large - Hosts 檔容量過大：請確認 Hosts 檔的內容，整個檔的大小不要超過 256 MB
+  * IPFilter file size is too large - IPFilter 檔容量過大：請確認 IPFilter 檔的內容，整個檔的大小不要超過 256 MB
   * IPFilter Level error - IPFilter 過濾級別錯誤：請檢查過濾級別的值，可適用範圍為 1 - 65535
   * IPv4 address format error - IPv4 位址格式錯誤：請檢查 IPv4 的位址格式
   * IPv4 address port error - IPv4 位址埠格式錯誤：請檢查 IPv4 的位址埠格式

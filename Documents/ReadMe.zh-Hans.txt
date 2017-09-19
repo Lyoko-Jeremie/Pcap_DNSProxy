@@ -43,7 +43,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * Direct Request = IPv4
     * Direct Request = IPv6
     * Direct Request = IPv4 + IPv6
-    * 更多的情况是系统路由级别的代理会通过虚拟网络适配器进行连接，此时的 DNS 由代理自行控制，此时则不需要进行任何操作
+    * 更多的情况是系统路由级别的代理会通过虚拟网络适配器进行连接，此时的 DNS 由代理自行控制则不需要进行任何操作
   * 配置文件 Hosts 文件 IPFilter 文件和错误报告所在的目录以上文 安装方法 一节中第 4 步注册的服务信息为准
     * 填写时一行不要超过 4096 字节/4KB
     * 文件读取只支持整个文本单一的编码和换行格式组合，切勿在文本文件中混合所支持的编码或换行格式！
@@ -69,7 +69,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 3.右键以管理员身份(Vista 以及更新版本)或直接以管理员登录双击(XP/2003)运行 ServiceControl.bat
 4.输入 2 并回车，即选择 "2: Uninstall service" 卸载服务
 5.将整个 Pcap_DNSProxy 程序的目录删除。注意 Windows 防火墙可能会留有允许程序访问网络的信息，卸载服务后又变更了程序的目录则可能需要使用注册表清理工具清理
-6.将新版本的 Pcap_DNSProxy 解压到任何位置（亦即 安装方法 中第3步）
+6.将新版本的 Pcap_DNSProxy 解压到任何位置（亦即 安装方法 中第 3 步）
 7.将配置文件的自定义内容加回新版本配置文件里相应的区域内
 8.按照 安装方法 中第4步重新部署 Pcap_DNSProxy
 
@@ -220,7 +220,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 1 为输出重大错误
     * 2 为输出一般错误
     * 3 为输出所有错误
-  * Log Maximum Size - 日志文件最大容量：直接填数字时单位为字节，可加上单位，支持的单位有 KB/MB/GB，可接受范围为 4KB - 512MB，如果留空则为 8MB
+  * Log Maximum Size - 日志文件最大容量：直接填数字时单位为字节，可加上单位，支持的单位有 KB/MB/GB，可接受范围为 4 KB - 256 MB，如果留空则为 8 MB
     * 注意：日志文件到达最大容量后将被直接删除，然后重新生成新的日志文件，原来的日志将无法找回！
 
 * Listen - 监听参数区域

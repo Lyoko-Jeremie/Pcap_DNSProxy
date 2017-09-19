@@ -115,7 +115,7 @@ Details of Error.log error report:
 2.Parameter Error
   * Address Prefix Block format error - Please make sure that the format is correct.
   * Alternate Multiple request error - Please make sure that the data is correct.
-  * Configuration file size is too large - Please make sure that the data is correct, it should not be larger than 512 MB.
+  * Configuration file size is too large - Please make sure that the data is correct, it should not be larger than 256 MB.
   * Configuration file version error - Please make sure that the version is correct.
   * Cannot open any configuration files - Please make sure that the files are correct.
   * Data format error - Please make sure that the data is correct, it should not be longer than 4 KB/4096 bytes.
@@ -127,7 +127,7 @@ Details of Error.log error report:
   * DNS cache error - Please make sure that the data is correct.
   * DNS record type error - Please make sure that the data is correct.
   * DNS target error - Please make sure that the data is correct.
-  * DNSCurve database file size is too large - Please make sure that the data is correct, it should not be larger than 512 MB.
+  * DNSCurve database file size is too large - Please make sure that the data is correct, it should not be larger than 256 MB.
   * DNSCurve empty Provider Name error - Please fill Public Key when Send/Receive Magic Number and server Fingerprint are empty.
   * DNSCurve empty Public Key error - Please fill Public Key when Send/Receive Magic Number and server Fingerprint are empty.
   * DNSCurve Encryption Only mode error - Please fill Send/Receive Magic Number and server Fingerprint when Encryption Only mode is enabled.
@@ -136,8 +136,8 @@ Details of Error.log error report:
   * DNSCurve Provider Name error - Please make sure that the data is correct.
   * DNSCurve target error - Please make sure that the data is correct.
   * Hop Limits Fluctuation error - Please make sure that the data is correct.
-  * Hosts file size is too large - Please make sure that the data is correct, it should not be larger than 512 MB.
-  * IPFilter file size is too large - Please make sure that the data is correct, it should not be larger than 512 MB.
+  * Hosts file size is too large - Please make sure that the data is correct, it should not be larger than 256 MB.
+  * IPFilter file size is too large - Please make sure that the data is correct, it should not be larger than 256 MB.
   * IPFilter Level error - Please make sure that the data is correct, it should be between 1 and 65535.
   * IPv4 address format error - Please make sure that the data is correct.
   * IPv4 address port error - Please make sure that the data is correct.
