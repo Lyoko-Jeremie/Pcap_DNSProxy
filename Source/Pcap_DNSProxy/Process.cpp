@@ -492,11 +492,11 @@ size_t CheckHostsProcess(
 	}
 
 //Make domain reversed.
-	size_t DataLength = 0;
-	void *DNS_Record = nullptr;
 	std::string ReverseDomain(Domain);
 	MakeStringReversed(ReverseDomain);
 	ReverseDomain.append(".");
+	size_t DataLength = 0;
+	void *DNS_Record = nullptr;
 
 //Domain Name Reservation Considerations for "test."
 //RFC 6761, Special-Use Domain Names(https://tools.ietf.org/html/rfc6761)

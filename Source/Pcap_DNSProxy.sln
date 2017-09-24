@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.12
+VisualStudioVersion = 15.0.26730.16
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pcap_DNSProxy", "Pcap_DNSProxy\Pcap_DNSProxy.vcxproj", "{9221C40D-99FA-447B-BB53-767F9C6945EB}"
 EndProject
@@ -44,6 +44,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibSodium", "LibSodium", "{
 		Dependency\LibSodium\crypto_secretbox.h = Dependency\LibSodium\crypto_secretbox.h
 		Dependency\LibSodium\crypto_secretbox_xchacha20poly1305.h = Dependency\LibSodium\crypto_secretbox_xchacha20poly1305.h
 		Dependency\LibSodium\crypto_secretbox_xsalsa20poly1305.h = Dependency\LibSodium\crypto_secretbox_xsalsa20poly1305.h
+		Dependency\LibSodium\crypto_secretstream_xchacha20poly1305.h = Dependency\LibSodium\crypto_secretstream_xchacha20poly1305.h
 		Dependency\LibSodium\crypto_shorthash.h = Dependency\LibSodium\crypto_shorthash.h
 		Dependency\LibSodium\crypto_shorthash_siphash24.h = Dependency\LibSodium\crypto_shorthash_siphash24.h
 		Dependency\LibSodium\crypto_sign.h = Dependency\LibSodium\crypto_sign.h
