@@ -1271,9 +1271,19 @@ ssize_t SocketSelectingOnce(
 	ssize_t * const ErrorCode, 
 	const SOCKET_DATA * const LocalSocketData)
 {
-//Socket data check
-	if (SocketDataList.empty())
-		return EXIT_FAILURE;
+//Socket data check, select file descriptor set size and maximum socket index check(Part 1)
+//Windows: The variable FD_SETSIZE determines the maximum number of descriptors in a set.
+//Windows: The default value of FD_SETSIZE is 64, which can be modified by defining FD_SETSIZE to another value before including Winsock2.h.
+//Windows: Internally, socket handles in an fd_set structure are not represented as bit flags as in Berkeley Unix.
+//Linux/macOS: Select nfds is the highest-numbered file descriptor in any of the three sets, plus 1.
+//Linux/macOS: An fd_set is a fixed size buffer.
+//Linux/macOS: Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
+	if (SocketDataList.empty()
+	#if defined(PLATFORM_WIN)
+		|| SocketDataList.size() >= FD_SETSIZE
+	#endif
+		)
+			return EXIT_FAILURE;
 
 //Initialization(Part 1)
 	std::vector<SOCKET_SELECTING_ONCE_TABLE> SocketSelectingList(SocketDataList.size());
@@ -1448,7 +1458,12 @@ ssize_t SocketSelectingOnce(
 		for (Index = 0;Index < SocketDataList.size();++Index)
 		{
 		//Non-blocking process
-			if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
+		//Socket data check, select file descriptor set size and maximum socket index check(Part 2)
+			if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr)
+			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+				&& SocketDataList.at(Index).Socket + 1U < FD_SETSIZE
+			#endif
+				)
 			{
 			//Select structure initialization
 				if (SocketDataList.at(Index).Socket > MaxSocket)
@@ -1467,7 +1482,11 @@ ssize_t SocketSelectingOnce(
 					!SocketSelectingList.at(Index).IsPacketDone))
 						FD_SET(SocketDataList.at(Index).Socket, &WriteFDS);
 			}
-			else if (MaxSocket == INVALID_SOCKET && Index + 1U == SocketDataList.size())
+			else if ((MaxSocket == INVALID_SOCKET
+			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+				|| MaxSocket + 1U >= FD_SETSIZE
+			#endif
+				) && Index + 1U == SocketDataList.size())
 			{
 				return EXIT_FAILURE;
 			}
@@ -1501,11 +1520,17 @@ ssize_t SocketSelectingOnce(
 			for (Index = 0;Index < SocketDataList.size();++Index)
 			{
 			//File set available check
-				IsReadReady = false, IsWriteReady = false;
-				if (FD_ISSET(SocketDataList.at(Index).Socket, &ReadFDS))
-					IsReadReady = true;
-				if (FD_ISSET(SocketDataList.at(Index).Socket, &WriteFDS))
-					IsWriteReady = true;
+				if (!SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
+				{
+					continue;
+				}
+				else {
+					IsReadReady = false, IsWriteReady = false;
+					if (FD_ISSET(SocketDataList.at(Index).Socket, &ReadFDS) != 0)
+						IsReadReady = true;
+					if (FD_ISSET(SocketDataList.at(Index).Socket, &WriteFDS) != 0)
+						IsWriteReady = true;
+				}
 
 			//Socket option check
 			//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
@@ -1544,8 +1569,7 @@ ssize_t SocketSelectingOnce(
 				if (RequestType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN)
 				{
 				//Receive process
-					if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
-						IsReadReady)
+					if (IsReadReady)
 					{
 					//Buffer initialization
 						if (!DNSCurveSocketSelectingList->at(Index).RecvBuffer)
@@ -1565,6 +1589,7 @@ ssize_t SocketSelectingOnce(
 //							SocketDataList.at(Index).Socket = INVALID_SOCKET;
 							DNSCurveSocketSelectingList->at(Index).RecvBuffer.reset();
 							DNSCurveSocketSelectingList->at(Index).RecvLen = 0;
+
 							continue;
 						}
 						else if (Protocol == IPPROTO_UDP && RecvLen >= static_cast<ssize_t>(DNS_PACKET_MINSIZE) && DNSCurveSocketSelectingList->at(Index).RecvLen > 0)
@@ -1580,8 +1605,7 @@ ssize_t SocketSelectingOnce(
 					}
 
 				//Send process
-					if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
-						IsWriteReady && 
+					if (IsWriteReady && 
 						!DNSCurveSocketSelectingList->at(Index).IsPacketDone)
 					{
 						if (send(SocketDataList.at(Index).Socket, reinterpret_cast<const char *>(DNSCurveSocketSelectingList->at(Index).SendBuffer), static_cast<int>(DNSCurveSocketSelectingList->at(Index).SendSize), 0) == SOCKET_ERROR)
@@ -1609,8 +1633,7 @@ ssize_t SocketSelectingOnce(
 				else {
 			#endif
 				//Receive process
-					if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
-						IsReadReady)
+					if (IsReadReady)
 					{
 						if (OriginalRecv != nullptr)
 						{
@@ -1632,6 +1655,7 @@ ssize_t SocketSelectingOnce(
 //								SocketDataList.at(Index).Socket = INVALID_SOCKET;
 								SocketSelectingList.at(Index).RecvBuffer.reset();
 								SocketSelectingList.at(Index).RecvLen = 0;
+
 								continue;
 							}
 							else if (Protocol == IPPROTO_UDP && RecvLen >= static_cast<ssize_t>(DNS_PACKET_MINSIZE) && SocketSelectingList.at(Index).RecvLen > 0)
@@ -1651,12 +1675,13 @@ ssize_t SocketSelectingOnce(
 							memset(RecvBufferTemp.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 //							SocketDataList.at(Index).Socket = INVALID_SOCKET;
+
+							continue;
 						}
 					}
 
 				//Send process
-					if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
-						IsWriteReady && 
+					if (IsWriteReady && 
 						!SocketSelectingList.at(Index).IsPacketDone)
 					{
 						if (send(SocketDataList.at(Index).Socket, reinterpret_cast<const char *>(OriginalSend), static_cast<int>(SendSize), 0) == SOCKET_ERROR)
@@ -1812,6 +1837,7 @@ ssize_t SelectingResultOnce(
 //						SocketDataList.at(Index).Socket = INVALID_SOCKET;
 						DNSCurveSocketSelectingList->at(Index).RecvBuffer.reset();
 						DNSCurveSocketSelectingList->at(Index).RecvLen = 0;
+
 						continue;
 					}
 					else {
@@ -1829,6 +1855,7 @@ ssize_t SelectingResultOnce(
 //					SocketDataList.at(Index).Socket = INVALID_SOCKET;
 					DNSCurveSocketSelectingList->at(Index).RecvBuffer.reset();
 					DNSCurveSocketSelectingList->at(Index).RecvLen = 0;
+
 					continue;
 				}
 
@@ -1842,6 +1869,7 @@ ssize_t SelectingResultOnce(
 //						SocketDataList.at(Index).Socket = INVALID_SOCKET;
 						DNSCurveSocketSelectingList->at(Index).RecvBuffer.reset();
 						DNSCurveSocketSelectingList->at(Index).RecvLen = 0;
+
 						continue;
 					}
 					else {
@@ -1907,6 +1935,7 @@ ssize_t SelectingResultOnce(
 //						SocketDataList.at(Index).Socket = INVALID_SOCKET;
 						SocketSelectingList->at(Index).RecvBuffer.reset();
 						SocketSelectingList->at(Index).RecvLen = 0;
+
 						continue;
 					}
 					else {
@@ -1924,6 +1953,7 @@ ssize_t SelectingResultOnce(
 //					SocketDataList.at(Index).Socket = INVALID_SOCKET;
 					SocketSelectingList->at(Index).RecvBuffer.reset();
 					SocketSelectingList->at(Index).RecvLen = 0;
+
 					continue;
 				}
 
@@ -1940,6 +1970,7 @@ ssize_t SelectingResultOnce(
 //					SocketDataList.at(Index).Socket = INVALID_SOCKET;
 					SocketSelectingList->at(Index).RecvBuffer.reset();
 					SocketSelectingList->at(Index).RecvLen = 0;
+
 					continue;
 				}
 				else {
@@ -2004,9 +2035,19 @@ size_t SocketSelectingSerial(
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
 	std::vector<ssize_t> &ErrorCodeList)
 {
-//Socket data check
-	if (SocketDataList.empty() || SocketSelectingDataList.empty() || ErrorCodeList.empty())
-		return EXIT_FAILURE;
+//Socket data check, select file descriptor set size and maximum socket index check(Part 1)
+//Windows: The variable FD_SETSIZE determines the maximum number of descriptors in a set.
+//Windows: The default value of FD_SETSIZE is 64, which can be modified by defining FD_SETSIZE to another value before including Winsock2.h.
+//Windows: Internally, socket handles in an fd_set structure are not represented as bit flags as in Berkeley Unix.
+//Linux/macOS: Select nfds is the highest-numbered file descriptor in any of the three sets, plus 1.
+//Linux/macOS: An fd_set is a fixed size buffer.
+//Linux/macOS: Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
+	if (SocketDataList.empty() || SocketSelectingDataList.empty() || ErrorCodeList.empty()
+	#if defined(PLATFORM_WIN)
+		|| SocketDataList.size() >= FD_SETSIZE
+	#endif
+		)
+			return EXIT_FAILURE;
 
 //Initialization
 	fd_set ReadFDS, WriteFDS;
@@ -2019,7 +2060,6 @@ size_t SocketSelectingSerial(
 	size_t Index = 0;
 	int OptionValue = 0;
 	socklen_t OptionSize = sizeof(OptionValue);
-	bool IsReadReady = false, IsWriteReady = false;
 
 //Socket check(Send process)
 	for (auto SocketDataIter = SocketDataList.begin();SocketDataIter != SocketDataList.end();++SocketDataIter)
@@ -2071,7 +2111,11 @@ size_t SocketSelectingSerial(
 	//Socket check and non-blocking process
 		for (Index = 0;Index < SocketDataList.size();++Index)
 		{
+		//Select file descriptor set size and maximum socket index check(Part 2)
 			if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
+			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+				SocketDataList.at(Index).Socket + 1U < FD_SETSIZE && 
+			#endif
 				SocketSelectingDataList.at(Index).SendBuffer && SocketSelectingDataList.at(Index).SendLen > 0 && 
 				!SocketSelectingDataList.at(Index).IsPacketDone && ErrorCodeList.at(Index) == 0)
 			{
@@ -2080,7 +2124,11 @@ size_t SocketSelectingSerial(
 				if (SocketDataList.at(Index).Socket > MaxSocket)
 					MaxSocket = SocketDataList.at(Index).Socket;
 			}
-			else if (MaxSocket == INVALID_SOCKET && Index + 1U == SocketDataList.size())
+			else if ((MaxSocket == INVALID_SOCKET
+			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+				|| MaxSocket + 1U >= FD_SETSIZE
+			#endif
+				) && Index + 1U == SocketDataList.size())
 			{
 				goto StopLoop;
 			}
@@ -2096,15 +2144,12 @@ size_t SocketSelectingSerial(
 		{
 			for (Index = 0;Index < SocketDataList.size();++Index)
 			{
-			//File set available check
-				IsWriteReady = false;
-				if (FD_ISSET(SocketDataList.at(Index).Socket, &WriteFDS))
-					IsWriteReady = true;
-
-			//Socket option check
-			//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
-				if (IsWriteReady)
+				if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
+					!SocketSelectingDataList.at(Index).IsPacketDone && 
+					FD_ISSET(SocketDataList.at(Index).Socket, &WriteFDS) != 0)
 				{
+				//Socket option check
+				//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
 					OptionValue = 0;
 					OptionSize = sizeof(OptionValue);
 					if (getsockopt(SocketDataList.at(Index).Socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&OptionValue), &OptionSize) == SOCKET_ERROR)
@@ -2129,13 +2174,8 @@ size_t SocketSelectingSerial(
 
 						continue;
 					}
-				}
 
-			//Send data.
-				if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
-					IsWriteReady && 
-					!SocketSelectingDataList.at(Index).IsPacketDone)
-				{
+				//Send data.
 					if (send(SocketDataList.at(Index).Socket, reinterpret_cast<const char *>(SocketSelectingDataList.at(Index).SendBuffer.get()), static_cast<int>(SocketSelectingDataList.at(Index).SendLen), 0) == SOCKET_ERROR)
 					{
 						ErrorCodeList.at(Index) = WSAGetLastError();
@@ -2223,7 +2263,11 @@ StopLoop:
 	//Socket check and non-blocking process
 		for (Index = 0;Index < SocketDataList.size();++Index)
 		{
+		//Select file descriptor set size and maximum socket index check(Part 3)
 			if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
+			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+				SocketDataList.at(Index).Socket + 1U < FD_SETSIZE && 
+			#endif
 				!SocketSelectingDataList.at(Index).IsPacketDone && !SocketSelectingDataList.at(Index).IsSendOnly && 
 				ErrorCodeList.at(Index) == 0)
 			{
@@ -2232,7 +2276,11 @@ StopLoop:
 				if (SocketDataList.at(Index).Socket > MaxSocket)
 					MaxSocket = SocketDataList.at(Index).Socket;
 			}
-			else if (MaxSocket == INVALID_SOCKET && Index + 1U == SocketDataList.size())
+			else if ((MaxSocket == INVALID_SOCKET
+			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+				|| MaxSocket + 1U >= FD_SETSIZE
+			#endif
+				) && Index + 1U == SocketDataList.size())
 			{
 				return EXIT_SUCCESS;
 			}
@@ -2248,15 +2296,12 @@ StopLoop:
 		{
 			for (Index = 0;Index < SocketDataList.size();++Index)
 			{
-			//File set available check
-				IsReadReady = false;
-				if (FD_ISSET(SocketDataList.at(Index).Socket, &ReadFDS))
-					IsReadReady = true;
-
-			//Socket option check
-			//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
-				if (IsWriteReady)
+				if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
+					!SocketSelectingDataList.at(Index).IsPacketDone && !SocketSelectingDataList.at(Index).IsSendOnly && 
+					FD_ISSET(SocketDataList.at(Index).Socket, &ReadFDS) != 0)
 				{
+				//Socket option check
+				//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
 					OptionValue = 0;
 					OptionSize = sizeof(OptionValue);
 					if (getsockopt(SocketDataList.at(Index).Socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char *>(&OptionValue), &OptionSize) == SOCKET_ERROR)
@@ -2281,15 +2326,8 @@ StopLoop:
 
 						break;
 					}
-				}
 
-			//Receive data.
-				if (SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr) && 
-					IsReadReady && 
-					!SocketSelectingDataList.at(Index).IsPacketDone && 
-					!SocketSelectingDataList.at(Index).IsSendOnly)
-				{
-				//Receive all packets from socket.
+				//Receive data.
 					for (;;)
 					{
 					//Prepare buffer.

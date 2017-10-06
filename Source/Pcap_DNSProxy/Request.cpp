@@ -262,7 +262,7 @@ bool ICMP_TestRequest(
 		SOCKET_DATA SocketDataTemp;
 		memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
 		SocketDataTemp.Socket = INVALID_SOCKET;
-		int OptionValue = ICMPV6_OFFSET_CHECKSUM;
+//		int OptionValue = ICMPV6_OFFSET_CHECKSUM;
 
 	//Main
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
@@ -290,7 +290,7 @@ bool ICMP_TestRequest(
 	//Alternate
 		if (Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0)
 		{
-			OptionValue = ICMPV6_OFFSET_CHECKSUM;
+//			OptionValue = ICMPV6_OFFSET_CHECKSUM;
 
 		#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 			SocketDataTemp.Socket = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
@@ -322,7 +322,7 @@ bool ICMP_TestRequest(
 		{
 			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv6_Multiple)
 			{
-				OptionValue = ICMPV6_OFFSET_CHECKSUM;
+//				OptionValue = ICMPV6_OFFSET_CHECKSUM;
 
 			#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 				SocketDataTemp.Socket = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);

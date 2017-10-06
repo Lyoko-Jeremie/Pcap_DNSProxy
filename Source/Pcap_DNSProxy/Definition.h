@@ -116,7 +116,7 @@
 #define CONFIG_VERSION_MAJOR                          0                                     //Current configuration file major version(0.45)
 #define CONFIG_VERSION_MINOR                          45U                                   //Current configuration file minor version(0.45)
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2017 Chengr28"   //Copyright message
-#define FULL_VERSION                                  L"0.4.9.3"                            //Current full version
+#define FULL_VERSION                                  L"0.4.9.4"                            //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_MAXSIZE                        64U                               //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -886,10 +886,12 @@ public:
 	bool                                 IsDNSCurve;
 #endif
 
-//Member functions
+//Member functions(Public)
 	ConfigurationTable(
 		void);
 	ConfigurationTable(
+		const ConfigurationTable &Reference);
+	ConfigurationTable & operator=(
 		const ConfigurationTable &Reference);
 	void SetToMonitorItem(
 		void);
@@ -899,6 +901,11 @@ public:
 		void);
 	~ConfigurationTable(
 		void);
+
+//Member functions(Private)
+private:
+	void CopyMemberOperator(
+		const ConfigurationTable &Reference);
 }CONFIGURATION_TABLE;
 
 //Global status class
@@ -957,13 +964,20 @@ public:
 	std::vector<std::string>             *LocalAddress_PointerResponse[NETWORK_LAYER_PARTNUM];
 #endif
 
-//Member functions
+//Member functions(Public)
 	GlobalStatus(
 		void);
 	GlobalStatus(
 		const GlobalStatus &Reference);
+	GlobalStatus & operator=(
+		const GlobalStatus &Reference);
 	~GlobalStatus(
 		void);
+
+//Member functions(Private)
+private:
+	void CopyMemberOperator(
+		const GlobalStatus &Reference);
 }GLOBAL_STATUS;
 
 //IPv4/IPv6 address ranges class
@@ -1153,10 +1167,12 @@ public:
 	DNSCURVE_SERVER_DATA                    DNSCurve_Target_Server_Main_IPv4;
 	DNSCURVE_SERVER_DATA                    DNSCurve_Target_Server_Alternate_IPv4;
 
-//Member functions
+//Member functions(Public)
 	DNSCurveConfigurationTable(
 		void);
 	DNSCurveConfigurationTable(
+		const DNSCurveConfigurationTable &Reference);
+	DNSCurveConfigurationTable & operator=(
 		const DNSCurveConfigurationTable &Reference);
 	void SetToMonitorItem(
 		void);
@@ -1166,6 +1182,11 @@ public:
 		void);
 	~DNSCurveConfigurationTable(
 		void);
+
+//Member functions(Private)
+private:
+	void CopyMemberOperator(
+		const DNSCurveConfigurationTable &Reference);
 }DNSCURVE_CONFIGURATION_TABLE;
 
 //DNSCurve Socket Selecting table class

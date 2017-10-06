@@ -769,10 +769,26 @@ bool UDP_Monitor(
 			LastMarkTime = GetCurrentSystemTime();
 		}
 
-	//Reset parameters.
+	//Reset parameters(Part 1).
+		MonitorQueryData.second = LocalSocketData;
+
+	//Select file descriptor set size and maximum socket index check
+	//Windows: The variable FD_SETSIZE determines the maximum number of descriptors in a set.
+	//Windows: The default value of FD_SETSIZE is 64, which can be modified by defining FD_SETSIZE to another value before including Winsock2.h.
+	//Windows: Internally, socket handles in an fd_set structure are not represented as bit flags as in Berkeley Unix.
+	//Linux/macOS: Select nfds is the highest-numbered file descriptor in any of the three sets, plus 1.
+	//Linux/macOS: An fd_set is a fixed size buffer.
+	//Linux/macOS: Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
+		if (!SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr)
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			|| MonitorQueryData.second.Socket + 1U >= FD_SETSIZE
+		#endif
+			)
+				break;
+
+	//Reset parameters(Part 2).
 		memset(RecvBuffer.get() + (NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES) * Index, 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 		memset(SendBuffer.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
-		MonitorQueryData.second = LocalSocketData;
 		FD_ZERO(&ReadFDS);
 		FD_SET(MonitorQueryData.second.Socket, &ReadFDS);
 		OptionValue = 0;
@@ -786,7 +802,7 @@ bool UDP_Monitor(
 	#endif
 		if (SelectResult > 0)
 		{
-			if (FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS))
+			if (FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS) != 0)
 			{
 			//Socket option check
 			//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
@@ -897,6 +913,20 @@ bool TCP_Monitor(
 			LastMarkTime = GetCurrentSystemTime();
 		}
 
+	//Select file descriptor set size and maximum socket index check
+	//Windows: The variable FD_SETSIZE determines the maximum number of descriptors in a set.
+	//Windows: The default value of FD_SETSIZE is 64, which can be modified by defining FD_SETSIZE to another value before including Winsock2.h.
+	//Windows: Internally, socket handles in an fd_set structure are not represented as bit flags as in Berkeley Unix.
+	//Linux/macOS: Select nfds is the highest-numbered file descriptor in any of the three sets, plus 1.
+	//Linux/macOS: An fd_set is a fixed size buffer.
+	//Linux/macOS: Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
+		if (!SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr)
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			|| LocalSocketData.Socket + 1U >= FD_SETSIZE
+		#endif
+			)
+				break;
+
 	//Reset parameters.
 		memset(&MonitorQueryData.second.SockAddr, 0, sizeof(MonitorQueryData.second.SockAddr));
 		MonitorQueryData.second.AddrLen = LocalSocketData.AddrLen;
@@ -914,7 +944,7 @@ bool TCP_Monitor(
 	#endif
 		if (SelectResult > 0)
 		{
-			if (FD_ISSET(LocalSocketData.Socket, &ReadFDS))
+			if (FD_ISSET(LocalSocketData.Socket, &ReadFDS) != 0)
 			{
 			//Socket option check
 			//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
@@ -996,6 +1026,23 @@ bool TCP_AcceptProcess(
 	uint8_t * const OriginalRecv, 
 	size_t RecvSize)
 {
+//Select file descriptor set size and maximum socket index check(Part 1)
+//Windows: The variable FD_SETSIZE determines the maximum number of descriptors in a set.
+//Windows: The default value of FD_SETSIZE is 64, which can be modified by defining FD_SETSIZE to another value before including Winsock2.h.
+//Windows: Internally, socket handles in an fd_set structure are not represented as bit flags as in Berkeley Unix.
+//Linux/macOS: Select nfds is the highest-numbered file descriptor in any of the three sets, plus 1.
+//Linux/macOS: An fd_set is a fixed size buffer.
+//Linux/macOS: Executing FD_CLR() or FD_SET() with a value of fd that is negative or is equal to or larger than FD_SETSIZE will result in undefined behavior.
+	if (!SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr)
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		|| MonitorQueryData.second.Socket + 1U >= FD_SETSIZE
+	#endif
+		)
+	{
+		SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+		return false;
+	}
+
 //Initialization(Part 1)
 	std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
 	memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
@@ -1024,7 +1071,8 @@ bool TCP_AcceptProcess(
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	RecvLenFirst = select(MonitorQueryData.second.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
 #endif
-	if (RecvLenFirst > 0 && FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS))
+	if (RecvLenFirst > 0 && 
+		FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS) != 0)
 	{
 	//Socket option check
 	//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.
@@ -1062,6 +1110,17 @@ bool TCP_AcceptProcess(
 //Connection closed or SOCKET_ERROR
 	if (RecvLenFirst < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
 	{
+	//Select file descriptor set size and maximum socket index check(Part 2)
+		if (!SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr)
+		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+			|| MonitorQueryData.second.Socket + 1U >= FD_SETSIZE
+		#endif
+			)
+		{
+			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
+			return false;
+		}
+
 	//Socket selecting structure initialization(Part 2)
 		memset(&ReadFDS, 0, sizeof(ReadFDS));
 		memset(&Timeout, 0, sizeof(Timeout));
@@ -1082,7 +1141,8 @@ bool TCP_AcceptProcess(
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		RecvLenSecond = select(MonitorQueryData.second.Socket + 1U, &ReadFDS, nullptr, nullptr, &Timeout);
 	#endif
-		if (RecvLenSecond > 0 && FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS))
+		if (RecvLenSecond > 0 && 
+			FD_ISSET(MonitorQueryData.second.Socket, &ReadFDS) != 0)
 		{
 		//Socket option check
 		//Select will set both reading and writing sets and set SO_ERROR to error code when connection was failed.

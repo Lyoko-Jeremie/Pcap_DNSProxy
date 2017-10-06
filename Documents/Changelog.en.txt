@@ -1,9 +1,11 @@
-﻿Pcap_DNSProxy 0.4.9.1-0.4.9.3 changelog(2017-09-24):
+﻿Pcap_DNSProxy 0.4.9.1-0.4.9.4 changelog(2017-10-06):
 
 * Add TCP protocol support to Domain Test module:
   * Add Domain Test Protocol parameter.
 * Enhanced efficiency of Local Routing and built-in DNS cache items searching. [Syrone Wong]
-* LibSodium version upgrade to 1.0.14. (Windows/macOS)
+* LibSodium upgrade to version 1.0.15. (Windows/macOS)
+* Project IDE Xcode upgrade to version 9.0. (macOS)
+* OpenSSL upgrade to version 1.1.0f. (macOS)
 * Improve local request process: [cjjdaq]
   * Remove Local Main parameter.
 * Improve built-in blacklist:
@@ -11,6 +13,7 @@
 * Update filtering algorithm of TCP packets.
 * Fix multiple instances problem:
   * Add Process Unique parameter.
+* Fix bug of network module which will cause segmentation fault. [goxofy/kalagxw/lunzima/monokoo/pengpengxp/Syrone Wong/wangmice]
 * Fix bug of Local Hosts whitelist module. [cjjdaq/muink]
 * Fix DNS Transaction ID is legal but be banned. [LisonFan]
 * Fix bug when specifying more than one Listen Addresss.
@@ -19,15 +22,15 @@
 * Fix wrongly banned of NSCI system network sensor indicator IPv6 addresses. (Windows) [hnsylzg]
 * Release Hash: 
   * SHA-3(256): 
-    * Windows/Pcap_DNSProxy.exe: 0BA0C3DBE7EC2C63AD4937D9F7729E325F7D2B2ACE2F4095DD02C434B5C3A82C
-    * Windows/Pcap_DNSProxy_x86.exe: 3B76D1ADCCFE31A06AF2DB92AF8715E79B25AFA7B532D4BFDB60E33C979F3EBD
-    * Windows/Pcap_DNSProxy_XP.exe: CEB23F8D5712396F28BD6C09D79F0F54D3C99FABB91171532D623D71DCE9E96C
-    * macOS/Pcap_DNSProxy: Not available
+    * Windows/Pcap_DNSProxy.exe: 8E9EEAFD301C1D27A1B9E6D2CAC692D032621E3E80BB15A3CCA1CCEF3768FA2D
+    * Windows/Pcap_DNSProxy_x86.exe: 7EF905162AB37BCF94C229D991773DADE1DF02F635B951DCEF50976B915E4795
+    * Windows/Pcap_DNSProxy_XP.exe: 4AF0131A398A75D26ADA5DACBF9E185EEBE78D2A5E4A0787DE16A66EE0496FAE
+    * macOS/Pcap_DNSProxy: F5A91990F9DC3022AA016EE9E12659D64ECEF3351139CA2D0630E99CC298F06F
   * SHA-2(256): 
-    * Windows/Pcap_DNSProxy.exe: A8B2107EA93212DC2B4DA2F523E650EFEFE302E601DCF3AC2830AEE5E161C3AD
-    * Windows/Pcap_DNSProxy_x86.exe: A11F46662B7F85C8FA65648679C67A6206A8328F89B05069D62C87213F77E346
-    * Windows/Pcap_DNSProxy_XP.exe: 379A83A985F73F873A6F2BE6FD2B6D4E5AF0D5B115ADEA60DB66B3DAF63D63A9
-    * macOS/Pcap_DNSProxy: Not available
+    * Windows/Pcap_DNSProxy.exe: 577314F84110F9531CC5E5EFA16622FBA7C0B8E0AE525DA802298A1CE90AB0DD
+    * Windows/Pcap_DNSProxy_x86.exe: 6080BD47D3F32E516E1DDCDD399866C05E62D3732132C8111F8D9650C8B84FD2
+    * Windows/Pcap_DNSProxy_XP.exe: 54E0E01B6EEFE0875B8DFDD3A673CA57EA6E1DF25D07A1601DECEBDC5962226F
+    * macOS/Pcap_DNSProxy: 8C8A225E861517822328E264C3FAFD3E0455352D206EC106DB9FBA5E2F489669
 
 
 -------------------------------------------------------------------------------
@@ -46,8 +49,8 @@ Pcap_DNSProxy 0.4.8.5-0.4.9.0 changelog(2017-06-03):
 * Add command parameter support for ServiceControl.bat. (Windows)
 * Add listen queue length support for TCP Fast Open. (Linux)
 * Add TCP Fast Open support. (macOS)
-* LibSodium version upgrade to 1.0.12. (Windows/macOS)
-* Project IDE Visual Studio version upgrade to 2017. (Windows)
+* LibSodium upgrade to version 1.0.12. (Windows/macOS)
+* Project IDE Visual Studio upgrade to version 2017. (Windows)
 * Fix last character of text file is ignored problem. [冰靈曦曉]
 * Fix bug of disable IPv6 protocol operation. [dzxx36gyy]
 * Fix Cache Parameter parameter bug. [LisonFan]
@@ -86,7 +89,7 @@ Pcap_DNSProxy 0.4.8.1-0.4.8.4 changelog(2017-03-11):
 * Improve Domain Case Conversion operation.
 * Improve Ciphers Suites selection when manually TLS version selection is enabled. (Linux/macOS)
 * Rename Output Protocol to Outgoing Protocol.
-* OpenSSL version upgrade to 1.1.0e. (macOS)
+* OpenSSL upgrade to version 1.1.0e. (macOS)
 * Change multi-line comment area format. [Monoremonton/wx0]
 * Change DNS cache rules. [kraml]
 * Fix memory alignment problem. [Syrone Wong]
@@ -144,7 +147,7 @@ Pcap_DNSProxy 0.4.7.7-0.4.8.0 changelog(2016-11-23):
   * Add HTTP CONNECT TLS Validation parameter.
   * Add HTTP CONNECT TLS Server Name Indication parameter.
 * Add temporarily stop reading tags support to IPFilter and Hosts files.
-* Configuration file version upgrade to 0.45:
+* Configuration file upgrade to version 0.45:
   * Rename from Protocol to Output Protocol.
   * Rename from IPv4 DNS Address to IPv4 Main DNS Address.
   * Rename from IPv4 Local Main DNS Address to IPv4 Local Main DNS Address.
@@ -220,7 +223,7 @@ Pcap_DNSProxy 0.4.7.1-0.4.7.6 changelog(2016-10-10):
 * Add compiler parallel support in CMake. (Linux/Mac)
 * Add server-side TCP Fast Open experimental support. (Windows)
 * Error log will now be accompanied by a description of error code. [Syrone Wong]
-* Project IDE Xcode version upgrade to 8.0. (Mac)
+* Project IDE Xcode upgrade to version 8.0. (Mac)
 * Fix bug of shutting down sockets. [AVC A]
 * Fix bug of IPv6 protocol communication problem. [gaoyan1234]
 * Fix DNS cache cleanup problem. (Linux/Mac) [kiliwalk]
@@ -254,7 +257,7 @@ Pcap_DNSProxy 0.4.6.1-0.4.7.0 changelog(2016-08-22):
 * Add experimental thread pool support and rename from Buffer Queue Limits to Thread Pool Maximum Number.
 * Add interval limit between refreshing system DNS cache. [Syrone Wong]
 * Add Clang compiler support in CMake. (Mac)
-* LibSodium version upgrade to 1.0.11. (Windows/Mac)
+* LibSodium upgrade to version 1.0.11. (Windows/Mac)
 * Rename from Multi Request Times to Multiple Request Times.
 * Rename from Alternate Multi Request to Alternate Multiple Request.
 * Move KeyPairGenerator tool into main program.
@@ -305,9 +308,9 @@ Pcap_DNSProxy 0.4.5.1-0.4.6.0 changelog(2016-04-23):
 * Add new Update_Routing tool, which can automatically update the routing list. (Linux/Mac)
 * The process of clearing internal DNS cache with external command can be completed without delay.
 * Enhanced refinement of EDNS Label.
-* LibSodium version upgrade to 1.0.10. (Windows/Mac)
-* Project IDE Visual Studio version upgrade to 2015. (Windows)
-* Project IDE Xcode version upgrade to 7.2. (Mac)
+* LibSodium upgrade to version 1.0.10. (Windows/Mac)
+* Project IDE Visual Studio upgrade to version 2015. (Windows)
+* Project IDE Xcode upgrade to version 7.2. (Mac)
 * Rename from IPv4 TTL to IPv4 DNS TTL.
 * Rename from IPv4 Alternate TTL to IPv4 Alternate DNS TTL.
 * Rename from IPv6 Hop Limits to IPv6 DNS Hop Limits.
@@ -350,8 +353,8 @@ Pcap_DNSProxy 0.4.4.1-0.4.5.0 changelog(2015-12-30):
 * Add --lib-version parameter to output version of built-in libraries.
 * Rename from EDNS Client Subnet to EDNS Client Subnet Relay. [XIAOSpider97]
 * Enhance security of DNSCurve protocol.
-* LibSodium version upgrade to 1.0.8. (Windows/Mac)
-* Project IDE Xcode version upgrade to 7.1. (Mac)
+* LibSodium upgrade to version 1.0.8. (Windows/Mac)
+* Project IDE Xcode upgrade to version 7.1. (Mac)
 * Adjust GCC version requirements to 4.9. (Linux)
 * Adjust binary requirements for 10.8/Mountain Lion. (Mac)
 * Fix rules of EDNS client subnet. [XIAOSpider97]
@@ -519,7 +522,7 @@ Pcap_DNSProxy v0.4 (Windows/Linux/Mac) changelog(2015-05-12):
 * Add Hosts Only parameter to make the direct mode.
 * Add Local Routing support.
 * Add custom hosts time to live limit support.
-* Configuration file and Hosts file version upgrade to 0.4:
+* Configuration file and Hosts file upgrade to version 0.4:
   * Maximum size of a line is increasing to 4KB/4096 bytes.
   * Add new comment format support.
   * Add CSV/comma-separated value format support to Hosts database.
@@ -579,7 +582,7 @@ Pcap_DNSProxy v0.4 (Windows/Linux/Mac) changelog(2015-05-12):
 * Fix bug of batch is running in a UAC enabled system. (Windows) [Haruyuki Arita/Hugo Chan/Ryans233/streamgo/watchingyoufall]
 * Remind when batch is running as a non-administrator user. (Windows) [Haruyuki Arita/Hugo Chan/Ryans233/watchingyoufall]
 * Source code will now using UTF-8 encoding.
-* Project IDE Visual Studio version upgrade to 2013. (Windows)
+* Project IDE Visual Studio upgrade to version 2013. (Windows)
 * Fix bug of analysing name resolution reply packets when in IPv6 environment, but this feature has been removed in newer version. [David Webb/eqielb]
 * Fix bug of makefile, but this feature has been removed in newer version. (Linux) [otakuchiyan]
 
@@ -618,7 +621,7 @@ Pcap_DNSProxy v0.3 changelog:
 * 32-bit/x86 versions are using WSAAddressToString() and WSAStringToAddress() now instead of inet_ntop() and inet_pton() to support Windows XP and older systems. [Roy Tam]
 * Add static list of Local Hosts support. [陈斐]
 * Add IPv6 support for Windows Firewall testing.
-* INI version and Hosts version upgrade to 0.3:
+* INI version and Hosts upgrade to version 0.3:
   * Add detection of file version.
   * Add whitelist to Hosts file.
 * Upgrade file reading module:

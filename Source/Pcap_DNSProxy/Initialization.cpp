@@ -190,8 +190,8 @@ ConfigurationTable::ConfigurationTable(
 	return;
 }
 
-//ConfigurationTable class copy constructor
-ConfigurationTable::ConfigurationTable(
+//ConfigurationTable class copy member operator
+void ConfigurationTable::CopyMemberOperator(
 	const ConfigurationTable &Reference)
 {
 //Check itself.
@@ -653,6 +653,22 @@ ConfigurationTable::ConfigurationTable(
 #endif
 
 	return;
+}
+
+//ConfigurationTable class copy constructor
+ConfigurationTable::ConfigurationTable(
+	const ConfigurationTable &Reference)
+{
+	CopyMemberOperator(Reference);
+	return;
+}
+
+//ConfigurationTable class operator = overloading
+ConfigurationTable & ConfigurationTable::operator=(
+	const ConfigurationTable &Reference)
+{
+	CopyMemberOperator(Reference);
+	return *this;
 }
 
 //ConfigurationTable class constructor settings
@@ -1177,8 +1193,8 @@ GlobalStatus::GlobalStatus(
 	return;
 }
 
-//GlobalStatus class copy constructor
-GlobalStatus::GlobalStatus(
+//GlobalStatus class copy member operator
+void GlobalStatus::CopyMemberOperator(
 	const GlobalStatus &Reference)
 {
 //Check itself.
@@ -1383,6 +1399,22 @@ GlobalStatus::GlobalStatus(
 	ConfigFileModifiedTime = Reference.ConfigFileModifiedTime;
 
 	return;
+}
+
+//GlobalStatus class copy constructor
+GlobalStatus::GlobalStatus(
+	const GlobalStatus &Reference)
+{
+	CopyMemberOperator(Reference);
+	return;
+}
+
+//GlobalStatus class operator = overloading
+GlobalStatus & GlobalStatus::operator=(
+	const GlobalStatus &Reference)
+{
+	CopyMemberOperator(Reference);
+	return *this;
 }
 
 //GlobalStatus class constructor settings
@@ -1758,8 +1790,8 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 	return;
 }
 
-//DNSCurveConfigurationTable class copy constructor
-DNSCurveConfigurationTable::DNSCurveConfigurationTable(
+//DNSCurveConfigurationTable class copy member operator
+void DNSCurveConfigurationTable::CopyMemberOperator(
 	const DNSCurveConfigurationTable &Reference)
 {
 //Reference check
@@ -2189,6 +2221,22 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 	}
 
 	return;
+}
+
+//DNSCurveConfigurationTable class copy constructor
+DNSCurveConfigurationTable::DNSCurveConfigurationTable(
+	const DNSCurveConfigurationTable &Reference)
+{
+	CopyMemberOperator(Reference);
+	return;
+}
+
+//DNSCurveConfigurationTable class operator = overloading
+DNSCurveConfigurationTable & DNSCurveConfigurationTable::operator=(
+	const DNSCurveConfigurationTable &Reference)
+{
+	CopyMemberOperator(Reference);
+	return *this;
 }
 
 //DNSCurveConfigurationTable class constructor settings

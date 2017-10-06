@@ -445,7 +445,11 @@
 #endif
 #elif defined(PLATFORM_WIN32)
 #if defined(ENABLE_LIBSODIUM)
+#if defined(PLATFORM_WIN_XP)
+	#pragma comment(lib, "..\\Dependency\\LibSodium\\LibSodium_XP.lib")
+#else
 	#pragma comment(lib, "..\\Dependency\\LibSodium\\LibSodium_x86.lib")
+#endif
 #endif
 #if defined(ENABLE_PCAP)
 	#pragma comment(lib, "..\\Dependency\\WinPcap\\WPCAP_x86.lib")

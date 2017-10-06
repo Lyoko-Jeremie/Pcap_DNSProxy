@@ -1,9 +1,11 @@
-﻿Pcap_DNSProxy 0.4.9.1-0.4.9.3 更新日誌(2017-09-24)：
+﻿Pcap_DNSProxy 0.4.9.1-0.4.9.4 更新日誌(2017-10-06)：
 
 * 添加 Domain Test 探測模組對 TCP 協定的支援
   * 添加 Domain Test Protocol 參數
 * 大幅提升 Local Routing 境內路由表和內置 DNS 緩存的查詢效率 [Syrone Wong]
-* LibSodium 庫更新到 1.0.14 (Windows/macOS)
+* LibSodium 更新到 1.0.15 (Windows/macOS)
+* Xcode 更新到 9.0 (macOS)
+* OpenSSL 更新到 1.1.0f (macOS)
 * 調整境內伺服器請求過程的整體策略 [cjjdaq]
   * 移除 Local Main 參數
 * 調整內置 IP 位址黑名單的策略
@@ -11,6 +13,7 @@
 * 修正對 TCP 報文的探測過濾演算法
 * 修正多重實例運行的問題
   * 添加 Process Unique 參數
+* 修復網路模組在部分情況下導致崩潰的問題 [goxofy/kalagxw/lunzima/monokoo/pengpengxp/Syrone Wong/wangmice]
 * 修復 Local Hosts 白名單識別演算法的問題 [cjjdaq/muink]
 * 修復 Transaction ID 在取特殊值的情況時無法進行解析的問題 [LisonFan]
 * 修復在部分情況下指定多個 Listen Address 時可能造成的錯誤報錯問題
@@ -19,15 +22,15 @@
 * 修復 NSCI 系統網路感應指示器 IPv6 位址被錯誤過濾的問題 (Windows) [hnsylzg]
 * Release Hash: 
   * SHA-3(256): 
-    * Windows/Pcap_DNSProxy.exe: 0BA0C3DBE7EC2C63AD4937D9F7729E325F7D2B2ACE2F4095DD02C434B5C3A82C
-    * Windows/Pcap_DNSProxy_x86.exe: 3B76D1ADCCFE31A06AF2DB92AF8715E79B25AFA7B532D4BFDB60E33C979F3EBD
-    * Windows/Pcap_DNSProxy_XP.exe: CEB23F8D5712396F28BD6C09D79F0F54D3C99FABB91171532D623D71DCE9E96C
-    * macOS/Pcap_DNSProxy: Not available
+    * Windows/Pcap_DNSProxy.exe: 8E9EEAFD301C1D27A1B9E6D2CAC692D032621E3E80BB15A3CCA1CCEF3768FA2D
+    * Windows/Pcap_DNSProxy_x86.exe: 7EF905162AB37BCF94C229D991773DADE1DF02F635B951DCEF50976B915E4795
+    * Windows/Pcap_DNSProxy_XP.exe: 4AF0131A398A75D26ADA5DACBF9E185EEBE78D2A5E4A0787DE16A66EE0496FAE
+    * macOS/Pcap_DNSProxy: F5A91990F9DC3022AA016EE9E12659D64ECEF3351139CA2D0630E99CC298F06F
   * SHA-2(256): 
-    * Windows/Pcap_DNSProxy.exe: A8B2107EA93212DC2B4DA2F523E650EFEFE302E601DCF3AC2830AEE5E161C3AD
-    * Windows/Pcap_DNSProxy_x86.exe: A11F46662B7F85C8FA65648679C67A6206A8328F89B05069D62C87213F77E346
-    * Windows/Pcap_DNSProxy_XP.exe: 379A83A985F73F873A6F2BE6FD2B6D4E5AF0D5B115ADEA60DB66B3DAF63D63A9
-    * macOS/Pcap_DNSProxy: Not available
+    * Windows/Pcap_DNSProxy.exe: 577314F84110F9531CC5E5EFA16622FBA7C0B8E0AE525DA802298A1CE90AB0DD
+    * Windows/Pcap_DNSProxy_x86.exe: 6080BD47D3F32E516E1DDCDD399866C05E62D3732132C8111F8D9650C8B84FD2
+    * Windows/Pcap_DNSProxy_XP.exe: 54E0E01B6EEFE0875B8DFDD3A673CA57EA6E1DF25D07A1601DECEBDC5962226F
+    * macOS/Pcap_DNSProxy: 8C8A225E861517822328E264C3FAFD3E0455352D206EC106DB9FBA5E2F489669
 
 
 -------------------------------------------------------------------------------
