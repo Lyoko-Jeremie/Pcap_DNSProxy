@@ -610,17 +610,17 @@
 	#define WSAETIMEDOUT             ETIMEDOUT
 
 //Function definitions(Part 1)
-	#define closesocket                                                  close
-	#define fwprintf_s                                                   fwprintf
-	#define strnlen_s                                                    strnlen
-	#define vfwprintf_s                                                  vfwprintf
-	#define wcsnlen_s                                                    wcsnlen
-	#define WSAGetLastError()                                            errno
-	#define _set_errno(Value)                                            errno = (Value)
-	#define fread_s(Dst, DstSize, ElementSize, Count, File)              fread((Dst), (ElementSize), (Count), (File))
-	#define memcpy_s(Dst, DstSize, Src, Size)                            memcpy((Dst), (Src), (Size))
-	#define memmove_s(Dst, DstSize, Src, Size)                           memmove((Dst), (Src), (Size))
-	#define strncpy_s(Dst, DstSize, Src, Size)                           strncpy((Dst), (Src), (Size))
-	#define wcsncpy_s(Dst, DstSize, Src, Size)                           wcsncpy((Dst), (Src), (Size))
+	#define closesocket                                                       close
+	#define fwprintf_s                                                        fwprintf
+	#define strnlen_s                                                         strnlen
+	#define vfwprintf_s                                                       vfwprintf
+	#define wcsnlen_s                                                         wcsnlen
+	#define WSAGetLastError()                                                 errno
+	#define _set_errno(Value)                                                 errno = (Value)
+	#define fread_s(Destination, DestinationSize, ElementSize, Count, File)   fread((Destination), (ElementSize), (Count), (File))
+	#define memcpy_s(Destination, DestinationSize, Source, Size)              memcpy((Destination), (Source), (Size))
+	#define memmove_s(Destination, DestinationSize, Source, Size)             memmove((Destination), (Source), (Size))
+	#define strncpy_s(Destination, DestinationSize, Source, Size)             strncpy((Destination), (Source), (Size))
+	#define wcsncpy_s(Destination, DestinationSize, Source, Size)              wcsncpy((Destination), (Source), (Size))
 #endif
 #endif

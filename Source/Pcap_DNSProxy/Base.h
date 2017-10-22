@@ -409,8 +409,7 @@ size_t CheckResponseData(
 	const REQUEST_PROCESS_TYPE ResponseType, 
 	uint8_t * const Buffer, 
 	const size_t Length, 
-	const size_t BufferSize, 
-	bool * const IsMarkHopLimits);
+	const size_t BufferSize);
 
 //Proxy.h
 size_t SOCKS_TCP_Request(

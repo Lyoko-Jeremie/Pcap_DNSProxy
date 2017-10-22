@@ -59,7 +59,7 @@ void MonitorRequestConsumer(
 	memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 	size_t LastActiveTime = 0;
 
-//Monitor consumer
+//Start request Monitor consumer.
 	for (;;)
 	{
 	//Reset parameters.
@@ -185,10 +185,7 @@ bool EnterRequestProcess(
 		{
 		//Fin TCP request connection.
 			if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
-			{
 				SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-//				MonitorQueryData.second.Socket = INVALID_SOCKET;
-			}
 
 			return Result;
 		}
@@ -214,10 +211,7 @@ bool EnterRequestProcess(
 		{
 		//Fin TCP request connection.
 			if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
-			{
 				SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-//				MonitorQueryData.second.Socket = INVALID_SOCKET;
-			}
 
 			return true;
 		}
@@ -235,10 +229,7 @@ bool EnterRequestProcess(
 		{
 		//Fin TCP request connection.
 			if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
-			{
 				SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-//				MonitorQueryData.second.Socket = INVALID_SOCKET;
-			}
 
 			return true;
 		}
@@ -249,10 +240,7 @@ bool EnterRequestProcess(
 	{
 	//Fin TCP request connection.
 		if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
-		{
 			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-//			MonitorQueryData.second.Socket = INVALID_SOCKET;
-		}
 
 		return true;
 	}
@@ -274,10 +262,7 @@ bool EnterRequestProcess(
 		{
 		//Fin TCP request connection.
 			if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
-			{
 				SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-//				MonitorQueryData.second.Socket = INVALID_SOCKET;
-			}
 
 			return true;
 		}
@@ -302,10 +287,7 @@ SkipDNSCurve:
 
 	//Fin TCP request connection.
 		if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
-		{
 			SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-//			MonitorQueryData.second.Socket = INVALID_SOCKET;
-		}
 
 		return true;
 #if defined(ENABLE_PCAP)
@@ -515,7 +497,7 @@ size_t CheckHostsProcess(
 		{
 		//Set header flags and convert DNS query to DNS response packet.
 			DNS_Header->Flags = htons(DNS_SQR_NE);
-			DataLength = sizeof(dns_hdr) + Packet->Question;
+			DataLength = sizeof(dns_hdr) + Packet->QuestionLen;
 			memset(Result + DataLength, 0, ResultSize - DataLength);
 
 		//Make resource records.
@@ -535,7 +517,7 @@ size_t CheckHostsProcess(
 			DNS_Header->Answer = htons(U16_NUM_ONE);
 			DNS_Header->Authority = 0;
 			DNS_Header->Additional = 0;
-			if (Parameter.EDNS_Label || Packet->EDNS_Record > 0)
+			if (Parameter.EDNS_Label || Packet->EDNS_RecordLen > 0)
 				DataLength = Add_EDNS_To_Additional_RR(Result, DataLength, ResultSize, nullptr);
 
 			return DataLength;
@@ -545,7 +527,7 @@ size_t CheckHostsProcess(
 		{
 		//Set header flags and convert DNS query to DNS response packet.
 			DNS_Header->Flags = htons(DNS_SQR_NE);
-			DataLength = sizeof(dns_hdr) + Packet->Question;
+			DataLength = sizeof(dns_hdr) + Packet->QuestionLen;
 			memset(Result + DataLength, 0, ResultSize - DataLength);
 
 		//Make resource records.
@@ -565,7 +547,7 @@ size_t CheckHostsProcess(
 			DNS_Header->Answer = htons(U16_NUM_ONE);
 			DNS_Header->Authority = 0;
 			DNS_Header->Additional = 0;
-			if (Parameter.EDNS_Label || Packet->EDNS_Record > 0)
+			if (Parameter.EDNS_Label || Packet->EDNS_RecordLen > 0)
 				DataLength = Add_EDNS_To_Additional_RR(Result, DataLength, ResultSize, nullptr);
 
 			return DataLength;
@@ -636,12 +618,12 @@ size_t CheckHostsProcess(
 			DNS_Header->Answer = htons(U16_NUM_ONE);
 			DNS_Header->Authority = 0;
 			DNS_Header->Additional = 0;
-			memset(Result + sizeof(dns_hdr) + Packet->Question, 0, Packet->Length - (sizeof(dns_hdr) + Packet->Question));
-			memcpy_s(Result + sizeof(dns_hdr) + Packet->Question, ResultSize - (sizeof(dns_hdr) + Packet->Question), Parameter.LocalServer_Response, Parameter.LocalServer_Length);
-			DataLength = sizeof(dns_hdr) + Packet->Question + Parameter.LocalServer_Length;
+			memset(Result + sizeof(dns_hdr) + Packet->QuestionLen, 0, Packet->Length - (sizeof(dns_hdr) + Packet->QuestionLen));
+			memcpy_s(Result + sizeof(dns_hdr) + Packet->QuestionLen, ResultSize - (sizeof(dns_hdr) + Packet->QuestionLen), Parameter.LocalServer_Response, Parameter.LocalServer_Length);
+			DataLength = sizeof(dns_hdr) + Packet->QuestionLen + Parameter.LocalServer_Length;
 
 		//EDNS Label
-			if (Parameter.EDNS_Label || Packet->EDNS_Record > 0)
+			if (Parameter.EDNS_Label || Packet->EDNS_RecordLen > 0)
 				DataLength = Add_EDNS_To_Additional_RR(Result, DataLength, ResultSize, nullptr);
 
 			return DataLength;
@@ -772,7 +754,7 @@ size_t CheckHostsProcess(
 				{
 				//Set header flags and convert DNS query to DNS response packet.
 					DNS_Header->Flags = htons(DNS_SQR_NE);
-					DataLength = sizeof(dns_hdr) + Packet->Question;
+					DataLength = sizeof(dns_hdr) + Packet->QuestionLen;
 					memset(Result + DataLength, 0, ResultSize - DataLength);
 
 				//Hosts load balancing
@@ -804,7 +786,7 @@ size_t CheckHostsProcess(
 							(reinterpret_cast<dns_record_aaaa *>(DNS_Record))->Address = HostsTableIter.AddrOrTargetList.at(Index).IPv6.sin6_addr;
 
 					//Hosts items length check
-						if (((Parameter.EDNS_Label || Packet->EDNS_Record > 0) && DataLength + sizeof(dns_record_aaaa) + EDNS_ADDITIONAL_MAXSIZE >= ResultSize) || //EDNS Label
+						if (((Parameter.EDNS_Label || Packet->EDNS_RecordLen > 0) && DataLength + sizeof(dns_record_aaaa) + EDNS_ADDITIONAL_MAXSIZE >= ResultSize) || //EDNS Label
 							DataLength + sizeof(dns_record_aaaa) >= ResultSize) //Normal query
 						{
 							++Index;
@@ -816,7 +798,7 @@ size_t CheckHostsProcess(
 					DNS_Header->Answer = htons(static_cast<uint16_t>(Index));
 					DNS_Header->Authority = 0;
 					DNS_Header->Additional = 0;
-					if (Parameter.EDNS_Label || Packet->EDNS_Record > 0)
+					if (Parameter.EDNS_Label || Packet->EDNS_RecordLen > 0)
 						DataLength = Add_EDNS_To_Additional_RR(Result, DataLength, ResultSize, nullptr);
 
 					return DataLength;
@@ -826,7 +808,7 @@ size_t CheckHostsProcess(
 				{
 				//Set header flags and convert DNS query to DNS response packet.
 					DNS_Header->Flags = htons(DNS_SQR_NE);
-					DataLength = sizeof(dns_hdr) + Packet->Question;
+					DataLength = sizeof(dns_hdr) + Packet->QuestionLen;
 					memset(Result + DataLength, 0, ResultSize - DataLength);
 
 				//Hosts load balancing
@@ -858,7 +840,7 @@ size_t CheckHostsProcess(
 							(reinterpret_cast<dns_record_a *>(DNS_Record))->Address = HostsTableIter.AddrOrTargetList.at(Index).IPv4.sin_addr;
 
 					//Hosts items length check
-						if (((Parameter.EDNS_Label || Packet->EDNS_Record > 0) && DataLength + sizeof(dns_record_a) + EDNS_ADDITIONAL_MAXSIZE >= ResultSize) || //EDNS Label
+						if (((Parameter.EDNS_Label || Packet->EDNS_RecordLen > 0) && DataLength + sizeof(dns_record_a) + EDNS_ADDITIONAL_MAXSIZE >= ResultSize) || //EDNS Label
 							DataLength + sizeof(dns_record_a) >= ResultSize) //Normal query
 						{
 							++Index;
@@ -870,7 +852,7 @@ size_t CheckHostsProcess(
 					DNS_Header->Answer = htons(static_cast<uint16_t>(Index));
 					DNS_Header->Authority = 0;
 					DNS_Header->Additional = 0;
-					if (Parameter.EDNS_Label || Packet->EDNS_Record > 0)
+					if (Parameter.EDNS_Label || Packet->EDNS_RecordLen > 0)
 						DataLength = Add_EDNS_To_Additional_RR(Result, DataLength, ResultSize, nullptr);
 
 					return DataLength;
@@ -964,7 +946,7 @@ bool LocalRequestProcess(
 		(reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Flags = htons(ntohs((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Flags) & (~DNS_GET_BIT_CD));
 		if ((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional > 0)
 			(reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional = htons(ntohs((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional) - 1U);
-		EDNS_SwitchLength -= MonitorQueryData.first.EDNS_Record;
+		EDNS_SwitchLength -= MonitorQueryData.first.EDNS_RecordLen;
 	}
 
 //TCP request
@@ -1017,7 +999,7 @@ bool SOCKS_RequestProcess(
 		(reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Flags = htons(ntohs((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Flags) & (~DNS_GET_BIT_CD));
 		if ((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional > 0)
 			(reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional = htons(ntohs((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional) - 1U);
-		EDNS_SwitchLength -= MonitorQueryData.first.EDNS_Record;
+		EDNS_SwitchLength -= MonitorQueryData.first.EDNS_RecordLen;
 	}
 
 //UDP request
@@ -1079,7 +1061,7 @@ bool HTTP_CONNECT_RequestProcess(
 		(reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Flags = htons(ntohs((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Flags) & (~DNS_GET_BIT_CD));
 		if ((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional > 0)
 			(reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional = htons(ntohs((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional) - 1U);
-		EDNS_SwitchLength -= MonitorQueryData.first.EDNS_Record;
+		EDNS_SwitchLength -= MonitorQueryData.first.EDNS_RecordLen;
 	}
 
 //HTTP CONNECT request
@@ -1129,7 +1111,7 @@ bool DirectRequestProcess(
 		(reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Flags = htons(ntohs((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Flags) & (~DNS_GET_BIT_CD));
 		if ((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional > 0)
 			(reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional = htons(ntohs((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional) - 1U);
-		EDNS_SwitchLength -= MonitorQueryData.first.EDNS_Record;
+		EDNS_SwitchLength -= MonitorQueryData.first.EDNS_RecordLen;
 	}
 
 //TCP request
@@ -1196,7 +1178,7 @@ bool DNSCurveRequestProcess(
 		(reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Flags = htons(ntohs((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Flags) & (~DNS_GET_BIT_CD));
 		if ((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional > 0)
 			(reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional = htons(ntohs((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional) - 1U);
-		EDNS_SwitchLength -= MonitorQueryData.first.EDNS_Record;
+		EDNS_SwitchLength -= MonitorQueryData.first.EDNS_RecordLen;
 	}
 
 //TCP request
@@ -1264,7 +1246,7 @@ bool TCP_RequestProcess(
 		(reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Flags = htons(ntohs((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Flags) & (~DNS_GET_BIT_CD));
 		if ((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional > 0)
 			(reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional = htons(ntohs((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional) - 1U);
-		EDNS_SwitchLength -= MonitorQueryData.first.EDNS_Record;
+		EDNS_SwitchLength -= MonitorQueryData.first.EDNS_RecordLen;
 	}
 
 //Multiple request process
@@ -1329,7 +1311,7 @@ void UDP_RequestProcess(
 		(reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Flags = htons(ntohs((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Flags) & (~DNS_GET_BIT_CD));
 		if ((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional > 0)
 			(reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional = htons(ntohs((reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer))->Additional) - 1U);
-		EDNS_SwitchLength -= MonitorQueryData.first.EDNS_Record;
+		EDNS_SwitchLength -= MonitorQueryData.first.EDNS_RecordLen;
 	}
 
 //Multiple request process
@@ -1414,7 +1396,7 @@ bool MarkDomainCache(
 	//OPCode must be set Query/0.
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_OPCODE) != DNS_OPCODE_QUERY || 
 	//Truncated bit must not be set.
-		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) != 0 || 
+		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) > 0 || 
 	//RCode must be set No Error or Non-Existent Domain.
 		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) != DNS_RCODE_NOERROR && 
 		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) != DNS_RCODE_NXDOMAIN))

@@ -113,9 +113,16 @@ bool DomainTestRequest(
 		//Test again check.
 			if (Protocol == AF_INET6)
 			{
-				if ((Parameter.Target_Server_Main_IPv6.HopLimitsData_Assign.HopLimit == 0 && Parameter.Target_Server_Main_IPv6.HopLimitsData_Mark.HopLimit == 0) || //Main
-					(Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && //Alternate
-					Parameter.Target_Server_Alternate_IPv6.HopLimitsData_Assign.HopLimit == 0 && Parameter.Target_Server_Alternate_IPv6.HopLimitsData_Mark.HopLimit == 0))
+				if (
+				//Main
+					(Parameter.Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign == 0 && 
+					Parameter.Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Mark == 0) || 
+					!Parameter.Target_Server_Main_IPv6.ServerPacketStatus.IsMarkSign || 
+				//Alternate
+					(Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && 
+					((Parameter.Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign == 0 && 
+					Parameter.Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Mark == 0) || 
+					!Parameter.Target_Server_Alternate_IPv6.ServerPacketStatus.IsMarkSign)))
 						goto JumpToRetest;
 
 			//Multiple list(IPv6)
@@ -123,16 +130,25 @@ bool DomainTestRequest(
 				{
 					for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv6_Multiple)
 					{
-						if (DNSServerDataIter.HopLimitsData_Assign.HopLimit == 0 && DNSServerDataIter.HopLimitsData_Mark.HopLimit == 0)
-							goto JumpToRetest;
+						if ((DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign == 0 && 
+							DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Mark == 0) || 
+							!DNSServerDataIter.ServerPacketStatus.IsMarkSign)
+								goto JumpToRetest;
 					}
 				}
 			}
 			else if (Protocol == AF_INET)
 			{
-				if ((Parameter.Target_Server_Main_IPv4.HopLimitsData_Assign.TTL == 0 && Parameter.Target_Server_Main_IPv4.HopLimitsData_Mark.TTL == 0) || //Main
-					(Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0 && //Alternate
-					Parameter.Target_Server_Alternate_IPv4.HopLimitsData_Assign.TTL == 0 && Parameter.Target_Server_Alternate_IPv4.HopLimitsData_Mark.TTL == 0))
+				if (
+				//Main
+					(Parameter.Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign == 0 && 
+					Parameter.Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Mark == 0) || 
+					!Parameter.Target_Server_Main_IPv4.ServerPacketStatus.IsMarkSign || 
+				//Alternate
+					(Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0 && 
+					((Parameter.Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign == 0 && 
+					Parameter.Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Mark == 0) || 
+					!Parameter.Target_Server_Alternate_IPv4.ServerPacketStatus.IsMarkSign)))
 						goto JumpToRetest;
 
 			//Multiple list(IPv4)
@@ -140,8 +156,10 @@ bool DomainTestRequest(
 				{
 					for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv4_Multiple)
 					{
-						if (DNSServerDataIter.HopLimitsData_Assign.TTL == 0 && DNSServerDataIter.HopLimitsData_Mark.TTL == 0)
-							goto JumpToRetest;
+						if ((DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign == 0 && 
+							DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Mark == 0) || 
+							!DNSServerDataIter.ServerPacketStatus.IsMarkSign)
+								goto JumpToRetest;
 					}
 				}
 			}
@@ -521,9 +539,14 @@ bool ICMP_TestRequest(
 		//Test again check.
 			if (Protocol == AF_INET6)
 			{
-				if ((Parameter.Target_Server_Main_IPv6.HopLimitsData_Assign.HopLimit == 0 && Parameter.Target_Server_Main_IPv6.HopLimitsData_Mark.HopLimit == 0) || //Main
-					(Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && //Alternate
-					Parameter.Target_Server_Alternate_IPv6.HopLimitsData_Assign.HopLimit == 0 && Parameter.Target_Server_Alternate_IPv6.HopLimitsData_Mark.HopLimit == 0))
+				if (
+				//Main
+					(Parameter.Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign == 0 && 
+					Parameter.Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Mark == 0) || 
+				//Alternate
+					(Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && 
+					Parameter.Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign == 0 && 
+					Parameter.Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Mark == 0))
 						goto JumpToRetest;
 
 			//Multiple list(IPv6)
@@ -531,16 +554,22 @@ bool ICMP_TestRequest(
 				{
 					for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv6_Multiple)
 					{
-						if (DNSServerDataIter.HopLimitsData_Assign.HopLimit == 0 && DNSServerDataIter.HopLimitsData_Mark.HopLimit == 0)
-							goto JumpToRetest;
+						if (DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign == 0 && 
+							DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Mark == 0)
+								goto JumpToRetest;
 					}
 				}
 			}
 			else if (Protocol == AF_INET)
 			{
-				if ((Parameter.Target_Server_Main_IPv4.HopLimitsData_Assign.TTL == 0 && Parameter.Target_Server_Main_IPv4.HopLimitsData_Mark.TTL == 0) || //Main
-					(Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0 && //Alternate
-					Parameter.Target_Server_Alternate_IPv4.HopLimitsData_Assign.TTL == 0 && Parameter.Target_Server_Alternate_IPv4.HopLimitsData_Mark.TTL == 0))
+				if (
+				//Main
+					(Parameter.Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign == 0 && 
+					Parameter.Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Mark == 0) || 
+				//Alternate
+					(Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0 && 
+					Parameter.Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign == 0 && 
+					Parameter.Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Mark == 0))
 						goto JumpToRetest;
 
 			//Multiple list(IPv4)
@@ -548,7 +577,7 @@ bool ICMP_TestRequest(
 				{
 					for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv4_Multiple)
 					{
-						if (DNSServerDataIter.HopLimitsData_Assign.TTL == 0 && DNSServerDataIter.HopLimitsData_Mark.TTL == 0)
+						if (DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign == 0 && DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Mark == 0)
 							goto JumpToRetest;
 					}
 				}

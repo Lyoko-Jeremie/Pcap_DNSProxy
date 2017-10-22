@@ -303,17 +303,14 @@ Error.log 详细错误报告：
   * EDNS Label must be shutdown when Compression Pointer Mutation is enabled - 使用 Compression Pointer Mutation 时不能开启 EDNS 标签请求功能，两者并不兼容
   * DNSCurve Payload Size is too large - DNSCurve 协议载荷长度可能过长：此值建议不要超过以太网的 MTU(1500 bytes)
   * DNSCurve Payload Size must longer than traditional DNS packet minimum supported size(512 bytes) - DNSCurve 协议载荷长度过短：实现 DNS 协议必须支持长度超过 512 bytes 的数据包
-  * DNSSEC Force Validation require EDNS Label, DNSSEC Request and DNSSEC Validation - 开启 DNSSEC Force Validation 请求时必须开启 EDNS 标签请求、DNSSEC 请求和 DNSSEC Validation 验证功能
+  * DNSSEC Force Record require EDNS Label and DNSSEC Request - 开启 DNSSEC Force Validation 请求时必须开启 EDNS 标签请求和 DNSSEC 请求功能
   * DNSSEC Request require EDNS Label - 开启 DNSSEC 请求时必须开启 EDNS 标签请求功能
-  * DNSSEC Validation require EDNS Label and DNSSEC Request - 开启 DNSSEC Validation 请求时必须开启 EDNS 标签请求和 DNSSEC 请求功能
   * EDNS Client Subnet require EDNS Label - 开启 EDNS Client Subnet 请求时必须开启 EDNS 标签请求功能
   * EDNS Label require at least of one process - 开启 EDNS Label 请求时必须指定至少一个请求过程
   * EDNS Payload Size is too large - EDNS 载荷长度可能过长：此值建议不要超过以太网的 MTU(1500 bytes)
   * EDNS Payload Size must longer than traditional DNS packet minimum supported size(512 bytes) - EDNS 载荷长度过短：实现 DNS 协议必须支持长度超过 512 bytes 的数据包
   * HTTP version 2 require TLS 1.2 and above - 开启 HTTP/2 协议请求时所指定的 TLS 版本必须为 1.2 以及更新版本
   * HTTP version 2 require TLS ALPN extension - 开启 HTTP/2 协议请求时必须开启 TLS ALPN 扩展支持
-  * IPv4 Data Filter require IPv4 DNS server - 开启 IPv4 数据包头检测时必须存在 IPv4 协议的 DNS 服务器：程序将自动关闭此功能
-  * IPv4 Data Filter require Pcap Cpature - 开启 IPv4 数据包头检测时必须启用 Pcap Cpature：程序将自动关闭此功能
   * IPv4 Request Mode require IPv4 DNS server - IPv4 请求模式要求存在 IPv4 服务器：程序将自动关闭此功能
   * IPv6 Request Mode require IPv6 DNS server - IPv6 请求模式要求存在 IPv6 服务器：程序将自动关闭此功能
   * Listen Port is empty, set to standard DNS port(53) - 本地监听端口参数为空：程序将自动设置为标准 DNS 协议端口（53）

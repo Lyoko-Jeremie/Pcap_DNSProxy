@@ -303,17 +303,14 @@ Details of Error.log error report:
   * EDNS Label must be shutdown when Compression Pointer Mutation is enabled - Please make sure that the data is correct.
   * DNSCurve Payload Size is too large - Please make sure that the data is correct, it should not be longer than Ethernet MTU(1500 bytes).
   * DNSCurve Payload Size must longer than traditional DNS packet minimum supported size(512 bytes) - Please make sure that the data is correct.
-  * DNSSEC Force Validation require EDNS Label, DNSSEC Request and DNSSEC Validation - Please make sure that the data is correct.
+  * DNSSEC Force Record require EDNS Label and DNSSEC Request - Please make sure that the data is correct.
   * DNSSEC Request require EDNS Label - Please make sure that the data is correct.
-  * DNSSEC Validation require EDNS Label and DNSSEC Request - Please make sure that the data is correct.
   * EDNS Client Subnet require EDNS Label - Please make sure that the data is correct.
   * EDNS Label require at least of one process - Please make sure that the data is correct.
   * EDNS Payload Size is too large - Please make sure that the data is correct, it should not be longer than Ethernet MTU(1500 bytes).
   * EDNS Payload Size must longer than traditional DNS packet minimum supported size(512 bytes) - Please make sure that the data is correct.
   * HTTP version 2 require TLS 1.2 and above - Please make sure that the data is correct.
   * HTTP version 2 require TLS ALPN extension - Please make sure that the data is correct.
-  * IPv4 Data Filter require IPv4 DNS server - Please make sure that the data is correct.
-  * IPv4 Data Filter require Pcap Cpature - Please make sure that the data is correct.
   * IPv4 Request Mode require IPv4 DNS server - Please make sure that the data is correct.
   * IPv6 Request Mode require IPv6 DNS server - Please make sure that the data is correct.
   * Listen Port is empty, set to standard DNS port(53) - Please make sure that the data is correct.

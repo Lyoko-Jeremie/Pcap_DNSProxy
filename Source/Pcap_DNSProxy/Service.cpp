@@ -408,7 +408,7 @@ bool Flush_DNS_MailSlotMonitor(
 	std::string Domain;
 	DWORD MessageLength = 0;
 
-//Mailslot monitor
+//Start Mailslot Monitor.
 	for (;;)
 	{
 	//Reset parameters.
@@ -602,7 +602,7 @@ bool Flush_DNS_FIFO_Monitor(
 	int FIFO_Handle = 0;
 	ssize_t Length = 0;
 
-//FIFO Monitor
+//Start FIFO Monitor.
 	for (;;)
 	{
 	//Create FIFO and create its notify monitor.

@@ -1,7 +1,7 @@
-﻿Pcap_DNSProxy 專案的 GitHub 頁面：
+﻿Pcap_DNSProxy project in GitHub:
 https://github.com/chengr28/Pcap_DNSProxy
 
-Pcap_DNSProxy 專案的 Sourceforge 頁面：
+Pcap_DNSProxy project in Sourceforge:
 https://sourceforge.net/projects/pcap-dnsproxy
 
 
@@ -617,19 +617,14 @@ Base - the basic parameter area
   * DNSSEC Request - DNSSEC request, after opening will try to add DNSSEC request for all requests: open to 1 / off to 0
     * This feature requires the EDNS Label parameter to be enabled
     * This feature does not have any ability to verify DNSSEC records, a separate open theory can not avoid the problem of DNS poisoning
-  * DNSSEC Validation - DNSSEC record verification function, will check all the functional variables with DNSSEC record name resolution, verification failure will be discarded: open to 1 / off to 0
-    * This feature requires EDNS Label and DNSSEC Request parameters to be enabled
+  * DNSSEC Force Record - Force DNSSEC record function, will discard all functions without any DNSSEC records: On for 1 / off to 0
+    * This feature requires EDNS Label and DNSSEC Request parameters
     * This function does not have the full DNSSEC record test capability, a separate open theory can not avoid the problem of DNS poisoning
-    * This function does not check the function variable name resolution that does not exist for DNSSEC records
-  * DNSSEC Force Validation - Force DNSSEC record verification function, will discard all functions without DNSSEC record Variable name resolution: On for 1 / off to 0
-    * This feature requires EDNS Label, DNSSEC Request, and DNSSEC Validation parameters
-    * This function does not have the full DNSSEC record test capability, a separate open theory can not avoid the problem of DNS poisoning
-    * Warning: Due to the small number of functional variable names currently deployed DNSSEC, there is no DNSSEC function variable name resolution without DNSSEC records, which will cause all undeployed DNSSEC function variable name resolution failure, do not open this function at this stage!
+    * Warning: Due to the small number of functional variable names currently deployed DNSSEC, there is no DNSSEC function variable name resolution without DNSSEC records, which will cause all undeployed DNSSEC function variable name resolution failure!
   * Alternate Multiple Request - The standby server requests parameters at the same time, and requests the server that responds to the primary and standby servers at the same time with the fastest response: On 1 / Off is 0
     * This request is enforced when multiple requests are enabled by the multi-server, and all servers that are present in the manifest are requested at the same time and the results of the fastest response server are used
   * IPv4 Do Not Fragment - IPv4 packet header Do Not Fragment flag: On 1 / off is 0
     * This feature does not support the macOS platform, this platform will directly ignore this parameter
-  * IPv4 Data Filter - IPv4 header detection: On 1 / off is 0
   * TCP Data Filter - TCP packet header detection: On for 1 / off to 0
   * DNS Data Filter - DNS header detection: On to 1 / off to 0
   * Blacklist Filter - Resolve the results of the blacklist filter: open to 1 / off to 0
@@ -1047,7 +1042,6 @@ Auto-refresh support profile list:
 * Multiple Request Times
 * Domain Case Conversion
 * IPv4 Do Not Fragment
-* IPv4 Data Filter
 * TCP Data Filter
 * DNS Data Filter
 * Strict Resource Record TTL Filter

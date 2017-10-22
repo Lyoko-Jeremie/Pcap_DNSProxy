@@ -60,8 +60,8 @@
 //#define FCS_TABLE_SIZE      256U     //FCS Table size
 typedef struct _eth_hdr_
 {
-	uint8_t                Dst[6U];
-	uint8_t                Src[6U];
+	uint8_t                Destination[6U];
+	uint8_t                Source[6U];
 	uint16_t               Type;
 //	uint8_t                *Payload;
 //	uint32_t               FCS;
@@ -93,8 +93,8 @@ typedef struct _eth_hdr_
 */
 typedef struct _ieee_1394_hdr_
 {
-	uint8_t                Dst[8U];
-	uint8_t                Src[8U];
+	uint8_t                Destination[8U];
+	uint8_t                Source[8U];
 	uint16_t               Type;
 }ieee_1394_hdr;
 
@@ -626,7 +626,7 @@ typedef struct _ipv4_hdr_
 	uint8_t                IHL:4;
 #endif
 	union {
-		uint8_t            ECN_DSCP;
+		uint8_t            DSCP_ECN;
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t        ECN:2;
@@ -635,7 +635,7 @@ typedef struct _ipv4_hdr_
 			uint8_t        DSCP:6;
 			uint8_t        ECN:2;
 		#endif
-		}ECN_DSCP_Bits;
+		}DSCP_ECN_Bits;
 	};
 	uint16_t               Length;
 	uint16_t               ID;
@@ -691,7 +691,7 @@ typedef struct _ipv4_hdr_
 typedef struct _ipv6_hdr_
 {
 	union {
-		uint32_t               VerTcFlow;
+		uint32_t               VersionTrafficFlow;
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			union {
@@ -725,7 +725,7 @@ typedef struct _ipv6_hdr_
 			uint8_t            FlowLabel_First:4;
 		#endif
 			uint16_t           FlowLabel_Second;
-		}VerTcFlowBits;
+		}VersionTrafficFlowBits;
 	};
 	uint16_t                   PayloadLength;
 	uint8_t                    NextHeader;
@@ -1125,8 +1125,8 @@ typedef struct _icmpv6_hdr_
 #endif
 typedef struct _tcp_hdr_
 {
-	uint16_t               SrcPort;
-	uint16_t               DstPort;
+	uint16_t               SourcePort;
+	uint16_t               DestinationPort;
 	uint32_t               Sequence;
 	uint32_t               Acknowledge;
 	union {
@@ -1183,8 +1183,8 @@ typedef struct _tcp_hdr_
 #define IPPORT_TEREDO      3544U        //Teredo tunneling port
 typedef struct _udp_hdr_
 {
-	uint16_t               SrcPort;
-	uint16_t               DstPort;
+	uint16_t               SourcePort;
+	uint16_t               DestinationPort;
 	uint16_t               Length;
 	uint16_t               Checksum;
 }udp_hdr;
@@ -1318,6 +1318,7 @@ typedef struct _ipv6_psd_hdr_
 * RFC 6975, Signaling Cryptographic Algorithm Understanding in DNS Security Extensions (DNSSEC)(https://tools.ietf.org/html/rfc6975)
 * RFC 7043, Resource Records for EUI-48 and EUI-64 Addresses in the DNS(https://tools.ietf.org/html/rfc7043)
 * RFC 7314, Extension Mechanisms for DNS (EDNS) EXPIRE Option(https://tools.ietf.org/html/rfc7314)
+* RFC 7766, DNS Transport over TCP - Implementation Requirements(https://tools.ietf.org/html/rfc7766)
 */
 
 //About this list, please visit IANA Domain Name System (DNS) Parameters(https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml)
@@ -2128,7 +2129,7 @@ typedef struct _dns_record_opt_
 {
 	uint8_t               Name;
 	uint16_t              Type;
-	uint16_t              UDPPayloadSize;
+	uint16_t              UDP_PayloadSize;
 	uint8_t               Extended_RCode;
 	uint8_t               Version;
 	union {

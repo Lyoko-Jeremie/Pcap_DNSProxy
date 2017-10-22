@@ -900,7 +900,7 @@ bool TCP_Monitor(
 	int OptionValue = 0;
 	socklen_t OptionSize = sizeof(OptionValue);
 
-//Start Monitor.
+//Start listening Monitor.
 	for (;;)
 	{
 	//Interval time between receive
@@ -973,8 +973,6 @@ bool TCP_Monitor(
 				else if (!CheckQueryData(nullptr, nullptr, 0, MonitorQueryData.second))
 				{
 					SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-//					MonitorQueryData.second.Socket = INVALID_SOCKET;
-
 					continue;
 				}
 
@@ -1231,7 +1229,7 @@ void AlternateServerMonitor(
 	size_t Index = 0;
 	uint64_t RangeTimer[ALTERNATE_SERVERNUM]{0}, SwapTimer[ALTERNATE_SERVERNUM]{0};
 
-//Switcher
+//Start Switcher.
 	for (;;)
 	{
 	//Complete request process check
@@ -1613,7 +1611,7 @@ void NetworkInformationMonitor(
 	void *DNS_Record = nullptr;
 	std::unique_lock<std::mutex> LocalAddressMutexIPv6(LocalAddressLock[NETWORK_LAYER_TYPE_IPV6], std::defer_lock), LocalAddressMutexIPv4(LocalAddressLock[NETWORK_LAYER_TYPE_IPV4], std::defer_lock), SocketMarkingMutex(SocketMarkingLock, std::defer_lock);
 
-//Monitor
+//Start listening Monitor.
 	for (;;)
 	{
 	//Get local machine addresses(IPv6).

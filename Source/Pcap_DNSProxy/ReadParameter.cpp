@@ -269,19 +269,19 @@ bool Parameter_CheckSetting(
 	//Hop Limits and TTL must between 1 and 255.
 		if (
 		//IPv6
-			(ParameterPointer->Target_Server_Main_IPv6.HopLimitsData_Assign.HopLimit > 0 && 
-			(static_cast<size_t>(ParameterPointer->Target_Server_Main_IPv6.HopLimitsData_Assign.HopLimit) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
-			static_cast<ssize_t>(ParameterPointer->Target_Server_Main_IPv6.HopLimitsData_Assign.HopLimit) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1)) || 
-			(ParameterPointer->Target_Server_Alternate_IPv6.HopLimitsData_Assign.HopLimit > 0 && 
-			(static_cast<size_t>(ParameterPointer->Target_Server_Alternate_IPv6.HopLimitsData_Assign.HopLimit) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
-			static_cast<ssize_t>(ParameterPointer->Target_Server_Alternate_IPv6.HopLimitsData_Assign.HopLimit) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1)) || 
+			(ParameterPointer->Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign > 0 && 
+			(static_cast<size_t>(ParameterPointer->Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
+			static_cast<ssize_t>(ParameterPointer->Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1)) || 
+			(ParameterPointer->Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign > 0 && 
+			(static_cast<size_t>(ParameterPointer->Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
+			static_cast<ssize_t>(ParameterPointer->Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1)) || 
 		//IPv4
-			(ParameterPointer->Target_Server_Main_IPv4.HopLimitsData_Assign.TTL > 0 && 
-			(static_cast<size_t>(ParameterPointer->Target_Server_Main_IPv4.HopLimitsData_Assign.TTL) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
-			static_cast<ssize_t>(ParameterPointer->Target_Server_Main_IPv4.HopLimitsData_Assign.TTL) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1)) || 
-			(ParameterPointer->Target_Server_Alternate_IPv4.HopLimitsData_Assign.TTL > 0 && 
-			(static_cast<size_t>(ParameterPointer->Target_Server_Alternate_IPv4.HopLimitsData_Assign.TTL) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
-			static_cast<ssize_t>(ParameterPointer->Target_Server_Alternate_IPv4.HopLimitsData_Assign.TTL) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1)))
+			(ParameterPointer->Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign > 0 && 
+			(static_cast<size_t>(ParameterPointer->Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
+			static_cast<ssize_t>(ParameterPointer->Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1)) || 
+			(ParameterPointer->Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign > 0 && 
+			(static_cast<size_t>(ParameterPointer->Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
+			static_cast<ssize_t>(ParameterPointer->Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1)))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Hop Limits Fluctuation error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
@@ -292,9 +292,9 @@ bool Parameter_CheckSetting(
 		{
 			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv6_Multiple)
 			{
-				if (DNSServerDataIter.HopLimitsData_Assign.HopLimit > 0 && 
-					(static_cast<size_t>(DNSServerDataIter.HopLimitsData_Assign.HopLimit) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
-					static_cast<ssize_t>(DNSServerDataIter.HopLimitsData_Assign.HopLimit) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1))
+				if (DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign > 0 && 
+					(static_cast<size_t>(DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
+					static_cast<ssize_t>(DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Hop Limits Fluctuation error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					return false;
@@ -307,9 +307,9 @@ bool Parameter_CheckSetting(
 		{
 			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv4_Multiple)
 			{
-				if (DNSServerDataIter.HopLimitsData_Assign.TTL > 0 && 
-					(static_cast<size_t>(DNSServerDataIter.HopLimitsData_Assign.TTL) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
-					static_cast<ssize_t>(DNSServerDataIter.HopLimitsData_Assign.TTL) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1))
+				if (DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign > 0 && 
+					(static_cast<size_t>(DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
+					static_cast<ssize_t>(DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Hop Limits Fluctuation error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					return false;
@@ -372,18 +372,9 @@ bool Parameter_CheckSetting(
 		}
 
 	//DNSSEC Force Validation check
-		if (Parameter.DNSSEC_ForceValidation && (!Parameter.EDNS_Label || !Parameter.DNSSEC_Request || !Parameter.DNSSEC_Validation))
+		if (Parameter.DNSSEC_ForceRecord && (!Parameter.EDNS_Label || !Parameter.DNSSEC_Request))
 		{
-			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"DNSSEC Force Validation require EDNS Label, DNSSEC Request and DNSSEC Validation", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-			Parameter.EDNS_Label = true;
-			Parameter.DNSSEC_Request = true;
-			Parameter.DNSSEC_Validation = true;
-		}
-
-	//DNSSEC Validation check
-		if (Parameter.DNSSEC_Validation && (!Parameter.EDNS_Label || !Parameter.DNSSEC_Request))
-		{
-			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"DNSSEC Validation require EDNS Label and DNSSEC Request", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"DNSSEC Force Record require EDNS Label and DNSSEC Request", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			Parameter.EDNS_Label = true;
 			Parameter.DNSSEC_Request = true;
 		}
@@ -416,22 +407,11 @@ bool Parameter_CheckSetting(
 	}
 
 #if defined(ENABLE_PCAP)
-	//IPv4 Data Filter option check
-	if (ParameterPointer->HeaderCheck_IPv4)
-	{
-		if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0)
-			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv4 Data Filter require IPv4 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-		else if (!Parameter.IsPcapCapture)
-			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv4 Data Filter require Pcap Cpature", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-
-		ParameterPointer->HeaderCheck_IPv4 = false;
-	}
-
 	//TCP Mode option check
-	if (ParameterPointer->HeaderCheck_TCP && !Parameter.IsPcapCapture)
+	if (ParameterPointer->PacketCheck_TCP && !Parameter.IsPcapCapture)
 	{
 		PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"TCP Data Filter require Pcap Cpature", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-		ParameterPointer->HeaderCheck_TCP = false;
+		ParameterPointer->PacketCheck_TCP = false;
 	}
 #endif
 
@@ -2708,13 +2688,9 @@ bool ReadParameterData(
 		{
 			Parameter.DNSSEC_Request = true;
 		}
-		else if (Data.compare(0, strlen("DNSSECValidation=1"), ("DNSSECValidation=1")) == 0)
+		else if (Data.compare(0, strlen("DNSSECForceRecord=1"), ("DNSSECForceRecord=1")) == 0)
 		{
-			Parameter.DNSSEC_Validation = true;
-		}
-		else if (Data.compare(0, strlen("DNSSECForceValidation=1"), ("DNSSECForceValidation=1")) == 0)
-		{
-			Parameter.DNSSEC_ForceValidation = true;
+			Parameter.DNSSEC_ForceRecord = true;
 		}
 		else if (Data.compare(0, strlen("AlternateMultipleRequest=1"), ("AlternateMultipleRequest=1")) == 0)
 		{
@@ -2724,23 +2700,19 @@ bool ReadParameterData(
 
 	if (Data.compare(0, strlen("IPv4DoNotFragment=1"), ("IPv4DoNotFragment=1")) == 0)
 	{
-		ParameterPointer->DoNotFragment = true;
+		ParameterPointer->DoNotFragment_IPv4 = true;
 	}
 
 #if defined(ENABLE_PCAP)
-	else if (Data.compare(0, strlen("IPv4DataFilter=1"), ("IPv4DataFilter=1")) == 0)
-	{
-		ParameterPointer->HeaderCheck_IPv4 = true;
-	}
 	else if (Data.compare(0, strlen("TCPDataFilter=1"), ("TCPDataFilter=1")) == 0)
 	{
-		ParameterPointer->HeaderCheck_TCP = true;
+		ParameterPointer->PacketCheck_TCP = true;
 	}
 #endif
 
 	else if (Data.compare(0, strlen("DNSDataFilter=1"), ("DNSDataFilter=1")) == 0)
 	{
-		ParameterPointer->HeaderCheck_DNS = true;
+		ParameterPointer->PacketCheck_DNS = true;
 	}
 	else if (IsFirstRead && Data.compare(0, strlen("BlacklistFilter=1"), ("BlacklistFilter=1")) == 0)
 	{
@@ -4070,11 +4042,11 @@ bool ReadHopLimitsData(
 				if (!IsFirstRead)
 				{
 					if (ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6] == 0)
-						Parameter.Target_Server_Main_IPv6.HopLimitsData_Assign.HopLimit = static_cast<uint8_t>(UnsignedResult);
+						Parameter.Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign = static_cast<uint8_t>(UnsignedResult);
 					else if (ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6] == 1U)
-						Parameter.Target_Server_Alternate_IPv6.HopLimitsData_Assign.HopLimit = static_cast<uint8_t>(UnsignedResult);
+						Parameter.Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign = static_cast<uint8_t>(UnsignedResult);
 					else if (!DNSServerDataList->empty() && ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6] - 2U < DNSServerDataList->size())
-						DNSServerDataList->at(ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6] - 2U).HopLimitsData_Assign.HopLimit = static_cast<uint8_t>(UnsignedResult);
+						DNSServerDataList->at(ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6] - 2U).ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign = static_cast<uint8_t>(UnsignedResult);
 					else 
 						goto PrintDataFormatError;
 
@@ -4083,7 +4055,7 @@ bool ReadHopLimitsData(
 			//Normal mode
 				else if (!DNSServerDataList->empty() && ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6] < DNSServerDataList->size())
 				{
-					DNSServerDataList->at(ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6]).HopLimitsData_Assign.HopLimit = static_cast<uint8_t>(UnsignedResult);
+					DNSServerDataList->at(ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6]).ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign = static_cast<uint8_t>(UnsignedResult);
 					++ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6];
 				}
 				else {
@@ -4096,11 +4068,11 @@ bool ReadHopLimitsData(
 				if (!IsFirstRead)
 				{
 					if (ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4] == 0)
-						Parameter.Target_Server_Main_IPv4.HopLimitsData_Assign.TTL = static_cast<uint8_t>(UnsignedResult);
+						Parameter.Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign = static_cast<uint8_t>(UnsignedResult);
 					else if (ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4] == 1U)
-						Parameter.Target_Server_Alternate_IPv4.HopLimitsData_Assign.TTL = static_cast<uint8_t>(UnsignedResult);
+						Parameter.Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign = static_cast<uint8_t>(UnsignedResult);
 					else if (!DNSServerDataList->empty() && ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4] - 2U < DNSServerDataList->size())
-						DNSServerDataList->at(ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4] - 2U).HopLimitsData_Assign.TTL = static_cast<uint8_t>(UnsignedResult);
+						DNSServerDataList->at(ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4] - 2U).ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign = static_cast<uint8_t>(UnsignedResult);
 					else 
 						goto PrintDataFormatError;
 
@@ -4109,7 +4081,7 @@ bool ReadHopLimitsData(
 			//Normal mode
 				else if (!DNSServerDataList->empty() && ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4] < DNSServerDataList->size())
 				{
-					DNSServerDataList->at(ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4]).HopLimitsData_Assign.TTL = static_cast<uint8_t>(UnsignedResult);
+					DNSServerDataList->at(ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4]).ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign = static_cast<uint8_t>(UnsignedResult);
 					++ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4];
 				}
 				else {

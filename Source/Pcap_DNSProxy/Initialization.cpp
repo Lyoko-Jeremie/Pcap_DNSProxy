@@ -486,15 +486,13 @@ void ConfigurationTable::CopyMemberOperator(
 	EDNS_Switch_UDP = Reference.EDNS_Switch_UDP;
 	EDNS_ClientSubnet_Relay = Reference.EDNS_ClientSubnet_Relay;
 	DNSSEC_Request = Reference.DNSSEC_Request;
-	DNSSEC_Validation = Reference.DNSSEC_Validation;
-	DNSSEC_ForceValidation = Reference.DNSSEC_ForceValidation;
+	DNSSEC_ForceRecord = Reference.DNSSEC_ForceRecord;
 	AlternateMultipleRequest = Reference.AlternateMultipleRequest;
-	DoNotFragment = Reference.DoNotFragment;
+	DoNotFragment_IPv4 = Reference.DoNotFragment_IPv4;
 #if defined(ENABLE_PCAP)
-	HeaderCheck_IPv4 = Reference.HeaderCheck_IPv4;
-	HeaderCheck_TCP = Reference.HeaderCheck_TCP;
+	PacketCheck_TCP = Reference.PacketCheck_TCP;
 #endif
-	HeaderCheck_DNS = Reference.HeaderCheck_DNS;
+	PacketCheck_DNS = Reference.PacketCheck_DNS;
 	DataCheck_Blacklist = Reference.DataCheck_Blacklist;
 	DataCheck_Strict_RR_TTL = Reference.DataCheck_Strict_RR_TTL;
 
@@ -936,14 +934,14 @@ void ConfigurationTable::MonitorItemToUsing(
 //[Values] block
 	ConfigurationParameter->ThreadPoolResetTime = ThreadPoolResetTime;
 #if defined(ENABLE_PCAP)
-	ConfigurationParameter->Target_Server_Main_IPv6.HopLimitsData_Assign.HopLimit = Target_Server_Main_IPv6.HopLimitsData_Assign.HopLimit;
-	ConfigurationParameter->Target_Server_Main_IPv4.HopLimitsData_Assign.TTL = Target_Server_Main_IPv4.HopLimitsData_Assign.TTL;
-	ConfigurationParameter->Target_Server_Main_IPv6.HopLimitsData_Mark.HopLimit = Target_Server_Main_IPv6.HopLimitsData_Mark.HopLimit;
-	ConfigurationParameter->Target_Server_Main_IPv4.HopLimitsData_Mark.TTL = Target_Server_Main_IPv4.HopLimitsData_Mark.TTL;
-	ConfigurationParameter->Target_Server_Alternate_IPv6.HopLimitsData_Assign.HopLimit = Target_Server_Alternate_IPv6.HopLimitsData_Assign.HopLimit;
-	ConfigurationParameter->Target_Server_Alternate_IPv4.HopLimitsData_Assign.TTL = Target_Server_Alternate_IPv4.HopLimitsData_Assign.TTL;
-	ConfigurationParameter->Target_Server_Alternate_IPv6.HopLimitsData_Mark.HopLimit = Target_Server_Alternate_IPv6.HopLimitsData_Mark.HopLimit;
-	ConfigurationParameter->Target_Server_Alternate_IPv4.HopLimitsData_Mark.TTL = Target_Server_Alternate_IPv4.HopLimitsData_Mark.TTL;
+	ConfigurationParameter->Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign = Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign;
+	ConfigurationParameter->Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign = Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign;
+	ConfigurationParameter->Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Mark = Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Mark;
+	ConfigurationParameter->Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Mark = Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Mark;
+	ConfigurationParameter->Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign = Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign;
+	ConfigurationParameter->Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign = Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign;
+	ConfigurationParameter->Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Mark = Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Mark;
+	ConfigurationParameter->Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Mark = Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Mark;
 #endif
 	ConfigurationParameter->SocketTimeout_Reliable_Once = SocketTimeout_Reliable_Once;
 	ConfigurationParameter->SocketTimeout_Reliable_Serial = SocketTimeout_Reliable_Serial;
@@ -960,10 +958,9 @@ void ConfigurationTable::MonitorItemToUsing(
 //[Switches] block
 	ConfigurationParameter->DomainCaseConversion = DomainCaseConversion;
 #if defined(ENABLE_PCAP)
-	ConfigurationParameter->HeaderCheck_IPv4 = HeaderCheck_IPv4;
-	ConfigurationParameter->HeaderCheck_TCP = HeaderCheck_TCP;
+	ConfigurationParameter->PacketCheck_TCP = PacketCheck_TCP;
 #endif
-	ConfigurationParameter->HeaderCheck_DNS = HeaderCheck_DNS;
+	ConfigurationParameter->PacketCheck_DNS = PacketCheck_DNS;
 	ConfigurationParameter->DataCheck_Strict_RR_TTL = DataCheck_Strict_RR_TTL;
 
 //[Proxy] block
@@ -1055,14 +1052,14 @@ void ConfigurationTable::MonitorItemReset(
 //[Values] block
 	ThreadPoolResetTime = DEFAULT_THREAD_POOL_RESET_TIME;
 #if defined(ENABLE_PCAP)
-	Target_Server_Main_IPv6.HopLimitsData_Assign.HopLimit = 0;
-	Target_Server_Main_IPv4.HopLimitsData_Assign.TTL = 0;
-	Target_Server_Main_IPv6.HopLimitsData_Mark.HopLimit = 0;
-	Target_Server_Main_IPv4.HopLimitsData_Mark.TTL = 0;
-	Target_Server_Alternate_IPv6.HopLimitsData_Assign.HopLimit = 0;
-	Target_Server_Alternate_IPv4.HopLimitsData_Assign.TTL = 0;
-	Target_Server_Alternate_IPv6.HopLimitsData_Mark.HopLimit = 0;
-	Target_Server_Alternate_IPv4.HopLimitsData_Mark.TTL = 0;
+	Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign = 0;
+	Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign = 0;
+	Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Mark = 0;
+	Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Mark = 0;
+	Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign = 0;
+	Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign = 0;
+	Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Mark = 0;
+	Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Mark = 0;
 #endif
 #if defined(PLATFORM_WIN)
 	SocketTimeout_Reliable_Once = DEFAULT_RELIABLE_ONCE_SOCKET_TIMEOUT;
@@ -1090,10 +1087,9 @@ void ConfigurationTable::MonitorItemReset(
 //[Switches] block
 	DomainCaseConversion = false;
 #if defined(ENABLE_PCAP)
-	HeaderCheck_IPv4 = false;
-	HeaderCheck_TCP = false;
+	PacketCheck_TCP = false;
 #endif
-	HeaderCheck_DNS = false;
+	PacketCheck_DNS = false;
 	DataCheck_Strict_RR_TTL = false;
 
 //[Proxy] block
@@ -1649,6 +1645,13 @@ OutputPacketTable::OutputPacketTable(
 DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 	void)
 {
+//Libsodium ramdom bytes initialization
+//randombytes_set_implementation function should only be called once, before sodium_init().
+//No need to set a custom RNG, please visit https://download.libsodium.org/doc/advanced/custom_rng.html.
+/*	randombytes_set_implementation(&randombytes_salsa20_implementation);
+	randombytes_stir();
+*/
+
 //Libsodium initialization
 	if (sodium_init() == LIBSODIUM_ERROR)
 	{

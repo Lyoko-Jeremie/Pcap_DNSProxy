@@ -46,10 +46,6 @@ Using TCP protocol:
 void DNSCurveInit(
 	void)
 {
-//Libsodium ramdom bytes initialization
-	randombytes_set_implementation(&randombytes_salsa20_implementation);
-	randombytes_stir();
-
 //DNSCurve signature request TCP Mode
 	if (DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TRANSPORT::FORCE_TCP || DNSCurveParameter.DNSCurveProtocol_Transport == REQUEST_MODE_TRANSPORT::TCP)
 	{
@@ -293,7 +289,6 @@ bool DNSCurve_TCP_SignatureRequest(
 	//Jump here to restart.
 	JumpToRestart:
 		SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-//		TCPSocketDataList.front().Socket = INVALID_SOCKET;
 
 	//Print error log.
 		DNSCurvePrintLog(ServerType, Message);
@@ -454,7 +449,6 @@ bool DNSCurve_UDP_SignatureRequest(
 	//Jump here to restart.
 	JumpToRestart:
 		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
-//		UDPSocketDataList.front().Socket = INVALID_SOCKET;
 
 	//Print error log.
 		DNSCurvePrintLog(ServerType, Message);

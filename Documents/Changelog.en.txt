@@ -1,4 +1,28 @@
-﻿Pcap_DNSProxy 0.4.9.1-0.4.9.4 changelog(2017-10-06):
+﻿Pcap_DNSProxy 0.4.9.5 changelog(2017-10-22)：
+
+* Improve operation when using LibSodium.
+* Improve operation when using DNSSEC.
+  * Rename from DNSSEC Force Validation to DNSSEC Force Record
+* Remove IPv4 Data Filter parameter.
+* Remove DNSSEC Validation parameter.
+  * Notice: All features have been moved to DNS Data Filter.
+* Release Hash:
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe: 
+    * Windows/Pcap_DNSProxy_x86.exe: 
+    * Windows/Pcap_DNSProxy_XP.exe: 
+    * macOS/Pcap_DNSProxy: 
+  * SHA-2(256):
+    * Windows/Pcap_DNSProxy.exe: 
+    * Windows/Pcap_DNSProxy_x86.exe: 
+    * Windows/Pcap_DNSProxy_XP.exe: 
+    * macOS/Pcap_DNSProxy: 
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy 0.4.9.1-0.4.9.4 changelog(2017-10-06):
 
 * Add TCP protocol support to Domain Test module:
   * Add Domain Test Protocol parameter.
@@ -20,13 +44,13 @@
 * Fix error log startup printing time calculation error.
 * Fix CNAME hosts internal Dnsmasq format error.
 * Fix wrongly banned of NSCI system network sensor indicator IPv6 addresses. (Windows) [hnsylzg]
-* Release Hash: 
-  * SHA-3(256): 
+* Release Hash:
+  * SHA-3(256):
     * Windows/Pcap_DNSProxy.exe: 8E9EEAFD301C1D27A1B9E6D2CAC692D032621E3E80BB15A3CCA1CCEF3768FA2D
     * Windows/Pcap_DNSProxy_x86.exe: 7EF905162AB37BCF94C229D991773DADE1DF02F635B951DCEF50976B915E4795
     * Windows/Pcap_DNSProxy_XP.exe: 4AF0131A398A75D26ADA5DACBF9E185EEBE78D2A5E4A0787DE16A66EE0496FAE
     * macOS/Pcap_DNSProxy: F5A91990F9DC3022AA016EE9E12659D64ECEF3351139CA2D0630E99CC298F06F
-  * SHA-2(256): 
+  * SHA-2(256):
     * Windows/Pcap_DNSProxy.exe: 577314F84110F9531CC5E5EFA16622FBA7C0B8E0AE525DA802298A1CE90AB0DD
     * Windows/Pcap_DNSProxy_x86.exe: 6080BD47D3F32E516E1DDCDD399866C05E62D3732132C8111F8D9650C8B84FD2
     * Windows/Pcap_DNSProxy_XP.exe: 54E0E01B6EEFE0875B8DFDD3A673CA57EA6E1DF25D07A1601DECEBDC5962226F

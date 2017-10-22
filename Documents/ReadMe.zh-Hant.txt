@@ -617,19 +617,14 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSSEC Request - DNSSEC 請求，開啟後將嘗試為所有請求添加 DNSSEC 請求：開啟為 1 /關閉為 0
     * 本功能要求啟用 EDNS Label 參數
     * 此功能不具備任何驗證 DNSSEC 記錄的能力，單獨開啟理論上並不能避免 DNS 投毒污染的問題
-  * DNSSEC Validation - DNSSEC 記錄驗證功能，將檢查所有帶有 DNSSEC 記錄的網域名稱解析，驗證失敗將被丟棄：開啟為 1 /關閉為 0
+  * DNSSEC Force Record - 強制 DNSSEC 記錄驗證功能，將丟棄所有支援 DNSSEC 功能但是沒有任何 DNSSEC 記錄的網域名稱解析：開啟為 1 /關閉為 0
     * 本功能要求啟用 EDNS Label 和 DNSSEC Request 參數
     * 此功能不具備完整的 DNSSEC 記錄檢驗的能力，單獨開啟理論上不能避免 DNS 投毒污染的問題
-    * 本功能不檢查不存在 DNSSEC 記錄的網域名稱解析
-  * DNSSEC Force Validation - 強制 DNSSEC 記錄驗證功能，將丟棄所有沒有 DNSSEC 記錄的網域名稱解析：開啟為 1 /關閉為 0
-    * 本功能要求啟用 EDNS Label、DNSSEC Request 和 DNSSEC Validation 參數
-    * 此功能不具備完整的 DNSSEC 記錄檢驗的能力，單獨開啟理論上不能避免 DNS 投毒污染的問題
-    * 警告：由於現時已經部署 DNSSEC 的網域名稱數量極少，未部署 DNSSEC 的網域名稱解析沒有 DNSSEC 記錄，這將導致所有未部署 DNSSEC 的網域名稱解析失敗，現階段切勿開啟本功能！
+    * 警告：由於現時已經部署 DNSSEC 的網域名稱數量極少，未部署 DNSSEC 的網域名稱解析沒有 DNSSEC 記錄，這將導致所有未部署 DNSSEC 的網域名稱解析失敗！
   * Alternate Multiple Request - 待命伺服器同時請求參數，開啟後將同時請求主要伺服器和待命伺服器並採用最快回應的伺服器的結果：開啟為 1 /關閉為 0
     * 同時請求多伺服器啟用後本參數將強制啟用，將同時請求所有存在於清單中的伺服器，並採用最快回應的伺服器的結果
   * IPv4 Do Not Fragment - IPv4 資料包頭部 Do Not Fragment 標誌：開啟為 1 /關閉為 0
     * 目前本功能不支援 macOS 平臺，此平臺將直接忽略此參數
-  * IPv4 Data Filter - IPv4 資料包頭檢測：開啟為 1 /關閉為 0
   * TCP Data Filter - TCP 資料包頭檢測：開啟為 1 /關閉為 0
   * DNS Data Filter - DNS 資料包頭檢測：開啟為 1 /關閉為 0
   * Blacklist Filter - 解析結果黑名單過濾：開啟為 1 /關閉為 0
@@ -1050,7 +1045,6 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 * Multiple Request Times
 * Domain Case Conversion
 * IPv4 Do Not Fragment
-* IPv4 Data Filter
 * TCP Data Filter
 * DNS Data Filter
 * Strict Resource Record TTL Filter

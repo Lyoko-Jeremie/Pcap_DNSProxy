@@ -276,8 +276,7 @@ size_t SOCKS_TCP_Request(
 			REQUEST_PROCESS_TYPE::SOCKS_MAIN, 
 			SocketSelectingDataList.front().RecvBuffer.get(), 
 			RecvLen, 
-			SocketSelectingDataList.front().RecvSize, 
-			nullptr);
+			SocketSelectingDataList.front().RecvSize);
 		if (RecvLen < DNS_PACKET_MINSIZE)
 			return EXIT_FAILURE;
 
@@ -599,8 +598,7 @@ size_t SOCKS_UDP_Request(
 			REQUEST_PROCESS_TYPE::SOCKS_MAIN, 
 			UDPSocketSelectingDataList.front().RecvBuffer.get(), 
 			UDPSocketSelectingDataList.front().RecvLen, 
-			UDPSocketSelectingDataList.front().RecvSize, 
-			nullptr);
+			UDPSocketSelectingDataList.front().RecvSize);
 		if (RecvLen < DNS_PACKET_MINSIZE)
 			return EXIT_FAILURE;
 
@@ -947,7 +945,7 @@ bool SOCKS_ClientCommandRequest(
 	if (Parameter.SOCKS_Version == SOCKS_VERSION_5) //SOCKS version 5
 	{
 		if ((reinterpret_cast<socks5_server_command_reply *>(SocketSelectingDataList.front().RecvBuffer.get()))->Version != SOCKS_VERSION_5 || 
-			(reinterpret_cast<socks5_server_command_reply *>(SocketSelectingDataList.front().RecvBuffer.get()))->Reserved != 0)
+			(reinterpret_cast<socks5_server_command_reply *>(SocketSelectingDataList.front().RecvBuffer.get()))->Reserved > 0)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::SOCKS, L"Server SOCKS protocol version error", 0, nullptr, 0);
 			return false;
@@ -1131,7 +1129,6 @@ size_t HTTP_CONNECT_2_IntegerDecoding(
 	else {
 		size_t IntegerSize = sizeof(uint8_t), Shift = 0;
 		IntegerValue = PrefixSize;
-
 		for (;;)
 		{
 			if (IntegerSize >= Length)
@@ -1702,7 +1699,7 @@ bool HTTP_CONNECT_ResponseBytesCheck(
 	else if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
 	{
 	//HTTP version 1.x response and HTTP version 2 large length are not supported.
-		if (*SocketSelectingDataList.front().RecvBuffer.get() != 0)
+		if (*SocketSelectingDataList.front().RecvBuffer.get() > 0)
 		{
 		//Length check
 			if (strnlen_s(reinterpret_cast<const char *>(SocketSelectingDataList.front().RecvBuffer.get()), SocketSelectingDataList.front().RecvLen + PADDING_RESERVED_BYTES) > SocketSelectingDataList.front().RecvLen)
@@ -2786,8 +2783,7 @@ size_t HTTP_CONNECT_Transport(
 			REQUEST_PROCESS_TYPE::HTTP_CONNECT_MAIN, 
 			SocketSelectingDataList.front().RecvBuffer.get(), 
 			RecvLen, 
-			SocketSelectingDataList.front().RecvSize, 
-			nullptr);
+			SocketSelectingDataList.front().RecvSize);
 		if (RecvLen >= DNS_PACKET_MINSIZE)
 			return RecvLen;
 	}

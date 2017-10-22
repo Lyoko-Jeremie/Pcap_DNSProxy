@@ -1,11 +1,14 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+VisualStudioVersion = 15.0.27004.2002
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pcap_DNSProxy", "Pcap_DNSProxy\Pcap_DNSProxy.vcxproj", "{9221C40D-99FA-447B-BB53-767F9C6945EB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependency", "Dependency", "{777BC78B-14C3-4CEE-AF7A-05DCC515DB21}"
+	ProjectSection(SolutionItems) = preProject
+		Dependency\CMakeLists.txt = Dependency\CMakeLists.txt
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "LibSodium", "LibSodium", "{874D6810-2479-4A52-8C16-3AFAB5640254}"
 	ProjectSection(SolutionItems) = preProject

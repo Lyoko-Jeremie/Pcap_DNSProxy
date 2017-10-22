@@ -429,7 +429,7 @@ size_t Add_EDNS_To_Additional_RR(
 		return DataLength;
 	const auto DNS_Record_OPT = reinterpret_cast<dns_record_opt *>(Buffer + DataLength);
 	DNS_Record_OPT->Type = htons(DNS_TYPE_OPT);
-	DNS_Record_OPT->UDPPayloadSize = htons(static_cast<uint16_t>(Parameter.EDNS_PayloadSize));
+	DNS_Record_OPT->UDP_PayloadSize = htons(static_cast<uint16_t>(Parameter.EDNS_PayloadSize));
 	DataLength += sizeof(dns_record_opt);
 
 //DNSSEC request
@@ -569,21 +569,21 @@ bool Add_EDNS_To_Additional_RR(
 	dns_record_opt *DNS_Record_OPT = nullptr;
 
 //Add a new EDNS/OPT Additional Resource Records.
-	if (Packet->EDNS_Record == 0)
+	if (Packet->EDNS_RecordLen == 0)
 	{
 		if (Packet->Length + sizeof(dns_record_opt) >= Packet->BufferSize)
 			return true;
 		DNS_Record_OPT = reinterpret_cast<dns_record_opt *>(Packet->Buffer + Packet->Length);
 		DNS_Record_OPT->Type = htons(DNS_TYPE_OPT);
-		DNS_Record_OPT->UDPPayloadSize = htons(static_cast<uint16_t>(Parameter.EDNS_PayloadSize));
+		DNS_Record_OPT->UDP_PayloadSize = htons(static_cast<uint16_t>(Parameter.EDNS_PayloadSize));
 
 	//Change structure information.
 		Packet->Length += sizeof(dns_record_opt);
-		Packet->EDNS_Record += sizeof(dns_record_opt);
+		Packet->EDNS_RecordLen += sizeof(dns_record_opt);
 		DNS_Header->Additional = htons(ntohs(DNS_Header->Additional) + 1U);
 	}
 	else {
-		DNS_Record_OPT = reinterpret_cast<dns_record_opt *>(Packet->Buffer + Packet->Length - Packet->EDNS_Record);
+		DNS_Record_OPT = reinterpret_cast<dns_record_opt *>(Packet->Buffer + Packet->Length - Packet->EDNS_RecordLen);
 	}
 
 //DNSSEC request
@@ -596,7 +596,7 @@ bool Add_EDNS_To_Additional_RR(
 
 //EDNS client subnet
 	if (!(ntohs(DNS_Record_OPT->DataLength) >= sizeof(edns_client_subnet) && 
-		ntohs((reinterpret_cast<edns_client_subnet *>(Packet->Buffer + Packet->Length - Packet->EDNS_Record + sizeof(dns_record_opt)))->Code) == EDNS_CODE_CSUBNET) && 
+		ntohs((reinterpret_cast<edns_client_subnet *>(Packet->Buffer + Packet->Length - Packet->EDNS_RecordLen + sizeof(dns_record_opt)))->Code) == EDNS_CODE_CSUBNET) && 
 		((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr) || 
 		Parameter.LocalMachineSubnet_IPv6 != nullptr || Parameter.LocalMachineSubnet_IPv4 != nullptr))
 	{
@@ -646,7 +646,7 @@ bool Add_EDNS_To_Additional_RR(
 
 		//Length check
 			Packet->Length += sizeof(edns_client_subnet);
-			Packet->EDNS_Record += sizeof(edns_client_subnet);
+			Packet->EDNS_RecordLen += sizeof(edns_client_subnet);
 			if (Packet->Length + sizeof(in6_addr) >= Packet->BufferSize)
 				return true;
 
@@ -663,7 +663,7 @@ bool Add_EDNS_To_Additional_RR(
 			EDNS_Subnet_Header->Length = htons(static_cast<uint16_t>(sizeof(uint16_t) + sizeof(uint8_t) * 2U + PrefixBytes));
 			DNS_Record_OPT->DataLength = htons(static_cast<uint16_t>(sizeof(edns_client_subnet) + PrefixBytes));
 			Packet->Length += PrefixBytes;
-			Packet->EDNS_Record += PrefixBytes;
+			Packet->EDNS_RecordLen += PrefixBytes;
 		}
 	//A record(IPv4)
 		else if (ntohs(DNS_Query->Type) == DNS_TYPE_A && 
@@ -695,7 +695,7 @@ bool Add_EDNS_To_Additional_RR(
 
 		//Length check
 			Packet->Length += sizeof(edns_client_subnet);
-			Packet->EDNS_Record += sizeof(edns_client_subnet);
+			Packet->EDNS_RecordLen += sizeof(edns_client_subnet);
 			if (Packet->Length + sizeof(in_addr) >= Packet->BufferSize)
 				return true;
 
@@ -712,7 +712,7 @@ bool Add_EDNS_To_Additional_RR(
 			EDNS_Subnet_Header->Length = htons(static_cast<uint16_t>(sizeof(uint16_t) + sizeof(uint8_t) * 2U + PrefixBytes));
 			DNS_Record_OPT->DataLength = htons(static_cast<uint16_t>(sizeof(edns_client_subnet) + PrefixBytes));
 			Packet->Length += PrefixBytes;
-			Packet->EDNS_Record += PrefixBytes;
+			Packet->EDNS_RecordLen += PrefixBytes;
 		}
 	}
 

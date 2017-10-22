@@ -320,7 +320,7 @@ typedef enum class _huffman_return_type_
 	ERROR_OVERFLOW, 
 	ERROR_TRUNCATED, 
 	ERROR_EOS, 
-	ERROR_BAD_PREFIX, 
+	ERROR_BAD_PREFIX
 }HUFFMAN_RETURN_TYPE;
 typedef enum class _address_compare_type_
 {
@@ -619,22 +619,52 @@ typedef union _address_union_data_
 	sockaddr_in                          IPv4;
 }AddressUnionData, ADDRESS_UNION_DATA;
 
-//Hop Limits and TTL Data structure
-#if defined(ENABLE_PCAP)
-typedef union _hop_limits_data_
-{
-	uint8_t                              TTL;
-	uint8_t                              HopLimit;
-}HopLimitsUnionData, HOP_LIMITS_UNION_DATA;
-#endif
-
 //DNS Server Data structure
 typedef struct _dns_server_data_
 {
+//Server address block
 	ADDRESS_UNION_DATA                   AddressData;
+
+//Server packet status block
 #if defined(ENABLE_PCAP)
-	HOP_LIMITS_UNION_DATA                HopLimitsData_Assign;
-	HOP_LIMITS_UNION_DATA                HopLimitsData_Mark;
+	struct _server_packet_status_
+	{
+	//Network layer status
+		union _network_layer_status_
+		{
+		//IPv6 header status
+			struct _ipv6_header_status_
+			{
+				uint32_t                             VersionTrafficFlow;
+				uint8_t                              HopLimit_Assign;
+				uint8_t                              HopLimit_Mark;
+			}IPv6_HeaderStatus;
+
+		//IPv4 header status
+			struct _ipv4_header_status_
+			{
+				uint8_t                              IHL;
+				uint8_t                              DSCP_ECN;
+				uint16_t                             ID;
+				uint16_t                             Flags;
+				uint8_t                              TTL_Assign;
+				uint8_t                              TTL_Mark;
+			}IPv4_HeaderStatus;
+		}NetworkLayerStatus;
+
+	//Application layer status
+		struct _application_layer_status_
+		{
+			uint16_t                             DNS_Header_Flags;
+			uint16_t                             EDNS_UDP_PayloadSize;
+			uint8_t                              EDNS_Version;
+			uint16_t                             EDNS_Z_Field;
+			uint16_t                             EDNS_DataLength;
+		}ApplicationLayerStatus;
+
+	//Sign
+		bool                                 IsMarkSign;
+	}ServerPacketStatus;
 #endif
 }DNSServerData, DNS_SERVER_DATA;
 
@@ -656,11 +686,11 @@ typedef struct _dns_packet_data_
 {
 //Packet structure block
 	uint8_t                              *Buffer;
-	size_t                               Question;
-	size_t                               Answer;
-	size_t                               Authority;
-	size_t                               Additional;
-	size_t                               EDNS_Record;
+	size_t                               QuestionLen;
+	size_t                               AnswerCount;
+	size_t                               AuthorityCount;
+	size_t                               AdditionalCount;
+	size_t                               EDNS_RecordLen;
 //Packet attributes block
 	size_t                               BufferSize;
 	size_t                               Length;
@@ -813,15 +843,13 @@ public:
 	bool                                 EDNS_Switch_UDP;
 	bool                                 EDNS_ClientSubnet_Relay;
 	bool                                 DNSSEC_Request;
-	bool                                 DNSSEC_Validation;
-	bool                                 DNSSEC_ForceValidation;
+	bool                                 DNSSEC_ForceRecord;
 	bool                                 AlternateMultipleRequest;
-	bool                                 DoNotFragment;
+	bool                                 DoNotFragment_IPv4;
 #if defined(ENABLE_PCAP)
-	bool                                 HeaderCheck_IPv4;
-	bool                                 HeaderCheck_TCP;
+	bool                                 PacketCheck_TCP;
 #endif
-	bool                                 HeaderCheck_DNS;
+	bool                                 PacketCheck_DNS;
 	bool                                 DataCheck_Blacklist;
 	bool                                 DataCheck_Strict_RR_TTL;
 //[Data] block

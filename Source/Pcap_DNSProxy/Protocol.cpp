@@ -827,7 +827,7 @@ bool CheckQueryData(
 //		DNS_Header->ID == 0 || //ID must not be set 0.
 //		DNS_Header->Flags == 0 || //Flags must not be set 0.
 	//Extended DNS header check
-		(Parameter.HeaderCheck_DNS && 
+		(Parameter.PacketCheck_DNS && 
 	//Must not set Response bit.
 		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RESPONSE) > 0 || 
 	//Must not set Truncated bit.
@@ -849,8 +849,8 @@ bool CheckQueryData(
 //Scan all Resource Records.
 	size_t PacketIndex = DNS_PACKET_RR_LOCATE(Packet->Buffer), Index = 0;
 	uint16_t DNS_Pointer = 0;
-	Packet->Question = CheckQueryNameLength(Packet->Buffer + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH + sizeof(dns_qry);
-	Packet->Answer = 0, Packet->Authority = 0, Packet->Additional = 0, Packet->EDNS_Record = 0;
+	Packet->QuestionLen = CheckQueryNameLength(Packet->Buffer + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH + sizeof(dns_qry);
+	Packet->AnswerCount = 0, Packet->AuthorityCount = 0, Packet->AdditionalCount = 0, Packet->EDNS_RecordLen = 0;
 	for (Index = 0;Index < static_cast<size_t>(ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional));++Index)
 	{
 	//Pointer check
@@ -881,19 +881,19 @@ bool CheckQueryData(
 			if (Index == ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional) - 1U && 
 				ntohs(DNS_Record_Standard->Type) == DNS_TYPE_OPT)
 			{
-				Packet->EDNS_Record += RecordLength;
+				Packet->EDNS_RecordLen += RecordLength;
 				break;
 			}
 			else {
-				Packet->Additional += RecordLength;
+				Packet->AdditionalCount += RecordLength;
 			}
 		}
 		else if (Index >= ntohs(DNS_Header->Answer)) //Authority counts
 		{
-			Packet->Authority += RecordLength;
+			Packet->AuthorityCount += RecordLength;
 		}
 		else { //Answer counts
-			Packet->Answer += RecordLength;
+			Packet->AnswerCount += RecordLength;
 		}
 	}
 
@@ -1281,8 +1281,7 @@ size_t CheckResponseData(
 	const REQUEST_PROCESS_TYPE ResponseType, 
 	uint8_t * const Buffer, 
 	const size_t Length, 
-	const size_t BufferSize, 
-	bool * const IsMarkHopLimits)
+	const size_t BufferSize)
 {
 //DNS Options part
 	const auto DNS_Header = reinterpret_cast<dns_hdr *>(Buffer);
@@ -1296,14 +1295,14 @@ size_t CheckResponseData(
 		ResponseType != REQUEST_PROCESS_TYPE::DNSCURVE_SIGN && 
 	#endif
 	//Extended DNS header check
-		Parameter.HeaderCheck_DNS && 
+		Parameter.PacketCheck_DNS && 
 	//Must be set Response bit.
 		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RESPONSE) == 0 || 
 	//Must not any Non-Question Resource Records when RCode is No Error and not Truncated
 		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_TC) == 0 && (ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NOERROR && 
 		DNS_Header->Answer == 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0) || 
 	//Response are not authoritative when there are no Authoritative Nameservers Records and Additional Resource Records.
-//		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_AA) != 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0) || 
+//		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_AA) > 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0) || 
 	//Do query recursively bit must be set when RCode is No Error and there are Answers Resource Records.
 		((ntohs(DNS_Header->Flags) & DNS_GET_BIT_RD) == 0 && (ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NOERROR && DNS_Header->Answer == 0) || 
 	//Local request failed or Truncated
@@ -1328,7 +1327,7 @@ size_t CheckResponseData(
 			return EXIT_FAILURE;
 
 //Response question pointer check
-	if (Parameter.HeaderCheck_DNS
+	if (Parameter.PacketCheck_DNS
 	#if defined(ENABLE_LIBSODIUM)
 		&& ResponseType != REQUEST_PROCESS_TYPE::DNSCURVE_SIGN
 	#endif
@@ -1340,7 +1339,7 @@ size_t CheckResponseData(
 				return EXIT_FAILURE;
 		}
 
-	//Check repeat DNS Domain without Compression.
+	//Check repeat DNS domain without Compression.
 		if (ntohs(DNS_Header->Answer) == U16_NUM_ONE && DNS_Header->Authority == 0 && DNS_Header->Additional == 0 && 
 			CheckQueryNameLength(Buffer + sizeof(dns_hdr)) == CheckQueryNameLength(Buffer + DNS_PACKET_RR_LOCATE(Buffer)))
 		{
@@ -1364,7 +1363,7 @@ size_t CheckResponseData(
 	size_t DataLength = DNS_PACKET_RR_LOCATE(Buffer), RecordNum = 0, CNAME_DataLength = 0;
 	uint16_t BeforeType = 0;
 	uint32_t Record_TTL = 0;
-	auto IsEDNS_Label = false, IsDNSSEC_Records = false, IsGotAddressResult = false;
+	auto IsEDNS_Label = false, IsFound_DNSSEC_Records = false, IsGotAddressResult = false;
 
 //Scan all Resource Records.
 	for (size_t Index = 0;Index < static_cast<size_t>(ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional));++Index)
@@ -1413,7 +1412,9 @@ size_t CheckResponseData(
 			)
 		{
 			if (ntohs(DNS_Record_Standard->Type) == DNS_TYPE_OPT)
+			{
 				IsEDNS_Label = true;
+			}
 			else if (Parameter.DNSSEC_Request && 
 				(ntohs(DNS_Record_Standard->Type) == DNS_TYPE_SIG || ntohs(DNS_Record_Standard->Type) == DNS_TYPE_KEY || 
 				ntohs(DNS_Record_Standard->Type) == DNS_TYPE_DS || ntohs(DNS_Record_Standard->Type) == DNS_TYPE_RRSIG || 
@@ -1421,10 +1422,10 @@ size_t CheckResponseData(
 				ntohs(DNS_Record_Standard->Type) == DNS_TYPE_NSEC3 || ntohs(DNS_Record_Standard->Type) == DNS_TYPE_NSEC3PARAM || 
 				ntohs(DNS_Record_Standard->Type) == DNS_TYPE_CDS || ntohs(DNS_Record_Standard->Type) == DNS_TYPE_CDNSKEY))
 			{
-				IsDNSSEC_Records = true;
+				IsFound_DNSSEC_Records = true;
 
 			//DNSSEC Validation
-				if (Parameter.DNSSEC_Validation && !Check_DNSSEC_Record(Buffer + DataLength, ntohs(DNS_Record_Standard->Length), ntohs(DNS_Record_Standard->Type), BeforeType))
+				if (Parameter.PacketCheck_DNS && !Check_DNSSEC_Record(Buffer + DataLength, ntohs(DNS_Record_Standard->Length), ntohs(DNS_Record_Standard->Type), BeforeType))
 					return EXIT_FAILURE;
 			}
 		}
@@ -1440,7 +1441,7 @@ size_t CheckResponseData(
 			if (ntohs(DNS_Record_Standard->Type) == DNS_TYPE_AAAA && ntohs(DNS_Record_Standard->Length) == sizeof(in6_addr))
 			{
 			//Records Type in responses check
-				if (Index < ntohs(DNS_Header->Answer) && Parameter.HeaderCheck_DNS && ntohs(DNS_Query->Type) == DNS_TYPE_A)
+				if (Index < ntohs(DNS_Header->Answer) && Parameter.PacketCheck_DNS && ntohs(DNS_Query->Type) == DNS_TYPE_A)
 					return EXIT_FAILURE;
 
 			//Check addresses.
@@ -1466,7 +1467,7 @@ size_t CheckResponseData(
 			else if (ntohs(DNS_Record_Standard->Type) == DNS_TYPE_A && ntohs(DNS_Record_Standard->Length) == sizeof(in_addr))
 			{
 			//Records Type in responses check
-				if (Index < ntohs(DNS_Header->Answer) && Parameter.HeaderCheck_DNS && ntohs(DNS_Query->Type) == DNS_TYPE_AAAA)
+				if (Index < ntohs(DNS_Header->Answer) && Parameter.PacketCheck_DNS && ntohs(DNS_Query->Type) == DNS_TYPE_AAAA)
 					return EXIT_FAILURE;
 
 			//Check addresses.
@@ -1495,7 +1496,7 @@ size_t CheckResponseData(
 		#if defined(ENABLE_LIBSODIUM)
 			ResponseType != REQUEST_PROCESS_TYPE::DNSCURVE_SIGN && 
 		#endif
-			Parameter.EDNS_Label && Parameter.DNSSEC_Request && Parameter.DNSSEC_Validation)
+			Parameter.EDNS_Label && Parameter.DNSSEC_Request && Parameter.PacketCheck_DNS)
 				BeforeType = DNS_Record_Standard->Type;
 
 		DataLength += ntohs(DNS_Record_Standard->Length);
@@ -1517,29 +1518,13 @@ size_t CheckResponseData(
 	#endif
 		((ResponseType == REQUEST_PROCESS_TYPE::TCP_NORMAL || ResponseType == REQUEST_PROCESS_TYPE::TCP_WITHOUT_MARKING) && Parameter.EDNS_Switch_TCP) || //TCP
 		((ResponseType == REQUEST_PROCESS_TYPE::UDP_NORMAL || ResponseType == REQUEST_PROCESS_TYPE::UDP_WITHOUT_MARKING) && Parameter.EDNS_Switch_UDP)) && //UDP
-		(!IsEDNS_Label || (Parameter.DNSSEC_Request && Parameter.DNSSEC_ForceValidation && !IsDNSSEC_Records))) || 
+		(!IsEDNS_Label || (Parameter.DNSSEC_Request && Parameter.DNSSEC_ForceRecord && !IsFound_DNSSEC_Records))) || 
 		(ResponseType == REQUEST_PROCESS_TYPE::LOCAL && !Parameter.IsLocalForce && !IsGotAddressResult)
 	#if defined(ENABLE_LIBSODIUM)
 		)
 	#endif
 		)
 			return EXIT_FAILURE;
-
-#if defined(ENABLE_PCAP)
-//Mark Hop Limits or TTL.
-	if (
-	#if defined(ENABLE_LIBSODIUM)
-		ResponseType != REQUEST_PROCESS_TYPE::DNSCURVE_SIGN && 
-	#endif
-		((IsMarkHopLimits != nullptr && Parameter.HeaderCheck_DNS && 
-//		ntohs(DNS_Header->Answer) != U16_NUM_ONE || //Some ISP will return fake responses with more than one Answer records.
-		(DNS_Header->Answer == 0 || //No any Answer records
-		DNS_Header->Authority > 0 || DNS_Header->Additional > 0 || //More than one Authority records and/or Additional records
-		(ntohs(DNS_Header->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NXDOMAIN)) || //No Such Name, not standard query response and no error check.
-	//Domain Test part
-		(Parameter.DomainTest_Data != nullptr && Domain == reinterpret_cast<const char *>(Parameter.DomainTest_Data) && DNS_Header->ID == Parameter.DomainTest_ID)))
-			*IsMarkHopLimits = true;
-#endif
 
 	return Length;
 }

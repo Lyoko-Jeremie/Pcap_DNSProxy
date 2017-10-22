@@ -1,23 +1,23 @@
 ﻿## Usage
 
-- Run `Updata.bat` in cmd.
+* Run `Updata.bat` in cmd.
 
 ## Commands
 
-- `-LOCAL`
+* `-LOCAL`
   Build from cache file.
 
 ## Files
 
-- `#Routingipv4#`
+* `#Routingipv4#`
   IPv4 database cache
-- `#Routingipv6#`
+* `#Routingipv6#`
   IPv6 database cache
-- `delegated-apnic-latest`
+* `delegated-apnic-latest`
   Original APNIC database
-- `Log_Lib`
+* `Log_Lib`
   IPv4 netmask to IPv4 prefix length conversion library
-- `latest` folder
+* `latest` folder
   Cache folder
-- `Routing.txt`
+* `Routing.txt`
   The output file

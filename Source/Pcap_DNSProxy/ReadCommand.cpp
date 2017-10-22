@@ -312,7 +312,7 @@ bool ReadCommand(
 				uint8_t PublicKey[crypto_box_PUBLICKEYBYTES]{0};
 				size_t InnerIndex = 0;
 
-			//Generator a ramdon keypair and write public key.
+			//Generator a ramdom keypair and write public key.
 				if (crypto_box_keypair(
 						PublicKey, 
 						SecretKey.Buffer) != 0 || 
@@ -461,7 +461,8 @@ bool FileNameInit(
 )
 {
 #if defined(PLATFORM_WIN)
-//Path process(The path is location path with backslash not including module name at the end of this process, like "System:\\xxx\\")
+//Path process
+//The path is location path with backslash not including module name at the end of this process, like "System:\\xxx\\".
 //The path is full path name including module name from file name initialization.
 //The path is location path not including module name from set path command.
 	GlobalRunningStatus.Path_Global->clear();
@@ -479,7 +480,8 @@ bool FileNameInit(
 		}
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-//Path process(The path is location path with slash not including module name at the end of this process, like "/xxx/")
+//Path process
+//The path is location path with slash not including module name at the end of this process, like "/xxx/".
 	GlobalRunningStatus.MBS_Path_Global->clear();
 	GlobalRunningStatus.MBS_Path_Global->push_back(OriginalPath);
 	std::wstring StringTemp;

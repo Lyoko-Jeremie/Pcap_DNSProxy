@@ -1,4 +1,28 @@
-﻿Pcap_DNSProxy 0.4.9.1-0.4.9.4 更新日誌(2017-10-06)：
+﻿Pcap_DNSProxy 0.4.9.5 更新日誌(2017-10-22)：
+
+* 改進使用 LibSodium 時的行為，增強安全性
+* 改進對包含 DNSSEC 的過濾演算法
+  * DNSSEC Force Validation 改名為 DNSSEC Force Record
+* 移除 IPv4 Data Filter 參數
+* 移除 DNSSEC Validation 參數
+  * 注意：本工具從未有支援 DNSSEC 完整驗證，此前僅檢查是否存在 DNSSEC 相關資源記錄，而此功能已整合到 DNS Data Filter 參數中。 為避免名稱上的誤導，特此移除！
+* Release Hash:
+  * SHA-3(256):
+    * Windows/Pcap_DNSProxy.exe: 
+    * Windows/Pcap_DNSProxy_x86.exe: 
+    * Windows/Pcap_DNSProxy_XP.exe: 
+    * macOS/Pcap_DNSProxy: 
+  * SHA-2(256):
+    * Windows/Pcap_DNSProxy.exe: 
+    * Windows/Pcap_DNSProxy_x86.exe: 
+    * Windows/Pcap_DNSProxy_XP.exe: 
+    * macOS/Pcap_DNSProxy: 
+
+
+-------------------------------------------------------------------------------
+
+
+Pcap_DNSProxy 0.4.9.1-0.4.9.4 更新日誌(2017-10-06)：
 
 * 添加 Domain Test 探測模組對 TCP 協定的支援
   * 添加 Domain Test Protocol 參數
@@ -20,13 +44,13 @@
 * 修復錯誤日誌輸出模組的時間計算問題
 * 修復 CNAME Hosts 網域名稱內部 Dnsmasq 格式匹配規則錯誤的問題
 * 修復 NSCI 系統網路感應指示器 IPv6 位址被錯誤過濾的問題 (Windows) [hnsylzg]
-* Release Hash: 
-  * SHA-3(256): 
+* Release Hash:
+  * SHA-3(256):
     * Windows/Pcap_DNSProxy.exe: 8E9EEAFD301C1D27A1B9E6D2CAC692D032621E3E80BB15A3CCA1CCEF3768FA2D
     * Windows/Pcap_DNSProxy_x86.exe: 7EF905162AB37BCF94C229D991773DADE1DF02F635B951DCEF50976B915E4795
     * Windows/Pcap_DNSProxy_XP.exe: 4AF0131A398A75D26ADA5DACBF9E185EEBE78D2A5E4A0787DE16A66EE0496FAE
     * macOS/Pcap_DNSProxy: F5A91990F9DC3022AA016EE9E12659D64ECEF3351139CA2D0630E99CC298F06F
-  * SHA-2(256): 
+  * SHA-2(256):
     * Windows/Pcap_DNSProxy.exe: 577314F84110F9531CC5E5EFA16622FBA7C0B8E0AE525DA802298A1CE90AB0DD
     * Windows/Pcap_DNSProxy_x86.exe: 6080BD47D3F32E516E1DDCDD399866C05E62D3732132C8111F8D9650C8B84FD2
     * Windows/Pcap_DNSProxy_XP.exe: 54E0E01B6EEFE0875B8DFDD3A673CA57EA6E1DF25D07A1601DECEBDC5962226F
@@ -61,13 +85,13 @@ Pcap_DNSProxy 0.4.8.5-0.4.9.0 更新日誌(2017-06-03)：
 * 修復 HTTP CONNECT 隧道在部分伺服器先行推送資料時無法正常工作的問題
 * 修復 OpenSSL 在部分情況下無法設置通訊端屬性的問題 (Linux/macOS)
 * 修復在啟用 TCP Fast Open 多執行緒請求的情況下部分伺服器被跳過的問題 (Linux)
-* Release Hash: 
-  * SHA-3(256): 
+* Release Hash:
+  * SHA-3(256):
     * Windows/Pcap_DNSProxy.exe: 55692B5DD0ED42D39091EA7ADB87DA460441D9D18D07D5D87EC3739A5FD6068C
     * Windows/Pcap_DNSProxy_x86.exe: C943F0BF0691B219CED39B968FF073384DD4C3F5C6B1DF36B5072F1BA6FAFBBE
     * Windows/Pcap_DNSProxy_XP.exe: E17101A1B7DFA4AB79B4B68FF2A99C9E1260C20D13BCCB9F2ACD9E84C6C82F3A
     * macOS/Pcap_DNSProxy: 6B13BFED3EEFF32375F1E02CFE19EA4A17DD129CB4245390C698B1F8AFCEDEE0
-  * SHA-2(256): 
+  * SHA-2(256):
     * Windows/Pcap_DNSProxy.exe: 13AECD65E89913DC3A9AF420872F8DFB67BA52EC1CAC5A6DD4CCCF9FF5A85234
     * Windows/Pcap_DNSProxy_x86.exe: 090B462C0751C7200A428C261D6AADE3AF455D6A8D0324617D44234C4772225C
     * Windows/Pcap_DNSProxy_XP.exe: 0998FC56226D9B8327D353366CF8FB04CED233993CFC0A561226DE385934D6B7

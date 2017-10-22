@@ -485,7 +485,7 @@ bool CaptureModule(
 	ParamList.Buffer = Buffer.get();
 	ParamList.BufferSize = Parameter.LargeBufferSize;
 
-//Start monitor.
+//Start Pcap Monitor.
 	for (;;)
 	{
 		ssize_t Result = pcap_loop(DeviceTable.DeviceHandle, PCAP_LOOP_INFINITY, CaptureHandler, reinterpret_cast<unsigned char *>(&ParamList));
@@ -629,14 +629,14 @@ bool CaptureNetworkLayer(
 					break;
 				}
 			}
+
+		//Source of packet pointer check.
+			if (PacketSource == nullptr)
+				return false;
 		}
 		else {
 			return false;
 		}
-
-	//Source of packet pointer check.
-		if (PacketSource == nullptr)
-			return false;
 
 	//Get Hop Limits from IPv6 DNS server.
 	//ICMPv6
@@ -645,26 +645,24 @@ bool CaptureNetworkLayer(
 		//Validate ICMPv6 checksum.
 			if (GetChecksum_ICMPv6(Buffer, ntohs(IPv6_Header->PayloadLength), IPv6_Header->Destination, IPv6_Header->Source) != CHECKSUM_SUCCESS)
 				return false;
-
 		//ICMPv6 check
-			if (CaptureCheck_ICMP(AF_INET6, Buffer + sizeof(ipv6_hdr), ntohs(IPv6_Header->PayloadLength)))
-				PacketSource->HopLimitsData_Mark.HopLimit = IPv6_Header->HopLimit;
-
-			return true;
+			else if (CaptureCheck_ICMP(AF_INET6, Buffer + sizeof(ipv6_hdr), ntohs(IPv6_Header->PayloadLength)))
+				PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Mark = IPv6_Header->HopLimit;
+			else 
+				return true;
 		}
 
 	//TCP
-		if (Parameter.HeaderCheck_TCP && IPv6_Header->NextHeader == IPPROTO_TCP && ntohs(IPv6_Header->PayloadLength) >= sizeof(tcp_hdr))
+		if (Parameter.PacketCheck_TCP && IPv6_Header->NextHeader == IPPROTO_TCP && ntohs(IPv6_Header->PayloadLength) >= sizeof(tcp_hdr))
 		{
 		//Validate TCP checksum.
 			if (GetChecksum_TCP_UDP(AF_INET6, IPPROTO_TCP, Buffer, ntohs(IPv6_Header->PayloadLength)) != CHECKSUM_SUCCESS)
 				return false;
-
-		//Packet check
-			if (CaptureCheck_TCP(Buffer + sizeof(ipv6_hdr)))
-				PacketSource->HopLimitsData_Mark.HopLimit = IPv6_Header->HopLimit;
-
-			return true;
+		//TCP packet check
+			else if (CaptureCheck_TCP(Buffer + sizeof(ipv6_hdr)))
+				PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Mark = IPv6_Header->HopLimit;
+			else 
+				return true;
 		}
 
 	//UDP
@@ -676,20 +674,16 @@ bool CaptureNetworkLayer(
 
 		//Port check
 			const auto UDP_Header = reinterpret_cast<const udp_hdr *>(Buffer + sizeof(ipv6_hdr));
-			if (UDP_Header->SrcPort == PacketSource->AddressData.IPv6.sin6_port)
+			if (UDP_Header->SourcePort == PacketSource->AddressData.IPv6.sin6_port)
 			{
-			//Domain Test and DNS Options check and get Hop Limits from Domain Test.
-				auto IsMarkHopLimits = false;
+			//Response check
 				const auto DataLength = CheckResponseData(
 					REQUEST_PROCESS_TYPE::UDP_NORMAL, 
 					const_cast<uint8_t *>(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr)), 
 					ntohs(IPv6_Header->PayloadLength) - sizeof(udp_hdr), 
-					BufferSize, 
-					&IsMarkHopLimits);
+					BufferSize);
 				if (DataLength < DNS_PACKET_MINSIZE)
 					return false;
-				else if (IsMarkHopLimits)
-					PacketSource->HopLimitsData_Mark.HopLimit = IPv6_Header->HopLimit;
 
 			//DNSCurve encryption packet check
 			#if defined(ENABLE_LIBSODIUM)
@@ -705,15 +699,39 @@ bool CaptureNetworkLayer(
 						return false;
 			#endif
 
-			//Hop Limits must not a ramdom value.
-				if ((PacketSource->HopLimitsData_Assign.HopLimit > 0 && 
-					static_cast<size_t>(IPv6_Header->HopLimit) + static_cast<size_t>(Parameter.HopLimitsFluctuation) > static_cast<size_t>(PacketSource->HopLimitsData_Assign.HopLimit) && 
-					static_cast<size_t>(IPv6_Header->HopLimit) < static_cast<size_t>(PacketSource->HopLimitsData_Assign.HopLimit) + static_cast<size_t>(Parameter.HopLimitsFluctuation)) || 
-					(PacketSource->HopLimitsData_Assign.HopLimit == 0 && 
-					static_cast<size_t>(IPv6_Header->HopLimit) + static_cast<size_t>(Parameter.HopLimitsFluctuation) > static_cast<size_t>(PacketSource->HopLimitsData_Mark.HopLimit) && 
-					static_cast<size_t>(IPv6_Header->HopLimit) < static_cast<size_t>(PacketSource->HopLimitsData_Mark.HopLimit) + static_cast<size_t>(Parameter.HopLimitsFluctuation)))
+			//DNS packet check
+				if (Parameter.PacketCheck_DNS)
 				{
-					MatchPortToSend(AF_INET6, Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), DataLength, BufferSize, UDP_Header->DstPort);
+				//DNS header options and data check
+					auto IsMarkStatus = false;
+					if (CaptureCheck_DNS(Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), IsMarkStatus))
+					{
+						PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Mark = IPv6_Header->HopLimit;
+
+					//Mark packet status.
+						if (IsMarkStatus)
+						{
+							CaptureCheck_PacketStatus(Buffer, sizeof(ipv6_hdr) + sizeof(udp_hdr), AF_INET6, true, PacketSource);
+							PacketSource->ServerPacketStatus.IsMarkSign = true;
+						}
+					}
+
+				//Packet status check
+					if (!IsMarkStatus && PacketSource->ServerPacketStatus.IsMarkSign && 
+						!CaptureCheck_PacketStatus(Buffer, sizeof(ipv6_hdr) + sizeof(udp_hdr), AF_INET6, false, PacketSource))
+							return false;
+				}
+
+			//Match port in global list.
+			//Hop Limits must not a ramdom value.
+				if ((PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign > 0 && 
+					static_cast<size_t>(IPv6_Header->HopLimit) + static_cast<size_t>(Parameter.HopLimitsFluctuation) > static_cast<size_t>(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign) && 
+					static_cast<size_t>(IPv6_Header->HopLimit) < static_cast<size_t>(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign) + static_cast<size_t>(Parameter.HopLimitsFluctuation)) || 
+					(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign == 0 && 
+					static_cast<size_t>(IPv6_Header->HopLimit) + static_cast<size_t>(Parameter.HopLimitsFluctuation) > static_cast<size_t>(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Mark) && 
+					static_cast<size_t>(IPv6_Header->HopLimit) < static_cast<size_t>(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Mark) + static_cast<size_t>(Parameter.HopLimitsFluctuation)))
+				{
+					MatchPortToSend(AF_INET6, Buffer + sizeof(ipv6_hdr) + sizeof(udp_hdr), DataLength, BufferSize, UDP_Header->DestinationPort);
 					return true;
 				}
 			}
@@ -726,8 +744,7 @@ bool CaptureNetworkLayer(
 		const auto IPv4_Header = reinterpret_cast<const ipv4_hdr *>(Buffer);
 
 	//Validate IPv4 header.
-		if (ntohs(IPv4_Header->Length) <= IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES || 
-			ntohs(IPv4_Header->Length) > Length || 
+		if (ntohs(IPv4_Header->Length) <= IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES || ntohs(IPv4_Header->Length) > Length || 
 			GetChecksum(reinterpret_cast<const uint16_t *>(Buffer), sizeof(ipv4_hdr)) != CHECKSUM_SUCCESS)
 				return false;
 
@@ -750,25 +767,13 @@ bool CaptureNetworkLayer(
 					break;
 				}
 			}
+
+		//Source of packet pointer check.
+			if (PacketSource == nullptr)
+				return false;
 		}
 		else {
 			return false;
-		}
-
-	//Source of packet pointer check.
-		if (PacketSource == nullptr)
-			return false;
-
-	//IPv4 options check
-		if (Parameter.HeaderCheck_IPv4)
-		{
-		//ECN and DCSP(TOS bits) and Flags should not be set.
-			if (IPv4_Header->ECN_DSCP > 0 || IPv4_Header->Flags > 0)
-				return false;
-
-		//No standard header length and header ID check
-			if (IPv4_Header->IHL > IPV4_STANDARD_IHL || IPv4_Header->ID == 0)
-				PacketSource->HopLimitsData_Mark.TTL = IPv4_Header->TTL;
 		}
 
 	//Get TTL from IPv4 DNS server.
@@ -779,26 +784,24 @@ bool CaptureNetworkLayer(
 		//Validate ICMP checksum.
 			if (GetChecksum(reinterpret_cast<const uint16_t *>(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES), ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES) != CHECKSUM_SUCCESS)
 				return false;
-
 		//ICMP Check
-			if (CaptureCheck_ICMP(AF_INET, Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES))
-				PacketSource->HopLimitsData_Mark.TTL = IPv4_Header->TTL;
-
-			return true;
+			else if (CaptureCheck_ICMP(AF_INET, Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES))
+				PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Mark = IPv4_Header->TTL;
+			else 
+				return true;
 		}
 
 	//TCP
-		if (Parameter.HeaderCheck_TCP && IPv4_Header->Protocol == IPPROTO_TCP && ntohs(IPv4_Header->Length) >= IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(tcp_hdr))
+		if (Parameter.PacketCheck_TCP && IPv4_Header->Protocol == IPPROTO_TCP && ntohs(IPv4_Header->Length) >= IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(tcp_hdr))
 		{
 		//Validate TCP checksum.
 			if (GetChecksum_TCP_UDP(AF_INET, IPPROTO_TCP, Buffer, ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES) != CHECKSUM_SUCCESS)
 				return false;
-
 		//Packet check
-			if (CaptureCheck_TCP(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES))
-				PacketSource->HopLimitsData_Mark.TTL = IPv4_Header->TTL;
-
-			return true;
+			else if (CaptureCheck_TCP(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES))
+				PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Mark = IPv4_Header->TTL;
+			else 
+				return true;
 		}
 
 	//UDP
@@ -810,20 +813,16 @@ bool CaptureNetworkLayer(
 
 		//Port check
 			const auto UDP_Header = reinterpret_cast<const udp_hdr *>(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES);
-			if (UDP_Header->SrcPort == PacketSource->AddressData.IPv4.sin_port)
+			if (UDP_Header->SourcePort == PacketSource->AddressData.IPv4.sin_port)
 			{
-			//Domain Test and DNS Options check and get TTL from Domain Test.
-				auto IsMarkHopLimits = false;
+			//Response check
 				const auto DataLength = CheckResponseData(
 					REQUEST_PROCESS_TYPE::UDP_NORMAL, 
 					const_cast<uint8_t *>(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr)), 
 					ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES - sizeof(udp_hdr), 
-					BufferSize, 
-					&IsMarkHopLimits);
+					BufferSize);
 				if (DataLength < DNS_PACKET_MINSIZE)
 					return false;
-				else if (IsMarkHopLimits)
-					PacketSource->HopLimitsData_Mark.TTL = IPv4_Header->TTL;
 
 			//DNSCurve encryption packet check
 			#if defined(ENABLE_LIBSODIUM)
@@ -839,15 +838,39 @@ bool CaptureNetworkLayer(
 						return false;
 			#endif
 
-			//TTL must not a ramdom value.
-				if ((PacketSource->HopLimitsData_Assign.TTL > 0 && 
-					static_cast<size_t>(IPv4_Header->TTL) + static_cast<size_t>(Parameter.HopLimitsFluctuation) > static_cast<size_t>(PacketSource->HopLimitsData_Assign.TTL) && 
-					static_cast<size_t>(IPv4_Header->TTL) < static_cast<size_t>(PacketSource->HopLimitsData_Assign.TTL) + static_cast<size_t>(Parameter.HopLimitsFluctuation)) || 
-					(PacketSource->HopLimitsData_Assign.TTL == 0 && 
-					static_cast<size_t>(IPv4_Header->TTL) + static_cast<size_t>(Parameter.HopLimitsFluctuation) > static_cast<size_t>(PacketSource->HopLimitsData_Mark.TTL) && 
-					static_cast<size_t>(IPv4_Header->TTL) < static_cast<size_t>(PacketSource->HopLimitsData_Mark.TTL) + static_cast<size_t>(Parameter.HopLimitsFluctuation)))
+			//DNS packet check
+				if (Parameter.PacketCheck_DNS)
 				{
-					MatchPortToSend(AF_INET, Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DataLength, BufferSize, UDP_Header->DstPort);
+				//DNS header options and data check
+					auto IsMarkStatus = false;
+					if (CaptureCheck_DNS(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), IsMarkStatus))
+					{
+						PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Mark = IPv4_Header->TTL;
+
+					//Mark packet status.
+						if (IsMarkStatus)
+						{
+							CaptureCheck_PacketStatus(Buffer, IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), AF_INET, true, PacketSource);
+							PacketSource->ServerPacketStatus.IsMarkSign = true;
+						}
+					}
+
+				//Packet status check
+					if (!IsMarkStatus && PacketSource->ServerPacketStatus.IsMarkSign && 
+						!CaptureCheck_PacketStatus(Buffer, IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), AF_INET, false, PacketSource))
+							return false;
+				}
+
+			//Match port in global list.
+			//TTL must not a ramdom value.
+				if ((PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign > 0 && 
+					static_cast<size_t>(IPv4_Header->TTL) + static_cast<size_t>(Parameter.HopLimitsFluctuation) > static_cast<size_t>(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign) && 
+					static_cast<size_t>(IPv4_Header->TTL) < static_cast<size_t>(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign) + static_cast<size_t>(Parameter.HopLimitsFluctuation)) || 
+					(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign == 0 && 
+					static_cast<size_t>(IPv4_Header->TTL) + static_cast<size_t>(Parameter.HopLimitsFluctuation) > static_cast<size_t>(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Mark) && 
+					static_cast<size_t>(IPv4_Header->TTL) < static_cast<size_t>(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Mark) + static_cast<size_t>(Parameter.HopLimitsFluctuation)))
+				{
+					MatchPortToSend(AF_INET, Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DataLength, BufferSize, UDP_Header->DestinationPort);
 					return true;
 				}
 			}
@@ -866,14 +889,21 @@ bool CaptureCheck_ICMP(
 	const uint8_t * const Buffer, 
 	const size_t Length)
 {
-	if ((Protocol == AF_INET6 && //ICMPv6
-		(reinterpret_cast<const icmpv6_hdr *>(Buffer))->Type == ICMPV6_TYPE_REPLY && (reinterpret_cast<const icmpv6_hdr *>(Buffer))->Code == ICMPV6_CODE_REPLY && //ICMPv6 echo reply
-		(reinterpret_cast<const icmpv6_hdr *>(Buffer))->ID == Parameter.ICMP_ID) || //Validate ICMPv6 ID.
-		(Protocol == AF_INET && //ICMP
-		(reinterpret_cast<const icmp_hdr *>(Buffer))->Type == ICMP_TYPE_ECHO && (reinterpret_cast<const icmpv6_hdr *>(Buffer))->Code == ICMP_CODE_ECHO && //ICMP echo reply
-		(reinterpret_cast<const icmp_hdr *>(Buffer))->ID == Parameter.ICMP_ID && //Validate ICMP ID.
+//ICMPv6
+	if ((Protocol == AF_INET6 && 
+	//ICMPv6 echo reply
+		(reinterpret_cast<const icmpv6_hdr *>(Buffer))->Type == ICMPV6_TYPE_REPLY && (reinterpret_cast<const icmpv6_hdr *>(Buffer))->Code == ICMPV6_CODE_REPLY && 
+	//Validate ICMPv6 ID.
+		(reinterpret_cast<const icmpv6_hdr *>(Buffer))->ID == Parameter.ICMP_ID) || 
+//ICMP
+		(Protocol == AF_INET && 
+	//ICMP echo reply
+		(reinterpret_cast<const icmp_hdr *>(Buffer))->Type == ICMP_TYPE_ECHO && (reinterpret_cast<const icmpv6_hdr *>(Buffer))->Code == ICMP_CODE_ECHO && 
+	//Validate ICMP ID.
+		(reinterpret_cast<const icmp_hdr *>(Buffer))->ID == Parameter.ICMP_ID && 
+	//Validate ICMP additional data.
 		Parameter.ICMP_PaddingData != nullptr && Length == sizeof(icmp_hdr) + Parameter.ICMP_PaddingLength && 
-		memcmp(Parameter.ICMP_PaddingData, Buffer + sizeof(icmp_hdr), Parameter.ICMP_PaddingLength) == 0)) //Validate ICMP additional data.
+		memcmp(Parameter.ICMP_PaddingData, Buffer + sizeof(icmp_hdr), Parameter.ICMP_PaddingLength) == 0))
 			return true;
 
 	return false;
@@ -905,6 +935,113 @@ bool CaptureCheck_TCP(
 			return true;
 
 	return false;
+}
+
+//DNS header options and data check
+bool CaptureCheck_DNS(
+	const uint8_t * const Buffer, 
+	bool &IsMarkStatus)
+{
+//Domain Test part
+	if (Parameter.DomainTest_Speed > 0 && Parameter.DomainTest_Data != nullptr && 
+		reinterpret_cast<const dns_hdr *>(Buffer)->ID == Parameter.DomainTest_ID && 
+		reinterpret_cast<const dns_hdr *>(Buffer)->Question > 0)
+	{
+		std::string Domain;
+		PacketQueryToString(Buffer + sizeof(dns_hdr), Domain);
+		if (Domain == reinterpret_cast<const char *>(Parameter.DomainTest_Data))
+		{
+			IsMarkStatus = true;
+			return true;
+		}
+	}
+//More than zero Authority record
+	else if (reinterpret_cast<const dns_hdr *>(Buffer)->Authority > 0)
+	{
+	//No Such Name
+		if ((ntohs(reinterpret_cast<const dns_hdr *>(Buffer)->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NXDOMAIN)
+			IsMarkStatus = true;
+
+		return true;
+	}
+//DNS header check
+	else if (
+	//Less than or more than one Answer record
+	//Some ISP will return fake responses with more than one Answer record.
+//		ntohs(reinterpret_cast<const dns_hdr *>(Buffer)->Answer) != U16_NUM_ONE || 
+	//No any Answer records
+		reinterpret_cast<const dns_hdr *>(Buffer)->Answer == 0 || 
+	//More than one Additional record
+		ntohs(reinterpret_cast<const dns_hdr *>(Buffer)->Additional) > U16_NUM_ONE)
+	{
+		return true;
+	}
+
+	return false;
+}
+
+//Mark and check server packet status
+bool CaptureCheck_PacketStatus(
+	const uint8_t * const Buffer, 
+	const size_t DNS_DataOffset, 
+	const uint16_t Protocol, 
+	const bool IsMarkStatus, 
+	DNS_SERVER_DATA * const PacketSource)
+{
+//Mark packet status.
+	if (IsMarkStatus)
+	{
+	//Application layer
+		if (DNS_DataOffset != 0)
+			PacketSource->ServerPacketStatus.ApplicationLayerStatus.DNS_Header_Flags = htons((ntohs(reinterpret_cast<const dns_hdr *>(Buffer + DNS_DataOffset)->Flags) & (~DNS_GET_BIT_AA)) & (~DNS_GET_BIT_RCODE));
+
+	//Network layer
+	//IPv6
+		if (Protocol == AF_INET6)
+		{
+			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.VersionTrafficFlow = reinterpret_cast<const ipv6_hdr *>(Buffer)->VersionTrafficFlow;
+		}
+	//IPv4
+		else if (Protocol == AF_INET)
+		{
+			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.IHL = reinterpret_cast<const ipv4_hdr *>(Buffer)->IHL;
+			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.DSCP_ECN = reinterpret_cast<const ipv4_hdr *>(Buffer)->DSCP_ECN;
+			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.ID = reinterpret_cast<const ipv4_hdr *>(Buffer)->ID;
+			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.Flags = reinterpret_cast<const ipv4_hdr *>(Buffer)->Flags;
+		}
+		else {
+			return false;
+		}
+	}
+//Check packet status.
+	else {
+	//Application layer
+		if (DNS_DataOffset != 0 && PacketSource->ServerPacketStatus.ApplicationLayerStatus.DNS_Header_Flags != htons((ntohs(reinterpret_cast<const dns_hdr *>(Buffer + DNS_DataOffset)->Flags) & (~DNS_GET_BIT_AA)) & (~DNS_GET_BIT_RCODE)))
+			return false;
+
+	//Network layer
+	//IPv6
+		if (Protocol == AF_INET6)
+		{
+			if (PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.VersionTrafficFlow != reinterpret_cast<const ipv6_hdr *>(Buffer)->VersionTrafficFlow)
+				return false;
+		}
+	//IPv4
+		else if (Protocol == AF_INET)
+		{
+			if (PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.IHL != reinterpret_cast<const ipv4_hdr *>(Buffer)->IHL || 
+				PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.DSCP_ECN != reinterpret_cast<const ipv4_hdr *>(Buffer)->DSCP_ECN || 
+				PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.Flags != reinterpret_cast<const ipv4_hdr *>(Buffer)->Flags || 
+				(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.ID == 0 && reinterpret_cast<const ipv4_hdr *>(Buffer)->ID > 0) || 
+				(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.ID > 0 && reinterpret_cast<const ipv4_hdr *>(Buffer)->ID == 0))
+					return false;
+		}
+		else {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 //Match socket information of responses and send responses to system sockets process

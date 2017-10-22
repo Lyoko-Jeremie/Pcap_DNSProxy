@@ -74,11 +74,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 執行時使用 ./CMake_Build.sh --disable-tls 可剝離對 OpenSSL 的依賴，不建議使用
       * 剝離後編譯時將不需要 OpenSSL 庫的支援
       * 剝離後程式將完全失去支援 TLS/SSL 協定的功能，且運行時將不會產生任何錯誤提示，慎用！
-    * 執行時使用 ./CMake_Build.sh --disable-tls 可剝離對 OpenSSL 的依賴，不建議使用
-      * 剝離後編譯時將不需要 OpenSSL 庫的支援
-      * 剝離後程式將完全失去支援 TLS/SSL 協定的功能，且運行時將不會產生任何錯誤提示，慎用！
-  * 有關 OpenSSL 庫的特別說明：
-  
 
 3.按照安裝方法（使用已編譯好的二進位可執行檔）中第3步的操作繼續進行即可
 
@@ -91,7 +86,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * 為系統安裝新版本 OpenSSL 庫後，在開啟 TLS/SSL 功能進行編譯時如果出現 undef: OPENSSL.. 錯誤：
   * 原因是 macOS 自帶的 OpenSSL 系列版本非常老舊(0.9.8)不支援新版本特性，連結器在連結時使用了系統自帶庫導致錯誤
   * 此時先查看編譯過程的記錄，將 Found OpenSSL 指示的 CMake 找到的 OpenSSL 庫檔目錄記下，並確認所使用的版本
-  * 此時可編輯 Pcap_DNSProxy 目錄下的 CMakeLists.txt 檔：
+    * 可編輯 Pcap_DNSProxy 目錄下的 CMakeLists.txt 檔：
     * 編輯時請務必注意引號的問題，必須使用 ASCII 的標準引號
     * 尋找 find_package(OpenSSL REQUIRED) 語句，並另開一行
     * 在新開的一行填入 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L剛才記下的目錄") 優先指定連結器所查找的庫檔

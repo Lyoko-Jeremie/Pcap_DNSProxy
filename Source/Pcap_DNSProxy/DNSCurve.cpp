@@ -67,7 +67,8 @@ size_t DNSCurvePaddingData(
 //Check padding data sign.
 	else if (Length >= DNS_PACKET_MINSIZE)
 	{
-	//Prior to encryption, queries are padded using the ISO/IEC 7816-4 format.The padding starts with a byte valued 0x80 followed by a variable number of NULL bytes.
+	//Prior to encryption, queries are padded using the ISO/IEC 7816-4 format.
+	//The padding starts with a byte valued 0x80 followed by a variable number of NULL bytes.
 		for (size_t Index = Length - 1U;Index >= DNS_PACKET_MINSIZE;--Index)
 		{
 			if (Buffer[Index] == DNSCRYPT_PADDING_SIGN)
@@ -597,8 +598,11 @@ size_t DNSCurvePacketEncryption(
 	{
 	//Make nonce.
 		uint8_t Nonce[crypto_box_NONCEBYTES]{0};
-		for (size_t Index = 0;Index < crypto_box_HALF_NONCEBYTES;Index += sizeof(uint32_t))
+	//Calling a fixed size random data generator in loop is a bad way to fill a whole size random nonce.
+/*		for (size_t Index = 0;Index < crypto_box_HALF_NONCEBYTES;Index += sizeof(uint32_t))
 			*reinterpret_cast<uint32_t *>(Nonce + Index) = randombytes_random();
+*/
+		randombytes_buf(Nonce, crypto_box_HALF_NONCEBYTES);
 		sodium_memzero(Nonce + crypto_box_HALF_NONCEBYTES, crypto_box_HALF_NONCEBYTES);
 
 	//Buffer initialization
@@ -725,8 +729,7 @@ ssize_t DNSCurvePacketDecryption(
 		REQUEST_PROCESS_TYPE::DNSCURVE_MAIN, 
 		OriginalRecv, 
 		DataLength, 
-		RecvSize, 
-		nullptr);
+		RecvSize);
 	if (DataLength < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
 		return EXIT_FAILURE;
 
