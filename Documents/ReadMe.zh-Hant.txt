@@ -604,7 +604,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Switches - 控制開關區域
   * Domain Case Conversion - 隨機轉換網域名稱請求大小寫：開啟為 1 /關閉為 0
   * Compression Pointer Mutation - 隨機添加壓縮指標：可填入 1 (+ 2 + 3)，關閉為 0 
-    * 隨機添加壓縮指標有3種不同的類型，對應 1 和 2 和 3
+    * 隨機添加壓縮指標有 3 種不同的類型，對應 1 和 2 和 3
     * 可單獨使用其中一個，即只填一個數位，或填入多個，中間使用 + 號連接
     * 填入多個時，當實際需要使用隨機添加壓縮指標時將隨機使用其中的一種，每個請求都有可能不相同
   * EDNS Label - EDNS 標籤支援，開啟後將為請求添加 EDNS 標籤：全部開啟為 1 /關閉為 0

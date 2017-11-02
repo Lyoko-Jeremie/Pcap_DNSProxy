@@ -1,8 +1,9 @@
-﻿Pcap_DNSProxy 0.4.9.5 changelog(2017-10-22)：
+﻿Pcap_DNSProxy 0.4.9.5 changelog(2017-11-02)：
 
+* Completed EDNS Label transparency support.
 * Improve operation when using LibSodium.
 * Improve operation when using DNSSEC.
-  * Rename from DNSSEC Force Validation to DNSSEC Force Record
+  * Rename from DNSSEC Force Validation to DNSSEC Force Record.
 * Remove IPv4 Data Filter parameter.
 * Remove DNSSEC Validation parameter.
   * Notice: All features have been moved to DNS Data Filter.

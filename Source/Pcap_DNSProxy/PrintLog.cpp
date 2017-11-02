@@ -480,59 +480,59 @@ void HTTP_CONNECT_2_PrintLog(
 {
 	switch (ErrorCode)
 	{
-		case HTTP2_ERROR_NO_ERROR:
+		case HTTP_2_ERROR_NO_ERROR:
 		{
 			Message.append(L": NO_ERROR");
 		}break;
-		case HTTP2_ERROR_PROTOCOL_ERROR:
+		case HTTP_2_ERROR_PROTOCOL_ERROR:
 		{
 			Message.append(L": PROTOCOL_ERROR");
 		}break;
-		case HTTP2_ERROR_INTERNAL_ERROR:
+		case HTTP_2_ERROR_INTERNAL_ERROR:
 		{
 			Message.append(L": INTERNAL_ERROR");
 		}break;
-		case HTTP2_ERROR_FLOW_CONTROL_ERROR:
+		case HTTP_2_ERROR_FLOW_CONTROL_ERROR:
 		{
 			Message.append(L": FLOW_CONTROL_ERROR");
 		}break;
-		case HTTP2_ERROR_SETTINGS_TIMEOUT:
+		case HTTP_2_ERROR_SETTINGS_TIMEOUT:
 		{
 			Message.append(L": SETTINGS_TIMEOUT");
 		}break;
-		case HTTP2_ERROR_STREAM_CLOSED:
+		case HTTP_2_ERROR_STREAM_CLOSED:
 		{
 			Message.append(L": STREAM_CLOSED");
 		}break;
-		case HTTP2_ERROR_FRAME_SIZE_ERROR:
+		case HTTP_2_ERROR_FRAME_SIZE_ERROR:
 		{
 			Message.append(L": FRAME_SIZE_ERROR");
 		}break;
-		case HTTP2_ERROR_REFUSED_STREAM:
+		case HTTP_2_ERROR_REFUSED_STREAM:
 		{
 			Message.append(L": REFUSED_STREAM");
 		}break;
-		case HTTP2_ERROR_CANCEL:
+		case HTTP_2_ERROR_CANCEL:
 		{
 			Message.append(L": CANCEL");
 		}break;
-		case HTTP2_ERROR_COMPRESSION_ERROR:
+		case HTTP_2_ERROR_COMPRESSION_ERROR:
 		{
 			Message.append(L": COMPRESSION_ERROR");
 		}break;
-		case HTTP2_ERROR_CONNECT_ERROR:
+		case HTTP_2_ERROR_CONNECT_ERROR:
 		{
 			Message.append(L": CONNECT_ERROR");
 		}break;
-		case HTTP2_ERROR_ENHANCE_YOUR_CALM:
+		case HTTP_2_ERROR_ENHANCE_YOUR_CALM:
 		{
 			Message.append(L": ENHANCE_YOUR_CALM");
 		}break;
-		case HTTP2_ERROR_INADEQUATE_SECURITY:
+		case HTTP_2_ERROR_INADEQUATE_SECURITY:
 		{
 			Message.append(L": INADEQUATE_SECURITY");
 		}break;
-		case HTTP2_ERROR_HTTP_1_1_REQUIRED:
+		case HTTP_2_ERROR_HTTP_1_1_REQUIRED:
 		{
 			Message.append(L": HTTP_1_1_REQUIRED");
 		}break;

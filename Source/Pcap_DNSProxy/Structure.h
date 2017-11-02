@@ -614,7 +614,7 @@ typedef struct _ppp_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define IPV4_STANDARD_IHL            0x05   //Standard IPv4 header length(0x05/20 bytes)
+#define IPV4_IHL_STANDARD            0x05   //Standard IPv4 header length(0x05/20 bytes)
 #define IPV4_IHL_BYTES_TIMES         4U     //IHL is number of 32-bit words(4 bytes).
 typedef struct _ipv4_hdr_
 {
@@ -842,17 +842,17 @@ typedef struct _icmpv6_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define TCP_STANDARD_IHL      5U       //Standard TCP header length
-#define TCP_IHL_BYTES_TIMES   4U       //IHL is number of 32-bit words(4 bytes).
-#define TCP_GET_BIT_IHL       0xF000   //Get Data Offset in TCP IHL
-#define TCP_GET_BIT_FLAG      0x0FFF   //Get TCP flag bits
-#define TCP_GET_BIT_CWR       0x0080   //Get Congestion Window Reduced bit in TCP flags
-#define TCP_GET_BIT_ECE       0x0040   //Get ECN-Echo indicates bit in TCP flags
-#define TCP_STATUS_RST        0x0004   //TCP status: RST
-#define TCP_STATUS_ACK        0x0010   //TCP status: ACK
-#define TCP_STATUS_FIN_ACK    0x0011   //TCP status: FIN, ACK
-#define TCP_STATUS_SYN_ACK    0x0012   //TCP status: SYN, ACK
-#define TCP_STATUS_PSH_ACK    0x0018   //TCP status: PSH, ACK
+#define TCP_IHL_STANDARD        5U       //Standard TCP header length
+#define TCP_IHL_BYTES_TIMES     4U       //IHL is number of 32-bit words(4 bytes).
+#define TCP_FLAG_GET_BIT_IHL    0xF000   //Get data offset in TCP IHL
+#define TCP_FLAG_GET_BIT_FLAG   0x0FFF   //Get bits in TCP flag
+#define TCP_FLAG_GET_BIT_CWR    0x0080   //Get Congestion Window Reduced bit in TCP flags
+#define TCP_FLAG_GET_BIT_ECE    0x0040   //Get ECN-Echo indicates bit in TCP flags
+#define TCP_STATUS_RST          0x0004   //TCP status: RST
+#define TCP_STATUS_ACK          0x0010   //TCP status: ACK
+#define TCP_STATUS_FIN_ACK      0x0011   //TCP status: FIN, ACK
+#define TCP_STATUS_SYN_ACK      0x0012   //TCP status: SYN, ACK
+#define TCP_STATUS_PSH_ACK      0x0018   //TCP status: PSH, ACK
 
 //Port definitions(1 - 1024, well-known ports)
 //About this list, please visit IANA Service Name and Transport Protocol Port Number Registry(https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml)
@@ -1332,27 +1332,27 @@ typedef struct _ipv6_psd_hdr_
 #ifndef IPPORT_LLMNR
 	#define IPPORT_LLMNR                  5355U      //Link-Local Multicast Name Resolution/LLMNR Port
 #endif
-#define DNS_STANDARD                  0x0100     //System Standard query flag
-#define DNS_SQR_NE                    0x8180     //Standard query response and No Error.
-#define DNS_SQR_NEA                   0x8580     //Standard query response, No Error and Authoritative.
-#define DNS_SQR_NETC                  0x8380     //Standard query response and No Error, but Truncated.
-#define DNS_SQR_FE                    0x8181     //Standard query response, Format Error
-#define DNS_SQR_SF                    0x8182     //Standard query response, Server failure
-#define DNS_SQR_SNH                   0x8183     //Standard query response, No Such Name
-#define DNS_GET_BIT_RESPONSE          0x8000     //Get Response bit in DNS flags.
-#define DNS_GET_BIT_OPCODE            0x7800     //Get OPCode in DNS flags.
-#define DNS_GET_BIT_AA                0x0400     //Get Authoritative bit in DNS flags.
-#define DNS_GET_BIT_TC                0x0200     //Get Truncated bit in DNS flags.
-#define DNS_GET_BIT_RD                0x0100     //Get Recursion Desired bit in DNS flags.
-#define DNS_GET_BIT_Z                 0x0040     //Get Reserved bit in DNS flags.
-#define DNS_GET_BIT_AD                0x0020     //Get Authentic Data bit in DNS flags.
-#define DNS_GET_BIT_CD                0x0010     //Get Checking Disabled bit in DNS flags.
-#define DNS_GET_BIT_RCODE             0x000F     //Get RCode in DNS flags.
-#define DNS_SET_R                     0x8000     //Set Response bit.
-#define DNS_SET_R_TC                  0x8200     //Set Response bit and Truncated bit.
-#define DNS_SER_R_A                   0x8580     //Set Response bit and Authoritative bit.
-#define DNS_SET_R_FE                  0x8001     //Set Response bit and Format Error RCode.
-#define DNS_SET_R_SNH                 0x8003     //Set Response bit and No Such Name RCode.
+#define DNS_FLAG_STANDARD             0x0100     //System Standard query
+#define DNS_FLAG_SQR_NE               0x8180     //Standard query response and No Error.
+#define DNS_FLAG_SQR_NEA              0x8580     //Standard query response, No Error and Authoritative.
+#define DNS_FLAG_SQR_NETC             0x8380     //Standard query response and No Error, but Truncated.
+#define DNS_FLAG_SQR_FE               0x8181     //Standard query response, Format Error
+#define DNS_FLAG_SQR_SF               0x8182     //Standard query response, Server failure
+#define DNS_FLAG_SQR_SNH              0x8183     //Standard query response, No Such Name
+#define DNS_FLAG_GET_BIT_RESPONSE     0x8000     //Get Response bit in DNS flags.
+#define DNS_FLAG_GET_BIT_OPCODE       0x7800     //Get OPCode in DNS flags.
+#define DNS_FLAG_GET_BIT_AA           0x0400     //Get Authoritative bit in DNS flags.
+#define DNS_FLAG_GET_BIT_TC           0x0200     //Get Truncated bit in DNS flags.
+#define DNS_FLAG_GET_BIT_RD           0x0100     //Get Recursion Desired bit in DNS flags.
+#define DNS_FLAG_GET_BIT_Z            0x0040     //Get Reserved bit in DNS flags.
+#define DNS_FLAG_GET_BIT_AD           0x0020     //Get Authentic Data bit in DNS flags.
+#define DNS_FLAG_GET_BIT_CD           0x0010     //Get Checking Disabled bit in DNS flags.
+#define DNS_FLAG_GET_BIT_RCODE        0x000F     //Get RCode in DNS flags.
+#define DNS_FLAG_SET_R                0x8000     //Set Response bit in DNS flags.
+#define DNS_FLAG_SET_R_TC             0x8200     //Set Response bit and Truncated bit in DNS flags.
+#define DNS_FLAG_SET_R_A              0x8580     //Set Response bit and Authoritative bit in DNS flags.
+#define DNS_FLAG_SET_R_FE             0x8001     //Set Response bit and Format Error RCode in DNS flags.
+#define DNS_FLAG_SET_R_SNH            0x8003     //Set Response bit and No Such Name RCode in DNS flags.
 #define DNS_POINTER_8_BITS            0xC0       //DNS compression pointer(11000000)
 #define DNS_POINTER_16_BITS           0xC000     //DNS compression pointer(1100000000000000)
 #define DNS_POINTER_8_BITS_STRING     ('\xC0')   //DNS compression pointer string
@@ -2117,14 +2117,15 @@ typedef struct _dns_record_srv_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |             Type              |       UDP Payload Size        |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|Extended RCode |EDNS Version |D|           Reserved            |  Extended RCode/Higher bits in extended Return Code, D/DO bit
+|Extended RCode |EDNS Version |D|           Reserved            |  Extended RCode/Higher bits in extended Return Code, D/DO/DNSSEC OK bit
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |            Length             |\---------- Z Field -----------/
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define EDNS_PACKET_MINSIZE    1220U
-#define EDNS_GET_BIT_DO        0x8000        //Get DO bit in Z field.
+#define EDNS_VERSION_ZERO           0
+#define EDNS_PACKET_MINSIZE         1220U
+#define EDNS_FLAG_GET_BIT_DO        0x8000        //Get DO bit in Z field.
 typedef struct _dns_record_opt_
 {
 	uint8_t               Name;
@@ -2148,7 +2149,7 @@ typedef struct _dns_record_opt_
 	uint16_t              DataLength;
 }dns_record_opt, edns_header;
 
-/* Extension Mechanisms for Domain Name System/EDNS Option
+/* Extension Mechanisms for Domain Name System/EDNS Data Option
                     1                   2                   3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -2161,12 +2162,12 @@ typedef struct _dns_record_opt_
 /                                                               /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 */
-typedef struct _dns_edns_option_
+typedef struct _edns_data_option_
 {
 	uint16_t              Code;
 	uint16_t              Length;
 //	uint8_t               *Data;
-}dns_edns_option;
+}edns_data_option;
 
 /* Extension Mechanisms for Domain Name System/DNS, Client subnet in EDNS requests
 * RFC 7871, Client Subnet in DNS Queries(https://tools.ietf.org/html/rfc7871)
@@ -2195,8 +2196,8 @@ typedef struct _dns_edns_option_
 #define EDNS_CODE_EDNS_EXPIRE                    0x0009   //EDNS Expire (RFC 7314)
 
 //About Address Family Numbers, please visit https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml.
-#define ADDRESS_FAMILY_IPV4                      0x0001
-#define ADDRESS_FAMILY_IPV6                      0x0002
+#define EDNS_ADDRESS_FAMILY_IPV4                 0x0001
+#define EDNS_ADDRESS_FAMILY_IPV6                 0x0002
 
 //Source prefix bits
 #define EDNS_CLIENT_SUBNET_SOURCE_PREFIX_IPV6    56U
@@ -2224,11 +2225,11 @@ typedef struct _edns_client_subnet_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define DNSSEC_DS_DIGEST_RESERVED              0
-#define DNSSEC_DS_DIGEST_SHA1                  1U       //RFC 3658, Delegation Signer (DS) Resource Record (RR)(https://tools.ietf.org/html/rfc3658)
-#define DNSSEC_DS_DIGEST_SHA256                2U       //RFC 4509, Use of SHA-256 in DNSSEC Delegation Signer (DS) Resource Records (RRs)(https://tools.ietf.org/html/rfc4509)
-#define DNSSEC_DS_DIGEST_GOST                  3U       //RFC 5933, Use of GOST Signature Algorithms in DNSKEY and RRSIG Resource Records for DNSSEC(https://tools.ietf.org/html/rfc5933)
-#define DNSSEC_DS_DIGEST_SHA384                4U       //RFC 6605, Elliptic Curve Digital Signature Algorithm (DSA) for DNSSEC(https://tools.ietf.org/html/rfc6605)
+#define DNSSEC_DIGEST_DS_RESERVED              0
+#define DNSSEC_DIGEST_DS_SHA1                  1U       //RFC 3658, Delegation Signer (DS) Resource Record (RR)(https://tools.ietf.org/html/rfc3658)
+#define DNSSEC_DIGEST_DS_SHA256                2U       //RFC 4509, Use of SHA-256 in DNSSEC Delegation Signer (DS) Resource Records (RRs)(https://tools.ietf.org/html/rfc4509)
+#define DNSSEC_DIGEST_DS_GOST                  3U       //RFC 5933, Use of GOST Signature Algorithms in DNSKEY and RRSIG Resource Records for DNSSEC(https://tools.ietf.org/html/rfc5933)
+#define DNSSEC_DIGEST_DS_SHA384                4U       //RFC 6605, Elliptic Curve Digital Signature Algorithm (DSA) for DNSSEC(https://tools.ietf.org/html/rfc6605)
 
 //About this list, please visit https://www.iana.org/assignments/ds-rr-types/ds-rr-types.xhtml
 #define DNSSEC_DS_TYPE_RESERVED                0
@@ -2236,10 +2237,10 @@ typedef struct _edns_client_subnet_
 #define DNSSEC_DS_TYPE_SHA256                  2U
 #define DNSSEC_DS_TYPE_GOST                    3U
 #define DNSSEC_DS_TYPE_SHA384                  4U
-#define SHA1_LENGTH                            20       //SHA-1 output is 160 bits/20 bytes lentgh
-#define SHA256_LENGTH                          32       //SHA-256 output is 256 bits/32 bytes lentgh
-#define GOST_LENGTH                            32       //GOST R 34.11-94 output is 256 bits/32 bytes lentgh
-#define SHA384_LENGTH                          48       //SHA-384 output is 384 bits/48 bytes lentgh
+#define DNSSEC_LENGTH_SHA1                     20U      //SHA-1 output is 160 bits/20 bytes lentgh
+#define DNSSEC_LENGTH_SHA256                   32U      //SHA-256 output is 256 bits/32 bytes lentgh
+#define DNSSEC_LENGTH_GOST                     32U      //GOST R 34.11-94 output is 256 bits/32 bytes lentgh
+#define DNSSEC_LENGTH_SHA384                   48U      //SHA-384 output is 384 bits/48 bytes lentgh
 typedef struct _dns_record_ds_
 {
 	uint16_t              KeyTag;
@@ -2292,10 +2293,10 @@ typedef struct _dns_record_ds_
 #define DNSSEC_AlGORITHM_PRIVATE_DNS           253U     //RFC 4034, Private algorithm(Resource Records for the DNS Security Extensions(https://tools.ietf.org/html/rfc4034)
 #define DNSSEC_AlGORITHM_PRIVATE_OID           254U     //RFC 4034, Private algorithm(Resource Records for the DNS Security Extensions(https://tools.ietf.org/html/rfc4034)
 #define DNSSEC_AlGORITHM_RESERVED_255          255U     //RFC 4034, Reserved(Resource Records for the DNS Security Extensions(https://tools.ietf.org/html/rfc4034)
-#define RSA_MIN_LENGTH                         64U
-#define DH_MIN_LENGTH                          96U
-#define DSA_MIN_LENGTH                         128U
-#define ECC_MIN_LENGTH                         24U
+#define DNSSEC_MINSIZE_RSA                     64U
+#define DNSSEC_MINSIZE_DH                      96U
+#define DNSSEC_MINSIZE_DSA                     128U
+#define DNSSEC_MINSIZE_ECC                     24U
 typedef struct _dns_record_rrsig_
 {
 	uint16_t              TypeCovered;
@@ -2501,15 +2502,15 @@ typedef struct _dns_record_caa_
 #define DNSCRYPT_CERT_MAGIC               ("DNSC")                       //Signature Magic Number
 #define DNSCRYPT_PADDING_SIGN             0x80
 #define DNSCRYPT_PADDING_SIGN_STRING      ('\x80')
-#define crypto_box_HALF_NONCEBYTES        (crypto_box_NONCEBYTES / 2U)
 // Function definitions
-#define crypto_sign_open                  crypto_sign_ed25519_open
 #define crypto_box                        crypto_box_curve25519xsalsa20poly1305
+#define crypto_box_HALF_NONCEBYTES        (crypto_box_NONCEBYTES / 2U)
 #define crypto_box_open                   crypto_box_curve25519xsalsa20poly1305_open
 #define crypto_box_keypair                crypto_box_curve25519xsalsa20poly1305_keypair
 #define crypto_box_beforenm               crypto_box_curve25519xsalsa20poly1305_beforenm
 #define crypto_box_afternm                crypto_box_curve25519xsalsa20poly1305_afternm
 #define crypto_box_open_afternm           crypto_box_curve25519xsalsa20poly1305_open_afternm
+#define crypto_sign_open                  crypto_sign_ed25519_open
 
 /* Domain Name System Curve/DNSCurve Test Strings/TXT Data header
 
@@ -2810,12 +2811,12 @@ typedef struct _socks_udp_relay_request_
 #if defined(ENABLE_TLS)
 #if defined(PLATFORM_WIN)
 #if !defined(PLATFORM_WIN_XP)
-#define HTTP1_TLS_ALPN_STRING                       ("http/1.1")
-#define HTTP2_TLS_ALPN_STRING                       ("h2")
+#define HTTP_1_TLS_ALPN_STRING                      ("http/1.1")
+#define HTTP_2_TLS_ALPN_STRING                      ("h2")
 #endif
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-#define HTTP1_TLS_ALPN_STRING                       {8U, 'h', 't', 't', 'p', '/', '1', '.', '1'}
-#define HTTP2_TLS_ALPN_STRING                       {2U, 'h', '2'}
+#define HTTP_1_TLS_ALPN_STRING                      {8U, 'h', 't', 't', 'p', '/', '1', '.', '1'}
+#define HTTP_2_TLS_ALPN_STRING                      {2U, 'h', '2'}
 #endif
 #endif
 /* Hypertext Transfer Protocol Version 2 (HTTP/2) frame header
@@ -2834,19 +2835,19 @@ typedef struct _socks_udp_relay_request_
 /                                                               /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 */
-#define HTTP2_FRAME_TYPE_DATA                       0
-#define HTTP2_FRAME_TYPE_HEADERS                    1U
-#define HTTP2_FRAME_TYPE_PRIORITY                   2U
-#define HTTP2_FRAME_TYPE_RST_STREAM                 3U
-#define HTTP2_FRAME_TYPE_SETTINGS                   4U
-#define HTTP2_FRAME_TYPE_PUSH_PROMISE               5U
-#define HTTP2_FRAME_TYPE_PING                       6U
-#define HTTP2_FRAME_TYPE_GOAWAY                     7U
-#define HTTP2_FRAME_TYPE_WINDOW_UPDATE              8U
-#define HTTP2_FRAME_TYPE_CONTINUATION               9U
-#define HTTP2_FRAME_INIT_STREAM_ID                  1U
-#define HTTP2_FREAM_MAXSIZE                         16383U
-#define HTTP2_CONNECTION_CLIENT_PREFACE             ("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n")
+#define HTTP_2_FRAME_TYPE_DATA                      0
+#define HTTP_2_FRAME_TYPE_HEADERS                   1U
+#define HTTP_2_FRAME_TYPE_PRIORITY                  2U
+#define HTTP_2_FRAME_TYPE_RST_STREAM                3U
+#define HTTP_2_FRAME_TYPE_SETTINGS                  4U
+#define HTTP_2_FRAME_TYPE_PUSH_PROMISE              5U
+#define HTTP_2_FRAME_TYPE_PING                      6U
+#define HTTP_2_FRAME_TYPE_GOAWAY                    7U
+#define HTTP_2_FRAME_TYPE_WINDOW_UPDATE             8U
+#define HTTP_2_FRAME_TYPE_CONTINUATION              9U
+#define HTTP_2_FRAME_INIT_STREAM_ID                 1U
+#define HTTP_2_FREAM_MAXSIZE                        16383U
+#define HTTP_2_CONNECTION_CLIENT_PREFACE            ("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n")
 typedef struct _http2_frame_hdr_
 {
 	uint8_t               Length_High;
@@ -2874,7 +2875,7 @@ typedef struct _http2_frame_hdr_
 /                                                               /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 */
-#define HTTP2_DATA_FLAGS_END_STREAM                  0x01
+#define HTTP_2_DATA_FLAGS_END_STREAM                 0x01
 /*
 typedef struct _http2_data_frame_hdr_
 {
@@ -2902,34 +2903,34 @@ typedef struct _http2_data_frame_hdr_
 /                                                               /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 */
-#define HTTP2_HEADERS_FLAGS_END_STREAM               0x01
-#define HTTP2_HEADERS_FLAGS_END_HEADERS              0x04
-#define HTTP2_HEADERS_FLAGS_PADDED                   0x08
-#define HTTP2_HEADERS_FLAGS_PRIORITY                 0x20
-#define HTTP2_HEADERS_LITERAL_WITHOUT_INDEXED        0
-#define HTTP2_HEADERS_LITERAL_NEVER_INDEXED          0x10
-#define HTTP2_HEADERS_LITERAL_TABLE_SIZE_UPDATE      0x20
-#define HTTP2_HEADERS_LITERAL_INCREMENTAL_INDEXED    0x40
-#define HTTP2_HEADERS_LITERAL_LOW_1_BITS             0x01
-#define HTTP2_HEADERS_LITERAL_LOW_2_BITS             0x03
-#define HTTP2_HEADERS_LITERAL_LOW_3_BITS             0x07
-#define HTTP2_HEADERS_LITERAL_LOW_4_BITS             0x0F
-#define HTTP2_HEADERS_LITERAL_LOW_5_BITS             0x1F
-#define HTTP2_HEADERS_LITERAL_LOW_6_BITS             0x3F
-#define HTTP2_HEADERS_LITERAL_LOW_7_BITS             0x7F
-#define HTTP2_HEADERS_LITERAL_HIGH_1_BITS            0x80
-#define HTTP2_HEADERS_LITERAL_HIGH_2_BITS            0xC0
-#define HTTP2_HEADERS_LITERAL_HIGH_3_BITS            0xE0
-#define HTTP2_HEADERS_LITERAL_HIGH_4_BITS            0xF0
-#define HTTP2_HEADERS_LITERAL_INDEXED_STATUS_200     0x88
-#define HTTP2_HEADERS_INTEGER_LOW_1_BITS             HTTP2_HEADERS_LITERAL_LOW_1_BITS
-#define HTTP2_HEADERS_INTEGER_LOW_2_BITS             HTTP2_HEADERS_LITERAL_LOW_2_BITS
-#define HTTP2_HEADERS_INTEGER_LOW_3_BITS             HTTP2_HEADERS_LITERAL_LOW_3_BITS
-#define HTTP2_HEADERS_INTEGER_LOW_4_BITS             HTTP2_HEADERS_LITERAL_LOW_4_BITS
-#define HTTP2_HEADERS_INTEGER_LOW_5_BITS             HTTP2_HEADERS_LITERAL_LOW_5_BITS
-#define HTTP2_HEADERS_INTEGER_LOW_6_BITS             HTTP2_HEADERS_LITERAL_LOW_6_BITS
-#define HTTP2_HEADERS_INTEGER_LOW_7_BITS             HTTP2_HEADERS_LITERAL_LOW_7_BITS
-#define HTTP2_HEADERS_INTEGER_HIGH_1_BITS            HTTP2_HEADERS_LITERAL_HIGH_1_BITS
+#define HTTP_2_HEADERS_FLAGS_END_STREAM              0x01
+#define HTTP_2_HEADERS_FLAGS_END_HEADERS             0x04
+#define HTTP_2_HEADERS_FLAGS_PADDED                  0x08
+#define HTTP_2_HEADERS_FLAGS_PRIORITY                0x20
+#define HTTP_2_HEADERS_LITERAL_WITHOUT_INDEXED       0
+#define HTTP_2_HEADERS_LITERAL_NEVER_INDEXED         0x10
+#define HTTP_2_HEADERS_LITERAL_TABLE_SIZE_UPDATE     0x20
+#define HTTP_2_HEADERS_LITERAL_INCREMENTAL_INDEXED   0x40
+#define HTTP_2_HEADERS_LITERAL_LOW_1_BITS            0x01
+#define HTTP_2_HEADERS_LITERAL_LOW_2_BITS            0x03
+#define HTTP_2_HEADERS_LITERAL_LOW_3_BITS            0x07
+#define HTTP_2_HEADERS_LITERAL_LOW_4_BITS            0x0F
+#define HTTP_2_HEADERS_LITERAL_LOW_5_BITS            0x1F
+#define HTTP_2_HEADERS_LITERAL_LOW_6_BITS            0x3F
+#define HTTP_2_HEADERS_LITERAL_LOW_7_BITS            0x7F
+#define HTTP_2_HEADERS_LITERAL_HIGH_1_BITS           0x80
+#define HTTP_2_HEADERS_LITERAL_HIGH_2_BITS           0xC0
+#define HTTP_2_HEADERS_LITERAL_HIGH_3_BITS           0xE0
+#define HTTP_2_HEADERS_LITERAL_HIGH_4_BITS           0xF0
+#define HTTP_2_HEADERS_LITERAL_INDEXED_STATUS_200    0x88
+#define HTTP_2_HEADERS_INTEGER_LOW_1_BITS            HTTP_2_HEADERS_LITERAL_LOW_1_BITS
+#define HTTP_2_HEADERS_INTEGER_LOW_2_BITS            HTTP_2_HEADERS_LITERAL_LOW_2_BITS
+#define HTTP_2_HEADERS_INTEGER_LOW_3_BITS            HTTP_2_HEADERS_LITERAL_LOW_3_BITS
+#define HTTP_2_HEADERS_INTEGER_LOW_4_BITS            HTTP_2_HEADERS_LITERAL_LOW_4_BITS
+#define HTTP_2_HEADERS_INTEGER_LOW_5_BITS            HTTP_2_HEADERS_LITERAL_LOW_5_BITS
+#define HTTP_2_HEADERS_INTEGER_LOW_6_BITS            HTTP_2_HEADERS_LITERAL_LOW_6_BITS
+#define HTTP_2_HEADERS_INTEGER_LOW_7_BITS            HTTP_2_HEADERS_LITERAL_LOW_7_BITS
+#define HTTP_2_HEADERS_INTEGER_HIGH_1_BITS           HTTP_2_HEADERS_LITERAL_HIGH_1_BITS
 /*
 typedef struct _http2_headers_frame_hdr_
 {
@@ -2965,20 +2966,20 @@ typedef struct _http2_priority_frame_
 |                          Error Code                           |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 */
-#define HTTP2_ERROR_NO_ERROR                        0
-#define HTTP2_ERROR_PROTOCOL_ERROR                  1U
-#define HTTP2_ERROR_INTERNAL_ERROR                  2U
-#define HTTP2_ERROR_FLOW_CONTROL_ERROR              3U
-#define HTTP2_ERROR_SETTINGS_TIMEOUT                4U
-#define HTTP2_ERROR_STREAM_CLOSED                   5U
-#define HTTP2_ERROR_FRAME_SIZE_ERROR                6U
-#define HTTP2_ERROR_REFUSED_STREAM                  7U
-#define HTTP2_ERROR_CANCEL                          8U
-#define HTTP2_ERROR_COMPRESSION_ERROR               9U
-#define HTTP2_ERROR_CONNECT_ERROR                   10U
-#define HTTP2_ERROR_ENHANCE_YOUR_CALM               11U
-#define HTTP2_ERROR_INADEQUATE_SECURITY             12U
-#define HTTP2_ERROR_HTTP_1_1_REQUIRED               13U
+#define HTTP_2_ERROR_NO_ERROR                        0
+#define HTTP_2_ERROR_PROTOCOL_ERROR                  1U
+#define HTTP_2_ERROR_INTERNAL_ERROR                  2U
+#define HTTP_2_ERROR_FLOW_CONTROL_ERROR              3U
+#define HTTP_2_ERROR_SETTINGS_TIMEOUT                4U
+#define HTTP_2_ERROR_STREAM_CLOSED                   5U
+#define HTTP_2_ERROR_FRAME_SIZE_ERROR                6U
+#define HTTP_2_ERROR_REFUSED_STREAM                  7U
+#define HTTP_2_ERROR_CANCEL                          8U
+#define HTTP_2_ERROR_COMPRESSION_ERROR               9U
+#define HTTP_2_ERROR_CONNECT_ERROR                   10U
+#define HTTP_2_ERROR_ENHANCE_YOUR_CALM               11U
+#define HTTP_2_ERROR_INADEQUATE_SECURITY             12U
+#define HTTP_2_ERROR_HTTP_1_1_REQUIRED               13U
 typedef struct _http2_rst_stream_frame_
 {
 	uint32_t               ErrorCode;
@@ -2994,18 +2995,18 @@ typedef struct _http2_rst_stream_frame_
 |             Value             |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 */
-#define HTTP2_SETTINGS_TYPE_HEADERS_TABLE_SIZE       1U
-#define HTTP2_SETTINGS_TYPE_ENABLE_PUSH              2U
-#define HTTP2_SETTINGS_TYPE_MAX_CONCURRENT_STREAMS   3U
-#define HTTP2_SETTINGS_TYPE_INITIAL_WINDOW_SIZE      4U
-#define HTTP2_SETTINGS_TYPE_MAX_FRAME_SIZE           5U
-#define HTTP2_SETTINGS_TYPE_MAX_HEADERS_LIST_SIZE    6U
-#define HTTP2_SETTINGS_FLAGS_ACK                     0x01
-#define HTTP2_SETTINGS_INIT_HEADERS_TABLE_SIZE       4096U
-#define HTTP2_SETTINGS_INIT_ENABLE_PUSH              1U
-#define HTTP2_SETTINGS_INIT_MAX_CONCURRENT_STREAMS   100U
-#define HTTP2_SETTINGS_INIT_INITIAL_WINDOW_SIZE      65535U
-#define HTTP2_SETTINGS_INIT_MAX_FRAME_SIZE           16384U
+#define HTTP_2_SETTINGS_TYPE_HEADERS_TABLE_SIZE       1U
+#define HTTP_2_SETTINGS_TYPE_ENABLE_PUSH              2U
+#define HTTP_2_SETTINGS_TYPE_MAX_CONCURRENT_STREAMS   3U
+#define HTTP_2_SETTINGS_TYPE_INITIAL_WINDOW_SIZE      4U
+#define HTTP_2_SETTINGS_TYPE_MAX_FRAME_SIZE           5U
+#define HTTP_2_SETTINGS_TYPE_MAX_HEADERS_LIST_SIZE    6U
+#define HTTP_2_SETTINGS_FLAGS_ACK                     0x01
+#define HTTP_2_SETTINGS_INIT_HEADERS_TABLE_SIZE       4096U
+#define HTTP_2_SETTINGS_INIT_ENABLE_PUSH              1U
+#define HTTP_2_SETTINGS_INIT_MAX_CONCURRENT_STREAMS   100U
+#define HTTP_2_SETTINGS_INIT_INITIAL_WINDOW_SIZE      65535U
+#define HTTP_2_SETTINGS_INIT_MAX_FRAME_SIZE           16384U
 typedef struct _http2_settings_frame_
 {
 	uint16_t               Identifier;
@@ -3048,7 +3049,7 @@ typedef struct _http2_push_promise_frame_hdr_
 |                                                               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 */
-#define HTTP2_PING_FLAGS_ACK                         0x01
+#define HTTP_2_PING_FLAGS_ACK                        0x01
 typedef struct _http2_ping_frame_
 {
 	uint64_t               OpaqueData;
@@ -3117,7 +3118,7 @@ typedef struct _http2_continuation_frame_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-++-+-+-+-+-+-+-+-++-+-+-+-+-+-+
 
 */
-#define TLS_MIN_VERSION                             0x0301                      //TLS 1.0 = SSL 3.1
+#define TLS_VERSION_MIN                             0x0301                      //TLS 1.0 = SSL 3.1
 typedef struct _tls_base_record_
 {
 	uint8_t               ContentType;

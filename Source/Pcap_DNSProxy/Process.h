@@ -62,7 +62,7 @@ bool TCP_RequestProcess(
 void UDP_RequestProcess(
 	MONITOR_QUEUE_DATA &MonitorQueryData);
 #endif
-uint16_t SelectNetworkProtocol(
+uint16_t SelectDirectProtocol(
 	void);
 void AutoRemoveExpired_DNS_Cache(
 	void);

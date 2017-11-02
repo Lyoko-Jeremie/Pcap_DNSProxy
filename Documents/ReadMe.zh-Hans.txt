@@ -599,7 +599,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Switches - 控制开关区域
   * Domain Case Conversion - 随机转换域名请求大小写：开启为 1 /关闭为 0
   * Compression Pointer Mutation - 随机添加压缩指针：可填入 1 (+ 2 + 3)，关闭为 0
-    * 随机添加压缩指针有3种不同的类型，对应 1 和 2 和 3
+    * 随机添加压缩指针有 3 种不同的类型，对应 1 和 2 和 3
     * 可单独使用其中一个，即只填一个数字，或填入多个，中间使用 + 号连接
     * 填入多个时，当实际需要使用随机添加压缩指针时将随机使用其中的一种，每个请求都有可能不相同
   * EDNS Label - EDNS 标签支持，开启后将为请求添加 EDNS 标签：全部开启为 1 /关闭为 0

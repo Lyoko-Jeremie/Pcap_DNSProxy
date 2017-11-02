@@ -48,7 +48,7 @@
 	#define LIBSODIUM_ERROR                               (-1)
 #endif
 #define BYTES_TO_BITS                                 8U                          //8 bits = 1 byte
-#define U16_NUM_ONE                                   0x0001
+#define UINT16_NUM_ONE                                0x0001
 #define HEX_PREAMBLE_STRING                           ("0x")                      //Hexadecimal preamble
 
 //Character value definitions
@@ -116,11 +116,11 @@
 #define CONFIG_VERSION_MAJOR                          0                                     //Current configuration file major version(0.45)
 #define CONFIG_VERSION_MINOR                          45U                                   //Current configuration file minor version(0.45)
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2017 Chengr28"   //Copyright message
-#define FULL_VERSION                                  L"0.4.9.4"                            //Current full version
+#define FULL_VERSION                                  L"0.4.9.5"                            //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_MAXSIZE                        64U                               //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
-#define ALTERNATE_SERVERNUM                           12U                               //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
+#define ALTERNATE_SERVER_NUM                          12U                               //Alternate switching of Main(00: TCP/IPv6, 01: TCP/IPv4, 02: UDP/IPv6, 03: UDP/IPv4), Local(04: TCP/IPv6, 05: TCP/IPv4, 06: UDP/IPv6, 07: UDP/IPv4), DNSCurve(08: TCP/IPv6, 09: TCP/IPv4, 10: UDP/IPv6, 11: UDP/IPv4)
 #define DEFAULT_LARGE_BUFFER_SIZE                     4096U                             //Default size of large buffer(4KB/4096 bytes)
 #define COMMAND_BUFFER_MAXSIZE                        DEFAULT_LARGE_BUFFER_SIZE         //Maximum size of commands buffer
 #define COMMAND_MIN_COUNT                             1                                 //Minimum count of commands
@@ -179,8 +179,8 @@
 #define UINT8_MAX_STRING_LENGTH                       4U                          //Maximum number of 8 bits is 255, its length is 3.
 
 //Size and length definitions(Data)
-#define DNS_PACKET_MINSIZE                            (sizeof(dns_hdr) + NULL_TERMINATE_LENGTH + sizeof(dns_qry))                              //Minimum DNS packet size(DNS Header + Minimum Domain<ROOT> + DNS Query)
-#define EDNS_ADDITIONAL_MAXSIZE                       (sizeof(dns_record_opt) * 2U + sizeof(edns_client_subnet) + sizeof(in6_addr))            //Maximum of EDNS Additional Record Resources size
+#define DNS_PACKET_MINSIZE                            (sizeof(dns_hdr) + NULL_TERMINATE_LENGTH + sizeof(dns_qry))                                    //Minimum DNS packet size(DNS header + Minimum domain<ROOT> + DNS query)
+#define EDNS_RECORD_MAXSIZE                           (sizeof(edns_header) + sizeof(edns_client_subnet) * 2U + sizeof(in6_addr) + sizeof(in_addr))   //Maximum of EDNS Resource Record size
 #if defined(ENABLE_LIBSODIUM)
 	#define DNSCRYPT_BUFFER_RESERVED_LEN                  (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES - crypto_box_BOXZEROBYTES)
 	#define DNSCRYPT_BUFFER_RESERVED_TCP_LEN              (sizeof(uint16_t) + DNSCRYPT_BUFFER_RESERVED_LEN)
@@ -684,21 +684,25 @@ typedef struct _socket_selecting_serial_data_
 //DNS Packet Data structure
 typedef struct _dns_packet_data_
 {
-//Packet structure block
-	uint8_t                              *Buffer;
-	size_t                               QuestionLen;
-	size_t                               AnswerCount;
-	size_t                               AuthorityCount;
-	size_t                               AdditionalCount;
-	size_t                               EDNS_RecordLen;
 //Packet attributes block
-	size_t                               BufferSize;
-	size_t                               Length;
-	ADDRESS_UNION_DATA                   LocalTarget;
-	uint16_t                             Protocol;
-	bool                                 IsLocalRequest;
-	bool                                 IsLocalInBlack;
-	bool                                 IsLocalInWhite;
+	uint8_t                                                    *Buffer;
+	size_t                                                     BufferSize;
+	size_t                                                     Length;
+	ADDRESS_UNION_DATA                                         LocalTarget;
+	uint16_t                                                   Protocol;
+	bool                                                       IsLocalRequest;
+	bool                                                       IsLocalInBlack;
+	bool                                                       IsLocalInWhite;
+//Packet structure block
+	size_t                                                     Records_QuestionLen;
+	size_t                                                     Records_AnswerCount;
+	size_t                                                     Records_AuthorityCount;
+	size_t                                                     Records_AdditionalCount;
+	std::vector<size_t>                                        Records_Location;
+	std::vector<size_t>                                        Records_Length;
+	size_t                                                     EDNS_Location;
+	size_t                                                     EDNS_Length;
+	uint16_t                                                   EDNS_RequesterPayload;
 }DNSPacketData, DNS_PACKET_DATA;
 
 //DNS Cache Data structure
@@ -724,8 +728,8 @@ typedef struct _dnscurve_server_data_
 	uint8_t                              *PrecomputationKey;     //DNSCurve Precomputation Keys
 	uint8_t                              *ServerPublicKey;       //Server Public Keys
 	uint8_t                              *ServerFingerprint;     //Server Fingerprints
-	uint8_t                              *ReceiveMagicNumber;    //Receive Magic Number(Same from server received)
-	uint8_t                              *SendMagicNumber;       //Server Magic Number(Send to server)
+	uint8_t                              *ReceiveMagicNumber;    //Receive Magic Number, same as from server
+	uint8_t                              *SendMagicNumber;       //Server Magic Number, send to server.
 }DNSCurveServerData, DNSCURVE_SERVER_DATA;
 #endif
 
@@ -1073,8 +1077,8 @@ public:
 typedef class AlternateSwapTable
 {
 public:
-	size_t                               TimeoutTimes[ALTERNATE_SERVERNUM];
-	bool                                 IsSwap[ALTERNATE_SERVERNUM];
+	size_t                               TimeoutTimes[ALTERNATE_SERVER_NUM];
+	bool                                 IsSwap[ALTERNATE_SERVER_NUM];
 
 //Member functions
 	AlternateSwapTable(

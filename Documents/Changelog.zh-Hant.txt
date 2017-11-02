@@ -1,5 +1,6 @@
-﻿Pcap_DNSProxy 0.4.9.5 更新日誌(2017-10-22)：
+﻿Pcap_DNSProxy 0.4.9.5 更新日誌(2017-11-02)：
 
+* 完整的 EDNS 標籤透明穿透支援
 * 改進使用 LibSodium 時的行為，增強安全性
 * 改進對包含 DNSSEC 的過濾演算法
   * DNSSEC Force Validation 改名為 DNSSEC Force Record

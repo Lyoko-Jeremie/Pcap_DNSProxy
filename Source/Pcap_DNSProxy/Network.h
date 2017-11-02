@@ -41,8 +41,8 @@ ssize_t SelectingResultOnce(
 	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<SOCKET_SELECTING_ONCE_TABLE> *SocketSelectingList, 
-	void * const OriginalDNSCurveSocketSelectingList, 
+	std::vector<SOCKET_SELECTING_ONCE_TABLE> *SocketSelectingDataList, 
+	void * const OriginalDNSCurveSocketSelectingDataList, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
 	const SOCKET_DATA * const LocalSocketData);

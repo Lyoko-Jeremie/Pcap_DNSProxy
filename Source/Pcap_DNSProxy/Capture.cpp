@@ -534,7 +534,7 @@ void CaptureHandler(
 		}
 		else {
 			memcpy_s(ParamList->Buffer, Parameter.LargeBufferSize, PacketData + sizeof(eth_hdr), Length - sizeof(eth_hdr));
-			Protocol = (reinterpret_cast<const eth_hdr *>(PacketData))->Type;
+			Protocol = reinterpret_cast<const eth_hdr *>(PacketData)->Type;
 			Length -= sizeof(eth_hdr);
 		}
 	}
@@ -546,7 +546,7 @@ void CaptureHandler(
 		}
 		else {
 			memcpy_s(ParamList->Buffer, Parameter.LargeBufferSize, PacketData + sizeof(ieee_1394_hdr), Length - sizeof(ieee_1394_hdr));
-			Protocol = (reinterpret_cast<const ieee_1394_hdr *>(PacketData))->Type;
+			Protocol = reinterpret_cast<const ieee_1394_hdr *>(PacketData)->Type;
 			Length -= sizeof(ieee_1394_hdr);
 		}
 	}
@@ -562,7 +562,7 @@ void CaptureHandler(
 			return;
 		}
 		else {
-			Protocol = (reinterpret_cast<ieee_8021q_hdr *>(ParamList->Buffer))->Type;
+			Protocol = reinterpret_cast<ieee_8021q_hdr *>(ParamList->Buffer)->Type;
 			memmove_s(ParamList->Buffer, Parameter.LargeBufferSize, ParamList->Buffer + sizeof(ieee_8021q_hdr), Length - sizeof(ieee_8021q_hdr));
 			Length -= sizeof(ieee_8021q_hdr);
 		}
@@ -576,7 +576,7 @@ void CaptureHandler(
 			return;
 		}
 		else {
-			Protocol = (reinterpret_cast<ppp_hdr *>(ParamList->Buffer))->Protocol;
+			Protocol = reinterpret_cast<ppp_hdr *>(ParamList->Buffer)->Protocol;
 			memmove_s(ParamList->Buffer, Parameter.LargeBufferSize, ParamList->Buffer + sizeof(ppp_hdr), Length - sizeof(ppp_hdr));
 			Length -= sizeof(ppp_hdr);
 		}
@@ -892,15 +892,15 @@ bool CaptureCheck_ICMP(
 //ICMPv6
 	if ((Protocol == AF_INET6 && 
 	//ICMPv6 echo reply
-		(reinterpret_cast<const icmpv6_hdr *>(Buffer))->Type == ICMPV6_TYPE_REPLY && (reinterpret_cast<const icmpv6_hdr *>(Buffer))->Code == ICMPV6_CODE_REPLY && 
+		reinterpret_cast<const icmpv6_hdr *>(Buffer)->Type == ICMPV6_TYPE_REPLY && reinterpret_cast<const icmpv6_hdr *>(Buffer)->Code == ICMPV6_CODE_REPLY && 
 	//Validate ICMPv6 ID.
-		(reinterpret_cast<const icmpv6_hdr *>(Buffer))->ID == Parameter.ICMP_ID) || 
+		reinterpret_cast<const icmpv6_hdr *>(Buffer)->ID == Parameter.ICMP_ID) || 
 //ICMP
 		(Protocol == AF_INET && 
 	//ICMP echo reply
-		(reinterpret_cast<const icmp_hdr *>(Buffer))->Type == ICMP_TYPE_ECHO && (reinterpret_cast<const icmpv6_hdr *>(Buffer))->Code == ICMP_CODE_ECHO && 
+		reinterpret_cast<const icmp_hdr *>(Buffer)->Type == ICMP_TYPE_ECHO && reinterpret_cast<const icmpv6_hdr *>(Buffer)->Code == ICMP_CODE_ECHO && 
 	//Validate ICMP ID.
-		(reinterpret_cast<const icmp_hdr *>(Buffer))->ID == Parameter.ICMP_ID && 
+		reinterpret_cast<const icmp_hdr *>(Buffer)->ID == Parameter.ICMP_ID && 
 	//Validate ICMP additional data.
 		Parameter.ICMP_PaddingData != nullptr && Length == sizeof(icmp_hdr) + Parameter.ICMP_PaddingLength && 
 		memcmp(Parameter.ICMP_PaddingData, Buffer + sizeof(icmp_hdr), Parameter.ICMP_PaddingLength) == 0))
@@ -915,23 +915,23 @@ bool CaptureCheck_TCP(
 {
 	if (
 	//CWR bit is set.
-		(ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_CWR) > 0 || 
+		(ntohs(reinterpret_cast<const tcp_hdr *>(Buffer)->HeaderLength_Flags) & TCP_FLAG_GET_BIT_CWR) > 0 || 
 	//ECE bit is set.
-		(ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_ECE) > 0 || 
+		(ntohs(reinterpret_cast<const tcp_hdr *>(Buffer)->HeaderLength_Flags) & TCP_FLAG_GET_BIT_ECE) > 0 || 
 	//SYN and ACK bits are set, PSH bit is not set, header options are not empty but it must not only MSS option.
-		((ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_IHL) >> 12U > TCP_STANDARD_IHL + sizeof(uint8_t) && 
-		(ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_SYN_ACK) || 
+		((ntohs(reinterpret_cast<const tcp_hdr *>(Buffer)->HeaderLength_Flags) & TCP_FLAG_GET_BIT_IHL) >> 12U > TCP_IHL_STANDARD + sizeof(uint8_t) && 
+		(ntohs(reinterpret_cast<const tcp_hdr *>(Buffer)->HeaderLength_Flags) & TCP_FLAG_GET_BIT_FLAG) == TCP_STATUS_SYN_ACK) || 
 	//Standard IHL
-		((ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_IHL) >> 12U == TCP_STANDARD_IHL && 
+		((ntohs(reinterpret_cast<const tcp_hdr *>(Buffer)->HeaderLength_Flags) & TCP_FLAG_GET_BIT_IHL) >> 12U == TCP_IHL_STANDARD && 
 	//ACK bit is set and header options are empty.
-		((ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_ACK || 
+		((ntohs(reinterpret_cast<const tcp_hdr *>(Buffer)->HeaderLength_Flags) & TCP_FLAG_GET_BIT_FLAG) == TCP_STATUS_ACK || 
 	//PSH and ACK bits are set, header options are empty.
-		(ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_PSH_ACK || 
+		(ntohs(reinterpret_cast<const tcp_hdr *>(Buffer)->HeaderLength_Flags) & TCP_FLAG_GET_BIT_FLAG) == TCP_STATUS_PSH_ACK || 
 	//FIN and ACK bits are set and header options are empty.
-		(ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_FIN_ACK || 
+		(ntohs(reinterpret_cast<const tcp_hdr *>(Buffer)->HeaderLength_Flags) & TCP_FLAG_GET_BIT_FLAG) == TCP_STATUS_FIN_ACK || 
 	//RST bit is set, PSH and ACK bits are not set, Window Size is zero and header options are empty.
-		((ntohs((reinterpret_cast<const tcp_hdr *>(Buffer))->HeaderLength_Flags) & TCP_GET_BIT_FLAG) == TCP_STATUS_RST && 
-		(reinterpret_cast<const tcp_hdr *>(Buffer))->Acknowledge == 0 && (reinterpret_cast<const tcp_hdr *>(Buffer))->Windows == 0))))
+		((ntohs(reinterpret_cast<const tcp_hdr *>(Buffer)->HeaderLength_Flags) & TCP_FLAG_GET_BIT_FLAG) == TCP_STATUS_RST && 
+		reinterpret_cast<const tcp_hdr *>(Buffer)->Acknowledge == 0 && reinterpret_cast<const tcp_hdr *>(Buffer)->Windows == 0))))
 			return true;
 
 	return false;
@@ -959,7 +959,7 @@ bool CaptureCheck_DNS(
 	else if (reinterpret_cast<const dns_hdr *>(Buffer)->Authority > 0)
 	{
 	//No Such Name
-		if ((ntohs(reinterpret_cast<const dns_hdr *>(Buffer)->Flags) & DNS_GET_BIT_RCODE) == DNS_RCODE_NXDOMAIN)
+		if ((ntohs(reinterpret_cast<const dns_hdr *>(Buffer)->Flags) & DNS_FLAG_GET_BIT_RCODE) == DNS_RCODE_NXDOMAIN)
 			IsMarkStatus = true;
 
 		return true;
@@ -968,11 +968,11 @@ bool CaptureCheck_DNS(
 	else if (
 	//Less than or more than one Answer record
 	//Some ISP will return fake responses with more than one Answer record.
-//		ntohs(reinterpret_cast<const dns_hdr *>(Buffer)->Answer) != U16_NUM_ONE || 
+//		ntohs(reinterpret_cast<const dns_hdr *>(Buffer)->Answer) != UINT16_NUM_ONE || 
 	//No any Answer records
 		reinterpret_cast<const dns_hdr *>(Buffer)->Answer == 0 || 
 	//More than one Additional record
-		ntohs(reinterpret_cast<const dns_hdr *>(Buffer)->Additional) > U16_NUM_ONE)
+		ntohs(reinterpret_cast<const dns_hdr *>(Buffer)->Additional) > UINT16_NUM_ONE)
 	{
 		return true;
 	}
@@ -993,7 +993,7 @@ bool CaptureCheck_PacketStatus(
 	{
 	//Application layer
 		if (DNS_DataOffset != 0)
-			PacketSource->ServerPacketStatus.ApplicationLayerStatus.DNS_Header_Flags = htons((ntohs(reinterpret_cast<const dns_hdr *>(Buffer + DNS_DataOffset)->Flags) & (~DNS_GET_BIT_AA)) & (~DNS_GET_BIT_RCODE));
+			PacketSource->ServerPacketStatus.ApplicationLayerStatus.DNS_Header_Flags = htons((ntohs(reinterpret_cast<const dns_hdr *>(Buffer + DNS_DataOffset)->Flags) & (~DNS_FLAG_GET_BIT_AA)) & (~DNS_FLAG_GET_BIT_RCODE));
 
 	//Network layer
 	//IPv6
@@ -1016,7 +1016,7 @@ bool CaptureCheck_PacketStatus(
 //Check packet status.
 	else {
 	//Application layer
-		if (DNS_DataOffset != 0 && PacketSource->ServerPacketStatus.ApplicationLayerStatus.DNS_Header_Flags != htons((ntohs(reinterpret_cast<const dns_hdr *>(Buffer + DNS_DataOffset)->Flags) & (~DNS_GET_BIT_AA)) & (~DNS_GET_BIT_RCODE)))
+		if (DNS_DataOffset != 0 && PacketSource->ServerPacketStatus.ApplicationLayerStatus.DNS_Header_Flags != htons((ntohs(reinterpret_cast<const dns_hdr *>(Buffer + DNS_DataOffset)->Flags) & (~DNS_FLAG_GET_BIT_AA)) & (~DNS_FLAG_GET_BIT_RCODE)))
 			return false;
 
 	//Network layer
@@ -1067,9 +1067,9 @@ bool MatchPortToSend(
 		{
 			if ((PortTableIter.ClearPortTime > 0 && //Do not scan expired data.
 				Protocol == AF_INET6 && SocketDataIter.AddrLen == sizeof(sockaddr_in6) && SocketDataIter.SockAddr.ss_family == AF_INET6 && 
-				Port == (reinterpret_cast<const sockaddr_in6 *>(&SocketDataIter.SockAddr))->sin6_port) || //IPv6
+				Port == reinterpret_cast<const sockaddr_in6 *>(&SocketDataIter.SockAddr)->sin6_port) || //IPv6
 				(Protocol == AF_INET && SocketDataIter.AddrLen == sizeof(sockaddr_in) && SocketDataIter.SockAddr.ss_family == AF_INET && 
-				Port == (reinterpret_cast<const sockaddr_in *>(&SocketDataIter.SockAddr))->sin_port)) //IPv4
+				Port == reinterpret_cast<const sockaddr_in *>(&SocketDataIter.SockAddr)->sin_port)) //IPv4
 			{
 				if (Parameter.ReceiveWaiting > 0)
 				{
@@ -1105,9 +1105,9 @@ StopLoop:
 		{
 			if (PortTableIter.ClearPortTime > 0 && //Do not scan expired data.
 				((Protocol == AF_INET6 && SocketDataIter.AddrLen == sizeof(sockaddr_in6) && SocketDataIter.SockAddr.ss_family == AF_INET6 && 
-				Port == (reinterpret_cast<const sockaddr_in6 *>(&SocketDataIter.SockAddr))->sin6_port) || //IPv6
+				Port == reinterpret_cast<const sockaddr_in6 *>(&SocketDataIter.SockAddr)->sin6_port) || //IPv6
 				(Protocol == AF_INET && SocketDataIter.AddrLen == sizeof(sockaddr_in) && SocketDataIter.SockAddr.ss_family == AF_INET && 
-				Port == (reinterpret_cast<const sockaddr_in *>(&SocketDataIter.SockAddr))->sin_port))) //IPv4
+				Port == reinterpret_cast<const sockaddr_in *>(&SocketDataIter.SockAddr)->sin_port))) //IPv4
 			{
 				if (PortTableIter.ReceiveIndex == ReceiveIndex)
 				{

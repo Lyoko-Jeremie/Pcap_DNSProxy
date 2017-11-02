@@ -89,7 +89,7 @@ ConfigurationTable::ConfigurationTable(
 		Local_FQDN_String = new std::string();
 		Local_FQDN_Response = new uint8_t[DOMAIN_MAXSIZE]();
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-		LocalServer_Response = new uint8_t[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt)]();
+		LocalServer_Response = new uint8_t[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + EDNS_RECORD_MAXSIZE]();
 	#endif
 
 	//[Proxy] block
@@ -224,7 +224,7 @@ void ConfigurationTable::CopyMemberOperator(
 		Local_FQDN_String = new std::string();
 		Local_FQDN_Response = new uint8_t[DOMAIN_MAXSIZE]();
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-		LocalServer_Response = new uint8_t[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt)]();
+		LocalServer_Response = new uint8_t[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + EDNS_RECORD_MAXSIZE]();
 	#endif
 
 	//[Proxy] block
@@ -533,7 +533,7 @@ void ConfigurationTable::CopyMemberOperator(
 	memcpy_s(Local_FQDN_Response, DOMAIN_MAXSIZE, Reference.Local_FQDN_Response, DOMAIN_MAXSIZE);
 	Local_FQDN_Length = Reference.Local_FQDN_Length;
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-	memcpy_s(LocalServer_Response, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt), Reference.LocalServer_Response, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt));
+	memcpy_s(LocalServer_Response, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + EDNS_RECORD_MAXSIZE, Reference.LocalServer_Response, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + EDNS_RECORD_MAXSIZE);
 	LocalServer_Length = Reference.LocalServer_Length;
 #endif
 
@@ -680,7 +680,7 @@ void ConfigurationTableSetting(
 #endif
 	memset(ConfigurationParameter->Local_FQDN_Response, 0, DOMAIN_MAXSIZE);
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-	memset(ConfigurationParameter->LocalServer_Response, 0, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt));
+	memset(ConfigurationParameter->LocalServer_Response, 0, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + EDNS_RECORD_MAXSIZE);
 #endif
 
 //Default value settings

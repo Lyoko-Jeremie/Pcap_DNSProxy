@@ -110,35 +110,35 @@ bool SSPI_Handshake(
 	//The next 1 byte will be indicating the number of bytes used to the ALPN string.
 		if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1)
 		{
-			std::unique_ptr<uint8_t[]> InputBufferPointerTemp(new uint8_t[sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP1_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH]());
-			memset(InputBufferPointerTemp.get(), 0, strlen(HTTP1_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH);
+			std::unique_ptr<uint8_t[]> InputBufferPointerTemp(new uint8_t[sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP_1_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH]());
+			memset(InputBufferPointerTemp.get(), 0, strlen(HTTP_1_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH);
 			std::swap(InputBufferPointer, InputBufferPointerTemp);
 
 		//TLS ALPN extension buffer settings
-			*reinterpret_cast<uint32_t *>(InputBufferPointer.get()) = static_cast<uint32_t>(sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP1_TLS_ALPN_STRING));
+			*reinterpret_cast<uint32_t *>(InputBufferPointer.get()) = static_cast<uint32_t>(sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP_1_TLS_ALPN_STRING));
 			*reinterpret_cast<uint32_t *>(InputBufferPointer.get() + sizeof(uint32_t)) = SecApplicationProtocolNegotiationExt_ALPN;
-			*reinterpret_cast<uint16_t *>(InputBufferPointer.get() + sizeof(uint32_t) * 2U) = static_cast<uint16_t>(sizeof(uint8_t) + strlen(HTTP1_TLS_ALPN_STRING));
-			*reinterpret_cast<uint8_t *>(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t)) = static_cast<uint8_t>(strlen(HTTP1_TLS_ALPN_STRING));
-			memcpy_s(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t), strlen(HTTP1_TLS_ALPN_STRING), HTTP1_TLS_ALPN_STRING, strlen(HTTP1_TLS_ALPN_STRING));
+			*reinterpret_cast<uint16_t *>(InputBufferPointer.get() + sizeof(uint32_t) * 2U) = static_cast<uint16_t>(sizeof(uint8_t) + strlen(HTTP_1_TLS_ALPN_STRING));
+			*reinterpret_cast<uint8_t *>(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t)) = static_cast<uint8_t>(strlen(HTTP_1_TLS_ALPN_STRING));
+			memcpy_s(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t), strlen(HTTP_1_TLS_ALPN_STRING), HTTP_1_TLS_ALPN_STRING, strlen(HTTP_1_TLS_ALPN_STRING));
 			InputBufferSec[0].pvBuffer = InputBufferPointer.get();
 			InputBufferSec[0].BufferType = SECBUFFER_APPLICATION_PROTOCOLS;
-			InputBufferSec[0].cbBuffer = static_cast<unsigned long>(sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP1_TLS_ALPN_STRING));
+			InputBufferSec[0].cbBuffer = static_cast<unsigned long>(sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP_1_TLS_ALPN_STRING));
 		}
 		else if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
 		{
-			std::unique_ptr<uint8_t[]> InputBufferPointerTemp(new uint8_t[sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP2_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH]());
-			memset(InputBufferPointerTemp.get(), 0, strlen(HTTP2_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH);
+			std::unique_ptr<uint8_t[]> InputBufferPointerTemp(new uint8_t[sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP_2_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH]());
+			memset(InputBufferPointerTemp.get(), 0, strlen(HTTP_2_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH);
 			std::swap(InputBufferPointer, InputBufferPointerTemp);
 
 		//TLS ALPN extension buffer settings
-			*reinterpret_cast<uint32_t *>(InputBufferPointer.get()) = static_cast<uint32_t>(sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP2_TLS_ALPN_STRING));
+			*reinterpret_cast<uint32_t *>(InputBufferPointer.get()) = static_cast<uint32_t>(sizeof(uint32_t) + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP_2_TLS_ALPN_STRING));
 			*reinterpret_cast<uint32_t *>(InputBufferPointer.get() + sizeof(uint32_t)) = SecApplicationProtocolNegotiationExt_ALPN;
-			*reinterpret_cast<uint16_t *>(InputBufferPointer.get() + sizeof(uint32_t) * 2U) = static_cast<uint16_t>(sizeof(uint8_t) + strlen(HTTP2_TLS_ALPN_STRING));
-			*reinterpret_cast<uint8_t *>(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t)) = static_cast<uint8_t>(strlen(HTTP2_TLS_ALPN_STRING));
-			memcpy_s(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t), strlen(HTTP2_TLS_ALPN_STRING), HTTP2_TLS_ALPN_STRING, strlen(HTTP2_TLS_ALPN_STRING));
+			*reinterpret_cast<uint16_t *>(InputBufferPointer.get() + sizeof(uint32_t) * 2U) = static_cast<uint16_t>(sizeof(uint8_t) + strlen(HTTP_2_TLS_ALPN_STRING));
+			*reinterpret_cast<uint8_t *>(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t)) = static_cast<uint8_t>(strlen(HTTP_2_TLS_ALPN_STRING));
+			memcpy_s(InputBufferPointer.get() + sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t), strlen(HTTP_2_TLS_ALPN_STRING), HTTP_2_TLS_ALPN_STRING, strlen(HTTP_2_TLS_ALPN_STRING));
 			InputBufferSec[0].pvBuffer = InputBufferPointer.get();
 			InputBufferSec[0].BufferType = SECBUFFER_APPLICATION_PROTOCOLS;
-			InputBufferSec[0].cbBuffer = static_cast<unsigned long>(sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP2_TLS_ALPN_STRING));
+			InputBufferSec[0].cbBuffer = static_cast<unsigned long>(sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP_2_TLS_ALPN_STRING));
 		}
 		else {
 			return false;
@@ -881,7 +881,7 @@ bool OpenSSL_CTX_Initializtion(
 		if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1)
 			Result = SSL_CTX_set_alpn_protos(OpenSSL_CTX.MethodContext, HTTP1_ALPN_Vector, sizeof(HTTP1_ALPN_Vector));
 		else if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
-			Result = SSL_CTX_set_alpn_protos(OpenSSL_CTX.MethodContext, HTTP2_ALPN_Vector, sizeof(HTTP2_ALPN_Vector));
+			Result = SSL_CTX_set_alpn_protos(OpenSSL_CTX.MethodContext, HTTP_2_ALPN_Vector, sizeof(HTTP_2_ALPN_Vector));
 		else 
 			return false;
 

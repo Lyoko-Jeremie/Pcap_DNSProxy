@@ -182,8 +182,8 @@ bool DNSCurve_TCP_SignatureRequest(
 	DNS_TCP_Header->ID = htons(*reinterpret_cast<uint16_t *>(pthread_self())); //Default DNS ID is current thread ID.
 #endif
 #endif
-	DNS_TCP_Header->Flags = htons(DNS_STANDARD);
-	DNS_TCP_Header->Question = htons(U16_NUM_ONE);
+	DNS_TCP_Header->Flags = htons(DNS_FLAG_STANDARD);
+	DNS_TCP_Header->Question = htons(UINT16_NUM_ONE);
 	if (Protocol == AF_INET6)
 	{
 		if (IsAlternate)
@@ -201,12 +201,12 @@ bool DNSCurve_TCP_SignatureRequest(
 	else {
 		return false;
 	}
-	(reinterpret_cast<dns_qry *>(SendBuffer.get() + DataLength))->Type = htons(DNS_TYPE_TEXT);
-	(reinterpret_cast<dns_qry *>(SendBuffer.get() + DataLength))->Classes = htons(DNS_CLASS_INTERNET);
+	reinterpret_cast<dns_qry *>(SendBuffer.get() + DataLength)->Type = htons(DNS_TYPE_TEXT);
+	reinterpret_cast<dns_qry *>(SendBuffer.get() + DataLength)->Classes = htons(DNS_CLASS_INTERNET);
 	DataLength += sizeof(dns_qry);
 
 //EDNS Label
-	DataLength = Add_EDNS_To_Additional_RR(SendBuffer.get() + sizeof(uint16_t), DataLength - sizeof(uint16_t), NORMAL_PACKET_MAXSIZE, nullptr);
+	DataLength = Add_EDNS_LabelToPacket(SendBuffer.get() + sizeof(uint16_t), DataLength - sizeof(uint16_t), NORMAL_PACKET_MAXSIZE, nullptr);
 	DataLength += sizeof(uint16_t);
 
 //Add length of request packet.
@@ -347,8 +347,8 @@ bool DNSCurve_UDP_SignatureRequest(
 	DNS_Header->ID = htons(*reinterpret_cast<uint16_t *>(pthread_self())); //Default DNS ID is current thread ID.
 #endif
 #endif
-	DNS_Header->Flags = htons(DNS_STANDARD);
-	DNS_Header->Question = htons(U16_NUM_ONE);
+	DNS_Header->Flags = htons(DNS_FLAG_STANDARD);
+	DNS_Header->Question = htons(UINT16_NUM_ONE);
 	if (Protocol == AF_INET6)
 	{
 		if (IsAlternate)
@@ -366,12 +366,12 @@ bool DNSCurve_UDP_SignatureRequest(
 	else {
 		return false;
 	}
-	(reinterpret_cast<dns_qry *>(SendBuffer.get() + DataLength))->Type = htons(DNS_TYPE_TEXT);
-	(reinterpret_cast<dns_qry *>(SendBuffer.get() + DataLength))->Classes = htons(DNS_CLASS_INTERNET);
+	reinterpret_cast<dns_qry *>(SendBuffer.get() + DataLength)->Type = htons(DNS_TYPE_TEXT);
+	reinterpret_cast<dns_qry *>(SendBuffer.get() + DataLength)->Classes = htons(DNS_CLASS_INTERNET);
 	DataLength += sizeof(dns_qry);
 
 //EDNS Label
-	DataLength = Add_EDNS_To_Additional_RR(SendBuffer.get(), DataLength, NORMAL_PACKET_MAXSIZE, nullptr);
+	DataLength = Add_EDNS_LabelToPacket(SendBuffer.get(), DataLength, NORMAL_PACKET_MAXSIZE, nullptr);
 
 //Socket initialization(Part 1)
 	std::wstring Message;
@@ -547,7 +547,7 @@ size_t DNSCurve_TCP_RequestSingle(
 	}
 
 //Socket selecting structure initialization
-	std::vector<DNSCURVE_SOCKET_SELECTING_TABLE> TCPSocketSelectingList;
+	std::vector<DNSCURVE_SOCKET_SELECTING_TABLE> TCPSocketSelectingDataList;
 	if (DNSCurveParameter.IsEncryption) //Encryption mode
 	{
 		TCPSocketSelectingData.PrecomputationKey = PrecomputationKey;
@@ -558,11 +558,11 @@ size_t DNSCurve_TCP_RequestSingle(
 	TCPSocketSelectingData.SendSize = RecvLen;
 	TCPSocketSelectingData.RecvLen = 0;
 	TCPSocketSelectingData.IsPacketDone = false;
-	TCPSocketSelectingList.push_back(std::move(TCPSocketSelectingData));
+	TCPSocketSelectingDataList.push_back(std::move(TCPSocketSelectingData));
 
 //Socket selecting
 	ssize_t ErrorCode = 0;
-	RecvLen = SocketSelectingOnce(REQUEST_PROCESS_TYPE::DNSCURVE_MAIN, IPPROTO_TCP, TCPSocketDataList, &TCPSocketSelectingList, nullptr, 0, OriginalRecv, RecvSize, &ErrorCode, &LocalSocketData);
+	RecvLen = SocketSelectingOnce(REQUEST_PROCESS_TYPE::DNSCURVE_MAIN, IPPROTO_TCP, TCPSocketDataList, &TCPSocketSelectingDataList, nullptr, 0, OriginalRecv, RecvSize, &ErrorCode, &LocalSocketData);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in6))
@@ -604,7 +604,7 @@ size_t DNSCurve_TCP_RequestMultiple(
 
 //Initialization(Part 1)
 	std::vector<SOCKET_DATA> TCPSocketDataList;
-	std::vector<DNSCURVE_SOCKET_SELECTING_TABLE> TCPSocketSelectingList;
+	std::vector<DNSCURVE_SOCKET_SELECTING_TABLE> TCPSocketSelectingDataList;
 	std::unique_ptr<uint8_t[]> SendBuffer(nullptr);
 	std::unique_ptr<uint8_t[]> Alternate_SendBuffer(nullptr);
 	DNSCURVE_SERVER_DATA *PacketTarget = nullptr;
@@ -613,12 +613,12 @@ size_t DNSCurve_TCP_RequestMultiple(
 
 //Socket precomputation
 	DNSCurveSocketPrecomputation(IPPROTO_TCP, OriginalSend, SendSize, RecvSize, &PrecomputationKey, &Alternate_PrecomputationKey, &PacketTarget, 
-		TCPSocketDataList, TCPSocketSelectingList, SendBuffer, DataLength, Alternate_SendBuffer, Alternate_DataLength);
-	if (TCPSocketDataList.empty() || TCPSocketDataList.size() != TCPSocketSelectingList.size())
+		TCPSocketDataList, TCPSocketSelectingDataList, SendBuffer, DataLength, Alternate_SendBuffer, Alternate_DataLength);
+	if (TCPSocketDataList.empty() || TCPSocketDataList.size() != TCPSocketSelectingDataList.size())
 		return EXIT_FAILURE;
 
 //Socket selecting structure initialization
-	for (auto &SocketSelectingIter:TCPSocketSelectingList)
+	for (auto &SocketSelectingIter:TCPSocketSelectingDataList)
 	{
 	//Encryption mode
 		if (DNSCurveParameter.IsEncryption)
@@ -652,7 +652,7 @@ size_t DNSCurve_TCP_RequestMultiple(
 
 //Socket selecting
 	ssize_t ErrorCode = 0;
-	const auto RecvLen = SocketSelectingOnce(REQUEST_PROCESS_TYPE::DNSCURVE_MAIN, IPPROTO_TCP, TCPSocketDataList, &TCPSocketSelectingList, nullptr, 0, OriginalRecv, RecvSize, &ErrorCode, &LocalSocketData);
+	const auto RecvLen = SocketSelectingOnce(REQUEST_PROCESS_TYPE::DNSCURVE_MAIN, IPPROTO_TCP, TCPSocketDataList, &TCPSocketSelectingDataList, nullptr, 0, OriginalRecv, RecvSize, &ErrorCode, &LocalSocketData);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (TCPSocketDataList.front().AddrLen == sizeof(sockaddr_in6))
@@ -739,7 +739,7 @@ size_t DNSCurve_UDP_RequestSingle(
 	}
 
 //Socket selecting structure initialization
-	std::vector<DNSCURVE_SOCKET_SELECTING_TABLE> UDPSocketSelectingList;
+	std::vector<DNSCURVE_SOCKET_SELECTING_TABLE> UDPSocketSelectingDataList;
 	if (DNSCurveParameter.IsEncryption) //Encryption mode
 	{
 		UDPSocketSelectingData.PrecomputationKey = PrecomputationKey;
@@ -754,11 +754,11 @@ size_t DNSCurve_UDP_RequestSingle(
 
 	UDPSocketSelectingData.RecvLen = 0;
 	UDPSocketSelectingData.IsPacketDone = false;
-	UDPSocketSelectingList.push_back(std::move(UDPSocketSelectingData));
+	UDPSocketSelectingDataList.push_back(std::move(UDPSocketSelectingData));
 
 //Socket selecting
 	ssize_t ErrorCode = 0;
-	RecvLen = SocketSelectingOnce(REQUEST_PROCESS_TYPE::DNSCURVE_MAIN, IPPROTO_UDP, UDPSocketDataList, &UDPSocketSelectingList, nullptr, 0, OriginalRecv, RecvSize, &ErrorCode, &LocalSocketData);
+	RecvLen = SocketSelectingOnce(REQUEST_PROCESS_TYPE::DNSCURVE_MAIN, IPPROTO_UDP, UDPSocketDataList, &UDPSocketSelectingDataList, nullptr, 0, OriginalRecv, RecvSize, &ErrorCode, &LocalSocketData);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in6))
@@ -800,7 +800,7 @@ size_t DNSCurve_UDP_RequestMultiple(
 
 //Initialization(Part 1)
 	std::vector<SOCKET_DATA> UDPSocketDataList;
-	std::vector<DNSCURVE_SOCKET_SELECTING_TABLE> UDPSocketSelectingList;
+	std::vector<DNSCURVE_SOCKET_SELECTING_TABLE> UDPSocketSelectingDataList;
 	std::unique_ptr<uint8_t[]> SendBuffer(nullptr);
 	std::unique_ptr<uint8_t[]> Alternate_SendBuffer(nullptr);
 	DNSCURVE_SERVER_DATA *PacketTarget = nullptr;
@@ -809,12 +809,12 @@ size_t DNSCurve_UDP_RequestMultiple(
 
 //Socket precomputation
 	DNSCurveSocketPrecomputation(IPPROTO_UDP, OriginalSend, SendSize, RecvSize, &PrecomputationKey, &Alternate_PrecomputationKey, &PacketTarget, 
-		UDPSocketDataList, UDPSocketSelectingList, SendBuffer, DataLength, Alternate_SendBuffer, Alternate_DataLength);
-	if (UDPSocketDataList.empty() || UDPSocketDataList.size() != UDPSocketSelectingList.size())
+		UDPSocketDataList, UDPSocketSelectingDataList, SendBuffer, DataLength, Alternate_SendBuffer, Alternate_DataLength);
+	if (UDPSocketDataList.empty() || UDPSocketDataList.size() != UDPSocketSelectingDataList.size())
 		return EXIT_FAILURE;
 
 //Socket selecting structure initialization
-	for (auto &SocketSelectingIter:UDPSocketSelectingList)
+	for (auto &SocketSelectingIter:UDPSocketSelectingDataList)
 	{
 	//Encryption mode
 		if (DNSCurveParameter.IsEncryption)
@@ -848,7 +848,7 @@ size_t DNSCurve_UDP_RequestMultiple(
 
 //Socket selecting
 	ssize_t ErrorCode = 0;
-	const auto RecvLen = SocketSelectingOnce(REQUEST_PROCESS_TYPE::DNSCURVE_MAIN, IPPROTO_UDP, UDPSocketDataList, &UDPSocketSelectingList, nullptr, 0, OriginalRecv, RecvSize, &ErrorCode, &LocalSocketData);
+	const auto RecvLen = SocketSelectingOnce(REQUEST_PROCESS_TYPE::DNSCURVE_MAIN, IPPROTO_UDP, UDPSocketDataList, &UDPSocketSelectingDataList, nullptr, 0, OriginalRecv, RecvSize, &ErrorCode, &LocalSocketData);
 	if (ErrorCode == WSAETIMEDOUT && !Parameter.AlternateMultipleRequest) //Mark timeout.
 	{
 		if (UDPSocketDataList.front().AddrLen == sizeof(sockaddr_in6))

@@ -440,18 +440,18 @@ bool Parameter_CheckSetting(
 		if (Parameter.LocalServer_Length == 0)
 		{
 		//Make DNS PTR response packet.
-			(reinterpret_cast<dns_record_ptr *>(Parameter.LocalServer_Response))->Pointer = htons(DNS_POINTER_QUERY);
-			(reinterpret_cast<dns_record_ptr *>(Parameter.LocalServer_Response))->Classes = htons(DNS_CLASS_INTERNET);
+			reinterpret_cast<dns_record_ptr *>(Parameter.LocalServer_Response)->Pointer = htons(DNS_POINTER_QUERY);
+			reinterpret_cast<dns_record_ptr *>(Parameter.LocalServer_Response)->Classes = htons(DNS_CLASS_INTERNET);
 			if (Parameter.HostsDefaultTTL > 0)
-				(reinterpret_cast<dns_record_ptr *>(Parameter.LocalServer_Response))->TTL = htonl(Parameter.HostsDefaultTTL);
+				reinterpret_cast<dns_record_ptr *>(Parameter.LocalServer_Response)->TTL = htonl(Parameter.HostsDefaultTTL);
 			else 
-				(reinterpret_cast<dns_record_ptr *>(Parameter.LocalServer_Response))->TTL = htonl(DEFAULT_HOSTS_TTL);
-			(reinterpret_cast<dns_record_ptr *>(Parameter.LocalServer_Response))->Type = htons(DNS_TYPE_PTR);
-			(reinterpret_cast<dns_record_ptr *>(Parameter.LocalServer_Response))->Length = htons(static_cast<uint16_t>(Parameter.Local_FQDN_Length));
+				reinterpret_cast<dns_record_ptr *>(Parameter.LocalServer_Response)->TTL = htonl(DEFAULT_HOSTS_TTL);
+			reinterpret_cast<dns_record_ptr *>(Parameter.LocalServer_Response)->Type = htons(DNS_TYPE_PTR);
+			reinterpret_cast<dns_record_ptr *>(Parameter.LocalServer_Response)->Length = htons(static_cast<uint16_t>(Parameter.Local_FQDN_Length));
 			Parameter.LocalServer_Length += sizeof(dns_record_ptr);
 
 		//Copy to global buffer.
-			memcpy_s(Parameter.LocalServer_Response + Parameter.LocalServer_Length, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + sizeof(dns_record_opt) - Parameter.LocalServer_Length, Parameter.Local_FQDN_Response, Parameter.Local_FQDN_Length);
+			memcpy_s(Parameter.LocalServer_Response + Parameter.LocalServer_Length, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + EDNS_RECORD_MAXSIZE - Parameter.LocalServer_Length, Parameter.Local_FQDN_Response, Parameter.Local_FQDN_Length);
 			Parameter.LocalServer_Length += Parameter.Local_FQDN_Length;
 		}
 	#endif
@@ -559,7 +559,7 @@ bool Parameter_CheckSetting(
 
 	//HTTP CONNECT Target Server check
 		if (ParameterPointer->HTTP_CONNECT_TargetDomain != nullptr && (ParameterPointer->HTTP_CONNECT_TargetDomain->empty() || 
-			(Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2 && ParameterPointer->HTTP_CONNECT_TargetDomain->length() >= HTTP2_FREAM_MAXSIZE)))
+			(Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2 && ParameterPointer->HTTP_CONNECT_TargetDomain->length() >= HTTP_2_FREAM_MAXSIZE)))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HTTP_CONNECT, L"HTTP CONNECT target server error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
@@ -590,7 +590,7 @@ bool Parameter_CheckSetting(
 				//HTTP version 2 require all Names are lower case and all header field must no longer than frame maximum size.
 					else if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
 					{
-						if (StringIter.length() >= HTTP2_FREAM_MAXSIZE)
+						if (StringIter.length() >= HTTP_2_FREAM_MAXSIZE)
 						{
 							PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HTTP_CONNECT, L"HTTP CONNECT header field data error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 							return false;

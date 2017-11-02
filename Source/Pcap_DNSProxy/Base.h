@@ -135,7 +135,7 @@ void DNSCurveSocketPrecomputation(
 	uint8_t ** const Alternate_PrecomputationKey, 
 	DNSCURVE_SERVER_DATA ** const PacketTarget, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
-	std::vector<DNSCURVE_SOCKET_SELECTING_TABLE> &SocketSelectingList, 
+	std::vector<DNSCURVE_SOCKET_SELECTING_TABLE> &SocketSelectingDataList, 
 	std::unique_ptr<uint8_t[]> &SendBuffer, 
 	size_t &DataLength, 
 	std::unique_ptr<uint8_t[]> &Alternate_SendBuffer, 
@@ -236,7 +236,7 @@ ssize_t SocketSelectingOnce(
 	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint16_t Protocol, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
-	void * const OriginalDNSCurveSocketSelectingList, 
+	void * const OriginalDNSCurveSocketSelectingDataList, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
@@ -288,13 +288,15 @@ void MakeRamdomDomain(
 	uint8_t * const Buffer);
 void MakeDomainCaseConversion(
 	uint8_t * const Buffer);
-size_t Add_EDNS_To_Additional_RR(
+bool Move_EDNS_LabelToEnd(
+	DNS_PACKET_DATA * const PacketStructure);
+size_t Add_EDNS_LabelToPacket(
 	uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t MaxLen, 
 	const SOCKET_DATA * const LocalSocketData);
-bool Add_EDNS_To_Additional_RR(
-	DNS_PACKET_DATA * const Packet, 
+bool Add_EDNS_LabelToPacket(
+	DNS_PACKET_DATA * const PacketStructure, 
 	const SOCKET_DATA * const LocalSocketData);
 size_t MakeCompressionPointerMutation(
 	uint8_t * const Buffer, 
@@ -348,7 +350,7 @@ size_t CheckWhiteBannedHostsProcess(
 	bool * const IsLocalRequest, 
 	bool * const IsLocalInBlack);
 size_t CheckHostsProcess(
-	DNS_PACKET_DATA * const Packet, 
+	DNS_PACKET_DATA * const PacketStructure, 
 	uint8_t * const Result, 
 	const size_t ResultSize, 
 	const SOCKET_DATA &LocalSocketData);
@@ -397,7 +399,7 @@ bool OperationModeFilter(
 size_t CheckQueryNameLength(
 	const uint8_t * const Buffer);
 bool CheckQueryData(
-	DNS_PACKET_DATA * const Packet, 
+	DNS_PACKET_DATA * const PacketStructure, 
 	uint8_t * const SendBuffer, 
 	const size_t SendSize, 
 	SOCKET_DATA &LocalSocketData);

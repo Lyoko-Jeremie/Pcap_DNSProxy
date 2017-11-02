@@ -297,7 +297,7 @@ bool ReadBlacklistData(
 
 				AddressRangeTableTemp.Begin.ss_family = AF_INET6;
 				AddressRangeTableTemp.End.ss_family = AF_INET6;
-				(reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.End))->sin6_addr = (reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin))->sin6_addr;
+				reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.End)->sin6_addr = reinterpret_cast<sockaddr_in6 *>(&AddressRangeTableTemp.Begin)->sin6_addr;
 			}
 
 			ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTableTemp);
@@ -378,7 +378,7 @@ bool ReadBlacklistData(
 
 				AddressRangeTableTemp.Begin.ss_family = AF_INET;
 				AddressRangeTableTemp.End.ss_family = AF_INET;
-				(reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.End))->sin_addr = (reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin))->sin_addr;
+				reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.End)->sin_addr = reinterpret_cast<sockaddr_in *>(&AddressRangeTableTemp.Begin)->sin_addr;
 			}
 
 			ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTableTemp);
@@ -685,7 +685,7 @@ bool ReadAddressPrefixBlock(
 			AddressPrefix->second = UnsignedResult;
 
 		//Mark prefix block.
-			(reinterpret_cast<sockaddr_in *>(&AddressPrefix->first))->sin_addr.s_addr = htonl(ntohl((reinterpret_cast<sockaddr_in *>(&AddressPrefix->first))->sin_addr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressPrefix->second)));
+			reinterpret_cast<sockaddr_in *>(&AddressPrefix->first)->sin_addr.s_addr = htonl(ntohl(reinterpret_cast<sockaddr_in *>(&AddressPrefix->first)->sin_addr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressPrefix->second)));
 		}
 
 		AddressPrefix->first.ss_family = AF_INET;
