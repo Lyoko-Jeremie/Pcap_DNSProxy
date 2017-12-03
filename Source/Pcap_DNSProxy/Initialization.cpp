@@ -89,7 +89,7 @@ ConfigurationTable::ConfigurationTable(
 		Local_FQDN_String = new std::string();
 		Local_FQDN_Response = new uint8_t[DOMAIN_MAXSIZE]();
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-		LocalServer_Response = new uint8_t[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + EDNS_RECORD_MAXSIZE]();
+		LocalServer_Response = new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]();
 	#endif
 
 	//[Proxy] block
@@ -190,6 +190,7 @@ ConfigurationTable::ConfigurationTable(
 	return;
 }
 
+/* No need copy constructor
 //ConfigurationTable class copy member operator
 void ConfigurationTable::CopyMemberOperator(
 	const ConfigurationTable &Reference)
@@ -224,7 +225,7 @@ void ConfigurationTable::CopyMemberOperator(
 		Local_FQDN_String = new std::string();
 		Local_FQDN_Response = new uint8_t[DOMAIN_MAXSIZE]();
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-		LocalServer_Response = new uint8_t[DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + EDNS_RECORD_MAXSIZE]();
+		LocalServer_Response = new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]();
 	#endif
 
 	//[Proxy] block
@@ -494,7 +495,6 @@ void ConfigurationTable::CopyMemberOperator(
 #endif
 	PacketCheck_DNS = Reference.PacketCheck_DNS;
 	DataCheck_Blacklist = Reference.DataCheck_Blacklist;
-	DataCheck_Strict_RR_TTL = Reference.DataCheck_Strict_RR_TTL;
 
 	//[Data] block
 #if defined(ENABLE_PCAP)
@@ -533,7 +533,7 @@ void ConfigurationTable::CopyMemberOperator(
 	memcpy_s(Local_FQDN_Response, DOMAIN_MAXSIZE, Reference.Local_FQDN_Response, DOMAIN_MAXSIZE);
 	Local_FQDN_Length = Reference.Local_FQDN_Length;
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-	memcpy_s(LocalServer_Response, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + EDNS_RECORD_MAXSIZE, Reference.LocalServer_Response, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + EDNS_RECORD_MAXSIZE);
+	memcpy_s(LocalServer_Response, NORMAL_PACKET_MAXSIZE, Reference.LocalServer_Response, NORMAL_PACKET_MAXSIZE);
 	LocalServer_Length = Reference.LocalServer_Length;
 #endif
 
@@ -668,6 +668,7 @@ ConfigurationTable & ConfigurationTable::operator=(
 	CopyMemberOperator(Reference);
 	return *this;
 }
+*/
 
 //ConfigurationTable class constructor settings
 void ConfigurationTableSetting(
@@ -680,7 +681,7 @@ void ConfigurationTableSetting(
 #endif
 	memset(ConfigurationParameter->Local_FQDN_Response, 0, DOMAIN_MAXSIZE);
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-	memset(ConfigurationParameter->LocalServer_Response, 0, DOMAIN_MAXSIZE + sizeof(dns_record_ptr) + EDNS_RECORD_MAXSIZE);
+	memset(ConfigurationParameter->LocalServer_Response, 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 #endif
 
 //Default value settings
@@ -961,7 +962,6 @@ void ConfigurationTable::MonitorItemToUsing(
 	ConfigurationParameter->PacketCheck_TCP = PacketCheck_TCP;
 #endif
 	ConfigurationParameter->PacketCheck_DNS = PacketCheck_DNS;
-	ConfigurationParameter->DataCheck_Strict_RR_TTL = DataCheck_Strict_RR_TTL;
 
 //[Proxy] block
 	if (ConfigurationParameter->SOCKS_TargetDomain != nullptr && !SOCKS_TargetDomain->empty() && SOCKS_TargetDomain_Port > 0)
@@ -1090,7 +1090,6 @@ void ConfigurationTable::MonitorItemReset(
 	PacketCheck_TCP = false;
 #endif
 	PacketCheck_DNS = false;
-	DataCheck_Strict_RR_TTL = false;
 
 //[Proxy] block
 	memset(&SOCKS_TargetServer, 0, sizeof(SOCKS_TargetServer));
@@ -1189,6 +1188,7 @@ GlobalStatus::GlobalStatus(
 	return;
 }
 
+/* No need copy constructor
 //GlobalStatus class copy member operator
 void GlobalStatus::CopyMemberOperator(
 	const GlobalStatus &Reference)
@@ -1412,6 +1412,7 @@ GlobalStatus & GlobalStatus::operator=(
 	CopyMemberOperator(Reference);
 	return *this;
 }
+*/
 
 //GlobalStatus class constructor settings
 void GlobalStatusSetting(
@@ -1631,10 +1632,10 @@ OutputPacketTable::OutputPacketTable(
 //Initialization
 	memset(&SocketData_Input, 0, sizeof(SocketData_Input));
 	SocketData_Input.Socket = INVALID_SOCKET;
+	ReceiveIndex = 0;
 	Protocol_Network = 0;
 	Protocol_Transport = 0;
 	ClearPortTime = 0;
-	ReceiveIndex = 0;
 
 	return;
 }
@@ -1793,6 +1794,7 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 	return;
 }
 
+/* No need copy constructor
 //DNSCurveConfigurationTable class copy member operator
 void DNSCurveConfigurationTable::CopyMemberOperator(
 	const DNSCurveConfigurationTable &Reference)
@@ -2241,6 +2243,7 @@ DNSCurveConfigurationTable & DNSCurveConfigurationTable::operator=(
 	CopyMemberOperator(Reference);
 	return *this;
 }
+*/
 
 //DNSCurveConfigurationTable class constructor settings
 void DNSCurveConfigurationTableSetting(

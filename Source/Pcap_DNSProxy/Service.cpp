@@ -282,7 +282,7 @@ HANDLE WINAPI ExecuteService(
 	void)
 {
 	DWORD ThreadID = 0;
-	const HANDLE ServiceThread = CreateThread(
+	const auto ServiceThread = CreateThread(
 		0, 
 		0, 
 		reinterpret_cast<PTHREAD_START_ROUTINE>(ServiceProc), 
@@ -382,7 +382,7 @@ bool Flush_DNS_MailSlotMonitor(
 	}
 
 //Create mailslot.
-	const HANDLE MailslotHandle = CreateMailslotW(
+	const auto MailslotHandle = CreateMailslotW(
 		MAILSLOT_NAME, 
 		FILE_BUFFER_SIZE - 1U, 
 		MAILSLOT_WAIT_FOREVER, 
@@ -465,7 +465,7 @@ bool WINAPI Flush_DNS_MailSlotSender(
 	const wchar_t * const Domain)
 {
 //Mailslot initialization
-	const HANDLE FileHandle = CreateFileW(
+	const auto FileHandle = CreateFileW(
 		MAILSLOT_NAME, 
 		GENERIC_WRITE, 
 		FILE_SHARE_READ, 

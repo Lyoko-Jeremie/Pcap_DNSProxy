@@ -528,7 +528,7 @@ bool ReadParameter(
 				}
 				else {
 					FileList_Config.at(FileIndex).ModificationTime = 0;
-					continue;
+//					continue;
 				}
 			}
 			else {
@@ -540,8 +540,8 @@ bool ReadParameter(
 				//Stop reading.
 					if (IsFirstRead)
 						return false;
-					else 
-						continue;
+//					else 
+//						continue;
 				}
 				else {
 					fclose(FileHandle);
@@ -627,7 +627,7 @@ bool ReadParameter(
 					if (!IsFirstRead)
 						FileList_DNSCurveDatabase.at(FileIndex).ModificationTime = 0;
 
-					continue;
+//					continue;
 				}
 				else {
 					if (!ReadText(FileHandle, ReadDNSCurveTextType, FileIndex))
@@ -635,7 +635,7 @@ bool ReadParameter(
 						fclose(FileHandle);
 						FileHandle = nullptr;
 
-						continue;
+//						continue;
 					}
 					else {
 						fclose(FileHandle);

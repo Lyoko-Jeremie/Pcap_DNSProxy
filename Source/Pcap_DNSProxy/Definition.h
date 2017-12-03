@@ -48,7 +48,10 @@
 	#define LIBSODIUM_ERROR                               (-1)
 #endif
 #define BYTES_TO_BITS                                 8U                          //8 bits = 1 byte
+#define RETURN_ERROR                                  (-1)
+#define RETURN_DISABLED                               RETURN_ERROR
 #define UINT16_NUM_ONE                                0x0001
+#define UNITS_IN_8_OCTETS                             8U                          //8 octets = 1 unit
 #define HEX_PREAMBLE_STRING                           ("0x")                      //Hexadecimal preamble
 
 //Character value definitions
@@ -144,6 +147,7 @@
 #define DOMAIN_MAXSIZE                                256U                              //Maximum size of whole level domain is 256 bytes(Section 2.3.1 in RFC 1035).
 #define DOMAIN_MINSIZE                                2U                                //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
 #define DOMAIN_RAMDOM_MINSIZE                         6U                                //Minimum size of ramdom domain request
+#define ERROR_MESSAGE_MINSIZE                         3U                                //Minimum size of error message
 #define FILE_BUFFER_SIZE                              DEFAULT_LARGE_BUFFER_SIZE         //Size of file reading buffer
 #define FILE_READING_MAXSIZE                          268435456U                        //Maximum size of whole reading file(256 MB/268435456 bytes).
 #define HTTP_VERSION_SUPPORT_COUNT                    2U                                //HTTP version 1.1 and 2 which are supported.
@@ -180,7 +184,7 @@
 
 //Size and length definitions(Data)
 #define DNS_PACKET_MINSIZE                            (sizeof(dns_hdr) + NULL_TERMINATE_LENGTH + sizeof(dns_qry))                                    //Minimum DNS packet size(DNS header + Minimum domain<ROOT> + DNS query)
-#define EDNS_RECORD_MAXSIZE                           (sizeof(edns_header) + sizeof(edns_client_subnet) * 2U + sizeof(in6_addr) + sizeof(in_addr))   //Maximum of EDNS Resource Record size
+#define EDNS_RECORD_MAXSIZE                           (sizeof(edns_header) + sizeof(edns_client_subnet) * 2U + sizeof(in6_addr) + sizeof(in_addr))   //Maximum of EDNS resource record size
 #if defined(ENABLE_LIBSODIUM)
 	#define DNSCRYPT_BUFFER_RESERVED_LEN                  (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES - crypto_box_BOXZEROBYTES)
 	#define DNSCRYPT_BUFFER_RESERVED_TCP_LEN              (sizeof(uint16_t) + DNSCRYPT_BUFFER_RESERVED_LEN)
@@ -302,8 +306,8 @@
 #else
 	#define DEFAULT_SEQUENCE                               0x0001                                      //Default sequence of protocol
 #endif
-#define DNS_PACKET_QUERY_LOCATE(Buffer)               (sizeof(dns_hdr) + CheckQueryNameLength(reinterpret_cast<const uint8_t *>(Buffer) + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH)                     //Location the beginning of DNS Query
-#define DNS_PACKET_RR_LOCATE(Buffer)                  (sizeof(dns_hdr) + CheckQueryNameLength(reinterpret_cast<const uint8_t *>(Buffer) + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH + sizeof(dns_qry))   //Location the beginning of DNS Resource Records
+#define DNS_PACKET_QUERY_LOCATE(Buffer)               (sizeof(dns_hdr) + CheckQueryNameLength(reinterpret_cast<const uint8_t *>(Buffer) + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH)                     //Locate the beginning of DNS query.
+#define DNS_PACKET_RR_LOCATE(Buffer)                  (sizeof(dns_hdr) + CheckQueryNameLength(reinterpret_cast<const uint8_t *>(Buffer) + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH + sizeof(dns_qry))   //Locate the beginning of DNS resource records.
 #define DNS_TCP_PACKET_QUERY_LOCATE(Buffer)           (sizeof(dns_tcp_hdr) + CheckQueryNameLength(reinterpret_cast<const uint8_t *>(Buffer) + sizeof(dns_tcp_hdr)) + NULL_TERMINATE_LENGTH)
 
 //Base64 definitions
@@ -473,6 +477,7 @@ typedef enum class _socket_setting_type
 	NON_BLOCKING_MODE, 
 	REUSE, 
 	TCP_FAST_OPEN, 
+	TCP_NO_DELAY, 
 //	TCP_KEEP_ALIVE, 
 	TIMEOUT, 
 	UDP_BLOCK_RESET
@@ -855,7 +860,6 @@ public:
 #endif
 	bool                                 PacketCheck_DNS;
 	bool                                 DataCheck_Blacklist;
-	bool                                 DataCheck_Strict_RR_TTL;
 //[Data] block
 #if defined(ENABLE_PCAP)
 	uint16_t                             ICMP_ID;
@@ -918,13 +922,20 @@ public:
 	bool                                 IsDNSCurve;
 #endif
 
+//Redefine operator functions
+//	ConfigurationTable() = default;
+	ConfigurationTable(const ConfigurationTable &) = delete;
+	ConfigurationTable &operator=(const ConfigurationTable &) = delete;
+
 //Member functions(Public)
 	ConfigurationTable(
 		void);
+/* No need copy constructor
 	ConfigurationTable(
 		const ConfigurationTable &Reference);
 	ConfigurationTable & operator=(
 		const ConfigurationTable &Reference);
+*/
 	void SetToMonitorItem(
 		void);
 	void MonitorItemToUsing(
@@ -934,10 +945,12 @@ public:
 	~ConfigurationTable(
 		void);
 
+/* No need copy constructor
 //Member functions(Private)
 private:
 	void CopyMemberOperator(
 		const ConfigurationTable &Reference);
+*/
 }CONFIGURATION_TABLE;
 
 //Global status class
@@ -996,29 +1009,43 @@ public:
 	std::vector<std::string>             *LocalAddress_PointerResponse[NETWORK_LAYER_PARTNUM];
 #endif
 
+//Redefine operator functions
+//	GlobalStatus() = default;
+	GlobalStatus(const GlobalStatus &) = delete;
+	GlobalStatus & operator=(const GlobalStatus &) = delete;
+
 //Member functions(Public)
 	GlobalStatus(
 		void);
+/* No need copy constructor
 	GlobalStatus(
 		const GlobalStatus &Reference);
 	GlobalStatus & operator=(
 		const GlobalStatus &Reference);
+*/
 	~GlobalStatus(
 		void);
 
+/* No need copy constructor
 //Member functions(Private)
 private:
 	void CopyMemberOperator(
 		const GlobalStatus &Reference);
+*/
 }GLOBAL_STATUS;
 
-//IPv4/IPv6 address ranges class
+//IP address ranges class
 typedef class AddressRangeTable
 {
 public:
 	sockaddr_storage                     Begin;
 	sockaddr_storage                     End;
 	size_t                               Level;
+
+//Redefine operator functions
+//	AddressRangeTable() = default;
+//	AddressRangeTable(const AddressRangeTable &) = delete;
+//	AddressRangeTable & operator=(const AddressRangeTable &) = delete;
 
 //Member functions
 	AddressRangeTable(
@@ -1038,6 +1065,11 @@ public:
 	bool                                 PermissionOperation;
 	bool                                 IsStringMatching;
 
+//Redefine operator functions
+//	HostsTable() = default;
+//	HostsTable(const HostsTable &) = delete;
+//	HostsTable & operator=(const HostsTable &) = delete;
+
 //Member functions
 	HostsTable(
 		void);
@@ -1050,6 +1082,11 @@ public:
 	std::vector<ADDRESS_RANGE_TABLE>     Addresses;
 	std::regex                           PatternRegex;
 	std::string                          PatternString;
+
+//Redefine operator functions
+//	ResultBlacklistTable() = default; //No need to set default.
+//	ResultBlacklistTable(const ResultBlacklistTable &) = delete;
+//	ResultBlacklistTable & operator=(const ResultBlacklistTable &) = delete;
 }RESULT_BLACKLIST_TABLE;
 
 //Address Hosts class
@@ -1058,6 +1095,11 @@ typedef class AddressHostsTable
 public:
 	std::vector<ADDRESS_PREFIX_BLOCK>    Address_Target;
 	std::vector<ADDRESS_RANGE_TABLE>     Address_Source;
+
+//Redefine operator functions
+//	AddressHostsTable() = default; //No need to set default.
+//	AddressHostsTable(const AddressHostsTable &) = delete;
+//	AddressHostsTable & operator=(const AddressHostsTable &) = delete;
 }ADDRESS_HOSTS_TABLE;
 
 //Address routing table class
@@ -1067,6 +1109,11 @@ public:
 	std::unordered_map<uint64_t, std::unordered_set<uint64_t>>   AddressRoutingList_IPv6;
 	std::unordered_set<uint32_t>                                 AddressRoutingList_IPv4;
 	size_t                                                       Prefix;
+
+//Redefine operator functions
+//	AddressRoutingTable() = default;
+//	AddressRoutingTable(const AddressHostsTable &) = delete;
+//	AddressRoutingTable & operator=(const AddressRoutingTable &) = delete;
 
 //Member functions
 	AddressRoutingTable(
@@ -1079,6 +1126,11 @@ typedef class AlternateSwapTable
 public:
 	size_t                               TimeoutTimes[ALTERNATE_SERVER_NUM];
 	bool                                 IsSwap[ALTERNATE_SERVER_NUM];
+
+//Redefine operator functions
+//	AlternateSwapTable() = default;
+	AlternateSwapTable(const AlternateSwapTable &) = delete;
+	AlternateSwapTable & operator=(const AlternateSwapTable &) = delete;
 
 //Member functions
 	AlternateSwapTable(
@@ -1093,6 +1145,11 @@ public:
 	std::vector<RESULT_BLACKLIST_TABLE>   ResultBlacklist;
 	std::vector<ADDRESS_ROUTING_TABLE>    LocalRoutingList;
 	size_t                                FileIndex;
+
+//Redefine operator functions
+//	DiffernetFileSetIPFilter() = default;
+//	DiffernetFileSetIPFilter(const DiffernetFileSetIPFilter &) = delete;
+//	DiffernetFileSetIPFilter & operator=(const DiffernetFileSetIPFilter &) = delete;
 
 //Member functions
 	DiffernetFileSetIPFilter(
@@ -1109,18 +1166,28 @@ public:
 	std::vector<ADDRESS_HOSTS_TABLE>     AddressHostsList;
 	size_t                               FileIndex;
 
+//Redefine operator functions
+//	DiffernetFileSetHosts() = default;
+//	DiffernetFileSetHosts(const DiffernetFileSetHosts &) = delete;
+//	DiffernetFileSetHosts & operator=(const DiffernetFileSetHosts &) = delete;
+
 //Member functions
 	DiffernetFileSetHosts(
 		void);
 }DIFFERNET_FILE_SET_HOSTS;
 
 //Socket Selecting Once table class
-typedef struct SocketSelectingOnceTable
+typedef class SocketSelectingOnceTable
 {
 public:
 	std::unique_ptr<uint8_t[]>           RecvBuffer;
 	size_t                               RecvLen;
 	bool                                 IsPacketDone;
+
+//Redefine operator functions
+//	SocketSelectingOnceTable() = default;
+	SocketSelectingOnceTable(const SocketSelectingOnceTable &) = delete;
+	SocketSelectingOnceTable & operator=(const SocketSelectingOnceTable &) = delete;
 
 //Member functions
 	SocketSelectingOnceTable(
@@ -1136,6 +1203,11 @@ public:
 	pcap_t                               *DeviceHandle;
 	int                                  DeviceType;
 	bpf_program                          BPF_Code;
+
+//Redefine operator functions
+//	CaptureDeviceTable() = default;
+	CaptureDeviceTable(const CaptureDeviceTable &) = delete;
+	CaptureDeviceTable & operator=(const CaptureDeviceTable &) = delete;
 
 //Member functions
 	CaptureDeviceTable(
@@ -1154,6 +1226,11 @@ public:
 	uint16_t                             Protocol_Network;
 	uint16_t                             Protocol_Transport;
 	uint64_t                             ClearPortTime;
+
+//Redefine operator functions
+//	OutputPacketTable() = default;
+//	OutputPacketTable(const OutputPacketTable &) = delete;
+//	OutputPacketTable & operator=(const OutputPacketTable &) = delete;
 
 //Member functions
 	OutputPacketTable(
@@ -1199,13 +1276,20 @@ public:
 	DNSCURVE_SERVER_DATA                    DNSCurve_Target_Server_Main_IPv4;
 	DNSCURVE_SERVER_DATA                    DNSCurve_Target_Server_Alternate_IPv4;
 
+//Redefine operator functions
+//	DNSCurveConfigurationTable() = default;
+	DNSCurveConfigurationTable(const DNSCurveConfigurationTable &) = delete;
+	DNSCurveConfigurationTable & operator=(const DNSCurveConfigurationTable &) = delete;
+
 //Member functions(Public)
 	DNSCurveConfigurationTable(
 		void);
+/* No need copy constructor
 	DNSCurveConfigurationTable(
 		const DNSCurveConfigurationTable &Reference);
 	DNSCurveConfigurationTable & operator=(
 		const DNSCurveConfigurationTable &Reference);
+*/
 	void SetToMonitorItem(
 		void);
 	void MonitorItemToUsing(
@@ -1215,14 +1299,16 @@ public:
 	~DNSCurveConfigurationTable(
 		void);
 
+/* No need copy constructor
 //Member functions(Private)
 private:
 	void CopyMemberOperator(
 		const DNSCurveConfigurationTable &Reference);
+*/
 }DNSCURVE_CONFIGURATION_TABLE;
 
 //DNSCurve Socket Selecting table class
-typedef struct DNSCurveSocketSelectingTable
+typedef class DNSCurveSocketSelectingTable
 {
 public:
 	DNSCURVE_SERVER_TYPE                 ServerType;
@@ -1233,6 +1319,13 @@ public:
 	std::unique_ptr<uint8_t[]>           RecvBuffer;
 	size_t                               RecvLen;
 	bool                                 IsPacketDone;
+
+//Redefine operator functions
+//	DNSCurveSocketSelectingTable() = default;
+/* std::move is used to indicate that an object t may be "moved from", i.e. allowing the efficient transfer of resources from t to another object.
+	DNSCurveSocketSelectingTable(const DNSCurveSocketSelectingTable &) = delete;
+	DNSCurveSocketSelectingTable & operator=(const DNSCurveSocketSelectingTable &) = delete;
+*/
 
 //Member functions
 	DNSCurveSocketSelectingTable(
@@ -1252,6 +1345,11 @@ public:
 	DWORD                                InputFlags;
 	SECURITY_STATUS                      LastReturnValue;
 
+//Redefine operator functions
+//	SSPIHandleTable() = default;
+	SSPIHandleTable(const SSPIHandleTable &) = delete;
+	SSPIHandleTable & operator=(const SSPIHandleTable &) = delete;
+
 //Member functions
 	SSPIHandleTable(
 		void);
@@ -1270,6 +1368,11 @@ public:
 	uint16_t                             Protocol_Transport;
 	SYSTEM_SOCKET                        Socket;
 	std::string                          AddressString;
+
+//Redefine operator functions
+//	OpenSSLContextTable() = default;
+	OpenSSLContextTable(const OpenSSLContextTable &) = delete;
+	OpenSSLContextTable & operator=(const OpenSSLContextTable &) = delete;
 
 //Member functions
 	OpenSSLContextTable(

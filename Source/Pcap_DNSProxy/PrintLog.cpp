@@ -29,10 +29,10 @@ bool PrintError(
 	const size_t Line)
 {
 //Print log level check, parameter check, message check and file name check
-	if (Parameter.PrintLogLevel == LOG_LEVEL_TYPE::LEVEL_0 || ErrorLevel > Parameter.PrintLogLevel || Message == nullptr)
+	if (Parameter.PrintLogLevel == LOG_LEVEL_TYPE::LEVEL_0 || Message == nullptr || ErrorLevel > Parameter.PrintLogLevel)
 		return false;
 	std::wstring ErrorMessage(Message);
-	if (ErrorMessage.empty())
+	if (ErrorMessage.size() < ERROR_MESSAGE_MINSIZE)
 		return false;
 	else 
 		ErrorMessage.clear();

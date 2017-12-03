@@ -1,8 +1,8 @@
 ﻿Pcap_DNSProxy Project GitHub page:
-Https://github.com/chengr28/Pcap_DNSProxy
+https://github.com/chengr28/Pcap_DNSProxy
 
 Pcap_DNSProxy Project Sourceforge page:
-Https://sourceforge.net/projects/pcap-dnsproxy
+https://sourceforge.net/projects/pcap-dnsproxy
 
 
 * For more details on the program and configuration, see ReadMe (..). Txt

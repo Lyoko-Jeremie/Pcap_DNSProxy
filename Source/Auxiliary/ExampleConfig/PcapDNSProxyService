@@ -40,6 +40,7 @@ STOP_FLAGS="--stop --chuid root --exec"
 case "$1" in
 start)
 	echo "Start Pcap_DNSProxy service."
+	ulimit -n 10240
 	$PROGRAM $START_FLAGS $PATH/$NAME --chdir $PATH
 ;;
 stop)
@@ -49,6 +50,7 @@ stop)
 force-reload|restart)
 	echo "Force-reload/Restart Pcap_DNSProxy service."
 	$PROGRAM $STOP_FLAGS $PATH/$NAME
+	ulimit -n 10240
 	$PROGRAM $START_FLAGS $PATH/$NAME --chdir $PATH
 ;;
 status)

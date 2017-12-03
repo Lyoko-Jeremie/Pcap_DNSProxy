@@ -200,6 +200,7 @@ Details of Error.log error report:
   * Socket non-blocking mode settings error - lease mark the error code.
   * Socket reusing disabled settings error - Please mark the error code.
   * Socket TCP Fast Open settings error - Please mark the error code.
+  * Socket TCP No Delay mode settings error - Please mark the error code.
   * Socket timeout settings error - Please mark the error code.
   * Socket treating wildcard binding settings error - Please mark the error code.
   * Socket UDP block RESET message settings error - Please mark the error code.

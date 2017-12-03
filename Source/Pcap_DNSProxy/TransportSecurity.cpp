@@ -939,7 +939,7 @@ bool OpenSSL_BIO_Initializtion(
 		(OpenSSL_CTX.Protocol_Transport == IPPROTO_TCP && !SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
 		(OpenSSL_CTX.Protocol_Network == AF_INET6 && !SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr)) || 
 		(OpenSSL_CTX.Protocol_Network == AF_INET && (!SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
-		!SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))))
+		(OpenSSL_CTX.Protocol_Transport == IPPROTO_UDP && !SocketSetting(OpenSSL_CTX.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))))
 			return false;
 
 //BIO attribute settings

@@ -344,7 +344,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
     * 同時填入 TCP 和 UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
     * 填入 Force TCP 可阻止 TCP 請求失敗後使用 UDP 重新嘗試請求
-  * Direct Request - 直連模式，啟用後將使用系統的 API 直接請求遠端伺服器而啟用只使用本工具的 Hosts 功能：可填入 IPv4 和 IPv6 和 0，關閉為 0
+  * Direct Request - 直連模式，啟用後將使用系統的 API 直接請求遠端伺服器：可填入 IPv4 和 IPv6 和 0，關閉為 0
     * 建議當系統使用全域代理功能時啟用，程式將除境內服務器外的所有請求直接交給系統而不作任何過濾等處理，系統會將請求自動發往遠端伺服器進行解析
     * 填入 IPv4 或 IPv6 時將會啟用對應協定的 Direct Request 功能，填入 IPv4 + IPv6 將會啟用所有協定的功能
   * Cache Type - DNS 緩存的類型：分 Timer/計時型、Queue/佇列型以及它們的混合類型，填入 0 為關閉此功能
@@ -628,7 +628,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * TCP Data Filter - TCP 資料包頭檢測：開啟為 1 /關閉為 0
   * DNS Data Filter - DNS 資料包頭檢測：開啟為 1 /關閉為 0
   * Blacklist Filter - 解析結果黑名單過濾：開啟為 1 /關閉為 0
-  * Strict Resource Record TTL Filter - 嚴格的資源記錄存留時間過濾，標準要求同一名稱和類型的資源記錄必須具有相同的存留時間：開啟為 1/關閉為 0
 
 * Data - 資料區域
   * ICMP ID - ICMP/Ping 資料包頭部 ID 的值：格式為 0x**** 的十六進位字元，如果留空則獲取執行緒的 ID 作為請求用 ID
@@ -716,7 +715,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入 Force TCP 可阻止 TCP 請求失敗後使用 UDP 重新嘗試請求
   * DNSCurve Payload Size - DNSCurve 標籤附帶使用的最大載荷長度，同時亦為發送請求的總長度，並決定請求的填充長度：單位為位元組
     * 最小為 DNS 協定實現要求的 512，留空則為 512
-    * 最大為 1500 減去 DNSCurve 頭長度，建議不要超過 1220
+    * 最大為 Ethernet MTU 減去 DNSCurve 頭長度，建議不要超過 1220
     * DNSCurve 協定要求此值必須為 64 的倍數
   * DNSCurve Reliable Socket Timeout - 可靠 DNSCurve 協定埠超時時間，可靠埠指 TCP 協定：單位為毫秒，最小為 500，可留空，留空時為 3000
   * DNSCurve Unreliable Socket Timeout - 不可靠 DNSCurve 協定埠超時時間，不可靠埠指 UDP 協定：單位為毫秒，最小為 500，可留空，留空時為 2000
@@ -1047,7 +1046,6 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 * IPv4 Do Not Fragment
 * TCP Data Filter
 * DNS Data Filter
-* Strict Resource Record TTL Filter
 * Domain Test Protocol
 * SOCKS Target Server
 * SOCKS Username

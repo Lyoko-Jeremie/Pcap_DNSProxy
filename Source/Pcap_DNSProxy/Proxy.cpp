@@ -212,8 +212,8 @@ size_t SOCKS_TCP_Request(
 	if (!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
 		!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr) || 
 		(SocketDataList.front().SockAddr.ss_family == AF_INET6 && !SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr)) || 
-		(SocketDataList.front().SockAddr.ss_family == AF_INET && (!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
-		!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))))
+		(SocketDataList.front().SockAddr.ss_family == AF_INET && (!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr)))) // || 
+//		!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))))
 	{
 		SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 		return EXIT_FAILURE;
@@ -276,7 +276,9 @@ size_t SOCKS_TCP_Request(
 			REQUEST_PROCESS_TYPE::SOCKS_MAIN, 
 			SocketSelectingDataList.front().RecvBuffer.get(), 
 			RecvLen, 
-			SocketSelectingDataList.front().RecvSize);
+			SocketSelectingDataList.front().RecvSize, 
+			nullptr, 
+			nullptr);
 		if (RecvLen < DNS_PACKET_MINSIZE)
 			return EXIT_FAILURE;
 
@@ -598,7 +600,9 @@ size_t SOCKS_UDP_Request(
 			REQUEST_PROCESS_TYPE::SOCKS_MAIN, 
 			UDPSocketSelectingDataList.front().RecvBuffer.get(), 
 			UDPSocketSelectingDataList.front().RecvLen, 
-			UDPSocketSelectingDataList.front().RecvSize);
+			UDPSocketSelectingDataList.front().RecvSize, 
+			nullptr, 
+			nullptr);
 		if (RecvLen < DNS_PACKET_MINSIZE)
 			return EXIT_FAILURE;
 
@@ -2111,7 +2115,6 @@ size_t HTTP_CONNECT_Request(
 		else 
 	#endif
 	#endif
-
 	//Normal shutdown connection.
 			SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
@@ -2240,8 +2243,8 @@ bool HTTP_CONNECT_Handshake(
 	//Socket attribute settings
 		if (!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr) || 
 			(SocketDataList.front().SockAddr.ss_family == AF_INET6 && !SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr)) || 
-			(SocketDataList.front().SockAddr.ss_family == AF_INET && (!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
-			!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))))
+			(SocketDataList.front().SockAddr.ss_family == AF_INET && (!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr)))) // || 
+//			!SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))))
 		{
 			SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			return false;
@@ -2309,7 +2312,6 @@ bool HTTP_CONNECT_Handshake(
 		else 
 	#endif
 	#endif
-
 	//Normal shutdown connection.
 			SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
@@ -2569,7 +2571,6 @@ size_t HTTP_CONNECT_Transport(
 		else 
 	#endif
 	#endif
-
 	//Normal shutdown connection.
 			SocketSetting(SocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
@@ -2783,7 +2784,9 @@ size_t HTTP_CONNECT_Transport(
 			REQUEST_PROCESS_TYPE::HTTP_CONNECT_MAIN, 
 			SocketSelectingDataList.front().RecvBuffer.get(), 
 			RecvLen, 
-			SocketSelectingDataList.front().RecvSize);
+			SocketSelectingDataList.front().RecvSize, 
+			nullptr, 
+			nullptr);
 		if (RecvLen >= DNS_PACKET_MINSIZE)
 			return RecvLen;
 	}

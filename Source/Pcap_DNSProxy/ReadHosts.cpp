@@ -656,7 +656,7 @@ bool ReadAddressHostsData(
 	GetParameterListData(TargetListData, Data, 0, Separated, ASCII_VERTICAL, false, false);
 	GetParameterListData(SourceListData, Data, Separated, Data.length(), ASCII_VERTICAL, false, false);
 	ssize_t Result = 0;
-	uint16_t BeforeType = 0;
+	uint16_t PreviousType = 0;
 
 //Mark all data in list.
 	for (auto &StringIter:TargetListData)
@@ -667,11 +667,11 @@ bool ReadAddressHostsData(
 		if (StringIter.find(ASCII_COLON) != std::string::npos)
 		{
 		//Before type check
-			if (BeforeType == 0)
+			if (PreviousType == 0)
 			{
-				BeforeType = AF_INET6;
+				PreviousType = AF_INET6;
 			}
-			else if (BeforeType != AF_INET6)
+			else if (PreviousType != AF_INET6)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -713,11 +713,11 @@ bool ReadAddressHostsData(
 		else if (StringIter.find(ASCII_PERIOD) != std::string::npos)
 		{
 		//Before type check
-			if (BeforeType == 0)
+			if (PreviousType == 0)
 			{
-				BeforeType = AF_INET;
+				PreviousType = AF_INET;
 			}
-			else if (BeforeType != AF_INET)
+			else if (PreviousType != AF_INET)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Data format error", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -772,7 +772,7 @@ bool ReadAddressHostsData(
 	for (auto &StringIter:SourceListData)
 	{
 	//AAAA record(IPv6)
-		if (StringIter.find(ASCII_COLON) != std::string::npos && BeforeType == AF_INET6)
+		if (StringIter.find(ASCII_COLON) != std::string::npos && PreviousType == AF_INET6)
 		{
 			memset(&AddressRangeTableTemp, 0, sizeof(AddressRangeTableTemp));
 
@@ -828,7 +828,7 @@ bool ReadAddressHostsData(
 			AddressHostsTableTemp.Address_Source.push_back(AddressRangeTableTemp);
 		}
 	//A record(IPv4)
-		else if (StringIter.find(ASCII_PERIOD) != std::string::npos && BeforeType == AF_INET)
+		else if (StringIter.find(ASCII_PERIOD) != std::string::npos && PreviousType == AF_INET)
 		{
 			memset(&AddressRangeTableTemp, 0, sizeof(AddressRangeTableTemp));
 

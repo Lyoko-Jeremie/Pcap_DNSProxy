@@ -39,13 +39,13 @@ bool CheckAddressRouting(
 size_t CheckResponse_CNAME(
 	uint8_t * const Buffer, 
 	const size_t Length, 
-	const size_t CNAME_Index, 
-	const size_t CNAME_Length, 
 	const size_t BufferSize, 
-	size_t &RecordNum);
+	const size_t CanonicalIndex, 
+	const size_t CanonicalLength, 
+	size_t &IncreaseCount);
 bool Check_DNSSEC_Record(
 	const uint8_t * const Buffer, 
 	const size_t Length, 
 	const uint16_t Type, 
-	const uint16_t BeforeType);
+	const uint16_t PreviousType);
 #endif

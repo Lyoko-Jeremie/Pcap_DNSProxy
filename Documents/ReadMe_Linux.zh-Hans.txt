@@ -17,7 +17,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 1.准备程序编译环境：编译前需要使用包管理工具安装，或者需要自行编译和安装依赖库
   * 依赖工具/库列表：
     * GCC/g++ 可访问 https://gcc.gnu.org 获取
-      * GCC 最低版本要求为 4.9 从此版本开始 GCC 完整支持 C++ 11 标准，4.9 之前的版本对 C++ 11 标准的实现有问题
+      * GCC 最低版本要求为 4.9 从此版本开始 GCC 完整支持 C++11 标准，4.9 之前的版本对 C++11 标准的实现有问题
       * GCC 当前版本可使用 gcc --version 查看，使用旧版本 GCC 强行编译可能会出现无法预料的问题！
     * CMake 可访问 https://cmake.org 获取
     * LibPcap 可访问 http://www.tcpdump.org/#latest-release 获取

@@ -18,17 +18,18 @@
 
 
 [Unit]
-Description=Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
 After=network.target
+Description=Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
 Wants=network-online.target
 
 [Service]
-Type=forking
-WorkingDirectory=
 ExecStart=
 GuessMainPID=yes
+LimitNOFILE=10240
 Restart=on-failure
 RestartSec=15s
+Type=forking
+WorkingDirectory=
 
 [Install]
 WantedBy=multi-user.target

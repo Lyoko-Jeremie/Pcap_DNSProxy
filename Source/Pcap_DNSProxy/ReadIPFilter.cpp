@@ -217,7 +217,7 @@ bool ReadBlacklistData(
 	std::vector<std::string> ListData;
 	GetParameterListData(ListData, Data, 0, Separated, ASCII_VERTICAL, false, false);
 	ssize_t Result = 0;
-	uint16_t BeforeType = 0;
+	uint16_t PreviousType = 0;
 
 //Mark all data in list.
 	for (const auto &StringIter:ListData)
@@ -226,11 +226,11 @@ bool ReadBlacklistData(
 		if (StringIter.find(ASCII_COLON) != std::string::npos)
 		{
 		//Before type check
-			if (BeforeType == 0)
+			if (PreviousType == 0)
 			{
-				BeforeType = AF_INET6;
+				PreviousType = AF_INET6;
 			}
-			else if (BeforeType != AF_INET6)
+			else if (PreviousType != AF_INET6)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"Data format error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -307,11 +307,11 @@ bool ReadBlacklistData(
 		else if (StringIter.find(ASCII_PERIOD) != std::string::npos)
 		{
 		//Before type check
-			if (BeforeType == 0)
+			if (PreviousType == 0)
 			{
-				BeforeType = AF_INET;
+				PreviousType = AF_INET;
 			}
-			else if (BeforeType != AF_INET)
+			else if (PreviousType != AF_INET)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"Data format error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 				return false;

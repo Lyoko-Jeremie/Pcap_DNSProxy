@@ -200,6 +200,7 @@ Error.log 詳細錯誤報表：
   * Socket non-blocking mode settings error - 設置通訊端非阻塞模式錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
   * Socket reusing disabled settings error - 設置通訊端埠獨佔模式錯誤：具體原因可參見錯誤代碼
   * Socket TCP Fast Open settings error - 設置 TCP Fast Open 錯誤：具體原因可參見錯誤代碼
+  * Socket TCP No Delay mode settings error - 設置 TCP No Delay 錯誤：具體原因可參見錯誤代碼
   * Socket timeout settings error - 設置通訊端超時時間錯誤：具體原因可參見錯誤代碼
   * Socket treating wildcard binding settings error - 設置通訊端協定獨佔模式錯誤：具體原因可參見錯誤代碼
   * Socket UDP block RESET message settings error - 設置 UDP 協定通訊端遮罩 ICMP Port Unreachable 資訊錯誤：具體原因可參見錯誤代碼

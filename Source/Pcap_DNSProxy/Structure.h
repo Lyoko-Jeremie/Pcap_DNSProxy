@@ -124,7 +124,7 @@ typedef struct _ieee_8021q_hdr_
 			uint8_t        ID_First:4;
 			uint8_t        ID_Second;
 		#endif
-		}Flags_Bits;
+		}FlagsBits;
 	};
 	uint16_t               Type;
 }ieee_8021q_hdr;
@@ -598,9 +598,9 @@ typedef struct _ppp_hdr_
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|Version|  IHL  |   DSCP    |ECN|         Total Length          |  IHL/Internet Header Length, DSCP/Differentiated Services Code Point and ECN/Explicit Congestion Notification
+|Version|  IHL  |   DSCP    |ECN|         Total Length          |   IHL/Internet Header Length, DSCP/Differentiated Services Code Point and ECN/Explicit Congestion Notification
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|        Identification         |Z|D|M|     Fragment Offset     |  Flags(Z/Zero/Reserved bit, D/DF/More Fragments bit and M/MF/More Fragments bit)
+|        Identification         |Z|D|M|     Fragment Offset     |   Flags(Z/Zero/Reserved bit, D/DF/More Fragments bit and M/MF/More Fragments bit)
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 | Time To Live  |   Protocol    |        Header Checksum        |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -614,8 +614,10 @@ typedef struct _ppp_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define IPV4_IHL_STANDARD            0x05   //Standard IPv4 header length(0x05/20 bytes)
-#define IPV4_IHL_BYTES_TIMES         4U     //IHL is number of 32-bit words(4 bytes).
+#define IPV4_IHL_STANDARD               0x05     //Standard IPv4 header length(0x05/20 bytes)
+#define IPV4_IHL_BYTES_TIMES            4U       //IHL is number of 32-bit words(4 bytes).
+#define IPV4_FLAG_GET_BIT_MF            0x2000   //Get More Fragment bit in Flags.
+#define IPV4_FLAG_GET_FRAGMENT_OFFSET   0x1FFF   //Get Fragment Offset bits in Flags.
 typedef struct _ipv4_hdr_
 {
 #if BYTE_ORDER == LITTLE_ENDIAN
@@ -665,12 +667,13 @@ typedef struct _ipv4_hdr_
 }ipv4_hdr;
 
 /* Internet Protocol version 6/IPv6 header
-* RFC 2460, Internet Protocol, Version 6 (IPv6) Specification(https://tools.ietf.org/html/rfc2460)
+* RFC 5533, Shim6: Level 3 Multihoming Shim Protocol for IPv6(https://tools.ietf.org/html/rfc5533)
+* RFC 8200, Internet Protocol, Version 6 (IPv6) Specification(https://tools.ietf.org/html/rfc8200)
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|Version|    DSF    |T|E|              Flow Label               |  DSF/Differentiated Services Field, E/ECT/Explicit Congestion Notification - Capable Transport, T/ECN-CE/Explicit Congestion Notification - Congestion Encountered
+|Version|    DSF    |T|E|              Flow Label               |   DSF/Differentiated Services Field, E/ECT/Explicit Congestion Notification - Capable Transport, T/ECN-CE/Explicit Congestion Notification - Congestion Encountered
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
          \Traffic Class/
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -733,6 +736,238 @@ typedef struct _ipv6_hdr_
 	in6_addr                   Source;
 	in6_addr                   Destination;
 }ipv6_hdr;
+
+/* Internet Protocol version 6/IPv6 header Hop-by-hop and Destination option
+* RFC 8200, Internet Protocol, Version 6 (IPv6) Specification(https://tools.ietf.org/html/rfc8200)
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  Next Header  |ExtensionLength|      Option and Padding       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                      Option and Padding                       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                 Option and Padding(Optional)                  /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _ipv6_extension_hop_by_hop_
+{
+	uint8_t                    NextHeader;
+	uint8_t                    ExtensionLength;
+	uint16_t                   OptionsPadding_A;
+	uint32_t                   OptionsPadding_B;
+//	uint8_t                    *OptionsPadding_C;
+}_ipv6_extension_destination_, ipv6_extension_hop_by_hop, ipv6_extension_destination;
+
+/* Internet Protocol version 6/IPv6 header Routing option
+* RFC 8200, Internet Protocol, Version 6 (IPv6) Specification(https://tools.ietf.org/html/rfc8200)
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  Next Header  |ExtensionLength| Routing Type  | Segments Left |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                      Type-specific Data                       |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                 Type-specific Data(Optional)                  /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _ipv6_extension_routing_
+{
+	uint8_t                    NextHeader;
+	uint8_t                    ExtensionLength;
+	uint8_t                    RoutingType;
+	uint8_t                    SegmentsLeft;
+	uint32_t                   TypeSpecificData_A;
+//	uint8_t                    *TypeSpecificData_B;
+}ipv6_extension_routing;
+
+/* Internet Protocol version 6/IPv6 header Fragment option
+* RFC 8200, Internet Protocol, Version 6 (IPv6) Specification(https://tools.ietf.org/html/rfc8200)
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  Next Header  |   Reserved    |     Fragment Offset     |Res|M|   Res/Reserved, M/More Fragments follow
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                        Identification                         |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+#define IPV6_FRAGMENT_HEADER_GET_BIT_MF            0x0001   //Get More Fragment bit in Fragment Header.
+#define IPV6_FRAGMENT_HEADER_GET_FRAGMENT_OFFSET   0xFFF8   //Get Fragment Offset bits in Fragment Header.
+typedef struct _ipv6_extension_fragment_
+{
+	uint8_t                    NextHeader;
+	uint8_t                    Reserved_A;
+	union {
+		uint16_t               Flags;
+		struct {
+		#if BYTE_ORDER == LITTLE_ENDIAN
+			uint16_t           FragmentOffset_First:8;
+			uint16_t           MF:1;
+			uint16_t           Reserved_B:2;
+			uint16_t           FragmentOffset_Second:5;
+		#else //BIG_ENDIAN
+			uint16_t           FragmentOffset_First:8;
+			uint16_t           FragmentOffset_Second:5;
+			uint16_t           Reserved_B:2;
+			uint16_t           MF:1;
+		#endif
+		}FlagsBits;
+	};
+	uint32_t                   ID;
+//	uint8_t                    *Fragment;
+}ipv6_extension_fragment;
+
+/* Internet Protocol version 6/IPv6 header Authentication Header option
+* RFC 6071, IP Security (IPsec) and Internet Key Exchange (IKE) Document Roadmap(https://tools.ietf.org/html/rfc6071)
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  Next Header  |Payload Length |           Reserved            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                  Security Parameters Index                    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                        Sequence Number                        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                  Integrity Check Value (ICV)                  /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _ipv6_extension_ah_
+{
+	uint8_t                    NextHeader;
+	uint8_t                    PayloadLength;
+	uint16_t                   Reserved;
+	uint32_t                   SPI;
+	uint32_t                   Sequence;
+//	uint8_t                    *ICV;
+}ipv6_extension_ah;
+
+/* Internet Protocol version 6/IPv6 header Encapsulating Security Payload option
+* RFC 6071, IP Security (IPsec) and Internet Key Exchange (IKE) Document Roadmap(https://tools.ietf.org/html/rfc6071)
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                  Security Parameters Index                    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                        Sequence Number                        |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                         Payload Data                          /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/          Payload Data         /Padding Length |  Next Header  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                  Integrity Check Value (ICV)                  /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _ipv6_extension_esp_
+{
+	uint32_t                   SPI;
+	uint32_t                   Sequence;
+//	uint8_t                    *Payload;
+//	uint8_t                    PaddingLength;
+//	uint8_t                    NextHeader;
+//	uint8_t                    *ICV;
+}ipv6_extension_esp;
+
+/* Internet Protocol version 6/IPv6 header Mobility option
+* RFC 6275, Mobility Support in IPv6(https://tools.ietf.org/html/rfc6275)
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|PayloadProtocol| Header Length |    MT Type    |   Reserved    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           Checksum            |         Message Data          |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/                    Message Data(Optional)                     /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _ipv6_extension_mobility_
+{
+	uint8_t                    PayloadProtocol;
+	uint8_t                    HeaderLength;
+	uint8_t                    MT_Type;
+	uint8_t                    Reserved;
+	uint16_t                   Checksum;
+	uint16_t                   MessageData_A;
+//	uint8_t                    *MessageData_B;
+}ipv6_extension_mobility;
+
+/* Internet Protocol version 6/IPv6 header HIP option
+* RFC 7401, Host Identity Protocol Version 2 (HIPv2)(https://tools.ietf.org/html/rfc7401)
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  Next Header  | Header Length |0| Packet Type |Version| Res |1|
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|           Checksum            |           Controls            |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|               Sender's Host Identity Tag (HIT)                |
+|                                                               |
+|                                                               |
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|              Receiver's Host Identity Tag (HIT)               |
+|                                                               |
+|                                                               |
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _ipv6_extension_hip_
+{
+	uint8_t                    NextHeader;
+	uint8_t                    HeaderLength;
+	union {
+		uint16_t               Flags;
+		struct {
+		#if BYTE_ORDER == LITTLE_ENDIAN
+			uint16_t           PacketType:7;
+			uint16_t           FixedPart_A:1;
+			uint16_t           FixedPart_B:1;
+			uint16_t           Reserved:3;
+			uint16_t           Version:4;
+		#else //BIG_ENDIAN
+			uint16_t           FixedPart_A:1;
+			uint16_t           PacketType:7;
+			uint16_t           Version:4;
+			uint16_t           Reserved:3;
+			uint16_t           FixedPart_B:1;
+		#endif
+		}FlagsBits;
+	};
+	uint16_t                   Checksum;
+	uint16_t                   Controls;
+	uint64_t                   SenderHIP[2U];
+	uint64_t                   ReceiverHIP[2U];
+//	uint8_t                    *HIP_Parameter;
+}ipv6_extension_hip;
+
+/* Internet Protocol version 6/IPv6 header Shim6 option
+* RFC 5533, Shim6: Level 3 Multihoming Shim Protocol for IPv6(https://tools.ietf.org/html/rfc5533)
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|  Next Header  | Header Length |P|
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _ipv6_extension_shim6_
+{
+	uint8_t                    NextHeader;
+	uint8_t                    HeaderLength;
+//	uint8_t                    *PayloadExtension;
+}ipv6_extension_shim6;
 
 /* Internet Control Message Protocol/ICMP header
 * RFC 792, INTERNET CONTROL MESSAGE PROTOCOL(https://tools.ietf.org/html/rfc792)
@@ -830,9 +1065,9 @@ typedef struct _icmpv6_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |                     Acknowledgment Number                     |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-| Data  |  R  |N|C|E|U|A|P|R|S|F|                               |  RES/Reserved
-|Offset |  E  |S|W|C|R|C|S|S|Y|I|          Window Size          |  NS/ECN-nonce concealment protection, CWR/Congestion Window Reduced, ECE/ECN-Echo indicates, URG/Urgent pointer, ACK/Acknowledgment
-|       |  S  | |R|E|G|K|H|T|N|N|                               |  PSH/Push function, RST/Reset the connection, SYN/Synchronize sequence numbers, FIN/No more data from sender
+| Data  |  R  |N|C|E|U|A|P|R|S|F|                               |   RES/Reserved
+|Offset |  E  |S|W|C|R|C|S|S|Y|I|          Window Size          |   NS/ECN-nonce concealment protection, CWR/Congestion Window Reduced, ECE/ECN-Echo indicates, URG/Urgent pointer, ACK/Acknowledgment
+|       |  S  | |R|E|G|K|H|T|N|N|                               |   PSH/Push function, RST/Reset the connection, SYN/Synchronize sequence numbers, FIN/No more data from sender
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |           Checksum            |        Urgent Pointer         |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -1130,32 +1365,32 @@ typedef struct _tcp_hdr_
 	uint32_t               Sequence;
 	uint32_t               Acknowledge;
 	union {
-		uint16_t               HeaderLength_Flags;
+		uint16_t           HeaderLength_Flags;
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
-			uint8_t                Nonce:1;
-			uint8_t                Reserved:3;
-			uint8_t                HeaderLength:4;
-			uint8_t                FIN:1;
-			uint8_t                SYN:1;
-			uint8_t                RST:1;
-			uint8_t                PSH:1;
-			uint8_t                ACK:1;
-			uint8_t                URG:1;
-			uint8_t                ECE:1;
-			uint8_t                CWR:1;
+			uint8_t        Nonce:1;
+			uint8_t        Reserved:3;
+			uint8_t        HeaderLength:4;
+			uint8_t        FIN:1;
+			uint8_t        SYN:1;
+			uint8_t        RST:1;
+			uint8_t        PSH:1;
+			uint8_t        ACK:1;
+			uint8_t        URG:1;
+			uint8_t        ECE:1;
+			uint8_t        CWR:1;
 		#else //BIG_ENDIAN
-			uint8_t                HeaderLength:4;
-			uint8_t                Reserved:3;
-			uint8_t                Nonce:1;
-			uint8_t                CWR:1;
-			uint8_t                ECE:1;
-			uint8_t                URG:1;
-			uint8_t                ACK:1;
-			uint8_t                PSH:1;
-			uint8_t                RST:1;
-			uint8_t                SYN:1;
-			uint8_t                FIN:1;
+			uint8_t        HeaderLength:4;
+			uint8_t        Reserved:3;
+			uint8_t        Nonce:1;
+			uint8_t        CWR:1;
+			uint8_t        ECE:1;
+			uint8_t        URG:1;
+			uint8_t        ACK:1;
+			uint8_t        PSH:1;
+			uint8_t        RST:1;
+			uint8_t        SYN:1;
+			uint8_t        FIN:1;
 		#endif
 		}HeaderLength_FlagsBits;
 	};
@@ -1166,10 +1401,10 @@ typedef struct _tcp_hdr_
 
 /* User Datagram Protocol/UDP header
 * RFC 768, User Datagram Protocol(https://tools.ietf.org/html/rfc768)
-* RFC 2460, Internet Protocol, Version 6 (IPv6) Specification(https://tools.ietf.org/html/rfc2460)
 * RFC 2675, IPv6 Jumbograms(https://tools.ietf.org/html/rfc2675)
 * RFC 4113, Management Information Base for the UDP(https://tools.ietf.org/html/rfc4113)
 * RFC 5405, Unicast UDP Usage Guidelines for Application Designers(https://tools.ietf.org/html/rfc5405)
+* RFC 8200, Internet Protocol, Version 6 (IPv6) Specification(https://tools.ietf.org/html/rfc8200)
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -1332,32 +1567,33 @@ typedef struct _ipv6_psd_hdr_
 #ifndef IPPORT_LLMNR
 	#define IPPORT_LLMNR                  5355U      //Link-Local Multicast Name Resolution/LLMNR Port
 #endif
-#define DNS_FLAG_STANDARD             0x0100     //System Standard query
-#define DNS_FLAG_SQR_NE               0x8180     //Standard query response and No Error.
-#define DNS_FLAG_SQR_NEA              0x8580     //Standard query response, No Error and Authoritative.
-#define DNS_FLAG_SQR_NETC             0x8380     //Standard query response and No Error, but Truncated.
-#define DNS_FLAG_SQR_FE               0x8181     //Standard query response, Format Error
-#define DNS_FLAG_SQR_SF               0x8182     //Standard query response, Server failure
-#define DNS_FLAG_SQR_SNH              0x8183     //Standard query response, No Such Name
-#define DNS_FLAG_GET_BIT_RESPONSE     0x8000     //Get Response bit in DNS flags.
-#define DNS_FLAG_GET_BIT_OPCODE       0x7800     //Get OPCode in DNS flags.
-#define DNS_FLAG_GET_BIT_AA           0x0400     //Get Authoritative bit in DNS flags.
-#define DNS_FLAG_GET_BIT_TC           0x0200     //Get Truncated bit in DNS flags.
-#define DNS_FLAG_GET_BIT_RD           0x0100     //Get Recursion Desired bit in DNS flags.
-#define DNS_FLAG_GET_BIT_Z            0x0040     //Get Reserved bit in DNS flags.
-#define DNS_FLAG_GET_BIT_AD           0x0020     //Get Authentic Data bit in DNS flags.
-#define DNS_FLAG_GET_BIT_CD           0x0010     //Get Checking Disabled bit in DNS flags.
-#define DNS_FLAG_GET_BIT_RCODE        0x000F     //Get RCode in DNS flags.
-#define DNS_FLAG_SET_R                0x8000     //Set Response bit in DNS flags.
-#define DNS_FLAG_SET_R_TC             0x8200     //Set Response bit and Truncated bit in DNS flags.
-#define DNS_FLAG_SET_R_A              0x8580     //Set Response bit and Authoritative bit in DNS flags.
-#define DNS_FLAG_SET_R_FE             0x8001     //Set Response bit and Format Error RCode in DNS flags.
-#define DNS_FLAG_SET_R_SNH            0x8003     //Set Response bit and No Such Name RCode in DNS flags.
-#define DNS_POINTER_8_BITS            0xC0       //DNS compression pointer(11000000)
-#define DNS_POINTER_16_BITS           0xC000     //DNS compression pointer(1100000000000000)
-#define DNS_POINTER_8_BITS_STRING     ('\xC0')   //DNS compression pointer string
-#define DNS_POINTER_BITS_GET_LOCATE   0x3FFF     //Get location of DNS compression pointer(00111111111111111)
-#define DNS_POINTER_QUERY             0xC00C     //Pointer of first query
+#define DNS_FLAG_STANDARD                0x0100       //System Standard query
+#define DNS_FLAG_SQR_NE                  0x8180       //Standard query response and No Error.
+#define DNS_FLAG_SQR_NEA                 0x8580       //Standard query response, No Error and Authoritative.
+#define DNS_FLAG_SQR_NETC                0x8380       //Standard query response and No Error, but Truncated.
+#define DNS_FLAG_SQR_FE                  0x8181       //Standard query response, Format Error
+#define DNS_FLAG_SQR_SF                  0x8182       //Standard query response, Server failure
+#define DNS_FLAG_SQR_SNH                 0x8183       //Standard query response, No Such Name
+#define DNS_FLAG_GET_BIT_RESPONSE        0x8000       //Get Response bit in DNS flags.
+#define DNS_FLAG_GET_BIT_OPCODE          0x7800       //Get OPCode in DNS flags.
+#define DNS_FLAG_GET_BIT_AA              0x0400       //Get Authoritative bit in DNS flags.
+#define DNS_FLAG_GET_BIT_TC              0x0200       //Get Truncated bit in DNS flags.
+#define DNS_FLAG_GET_BIT_RD              0x0100       //Get Recursion Desired bit in DNS flags.
+#define DNS_FLAG_GET_BIT_Z               0x0040       //Get Reserved bit in DNS flags.
+#define DNS_FLAG_GET_BIT_AD              0x0020       //Get Authentic Data bit in DNS flags.
+#define DNS_FLAG_GET_BIT_CD              0x0010       //Get Checking Disabled bit in DNS flags.
+#define DNS_FLAG_GET_BIT_RCODE           0x000F       //Get RCode in DNS flags.
+#define DNS_FLAG_SET_R                   0x8000       //Set Response bit in DNS flags.
+#define DNS_FLAG_SET_R_TC                0x8200       //Set Response bit and Truncated bit in DNS flags.
+#define DNS_FLAG_SET_R_A                 0x8580       //Set Response bit and Authoritative bit in DNS flags.
+#define DNS_FLAG_SET_R_FE                0x8001       //Set Response bit and Format Error RCode in DNS flags.
+#define DNS_FLAG_SET_R_SNH               0x8003       //Set Response bit and No Such Name RCode in DNS flags.
+#define DNS_POINTER_8_BITS               0xC0         //DNS compression pointer(11000000)
+#define DNS_POINTER_16_BITS              0xC000       //DNS compression pointer(1100000000000000)
+#define DNS_POINTER_8_BIT_STRING         ('\xC0')     //DNS compression pointer string
+#define DNS_POINTER_BIT_GET_LOCATE       0x3FFF       //Get location of DNS compression pointer(00111111111111111)
+#define DNS_POINTER_QUERY                0xC00C       //Pointer of first query
+#define DNS_RECORD_TTL_GET_BIT_HIGHEST   0x80000000   //Get highest 1 bit in TTL.
 
 //OPCode definitions
 #ifndef DNS_OPCODE_QUERY
@@ -1383,11 +1619,14 @@ typedef struct _ipv6_psd_hdr_
 #endif
 
 //Classes definitions
+#ifndef DNS_CLASS_RESERVED
+	#define DNS_CLASS_RESERVED      0                //DNS RESERVED Classes is 0.
+#endif
 #ifndef DNS_CLASS_INTERNET
 	#define DNS_CLASS_INTERNET      0x0001           //DNS INTERNET Classes is 1.
 #endif
 #ifndef DNS_CLASS_CSNET
-	#define DNS_CLASS_CSNET         0x0002           //DNS CSNET Classes is 2.
+	#define DNS_CLASS_CSNET         0x0002           //DNS CSNET Classes is 2(Obsolete).
 #endif
 #ifndef DNS_CLASS_CHAOS
 	#define DNS_CLASS_CHAOS         0x0003           //DNS CHAOS Classes is 3.
@@ -1514,7 +1753,7 @@ typedef struct _ipv6_psd_hdr_
 	#define DNS_TYPE_MX           0x000F             //DNS Type MX is 15.
 #endif
 #ifndef DNS_TYPE_TEXT
-	#define DNS_TYPE_TEXT          0x0010             //DNS Type TXT is 16.
+	#define DNS_TYPE_TEXT         0x0010             //DNS Type TXT is 16.
 #endif
 #ifndef DNS_TYPE_RP
 	#define DNS_TYPE_RP           0x0011             //DNS Type RP is 17.
@@ -1535,7 +1774,7 @@ typedef struct _ipv6_psd_hdr_
 	#define DNS_TYPE_NSAP         0x0016             //DNS Type NSAP is 22.
 #endif
 #ifndef DNS_TYPE_NSAPPTR
-	#define DNS_TYPE_NSAPPTR     0x0017             //DNS Type NSAPPTR is 23(Obsolete).
+	#define DNS_TYPE_NSAPPTR      0x0017             //DNS Type NSAPPTR is 23(Obsolete).
 #endif
 #ifndef DNS_TYPE_SIG
 	#define DNS_TYPE_SIG          0x0018             //DNS Type SIG is 24.
@@ -1731,8 +1970,8 @@ typedef struct _ipv6_psd_hdr_
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|        Identification         |Q|OPCode |A|T|R|R|Z|A|C| RCode |  QR/Query and Response, AA/Authoritative Answer, TC/Truncated, RD/Recursion Desired, RA/Recursion Available
-|                               |R|       |A|C|D|A| |D|D|       |  Z/Zero, AD/Authenticated Data, CD/Checking Disabled, RCode/Return Code
+|        Identification         |Q|OPCode |A|T|R|R|Z|A|C| RCode |   QR/Query and Response, AA/Authoritative Answer, TC/Truncated, RD/Recursion Desired, RA/Recursion Available
+|                               |R|       |A|C|D|A| |D|D|       |   Z/Zero, AD/Authenticated Data, CD/Checking Disabled, RCode/Return Code
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |        Total Questions        |       Total Answer RRs        |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -1787,8 +2026,8 @@ typedef struct _dns_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |            Length             |        Identification         |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|Q|OPCode |A|T|R|R|Z|A|C| RCode |        Total Questions        |  QR/Query and Response, AA/Authoritative Answer, TC/Truncated, RD/Recursion Desired, RA/Recursion Available
-|R|       |A|C|D|A| |D|D|       |                               |  Z/Zero, AD/Authenticated Data, CD/Checking Disabled, RCode/Return Code
+|Q|OPCode |A|T|R|R|Z|A|C| RCode |        Total Questions        |   QR/Query and Response, AA/Authoritative Answer, TC/Truncated, RD/Recursion Desired, RA/Recursion Available
+|R|       |A|C|D|A| |D|D|       |                               |   Z/Zero, AD/Authenticated Data, CD/Checking Disabled, RCode/Return Code
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |       Total Answer RRs        |      Total Authority RRs      |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -1861,13 +2100,15 @@ typedef struct _dns_qry_
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /                                                               /
-/                             Name                              /
+/                            Domain                             /
 /                                                               /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|             Type              |           Classes             |
+|             Type              |            Classes            |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|         Time To Live          |            Length             |
+|                         Time To Live                          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|            Length             |                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               /
 /                                                               /
 /                             Data                              /
 /                                                               /
@@ -1985,7 +2226,7 @@ typedef struct _dns_record_soa_
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|            Pointer            |             Type              |
+|             Name              |             Type              |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |            Classes            |         Time To Live          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -2026,7 +2267,7 @@ typedef struct _dns_record_mx_
 //	uint8_t               MailExchangeName;
 }dns_record_mx;
 
-/* Domain Name System/DNS Test Strings/TXT Records
+/* Domain Name System/DNS Text Strings/TXT Records
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
@@ -2061,7 +2302,7 @@ typedef struct _dns_record_txt_
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|            Pointer            |             Type              |
+|             Name              |             Type              |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |            Classes            |         Time To Live          |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -2111,20 +2352,17 @@ typedef struct _dns_record_srv_
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-/                                                               /
-/                            Domain                             /
-/                                                               /
+|     Name      |             Type              |UDP PayloadSize|
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|             Type              |       UDP Payload Size        |
+|UDP PayloadSize|Extended RCode | EDNS Version  |D|  Reserved   |   Extended RCode/Higher bits in extended Return Code, D/DO/DNSSEC OK bit
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|Extended RCode |EDNS Version |D|           Reserved            |  Extended RCode/Higher bits in extended Return Code, D/DO/DNSSEC OK bit
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|            Length             |\---------- Z Field -----------/
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|   Reserved    |            Length             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
 #define EDNS_VERSION_ZERO           0
 #define EDNS_PACKET_MINSIZE         1220U
+#define EDNS_PACKET_MAXSIZE         4096U
 #define EDNS_FLAG_GET_BIT_DO        0x8000        //Get DO bit in Z field.
 typedef struct _dns_record_opt_
 {
@@ -2178,7 +2416,7 @@ typedef struct _edns_data_option_
 |             Code              |            Length             |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |            Family             |Source Netmask | Scope Netmask |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ 
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /                                                               /
 /                           Address                             /
 /                                                               /
@@ -2831,7 +3069,7 @@ typedef struct _socks_udp_relay_request_
 |   Stream ID   |                    Payload                    /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 /                                                               /
-/                            Padload                            /
+/                            Payload                            /
 /                                                               /
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 */

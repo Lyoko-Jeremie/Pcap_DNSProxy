@@ -1403,6 +1403,7 @@ void GetGatewayInformation(
 {
 	if (Protocol == AF_INET6)
 	{
+	//Gateway status from configure.
 		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && 
 			Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family == 0 && 
 			Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0 && 
@@ -1416,7 +1417,9 @@ void GetGatewayInformation(
 			GlobalRunningStatus.GatewayAvailable_IPv6 = false;
 			return;
 		}
+
 	#if defined(PLATFORM_WIN)
+	//Gateway status from system network stack.
 		DWORD AdaptersIndex = 0;
 		if ((Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 			GetBestInterfaceEx(
@@ -1465,6 +1468,7 @@ void GetGatewayInformation(
 			}
 		}
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	//Gateway status from system network stack.
 		if ((Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 			!GetBestInterfaceAddress(AF_INET6, &Parameter.Target_Server_Main_IPv6.AddressData.Storage)) || 
 			(Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && 
@@ -1503,6 +1507,7 @@ void GetGatewayInformation(
 	}
 	else if (Protocol == AF_INET)
 	{
+	//Gateway status from configure.
 		if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0 && 
 			Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family == 0 && 
 			Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0 && 
@@ -1516,7 +1521,9 @@ void GetGatewayInformation(
 			GlobalRunningStatus.GatewayAvailable_IPv4 = false;
 			return;
 		}
+
 	#if defined(PLATFORM_WIN)
+	//Gateway status from system network stack.
 		DWORD AdaptersIndex = 0;
 		if ((Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 			GetBestInterfaceEx(
@@ -1565,6 +1572,7 @@ void GetGatewayInformation(
 			}
 		}
 	#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	//Gateway status from system network stack.
 		if ((Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 			!GetBestInterfaceAddress(AF_INET, &Parameter.Target_Server_Main_IPv4.AddressData.Storage)) || 
 			(Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0 && 

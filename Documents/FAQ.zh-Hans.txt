@@ -200,6 +200,7 @@ Error.log 详细错误报告：
   * Socket non-blocking mode settings error - 设置套接字非阻塞模式错误：可能为网络错误，具体原因可参见错误代码
   * Socket reusing disabled settings error - 设置套接字端口独占模式错误：具体原因可参见错误代码
   * Socket TCP Fast Open settings error - 设置 TCP Fast Open 错误：具体原因可参见错误代码
+  * Socket TCP No Delay mode settings error - 设置 TCP No Delay 错误：具体原因可参见错误代码
   * Socket timeout settings error - 设置套接字超时时间错误：具体原因可参见错误代码
   * Socket treating wildcard binding settings error - 设置套接字协议独占模式错误：具体原因可参见错误代码
   * Socket UDP block RESET message settings error - 设置 UDP 协议套接字屏蔽 ICMP Port Unreachable 信息错误：具体原因可参见错误代码

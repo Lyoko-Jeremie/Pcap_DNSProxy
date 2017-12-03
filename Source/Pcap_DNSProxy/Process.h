@@ -38,29 +38,36 @@ extern std::mutex LocalAddressLock[], HostsFileLock, DNSCacheListLock;
 bool LocalRequestProcess(
 	MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
-	const size_t RecvSize);
+	const size_t RecvSize, 
+	std::unique_ptr<uint8_t[]> &EDNS_Buffer);
 bool SOCKS_RequestProcess(
-	MONITOR_QUEUE_DATA &MonitorQueryData);
+	MONITOR_QUEUE_DATA &MonitorQueryData, 
+	std::unique_ptr<uint8_t[]> &EDNS_Buffer);
 bool HTTP_CONNECT_RequestProcess(
-	MONITOR_QUEUE_DATA &MonitorQueryData);
+	MONITOR_QUEUE_DATA &MonitorQueryData, 
+	std::unique_ptr<uint8_t[]> &EDNS_Buffer);
 bool DirectRequestProcess(
 	MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
+	std::unique_ptr<uint8_t[]> &EDNS_Buffer, 
 	const bool IsAutomatic);
 #if defined(ENABLE_LIBSODIUM)
 bool DNSCurveRequestProcess(
 	MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
-	const size_t RecvSize);
+	const size_t RecvSize, 
+	std::unique_ptr<uint8_t[]> &EDNS_Buffer);
 #endif
 bool TCP_RequestProcess(
 	MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
-	const size_t RecvSize);
+	const size_t RecvSize, 
+	std::unique_ptr<uint8_t[]> &EDNS_Buffer);
 #if defined(ENABLE_PCAP)
 void UDP_RequestProcess(
-	MONITOR_QUEUE_DATA &MonitorQueryData);
+	MONITOR_QUEUE_DATA &MonitorQueryData, 
+	std::unique_ptr<uint8_t[]> &EDNS_Buffer);
 #endif
 uint16_t SelectDirectProtocol(
 	void);

@@ -46,7 +46,7 @@ public:
 //Redefine operator functions
 	BlockingQueue() = default;
 	BlockingQueue(const BlockingQueue &) = delete;
-	BlockingQueue &operator=(const BlockingQueue &) = delete;
+	BlockingQueue & operator=(const BlockingQueue &) = delete;
 
 //Pop function
 	void pop(
@@ -122,6 +122,11 @@ template<typename Ty> class DNSCurveHeapBufferTable
 public:
 	Ty                                   *Buffer;
 	size_t                               BufferSize;
+
+//Redefine operator functions
+//	DNSCurveHeapBufferTable() = default;
+	DNSCurveHeapBufferTable(const DNSCurveHeapBufferTable &) = delete;
+	DNSCurveHeapBufferTable & operator=(const DNSCurveHeapBufferTable &) = delete;
 
 //Member functions
 	DNSCurveHeapBufferTable(

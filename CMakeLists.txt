@@ -18,11 +18,7 @@
 
 
 # CMake minimum version
-IF(PLATFORM_OPENWRT)
-	cmake_minimum_required(VERSION 2.8.12.2)
-ELSE(PLATFORM_OPENWRT)
-	cmake_minimum_required(VERSION 3.0.2)
-ENDIF(PLATFORM_OPENWRT)
+cmake_minimum_required(VERSION 3.1)
 
 # Sub directories
 add_subdirectory(Source/Pcap_DNSProxy)

@@ -177,10 +177,13 @@ bool EnterRequestProcess(
 		RecvBuffer = InnerRecvBuffer.get();
 	}
 
+//Buffer initialization
+	std::unique_ptr<uint8_t[]> EDNS_Buffer(nullptr);
+
 //Local request process
 	if (MonitorQueryData.first.IsLocalRequest)
 	{
-		const auto Result = LocalRequestProcess(MonitorQueryData, RecvBuffer, RecvSize);
+		const auto Result = LocalRequestProcess(MonitorQueryData, RecvBuffer, RecvSize, EDNS_Buffer);
 		if (Result || (MonitorQueryData.first.IsLocalInWhite && Parameter.IsLocalForce))
 		{
 		//Fin TCP request connection.
@@ -205,7 +208,7 @@ bool EnterRequestProcess(
 	if (Parameter.SOCKS_Proxy)
 	{
 	//SOCKS request
-		if (SOCKS_RequestProcess(MonitorQueryData))
+		if (SOCKS_RequestProcess(MonitorQueryData, EDNS_Buffer))
 			return true;
 
 	//SOCKS Proxy Only mode
@@ -223,7 +226,7 @@ bool EnterRequestProcess(
 	if (Parameter.HTTP_CONNECT_Proxy)
 	{
 	//HTTP CONNECT request
-		if (HTTP_CONNECT_RequestProcess(MonitorQueryData))
+		if (HTTP_CONNECT_RequestProcess(MonitorQueryData, EDNS_Buffer))
 			return true;
 
 	//HTTP CONNECT Proxy Only mode
@@ -238,7 +241,7 @@ bool EnterRequestProcess(
 	}
 
 //Direct Request request process
-	if (Parameter.DirectRequest != REQUEST_MODE_DIRECT::NONE && DirectRequestProcess(MonitorQueryData, RecvBuffer, RecvSize, false))
+	if (Parameter.DirectRequest != REQUEST_MODE_DIRECT::NONE && DirectRequestProcess(MonitorQueryData, RecvBuffer, RecvSize, EDNS_Buffer, false))
 	{
 	//Fin TCP request connection.
 		if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
@@ -256,7 +259,7 @@ bool EnterRequestProcess(
 			goto SkipDNSCurve;
 
 	//DNSCurve request
-		if (DNSCurveRequestProcess(MonitorQueryData, RecvBuffer, RecvSize))
+		if (DNSCurveRequestProcess(MonitorQueryData, RecvBuffer, RecvSize, EDNS_Buffer))
 			return true;
 
 	//DNSCurve Encryption Only mode
@@ -276,7 +279,7 @@ SkipDNSCurve:
 
 //TCP request process
 	if (((Parameter.RequestMode_Transport == REQUEST_MODE_TRANSPORT::FORCE_TCP || Parameter.RequestMode_Transport == REQUEST_MODE_TRANSPORT::TCP || 
-		MonitorQueryData.first.Protocol == IPPROTO_TCP) && TCP_RequestProcess(MonitorQueryData, RecvBuffer, RecvSize)) || 
+		MonitorQueryData.first.Protocol == IPPROTO_TCP) && TCP_RequestProcess(MonitorQueryData, RecvBuffer, RecvSize, EDNS_Buffer)) || 
 		Parameter.RequestMode_Transport == REQUEST_MODE_TRANSPORT::FORCE_TCP) //Force protocol(TCP).
 			return true;
 
@@ -285,7 +288,7 @@ SkipDNSCurve:
 	if (!Parameter.IsPcapCapture)
 	{
 #endif
-		DirectRequestProcess(MonitorQueryData, RecvBuffer, RecvSize, true);
+		DirectRequestProcess(MonitorQueryData, RecvBuffer, RecvSize, EDNS_Buffer, true);
 
 	//Fin TCP request connection.
 		if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
@@ -300,7 +303,7 @@ SkipDNSCurve:
 		InnerRecvBuffer.reset();
 
 //UDP request
-	UDP_RequestProcess(MonitorQueryData);
+	UDP_RequestProcess(MonitorQueryData, EDNS_Buffer);
 	return true;
 #endif
 }
@@ -432,13 +435,11 @@ size_t CheckHostsProcess(
 		return EXIT_FAILURE;
 	}
 
-//Response initilization and Classes check
+//Response initilization
 	memset(Result, 0, ResultSize);
 	memcpy_s(Result, ResultSize, PacketStructure->Buffer, PacketStructure->Length);
 	DNS_Header = reinterpret_cast<dns_hdr *>(Result);
 	const auto DNS_Query = reinterpret_cast<dns_qry *>(Result + DNS_PACKET_QUERY_LOCATE(Result));
-	if (ntohs(DNS_Query->Classes) != DNS_CLASS_INTERNET)
-		return EXIT_FAILURE;
 
 //Check Accept Types list.
 	if (Parameter.AcceptTypeList != nullptr)
@@ -1067,21 +1068,26 @@ StopLoop_LocalHosts:
 bool LocalRequestProcess(
 	MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
-	const size_t RecvSize)
+	const size_t RecvSize, 
+	std::unique_ptr<uint8_t[]> &EDNS_Buffer)
 {
 	memset(OriginalRecv, 0, RecvSize);
 
 //EDNS switching(Part 1)
-	std::unique_ptr<uint8_t[]> EDNS_Buffer(nullptr);
 	const auto EDNS_Packet_Flags = reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer)->Flags;
-	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_Local && 
-		MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+	auto IsNeedStoreEDNS = false;
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_Local && MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+		IsNeedStoreEDNS = true;
+	if (IsNeedStoreEDNS)
 	{
 	//Store EDNS Label temporary.
-		std::unique_ptr<uint8_t[]> BufferTemp(new uint8_t[MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES]());
-		memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
-		memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
-		EDNS_Buffer.swap(BufferTemp);
+		if (!EDNS_Buffer)
+		{
+			std::unique_ptr<uint8_t[]> BufferTemp(new uint8_t[MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES]());
+			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
+			memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
+			EDNS_Buffer.swap(BufferTemp);
+		}
 
 	//Remove EDNS Label.
 		memset(MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, 0, MonitorQueryData.first.EDNS_Length);
@@ -1123,8 +1129,7 @@ bool LocalRequestProcess(
 	}
 
 //EDNS switching(Part 2)
-	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_Local && 
-		MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+	if (IsNeedStoreEDNS)
 	{
 	//Copy back EDNS Label.
 		memcpy_s(MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.BufferSize - MonitorQueryData.first.EDNS_Location, EDNS_Buffer.get(), MonitorQueryData.first.EDNS_Length);
@@ -1140,19 +1145,24 @@ bool LocalRequestProcess(
 
 //Request Process(SOCKS part)
 bool SOCKS_RequestProcess(
-	MONITOR_QUEUE_DATA &MonitorQueryData)
+	MONITOR_QUEUE_DATA &MonitorQueryData, 
+	std::unique_ptr<uint8_t[]> &EDNS_Buffer)
 {
 //EDNS switching(Part 1)
-	std::unique_ptr<uint8_t[]> EDNS_Buffer(nullptr);
 	const auto EDNS_Packet_Flags = reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer)->Flags;
-	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_SOCKS && 
-		MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+	auto IsNeedStoreEDNS = false;
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_SOCKS && MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+		IsNeedStoreEDNS = true;
+	if (IsNeedStoreEDNS)
 	{
 	//Store EDNS Label temporary.
-		std::unique_ptr<uint8_t[]> BufferTemp(new uint8_t[MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES]());
-		memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
-		memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
-		EDNS_Buffer.swap(BufferTemp);
+		if (!EDNS_Buffer)
+		{
+			std::unique_ptr<uint8_t[]> BufferTemp(new uint8_t[MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES]());
+			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
+			memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
+			EDNS_Buffer.swap(BufferTemp);
+		}
 
 	//Remove EDNS Label.
 		memset(MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, 0, MonitorQueryData.first.EDNS_Length);
@@ -1201,8 +1211,7 @@ bool SOCKS_RequestProcess(
 	}
 
 //EDNS switching(Part 2)
-	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_SOCKS && 
-		MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+	if (IsNeedStoreEDNS)
 	{
 	//Copy back EDNS Label.
 		memcpy_s(MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.BufferSize - MonitorQueryData.first.EDNS_Location, EDNS_Buffer.get(), MonitorQueryData.first.EDNS_Length);
@@ -1218,19 +1227,24 @@ bool SOCKS_RequestProcess(
 
 //Request Process(HTTP CONNECT part)
 bool HTTP_CONNECT_RequestProcess(
-	MONITOR_QUEUE_DATA &MonitorQueryData)
+	MONITOR_QUEUE_DATA &MonitorQueryData, 
+	std::unique_ptr<uint8_t[]> &EDNS_Buffer)
 {
 //EDNS switching(Part 1)
-	std::unique_ptr<uint8_t[]> EDNS_Buffer(nullptr);
 	const auto EDNS_Packet_Flags = reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer)->Flags;
-	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_HTTP_CONNECT && 
-		MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+	auto IsNeedStoreEDNS = false;
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_HTTP_CONNECT && MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+		IsNeedStoreEDNS = true;
+	if (IsNeedStoreEDNS)
 	{
 	//Store EDNS Label temporary.
-		std::unique_ptr<uint8_t[]> BufferTemp(new uint8_t[MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES]());
-		memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
-		memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
-		EDNS_Buffer.swap(BufferTemp);
+		if (!EDNS_Buffer)
+		{
+			std::unique_ptr<uint8_t[]> BufferTemp(new uint8_t[MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES]());
+			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
+			memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
+			EDNS_Buffer.swap(BufferTemp);
+		}
 
 	//Remove EDNS Label.
 		memset(MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, 0, MonitorQueryData.first.EDNS_Length);
@@ -1255,8 +1269,7 @@ bool HTTP_CONNECT_RequestProcess(
 	}
 
 //EDNS switching(Part 2)
-	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_HTTP_CONNECT && 
-		MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+	if (IsNeedStoreEDNS)
 	{
 	//Copy back EDNS Label.
 		memcpy_s(MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.BufferSize - MonitorQueryData.first.EDNS_Location, EDNS_Buffer.get(), MonitorQueryData.first.EDNS_Length);
@@ -1275,6 +1288,7 @@ bool DirectRequestProcess(
 	MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
+	std::unique_ptr<uint8_t[]> &EDNS_Buffer, 
 	const bool IsAutomatic)
 {
 	memset(OriginalRecv, 0, RecvSize);
@@ -1287,16 +1301,20 @@ bool DirectRequestProcess(
 			return false;
 
 //EDNS switching(Part 1)
-	std::unique_ptr<uint8_t[]> EDNS_Buffer(nullptr);
 	const auto EDNS_Packet_Flags = reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer)->Flags;
-	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_Direct && 
-		MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+	auto IsNeedStoreEDNS = false;
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_Direct && MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+		IsNeedStoreEDNS = true;
+	if (IsNeedStoreEDNS)
 	{
 	//Store EDNS Label temporary.
-		std::unique_ptr<uint8_t[]> BufferTemp(new uint8_t[MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES]());
-		memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
-		memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
-		EDNS_Buffer.swap(BufferTemp);
+		if (!EDNS_Buffer)
+		{
+			std::unique_ptr<uint8_t[]> BufferTemp(new uint8_t[MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES]());
+			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
+			memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
+			EDNS_Buffer.swap(BufferTemp);
+		}
 
 	//Remove EDNS Label.
 		memset(MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, 0, MonitorQueryData.first.EDNS_Length);
@@ -1345,8 +1363,7 @@ bool DirectRequestProcess(
 	}
 
 //EDNS switching(Part 2)
-	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_Direct && 
-		MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+	if (IsNeedStoreEDNS)
 	{
 	//Copy back EDNS Label.
 		memcpy_s(MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.BufferSize - MonitorQueryData.first.EDNS_Location, EDNS_Buffer.get(), MonitorQueryData.first.EDNS_Length);
@@ -1365,21 +1382,26 @@ bool DirectRequestProcess(
 bool DNSCurveRequestProcess(
 	MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
-	const size_t RecvSize)
+	const size_t RecvSize, 
+	std::unique_ptr<uint8_t[]> &EDNS_Buffer)
 {
 	memset(OriginalRecv, 0, RecvSize);
 
 //EDNS switching(Part 1)
-	std::unique_ptr<uint8_t[]> EDNS_Buffer(nullptr);
 	const auto EDNS_Packet_Flags = reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer)->Flags;
-	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_DNSCurve && 
-		MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+	auto IsNeedStoreEDNS = false;
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_DNSCurve && MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+		IsNeedStoreEDNS = true;
+	if (IsNeedStoreEDNS)
 	{
 	//Store EDNS Label temporary.
-		std::unique_ptr<uint8_t[]> BufferTemp(new uint8_t[MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES]());
-		memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
-		memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
-		EDNS_Buffer.swap(BufferTemp);
+		if (!EDNS_Buffer)
+		{
+			std::unique_ptr<uint8_t[]> BufferTemp(new uint8_t[MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES]());
+			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
+			memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
+			EDNS_Buffer.swap(BufferTemp);
+		}
 
 	//Remove EDNS Label.
 		memset(MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, 0, MonitorQueryData.first.EDNS_Length);
@@ -1429,8 +1451,7 @@ bool DNSCurveRequestProcess(
 	}
 
 //EDNS switching(Part 2)
-	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_DNSCurve && 
-		MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+	if (IsNeedStoreEDNS)
 	{
 	//Copy back EDNS Label.
 		memcpy_s(MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.BufferSize - MonitorQueryData.first.EDNS_Location, EDNS_Buffer.get(), MonitorQueryData.first.EDNS_Length);
@@ -1449,21 +1470,26 @@ bool DNSCurveRequestProcess(
 bool TCP_RequestProcess(
 	MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
-	const size_t RecvSize)
+	const size_t RecvSize, 
+	std::unique_ptr<uint8_t[]> &EDNS_Buffer)
 {
 	memset(OriginalRecv, 0, RecvSize);
 
 //EDNS switching(Part 1)
-	std::unique_ptr<uint8_t[]> EDNS_Buffer(nullptr);
 	const auto EDNS_Packet_Flags = reinterpret_cast<dns_hdr *>(MonitorQueryData.first.Buffer)->Flags;
-	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_TCP && 
-		MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+	auto IsNeedStoreEDNS = false;
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_TCP && MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+		IsNeedStoreEDNS = true;
+	if (IsNeedStoreEDNS)
 	{
 	//Store EDNS Label temporary.
-		std::unique_ptr<uint8_t[]> BufferTemp(new uint8_t[MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES]());
-		memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
-		memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
-		EDNS_Buffer.swap(BufferTemp);
+		if (!EDNS_Buffer)
+		{
+			std::unique_ptr<uint8_t[]> BufferTemp(new uint8_t[MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES]());
+			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
+			memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
+			EDNS_Buffer.swap(BufferTemp);
+		}
 
 	//Remove EDNS Label.
 		memset(MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, 0, MonitorQueryData.first.EDNS_Length);
@@ -1492,8 +1518,7 @@ bool TCP_RequestProcess(
 	}
 
 //EDNS switching(Part 2)
-	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_TCP && 
-		MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+	if (IsNeedStoreEDNS)
 	{
 	//Copy back EDNS Label.
 		memcpy_s(MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.BufferSize - MonitorQueryData.first.EDNS_Location, EDNS_Buffer.get(), MonitorQueryData.first.EDNS_Length);
@@ -1530,19 +1555,23 @@ uint16_t SelectDirectProtocol(
 //Request Process(UDP part)
 #if defined(ENABLE_PCAP)
 void UDP_RequestProcess(
-	MONITOR_QUEUE_DATA &MonitorQueryData)
+	MONITOR_QUEUE_DATA &MonitorQueryData, 
+	std::unique_ptr<uint8_t[]> &EDNS_Buffer)
 {
 //EDNS switching(Part 1)
-//UDP_RequestProcess is the last process, so no need to restore packet.
-	std::unique_ptr<uint8_t[]> EDNS_Buffer(nullptr);
-	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_UDP && 
-		MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+	auto IsNeedStoreEDNS = false;
+	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_UDP && MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+		IsNeedStoreEDNS = true;
+	if (IsNeedStoreEDNS)
 	{
 	//Store EDNS Label temporary.
-		std::unique_ptr<uint8_t[]> BufferTemp(new uint8_t[MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES]());
-		memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
-		memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
-		EDNS_Buffer.swap(BufferTemp);
+		if (!EDNS_Buffer)
+		{
+			std::unique_ptr<uint8_t[]> BufferTemp(new uint8_t[MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES]());
+			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
+			memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
+			EDNS_Buffer.swap(BufferTemp);
+		}
 
 	//Remove EDNS Label.
 		memset(MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, 0, MonitorQueryData.first.EDNS_Length);
@@ -1568,8 +1597,7 @@ void UDP_RequestProcess(
 
 /* UDP_RequestProcess is the last process, no need to restore the packet.
 //EDNS switching(Part 2)
-	if (Parameter.EDNS_Label && !Parameter.EDNS_Switch_UDP && 
-		MonitorQueryData.first.EDNS_Location > 0 && MonitorQueryData.first.EDNS_Length > 0)
+	if (IsNeedStoreEDNS)
 	{
 	//Copy back EDNS Label.
 		memcpy_s(MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.BufferSize - MonitorQueryData.first.EDNS_Location, EDNS_Buffer.get(), MonitorQueryData.first.EDNS_Length);
@@ -1636,9 +1664,9 @@ bool MarkDomainCache(
 	if (
 	//Not a response packet
 		(ntohs(DNS_Header->Flags) & DNS_FLAG_GET_BIT_RESPONSE) == 0 || 
-	//Question Resource Records must be one.
+	//Question resource records must be one.
 		ntohs(DNS_Header->Question) != UINT16_NUM_ONE || 
-	//Not any Answer Resource Records
+	//Not any Answer resource records
 		(DNS_Header->Answer == 0 && DNS_Header->Authority == 0 /* && DNS_Header->Additional == 0 */ ) || 
 	//OPCode must be set Query/0.
 		(ntohs(DNS_Header->Flags) & DNS_FLAG_GET_BIT_OPCODE) != DNS_OPCODE_QUERY || 
@@ -1659,30 +1687,30 @@ bool MarkDomainCache(
 	{
 		size_t DataLength = DNS_PACKET_RR_LOCATE(Buffer), TTLCounts = 0;
 
-	//Scan all Answers Resource Records.
+	//Scan all Answers resource records.
 		for (size_t Index = 0;Index < ntohs(DNS_Header->Answer);++Index)
 		{
 		//Domain pointer check
 			if (DataLength + sizeof(uint16_t) < Length && Buffer[DataLength] >= DNS_POINTER_8_BITS)
 			{
-				const uint16_t DNS_Pointer = ntohs(*reinterpret_cast<const uint16_t *>(Buffer + DataLength)) & DNS_POINTER_BITS_GET_LOCATE;
+				const uint16_t DNS_Pointer = ntohs(*reinterpret_cast<const uint16_t *>(Buffer + DataLength)) & DNS_POINTER_BIT_GET_LOCATE;
 				if (DNS_Pointer >= Length || DNS_Pointer < sizeof(dns_hdr) || DNS_Pointer == DataLength || DNS_Pointer == DataLength + 1U)
 					return false;
 			}
 
-		//Resource Records Name(Domain Name)
+		//Resource records domain name check
 			DataLength += CheckQueryNameLength(Buffer + DataLength) + NULL_TERMINATE_LENGTH;
 			if (DataLength + sizeof(dns_record_standard) > Length)
 				break;
 
-		//Standard Resource Records
+		//Standard resource record length check
 			auto DNS_Record_Standard = reinterpret_cast<const dns_record_standard *>(Buffer + DataLength);
 			DataLength += sizeof(dns_record_standard);
 			if (DataLength > Length || DataLength + ntohs(DNS_Record_Standard->Length) > Length)
 				break;
 
-		//Resource Records Data
-			if (ntohs(DNS_Record_Standard->Classes) == DNS_CLASS_INTERNET && DNS_Record_Standard->TTL > 0 && 
+		//Resource records data check
+			if (DNS_Record_Standard->TTL > 0 && 
 				((ntohs(DNS_Record_Standard->Type) == DNS_TYPE_AAAA && ntohs(DNS_Record_Standard->Length) == sizeof(in6_addr)) || 
 				(ntohs(DNS_Record_Standard->Type) == DNS_TYPE_A && ntohs(DNS_Record_Standard->Length) == sizeof(in_addr))))
 			{

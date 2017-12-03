@@ -58,6 +58,11 @@ bool CaptureNetworkLayer(
 	const uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t BufferSize);
+ssize_t CaptureCheck_Fragment(
+	const uint16_t Protocol, 
+	const uint8_t * const Buffer, 
+	const size_t Length, 
+	bool &IsNeedTruncated);
 bool CaptureCheck_ICMP(
 	const uint16_t Protocol, 
 	const uint8_t * const Buffer, 

@@ -362,7 +362,7 @@ void DNSCurveSocketPrecomputation(
 				!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
 				(IsIPv6 && !SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr)) || 
 				(!IsIPv6 && (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
-				!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))))
+				(InnerProtocol == IPPROTO_UDP && !SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))))
 			{
 				for (auto &SocketDataIter:SocketDataList)
 					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -489,7 +489,7 @@ SkipMain:
 				!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
 				(IsIPv6 && !SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr)) || 
 				(!IsIPv6 && (!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
-				!SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr))))
+				(Protocol == IPPROTO_UDP && !SocketSetting(SocketDataTemp.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))))
 			{
 				for (auto &SocketDataIter:SocketDataList)
 					SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -729,7 +729,9 @@ ssize_t DNSCurvePacketDecryption(
 		REQUEST_PROCESS_TYPE::DNSCURVE_MAIN, 
 		OriginalRecv, 
 		DataLength, 
-		RecvSize);
+		RecvSize, 
+		nullptr, 
+		nullptr);
 	if (DataLength < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
 		return EXIT_FAILURE;
 
