@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2017 Chengr28
+// Copyright (C) 2012-2018 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -110,7 +110,7 @@ bool SSPI_Handshake(
 	//The next 1 byte will be indicating the number of bytes used to the ALPN string.
 		if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1)
 		{
-			std::unique_ptr<uint8_t[]> InputBufferPointerTemp(new uint8_t[sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP_1_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH]());
+			auto InputBufferPointerTemp = std::make_unique<uint8_t[]>(sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP_1_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH);
 			memset(InputBufferPointerTemp.get(), 0, strlen(HTTP_1_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH);
 			std::swap(InputBufferPointer, InputBufferPointerTemp);
 
@@ -126,7 +126,7 @@ bool SSPI_Handshake(
 		}
 		else if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
 		{
-			std::unique_ptr<uint8_t[]> InputBufferPointerTemp(new uint8_t[sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP_2_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH]());
+			auto InputBufferPointerTemp = std::make_unique<uint8_t[]>(sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP_2_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH);
 			memset(InputBufferPointerTemp.get(), 0, strlen(HTTP_2_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH);
 			std::swap(InputBufferPointer, InputBufferPointerTemp);
 
@@ -218,7 +218,7 @@ bool SSPI_Handshake(
 		}
 
 	//Buffer initializtion
-		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[OutputBufferSec[0].cbBuffer + PADDING_RESERVED_BYTES]());
+		auto SendBuffer = std::make_unique<uint8_t[]>(OutputBufferSec[0].cbBuffer + PADDING_RESERVED_BYTES);
 		memset(SendBuffer.get(), 0, OutputBufferSec[0].cbBuffer + PADDING_RESERVED_BYTES);
 		memcpy_s(SendBuffer.get(), OutputBufferSec[0].cbBuffer, OutputBufferSec[0].pvBuffer, OutputBufferSec[0].cbBuffer);
 		std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
@@ -345,7 +345,7 @@ bool SSPI_HandshakeLoop(
 		//Buffer initializtion
 			if (OutputBufferSec[0].pvBuffer != nullptr && OutputBufferSec[0].cbBuffer >= sizeof(tls_base_record))
 			{
-				std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[OutputBufferSec[0].cbBuffer + PADDING_RESERVED_BYTES]());
+				auto SendBuffer = std::make_unique<uint8_t[]>(OutputBufferSec[0].cbBuffer + PADDING_RESERVED_BYTES);
 				memset(SendBuffer.get(), 0, OutputBufferSec[0].cbBuffer + PADDING_RESERVED_BYTES);
 				memcpy_s(SendBuffer.get(), OutputBufferSec[0].cbBuffer, OutputBufferSec[0].pvBuffer, OutputBufferSec[0].cbBuffer);
 				std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
@@ -427,7 +427,7 @@ bool SSPI_EncryptPacket(
 
 //Allocate a working buffer.
 //The plaintext sent to EncryptMessage can never be more than 'Sizes.cbMaximumMessage', so a buffer size of Sizes.cbMaximumMessage plus the header and trailer sizes is sufficient for the longest message.
-	std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[SSPI_Handle.StreamSizes.cbHeader + SSPI_Handle.StreamSizes.cbMaximumMessage + SSPI_Handle.StreamSizes.cbTrailer + PADDING_RESERVED_BYTES]());
+	auto SendBuffer = std::make_unique<uint8_t[]>(SSPI_Handle.StreamSizes.cbHeader + SSPI_Handle.StreamSizes.cbMaximumMessage + SSPI_Handle.StreamSizes.cbTrailer + PADDING_RESERVED_BYTES);
 	memset(SendBuffer.get(), 0, SSPI_Handle.StreamSizes.cbHeader + SSPI_Handle.StreamSizes.cbMaximumMessage + SSPI_Handle.StreamSizes.cbTrailer + PADDING_RESERVED_BYTES);
 	memcpy_s(SendBuffer.get() + SSPI_Handle.StreamSizes.cbHeader, SSPI_Handle.StreamSizes.cbMaximumMessage + SSPI_Handle.StreamSizes.cbTrailer, SocketSelectingDataList.front().SendBuffer.get(), SocketSelectingDataList.front().SendLen);
 	BufferSec[0].BufferType = SECBUFFER_STREAM_HEADER;
@@ -513,7 +513,7 @@ bool SSPI_DecryptPacket(
 			if (BufferSec[Index].BufferType == SECBUFFER_DATA && BufferSec[Index].pvBuffer != nullptr && BufferSec[Index].cbBuffer >= sizeof(tls_base_record))
 			{
 			//Buffer initializtion
-				std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[BufferSec[Index].cbBuffer + PADDING_RESERVED_BYTES]());
+				auto RecvBuffer = std::make_unique<uint8_t[]>(BufferSec[Index].cbBuffer + PADDING_RESERVED_BYTES);
 				memset(RecvBuffer.get(), 0, BufferSec[Index].cbBuffer + PADDING_RESERVED_BYTES);
 				memcpy_s(RecvBuffer.get(), BufferSec[Index].cbBuffer, BufferSec[Index].pvBuffer, BufferSec[Index].cbBuffer);
 				std::swap(SocketSelectingDataList.front().RecvBuffer, RecvBuffer);
@@ -657,7 +657,7 @@ bool SSPI_ShutdownConnection(
 	}
 	else {
 	//Buffer initializtion
-		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[BufferSec[0].cbBuffer + PADDING_RESERVED_BYTES]());
+		auto SendBuffer = std::make_unique<uint8_t[]>(BufferSec[0].cbBuffer + PADDING_RESERVED_BYTES);
 		memset(SendBuffer.get(), 0, BufferSec[0].cbBuffer + PADDING_RESERVED_BYTES);
 		memcpy_s(SendBuffer.get(), BufferSec[0].cbBuffer, BufferSec[0].pvBuffer, BufferSec[0].cbBuffer);
 		std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
@@ -970,7 +970,7 @@ bool OpenSSL_BIO_Initializtion(
 #else //OpenSSL version 1.0.1 and above
 	if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_0 || Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_1)
 		Result = SSL_set_cipher_list(OpenSSL_CTX.SessionData, OPENSSL_CIPHER_LIST_COMPATIBILITY);
-	else //Auto select and newer TLS version
+	else //Auto select and new TLS version
 		Result = SSL_set_cipher_list(OpenSSL_CTX.SessionData, OPENSSL_CIPHER_LIST_STRONG);
 #endif
 	if (Result == FALSE)
@@ -1140,7 +1140,7 @@ bool TLS_TransportSerial(
 	//Prepare buffer.
 		if (!SocketSelectingDataList.front().RecvBuffer)
 		{
-			std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
+			auto RecvBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 			memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 			std::swap(SocketSelectingDataList.front().RecvBuffer, RecvBuffer);
 			SocketSelectingDataList.front().RecvSize = Parameter.LargeBufferSize;
@@ -1148,7 +1148,7 @@ bool TLS_TransportSerial(
 		}
 		else if (SocketSelectingDataList.front().RecvSize < SocketSelectingDataList.front().RecvLen + Parameter.LargeBufferSize)
 		{
-			std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[SocketSelectingDataList.front().RecvSize + Parameter.LargeBufferSize]());
+			auto RecvBuffer = std::make_unique<uint8_t[]>(SocketSelectingDataList.front().RecvSize + Parameter.LargeBufferSize);
 			memset(RecvBuffer.get(), 0, SocketSelectingDataList.front().RecvSize + Parameter.LargeBufferSize);
 			memcpy_s(RecvBuffer.get(), SocketSelectingDataList.front().RecvSize + Parameter.LargeBufferSize, SocketSelectingDataList.front().RecvBuffer.get(), SocketSelectingDataList.front().RecvLen);
 			std::swap(SocketSelectingDataList.front().RecvBuffer, RecvBuffer);

@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2017 Chengr28
+// Copyright (C) 2012-2018 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -32,7 +32,7 @@ bool ReadCommand(
 {
 //Path initialization
 #if defined(PLATFORM_WIN)
-	std::unique_ptr<wchar_t[]> FilePathBuffer(new wchar_t[FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES]());
+	auto FilePathBuffer = std::make_unique<wchar_t[]>(FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
 	wmemset(FilePathBuffer.get(), 0, FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
 	std::wstring FilePathString;
 	size_t BufferSize = FILE_BUFFER_SIZE;
@@ -68,7 +68,7 @@ bool ReadCommand(
 			if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
 		#endif
 			{
-				std::unique_ptr<wchar_t[]> FilePathBufferTemp(new wchar_t[BufferSize + FILE_BUFFER_SIZE]());
+				auto FilePathBufferTemp = std::make_unique<wchar_t[]>(BufferSize + FILE_BUFFER_SIZE);
 				wmemset(FilePathBufferTemp.get(), 0, BufferSize + FILE_BUFFER_SIZE);
 				std::swap(FilePathBuffer, FilePathBufferTemp);
 				BufferSize += FILE_BUFFER_SIZE;
@@ -306,7 +306,7 @@ bool ReadCommand(
 			if (FileHandle != nullptr)
 			{
 			//Initialization and make keypair.
-				std::unique_ptr<uint8_t[]> Buffer(new uint8_t[DNSCRYPT_KEYPAIR_MESSAGE_LEN + PADDING_RESERVED_BYTES]());
+				const auto Buffer = std::make_unique<uint8_t[]>(DNSCRYPT_KEYPAIR_MESSAGE_LEN + PADDING_RESERVED_BYTES);
 				sodium_memzero(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN + PADDING_RESERVED_BYTES);
 				DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> SecretKey(crypto_box_SECRETKEYBYTES);
 				uint8_t PublicKey[crypto_box_PUBLICKEYBYTES]{0};

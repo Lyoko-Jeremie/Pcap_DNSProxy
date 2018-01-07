@@ -1,12 +1,16 @@
-﻿Pcap_DNSProxy 0.4.9.5 更新日志(2017-12-03)：
+﻿Pcap_DNSProxy 0.4.9.5 更新日志(2018-01-07)：
 
 * 添加完整的 EDNS 标签透明转发支持
+* C++ 最低标准要求更新到 14
+* LibSodium 更新到 1.0.16 (Windows/macOS)
+* OpenSSL 更新到 1.1.0g (macOS)
 * 修正 EDNS Lebel 参数对 All 行为的支持 [muink]
 * 修正对 DNSSEC 数据包的过滤算法 [ZeroClover]
 * 修正初始化 LibSodium 时的行为，增强安全性
 * 修正抓包模块对 IPv4/IPv6 分片数据包的支持
 * 修正包含 DNSSEC 相关记录的过滤算法
   * DNSSEC Force Validation 改名为 DNSSEC Force Record
+* 修复 SOCKS Username 和 SOCKS Password 参数读取的问题 [ダクネスExplosion]
 * 修正脚本对文件描述符的软性限制 (Linux) [lunzima]
 * 提升 CMake 版本要求到 3.1 (Linux/macOS)
 * 移除 IPv4 Data Filter 参数
@@ -16,15 +20,15 @@
   * 注意：此参数的所有功能需要强制启用，为避免名称上的误导，特此移除！
 * Release Hash:
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe: FADC0BBE6DCA6305146F71F2C72FCCA1DA69EF9B1E3800415D1664F78DEC62B7
-    * Windows/Pcap_DNSProxy_x86.exe: 65B34856C554C2504CD77B49035A6E696CDDAB8516B9257BD1232303F739926B
-    * Windows/Pcap_DNSProxy_XP.exe: BDC5AC7064DAE00237DA57150F11C87B74D5E7E5794D8A1CF5AB9CD6302DA916
-    * macOS/Pcap_DNSProxy: 30C906CBF06D784AAA0D98E197FB8D7EE93E74047ACF2BADECF9A8B6CE34FA33
+    * Windows/Pcap_DNSProxy.exe: 
+    * Windows/Pcap_DNSProxy_x86.exe: 
+    * Windows/Pcap_DNSProxy_XP.exe: 
+    * macOS/Pcap_DNSProxy: 
   * SHA-2(256):
-    * Windows/Pcap_DNSProxy.exe: 47AAC80EF4098C4FEA731CC7E6F88D39E79D92B3AA1BBA31C955F91A35E25FF8
-    * Windows/Pcap_DNSProxy_x86.exe: AD11AAC86A6812E0F9E7AEB2AF6D0A29DFCA188EDBB495ED7AE5AC92235609FF
-    * Windows/Pcap_DNSProxy_XP.exe: 980F2DC4F25B3838FE35D3A79CD2B8E76AC5D6D930804B07BCBD565BD41BFCA3
-    * macOS/Pcap_DNSProxy: 6724221B82881D9C818C1D33A078D82F4547541916AEF1A4362C0B0501E79FC3
+    * Windows/Pcap_DNSProxy.exe: 
+    * Windows/Pcap_DNSProxy_x86.exe: 
+    * Windows/Pcap_DNSProxy_XP.exe: 
+    * macOS/Pcap_DNSProxy: 
 
 
 -------------------------------------------------------------------------------

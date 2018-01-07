@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2017 Chengr28
+// Copyright (C) 2012-2018 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -374,7 +374,7 @@ bool SocketSetting(
 		//Socket attribute settings process
 			if (Parameter.TCP_FastOpen > 0)
 			{
-			//Windows: Server side is completed, client side is only support overlapped I/O. Waiting Microsoft extend to normal socket(2017-06-21).
+			//Windows: Server side is completed, client side is only support overlapped I/O. Waiting Microsoft extend to normal socket(2018-01-07).
 			//Linux: Server side and client side are both completed, also support queue length.
 			//macOS: Server side and client side are both completed.
 			#if defined(PLATFORM_WIN)
@@ -1348,7 +1348,7 @@ ssize_t SocketSelectingOnce(
 	#endif
 		)
 	{
-		std::unique_ptr<uint8_t[]> RecvBufferSwap(new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
+		auto RecvBufferSwap = std::make_unique<uint8_t[]>(NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 		memset(RecvBufferSwap.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 		std::swap(RecvBufferTemp, RecvBufferSwap);
 	}
@@ -1570,7 +1570,7 @@ ssize_t SocketSelectingOnce(
 					//Buffer initialization
 						if (!DNSCurveSocketSelectingDataList->at(Index).RecvBuffer)
 						{
-							std::unique_ptr<uint8_t[]> DNSCurveRecvBuffer(new uint8_t[RecvSize + PADDING_RESERVED_BYTES]());
+							auto DNSCurveRecvBuffer = std::make_unique<uint8_t[]>(RecvSize + PADDING_RESERVED_BYTES);
 							sodium_memzero(DNSCurveRecvBuffer.get(), RecvSize);
 							std::swap(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer, DNSCurveRecvBuffer);
 						}
@@ -1634,7 +1634,7 @@ ssize_t SocketSelectingOnce(
 						//Buffer initialization
 							if (!SocketSelectingDataList.at(Index).RecvBuffer)
 							{
-								std::unique_ptr<uint8_t[]> RecvBufferSwap(new uint8_t[RecvSize + PADDING_RESERVED_BYTES]());
+								auto RecvBufferSwap = std::make_unique<uint8_t[]>(RecvSize + PADDING_RESERVED_BYTES);
 								memset(RecvBufferSwap.get(), 0, RecvSize);
 								std::swap(SocketSelectingDataList.at(Index).RecvBuffer, RecvBufferSwap);
 							}
@@ -2321,7 +2321,7 @@ StopLoop:
 					//Prepare buffer.
 						if (!SocketSelectingDataList.at(Index).RecvBuffer)
 						{
-							std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
+							auto RecvBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 							memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 							std::swap(SocketSelectingDataList.at(Index).RecvBuffer, RecvBuffer);
 							SocketSelectingDataList.at(Index).RecvSize = Parameter.LargeBufferSize;
@@ -2329,7 +2329,7 @@ StopLoop:
 						}
 						else if (SocketSelectingDataList.at(Index).RecvSize <= SocketSelectingDataList.at(Index).RecvLen + Parameter.LargeBufferSize)
 						{
-							std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[SocketSelectingDataList.at(Index).RecvSize + Parameter.LargeBufferSize]());
+							auto RecvBuffer = std::make_unique<uint8_t[]>(SocketSelectingDataList.at(Index).RecvSize + Parameter.LargeBufferSize);
 							memset(RecvBuffer.get(), 0, SocketSelectingDataList.at(Index).RecvSize + Parameter.LargeBufferSize);
 							memcpy_s(RecvBuffer.get(), SocketSelectingDataList.at(Index).RecvSize + Parameter.LargeBufferSize, SocketSelectingDataList.at(Index).RecvBuffer.get(), SocketSelectingDataList.at(Index).RecvLen);
 							std::swap(SocketSelectingDataList.at(Index).RecvBuffer, RecvBuffer);

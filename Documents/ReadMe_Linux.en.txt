@@ -16,9 +16,9 @@ The installation process is relatively long and more complex operation, please g
 
 1. Prepare the program to compile the environment: before the need to use the package management tool to install, or need to compile and install the dependent library
   * Dependent Tools / Library List:
-    * GCC / g ++ is available at https://gcc.gnu.org
-      * GCC minimum version requirement 4.9 from this version GCC full support C ++ 11 standard, 4.9 before the version of the C + + 11 standard implementation problems
-      * GCC current version can be used gcc --version view, use the old version of GCC forced compiler may be unpredictable!
+    * Compiler must support C++ 14, please select one of them:
+      * GCC/g++ can be found in https://gcc.gnu.org, requires 5.0 and later.
+      * Clang/LLVM can be found in https://clang.llvm.org, requires 3.4 and later.
     * CMake can be accessed at https://cmake.org
     * LibPcap can be accessed at http://www.tcpdump.org/#latest-release
       * When decompressing LibPcap dependencies, you can skip compiling and installing dependencies and tools in the following table. For details, see below.

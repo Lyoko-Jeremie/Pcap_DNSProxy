@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2017 Chengr28
+// Copyright (C) 2012-2018 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -1502,16 +1502,21 @@ size_t CheckResponseData(
 		//AAAA record(IPv6)
 			if (ntohs(DNS_Record_Standard->Type) == DNS_TYPE_AAAA && ntohs(DNS_Record_Standard->Length) == sizeof(in6_addr))
 			{
-			//Records Type in responses check
-				if (Index < ntohs(DNS_Header->Answer) && Parameter.PacketCheck_DNS && ntohs(DNS_QueryType) == DNS_TYPE_A)
-					return EXIT_FAILURE;
+			//Check Answer resource records.
+				if (Index < ntohs(DNS_Header->Answer))
+				{
+				//Records Type in responses check
+					if (Parameter.PacketCheck_DNS && ntohs(DNS_QueryType) == DNS_TYPE_A)
+						return EXIT_FAILURE;
 
-			//Strict resource record TTL check when enforce strict RFC 2181(https://tools.ietf.org/html/rfc2181) compliance(Part 2)
-			//This will cause filter to reject DNS answers with incorrect timestamp settings(Multiple RRs of the same type and for the same domain with different TTLs).
-				if (AddressRecord_TTL == 0)
-					AddressRecord_TTL = DNS_Record_Standard->TTL;
-				else if (AddressRecord_TTL != DNS_Record_Standard->TTL)
-					return EXIT_FAILURE;
+				//Strict resource record TTL check when enforce strict RFC 2181(https://tools.ietf.org/html/rfc2181) compliance(Part 2)
+				//This will cause filter to reject DNS answers with incorrect timestamp settings.
+				//Multiple RRs of the same type and for the same domain with different TTLs.
+					if (AddressRecord_TTL == 0)
+						AddressRecord_TTL = DNS_Record_Standard->TTL;
+					else if (AddressRecord_TTL != DNS_Record_Standard->TTL)
+						return EXIT_FAILURE;
+				}
 
 			//Check record address.
 				if ((Parameter.DataCheck_Blacklist && CheckSpecialAddress(AF_INET6, Buffer + DataLength, false, DomainString)) || 
@@ -1525,16 +1530,21 @@ size_t CheckResponseData(
 		//A record(IPv4)
 			else if (ntohs(DNS_Record_Standard->Type) == DNS_TYPE_A && ntohs(DNS_Record_Standard->Length) == sizeof(in_addr))
 			{
-			//Records Type in responses check
-				if (Index < ntohs(DNS_Header->Answer) && Parameter.PacketCheck_DNS && ntohs(DNS_QueryType) == DNS_TYPE_AAAA)
-					return EXIT_FAILURE;
+			//Check Answer resource records.
+				if (Index < ntohs(DNS_Header->Answer))
+				{
+				//Records Type in responses check
+					if (Parameter.PacketCheck_DNS && ntohs(DNS_QueryType) == DNS_TYPE_AAAA)
+						return EXIT_FAILURE;
 
-			//Strict resource record TTL check when enforce strict RFC 2181(https://tools.ietf.org/html/rfc2181) compliance(Part 2)
-			//This will cause filter to reject DNS answers with incorrect timestamp settings(Multiple RRs of the same type and for the same domain with different TTLs).
-				if (AddressRecord_TTL == 0)
-					AddressRecord_TTL = DNS_Record_Standard->TTL;
-				else if (AddressRecord_TTL != DNS_Record_Standard->TTL)
-					return EXIT_FAILURE;
+				//Strict resource record TTL check when enforce strict RFC 2181(https://tools.ietf.org/html/rfc2181) compliance(Part 2)
+				//This will cause filter to reject DNS answers with incorrect timestamp settings.
+				//Multiple RRs of the same type and for the same domain with different TTLs.
+					if (AddressRecord_TTL == 0)
+						AddressRecord_TTL = DNS_Record_Standard->TTL;
+					else if (AddressRecord_TTL != DNS_Record_Standard->TTL)
+						return EXIT_FAILURE;
+				}
 
 			//Check record address.
 				if ((Parameter.DataCheck_Blacklist && CheckSpecialAddress(AF_INET, Buffer + DataLength, false, DomainString)) || 
@@ -1589,7 +1599,7 @@ size_t CheckResponseData(
 	std::unique_ptr<uint8_t[]> EDNS_Buffer(nullptr);
 	if (!RecordList_Answer.empty() && EDNS_Length > 0)
 	{
-		std::unique_ptr<uint8_t[]> EDNS_BufferTemp(new uint8_t[EDNS_Length + PADDING_RESERVED_BYTES]());
+		auto EDNS_BufferTemp = std::make_unique<uint8_t[]>(EDNS_Length + PADDING_RESERVED_BYTES);
 		memset(EDNS_BufferTemp.get(), 0, EDNS_Length + PADDING_RESERVED_BYTES);
 		memcpy_s(EDNS_BufferTemp.get(), EDNS_Length, Buffer + EDNS_Location, EDNS_Length);
 		EDNS_Buffer.swap(EDNS_BufferTemp);

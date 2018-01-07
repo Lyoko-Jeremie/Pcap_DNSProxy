@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2017 Chengr28
+// Copyright (C) 2012-2018 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -439,7 +439,7 @@ bool MBS_To_WCS_String(
 		return false;
 
 //Initialization
-	std::unique_ptr<wchar_t[]> TargetBuffer(new wchar_t[Length + PADDING_RESERVED_BYTES]());
+	const auto TargetBuffer = std::make_unique<wchar_t[]>(Length + PADDING_RESERVED_BYTES);
 	wmemset(TargetBuffer.get(), 0, Length + PADDING_RESERVED_BYTES);
 
 //Convert string.
@@ -482,7 +482,7 @@ bool WCS_To_MBS_String(
 		return false;
 
 //Initialization
-	std::unique_ptr<uint8_t[]> TargetBuffer(new uint8_t[Length + PADDING_RESERVED_BYTES]());
+	const auto TargetBuffer = std::make_unique<wchar_t[]>(Length + PADDING_RESERVED_BYTES);
 	memset(TargetBuffer.get(), 0, Length + PADDING_RESERVED_BYTES);
 
 //Convert string.

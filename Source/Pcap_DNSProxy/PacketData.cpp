@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2017 Chengr28
+// Copyright (C) 2012-2018 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -103,7 +103,7 @@ uint16_t GetChecksum_ICMPv6(
 	const size_t Length)
 {
 //Initialization
-	std::unique_ptr<uint8_t[]> Validation(new uint8_t[sizeof(ipv6_psd_hdr) + Length + PADDING_RESERVED_BYTES]());
+	const auto Validation = std::make_unique<uint8_t[]>(sizeof(ipv6_psd_hdr) + Length + PADDING_RESERVED_BYTES);
 	memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length + PADDING_RESERVED_BYTES);
 
 //Get checksum.
@@ -127,7 +127,7 @@ uint16_t GetChecksum_TCP_UDP(
 //IPv6
 	if (Protocol_Network == AF_INET6)
 	{
-		std::unique_ptr<uint8_t[]> Validation(new uint8_t[sizeof(ipv6_psd_hdr) + Length - DataOffset + PADDING_RESERVED_BYTES]());
+		const auto Validation = std::make_unique<uint8_t[]>(sizeof(ipv6_psd_hdr) + Length - DataOffset + PADDING_RESERVED_BYTES);
 		memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length - DataOffset + PADDING_RESERVED_BYTES);
 		reinterpret_cast<ipv6_psd_hdr *>(Validation.get())->Destination = reinterpret_cast<const ipv6_hdr *>(Buffer)->Destination;
 		reinterpret_cast<ipv6_psd_hdr *>(Validation.get())->Source = reinterpret_cast<const ipv6_hdr *>(Buffer)->Source;
@@ -140,7 +140,7 @@ uint16_t GetChecksum_TCP_UDP(
 //IPv4
 	else if (Protocol_Network == AF_INET)
 	{
-		std::unique_ptr<uint8_t[]> Validation(new uint8_t[sizeof(ipv4_psd_hdr) + Length + PADDING_RESERVED_BYTES]());
+		const auto Validation = std::make_unique<uint8_t[]>(sizeof(ipv4_psd_hdr) + Length + PADDING_RESERVED_BYTES);
 		memset(Validation.get(), 0, sizeof(ipv4_psd_hdr) + Length + PADDING_RESERVED_BYTES);
 		reinterpret_cast<ipv4_psd_hdr *>(Validation.get())->Destination = reinterpret_cast<const ipv4_hdr *>(Buffer)->Destination;
 		reinterpret_cast<ipv4_psd_hdr *>(Validation.get())->Source = reinterpret_cast<const ipv4_hdr *>(Buffer)->Source;
@@ -440,7 +440,7 @@ bool Move_EDNS_LabelToEnd(
 				return false;
 
 		//Initialization
-			std::unique_ptr<uint8_t[]> BufferTemp(new uint8_t[PacketStructure->Length + PADDING_RESERVED_BYTES]());
+			const auto BufferTemp = std::make_unique<uint8_t[]>(PacketStructure->Length + PADDING_RESERVED_BYTES);
 			memset(BufferTemp.get(), 0, PacketStructure->Length + PADDING_RESERVED_BYTES);
 
 		//Copy all resource records except EDNS Label and copy EDNS Label to the end of packet.

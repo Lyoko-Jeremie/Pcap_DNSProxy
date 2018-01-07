@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2017 Chengr28
+// Copyright (C) 2012-2018 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -738,8 +738,8 @@ bool UDP_Monitor(
 	SOCKET_DATA LocalSocketData)
 {
 //Initialization
-	std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[(NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES) * Parameter.ThreadPoolMaxNum]());
-	std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
+	const auto RecvBuffer = std::make_unique<uint8_t[]>((NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES) * Parameter.ThreadPoolMaxNum);
+	const auto SendBuffer = std::make_unique<uint8_t[]>(NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 	memset(RecvBuffer.get(), 0, (NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES) * Parameter.ThreadPoolMaxNum);
 	memset(SendBuffer.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 	MONITOR_QUEUE_DATA MonitorQueryData;
@@ -1051,7 +1051,7 @@ bool TCP_AcceptProcess(
 	}
 
 //Initialization(Part 1)
-	std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
+	const auto RecvBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 	memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 	fd_set ReadFDS;
 	timeval Timeout;
@@ -1208,7 +1208,7 @@ bool TCP_AcceptProcess(
 		MonitorQueryData.first.EDNS_RequesterPayload = 0;
 
 	//Check DNS query data.
-		std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
+		auto SendBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 		memset(SendBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 		if (!CheckQueryData(&MonitorQueryData.first, SendBuffer.get(), Parameter.LargeBufferSize, MonitorQueryData.second))
 		{

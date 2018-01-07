@@ -1,6 +1,6 @@
 ﻿// This code is part of Pcap_DNSProxy
 // Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
-// Copyright (C) 2012-2017 Chengr28
+// Copyright (C) 2012-2018 Chengr28
 // 
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -160,8 +160,8 @@ bool DNSCurve_TCP_SignatureRequest(
 	const bool IsAlternate)
 {
 //Initialization
-	std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
-	std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[Parameter.LargeBufferSize + PADDING_RESERVED_BYTES]());
+	const auto SendBuffer = std::make_unique<uint8_t[]>(NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+	const auto RecvBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 	sodium_memzero(SendBuffer.get(), NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 	sodium_memzero(RecvBuffer.get(), Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 	std::vector<SOCKET_DATA> TCPSocketDataList(1U);
@@ -325,8 +325,8 @@ bool DNSCurve_UDP_SignatureRequest(
 	const bool IsAlternate)
 {
 //Initialization
-	std::unique_ptr<uint8_t[]> SendBuffer(new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
-	std::unique_ptr<uint8_t[]> RecvBuffer(new uint8_t[NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES]());
+	const auto SendBuffer = std::make_unique<uint8_t[]>(NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+	const auto RecvBuffer = std::make_unique<uint8_t[]>(NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 	sodium_memzero(SendBuffer.get(), NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 	sodium_memzero(RecvBuffer.get(), NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
@@ -514,11 +514,11 @@ size_t DNSCurve_TCP_RequestSingle(
 	DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> PrecomputationKeyBuffer;
 	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.IsClientEphemeralKey)
 	{
-		std::unique_ptr<uint8_t[]> Client_PublicKey_Buffer_Temp(new uint8_t[crypto_box_PUBLICKEYBYTES]());
-		std::swap(Client_PublicKey_Buffer, Client_PublicKey_Buffer_Temp);
+		auto Client_PublicKey_BufferTemp = std::make_unique<uint8_t[]>(crypto_box_PUBLICKEYBYTES);
+		std::swap(Client_PublicKey_Buffer, Client_PublicKey_BufferTemp);
 
-		DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> PrecomputationKeyBuffer_Temp(crypto_box_BEFORENMBYTES);
-		PrecomputationKeyBuffer_Temp.Swap(PrecomputationKeyBuffer);
+		DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> PrecomputationKeyBufferTemp(crypto_box_BEFORENMBYTES);
+		PrecomputationKeyBufferTemp.Swap(PrecomputationKeyBuffer);
 		Client_PublicKey = Client_PublicKey_Buffer.get();
 		PrecomputationKey = PrecomputationKeyBuffer.Buffer;
 		if (!DNSCurvePrecomputationKeySetting(PrecomputationKey, Client_PublicKey, PacketTarget->ServerFingerprint))
@@ -591,14 +591,14 @@ size_t DNSCurve_TCP_RequestMultiple(
 	DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> PrecomputationKeyBuffer, Alternate_PrecomputationKeyBuffer;
 	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.IsClientEphemeralKey)
 	{
-		DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> PrecomputationKeyBuffer_Temp(crypto_box_BEFORENMBYTES), Alternate_PrecomputationKeyBuffer_Temp(crypto_box_BEFORENMBYTES);
+		DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> PrecomputationKeyBufferTemp(crypto_box_BEFORENMBYTES), Alternate_PrecomputationKeyBufferTemp(crypto_box_BEFORENMBYTES);
 
 	//Main
-		PrecomputationKeyBuffer_Temp.Swap(PrecomputationKeyBuffer);
+		PrecomputationKeyBufferTemp.Swap(PrecomputationKeyBuffer);
 		PrecomputationKey = PrecomputationKeyBuffer.Buffer;
 
 	//Alternate
-		Alternate_PrecomputationKeyBuffer_Temp.Swap(Alternate_PrecomputationKeyBuffer);
+		Alternate_PrecomputationKeyBufferTemp.Swap(Alternate_PrecomputationKeyBuffer);
 		Alternate_PrecomputationKey = Alternate_PrecomputationKeyBuffer.Buffer;
 	}
 
@@ -706,10 +706,10 @@ size_t DNSCurve_UDP_RequestSingle(
 	std::unique_ptr<uint8_t[]> PrecomputationKeyBuffer(nullptr);
 	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.IsClientEphemeralKey)
 	{
-		std::unique_ptr<uint8_t[]> Client_PublicKey_Buffer_Temp(new uint8_t[crypto_box_PUBLICKEYBYTES]());
-		std::unique_ptr<uint8_t[]> PrecomputationKeyBuffer_Temp(new uint8_t[crypto_box_BEFORENMBYTES]());
-		std::swap(Client_PublicKey_Buffer, Client_PublicKey_Buffer_Temp);
-		std::swap(PrecomputationKeyBuffer, PrecomputationKeyBuffer_Temp);
+		auto Client_PublicKey_BufferTemp = std::make_unique<uint8_t[]>(crypto_box_PUBLICKEYBYTES);
+		auto PrecomputationKeyBufferTemp = std::make_unique<uint8_t[]>(crypto_box_BEFORENMBYTES);
+		std::swap(Client_PublicKey_Buffer, Client_PublicKey_BufferTemp);
+		std::swap(PrecomputationKeyBuffer, PrecomputationKeyBufferTemp);
 		Client_PublicKey = Client_PublicKey_Buffer.get();
 		PrecomputationKey = PrecomputationKeyBuffer.get();
 		if (!DNSCurvePrecomputationKeySetting(PrecomputationKey, Client_PublicKey, PacketTarget->ServerFingerprint))
@@ -787,14 +787,14 @@ size_t DNSCurve_UDP_RequestMultiple(
 	DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> PrecomputationKeyBuffer, Alternate_PrecomputationKeyBuffer;
 	if (DNSCurveParameter.IsEncryption && DNSCurveParameter.IsClientEphemeralKey)
 	{
-		DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> PrecomputationKeyBuffer_Temp(crypto_box_BEFORENMBYTES), Alternate_PrecomputationKeyBuffer_Temp(crypto_box_BEFORENMBYTES);
+		DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> PrecomputationKeyBufferTemp(crypto_box_BEFORENMBYTES), Alternate_PrecomputationKeyBufferTemp(crypto_box_BEFORENMBYTES);
 
 	//Main
-		PrecomputationKeyBuffer_Temp.Swap(PrecomputationKeyBuffer);
+		PrecomputationKeyBufferTemp.Swap(PrecomputationKeyBuffer);
 		PrecomputationKey = PrecomputationKeyBuffer.Buffer;
 
 	//Alternate
-		Alternate_PrecomputationKeyBuffer_Temp.Swap(Alternate_PrecomputationKeyBuffer);
+		Alternate_PrecomputationKeyBufferTemp.Swap(Alternate_PrecomputationKeyBuffer);
 		Alternate_PrecomputationKey = Alternate_PrecomputationKeyBuffer.Buffer;
 	}
 
