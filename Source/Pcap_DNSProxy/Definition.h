@@ -118,8 +118,9 @@
 #define CONFIG_VERSION_COUNT                          2U                                    //Version: Major.Minor
 #define CONFIG_VERSION_MAJOR                          0                                     //Current configuration file major version(0.45)
 #define CONFIG_VERSION_MINOR                          45U                                   //Current configuration file minor version(0.45)
+#define CONFIG_VERSION_MAXSIZE                        8U                                    //Maximum size of version
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2018 Chengr28"   //Copyright message
-#define FULL_VERSION                                  L"0.4.9.5"                            //Current full version
+#define FULL_VERSION                                  L"0.4.9.6"                            //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_MAXSIZE                        64U                               //Maximum size of addresses(IPv4/IPv6) words(64 bytes)
@@ -146,13 +147,15 @@
 #define DOMAIN_LEVEL_DATA_MAXSIZE                     63U                               //Domain length is between 3 and 63(Labels must be 63 characters/bytes or less, Section 2.3.1 in RFC 1035).
 #define DOMAIN_MAXSIZE                                256U                              //Maximum size of whole level domain is 256 bytes(Section 2.3.1 in RFC 1035).
 #define DOMAIN_MINSIZE                                2U                                //Minimum size of whole level domain is 3 bytes(Section 2.3.1 in RFC 1035).
-#define DOMAIN_RAMDOM_MINSIZE                         6U                                //Minimum size of ramdom domain request
+#define DOMAIN_RANDOM_MINSIZE                         6U                                //Minimum size of random domain request
 #define ERROR_MESSAGE_MINSIZE                         3U                                //Minimum size of error message
 #define FILE_BUFFER_SIZE                              DEFAULT_LARGE_BUFFER_SIZE         //Size of file reading buffer
 #define FILE_READING_MAXSIZE                          268435456U                        //Maximum size of whole reading file(256 MB/268435456 bytes).
+#define HTTP_AUTHORIZATION_MAXSIZE                    DEFAULT_LARGE_BUFFER_SIZE         //Maximum size of HTTP proxy authorization string.
 #define HTTP_VERSION_SUPPORT_COUNT                    2U                                //HTTP version 1.1 and 2 which are supported.
 #define HTTP_VERSION_MAXSIZE                          3U                                //Maximum size of HTTP version
-#define ICMP_PADDING_MAXSIZE                          1484U                             //Length of ICMP padding data must between 18 bytes and 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
+#define ICMP_PADDING_MAXSIZE                          1464U                             //Length of ICMP padding data must between 18 bytes and 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
+#define ICMP_PADDING_MINSIZE                          17U                               //Length of ICMP padding data must between 18 bytes and 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
 #if defined(PLATFORM_LINUX)
 	#define ICMP_PADDING_LENGTH_LINUX                     40U
 	#define ICMP_STRING_START_NUM_LINUX                   16U
@@ -183,8 +186,8 @@
 #define UINT8_MAX_STRING_LENGTH                       4U                          //Maximum number of 8 bits is 255, its length is 3.
 
 //Size and length definitions(Data)
-#define DNS_PACKET_MINSIZE                            (sizeof(dns_hdr) + NULL_TERMINATE_LENGTH + sizeof(dns_qry))                                    //Minimum DNS packet size(DNS header + Minimum domain<ROOT> + DNS query)
-#define EDNS_RECORD_MAXSIZE                           (sizeof(edns_header) + sizeof(edns_client_subnet) * 2U + sizeof(in6_addr) + sizeof(in_addr))   //Maximum of EDNS resource record size
+#define DNS_PACKET_MINSIZE                            (sizeof(dns_hdr) + NULL_TERMINATE_LENGTH + sizeof(dns_qry))                                                           //Minimum DNS packet size(DNS header + Minimum domain<ROOT> + DNS query or EDNS Label)
+#define EDNS_RECORD_MAXSIZE                           (sizeof(edns_header) + sizeof(edns_cookies) + sizeof(edns_client_subnet) * 2U + sizeof(in6_addr) + sizeof(in_addr))   //Maximum of EDNS resource record size
 #if defined(ENABLE_LIBSODIUM)
 	#define DNSCRYPT_BUFFER_RESERVED_LEN                  (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES + crypto_box_HALF_NONCEBYTES - crypto_box_BOXZEROBYTES)
 	#define DNSCRYPT_BUFFER_RESERVED_TCP_LEN              (sizeof(uint16_t) + DNSCRYPT_BUFFER_RESERVED_LEN)
@@ -308,14 +311,15 @@
 #endif
 #define DNS_PACKET_QUERY_LOCATE(Buffer)               (sizeof(dns_hdr) + CheckQueryNameLength(reinterpret_cast<const uint8_t *>(Buffer) + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH)                     //Locate the beginning of DNS query.
 #define DNS_PACKET_RR_LOCATE(Buffer)                  (sizeof(dns_hdr) + CheckQueryNameLength(reinterpret_cast<const uint8_t *>(Buffer) + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH + sizeof(dns_qry))   //Locate the beginning of DNS resource records.
-#define DNS_TCP_PACKET_QUERY_LOCATE(Buffer)           (sizeof(dns_tcp_hdr) + CheckQueryNameLength(reinterpret_cast<const uint8_t *>(Buffer) + sizeof(dns_tcp_hdr)) + NULL_TERMINATE_LENGTH)
 
+#if !defined(ENABLE_LIBSODIUM)
 //Base64 definitions
-#define BASE64_PAD                                    ('=')
-#define BASE64_DECODE_FIRST                           ('+')
-#define BASE64_DECODE_LAST                            ('z')
-#define BASE64_DECODE_OUT_SIZE(Message)               (((Message)) / 4U * 3U)
-#define BASE64_ENCODE_OUT_SIZE(Message)               (((Message) + 2U) / 3U * 4U)
+	#define BASE64_PAD                                    ('=')
+	#define BASE64_DECODE_FIRST                           ('+')
+	#define BASE64_DECODE_LAST                            ('z')
+	#define BASE64_DECODE_OUT_SIZE(Message)               (((Message)) / 4U * 3U)
+	#define BASE64_ENCODE_OUT_SIZE(Message)               (((Message) + 2U) / 3U * 4U)
+#endif
 
 //Type definitions
 typedef enum class _huffman_return_type_
@@ -485,7 +489,8 @@ typedef enum class _socket_setting_type
 typedef enum class _request_process_type_
 {
 	NONE, 
-	LOCAL, 
+	LOCAL_NORMAL, 
+	LOCAL_IN_WHITE, 
 	DIRECT, 
 	TCP_NORMAL, 
 	TCP_WITHOUT_MARKING, 
@@ -860,6 +865,7 @@ public:
 #endif
 	bool                                 PacketCheck_DNS;
 	bool                                 DataCheck_Blacklist;
+	bool                                 DataCheck_RRSetTTL;
 //[Data] block
 #if defined(ENABLE_PCAP)
 	uint16_t                             ICMP_ID;
@@ -891,8 +897,10 @@ public:
 	ADDRESS_UNION_DATA                   SOCKS_TargetServer;
 	std::string                          *SOCKS_TargetDomain;
 	uint16_t                             SOCKS_TargetDomain_Port;
-	std::string                          *SOCKS_Username;
-	std::string                          *SOCKS_Password;
+	uint8_t                              *SOCKS_Username;
+	size_t                               SOCKS_UsernameLength;
+	uint8_t                              *SOCKS_Password;
+	size_t                               SOCKS_PasswordLength;
 	bool                                 HTTP_CONNECT_Proxy;
 	REQUEST_MODE_NETWORK                 HTTP_CONNECT_Protocol;
 	bool                                 HTTP_CONNECT_Only;
@@ -915,7 +923,8 @@ public:
 	std::string                          *HTTP_CONNECT_TargetDomain;
 	HTTP_VERSION_SELECTION               HTTP_CONNECT_Version;
 	std::vector<std::string>             *HTTP_CONNECT_HeaderField;
-	std::string                          *HTTP_CONNECT_ProxyAuthorization;
+	uint8_t                              *HTTP_CONNECT_ProxyAuthorization;
+	size_t                               HTTP_CONNECT_ProxyAuthorizationLength;
 
 //[DNSCurve] block
 #if defined(ENABLE_LIBSODIUM)
@@ -978,10 +987,12 @@ public:
 	bool                                 IsDaemon;
 #endif
 	std::vector<SYSTEM_SOCKET>           *LocalListeningSocket;
-	std::default_random_engine           *RamdomEngine;
+	std::default_random_engine           *RandomEngine;
 	uint8_t                              *DomainTable;
+#if !defined(ENABLE_LIBSODIUM)
 	uint8_t                              *Base64_EncodeTable;
 	int8_t                               *Base64_DecodeTable;
+#endif
 	std::atomic<size_t>                  *ThreadRunningNum;
 	std::atomic<size_t>                  *ThreadRunningFreeNum;
 

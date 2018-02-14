@@ -28,7 +28,6 @@ Pcap_DNSProxy 是一個基於 WinPcap/LibPcap 用於過濾 DNS 投毒污染的�
   * 支援 [編譯所需依賴包](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents) 的 Linux 發行版本
 * macOS
   * **支援 64 位 Mac OS X 10.8(Mountain Lion) 以及更新的 macOS 版本**
-  * 可通過 Homebrew 安裝正式版本
 * OpenWrt/LEDE
   * **參見 [openwrt-Pcap_DNSProxy 專案](https://github.com/wongsyrone/openwrt-Pcap_DNSProxy)**
 * 本工具**抓包模組**所支援的網路類型

@@ -28,7 +28,6 @@ Pcap_DNSProxy is a tool based on WinPcap/LibPcap which can filter DNS poisoning.
   * Linux distributions which support all [dependency packages](https://github.com/chengr28/Pcap_DNSProxy/tree/master/Documents).
 * macOS
   * **64-bit Mac OS X 10.8(Mountain Lion) and later.**
-  * The latest version can be installed with Homebrew.
 * OpenWrt/LEDE
   * **Please visit [openwrt-Pcap_DNSProxy project](https://github.com/wongsyrone/openwrt-Pcap_DNSProxy).**
 * Supported types of network devices in capture module

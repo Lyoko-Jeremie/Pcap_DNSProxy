@@ -364,8 +364,8 @@ bool CheckSpecialAddress(
 						{
 							if (AddressHostsTableIter.Address_Target.size() > 1U)
 							{
-							//Get a ramdom one.
-								std::uniform_int_distribution<size_t> RamdomDistribution(0, AddressHostsTableIter.Address_Target.size() - 1U);
+							//Get a random one.
+								std::uniform_int_distribution<size_t> RandomDistribution(0, AddressHostsTableIter.Address_Target.size() - 1U);
 
 							//Rewrite address.
 								if (AddressHostsTableIter.Address_Target.front().second > 0)
@@ -373,16 +373,16 @@ bool CheckSpecialAddress(
 									if (AddressHostsTableIter.Address_Target.front().second < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 									{
 										*(static_cast<uint64_t *>(OriginalAddr)) = hton64(ntoh64(*(static_cast<uint64_t *>(OriginalAddr))) & (UINT64_MAX >> AddressHostsTableIter.Address_Target.front().second));
-										*(static_cast<uint64_t *>(OriginalAddr)) = hton64(ntoh64(*(static_cast<const uint64_t *>(OriginalAddr))) | ntoh64(*(reinterpret_cast<const uint64_t *>(&reinterpret_cast<const sockaddr_in6 *>(&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)).first)->sin6_addr))));
+										*(static_cast<uint64_t *>(OriginalAddr)) = hton64(ntoh64(*(static_cast<const uint64_t *>(OriginalAddr))) | ntoh64(*(reinterpret_cast<const uint64_t *>(&reinterpret_cast<const sockaddr_in6 *>(&AddressHostsTableIter.Address_Target.at(RandomDistribution(*GlobalRunningStatus.RandomEngine)).first)->sin6_addr))));
 									}
 									else {
-										*(static_cast<uint64_t *>(OriginalAddr)) = *(reinterpret_cast<const uint64_t *>(&reinterpret_cast<const sockaddr_in6 *>(&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)).first)->sin6_addr));
+										*(static_cast<uint64_t *>(OriginalAddr)) = *(reinterpret_cast<const uint64_t *>(&reinterpret_cast<const sockaddr_in6 *>(&AddressHostsTableIter.Address_Target.at(RandomDistribution(*GlobalRunningStatus.RandomEngine)).first)->sin6_addr));
 										*(reinterpret_cast<uint64_t *>(static_cast<uint8_t *>(OriginalAddr) + sizeof(in6_addr) / 2U)) = hton64(ntoh64(*(reinterpret_cast<uint64_t *>(static_cast<uint8_t *>(OriginalAddr) + sizeof(in6_addr) / 2U))) & (UINT64_MAX >> (AddressHostsTableIter.Address_Target.front().second - sizeof(in6_addr) * BYTES_TO_BITS / 2U)));
-										*(reinterpret_cast<uint64_t *>(static_cast<uint8_t *>(OriginalAddr) + sizeof(in6_addr) / 2U)) = hton64(ntoh64(*(reinterpret_cast<const uint64_t *>(static_cast<uint8_t *>(OriginalAddr) + sizeof(in6_addr) / 2U))) | ntoh64(*(reinterpret_cast<const uint64_t *>(&reinterpret_cast<const sockaddr_in6 *>(&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)).first)->sin6_addr))));
+										*(reinterpret_cast<uint64_t *>(static_cast<uint8_t *>(OriginalAddr) + sizeof(in6_addr) / 2U)) = hton64(ntoh64(*(reinterpret_cast<const uint64_t *>(static_cast<uint8_t *>(OriginalAddr) + sizeof(in6_addr) / 2U))) | ntoh64(*(reinterpret_cast<const uint64_t *>(&reinterpret_cast<const sockaddr_in6 *>(&AddressHostsTableIter.Address_Target.at(RandomDistribution(*GlobalRunningStatus.RandomEngine)).first)->sin6_addr))));
 									}
 								}
 								else {
-									*static_cast<in6_addr *>(OriginalAddr) = reinterpret_cast<const sockaddr_in6 *>(&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)).first)->sin6_addr;
+									*static_cast<in6_addr *>(OriginalAddr) = reinterpret_cast<const sockaddr_in6 *>(&AddressHostsTableIter.Address_Target.at(RandomDistribution(*GlobalRunningStatus.RandomEngine)).first)->sin6_addr;
 								}
 							}
 							else {
@@ -471,17 +471,17 @@ bool CheckSpecialAddress(
 						{
 							if (AddressHostsTableIter.Address_Target.size() > 1U)
 							{
-							//Get a ramdom one.
-								std::uniform_int_distribution<size_t> RamdomDistribution(0, AddressHostsTableIter.Address_Target.size() - 1U);
+							//Get a random one.
+								std::uniform_int_distribution<size_t> RandomDistribution(0, AddressHostsTableIter.Address_Target.size() - 1U);
 
 							//Rewrite address.
 								if (AddressHostsTableIter.Address_Target.front().second > 0)
 								{
 									static_cast<in_addr *>(OriginalAddr)->s_addr = htonl(ntohl(static_cast<in_addr *>(OriginalAddr)->s_addr) & (UINT32_MAX >> AddressHostsTableIter.Address_Target.front().second));
-									static_cast<in_addr *>(OriginalAddr)->s_addr = htonl(ntohl(static_cast<in_addr *>(OriginalAddr)->s_addr) | ntohl(reinterpret_cast<const sockaddr_in *>(&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)).first)->sin_addr.s_addr));
+									static_cast<in_addr *>(OriginalAddr)->s_addr = htonl(ntohl(static_cast<in_addr *>(OriginalAddr)->s_addr) | ntohl(reinterpret_cast<const sockaddr_in *>(&AddressHostsTableIter.Address_Target.at(RandomDistribution(*GlobalRunningStatus.RandomEngine)).first)->sin_addr.s_addr));
 								}
 								else {
-									*static_cast<in_addr *>(OriginalAddr) = reinterpret_cast<const sockaddr_in *>(&AddressHostsTableIter.Address_Target.at(RamdomDistribution(*GlobalRunningStatus.RamdomEngine)).first)->sin_addr;
+									*static_cast<in_addr *>(OriginalAddr) = reinterpret_cast<const sockaddr_in *>(&AddressHostsTableIter.Address_Target.at(RandomDistribution(*GlobalRunningStatus.RandomEngine)).first)->sin_addr;
 								}
 							}
 							else {
@@ -836,8 +836,11 @@ bool CheckQueryData(
 		(ntohs(DNS_Header->Flags) & DNS_FLAG_GET_BIT_Z) > 0 || 
 	//Must not set RCode.
 		(ntohs(DNS_Header->Flags) & DNS_FLAG_GET_BIT_RCODE) > 0 || 
-	//Question resource records counts must be set 1.
-		ntohs(DNS_Header->Question) != UINT16_NUM_ONE || 
+	//Question resource records counts must be set 0 (when DNS Cookies is enabled) or 1.
+		(DNS_Header->Question != 0 && ntohs(DNS_Header->Question) != UINT16_NUM_ONE) || 
+	//DNS Cookies request must contain EDNS Label.
+		(DNS_Header->Question == 0 && 
+		(DNS_Header->Answer != 0 || DNS_Header->Authority != 0 || ntohs(DNS_Header->Additional) != UINT16_NUM_ONE)) || 
 	//Answer resource records counts must be set 0.
 		DNS_Header->Answer > 0 || 
 	//Authority resource records counts must be set 0.
@@ -845,7 +848,7 @@ bool CheckQueryData(
 	//Additional resource records counts must be set 0 or 1.
 		ntohs(DNS_Header->Additional) > UINT16_NUM_ONE)))
 	{
-	//Set Response bit and REcode Format Error.
+	//Set Response bit and RCode Format Error.
 		DNS_Header->Flags = htons(DNS_FLAG_SET_R_FE);
 
 	//Send request.
@@ -855,9 +858,13 @@ bool CheckQueryData(
 		return false;
 	}
 
+//Mark normal request Question resource record length.
+	if (DNS_Header->Question != 0)
+		PacketStructure->Records_QuestionLen = CheckQueryNameLength(PacketStructure->Buffer + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH + sizeof(dns_qry);
+
 //Scan all resource records.
-	PacketStructure->Records_QuestionLen = CheckQueryNameLength(PacketStructure->Buffer + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH + sizeof(dns_qry);
 	size_t PacketIndex = sizeof(dns_hdr) + PacketStructure->Records_QuestionLen, CountIndex = 0;
+	auto IsDisableEDNS_Label = false, IsAlreadyEDNS_ClientSubnet = false, IsAlreadyEDNS_Cookies = false;
 	for (CountIndex = 0;CountIndex < static_cast<size_t>(ntohs(DNS_Header->Answer) + ntohs(DNS_Header->Authority) + ntohs(DNS_Header->Additional));++CountIndex)
 	{
 	//Domain pointer check
@@ -878,23 +885,32 @@ bool CheckQueryData(
 		if (PacketIndex + RecordLength + sizeof(dns_record_standard) + ntohs(DNS_Record_Standard->Length) > PacketStructure->Length)
 			return false;
 
-	//Strict resource record TTL check when enforce strict RFC 2181(https://tools.ietf.org/html/rfc2181) compliance
-	//TTL in resource records must less than 2 ^ 31(2147483647).
-		if ((ntohl(DNS_Record_Standard->TTL) & DNS_RECORD_TTL_GET_BIT_HIGHEST) != 0)
-			return false;
-
 	//Mark exist EDNS Label(OPT Record).
 		if (ntohs(DNS_Record_Standard->Type) == DNS_TYPE_OPT)
 		{
+		//Mark EDNS Label at the first time.
 			if (PacketStructure->EDNS_Location == 0 && PacketStructure->EDNS_Length == 0)
 			{
 				PacketStructure->EDNS_Location = PacketIndex;
 				PacketStructure->EDNS_Length = RecordLength + sizeof(dns_record_standard) + ntohs(DNS_Record_Standard->Length);
 				PacketStructure->EDNS_RequesterPayload = ntohs(reinterpret_cast<edns_header *>(PacketStructure->Buffer + PacketIndex)->UDP_PayloadSize);
+
+			//Mark EDNS Label Options.
+				for (size_t OptionIndex = PacketStructure->EDNS_Location + sizeof(edns_header);OptionIndex < PacketStructure->EDNS_Location + PacketStructure->EDNS_Length;)
+				{
+					const auto EDNS_DataOption = reinterpret_cast<edns_data_option *>(PacketStructure->Buffer + OptionIndex);
+					if (ntohs(EDNS_DataOption->Code) == EDNS_CODE_CSUBNET)
+						IsAlreadyEDNS_ClientSubnet = true;
+					else if (ntohs(EDNS_DataOption->Code) == EDNS_CODE_COOKIES)
+						IsAlreadyEDNS_Cookies = true;
+
+				//Next loop.
+					OptionIndex += sizeof(edns_data_option) + ntohs(EDNS_DataOption->Length);
+				}
 			}
 		//Only one EDNS Label/OPT Record can be stored in a DNS packet.
 			else {
-			//Set Response bit and REcode Format Error.
+			//Set Response bit and RCode Format Error.
 				DNS_Header->Flags = htons(DNS_FLAG_SET_R_FE);
 
 			//Send request.
@@ -903,6 +919,17 @@ bool CheckQueryData(
 
 				return false;
 			}
+		}
+	//Strict resource record TTL check when enforce strict RFC 2181(https://tools.ietf.org/html/rfc2181) compliance
+	//TTL in resource records must less than 2 ^ 31(2147483647).
+		else if (Parameter.DataCheck_RRSetTTL && (ntohl(DNS_Record_Standard->TTL) & DNS_RECORD_TTL_GET_BIT_HIGHEST) != 0)
+		{
+			return false;
+		}
+	//Some SIG and TSIG require that locate at the end of the packet, temporary disable EDNS Label.
+		else if (ntohs(DNS_Record_Standard->Type) == DNS_TYPE_SIG || ntohs(DNS_Record_Standard->Type) == DNS_TYPE_TSIG)
+		{
+			IsDisableEDNS_Label = true;
 		}
 
 	//Mark data structure.
@@ -924,10 +951,15 @@ bool CheckQueryData(
 
 //DNS data structure check and move EDNS Label to the end of packet.
 	if ((Parameter.PacketCheck_DNS && 
+	//Resource record counts are not match to DNS header.
 		(PacketStructure->Records_AnswerCount != static_cast<size_t>(ntohs(DNS_Header->Answer)) || 
 		PacketStructure->Records_AuthorityCount != static_cast<size_t>(ntohs(DNS_Header->Authority)) || 
-		PacketStructure->Records_AdditionalCount != static_cast<size_t>(ntohs(DNS_Header->Additional)))) || 
-		!Move_EDNS_LabelToEnd(PacketStructure))
+		PacketStructure->Records_AdditionalCount != static_cast<size_t>(ntohs(DNS_Header->Additional)) || 
+	//DNS Server Cookies check
+		(PacketStructure->Records_QuestionLen == 0 && 
+		(PacketStructure->EDNS_Location == 0 || PacketStructure->EDNS_Length == 0 || !IsAlreadyEDNS_Cookies)))) || 
+	//Move EDNS Label to the tail.
+		(!IsDisableEDNS_Label && !Move_EDNS_LabelToEnd(PacketStructure)))
 	{
 	//Set Response bit and Recode Format Error.
 		DNS_Header->Flags = htons(DNS_FLAG_SET_R_FE);
@@ -941,13 +973,13 @@ bool CheckQueryData(
 
 //EDNS Label
 	auto IsNeedTruncated = false;
-	if (Parameter.EDNS_Label)
+	if (!IsDisableEDNS_Label && DNS_Header->Question != 0 && Parameter.EDNS_Label)
 	{
 		if ((LocalSocketData.AddrLen == sizeof(sockaddr_in6) && !CheckSpecialAddress(AF_INET6, &reinterpret_cast<sockaddr_in6 *>(const_cast<sockaddr_storage *>(&LocalSocketData.SockAddr))->sin6_addr, true, nullptr)) || //IPv6
 			(LocalSocketData.AddrLen == sizeof(sockaddr_in) && !CheckSpecialAddress(AF_INET, &reinterpret_cast<sockaddr_in *>(const_cast<sockaddr_storage *>(&LocalSocketData.SockAddr))->sin_addr, true, nullptr))) //IPv4
-			IsNeedTruncated = !Add_EDNS_LabelToPacket(PacketStructure, const_cast<SOCKET_DATA *>(&LocalSocketData));
+				IsNeedTruncated = !Add_EDNS_LabelToPacket(PacketStructure, IsAlreadyEDNS_ClientSubnet, IsAlreadyEDNS_Cookies, const_cast<SOCKET_DATA *>(&LocalSocketData));
 		else 
-			IsNeedTruncated = !Add_EDNS_LabelToPacket(PacketStructure, nullptr);
+			IsNeedTruncated = !Add_EDNS_LabelToPacket(PacketStructure, IsAlreadyEDNS_ClientSubnet, IsAlreadyEDNS_Cookies, nullptr);
 	}
 
 //UDP Truncated check
@@ -1201,11 +1233,11 @@ size_t CheckResponse_CNAME(
 						return EXIT_FAILURE;
 
 				//Hosts load balancing
-					size_t RamdomIndex = 0;
+					size_t RandomIndex = 0;
 					if (HostsTableIter.AddrOrTargetList.size() > 1U)
 					{
-						std::uniform_int_distribution<size_t> RamdomDistribution(0, HostsTableIter.AddrOrTargetList.size() - 1U);
-						RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+						std::uniform_int_distribution<size_t> RandomDistribution(0, HostsTableIter.AddrOrTargetList.size() - 1U);
+						RandomIndex = RandomDistribution(*GlobalRunningStatus.RandomEngine);
 					}
 
 				//Make response.
@@ -1222,10 +1254,10 @@ size_t CheckResponse_CNAME(
 						else 
 							DNS_Record->TTL = htonl(DEFAULT_HOSTS_TTL);
 						DNS_Record->Type = htons(DNS_TYPE_AAAA);
-						DNS_Record->Length = htons(sizeof(in6_addr));
+						DNS_Record->Length = htons(sizeof(DNS_Record->Address));
 						if (Index == 0)
-							DNS_Record->Address = HostsTableIter.AddrOrTargetList.at(RamdomIndex).IPv6.sin6_addr;
-						else if (Index == RamdomIndex)
+							DNS_Record->Address = HostsTableIter.AddrOrTargetList.at(RandomIndex).IPv6.sin6_addr;
+						else if (Index == RandomIndex)
 							DNS_Record->Address = HostsTableIter.AddrOrTargetList.front().IPv6.sin6_addr;
 						else 
 							DNS_Record->Address = HostsTableIter.AddrOrTargetList.at(Index).IPv6.sin6_addr;
@@ -1256,11 +1288,11 @@ size_t CheckResponse_CNAME(
 						return EXIT_FAILURE;
 
 				//Hosts load balancing
-					size_t RamdomIndex = 0;
+					size_t RandomIndex = 0;
 					if (HostsTableIter.AddrOrTargetList.size() > 1U)
 					{
-						std::uniform_int_distribution<size_t> RamdomDistribution(0, HostsTableIter.AddrOrTargetList.size() - 1U);
-						RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+						std::uniform_int_distribution<size_t> RandomDistribution(0, HostsTableIter.AddrOrTargetList.size() - 1U);
+						RandomIndex = RandomDistribution(*GlobalRunningStatus.RandomEngine);
 					}
 
 				//Make response.
@@ -1277,10 +1309,10 @@ size_t CheckResponse_CNAME(
 						else 
 							DNS_Record->TTL = htonl(DEFAULT_HOSTS_TTL);
 						DNS_Record->Type = htons(DNS_TYPE_A);
-						DNS_Record->Length = htons(sizeof(in_addr));
+						DNS_Record->Length = htons(sizeof(DNS_Record->Address));
 						if (Index == 0)
-							DNS_Record->Address = HostsTableIter.AddrOrTargetList.at(RamdomIndex).IPv4.sin_addr;
-						else if (Index == RamdomIndex)
+							DNS_Record->Address = HostsTableIter.AddrOrTargetList.at(RandomIndex).IPv4.sin_addr;
+						else if (Index == RandomIndex)
 							DNS_Record->Address = HostsTableIter.AddrOrTargetList.front().IPv4.sin_addr;
 						else 
 							DNS_Record->Address = HostsTableIter.AddrOrTargetList.at(Index).IPv4.sin_addr;
@@ -1329,7 +1361,7 @@ size_t CheckResponseData(
 	#endif
 	//Must be set Response bit.
 		((ntohs(DNS_Header->Flags) & DNS_FLAG_GET_BIT_RESPONSE) == 0 || 
-	//Must not any Non-Question resource records when RCode is No Error and not Truncated
+	//Must not any non-Question resource records when RCode is No Error and not Truncated
 		((ntohs(DNS_Header->Flags) & DNS_FLAG_GET_BIT_TC) == 0 && 
 		(ntohs(DNS_Header->Flags) & DNS_FLAG_GET_BIT_RCODE) == DNS_RCODE_NOERROR && 
 		DNS_Header->Answer == 0 && DNS_Header->Authority == 0 && DNS_Header->Additional == 0) || 
@@ -1339,21 +1371,24 @@ size_t CheckResponseData(
 		((ntohs(DNS_Header->Flags) & DNS_FLAG_GET_BIT_RD) == 0 && 
 		(ntohs(DNS_Header->Flags) & DNS_FLAG_GET_BIT_RCODE) == DNS_RCODE_NOERROR && DNS_Header->Answer == 0) || 
 	//Local request failed or Truncated
-		(ResponseType == REQUEST_PROCESS_TYPE::LOCAL && 
+		((ResponseType == REQUEST_PROCESS_TYPE::LOCAL_NORMAL || ResponseType == REQUEST_PROCESS_TYPE::LOCAL_IN_WHITE) && 
 		((ntohs(DNS_Header->Flags) & DNS_FLAG_GET_BIT_RCODE) > DNS_RCODE_NOERROR || 
 		((ntohs(DNS_Header->Flags) & DNS_FLAG_GET_BIT_TC) > 0 && 
 		DNS_Header->Answer == 0))) || 
 	//Must not set Reserved bit.
 		(ntohs(DNS_Header->Flags) & DNS_FLAG_GET_BIT_Z) > 0 || 
-	//Question resource records Counts must be set 1.
-		ntohs(DNS_Header->Question) != UINT16_NUM_ONE)))
+	//Question resource records counts must be set 0 (when DNS Cookies is enabled) or 1.
+		(DNS_Header->Question != 0 && ntohs(DNS_Header->Question) != UINT16_NUM_ONE) || 
+	//DNS Cookies request must contain EDNS Label.
+		(DNS_Header->Question == 0 && 
+		(DNS_Header->Answer != 0 || DNS_Header->Authority != 0 || ntohs(DNS_Header->Additional) != UINT16_NUM_ONE)))))
 			return EXIT_FAILURE;
 
 //EDNS Label resource records check
 	auto IsNeedCheck_EDNS = false;
 	if (Parameter.EDNS_Label && 
 		(ResponseType == REQUEST_PROCESS_TYPE::NONE || //Normal
-		(ResponseType == REQUEST_PROCESS_TYPE::LOCAL && Parameter.EDNS_Switch_Local) || //Local
+		((ResponseType == REQUEST_PROCESS_TYPE::LOCAL_NORMAL || ResponseType == REQUEST_PROCESS_TYPE::LOCAL_IN_WHITE) && Parameter.EDNS_Switch_Local) || //Local
 		(ResponseType == REQUEST_PROCESS_TYPE::SOCKS_MAIN && Parameter.EDNS_Switch_SOCKS) || //SOCKS Proxy
 		(ResponseType == REQUEST_PROCESS_TYPE::HTTP_CONNECT_MAIN && Parameter.EDNS_Switch_HTTP_CONNECT) || //HTTP CONNECT Proxy
 		(ResponseType == REQUEST_PROCESS_TYPE::DIRECT && Parameter.EDNS_Switch_Direct) || //Direct Request
@@ -1372,12 +1407,12 @@ size_t CheckResponseData(
 			return EXIT_FAILURE;
 
 //Domain pointer check
-	if (Parameter.PacketCheck_DNS
+	if (Parameter.PacketCheck_DNS && 
 	//Ignore flag
 	#if defined(ENABLE_LIBSODIUM)
-		&& ResponseType != REQUEST_PROCESS_TYPE::DNSCURVE_SIGN
+		ResponseType != REQUEST_PROCESS_TYPE::DNSCURVE_SIGN && 
 	#endif
-		)
+		DNS_Header->Question != 0)
 	{
 	//Find compression pointer in domain.
 		for (auto Index = sizeof(dns_hdr);Index < DNS_PACKET_QUERY_LOCATE(Buffer);++Index)
@@ -1400,13 +1435,30 @@ size_t CheckResponseData(
 //Mark domain.
 	std::string Domain;
 	const uint8_t *DomainString = nullptr;
-	PacketQueryToString(Buffer + sizeof(dns_hdr), Domain);
-	if (!Domain.empty())
-		DomainString = reinterpret_cast<const uint8_t *>(Domain.c_str());
+	if (DNS_Header->Question != 0)
+	{
+	//Convert packet binary to string.
+		PacketQueryToString(Buffer + sizeof(dns_hdr), Domain);
+		if (!Domain.empty())
+			DomainString = reinterpret_cast<const uint8_t *>(Domain.c_str());
+	}
+//DNS Cookies request check
+	else if (ntohs(DNS_Header->Additional) != UINT16_NUM_ONE)
+	{
+		return false;
+	}
 
 //Initialization(Part 2)
-	const auto DNS_QueryType = reinterpret_cast<dns_qry *>(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer))->Type;
-	size_t DataLength = DNS_PACKET_RR_LOCATE(Buffer), EDNS_Location = 0, EDNS_Length = 0, Index = 0;
+	uint16_t DNS_QueryType = 0;
+	size_t DataLength = 0, EDNS_Location = 0, EDNS_Length = 0, Index = 0;
+	if (DNS_Header->Question != 0) //DNS Cookies request
+	{
+		DNS_QueryType = reinterpret_cast<dns_qry *>(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer))->Type;
+		DataLength = DNS_PACKET_RR_LOCATE(Buffer);
+	}
+	else {
+		DataLength = sizeof(dns_hdr);
+	}
 	std::vector<std::pair<size_t, size_t>> RecordList_Answer;
 	uint16_t PreviousType = 0;
 	uint32_t AddressRecord_TTL = 0;
@@ -1448,7 +1500,7 @@ size_t CheckResponseData(
 
 	//Strict resource record TTL check when enforce strict RFC 2181(https://tools.ietf.org/html/rfc2181) compliance(Part 1)
 	//TTL in resource records must less than 2 ^ 31(2147483647).
-		if ((ntohl(DNS_Record_Standard->TTL) & DNS_RECORD_TTL_GET_BIT_HIGHEST) != 0)
+		if (Parameter.DataCheck_RRSetTTL && (ntohl(DNS_Record_Standard->TTL) & DNS_RECORD_TTL_GET_BIT_HIGHEST) != 0)
 			return EXIT_FAILURE;
 
 	//EDNS Label and DNSSEC resource records check
@@ -1512,16 +1564,22 @@ size_t CheckResponseData(
 				//Strict resource record TTL check when enforce strict RFC 2181(https://tools.ietf.org/html/rfc2181) compliance(Part 2)
 				//This will cause filter to reject DNS answers with incorrect timestamp settings.
 				//Multiple RRs of the same type and for the same domain with different TTLs.
-					if (AddressRecord_TTL == 0)
-						AddressRecord_TTL = DNS_Record_Standard->TTL;
-					else if (AddressRecord_TTL != DNS_Record_Standard->TTL)
-						return EXIT_FAILURE;
+					if (Parameter.DataCheck_RRSetTTL)
+					{
+						if (AddressRecord_TTL == 0)
+							AddressRecord_TTL = DNS_Record_Standard->TTL;
+						else if (AddressRecord_TTL != DNS_Record_Standard->TTL)
+							return EXIT_FAILURE;
+					}
 				}
 
 			//Check record address.
-				if ((Parameter.DataCheck_Blacklist && CheckSpecialAddress(AF_INET6, Buffer + DataLength, false, DomainString)) || 
-					(ResponseType == REQUEST_PROCESS_TYPE::LOCAL && Parameter.IsLocalRouting && 
-					Index < ntohs(DNS_Header->Answer) && !CheckAddressRouting(AF_INET6, Buffer + DataLength)))
+				if (
+				//Check special address.
+					(Parameter.DataCheck_Blacklist && CheckSpecialAddress(AF_INET6, Buffer + DataLength, false, DomainString)) || 
+				//Check Local Routing.
+					(ResponseType == REQUEST_PROCESS_TYPE::LOCAL_NORMAL && Index < ntohs(DNS_Header->Answer) && 
+					Parameter.IsLocalRouting && !CheckAddressRouting(AF_INET6, Buffer + DataLength)))
 						return EXIT_FAILURE;
 
 			//Set address result found flag.
@@ -1540,16 +1598,22 @@ size_t CheckResponseData(
 				//Strict resource record TTL check when enforce strict RFC 2181(https://tools.ietf.org/html/rfc2181) compliance(Part 2)
 				//This will cause filter to reject DNS answers with incorrect timestamp settings.
 				//Multiple RRs of the same type and for the same domain with different TTLs.
-					if (AddressRecord_TTL == 0)
-						AddressRecord_TTL = DNS_Record_Standard->TTL;
-					else if (AddressRecord_TTL != DNS_Record_Standard->TTL)
-						return EXIT_FAILURE;
+					if (Parameter.DataCheck_RRSetTTL)
+					{
+						if (AddressRecord_TTL == 0)
+							AddressRecord_TTL = DNS_Record_Standard->TTL;
+						else if (AddressRecord_TTL != DNS_Record_Standard->TTL)
+							return EXIT_FAILURE;
+					}
 				}
 
 			//Check record address.
-				if ((Parameter.DataCheck_Blacklist && CheckSpecialAddress(AF_INET, Buffer + DataLength, false, DomainString)) || 
-					(ResponseType == REQUEST_PROCESS_TYPE::LOCAL && Parameter.IsLocalRouting && 
-					Index < ntohs(DNS_Header->Answer) && !CheckAddressRouting(AF_INET, Buffer + DataLength)))
+				if (
+				//Check special address.
+					(Parameter.DataCheck_Blacklist && CheckSpecialAddress(AF_INET, Buffer + DataLength, false, DomainString)) || 
+				//Check Local Routing.
+					(ResponseType == REQUEST_PROCESS_TYPE::LOCAL_NORMAL && Index < ntohs(DNS_Header->Answer) && 
+					Parameter.IsLocalRouting && !CheckAddressRouting(AF_INET, Buffer + DataLength)))
 						return EXIT_FAILURE;
 
 			//Set address result found flag.
@@ -1592,7 +1656,8 @@ size_t CheckResponseData(
 		(!IsFound_EDNS || //EDNS Label
 		(Parameter.DNSSEC_Request && Parameter.DNSSEC_ForceRecord && !IsFound_DNSSEC))) || //DNSSEC
 	//Local request address result check
-		(ResponseType == REQUEST_PROCESS_TYPE::LOCAL && !Parameter.IsLocalForce && !IsFound_AddressRecord)))
+		((ResponseType == REQUEST_PROCESS_TYPE::LOCAL_NORMAL || ResponseType == REQUEST_PROCESS_TYPE::LOCAL_IN_WHITE) && 
+		!Parameter.IsLocalForce && !IsFound_AddressRecord)))
 			return EXIT_FAILURE;
 
 //Store EDNS Label temporary.

@@ -1705,7 +1705,7 @@ void NetworkInformationMonitor(
 							else 
 								reinterpret_cast<dns_record_aaaa *>(DNS_Record)->TTL = htonl(DEFAULT_HOSTS_TTL);
 							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Type = htons(DNS_TYPE_AAAA);
-							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Length = htons(sizeof(in6_addr));
+							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Length = htons(sizeof(reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address));
 						#if defined(PLATFORM_WIN)
 							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address = reinterpret_cast<sockaddr_in6 *>(LocalAddressTableIter->ai_addr)->sin6_addr;
 						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
@@ -1866,7 +1866,7 @@ void NetworkInformationMonitor(
 							else 
 								reinterpret_cast<dns_record_a *>(DNS_Record)->TTL = htonl(DEFAULT_HOSTS_TTL);
 							reinterpret_cast<dns_record_a *>(DNS_Record)->Type = htons(DNS_TYPE_A);
-							reinterpret_cast<dns_record_a *>(DNS_Record)->Length = htons(sizeof(in_addr));
+							reinterpret_cast<dns_record_a *>(DNS_Record)->Length = htons(sizeof(reinterpret_cast<dns_record_a *>(DNS_Record)->Address));
 						#if defined(PLATFORM_WIN)
 							reinterpret_cast<dns_record_a *>(DNS_Record)->Address = reinterpret_cast<sockaddr_in *>(LocalAddressTableIter->ai_addr)->sin_addr;
 						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))

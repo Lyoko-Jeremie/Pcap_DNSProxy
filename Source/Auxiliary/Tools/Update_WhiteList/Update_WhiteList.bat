@@ -18,6 +18,7 @@
 	echo.
 	echo.
 ) > "WhiteList.txt"
+echo.
 ..\Support\sed -e "s@114.114.114.114$@@" -e "s@^s@S@" accelerated-domains.china.conf >> WhiteList.txt
 del /F /Q accelerated-domains.china.conf
 
@@ -35,6 +36,7 @@ goto Continue_Google
 :Google
 echo.
 ..\Support\curl -O https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/google.china.conf
+echo.
 ..\Support\sed -e "s@114.114.114.114$@@" -e "s@^s@S@" google.china.conf >> WhiteList.txt
 del /F /Q google.china.conf
 
@@ -52,6 +54,7 @@ goto Continue_Apple
 :Apple
 echo.
 ..\Support\curl -O https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/apple.china.conf
+echo.
 ..\Support\sed -e "s@114.114.114.114$@@" -e "s@^s@S@" apple.china.conf >> WhiteList.txt
 del /F /Q apple.china.conf
 

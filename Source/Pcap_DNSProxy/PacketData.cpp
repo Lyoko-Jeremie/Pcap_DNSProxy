@@ -301,68 +301,68 @@ size_t MarkWholePacketQuery(
 	return LocateIndex;
 }
 
-//Make ramdom domains
-void MakeRamdomDomain(
+//Make random domains
+void MakeRandomDomain(
 	uint8_t * const Buffer)
 {
-//Ramdom number distribution initialization and make ramdom domain length.
-	std::uniform_int_distribution<size_t> RamdomDistribution(DOMAIN_RAMDOM_MINSIZE, DOMAIN_LEVEL_DATA_MAXSIZE);
-	auto RamdomLength = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
-	if (RamdomLength < DOMAIN_RAMDOM_MINSIZE)
-		RamdomLength = DOMAIN_RAMDOM_MINSIZE;
+//Random number distribution initialization and make random domain length.
+	std::uniform_int_distribution<size_t> RandomDistribution(DOMAIN_RANDOM_MINSIZE, DOMAIN_LEVEL_DATA_MAXSIZE);
+	auto RandomLength = RandomDistribution(*GlobalRunningStatus.RandomEngine);
+	if (RandomLength < DOMAIN_RANDOM_MINSIZE)
+		RandomLength = DOMAIN_RANDOM_MINSIZE;
 	size_t Index = 0;
 
-//Make ramdom domain.
-	if (RamdomLength % 2U == 0)
+//Make random domain.
+	if (RandomLength % 2U == 0)
 	{
-		for (Index = 0;Index < RamdomLength - 3U;++Index)
+		for (Index = 0;Index < RandomLength - 3U;++Index)
 		{
-			*(Buffer + Index) = *(GlobalRunningStatus.DomainTable + RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+			*(Buffer + Index) = *(GlobalRunningStatus.DomainTable + RandomDistribution(*GlobalRunningStatus.RandomEngine));
 			*(Buffer + Index) = static_cast<uint8_t>(tolower(*(Buffer + Index)));
 		}
 
 	//Make random domain like a normal Top-Level Domain/TLD.
-		*(Buffer + (RamdomLength - 3U)) = ASCII_PERIOD;
-		Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+		*(Buffer + (RandomLength - 3U)) = ASCII_PERIOD;
+		Index = RandomDistribution(*GlobalRunningStatus.RandomEngine);
 		if (Index < ASCII_FF)
 			Index += 52U;
 		else if (Index < ASCII_AMPERSAND)
 			Index += 26U;
-		*(Buffer + (RamdomLength - 2U)) = *(GlobalRunningStatus.DomainTable + Index);
-		Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+		*(Buffer + (RandomLength - 2U)) = *(GlobalRunningStatus.DomainTable + Index);
+		Index = RandomDistribution(*GlobalRunningStatus.RandomEngine);
 		if (Index < ASCII_FF)
 			Index += 52U;
 		else if (Index < ASCII_AMPERSAND)
 			Index += 26U;
-		*(Buffer + (RamdomLength - 1U)) = *(GlobalRunningStatus.DomainTable + Index);
+		*(Buffer + (RandomLength - 1U)) = *(GlobalRunningStatus.DomainTable + Index);
 	}
 	else {
-		for (Index = 0;Index < RamdomLength - 4U;++Index)
+		for (Index = 0;Index < RandomLength - 4U;++Index)
 		{
-			*(Buffer + Index) = *(GlobalRunningStatus.DomainTable + RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+			*(Buffer + Index) = *(GlobalRunningStatus.DomainTable + RandomDistribution(*GlobalRunningStatus.RandomEngine));
 			*(Buffer + Index) = static_cast<uint8_t>(tolower(*(Buffer + Index)));
 		}
 
 	//Make random domain like a normal Top-level domain/TLD.
-		*(Buffer + (RamdomLength - 4U)) = ASCII_PERIOD;
-		Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+		*(Buffer + (RandomLength - 4U)) = ASCII_PERIOD;
+		Index = RandomDistribution(*GlobalRunningStatus.RandomEngine);
 		if (Index < ASCII_FF)
 			Index += 52U;
 		else if (Index < ASCII_AMPERSAND)
 			Index += 26U;
-		*(Buffer + (RamdomLength - 3U)) = *(GlobalRunningStatus.DomainTable + Index);
-		Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+		*(Buffer + (RandomLength - 3U)) = *(GlobalRunningStatus.DomainTable + Index);
+		Index = RandomDistribution(*GlobalRunningStatus.RandomEngine);
 		if (Index < ASCII_FF)
 			Index += 52U;
 		else if (Index < ASCII_AMPERSAND)
 			Index += 26U;
-		*(Buffer + (RamdomLength - 2U)) = *(GlobalRunningStatus.DomainTable + Index);
-		Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+		*(Buffer + (RandomLength - 2U)) = *(GlobalRunningStatus.DomainTable + Index);
+		Index = RandomDistribution(*GlobalRunningStatus.RandomEngine);
 		if (Index < ASCII_FF)
 			Index += 52U;
 		else if (Index < ASCII_AMPERSAND)
 			Index += 26U;
-		*(Buffer + (RamdomLength - 1U)) = *(GlobalRunningStatus.DomainTable + Index);
+		*(Buffer + (RandomLength - 1U)) = *(GlobalRunningStatus.DomainTable + Index);
 	}
 
 	return;
@@ -376,33 +376,33 @@ void MakeDomainCaseConversion(
 	auto Length = strnlen_s(reinterpret_cast<const char *>(Buffer), DOMAIN_MAXSIZE);
 	if (Length <= DOMAIN_MINSIZE)
 		return;
-	std::vector<size_t> RamdomIndex;
+	std::vector<size_t> RandomIndex;
 	for (size_t Index = 0;Index < Length;++Index)
 	{
 		if (*(Buffer + Index) >= ASCII_LOWERCASE_A && *(Buffer + Index) <= ASCII_LOWERCASE_Z)
-			RamdomIndex.push_back(Index);
+			RandomIndex.push_back(Index);
 	}
 
-//Ramdom number distribution initialization
-	if (RamdomIndex.empty())
+//Random number distribution initialization
+	if (RandomIndex.empty())
 		return;
-	std::uniform_int_distribution<size_t> RamdomDistribution(0, RamdomIndex.size() - 1U);
-	auto RamdomCounts = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
-	if (RamdomCounts == 0)
-		++RamdomCounts;
+	std::uniform_int_distribution<size_t> RandomDistribution(0, RandomIndex.size() - 1U);
+	auto RandomCounts = RandomDistribution(*GlobalRunningStatus.RandomEngine);
+	if (RandomCounts == 0)
+		++RandomCounts;
 
 //Make Domain Case Conversion.
-	for (size_t Index = 0;Index < RamdomCounts;++Index)
+	for (size_t Index = 0;Index < RandomCounts;++Index)
 	{
-		size_t BufferIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
-		*(Buffer + RamdomIndex.at(BufferIndex)) = static_cast<uint8_t>(toupper(*(Buffer + RamdomIndex.at(BufferIndex))));
+		size_t BufferIndex = RandomDistribution(*GlobalRunningStatus.RandomEngine);
+		*(Buffer + RandomIndex.at(BufferIndex)) = static_cast<uint8_t>(toupper(*(Buffer + RandomIndex.at(BufferIndex))));
 	}
 
 //Make sure that domain must have more than one char which in the last or the second last to convert.
 	if (*(Buffer + (Length - 1U)) >= ASCII_LOWERCASE_A && *(Buffer + (Length - 1U)) <= ASCII_LOWERCASE_Z && 
 		*(Buffer + (Length - 2U)) >= ASCII_LOWERCASE_A && *(Buffer + (Length - 2U)) <= ASCII_LOWERCASE_Z)
 	{
-		if (RamdomCounts % 2U == 0)
+		if (RandomCounts % 2U == 0)
 			*(Buffer + (Length - 1U)) = static_cast<uint8_t>(toupper(*(Buffer + (Length - 1U))));
 		else 
 			*(Buffer + (Length - 2U)) = static_cast<uint8_t>(toupper(*(Buffer + (Length - 2U))));
@@ -484,7 +484,7 @@ bool Move_EDNS_LabelToEnd(
 	return true;
 }
 
-//Add EDNS label to DNS packet(C-Style string, non-EDNS Label)
+//Add EDNS label to DNS packet(C-Style string, packet without EDNS Label)
 size_t Add_EDNS_LabelToPacket(
 	uint8_t * const Buffer, 
 	const size_t Length, 
@@ -636,51 +636,47 @@ size_t Add_EDNS_LabelToPacket(
 //Add EDNS label to DNS packet(DNS packet structure)
 bool Add_EDNS_LabelToPacket(
 	DNS_PACKET_DATA * const PacketStructure, 
+	const bool IsAlreadyClientSubnet, 
+	const bool IsAlreadyCookies, 
 	const SOCKET_DATA * const LocalSocketData)
 {
 //Initialization
 	const auto DNS_Header = reinterpret_cast<dns_hdr *>(PacketStructure->Buffer);
 	edns_header *EDNS_Header = nullptr;
-	auto IsEDNS_ClientSubnet = false;
 
-//EDNS Client Subnet check(Part 1)
-	if ((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr) || Parameter.LocalMachineSubnet_IPv6 != nullptr || Parameter.LocalMachineSubnet_IPv4 != nullptr)
+//EDNS Options check
+	size_t EDNS_LabelPrediction = 0;
+	auto IsEDNS_ClientSubnet = false, IsEDNS_Cookies = false;
+	if (!IsAlreadyClientSubnet && //EDNS Client Subnet
+		((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr) || 
+		Parameter.LocalMachineSubnet_IPv6 != nullptr || Parameter.LocalMachineSubnet_IPv4 != nullptr))
+	{
 		IsEDNS_ClientSubnet = true;
+		EDNS_LabelPrediction += sizeof(edns_client_subnet) * 2U + sizeof(in6_addr) + sizeof(in_addr);
+	}
+/* Under construction(2018-02-11)
+	if (!IsAlreadyCookies) //DNS Cookies
+	{
+		IsEDNS_Cookies = true;
+		EDNS_LabelPrediction += sizeof(edns_cookies);
+	}
+*/
 
 //Packet with EDNS Label
 	if (PacketStructure->EDNS_Location > 0)
 	{
-	//EDNS Client Subnet check(Part 2)
-		if (IsEDNS_ClientSubnet)
-		{
-		//Match EDNS Client Subnet record.
-			for (size_t Index = PacketStructure->EDNS_Location + sizeof(edns_header);Index < PacketStructure->EDNS_Location + PacketStructure->EDNS_Length;)
-			{
-				const auto EDNS_DataOption = reinterpret_cast<edns_data_option *>(PacketStructure->Buffer + Index);
-				if (ntohs(EDNS_DataOption->Code) == EDNS_CODE_CSUBNET)
-				{
-					IsEDNS_ClientSubnet = false;
-					break;
-				}
-
-			//Next loop
-				Index += sizeof(edns_data_option) + ntohs(EDNS_DataOption->Length);
-			}
-
-		//EDNS Label length check.
-			if (IsEDNS_ClientSubnet && PacketStructure->Length + sizeof(edns_data_option) * 2U + sizeof(in6_addr) + sizeof(in_addr) >= PacketStructure->BufferSize)
-				return false;
-		}
-
-	//Update EDNS Label information.
-		EDNS_Header = reinterpret_cast<edns_header *>(PacketStructure->Buffer + PacketStructure->EDNS_Location);
+	//EDNS Label length check
+		if (PacketStructure->Length + EDNS_LabelPrediction >= PacketStructure->BufferSize)
+			return false;
+		else 
+			EDNS_Header = reinterpret_cast<edns_header *>(PacketStructure->Buffer + PacketStructure->EDNS_Location);
 	}
 //Packet without EDNS Label
 	else {
 	//EDNS Label length check
-		if ((IsEDNS_ClientSubnet && PacketStructure->Length + sizeof(edns_header) + sizeof(edns_data_option) * 2U + sizeof(in6_addr) + sizeof(in_addr) >= PacketStructure->BufferSize) || 
-			(!IsEDNS_ClientSubnet && PacketStructure->Length + sizeof(edns_header) >= PacketStructure->BufferSize))
-				return false;
+		EDNS_LabelPrediction += sizeof(edns_header);
+		if (PacketStructure->Length + EDNS_LabelPrediction >= PacketStructure->BufferSize)
+			return false;
 
 	//Make a new EDNS Label/OPT Additional resource record.
 		memset(PacketStructure->Buffer + PacketStructure->Length, 0, PacketStructure->BufferSize - PacketStructure->Length);
@@ -700,6 +696,7 @@ bool Add_EDNS_LabelToPacket(
 		DNS_Header->Additional = htons(static_cast<uint16_t>(PacketStructure->Records_AdditionalCount));
 	}
 
+//Modify EDNS Label.
 //DNSSEC request
 	if (Parameter.DNSSEC_Request)
 	{
@@ -708,26 +705,53 @@ bool Add_EDNS_LabelToPacket(
 		EDNS_Header->Z_Field = htons(ntohs(EDNS_Header->Z_Field) | EDNS_FLAG_GET_BIT_DO); //Set Accepts DNSSEC security resource records bit.
 	}
 
+/* Under construction(2018-02-11)
+//DNS Cookies
+	if (IsEDNS_Cookies)
+	{
+	//Random number distribution initialization
+	#if !defined(ENABLE_LIBSODIUM)
+		std::uniform_int_distribution<uint64_t> RandomDistribution(0, UINT64_MAX);
+	#endif
+
+	//Make Cookies header.
+		const auto EDNS_CookiesHeader = reinterpret_cast<edns_cookies *>(PacketStructure->Buffer + PacketStructure->EDNS_Location + PacketStructure->EDNS_Length);
+		EDNS_CookiesHeader->Code = htons(EDNS_CODE_COOKIES);
+	#if defined(ENABLE_LIBSODIUM)
+		randombytes_buf(&EDNS_CookiesHeader->ClientCookie, sizeof(EDNS_CookiesHeader->ClientCookie));
+	#else
+		EDNS_CookiesHeader->ClientCookie = hton64(RandomDistribution(*GlobalRunningStatus.RandomEngine));
+	#endif
+
+	//Update DNS Cookies information.
+		EDNS_CookiesHeader->Length = htons(static_cast<uint16_t>(ntohs(EDNS_CookiesHeader->Length) + sizeof(EDNS_CookiesHeader->ClientCookie)));
+		EDNS_Header->DataLength = htons(static_cast<uint16_t>(ntohs(EDNS_Header->DataLength) + sizeof(edns_cookies)));
+		PacketStructure->Length += sizeof(edns_cookies);
+		PacketStructure->Records_Length.back() += sizeof(edns_cookies);
+		PacketStructure->EDNS_Length += sizeof(edns_cookies);
+	}
+*/
+
 //EDNS Client Subnet
 	if (IsEDNS_ClientSubnet)
 	{
 	//DNS type check
 		const auto DNS_Query = reinterpret_cast<dns_qry *>(PacketStructure->Buffer + DNS_PACKET_QUERY_LOCATE(PacketStructure->Buffer));
 		if (ntohs(DNS_Query->Type) != DNS_TYPE_AAAA && ntohs(DNS_Query->Type) != DNS_TYPE_A)
-				return true;
+			return false;
 
 	//EDNS Client Subnet initialization
 		const auto EDNS_ClientSubnetHeader = reinterpret_cast<edns_client_subnet *>(PacketStructure->Buffer + PacketStructure->EDNS_Location + PacketStructure->EDNS_Length);
-		auto IsLocalRelay = false, IsGlobalRelay = false;
+		auto IsFunctionRelay = false, IsGlobalRelay = false;
 
 	//AAAA record(IPv6)
 		if (ntohs(DNS_Query->Type) == DNS_TYPE_AAAA)
 		{
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
-				IsLocalRelay = true;
+				IsFunctionRelay = true;
 			else if (Parameter.LocalMachineSubnet_IPv6 != nullptr)
 				IsGlobalRelay = true;
-			if (IsLocalRelay || IsGlobalRelay)
+			if (IsFunctionRelay || IsGlobalRelay)
 			{
 			//Make EDNS Subnet header.
 				EDNS_ClientSubnetHeader->Code = htons(EDNS_CODE_CSUBNET);
@@ -736,7 +760,7 @@ bool Add_EDNS_LabelToPacket(
 			//Mark network prefix address.
 				in6_addr BinaryAddr;
 				memset(&BinaryAddr, 0, sizeof(BinaryAddr));
-				if (IsLocalRelay)
+				if (IsFunctionRelay)
 				{
 				//Default prefix of IPv6 address, please visit RFC 7871(https://tools.ietf.org/html/rfc7871).
 					if (Parameter.LocalMachineSubnet_IPv6 != nullptr)
@@ -765,13 +789,13 @@ bool Add_EDNS_LabelToPacket(
 					PrefixBytes = EDNS_ClientSubnetHeader->Netmask_Source / BYTES_TO_BITS + sizeof(uint8_t);
 				else 
 					PrefixBytes = EDNS_ClientSubnetHeader->Netmask_Source / BYTES_TO_BITS;
-				if (IsLocalRelay)
+				if (IsFunctionRelay)
 					*reinterpret_cast<in6_addr *>(PacketStructure->Buffer + PacketStructure->EDNS_Location + PacketStructure->EDNS_Length + sizeof(edns_client_subnet)) = BinaryAddr;
 				else 
 					*reinterpret_cast<in6_addr *>(PacketStructure->Buffer + PacketStructure->EDNS_Location + PacketStructure->EDNS_Length + sizeof(edns_client_subnet)) = reinterpret_cast<sockaddr_in6 *>(&Parameter.LocalMachineSubnet_IPv6->first)->sin6_addr;
 
 			//Update EDNS Client Subnet information.
-				EDNS_ClientSubnetHeader->Length = htons(ntohs(EDNS_ClientSubnetHeader->Length) + static_cast<uint16_t>(sizeof(EDNS_ClientSubnetHeader->Family) + sizeof(EDNS_ClientSubnetHeader->Netmask_Source) + sizeof(EDNS_ClientSubnetHeader->Netmask_Scope) + PrefixBytes));
+				EDNS_ClientSubnetHeader->Length = htons(static_cast<uint16_t>(ntohs(EDNS_ClientSubnetHeader->Length) + sizeof(EDNS_ClientSubnetHeader->Family) + sizeof(EDNS_ClientSubnetHeader->Netmask_Source) + sizeof(EDNS_ClientSubnetHeader->Netmask_Scope) + PrefixBytes));
 				EDNS_Header->DataLength = htons(static_cast<uint16_t>(ntohs(EDNS_Header->DataLength) + sizeof(edns_client_subnet) + PrefixBytes));
 				PacketStructure->Length += sizeof(edns_client_subnet) + PrefixBytes;
 				PacketStructure->Records_Length.back() += sizeof(edns_client_subnet) + PrefixBytes;
@@ -782,10 +806,10 @@ bool Add_EDNS_LabelToPacket(
 		else if (ntohs(DNS_Query->Type) == DNS_TYPE_A)
 		{
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)
-				IsLocalRelay = true;
+				IsFunctionRelay = true;
 			else if (Parameter.LocalMachineSubnet_IPv4 != nullptr)
 				IsGlobalRelay = true;
-			if (IsLocalRelay || IsGlobalRelay)
+			if (IsFunctionRelay || IsGlobalRelay)
 			{
 			//Make EDNS Subnet header.
 				EDNS_ClientSubnetHeader->Code = htons(EDNS_CODE_CSUBNET);
@@ -794,7 +818,7 @@ bool Add_EDNS_LabelToPacket(
 			//Mark network prefix address.
 				in_addr BinaryAddr;
 				memset(&BinaryAddr, 0, sizeof(BinaryAddr));
-				if (IsLocalRelay)
+				if (IsFunctionRelay)
 				{
 				//Default prefix of IPv4 address, please visit RFC 7871(https://tools.ietf.org/html/rfc7871).
 					if (Parameter.LocalMachineSubnet_IPv4 != nullptr)
@@ -816,13 +840,13 @@ bool Add_EDNS_LabelToPacket(
 					PrefixBytes = EDNS_ClientSubnetHeader->Netmask_Source / BYTES_TO_BITS + sizeof(uint8_t);
 				else 
 					PrefixBytes = EDNS_ClientSubnetHeader->Netmask_Source / BYTES_TO_BITS;
-				if (IsLocalRelay)
+				if (IsFunctionRelay)
 					*reinterpret_cast<in_addr *>(PacketStructure->Buffer + PacketStructure->EDNS_Location + PacketStructure->EDNS_Length + sizeof(edns_client_subnet)) = BinaryAddr;
 				else 
 					*reinterpret_cast<in_addr *>(PacketStructure->Buffer + PacketStructure->EDNS_Location + PacketStructure->EDNS_Length + sizeof(edns_client_subnet)) = reinterpret_cast<sockaddr_in *>(&Parameter.LocalMachineSubnet_IPv4->first)->sin_addr;
 
 			//Update EDNS Client Subnet information.
-				EDNS_ClientSubnetHeader->Length = htons(ntohs(EDNS_ClientSubnetHeader->Length) + static_cast<uint16_t>(sizeof(EDNS_ClientSubnetHeader->Family) + sizeof(EDNS_ClientSubnetHeader->Netmask_Source) + sizeof(EDNS_ClientSubnetHeader->Netmask_Scope) + PrefixBytes));
+				EDNS_ClientSubnetHeader->Length = htons(static_cast<uint16_t>(ntohs(EDNS_ClientSubnetHeader->Length) + sizeof(EDNS_ClientSubnetHeader->Family) + sizeof(EDNS_ClientSubnetHeader->Netmask_Source) + sizeof(EDNS_ClientSubnetHeader->Netmask_Scope) + PrefixBytes));
 				EDNS_Header->DataLength = htons(static_cast<uint16_t>(ntohs(EDNS_Header->DataLength) + sizeof(edns_client_subnet) + PrefixBytes));
 				PacketStructure->Length += sizeof(edns_client_subnet) + PrefixBytes;
 				PacketStructure->Records_Length.back() += sizeof(edns_client_subnet) + PrefixBytes;
@@ -840,9 +864,9 @@ size_t MakeCompressionPointerMutation(
 	const size_t Length, 
 	const size_t MaxLen)
 {
-//Ramdom number distribution initialization
-	std::uniform_int_distribution<uint64_t> RamdomDistribution(0, 2U);
-	auto Index = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+//Random number distribution initialization
+	std::uniform_int_distribution<uint64_t> RandomDistribution(0, 2U);
+	auto Index = RandomDistribution(*GlobalRunningStatus.RandomEngine);
 
 //Check Compression Pointer Mutation options.
 	switch (Index)
@@ -889,7 +913,7 @@ size_t MakeCompressionPointerMutation(
 		memmove_s(Buffer + Length - sizeof(dns_qry) + NULL_TERMINATE_LENGTH, sizeof(dns_qry), Buffer + Length - sizeof(dns_qry), sizeof(dns_qry));
 		*(Buffer + Length - sizeof(dns_qry) - 1U) = static_cast<uint8_t>(DNS_POINTER_8_BIT_STRING);
 
-	//Choose a ramdom one.
+	//Choose a random one.
 		Index = GetCurrentSystemTime() % 4U;
 		switch (Index)
 		{
@@ -933,8 +957,8 @@ size_t MakeCompressionPointerMutation(
 		}
 	//Pointer to Additional, like "<DNS Header><Pointer><Query><Additional>" and point domain to <Additional>.
 		else {
-		//Ramdom number distribution initialization
-			std::uniform_int_distribution<uint32_t> RamdomDistribution_Additional(0, UINT32_MAX);
+		//Random number distribution initialization
+			std::uniform_int_distribution<uint32_t> RandomDistribution_Additional(0, UINT32_MAX);
 
 		//Make records.
 			reinterpret_cast<dns_hdr *>(Buffer)->Additional = htons(UINT16_NUM_ONE);
@@ -943,10 +967,10 @@ size_t MakeCompressionPointerMutation(
 				const auto DNS_Record_AAAA = reinterpret_cast<dns_record_aaaa *>(Buffer + Length);
 				DNS_Record_AAAA->Type = htons(DNS_TYPE_AAAA);
 				DNS_Record_AAAA->Classes = htons(DNS_CLASS_INTERNET);
-				DNS_Record_AAAA->TTL = htonl(RamdomDistribution_Additional(*GlobalRunningStatus.RamdomEngine));
-				DNS_Record_AAAA->Length = htons(sizeof(in6_addr));
+				DNS_Record_AAAA->TTL = htonl(RandomDistribution_Additional(*GlobalRunningStatus.RandomEngine));
+				DNS_Record_AAAA->Length = htons(sizeof(DNS_Record_AAAA->Address));
 				for (Index = 0;Index < sizeof(in6_addr) / sizeof(uint8_t);++Index)
-					DNS_Record_AAAA->Address.s6_addr[Index] = static_cast<uint8_t>(RamdomDistribution_Additional(*GlobalRunningStatus.RamdomEngine));
+					DNS_Record_AAAA->Address.s6_addr[Index] = static_cast<uint8_t>(RandomDistribution_Additional(*GlobalRunningStatus.RandomEngine));
 
 				return Length + sizeof(dns_record_aaaa);
 			}
@@ -955,9 +979,9 @@ size_t MakeCompressionPointerMutation(
 				const auto DNS_Record_A = reinterpret_cast<dns_record_a *>(Buffer + Length);
 				DNS_Record_A->Type = htons(DNS_TYPE_A);
 				DNS_Record_A->Classes = htons(DNS_CLASS_INTERNET);
-				DNS_Record_A->TTL = htonl(RamdomDistribution_Additional(*GlobalRunningStatus.RamdomEngine));
-				DNS_Record_A->Length = htons(sizeof(in_addr));
-				DNS_Record_A->Address.s_addr = htonl(RamdomDistribution_Additional(*GlobalRunningStatus.RamdomEngine));
+				DNS_Record_A->TTL = htonl(RandomDistribution_Additional(*GlobalRunningStatus.RandomEngine));
+				DNS_Record_A->Length = htons(sizeof(DNS_Record_A->Address));
+				DNS_Record_A->Address.s_addr = htonl(RandomDistribution_Additional(*GlobalRunningStatus.RandomEngine));
 
 				return Length + sizeof(dns_record_a);
 			}

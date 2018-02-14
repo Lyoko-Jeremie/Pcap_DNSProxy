@@ -379,22 +379,26 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Local Protocol - 發送請求到境內 DNS 伺服器時所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向境內 DNS 伺服器發出請求
     * 同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，程式將根據網路環境自動選擇所使用的協定
-    * 同時填入 TCP 和 UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
+  * 同時填入 TCP 和 UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準網路層協定，所以即使填入 TCP 失敗時也會使用 UDP 請求
     * 填入 Force TCP 可阻止 TCP 請求失敗後使用 UDP 重新嘗試請求
   * Local Hosts - 白名單境內伺服器請求功能：開啟為 1 /關閉為 0
     * 本功能開啟後才會嘗試讀取 Local Hosts 白名單內的資料，關閉時不會讀取任何白名單的資料
   * Local Routing - 境內路由表識別功能：開啟為 1 /關閉為 0
     * 本功能開啟後所有請求都會先發送至境內伺服器進行網域名稱解析，再根據解析結果進行下一步的操作
   * Local Force Request - 強制使用境內伺服器進行解析：開啟為 1 /關閉為 0
-    * 本功能要求啟用 Local Hosts 參數
-  * 注意：關於 Local Force Request 和 Local Hosts 和 Local Routing 的組合說明
-    * 所有參數均為關閉時：直接跳過使用境內伺服器進行網域名稱解析的過程
+  * 注意：關於 Local Hosts 和 Local Routing 和 Local Force Request 的組合說明
     * 預設情況下在境內伺服器解析失敗會進行下一步的操作
-    * 只開啟 Local Hosts 時：將按照（黑）白名單（無）命中規則的網域名稱，才（不）使用境內伺服器進行解析
-    * 開啟 Local Force Request 參數時，則強制已命中規則的網域名稱只能使用境內伺服器進行解析
-      * 只開啟 Local Routing 時：所有請求都會先發送至境內伺服器進行網域名稱解析，然後根據路由表進行匹配，命中路由表的解析結果將直接返回給要求者
-    * 同時開啟 Local Hosts 和 Local Routing 時：所有（除了黑名單所指定的）請求都會先發送至境內伺服器進行網域名稱解析，然後根據路由表進行匹配，命中路由表的解析結果將直接返回給要求者
-      * 開啟 Local Force Request 參數時，則強制已命中規則的網域名稱只能使用境內伺服器進行解析
+    * 所有參數均為關閉時，直接跳過使用境內伺服器進行網域名稱解析的過程
+    * Local Hosts 可以單獨開啟：將按照（黑）白名單（無）命中規則的網域名稱，才（不）使用境內伺服器進行解析
+    * Local Routing 可以單獨開啟：所有請求都會先發送至境內伺服器進行網域名稱解析，然後根據路由表進行匹配，命中路由表的解析結果將直接返回給要求者
+    * Local Force Request 不能單獨啟用：需要和 Local Hosts 配合使用
+    * Local Hosts + Local Routing 不能同時啟用：功能衝突
+    * Local Hosts + Local Force Request 可以同時啟用：強制已命中規則的網域名稱只能使用境內伺服器進行解析，解析結果有問題將直接丟棄並終止整個解析過程
+    * Local Routing + Local Force Request 不能同時啟用：功能衝突
+    * Local Hosts + Local Routing + Local Force Request 可以同時啟用：所有（除了黑名單所指定的）請求都會先發送至境內伺服器進行網域名稱解析，根據請求的性質：
+      * 如果該請求的網域名稱命中 Local Hosts 則強制已命中規則的網域名稱只能使用境內伺服器進行解析，解析結果有問題將直接丟棄並終止整個解析過程
+      * 如果該請求的網域名稱沒有命中 Local Hosts 則根據路由表進行匹配，命中路由表的解析結果將直接返回給要求者
+      * 所有沒有命中且沒有成功匹配路由表的請求將會進行下一步的操作
 
 * Addresses - 普通模式位址區域
   * IPv4 Listen Address - IPv4 本地監聽位址：需要輸入一個帶埠格式的位址，留空為不啟用
@@ -628,6 +632,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * TCP Data Filter - TCP 資料包頭檢測：開啟為 1 /關閉為 0
   * DNS Data Filter - DNS 資料包頭檢測：開啟為 1 /關閉為 0
   * Blacklist Filter - 解析結果黑名單過濾：開啟為 1 /關閉為 0
+  * Resource Record Set TTL Filter - 嚴格的資源記錄存留時間過濾：開啟為 1/關閉為 0
 
 * Data - 資料區域
   * ICMP ID - ICMP/Ping 資料包頭部 ID 的值：格式為 0x**** 的十六進位字元，如果留空則獲取執行緒的 ID 作為請求用 ID
@@ -1046,6 +1051,7 @@ IPFilter 設定檔分為 Blacklist/黑名單區域 和 IPFilter/位址過濾區�
 * IPv4 Do Not Fragment
 * TCP Data Filter
 * DNS Data Filter
+* Resource Record Set TTL Filter
 * Domain Test Protocol
 * SOCKS Target Server
 * SOCKS Username

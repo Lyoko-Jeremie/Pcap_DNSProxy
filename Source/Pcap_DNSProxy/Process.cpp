@@ -183,8 +183,18 @@ bool EnterRequestProcess(
 //Local request process
 	if (MonitorQueryData.first.IsLocalRequest)
 	{
-		const auto Result = LocalRequestProcess(MonitorQueryData, RecvBuffer, RecvSize, EDNS_Buffer);
-		if (Result || (MonitorQueryData.first.IsLocalInWhite && Parameter.IsLocalForce))
+	//Mark Local Hosts request
+		auto RequestType = REQUEST_PROCESS_TYPE::LOCAL_NORMAL;
+		if (MonitorQueryData.first.IsLocalInWhite)
+			RequestType = REQUEST_PROCESS_TYPE::LOCAL_IN_WHITE;
+
+	//Local request
+		const auto Result = LocalRequestProcess(MonitorQueryData, RecvBuffer, RecvSize, EDNS_Buffer, RequestType);
+		if (
+		//Get result successfully.
+			Result || 
+		//Local Hosts + Local Force Request and Local Hosts + Local Routing + Local Force Request
+			(MonitorQueryData.first.IsLocalInWhite && Parameter.IsLocalForce))
 		{
 		//Fin TCP request connection.
 			if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
@@ -423,8 +433,16 @@ size_t CheckHostsProcess(
 	std::string Domain;
 	auto DNS_Header = reinterpret_cast<dns_hdr *>(PacketStructure->Buffer);
 
+//DNS Cookies request
+	if (DNS_Header->Question == 0)
+	{
+		if (DNS_Header->Answer != 0 || DNS_Header->Authority != 0 || ntohs(DNS_Header->Additional) != UINT16_NUM_ONE)
+			return EXIT_FAILURE;
+		else 
+			return EXIT_SUCCESS;
+	}
 //Request check
-	if (CheckQueryNameLength(PacketStructure->Buffer + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH < DOMAIN_MAXSIZE)
+	else if (CheckQueryNameLength(PacketStructure->Buffer + sizeof(dns_hdr)) + NULL_TERMINATE_LENGTH < DOMAIN_MAXSIZE)
 	{
 		if (PacketQueryToString(PacketStructure->Buffer + sizeof(dns_hdr), Domain) <= DOMAIN_MINSIZE || Domain.empty())
 			return EXIT_SUCCESS;
@@ -524,7 +542,7 @@ size_t CheckHostsProcess(
 			else 
 				reinterpret_cast<dns_record_aaaa *>(DNS_Record)->TTL = htonl(DEFAULT_HOSTS_TTL);
 			reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Type = htons(DNS_TYPE_AAAA);
-			reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Length = htons(sizeof(in6_addr));
+			reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Length = htons(sizeof(reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address));
 			reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address = in6addr_loopback;
 			DataLength += sizeof(dns_record_aaaa);
 
@@ -570,7 +588,7 @@ size_t CheckHostsProcess(
 			else 
 				reinterpret_cast<dns_record_a *>(DNS_Record)->TTL = htonl(DEFAULT_HOSTS_TTL);
 			reinterpret_cast<dns_record_a *>(DNS_Record)->Type = htons(DNS_TYPE_A);
-			reinterpret_cast<dns_record_a *>(DNS_Record)->Length = htons(sizeof(in_addr));
+			reinterpret_cast<dns_record_a *>(DNS_Record)->Length = htons(sizeof(reinterpret_cast<dns_record_a *>(DNS_Record)->Address.s_addr));
 			reinterpret_cast<dns_record_a *>(DNS_Record)->Address.s_addr = htonl(INADDR_LOOPBACK);
 			DataLength += sizeof(dns_record_a);
 
@@ -848,7 +866,7 @@ size_t CheckHostsProcess(
 					goto StopLoop_NormalHosts;
 
 			//Initialization
-				size_t RamdomIndex = 0, Index = 0;
+				size_t RandomIndex = 0, Index = 0;
 
 			//AAAA record(IPv6)
 				if (ntohs(DNS_Query->Type) == DNS_TYPE_AAAA && HostsTableIter.RecordTypeList.front() == htons(DNS_TYPE_AAAA))
@@ -870,8 +888,8 @@ size_t CheckHostsProcess(
 				//Hosts load balancing
 					if (HostsTableIter.AddrOrTargetList.size() > 1U)
 					{
-						std::uniform_int_distribution<size_t> RamdomDistribution(0, HostsTableIter.AddrOrTargetList.size() - 1U);
-						RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+						std::uniform_int_distribution<size_t> RandomDistribution(0, HostsTableIter.AddrOrTargetList.size() - 1U);
+						RandomIndex = RandomDistribution(*GlobalRunningStatus.RandomEngine);
 					}
 
 				//Make response.
@@ -887,10 +905,10 @@ size_t CheckHostsProcess(
 						else 
 							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->TTL = htonl(DEFAULT_HOSTS_TTL);
 						reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Type = htons(DNS_TYPE_AAAA);
-						reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Length = htons(sizeof(in6_addr));
+						reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Length = htons(sizeof(reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address));
 						if (Index == 0)
-							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address = HostsTableIter.AddrOrTargetList.at(RamdomIndex).IPv6.sin6_addr;
-						else if (Index == RamdomIndex)
+							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address = HostsTableIter.AddrOrTargetList.at(RandomIndex).IPv6.sin6_addr;
+						else if (Index == RandomIndex)
 							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address = HostsTableIter.AddrOrTargetList.front().IPv6.sin6_addr;
 						else 
 							reinterpret_cast<dns_record_aaaa *>(DNS_Record)->Address = HostsTableIter.AddrOrTargetList.at(Index).IPv6.sin6_addr;
@@ -940,8 +958,8 @@ size_t CheckHostsProcess(
 				//Hosts load balancing
 					if (HostsTableIter.AddrOrTargetList.size() > 1U)
 					{
-						std::uniform_int_distribution<size_t> RamdomDistribution(0, HostsTableIter.AddrOrTargetList.size() - 1U);
-						RamdomIndex = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+						std::uniform_int_distribution<size_t> RandomDistribution(0, HostsTableIter.AddrOrTargetList.size() - 1U);
+						RandomIndex = RandomDistribution(*GlobalRunningStatus.RandomEngine);
 					}
 
 				//Make response.
@@ -957,10 +975,10 @@ size_t CheckHostsProcess(
 						else 
 							reinterpret_cast<dns_record_a *>(DNS_Record)->TTL = htonl(DEFAULT_HOSTS_TTL);
 						reinterpret_cast<dns_record_a *>(DNS_Record)->Type = htons(DNS_TYPE_A);
-						reinterpret_cast<dns_record_a *>(DNS_Record)->Length = htons(sizeof(in_addr));
+						reinterpret_cast<dns_record_a *>(DNS_Record)->Length = htons(sizeof(reinterpret_cast<dns_record_a *>(DNS_Record)->Address));
 						if (Index == 0)
-							reinterpret_cast<dns_record_a *>(DNS_Record)->Address = HostsTableIter.AddrOrTargetList.at(RamdomIndex).IPv4.sin_addr;
-						else if (Index == RamdomIndex)
+							reinterpret_cast<dns_record_a *>(DNS_Record)->Address = HostsTableIter.AddrOrTargetList.at(RandomIndex).IPv4.sin_addr;
+						else if (Index == RandomIndex)
 							reinterpret_cast<dns_record_a *>(DNS_Record)->Address = HostsTableIter.AddrOrTargetList.front().IPv4.sin_addr;
 						else 
 							reinterpret_cast<dns_record_a *>(DNS_Record)->Address = HostsTableIter.AddrOrTargetList.at(Index).IPv4.sin_addr;
@@ -1069,7 +1087,8 @@ bool LocalRequestProcess(
 	MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
-	std::unique_ptr<uint8_t[]> &EDNS_Buffer)
+	std::unique_ptr<uint8_t[]> &EDNS_Buffer, 
+	const REQUEST_PROCESS_TYPE RequestType)
 {
 	memset(OriginalRecv, 0, RecvSize);
 
@@ -1106,7 +1125,7 @@ bool LocalRequestProcess(
 		Parameter.LocalProtocol_Transport == REQUEST_MODE_TRANSPORT::TCP || 
 		MonitorQueryData.first.Protocol == IPPROTO_TCP)
 	{
-		DataLength = TCP_RequestSingle(REQUEST_PROCESS_TYPE::LOCAL, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, OriginalRecv, RecvSize, &MonitorQueryData.first.LocalTarget, &MonitorQueryData.second);
+		DataLength = TCP_RequestSingle(RequestType, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, OriginalRecv, RecvSize, &MonitorQueryData.first.LocalTarget, &MonitorQueryData.second);
 
 	//Send response.
 		if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
@@ -1121,7 +1140,7 @@ bool LocalRequestProcess(
 	}
 
 //UDP request and Send response.
-	DataLength = UDP_CompleteRequestSingle(REQUEST_PROCESS_TYPE::LOCAL, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, OriginalRecv, RecvSize, &MonitorQueryData.first.LocalTarget, &MonitorQueryData.second);
+	DataLength = UDP_CompleteRequestSingle(RequestType, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, OriginalRecv, RecvSize, &MonitorQueryData.first.LocalTarget, &MonitorQueryData.second);
 	if (DataLength >= DNS_PACKET_MINSIZE && DataLength < RecvSize)
 	{
 		SendToRequester(MonitorQueryData.first.Protocol, OriginalRecv, DataLength, RecvSize, MonitorQueryData.second);
@@ -1664,10 +1683,11 @@ bool MarkDomainCache(
 	if (
 	//Not a response packet
 		(ntohs(DNS_Header->Flags) & DNS_FLAG_GET_BIT_RESPONSE) == 0 || 
-	//Question resource records must be one.
+	//Question resource records must be set one.
 		ntohs(DNS_Header->Question) != UINT16_NUM_ONE || 
 	//Not any Answer resource records
-		(DNS_Header->Answer == 0 && DNS_Header->Authority == 0 /* && DNS_Header->Additional == 0 */ ) || 
+		(DNS_Header->Answer == 0 && DNS_Header->Authority == 0) || 
+//		&& DNS_Header->Additional == 0) || 
 	//OPCode must be set Query/0.
 		(ntohs(DNS_Header->Flags) & DNS_FLAG_GET_BIT_OPCODE) != DNS_OPCODE_QUERY || 
 	//Truncated bit must not be set.

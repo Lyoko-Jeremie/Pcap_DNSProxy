@@ -307,19 +307,23 @@ bool ReadCommand(
 			{
 			//Initialization and make keypair.
 				const auto Buffer = std::make_unique<uint8_t[]>(DNSCRYPT_KEYPAIR_MESSAGE_LEN + PADDING_RESERVED_BYTES);
-				sodium_memzero(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN + PADDING_RESERVED_BYTES);
+				memset(Buffer.get(), 0, DNSCRYPT_KEYPAIR_MESSAGE_LEN + PADDING_RESERVED_BYTES);
 				DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> SecretKey(crypto_box_SECRETKEYBYTES);
 				uint8_t PublicKey[crypto_box_PUBLICKEYBYTES]{0};
 				size_t InnerIndex = 0;
 
-			//Generator a ramdom keypair and write public key.
+			//Generate a random keypair and write public key.
 				if (crypto_box_keypair(
 						PublicKey, 
 						SecretKey.Buffer) != 0 || 
-					sodium_bin2hex(reinterpret_cast<char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN, PublicKey, crypto_box_PUBLICKEYBYTES) == nullptr)
+					sodium_bin2hex(
+						reinterpret_cast<char *>(Buffer.get()), 
+						DNSCRYPT_KEYPAIR_MESSAGE_LEN, 
+						PublicKey, 
+						crypto_box_PUBLICKEYBYTES) == nullptr)
 				{
 					fclose(FileHandle);
-					PrintToScreen(true, L"[System Error] Create ramdom key pair failed, please try again.\n");
+					PrintToScreen(true, L"[System Error] Create random key pair failed, please try again.\n");
 
 					return false;
 				}
@@ -335,14 +339,18 @@ bool ReadCommand(
 
 					fwprintf_s(FileHandle, L"%c", Buffer.get()[InnerIndex]);
 				}
-				sodium_memzero(Buffer.get(), DNSCRYPT_KEYPAIR_MESSAGE_LEN);
+				memset(Buffer.get(), 0, DNSCRYPT_KEYPAIR_MESSAGE_LEN);
 				fwprintf_s(FileHandle, L"\n");
 
 			//Write secret key.
-				if (sodium_bin2hex(reinterpret_cast<char *>(Buffer.get()), DNSCRYPT_KEYPAIR_MESSAGE_LEN, SecretKey.Buffer, crypto_box_SECRETKEYBYTES) == nullptr)
+				if (sodium_bin2hex(
+						reinterpret_cast<char *>(Buffer.get()), 
+						DNSCRYPT_KEYPAIR_MESSAGE_LEN, 
+						SecretKey.Buffer, 
+						crypto_box_SECRETKEYBYTES) == nullptr)
 				{
 					fclose(FileHandle);
-					PrintToScreen(true, L"[System Error] Create ramdom key pair failed, please try again.\n");
+					PrintToScreen(true, L"[System Error] Create random key pair failed, please try again.\n");
 
 					return false;
 				}
@@ -368,7 +376,7 @@ bool ReadCommand(
 				PrintToScreen(true, L"[System Error] Cannot create target file(KeyPair.txt).\n");
 			}
 		#else
-			PrintToScreen(true, L"[Notice] LibSodium is disable.\n");
+			PrintToScreen(true, L"[Notice] LibSodium is disabled.\n");
 		#endif
 
 			return false;

@@ -61,7 +61,7 @@ bool PrintError(
 			FileNameString.append(L"(Line %u)");
 	}
 
-//Add log error type.
+//Log type
 	switch (ErrorType)
 	{
 	//Message Notice
@@ -109,6 +109,7 @@ bool PrintError(
 		//There are no any error codes or file names to be reported in LOG_ERROR_TYPE::PCAP.
 			ErrorMessage.append(L"[Pcap Error] ");
 			ErrorMessage.append(Message);
+			ErrorMessage.append(L"\n");
 
 			return WriteMessage_ScreenFile(ErrorMessage, ErrorCode, Line);
 		}break;

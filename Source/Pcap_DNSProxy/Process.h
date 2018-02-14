@@ -39,7 +39,8 @@ bool LocalRequestProcess(
 	MONITOR_QUEUE_DATA &MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
-	std::unique_ptr<uint8_t[]> &EDNS_Buffer);
+	std::unique_ptr<uint8_t[]> &EDNS_Buffer, 
+	const REQUEST_PROCESS_TYPE RequestType);
 bool SOCKS_RequestProcess(
 	MONITOR_QUEUE_DATA &MonitorQueryData, 
 	std::unique_ptr<uint8_t[]> &EDNS_Buffer);

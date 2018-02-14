@@ -381,15 +381,19 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * Local Routing - 境内路由表识别功能：开启为 1 /关闭为 0
     * 本功能开启后所有请求都会先发送至境内服务器进行域名解析，再根据解析结果进行下一步的操作
   * Local Force Request - 强制使用境内服务器进行解析：开启为 1 /关闭为 0
-    * 本功能要求启用 Local Hosts 参数
-  * 注意：关于 Local Force Request 和 Local Hosts 和 Local Routing 的组合说明
-    * 所有参数均为关闭时：直接跳过使用境内服务器进行域名解析的过程
+  * 注意：关于 Local Hosts 和 Local Routing 和 Local Force Request 的组合说明
     * 默认情况下在境内服务器解析失败会进行下一步的操作
-    * 只开启 Local Hosts 时：将按照（黑）白名单（无）命中规则的域名，才（不）使用境内服务器进行解析
-      * 开启 Local Force Request 参数时，则强制已命中规则的域名只能使用境内服务器进行解析
-    * 只开启 Local Routing 时：所有请求都会先发送至境内服务器进行域名解析，然后根据路由表进行匹配，命中路由表的解析结果将直接返回给请求者
-    * 同时开启 Local Hosts 和 Local Routing 时：所有（除了黑名单所指定的）请求都会先发送至境内服务器进行域名解析，然后根据路由表进行匹配，命中路由表的解析结果将直接返回给请求者
-      * 开启 Local Force Request 参数时，则强制已命中规则的域名只能使用境内服务器进行解析
+    * 所有参数均为关闭时，直接跳过使用境内服务器进行域名解析的过程
+    * Local Hosts 可以单独开启：将按照（黑）白名单（无）命中规则的域名，才（不）使用境内服务器进行解析
+    * Local Routing 可以单独开启：所有请求都会先发送至境内服务器进行域名解析，然后根据路由表进行匹配，命中路由表的解析结果将直接返回给请求者
+    * Local Force Request 不能单独启用：需要和 Local Hosts 配合使用
+    * Local Hosts + Local Routing 不能同时启用：功能冲突
+    * Local Hosts + Local Force Request 可以同时启用：强制已命中规则的域名只能使用境内服务器进行解析，解析结果有问题将直接丢弃并终止整个解析过程
+    * Local Routing + Local Force Request 不能同时启用：功能冲突
+    * Local Hosts + Local Routing + Local Force Request 可以同时启用：所有（除了黑名单所指定的）请求都会先发送至境内服务器进行域名解析，根据请求的性质：
+      * 如果该请求的域名命中 Local Hosts 则强制已命中规则的域名只能使用境内服务器进行解析，解析结果有问题将直接丢弃并终止整个解析过程
+      * 如果该请求的域名没有命中 Local Hosts 则根据路由表进行匹配，命中路由表的解析结果将直接返回给请求者
+      * 所有没有命中且没有成功匹配路由表的请求将会进行下一步的操作
 
 * Addresses - 普通模式地址区域
   * IPv4 Listen Address - IPv4 本地监听地址：需要输入一个带端口格式的地址，留空为不启用
@@ -623,6 +627,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * TCP Data Filter - TCP 数据包头检测：开启为 1 /关闭为 0
   * DNS Data Filter - DNS 数据包头检测：开启为 1 /关闭为 0
   * Blacklist Filter - 解析结果黑名单过滤：开启为 1 /关闭为 0
+  * Resource Record Set TTL Filter - 严格的资源记录生存时间过滤：开启为 1/关闭为 0
 
 * Data - 数据区域
   * ICMP ID - ICMP/Ping 数据包头部 ID 的值：格式为 0x**** 的十六进制字符，如果留空则获取线程的 ID 作为请求用 ID
@@ -1041,6 +1046,7 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
 * IPv4 Do Not Fragment
 * TCP Data Filter
 * DNS Data Filter
+* Resource Record Set TTL Filter
 * Domain Test Protocol
 * SOCKS Target Server
 * SOCKS Username

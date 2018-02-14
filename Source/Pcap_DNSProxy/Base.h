@@ -63,6 +63,7 @@ bool SortCompare_IPFilter(
 bool SortCompare_Hosts(
 	const DIFFERNET_FILE_SET_HOSTS &Begin, 
 	const DIFFERNET_FILE_SET_HOSTS &End);
+#if !defined(ENABLE_LIBSODIUM)
 size_t Base64_Encode(
 	uint8_t * const Input, 
 	const size_t Length, 
@@ -73,6 +74,7 @@ size_t Base64_Decode(
 	const size_t Length, 
 	uint8_t *Output, 
 	const size_t OutputSize);
+#endif
 HUFFMAN_RETURN_TYPE HPACK_HuffmanEncoding(
 	uint8_t *String, 
 	size_t ByteSize, 
@@ -284,7 +286,7 @@ size_t MarkWholePacketQuery(
 	const uint8_t * const TName, 
 	const size_t TNameIndex, 
 	std::string &FName);
-void MakeRamdomDomain(
+void MakeRandomDomain(
 	uint8_t * const Buffer);
 void MakeDomainCaseConversion(
 	uint8_t * const Buffer);
@@ -297,6 +299,8 @@ size_t Add_EDNS_LabelToPacket(
 	const SOCKET_DATA * const LocalSocketData);
 bool Add_EDNS_LabelToPacket(
 	DNS_PACKET_DATA * const PacketStructure, 
+	const bool IsAlreadyClientSubnet, 
+	const bool IsAlreadyCookies, 
 	const SOCKET_DATA * const LocalSocketData);
 size_t MakeCompressionPointerMutation(
 	uint8_t * const Buffer, 
@@ -533,7 +537,7 @@ bool SSPI_ShutdownConnection(
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<ssize_t> &ErrorCodeList);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-void OpenSSL_Library_Init(
+void OpenSSL_LibraryInit(
 	bool IsLoad);
 bool OpenSSL_CTX_Initializtion(
 	OPENSSL_CONTEXT_TABLE &OpenSSL_CTX);

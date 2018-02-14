@@ -1,9 +1,11 @@
-﻿Pcap_DNSProxy 0.4.9.5 changelog(2018-01-07)：
+﻿Pcap_DNSProxy 0.4.9.5-0.4.9.6 changelog(2018-02-14)：
 
 * Add EDNS Label transparency support.
 * The minimum C++ standard requires 14 now.
 * LibSodium upgrade to version 1.0.16. (Windows/macOS)
 * OpenSSL upgrade to version 1.1.0g. (macOS)
+* Rename from Strict Resource Record TTL Filter to Resource Record Set TTL Filter.
+* Fix Local request process logic. [LisonFan/sysconfon]
 * Fix "All" operation in EDNS Lebel parameter. [muink]
 * Fix packet filter with DNSSEC. [ZeroClover]
 * Fix LibSodium initialization.
@@ -16,19 +18,18 @@
 * Remove IPv4 Data Filter parameter.
 * Remove DNSSEC Validation parameter.
   * Notice: All features have been moved to DNS Data Filter.
-* Remove Strict Resource Record TTL Filter parameter.
-  * Notice: All features need to be forced enable.
+* Remove Homebrew support. (macOS)
 * Release Hash:
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe: 
-    * Windows/Pcap_DNSProxy_x86.exe: 
-    * Windows/Pcap_DNSProxy_XP.exe: 
-    * macOS/Pcap_DNSProxy: 
+    * Windows/Pcap_DNSProxy.exe: 67B1356F6E48008BE7F00E1F47D6AF861AF941F3DFE20BD5F9810ADCF717E6E4
+    * Windows/Pcap_DNSProxy_x86.exe: ABBD9A39250FD7E52DFC401EC2CC16669D115082DE4E08D952CA99CBEDB981E4
+    * Windows/Pcap_DNSProxy_XP.exe: 69D1C7B8670A7D09679EC3D7238B14C205BCF847D6FEBA66C792AF39C4D5A455
+    * macOS/Pcap_DNSProxy: E872A0C1F4040BCD661C94BAFA9CE36F26B00FE24A213C6592FD47ECE3189198
   * SHA-2(256):
-    * Windows/Pcap_DNSProxy.exe: 
-    * Windows/Pcap_DNSProxy_x86.exe: 
-    * Windows/Pcap_DNSProxy_XP.exe: 
-    * macOS/Pcap_DNSProxy: 
+    * Windows/Pcap_DNSProxy.exe: A681022F4587F8085BCF6DCDD2B1E785156A23315D4E21F2E8BB03A8047ABFC0
+    * Windows/Pcap_DNSProxy_x86.exe: 7A01E34F4F4D4FD0C1417C620EB369E3E8ED604343FF0D6C3F919CBB4D4CEBD3
+    * Windows/Pcap_DNSProxy_XP.exe: 828B767272546682C491659D5280267F32C45D9D79818E3D484C271DB4D32064
+    * macOS/Pcap_DNSProxy: 722D1D4526E231E73D8D470FA79458D7A566CB3E3103199FE10AB080C272EE53
 
 
 -------------------------------------------------------------------------------
@@ -582,7 +583,7 @@ Pcap_DNSProxy v0.4 (Windows/Linux/Mac) changelog(2015-05-12):
 * Adjust local DNS request to direct mode.
 * Adjust IPv4 Data Filter to disabled by default.
 * Adjust ICMP request module type and code generation rules.
-* Adjust ICMP additional data limit length to 1484 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
+* Adjust ICMP additional data limit length to 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header).
 * Adjust random domain name generation module, using the C++ STL MT engine to generate random values.
 * Adjust built-in default local server FQDN/fully qualified domain name to "pcap-dnsproxy.server".
 * Adjust memory allocation(standard Ethernet MTU size, buffer size and STL standard library calling).

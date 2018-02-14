@@ -25,8 +25,8 @@ bool FirewallTest(
 	const uint16_t Protocol, 
 	ssize_t &ErrorCode)
 {
-//Ramdom number distribution initialization
-	std::uniform_int_distribution<uint16_t> RamdomDistribution(DYNAMIC_MIN_PORT, UINT16_MAX - 1U);
+//Random number distribution initialization
+	std::uniform_int_distribution<uint16_t> RandomDistribution(DYNAMIC_MIN_PORT, UINT16_MAX - 1U);
 	sockaddr_storage SockAddr;
 	memset(&SockAddr, 0, sizeof(SockAddr));
 	SYSTEM_SOCKET FirewallSocket = INVALID_SOCKET;
@@ -37,7 +37,7 @@ bool FirewallTest(
 	if (Protocol == AF_INET6)
 	{
 		reinterpret_cast<sockaddr_in6 *>(&SockAddr)->sin6_addr = in6addr_any;
-		reinterpret_cast<sockaddr_in6 *>(&SockAddr)->sin6_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+		reinterpret_cast<sockaddr_in6 *>(&SockAddr)->sin6_port = htons(RandomDistribution(*GlobalRunningStatus.RandomEngine));
 		SockAddr.ss_family = AF_INET6;
 		FirewallSocket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 
@@ -49,12 +49,12 @@ bool FirewallTest(
 		}
 		else if (bind(FirewallSocket, reinterpret_cast<sockaddr *>(&SockAddr), sizeof(sockaddr_in6)) == SOCKET_ERROR)
 		{
-			reinterpret_cast<sockaddr_in6 *>(&SockAddr)->sin6_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+			reinterpret_cast<sockaddr_in6 *>(&SockAddr)->sin6_port = htons(RandomDistribution(*GlobalRunningStatus.RandomEngine));
 			while (bind(FirewallSocket, reinterpret_cast<sockaddr *>(&SockAddr), sizeof(sockaddr_in6)) == SOCKET_ERROR)
 			{
 				if (Index < LOOP_MAX_LARGE_TIMES && WSAGetLastError() == WSAEADDRINUSE)
 				{
-					reinterpret_cast<sockaddr_in6 *>(&SockAddr)->sin6_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+					reinterpret_cast<sockaddr_in6 *>(&SockAddr)->sin6_port = htons(RandomDistribution(*GlobalRunningStatus.RandomEngine));
 					++Index;
 				}
 				else {
@@ -70,7 +70,7 @@ bool FirewallTest(
 	else if (Protocol == AF_INET)
 	{
 		reinterpret_cast<sockaddr_in *>(&SockAddr)->sin_addr.s_addr = INADDR_ANY;
-		reinterpret_cast<sockaddr_in *>(&SockAddr)->sin_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+		reinterpret_cast<sockaddr_in *>(&SockAddr)->sin_port = htons(RandomDistribution(*GlobalRunningStatus.RandomEngine));
 		SockAddr.ss_family = AF_INET;
 		FirewallSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
@@ -82,12 +82,12 @@ bool FirewallTest(
 		}
 		else if (bind(FirewallSocket, reinterpret_cast<sockaddr *>(&SockAddr), sizeof(sockaddr_in)) == SOCKET_ERROR)
 		{
-			reinterpret_cast<sockaddr_in *>(&SockAddr)->sin_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+			reinterpret_cast<sockaddr_in *>(&SockAddr)->sin_port = htons(RandomDistribution(*GlobalRunningStatus.RandomEngine));
 			while (bind(FirewallSocket, reinterpret_cast<sockaddr *>(&SockAddr), sizeof(sockaddr_in)) == SOCKET_ERROR)
 			{
 				if (Index < LOOP_MAX_LARGE_TIMES && WSAGetLastError() == WSAEADDRINUSE)
 				{
-					reinterpret_cast<sockaddr_in *>(&SockAddr)->sin_port = htons(RamdomDistribution(*GlobalRunningStatus.RamdomEngine));
+					reinterpret_cast<sockaddr_in *>(&SockAddr)->sin_port = htons(RandomDistribution(*GlobalRunningStatus.RandomEngine));
 					++Index;
 				}
 				else {
@@ -186,12 +186,12 @@ bool SocketSetting(
 			{
 			//Socket attribute settings process
 			#if defined(PLATFORM_WIN)
-				std::uniform_int_distribution<DWORD> RamdomDistribution(Parameter.PacketHopLimits_IPv6_Begin, Parameter.PacketHopLimits_IPv6_End);
-				const auto OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+				std::uniform_int_distribution<DWORD> RandomDistribution(Parameter.PacketHopLimits_IPv6_Begin, Parameter.PacketHopLimits_IPv6_End);
+				const auto OptionValue = RandomDistribution(*GlobalRunningStatus.RandomEngine);
 				if (setsockopt(Socket, IPPROTO_IPV6, IPV6_UNICAST_HOPS, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-				std::uniform_int_distribution<int> RamdomDistribution(Parameter.PacketHopLimits_IPv6_Begin, Parameter.PacketHopLimits_IPv6_End);
-				const auto OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+				std::uniform_int_distribution<int> RandomDistribution(Parameter.PacketHopLimits_IPv6_Begin, Parameter.PacketHopLimits_IPv6_End);
+				const auto OptionValue = RandomDistribution(*GlobalRunningStatus.RandomEngine);
 				if (setsockopt(Socket, IPPROTO_IPV6, IPV6_UNICAST_HOPS, &OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			#endif
 				{
@@ -231,12 +231,12 @@ bool SocketSetting(
 			{
 			//Socket attribute settings process
 			#if defined(PLATFORM_WIN)
-				std::uniform_int_distribution<DWORD> RamdomDistribution(Parameter.PacketHopLimits_IPv4_Begin, Parameter.PacketHopLimits_IPv4_End);
-				const auto OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+				std::uniform_int_distribution<DWORD> RandomDistribution(Parameter.PacketHopLimits_IPv4_Begin, Parameter.PacketHopLimits_IPv4_End);
+				const auto OptionValue = RandomDistribution(*GlobalRunningStatus.RandomEngine);
 				if (setsockopt(Socket, IPPROTO_IP, IP_TTL, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-				std::uniform_int_distribution<int> RamdomDistribution(Parameter.PacketHopLimits_IPv4_Begin, Parameter.PacketHopLimits_IPv4_End);
-				const auto OptionValue = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+				std::uniform_int_distribution<int> RandomDistribution(Parameter.PacketHopLimits_IPv4_Begin, Parameter.PacketHopLimits_IPv4_End);
+				const auto OptionValue = RandomDistribution(*GlobalRunningStatus.RandomEngine);
 				if (setsockopt(Socket, IPPROTO_IP, IP_TTL, &OptionValue, sizeof(OptionValue)) == SOCKET_ERROR)
 			#endif
 				{
@@ -558,12 +558,12 @@ size_t SelectTargetSocketSingle(
 		//Encryption mode check
 			if (DNSCurveParameter.IsEncryption)
 			{
-				if ((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+				if ((!DNSCurveParameter.IsClientEphemeralKey && sodium_is_zero(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) != 0) || 
 					(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 					CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 						**IsAlternate = true;
 				if (**IsAlternate && 
-					((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+					((!DNSCurveParameter.IsClientEphemeralKey && sodium_is_zero(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) != 0) || 
 					(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 					CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 						**IsAlternate = false;
@@ -581,7 +581,7 @@ size_t SelectTargetSocketSingle(
 			else {
 			//Encryption mode check
 				if (DNSCurveParameter.IsEncryption && 
-					((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+					((!DNSCurveParameter.IsClientEphemeralKey && sodium_is_zero(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.PrecomputationKey, crypto_box_BEFORENMBYTES) != 0) || 
 					(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 					CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 						return EXIT_FAILURE;
@@ -628,12 +628,12 @@ size_t SelectTargetSocketSingle(
 		//Encryption mode check
 			if (DNSCurveParameter.IsEncryption)
 			{
-				if ((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+				if ((!DNSCurveParameter.IsClientEphemeralKey && sodium_is_zero(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) != 0) || 
 					(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 					CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN))
 						**IsAlternate = true;
 				if (**IsAlternate && 
-					((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+					((!DNSCurveParameter.IsClientEphemeralKey && sodium_is_zero(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) != 0) || 
 					(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 					CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 						**IsAlternate = false;
@@ -651,7 +651,7 @@ size_t SelectTargetSocketSingle(
 			else {
 			//Encryption mode check
 				if (DNSCurveParameter.IsEncryption && 
-					((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+					((!DNSCurveParameter.IsClientEphemeralKey && sodium_is_zero(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.PrecomputationKey, crypto_box_BEFORENMBYTES) != 0) || 
 					(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 					CheckEmptyBuffer(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 						return EXIT_FAILURE;
@@ -719,7 +719,7 @@ size_t SelectTargetSocketSingle(
 		}
 	}
 //Local request
-	else if (RequestType == REQUEST_PROCESS_TYPE::LOCAL)
+	else if (RequestType == REQUEST_PROCESS_TYPE::LOCAL_NORMAL || RequestType == REQUEST_PROCESS_TYPE::LOCAL_IN_WHITE)
 	{
 	//IPv6
 		if (Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family != 0 && 
@@ -1571,7 +1571,7 @@ ssize_t SocketSelectingOnce(
 						if (!DNSCurveSocketSelectingDataList->at(Index).RecvBuffer)
 						{
 							auto DNSCurveRecvBuffer = std::make_unique<uint8_t[]>(RecvSize + PADDING_RESERVED_BYTES);
-							sodium_memzero(DNSCurveRecvBuffer.get(), RecvSize);
+							memset(DNSCurveRecvBuffer.get(), 0, RecvSize);
 							std::swap(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer, DNSCurveRecvBuffer);
 						}
 
@@ -1589,7 +1589,7 @@ ssize_t SocketSelectingOnce(
 						}
 						else if (Protocol == IPPROTO_UDP && RecvLen >= static_cast<ssize_t>(DNS_PACKET_MINSIZE) && DNSCurveSocketSelectingDataList->at(Index).RecvLen > 0)
 						{
-							sodium_memzero(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get(), DNSCurveSocketSelectingDataList->at(Index).RecvLen);
+							memset(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get(), 0, DNSCurveSocketSelectingDataList->at(Index).RecvLen);
 							memmove_s(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get(), RecvSize, DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get() + DNSCurveSocketSelectingDataList->at(Index).RecvLen, RecvLen);
 							DNSCurveSocketSelectingDataList->at(Index).RecvLen = 0;
 						}
@@ -1826,7 +1826,7 @@ ssize_t SelectingResultOnce(
 					}
 					else {
 						memmove_s(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get(), RecvSize, DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get() + sizeof(uint16_t), RecvLen);
-						sodium_memzero(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get() + RecvLen, static_cast<ssize_t>(RecvSize) - RecvLen);
+						memset(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get() + RecvLen, 0, static_cast<ssize_t>(RecvSize) - RecvLen);
 					}
 				}
 			//UDP length
@@ -1855,7 +1855,7 @@ ssize_t SelectingResultOnce(
 						continue;
 					}
 					else {
-						sodium_memzero(OriginalRecv, RecvSize);
+						memset(OriginalRecv, 0, RecvSize);
 						memcpy_s(OriginalRecv, RecvSize, DNSCurveSocketSelectingDataList->at(Index).RecvBuffer.get(), RecvLen);
 					}
 				}

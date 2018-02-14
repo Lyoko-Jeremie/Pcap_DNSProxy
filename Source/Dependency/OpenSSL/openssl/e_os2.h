@@ -139,7 +139,7 @@ extern "C" {
 
 /* Specials for I/O an exit */
 # ifdef OPENSSL_SYS_MSDOS
-#  define OPENSSL_UNISTD_IO <io.h"
+#  define OPENSSL_UNISTD_IO <io.h>
 #  define OPENSSL_DECLARE_EXIT extern void exit(int);
 # else
 #  define OPENSSL_UNISTD_IO OPENSSL_UNISTD

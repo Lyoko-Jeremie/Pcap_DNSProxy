@@ -567,15 +567,13 @@ void SIG_Handler(
 		GlobalRunningStatus.Initialized_MutexHandle = 0;
 	}
 
-//Free all OpenSSL libraries
+//Free all OpenSSL libraries.
 #if defined(ENABLE_TLS)
-#if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_1_0 //OpenSSL version brfore 1.1.0
 	if (GlobalRunningStatus.IsInitialized_OpenSSL)
 	{
-		OpenSSL_Library_Init(false);
+		OpenSSL_LibraryInit(false);
 		GlobalRunningStatus.IsInitialized_OpenSSL = false;
 	}
-#endif
 #endif
 
 //Print to screen.

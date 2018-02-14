@@ -426,7 +426,7 @@
 	#include <sspi.h>                  //Security Support Provider Interface
 #endif
 
-//Library linking
+//Libraries linking
 	#pragma comment(lib, "iphlpapi.lib")   //Windows IP Helper, IP Stack for MIB-II and related functionality support
 	#pragma comment(lib, "ws2_32.lib")     //Windows WinSock 2.0+ support
 #if defined(ENABLE_HTTP)
@@ -620,6 +620,6 @@
 	#define memcpy_s(Destination, DestinationSize, Source, Size)              memcpy((Destination), (Source), (Size))
 	#define memmove_s(Destination, DestinationSize, Source, Size)             memmove((Destination), (Source), (Size))
 	#define strncpy_s(Destination, DestinationSize, Source, Size)             strncpy((Destination), (Source), (Size))
-	#define wcsncpy_s(Destination, DestinationSize, Source, Size)              wcsncpy((Destination), (Source), (Size))
+	#define wcsncpy_s(Destination, DestinationSize, Source, Size)             wcsncpy((Destination), (Source), (Size))
 #endif
 #endif

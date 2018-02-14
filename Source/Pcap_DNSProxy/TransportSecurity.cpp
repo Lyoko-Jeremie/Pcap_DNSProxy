@@ -716,7 +716,7 @@ bool OpenSSL_PrintError(
 }
 
 //OpenSSL initializtion
-void OpenSSL_Library_Init(
+void OpenSSL_LibraryInit(
 	bool IsLoad)
 {
 //Load all OpenSSL libraries, algorithms and strings.
@@ -879,9 +879,9 @@ bool OpenSSL_CTX_Initializtion(
 	if (Parameter.HTTP_CONNECT_TLS_ALPN)
 	{
 		if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1)
-			Result = SSL_CTX_set_alpn_protos(OpenSSL_CTX.MethodContext, HTTP1_ALPN_Vector, sizeof(HTTP1_ALPN_Vector));
+			Result = SSL_CTX_set_alpn_protos(OpenSSL_CTX.MethodContext, HTTP_1_ALPN_List, sizeof(HTTP_1_ALPN_List));
 		else if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
-			Result = SSL_CTX_set_alpn_protos(OpenSSL_CTX.MethodContext, HTTP_2_ALPN_Vector, sizeof(HTTP_2_ALPN_Vector));
+			Result = SSL_CTX_set_alpn_protos(OpenSSL_CTX.MethodContext, HTTP_2_ALPN_List, sizeof(HTTP_2_ALPN_List));
 		else 
 			return false;
 

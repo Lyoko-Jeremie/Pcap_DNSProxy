@@ -176,12 +176,12 @@ bool DomainTestRequest(
 			Sleep(SENDING_INTERVAL_TIME);
 		}
 		else {
-		//Make ramdom domain request.
+		//Make random domain request.
 			if (Parameter.DomainTest_Data == nullptr)
 			{
 				memset(SendBuffer.get() + sizeof(dns_hdr), 0, NORMAL_PACKET_MAXSIZE - sizeof(dns_hdr));
 				memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
-				MakeRamdomDomain(RecvBuffer.get());
+				MakeRandomDomain(RecvBuffer.get());
 				DataLength = StringToPacketQuery(RecvBuffer.get(), SendBuffer.get() + sizeof(dns_hdr)) + sizeof(dns_hdr);
 
 			//Make DNS query data.
@@ -248,7 +248,9 @@ bool ICMP_TestRequest(
 	const auto ICMPv6_Header = reinterpret_cast<icmpv6_hdr *>(SendBuffer.get());
 	std::vector<SOCKET_DATA> ICMP_SocketData;
 #if defined(PLATFORM_LINUX)
-	std::uniform_int_distribution<uint32_t> RamdomDistribution(0, UINT32_MAX);
+#if !defined(ENABLE_LIBSODIUM)
+	std::uniform_int_distribution<uint32_t> RandomDistribution(0, UINT32_MAX);
+#endif
 #endif
 	time_t Timestamp = 0;
 
@@ -268,7 +270,11 @@ bool ICMP_TestRequest(
 		memcpy_s(SendBuffer.get() + sizeof(icmpv6_hdr), Parameter.ICMP_PaddingLength, Parameter.ICMP_PaddingData, Parameter.ICMP_PaddingLength);
 	#if defined(PLATFORM_LINUX)
 		ICMPv6_Header->Timestamp = static_cast<uint64_t>(Timestamp);
-		ICMPv6_Header->Nonce = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+	#if defined(ENABLE_LIBSODIUM)
+		ICMPv6_Header->Nonce = randombytes_random();
+	#else
+		ICMPv6_Header->Nonce = RandomDistribution(*GlobalRunningStatus.RandomEngine);
+	#endif
 	#elif defined(PLATFORM_MACOS)
 		ICMPv6_Header->Timestamp = static_cast<uint64_t>(Timestamp);
 	#endif
@@ -382,7 +388,11 @@ bool ICMP_TestRequest(
 		memcpy_s(SendBuffer.get() + sizeof(icmp_hdr), Parameter.ICMP_PaddingLength, Parameter.ICMP_PaddingData, Parameter.ICMP_PaddingLength);
 	#if defined(PLATFORM_LINUX)
 		ICMP_Header->Timestamp = static_cast<uint64_t>(Timestamp);
-		ICMP_Header->Nonce = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+	#if defined(ENABLE_LIBSODIUM)
+		ICMP_Header->Nonce = randombytes_random();
+	#else
+		ICMP_Header->Nonce = RandomDistribution(*GlobalRunningStatus.RandomEngine);
+	#endif
 	#elif defined(PLATFORM_MACOS)
 		ICMP_Header->Timestamp = static_cast<uint64_t>(Timestamp);
 	#endif
@@ -645,7 +655,11 @@ bool ICMP_TestRequest(
 						ICMPv6_Header->Sequence = htons(ntohs(ICMPv6_Header->Sequence) + 1U);
 				#if defined(PLATFORM_LINUX)
 					ICMPv6_Header->Timestamp = static_cast<uint64_t>(Timestamp);
-					ICMPv6_Header->Nonce = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+				#if defined(ENABLE_LIBSODIUM)
+					ICMPv6_Header->Nonce = randombytes_random();
+				#else
+					ICMPv6_Header->Nonce = RandomDistribution(*GlobalRunningStatus.RandomEngine);
+				#endif
 				#elif defined(PLATFORM_MACOS)
 					ICMPv6_Header->Timestamp = static_cast<uint64_t>(Timestamp);
 				#endif
@@ -658,7 +672,11 @@ bool ICMP_TestRequest(
 						ICMP_Header->Sequence = htons(ntohs(ICMP_Header->Sequence) + 1U);
 				#if defined(PLATFORM_LINUX)
 					ICMP_Header->Timestamp = static_cast<uint64_t>(Timestamp);
-					ICMP_Header->Nonce = RamdomDistribution(*GlobalRunningStatus.RamdomEngine);
+				#if defined(ENABLE_LIBSODIUM)
+					ICMP_Header->Nonce = randombytes_random();
+				#else
+					ICMP_Header->Nonce = RandomDistribution(*GlobalRunningStatus.RandomEngine);
+				#endif
 				#elif defined(PLATFORM_MACOS)
 					ICMP_Header->Timestamp = static_cast<uint64_t>(Timestamp);
 				#endif
@@ -732,7 +750,7 @@ size_t TCP_RequestSingle(
 	ssize_t ErrorCode = 0;
 	const auto RecvLen = SocketSelectingOnce(RequestType, IPPROTO_TCP, TCPSocketDataList, nullptr, SendBuffer, DataLength, OriginalRecv, RecvSize, &ErrorCode, LocalSocketData);
 	if (ErrorCode == WSAETIMEDOUT && IsAlternate != nullptr && !*IsAlternate && //Mark timeout.
-		(!Parameter.AlternateMultipleRequest || RequestType == REQUEST_PROCESS_TYPE::LOCAL))
+		(!Parameter.AlternateMultipleRequest || RequestType == REQUEST_PROCESS_TYPE::LOCAL_NORMAL || RequestType == REQUEST_PROCESS_TYPE::LOCAL_IN_WHITE))
 			++(*AlternateTimeoutTimes);
 
 //Close all sockets.
@@ -901,7 +919,7 @@ size_t UDP_CompleteRequestSingle(
 	ssize_t ErrorCode = 0;
 	const auto RecvLen = SocketSelectingOnce(RequestType, IPPROTO_UDP, UDPSocketDataList, nullptr, OriginalSend, SendSize, OriginalRecv, RecvSize, &ErrorCode, LocalSocketData);
 	if (ErrorCode == WSAETIMEDOUT && IsAlternate != nullptr && !*IsAlternate && //Mark timeout.
-		(!Parameter.AlternateMultipleRequest || RequestType == REQUEST_PROCESS_TYPE::LOCAL))
+		(!Parameter.AlternateMultipleRequest || RequestType == REQUEST_PROCESS_TYPE::LOCAL_NORMAL || RequestType == REQUEST_PROCESS_TYPE::LOCAL_IN_WHITE))
 			++(*AlternateTimeoutTimes);
 
 //Close all sockets.

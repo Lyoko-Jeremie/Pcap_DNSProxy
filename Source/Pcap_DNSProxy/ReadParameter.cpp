@@ -101,8 +101,27 @@ bool Parameter_CheckSetting(
 	if (IsFirstRead)
 	{
 	//Local Hosts, Local Routing and Local Force Request check
-		if ((Parameter.IsLocalForce && !Parameter.IsLocalHosts) || //Local Force Request require Local Hosts.
-			((Parameter.IsLocalHosts || Parameter.IsLocalRouting) && 
+		if (
+		//Pass, Local request disabled
+//			(!Parameter.IsLocalHosts && !Parameter.IsLocalRouting && !Parameter.IsLocalForce) || 
+		//Pass, Local Hosts only
+//			(Parameter.IsLocalHosts && !Parameter.IsLocalRouting && !Parameter.IsLocalForce) || 
+		//Pass, Local Routing only
+//			(!Parameter.IsLocalHosts && Parameter.IsLocalRouting && !Parameter.IsLocalForce) || 
+		//Failed, Local Force Request only, no any matched Local request.
+			(!Parameter.IsLocalHosts && !Parameter.IsLocalRouting && Parameter.IsLocalForce) || 
+		//Failed, Local Hosts + Local Routing, no need to enable Local Hosts.
+			(Parameter.IsLocalHosts && Parameter.IsLocalRouting && !Parameter.IsLocalForce) || 
+		//Pass, Local Hosts + Local Force Request, enforce Local Hosts results from Local DNS.
+//			(Parameter.IsLocalHosts && !Parameter.IsLocalRouting && Parameter.IsLocalForce) || 
+		//Failed, Local Routing + Local Force Request, no any rules to enforce.
+			(!Parameter.IsLocalHosts && Parameter.IsLocalRouting && Parameter.IsLocalForce) || 
+		//Pass, Local Hosts + Local Routing + Local Force Request, send all request to Local DNS first and then:
+		//Request in Local Hosts, stop next step and return result.
+		//Request not in Local Hosts, go next Local Routing step.
+//			(Parameter.IsLocalHosts && Parameter.IsLocalRouting && Parameter.IsLocalForce) || 
+		//
+			((Parameter.IsLocalHosts || Parameter.IsLocalRouting || Parameter.IsLocalForce) && 
 			Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0 && Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Local request options error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
@@ -478,7 +497,11 @@ bool Parameter_CheckSetting(
 		//Only SOCKS version 5 support client authentication.
 			if (Parameter.SOCKS_Version != SOCKS_VERSION_5)
 			{
-				delete Parameter.SOCKS_Password;
+			#if defined(ENABLE_LIBSODIUM)
+				sodium_free(Parameter.SOCKS_Password);
+			#else
+				delete[] Parameter.SOCKS_Password;
+			#endif
 				Parameter.SOCKS_Password = nullptr;
 			}
 
@@ -518,7 +541,7 @@ bool Parameter_CheckSetting(
 		}
 
 	//SOCKS username and password check
-		if (Parameter.SOCKS_Version == SOCKS_VERSION_5 && Parameter.SOCKS_Username->empty() && !Parameter.SOCKS_Password->empty())
+		if (Parameter.SOCKS_Version == SOCKS_VERSION_5 && Parameter.SOCKS_UsernameLength == 0 && Parameter.SOCKS_PasswordLength > 0)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SOCKS, L"SOCKS username and password error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
@@ -527,8 +550,13 @@ bool Parameter_CheckSetting(
 	else if (IsFirstRead)
 	{
 		delete Parameter.SOCKS_TargetDomain;
-		delete Parameter.SOCKS_Username;
-		delete Parameter.SOCKS_Password;
+	#if defined(ENABLE_LIBSODIUM)
+		sodium_free(Parameter.SOCKS_Username);
+		sodium_free(Parameter.SOCKS_Password);
+	#else
+		delete[] Parameter.SOCKS_Username;
+		delete[] Parameter.SOCKS_Password;
+	#endif
 
 		Parameter.SOCKS_TargetDomain = nullptr;
 		Parameter.SOCKS_Username = nullptr;
@@ -627,6 +655,13 @@ bool Parameter_CheckSetting(
 			#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				Parameter.HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
 				Parameter.HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
+
+			//Free all OpenSSL libraries.
+				if (GlobalRunningStatus.IsInitialized_OpenSSL)
+				{
+					OpenSSL_LibraryInit(false);
+					GlobalRunningStatus.IsInitialized_OpenSSL = false;
+				}
 			#endif
 			}
 			else {
@@ -636,13 +671,6 @@ bool Parameter_CheckSetting(
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HTTP_CONNECT, L"HTTP CONNECT address error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					return false;
-				}
-
-			//OpenSSL libraries initialization
-				if (!GlobalRunningStatus.IsInitialized_OpenSSL)
-				{
-					OpenSSL_Library_Init(true);
-					GlobalRunningStatus.IsInitialized_OpenSSL = true;
 				}
 			#endif
 
@@ -702,14 +730,18 @@ bool Parameter_CheckSetting(
 	{
 		delete Parameter.HTTP_CONNECT_TargetDomain;
 		delete Parameter.HTTP_CONNECT_HeaderField;
-		delete Parameter.HTTP_CONNECT_ProxyAuthorization;
+	#if defined(ENABLE_LIBSODIUM)
+		sodium_free(Parameter.HTTP_CONNECT_ProxyAuthorization);
+	#else
+		delete[] Parameter.HTTP_CONNECT_ProxyAuthorization;
+	#endif
 	#if defined(ENABLE_TLS)
 		delete Parameter.HTTP_CONNECT_TLS_SNI;
 		delete Parameter.MBS_HTTP_CONNECT_TLS_SNI;
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			delete Parameter.HTTP_CONNECT_TLS_AddressString_IPv6;
-			delete Parameter.HTTP_CONNECT_TLS_AddressString_IPv4;
-		#endif
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		delete Parameter.HTTP_CONNECT_TLS_AddressString_IPv6;
+		delete Parameter.HTTP_CONNECT_TLS_AddressString_IPv4;
+	#endif
 	#endif
 
 		Parameter.HTTP_CONNECT_TargetDomain = nullptr;
@@ -718,10 +750,17 @@ bool Parameter_CheckSetting(
 	#if defined(ENABLE_TLS)
 		Parameter.HTTP_CONNECT_TLS_SNI = nullptr;
 		Parameter.MBS_HTTP_CONNECT_TLS_SNI = nullptr;
-		#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			Parameter.HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
-			Parameter.HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
-		#endif
+	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+		Parameter.HTTP_CONNECT_TLS_AddressString_IPv6 = nullptr;
+		Parameter.HTTP_CONNECT_TLS_AddressString_IPv4 = nullptr;
+
+	//Free all OpenSSL libraries.
+		if (GlobalRunningStatus.IsInitialized_OpenSSL)
+		{
+			OpenSSL_LibraryInit(false);
+			GlobalRunningStatus.IsInitialized_OpenSSL = false;
+		}
+	#endif
 	#endif
 	}
 
@@ -736,12 +775,12 @@ bool Parameter_CheckSetting(
 			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0)
 			{
 				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6 = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6;
-				sodium_memzero(&DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6));
+				memset(&DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6, 0, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6));
 			}
 			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0)
 			{
 				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4 = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4;
-				sodium_memzero(&DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4));
+				memset(&DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4, 0, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4));
 			}
 
 		//IPv6
@@ -766,13 +805,13 @@ bool Parameter_CheckSetting(
 			DNSCurveParameterPointer->Client_PublicKey != nullptr && DNSCurveParameterPointer->Client_SecretKey != nullptr)
 		{
 			if (!CheckEmptyBuffer(DNSCurveParameterPointer->Client_PublicKey, crypto_box_PUBLICKEYBYTES) && 
-				!CheckEmptyBuffer(DNSCurveParameterPointer->Client_SecretKey, crypto_box_SECRETKEYBYTES))
+				sodium_is_zero(DNSCurveParameterPointer->Client_SecretKey, crypto_box_SECRETKEYBYTES) == 0)
 			{
 				if (!DNSCurveVerifyKeypair(DNSCurveParameterPointer->Client_PublicKey, DNSCurveParameterPointer->Client_SecretKey))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::DNSCURVE, L"Client keypair error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 
-					sodium_memzero(DNSCurveParameterPointer->Client_PublicKey, crypto_box_PUBLICKEYBYTES);
+					memset(DNSCurveParameterPointer->Client_PublicKey, 0, crypto_box_PUBLICKEYBYTES);
 					sodium_memzero(DNSCurveParameterPointer->Client_SecretKey, crypto_box_SECRETKEYBYTES);
 					if (crypto_box_keypair(
 							DNSCurveParameterPointer->Client_PublicKey, 
@@ -784,7 +823,7 @@ bool Parameter_CheckSetting(
 				}
 			}
 			else {
-				sodium_memzero(DNSCurveParameterPointer->Client_PublicKey, crypto_box_PUBLICKEYBYTES);
+				memset(DNSCurveParameterPointer->Client_PublicKey, 0, crypto_box_PUBLICKEYBYTES);
 				sodium_memzero(DNSCurveParameterPointer->Client_SecretKey, crypto_box_SECRETKEYBYTES);
 				if (crypto_box_keypair(
 						DNSCurveParameterPointer->Client_PublicKey, 
@@ -1561,7 +1600,7 @@ bool ReadParameterData(
 	{
 		_set_errno(0);
 		if (Data.length() > strlen("Version=") && 
-			Data.length() < strlen("Version=") + 8U && Data.find(ASCII_PERIOD) != std::string::npos) //Version = x.x(x)
+			Data.length() < strlen("Version=") + CONFIG_VERSION_MAXSIZE && Data.find(ASCII_PERIOD) != std::string::npos) //Version = x.x(x)
 		{
 		//Get list data.
 			std::vector<std::string> ListData;
@@ -1679,7 +1718,7 @@ bool ReadParameterData(
 		CaseConvert(Data, true);
 		if (Data.find("KB") != std::string::npos)
 		{
-			Data.erase(Data.length() - 2U, 2U);
+			Data.erase(Data.length() - strlen("KB"), strlen("KB"));
 
 		//Mark bytes.
 			_set_errno(0);
@@ -1691,7 +1730,7 @@ bool ReadParameterData(
 		}
 		else if (Data.find("MB") != std::string::npos)
 		{
-			Data.erase(Data.length() - 2U, 2U);
+			Data.erase(Data.length() - strlen("MB"), strlen("MB"));
 
 		//Mark bytes.
 			_set_errno(0);
@@ -1703,7 +1742,7 @@ bool ReadParameterData(
 		}
 		else if (Data.find("GB") != std::string::npos)
 		{
-			Data.erase(Data.length() - 2U, 2U);
+			Data.erase(Data.length() - strlen("GB"), strlen("GB"));
 
 		//Mark bytes.
 			_set_errno(0);
@@ -2724,6 +2763,10 @@ bool ReadParameterData(
 	{
 		Parameter.DataCheck_Blacklist = true;
 	}
+	else if (Data.compare(0, strlen("ResourceRecordSetTTLFilter=1"), ("ResourceRecordSetTTLFilter=1")) == 0)
+	{
+		ParameterPointer->DataCheck_RRSetTTL = true;
+	}
 
 //[Data] block
 	if (IsFirstRead)
@@ -2757,10 +2800,10 @@ bool ReadParameterData(
 		}
 		else if (Data.compare(0, strlen("ICMPPaddingData="), ("ICMPPaddingData=")) == 0 && Data.length() > strlen("ICMPPaddingData="))
 		{
-			if (Data.length() > strlen("ICMPPaddingData=") + 17U && Data.length() < strlen("ICMPPaddingData=") + ICMP_PADDING_MAXSIZE - 1U)
+			if (Data.length() > strlen("ICMPPaddingData=") + ICMP_PADDING_MINSIZE && Data.length() < strlen("ICMPPaddingData=") + ICMP_PADDING_MAXSIZE - 1U)
 			{
-				Parameter.ICMP_PaddingLength = Data.length() - strlen("ICMPPaddingData=");
 				memcpy_s(Parameter.ICMP_PaddingData, ICMP_PADDING_MAXSIZE, Data.c_str() + strlen("ICMPPaddingData="), Data.length() - strlen("ICMPPaddingData="));
+				Parameter.ICMP_PaddingLength = Data.length() - strlen("ICMPPaddingData=");
 			}
 			else {
 				goto PrintDataFormatError;
@@ -2924,8 +2967,8 @@ bool ReadParameterData(
 	{
 		if (Data.length() < strlen("SOCKSUsername=") + SOCKS_USERNAME_PASSWORD_MAXNUM)
 		{
-			ParameterPointer->SOCKS_Username->clear();
-			ParameterPointer->SOCKS_Username->append(Data, strlen("SOCKSUsername="), Data.length() - strlen("SOCKSUsername="));
+			memcpy_s(ParameterPointer->SOCKS_Username, SOCKS_USERNAME_PASSWORD_MAXNUM, Data.c_str() + strlen("SOCKSUsername="), Data.length() - strlen("SOCKSUsername="));
+			ParameterPointer->SOCKS_UsernameLength = Data.length() - strlen("SOCKSUsername=");
 		}
 		else {
 			goto PrintDataFormatError;
@@ -2936,8 +2979,8 @@ bool ReadParameterData(
 	{
 		if (Data.length() < strlen("SOCKSPassword=") + SOCKS_USERNAME_PASSWORD_MAXNUM)
 		{
-			ParameterPointer->SOCKS_Password->clear();
-			ParameterPointer->SOCKS_Password->append(Data, strlen("SOCKSPassword="), Data.length() - strlen("SOCKSPassword="));
+			memcpy_s(ParameterPointer->SOCKS_Password, SOCKS_USERNAME_PASSWORD_MAXNUM, Data.c_str() + strlen("SOCKSPassword="), Data.length() - strlen("SOCKSPassword="));
+			ParameterPointer->SOCKS_PasswordLength = Data.length() - strlen("SOCKSPassword=");
 		}
 		else {
 			goto PrintDataFormatError;
@@ -3149,11 +3192,38 @@ bool ReadParameterData(
 	else if (Data.compare(0, strlen("HTTPCONNECTProxyAuthorization="), ("HTTPCONNECTProxyAuthorization=")) == 0 && 
 		Data.length() > strlen("HTTPCONNECTProxyAuthorization="))
 	{
-		const auto ProxyAuthorization = std::make_unique<uint8_t[]>(BASE64_ENCODE_OUT_SIZE(Data.length() - strlen("HTTPCONNECTProxyAuthorization=")) + PADDING_RESERVED_BYTES);
-		memset(ProxyAuthorization.get(), 0, BASE64_ENCODE_OUT_SIZE(Data.length() - strlen("HTTPCONNECTProxyAuthorization=")) + PADDING_RESERVED_BYTES);
-		Base64_Encode(reinterpret_cast<uint8_t *>(const_cast<char *>(Data.c_str() + strlen("HTTPCONNECTProxyAuthorization="))), Data.length() - strlen("HTTPCONNECTProxyAuthorization="), ProxyAuthorization.get(), BASE64_ENCODE_OUT_SIZE(Data.length() - strlen("HTTPCONNECTProxyAuthorization=")));
-		*ParameterPointer->HTTP_CONNECT_ProxyAuthorization = ("Basic ");
-		ParameterPointer->HTTP_CONNECT_ProxyAuthorization->append(reinterpret_cast<const char *>(ProxyAuthorization.get()));
+		if (Data.length() < HTTP_AUTHORIZATION_MAXSIZE)
+		{
+		//Mark fixed part.
+			memcpy_s(ParameterPointer->HTTP_CONNECT_ProxyAuthorization, strlen("Basic "), ("Basic "), strlen("Basic "));
+			ParameterPointer->HTTP_CONNECT_ProxyAuthorizationLength = strlen("Basic ");
+
+		//Convert string to base64.
+		#if defined(ENABLE_LIBSODIUM)
+			if (sodium_bin2base64(
+					reinterpret_cast<char *>(ParameterPointer->HTTP_CONNECT_ProxyAuthorization) + ParameterPointer->HTTP_CONNECT_ProxyAuthorizationLength, 
+					HTTP_AUTHORIZATION_MAXSIZE - ParameterPointer->HTTP_CONNECT_ProxyAuthorizationLength, 
+					reinterpret_cast<const uint8_t *>(Data.c_str() + strlen("HTTPCONNECTProxyAuthorization=")), 
+					Data.length() - strlen("HTTPCONNECTProxyAuthorization="), 
+					sodium_base64_VARIANT_ORIGINAL) == nullptr)
+						goto PrintDataFormatError;
+			else 
+				ParameterPointer->HTTP_CONNECT_ProxyAuthorizationLength = strnlen_s(reinterpret_cast<const char *>(ParameterPointer->HTTP_CONNECT_ProxyAuthorization), HTTP_AUTHORIZATION_MAXSIZE);
+		#else
+			ParameterPointer->HTTP_CONNECT_ProxyAuthorizationLength = Base64_Encode(
+				reinterpret_cast<uint8_t *>(const_cast<char *>(Data.c_str() + strlen("HTTPCONNECTProxyAuthorization="))), 
+				Data.length() - strlen("HTTPCONNECTProxyAuthorization="), 
+				ParameterPointer->HTTP_CONNECT_ProxyAuthorization + ParameterPointer->HTTP_CONNECT_ProxyAuthorizationLength, 
+				HTTP_AUTHORIZATION_MAXSIZE - ParameterPointer->HTTP_CONNECT_ProxyAuthorizationLength);
+			if (ParameterPointer->HTTP_CONNECT_ProxyAuthorizationLength == 0)
+				goto PrintDataFormatError;
+			else 
+				ParameterPointer->HTTP_CONNECT_ProxyAuthorizationLength += strlen("Basic ");
+		#endif
+		}
+		else {
+			goto PrintDataFormatError;
+		}
 	}
 
 //[DNSCurve] block
@@ -3746,7 +3816,7 @@ bool ReadMultipleAddresses(
 				for (const auto &DNSServerDataIter:*DNSServerDataList)
 				{
 					if (DNSServerDataTemp.AddressData.Storage.ss_family == DNSServerDataIter.AddressData.Storage.ss_family && 
-						memcmp(&DNSServerDataTemp.AddressData.IPv6.sin6_addr, &DNSServerDataIter.AddressData.IPv6.sin6_addr, sizeof(in6_addr)) == 0 && 
+						memcmp(&DNSServerDataTemp.AddressData.IPv6.sin6_addr, &DNSServerDataIter.AddressData.IPv6.sin6_addr, sizeof(DNSServerDataTemp.AddressData.IPv6.sin6_addr)) == 0 && 
 						DNSServerDataTemp.AddressData.IPv6.sin6_port == DNSServerDataIter.AddressData.IPv6.sin6_port)
 					{
 					#if defined(ENABLE_LIBSODIUM)
@@ -4335,7 +4405,7 @@ bool ReadDNSCurveProviderName(
 	const size_t FileIndex, 
 	const size_t Line)
 {
-	sodium_memzero(ProviderNameData, DOMAIN_MAXSIZE);
+	memset(ProviderNameData, 0, DOMAIN_MAXSIZE);
 	if (Data.length() > DataOffset + DOMAIN_MINSIZE && Data.length() < DataOffset + DOMAIN_DATA_MAXSIZE)
 	{
 		for (auto Index = DataOffset;Index < Data.length() - DataOffset;++Index)
@@ -4390,7 +4460,14 @@ bool ReadDNSCurveKey(
 	if (Data.length() > DataOffset + crypto_box_PUBLICKEYBYTES * 2U && Data.length() < DataOffset + crypto_box_PUBLICKEYBYTES * 3U)
 	{
 		uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE]{0};
-		if (sodium_hex2bin(AddrBuffer, ADDRESS_STRING_MAXSIZE, Data.c_str() + DataOffset, Data.length() - DataOffset, (": "), &ResultLength, &ResultPointer) == 0 && 
+		if (sodium_hex2bin(
+				AddrBuffer, 
+				ADDRESS_STRING_MAXSIZE, 
+				Data.c_str() + DataOffset, 
+				Data.length() - DataOffset, 
+				(": "), 
+				&ResultLength, 
+				&ResultPointer) == 0 && 
 			ResultPointer != nullptr && ResultLength == crypto_box_PUBLICKEYBYTES)
 		{
 			memcpy_s(KeyData, crypto_box_SECRETKEYBYTES, AddrBuffer, crypto_box_PUBLICKEYBYTES);
@@ -4426,14 +4503,21 @@ bool ReadDNSCurveMagicNumber(
 {
 	memset(MagicNumber, 0, DNSCURVE_MAGIC_QUERY_LEN);
 
-//Binary format
+//Hex format
 	if (Data.find(HEX_PREAMBLE_STRING) == DataOffset && Data.length() == DataOffset + DNSCURVE_MAGIC_QUERY_HEX_LEN + strlen(HEX_PREAMBLE_STRING))
 	{
 		const char *ResultPointer = nullptr;
 		size_t ResultLength = 0;
 
 	//Convert hex format to binary.
-		if (sodium_hex2bin(MagicNumber, DNSCURVE_MAGIC_QUERY_LEN, Data.c_str() + DataOffset + strlen(HEX_PREAMBLE_STRING), DNSCURVE_MAGIC_QUERY_HEX_LEN, nullptr, &ResultLength, &ResultPointer) != 0 || 
+		if (sodium_hex2bin(
+				MagicNumber, 
+				DNSCURVE_MAGIC_QUERY_LEN, 
+				Data.c_str() + DataOffset + strlen(HEX_PREAMBLE_STRING), 
+				DNSCURVE_MAGIC_QUERY_HEX_LEN, 
+				nullptr, 
+				&ResultLength, 
+				&ResultPointer) != 0 || 
 			ResultLength != DNSCURVE_MAGIC_QUERY_LEN || ResultPointer == nullptr)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Data length error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);

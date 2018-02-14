@@ -911,13 +911,13 @@ typedef struct _ipv6_extension_mobility_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 |           Checksum            |           Controls            |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
 |               Sender's Host Identity Tag (HIT)                |
 |                                                               |
 |                                                               |
-|                                                               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|              Receiver's Host Identity Tag (HIT)               |
 |                                                               |
+|              Receiver's Host Identity Tag (HIT)               |
 |                                                               |
 |                                                               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -1554,6 +1554,8 @@ typedef struct _ipv6_psd_hdr_
 * RFC 7043, Resource Records for EUI-48 and EUI-64 Addresses in the DNS(https://tools.ietf.org/html/rfc7043)
 * RFC 7314, Extension Mechanisms for DNS (EDNS) EXPIRE Option(https://tools.ietf.org/html/rfc7314)
 * RFC 7766, DNS Transport over TCP - Implementation Requirements(https://tools.ietf.org/html/rfc7766)
+* RFC 7871, Client Subnet in DNS Queries(https://tools.ietf.org/html/rfc7871)
+* RFC 7873, Domain Name System (DNS) Cookies(https://tools.ietf.org/html/rfc7873)
 */
 
 //About this list, please visit IANA Domain Name System (DNS) Parameters(https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml)
@@ -1583,6 +1585,7 @@ typedef struct _ipv6_psd_hdr_
 #define DNS_FLAG_GET_BIT_AD              0x0020       //Get Authentic Data bit in DNS flags.
 #define DNS_FLAG_GET_BIT_CD              0x0010       //Get Checking Disabled bit in DNS flags.
 #define DNS_FLAG_GET_BIT_RCODE           0x000F       //Get RCode in DNS flags.
+#define DNS_FLAG_GET_BIT_SERVER_FIXED    0xF8C0       //Get all bits without AA/Authoritative Answer, TC/Truncated, RD/Recursion Desired, AD/Authenticated Data, CD/Checking Disabled, and RCode/Return Code in DNS flags.
 #define DNS_FLAG_SET_R                   0x8000       //Set Response bit in DNS flags.
 #define DNS_FLAG_SET_R_TC                0x8200       //Set Response bit and Truncated bit in DNS flags.
 #define DNS_FLAG_SET_R_A                 0x8580       //Set Response bit and Authoritative bit in DNS flags.
@@ -1698,6 +1701,9 @@ typedef struct _ipv6_psd_hdr_
 #endif
 #ifndef DNS_RCODE_BADTRUNC
 	#define DNS_RCODE_BADTRUNC      0x0016           //RCode Bad Truncation is 22.
+#endif
+#ifndef DNS_RCODE_BADCOOKIE
+	#define DNS_RCODE_BADCOOKIE     0x0017           //RCode Bad Cookie is 23.
 #endif
 #ifndef DNS_RCODE_PRIVATE_A
 	#define DNS_RCODE_PRIVATE_A     0xFF00           //DNS Reserved Private use RCode is begin at 3841.
@@ -2360,10 +2366,27 @@ typedef struct _dns_record_srv_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define EDNS_VERSION_ZERO           0
-#define EDNS_PACKET_MINSIZE         1220U
-#define EDNS_PACKET_MAXSIZE         4096U
-#define EDNS_FLAG_GET_BIT_DO        0x8000        //Get DO bit in Z field.
+//Code definitions
+#define EDNS_VERSION_ZERO          0
+#define EDNS_PACKET_MINSIZE        1220U
+#define EDNS_PACKET_MAXSIZE        4096U
+#define EDNS_FLAG_GET_BIT_DO       0x8000        //Get DO bit in Z field.
+
+//EDNS Code definitions
+#define EDNS_CODE_LLQ              0x0001   //Long-lived query
+#define EDNS_CODE_UL               0x0002   //Update lease
+#define EDNS_CODE_NSID             0x0003   //Name Server Identifier (RFC 5001)
+#define EDNS_CODE_OWNER            0x0004   //Owner, reserved
+#define EDNS_CODE_DAU              0x0005   //DNSSEC Algorithm Understood (RFC 6975)
+#define EDNS_CODE_DHU              0x0006   //DS Hash Understood (RFC 6975)
+#define EDNS_CODE_N3U              0x0007   //DSEC3 Hash Understood (RFC 6975)
+#define EDNS_CODE_CSUBNET          0x0008   //Client subnet (RFC 7871)
+#define EDNS_CODE_EDNS_EXPIRE      0x0009   //EDNS Expire (RFC 7314)
+#define EDNS_CODE_COOKIES          0x000A   //DNS Cookies (RFC 7873)
+
+//Address Family Numbers, please visit https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml.
+#define EDNS_ADDRESS_FAMILY_IPV4   0x0001
+#define EDNS_ADDRESS_FAMILY_IPV6   0x0002
 typedef struct _dns_record_opt_
 {
 	uint8_t               Name;
@@ -2407,7 +2430,7 @@ typedef struct _edns_data_option_
 //	uint8_t               *Data;
 }edns_data_option;
 
-/* Extension Mechanisms for Domain Name System/DNS, Client subnet in EDNS requests
+/* Extension Mechanisms for Domain Name System/DNS, Client Subnet in EDNS request
 * RFC 7871, Client Subnet in DNS Queries(https://tools.ietf.org/html/rfc7871)
 
                     1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
@@ -2423,20 +2446,6 @@ typedef struct _edns_data_option_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define EDNS_CODE_LLQ                            0x0001   //Long-lived query
-#define EDNS_CODE_UL                             0x0002   //Update lease
-#define EDNS_CODE_NSID                           0x0003   //Name Server Identifier (RFC 5001)
-#define EDNS_CODE_OWNER                          0x0004   //Owner, reserved
-#define EDNS_CODE_DAU                            0x0005   //DNSSEC Algorithm Understood (RFC 6975)
-#define EDNS_CODE_DHU                            0x0006   //DS Hash Understood (RFC 6975)
-#define EDNS_CODE_N3U                            0x0007   //DSEC3 Hash Understood (RFC 6975)
-#define EDNS_CODE_CSUBNET                        0x0008   //Client subnet as assigned by IANA
-#define EDNS_CODE_EDNS_EXPIRE                    0x0009   //EDNS Expire (RFC 7314)
-
-//About Address Family Numbers, please visit https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml.
-#define EDNS_ADDRESS_FAMILY_IPV4                 0x0001
-#define EDNS_ADDRESS_FAMILY_IPV6                 0x0002
-
 //Source prefix bits
 #define EDNS_CLIENT_SUBNET_SOURCE_PREFIX_IPV6    56U
 #define EDNS_CLIENT_SUBNET_SOURCE_PREFIX_IPV4    24U
@@ -2449,6 +2458,33 @@ typedef struct _edns_client_subnet_
 	uint8_t               Netmask_Scope;
 //	uint8_t               *Address;
 }edns_client_subnet;
+
+/* Extension Mechanisms for Domain Name System/DNS, Cookies in EDNS request
+* RFC 7873, Domain Name System (DNS) Cookies(https://tools.ietf.org/html/rfc7873)
+
+                    1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3 3
+0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|             Code              |            Length             |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                         Client Cookie                         |
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                                                               |
+/                         Server Cookie                         /
+/                                                               /
+/                                                               /
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+*/
+typedef struct _edns_cookies_
+{
+	uint16_t              Code;
+	uint16_t              Length;
+	uint64_t              ClientCookie;
+//	uint64_t              ServerCookie_A;
+//	uint8_t               *ServerCookie_B;
+}edns_cookies;
 
 /* Domain Name System/DNS Delegation Signer/DS Resource Records
 
@@ -3049,12 +3085,12 @@ typedef struct _socks_udp_relay_request_
 #if defined(ENABLE_TLS)
 #if defined(PLATFORM_WIN)
 #if !defined(PLATFORM_WIN_XP)
-#define HTTP_1_TLS_ALPN_STRING                      ("http/1.1")
-#define HTTP_2_TLS_ALPN_STRING                      ("h2")
+	#define HTTP_1_TLS_ALPN_STRING                      ("http/1.1")
+	#define HTTP_2_TLS_ALPN_STRING                      ("h2")
 #endif
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-#define HTTP_1_TLS_ALPN_STRING                      {8U, 'h', 't', 't', 'p', '/', '1', '.', '1'}
-#define HTTP_2_TLS_ALPN_STRING                      {2U, 'h', '2'}
+	#define HTTP_1_TLS_ALPN_STRING                      {8U, 'h', 't', 't', 'p', '/', '1', '.', '1'}
+	#define HTTP_2_TLS_ALPN_STRING                      {2U, 'h', '2'}
 #endif
 #endif
 /* Hypertext Transfer Protocol Version 2 (HTTP/2) frame header

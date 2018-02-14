@@ -43,7 +43,9 @@ void CaptureInit(
 	for (;;)
 	{
 	//Open all devices.
-		if (pcap_findalldevs(&CaptureDriveList, reinterpret_cast<char *>(ErrorBuffer)) < 0)
+		if (pcap_findalldevs(
+				&CaptureDriveList, 
+				reinterpret_cast<char *>(ErrorBuffer)) < 0)
 		{
 			if (MBS_To_WCS_String(ErrorBuffer, PCAP_ERRBUF_SIZE, Message))
 			{
@@ -343,10 +345,14 @@ bool CaptureModule(
 		return false;
 	}
 #if defined(PLATFORM_WIN)
-	else if (DriveInterface->name == nullptr || DriveInterface->addresses == nullptr || DriveInterface->addresses->netmask == nullptr || 
+	else if (DriveInterface->name == nullptr || 
+		DriveInterface->addresses == nullptr || 
+		DriveInterface->addresses->netmask == nullptr || 
 		DriveInterface->flags == PCAP_IF_LOOPBACK)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	else if (DriveInterface->name == nullptr || DriveInterface->addresses == nullptr || DriveInterface->flags == PCAP_IF_LOOPBACK)
+	else if (DriveInterface->name == nullptr || 
+		DriveInterface->addresses == nullptr || 
+		DriveInterface->flags == PCAP_IF_LOOPBACK)
 #endif
 	{
 		if (IsCaptureList && DriveInterface->next != nullptr)
@@ -399,9 +405,20 @@ bool CaptureModule(
 
 //Open device
 #if defined(PLATFORM_WIN)
-	DeviceTable.DeviceHandle = pcap_open(DriveInterface->name, static_cast<int>(Parameter.LargeBufferSize), 0, static_cast<int>(Parameter.PcapReadingTimeout), nullptr, reinterpret_cast<char *>(Buffer.get()));
+	DeviceTable.DeviceHandle = pcap_open(
+		DriveInterface->name, 
+		static_cast<int>(Parameter.LargeBufferSize), 
+		0, 
+		static_cast<int>(Parameter.PcapReadingTimeout), 
+		nullptr, 
+		reinterpret_cast<char *>(Buffer.get()));
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	DeviceTable.DeviceHandle = pcap_open_live(DriveInterface->name, static_cast<int>(Parameter.LargeBufferSize), 0, static_cast<int>(Parameter.PcapReadingTimeout), reinterpret_cast<char *>(Buffer.get()));
+	DeviceTable.DeviceHandle = pcap_open_live(
+		DriveInterface->name, 
+		static_cast<int>(Parameter.LargeBufferSize), 
+		0, 
+		static_cast<int>(Parameter.PcapReadingTimeout), 
+		reinterpret_cast<char *>(Buffer.get()));
 #endif
 	if (DeviceTable.DeviceHandle == nullptr)
 	{
@@ -434,9 +451,19 @@ bool CaptureModule(
 
 //Compile the string into a filter program.
 #if defined(PLATFORM_WIN)
-	if (pcap_compile(DeviceTable.DeviceHandle, &DeviceTable.BPF_Code, PcapFilterRules.c_str(), PCAP_COMPILE_OPTIMIZE, 0) == PCAP_ERROR)
+	if (pcap_compile(
+			DeviceTable.DeviceHandle, 
+			&DeviceTable.BPF_Code, 
+			PcapFilterRules.c_str(), 
+			PCAP_COMPILE_OPTIMIZE, 
+			0) == PCAP_ERROR)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (pcap_compile(DeviceTable.DeviceHandle, &DeviceTable.BPF_Code, PcapFilterRules.c_str(), PCAP_COMPILE_OPTIMIZE, PCAP_NETMASK_UNKNOWN) == PCAP_ERROR)
+	if (pcap_compile(
+			DeviceTable.DeviceHandle, 
+			&DeviceTable.BPF_Code, 
+			PcapFilterRules.c_str(), 
+			PCAP_COMPILE_OPTIMIZE, 
+			PCAP_NETMASK_UNKNOWN) == PCAP_ERROR)
 #endif
 	{
 		std::wstring Message;
@@ -453,7 +480,9 @@ bool CaptureModule(
 	}
 
 //Specify a filter program.
-	if (pcap_setfilter(DeviceTable.DeviceHandle, &DeviceTable.BPF_Code) == PCAP_ERROR)
+	if (pcap_setfilter(
+			DeviceTable.DeviceHandle, 
+			&DeviceTable.BPF_Code) == PCAP_ERROR)
 	{
 		std::wstring Message;
 		if (MBS_To_WCS_String(reinterpret_cast<const uint8_t *>(pcap_geterr(DeviceTable.DeviceHandle)), PCAP_ERRBUF_SIZE, Message))
@@ -488,7 +517,11 @@ bool CaptureModule(
 //Start Pcap Monitor.
 	for (;;)
 	{
-		ssize_t Result = pcap_loop(DeviceTable.DeviceHandle, PCAP_LOOP_INFINITY, CaptureHandler, reinterpret_cast<unsigned char *>(&ParamList));
+		ssize_t Result = pcap_loop(
+			DeviceTable.DeviceHandle, 
+			PCAP_LOOP_INFINITY, 
+			CaptureHandler, 
+			reinterpret_cast<unsigned char *>(&ParamList));
 		if (Result < 0)
 		{
 		//Delete this capture from device list.
@@ -708,11 +741,11 @@ bool CaptureNetworkLayer(
 				//Main(IPv6)
 					((DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 					DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber != nullptr && 
-					sodium_memcmp(Buffer + sizeof(ipv6_hdr) + static_cast<size_t>(PayloadOffset) + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0) || 
+					memcmp(Buffer + sizeof(ipv6_hdr) + static_cast<size_t>(PayloadOffset) + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0) || 
 				//Alternate(IPv6)
 					(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && 
 					DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber != nullptr && 
-					sodium_memcmp(Buffer + sizeof(ipv6_hdr) + static_cast<size_t>(PayloadOffset) + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0)))
+					memcmp(Buffer + sizeof(ipv6_hdr) + static_cast<size_t>(PayloadOffset) + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0)))
 						return false;
 			#endif
 
@@ -739,7 +772,7 @@ bool CaptureNetworkLayer(
 							return false;
 				}
 
-			//Hop Limits value check, it must not a ramdom value.
+			//Hop Limits value check, it must not a random value.
 				if ((PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign > 0 && 
 					static_cast<size_t>(IPv6_Header->HopLimit) + static_cast<size_t>(Parameter.HopLimitsFluctuation) > static_cast<size_t>(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign) && 
 					static_cast<size_t>(IPv6_Header->HopLimit) < static_cast<size_t>(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign) + static_cast<size_t>(Parameter.HopLimitsFluctuation)) || 
@@ -865,11 +898,11 @@ bool CaptureNetworkLayer(
 				//Main(IPv4)
 					((DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 					DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber != nullptr && 
-					sodium_memcmp(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0) || 
+					memcmp(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0) || 
 				//Alternate(IPv4)
 					(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0 && 
 					DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber != nullptr && 
-					sodium_memcmp(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0)))
+					memcmp(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_TIMES + sizeof(udp_hdr), DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) == 0)))
 						return false;
 			#endif
 
@@ -896,7 +929,7 @@ bool CaptureNetworkLayer(
 							return false;
 				}
 
-			//TTL value check, it must not a ramdom value.
+			//TTL value check, it must not a random value.
 				if ((PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign > 0 && 
 					static_cast<size_t>(IPv4_Header->TTL) + static_cast<size_t>(Parameter.HopLimitsFluctuation) > static_cast<size_t>(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign) && 
 					static_cast<size_t>(IPv4_Header->TTL) < static_cast<size_t>(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign) + static_cast<size_t>(Parameter.HopLimitsFluctuation)) || 
@@ -1191,7 +1224,7 @@ bool CaptureCheck_PacketStatus(
 	{
 	//Application layer
 		if (DNS_DataOffset != 0)
-			PacketSource->ServerPacketStatus.ApplicationLayerStatus.DNS_Header_Flags = htons((ntohs(reinterpret_cast<const dns_hdr *>(Buffer + DNS_DataOffset)->Flags) & (~DNS_FLAG_GET_BIT_AA)) & (~DNS_FLAG_GET_BIT_RCODE));
+			PacketSource->ServerPacketStatus.ApplicationLayerStatus.DNS_Header_Flags = htons(ntohs(reinterpret_cast<const dns_hdr *>(Buffer + DNS_DataOffset)->Flags) & DNS_FLAG_GET_BIT_SERVER_FIXED);
 
 	//Network layer
 	//IPv6
@@ -1214,8 +1247,9 @@ bool CaptureCheck_PacketStatus(
 //Check packet status.
 	else {
 	//Application layer
-		if (DNS_DataOffset != 0 && PacketSource->ServerPacketStatus.ApplicationLayerStatus.DNS_Header_Flags != htons((ntohs(reinterpret_cast<const dns_hdr *>(Buffer + DNS_DataOffset)->Flags) & (~DNS_FLAG_GET_BIT_AA)) & (~DNS_FLAG_GET_BIT_RCODE)))
-			return false;
+		if (DNS_DataOffset != 0 && 
+			PacketSource->ServerPacketStatus.ApplicationLayerStatus.DNS_Header_Flags != htons((ntohs(reinterpret_cast<const dns_hdr *>(Buffer + DNS_DataOffset)->Flags) & DNS_FLAG_GET_BIT_SERVER_FIXED)))
+				return false;
 
 	//Network layer
 	//IPv6

@@ -1,9 +1,11 @@
-﻿Pcap_DNSProxy 0.4.9.5 更新日志(2018-01-07)：
+﻿Pcap_DNSProxy 0.4.9.5-0.4.9.6 更新日志(2018-02-14)：
 
 * 添加完整的 EDNS 标签透明转发支持
 * C++ 最低标准要求更新到 14
 * LibSodium 更新到 1.0.16 (Windows/macOS)
 * OpenSSL 更新到 1.1.0g (macOS)
+* Strict Resource Record TTL Filter 改名为 Resource Record Set TTL Filter
+* 修正 Local 请求过程参数的逻辑 [LisonFan/sysconfon]
 * 修正 EDNS Lebel 参数对 All 行为的支持 [muink]
 * 修正对 DNSSEC 数据包的过滤算法 [ZeroClover]
 * 修正初始化 LibSodium 时的行为，增强安全性
@@ -16,19 +18,18 @@
 * 移除 IPv4 Data Filter 参数
 * 移除 DNSSEC Validation 参数
   * 注意：本工具从未有支持 DNSSEC 完整验证，仅检查是否存在 DNSSEC 相关资源记录，而此功能已整合到 DNS Data Filter 参数中。为避免名称上的误导，特此移除！
-* 移除 Strict Resource Record TTL Filter 参数
-  * 注意：此参数的所有功能需要强制启用，为避免名称上的误导，特此移除！
+* 移除对 Homebrew 的支持 (macOS)
 * Release Hash:
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe: 
-    * Windows/Pcap_DNSProxy_x86.exe: 
-    * Windows/Pcap_DNSProxy_XP.exe: 
-    * macOS/Pcap_DNSProxy: 
+    * Windows/Pcap_DNSProxy.exe: 67B1356F6E48008BE7F00E1F47D6AF861AF941F3DFE20BD5F9810ADCF717E6E4
+    * Windows/Pcap_DNSProxy_x86.exe: ABBD9A39250FD7E52DFC401EC2CC16669D115082DE4E08D952CA99CBEDB981E4
+    * Windows/Pcap_DNSProxy_XP.exe: 69D1C7B8670A7D09679EC3D7238B14C205BCF847D6FEBA66C792AF39C4D5A455
+    * macOS/Pcap_DNSProxy: E872A0C1F4040BCD661C94BAFA9CE36F26B00FE24A213C6592FD47ECE3189198
   * SHA-2(256):
-    * Windows/Pcap_DNSProxy.exe: 
-    * Windows/Pcap_DNSProxy_x86.exe: 
-    * Windows/Pcap_DNSProxy_XP.exe: 
-    * macOS/Pcap_DNSProxy: 
+    * Windows/Pcap_DNSProxy.exe: A681022F4587F8085BCF6DCDD2B1E785156A23315D4E21F2E8BB03A8047ABFC0
+    * Windows/Pcap_DNSProxy_x86.exe: 7A01E34F4F4D4FD0C1417C620EB369E3E8ED604343FF0D6C3F919CBB4D4CEBD3
+    * Windows/Pcap_DNSProxy_XP.exe: 828B767272546682C491659D5280267F32C45D9D79818E3D484C271DB4D32064
+    * macOS/Pcap_DNSProxy: 722D1D4526E231E73D8D470FA79458D7A566CB3E3103199FE10AB080C272EE53
 
 
 -------------------------------------------------------------------------------
@@ -582,7 +583,7 @@ Pcap_DNSProxy v0.4(Windows/Linux/Mac) 更新日志(2015-05-13)：
 * 调整请求本地 DNS 服务器由抓包模式到直连模式，加快响应速度降低资源占用
 * 调整 IPv4 Data Filter/IPv4 数据包过滤器，默认为关闭
 * 调整 ICMP 和随机域名请求模块的编号和序列号生成规则
-* 调整 ICMP 附加数据限制长度最长到 1484 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header)
+* 调整 ICMP 附加数据限制长度最长到 1464 bytes(Ethernet MTU - IPv4 Standard Header - ICMP Header)
 * 调整随机域名生成模块，使用 C++ STL 提供的梅森旋转算法引擎产生离散型均匀分布的随机域名
 * 调整内置默认本地服务器完整网域名称为 "pcap-dnsproxy.server"（不含引号）以遵循域名系统的标准
 * 调整内存分配策略（标准以太网 MTU 长度、数据包缓冲区长度和 STL 标准库调用）减少资源占用

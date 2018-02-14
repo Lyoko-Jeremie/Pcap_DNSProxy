@@ -166,7 +166,6 @@ bool ReadHostsData(
 	else if (LabelType == LABEL_HOSTS_TYPE::LOCAL)
 	{
 		if (!Parameter.IsLocalHosts || //Do not read [Local Hosts] block when Local Hosts is disabled.
-			(!Parameter.IsLocalForce && Parameter.IsLocalRouting) || //Do not read local hosts items in [Local Hosts] block when Local Routing is enabled and Local Force Request is disabled.
 			(Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0 && Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0))
 				return true;
 		else 

@@ -642,8 +642,8 @@ bool SOCKS_SelectionExchange(
 //Client selection packet
 	reinterpret_cast<socks_client_selection *>(SocketSelectingDataList.front().SendBuffer.get())->Version = SOCKS_VERSION_5;
 	reinterpret_cast<socks_client_selection *>(SocketSelectingDataList.front().SendBuffer.get())->Methods_1 = SOCKS_METHOD_NO_AUTHENTICATION_REQUIRED;
-	if (Parameter.SOCKS_Username != nullptr && !Parameter.SOCKS_Username->empty() && 
-		Parameter.SOCKS_Password != nullptr && !Parameter.SOCKS_Password->empty())
+	if (Parameter.SOCKS_Username != nullptr && Parameter.SOCKS_UsernameLength > 0 && 
+		Parameter.SOCKS_Password != nullptr && Parameter.SOCKS_PasswordLength > 0)
 	{
 		reinterpret_cast<socks_client_selection *>(SocketSelectingDataList.front().SendBuffer.get())->Methods_Number = SOCKS_METHOD_SUPPORT_NUM;
 		reinterpret_cast<socks_client_selection *>(SocketSelectingDataList.front().SendBuffer.get())->Methods_2 = SOCKS_METHOD_USERNAME_PASSWORD;
@@ -701,8 +701,8 @@ bool SOCKS_SelectionExchange(
 			case SOCKS_METHOD_USERNAME_PASSWORD:
 			{
 			//Username or password authentication process
-				if (Parameter.SOCKS_Username != nullptr && !Parameter.SOCKS_Username->empty() && 
-					Parameter.SOCKS_Password != nullptr && !Parameter.SOCKS_Password->empty())
+				if (Parameter.SOCKS_Username != nullptr && Parameter.SOCKS_UsernameLength > 0 && 
+					Parameter.SOCKS_Password != nullptr && Parameter.SOCKS_PasswordLength > 0)
 				{
 					if (!SOCKS_AuthenticationExchange(SocketDataList, SocketSelectingDataList, ErrorCodeList))
 					{
@@ -738,12 +738,12 @@ bool SOCKS_AuthenticationExchange(
 		return false;
 
 //Buffer initialization
-	if (SocketSelectingDataList.front().SendSize <= sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_Username->length() + Parameter.SOCKS_Password->length())
+	if (SocketSelectingDataList.front().SendSize <= sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_UsernameLength + Parameter.SOCKS_PasswordLength)
 	{
-		auto SendBuffer = std::make_unique<uint8_t[]>(sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_Username->length() + Parameter.SOCKS_Password->length() + PADDING_RESERVED_BYTES);
-		memset(SendBuffer.get(), 0, sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_Username->length() + Parameter.SOCKS_Password->length() + PADDING_RESERVED_BYTES);
+		auto SendBuffer = std::make_unique<uint8_t[]>(sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_UsernameLength + Parameter.SOCKS_PasswordLength + PADDING_RESERVED_BYTES);
+		memset(SendBuffer.get(), 0, sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_UsernameLength + Parameter.SOCKS_PasswordLength + PADDING_RESERVED_BYTES);
 		std::swap(SocketSelectingDataList.front().SendBuffer, SendBuffer);
-		SocketSelectingDataList.front().SendSize = sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_Username->length() + Parameter.SOCKS_Password->length();
+		SocketSelectingDataList.front().SendSize = sizeof(socks_client_user_authentication) + sizeof(uint8_t) * 2U + Parameter.SOCKS_UsernameLength + Parameter.SOCKS_PasswordLength;
 		SocketSelectingDataList.front().SendLen = 0;
 	}
 
@@ -751,14 +751,14 @@ bool SOCKS_AuthenticationExchange(
 	size_t RecvLen = 0;
 	reinterpret_cast<socks_client_user_authentication *>(SocketSelectingDataList.front().SendBuffer.get())->Version = SOCKS_USERNAME_PASSWORD_VERSION;
 	RecvLen += sizeof(socks_client_user_authentication);
-	*(reinterpret_cast<uint8_t *>(SocketSelectingDataList.front().SendBuffer.get() + RecvLen)) = static_cast<uint8_t>(Parameter.SOCKS_Username->length());
+	*(reinterpret_cast<uint8_t *>(SocketSelectingDataList.front().SendBuffer.get() + RecvLen)) = static_cast<uint8_t>(Parameter.SOCKS_UsernameLength);
 	RecvLen += sizeof(uint8_t);
-	memcpy_s(SocketSelectingDataList.front().SendBuffer.get() + RecvLen, SocketSelectingDataList.front().SendSize - RecvLen, Parameter.SOCKS_Username->c_str(), Parameter.SOCKS_Username->length());
-	RecvLen += Parameter.SOCKS_Username->length();
-	*(reinterpret_cast<uint8_t *>(SocketSelectingDataList.front().SendBuffer.get() + RecvLen)) = static_cast<uint8_t>(Parameter.SOCKS_Password->length());
+	memcpy_s(SocketSelectingDataList.front().SendBuffer.get() + RecvLen, SocketSelectingDataList.front().SendSize - RecvLen, Parameter.SOCKS_Username, Parameter.SOCKS_UsernameLength);
+	RecvLen += Parameter.SOCKS_UsernameLength;
+	*(reinterpret_cast<uint8_t *>(SocketSelectingDataList.front().SendBuffer.get() + RecvLen)) = static_cast<uint8_t>(Parameter.SOCKS_PasswordLength);
 	RecvLen += sizeof(uint8_t);
-	memcpy_s(SocketSelectingDataList.front().SendBuffer.get() + RecvLen, SocketSelectingDataList.front().SendSize - RecvLen, Parameter.SOCKS_Password->c_str(), Parameter.SOCKS_Password->length());
-	RecvLen += Parameter.SOCKS_Password->length();
+	memcpy_s(SocketSelectingDataList.front().SendBuffer.get() + RecvLen, SocketSelectingDataList.front().SendSize - RecvLen, Parameter.SOCKS_Password, Parameter.SOCKS_PasswordLength);
+	RecvLen += Parameter.SOCKS_PasswordLength;
 
 //Username/password authentication exchange and server reply check
 	SocketSelectingDataList.front().RecvBuffer.reset();
@@ -878,10 +878,10 @@ bool SOCKS_ClientCommandRequest(
 		RecvLen = sizeof(socks4_client_command_request);
 
 	//Write UserID.
-		if (Parameter.SOCKS_Username != nullptr && !Parameter.SOCKS_Username->empty())
+		if (Parameter.SOCKS_Username != nullptr && Parameter.SOCKS_UsernameLength > 0)
 		{
-			memcpy_s(SocketSelectingDataList.front().SendBuffer.get() + (RecvLen - sizeof(uint8_t)), SocketSelectingDataList.front().SendSize - (RecvLen - sizeof(uint8_t)), Parameter.SOCKS_Username->c_str(), Parameter.SOCKS_Username->length());
-			RecvLen += Parameter.SOCKS_Username->length();
+			memcpy_s(SocketSelectingDataList.front().SendBuffer.get() + (RecvLen - sizeof(uint8_t)), SocketSelectingDataList.front().SendSize - (RecvLen - sizeof(uint8_t)), Parameter.SOCKS_Username, Parameter.SOCKS_UsernameLength);
+			RecvLen += Parameter.SOCKS_UsernameLength;
 		}
 
 	//Write target domain.
@@ -2358,10 +2358,10 @@ bool HTTP_CONNECT_Exchange(
 		}
 
 	//Extended header Proxy-Authorization field
-		if (Parameter.HTTP_CONNECT_ProxyAuthorization != nullptr && !Parameter.HTTP_CONNECT_ProxyAuthorization->empty())
+		if (Parameter.HTTP_CONNECT_ProxyAuthorization != nullptr && Parameter.HTTP_CONNECT_ProxyAuthorizationLength > 0)
 		{
 			HTTP_String.append("Proxy-Authorization: ");
-			HTTP_String.append(*Parameter.HTTP_CONNECT_ProxyAuthorization);
+			HTTP_String.append(reinterpret_cast<const char *>(Parameter.HTTP_CONNECT_ProxyAuthorization));
 			HTTP_String.append("\r\n");
 		}
 
@@ -2443,9 +2443,9 @@ bool HTTP_CONNECT_Exchange(
 		}
 
 	//Extended header proxy-authorization field(HEADERS frame)
-		if (Parameter.HTTP_CONNECT_ProxyAuthorization != nullptr && !Parameter.HTTP_CONNECT_ProxyAuthorization->empty() && 
+		if (Parameter.HTTP_CONNECT_ProxyAuthorization != nullptr && Parameter.HTTP_CONNECT_ProxyAuthorizationLength > 0 && 
 			(!HTTP_CONNECT_2_HEADERS_WriteBytes(SocketSelectingDataList, reinterpret_cast<const uint8_t *>("proxy-authorization"), strlen("proxy-authorization"), true) || 
-			!HTTP_CONNECT_2_HEADERS_WriteBytes(SocketSelectingDataList, const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(Parameter.HTTP_CONNECT_ProxyAuthorization->c_str())), Parameter.HTTP_CONNECT_ProxyAuthorization->length(), false)))
+			!HTTP_CONNECT_2_HEADERS_WriteBytes(SocketSelectingDataList, Parameter.HTTP_CONNECT_ProxyAuthorization, Parameter.HTTP_CONNECT_ProxyAuthorizationLength, false)))
 				return false;
 
 	//Packet initialization(HEADERS frame, part 2)

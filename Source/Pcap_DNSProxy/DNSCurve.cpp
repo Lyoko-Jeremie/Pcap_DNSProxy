@@ -85,37 +85,37 @@ bool DNSCurveVerifyKeypair(
 	const uint8_t * const SecretKey)
 {
 //Initialization
-	uint8_t Test_PublicKey[crypto_box_PUBLICKEYBYTES]{0}, Validation[crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES + crypto_box_ZEROBYTES]{0};
-	DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> Test_SecretKey(crypto_box_PUBLICKEYBYTES);
+	uint8_t TestPublicKey[crypto_box_PUBLICKEYBYTES]{0}, Validation[crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES + crypto_box_ZEROBYTES]{0};
+	DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> TestSecretKey(crypto_box_PUBLICKEYBYTES);
 
-//Keypair, Nonce and validation data
+//Keypair and validation data initialization
 	if (crypto_box_keypair(
-			Test_PublicKey, 
-			Test_SecretKey.Buffer) == 0)
+			TestPublicKey, 
+			TestSecretKey.Buffer) == 0)
 				memcpy_s(Validation + crypto_box_ZEROBYTES, crypto_box_PUBLICKEYBYTES + crypto_box_SECRETKEYBYTES, PublicKey, crypto_box_PUBLICKEYBYTES);
 	else 
 		return false;
 
 //Make DNSCurve test nonce, 0x00 - 0x23(ASCII).
-	uint8_t Nonce[crypto_box_NONCEBYTES]{0};
+	DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> Nonce(crypto_box_NONCEBYTES);
 	for (size_t Index = 0;Index < crypto_box_NONCEBYTES;++Index)
-		*(Nonce + Index) = static_cast<uint8_t>(Index);
+		*(Nonce.Buffer + Index) = static_cast<uint8_t>(Index);
 
 //Verify keys
 	if (crypto_box(
 			Validation, 
 			Validation, 
 			crypto_box_PUBLICKEYBYTES + crypto_box_ZEROBYTES, 
-			Nonce, 
-			Test_PublicKey, 
+			Nonce.Buffer, 
+			TestPublicKey, 
 			SecretKey) != 0 || 
 		crypto_box_open(
 			Validation, 
 			Validation, 
 			crypto_box_PUBLICKEYBYTES + crypto_box_ZEROBYTES, 
-			Nonce, 
+			Nonce.Buffer, 
 			PublicKey, 
-			Test_SecretKey.Buffer) != 0)
+			TestSecretKey.Buffer) != 0)
 				return false;
 
 	return true;
@@ -266,7 +266,7 @@ bool DNSCurvePrecomputationKeySetting(
 	}
 	else {
 		sodium_memzero(PrecomputationKey, crypto_box_BEFORENMBYTES);
-		sodium_memzero(Client_PublicKey, crypto_box_PUBLICKEYBYTES);
+		memset(Client_PublicKey, 0, crypto_box_PUBLICKEYBYTES);
 	}
 
 //Make a client ephemeral key pair and a precomputation key.
@@ -334,7 +334,7 @@ void DNSCurveSocketPrecomputation(
 
 	//Encryption mode check
 		if (DNSCurveParameter.IsEncryption && 
-			((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+			((!DNSCurveParameter.IsClientEphemeralKey && sodium_is_zero((*PacketTarget)->PrecomputationKey, crypto_box_BEFORENMBYTES) != 0) || 
 			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer((*PacketTarget)->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 				goto SkipMain;
@@ -386,7 +386,7 @@ void DNSCurveSocketPrecomputation(
 
 			SocketDataList.push_back(SocketDataTemp);
 			SocketSelectingDataList.push_back(std::move(SocketSelectingDataTemp));
-			sodium_memzero(&SocketDataTemp, sizeof(SocketDataTemp));
+			memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
 		}
 
 	//Make Precomputation Key between client and server.
@@ -411,7 +411,7 @@ void DNSCurveSocketPrecomputation(
 		if (DNSCurveParameter.IsEncryption || Protocol == IPPROTO_TCP)
 		{
 			auto SendBufferTemp = std::make_unique<uint8_t[]>(RecvSize + PADDING_RESERVED_BYTES);
-			sodium_memzero(SendBufferTemp.get(), RecvSize + PADDING_RESERVED_BYTES);
+			memset(SendBufferTemp.get(), 0, RecvSize + PADDING_RESERVED_BYTES);
 			std::swap(SendBuffer, SendBufferTemp);
 			DataLength = DNSCurvePacketEncryption(Protocol, (*PacketTarget)->SendMagicNumber, Client_PublicKey, *PrecomputationKey, OriginalSend, SendSize, SendBuffer.get(), RecvSize);
 			if (DataLength < DNS_PACKET_MINSIZE)
@@ -429,7 +429,7 @@ void DNSCurveSocketPrecomputation(
 
 //Jump here to skip Main process
 SkipMain:
-	sodium_memzero(&SocketDataTemp, sizeof(SocketDataTemp));
+	memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
 
 //Set target.
 	if (IsIPv6)
@@ -442,7 +442,7 @@ SkipMain:
 	{
 	//Encryption mode check
 		if (DNSCurveParameter.IsEncryption && 
-			((!DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->PrecomputationKey, crypto_box_BEFORENMBYTES)) || 
+			((!DNSCurveParameter.IsClientEphemeralKey && sodium_is_zero((*PacketTarget)->PrecomputationKey, crypto_box_BEFORENMBYTES) != 0) || 
 			(DNSCurveParameter.IsClientEphemeralKey && CheckEmptyBuffer((*PacketTarget)->ServerFingerprint, crypto_box_PUBLICKEYBYTES)) || 
 			CheckEmptyBuffer((*PacketTarget)->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN)))
 		{
@@ -518,7 +518,7 @@ SkipMain:
 
 			Alternate_SocketDataList.push_back(SocketDataTemp);
 			Alternate_SocketSelectingDataList.push_back(std::move(SocketSelectingDataTemp));
-			sodium_memzero(&SocketDataTemp, sizeof(SocketDataTemp));
+			memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
 		}
 
 	//Make Precomputation Key between client and server.
@@ -548,7 +548,7 @@ SkipMain:
 		if (DNSCurveParameter.IsEncryption)
 		{
 			auto SendBufferTemp = std::make_unique<uint8_t[]>(RecvSize + PADDING_RESERVED_BYTES);
-			sodium_memzero(SendBufferTemp.get(), RecvSize + PADDING_RESERVED_BYTES);
+			memset(SendBufferTemp.get(), 0, RecvSize + PADDING_RESERVED_BYTES);
 			std::swap(Alternate_SendBuffer, SendBufferTemp);
 			SendBufferTemp.reset();
 			Alternate_DataLength = DNSCurvePacketEncryption(Protocol, (*PacketTarget)->SendMagicNumber, Client_PublicKey, *Alternate_PrecomputationKey, OriginalSend, SendSize, Alternate_SendBuffer.get(), RecvSize);
@@ -597,20 +597,15 @@ size_t DNSCurvePacketEncryption(
 	if (DNSCurveParameter.IsEncryption)
 	{
 	//Make nonce.
-		uint8_t Nonce[crypto_box_NONCEBYTES]{0};
-	//Calling a fixed size random data generator in loop is a bad way to fill a whole size random nonce.
-/*		for (size_t Index = 0;Index < crypto_box_HALF_NONCEBYTES;Index += sizeof(uint32_t))
-			*reinterpret_cast<uint32_t *>(Nonce + Index) = randombytes_random();
-*/
-		randombytes_buf(Nonce, crypto_box_HALF_NONCEBYTES);
-		sodium_memzero(Nonce + crypto_box_HALF_NONCEBYTES, crypto_box_HALF_NONCEBYTES);
+		DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> Nonce(crypto_box_NONCEBYTES);
+		randombytes_buf(Nonce.Buffer, crypto_box_HALF_NONCEBYTES);
 
 	//Buffer initialization
 		std::unique_ptr<uint8_t[]> Buffer(nullptr);
 		if (Protocol == IPPROTO_TCP || Protocol == IPPROTO_UDP)
 		{
 			auto BufferTemp = std::make_unique<uint8_t[]>(DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVED_LEN);
-			sodium_memzero(BufferTemp.get(), DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVED_LEN);
+			memset(BufferTemp.get(), 0, DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVED_LEN);
 			std::swap(Buffer, BufferTemp);
 		}
 		else {
@@ -628,7 +623,7 @@ size_t DNSCurvePacketEncryption(
 					SendBuffer + DNSCRYPT_BUFFER_RESERVED_TCP_LEN, 
 					Buffer.get(), 
 					DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVED_TCP_LEN, 
-					Nonce, 
+					Nonce.Buffer, 
 					PrecomputationKey) != 0)
 						return EXIT_FAILURE;
 		}
@@ -638,7 +633,7 @@ size_t DNSCurvePacketEncryption(
 					SendBuffer + DNSCRYPT_BUFFER_RESERVED_LEN, 
 					Buffer.get(), 
 					DNSCurveParameter.DNSCurvePayloadSize - DNSCRYPT_BUFFER_RESERVED_LEN, 
-					Nonce, 
+					Nonce.Buffer, 
 					PrecomputationKey) != 0)
 						return EXIT_FAILURE;
 		}
@@ -652,7 +647,7 @@ size_t DNSCurvePacketEncryption(
 		{
 			memcpy_s(SendBuffer + sizeof(uint16_t), SendSize - sizeof(uint16_t), SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
 			memcpy_s(SendBuffer + sizeof(uint16_t) + DNSCURVE_MAGIC_QUERY_LEN, SendSize - sizeof(uint16_t) - DNSCURVE_MAGIC_QUERY_LEN, Client_PublicKey, crypto_box_PUBLICKEYBYTES);
-			memcpy_s(SendBuffer + sizeof(uint16_t) + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES, SendSize - sizeof(uint16_t) - DNSCURVE_MAGIC_QUERY_LEN - crypto_box_PUBLICKEYBYTES, Nonce, crypto_box_HALF_NONCEBYTES);
+			memcpy_s(SendBuffer + sizeof(uint16_t) + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES, SendSize - sizeof(uint16_t) - DNSCURVE_MAGIC_QUERY_LEN - crypto_box_PUBLICKEYBYTES, Nonce.Buffer, crypto_box_HALF_NONCEBYTES);
 
 		//Add length of request packet.
 			*reinterpret_cast<uint16_t *>(SendBuffer) = htons(static_cast<uint16_t>(DNSCurveParameter.DNSCurvePayloadSize - sizeof(uint16_t)));
@@ -661,7 +656,7 @@ size_t DNSCurvePacketEncryption(
 		{
 			memcpy_s(SendBuffer, SendSize, SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
 			memcpy_s(SendBuffer + DNSCURVE_MAGIC_QUERY_LEN, SendSize - DNSCURVE_MAGIC_QUERY_LEN, Client_PublicKey, crypto_box_PUBLICKEYBYTES);
-			memcpy_s(SendBuffer + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES, SendSize - DNSCURVE_MAGIC_QUERY_LEN - crypto_box_PUBLICKEYBYTES, Nonce, crypto_box_HALF_NONCEBYTES);
+			memcpy_s(SendBuffer + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_PUBLICKEYBYTES, SendSize - DNSCURVE_MAGIC_QUERY_LEN - crypto_box_PUBLICKEYBYTES, Nonce.Buffer, crypto_box_HALF_NONCEBYTES);
 		}
 		else {
 			return EXIT_FAILURE;
@@ -697,26 +692,26 @@ ssize_t DNSCurvePacketDecryption(
 	if (DNSCurveParameter.IsEncryption)
 	{
 	//Receive Magic number check
-		sodium_memzero(OriginalRecv + Length, RecvSize - Length);
-		if (sodium_memcmp(OriginalRecv, ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) != 0)
+		memset(OriginalRecv + Length, 0, RecvSize - Length);
+		if (memcmp(OriginalRecv, ReceiveMagicNumber, DNSCURVE_MAGIC_QUERY_LEN) != 0)
 			return EXIT_FAILURE;
 
 	//Nonce initialization
-		uint8_t WholeNonce[crypto_box_NONCEBYTES]{0};
-		memcpy_s(WholeNonce, crypto_box_NONCEBYTES, OriginalRecv + DNSCURVE_MAGIC_QUERY_LEN, crypto_box_NONCEBYTES);
+		DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> WholeNonce(crypto_box_NONCEBYTES);
+		memcpy_s(WholeNonce.Buffer, crypto_box_NONCEBYTES, OriginalRecv + DNSCURVE_MAGIC_QUERY_LEN, crypto_box_NONCEBYTES);
 
 	//Open crypto box.
-		sodium_memzero(OriginalRecv, DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES);
+		memset(OriginalRecv, 0, DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES);
 		memmove_s(OriginalRecv + crypto_box_BOXZEROBYTES, RecvSize - crypto_box_BOXZEROBYTES, OriginalRecv + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES, Length - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES));
 		if (crypto_box_open_afternm(
 			reinterpret_cast<unsigned char *>(OriginalRecv), 
 			reinterpret_cast<unsigned char *>(OriginalRecv), 
 			Length + crypto_box_BOXZEROBYTES - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), 
-			WholeNonce, 
+			WholeNonce.Buffer, 
 			PrecomputationKey) != 0)
 				return EXIT_FAILURE;
 		memmove_s(OriginalRecv, RecvSize, OriginalRecv + crypto_box_ZEROBYTES, Length - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES));
-		sodium_memzero(OriginalRecv + Length - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), RecvSize - (Length - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES)));
+		memset(OriginalRecv + Length - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), 0, RecvSize - (Length - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES)));
 
 	//Check padding data and responses check.
 		DataLength = DNSCurvePaddingData(false, OriginalRecv, Length, RecvSize);
@@ -746,7 +741,7 @@ bool DNSCruveGetSignatureData(
 	if (ntohs(reinterpret_cast<const dns_record_txt *>(Buffer)->Name) == DNS_POINTER_QUERY && 
 		ntohs(reinterpret_cast<const dns_record_txt *>(Buffer)->Length) == reinterpret_cast<const dns_record_txt *>(Buffer)->TXT_Length + NULL_TERMINATE_LENGTH && 
 		reinterpret_cast<const dns_record_txt *>(Buffer)->TXT_Length == DNSCRYPT_RECORD_TXT_LEN && 
-		sodium_memcmp(&reinterpret_cast<const dnscurve_txt_hdr *>(Buffer + sizeof(dns_record_txt))->CertMagicNumber, DNSCRYPT_CERT_MAGIC, sizeof(uint16_t)) == 0 && 
+		memcmp(&reinterpret_cast<const dnscurve_txt_hdr *>(Buffer + sizeof(dns_record_txt))->CertMagicNumber, DNSCRYPT_CERT_MAGIC, sizeof(uint16_t)) == 0 && 
 		ntohs(reinterpret_cast<const dnscurve_txt_hdr *>(Buffer + sizeof(dns_record_txt))->MinorVersion) == DNSCURVE_VERSION_MINOR)
 	{
 		if (ntohs(reinterpret_cast<const dnscurve_txt_hdr *>(Buffer + sizeof(dns_record_txt))->MajorVersion) == DNSCURVE_ES_X25519_XSALSA20_POLY1305) //DNSCurve X25519-XSalsa20Poly1305
@@ -757,12 +752,11 @@ bool DNSCruveGetSignatureData(
 				return false;
 
 		//Check signature.
-			const auto DecryptBuffer = std::make_unique<uint8_t[]>(NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
-			memset(DecryptBuffer.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+			DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> DecryptBuffer(NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
 			unsigned long long SignatureLength = 0;
 			if (PacketTarget == nullptr || 
 				crypto_sign_open(
-					reinterpret_cast<unsigned char *>(DecryptBuffer.get()), 
+					reinterpret_cast<unsigned char *>(DecryptBuffer.Buffer), 
 					&SignatureLength, 
 					reinterpret_cast<const unsigned char *>(Buffer + sizeof(dns_record_txt) + sizeof(dnscurve_txt_hdr)), 
 					reinterpret_cast<const dns_record_txt *>(Buffer)->TXT_Length - sizeof(dnscurve_txt_hdr), 
@@ -785,11 +779,11 @@ bool DNSCruveGetSignatureData(
 		//Signature available time check
 			const auto TimeValues = time(nullptr);
 			if (TimeValues > 0 && PacketTarget->ServerFingerprint != nullptr && 
-				TimeValues >= static_cast<time_t>(ntohl(reinterpret_cast<dnscurve_txt_signature *>(DecryptBuffer.get())->CertTime_Begin)) && 
-				TimeValues <= static_cast<time_t>(ntohl(reinterpret_cast<dnscurve_txt_signature *>(DecryptBuffer.get())->CertTime_End)))
+				TimeValues >= static_cast<time_t>(ntohl(reinterpret_cast<dnscurve_txt_signature *>(DecryptBuffer.Buffer)->CertTime_Begin)) && 
+				TimeValues <= static_cast<time_t>(ntohl(reinterpret_cast<dnscurve_txt_signature *>(DecryptBuffer.Buffer)->CertTime_End)))
 			{
-				memcpy_s(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, reinterpret_cast<dnscurve_txt_signature *>(DecryptBuffer.get())->MagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
-				memcpy_s(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES, reinterpret_cast<dnscurve_txt_signature *>(DecryptBuffer.get())->PublicKey, crypto_box_PUBLICKEYBYTES);
+				memcpy_s(PacketTarget->SendMagicNumber, DNSCURVE_MAGIC_QUERY_LEN, reinterpret_cast<dnscurve_txt_signature *>(DecryptBuffer.Buffer)->MagicNumber, DNSCURVE_MAGIC_QUERY_LEN);
+				memcpy_s(PacketTarget->ServerFingerprint, crypto_box_PUBLICKEYBYTES, reinterpret_cast<dnscurve_txt_signature *>(DecryptBuffer.Buffer)->PublicKey, crypto_box_PUBLICKEYBYTES);
 				if (!DNSCurveParameter.IsClientEphemeralKey)
 				{
 					if (crypto_box_beforenm(
