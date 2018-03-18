@@ -20,7 +20,7 @@
 #ifndef PCAP_DNSPROXY_TRANSPORTSECURITY_H
 #define PCAP_DNSPROXY_TRANSPORTSECURITY_H
 
-#include "Base.h"
+#include "Include.h"
 
 #if defined(ENABLE_TLS)
 //Global variables

@@ -20,7 +20,7 @@
 #ifndef PCAP_DNSPROXY_TEMPLATE_H
 #define PCAP_DNSPROXY_TEMPLATE_H
 
-#include "Definition.h"
+#include "Type.h"
 
 //////////////////////////////////////////////////
 // Template definitions

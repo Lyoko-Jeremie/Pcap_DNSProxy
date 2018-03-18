@@ -42,7 +42,7 @@ bool ReadHostsData(
 	if (Data.empty())
 		return true;
 
-//Delete comments(Number Sign/NS and double slashs) and check minimum length of hosts items.
+//Remove comments(Number Sign/NS and double slashs) and check minimum length of hosts items.
 	if (Data.compare(0, strlen("#"), ("#")) == 0 || Data.compare(0, strlen("/"), ("/")) == 0)
 		return true;
 	if (Data.rfind(" //") != std::string::npos)
@@ -172,7 +172,7 @@ bool ReadHostsData(
 			return ReadLocalHostsData(Data, FileIndex, Line);
 	}
 
-//Delete spaces before or after verticals.
+//Remove spaces before or after verticals.
 	while (Data.find(" |") != std::string::npos || Data.find("| ") != std::string::npos)
 	{
 		if (Data.find(" |") != std::string::npos)
@@ -216,11 +216,11 @@ bool ReadOtherHostsData(
 		return false;
 	}
 
-//Delete all spaces.
+//Remove all spaces.
 	while (Data.find(ASCII_SPACE) != std::string::npos)
 		Data.erase(Data.find(ASCII_SPACE), 1U);
 
-//Mark Whitelist Extended and Banned Extended types.
+//Mark Whitelist Extended and Banned Extended type.
 	HOSTS_TABLE HostsTableTemp;
 	if (ItemType == LABEL_HOSTS_TYPE::WHITE_EXTENDED || ItemType == LABEL_HOSTS_TYPE::BANNED_EXTENDED)
 	{
@@ -233,7 +233,7 @@ bool ReadOtherHostsData(
 			(ItemType == LABEL_HOSTS_TYPE::BANNED_EXTENDED && InsensitiveString.find("PERMIT") != std::string::npos && InsensitiveString.find("PERMIT") <= Separated))
 				HostsTableTemp.PermissionOperation = true;
 
-	//Mark types.
+	//Mark type.
 		std::vector<std::string> ListData;
 		ssize_t Result = 0;
 
@@ -243,9 +243,17 @@ bool ReadOtherHostsData(
 		{
 			const auto RecordType = DNSTypeNameToBinary(reinterpret_cast<const uint8_t *>(StringIter.c_str()));
 
-		//Number types
+		//Number type
 			if (RecordType == 0)
 			{
+			//Number check
+				if (StringIter.find(ASCII_MINUS) != std::string::npos)
+				{
+					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"DNS record type error", errno, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+					return false;
+				}
+
+			//Convert type.
 				_set_errno(0);
 				Result = strtoul(StringIter.c_str(), nullptr, 0);
 				if (Result > 0 && Result <= UINT16_MAX)
@@ -257,7 +265,7 @@ bool ReadOtherHostsData(
 					return false;
 				}
 			}
-		//Name types
+		//Name type
 			else {
 				HostsTableTemp.RecordTypeList.push_back(RecordType);
 			}
@@ -278,7 +286,7 @@ bool ReadOtherHostsData(
 		return false;
 	}
 
-//Mark types.
+//Mark type.
 	if (ItemType == LABEL_HOSTS_TYPE::BANNED || ItemType == LABEL_HOSTS_TYPE::BANNED_EXTENDED)
 		HostsTableTemp.PermissionType = HOSTS_TYPE::BANNED;
 	else 
@@ -339,7 +347,7 @@ bool ReadLocalHostsData(
 //Dnsmasq format check
 	if (IsDnsmasqFormat)
 	{
-	//Delete all spaces and string length check.
+	//Remove all spaces and string length check.
 		while (Data.find(ASCII_SPACE) != std::string::npos)
 			Data.erase(Data.find(ASCII_SPACE), 1U);
 
@@ -414,8 +422,18 @@ bool ReadLocalHostsData(
 				if (HostsListData.size() == 2U) //Non-standard port
 				{
 					SeparatedOrResult = ServiceNameToBinary(reinterpret_cast<const uint8_t *>(HostsListData.back().c_str()));
+
+				//Number type
 					if (SeparatedOrResult == 0)
 					{
+					//Number check
+						if (HostsListData.back().find(ASCII_MINUS) != std::string::npos)
+						{
+							PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv6 address port error", errno, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+							return false;
+						}
+
+					//Convert type.
 						_set_errno(0);
 						SeparatedOrResult = strtoul(reinterpret_cast<const char *>(HostsListData.back().c_str()), nullptr, 0);
 						if (SeparatedOrResult == 0 || SeparatedOrResult >= ULONG_MAX)
@@ -529,8 +547,18 @@ bool ReadLocalHostsData(
 					if (HostsListData.size() == 2U) //Non-standard port
 					{
 						SeparatedOrResult = ServiceNameToBinary(reinterpret_cast<const uint8_t *>(HostsListData.back().c_str()));
+
+					//Number type
 						if (SeparatedOrResult == 0)
 						{
+						//Number check
+							if (HostsListData.back().find(ASCII_MINUS) != std::string::npos)
+							{
+								PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv6 address port error", errno, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
+								return false;
+							}
+
+						//Convert type.
 							_set_errno(0);
 							SeparatedOrResult = strtoul(reinterpret_cast<const char *>(HostsListData.back().c_str()), nullptr, 0);
 							if (SeparatedOrResult == 0 || SeparatedOrResult >= ULONG_MAX)
@@ -607,7 +635,7 @@ bool ReadAddressHostsData(
 	size_t Separated = 0;
 	if (Data.find(ASCII_COMMA) != std::string::npos)
 	{
-	//Delete spaces before or after commas.
+	//Remove spaces before or after commas.
 		while (Data.find(" ,") != std::string::npos)
 			Data.erase(Data.find(" ,"), strlen(" "));
 		while (Data.find(ASCII_SPACE) != std::string::npos && Data.find(ASCII_SPACE) > Data.find(ASCII_COMMA))
@@ -634,7 +662,7 @@ bool ReadAddressHostsData(
 		return false;
 	}
 
-//Delete all spaces.
+//Remove all spaces.
 	while (Data.find(ASCII_SPACE) != std::string::npos)
 		Data.erase(Data.find(ASCII_SPACE), 1U);
 
@@ -765,7 +793,7 @@ bool ReadAddressHostsData(
 
 //Get source data.
 	ADDRESS_RANGE_TABLE AddressRangeTableTemp;
-	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE]{0};
+	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE + PADDING_RESERVED_BYTES]{0};
 
 //Mark all data in list.
 	for (auto &StringIter:SourceListData)
@@ -919,7 +947,7 @@ bool ReadMainHostsData(
 //Mark separated location.
 	if (Data.find(ASCII_COMMA) != std::string::npos)
 	{
-	//Delete spaces before or after commas.
+	//Remove spaces before or after commas.
 		while (Data.find(" ,") != std::string::npos)
 			Data.erase(Data.find(" ,"), strlen(" "));
 		while (Data.find(ASCII_SPACE) != std::string::npos && Data.find(ASCII_SPACE) > Data.find(ASCII_COMMA))
@@ -978,7 +1006,7 @@ bool ReadMainHostsData(
 		return false;
 	}
 
-//Delete all spaces and string length check.
+//Remove all spaces and string length check.
 	while (Data.find(ASCII_SPACE) != std::string::npos)
 		Data.erase(Data.find(ASCII_SPACE), 1U);
 	if (!IsDnsmasqFormat && Separated < READ_HOSTS_MINSIZE)

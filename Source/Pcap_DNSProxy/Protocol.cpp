@@ -115,7 +115,7 @@ bool AddressStringToBinary(
 				++CommaNum;
 		}
 
-	//Delete zeros before whole data.
+	//Remove zeros before whole data.
 		while (AddrString.length() > 1U && AddrString.front() == ASCII_ZERO && AddrString.at(1U) != ASCII_PERIOD)
 			AddrString.erase(0, 1U);
 
@@ -137,7 +137,7 @@ bool AddressStringToBinary(
 			}break;
 		}
 
-	//Delete zeros before data.
+	//Remove zeros before whole data.
 		while (AddrString.find(".00") != std::string::npos)
 			AddrString.replace(AddrString.find(".00"), 3U, ("."));
 		while (AddrString.find(".0") != std::string::npos)
@@ -212,7 +212,7 @@ bool BinaryToAddressString(
 		return false;
 	}
 
-	DWORD BufferLength = StringSize;
+	DWORD BufferLength = static_cast<DWORD>(StringSize);
 	if (WSAAddressToStringA(
 		reinterpret_cast<sockaddr *>(&SockAddr), 
 		sizeof(sockaddr_in6), 

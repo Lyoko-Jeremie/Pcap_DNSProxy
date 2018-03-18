@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy 0.4.9.5-0.4.9.6 changelog(2018-02-14)：
+﻿Pcap_DNSProxy 0.4.9.5-0.4.9.6 changelog(2018-03-18)：
 
 * Add EDNS Label transparency support.
 * The minimum C++ standard requires 14 now.

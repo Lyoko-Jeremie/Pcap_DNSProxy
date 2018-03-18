@@ -12,7 +12,6 @@
 		D93C47241CD7596A00CD334A /* Base.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C47151CD7596A00CD334A /* Base.cpp */; };
 		D93C47251CD7596A00CD334A /* Capture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C47171CD7596A00CD334A /* Capture.cpp */; };
 		D93C47261CD7596A00CD334A /* Configuration.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C471A1CD7596A00CD334A /* Configuration.cpp */; };
-		D93C47271CD7596A00CD334A /* DNSCurve.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C471C1CD7596A00CD334A /* DNSCurve.cpp */; };
 		D93C47281CD7596A00CD334A /* Initialization.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C471E1CD7596A00CD334A /* Initialization.cpp */; };
 		D93C47291CD7596A00CD334A /* Main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C47201CD7596A00CD334A /* Main.cpp */; };
 		D93C472A1CD7596A00CD334A /* Monitor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C47221CD7596A00CD334A /* Monitor.cpp */; };
@@ -28,6 +27,7 @@
 		D93C47481CD7599300CD334A /* Service.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D93C47451CD7599300CD334A /* Service.cpp */; };
 		D96BE5C61DB7A895001D8BF3 /* DNSCurveRequest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D96BE5C41DB7A895001D8BF3 /* DNSCurveRequest.cpp */; };
 		D96BE5C91DB7A8A7001D8BF3 /* Request.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D96BE5C71DB7A8A7001D8BF3 /* Request.cpp */; };
+		D9C8DD2A205E4F6700C3D259 /* DNSCurveControl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D9C8DD29205E4F6700C3D259 /* DNSCurveControl.cpp */; };
 		D9EF117D1DDB53C7004E4B90 /* LibSodium_macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D9EF117C1DDB53C7004E4B90 /* LibSodium_macOS.a */; };
 		D9EF11801DDB53D7004E4B90 /* LibCrypto_macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D9EF117E1DDB53D7004E4B90 /* LibCrypto_macOS.a */; };
 		D9EF11811DDB53D7004E4B90 /* LibSSL_macOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D9EF117F1DDB53D7004E4B90 /* LibSSL_macOS.a */; };
@@ -57,8 +57,6 @@
 		D93C47181CD7596A00CD334A /* Capture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Capture.h; sourceTree = "<group>"; };
 		D93C471A1CD7596A00CD334A /* Configuration.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Configuration.cpp; sourceTree = "<group>"; };
 		D93C471B1CD7596A00CD334A /* Configuration.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Configuration.h; sourceTree = "<group>"; };
-		D93C471C1CD7596A00CD334A /* DNSCurve.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DNSCurve.cpp; sourceTree = "<group>"; };
-		D93C471D1CD7596A00CD334A /* DNSCurve.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DNSCurve.h; sourceTree = "<group>"; };
 		D93C471E1CD7596A00CD334A /* Initialization.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Initialization.cpp; sourceTree = "<group>"; };
 		D93C471F1CD7596A00CD334A /* Initialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Initialization.h; sourceTree = "<group>"; };
 		D93C47201CD7596A00CD334A /* Main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Main.cpp; sourceTree = "<group>"; };
@@ -242,6 +240,10 @@
 		D992037F1F1B49B900B0698E /* x509_vfy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = x509_vfy.h; path = Dependency/OpenSSL/openssl/x509_vfy.h; sourceTree = "<group>"; };
 		D99203801F1B49B900B0698E /* x509.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = x509.h; path = Dependency/OpenSSL/openssl/x509.h; sourceTree = "<group>"; };
 		D99203811F1B49B900B0698E /* x509v3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = x509v3.h; path = Dependency/OpenSSL/openssl/x509v3.h; sourceTree = "<group>"; };
+		D9C8DD27205E4F6700C3D259 /* DNSCurveControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DNSCurveControl.h; sourceTree = "<group>"; };
+		D9C8DD28205E4F6700C3D259 /* Include.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Include.h; sourceTree = "<group>"; };
+		D9C8DD29205E4F6700C3D259 /* DNSCurveControl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = DNSCurveControl.cpp; sourceTree = "<group>"; };
+		D9C8DD2B205E4F7200C3D259 /* Type.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Type.h; sourceTree = "<group>"; };
 		D9EF117C1DDB53C7004E4B90 /* LibSodium_macOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibSodium_macOS.a; path = Dependency/LibSodium/LibSodium_macOS.a; sourceTree = "<group>"; };
 		D9EF117E1DDB53D7004E4B90 /* LibCrypto_macOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibCrypto_macOS.a; path = Dependency/OpenSSL/LibCrypto_macOS.a; sourceTree = "<group>"; };
 		D9EF117F1DDB53D7004E4B90 /* LibSSL_macOS.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = LibSSL_macOS.a; path = Dependency/OpenSSL/LibSSL_macOS.a; sourceTree = "<group>"; };
@@ -351,6 +353,7 @@
 				D93C46FF1CD7582600CD334A /* Products */,
 			);
 			sourceTree = "<group>";
+			usesTabs = 1;
 		};
 		D93C46FF1CD7582600CD334A /* Products */ = {
 			isa = PBXGroup;
@@ -366,7 +369,7 @@
 				D93C47151CD7596A00CD334A /* Base.cpp */,
 				D93C47171CD7596A00CD334A /* Capture.cpp */,
 				D93C471A1CD7596A00CD334A /* Configuration.cpp */,
-				D93C471C1CD7596A00CD334A /* DNSCurve.cpp */,
+				D9C8DD29205E4F6700C3D259 /* DNSCurveControl.cpp */,
 				D96BE5C41DB7A895001D8BF3 /* DNSCurveRequest.cpp */,
 				D93C471E1CD7596A00CD334A /* Initialization.cpp */,
 				D93C47201CD7596A00CD334A /* Main.cpp */,
@@ -388,8 +391,9 @@
 				D93C47181CD7596A00CD334A /* Capture.h */,
 				D93C471B1CD7596A00CD334A /* Configuration.h */,
 				D96BE5C31DB7A887001D8BF3 /* Definition.h */,
-				D93C471D1CD7596A00CD334A /* DNSCurve.h */,
+				D9C8DD27205E4F6700C3D259 /* DNSCurveControl.h */,
 				D96BE5C51DB7A895001D8BF3 /* DNSCurveRequest.h */,
+				D9C8DD28205E4F6700C3D259 /* Include.h */,
 				D93C471F1CD7596A00CD334A /* Initialization.h */,
 				D93C47211CD7596A00CD334A /* Main.h */,
 				D93C47231CD7596A00CD334A /* Monitor.h */,
@@ -405,6 +409,7 @@
 				D96BE5CA1DB7A8AF001D8BF3 /* Structure.h */,
 				D96BE5CB1DB7A8AF001D8BF3 /* Template.h */,
 				D92660A41DCDB4A600061CE8 /* TransportSecurity.h */,
+				D9C8DD2B205E4F7200C3D259 /* Type.h */,
 			);
 			path = Pcap_DNSProxy;
 			sourceTree = "<group>";
@@ -604,6 +609,7 @@
 				D93C47251CD7596A00CD334A /* Capture.cpp in Sources */,
 				D93C473D1CD7598500CD334A /* PrintLog.cpp in Sources */,
 				D93C47261CD7596A00CD334A /* Configuration.cpp in Sources */,
+				D9C8DD2A205E4F6700C3D259 /* DNSCurveControl.cpp in Sources */,
 				D93C47421CD7598500CD334A /* ReadIPFilter.cpp in Sources */,
 				D93C473F1CD7598500CD334A /* Protocol.cpp in Sources */,
 				D93C47401CD7598500CD334A /* Proxy.cpp in Sources */,
@@ -613,7 +619,6 @@
 				D93C47241CD7596A00CD334A /* Base.cpp in Sources */,
 				D9EF11831DDB55D3004E4B90 /* ReadCommand.cpp in Sources */,
 				D92660A51DCDB4A600061CE8 /* TransportSecurity.cpp in Sources */,
-				D93C47271CD7596A00CD334A /* DNSCurve.cpp in Sources */,
 				D93C472F1CD7597600CD334A /* Network.cpp in Sources */,
 				D93C47281CD7596A00CD334A /* Initialization.cpp in Sources */,
 				D93C47431CD7598500CD334A /* ReadParameter.cpp in Sources */,

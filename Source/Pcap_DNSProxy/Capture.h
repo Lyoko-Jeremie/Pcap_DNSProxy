@@ -20,7 +20,7 @@
 #ifndef PCAP_DNSPROXY_CAPTURE_H
 #define PCAP_DNSPROXY_CAPTURE_H
 
-#include "Base.h"
+#include "Include.h"
 
 #if defined(ENABLE_PCAP)
 //Structure definitions

@@ -20,7 +20,7 @@
 #ifndef PCAP_DNSPROXY_PROCESS_H
 #define PCAP_DNSPROXY_PROCESS_H
 
-#include "Base.h"
+#include "Include.h"
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
@@ -30,9 +30,7 @@ extern BLOCKING_QUEUE<MONITOR_QUEUE_DATA> MonitorBlockingQueue;
 extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 #endif
 extern std::vector<DIFFERNET_FILE_SET_HOSTS> *HostsFileSetUsing, *HostsFileSetModificating;
-extern std::list<DNS_CACHE_DATA> DNSCacheList;
-extern std::unordered_multimap<std::string, std::list<DNS_CACHE_DATA>::iterator> DNSCacheIndexList;
-extern std::mutex LocalAddressLock[], HostsFileLock, DNSCacheListLock;
+extern std::mutex LocalAddressLock[], HostsFileLock;
 
 //Functions
 bool LocalRequestProcess(
@@ -71,7 +69,5 @@ void UDP_RequestProcess(
 	std::unique_ptr<uint8_t[]> &EDNS_Buffer);
 #endif
 uint16_t SelectDirectProtocol(
-	void);
-void AutoRemoveExpired_DNS_Cache(
 	void);
 #endif

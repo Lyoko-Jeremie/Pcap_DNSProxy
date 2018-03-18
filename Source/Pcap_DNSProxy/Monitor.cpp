@@ -1619,10 +1619,10 @@ void NetworkInformationMonitor(
 {
 //Initialization
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE]{0};
+	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE + PADDING_RESERVED_BYTES]{0};
 	std::string DomainString;
 #if defined(PLATFORM_WIN)
-	uint8_t HostName[DOMAIN_MAXSIZE]{0};
+	uint8_t HostName[DOMAIN_MAXSIZE + PADDING_RESERVED_BYTES]{0};
 	addrinfo *LocalAddressList = nullptr, *LocalAddressTableIter = nullptr;
 #elif defined(PLATFORM_LINUX)
 	ifaddrs *InterfaceAddressList = nullptr, *InterfaceAddressIter = nullptr;

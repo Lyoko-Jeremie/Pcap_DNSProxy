@@ -27,7 +27,7 @@ bool ReadIPFilterData(
 	LABEL_IPFILTER_TYPE &LabelType, 
 	bool &IsStopLabel)
 {
-//Convert horizontal tab/HT to space and remove spaces before or after data.
+//Convert horizontal tab/HT to space, remove spaces before or after data, and check minimum length of ipfilter items.
 	for (auto &StringIter:Data)
 	{
 		if (StringIter == ASCII_HT)
@@ -39,10 +39,10 @@ bool ReadIPFilterData(
 		Data.pop_back();
 	while (!Data.empty() && Data.find("  ") != std::string::npos)
 		Data.erase(Data.find("  "), 1U);
-	if (Data.empty())
+	if (Data.length() < READ_IPFILTER_MINSIZE)
 		return true;
 
-//Delete spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs) and check minimum length of ipfilter items.
+//Remove spaces, horizontal tab/HT, check comments(Number Sign/NS and double slashs).
 	if (Data.compare(0, strlen("#"), ("#")) == 0 || Data.compare(0, strlen("/"), ("/")) == 0)
 		return true;
 
@@ -116,7 +116,7 @@ bool ReadIPFilterData(
 		return false;
 	}
 
-//Delete comments(Number Sign/NS and double slashs) and check minimum length.
+//Remove comments(Number Sign/NS and double slashs) and check minimum length.
 	else if (Data.rfind(" //") != std::string::npos)
 	{
 		Data.erase(Data.rfind(" //"), Data.length() - Data.rfind(" //"));
@@ -129,7 +129,7 @@ bool ReadIPFilterData(
 //Blacklist items
 	if (LabelType == LABEL_IPFILTER_TYPE::BLACKLIST && Parameter.DataCheck_Blacklist)
 	{
-	//Delete spaces before or after verticals.
+	//Remove spaces before or after verticals.
 		while (Data.find(" |") != std::string::npos || Data.find("| ") != std::string::npos)
 		{
 			if (Data.find(" |") != std::string::npos)
@@ -153,7 +153,7 @@ bool ReadIPFilterData(
 	{
 		while (Data.find(ASCII_SPACE) != std::string::npos)
 			Data.erase(Data.find(ASCII_SPACE), 1U);
-		if (Data.length() >= READ_IPFILTER_MINSIZE)
+		if (Data.length() >= READ_IPFILTER_MAIN_MINSIZE)
 			return ReadMainIPFilterData(Data, FileIndex, Line);
 	}
 
@@ -170,7 +170,7 @@ bool ReadBlacklistData(
 	size_t Separated = 0;
 	if (Data.find(ASCII_COMMA) != std::string::npos)
 	{
-	//Delete spaces before or after commas.
+	//Remove spaces before or after commas.
 		while (Data.find(" ,") != std::string::npos)
 			Data.erase(Data.find(" ,"), strlen(" "));
 		while (Data.find(ASCII_SPACE) != std::string::npos && Data.find(ASCII_SPACE) > Data.find(ASCII_COMMA))
@@ -197,7 +197,7 @@ bool ReadBlacklistData(
 		return false;
 	}
 
-//Delete all spaces.
+//Remove all spaces.
 	while (Data.find(ASCII_SPACE) != std::string::npos)
 		Data.erase(Data.find(ASCII_SPACE), 1U);
 
@@ -213,7 +213,7 @@ bool ReadBlacklistData(
 //Initialization
 	RESULT_BLACKLIST_TABLE ResultBlacklistTableTemp;
 	ADDRESS_RANGE_TABLE AddressRangeTableTemp;
-	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE]{0};
+	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE + PADDING_RESERVED_BYTES]{0};
 	std::vector<std::string> ListData;
 	GetParameterListData(ListData, Data, 0, Separated, ASCII_VERTICAL, false, false);
 	ssize_t Result = 0;
@@ -450,7 +450,7 @@ bool ReadLocalRoutingData(
 
 //Initialization
 	AddressRoutingTable AddressRoutingTableTemp;
-	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE]{0};
+	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE + PADDING_RESERVED_BYTES]{0};
 	memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, Data.c_str(), Data.find("/"));
 	ssize_t SignedResult = 0;
 	size_t UnsignedResult = 0;
@@ -462,8 +462,9 @@ bool ReadLocalRoutingData(
 		memset(&BinaryAddr, 0, sizeof(BinaryAddr));
 		Data.erase(0, Data.find("/") + 1U);
 
-	//Convert address.
-		if (!AddressStringToBinary(AF_INET6, AddrBuffer, &BinaryAddr, &SignedResult))
+	//Prefix check and convert address.
+		if (Data.find(ASCII_MINUS) != std::string::npos || 
+			!AddressStringToBinary(AF_INET6, AddrBuffer, &BinaryAddr, &SignedResult))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv6 address format error", SignedResult, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -542,8 +543,9 @@ bool ReadLocalRoutingData(
 		memset(&BinaryAddr, 0, sizeof(BinaryAddr));
 		Data.erase(0, Data.find("/") + 1U);
 
-	//Convert address.
-		if (!AddressStringToBinary(AF_INET, AddrBuffer, &BinaryAddr, &SignedResult))
+	//Prefix check and convert address.
+		if (Data.find(ASCII_MINUS) != std::string::npos || 
+			!AddressStringToBinary(AF_INET, AddrBuffer, &BinaryAddr, &SignedResult))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"IPv4 address format error", SignedResult, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -623,7 +625,7 @@ bool ReadAddressPrefixBlock(
 	}
 
 //Initialization
-	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE]{0};
+	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE + PADDING_RESERVED_BYTES]{0};
 	memcpy_s(AddrBuffer, ADDRESS_STRING_MAXSIZE, Data.c_str(), Data.find("/"));
 	Data.erase(0, Data.find("/") + 1U);
 	ssize_t SignedResult = 0;
@@ -632,8 +634,9 @@ bool ReadAddressPrefixBlock(
 //IPv6
 	if (Protocol == AF_INET6)
 	{
-	//Convert address.
-		if (!AddressStringToBinary(AF_INET6, AddrBuffer, &reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first)->sin6_addr, &SignedResult))
+	//Prefix check and convert address.
+		if (Data.find(ASCII_MINUS) != std::string::npos || 
+			!AddressStringToBinary(AF_INET6, AddrBuffer, &reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first)->sin6_addr, &SignedResult))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv6 address format error", SignedResult, FileList.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -654,7 +657,7 @@ bool ReadAddressPrefixBlock(
 			if (AddressPrefix->second < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 			{
 				*reinterpret_cast<uint64_t *>(&reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first)->sin6_addr) = hton64(ntoh64(*reinterpret_cast<uint64_t *>(&reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first)->sin6_addr)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - AddressPrefix->second))); //Mark high 64 bits.
-				*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first)->sin6_addr) + sizeof(in6_addr) / 2U) = 0; //Delete low 64 bits.
+				*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first)->sin6_addr) + sizeof(in6_addr) / 2U) = 0; //Remove low 64 bits.
 			}
 			else {
 				*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first)->sin6_addr) + sizeof(in6_addr) / 2U) = hton64(ntoh64(*reinterpret_cast<uint64_t *>(reinterpret_cast<uint8_t *>(&reinterpret_cast<sockaddr_in6 *>(&AddressPrefix->first)->sin6_addr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - AddressPrefix->second))); //Mark low 64 bits.
@@ -666,8 +669,9 @@ bool ReadAddressPrefixBlock(
 //IPv4
 	else if (Protocol == AF_INET)
 	{
-	//Convert address.
-		if (!AddressStringToBinary(AF_INET, AddrBuffer, &reinterpret_cast<sockaddr_in *>(&AddressPrefix->first)->sin_addr, &SignedResult))
+	//Prefix check and convert address.
+		if (Data.find(ASCII_MINUS) != std::string::npos || 
+			!AddressStringToBinary(AF_INET, AddrBuffer, &reinterpret_cast<sockaddr_in *>(&AddressPrefix->first)->sin_addr, &SignedResult))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv4 address format error", SignedResult, FileList.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -715,7 +719,7 @@ bool ReadMainIPFilterData(
 	//IPv4 spacial removed
 		if (Data.find(ASCII_PERIOD) != std::string::npos)
 		{
-		//Delete all zeros before data.
+		//Remove all zeros before data.
 			for (Index = 0;Index < Data.find(ASCII_MINUS);++Index)
 			{
 				if (Data.at(Index) == ASCII_ZERO)
@@ -728,7 +732,7 @@ bool ReadMainIPFilterData(
 				}
 			}
 
-		//Delete all zeros before minus or after commas in addresses range.
+		//Remove all zeros before minus or after commas in addresses range.
 			while (Data.find(".0") != std::string::npos)
 				Data.replace(Data.find(".0"), strlen(".0"), ("."));
 			while (Data.find("-0") != std::string::npos)
@@ -743,7 +747,7 @@ bool ReadMainIPFilterData(
 				Data.replace(0, 1U, ("0."));
 		}
 
-	//Delete all zeros before minus or after commas in ipfilter level.
+	//Remove all zeros before minus or after commas in ipfilter level.
 		while (Data.find(",000,") != std::string::npos)
 			Data.replace(Data.find(",000,"), strlen(",000,"), (",0,"));
 		while (Data.find(",00,") != std::string::npos)
@@ -754,8 +758,15 @@ bool ReadMainIPFilterData(
 			Data.replace(Data.find(",0"), strlen(",0"), (","));
 
 	//Mark ipfilter level.
-		uint8_t Level[ADDRESS_STRING_MAXSIZE]{0};
+		uint8_t Level[ADDRESS_STRING_MAXSIZE + PADDING_RESERVED_BYTES]{0};
 		memcpy_s(Level, ADDRESS_STRING_MAXSIZE, Data.c_str() + Data.find(ASCII_COMMA) + 1U, Data.find(ASCII_COMMA, Data.find(ASCII_COMMA) + 1U) - Data.find(ASCII_COMMA) - 1U);
+		if (strstr(reinterpret_cast<const char *>(Level), ("-")) != nullptr)
+		{
+			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"Level error", errno, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
+			return false;
+		}
+
+	//Convert level.
 		_set_errno(0);
 		size_t UnsignedResult = strtoul(reinterpret_cast<const char *>(Level), nullptr, 0);
 		if ((UnsignedResult == 0 && errno == 0) || (UnsignedResult > 0 && UnsignedResult < ULONG_MAX))
@@ -767,7 +778,7 @@ bool ReadMainIPFilterData(
 			return false;
 		}
 
-	//Delete all data except addresses range.
+	//Remove all data except addresses range.
 		Data.erase(Data.find(ASCII_COMMA));
 		if (Data.at(Data.length() - 1U) == ASCII_PERIOD)
 			Data.append("0");
@@ -777,7 +788,7 @@ bool ReadMainIPFilterData(
 	//IPv4 IPFilter.dat data without level
 		if (Data.find(ASCII_COLON) == std::string::npos)
 		{
-		//Delete all zeros before data.
+		//Remove all zeros before data.
 			for (Index = 0;Index < Data.find(ASCII_MINUS);++Index)
 			{
 				if (Data.at(Index) == ASCII_ZERO)
@@ -790,7 +801,7 @@ bool ReadMainIPFilterData(
 				}
 			}
 
-		//Delete all zeros before minus or after commas in addresses range.
+		//Remove all zeros before minus or after commas in addresses range.
 			while (Data.find(".0") != std::string::npos)
 				Data.replace(Data.find(".0"), strlen(".0"), ("."));
 			while (Data.find("-0") != std::string::npos)
@@ -812,7 +823,7 @@ bool ReadMainIPFilterData(
 			{
 				Data.erase(0, Data.find(ASCII_COLON) + 1U);
 
-			//Delete all zeros before data.
+			//Remove all zeros before data.
 				for (Index = 0;Index < Data.find(ASCII_MINUS);++Index)
 				{
 					if (Data.at(Index) == ASCII_ZERO)
@@ -825,7 +836,7 @@ bool ReadMainIPFilterData(
 					}
 				}
 
-			//Delete all zeros before minus or after commas in addresses range.
+			//Remove all zeros before minus or after commas in addresses range.
 				while (Data.find(".0") != std::string::npos)
 					Data.replace(Data.find(".0"), strlen(".0"), ("."));
 				while (Data.find("-0") != std::string::npos)
@@ -845,7 +856,7 @@ bool ReadMainIPFilterData(
 	}
 
 //Read data.
-	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE]{0};
+	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE + PADDING_RESERVED_BYTES]{0};
 	if (Data.find(ASCII_COLON) != std::string::npos) //IPv6
 	{
 	//Begin address

@@ -20,7 +20,7 @@
 #ifndef PCAP_DNSPROXY_DNSCURVE_H
 #define PCAP_DNSPROXY_DNSCURVE_H
 
-#include "Base.h"
+#include "Include.h"
 
 #if defined(ENABLE_LIBSODIUM)
 //Global variables

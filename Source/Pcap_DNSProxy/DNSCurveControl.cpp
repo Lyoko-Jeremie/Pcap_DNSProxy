@@ -17,7 +17,7 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
 
-#include "DNSCurve.h"
+#include "DNSCurveControl.h"
 
 /* DNSCurve(DNSCrypt) Protocol version 2
 

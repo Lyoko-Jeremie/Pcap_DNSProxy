@@ -53,7 +53,7 @@ bool PrintError(
 		FileNameString.append(FileName);
 	#if defined(PLATFORM_WIN)
 		while (FileNameString.find(L"\\\\") != std::wstring::npos)
-			FileNameString.erase(FileNameString.find(L"\\\\"), wcslen(L"\\")); //Delete double backslash.
+			FileNameString.erase(FileNameString.find(L"\\\\"), wcslen(L"\\")); //Remove double backslash.
 	#endif
 
 	//Add line number.
@@ -399,9 +399,9 @@ void ErrorCodeToMessage(
 	//Write error code message.
 		Message.append(InnerMessage);
 		if (Message.back() == ASCII_SPACE)
-			Message.pop_back(); //Delete space.
+			Message.pop_back(); //Remove space.
 		if (Message.back() == ASCII_PERIOD)
-			Message.pop_back(); //Delete period.
+			Message.pop_back(); //Remove period.
 
 	//Define error code format.
 	#if defined(ENABLE_TLS)

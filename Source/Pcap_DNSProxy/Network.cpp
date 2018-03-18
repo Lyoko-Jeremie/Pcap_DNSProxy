@@ -374,7 +374,7 @@ bool SocketSetting(
 		//Socket attribute settings process
 			if (Parameter.TCP_FastOpen > 0)
 			{
-			//Windows: Server side is completed, client side is only support overlapped I/O. Waiting Microsoft extend to normal socket(2018-01-07).
+			//Windows: Server side is completed, client side is only support overlapped I/O. Waiting Microsoft extend to normal socket(2018-03-18).
 			//Linux: Server side and client side are both completed, also support queue length.
 			//macOS: Server side and client side are both completed.
 			#if defined(PLATFORM_WIN)

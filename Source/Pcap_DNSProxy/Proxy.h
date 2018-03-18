@@ -20,7 +20,7 @@
 #ifndef PCAP_DNSPROXY_PROXY_H
 #define PCAP_DNSPROXY_PROXY_H
 
-#include "Base.h"
+#include "Include.h"
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter;

@@ -334,6 +334,7 @@
 
 //////////////////////////////////////////////////
 // Platform check
+// 
 //Pcap_DNSProxy now support Windows, Linux and macOS.
 #if !(defined(PLATFORM_WIN) || defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	#error "This platform is unsupported."
@@ -403,7 +404,7 @@
 	#include <ws2tcpip.h>              //WinSock 2.0+ Extension for TCP/IP protocols
 
 //Part 3 including files(MUST be including after Part 2)
-	#include <windows.h>               //Master include file
+//	#include <windows.h>               //Master include file
 
 //Part 4 including files(MUST be including after Part 3)
 	#include <iphlpapi.h>              //IP Stack for MIB-II and related functionality

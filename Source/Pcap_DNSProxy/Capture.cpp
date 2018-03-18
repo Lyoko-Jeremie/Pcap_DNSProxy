@@ -32,7 +32,7 @@ void CaptureInit(
 	}
 
 //Initialization
-	uint8_t ErrorBuffer[PCAP_ERRBUF_SIZE]{0};
+	uint8_t ErrorBuffer[PCAP_ERRBUF_SIZE + PADDING_RESERVED_BYTES]{0};
 	pcap_if *CaptureDriveList = nullptr, *CaptureDriveIter = nullptr;
 	std::wstring Message;
 	std::string CaptureName, CaptureDescription;
@@ -277,7 +277,7 @@ bool CaptureFilterRulesInit(
 		return false;
 
 //Initialization(Part 2)
-	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE]{0};
+	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE + PADDING_RESERVED_BYTES]{0};
 	std::string AddrString;
 	FilterRules.clear();
 	FilterRules.append("(src host ");
@@ -524,7 +524,7 @@ bool CaptureModule(
 			reinterpret_cast<unsigned char *>(&ParamList));
 		if (Result < 0)
 		{
-		//Delete this capture from device list.
+		//Remove this capture from device list.
 			CaptureMutex.lock();
 			for (auto CaptureIter = PcapRunningList.begin();CaptureIter != PcapRunningList.end();)
 			{
