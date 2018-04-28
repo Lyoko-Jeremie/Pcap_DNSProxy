@@ -65,12 +65,9 @@ goto %UserChoice%
 	sc delete PcapDNSProxyService
 	ping 127.0.0.1 -n 3 >NUL
 	taskkill /F /IM Pcap_DNSProxy.exe >NUL
-
+	ping 127.0.0.1 -n 3 >NUL
 	sc create PcapDNSProxyService binPath= "%~dp0%Prog%" DisplayName= "PcapDNSProxy Service" start= auto
-	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v Application /d "%~dp0%Prog%" /f
-	reg add HKLM\SYSTEM\CurrentControlSet\Services\PcapDNSProxyService\Parameters /v AppDirectory /d "%~dp0" /f
 	%Prog% --first-setup
-
 	sc description PcapDNSProxyService "Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap"
 	sc failure PcapDNSProxyService reset= 0 actions= restart/5000/restart/10000//
 	sc start PcapDNSProxyService
@@ -138,6 +135,7 @@ goto %UserChoice%
 	sc stop PcapDNSProxyService
 	ping 127.0.0.1 -n 3 >NUL
 	taskkill /F /IM Pcap_DNSProxy.exe >NUL
+	ping 127.0.0.1 -n 3 >NUL
 	sc start PcapDNSProxyService
 	ping 127.0.0.1 -n 3 >NUL
 	ipconfig /flushdns

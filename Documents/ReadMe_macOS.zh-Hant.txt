@@ -13,28 +13,27 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 安裝方法（使用已編譯好的二進位可執行檔）：
 
-1.訪問 https://github.com/chengr28/Pcap_DNSProxy/releases 將二進位可執行檔包下載到本地
-2.打開下載回來的二進位可執行檔包，將 macOS 目錄解壓到磁片的任意位置
-  * 建議將本專案放置在一個獨立的目錄內，不要和其它檔混合
-  * 注意：TLS/SSL 協定相關功能的問題，請流覽下文有關 OpenSSL 庫的特別說明
-3.編輯 pcap_dnsproxy.service.plist 檔案
-  * 清空 <string>/usr/local/opt/pcap_dnsproxy/bin/Pcap_DNSProxy</string> 標籤內的內容，改為 "<string>程式所在的完整路徑/程式名稱</string>"（不含引號）
-  * 清空 <string>/usr/local/etc/pcap_dnsproxy</string> 標籤內的內容，改為 "<string>程式所在的完整路徑</string>"（不含引號）
-4.打開終端，使用 sudo -i 獲得 root 許可權並進入 macOS 目錄內：
+1.打開下載的二進位可執行檔包，將 macOS 目錄解壓到磁片的任意位置
+2.編輯 pcap_dnsproxy.service.plist 檔
+  * 清空 <string>/usr/local/opt/pcap_dnsproxy/bin/Pcap_DNSProxy</string> 標籤內的內容
+  * 改為 "<string>程式所在的完整路徑/程式名稱</string>"（不含引號）
+  * 清空 <string>/usr/local/etc/pcap_dnsproxy</string> 標籤內的內容
+  * 改為 "<string>程式所在的完整路徑</string>"（不含引號）
+3.打開終端，使用 sudo -i 獲得 root 許可權並進入 macOS 目錄內：
   * 使用 cd 切換回程序所在目錄
   * 使用 chmod 755 macOS_Install.sh 使服務安裝腳本獲得可執行許可權
   * 使用 ./macOS_Install.sh 執行服務安裝腳本
   * 腳本所進行的操作：
-    * 设置程序、脚本以及 plist 配置文件的基本读写执行权限
-    * 装载并启动守护进程服务
-    * 以後每次開機在登錄前守護進程服務都將自動啟動
-5.請按照下文 正常工作查看方法 一節，先對程式是否在正常工作進行測試再修改網路設定！
-6.打開 "系統偏好設置" 視窗
+    * 設置程式、腳本以及 plist 設定檔的基本讀寫執行許可權
+    * 裝載並啟動守護進程服務
+    * 每次開機在登錄前守護進程服務都將自動啟動
+4.請按照下文 正常工作查看方法 一節，先對程式是否在正常工作進行測試再修改網路設定！
+5.打開 "系統偏好設置" 視窗
   * 進入 "網路" 部分
   * 選中使用的網路介面卡，點擊 "高級" 按鈕
-  * 切換到 "DNS" 選項卡，並點擊 "DNS伺服器" 下的 "+" 號
+  * 切換到 "DNS" 選項卡，並點擊 "DNS 伺服器" 下的 "+" 號
   * 輸入 127.0.0.1(IPv4)/::1(IPv6)
-    * 請務必確保只填入這兩個地址，填入其它地址可能會導致系統選擇其它 DNS 服務器繞過程序的代理
+    * 請務必確保只填入這兩個位址，填入其它位址可能會導致系統選擇其它 DNS 伺服器繞過程式的代理
   * 按 "好" 再按 "應用" 即可
 
 
@@ -44,38 +43,27 @@ https://sourceforge.net/projects/pcap-dnsproxy
 安裝方法（編譯二進位可執行檔）：
 
 1.準備程式編譯環境
-  * Homebrew 可訪問 https://brew.sh 獲取
-  * CMake 可訪問 https://cmake.org 或通過 Homebrew 獲取
-  * LibPcap 可訪問 http://www.tcpdump.org/#latest-release 獲取
-    * 編譯時如果剝離 LibPcap 的依賴則可跳過編譯和安裝下表的依賴庫和工具，具體參見下文的介紹，不建議使用
-    * 獲得 root 許可權後使用 ./configure -> make -> make install 即可
-  * Libsodium 可訪問 https://github.com/jedisct1/libsodium 獲取
-    * 編譯時如果剝離 Libsodium 的依賴則可跳過編譯和安裝下表的依賴庫和工具，具體參見下文的介紹，不建議使用
-    * 獲得 root 許可權後進入目錄，運行 ./autogen.sh -> ./configure -> make -> make install 即可
-  * OpenSSL 可訪問 https://www.openssl.org 獲取
-    * 編譯時如果剝離 OpenSSL 的依賴則可跳過編譯和安裝下表的依賴庫和工具，具體參見下文的介紹，不建議使用
-    * 獲得 root 許可權後使用 ./configure darwin64-x86_64-cc -> make -> make install 即可
+  * 完整的協力廠商依賴清單：
+    * CMake
+    * LibEvent
+    * LibPcap
+      * 本依賴可根據編譯參數剝離
+    * LibSodium
+      * 本依賴可根據編譯參數剝離
+    * OpenSSL
+      * 本依賴可根據編譯參數剝離
 
 2.編譯 Pcap_DNSProxy 程式並配置程式屬性
-  * 切勿更改腳本的換行格式 (UNIX/LF)
-  * 注意：TLS/SSL 協定相關功能的問題，請流覽下文有關 OpenSSL 庫的特別說明
   * 使用終端進入 Source/Auxiliary/Scripts 目錄，使用 chmod 755 CMake_Build.sh 使腳本獲得執行許可權
   * 使用 ./CMake_Build.sh 執行編譯器
     * 腳本所進行的操作：
       * CMake 將編譯並在 Release 目錄生成 Pcap_DNSProxy 程式
       * 從 ExampleConfig 目錄和 Scripts 目錄複寫所需的腳本和預設設定檔到 Release 目錄，並設置基本讀寫可執行許可權
   * 使用 ./CMake_Build.sh 腳本時可提供的參數：
-    * 執行時使用 ./CMake_Build.sh --disable-libpcap 可剝離對 LibPcap 的依賴，不建議使用
-      * 剝離後編譯時將不需要 LibPcap 庫的支援
-      * 剝離後程式將完全失去支援 LibPcap 的功能，且運行時將不會產生任何錯誤提示，慎用！
-    * 執行時使用 ./CMake_Build.sh --disable-libsodium 可剝離對 Libsodium 的依賴，不建議使用
-      * 剝離後編譯時將不需要 Libsodium 庫的支援
-      * 剝離後程式將完全失去支援 DNSCurve(DNSCrypt) 協定的功能，且運行時將不會產生任何錯誤提示，慎用！
-    * 執行時使用 ./CMake_Build.sh --disable-tls 可剝離對 OpenSSL 的依賴，不建議使用
-      * 剝離後編譯時將不需要 OpenSSL 庫的支援
-      * 剝離後程式將完全失去支援 TLS/SSL 協定的功能，且運行時將不會產生任何錯誤提示，慎用！
+    * 執行時使用 ./CMake_Build.sh --disable-libpcap --disable-libsodium --disable-tls 可剝離對對應庫的依賴，不建議使用
+    * 剝離後編譯時將不再需要該庫的支援，但同時將完全失去使用該庫所支援的功能，且運行時將不會產生任何提示，慎用！
 
-3.按照安裝方法（使用已編譯好的二進位可執行檔）中第3步的操作繼續進行即可
+3.按照安裝方法（使用已編譯好的二進位可執行檔）中第 3 步的操作繼續進行即可
 
 
 -------------------------------------------------------------------------------
@@ -83,7 +71,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 有關 OpenSSL 庫的特別說明：
 
-* 為系統安裝新版本 OpenSSL 庫後，在開啟 TLS/SSL 功能進行編譯時如果出現 undef: OPENSSL.. 錯誤：
+* 安裝新版本 OpenSSL 庫後，在開啟 TLS/SSL 功能進行編譯時如果出現 undef: OPENSSL.. 錯誤：
   * 原因是 macOS 自帶的 OpenSSL 系列版本非常老舊(0.9.8)不支援新版本特性，連結器在連結時使用了系統自帶庫導致錯誤
   * 此時先查看編譯過程的記錄，將 Found OpenSSL 指示的 CMake 找到的 OpenSSL 庫檔目錄記下，並確認所使用的版本
     * 可編輯 Pcap_DNSProxy 目錄下的 CMakeLists.txt 檔：
@@ -113,8 +101,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
 1.打開終端，使用 sudo -i 獲得 root 許可權並進入 macOS 目錄內
 2.使用 ./macOS_Uninstall.sh 執行服務卸載腳本
 3.備份所有設定檔，刪除所有 Pcap_DNSProxy 相關檔
+  * 進行第 4 步前先將備份的配置檔案還原到 macOS 目錄內
 4.按照安裝方法重新部署 Pcap_DNSProxy
-  * 進行第4步前先將備份的配置檔案還原到 macOS 目錄內
   * Config.conf 檔建議按照備份的設定檔重新設置，如直接覆蓋可能會導致沒有新功能的選項
 
 

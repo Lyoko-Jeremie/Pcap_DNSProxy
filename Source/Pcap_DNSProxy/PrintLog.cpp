@@ -241,7 +241,7 @@ bool WriteMessage_ScreenFile(
 	if (GetFileAttributesExW(
 		GlobalRunningStatus.Path_ErrorLog->c_str(), 
 		GetFileExInfoStandard, 
-		&FileAttributeData) != FALSE)
+		&FileAttributeData) != 0)
 	{
 		LARGE_INTEGER ErrorFileSize;
 		memset(&ErrorFileSize, 0, sizeof(ErrorFileSize));
@@ -250,7 +250,7 @@ bool WriteMessage_ScreenFile(
 		if (ErrorFileSize.QuadPart > 0 && static_cast<uint64_t>(ErrorFileSize.QuadPart) >= Parameter.LogMaxSize)
 		{
 			if (DeleteFileW(
-				GlobalRunningStatus.Path_ErrorLog->c_str()) != FALSE)
+				GlobalRunningStatus.Path_ErrorLog->c_str()) != 0)
 					IsFileDeleted = true;
 			else 
 				return false;

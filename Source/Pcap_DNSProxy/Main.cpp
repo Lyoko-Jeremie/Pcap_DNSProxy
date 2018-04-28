@@ -32,7 +32,7 @@ int main(
 {
 #endif
 //Get commands.
-	if (argc < COMMAND_MIN_COUNT)
+	if (argc < COMMAND_COUNT_MIN)
 		return EXIT_FAILURE;
 //Read commands.
 	else if (!ReadCommand(argc, argv))
@@ -47,7 +47,7 @@ int main(
 //Handle the system signal.
 #if defined(PLATFORM_WIN)
 	if (SetConsoleCtrlHandler(
-			reinterpret_cast<PHANDLER_ROUTINE>(CtrlHandler), 
+			reinterpret_cast<PHANDLER_ROUTINE>(SignalHandler), 
 			TRUE) == 0)
 	{
 		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Set console control handler error", GetLastError(), nullptr, 0);
@@ -55,8 +55,10 @@ int main(
 	}
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	errno = 0;
-	if (signal(SIGHUP, SIG_Handler) == SIG_ERR || signal(SIGINT, SIG_Handler) == SIG_ERR || signal(SIGQUIT, SIG_Handler) == SIG_ERR || 
-		signal(SIGTERM, SIG_Handler) == SIG_ERR)
+	if (signal(SIGHUP, SignalHandler) == SIG_ERR || 
+		signal(SIGINT, SignalHandler) == SIG_ERR || 
+		signal(SIGQUIT, SignalHandler) == SIG_ERR || 
+		signal(SIGTERM, SignalHandler) == SIG_ERR)
 	{
 		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SYSTEM, L"Handle system signals error", errno, nullptr, 0);
 		return EXIT_FAILURE;
@@ -77,7 +79,7 @@ int main(
 
 //Main process initialization
 #if defined(PLATFORM_WIN)
-	const SERVICE_TABLE_ENTRYW ServiceTable[]{{SYSTEM_SERVICE_NAME, reinterpret_cast<LPSERVICE_MAIN_FUNCTIONW>(ServiceMain)}, {nullptr, nullptr}}; //Service beginning
+	const SERVICE_TABLE_ENTRYW ServiceTable[]{{SYSTEM_SERVICE_NAME, reinterpret_cast<LPSERVICE_MAIN_FUNCTIONW>(ServiceMain)}, {nullptr, nullptr}};
 	if (StartServiceCtrlDispatcherW(ServiceTable) == 0)
 	{
 	//Print to screen.

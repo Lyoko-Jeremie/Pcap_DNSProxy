@@ -22,10 +22,19 @@
 
 #include "Include.h"
 
+//Structure definitions
+//Huffman Node structure
+typedef struct _huffman_node_
+{
+	uint32_t                             Bits;
+	uint8_t                              BitSize;
+}HuffmanNode, HUFFMAN_NODE;
+
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 
+//Local variables
 //HTTP version 2 HPACK Header Compression static huffman coding node
 static HUFFMAN_NODE HuffmanCodes[] = 
 {
@@ -404,4 +413,13 @@ static uint32_t HuffmanDecodes[256U] =
 	static_cast<uint32_t>(2148171789U), 
 	static_cast<uint32_t>(2148958464U)
 };
+
+//Functions
+HUFFMAN_RETURN_TYPE HPACK_HuffmanEncoding(
+	uint8_t *String, 
+	size_t ByteSize, 
+	size_t *Consumed, 
+	uint8_t *Buffer, 
+	size_t Length, 
+	size_t *Produced);
 #endif

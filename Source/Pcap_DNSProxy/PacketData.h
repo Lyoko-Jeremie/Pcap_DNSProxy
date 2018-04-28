@@ -22,6 +22,14 @@
 
 #include "Include.h"
 
+//Structure definitions
+typedef enum _cpm_pointer_type_
+{
+	CPM_POINTER_TYPE_HEADER, 
+	CPM_POINTER_TYPE_RR, 
+	CPM_POINTER_TYPE_ADDITIONAL
+}CPM_POINTER_TYPE;
+
 //Global variables
 extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;

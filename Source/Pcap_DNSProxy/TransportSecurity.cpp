@@ -735,7 +735,7 @@ void OpenSSL_LibraryInit(
 #if OPENSSL_VERSION_NUMBER < OPENSSL_VERSION_1_1_0 //OpenSSL version below 1.1.0
 //Unoad all OpenSSL libraries, algorithms and strings.
 	else {
-		CONF_modules_unload(TRUE);
+		CONF_modules_unload(1); //All modules
 		ERR_free_strings();
 		EVP_cleanup();
 	}
@@ -807,7 +807,7 @@ bool OpenSSL_CTX_Initializtion(
 
 //TLS version selection(Part 2)
 #if OPENSSL_VERSION_NUMBER >= OPENSSL_VERSION_1_1_0 //OpenSSL version 1.1.0 and above
-	ssize_t InnerResult = TRUE;
+	ssize_t InnerResult = OPENSSL_RETURN_SUCCESS;
 	if (Parameter.HTTP_CONNECT_TLS_Version == TLS_VERSION_SELECTION::VERSION_1_2)
 	{
 		if (OpenSSL_CTX.Protocol_Transport == IPPROTO_TCP)
@@ -861,7 +861,7 @@ bool OpenSSL_CTX_Initializtion(
 	}
 
 //TLS selection check
-	if (Result != TRUE || InnerResult != TRUE)
+	if (Result != OPENSSL_RETURN_SUCCESS || InnerResult != OPENSSL_RETURN_SUCCESS)
 	{
 		OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL TLS version selection ");
 		return false;
@@ -886,6 +886,7 @@ bool OpenSSL_CTX_Initializtion(
 			return false;
 
 	//Result check
+	//OpenSSL ALPN functions return 0 on success, do not use OPENSSL_RETURN_SUCCESS(1).
 		if (Result != 0)
 		{
 			OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL set ALPN extension ");
@@ -899,7 +900,7 @@ bool OpenSSL_CTX_Initializtion(
 	{
 	//Locate default certificate store.
 		Result = SSL_CTX_set_default_verify_paths(OpenSSL_CTX.MethodContext);
-		if (Result != TRUE)
+		if (Result != OPENSSL_RETURN_SUCCESS)
 		{
 			OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL locate default certificate store ");
 			return false;
@@ -944,7 +945,7 @@ bool OpenSSL_BIO_Initializtion(
 
 //BIO attribute settings
 	BIO_set_fd(OpenSSL_CTX.SessionBIO, OpenSSL_CTX.Socket, BIO_NOCLOSE); //Set the socket.
-	BIO_set_nbio(OpenSSL_CTX.SessionBIO, TRUE); //Socket non-blocking mode
+	BIO_set_nbio(OpenSSL_CTX.SessionBIO, OPENSSL_SET_NON_BLOCKING); //Socket non-blocking mode
 	BIO_set_conn_hostname(OpenSSL_CTX.SessionBIO, OpenSSL_CTX.AddressString.c_str()); //Set connect target.
 
 //Get SSL method data.
@@ -973,7 +974,7 @@ bool OpenSSL_BIO_Initializtion(
 	else //Auto select and new TLS version
 		Result = SSL_set_cipher_list(OpenSSL_CTX.SessionData, OPENSSL_CIPHER_LIST_STRONG);
 #endif
-	if (Result == FALSE)
+	if (Result == OPENSSL_RETURN_FAILURE)
 	{
 		OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL set strong ciphers ");
 		return false;
@@ -993,7 +994,7 @@ bool OpenSSL_BIO_Initializtion(
 
 	//Set certificate paremeter flags.
 		X509_VERIFY_PARAM_set_hostflags(X509_Param, X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
-		if (X509_VERIFY_PARAM_set1_host(X509_Param, Parameter.MBS_HTTP_CONNECT_TLS_SNI->c_str(), 0) == FALSE)
+		if (X509_VERIFY_PARAM_set1_host(X509_Param, Parameter.MBS_HTTP_CONNECT_TLS_SNI->c_str(), 0) == OPENSSL_RETURN_FAILURE)
 		{
 			OpenSSL_PrintError(reinterpret_cast<const uint8_t *>(ERR_error_string(ERR_get_error(), nullptr)), L"OpenSSL hostname checking and validation ");
 			return false;
@@ -1020,7 +1021,7 @@ bool OpenSSL_Handshake(
 	while (RecvLen <= 0)
 	{
 		RecvLen = BIO_do_connect(OpenSSL_CTX.SessionBIO);
-		if (RecvLen == TRUE)
+		if (RecvLen == OPENSSL_RETURN_SUCCESS) //Connection was established successfully.
 		{
 			break;
 		}
@@ -1042,7 +1043,7 @@ bool OpenSSL_Handshake(
 	while (RecvLen <= 0)
 	{
 		RecvLen = BIO_do_handshake(OpenSSL_CTX.SessionBIO);
-		if (RecvLen == TRUE)
+		if (RecvLen == OPENSSL_RETURN_SUCCESS) //Connection was established successfully.
 		{
 			break;
 		}
@@ -1183,7 +1184,7 @@ bool TLS_TransportSerial(
 		else {
 			SocketSelectingDataList.front().RecvLen += RecvLen;
 			if (RecvLen < static_cast<ssize_t>(Parameter.LargeBufferSize) && SocketSelectingDataList.front().RecvLen >= PacketMinSize && 
-				((RequestType != REQUEST_PROCESS_TYPE::TCP_NORMAL && RequestType != REQUEST_PROCESS_TYPE::TCP_WITHOUT_MARKING && //Only TCP DNS response should be check.
+				((RequestType != REQUEST_PROCESS_TYPE::TCP_NORMAL && RequestType != REQUEST_PROCESS_TYPE::TCP_WITHOUT_REGISTER && //Only TCP DNS response should be check.
 				RequestType != REQUEST_PROCESS_TYPE::HTTP_CONNECT_MAIN && RequestType != REQUEST_PROCESS_TYPE::HTTP_CONNECT_1 && RequestType != REQUEST_PROCESS_TYPE::HTTP_CONNECT_2) || //Only HTTP CONNECT response should be check.
 				CheckConnectionStreamFin(RequestType, SocketSelectingDataList.front().RecvBuffer.get(), SocketSelectingDataList.front().RecvLen)))
 					return true;
@@ -1206,7 +1207,7 @@ bool OpenSSL_ShutdownConnection(
 	{
 	//Shutdown security connection.
 		Result = SSL_shutdown(OpenSSL_CTX.SessionData);
-		if (Result < 0)
+		if (Result < OPENSSL_RETURN_FAILURE)
 			return false;
 
 	//Receive rest of data.

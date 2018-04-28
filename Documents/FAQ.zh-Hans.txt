@@ -23,7 +23,11 @@
   * 当有任何怀疑程序工作不正常或者出错的情况，可绕过服务控制程序直接使用程序的调试模式进行调试，所有错误都将直接输出到屏幕上
   * 终止所有正在运行的实例，确定同一时间只能有一个程序正在运行中
   * Windows
-    * 直接以管理员权限运行即可
+    * 直接以管理员权限运行 exe 即可
+  * Linux
+    * 以 root 权限运行 ./Pcap_DNSProxy --disable-daemon
+  * macOS
+    * 以 root 权限运行 ./Pcap_DNSProxy
 
 * 如果出现以下结果，则说明服务没有运行成功或者设置出错，请检查是否有错误报告生成，或请移步 ReadMe 文档中 安装方法 一节
 
@@ -41,7 +45,7 @@
 * 如果出现以下结果，则说明服务已经运行成功但远程 DNS 服务器没有回应，请检查是否有错误报告生成
   * 请务必设置一个正确的、有效的、可以使用的境外 DNS 服务器
   * 出现这种情况可能为网络问题。部分地区 ISP/运营商对 UDP 协议转发丢包率比较高，可尝试切换到 TCP 协议模式（参见 ReadMe 文档中 配置文件详细参数说明 中 Base 基本区域 的 Operation Mode 一节）或者多尝试请求几次
-  * 也可能是因为长时间运行有错误累积造成，项目组正努力解决。可尝试重启服务（参见 ReadMe 文档中的 重启服务）
+  * 可尝试重启服务（参见 ReadMe 文档中的 重启服务）
 
    >nslookup www.google.com
     服务器:  pcap-dnsproxy.server（视配置文件设置的值而定，参见 ReadMe 文档中 配置文件详细参数说明）
@@ -142,12 +146,12 @@ Error.log 详细错误报告：
   * IPv4 address format error - IPv4 地址格式错误：请检查 IPv4 的地址格式
   * IPv4 address port error - IPv4 地址端口格式错误：请检查 IPv4 的地址端口格式
   * IPv4 packet TTL range error - IPv4 数据包 TTL 值范围错误：请确认该条目的内容
-  * IPv4 prefix error - IPv4 网络前缀长度错误：IPv4 网络前缀的长度介乎与 1-32
+  * IPv4 prefix error - IPv4 网络前缀长度错误：IPv4 网络前缀的长度介乎与 1 - 32
   * IPv4 total request number error - IPv4 请求总次数限制错误：填入主要/备用服务器的数量超过限制值
   * IPv6 address format error - IPv6 地址格式错误：请检查 IPv6 的地址格式
   * IPv6 address port error - IPv6 地址端口格式错误：请检查 IPv6 的地址端口格式
   * IPv6 packet Hop Limits range error - IPv6 数据包 Hop Limits 值范围错误：请确认该条目的内容
-  * IPv6 prefix error - IPv6 网络前缀长度错误：IPv6 网络前缀的长度介乎与 1-128
+  * IPv6 prefix error - IPv6 网络前缀长度错误：IPv6 网络前缀的长度介乎与 1 - 128
   * IPv6 total request number error - IPv6 请求总次数限制错误：填入主要/备用服务器的数量超过限制值
   * Local machine listening port error - 本地监听端口错误：请检查本地监听端口的值，可适用范围为 1 - 65535
   * Local request options error - 境内请求参数错误：请检查境内服务器是否可用
@@ -162,10 +166,10 @@ Error.log 详细错误报告：
   * Item format error - IPFilter 条目格式错误：请检查该条目的格式
   * IPv4 address format error - IPFilter 的 IPv4 地址格式错误：请检查 IPFilter 条目的地址
   * IPv4 address range error - IPFilter 的 IPv6 地址范围错误：请检查 IPFilter 条目的地址
-  * IPv4 prefix error - IPv4 网络前缀长度错误：IPv4 网络前缀的长度介乎与 1-32
+  * IPv4 prefix error - IPv4 网络前缀长度错误：IPv4 网络前缀的长度介乎与 1 - 32
   * IPv6 address format error - IPFilter 的 IPv6 地址格式错误：请检查 IPFilter 条目的地址
   * IPv6 address range error - IPFilter 的 IPv6 地址范围错误：请检查 IPFilter 条目的地址
-  * IPv6 prefix error - IPv6 网络前缀长度错误：IPv6 网络前缀的长度介乎与 1-128
+  * IPv6 prefix error - IPv6 网络前缀长度错误：IPv6 网络前缀的长度介乎与 1 - 128
   * Level error - IPFilter 过滤级别错误：过滤级别介乎与 0 - 0xFFFF(65535)
   * Regular expression pattern error - 错误的正则表达式：请检查正则表达式的正确
   * Repeat item error, this item will disabled - 存在重复的 IPFilter 条目：本条目将不启用
@@ -181,8 +185,8 @@ Error.log 详细错误报告：
   * Too many Hosts IPv4 addresses - Hosts 条目的平行地址过多：请检查 Hosts 条目地址的数量，A 记录不能超过 75 个
 
 5.Network Error - 网络错误
-  * Bind TCP Monitor socket error - TCP 协议本地套接字绑定错误：本地可能已经存在 DNS 服务器或者多重运行了本工具，具体具体原因可参见错误代码
-  * Bind UDP Monitor socket error - UDP 协议本地套接字绑定错误：本地可能已经存在 DNS 服务器或者多重运行了本工具，具体具体原因可参见错误代码
+  * Bind TCP Monitor socket error - TCP 协议本地套接字绑定错误：本地可能已经存在 DNS 服务器或者多重运行了本工具，具体原因可参见错误代码
+  * Bind UDP Monitor socket error - UDP 协议本地套接字绑定错误：本地可能已经存在 DNS 服务器或者多重运行了本工具，具体原因可参见错误代码
   * Complete UDP socket initialization error - UDP 协议请求套接字初始化错误：具体原因可参见错误代码
   * DNSCurve TCP socket initialization error - DNSCurve 协议 TCP 协议套接字初始化错误：可能为网络错误，具体原因可参见错误代码
   * DNSCurve UDP socket initialization error - DNSCurve 协议 UDP 协议套接字初始化错误：可能为网络错误，具体原因可参见错误代码
@@ -192,6 +196,8 @@ Error.log 详细错误报告：
   * HTTP CONNECT connecting error - HTTP CONNECT 协议连接错误：可能为网络错误，具体原因可参见错误代码
   * HTTP CONNECT request error - HTTP CONNECT 协议请求错误：可能为网络错误，具体原因可参见错误代码
   * HTTP CONNECT socket initialization error - HTTP CONNECT 协议请求套接字初始化错误：具体原因可参见错误代码
+  * ICMP Test event initialization error - ICMP 协议事件模块初始化错误：可能为网络错误，具体原因可参见错误代码
+  * ICMP Test event error - ICMP 协议事件模块错误：可能为网络错误，具体原因可参见错误代码
   * No any available gateways to external network - 没有任何通往外部网络的可用网关：可能为网络错误，请检查网络是否通畅
   * Socket Do Not Fragment flag settings error - 设置 IPv4 Do Not Fragment 标志错误：具体原因可参见错误代码
   * Socket Hop Limits settings error - 设置 Hop Limits/TTL 错误：具体原因可参见错误代码

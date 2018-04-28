@@ -31,11 +31,11 @@ bool CheckEmptyBuffer(
 	const size_t Length);
 bool MBS_To_WCS_String(
 	const uint8_t * const Buffer, 
-	const size_t MaxLen, 
+	const size_t BufferSize, 
 	std::wstring &Target);
 bool WCS_To_MBS_String(
 	const wchar_t * const Buffer, 
-	const size_t MaxLen, 
+	const size_t BufferSize, 
 	std::string &Target);
 void CaseConvert(
 	uint8_t * const Buffer, 
@@ -75,13 +75,6 @@ size_t Base64_Decode(
 	uint8_t *Output, 
 	const size_t OutputSize);
 #endif
-HUFFMAN_RETURN_TYPE HPACK_HuffmanEncoding(
-	uint8_t *String, 
-	size_t ByteSize, 
-	size_t *Consumed, 
-	uint8_t *Buffer, 
-	size_t Length, 
-	size_t *Produced);
 HUFFMAN_RETURN_TYPE HPACK_HuffmanDecoding(
 	uint8_t *HuffmanBuffer, 
 	size_t ByteSize, 
@@ -199,10 +192,6 @@ bool TCP_AcceptProcess(
 	MONITOR_QUEUE_DATA MonitorQueryData, 
 	uint8_t * const OriginalRecv, 
 	size_t RecvSize);
-void AlternateServerMonitor(
-	void);
-void NetworkInformationMonitor(
-	void);
 
 //Network.h
 #if defined(PLATFORM_WIN)
@@ -251,10 +240,11 @@ size_t SocketSelectingSerial(
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
 	std::vector<ssize_t> &ErrorCodeList);
-void MarkPortToList(
+void RegisterPortToList(
 	const uint16_t Protocol, 
 	const SOCKET_DATA * const LocalSocketData, 
-	std::vector<SOCKET_DATA> &SocketDataList);
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	size_t *EDNS_Length);
 
 //PacketData.h
 uint16_t GetChecksum(
@@ -272,8 +262,8 @@ uint16_t GetChecksum_TCP_UDP(
 	const size_t DataOffset);
 size_t AddLengthDataToHeader(
 	uint8_t * const Buffer, 
-	const size_t RecvLen, 
-	const size_t MaxLen);
+	const size_t DataLength, 
+	const size_t BufferSize);
 size_t StringToPacketQuery(
 	const uint8_t * const FName, 
 	uint8_t * const TName);
@@ -295,7 +285,7 @@ bool Move_EDNS_LabelToEnd(
 size_t Add_EDNS_LabelToPacket(
 	uint8_t * const Buffer, 
 	const size_t Length, 
-	const size_t MaxLen, 
+	const size_t BufferSize, 
 	const SOCKET_DATA * const LocalSocketData);
 bool Add_EDNS_LabelToPacket(
 	DNS_PACKET_DATA * const PacketStructure, 
@@ -305,7 +295,7 @@ bool Add_EDNS_LabelToPacket(
 size_t MakeCompressionPointerMutation(
 	uint8_t * const Buffer, 
 	const size_t Length, 
-	const size_t MaxLen);
+	const size_t BufferSize);
 bool MarkDomainCache(
 	const uint8_t * const Buffer, 
 	const size_t Length, 
@@ -372,7 +362,7 @@ bool SendToRequester(
 	const uint16_t Protocol, 
 	uint8_t * const RecvBuffer, 
 	const size_t RecvSize, 
-	const size_t MaxLen, 
+	const size_t BufferSize, 
 	SOCKET_DATA &LocalSocketData);
 
 //Protocol.h
@@ -416,8 +406,8 @@ size_t CheckResponseData(
 	uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t BufferSize, 
-	size_t * const Packet_EDNS_PayloadSize, 
-	size_t * const Packet_EDNS_RecordLength);
+	size_t * const PacketEDNS_Offset, 
+	size_t * const PacketEDNS_Length);
 
 //Proxy.h
 size_t SOCKS_TCP_Request(
@@ -467,13 +457,15 @@ size_t UDP_RequestSingle(
 	const uint16_t Protocol, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
-	const SOCKET_DATA * const LocalSocketData);
+	const SOCKET_DATA * const LocalSocketData, 
+	size_t *EDNS_Length);
 size_t UDP_RequestMultiple(
 	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint16_t Protocol, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
-	const SOCKET_DATA * const LocalSocketData);
+	const SOCKET_DATA * const LocalSocketData, 
+	size_t *EDNS_Length);
 #endif
 size_t UDP_CompleteRequestSingle(
 	const REQUEST_PROCESS_TYPE RequestType, 
@@ -495,9 +487,9 @@ size_t UDP_CompleteRequestMultiple(
 bool CheckProcessExists(
 	void);
 #if defined(PLATFORM_WIN)
-BOOL WINAPI CtrlHandler(
+BOOL WINAPI SignalHandler(
 	const DWORD ControlType);
-size_t WINAPI ServiceMain(
+VOID WINAPI ServiceMain(
 	DWORD argc, 
 	LPTSTR *argv);
 bool Flush_DNS_MailSlotMonitor(
@@ -505,7 +497,7 @@ bool Flush_DNS_MailSlotMonitor(
 bool WINAPI Flush_DNS_MailSlotSender(
 	const wchar_t * const Domain);
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-void SIG_Handler(
+void SignalHandler(
 	const int Signal);
 bool Flush_DNS_FIFO_Monitor(
 	void);

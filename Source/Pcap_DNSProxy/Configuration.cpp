@@ -471,7 +471,7 @@ bool ReadParameter(
 		FILE_DATA FileDataTemp;
 
 	//Create file list.
-		const wchar_t *WCS_ConfigFileNameList[] = CONFIG_FILE_NAME_LIST;
+		const wchar_t *WCS_ConfigFileNameList[] = CONFIG_FILE_NAME_LIST_WCS;
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 		const char *MBS_ConfigFileNameList[] = CONFIG_FILE_NAME_LIST_MBS;
 	#endif
@@ -836,7 +836,7 @@ void ReadIPFilter(
 			FileHandle = nullptr;
 		}
 
-	//Mark to global list.
+	//Register to global list.
 		if (!IsFileModified)
 		{
 			Sleep(Parameter.FileRefreshTime);
@@ -994,7 +994,7 @@ bool ReadFileAttributesLoop(
 	if (GetFileAttributesExW(
 			FileListIter.FileName.c_str(), 
 			GetFileExInfoStandard, 
-			&FileAttributeData) == FALSE)
+			&FileAttributeData) == 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 	if (stat(FileListIter.MBS_FileName.c_str(), &FileStatData) != 0)
 #endif

@@ -29,8 +29,8 @@ bool CheckEmptyBuffer(
 	{
 		return false;
 	}
+//Scan all data.
 	else {
-	//Scan all data.
 		for (size_t Index = 0;Index < Length;++Index)
 		{
 			if (*(reinterpret_cast<const uint8_t *>(Buffer) + Index) != 0)
@@ -44,20 +44,20 @@ bool CheckEmptyBuffer(
 //Convert multiple bytes to wide char string
 bool MBS_To_WCS_String(
 	const uint8_t * const Buffer, 
-	const size_t MaxLen, 
+	const size_t BufferSize, 
 	std::wstring &Target)
 {
 //Check buffer.
 	Target.clear();
-	if (Buffer == nullptr || MaxLen == 0)
+	if (Buffer == nullptr || BufferSize == 0)
 		return false;
-	const auto Length = strnlen_s(reinterpret_cast<const char *>(Buffer), MaxLen);
-	if (Length == 0 || CheckEmptyBuffer(Buffer, Length))
+	const auto DataLength = strnlen_s(reinterpret_cast<const char *>(Buffer), BufferSize);
+	if (DataLength == 0 || CheckEmptyBuffer(Buffer, DataLength))
 		return false;
 
 //Initialization
-	const auto TargetBuffer = std::make_unique<wchar_t[]>(Length + PADDING_RESERVED_BYTES);
-	wmemset(TargetBuffer.get(), 0, Length + PADDING_RESERVED_BYTES);
+	const auto TargetBuffer = std::make_unique<wchar_t[]>(DataLength + PADDING_RESERVED_BYTES);
+	wmemset(TargetBuffer.get(), 0, DataLength + PADDING_RESERVED_BYTES);
 
 //Convert string.
 #if defined(PLATFORM_WIN)
@@ -67,15 +67,15 @@ bool MBS_To_WCS_String(
 			reinterpret_cast<const LPCCH>(Buffer), 
 			MBSTOWCS_NULL_TERMINATE, 
 			TargetBuffer.get(), 
-			static_cast<int>(Length + NULL_TERMINATE_LENGTH)) == 0)
+			static_cast<int>(DataLength + NULL_TERMINATE_LENGTH)) == 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (mbstowcs(TargetBuffer.get(), reinterpret_cast<const char *>(Buffer), Length + NULL_TERMINATE_LENGTH) == static_cast<size_t>(RETURN_ERROR))
+	if (mbstowcs(TargetBuffer.get(), reinterpret_cast<const char *>(Buffer), DataLength + NULL_TERMINATE_LENGTH) == static_cast<size_t>(RETURN_ERROR))
 #endif
 	{
 		return false;
 	}
 	else {
-		if (wcsnlen_s(TargetBuffer.get(), Length + NULL_TERMINATE_LENGTH) == 0)
+		if (wcsnlen_s(TargetBuffer.get(), DataLength + NULL_TERMINATE_LENGTH) == 0)
 			return false;
 		else 
 			Target = TargetBuffer.get();
@@ -87,20 +87,20 @@ bool MBS_To_WCS_String(
 //Convert wide char string to multiple bytes
 bool WCS_To_MBS_String(
 	const wchar_t * const Buffer, 
-	const size_t MaxLen, 
+	const size_t BufferSize, 
 	std::string &Target)
 {
 //Check buffer pointer.
 	Target.clear();
-	if (Buffer == nullptr || MaxLen == 0)
+	if (Buffer == nullptr || BufferSize == 0)
 		return false;
-	const auto Length = wcsnlen_s(Buffer, MaxLen);
-	if (Length == 0 || CheckEmptyBuffer(Buffer, sizeof(wchar_t) * Length))
+	const auto DataLength = wcsnlen_s(Buffer, BufferSize);
+	if (DataLength == 0 || CheckEmptyBuffer(Buffer, sizeof(wchar_t) * DataLength))
 		return false;
 
 //Initialization
-	const auto TargetBuffer = std::make_unique<wchar_t[]>(Length + PADDING_RESERVED_BYTES);
-	memset(TargetBuffer.get(), 0, Length + PADDING_RESERVED_BYTES);
+	const auto TargetBuffer = std::make_unique<wchar_t[]>(DataLength + PADDING_RESERVED_BYTES);
+	memset(TargetBuffer.get(), 0, DataLength + PADDING_RESERVED_BYTES);
 
 //Convert string.
 #if defined(PLATFORM_WIN)
@@ -110,17 +110,17 @@ bool WCS_To_MBS_String(
 			Buffer, 
 			WCSTOMBS_NULL_TERMINATE, 
 			reinterpret_cast<LPSTR>(TargetBuffer.get()), 
-			static_cast<int>(Length + NULL_TERMINATE_LENGTH), 
+			static_cast<int>(DataLength + NULL_TERMINATE_LENGTH), 
 			nullptr, 
 			nullptr) == 0)
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-	if (wcstombs(reinterpret_cast<char *>(TargetBuffer.get()), Buffer, Length + NULL_TERMINATE_LENGTH) == static_cast<size_t>(RETURN_ERROR))
+	if (wcstombs(reinterpret_cast<char *>(TargetBuffer.get()), Buffer, DataLength + NULL_TERMINATE_LENGTH) == static_cast<size_t>(RETURN_ERROR))
 #endif
 	{
 		return false;
 	}
 	else {
-		if (strnlen_s(reinterpret_cast<const char *>(TargetBuffer.get()), Length + NULL_TERMINATE_LENGTH) == 0)
+		if (strnlen_s(reinterpret_cast<const char *>(TargetBuffer.get()), DataLength + NULL_TERMINATE_LENGTH) == 0)
 			return false;
 		else 
 			Target = reinterpret_cast<const char *>(TargetBuffer.get());
@@ -229,8 +229,10 @@ bool CompareStringReversed(
 	const std::string &RuleItem, 
 	const std::string &TestItem)
 {
-	if (!RuleItem.empty() && !TestItem.empty() && TestItem.length() >= RuleItem.length() && TestItem.compare(0, RuleItem.length(), RuleItem) == 0)
-		return true;
+	if (!RuleItem.empty() && !TestItem.empty() && 
+		TestItem.length() >= RuleItem.length() && 
+		TestItem.compare(0, RuleItem.length(), RuleItem) == 0)
+			return true;
 
 	return false;
 }

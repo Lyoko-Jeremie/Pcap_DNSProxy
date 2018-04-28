@@ -40,6 +40,8 @@ extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 #endif
 extern std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
 extern std::mutex CaptureLock, OutputPacketListLock;
+
+//Local variables
 std::string PcapFilterRules;
 std::list<std::string> PcapRunningList;
 
@@ -71,18 +73,22 @@ bool CaptureCheck_TCP(
 	const uint8_t * const Buffer);
 bool CaptureCheck_DNS(
 	const uint8_t * const Buffer, 
-	bool &IsMarkStatus);
+	bool &IsRegisterStatus);
 bool CaptureCheck_PacketStatus(
+	const uint16_t Protocol, 
 	const uint8_t * const Buffer, 
 	const size_t DNS_DataOffset, 
-	const uint16_t Protocol, 
-	const bool IsMarkStatus, 
+	const size_t DNS_DataLength, 
+	const size_t EDNS_Offset, 
+	const size_t EDNS_Length, 
+	const bool IsRegisterStatus, 
 	DNS_SERVER_DATA * const PacketSource);
 bool MatchPortToSend(
 	const uint16_t Protocol, 
 	const uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t BufferSize, 
-	const uint16_t Port);
+	const uint16_t Port, 
+	const size_t EDNS_Length_Output);
 #endif
 #endif

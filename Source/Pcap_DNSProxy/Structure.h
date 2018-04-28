@@ -615,7 +615,7 @@ typedef struct _ppp_hdr_
 
 */
 #define IPV4_IHL_STANDARD               0x05     //Standard IPv4 header length(0x05/20 bytes)
-#define IPV4_IHL_BYTES_TIMES            4U       //IHL is number of 32-bit words(4 bytes).
+#define IPV4_IHL_BYTES_SET              4U       //IHL is set number of 32-bit words(4 bytes).
 #define IPV4_FLAG_GET_BIT_MF            0x2000   //Get More Fragment bit in Flags.
 #define IPV4_FLAG_GET_FRAGMENT_OFFSET   0x1FFF   //Get Fragment Offset bits in Flags.
 typedef struct _ipv4_hdr_
@@ -1078,7 +1078,7 @@ typedef struct _icmpv6_hdr_
 
 */
 #define TCP_IHL_STANDARD        5U       //Standard TCP header length
-#define TCP_IHL_BYTES_TIMES     4U       //IHL is number of 32-bit words(4 bytes).
+#define TCP_IHL_BYTES_SET       4U       //IHL is set of 32-bit words(4 bytes).
 #define TCP_FLAG_GET_BIT_IHL    0xF000   //Get data offset in TCP IHL
 #define TCP_FLAG_GET_BIT_FLAG   0x0FFF   //Get bits in TCP flag
 #define TCP_FLAG_GET_BIT_CWR    0x0080   //Get Congestion Window Reduced bit in TCP flags
@@ -1550,6 +1550,7 @@ typedef struct _ipv6_psd_hdr_
 * RFC 6698, The DNS-Based Authentication of Named Entities (DANE) Transport Layer Security (TLS) Protocol: TLSA(https://tools.ietf.org/html/rfc6698)
 * RFC 6742, DNS Resource Records for the Identifier-Locator Network Protocol (ILNP)(https://tools.ietf.org/html/rfc6742)
 * RFC 6844, DNS Certification Authority Authorization (CAA) Resource Record(https://tools.ietf.org/html/rfc6844)
+* RFC 6891, Extension Mechanisms for DNS (EDNS(0))(https://tools.ietf.org/html/rfc6891)
 * RFC 6975, Signaling Cryptographic Algorithm Understanding in DNS Security Extensions (DNSSEC)(https://tools.ietf.org/html/rfc6975)
 * RFC 7043, Resource Records for EUI-48 and EUI-64 Addresses in the DNS(https://tools.ietf.org/html/rfc7043)
 * RFC 7314, Extension Mechanisms for DNS (EDNS) EXPIRE Option(https://tools.ietf.org/html/rfc7314)
@@ -1569,7 +1570,7 @@ typedef struct _ipv6_psd_hdr_
 #ifndef IPPORT_LLMNR
 	#define IPPORT_LLMNR                  5355U      //Link-Local Multicast Name Resolution/LLMNR Port
 #endif
-#define DNS_FLAG_STANDARD                0x0100       //System Standard query
+#define DNS_FLAG_REQUEST_STANDARD        0x0100       //Standard request
 #define DNS_FLAG_SQR_NE                  0x8180       //Standard query response and No Error.
 #define DNS_FLAG_SQR_NEA                 0x8580       //Standard query response, No Error and Authoritative.
 #define DNS_FLAG_SQR_NETC                0x8380       //Standard query response and No Error, but Truncated.
@@ -1968,7 +1969,6 @@ typedef struct _ipv6_psd_hdr_
 #ifndef DNS_TYPE_RESERVED
 	#define DNS_TYPE_RESERVED     0xFFFF             //DNS Reserved records is 65535.
 #endif
-
 
 /* Domain Name System/DNS header
 //With User Datagram Protocol/UDP
@@ -2505,7 +2505,7 @@ typedef struct _edns_cookies_
 #define DNSSEC_DIGEST_DS_GOST                  3U       //RFC 5933, Use of GOST Signature Algorithms in DNSKEY and RRSIG Resource Records for DNSSEC(https://tools.ietf.org/html/rfc5933)
 #define DNSSEC_DIGEST_DS_SHA384                4U       //RFC 6605, Elliptic Curve Digital Signature Algorithm (DSA) for DNSSEC(https://tools.ietf.org/html/rfc6605)
 
-//About this list, please visit https://www.iana.org/assignments/ds-rr-types/ds-rr-types.xhtml
+//About this list, please visit https://www.iana.org/assignments/ds-rr-types/ds-rr-types.xhtml.
 #define DNSSEC_DS_TYPE_RESERVED                0
 #define DNSSEC_DS_TYPE_SHA1                    1U
 #define DNSSEC_DS_TYPE_SHA256                  2U
@@ -2774,7 +2774,7 @@ typedef struct _dns_record_caa_
 #define DNSCURVE_PAYLOAD_MULTIPLE_TIME    64U
 #define DNSCRYPT_RECEIVE_MAGIC            ("r6fnvWj8")                   //Receive Magic Number
 #define DNSCRYPT_CERT_MAGIC               ("DNSC")                       //Signature Magic Number
-#define DNSCRYPT_PADDING_SIGN             0x80
+#define DNSCRYPT_PADDING_SIGN_HEX         0x80
 #define DNSCRYPT_PADDING_SIGN_STRING      ('\x80')
 // Function definitions
 #define crypto_box                        crypto_box_curve25519xsalsa20poly1305
@@ -2797,8 +2797,8 @@ typedef struct _dns_record_caa_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
-#define DNSCURVE_ES_X25519_XSALSA20_POLY1305     0x0001   //DNSCurve es version of X25519-XSalsa20Poly1305
-#define DNSCURVE_ES_X25519_XCHACHA20_POLY1305    0x0002   //DNSCurve es version of X25519-XChacha20Poly1305
+#define DNSCURVE_ES_X25519_XSALSA20_POLY1305     0x0001   //DNSCurve ES version of X25519-XSalsa20Poly1305
+#define DNSCURVE_ES_X25519_XCHACHA20_POLY1305    0x0002   //DNSCurve ES version of X25519-XChacha20Poly1305
 #define DNSCURVE_VERSION_MINOR                   0        //DNSCurve minor version
 typedef struct _dnscurve_txt_hdr_
 {

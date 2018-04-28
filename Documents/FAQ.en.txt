@@ -23,7 +23,11 @@ This document contains a set of common methods for dealing with problems, please
   * When in debug/console mode, all error messages will print to screen directly.
   * Please make sure that there is only one instance running in the same time.
   * Windows
-    * Run directly with administrator privileges.
+    * Run exe directly as administrator.
+  * Linux
+    * Run ./Pcap_DNSProxy --disable-daemon as root.
+  * macOS
+    * Run ./Pcap_DNSProxy as root.
 
 * Service is not running or system settings error, please check if there is an error report generated or visit installation section in ReadMe.
 
@@ -41,7 +45,7 @@ This document contains a set of common methods for dealing with problems, please
 * Service is running but remote DNS servers does not respond, please check if there is an error report generated.
   * Please set correct, valid and usable outside DNS servers.
   * This may be a problem with network. UDP protocol loss rate is relatively high in some ISPs, you can change to TCP protocol mode (Visit parameters details in ReadMe, Operation Mode section in Base tag) or try to request several times.
-  * May be it cause by bugs which we cannot locate and we are trying to keep working properly. You can try to restart service(Visit restart service section in ReadMe).
+  * You can try to restart service(Visit restart service section in ReadMe).
 
    >nslookup www.google.com
     Server:  pcap-dnsproxy.server (Visit parameters details in ReadMe, Local Machine Server Name parameter in Data tag)
@@ -192,6 +196,8 @@ Details of Error.log error report:
   * HTTP CONNECT connecting error - Please mark the error code.
   * HTTP CONNECT request error - Please mark the error code.
   * HTTP CONNECT socket initialization error - Please mark the error code.
+  * ICMP Test event initialization error -Please mark the error code.
+  * ICMP Test event error - Please mark the error code.
   * No any available gateways to external network - Please check the network interface and the external network.
   * Socket Do Not Fragment flag settings error - Please mark the error code.
   * Socket Hop Limits settings error - Please mark the error code.

@@ -29,8 +29,8 @@ extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 #if defined(ENABLE_LIBSODIUM)
 extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter, DNSCurveParameterModificating;
 #endif
-extern std::deque<SOCKET_MARKING_DATA> SocketMarkingList;
-extern std::mutex LocalAddressLock[], SocketMarkingLock;
+extern std::deque<SOCKET_REGISTER_DATA> SocketRegisterList;
+extern std::mutex LocalAddressLock[], SocketRegisterLock;
 
 //Functions
 bool MonitorSocketBinding(
@@ -40,6 +40,8 @@ bool UDP_Monitor(
 	SOCKET_DATA LocalSocketData);
 bool TCP_Monitor(
 	SOCKET_DATA LocalSocketData);
+void AlternateServerMonitor(
+	void);
 #if defined(PLATFORM_WIN)
 addrinfo *GetLocalAddressList(
 	const uint16_t Protocol, 
@@ -51,4 +53,6 @@ bool GetBestInterfaceAddress(
 #endif
 void GetGatewayInformation(
 	const uint16_t Protocol);
+void NetworkInformationMonitor(
+	void);
 #endif

@@ -893,7 +893,6 @@ bool CheckQueryData(
 			{
 				PacketStructure->EDNS_Location = PacketIndex;
 				PacketStructure->EDNS_Length = RecordLength + sizeof(dns_record_standard) + ntohs(DNS_Record_Standard->Length);
-				PacketStructure->EDNS_RequesterPayload = ntohs(reinterpret_cast<edns_header *>(PacketStructure->Buffer + PacketIndex)->UDP_PayloadSize);
 
 			//Mark EDNS Label Options.
 				for (size_t OptionIndex = PacketStructure->EDNS_Location + sizeof(edns_header);OptionIndex < PacketStructure->EDNS_Location + PacketStructure->EDNS_Length;)
@@ -1151,7 +1150,7 @@ bool CheckConnectionStreamFin(
 	}
 #endif
 //TCP DNS response
-	else if ((RequestType == REQUEST_PROCESS_TYPE::SOCKS_MAIN || RequestType == REQUEST_PROCESS_TYPE::TCP_NORMAL || RequestType == REQUEST_PROCESS_TYPE::TCP_WITHOUT_MARKING) && 
+	else if ((RequestType == REQUEST_PROCESS_TYPE::SOCKS_MAIN || RequestType == REQUEST_PROCESS_TYPE::TCP_NORMAL || RequestType == REQUEST_PROCESS_TYPE::TCP_WITHOUT_REGISTER) && 
 		Length > sizeof(uint16_t) && 
 		ntohs(*(reinterpret_cast<const uint16_t *>(Stream))) >= DNS_PACKET_MINSIZE && 
 		ntohs(*(reinterpret_cast<const uint16_t *>(Stream))) + sizeof(uint16_t) >= Length)
@@ -1344,8 +1343,8 @@ size_t CheckResponseData(
 	uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t BufferSize, 
-	size_t * const Packet_EDNS_PayloadSize, 
-	size_t * const Packet_EDNS_RecordLength)
+	size_t * const PacketEDNS_Offset, 
+	size_t * const PacketEDNS_Length)
 {
 //DNS Options part
 	const auto DNS_Header = reinterpret_cast<dns_hdr *>(Buffer);
@@ -1355,7 +1354,7 @@ size_t CheckResponseData(
 		DNS_Header->Flags == 0 || //Flags must not be set 0, first bit in Flags must be set 1 to show it's a response.
 	//Extended DNS header check
 		(Parameter.PacketCheck_DNS && 
-	//Ignore flag
+	//Ignore DNSCurve Signature packet.
 	#if defined(ENABLE_LIBSODIUM)
 		ResponseType != REQUEST_PROCESS_TYPE::DNSCURVE_SIGN && 
 	#endif
@@ -1395,11 +1394,11 @@ size_t CheckResponseData(
 	#if defined(ENABLE_LIBSODIUM)
 		(ResponseType == REQUEST_PROCESS_TYPE::DNSCURVE_MAIN && Parameter.EDNS_Switch_DNSCurve) || //DNSCurve
 	#endif
-		((ResponseType == REQUEST_PROCESS_TYPE::TCP_NORMAL || ResponseType == REQUEST_PROCESS_TYPE::TCP_WITHOUT_MARKING) && Parameter.EDNS_Switch_TCP) || //TCP
-		((ResponseType == REQUEST_PROCESS_TYPE::UDP_NORMAL || ResponseType == REQUEST_PROCESS_TYPE::UDP_WITHOUT_MARKING) && Parameter.EDNS_Switch_UDP))) //UDP
+		((ResponseType == REQUEST_PROCESS_TYPE::TCP_NORMAL || ResponseType == REQUEST_PROCESS_TYPE::TCP_WITHOUT_REGISTER) && Parameter.EDNS_Switch_TCP) || //TCP
+		((ResponseType == REQUEST_PROCESS_TYPE::UDP_NORMAL || ResponseType == REQUEST_PROCESS_TYPE::UDP_WITHOUT_REGISTER) && Parameter.EDNS_Switch_UDP))) //UDP
 			IsNeedCheck_EDNS = true;
 	if (Parameter.PacketCheck_DNS && 
-	//Ignore flag
+	//Ignore DNSCurve Signature packet.
 	#if defined(ENABLE_LIBSODIUM)
 		ResponseType != REQUEST_PROCESS_TYPE::DNSCURVE_SIGN && 
 	#endif
@@ -1408,7 +1407,7 @@ size_t CheckResponseData(
 
 //Domain pointer check
 	if (Parameter.PacketCheck_DNS && 
-	//Ignore flag
+	//Ignore DNSCurve Signature packet.
 	#if defined(ENABLE_LIBSODIUM)
 		ResponseType != REQUEST_PROCESS_TYPE::DNSCURVE_SIGN && 
 	#endif
@@ -1445,7 +1444,7 @@ size_t CheckResponseData(
 //DNS Cookies request check
 	else if (ntohs(DNS_Header->Additional) != UINT16_NUM_ONE)
 	{
-		return false;
+		return EXIT_FAILURE;
 	}
 
 //Initialization(Part 2)
@@ -1523,7 +1522,7 @@ size_t CheckResponseData(
 			{
 			//DNSSEC Validation
 				if (Parameter.PacketCheck_DNS && Parameter.EDNS_Label && 
-				//Ignore flag
+				//Ignore DNSCurve Signature packet.
 				#if defined(ENABLE_LIBSODIUM)
 					ResponseType != REQUEST_PROCESS_TYPE::DNSCURVE_SIGN && 
 				#endif
@@ -1533,14 +1532,6 @@ size_t CheckResponseData(
 			//Set DNSSEC record found flag.
 				IsFound_DNSSEC = true;
 			}
-
-		//Mark EDNS Label UDP Payload Size.
-			if (Packet_EDNS_PayloadSize != nullptr)
-				*Packet_EDNS_PayloadSize = ntohs(reinterpret_cast<edns_header *>(Buffer + EDNS_Location)->UDP_PayloadSize);
-
-		//Mark EDNS Label data length.
-			if (Packet_EDNS_RecordLength != nullptr)
-				*Packet_EDNS_RecordLength = ntohs(DNS_Record_Standard->Length);
 
 		//Mark EDNS Label location(Part 2).
 			EDNS_Length = DataLength + ntohs(DNS_Record_Standard->Length) - EDNS_Location;
@@ -1625,7 +1616,7 @@ size_t CheckResponseData(
 
 	//Mark previous type.
 		if (Parameter.PacketCheck_DNS && 
-		//Ignore flag
+		//Ignore DNSCurve Signature packet.
 		#if defined(ENABLE_LIBSODIUM)
 			ResponseType != REQUEST_PROCESS_TYPE::DNSCURVE_SIGN && 
 		#endif
@@ -1647,7 +1638,7 @@ size_t CheckResponseData(
 
 //Whole DNS packet resource records check
 	if (
-	//Ignore flag
+	//Ignore DNSCurve Signature packet.
 	#if defined(ENABLE_LIBSODIUM)
 		ResponseType != REQUEST_PROCESS_TYPE::DNSCURVE_SIGN && 
 	#endif
@@ -1662,12 +1653,23 @@ size_t CheckResponseData(
 
 //Store EDNS Label temporary.
 	std::unique_ptr<uint8_t[]> EDNS_Buffer(nullptr);
-	if (!RecordList_Answer.empty() && EDNS_Length > 0)
+	if (EDNS_Length > 0)
 	{
-		auto EDNS_BufferTemp = std::make_unique<uint8_t[]>(EDNS_Length + PADDING_RESERVED_BYTES);
-		memset(EDNS_BufferTemp.get(), 0, EDNS_Length + PADDING_RESERVED_BYTES);
-		memcpy_s(EDNS_BufferTemp.get(), EDNS_Length, Buffer + EDNS_Location, EDNS_Length);
-		EDNS_Buffer.swap(EDNS_BufferTemp);
+	//Mark EDNS Label offset.
+		if (PacketEDNS_Offset != nullptr && PacketEDNS_Length != nullptr)
+		{
+			*PacketEDNS_Offset = EDNS_Location;
+			*PacketEDNS_Length = EDNS_Length;
+		}
+
+	//Store EDNS Label if any Answer records exist.
+		if (!RecordList_Answer.empty())
+		{
+			auto EDNS_BufferTemp = std::make_unique<uint8_t[]>(EDNS_Length + PADDING_RESERVED_BYTES);
+			memset(EDNS_BufferTemp.get(), 0, EDNS_Length + PADDING_RESERVED_BYTES);
+			memcpy_s(EDNS_BufferTemp.get(), EDNS_Length, Buffer + EDNS_Location, EDNS_Length);
+			EDNS_Buffer.swap(EDNS_BufferTemp);
+		}
 	}
 
 //Scan all resource records to CNAME Hosts.
@@ -1692,6 +1694,14 @@ size_t CheckResponseData(
 				//Copy back EDNS Label.
 					if (EDNS_Buffer && EDNS_Length > 0 && DataLength + EDNS_Length < BufferSize)
 					{
+					//Mark EDNS Label offset.
+						if (PacketEDNS_Offset != nullptr && PacketEDNS_Length != nullptr)
+						{
+							*PacketEDNS_Offset = DataLength;
+							*PacketEDNS_Length = EDNS_Length;
+						}
+
+					//Copy EDNS Label to packet.
 						memcpy_s(Buffer + DataLength, BufferSize - DataLength, EDNS_Buffer.get(), EDNS_Length);
 						DataLength += EDNS_Length;
 						DNS_Header->Additional = htons(UINT16_NUM_ONE);

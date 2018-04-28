@@ -29,12 +29,12 @@ extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 #if defined(ENABLE_LIBSODIUM)
 extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
 #endif
-extern std::deque<SOCKET_MARKING_DATA> SocketMarkingList;
+extern std::deque<SOCKET_REGISTER_DATA> SocketRegisterList;
 #if defined(ENABLE_PCAP)
 extern std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
 extern std::mutex OutputPacketListLock;
 #endif
-extern std::mutex SocketMarkingLock;
+extern std::mutex SocketRegisterLock;
 
 //Functions
 ssize_t SelectingResultOnce(

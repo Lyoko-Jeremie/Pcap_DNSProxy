@@ -32,12 +32,12 @@ extern std::mutex ScreenLock, DNSCacheListLock;
 //Local variables
 #if defined(PLATFORM_WIN)
 static DWORD ServiceCurrentStatus = 0;
-static BOOL IsServiceRunning = FALSE;
+static auto IsServiceRunning = false;
 SERVICE_STATUS_HANDLE ServiceStatusHandle = nullptr;
 HANDLE ServiceEvent = nullptr;
 #endif
 #if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-uint64_t LastFlushDNSTime = 0;
+uint64_t LastFlushCacheTime = 0;
 #endif
 
 //Functions
@@ -47,17 +47,20 @@ bool SystemSecurityInit(
 	SECURITY_ATTRIBUTES &SecurityAttributes, 
 	SECURITY_DESCRIPTOR &SecurityDescriptor, 
 	PSID &SID_Value);
-size_t WINAPI ServiceControl(
-	const DWORD ControlCode);
+DWORD WINAPI ServiceControl(
+	const DWORD ControlCode, 
+	const DWORD EventType, 
+	const LPVOID EventData, 
+	const LPVOID Context);
 HANDLE WINAPI ExecuteService(
 	void);
 void WINAPI TerminateService(
 	void);
 DWORD WINAPI ServiceProc(
 	PVOID ProcParameter);
-BOOL WINAPI UpdateServiceStatus(
+bool WINAPI UpdateServiceStatus(
 	const DWORD CurrentState, 
-	const DWORD WinExitCode, 
+	const DWORD ExitCode, 
 	const DWORD ServiceSpecificExitCode, 
 	const DWORD CheckPoint, 
 	const DWORD WaitHint);

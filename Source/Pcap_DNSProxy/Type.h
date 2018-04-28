@@ -107,12 +107,6 @@ typedef enum class _dns_cache_type_
 	TIMER, 
 	QUEUE
 }DNS_CACHE_TYPE;
-typedef enum _cpm_pointer_type_
-{
-	CPM_POINTER_TYPE_HEADER, 
-	CPM_POINTER_TYPE_RR, 
-	CPM_POINTER_TYPE_ADDITIONAL
-}CPM_POINTER_TYPE;
 typedef enum class _hosts_type_
 {
 	NONE, 
@@ -196,7 +190,7 @@ typedef enum class _request_process_type_
 	LOCAL_IN_WHITE, 
 	DIRECT, 
 	TCP_NORMAL, 
-	TCP_WITHOUT_MARKING, 
+	TCP_WITHOUT_REGISTER, 
 	SOCKS_MAIN, 
 	SOCKS_CLIENT_SELECTION, 
 	SOCKS_USER_AUTH, 
@@ -216,7 +210,7 @@ typedef enum class _request_process_type_
 	DNSCURVE_SIGN, 
 #endif
 	UDP_NORMAL, 
-	UDP_WITHOUT_MARKING
+	UDP_WITHOUT_REGISTER
 }REQUEST_PROCESS_TYPE;
 #if defined(ENABLE_LIBSODIUM)
 typedef enum class _dnscurve_server_type_
@@ -246,6 +240,9 @@ typedef enum class _tls_version_selection
 #if defined(PLATFORM_WIN)
 	#define SSPI_SECURE_BUFFER_NUM                    4U
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
+	#define OPENSSL_RETURN_FAILURE                    0
+	#define OPENSSL_RETURN_SUCCESS                    1
+	#define OPENSSL_SET_NON_BLOCKING                  1
 	#define OPENSSL_VERSION_1_0_1                     0x10001000L
 	#define OPENSSL_VERSION_1_0_2                     0x10002000L
 	#define OPENSSL_VERSION_1_1_0                     0x10100000L
@@ -259,13 +256,6 @@ typedef enum class _tls_version_selection
 //////////////////////////////////////////////////
 // Main structures and classes
 // 
-//Huffman Node structure
-typedef struct _huffman_node_
-{
-	uint32_t                             Bits;
-	uint8_t                              BitSize;
-}HuffmanNode, HUFFMAN_NODE;
-
 //File Data structure
 typedef struct _file_data_
 {
@@ -284,8 +274,8 @@ typedef struct _socket_data_
 	socklen_t                            AddrLen;
 }SocketData, SOCKET_DATA;
 
-//Socket Marking Data structure
-typedef std::pair<SYSTEM_SOCKET, uint64_t> SocketMarkingData, SOCKET_MARKING_DATA;
+//Socket Register Data structure
+typedef std::pair<SYSTEM_SOCKET, uint64_t> SocketRegisterData, SOCKET_REGISTER_DATA;
 
 //Address Prefix Block structure
 typedef std::pair<sockaddr_storage, size_t> AddressPrefixBlock, ADDRESS_PREFIX_BLOCK;
@@ -315,8 +305,8 @@ typedef struct _dns_server_data_
 			struct _ipv6_header_status_
 			{
 				uint32_t                             VersionTrafficFlow;
-				uint8_t                              HopLimit_Assign;
-				uint8_t                              HopLimit_Mark;
+				uint8_t                              HopLimit_StaticLoad;
+				uint8_t                              HopLimit_DynamicMark;
 			}IPv6_HeaderStatus;
 
 		//IPv4 header status
@@ -326,8 +316,8 @@ typedef struct _dns_server_data_
 				uint8_t                              DSCP_ECN;
 				uint16_t                             ID;
 				uint16_t                             Flags;
-				uint8_t                              TTL_Assign;
-				uint8_t                              TTL_Mark;
+				uint8_t                              TTL_StaticLoad;
+				uint8_t                              TTL_DynamicMark;
 			}IPv4_HeaderStatus;
 		}NetworkLayerStatus;
 
@@ -335,14 +325,15 @@ typedef struct _dns_server_data_
 		struct _application_layer_status_
 		{
 			uint16_t                             DNS_Header_Flags;
+			bool                                 IsNeedCheck_EDNS;
 			uint16_t                             EDNS_UDP_PayloadSize;
 			uint8_t                              EDNS_Version;
 			uint16_t                             EDNS_Z_Field;
 			uint16_t                             EDNS_DataLength;
 		}ApplicationLayerStatus;
 
-	//Sign
-		bool                                 IsMarkSign;
+	//Detail of server
+		bool                                 IsMarkDetail;
 	}ServerPacketStatus;
 #endif
 }DNSServerData, DNS_SERVER_DATA;
@@ -381,7 +372,6 @@ typedef struct _dns_packet_data_
 	std::vector<size_t>                                        Records_Length;
 	size_t                                                     EDNS_Location;
 	size_t                                                     EDNS_Length;
-	uint16_t                                                   EDNS_RequesterPayload;
 }DNSPacketData, DNS_PACKET_DATA;
 
 //DNS Cache Data structure
@@ -906,6 +896,7 @@ public:
 	uint16_t                             Protocol_Network;
 	uint16_t                             Protocol_Transport;
 	uint64_t                             ClearPortTime;
+	size_t                               EDNS_Length;
 
 //Redefine operator functions
 //	OutputPacketTable() = default;

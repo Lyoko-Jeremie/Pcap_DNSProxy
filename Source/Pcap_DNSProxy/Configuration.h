@@ -22,7 +22,21 @@
 
 #include "Include.h"
 
-//Type definitions
+//Size and length definitions
+#define BOM_UTF_16_LENGTH                     2U 
+#define BOM_UTF_32_LENGTH                     4U
+#define BOM_UTF_8_LENGTH                      3U
+#define READ_DATA_MINSIZE                     4U
+#define READ_TEXT_MINSIZE                     2U
+#define READ_PARAMETER_MINSIZE                8U
+#define READ_HOSTS_MINSIZE                    3U
+#define READ_HOSTS_ADDRESS_MINSIZE            5U
+#define READ_IPFILTER_MINSIZE                 3U
+#define READ_IPFILTER_MAIN_MINSIZE            5U
+#define READ_IPFILTER_BLACKLIST_MINSIZE       3U
+#define READ_IPFILTER_LOCAL_ROUTING_MINSIZE   4U
+
+//Structure definitions
 typedef enum class _label_ipfilter_type_
 {
 	NONE, 
@@ -43,20 +57,6 @@ typedef enum class _label_hosts_type_
 	ADDRESS, 
 	SOURCE
 }LABEL_HOSTS_TYPE;
-
-//Size and length definitions
-#define BOM_UTF_16_LENGTH                     2U 
-#define BOM_UTF_32_LENGTH                     4U
-#define BOM_UTF_8_LENGTH                      3U
-#define READ_DATA_MINSIZE                     4U
-#define READ_TEXT_MINSIZE                     2U
-#define READ_PARAMETER_MINSIZE                8U
-#define READ_HOSTS_MINSIZE                    3U
-#define READ_HOSTS_ADDRESS_MINSIZE            5U
-#define READ_IPFILTER_MINSIZE                 3U
-#define READ_IPFILTER_MAIN_MINSIZE            5U
-#define READ_IPFILTER_BLACKLIST_MINSIZE       3U
-#define READ_IPFILTER_LOCAL_ROUTING_MINSIZE   4U
 
 //Global variables
 extern CONFIGURATION_TABLE Parameter, ParameterModificating;

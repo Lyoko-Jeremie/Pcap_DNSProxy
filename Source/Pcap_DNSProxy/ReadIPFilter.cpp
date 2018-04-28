@@ -412,7 +412,7 @@ bool ReadBlacklistData(
 		}
 	}
 
-//Mark to global list.
+//Register to global list.
 	for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
 	{
 		if (IPFilterFileSetIter.FileIndex == FileIndex)
@@ -433,7 +433,7 @@ bool ReadLocalRoutingData(
 	const size_t Line)
 {
 //Check data format.
-	if (Data.find("/") == std::string::npos || Data.rfind("/") < IPV6_SHORTEST_ADDR_STRING || Data.at(Data.length() - 1U) == ASCII_SLASH)
+	if (Data.find("/") == std::string::npos || Data.rfind("/") < ADDRESS_STRING_IPV6_MINSIZE || Data.at(Data.length() - 1U) == ASCII_SLASH)
 	{
 		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Address Prefix Block format error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);
 		return false;
@@ -482,7 +482,7 @@ bool ReadLocalRoutingData(
 			AddressRoutingTableTemp.Prefix = UnsignedResult;
 		}
 
-	//IPv6 mark to global list.
+	//IPv6 register to global list.
 		std::unordered_set<uint64_t> AddrBackSet;
 		for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
 		{
@@ -520,7 +520,7 @@ bool ReadLocalRoutingData(
 					}
 				}
 
-			//Jump here to mark to global list.
+			//Jump here to register to global list.
 			AddToGlobalList_IPv6:
 				AddrBackSet.clear();
 				if (AddressRoutingTableTemp.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
@@ -563,7 +563,7 @@ bool ReadLocalRoutingData(
 			AddressRoutingTableTemp.Prefix = UnsignedResult;
 		}
 
-	//IPv4 mark to global list.
+	//IPv4 register to global list.
 		for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
 		{
 			if (IPFilterFileSetIter.FileIndex == FileIndex)
@@ -584,7 +584,7 @@ bool ReadLocalRoutingData(
 					}
 				}
 
-			//Jump here to mark to global list.
+			//Jump here to register to global list.
 			AddToGlobalList_IPv4:
 				AddressRoutingTableTemp.AddressRoutingList_IPv4.insert(htonl(BinaryAddr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
 				IPFilterFileSetIter.LocalRoutingList.push_back(AddressRoutingTableTemp);
@@ -609,7 +609,7 @@ bool ReadAddressPrefixBlock(
 	std::string Data(OriginalData, DataOffset);
 
 //Check data format.
-	if (Data.find("/") == std::string::npos || Data.rfind("/") < IPV6_SHORTEST_ADDR_STRING || Data.at(Data.length() - 1U) == ASCII_SLASH)
+	if (Data.find("/") == std::string::npos || Data.rfind("/") < ADDRESS_STRING_IPV6_MINSIZE || Data.at(Data.length() - 1U) == ASCII_SLASH)
 	{
 		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Address Prefix Block format error", 0, FileList.at(FileIndex).FileName.c_str(), Line);
 		return false;
@@ -913,7 +913,7 @@ bool ReadMainIPFilterData(
 		}
 	}
 
-//Mark to global list.
+//Register to global list.
 	for (auto &IPFilterFileSetIter:*IPFilterFileSetModificating)
 	{
 		if (IPFilterFileSetIter.FileIndex == FileIndex)

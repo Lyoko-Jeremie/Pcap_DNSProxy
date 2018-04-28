@@ -36,14 +36,14 @@ std::vector<FILE_DATA> FileList_DNSCurveDatabase;
 #endif
 std::vector<DIFFERNET_FILE_SET_IPFILTER> IPFilterFileSet[DIFFERNET_FILE_SET_NUM], *IPFilterFileSetUsing = &IPFilterFileSet[0], *IPFilterFileSetModificating = &IPFilterFileSet[1U];
 std::vector<DIFFERNET_FILE_SET_HOSTS> HostsFileSet[DIFFERNET_FILE_SET_NUM], *HostsFileSetUsing = &HostsFileSet[0], *HostsFileSetModificating = &HostsFileSet[1U];
-std::deque<SOCKET_MARKING_DATA> SocketMarkingList;
+std::deque<SOCKET_REGISTER_DATA> SocketRegisterList;
 #if defined(ENABLE_PCAP)
 std::deque<OUTPUT_PACKET_TABLE> OutputPacketList;
 std::mutex CaptureLock, OutputPacketListLock;
 #endif
 std::list<DNS_CACHE_DATA> DNSCacheList;
 std::unordered_multimap<std::string, std::list<DNS_CACHE_DATA>::iterator> DNSCacheIndexList;
-std::mutex ScreenLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], SocketMarkingLock, DNSCacheListLock, IPFilterFileLock, HostsFileLock;
+std::mutex ScreenLock, LocalAddressLock[NETWORK_LAYER_PARTNUM], SocketRegisterLock, DNSCacheListLock, IPFilterFileLock, HostsFileLock;
 
 //Functions
 void ConfigurationTableSetting(

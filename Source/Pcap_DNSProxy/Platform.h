@@ -366,6 +366,11 @@
 #include <unordered_set>           //Unordered_set and unordered_multiset container support
 
 #if defined(PLATFORM_WIN)
+//LibEvent header, always enabled(Windows)
+	#include "..\\Dependency\\LibEvent\\Include_Windows\\event2\\event.h"
+	#include "..\\Dependency\\LibEvent\\Include_Windows\\event2\\buffer.h"
+	#include "..\\Dependency\\LibEvent\\Include_Windows\\event2\\bufferevent.h"
+
 //LibSodium header, always enabled(Windows)
 #ifndef ENABLE_LIBSODIUM
 	#define ENABLE_LIBSODIUM
@@ -374,7 +379,7 @@
 	#define SODIUM_STATIC
 #endif
 #if defined(ENABLE_LIBSODIUM)
-	#include "..\\Dependency\\LibSodium\\sodium.h"
+	#include "..\\Dependency\\LibSodium\\Include_Windows\\sodium.h"
 #endif
 
 //WinPcap header, always enabled(Windows)
@@ -388,7 +393,7 @@
 	#define HAVE_REMOTE                //WinPcap preprocessor definitions
 #endif
 #if defined(ENABLE_PCAP)
-	#include "..\\Dependency\\WinPcap\\pcap.h"
+	#include "..\\Dependency\\WinPcap\\Include\\pcap.h"
 #endif
 
 //Windows API headers
@@ -412,12 +417,6 @@
 //	#include <versionhelpers.h>        //Version Helper functions
 
 //Part 5 including files(MUST be including after Part 4)
-#ifndef ENABLE_HTTP
-	#define ENABLE_HTTP                //WinINET, always enabled(Windows)
-#endif
-#if defined(ENABLE_HTTP)
-	#include <wininet.h>               //Contains manifests, macros, types and prototypes for Microsoft Windows Internet Extensions
-#endif
 #ifndef ENABLE_TLS
 	#define ENABLE_TLS                 //SSPI, always enabled(Windows)
 #endif
@@ -430,13 +429,13 @@
 //Libraries linking
 	#pragma comment(lib, "iphlpapi.lib")   //Windows IP Helper, IP Stack for MIB-II and related functionality support
 	#pragma comment(lib, "ws2_32.lib")     //Windows WinSock 2.0+ support
-#if defined(ENABLE_HTTP)
-	#pragma comment(lib, "wininet.lib")    //Contains manifests, macros, types and prototypes for Microsoft Windows Internet Extensions support
-#endif
 #if defined(ENABLE_TLS)
 	#pragma comment(lib, "secur32.lib")    //Security Support Provider Interface support
 #endif
 #if defined(PLATFORM_WIN64)
+//	#pragma comment(lib, "..\\Dependency\\LibEvent\\LibEvent_x64.lib")
+	#pragma comment(lib, "..\\Dependency\\LibEvent\\LibEvent_Core_x64.lib")
+//	#pragma comment(lib, "..\\Dependency\\LibEvent\\LibEvent_Extra_x64.lib")
 #if defined(ENABLE_LIBSODIUM)
 	#pragma comment(lib, "..\\Dependency\\LibSodium\\LibSodium_x64.lib")
 #endif
@@ -445,12 +444,11 @@
 	#pragma comment(lib, "..\\Dependency\\WinPcap\\Packet_x64.lib")
 #endif
 #elif defined(PLATFORM_WIN32)
+//	#pragma comment(lib, "..\\Dependency\\LibEvent\\LibEvent_x86.lib")
+	#pragma comment(lib, "..\\Dependency\\LibEvent\\LibEvent_Core_x86.lib")
+//	#pragma comment(lib, "..\\Dependency\\LibEvent\\LibEvent_Extra_x86.lib")
 #if defined(ENABLE_LIBSODIUM)
-#if defined(PLATFORM_WIN_XP)
-	#pragma comment(lib, "..\\Dependency\\LibSodium\\LibSodium_XP.lib")
-#else
 	#pragma comment(lib, "..\\Dependency\\LibSodium\\LibSodium_x86.lib")
-#endif
 #endif
 #if defined(ENABLE_PCAP)
 	#pragma comment(lib, "..\\Dependency\\WinPcap\\WPCAP_x86.lib")
@@ -467,8 +465,8 @@
 	#define BYTE_ORDER                 __BYTE_ORDER
 
 //Winsock definitions
-	#define WINSOCK_VERSION_LOW_BYTE    2                           //Low byte of Winsock version 2.2
-	#define WINSOCK_VERSION_HIGH_BYTE   2                           //High byte of Winsock version 2.2
+	#define WINSOCK_VERSION_LOW_BYTE   2                           //Low byte of Winsock version 2.2
+	#define WINSOCK_VERSION_HIGH_BYTE  2                           //High byte of Winsock version 2.2
 
 //Windows compatible definitions
 	typedef SSIZE_T                    ssize_t;
@@ -505,6 +503,11 @@
 
 //Dependency header
 #if defined(PLATFORM_LINUX)
+//LibEvent part
+	#include <event2/event.h>
+	#include <event2/buffer.h>
+	#include <event2/bufferevent.h>
+
 //LibSodium part
 #if defined(ENABLE_LIBSODIUM)
 	#include <sodium.h>
@@ -524,6 +527,20 @@
 	#include <openssl/x509v3.h>
 #endif
 #elif defined(PLATFORM_MACOS)
+//LibEvent part
+#if defined(PLATFORM_MACOS_XCODE)
+	#include "../Dependency/LibEvent/Include_macOS/event2/event.h"
+	#include "../Dependency/LibEvent/Include_macOS/event2/buffer.h"
+	#include "../Dependency/LibEvent/Include_macOS/event2/bufferevent.h"
+//	#pragma comment(lib, "../Dependency/LibEvent/LibEvent_macOS.a")
+	#pragma comment(lib, "../Dependency/LibEvent/LibEvent_Core_macOS.a")
+//	#pragma comment(lib, "../Dependency/LibEvent/LibEvent_Extra_macOS.a")
+#else
+	#include <event2/event.h>
+	#include <event2/buffer.h>
+	#include <event2/bufferevent.h>
+#endif
+
 //LibSodium part
 #if defined(PLATFORM_MACOS_XCODE)
 #ifndef ENABLE_LIBSODIUM
@@ -532,7 +549,7 @@
 #ifndef SODIUM_STATIC
 	#define SODIUM_STATIC
 #endif
-	#include "../Dependency/LibSodium/sodium.h"
+	#include "../Dependency/LibSodium/Include_macOS/sodium.h"
 	#pragma comment(lib, "../Dependency/LibSodium/LibSodium_macOS.a")
 #else
 #if defined(ENABLE_LIBSODIUM)
@@ -576,30 +593,29 @@
 #endif
 #endif
 
-//TCP Fast Open support
+//TCP Fast Open additional support
+//Using when no native support in system.
 #if defined(PLATFORM_LINUX)
 #ifndef _KERNEL_FASTOPEN
 	#define _KERNEL_FASTOPEN
 
 //Conditional define for TCP_FASTOPEN
 #ifndef TCP_FASTOPEN
-	#define TCP_FASTOPEN       23
+	#define TCP_FASTOPEN                   23
 #endif
 
 //Conditional define for MSG_FASTOPEN
 #ifndef MSG_FASTOPEN
-	#define MSG_FASTOPEN       0x20000000
+	#define MSG_FASTOPEN                   0x20000000
 #endif
 #endif
 #endif
 
 //Linux and macOS compatible definitions(Part 2)
-	#define FALSE                    0
 #ifndef INVALID_SOCKET
 	#define INVALID_SOCKET           (-1)
 #endif
 	#define SOCKET_ERROR             (-1)
-	#define TRUE                     1U
 	#define SD_BOTH                  SHUT_RDWR
 	#define SD_RECV                  SHUT_RD
 	#define SD_SEND                  SHUT_WR

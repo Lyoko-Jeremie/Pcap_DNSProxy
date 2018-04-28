@@ -71,7 +71,7 @@ size_t DNSCurvePaddingData(
 	//The padding starts with a byte valued 0x80 followed by a variable number of NULL bytes.
 		for (size_t Index = Length - 1U;Index >= DNS_PACKET_MINSIZE;--Index)
 		{
-			if (Buffer[Index] == DNSCRYPT_PADDING_SIGN)
+			if (Buffer[Index] == DNSCRYPT_PADDING_SIGN_HEX)
 				return Index;
 		}
 	}
@@ -569,7 +569,7 @@ SkipMain:
 			}
 		}
 
-	//Mark to global list.
+	//Register to global list.
 		if (!Alternate_SocketDataList.empty() && !Alternate_SocketSelectingDataList.empty())
 		{
 			for (auto &SocketDataIter:Alternate_SocketDataList)
@@ -704,12 +704,12 @@ ssize_t DNSCurvePacketDecryption(
 		memset(OriginalRecv, 0, DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES);
 		memmove_s(OriginalRecv + crypto_box_BOXZEROBYTES, RecvSize - crypto_box_BOXZEROBYTES, OriginalRecv + DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES, Length - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES));
 		if (crypto_box_open_afternm(
-			reinterpret_cast<unsigned char *>(OriginalRecv), 
-			reinterpret_cast<unsigned char *>(OriginalRecv), 
-			Length + crypto_box_BOXZEROBYTES - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), 
-			WholeNonce.Buffer, 
-			PrecomputationKey) != 0)
-				return EXIT_FAILURE;
+				reinterpret_cast<unsigned char *>(OriginalRecv), 
+				reinterpret_cast<unsigned char *>(OriginalRecv), 
+				Length + crypto_box_BOXZEROBYTES - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), 
+				WholeNonce.Buffer, 
+				PrecomputationKey) != 0)
+					return EXIT_FAILURE;
 		memmove_s(OriginalRecv, RecvSize, OriginalRecv + crypto_box_ZEROBYTES, Length - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES));
 		memset(OriginalRecv + Length - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES), 0, RecvSize - (Length - (DNSCURVE_MAGIC_QUERY_LEN + crypto_box_NONCEBYTES)));
 
@@ -752,7 +752,7 @@ bool DNSCruveGetSignatureData(
 				return false;
 
 		//Check signature.
-			DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> DecryptBuffer(NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+			DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> DecryptBuffer(PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
 			unsigned long long SignatureLength = 0;
 			if (PacketTarget == nullptr || 
 				crypto_sign_open(

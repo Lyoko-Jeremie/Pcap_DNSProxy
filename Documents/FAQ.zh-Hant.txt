@@ -23,7 +23,11 @@
   * 當有任何懷疑程式工作不正常或者出錯的情況，可繞過服務控制程式直接使用程式的偵錯模式進行調試，所有錯誤都將直接輸出到螢幕上
   * 終止所有正在運行的實例，確定同一時間只能有一個程式正在運行中
   * Windows
-    * 直接以管理員許可權運行即可
+    * 直接以管理員許可權運行 exe 即可
+  * Linux
+    * 以 root 許可權運行 ./Pcap_DNSProxy --disable-daemon
+  * macOS
+    * 以 root 許可權運行 ./Pcap_DNSProxy
 
 * 如果出現以下結果，則說明服務沒有運行成功或者設置出錯，請檢查是否有錯誤報表生成，或請移步 ReadMe 文檔中 安裝方法 一節
 
@@ -41,7 +45,7 @@
 * 如果出現以下結果，則說明服務已經運行成功但遠端DNS伺服器沒有回應，請檢查是否有錯誤報表生成
   * 請務必設置一個正確的、有效的、可以使用的境外DNS伺服器
   * 出現這種情況可能為網路問題。部分地區ISP/運營商對UDP協定轉發丟包率比較高，可嘗試切換到 TCP 協定模式（參見 ReadMe 文檔中 設定檔詳細參數說明 中 Base 基本區域 的 Operation Mode 一節）或者多嘗試請求幾次
-  * 也可能是因為長時間運行有錯誤累積造成，專案組正努力解決。可嘗試重啟服務（參見 ReadMe 文檔中的 重啟服務）
+  * 可嘗試重啟服務（參見 ReadMe 文檔中的 重啟服務）
 
    >nslookup www.google.com
     伺服器: pcap-dnsproxy.server（視設定檔設置的值而定，參見 ReadMe 文檔中 設定檔詳細參數說明）
@@ -142,12 +146,12 @@ Error.log 詳細錯誤報表：
   * IPv4 address format error - IPv4 位址格式錯誤：請檢查 IPv4 的位址格式
   * IPv4 address port error - IPv4 位址埠格式錯誤：請檢查 IPv4 的位址埠格式
   * IPv4 packet TTL range error - IPv4 資料包 TTL 值範圍錯誤：請確認該條目的內容
-  * IPv4 prefix error - IPv4 網路前置長度錯誤：IPv4 網路首碼的長度介乎與 1-32
+  * IPv4 prefix error - IPv4 網路前置長度錯誤：IPv4 網路首碼的長度介乎與 1 - 32
   * IPv4 total request number error - IPv4 請求總次數限制錯誤：填入主要/待命伺服器的數量超過限制值
   * IPv6 address format error - IPv6 位址格式錯誤：請檢查 IPv6 的位址格式
   * IPv6 address port error - IPv6 位址埠格式錯誤：請檢查 IPv6 的位址埠格式
   * IPv6 packet Hop Limits range error - IPv6 資料包 Hop Limits 值範圍錯誤：請確認該條目的內容
-  * IPv6 prefix error - IPv6 網路前置長度錯誤：IPv6 網路首碼的長度介乎與 1-128
+  * IPv6 prefix error - IPv6 網路前置長度錯誤：IPv6 網路首碼的長度介乎與 1 - 128
   * IPv6 total request number error - IPv6 請求總次數限制錯誤：填入主要/待命伺服器的數量超過限制值
   * Local machine listening port error - 本地監聽埠錯誤：請檢查本地監聽埠的值，可適用範圍為 1 - 65535
   * Local request options error - 境內請求參數錯誤：請檢查境內伺服器是否可用
@@ -162,10 +166,10 @@ Error.log 詳細錯誤報表：
   * Item format error - IPFilter 條目格式錯誤：請檢查該條目的格式
   * IPv4 address format error - IPFilter 的 IPv4 位址格式錯誤：請檢查 IPFilter 條目的位址
   * IPv4 address range error - IPFilter 的 IPv6 位址範圍錯誤：請檢查 IPFilter 條目的位址
-  * IPv4 prefix error - IPv4 網路前置長度錯誤：IPv4 網路首碼的長度介乎與 1-32
+  * IPv4 prefix error - IPv4 網路前置長度錯誤：IPv4 網路首碼的長度介乎與 1 - 32
   * IPv6 address format error - IPFilter 的 IPv6 位址格式錯誤：請檢查 IPFilter 條目的位址
   * IPv6 address range error - IPFilter 的 IPv6 位址範圍錯誤：請檢查 IPFilter 條目的位址
-  * IPv6 prefix error - IPv6 網路前置長度錯誤：IPv6 網路首碼的長度介乎與 1-128
+  * IPv6 prefix error - IPv6 網路前置長度錯誤：IPv6 網路首碼的長度介乎與 1 - 128
   * Level error - IPFilter 過濾級別錯誤：過濾級別介乎與 0 - 0xFFFF(65535)
   * Regular expression pattern error - 錯誤的正則運算式：請檢查正則運算式的正確
   * Repeat item error, this item will disabled - 存在重複的 IPFilter 條目：本條目將不啟用
@@ -181,8 +185,8 @@ Error.log 詳細錯誤報表：
   * Too many Hosts IPv4 addresses - Hosts 條目的平行位址過多：請檢查 Hosts 條目位址的數量，A 記錄不能超過 75 個
 
 5.Network Error - 網路錯誤
-  * Bind TCP Monitor socket error - TCP 協定本地通訊端綁定錯誤：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體具體原因可參見錯誤代碼
-  * Bind UDP Monitor socket error - UDP 協定本地通訊端綁定錯誤：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體具體原因可參見錯誤代碼
+  * Bind TCP Monitor socket error - TCP 協定本地通訊端綁定錯誤：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體原因可參見錯誤代碼
+  * Bind UDP Monitor socket error - UDP 協定本地通訊端綁定錯誤：本地可能已經存在 DNS 伺服器或者多重運行了本工具，具體原因可參見錯誤代碼
   * Complete UDP socket initialization error - UDP 協定請求通訊端初始化錯誤：具體原因可參見錯誤代碼
   * DNSCurve TCP socket initialization error - DNSCurve 協定 TCP 協定通訊端初始化錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
   * DNSCurve UDP socket initialization error - DNSCurve 協定 UDP 協定通訊端初始化錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
@@ -192,6 +196,8 @@ Error.log 詳細錯誤報表：
   * HTTP CONNECT connecting error - HTTP CONNECT 協定連接錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
   * HTTP CONNECT request error - HTTP CONNECT 協定請求錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
   * HTTP CONNECT socket initialization error - HTTP CONNECT 協定請求通訊端初始化錯誤：具體原因可參見錯誤代碼
+  * ICMP Test event initialization error - ICMP 協定事件模組初始化錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
+  * ICMP Test event error - ICMP 協定事件模組錯誤：可能為網路錯誤，具體原因可參見錯誤代碼
   * No any available gateways to external network - 沒有任何通往外部網路的可用閘道：可能為網路錯誤，請檢查網路是否通暢
   * Socket Do Not Fragment flag settings error - 設置 IPv4 Do Not Fragment 標誌錯誤：具體原因可參見錯誤代碼
   * Socket Hop Limits settings error - 設置 Hop Limits/TTL 錯誤：具體原因可參見錯誤代碼

@@ -168,10 +168,10 @@ bool EnterRequestProcess(
 		}
 	//UDP
 		else {
-			auto UDPRecvBuffer = std::make_unique<uint8_t[]>(NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
-			memset(UDPRecvBuffer.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+			auto UDPRecvBuffer = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
+			memset(UDPRecvBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
 			std::swap(InnerRecvBuffer, UDPRecvBuffer);
-			RecvSize = NORMAL_PACKET_MAXSIZE;
+			RecvSize = PACKET_NORMAL_MAXSIZE;
 		}
 
 		RecvBuffer = InnerRecvBuffer.get();
@@ -1605,10 +1605,10 @@ void UDP_RequestProcess(
 
 //Multiple request process
 	if (Parameter.AlternateMultipleRequest || Parameter.MultipleRequestTimes > 1U)
-		UDP_RequestMultiple(REQUEST_PROCESS_TYPE::UDP_NORMAL, MonitorQueryData.first.Protocol, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, &MonitorQueryData.second);
+		UDP_RequestMultiple(REQUEST_PROCESS_TYPE::UDP_NORMAL, MonitorQueryData.first.Protocol, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, &MonitorQueryData.second, &MonitorQueryData.first.EDNS_Length);
 //Normal request process
 	else 
-		UDP_RequestSingle(REQUEST_PROCESS_TYPE::UDP_NORMAL, MonitorQueryData.first.Protocol, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, &MonitorQueryData.second);
+		UDP_RequestSingle(REQUEST_PROCESS_TYPE::UDP_NORMAL, MonitorQueryData.first.Protocol, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, &MonitorQueryData.second, &MonitorQueryData.first.EDNS_Length);
 
 //Fin TCP request connection.
 	if (MonitorQueryData.first.Protocol == IPPROTO_TCP && SocketSetting(MonitorQueryData.second.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
@@ -1637,7 +1637,7 @@ bool SendToRequester(
 	const uint16_t Protocol, 
 	uint8_t * const RecvBuffer, 
 	const size_t RecvSize, 
-	const size_t MaxLen, 
+	const size_t BufferSize, 
 	SOCKET_DATA &LocalSocketData)
 {
 //Response check
@@ -1650,7 +1650,7 @@ bool SendToRequester(
 //TCP protocol
 	if (Protocol == IPPROTO_TCP)
 	{
-		if (AddLengthDataToHeader(RecvBuffer, RecvSize, MaxLen) == EXIT_FAILURE)
+		if (AddLengthDataToHeader(RecvBuffer, RecvSize, BufferSize) == EXIT_FAILURE)
 		{
 			SocketSetting(LocalSocketData.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 			return false;

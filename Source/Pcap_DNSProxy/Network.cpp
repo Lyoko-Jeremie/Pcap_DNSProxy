@@ -160,7 +160,7 @@ bool SocketSetting(
 			if (Parameter.DoNotFragment_IPv4)
 			{
 			#if defined(PLATFORM_WIN)
-				const DWORD OptionValue = TRUE;
+				const DWORD OptionValue = 1U;
 				if (setsockopt(Socket, IPPROTO_IP, IP_DONTFRAGMENT, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 				const int OptionValue = IP_PMTUDISC_DO;
@@ -287,7 +287,7 @@ bool SocketSetting(
 		case SOCKET_SETTING_TYPE::NON_BLOCKING_MODE:
 		{
 		#if defined(PLATFORM_WIN)
-			unsigned long SocketMode = TRUE;
+			unsigned long SocketMode = 1U;
 			if (ioctlsocket(Socket, FIONBIO, &SocketMode) == SOCKET_ERROR)
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
 			const auto SocketMode = fcntl(Socket, F_GETFL, 0);
@@ -308,7 +308,7 @@ bool SocketSetting(
 		{
 		#if defined(PLATFORM_WIN)
 		//Preventing other sockets from being forcibly bound to the same address and port(Windows).
-			const DWORD OptionValue = TRUE;
+			const DWORD OptionValue = 1U;
 			if (setsockopt(Socket, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			{
 				if (IsPrintError)
@@ -320,7 +320,7 @@ bool SocketSetting(
 				return false;
 			}
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			const int OptionValue = TRUE;
+			const int OptionValue = 1;
 
 		//Set TIME_WAIT resuing(Linux/macOS).
 /*			errno = 0;
@@ -355,7 +355,7 @@ bool SocketSetting(
 		#if defined(PLATFORM_WIN)
 			const BOOL OptionValue = TRUE;
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			const int OptionValue = TRUE;
+			const int OptionValue = 1;
 		#endif
 			if (setsockopt(Socket, IPPROTO_TCP, TCP_NODELAY, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			{
@@ -379,7 +379,7 @@ bool SocketSetting(
 			//macOS: Server side and client side are both completed.
 			#if defined(PLATFORM_WIN)
 			#if !defined(PLATFORM_WIN_XP)
-				const DWORD OptionValue = TRUE;
+				const DWORD OptionValue = 1U;
 				if (setsockopt(Socket, IPPROTO_TCP, TCP_FASTOPEN, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 				{
 					if (IsPrintError)
@@ -397,7 +397,7 @@ bool SocketSetting(
 				const int OptionValue = Parameter.TCP_FastOpen;
 				if (setsockopt(Socket, SOL_TCP, TCP_FASTOPEN, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			#elif defined(PLATFORM_MACOS)
-				const int OptionValue = TRUE;
+				const int OptionValue = 1;
 				if (setsockopt(Socket, IPPROTO_TCP, TCP_FASTOPEN, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			#endif
 				{
@@ -417,7 +417,7 @@ bool SocketSetting(
 		case SOCKET_SETTING_TYPE::TCP_KEEP_ALIVE:
 		{
 		#if defined(PLATFORM_WIN)
-			const DWORD OptionValue = TRUE;
+			const DWORD OptionValue = 1U;
 			if (setsockopt(Socket, SOL_SOCKET, SO_KEEPALIVE, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			{
 				shutdown(Socket, SD_BOTH);
@@ -433,7 +433,7 @@ bool SocketSetting(
 			memset(&Alive_OUT, 0, sizeof(tcp_keepalive));
 			Alive_IN.keepalivetime = STANDARD_TIMEOUT;
 			Alive_IN.keepaliveinterval = Parameter.SocketTimeout_Reliable_Once;
-			Alive_IN.onoff = TRUE;
+			Alive_IN.onoff = 1U;
 			ULONG ulBytesReturn = 0;
 			if (WSAIoctl(Socket, SIO_KEEPALIVE_VALS, &Alive_IN, sizeof(tcp_keepalive), &Alive_OUT, sizeof(tcp_keepalive), &ulBytesReturn, nullptr, nullptr) == SOCKET_ERROR)
 			{
@@ -444,7 +444,7 @@ bool SocketSetting(
 				return false;
 			}
 		#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-			const int OptionValue = TRUE;
+			const int OptionValue = 1;
 			if (setsockopt(Socket, SOL_SOCKET, SO_KEEPALIVE, reinterpret_cast<const char *>(&OptionValue), sizeof(OptionValue)) == SOCKET_ERROR)
 			{
 				shutdown(Socket, SD_BOTH);
@@ -1341,15 +1341,15 @@ ssize_t SocketSelectingOnce(
 	memset(&WriteFDS, 0, sizeof(WriteFDS));
 	memset(&Timeout, 0, sizeof(Timeout));
 	size_t LastReceiveIndex = 0;
-	bool IsReadReady = false, IsWriteReady = false;
+	auto IsReadReady = false, IsWriteReady = false;
 	if (OriginalRecv == nullptr
 	#if defined(ENABLE_LIBSODIUM)
 		&& RequestType != REQUEST_PROCESS_TYPE::DNSCURVE_MAIN
 	#endif
 		)
 	{
-		auto RecvBufferSwap = std::make_unique<uint8_t[]>(NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
-		memset(RecvBufferSwap.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+		auto RecvBufferSwap = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
+		memset(RecvBufferSwap.get(), 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
 		std::swap(RecvBufferTemp, RecvBufferSwap);
 	}
 
@@ -1420,7 +1420,7 @@ ssize_t SocketSelectingOnce(
 			}
 			else if (SocketDataIter + 1U == SocketDataList.end())
 			{
-				if (RequestType == REQUEST_PROCESS_TYPE::UDP_WITHOUT_MARKING)
+				if (RequestType == REQUEST_PROCESS_TYPE::UDP_WITHOUT_REGISTER)
 					return EXIT_SUCCESS;
 				else 
 					IsAllSocketShutdown = true;
@@ -1490,7 +1490,7 @@ ssize_t SocketSelectingOnce(
 
 	//Send request only.
 		if (OriginalRecv == nullptr && 
-			RequestType != REQUEST_PROCESS_TYPE::UDP_WITHOUT_MARKING
+			RequestType != REQUEST_PROCESS_TYPE::UDP_WITHOUT_REGISTER
 		#if defined(ENABLE_LIBSODIUM)
 			&& RequestType != REQUEST_PROCESS_TYPE::DNSCURVE_MAIN
 		#endif
@@ -1664,8 +1664,8 @@ ssize_t SocketSelectingOnce(
 						}
 						else {
 						//Receive, drop all data and close sockets.
-							recv(SocketDataList.at(Index).Socket, reinterpret_cast<char *>(RecvBufferTemp.get()), NORMAL_PACKET_MAXSIZE, 0);
-							memset(RecvBufferTemp.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+							recv(SocketDataList.at(Index).Socket, reinterpret_cast<char *>(RecvBufferTemp.get()), PACKET_NORMAL_MAXSIZE, 0);
+							memset(RecvBufferTemp.get(), 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
 							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 							continue;
@@ -1741,7 +1741,7 @@ ssize_t SocketSelectingOnce(
 				if (RecvLen >= static_cast<ssize_t>(DNS_PACKET_MINSIZE))
 					return RecvLen;
 			}
-			else if (RequestType == REQUEST_PROCESS_TYPE::UDP_WITHOUT_MARKING)
+			else if (RequestType == REQUEST_PROCESS_TYPE::UDP_WITHOUT_REGISTER)
 			{
 			//Close all sockets.
 				for (auto &SocketDataIter:SocketDataList)
@@ -1860,40 +1860,40 @@ ssize_t SelectingResultOnce(
 					}
 				}
 
-			//Mark to global list.
-				std::unique_lock<std::mutex> SocketMarkingMutex(SocketMarkingLock);
+			//Register to global list.
+				std::unique_lock<std::mutex> SocketRegisterMutex(SocketRegisterLock);
 				for (auto &SocketDataIter:SocketDataList)
 				{
 					if (SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 					{
-						SOCKET_MARKING_DATA SocketMarkingDataTemp;
-						SocketMarkingDataTemp.first = SocketDataIter.Socket;
+						SOCKET_REGISTER_DATA SocketRegisterDataTemp;
+						SocketRegisterDataTemp.first = SocketDataIter.Socket;
 						if (Protocol == IPPROTO_TCP)
 						{
 						#if defined(PLATFORM_WIN)
-							SocketMarkingDataTemp.second = GetCurrentSystemTime() + DNSCurveParameter.DNSCurve_SocketTimeout_Reliable;
+							SocketRegisterDataTemp.second = GetCurrentSystemTime() + DNSCurveParameter.DNSCurve_SocketTimeout_Reliable;
 						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-							SocketMarkingDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), DNSCurveParameter.DNSCurve_SocketTimeout_Reliable);
+							SocketRegisterDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), DNSCurveParameter.DNSCurve_SocketTimeout_Reliable);
 						#endif
 						}
 						else if (Protocol == IPPROTO_UDP)
 						{
 						#if defined(PLATFORM_WIN)
-							SocketMarkingDataTemp.second = GetCurrentSystemTime() + DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable;
+							SocketRegisterDataTemp.second = GetCurrentSystemTime() + DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable;
 						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-							SocketMarkingDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable);
+							SocketRegisterDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), DNSCurveParameter.DNSCurve_SocketTimeout_Unreliable);
 						#endif
 						}
 						else {
 							continue;
 						}
 
-						SocketMarkingList.push_back(SocketMarkingDataTemp);
+						SocketRegisterList.push_back(SocketRegisterDataTemp);
 						SocketDataIter.Socket = INVALID_SOCKET;
 					}
 				}
 
-				SocketMarkingMutex.unlock();
+				SocketRegisterMutex.unlock();
 
 			//Mark DNS cache.
 				if (Parameter.DNS_CacheType != DNS_CACHE_TYPE::NONE)
@@ -1958,43 +1958,43 @@ ssize_t SelectingResultOnce(
 					memcpy_s(OriginalRecv, RecvSize, SocketSelectingDataList->at(Index).RecvBuffer.get(), RecvLen);
 				}
 
-			//Mark to global list.
-				std::unique_lock<std::mutex> SocketMarkingMutex(SocketMarkingLock);
+			//Register to global list.
+				std::unique_lock<std::mutex> SocketRegisterMutex(SocketRegisterLock);
 				for (auto &SocketDataIter:SocketDataList)
 				{
 					if (SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 					{
-						SOCKET_MARKING_DATA SocketMarkingDataTemp;
-						SocketMarkingDataTemp.first = SocketDataIter.Socket;
+						SOCKET_REGISTER_DATA SocketRegisterDataTemp;
+						SocketRegisterDataTemp.first = SocketDataIter.Socket;
 						if (Protocol == IPPROTO_TCP)
 						{
 						#if defined(PLATFORM_WIN)
-							SocketMarkingDataTemp.second = GetCurrentSystemTime() + Parameter.SocketTimeout_Reliable_Once;
+							SocketRegisterDataTemp.second = GetCurrentSystemTime() + Parameter.SocketTimeout_Reliable_Once;
 						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-							SocketMarkingDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), Parameter.SocketTimeout_Reliable_Once);
+							SocketRegisterDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), Parameter.SocketTimeout_Reliable_Once);
 						#endif
 						}
 						else if (Protocol == IPPROTO_UDP)
 						{
 						#if defined(PLATFORM_WIN)
-							SocketMarkingDataTemp.second = GetCurrentSystemTime() + Parameter.SocketTimeout_Unreliable_Once;
+							SocketRegisterDataTemp.second = GetCurrentSystemTime() + Parameter.SocketTimeout_Unreliable_Once;
 						#elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
-							SocketMarkingDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), Parameter.SocketTimeout_Unreliable_Once);
+							SocketRegisterDataTemp.second = IncreaseMillisecondTime(GetCurrentSystemTime(), Parameter.SocketTimeout_Unreliable_Once);
 						#endif
 						}
 						else {
 							continue;
 						}
 
-						SocketMarkingList.push_back(SocketMarkingDataTemp);
+						SocketRegisterList.push_back(SocketRegisterDataTemp);
 						SocketDataIter.Socket = INVALID_SOCKET;
 					}
 				}
 
-				SocketMarkingMutex.unlock();
+				SocketRegisterMutex.unlock();
 
 			//Mark DNS cache.
-				if (Parameter.DNS_CacheType != DNS_CACHE_TYPE::NONE && RequestType != REQUEST_PROCESS_TYPE::TCP_WITHOUT_MARKING)
+				if (Parameter.DNS_CacheType != DNS_CACHE_TYPE::NONE && RequestType != REQUEST_PROCESS_TYPE::TCP_WITHOUT_REGISTER)
 					MarkDomainCache(OriginalRecv, RecvLen, LocalSocketData);
 
 				return RecvLen;
@@ -2395,17 +2395,18 @@ StopLoop:
 }
 
 #if defined(ENABLE_PCAP)
-//Mark socket information to global list
-void MarkPortToList(
+//Register socket information to global list
+void RegisterPortToList(
 	const uint16_t Protocol, 
 	const SOCKET_DATA * const LocalSocketData, 
-	std::vector<SOCKET_DATA> &SocketDataList)
+	std::vector<SOCKET_DATA> &SocketDataList, 
+	size_t *EDNS_Length)
 {
 //Socket data check
 	if (SocketDataList.empty())
 		return;
 
-//Mark port.
+//Register port.
 	if (LocalSocketData != nullptr && Protocol > 0)
 	{
 		SOCKET_DATA SocketDataTemp;
@@ -2413,10 +2414,12 @@ void MarkPortToList(
 		memset(&SocketDataTemp, 0, sizeof(SocketDataTemp));
 		SocketDataTemp.Socket = INVALID_SOCKET;
 
-	//Mark system connection data.
+	//Register system connection data.
 		OutputPacketListTemp.SocketData_Input = *LocalSocketData;
+		if (Parameter.PacketCheck_DNS && EDNS_Length != nullptr)
+			OutputPacketListTemp.EDNS_Length = *EDNS_Length;
 
-	//Mark sending connection data.
+	//Register sending connection data.
 		for (auto &SocketDataIter:SocketDataList)
 		{
 			if (!SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
@@ -2455,7 +2458,7 @@ void MarkPortToList(
 			OutputPacketListTemp.SocketData_Output.push_back(SocketDataTemp);
 		}
 
-	//Mark send time.
+	//Register send time.
 		OutputPacketListTemp.Protocol_Network = Protocol;
 		if (Protocol == IPPROTO_TCP)
 		{
@@ -2481,7 +2484,7 @@ void MarkPortToList(
 		std::lock_guard<std::mutex> OutputPacketListMutex(OutputPacketListLock);
 		while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= GetCurrentSystemTime())
 		{
-		//Mark timeout.
+		//Register timeout.
 			if (OutputPacketList.front().ClearPortTime > 0)
 			{
 				if (OutputPacketList.front().Protocol_Network == AF_INET6)
@@ -2503,6 +2506,7 @@ void MarkPortToList(
 			OutputPacketList.pop_front();
 		}
 
+	//Register to global list.
 		OutputPacketList.push_back(OutputPacketListTemp);
 	}
 

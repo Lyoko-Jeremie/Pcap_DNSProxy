@@ -146,7 +146,7 @@ uint16_t GetChecksum_TCP_UDP(
 		reinterpret_cast<ipv4_psd_hdr *>(Validation.get())->Source = reinterpret_cast<const ipv4_hdr *>(Buffer)->Source;
 		reinterpret_cast<ipv4_psd_hdr *>(Validation.get())->Length = htons(static_cast<uint16_t>(Length));
 		reinterpret_cast<ipv4_psd_hdr *>(Validation.get())->Protocol = static_cast<uint8_t>(Protocol_Transport);
-		memcpy_s(Validation.get() + sizeof(ipv4_psd_hdr), Length, Buffer + reinterpret_cast<const ipv4_hdr *>(Buffer)->IHL * IPV4_IHL_BYTES_TIMES, Length);
+		memcpy_s(Validation.get() + sizeof(ipv4_psd_hdr), Length, Buffer + reinterpret_cast<const ipv4_hdr *>(Buffer)->IHL * IPV4_IHL_BYTES_SET, Length);
 
 		return GetChecksum(reinterpret_cast<uint16_t *>(Validation.get()), sizeof(ipv4_psd_hdr) + Length);
 	}
@@ -157,14 +157,14 @@ uint16_t GetChecksum_TCP_UDP(
 //Add length data to TCP DNS transmission
 size_t AddLengthDataToHeader(
 	uint8_t * const Buffer, 
-	const size_t RecvLen, 
-	const size_t MaxLen)
+	const size_t DataLength, 
+	const size_t BufferSize)
 {
-	if (RecvLen + sizeof(uint16_t) < MaxLen)
+	if (DataLength + sizeof(uint16_t) < BufferSize)
 	{
-		memmove_s(Buffer + sizeof(uint16_t), MaxLen - sizeof(uint16_t), Buffer, RecvLen);
-		reinterpret_cast<dns_tcp_hdr *>(Buffer)->Length = htons(static_cast<uint16_t>(RecvLen));
-		return RecvLen + sizeof(uint16_t);
+		memmove_s(Buffer + sizeof(uint16_t), BufferSize - sizeof(uint16_t), Buffer, DataLength);
+		reinterpret_cast<dns_tcp_hdr *>(Buffer)->Length = htons(static_cast<uint16_t>(DataLength));
+		return DataLength + sizeof(uint16_t);
 	}
 
 	return EXIT_FAILURE;
@@ -306,7 +306,7 @@ void MakeRandomDomain(
 	uint8_t * const Buffer)
 {
 //Random number distribution initialization and make random domain length.
-	std::uniform_int_distribution<size_t> RandomDistribution(DOMAIN_RANDOM_MINSIZE, DOMAIN_LEVEL_DATA_MAXSIZE);
+	std::uniform_int_distribution<size_t> RandomDistribution(DOMAIN_RANDOM_MINSIZE, DOMAIN_SINGLE_DATA_MAXSIZE);
 	auto RandomLength = RandomDistribution(*GlobalRunningStatus.RandomEngine);
 	if (RandomLength < DOMAIN_RANDOM_MINSIZE)
 		RandomLength = DOMAIN_RANDOM_MINSIZE;
@@ -373,11 +373,11 @@ void MakeDomainCaseConversion(
 	uint8_t * const Buffer)
 {
 //Initialization
-	auto Length = strnlen_s(reinterpret_cast<const char *>(Buffer), DOMAIN_MAXSIZE);
-	if (Length <= DOMAIN_MINSIZE)
+	auto DataLength = strnlen_s(reinterpret_cast<const char *>(Buffer), DOMAIN_MAXSIZE);
+	if (DataLength <= DOMAIN_MINSIZE)
 		return;
 	std::vector<size_t> RandomIndex;
-	for (size_t Index = 0;Index < Length;++Index)
+	for (size_t Index = 0;Index < DataLength;++Index)
 	{
 		if (*(Buffer + Index) >= ASCII_LOWERCASE_A && *(Buffer + Index) <= ASCII_LOWERCASE_Z)
 			RandomIndex.push_back(Index);
@@ -399,13 +399,13 @@ void MakeDomainCaseConversion(
 	}
 
 //Make sure that domain must have more than one char which in the last or the second last to convert.
-	if (*(Buffer + (Length - 1U)) >= ASCII_LOWERCASE_A && *(Buffer + (Length - 1U)) <= ASCII_LOWERCASE_Z && 
-		*(Buffer + (Length - 2U)) >= ASCII_LOWERCASE_A && *(Buffer + (Length - 2U)) <= ASCII_LOWERCASE_Z)
+	if (*(Buffer + (DataLength - 1U)) >= ASCII_LOWERCASE_A && *(Buffer + (DataLength - 1U)) <= ASCII_LOWERCASE_Z && 
+		*(Buffer + (DataLength - 2U)) >= ASCII_LOWERCASE_A && *(Buffer + (DataLength - 2U)) <= ASCII_LOWERCASE_Z)
 	{
 		if (RandomCounts % 2U == 0)
-			*(Buffer + (Length - 1U)) = static_cast<uint8_t>(toupper(*(Buffer + (Length - 1U))));
+			*(Buffer + (DataLength - 1U)) = static_cast<uint8_t>(toupper(*(Buffer + (DataLength - 1U))));
 		else 
-			*(Buffer + (Length - 2U)) = static_cast<uint8_t>(toupper(*(Buffer + (Length - 2U))));
+			*(Buffer + (DataLength - 2U)) = static_cast<uint8_t>(toupper(*(Buffer + (DataLength - 2U))));
 	}
 
 	return;
@@ -488,7 +488,7 @@ bool Move_EDNS_LabelToEnd(
 size_t Add_EDNS_LabelToPacket(
 	uint8_t * const Buffer, 
 	const size_t Length, 
-	const size_t MaxLen, 
+	const size_t BufferSize, 
 	const SOCKET_DATA * const LocalSocketData)
 {
 //Initialization
@@ -500,7 +500,7 @@ size_t Add_EDNS_LabelToPacket(
 	auto DataLength = Length;
 
 //Add a new EDNS Label/OPT Additional resource records.
-	if (DataLength + sizeof(edns_header) >= MaxLen)
+	if (DataLength + sizeof(edns_header) >= BufferSize)
 		return DataLength;
 	const auto EDNS_Header = reinterpret_cast<edns_header *>(Buffer + DataLength);
 	EDNS_Header->Type = htons(DNS_TYPE_OPT);
@@ -522,7 +522,7 @@ size_t Add_EDNS_LabelToPacket(
 		const auto DNS_Query = reinterpret_cast<dns_qry *>(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer));
 
 	//Length, DNS Class and DNS record check
-		if (DataLength + sizeof(edns_client_subnet) >= MaxLen || (ntohs(DNS_Query->Type) != DNS_TYPE_AAAA && ntohs(DNS_Query->Type) != DNS_TYPE_A))
+		if (DataLength + sizeof(edns_client_subnet) >= BufferSize || (ntohs(DNS_Query->Type) != DNS_TYPE_AAAA && ntohs(DNS_Query->Type) != DNS_TYPE_A))
 			return DataLength;
 
 		const auto EDNS_Subnet_Header = reinterpret_cast<edns_client_subnet *>(Buffer + DataLength);
@@ -564,7 +564,7 @@ size_t Add_EDNS_LabelToPacket(
 
 		//Length check
 			DataLength += sizeof(edns_client_subnet);
-			if (DataLength + sizeof(in6_addr) >= MaxLen)
+			if (DataLength + sizeof(in6_addr) >= BufferSize)
 				return DataLength;
 
 		//Copy subnet address.
@@ -611,7 +611,7 @@ size_t Add_EDNS_LabelToPacket(
 
 		//Length check
 			DataLength += sizeof(edns_client_subnet);
-			if (DataLength + sizeof(in_addr) >= MaxLen)
+			if (DataLength + sizeof(in_addr) >= BufferSize)
 				return DataLength;
 
 		//Copy subnet address.
@@ -642,19 +642,23 @@ bool Add_EDNS_LabelToPacket(
 {
 //Initialization
 	const auto DNS_Header = reinterpret_cast<dns_hdr *>(PacketStructure->Buffer);
+	const auto DNS_Query = reinterpret_cast<dns_qry *>(PacketStructure->Buffer + DNS_PACKET_QUERY_LOCATE(PacketStructure->Buffer));
 	edns_header *EDNS_Header = nullptr;
 
 //EDNS Options check
 	size_t EDNS_LabelPrediction = 0;
-	auto IsEDNS_ClientSubnet = false, IsEDNS_Cookies = false;
+	auto IsEDNS_ClientSubnet = false;
 	if (!IsAlreadyClientSubnet && //EDNS Client Subnet
-		((Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr) || 
+		(ntohs(DNS_Query->Type) == DNS_TYPE_AAAA || ntohs(DNS_Query->Type) == DNS_TYPE_A || 
+		(Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr) || 
 		Parameter.LocalMachineSubnet_IPv6 != nullptr || Parameter.LocalMachineSubnet_IPv4 != nullptr))
 	{
 		IsEDNS_ClientSubnet = true;
 		EDNS_LabelPrediction += sizeof(edns_client_subnet) * 2U + sizeof(in6_addr) + sizeof(in_addr);
 	}
-/* Under construction(2018-02-11)
+
+/* Under construction(2018-04-27)
+	auto IsEDNS_Cookies = false;
 	if (!IsAlreadyCookies) //DNS Cookies
 	{
 		IsEDNS_Cookies = true;
@@ -705,7 +709,7 @@ bool Add_EDNS_LabelToPacket(
 		EDNS_Header->Z_Field = htons(ntohs(EDNS_Header->Z_Field) | EDNS_FLAG_GET_BIT_DO); //Set Accepts DNSSEC security resource records bit.
 	}
 
-/* Under construction(2018-02-11)
+/* Under construction(2018-02-27)
 //DNS Cookies
 	if (IsEDNS_Cookies)
 	{
@@ -735,11 +739,6 @@ bool Add_EDNS_LabelToPacket(
 //EDNS Client Subnet
 	if (IsEDNS_ClientSubnet)
 	{
-	//DNS type check
-		const auto DNS_Query = reinterpret_cast<dns_qry *>(PacketStructure->Buffer + DNS_PACKET_QUERY_LOCATE(PacketStructure->Buffer));
-		if (ntohs(DNS_Query->Type) != DNS_TYPE_AAAA && ntohs(DNS_Query->Type) != DNS_TYPE_A)
-			return false;
-
 	//EDNS Client Subnet initialization
 		const auto EDNS_ClientSubnetHeader = reinterpret_cast<edns_client_subnet *>(PacketStructure->Buffer + PacketStructure->EDNS_Location + PacketStructure->EDNS_Length);
 		auto IsFunctionRelay = false, IsGlobalRelay = false;
@@ -862,7 +861,7 @@ bool Add_EDNS_LabelToPacket(
 size_t MakeCompressionPointerMutation(
 	uint8_t * const Buffer, 
 	const size_t Length, 
-	const size_t MaxLen)
+	const size_t BufferSize)
 {
 //Random number distribution initialization
 	std::uniform_int_distribution<uint64_t> RandomDistribution(0, 2U);
@@ -945,8 +944,8 @@ size_t MakeCompressionPointerMutation(
 		dns_qry DNS_Query;
 		memset(&DNS_Query, 0, sizeof(dns_qry));
 		memcpy_s(&DNS_Query, sizeof(dns_qry), Buffer + DNS_PACKET_QUERY_LOCATE(Buffer), sizeof(DNS_Query));
-		memmove_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t) + sizeof(dns_qry), MaxLen - sizeof(dns_hdr) - sizeof(uint16_t) - sizeof(dns_qry), Buffer + sizeof(dns_hdr), strnlen_s(reinterpret_cast<const char *>(Buffer) + sizeof(dns_hdr), Length - sizeof(dns_hdr)) + 1U);
-		memcpy_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t), MaxLen - sizeof(dns_hdr) - sizeof(uint16_t), &DNS_Query, sizeof(DNS_Query));
+		memmove_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t) + sizeof(dns_qry), BufferSize - sizeof(dns_hdr) - sizeof(uint16_t) - sizeof(dns_qry), Buffer + sizeof(dns_hdr), strnlen_s(reinterpret_cast<const char *>(Buffer) + sizeof(dns_hdr), Length - sizeof(dns_hdr)) + 1U);
+		memcpy_s(Buffer + sizeof(dns_hdr) + sizeof(uint16_t), BufferSize - sizeof(dns_hdr) - sizeof(uint16_t), &DNS_Query, sizeof(DNS_Query));
 		*(Buffer + sizeof(dns_hdr)) = static_cast<uint8_t>(DNS_POINTER_8_BIT_STRING);
 		*(Buffer + sizeof(dns_hdr) + 1U) = ('\x12');
 
@@ -1024,7 +1023,7 @@ bool MarkDomainCache(
 //Mark DNS A records and AAAA records only.
 	if (DNSCacheDataTemp.RecordType == htons(DNS_TYPE_AAAA) || DNSCacheDataTemp.RecordType == htons(DNS_TYPE_A))
 	{
-		size_t DataLength = DNS_PACKET_RR_LOCATE(Buffer), TTLCounts = 0;
+		size_t DataLength = DNS_PACKET_RR_LOCATE(Buffer), TTL_Counts = 0;
 
 	//Scan all Answers resource records.
 		for (size_t Index = 0;Index < ntohs(DNS_Header->Answer);++Index)
@@ -1054,15 +1053,15 @@ bool MarkDomainCache(
 				(ntohs(DNS_Record_Standard->Type) == DNS_TYPE_A && ntohs(DNS_Record_Standard->Length) == sizeof(in_addr))))
 			{
 				ResponseTTL += ntohl(DNS_Record_Standard->TTL);
-				++TTLCounts;
+				++TTL_Counts;
 			}
 
 			DataLength += ntohs(DNS_Record_Standard->Length);
 		}
 
 	//Calculate average TTL.
-		if (TTLCounts > 0)
-			ResponseTTL = ResponseTTL / static_cast<uint32_t>(TTLCounts) + ResponseTTL % static_cast<uint32_t>(TTLCounts);
+		if (TTL_Counts > 0)
+			ResponseTTL = ResponseTTL / static_cast<uint32_t>(TTL_Counts) + ResponseTTL % static_cast<uint32_t>(TTL_Counts);
 	}
 
 //Set cache TTL.
@@ -1120,7 +1119,7 @@ bool MarkDomainCache(
 
 //Domain Case Conversion
 	CaseConvert(DNSCacheDataTemp.Domain, false);
-	memcpy_s(DNSCacheDataTemp.Response.get(), NORMAL_PACKET_MAXSIZE, Buffer + sizeof(uint16_t), Length - sizeof(uint16_t));
+	memcpy_s(DNSCacheDataTemp.Response.get(), PACKET_NORMAL_MAXSIZE, Buffer + sizeof(uint16_t), Length - sizeof(uint16_t));
 	DNSCacheDataTemp.Length = Length - sizeof(uint16_t);
 	DNSCacheDataTemp.ClearCacheTime = GetCurrentSystemTime() + ResponseTTL * SECOND_TO_MILLISECOND;
 

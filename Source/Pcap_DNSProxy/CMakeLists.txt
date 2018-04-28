@@ -102,6 +102,7 @@ ENDIF(PLATFORM_OPENWRT)
 # Libraries linking
 find_package(Threads REQUIRED)
 target_link_libraries(Pcap_DNSProxy ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(Pcap_DNSProxy event)
 IF(ENABLE_LIBSODIUM)
 	target_link_libraries(Pcap_DNSProxy sodium)
 ENDIF(ENABLE_LIBSODIUM)

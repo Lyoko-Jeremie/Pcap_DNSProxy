@@ -11,46 +11,36 @@ https://sourceforge.net/projects/pcap-dnsproxy
 -------------------------------------------------------------------------------
 
 
-installation method:
+Installation Method
 The installation process is relatively long and more complex operation, please give some patience to follow the instructions!
 
 1. Prepare the program to compile the environment: before the need to use the package management tool to install, or need to compile and install the dependent library
-  * Dependent Tools / Library List:
+  * Dependency:
     * Compiler must support C++ 14, please select one of them:
-      * GCC/g++ can be found in https://gcc.gnu.org, requires 5.0 and later.
-      * Clang/LLVM can be found in https://clang.llvm.org, requires 3.4 and later.
-    * CMake can be accessed at https://cmake.org
-    * LibPcap can be accessed at http://www.tcpdump.org/#latest-release
+      * GCC/g++, requires 5.0 and later.
+      * Clang/LLVM, requires 3.4 and later.
+    * CMake
+    * LibEvent
+    * LibPcap
       * When decompressing LibPcap dependencies, you can skip compiling and installing dependencies and tools in the following table. For details, see below.
-      * Get root permission after use. / Configure -> make -> make install can be
       * Part of the Linux distributions may also require support for the libpcap-dev tool, as well as running ldconfig to refresh the system library cache
-    * Libsodium can be accessed at https://github.com/jedisct1/libsodium
+    * Libsodium
       * If you are depriving Libsodium dependencies, you can skip compiling and installing dependencies and tools in the following table. For details, see below.
-      * After getting the root permission, go to the directory and run ./autogen.sh -> ./configure -> make -> make install
       * Part of the Linux distributions may also require support for the libsodium-dev tool, as well as running ldconfig to refresh the system library cache
-    * OpenSSL is available at https://www.openssl.org
+    * OpenSSL
       * If you peel off the OpenSSL dependency, you can skip the compilation and installation of the following dependencies and tools, as described in the following, not recommended
-      * Get root permission after use. / Configure [compilation platform] -> make -> make install can be
-      * Part of the Linux distributions may also require support for the libssl-dev / openssl-dev tool, as well as running ldconfig to refresh the system library cache
+      * Part of the Linux distributions may also require support for the libssl-dev/openssl-dev tool, as well as running ldconfig to refresh the system library cache
 
 2. Compile the Pcap_DNSProxy program and configure the program properties
-  * Do not change the script's newline format (UNIX / LF)
-  * Use the terminal to enter the Source / Auxiliary / Scripts directory, use chmod 755 CMake_Build.sh to get the script to execute the license
+  * Use the terminal to enter the Source/Auxiliary/Scripts directory, use chmod 755 CMake_Build.sh to get the script to execute the license
   * Execute the compiler using ./CMake_Build.sh
     * What the script does:
       * CMake will compile and generate the Pcap_DNSProxy program in the Release directory
       * Copy the required scripts and default profiles from the ExampleConfig directory and the Scripts directory to the Release directory and set the basic read and write executable permissions
     * Add the parameter --enable-static that is ./CMake_Build.sh --enable-static to enable static compilation
   * Use the ./CMake_Build.sh script to provide the parameters:
-    * Executed using ./CMake_Build.sh --disable-libpcap Depends on LibPcap dependencies, deprecated
-      * Will not require LibPcap library support after peeling
-      * After stripping the program will be completely lost support LibPcap function, and the operation will not produce any error, caution!
-    * Execution use ./CMake_Build.sh --disable-libsodium Depends on Libsodium dependencies, deprecated
-      * Will not require the support of the Libs sink library after compilation
-      * After the spin-off program will be completely lost support DNSCurve (DNSCrypt) protocol function, and the operation will not produce any error, caution!
-    * Execution is used ./CMake_Build.sh --disable-tls can be stripped of dependencies on OpenSSL, deprecated
-      * Sketch will not require the OpenSSL library after skimming
-      * After the spin-off program will completely lose support TLS / SSL agreement function, and the operation will not produce any error, caution!
+    * Using ./CMake_Build.sh --disable-libpcap --disable-libsodium --disable-tls will remove dependencies correspondingly, no recommended
+    * Please notice that disable commands will lose the support correspondingly.
 
 3. Configure the system daemon service
   * Due to the different Linux distributions, the system services and daemons are handled differently. This step is for reference only.
@@ -61,11 +51,11 @@ The installation process is relatively long and more complex operation, please g
     * For more details, see the description of the other Linux distributions below, and the official instructions for the Linux distributions used
   * When using Systemd Init:
     * Into the Release directory and edit the Pcap_DNSProxy.service file, save after editing:
-      * WorkingDirectory = item is the absolute path to the directory where the program resides
-      * ExecStart = item is the absolute path of the directory where the program is located and the name of the program is added at the end
+      * WorkingDirectory= item is the absolute path to the directory where the program resides
+      * ExecStart= item is the absolute path of the directory where the program is located and the name of the program is added at the end
     * Under the root permission ./Linux_Install.Systemd.sh Execute the service installation script, the script's actions:
       * Set the service control script to basically read and write executable permissions
-      * Install the service control script into the / etc / systemd / system directory
+      * Install the service control script into the/etc/systemd/system directory
       * Try to start the Pcap_DNSProxy service and display the status of the service after the operation is performed
       * Each time the system starts will automatically start the service
     * For more information on Systemd service control, see the documentation for each Linux release
@@ -81,7 +71,7 @@ The installation process is relatively long and more complex operation, please g
     * Can be directly input sh PcapDNSProxyService without parameters query usage
       * Start - start the service
       * Stop - stop service
-      * Force-reload / restart - restart service
+      * Force-reload/restart - restart service
       * Status - service status, if the PID is empty, the service is not started
 
 3. Configure the system daemon service
@@ -93,11 +83,11 @@ The installation process is relatively long and more complex operation, please g
     * For more details, see the description of other Linux distributions below, and the official instructions for the Linux distributions
   * When using Systemd Init:
     * Into the Release directory and edit the Pcap_DNSProxy.service file, save after editing:
-      * WorkingDirectory = item is the absolute path to the directory where the program is located
-      * ExecStart = item is the absolute path of the directory where the program is located and the name of the program is added at the end
+      * WorkingDirectory= item is the absolute path to the directory where the program is located
+      * ExecStart= item is the absolute path of the directory where the program is located and the name of the program is added at the end
     * Under the root privileges ./Linux_Install.Systemd.sh Execute the service installation script, the operation of the script:
       * Change the owner of the Pcap_DNSProxy.service service control script to root
-      * Install the service control script into the / etc / systemd / system directory
+      * Install the service control script into the/etc/systemd/system directory
       * Try to start the Pcap_DNSProxy service and display the status of the service after the operation is performed
       * Each time the system starts will automatically start the service
     * For more information on Systemd service control, see the documentation for the official Linux documentation
@@ -113,7 +103,7 @@ The installation process is relatively long and more complex operation, please g
     * Can be directly input sh PcapDNSProxyService without parameters query usage
       * Start - start the service
       * Stop - stop service
-      * Force-reload / restart - restart service
+      * Force-reload/restart - restart service
       * Status - service status, if the PID is empty, the service is not started
 
 4. Please follow the normal work below to see a section of the method, the first program is in the normal work test and then modify the network settings!
@@ -128,21 +118,21 @@ The installation process is relatively long and more complex operation, please g
       * Fill in the server with 127.0.0.1 and apply it
     * Select IPv6
       * In the DNS section, it will automatically set to close
-      * Fill in the server with :: 1 and apply
+      * Fill in the server with ::1 and apply
     * Make sure to only fill in these two addresses, fill in other addresses may cause the system to select other DNS servers to bypass the program's proxy
     * Reboot the network connection
   * Modify the system file directly Modify the DNS server settings:
     * When the address is automatically acquired (DHCP):
-      * Enter the / etc / dhcp or / etc / dhcp3 directory as root (depending on the dhclient.conf file location)
+      * Enter the/etc/dhcp or/etc/dhcp3 directory as root (depending on the dhclient.conf file location)
       * Directly modify the dhclient.conf file, modify or add prepend domain-name-servers one can
       * If prepend domain-name-servers is annotated, you need to remove the comments for the configuration to take effect, without adding new entries
       * Dhclient.conf file may exist multiple prepend domain-name-servers items, is the settings of the various network interface, directly modify the total settings can be
-    * Use service network (/ networking) restart or ifdown / ifup or ifconfig stop / start to restart network service / network port
+    * Use service network (/ networking) restart or ifdown/ifup or ifconfig stop/start to restart network service/network port
       * When the address is not automatically acquired (DHCP):
-      * Enter the / etc directory with the root permission
+      * Enter the/etc directory with the root permission
       * Directly modify the resolv.conf file nameserver can be
       * If the configuration is overridden after rebooting, you need to modify or create the new /etc/resolvconf/resolv.conf.d file with the same content as resolv.conf
-      * Use service network (/ networking) restart or ifdown / ifup or ifconfig stop / start to restart network service / network port
+      * Use service network (/ networking) restart or ifdown/ifup or ifconfig stop/start to restart network service/network port
 
 
 -------------------------------------------------------------------------------
@@ -189,7 +179,7 @@ Uninstall method:
 Normal work View method:
 
 1. Open the terminal
-2. Enter dig @ 127.0.0.1 www.google.com or dig @ :: 1 www.google.com and press Enter
+2. Enter "dig @ 127.0.0.1 www.google.com" or "dig @::1 www.google.com" and press Enter
 3. The results should be similar:
 
    > Dig www.google.com
@@ -206,7 +196,7 @@ Normal work View method:
    ..
 
    ;; Query time: .. msec
-   ; SERVER: :: 1 # 53 (:: 1) (depending on the network environment, 127.0.0.1 when the local listening protocol is IPv4)
+   ; SERVER: ::1#53(::1) (depending on the network environment, 127.0.0.1 when the local listening protocol is IPv4)
    WHEN: ..
    ;; MSG SIZE rcvd: ..
 
@@ -221,7 +211,6 @@ Description of other Linux distributions:
 * Linux Debian series:
   * Official release version 8.x and later versions require the use of Systemd to manage system services
   * The official release version 6.x - 7.x version requires the use of the insserv management system service
-  * Official release version 6.x The following version requires the use of update-rc.d to manage system services, see https://wiki.debian.org/Daemon
 * Linux Red Hat and openSUSE series:
   * Use chkconfig to manage system services
   * See https://access.redhat.com/site/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Deployment_Guide/s2-services-chkconfig.html

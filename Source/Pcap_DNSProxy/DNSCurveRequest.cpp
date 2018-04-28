@@ -160,9 +160,9 @@ bool DNSCurve_TCP_SignatureRequest(
 	const bool IsAlternate)
 {
 //Initialization
-	const auto SendBuffer = std::make_unique<uint8_t[]>(NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+	const auto SendBuffer = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
 	const auto RecvBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
-	memset(SendBuffer.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+	memset(SendBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
 	memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
 	std::vector<SOCKET_DATA> TCPSocketDataList(1U);
 	memset(&TCPSocketDataList.front(), 0, sizeof(TCPSocketDataList.front()));
@@ -182,7 +182,7 @@ bool DNSCurve_TCP_SignatureRequest(
 	DNS_TCP_Header->ID = htons(*reinterpret_cast<uint16_t *>(pthread_self())); //Default DNS ID is current thread ID.
 #endif
 #endif
-	DNS_TCP_Header->Flags = htons(DNS_FLAG_STANDARD);
+	DNS_TCP_Header->Flags = htons(DNS_FLAG_REQUEST_STANDARD);
 	DNS_TCP_Header->Question = htons(UINT16_NUM_ONE);
 	if (Protocol == AF_INET6)
 	{
@@ -206,7 +206,7 @@ bool DNSCurve_TCP_SignatureRequest(
 	DataLength += sizeof(dns_qry);
 
 //EDNS Label
-	DataLength = Add_EDNS_LabelToPacket(SendBuffer.get() + sizeof(uint16_t), DataLength - sizeof(uint16_t), NORMAL_PACKET_MAXSIZE, nullptr);
+	DataLength = Add_EDNS_LabelToPacket(SendBuffer.get() + sizeof(uint16_t), DataLength - sizeof(uint16_t), PACKET_NORMAL_MAXSIZE, nullptr);
 	DataLength += sizeof(uint16_t);
 
 //Add length of request packet.
@@ -325,10 +325,10 @@ bool DNSCurve_UDP_SignatureRequest(
 	const bool IsAlternate)
 {
 //Initialization
-	const auto SendBuffer = std::make_unique<uint8_t[]>(NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
-	const auto RecvBuffer = std::make_unique<uint8_t[]>(NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
-	memset(SendBuffer.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
-	memset(RecvBuffer.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+	const auto SendBuffer = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
+	const auto RecvBuffer = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
+	memset(SendBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
+	memset(RecvBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
 	memset(&UDPSocketDataList.front(), 0, sizeof(UDPSocketDataList.front()));
 	UDPSocketDataList.front().Socket = INVALID_SOCKET;
@@ -347,7 +347,7 @@ bool DNSCurve_UDP_SignatureRequest(
 	DNS_Header->ID = htons(*reinterpret_cast<uint16_t *>(pthread_self())); //Default DNS ID is current thread ID.
 #endif
 #endif
-	DNS_Header->Flags = htons(DNS_FLAG_STANDARD);
+	DNS_Header->Flags = htons(DNS_FLAG_REQUEST_STANDARD);
 	DNS_Header->Question = htons(UINT16_NUM_ONE);
 	if (Protocol == AF_INET6)
 	{
@@ -371,7 +371,7 @@ bool DNSCurve_UDP_SignatureRequest(
 	DataLength += sizeof(dns_qry);
 
 //EDNS Label
-	DataLength = Add_EDNS_LabelToPacket(SendBuffer.get(), DataLength, NORMAL_PACKET_MAXSIZE, nullptr);
+	DataLength = Add_EDNS_LabelToPacket(SendBuffer.get(), DataLength, PACKET_NORMAL_MAXSIZE, nullptr);
 
 //Socket initialization(Part 1)
 	std::wstring Message;
@@ -429,7 +429,7 @@ bool DNSCurve_UDP_SignatureRequest(
 				goto JumpToRestart;
 
 	//Socket selecting
-		RecvLen = SocketSelectingOnce(REQUEST_PROCESS_TYPE::DNSCURVE_SIGN, IPPROTO_UDP, UDPSocketDataList, nullptr, SendBuffer.get(), DataLength, RecvBuffer.get(), NORMAL_PACKET_MAXSIZE, nullptr, nullptr);
+		RecvLen = SocketSelectingOnce(REQUEST_PROCESS_TYPE::DNSCURVE_SIGN, IPPROTO_UDP, UDPSocketDataList, nullptr, SendBuffer.get(), DataLength, RecvBuffer.get(), PACKET_NORMAL_MAXSIZE, nullptr, nullptr);
 		if (RecvLen < static_cast<ssize_t>(DNS_PACKET_MINSIZE))
 		{
 			goto JumpToRestart;
@@ -462,7 +462,7 @@ bool DNSCurve_UDP_SignatureRequest(
 		}
 
 	//Send request again.
-		memset(RecvBuffer.get(), 0, NORMAL_PACKET_MAXSIZE + PADDING_RESERVED_BYTES);
+		memset(RecvBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
 		if (!Parameter.AlternateMultipleRequest)
 		{
 			if (ServerType == DNSCURVE_SERVER_TYPE::MAIN_IPV6)

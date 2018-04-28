@@ -30,6 +30,8 @@ extern std::vector<FILE_DATA> FileList_Config, FileList_IPFilter, FileList_Hosts
 extern std::vector<FILE_DATA> FileList_DNSCurveDatabase;
 #endif
 extern std::mutex ScreenLock;
+
+//Local variables
 std::mutex ErrorLogLock;
 
 //Functions

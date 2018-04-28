@@ -288,19 +288,19 @@ bool Parameter_CheckSetting(
 	//Hop Limits and TTL must between 1 and 255.
 		if (
 		//IPv6
-			(ParameterPointer->Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign > 0 && 
-			(static_cast<size_t>(ParameterPointer->Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
-			static_cast<ssize_t>(ParameterPointer->Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1)) || 
-			(ParameterPointer->Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign > 0 && 
-			(static_cast<size_t>(ParameterPointer->Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
-			static_cast<ssize_t>(ParameterPointer->Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1)) || 
+			(ParameterPointer->Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_StaticLoad > 0 && 
+			(static_cast<size_t>(ParameterPointer->Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_StaticLoad) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
+			static_cast<ssize_t>(ParameterPointer->Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_StaticLoad) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1)) || 
+			(ParameterPointer->Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_StaticLoad > 0 && 
+			(static_cast<size_t>(ParameterPointer->Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_StaticLoad) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
+			static_cast<ssize_t>(ParameterPointer->Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_StaticLoad) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1)) || 
 		//IPv4
-			(ParameterPointer->Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign > 0 && 
-			(static_cast<size_t>(ParameterPointer->Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
-			static_cast<ssize_t>(ParameterPointer->Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1)) || 
-			(ParameterPointer->Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign > 0 && 
-			(static_cast<size_t>(ParameterPointer->Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
-			static_cast<ssize_t>(ParameterPointer->Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1)))
+			(ParameterPointer->Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_StaticLoad > 0 && 
+			(static_cast<size_t>(ParameterPointer->Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_StaticLoad) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
+			static_cast<ssize_t>(ParameterPointer->Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_StaticLoad) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1)) || 
+			(ParameterPointer->Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_StaticLoad > 0 && 
+			(static_cast<size_t>(ParameterPointer->Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_StaticLoad) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
+			static_cast<ssize_t>(ParameterPointer->Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_StaticLoad) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1)))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Hop Limits Fluctuation error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
@@ -311,9 +311,9 @@ bool Parameter_CheckSetting(
 		{
 			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv6_Multiple)
 			{
-				if (DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign > 0 && 
-					(static_cast<size_t>(DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
-					static_cast<ssize_t>(DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1))
+				if (DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_StaticLoad > 0 && 
+					(static_cast<size_t>(DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_StaticLoad) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
+					static_cast<ssize_t>(DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_StaticLoad) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Hop Limits Fluctuation error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					return false;
@@ -326,9 +326,9 @@ bool Parameter_CheckSetting(
 		{
 			for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv4_Multiple)
 			{
-				if (DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign > 0 && 
-					(static_cast<size_t>(DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
-					static_cast<ssize_t>(DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1))
+				if (DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_StaticLoad > 0 && 
+					(static_cast<size_t>(DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_StaticLoad) + static_cast<size_t>(ParameterPointer->HopLimitsFluctuation) > UINT8_MAX || 
+					static_cast<ssize_t>(DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_StaticLoad) < static_cast<ssize_t>(ParameterPointer->HopLimitsFluctuation) + 1))
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Hop Limits Fluctuation error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					return false;
@@ -470,7 +470,7 @@ bool Parameter_CheckSetting(
 			Parameter.LocalServer_Length += sizeof(dns_record_ptr);
 
 		//Copy to global buffer.
-			memcpy_s(Parameter.LocalServer_Response + Parameter.LocalServer_Length, NORMAL_PACKET_MAXSIZE - Parameter.LocalServer_Length, Parameter.Local_FQDN_Response, Parameter.Local_FQDN_Length);
+			memcpy_s(Parameter.LocalServer_Response + Parameter.LocalServer_Length, PACKET_NORMAL_MAXSIZE - Parameter.LocalServer_Length, Parameter.Local_FQDN_Response, Parameter.Local_FQDN_Length);
 			Parameter.LocalServer_Length += Parameter.Local_FQDN_Length;
 		}
 	#endif
@@ -1093,7 +1093,7 @@ bool Parameter_CheckSetting(
 					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"DNSCurve Payload Size must longer than traditional DNS packet minimum supported size(512 bytes)", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					DNSCurveParameter.DNSCurvePayloadSize = DNS_PACKET_MAXSIZE_TRADITIONAL;
 				}
-				else if (DNSCurveParameter.DNSCurvePayloadSize >= NORMAL_PACKET_MAXSIZE - DNSCRYPT_HEADER_RESERVED_LEN)
+				else if (DNSCurveParameter.DNSCurvePayloadSize >= PACKET_NORMAL_MAXSIZE - DNSCRYPT_HEADER_RESERVED_LEN)
 				{
 					PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"DNSCurve Payload Size is too large", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 					DNSCurveParameter.DNSCurvePayloadSize = EDNS_PACKET_MINSIZE;
@@ -1122,7 +1122,7 @@ bool Parameter_CheckSetting(
 
 		//DNSCurve keys recheck time
 			if (DNSCurveParameterPointer->KeyRecheckTime == 0)
-				DNSCurveParameterPointer->KeyRecheckTime = DEFAULT_DNSCURVE_RECHECK_TIME * SECOND_TO_MILLISECOND;
+				DNSCurveParameterPointer->KeyRecheckTime = DNSCURVE_DEFAULT_RECHECK_TIME * SECOND_TO_MILLISECOND;
 		}
 	}
 	else if (IsFirstRead)
@@ -1738,12 +1738,12 @@ bool ReadParameterData_Base(
 	}
 	else if (Data.compare(0, strlen("FileRefreshTime="), ("FileRefreshTime=")) == 0 && Data.length() > strlen("FileRefreshTime="))
 	{
-		if (Data.length() < strlen("FileRefreshTime=") + UINT16_MAX_STRING_LENGTH && 
+		if (Data.length() < strlen("FileRefreshTime=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
 		{
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("FileRefreshTime="), nullptr, 0);
-			if (UnsignedResult >= SHORTEST_FILEREFRESH_TIME && UnsignedResult < ULONG_MAX)
+			if (UnsignedResult >= SHORTEST_FILE_REFRESH_TIME && UnsignedResult < ULONG_MAX)
 			{
 				ParameterPointer->FileRefreshTime = UnsignedResult * SECOND_TO_MILLISECOND;
 				IsFoundParameter = true;
@@ -1758,12 +1758,12 @@ bool ReadParameterData_Base(
 	{
 		if (Data.compare(0, strlen("LargeBufferSize="), ("LargeBufferSize=")) == 0 && Data.length() > strlen("LargeBufferSize="))
 		{
-			if (Data.length() < strlen("LargeBufferSize=") + UINT16_MAX_STRING_LENGTH && 
+			if (Data.length() < strlen("LargeBufferSize=") + UINT16_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
 			{
 				_set_errno(0);
 				UnsignedResult = strtoul(Data.c_str() + strlen("LargeBufferSize="), nullptr, 0);
-				if (UnsignedResult >= NORMAL_PACKET_MAXSIZE && UnsignedResult < ULONG_MAX)
+				if (UnsignedResult >= PACKET_NORMAL_MAXSIZE && UnsignedResult < ULONG_MAX)
 				{
 					Parameter.LargeBufferSize = UnsignedResult;
 					IsFoundParameter = true;
@@ -1968,7 +1968,7 @@ bool ReadParameterData_Listen(
 		}
 		else if (Data.compare(0, strlen("PcapReadingTimeout="), ("PcapReadingTimeout=")) == 0)
 		{
-			if (Data.length() < strlen("PcapReadingTimeout=") + UINT16_MAX_STRING_LENGTH && 
+			if (Data.length() < strlen("PcapReadingTimeout=") + UINT16_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
 			{
 				_set_errno(0);
@@ -2043,7 +2043,7 @@ bool ReadParameterData_Listen(
 					}
 				}
 
-			//Mark to global list.
+			//Register to global list.
 				Parameter.ListenPort->push_back(htons(static_cast<uint16_t>(UnsignedResult)));
 			}
 
@@ -2089,7 +2089,7 @@ bool ReadParameterData_Listen(
 	}
 	else if (Data.compare(0, strlen("IPFilterLevel<"), ("IPFilterLevel<")) == 0 && Data.length() > strlen("IPFilterLevel<"))
 	{
-		if (Data.length() < strlen("IPFilterLevel<") + UINT8_MAX_STRING_LENGTH && 
+		if (Data.length() < strlen("IPFilterLevel<") + UINT8_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
 		{
 			_set_errno(0);
@@ -2304,7 +2304,7 @@ bool ReadParameterData_DNS(
 
 	if (Data.compare(0, strlen("DefaultTTL="), ("DefaultTTL=")) == 0 && Data.length() > strlen("DefaultTTL="))
 	{
-		if (Data.length() < strlen("DefaultTTL=") + UINT16_MAX_STRING_LENGTH && 
+		if (Data.length() < strlen("DefaultTTL=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
 		{
 			_set_errno(0);
@@ -2420,7 +2420,7 @@ bool ReadParameterData_Addresses(
 			if (!ReadMultipleAddresses(AF_INET, Data, strlen("IPv4ListenAddress="), &DNSServerDataTemp, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
 				return false;
 
-		//Mark to global list.
+		//Register to global list.
 			for (const auto &DNSServerDataIter:DNSServerDataTemp)
 				Parameter.ListenAddress_IPv4->push_back(DNSServerDataIter.AddressData.Storage);
 
@@ -2488,7 +2488,7 @@ bool ReadParameterData_Addresses(
 			if (!ReadMultipleAddresses(AF_INET6, Data, strlen("IPv6ListenAddress="), &DNSServerDataTemp, READ_TEXT_TYPE::PARAMETER_NORMAL, FileIndex, Line))
 				return false;
 
-		//Mark to global list.
+		//Register to global list.
 			for (const auto &DNSServerDataIter:DNSServerDataTemp)
 				Parameter.ListenAddress_IPv6->push_back(DNSServerDataIter.AddressData.Storage);
 
@@ -2576,7 +2576,7 @@ bool ReadParameterData_Values(
 	{
 		if (Data.compare(0, strlen("ThreadPoolBaseNumber="), ("ThreadPoolBaseNumber=")) == 0 && Data.length() > strlen("ThreadPoolBaseNumber="))
 		{
-			if (Data.length() < strlen("ThreadPoolBaseNumber=") + UINT32_MAX_STRING_LENGTH - 1U && 
+			if (Data.length() < strlen("ThreadPoolBaseNumber=") + UINT32_STRING_MAXLEN - 1U && 
 				Data.find(ASCII_MINUS) == std::string::npos)
 			{
 				_set_errno(0);
@@ -2593,7 +2593,7 @@ bool ReadParameterData_Values(
 		}
 		else if (Data.compare(0, strlen("ThreadPoolMaximumNumber="), ("ThreadPoolMaximumNumber=")) == 0 && Data.length() > strlen("ThreadPoolMaximumNumber="))
 		{
-			if (Data.length() < strlen("ThreadPoolMaximumNumber=") + UINT32_MAX_STRING_LENGTH - 1U && 
+			if (Data.length() < strlen("ThreadPoolMaximumNumber=") + UINT32_STRING_MAXLEN - 1U && 
 				Data.find(ASCII_MINUS) == std::string::npos)
 			{
 				_set_errno(0);
@@ -2612,7 +2612,7 @@ bool ReadParameterData_Values(
 
 	if (Data.compare(0, strlen("ThreadPoolResetTime="), ("ThreadPoolResetTime=")) == 0 && Data.length() > strlen("ThreadPoolResetTime="))
 	{
-		if (Data.length() < strlen("ThreadPoolResetTime=") + UINT16_MAX_STRING_LENGTH && 
+		if (Data.length() < strlen("ThreadPoolResetTime=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
 		{
 			_set_errno(0);
@@ -2632,7 +2632,7 @@ bool ReadParameterData_Values(
 	{
 		if (Data.compare(0, strlen("QueueLimitsResetTime="), ("QueueLimitsResetTime=")) == 0 && Data.length() > strlen("QueueLimitsResetTime="))
 		{
-			if (Data.length() < strlen("QueueLimitsResetTime=") + UINT16_MAX_STRING_LENGTH && 
+			if (Data.length() < strlen("QueueLimitsResetTime=") + UINT16_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
 			{
 				_set_errno(0);
@@ -2649,7 +2649,7 @@ bool ReadParameterData_Values(
 		}
 		else if (Data.compare(0, strlen("EDNSPayloadSize="), ("EDNSPayloadSize=")) == 0 && Data.length() > strlen("EDNSPayloadSize="))
 		{
-			if (Data.length() < strlen("EDNSPayloadSize=") + UINT16_MAX_STRING_LENGTH && 
+			if (Data.length() < strlen("EDNSPayloadSize=") + UINT16_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
 			{
 				_set_errno(0);
@@ -2717,7 +2717,7 @@ bool ReadParameterData_Values(
 		}
 	//Value
 		else {
-			if (Data.length() < strlen("IPv4PacketTTL=") + UINT8_MAX_STRING_LENGTH && 
+			if (Data.length() < strlen("IPv4PacketTTL=") + UINT8_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
 			{
 				_set_errno(0);
@@ -2826,7 +2826,7 @@ bool ReadParameterData_Values(
 		}
 	//Value
 		else {
-			if (Data.length() < strlen("IPv6PacketHopLimits=") + UINT8_MAX_STRING_LENGTH)
+			if (Data.length() < strlen("IPv6PacketHopLimits=") + UINT8_STRING_MAXLEN)
 			{
 				_set_errno(0);
 				UnsignedResult = strtoul(Data.c_str() + strlen("IPv6PacketHopLimits="), nullptr, 0);
@@ -2851,7 +2851,7 @@ bool ReadParameterData_Values(
 #if defined(ENABLE_PCAP)
 	else if (Data.compare(0, strlen("HopLimitsFluctuation="), ("HopLimitsFluctuation=")) == 0 && Data.length() > strlen("HopLimitsFluctuation="))
 	{
-		if (Data.length() < strlen("HopLimitsFluctuation=") + UINT8_MAX_STRING_LENGTH && 
+		if (Data.length() < strlen("HopLimitsFluctuation=") + UINT8_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
 		{
 			_set_errno(0);
@@ -2871,12 +2871,12 @@ bool ReadParameterData_Values(
 	else if (Data.compare(0, strlen("ReliableOnceSocketTimeout="), ("ReliableOnceSocketTimeout=")) == 0 && 
 		Data.length() > strlen("ReliableOnceSocketTimeout="))
 	{
-		if (Data.length() < strlen("ReliableOnceSocketTimeout=") + UINT32_MAX_STRING_LENGTH && 
+		if (Data.length() < strlen("ReliableOnceSocketTimeout=") + UINT32_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
 		{
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("ReliableOnceSocketTimeout="), nullptr, 0);
-			if (UnsignedResult > SOCKET_MIN_TIMEOUT && UnsignedResult < ULONG_MAX)
+			if (UnsignedResult > SOCKET_TIMEOUT_MIN && UnsignedResult < ULONG_MAX)
 			{
 			#if defined(PLATFORM_WIN)
 				ParameterPointer->SocketTimeout_Reliable_Once = static_cast<DWORD>(UnsignedResult);
@@ -2894,12 +2894,12 @@ bool ReadParameterData_Values(
 	else if (Data.compare(0, strlen("ReliableSerialSocketTimeout="), ("ReliableSerialSocketTimeout=")) == 0 && 
 		Data.length() > strlen("ReliableSerialSocketTimeout="))
 	{
-		if (Data.length() < strlen("ReliableSerialSocketTimeout=") + UINT32_MAX_STRING_LENGTH && 
+		if (Data.length() < strlen("ReliableSerialSocketTimeout=") + UINT32_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
 		{
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("ReliableSerialSocketTimeout="), nullptr, 0);
-			if (UnsignedResult > SOCKET_MIN_TIMEOUT && UnsignedResult < ULONG_MAX)
+			if (UnsignedResult > SOCKET_TIMEOUT_MIN && UnsignedResult < ULONG_MAX)
 			{
 			#if defined(PLATFORM_WIN)
 				ParameterPointer->SocketTimeout_Reliable_Serial = static_cast<DWORD>(UnsignedResult);
@@ -2917,12 +2917,12 @@ bool ReadParameterData_Values(
 	else if (Data.compare(0, strlen("UnreliableOnceSocketTimeout="), ("UnreliableOnceSocketTimeout=")) == 0 && 
 		Data.length() > strlen("UnreliableOnceSocketTimeout="))
 	{
-		if (Data.length() < strlen("UnreliableOnceSocketTimeout=") + UINT32_MAX_STRING_LENGTH && 
+		if (Data.length() < strlen("UnreliableOnceSocketTimeout=") + UINT32_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
 		{
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("UnreliableOnceSocketTimeout="), nullptr, 0);
-			if (UnsignedResult > SOCKET_MIN_TIMEOUT && UnsignedResult < ULONG_MAX)
+			if (UnsignedResult > SOCKET_TIMEOUT_MIN && UnsignedResult < ULONG_MAX)
 			{
 			#if defined(PLATFORM_WIN)
 				ParameterPointer->SocketTimeout_Unreliable_Once = static_cast<DWORD>(UnsignedResult);
@@ -2940,12 +2940,12 @@ bool ReadParameterData_Values(
 	else if (Data.compare(0, strlen("UnreliableSerialSocketTimeout="), ("UnreliableSerialSocketTimeout=")) == 0 && 
 		Data.length() > strlen("UnreliableSerialSocketTimeout="))
 	{
-		if (Data.length() < strlen("UnreliableSerialSocketTimeout=") + UINT32_MAX_STRING_LENGTH && 
+		if (Data.length() < strlen("UnreliableSerialSocketTimeout=") + UINT32_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
 		{
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("UnreliableSerialSocketTimeout="), nullptr, 0);
-			if (UnsignedResult > SOCKET_MIN_TIMEOUT && UnsignedResult < ULONG_MAX)
+			if (UnsignedResult > SOCKET_TIMEOUT_MIN && UnsignedResult < ULONG_MAX)
 			{
 			#if defined(PLATFORM_WIN)
 				ParameterPointer->SocketTimeout_Unreliable_Serial = static_cast<DWORD>(UnsignedResult);
@@ -2962,7 +2962,7 @@ bool ReadParameterData_Values(
 	}
 	else if (IsFirstRead && Data.compare(0, strlen("TCPFastOpen="), ("TCPFastOpen=")) == 0 && Data.length() > strlen("TCPFastOpen="))
 	{
-		if (Data.length() < strlen("TCPFastOpen=") + UINT16_MAX_STRING_LENGTH && 
+		if (Data.length() < strlen("TCPFastOpen=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
 		{
 			_set_errno(0);
@@ -2979,7 +2979,7 @@ bool ReadParameterData_Values(
 	}
 	else if (Data.compare(0, strlen("ReceiveWaiting="), ("ReceiveWaiting=")) == 0 && Data.length() > strlen("ReceiveWaiting="))
 	{
-		if (Data.length() < strlen("ReceiveWaiting=") + UINT16_MAX_STRING_LENGTH && 
+		if (Data.length() < strlen("ReceiveWaiting=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
 		{
 			_set_errno(0);
@@ -2998,7 +2998,7 @@ bool ReadParameterData_Values(
 #if defined(ENABLE_PCAP)
 	else if (Data.compare(0, strlen("ICMPTest="), ("ICMPTest=")) == 0 && Data.length() > strlen("ICMPTest="))
 	{
-		if (Data.length() < strlen("ICMPTest=") + UINT16_MAX_STRING_LENGTH && 
+		if (Data.length() < strlen("ICMPTest=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
 		{
 			_set_errno(0);
@@ -3019,7 +3019,7 @@ bool ReadParameterData_Values(
 	}
 	else if (Data.compare(0, strlen("DomainTest="), ("DomainTest=")) == 0 && Data.length() > strlen("DomainTest="))
 	{
-		if (Data.length() < strlen("DomainTest=") + UINT16_MAX_STRING_LENGTH && 
+		if (Data.length() < strlen("DomainTest=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
 		{
 			_set_errno(0);
@@ -3042,7 +3042,7 @@ bool ReadParameterData_Values(
 	{
 		if (Data.compare(0, strlen("AlternateTimes="), ("AlternateTimes=")) == 0 && Data.length() > strlen("AlternateTimes="))
 		{
-			if (Data.length() < strlen("AlternateTimes=") + UINT16_MAX_STRING_LENGTH && 
+			if (Data.length() < strlen("AlternateTimes=") + UINT16_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
 			{
 				_set_errno(0);
@@ -3059,7 +3059,7 @@ bool ReadParameterData_Values(
 		}
 		else if (Data.compare(0, strlen("AlternateTimeRange="), ("AlternateTimeRange=")) == 0 && Data.length() > strlen("AlternateTimeRange="))
 		{
-			if (Data.length() < strlen("AlternateTimeRange=") + UINT16_MAX_STRING_LENGTH && 
+			if (Data.length() < strlen("AlternateTimeRange=") + UINT16_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
 			{
 				_set_errno(0);
@@ -3076,7 +3076,7 @@ bool ReadParameterData_Values(
 		}
 		else if (Data.compare(0, strlen("AlternateResetTime="), ("AlternateResetTime=")) == 0 && Data.length() > strlen("AlternateResetTime="))
 		{
-			if (Data.length() < strlen("AlternateResetTime=") + UINT16_MAX_STRING_LENGTH && 
+			if (Data.length() < strlen("AlternateResetTime=") + UINT16_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
 			{
 				_set_errno(0);
@@ -3095,7 +3095,7 @@ bool ReadParameterData_Values(
 
 	if (Data.compare(0, strlen("MultipleRequestTimes="), ("MultipleRequestTimes=")) == 0 && Data.length() > strlen("MultipleRequestTimes="))
 	{
-		if (Data.length() < strlen("MultipleRequestTimes=") + UINT16_MAX_STRING_LENGTH && 
+		if (Data.length() < strlen("MultipleRequestTimes=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
 		{
 			_set_errno(0);
@@ -3317,7 +3317,7 @@ bool ReadParameterData_Data(
 	#if defined(ENABLE_PCAP)
 		if (Data.compare(0, strlen("ICMPID="), ("ICMPID=")) == 0 && Data.length() > strlen("ICMPID="))
 		{
-			if (Data.length() < strlen("ICMPID=") + strlen(HEX_PREAMBLE_STRING) + UINT8_MAX_STRING_LENGTH && 
+			if (Data.length() < strlen("ICMPID=") + strlen(HEX_PREAMBLE_STRING) + UINT8_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
 			{
 				_set_errno(0);
@@ -3334,7 +3334,7 @@ bool ReadParameterData_Data(
 		}
 		else if (Data.compare(0, strlen("ICMPSequence="), ("ICMPSequence=")) == 0 && Data.length() > strlen("ICMPSequence="))
 		{
-			if (Data.length() < strlen("ICMPSequence=") + strlen(HEX_PREAMBLE_STRING) + UINT8_MAX_STRING_LENGTH && 
+			if (Data.length() < strlen("ICMPSequence=") + strlen(HEX_PREAMBLE_STRING) + UINT8_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
 			{
 				_set_errno(0);
@@ -3388,7 +3388,7 @@ bool ReadParameterData_Data(
 	{
 		if (Data.compare(0, strlen("DomainTestID="), ("DomainTestID=")) == 0 && Data.length() > strlen("DomainTestID="))
 		{
-			if (Data.length() < strlen("DomainTestID=") + strlen(HEX_PREAMBLE_STRING) + UINT8_MAX_STRING_LENGTH && 
+			if (Data.length() < strlen("DomainTestID=") + strlen(HEX_PREAMBLE_STRING) + UINT8_STRING_MAXLEN && 
 				Data.find(ASCII_MINUS) == std::string::npos)
 			{
 				_set_errno(0);
@@ -3776,7 +3776,7 @@ bool ReadParameterData_Proxy(
 					Version_Minor = 1U;
 				}
 
-			//Mark to global list.
+			//Register to global list.
 				if (Version_Major == 0)
 				{
 					Parameter.HTTP_CONNECT_Version = HTTP_VERSION_SELECTION::VERSION_AUTO;
@@ -3951,12 +3951,12 @@ bool ReadParameterData_DNSCurve(
 	if (Data.compare(0, strlen("DNSCurveReliableSocketTimeout="), ("DNSCurveReliableSocketTimeout=")) == 0 && 
 		Data.length() > strlen("DNSCurveReliableSocketTimeout="))
 	{
-		if (Data.length() < strlen("DNSCurveReliableSocketTimeout=") + UINT32_MAX_STRING_LENGTH && 
+		if (Data.length() < strlen("DNSCurveReliableSocketTimeout=") + UINT32_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
 		{
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("DNSCurveReliableSocketTimeout="), nullptr, 0);
-			if (UnsignedResult > SOCKET_MIN_TIMEOUT && UnsignedResult < ULONG_MAX)
+			if (UnsignedResult > SOCKET_TIMEOUT_MIN && UnsignedResult < ULONG_MAX)
 			{
 			#if defined(PLATFORM_WIN)
 				DNSCurveParameterPointer->DNSCurve_SocketTimeout_Reliable = static_cast<DWORD>(UnsignedResult);
@@ -3974,12 +3974,12 @@ bool ReadParameterData_DNSCurve(
 	else if (Data.compare(0, strlen("DNSCurveUnreliableSocketTimeout="), ("DNSCurveUnreliableSocketTimeout=")) == 0 && 
 		Data.length() > strlen("DNSCurveUnreliableSocketTimeout="))
 	{
-		if (Data.length() < strlen("DNSCurveUnreliableSocketTimeout=") + UINT32_MAX_STRING_LENGTH && 
+		if (Data.length() < strlen("DNSCurveUnreliableSocketTimeout=") + UINT32_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
 		{
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("DNSCurveUnreliableSocketTimeout="), nullptr, 0);
-			if (UnsignedResult > SOCKET_MIN_TIMEOUT && UnsignedResult < ULONG_MAX)
+			if (UnsignedResult > SOCKET_TIMEOUT_MIN && UnsignedResult < ULONG_MAX)
 			{
 			#if defined(PLATFORM_WIN)
 				DNSCurveParameterPointer->DNSCurve_SocketTimeout_Unreliable = static_cast<DWORD>(UnsignedResult);
@@ -4016,12 +4016,12 @@ bool ReadParameterData_DNSCurve(
 	}
 	else if (Data.compare(0, strlen("DNSCurveKeyRecheckTime="), ("DNSCurveKeyRecheckTime=")) == 0 && Data.length() > strlen("DNSCurveKeyRecheckTime="))
 	{
-		if (Data.length() < strlen("DNSCurveKeyRecheckTime=") + UINT16_MAX_STRING_LENGTH && 
+		if (Data.length() < strlen("DNSCurveKeyRecheckTime=") + UINT16_STRING_MAXLEN && 
 			Data.find(ASCII_MINUS) == std::string::npos)
 		{
 			_set_errno(0);
 			UnsignedResult = strtoul(Data.c_str() + strlen("DNSCurveKeyRecheckTime="), nullptr, 0);
-			if (UnsignedResult >= SHORTEST_DNSCURVE_RECHECK_TIME && UnsignedResult < ULONG_MAX)
+			if (UnsignedResult >= DNSCURVE_SHORTEST_RECHECK_TIME && UnsignedResult < ULONG_MAX)
 			{
 				DNSCurveParameterPointer->KeyRecheckTime = UnsignedResult * SECOND_TO_MILLISECOND;
 				IsFoundParameter = true;
@@ -4482,7 +4482,7 @@ bool ReadName_PathFile(
 			}
 		#endif
 
-		//Mark to global list.
+		//Register to global list.
 			for (auto InnerStringIter = GlobalRunningStatus.Path_Global->begin();InnerStringIter < GlobalRunningStatus.Path_Global->end();++InnerStringIter)
 			{
 				if (*InnerStringIter == WCS_NameString)
@@ -4524,7 +4524,7 @@ bool ReadName_PathFile(
 				return false;
 			}
 
-		//Mark to global list.
+		//Register to global list.
 			if (ListData->empty())
 			{
 				ListData->push_back(WCS_NameString);
@@ -4613,7 +4613,7 @@ bool ReadMultipleAddresses(
 		//IPv6 address and port check.
 			if (StringIter.find(ASCII_BRACKETS_LEFT) == std::string::npos || StringIter.find(ASCII_BRACKETS_RIGHT) == std::string::npos || 
 				StringIter.find("]:") == std::string::npos || StringIter.find(ASCII_BRACKETS_RIGHT) <= strlen("[") || 
-				StringIter.find(ASCII_BRACKETS_RIGHT) < IPV6_SHORTEST_ADDR_STRING || StringIter.length() <= StringIter.find("]:") + strlen("]:"))
+				StringIter.find(ASCII_BRACKETS_RIGHT) < ADDRESS_STRING_IPV6_MINSIZE || StringIter.length() <= StringIter.find("]:") + strlen("]:"))
 			{
 			#if defined(ENABLE_LIBSODIUM)
 				if (InputType == READ_TEXT_TYPE::DNSCURVE_DATABASE || InputType == READ_TEXT_TYPE::DNSCURVE_MONITOR)
@@ -4675,7 +4675,7 @@ bool ReadMultipleAddresses(
 			}
 			DNSServerDataTemp.AddressData.IPv6.sin6_port = htons(static_cast<uint16_t>(UnsignedResult));
 
-		//Mark to global list.
+		//Register to global list.
 			DNSServerDataTemp.AddressData.Storage.ss_family = AF_INET6;
 			if (DNSServerDataList->empty())
 			{
@@ -4714,7 +4714,7 @@ bool ReadMultipleAddresses(
 
 		//IPv4 address and port check.
 			if (StringIter.find(ASCII_COLON) == std::string::npos || StringIter.find(ASCII_PERIOD) == std::string::npos || 
-				StringIter.find(ASCII_COLON) < IPV4_SHORTEST_ADDR_STRING || StringIter.length() <= StringIter.find(ASCII_COLON) + strlen(":"))
+				StringIter.find(ASCII_COLON) < ADDRESS_STRING_IPV4_MINSIZE || StringIter.length() <= StringIter.find(ASCII_COLON) + strlen(":"))
 			{
 			#if defined(ENABLE_LIBSODIUM)
 				if (InputType == READ_TEXT_TYPE::DNSCURVE_DATABASE || InputType == READ_TEXT_TYPE::DNSCURVE_MONITOR)
@@ -4776,7 +4776,7 @@ bool ReadMultipleAddresses(
 			}
 			DNSServerDataTemp.AddressData.IPv4.sin_port = htons(static_cast<uint16_t>(UnsignedResult));
 
-		//Mark to global list.
+		//Register to global list.
 			DNSServerDataTemp.AddressData.Storage.ss_family = AF_INET;
 			if (DNSServerDataList->empty())
 			{
@@ -4843,7 +4843,7 @@ bool Read_SOCKS_AddressDomain(
 	if (Data.find(ASCII_BRACKETS_LEFT) != std::string::npos || Data.find(ASCII_BRACKETS_RIGHT) != std::string::npos)
 	{
 		if (Data.find("]:") == std::string::npos || Data.find(ASCII_BRACKETS_RIGHT) <= DataOffset + strlen("[") || 
-			Data.find(ASCII_BRACKETS_RIGHT) < DataOffset + IPV6_SHORTEST_ADDR_STRING || Data.length() <= Data.find("]:") + strlen("]:"))
+			Data.find(ASCII_BRACKETS_RIGHT) < DataOffset + ADDRESS_STRING_IPV6_MINSIZE || Data.length() <= Data.find("]:") + strlen("]:"))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv6 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -4937,7 +4937,7 @@ bool Read_SOCKS_AddressDomain(
 		else {
 		//IPv4 address and port check.
 			if (Data.find(ASCII_COLON) == std::string::npos || Data.find(ASCII_PERIOD) == std::string::npos || 
-				Data.find(ASCII_COLON) < DataOffset + IPV4_SHORTEST_ADDR_STRING || Data.length() <= Data.find(ASCII_COLON) + strlen(":"))
+				Data.find(ASCII_COLON) < DataOffset + ADDRESS_STRING_IPV4_MINSIZE || Data.length() <= Data.find(ASCII_COLON) + strlen(":"))
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"IPv4 address format error", 0, FileList_Config.at(FileIndex).FileName.c_str(), Line);
 				return false;
@@ -5026,11 +5026,11 @@ bool ReadHopLimitsData(
 				if (!IsFirstRead)
 				{
 					if (ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6] == 0)
-						Parameter.Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign = static_cast<uint8_t>(UnsignedResult);
+						Parameter.Target_Server_Main_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_StaticLoad = static_cast<uint8_t>(UnsignedResult);
 					else if (ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6] == 1U)
-						Parameter.Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign = static_cast<uint8_t>(UnsignedResult);
+						Parameter.Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_StaticLoad = static_cast<uint8_t>(UnsignedResult);
 					else if (!DNSServerDataList->empty() && ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6] - 2U < DNSServerDataList->size())
-						DNSServerDataList->at(ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6] - 2U).ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign = static_cast<uint8_t>(UnsignedResult);
+						DNSServerDataList->at(ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6] - 2U).ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_StaticLoad = static_cast<uint8_t>(UnsignedResult);
 					else 
 						goto PrintDataFormatError;
 
@@ -5039,7 +5039,7 @@ bool ReadHopLimitsData(
 			//Normal mode
 				else if (!DNSServerDataList->empty() && ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6] < DNSServerDataList->size())
 				{
-					DNSServerDataList->at(ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6]).ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_Assign = static_cast<uint8_t>(UnsignedResult);
+					DNSServerDataList->at(ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6]).ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_StaticLoad = static_cast<uint8_t>(UnsignedResult);
 					++ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV6];
 				}
 				else {
@@ -5052,11 +5052,11 @@ bool ReadHopLimitsData(
 				if (!IsFirstRead)
 				{
 					if (ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4] == 0)
-						Parameter.Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign = static_cast<uint8_t>(UnsignedResult);
+						Parameter.Target_Server_Main_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_StaticLoad = static_cast<uint8_t>(UnsignedResult);
 					else if (ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4] == 1U)
-						Parameter.Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign = static_cast<uint8_t>(UnsignedResult);
+						Parameter.Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_StaticLoad = static_cast<uint8_t>(UnsignedResult);
 					else if (!DNSServerDataList->empty() && ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4] - 2U < DNSServerDataList->size())
-						DNSServerDataList->at(ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4] - 2U).ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign = static_cast<uint8_t>(UnsignedResult);
+						DNSServerDataList->at(ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4] - 2U).ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_StaticLoad = static_cast<uint8_t>(UnsignedResult);
 					else 
 						goto PrintDataFormatError;
 
@@ -5065,7 +5065,7 @@ bool ReadHopLimitsData(
 			//Normal mode
 				else if (!DNSServerDataList->empty() && ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4] < DNSServerDataList->size())
 				{
-					DNSServerDataList->at(ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4]).ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_Assign = static_cast<uint8_t>(UnsignedResult);
+					DNSServerDataList->at(ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4]).ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_StaticLoad = static_cast<uint8_t>(UnsignedResult);
 					++ParameterHopLimitsIndex[NETWORK_LAYER_TYPE_IPV4];
 				}
 				else {
@@ -5145,7 +5145,7 @@ void ReadDNSCurveDatabaseData(
 //Mark all list data.
 	std::vector<std::string> LineDataTemp;
 	GetParameterListData(LineDataTemp, Data, 0, Data.length(), ASCII_COMMA, false, true);
-	if (LineDataTemp.size() < DNSCRYPT_DATABASE_ITEM_MINNUM)
+	if (LineDataTemp.size() < DNSCRYPT_DATABASE_ITEM_MIN)
 		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::DNSCURVE, L"Data format error", 0, FileList_DNSCurveDatabase.at(FileIndex).FileName.c_str(), Line);
 	else 
 		DNSCurveParameterPointer->Database_LineData->push_back(LineDataTemp);
@@ -5170,7 +5170,7 @@ bool ReadDNSCurveDatabaseItem(
 	auto IsIPv6_Main = false, IsIPv6_Alternate = false, IsIPv4_Main = false, IsIPv4_Alternate = false;
 	for (auto StringIter:*DNSCurveParameterPointer->Database_LineData)
 	{
-		if (StringIter.size() >= DNSCRYPT_DATABASE_ITEM_MINNUM && 
+		if (StringIter.size() >= DNSCRYPT_DATABASE_ITEM_MIN && 
 			!StringIter.at(DNSCRYPT_DATABASE_ADDRESS_LOCATION).empty() && //DNSCurve Address location
 			!StringIter.at(DNSCRYPT_DATABASE_PROVIDER_NAME_LOCATION).empty() && //Provider Name location
 			!StringIter.at(DNSCRYPT_DATABASE_PROVIDER_KEY_LOCATION).empty()) //Provider Public Key location

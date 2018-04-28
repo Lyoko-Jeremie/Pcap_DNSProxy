@@ -17,24 +17,21 @@ https://sourceforge.net/projects/pcap-dnsproxy
 1.准备程序编译环境：编译前需要使用包管理工具安装，或者需要自行编译和安装依赖库
   * 依赖工具/库列表：
     * 源代码编译器，必须完整支持 C++ 14 标准，可任选其一：
-      * GCC/g++ 可访问 https://gcc.gnu.org 获取，最低版本要求为 5.0
-      * Clang/LLVM 可访问 https://clang.llvm.org 获取，最低版本要求为 3.4
-    * CMake 可访问 https://cmake.org 获取
-    * LibPcap 可访问 http://www.tcpdump.org/#latest-release 获取
+      * GCC/g++ 最低版本要求为 5.0
+      * Clang/LLVM 最低版本要求为 3.4
+    * CMake
+    * LibEvent
+    * LibPcap
       * 编译时如果剥离 LibPcap 的依赖则可跳过编译和安装下表的依赖库和工具，具体参见下文的介绍，不建议使用
-      * 获得 root 权限后使用 ./configure -> make -> make install 即可
       * 部分 Linux 发行版可能还需要 libpcap-dev 工具的支持，以及运行 ldconfig 刷新系统库缓存
-    * Libsodium 可访问 https://github.com/jedisct1/libsodium 获取
+    * Libsodium
       * 编译时如果剥离 Libsodium 的依赖则可跳过编译和安装下表的依赖库和工具，具体参见下文的介绍，不建议使用
-      * 获得 root 权限后进入目录，运行 ./autogen.sh -> ./configure -> make -> make install 即可
       * 部分 Linux 发行版可能还需要 libsodium-dev 工具的支持，以及运行 ldconfig 刷新系统库缓存
-    * OpenSSL 可访问 https://www.openssl.org 获取
+    * OpenSSL
       * 编译时如果剥离 OpenSSL 的依赖则可跳过编译和安装下表的依赖库和工具，具体参见下文的介绍，不建议使用
-      * 获得 root 权限后使用 ./configure [编译平台] -> make -> make install 即可
       * 部分 Linux 发行版可能还需要 libssl-dev/openssl-dev 工具的支持，以及运行 ldconfig 刷新系统库缓存
 
 2.编译 Pcap_DNSProxy 程序并配置程序属性
-  * 切勿更改脚本的换行格式 (UNIX/LF)
   * 使用终端进入 Source/Auxiliary/Scripts 目录，使用 chmod 755 CMake_Build.sh 使脚本获得执行权限
   * 使用 ./CMake_Build.sh 执行编译程序
     * 脚本所进行的操作：
@@ -42,15 +39,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * 从 ExampleConfig 目录和 Scripts 目录复制所需的脚本和默认配置文件到 Release 目录，并设置基本读写可执行权限
     * 添加参数 --enable-static 即 ./CMake_Build.sh --enable-static 可启用静态编译
   * 使用 ./CMake_Build.sh 脚本时可提供的参数：
-    * 执行时使用 ./CMake_Build.sh --disable-libpcap 可剥离对 LibPcap 的依赖，不建议使用
-      * 剥离后编译时将不需要 LibPcap 库的支持
-      * 剥离后程序将完全失去支持 LibPcap 的功能，且运行时将不会产生任何错误提示，慎用！
-    * 执行时使用 ./CMake_Build.sh --disable-libsodium 可剥离对 Libsodium 的依赖，不建议使用
-      * 剥离后编译时将不需要 Libsodium 库的支持
-      * 剥离后程序将完全失去支持 DNSCurve(DNSCrypt) 协议的功能，且运行时将不会产生任何错误提示，慎用！
-    * 执行时使用 ./CMake_Build.sh --disable-tls 可剥离对 OpenSSL 的依赖，不建议使用
-      * 剥离后编译时将不需要 OpenSSL 库的支持
-      * 剥离后程序将完全失去支持 TLS/SSL 协议的功能，且运行时将不会产生任何错误提示，慎用！
+    * 执行时使用 ./CMake_Build.sh --disable-libpcap --disable-libsodium --disable-tls 可剥离对对应库的依赖，不建议使用
+    * 剥离后编译时将不再需要该库的支持，但同时将完全失去使用该库所支持的功能，且运行时将不会产生任何提示，慎用！
 
 3.配置系统守护进程服务
   * 由于不同的 Linux 发行版对系统服务和守护进程的处理方式不同，本步仅供参考
@@ -133,14 +123,14 @@ https://sourceforge.net/projects/pcap-dnsproxy
   2.使用 ./Linux_Uninstall.Systemd.sh 执行服务卸载脚本
   3.备份所有配置文件，删除所有 Pcap_DNSProxy 相关文件
   4.按照安装方法重新部署 Pcap_DNSProxy
-    * 进行第4步前先将备份的配置文件还原到 Release 目录内
+    * 进行第 4 步前先将备份的配置文件还原到 Release 目录内
     * Config.conf 文件建议按照备份的配置文件重新设置一次，如直接覆盖可能会导致没有新功能的选项
 * SysV 部分：
   1.打开终端，使用 su 获得 root 权限并进入 Release 目录内
   2.使用 ./Linux_Uninstall.SysV.sh 执行服务卸载脚本
   3.备份所有配置文件，删除所有 Pcap_DNSProxy 相关文件
   4.按照安装方法重新部署 Pcap_DNSProxy
-    * 进行第4步前先将备份的配置文件还原到 Release 目录内
+    * 进行第 4 步前先将备份的配置文件还原到 Release 目录内
     * Config.conf 文件建议按照备份的配置文件重新设置一次，如直接覆盖可能会导致没有新功能的选项
 
 
@@ -189,7 +179,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Linux Debian 系列：
   * 官方发行版 8.x 以及更新版本默认需要使用 Systemd 管理系统服务
   * 官方发行版 6.x - 7.x 版本默认需要使用 insserv 管理系统服务
-  * 官方发行版 6.x 以下版本默认需要使用 update-rc.d 管理系统服务，参见 https://wiki.debian.org/Daemon
 * Linux Red Hat 和 openSUSE 系列：
   * 使用 chkconfig 管理系统服务
   * 参见 https://access.redhat.com/site/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Deployment_Guide/s2-services-chkconfig.html

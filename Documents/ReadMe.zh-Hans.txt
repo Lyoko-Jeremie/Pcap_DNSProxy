@@ -10,7 +10,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 安装方法（需要以管理员身份进行）：
 
-1.访问 https://www.winpcap.org/install/default.htm 下载并以管理员权限安装 WinPcap
+1.访问 https://www.winpcap.org 下载并以管理员权限安装 WinPcap
   * WinPcap 只需要安装一次，以前安装过最新版本或以后更新本工具时请从第 2 步开始操作
   * 如果 WinPcap 提示已安装旧版本无法继续时，参见 FAQ 中 运行结果分析 一节
   * 安装时自启动选项对工具的运行没有影响，本工具直接调用 WinPcap API 不需要经过服务器程序
@@ -50,7 +50,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 服务启动前请先确认监听的地址和端口是否有被其它程序或程序本身的其它实例占用，否则可能会导致监听冲突无法正常工作
   * 杀毒软件/第三方防火墙可能会阻止本程序的操作，请将行为全部允许或将本程序加入到白名单中
   * 如果启动服务时提示 "服务没有及时响应启动或者控制请求" 请留意是否有错误报告生成，详细的错误信息参见 FAQ 文档中 Error.log 详细错误报告 一节
-  * 目录和程序的名称可以随意更改，但请务必在进行安装方法第 4 步前完成。如果服务注册后需移动工具目录的路径，参见上文 卸载方法 第2步的注意事项
+  * 目录和程序的名称可以随意更改，但请务必在进行安装方法第 4 步前完成。如果服务注册后需移动工具目录的路径，参见上文 卸载方法 第 2 步的注意事项
   * Windows XP 如出现 10022 错误，需要先启用系统的 IPv6 支持（以管理员身份运行 cmd 输入 ipv6 install 并回车，一次性操作），再重新启动服务
   * 本项目仅对最新版本提供技术支持，在新版本发布后旧版本的支持会即时停止，反馈前请先务必升级到最新版本
 
@@ -64,14 +64,14 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 
 更新程序方法（需要以管理员身份进行，切勿直接覆盖，否则可能会造成不可预料的错误）：
-1.提前下载好新版本的 Pcap_DNSProxy（亦即 安装方法 中第2步），更新过程可能会造成域名解析短暂中断
+1.提前下载好新版本的 Pcap_DNSProxy（亦即 安装方法 中第 2 步），更新过程可能会造成域名解析短暂中断
 2.备份好所有配置文件 Hosts 文件 IPFilter 文件的自定义内容
 3.右键以管理员身份(Vista 以及更新版本)或直接以管理员登录双击(XP/2003)运行 ServiceControl.bat
 4.输入 2 并回车，即选择 "2: Uninstall service" 卸载服务
 5.将整个 Pcap_DNSProxy 程序的目录删除。注意 Windows 防火墙可能会留有允许程序访问网络的信息，卸载服务后又变更了程序的目录则可能需要使用注册表清理工具清理
 6.将新版本的 Pcap_DNSProxy 解压到任何位置（亦即 安装方法 中第 3 步）
 7.将配置文件的自定义内容加回新版本配置文件里相应的区域内
-8.按照 安装方法 中第4步重新部署 Pcap_DNSProxy
+8.按照 安装方法 中第 4 步重新部署 Pcap_DNSProxy
 
 
 安全模式下的使用方法（需要以管理员身份进行）：
@@ -80,7 +80,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 
 卸载方法（需要以管理员身份进行）：
-1.按照 安装方法 中第6步还原 DNS 域名服务器地址配置
+1.按照 安装方法 中第 6 步还原 DNS 域名服务器地址配置
 2.右键以管理员身份(Vista 以及更新版本)或直接以管理员登录双击(XP/2003)运行 ServiceControl.bat
   * 输入 2 并回车，即选择 "2: Uninstall service" 卸载服务
   * 注意：Windows 防火墙可能会留有允许程序访问网络的信息，故卸载后可能需要使用注册表清理工具清理
@@ -125,13 +125,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 非标准 DNS 端口现阶段尚未被干扰，此组合的过滤效果比较可靠
   * Multiple Request Times = xx 时：应用到所有除请求境内服务器外的所有请求，一个请求多次发送功能
     * 此功能用于对抗网络丢包比较严重的情况，对系统和网络资源的占用都比较高，但在网络环境恶劣的情况下能提高获得解析结果的可靠性
-  * DNSCurve = 1 同时 Encryption = 0：使用 DNSCurve(DNSCrypt) 非加密模式请求域名解析
-    * 此组合等于使用非标准 DNS 端口请求，域名解析可靠性比较高，详细情况参见上文
   * DNSCurve = 1 同时 Encryption = 1：使用 DNSCurve(DNSCrypt) 加密模式请求域名解析
     * 此组合加密传输所有域名请求，域名解析可靠性最高
-  * DNSCurve = 1 同时 Encryption = 1 同时 Encryption Only = 1：只使用 DNSCurve(DNSCrypt) 加密模式请求域名解析
-    * 上文的加密组合并不阻止程序在请求 DNSCurve(DNSCrypt) 加密模式失败是使用其它协议请求域名解析，开启 Encryption Only = 1 后将只允许使用加密传输，安全性和可靠性最高，但域名解析成功率可能会下降
 * 优化大量请求下程序表现：
+  * 关闭所有使用 TCP 协议的对外请求，TCP 协议的资源占用率比默认的 UDP 协议要高
   * Pcap Reading Timeout 适当调低这个参数能使抓包模块以更高的频率抓取数据包，降低延迟
   * Cache Parameter + Default TTL 尽量调高这个参数能增加缓存的生存时间或者队列长度，提高缓存命中率
   * Thread Pool Maximum Number 适当调高这个参数能可以增大缓冲区最大可容纳请求的数量
@@ -245,10 +242,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 填入多个端口时，程序将会同时监听请求
     * 当相应协议的 Listen Address 生效时，相应协议的本参数将会被自动忽略
   * Operation Mode - 程序的监听工作模式：分 Server/服务器模式、Private/私有网络模式、Proxy/代理模式 和 Custom/自定义模式
-    * Server/服务器模式：打开 DNS 通用端口（TCP/UDP 同时打开），可为所有其它设备提供代理域名解析请求服务
-    * Private/私有网络模式：打开 DNS 通用端口（TCP/UDP 同时打开），可为仅限于私有网络地址的设备提供代理域名解析请求服务
-    * Proxy/代理模式：只打开回环地址的 DNS 端口（TCP/UDP 同时打开），只能为本机提供代理域名解析请求服务
-    * Custom/自定义模式：打开 DNS 通用端口（TCP/UDP 同时打开），可用的地址由 IPFilter 参数决定
+    * Server/服务器模式：打开 DNS 通用端口，可为所有其它设备提供代理域名解析请求服务
+    * Private/私有网络模式：打开 DNS 通用端口，可为仅限于私有网络地址的设备提供代理域名解析请求服务
+    * Proxy/代理模式：只打开回环地址的 DNS 端口，只能为本机提供代理域名解析请求服务
+    * Custom/自定义模式：打开 DNS 通用端口，可用的地址由 IPFilter 参数决定
     * 当相应协议的 Listen Address 生效时，相应协议的本参数将会被自动忽略
   * IPFilter Type - IPFilter 参数的类型：分为 Deny 禁止和 Permit 允许，对应 IPFilter 参数应用为黑名单或白名单
   * IPFilter Level - IPFilter 参数的过滤级别，级别越高过滤越严格，与 IPFilter 条目相对应：0 为不启用过滤，如果留空则为 0
@@ -755,7 +752,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * DNSCurve IPv6 Alternate Provider Name - DNSCurve 协议 IPv6 备用 DNS 服务器提供者，请输入正确的域名并且不要超过 253 字节 ASCII 数据
   * 注意：
     * 自动获取 DNSCurve 服务器连接信息时必须输入提供者的域名，不能留空
-    * 更多支持 DNSCurve(DNSCrypt) 的服务器请移步 https://github.com/jedisct1/dnscrypt-proxy/blob/master/dnscrypt-resolvers.csv
+    * 更多支持 DNSCurve(DNSCrypt) 的服务器请移步 https://github.com/dyne/dnscrypt-proxy/blob/master/dnscrypt-resolvers.csv
 
 * DNSCurve Keys - DNSCurve 协议密钥区域
   * DNSCurve Client Public Key - 自定义客户端公钥：可使用 KeyPairGenerator 生成，留空则每次启动时自动生成
@@ -795,7 +792,7 @@ Hosts 配置文件分为多个提供不同功能的区域
 * 一条条目的总长度切勿超过 4096 字节/4KB
 * 需要注释请在条目开头添加 #/井号
 * 优先级别自上而下递减，条目越前优先级越高
-* 平行 Hosts 条目支持数量由请求域名以及 EDNS Payload 长度决定，建议不要超过 75 个 A 记录或 43 个 AAAA 记录
+* 平行 Hosts 条目支持数量由请求域名以及 EDNS Payload 长度决定，不要超过 75 个 A 记录或 43 个 AAAA 记录
 
 
 * Whitelist - 白名单条目

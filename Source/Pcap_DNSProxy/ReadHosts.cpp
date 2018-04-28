@@ -292,7 +292,7 @@ bool ReadOtherHostsData(
 	else 
 		HostsTableTemp.PermissionType = HOSTS_TYPE::WHITE;
 
-//Mark to global list.
+//Register to global list.
 	for (auto &HostsFileSetIter:*HostsFileSetModificating)
 	{
 		if (HostsFileSetIter.FileIndex == FileIndex)
@@ -611,7 +611,7 @@ bool ReadLocalHostsData(
 		}
 	}
 
-//Jump here to mark to global list.
+//Jump here to register to global list.
 AddToGlobalList:
 	for (auto &HostsFileSetIter:*HostsFileSetModificating)
 	{
@@ -916,7 +916,7 @@ bool ReadAddressHostsData(
 		}
 	}
 
-//Mark to global list.
+//Register to global list.
 	for (auto &HostsFileSetIter:*HostsFileSetModificating)
 	{
 		if (HostsFileSetIter.FileIndex == FileIndex)
@@ -1083,7 +1083,7 @@ bool ReadMainHostsData(
 	}
 	else if (HostsListDataIter->find(ASCII_COLON) != std::string::npos) //AAAA record(IPv6)
 	{
-		if (HostsListData.size() > DNS_RR_MAX_AAAA_COUNT)
+		if (HostsListData.size() > DNS_RECORD_COUNT_AAAA_MAX)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Too many Hosts IPv6 addresses", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -1094,7 +1094,7 @@ bool ReadMainHostsData(
 	}
 	else if (HostsListDataIter->find(ASCII_PERIOD) != std::string::npos) //A record(IPv4)
 	{
-		if (HostsListData.size() > DNS_RR_MAX_A_COUNT)
+		if (HostsListData.size() > DNS_RECORD_COUNT_A_MAX)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HOSTS, L"Too many Hosts IPv4 addresses", 0, FileList_Hosts.at(FileIndex).FileName.c_str(), Line);
 			return false;
@@ -1143,7 +1143,7 @@ bool ReadMainHostsData(
 				return false;
 			}
 
-		//Mark to global list.
+		//Register to global list.
 			HostsTableTemp.AddrOrTargetList.push_back(AddressUnionDataTemp);
 		}
 	}
@@ -1175,7 +1175,7 @@ bool ReadMainHostsData(
 				return false;
 			}
 
-		//Mark to global list.
+		//Register to global list.
 			HostsTableTemp.AddrOrTargetList.push_back(AddressUnionDataTemp);
 		}
 	}
@@ -1230,7 +1230,7 @@ bool ReadMainHostsData(
 		}
 	}
 
-//Mark to global list.
+//Register to global list.
 	for (auto &HostsFileSetIter:*HostsFileSetModificating)
 	{
 		if (HostsFileSetIter.FileIndex == FileIndex)

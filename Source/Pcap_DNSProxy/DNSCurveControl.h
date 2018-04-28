@@ -28,8 +28,8 @@ extern CONFIGURATION_TABLE Parameter;
 extern GLOBAL_STATUS GlobalRunningStatus;
 extern ALTERNATE_SWAP_TABLE AlternateSwapList;
 extern DNSCURVE_CONFIGURATION_TABLE DNSCurveParameter;
-extern std::deque<SOCKET_MARKING_DATA> SocketMarkingList;
-extern std::mutex SocketMarkingLock;
+extern std::deque<SOCKET_REGISTER_DATA> SocketRegisterList;
+extern std::mutex SocketRegisterLock;
 
 //Functions
 size_t DNSCurvePaddingData(

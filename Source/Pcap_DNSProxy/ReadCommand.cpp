@@ -502,7 +502,7 @@ bool FileNameInit(
 
 //Get path of error/running status log file and mark start time.
 	*GlobalRunningStatus.Path_ErrorLog = GlobalRunningStatus.Path_Global->front();
-	GlobalRunningStatus.Path_ErrorLog->append(ERROR_LOG_FILE_NAME);
+	GlobalRunningStatus.Path_ErrorLog->append(ERROR_LOG_FILE_NAME_WCS);
 #if defined(PLATFORM_WIN)
 	GlobalRunningStatus.IsConsole = true;
 #elif (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
