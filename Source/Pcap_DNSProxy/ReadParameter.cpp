@@ -3418,8 +3418,8 @@ bool ReadParameterData_Data(
 		{
 			if (Data.length() > strlen("LocalMachineServerName=") + DOMAIN_MINSIZE && Data.length() < strlen("LocalMachineServerName=") + DOMAIN_DATA_MAXSIZE)
 			{
-				const auto FQDN_String = std::make_unique<uint8_t[]>(NI_MAXHOST + PADDING_RESERVED_BYTES);
-				memset(FQDN_String.get(), 0, NI_MAXHOST + PADDING_RESERVED_BYTES);
+				const auto FQDN_String = std::make_unique<uint8_t[]>(NI_MAXHOST + MEMORY_RESERVED_BYTES);
+				memset(FQDN_String.get(), 0, NI_MAXHOST + MEMORY_RESERVED_BYTES);
 				Parameter.Local_FQDN_Length = Data.length() - strlen("LocalMachineServerName=");
 				memcpy_s(FQDN_String.get(), NI_MAXHOST, Data.c_str() + strlen("LocalMachineServerName="), Parameter.Local_FQDN_Length);
 				*Parameter.Local_FQDN_String = reinterpret_cast<const char *>(FQDN_String.get());
@@ -4596,7 +4596,7 @@ bool ReadMultipleAddresses(
 //Initialization
 	DNS_SERVER_DATA DNSServerDataTemp;
 	memset(&DNSServerDataTemp, 0, sizeof(DNSServerDataTemp));
-	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE + PADDING_RESERVED_BYTES]{0};
+	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE + MEMORY_RESERVED_BYTES]{0};
 	std::vector<std::string> ListData;
 	ssize_t SignedResult = 0;
 	size_t UnsignedResult = 0;
@@ -4835,7 +4835,7 @@ bool Read_SOCKS_AddressDomain(
 	}
 
 //Initialization
-	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE + PADDING_RESERVED_BYTES]{0};
+	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE + MEMORY_RESERVED_BYTES]{0};
 	ssize_t SignedResult = 0;
 	size_t UnsignedResult = 0;
 
@@ -5380,7 +5380,7 @@ bool ReadDNSCurveKey(
 //Convert hex format to binary.
 	if (Data.length() > DataOffset + crypto_box_PUBLICKEYBYTES * 2U && Data.length() < DataOffset + crypto_box_PUBLICKEYBYTES * 3U)
 	{
-		uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE + PADDING_RESERVED_BYTES]{0};
+		uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE + MEMORY_RESERVED_BYTES]{0};
 		if (sodium_hex2bin(
 				AddrBuffer, 
 				ADDRESS_STRING_MAXSIZE, 

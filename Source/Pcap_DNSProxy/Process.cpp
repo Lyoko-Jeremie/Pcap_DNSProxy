@@ -53,18 +53,18 @@ void MonitorRequestConsumer(
 {
 //Initialization
 	MONITOR_QUEUE_DATA MonitorQueryData;
-	const auto SendBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
-	const auto RecvBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
-	memset(SendBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
-	memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
+	const auto SendBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
+	const auto RecvBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
+	memset(SendBuffer.get(), 0, Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
+	memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
 	size_t LastActiveTime = 0;
 
 //Start request Monitor consumer.
 	for (;;)
 	{
 	//Reset parameters.
-		memset(SendBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
-		memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
+		memset(SendBuffer.get(), 0, Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
+		memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
 		if (Parameter.ThreadPoolBaseNum > 0)
 			LastActiveTime = static_cast<size_t>(GetCurrentSystemTime());
 
@@ -115,28 +115,28 @@ bool EnterRequestProcess(
 		{
 			if (Parameter.CPM_PointerToAdditional)
 			{
-				auto SendBufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.Length + 2U + sizeof(dns_record_aaaa) + sizeof(uint16_t) + PADDING_RESERVED_BYTES);
-				memset(SendBufferTemp.get(), 0, MonitorQueryData.first.Length + 2U + sizeof(dns_record_aaaa) + sizeof(uint16_t) + PADDING_RESERVED_BYTES);
+				auto SendBufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.Length + 2U + sizeof(dns_record_aaaa) + sizeof(uint16_t) + MEMORY_RESERVED_BYTES);
+				memset(SendBufferTemp.get(), 0, MonitorQueryData.first.Length + 2U + sizeof(dns_record_aaaa) + sizeof(uint16_t) + MEMORY_RESERVED_BYTES);
 				std::swap(SendBuffer, SendBufferTemp);
 				MonitorQueryData.first.BufferSize = MonitorQueryData.first.Length + 2U + sizeof(dns_record_aaaa) + sizeof(uint16_t);
 			}
 			else if (Parameter.CPM_PointerToRR)
 			{
-				auto SendBufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.Length + 2U + sizeof(uint16_t) + PADDING_RESERVED_BYTES);
-				memset(SendBufferTemp.get(), 0, MonitorQueryData.first.Length + 2U + sizeof(uint16_t) + PADDING_RESERVED_BYTES);
+				auto SendBufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.Length + 2U + sizeof(uint16_t) + MEMORY_RESERVED_BYTES);
+				memset(SendBufferTemp.get(), 0, MonitorQueryData.first.Length + 2U + sizeof(uint16_t) + MEMORY_RESERVED_BYTES);
 				std::swap(SendBuffer, SendBufferTemp);
 				MonitorQueryData.first.BufferSize = MonitorQueryData.first.Length + 2U + sizeof(uint16_t);
 			}
 			else { //Pointer to header
-				auto SendBufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.Length + 1U + sizeof(uint16_t) + PADDING_RESERVED_BYTES);
-				memset(SendBufferTemp.get(), 0, MonitorQueryData.first.Length + 1U + sizeof(uint16_t) + PADDING_RESERVED_BYTES);
+				auto SendBufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.Length + 1U + sizeof(uint16_t) + MEMORY_RESERVED_BYTES);
+				memset(SendBufferTemp.get(), 0, MonitorQueryData.first.Length + 1U + sizeof(uint16_t) + MEMORY_RESERVED_BYTES);
 				std::swap(SendBuffer, SendBufferTemp);
 				MonitorQueryData.first.BufferSize = MonitorQueryData.first.Length + 1U + sizeof(uint16_t);
 			}
 		}
 		else {
-			auto SendBufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.Length + sizeof(uint16_t) + PADDING_RESERVED_BYTES); //Reserved 2 bytes for TCP header length.
-			memset(SendBufferTemp.get(), 0, MonitorQueryData.first.Length + sizeof(uint16_t) + PADDING_RESERVED_BYTES);
+			auto SendBufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.Length + sizeof(uint16_t) + MEMORY_RESERVED_BYTES); //Reserved 2 bytes for TCP header length.
+			memset(SendBufferTemp.get(), 0, MonitorQueryData.first.Length + sizeof(uint16_t) + MEMORY_RESERVED_BYTES);
 			std::swap(SendBuffer, SendBufferTemp);
 			MonitorQueryData.first.BufferSize = MonitorQueryData.first.Length + sizeof(uint16_t);
 		}
@@ -161,15 +161,15 @@ bool EnterRequestProcess(
 		#endif
 			)
 		{
-			auto TCPRecvBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
-			memset(TCPRecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
+			auto TCPRecvBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
+			memset(TCPRecvBuffer.get(), 0, Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
 			std::swap(InnerRecvBuffer, TCPRecvBuffer);
 			RecvSize = Parameter.LargeBufferSize;
 		}
 	//UDP
 		else {
-			auto UDPRecvBuffer = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
-			memset(UDPRecvBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
+			auto UDPRecvBuffer = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
+			memset(UDPRecvBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
 			std::swap(InnerRecvBuffer, UDPRecvBuffer);
 			RecvSize = PACKET_NORMAL_MAXSIZE;
 		}
@@ -522,8 +522,8 @@ size_t CheckHostsProcess(
 		//Store EDNS Label temporary.
 			if (PacketStructure->EDNS_Location > 0 && PacketStructure->EDNS_Length > 0)
 			{
-				auto BufferTemp = std::make_unique<uint8_t[]>(PacketStructure->EDNS_Length + PADDING_RESERVED_BYTES);
-				memset(BufferTemp.get(), 0, PacketStructure->EDNS_Length + PADDING_RESERVED_BYTES);
+				auto BufferTemp = std::make_unique<uint8_t[]>(PacketStructure->EDNS_Length + MEMORY_RESERVED_BYTES);
+				memset(BufferTemp.get(), 0, PacketStructure->EDNS_Length + MEMORY_RESERVED_BYTES);
 				memcpy_s(BufferTemp.get(), PacketStructure->EDNS_Length, Result + PacketStructure->EDNS_Location, PacketStructure->EDNS_Length);
 				EDNS_Buffer.swap(BufferTemp);
 			}
@@ -568,8 +568,8 @@ size_t CheckHostsProcess(
 		//Store EDNS Label temporary.
 			if (PacketStructure->EDNS_Location > 0 && PacketStructure->EDNS_Length > 0)
 			{
-				auto BufferTemp = std::make_unique<uint8_t[]>(PacketStructure->EDNS_Length + PADDING_RESERVED_BYTES);
-				memset(BufferTemp.get(), 0, PacketStructure->EDNS_Length + PADDING_RESERVED_BYTES);
+				auto BufferTemp = std::make_unique<uint8_t[]>(PacketStructure->EDNS_Length + MEMORY_RESERVED_BYTES);
+				memset(BufferTemp.get(), 0, PacketStructure->EDNS_Length + MEMORY_RESERVED_BYTES);
 				memcpy_s(BufferTemp.get(), PacketStructure->EDNS_Length, Result + PacketStructure->EDNS_Location, PacketStructure->EDNS_Length);
 				EDNS_Buffer.swap(BufferTemp);
 			}
@@ -672,8 +672,8 @@ size_t CheckHostsProcess(
 		//Store EDNS Label temporary.
 			if (PacketStructure->EDNS_Location > 0 && PacketStructure->EDNS_Length > 0)
 			{
-				auto BufferTemp = std::make_unique<uint8_t[]>(PacketStructure->EDNS_Length + PADDING_RESERVED_BYTES);
-				memset(BufferTemp.get(), 0, PacketStructure->EDNS_Length + PADDING_RESERVED_BYTES);
+				auto BufferTemp = std::make_unique<uint8_t[]>(PacketStructure->EDNS_Length + MEMORY_RESERVED_BYTES);
+				memset(BufferTemp.get(), 0, PacketStructure->EDNS_Length + MEMORY_RESERVED_BYTES);
 				memcpy_s(BufferTemp.get(), PacketStructure->EDNS_Length, Result + PacketStructure->EDNS_Location, PacketStructure->EDNS_Length);
 				EDNS_Buffer.swap(BufferTemp);
 			}
@@ -728,8 +728,8 @@ size_t CheckHostsProcess(
 		//Store EDNS Label temporary.
 			if (PacketStructure->EDNS_Location > 0 && PacketStructure->EDNS_Length > 0)
 			{
-				auto BufferTemp = std::make_unique<uint8_t[]>(PacketStructure->EDNS_Length + PADDING_RESERVED_BYTES);
-				memset(BufferTemp.get(), 0, PacketStructure->EDNS_Length + PADDING_RESERVED_BYTES);
+				auto BufferTemp = std::make_unique<uint8_t[]>(PacketStructure->EDNS_Length + MEMORY_RESERVED_BYTES);
+				memset(BufferTemp.get(), 0, PacketStructure->EDNS_Length + MEMORY_RESERVED_BYTES);
 				memcpy_s(BufferTemp.get(), PacketStructure->EDNS_Length, Result + PacketStructure->EDNS_Location, PacketStructure->EDNS_Length);
 				EDNS_Buffer.swap(BufferTemp);
 			}
@@ -762,8 +762,8 @@ size_t CheckHostsProcess(
 		//Store EDNS Label temporary.
 			if (PacketStructure->EDNS_Location > 0 && PacketStructure->EDNS_Length > 0)
 			{
-				auto BufferTemp = std::make_unique<uint8_t[]>(PacketStructure->EDNS_Length + PADDING_RESERVED_BYTES);
-				memset(BufferTemp.get(), 0, PacketStructure->EDNS_Length + PADDING_RESERVED_BYTES);
+				auto BufferTemp = std::make_unique<uint8_t[]>(PacketStructure->EDNS_Length + MEMORY_RESERVED_BYTES);
+				memset(BufferTemp.get(), 0, PacketStructure->EDNS_Length + MEMORY_RESERVED_BYTES);
 				memcpy_s(BufferTemp.get(), PacketStructure->EDNS_Length, Result + PacketStructure->EDNS_Location, PacketStructure->EDNS_Length);
 				EDNS_Buffer.swap(BufferTemp);
 			}
@@ -874,8 +874,8 @@ size_t CheckHostsProcess(
 				//Store EDNS Label temporary.
 					if (PacketStructure->EDNS_Location > 0 && PacketStructure->EDNS_Length > 0)
 					{
-						auto BufferTemp = std::make_unique<uint8_t[]>(PacketStructure->EDNS_Length + PADDING_RESERVED_BYTES);
-						memset(BufferTemp.get(), 0, PacketStructure->EDNS_Length + PADDING_RESERVED_BYTES);
+						auto BufferTemp = std::make_unique<uint8_t[]>(PacketStructure->EDNS_Length + MEMORY_RESERVED_BYTES);
+						memset(BufferTemp.get(), 0, PacketStructure->EDNS_Length + MEMORY_RESERVED_BYTES);
 						memcpy_s(BufferTemp.get(), PacketStructure->EDNS_Length, Result + PacketStructure->EDNS_Location, PacketStructure->EDNS_Length);
 						EDNS_Buffer.swap(BufferTemp);
 					}
@@ -944,8 +944,8 @@ size_t CheckHostsProcess(
 				//Store EDNS Label temporary.
 					if (PacketStructure->EDNS_Location > 0 && PacketStructure->EDNS_Length > 0)
 					{
-						auto BufferTemp = std::make_unique<uint8_t[]>(PacketStructure->EDNS_Length + PADDING_RESERVED_BYTES);
-						memset(BufferTemp.get(), 0, PacketStructure->EDNS_Length + PADDING_RESERVED_BYTES);
+						auto BufferTemp = std::make_unique<uint8_t[]>(PacketStructure->EDNS_Length + MEMORY_RESERVED_BYTES);
+						memset(BufferTemp.get(), 0, PacketStructure->EDNS_Length + MEMORY_RESERVED_BYTES);
 						memcpy_s(BufferTemp.get(), PacketStructure->EDNS_Length, Result + PacketStructure->EDNS_Location, PacketStructure->EDNS_Length);
 						EDNS_Buffer.swap(BufferTemp);
 					}
@@ -1102,8 +1102,8 @@ bool LocalRequestProcess(
 	//Store EDNS Label temporary.
 		if (!EDNS_Buffer)
 		{
-			auto BufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
-			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
+			auto BufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.EDNS_Length + MEMORY_RESERVED_BYTES);
+			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + MEMORY_RESERVED_BYTES);
 			memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
 			EDNS_Buffer.swap(BufferTemp);
 		}
@@ -1177,8 +1177,8 @@ bool SOCKS_RequestProcess(
 	//Store EDNS Label temporary.
 		if (!EDNS_Buffer)
 		{
-			auto BufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
-			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
+			auto BufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.EDNS_Length + MEMORY_RESERVED_BYTES);
+			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + MEMORY_RESERVED_BYTES);
 			memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
 			EDNS_Buffer.swap(BufferTemp);
 		}
@@ -1259,8 +1259,8 @@ bool HTTP_CONNECT_RequestProcess(
 	//Store EDNS Label temporary.
 		if (!EDNS_Buffer)
 		{
-			auto BufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
-			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
+			auto BufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.EDNS_Length + MEMORY_RESERVED_BYTES);
+			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + MEMORY_RESERVED_BYTES);
 			memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
 			EDNS_Buffer.swap(BufferTemp);
 		}
@@ -1329,8 +1329,8 @@ bool DirectRequestProcess(
 	//Store EDNS Label temporary.
 		if (!EDNS_Buffer)
 		{
-			auto BufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
-			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
+			auto BufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.EDNS_Length + MEMORY_RESERVED_BYTES);
+			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + MEMORY_RESERVED_BYTES);
 			memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
 			EDNS_Buffer.swap(BufferTemp);
 		}
@@ -1416,8 +1416,8 @@ bool DNSCurveRequestProcess(
 	//Store EDNS Label temporary.
 		if (!EDNS_Buffer)
 		{
-			auto BufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
-			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
+			auto BufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.EDNS_Length + MEMORY_RESERVED_BYTES);
+			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + MEMORY_RESERVED_BYTES);
 			memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
 			EDNS_Buffer.swap(BufferTemp);
 		}
@@ -1504,8 +1504,8 @@ bool TCP_RequestProcess(
 	//Store EDNS Label temporary.
 		if (!EDNS_Buffer)
 		{
-			auto BufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
-			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
+			auto BufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.EDNS_Length + MEMORY_RESERVED_BYTES);
+			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + MEMORY_RESERVED_BYTES);
 			memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
 			EDNS_Buffer.swap(BufferTemp);
 		}
@@ -1586,8 +1586,8 @@ void UDP_RequestProcess(
 	//Store EDNS Label temporary.
 		if (!EDNS_Buffer)
 		{
-			auto BufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
-			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + PADDING_RESERVED_BYTES);
+			auto BufferTemp = std::make_unique<uint8_t[]>(MonitorQueryData.first.EDNS_Length + MEMORY_RESERVED_BYTES);
+			memset(BufferTemp.get(), 0, MonitorQueryData.first.EDNS_Length + MEMORY_RESERVED_BYTES);
 			memcpy_s(BufferTemp.get(), MonitorQueryData.first.EDNS_Length, MonitorQueryData.first.Buffer + MonitorQueryData.first.EDNS_Location, MonitorQueryData.first.EDNS_Length);
 			EDNS_Buffer.swap(BufferTemp);
 		}

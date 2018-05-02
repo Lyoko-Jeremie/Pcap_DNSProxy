@@ -108,17 +108,17 @@ ConfigurationTable::ConfigurationTable(
 		Local_FQDN_String = new std::string();
 		Local_FQDN_Response = new uint8_t[DOMAIN_MAXSIZE]();
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-		LocalServer_Response = new uint8_t[PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES]();
+		LocalServer_Response = new uint8_t[PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES]();
 	#endif
 
 	//[Proxy] block
 		SOCKS_TargetDomain = new std::string();
 	#if defined(ENABLE_LIBSODIUM)
-		SOCKS_Username = reinterpret_cast<uint8_t *>(sodium_malloc(SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES));
-		SOCKS_Password = reinterpret_cast<uint8_t *>(sodium_malloc(SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES));
+		SOCKS_Username = reinterpret_cast<uint8_t *>(sodium_malloc(SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES));
+		SOCKS_Password = reinterpret_cast<uint8_t *>(sodium_malloc(SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES));
 	#else
-		SOCKS_Username = new uint8_t[SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES]();
-		SOCKS_Password = new uint8_t[SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES]();
+		SOCKS_Username = new uint8_t[SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES]();
+		SOCKS_Password = new uint8_t[SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES]();
 	#endif
 	#if defined(ENABLE_TLS)
 		HTTP_CONNECT_TLS_SNI = new std::wstring();
@@ -131,9 +131,9 @@ ConfigurationTable::ConfigurationTable(
 		HTTP_CONNECT_TargetDomain = new std::string();
 		HTTP_CONNECT_HeaderField = new std::vector<std::string>();
 	#if defined(ENABLE_LIBSODIUM)
-		HTTP_CONNECT_ProxyAuthorization = reinterpret_cast<uint8_t *>(sodium_malloc(HTTP_AUTHORIZATION_MAXSIZE + PADDING_RESERVED_BYTES));
+		HTTP_CONNECT_ProxyAuthorization = reinterpret_cast<uint8_t *>(sodium_malloc(HTTP_AUTHORIZATION_MAXSIZE + MEMORY_RESERVED_BYTES));
 	#else
-		HTTP_CONNECT_ProxyAuthorization = new uint8_t[HTTP_AUTHORIZATION_MAXSIZE + PADDING_RESERVED_BYTES]();
+		HTTP_CONNECT_ProxyAuthorization = new uint8_t[HTTP_AUTHORIZATION_MAXSIZE + MEMORY_RESERVED_BYTES]();
 	#endif
 	}
 	catch (std::bad_alloc)
@@ -262,17 +262,17 @@ void ConfigurationTable::CopyMemberOperator(
 		Local_FQDN_String = new std::string();
 		Local_FQDN_Response = new uint8_t[DOMAIN_MAXSIZE]();
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-		LocalServer_Response = new uint8_t[PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES]();
+		LocalServer_Response = new uint8_t[PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES]();
 	#endif
 
 	//[Proxy] block
 		SOCKS_TargetDomain = new std::string();
 	#if defined(ENABLE_LIBSODIUM)
-		SOCKS_Username = reinterpret_cast<uint8_t *>(sodium_malloc(SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES));
-		SOCKS_Password = reinterpret_cast<uint8_t *>(sodium_malloc(SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES));
+		SOCKS_Username = reinterpret_cast<uint8_t *>(sodium_malloc(SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES));
+		SOCKS_Password = reinterpret_cast<uint8_t *>(sodium_malloc(SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES));
 	#else
-		SOCKS_Username = new uint8_t[SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES]();
-		SOCKS_Password = new uint8_t[SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES]();
+		SOCKS_Username = new uint8_t[SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES]();
+		SOCKS_Password = new uint8_t[SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES]();
 	#endif
 	#if defined(ENABLE_TLS)
 		HTTP_CONNECT_TLS_SNI = new std::wstring();
@@ -285,9 +285,9 @@ void ConfigurationTable::CopyMemberOperator(
 		HTTP_CONNECT_TargetDomain = new std::string();
 		HTTP_CONNECT_HeaderField = new std::vector<std::string>();
 	#if defined(ENABLE_LIBSODIUM)
-		HTTP_CONNECT_ProxyAuthorization = reinterpret_cast<uint8_t *>(sodium_malloc(HTTP_AUTHORIZATION_MAXSIZE + PADDING_RESERVED_BYTES));
+		HTTP_CONNECT_ProxyAuthorization = reinterpret_cast<uint8_t *>(sodium_malloc(HTTP_AUTHORIZATION_MAXSIZE + MEMORY_RESERVED_BYTES));
 	#else
-		HTTP_CONNECT_ProxyAuthorization = new uint8_t[HTTP_AUTHORIZATION_MAXSIZE + PADDING_RESERVED_BYTES]();
+		HTTP_CONNECT_ProxyAuthorization = new uint8_t[HTTP_AUTHORIZATION_MAXSIZE + MEMORY_RESERVED_BYTES]();
 	#endif
 	}
 	catch (std::bad_alloc)
@@ -754,16 +754,16 @@ void ConfigurationTableSetting(
 #endif
 	memset(ConfigurationParameter->Local_FQDN_Response, 0, DOMAIN_MAXSIZE);
 #if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
-	memset(ConfigurationParameter->LocalServer_Response, 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
+	memset(ConfigurationParameter->LocalServer_Response, 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
 #endif
 #if defined(ENABLE_LIBSODIUM)
-	sodium_memzero(ConfigurationParameter->SOCKS_Username, SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES);
-	sodium_memzero(ConfigurationParameter->SOCKS_Password, SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES);
-	sodium_memzero(ConfigurationParameter->HTTP_CONNECT_ProxyAuthorization, HTTP_AUTHORIZATION_MAXSIZE + PADDING_RESERVED_BYTES);
+	sodium_memzero(ConfigurationParameter->SOCKS_Username, SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES);
+	sodium_memzero(ConfigurationParameter->SOCKS_Password, SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES);
+	sodium_memzero(ConfigurationParameter->HTTP_CONNECT_ProxyAuthorization, HTTP_AUTHORIZATION_MAXSIZE + MEMORY_RESERVED_BYTES);
 #else
-	memset(ConfigurationParameter->SOCKS_Username, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES);
-	memset(ConfigurationParameter->SOCKS_Password, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES);
-	memset(ConfigurationParameter->HTTP_CONNECT_ProxyAuthorization, 0, HTTP_AUTHORIZATION_MAXSIZE + PADDING_RESERVED_BYTES);
+	memset(ConfigurationParameter->SOCKS_Username, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES);
+	memset(ConfigurationParameter->SOCKS_Password, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES);
+	memset(ConfigurationParameter->HTTP_CONNECT_ProxyAuthorization, 0, HTTP_AUTHORIZATION_MAXSIZE + MEMORY_RESERVED_BYTES);
 #endif
 
 //Default value settings
@@ -1084,9 +1084,9 @@ void ConfigurationTable::MonitorItemToUsing(
 		}
 		else {
 		#if defined(ENABLE_LIBSODIUM)
-			sodium_memzero(ConfigurationParameter->SOCKS_Username, SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES);
+			sodium_memzero(ConfigurationParameter->SOCKS_Username, SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES);
 		#else
-			memset(ConfigurationParameter->SOCKS_Username, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES);
+			memset(ConfigurationParameter->SOCKS_Username, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES);
 		#endif
 			ConfigurationParameter->SOCKS_UsernameLength = 0;
 		}
@@ -1100,9 +1100,9 @@ void ConfigurationTable::MonitorItemToUsing(
 		}
 		else {
 		#if defined(ENABLE_LIBSODIUM)
-			sodium_memzero(ConfigurationParameter->SOCKS_Password, SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES);
+			sodium_memzero(ConfigurationParameter->SOCKS_Password, SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES);
 		#else
-			memset(ConfigurationParameter->SOCKS_Password, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES);
+			memset(ConfigurationParameter->SOCKS_Password, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES);
 		#endif
 			ConfigurationParameter->SOCKS_PasswordLength = 0;
 		}
@@ -1129,9 +1129,9 @@ void ConfigurationTable::MonitorItemToUsing(
 		}
 		else {
 		#if defined(ENABLE_LIBSODIUM)
-			sodium_memzero(ConfigurationParameter->HTTP_CONNECT_ProxyAuthorization, HTTP_AUTHORIZATION_MAXSIZE + PADDING_RESERVED_BYTES);
+			sodium_memzero(ConfigurationParameter->HTTP_CONNECT_ProxyAuthorization, HTTP_AUTHORIZATION_MAXSIZE + MEMORY_RESERVED_BYTES);
 		#else
-			memset(ConfigurationParameter->HTTP_CONNECT_ProxyAuthorization, 0, HTTP_AUTHORIZATION_MAXSIZE + PADDING_RESERVED_BYTES);
+			memset(ConfigurationParameter->HTTP_CONNECT_ProxyAuthorization, 0, HTTP_AUTHORIZATION_MAXSIZE + MEMORY_RESERVED_BYTES);
 		#endif
 			ConfigurationParameter->HTTP_CONNECT_ProxyAuthorizationLength = 0;
 		}
@@ -1218,16 +1218,16 @@ void ConfigurationTable::MonitorItemReset(
 	SOCKS_TargetDomain_Port = 0;
 	if (SOCKS_Username != nullptr)
 	#if defined(ENABLE_LIBSODIUM)
-		sodium_memzero(SOCKS_Username, SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES);
+		sodium_memzero(SOCKS_Username, SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES);
 	#else
-		memset(SOCKS_Username, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES);
+		memset(SOCKS_Username, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES);
 	#endif
 	SOCKS_UsernameLength = 0;
 	if (SOCKS_Password != nullptr)
 	#if defined(ENABLE_LIBSODIUM)
-		sodium_memzero(SOCKS_Password, SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES);
+		sodium_memzero(SOCKS_Password, SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES);
 	#else
-		memset(SOCKS_Password, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + PADDING_RESERVED_BYTES);
+		memset(SOCKS_Password, 0, SOCKS_USERNAME_PASSWORD_MAXNUM + MEMORY_RESERVED_BYTES);
 	#endif
 	SOCKS_PasswordLength = 0;
 	if (HTTP_CONNECT_TargetDomain != nullptr)
@@ -1240,9 +1240,9 @@ void ConfigurationTable::MonitorItemReset(
 		HTTP_CONNECT_HeaderField->clear();
 	if (HTTP_CONNECT_ProxyAuthorization != nullptr)
 	#if defined(ENABLE_LIBSODIUM)
-		sodium_memzero(HTTP_CONNECT_ProxyAuthorization, HTTP_AUTHORIZATION_MAXSIZE + PADDING_RESERVED_BYTES);
+		sodium_memzero(HTTP_CONNECT_ProxyAuthorization, HTTP_AUTHORIZATION_MAXSIZE + MEMORY_RESERVED_BYTES);
 	#else
-		memset(HTTP_CONNECT_ProxyAuthorization, 0, HTTP_AUTHORIZATION_MAXSIZE + PADDING_RESERVED_BYTES);
+		memset(HTTP_CONNECT_ProxyAuthorization, 0, HTTP_AUTHORIZATION_MAXSIZE + MEMORY_RESERVED_BYTES);
 	#endif
 	HTTP_CONNECT_ProxyAuthorizationLength = 0;
 
@@ -1270,8 +1270,8 @@ GlobalStatus::GlobalStatus(
 		MBS_FileList_Hosts = new std::vector<std::string>();
 		MBS_FileList_IPFilter = new std::vector<std::string>();
 	#endif
-		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6] = new uint8_t[PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES]();
-		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4] = new uint8_t[PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES]();
+		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6] = new uint8_t[PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES]();
+		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4] = new uint8_t[PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES]();
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6] = new std::vector<std::string>();
 		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4] = new std::vector<std::string>();
@@ -1363,8 +1363,8 @@ void GlobalStatus::CopyMemberOperator(
 		MBS_FileList_Hosts = new std::vector<std::string>();
 		MBS_FileList_IPFilter = new std::vector<std::string>();
 	#endif
-		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6] = new uint8_t[PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES]();
-		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4] = new uint8_t[PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES]();
+		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6] = new uint8_t[PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES]();
+		LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4] = new uint8_t[PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES]();
 	#if (defined(PLATFORM_WIN) || defined(PLATFORM_LINUX))
 		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV6] = new std::vector<std::string>();
 		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4] = new std::vector<std::string>();
@@ -1578,8 +1578,8 @@ void GlobalStatusSetting(
 	GlobalRunningStatusParameter->Base64_DecodeTable = const_cast<int8_t *>(Base64_DecodeTable_Initialization);
 #endif
 	GlobalRunningStatusParameter->GatewayAvailable_IPv4 = true;
-	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6], 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
-	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4], 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
+	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_TYPE_IPV6], 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
+	memset(GlobalRunningStatusParameter->LocalAddress_Response[NETWORK_LAYER_TYPE_IPV4], 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
 
 	return;
 }

@@ -1018,7 +1018,7 @@ bool CheckConnectionStreamFin(
 	if (RequestType == REQUEST_PROCESS_TYPE::HTTP_CONNECT_1)
 	{
 	//Length check
-		if (strnlen_s(reinterpret_cast<const char *>(Stream), Length + PADDING_RESERVED_BYTES) > Length)
+		if (strnlen_s(reinterpret_cast<const char *>(Stream), Length + MEMORY_RESERVED_BYTES) > Length)
 			return true;
 
 	//HTTP version 1.x response
@@ -1035,7 +1035,7 @@ bool CheckConnectionStreamFin(
 		if (*Stream != 0)
 		{
 		//Length check
-			if (strnlen_s(reinterpret_cast<const char *>(Stream), Length + PADDING_RESERVED_BYTES) > Length)
+			if (strnlen_s(reinterpret_cast<const char *>(Stream), Length + MEMORY_RESERVED_BYTES) > Length)
 				return true;
 
 		//HTTP version 1.x response
@@ -1665,8 +1665,8 @@ size_t CheckResponseData(
 	//Store EDNS Label if any Answer records exist.
 		if (!RecordList_Answer.empty())
 		{
-			auto EDNS_BufferTemp = std::make_unique<uint8_t[]>(EDNS_Length + PADDING_RESERVED_BYTES);
-			memset(EDNS_BufferTemp.get(), 0, EDNS_Length + PADDING_RESERVED_BYTES);
+			auto EDNS_BufferTemp = std::make_unique<uint8_t[]>(EDNS_Length + MEMORY_RESERVED_BYTES);
+			memset(EDNS_BufferTemp.get(), 0, EDNS_Length + MEMORY_RESERVED_BYTES);
 			memcpy_s(EDNS_BufferTemp.get(), EDNS_Length, Buffer + EDNS_Location, EDNS_Length);
 			EDNS_Buffer.swap(EDNS_BufferTemp);
 		}

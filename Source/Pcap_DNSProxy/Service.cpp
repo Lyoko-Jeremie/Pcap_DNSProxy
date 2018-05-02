@@ -68,8 +68,8 @@ bool CheckProcessExists(
 	void)
 {
 //System security initialization
-	const auto ACL_Buffer = std::make_unique<uint8_t[]>(FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
-	memset(ACL_Buffer.get(), 0, FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
+	const auto ACL_Buffer = std::make_unique<uint8_t[]>(FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
+	memset(ACL_Buffer.get(), 0, FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
 	memset(&GlobalRunningStatus.Initialized_MutexSecurityAttributes, 0, sizeof(GlobalRunningStatus.Initialized_MutexSecurityAttributes));
 	memset(&GlobalRunningStatus.Initialized_MutexSecurityDescriptor, 0, sizeof(GlobalRunningStatus.Initialized_MutexSecurityDescriptor));
 	PSID SID_Value = nullptr;
@@ -389,8 +389,8 @@ bool Flush_DNS_MailSlotMonitor(
 	void)
 {
 //System security initialization
-	auto ACL_Buffer = std::make_unique<uint8_t[]>(FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
-	memset(ACL_Buffer.get(), 0, FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
+	auto ACL_Buffer = std::make_unique<uint8_t[]>(FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
+	memset(ACL_Buffer.get(), 0, FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
 	SECURITY_ATTRIBUTES SecurityAttributes;
 	SECURITY_DESCRIPTOR SecurityDescriptor;
 	memset(&SecurityAttributes, 0, sizeof(SecurityAttributes));
@@ -425,8 +425,8 @@ bool Flush_DNS_MailSlotMonitor(
 		LocalFree(SID_Value);
 
 //Initialization
-	const auto Buffer = std::make_unique<wchar_t[]>(FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
-	wmemset(Buffer.get(), 0, FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
+	const auto Buffer = std::make_unique<wchar_t[]>(FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
+	wmemset(Buffer.get(), 0, FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
 	std::wstring Message;
 	std::string Domain;
 	DWORD MessageLength = 0;
@@ -621,8 +621,8 @@ bool Flush_DNS_FIFO_Monitor(
 	void)
 {
 //Initialization
-	const auto Buffer = std::make_unique<uint8_t[]>(FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
-	memset(Buffer.get(), 0, FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
+	const auto Buffer = std::make_unique<uint8_t[]>(FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
+	memset(Buffer.get(), 0, FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
 	std::string Message;
 	int FIFO_Handle = 0;
 	ssize_t MessageLength = 0;
@@ -740,7 +740,7 @@ void Flush_DNS_Cache(
 //Flush DNS cache in process.
 	std::unique_lock<std::mutex> DNSCacheListMutex(DNSCacheListLock);
 	if (Domain == nullptr || //Flush all DNS cache.
-		strnlen_s(reinterpret_cast<const char *>(Domain), DOMAIN_MAXSIZE + PADDING_RESERVED_BYTES) > DOMAIN_MAXSIZE)
+		strnlen_s(reinterpret_cast<const char *>(Domain), DOMAIN_MAXSIZE + MEMORY_RESERVED_BYTES) > DOMAIN_MAXSIZE)
 	{
 	//Remove from DNS cache index list.
 		DNSCacheIndexList.clear();

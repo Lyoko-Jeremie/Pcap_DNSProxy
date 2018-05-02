@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy 0.4.9.5-0.4.9.7 更新日誌(2018-04-28)：
+﻿Pcap_DNSProxy 0.4.9.5-0.4.9.7 更新日誌(2018-05-02)：
 
 * 添加完整的 EDNS 標籤透明轉發支援
 * 添加對 libevent 庫的支援
@@ -14,6 +14,7 @@
 * 修正包含 DNSSEC 相關記錄的過濾演算法
   * DNSSEC Force Validation 改名為 DNSSEC Force Record
 * 修正腳本對檔描述項的軟性限制 (Linux) [lunzima]
+* 修復 SOCKS 和 HTTP(S) Proxy 協定 TCP 模式下長度判斷錯誤的問題 [LisonFan/laggardkernel]
 * 修復 SOCKS Username 和 SOCKS Password 參數讀取的問題 [ダクネスExplosion]
 * 修復 EDNS Client Subnet 啟用時部分類型的 DNS 請求會被截斷的問題 [mewsf]
 * 修復 ICMP/ICMPv6 請求模組的時間控制問題

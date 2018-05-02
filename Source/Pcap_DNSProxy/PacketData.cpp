@@ -103,8 +103,8 @@ uint16_t GetChecksum_ICMPv6(
 	const size_t Length)
 {
 //Initialization
-	const auto Validation = std::make_unique<uint8_t[]>(sizeof(ipv6_psd_hdr) + Length + PADDING_RESERVED_BYTES);
-	memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length + PADDING_RESERVED_BYTES);
+	const auto Validation = std::make_unique<uint8_t[]>(sizeof(ipv6_psd_hdr) + Length + MEMORY_RESERVED_BYTES);
+	memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length + MEMORY_RESERVED_BYTES);
 
 //Get checksum.
 	reinterpret_cast<ipv6_psd_hdr *>(Validation.get())->Destination = IPv6_Header->Destination;
@@ -127,8 +127,8 @@ uint16_t GetChecksum_TCP_UDP(
 //IPv6
 	if (Protocol_Network == AF_INET6)
 	{
-		const auto Validation = std::make_unique<uint8_t[]>(sizeof(ipv6_psd_hdr) + Length - DataOffset + PADDING_RESERVED_BYTES);
-		memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length - DataOffset + PADDING_RESERVED_BYTES);
+		const auto Validation = std::make_unique<uint8_t[]>(sizeof(ipv6_psd_hdr) + Length - DataOffset + MEMORY_RESERVED_BYTES);
+		memset(Validation.get(), 0, sizeof(ipv6_psd_hdr) + Length - DataOffset + MEMORY_RESERVED_BYTES);
 		reinterpret_cast<ipv6_psd_hdr *>(Validation.get())->Destination = reinterpret_cast<const ipv6_hdr *>(Buffer)->Destination;
 		reinterpret_cast<ipv6_psd_hdr *>(Validation.get())->Source = reinterpret_cast<const ipv6_hdr *>(Buffer)->Source;
 		reinterpret_cast<ipv6_psd_hdr *>(Validation.get())->Length = htonl(static_cast<uint32_t>(Length - DataOffset));
@@ -140,8 +140,8 @@ uint16_t GetChecksum_TCP_UDP(
 //IPv4
 	else if (Protocol_Network == AF_INET)
 	{
-		const auto Validation = std::make_unique<uint8_t[]>(sizeof(ipv4_psd_hdr) + Length + PADDING_RESERVED_BYTES);
-		memset(Validation.get(), 0, sizeof(ipv4_psd_hdr) + Length + PADDING_RESERVED_BYTES);
+		const auto Validation = std::make_unique<uint8_t[]>(sizeof(ipv4_psd_hdr) + Length + MEMORY_RESERVED_BYTES);
+		memset(Validation.get(), 0, sizeof(ipv4_psd_hdr) + Length + MEMORY_RESERVED_BYTES);
 		reinterpret_cast<ipv4_psd_hdr *>(Validation.get())->Destination = reinterpret_cast<const ipv4_hdr *>(Buffer)->Destination;
 		reinterpret_cast<ipv4_psd_hdr *>(Validation.get())->Source = reinterpret_cast<const ipv4_hdr *>(Buffer)->Source;
 		reinterpret_cast<ipv4_psd_hdr *>(Validation.get())->Length = htons(static_cast<uint16_t>(Length));
@@ -440,8 +440,8 @@ bool Move_EDNS_LabelToEnd(
 				return false;
 
 		//Initialization
-			const auto BufferTemp = std::make_unique<uint8_t[]>(PacketStructure->Length + PADDING_RESERVED_BYTES);
-			memset(BufferTemp.get(), 0, PacketStructure->Length + PADDING_RESERVED_BYTES);
+			const auto BufferTemp = std::make_unique<uint8_t[]>(PacketStructure->Length + MEMORY_RESERVED_BYTES);
+			memset(BufferTemp.get(), 0, PacketStructure->Length + MEMORY_RESERVED_BYTES);
 
 		//Copy all resource records except EDNS Label and copy EDNS Label to the end of packet.
 			memcpy_s(BufferTemp.get(), PacketStructure->Length, PacketStructure->Buffer, PacketStructure->EDNS_Location);
@@ -1103,13 +1103,13 @@ bool MarkDomainCache(
 //Initialization(B part)
 	if (Length <= DOMAIN_MAXSIZE)
 	{
-		auto DNSCacheDataBufferTemp = std::make_unique<uint8_t[]>(DOMAIN_MAXSIZE + PADDING_RESERVED_BYTES);
-		memset(DNSCacheDataBufferTemp.get(), 0, DOMAIN_MAXSIZE + PADDING_RESERVED_BYTES);
+		auto DNSCacheDataBufferTemp = std::make_unique<uint8_t[]>(DOMAIN_MAXSIZE + MEMORY_RESERVED_BYTES);
+		memset(DNSCacheDataBufferTemp.get(), 0, DOMAIN_MAXSIZE + MEMORY_RESERVED_BYTES);
 		std::swap(DNSCacheDataTemp.Response, DNSCacheDataBufferTemp);
 	}
 	else {
-		auto DNSCacheDataBufferTemp = std::make_unique<uint8_t[]>(Length + PADDING_RESERVED_BYTES);
-		memset(DNSCacheDataBufferTemp.get(), 0, Length + PADDING_RESERVED_BYTES);
+		auto DNSCacheDataBufferTemp = std::make_unique<uint8_t[]>(Length + MEMORY_RESERVED_BYTES);
+		memset(DNSCacheDataBufferTemp.get(), 0, Length + MEMORY_RESERVED_BYTES);
 		std::swap(DNSCacheDataTemp.Response, DNSCacheDataBufferTemp);
 	}
 

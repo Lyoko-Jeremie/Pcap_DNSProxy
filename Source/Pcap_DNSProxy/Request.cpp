@@ -25,10 +25,10 @@ bool DomainTestRequest(
 	const uint16_t Protocol)
 {
 //Initialization
-	const auto SendBuffer = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
-	const auto RecvBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
-	memset(SendBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
-	memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
+	const auto SendBuffer = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
+	const auto RecvBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
+	memset(SendBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
+	memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
 
 //Make a DNS request with Doamin Test packet.
 	const auto DNS_Header = reinterpret_cast<dns_hdr *>(SendBuffer.get());
@@ -45,7 +45,7 @@ bool DomainTestRequest(
 		if (DataLength > DOMAIN_MINSIZE && DataLength + sizeof(dns_hdr) < PACKET_NORMAL_MAXSIZE)
 		{
 			memcpy_s(SendBuffer.get() + sizeof(dns_hdr), Parameter.LargeBufferSize - sizeof(dns_hdr), RecvBuffer.get(), DataLength);
-			memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
+			memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
 			DNS_Query = reinterpret_cast<dns_qry *>(SendBuffer.get() + sizeof(dns_hdr) + DataLength);
 			DNS_Query->Classes = htons(DNS_CLASS_INTERNET);
 			if (Protocol == AF_INET6)
@@ -180,7 +180,7 @@ bool DomainTestRequest(
 			if (Parameter.DomainTest_Data == nullptr)
 			{
 				memset(SendBuffer.get() + sizeof(dns_hdr), 0, PACKET_NORMAL_MAXSIZE - sizeof(dns_hdr));
-				memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
+				memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
 				MakeRandomDomain(RecvBuffer.get());
 				DataLength = StringToPacketQuery(RecvBuffer.get(), SendBuffer.get() + sizeof(dns_hdr)) + sizeof(dns_hdr);
 
@@ -204,7 +204,7 @@ bool DomainTestRequest(
 			}
 
 		//Send process, both TCP and UDP protocol
-			memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
+			memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
 			if (Parameter.DomainTest_Protocol == REQUEST_MODE_TEST::BOTH)
 			{
 				UDP_RequestMultiple(REQUEST_PROCESS_TYPE::UDP_WITHOUT_REGISTER, 0, SendBuffer.get(), DataLength, nullptr, nullptr);
@@ -409,7 +409,7 @@ void ICMP_TestTimerCallback(
 	}
 	else {
 	//Check if Hop Limit/TTL exist.
-		auto IsExist = true;
+		auto IsHopLimitExist = true;
 		if (CallbackArgument->Protocol == AF_INET6) //IPv6
 		{
 		//Main and Alternate
@@ -418,17 +418,17 @@ void ICMP_TestTimerCallback(
 				(Parameter.Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && 
 				Parameter.Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_StaticLoad == 0 && 
 				Parameter.Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_DynamicMark == 0))
-					IsExist = false;
+					IsHopLimitExist = false;
 
 		//Multiple list(IPv6)
-			if (IsExist && Parameter.Target_Server_IPv6_Multiple != nullptr)
+			if (IsHopLimitExist && Parameter.Target_Server_IPv6_Multiple != nullptr)
 			{
 				for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv6_Multiple)
 				{
 					if (DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_StaticLoad == 0 && 
 						DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_DynamicMark == 0)
 					{
-						IsExist = false;
+						IsHopLimitExist = false;
 						break;
 					}
 				}
@@ -442,16 +442,16 @@ void ICMP_TestTimerCallback(
 				(Parameter.Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0 && 
 				Parameter.Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_StaticLoad == 0 && 
 				Parameter.Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_DynamicMark == 0))
-					IsExist = false;
+					IsHopLimitExist = false;
 
 		//Multiple list(IPv4)
-			if (IsExist && Parameter.Target_Server_IPv4_Multiple != nullptr)
+			if (IsHopLimitExist && Parameter.Target_Server_IPv4_Multiple != nullptr)
 			{
 				for (const auto &DNSServerDataIter:*Parameter.Target_Server_IPv4_Multiple)
 				{
 					if (DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_StaticLoad == 0 && DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_DynamicMark == 0)
 					{
-						IsExist = false;
+						IsHopLimitExist = false;
 						break;
 					}
 				}
@@ -459,7 +459,7 @@ void ICMP_TestTimerCallback(
 		}
 
 	//Retest if Hop Limits/TTLs are not exist.
-		if (IsExist)
+		if (IsHopLimitExist)
 		{
 		//Mark total sleep time.
 			size_t LoopInterval = 0;
@@ -537,8 +537,8 @@ bool ICMP_TestRequest(
 		return false;
 
 //Initialization
-	const auto SendBuffer = std::make_unique<uint8_t[]>(DataLength + PADDING_RESERVED_BYTES);
-	memset(SendBuffer.get(), 0, DataLength + PADDING_RESERVED_BYTES);
+	const auto SendBuffer = std::make_unique<uint8_t[]>(DataLength + MEMORY_RESERVED_BYTES);
+	memset(SendBuffer.get(), 0, DataLength + MEMORY_RESERVED_BYTES);
 	std::vector<SOCKET_DATA> ICMP_SocketData;
 #if defined(PLATFORM_LINUX)
 #if !defined(ENABLE_LIBSODIUM)
@@ -761,8 +761,8 @@ bool ICMP_TestRequest(
 	}
 
 //Event initialization
-	const auto RecvBuffer = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
-	memset(RecvBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
+	const auto RecvBuffer = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
+	memset(RecvBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
 	event *TimerEvent = nullptr;
 	std::vector<event *> EventList;
 	ICMP_EVENT_ARGUMENT ICMP_EventArg;

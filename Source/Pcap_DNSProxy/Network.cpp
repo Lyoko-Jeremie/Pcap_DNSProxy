@@ -1348,8 +1348,8 @@ ssize_t SocketSelectingOnce(
 	#endif
 		)
 	{
-		auto RecvBufferSwap = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
-		memset(RecvBufferSwap.get(), 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
+		auto RecvBufferSwap = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
+		memset(RecvBufferSwap.get(), 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
 		std::swap(RecvBufferTemp, RecvBufferSwap);
 	}
 
@@ -1570,7 +1570,7 @@ ssize_t SocketSelectingOnce(
 					//Buffer initialization
 						if (!DNSCurveSocketSelectingDataList->at(Index).RecvBuffer)
 						{
-							auto DNSCurveRecvBuffer = std::make_unique<uint8_t[]>(RecvSize + PADDING_RESERVED_BYTES);
+							auto DNSCurveRecvBuffer = std::make_unique<uint8_t[]>(RecvSize + MEMORY_RESERVED_BYTES);
 							memset(DNSCurveRecvBuffer.get(), 0, RecvSize);
 							std::swap(DNSCurveSocketSelectingDataList->at(Index).RecvBuffer, DNSCurveRecvBuffer);
 						}
@@ -1634,7 +1634,7 @@ ssize_t SocketSelectingOnce(
 						//Buffer initialization
 							if (!SocketSelectingDataList.at(Index).RecvBuffer)
 							{
-								auto RecvBufferSwap = std::make_unique<uint8_t[]>(RecvSize + PADDING_RESERVED_BYTES);
+								auto RecvBufferSwap = std::make_unique<uint8_t[]>(RecvSize + MEMORY_RESERVED_BYTES);
 								memset(RecvBufferSwap.get(), 0, RecvSize);
 								std::swap(SocketSelectingDataList.at(Index).RecvBuffer, RecvBufferSwap);
 							}
@@ -1665,7 +1665,7 @@ ssize_t SocketSelectingOnce(
 						else {
 						//Receive, drop all data and close sockets.
 							recv(SocketDataList.at(Index).Socket, reinterpret_cast<char *>(RecvBufferTemp.get()), PACKET_NORMAL_MAXSIZE, 0);
-							memset(RecvBufferTemp.get(), 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
+							memset(RecvBufferTemp.get(), 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
 							SocketSetting(SocketDataList.at(Index).Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
 
 							continue;
@@ -2321,8 +2321,8 @@ StopLoop:
 					//Prepare buffer.
 						if (!SocketSelectingDataList.at(Index).RecvBuffer)
 						{
-							auto RecvBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
-							memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
+							auto RecvBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
+							memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
 							std::swap(SocketSelectingDataList.at(Index).RecvBuffer, RecvBuffer);
 							SocketSelectingDataList.at(Index).RecvSize = Parameter.LargeBufferSize;
 							SocketSelectingDataList.at(Index).RecvLen = 0;

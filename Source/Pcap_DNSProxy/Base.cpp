@@ -56,8 +56,8 @@ bool MBS_To_WCS_String(
 		return false;
 
 //Initialization
-	const auto TargetBuffer = std::make_unique<wchar_t[]>(DataLength + PADDING_RESERVED_BYTES);
-	wmemset(TargetBuffer.get(), 0, DataLength + PADDING_RESERVED_BYTES);
+	const auto TargetBuffer = std::make_unique<wchar_t[]>(DataLength + MEMORY_RESERVED_BYTES);
+	wmemset(TargetBuffer.get(), 0, DataLength + MEMORY_RESERVED_BYTES);
 
 //Convert string.
 #if defined(PLATFORM_WIN)
@@ -99,8 +99,8 @@ bool WCS_To_MBS_String(
 		return false;
 
 //Initialization
-	const auto TargetBuffer = std::make_unique<wchar_t[]>(DataLength + PADDING_RESERVED_BYTES);
-	memset(TargetBuffer.get(), 0, DataLength + PADDING_RESERVED_BYTES);
+	const auto TargetBuffer = std::make_unique<wchar_t[]>(DataLength + MEMORY_RESERVED_BYTES);
+	memset(TargetBuffer.get(), 0, DataLength + MEMORY_RESERVED_BYTES);
 
 //Convert string.
 #if defined(PLATFORM_WIN)

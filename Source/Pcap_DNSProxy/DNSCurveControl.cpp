@@ -410,8 +410,8 @@ void DNSCurveSocketPrecomputation(
 	//Make encryption or normal packet of Main server.
 		if (DNSCurveParameter.IsEncryption || Protocol == IPPROTO_TCP)
 		{
-			auto SendBufferTemp = std::make_unique<uint8_t[]>(RecvSize + PADDING_RESERVED_BYTES);
-			memset(SendBufferTemp.get(), 0, RecvSize + PADDING_RESERVED_BYTES);
+			auto SendBufferTemp = std::make_unique<uint8_t[]>(RecvSize + MEMORY_RESERVED_BYTES);
+			memset(SendBufferTemp.get(), 0, RecvSize + MEMORY_RESERVED_BYTES);
 			std::swap(SendBuffer, SendBufferTemp);
 			DataLength = DNSCurvePacketEncryption(Protocol, (*PacketTarget)->SendMagicNumber, Client_PublicKey, *PrecomputationKey, OriginalSend, SendSize, SendBuffer.get(), RecvSize);
 			if (DataLength < DNS_PACKET_MINSIZE)
@@ -547,8 +547,8 @@ SkipMain:
 	//Make encryption or normal packet of Alternate server.
 		if (DNSCurveParameter.IsEncryption)
 		{
-			auto SendBufferTemp = std::make_unique<uint8_t[]>(RecvSize + PADDING_RESERVED_BYTES);
-			memset(SendBufferTemp.get(), 0, RecvSize + PADDING_RESERVED_BYTES);
+			auto SendBufferTemp = std::make_unique<uint8_t[]>(RecvSize + MEMORY_RESERVED_BYTES);
+			memset(SendBufferTemp.get(), 0, RecvSize + MEMORY_RESERVED_BYTES);
 			std::swap(Alternate_SendBuffer, SendBufferTemp);
 			SendBufferTemp.reset();
 			Alternate_DataLength = DNSCurvePacketEncryption(Protocol, (*PacketTarget)->SendMagicNumber, Client_PublicKey, *Alternate_PrecomputationKey, OriginalSend, SendSize, Alternate_SendBuffer.get(), RecvSize);
@@ -752,7 +752,7 @@ bool DNSCruveGetSignatureData(
 				return false;
 
 		//Check signature.
-			DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> DecryptBuffer(PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
+			DNSCURVE_HEAP_BUFFER_TABLE<uint8_t> DecryptBuffer(PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
 			unsigned long long SignatureLength = 0;
 			if (PacketTarget == nullptr || 
 				crypto_sign_open(

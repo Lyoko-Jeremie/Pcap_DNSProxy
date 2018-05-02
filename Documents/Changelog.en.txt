@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy 0.4.9.5-0.4.9.7 changelog(2018-04-28):
+﻿Pcap_DNSProxy 0.4.9.5-0.4.9.7 changelog(2018-05-02):
 
 * Add EDNS Label transparency support.
 * Add libevent support.
@@ -14,6 +14,7 @@
 * Fix DNSSEC records filter.
   * Rename from DNSSEC Force Validation to DNSSEC Force Record.
 * Fix number of file descriptor limit in scripts. (Linux) [lunzima]
+* Fix bug of length check in SOCKS 和 HTTP(S) Proxy process TCP mode. [LisonFan/laggardkernel]
 * Fix bug of SOCKS Username and SOCKS Password parameter. [ダクネスExplosion]
 * Fix bug of truncated incorrect when EDNS Client Subnet is enabled. [mewsf]
 * Fix bug of interval time and transmission timeout control in ICMP/ICMPv6 module.

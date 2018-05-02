@@ -29,10 +29,10 @@ bool ReadText(
 	const size_t FileIndex)
 {
 //Initialization
-	const auto FileBuffer = std::make_unique<uint8_t[]>(FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
-	const auto TextBuffer = std::make_unique<uint8_t[]>(FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
-	memset(FileBuffer.get(), 0, FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
-	memset(TextBuffer.get(), 0, FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
+	const auto FileBuffer = std::make_unique<uint8_t[]>(FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
+	const auto TextBuffer = std::make_unique<uint8_t[]>(FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
+	memset(FileBuffer.get(), 0, FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
+	memset(TextBuffer.get(), 0, FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
 	std::string TextData;
 	auto LabelType_IPFilter = LABEL_IPFILTER_TYPE::NONE;
 	auto LabelType_Hosts = LABEL_HOSTS_TYPE::NONE;
@@ -351,7 +351,7 @@ bool ReadText(
 			}
 		}
 
-		memset(FileBuffer.get(), 0, FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
+		memset(FileBuffer.get(), 0, FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
 
 	//Line length check
 		if (!NewLinePoint && ReadLength == FILE_BUFFER_SIZE)
@@ -451,7 +451,7 @@ bool ReadText(
 			}
 		}
 
-		memset(TextBuffer.get(), 0, FILE_BUFFER_SIZE + PADDING_RESERVED_BYTES);
+		memset(TextBuffer.get(), 0, FILE_BUFFER_SIZE + MEMORY_RESERVED_BYTES);
 	}
 
 	return true;

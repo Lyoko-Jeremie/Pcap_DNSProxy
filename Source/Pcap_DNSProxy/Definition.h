@@ -164,12 +164,13 @@
 	#define ICMP_STRING_START_NUM_MACOS                   8U
 #endif
 #define LOG_READING_MINSIZE                           DEFAULT_LARGE_BUFFER_SIZE         //Minimum size of whole log file
+#define MEMORY_BUFFER_EXPAND_BYTES                    1U                                //Memory buffer expanded bytes(1 bytes)
+#define MEMORY_RESERVED_BYTES                         2U                                //Memory buffer reserved bytes(2 bytes)
 #define MULTIPLE_REQUEST_MAXNUM                       64U                               //Maximum number of multiple request.
 #define NETWORK_LAYER_PARTNUM                         2U                                //Number of network layer protocols(IPv6 and IPv4)
 #define NULL_TERMINATE_LENGTH                         1U                                //Length of C style string null
 #define PACKET_ORIGINAL_MAXSIZE                       1522U                             //Maximum size of original Ethernet frame, 6 bytes destination MAC + 6 bytes source MAC + 4 bytes 802.1Q tag(optional) + 2 bytes Ethertype + 1500 bytes payload + 4 bytes Frame Check Sequence
 #define PACKET_NORMAL_MAXSIZE                         1480U                             //Maximum size of normal Ethernet frame, 1500 bytes maximum payload - 20 bytes IPv4 header(IPv6 header length is longer than IPv4) and ignore all other transport layer protocols.
-#define PADDING_RESERVED_BYTES                        2U                                //Padding reserved bytes(2 bytes)
 #if defined(ENABLE_PCAP)
 	#define PCAP_CAPTURE_STRING_MAXNUM                    256U                        //Maximum length of pcap capture drive name and description
 #endif

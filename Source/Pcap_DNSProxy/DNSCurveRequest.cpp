@@ -160,10 +160,10 @@ bool DNSCurve_TCP_SignatureRequest(
 	const bool IsAlternate)
 {
 //Initialization
-	const auto SendBuffer = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
-	const auto RecvBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
-	memset(SendBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
-	memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
+	const auto SendBuffer = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
+	const auto RecvBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
+	memset(SendBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
+	memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
 	std::vector<SOCKET_DATA> TCPSocketDataList(1U);
 	memset(&TCPSocketDataList.front(), 0, sizeof(TCPSocketDataList.front()));
 	TCPSocketDataList.front().Socket = INVALID_SOCKET;
@@ -325,10 +325,10 @@ bool DNSCurve_UDP_SignatureRequest(
 	const bool IsAlternate)
 {
 //Initialization
-	const auto SendBuffer = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
-	const auto RecvBuffer = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
-	memset(SendBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
-	memset(RecvBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
+	const auto SendBuffer = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
+	const auto RecvBuffer = std::make_unique<uint8_t[]>(PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
+	memset(SendBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
+	memset(RecvBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
 	std::vector<SOCKET_DATA> UDPSocketDataList(1U);
 	memset(&UDPSocketDataList.front(), 0, sizeof(UDPSocketDataList.front()));
 	UDPSocketDataList.front().Socket = INVALID_SOCKET;
@@ -462,7 +462,7 @@ bool DNSCurve_UDP_SignatureRequest(
 		}
 
 	//Send request again.
-		memset(RecvBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + PADDING_RESERVED_BYTES);
+		memset(RecvBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
 		if (!Parameter.AlternateMultipleRequest)
 		{
 			if (ServerType == DNSCURVE_SERVER_TYPE::MAIN_IPV6)

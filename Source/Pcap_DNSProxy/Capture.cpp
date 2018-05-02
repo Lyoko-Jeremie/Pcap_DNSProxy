@@ -32,7 +32,7 @@ void CaptureInit(
 	}
 
 //Initialization
-	uint8_t ErrorBuffer[PCAP_ERRBUF_SIZE + PADDING_RESERVED_BYTES]{0};
+	uint8_t ErrorBuffer[PCAP_ERRBUF_SIZE + MEMORY_RESERVED_BYTES]{0};
 	pcap_if *CaptureDriveList = nullptr, *CaptureDriveIter = nullptr;
 	std::wstring Message;
 	std::string CaptureName, CaptureDescription;
@@ -278,7 +278,7 @@ bool CaptureFilterRulesInit(
 		return false;
 
 //Initialization(Part 2)
-	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE + PADDING_RESERVED_BYTES]{0};
+	uint8_t AddrBuffer[ADDRESS_STRING_MAXSIZE + MEMORY_RESERVED_BYTES]{0};
 	std::string AddrString;
 	FilterRules.clear();
 	FilterRules.append("(src host ");
@@ -399,8 +399,8 @@ bool CaptureModule(
 	}
 
 //Initialization(Part 1)
-	const auto Buffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
-	memset(Buffer.get(), 0, Parameter.LargeBufferSize + PADDING_RESERVED_BYTES);
+	const auto Buffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
+	memset(Buffer.get(), 0, Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
 	*DeviceTable.DeviceName = DriveInterface->name;
 	DeviceTable.DeviceName->shrink_to_fit();
 
@@ -1359,7 +1359,7 @@ bool MatchPortToSend(
 	memset(&SocketData_Input, 0, sizeof(SocketData_Input));
 	SocketData_Input.Socket = INVALID_SOCKET;
 	uint16_t SystemProtocol = 0;
-	size_t ReceiveIndex = 0, EDNS_Length_Input = 0;
+	size_t ReceiveIndex = 0;
 
 //Match port.
 	std::unique_lock<std::mutex> OutputPacketListMutex(OutputPacketListLock);
@@ -1382,10 +1382,15 @@ bool MatchPortToSend(
 					goto StopLoop;
 				}
 				else {
+				//EDNS options check
+				//EDNS Label options are exist in input packet rather than output packet.
+					if (Parameter.PacketCheck_DNS && PortTableIter.EDNS_Length >= sizeof(edns_header) && 
+						PortTableIter.EDNS_Length - sizeof(edns_header) != 0 && EDNS_Length_Output == 0)
+							return false;
+
+				//Copy socket data from global list.
 					SocketData_Input = PortTableIter.SocketData_Input;
 					SystemProtocol = PortTableIter.Protocol_Network;
-					if (Parameter.PacketCheck_DNS && PortTableIter.EDNS_Length >= sizeof(edns_header))
-						EDNS_Length_Input = PortTableIter.EDNS_Length - sizeof(edns_header);
 					PortTableIter.ClearPortTime = 0;
 
 				//Clear item in global list.
@@ -1415,10 +1420,15 @@ StopLoop:
 			{
 				if (PortTableIter.ReceiveIndex == ReceiveIndex)
 				{
+				//EDNS options check
+				//EDNS Label options are exist in input packet rather than output packet.
+					if (Parameter.PacketCheck_DNS && PortTableIter.EDNS_Length >= sizeof(edns_header) && 
+						PortTableIter.EDNS_Length - sizeof(edns_header) != 0 && EDNS_Length_Output == 0)
+							return false;
+
+				//Copy socket data from global list.
 					SocketData_Input = PortTableIter.SocketData_Input;
 					SystemProtocol = PortTableIter.Protocol_Network;
-					if (Parameter.PacketCheck_DNS && PortTableIter.EDNS_Length >= sizeof(edns_header))
-						EDNS_Length_Input = PortTableIter.EDNS_Length - sizeof(edns_header);
 					PortTableIter.ClearPortTime = 0;
 
 				//Clear item in global list.
@@ -1465,11 +1475,6 @@ ClearOutputPacketListData:
 	if (SocketData_Input.AddrLen == 0 || SocketData_Input.SockAddr.ss_family == 0 || SystemProtocol == 0 || 
 		!SocketSetting(SocketData_Input.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, false, nullptr))
 			return false;
-
-//EDNS options check
-//EDNS Label options are exist in input packet rather than output packet.
-	if (Parameter.PacketCheck_DNS && EDNS_Length_Input != 0 && EDNS_Length_Output == 0)
-		return false;
 
 //Mark DNS cache.
 	if (Parameter.DNS_CacheType != DNS_CACHE_TYPE::NONE)
