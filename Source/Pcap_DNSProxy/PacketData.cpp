@@ -81,14 +81,14 @@ uint16_t GetChecksum(
 	const size_t Length)
 {
 	uint32_t Result = CHECKSUM_SUCCESS;
-	auto InnerLength = Length;
-	while (InnerLength > 1U)
+	auto LoopLength = Length;
+	while (LoopLength > 1U)
 	{
 		Result += *Buffer++;
-		InnerLength -= sizeof(uint16_t);
+		LoopLength -= sizeof(uint16_t);
 	}
 
-	if (InnerLength)
+	if (LoopLength)
 		Result += *reinterpret_cast<const uint8_t *>(Buffer);
 	Result = (Result >> (sizeof(uint16_t) * BYTES_TO_BITS)) + (Result & UINT16_MAX);
 	Result += (Result >> (sizeof(uint16_t) * BYTES_TO_BITS));
@@ -642,14 +642,13 @@ bool Add_EDNS_LabelToPacket(
 {
 //Initialization
 	const auto DNS_Header = reinterpret_cast<dns_hdr *>(PacketStructure->Buffer);
-	const auto DNS_Query = reinterpret_cast<dns_qry *>(PacketStructure->Buffer + DNS_PACKET_QUERY_LOCATE(PacketStructure->Buffer));
 	edns_header *EDNS_Header = nullptr;
 
 //EDNS Options check
 	size_t EDNS_LabelPrediction = 0;
 	auto IsEDNS_ClientSubnet = false;
 	if (!IsAlreadyClientSubnet && //EDNS Client Subnet
-		(ntohs(DNS_Query->Type) == DNS_TYPE_AAAA || ntohs(DNS_Query->Type) == DNS_TYPE_A || 
+		(ntohs(PacketStructure->QueryType) == DNS_TYPE_AAAA || ntohs(PacketStructure->QueryType) == DNS_TYPE_A || 
 		(Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr) || 
 		Parameter.LocalMachineSubnet_IPv6 != nullptr || Parameter.LocalMachineSubnet_IPv4 != nullptr))
 	{
@@ -744,7 +743,7 @@ bool Add_EDNS_LabelToPacket(
 		auto IsFunctionRelay = false, IsGlobalRelay = false;
 
 	//AAAA record(IPv6)
-		if (ntohs(DNS_Query->Type) == DNS_TYPE_AAAA)
+		if (ntohs(PacketStructure->QueryType) == DNS_TYPE_AAAA)
 		{
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET6)
 				IsFunctionRelay = true;
@@ -802,7 +801,7 @@ bool Add_EDNS_LabelToPacket(
 			}
 		}
 	//A record(IPv4)
-		else if (ntohs(DNS_Query->Type) == DNS_TYPE_A)
+		else if (ntohs(PacketStructure->QueryType) == DNS_TYPE_A)
 		{
 			if (Parameter.EDNS_ClientSubnet_Relay && LocalSocketData != nullptr && LocalSocketData->SockAddr.ss_family == AF_INET)
 				IsFunctionRelay = true;
@@ -1167,7 +1166,7 @@ size_t CheckDomainCache(
 	uint8_t * const Result, 
 	const size_t ResultSize, 
 	const std::string &Domain, 
-	const dns_qry * const DNS_Query, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA &LocalSocketData)
 {
 //Single address single cache(Part 1)
@@ -1224,7 +1223,7 @@ size_t CheckDomainCache(
 //			}
 
 		//Scan cache data.
-			if (MapIter->second->RecordType == DNS_Query->Type)
+			if (MapIter->second->RecordType == QueryType)
 			{
 				memset(Result + sizeof(uint16_t), 0, ResultSize - sizeof(uint16_t));
 				memcpy_s(Result + sizeof(uint16_t), ResultSize - sizeof(uint16_t), MapIter->second->Response.get(), MapIter->second->Length);

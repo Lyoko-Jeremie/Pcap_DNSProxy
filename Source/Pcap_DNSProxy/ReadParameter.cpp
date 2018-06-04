@@ -84,23 +84,23 @@ bool Parameter_CheckSetting(
 	}
 
 //[Local DNS] block
-	//Local Protocol(IPv6)
-	if (Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0 && ParameterPointer->LocalProtocol_Network == REQUEST_MODE_NETWORK::IPV6)
-	{
-		PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-		ParameterPointer->LocalProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
-	}
-
-//Local Protocol(IPv4)
-	if (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0 && ParameterPointer->LocalProtocol_Network == REQUEST_MODE_NETWORK::IPV4)
-	{
-		PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
-		ParameterPointer->LocalProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
-	}
-
 	if (IsFirstRead)
 	{
-	//Local Hosts, Local Routing and Local Force Request check
+	//Move Alternate to Main(IPv6).
+		if (Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0 && Parameter.Target_Server_Local_Alternate_IPv6.Storage.ss_family != 0)
+		{
+			Parameter.Target_Server_Local_Main_IPv6 = Parameter.Target_Server_Local_Alternate_IPv6;
+			memset(&Parameter.Target_Server_Local_Alternate_IPv6, 0, sizeof(Parameter.Target_Server_Local_Alternate_IPv6));
+		}
+
+	//Move Alternate to Main(IPv4).
+		if (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0 && Parameter.Target_Server_Local_Alternate_IPv4.Storage.ss_family != 0)
+		{
+			Parameter.Target_Server_Local_Main_IPv4 = Parameter.Target_Server_Local_Alternate_IPv4;
+			memset(&Parameter.Target_Server_Local_Alternate_IPv4, 0, sizeof(Parameter.Target_Server_Local_Alternate_IPv4));
+		}
+
+	//Local Hosts, Local Routin, and Local Force Request check
 		if (
 		//Pass, Local request disabled
 //			(!Parameter.IsLocalHosts && !Parameter.IsLocalRouting && !Parameter.IsLocalForce) || 
@@ -120,14 +120,29 @@ bool Parameter_CheckSetting(
 		//Request in Local Hosts, stop next step and return result.
 		//Request not in Local Hosts, go next Local Routing step.
 //			(Parameter.IsLocalHosts && Parameter.IsLocalRouting && Parameter.IsLocalForce) || 
-		//
 			((Parameter.IsLocalHosts || Parameter.IsLocalRouting || Parameter.IsLocalForce) && 
 			Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0 && Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Local request options error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			return false;
 		}
+	}
 
+	//Local Protocol(IPv6)
+	if (Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0 && ParameterPointer->LocalProtocol_Network == REQUEST_MODE_NETWORK::IPV6)
+	{
+		PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+		ParameterPointer->LocalProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
+	}
+	//Local Protocol(IPv4)
+	else if (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0 && ParameterPointer->LocalProtocol_Network == REQUEST_MODE_NETWORK::IPV4)
+	{
+		PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+		ParameterPointer->LocalProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
+	}
+
+	if (IsFirstRead)
+	{
 //[Addresses] block
 	//Listen Address list check(IPv6)
 		if (Parameter.ListenAddress_IPv6->empty())
@@ -235,15 +250,20 @@ bool Parameter_CheckSetting(
 //[DNS] block part 2
 	if (IsFirstRead)
 	{
-	//Protocol IPv6 check
-		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6)
+	//DNS target check
+		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0)
+		{
+			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"DNS target error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+			return false;
+		}
+	//Protocol(IPv6)
+		else if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			Parameter.RequestMode_Network = REQUEST_MODE_NETWORK::BOTH;
 		}
-
-	//Protocol IPv4 check
-		if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0 && Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4)
+	//Protocol(IPv4)
+		else if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0 && Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 			Parameter.RequestMode_Network = REQUEST_MODE_NETWORK::BOTH;
@@ -251,8 +271,8 @@ bool Parameter_CheckSetting(
 	}
 
 //Direct Request check
-	if ((ParameterPointer->DirectRequest == REQUEST_MODE_DIRECT::IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0) || 
-		(ParameterPointer->DirectRequest == REQUEST_MODE_DIRECT::IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))
+	if ((ParameterPointer->DirectRequest_Protocol == REQUEST_MODE_DIRECT::IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0) || 
+		(ParameterPointer->DirectRequest_Protocol == REQUEST_MODE_DIRECT::IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))
 	{
 		PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"Direct Request error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 		return false;
@@ -482,15 +502,22 @@ bool Parameter_CheckSetting(
 	{
 		if (IsFirstRead)
 		{
-		//SOCKS IPv4 and IPv6 addresses check
+		//SOCKS target check
 			if (Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0 && Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::SOCKS, L"SOCKS address error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				return false;
 			}
-			else if ((Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0 && Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::IPV6) || 
-				(Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0 && Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::IPV4))
+		//SOCKS Protocl(IPv6)
+			else if (Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0 && Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::IPV6)
 			{
+				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+				Parameter.SOCKS_Protocol_Network = REQUEST_MODE_NETWORK::BOTH;
+			}
+		//SOCKS Protocol(IPv4)
+			else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0 && Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::IPV4)
+			{
+				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				Parameter.SOCKS_Protocol_Network = REQUEST_MODE_NETWORK::BOTH;
 			}
 
@@ -568,15 +595,22 @@ bool Parameter_CheckSetting(
 	{
 		if (IsFirstRead)
 		{
-		//HTTP CONNECT IPv4 and IPv6 address check
+		//HTTP CONNECT target check
 			if (Parameter.HTTP_CONNECT_Address_IPv6.Storage.ss_family == 0 && Parameter.HTTP_CONNECT_Address_IPv4.Storage.ss_family == 0)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::HTTP_CONNECT, L"HTTP CONNECT address error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				return false;
 			}
-			else if ((Parameter.HTTP_CONNECT_Address_IPv6.Storage.ss_family == 0 && Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_NETWORK::IPV6) || 
-				(Parameter.HTTP_CONNECT_Address_IPv4.Storage.ss_family == 0 && Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_NETWORK::IPV4))
+		//HTTP Protocol(IPv6)
+			else if (Parameter.HTTP_CONNECT_Address_IPv6.Storage.ss_family == 0 && Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_NETWORK::IPV6)
 			{
+				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+				Parameter.HTTP_CONNECT_Protocol = REQUEST_MODE_NETWORK::BOTH;
+			}
+		//HTTP Protocol(IPv4)
+			else if (Parameter.HTTP_CONNECT_Address_IPv4.Storage.ss_family == 0 && Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_NETWORK::IPV4)
+			{
+				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				Parameter.HTTP_CONNECT_Protocol = REQUEST_MODE_NETWORK::BOTH;
 			}
 
@@ -771,29 +805,35 @@ bool Parameter_CheckSetting(
 	//DNSCurve Protocol check
 		if (IsFirstRead)
 		{
-		//DNSCurve targets check
+		//Move Alternate to Main(IPv6).
 			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0)
 			{
 				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6 = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6;
 				memset(&DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6, 0, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6));
 			}
+
+		//Move Alternate to Main(IPv4).
 			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0)
 			{
 				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4 = DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4;
 				memset(&DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4, 0, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4));
 			}
 
-		//IPv6
-			if (Parameter.IsDNSCurve && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && 
-				DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV6)
+		//DNSCurve target check
+			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0)
+			{
+				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"DNSCurve target error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+				return false;
+			}
+
+		//DNSCurve Protocol(IPv6)
+			if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV6)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv6 Request Mode require IPv6 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
 			}
-
-		//IPv4
-			if (Parameter.IsDNSCurve && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0 && 
-				DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV4)
+		//DNSCurve Protocol(IPv4)
+			else if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV4)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"IPv4 Request Mode require IPv4 DNS server", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
@@ -845,8 +885,7 @@ bool Parameter_CheckSetting(
 		if (IsFirstRead)
 		{
 		//Check repeat items.
-			if ((DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0 && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0) || 
-				(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
+			if ((DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 				DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && 
 				memcmp(&DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.IPv6.sin6_addr, &DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.IPv6.sin6_addr)) == 0) || 
 				(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
@@ -857,7 +896,7 @@ bool Parameter_CheckSetting(
 				return false;
 			}
 
-		//Eencryption options check
+		//Encryption options check
 			if (DNSCurveParameter.IsEncryptionOnly && !DNSCurveParameter.IsEncryption)
 			{
 				DNSCurveParameter.IsEncryption = true;
@@ -1984,35 +2023,22 @@ bool ReadParameterData_Listen(
 			}
 		}
 	#endif
-
 		else if (Data.compare(0, strlen("ListenProtocol="), ("ListenProtocol=")) == 0 && Data.length() > strlen("ListenProtocol="))
 		{
 			std::string InnerData(Data);
 			CaseConvert(InnerData, true);
 
 		//Network layer
-			if (InnerData.find("IPV6") != std::string::npos)
-			{
-				if (InnerData.find("IPV4") != std::string::npos)
-					Parameter.ListenProtocol_Network = LISTEN_PROTOCOL_NETWORK::BOTH;
-				else 
-					Parameter.ListenProtocol_Network = LISTEN_PROTOCOL_NETWORK::IPV6;
-			}
-			else {
+			if (InnerData.find("IPV6") != std::string::npos && InnerData.find("IPV4") == std::string::npos)
+				Parameter.ListenProtocol_Network = LISTEN_PROTOCOL_NETWORK::IPV6;
+			else if (InnerData.find("IPV4") != std::string::npos && InnerData.find("IPV6") == std::string::npos)
 				Parameter.ListenProtocol_Network = LISTEN_PROTOCOL_NETWORK::IPV4;
-			}
 
 		//Transport layer
-			if (InnerData.find("TCP") != std::string::npos)
-			{
-				if (InnerData.find("UDP") != std::string::npos)
-					Parameter.ListenProtocol_Transport = LISTEN_PROTOCOL_TRANSPORT::BOTH;
-				else 
-					Parameter.ListenProtocol_Transport = LISTEN_PROTOCOL_TRANSPORT::TCP;
-			}
-			else {
+			if (InnerData.find("TCP") != std::string::npos && InnerData.find("UDP") == std::string::npos)
+				Parameter.ListenProtocol_Transport = LISTEN_PROTOCOL_TRANSPORT::TCP;
+			else if (InnerData.find("UDP") != std::string::npos && InnerData.find("TCP") == std::string::npos)
 				Parameter.ListenProtocol_Transport = LISTEN_PROTOCOL_TRANSPORT::UDP;
-			}
 
 		//Mark parameter found.
 			IsFoundParameter = true;
@@ -2180,24 +2206,27 @@ bool ReadParameterData_DNS(
 		CaseConvert(InnerData, true);
 
 	//Network layer
-		if (InnerData.find("IPV6") != std::string::npos)
-		{
-			if (InnerData.find("IPV4") != std::string::npos)
-				Parameter.RequestMode_Network = REQUEST_MODE_NETWORK::BOTH;
-			else 
-				Parameter.RequestMode_Network = REQUEST_MODE_NETWORK::IPV6;
-		}
-		else {
+		if (InnerData.find("IPV6") != std::string::npos && InnerData.find("IPV4") == std::string::npos)
+			Parameter.RequestMode_Network = REQUEST_MODE_NETWORK::IPV6;
+		else if (InnerData.find("IPV4") != std::string::npos && InnerData.find("IPV6") == std::string::npos)
 			Parameter.RequestMode_Network = REQUEST_MODE_NETWORK::IPV4;
-		}
 
 	//Transport layer
 		if (InnerData.find("FORCE") != std::string::npos)
-			Parameter.RequestMode_Transport = REQUEST_MODE_TRANSPORT::FORCE_TCP;
+		{
+			if (InnerData.find("TCP") != std::string::npos)
+				Parameter.RequestMode_Transport = REQUEST_MODE_TRANSPORT::FORCE_TCP;
+			else 
+				Parameter.RequestMode_Transport = REQUEST_MODE_TRANSPORT::FORCE_UDP;
+		}
 		else if (InnerData.find("TCP") != std::string::npos)
+		{
 			Parameter.RequestMode_Transport = REQUEST_MODE_TRANSPORT::TCP;
-		else 
-			Parameter.RequestMode_Transport = REQUEST_MODE_TRANSPORT::UDP;
+		}
+
+	//According type
+		if (InnerData.find("TYPE") != std::string::npos)
+			Parameter.RequestMode_IsAccordingType = true;
 
 	//Mark parameter found.
 		IsFoundParameter = true;
@@ -2206,25 +2235,19 @@ bool ReadParameterData_DNS(
 	{
 		if (Data.compare(0, strlen("DirectRequest=1"), ("DirectRequest=1")) == 0)
 		{
-			ParameterPointer->DirectRequest = REQUEST_MODE_DIRECT::BOTH;
+			ParameterPointer->DirectRequest_Protocol = REQUEST_MODE_DIRECT::BOTH;
 		}
 		else {
 			std::string InnerData(Data);
 			CaseConvert(InnerData, true);
-			if (InnerData.find("IPV6") != std::string::npos)
-			{
-				if (InnerData.find("IPV4") != std::string::npos)
-					ParameterPointer->DirectRequest = REQUEST_MODE_DIRECT::BOTH;
-				else 
-					ParameterPointer->DirectRequest = REQUEST_MODE_DIRECT::IPV6;
-			}
+
+		//Network layer
+			if (InnerData.find("IPV6") != std::string::npos && InnerData.find("IPV4") != std::string::npos)
+				ParameterPointer->DirectRequest_Protocol = REQUEST_MODE_DIRECT::BOTH;
+			else if (InnerData.find("IPV6") != std::string::npos)
+				ParameterPointer->DirectRequest_Protocol = REQUEST_MODE_DIRECT::IPV6;
 			else if (InnerData.find("IPV4") != std::string::npos)
-			{
-				if (InnerData.find("IPV6") != std::string::npos)
-					ParameterPointer->DirectRequest = REQUEST_MODE_DIRECT::BOTH;
-				else 
-					ParameterPointer->DirectRequest = REQUEST_MODE_DIRECT::IPV4;
-			}
+				ParameterPointer->DirectRequest_Protocol = REQUEST_MODE_DIRECT::IPV4;
 		}
 
 	//Mark parameter found.
@@ -2348,24 +2371,27 @@ bool ReadParameterData_Local_DNS(
 		CaseConvert(InnerData, true);
 
 	//Network layer
-		if (InnerData.find("IPV6") != std::string::npos)
-		{
-			if (InnerData.find("IPV4") != std::string::npos)
-				ParameterPointer->LocalProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
-			else 
-				ParameterPointer->LocalProtocol_Network = REQUEST_MODE_NETWORK::IPV6;
-		}
-		else {
+		if (InnerData.find("IPV6") != std::string::npos && InnerData.find("IPV4") == std::string::npos)
+			ParameterPointer->LocalProtocol_Network = REQUEST_MODE_NETWORK::IPV6;
+		else if (InnerData.find("IPV4") != std::string::npos && InnerData.find("IPV6") == std::string::npos)
 			ParameterPointer->LocalProtocol_Network = REQUEST_MODE_NETWORK::IPV4;
-		}
 
 	//Transport layer
 		if (InnerData.find("FORCE") != std::string::npos)
-			ParameterPointer->LocalProtocol_Transport = REQUEST_MODE_TRANSPORT::FORCE_TCP;
+		{
+			if (InnerData.find("TCP") != std::string::npos)
+				ParameterPointer->LocalProtocol_Transport = REQUEST_MODE_TRANSPORT::FORCE_TCP;
+			else 
+				ParameterPointer->LocalProtocol_Transport = REQUEST_MODE_TRANSPORT::FORCE_UDP;
+		}
 		else if (InnerData.find("TCP") != std::string::npos)
+		{
 			ParameterPointer->LocalProtocol_Transport = REQUEST_MODE_TRANSPORT::TCP;
-		else 
-			ParameterPointer->LocalProtocol_Transport = REQUEST_MODE_TRANSPORT::UDP;
+		}
+
+	//According type
+		if (InnerData.find("TYPE") != std::string::npos)
+			ParameterPointer->LocalProtocol_IsAccordingType = true;
 
 	//Mark parameter found.
 		IsFoundParameter = true;
@@ -3369,16 +3395,12 @@ bool ReadParameterData_Data(
 	{
 		std::string InnerData(Data);
 		CaseConvert(InnerData, true);
-		if (InnerData.find("TCP") != std::string::npos)
-		{
-			if (InnerData.find("UDP") != std::string::npos)
-				ParameterPointer->DomainTest_Protocol = REQUEST_MODE_TEST::BOTH;
-			else 
-				ParameterPointer->DomainTest_Protocol = REQUEST_MODE_TEST::TCP;
-		}
-		else {
+
+	//Transport layer
+		if (InnerData.find("TCP") != std::string::npos && InnerData.find("UDP") == std::string::npos)
+			ParameterPointer->DomainTest_Protocol = REQUEST_MODE_TEST::TCP;
+		else if (InnerData.find("UDP") != std::string::npos && InnerData.find("TCP") == std::string::npos)
 			ParameterPointer->DomainTest_Protocol = REQUEST_MODE_TEST::UDP;
-		}
 
 	//Mark parameter found.
 		IsFoundParameter = true;
@@ -3502,24 +3524,27 @@ bool ReadParameterData_Proxy(
 			CaseConvert(InnerData, true);
 
 		//Network layer
-			if (InnerData.find("IPV6") != std::string::npos)
-			{
-				if (InnerData.find("IPV4") != std::string::npos)
-					Parameter.SOCKS_Protocol_Network = REQUEST_MODE_NETWORK::BOTH;
-				else 
-					Parameter.SOCKS_Protocol_Network = REQUEST_MODE_NETWORK::IPV6;
-			}
-			else {
+			if (InnerData.find("IPV6") != std::string::npos && InnerData.find("IPV4") == std::string::npos)
+				Parameter.SOCKS_Protocol_Network = REQUEST_MODE_NETWORK::IPV6;
+			else if (InnerData.find("IPV4") != std::string::npos && InnerData.find("IPV6") == std::string::npos)
 				Parameter.SOCKS_Protocol_Network = REQUEST_MODE_NETWORK::IPV4;
-			}
 
 		//Transport layer
 			if (InnerData.find("FORCE") != std::string::npos)
-				Parameter.SOCKS_Protocol_Transport = REQUEST_MODE_TRANSPORT::FORCE_UDP;
+			{
+				if (InnerData.find("UDP") != std::string::npos)
+					Parameter.SOCKS_Protocol_Transport = REQUEST_MODE_TRANSPORT::FORCE_UDP;
+				else 
+					Parameter.SOCKS_Protocol_Transport = REQUEST_MODE_TRANSPORT::FORCE_TCP;
+			}
 			else if (InnerData.find("UDP") != std::string::npos)
+			{
 				Parameter.SOCKS_Protocol_Transport = REQUEST_MODE_TRANSPORT::UDP;
-			else 
-				Parameter.SOCKS_Protocol_Transport = REQUEST_MODE_TRANSPORT::TCP;
+			}
+
+		//According type
+			if (InnerData.find("TYPE") != std::string::npos)
+				Parameter.SOCKS_Protocol_IsAccordingType = true;
 
 		//Mark parameter found.
 			IsFoundParameter = true;
@@ -3613,16 +3638,16 @@ bool ReadParameterData_Proxy(
 		{
 			std::string InnerData(Data);
 			CaseConvert(InnerData, true);
-			if (InnerData.find("IPV6") != std::string::npos)
-			{
-				if (InnerData.find("IPV4") != std::string::npos)
-					Parameter.HTTP_CONNECT_Protocol = REQUEST_MODE_NETWORK::BOTH;
-				else 
-					Parameter.HTTP_CONNECT_Protocol = REQUEST_MODE_NETWORK::IPV6;
-			}
-			else {
+
+		//Network layer
+			if (InnerData.find("IPV6") != std::string::npos && InnerData.find("IPV4") == std::string::npos)
+				Parameter.HTTP_CONNECT_Protocol = REQUEST_MODE_NETWORK::IPV6;
+			else if (InnerData.find("IPV4") != std::string::npos && InnerData.find("IPV6") == std::string::npos)
 				Parameter.HTTP_CONNECT_Protocol = REQUEST_MODE_NETWORK::IPV4;
-			}
+
+		//According type
+			if (InnerData.find("TYPE") != std::string::npos)
+				Parameter.HTTP_CONNECT_IsAccordingType = true;
 
 		//Mark parameter found.
 			IsFoundParameter = true;
@@ -3907,24 +3932,27 @@ bool ReadParameterData_DNSCurve(
 			CaseConvert(InnerData, true);
 
 		//Network layer
-			if (InnerData.find("IPV6") != std::string::npos)
-			{
-				if (InnerData.find("IPV4") != std::string::npos)
-					DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK::BOTH;
-				else 
-					DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK::IPV6;
-			}
-			else {
+			if (InnerData.find("IPV6") != std::string::npos && InnerData.find("IPV4") == std::string::npos)
+				DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK::IPV6;
+			else if (InnerData.find("IPV4") != std::string::npos && InnerData.find("IPV6") == std::string::npos)
 				DNSCurveParameter.DNSCurveProtocol_Network = REQUEST_MODE_NETWORK::IPV4;
-			}
 
 		//Transport layer
 			if (InnerData.find("FORCE") != std::string::npos)
-				DNSCurveParameter.DNSCurveProtocol_Transport = REQUEST_MODE_TRANSPORT::FORCE_TCP;
+			{
+				if (InnerData.find("TCP") != std::string::npos)
+					DNSCurveParameter.DNSCurveProtocol_Transport = REQUEST_MODE_TRANSPORT::FORCE_TCP;
+				else 
+					DNSCurveParameter.DNSCurveProtocol_Transport = REQUEST_MODE_TRANSPORT::FORCE_UDP;
+			}
 			else if (InnerData.find("TCP") != std::string::npos)
+			{
 				DNSCurveParameter.DNSCurveProtocol_Transport = REQUEST_MODE_TRANSPORT::TCP;
-			else 
-				DNSCurveParameter.DNSCurveProtocol_Transport = REQUEST_MODE_TRANSPORT::UDP;
+			}
+
+		//According type
+			if (InnerData.find("TYPE") != std::string::npos)
+				DNSCurveParameter.DNSCurveProtocol_IsAccordingType = true;
 
 		//Mark parameter found.
 			IsFoundParameter = true;
@@ -5160,9 +5188,33 @@ bool ReadDNSCurveDatabaseItem(
 //Initialization
 	DNSCURVE_CONFIGURATION_TABLE *DNSCurveParameterPointer = nullptr;
 	if (InputType == READ_TEXT_TYPE::DNSCURVE_DATABASE)
+	{
 		DNSCurveParameterPointer = &DNSCurveParameter;
+
+	//Move Alternate to Main(IPv6).
+		if (DNSCurveParameter.Database_Target_Server_Main_IPv6 != nullptr && DNSCurveParameter.Database_Target_Server_Alternate_IPv6 != nullptr && 
+			DNSCurveParameter.Database_Target_Server_Main_IPv6->empty() && !DNSCurveParameter.Database_Target_Server_Alternate_IPv6->empty())
+		{
+			*DNSCurveParameter.Database_Target_Server_Main_IPv6 = *DNSCurveParameter.Database_Target_Server_Alternate_IPv6;
+			DNSCurveParameter.Database_Target_Server_Alternate_IPv6->clear();
+			DNSCurveParameter.Database_Target_Server_Alternate_IPv6->shrink_to_fit();
+		}
+
+	//Move Alternate to Main(IPv4).
+		if (DNSCurveParameter.Database_Target_Server_Main_IPv4 != nullptr && DNSCurveParameter.Database_Target_Server_Alternate_IPv4 != nullptr && 
+			DNSCurveParameter.Database_Target_Server_Main_IPv4->empty() && !DNSCurveParameter.Database_Target_Server_Alternate_IPv4->empty())
+		{
+			*DNSCurveParameter.Database_Target_Server_Main_IPv4 = *DNSCurveParameter.Database_Target_Server_Alternate_IPv4;
+			DNSCurveParameter.Database_Target_Server_Alternate_IPv4->clear();
+			DNSCurveParameter.Database_Target_Server_Alternate_IPv4->shrink_to_fit();
+		}
+	}
 	else if (InputType == READ_TEXT_TYPE::DNSCURVE_MONITOR)
+	{
 		DNSCurveParameterPointer = &DNSCurveParameterModificating;
+	}
+
+//Pointer check
 	if (DNSCurveParameterPointer == nullptr || DNSCurveParameterPointer->Database_LineData == nullptr)
 		return false;
 

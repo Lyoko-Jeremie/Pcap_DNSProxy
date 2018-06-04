@@ -64,7 +64,7 @@ bool SSPI_SChannelInitializtion(
 //Get client credentials handle.
 	SSPI_Handle.LastReturnValue = AcquireCredentialsHandleW(
 		nullptr, 
-		UNISP_NAME_W, 
+		const_cast<LPWSTR>(UNISP_NAME_W), 
 		SECPKG_CRED_OUTBOUND, 
 		nullptr, 
 		&SChannelCredentials, 

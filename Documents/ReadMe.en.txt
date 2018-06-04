@@ -236,7 +236,6 @@ Base - the basic parameter area
     * Read the timeout time need to balance the demand and resource consumption, the time set too long will lead to the domain name resolution request response slow response request timeout, too fast will take up too much system to deal with resources
   * Listen Protocol - the protocol supported by the local listening request: can be filled with IPv4 and IPv6 and TCP and UDP
     * Fill in the agreement can be arbitrarily combined, only fill IPv4 or IPv6 with UDP or TCP, only listen to the specified agreement of the local port
-    * Note: The agreement here refers to the protocol that can be used when request the function variable name resolution, and the protocol used by the program request the remote DNS server is determined by the Protocol parameter
   * Listen Port - the port of the listening port, the local listening request: the format "port A (|port B)" (without quotation marks, brackets are optional items)
     * Port can be filled in the service name, service name list see below
     * Can also fill in the port between 1-65535, if left to 53
@@ -337,10 +336,9 @@ Base - the basic parameter area
 
 * DNS - function variable name resolution parameter area
   * Outgoing Protocol - the protocol used to send the request to the remote DNS server: can be filled with IPv4 and IPv6 and TCP and UDP
-    * Fill in the agreement can be arbitrarily combined, only fill IPv4 or IPv6 with UDP or TCP, only use the specified agreement to the remote DNS server to issue a request
-    * When you fill in both IPv4 and IPv6 or do not fill in any network layer agreements, the program will automatically select the protocol to be used according to the web environment
-    * At the same time fill in TCP and UDP is equal to only fill in TCP because UDP is the standard network layer protocol for DNS, so even when the TCP fails to fill the UDP request
-    * Fill in Force TCP to prevent TCP requests from failing to use UDP to retry requests
+    * Filling IPv6/IPv4 will make program using same protocol to request. Filling IPv6 + IPv4 will make program automatic selecting protocol.
+    * Filling TCP + UDP is same as filling TCP. Filling Force TCP will make program no retrying to use UDP.
+    * Filling Type will enable selecting protocol based on DNS type.
   * Direct Request - Direct connection mode, enable the system will use the system directly request the remote server: can fill in IPv4 and IPv6 and 0, turn off to 0
     * It is recommended when the system uses the global proxy function, the program will be in addition to all the requests outside the domestic server directly to the system without any filtering and other processing, the system will automatically send the request to the remote server for analysis
     * When you fill in IPv4 or IPv6, you will enable the Direct Request function of the corresponding protocol. Filling in IPv4 + IPv6 will enable all protocol functions
@@ -374,10 +372,9 @@ Base - the basic parameter area
   
 * Local DNS - Domestic function variable name resolution parameter area
   * Local Protocol - protocol used to send requests to the internal DNS server: Fill in IPv4 and IPv6 and TCP and UDP
-    * Fill in the agreement can be arbitrarily combined, filling only IPv4 or IPv6 With UDP or TCP, only use the specified protocol to the internal DNS server request
-    * Fill both IPv4 and IPv6 at the same time or do not fill in any network layer protocol, the program will automatically select the protocol used according to the network environment
-    * Fill in TCP and UDP at the same time equals fill in only TCP Because UDP is the standard network layer protocol for DNS, UDP requests are used even if TCP fills in.
-    * Fill in Force TCP to prevent TCP requests from retrying requests using UDP after they fail
+    * Filling IPv6/IPv4 will make program using same protocol to request. Filling IPv6 + IPv4 will make program automatic selecting protocol.
+    * Filling TCP + UDP is same as filling TCP. Filling Force TCP will make program no retrying to use UDP.
+    * Filling Type will enable selecting protocol based on DNS type.
   * Local Hosts - Whitelist Domestic Server Request Features: On 1/Off 0
     * This function will only try to read the data in the Local Hosts whitelist and will not read any white list data when it is off
   * Local Routing - Local routing table identification: open to 1/off to 0
@@ -646,10 +643,9 @@ Base - the basic parameter area
     * SOCKS version 4 does not support IPv6 address and function variable name of the target server, and does not support UDP forwarding function
     * SOCKS version 4a does not support IPv6 address of the target server, and does not support UDP forwarding function
   * SOCKS Protocol - the protocol used when using the SOCKS protocol to send a request: fill in IPv4 and IPv6 and TCP and UDP
-    * Fill in the agreement can be arbitrarily combined, only to fill IPv4 or IPv6 with UDP or TCP, only use the specified agreement to the SOCKS server request
-    * When you fill in both IPv4 and IPv6 or do not fill in any network layer agreements, the program will automatically select the protocol to be used according to the web environment
-    * Both TCP and UDP are filled with only UDP because TCP is the first support for SOCKS and the most commonly supported standard network layer protocol, so TCP requests are used even when a UDP request fails
-    * Fill in Force UDP to prevent UDP requests from failing to use TCP to retry requests
+    * Filling IPv6/IPv4 will make program using same protocol to request. Filling IPv6 + IPv4 will make program automatic selecting protocol.
+    * Filling TCP + UDP is same as filling UDP. Filling Force UDP will make program no retrying to use TCP.
+    * Filling Type will enable selecting protocol based on DNS type.
   * SOCKS UDP No Handshake - SOCKS UDP does not shake hands mode, will not open after the TCP handshake directly send UDP forwarding request: 1 to enable/0 to disable.
     * The standard flow of the SOCKS protocol must use the TCP connection to exchange handshaking information before using the UDP forwarding function. Otherwise, the SOCKS server will discard the forwarding request
     * Part of the SOCKS local proxy can be directly UDP forwarding without the use of TCP connection exchange handshake information, please be sure to confirm the SOCKS server support before
@@ -667,8 +663,8 @@ Base - the basic parameter area
   * SOCKS Password - the password used to connect to the SOCKS server: up to 255 characters, leave it blank
   * HTTP CONNECT Proxy - HTTP CONNECT protocol master switch, control all options related to the HTTP CONNECT protocol: 1 to enable/0 to disable.
   * HTTP CONNECT Protocol - the protocol used when using the HTTP CONNECT protocol request: can be filled with IPv4 and IPv6
-    * Fill in the agreement can be arbitrarily combined, only to fill IPv4 or IPv6, only use the specified agreement to the HTTP CONNECT server request
-    * When you fill in both IPv4 and IPv6 or do not fill in any network layer agreements, the program will automatically select the protocol to be used according to the web environment
+    * Filling IPv6/IPv4 will make program using same protocol to request. Filling IPv6 + IPv4 will make program automatic selecting protocol.
+    * Filling Type will enable selecting protocol based on DNS type.
   * HTTP CONNECT Proxy Only - Only use the HTTP CONNECT protocol proxy mode, all requests will be made only via the HTTP CONNECT protocol: 1 to enable/0 to disable.
   * HTTP CONNECT IPv4 Address - HTTP CONNECT protocol IPv4 Primary HTTP CONNECT server address: need to enter a port format with the address
     * Does not support multiple addresses, can only fill a single address
@@ -711,10 +707,9 @@ Base - the basic parameter area
 * DNSCurve - DNSCurve Agreement Basic Parameter Area
   * DNSCurve - DNSCurve protocol master switch that controls all options related to the DNSCurve protocol: 1 to enable/0 to disable.
   * DNSCurve Protocol - the protocol used to send the request using the DNSCurve protocol: can be filled with IPv4 and IPv6 and TCP and UDP
-    * Fill in the agreement can be arbitrarily combined, only fill IPv4 or IPv6 with UDP or TCP, only use the specified agreement to the remote DNS server to issue a request
-    * When you fill in both IPv4 and IPv6 or do not fill in any network layer agreements, the program will automatically select the protocol to be used according to the web environment
-    * At the same time fill in TCP and UDP is equal to only fill in TCP because UDP is the standard network layer protocol for DNS, so even when the TCP fails to fill the UDP request
-    * Fill in Force TCP to prevent TCP requests from failing to use UDP to retry requests
+    * Filling IPv6/IPv4 will make program using same protocol to request. Filling IPv6 + IPv4 will make program automatic selecting protocol.
+    * Filling TCP + UDP is same as filling TCP. Filling Force TCP will make program no retrying to use UDP.
+    * Filling Type will enable selecting protocol based on DNS type.
   * DNSCurve Payload Size - The maximum payload length that is included with the DNSCurve tag, as well as the total length of the request sent and the requested fill length: in bytes
     * Minimum for the DNS protocol to achieve the requirements of 512, leaving 512
     * Maximum of Ethernet MTU minus the DNSCurve header length, it is recommended not to exceed 1220

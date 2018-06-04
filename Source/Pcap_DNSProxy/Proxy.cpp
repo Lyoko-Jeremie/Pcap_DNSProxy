@@ -164,6 +164,7 @@ size_t SOCKS_TCP_Request(
 	const size_t SendSize, 
 	std::unique_ptr<uint8_t[]> &OriginalRecv, 
 	size_t &RecvSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA &LocalSocketData)
 {
 //Initialization
@@ -173,12 +174,10 @@ size_t SOCKS_TCP_Request(
 	memset(&SocketDataList.front(), 0, sizeof(SocketDataList.front()));
 	SocketDataList.front().Socket = INVALID_SOCKET;
 	ErrorCodeList.front() = 0;
+	const auto NetworkSpecific = SelectProtocol_Network(Parameter.SOCKS_Protocol_Network, Parameter.SOCKS_Address_IPv6.Storage.ss_family, Parameter.SOCKS_Address_IPv4.Storage.ss_family, Parameter.SOCKS_Protocol_IsAccordingType, QueryType, &LocalSocketData);
 
 //Socket initialization
-	if (Parameter.SOCKS_Address_IPv6.Storage.ss_family != 0 && //IPv6
-		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
-		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::IPV6 || //IPv6
-		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::IPV4 && Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
+	if (NetworkSpecific == AF_INET6)
 	{
 		SocketDataList.front().SockAddr.ss_family = AF_INET6;
 		reinterpret_cast<sockaddr_in6 *>(&SocketDataList.front().SockAddr)->sin6_addr = Parameter.SOCKS_Address_IPv6.IPv6.sin6_addr;
@@ -186,10 +185,7 @@ size_t SOCKS_TCP_Request(
 		SocketDataList.front().AddrLen = sizeof(sockaddr_in6);
 		SocketDataList.front().Socket = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
 	}
-	else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family != 0 && //IPv4
-		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
-		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::IPV4 || //IPv4
-		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::IPV6 && Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6
+	else if (NetworkSpecific == AF_INET)
 	{
 		SocketDataList.front().SockAddr.ss_family = AF_INET;
 		reinterpret_cast<sockaddr_in *>(&SocketDataList.front().SockAddr)->sin_addr = Parameter.SOCKS_Address_IPv4.IPv4.sin_addr;
@@ -301,6 +297,7 @@ size_t SOCKS_UDP_Request(
 	const size_t SendSize, 
 	std::unique_ptr<uint8_t[]> &OriginalRecv, 
 	size_t &RecvSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA &LocalSocketData)
 {
 //Initialization
@@ -316,12 +313,10 @@ size_t SOCKS_UDP_Request(
 	TCPErrorCodeList.front() = 0;
 	UDPErrorCodeList.front() = 0;
 	LocalErrorCodeList.front() = 0;
+	const auto NetworkSpecific = SelectProtocol_Network(Parameter.SOCKS_Protocol_Network, Parameter.SOCKS_Address_IPv6.Storage.ss_family, Parameter.SOCKS_Address_IPv4.Storage.ss_family, Parameter.SOCKS_Protocol_IsAccordingType, QueryType, &LocalSocketData);
 
 //Socket initialization
-	if (Parameter.SOCKS_Address_IPv6.Storage.ss_family != 0 && //IPv6
-		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
-		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::IPV6 || //IPv6
-		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::IPV4 && Parameter.SOCKS_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
+	if (NetworkSpecific == AF_INET6)
 	{
 		if (!Parameter.SOCKS_UDP_NoHandshake)
 		{
@@ -345,10 +340,7 @@ size_t SOCKS_UDP_Request(
 		UDPSocketDataList.front().AddrLen = sizeof(sockaddr_in6);
 		UDPSocketDataList.front().Socket = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	}
-	else if (Parameter.SOCKS_Address_IPv4.Storage.ss_family != 0 && //IPv4
-		((Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
-		Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::IPV4 || //IPv4
-		(Parameter.SOCKS_Protocol_Network == REQUEST_MODE_NETWORK::IPV6 && Parameter.SOCKS_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6
+	else if (NetworkSpecific == AF_INET)
 	{
 		if (!Parameter.SOCKS_UDP_NoHandshake)
 		{
@@ -2016,11 +2008,12 @@ bool HTTP_CONNECT_2_ShutdownConnection(
 }
 
 //Transmission and reception of HTTP CONNECT protocol
-size_t HTTP_CONNECT_Request(
+size_t HTTP_CONNECT_TCP_Request(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	std::unique_ptr<uint8_t[]> &OriginalRecv, 
 	size_t &RecvSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA &LocalSocketData)
 {
 //HTTP CONNECT target domain check
@@ -2051,7 +2044,7 @@ size_t HTTP_CONNECT_Request(
 #endif
 
 //HTTP CONNECT handshake
-	if (!HTTP_CONNECT_Handshake(SocketDataList, SocketSelectingDataList, ErrorCodeList, TLS_Context))
+	if (!HTTP_CONNECT_Handshake(SocketDataList, SocketSelectingDataList, ErrorCodeList, QueryType, LocalSocketData, TLS_Context))
 		return EXIT_FAILURE;
 
 //HTTP version 1.x packet
@@ -2149,17 +2142,17 @@ bool HTTP_CONNECT_Handshake(
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<SOCKET_SELECTING_SERIAL_DATA> &SocketSelectingDataList, 
 	std::vector<ssize_t> &ErrorCodeList, 
+	const uint16_t QueryType, 
+	const SOCKET_DATA &LocalSocketData, 
 	void *TLS_Context)
 {
 //Socket data check
 	if (SocketDataList.empty() || SocketSelectingDataList.empty() || ErrorCodeList.empty())
 		return false;
+	const auto NetworkSpecific = SelectProtocol_Network(Parameter.HTTP_CONNECT_Protocol, Parameter.HTTP_CONNECT_Address_IPv6.Storage.ss_family, Parameter.HTTP_CONNECT_Address_IPv4.Storage.ss_family, Parameter.HTTP_CONNECT_IsAccordingType, QueryType, &LocalSocketData);
 
 //Socket initialization
-	if (Parameter.HTTP_CONNECT_Address_IPv6.Storage.ss_family != 0 && //IPv6
-		((Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
-		Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_NETWORK::IPV6 || //IPv6
-		(Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_NETWORK::IPV4 && Parameter.HTTP_CONNECT_Address_IPv4.Storage.ss_family == 0))) //Non-IPv4
+	if (NetworkSpecific == AF_INET6)
 	{
 	#if defined(ENABLE_TLS)
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))
@@ -2189,10 +2182,7 @@ bool HTTP_CONNECT_Handshake(
 	#endif
 	#endif
 	}
-	else if (Parameter.HTTP_CONNECT_Address_IPv4.Storage.ss_family != 0 && //IPv4
-		((Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
-		Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_NETWORK::IPV4 || //IPv4
-		(Parameter.HTTP_CONNECT_Protocol == REQUEST_MODE_NETWORK::IPV6 && Parameter.HTTP_CONNECT_Address_IPv6.Storage.ss_family == 0))) //Non-IPv6
+	else if (NetworkSpecific == AF_INET)
 	{
 	#if defined(ENABLE_TLS)
 	#if (defined(PLATFORM_LINUX) || defined(PLATFORM_MACOS))

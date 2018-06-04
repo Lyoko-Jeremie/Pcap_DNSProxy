@@ -428,7 +428,7 @@ void ConfigurationTable::CopyMemberOperator(
 	//[DNS] block
 	RequestMode_Network = Reference.RequestMode_Network;
 	RequestMode_Transport = Reference.RequestMode_Transport;
-	DirectRequest = Reference.DirectRequest;
+	DirectRequest_Protocol = Reference.DirectRequest_Protocol;
 	DNS_CacheType = Reference.DNS_CacheType;
 	DNS_CacheParameter = Reference.DNS_CacheParameter;
 	DNS_CacheSinglePrefix_IPv6 = Reference.DNS_CacheSinglePrefix_IPv6;
@@ -787,7 +787,7 @@ void ConfigurationTableSetting(
 	//[DNS] block
 	ConfigurationParameter->RequestMode_Network = REQUEST_MODE_NETWORK::BOTH;
 	ConfigurationParameter->RequestMode_Transport = REQUEST_MODE_TRANSPORT::UDP;
-	ConfigurationParameter->DirectRequest = REQUEST_MODE_DIRECT::NONE;
+	ConfigurationParameter->DirectRequest_Protocol = REQUEST_MODE_DIRECT::NONE;
 	ConfigurationParameter->DNS_CacheType = DNS_CACHE_TYPE::NONE;
 	ConfigurationParameter->HostsDefaultTTL = DEFAULT_HOSTS_TTL;
 
@@ -817,7 +817,7 @@ void ConfigurationTableSetting(
 #endif
 #if defined(ENABLE_PCAP)
 	ConfigurationParameter->ICMP_Speed = DEFAULT_ICMP_TEST_TIME * SECOND_TO_MILLISECOND;
-	ConfigurationParameter->DomainTest_Protocol = REQUEST_MODE_TEST::UDP;
+	ConfigurationParameter->DomainTest_Protocol = REQUEST_MODE_TEST::BOTH;
 	ConfigurationParameter->DomainTest_Speed = DEFAULT_DOMAIN_TEST_INTERVAL_TIME * SECOND_TO_MILLISECOND;
 #endif
 	ConfigurationParameter->AlternateTimes = DEFAULT_ALTERNATE_TIMES;
@@ -1016,7 +1016,7 @@ void ConfigurationTable::MonitorItemToUsing(
 	ConfigurationParameter->AcceptTypeList->swap(*AcceptTypeList);
 
 //[DNS] block
-	ConfigurationParameter->DirectRequest = DirectRequest;
+	ConfigurationParameter->DirectRequest_Protocol = DirectRequest_Protocol;
 	ConfigurationParameter->HostsDefaultTTL = HostsDefaultTTL;
 
 //[Local DNS] block
@@ -1161,7 +1161,7 @@ void ConfigurationTable::MonitorItemReset(
 	AcceptTypeList->shrink_to_fit();
 
 //[DNS] block
-	DirectRequest = REQUEST_MODE_DIRECT::NONE;
+	DirectRequest_Protocol = REQUEST_MODE_DIRECT::NONE;
 	HostsDefaultTTL = DEFAULT_HOSTS_TTL;
 
 //[Local DNS] block

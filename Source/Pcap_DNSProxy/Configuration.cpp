@@ -539,7 +539,7 @@ bool ReadParameter(
 	{
 	//Jump here to restart.
 	#if defined(ENABLE_LIBSODIUM)
-		JumpToRestart:
+		JumpTo_Restart:
 	#endif
 
 	//Check configuration file list.
@@ -657,7 +657,7 @@ bool ReadParameter(
 				if (!IsConfigFileModified)
 				{
 					IsConfigFileModified = true;
-					goto JumpToRestart;
+					goto JumpTo_Restart;
 				}
 
 			//Read DNSCurve database file.

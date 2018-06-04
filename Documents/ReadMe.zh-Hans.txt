@@ -223,7 +223,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * Listen - 监听参数区域
   * Process Unique - 进程实例唯一性检查开关：开启为 1 /关闭为 0
     * 开启时同一时间只能存在唯一一个程序实例运行
-    * 关闭时程序将不对实例数量进行检查，程序可多重运行并监听不同的地址和端口组合，但依赖系统全局特性实现的功能将无法使用：
+    * 关闭时将不对实例数量进行检查，程序可多重运行并监听不同的地址和端口组合，但依赖系统全局特性实现的功能将无法使用：
       * 不同实例之间的地址和端口组合不能重复，否则会因为监听冲突无法正常工作
       * 外挂参数 --flush-dns (Domain) 将不能使用，此时如果需要清除程序内部的 DNS 缓存，可通过编辑配置文件改变文件的修改时间
   * Pcap Capture - 抓包功能总开关，开启后抓包模块才能正常使用：开启为 1 /关闭为 0
@@ -235,11 +235,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * 读取超时时间需要平衡需求和资源占用，时间设置太长会导致域名解析请求响应缓慢导致请求解析超时，太快则会占用过多系统处理的资源
   * Listen Protocol - 本地监听请求时所支持的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
     * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只监听指定协议的本地端口
-    * 注意：此处的协议指的是向本程序请求域名解析时可使用的协议，而程序请求远程 DNS 服务器时所使用的协议由 Protocol 参数决定
   * Listen Port - 监听端口，本地监听请求的端口：格式为 "端口A(|端口B)"（不含引号，括号内为可选项目）
     * 端口可填入服务名称，服务名称列表参见下文
     * 也可填入 1-65535 之间的端口，如果留空则为 53
-    * 填入多个端口时，程序将会同时监听请求
+    * 填入多个端口时，将会同时监听请求
     * 当相应协议的 Listen Address 生效时，相应协议的本参数将会被自动忽略
   * Operation Mode - 程序的监听工作模式：分 Server/服务器模式、Private/私有网络模式、Proxy/代理模式 和 Custom/自定义模式
     * Server/服务器模式：打开 DNS 通用端口，可为所有其它设备提供代理域名解析请求服务
@@ -336,12 +335,11 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * DNS - 域名解析参数区域
   * Outgoing Protocol - 发送请求到远程 DNS 服务器时所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
-    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求
-    * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
-    * 同时填入 TCP 和 UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
-    * 填入 Force TCP 可阻止 TCP 请求失败后使用 UDP 重新尝试请求
+    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求，同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，将根据网络环境自动选择所使用的协议
+    * 同时填入 TCP 和 UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准传输层协议，即使填入 TCP 失败时也会使用 UDP 请求，填入 Force TCP 可阻止 TCP 请求失败后使用 UDP 重新尝试请求
+    * 填入 Type 将启用根据来源 DNS 请求的类型进行协议选择的功能
   * Direct Request - 直连模式，启用后将使用系统的 API 直接请求远程服务器：可填入 IPv4 和 IPv6 和 0，关闭为 0
-    * 建议当系统使用全局代理功能时启用，程序将除境内服务器外的所有请求直接交给系统而不作任何过滤等处理，系统会将请求自动发往远程服务器进行解析
+    * 建议当系统使用全局代理功能时启用，将除境内服务器外的所有请求直接交给系统而不作任何过滤等处理，系统会将请求自动发往远程服务器进行解析
     * 填入 IPv4 或 IPv6 时将会启用对应协议的 Direct Request 功能，填入 IPv4 + IPv6 将会启用所有协议的功能
   * Cache Type - DNS 缓存的类型：分 Timer/计时型、Queue/队列型以及它们的混合类型，填入 0 为关闭此功能
     * Timer/计时型：超过指定时间的 DNS 缓存将会被丢弃
@@ -369,10 +367,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * Local DNS - 境内域名解析参数区域
   * Local Protocol - 发送请求到境内 DNS 服务器时所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
-    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向境内 DNS 服务器发出请求
-    * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
-    * 同时填入 TCP 和 UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
-    * 填入 Force TCP 可阻止 TCP 请求失败后使用 UDP 重新尝试请求
+    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求，同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，将根据网络环境自动选择所使用的协议
+    * 同时填入 TCP 和 UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准传输层协议，即使填入 TCP 失败时也会使用 UDP 请求，填入 Force TCP 可阻止 TCP 请求失败后使用 UDP 重新尝试请求
+    * 填入 Type 将启用根据来源 DNS 请求的类型进行协议选择的功能
   * Local Hosts - 白名单境内服务器请求功能：开启为 1 /关闭为 0
     * 本功能开启后才会尝试读取 Local Hosts 白名单内的数据，关闭时不会读取任何白名单的数据
   * Local Routing - 境内路由表识别功能：开启为 1 /关闭为 0
@@ -641,10 +638,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * SOCKS 版本 4 不支持 IPv6 地址以及域名的目标服务器，以及不支持 UDP 转发功能
     * SOCKS 版本 4a 不支持 IPv6 地址的目标服务器，以及不支持 UDP 转发功能
   * SOCKS Protocol - 使用 SOCKS 协议发送请求时所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
-    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向 SOCKS 服务器发出请求
-    * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
-    * 同时填入 TCP 和 UDP 等于只填入 UDP 因为 TCP 为 SOCKS 最先支持以及最普遍支持的标准网络层协议，所以即使填入 UDP 请求失败时也会使用 TCP 请求
-    * 填入 Force UDP 可阻止 UDP 请求失败后使用 TCP 重新尝试请求
+    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求，同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，将根据网络环境自动选择所使用的协议
+    * 同时填入 TCP 和 UDP 等于只填入 UDP 因为 TCP 为 SOCKS 的标准传输层协议，即使填入 UDP 失败时也会使用 TCP 请求，填入 Force UDP 可阻止 UDP 请求失败后使用 TCP 重新尝试请求
+    * 填入 Type 将启用根据来源 DNS 请求的类型进行协议选择的功能
   * SOCKS UDP No Handshake - SOCKS UDP 不握手模式，开启后将不进行 TCP 握手直接发送 UDP 转发请求：开启为 1 /关闭为 0
     * SOCKS 协议的标准流程使用 UDP 转发功能前必须使用 TCP 连接交换握手信息，否则 SOCKS 服务器将直接丢弃转发请求
     * 部分 SOCKS 本地代理可以直接进行 UDP 转发而不需要使用 TCP 连接交换握手信息，启用前请务必确认 SOCKS 服务器的支持情况
@@ -662,8 +658,8 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * SOCKS Password - 连接 SOCKS 服务器时所使用的密码：最长可填入 255 个字符，留空为不启用
   * HTTP CONNECT Proxy - HTTP CONNECT 协议总开关，控制所有和 HTTP CONNECT 协议有关的选项：开启为 1 /关闭为 0
   * HTTP CONNECT Protocol - 使用 HTTP CONNECT 协议请求时所使用的协议：可填入 IPv4 和 IPv6
-    * 填入的协议可随意组合，只填 IPv4 或 IPv6 时，只使用指定协议向 HTTP CONNECT 服务器发出请求
-    * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
+    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求，同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，将根据网络环境自动选择所使用的协议
+    * 填入 Type 将启用根据来源 DNS 请求的类型进行协议选择的功能
   * HTTP CONNECT Proxy Only - 只使用 HTTP CONNECT 协议代理模式，所有请求将只通过 HTTP CONNECT 协议进行：开启为 1 /关闭为 0
   * HTTP CONNECT IPv4 Address - HTTP CONNECT 协议 IPv4 主要 HTTP CONNECT 服务器地址：需要输入一个带端口格式的地址
     * 不支持多个地址，只能填入单个地址
@@ -706,10 +702,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
 * DNSCurve - DNSCurve 协议基本参数区域
   * DNSCurve - DNSCurve 协议总开关，控制所有和 DNSCurve 协议有关的选项：开启为 1 /关闭为 0
   * DNSCurve Protocol - 使用 DNSCurve 协议发送请求时所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
-    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求
-    * 同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，程序将根据网络环境自动选择所使用的协议
-    * 同时填入 TCP 和 UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准网络层协议，所以即使填入 TCP 失败时也会使用 UDP 请求
-    * 填入 Force TCP 可阻止 TCP 请求失败后使用 UDP 重新尝试请求
+    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求，同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，将根据网络环境自动选择所使用的协议
+    * 同时填入 TCP 和 UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准传输层协议，即使填入 TCP 失败时也会使用 UDP 请求，填入 Force TCP 可阻止 TCP 请求失败后使用 UDP 重新尝试请求
+    * 填入 Type 将启用根据来源 DNS 请求的类型进行协议选择的功能
   * DNSCurve Payload Size - DNSCurve 标签附带使用的最大载荷长度，同时亦为发送请求的总长度，并决定请求的填充长度：单位为字节
     * 最小为 DNS 协议实现要求的 512，留空则为 512
     * 最大为 Ethernet MTU 减去 DNSCurve 头长度，建议不要超过 1220
@@ -991,7 +986,7 @@ IPFilter 配置文件分为 Blacklist/黑名单区域 和 IPFilter/地址过滤�
 * IPFilter - 地址过滤区域
 地址过滤黑名单或白名单由配置文件的 IPFilter Type 值决定，Deny 禁止/黑名单和 Permit 允许/白名单
 有效参数格式为 "开始地址 - 结束地址, 过滤等级, 条目简介注释"（不含引号）
-  * 同时支持 IPv4 和 IPv6 地址，但填写时请分开为2个条目
+  * 同时支持 IPv4 和 IPv6 地址，但填写时请分开为 2 个条目
 
 
 * Local Routing - 境内路由表区域

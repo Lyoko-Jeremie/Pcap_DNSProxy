@@ -166,8 +166,7 @@ bool CaptureFilterRulesInit(
 	auto IsRepeatItem = false;
 
 //IPv6
-	if (Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 || //IPv6
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0)) //Non-IPv4
+	if (Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6) //IPv6
 	{
 	//Main
 		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0)
@@ -220,8 +219,7 @@ bool CaptureFilterRulesInit(
 	}
 
 //IPv4
-	if (Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 || //IPv4
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0)) //Non-IPv6
+	if (Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4) //IPv4
 	{
 	//Main
 		if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0)
@@ -638,7 +636,7 @@ bool CaptureNetworkLayer(
 
 //IPv6
 	if ((Protocol == PPP_IPV6 || Protocol == OSI_L2_IPV6) && 
-		Parameter.DirectRequest != REQUEST_MODE_DIRECT::BOTH && Parameter.DirectRequest != REQUEST_MODE_DIRECT::IPV6)
+		Parameter.DirectRequest_Protocol != REQUEST_MODE_DIRECT::BOTH && Parameter.DirectRequest_Protocol != REQUEST_MODE_DIRECT::IPV6)
 	{
 		const auto IPv6_Header = reinterpret_cast<const ipv6_hdr *>(Buffer);
 
@@ -800,7 +798,7 @@ bool CaptureNetworkLayer(
 	}
 //IPv4
 	else if ((Protocol == PPP_IPV4 || Protocol == OSI_L2_IPV4) && 
-		Parameter.DirectRequest != REQUEST_MODE_DIRECT::BOTH && Parameter.DirectRequest != REQUEST_MODE_DIRECT::IPV4)
+		Parameter.DirectRequest_Protocol != REQUEST_MODE_DIRECT::BOTH && Parameter.DirectRequest_Protocol != REQUEST_MODE_DIRECT::IPV4)
 	{
 		const auto IPv4_Header = reinterpret_cast<const ipv4_hdr *>(Buffer);
 
@@ -1396,13 +1394,13 @@ bool MatchPortToSend(
 				//Clear item in global list.
 					memset(&PortTableIter.SocketData_Input, 0, sizeof(PortTableIter.SocketData_Input));
 					PortTableIter.SocketData_Input.Socket = INVALID_SOCKET;
-					goto ClearOutputPacketListData;
+					goto ClearListData;
 				}
 			}
 		}
 	}
 
-	goto ClearOutputPacketListData;
+	goto ClearListData;
 
 //Jump here to stop loop, wait receiving and match port again.
 StopLoop:
@@ -1434,7 +1432,7 @@ StopLoop:
 				//Clear item in global list.
 					memset(&PortTableIter.SocketData_Input, 0, sizeof(PortTableIter.SocketData_Input));
 					PortTableIter.SocketData_Input.Socket = INVALID_SOCKET;
-					goto ClearOutputPacketListData;
+					goto ClearListData;
 				}
 				else {
 					return false;
@@ -1444,7 +1442,7 @@ StopLoop:
 	}
 
 //Jump here to stop loop and clear expired data.
-ClearOutputPacketListData:
+ClearListData:
 	while (!OutputPacketList.empty() && OutputPacketList.front().ClearPortTime <= GetCurrentSystemTime())
 	{
 	//Mark timeout.

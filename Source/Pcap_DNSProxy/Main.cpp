@@ -79,7 +79,7 @@ int main(
 
 //Main process initialization
 #if defined(PLATFORM_WIN)
-	const SERVICE_TABLE_ENTRYW ServiceTable[]{{SYSTEM_SERVICE_NAME, reinterpret_cast<LPSERVICE_MAIN_FUNCTIONW>(ServiceMain)}, {nullptr, nullptr}};
+	const SERVICE_TABLE_ENTRYW ServiceTable[]{{const_cast<LPWSTR>(SYSTEM_SERVICE_NAME), reinterpret_cast<LPSERVICE_MAIN_FUNCTIONW>(ServiceMain)}, {nullptr, nullptr}};
 	if (StartServiceCtrlDispatcherW(ServiceTable) == 0)
 	{
 	//Print to screen.

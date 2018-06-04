@@ -20,7 +20,7 @@
 # CMake minimum version
 cmake_minimum_required(VERSION 3.1)
 
-# Project name, build type and all source files
+# Project name, build type and list all source files.
 project(Pcap_DNSProxy)
 set(CMAKE_BUILD_TYPE "Release")
 set(MAIN_SRC_FILES
@@ -68,17 +68,46 @@ set(MAIN_SRC_FILES
 		"Request.cpp"
 		"Service.cpp"
 		"TransportSecurity.cpp")
+add_executable(Pcap_DNSProxy ${MAIN_SRC_FILES})
 
 # Compiling and linking flags
-## C++ 14 standard definitions
+## See https://developers.redhat.com/blog/2018/03/21/compiler-and-linker-flags-gcc.
 set(CMAKE_CXX_STANDARD 14)
-## Platform definitions
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+IF(APPLE)
+	add_definitions(-std=c++14)
+ENDIF(APPLE)
+IF(NOT PLATFORM_OPENWRT)
+	IF(CMAKE_VERSION VERSION_LESS "3.9")
+		add_definitions(-flto)
+	ELSE(CMAKE_VERSION VERSION_LESS "3.9")
+		set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+	ENDIF(CMAKE_VERSION VERSION_LESS "3.9")
+	set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
+	add_definitions(-D_FORTIFY_SOURCE=2)
+	add_definitions(-D_GLIBCXX_ASSERTIONS)
+	add_definitions(-fasynchronous-unwind-tables)
+#	add_definitions(-fcf-protection=full)
+	add_definitions(-fexceptions)
+	IF(NOT APPLE)
+		add_definitions(-fopenmp)
+		add_definitions(-fsplit-stack)
+	ENDIF(NOT APPLE)
+#	add_definitions(-fstack-clash-protection)
+	add_definitions(-fstack-protector-strong)
+	add_definitions(-g)
+	add_definitions(-grecord-gcc-switches)
+	add_definitions(-march=native)
+#	add_definitions(-mcet)
+	add_definitions(-pipe)
+	add_definitions(-O3)
+ENDIF(NOT PLATFORM_OPENWRT)
+
+# Platform and library definitions
 IF(PLATFORM_OPENWRT)
 	add_definitions(-DPLATFORM_OPENWRT)
-ELSE(PLATFORM_OPENWRT)
-	add_definitions(-flto -fpic)
+	install(TARGETS Pcap_DNSProxy RUNTIME DESTINATION sbin)
 ENDIF(PLATFORM_OPENWRT)
-## Library definitions
 IF(ENABLE_LIBSODIUM)
 	add_definitions(-DENABLE_LIBSODIUM)
 ENDIF(ENABLE_LIBSODIUM)
@@ -89,20 +118,18 @@ IF(ENABLE_TLS)
 	add_definitions(-DENABLE_TLS)
 ENDIF(ENABLE_TLS)
 
-# Static libraries linking if needed and executable file name
-add_executable(Pcap_DNSProxy ${MAIN_SRC_FILES})
+# Static libraries linking if needed
 IF(STATIC_LIB)
 	set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s -static -Wl,--whole-archive -lpthread -Wl,--no-whole-archive")
 ENDIF(STATIC_LIB)
-IF(PLATFORM_OPENWRT)
-	install(TARGETS Pcap_DNSProxy RUNTIME DESTINATION sbin)
-ENDIF(PLATFORM_OPENWRT)
 
 # Libraries linking
+## All needed
 find_package(Threads REQUIRED)
 target_link_libraries(Pcap_DNSProxy ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(Pcap_DNSProxy event)
+## Libraries needed
 IF(ENABLE_LIBSODIUM)
 	target_link_libraries(Pcap_DNSProxy sodium)
 ENDIF(ENABLE_LIBSODIUM)

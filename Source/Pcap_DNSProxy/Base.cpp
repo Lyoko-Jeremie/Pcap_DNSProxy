@@ -526,7 +526,7 @@ HUFFMAN_RETURN_TYPE HPACK_HuffmanDecoding(
 					if (ByteSize < 1 && (ByteIter & Mask) == Mask)
 					{
 						TC = 0;
-						goto Done;
+						goto Completed;
 					}
 					else if (TargetBuffer && Length < 1U)
 					{
@@ -554,7 +554,7 @@ HUFFMAN_RETURN_TYPE HPACK_HuffmanDecoding(
 #undef IS_INT
 #undef VALUE_OF
 
-Done:
+Completed:
 	if (TC)
 		return HUFFMAN_RETURN_TYPE::ERROR_TRUNCATED;
 

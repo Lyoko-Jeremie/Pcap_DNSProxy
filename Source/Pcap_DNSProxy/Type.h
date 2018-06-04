@@ -360,6 +360,7 @@ typedef struct _dns_packet_data_
 	size_t                                                     Length;
 	ADDRESS_UNION_DATA                                         LocalTarget;
 	uint16_t                                                   Protocol;
+	uint16_t                                                   QueryType;
 	bool                                                       IsLocalRequest;
 	bool                                                       IsLocalInBlack;
 	bool                                                       IsLocalInWhite;
@@ -434,7 +435,8 @@ public:
 //[DNS] block
 	REQUEST_MODE_NETWORK                 RequestMode_Network;
 	REQUEST_MODE_TRANSPORT               RequestMode_Transport;
-	REQUEST_MODE_DIRECT                  DirectRequest;
+	bool                                 RequestMode_IsAccordingType;
+	REQUEST_MODE_DIRECT                  DirectRequest_Protocol;
 	DNS_CACHE_TYPE                       DNS_CacheType;
 	size_t                               DNS_CacheParameter;
 	size_t                               DNS_CacheSinglePrefix_IPv6;
@@ -443,6 +445,7 @@ public:
 //[Local DNS] block
 	REQUEST_MODE_NETWORK                 LocalProtocol_Network;
 	REQUEST_MODE_TRANSPORT               LocalProtocol_Transport;
+	bool                                 LocalProtocol_IsAccordingType;
 	bool                                 IsLocalHosts;
 	bool                                 IsLocalRouting;
 	bool                                 IsLocalForce;
@@ -549,6 +552,7 @@ public:
 	size_t                               SOCKS_Version;
 	REQUEST_MODE_NETWORK                 SOCKS_Protocol_Network;
 	REQUEST_MODE_TRANSPORT               SOCKS_Protocol_Transport;
+	bool                                 SOCKS_Protocol_IsAccordingType;
 	bool                                 SOCKS_UDP_NoHandshake;
 	bool                                 SOCKS_Only;
 	ADDRESS_UNION_DATA                   SOCKS_Address_IPv6;
@@ -562,6 +566,7 @@ public:
 	size_t                               SOCKS_PasswordLength;
 	bool                                 HTTP_CONNECT_Proxy;
 	REQUEST_MODE_NETWORK                 HTTP_CONNECT_Protocol;
+	bool                                 HTTP_CONNECT_IsAccordingType;
 	bool                                 HTTP_CONNECT_Only;
 	ADDRESS_UNION_DATA                   HTTP_CONNECT_Address_IPv6;
 	ADDRESS_UNION_DATA                   HTTP_CONNECT_Address_IPv4;
@@ -918,6 +923,7 @@ public:
 	size_t                                  DNSCurvePayloadSize;
 	REQUEST_MODE_NETWORK                    DNSCurveProtocol_Network;
 	REQUEST_MODE_TRANSPORT                  DNSCurveProtocol_Transport;
+	bool                                    DNSCurveProtocol_IsAccordingType;
 #if defined(PLATFORM_WIN)
 	DWORD                                   DNSCurve_SocketTimeout_Reliable;
 	DWORD                                   DNSCurve_SocketTimeout_Unreliable;

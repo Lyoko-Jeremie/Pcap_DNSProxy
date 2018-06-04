@@ -505,10 +505,81 @@ bool SocketSetting(
 	return true;
 }
 
+//Select network layer protocol for all request
+uint16_t SelectProtocol_Network(
+	const REQUEST_MODE_NETWORK GlobalSpecific, 
+	const uint16_t TargetSpecific_IPv6, 
+	const uint16_t TargetSpecific_IPv4, 
+	const bool IsAccordingType, 
+	const uint16_t TypeSpecific, 
+	const SOCKET_DATA * const LocalSocketSpecific)
+{
+//Only one of IPv6 and IPv4 protocol is available.
+	if (TargetSpecific_IPv4 == 0)
+		return AF_INET6;
+	else if (TargetSpecific_IPv6 == 0)
+		return AF_INET;
+
+//Auto select
+	if (GlobalSpecific == REQUEST_MODE_NETWORK::BOTH)
+	{
+	//According type specific
+		if (IsAccordingType)
+		{
+			if (ntohs(TypeSpecific) == DNS_TYPE_AAAA)
+				return AF_INET6;
+			else if (ntohs(TypeSpecific) == DNS_TYPE_A)
+				return AF_INET;
+		}
+
+	//Local socket specific
+		if (LocalSocketSpecific != nullptr)
+		{
+			if (LocalSocketSpecific->SockAddr.ss_family == AF_INET6 && GlobalRunningStatus.GatewayAvailable_IPv6)
+				return AF_INET6;
+			else if (LocalSocketSpecific->SockAddr.ss_family == AF_INET && GlobalRunningStatus.GatewayAvailable_IPv4)
+				return AF_INET;
+		}
+
+	//Network status specific
+		if (GlobalRunningStatus.GatewayAvailable_IPv6)
+		{
+			return AF_INET6;
+		}
+		else if (GlobalRunningStatus.GatewayAvailable_IPv4)
+		{
+			return AF_INET;
+		}
+		else { //Both IPv6 and IPv4 are not available, set default to IPv6.
+			return AF_INET6;
+		}
+	}
+//IPv6
+	else if (GlobalSpecific == REQUEST_MODE_NETWORK::IPV6)
+	{
+		if (GlobalRunningStatus.GatewayAvailable_IPv6)
+			return AF_INET6;
+		else 
+			return AF_INET;
+	}
+//IPv4
+	else if (GlobalSpecific == REQUEST_MODE_NETWORK::IPV4)
+	{
+		if (GlobalRunningStatus.GatewayAvailable_IPv4)
+			return AF_INET;
+		else 
+			return AF_INET6;
+	}
+
+	return 0;
+}
+
 //Select socket data of DNS target
 size_t SelectTargetSocketSingle(
 	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint16_t Protocol, 
+	const uint16_t QueryType, 
+	const SOCKET_DATA * const LocalSocketData, 
 	SOCKET_DATA * const TargetSocketData, 
 	bool ** const IsAlternate, 
 	size_t ** const AlternateTimeoutTimes, 
@@ -533,12 +604,10 @@ size_t SelectTargetSocketSingle(
 		auto PacketTarget = reinterpret_cast<DNSCURVE_SERVER_DATA **>(DNSCurvePacketTarget);
 		if (PacketTarget == nullptr || DNSCurvePacketServerType == nullptr)
 			return EXIT_FAILURE;
+		const auto NetworkSpecific = SelectProtocol_Network(DNSCurveParameter.DNSCurveProtocol_Network, DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family, DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family, DNSCurveParameter.DNSCurveProtocol_IsAccordingType, QueryType, LocalSocketData);
 
 	//IPv6
-		if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
-			((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
-			DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV6 || //IPv6
-			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV4 && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
+		if (NetworkSpecific == AF_INET6)
 		{
 		//Timeout settings
 			if (Protocol == IPPROTO_TCP)
@@ -605,10 +674,7 @@ size_t SelectTargetSocketSingle(
 			}
 		}
 	//IPv4
-		else if (DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
-			((DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
-			DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV4 || //IPv4
-			(DNSCurveParameter.DNSCurveProtocol_Network == REQUEST_MODE_NETWORK::IPV6 && DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
+		else if (NetworkSpecific == AF_INET)
 		{
 		//Timeout settings
 			if (Protocol == IPPROTO_TCP)
@@ -721,11 +787,10 @@ size_t SelectTargetSocketSingle(
 //Local request
 	else if (RequestType == REQUEST_PROCESS_TYPE::LOCAL_NORMAL || RequestType == REQUEST_PROCESS_TYPE::LOCAL_IN_WHITE)
 	{
+		const auto NetworkSpecific = SelectProtocol_Network(Parameter.LocalProtocol_Network, Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family, Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family, Parameter.LocalProtocol_IsAccordingType, QueryType, LocalSocketData);
+
 	//IPv6
-		if (Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family != 0 && 
-			((Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
-			Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK::IPV6 || //IPv6
-			(Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK::IPV4 && Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family == 0))) //Non-IPv4
+		if (NetworkSpecific == AF_INET6)
 		{
 			if (Protocol == IPPROTO_TCP)
 			{
@@ -753,6 +818,7 @@ size_t SelectTargetSocketSingle(
 				reinterpret_cast<sockaddr_in6 *>(&TargetSocketData->SockAddr)->sin6_port = Parameter.Target_Server_Local_Main_IPv6.IPv6.sin6_port;
 			}
 
+		//Socket initialization
 			TargetSocketData->SockAddr.ss_family = AF_INET6;
 			TargetSocketData->AddrLen = sizeof(sockaddr_in6);
 			TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
@@ -765,10 +831,7 @@ size_t SelectTargetSocketSingle(
 			}
 		}
 	//IPv4
-		else if (Parameter.Target_Server_Local_Main_IPv4.Storage.ss_family != 0 && 
-			((Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
-			Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK::IPV4 || //IPv4
-			(Parameter.LocalProtocol_Network == REQUEST_MODE_NETWORK::IPV6 && Parameter.Target_Server_Local_Main_IPv6.Storage.ss_family == 0))) //Non-IPv6
+		else if (NetworkSpecific == AF_INET)
 		{
 			if (Protocol == IPPROTO_TCP)
 			{
@@ -796,6 +859,7 @@ size_t SelectTargetSocketSingle(
 				reinterpret_cast<sockaddr_in *>(&TargetSocketData->SockAddr)->sin_port = Parameter.Target_Server_Local_Main_IPv4.IPv4.sin_port;
 			}
 
+		//Socket initialization
 			TargetSocketData->SockAddr.ss_family = AF_INET;
 			TargetSocketData->AddrLen = sizeof(sockaddr_in);
 			TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
@@ -814,11 +878,10 @@ size_t SelectTargetSocketSingle(
 	}
 //Main request
 	else {
+		const auto NetworkSpecific = SelectProtocol_Network(Parameter.RequestMode_Network, Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family, Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family, Parameter.RequestMode_IsAccordingType, QueryType, LocalSocketData);
+
 	//IPv6
-		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
-			((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
-			Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 || //IPv6
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
+		if (NetworkSpecific == AF_INET6)
 		{
 			if (Protocol == IPPROTO_TCP)
 			{
@@ -846,6 +909,7 @@ size_t SelectTargetSocketSingle(
 				reinterpret_cast<sockaddr_in6 *>(&TargetSocketData->SockAddr)->sin6_port = Parameter.Target_Server_Main_IPv6.AddressData.IPv6.sin6_port;
 			}
 
+		//Socket initialization
 			TargetSocketData->SockAddr.ss_family = AF_INET6;
 			TargetSocketData->AddrLen = sizeof(sockaddr_in6);
 			TargetSocketData->Socket = socket(AF_INET6, SocketType, Protocol);
@@ -858,10 +922,7 @@ size_t SelectTargetSocketSingle(
 			}
 		}
 	//IPv4
-		else if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
-			((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
-			Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 || //IPv4
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
+		if (NetworkSpecific == AF_INET)
 		{
 			if (Protocol == IPPROTO_TCP)
 			{
@@ -889,6 +950,7 @@ size_t SelectTargetSocketSingle(
 				reinterpret_cast<sockaddr_in *>(&TargetSocketData->SockAddr)->sin_port = Parameter.Target_Server_Main_IPv4.AddressData.IPv4.sin_port;
 			}
 
+		//Socket initialization
 			TargetSocketData->SockAddr.ss_family = AF_INET;
 			TargetSocketData->AddrLen = sizeof(sockaddr_in);
 			TargetSocketData->Socket = socket(AF_INET, SocketType, Protocol);
@@ -912,27 +974,27 @@ size_t SelectTargetSocketSingle(
 //Select socket data of DNS target(Multiple threading)
 bool SelectTargetSocketMultiple(
 	const uint16_t Protocol, 
+	const uint16_t QueryType, 
+	const SOCKET_DATA * const LocalSocketData, 
 	std::vector<SOCKET_DATA> &TargetSocketDataList)
 {
 //Initialization
-	SOCKET_DATA TargetSocketData;
-	memset(&TargetSocketData, 0, sizeof(TargetSocketData));
-	TargetSocketData.Socket = INVALID_SOCKET;
 	uint16_t SocketType = 0;
-	size_t Index = 0;
-	bool *IsAlternate = nullptr;
 	if (Protocol == IPPROTO_TCP)
 		SocketType = SOCK_STREAM;
 	else if (Protocol == IPPROTO_UDP)
 		SocketType = SOCK_DGRAM;
 	else 
 		return false;
+	SOCKET_DATA TargetSocketData;
+	memset(&TargetSocketData, 0, sizeof(TargetSocketData));
+	TargetSocketData.Socket = INVALID_SOCKET;
+	size_t Index = 0;
+	bool *IsAlternate = nullptr;
+	const auto NetworkSpecific = SelectProtocol_Network(Parameter.RequestMode_Network, Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family, Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family, Parameter.RequestMode_IsAccordingType, QueryType, LocalSocketData);
 
 //IPv6
-	if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
-		((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv6) || //Auto select
-		Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 || //IPv6
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
+	if (NetworkSpecific == AF_INET6)
 	{
 	//Set Alternate swap list.
 		if (Protocol == IPPROTO_TCP)
@@ -963,6 +1025,7 @@ bool SelectTargetSocketMultiple(
 					return false;
 				}
 
+			//Socket initialization
 				TargetSocketData.AddrLen = sizeof(sockaddr_in6);
 				TargetSocketDataList.push_back(TargetSocketData);
 			}
@@ -989,6 +1052,7 @@ bool SelectTargetSocketMultiple(
 					return false;
 				}
 
+			//Socket initialization
 				TargetSocketData.AddrLen = sizeof(sockaddr_in6);
 				TargetSocketDataList.push_back(TargetSocketData);
 			}
@@ -1017,6 +1081,7 @@ bool SelectTargetSocketMultiple(
 						return false;
 					}
 
+				//Socket initialization
 					TargetSocketData.AddrLen = sizeof(sockaddr_in6);
 					TargetSocketDataList.push_back(TargetSocketData);
 				}
@@ -1024,10 +1089,7 @@ bool SelectTargetSocketMultiple(
 		}
 	}
 //IPv4
-	else if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
-		((Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH && GlobalRunningStatus.GatewayAvailable_IPv4) || //Auto select
-		Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 || //IPv4
-		(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
+	else if (NetworkSpecific == AF_INET)
 	{
 	//Set Alternate swap list.
 		if (Protocol == IPPROTO_TCP)
@@ -1059,6 +1121,7 @@ bool SelectTargetSocketMultiple(
 					return false;
 				}
 
+			//Socket initialization
 				TargetSocketData.AddrLen = sizeof(sockaddr_in);
 				TargetSocketDataList.push_back(TargetSocketData);
 			}
@@ -1086,6 +1149,7 @@ bool SelectTargetSocketMultiple(
 					return false;
 				}
 
+			//Socket initialization
 				TargetSocketData.AddrLen = sizeof(sockaddr_in);
 				TargetSocketDataList.push_back(TargetSocketData);
 			}
@@ -1115,6 +1179,7 @@ bool SelectTargetSocketMultiple(
 						return false;
 					}
 
+				//Socket initialization
 					TargetSocketData.AddrLen = sizeof(sockaddr_in);
 					TargetSocketDataList.push_back(TargetSocketData);
 				}

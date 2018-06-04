@@ -25,8 +25,7 @@ rm -Rrf Object
 mkdir Release
 chmod -R 755 Auxiliary/Scripts
 
-# Rename Dependency folder to disable static linking in Linux/macOS(Part 1) and set thread number variable.
-mv Dependency DependencyTemp
+# Set thread number variable.
 if (uname -s | grep -iq "Darwin"); then
 	ThreadNum=`sysctl -n hw.ncpu`
 else 
@@ -54,10 +53,9 @@ ${CMakeShell}
 make -j${ThreadNum}
 cd ..
 
-# Cleanup and rename Dependency folder to disable static linking in Linux/macOS(Part 2).
+# Cleanup
 mv -f Object/Pcap_DNSProxy Release
 rm -Rrf Object
-mv DependencyTemp Dependency
 
 # Program settings
 if (uname -s | grep -iq "Darwin"); then

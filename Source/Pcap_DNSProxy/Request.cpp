@@ -123,7 +123,7 @@ bool DomainTestRequest(
 					((Parameter.Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_StaticLoad == 0 && 
 					Parameter.Target_Server_Alternate_IPv6.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_DynamicMark == 0) || 
 					!Parameter.Target_Server_Alternate_IPv6.ServerPacketStatus.IsMarkDetail)))
-						goto JumpToRetest;
+						goto JumpTo_Retest;
 
 			//Multiple list(IPv6)
 				if (Parameter.Target_Server_IPv6_Multiple != nullptr)
@@ -133,7 +133,7 @@ bool DomainTestRequest(
 						if ((DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_StaticLoad == 0 && 
 							DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_DynamicMark == 0) || 
 							!DNSServerDataIter.ServerPacketStatus.IsMarkDetail)
-								goto JumpToRetest;
+								goto JumpTo_Retest;
 					}
 				}
 			}
@@ -149,7 +149,7 @@ bool DomainTestRequest(
 					((Parameter.Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_StaticLoad == 0 && 
 					Parameter.Target_Server_Alternate_IPv4.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_DynamicMark == 0) || 
 					!Parameter.Target_Server_Alternate_IPv4.ServerPacketStatus.IsMarkDetail)))
-						goto JumpToRetest;
+						goto JumpTo_Retest;
 
 			//Multiple list(IPv4)
 				if (Parameter.Target_Server_IPv4_Multiple != nullptr)
@@ -159,12 +159,12 @@ bool DomainTestRequest(
 						if ((DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_StaticLoad == 0 && 
 							DNSServerDataIter.ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_DynamicMark == 0) || 
 							!DNSServerDataIter.ServerPacketStatus.IsMarkDetail)
-								goto JumpToRetest;
+								goto JumpTo_Retest;
 					}
 				}
 			}
 			else {
-				goto JumpToRetest;
+				goto JumpTo_Retest;
 			}
 
 		//Wait for testing again.
@@ -172,7 +172,7 @@ bool DomainTestRequest(
 			continue;
 
 		//Jump here to restart.
-		JumpToRetest:
+		JumpTo_Retest:
 			Sleep(SENDING_INTERVAL_TIME);
 		}
 		else {
@@ -207,16 +207,16 @@ bool DomainTestRequest(
 			memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
 			if (Parameter.DomainTest_Protocol == REQUEST_MODE_TEST::BOTH)
 			{
-				UDP_RequestMultiple(REQUEST_PROCESS_TYPE::UDP_WITHOUT_REGISTER, 0, SendBuffer.get(), DataLength, nullptr, nullptr);
-				TCP_RequestMultiple(REQUEST_PROCESS_TYPE::TCP_WITHOUT_REGISTER, SendBuffer.get(), DataLength, RecvBuffer.get(), Parameter.LargeBufferSize, nullptr);
+				UDP_RequestMultiple(REQUEST_PROCESS_TYPE::UDP_WITHOUT_REGISTER, 0, SendBuffer.get(), DataLength, DNS_Query->Type, nullptr, nullptr);
+				TCP_RequestMultiple(REQUEST_PROCESS_TYPE::TCP_WITHOUT_REGISTER, SendBuffer.get(), DataLength, RecvBuffer.get(), Parameter.LargeBufferSize, DNS_Query->Type, nullptr);
 			}
 			else if (Parameter.DomainTest_Protocol == REQUEST_MODE_TEST::TCP)
 			{
-				TCP_RequestMultiple(REQUEST_PROCESS_TYPE::TCP_WITHOUT_REGISTER, SendBuffer.get(), DataLength, RecvBuffer.get(), Parameter.LargeBufferSize, nullptr);
+				TCP_RequestMultiple(REQUEST_PROCESS_TYPE::TCP_WITHOUT_REGISTER, SendBuffer.get(), DataLength, RecvBuffer.get(), Parameter.LargeBufferSize, DNS_Query->Type, nullptr);
 			}
 			else if (Parameter.DomainTest_Protocol == REQUEST_MODE_TEST::UDP)
 			{
-				UDP_RequestMultiple(REQUEST_PROCESS_TYPE::UDP_WITHOUT_REGISTER, 0, SendBuffer.get(), DataLength, nullptr, nullptr);
+				UDP_RequestMultiple(REQUEST_PROCESS_TYPE::UDP_WITHOUT_REGISTER, 0, SendBuffer.get(), DataLength, DNS_Query->Type, nullptr, nullptr);
 			}
 
 		//Interval time
@@ -864,6 +864,7 @@ size_t TCP_RequestSingle(
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
 	const ADDRESS_UNION_DATA * const SpecifieTargetData, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA * const LocalSocketData)
 {
 //Initialization
@@ -877,7 +878,7 @@ size_t TCP_RequestSingle(
 //Socket initialization
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
-	if (SelectTargetSocketSingle(RequestType, IPPROTO_TCP, &TCPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, SpecifieTargetData, nullptr, nullptr) == EXIT_FAILURE)
+	if (SelectTargetSocketSingle(RequestType, IPPROTO_TCP, QueryType, LocalSocketData, &TCPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, SpecifieTargetData, nullptr, nullptr) == EXIT_FAILURE)
 	{
 		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"TCP socket initialization error", 0, nullptr, 0);
 		SocketSetting(TCPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -921,6 +922,7 @@ size_t TCP_RequestMultiple(
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA * const LocalSocketData)
 {
 //Initialization
@@ -930,7 +932,7 @@ size_t TCP_RequestMultiple(
 
 //Socket initialization
 	std::vector<SOCKET_DATA> TCPSocketDataList;
-	if (!SelectTargetSocketMultiple(IPPROTO_TCP, TCPSocketDataList))
+	if (!SelectTargetSocketMultiple(IPPROTO_TCP, QueryType, LocalSocketData, TCPSocketDataList))
 		return EXIT_FAILURE;
 
 //Add length of request packet.
@@ -966,6 +968,7 @@ size_t UDP_RequestSingle(
 	const uint16_t Protocol, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA * const LocalSocketData, 
 	size_t *EDNS_Length)
 {
@@ -977,7 +980,7 @@ size_t UDP_RequestSingle(
 	size_t *AlternateTimeoutTimes = nullptr;
 
 //Socket initialization
-	if (SelectTargetSocketSingle(RequestType, IPPROTO_UDP, &UDPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, nullptr, nullptr, nullptr) == EXIT_FAILURE)
+	if (SelectTargetSocketSingle(RequestType, IPPROTO_UDP, QueryType, LocalSocketData, &UDPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, nullptr, nullptr, nullptr) == EXIT_FAILURE)
 	{
 		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"UDP socket initialization error", 0, nullptr, 0);
 		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -1013,12 +1016,13 @@ size_t UDP_RequestMultiple(
 	const uint16_t Protocol, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA * const LocalSocketData, 
 	size_t *EDNS_Length)
 {
 //Socket initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList;
-	if (!SelectTargetSocketMultiple(IPPROTO_UDP, UDPSocketDataList))
+	if (!SelectTargetSocketMultiple(IPPROTO_UDP, QueryType, LocalSocketData, UDPSocketDataList))
 		return EXIT_FAILURE;
 
 //Socket selecting
@@ -1045,6 +1049,7 @@ size_t UDP_CompleteRequestSingle(
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
 	const ADDRESS_UNION_DATA * const SpecifieTargetData, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA * const LocalSocketData)
 {
 //Initialization
@@ -1056,7 +1061,7 @@ size_t UDP_CompleteRequestSingle(
 //Socket initialization
 	bool *IsAlternate = nullptr;
 	size_t *AlternateTimeoutTimes = nullptr;
-	if (SelectTargetSocketSingle(RequestType, IPPROTO_UDP, &UDPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, SpecifieTargetData, nullptr, nullptr) == EXIT_FAILURE)
+	if (SelectTargetSocketSingle(RequestType, IPPROTO_UDP, QueryType, LocalSocketData, &UDPSocketDataList.front(), &IsAlternate, &AlternateTimeoutTimes, SpecifieTargetData, nullptr, nullptr) == EXIT_FAILURE)
 	{
 		PrintError(LOG_LEVEL_TYPE::LEVEL_2, LOG_ERROR_TYPE::NETWORK, L"Complete UDP socket initialization error", 0, nullptr, 0);
 		SocketSetting(UDPSocketDataList.front().Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -1092,6 +1097,7 @@ size_t UDP_CompleteRequestMultiple(
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA * const LocalSocketData)
 {
 //Initialization
@@ -1099,7 +1105,7 @@ size_t UDP_CompleteRequestMultiple(
 
 //Socket initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList;
-	if (!SelectTargetSocketMultiple(IPPROTO_UDP, UDPSocketDataList))
+	if (!SelectTargetSocketMultiple(IPPROTO_UDP, QueryType, LocalSocketData, UDPSocketDataList))
 		return EXIT_FAILURE;
 
 //Socket selecting

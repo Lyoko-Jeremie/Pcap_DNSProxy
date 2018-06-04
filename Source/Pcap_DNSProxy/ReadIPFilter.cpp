@@ -490,7 +490,7 @@ bool ReadLocalRoutingData(
 			{
 			//Local routing list is empty.
 				if (IPFilterFileSetIter.LocalRoutingList.empty())
-					goto AddToGlobalList_IPv6;
+					goto AddListData_IPv6;
 
 			//Scan all local routing items to add or insert.
 				for (auto &LocalRoutingTableIter:IPFilterFileSetIter.LocalRoutingList)
@@ -521,7 +521,7 @@ bool ReadLocalRoutingData(
 				}
 
 			//Jump here to register to global list.
-			AddToGlobalList_IPv6:
+			AddListData_IPv6:
 				AddrBackSet.clear();
 				if (AddressRoutingTableTemp.Prefix < sizeof(in6_addr) * BYTES_TO_BITS / 2U)
 				{
@@ -570,7 +570,7 @@ bool ReadLocalRoutingData(
 			{
 			//Local routing list is empty.
 				if (IPFilterFileSetIter.LocalRoutingList.empty())
-					goto AddToGlobalList_IPv4;
+					goto AddListData_IPv4;
 
 			//Scan all local routing items to add or insert.
 				for (auto &LocalRoutingTableIter:IPFilterFileSetIter.LocalRoutingList)
@@ -585,7 +585,7 @@ bool ReadLocalRoutingData(
 				}
 
 			//Jump here to register to global list.
-			AddToGlobalList_IPv4:
+			AddListData_IPv4:
 				AddressRoutingTableTemp.AddressRoutingList_IPv4.insert(htonl(BinaryAddr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - AddressRoutingTableTemp.Prefix)));
 				IPFilterFileSetIter.LocalRoutingList.push_back(AddressRoutingTableTemp);
 				break;

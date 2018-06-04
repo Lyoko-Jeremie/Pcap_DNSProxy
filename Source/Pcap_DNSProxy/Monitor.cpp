@@ -63,9 +63,9 @@ void MonitorLauncher(
 	//Force protocol(TCP).
 		Parameter.RequestMode_Transport != REQUEST_MODE_TRANSPORT::FORCE_TCP && 
 	//Direct Request mode
-		!(Parameter.DirectRequest == REQUEST_MODE_DIRECT::BOTH || 
-		(Parameter.DirectRequest == REQUEST_MODE_DIRECT::IPV6 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0 && 
-		Parameter.DirectRequest == REQUEST_MODE_DIRECT::IPV4 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0)) && 
+		Parameter.DirectRequest_Protocol != REQUEST_MODE_DIRECT::BOTH && 
+		!(Parameter.DirectRequest_Protocol == REQUEST_MODE_DIRECT::IPV6 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0) && 
+		!(Parameter.DirectRequest_Protocol == REQUEST_MODE_DIRECT::IPV4 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0) && 
 	//SOCKS request only mode
 		!(Parameter.SOCKS_Proxy && Parameter.SOCKS_Only) && 
 	//HTTP CONNECT request only mode
@@ -83,8 +83,7 @@ void MonitorLauncher(
 
 	//Get Hop Limits with normal DNS request(IPv6).
 		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 || //IPv6
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
+			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6)) //IPv6
 		{
 			std::thread IPv6TestDoaminThread(std::bind(DomainTestRequest, static_cast<uint16_t>(AF_INET6)));
 			IPv6TestDoaminThread.detach();
@@ -92,8 +91,7 @@ void MonitorLauncher(
 
 	//Get TTL with normal DNS request(IPv4).
 		if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 || //IPv4
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
+			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4)) //IPv4
 		{
 			std::thread IPv4TestDoaminThread(std::bind(DomainTestRequest, static_cast<uint16_t>(AF_INET)));
 			IPv4TestDoaminThread.detach();
@@ -101,8 +99,7 @@ void MonitorLauncher(
 
 	//Get Hop Limits with ICMPv6 echo(IPv6).
 		if (Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 || //IPv6
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 && Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family == 0))) //Non-IPv4
+			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6)) //IPv6
 		{
 			std::thread ICMPv6Thread(std::bind(ICMP_TestRequest, static_cast<uint16_t>(AF_INET6)));
 			ICMPv6Thread.detach();
@@ -110,8 +107,7 @@ void MonitorLauncher(
 
 	//Get TTL with ICMP echo(IPv4).
 		if (Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4 || //IPv4
-			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV6 && Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family == 0))) //Non-IPv6
+			(Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::BOTH || Parameter.RequestMode_Network == REQUEST_MODE_NETWORK::IPV4)) //IPv4
 		{
 			std::thread ICMP_Thread(std::bind(ICMP_TestRequest, static_cast<uint16_t>(AF_INET)));
 			ICMP_Thread.detach();
@@ -830,6 +826,7 @@ bool UDP_Monitor(
 				else {
 					MonitorQueryData.first.Buffer = RecvBuffer.get() + (PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES) * Index;
 					MonitorQueryData.first.Length = RecvLen;
+					MonitorQueryData.first.QueryType = 0;
 					MonitorQueryData.first.IsLocalRequest = false;
 					MonitorQueryData.first.IsLocalInBlack = false;
 					MonitorQueryData.first.IsLocalInWhite = false;
@@ -1192,6 +1189,7 @@ bool TCP_AcceptProcess(
 	{
 		MonitorQueryData.first.Buffer = RecvBuffer.get() + sizeof(uint16_t);
 		MonitorQueryData.first.Length = LengthValue;
+		MonitorQueryData.first.QueryType = 0;
 		MonitorQueryData.first.IsLocalRequest = false;
 		MonitorQueryData.first.IsLocalInBlack = false;
 		MonitorQueryData.first.IsLocalInWhite = false;
@@ -1348,7 +1346,7 @@ bool GetBestInterfaceAddress(
 		return false;
 	}
 
-//Check parameter.
+//Get socket information from system.
 	if (Protocol == AF_INET6)
 	{
 		reinterpret_cast<sockaddr_in6 *>(&SockAddr)->sin6_addr = reinterpret_cast<const sockaddr_in6 *>(OriginalSockAddr)->sin6_addr;
@@ -1657,7 +1655,7 @@ void NetworkInformationMonitor(
 				InterfaceAddressList = nullptr;
 			#endif
 
-				goto JumpToRestart;
+				goto JumpTo_Restart;
 			}
 			else {
 				LocalAddressMutexIPv6.lock();
@@ -1818,7 +1816,7 @@ void NetworkInformationMonitor(
 				InterfaceAddressList = nullptr;
 			#endif
 
-				goto JumpToRestart;
+				goto JumpTo_Restart;
 			}
 			else {
 				LocalAddressMutexIPv4.lock();
@@ -1968,7 +1966,7 @@ void NetworkInformationMonitor(
 		}
 
 	//Jump here to restart.
-	JumpToRestart:
+	JumpTo_Restart:
 
 	//Close all socket registers.
 		SocketRegisterMutex.lock();

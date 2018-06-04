@@ -365,13 +365,13 @@ bool ReadLocalHostsData(
 		//Default target server
 			if (HostsListData.back().empty())
 			{
-				goto AddToGlobalList;
+				goto AddListData;
 			}
 		//Dnsmasq Whitelist items
 			else if (HostsListData.back() == ("#")) //Dnsmasq use the standard servers
 			{
 				HostsTableTemp.PermissionType = HOSTS_TYPE::WHITE;
-				goto AddToGlobalList;
+				goto AddListData;
 			}
 		//Mark target server.
 			else {
@@ -612,7 +612,7 @@ bool ReadLocalHostsData(
 	}
 
 //Jump here to register to global list.
-AddToGlobalList:
+AddListData:
 	for (auto &HostsFileSetIter:*HostsFileSetModificating)
 	{
 		if (HostsFileSetIter.FileIndex == FileIndex)

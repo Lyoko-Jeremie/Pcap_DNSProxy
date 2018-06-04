@@ -68,6 +68,4 @@ void UDP_RequestProcess(
 	MONITOR_QUEUE_DATA &MonitorQueryData, 
 	std::unique_ptr<uint8_t[]> &EDNS_Buffer);
 #endif
-uint16_t SelectDirectProtocol(
-	void);
 #endif

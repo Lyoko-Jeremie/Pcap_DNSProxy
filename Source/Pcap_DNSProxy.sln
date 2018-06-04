@@ -92,8 +92,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Markdown", "Markdown", "{41
 		Auxiliary\Markdown\.gitattributes = Auxiliary\Markdown\.gitattributes
 		Auxiliary\Markdown\ISSUE_TEMPLATE.md = Auxiliary\Markdown\ISSUE_TEMPLATE.md
 		Auxiliary\Markdown\LICENSE = Auxiliary\Markdown\LICENSE
-		Auxiliary\Markdown\README.en.md = Auxiliary\Markdown\README.en.md
 		Auxiliary\Markdown\README.md = Auxiliary\Markdown\README.md
+		Auxiliary\Markdown\README.zh-Hans.md = Auxiliary\Markdown\README.zh-Hans.md
 		Auxiliary\Markdown\README.zh-Hant.md = Auxiliary\Markdown\README.zh-Hant.md
 	EndProjectSection
 EndProject

@@ -6,7 +6,6 @@
 *.sln text eol=crlf
 *.vcxproj text eol=crlf
 Documents/*.txt text eol=crlf
-Source/Dependency/WinPcap/* eol=crlf
 
 # Newline format in Linux/macOS(LF)
 *.pbxproj text eol=lf
@@ -17,6 +16,5 @@ Source/Dependency/WinPcap/* eol=crlf
 *.xcworkspacedata eol=lf
 CMakeLists.txt text eol=lf
 Source/Auxiliary/Scripts/* text eol=lf
-Source/Dependency/OpenSSL/* text eol=lf
 Source/Pcap_DNSProxy/CMakeLists.txt text eol=lf
 Source/Pcap_DNSProxy.xcodeproj/* eol=lf

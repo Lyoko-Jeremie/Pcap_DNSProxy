@@ -131,6 +131,8 @@ void DNSCurveSocketPrecomputation(
 	DNSCURVE_SERVER_DATA ** const PacketTarget, 
 	std::vector<SOCKET_DATA> &SocketDataList, 
 	std::vector<DNSCURVE_SOCKET_SELECTING_TABLE> &SocketSelectingDataList, 
+	const uint16_t QueryType, 
+	const SOCKET_DATA &LocalSocketData, 
 	std::unique_ptr<uint8_t[]> &SendBuffer, 
 	size_t &DataLength, 
 	std::unique_ptr<uint8_t[]> &Alternate_SendBuffer, 
@@ -162,24 +164,28 @@ size_t DNSCurve_TCP_RequestSingle(
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA &LocalSocketData);
 size_t DNSCurve_TCP_RequestMultiple(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA &LocalSocketData);
 size_t DNSCurve_UDP_RequestSingle(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA &LocalSocketData);
 size_t DNSCurve_UDP_RequestMultiple(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA &LocalSocketData);
 #endif
 
@@ -204,9 +210,18 @@ bool SocketSetting(
 	const SOCKET_SETTING_TYPE SettingType, 
 	const bool IsPrintError, 
 	void * const DataPointer);
+uint16_t SelectProtocol_Network(
+	const REQUEST_MODE_NETWORK GlobalSpecific, 
+	const uint16_t TargetSpecific_IPv6, 
+	const uint16_t TargetSpecific_IPv4, 
+	const bool IsAccordingType, 
+	const uint16_t TypeSpecific, 
+	const SOCKET_DATA * const LocalSocketSpecific);
 size_t SelectTargetSocketSingle(
 	const REQUEST_PROCESS_TYPE RequestType, 
 	const uint16_t Protocol, 
+	const uint16_t QueryType, 
+	const SOCKET_DATA * const LocalSocketData, 
 	SOCKET_DATA * const TargetSocketData, 
 	bool ** const IsAlternate, 
 	size_t ** const AlternateTimeoutTimes, 
@@ -215,6 +230,8 @@ size_t SelectTargetSocketSingle(
 	void ** const DNSCurvePacketTarget);
 bool SelectTargetSocketMultiple(
 	const uint16_t Protocol, 
+	const uint16_t QueryType, 
+	const SOCKET_DATA * const LocalSocketData, 
 	std::vector<SOCKET_DATA> &TargetSocketDataList);
 size_t SocketConnecting(
 	const uint16_t Protocol, 
@@ -304,7 +321,7 @@ size_t CheckDomainCache(
 	uint8_t * const Result, 
 	const size_t ResultSize, 
 	const std::string &Domain, 
-	const dns_qry * const DNS_Query, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA &LocalSocketData);
 
 //PrintLog.h
@@ -350,7 +367,7 @@ size_t CheckWhiteBannedHostsProcess(
 	const size_t Length, 
 	const HostsTable &HostsTableIter, 
 	dns_hdr * const DNS_Header, 
-	dns_qry * const DNS_Query, 
+	const uint16_t QueryType, 
 	bool * const IsLocalRequest, 
 	bool * const IsLocalInBlack);
 size_t CheckHostsProcess(
@@ -415,18 +432,21 @@ size_t SOCKS_TCP_Request(
 	const size_t SendSize, 
 	std::unique_ptr<uint8_t[]> &OriginalRecv, 
 	size_t &RecvSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA &LocalSocketData);
 size_t SOCKS_UDP_Request(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	std::unique_ptr<uint8_t[]> &OriginalRecv, 
 	size_t &RecvSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA &LocalSocketData);
-size_t HTTP_CONNECT_Request(
+size_t HTTP_CONNECT_TCP_Request(
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	std::unique_ptr<uint8_t[]> &OriginalRecv, 
 	size_t &RecvSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA &LocalSocketData);
 
 //Request.h
@@ -443,6 +463,7 @@ size_t TCP_RequestSingle(
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
 	const ADDRESS_UNION_DATA * const SpecifieTargetData, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA * const LocalSocketData);
 size_t TCP_RequestMultiple(
 	const REQUEST_PROCESS_TYPE RequestType, 
@@ -450,6 +471,7 @@ size_t TCP_RequestMultiple(
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA * const LocalSocketData);
 #if defined(ENABLE_PCAP)
 size_t UDP_RequestSingle(
@@ -457,6 +479,7 @@ size_t UDP_RequestSingle(
 	const uint16_t Protocol, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA * const LocalSocketData, 
 	size_t *EDNS_Length);
 size_t UDP_RequestMultiple(
@@ -464,6 +487,7 @@ size_t UDP_RequestMultiple(
 	const uint16_t Protocol, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA * const LocalSocketData, 
 	size_t *EDNS_Length);
 #endif
@@ -474,6 +498,7 @@ size_t UDP_CompleteRequestSingle(
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
 	const ADDRESS_UNION_DATA * const SpecifieTargetData, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA * const LocalSocketData);
 size_t UDP_CompleteRequestMultiple(
 	const REQUEST_PROCESS_TYPE RequestType, 
@@ -481,6 +506,7 @@ size_t UDP_CompleteRequestMultiple(
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
 	const size_t RecvSize, 
+	const uint16_t QueryType, 
 	const SOCKET_DATA * const LocalSocketData);
 
 //Service.h

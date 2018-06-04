@@ -37,9 +37,10 @@ size_t DNSCurvePaddingData(
 	uint8_t * const Buffer, 
 	const size_t Length, 
 	const size_t BufferSize);
-bool DNSCurveSelectTargetSocket(
+uint16_t DNSCurveSelectTargetSocket(
 	const uint16_t Protocol, 
-	bool &IsIPv6, 
+	const uint16_t QueryType, 
+	const SOCKET_DATA &LocalSocketData, 
 	bool ** const IsAlternate);
 #endif
 #endif

@@ -17,7 +17,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 1.準備程式編譯環境：編譯前需要使用包管理工具安裝，或者需要自行編譯和安裝依賴庫
   * 依賴工具/庫清單：
     * 原始程式碼編譯器，必須完整支援 C++ 14 標準，可任選其一：
-      * GCC/g++  最低版本要求為 5.0
+      * GCC/g++ 最低版本要求為 5.0
       * Clang/LLVM 最低版本要求為 3.4
     * CMake
     * LibEvent

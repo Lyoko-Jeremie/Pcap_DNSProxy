@@ -970,6 +970,10 @@ bool CheckQueryData(
 		return false;
 	}
 
+//Mark DNS query type.
+	if (PacketStructure->Records_QuestionLen != 0)
+		PacketStructure->QueryType = reinterpret_cast<dns_qry *>(PacketStructure->Buffer + DNS_PACKET_QUERY_LOCATE(PacketStructure->Buffer))->Type;
+
 //EDNS Label
 	auto IsNeedTruncated = false;
 	if (!IsDisableEDNS_Label && DNS_Header->Question != 0 && Parameter.EDNS_Label)
@@ -1214,7 +1218,7 @@ size_t CheckResponse_CNAME(
 			if (IsMatchItem)
 			{
 			//Check white and banned hosts list, empty record type list check
-				DataLength = CheckWhiteBannedHostsProcess(Length, HostsTableIter, DNS_Header, DNS_Query, nullptr, nullptr);
+				DataLength = CheckWhiteBannedHostsProcess(Length, HostsTableIter, DNS_Header, DNS_Query->Type, nullptr, nullptr);
 				if (DataLength >= DNS_PACKET_MINSIZE)
 					return DataLength;
 				else if (HostsTableIter.RecordTypeList.empty())
@@ -1448,11 +1452,11 @@ size_t CheckResponseData(
 	}
 
 //Initialization(Part 2)
-	uint16_t DNS_QueryType = 0;
+	uint16_t QueryType = 0;
 	size_t DataLength = 0, EDNS_Location = 0, EDNS_Length = 0, Index = 0;
 	if (DNS_Header->Question != 0) //DNS Cookies request
 	{
-		DNS_QueryType = reinterpret_cast<dns_qry *>(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer))->Type;
+		QueryType = reinterpret_cast<dns_qry *>(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer))->Type;
 		DataLength = DNS_PACKET_RR_LOCATE(Buffer);
 	}
 	else {
@@ -1549,7 +1553,7 @@ size_t CheckResponseData(
 				if (Index < ntohs(DNS_Header->Answer))
 				{
 				//Records Type in responses check
-					if (Parameter.PacketCheck_DNS && ntohs(DNS_QueryType) == DNS_TYPE_A)
+					if (Parameter.PacketCheck_DNS && ntohs(QueryType) == DNS_TYPE_A)
 						return EXIT_FAILURE;
 
 				//Strict resource record TTL check when enforce strict RFC 2181(https://tools.ietf.org/html/rfc2181) compliance(Part 2)
@@ -1583,7 +1587,7 @@ size_t CheckResponseData(
 				if (Index < ntohs(DNS_Header->Answer))
 				{
 				//Records Type in responses check
-					if (Parameter.PacketCheck_DNS && ntohs(DNS_QueryType) == DNS_TYPE_AAAA)
+					if (Parameter.PacketCheck_DNS && ntohs(QueryType) == DNS_TYPE_AAAA)
 						return EXIT_FAILURE;
 
 				//Strict resource record TTL check when enforce strict RFC 2181(https://tools.ietf.org/html/rfc2181) compliance(Part 2)

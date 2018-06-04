@@ -119,7 +119,7 @@
 #define CONFIG_VERSION_MINOR                          45U                                   //Current configuration file minor version(0.45)
 #define CONFIG_VERSION_MAXSIZE                        8U                                    //Maximum size of version
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2018 Chengr28"   //Copyright message
-#define FULL_VERSION                                  L"0.4.9.7"                            //Current full version
+#define FULL_VERSION                                  L"0.4.9.8"                            //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_IPV4_MINSIZE                   6U                                //The shortest IPv4 address strings(*.*.*.*)
