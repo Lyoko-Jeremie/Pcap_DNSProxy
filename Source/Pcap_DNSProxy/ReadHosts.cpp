@@ -676,6 +676,8 @@ bool ReadAddressHostsData(
 //Initialization
 	ADDRESS_HOSTS_TABLE AddressHostsTableTemp;
 	ADDRESS_PREFIX_BLOCK AddressTargetPrefix;
+	memset(&AddressTargetPrefix.first, 0, sizeof(AddressTargetPrefix.first));
+	AddressTargetPrefix.second = 0;
 	size_t Prefix = 0;
 
 //Get target data.
@@ -801,7 +803,9 @@ bool ReadAddressHostsData(
 	//AAAA record(IPv6)
 		if (StringIter.find(ASCII_COLON) != std::string::npos && PreviousType == AF_INET6)
 		{
-			memset(&AddressRangeTableTemp, 0, sizeof(AddressRangeTableTemp));
+			memset(&AddressRangeTableTemp.Begin, 0, sizeof(AddressRangeTableTemp.Begin));
+			memset(&AddressRangeTableTemp.End, 0, sizeof(AddressRangeTableTemp.End));
+			AddressRangeTableTemp.Level = 0;
 
 		//Address range format
 			if (StringIter.find(ASCII_MINUS) != std::string::npos)
@@ -857,7 +861,9 @@ bool ReadAddressHostsData(
 	//A record(IPv4)
 		else if (StringIter.find(ASCII_PERIOD) != std::string::npos && PreviousType == AF_INET)
 		{
-			memset(&AddressRangeTableTemp, 0, sizeof(AddressRangeTableTemp));
+			memset(&AddressRangeTableTemp.Begin, 0, sizeof(AddressRangeTableTemp.Begin));
+			memset(&AddressRangeTableTemp.End, 0, sizeof(AddressRangeTableTemp.End));
+			AddressRangeTableTemp.Level = 0;
 
 		//Address range format
 			if (StringIter.find(ASCII_MINUS) != std::string::npos)
@@ -1029,6 +1035,8 @@ bool ReadMainHostsData(
 		else {
 		//Protocol settings
 			ADDRESS_PREFIX_BLOCK AddressPrefix;
+			memset(&AddressPrefix.first, 0, sizeof(AddressPrefix.first));
+			AddressPrefix.second = 0;
 			uint16_t Protocol = 0;
 			if (SourceListData.front().find(ASCII_COLON) != std::string::npos) //IPv6
 				Protocol = AF_INET6;

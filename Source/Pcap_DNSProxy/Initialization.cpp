@@ -20,7 +20,7 @@
 #include "Initialization.h"
 
 //Preferred name syntax(Section 2.3.1 in RFC 1035)
-static const uint8_t DomainTable_Initialization[] = (".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
+static const uint8_t DomainTable_Initialization[] = ".-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
 #if !defined(ENABLE_LIBSODIUM)
 //RFC domain and Base64 encoding table
@@ -136,7 +136,7 @@ ConfigurationTable::ConfigurationTable(
 		HTTP_CONNECT_ProxyAuthorization = new uint8_t[HTTP_AUTHORIZATION_MAXSIZE + MEMORY_RESERVED_BYTES]();
 	#endif
 	}
-	catch (std::bad_alloc)
+	catch (std::bad_alloc &)
 	{
 	//[Listen] block
 	#if defined(ENABLE_PCAP)
@@ -290,7 +290,7 @@ void ConfigurationTable::CopyMemberOperator(
 		HTTP_CONNECT_ProxyAuthorization = new uint8_t[HTTP_AUTHORIZATION_MAXSIZE + MEMORY_RESERVED_BYTES]();
 	#endif
 	}
-	catch (std::bad_alloc)
+	catch (std::bad_alloc &)
 	{
 	//[Listen] block
 	#if defined(ENABLE_PCAP)
@@ -1277,7 +1277,7 @@ GlobalStatus::GlobalStatus(
 		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4] = new std::vector<std::string>();
 	#endif
 	}
-	catch (std::bad_alloc)
+	catch (std::bad_alloc &)
 	{
 		delete LocalListeningSocket;
 		delete RandomEngine;
@@ -1370,7 +1370,7 @@ void GlobalStatus::CopyMemberOperator(
 		LocalAddress_PointerResponse[NETWORK_LAYER_TYPE_IPV4] = new std::vector<std::string>();
 	#endif
 	}
-	catch (std::bad_alloc)
+	catch (std::bad_alloc &)
 	{
 		delete LocalListeningSocket;
 		delete RandomEngine;
@@ -1741,7 +1741,7 @@ CaptureDeviceTable::CaptureDeviceTable(
 	try {
 		DeviceName = new std::string();
 	}
-	catch (std::bad_alloc)
+	catch (std::bad_alloc &)
 	{
 		delete DeviceName;
 		DeviceName = nullptr;
@@ -1842,7 +1842,7 @@ DNSCurveConfigurationTable::DNSCurveConfigurationTable(
 		DNSCurve_Target_Server_Main_IPv6.SendMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
 		DNSCurve_Target_Server_Alternate_IPv6.SendMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
 	}
-	catch (std::bad_alloc)
+	catch (std::bad_alloc &)
 	{
 	//[DNSCurve Database] block
 		delete DatabaseName;
@@ -1985,7 +1985,7 @@ void DNSCurveConfigurationTable::CopyMemberOperator(
 		DNSCurve_Target_Server_Main_IPv4.SendMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
 		DNSCurve_Target_Server_Alternate_IPv4.SendMagicNumber = new uint8_t[DNSCURVE_MAGIC_QUERY_LEN]();
 	}
-	catch (std::bad_alloc)
+	catch (std::bad_alloc &)
 	{
 	//[DNSCurve Database] block
 		delete DatabaseName;

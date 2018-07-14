@@ -110,8 +110,9 @@ typedef struct _ieee_1394_hdr_
 */
 typedef struct _ieee_8021q_hdr_
 {
-	union {
+//	union {
 		uint16_t           Flags;
+/* No need to define sub structure.
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t        ID_First:4;
@@ -126,6 +127,7 @@ typedef struct _ieee_8021q_hdr_
 		#endif
 		}FlagsBits;
 	};
+*/
 	uint16_t               Type;
 }ieee_8021q_hdr;
 
@@ -617,6 +619,7 @@ typedef struct _ppp_hdr_
 #define IPV4_IHL_STANDARD               0x05     //Standard IPv4 header length(0x05/20 bytes)
 #define IPV4_IHL_BYTES_SET              4U       //IHL is set number of 32-bit words(4 bytes).
 #define IPV4_FLAG_GET_BIT_MF            0x2000   //Get More Fragment bit in Flags.
+#define IPV4_FLAG_GET_BIT_RES_DF        0xC000   //Get Reserved and Don't Fragment bits in Flags.
 #define IPV4_FLAG_GET_FRAGMENT_OFFSET   0x1FFF   //Get Fragment Offset bits in Flags.
 typedef struct _ipv4_hdr_
 {
@@ -627,8 +630,9 @@ typedef struct _ipv4_hdr_
 	uint8_t                Version:4;
 	uint8_t                IHL:4;
 #endif
-	union {
+//	union {
 		uint8_t            DSCP_ECN;
+/* No need to define sub structure.
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t        ECN:2;
@@ -638,11 +642,13 @@ typedef struct _ipv4_hdr_
 			uint8_t        ECN:2;
 		#endif
 		}DSCP_ECN_Bits;
-	};
+*/
+//	};
 	uint16_t               Length;
 	uint16_t               ID;
-	union {
+//	union {
 		uint16_t           Flags;
+/* No need to define sub structure.
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t        FO_First:5;
@@ -658,7 +664,8 @@ typedef struct _ipv4_hdr_
 			uint8_t        FO_Second;
 		#endif
 		}FlagsBits;
-	};
+*/
+//	};
 	uint8_t                TTL;
 	uint8_t                Protocol;
 	uint16_t               Checksum;
@@ -691,10 +698,13 @@ typedef struct _ipv4_hdr_
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 */
+#define IPV6_VTF_GET_BIT_FLOW_LABEL           0x000FFFFF   //Get Flow Label bits in VTF/VersionTrafficClassFlowLabel part.
+#define IPV6_VTF_GET_BIT_SERVER_FIXED         0xFFF00000   //Get all bits without Flow Label in VTF/VersionTrafficClassFlowLabel part.
 typedef struct _ipv6_hdr_
 {
-	union {
+//	union {
 		uint32_t               VersionTrafficFlow;
+/* No need to define sub structure.
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			union {
@@ -710,6 +720,7 @@ typedef struct _ipv6_hdr_
 					uint8_t    ECT:1;
 					uint8_t    ECN_CE:1;
 				}TrafficClassBits_Second;
+
 			};
 		#else //BIG_ENDIAN
 			uint8_t            Version:4;
@@ -729,7 +740,8 @@ typedef struct _ipv6_hdr_
 		#endif
 			uint16_t           FlowLabel_Second;
 		}VersionTrafficFlowBits;
-	};
+*/
+//	};
 	uint16_t                   PayloadLength;
 	uint8_t                    NextHeader;
 	uint8_t                    HopLimit;
@@ -802,8 +814,9 @@ typedef struct _ipv6_extension_fragment_
 {
 	uint8_t                    NextHeader;
 	uint8_t                    Reserved_A;
-	union {
+//	union {
 		uint16_t               Flags;
+/* No need to define sub structure.
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint16_t           FragmentOffset_First:8;
@@ -817,7 +830,8 @@ typedef struct _ipv6_extension_fragment_
 			uint16_t           MF:1;
 		#endif
 		}FlagsBits;
-	};
+*/
+//	};
 	uint32_t                   ID;
 //	uint8_t                    *Fragment;
 }ipv6_extension_fragment;
@@ -927,8 +941,9 @@ typedef struct _ipv6_extension_hip_
 {
 	uint8_t                    NextHeader;
 	uint8_t                    HeaderLength;
-	union {
+//	union {
 		uint16_t               Flags;
+/* No need to define sub structure.
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint16_t           PacketType:7;
@@ -944,7 +959,8 @@ typedef struct _ipv6_extension_hip_
 			uint16_t           FixedPart_B:1;
 		#endif
 		}FlagsBits;
-	};
+*/
+//	};
 	uint16_t                   Checksum;
 	uint16_t                   Controls;
 	uint64_t                   SenderHIP[2U];
@@ -1364,8 +1380,9 @@ typedef struct _tcp_hdr_
 	uint16_t               DestinationPort;
 	uint32_t               Sequence;
 	uint32_t               Acknowledge;
-	union {
+//	union {
 		uint16_t           HeaderLength_Flags;
+/* No need to define sub structure.
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t        Nonce:1;
@@ -1393,7 +1410,8 @@ typedef struct _tcp_hdr_
 			uint8_t        FIN:1;
 		#endif
 		}HeaderLength_FlagsBits;
-	};
+*/
+//	};
 	uint16_t               Windows;
 	uint16_t               Checksum;
 	uint16_t               UrgentPointer;
@@ -1582,6 +1600,7 @@ typedef struct _ipv6_psd_hdr_
 #define DNS_FLAG_GET_BIT_AA              0x0400       //Get Authoritative bit in DNS flags.
 #define DNS_FLAG_GET_BIT_TC              0x0200       //Get Truncated bit in DNS flags.
 #define DNS_FLAG_GET_BIT_RD              0x0100       //Get Recursion Desired bit in DNS flags.
+#define DNS_FLAG_GET_BIT_RA              0x0080       //Get Recursion Available bit in DNS flags.
 #define DNS_FLAG_GET_BIT_Z               0x0040       //Get Reserved bit in DNS flags.
 #define DNS_FLAG_GET_BIT_AD              0x0020       //Get Authentic Data bit in DNS flags.
 #define DNS_FLAG_GET_BIT_CD              0x0010       //Get Checking Disabled bit in DNS flags.
@@ -1989,8 +2008,9 @@ typedef struct _ipv6_psd_hdr_
 typedef struct _dns_hdr_
 {
 	uint16_t              ID;
-	union {
+//	union {
 		uint16_t          Flags;
+/* No need to define sub structure.
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t       RD:1;
@@ -2017,7 +2037,8 @@ typedef struct _dns_hdr_
 			uint8_t       RCode:4;
 		#endif
 		}FlagsBits;
-	};
+*/
+//	};
 	uint16_t              Question;
 	uint16_t              Answer;
 	uint16_t              Authority;
@@ -2045,8 +2066,9 @@ typedef struct _dns_tcp_hdr_
 {
 	uint16_t              Length;
 	uint16_t              ID;
-	union {
+//	union {
 		uint16_t          Flags;
+/* No need to define sub structure.
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t       RD:1;
@@ -2073,7 +2095,8 @@ typedef struct _dns_tcp_hdr_
 			uint8_t       RCode:4;
 		#endif
 		}FlagsBits;
-	};
+*/
+//	};
 	uint16_t              Question;
 	uint16_t              Answer;
 	uint16_t              Authority;
@@ -2373,16 +2396,16 @@ typedef struct _dns_record_srv_
 #define EDNS_FLAG_GET_BIT_DO       0x8000        //Get DO bit in Z field.
 
 //EDNS Code definitions
-#define EDNS_CODE_LLQ              0x0001   //Long-lived query
-#define EDNS_CODE_UL               0x0002   //Update lease
-#define EDNS_CODE_NSID             0x0003   //Name Server Identifier (RFC 5001)
-#define EDNS_CODE_OWNER            0x0004   //Owner, reserved
-#define EDNS_CODE_DAU              0x0005   //DNSSEC Algorithm Understood (RFC 6975)
-#define EDNS_CODE_DHU              0x0006   //DS Hash Understood (RFC 6975)
-#define EDNS_CODE_N3U              0x0007   //DSEC3 Hash Understood (RFC 6975)
-#define EDNS_CODE_CSUBNET          0x0008   //Client subnet (RFC 7871)
-#define EDNS_CODE_EDNS_EXPIRE      0x0009   //EDNS Expire (RFC 7314)
-#define EDNS_CODE_COOKIES          0x000A   //DNS Cookies (RFC 7873)
+#define EDNS_CODE_LLQ              0x0001        //Long-lived query
+#define EDNS_CODE_UL               0x0002        //Update lease
+#define EDNS_CODE_NSID             0x0003        //Name Server Identifier (RFC 5001)
+#define EDNS_CODE_OWNER            0x0004        //Owner, reserved
+#define EDNS_CODE_DAU              0x0005        //DNSSEC Algorithm Understood (RFC 6975)
+#define EDNS_CODE_DHU              0x0006        //DS Hash Understood (RFC 6975)
+#define EDNS_CODE_N3U              0x0007        //DSEC3 Hash Understood (RFC 6975)
+#define EDNS_CODE_CSUBNET          0x0008        //Client subnet (RFC 7871)
+#define EDNS_CODE_EDNS_EXPIRE      0x0009        //EDNS Expire (RFC 7314)
+#define EDNS_CODE_COOKIES          0x000A        //DNS Cookies (RFC 7873)
 
 //Address Family Numbers, please visit https://www.iana.org/assignments/address-family-numbers/address-family-numbers.xhtml.
 #define EDNS_ADDRESS_FAMILY_IPV4   0x0001
@@ -2394,8 +2417,9 @@ typedef struct _dns_record_opt_
 	uint16_t              UDP_PayloadSize;
 	uint8_t               Extended_RCode;
 	uint8_t               Version;
-	union {
+//	union {
 		uint16_t          Z_Field;
+/* No need to define sub structure.
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t       Reserved_First:7;
@@ -2406,7 +2430,8 @@ typedef struct _dns_record_opt_
 		#endif
 			uint8_t       Reserved_Second;
 		}Z_Bits;
-	};
+*/
+//	};
 	uint16_t              DataLength;
 }dns_record_opt, edns_header;
 
@@ -2604,8 +2629,9 @@ typedef struct _dns_record_rrsig_
 #define DNSSEC_DNSKEY_PROTOCOL                 3U
 typedef struct _dns_record_dnskey_
 {
-	union {
+//	union {
 		uint16_t          Flags;
+/* No need to define sub structure.
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t       ZoneKey:1;
@@ -2621,7 +2647,8 @@ typedef struct _dns_record_dnskey_
 			uint8_t       KeySigningKey:1;
 		#endif
 		}FlagsBits;
-	};
+*/
+//	};
 	uint8_t               Protocol;
 	uint8_t               Algorithm;
 //	uint8_t               *PublicKey;
@@ -2671,8 +2698,9 @@ typedef struct _dns_record_nsec_
 typedef struct _dns_record_nsec3_
 {
 	uint8_t               Algorithm;
-	union {
+//	union {
 		uint8_t           Flags;
+/* No need to define sub structure.
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t       OptOut:1;
@@ -2682,7 +2710,8 @@ typedef struct _dns_record_nsec3_
 			uint8_t       OptOut:1;
 		#endif
 		}FlagsBits;
-	};
+*/
+//	};
 	uint16_t              Iterations;
 	uint8_t               SaltLength;
 //	uint8_t               *Salt;
@@ -2707,8 +2736,9 @@ typedef struct _dns_record_nsec3_
 typedef struct _dns_record_nsec3param_
 {
 	uint8_t               Algorithm;
-	union {
+//	union {
 		uint8_t           Flags;
+/* No need to define sub structure.
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t       Reserved:1;
@@ -2718,7 +2748,8 @@ typedef struct _dns_record_nsec3param_
 			uint8_t       Reserved:1;
 		#endif
 		}FlagsBits;
-	};
+*/
+//	};
 	uint16_t              Iterations;
 	uint8_t               SaltLength;
 //	uint8_t               *Salt;
@@ -2742,8 +2773,9 @@ typedef struct _dns_record_nsec3param_
 */
 typedef struct _dns_record_caa_
 {
-	union {
+//	union {
 		uint8_t           Flags;
+/* No need to define sub structure.
 		struct {
 		#if BYTE_ORDER == LITTLE_ENDIAN
 			uint8_t       Zero:7;
@@ -2753,7 +2785,8 @@ typedef struct _dns_record_caa_
 			uint8_t       Zero:7;
 		#endif
 		}FlagsBits;
-	};
+*/
+//	};
 	uint8_t               Length;
 //	uint8_t               *Tag;
 //	uint8_t               *Value;

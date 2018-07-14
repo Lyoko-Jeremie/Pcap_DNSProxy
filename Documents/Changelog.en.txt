@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy 0.4.9.5-0.4.9.8 changelog(2018-06-04):
+﻿Pcap_DNSProxy 0.4.9.5-0.4.9.9 changelog(2018-07-14):
 
 * Add EDNS Label transparency support.
 * Add libevent support.
@@ -8,7 +8,7 @@
 * OpenSSL upgrade to version 1.1.0h. (macOS)
 * Rename from Strict Resource Record TTL Filter to Resource Record Set TTL Filter.
 * Optimize compilation parameters. (Linux/macOS)
-* Fix Local request process logic. [LisonFan/sysconfon]
+* Fix Local request process logic. [LisonFan/sysconfon/huaji0353/gitlikang]
 * Fix select protocol algorithm, now IPv6/IPv4 incoming request will default send to DNS server with same protocol. [ccaapton]
 * Fix "All" operation in EDNS Lebel parameter. [muink]
 * Fix packet filter with DNSSEC. [ZeroClover]
@@ -18,9 +18,13 @@
   * Rename from DNSSEC Force Validation to DNSSEC Force Record.
 * Fix number of file descriptor limit in scripts. (Linux) [lunzima]
 * Fix bug of length check in SOCKS 和 HTTP(S) Proxy process TCP mode. [LisonFan/laggardkernel]
+* Fix compile error if -fsplit-stack was set. [asd2003asd]
 * Fix bug of SOCKS Username and SOCKS Password parameter. [ダクネスExplosion]
+* Fix bug of repeat addresses check when reading configuration file. [cjjdaq]
 * Fix bug of truncated incorrect when EDNS Client Subnet is enabled. [mewsf]
 * Fix bug of packet format error when EDNS Label and any Force TCP are enabled. [chenjiajia9411]
+* Fix bug of truncated incorrect when EDNS Label is enabled and receive over length packet. [debugzxcv]
+* Fix bug of IPv6 and ICMP packet capture in original IPv6/IPv4 platform.
 * Fix bug of interval time and transmission timeout control in ICMP/ICMPv6 module.
 * CMake version require 3.1 now. (Linux/macOS)
 * Remove IPv4 Data Filter parameter.
@@ -29,15 +33,15 @@
 * Remove Homebrew support. (macOS)
 * Release Hash:
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe: C87A6EA338E60951F0CBA65DA09603861ACA7FEC379BE8F6508131B2979BFE38
-    * Windows/Pcap_DNSProxy_x86.exe: 9421E20CBE26228F53743633EE53DE3C84E0F61C33095AD5E7BD506A75BFA451
-    * Windows/Pcap_DNSProxy_XP.exe: D5830F286388AE5D1CF715B1DC80C78095602E7A17A39943701486D5307E807F
-    * macOS/Pcap_DNSProxy: D1ADE59BDE8308E6F84B188958E7F0755815FBD86E60A65A2C474F56FB68F521
+    * Windows/Pcap_DNSProxy.exe: 462857B5E74356D783D7230F60A662F9462A36F8543E45874376B96E9C1F0FE1
+    * Windows/Pcap_DNSProxy_x86.exe: 957C1EBE379E82E3B4AB87B13AAA17A715F8E0906BCC2846F1F591A5602F06A2
+    * Windows/Pcap_DNSProxy_XP.exe: C69BCF482203799AF642BC48DCF78DB98B885D7D7E613BB14C1EE32A203E509D
+    * macOS/Pcap_DNSProxy: 5372E067FE8941E77E210AE68C684E3019C8F887218536B2947696AF83877670
   * SHA-2(256):
-    * Windows/Pcap_DNSProxy.exe: 88B2BAFCBA397DB2AB2668B03B20864A02712558882E2BCF736A3C8DC8EFD04A
-    * Windows/Pcap_DNSProxy_x86.exe: 6D9802AC238F6A276DB9149EDC87AA2541FC562F52251B6D79771A74BBBAD8FC
-    * Windows/Pcap_DNSProxy_XP.exe: 289DA9E96CB49D167E454A10D21206E63E9079FFAAB7FBC72645235E66D2A5F2
-    * macOS/Pcap_DNSProxy: 520A00FBF885A07C008A3007846CBBF72FA926CF1B53C07C06BAC744BEC3DB93
+    * Windows/Pcap_DNSProxy.exe: 3E57CF4D09A28D116972B73D4A7C33E7888F4189DD35939955DEFC81C61BA732
+    * Windows/Pcap_DNSProxy_x86.exe: E6CE60C25C93456DF9A70BBDB2A2D21EF40254783DC0003561AC4E89CBFC3C10
+    * Windows/Pcap_DNSProxy_XP.exe: 8C363476DB55EC55AB1F96C5BB05C84E3B8602F08B9B0992C8ED26FAF8990617
+    * macOS/Pcap_DNSProxy: 035D39EA32D70EDBA6B2B7FA6B6C27AB5D91E335DCD0330E5E39C97997FDC8BC
 
 
 -------------------------------------------------------------------------------

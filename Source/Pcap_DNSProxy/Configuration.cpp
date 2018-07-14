@@ -469,6 +469,7 @@ bool ReadParameter(
 	if (IsFirstRead)
 	{
 		FILE_DATA FileDataTemp;
+		FileDataTemp.ModificationTime = 0;
 
 	//Create file list.
 		const wchar_t *WCS_ConfigFileNameList[] = CONFIG_FILE_NAME_LIST_WCS;
@@ -599,6 +600,7 @@ bool ReadParameter(
 		if (IsFirstRead)
 		{
 			FILE_DATA FileDataTemp;
+			FileDataTemp.ModificationTime = 0;
 
 		//Create file list.
 			if (Parameter.IsDNSCurve && !DNSCurveParameter.DatabaseName->empty() && 
@@ -762,6 +764,7 @@ void ReadIPFilter(
 	for (size_t Index = 0;Index < GlobalRunningStatus.Path_Global->size();++Index)
 	{
 		FILE_DATA FileDataTemp;
+		FileDataTemp.ModificationTime = 0;
 		for (FileIndex = 0;FileIndex < GlobalRunningStatus.FileList_IPFilter->size();++FileIndex)
 		{
 			FileDataTemp.FileName = GlobalRunningStatus.Path_Global->at(Index);
@@ -871,6 +874,7 @@ void ReadHosts(
 	for (size_t Index = 0;Index < GlobalRunningStatus.Path_Global->size();++Index)
 	{
 		FILE_DATA FileDataTemp;
+		FileDataTemp.ModificationTime = 0;
 		for (FileIndex = 0;FileIndex < GlobalRunningStatus.FileList_Hosts->size();++FileIndex)
 		{
 			FileDataTemp.FileName = GlobalRunningStatus.Path_Global->at(Index);

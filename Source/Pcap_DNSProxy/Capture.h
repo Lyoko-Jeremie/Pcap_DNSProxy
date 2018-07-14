@@ -89,6 +89,7 @@ bool MatchPortToSend(
 	const size_t Length, 
 	const size_t BufferSize, 
 	const uint16_t Port, 
+	const bool IsNeedTruncated, 
 	const size_t EDNS_Length_Output);
 #endif
 #endif

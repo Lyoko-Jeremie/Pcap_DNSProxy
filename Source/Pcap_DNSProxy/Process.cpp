@@ -53,6 +53,20 @@ void MonitorRequestConsumer(
 {
 //Initialization
 	MONITOR_QUEUE_DATA MonitorQueryData;
+	MonitorQueryData.first.Buffer = nullptr;
+	MonitorQueryData.first.BufferSize = 0;
+	MonitorQueryData.first.Length = 0;
+	memset(&MonitorQueryData.first.LocalTarget, 0, sizeof(MonitorQueryData.first.LocalTarget));
+	MonitorQueryData.first.Protocol = 0;
+	MonitorQueryData.first.QueryType = 0;
+	MonitorQueryData.first.IsLocalRequest = false;
+	MonitorQueryData.first.IsLocalInWhite = false;
+	MonitorQueryData.first.Records_QuestionLen = 0;
+	MonitorQueryData.first.Records_AnswerCount = 0;
+	MonitorQueryData.first.Records_AuthorityCount = 0;
+	MonitorQueryData.first.Records_AdditionalCount = 0;
+	MonitorQueryData.first.EDNS_Location = 0;
+	MonitorQueryData.first.EDNS_Length = 0;
 	const auto SendBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
 	const auto RecvBuffer = std::make_unique<uint8_t[]>(Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
 	memset(SendBuffer.get(), 0, Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
@@ -323,23 +337,11 @@ size_t CheckWhiteBannedHostsProcess(
 	const size_t Length, 
 	const HostsTable &HostsTableIter, 
 	dns_hdr * const DNS_Header, 
-	const uint16_t QueryType, 
-	bool * const IsLocalRequest, 
-	bool * const IsLocalInBlack)
+	const uint16_t QueryType)
 {
 //Whitelist Hosts
 	if (HostsTableIter.PermissionType == HOSTS_TYPE::WHITE)
 	{
-	//Reset flag.
-		if (IsLocalRequest != nullptr)
-		{
-			*IsLocalRequest = false;
-
-		//Mark the flag to show this is the rule.
-			if (IsLocalInBlack != nullptr)
-				*IsLocalInBlack = true;
-		}
-
 	//Ignore all types.
 		if (HostsTableIter.RecordTypeList.empty())
 		{
@@ -371,16 +373,6 @@ size_t CheckWhiteBannedHostsProcess(
 //Banned Hosts
 	else if (HostsTableIter.PermissionType == HOSTS_TYPE::BANNED)
 	{
-	//Reset flag.
-		if (IsLocalRequest != nullptr)
-		{
-			*IsLocalRequest = false;
-
-		//Mark the flag to show this is the rule.
-			if (IsLocalInBlack != nullptr)
-				*IsLocalInBlack = true;
-		}
-
 	//Block all types.
 		if (HostsTableIter.RecordTypeList.empty())
 		{
@@ -858,7 +850,7 @@ size_t CheckHostsProcess(
 			JumpTo_Continue:
 
 			//Check white and banned hosts list, empty record type list check
-				DataLength = CheckWhiteBannedHostsProcess(PacketStructure->Length, HostsTableIter, DNS_Header, PacketStructure->QueryType, &PacketStructure->IsLocalRequest, &PacketStructure->IsLocalInBlack);
+				DataLength = CheckWhiteBannedHostsProcess(PacketStructure->Length, HostsTableIter, DNS_Header, PacketStructure->QueryType);
 				if (DataLength >= DNS_PACKET_MINSIZE)
 					return DataLength;
 				else if (DataLength == EXIT_FAILURE)
@@ -1054,9 +1046,11 @@ StopLoop_NormalHosts:
 				PacketStructure->IsLocalInWhite = true;
 
 			//Check white and banned hosts list.
-				DataLength = CheckWhiteBannedHostsProcess(PacketStructure->Length, HostsTableIter, DNS_Header, PacketStructure->QueryType, &PacketStructure->IsLocalRequest, &PacketStructure->IsLocalInBlack);
+				DataLength = CheckWhiteBannedHostsProcess(PacketStructure->Length, HostsTableIter, DNS_Header, PacketStructure->QueryType);
 				if (DataLength >= DNS_PACKET_MINSIZE)
 					return DataLength;
+				else if (DataLength == EXIT_FAILURE)
+					PacketStructure->IsLocalRequest = false;
 				else if (DataLength == EXIT_SUCCESS)
 					PacketStructure->IsLocalRequest = true;
 
@@ -1353,7 +1347,7 @@ bool DirectRequestProcess(
 	{
 	//Multiple request process
 		if (Parameter.AlternateMultipleRequest || Parameter.MultipleRequestTimes > 1U)
-			DataLength = TCP_RequestMultiple(REQUEST_PROCESS_TYPE::DIRECT, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, OriginalRecv, RecvSize, MonitorQueryData.first.QueryType, &MonitorQueryData.second);
+			DataLength = TCP_RequestMultiple(REQUEST_PROCESS_TYPE::DIRECT, 0, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, OriginalRecv, RecvSize, MonitorQueryData.first.QueryType, &MonitorQueryData.second);
 	//Normal request process
 		else 
 			DataLength = TCP_RequestSingle(REQUEST_PROCESS_TYPE::DIRECT, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, OriginalRecv, RecvSize, nullptr, MonitorQueryData.first.QueryType, &MonitorQueryData.second);
@@ -1528,7 +1522,7 @@ bool TCP_RequestProcess(
 //Multiple request process
 	size_t DataLength = 0;
 	if (Parameter.AlternateMultipleRequest || Parameter.MultipleRequestTimes > 1U)
-		DataLength = TCP_RequestMultiple(REQUEST_PROCESS_TYPE::TCP_NORMAL, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, OriginalRecv, RecvSize, MonitorQueryData.first.QueryType, &MonitorQueryData.second);
+		DataLength = TCP_RequestMultiple(REQUEST_PROCESS_TYPE::TCP_NORMAL, 0, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, OriginalRecv, RecvSize, MonitorQueryData.first.QueryType, &MonitorQueryData.second);
 //Normal request process
 	else 
 		DataLength = TCP_RequestSingle(REQUEST_PROCESS_TYPE::TCP_NORMAL, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, OriginalRecv, RecvSize, nullptr, MonitorQueryData.first.QueryType, &MonitorQueryData.second);
@@ -1589,7 +1583,7 @@ void UDP_RequestProcess(
 
 //Multiple request process
 	if (Parameter.AlternateMultipleRequest || Parameter.MultipleRequestTimes > 1U)
-		UDP_RequestMultiple(REQUEST_PROCESS_TYPE::UDP_NORMAL, MonitorQueryData.first.Protocol, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, MonitorQueryData.first.QueryType, &MonitorQueryData.second, &MonitorQueryData.first.EDNS_Length);
+		UDP_RequestMultiple(REQUEST_PROCESS_TYPE::UDP_NORMAL, 0, MonitorQueryData.first.Protocol, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, MonitorQueryData.first.QueryType, &MonitorQueryData.second, &MonitorQueryData.first.EDNS_Length);
 //Normal request process
 	else 
 		UDP_RequestSingle(REQUEST_PROCESS_TYPE::UDP_NORMAL, MonitorQueryData.first.Protocol, MonitorQueryData.first.Buffer, MonitorQueryData.first.Length, MonitorQueryData.first.QueryType, &MonitorQueryData.second, &MonitorQueryData.first.EDNS_Length);

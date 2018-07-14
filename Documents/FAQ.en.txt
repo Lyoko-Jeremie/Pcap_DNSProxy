@@ -6,71 +6,6 @@ This document contains a set of common methods for dealing with problems, please
 -------------------------------------------------------------------------------
 
 
-* WinPcap could not be installed and show that there is an older version:
-  * Please uninstall the older version of WinPcap first. You can find WinPcap in Programs menu or search directories for its uninstaller. WinPcap uninstaller should be located in %PROGRAMFILES(x86)% (64-bit system) or %PROGRAMFILES% (32-bit system).
-  * If you cannot find any uninstaller, you can reboot to safe mode and remove all WinPcap files manually:
-    * %WINDIR%\system32\Packet.dll
-    * %WINDIR%\system32\drivers\npf.sys
-    * %WINDIR%\system32\WanPacket.dll
-    * %WINDIR%\system32\wpcap.dll
-    * %WINDIR%\system32\pthreadVC.dll
-
-* Error message prints when installing, running or restarting service:
-  * The service did not respond to the start or control request in a timely fashion - Please check if there is an error report generated. For details, please visit the following section below.
-  * Service start failed, please check the configuration - Please check if there is an error report generated. For details, please visit the following section below.
-
-* Debug mode
-  * When in debug/console mode, all error messages will print to screen directly.
-  * Please make sure that there is only one instance running in the same time.
-  * Windows
-    * Run exe directly as administrator.
-  * Linux
-    * Run ./Pcap_DNSProxy --disable-daemon as root.
-  * macOS
-    * Run ./Pcap_DNSProxy as root.
-
-* Service is not running or system settings error, please check if there is an error report generated or visit installation section in ReadMe.
-
-   >nslookup www.google.com
-    ..
-    Server:  UnKnown
-    Address: ::1 (IPv6, 127.0.0.1 if it's IPv4)
-
-    *** UnKnown can't find www.google.com: No response from server
-
-
--------------------------------------------------------------------------------
-
-
-* Service is running but remote DNS servers does not respond, please check if there is an error report generated.
-  * Please set correct, valid and usable outside DNS servers.
-  * This may be a problem with network. UDP protocol loss rate is relatively high in some ISPs, you can change to TCP protocol mode (Visit parameters details in ReadMe, Operation Mode section in Base tag) or try to request several times.
-  * You can try to restart service(Visit restart service section in ReadMe).
-
-   >nslookup www.google.com
-    Server:  pcap-dnsproxy.server (Visit parameters details in ReadMe, Local Machine Server Name parameter in Data tag)
-    Address: ::1 (IPv6, 127.0.0.1 if it's IPv4)
-
-    DNS request timed out.
-        timeout was 2 seconds.
-    DNS request timed out.
-        timeout was 2 seconds.
-    DNS request timed out.
-        timeout was 2 seconds.
-    DNS request timed out.
-        timeout was 2 seconds.
-    *** Request to pcap-dnsproxy.server timed-out (Visit parameters details in ReadMe, Local Machine Server Name parameter in Data tag)
-
-   >nslookup -vc www.google.com
-    Server:  pcap-dnsproxy.server (Visit parameters details in ReadMe, Local Machine Server Name parameter in Data tag)
-    Address: ::1 (IPv6, 127.0.0.1 if it's IPv4)
-
-    *** No internal type for both IPv4 and IPv6 Addresses (A+AAAA) records available for www.google.com
-
-
--------------------------------------------------------------------------------
-
-
 Please find Error.log in working directory if there is an error report generated.
 * The format of error report is "[Date Time] -> [Error Type] Description of the error code[Error Code] in Filename(Line number)."
 * Error code in Windows, pleas visit https://msdn.microsoft.com/en-us/library/windows/desktop/ms681381(v=vs.85).aspx.
@@ -80,6 +15,9 @@ Please find Error.log in working directory if there is an error report generated
 * Error code of HTTP status code, pleas visit https://en.wikipedia.org/wiki/List_of_HTTP_status_codes.
 * Error code of SSPI/SChannel, pleas visit https://msdn.microsoft.com/en-us/library/windows/desktop/aa380499(v=vs.85).aspx and https://msdn.microsoft.com/en-us/library/windows/desktop/dd721886(v=vs.85).aspx.
 * Error code of OpenSSL, pleas visit https://www.openssl.org/docs/manmaster/man3/ERR_get_error.html
+
+
+-------------------------------------------------------------------------------
 
 
 Details of Error.log error report:

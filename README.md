@@ -12,11 +12,11 @@ Pcap_DNSProxy, a local DNS server based on WinPcap and LibPcap
 * [繁體中文介紹](README.zh-Hant.md)
 
 ### Summary
-Pcap_DNSProxy is a tool based on WinPcap/LibPcap which can filter DNS poisoning. It provides a convenient and powerful way to change Hosts via regular expressions, DNSCurve/DNSCrypt protocol support, as well as parallel request, and TCP protocol request support. Multiple servers parallel request can improve the reliability of domain name resolution in a bad network:
-* IPv4/IPv6 dual stack protocol support, custom the multiple listening addresses, port and protocols.
+Pcap_DNSProxy is a tool based on WinPcap/LibPcap which can filter DNS poisoning. It provides a convenient and powerful way to change Hosts via regular expressions, DNSCurve/DNSCrypt protocol support, as well as parallel request and TCP request support. Multiple servers parallel request can improve the reliability of domain name resolution in a bad network:
+* IPv4/IPv6 dual stack support, custom the multiple listening addresses, port and protocols.
 * Provides DNS service for other devices with custom limiting requests.
-* CNAME Hosts and Local DNS servers resolution support, which can improve DNS services quality.
-* Main/Alternate servers support and servers parallel requests with multiple times support, which can improve DNS services reliability.
+* CNAME Hosts and Local DNS servers resolution support, which can improve DNS service quality.
+* Main/Alternate servers support and servers parallel requests with multiple times support, which can improve DNS service reliability.
 * Built-in DNS cache, also EDNS tag, DNSSEC and DNSCurve/DNSCrypt protocol support.
 * SOCKS version 4/4a/5 and HTTP CONNECT tunnel protocol including TLS/SSL handshake support.
 * Lots of options and powerful error reporting.

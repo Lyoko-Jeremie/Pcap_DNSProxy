@@ -989,7 +989,7 @@ size_t MakeCompressionPointerMutation(
 	return EXIT_FAILURE;
 }
 
-//Mark responses to domains Cache
+//Mark responses to domain cache
 bool MarkDomainCache(
 	const uint8_t * const Buffer, 
 	const size_t Length, 
@@ -1016,7 +1016,10 @@ bool MarkDomainCache(
 
 //Initialization(A part)
 	DNS_CACHE_DATA DNSCacheDataTemp;
+	DNSCacheDataTemp.Length = 0;
+	DNSCacheDataTemp.ClearCacheTime = 0;
 	DNSCacheDataTemp.RecordType = reinterpret_cast<const dns_qry *>(Buffer + DNS_PACKET_QUERY_LOCATE(Buffer))->Type;
+	memset(&DNSCacheDataTemp.ForAddress, 0, sizeof(DNSCacheDataTemp.ForAddress));
 	uint32_t ResponseTTL = 0;
 
 //Mark DNS A records and AAAA records only.
@@ -1118,7 +1121,7 @@ bool MarkDomainCache(
 
 //Domain Case Conversion
 	CaseConvert(DNSCacheDataTemp.Domain, false);
-	memcpy_s(DNSCacheDataTemp.Response.get(), PACKET_NORMAL_MAXSIZE, Buffer + sizeof(uint16_t), Length - sizeof(uint16_t));
+	memcpy_s(DNSCacheDataTemp.Response.get(), Length - sizeof(uint16_t), Buffer + sizeof(uint16_t), Length - sizeof(uint16_t));
 	DNSCacheDataTemp.Length = Length - sizeof(uint16_t);
 	DNSCacheDataTemp.ClearCacheTime = GetCurrentSystemTime() + ResponseTTL * SECOND_TO_MILLISECOND;
 
@@ -1171,14 +1174,14 @@ size_t CheckDomainCache(
 {
 //Single address single cache(Part 1)
 	uint64_t AddrPart = 0;
-	if (LocalSocketData.SockAddr.ss_family == AF_INET6 && Parameter.DNS_CacheSinglePrefix_IPv6 > 0) //IPv6
+	if (Parameter.DNS_CacheSinglePrefix_IPv6 > 0 && LocalSocketData.SockAddr.ss_family == AF_INET6) //IPv6
 	{
 		if (Parameter.DNS_CacheSinglePrefix_IPv6 < sizeof(in6_addr) * BYTES_TO_BITS / 2U) //Mark high 64 bits.
 			AddrPart = hton64(ntoh64(*reinterpret_cast<const uint64_t *>(&reinterpret_cast<const sockaddr_in6 *>(&LocalSocketData.SockAddr)->sin6_addr)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS / 2U - Parameter.DNS_CacheSinglePrefix_IPv6)));
 		else //Mark low 64 bits.
 			AddrPart = hton64(ntoh64(*reinterpret_cast<const uint64_t *>(reinterpret_cast<const uint8_t *>(&reinterpret_cast<const sockaddr_in6 *>(&LocalSocketData.SockAddr)->sin6_addr) + sizeof(in6_addr) / 2U)) & (UINT64_MAX << (sizeof(in6_addr) * BYTES_TO_BITS - Parameter.DNS_CacheSinglePrefix_IPv6)));
 	}
-	else if (LocalSocketData.SockAddr.ss_family == AF_INET && Parameter.DNS_CacheSinglePrefix_IPv4 > 0) //IPv4
+	else if (Parameter.DNS_CacheSinglePrefix_IPv4 > 0 && LocalSocketData.SockAddr.ss_family == AF_INET) //IPv4
 	{
 		AddrPart = htonl(ntohl(reinterpret_cast<const sockaddr_in *>(&LocalSocketData.SockAddr)->sin_addr.s_addr) & (UINT32_MAX << (sizeof(in_addr) * BYTES_TO_BITS - Parameter.DNS_CacheSinglePrefix_IPv4)));
 	}

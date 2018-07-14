@@ -111,7 +111,7 @@ bool SSPI_Handshake(
 		if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_1)
 		{
 			auto InputBufferPointerTemp = std::make_unique<uint8_t[]>(sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP_1_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH);
-			memset(InputBufferPointerTemp.get(), 0, strlen(HTTP_1_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH);
+			memset(InputBufferPointerTemp.get(), 0, sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP_1_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH);
 			std::swap(InputBufferPointer, InputBufferPointerTemp);
 
 		//TLS ALPN extension buffer settings
@@ -127,7 +127,7 @@ bool SSPI_Handshake(
 		else if (Parameter.HTTP_CONNECT_Version == HTTP_VERSION_SELECTION::VERSION_2)
 		{
 			auto InputBufferPointerTemp = std::make_unique<uint8_t[]>(sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP_2_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH);
-			memset(InputBufferPointerTemp.get(), 0, strlen(HTTP_2_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH);
+			memset(InputBufferPointerTemp.get(), 0, sizeof(uint32_t) * 2U + sizeof(uint16_t) + sizeof(uint8_t) + strlen(HTTP_2_TLS_ALPN_STRING) + NULL_TERMINATE_LENGTH);
 			std::swap(InputBufferPointer, InputBufferPointerTemp);
 
 		//TLS ALPN extension buffer settings
@@ -1025,7 +1025,7 @@ bool OpenSSL_Handshake(
 		{
 			break;
 		}
-		else if (Timeout <= Parameter.SocketTimeout_Reliable_Serial.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.SocketTimeout_Reliable_Serial.tv_usec && 
+		else if (Timeout <= static_cast<uint64_t>(Parameter.SocketTimeout_Reliable_Serial.tv_sec) * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + static_cast<uint64_t>(Parameter.SocketTimeout_Reliable_Serial.tv_usec) && 
 			BIO_should_retry(OpenSSL_CTX.SessionBIO))
 		{
 			usleep(LOOP_INTERVAL_TIME_NO_DELAY);
@@ -1047,7 +1047,7 @@ bool OpenSSL_Handshake(
 		{
 			break;
 		}
-		else if (Timeout <= Parameter.SocketTimeout_Reliable_Serial.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.SocketTimeout_Reliable_Serial.tv_usec && 
+		else if (Timeout <= static_cast<uint64_t>(Parameter.SocketTimeout_Reliable_Serial.tv_sec) * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + static_cast<uint64_t>(Parameter.SocketTimeout_Reliable_Serial.tv_usec) && 
 			BIO_should_retry(OpenSSL_CTX.SessionBIO))
 		{
 			usleep(LOOP_INTERVAL_TIME_NO_DELAY);
@@ -1106,7 +1106,7 @@ bool TLS_TransportSerial(
 			{
 				break;
 			}
-			else if (Timeout <= Parameter.SocketTimeout_Reliable_Serial.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.SocketTimeout_Reliable_Serial.tv_usec && 
+			else if (Timeout <= static_cast<uint64_t>(Parameter.SocketTimeout_Reliable_Serial.tv_sec) * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + static_cast<uint64_t>(Parameter.SocketTimeout_Reliable_Serial.tv_usec) && 
 				BIO_should_retry(OpenSSL_CTX.SessionBIO))
 			{
 				usleep(LOOP_INTERVAL_TIME_NO_DELAY);
@@ -1160,7 +1160,7 @@ bool TLS_TransportSerial(
 		RecvLen = BIO_read(OpenSSL_CTX.SessionBIO, SocketSelectingDataList.front().RecvBuffer.get() + SocketSelectingDataList.front().RecvLen, static_cast<int>(Parameter.LargeBufferSize));
 		if (RecvLen <= 0)
 		{
-			if (Timeout <= Parameter.SocketTimeout_Reliable_Serial.tv_sec * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + Parameter.SocketTimeout_Reliable_Serial.tv_usec && 
+			if (Timeout <= static_cast<uint64_t>(Parameter.SocketTimeout_Reliable_Serial.tv_sec) * SECOND_TO_MILLISECOND * MICROSECOND_TO_MILLISECOND + static_cast<uint64_t>(Parameter.SocketTimeout_Reliable_Serial.tv_usec) && 
 				BIO_should_retry(OpenSSL_CTX.SessionBIO))
 			{
 				usleep(LOOP_INTERVAL_TIME_NO_DELAY);

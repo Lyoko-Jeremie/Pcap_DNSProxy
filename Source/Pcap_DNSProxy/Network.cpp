@@ -973,16 +973,17 @@ size_t SelectTargetSocketSingle(
 
 //Select socket data of DNS target(Multiple threading)
 bool SelectTargetSocketMultiple(
-	const uint16_t Protocol, 
+	const uint16_t Protocol_Network, 
+	const uint16_t Protocol_Transport, 
 	const uint16_t QueryType, 
 	const SOCKET_DATA * const LocalSocketData, 
 	std::vector<SOCKET_DATA> &TargetSocketDataList)
 {
 //Initialization
 	uint16_t SocketType = 0;
-	if (Protocol == IPPROTO_TCP)
+	if (Protocol_Transport == IPPROTO_TCP)
 		SocketType = SOCK_STREAM;
-	else if (Protocol == IPPROTO_UDP)
+	else if (Protocol_Transport == IPPROTO_UDP)
 		SocketType = SOCK_DGRAM;
 	else 
 		return false;
@@ -991,15 +992,19 @@ bool SelectTargetSocketMultiple(
 	TargetSocketData.Socket = INVALID_SOCKET;
 	size_t Index = 0;
 	bool *IsAlternate = nullptr;
-	const auto NetworkSpecific = SelectProtocol_Network(Parameter.RequestMode_Network, Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family, Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family, Parameter.RequestMode_IsAccordingType, QueryType, LocalSocketData);
+
+//Select network protocol.
+	auto NetworkSpecific = Protocol_Network;
+	if (NetworkSpecific == 0)
+		NetworkSpecific = SelectProtocol_Network(Parameter.RequestMode_Network, Parameter.Target_Server_Main_IPv6.AddressData.Storage.ss_family, Parameter.Target_Server_Main_IPv4.AddressData.Storage.ss_family, Parameter.RequestMode_IsAccordingType, QueryType, LocalSocketData);
 
 //IPv6
 	if (NetworkSpecific == AF_INET6)
 	{
 	//Set Alternate swap list.
-		if (Protocol == IPPROTO_TCP)
+		if (Protocol_Transport == IPPROTO_TCP)
 			IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_MAIN_TCP_IPV6];
-		else if (Protocol == IPPROTO_UDP)
+		else if (Protocol_Transport == IPPROTO_UDP)
 			IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_MAIN_UDP_IPV6];
 		else 
 			return false;
@@ -1011,11 +1016,11 @@ bool SelectTargetSocketMultiple(
 			{
 				memset(&TargetSocketData, 0, sizeof(TargetSocketData));
 				TargetSocketData.SockAddr = Parameter.Target_Server_Main_IPv6.AddressData.Storage;
-				TargetSocketData.Socket = socket(AF_INET6, SocketType, Protocol);
+				TargetSocketData.Socket = socket(AF_INET6, SocketType, Protocol_Transport);
 
 			//Socket attribute settings
 				if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-					(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+					(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
 					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
 					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr))
 				{
@@ -1038,11 +1043,11 @@ bool SelectTargetSocketMultiple(
 			{
 				memset(&TargetSocketData, 0, sizeof(TargetSocketData));
 				TargetSocketData.SockAddr = Parameter.Target_Server_Alternate_IPv6.AddressData.Storage;
-				TargetSocketData.Socket = socket(AF_INET6, SocketType, Protocol);
+				TargetSocketData.Socket = socket(AF_INET6, SocketType, Protocol_Transport);
 
 			//Socket attribute settings
 				if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-					(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+					(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
 					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
 					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr))
 				{
@@ -1067,11 +1072,11 @@ bool SelectTargetSocketMultiple(
 				{
 					memset(&TargetSocketData, 0, sizeof(TargetSocketData));
 					TargetSocketData.SockAddr = DNSServerDataIter.AddressData.Storage;
-					TargetSocketData.Socket = socket(AF_INET6, SocketType, Protocol);
+					TargetSocketData.Socket = socket(AF_INET6, SocketType, Protocol_Transport);
 
 				//Socket attribute settings
 					if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-						(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+						(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
 						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
 						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV6, true, nullptr))
 					{
@@ -1092,9 +1097,9 @@ bool SelectTargetSocketMultiple(
 	else if (NetworkSpecific == AF_INET)
 	{
 	//Set Alternate swap list.
-		if (Protocol == IPPROTO_TCP)
+		if (Protocol_Transport == IPPROTO_TCP)
 			IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_MAIN_TCP_IPV4];
-		else if (Protocol == IPPROTO_UDP)
+		else if (Protocol_Transport == IPPROTO_UDP)
 			IsAlternate = &AlternateSwapList.IsSwap[ALTERNATE_SWAP_TYPE_MAIN_UDP_IPV4];
 		else 
 			return false;
@@ -1106,14 +1111,14 @@ bool SelectTargetSocketMultiple(
 			{
 				memset(&TargetSocketData, 0, sizeof(TargetSocketData));
 				TargetSocketData.SockAddr = Parameter.Target_Server_Main_IPv4.AddressData.Storage;
-				TargetSocketData.Socket = socket(AF_INET, SocketType, Protocol);
+				TargetSocketData.Socket = socket(AF_INET, SocketType, Protocol_Transport);
 
 			//Socket attribute settings
 				if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-					(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+					(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
 					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
 					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
-					(Protocol == IPPROTO_UDP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))
+					(Protocol_Transport == IPPROTO_UDP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))
 				{
 					for (auto &SocketDataIter:TargetSocketDataList)
 						SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -1134,14 +1139,14 @@ bool SelectTargetSocketMultiple(
 			{
 				memset(&TargetSocketData, 0, sizeof(TargetSocketData));
 				TargetSocketData.SockAddr = Parameter.Target_Server_Alternate_IPv4.AddressData.Storage;
-				TargetSocketData.Socket = socket(AF_INET, SocketType, Protocol);
+				TargetSocketData.Socket = socket(AF_INET, SocketType, Protocol_Transport);
 
 			//Socket attribute settings
 				if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-					(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+					(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
 					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
 					!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
-					(Protocol == IPPROTO_UDP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))
+					(Protocol_Transport == IPPROTO_UDP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))
 				{
 					for (auto &SocketDataIter:TargetSocketDataList)
 						SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -1164,14 +1169,14 @@ bool SelectTargetSocketMultiple(
 				{
 					memset(&TargetSocketData, 0, sizeof(TargetSocketData));
 					TargetSocketData.SockAddr = DNSServerDataIter.AddressData.Storage;
-					TargetSocketData.Socket = socket(AF_INET, SocketType, Protocol);
+					TargetSocketData.Socket = socket(AF_INET, SocketType, Protocol_Transport);
 
 				//Socket attribute settings
 					if (!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::INVALID_CHECK, true, nullptr) || 
-						(Protocol == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
+						(Protocol_Transport == IPPROTO_TCP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::TCP_FAST_OPEN, true, nullptr)) || 
 						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::NON_BLOCKING_MODE, true, nullptr) || 
 						!SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::HOP_LIMITS_IPV4, true, nullptr) || 
-						(Protocol == IPPROTO_UDP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))
+						(Protocol_Transport == IPPROTO_UDP && !SocketSetting(TargetSocketData.Socket, SOCKET_SETTING_TYPE::DO_NOT_FRAGMENT, true, nullptr)))
 					{
 						for (auto &SocketDataIter:TargetSocketDataList)
 							SocketSetting(SocketDataIter.Socket, SOCKET_SETTING_TYPE::CLOSE, false, nullptr);
@@ -1933,6 +1938,7 @@ ssize_t SelectingResultOnce(
 					{
 						SOCKET_REGISTER_DATA SocketRegisterDataTemp;
 						SocketRegisterDataTemp.first = SocketDataIter.Socket;
+						SocketRegisterDataTemp.second = 0;
 						if (Protocol == IPPROTO_TCP)
 						{
 						#if defined(PLATFORM_WIN)
@@ -2031,6 +2037,7 @@ ssize_t SelectingResultOnce(
 					{
 						SOCKET_REGISTER_DATA SocketRegisterDataTemp;
 						SocketRegisterDataTemp.first = SocketDataIter.Socket;
+						SocketRegisterDataTemp.second = 0;
 						if (Protocol == IPPROTO_TCP)
 						{
 						#if defined(PLATFORM_WIN)

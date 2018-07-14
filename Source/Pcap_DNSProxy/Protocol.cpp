@@ -1218,7 +1218,7 @@ size_t CheckResponse_CNAME(
 			if (IsMatchItem)
 			{
 			//Check white and banned hosts list, empty record type list check
-				DataLength = CheckWhiteBannedHostsProcess(Length, HostsTableIter, DNS_Header, DNS_Query->Type, nullptr, nullptr);
+				DataLength = CheckWhiteBannedHostsProcess(Length, HostsTableIter, DNS_Header, DNS_Query->Type);
 				if (DataLength >= DNS_PACKET_MINSIZE)
 					return DataLength;
 				else if (HostsTableIter.RecordTypeList.empty())

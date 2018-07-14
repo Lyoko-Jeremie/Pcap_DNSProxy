@@ -304,7 +304,8 @@ typedef struct _dns_server_data_
 		//IPv6 header status
 			struct _ipv6_header_status_
 			{
-				uint32_t                             VersionTrafficFlow;
+				uint32_t                             VersionTrafficClass;
+				uint32_t                             FlowLabel;
 				uint8_t                              HopLimit_StaticLoad;
 				uint8_t                              HopLimit_DynamicMark;
 			}IPv6_HeaderStatus;
@@ -312,6 +313,7 @@ typedef struct _dns_server_data_
 		//IPv4 header status
 			struct _ipv4_header_status_
 			{
+				uint8_t                              Version;
 				uint8_t                              IHL;
 				uint8_t                              DSCP_ECN;
 				uint16_t                             ID;
@@ -355,24 +357,23 @@ typedef struct _socket_selecting_serial_data_
 typedef struct _dns_packet_data_
 {
 //Packet attributes block
-	uint8_t                                                    *Buffer;
-	size_t                                                     BufferSize;
-	size_t                                                     Length;
-	ADDRESS_UNION_DATA                                         LocalTarget;
-	uint16_t                                                   Protocol;
-	uint16_t                                                   QueryType;
-	bool                                                       IsLocalRequest;
-	bool                                                       IsLocalInBlack;
-	bool                                                       IsLocalInWhite;
+	uint8_t                              *Buffer;
+	size_t                               BufferSize;
+	size_t                               Length;
+	ADDRESS_UNION_DATA                   LocalTarget;
+	uint16_t                             Protocol;
+	uint16_t                             QueryType;
+	bool                                 IsLocalRequest;
+	bool                                 IsLocalInWhite;
 //Packet structure block
-	size_t                                                     Records_QuestionLen;
-	size_t                                                     Records_AnswerCount;
-	size_t                                                     Records_AuthorityCount;
-	size_t                                                     Records_AdditionalCount;
-	std::vector<size_t>                                        Records_Location;
-	std::vector<size_t>                                        Records_Length;
-	size_t                                                     EDNS_Location;
-	size_t                                                     EDNS_Length;
+	size_t                               Records_QuestionLen;
+	size_t                               Records_AnswerCount;
+	size_t                               Records_AuthorityCount;
+	size_t                               Records_AdditionalCount;
+	std::vector<size_t>                  Records_Location;
+	std::vector<size_t>                  Records_Length;
+	size_t                               EDNS_Location;
+	size_t                               EDNS_Length;
 }DNSPacketData, DNS_PACKET_DATA;
 
 //DNS Cache Data structure

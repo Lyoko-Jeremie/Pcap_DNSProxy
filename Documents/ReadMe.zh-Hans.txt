@@ -8,37 +8,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 -------------------------------------------------------------------------------
 
 
-安装方法（需要以管理员身份进行）：
-
-1.访问 https://www.winpcap.org 下载并以管理员权限安装 WinPcap
-  * WinPcap 只需要安装一次，以前安装过最新版本或以后更新本工具时请从第 2 步开始操作
-  * 如果 WinPcap 提示已安装旧版本无法继续时，参见 FAQ 中 运行结果分析 一节
-  * 安装时自启动选项对工具的运行没有影响，本工具直接调用 WinPcap API 不需要经过服务器程序
- 
-2.访问 https://github.com/chengr28/Pcap_DNSProxy/releases 将二进制可执行文件包下载到本地
-  * Windows 版本的 Pcap_DNSProxy 在二进制可执行文件包的 Windows 目录内，可将整个目录单独抽出运行
-
-3.打开下载回来的二进制可执行文件包，将 Windows 目录解压到磁盘的任意位置
-  * 目录所在位置和程序文件名可以随意更改，建议将本项目放置在一个独立的目录内
-  * 配置文件需要使用固定的文件名（更多详细情况参见下文 功能和技术 一节）
-
-4.确定工具目录的名称和路径后进入目录内，右键以管理员身份(Vista 以及更新版本)或直接以管理员登录双击(XP/2003)运行 ServiceControl.bat
-  * 输入 1 并回车，即选择 "1: Install service" 安装服务
-  * 批处理会将程序注册系统服务，并进行防火墙测试，每次开机服务都将自动启动
-  * 此时 Windows 系统会询问是否同意程序访问网络，请将 "专用网络" 以及 "公用网络" 都勾上并确认
-
-5.请按照下文 正常工作查看方法 一节，先对程序是否在正常工作进行测试再修改网络配置！
-
-6.打开 "网络和共享中心" - "更改适配器设置" 选择 "本地连接" 或 "无线连接" 或 "宽带连接"
-  * 右击 "属性" - "Internet协议(TCP/IP)"(XP/2003) 或 "Internet协议版本4(IPv4)"(Vista 以及更新版本) - "属性" - 勾选 "使用下面的 DNS 服务器地址"
-  * 在 "首选DNS服务器" 内填入 "127.0.0.1"（不含引号） 确定保存并退出即可
-  * 如果需要使用 IPv6 协议的本地服务器
-    * 右击 "属性" - "Internet协议版本6(IPv6)" - "属性" - 勾选 "使用下面的 DNS 服务器地址"
-    * 在 "首选DNS服务器" 内填入 "::1"（不含引号） 确定保存并退出即可
-  * 请务必确保只填入这两个地址，填入其它地址可能会导致系统选择其它 DNS 服务器绕过程序的代理
-  * 注意：建议将 "本地连接" 和 "无线连接" 以及 "宽带连接" 全部修改！
-
-7.特别注意：
+特别注意：
   * 如果需要让程序的流量通过系统路由级别的代理（例如 VPN 等）进行域名解析，请选择其中一种方案，配置完成后重启服务：
     * Direct Request = IPv4
     * Direct Request = IPv6
@@ -53,63 +23,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 目录和程序的名称可以随意更改，但请务必在进行安装方法第 4 步前完成。如果服务注册后需移动工具目录的路径，参见上文 卸载方法 第 2 步的注意事项
   * Windows XP 如出现 10022 错误，需要先启用系统的 IPv6 支持（以管理员身份运行 cmd 输入 ipv6 install 并回车，一次性操作），再重新启动服务
   * 本项目仅对最新版本提供技术支持，在新版本发布后旧版本的支持会即时停止，反馈前请先务必升级到最新版本
-
-
--------------------------------------------------------------------------------
-
-
-重启服务方法（需要以管理员身份进行）：
-1.右键以管理员身份(Vista 以及更新版本)或直接以管理员登录双击(XP/2003)运行 ServiceControl.bat
-2.输入 5 并回车，即选择 "5: Restart service" 立刻重启服务
-
-
-更新程序方法（需要以管理员身份进行，切勿直接覆盖，否则可能会造成不可预料的错误）：
-1.提前下载好新版本的 Pcap_DNSProxy（亦即 安装方法 中第 2 步），更新过程可能会造成域名解析短暂中断
-2.备份好所有配置文件 Hosts 文件 IPFilter 文件的自定义内容
-3.右键以管理员身份(Vista 以及更新版本)或直接以管理员登录双击(XP/2003)运行 ServiceControl.bat
-4.输入 2 并回车，即选择 "2: Uninstall service" 卸载服务
-5.将整个 Pcap_DNSProxy 程序的目录删除。注意 Windows 防火墙可能会留有允许程序访问网络的信息，卸载服务后又变更了程序的目录则可能需要使用注册表清理工具清理
-6.将新版本的 Pcap_DNSProxy 解压到任何位置（亦即 安装方法 中第 3 步）
-7.将配置文件的自定义内容加回新版本配置文件里相应的区域内
-8.按照 安装方法 中第 4 步重新部署 Pcap_DNSProxy
-
-
-安全模式下的使用方法（需要以管理员身份进行）：
-* 程序具备在安全模式下运行的能力，在安全模式下右键以管理员身份直接运行程序
-* 直接运行模式有控制台窗口，关闭程序时直接关闭控制台窗口即可
-
-
-卸载方法（需要以管理员身份进行）：
-1.按照 安装方法 中第 6 步还原 DNS 域名服务器地址配置
-2.右键以管理员身份(Vista 以及更新版本)或直接以管理员登录双击(XP/2003)运行 ServiceControl.bat
-  * 输入 2 并回车，即选择 "2: Uninstall service" 卸载服务
-  * 注意：Windows 防火墙可能会留有允许程序访问网络的信息，故卸载后可能需要使用注册表清理工具清理
-  * 转移工具目录路径需要重新安装服务，先卸载服务转移，转移完成后重新安装服务即可
-
-
--------------------------------------------------------------------------------
-
-
-正常工作查看方法：
-
-1.打开命令提示符
-  * 在开始菜单或直接 Win + R 调出 运行 ，输入 cmd 并回车
-  * 开始菜单 - 程序/所有程序 - 附件 - 命令提示符
-2.输入 nslookup www.google.com 127.0.0.1 或者 nslookup www.google.com ::1 并回车
-3.运行结果应类似：
-
-   >nslookup www.google.com
-    服务器:  pcap-dnsproxy.server（视配置文件设置的值而定，参见下文 配置文件详细参数说明 一节）
-    Address:  127.0.0.1（视所在网络环境而定，本地监听协议为 IPv6 时为 ::1）
-
-    非权威应答:
-    名称:    www.google.com
-    Addresses: ……（IP 地址或地址列表）
-
-4.如非以上结果，请移步 FAQ 文档中 运行结果分析 一节
-
-
--------------------------------------------------------------------------------
 
 
 特别使用技巧：
@@ -334,10 +247,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * RESERVED/65535
 
 * DNS - 域名解析参数区域
-  * Outgoing Protocol - 发送请求到远程 DNS 服务器时所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
-    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求，同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，将根据网络环境自动选择所使用的协议
-    * 同时填入 TCP 和 UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准传输层协议，即使填入 TCP 失败时也会使用 UDP 请求，填入 Force TCP 可阻止 TCP 请求失败后使用 UDP 重新尝试请求
-    * 填入 Type 将启用根据来源 DNS 请求的类型进行协议选择的功能
+  * Outgoing Protocol - 发送请求到远程 DNS 服务器时所使用的协议：格式为 "网络层协议 + 传输层协议( + Type)"（不含引号，括号内为可选项目）
+    * 网络层协议部分：可填入 IPv4 或 IPv6 只使用指定协议向远程 DNS 服务器发出请求，同时填入 IPv4 + IPv6 或不填时，将根据网络环境自动选择所使用的协议
+    * 传输层协议部分：可填入 TCP 或 UDP 只使用指定协议向远程 DNS 服务器发出请求，同时填入 TCP + UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准传输层协议。使用 TCP 失败时会使用 UDP 重新请求，填入 Force TCP 可阻止 TCP 请求失败后使用 UDP 重新尝试请求
+    * 填入 Type 将启用根据来源 DNS 请求的网络层类型进行协议选择的功能
   * Direct Request - 直连模式，启用后将使用系统的 API 直接请求远程服务器：可填入 IPv4 和 IPv6 和 0，关闭为 0
     * 建议当系统使用全局代理功能时启用，将除境内服务器外的所有请求直接交给系统而不作任何过滤等处理，系统会将请求自动发往远程服务器进行解析
     * 填入 IPv4 或 IPv6 时将会启用对应协议的 Direct Request 功能，填入 IPv4 + IPv6 将会启用所有协议的功能
@@ -366,10 +279,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * 如果填 0 则最终的缓存时间为 TTL 值
 
 * Local DNS - 境内域名解析参数区域
-  * Local Protocol - 发送请求到境内 DNS 服务器时所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
-    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求，同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，将根据网络环境自动选择所使用的协议
-    * 同时填入 TCP 和 UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准传输层协议，即使填入 TCP 失败时也会使用 UDP 请求，填入 Force TCP 可阻止 TCP 请求失败后使用 UDP 重新尝试请求
-    * 填入 Type 将启用根据来源 DNS 请求的类型进行协议选择的功能
+  * Local Protocol - 发送请求到境内 DNS 服务器时所使用的协议：格式为 "网络层协议 + 传输层协议( + Type)"（不含引号，括号内为可选项目）
+    * 网络层协议部分：可填入 IPv4 或 IPv6 只使用指定协议向远程 DNS 服务器发出请求，同时填入 IPv4 + IPv6 或不填时，将根据网络环境自动选择所使用的协议
+    * 传输层协议部分：可填入 TCP 或 UDP 只使用指定协议向远程 DNS 服务器发出请求，同时填入 TCP + UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准传输层协议。使用 TCP 失败时会使用 UDP 重新请求，填入 Force TCP 可阻止 TCP 请求失败后使用 UDP 重新尝试请求
+    * 填入 Type 将启用根据来源 DNS 请求的网络层类型进行协议选择的功能
   * Local Hosts - 白名单境内服务器请求功能：开启为 1 /关闭为 0
     * 本功能开启后才会尝试读取 Local Hosts 白名单内的数据，关闭时不会读取任何白名单的数据
   * Local Routing - 境内路由表识别功能：开启为 1 /关闭为 0
@@ -415,6 +328,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv6 EDNS Client Subnet Address - IPv6 客户端子网地址，输入后将为所有请求添加此地址的 EDNS 子网信息：需要输入一个带前缀长度的本机公共网络地址，留空为不启用
     * 本功能要求启用 EDNS Label 参数
     * EDNS Client Subnet Relay 参数优先级比此参数高，启用后将优先添加 EDNS Client Subnet Relay 参数的 EDNS 子网地址
+    * RFC 标准建议 IPv4 地址的前缀长度为 24 位，IPv6 地址为 56 位
   * IPv6 Main DNS Address - IPv6 主要 DNS 服务器地址：需要输入一个带端口格式的地址，留空为不启用
     * 支持多个地址，注意填入后将强制启用 Alternate Multiple Request 参数
     * 支持使用服务名称代替端口号
@@ -637,10 +551,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * SOCKS Version - SOCKS 协议所使用的版本：可填入 4 或 4A 或 5
     * SOCKS 版本 4 不支持 IPv6 地址以及域名的目标服务器，以及不支持 UDP 转发功能
     * SOCKS 版本 4a 不支持 IPv6 地址的目标服务器，以及不支持 UDP 转发功能
-  * SOCKS Protocol - 使用 SOCKS 协议发送请求时所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
-    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求，同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，将根据网络环境自动选择所使用的协议
-    * 同时填入 TCP 和 UDP 等于只填入 UDP 因为 TCP 为 SOCKS 的标准传输层协议，即使填入 UDP 失败时也会使用 TCP 请求，填入 Force UDP 可阻止 UDP 请求失败后使用 TCP 重新尝试请求
-    * 填入 Type 将启用根据来源 DNS 请求的类型进行协议选择的功能
+  * SOCKS Protocol - 使用 SOCKS 协议发送请求时所使用的协议：格式为 "网络层协议 + 传输层协议( + Type)"（不含引号，括号内为可选项目）
+    * 网络层协议部分：可填入 IPv4 或 IPv6 只使用指定协议向远程 DNS 服务器发出请求，同时填入 IPv4 + IPv6 或不填时，将根据网络环境自动选择所使用的协议
+    * 传输层协议部分：可填入 TCP 或 UDP 只使用指定协议向远程 DNS 服务器发出请求，同时填入 TCP + UDP 等于只填入 UDP 因为 TCP 为 SOCKS 的标准传输层协议。使用 UDP 失败时会使用 TCP 重新请求，填入 Force UDP 可阻止 UDP 请求失败后使用 TCP 重新尝试请求
+    * 填入 Type 将启用根据来源 DNS 请求的网络层类型进行协议选择的功能
   * SOCKS UDP No Handshake - SOCKS UDP 不握手模式，开启后将不进行 TCP 握手直接发送 UDP 转发请求：开启为 1 /关闭为 0
     * SOCKS 协议的标准流程使用 UDP 转发功能前必须使用 TCP 连接交换握手信息，否则 SOCKS 服务器将直接丢弃转发请求
     * 部分 SOCKS 本地代理可以直接进行 UDP 转发而不需要使用 TCP 连接交换握手信息，启用前请务必确认 SOCKS 服务器的支持情况
@@ -657,9 +571,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * SOCKS Username - 连接 SOCKS 服务器时所使用的用户名：最长可填入 255 个字符，留空为不启用
   * SOCKS Password - 连接 SOCKS 服务器时所使用的密码：最长可填入 255 个字符，留空为不启用
   * HTTP CONNECT Proxy - HTTP CONNECT 协议总开关，控制所有和 HTTP CONNECT 协议有关的选项：开启为 1 /关闭为 0
-  * HTTP CONNECT Protocol - 使用 HTTP CONNECT 协议请求时所使用的协议：可填入 IPv4 和 IPv6
-    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求，同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，将根据网络环境自动选择所使用的协议
-    * 填入 Type 将启用根据来源 DNS 请求的类型进行协议选择的功能
+  * HTTP CONNECT Protocol - 使用 HTTP CONNECT 协议请求时所使用的协议：格式为 "网络层协议( + Type)"（不含引号，括号内为可选项目）
+    * 网络层协议部分：可填入 IPv4 或 IPv6 只使用指定协议向远程 DNS 服务器发出请求，同时填入 IPv4 + IPv6 或不填时，将根据网络环境自动选择所使用的协议
+    * 填入 Type 将启用根据来源 DNS 请求的网络层类型进行协议选择的功能
   * HTTP CONNECT Proxy Only - 只使用 HTTP CONNECT 协议代理模式，所有请求将只通过 HTTP CONNECT 协议进行：开启为 1 /关闭为 0
   * HTTP CONNECT IPv4 Address - HTTP CONNECT 协议 IPv4 主要 HTTP CONNECT 服务器地址：需要输入一个带端口格式的地址
     * 不支持多个地址，只能填入单个地址
@@ -701,10 +615,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * DNSCurve - DNSCurve 协议基本参数区域
   * DNSCurve - DNSCurve 协议总开关，控制所有和 DNSCurve 协议有关的选项：开启为 1 /关闭为 0
-  * DNSCurve Protocol - 使用 DNSCurve 协议发送请求时所使用的协议：可填入 IPv4 和 IPv6 和 TCP 和 UDP
-    * 填入的协议可随意组合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 时，只使用指定协议向远程 DNS 服务器发出请求，同时填入 IPv4 和 IPv6 或直接不填任何网络层协议时，将根据网络环境自动选择所使用的协议
-    * 同时填入 TCP 和 UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准传输层协议，即使填入 TCP 失败时也会使用 UDP 请求，填入 Force TCP 可阻止 TCP 请求失败后使用 UDP 重新尝试请求
-    * 填入 Type 将启用根据来源 DNS 请求的类型进行协议选择的功能
+  * DNSCurve Protocol - 使用 DNSCurve 协议发送请求时所使用的协议：格式为 "网络层协议 + 传输层协议( + Type)"（不含引号，括号内为可选项目）
+    * 网络层协议部分：可填入 IPv4 或 IPv6 只使用指定协议向远程 DNS 服务器发出请求，同时填入 IPv4 + IPv6 或不填时，将根据网络环境自动选择所使用的协议
+    * 传输层协议部分：可填入 TCP 或 UDP 只使用指定协议向远程 DNS 服务器发出请求，同时填入 TCP + UDP 等于只填入 TCP 因为 UDP 为 DNS 的标准传输层协议。使用 TCP 失败时会使用 UDP 重新请求，填入 Force TCP 可阻止 TCP 请求失败后使用 UDP 重新尝试请求
+    * 填入 Type 将启用根据来源 DNS 请求的网络层类型进行协议选择的功能
   * DNSCurve Payload Size - DNSCurve 标签附带使用的最大载荷长度，同时亦为发送请求的总长度，并决定请求的填充长度：单位为字节
     * 最小为 DNS 协议实现要求的 512，留空则为 512
     * 最大为 Ethernet MTU 减去 DNSCurve 头长度，建议不要超过 1220

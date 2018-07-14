@@ -119,7 +119,7 @@
 #define CONFIG_VERSION_MINOR                          45U                                   //Current configuration file minor version(0.45)
 #define CONFIG_VERSION_MAXSIZE                        8U                                    //Maximum size of version
 #define COPYRIGHT_MESSAGE                             L"Copyright (C) 2012-2018 Chengr28"   //Copyright message
-#define FULL_VERSION                                  L"0.4.9.8"                            //Current full version
+#define FULL_VERSION                                  L"0.4.9.9"                            //Current full version
 
 //Size and length definitions(Number)
 #define ADDRESS_STRING_IPV4_MINSIZE                   6U                                //The shortest IPv4 address strings(*.*.*.*)
@@ -169,8 +169,10 @@
 #define MULTIPLE_REQUEST_MAXNUM                       64U                               //Maximum number of multiple request.
 #define NETWORK_LAYER_PARTNUM                         2U                                //Number of network layer protocols(IPv6 and IPv4)
 #define NULL_TERMINATE_LENGTH                         1U                                //Length of C style string null
-#define PACKET_ORIGINAL_MAXSIZE                       1522U                             //Maximum size of original Ethernet frame, 6 bytes destination MAC + 6 bytes source MAC + 4 bytes 802.1Q tag(optional) + 2 bytes Ethertype + 1500 bytes payload + 4 bytes Frame Check Sequence
-#define PACKET_NORMAL_MAXSIZE                         1480U                             //Maximum size of normal Ethernet frame, 1500 bytes maximum payload - 20 bytes IPv4 header(IPv6 header length is longer than IPv4) and ignore all other transport layer protocols.
+//#define PACKET_ORIGINAL_MAXSIZE                       1522U                             //Maximum size of original Ethernet frame, 6 bytes destination MAC + 6 bytes source MAC + 4 bytes 802.1Q tag(optional) + 2 bytes Ethertype + 1500 bytes payload + 4 bytes Frame Check Sequence
+#define PACKET_ORIGINAL_MAXSIZE                       2048U                             //Some DNS response length exceeds an Ethernet frame maximum payload, extends to 2 KB/2048 bytes.
+//#define PACKET_NORMAL_MAXSIZE                         1480U                             //Maximum size of normal Ethernet frame, 1500 bytes maximum payload - 20 bytes IPv4 header(IPv6 header length is longer than IPv4) and ignore all other transport layer protocols.
+#define PACKET_NORMAL_MAXSIZE                         PACKET_ORIGINAL_MAXSIZE           //Some DNS response length exceeds an Ethernet frame maximum payload, extends to 2 KB/2048 bytes.
 #if defined(ENABLE_PCAP)
 	#define PCAP_CAPTURE_STRING_MAXNUM                    256U                        //Maximum length of pcap capture drive name and description
 #endif

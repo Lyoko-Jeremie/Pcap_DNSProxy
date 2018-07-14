@@ -29,6 +29,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{
 		Auxiliary\Documents\FAQ_Linux_macOS.en.txt = Auxiliary\Documents\FAQ_Linux_macOS.en.txt
 		Auxiliary\Documents\FAQ_Linux_macOS.zh-Hans.txt = Auxiliary\Documents\FAQ_Linux_macOS.zh-Hans.txt
 		Auxiliary\Documents\FAQ_Linux_macOS.zh-Hant.txt = Auxiliary\Documents\FAQ_Linux_macOS.zh-Hant.txt
+		Auxiliary\Documents\FAQ_Windows.en.txt = Auxiliary\Documents\FAQ_Windows.en.txt
+		Auxiliary\Documents\FAQ_Windows.zh-Hans.txt = Auxiliary\Documents\FAQ_Windows.zh-Hans.txt
+		Auxiliary\Documents\FAQ_Windows.zh-Hant.txt = Auxiliary\Documents\FAQ_Windows.zh-Hant.txt
 		Auxiliary\Documents\ReadMe.en.md = Auxiliary\Documents\ReadMe.en.md
 		Auxiliary\Documents\ReadMe.en.txt = Auxiliary\Documents\ReadMe.en.txt
 		Auxiliary\Documents\ReadMe.zh-Hans.md = Auxiliary\Documents\ReadMe.zh-Hans.md
@@ -41,6 +44,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documents", "Documents", "{
 		Auxiliary\Documents\ReadMe_macOS.en.txt = Auxiliary\Documents\ReadMe_macOS.en.txt
 		Auxiliary\Documents\ReadMe_macOS.zh-Hans.txt = Auxiliary\Documents\ReadMe_macOS.zh-Hans.txt
 		Auxiliary\Documents\ReadMe_macOS.zh-Hant.txt = Auxiliary\Documents\ReadMe_macOS.zh-Hant.txt
+		Auxiliary\Documents\ReadMe_Windows.en.txt = Auxiliary\Documents\ReadMe_Windows.en.txt
+		Auxiliary\Documents\ReadMe_Windows.zh-Hans.txt = Auxiliary\Documents\ReadMe_Windows.zh-Hans.txt
+		Auxiliary\Documents\ReadMe_Windows.zh-Hant.txt = Auxiliary\Documents\ReadMe_Windows.zh-Hant.txt
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExampleConfig", "ExampleConfig", "{9A911CC0-63B2-400E-B819-2EA7DB529AAE}"
@@ -64,7 +70,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{4998
 		Auxiliary\Scripts\Linux_Uninstall.Systemd.sh = Auxiliary\Scripts\Linux_Uninstall.Systemd.sh
 		Auxiliary\Scripts\Linux_Uninstall.SysV.sh = Auxiliary\Scripts\Linux_Uninstall.SysV.sh
 		Auxiliary\Scripts\macOS_Install.sh = Auxiliary\Scripts\macOS_Install.sh
-		Auxiliary\Scripts\macOS_pcap_dnsproxy.rb = Auxiliary\Scripts\macOS_pcap_dnsproxy.rb
 		Auxiliary\Scripts\macOS_Uninstall.sh = Auxiliary\Scripts\macOS_Uninstall.sh
 		Auxiliary\Scripts\Update_Routing.sh = Auxiliary\Scripts\Update_Routing.sh
 		Auxiliary\Scripts\Update_WhiteList.sh = Auxiliary\Scripts\Update_WhiteList.sh

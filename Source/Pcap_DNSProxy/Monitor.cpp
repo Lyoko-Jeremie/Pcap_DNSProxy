@@ -739,10 +739,22 @@ bool UDP_Monitor(
 	memset(RecvBuffer.get(), 0, (PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES) * Parameter.ThreadPoolMaxNum);
 	memset(SendBuffer.get(), 0, PACKET_NORMAL_MAXSIZE + MEMORY_RESERVED_BYTES);
 	MONITOR_QUEUE_DATA MonitorQueryData;
+	MonitorQueryData.first.Buffer = nullptr;
+	MonitorQueryData.first.BufferSize = PACKET_NORMAL_MAXSIZE;
+	MonitorQueryData.first.Length = 0;
+	memset(&MonitorQueryData.first.LocalTarget, 0, sizeof(MonitorQueryData.first.LocalTarget));
+	MonitorQueryData.first.Protocol = IPPROTO_UDP;
+	MonitorQueryData.first.QueryType = 0;
+	MonitorQueryData.first.IsLocalRequest = false;
+	MonitorQueryData.first.IsLocalInWhite = false;
+	MonitorQueryData.first.Records_QuestionLen = 0;
+	MonitorQueryData.first.Records_AnswerCount = 0;
+	MonitorQueryData.first.Records_AuthorityCount = 0;
+	MonitorQueryData.first.Records_AdditionalCount = 0;
+	MonitorQueryData.first.EDNS_Location = 0;
+	MonitorQueryData.first.EDNS_Length = 0;
 	fd_set ReadFDS;
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
-	MonitorQueryData.first.BufferSize = PACKET_NORMAL_MAXSIZE;
-	MonitorQueryData.first.Protocol = IPPROTO_UDP;
 	const auto SocketDataPointer = &MonitorQueryData.second;
 	uint64_t LastRegisterTime = 0, NowTime = 0;
 	if (Parameter.QueueResetTime > 0)
@@ -828,7 +840,6 @@ bool UDP_Monitor(
 					MonitorQueryData.first.Length = RecvLen;
 					MonitorQueryData.first.QueryType = 0;
 					MonitorQueryData.first.IsLocalRequest = false;
-					MonitorQueryData.first.IsLocalInBlack = false;
 					MonitorQueryData.first.IsLocalInWhite = false;
 					memset(&MonitorQueryData.first.LocalTarget, 0, sizeof(MonitorQueryData.first.LocalTarget));
 					MonitorQueryData.first.Records_QuestionLen = 0;
@@ -893,10 +904,22 @@ bool TCP_Monitor(
 {
 //Initialization
 	MONITOR_QUEUE_DATA MonitorQueryData;
+	MonitorQueryData.first.Buffer = nullptr;
+	MonitorQueryData.first.BufferSize = Parameter.LargeBufferSize;
+	MonitorQueryData.first.Length = 0;
+	memset(&MonitorQueryData.first.LocalTarget, 0, sizeof(MonitorQueryData.first.LocalTarget));
+	MonitorQueryData.first.Protocol = IPPROTO_TCP;
+	MonitorQueryData.first.QueryType = 0;
+	MonitorQueryData.first.IsLocalRequest = false;
+	MonitorQueryData.first.IsLocalInWhite = false;
+	MonitorQueryData.first.Records_QuestionLen = 0;
+	MonitorQueryData.first.Records_AnswerCount = 0;
+	MonitorQueryData.first.Records_AuthorityCount = 0;
+	MonitorQueryData.first.Records_AdditionalCount = 0;
+	MonitorQueryData.first.EDNS_Location = 0;
+	MonitorQueryData.first.EDNS_Length = 0;
 	fd_set ReadFDS;
 	memset(&ReadFDS, 0, sizeof(ReadFDS));
-	MonitorQueryData.first.BufferSize = Parameter.LargeBufferSize;
-	MonitorQueryData.first.Protocol = IPPROTO_TCP;
 	const auto SocketDataPointer = &MonitorQueryData.second;
 	uint64_t LastRegisterTime = 0, NowTime = 0;
 	if (Parameter.QueueResetTime > 0)
@@ -1191,7 +1214,6 @@ bool TCP_AcceptProcess(
 		MonitorQueryData.first.Length = LengthValue;
 		MonitorQueryData.first.QueryType = 0;
 		MonitorQueryData.first.IsLocalRequest = false;
-		MonitorQueryData.first.IsLocalInBlack = false;
 		MonitorQueryData.first.IsLocalInWhite = false;
 		memset(&MonitorQueryData.first.LocalTarget, 0, sizeof(MonitorQueryData.first.LocalTarget));
 		MonitorQueryData.first.Records_QuestionLen = 0;

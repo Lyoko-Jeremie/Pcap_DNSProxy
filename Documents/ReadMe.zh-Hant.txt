@@ -8,37 +8,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
 -------------------------------------------------------------------------------
 
 
-安裝方法（需要以管理員身份進行）：
-
-1.訪問 https://www.winpcap.org 下載並以管理員許可權安裝 WinPcap
-  * WinPcap 只需要安裝一次，以前安裝過最新版本或以後更新本工具時請從第 2 步開始操作
-  * 如果 WinPcap 提示已安裝舊版本無法繼續時，參見 FAQ 中 運行結果分析 一節
-  * 安裝時自啟動選項對工具的運行沒有影響，本工具直接調用 WinPcap API 不需要經過伺服器程式
-
-2.訪問 https://github.com/chengr28/Pcap_DNSProxy/releases 將二進位可執行檔包下載到本地
-  * Windows 版本的 Pcap_DNSProxy 在二進位可執行檔包的 Windows 目錄內，可將整個目錄單獨抽出運行
-
-3.打開下載回來的二進位可執行檔包，將 Windows 目錄解壓到磁片的任意位置
-  * 目錄所在位置和程式檔案名可以隨意更改，建議將本專案放置在一個獨立的目錄內
-  * 設定檔需要使用固定的檔案名（更多詳細情況參見下文 功能和技術 一節）
-
-4.確定工具目錄的名稱和路徑後進入目錄內，右鍵以管理員身份(Vista 以及更新版本)或直接以管理員登錄按兩下(XP/2003)運行 ServiceControl.bat
-  * 輸入 1 並回車，即選擇 "1: Install service" 安裝服務
-  * 批次處理會將程式註冊系統服務，並進行防火牆測試，每次開機服務都將自動啟動
-  * 此時 Windows 系統會詢問是否同意程式訪問網路，請將 "私人網路絡" 以及 "公用網路" 都勾上並確認
-
-5.請按照下文 正常工作查看方法 一節，先對程式是否在正常工作進行測試再修改網路設定！
-
-6.打開 "網路和共用中心" - "更改配接器設置" 選擇 "本地連接" 或 "無線連接" 或 "寬頻連線"
-  * 右擊 "屬性" - "Internet協定(TCP/IP)"(XP/2003) 或 "Internet協定版本4(IPv4)"(Vista 以及更新版本) - "屬性" - 勾選 "使用下面的 DNS 伺服器位址"
-  * 在 "首選DNS伺服器" 內填入 "127.0.0.1"（不含引號） 確定保存並退出即可
-  * 如果需要使用 IPv6 協定的本機伺服器
-    * 右擊 "屬性" - "Internet協定版本6(IPv6)" - "屬性" - 勾選 "使用下面的 DNS 伺服器位址"
-    * 在 "首選DNS伺服器" 內填入 "::1"（不含引號） 確定保存並退出即可
-  * 請務必確保只填入這兩個地址，填入其它地址可能會導致系統選擇其它 DNS 服務器繞過程序的代理
-  * 注意：建議將 "本地連接" 和 "無線連接" 以及 "寬頻連線" 全部修改！
-
-7.特別注意：
+特別注意：
   * 如果需要讓程式的流量通過系統路由級別的代理（例如 VPN 等）進行網域名稱解析，請選擇其中一種方案，配置完成後重啟服務：
     * Direct Request = IPv4
     * Direct Request = IPv6
@@ -53,64 +23,6 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * 目錄和程式的名稱可以隨意更改，但請務必在進行安裝方法第 4 步前完成。如果服務註冊後需移動工具目錄的路徑，參見上文 卸載方法 第 2 步的注意事項
   * Windows XP 如出現 10022 錯誤，需要先啟用系統的 IPv6 支援（以管理員身份運行 cmd 輸入 ipv6 install 並回車，一次性操作），再重新開機服務
   * 本專案僅對最新版本提供技術支援，在新版本發佈後舊版本的支援會即時停止，回饋前請先務必升級到最新版本
-
-
--------------------------------------------------------------------------------
-
-
-重啟服務方法（需要以管理員身份進行）：
-1.右鍵以管理員身份(Vista 以及更新版本)或直接以管理員登錄按兩下(XP/2003)運行 ServiceControl.bat
-2.輸入 5 並回車，即選擇 "5: Restart service" 立刻重啟服務
-
-
-更新程式方法（需要以管理員身份進行，切勿直接覆蓋，否則可能會造成不可預料的錯誤）：
-1.提前下載好新版本的 Pcap_DNSProxy（亦即 安裝方法 中第 2 步），更新過程可能會造成網域名稱解析短暫中斷
-2.備份好所有設定檔 Hosts 檔 IPFilter 檔的自訂內容
-3.右鍵以管理員身份(Vista 以及更新版本)或直接以管理員登錄按兩下(XP/2003)運行 ServiceControl.bat
-4.輸入 2 並回車，即選擇 "2: Uninstall service" 卸載服務
-4.將整個 Pcap_DNSProxy 程式的目錄刪除。注意 Windows 防火牆可能會留有允許程式訪問網路的資訊，卸載服務後又變更了程式的目錄則可能需要使用註冊表清理工具清理
-5.將新版本的 Pcap_DNSProxy 解壓到任何位置（亦即 安裝方法 中第 3 步）
-6.將設定檔的自訂內容加回新版本設定檔裡相應的區域內
-7.按照 安裝方法 中第 4 步重新部署 Pcap_DNSProxy
-
-
-安全模式下的使用方法（需要以管理員身份進行）：
-* 程式具備在安全模式下運行的能力，在安全模式下右鍵以管理員身份直接運行程式
-* 直接運行模式有主控台視窗，關閉程式時直接關閉主控台視窗即可
-
-
-卸載方法（需要以管理員身份進行）：
-1.按照 安裝方法 中第 6 步還原 DNS 網域名稱伺服器位址配置
-2.右鍵以管理員身份(Vista 以及更新版本)或直接以管理員登錄按兩下(XP/2003)運行 ServiceControl.bat
-  * 輸入 2 並回車，即選擇 "2: Uninstall service" 卸載服務
-  * 注意：Windows 防火牆可能會留有允許程式訪問網路的資訊，故卸載後可能需要使用註冊表清理工具清理
-  * 轉移工具目錄路徑不需要卸載服務，先停止服務轉移，轉移完成後重新開機服務即可
-
-
--------------------------------------------------------------------------------
-
-
-正常工作查看方法：
-
-1.打開命令提示符
-  * 在開始功能表或直接 Win + R 調出 運行 ，輸入 cmd 並回車
-  * 開始功能表 - 程式/所有程式 - 附件 - 命令提示符
-2.輸入 nslookup www.google.com 127.0.0.1 或者 nslookup www.google.com ::1 並回車
-3.運行結果應類似：
-
-   >nslookup www.google.com
-    服务器:  pcap-dnsproxy.server（視設定檔設置的值而定，參見下文 設定檔詳細參數說明 一節）
-    Address:  127.0.0.1（視所在網路環境而定，本地監聽協定為 IPv6 時為 ::1）
-
-    非权威应答:
-    名称:    www.google.com
-    Addresses: ……（IP 位址或地址清單）
-
-
-4.如非以上結果，請移步 FAQ 文檔中 運行結果分析 一節
-
-
--------------------------------------------------------------------------------
 
 
 特別使用技巧：
@@ -335,10 +247,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
     * RESERVED/65535
 
 * DNS - 網域名稱解析參數區域
-  * Outgoing Protocol - 發送請求到遠端 DNS 伺服器時所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
-    * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向遠端 DNS 伺服器發出請求，同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，將根據網路環境自動選擇所使用的協定
-    * 同時填入 TCP 和 UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準傳輸層協定，即使填入 TCP 失敗時也會使用 UDP 請求，填入 Force TCP 可阻止 TCP 請求失敗後使用 UDP 重新嘗試請求
-    * 填入 Type 將啟用根據來源 DNS 請求的類型進行協定選擇的功能
+  * Outgoing Protocol - 發送請求到遠端 DNS 伺服器時所使用的協定：格式為 "網路層協定 + 傳輸層協定( + Type)"（不含引號，括弧內為可選項目）
+    * 網路層協定部分：可填入 IPv4 或 IPv6 只使用指定協定向遠端 DNS 伺服器發出請求，同時填入 IPv4 + IPv6 或不填時，將根據網路環境自動選擇所使用的協定
+    * 傳輸層協定部分：可填入 TCP 或 UDP 只使用指定協定向遠端 DNS 伺服器發出請求，同時填入 TCP + UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準傳輸層協定。 使用 TCP 失敗時會使用 UDP 重新請求，填入 Force TCP 可阻止 TCP 請求失敗後使用 UDP 重新嘗試請求
+    * 填入 Type 將啟用根據來源 DNS 請求的網路層類型進行協定選擇的功能
   * Direct Request - 直連模式，啟用後將使用系統的 API 直接請求遠端伺服器：可填入 IPv4 和 IPv6 和 0，關閉為 0
     * 建議當系統使用全域代理功能時啟用，將除境內服務器外的所有請求直接交給系統而不作任何過濾等處理，系統會將請求自動發往遠端伺服器進行解析
     * 填入 IPv4 或 IPv6 時將會啟用對應協定的 Direct Request 功能，填入 IPv4 + IPv6 將會啟用所有協定的功能
@@ -371,10 +283,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
       * 如果填 0 則最終的緩存時間為 TTL 值
 
 * Local DNS - 境內網域名稱解析參數區域
-  * Local Protocol - 發送請求到境內 DNS 伺服器時所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
-    * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向遠端 DNS 伺服器發出請求，同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，將根據網路環境自動選擇所使用的協定
-    * 同時填入 TCP 和 UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準傳輸層協定，即使填入 TCP 失敗時也會使用 UDP 請求，填入 Force TCP 可阻止 TCP 請求失敗後使用 UDP 重新嘗試請求
-    * 填入 Type 將啟用根據來源 DNS 請求的類型進行協定選擇的功能
+  * Local Protocol - 發送請求到境內 DNS 伺服器時所使用的協定：格式為 "網路層協定 + 傳輸層協定( + Type)"（不含引號，括弧內為可選項目）
+    * 網路層協定部分：可填入 IPv4 或 IPv6 只使用指定協定向遠端 DNS 伺服器發出請求，同時填入 IPv4 + IPv6 或不填時，將根據網路環境自動選擇所使用的協定
+    * 傳輸層協定部分：可填入 TCP 或 UDP 只使用指定協定向遠端 DNS 伺服器發出請求，同時填入 TCP + UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準傳輸層協定。 使用 TCP 失敗時會使用 UDP 重新請求，填入 Force TCP 可阻止 TCP 請求失敗後使用 UDP 重新嘗試請求
+    * 填入 Type 將啟用根據來源 DNS 請求的網路層類型進行協定選擇的功能
   * Local Hosts - 白名單境內伺服器請求功能：開啟為 1 /關閉為 0
     * 本功能開啟後才會嘗試讀取 Local Hosts 白名單內的資料，關閉時不會讀取任何白名單的資料
   * Local Routing - 境內路由表識別功能：開啟為 1 /關閉為 0
@@ -420,6 +332,7 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * IPv6 EDNS Client Subnet Address - IPv6 用戶端子網位址，輸入後將為所有請求添加此位址的 EDNS 子網資訊：需要輸入一個帶前置長度的本機公共網路位址，留空為不啟用
     * 本功能要求啟用 EDNS Label 參數
     * EDNS Client Subnet Relay 參數優先順序比此參數高，啟用後將優先添加 EDNS Client Subnet Relay 參數的 EDNS 子網位址
+    * RFC 標準建議 IPv4 位址的首碼長度為 24 位，IPv6 位址為 56 位
   * IPv6 Main DNS Address - IPv6 主要 DNS 伺服器位址：需要輸入一個帶埠格式的位址，留空為不啟用
     * 支援多個位址，注意填入後將強制啟用 Alternate Multiple Request 參數
     * 支援使用服務名稱代替埠號
@@ -642,10 +555,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * SOCKS Version - SOCKS 協定所使用的版本：可填入 4 或 4A 或 5
     * SOCKS 版本 4 不支援 IPv6 位址以及網域名稱的目標伺服器，以及不支援 UDP 轉發功能
     * SOCKS 版本 4a 不支援 IPv6 位址的目標伺服器，以及不支援 UDP 轉發功能
-  * SOCKS Protocol - 使用 SOCKS 協定發送請求時所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
-    * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向遠端 DNS 伺服器發出請求，同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，將根據網路環境自動選擇所使用的協定
-    * 同時填入 TCP 和 UDP 等於只填入 UDP 因為 TCP 為 SOCKS 的標準傳輸層協定，即使填入 UDP 失敗時也會使用 TCP 請求，填入 Force UDP 可阻止 UDP 請求失敗後使用 TCP 重新嘗試請求
-    * 填入 Type 將啟用根據來源 DNS 請求的類型進行協定選擇的功能
+  * SOCKS Protocol - 使用 SOCKS 協定發送請求時所使用的協定：格式為 "網路層協定 + 傳輸層協定( + Type)"（不含引號，括弧內為可選項目）
+    * 網路層協定部分：可填入 IPv4 或 IPv6 只使用指定協定向遠端 DNS 伺服器發出請求，同時填入 IPv4 + IPv6 或不填時，將根據網路環境自動選擇所使用的協定
+    * 傳輸層協定部分：可填入 TCP 或 UDP 只使用指定協定向遠端 DNS 伺服器發出請求，同時填入 TCP + UDP 等於只填入 UDP 因為 TCP 為 SOCKS 的標準傳輸層協定。 使用 UDP 失敗時會使用 TCP 重新請求，填入 Force UDP 可阻止 UDP 請求失敗後使用 TCP 重新嘗試請求
+    * 填入 Type 將啟用根據來源 DNS 請求的網路層類型進行協定選擇的功能
   * SOCKS UDP No Handshake - SOCKS UDP 不握手模式，開啟後將不進行 TCP 握手直接發送 UDP 轉發請求：開啟為 1 /關閉為 0
     * SOCKS 協定的標準流程使用 UDP 轉發功能前必須使用 TCP 連接交換握手資訊，否則 SOCKS 伺服器將直接丟棄轉發請求
     * 部分 SOCKS 本地代理可以直接進行 UDP 轉發而不需要使用 TCP 連接交換握手資訊，啟用前請務必確認 SOCKS 伺服器的支援情況
@@ -662,9 +575,9 @@ https://sourceforge.net/projects/pcap-dnsproxy
   * SOCKS Username - 連接 SOCKS 伺服器時所使用的使用者名：最長可填入 255 個字元，留空為不啟用
   * SOCKS Password - 連接 SOCKS 伺服器時所使用的密碼：最長可填入 255 個字元，留空為不啟用
   * HTTP CONNECT Proxy - HTTP CONNECT 協定總開關，控制所有和 HTTP CONNECT 協定有關的選項：開啟為 1 /關閉為 0
-  * HTTP CONNECT Protocol - 使用 HTTP CONNECT 協定請求時所使用的協定：可填入 IPv4 和 IPv6
-    * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向遠端 DNS 伺服器發出請求，同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，將根據網路環境自動選擇所使用的協定
-    * 填入 Type 將啟用根據來源 DNS 請求的類型進行協定選擇的功能
+  * HTTP CONNECT Protocol - 使用 HTTP CONNECT 協定請求時所使用的協定：格式為 "網路層協定( + Type)"（不含引號，括弧內為可選項目）
+    * 網路層協定部分：可填入 IPv4 或 IPv6 只使用指定協定向遠端 DNS 伺服器發出請求，同時填入 IPv4 + IPv6 或不填時，將根據網路環境自動選擇所使用的協定
+    * 填入 Type 將啟用根據來源 DNS 請求的網路層類型進行協定選擇的功能
   * HTTP CONNECT Proxy Only - 只使用 HTTP CONNECT 協定代理模式，所有請求將只通過 HTTP CONNECT 協定進行：開啟為 1 /關閉為 0
   * HTTP CONNECT IPv4 Address - HTTP CONNECT 協定 IPv4 主要 HTTP CONNECT 伺服器位址：需要輸入一個帶埠格式的位址
     * 不支援多個位址，只能填入單個位址
@@ -706,10 +619,10 @@ https://sourceforge.net/projects/pcap-dnsproxy
 
 * DNSCurve - DNSCurve 協定基本參數區域
   * DNSCurve - DNSCurve 協定總開關，控制所有和 DNSCurve 協定有關的選項：開啟為 1 /關閉為 0
-  * DNSCurve Protocol - 使用 DNSCurve 協定發送請求時所使用的協定：可填入 IPv4 和 IPv6 和 TCP 和 UDP
-    * 填入的協定可隨意組合，只填 IPv4 或 IPv6 配合 UDP 或 TCP 時，只使用指定協定向遠端 DNS 伺服器發出請求，同時填入 IPv4 和 IPv6 或直接不填任何網路層協定時，將根據網路環境自動選擇所使用的協定
-    * 同時填入 TCP 和 UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準傳輸層協定，即使填入 TCP 失敗時也會使用 UDP 請求，填入 Force TCP 可阻止 TCP 請求失敗後使用 UDP 重新嘗試請求
-    * 填入 Type 將啟用根據來源 DNS 請求的類型進行協定選擇的功能
+  * DNSCurve Protocol - 使用 DNSCurve 協定發送請求時所使用的協定：格式為 "網路層協定 + 傳輸層協定( + Type)"（不含引號，括弧內為可選項目）
+    * 網路層協定部分：可填入 IPv4 或 IPv6 只使用指定協定向遠端 DNS 伺服器發出請求，同時填入 IPv4 + IPv6 或不填時，將根據網路環境自動選擇所使用的協定
+    * 傳輸層協定部分：可填入 TCP 或 UDP 只使用指定協定向遠端 DNS 伺服器發出請求，同時填入 TCP + UDP 等於只填入 TCP 因為 UDP 為 DNS 的標準傳輸層協定。 使用 TCP 失敗時會使用 UDP 重新請求，填入 Force TCP 可阻止 TCP 請求失敗後使用 UDP 重新嘗試請求
+    * 填入 Type 將啟用根據來源 DNS 請求的網路層類型進行協定選擇的功能
   * DNSCurve Payload Size - DNSCurve 標籤附帶使用的最大載荷長度，同時亦為發送請求的總長度，並決定請求的填充長度：單位為位元組
     * 最小為 DNS 協定實現要求的 512，留空則為 512
     * 最大為 Ethernet MTU 減去 DNSCurve 頭長度，建議不要超過 1220

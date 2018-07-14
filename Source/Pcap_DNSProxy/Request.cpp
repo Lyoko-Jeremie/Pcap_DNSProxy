@@ -207,16 +207,16 @@ bool DomainTestRequest(
 			memset(RecvBuffer.get(), 0, Parameter.LargeBufferSize + MEMORY_RESERVED_BYTES);
 			if (Parameter.DomainTest_Protocol == REQUEST_MODE_TEST::BOTH)
 			{
-				UDP_RequestMultiple(REQUEST_PROCESS_TYPE::UDP_WITHOUT_REGISTER, 0, SendBuffer.get(), DataLength, DNS_Query->Type, nullptr, nullptr);
-				TCP_RequestMultiple(REQUEST_PROCESS_TYPE::TCP_WITHOUT_REGISTER, SendBuffer.get(), DataLength, RecvBuffer.get(), Parameter.LargeBufferSize, DNS_Query->Type, nullptr);
+				UDP_RequestMultiple(REQUEST_PROCESS_TYPE::UDP_WITHOUT_REGISTER, Protocol, 0, SendBuffer.get(), DataLength, DNS_Query->Type, nullptr, nullptr);
+				TCP_RequestMultiple(REQUEST_PROCESS_TYPE::TCP_WITHOUT_REGISTER, Protocol, SendBuffer.get(), DataLength, RecvBuffer.get(), Parameter.LargeBufferSize, DNS_Query->Type, nullptr);
 			}
 			else if (Parameter.DomainTest_Protocol == REQUEST_MODE_TEST::TCP)
 			{
-				TCP_RequestMultiple(REQUEST_PROCESS_TYPE::TCP_WITHOUT_REGISTER, SendBuffer.get(), DataLength, RecvBuffer.get(), Parameter.LargeBufferSize, DNS_Query->Type, nullptr);
+				TCP_RequestMultiple(REQUEST_PROCESS_TYPE::TCP_WITHOUT_REGISTER, Protocol, SendBuffer.get(), DataLength, RecvBuffer.get(), Parameter.LargeBufferSize, DNS_Query->Type, nullptr);
 			}
 			else if (Parameter.DomainTest_Protocol == REQUEST_MODE_TEST::UDP)
 			{
-				UDP_RequestMultiple(REQUEST_PROCESS_TYPE::UDP_WITHOUT_REGISTER, 0, SendBuffer.get(), DataLength, DNS_Query->Type, nullptr, nullptr);
+				UDP_RequestMultiple(REQUEST_PROCESS_TYPE::UDP_WITHOUT_REGISTER, Protocol, 0, SendBuffer.get(), DataLength, DNS_Query->Type, nullptr, nullptr);
 			}
 
 		//Interval time
@@ -918,6 +918,7 @@ size_t TCP_RequestSingle(
 //Transmission and reception of TCP protocol(Multiple threading)
 size_t TCP_RequestMultiple(
 	const REQUEST_PROCESS_TYPE RequestType, 
+	const uint16_t Protocol_Network, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
@@ -932,7 +933,7 @@ size_t TCP_RequestMultiple(
 
 //Socket initialization
 	std::vector<SOCKET_DATA> TCPSocketDataList;
-	if (!SelectTargetSocketMultiple(IPPROTO_TCP, QueryType, LocalSocketData, TCPSocketDataList))
+	if (!SelectTargetSocketMultiple(Protocol_Network, IPPROTO_TCP, QueryType, LocalSocketData, TCPSocketDataList))
 		return EXIT_FAILURE;
 
 //Add length of request packet.
@@ -1013,7 +1014,8 @@ size_t UDP_RequestSingle(
 //Transmission of UDP protocol(Multiple threading)
 size_t UDP_RequestMultiple(
 	const REQUEST_PROCESS_TYPE RequestType, 
-	const uint16_t Protocol, 
+	const uint16_t Protocol_Network, 
+	const uint16_t Protocol_Transport, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	const uint16_t QueryType, 
@@ -1022,7 +1024,7 @@ size_t UDP_RequestMultiple(
 {
 //Socket initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList;
-	if (!SelectTargetSocketMultiple(IPPROTO_UDP, QueryType, LocalSocketData, UDPSocketDataList))
+	if (!SelectTargetSocketMultiple(Protocol_Network, IPPROTO_UDP, QueryType, LocalSocketData, UDPSocketDataList))
 		return EXIT_FAILURE;
 
 //Socket selecting
@@ -1036,7 +1038,7 @@ size_t UDP_RequestMultiple(
 	}
 
 //Mark port to list.
-	RegisterPortToList(Protocol, LocalSocketData, UDPSocketDataList, EDNS_Length);
+	RegisterPortToList(Protocol_Transport, LocalSocketData, UDPSocketDataList, EDNS_Length);
 	return EXIT_SUCCESS;
 }
 #endif
@@ -1105,7 +1107,7 @@ size_t UDP_CompleteRequestMultiple(
 
 //Socket initialization
 	std::vector<SOCKET_DATA> UDPSocketDataList;
-	if (!SelectTargetSocketMultiple(IPPROTO_UDP, QueryType, LocalSocketData, UDPSocketDataList))
+	if (!SelectTargetSocketMultiple(0, IPPROTO_UDP, QueryType, LocalSocketData, UDPSocketDataList))
 		return EXIT_FAILURE;
 
 //Socket selecting

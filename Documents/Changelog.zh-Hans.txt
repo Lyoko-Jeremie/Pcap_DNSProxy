@@ -1,4 +1,4 @@
-﻿Pcap_DNSProxy 0.4.9.5-0.4.9.8 更新日志(2018-06-04)：
+﻿Pcap_DNSProxy 0.4.9.5-0.4.9.9 更新日志(2018-07-14)：
 
 * 添加完整的 EDNS 标签透明转发支持
 * 添加对 libevent 库的支持
@@ -8,7 +8,7 @@
 * OpenSSL 更新到 1.1.0h (macOS)
 * Strict Resource Record TTL Filter 改名为 Resource Record Set TTL Filter
 * 优化编译参数 (Linux/macOS)
-* 修正 Local 请求过程参数的逻辑 [LisonFan/sysconfon]
+* 修正 Local 请求过程参数的逻辑 [LisonFan/sysconfon/huaji0353/gitlikang]
 * 修正请求协议选择的算法，在同时启用 IPv6 和 IPv4 时默认将趋向以相同的协议进行请求 [ccaapton]
 * 修正 EDNS Lebel 参数对 All 行为的支持 [muink]
 * 修正对 DNSSEC 数据包的过滤算法 [ZeroClover]
@@ -18,9 +18,13 @@
   * DNSSEC Force Validation 改名为 DNSSEC Force Record
 * 修正脚本对文件描述符的软性限制 (Linux) [lunzima]
 * 修复 SOCKS 和 HTTP(S) Proxy 协议 TCP 模式下长度判断错误的问题 [LisonFan/laggardkernel]
+* 修复部分受支持编译器不支持 -fsplit-stack 参数导致编译失败的问题 [asd2003asd]
 * 修复 SOCKS Username 和 SOCKS Password 参数读取的问题 [ダクネスExplosion]
+* 修复部分带地址参数重复检测逻辑错误的问题 [cjjdaq]
 * 修复 EDNS Client Subnet 启用时部分类型的 DNS 请求会被截断的问题 [mewsf]
 * 修复 EDNS Label 以及任何的 Force TCP 同时启用时数据包格式出错的问题 [chenjiajia9411]
+* 修复在启用 EDNS Label 同时收到 UDP 协议超长数据包时无法正确设置截断标志位的问题 [debugzxcv]
+* 修复抓包模块抓取原生 IPv6 和 ICMP 协议数据包时的错误
 * 修复 ICMP/ICMPv6 请求模块的时间控制问题
 * 提升 CMake 版本要求到 3.1 (Linux/macOS)
 * 移除 IPv4 Data Filter 参数
@@ -29,15 +33,15 @@
 * 移除对 Homebrew 的支持 (macOS)
 * Release Hash:
   * SHA-3(256):
-    * Windows/Pcap_DNSProxy.exe: C87A6EA338E60951F0CBA65DA09603861ACA7FEC379BE8F6508131B2979BFE38
-    * Windows/Pcap_DNSProxy_x86.exe: 9421E20CBE26228F53743633EE53DE3C84E0F61C33095AD5E7BD506A75BFA451
-    * Windows/Pcap_DNSProxy_XP.exe: D5830F286388AE5D1CF715B1DC80C78095602E7A17A39943701486D5307E807F
-    * macOS/Pcap_DNSProxy: D1ADE59BDE8308E6F84B188958E7F0755815FBD86E60A65A2C474F56FB68F521
+    * Windows/Pcap_DNSProxy.exe: 462857B5E74356D783D7230F60A662F9462A36F8543E45874376B96E9C1F0FE1
+    * Windows/Pcap_DNSProxy_x86.exe: 957C1EBE379E82E3B4AB87B13AAA17A715F8E0906BCC2846F1F591A5602F06A2
+    * Windows/Pcap_DNSProxy_XP.exe: C69BCF482203799AF642BC48DCF78DB98B885D7D7E613BB14C1EE32A203E509D
+    * macOS/Pcap_DNSProxy: 5372E067FE8941E77E210AE68C684E3019C8F887218536B2947696AF83877670
   * SHA-2(256):
-    * Windows/Pcap_DNSProxy.exe: 88B2BAFCBA397DB2AB2668B03B20864A02712558882E2BCF736A3C8DC8EFD04A
-    * Windows/Pcap_DNSProxy_x86.exe: 6D9802AC238F6A276DB9149EDC87AA2541FC562F52251B6D79771A74BBBAD8FC
-    * Windows/Pcap_DNSProxy_XP.exe: 289DA9E96CB49D167E454A10D21206E63E9079FFAAB7FBC72645235E66D2A5F2
-    * macOS/Pcap_DNSProxy: 520A00FBF885A07C008A3007846CBBF72FA926CF1B53C07C06BAC744BEC3DB93
+    * Windows/Pcap_DNSProxy.exe: 3E57CF4D09A28D116972B73D4A7C33E7888F4189DD35939955DEFC81C61BA732
+    * Windows/Pcap_DNSProxy_x86.exe: E6CE60C25C93456DF9A70BBDB2A2D21EF40254783DC0003561AC4E89CBFC3C10
+    * Windows/Pcap_DNSProxy_XP.exe: 8C363476DB55EC55AB1F96C5BB05C84E3B8602F08B9B0992C8ED26FAF8990617
+    * macOS/Pcap_DNSProxy: 035D39EA32D70EDBA6B2B7FA6B6C27AB5D91E335DCD0330E5E39C97997FDC8BC
 
 
 -------------------------------------------------------------------------------

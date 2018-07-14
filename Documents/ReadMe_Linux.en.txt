@@ -5,7 +5,7 @@ Pcap_DNSProxy Project Sourceforge page:
 https://sourceforge.net/projects/pcap-dnsproxy
 
 
-* For more details on the program and configuration, see ReadMe (..). Txt
+* For more details on the program and configuration, please read ReadMe(..).txt.
 
 
 -------------------------------------------------------------------------------

@@ -167,7 +167,18 @@ bool Parameter_CheckSetting(
 		else if (!Parameter.EDNS_Label)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"EDNS Client Subnet require EDNS Label", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+		
+		//Enable all process
 			Parameter.EDNS_Label = true;
+			Parameter.EDNS_Switch_Local = true;
+			Parameter.EDNS_Switch_SOCKS = true;
+			Parameter.EDNS_Switch_HTTP_CONNECT = true;
+			Parameter.EDNS_Switch_Direct = true;
+		#if defined(ENABLE_LIBSODIUM)
+			Parameter.EDNS_Switch_DNSCurve = true;
+		#endif
+			Parameter.EDNS_Switch_TCP = true;
+			Parameter.EDNS_Switch_UDP = true;
 		}
 
 	//EDNS Client Subnet Address check(IPv4)
@@ -179,7 +190,18 @@ bool Parameter_CheckSetting(
 		else if (!Parameter.EDNS_Label)
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"EDNS Client Subnet require EDNS Label", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+			
+		//Enable all process
 			Parameter.EDNS_Label = true;
+			Parameter.EDNS_Switch_Local = true;
+			Parameter.EDNS_Switch_SOCKS = true;
+			Parameter.EDNS_Switch_HTTP_CONNECT = true;
+			Parameter.EDNS_Switch_Direct = true;
+		#if defined(ENABLE_LIBSODIUM)
+			Parameter.EDNS_Switch_DNSCurve = true;
+		#endif
+			Parameter.EDNS_Switch_TCP = true;
+			Parameter.EDNS_Switch_UDP = true;
 		}
 
 	//IPv6 multiple list exchange
@@ -414,7 +436,18 @@ bool Parameter_CheckSetting(
 		if (Parameter.DNSSEC_ForceRecord && (!Parameter.EDNS_Label || !Parameter.DNSSEC_Request))
 		{
 			PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"DNSSEC Force Record require EDNS Label and DNSSEC Request", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+			
+		//Enable all process
 			Parameter.EDNS_Label = true;
+			Parameter.EDNS_Switch_Local = true;
+			Parameter.EDNS_Switch_SOCKS = true;
+			Parameter.EDNS_Switch_HTTP_CONNECT = true;
+			Parameter.EDNS_Switch_Direct = true;
+		#if defined(ENABLE_LIBSODIUM)
+			Parameter.EDNS_Switch_DNSCurve = true;
+		#endif
+			Parameter.EDNS_Switch_TCP = true;
+			Parameter.EDNS_Switch_UDP = true;
 			Parameter.DNSSEC_Request = true;
 		}
 
@@ -425,14 +458,36 @@ bool Parameter_CheckSetting(
 			if (Parameter.EDNS_ClientSubnet_Relay)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"EDNS Client Subnet require EDNS Label", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+				
+			//Enable all process
 				Parameter.EDNS_Label = true;
+				Parameter.EDNS_Switch_Local = true;
+				Parameter.EDNS_Switch_SOCKS = true;
+				Parameter.EDNS_Switch_HTTP_CONNECT = true;
+				Parameter.EDNS_Switch_Direct = true;
+			#if defined(ENABLE_LIBSODIUM)
+				Parameter.EDNS_Switch_DNSCurve = true;
+			#endif
+				Parameter.EDNS_Switch_TCP = true;
+				Parameter.EDNS_Switch_UDP = true;
 			}
 
 		//DNSSEC check
 			if (Parameter.DNSSEC_Request)
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_3, LOG_ERROR_TYPE::NOTICE, L"DNSSEC Request require EDNS Label", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
+				
+			//Enable all process
 				Parameter.EDNS_Label = true;
+				Parameter.EDNS_Switch_Local = true;
+				Parameter.EDNS_Switch_SOCKS = true;
+				Parameter.EDNS_Switch_HTTP_CONNECT = true;
+				Parameter.EDNS_Switch_Direct = true;
+			#if defined(ENABLE_LIBSODIUM)
+				Parameter.EDNS_Switch_DNSCurve = true;
+			#endif
+				Parameter.EDNS_Switch_TCP = true;
+				Parameter.EDNS_Switch_UDP = true;
 			}
 		}
 		else {
@@ -887,10 +942,12 @@ bool Parameter_CheckSetting(
 		//Check repeat items.
 			if ((DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.Storage.ss_family != 0 && 
 				DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.Storage.ss_family != 0 && 
-				memcmp(&DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.IPv6.sin6_addr, &DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.IPv6.sin6_addr)) == 0) || 
+				memcmp(&DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.IPv6.sin6_addr, &DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_addr, sizeof(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.IPv6.sin6_addr)) == 0 && 
+				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv6.AddressData.IPv6.sin6_port == DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv6.AddressData.IPv6.sin6_port) || 
 				(DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.Storage.ss_family != 0 && 
 				DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.Storage.ss_family != 0 && 
-				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.IPv4.sin_addr.s_addr == DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr))
+				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.IPv4.sin_addr.s_addr == DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.IPv4.sin_addr.s_addr && 
+				DNSCurveParameter.DNSCurve_Target_Server_Main_IPv4.AddressData.IPv4.sin_port == DNSCurveParameter.DNSCurve_Target_Server_Alternate_IPv4.AddressData.IPv4.sin_port))
 			{
 				PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::PARAMETER, L"DNSCurve target error", 0, FileList_Config.at(FileIndex).FileName.c_str(), 0);
 				return false;

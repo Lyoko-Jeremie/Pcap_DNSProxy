@@ -1,7 +1,7 @@
 ﻿Frequently asked questions
 
 * This document describes common methods for dealing with the problem. When the tool can not be used normally you can refer to this document to find likely solutions to a number of common problems. 
-* For details on the error report, see FAQ (..). Txt
+* For details on the error report, please read FAQ(..).txt.
 
 
 -------------------------------------------------------------------------------

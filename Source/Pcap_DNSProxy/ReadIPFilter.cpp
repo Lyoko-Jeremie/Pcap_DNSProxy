@@ -301,7 +301,9 @@ bool ReadBlacklistData(
 			}
 
 			ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTableTemp);
-			memset(&AddressRangeTableTemp, 0, sizeof(AddressRangeTableTemp));
+			memset(&AddressRangeTableTemp.Begin, 0, sizeof(AddressRangeTableTemp.Begin));
+			memset(&AddressRangeTableTemp.End, 0, sizeof(AddressRangeTableTemp.End));
+			AddressRangeTableTemp.Level = 0;
 		}
 	//A record(IPv4)
 		else if (StringIter.find(ASCII_PERIOD) != std::string::npos)
@@ -382,7 +384,9 @@ bool ReadBlacklistData(
 			}
 
 			ResultBlacklistTableTemp.Addresses.push_back(AddressRangeTableTemp);
-			memset(&AddressRangeTableTemp, 0, sizeof(AddressRangeTableTemp));
+			memset(&AddressRangeTableTemp.Begin, 0, sizeof(AddressRangeTableTemp.Begin));
+			memset(&AddressRangeTableTemp.End, 0, sizeof(AddressRangeTableTemp.End));
+			AddressRangeTableTemp.Level = 0;
 		}
 		else {
 			PrintError(LOG_LEVEL_TYPE::LEVEL_1, LOG_ERROR_TYPE::IPFILTER, L"Data format error", 0, FileList_IPFilter.at(FileIndex).FileName.c_str(), Line);

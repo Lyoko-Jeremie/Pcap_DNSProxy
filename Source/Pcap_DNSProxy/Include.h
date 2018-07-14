@@ -229,7 +229,8 @@ size_t SelectTargetSocketSingle(
 	void * DNSCurvePacketServerType, 
 	void ** const DNSCurvePacketTarget);
 bool SelectTargetSocketMultiple(
-	const uint16_t Protocol, 
+	const uint16_t Protocol_Network, 
+	const uint16_t Protocol_Transport, 
 	const uint16_t QueryType, 
 	const SOCKET_DATA * const LocalSocketData, 
 	std::vector<SOCKET_DATA> &TargetSocketDataList);
@@ -367,9 +368,7 @@ size_t CheckWhiteBannedHostsProcess(
 	const size_t Length, 
 	const HostsTable &HostsTableIter, 
 	dns_hdr * const DNS_Header, 
-	const uint16_t QueryType, 
-	bool * const IsLocalRequest, 
-	bool * const IsLocalInBlack);
+	const uint16_t QueryType);
 size_t CheckHostsProcess(
 	DNS_PACKET_DATA * const PacketStructure, 
 	uint8_t * const Result, 
@@ -467,6 +466,7 @@ size_t TCP_RequestSingle(
 	const SOCKET_DATA * const LocalSocketData);
 size_t TCP_RequestMultiple(
 	const REQUEST_PROCESS_TYPE RequestType, 
+	const uint16_t Protocol_Network, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	uint8_t * const OriginalRecv, 
@@ -484,7 +484,8 @@ size_t UDP_RequestSingle(
 	size_t *EDNS_Length);
 size_t UDP_RequestMultiple(
 	const REQUEST_PROCESS_TYPE RequestType, 
-	const uint16_t Protocol, 
+	const uint16_t Protocol_Network, 
+	const uint16_t Protocol_Transport, 
 	const uint8_t * const OriginalSend, 
 	const size_t SendSize, 
 	const uint16_t QueryType, 

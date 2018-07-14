@@ -411,6 +411,7 @@ HUFFMAN_RETURN_TYPE HPACK_HuffmanEncoding(
 	uint8_t Shift = 0, BitLength = 0;
 	uint64_t Mask = 0, Value = 0, BitQueue = 0;
 	HUFFMAN_NODE Huffman_Node;
+	memset(&Huffman_Node, 0, sizeof(Huffman_Node));
 	size_t _Produced = 0, _Consumed = 0;
 	if (!Produced)
 		Produced = &_Produced;

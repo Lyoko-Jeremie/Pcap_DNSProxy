@@ -679,7 +679,7 @@ bool CaptureNetworkLayer(
 
 	//Get Hop Limits from IPv6 DNS server.
 	//ICMPv6
-		if (Parameter.ICMP_Speed > 0 && IPv6_Header->NextHeader == IPPROTO_ICMPV6 && !IsNeedTruncated && 
+		if (!IsNeedTruncated && Parameter.ICMP_Speed > 0 && IPv6_Header->NextHeader == IPPROTO_ICMPV6 && 
 			ntohs(IPv6_Header->PayloadLength) >= static_cast<size_t>(PayloadOffset) + sizeof(icmpv6_hdr))
 		{
 		//Validate ICMPv6 checksum.
@@ -693,7 +693,7 @@ bool CaptureNetworkLayer(
 		}
 
 	//TCP
-		if (Parameter.PacketCheck_TCP && IPv6_Header->NextHeader == IPPROTO_TCP && !IsNeedTruncated && 
+		if (!IsNeedTruncated && Parameter.PacketCheck_TCP && IPv6_Header->NextHeader == IPPROTO_TCP && 
 			ntohs(IPv6_Header->PayloadLength) >= static_cast<size_t>(PayloadOffset) + sizeof(tcp_hdr))
 		{
 		//Validate TCP checksum.
@@ -737,6 +737,7 @@ bool CaptureNetworkLayer(
 				size_t DataLength = ntohs(IPv6_Header->PayloadLength) - static_cast<size_t>(PayloadOffset) - sizeof(udp_hdr), PacketEDNS_Offset = 0, PacketEDNS_Length = 0;
 				if (!IsNeedTruncated)
 				{
+				//Check response data process.
 					DataLength = CheckResponseData(
 						REQUEST_PROCESS_TYPE::UDP_NORMAL, 
 						const_cast<uint8_t *>(Buffer + sizeof(ipv6_hdr) + static_cast<size_t>(PayloadOffset) + sizeof(udp_hdr)), 
@@ -746,26 +747,26 @@ bool CaptureNetworkLayer(
 						&PacketEDNS_Length);
 					if (DataLength < DNS_PACKET_MINSIZE)
 						return false;
-				}
 
-			//DNS packet check
-				if (Parameter.PacketCheck_DNS)
-				{
-				//DNS header options and data check
-					auto IsRegisterStatus = false;
-					if (!IsNeedTruncated && CaptureCheck_DNS(Buffer + sizeof(ipv6_hdr) + static_cast<size_t>(PayloadOffset) + sizeof(udp_hdr), IsRegisterStatus))
+				//DNS packet check
+					if (Parameter.PacketCheck_DNS)
 					{
-						PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_DynamicMark = IPv6_Header->HopLimit;
+					//DNS header options and data check
+						auto IsRegisterStatus = false;
+						if (CaptureCheck_DNS(Buffer + sizeof(ipv6_hdr) + static_cast<size_t>(PayloadOffset) + sizeof(udp_hdr), IsRegisterStatus))
+						{
+							PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.HopLimit_DynamicMark = IPv6_Header->HopLimit;
 
-					//Mark packet status.
-						if (IsRegisterStatus && CaptureCheck_PacketStatus(AF_INET6, Buffer, sizeof(ipv6_hdr) + static_cast<size_t>(PayloadOffset) + sizeof(udp_hdr), DataLength, PacketEDNS_Offset, PacketEDNS_Length, true, PacketSource))
-							PacketSource->ServerPacketStatus.IsMarkDetail = true;
+						//Mark packet status.
+							if (IsRegisterStatus && CaptureCheck_PacketStatus(AF_INET6, Buffer, sizeof(ipv6_hdr) + static_cast<size_t>(PayloadOffset) + sizeof(udp_hdr), DataLength, PacketEDNS_Offset, PacketEDNS_Length, true, PacketSource))
+								PacketSource->ServerPacketStatus.IsMarkDetail = true;
+						}
+
+					//Packet status check
+						if (!IsRegisterStatus && PacketSource->ServerPacketStatus.IsMarkDetail && 
+							!CaptureCheck_PacketStatus(AF_INET6, Buffer, sizeof(ipv6_hdr) + static_cast<size_t>(PayloadOffset) + sizeof(udp_hdr), DataLength, PacketEDNS_Offset, PacketEDNS_Length, false, PacketSource))
+								return false;
 					}
-
-				//Packet status check
-					if (!IsRegisterStatus && PacketSource->ServerPacketStatus.IsMarkDetail && 
-						!CaptureCheck_PacketStatus(AF_INET6, Buffer, sizeof(ipv6_hdr) + static_cast<size_t>(PayloadOffset) + sizeof(udp_hdr), DataLength, PacketEDNS_Offset, PacketEDNS_Length, false, PacketSource))
-							return false;
 				}
 
 			//Hop Limits value check, it must not a random value.
@@ -778,10 +779,11 @@ bool CaptureNetworkLayer(
 				{
 				//Mark DNS Flags Truncated bit.
 					if (IsNeedTruncated)
+					{
 						const_cast<dns_hdr *>(reinterpret_cast<const dns_hdr *>(Buffer + sizeof(ipv6_hdr) + static_cast<size_t>(PayloadOffset) + sizeof(udp_hdr)))->Flags = htons(ntohs(reinterpret_cast<const dns_hdr *>(Buffer + sizeof(ipv6_hdr) + static_cast<size_t>(PayloadOffset) + sizeof(udp_hdr))->Flags) | DNS_FLAG_GET_BIT_TC);
-
+					}
 				//Calculate EDNS Label options length
-					if (Parameter.PacketCheck_DNS)
+					else if (Parameter.PacketCheck_DNS)
 					{
 						if (PacketEDNS_Length >= sizeof(edns_header))
 							PacketEDNS_Length -= sizeof(edns_header);
@@ -790,7 +792,7 @@ bool CaptureNetworkLayer(
 					}
 
 				//Match port in global list.
-					MatchPortToSend(AF_INET6, Buffer + sizeof(ipv6_hdr) + static_cast<size_t>(PayloadOffset) + sizeof(udp_hdr), DataLength, BufferSize - sizeof(ipv6_hdr) - static_cast<size_t>(PayloadOffset) - sizeof(udp_hdr), UDP_Header->DestinationPort, PacketEDNS_Length);
+					MatchPortToSend(AF_INET6, Buffer + sizeof(ipv6_hdr) + static_cast<size_t>(PayloadOffset) + sizeof(udp_hdr), DataLength, BufferSize - sizeof(ipv6_hdr) - static_cast<size_t>(PayloadOffset) - sizeof(udp_hdr), UDP_Header->DestinationPort, IsNeedTruncated, PacketEDNS_Length);
 					return true;
 				}
 			}
@@ -841,7 +843,7 @@ bool CaptureNetworkLayer(
 
 	//Get TTL from IPv4 DNS server.
 	//ICMP
-		if (Parameter.ICMP_Speed > 0 && IPv4_Header->Protocol == IPPROTO_ICMP && !IsNeedTruncated && 
+		if (!IsNeedTruncated && Parameter.ICMP_Speed > 0 && IPv4_Header->Protocol == IPPROTO_ICMP && 
 			ntohs(IPv4_Header->Length) >= IPv4_Header->IHL * IPV4_IHL_BYTES_SET + sizeof(icmp_hdr))
 		{
 		//Validate ICMP checksum.
@@ -855,7 +857,7 @@ bool CaptureNetworkLayer(
 		}
 
 	//TCP
-		if (Parameter.PacketCheck_TCP && IPv4_Header->Protocol == IPPROTO_TCP && !IsNeedTruncated && 
+		if (!IsNeedTruncated && Parameter.PacketCheck_TCP && IPv4_Header->Protocol == IPPROTO_TCP && 
 			ntohs(IPv4_Header->Length) >= IPv4_Header->IHL * IPV4_IHL_BYTES_SET + sizeof(tcp_hdr))
 		{
 		//Validate TCP checksum.
@@ -899,6 +901,7 @@ bool CaptureNetworkLayer(
 				size_t DataLength = ntohs(IPv4_Header->Length) - IPv4_Header->IHL * IPV4_IHL_BYTES_SET - sizeof(udp_hdr), PacketEDNS_Offset = 0, PacketEDNS_Length = 0;
 				if (!IsNeedTruncated)
 				{
+				//Check response data process.
 					DataLength = CheckResponseData(
 						REQUEST_PROCESS_TYPE::UDP_NORMAL, 
 						const_cast<uint8_t *>(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_SET + sizeof(udp_hdr)), 
@@ -908,26 +911,26 @@ bool CaptureNetworkLayer(
 						&PacketEDNS_Length);
 					if (DataLength < DNS_PACKET_MINSIZE)
 						return false;
-				}
 
-			//DNS packet check
-				if (Parameter.PacketCheck_DNS)
-				{
-				//DNS header options and data check
-					auto IsRegisterStatus = false;
-					if (!IsNeedTruncated && CaptureCheck_DNS(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_SET + sizeof(udp_hdr), IsRegisterStatus))
+				//DNS packet check
+					if (Parameter.PacketCheck_DNS)
 					{
-						PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_DynamicMark = IPv4_Header->TTL;
+					//DNS header options and data check
+						auto IsRegisterStatus = false;
+						if (CaptureCheck_DNS(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_SET + sizeof(udp_hdr), IsRegisterStatus))
+						{
+							PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.TTL_DynamicMark = IPv4_Header->TTL;
 
-					//Mark packet status.
-						if (IsRegisterStatus && CaptureCheck_PacketStatus(AF_INET, Buffer, IPv4_Header->IHL * IPV4_IHL_BYTES_SET + sizeof(udp_hdr), DataLength, PacketEDNS_Offset, PacketEDNS_Length, true, PacketSource))
-							PacketSource->ServerPacketStatus.IsMarkDetail = true;
+						//Mark packet status.
+							if (IsRegisterStatus && CaptureCheck_PacketStatus(AF_INET, Buffer, IPv4_Header->IHL * IPV4_IHL_BYTES_SET + sizeof(udp_hdr), DataLength, PacketEDNS_Offset, PacketEDNS_Length, true, PacketSource))
+								PacketSource->ServerPacketStatus.IsMarkDetail = true;
+						}
+
+					//Packet status check
+						if (!IsRegisterStatus && PacketSource->ServerPacketStatus.IsMarkDetail && 
+							!CaptureCheck_PacketStatus(AF_INET, Buffer, IPv4_Header->IHL * IPV4_IHL_BYTES_SET + sizeof(udp_hdr), DataLength, PacketEDNS_Offset, PacketEDNS_Length, false, PacketSource))
+								return false;
 					}
-
-				//Packet status check
-					if (!IsRegisterStatus && PacketSource->ServerPacketStatus.IsMarkDetail && 
-						!CaptureCheck_PacketStatus(AF_INET, Buffer, IPv4_Header->IHL * IPV4_IHL_BYTES_SET + sizeof(udp_hdr), DataLength, PacketEDNS_Offset, PacketEDNS_Length, false, PacketSource))
-							return false;
 				}
 
 			//TTL value check, it must not a random value.
@@ -940,10 +943,11 @@ bool CaptureNetworkLayer(
 				{
 				//Mark DNS Flags Truncated bit.
 					if (IsNeedTruncated)
+					{
 						const_cast<dns_hdr *>(reinterpret_cast<const dns_hdr *>(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_SET + sizeof(udp_hdr)))->Flags = htons(ntohs(reinterpret_cast<const dns_hdr *>(Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_SET + sizeof(udp_hdr))->Flags) | DNS_FLAG_GET_BIT_TC);
-					
-				//Calculate EDNS Label options length
-					if (Parameter.PacketCheck_DNS)
+					}
+				//Calculate EDNS Label options length.
+					else if (Parameter.PacketCheck_DNS)
 					{
 						if (PacketEDNS_Length >= sizeof(edns_header))
 							PacketEDNS_Length -= sizeof(edns_header);
@@ -952,7 +956,7 @@ bool CaptureNetworkLayer(
 					}
 
 				//Match port in global list.
-					MatchPortToSend(AF_INET, Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_SET + sizeof(udp_hdr), DataLength, BufferSize - IPv4_Header->IHL * IPV4_IHL_BYTES_SET - sizeof(udp_hdr), UDP_Header->DestinationPort, PacketEDNS_Length);
+					MatchPortToSend(AF_INET, Buffer + IPv4_Header->IHL * IPV4_IHL_BYTES_SET + sizeof(udp_hdr), DataLength, BufferSize - IPv4_Header->IHL * IPV4_IHL_BYTES_SET - sizeof(udp_hdr), UDP_Header->DestinationPort, IsNeedTruncated, PacketEDNS_Length);
 					return true;
 				}
 			}
@@ -1139,7 +1143,7 @@ bool CaptureCheck_ICMP(
 		(Protocol == AF_INET && 
 	//ICMP echo reply
 		reinterpret_cast<const icmp_hdr *>(Buffer)->Type == ICMP_TYPE_ECHO && 
-		reinterpret_cast<const icmpv6_hdr *>(Buffer)->Code == ICMP_CODE_ECHO && 
+		reinterpret_cast<const icmp_hdr *>(Buffer)->Code == ICMP_CODE_ECHO && 
 	//Validate ICMP ID.
 		reinterpret_cast<const icmp_hdr *>(Buffer)->ID == Parameter.ICMP_ID && 
 	//Validate ICMP additional data.
@@ -1275,15 +1279,24 @@ bool CaptureCheck_PacketStatus(
 	//IPv6
 		if (Protocol == AF_INET6)
 		{
-			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.VersionTrafficFlow = reinterpret_cast<const ipv6_hdr *>(Buffer)->VersionTrafficFlow;
+		//Version and Traffic Class bits
+			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.VersionTrafficClass = htonl(ntohl(reinterpret_cast<const ipv6_hdr *>(Buffer)->VersionTrafficFlow) & IPV6_VTF_GET_BIT_SERVER_FIXED);
+		//Flow Label
+			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.FlowLabel = htonl(ntohl(reinterpret_cast<const ipv6_hdr *>(Buffer)->VersionTrafficFlow) & IPV6_VTF_GET_BIT_FLOW_LABEL);
 		}
 	//IPv4
 		else if (Protocol == AF_INET)
 		{
+		//Version
+			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.Version = reinterpret_cast<const ipv4_hdr *>(Buffer)->Version;
+		//IHL/Internet Header Length
 			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.IHL = reinterpret_cast<const ipv4_hdr *>(Buffer)->IHL;
+		//DSCP/Differentiated Services Code Point and ECN/Explicit Congestion Notification
 			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.DSCP_ECN = reinterpret_cast<const ipv4_hdr *>(Buffer)->DSCP_ECN;
+		//Identification
 			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.ID = reinterpret_cast<const ipv4_hdr *>(Buffer)->ID;
-			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.Flags = htons(ntohs(reinterpret_cast<const ipv4_hdr *>(Buffer)->Flags) & (~IPV4_FLAG_GET_BIT_MF));
+		//Reserved and Don't Fragment in Flags
+			PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.Flags = htons(ntohs(reinterpret_cast<const ipv4_hdr *>(Buffer)->Flags) & IPV4_FLAG_GET_BIT_RES_DF);
 		}
 		else {
 			return false;
@@ -1322,17 +1335,29 @@ bool CaptureCheck_PacketStatus(
 	//IPv6
 		if (Protocol == AF_INET6)
 		{
-			if (PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.VersionTrafficFlow != reinterpret_cast<const ipv6_hdr *>(Buffer)->VersionTrafficFlow)
-				return false;
+			if (
+			//Version and Traffic Class check
+				PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.VersionTrafficClass != htonl(ntohl(reinterpret_cast<const ipv6_hdr *>(Buffer)->VersionTrafficFlow) & IPV6_VTF_GET_BIT_SERVER_FIXED) || 
+			//Flow Label check
+				(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.FlowLabel == 0 && htonl(ntohl(reinterpret_cast<const ipv6_hdr *>(Buffer)->VersionTrafficFlow) & IPV6_VTF_GET_BIT_FLOW_LABEL) > 0) || 
+				(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv6_HeaderStatus.FlowLabel > 0 && htonl(ntohl(reinterpret_cast<const ipv6_hdr *>(Buffer)->VersionTrafficFlow) & IPV6_VTF_GET_BIT_FLOW_LABEL) == 0))
+					return false;
 		}
 	//IPv4
 		else if (Protocol == AF_INET)
 		{
-			if (PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.IHL != reinterpret_cast<const ipv4_hdr *>(Buffer)->IHL || 
+			if (
+			//Version check
+				PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.Version != reinterpret_cast<const ipv4_hdr *>(Buffer)->Version || 
+			//IHL/Internet Header Length check
+				PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.IHL != reinterpret_cast<const ipv4_hdr *>(Buffer)->IHL || 
+			//DSCP/Differentiated Services Code Point and ECN/Explicit Congestion Notification check
 				PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.DSCP_ECN != reinterpret_cast<const ipv4_hdr *>(Buffer)->DSCP_ECN || 
-				PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.Flags != htons(ntohs(reinterpret_cast<const ipv4_hdr *>(Buffer)->Flags) & (~IPV4_FLAG_GET_BIT_MF)) || 
+			//Identification check
 				(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.ID == 0 && reinterpret_cast<const ipv4_hdr *>(Buffer)->ID > 0) || 
-				(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.ID > 0 && reinterpret_cast<const ipv4_hdr *>(Buffer)->ID == 0))
+				(PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.ID > 0 && reinterpret_cast<const ipv4_hdr *>(Buffer)->ID == 0) || 
+			//Reserved and Don't Fragment in Flags check
+				PacketSource->ServerPacketStatus.NetworkLayerStatus.IPv4_HeaderStatus.Flags != reinterpret_cast<const ipv4_hdr *>(Buffer)->Flags)
 					return false;
 		}
 		else {
@@ -1350,6 +1375,7 @@ bool MatchPortToSend(
 	const size_t Length, 
 	const size_t BufferSize, 
 	const uint16_t Port, 
+	const bool IsNeedTruncated, 
 	const size_t EDNS_Length_Output)
 {
 //Initialization
@@ -1382,8 +1408,9 @@ bool MatchPortToSend(
 				else {
 				//EDNS options check
 				//EDNS Label options are exist in input packet rather than output packet.
-					if (Parameter.PacketCheck_DNS && PortTableIter.EDNS_Length >= sizeof(edns_header) && 
-						PortTableIter.EDNS_Length - sizeof(edns_header) != 0 && EDNS_Length_Output == 0)
+					if (!IsNeedTruncated && Parameter.PacketCheck_DNS && 
+						PortTableIter.EDNS_Length >= sizeof(edns_header) && PortTableIter.EDNS_Length - sizeof(edns_header) != 0 && 
+						EDNS_Length_Output == 0)
 							return false;
 
 				//Copy socket data from global list.
@@ -1420,8 +1447,9 @@ StopLoop:
 				{
 				//EDNS options check
 				//EDNS Label options are exist in input packet rather than output packet.
-					if (Parameter.PacketCheck_DNS && PortTableIter.EDNS_Length >= sizeof(edns_header) && 
-						PortTableIter.EDNS_Length - sizeof(edns_header) != 0 && EDNS_Length_Output == 0)
+					if (!IsNeedTruncated && Parameter.PacketCheck_DNS && 
+						PortTableIter.EDNS_Length >= sizeof(edns_header) && PortTableIter.EDNS_Length - sizeof(edns_header) != 0 && 
+						EDNS_Length_Output == 0)
 							return false;
 
 				//Copy socket data from global list.

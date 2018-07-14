@@ -10,14 +10,14 @@
 ## Files
 
 * `#Routingipv4#`
-  IPv4 database cache
+  IPv4 database cache.
 * `#Routingipv6#`
-  IPv6 database cache
+  IPv6 database cache.
 * `delegated-apnic-latest`
-  Original APNIC database
+  Original APNIC database.
 * `Log_Lib`
-  IPv4 netmask to IPv4 prefix length conversion library
+  IPv4 netmask to IPv4 prefix length conversion library.
 * `latest` folder
-  Cache folder
+  Cache folder.
 * `Routing.txt`
-  The output file
+  The output file.
